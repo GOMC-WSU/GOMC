@@ -1,0 +1,10 @@
+# Change Log
+All notable changes to this project will be documented in this file.
+
+## [0.97] - 4/11/2015
+
++ Added support for grand canonical ensemble.
++ Fixed calculation of angular weights for branched molecules coupled-decoupled configuration bias algorithm.
++ Improved move adjustments for better targeting of desired acceptance rate.
++ Various minor bug fixes for fringe conditions.
++ Improvements to I/O handling, inclusion of new output types relating to grand canonical ensemble (fluctuations, energy/particle samples, and distribution of molecule counts).
