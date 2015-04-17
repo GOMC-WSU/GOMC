@@ -1,0 +1,128 @@
+* Parameter file for GO-MC
+* Parameters include TraPPE-UA with Fluoroalkane expansions;
+* plus '89 work by Panagiotopolous on noble gases.
+*
+* Mie potentials, TraPPE 4 alkene dihedral, and Fluoroalkane
+* power series constants are in separate "exotic" config file.
+*
+* Latest edit: 7/8/2013
+*
+*
+
+BONDS
+!
+!V(bond) = Kb(b - b0)**2
+!
+!Kb: kcal/mole/A**2
+!b0: A
+!
+! Kb (kcal/mol) = Kb (K) * Boltz. const.; (9999999999 if no stretching)
+!
+!atom type     Kb              b0        description
+CH3 CH3        9999999999      1.540   ! TraPPE 1
+CH3 CH2        9999999999      1.540   ! TraPPE 1
+CH3 CH1        9999999999      1.540   ! TraPPE 2
+CH3 CT         9999999999      1.540   ! TraPPE 1
+CH2 CH2        9999999999      1.540   ! TraPPE 2
+CH2 CH1        9999999999      1.540   ! TraPPE 2
+CH2 CT         9999999999      1.540   ! TraPPE 2
+CH1 CH1        9999999999      1.540   ! TraPPE 2
+CH1 CT         9999999999      1.540   ! TraPPE 2
+CT  CT         9999999999      1.540   ! TraPPE 2
+EC4 EHE        9999999999      1.100   ! TraPPE 3 explicit hydrogen
+EC3 EHE        9999999999      1.100   ! TraPPE 3 explicit hydrogen
+EC3 EC3        9999999999      1.535   ! TraPPE 3 explicit hydrogen
+
+
+ANGLES
+!
+!V(angle) = Ktheta(Theta - Theta0)**2
+!
+!V(Urey-Bradley) = Kub(S - S0)**2
+!
+!Ktheta: kcal/mole/rad**2
+!Theta0: degrees
+!Kub: kcal/mole/A**2 (Urey-Bradley)
+!S0: A
+!
+! Ktheta (kcal/mol) = Ktheta (K) * Boltz. const.
+!
+!atom types         Ktheta       Theta0   Kub(?)  S0(?)
+CH3 CT  CH3         31250       109.47 ! ''
+CH3 CT  CH2         31250       109.47 ! ''
+CH3 CH1 CH3         31250        112.00 ! TraPPE 2
+CH3 CH1 CH2         31250        112.00 ! ''
+CH3 CH1 CH1         31250        112.00 ! ''
+CH2 CH1 CH2         31250        112.00 ! TraPPE 2
+CH2 CH1 CH1         31250        112.00 ! TraPPE 2
+CH3 CH2 CH3         31250        114.00 ! TraPPE 2
+CH3 CH2 CH2         31250        114.00 ! TraPPE 1
+CH3 CH2 CH1         31250        114.00 ! TraPPE 2
+CH2 CH2 CH2         31250        114.00 ! TraPPE 1
+CH2 CH2 CH1         31250        114.00 ! TraPPE 2
+CH2 CH2 CT          31250        114.00 ! TraPPE 1
+CH2 CH2 CT          31250        114.00 ! TraPPE 
+EHE EC4 EHE         31250        107.80 ! TraPPE 3 EXPLICIT HYDROGEN
+EHE EC3 EHE         31250        107.80 ! TraPPE 3 EXPLICIT HYDROGEN
+EC3 EC3 EHE         31250        110.70 ! TraPPE 3 EXPLICIT HYDROGEN
+
+
+DIHEDRALS
+!
+!V(dihedral) = Kchi(1 + cos(n(chi) - delta))
+!
+!Kchi: kcal/mole
+!n: multiplicity
+!delta: degrees
+!
+! Kchi (kcal/mol) = Kchi (K) * Boltz. const.
+! Boltzmann = 0.0019872041 kcal / (mol * K)
+!atom types         Kchi        n    delta              description
+X   CH2 CH2 X         0.000000    0      0.0              ! TraPPE 2
+X   CH2 CH2 X       355.029964    1      0.0              ! TraPPE 2
+X   CH2 CH2 X       -68.189775    2    180.0              ! TraPPE 2
+X   CH2 CH2 X       791.317812    3      0.0              ! TraPPE 2
+X   CH2 CH1 X      -251.059767    0      0.0              ! TraPPE 2
+X   CH2 CH1 X       428.729993    1      0.0              ! TraPPE 2
+X   CH2 CH1 X      -111.850111    2    180.0              ! TraPPE 2
+X   CH2 CH1 X       441.270224    3      0.0              ! TraPPE 2
+X   CH1 CH1 X      -251.059767    0      0.0              ! TraPPE 2
+X   CH1 CH1 X       428.729993    1      0.0              ! TraPPE 2
+X   CH1 CH1 X      -111.850111    2    180.0              ! TraPPE 2
+X   CH1 CH1 X       441.270224    3      0.0              ! TraPPE 2
+X   CT  CH2 X       461.289809    3      0.0              ! TraPPE 2
+EHE EC3 EC3 EHE     717.000000    3   -180.0              ! TraPPE 3
+
+NONBONDED_MIE
+!
+!V(mie) = 4*eps*((sig_ij/r_ij)^n-(sig_ij/r_ij)^6)
+!
+!atom   eps          sig_ij     n    description
+!CH4     148.00       3.730      12   ! TraPPE 2
+!CH3      98.00       3.750      12   ! TraPPE 2
+!CH2      46.00       3.950      12   ! TraPPE 2
+!CH1      10.00       4.680      12   ! TraPPE 2
+!CT        0.50       6.400      12   ! TraPPE 2
+!EC4       0.010      3.310      12   ! TraPPE 3, EXPLICIT METHANE C
+!EC3       4.000      3.300      12   ! TraPPE 3, EXPLICIT METHYL  C
+!EHE      15.300      3.310      12   ! TraPPE 3, EXPLICIT HYDROGEN
+CH4     161.00       3.740      14   ! Potoff, et al. '09
+CH3     121.25       3.783      16   ! Potoff, et al. '09
+CH2      61.00       3.990      16   ! Potoff, et al. '09
+CH1      15.00       4.700      16   ! Potoff, Branch
+CT        1.30       6.220      16   ! Potoff, Branch
+XE      244.00       3.960      14   ! Potoff, m7 of 8
+!XE      222.30       4.099      12   ! SHERWOOD 1964
+!NE       36.68       2.790      12   ! M.K. BALASUBRAMANYA
+!AR      120.00       3.380      12   ! M.K. BALASUBRAMANYA
+!KR      171.00       3.600      12   ! M.K. BALASUBRAMANYA
+!XE      221.00       4.100      12   ! M.K. BALASUBRAMANYA
+!KR      166.400      3.6360     12   ! Myers 2001 --> 1004
+!KR      172.672      3.5910     12   ! Beattie and Barrault '52 --> 1005
+!AR      120.00       3.400      12   ! Rahman '64  --> 1004
+!AR      119.8        3.405      12   ! Michels 1949, Rowley & Parsonage '75
+!NE       36.76       2.740      12   ! Brown '66 Hansen '68  --> 1004
+!NE       35.60       2.740      12   ! de Boer, Michels '38 --> 1005
+!NE       37.291      2.782      12   !Ramirez and Herrero --> 1006
+!NE       35.68       2.7616     12   ! Georgescu & Mandelshtam --> 1007
+!XE      230.56       3.9964     12   ! Aziz
