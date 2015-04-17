@@ -1,0 +1,63 @@
+GOMC - GPU Optimized Monte Carlo
+
+
+BUILDING GOMC:
+
+   Building GOMC requires cmake, available at http://www.cmake.org and in most
+   Linux package repositories (as cmake)
+   It's strongly recommended that you use a separate folder to build GOMC in.
+
+   To build GOMC from the command line: 
+   Navigate to your build folder in a terminal and do
+      
+      cmake PATH
+      make
+
+   where PATH is the path to the GOMC root folder (usually this folder)
+
+   To build GOMC on Windows:
+   Open the CMake-gui, set the Source Folder to the GOMC root folder, set the
+   Build Folder to your Build Folder.
+   Click configure, select your compiler/environment, wait for CMake to finish 
+   configuration, Click configure again, and click generate.
+   CMake will generate a project/solution etc. for your selected development
+   environment in the build folder. Build GOMC as you would any other executable.
+
+   (You can also use cmake from the Windows command line if you add it you your
+   PATH environment variable.)
+
+CONFIGURING CMAKE:
+   CMake has a ridiculously expansive set of options, so this document will
+   only reproduce the most obviously relevant ones.
+   When possible, options should be passed into CMake via command line options
+   rather than the CMake.txt file.
+
+   SET BUILD MODE:
+
+      -DCMAKE_BUILD_TYPE=BuildType
+
+      where BuildType is one of:
+         None
+         Debug
+         Release (default)
+         ReleaseWithDebInfo
+         MinSizeRel
+
+
+   SET ENSEMBLES:
+
+      -DENSEMBLE_GEMC=Switch
+      -DENSEMBLE_NVT=Switch
+
+      where Switch is On or Off.
+      CMake will prepare build rules for all ensmbles that are On.
+
+
+   SET COMPILER:
+
+      -DCMAKE_CXX_COMPILER=Compiler
+
+      where Compiler is a valid compiler name or full path. If this is 
+      omitted, CMake will select your default C++ compiler (usually gcc)
+
+
