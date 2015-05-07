@@ -1,6 +1,11 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [0.971] - 5/6/2015
++ Cleaning directories of unused folders in GOMC serial. 
++ Adding missing CMAKE files for GOMC serial.
++ Updating test systems to be compatible with the new input formats.
+
 ## [0.97] - 4/11/2015
 
 + Added support for grand canonical ensemble.

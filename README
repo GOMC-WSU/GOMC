@@ -1,30 +1,33 @@
 GOMC - GPU Optimized Monte Carlo
 
 
-BUILDING GOMC:
+BUILDING GOMC ON LINUX:
 
-   Building GOMC requires cmake, available at http://www.cmake.org and in most
-   Linux package repositories (as cmake)
-   It's strongly recommended that you use a separate folder to build GOMC in.
+   If this is the
+   1. In the base (serial code) directory type "./metamake.sh"
+   2. Go to the "bin" subdirectory
+   3. Type "make" to initiate the build process.
 
-   To build GOMC from the command line: 
-   Navigate to your build folder in a terminal and do
-      
-      cmake PATH
-      make
+   NOTES:   
+      Building GOMC requires cmake, available at http://www.cmake.org and
+      in most Linux package repositories (as cmake).
 
-   where PATH is the path to the GOMC root folder (usually this folder)
+BUILDING GOMC ON WINDOWS:
 
-   To build GOMC on Windows:
-   Open the CMake-gui, set the Source Folder to the GOMC root folder, set the
-   Build Folder to your Build Folder.
-   Click configure, select your compiler/environment, wait for CMake to finish 
-   configuration, Click configure again, and click generate.
-   CMake will generate a project/solution etc. for your selected development
-   environment in the build folder. Build GOMC as you would any other executable.
+   1. Open the Windows-compatible CMake GUI.
+   2. Set the Source Folder to the GOMC root folder.
+   3. Set the build Folder to your Build Folder.
+   4. Click configure, select your compiler/environment
+   5. Wait for CMake to finish the configuration.
+   6. Click configure again and click generate.
+   7. Open the CMake-generated project/solution etc. to the desired IDE
+      (e.g Visual Studio).
+   8. Using the solution in the IDE of choice build GOMC per the IDE's
+      standard release compilation/executable generation methods.
 
-   (You can also use cmake from the Windows command line if you add it you your
-   PATH environment variable.)
+   NOTES:
+      You can also use CMake from the Windows command line if its directory is
+      added to the PATH environment variable.
 
 CONFIGURING CMAKE:
    CMake has a ridiculously expansive set of options, so this document will
@@ -34,30 +37,49 @@ CONFIGURING CMAKE:
 
    SET BUILD MODE:
 
-      -DCMAKE_BUILD_TYPE=BuildType
+      -DCMAKE_BUILD_TYPE=<None|Debug|Release|ReleaseWithDebInfo|MinSizeRel>
 
-      where BuildType is one of:
-         None
-         Debug
-         Release (default)
-         ReleaseWithDebInfo
-         MinSizeRel
+      NOTES:
+         Typically it is advised to build in "Release" mode.
 
+      	 If bugs are encountered or if a modification is being tested, please
+      	 compile in "Debug" mode, which includes the debug symbols which can
+      	 be used with gdb and valgrind to track errors.
+      
+	 The debugging code is MUCH slower than the release code (as debugger
+      	 compiled codes typically are).  Be advised to check that you're
+      	 compiling in "Release" build mode if the code seems slow.
 
    SET ENSEMBLES:
 
-      -DENSEMBLE_GEMC=Switch
-      -DENSEMBLE_NVT=Switch
+      -DENSEMBLE_GEMC=<On|Off>
+      -DENSEMBLE_NVT=<On|Off>
+      -DENSEMBLE_GCMC=<On|Off>
 
-      where Switch is On or Off.
-      CMake will prepare build rules for all ensmbles that are On.
+      NOTES:
+         CMake will prepare build rules for all ensembles that are On.
 
+      	 To build all ensembles simply leave them at their default
+      	 value ("On").
+      
+	 GEMC includes both GEMC-NVT and GEMC-NPT implementations, which
+      	 are switchable via the configuration file.
+
+      	 The GEMC-NPT implementation can be used as an NPT ensemble code if the
+      	 molecule transfer move is switched off.
 
    SET COMPILER:
 
       -DCMAKE_CXX_COMPILER=Compiler
 
       where Compiler is a valid compiler name or full path. If this is 
-      omitted, CMake will select your default C++ compiler (usually gcc)
+      omitted, CMake will select your default C++ compiler (usually gcc).
+
+      NOTES:
+      
+         It is recommended to use the Intel Compiler and linking
+      	 tools (icc/icpc/etc.).  They significantly outperform the default
+      	 GNU compiler tools and are available for free for academic use
+      	 with registration.
 
 
