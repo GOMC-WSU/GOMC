@@ -44,7 +44,7 @@ set(GE_flags "-DENSEMBLE=2")
 set(GE_name "GOMC_Serial_GEMC")
 
 #NVT (Canonical) Ensemble
-set(NVT_flags "-DENSUMBLE=1")
+set(NVT_flags "-DENSEMBLE=1")
 set(NVT_name "GOMC_Serial_NVT")
 
 add_subdirectory(src)
