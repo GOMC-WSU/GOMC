@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -22,26 +22,20 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBSetup.h" //For atoms class.
 #include "BoxDimensions.h" //For BOXES_WITH_VOLUME
 
+#include <limits> //for std::numeric_limits
+
 class System;
 
 struct BlockAverage
 {
    BlockAverage(): enable(false), block(NULL), uintSrc(NULL), dblSrc(NULL) {}
    
-   ~BlockAverage() 
-   { 
-      if (dblSrc != NULL)
-      {
-	 delete[] dblSrc;
-      }
-      if (uintSrc != NULL)
-      {
-	 delete[] uintSrc;
-      }
-      if (block != NULL)
-      {
-	 delete[] block;
-      }
+	~BlockAverage() 
+	{ 
+		if (outF.is_open()) { outF.close(); }
+		if (dblSrc != NULL) { delete[] dblSrc; }
+		if (uintSrc != NULL) { delete[] uintSrc; }
+		if (block != NULL) { delete[] block; }
    }
 
    //Initializes name, and enable
@@ -51,7 +45,11 @@ struct BlockAverage
 
    //Set one of the pointers to the block values we're tracking
    void SetRef(double * loc, const uint b) 
-   { dblSrc[b] = loc; uintSrc[b] = NULL; }
+   {
+      dblSrc[b] = loc;
+      uintSrc[b] = NULL;
+      outF << std::setprecision(std::numeric_limits<double>::digits10+2) << std::setw(25);
+   }
    void SetRef(uint * loc, const uint b) 
    { uintSrc[b] = loc; dblSrc[b] = NULL; }
 
@@ -89,9 +87,7 @@ struct BlockAverage
 
 struct BlockAverages : OutputableBase
 {
-   BlockAverages(OutputVars & v){ this->var = &v; }
-   
-   ~BlockAverages(void) { if ( blocks != NULL ) delete[] blocks; }
+   BlockAverages(OutputVars & v){ this->var = &v; blocks = NULL; }
    
    //No additional init.
    virtual void Init(pdb_setup::Atoms const& atoms,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -41,7 +41,7 @@ namespace cbmc
    }
 
    void DCSingle::BuildNew(TrialMol& newMol, uint molIndex)
-   { 
+   {
       PRNG& prng = data->prng;
       XYZArray& positions = data->positions;
       uint nLJTrials = data->nLJTrialsFirst;
@@ -56,12 +56,11 @@ namespace cbmc
 
       double stepWeight = 0;
       for (uint trial = 0; trial < nLJTrials; ++trial)
-      {   //printf("trail energy=%f\n", inter[trial]);
+      {
          ljWeights[trial] = exp(-1 * data->ff.beta * inter[trial]);
          stepWeight += ljWeights[trial];
       }
       uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
-	  // printf("CPU trial winner=%f\n", inter[winner]);
       newMol.MultWeight(stepWeight);
       newMol.AddEnergy(Energy(0, 0, inter[winner]));
       newMol.AddAtom(atom, positions[winner]);

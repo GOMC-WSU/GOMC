@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -7,13 +7,13 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "DCDiatomic.h"
 
-#include "../MolSetup.h"
+#include "MolSetup.h"
 #include "DCData.h"
-#include "../PRNG.h"
+#include "PRNG.h"
 #include "TrialMol.h"
-#include "../Forcefield.h"
-#include "../CalculateEnergy.h"
-#include "../EnergyTypes.h"
+#include "Forcefield.h"
+#include "CalculateEnergy.h"
+#include "EnergyTypes.h"
 #include <cmath>
 
 namespace cbmc{
@@ -47,7 +47,7 @@ namespace cbmc{
       double* inter = data->inter;
       double stepWeight = 0;
       data->axes.WrapPBC(positions, oldMol.GetBox());
-      data->calc.ParticleInter(inter,positions,first,   molIndex,
+      data->calc.ParticleInter(first, positions, inter, molIndex,
 			       oldMol.GetBox(), nLJTrials);
       for (uint trial = 0; trial < nLJTrials; ++trial)
       {
@@ -63,7 +63,7 @@ namespace cbmc{
 
       stepWeight = 0;
       data->axes.WrapPBC(positions, oldMol.GetBox());
-      data->calc.ParticleInter(inter, positions,second,  molIndex,
+      data->calc.ParticleInter(second, positions, inter, molIndex,
 			       oldMol.GetBox(), nLJTrials);
       for (uint trial = 0; trial < nLJTrials; trial++)
       {
@@ -75,7 +75,7 @@ namespace cbmc{
    }
 
    void DCDiatomic::BuildNew(TrialMol& newMol, uint molIndex)
-   {   
+   {
       PRNG& prng = data->prng;
       XYZArray& positions = data->positions;
       double beta = data->ff.beta;
@@ -86,7 +86,7 @@ namespace cbmc{
       prng.FillWithRandom(positions, nLJTrials,
 			  data->axes.GetAxis(newMol.GetBox()));
       data->axes.WrapPBC(positions, newMol.GetBox());
-      data->calc.ParticleInter(inter, positions,first,  molIndex,
+      data->calc.ParticleInter(first, positions, inter, molIndex,
 			       newMol.GetBox(), nLJTrials);
 
       double stepWeight = 0;
@@ -103,7 +103,7 @@ namespace cbmc{
       prng.FillWithRandomOnSphere(positions, nLJTrials, bondLength,
 				  newMol.AtomPosition(first));
       data->axes.WrapPBC(positions, newMol.GetBox());
-      data->calc.ParticleInter(inter, positions,second,  molIndex,
+      data->calc.ParticleInter(second, positions, inter, molIndex,
 			       newMol.GetBox(), nLJTrials);
 
       stepWeight = 0;

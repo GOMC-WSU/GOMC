@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -22,6 +22,7 @@ namespace ff_setup
 {
    extern const double KCAL_PER_MOL_TO_K; //503.21959899;
    extern const double RIJ_OVER_2_TO_SIG; //1.7817974362807;
+   extern const double RIJ_TO_SIG; //0.890898718
 
    struct FFBase : SearchableBase
    {
@@ -62,6 +63,34 @@ namespace ff_setup
       void PrintBrief();
 #endif
    };
+
+struct NBfix : ReadableBaseWithFirst, FFBase
+   {
+     std::vector<double> sigma, epsilon, sigma_1_4, epsilon_1_4;
+#ifdef MIE_INT_ONLY
+     std::vector<uint> n, n_1_4;
+#else
+     std::vector<double> n, n_1_4;
+#endif
+
+      NBfix() : FFBase(2) {}
+
+      virtual void Read(Reader & param, std::string const& firstVar);
+      void Add(double e, double s,
+#ifdef MIE_INT_ONLY
+const uint expN,
+#else
+const double expN,
+#endif
+	       double e_1_4, double s_1_4,
+#ifdef MIE_INT_ONLY
+const uint expN_1_4
+#else
+const double expN_1_4
+#endif
+	       );
+   };
+
 
    struct Bond : ReadableBaseWithFirst, FFBase
    {
@@ -127,13 +156,14 @@ namespace ff_setup
 struct FFSetup
 {
    ff_setup::Particle mie;
+   ff_setup::NBfix nbfix;
    ff_setup::Bond bond;
    ff_setup::Angle angle;
    ff_setup::Dihedral dih;
    ff_setup::Improper imp;
 
    FFSetup(void) {}
-   void Init(std::string const& name, const bool isCHARMM);
+   void Init(std::string const& fileName, const bool isCHARMM);
 
  private:  
    //Map variable names to functions 

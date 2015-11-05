@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -13,6 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "../lib/BasicTypes.h" //For "uint"
 #include "../lib/VectorLib.h" //For transfer vect --> array function
 #include "../lib/NumLib.h" //For "Sq" function
+#include <math.h>
 
 class FFAngles
 {
@@ -28,7 +29,7 @@ class FFAngles
 	       PRNG & prng, const uint angKind, const uint numTrials,
 	       const uint numPicksPerTrial, const double beta) const;
 
-   double Calc(const uint kind, const double ang) const
+   virtual double Calc(const uint kind, const double ang) const
    { return (Ktheta[kind] * num::Sq(ang-theta0[kind])); }
 
    void Init(ff_setup::Angle const& angle)
@@ -38,10 +39,16 @@ class FFAngles
       theta0 = vect::transfer(angle.theta0);
    }
 
- private:
+ protected:
    double * Ktheta, * theta0;
    uint count;
 };
 
+class FFAngleMartini : public FFAngles
+{
+   virtual double Calc(const uint kind, const double ang) const
+   { return (Ktheta[kind] * num::Sq(cos(ang)-cos(theta0[kind]))); }
+
+};
 #endif /*FF_ANGLES_H*/
 

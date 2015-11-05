@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -19,6 +19,11 @@ class COM : public XYZArray
 {
  public:
 
+  //void operator=(const COM& b) 
+  COM& operator=(const COM& b)	 
+  {
+    this->XYZArray::operator=(b); return *this;
+  }
    //Declare a set of coordinates with no data (but must have proper frame
    //of reference).
    COM(BoxDimensions & box, XYZArray & coordinates, MoleculeLookup & molLook,

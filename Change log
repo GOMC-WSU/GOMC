@@ -1,10 +1,16 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [1.0] - 10/18/2015
++ Changes for input file system.
++ Added Cell list optimization to the GPU and the Serial code.
+
+## [0.972] - 5/11/2015
++ Fixes for PDB output for NVT in the GPU code.
+
 ## [0.971] - 5/6/2015
-+ Cleaning directories of unused folders in GOMC serial. 
-+ Adding missing CMAKE files for GOMC serial.
-+ Updating test systems to be compatible with the new input formats.
++ Added missing CMAKE files for GOMC serial.
++ Updates to the test systems to be compatible with the new input formats.
 
 ## [0.97] - 4/11/2015
 

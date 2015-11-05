@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -102,7 +102,7 @@ namespace mv
    const uint COUNT = 2;
    const uint SCALEABLE = 2;
 #elif ENSEMBLE == GCMC
-   const uint COUNT = 3;
+   const uint COUNT = 4;
    const uint SCALEABLE = 2;
 #elif ENSEMBLE == GEMC
    const uint COUNT = 8;

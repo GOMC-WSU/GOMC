@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -102,10 +102,10 @@ namespace mol_setup {
     */
    int ReadCombinePSF(MolMap& kindMap, const std::string* psfFilename,
 		      const int numFiles);
-#ifndef NDEBUG
+
    void PrintMolMapVerbose(const MolMap& kindMap);
    void PrintMolMapBrief(const MolMap& kindMap);
-#endif
+
 }
 
 //wrapper struct for consistent interface

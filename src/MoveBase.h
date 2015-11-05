@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -32,7 +32,11 @@ class MoveBase
       sysPotRef(sys.potential),
       calcEnRef(sys.calcEnergy), comCurrRef(sys.com), 
       coordCurrRef(sys.coordinates), prng(sys.prng), molRef(statV.mol), 
-      BETA(statV.forcefield.beta) {}
+      BETA(statV.forcefield.beta)
+#ifdef CELL_LIST
+      , cellList(sys.cellList), molRemoved(false)
+#endif
+   {}
 
     //Based on the random draw, determine the move kind, box, and 
     //(if necessary) molecule kind.
@@ -61,6 +65,10 @@ class MoveBase
     BoxDimensions & boxDimRef;
     Molecules const& molRef;
     const double BETA;
+#ifdef CELL_LIST
+    CellList& cellList;
+    bool molRemoved;
+#endif
 };
 
 //Data needed for transforming a molecule's position via inter or intrabox 
@@ -136,10 +144,12 @@ inline uint Translate::Transform()
 }
 
 inline void Translate::CalcEn()
-{ inter = calcEnRef.MoleculeInter(newMolPos, m, b, &newCOM);
-
-
-
+{
+#ifdef CELL_LIST
+   cellList.RemoveMol(m, b, coordCurrRef);
+   molRemoved = true;
+#endif
+   inter = calcEnRef.MoleculeInter(newMolPos, m, b, &newCOM);
 }
 
 inline void Translate::Accept(const uint rejectState, const uint step)
@@ -161,7 +171,14 @@ inline void Translate::Accept(const uint rejectState, const uint step)
       newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);	       
       comCurrRef.Set(m, newCOM);
    }
-    subPick = mv::GetMoveSubIndex(mv::DISPLACE, b);
+#ifdef CELL_LIST
+   if (molRemoved)
+   {
+     cellList.AddMol(m, b, coordCurrRef);
+     molRemoved = false;
+   }
+#endif
+   subPick = mv::GetMoveSubIndex(mv::DISPLACE, b);
    moveSetRef.Update(result, subPick, step); 
 }
 
@@ -201,7 +218,13 @@ inline uint Rotate::Transform()
 }
 
 inline void Rotate::CalcEn()
-{ inter = calcEnRef.MoleculeInter(newMolPos, m, b); }
+{
+#ifdef CELL_LIST
+   cellList.RemoveMol(m, b, coordCurrRef);
+   molRemoved = true;
+#endif
+   inter = calcEnRef.MoleculeInter(newMolPos, m, b);
+}
 
 inline void Rotate::Accept(const uint rejectState, const uint step)
 {
@@ -222,6 +245,13 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
       //Copy coords
       newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);
    }
+#ifdef CELL_LIST
+   if (molRemoved)
+   {
+     cellList.AddMol(m, b, coordCurrRef);
+     molRemoved = false;
+   }
+#endif
    subPick = mv::GetMoveSubIndex(mv::ROTATE, b);
    moveSetRef.Update(result, subPick, step);
 }
@@ -247,6 +277,9 @@ class VolumeTransfer : public MoveBase
    MoleculeLookup & molLookRef;
    const uint GEMC_KIND;
    const double PRESSURE;
+#ifdef CELL_LIST
+   bool regrewGrid;
+#endif
 };
 
 inline VolumeTransfer::VolumeTransfer(System &sys, StaticVals const& statV)  : 
@@ -255,6 +288,9 @@ inline VolumeTransfer::VolumeTransfer(System &sys, StaticVals const& statV)  :
 				     sys.prng, statV.mol),
    newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol),
    GEMC_KIND(statV.kindOfGEMC), PRESSURE(statV.pressure)
+#ifdef CELL_LIST
+   , regrewGrid(false)
+#endif
 {
   newMolsPos.Init(sys.coordinates.Count());
   newCOMs.Init(statV.mol.count);
@@ -304,30 +340,27 @@ inline uint VolumeTransfer::Transform()
 }
 
 inline void VolumeTransfer::CalcEn()
-{ 
-   /////////////////////////////////////////////////////////////////////
-   //TODO_BEGIN: wrap this in GEMC_NPT ensemble tags
-   /////////////////////////////////////////////////////////////////////
+{
+#ifdef CELL_LIST
+   cellList.GridAll(newDim, newMolsPos, molLookRef);
+   regrewGrid = true;
+#endif
    if (GEMC_KIND == mv::GEMC_NVT)
       sysPotNew = calcEnRef.SystemInter(sysPotRef, newMolsPos,
                                         newCOMs, newDim);
    else
       sysPotNew = calcEnRef.BoxInter(sysPotRef, newMolsPos,
                                      newCOMs, newDim, bPick);
-   /////////////////////////////////////////////////////////////////////
-   //TODO_END: wrap this in GEMC_NPT ensemble tags
-   /////////////////////////////////////////////////////////////////////
 }
 
 inline double VolumeTransfer::GetCoeff() const
 {
+   ////Log-volume style shift -- is turned off, at present.
+   //
    //return pow(newDim.volume[b_i]/boxDimRef.volume[b_i],
    //	      (double)molLookRef.NumInBox(b_i)+1) *
    //  pow(newDim.volume[b_ii]/boxDimRef.volume[b_ii],
    //	 (double)molLookRef.NumInBox(b_ii)+1);
-   /////////////////////////////////////////////////////////////////////
-   //TODO_BEGIN: wrap this in GEMC_NPT ensemble tags
-   /////////////////////////////////////////////////////////////////////
    double coeff = 1.0;
    if (GEMC_KIND == mv::GEMC_NVT)
    {
@@ -344,9 +377,6 @@ inline double VolumeTransfer::GetCoeff() const
 	 exp(-BETA * PRESSURE * (newDim.volume[bPick]-boxDimRef.volume[bPick]));
    }
    return coeff;
-   /////////////////////////////////////////////////////////////////////
-   //TODO_END: wrap this in GEMC_NPT ensemble tags
-   /////////////////////////////////////////////////////////////////////
 }
 
 inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
@@ -366,8 +396,14 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       swap(comCurrRef, newCOMs);
       boxDimRef = newDim;
    }
-
-    if (GEMC_KIND == mv::GEMC_NVT)
+#ifdef CELL_LIST
+   else if (rejectState == mv::fail_state::NO_FAIL && regrewGrid) 
+   {
+      cellList.GridAll(boxDimRef, coordCurrRef, molLookRef);
+      regrewGrid = false;
+   }
+#endif
+   if (GEMC_KIND == mv::GEMC_NVT)
    {
       subPick = mv::GetMoveSubIndex(mv::VOL_TRANSFER);
    }

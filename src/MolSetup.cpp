@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -18,9 +18,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <algorithm>      //for swap pre-c++11 compilers
 #include <cstring>          //strstr
 
-#ifndef NDEBUG
 #include <iostream>
-#endif
+
 
 
 using namespace mol_setup;
@@ -95,8 +94,7 @@ std::vector<Dihedral> mol_setup::DihsOnBond(const MolKind& molKind, uint atom, u
 {
    std::vector<Dihedral> result;
    typedef std::vector<Dihedral>::const_iterator Diter;
-   for (Diter it = molKind.dihedrals.begin(),
-	   end = molKind.dihedrals.end(); it < end; ++it) {
+   for (Diter it = molKind.dihedrals.begin(), end = molKind.dihedrals.end(); it < end; ++it) {
       if (it->a1 == atom && it->a2 == partner) {
          result.push_back(*it);
       } else if (it->a2 == atom && it->a1 == partner) {
@@ -168,10 +166,10 @@ int mol_setup::ReadCombinePSF(MolMap& kindMap,
          return errorcode;
       kindMap.insert(map2.begin(), map2.end());
    }
-#ifndef NDEBUG
+
    PrintMolMapVerbose(kindMap);
    //PrintMolMapBrief(kindMap);
-#endif
+
    return 0;
 }
 int MolSetup::Init(const config_setup::RestartSettings& restart,
@@ -297,8 +295,7 @@ namespace{
             std::string missing;
             for (uint m = 0; m < ATOMS_PER; ++m)
                missing.append(elementNames[m]).append(" ");
-            fprintf(stderr,
-		    "Error: Dihedral %s not found in parameter files.\n",
+            fprintf(stderr, "Error: Dihedral %s not found in parameter files.\n",
                missing.c_str());
             exit(EXIT_FAILURE);
          }
@@ -308,7 +305,7 @@ namespace{
 }
 
 
-#ifndef NDEBUG
+
 void mol_setup::PrintMolMapVerbose(const MolMap& kindMap)
 {
    std::cout << "Molecules in PSF:\n\n";
@@ -369,7 +366,7 @@ void mol_setup::PrintMolMapBrief(const MolMap& kindMap)
    }
 
 }
-#endif
+
 
 namespace{
    //Initializes system from PSF file (does not include coordinates)
@@ -643,6 +640,17 @@ namespace{
          unsigned int molBegin = firstAtom[i].first;
          //index AFTER last atom in molecule
          unsigned int molEnd = molBegin + currentMol.atoms.size();
+	 //continue if molecule has more that 3 atoms but has no dihedrals
+	 if(i == 0)
+	   { 
+	   // if it is the first molecule and index of dihedral is greater than
+	   // molBegin, it means it does not have any dihedral. It works when
+	   // we have only two molecule kinds.
+	   if(dih.a0 > molBegin && dih.a0 > molEnd)
+	   {
+	     continue;
+	   }
+	 }
          //scan to to first appearance of molecule
          while (dih.a0 < molBegin || dih.a0 >= molEnd)
          {
@@ -652,6 +660,11 @@ namespace{
                fprintf(stderr, "ERROR: Could not find all dihedrals in PSF file ");
                return READERROR;
             }
+	    //for case that molecule has more thatn 3 atoms and represend as 
+	    //second molecule but it has no dihedral. It works when
+	    // we have only two molecule kinds and no improper
+	    if (dih.a0 == 0)
+	      break;
          }
          //read in dihedrals
          while (dih.a0 >= molBegin && dih.a0 < molEnd)

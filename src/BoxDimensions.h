@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -116,6 +116,15 @@ struct BoxDimensions
                const uint b) const;
 
    bool InRcut(double distSq) const { return (distSq < rCutSq); }
+
+   //Dist squared , two different coordinate arrays
+   void GetDistSq(double & distSq, XYZArray const& arr1,
+               const uint i, XYZArray const& arr2, const uint j,
+               const uint b) const;
+   //Dist squared with same coordinate array
+   void GetDistSq(double & distSq, XYZArray const& arr, const uint i,
+		  const uint j, const uint b) const;
+
    
    XYZArray axis;     //x, y, z dimensions of each box (a)
    XYZArray halfAx;   //x, y, z dimensions / 2 of each box (a)
@@ -349,7 +358,25 @@ inline bool BoxDimensions::InRcut
    distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
    return (rCutSq > distSq);
 }
+
+
 #endif
+
+inline void BoxDimensions::GetDistSq(double & distSq, XYZArray const& arr1,
+               const uint i, XYZArray const& arr2, const uint j,
+               const uint b) const
+{
+   XYZ dist = MinImage(arr1.Difference(i, arr2, j), b);
+   distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
+}
+
+inline void BoxDimensions::GetDistSq
+(double & distSq, XYZArray const& arr, const uint i, const uint j,
+ const uint b) const
+{
+   XYZ dist = MinImage(arr.Difference(i, j), b);
+   distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
+}
 
 //Wrap one coordinate.
 inline XYZ BoxDimensions::WrapPBC(XYZ rawPos, const uint b) const
@@ -423,7 +450,7 @@ inline double BoxDimensions::WrapPBC(double& v, const double ax) const
    //Note: testing shows that it's most efficient to negate if true.
    //Source:
    // http://jacksondunstan.com/articles/2052
-   if ( v > ax ) //if +, wrap out to low end
+   if ( v >= ax ) //if +, wrap out to low end, on boundry will wrap to zero
       v -= ax;
    else if ( v < 0 ) //if -, wrap to high end
       v += ax;

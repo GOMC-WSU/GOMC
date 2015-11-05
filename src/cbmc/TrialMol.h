@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -106,10 +106,8 @@ class TrialMol
 
       ~TrialMol();
 
-  // private:
+   private:
       friend class CalculateEnergy;
-	   
-
 
       const MoleculeKind* kind;
       const BoxDimensions* axes;

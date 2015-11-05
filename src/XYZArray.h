@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -49,7 +49,7 @@ class XYZArray
    uint Count() const { return count; }
 
    //returns a XYZ copy of row i
-   XYZ operator[](const uint i) { return Get(i); }
+   XYZ operator[](const uint i) const { return Get(i); }
 
    //returns a XYZ copy of row i
    XYZ Get(const uint i) const 
@@ -151,7 +151,6 @@ class XYZArray
       x[i] += val.x;
       y[i] += val.y;
       z[i] += val.z;
-	 // printf("%f,%f,%f\n", x[i],y[i],z[i]);
    }
 
    //Sub values from a single element of the array's values.
@@ -225,7 +224,7 @@ class XYZArray
 		  const uint len) const;
 
 
-  // protected:
+   protected:
    double * x, * y, * z;
    uint count;
    bool allocDone;
@@ -305,11 +304,6 @@ inline void XYZArray::Init(const uint n)
    y = new double[n];
    z = new double[n];
 
-   for (int i=0;i< n;i++)
-   {
-   x[i]=y[i]=z[i]=0.0;
-      
-   }
    allocDone = true;
 }
 

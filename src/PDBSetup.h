@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -34,7 +34,8 @@ namespace pdb_setup
    private:
       void HandleRemark(const uint num, std::string const& varName,
          const ulong step);
-      void CheckStep(std::string const& varName, const ulong readStep);
+      void CheckStep(std::string const& varName,
+		     const ulong readStep);
       void CheckGOMC(std::string const& varName);
    };
 
@@ -51,7 +52,9 @@ namespace pdb_setup
          XYZ temp;
          using namespace pdb_entry::cryst1::field;
          hasVolume = true;
-         pdb.Get(temp.x, x::POS).Get(temp.y, y::POS).Get(temp.z, z::POS);
+         pdb.Get(temp.x, x::POS)
+	    .Get(temp.y, y::POS)
+	    .Get(temp.z, z::POS);
          axis.Set(currBox, temp);
       }
 
@@ -66,24 +69,32 @@ namespace pdb_setup
       std::vector<std::string> atomAliases, resNamesFull, resNames,
          resKindNames;
       std::vector<uint> startIdxRes, resKinds;
-      bool restart;
-      //CurrRes is used to store res vals, currBox is used to determine box
-      //either via the file (new) or the occupancy (restart), count allows
-      //overwriting of coordinates during second box read (restart only)
+      bool restart, firstResInFile;
+      //CurrRes is used to store res vals, currBox is used to 
+      //determine box either via the file (new) or the occupancy
+      //(restart), count allows overwriting of coordinates during
+      //second box read (restart only)
       uint currBox, count, currRes;
 
       //Set the current residue to something other than 1
-      Atoms(void) : restart(false), currBox(0), count(0), currRes(10) {}
+      Atoms(void) : restart(false), currBox(0), count(0),
+	 currRes(10) {}
       void SetRestart(config_setup::RestartSettings const& r);
       void SetBox(const uint b)
       {
          currBox = b;
+	 firstResInFile = true;
          //restart count if new system, second box. 
          count = ((b == 1 && restart) ? 0 : count);
       }
-      void Assign(std::string const& atomName, std::string const& resName,
-         const uint resNum, const char l_chain, const double l_x,
-         const double l_y, const double l_z, const double l_occ);
+      void Assign(std::string const& atomName,
+		  std::string const& resName,
+		  const uint resNum,
+		  const char l_chain,
+		  const double l_x,
+		  const double l_y,
+		  const double l_z, 
+		  const double l_occ);
       void Read(FixedWidthReader & file);
    };
 }
@@ -96,7 +107,7 @@ struct PDBSetup
    PDBSetup(void) : dataKinds(SetReadFunctions()) {}
    void Init(config_setup::RestartSettings const& restart,
       std::string const*const name);
-private:
+ private:
    //Map variable names to functions
    std::map<std::string, FWReadableBase *>  SetReadFunctions(void)
    {

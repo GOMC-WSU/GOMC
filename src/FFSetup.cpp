@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -22,6 +22,7 @@ const std::string FFSetup::paramFileAlias[] =
 {"CHARMM-Style Parameter File", "Exotic Parameter File"}; 
 const double ff_setup::KCAL_PER_MOL_TO_K = 503.21959899;
 const double ff_setup::RIJ_OVER_2_TO_SIG = 1.7817974362807;
+const double ff_setup::RIJ_TO_SIG = 0.890898718;
 
 const double ff_setup::Bond::FIXED = 99999999;
 
@@ -38,12 +39,15 @@ FFSetup::SetReadFunctions(const bool isCHARMM)
    if (isCHARMM)
    {
       funct["NONBONDED"] = &mie;
+      funct["NBFIX"] = &nbfix;
    }
    else
    {
       //Unique to exotic file
       funct["NONBONDED"] = &mie;
       funct["NONBONDED_MIE"] = &mie;
+      funct["NBFIX"] = &nbfix; 
+      funct["NBFIX_MIE"] = &nbfix;
    }
    for (sect_it it = funct.begin(); it != funct.end(); ++it)
    {
@@ -131,12 +135,12 @@ namespace ff_setup
 
    void Particle::Read(Reader & param, std::string const& firstVar)
    {
-      double e, s, e_1_4, s_1_4, dummy;
+      double e, s, e_1_4, s_1_4, dummy1, dummy2;
       uint expN, expN_1_4;
       std::stringstream values(LoadLine(param, firstVar));      
       if (isCHARMM) //if lj
       {
-	 values >> dummy;
+	 values >> dummy1;
       } 
       values >> e >> s;
       if (isCHARMM)
@@ -148,12 +152,14 @@ namespace ff_setup
 	 values >> expN;
       }
       //If undefined in CHARMM, assign 1-4 to full value.
-      if (!(values >> e_1_4 >> s_1_4))
+      values >> dummy2 >> e_1_4 >> s_1_4;
+      if (values.fail())
       {
 	 e_1_4 = e;
 	 s_1_4 = s; 
       }
-      if (isCHARMM || !(values >> expN_1_4))
+      values >> expN_1_4; 
+      if (isCHARMM || values.fail())
       {
 	 expN_1_4 = expN;
       }
@@ -178,6 +184,70 @@ namespace ff_setup
       n_1_4.push_back(expN_1_4);
    }
 
+   void NBfix::Read(Reader & param, std::string const& firstVar)
+   {
+      double e, s, e_1_4, s_1_4;
+#ifdef MIE_INT_ONLY
+      uint expN, expN_1_4;
+#else
+      double expN, expN_1_4;
+#endif
+   
+      std::stringstream values(LoadLine(param, firstVar));
+      values >> e >> s;
+      if (isCHARMM)
+      {
+	 expN = ff::part::lj_n;
+      }
+      else
+      {
+	 values >> expN;
+      }
+      
+       values >> e_1_4 >> s_1_4;
+      if (values.fail())
+      {
+	 e_1_4 = e;
+	 s_1_4 = s; 
+      }
+      values >> expN_1_4; 
+      if (isCHARMM || values.fail())
+      {
+	 expN_1_4 = expN;
+      }
+      Add(e, s, expN, e_1_4, s_1_4, expN_1_4);
+   }
+
+   void NBfix::Add(double e, double s,
+#ifdef MIE_INT_ONLY
+const uint expN,
+#else
+const double expN,
+#endif
+	       double e_1_4, double s_1_4,
+#ifdef MIE_INT_ONLY
+const uint expN_1_4
+#else
+const double expN_1_4
+#endif
+	       )
+   {
+      if (isCHARMM)
+      {
+	 e *= -1.0;
+	 s *= RIJ_TO_SIG;
+	 e_1_4 *= -1.0;
+	 s_1_4 *= RIJ_TO_SIG;
+      }
+      epsilon.push_back(EnConvIfCHARMM(e));
+      sigma.push_back(s);
+      n.push_back(expN);
+      epsilon_1_4.push_back(EnConvIfCHARMM(e_1_4));
+      sigma_1_4.push_back(s_1_4);
+      n_1_4.push_back(expN_1_4);
+
+   }
+
    void Bond::Read(Reader & param, std::string const& firstVar)
    {
       double coeff, def;
@@ -198,7 +268,9 @@ namespace ff_setup
       bool hsUB;
       std::stringstream values(LoadLine(param, firstVar));
       values >> coeff >> def;
-      hsUB = ( values >> coeffUB >> defUB );
+      values >> coeffUB >> defUB; 
+
+      hsUB = !values.fail();
       Add(coeff, def, hsUB, coeffUB, defUB);
    }
    void Angle::Add(const double coeff, const double def, const bool hsUB,

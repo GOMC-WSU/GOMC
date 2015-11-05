@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -34,6 +34,9 @@ System::System(StaticVals& statics) :
    coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
    com(boxDimRef, coordinates, molLookupRef, statics.mol),
    moveSettings(boxDimRef),
+#ifdef CELL_LIST
+   cellList(statics.mol),
+#endif
    calcEnergy(statics, *this) {}
 
 System::~System()
@@ -61,21 +64,17 @@ void System::Init(Setup const& set)
    molLookup.Init(statV.mol, set.pdb.atoms); 
 #endif
    moveSettings.Init(statV);
-  
-
-
    //Note... the following calls use box iterators, so must come after
    //the molecule lookup initialization, in case we're in a constant 
    //particle/molecule ensemble, e.g. NVT
    coordinates.InitFromPDB(set.pdb.atoms);
    com.CalcCOM();
+#ifdef CELL_LIST
+   cellList.SetCutoff(statV.forcefield.rCut);
+   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
+#endif
+   calcEnergy.Init();
    potential = calcEnergy.SystemTotal();
-
-    potential = calcEnergy.SystemTotal();
-   printf("Total system energy at start =%f\n", potential.totalEnergy.total);
-   printf("Total system virial at start =%f\n", potential.totalVirial.total);
-
-
    InitMoves();
 }
 

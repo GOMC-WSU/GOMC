@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -7,12 +7,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "ConsoleOutput.h"          //For spec;
 #include "EnsemblePreprocessor.h"   //For BOX_TOTAL, ensemble
-#include "MoveConst.h"             //For move index constants, name constants.
+#include "MoveConst.h"    //For move index constants, name constants.
 #include "FFConst.h"                //For density conv.
 #include "System.h"                 //for init
 #include "StaticVals.h"             //for init  
-#include "MoleculeLookup.h"  //for lookup array (to get density, kind cnts, etc.
-#include "MoveSettings.h"           //For move settings/state
 #include "MoleculeKind.h"           //For kind names
 #include "PDBConst.h"               //For resname len.
 #include "OutputVars.h"
@@ -51,7 +49,10 @@ void ConsoleOutput::PrintBox(const uint box, const ulong step) const
    PrintEnergy(var->energyRef[box], var->virialRef[box],
                (box < BOXES_WITH_U_NB));
 
-   PrintMoveStat(box, step);
+   if (step > 0 )
+   {
+      PrintMoveStat(box, step);
+   }
 }
 
 void ConsoleOutput::PrintSysStat() const
@@ -60,8 +61,10 @@ void ConsoleOutput::PrintSysStat() const
    PrintEnergy(*(var->energyTotRef), *(var->virialTotRef));
 }
 
-void ConsoleOutput::PrintMoveKind(bool & somethingPrinted, const uint m,
-				  const uint b, const ulong step) const
+void ConsoleOutput::PrintMoveKind(bool & somethingPrinted,
+				  const uint m,
+				  const uint b,
+				  const ulong step) const
 {      
    uint sub = mv::GetMoveSubIndex(m, b);
    if (var->movePercRef[m] == 0.0 && step==0)
@@ -123,14 +126,18 @@ void ConsoleOutput::PrintEnergy(Energy const& en, Virial const& vir,
 {
    if (intraOnly)
       std::cout << "Energy (in K): total: " << en.total << std::endl
-                << "intra (bonded): " << en.intraBond  
-                << std::endl << std::endl;
+#ifdef EN_SUBCAT_OUT
+		<< "intra (bonded): " << en.intraBond << std::endl 
+#endif
+                << std::endl;
    else
       std::cout << "Energy (in K): total: " << en.total << std::endl
+#ifdef EN_SUBCAT_OUT
                 << "inter: " << en.inter << " ; inter (tail corr.): " 
                 << en.tc << std::endl << "intra (bonded): "
-                << en.intraBond << " ; intra (nonbonded): " << en.intraNonbond 
-                << std::endl << std::endl;
+                << en.intraBond << " ; intra (nonbonded): " << en.intraNonbond << std::endl
+#endif
+		<< std::endl;
 }
 
 void ConsoleOutput::PrintBanner(std::string const& str) const 
