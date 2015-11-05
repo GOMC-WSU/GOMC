@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -48,6 +48,16 @@ class Writer
 		(firstWrite ? std::ios::out : std::ios::app));
       CheckFileState(true, "...could not be opened.", "Writing to ");
    }
+
+   
+   //Open or close a file, with basic protections                               
+   void openOverwrite(void)
+   {
+      if (isOpen) return;
+      file.open(fileName.c_str(), std::ios::out);
+      CheckFileState(true, "...could not be opened.", "Writing to ");
+   }
+
 
    void close(void)
    {

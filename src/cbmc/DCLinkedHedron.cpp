@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -79,7 +79,7 @@ namespace cbmc
 
 
    void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
-   { 
+   {
       PRNG& prng = data->prng;
       const CalculateEnergy& calc = data->calc;
       const Forcefield& ff = data->ff;
@@ -92,6 +92,8 @@ namespace cbmc
       double* bondedEn = data->bonded;
       double* inter = data->inter;
       double* nonbonded = data->nonbonded;
+      double* nonbonded_1_4 = data->nonbonded_1_4;
+
 
       //get info about existing geometry
       newMol.SetBasis(hed.Focus(), hed.Prev());
@@ -148,7 +150,8 @@ namespace cbmc
          newMol.AddAtom(hed.Bonded(b), positions[b][winner]);
       }
       newMol.AddEnergy(Energy(bondedEn[winner] + hed.GetEnergy(),
-			      nonbonded[winner], inter[winner]));
+			      nonbonded[winner] + nonbonded_1_4[winner],
+			      inter[winner]));
       newMol.MultWeight(hed.GetWeight());
       newMol.MultWeight(stepWeight);
    }
@@ -167,6 +170,8 @@ namespace cbmc
       double* bondedEn = data->bonded;
       double* inter = data->inter;
       double* nonbonded = data->nonbonded;
+      double* nonbonded_1_4 = data->nonbonded_1_4;
+
 
       //get info about existing geometry
       oldMol.SetBasis(hed.Focus(), hed.Prev());
@@ -242,8 +247,8 @@ namespace cbmc
       {
          oldMol.ConfirmOldAtom(hed.Bonded(b));
       }
-      oldMol.AddEnergy(Energy(bondedEn[0] + hed.GetEnergy(), nonbonded[0],
-			      inter[0]));
+      oldMol.AddEnergy(Energy(bondedEn[0] + hed.GetEnergy(), nonbonded[0] +
+			      nonbonded_1_4[0], inter[0]));
       oldMol.MultWeight(hed.GetWeight());
       oldMol.MultWeight(stepWeight);
    }
@@ -253,22 +258,29 @@ namespace cbmc
       uint nLJTrials = data->nLJTrialsNth;
       double* inter = data->inter;
       double* nonbonded = data->nonbonded;
+      double* nonbonded_1_4 = data->nonbonded_1_4;
       XYZArray* positions = data->multiPositions;
       std::fill_n(data->inter, nLJTrials, 0.0);
       std::fill_n(data->nonbonded, nLJTrials, 0.0);
-      for (uint b = 0; b < hed.NumBond(); ++b)
+      std::fill_n(nonbonded_1_4, nLJTrials, 0.0);
+       for (uint b = 0; b < hed.NumBond(); ++b)
       {
 	 data->calc.ParticleInter(inter, positions[b], hed.Bonded(b),
                                   molIndex, mol.GetBox(), nLJTrials);
          data->calc.ParticleNonbonded(nonbonded, mol, positions[b],
 				      hed.Bonded(b), mol.GetBox(),
 				      nLJTrials);
+	 data->calc.ParticleNonbonded_1_4(nonbonded_1_4, mol, positions[b],
+				      hed.Bonded(b), mol.GetBox(),
+				      nLJTrials);
+
       }
       double stepWeight = 0;
       for (uint lj = 0; lj < nLJTrials; ++lj)
       {
 	 data->ljWeights[lj] *= exp(-data->ff.beta * 
-				    (inter[lj] + nonbonded[lj]));
+				    (inter[lj] + nonbonded[lj] +
+				    nonbonded_1_4[lj]));
          stepWeight += data->ljWeights[lj];
       }
       return stepWeight;

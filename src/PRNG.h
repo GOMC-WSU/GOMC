@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -47,6 +47,9 @@ class PRNG
    //Generate a double on a [0,b]
    double rand(double const bound) { return gen->rand(bound); }
 
+   //Generate a double on a [0,b)
+   double randExc(double const bound) { return gen->randExc(bound); }
+
    //Generate an unsigned int on [0,bound]
    uint randInt(const uint bound) { return (uint)(gen->randInt(bound)); }
 
@@ -71,7 +74,7 @@ class PRNG
    void FillWithRandom(XYZArray & loc, const uint len, XYZ const& axis)
    {
       for (uint i = 0; i < len; ++i)
-         loc.Set(i, rand(axis.x), rand(axis.y), rand(axis.z));
+         loc.Set(i, randExc(axis.x), randExc(axis.y), randExc(axis.z));
    }
 
    void FillWithRandomOnSphere(XYZArray & loc, const uint len, 
@@ -230,8 +233,6 @@ class PRNG
 	 uint mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
 	 //Lookup true index in table.
 	 m = molLookRef.GetMolNum(mOff, mk, b);
-
-	 //printf("selected mol=%d , box=%d\n", m, b);
       }
       return rejectState;
    }

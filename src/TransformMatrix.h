@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -301,13 +301,6 @@ inline TransformMatrix TransformMatrix::UniformRandom(double u1, double u2, doub
    result.matrix[2][0] = V.z * Sx;
    result.matrix[2][1] = V.z * Sy;
    result.matrix[2][2] = 1.0 - u3;
-
- //printf("%f,%f,%f\n",result.matrix[0][0],result.matrix[0][1],result.matrix[0][2] );
- //   printf("%f,%f,%f\n",result.matrix[1][0],result.matrix[1][1],result.matrix[1][2] );
-	// printf("%f,%f,%f\n",result.matrix[2][0],result.matrix[2][1],result.matrix[2][2] );
-
-
-
    return result;
 }
 #endif

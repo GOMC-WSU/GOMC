@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -30,21 +30,23 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 //    Jason Mick    Feb. 2014
 //
 
-
 using namespace geom;
 
 CalculateEnergy::CalculateEnergy(StaticVals const& stat, System const& sys) :
-forcefield(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
-currentCOM(sys.com),
+   forcefield(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
+   currentCOM(sys.com),
 #ifdef VARIABLE_PARTICLE_NUMBER
-molLookup(sys.molLookup),
+   molLookup(sys.molLookup),
 #else
-molLookup(stat.molLookup),
+   molLookup(stat.molLookup),
 #endif
 #ifdef VARIABLE_VOLUME
-currentAxes(sys.boxDimensions)
+   currentAxes(sys.boxDimensions)
 #else
-currentAxes(stat.boxDimensions)
+   currentAxes(stat.boxDimensions)
+#endif
+#ifdef CELL_LIST
+   , cellList(sys.cellList)
 #endif
 { }
 
@@ -64,21 +66,20 @@ void CalculateEnergy::Init()
 SystemPotential CalculateEnergy::SystemTotal() const
 {
    SystemPotential pot =
-      SystemInter(SystemPotential(), currentCoords,
-                  currentCOM, currentAxes);
+      SystemInter(SystemPotential(), currentCoords, currentCOM, currentAxes);
    //system intra
-   for (uint box = 0; box < BOX_TOTAL; ++box)
+   for (uint b = 0; b < BOX_TOTAL; ++b)
    {
       double bondEn = 0.0, nonbondEn = 0.0;
-      MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
-      MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+      MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b),
+	 end = molLookup.BoxEnd(b);
       while (thisMol != end)
       {
-         MoleculeIntra(bondEn, nonbondEn, *thisMol, box);
+         MoleculeIntra(bondEn, nonbondEn, *thisMol, b);
          ++thisMol;
       }
-      pot.boxEnergy[box].intraBond = bondEn;
-      pot.boxEnergy[box].intraNonbond = nonbondEn;
+      pot.boxEnergy[b].intraBond = bondEn;
+      pot.boxEnergy[b].intraNonbond = nonbondEn;
    }
    pot.Total();
    return pot;
@@ -90,9 +91,9 @@ SystemPotential CalculateEnergy::SystemInter
  XYZArray const& com,
  BoxDimensions const& boxAxes) const
 {
-   for (uint box = 0; box < BOXES_WITH_U_NB; ++box)
+   for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
    {
-      potential = BoxInter(potential, coords, com, boxAxes, box);
+      potential = BoxInter(potential, coords, com, boxAxes, b);
    }
    potential.Total();
    return potential;
@@ -111,6 +112,31 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
    if (box >= BOXES_WITH_U_NB) return potential;
 
    Intermolecular inter;
+#ifdef CELL_LIST
+   CellList::Pairs pair = cellList.EnumeratePairs(box);
+   while (!pair.Done()) 
+   {
+      XYZ virComponents;
+      double distSq;
+      if (!SameMolecule(pair.First(), pair.Second()) &&
+	  boxAxes.InRcut(distSq, virComponents,
+			 coords, pair.First(), pair.Second(), box)) 
+      {
+	 double partVirial = 0.0;
+		  
+	 forcefield.particles->CalcAdd(inter.energy, partVirial, distSq,
+	    particleKind[pair.First()], particleKind[pair.Second()]);
+
+	 //Add to our pressure components.
+	 inter.virial -= geom::Dot(virComponents * partVirial,
+				   boxAxes.MinImage
+				   (com.Difference(particleMol[pair.First()], 
+						   particleMol[pair.Second()]), 
+				    box));
+      }
+      pair.Next();
+   }
+#else
    MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
    while (thisMol != end)
@@ -138,9 +164,10 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
 		  double partVirial = 0.0;
 		  
-		  forcefield.particles.CalcAdd
-		     (inter.energy, partVirial, distSq,
-		      thisKind.AtomKind(i), otherKind.AtomKind(j));
+		  forcefield.particles->CalcAdd(inter.energy,
+						      partVirial, distSq,
+						      thisKind.AtomKind(i),
+						      otherKind.AtomKind(j));
 
 		  //Add to our pressure components.
 		  fMol += (virComponents * partVirial);
@@ -157,6 +184,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
       }
       ++thisMol;
    }
+#endif
    
    potential.boxEnergy[box].inter = inter.energy;
    potential.boxVirial[box].inter = inter.virial;
@@ -175,18 +203,82 @@ Intermolecular CalculateEnergy::MoleculeInter(XYZArray const& molCoords,
                                               const uint molIndex,
                                               const uint box,
                                               XYZ const*const newCOM) const
-{
-   
+{   
    Intermolecular result;
    if (box < BOXES_WITH_U_NB)
    {
       bool hasNewCOM = !(newCOM == NULL);
+#ifdef CELL_LIST
+      uint length = mols.GetKind(molIndex).NumAtoms();
+      uint start = mols.MolStart(molIndex);
+      for (uint p = 0; p < length; ++p) 
+      {
+	 uint atom = start + p;
+	 CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom], 
+							 box);
+	 while (!n.Done()) 
+	 {
+	    double distSq = 0.0;
+	    XYZ virComponents;
+	    //Subtract old energy
+	    if (currentAxes.InRcut(distSq, virComponents, 
+				   currentCoords, atom, *n, box)) 
+	    {
+	       double partVirial = 0.0;	   
+	       forcefield.particles->CalcSub(result.energy,
+					    partVirial, distSq,
+					    particleKind[atom],
+					    particleKind[*n]);
+	       
+	       //Add to our pressure components.
+	       result.virial -= geom::Dot(virComponents * partVirial,
+					 currentAxes.MinImage
+					 (currentCOM.Difference
+					  (molIndex, particleMol[*n]), box));
+	    } 
+	    n.Next();
+	 }
+	 n = cellList.EnumerateLocal(molCoords[p], box);
+	 while (!n.Done()) 
+	 {
+	    double distSq = 0.0;
+	    XYZ virComponents;
+	    if (currentAxes.InRcut(distSq, virComponents, 
+				   molCoords, p, currentCoords, *n, box)) 
+	    {
+	       double partVirial = 0.0;	   
+	       forcefield.particles->CalcAdd(result.energy, partVirial,
+						   distSq, particleKind[atom],
+						   particleKind[*n]);
+	       
+	       if (hasNewCOM)
+	       {
+		  //Add to our pressure components.
+		  result.virial -= geom::Dot(virComponents * partVirial,
+					     currentAxes.MinImage
+					     (*newCOM - 
+					      currentCOM.Get(particleMol[*n]),
+					      box));
+	       }
+	       else
+	       {
+		  result.virial -= geom::Dot(virComponents * partVirial,
+					     currentAxes.MinImage
+					     (currentCOM.Difference
+					      (molIndex, particleMol[*n]), 
+					      box));
+	       }
+	    }
+	    n.Next();
+	 }
+      }
+#else
       MoleculeLookup::box_iterator otherMol = molLookup.BoxBegin(box);
       MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
       uint partStartMolI, partLenMolI, partStartMolJ, partLenMolJ, pkI, pkJ,
-         pOldI, pNewI, pJ;
+	 pOldI, pNewI, pJ;
       partStartMolI = partLenMolI = partStartMolJ = partLenMolJ = pkI = pkJ =
-         pOldI = pNewI = pJ = 0;
+	 pOldI = pNewI = pJ = 0;
       mols.GetRangeStartLength(partStartMolI, partLenMolI, molIndex);
       const MoleculeKind& thisKind = mols.GetKind(molIndex);
       //looping over all molecules in box
@@ -216,7 +308,7 @@ Intermolecular CalculateEnergy::MoleculeInter(XYZArray const& molCoords,
                   {
                      double partVirial = 0.0;
                      
-                     forcefield.particles.CalcSub
+                     forcefield.particles->CalcSub
                         (result.energy, partVirial, distSq, pkI, pkJ);
                      
                      fMolO += virComponents * partVirial;
@@ -227,8 +319,9 @@ Intermolecular CalculateEnergy::MoleculeInter(XYZArray const& molCoords,
                   {
                      double partVirial = 0.0;
                      
-                     forcefield.particles.CalcAdd(result.energy, partVirial,
-                                                  distSq, pkI, pkJ);
+                     forcefield.particles->CalcAdd(result.energy,
+							 partVirial,
+							 distSq, pkI, pkJ);
                      
                      //Add to our pressure components.
                      fMolN += (virComponents * partVirial);
@@ -257,12 +350,14 @@ Intermolecular CalculateEnergy::MoleculeInter(XYZArray const& molCoords,
          
          ++otherMol;
       }
+#endif
    }
    return result;
 }
 
+// Calculate 1-N nonbonded intra energy
 void CalculateEnergy::ParticleNonbonded(double* energy,
-                                        const cbmc::TrialMol& trialMol,
+                                        cbmc::TrialMol const& trialMol,
                                         XYZArray const& trialPos,
                                         const uint partIndex,
                                         const uint box,
@@ -279,20 +374,62 @@ void CalculateEnergy::ParticleNonbonded(double* energy,
    {
       if (trialMol.AtomExists(*partner))
       {
-         for (uint i = 0; i < trialPos.Count(); ++i)
+         for (uint t = 0; t < trials; ++t)
          {
             double distSq;
-            if (currentAxes.InRcut(distSq, trialPos, i, trialMol.GetCoords(),
-               *partner, box))
+            if (currentAxes.InRcut(distSq, trialPos, t, trialMol.GetCoords(),
+				   *partner, box))
             {
-               energy[i] += forcefield.particles.CalcEn(distSq,
-                  kind.AtomKind(partIndex), kind.AtomKind(*partner));
+               energy[t] +=
+		 forcefield.particles->CalcEn(distSq,
+						    kind.AtomKind(partIndex),
+						    kind.AtomKind(*partner));
             }
          }
       }
       ++partner;
    }
 }
+
+// Calculate 1-4 nonbonded intra energy
+// Calculate 1-3 nonbonded intra energy for Martini force field
+void CalculateEnergy::ParticleNonbonded_1_4(double* energy,
+                                        cbmc::TrialMol const& trialMol,
+                                        XYZArray const& trialPos,
+                                        const uint partIndex,
+                                        const uint box,
+                                        const uint trials) const
+{
+   if (box >= BOXES_WITH_U_B)
+      return;
+   
+   const MoleculeKind& kind = trialMol.GetKind();
+
+   if (kind.nonBonded_1_4 == NULL)
+     return;
+
+   //loop over all partners of the trial particle
+   const uint* partner = kind.sortedNB_1_4.Begin(partIndex);
+   const uint* end = kind.sortedNB_1_4.End(partIndex);
+   while (partner != end)
+   {
+      if (trialMol.AtomExists(*partner))
+      {
+         for (uint t = 0; t < trials; ++t)
+         {
+            double distSq;
+	    currentAxes.GetDistSq(distSq, trialPos, t, trialMol.GetCoords(),
+				  *partner, box);
+	    forcefield.particles->CalcAdd_1_4(energy[t], distSq,
+					 kind.AtomKind(partIndex),
+					 kind.AtomKind(*partner));
+         }
+      }
+      ++partner;
+   }
+}
+
+
 
 //! Calculates Nonbonded intra energy for candidate positions in trialPos
 void CalculateEnergy::ParticleInter(double* en,
@@ -306,11 +443,28 @@ void CalculateEnergy::ParticleInter(double* en,
       return;
    
    double distSq;
-   MoleculeLookup::box_iterator molInBox = molLookup.BoxBegin(box);
-   MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
    MoleculeKind const& thisKind = mols.GetKind(molIndex);
    uint kindI = thisKind.AtomKind(partIndex);
-
+#ifdef CELL_LIST
+  //uint kind = particleKind[partIndex];
+   for(int t = 0; t < trials; ++t) 
+   {
+      CellList::Neighbors n = cellList.EnumerateLocal(trialPos[t], box);
+      while (!n.Done())
+      {
+         int atom = *n;
+         double distSq = 0.0;
+         if (currentAxes.InRcut(distSq, trialPos, t, currentCoords, atom, box)) 
+	 {
+            en[t] += forcefield.particles->CalcEn(distSq, kindI, 
+						 particleKind[atom]);
+         }
+         n.Next();
+      }
+   }   
+#else
+   MoleculeLookup::box_iterator molInBox = molLookup.BoxBegin(box);
+   MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
    //looping over all molecules in box
    while (molInBox != end)
    {
@@ -325,23 +479,22 @@ void CalculateEnergy::ParticleInter(double* en,
          for (uint j = 0; j < otherLength; ++j)
          {
             uint kindJ = otherKind.AtomKind(j);
-            for (uint i = 0; i < trialPos.Count(); ++i)
+            for (uint t = 0; t < trialPos.Count(); ++t)
             {
-               if (currentAxes.InRcut(distSq, trialPos, i, currentCoords,
+	       double distSq = 0.0;
+               if (currentAxes.InRcut(distSq, trialPos, t, currentCoords,
                   otherStart + j, box))
                {
-                  en[i] += forcefield.particles.CalcEn(distSq, kindI, kindJ);
+                  en[t] += forcefield.particles->CalcEn(distSq, kindI,
+							      kindJ);
                }
-
-			
             }
          }
       }
       ++molInBox;
    }
-
- 
-    return;
+#endif
+   return;
 }
 
 double CalculateEnergy::MoleculeVirial(const uint molIndex,
@@ -350,12 +503,39 @@ double CalculateEnergy::MoleculeVirial(const uint molIndex,
    double virial = 0;
    if (box < BOXES_WITH_U_NB)
    {
-      MoleculeLookup::box_iterator molInBox = molLookup.BoxBegin(box);
-      MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
-      
       const MoleculeKind& thisKind = mols.GetKind(molIndex);
       uint thisStart = mols.MolStart(molIndex);
       uint thisLength = thisKind.NumAtoms();
+#ifdef CELL_LIST
+      for (uint p = 0; p < thisLength; ++p) 
+      {
+	 uint atom = thisStart + p;
+	 CellList::Neighbors n =
+	    cellList.EnumerateLocal(currentCoords[atom], box);
+	 while (!n.Done()) 
+	 {
+	    double distSq = 0.0;
+	    XYZ virComponents;
+	    if (particleMol[atom] != particleMol[*n] &&
+		currentAxes.InRcut(distSq, virComponents, currentCoords, 
+				   atom, *n, box))
+	    {
+	       double mag = forcefield.particles->CalcVir(distSq,
+							 particleKind[atom],
+							 particleKind[*n]);
+	       
+	       virial -= geom::Dot(virComponents * mag,
+				   currentAxes.MinImage
+				   (currentCOM.Difference(particleMol[atom],
+							  particleMol[*n]), 
+				    box));
+	    }
+	    n.Next();
+	 }
+      }
+#else
+      MoleculeLookup::box_iterator molInBox = molLookup.BoxBegin(box);
+      MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);      
       //looping over all molecules in box
       while (molInBox != end)
       {
@@ -376,14 +556,14 @@ double CalculateEnergy::MoleculeVirial(const uint molIndex,
             for (uint j = 0; j < otherLength; ++j)
             {
                XYZ forceVector;
-               double distSq;
+               double distSq = 0.0;
                uint kindJ = otherKind.AtomKind(j);
                if (currentAxes.InRcut(distSq, forceVector, 
                                       currentCoords, thisStart + i,
                                       otherStart + j, box))
                   {
                      //sum forces between all particles in molecule pair
-                     double mag = forcefield.particles.CalcVir(distSq,
+                     double mag = forcefield.particles->CalcVir(distSq,
                                                                kindI, kindJ);
                      forceOnMol += forceVector * mag;
                   }
@@ -396,7 +576,7 @@ double CalculateEnergy::MoleculeVirial(const uint molIndex,
                                                   box));
          ++molInBox;
       }
-      double what = virial;
+#endif
    }
    return virial;
 }
@@ -446,6 +626,7 @@ void CalculateEnergy::MoleculeIntra(double& bondEn,
    MolAngle(bondEn, molKind, bondVec, box);
    MolDihedral(bondEn, molKind, bondVec, box);
    MolNonbond(nonBondEn, molKind, molIndex, box);
+   MolNonbond_1_4(nonBondEn, molKind, molIndex, box);
 }
 
 void CalculateEnergy::BondVectors(XYZArray & vecs,
@@ -474,10 +655,10 @@ void CalculateEnergy::MolBond(double & energy,
 {
    if (box >= BOXES_WITH_U_B)
       return;
-   for (uint i = 0; i < molKind.bondList.count; ++i)
+   for (uint b = 0; b < molKind.bondList.count; ++b)
    {
-      energy += forcefield.bonds.Calc(molKind.bondList.kinds[i],
-				      vecs.Get(i).Length());
+      energy += forcefield.bonds.Calc(molKind.bondList.kinds[b],
+				      vecs.Get(b).Length());
    }
 }
 
@@ -488,11 +669,12 @@ void CalculateEnergy::MolAngle(double & energy,
 {
    if (box >= BOXES_WITH_U_B)
       return;
-   for (uint i = 0; i < molKind.angles.Count(); ++i)
+   for (uint a = 0; a < molKind.angles.Count(); ++a)
    {
-      double theta = Theta(vecs.Get(molKind.angles.GetBond(i, 0)),
-         -vecs.Get(molKind.angles.GetBond(i, 1)));
-      energy += forcefield.angles.Calc(molKind.angles.GetKind(i), theta);
+      //Note: need to reverse the second bond to get angle properly.
+      double theta = Theta(vecs.Get(molKind.angles.GetBond(a, 0)),
+			   -vecs.Get(molKind.angles.GetBond(a, 1)));
+      energy += forcefield.angles->Calc(molKind.angles.GetKind(a), theta);
    }
 }
 
@@ -503,12 +685,12 @@ void CalculateEnergy::MolDihedral(double & energy,
 {
    if (box >= BOXES_WITH_U_B)
       return;
-   for (uint i = 0; i < molKind.dihedrals.Count(); ++i)
+   for (uint d = 0; d < molKind.dihedrals.Count(); ++d)
    {
-      double phi = Phi(vecs.Get(molKind.dihedrals.GetBond(i, 0)),
-         vecs.Get(molKind.dihedrals.GetBond(i, 1)),
-         vecs.Get(molKind.dihedrals.GetBond(i, 2)));
-      energy += forcefield.dihedrals.Calc(molKind.dihedrals.GetKind(i), phi);
+      double phi = Phi(vecs.Get(molKind.dihedrals.GetBond(d, 0)),
+		       vecs.Get(molKind.dihedrals.GetBond(d, 1)),
+		       vecs.Get(molKind.dihedrals.GetBond(d, 2)));
+      energy += forcefield.dihedrals.Calc(molKind.dihedrals.GetKind(d), phi);
    }
 }
 
@@ -526,9 +708,10 @@ void CalculateEnergy::MolNonbond(double & energy,
    {
       uint p1 = mols.start[molIndex] + molKind.nonBonded.part1[i];
       uint p2 = mols.start[molIndex] + molKind.nonBonded.part2[i];
+      currentAxes.GetDistSq(distSq, currentCoords, p1, p2, box);
       if (currentAxes.InRcut(distSq, currentCoords, p1, p2, box))
       {
-         forcefield.particles.CalcAdd(energy, virial, distSq,
+         forcefield.particles->CalcAdd(energy, virial, distSq,
                                       molKind.AtomKind
                                       (molKind.nonBonded.part1[i]),
                                       molKind.AtomKind
@@ -536,6 +719,30 @@ void CalculateEnergy::MolNonbond(double & energy,
       }
    }
 }
+
+void CalculateEnergy::MolNonbond_1_4(double & energy,
+                                 MoleculeKind const& molKind,
+                                 const uint molIndex,
+                                 const uint box) const
+{
+   if (box >= BOXES_WITH_U_B || molKind.nonBonded_1_4 == NULL)
+      return;
+   
+   double distSq;
+   for (uint i = 0; i < molKind.nonBonded_1_4->count; ++i)
+   {
+      uint p1 = mols.start[molIndex] + molKind.nonBonded_1_4->part1[i];
+      uint p2 = mols.start[molIndex] + molKind.nonBonded_1_4->part2[i];
+      currentAxes.GetDistSq(distSq, currentCoords, p1, p2, box);
+      forcefield.particles->CalcAdd_1_4(energy, distSq,
+                                      molKind.AtomKind
+                                      (molKind.nonBonded_1_4->part1[i]),
+                                      molKind.AtomKind
+                                      (molKind.nonBonded_1_4->part2[i]));
+   }
+}
+
+
 
 //!Calculates energy and virial tail corrections for the box
 void CalculateEnergy::FullTailCorrection(SystemPotential& pot, 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -23,12 +23,18 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBSetup.h" //For atoms class.
 #include "BoxDimensions.h" //For "boxes with volume."
 
+#include <limits> //for std::numeric_limits
+
 struct FluctuationTracker
 {
    FluctuationTracker(): dblSrc(NULL) {}
    
    ~FluctuationTracker() 
    { 
+      if (outF.is_open())
+      {
+	 outF.close();
+      }
       if (dblSrc != NULL)
       {
 	 delete[] dblSrc;
@@ -45,7 +51,11 @@ struct FluctuationTracker
 
    //Set one of the pointers to the fluctuating values we're tracking
    void SetRef(double * loc, const uint b) 
-   { dblSrc[b] = loc; uintSrc[b] = NULL; }
+   {
+      dblSrc[b] = loc;
+      uintSrc[b] = NULL; 
+      outF << std::setprecision(std::numeric_limits<double>::digits10+2) << std::setw(25);
+   }
    void SetRef(uint * loc, const uint b) 
    { uintSrc[b] = loc; dblSrc[b] = NULL; }
 

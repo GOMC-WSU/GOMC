@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -13,6 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <string> //for var names, etc.
 
 #include "InputAbstracts.h" //For ReadableBase parent class.
+#include "InputFileReader.h" // Input reader
 #include "../lib/BasicTypes.h" //for uint, ulong
 #include "EnsemblePreprocessor.h" //For box total;
 #include "Reader.h" //For config reader
@@ -32,22 +33,16 @@ namespace config_setup
    // Reoccurring structures
 
    //A filename
-   struct FileName : ReadableBase
+   struct FileName
    {
       std::string name;
-      void Read(Reader & config){ config.file >> name; }
    };
 
    //Multiple filenames
    template <uint N>
-   struct FileNames : ReadableBase
+   struct FileNames
    {
       std::string name[N];
-      void Read(Reader & config)
-      { 
-	 for (unsigned int i = 0; i < N; i++)
-	    config.file >> name[i]; 
-      }
    };
 
    /////////////////////////////////////////////////////////////////////////
@@ -55,44 +50,29 @@ namespace config_setup
 
    //Could use "EnableEvent", but restart's enable arguably needs its 
    //own struct as "frequency" is misleading name for step number
-   struct RestartSettings : ReadableBase
+   struct RestartSettings
    {
       bool enable; ulong step;
       bool operator()(void) { return enable; }
-      void Read(Reader & config) { config.file >> enable >> step; }
    };
 
    //Kinds of Mersenne Twister initialization
-   struct PRNGKind : ReadableBase
+   struct PRNGKind
    {
       std::string kind;
       MTRand::uint32 seed;
       bool IsRand(void) const { return str::compare(KIND_RANDOM, kind); }
       bool IsSeed(void) const { return str::compare(KIND_SEED, kind); }
       bool IsRestart(void) const { return str::compare(KIND_RESTART, kind); }
-      void Read(Reader & config) 
-      { 
-         config.file >> kind; 
-         if (IsSeed()) 
-         { 
-            uint tSeed; 
-            config.file >> tSeed; 
-            seed = (MTRand::uint32)(tSeed); }
-      }
       static const std::string KIND_RANDOM, KIND_SEED, KIND_RESTART;
    }; 
    
-   struct FFKind : ReadableBase
-   {
-      bool isCHARMM;
-      void Read(Reader & config) 
-      { 
-	 std::string kind;
-         config.file >> kind; 
-	 isCHARMM = str::compare("CHARMM", kind);
-      }
-      static const std::string FF_CHARMM;      
-   };
+	struct FFKind
+	{
+		uint numOfKinds;
+		bool isCHARMM, isMARTINI;
+      static const std::string FF_CHARMM, FF_EXOTIC, FF_MARTINI;
+	};
 
    //Files for input.
    struct InFiles
@@ -111,55 +91,63 @@ namespace config_setup
       InFiles files;
    };
 
+   
 
    /////////////////////////////////////////////////////////////////////////
    // System-specific structures
 
-   //Items that effect the system interactions and/or identity, e.g. Temp.
-   struct FFValues : ReadableBase
+   struct Temperature
    {
+      double inKelvin;
+   };
+
+	struct Exclude 
+	{
+		uint EXCLUDE_KIND;
+
+		static const std::string EXC_ONETWO, EXC_ONETHREE, EXC_ONEFOUR;
+		static const uint EXC_ONETWO_KIND, EXC_ONETHREE_KIND, EXC_ONEFOUR_KIND;
+	};
+
+   struct PotentialConfig 
+   {uint kind; double cutoff; double oneFourScale; uint VDW_KIND;};
+   struct VDWPot : public PotentialConfig { bool doTailCorr; };
+   typedef PotentialConfig VDWShift;
+   struct VDWSwitch : public PotentialConfig { double cuton; };
+
+   //Items that effect the system interactions and/or identity, e.g. Temp.
+   struct FFValues
+   {
+      uint VDW_KIND;
+      double cutoff, rswitch, oneFourScale;
       bool doTailCorr;
-      double temperature, cutoff, oneFourScale;
-      void Read(Reader & config) 
-      { config.file >> doTailCorr >> temperature >> cutoff >> oneFourScale; }
+      std::string kind;
+
+      static const std::string VDW, VDW_SHIFT, VDW_SWITCH;
+      static const uint VDW_STD_KIND, VDW_SHIFT_KIND, VDW_SWITCH_KIND;
    };
 
 #if ENSEMBLE == GEMC
    
    //Items that effect the system interactions and/or identity, e.g. Temp.
-   struct GEMCKind : ReadableBase
+   struct GEMCKind
    {
       uint kind;
       double pressure;
 
       GEMCKind(): kind(mv::GEMC_NVT) {} 
 
-      void Read(Reader & config) 
-      { 
-	 std::string s;
-	 config.file >> s;
-	 if (str::compare(str::ToUpper(s), "NVT"))
-	    kind = mv::GEMC_NVT;
-	 else
-	 {
-	    kind = mv::GEMC_NPT;
-	    config.file >> pressure;
-	    pressure *= unit::BAR_TO_K_MOLECULE_PER_A3;
-	 }
-      }
    }; 
    
 #endif
 
-   struct Step : ReadableBase
+   struct Step
    {
       ulong total, equil, adjustment;
-      void Read(Reader & config)
-      { config.file >> total >> equil >> adjustment; }
    };
 
    //Holds the percentage of each kind of move for this ensemble.
-   struct MovePercents : ReadableBase
+   struct MovePercents
    {
       double displace, rotate;
 #ifdef VARIABLE_VOLUME
@@ -168,129 +156,84 @@ namespace config_setup
 #ifdef VARIABLE_PARTICLE_NUMBER
       double transfer;
 #endif
-      void Read(Reader & config)
-      { 
-	 config.file >> displace >> rotate;
-#ifdef VARIABLE_VOLUME
-	 config.file >> volume;
-#endif
-#ifdef VARIABLE_PARTICLE_NUMBER
-	 config.file >> transfer;
-#endif
-      }
    };
 
-   struct Volume : ReadableBase
+   struct Ewald
+   {
+	   bool readEwald;
+	   bool enable;
+	   double alpha;
+	   double KMax;
+	   double oneFourScale;
+   };
+
+   struct Volume
    {
       bool hasVolume;
       uint boxCoordRead;
       XYZArray axis;
       Volume(void) : hasVolume(false), boxCoordRead(0), axis(BOX_TOTAL)  {}
-      void Read(Reader & config) 
-      {
-	 uint b = 0;
-	 config.file >> b;
-	 if (b < BOX_TOTAL)
-	 {
-	    XYZ temp;
-	    boxCoordRead++;
-	    hasVolume = (boxCoordRead == BOX_TOTAL);
-	    config.file >> temp.x >> temp.y >> temp.z;
-	    axis.Set(b, temp);  
-	 }
-      }
    };
 
    //If particle number varies (e.g. GCMC, GEMC) load in parameters for
    //configurational bias
-   struct GrowNonbond : ReadableBase
+   struct GrowNonbond
    {
      uint first, nth;
-      void Read(Reader & config)
-      { config.file >> first >> nth; }
    };
 
    //If particle number varies (e.g. GCMC, GEMC) load in parameters for
    //configurational bias
-   struct GrowBond : ReadableBase
+   struct GrowBond
    {
      uint ang, dih;
-      void Read(Reader & config)
-      { 
-         config.file >> ang >> dih;
-      }
    };
 
    struct CBMC { GrowNonbond nonbonded; GrowBond bonded; };   
 
 #if ENSEMBLE == GCMC
-   struct ChemicalPotential : ReadableBase
+   struct ChemicalPotential
    {
       std::map<std::string, double> cp;
-      void Read(Reader & config)
-      {
-	 std::string line, resName;
-         double val;
-	 std::getline(config.file, line);
-	 std::stringstream ss(line);
-	 while ( ss >> resName >> val )
-	    cp[resName] = val;
-      }
    };
 #endif
-
-   struct SystemVals
-   {
-      FFValues ff;
-      Step step;
-      MovePercents moves;
-      Volume volume; //May go unused
-      CBMC cbmcTrials;
+	struct SystemVals
+	{
+		Ewald ewald;
+		Temperature T;
+		FFValues ff;
+		Exclude exclude;
+		Step step;
+		MovePercents moves;
+		Volume volume; //May go unused
+		CBMC cbmcTrials;
 #if ENSEMBLE == GCMC
-      ChemicalPotential chemPot;
+		ChemicalPotential chemPot;
 #elif ENSEMBLE == GEMC
-      GEMCKind gemc;
+		GEMCKind gemc;
 #endif
    };
 
    /////////////////////////////////////////////////////////////////////////
    // Output-specific structures
 
-   struct EventSettings : ReadableStepDependentBase
+   struct EventSettings/* : ReadableStepDependentBase*/
    {
       bool enable; ulong frequency;
       bool operator()(void) { return enable; }
-      void Read(Reader & config, const ulong totalSteps,
-		std::string const& kindName)
-      { 
-	 config.file >> enable >> frequency; 
-	 if ( frequency > totalSteps && enable )
-	 {
-	    std::cerr << "WARNING: Total steps to run is less than "
-		      << "the frequency period for " << kindName 
-		      << " dumping, values will not be saved."
-		      << std::endl << std::endl;
-	    enable = false;
-	 }
-      }
    };
 
-   struct UniqueStr : ReadableBase
+
+
+   struct UniqueStr/* : ReadableBase*/
    {
       std::string val;
-      void Read(Reader & config)
-      { config.file >> val; }
    };
 
-   struct HistFiles : ReadableBase
+   struct HistFiles/* : ReadableBase*/
    {
       std::string histName, number, letter, sampleName;
-      uint samplesPerHist;
-      void Read(Reader & config)
-      {
-         config.file >> histName >> sampleName >> number >> letter
-                     >> samplesPerHist;
-      }
+      uint stepsPerHistSample;
    };
 
    //Files for output.
@@ -303,11 +246,9 @@ namespace config_setup
    struct Settings { EventSettings block, hist, fluct; UniqueStr uniqueStr; };
 	    
    //Enables for each variable that can be tracked
-   struct OutputEnables : ReadableBase
+   struct OutputEnables
    {
       bool block, fluct, hist;
-      void Read(Reader & config)
-      { config.file >> block >> fluct >> hist; }
    };
 	 
    struct TrackedVars
@@ -327,35 +268,28 @@ namespace config_setup
    struct SysState { EventSettings settings; OutFiles files; };
    struct Statistics{ Settings settings; TrackedVars vars; };
    struct Output
-   { SysState state; Statistics statistics; EventSettings console; };
+   { SysState state, restart; Statistics statistics; EventSettings console; };
 
 }
 
 class ConfigSetup
 {
- public:
+public:
+	config_setup::Input in;
+	config_setup::Output out;
+	config_setup::SystemVals sys;
+	ConfigSetup(void);
+	void Init(const char *fileName);
 
-   config_setup::Input in;
-   config_setup::Output out;
-   config_setup::SystemVals sys; 
-   
-   ConfigSetup(void): readVar(SetReadFunctions()), 
-      readStepDependVar(SetStepDependentReadFunctions()) {}
-   void Init(char const*const fileName);
+private:
+	void fillDefaults(void);
+	bool checkBool(string str);
+	void verifyInputs(void);
+	InputFileReader reader;
 
- private:
-   //Polymorphic read function calling.
-   const std::map<std::string, ReadableBase *> readVar; 
-   const std::map<std::string, ReadableStepDependentBase *> 
-      readStepDependVar;
-   //Map variable names to functions   
-   std::map<std::string, ReadableBase *>  SetReadFunctions(void);
-   std::map<std::string, ReadableStepDependentBase *> 
-      SetStepDependentReadFunctions(void);
-
-   //Names of config file.
-   static const char defaultConfigFileName[]; // "in.dat"
-   static const char configFileAlias[];       // "GO-MC Configuration File"	
+	//Names of config file.		
+	static const char defaultConfigFileName[]; // "in.dat"		
+	static const char configFileAlias[];       // "GO-MC Configuration File"
 };
 
 #endif 

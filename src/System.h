@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -19,7 +19,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BoxDimensions.h"
 #include "MoleculeLookup.h"
 #include "MoveSettings.h"
-
+#ifdef CELL_LIST
+#include "CellList.h"
+#endif
 
 //Initialization variables
 class Setup;
@@ -50,7 +52,6 @@ class System
 #endif
 #ifdef  VARIABLE_PARTICLE_NUMBER
    MoleculeLookup molLookup;
-   //TODO CellGrid grid;
 #endif
 
    //Use as we don't know where they are...
@@ -63,6 +64,9 @@ class System
    COM com;
 
    CalculateEnergy calcEnergy;
+#ifdef CELL_LIST
+   CellList cellList;
+#endif
    PRNG prng;
 
    //Procedure to run once move is picked... can also be called directly for

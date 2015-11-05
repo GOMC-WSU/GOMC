@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -94,6 +94,7 @@ protected:
 	uint32 state[N];   // internal state
 	uint32 *pNext;     // next value to get from state
 	int32 left;          // number of values left before reload needed
+	uint32 seedValue;
 
 // Methods
 public:
@@ -276,7 +277,9 @@ inline void MTRand::seed()
 	}
 	
 	// Was not successful, so use time() and clock() instead
-	seed( hash( time(NULL), clock() ) );
+	seedValue = hash( time(NULL), clock() );
+	seed( seedValue );
+	std::cout << "Random number seed: " << seedValue << std::endl;
 }
 
 inline MTRand::MTRand( const uint32 oneSeed )

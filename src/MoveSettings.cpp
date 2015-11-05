@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -37,20 +37,20 @@ void MoveSettings::Init(StaticVals const& statV)
       acceptPercent[m] = 0.0;
       accepted[m] = tries[m] = 0;
    }
+
+#if ENSEMBLE == NVT || ENSEMBLE == GCMC 
    scale[mv::DISPLACE] = boxDimRef.axis.Min(0)/4;
-
-#if ENSEMBLE == GEMC
+   scale[mv::ROTATE] = M_PI_4;
+#elif ENSEMBLE == GEMC
+   scale[mv::DISPLACE] = boxDimRef.axis.Min(0)/4;
    scale[mv::DISPLACE+1] = boxDimRef.axis.Min(1)/4;
-#endif
-
-   scale[mv::ROTATE*BOXES_WITH_U_NB] = M_PI_4;
-
-#if ENSEMBLE == GEMC
+   scale[mv::ROTATE*BOX_TOTAL] = M_PI_4;
    scale[mv::ROTATE*BOX_TOTAL+1] = M_PI_4;
-   scale[mv::VOL_TRANSFER*BOX_TOTAL] = 
-      scale[mv::VOL_TRANSFER*BOX_TOTAL+1] = 500;
+   scale[mv::VOL_TRANSFER*BOX_TOTAL] = 500;
+   scale[mv::VOL_TRANSFER*BOX_TOTAL+1] = 500;
    GEMC_KIND = statV.kindOfGEMC;
 #endif
+
 }
 
 //Process results of move we just did in terms of acceptance counters
@@ -96,7 +96,7 @@ void MoveSettings::Update(const bool isAccepted, const uint moveIndex,
          if (m >= mv::MOL_TRANSFER)
             --majMoveKind;
 #else
-	 uint majMoveKind = m/2;
+	 uint majMoveKind = m/BOX_TOTAL;
 #endif
 	 uint b = m - (majMoveKind*BOXES_WITH_U_NB);
 	 Adjust(majMoveKind, m, b);

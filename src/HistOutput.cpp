@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -11,6 +11,18 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "ConfigSetup.h"
 
 #include <sstream>
+
+Histogram::Histogram(OutputVars & v)
+{
+	this->var = &v;
+	total = NULL;
+	for (uint b = 0; b < BOXES_WITH_U_NB; b++)
+	{
+		molCount[b] = NULL;
+		outF[b] = NULL;
+		name[b] = NULL;
+	}
+}
 
 void Histogram::Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output)
@@ -30,6 +42,7 @@ void Histogram::Init(pdb_setup::Atoms const& atoms,
       {
          name[b] = new std::string[var->numKinds];
          molCount[b] = new uint *[var->numKinds];
+	 outF[b] = new std::ofstream[var->numKinds];
          for (uint k = 0; k < var->numKinds; ++k)
          {
             name[b][k] = GetFName(output.state.files.hist.histName,
@@ -68,9 +81,8 @@ Histogram::~Histogram()
    for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
    {
       if (name[b] != NULL) delete[] name[b];
-      for (uint k = 0; k < var->numKinds; ++k)
-         if (molCount[b][k] != NULL) delete[] molCount[b][k];
       if (molCount[b] != NULL) delete[] molCount[b];
+	  if (outF[b] != NULL) delete[] outF[b];
    }
 }
 
@@ -98,15 +110,13 @@ void Histogram::DoOutput(const ulong step)
    {
       for (uint k = 0; k < var->numKinds; ++k)
       {
-         outF.open(name[b][k].c_str(), std::ofstream::out);  
-         if (outF.is_open())
-         {       
+	 outF[b][k].open(name[b][k].c_str(), std::ofstream::out);  
+         if (outF[b][k].is_open())   
             PrintKindHist(b, k);
-            outF.close();
-         }
          else
             std::cerr << "Unable to write to file \"" <<  name[b][k] << "\" " 
                       << "(histogram file)" << std::endl;
+	 outF[b][k].close();
       }
    }
 }
@@ -115,7 +125,7 @@ void Histogram::PrintKindHist(const uint b, const uint k)
    for (uint n = 0; n < total[k]; ++n)
    {
       if ( molCount[b][k][n] != 0 )
-         outF << n << " " << molCount[b][k][n] << std::endl;;
+         outF[b][k] << n << " " << molCount[b][k][n] << std::endl;;
    }
 }
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -65,8 +65,10 @@ class MoleculeKind
    { builder->Build(oldMol, newMol, molIndex); }
 
    SortedNonbond sortedNB;
+   SortedNonbond_1_4 sortedNB_1_4;
    //these are used for total energy calculations, see Geometry.h/cpp
    Nonbond nonBonded;
+   Nonbond *nonBonded_1_4;
    BondList bondList;
    GeomFeature angles;
    GeomFeature dihedrals;

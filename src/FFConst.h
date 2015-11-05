@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) BETA 0.97 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
 
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -22,6 +22,7 @@ namespace ff
       extern const std::string WILD;  // "X"
       const uint nm_len = 3;
       const uint lj_n = 12;
+      const uint lj_Cn = 4;
       //Flag to indicate whether particle is normal kind or should be handled
       //via Mie potential.
       namespace variety

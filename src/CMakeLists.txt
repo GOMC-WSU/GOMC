@@ -2,6 +2,7 @@ set(sources
    BlockOutput.cpp
    BoxDimensions.cpp
    CBMC.cpp
+   CellList.cpp
    ConfigSetup.cpp
    ConsoleOutput.cpp
    Coordinates.cpp
@@ -16,6 +17,7 @@ set(sources
    Forcefield.cpp
    Geometry.cpp
    HistOutput.cpp
+   InputFileReader.cpp
    Main.cc
    MoleculeKind.cpp
    MoleculeLookup.cpp
@@ -49,6 +51,7 @@ set(headers
    BoxDimensions.h
    CalculateEnergy.h
    CBMC.h
+   CellList.h
    Clock.h
    COM.h
    ConfigSetup.h
@@ -66,6 +69,9 @@ set(headers
    FFDihedrals.h
    FFParticle.h
    FFSetup.h
+   FFShift.h
+   FFSwitch.h
+   FFSwitchMartini.h
    FixedWidthReader.h
    FluctOutput.h
    Forcefield.h
@@ -73,6 +79,7 @@ set(headers
    Geometry.h
    HistOutput.h
    InputAbstracts.h
+   InputFileReader.h
    MersenneTwister.h
    MoleculeKind.h
    MoleculeLookup.h
