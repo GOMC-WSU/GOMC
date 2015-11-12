@@ -1,0 +1,578 @@
+GOMC Serial Version 0.97
+Started at: Fri Aug 21 18:23:43 2015
+On hostname: potoff44.eng.wayne.edu
+
+------------------------------------------------------
+This code was compiled to support the grand canonical ensemble.
+------------------------------------------------------
+
+Reading from Exotic Parameter File file: ./Par_Mie_Alkane_Exotic.inp
+
+Finished reading Exotic Parameter File file: ./Par_Mie_Alkane_Exotic.inp
+
+Reading from Box 1 PDB coordinate file file: ./STEP3_START_C6P_vap_BOX_0.pdb
+
+Finished reading Box 1 PDB coordinate file file: ./STEP3_START_C6P_vap_BOX_0.pdb
+
+Reading from Box 2 PDB coordinate file file: ./STEP3_START_C6P_reservoir_BOX_1.pdb
+
+Finished reading Box 2 PDB coordinate file file: ./STEP3_START_C6P_reservoir_BOX_1.pdb
+
+REMARINDER! 1-4 Interaction and more is OFF
+
+Min. Box Size: 8000.1
+STARTING SIMULATION!!
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 2
+
+Molecule Type C6P
+-------------------
+Number: 2 ;
+Density: 0.00667531 g/ml
+
+Energy (in K): total: -347.543
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 600
+
+Molecule Type C6P
+-------------------
+Number: 600 ;
+Density: 2.00259 g/ml
+
+Energy (in K): total: -58795
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -59142.6
+
+Printed combined psf to file C6P_480_00_K_u_4140_r1a.psf
+STEP 99999 of 1000000 (9.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 18
+
+Molecule Type C6P
+-------------------
+Number: 18 ;
+Density: 0.0600778 g/ml
+
+Energy (in K): total: 25390.8
+
+Displace (Box 0) -- tries: 20018; # Accept: 10453; % Accept : 52.218; Max Amt.: 10.5426
+Rotate (Box 0) -- tries: 10092; # Accept: 8094; % Accept : 80.2021; Max Amt.: 3.14159
+Deletion (from Box 0) -- tries: 34996; # Accept: 18106; % Accept : 51.7373
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 584
+
+Molecule Type C6P
+-------------------
+Number: 584 ;
+Density: 1.94919 g/ml
+
+Energy (in K): total: 1.27034e+06
+
+Insertion (into Box 0) -- tries: 34894; # Accept: 18122; % Accept : 51.9344
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 1.29573e+06
+
+Steps/sec. : 17182.1
+STEP 199999 of 1000000 (19.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 11
+
+Molecule Type C6P
+-------------------
+Number: 11 ;
+Density: 0.0367142 g/ml
+
+Energy (in K): total: 19376.7
+
+Displace (Box 0) -- tries: 40022; # Accept: 21021; % Accept : 52.5236; Max Amt.: 17.5
+Rotate (Box 0) -- tries: 20190; # Accept: 16191; % Accept : 80.1932; Max Amt.: 3.14159
+Deletion (from Box 0) -- tries: 69982; # Accept: 36254; % Accept : 51.8047
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 591
+
+Molecule Type C6P
+-------------------
+Number: 591 ;
+Density: 1.97255 g/ml
+
+Energy (in K): total: 1.28836e+06
+
+Insertion (into Box 0) -- tries: 69806; # Accept: 36263; % Accept : 51.9483
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 1.30773e+06
+
+Steps/sec. : 17421.6
+STEP 299999 of 1000000 (29.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 10
+
+Molecule Type C6P
+-------------------
+Number: 10 ;
+Density: 0.0333765 g/ml
+
+Energy (in K): total: 15828.4
+
+Displace (Box 0) -- tries: 60068; # Accept: 31623; % Accept : 52.6453; Max Amt.: 17.5
+Rotate (Box 0) -- tries: 30255; # Accept: 24236; % Accept : 80.1058; Max Amt.: 3.14159
+Deletion (from Box 0) -- tries: 104816; # Accept: 54481; % Accept : 51.9778
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 592
+
+Molecule Type C6P
+-------------------
+Number: 592 ;
+Density: 1.97589 g/ml
+
+Energy (in K): total: 1.29775e+06
+
+Insertion (into Box 0) -- tries: 104861; # Accept: 54489; % Accept : 51.9631
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 1.31358e+06
+
+Steps/sec. : 17482.5
+STEP 399999 of 1000000 (39.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 10
+
+Molecule Type C6P
+-------------------
+Number: 10 ;
+Density: 0.0333765 g/ml
+
+Energy (in K): total: 19468.5
+
+Displace (Box 0) -- tries: 79988; # Accept: 42040; % Accept : 52.5579; Max Amt.: 17.5
+Rotate (Box 0) -- tries: 40284; # Accept: 32204; % Accept : 79.9424; Max Amt.: 3.14159
+Deletion (from Box 0) -- tries: 139874; # Accept: 72723; % Accept : 51.9918
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 592
+
+Molecule Type C6P
+-------------------
+Number: 592 ;
+Density: 1.97589 g/ml
+
+Energy (in K): total: 1.29923e+06
+
+Insertion (into Box 0) -- tries: 139854; # Accept: 72731; % Accept : 52.0049
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 1.3187e+06
+
+Steps/sec. : 17482.5
+STEP 499999 of 1000000 (49.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 15
+
+Molecule Type C6P
+-------------------
+Number: 15 ;
+Density: 0.0500648 g/ml
+
+Energy (in K): total: 22463.2
+
+Displace (Box 0) -- tries: 100051; # Accept: 52829; % Accept : 52.8021; Max Amt.: 15.3677
+Rotate (Box 0) -- tries: 50307; # Accept: 40224; % Accept : 79.9571; Max Amt.: 3.14159
+Deletion (from Box 0) -- tries: 174995; # Accept: 90844; % Accept : 51.9123
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 587
+
+Molecule Type C6P
+-------------------
+Number: 587 ;
+Density: 1.9592 g/ml
+
+Energy (in K): total: 1.29063e+06
+
+Insertion (into Box 0) -- tries: 174647; # Accept: 90857; % Accept : 52.0232
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 1.3131e+06
+
+Steps/sec. : 17543.9
+STEP 599999 of 1000000 (59.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 13
+
+Molecule Type C6P
+-------------------
+Number: 13 ;
+Density: 0.0433895 g/ml
+
+Energy (in K): total: 28935.4
+
+Displace (Box 0) -- tries: 120165; # Accept: 63465; % Accept : 52.8149; Max Amt.: 17.2193
+Rotate (Box 0) -- tries: 60369; # Accept: 48245; % Accept : 79.9168; Max Amt.: 3.14159
+Deletion (from Box 0) -- tries: 210022; # Accept: 108972; % Accept : 51.886
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 589
+
+Molecule Type C6P
+-------------------
+Number: 589 ;
+Density: 1.96588 g/ml
+
+Energy (in K): total: 1.28016e+06
+
+Insertion (into Box 0) -- tries: 209444; # Accept: 108983; % Accept : 52.0344
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 1.3091e+06
+
+Steps/sec. : 17574.7
+STEP 699999 of 1000000 (69.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 14
+
+Molecule Type C6P
+-------------------
+Number: 14 ;
+Density: 0.0467272 g/ml
+
+Energy (in K): total: 24900.8
+
+Displace (Box 0) -- tries: 140206; # Accept: 73818; % Accept : 52.6497; Max Amt.: 17.5
+Rotate (Box 0) -- tries: 70268; # Accept: 55945; % Accept : 79.6166; Max Amt.: 3.14159
+Deletion (from Box 0) -- tries: 244962; # Accept: 127217; % Accept : 51.9334
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 588
+
+Molecule Type C6P
+-------------------
+Number: 588 ;
+Density: 1.96254 g/ml
+
+Energy (in K): total: 1.26874e+06
+
+Insertion (into Box 0) -- tries: 244564; # Accept: 127229; % Accept : 52.0228
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 1.29364e+06
+
+Steps/sec. : 16949.2
+STEP 799999 of 1000000 (79.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 26
+
+Molecule Type C6P
+-------------------
+Number: 26 ;
+Density: 0.086779 g/ml
+
+Energy (in K): total: 35303
+
+Displace (Box 0) -- tries: 160078; # Accept: 84140; % Accept : 52.5619; Max Amt.: 12.8984
+Rotate (Box 0) -- tries: 80367; # Accept: 63876; % Accept : 79.4804; Max Amt.: 3.14159
+Deletion (from Box 0) -- tries: 279904; # Accept: 145318; % Accept : 51.9171
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 576
+
+Molecule Type C6P
+-------------------
+Number: 576 ;
+Density: 1.92249 g/ml
+
+Energy (in K): total: 1.28406e+06
+
+Insertion (into Box 0) -- tries: 279651; # Accept: 145342; % Accept : 51.9726
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 1.31936e+06
+
+Steps/sec. : 17271.2
+STEP 899999 of 1000000 (89.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 10
+
+Molecule Type C6P
+-------------------
+Number: 10 ;
+Density: 0.0333765 g/ml
+
+Energy (in K): total: 17515.4
+
+Displace (Box 0) -- tries: 180099; # Accept: 94675; % Accept : 52.5683; Max Amt.: 16.0004
+Rotate (Box 0) -- tries: 90321; # Accept: 71689; % Accept : 79.3714; Max Amt.: 3.14159
+Deletion (from Box 0) -- tries: 314917; # Accept: 163437; % Accept : 51.8984
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 592
+
+Molecule Type C6P
+-------------------
+Number: 592 ;
+Density: 1.97589 g/ml
+
+Energy (in K): total: 1.31016e+06
+
+Insertion (into Box 0) -- tries: 314663; # Accept: 163445; % Accept : 51.9429
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 1.32768e+06
+
+Steps/sec. : 17452
+STEP 999999 of 1000000 (99.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 1
+
+Molecule Type C6P
+-------------------
+Number: 1 ;
+Density: 0.00333765 g/ml
+
+Energy (in K): total: 880.887
+
+Displace (Box 0) -- tries: 200001; # Accept: 105236; % Accept : 52.6177; Max Amt.: 14.239
+Rotate (Box 0) -- tries: 100336; # Accept: 79703; % Accept : 79.4361; Max Amt.: 3.14159
+Deletion (from Box 0) -- tries: 350086; # Accept: 181749; % Accept : 51.9155
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 42875 A^3
+Tot # mol: 601
+
+Molecule Type C6P
+-------------------
+Number: 601 ;
+Density: 2.00593 g/ml
+
+Energy (in K): total: 1.29438e+06
+
+Insertion (into Box 0) -- tries: 349577; # Accept: 181748; % Accept : 51.9908
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 1.29527e+06
+
+Simulation Time (total): 57.52sec.

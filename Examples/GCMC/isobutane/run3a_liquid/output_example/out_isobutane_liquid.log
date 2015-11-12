@@ -1,0 +1,569 @@
+GOMC Serial Version 0.96
+Started at: Wed May  6 17:16:45 2015
+On hostname: potoff33.eng.wayne.edu
+
+Reading from GO-MC Configuration File file: ./in.dat
+
+Finished reading GO-MC Configuration File file: ./in.dat
+
+Reading from CHARMM-Style Parameter File file: ./Par_TraPPE_Alkanes_CHARMM.inp
+
+Finished reading CHARMM-Style Parameter File file: ./Par_TraPPE_Alkanes_CHARMM.inp
+
+Reading from Box 1 PDB coordinate file file: ./STEP3_START_ISB_liq_BOX_0.pdb
+
+Finished reading Box 1 PDB coordinate file file: ./STEP3_START_ISB_liq_BOX_0.pdb
+
+Reading from Box 2 PDB coordinate file file: ./STEP3_START_ISB_reservoir_BOX_1.pdb
+
+Finished reading Box 2 PDB coordinate file file: ./STEP3_START_ISB_reservoir_BOX_1.pdb
+
+Min. Box Size: 8000.1
+STARTING SIMULATION!!
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 210
+
+Molecule Type ISB
+-------------------
+Number: 210 ;
+Density: 0.750689 g/ml
+
+Energy (in K): total: 4.8836e+07
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 600
+
+Molecule Type ISB
+-------------------
+Number: 600 ;
+Density: 2.14483 g/ml
+
+Energy (in K): total: 109689
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 4.89457e+07
+
+Printed combined psf to file ISB_T_380_K_u_2970_r3a_merged.psf
+STEP 99999 of 1000000 (9.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 123
+
+Molecule Type ISB
+-------------------
+Number: 123 ;
+Density: 0.439689 g/ml
+
+Energy (in K): total: -106148
+
+Displace (Box 0) -- tries: 29964; # Accept: 14811; % Accept : 49.4293; Max Amt.: 0.590531
+Deletion (from Box 0) -- tries: 34964; # Accept: 6263; % Accept : 17.9127
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 687
+
+Molecule Type ISB
+-------------------
+Number: 687 ;
+Density: 2.45583 g/ml
+
+Energy (in K): total: 406877
+
+Insertion (into Box 0) -- tries: 35072; # Accept: 6176; % Accept : 17.6095
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 300729
+
+Steps/sec. : 2104.38
+STEP 199999 of 1000000 (19.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 138
+
+Molecule Type ISB
+-------------------
+Number: 138 ;
+Density: 0.49331 g/ml
+
+Energy (in K): total: -147724
+
+Displace (Box 0) -- tries: 60157; # Accept: 29937; % Accept : 49.7648; Max Amt.: 0.50147
+Deletion (from Box 0) -- tries: 70154; # Accept: 12147; % Accept : 17.3148
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 672
+
+Molecule Type ISB
+-------------------
+Number: 672 ;
+Density: 2.40221 g/ml
+
+Energy (in K): total: 395600
+
+Insertion (into Box 0) -- tries: 69689; # Accept: 12075; % Accept : 17.327
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 247876
+
+Steps/sec. : 2091.61
+STEP 299999 of 1000000 (29.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 124
+
+Molecule Type ISB
+-------------------
+Number: 124 ;
+Density: 0.443264 g/ml
+
+Energy (in K): total: -119409
+
+Displace (Box 0) -- tries: 90233; # Accept: 45092; % Accept : 49.9728; Max Amt.: 0.724476
+Deletion (from Box 0) -- tries: 105108; # Accept: 18356; % Accept : 17.4639
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 686
+
+Molecule Type ISB
+-------------------
+Number: 686 ;
+Density: 2.45225 g/ml
+
+Energy (in K): total: 409142
+
+Insertion (into Box 0) -- tries: 104659; # Accept: 18270; % Accept : 17.4567
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 289733
+
+Steps/sec. : 2120.89
+STEP 399999 of 1000000 (39.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 117
+
+Molecule Type ISB
+-------------------
+Number: 117 ;
+Density: 0.418241 g/ml
+
+Energy (in K): total: -79194.1
+
+Displace (Box 0) -- tries: 120484; # Accept: 60258; % Accept : 50.0133; Max Amt.: 0.615818
+Deletion (from Box 0) -- tries: 139916; # Accept: 24249; % Accept : 17.3311
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 693
+
+Molecule Type ISB
+-------------------
+Number: 693 ;
+Density: 2.47727 g/ml
+
+Energy (in K): total: 407871
+
+Insertion (into Box 0) -- tries: 139600; # Accept: 24156; % Accept : 17.3037
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 328677
+
+Steps/sec. : 2095.12
+STEP 499999 of 1000000 (49.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 127
+
+Molecule Type ISB
+-------------------
+Number: 127 ;
+Density: 0.453988 g/ml
+
+Energy (in K): total: -110912
+
+Displace (Box 0) -- tries: 150259; # Accept: 75221; % Accept : 50.0609; Max Amt.: 0.681279
+Deletion (from Box 0) -- tries: 174827; # Accept: 30168; % Accept : 17.2559
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 683
+
+Molecule Type ISB
+-------------------
+Number: 683 ;
+Density: 2.44153 g/ml
+
+Energy (in K): total: 397596
+
+Insertion (into Box 0) -- tries: 174914; # Accept: 30085; % Accept : 17.1999
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 286684
+
+Steps/sec. : 2089.43
+STEP 599999 of 1000000 (59.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 124
+
+Molecule Type ISB
+-------------------
+Number: 124 ;
+Density: 0.443264 g/ml
+
+Energy (in K): total: -103805
+
+Displace (Box 0) -- tries: 180405; # Accept: 90332; % Accept : 50.0718; Max Amt.: 0.648189
+Deletion (from Box 0) -- tries: 209938; # Accept: 36330; % Accept : 17.3051
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 686
+
+Molecule Type ISB
+-------------------
+Number: 686 ;
+Density: 2.45225 g/ml
+
+Energy (in K): total: 414872
+
+Insertion (into Box 0) -- tries: 209657; # Accept: 36244; % Accept : 17.2873
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 311067
+
+Steps/sec. : 2115.51
+STEP 699999 of 1000000 (69.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 140
+
+Molecule Type ISB
+-------------------
+Number: 140 ;
+Density: 0.500459 g/ml
+
+Energy (in K): total: -147008
+
+Displace (Box 0) -- tries: 210376; # Accept: 105351; % Accept : 50.0775; Max Amt.: 0.583498
+Deletion (from Box 0) -- tries: 245127; # Accept: 41940; % Accept : 17.1095
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 670
+
+Molecule Type ISB
+-------------------
+Number: 670 ;
+Density: 2.39506 g/ml
+
+Energy (in K): total: 397119
+
+Insertion (into Box 0) -- tries: 244497; # Accept: 41870; % Accept : 17.125
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 250111
+
+Steps/sec. : 2068.25
+STEP 799999 of 1000000 (79.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 113
+
+Molecule Type ISB
+-------------------
+Number: 113 ;
+Density: 0.403942 g/ml
+
+Energy (in K): total: -86464.5
+
+Displace (Box 0) -- tries: 240199; # Accept: 120305; % Accept : 50.0856; Max Amt.: 0.639097
+Deletion (from Box 0) -- tries: 280195; # Accept: 47959; % Accept : 17.1163
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 697
+
+Molecule Type ISB
+-------------------
+Number: 697 ;
+Density: 2.49157 g/ml
+
+Energy (in K): total: 419024
+
+Insertion (into Box 0) -- tries: 279606; # Accept: 47862; % Accept : 17.1177
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 332560
+
+Steps/sec. : 2101.28
+STEP 899999 of 1000000 (89.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 135
+
+Molecule Type ISB
+-------------------
+Number: 135 ;
+Density: 0.482586 g/ml
+
+Energy (in K): total: -142165
+
+Displace (Box 0) -- tries: 270587; # Accept: 135541; % Accept : 50.0915; Max Amt.: 0.586041
+Deletion (from Box 0) -- tries: 315099; # Accept: 54648; % Accept : 17.3431
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 675
+
+Molecule Type ISB
+-------------------
+Number: 675 ;
+Density: 2.41293 g/ml
+
+Energy (in K): total: 394103
+
+Insertion (into Box 0) -- tries: 314314; # Accept: 54573; % Accept : 17.3626
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 251938
+
+Steps/sec. : 2158.43
+STEP 999999 of 1000000 (99.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 124
+
+Molecule Type ISB
+-------------------
+Number: 124 ;
+Density: 0.443264 g/ml
+
+Energy (in K): total: -102361
+
+Displace (Box 0) -- tries: 300439; # Accept: 150522; % Accept : 50.1007; Max Amt.: 0.600752
+Deletion (from Box 0) -- tries: 350066; # Accept: 60719; % Accept : 17.345
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 27000 A^3
+Tot # mol: 686
+
+Molecule Type ISB
+-------------------
+Number: 686 ;
+Density: 2.45225 g/ml
+
+Energy (in K): total: 395980
+
+Insertion (into Box 0) -- tries: 349495; # Accept: 60633; % Accept : 17.3487
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 293619
+
+Simulation Time (total): 475.31sec.
+GOMC Serial Version 0.96
+Completed at: Wed May  6 17:25:28 2015
+On hostname: potoff33.eng.wayne.edu

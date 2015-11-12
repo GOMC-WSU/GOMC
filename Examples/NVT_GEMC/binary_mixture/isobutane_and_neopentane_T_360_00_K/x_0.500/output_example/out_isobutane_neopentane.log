@@ -1,0 +1,766 @@
+GOMC Serial Version 0.97
+Started at: Sun Aug 23 21:25:08 2015
+On hostname: potoff44.eng.wayne.edu
+
+------------------------------------------------------
+This code was compiled to support the Gibbs ensemble.
+------------------------------------------------------
+
+Warning: Output fluctuation has been set off, energy ouput for fluctuation will be ignored!
+Warning: Output fluctuation has been set off, pressure ouput for fluctuation will be ignored!
+Warning: Output fluctuation has been set off, molecule number ouput for fluctuation will be ignored!
+Warning: Output fluctuation has been set off, accept angles ouput for fluctuation will be ignored!
+Warning: Output fluctuation has been set off, density ouput for fluctuation will be ignored!
+Reading from CHARMM-Style Parameter File file: ./Par_TraPPE_Alkanes_CHARMM.inp
+
+Finished reading CHARMM-Style Parameter File file: ./Par_TraPPE_Alkanes_CHARMM.inp
+
+Reading from Box 1 PDB coordinate file file: ./STEP3_START_ISB_NEO_sys_BOX_0.pdb
+
+Finished reading Box 1 PDB coordinate file file: ./STEP3_START_ISB_NEO_sys_BOX_0.pdb
+
+Reading from Box 2 PDB coordinate file file: ./STEP3_START_ISB_NEO_sys_BOX_1.pdb
+
+Finished reading Box 2 PDB coordinate file file: ./STEP3_START_ISB_NEO_sys_BOX_1.pdb
+
+Molecules in PSF:
+
+Molecule Kind: ISB
+Idx	name	type	charge	mass
+0	C1	CH1	0	13.019
+1	C2	CH3	0	15.035
+2	C3	CH3	0	15.035
+3	C4	CH3	0	15.035
+
+Bonds:
+[0 1] [0 2] [0 3] 
+
+Angles:
+[1 0 3] [1 0 2] [2 0 3] 
+
+Dihedrals:
+
+Molecule Kind: NEO
+Idx	name	type	charge	mass
+0	C1	CT	0	12.011
+1	C2	CH3	0	15.035
+2	C3	CH3	0	15.035
+3	C4	CH3	0	15.035
+4	C5	CH3	0	15.035
+
+Bonds:
+[0 1] [0 2] [0 3] [0 4] 
+
+Angles:
+[1 0 4] [1 0 3] [1 0 2] [2 0 4] [2 0 3] [3 0 4] 
+
+Dihedrals:
+
+REMAINDER! 1-4 Interaction is OFF
+
+Min. Box Size: 8000.1
+STARTING SIMULATION!!
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 332813 A^3
+Tot # mol: 500
+
+Molecule Type ISB
+-------------------
+Number: 250 ;
+Density: 0.0725012 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 250 ;
+Density: 0.0899978 g/ml
+
+Energy (in K): total: 1.39483e+07
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 410172 A^3
+Tot # mol: 500
+
+Molecule Type ISB
+-------------------
+Number: 250 ;
+Density: 0.0588272 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 250 ;
+Density: 0.0730239 g/ml
+
+Energy (in K): total: -50964.1
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 1.38974e+07
+
+Printed combined psf to file isobutane_neopentane_NVT_360_00_K.psf
+STEP 99999 of 1000000 (9.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 271887 A^3
+Tot # mol: 725
+
+Molecule Type ISB
+-------------------
+Number: 366 ;
+Density: 0.129926 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 359 ;
+Density: 0.158197 g/ml
+
+Energy (in K): total: -262374
+
+Displace (Box 0) -- tries: 34498; # Accept: 16822; % Accept : 48.7622; Max Amt.: 0.828027
+Rotate (Box 0) -- tries: 4984; # Accept: 2850; % Accept : 57.183; Max Amt.: 1.44271
+Molecule Transfer (Box 0 -> Box 1) -- tries: 9864; # Accept: 2657; % Accept : 26.9363
+Volume Transfer (Box 0 -> Box 1) -- tries: 1013; # Accept: 569; % Accept : 56.1698; Max Amt.: 5386.69
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 471098 A^3
+Tot # mol: 275
+
+Molecule Type ISB
+-------------------
+Number: 134 ;
+Density: 0.0274535 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 141 ;
+Density: 0.0358591 g/ml
+
+Energy (in K): total: 94700.8
+
+Displace (Box 1) -- tries: 34574; # Accept: 17119; % Accept : 49.5141; Max Amt.: 3.08714
+Rotate (Box 1) -- tries: 5048; # Accept: 3590; % Accept : 71.1173; Max Amt.: 3.14159
+Molecule Transfer (Box 1 -> Box 0) -- tries: 10019; # Accept: 2882; % Accept : 28.7653
+Volume Transfer (Box 1 -> Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 500
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -167673
+
+Steps/sec. : 5213.76
+STEP 199999 of 1000000 (19.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 247778 A^3
+Tot # mol: 877
+
+Molecule Type ISB
+-------------------
+Number: 421 ;
+Density: 0.163992 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 456 ;
+Density: 0.220492 g/ml
+
+Energy (in K): total: -535180
+
+Displace (Box 0) -- tries: 69067; # Accept: 34127; % Accept : 49.4114; Max Amt.: 0.67426
+Rotate (Box 0) -- tries: 10023; # Accept: 5414; % Accept : 54.0158; Max Amt.: 1.70423
+Molecule Transfer (Box 0 -> Box 1) -- tries: 19869; # Accept: 4923; % Accept : 24.7773
+Volume Transfer (Box 0 -> Box 1) -- tries: 2068; # Accept: 1133; % Accept : 54.7872; Max Amt.: 10477.7
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 495206 A^3
+Tot # mol: 123
+
+Molecule Type ISB
+-------------------
+Number: 79 ;
+Density: 0.0153973 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 44 ;
+Density: 0.0106453 g/ml
+
+Energy (in K): total: 76472.5
+
+Displace (Box 1) -- tries: 68947; # Accept: 36828; % Accept : 53.4149; Max Amt.: 39.5578
+Rotate (Box 1) -- tries: 9990; # Accept: 7979; % Accept : 79.8699; Max Amt.: 3.14159
+Molecule Transfer (Box 1 -> Box 0) -- tries: 20036; # Accept: 5300; % Accept : 26.4524
+Volume Transfer (Box 1 -> Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 500
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -458708
+
+Steps/sec. : 3779.29
+STEP 299999 of 1000000 (29.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 230813 A^3
+Tot # mol: 893
+
+Molecule Type ISB
+-------------------
+Number: 435 ;
+Density: 0.181901 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 458 ;
+Density: 0.237737 g/ml
+
+Energy (in K): total: -631569
+
+Displace (Box 0) -- tries: 103533; # Accept: 51402; % Accept : 49.6479; Max Amt.: 0.645978
+Rotate (Box 0) -- tries: 14899; # Accept: 7867; % Accept : 52.8022; Max Amt.: 1.27001
+Molecule Transfer (Box 0 -> Box 1) -- tries: 29876; # Accept: 6831; % Accept : 22.8645
+Volume Transfer (Box 0 -> Box 1) -- tries: 3001; # Accept: 1626; % Accept : 54.1819; Max Amt.: 3344.18
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 512172 A^3
+Tot # mol: 107
+
+Molecule Type ISB
+-------------------
+Number: 65 ;
+Density: 0.012249 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 42 ;
+Density: 0.00982482 g/ml
+
+Energy (in K): total: 58199.7
+
+Displace (Box 1) -- tries: 103822; # Accept: 57928; % Accept : 55.7955; Max Amt.: 40.0045
+Rotate (Box 1) -- tries: 14828; # Accept: 12418; % Accept : 83.747; Max Amt.: 3.14159
+Molecule Transfer (Box 1 -> Box 0) -- tries: 30041; # Accept: 7224; % Accept : 24.0471
+Volume Transfer (Box 1 -> Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 500
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -573370
+
+Steps/sec. : 3816.79
+STEP 399999 of 1000000 (39.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 223501 A^3
+Tot # mol: 874
+
+Molecule Type ISB
+-------------------
+Number: 425 ;
+Density: 0.183533 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 449 ;
+Density: 0.24069 g/ml
+
+Energy (in K): total: -657003
+
+Displace (Box 0) -- tries: 137903; # Accept: 68619; % Accept : 49.7589; Max Amt.: 0.676757
+Rotate (Box 0) -- tries: 19800; # Accept: 10347; % Accept : 52.2576; Max Amt.: 1.27674
+Molecule Transfer (Box 0 -> Box 1) -- tries: 39985; # Accept: 8596; % Accept : 21.4981
+Volume Transfer (Box 0 -> Box 1) -- tries: 4054; # Accept: 2194; % Accept : 54.1194; Max Amt.: 3205.86
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 519484 A^3
+Tot # mol: 126
+
+Molecule Type ISB
+-------------------
+Number: 75 ;
+Density: 0.0139346 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 51 ;
+Density: 0.0117622 g/ml
+
+Energy (in K): total: 75204
+
+Displace (Box 1) -- tries: 138288; # Accept: 79760; % Accept : 57.6767; Max Amt.: 40.194
+Rotate (Box 1) -- tries: 19785; # Accept: 17030; % Accept : 86.0753; Max Amt.: 3.14159
+Molecule Transfer (Box 1 -> Box 0) -- tries: 40185; # Accept: 8970; % Accept : 22.3218
+Volume Transfer (Box 1 -> Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 500
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -581799
+
+Steps/sec. : 3466.2
+STEP 499999 of 1000000 (49.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 211470 A^3
+Tot # mol: 868
+
+Molecule Type ISB
+-------------------
+Number: 432 ;
+Density: 0.19717 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 436 ;
+Density: 0.247019 g/ml
+
+Energy (in K): total: -712343
+
+Displace (Box 0) -- tries: 172242; # Accept: 85808; % Accept : 49.8183; Max Amt.: 0.624107
+Rotate (Box 0) -- tries: 24725; # Accept: 12829; % Accept : 51.8868; Max Amt.: 1.07113
+Molecule Transfer (Box 0 -> Box 1) -- tries: 50007; # Accept: 10144; % Accept : 20.2852
+Volume Transfer (Box 0 -> Box 1) -- tries: 5065; # Accept: 2740; % Accept : 54.0967; Max Amt.: 3624.61
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 531515 A^3
+Tot # mol: 132
+
+Molecule Type ISB
+-------------------
+Number: 68 ;
+Density: 0.012348 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 64 ;
+Density: 0.0144263 g/ml
+
+Energy (in K): total: 86730.8
+
+Displace (Box 1) -- tries: 173038; # Accept: 101144; % Accept : 58.4519; Max Amt.: 40.5019
+Rotate (Box 1) -- tries: 24834; # Accept: 21682; % Accept : 87.3077; Max Amt.: 3.14159
+Molecule Transfer (Box 1 -> Box 0) -- tries: 50089; # Accept: 10512; % Accept : 20.9866
+Volume Transfer (Box 1 -> Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 500
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -625612
+
+Steps/sec. : 3085.47
+STEP 599999 of 1000000 (59.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 199013 A^3
+Tot # mol: 845
+
+Molecule Type ISB
+-------------------
+Number: 402 ;
+Density: 0.194962 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 443 ;
+Density: 0.266695 g/ml
+
+Energy (in K): total: -733369
+
+Displace (Box 0) -- tries: 206782; # Accept: 103093; % Accept : 49.8559; Max Amt.: 0.563397
+Rotate (Box 0) -- tries: 29699; # Accept: 15360; % Accept : 51.7189; Max Amt.: 1.5733
+Molecule Transfer (Box 0 -> Box 1) -- tries: 60117; # Accept: 11445; % Accept : 19.0379
+Volume Transfer (Box 0 -> Box 1) -- tries: 6088; # Accept: 3279; % Accept : 53.8601; Max Amt.: 1835.94
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 543972 A^3
+Tot # mol: 155
+
+Molecule Type ISB
+-------------------
+Number: 98 ;
+Density: 0.0173882 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 57 ;
+Density: 0.0125542 g/ml
+
+Energy (in K): total: 93786.5
+
+Displace (Box 1) -- tries: 207380; # Accept: 121422; % Accept : 58.5505; Max Amt.: 40.8159
+Rotate (Box 1) -- tries: 29826; # Accept: 26261; % Accept : 88.0473; Max Amt.: 3.14159
+Molecule Transfer (Box 1 -> Box 0) -- tries: 60108; # Accept: 11790; % Accept : 19.6147
+Volume Transfer (Box 1 -> Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 500
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -639582
+
+Steps/sec. : 2675.94
+STEP 699999 of 1000000 (69.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 194984 A^3
+Tot # mol: 857
+
+Molecule Type ISB
+-------------------
+Number: 414 ;
+Density: 0.20493 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 443 ;
+Density: 0.272205 g/ml
+
+Energy (in K): total: -752347
+
+Displace (Box 0) -- tries: 241166; # Accept: 120319; % Accept : 49.8905; Max Amt.: 0.545488
+Rotate (Box 0) -- tries: 34702; # Accept: 17888; % Accept : 51.5475; Max Amt.: 1.11426
+Molecule Transfer (Box 0 -> Box 1) -- tries: 70127; # Accept: 12543; % Accept : 17.8861
+Volume Transfer (Box 0 -> Box 1) -- tries: 7107; # Accept: 3826; % Accept : 53.8342; Max Amt.: 4074.35
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 548001 A^3
+Tot # mol: 143
+
+Molecule Type ISB
+-------------------
+Number: 86 ;
+Density: 0.0151468 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 57 ;
+Density: 0.0124619 g/ml
+
+Energy (in K): total: 86441.1
+
+Displace (Box 1) -- tries: 241806; # Accept: 141772; % Accept : 58.6305; Max Amt.: 40.9164
+Rotate (Box 1) -- tries: 34888; # Accept: 30891; % Accept : 88.5433; Max Amt.: 3.14159
+Molecule Transfer (Box 1 -> Box 0) -- tries: 70204; # Accept: 12900; % Accept : 18.375
+Volume Transfer (Box 1 -> Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 500
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -665906
+
+Steps/sec. : 2646.9
+STEP 799999 of 1000000 (79.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 197688 A^3
+Tot # mol: 841
+
+Molecule Type ISB
+-------------------
+Number: 399 ;
+Density: 0.194804 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 442 ;
+Density: 0.267876 g/ml
+
+Energy (in K): total: -726333
+
+Displace (Box 0) -- tries: 275639; # Accept: 137603; % Accept : 49.9215; Max Amt.: 0.596437
+Rotate (Box 0) -- tries: 39698; # Accept: 20421; % Accept : 51.4409; Max Amt.: 1.24373
+Molecule Transfer (Box 0 -> Box 1) -- tries: 80191; # Accept: 13597; % Accept : 16.9558
+Volume Transfer (Box 0 -> Box 1) -- tries: 8119; # Accept: 4379; % Accept : 53.9352; Max Amt.: 2809.28
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 545297 A^3
+Tot # mol: 159
+
+Molecule Type ISB
+-------------------
+Number: 101 ;
+Density: 0.0178769 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 58 ;
+Density: 0.0127434 g/ml
+
+Energy (in K): total: 90095
+
+Displace (Box 1) -- tries: 276320; # Accept: 162397; % Accept : 58.7714; Max Amt.: 40.849
+Rotate (Box 1) -- tries: 39942; # Accept: 35532; % Accept : 88.959; Max Amt.: 3.14159
+Molecule Transfer (Box 1 -> Box 0) -- tries: 80091; # Accept: 13938; % Accept : 17.4027
+Volume Transfer (Box 1 -> Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 500
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -636238
+
+Steps/sec. : 2663.83
+STEP 899999 of 1000000 (89.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 191495 A^3
+Tot # mol: 831
+
+Molecule Type ISB
+-------------------
+Number: 405 ;
+Density: 0.204128 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 426 ;
+Density: 0.266529 g/ml
+
+Energy (in K): total: -758958
+
+Displace (Box 0) -- tries: 310222; # Accept: 154923; % Accept : 49.9394; Max Amt.: 0.56873
+Rotate (Box 0) -- tries: 44768; # Accept: 22997; % Accept : 51.3693; Max Amt.: 1.58685
+Molecule Transfer (Box 0 -> Box 1) -- tries: 90274; # Accept: 14685; % Accept : 16.2671
+Volume Transfer (Box 0 -> Box 1) -- tries: 9089; # Accept: 4895; % Accept : 53.8563; Max Amt.: 1660.86
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 551490 A^3
+Tot # mol: 169
+
+Molecule Type ISB
+-------------------
+Number: 95 ;
+Density: 0.0166261 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 74 ;
+Density: 0.0160763 g/ml
+
+Energy (in K): total: 95474.2
+
+Displace (Box 1) -- tries: 310729; # Accept: 181949; % Accept : 58.5555; Max Amt.: 41.003
+Rotate (Box 1) -- tries: 44876; # Accept: 40007; % Accept : 89.1501; Max Amt.: 3.14159
+Molecule Transfer (Box 1 -> Box 0) -- tries: 90042; # Accept: 15016; % Accept : 16.6767
+Volume Transfer (Box 1 -> Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 500
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -663484
+
+Steps/sec. : 2770.08
+STEP 999999 of 1000000 (99.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 191324 A^3
+Tot # mol: 818
+
+Molecule Type ISB
+-------------------
+Number: 392 ;
+Density: 0.197752 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 426 ;
+Density: 0.266767 g/ml
+
+Energy (in K): total: -728321
+
+Displace (Box 0) -- tries: 344682; # Accept: 172199; % Accept : 49.9588; Max Amt.: 0.51719
+Rotate (Box 0) -- tries: 49841; # Accept: 25564; % Accept : 51.2911; Max Amt.: 1.67202
+Molecule Transfer (Box 0 -> Box 1) -- tries: 100400; # Accept: 15722; % Accept : 15.6594
+Volume Transfer (Box 0 -> Box 1) -- tries: 10069; # Accept: 5430; % Accept : 53.9279; Max Amt.: 2180.54
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 551661 A^3
+Tot # mol: 182
+
+Molecule Type ISB
+-------------------
+Number: 108 ;
+Density: 0.0188954 g/ml
+
+Molecule Type NEO
+-------------------
+Number: 74 ;
+Density: 0.0160713 g/ml
+
+Energy (in K): total: 92434.5
+
+Displace (Box 1) -- tries: 345250; # Accept: 201145; % Accept : 58.2607; Max Amt.: 41.0073
+Rotate (Box 1) -- tries: 49769; # Accept: 44452; % Accept : 89.3166; Max Amt.: 3.14159
+Molecule Transfer (Box 1 -> Box 0) -- tries: 99989; # Accept: 16040; % Accept : 16.0418
+Volume Transfer (Box 1 -> Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 500
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -635887
+
+Simulation Time (total): 318.12sec.

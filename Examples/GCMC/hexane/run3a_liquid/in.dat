@@ -1,0 +1,145 @@
+########################
+## Init File 
+## 
+## IMPROVEMENTS
+## - Compacts inputs into one line
+## - Suggestion: edit inline with (insert key)
+##
+## To-Do 
+## (make editor + XML version)
+########################
+
+############################################################################
+#  ========-------------------- INPUT --------------------------===========
+############################################################################
+
+#########################
+# enable, step
+#########################
+Restart	 	false   
+
+####################################
+# kind {RESTART, RANDOM, INTSEED}
+####################################
+PRNG     	RANDOM
+
+####################################
+# FORCE FIELD
+####################################
+ParaTypeEXOTIC	 true
+Parameters     	 Par_Mie_Alkane_Exotic.inp
+
+####################################
+# INPUT PDB FILES
+####################################
+Coordinates 0   STEP3_START_C6P_liq_BOX_0.pdb
+Coordinates 1	STEP3_START_C6P_reservoir_BOX_1.pdb
+
+####################################
+# INPUT PSF FILES
+####################################
+Structure 0  	STEP3_START_C6P_liq_BOX_0.psf
+Structure 1	STEP3_START_C6P_reservoir_BOX_1.psf
+
+
+
+############################################################################
+#  =======--------------------- SYSTEM --------------------------===========
+############################################################################
+
+##################################
+# GEMC TYPE (DEFULT IS NVT_GEMC)  
+##################################
+
+
+#############################
+# SIMULATION CONDITION   
+#############################
+Temperature     480.00
+Potential       VDW 
+LRC		true
+Rcut		10   
+Exclude 	1-4 
+
+#############################
+# ELECTROSTATIC   
+#############################
+Ewald		false
+
+
+
+################################
+# STEPS 
+################################
+RunSteps           1000000      
+EqSteps		   500000       
+AdjSteps	   1000        
+
+################################
+# MOVE FREQUENCY              
+################################
+DisFreq               0.20  
+RotFreq		      0.10   
+SwapFreq	      0.70
+
+
+################################
+# BOX DIMENSION #, X, Y, Z
+################################
+BoxDim  0    35.00  35.00  35.00
+BoxDim  1    35.00  35.00  35.00
+
+
+##############################
+# CBMC TRIALS
+##############################
+CBMC_First   10     
+CBMC_Nth     4
+CBMC_Ang     100
+CBMC_Dih     10
+
+####################################
+#          Mol. Name     Chem. Pot.
+####################################
+ChemPot    C6P             -3250
+
+
+
+############################################################################
+#  =======-------------------- OUTPUT --------------------------===========
+############################################################################
+
+##########################
+# statistics filename add
+##########################
+OutputName  C6P_480_00_K_u_3250_r1a
+
+#####################################
+# enable, frequency           
+#####################################
+CoordinatesFreq    true   1000000
+RestartFreq  	   true   1000000
+ConsoleFreq        true   100000
+BlockAverageFreq   true   100000
+FluctuationFreq    true   10000
+HistogramFreq      true   100000
+
+
+################################
+# OutHistSettings
+################################
+DistName	 dis
+HistName	 his
+RunNumber	 5
+RunLetter	 a
+SampleFreq	 200
+
+##################################
+# enable: blk avg., fluct., hist.
+##################################
+OutEnergy         true    true    true
+OutPressure       false   false   false  
+OutMolNum         true    true    true
+OutAcceptAngles   true    true    true  
+OutDensity        true    true    true
+

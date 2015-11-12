@@ -1,0 +1,85 @@
+*
+* Noble gase Lennard-Jones model from Vrabec group's 2001 work
+* 
+* SEE:
+* Vrabec, J.; Stoll, J.; and Hasse, H.,
+* "A set of molecular models for symmetric quadrupolar fluids",
+* J. Phys. Chem. B, 105(48), 12126-12133 (2001).
+*
+* DOI: 10.1021/jp012542o
+*
+* Parameters include for Mie_UA n-alkanes by Potoff et al. 2009;
+*
+* SEE: 
+* Jeffrey J. Potoff * and Damien A. Bernard-Brunel
+* "Mie Potentials for Phase Equilibria Calculations: Application to Alkanes
+*  and Perfluoroalkanes"
+* DOI: 10.1021/jp9072137
+*
+
+
+BONDS
+!
+!V(bond) = Kb(b - b0)**2
+!
+!Kb: kcal/mole/A**2
+!b0: A
+!
+! Kb (kcal/mol) = Kb (K) * Boltz. const.; (9999999999 if no stretching)
+!
+!atom type     Kb              b0        description
+CH3 CH3        9999999999      1.540   ! Potoff '09
+CH3 CH2        9999999999      1.540   ! ""
+CH2 CH2        9999999999      1.540   ! ""
+
+
+
+
+ANGLES
+!
+!V(angle) = Ktheta(Theta - Theta0)**2
+!
+!V(Urey-Bradley) = Kub(S - S0)**2
+!
+!Ktheta: kcal/mole/rad**2
+!Theta0: degrees
+!Kub: kcal/mole/A**2 (Urey-Bradley)
+!S0: A
+!
+! Ktheta (kcal/mol) = Ktheta (K) * Boltz. const.
+!
+!atom types         Ktheta       Theta0   Kub(?)  S0(?)
+CH3 CH2 CH3         31250        114.00 ! Potoff '09
+CH3 CH2 CH2         31250        114.00 ! ""
+CH2 CH2 CH2         31250        114.00 ! ""
+
+
+DIHEDRALS
+!
+!V(dihedral) = Kchi(1 + cos(n(chi) - delta))
+!
+!Kchi: kcal/mole
+!n: multiplicity
+!delta: degrees
+!
+! Kchi (kcal/mol) = Kchi (K) * Boltz. const.
+! Boltzmann = 0.0019872041 kcal / (mol * K)
+!atom types           Kchi        n    delta              description
+X   CH2 CH2 X         0.000000    0      0.0              ! Potoff '09
+X   CH2 CH2 X       355.029964    1      0.0              ! ""
+X   CH2 CH2 X       -68.189775    2    180.0              ! ""
+X   CH2 CH2 X       791.317812    3      0.0              ! ""
+
+
+NONBONDED_MIE
+!
+!V(mie) = 4*eps*((sig_ij/r_ij)^n-(sig_ij/r_ij)^6)
+!
+!atom   eps          sig_ij     n    description
+CH4     161.00       3.740      14   ! Potoff, et al. 2009
+CH3     121.25       3.783      16   ! Potoff, et al. 2009
+CH2      61.00       3.990      16   ! Potoff, et al. 2009
+XE      227.55       3.9011     12   ! J. Vrabec 2001
+KR      162.58       3.6274     12   ! J. Vrabec 2001
+AR      116.79       3.3952     12   ! J. Vrabec 2001
+NE      33.921       2.8010     12   ! J. Vrabec 2001

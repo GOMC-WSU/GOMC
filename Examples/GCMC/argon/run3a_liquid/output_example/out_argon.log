@@ -1,0 +1,568 @@
+GOMC Serial Version 0.97
+Started at: Fri Aug 21 18:35:43 2015
+On hostname: potoff40.eng.wayne.edu
+
+------------------------------------------------------
+This code was compiled to support the grand canonical ensemble.
+------------------------------------------------------
+
+Reading from Exotic Parameter File file: ./Par_Vrabec01_Noble_Gases_Exotic.inp
+
+Finished reading Exotic Parameter File file: ./Par_Vrabec01_Noble_Gases_Exotic.inp
+
+Reading from Box 1 PDB coordinate file file: ./STEP3_START_AR_liq_BOX_0.pdb
+
+Finished reading Box 1 PDB coordinate file file: ./STEP3_START_AR_liq_BOX_0.pdb
+
+Reading from Box 2 PDB coordinate file file: ./STEP3_START_AR_reservoir_BOX_1.pdb
+
+Finished reading Box 2 PDB coordinate file file: ./STEP3_START_AR_reservoir_BOX_1.pdb
+
+REMARINDER! 1-4 Interaction and more is OFF
+
+Min. Box Size: 8000.1
+STARTING SIMULATION!!
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 210
+
+Molecule Type AR
+-------------------
+Number: 210 ;
+Density: 0.891545 g/ml
+
+Energy (in K): total: 2.93168e+06
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 600
+
+Molecule Type AR
+-------------------
+Number: 600 ;
+Density: 2.54727 g/ml
+
+Energy (in K): total: 0
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 2.93168e+06
+
+Printed combined psf to file AR_140_00_K_u_930_r1a.psf
+STEP 99999 of 1000000 (9.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 248
+
+Molecule Type AR
+-------------------
+Number: 248 ;
+Density: 1.05287 g/ml
+
+Energy (in K): total: -124517
+
+Displace (Box 0) -- tries: 30087; # Accept: 14784; % Accept : 49.1375; Max Amt.: 0.474846
+Deletion (from Box 0) -- tries: 35105; # Accept: 7430; % Accept : 21.1651
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 562
+
+Molecule Type AR
+-------------------
+Number: 562 ;
+Density: 2.38595 g/ml
+
+Energy (in K): total: 0
+
+Insertion (into Box 0) -- tries: 34808; # Accept: 7468; % Accept : 21.4548
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -124517
+
+Steps/sec. : 11668.6
+STEP 199999 of 1000000 (19.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 255
+
+Molecule Type AR
+-------------------
+Number: 255 ;
+Density: 1.08259 g/ml
+
+Energy (in K): total: -130683
+
+Displace (Box 0) -- tries: 60101; # Accept: 29827; % Accept : 49.6281; Max Amt.: 0.465565
+Deletion (from Box 0) -- tries: 69966; # Accept: 13347; % Accept : 19.0764
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 555
+
+Molecule Type AR
+-------------------
+Number: 555 ;
+Density: 2.35623 g/ml
+
+Energy (in K): total: 0
+
+Insertion (into Box 0) -- tries: 69933; # Accept: 13392; % Accept : 19.1498
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -130683
+
+Steps/sec. : 11210.8
+STEP 299999 of 1000000 (29.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 255
+
+Molecule Type AR
+-------------------
+Number: 255 ;
+Density: 1.08259 g/ml
+
+Energy (in K): total: -128537
+
+Displace (Box 0) -- tries: 89961; # Accept: 44818; % Accept : 49.8194; Max Amt.: 0.515805
+Deletion (from Box 0) -- tries: 105196; # Accept: 19671; % Accept : 18.6994
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 555
+
+Molecule Type AR
+-------------------
+Number: 555 ;
+Density: 2.35623 g/ml
+
+Energy (in K): total: 0
+
+Insertion (into Box 0) -- tries: 104843; # Accept: 19716; % Accept : 18.8053
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -128537
+
+Steps/sec. : 11337.9
+STEP 399999 of 1000000 (39.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 233
+
+Molecule Type AR
+-------------------
+Number: 233 ;
+Density: 0.989191 g/ml
+
+Energy (in K): total: -108964
+
+Displace (Box 0) -- tries: 119924; # Accept: 59872; % Accept : 49.925; Max Amt.: 0.542714
+Deletion (from Box 0) -- tries: 140418; # Accept: 25574; % Accept : 18.2128
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 577
+
+Molecule Type AR
+-------------------
+Number: 577 ;
+Density: 2.44963 g/ml
+
+Energy (in K): total: 0
+
+Insertion (into Box 0) -- tries: 139658; # Accept: 25597; % Accept : 18.3283
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -108964
+
+Steps/sec. : 11173.2
+STEP 499999 of 1000000 (49.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 233
+
+Molecule Type AR
+-------------------
+Number: 233 ;
+Density: 0.989191 g/ml
+
+Energy (in K): total: -108926
+
+Displace (Box 0) -- tries: 150067; # Accept: 74980; % Accept : 49.9643; Max Amt.: 0.536974
+Deletion (from Box 0) -- tries: 175362; # Accept: 32186; % Accept : 18.354
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 577
+
+Molecule Type AR
+-------------------
+Number: 577 ;
+Density: 2.44963 g/ml
+
+Energy (in K): total: 0
+
+Insertion (into Box 0) -- tries: 174571; # Accept: 32209; % Accept : 18.4504
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -108926
+
+Steps/sec. : 11428.6
+STEP 599999 of 1000000 (59.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 252
+
+Molecule Type AR
+-------------------
+Number: 252 ;
+Density: 1.06985 g/ml
+
+Energy (in K): total: -127058
+
+Displace (Box 0) -- tries: 180312; # Accept: 90142; % Accept : 49.9922; Max Amt.: 0.531306
+Deletion (from Box 0) -- tries: 210187; # Accept: 37843; % Accept : 18.0044
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 558
+
+Molecule Type AR
+-------------------
+Number: 558 ;
+Density: 2.36896 g/ml
+
+Energy (in K): total: 0
+
+Insertion (into Box 0) -- tries: 209501; # Accept: 37885; % Accept : 18.0834
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -127058
+
+Steps/sec. : 11198.2
+STEP 699999 of 1000000 (69.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 241
+
+Molecule Type AR
+-------------------
+Number: 241 ;
+Density: 1.02315 g/ml
+
+Energy (in K): total: -115483
+
+Displace (Box 0) -- tries: 210218; # Accept: 105178; % Accept : 50.0328; Max Amt.: 0.627044
+Deletion (from Box 0) -- tries: 245437; # Accept: 44236; % Accept : 18.0234
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 569
+
+Molecule Type AR
+-------------------
+Number: 569 ;
+Density: 2.41566 g/ml
+
+Energy (in K): total: 0
+
+Insertion (into Box 0) -- tries: 244345; # Accept: 44267; % Accept : 18.1166
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -115483
+
+Steps/sec. : 11312.2
+STEP 799999 of 1000000 (79.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 251
+
+Molecule Type AR
+-------------------
+Number: 251 ;
+Density: 1.06561 g/ml
+
+Energy (in K): total: -124166
+
+Displace (Box 0) -- tries: 239931; # Accept: 120047; % Accept : 50.034; Max Amt.: 0.46974
+Deletion (from Box 0) -- tries: 280669; # Accept: 50797; % Accept : 18.0985
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 559
+
+Molecule Type AR
+-------------------
+Number: 559 ;
+Density: 2.37321 g/ml
+
+Energy (in K): total: 0
+
+Insertion (into Box 0) -- tries: 279400; # Accept: 50838; % Accept : 18.1954
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -124166
+
+Steps/sec. : 11415.5
+STEP 899999 of 1000000 (89.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 253
+
+Molecule Type AR
+-------------------
+Number: 253 ;
+Density: 1.0741 g/ml
+
+Energy (in K): total: -125564
+
+Displace (Box 0) -- tries: 269786; # Accept: 135036; % Accept : 50.053; Max Amt.: 0.47469
+Deletion (from Box 0) -- tries: 315574; # Accept: 56945; % Accept : 18.0449
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 557
+
+Molecule Type AR
+-------------------
+Number: 557 ;
+Density: 2.36472 g/ml
+
+Energy (in K): total: 0
+
+Insertion (into Box 0) -- tries: 314640; # Accept: 56988; % Accept : 18.1121
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -125564
+
+Steps/sec. : 11261.3
+STEP 999999 of 1000000 (99.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 247
+
+Molecule Type AR
+-------------------
+Number: 247 ;
+Density: 1.04863 g/ml
+
+Energy (in K): total: -121625
+
+Displace (Box 0) -- tries: 299793; # Accept: 150098; % Accept : 50.0672; Max Amt.: 0.514678
+Deletion (from Box 0) -- tries: 350630; # Accept: 62825; % Accept : 17.9177
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 15625 A^3
+Tot # mol: 563
+
+Molecule Type AR
+-------------------
+Number: 563 ;
+Density: 2.39019 g/ml
+
+Energy (in K): total: 0
+
+Insertion (into Box 0) -- tries: 349577; # Accept: 62862; % Accept : 17.9823
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -121625
+
+Simulation Time (total): 88.4sec.

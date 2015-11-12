@@ -1,0 +1,382 @@
+GOMC Serial Version 0.97
+Started at: Sun Aug 23 22:26:08 2015
+On hostname: potoff44.eng.wayne.edu
+
+------------------------------------------------------
+This code was compiled to support the canonical (NVT) ensemble.
+------------------------------------------------------
+
+Warning: Unknown input CBMC_First!
+Warning: Unknown input CBMC_Nth!
+Warning: Unknown input CBMC_Ang!
+Warning: Unknown input CBMC_Dih!
+Warning: Unknown input HistogramFreq!
+Warning: Output fluctuation has been set off, energy ouput for fluctuation will be ignored!
+Warning: Output fluctuation has been set off, pressure ouput for fluctuation will be ignored!
+Reading from Exotic Parameter File file: ./Par_Mie_Alkane_Exotic.inp
+
+Finished reading Exotic Parameter File file: ./Par_Mie_Alkane_Exotic.inp
+
+Reading from system PDB coordinate file file: ./STEP3_START_C4P_sys_BOX_0.pdb
+
+Finished reading system PDB coordinate file file: ./STEP3_START_C4P_sys_BOX_0.pdb
+
+Molecules in PSF:
+
+Molecule Kind: C4P
+Idx	name	type	charge	mass
+0	C1	CH3	0	15.035
+1	C2	CH2	0	14.027
+2	C3	CH2	0	14.027
+3	C4	CH3	0	15.035
+
+Bonds:
+[0 1] [1 2] [2 3] 
+
+Angles:
+[0 1 2] [1 2 3] 
+
+Dihedrals:
+[0 1 2 3] 
+
+REMAINDER! 1-4 Interaction is OFF
+
+Min. Box Size: 8000.1
+STARTING SIMULATION!!
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 1.48108e+07 A^3
+Tot # mol: 1000
+
+Molecule Type C4P
+-------------------
+Number: 1000 ;
+Density: 0.00651667 g/ml
+
+Energy (in K): total: 4.25428e+06
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 4.25428e+06
+
+Printed combined psf to file butane_300_00_K.psf
+STEP 99999 of 1000000 (9.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 1.48108e+07 A^3
+Tot # mol: 1000
+
+Molecule Type C4P
+-------------------
+Number: 1000 ;
+Density: 0.00651667 g/ml
+
+Energy (in K): total: -41939.6
+
+Displace (Box 0) -- tries: 90004; # Accept: 73769; % Accept : 81.9619; Max Amt.: 122.79
+Rotate (Box 0) -- tries: 9996; # Accept: 9454; % Accept : 94.5778; Max Amt.: 3.14159
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -41939.6
+
+Steps/sec. : 344828
+STEP 199999 of 1000000 (19.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 1.48108e+07 A^3
+Tot # mol: 1000
+
+Molecule Type C4P
+-------------------
+Number: 1000 ;
+Density: 0.00651667 g/ml
+
+Energy (in K): total: -47661.7
+
+Displace (Box 0) -- tries: 179875; # Accept: 147360; % Accept : 81.9236; Max Amt.: 122.79
+Rotate (Box 0) -- tries: 20125; # Accept: 19044; % Accept : 94.6286; Max Amt.: 3.14159
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -47661.7
+
+Steps/sec. : 476190
+STEP 299999 of 1000000 (29.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 1.48108e+07 A^3
+Tot # mol: 1000
+
+Molecule Type C4P
+-------------------
+Number: 1000 ;
+Density: 0.00651667 g/ml
+
+Energy (in K): total: -41038.1
+
+Displace (Box 0) -- tries: 269994; # Accept: 221478; % Accept : 82.0307; Max Amt.: 122.79
+Rotate (Box 0) -- tries: 30006; # Accept: 28386; % Accept : 94.6011; Max Amt.: 3.14159
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -41038.1
+
+Steps/sec. : 454545
+STEP 399999 of 1000000 (39.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 1.48108e+07 A^3
+Tot # mol: 1000
+
+Molecule Type C4P
+-------------------
+Number: 1000 ;
+Density: 0.00651667 g/ml
+
+Energy (in K): total: -43635.8
+
+Displace (Box 0) -- tries: 359991; # Accept: 295239; % Accept : 82.0129; Max Amt.: 122.79
+Rotate (Box 0) -- tries: 40009; # Accept: 37863; % Accept : 94.6362; Max Amt.: 3.14159
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -43635.8
+
+Steps/sec. : 454545
+STEP 499999 of 1000000 (49.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 1.48108e+07 A^3
+Tot # mol: 1000
+
+Molecule Type C4P
+-------------------
+Number: 1000 ;
+Density: 0.00651667 g/ml
+
+Energy (in K): total: -44180.3
+
+Displace (Box 0) -- tries: 450200; # Accept: 368670; % Accept : 81.8903; Max Amt.: 122.79
+Rotate (Box 0) -- tries: 49800; # Accept: 47092; % Accept : 94.5622; Max Amt.: 3.14159
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -44180.3
+
+Steps/sec. : 454545
+STEP 599999 of 1000000 (59.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 1.48108e+07 A^3
+Tot # mol: 1000
+
+Molecule Type C4P
+-------------------
+Number: 1000 ;
+Density: 0.00651667 g/ml
+
+Energy (in K): total: -45280.2
+
+Displace (Box 0) -- tries: 540162; # Accept: 442713; % Accept : 81.9593; Max Amt.: 122.79
+Rotate (Box 0) -- tries: 59838; # Accept: 56621; % Accept : 94.6238; Max Amt.: 3.14159
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -45280.2
+
+Steps/sec. : 476190
+STEP 699999 of 1000000 (69.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 1.48108e+07 A^3
+Tot # mol: 1000
+
+Molecule Type C4P
+-------------------
+Number: 1000 ;
+Density: 0.00651667 g/ml
+
+Energy (in K): total: -42985.9
+
+Displace (Box 0) -- tries: 630360; # Accept: 516503; % Accept : 81.9378; Max Amt.: 122.79
+Rotate (Box 0) -- tries: 69640; # Accept: 65859; % Accept : 94.5706; Max Amt.: 3.14159
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -42985.9
+
+Steps/sec. : 454545
+STEP 799999 of 1000000 (79.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 1.48108e+07 A^3
+Tot # mol: 1000
+
+Molecule Type C4P
+-------------------
+Number: 1000 ;
+Density: 0.00651667 g/ml
+
+Energy (in K): total: -36907.8
+
+Displace (Box 0) -- tries: 720134; # Accept: 589807; % Accept : 81.9024; Max Amt.: 122.79
+Rotate (Box 0) -- tries: 79866; # Accept: 75536; % Accept : 94.5784; Max Amt.: 3.14159
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -36907.8
+
+Steps/sec. : 454545
+STEP 899999 of 1000000 (89.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 1.48108e+07 A^3
+Tot # mol: 1000
+
+Molecule Type C4P
+-------------------
+Number: 1000 ;
+Density: 0.00651667 g/ml
+
+Energy (in K): total: -51009.6
+
+Displace (Box 0) -- tries: 810166; # Accept: 662826; % Accept : 81.8136; Max Amt.: 122.79
+Rotate (Box 0) -- tries: 89834; # Accept: 84923; % Accept : 94.5333; Max Amt.: 3.14159
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -51009.6
+
+Steps/sec. : 476190
+STEP 999999 of 1000000 (99.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 1.48108e+07 A^3
+Tot # mol: 1000
+
+Molecule Type C4P
+-------------------
+Number: 1000 ;
+Density: 0.00651667 g/ml
+
+Energy (in K): total: -44667.3
+
+Displace (Box 0) -- tries: 900128; # Accept: 736177; % Accept : 81.7858; Max Amt.: 122.79
+Rotate (Box 0) -- tries: 99872; # Accept: 94434; % Accept : 94.555; Max Amt.: 3.14159
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -44667.3
+
+Simulation Time (total): 2.26sec.

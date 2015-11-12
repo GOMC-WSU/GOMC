@@ -1,0 +1,898 @@
+GOMC Serial Version 0.97
+Started at: Sun Aug 23 22:15:19 2015
+On hostname: potoff44.eng.wayne.edu
+
+------------------------------------------------------
+This code was compiled to support the Gibbs ensemble.
+------------------------------------------------------
+
+ NPT_GEMC simulation has been selected 
+ Pressure of system has been set to 24.5 bar 
+Warning: Output fluctuation has been set off, energy ouput for fluctuation will be ignored!
+Warning: Output fluctuation has been set off, pressure ouput for fluctuation will be ignored!
+Warning: Output fluctuation has been set off, molecule number ouput for fluctuation will be ignored!
+Warning: Output fluctuation has been set off, accept angles ouput for fluctuation will be ignored!
+Warning: Output fluctuation has been set off, density ouput for fluctuation will be ignored!
+Reading from Exotic Parameter File file: ./Par_Vrabec01_Noble_Gases_Exotic.inp
+
+Finished reading Exotic Parameter File file: ./Par_Vrabec01_Noble_Gases_Exotic.inp
+
+Reading from Box 1 PDB coordinate file file: ./STEP3_START_KR_XE_sys_BOX_0.pdb
+
+Finished reading Box 1 PDB coordinate file file: ./STEP3_START_KR_XE_sys_BOX_0.pdb
+
+Reading from Box 2 PDB coordinate file file: ./STEP3_START_KR_XE_sys_BOX_1.pdb
+
+Finished reading Box 2 PDB coordinate file file: ./STEP3_START_KR_XE_sys_BOX_1.pdb
+
+Molecules in PSF:
+
+Molecule Kind: KR
+Idx	name	type	charge	mass
+0	KR	KR	0	83.798
+
+Bonds:
+
+Angles:
+
+Dihedrals:
+
+Molecule Kind: XE
+Idx	name	type	charge	mass
+0	XE	XE	0	131.293
+
+Bonds:
+
+Angles:
+
+Dihedrals:
+
+REMAINDER! 1-4 Interaction is OFF
+
+Min. Box Size: 8000.1
+STARTING SIMULATION!!
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 452985 A^3
+Tot # mol: 2000
+
+Molecule Type KR
+-------------------
+Number: 950 ;
+Density: 0.291825 g/ml
+
+Molecule Type XE
+-------------------
+Number: 1050 ;
+Density: 0.505355 g/ml
+
+Energy (in K): total: 4.05381e+07
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 567664 A^3
+Tot # mol: 2000
+
+Molecule Type KR
+-------------------
+Number: 950 ;
+Density: 0.232871 g/ml
+
+Molecule Type XE
+-------------------
+Number: 1050 ;
+Density: 0.403264 g/ml
+
+Energy (in K): total: -220797
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: 4.03173e+07
+
+Printed combined psf to file krypton_xenon_NPT_216_61_K.psf
+STEP 99999 of 1000000 (9.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 479446 A^3
+Tot # mol: 2630
+
+Molecule Type KR
+-------------------
+Number: 1165 ;
+Density: 0.338119 g/ml
+
+Molecule Type XE
+-------------------
+Number: 1465 ;
+Density: 0.666176 g/ml
+
+Energy (in K): total: -1.21902e+06
+
+Displace (Box 0) -- tries: 39572; # Accept: 19308; % Accept : 48.7921; Max Amt.: 1.04605
+Rotate (Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 0.785398
+Molecule Transfer (Box 0 -> Box 1) -- tries: 9915; # Accept: 5672; % Accept : 57.2063
+Volume Transfer (Box 0 -> Box 1) -- tries: 522; # Accept: 276; % Accept : 52.8736; Max Amt.: 7370.41
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 797544 A^3
+Tot # mol: 1370
+
+Molecule Type KR
+-------------------
+Number: 735 ;
+Density: 0.128238 g/ml
+
+Molecule Type XE
+-------------------
+Number: 635 ;
+Density: 0.173584 g/ml
+
+Energy (in K): total: -225725
+
+Displace (Box 1) -- tries: 39404; # Accept: 19509; % Accept : 49.5102; Max Amt.: 4.21717
+Rotate (Box 1) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 0.785398
+Molecule Transfer (Box 1 -> Box 0) -- tries: 10053; # Accept: 6302; % Accept : 62.6878
+Volume Transfer (Box 1 -> Box 0) -- tries: 534; # Accept: 290; % Accept : 54.3071; Max Amt.: 17816.3
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -1.44475e+06
+
+Steps/sec. : 20000
+STEP 199999 of 1000000 (19.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 435774 A^3
+Tot # mol: 3008
+
+Molecule Type KR
+-------------------
+Number: 1289 ;
+Density: 0.411599 g/ml
+
+Molecule Type XE
+-------------------
+Number: 1719 ;
+Density: 0.860014 g/ml
+
+Energy (in K): total: -1.7757e+06
+
+Displace (Box 0) -- tries: 79161; # Accept: 39115; % Accept : 49.412; Max Amt.: 0.893801
+Rotate (Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 0.785398
+Molecule Transfer (Box 0 -> Box 1) -- tries: 19982; # Accept: 10551; % Accept : 52.8025
+Volume Transfer (Box 0 -> Box 1) -- tries: 1043; # Accept: 524; % Accept : 50.2397; Max Amt.: 2023.25
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 939887 A^3
+Tot # mol: 992
+
+Molecule Type KR
+-------------------
+Number: 611 ;
+Density: 0.0904583 g/ml
+
+Molecule Type XE
+-------------------
+Number: 381 ;
+Density: 0.0883771 g/ml
+
+Energy (in K): total: -89217.4
+
+Displace (Box 1) -- tries: 78763; # Accept: 40749; % Accept : 51.7362; Max Amt.: 48.9773
+Rotate (Box 1) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 0.785398
+Molecule Transfer (Box 1 -> Box 0) -- tries: 19980; # Accept: 11559; % Accept : 57.8529
+Volume Transfer (Box 1 -> Box 0) -- tries: 1071; # Accept: 571; % Accept : 53.3147; Max Amt.: 22713.4
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -1.86492e+06
+
+Steps/sec. : 17921.1
+STEP 299999 of 1000000 (29.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 405410 A^3
+Tot # mol: 3155
+
+Molecule Type KR
+-------------------
+Number: 1334 ;
+Density: 0.457872 g/ml
+
+Molecule Type XE
+-------------------
+Number: 1821 ;
+Density: 0.979279 g/ml
+
+Energy (in K): total: -2.08649e+06
+
+Displace (Box 0) -- tries: 118686; # Accept: 58898; % Accept : 49.6251; Max Amt.: 0.838219
+Rotate (Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 0.785398
+Molecule Transfer (Box 0 -> Box 1) -- tries: 30125; # Accept: 14722; % Accept : 48.8697
+Volume Transfer (Box 0 -> Box 1) -- tries: 1516; # Accept: 748; % Accept : 49.3404; Max Amt.: 3550.89
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 831577 A^3
+Tot # mol: 845
+
+Molecule Type KR
+-------------------
+Number: 566 ;
+Density: 0.0947102 g/ml
+
+Molecule Type XE
+-------------------
+Number: 279 ;
+Density: 0.0731463 g/ml
+
+Energy (in K): total: -71020.4
+
+Displace (Box 1) -- tries: 118254; # Accept: 64285; % Accept : 54.3618; Max Amt.: 47.0187
+Rotate (Box 1) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 0.785398
+Molecule Transfer (Box 1 -> Box 0) -- tries: 29850; # Accept: 15877; % Accept : 53.1893
+Volume Transfer (Box 1 -> Box 0) -- tries: 1569; # Accept: 821; % Accept : 52.3263; Max Amt.: 44675.3
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -2.15751e+06
+
+Steps/sec. : 17241.4
+STEP 399999 of 1000000 (39.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 393494 A^3
+Tot # mol: 3546
+
+Molecule Type KR
+-------------------
+Number: 1580 ;
+Density: 0.55873 g/ml
+
+Molecule Type XE
+-------------------
+Number: 1966 ;
+Density: 1.08927 g/ml
+
+Energy (in K): total: -2.52421e+06
+
+Displace (Box 0) -- tries: 158479; # Accept: 78790; % Accept : 49.7164; Max Amt.: 0.678906
+Rotate (Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 0.785398
+Molecule Transfer (Box 0 -> Box 1) -- tries: 39965; # Accept: 18191; % Accept : 45.5173
+Volume Transfer (Box 0 -> Box 1) -- tries: 2080; # Accept: 1053; % Accept : 50.625; Max Amt.: 2201.15
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 475348 A^3
+Tot # mol: 454
+
+Molecule Type KR
+-------------------
+Number: 320 ;
+Density: 0.0936745 g/ml
+
+Molecule Type XE
+-------------------
+Number: 134 ;
+Density: 0.0614588 g/ml
+
+Energy (in K): total: -31603.6
+
+Displace (Box 1) -- tries: 157508; # Accept: 87729; % Accept : 55.6981; Max Amt.: 39.0218
+Rotate (Box 1) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 0.785398
+Molecule Transfer (Box 1 -> Box 0) -- tries: 39894; # Accept: 19737; % Accept : 49.4736
+Volume Transfer (Box 1 -> Box 0) -- tries: 2074; # Accept: 1079; % Accept : 52.0251; Max Amt.: 51610.7
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -2.55582e+06
+
+Steps/sec. : 13422.8
+STEP 499999 of 1000000 (49.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 376645 A^3
+Tot # mol: 3766
+
+Molecule Type KR
+-------------------
+Number: 1724 ;
+Density: 0.636925 g/ml
+
+Molecule Type XE
+-------------------
+Number: 2042 ;
+Density: 1.18199 g/ml
+
+Energy (in K): total: -2.85269e+06
+
+Displace (Box 0) -- tries: 198015; # Accept: 98613; % Accept : 49.8008; Max Amt.: 0.695013
+Rotate (Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 0.785398
+Molecule Transfer (Box 0 -> Box 1) -- tries: 50013; # Accept: 21153; % Accept : 42.295
+Volume Transfer (Box 0 -> Box 1) -- tries: 2623; # Accept: 1335; % Accept : 50.8959; Max Amt.: 1719.64
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 237309 A^3
+Tot # mol: 234
+
+Molecule Type KR
+-------------------
+Number: 176 ;
+Density: 0.1032 g/ml
+
+Molecule Type XE
+-------------------
+Number: 58 ;
+Density: 0.0532848 g/ml
+
+Energy (in K): total: -17405.1
+
+Displace (Box 1) -- tries: 196898; # Accept: 110852; % Accept : 56.2992; Max Amt.: 30.9558
+Rotate (Box 1) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 0.785398
+Molecule Transfer (Box 1 -> Box 0) -- tries: 49892; # Accept: 22919; % Accept : 45.9372
+Volume Transfer (Box 1 -> Box 0) -- tries: 2559; # Accept: 1315; % Accept : 51.3873; Max Amt.: 46142.6
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -2.87009e+06
+
+Steps/sec. : 12330.5
+STEP 599999 of 1000000 (59.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 368264 A^3
+Tot # mol: 3820
+
+Molecule Type KR
+-------------------
+Number: 1756 ;
+Density: 0.66351 g/ml
+
+Molecule Type XE
+-------------------
+Number: 2064 ;
+Density: 1.22191 g/ml
+
+Energy (in K): total: -2.99214e+06
+
+Displace (Box 0) -- tries: 237670; # Accept: 118450; % Accept : 49.838; Max Amt.: 0.619617
+Rotate (Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 0.785398
+Molecule Transfer (Box 0 -> Box 1) -- tries: 59853; # Accept: 23803; % Accept : 39.7691
+Volume Transfer (Box 0 -> Box 1) -- tries: 3083; # Accept: 1575; % Accept : 51.0866; Max Amt.: 11412.9
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 186171 A^3
+Tot # mol: 180
+
+Molecule Type KR
+-------------------
+Number: 144 ;
+Density: 0.10763 g/ml
+
+Molecule Type XE
+-------------------
+Number: 36 ;
+Density: 0.0421581 g/ml
+
+Energy (in K): total: -13080.4
+
+Displace (Box 1) -- tries: 236532; # Accept: 134699; % Accept : 56.9475; Max Amt.: 28.5501
+Rotate (Box 1) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 0.785398
+Molecule Transfer (Box 1 -> Box 0) -- tries: 59808; # Accept: 25623; % Accept : 42.8421
+Volume Transfer (Box 1 -> Box 0) -- tries: 3054; # Accept: 1565; % Accept : 51.2443; Max Amt.: 37850.6
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -3.00522e+06
+
+Steps/sec. : 13262.6
+STEP 699999 of 1000000 (69.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 360483 A^3
+Tot # mol: 3964
+
+Molecule Type KR
+-------------------
+Number: 1875 ;
+Density: 0.723768 g/ml
+
+Molecule Type XE
+-------------------
+Number: 2089 ;
+Density: 1.26341 g/ml
+
+Energy (in K): total: -3.19344e+06
+
+Displace (Box 0) -- tries: 277038; # Accept: 138165; % Accept : 49.8722; Max Amt.: 0.58013
+Rotate (Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 0.785398
+Molecule Transfer (Box 0 -> Box 1) -- tries: 69827; # Accept: 26065; % Accept : 37.328
+Volume Transfer (Box 0 -> Box 1) -- tries: 3573; # Accept: 1801; % Accept : 50.4058; Max Amt.: 3844.9
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 50932.9 A^3
+Tot # mol: 36
+
+Molecule Type KR
+-------------------
+Number: 25 ;
+Density: 0.0683005 g/ml
+
+Molecule Type XE
+-------------------
+Number: 11 ;
+Density: 0.0470852 g/ml
+
+Energy (in K): total: -3082.88
+
+Displace (Box 1) -- tries: 276260; # Accept: 158849; % Accept : 57.4998; Max Amt.: 18.534
+Rotate (Box 1) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 0.785398
+Molecule Transfer (Box 1 -> Box 0) -- tries: 69764; # Accept: 28029; % Accept : 40.1769
+Volume Transfer (Box 1 -> Box 0) -- tries: 3538; # Accept: 1794; % Accept : 50.7066; Max Amt.: 4073.44
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -3.19652e+06
+
+Steps/sec. : 12135.9
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+STEP 799999 of 1000000 (79.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 354014 A^3
+Tot # mol: 3986
+
+Molecule Type KR
+-------------------
+Number: 1888 ;
+Density: 0.742104 g/ml
+
+Molecule Type XE
+-------------------
+Number: 2098 ;
+Density: 1.29204 g/ml
+
+Energy (in K): total: -3.29784e+06
+
+Displace (Box 0) -- tries: 316453; # Accept: 157889; % Accept : 49.8933; Max Amt.: 0.554367
+Rotate (Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 0.785398
+Molecule Transfer (Box 0 -> Box 1) -- tries: 79632; # Accept: 28017; % Accept : 35.1831
+Volume Transfer (Box 0 -> Box 1) -- tries: 4113; # Accept: 2057; % Accept : 50.0122; Max Amt.: 2047.51
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 16412.5 A^3
+Tot # mol: 14
+
+Molecule Type KR
+-------------------
+Number: 12 ;
+Density: 0.101739 g/ml
+
+Molecule Type XE
+-------------------
+Number: 2 ;
+Density: 0.0265672 g/ml
+
+Energy (in K): total: -969.754
+
+Displace (Box 1) -- tries: 316158; # Accept: 183780; % Accept : 58.1292; Max Amt.: 12.7066
+Rotate (Box 1) -- tries: 11; # Accept: 0; % Accept : 0; Max Amt.: 0.785398
+Molecule Transfer (Box 1 -> Box 0) -- tries: 79597; # Accept: 30003; % Accept : 37.6936
+Volume Transfer (Box 1 -> Box 0) -- tries: 4036; # Accept: 2041; % Accept : 50.5699; Max Amt.: 3388.41
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -3.29881e+06
+
+Steps/sec. : 10917
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+STEP 899999 of 1000000 (89.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 352110 A^3
+Tot # mol: 3980
+
+Molecule Type KR
+-------------------
+Number: 1886 ;
+Density: 0.745326 g/ml
+
+Molecule Type XE
+-------------------
+Number: 2094 ;
+Density: 1.29655 g/ml
+
+Energy (in K): total: -3.31907e+06
+
+Displace (Box 0) -- tries: 355705; # Accept: 177548; % Accept : 49.9144; Max Amt.: 0.5661
+Rotate (Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 0.785398
+Molecule Transfer (Box 0 -> Box 1) -- tries: 89582; # Accept: 29910; % Accept : 33.3884
+Volume Transfer (Box 0 -> Box 1) -- tries: 4612; # Accept: 2285; % Accept : 49.5447; Max Amt.: 3227.79
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 26344.4 A^3
+Tot # mol: 20
+
+Molecule Type KR
+-------------------
+Number: 14 ;
+Density: 0.0739473 g/ml
+
+Molecule Type XE
+-------------------
+Number: 6 ;
+Density: 0.0496539 g/ml
+
+Energy (in K): total: -1430.85
+
+Displace (Box 1) -- tries: 355498; # Accept: 208327; % Accept : 58.6015; Max Amt.: 14.8776
+Rotate (Box 1) -- tries: 186; # Accept: 0; % Accept : 0; Max Amt.: 0.785398
+Molecule Transfer (Box 1 -> Box 0) -- tries: 89891; # Accept: 31890; % Accept : 35.4763
+Volume Transfer (Box 1 -> Box 0) -- tries: 4526; # Accept: 2273; % Accept : 50.2209; Max Amt.: 8413.1
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -3.32051e+06
+
+Steps/sec. : 11574.1
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+WARNING!!! box shrunk below 2*rc! Auto-rejecting!
+STEP 999999 of 1000000 (99.9999% done)
+
+
+------------------------
+--    ==========      --
+--  === BOX 0  ===    --
+--    ==========      --
+------------------------
+
+Volume: 347844 A^3
+Tot # mol: 3940
+
+Molecule Type KR
+-------------------
+Number: 1855 ;
+Density: 0.742065 g/ml
+
+Molecule Type XE
+-------------------
+Number: 2085 ;
+Density: 1.30681 g/ml
+
+Energy (in K): total: -3.27527e+06
+
+Displace (Box 0) -- tries: 395422; # Accept: 197442; % Accept : 49.932; Max Amt.: 0.5502
+Rotate (Box 0) -- tries: 0; # Accept: 0; % Accept : -nan; Max Amt.: 0.785398
+Molecule Transfer (Box 0 -> Box 1) -- tries: 99576; # Accept: 31621; % Accept : 31.7556
+Volume Transfer (Box 0 -> Box 1) -- tries: 5105; # Accept: 2520; % Accept : 49.3634; Max Amt.: 10706.8
+
+
+------------------------
+--    ==========      --
+--  === BOX 1  ===    --
+--    ==========      --
+------------------------
+
+Volume: 57167.7 A^3
+Tot # mol: 60
+
+Molecule Type KR
+-------------------
+Number: 45 ;
+Density: 0.109533 g/ml
+
+Molecule Type XE
+-------------------
+Number: 15 ;
+Density: 0.0572047 g/ml
+
+Energy (in K): total: -3973.71
+
+Displace (Box 1) -- tries: 394739; # Accept: 232975; % Accept : 59.02; Max Amt.: 19.2614
+Rotate (Box 1) -- tries: 287; # Accept: 0; % Accept : 0; Max Amt.: 0.785398
+Molecule Transfer (Box 1 -> Box 0) -- tries: 99833; # Accept: 33561; % Accept : 33.6171
+Volume Transfer (Box 1 -> Box 0) -- tries: 5038; # Accept: 2531; % Accept : 50.2382; Max Amt.: 7800.01
+
+------------------------
+--    ==========      --
+--  === SYSTEM ===    --
+--    ==========      --
+------------------------
+
+Energy (in K): total: -3.27924e+06
+
+Simulation Time (total): 74.11sec.
