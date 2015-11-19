@@ -620,28 +620,28 @@ void ConfigSetup::verifyInputs(void)
 		std::cout << "Error: Molecule swap frequency has not been specified!" << std::endl;
 		exit(0);
 	}
-	if(long(10000 * sys.moves.displace) + long(10000 * sys.moves.rotate) + long(10000*sys.moves.transfer) + long(10000*sys.moves.volume) != 10000)
-	{
-		std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
-		exit(0);
-	}
+	//if(long(10000 * sys.moves.displace) + long(10000 * sys.moves.rotate) + long(10000*sys.moves.transfer) + long(10000*sys.moves.volume) != 10000)
+	//{
+	//	std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
+	//	exit(0);
+	//}
 #elif ENSEMBLE == GCMC
 	if(sys.moves.transfer == DBL_MAX)
 	{
 		std::cout << "Error: Molecule swap frequency has not been specified!" << std::endl;
 		exit(0);
 	}
-	if(long(10000*sys.moves.displace) + long(10000*sys.moves.rotate) + long(10000*sys.moves.transfer) != 10000)
-	{
-		std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
-		exit(0);
-	}
+	//if(long(10000*sys.moves.displace) + long(10000*sys.moves.rotate) + long(10000*sys.moves.transfer) != 10000)
+	//{
+	//	std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
+	//	exit(0);
+	//}
 #else
-	if(long(10000*sys.moves.displace) + long(10000*sys.moves.rotate) != 10000)
-	{
-		std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
-		exit(0);
-	}
+	//if(long(10000*sys.moves.displace) + long(10000*sys.moves.rotate) != 10000)
+	//{
+	//	std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
+	//	exit(0);
+	//}
 #endif
 
 	for(i = 0 ; i < BOX_TOTAL ; i++)
