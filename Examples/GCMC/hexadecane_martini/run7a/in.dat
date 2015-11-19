@@ -1,5 +1,5 @@
 ########################
-## Init File v2.0
+## Init File 
 ## 
 ## IMPROVEMENTS
 ## - Compacts inputs into one line
@@ -17,35 +17,32 @@
 # enable, step
 #########################
 Restart	 	false   
-FirstStep	100000
 
 ####################################
 # kind {RESTART, RANDOM, INTSEED}
 ####################################
 PRNG     	RANDOM
-Random_Seed  	49
 
 ####################################
 # FORCE FIELD
 ####################################
-ParaTypeCHARMM	 true
-ParaTypeEXOTIC	 false
-ParaTypeMARTINI  false
-Parameters     	 Par_MODEL_NAME.inp
+ParaTypeEXOTIC	 off
+ParaTypeMARTINI  on
+ParaTypeCHARMM   off
+
+Parameters     	 Par_Martini.inp
 
 ####################################
 # INPUT PDB FILES
 ####################################
-Coordinates 0    STEP3_START_XX_PHA_BOX_0.pdb  
-Coordinates 1	 STEP3_START_XX_reservoir_BOX_1.pdb
+Coordinates 0    STEP3_START_AC16_liq_BOX_0.pdb
+Coordinates 1    STEP3_START_AC16_reservoir_BOX_1.pdb
 
 ####################################
 # INPUT PSF FILES
 ####################################
-Structure 0  	 STEP3_START_XX_PHA_BOX_0.psf  
-Structure 1	 STEP3_START_XX_reservoir_BOX_1.psf
-
-
+Structure 0      STEP3_START_AC16_liq_BOX_0.psf
+Structure 1      STEP3_START_AC16_reservoir_BOX_1.psf
 
 ############################################################################
 #  =======--------------------- SYSTEM --------------------------===========
@@ -54,49 +51,49 @@ Structure 1	 STEP3_START_XX_reservoir_BOX_1.psf
 ##################################
 # GEMC TYPE (DEFULT IS NVT_GEMC)  
 ##################################
-GEMC  NVT / NPT
-Pressure   2.50
+
 
 #############################
 # SIMULATION CONDITION   
 #############################
-Temperature     200.00
-Potential       VDW / SHIFT / SWITCH   
+Temperature     560.00
+Potential       SWITCH
 LRC		true
-Rswitch		7     
-Rcut		10   
-Exclude 	1_3 
+Rcut		12 
+Rswitch		9  
+Exclude 	1-2
 
 #############################
 # ELECTROSTATIC   
 #############################
-Ewald		true
-Alpha		5.36
-KMax		25
-1-4scaling	0.0
+ElectroStatic   on
+Ewald		off
+Dielectric      15.0
+1-4scaling      1.0
+
 
 
 ################################
 # STEPS 
 ################################
-RunSteps           25000000      
+RunSteps           20000000      
 EqSteps		   5000000       
 AdjSteps	   1000        
 
 ################################
 # MOVE FREQUENCY              
 ################################
-DisFreq               0.69  
-RotFreq		      0.10   
-VolFreq		      0.01
-SwapFreq	      0.20
+DisFreq               0.3  
+RotFreq		      0.10
+SwapFreq	      0.6
 
 
 ################################
 # BOX DIMENSION #, X, Y, Z
 ################################
-BoxDim  0    35.00  35.00  35.00
-BoxDim  1    35.00  35.00  35.00
+BoxDim  0    40.00  40.00  40.00
+BoxDim  1    40.00  40.00  40.00
+
 
 
 ##############################
@@ -110,7 +107,7 @@ CBMC_Dih     10
 ####################################
 #          Mol. Name     Chem. Pot.
 ####################################
-ChemPot    AR             -2230
+ChemPot    AC16            -5918
 
 
 
@@ -121,17 +118,17 @@ ChemPot    AR             -2230
 ##########################
 # statistics filename add
 ##########################
-OutputName  AR_200_00_K_2220_r5
+OutputName  T_560_K_u_5170_r7a_l
 
 #####################################
 # enable, frequency           
 #####################################
-CoordinatesFreq    true   1000000
-RestartFreq  	   true   1000000
-ConsoleFreq        true   1000000
-BlockAverageFreq   false  1000000
-FluctuationFreq    false  1000000
-HistogramFreq      true   1000000
+CoordinatesFreq    true   10000000
+RestartFreq  	   true   10000000
+ConsoleFreq        true   100000
+BlockAverageFreq   true   100000
+FluctuationFreq    true   10000
+HistogramFreq      true   100000
 
 
 ################################
@@ -139,7 +136,7 @@ HistogramFreq      true   1000000
 ################################
 DistName	 dis
 HistName	 his
-RunNumber	 5
+RunNumber	 7
 RunLetter	 a
 SampleFreq	 200
 
@@ -151,4 +148,3 @@ OutPressure       false   false   false
 OutMolNum         true    true    true
 OutAcceptAngles   true    true    true  
 OutDensity        true    true    true
-

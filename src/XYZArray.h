@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef XYZ_ARRAY_H
 #define XYZ_ARRAY_H
 
@@ -222,7 +215,8 @@ class XYZArray
    //Copy range of points.
    void CopyRange(XYZArray & dest, const uint srcIndex, const uint destIndex,
 		  const uint len) const;
-
+   //used for ewald calculation, need to be fixed
+   double BoxSize(int box)const{return x[box];};
 
    protected:
    double * x, * y, * z;
@@ -420,4 +414,3 @@ inline void XYZArray::CopyRange(XYZArray & dest, const uint srcIndex,
    
 
 #endif /*XYZ_ARRAY_H*/
-

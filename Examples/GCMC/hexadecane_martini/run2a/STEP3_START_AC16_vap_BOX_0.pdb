@@ -1,0 +1,10 @@
+REMARK original generated coordinate pdb file
+ATOM      1  C1A AC16A   1      27.784  35.838  30.681  1.00  0.00      AC16 C
+ATOM      2  C2A AC16A   1      25.448  33.276  33.854  1.00  0.00      AC16 C
+ATOM      3  C3A AC16A   1      20.816  32.623  33.397  1.00  0.00      AC16 C
+ATOM      4  C4A AC16A   1      18.481  30.061  36.570  1.00  0.00      AC16 C
+ATOM      5  C1A AC16A   2      23.032  29.699  30.189  1.00  0.00      AC16 C
+ATOM      6  C2A AC16A   2      25.669  32.971  28.085  1.00  0.00      AC16 C
+ATOM      7  C3A AC16A   2      27.285  32.246  23.732  1.00  0.00      AC16 C
+ATOM      8  C4A AC16A   2      29.922  35.519  21.629  1.00  0.00      AC16 C
+END

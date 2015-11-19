@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef TRANSFORMMATRIX_H
 #define TRANSFORMMATRIX_H
 
@@ -304,4 +297,3 @@ inline TransformMatrix TransformMatrix::UniformRandom(double u1, double u2, doub
    return result;
 }
 #endif
-
