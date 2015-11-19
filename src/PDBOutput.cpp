@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "PDBOutput.h"              //For spec;
 #include "EnsemblePreprocessor.h"   //For BOX_TOTAL, ensemble
 #include "System.h"                 //for init
@@ -42,8 +35,13 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
    enableOutState = output.state.settings.enable;
    enableRestOut = output.restart.settings.enable;
    enableOut = enableOutState|enableRestOut;
-   stepsPerOut = output.state.settings.frequency;
+   stepsCoordPerOut = output.state.settings.frequency;
    stepsRestPerOut = output.restart.settings.frequency;
+   if (stepsCoordPerOut < stepsRestPerOut)
+     stepsPerOut = output.state.settings.frequency;
+   else
+     stepsPerOut = output.restart.settings.frequency;
+
    if (enableOutState)
    {
       for (uint b = 0; b < BOX_TOTAL; ++b)
@@ -169,7 +167,7 @@ void PDBOutput::DoOutput(const ulong step)
    
    if (((step + 1) % stepsRestPerOut == 0) && enableRestOut)
    {
-      DoOutputRebuildRestart(step);
+      DoOutputRebuildRestart(step + 1);
    }
    //NEW_RESTART_CODE
 }
@@ -335,4 +333,3 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
    }
 }
  //NEW_RESTART_CODE
-

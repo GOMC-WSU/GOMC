@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef MOLCULETRANSFER_H
 #define MOLCULETRANSFER_H
 
@@ -35,7 +28,7 @@ class MoleculeTransfer : public MoveBase
    uint pStart, pLen;
    uint molIndex, kindIndex;
 
-   double W_tc, oldVirial;
+   double W_tc, oldVirial_LJ, oldVirial_Real;
    cbmc::TrialMol oldMol, newMol;
    Intermolecular tcLose, tcGain;
    MoleculeLookup & molLookRef;
@@ -73,7 +66,9 @@ inline uint MoleculeTransfer::Prep(const double subDraw,
 
 inline uint MoleculeTransfer::Transform()
 {
-   oldVirial = calcEnRef.MoleculeVirial(molIndex, sourceBox);
+   oldVirial_LJ = 0.0; 
+   oldVirial_Real = 0.0;
+   calcEnRef.MoleculeVirial(oldVirial_LJ, oldVirial_Real, molIndex, sourceBox);
 #ifdef CELL_LIST
    cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
 #endif
@@ -137,7 +132,8 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
          //Add rest of energy.
          sysPotRef.boxEnergy[sourceBox] -= oldMol.GetEnergy();
          sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();
-         sysPotRef.boxVirial[sourceBox].inter -= oldVirial;
+         sysPotRef.boxVirial[sourceBox].inter -= oldVirial_LJ;
+	 sysPotRef.boxVirial[sourceBox].real -= oldVirial_Real;
 
 	 //Set coordinates, new COM; shift index to new box's list
          newMol.GetCoords().CopyRange(coordCurrRef, 0, pStart, pLen);
@@ -149,9 +145,11 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 #endif
 
 	 //Calculate the fresh virial.
-         double newVirial = calcEnRef.MoleculeVirial(molIndex,
-						     destBox);
-         sysPotRef.boxVirial[destBox].inter += newVirial;
+         double newVirial_LJ = 0.0, newVirial_Real = 0.0;
+	 calcEnRef.MoleculeVirial(newVirial_LJ, newVirial_Real,
+				  molIndex,destBox);
+         sysPotRef.boxVirial[destBox].inter += newVirial_LJ;
+	 sysPotRef.boxVirial[destBox].real += newVirial_Real;
 
 	 //Zero out box energies to prevent small number 
 	 //errors in double.
@@ -185,4 +183,3 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 #endif
 
 #endif
-

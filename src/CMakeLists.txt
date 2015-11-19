@@ -80,6 +80,7 @@ set(headers
    HistOutput.h
    InputAbstracts.h
    InputFileReader.h
+   IntraSwap.h
    MersenneTwister.h
    MoleculeKind.h
    MoleculeLookup.h

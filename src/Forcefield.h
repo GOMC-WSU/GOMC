@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef FORCEFIELD_H
 #define FORCEFIELD_H
 
@@ -59,6 +52,7 @@ class Forcefield
    double beta;             //!<Thermodynamic beta = 1/(T) K^-1)
 
    bool OneThree, OneFour, OneN;  // to include 1-3, 1-4 and more interaction
+   bool electrostatic, ewald; //to consider columb interaction
    uint vdwKind;      // to define VdW type, standard, shift or switch
    uint exckind;      // to define  exclude kind, 1-2, 1-3, 1-4 
 
@@ -71,4 +65,3 @@ class Forcefield
 };
 
 #endif /*FORCEFIELD_H*/
-
