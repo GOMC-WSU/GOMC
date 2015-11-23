@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include <cassert>
 #include "DCLinear.h"
 #include "DCSingle.h"
@@ -59,11 +52,14 @@ void DCLinear::Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
    {
       comps[i]->PrepareNew();
       comps[i]->BuildNew(newMol, molIndex);
+      if(newMol.GetWeight() == 0.0){
+	return;
+      }
    }
    for(uint i = 0; i < comps.size(); ++i)
    {
-      comps[i]->PrepareOld();
-      comps[i]->BuildOld(oldMol, molIndex);
+       comps[i]->PrepareOld();
+       comps[i]->BuildOld(oldMol, molIndex);
    }
+   
 }
-
