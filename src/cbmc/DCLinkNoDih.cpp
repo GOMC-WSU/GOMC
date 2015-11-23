@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "DCLinkNoDih.h"
 #include "TrialMol.h"
 #include "../Forcefield.h"
@@ -12,12 +5,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "../MoleculeKind.h"
 #include "../MolSetup.h"
 
-
 namespace cbmc
 {
    DCLinkNoDih::DCLinkNoDih(DCData* data, const mol_setup::MolKind kind,
 			    uint atom, uint focus)
-     : data(data), atom(atom), focus(focus)
+     : data(data), atom(atom), focus(focus), angleFixe(false)
    {
       using namespace mol_setup;
       std::vector<Bond> bonds = AtomBonds(kind, atom);
@@ -36,6 +28,10 @@ namespace cbmc
 	 {
             prev = angles[i].a2;
             angleKind = angles[i].kind;
+	    if(data->ff.angles->AngleEnergy(angleKind) > 999999999){
+	      angleFixe = true;
+	      thetaFix = data->ff.angles->Angle(angleKind);
+	    }
             break;
          }
       }
@@ -52,7 +48,12 @@ namespace cbmc
       bendWeight = 0;
       for (uint trial = 0; trial < count; trial++)
       {
-         angles[trial] = prng.rand(M_PI);
+	if(angleFixe){
+	  angles[trial] = thetaFix;
+	}
+	else{
+	  angles[trial] = prng.rand(M_PI);
+	}
          angleEnergy[trial] = ff.angles->Calc(angleKind, angles[trial]);
          angleWeights[trial] = exp(angleEnergy[trial] * -ff.beta);
          bendWeight += angleWeights[trial];
@@ -70,8 +71,15 @@ namespace cbmc
       bendWeight = 0;
       for (uint trial = 0; trial < count; trial++)
       {
-         double trialAngle = prng.rand(M_PI);
-         double trialEn = ff.angles->Calc(angleKind, trialAngle);
+         double trialAngle;
+
+	 if(angleFixe){
+	   trialAngle = thetaFix;
+	 }
+	 else{
+	   trialAngle = prng.rand(M_PI);
+	 }
+	 double trialEn = ff.angles->Calc(angleKind, trialAngle);
          double trialWeight = exp(-ff.beta * trialEn);
          bendWeight += trialWeight;
       }
@@ -95,8 +103,10 @@ namespace cbmc
    {
       AlignBasis(oldMol);
       IncorporateOld(oldMol);
-      double* nonbonded_1_4 = data->nonbonded_1_4;
       double* inter = data->inter;
+	  double* real = data->real;
+	  double *self = data->self;
+	  double* corr = data->correction;
       uint nLJTrials = data->nLJTrialsNth;
       XYZArray& positions = data->positions;
       PRNG& prng = data->prng;
@@ -108,29 +118,37 @@ namespace cbmc
       }
 
       data->axes.WrapPBC(positions, oldMol.GetBox());
-      std::fill_n(inter, nLJTrials, 0);
-      std::fill_n(nonbonded_1_4, nLJTrials, 0);
-      data->calc.ParticleInter(inter, positions, atom, molIndex,
+      std::fill_n(inter, nLJTrials, 0.0);
+	  std::fill_n(self, nLJTrials, 0.0);
+	  std::fill_n(real, nLJTrials, 0.0);
+	  std::fill_n(corr, nLJTrials, 0.0);
+      data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                                oldMol.GetBox(), nLJTrials);
-      data->calc.ParticleNonbonded_1_4(nonbonded_1_4, oldMol, positions, atom,
-				   oldMol.GetBox(), nLJTrials);
-      double stepWeight = 0;
-      for (uint trial = 0, count = nLJTrials; trial < count; ++trial)
+	  if(DoEwald){
+		data->calc.SwapSelf(self, molIndex, atom, oldMol.GetBox(), nLJTrials);
+		data->calc.SwapCorrection(corr, oldMol, positions, atom, oldMol.GetBox(), nLJTrials);
+	  }
+
+      double stepWeight = 0.0;
+      for (uint trial = 0; trial < nLJTrials; ++trial)
       {
-	stepWeight += exp(-data->ff.beta * (inter[trial] +
-					    nonbonded_1_4[trial]));
+         stepWeight += exp(-1 * data->ff.beta * (inter[trial] + real[trial] + self[trial] + corr[trial]) );
+	 if(stepWeight > 10e200)
+	   stepWeight = 0.0;
       }
       oldMol.MultWeight(stepWeight * bendWeight);
       oldMol.ConfirmOldAtom(atom);
-      oldMol.AddEnergy(Energy(bendEnergy, nonbonded_1_4[0], inter[0]));
+      oldMol.AddEnergy(Energy(bendEnergy, 0.0, inter[0], real[0], 0.0, self[0], corr[0]));
    }
 
    void DCLinkNoDih::BuildNew(TrialMol& newMol, uint molIndex)
    {
       AlignBasis(newMol);
       double* ljWeights = data->ljWeights;
-      double* nonbonded_1_4 = data->nonbonded_1_4;
       double* inter = data->inter;
+	  double *real = data->real;
+	  double *self = data->self;
+	  double* corr = data->correction;
       uint nLJTrials = data->nLJTrialsNth;
       XYZArray& positions = data->positions;
       PRNG& prng = data->prng;
@@ -139,31 +157,44 @@ namespace cbmc
       {
          double phi = prng.rand(M_PI * 2);
          positions.Set(trial, newMol.GetRectCoords(bondLength, theta, phi));
+
       }
 
       data->axes.WrapPBC(positions, newMol.GetBox());
-      std::fill_n(inter, nLJTrials, 0);
-      std::fill_n(nonbonded_1_4, nLJTrials, 0);
-      data->calc.ParticleInter(inter, positions, atom, molIndex,
-                               newMol.GetBox(), nLJTrials);
-      data->calc.ParticleNonbonded_1_4(nonbonded_1_4, newMol, positions, atom,
-				   newMol.GetBox(), nLJTrials);
+      std::fill_n(inter, nLJTrials, 0.0);
+	  std::fill_n(self, nLJTrials, 0.0);
+	  std::fill_n(real, nLJTrials, 0.0);
+	  std::fill_n(corr, nLJTrials, 0.0);
+	  std::fill_n(ljWeights, nLJTrials, 0.0);
 
-      double stepWeight = 0;
-      double beta = data->ff.beta;
-      for (uint trial = 0, count = nLJTrials; trial < count; ++trial)
+      data->calc.ParticleInter(inter, real, positions, atom, molIndex,
+                               newMol.GetBox(), nLJTrials);
+	  if(DoEwald){
+		data->calc.SwapSelf(self, molIndex, atom, newMol.GetBox(), nLJTrials);
+		data->calc.SwapCorrection(corr, newMol, positions, atom, newMol.GetBox(), nLJTrials);
+	  }
+
+      double stepWeight = 0.0;
+      for (uint trial = 0; trial < nLJTrials; trial++)
       {
-	 ljWeights[trial] = exp(-data->ff.beta * (inter[trial] +
-						 nonbonded_1_4[trial]));
+         ljWeights[trial] = exp(-1 * data->ff.beta * (inter[trial] + real[trial] + self[trial] + corr[trial]));
+	 if(ljWeights[trial] > 10e200)
+	   ljWeights[trial] = 0.0;
          stepWeight += ljWeights[trial];
       }
 
       uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
+      double WinEnergy = inter[winner]+real[winner]+self[winner]+corr[winner];
+      if ( ( WinEnergy * data->ff.beta ) > (2.3*200.0) || WinEnergy * data->ff.beta < -2.303e308){
+      	stepWeight = 0.0;
+      	inter[winner] = 0.0;
+      	real[winner] = 0.0;
+      	self[winner] = 0.0;
+      	corr[winner] = 0.0;
+      }
       newMol.MultWeight(stepWeight * bendWeight);
       newMol.AddAtom(atom, positions[winner]);
-      newMol.AddEnergy(Energy(bendEnergy, nonbonded_1_4[winner],
-			      inter[winner]));
+      newMol.AddEnergy(Energy(bendEnergy, 0.0, inter[winner], real[winner], 0.0, self[winner], corr[winner]));
    }
 
 }
-

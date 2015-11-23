@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "DCFreeHedron.h"
@@ -53,6 +46,9 @@ namespace cbmc
       uint nLJTrials = data->nLJTrialsNth;
       double* ljWeights = data->ljWeights;
       double* inter = data->inter;
+	  double* real = data->real;
+	  double* self = data->self;
+	  double* corr = data->correction;
 
       //get info about existing geometry
       newMol.ShiftBasis(hed.Focus());
@@ -86,13 +82,24 @@ namespace cbmc
       }
 
       std::fill_n(inter, nLJTrials, 0.0);
+      std::fill_n(real, nLJTrials, 0.0);
+      std::fill_n(self, nLJTrials, 0.0);
+	  std::fill_n(corr, nLJTrials, 0.0);
       for (uint b = 0; b < hed.NumBond(); ++b)
       {
-	 calc.ParticleInter(inter, positions[b], hed.Bonded(b), 
+	 calc.ParticleInter(inter, real, positions[b], hed.Bonded(b), 
 			    molIndex, newMol.GetBox(), nLJTrials);
+	 if(DoEwald){
+		data->calc.SwapSelf(self, molIndex, hed.Bonded(b), newMol.GetBox(), nLJTrials);
+		data->calc.SwapCorrection(corr, newMol, positions[b], hed.Bonded(b), newMol.GetBox(), nLJTrials);
+	 }
       }
-      calc.ParticleInter(inter, positions[hed.NumBond()], hed.Prev(),
+      calc.ParticleInter(inter, real, positions[hed.NumBond()], hed.Prev(),
                          molIndex, newMol.GetBox(), nLJTrials);
+	  if(DoEwald){
+		  data->calc.SwapSelf(self, molIndex, hed.Prev(), newMol.GetBox(), nLJTrials);
+		  data->calc.SwapCorrection(corr, newMol, positions[hed.NumBond()], hed.Prev(), newMol.GetBox(), nLJTrials);
+	  }
       double stepWeight = 0;
       for (uint lj = 0; lj < nLJTrials; ++lj)
       {
@@ -105,7 +112,7 @@ namespace cbmc
          newMol.AddAtom(hed.Bonded(b), positions[b][winner]);
       }
       newMol.AddAtom(hed.Prev(), positions[hed.NumBond()][winner]);
-      newMol.AddEnergy(Energy(hed.GetEnergy(), 0, inter[winner]));
+      newMol.AddEnergy(Energy(hed.GetEnergy(), 0, inter[winner], real[winner], 0, self[winner], corr[winner]));
       newMol.MultWeight(hed.GetWeight());
       newMol.MultWeight(stepWeight);
    }
@@ -119,6 +126,9 @@ namespace cbmc
       uint nLJTrials = data->nLJTrialsNth;
       double* ljWeights = data->ljWeights;
       double* inter = data->inter;
+	  double* real = data->real;
+	  double* self = data->self;
+	  double* corr = data->correction;
 
       //get info about existing geometry
       oldMol.SetBasis(hed.Focus(), hed.Prev());
@@ -162,14 +172,25 @@ namespace cbmc
       }
 
       std::fill_n(inter, nLJTrials, 0.0);
+      std::fill_n(real, nLJTrials, 0.0);
+      std::fill_n(self, nLJTrials, 0.0);
+	  std::fill_n(corr, nLJTrials, 0.0);
       for (uint b = 0; b < hed.NumBond(); ++b)
       {
-         calc.ParticleInter(inter, positions[b], hed.Bonded(b),
+         calc.ParticleInter(inter, real, positions[b], hed.Bonded(b),
                             molIndex, oldMol.GetBox(), nLJTrials);
+		 if(DoEwald){
+			 data->calc.SwapSelf(self, molIndex, hed.Bonded(b), oldMol.GetBox(), nLJTrials);
+			data->calc.SwapCorrection(corr, oldMol, positions[b], hed.Bonded(b), oldMol.GetBox(), nLJTrials);
+		 }
       }
       double stepWeight = 0;
-      calc.ParticleInter(inter, positions[hed.NumBond()], hed.Prev(),
+      calc.ParticleInter(inter, real, positions[hed.NumBond()], hed.Prev(),
                          molIndex, oldMol.GetBox(), nLJTrials);
+	  if(DoEwald){
+		  data->calc.SwapSelf(self, molIndex, hed.Prev(), oldMol.GetBox(), nLJTrials);
+		  data->calc.SwapCorrection(corr, oldMol, positions[hed.NumBond()], hed.Prev(), oldMol.GetBox(), nLJTrials);
+	  }
 
       for (uint lj = 0; lj < nLJTrials; ++lj)
       {
@@ -180,11 +201,10 @@ namespace cbmc
          oldMol.ConfirmOldAtom(hed.Bonded(b));
       }
       oldMol.ConfirmOldAtom(hed.Prev());
-      oldMol.AddEnergy(Energy(hed.GetEnergy(), 0, inter[0]));
+      oldMol.AddEnergy(Energy(hed.GetEnergy(), 0, inter[0], real[0], 0, self[0], corr[0]));
       oldMol.MultWeight(hed.GetWeight());
       oldMol.MultWeight(stepWeight);
    }
 
 
 }
-

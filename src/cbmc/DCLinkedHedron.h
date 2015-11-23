@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef DCLINKEDHEDRON_H
 #define DCLINKEDHEDRON_H
 #include "DCComponent.h"
@@ -28,7 +21,7 @@ namespace cbmc
       DCComponent* Clone() { return new DCLinkedHedron(*this); };
     private:
       void ChooseTorsion(TrialMol& mol, double prevPhi[]);
-      double EvalLJ(TrialMol& mol, uint molIndex);
+      double EvalLJ(TrialMol& mol, uint molIndex, bool const isSourceBox = false);
       DCData* data;
       DCHedron hed;
       uint nPrevBonds;
@@ -38,4 +31,3 @@ namespace cbmc
    };
 }
 #endif
-
