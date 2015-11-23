@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "CalculateEnergy.h"        //header for this
 #include "EnergyTypes.h"            //Energy structs
 #include "EnsemblePreprocessor.h"   //Flags
@@ -30,11 +23,19 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 //    Jason Mick    Feb. 2014
 //
 
+#define REAL
+#define RECIP
+//#define DEBUG
 using namespace geom;
+extern bool DoEwald;
 
-CalculateEnergy::CalculateEnergy(StaticVals const& stat, System const& sys) :
+const double qqfact = 167000.00;
+//const double kmax1 = 6.0;
+//const double ALPHA = 1.097;
+
+CalculateEnergy::CalculateEnergy(StaticVals const& stat, System & sys) :
    forcefield(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
-   currentCOM(sys.com),
+   currentCOM(sys.com), sysPotRef(sys.potential), DoEwald(false), kmax1(0.0), alpha(0.0),
 #ifdef VARIABLE_PARTICLE_NUMBER
    molLookup(sys.molLookup),
 #else
@@ -50,8 +51,22 @@ CalculateEnergy::CalculateEnergy(StaticVals const& stat, System const& sys) :
 #endif
 { }
 
-void CalculateEnergy::Init()
+CalculateEnergy::~CalculateEnergy(){
+  delete[] MolSelfEnergy;
+  delete[] RecipSinSum;
+  delete[] RecipCosSum;
+  delete[] SinSumNew;
+  delete[] CosSumNew;
+  delete[] calp;
+}
+
+
+void CalculateEnergy::Init(config_setup::SystemVals const& val)
 {
+  DoEwald = val.ewald.enable;
+  alpha = val.ewald.alpha;
+  kmax1 = val.ewald.KMax;
+
    for(uint m = 0; m < mols.count; ++m)
    {
       const MoleculeKind& molKind = mols.GetKind(m);
@@ -59,29 +74,69 @@ void CalculateEnergy::Init()
       {
          particleKind.push_back(molKind.AtomKind(a));
          particleMol.push_back(m);
+	 particleCharge.push_back(molKind.atomCharge[a]);
       }
    }
+   calp = (double*)malloc(BOX_TOTAL);
+   std::fill_n(calp, BOX_TOTAL, 0.0);
+#ifdef RECIP
+   for(int box = 0; box < BOX_TOTAL; box++){
+     //calculate the alpha over box size.
+     Calp(box, currentAxes.axis.BoxSize(box));
+     SetupRecip(box);   
+   }
+   RecipSinSum = new double[RecipSize[0] * BOXES_WITH_U_NB];
+   RecipCosSum = new double[RecipSize[0] * BOXES_WITH_U_NB];
+   SinSumNew = new double[RecipSize[0] * BOXES_WITH_U_NB];
+   CosSumNew = new double[RecipSize[0] * BOXES_WITH_U_NB];
+#endif
+   //malloc size for MolSelfEnergy to cache self energy for each kind of molecule
+   MolSelfEnergy = (double*)malloc(molLookup.GetNumKind());
+   std::fill_n(MolSelfEnergy, molLookup.GetNumKind(), 0.0);
 }
 
-SystemPotential CalculateEnergy::SystemTotal() const
+SystemPotential CalculateEnergy::SystemTotal()
 {
    SystemPotential pot =
       SystemInter(SystemPotential(), currentCoords, currentCOM, currentAxes);
    //system intra
    for (uint b = 0; b < BOX_TOTAL; ++b)
-   {
-      double bondEn = 0.0, nonbondEn = 0.0;
-      MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b),
-	 end = molLookup.BoxEnd(b);
-      while (thisMol != end)
-      {
-         MoleculeIntra(bondEn, nonbondEn, *thisMol, b);
-         ++thisMol;
-      }
-      pot.boxEnergy[b].intraBond = bondEn;
-      pot.boxEnergy[b].intraNonbond = nonbondEn;
-   }
+   { 
+     double bondEn = 0.0, nonbondEn = 0.0, self = 0.0, correction = 0.0;
+     double distSq, dist;
+     XYZ virComponents;
+     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b), end = molLookup.BoxEnd(b);
+     while (thisMol != end)
+       {
+	 MoleculeIntra(bondEn, nonbondEn, *thisMol, b);
+	 //if ewald is activated, calculates electrostatic intra molecule (self energy and correction term)
+	 if(DoEwald){
+	   MolCorrection(correction, *thisMol, b);
+	 }
+	 ++thisMol;
+       }
+     correction = -correction;
+     
+     pot.boxEnergy[b].intraBond = bondEn;
+     pot.boxEnergy[b].intraNonbond = nonbondEn;
+     
+     if(DoEwald){
+       BoxSelf(self, b);
+       self = -1.0 * self * calp[b] * qqfact / sqrt(M_PI);
+       
+       pot.boxEnergy[b].self = self;
+       pot.boxEnergy[b].correction = correction*qqfact;
+
+#ifdef RECIP
+   //if ewald is activated, calculates ewald reciprocal energy     
+       SetupRecip(b);	
+       pot.boxEnergy[b].recip = BoxReciprocal(b);
+#endif
+       pot.boxEnergy[b].elect += (pot.boxEnergy[b].self + pot.boxEnergy[b].correction + pot.boxEnergy[b].recip);	
+     }//end if DoEwald
+   }//end for
    pot.Total();
+  
    return pot;
 }
 
@@ -89,29 +144,30 @@ SystemPotential CalculateEnergy::SystemInter
 (SystemPotential potential,
  XYZArray const& coords,
  XYZArray const& com,
- BoxDimensions const& boxAxes) const
+ BoxDimensions const& boxAxes)
 {
    for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
    {
-      potential = BoxInter(potential, coords, com, boxAxes, b);
+      potential += BoxInter(SystemPotential(), coords, com, boxAxes, b);
    }
    potential.Total();
    return potential;
 }
 
 
-
 SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                                           XYZArray const& coords,
                                           XYZArray const& com,
                                           BoxDimensions const& boxAxes,
-                                          const uint box) const
+                                          const uint box) 
 {
    //Handles reservoir box case, returning zeroed structure if
    //interactions are off.
    if (box >= BOXES_WITH_U_NB) return potential;
-
-   Intermolecular inter;
+   //calculate the alpha over box size.
+   Calp(box, boxAxes.axis.BoxSize(box));
+   Intermolecular inter, real;
+   double dist, erfc_variable;
 #ifdef CELL_LIST
    CellList::Pairs pair = cellList.EnumeratePairs(box);
    while (!pair.Done()) 
@@ -127,12 +183,19 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 	 forcefield.particles->CalcAdd(inter.energy, partVirial, distSq,
 	    particleKind[pair.First()], particleKind[pair.Second()]);
 
+#ifdef REAL
+	 //If Ewald is activated, add ewald inter molecular energy
+	 if(DoEwald){
+		 dist = sqrt(distSq);
+		 erfc_variable = calp[box] * dist;
+		 real.energy = real.energy + particleCharge[pair.First()] * particleCharge[pair.Second()] * (1 - erf(erfc_variable)) / dist ;
+	 }
+#endif
 	 //Add to our pressure components.
 	 inter.virial -= geom::Dot(virComponents * partVirial,
 				   boxAxes.MinImage
 				   (com.Difference(particleMol[pair.First()], 
-						   particleMol[pair.Second()]), 
-				    box));
+				    particleMol[pair.Second()]), box));
       }
       pair.Next();
    }
@@ -161,7 +224,6 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 				  coords, mols.start[m1] + i,
 				  mols.start[m2] + j, box))
                {
-
 		  double partVirial = 0.0;
 		  
 		  forcefield.particles->CalcAdd(inter.energy,
@@ -188,7 +250,13 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
    
    potential.boxEnergy[box].inter = inter.energy;
    potential.boxVirial[box].inter = inter.virial;
-   
+
+#ifdef REAL
+     if(DoEwald){
+		potential.boxEnergy[box].real = real.energy * qqfact;
+		  potential.boxEnergy[box].elect += potential.boxEnergy[box].real;
+		  }
+#endif
    if (forcefield.useLRC) 
    {
       FullTailCorrection(potential, boxAxes, box);
@@ -199,15 +267,19 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
    return potential;
 }
 
-Intermolecular CalculateEnergy::MoleculeInter(XYZArray const& molCoords,
-                                              const uint molIndex,
-                                              const uint box,
-                                              XYZ const*const newCOM) const
+void CalculateEnergy::MoleculeInter(Intermolecular &inter,
+									Elect &real,
+									XYZArray const& molCoords,
+                                    const uint molIndex,
+                                    const uint box,
+                                    XYZ const*const newCOM) const
 {   
-   Intermolecular result;
    if (box < BOXES_WITH_U_NB)
    {
-      bool hasNewCOM = !(newCOM == NULL);
+     double dist, erfc_variable;
+     Intermolecular localInter;
+     Elect localReal;
+     bool hasNewCOM = !(newCOM == NULL);
 #ifdef CELL_LIST
       uint length = mols.GetKind(molIndex).NumAtoms();
       uint start = mols.MolStart(molIndex);
@@ -225,13 +297,21 @@ Intermolecular CalculateEnergy::MoleculeInter(XYZArray const& molCoords,
 				   currentCoords, atom, *n, box)) 
 	    {
 	       double partVirial = 0.0;	   
-	       forcefield.particles->CalcSub(result.energy,
+	       forcefield.particles->CalcSub(localInter.energy,
 					    partVirial, distSq,
 					    particleKind[atom],
 					    particleKind[*n]);
-	       
+
+#ifdef REAL
+		   if(DoEwald){
+			   //Subtract old real energy
+			   dist = sqrt(distSq);
+			   erfc_variable = calp[box] * dist;
+			   localReal.energy -= ( particleCharge[atom] * particleCharge[*n] * (1 - erf(erfc_variable)) / dist);
+		   }
+#endif 
 	       //Add to our pressure components.
-	       result.virial -= geom::Dot(virComponents * partVirial,
+	       localInter.virial -= geom::Dot(virComponents * partVirial,
 					 currentAxes.MinImage
 					 (currentCOM.Difference
 					  (molIndex, particleMol[*n]), box));
@@ -247,14 +327,22 @@ Intermolecular CalculateEnergy::MoleculeInter(XYZArray const& molCoords,
 				   molCoords, p, currentCoords, *n, box)) 
 	    {
 	       double partVirial = 0.0;	   
-	       forcefield.particles->CalcAdd(result.energy, partVirial,
+	       forcefield.particles->CalcAdd(localInter.energy, partVirial,
 						   distSq, particleKind[atom],
 						   particleKind[*n]);
-	       
+#ifdef REAL	       
+		   if(DoEwald){
+			   //Add new ewald real energy
+			   dist = sqrt(distSq);
+			   erfc_variable = calp[box] * dist;
+			   localReal.energy += ( particleCharge[atom] * particleCharge[*n] *  (1 - erf(erfc_variable)) / dist);
+		   }
+#endif
+
 	       if (hasNewCOM)
 	       {
 		  //Add to our pressure components.
-		  result.virial -= geom::Dot(virComponents * partVirial,
+		  localInter.virial -= geom::Dot(virComponents * partVirial,
 					     currentAxes.MinImage
 					     (*newCOM - 
 					      currentCOM.Get(particleMol[*n]),
@@ -262,7 +350,7 @@ Intermolecular CalculateEnergy::MoleculeInter(XYZArray const& molCoords,
 	       }
 	       else
 	       {
-		  result.virial -= geom::Dot(virComponents * partVirial,
+		  localInter.virial -= geom::Dot(virComponents * partVirial,
 					     currentAxes.MinImage
 					     (currentCOM.Difference
 					      (molIndex, particleMol[*n]), 
@@ -351,11 +439,15 @@ Intermolecular CalculateEnergy::MoleculeInter(XYZArray const& molCoords,
          ++otherMol;
       }
 #endif
+
+#ifdef REAL
+	  localReal.energy *= qqfact;
+	real = localReal;
+#endif
+	inter = localInter;
    }
-   return result;
 }
 
-// Calculate 1-N nonbonded intra energy
 void CalculateEnergy::ParticleNonbonded(double* energy,
                                         cbmc::TrialMol const& trialMol,
                                         XYZArray const& trialPos,
@@ -374,7 +466,7 @@ void CalculateEnergy::ParticleNonbonded(double* energy,
    {
       if (trialMol.AtomExists(*partner))
       {
-         for (uint t = 0; t < trials; ++t)
+         for (uint t = 0; t < trialPos.Count(); ++t)
          {
             double distSq;
             if (currentAxes.InRcut(distSq, trialPos, t, trialMol.GetCoords(),
@@ -391,48 +483,8 @@ void CalculateEnergy::ParticleNonbonded(double* energy,
    }
 }
 
-// Calculate 1-4 nonbonded intra energy
-// Calculate 1-3 nonbonded intra energy for Martini force field
-void CalculateEnergy::ParticleNonbonded_1_4(double* energy,
-                                        cbmc::TrialMol const& trialMol,
-                                        XYZArray const& trialPos,
-                                        const uint partIndex,
-                                        const uint box,
-                                        const uint trials) const
-{
-   if (box >= BOXES_WITH_U_B)
-      return;
-   
-   const MoleculeKind& kind = trialMol.GetKind();
-
-   if (kind.nonBonded_1_4 == NULL)
-     return;
-
-   //loop over all partners of the trial particle
-   const uint* partner = kind.sortedNB_1_4.Begin(partIndex);
-   const uint* end = kind.sortedNB_1_4.End(partIndex);
-   while (partner != end)
-   {
-      if (trialMol.AtomExists(*partner))
-      {
-         for (uint t = 0; t < trials; ++t)
-         {
-            double distSq;
-	    currentAxes.GetDistSq(distSq, trialPos, t, trialMol.GetCoords(),
-				  *partner, box);
-	    forcefield.particles->CalcAdd_1_4(energy[t], distSq,
-					 kind.AtomKind(partIndex),
-					 kind.AtomKind(*partner));
-         }
-      }
-      ++partner;
-   }
-}
-
-
-
 //! Calculates Nonbonded intra energy for candidate positions in trialPos
-void CalculateEnergy::ParticleInter(double* en,
+void CalculateEnergy::ParticleInter(double* en, double *real, 
                                     XYZArray const& trialPos,
                                     const uint partIndex,
                                     const uint molIndex,
@@ -442,9 +494,9 @@ void CalculateEnergy::ParticleInter(double* en,
    if (box >= BOXES_WITH_U_NB)
       return;
    
-   double distSq;
+   double distSq, dist, erfc_variable;
    MoleculeKind const& thisKind = mols.GetKind(molIndex);
-   uint kindI = thisKind.AtomKind(partIndex);
+  uint kindI = thisKind.AtomKind(partIndex);
 #ifdef CELL_LIST
   //uint kind = particleKind[partIndex];
    for(int t = 0; t < trials; ++t) 
@@ -453,15 +505,28 @@ void CalculateEnergy::ParticleInter(double* en,
       while (!n.Done())
       {
          int atom = *n;
-         double distSq = 0.0;
+         distSq = 0.0;
          if (currentAxes.InRcut(distSq, trialPos, t, currentCoords, atom, box)) 
 	 {
-            en[t] += forcefield.particles->CalcEn(distSq, kindI, 
-						 particleKind[atom]);
+	   if(distSq < 1.0){
+	     en[t] += 10E30;
+	     real[t] += 10E30;
+	   }
+	   else{
+	     en[t] += forcefield.particles->CalcEn(distSq, kindI, particleKind[atom]);
+#ifdef REAL		
+	     if(DoEwald){
+	       dist = sqrt(distSq);
+	       erfc_variable = calp[box] * dist;
+	       real[t] += ( ( particleCharge[atom] * thisKind.atomCharge[partIndex] * (1 - erf(erfc_variable)) / dist) * qqfact ); 
+	     }
+#endif
+	   }//end else
          }
          n.Next();
       }
-   }   
+
+ }   
 #else
    MoleculeLookup::box_iterator molInBox = molLookup.BoxBegin(box);
    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
@@ -626,7 +691,6 @@ void CalculateEnergy::MoleculeIntra(double& bondEn,
    MolAngle(bondEn, molKind, bondVec, box);
    MolDihedral(bondEn, molKind, bondVec, box);
    MolNonbond(nonBondEn, molKind, molIndex, box);
-   MolNonbond_1_4(nonBondEn, molKind, molIndex, box);
 }
 
 void CalculateEnergy::BondVectors(XYZArray & vecs,
@@ -708,7 +772,6 @@ void CalculateEnergy::MolNonbond(double & energy,
    {
       uint p1 = mols.start[molIndex] + molKind.nonBonded.part1[i];
       uint p2 = mols.start[molIndex] + molKind.nonBonded.part2[i];
-      currentAxes.GetDistSq(distSq, currentCoords, p1, p2, box);
       if (currentAxes.InRcut(distSq, currentCoords, p1, p2, box))
       {
          forcefield.particles->CalcAdd(energy, virial, distSq,
@@ -719,30 +782,6 @@ void CalculateEnergy::MolNonbond(double & energy,
       }
    }
 }
-
-void CalculateEnergy::MolNonbond_1_4(double & energy,
-                                 MoleculeKind const& molKind,
-                                 const uint molIndex,
-                                 const uint box) const
-{
-   if (box >= BOXES_WITH_U_B || molKind.nonBonded_1_4 == NULL)
-      return;
-   
-   double distSq;
-   for (uint i = 0; i < molKind.nonBonded_1_4->count; ++i)
-   {
-      uint p1 = mols.start[molIndex] + molKind.nonBonded_1_4->part1[i];
-      uint p2 = mols.start[molIndex] + molKind.nonBonded_1_4->part2[i];
-      currentAxes.GetDistSq(distSq, currentCoords, p1, p2, box);
-      forcefield.particles->CalcAdd_1_4(energy, distSq,
-                                      molKind.AtomKind
-                                      (molKind.nonBonded_1_4->part1[i]),
-                                      molKind.AtomKind
-                                      (molKind.nonBonded_1_4->part2[i]));
-   }
-}
-
-
 
 //!Calculates energy and virial tail corrections for the box
 void CalculateEnergy::FullTailCorrection(SystemPotential& pot, 
@@ -772,3 +811,274 @@ void CalculateEnergy::FullTailCorrection(SystemPotential& pot,
 }
 
 
+//error function
+double CalculateEnergy::erf(double x) const{
+	double a1 = 0.254829592;
+	double a2 = -0.284496736;
+	double a3 = 1.421413741;
+	double a4 = -1.453152027;
+	double a5 = 1.061405429;
+	double p = 0.3275911;
+
+	//save the sign of x
+	int sign = 1;
+	if(x < 0)
+		sign = -1;
+	x = fabs(x);
+
+	double t = 1.0/(1.0 + p*x);
+	double y = 1.0 - ((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*exp(-x*x);
+
+	return sign*y;
+}
+
+void CalculateEnergy::MolCorrection(double &correction, uint molIndex, int box) const
+{
+if (box >= BOXES_WITH_U_NB)
+      return;
+	double dist, distSq;
+	XYZ virComponents;
+	MoleculeKind& thisKind = mols.kinds[mols.kIndex[molIndex]];
+	for(uint i = 0; i < thisKind.NumAtoms(); i++){
+		for(uint j = i+1; j < thisKind.NumAtoms(); j++){
+			currentAxes.InRcut(distSq, virComponents, currentCoords, mols.start[molIndex] + i, mols.start[molIndex] + j, box);
+			dist = sqrt(distSq);
+			correction = correction + ( thisKind.atomCharge[i] * thisKind.atomCharge[j] * erf(calp[box] * dist) / dist);
+		}//end for
+	}//end for
+}
+
+
+void CalculateEnergy::SetupRecip(int box){
+  if(box >= BOXES_WITH_U_NB)
+    return;
+	int count = 0;
+	double alpsqr4 = 4.0 * calp[box] * calp[box];
+	double cst = 2 * M_PI / currentAxes.axis.BoxSize(box);
+	double ksqr;
+	for(double x = 0.0; x <= kmax1; x++)
+	{
+		int nky_max = sqrt(pow(kmax1,2) - pow(x,2));
+		int nky_min = -nky_max;
+		if(x == 0.0)
+			nky_min = 0;
+		for(double y = nky_min; y <= nky_max; y++)
+		{
+			int nkz_max = sqrt(pow(kmax1,2)-pow(x,2)-pow(y,2));
+			int nkz_min = -nkz_max;
+			if(x == 0.0 && y == 0.0)
+				nkz_min = 1;
+			for(double z = nkz_min; z <= nkz_max; z++)
+			{
+				kxyz[box][count][0] = cst * x;
+				kxyz[box][count][1] = cst * y;
+			        kxyz[box][count][2] = cst * z;
+				ksqr = kxyz[box][count][0]*kxyz[box][count][0] + kxyz[box][count][1]*kxyz[box][count][1] + kxyz[box][count][2]*kxyz[box][count][2];
+				prefact[box][count] = qqfact * exp(-ksqr/alpsqr4)/(ksqr * (currentAxes.volume[box]/4/M_PI));
+				count++;
+			}
+		}
+	}
+	RecipSize[box] = count;
+}
+
+double CalculateEnergy::BoxReciprocal(int box){
+	
+	Intermolecular recip;
+	MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+	if(box < BOXES_WITH_U_NB){
+	    for(int i = 0; i < RecipSize[box]; i++){
+	      double SinSum = 0.0, CosSum = 0.0;
+	      MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
+	      while(thisMol != end){
+		uint m1 = *thisMol;
+		MoleculeKind const& thisKind = mols.GetKind(m1);
+		for(uint j = 0; j < thisKind.NumAtoms(); j++){
+		 
+		  double DotProduct = currentAxes.DotProduct(mols.start[m1]+j, kxyz[box][i][0], kxyz[box][i][1], kxyz[box][i][2], currentCoords,  box);
+		  SinSum += (thisKind.atomCharge[j] * sin(DotProduct));
+		  CosSum += (thisKind.atomCharge[j] * cos(DotProduct));
+		}
+		thisMol++;
+	      }
+	      RecipSinSum[i + box*RecipSize[box] ] = SinSum;
+	      RecipCosSum[i + box*RecipSize[box] ] = CosSum;
+	      recip.energy += ( (SinSum*SinSum + CosSum*CosSum) * prefact[box][i]);
+	    }
+	}//end if
+	return recip.energy;
+}
+
+double CalculateEnergy::MolReciprocal(XYZArray const& molCoords,
+									const uint molIndex,
+				      const uint box, XYZ const*const newCOM){
+	double RecipNew = 0.0, RecipOld = 0.0;
+	double kx, ky, kz, prefactVal, SinSum, CosSum, RecipSin, RecipCos;
+	if(box < BOXES_WITH_U_NB){
+		MoleculeKind const& thisKind = mols.GetKind(molIndex);
+		for(int image = 0; image < RecipSize[box]; image++){
+			double OldSin = 0.0, OldCos = 0.0, NewSin = 0.0, NewCos = 0.0;
+
+			uint length = thisKind.NumAtoms();
+			uint startAtom = mols.MolStart(molIndex);
+			for (uint p = 0; p < length; ++p) {
+				uint atom = startAtom + p;
+				double kx = kxyz[box][image][0];
+				double ky = kxyz[box][image][1];
+				double kz = kxyz[box][image][2];
+				double DotProductOld = currentAxes.DotProduct(atom, kx, ky, kz, currentCoords,  box);
+		    		double DotProductNew = currentAxes.DotProduct(p, kx, ky, kz, molCoords, box);
+			    
+				OldSin += thisKind.atomCharge[p] * sin(DotProductOld);
+				OldCos += thisKind.atomCharge[p] * cos(DotProductOld);
+				NewSin += thisKind.atomCharge[p] * sin(DotProductNew);
+				NewCos += thisKind.atomCharge[p] * cos(DotProductNew);
+			}//end for p
+			SinSumNew[image + box*RecipSize[box] ] = RecipSinSum[image + box*RecipSize[box] ] - OldSin + NewSin;
+			CosSumNew[image + box*RecipSize[box] ] = RecipCosSum[image + box*RecipSize[box] ] - OldCos + NewCos;
+		}//end for image
+
+		for(int image = 0; image < RecipSize[box]; image++){
+		        prefactVal = prefact[box][image];
+			SinSum = SinSumNew[image + box*RecipSize[box] ];
+			CosSum = CosSumNew[image + box*RecipSize[box] ];
+			RecipSin = RecipSinSum[image + box*RecipSize[box] ];
+			RecipCos = RecipCosSum[image + box*RecipSize[box] ];
+		        RecipNew = RecipNew + (SinSum * SinSum + CosSum * CosSum) * prefactVal;
+			RecipOld = RecipOld + (RecipSin*RecipSin + RecipCos*RecipCos) * prefactVal;
+		}
+	}//end if
+	return (RecipNew - RecipOld);
+}
+
+double CalculateEnergy::SwapDestRecip(cbmc::TrialMol Mol, const uint box){
+	
+  double RecipNew = 0.0, RecipOld = 0.0;
+  double prefactVal, SinSum, CosSum, RecipSin, RecipCos;
+	if(box < BOXES_WITH_U_NB){
+		MoleculeKind const& thisKind = Mol.GetKind();
+		XYZArray molCoords = Mol.GetCoords();
+		for(int image = 0; image < RecipSize[box]; image++){
+			double NewSin = 0.0, NewCos = 0.0;
+
+			uint length = thisKind.NumAtoms();
+			for (uint p = 0; p < length; ++p) {
+			  double DotProductNew = currentAxes.DotProduct(p, kxyz[box][image][0], kxyz[box][image][1], kxyz[box][image][2], molCoords, box);
+
+				NewSin += thisKind.atomCharge[p] * sin(DotProductNew);
+				NewCos += thisKind.atomCharge[p] * cos(DotProductNew);
+			}//end for p
+			SinSumNew[image + box*RecipSize[box]] = RecipSinSum[image + box*RecipSize[box]] + NewSin;
+			CosSumNew[image + box*RecipSize[box]] = RecipCosSum[image + box*RecipSize[box]] + NewCos;
+		}//end for image
+
+		for(int image = 0; image < RecipSize[box]; image++){
+		        prefactVal = prefact[box][image];
+			SinSum = SinSumNew[image + box*RecipSize[box]];
+			CosSum = CosSumNew[image + box*RecipSize[box]];
+			RecipSin = RecipSinSum[image + box*RecipSize[box]];
+			RecipCos = RecipCosSum[image + box*RecipSize[box]];
+		        RecipNew = RecipNew + (SinSum * SinSum + CosSum * CosSum) * prefactVal;
+			RecipOld = RecipOld + (RecipSin*RecipSin + RecipCos*RecipCos) * prefactVal;
+		}
+	}//end if
+	return RecipNew - RecipOld;
+}
+
+
+double CalculateEnergy::SwapSourceRecip(uint molIndex, const uint box){
+	
+  double RecipOld = 0.0, RecipNew = 0.0;
+  double prefactVal, SinSum, CosSum, RecipSin, RecipCos;
+	uint atom;
+	if(box < BOXES_WITH_U_NB){
+		MoleculeKind const& thisKind = mols.GetKind(molIndex);
+		uint startAtom = mols.MolStart(molIndex);
+		for(int image = 0; image < RecipSize[box]; image++){
+			double OldSin = 0.0, OldCos = 0.0;
+			uint length = thisKind.NumAtoms();
+			for (uint p = 0; p < length; ++p) {
+				atom = startAtom + p;
+				double DotProductOld = currentAxes.DotProduct(atom, kxyz[box][image][0], kxyz[box][image][1], kxyz[box][image][2], currentCoords, box);
+
+				OldSin += thisKind.atomCharge[p] * sin(DotProductOld);
+				OldCos += thisKind.atomCharge[p] * cos(DotProductOld);
+			}//end for p
+			SinSumNew[image + box*RecipSize[box]] = RecipSinSum[image + box*RecipSize[box]] - OldSin;
+			CosSumNew[image + box*RecipSize[box]] = RecipCosSum[image + box*RecipSize[box]] - OldCos;
+		}//end for image
+
+		for(int image = 0; image < RecipSize[box]; image++){
+		        prefactVal = prefact[box][image];
+			SinSum = SinSumNew[image + box*RecipSize[box]];
+			CosSum = CosSumNew[image + box*RecipSize[box]];
+			RecipSin = RecipSinSum[image + box*RecipSize[box]];
+			RecipCos = RecipCosSum[image + box*RecipSize[box]];
+		        RecipNew = RecipNew + (SinSum * SinSum + CosSum * CosSum) * prefactVal;
+			RecipOld = RecipOld + (RecipSin*RecipSin + RecipCos*RecipCos) * prefactVal;
+		}
+	}//end if
+	return RecipOld - RecipNew;       //return a positive value, which should be the absolute value to subtract
+}
+
+
+void CalculateEnergy::BoxSelf(double&self, int box){
+  if (box >= BOXES_WITH_U_NB)
+	  return;
+  for(int i = 0; i < mols.kindsCount; i++){
+    MoleculeKind const& thisKind = mols.kinds[i];
+    int length = thisKind.NumAtoms();
+    MolSelfEnergy[i] = 0.0;
+    for(int j = 0; j < length; j++){
+      MolSelfEnergy[i] += ( thisKind.atomCharge[j] * thisKind.atomCharge[j] );
+    }
+    self += ( MolSelfEnergy[i] * molLookup.NumKindInBox(i, box));
+  }
+
+}
+
+
+void CalculateEnergy::SwapSelf(double *self, uint molIndex, uint partIndex, int box, uint trials) const
+{
+  if (box >= BOXES_WITH_U_NB)
+	  return;
+       
+	MoleculeKind const& thisKind = mols.GetKind(molIndex);
+	for(uint t = 0; t < trials; t++){
+		//Calculating self term
+		self[t] = -( thisKind.atomCharge[partIndex] * thisKind.atomCharge[partIndex] * calp[box] / sqrt(M_PI) * qqfact );
+	}//end for
+}
+
+void CalculateEnergy::SwapCorrection(double* corr,
+                                        cbmc::TrialMol const& trialMol,
+                                        XYZArray const& trialPos,
+                                        const uint partIndex,
+                                        const uint box,
+                                        const uint trials) const
+{
+   if (box >= BOXES_WITH_U_NB)
+      return;
+   double dist;
+   const MoleculeKind& thisKind = trialMol.GetKind();
+   //loop over all partners of the trial particle
+   const uint* partner = thisKind.sortedEwaldNB.Begin(partIndex);
+   const uint* end = thisKind.sortedEwaldNB.End(partIndex);
+   while (partner != end)
+   {
+      if (trialMol.AtomExists(*partner))
+      {
+         for (uint t = 0; t < trials; ++t)
+         {
+            double distSq;
+            if (currentAxes.InRcut(distSq, trialPos, t, trialMol.GetCoords(),
+				   *partner, box))
+            {
+				dist = sqrt(distSq);
+				corr[t] -= ( thisKind.atomCharge[*partner] * thisKind.atomCharge[partIndex] * erf(calp[box] * dist) / dist * qqfact);
+            }
+         }
+      }
+      ++partner;
+   }
+}

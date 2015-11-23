@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "EnPartCntSampleOutput.h"
 #include "PDBConst.h"
 #include "OutConst.h"
@@ -16,22 +9,14 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #if ENSEMBLE == GCMC
 
-EnPartCntSample::EnPartCntSample(OutputVars & v)
-{
-	this->var = &v;
-	for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
-	{
-		samplesE[b] = NULL;
-		samplesN[b] = NULL;
-	}
-}
-
 EnPartCntSample::~EnPartCntSample()
 {
    for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
    {
       if (outF[b].is_open()) outF[b].close();
       if (samplesE[b] != NULL) delete[] samplesE[b];
+      for (uint k = 0; k < var->numKinds; ++k)
+         if (samplesN[b][k] != NULL) delete[] samplesN[b][k];
       if (samplesN[b] != NULL) delete[] samplesN[b];
    }
 }
@@ -74,7 +59,7 @@ void EnPartCntSample::Sample(const ulong step)
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
       {
          samplesE[b][samplesCollectedInFrame] =
-	   var->energyRef[b].inter + var->energyRef[b].tc;
+	    var->energyRef[b].tc + var->energyRef[b].inter + var->energyRef[b].elect;
          for (uint k = 0; k < var->numKinds; ++k)
          {
             samplesN[b][k][samplesCollectedInFrame] =
@@ -156,4 +141,3 @@ std::string EnPartCntSample::GetFName(std::string const& sampleName,
 }
 
 #endif /*ENSEMBLE==GCMC*/
-

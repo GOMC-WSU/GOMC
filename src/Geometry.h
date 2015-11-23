@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
 
@@ -26,30 +19,29 @@ class FFBase;
 }
 class FFSetup;
 
-// for 1-5 and more interaction
+
 struct Nonbond
 {
    uint* part1;
    uint* part2;
    uint count;
 
-   virtual void Init(const mol_setup::MolKind& molData);
+   void Init(const mol_setup::MolKind& molData);
    Nonbond(); 
    ~Nonbond();
 };
 
-// for 1-4 and more interaction
-struct Nonbond_1_4 : public Nonbond
+struct EwaldNonbond
 {
-   virtual void Init(const mol_setup::MolKind& molData);
-};
+   uint* part1;
+   uint* part2;
+   uint count;
 
-// for 1-3 and more interaction, used for Martini ForceField
-struct Nonbond_1_3 : public Nonbond
-{
-   virtual void Init(const mol_setup::MolKind& molData);
-};
+   void Init(const mol_setup::MolKind& molData);
+   EwaldNonbond(); 
+   ~EwaldNonbond();
 
+};
 
 //!List of all pairs of particles in bonds.
 struct BondList
@@ -136,7 +128,7 @@ class SortedNonbond
       SubdividedArray subdiv;
 };
 
-class SortedNonbond_1_4
+class SortedEwaldNonbond
 {
    public:
       //!Returns iterable pointer to first pair containing atom
@@ -147,10 +139,10 @@ class SortedNonbond_1_4
       { return partners + subdiv.End(atom); }
 
       //!Initialize from a nonbond structure
-      void Init(const Nonbond& nb, uint numAtoms);
+      void Init(const EwaldNonbond& enb, uint numAtoms);
 
-      SortedNonbond_1_4() : partners(NULL) {}
-      ~SortedNonbond_1_4() { delete[] partners; }
+      SortedEwaldNonbond() : partners(NULL) {}
+      ~SortedEwaldNonbond() { delete[] partners; }
 
    private:
       uint* partners;
@@ -158,4 +150,3 @@ class SortedNonbond_1_4
 };
 
 #endif
-

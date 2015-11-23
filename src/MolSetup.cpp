@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "EnsemblePreprocessor.h"
 #include "MolSetup.h"
 #include "../lib/StrLib.h"
@@ -18,8 +11,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <algorithm>      //for swap pre-c++11 compilers
 #include <cstring>          //strstr
 
+#ifndef NDEBUG
 #include <iostream>
-
+#endif
 
 
 using namespace mol_setup;
@@ -166,10 +160,10 @@ int mol_setup::ReadCombinePSF(MolMap& kindMap,
          return errorcode;
       kindMap.insert(map2.begin(), map2.end());
    }
-
+#ifndef NDEBUG
    PrintMolMapVerbose(kindMap);
    //PrintMolMapBrief(kindMap);
-
+#endif
    return 0;
 }
 int MolSetup::Init(const config_setup::RestartSettings& restart,
@@ -305,7 +299,7 @@ namespace{
 }
 
 
-
+#ifndef NDEBUG
 void mol_setup::PrintMolMapVerbose(const MolMap& kindMap)
 {
    std::cout << "Molecules in PSF:\n\n";
@@ -366,7 +360,7 @@ void mol_setup::PrintMolMapBrief(const MolMap& kindMap)
    }
 
 }
-
+#endif
 
 namespace{
    //Initializes system from PSF file (does not include coordinates)
@@ -685,4 +679,3 @@ namespace{
       return 0;
    }
 }
-

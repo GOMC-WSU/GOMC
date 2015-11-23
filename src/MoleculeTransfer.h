@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef MOLCULETRANSFER_H
 #define MOLCULETRANSFER_H
 
@@ -14,6 +7,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "cbmc/TrialMol.h"
 
 //#define DEBUG_MOVES
+//#define DEBUG
+
+#define RECIP
 
 class MoleculeTransfer : public MoveBase
 {
@@ -35,9 +31,10 @@ class MoleculeTransfer : public MoveBase
    uint pStart, pLen;
    uint molIndex, kindIndex;
 
-   double W_tc, oldVirial;
+   double W_tc, oldVirial, W_recip;
    cbmc::TrialMol oldMol, newMol;
    Intermolecular tcLose, tcGain;
+   Elect recipLose, recipGain;
    MoleculeLookup & molLookRef;
    Forcefield const& ffRef;
 };
@@ -78,7 +75,9 @@ inline uint MoleculeTransfer::Transform()
    cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
 #endif
    subPick = mv::GetMoveSubIndex(mv::MOL_TRANSFER, sourceBox);
+
    molRef.kinds[kindIndex].Build(oldMol, newMol, molIndex);
+
    return mv::fail_state::NO_FAIL;
 }
 
@@ -89,6 +88,17 @@ inline void MoleculeTransfer::CalcEn()
       tcLose = calcEnRef.MoleculeTailChange(sourceBox, kindIndex, false);
       tcGain = calcEnRef.MoleculeTailChange(destBox, kindIndex, true);
       W_tc = exp(-1.0*ffRef.beta*(tcGain.energy + tcLose.energy));
+
+      recipGain.energy = 0.0;
+      recipLose.energy = 0.0;
+      W_recip = 1.0;
+#ifdef RECIP
+      if(DoEwald && newMol.GetWeight()!=0.0){
+	recipGain.energy = calcEnRef.SwapDestRecip(newMol, destBox);
+	recipLose.energy = calcEnRef.SwapSourceRecip(molIndex, sourceBox);
+	W_recip = exp(-1.0 * ffRef.beta * (recipGain.energy - recipLose.energy) );      //recipGain.energy and recipLose.energy are all positive value.
+      }
+#endif
    }
 }
 
@@ -121,11 +131,12 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
    if(rejectState == mv::fail_state::NO_FAIL)
    {
       double molTransCoeff = GetCoeff();
-      double Wo = oldMol.GetWeight();
-      double Wn = newMol.GetWeight();
-      double Wrat = Wn / Wo * W_tc;
+	  double Wo = oldMol.GetWeight();
+	  double Wn = newMol.GetWeight();
+      double Wrat = Wn / Wo * W_tc * W_recip;
+	  double rand = prng();
 
-      result = prng() < molTransCoeff * Wrat;
+      result = rand < molTransCoeff * Wrat;
       if (result)
       {
          //Add tail corrections
@@ -135,10 +146,20 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
          sysPotRef.boxVirial[destBox].tc += tcGain.virial;
 
          //Add rest of energy.
-         sysPotRef.boxEnergy[sourceBox] -= oldMol.GetEnergy();
-         sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();
+	 sysPotRef.boxEnergy[sourceBox] -= oldMol.GetEnergy();
+	 sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();
          sysPotRef.boxVirial[sourceBox].inter -= oldVirial;
+#ifdef RECIP
+	 sysPotRef.boxEnergy[sourceBox].recip -= recipLose.energy;   
+	 sysPotRef.boxEnergy[sourceBox].elect -= recipLose.energy;  
+	 sysPotRef.boxEnergy[destBox].recip += recipGain.energy;
+	 sysPotRef.boxEnergy[destBox].elect += recipGain.energy;
 
+	 //update reciprocal space vector
+	 if(DoEwald){
+	   calcEnRef.UpdateRestoreRecip();
+	 }
+#endif
 	 //Set coordinates, new COM; shift index to new box's list
          newMol.GetCoords().CopyRange(coordCurrRef, 0, pStart, pLen);
          comCurrRef.SetNew(molIndex, destBox);
@@ -162,12 +183,14 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 	 }
 	 else if (molLookRef.NumInBox(sourceBox) == 1)
 	 {
-	    sysPotRef.boxEnergy[sourceBox].inter = 0;
-	    sysPotRef.boxVirial[sourceBox].inter = 0;
+	    sysPotRef.boxEnergy[sourceBox].inter = 0.0;
+	    sysPotRef.boxVirial[sourceBox].inter = 0.0;
+	    sysPotRef.boxEnergy[sourceBox].real = 0.0;
 	 }
 
 	 //Retotal
-         sysPotRef.Total();
+         sysPotRef.Total();	
+
       }
 #ifdef CELL_LIST
       else
@@ -176,13 +199,15 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
       }
 #endif
    }
-   else  //else we didn't even try because we knew it would fail
+   else{  //else we didn't even try because we knew it would fail
       result = false;
+   }
+    
    subPick = mv::GetMoveSubIndex(mv::MOL_TRANSFER, sourceBox);
    moveSetRef.Update(result, subPick, step);
+
 }
 
 #endif
 
 #endif
-

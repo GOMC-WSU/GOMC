@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef FF_MOLECULE_H
 #define FF_MOLECULE_H
 
@@ -65,10 +58,10 @@ class MoleculeKind
    { builder->Build(oldMol, newMol, molIndex); }
 
    SortedNonbond sortedNB;
-   SortedNonbond_1_4 sortedNB_1_4;
+   SortedEwaldNonbond sortedEwaldNB;
    //these are used for total energy calculations, see Geometry.h/cpp
    Nonbond nonBonded;
-   Nonbond *nonBonded_1_4;
+   EwaldNonbond nonEwaldBonded;
    BondList bondList;
    GeomFeature angles;
    GeomFeature dihedrals;
@@ -104,4 +97,3 @@ class MoleculeKind
 
 
 #endif /*FF_MOLECULE_H*/
-

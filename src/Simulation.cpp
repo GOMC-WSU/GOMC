@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "Simulation.h"
 #include "Setup.h"          //For setup object
 
@@ -12,6 +5,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PSFOutput.h"
 #include <iostream>
 #include <iomanip>
+
 
 Simulation::Simulation(char const*const configFileName)
 {
@@ -70,18 +64,26 @@ void Simulation::RunningCheck(const uint step)
       << std::endl << "-------------------------" << std::endl
       << " STEP: " << step
       << std::endl << "-------------------------" << std::endl
-      << "Energy       INTRA B |     INTRA NB |        INTER |           TC"
+      << "Energy       INTRA B |     INTRA NB |        INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
       << std::endl
       << "System: "
       << std::setw(12) << system->potential.totalEnergy.intraBond << " | "
       << std::setw(12) << system->potential.totalEnergy.intraNonbond << " | "
       << std::setw(12) << system->potential.totalEnergy.inter << " | "
-      << std::setw(12) << system->potential.totalEnergy.tc << std::endl
+      << std::setw(12) << system->potential.totalEnergy.tc << " | "
+      << std::setw(12) << system->potential.totalEnergy.real << " | "
+      << std::setw(12) << system->potential.totalEnergy.self << " | "
+      << std::setw(12) << system->potential.totalEnergy.correction << " | "
+      << std::setw(12) << system->potential.totalEnergy.recip << std::endl
       << "Recalc: "
       << std::setw(12) << pot.totalEnergy.intraBond << " | "
       << std::setw(12) << pot.totalEnergy.intraNonbond << " | "
       << std::setw(12) << pot.totalEnergy.inter << " | "
-      << std::setw(12) << pot.totalEnergy.tc << std::endl
+      << std::setw(12) << pot.totalEnergy.tc << " | "
+      << std::setw(12) << pot.totalEnergy.real << " | "
+      << std::setw(12) << pot.totalEnergy.self << " | "
+      << std::setw(12) << pot.totalEnergy.correction << " | "
+      << std::setw(12) << pot.totalEnergy.recip << std::endl
       << "-------------------------" << std::endl
       << "Virial            INTER |           TC" << std::endl
       << "System: "
@@ -96,4 +98,3 @@ void Simulation::RunningCheck(const uint step)
 
 }
 #endif
-

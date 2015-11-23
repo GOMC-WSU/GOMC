@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef PRNG_H
 #define PRNG_H
 
@@ -24,6 +17,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <cstdlib>
 
 #include "../lib/BasicTypes.h"
+
 
 //Wrapper class for our random numbers
 class PRNG
@@ -45,7 +39,9 @@ class PRNG
    double operator()() { return (*gen)(); }
 
    //Generate a double on a [0,b]
-   double rand(double const bound) { return gen->rand(bound); }
+   double rand(double const bound) { 
+     return gen->rand(bound);
+   }
 
    //Generate a double on a [0,b)
    double randExc(double const bound) { return gen->randExc(bound); }
@@ -142,6 +138,7 @@ class PRNG
    uint PickWeighted(const double *weights, const uint n, double totalWeight)
    {
        double draw = rand(totalWeight);
+
        double sum = 0.0;
        for(uint i = 0; i < n; ++i)
        {
@@ -285,4 +282,3 @@ inline void PRNG::saveState(const char* filename)
 }
 
 #endif /*PRNG_H*/
-

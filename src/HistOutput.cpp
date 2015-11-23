@@ -1,28 +1,9 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "HistOutput.h"
 #include "PDBConst.h"
 #include "OutConst.h"
 #include "ConfigSetup.h"
 
 #include <sstream>
-
-Histogram::Histogram(OutputVars & v)
-{
-	this->var = &v;
-	total = NULL;
-	for (uint b = 0; b < BOXES_WITH_U_NB; b++)
-	{
-		molCount[b] = NULL;
-		outF[b] = NULL;
-		name[b] = NULL;
-	}
-}
 
 void Histogram::Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output)
@@ -81,8 +62,11 @@ Histogram::~Histogram()
    for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
    {
       if (name[b] != NULL) delete[] name[b];
+      for (uint k = 0; k < var->numKinds; ++k)
+      {
+         if (molCount[b][k] != NULL) delete[] molCount[b][k];
+      }
       if (molCount[b] != NULL) delete[] molCount[b];
-	  if (outF[b] != NULL) delete[] outF[b];
    }
 }
 
@@ -152,4 +136,3 @@ std::string Histogram::GetFName(std::string const& histName,
    fName += ".dat";
    return fName;
 }
-

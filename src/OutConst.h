@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef OUT_CONST_H
 #define OUT_CONST_H
 
@@ -13,7 +6,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "EnsemblePreprocessor.h" //For VARIABLE_x, etc.
 #include "../lib/BasicTypes.h" //For uint
 
-//#define EN_SUBCAT_OUT
+#define EN_SUBCAT_OUT
 //#define VIR_SUBCAT_OUT
 
 namespace out
@@ -29,19 +22,26 @@ namespace out
    static const uint ENERGY_INTRA_B_IDX = 3;
    extern const std::string ENERGY_INTRA_NB;
    static const uint ENERGY_INTRA_NB_IDX = 4;
+   extern const std::string ENERGY_ELECT;
+   static const uint ENERGY_ELECT_IDX = 5;
+   extern const std::string ENERGY_REAL;
+   static const uint ENERGY_REAL_IDX = 6;
+   extern const std::string ENERGY_RECIP;
+   static const uint ENERGY_RECIP_IDX = 7;
 #endif
    extern const std::string VIRIAL_TOTAL;
 #ifdef EN_SUBCAT_OUT 
-   static const uint VIRIAL_TOTAL_IDX = 5;
+   static const uint VIRIAL_TOTAL_IDX = 8;
 #else
    static const uint VIRIAL_TOTAL_IDX = 1;
 #endif
+
 #ifdef VIR_SUBCAT_OUT
    extern const std::string VIRIAL_INTER;
    extern const std::string VIRIAL_TC;
 #ifdef EN_SUBCAT_OUT
-   static const uint VIRIAL_INTER_IDX = 6;
-   static const uint VIRIAL_TC_IDX = 7;
+   static const uint VIRIAL_INTER_IDX = 9;
+   static const uint VIRIAL_TC_IDX = 10;
 #else
    static const uint VIRIAL_INTER_IDX = 2;
    static const uint VIRIAL_TC_IDX = 3;
@@ -49,9 +49,9 @@ namespace out
 #endif
    extern const std::string PRESSURE;
 #if defined(EN_SUBCAT_OUT) && defined(VIR_SUBCAT_OUT) 
-   static const uint PRESSURE_IDX = 8;
+   static const uint PRESSURE_IDX = 11;
 #elif defined(EN_SUBCAT_OUT)
-   static const uint PRESSURE_IDX = 6;
+   static const uint PRESSURE_IDX = 9;
 #elif defined(VIR_SUBCAT_OUT)
    static const uint PRESSURE_IDX = 4;
 #else
@@ -59,9 +59,9 @@ namespace out
 #endif
 #if ENSEMBLE == NVT || ENSEMBLE == GCMC
 #if defined(EN_SUBCAT_OUT) && defined(VIR_SUBCAT_OUT)
-   static const uint TOTAL_SINGLE = 9;
+   static const uint TOTAL_SINGLE = 12;
 #elif defined(EN_SUBCAT_OUT)
-   static const uint TOTAL_SINGLE = 7;
+   static const uint TOTAL_SINGLE = 10;
 #elif defined(VIR_SUBCAT_OUT)
    static const uint TOTAL_SINGLE = 5;
 #else
@@ -71,21 +71,21 @@ namespace out
    extern const std::string VOLUME;
    extern const std::string HEAT_OF_VAP;
 #if defined(EN_SUBCAT_OUT) && defined(VIR_SUBCAT_OUT)
-   static const uint VOLUME_IDX = 9;
-   static const uint HEAT_OF_VAP_IDX = 10;
-   static const uint TOTAL_SINGLE = 11; 
+   static const uint VOLUME_IDX = 13;
+   static const uint HEAT_OF_VAP_IDX = 14;
+   static const uint TOTAL_SINGLE = 15; 
 #elif defined(EN_SUBCAT_OUT)
-   static const uint VOLUME_IDX = 7;
-   static const uint HEAT_OF_VAP_IDX = 8;
-   static const uint TOTAL_SINGLE = 9;
+   static const uint VOLUME_IDX = 11;
+   static const uint HEAT_OF_VAP_IDX = 12;
+   static const uint TOTAL_SINGLE = 13;
 #elif defined(VIR_SUBCAT_OUT)
-   static const uint VOLUME_IDX = 5;
-   static const uint HEAT_OF_VAP_IDX = 6;
-   static const uint TOTAL_SINGLE = 7;
+   static const uint VOLUME_IDX = 6;
+   static const uint HEAT_OF_VAP_IDX = 7;
+   static const uint TOTAL_SINGLE = 8;
 #else
-   static const uint VOLUME_IDX = 3;
-   static const uint HEAT_OF_VAP_IDX = 4;
-   static const uint TOTAL_SINGLE = 5;
+   static const uint VOLUME_IDX = 4;
+   static const uint HEAT_OF_VAP_IDX = 5;
+   static const uint TOTAL_SINGLE = 6;
 #endif
 #endif
 
@@ -104,4 +104,3 @@ namespace out
 }
 
 #endif /*OUT_CONST_H*/
-

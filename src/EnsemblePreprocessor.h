@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef ENSEMBLE_PREPROCESSOR_H
 #define ENSEMBLE_PREPROCESSOR_H
 
@@ -15,7 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #ifndef ENSEMBLE
 //The choice of ensemble.
-#define ENSEMBLE NVT
+#define ENSEMBLE GEMC
 #endif
 
 //Ensemble specific defines, such as what data members are variable
@@ -37,4 +30,3 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #endif
 
 #endif /*ENSEMBLE_PREPROCESSOR_H*/
-

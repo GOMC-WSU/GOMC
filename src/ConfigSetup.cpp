@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include <map> //for function handle storage.
 #include <string> //for var names, etc.
 #include <vector>
@@ -555,11 +548,6 @@ void ConfigSetup::verifyInputs(void)
 		std::cout << "Error: Cut off is required!" << std::endl;
 		exit(0);
 	}
-	if(sys.ewald.enable) //for now which Ewald has not implemented yet
-	{
-		std::cout << "Error: GOMC currently does not support electrostartic calculation!" << std::endl;
-		exit(0);
-	}
 	if(sys.ewald.enable && (sys.ewald.alpha == DBL_MAX))
 	{
 		std::cout << "Error: Alpha value has not been specified for Ewald summation!" << std::endl;
@@ -620,28 +608,28 @@ void ConfigSetup::verifyInputs(void)
 		std::cout << "Error: Molecule swap frequency has not been specified!" << std::endl;
 		exit(0);
 	}
-	//if(long(10000 * sys.moves.displace) + long(10000 * sys.moves.rotate) + long(10000*sys.moves.transfer) + long(10000*sys.moves.volume) != 10000)
-	//{
-	//	std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
-	//	exit(0);
-	//}
+	if(long(10000 * sys.moves.displace) + long(10000 * sys.moves.rotate) + long(10000*sys.moves.transfer) + long(10000*sys.moves.volume) != 10000)
+	{
+		std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
+		exit(0);
+	}
 #elif ENSEMBLE == GCMC
 	if(sys.moves.transfer == DBL_MAX)
 	{
 		std::cout << "Error: Molecule swap frequency has not been specified!" << std::endl;
 		exit(0);
 	}
-	//if(long(10000*sys.moves.displace) + long(10000*sys.moves.rotate) + long(10000*sys.moves.transfer) != 10000)
-	//{
-	//	std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
-	//	exit(0);
-	//}
+	if(long(10000*sys.moves.displace) + long(10000*sys.moves.rotate) + long(10000*sys.moves.transfer) != 10000)
+	{
+		std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
+		exit(0);
+	}
 #else
-	//if(long(10000*sys.moves.displace) + long(10000*sys.moves.rotate) != 10000)
-	//{
-	//	std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
-	//	exit(0);
-	//}
+	if(long(10000*sys.moves.displace) + long(10000*sys.moves.rotate) != 10000)
+	{
+		std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
+		exit(0);
+	}
 #endif
 
 	for(i = 0 ; i < BOX_TOTAL ; i++)
@@ -899,4 +887,3 @@ const uint config_setup::FFValues::VDW_STD_KIND = 0,
    config_setup::Exclude::EXC_ONETWO_KIND = 0,
    config_setup::Exclude::EXC_ONETHREE_KIND = 1,
    config_setup::Exclude::EXC_ONEFOUR_KIND = 2;
-
