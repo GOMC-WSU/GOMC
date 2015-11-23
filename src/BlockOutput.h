@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef BLOCK_OUTPUT_H
 #define BLOCK_OUTPUT_H
 
@@ -30,12 +23,24 @@ struct BlockAverage
 {
    BlockAverage(): enable(false), block(NULL), uintSrc(NULL), dblSrc(NULL) {}
    
-	~BlockAverage() 
-	{ 
-		if (outF.is_open()) { outF.close(); }
-		if (dblSrc != NULL) { delete[] dblSrc; }
-		if (uintSrc != NULL) { delete[] uintSrc; }
-		if (block != NULL) { delete[] block; }
+   ~BlockAverage() 
+   { 
+      if (outF.is_open())
+      {
+	 outF.close();
+      }
+      if (dblSrc != NULL)
+      {
+	 delete[] dblSrc;
+      }
+      if (uintSrc != NULL)
+      {
+	 delete[] uintSrc;
+      }
+      if (block != NULL)
+      {
+	 delete[] block;
+      }
    }
 
    //Initializes name, and enable
@@ -87,7 +92,9 @@ struct BlockAverage
 
 struct BlockAverages : OutputableBase
 {
-   BlockAverages(OutputVars & v){ this->var = &v; blocks = NULL; }
+   BlockAverages(OutputVars & v){ this->var = &v; }
+   
+   ~BlockAverages(void) { if ( blocks != NULL ) delete[] blocks; }
    
    //No additional init.
    virtual void Init(pdb_setup::Atoms const& atoms,
@@ -124,4 +131,3 @@ struct BlockAverages : OutputableBase
 };
 
 #endif /*BLOCK_OUTPUT_H*/
-

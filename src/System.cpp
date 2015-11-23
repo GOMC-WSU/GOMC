@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "EnsemblePreprocessor.h"
 #include "System.h"
 
@@ -73,7 +66,7 @@ void System::Init(Setup const& set)
    cellList.SetCutoff(statV.forcefield.rCut);
    cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 #endif
-   calcEnergy.Init();
+   calcEnergy.Init(set.config.sys);
    potential = calcEnergy.SystemTotal();
    InitMoves();
 }
@@ -116,6 +109,7 @@ void System::RunMove(uint majKind, double draw, const uint step)
       Rotate * rot = static_cast<Rotate *>(moves[mv::ROTATE]);
       rejectState = disp->ReplaceRot(*rot);
    }
+
    if (rejectState == mv::fail_state::NO_FAIL)
       rejectState = Transform(majKind);
    if (rejectState == mv::fail_state::NO_FAIL)
@@ -123,8 +117,7 @@ void System::RunMove(uint majKind, double draw, const uint step)
    Accept(majKind, rejectState, step);
    //If large change, recalculate the system energy to compensate for errors.
    if (potential.totalEnergy.total-Uo > 1e4)
-      potential = calcEnergy.SystemTotal();
-      
+     potential = calcEnergy.SystemTotal();
 }
 uint System::SetParams(const uint kind, const double draw) 
 { return moves[kind]->Prep(draw, statV.movePerc[kind]); }
@@ -135,5 +128,4 @@ void System::CalcEn(const uint kind) { moves[kind]->CalcEn(); }
 
 void System::Accept(const uint kind, const uint rejectState, const uint step) 
 { moves[kind]->Accept(rejectState, step); }
-
 

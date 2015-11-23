@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef FF_SHIFT_H
 #define FF_SHIFT_H
 
@@ -22,7 +15,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 // shiftConst = cn * eps_ij * ( (sig_ij/rcut)^n - (sig_ij/rcut)^6)
 // cn = n/(n-6) * ((n/6)^(6/(n-6)))
 //
-// Vir(r) = cn * eps_ij * 6 * ((n/6) * repulse - attract)/rij^2
+// Vir(r) = cn * eps_ij * 6 * ((n/6) * repulse - attract)
 // U_lrc = 0
 // Vir_lrc = 0
 
@@ -38,8 +31,6 @@ struct FF_SHIFT : public FFParticle
                  const uint kind1, const uint kind2) const;
    virtual double CalcVir(const double distSq,
                   const uint kind1, const uint kind2) const;
-   virtual void CalcAdd_1_4(double& en, const double distSq,
-		const uint kind1, const uint kind2) const;
    //!Returns Ezero, no energy correction
    virtual double EnergyLRC(const uint kind1, const uint kind2) const
    {return 0.0;}
@@ -64,24 +55,6 @@ inline void FF_SHIFT::CalcAdd(double& en, double& vir, const double distSq,
    uint idx = FlatIndex(kind1, kind2);
    Calc(en, vir, distSq, idx, n[idx]);
 } 
-
-inline void FF_SHIFT::CalcAdd_1_4(double& en, const double distSq,
-		const uint kind1, const uint kind2) const
-{
-   uint index = FlatIndex(kind1, kind2);
-   double rRat2 = sigmaSq_1_4[index]/distSq;
-   double rRat4 = rRat2 * rRat2;
-   double attract = rRat4 * rRat2;
-#ifdef MIE_INT_ONLY
-   uint n_ij = n_1_4[index];
-   double repulse = num::POW(rRat2, rRat4, attract, n_ij);
-#else
-   double n_ij = n_1_4[index];
-   double repulse = pow(sqrt(rRat2), n_ij);
-#endif
-
-   en += (epsilon_cn_1_4[index] * (repulse-attract) - shiftConst_1_4[index]);
-}
 
 inline void FF_SHIFT::CalcSub(double& en, double& vir, const double distSq,
 				const uint kind1, const uint kind2) const
@@ -160,4 +133,3 @@ inline void FF_SHIFT::Calc(double & en, double & vir,
 }
 
 #endif /*FF_SHIFT_H*/
-

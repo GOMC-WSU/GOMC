@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "MoleculeLookup.h" //Header spec.
 #include "EnsemblePreprocessor.h" //For box total
 #include "PRNG.h" //For index selection
@@ -182,4 +175,3 @@ MoleculeLookup::box_iterator MoleculeLookup::BoxEnd(const uint box) const
 {
    return box_iterator(molLookup, boxAndKindStart + (box + 1) * numKinds);
 }
-

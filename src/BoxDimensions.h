@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef BOX_DIMENSIONS_H
 #define BOX_DIMENSIONS_H
 
@@ -116,15 +109,6 @@ struct BoxDimensions
                const uint b) const;
 
    bool InRcut(double distSq) const { return (distSq < rCutSq); }
-
-   //Dist squared , two different coordinate arrays
-   void GetDistSq(double & distSq, XYZArray const& arr1,
-               const uint i, XYZArray const& arr2, const uint j,
-               const uint b) const;
-   //Dist squared with same coordinate array
-   void GetDistSq(double & distSq, XYZArray const& arr, const uint i,
-		  const uint j, const uint b) const;
-
    
    XYZArray axis;     //x, y, z dimensions of each box (a)
    XYZArray halfAx;   //x, y, z dimensions / 2 of each box (a)
@@ -143,6 +127,8 @@ struct BoxDimensions
 
    double UnwrapPBC(double& v, const double ref,
 		    const double ax, const double halfAx) const;
+
+  double DotProduct(const uint atom, double kx, double ky, double kz, const XYZArray & Coords, uint box) const;
 };
 
 inline BoxDimensions::BoxDimensions(BoxDimensions const& other) : 
@@ -358,25 +344,7 @@ inline bool BoxDimensions::InRcut
    distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
    return (rCutSq > distSq);
 }
-
-
 #endif
-
-inline void BoxDimensions::GetDistSq(double & distSq, XYZArray const& arr1,
-               const uint i, XYZArray const& arr2, const uint j,
-               const uint b) const
-{
-   XYZ dist = MinImage(arr1.Difference(i, arr2, j), b);
-   distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
-}
-
-inline void BoxDimensions::GetDistSq
-(double & distSq, XYZArray const& arr, const uint i, const uint j,
- const uint b) const
-{
-   XYZ dist = MinImage(arr.Difference(i, j), b);
-   distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
-}
 
 //Wrap one coordinate.
 inline XYZ BoxDimensions::WrapPBC(XYZ rawPos, const uint b) const
@@ -450,7 +418,7 @@ inline double BoxDimensions::WrapPBC(double& v, const double ax) const
    //Note: testing shows that it's most efficient to negate if true.
    //Source:
    // http://jacksondunstan.com/articles/2052
-   if ( v >= ax ) //if +, wrap out to low end, on boundry will wrap to zero
+   if ( v > ax ) //if +, wrap out to low end
       v -= ax;
    else if ( v < 0 ) //if -, wrap to high end
       v += ax;
@@ -494,5 +462,11 @@ inline double BoxDimensions::UnwrapPBC
 #endif
 }
 
-#endif /*BOX_DIMENSIONS_H*/
+//Calculate dot product
+ inline double BoxDimensions::DotProduct(const uint atom, double kx, double ky, double kz, const XYZArray &Coords, uint box) const
+{
+  double x = Coords.x[atom], y = Coords.y[atom], z = Coords.z[atom];
+	return(x * kx + y * ky + z * kz);
+}
 
+#endif /*BOX_DIMENSIONS_H*/

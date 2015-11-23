@@ -44,7 +44,8 @@ set(sources
    cbmc/DCLinkNoDih.cpp
    cbmc/DCOnSphere.cpp
    cbmc/DCSingle.cpp
-   cbmc/TrialMol.cpp)
+   cbmc/TrialMol.cpp
+   )
 
 set(headers
    BlockOutput.h
