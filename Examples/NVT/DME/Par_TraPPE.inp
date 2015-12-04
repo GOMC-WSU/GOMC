@@ -1,0 +1,66 @@
+* Parameter file for GO-MC
+* Parameters include TraPPE-UA with Fluoroalkane expansions;
+* plus '89 work by Panagiotopolous on noble gases.
+*
+* Mie potentials, TraPPE 4 alkene dihedral, and Fluoroalkane
+* power series constants are in separate "exotic" config file.
+*
+* Latest edit: 7/8/2013
+*
+*
+
+BONDS
+!
+!V(bond) = Kb(b - b0)**2
+!
+!Kb: kcal/mole/A**2
+!b0: A
+!
+! Kb (kcal/mol) = Kb (K) * Boltz. const.; (9999999999 if no stretching)
+!
+!atom type     Kb              b0        description
+CT3 OT         9999999999      1.410   ! TraPPE 
+
+
+
+ANGLES
+!
+!V(angle) = Ktheta(Theta - Theta0)**2
+!
+!V(Urey-Bradley) = Kub(S - S0)**2
+!
+!Ktheta: kcal/mole/rad**2
+!Theta0: degrees
+!Kub: kcal/mole/A**2 (Urey-Bradley)
+!S0: A
+!
+! Ktheta (kcal/mol) = Ktheta (K) * Boltz. const.
+!
+!atom types         Ktheta       Theta0   Kub(?)  S0(?)
+CT3 OT  CT3         31250        112.00 ! TraPPE
+
+
+
+
+DIHEDRALS
+!
+!V(dihedral) = Kchi(1 + cos(n(chi) - delta))
+!
+!Kchi: kcal/mole
+!n: multiplicity
+!delta: degrees
+!
+! Kchi (kcal/mol) = Kchi (K) * Boltz. const.
+! Boltzmann = 0.0019872041 kcal / (mol * K)
+!atom types         Kchi        n    delta              description
+
+
+NONBONDED_MIE
+!
+!V(mie) = 4*eps*((sig_ij/r_ij)^n-(sig_ij/r_ij)^6)
+!
+!atom   eps          sig_ij     n    description
+CT3     98.00       3.750      12   ! TraPPE
+OT      46.25       2.950      12   ! TraPPE
+
+
