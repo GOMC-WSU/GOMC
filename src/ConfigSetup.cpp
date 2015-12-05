@@ -137,6 +137,16 @@ void ConfigSetup::Init(const char *fileName)
 {
 	std::vector<std::string> line;
 
+	//ADDED LINES TO GET PREFIX PATH AND 
+	//CONVERT CHAR ARRY TO STRING TYPE TO GET PREFIX PATH
+	string prefix = "", inputString(fileName);
+
+	size_t found = inputString.rfind('/');
+	if (found != string::npos)
+		prefix = inputString.substr(0, inputString.find_last_of('/')) + '/';
+
+	//END ADD LINE
+
 	reader.Open(fileName);
 	while(reader.readNextLine(line))
 	{
@@ -170,7 +180,7 @@ void ConfigSetup::Init(const char *fileName)
 				in.ffKind.isCHARMM = true;
 			}
 		} else if(line[0] == "Parameters") {
-			in.files.param.name = line[1];
+			in.files.param.name = prefix + line[1]; //ADDED PREFIX
 		} else if(line[0] == "Coordinates") {
 			uint boxnum = stringtoi(line[1]);
 			if(boxnum >= BOX_TOTAL)
@@ -178,7 +188,7 @@ void ConfigSetup::Init(const char *fileName)
 				std::cout<< "Error: This simulation requires only " << BOX_TOTAL << " number of PDB file(s)!" << std::endl;
 				exit(0);
 			}
-			in.files.pdb.name[boxnum] = line[2];
+			in.files.pdb.name[boxnum] = prefix + line[2]; //ADDED PREFIX
 		} else if(line[0] == "Structure") {
 			uint boxnum = stringtoi(line[1]);
 			if(boxnum >= BOX_TOTAL)
@@ -186,7 +196,7 @@ void ConfigSetup::Init(const char *fileName)
 				std::cout<< "Error: This simulation requires only " << BOX_TOTAL << " number of PSF file(s)!" << std::endl;
 				exit(0);
 			}
-			in.files.psf.name[boxnum] = line[2];
+			in.files.psf.name[boxnum] = prefix + line[2]; //ADDED PREFIX
 		}
 #if ENSEMBLE == GEMC
 		else if(line[0] == "GEMC")
