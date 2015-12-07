@@ -1,5 +1,5 @@
 ########################
-## Init File v2.0
+## Init File 
 ## 
 ## IMPROVEMENTS
 ## - Compacts inputs into one line
@@ -13,40 +13,33 @@
 #  ========-------------------- INPUT --------------------------===========
 ############################################################################
 
-#################
+#########################
 # enable, step
-#################
-InState     false   1000000
+#########################
+Restart	 	false   
 
 ####################################
 # kind {RESTART, RANDOM, INTSEED}
 ####################################
-PRNG     INTSEED	800 
-
-
-####################################
-# charmm param, exotic param
-####################################
-FFKind      CHARMM
-InParam     par_potoff.inp
-
+PRNG		INTSEED
+Random_Seed     800
 
 ####################################
-# pdbs for 1st and 2nd box
+# FORCE FIELD
 ####################################
-InPDB  STEP3_START_test_BOX_0.pdb  
+ParaTypeEXOTIC	 off
+ParaTypeCHARMM	 on
+Parameters     	 par_potoff.inp
 
 ####################################
-# pdb x2 (new sys) psf x1 (restart)
+# INPUT PDB FILES
 ####################################
-InPSF  STEP3_START_test_BOX_0.psf  
+Coordinates 0 STEP3_START_test_BOX_0.pdb
 
-#########################
-# seed file (if restart)
-#########################
-#InSeed      seedIn.dat
-
-
+####################################
+# INPUT PSF FILES
+####################################
+Structure 0 STEP3_START_test_BOX_0.psf		
 
 
 
@@ -54,27 +47,61 @@ InPSF  STEP3_START_test_BOX_0.psf
 #  =======--------------------- SYSTEM --------------------------===========
 ############################################################################
 
-Temperature 700.00
+##################################
+# GEMC TYPE (DEFULT IS NVT_GEMC)  
+##################################
 
-################################################################
-# SYSTEM VARS    #LRC     #Temp (K)  #cutoff (A)   #1-4 Inter. 
-################################################################
-Potential       VDW	true          10            0.0
 
-############################################################
-# STEPS PER...  #total        #tiil Equil   #Per adjustment
-##############################################################
-Steps           10000000            1000000     	  1000        
+#############################
+# SIMULATION CONDITION   
+#############################
+Temperature     700.00
+Potential       VDW 
+LRC		true
+Rcut		10   
+Exclude 	1-4 
 
-#################################################
-# MOVE %              #disp. #rot.  #vol.   #mol.
-##################################################
-Percent                0.60   0.40   
+#############################
+# ELECTROSTATIC   
+#############################
+Ewald		true
+Alpha		5.0
+KMax		5.0
 
-###################
-# box #, x, y, z
-###################
-BoxDim  0   21.00	21.00	21.00
+################################
+# STEPS 
+################################
+RunSteps       350000   
+EqSteps		   10000
+AdjSteps	   1000
+
+################################
+# MOVE FREQUENCY              
+################################
+DisFreq               1.00  
+RotFreq		      0.00
+VolFreq		      0.00
+SwapFreq	      0.00
+
+
+################################
+# BOX DIMENSION #, X, Y, Z
+################################
+BoxDim  0    21.00  21.00  21.00
+
+
+##############################
+# CBMC TRIALS
+##############################
+CBMC_First   10     
+CBMC_Nth     4
+CBMC_Ang     100
+CBMC_Dih     10
+
+####################################
+#          Mol. Name     Chem. Pot.
+####################################
+ChemPot    SPC            -4200
 
 
 
@@ -85,38 +112,34 @@ BoxDim  0   21.00	21.00	21.00
 ##########################
 # statistics filename add
 ##########################
-OutNameUnique  T_700.00_K_MIE
+OutputName  SPC_700_00_K_u_4200
 
-#########################
+#####################################
 # enable, frequency           
-##########################
-OutState   true    100000
+#####################################
+CoordinatesFreq    true   1000
+RestartFreq  	   true   1000
+ConsoleFreq        true   1000
+BlockAverageFreq   true   1000
+FluctuationFreq    true   1000
+HistogramFreq      true   1000
 
-#########################
-# Box 0, Box 1 PDBs           
-##########################
-OutPDB     Water_T_700.00_K_MIE_BOX_RDF.pdb 
 
-##########################
-# (merged PSF, seed)          
-##########################
-OutPSF     Water_T_700.00_K_MIE_merged.psf
-OutSeed    Water_T_700.00_K_MIE_seedOut.dat
+################################
+# OutHistSettings
+################################
+DistName	 dis
+HistName	 his
+RunNumber	 7
+RunLetter	 a
+SampleFreq	 200
 
-#####################
-# enable, frequency
-#####################
-OutConsole    true   1000 
-
-#####################
-# enable, frequency
-#####################
-OutBlockAverage   true   10000
-OutFluctuation    true   10000
-OutHistogram      false   10000
-               
 ##################################
 # enable: blk avg., fluct., hist.
 ##################################
 OutEnergy         true    true    true
-OutPressure       true    true    true  
+OutPressure       false   false   false  
+OutMolNum         true    true    true
+OutAcceptAngles   true    true    true  
+OutDensity        true    true    true
+
