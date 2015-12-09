@@ -26,3 +26,7 @@ All notable changes to this project will be documented in this file.
 ##[1.00] - 12/4/2015
 + Added Examples of water and DME for NVT and GCMC
 + Added bin/linux, which contains all executable files for linux
+
+##[1.00] Ewald branch - 12/8/2015
++ Improve the initialization of Ewald's parameters, so that non-ewald simulation can also run on ewald code without crashing.
++ CMakeList.txt file is added.
