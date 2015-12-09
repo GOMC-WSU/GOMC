@@ -64,9 +64,10 @@ CalculateEnergy::~CalculateEnergy(){
 void CalculateEnergy::Init(config_setup::SystemVals const& val)
 {
   DoEwald = val.ewald.enable;
-  alpha = val.ewald.alpha;
-  kmax1 = val.ewald.KMax;
-
+  if(DoEwald == true){
+    alpha = val.ewald.alpha;
+    kmax1 = val.ewald.KMax;
+  }
    for(uint m = 0; m < mols.count; ++m)
    {
       const MoleculeKind& molKind = mols.GetKind(m);
@@ -136,7 +137,6 @@ SystemPotential CalculateEnergy::SystemTotal()
      }//end if DoEwald
    }//end for
    pot.Total();
-  
    return pot;
 }
 
@@ -525,7 +525,6 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
          }
          n.Next();
       }
-
  }   
 #else
    MoleculeLookup::box_iterator molInBox = molLookup.BoxBegin(box);
@@ -904,7 +903,7 @@ double CalculateEnergy::BoxReciprocal(int box){
 	      RecipSinSum[i + box*RecipSize[box] ] = SinSum;
 	      RecipCosSum[i + box*RecipSize[box] ] = CosSum;
 	      recip.energy += ( (SinSum*SinSum + CosSum*CosSum) * prefact[box][i]);
-	    }
+	       }
 	}//end if
 	return recip.energy;
 }
