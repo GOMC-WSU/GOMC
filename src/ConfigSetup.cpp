@@ -620,10 +620,14 @@ void ConfigSetup::verifyInputs(void)
 		std::cout << "Error: Molecule swap frequency has not been specified!" << std::endl;
 		exit(0);
 	}
-	if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer + sys.moves.intraSwap + sys.moves.volume - 1.0) > 0.01)
+	if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer + sys.moves.volume - 1.0) > 0.001)
 	{
 		std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
 		exit(0);
+	}
+	else if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer + sys.moves.volume - 1.0) > 0.0001)
+	{
+		std::cout << "Warning: Please double check your move percentage frequency to add up to 1!" << std::endl;
 	}
 #elif ENSEMBLE == GCMC
 	if(sys.moves.transfer == DBL_MAX)
@@ -631,16 +635,24 @@ void ConfigSetup::verifyInputs(void)
 		std::cout << "Error: Molecule swap frequency has not been specified!" << std::endl;
 		exit(0);
 	}
-	if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap + sys.moves.transfer - 1.0) > 0.01)
+	if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer - 1.0) > 0.001)
 	{
 		std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
 		exit(0);
 	}
+	else if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer - 1.0) > 0.0001)
+	{
+		std::cout << "Warning: Please double check your move percentage frequency to add up to 1!" << std::endl;
+	}
 #else
-	if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap - 1.0) > 0.01)
+	if(abs(sys.moves.displace + sys.moves.rotate- 1.0) > 0.001)
 	{
 		std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
 		exit(0);
+	}
+	else if(abs(sys.moves.displace + sys.moves.rotate- 1.0) > 0.0001)
+	{
+		std::cout << "Warning: Please double check your move percentage frequency to add up to 1!" << std::endl;
 	}
 #endif
 
