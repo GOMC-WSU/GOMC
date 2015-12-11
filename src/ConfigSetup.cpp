@@ -710,16 +710,16 @@ void ConfigSetup::verifyInputs(void)
 	  std::cout << "Error: This simulation type requires to define " << BOX_TOTAL << " box dimentions!" <<std::endl;
 	  exit(0);
 	}
-	if(sys.ff.VDW_KIND != sys.ff.VDW_STD_KIND && sys.ff.rswitch == DBL_MAX)
+	if(sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND && sys.ff.rswitch == DBL_MAX)
 	{
 		std::cout << "Error: Switch cut off has not been defined!" << std::endl;
 		exit(0);
 	}
-	if(sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND && sys.ff.rswitch != DBL_MAX)
+	if((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND || sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND) && sys.ff.rswitch != DBL_MAX)
 	{
 		std::cout << "Warning: Switch cut off will be ignored!" << std::endl;
 	}
-	if(sys.ff.VDW_KIND != sys.ff.VDW_STD_KIND && sys.ff.rswitch >= sys.ff.cutoff)
+	if(sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND && sys.ff.rswitch >= sys.ff.cutoff)
 	{
 		std::cout << "Error: Switch cut off should be smaller than cut off!" << std::endl;
 		exit(0);
