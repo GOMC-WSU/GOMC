@@ -89,17 +89,17 @@ namespace cbmc
       {
 	 calc.ParticleInter(inter, real, positions[b], hed.Bonded(b), 
 			    molIndex, newMol.GetBox(), nLJTrials);
-	 if(DoEwald){
-		data->calc.SwapSelf(self, molIndex, hed.Bonded(b), newMol.GetBox(), nLJTrials);
-		data->calc.SwapCorrection(corr, newMol, positions[b], hed.Bonded(b), newMol.GetBox(), nLJTrials);
-	 }
+	 
+	 data->calc.SwapSelf(self, molIndex, hed.Bonded(b), newMol.GetBox(), nLJTrials);
+	 data->calc.SwapCorrection(corr, newMol, positions[b], hed.Bonded(b), newMol.GetBox(), nLJTrials);
+	
       }
       calc.ParticleInter(inter, real, positions[hed.NumBond()], hed.Prev(),
                          molIndex, newMol.GetBox(), nLJTrials);
-	  if(DoEwald){
-		  data->calc.SwapSelf(self, molIndex, hed.Prev(), newMol.GetBox(), nLJTrials);
-		  data->calc.SwapCorrection(corr, newMol, positions[hed.NumBond()], hed.Prev(), newMol.GetBox(), nLJTrials);
-	  }
+	  
+      data->calc.SwapSelf(self, molIndex, hed.Prev(), newMol.GetBox(), nLJTrials);
+      data->calc.SwapCorrection(corr, newMol, positions[hed.NumBond()], hed.Prev(), newMol.GetBox(), nLJTrials);
+	  
       double stepWeight = 0;
       for (uint lj = 0; lj < nLJTrials; ++lj)
       {
@@ -179,18 +179,17 @@ namespace cbmc
       {
          calc.ParticleInter(inter, real, positions[b], hed.Bonded(b),
                             molIndex, oldMol.GetBox(), nLJTrials);
-		 if(DoEwald){
-			 data->calc.SwapSelf(self, molIndex, hed.Bonded(b), oldMol.GetBox(), nLJTrials);
-			data->calc.SwapCorrection(corr, oldMol, positions[b], hed.Bonded(b), oldMol.GetBox(), nLJTrials);
-		 }
+		 
+	 data->calc.SwapSelf(self, molIndex, hed.Bonded(b), oldMol.GetBox(), nLJTrials);
+	 data->calc.SwapCorrection(corr, oldMol, positions[b], hed.Bonded(b), oldMol.GetBox(), nLJTrials);
+		 
       }
       double stepWeight = 0;
       calc.ParticleInter(inter, real, positions[hed.NumBond()], hed.Prev(),
                          molIndex, oldMol.GetBox(), nLJTrials);
-	  if(DoEwald){
-		  data->calc.SwapSelf(self, molIndex, hed.Prev(), oldMol.GetBox(), nLJTrials);
-		  data->calc.SwapCorrection(corr, oldMol, positions[hed.NumBond()], hed.Prev(), oldMol.GetBox(), nLJTrials);
-	  }
+	 
+      data->calc.SwapSelf(self, molIndex, hed.Prev(), oldMol.GetBox(), nLJTrials);
+      data->calc.SwapCorrection(corr, oldMol, positions[hed.NumBond()], hed.Prev(), oldMol.GetBox(), nLJTrials);
 
       for (uint lj = 0; lj < nLJTrials; ++lj)
       {

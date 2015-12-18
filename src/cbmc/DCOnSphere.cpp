@@ -45,10 +45,9 @@ namespace cbmc
 	  std::fill_n(corr, nLJTrials, 0.0);
       data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                                oldMol.GetBox(), nLJTrials);
-	  if(DoEwald){
-		data->calc.SwapSelf(self, molIndex, atom, oldMol.GetBox(), nLJTrials);
-		data->calc.SwapCorrection(corr, oldMol, positions, atom, oldMol.GetBox(), nLJTrials);
-	  }
+	  
+      data->calc.SwapSelf(self, molIndex, atom, oldMol.GetBox(), nLJTrials);
+      data->calc.SwapCorrection(corr, oldMol, positions, atom, oldMol.GetBox(), nLJTrials);
       
       for (uint trial = 0; trial < nLJTrials; trial++)
       {
@@ -82,10 +81,9 @@ namespace cbmc
 
       data->calc.ParticleInter(inter, real, positions, atom, molIndex, newMol.GetBox(), nLJTrials);
 
-      if(DoEwald){
-	data->calc.SwapSelf(self, molIndex, atom, newMol.GetBox(), nLJTrials);
-	data->calc.SwapCorrection(corr, newMol, positions, atom, newMol.GetBox(), nLJTrials);
-      }
+      data->calc.SwapSelf(self, molIndex, atom, newMol.GetBox(), nLJTrials);
+      data->calc.SwapCorrection(corr, newMol, positions, atom, newMol.GetBox(), nLJTrials);
+      
       for (uint trial = 0; trial < nLJTrials; trial++)
       {
          ljWeights[trial] = exp(-1 * data->ff.beta * (inter[trial] + real[trial] + self[trial] + corr[trial]) );

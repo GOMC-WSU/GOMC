@@ -22,9 +22,6 @@ namespace{
     bool CheckAndPrintEnsemble();
 }
 
-
-bool extern DoEwald = true;
-
 int main(void)
 {
    const char * nm = "in.dat";

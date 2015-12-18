@@ -1,0 +1,3 @@
+/home/gomc/GitHub_GOMC/GOMC_Serial/bin/src/CMakeFiles/GCMC.dir
+/home/gomc/GitHub_GOMC/GOMC_Serial/bin/src/CMakeFiles/GEMC.dir
+/home/gomc/GitHub_GOMC/GOMC_Serial/bin/src/CMakeFiles/NVT.dir

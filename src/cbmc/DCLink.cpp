@@ -136,11 +136,9 @@ namespace cbmc
                                oldMol.GetBox(), nLJTrials);
       data->calc.ParticleNonbonded(nonbonded, oldMol, positions, atom,
 				   oldMol.GetBox(), nLJTrials);
-	  if(DoEwald){
-		data->calc.SwapSelf(self, molIndex, atom, oldMol.GetBox(), nLJTrials);
-		data->calc.SwapCorrection(corr, oldMol, positions, atom, oldMol.GetBox(), nLJTrials);
-	  }
-
+      data->calc.SwapSelf(self, molIndex, atom, oldMol.GetBox(), nLJTrials);
+      data->calc.SwapCorrection(corr, oldMol, positions, atom, oldMol.GetBox(), nLJTrials);
+	  
       double dihLJWeight = 0;
       for (uint trial = 0; trial < nLJTrials; ++trial)
       {
@@ -191,10 +189,8 @@ namespace cbmc
                                newMol.GetBox(), nLJTrials);
       data->calc.ParticleNonbonded(nonbonded, newMol, positions, atom,
 				   newMol.GetBox(), nLJTrials);
-	  if(DoEwald){
-		data->calc.SwapSelf(self, molIndex, atom, newMol.GetBox(), nLJTrials);
-		data->calc.SwapCorrection(corr, newMol, positions, atom, newMol.GetBox(), nLJTrials);
-	  }
+      data->calc.SwapSelf(self, molIndex, atom, newMol.GetBox(), nLJTrials);
+      data->calc.SwapCorrection(corr, newMol, positions, atom, newMol.GetBox(), nLJTrials);
 
       double dihLJWeight = 0;
       double beta = data->ff.beta;

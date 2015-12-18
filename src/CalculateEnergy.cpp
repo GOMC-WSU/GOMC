@@ -148,7 +148,7 @@ SystemPotential CalculateEnergy::SystemInter
 {
    for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
    {
-      potential += BoxInter(SystemPotential(), coords, com, boxAxes, b);
+      potential = BoxInter(SystemPotential(), coords, com, boxAxes, b);
    }
    potential.Total();
    return potential;
@@ -188,7 +188,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 	 if(DoEwald){
 		 dist = sqrt(distSq);
 		 erfc_variable = calp[box] * dist;
-		 real.energy = real.energy + particleCharge[pair.First()] * particleCharge[pair.Second()] * (1 - erf(erfc_variable)) / dist ;
+		 real.energy = real.energy + particleCharge[pair.First()] * particleCharge[pair.Second()] * erfc(erfc_variable) / dist ;
 	 }
 #endif
 	 //Add to our pressure components.
@@ -307,7 +307,7 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter,
 			   //Subtract old real energy
 			   dist = sqrt(distSq);
 			   erfc_variable = calp[box] * dist;
-			   localReal.energy -= ( particleCharge[atom] * particleCharge[*n] * (1 - erf(erfc_variable)) / dist);
+			   localReal.energy -= ( particleCharge[atom] * particleCharge[*n] * erfc(erfc_variable) / dist);
 		   }
 #endif 
 	       //Add to our pressure components.
@@ -335,7 +335,7 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter,
 			   //Add new ewald real energy
 			   dist = sqrt(distSq);
 			   erfc_variable = calp[box] * dist;
-			   localReal.energy += ( particleCharge[atom] * particleCharge[*n] *  (1 - erf(erfc_variable)) / dist);
+			   localReal.energy += ( particleCharge[atom] * particleCharge[*n] *  erfc(erfc_variable) / dist);
 		   }
 #endif
 
@@ -518,7 +518,7 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
 	     if(DoEwald){
 	       dist = sqrt(distSq);
 	       erfc_variable = calp[box] * dist;
-	       real[t] += ( ( particleCharge[atom] * thisKind.atomCharge[partIndex] * (1 - erf(erfc_variable)) / dist) * qqfact ); 
+	       real[t] += ( ( particleCharge[atom] * thisKind.atomCharge[partIndex] * erfc(erfc_variable) / dist) * qqfact ); 
 	     }
 #endif
 	   }//end else
@@ -811,7 +811,7 @@ void CalculateEnergy::FullTailCorrection(SystemPotential& pot,
 
 
 //error function
-double CalculateEnergy::erf(double x) const{
+/*double CalculateEnergy::erf(double x) const{
 	double a1 = 0.254829592;
 	double a2 = -0.284496736;
 	double a3 = 1.421413741;
@@ -829,7 +829,7 @@ double CalculateEnergy::erf(double x) const{
 	double y = 1.0 - ((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*exp(-x*x);
 
 	return sign*y;
-}
+	}*/
 
 void CalculateEnergy::MolCorrection(double &correction, uint molIndex, int box) const
 {
@@ -1039,7 +1039,7 @@ void CalculateEnergy::BoxSelf(double&self, int box){
 
 void CalculateEnergy::SwapSelf(double *self, uint molIndex, uint partIndex, int box, uint trials) const
 {
-  if (box >= BOXES_WITH_U_NB)
+  if (box >= BOXES_WITH_U_NB || DoEwald==false)
 	  return;
        
 	MoleculeKind const& thisKind = mols.GetKind(molIndex);
@@ -1056,7 +1056,7 @@ void CalculateEnergy::SwapCorrection(double* corr,
                                         const uint box,
                                         const uint trials) const
 {
-   if (box >= BOXES_WITH_U_NB)
+   if (box >= BOXES_WITH_U_NB||DoEwald==false)
       return;
    double dist;
    const MoleculeKind& thisKind = trialMol.GetKind();
