@@ -9,7 +9,7 @@
 #ifdef CELL_LIST
 #include "CellList.h"
 #endif
-
+#include <cmath>
 #include <vector>
 
 
@@ -165,7 +165,7 @@ class CalculateEnergy
 	  //ewald system 
 
 	  //error function
-	  double erf(double erfc)const;
+	  //	  double erf(double erfc)const;
 
 	  //const parameter set and retrive functions
 	  void Calp(int box, double boxSize) {calp[box] = alpha / boxSize;};

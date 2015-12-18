@@ -268,10 +268,9 @@ namespace cbmc
          data->calc.ParticleNonbonded(nonbonded, mol, positions[b],
 				      hed.Bonded(b), mol.GetBox(),
 				      nLJTrials);
-		 if(DoEwald){
-			 data->calc.SwapSelf(self, molIndex, hed.Bonded(b), mol.GetBox(), nLJTrials);
-			data->calc.SwapCorrection(corr, mol, positions[b], hed.Bonded(b), mol.GetBox(), nLJTrials);
-		 }
+	 data->calc.SwapSelf(self, molIndex, hed.Bonded(b), mol.GetBox(), nLJTrials);
+	 data->calc.SwapCorrection(corr, mol, positions[b], hed.Bonded(b), mol.GetBox(), nLJTrials);
+	
       }
       double stepWeight = 0;
       for (uint lj = 0; lj < nLJTrials; ++lj)

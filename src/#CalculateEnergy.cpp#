@@ -148,7 +148,7 @@ SystemPotential CalculateEnergy::SystemInter
 {
    for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
    {
-      potential = BoxInter(SystemPotential(), coords, com, boxAxes, b);
+      potential += BoxInter(SystemPotential(), coords, com, boxAxes, b);
    }
    potential.Total();
    return potential;
