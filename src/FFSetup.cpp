@@ -293,7 +293,8 @@ const double expN_1_4
 
    void Dihedral::Read(Reader & param, std::string const& firstVar)
    {
-      double coeff, index, def;
+      double coeff, def;
+	  uint index;
       std::string merged = ReadKind(param, firstVar);
       param.file >> coeff >> index >> def;
       Add(merged, coeff, index, def);
