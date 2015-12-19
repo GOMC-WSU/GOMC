@@ -63,6 +63,7 @@ namespace num
    { return sqrt(v1[ix1]*v2[ix2]); }
 
    inline double Sq(const double v) { return v * v; }
+   inline uint Sq(const uint v) { return v * v; }
    inline double Cb(const double v) { return v * v * v; }
    inline void Cb(double & s, double & c, const double v)
    { s = v * v; c = s * v; }
