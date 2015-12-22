@@ -21,8 +21,8 @@ void CPUSide::Init(PDBSetup const& pdbSet, config_setup::Output const& out,
    outObj.push_back(&pdb);
    outObj.push_back(&block);
    outObj.push_back(&fluct);
-   outObj.push_back(&hist);
 #if ENSEMBLE == GCMC
+   outObj.push_back(&hist);
    outObj.push_back(&sample_N_E);
 #endif
    //Calculate pressure, heat of vap. (if applicable), etc.

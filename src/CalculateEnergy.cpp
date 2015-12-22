@@ -58,6 +58,7 @@ CalculateEnergy::~CalculateEnergy(){
   delete[] SinSumNew;
   delete[] CosSumNew;
   delete[] calp;
+  delete[] calp_old;
 }
 
 
@@ -78,12 +79,14 @@ void CalculateEnergy::Init(config_setup::SystemVals const& val)
 	 particleCharge.push_back(molKind.atomCharge[a]);
       }
    }
-   calp = (double*)malloc(BOX_TOTAL);
+   calp = new double[BOX_TOTAL];
+   calp_old = new double[BOX_TOTAL];
    std::fill_n(calp, BOX_TOTAL, 0.0);
 #ifdef RECIP
    for(int box = 0; box < BOX_TOTAL; box++){
      //calculate the alpha over box size.
      Calp(box, currentAxes.axis.BoxSize(box));
+     CalpBackup(box);
      SetupRecip(box);   
    }
    RecipSinSum = new double[RecipSize[0] * BOXES_WITH_U_NB];
@@ -92,7 +95,7 @@ void CalculateEnergy::Init(config_setup::SystemVals const& val)
    CosSumNew = new double[RecipSize[0] * BOXES_WITH_U_NB];
 #endif
    //malloc size for MolSelfEnergy to cache self energy for each kind of molecule
-   MolSelfEnergy = (double*)malloc(molLookup.GetNumKind());
+   MolSelfEnergy = new double[molLookup.GetNumKind()];
    std::fill_n(MolSelfEnergy, molLookup.GetNumKind(), 0.0);
 }
 
@@ -148,7 +151,7 @@ SystemPotential CalculateEnergy::SystemInter
 {
    for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
    {
-      potential = BoxInter(SystemPotential(), coords, com, boxAxes, b);
+      potential = BoxInter(potential, coords, com, boxAxes, b);
    }
    potential.Total();
    return potential;
@@ -165,6 +168,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
    //interactions are off.
    if (box >= BOXES_WITH_U_NB) return potential;
    //calculate the alpha over box size.
+   CalpBackup(box);
    Calp(box, boxAxes.axis.BoxSize(box));
    Intermolecular inter, real;
    double dist, erfc_variable;
@@ -1080,4 +1084,72 @@ void CalculateEnergy::SwapCorrection(double* corr,
       }
       ++partner;
    }
+}
+
+SystemPotential CalculateEnergy::SystemTotalRecalc
+(SystemPotential OldPotential, XYZArray const& coords, XYZArray const& com,
+ BoxDimensions const& boxAxes){
+
+  SystemPotential pot = SystemInter(OldPotential, coords, com, boxAxes);
+
+  for(uint b=0; b < BOX_TOTAL; ++b){
+    double correction = 0.0;
+    double distSq, dist;
+    XYZ virComponents;
+    MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b),
+      end = molLookup.BoxEnd(b);
+    while(thisMol != end){
+      MolCorrection(correction, *thisMol, b);
+      ++thisMol;
+    }
+    correction = -correction;
+    pot.boxEnergy[b].self = OldPotential.boxEnergy[b].self /
+      calp_old[b] * calp[b];
+    pot.boxEnergy[b].correction = correction * qqfact;
+
+#ifdef RECIP
+    SetupRecip(b);
+    pot.boxEnergy[b].recip = BoxReciprocal(b);
+#endif
+    pot.boxEnergy[b].elect = pot.boxEnergy[b].self + pot.boxEnergy[b].correction
+      + pot.boxEnergy[b].recip;
+  }//end for
+  pot.Total();
+  //  printf("inter: %lf, real: %lf, recip: %lf, self: %lf, correction: %lf, intraBond: %lf, intraNonbond: %lf\n\n", pot.totalEnergy.inter, pot.totalEnergy.real, pot.totalEnergy.recip, pot.totalEnergy.self, pot.totalEnergy.correction, pot.totalEnergy.intraBond, pot.totalEnergy.intraNonbond);
+
+  return pot;
+}
+
+SystemPotential CalculateEnergy::BoxTotalRecalc
+(SystemPotential OldPotential, XYZArray const& coords, XYZArray const& com,
+ BoxDimensions const& boxAxes, const uint b)
+{
+  SystemPotential pot = BoxInter(OldPotential, coords, com, boxAxes, b);
+
+  double correction = 0.0;
+  double distSq, dist;
+  XYZ virComponents;
+  MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b),
+      end = molLookup.BoxEnd(b);
+  while(thisMol != end){
+    MolCorrection(correction, *thisMol, b);
+    ++thisMol;
+  }
+  correction = -correction;
+  pot.boxEnergy[b].self = -1.0 * OldPotential.boxEnergy[b].self /
+      calp_old[b] * calp[b];
+  pot.boxEnergy[b].correction = correction * qqfact;
+
+#ifdef RECIP
+  SetupRecip(b);
+  pot.boxEnergy[b].recip = BoxReciprocal(b);
+#endif
+    pot.boxEnergy[b].elect = pot.boxEnergy[b].self + pot.boxEnergy[b].correction
+      + pot.boxEnergy[b].recip;
+
+  pot.Total();
+  //  printf("inter: %lf, real: %lf, recip: %lf, self: %lf, correction: %lf, intraBond: %lf, intraNonbond: %lf\n\n", pot.totalEnergy.inter, pot.totalEnergy.real, pot.totalEnergy.recip, pot.totalEnergy.self, pot.totalEnergy.correction, pot.totalEnergy.intraBond, pot.totalEnergy.intraNonbond);
+
+  return pot;
+  
 }

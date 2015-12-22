@@ -326,7 +326,9 @@ inline MTRand::uint32 MTRand::randInt( const uint32 n )
 }
 
 inline double MTRand::rand()
-	{ return double(randInt()) * (1.0/4294967295.0); }
+        {
+	  double RandTemp = randInt();
+	  return double(RandTemp) * (1.0/4294967295.0); }
 
 inline double MTRand::rand( const double n )
 	{ return rand() * n; }

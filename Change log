@@ -1,6 +1,8 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+
+
 ## [1.0] - 10/18/2015
 + Changes for input file system.
 + Added Cell list optimization to the GPU and the Serial code.
@@ -30,3 +32,6 @@ All notable changes to this project will be documented in this file.
 ##[1.00] Ewald branch - 12/8/2015
 + Improve the initialization of Ewald's parameters, so that non-ewald simulation can also run on ewald code without crashing.
 + CMakeList.txt file is added.
+
+##[1.00] - 12/22/2015
++ Update CPUSide.cpp, move hist into the ifdef of GCMC. Target at the floating operation issue returned by NVT and GEMC simulations.
