@@ -51,6 +51,16 @@ class CalculateEnergy
 
       //! Calculates total energy/virial of all boxes in the system
       SystemPotential SystemTotal();
+      SystemPotential SystemTotalRecalc(SystemPotential potential,
+					XYZArray const& coords,
+					XYZArray const& com,
+					BoxDimensions const& boxAxes);
+
+      SystemPotential BoxTotalRecalc(SystemPotential potential,
+				     XYZArray const& coords,
+				     XYZArray const& com,
+				     BoxDimensions const& boxAxes,
+				     const uint box);
 
       //! Calculates total energy/virial of a single box in the system
       SystemPotential BoxInter(SystemPotential potential,
@@ -169,6 +179,13 @@ class CalculateEnergy
 
 	  //const parameter set and retrive functions
 	  void Calp(int box, double boxSize) {calp[box] = alpha / boxSize;};
+	  void CalpBackup(int box){calp_old[box] = calp[box];};
+	  void CalpRestore(){
+	    double *swap;
+	    swap = calp;
+	    calp = calp_old;
+	    calp_old = swap;
+	  };
 	  double kxyz[2][257][3];				//recip vector
 	  double prefact[2][257];			//recip variable
 	  void SetupRecip(int box);		//set up recip size, recip varaibles, recip vector, and the cache arrays of recip's sin sum and cos sum
@@ -233,7 +250,7 @@ class CalculateEnergy
       bool DoEwald;
       double kmax1;
       double alpha;
-      double *calp;                //alpha over box size
+      double *calp, *calp_old;                //alpha over box size
       double *MolSelfEnergy;      //cache self energy for each molecule kind
       int RecipSize[2];
       SystemPotential &sysPotRef;

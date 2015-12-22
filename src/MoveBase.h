@@ -388,12 +388,22 @@ inline void VolumeTransfer::CalcEn()
    cellList.GridAll(newDim, newMolsPos, molLookRef);
    regrewGrid = true;
 #endif
-   if (GEMC_KIND == mv::GEMC_NVT)
-      sysPotNew = calcEnRef.SystemInter(sysPotRef, newMolsPos,
+   if (GEMC_KIND == mv::GEMC_NVT){
+     if(DoEwald)
+       sysPotNew = calcEnRef.SystemTotalRecalc(sysPotRef, newMolsPos,
+					       newCOMs, newDim);
+     else
+       sysPotNew = calcEnRef.SystemInter(sysPotRef, newMolsPos,
                                         newCOMs, newDim);
-   else
-      sysPotNew = calcEnRef.BoxInter(sysPotRef, newMolsPos,
+   }
+   else{
+     if(DoEwald)
+       sysPotNew = calcEnRef.BoxTotalRecalc(sysPotRef, newMolsPos,
+					    newCOMs, newDim, bPick);
+     else
+       sysPotNew = calcEnRef.BoxInter(sysPotRef, newMolsPos,
                                      newCOMs, newDim, bPick);
+   }
 }
 
 inline double VolumeTransfer::GetCoeff() const
@@ -446,6 +456,9 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       regrewGrid = false;
    }
 #endif
+   if(result == false)
+     calcEnRef.CalpRestore();
+   
    if (GEMC_KIND == mv::GEMC_NVT)
    {
       subPick = mv::GetMoveSubIndex(mv::VOL_TRANSFER);
