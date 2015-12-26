@@ -28,7 +28,7 @@ void BlockAverage::Init(const bool en, const double scale,
    scl = scale;
    if (enable)
    {
-      name = GetFName(var, uniqueName);
+      name = prefix + GetFName(var, uniqueName); /*ADDED PREFIX*/ 
       outF.open(name.c_str(), std::ofstream::out);
       outF.setf(std::ios_base::left, std::ios_base::adjustfield);
       Zero();

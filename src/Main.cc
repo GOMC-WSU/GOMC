@@ -16,6 +16,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define HOSTNAME
 #elif defined(__linux__) || defined(__apple__) || defined(__FreeBSD__)
 #include <unistd.h>
+#include <stdexcept>
 #define HOSTNAME
 #endif
 
@@ -32,7 +33,7 @@ namespace{
 
 int main(void)
 {
-	//const char * nm = "in.dat";//REMOVED TO ALLOW PASSAGE OF ANY NAME
+   //const char * nm = "in.dat";//REMOVED TO ALLOW PASSAGE OF ANY NAME
 	PrintSimulationHeader();
 	//Only run if valid ensemble was detected.
 	if (CheckAndPrintEnsemble())
@@ -52,17 +53,17 @@ int main(void)
 			  cin >> inputFileString;
 			  remove(inputFileString.begin(), inputFileString.end(), ' ');//REMOVE ANY TRAILING SPACE
 			  if (inputFileString.length() == 0)
-				  throw invalid_argument("No filename provided!");
+				  throw std::invalid_argument("No filename provided!");
 
 			  inputFileReader.open(inputFileString.c_str(), ios::in | ios::out); //OPEN FILE
 			  if (!inputFileReader.is_open()) //CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
-				  throw invalid_argument("Cannot open/find file in the directory provided!");
+				  throw std::invalid_argument("Cannot open/find file in the directory provided!");
 
 			  inputFileReader.close(); //CLOSE FILE TO NOW PASS TO SIMULATION
 			  fileFound = true; //SET TRUE FILE FOUND
 		  }
 		  //EXCEPTION HANDLING
-		  catch (invalid_argument &ex){
+		  catch (const std::invalid_argument &ex){
 			  cout << "ERROR: " << ex.what() << endl;
 			  _PAUSE("Please press ENTER to continue..."); //PAUSE FOR USER TO ACKNOWLEDGE ERROR
 			  fileFound = false; //SET FALSE FILE FOUND
@@ -72,14 +73,14 @@ int main(void)
 		Simulation sim(inputFileString.c_str());
 		sim.RunSimulation();
 		PrintSimulationFooter();
-	}
-	return 0;
+    }
+    return 0;
 }
 
 
 namespace {
 
-	void PrintSimulationHeader()
+   void PrintSimulationHeader()
    {
       std::cout << PrintVersion << '\n'
 		<< "Started at: " << PrintTime
@@ -89,7 +90,7 @@ namespace {
 		<< "\n\n";
    }
 
-	bool CheckAndPrintEnsemble()
+   bool CheckAndPrintEnsemble()
    {
       bool healthy = true;
       std::cout << "------------------------------------------------------"
@@ -117,7 +118,7 @@ namespace {
 	{
 	  std::cout << "#########################################################\n";
 	  std::cout << "################# RUNNING IN DEBUG MODE #################\n";
-	  std::cout << "#########################################################\n\n";
+	  std::cout << "#########################################################\n";
 	}
 
 	void PrintSimulationFooter()

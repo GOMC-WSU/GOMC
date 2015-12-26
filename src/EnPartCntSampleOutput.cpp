@@ -48,7 +48,7 @@ void EnPartCntSample::Init(pdb_setup::Atoms const& atoms,
       samplesCollectedInFrame = 0;
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
       {
-         name[b] = GetFName(output.state.files.hist.sampleName,
+         name[b] = prefix + GetFName(output.state.files.hist.sampleName, /*ADDED PREFIX*/ 
                             output.state.files.hist.number,
                             output.state.files.hist.letter,
                             b);

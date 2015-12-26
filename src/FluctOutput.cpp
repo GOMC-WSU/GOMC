@@ -19,7 +19,7 @@ void FluctuationTracker::Init(const bool en, std::string const& var,
    first = enable = en;
    if (enable)
    {
-      name = GetFName(var, uniqueName);
+      name = prefix + GetFName(var, uniqueName); /*ADDED PREFIX*/ 
       outF.open(name.c_str(), std::ofstream::out);
       outF.setf(std::ios_base::left, std::ios_base::adjustfield);
    }

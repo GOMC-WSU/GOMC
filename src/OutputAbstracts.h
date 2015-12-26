@@ -19,6 +19,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 class OutputVars;
 class System;
+extern std::string prefix; //CALL TO OBTAIN GLOBAL PREFIX DECLARED IN ConfigSetup.cpp
 
 ////////////////////////////
 ///  WRITE
