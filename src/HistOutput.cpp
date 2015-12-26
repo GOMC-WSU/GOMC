@@ -45,7 +45,7 @@ void Histogram::Init(pdb_setup::Atoms const& atoms,
 	 outF[b] = new std::ofstream[var->numKinds];
          for (uint k = 0; k < var->numKinds; ++k)
          {
-            name[b][k] = GetFName(output.state.files.hist.histName,
+            name[b][k] = prefix + GetFName(output.state.files.hist.histName, /*ADDED PREFIX*/ 
                                   output.state.files.hist.number,
                                   output.state.files.hist.letter,
                                   b, k);
