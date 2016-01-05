@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "Geometry.h"
 #include "MolSetup.h"
 #include "FFSetup.h"
@@ -166,15 +159,7 @@ void Nonbond_1_3::Init(const mol_setup::MolKind& molData)
    {
       nonBondedAtoms.assign(i, 0);
       nonBondedAtoms.insert(nonBondedAtoms.end(), numAtoms - i, 0);
-      for (unsigned int j = 0; j < molData.dihedrals.size(); ++j)
-      {
-         const mol_setup::Dihedral& dih = molData.dihedrals[j];
-         if (dih.a0 == i || dih.a3 == i)
-         {
-            nonBondedAtoms[dih.a0] = 1;
-            nonBondedAtoms[dih.a3] = 1;
-         }
-      }
+
 
       for (unsigned int j = 0; j < molData.angles.size(); ++j)
       {
@@ -289,34 +274,6 @@ void GeomFeature::Init(const std::vector<mol_setup::Dihedral>& dihs, const BondL
 
 void SortedNonbond::Init(const Nonbond& nb, const uint numAtoms)
 {
-
-   std::vector<uint> partnerVec;
-   uint oldSize = 0;
-   subdiv.Init(numAtoms);
-   for (uint i = 0; i < numAtoms; ++i)
-   {
-      oldSize = partnerVec.size();
-      for (uint j = 0; j < nb.count; ++j)
-      {
-         if (nb.part1[j] == i)
-            partnerVec.push_back(nb.part2[j]);
-         else if (nb.part2[j] == i)
-            partnerVec.push_back(nb.part1[j]);
-      }
-      subdiv.Set(i, oldSize, partnerVec.size() - oldSize);
-      //maybe sorting will improve access patterns?
-      std::sort(partnerVec.begin() + oldSize, partnerVec.end());
-   }
-   partners = new uint[partnerVec.size()];
-   std::copy(partnerVec.begin(), partnerVec.end(), partners);
-}
-
-void SortedNonbond_1_4::Init(const Nonbond& nb, const uint numAtoms)
-{
-   if(&nb == NULL)
-   {
-     return;
-   }
 
    std::vector<uint> partnerVec;
    uint oldSize = 0;

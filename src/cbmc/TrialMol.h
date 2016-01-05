@@ -1,7 +1,6 @@
 /*******************************************************************************
 GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
-
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -83,6 +82,17 @@ class TrialMol
       //!centered on lastAtom. theta in [0, pi], phi in (-pi, pi]
       void OldThetaAndPhi(uint atom, uint lastAtom, 
             double& theta, double& phi) const;
+      
+      //!calculate distance between atoms belong to specified angle
+      double AngleDist(const double b1, const double b2, const double theta);
+
+      //!calculate distance between atoms belong to specified dihedral
+      double DihedDist(const double b1, const double b2, const double b3,
+		       const double theta1, const double theta2,
+		       const double phi);
+
+      //!calculate distance between two atom in oldMol
+      double OldDistSq(const uint atom, const uint lastAtom);
 
       const Energy& GetEnergy() const { return en; }
       double GetWeight() const { return totalWeight; }
@@ -119,6 +129,7 @@ class TrialMol
       RotationMatrix growthToWorld;
       RotationMatrix worldToGrowth;
       XYZ basisPoint;
+      //bool oneThree, oneFour;
 };
 }
 
@@ -126,4 +137,3 @@ class TrialMol
 
 
 #endif
-

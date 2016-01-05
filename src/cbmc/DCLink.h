@@ -1,7 +1,6 @@
 /*******************************************************************************
 GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
-
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -20,8 +19,8 @@ namespace cbmc
    class DCLink : public DCComponent
    {
     public:
-      virtual void PrepareNew();
-      virtual void PrepareOld();
+      virtual void PrepareNew(TrialMol& newMol, uint molIndex);
+      virtual void PrepareOld(TrialMol& oldMol, uint molIndex);
       virtual void BuildOld(TrialMol& oldMol, uint molIndex);
       virtual void BuildNew(TrialMol& newMol, uint molIndex);
 
@@ -32,22 +31,30 @@ namespace cbmc
 
 
     private:
-      void IncorporateOld(TrialMol& oldMol);
-      void IncorporateNew(TrialMol& newMol);
+      void IncorporateOld(TrialMol& oldMol, uint molIndex);
+      void IncorporateNew(TrialMol& newMol, uint molIndex);
       void AlignBasis(TrialMol& mol);
-      double GenerateDihedrals(double* angles, double* angleEnergy,
-			       double* angleWeights);
-      void UseOldDih(double& energy, double& weight);
+      double GenerateDihedralsNew(TrialMol& newMol, uint molIndex,
+				  double* angles, double* angleEnergy,
+				  double* angleWeights);
+      double GenerateDihedralsOld(TrialMol& oldMol, uint molIndex,
+				  double* angles, double* angleEnergy,
+				  double* angleWeights);
+      void UseOldDih(TrialMol& oldMol, uint molIndex, double& energy,
+		     double& weight);
+      void SetOldMolBond(const uint i, const double distSq);
 
       DCData* data;
       uint atom, focus, prev, prevprev;
-      uint angleKind, dihKind;
+      uint bondKind, angleKind, dihKind;
       double bondLength;
+      //used for calculating 1-3 and 1-4 distance
+      double bond[3];
+      double oldBond[3];
       double theta, phi;
-      double bendEnergy, bendWeight;
+      double oldBondEnergy, bendEnergy, bendWeight, oneThree;
    };
 
 }
 
 #endif
-
