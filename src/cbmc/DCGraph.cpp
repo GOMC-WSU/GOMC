@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "DCGraph.h"
 #include "DCFreeHedron.h"
 #include "DCLinkedHedron.h"
@@ -68,18 +61,18 @@ namespace cbmc {
       visited[current] = true;
       fringe = nodes[current].edges;
       DCComponent* comp = nodes[current].starting;
-      comp->PrepareNew();
+      comp->PrepareNew(newMol, molIndex);
       comp->BuildNew(newMol, molIndex);
-      comp->PrepareOld();
+      comp->PrepareOld(oldMol, molIndex);
       comp->BuildOld(oldMol, molIndex);
       //Advance along edges, building as we go
       while (!fringe.empty()) 
       {
          uint pick = data.prng.randIntExc(fringe.size());
          comp = fringe[pick].component;
-         comp->PrepareNew();
+         comp->PrepareNew(newMol, molIndex);
          comp->BuildNew(newMol, molIndex);
-         comp->PrepareOld();
+         comp->PrepareOld(oldMol, molIndex);
          comp->BuildOld(oldMol, molIndex);
 
          //travel to new node, remove traversed edge
@@ -110,4 +103,3 @@ namespace cbmc {
    }
 
 }
-

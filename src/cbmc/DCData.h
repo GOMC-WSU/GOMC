@@ -1,7 +1,6 @@
 /*******************************************************************************
 GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
-
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -46,12 +45,15 @@ namespace cbmc
 
       XYZArray& positions;     //candidate positions for inclusion (alias for multiPositions[0])
       double* inter;          //intermolecule energies, reused for new and old
-      double* bonded;
-      double* nonbonded;      //calculated nonbonded 1_N energies
-      double* nonbonded_1_4;  //calculated nonbonded 1_4 energies and 1_3 in
-                              //case of Martini forcefield 
+      double* real;           //short range coulomb interaction
+      double* self;           //self-self coulomb interactiopn
+      double* correction;     //correction term of coulomb interaction
       double* ljWeights;
-
+      double* bonded;
+      double* oneFour;
+      double* nonbonded;      //calculated nonbonded 1_N LJ and coulomb energie
+      double* nonbonded_1_4;  //calculated nonbonded 1_4 LJ and coulomb energie
+      double* nonbonded_1_3;  //calculated nonbonded 1_3 LJ and coulomb energie 
       XYZArray multiPositions[MAX_BONDS];
    };
 
@@ -71,23 +73,33 @@ inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& se
       multiPositions[i] = XYZArray(maxLJTrials);
    }
    inter = new double[maxLJTrials];
+   real = new double[maxLJTrials];
+   self = new double[maxLJTrials];
+   correction = new double[maxLJTrials];
    bonded = new double[maxLJTrials];
-   nonbonded = new double[maxLJTrials];
-   nonbonded_1_4 = new double[maxLJTrials];
+   oneFour = new double[maxLJTrials];
+   nonbonded = new double[maxLJTrials];   
    ljWeights = new double[maxLJTrials];
 
    uint trialMax = std::max(nAngleTrials, nDihTrials);
    angleEnergy = new double[trialMax];
    angleWeights = new double[trialMax];
    angles = new double[trialMax];
+   nonbonded_1_3 = new double[trialMax];
+   nonbonded_1_4 = new double[trialMax];
 }
 
 inline DCData::~DCData()
 {
    delete[] inter;
+   delete[] real;
+   delete[] self;
+   delete[] correction;
    delete[] bonded;
+   delete[] oneFour;
    delete[] nonbonded;
    delete[] nonbonded_1_4;
+   delete[] nonbonded_1_3;
    delete[] ljWeights;
    delete[] angles;
    delete[] angleWeights;
@@ -97,4 +109,3 @@ inline DCData::~DCData()
 }
 
 #endif
-

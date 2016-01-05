@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "HistOutput.h"
 #include "PDBConst.h"
 #include "OutConst.h"
@@ -152,4 +145,3 @@ std::string Histogram::GetFName(std::string const& histName,
    fName += ".dat";
    return fName;
 }
-

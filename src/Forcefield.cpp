@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "Forcefield.h" //Header spec.
 //Setup partner classes
 #include "Setup.h"
@@ -36,7 +29,7 @@ Forcefield::~Forcefield()
 void Forcefield::Init(const Setup& set)
 {
    InitBasicVals(set.config.sys, set.config.in.ffKind);
-   particles->Init(set.ff.mie, set.ff.nbfix, set.config.sys.ff,
+   particles->Init(set.ff.mie, set.ff.nbfix, set.config.sys,
 		   set.config.in.ffKind);
    bonds.Init(set.ff.bond);
    angles->Init(set.ff.angle);
@@ -57,6 +50,9 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
    vdwKind = val.ff.VDW_KIND;
    exckind = val.exclude.EXCLUDE_KIND;
 
+   electrostatic = val.elect.enable;
+   ewald = val.elect.ewald;
+
    if(vdwKind == val.ff.VDW_STD_KIND)
      particles = new FFParticle();
    else if(vdwKind == val.ff.VDW_SHIFT_KIND)
@@ -74,21 +70,20 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
    // Define type of interaction to be included. ex. 1-3, 1-4 and more
    if(exckind == val.exclude.EXC_ONETWO_KIND && ffKind.isMARTINI)
    {
-     OneThree = true, OneFour = false, OneN = true;
+     OneThree = true, OneFour = true, OneN = true;
      std::cout <<
-       "REMAINDER! 1-3 Interaction and more is ON for Martini forcefield\n"
+       "REMINDER! 1-3 Interaction and more is ON for Martini forcefield\n"
 	       << std::endl;
    }
    else if(exckind == val.exclude.EXC_ONEFOUR_KIND)
    {
      OneThree = false, OneFour = false, OneN = true;
-     std::cout << "REMAINDER! 1-4 Interaction is OFF\n" << std::endl;
+     std::cout << "REMINDER! 1-3 and 1-4 Interaction is OFF\n" << std::endl;
    }
    else
    {
      OneThree = false, OneFour = true, OneN = true;
-     std::cout << "REMAINDER! 1-4 Interaction and more is ON\n" << std::endl;
+     std::cout << "REMINDER! 1-4 Interaction and more is ON\n" << std::endl;
    }
      
 }
-

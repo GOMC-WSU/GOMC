@@ -1,7 +1,6 @@
 /*******************************************************************************
 GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
-
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -18,8 +17,8 @@ namespace cbmc {
    {
    public:
       //Perform Decoupled portions of CBMC
-      virtual void PrepareNew() {}
-      virtual void PrepareOld() {}
+      virtual void PrepareNew(TrialMol& newMol, uint molIndex) {}
+      virtual void PrepareOld(TrialMol& oldMol, uint molIndex) {}
 
       //Perform Coupled final build
       virtual void BuildOld(TrialMol& oldMol, uint molIndex) = 0;
