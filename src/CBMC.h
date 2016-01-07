@@ -16,7 +16,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "../lib/BasicTypes.h"
 
-class MolPick;
+struct MolPick;
 class Forcefield;
 class MoleculeKind;
 class Setup;

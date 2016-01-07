@@ -36,10 +36,10 @@ class FFBonds
 
    void Init(ff_setup::Bond const& bond)
    {
-      count = bond.Kb.size();
-      Kb = vect::transfer(bond.Kb);
-      b0 = vect::transfer(bond.b0);
-      fixed = vect::transfer(bond.fixed);
+      count = bond.getKbcnt();
+      Kb = bond.CopyKb();
+	  b0 = bond.Copyb0();
+	  fixed = bond.Copyfixed();
    }
  private:
    double * Kb, * b0;

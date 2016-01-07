@@ -24,7 +24,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 //TODO:
 //Rename to PeriodicBoxes at some point.
-struct BoxDimensions
+class BoxDimensions
 {
  public:
    BoxDimensions() {}
@@ -125,7 +125,7 @@ struct BoxDimensions
    void GetDistSq(double & distSq, XYZArray const& arr, const uint i,
 		  const uint j, const uint b) const;
 
-   
+//private:
    XYZArray axis;     //x, y, z dimensions of each box (a)
    XYZArray halfAx;   //x, y, z dimensions / 2 of each box (a)
    double volume[BOX_TOTAL];     //volume of each box in (a^3)
