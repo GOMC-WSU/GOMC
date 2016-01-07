@@ -15,57 +15,70 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <map>
 
-namespace config_setup { class RestartSettings; }
+namespace config_setup { struct RestartSettings; }
 namespace pdb_setup { class Atoms; }
 class FFSetup;
 
 namespace mol_setup {
    //!structure to contain an atom's data during initialization
-   struct Atom
+   class Atom
    {
-      //name (within a molecule) and type (for forcefield params)
-      std::string name, type;
-      double charge, mass;
-      //kind index
-      uint kind;
-
+   public:
       Atom(std::string const& l_name, std::string const& l_type, 
            const double l_charge, const double l_mass) :
            name(l_name), type(l_type), charge(l_charge), mass(l_mass) {}
+   //private:
+	  //name (within a molecule) and type (for forcefield params)
+	  std::string name, type;
+	  double charge, mass;
+	  //kind index
+	  uint kind;
    };
 
-   struct Dihedral
+   class Dihedral
    {
-      //atoms
-      uint a0, a1, a2, a3;
-      uint kind;
-      Dihedral(uint atom0, uint atom1, uint atom2, uint atom3) 
+   public:
+	   Dihedral(uint atom0, uint atom1, uint atom2, uint atom3) 
          : a0(atom0), a1(atom1), a2(atom2), a3(atom3) {}
       //some xplor PSF files have duplicate dihedrals, we need to ignore these
       bool operator == (const Dihedral& other) const;
       bool operator != (const Dihedral& other) const;
+
+   //private:
+	  //atoms
+	  uint a0, a1, a2, a3;
+	  uint kind;
    };
 
-   struct Angle
+   class Angle
    {
-      uint a0, a1, a2;
-      uint kind;
+   public:
       Angle(uint atom0, uint atom1, uint atom2) 
          : a0(atom0), a1(atom1), a2(atom2) {}
+
+   //private:
+	  uint a0, a1, a2;
+	  uint kind;
    };
 
-   struct Bond
+   class Bond
    {
-      uint a0, a1;
-      uint kind;
-      Bond(uint atom0, uint atom1)
-         : a0(atom0), a1(atom1) {}
+   public:
+	   Bond(uint atom0, uint atom1)
+		   : a0(atom0), a1(atom1) {}
+//   private:
+	   uint a0, a1;
+       uint kind;
    };
 
    //!Structure to contain a molecule kind's data during initialization
-   struct MolKind
+   class MolKind
    {
-      std::vector<Atom> atoms;
+   public:
+	   MolKind() : incomplete(true) {}
+
+   //private:
+	  std::vector<Atom> atoms;
       std::vector<Bond> bonds;
       std::vector<Angle> angles;
       std::vector<Dihedral> dihedrals;
@@ -76,8 +89,7 @@ namespace mol_setup {
       uint firstAtomID, firstMolID;
       //true while the molecule is still open for modification during PSF read
       bool incomplete;
-      MolKind() : incomplete(true) {}
-   };
+    };
 
    //List of dihedrals with atom at one end, atom first
    std::vector<Dihedral> AtomEndDihs(const MolKind& molKind, uint atom);
@@ -95,29 +107,31 @@ namespace mol_setup {
 
    //! Reads one or more PSF files into kindMap
    /*!
-    *\param kindMap map to add PSF data to
-    *\param psfFilename array of strings containing filenames
-    *\param numFiles number of files to read
-    *\return -1 if failed, 0 if successful
-    */
+   *\param kindMap map to add PSF data to
+   *\param psfFilename array of strings containing filenames
+   *\param numFiles number of files to read
+   *\return -1 if failed, 0 if successful
+   */
    int ReadCombinePSF(MolMap& kindMap, const std::string* psfFilename,
-		      const int numFiles);
+	   const int numFiles);
 
    void PrintMolMapVerbose(const MolMap& kindMap);
    void PrintMolMapBrief(const MolMap& kindMap);
-
 }
 
 //wrapper struct for consistent interface
-struct MolSetup 
+class MolSetup 
 {
-   mol_setup::MolMap kindMap;
+public:
    //reads BoxTotal PSFs and merges the data, placing the results in kindMap
    //returns 0 if read is successful, -1 on a failure
    int Init(const config_setup::RestartSettings& restart,
 	    const std::string* psfFilename);
 
    void AssignKinds(const pdb_setup::Atoms& pdbAtoms, const FFSetup& ffData);
+
+//private:
+	mol_setup::MolMap kindMap;
 };
 #endif
 

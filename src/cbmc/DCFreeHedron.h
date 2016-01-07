@@ -12,7 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "DCHedron.h"
 #include "../CBMC.h"
 
-namespace mol_setup { struct MolKind; }
+namespace mol_setup { class MolKind; }
 
 namespace cbmc {
    class DCData;

@@ -18,7 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "OutputVars.h"
 
 class System;
-namespace config_setup { class Output; }
+namespace config_setup { struct Output; }
 class SystemPotential;
 class Energy;
 class Virial;

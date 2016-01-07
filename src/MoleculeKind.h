@@ -34,7 +34,7 @@ namespace cbmc { class TrialMol; }
 
 class FFSetup;
 class PRNG;
-class MolPick;
+struct MolPick;
 class System;
 class Forcefield;
 class Setup;

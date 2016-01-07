@@ -24,8 +24,9 @@ class System;
 ///  WRITE
 //
 
-struct OutputableBase
+class OutputableBase
 {
+public:
    virtual void Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output) = 0;
 
@@ -61,6 +62,8 @@ struct OutputableBase
       totSimSteps = totSteps;
       firstPrint = true;
    }
+
+//private:
    std::string uniqueName;
    ulong stepsPerOut, stepsTillEquil, totSimSteps;
    bool enableOut, firstPrint;
