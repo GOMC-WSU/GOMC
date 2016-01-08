@@ -32,7 +32,7 @@ namespace ff_setup
 		FFBase(uint terms, const bool mult) : SearchableBase(terms),
 			numTerms(terms), multi(mult) {}
 		void setIsCHARMM(const bool isCHRM) { CHARMM = isCHRM; }
-		bool isCHARMM(void) { return CHARMM; }
+		bool isCHARMM(void) const { return CHARMM; }
 		std::string ReadKind(Reader & param, std::string const& firstKindName);
 		std::vector<std::string> & getnamelist() { return name; }
 
@@ -63,6 +63,7 @@ namespace ff_setup
 		std::vector<std::string> name;
 		uint numTerms;
 		bool multi;
+	private:
 		bool CHARMM;
 	};
 

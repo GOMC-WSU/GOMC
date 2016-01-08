@@ -87,7 +87,7 @@ void FFSetup::Init(std::string const& name, const bool isCHARMM)
    dih.clean_names();
 
 #ifndef NDEBUG
-   if (isCHARMM())
+   if (isCHARMM)
    {
       std::cout << "Lennard-Jones Particles:\n";
    }
