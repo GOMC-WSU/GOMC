@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef INPUT_ABSTRACTS_H
 #define INPUT_ABSTRACTS_H
 
@@ -49,8 +42,9 @@ struct ReadableStepDependentBase
 };
 
 //template <uint N>
-struct SearchableBase
-{  
+class SearchableBase
+{
+public:
    SearchableBase(uint lN) : N(lN), mask(bits::GetMasks(lN)) {}
    //ubiquitous find for element identified by N maskable strings.
    int Find(std::string const*const kindNames,
@@ -67,7 +61,7 @@ struct SearchableBase
       return found;
    }
    
- private:
+private:
    //Check a particular previously read item for a match, if wild
    //cards are active, loop through all of them.
    bool Match(std::string const*const kindNames,
@@ -113,4 +107,3 @@ struct SearchableBase
 };
 
 #endif /*INPUT_ABSTRACTS_H*/
-

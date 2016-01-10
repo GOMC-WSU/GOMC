@@ -51,7 +51,7 @@ FFSetup::SetReadFunctions(const bool isCHARMM)
    }
    for (sect_it it = funct.begin(); it != funct.end(); ++it)
    {
-      (dynamic_cast<ff_setup::FFBase *>(it->second))->IsCHARMM(isCHARMM);
+	   (dynamic_cast<ff_setup::FFBase *>(it->second))->setIsCHARMM(isCHARMM);
    }
    return funct;
 }
@@ -84,9 +84,7 @@ void FFSetup::Init(std::string const& name, const bool isCHARMM)
    }
    param.close();
    //Adjust dih names so lookup finds kind indices rather than term counts
-   std::vector<std::string>::iterator newEnd;
-   newEnd = std::unique(dih.name.begin(), dih.name.end());
-   dih.name.erase(newEnd, dih.name.end());
+   dih.clean_names();
 
 #ifndef NDEBUG
    if (isCHARMM)
@@ -138,12 +136,12 @@ namespace ff_setup
       double e, s, e_1_4, s_1_4, dummy1, dummy2;
       uint expN, expN_1_4;
       std::stringstream values(LoadLine(param, firstVar));      
-      if (isCHARMM) //if lj
+      if (isCHARMM()) //if lj
       {
 	 values >> dummy1;
       } 
       values >> e >> s;
-      if (isCHARMM)
+      if (isCHARMM())
       {
 	 expN = ff::part::lj_n;
       }
@@ -159,7 +157,7 @@ namespace ff_setup
 	 s_1_4 = s; 
       }
       values >> expN_1_4; 
-      if (isCHARMM || values.fail())
+      if (isCHARMM() || values.fail())
       {
 	 expN_1_4 = expN;
       }
@@ -169,7 +167,7 @@ namespace ff_setup
    void Particle::Add(double e, double s, const uint expN,
 		      double e_1_4, double s_1_4, const uint expN_1_4)
    {
-      if (isCHARMM)
+      if (isCHARMM())
       {
 	 e *= -1.0;
 	 s *= RIJ_OVER_2_TO_SIG;
@@ -195,7 +193,7 @@ namespace ff_setup
    
       std::stringstream values(LoadLine(param, firstVar));
       values >> e >> s;
-      if (isCHARMM)
+	  if (isCHARMM())
       {
 	 expN = ff::part::lj_n;
       }
@@ -211,7 +209,7 @@ namespace ff_setup
 	 s_1_4 = s; 
       }
       values >> expN_1_4; 
-      if (isCHARMM || values.fail())
+	  if (isCHARMM() || values.fail())
       {
 	 expN_1_4 = expN;
       }
@@ -232,7 +230,7 @@ const double expN_1_4
 #endif
 	       )
    {
-      if (isCHARMM)
+	   if (isCHARMM())
       {
 	 e *= -1.0;
 	 s *= RIJ_TO_SIG;
@@ -293,7 +291,8 @@ const double expN_1_4
 
    void Dihedral::Read(Reader & param, std::string const& firstVar)
    {
-      double coeff, index, def;
+      double coeff, def;
+	  uint index;
       std::string merged = ReadKind(param, firstVar);
       param.file >> coeff >> index >> def;
       Add(merged, coeff, index, def);
@@ -313,7 +312,7 @@ const double expN_1_4
       double coeff, def;
       std::string merged = ReadKind(param, firstVar);
       //If new value
-      if (std::find(name.begin(), name.end(), merged) == name.end())
+      if (validname(merged) == false)
       {
 	 param.file >> coeff >> def;
 	 Add(coeff, def);

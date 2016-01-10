@@ -21,9 +21,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 namespace config_setup
 { 
   //class FFValues; 
-  class FFKind;
+  struct FFKind;
   //class Temperature;
-  class SystemVals;
+  struct SystemVals;
 }
 class FFSetup;
 class Setup;

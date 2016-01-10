@@ -22,7 +22,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBSetup.h" //For atoms class
 
 class System;
-namespace config_setup { class Output; }
+namespace config_setup { struct Output; }
 class MoveSettings;
 class MoleculeLookup;
 

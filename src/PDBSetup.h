@@ -17,8 +17,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBConst.h" //For fields positions, etc.
 #include "XYZArray.h" //For box dimensions.
 
-namespace config_setup { class RestartSettings; }
-class FWReadableBase;
+namespace config_setup { struct RestartSettings; }
+struct FWReadableBase;
 
 
 namespace pdb_setup
@@ -60,22 +60,9 @@ namespace pdb_setup
 
    };
 
-   struct Atoms : FWReadableBase
+   class Atoms : public FWReadableBase
    {
-      //member data
-      std::vector<char> chainLetter; //chain ids of each molecule
-      std::vector<double> x, y, z; //coordinates of each particle
-      std::vector<uint> box;
-      std::vector<std::string> atomAliases, resNamesFull, resNames,
-         resKindNames;
-      std::vector<uint> startIdxRes, resKinds;
-      bool restart, firstResInFile;
-      //CurrRes is used to store res vals, currBox is used to 
-      //determine box either via the file (new) or the occupancy
-      //(restart), count allows overwriting of coordinates during
-      //second box read (restart only)
-      uint currBox, count, currRes;
-
+   public:
       //Set the current residue to something other than 1
       Atoms(void) : restart(false), currBox(0), count(0),
 	 currRes(10) {}
@@ -96,7 +83,23 @@ namespace pdb_setup
 		  const double l_z, 
 		  const double l_occ);
       void Read(FixedWidthReader & file);
+
+   //private:
+	   //member data
+	   std::vector<char> chainLetter; //chain ids of each molecule
+	   std::vector<double> x, y, z; //coordinates of each particle
+	   std::vector<uint> box;
+	   std::vector<std::string> atomAliases, resNamesFull, resNames,
+		   resKindNames;
+	   std::vector<uint> startIdxRes, resKinds;
+	   bool restart, firstResInFile;
+	   //CurrRes is used to store res vals, currBox is used to 
+	   //determine box either via the file (new) or the occupancy
+	   //(restart), count allows overwriting of coordinates during
+	   //second box read (restart only)
+	   uint currBox, count, currRes;
    };
+
 }
 
 struct PDBSetup
