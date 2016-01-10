@@ -22,8 +22,8 @@ void ConsoleOutput::DoOutput(const ulong step)
    if (step==0)
       std::cout << "STARTING SIMULATION!!" << std::endl << std::endl;
    else 
-      std::cout << "STEP " << step << " of " << totSimSteps << " ("
-		<< (double)(step)/(double)(totSimSteps) * 100.0
+      std::cout << "STEP " << step+1 << " of " << totSimSteps << " ("
+		<< (double)(step+1)/(double)(totSimSteps) * 100.0
 		<< "% done)" << std::endl << std::endl;
 
    for (uint b = 0; b < BOX_TOTAL; b++)

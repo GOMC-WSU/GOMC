@@ -38,8 +38,8 @@ namespace ff_setup
 }
 namespace config_setup 
 { 
-  class FFValues; 
-  class FFKind;
+  struct FFValues; 
+  struct FFKind;
 }
 
 struct FFParticle

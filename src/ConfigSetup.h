@@ -57,14 +57,17 @@ namespace config_setup
    };
 
    //Kinds of Mersenne Twister initialization
-   struct PRNGKind
+   class PRNGKind
    {
-      std::string kind;
-      MTRand::uint32 seed;
+   public:
       bool IsRand(void) const { return str::compare(KIND_RANDOM, kind); }
       bool IsSeed(void) const { return str::compare(KIND_SEED, kind); }
       bool IsRestart(void) const { return str::compare(KIND_RESTART, kind); }
-      static const std::string KIND_RANDOM, KIND_SEED, KIND_RESTART;
+
+   //private:
+	  std::string kind;
+	  MTRand::uint32 seed;
+	  static const std::string KIND_RANDOM, KIND_SEED, KIND_RESTART;
    }; 
    
 	struct FFKind

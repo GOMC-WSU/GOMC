@@ -14,7 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "../lib/BasicTypes.h"
 #include "MolSetup.h"
 
-struct Molecules;
+class Molecules;
 
 class PSFOutput
 {
