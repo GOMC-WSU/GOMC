@@ -167,7 +167,8 @@ void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
 	  n_1_4[j] = nbfix.n_1_4[i];
 	  double rRat = nbfix.sigma[i]/rCut, tc = 1.0;
 	  num::Cb(sigmaSq[j], tc, nbfix.sigma[i]);
-	  num::Cb(sigmaSq_1_4[j], tc, nbfix.sigma_1_4[i]);
+	  //num::Cb(sigmaSq_1_4[j], tc, nbfix.sigma_1_4[i]);
+	  sigmaSq_1_4[j] = nbfix.sigma_1_4[i] * nbfix.sigma_1_4[i];
 	  tc *= 0.5 * 4.0 * M_PI;
 	  double cn = n[j]/(n[j]-6) *pow(n[j]/6, (6/(n[j]-6)));
 	  double cn_1_4 = n_1_4[j]/(n_1_4[j]-6) *
@@ -262,7 +263,8 @@ void FFParticle::Blend(ff_setup::Particle const& mie,
 	 double rRat = sigma/rCut; 
 
 	 num::Cb(sigmaSq[idx], tc, sigma);
-	 num::Cb(sigmaSq_1_4[idx], tc, sigma_1_4);
+	 //num::Cb(sigmaSq_1_4[idx], tc, sigma_1_4);
+	 sigmaSq_1_4[idx] = sigma_1_4 * sigma_1_4;
 	 tc *= 0.5 * 4.0 * M_PI;
 	 epsilon_cn[idx] = 
 	    cn * num::MeanG(mie.epsilon, mie.epsilon, i, j);
