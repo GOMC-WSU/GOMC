@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef TRANSFORMABLE_BASE_H
 #define TRANSFORMABLE_BASE_H
 
@@ -128,7 +121,7 @@ class Translate : public MoveBase, public MolTransformBase
    virtual void CalcEn();
    virtual void Accept(const uint rejectState, const uint step);
  private:
-   Intermolecular inter;
+   Intermolecular inter_LJ, inter_Real;
    XYZ newCOM;
 };
 
@@ -149,7 +142,7 @@ inline void Translate::CalcEn()
    cellList.RemoveMol(m, b, coordCurrRef);
    molRemoved = true;
 #endif
-   inter = calcEnRef.MoleculeInter(newMolPos, m, b, &newCOM);
+   calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b, &newCOM);
 }
 
 inline void Translate::Accept(const uint rejectState, const uint step)
@@ -158,14 +151,20 @@ inline void Translate::Accept(const uint rejectState, const uint step)
    if (rejectState == mv::fail_state::NO_FAIL)
    {
       double pr = prng();
-      res = pr < exp(-BETA * inter.energy);
+      res = pr < exp(-BETA * (inter_LJ.energy + inter_Real.energy));
    }
    bool result = (rejectState == mv::fail_state::NO_FAIL) && res;
   
    if (result)
    {
       //Set new energy.
-      sysPotRef.Add(b, inter);
+      // setting energy and virial of LJ interaction
+      sysPotRef.boxEnergy[b].inter += inter_LJ.energy;   
+      sysPotRef.boxVirial[b].inter += inter_LJ.virial;
+      // setting energy and virial of coulomb interaction
+      sysPotRef.boxEnergy[b].real += inter_Real.energy;
+      sysPotRef.boxVirial[b].real += inter_Real.virial;
+
       sysPotRef.Total();
       //Copy coords
       newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);	       
@@ -192,7 +191,7 @@ class Rotate : public MoveBase, public MolTransformBase
    virtual void CalcEn();
    virtual void Accept(const uint earlyReject, const uint step);
  private:
-   Intermolecular inter;
+   Intermolecular inter_LJ, inter_Real;
 };
 
 inline uint Rotate::Prep(const double subDraw, const double movPerc) 
@@ -223,7 +222,8 @@ inline void Rotate::CalcEn()
    cellList.RemoveMol(m, b, coordCurrRef);
    molRemoved = true;
 #endif
-   inter = calcEnRef.MoleculeInter(newMolPos, m, b);
+
+   calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);
 }
 
 inline void Rotate::Accept(const uint rejectState, const uint step)
@@ -232,14 +232,20 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
 	if (rejectState == mv::fail_state::NO_FAIL)
 	{
 		double pr = prng();
-		res = pr < exp(-BETA * inter.energy);
+		res = pr < exp(-BETA * (inter_LJ.energy + inter_Real.energy));
 	}
 	bool result = (rejectState == mv::fail_state::NO_FAIL) && res;
 	
    if (result)
    {
       //Set new energy.
-      sysPotRef.Add(b, inter);
+      // setting energy and virial of LJ interaction
+      sysPotRef.boxEnergy[b].inter += inter_LJ.energy;   
+      sysPotRef.boxVirial[b].inter += inter_LJ.virial;
+      // setting energy and virial of coulomb interaction
+      sysPotRef.boxEnergy[b].real += inter_Real.energy;
+      sysPotRef.boxVirial[b].real += inter_Real.virial;
+
       sysPotRef.Total();
 
       //Copy coords
@@ -417,4 +423,3 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
 #endif
 
 #endif /*TRANSFORMABLE_BASE_H*/
-

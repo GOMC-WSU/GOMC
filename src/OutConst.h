@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef OUT_CONST_H
 #define OUT_CONST_H
 
@@ -13,7 +6,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "EnsemblePreprocessor.h" //For VARIABLE_x, etc.
 #include "../lib/BasicTypes.h" //For uint
 
-//#define EN_SUBCAT_OUT
+#define EN_SUBCAT_OUT
 //#define VIR_SUBCAT_OUT
 
 namespace out
@@ -104,4 +97,3 @@ namespace out
 }
 
 #endif /*OUT_CONST_H*/
-
