@@ -1,6 +1,9 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [1.1] - 01/20/2016
++ Supporting Martini forcefield
+
 ## [1.0] - 10/18/2015
 + Changes for input file system.
 + Added Cell list optimization to the GPU and the Serial code.
