@@ -31,50 +31,46 @@ namespace{
 	void _PAUSE(const char* _MSG);
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
-   //const char * nm = "in.dat";//REMOVED TO ALLOW PASSAGE OF ANY NAME
+	//const char * nm = "in.dat";//REMOVED TO ALLOW PASSAGE OF ANY NAME
 	PrintSimulationHeader();
 	//Only run if valid ensemble was detected.
 	if (CheckAndPrintEnsemble())
-	{   
+	{
 #ifndef NDEBUG
 		PrintDebugMode();
 #endif
 		//FOLLOWING LINES ADDED TO OBTAIN INPUT PARAMETER FILE
 		string inputFileString;
 		fstream inputFileReader;
-		bool fileFound;
 
-		do
-		{
-		  try {
-			  cout << "Please provide location and name of input parameter file (*.dat): ";
-			  cin >> inputFileString;
-			  remove(inputFileString.begin(), inputFileString.end(), ' ');//REMOVE ANY TRAILING SPACE
-			  if (inputFileString.length() == 0)
-				  throw std::invalid_argument("No filename provided!");
+		try {
+			//CHECK IF ARGS/FILE PROVIDED IN CMD LINE
+			if (argc < 2)
+				throw std::invalid_argument("Input parameter file (*.dat) not specified on command line!");
+			else
+				inputFileString = argv[argc - 1];
 
-			  inputFileReader.open(inputFileString.c_str(), ios::in | ios::out); //OPEN FILE
-			  if (!inputFileReader.is_open()) //CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
-				  throw std::invalid_argument("Cannot open/find file in the directory provided!");
+			inputFileReader.open(inputFileString.c_str(), ios::in | ios::out); //OPEN FILE
+			if (!inputFileReader.is_open()) //CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
+				throw std::invalid_argument("Cannot open/find file in the directory provided!");
 
-			  inputFileReader.close(); //CLOSE FILE TO NOW PASS TO SIMULATION
-			  fileFound = true; //SET TRUE FILE FOUND
-		  }
-		  //EXCEPTION HANDLING
-		  catch (const std::invalid_argument &ex){
-			  cout << "ERROR: " << ex.what() << endl;
-			  _PAUSE("Please press ENTER to continue..."); //PAUSE FOR USER TO ACKNOWLEDGE ERROR
-			  fileFound = false; //SET FALSE FILE FOUND
-		  }
-		} while (!fileFound);
+			inputFileReader.close(); //CLOSE FILE TO NOW PASS TO SIMULATION
+		}
+		//EXCEPTION HANDLING
+		catch (const std::invalid_argument &ex){
+			cout << "ERROR: " << ex.what() << endl;
+			_PAUSE("Please press ENTER to continue..."); //PAUSE FOR USER TO ACKNOWLEDGE ERROR
+			return 0;
+		}
+
 		//ONCE FILE FOUND PASS STRING TO SIMULATION CLASS TO READ AND HANDLE PDB|PSF FILE
 		Simulation sim(inputFileString.c_str());
 		sim.RunSimulation();
 		PrintSimulationFooter();
-    }
-    return 0;
+	}
+	return 0;
 }
 
 
