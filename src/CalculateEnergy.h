@@ -1,3 +1,10 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
+Copyright (C) 2015  GOMC Group
+
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef CALCULATEENERGY_H
 #define CALCULATEENERGY_H
 
@@ -5,13 +12,12 @@
 
 #include "../lib/BasicTypes.h"
 #include "EnergyTypes.h"
-#include "cbmc/TrialMol.h"
+#include "EnsemblePreprocessor.h"   //Flags
 #ifdef CELL_LIST
 #include "CellList.h"
 #endif
-#include <cmath>
-#include <vector>
 
+#include <vector>
 
 //
 //    CalculateEnergy.h
@@ -44,23 +50,13 @@ namespace config_setup{ class SystemVals; }
 class CalculateEnergy 
 {
    public:
-      CalculateEnergy(StaticVals const& stat, System & sys);
-      ~CalculateEnergy();
+	   CalculateEnergy(StaticVals const& stat, System & sys);
+	   ~CalculateEnergy();
 
-      void Init(config_setup::SystemVals const& val);
+	  void Init(config_setup::SystemVals const& val);
 
       //! Calculates total energy/virial of all boxes in the system
       SystemPotential SystemTotal();
-      SystemPotential SystemTotalRecalc(SystemPotential potential,
-					XYZArray const& coords,
-					XYZArray const& com,
-					BoxDimensions const& boxAxes);
-
-      SystemPotential BoxTotalRecalc(SystemPotential potential,
-				     XYZArray const& coords,
-				     XYZArray const& com,
-				     BoxDimensions const& boxAxes,
-				     const uint box);
 
       //! Calculates total energy/virial of a single box in the system
       SystemPotential BoxInter(SystemPotential potential,
@@ -88,12 +84,12 @@ class CalculateEnergy
       //! @param newCOM (optional) If COM has changed for new coordinate,
       //!                          allows for that to be considered.
       //! @return Intermolecular with interactions for that molecule
-      void MoleculeInter(Intermolecular &inter,
-						Elect &real,
-						XYZArray const& molCoords,
-						const uint molIndex,
-						const uint box,
-						XYZ const*const newCOM = NULL) const;
+	  void MoleculeInter(Intermolecular &inter,
+						 Elect &real,
+						 XYZArray const& molCoords,
+						 const uint molIndex,
+						 const uint box,
+						 XYZ const*const newCOM = NULL) const;
 
       //! Calculates Nonbonded intra energy for candidate positions
       //! @param energy Return array, must be pre-allocated to size n
@@ -109,6 +105,23 @@ class CalculateEnergy
                              const uint box,
                              const uint trials) const;
 
+
+      //! Calculates Nonbonded 1-4 intra energy for candidate positions
+      //! and 1-3 interaction in case of  Martini forcefield
+      //! @param energy Return array, must be pre-allocated to size n
+      //! @param trialMol Partially built trial molecule.
+      //! @param trialPos Contains exactly n potential particle positions
+      //! @param partIndex Index of particle within the molecule
+      //! @param box Index of box molecule is in
+      //! @param trials Number of trials ot loop over in position array. (cbmc)
+      void ParticleNonbonded_1_4(double* energy,
+                             const cbmc::TrialMol& trialMol,
+                             XYZArray const& trialPos,
+                             const uint partIndex,
+                             const uint box,
+                             const uint trials) const;
+
+
       //! Calculates Nonbonded intra energy for candidate positions
       //! @param energy Output Array, at least the size of trialpos
       //! @param trialPos Array of candidate positions
@@ -116,13 +129,13 @@ class CalculateEnergy
       //! @param molIndex Index of molecule
       //! @param box Index of box molecule is in
       //! @param trials Number of trials ot loop over in position array. (cbmc)
-      void ParticleInter(double* en,
-						 double *real, 
-                         XYZArray const& trialPos,
-                         const uint partIndex,
-                         const uint molIndex,
-                         const uint box,
-                         const uint trials) const;
+	  void ParticleInter(double* en,
+		  double *real,
+		  XYZArray const& trialPos,
+		  const uint partIndex,
+		  const uint molIndex,
+		  const uint box,
+		  const uint trials) const;
 
       //! For insertion moves we calculate the virial only if we accept, to
       //! save work.
@@ -150,47 +163,62 @@ class CalculateEnergy
 	  //ewald self energy and correction term functions
 	  void MolCorrection(double &correction, uint thisMol, int box)const;
 	  void BoxSelf(double& self, int box);
-	  void SwapSelf(double *self, uint molIndex, uint partIndex, int box, uint trials) const;
-	  void SwapCorrection(double* energy, const cbmc::TrialMol& trialMol, XYZArray const& trialPos, const uint partIndex, const uint box, const uint trials) const;
+	  void SwapSelf(double *self, uint molIndex, uint partIndex, int box, 
+					uint trials) const;
+	  void SwapCorrection(double* energy, const cbmc::TrialMol& trialMol, 
+							XYZArray const& trialPos, const uint partIndex, 
+							const uint box, const uint trials) const;
 
 	  //ewald reciprocal energy functions
-	  double BoxReciprocal(int box);
+	  double BoxReciprocal(int box, XYZArray const& molCoords);
 	  double MolReciprocal(XYZArray const& molCoords,
-							const uint molIndex,
-							const uint box,
-							XYZ const*const newCOM = NULL);			//calculates difference between new recip and old recip
+		  const uint molIndex,
+		  const uint box,
+		  XYZ const*const newCOM = NULL);			//calculates difference between new recip and old recip
 	  double SwapDestRecip(cbmc::TrialMol Mol, const uint box);		//calculates new recip or old recip only
 	  double SwapSourceRecip(uint molIndex, const uint box);
 
 	  void UpdateRestoreRecip(){
-	    double *tS, *tC;
-	    tS = RecipSinSum;
-	    RecipSinSum = SinSumNew;
-	    SinSumNew = tS;
-	    tC = RecipCosSum;
-	    RecipCosSum = CosSumNew;
-	    CosSumNew = tC;
+		  double *tS, *tC;
+		  tS = RecipSinSum;
+		  RecipSinSum = SinSumNew;
+		  SinSumNew = tS;
+		  tC = RecipCosSum;
+		  RecipCosSum = CosSumNew;
+		  CosSumNew = tC;
 	  };
 
-	  //ewald system 
+	  //For GEMC, recalc system energy including Ewald
+	  SystemPotential SystemTotalRecalc(SystemPotential potential,
+		  XYZArray const& coords,
+		  XYZArray const& com,
+		  BoxDimensions const& boxAxes);
 
-	  //error function
-	  //	  double erf(double erfc)const;
-
+	  SystemPotential BoxTotalRecalc(SystemPotential potential,
+		  XYZArray const& coords,
+		  XYZArray const& com,
+		  BoxDimensions const& boxAxes,
+		  const uint box);
+	 
 	  //const parameter set and retrive functions
-	  void Calp(int box, double boxSize) {calp[box] = alpha / boxSize;};
-	  void CalpBackup(int box){calp_old[box] = calp[box];};
-	  void CalpRestore(){
-	    double *swap;
-	    swap = calp;
-	    calp = calp_old;
-	    calp_old = swap;
+	  void Calp(int box, double boxSize, bool update) {
+	    if(update)
+	      calp[box] = alpha / boxSize;
+	    else
+	      calp_old[box] = alpha / boxSize; 
 	  };
-	  double kxyz[2][257][3];				//recip vector
-	  double prefact[2][257];			//recip variable
-	  void SetupRecip(int box);		//set up recip size, recip varaibles, recip vector, and the cache arrays of recip's sin sum and cos sum
-	  bool ifEwald(){return DoEwald;};
+	  void CalpBackup(int box){ calp_old[box] = calp[box]; }
+	  void CalpRestore(){
+		  double *swap;
+		  swap = calp;
+		  calp = calp_old;
+		  calp_old = swap;
+	  }
 	  
+	  void SetupRecip(int box, BoxDimensions const& boxAxes);		//set up recip size, recip varaibles, recip vector, and the cache arrays of recip's sin sum and cos sum
+	  void RecipSizeInitial(int box);								//run iteration to calculate the size of the recip images for initializing arrays purpose.
+	  bool ifEwald(){ return DoEwald; }
+
    private: 
 
       //! Calculates full TC for one box in current system
@@ -222,11 +250,19 @@ class CalculateEnergy
                        XYZArray const& vecs,
                        const uint box) const;
 
-      //! Calculates Nonbonded intramolecule energy of a full molecule
+      //! Calculates Nonbonded 1_N intramolecule energy of a full molecule
       void MolNonbond(double & energy,
                       MoleculeKind const& molKind,
                       const uint molIndex,
                       const uint box) const;
+      
+      //! Calculates Nonbonded 1_4 intramolecule energy of a full molecule
+      // and 1-3 interaction for Martini forcefield
+      void MolNonbond_1_4(double & energy,
+                      MoleculeKind const& molKind,
+                      const uint molIndex,
+                      const uint box) const;
+
   
       //! For particles in main coordinates array determines if they belong
       //! to same molecule, using internal arrays.
@@ -239,27 +275,32 @@ class CalculateEnergy
       const MoleculeLookup& molLookup;
       const BoxDimensions& currentAxes;
       const COM& currentCOM;
-       
+#ifdef RECIP_ARRAY_SIZE_TWO
+      const uint& GEMC_KIND;           //VOLUME TRANSFER MOVE USE
+#endif    
       std::vector<int> particleKind;
       std::vector<int> particleMol;
 #ifdef CELL_LIST
       const CellList& cellList;
 #endif
-
-      //for ewald sum
-      bool DoEwald;
-      double kmax1;
-      double alpha;
-      double *calp, *calp_old;                //alpha over box size
-      double *MolSelfEnergy;      //cache self energy for each molecule kind
-      int RecipSize[2];
-      SystemPotential &sysPotRef;
-      std::vector<double> particleCharge;
-      //for ewald summation
-      double *RecipSinSum;			//RecipSinSum[box][RecipSize]
-      double *RecipCosSum;
-      double *SinSumNew;
-      double *CosSumNew;
+	  //for ewald sum
+	  bool DoEwald;
+	  double kmax1;
+	  double alpha;
+	  double *calp, *calp_old;                //alpha over box size
+	  double kxyz[2][257][3];				//recip vector
+	  double prefact[2][257];			//recip variable
+	  double *MolSelfEnergy;      //cache self energy for each molecule kind
+	  int RecipSize[2];
+	  SystemPotential &sysPotRef;
+	  std::vector<double> particleCharge;
+	  //for ewald summation
+	  double *RecipSinSum;			//RecipSinSum[box][RecipSize]
+	  double *RecipCosSum;
+	  double *SinSumNew;
+	  double *CosSumNew;
+	  const double qqfact;
 };
 
 #endif /*ENERGY_H*/
+

@@ -35,3 +35,10 @@ All notable changes to this project will be documented in this file.
 
 ##[1.00] - 12/22/2015
 + Update CPUSide.cpp, move hist into the ifdef of GCMC. Target at the floating operation issue returned by NVT and GEMC simulations.
+
+##[1.00] - 01/25/2016
++ Fix the coherence issue on two boxes simulations, including NPT, GEMC, and two boxes GCMC simulations.
+
++ To fix the issue, Calp() and SetupRecip() have to be recalculated everytime before and after the volume transfer; RecipSinSum and RecipCosSum arrays have to be synchronized in two boxes simulations; GEMC_NVT is different from GEMC_NPT, the difference between GEMC_NVT and GEMC_NPT requires "if" statement.
+
+? GEMC is returning good result from computation; however, it does not return correct results. A potential bug inside of the computation logic.
