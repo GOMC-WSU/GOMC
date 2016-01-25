@@ -1,3 +1,10 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
+Copyright (C) 2015  GOMC Group
+
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "MoveSettings.h" //header spec.
 #include "BoxDimensions.h" //For axis sizes
 #include "StaticVals.h" //For init info.
@@ -43,6 +50,7 @@ void MoveSettings::Init(StaticVals const& statV)
    scale[mv::VOL_TRANSFER*BOX_TOTAL+1] = 500;
    GEMC_KIND = statV.kindOfGEMC;
 #endif
+
 }
 
 //Process results of move we just did in terms of acceptance counters
@@ -81,7 +89,7 @@ void MoveSettings::Update(const bool isAccepted, const uint moveIndex,
    //Check whether we need to adjust this move's scaling.
    if (adjust)
    {
-      for (uint m = 0; m < mv::SCALEABLE; m++)
+      for (uint m = 0; m < mv::SCALEABLE; ++m)
       {
 #if ENSEMBLE == GCMC
          uint majMoveKind = m;
@@ -102,7 +110,8 @@ void MoveSettings::Adjust(const uint majMoveKind,
 {   
    if (tempTries[moveIndex] > 0)
    {
-      double currentAccept = (double)(tempAccepted[moveIndex])/(double)(tempTries[moveIndex]),
+      double currentAccept =
+	 (double)(tempAccepted[moveIndex])/(double)(tempTries[moveIndex]),
 	 fractOfTargetAccept = currentAccept/TARGET_ACCEPT_FRACT;
 
 #if 0
@@ -157,3 +166,4 @@ void MoveSettings::Adjust(const uint majMoveKind,
       break;
    }
 }
+

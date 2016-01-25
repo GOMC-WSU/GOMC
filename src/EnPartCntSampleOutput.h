@@ -1,3 +1,10 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
+Copyright (C) 2015  GOMC Group
+
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef EN_PART_CNT_SAMPLE_OUTPUT_H
 #define EN_PART_CNT_SAMPLE_OUTPUT_H
 
@@ -19,7 +26,7 @@ namespace config_setup { class Output; }
 
 struct EnPartCntSample : OutputableBase
 {
-   EnPartCntSample(OutputVars & v) { this->var = &v; }
+   EnPartCntSample(OutputVars & v);
 
    ~EnPartCntSample();
 
@@ -55,3 +62,4 @@ struct EnPartCntSample : OutputableBase
 #endif /*ENSEMBLE==GCMC*/
 
 #endif /*EN_PART_CNT_SAMPLE_OUTPUT_H*/
+

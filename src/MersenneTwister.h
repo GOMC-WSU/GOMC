@@ -1,3 +1,10 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
+Copyright (C) 2015  GOMC Group
+
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 // MersenneTwister.h
 // Mersenne Twister random number generator -- a C++ class MTRand
 // Based on code by Makoto Matsumoto, Takuji Nishimura, and Shawn Cokus
@@ -87,6 +94,7 @@ protected:
 	uint32 state[N];   // internal state
 	uint32 *pNext;     // next value to get from state
 	int32 left;          // number of values left before reload needed
+	uint32 seedValue;
 
 // Methods
 public:
@@ -269,7 +277,9 @@ inline void MTRand::seed()
 	}
 	
 	// Was not successful, so use time() and clock() instead
-	seed( hash( time(NULL), clock() ) );
+	seedValue = hash( time(NULL), clock() );
+	seed( seedValue );
+	std::cout << "Random number seed: " << seedValue << std::endl;
 }
 
 inline MTRand::MTRand( const uint32 oneSeed )
@@ -326,9 +336,7 @@ inline MTRand::uint32 MTRand::randInt( const uint32 n )
 }
 
 inline double MTRand::rand()
-        {
-	  double RandTemp = randInt();
-	  return double(RandTemp) * (1.0/4294967295.0); }
+	{ return double(randInt()) * (1.0/4294967295.0); }
 
 inline double MTRand::rand( const double n )
 	{ return rand() * n; }
@@ -470,3 +478,4 @@ inline MTRand& MTRand::operator=( const MTRand& o )
 //      - Revised twist() operator to work on ones'-complement machines
 //      - Fixed reload() function to work when N and M are unsigned
 //      - Added copy constructor and copy operator from Salvador Espana
+

@@ -1,3 +1,10 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
+Copyright (C) 2015  GOMC Group
+
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "OutputVars.h"
 #include "UnitConst.h" //For unit conversion factors
 #include "System.h"
@@ -8,7 +15,7 @@
 #include "MoveConst.h" //For box constants, if we're calculating Hv
 #endif
 
-OutputVars::OutputVars(System & sys, StaticVals const& statV): molFractionByKindBox(NULL)
+OutputVars::OutputVars(System & sys, StaticVals const& statV)
 { InitRef(sys, statV); }
 
 void OutputVars::InitRef(System & sys, StaticVals const& statV)
@@ -69,7 +76,7 @@ OutputVars::~OutputVars(void)
       delete[] numByBox;
    if ( numByKindBox != NULL )
       delete[] numByKindBox;
-   if ( molFractionByKindBox != NULL )
+   if ( numKinds > 1 && molFractionByKindBox != NULL )
       delete[] molFractionByKindBox;
    if ( densityByKindBox != NULL )
       delete[] densityByKindBox;
@@ -148,3 +155,4 @@ void OutputVars::CalcAndConvert(void)
 #endif
 
 }
+

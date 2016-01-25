@@ -1,3 +1,10 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
+Copyright (C) 2015  GOMC Group
+
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef FF_SWITCH_H
 #define FF_SWITCH_H
 
@@ -11,10 +18,22 @@
 ///////////////////////////////////////////////////////////////////////
 ////////////////////////// LJ Switch Style ////////////////////////////
 ///////////////////////////////////////////////////////////////////////
-// Virial and LJ potential calculation:
-// Eij = cn * eps_ij * ( (sig_ij/rij)^n - (sig_ij/rij)^6)
+// LJ potential calculation:
+// Eij = (cn * eps_ij * ( (sig_ij/rij)^n - (sig_ij/rij)^6)) * FE
 // cn = n/(n-6) * ((n/6)^(6/(n-6)))
+// FE = 1 , if rij < rswitch
+// FE = (rcut^2 - rij^2) * (factor1 + 2 * rij^2) * factor2 , if rcut>rij>rswitch
+// factor1 = (rcut^2 - 3 * rswitch^2)
+// factor2 = (rcut^2 - rswitch^2)^-3
 //
+// Virial calculation
+// Vir(r) = FE * cn * eps_ij * 6 * ((n/6) * repulse - attract)/rij^2 -
+//          cn * eps_ij * (repulse - attract) * FW
+//
+// FW = 0 , if rij < rswitch
+// FW = 12 * (rcut^2 - rij^2)(rswitch^2-rij^2) * factor2 , if rcut>rij >rswitch
+//
+
 
 struct FF_SWITCH : public FFParticle
 {
@@ -28,6 +47,8 @@ struct FF_SWITCH : public FFParticle
                  const uint kind1, const uint kind2) const;
    virtual double CalcVir(const double distSq,
                   const uint kind1, const uint kind2) const;
+   virtual void CalcAdd_1_4(double& en, const double distSq,
+		const uint kind1, const uint kind2) const;
    //!Returns Ezero, no energy correction
    virtual double EnergyLRC(const uint kind1, const uint kind2) const
    {return 0.0;}
@@ -52,6 +73,31 @@ inline void FF_SWITCH::CalcAdd(double& en, double& vir, const double distSq,
    uint idx = FlatIndex(kind1, kind2);
    Calc(en, vir, distSq, idx, n[idx]);
 } 
+
+inline void FF_SWITCH::CalcAdd_1_4(double& en, const double distSq,
+		const uint kind1, const uint kind2) const
+{
+   uint index = FlatIndex(kind1, kind2);
+   double rCutSq_rijSq = rCutSq - distSq;
+   double rCutSq_rijSq_Sq = rCutSq_rijSq * rCutSq_rijSq;
+
+   double rRat2 = sigmaSq_1_4[index]/distSq;
+   double rRat4 = rRat2 * rRat2;
+   double attract = rRat4 * rRat2;
+#ifdef MIE_INT_ONLY
+   uint n_ij = n_1_4[index];
+   double repulse = num::POW(rRat2, rRat4, attract, n_ij);
+#else
+   double n_ij = n_1_4[index];
+   double repulse = pow(sqrt(rRat2), n_ij);
+#endif
+
+   double fE = rCutSq_rijSq_Sq * factor2 * (factor1 + 2 * distSq);
+
+   const double factE = ( distSq > rOnSq ? fE : 1.0);
+
+   en += (epsilon_cn_1_4[index] * (repulse-attract)) * factE;
+}
 
 inline void FF_SWITCH::CalcSub(double& en, double& vir, const double distSq,
 				const uint kind1, const uint kind2) const
@@ -161,3 +207,4 @@ inline void FF_SWITCH::Calc(double & en, double & vir,
 }
 
 #endif /*FF_SWITCH_H*/
+

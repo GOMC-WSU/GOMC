@@ -1,3 +1,10 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
+Copyright (C) 2015  GOMC Group
+
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef DCDATA_H
 #define DCDATA_H
 #include "../../lib/BasicTypes.h"
@@ -9,8 +16,7 @@
 #include <algorithm>
 
 class Forcefield;
-extern bool DoEwald;
-//#define DEBUG
+
 
 namespace cbmc
 {
@@ -41,8 +47,10 @@ namespace cbmc
       XYZArray& positions;     //candidate positions for inclusion (alias for multiPositions[0])
       double* inter;          //intermolecule energies, reused for new and old
       double* bonded;
-      double* nonbonded;      //calculated nonbonded energies
-	  double* self;
+      double* nonbonded;      //calculated nonbonded 1_N energies
+      double* nonbonded_1_4;  //calculated nonbonded 1_4 energies and 1_3 in
+                              //case of Martini forcefield 
+	  double* self;			//energies for Ewald calculations
 	  double* correction;
 	  double* real;
       double* ljWeights;
@@ -68,6 +76,7 @@ inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& se
    inter = new double[maxLJTrials];
    bonded = new double[maxLJTrials];
    nonbonded = new double[maxLJTrials];
+   nonbonded_1_4 = new double[maxLJTrials];
    ljWeights = new double[maxLJTrials];
    self = new double[maxLJTrials];
    correction = new double[maxLJTrials];
@@ -84,6 +93,7 @@ inline DCData::~DCData()
    delete[] inter;
    delete[] bonded;
    delete[] nonbonded;
+   delete[] nonbonded_1_4;
    delete[] self;
    delete[] correction;
    delete[] real;
@@ -96,3 +106,4 @@ inline DCData::~DCData()
 }
 
 #endif
+

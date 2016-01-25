@@ -1,3 +1,10 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
+Copyright (C) 2015  GOMC Group
+
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "ConsoleOutput.h"          //For spec;
 #include "EnsemblePreprocessor.h"   //For BOX_TOTAL, ensemble
 #include "MoveConst.h"    //For move index constants, name constants.
@@ -11,7 +18,6 @@
 #include <iostream>                 // for cout;
 
 #define EN_SUBCAT_OUT
-
 void ConsoleOutput::DoOutput(const ulong step)
 {
    if (step==0)
@@ -41,8 +47,8 @@ void ConsoleOutput::PrintBox(const uint box, const ulong step) const
    for(uint k = 0; k < var->numKinds; ++k)
       PrintMolKind(k, k+offset);
 
-   PrintEnergy(var->energyRef[box], var->virialRef[box]
-               ,(box < BOXES_WITH_U_NB));
+   PrintEnergy(var->energyRef[box], var->virialRef[box],
+               (box < BOXES_WITH_U_NB));
 
    if (step > 0 )
    {
@@ -122,23 +128,23 @@ void ConsoleOutput::PrintEnergy(Energy const& en, Virial const& vir,
    if (intraOnly)
       std::cout << "Energy (in K): total: " << en.total << std::endl
 #ifdef EN_SUBCAT_OUT
-		<< "intra (bonded): " << en.intraBond << std::endl 
-	        << "inter: " << en.inter << " ; inter (tail corr.): " << en.tc
+	  << "intra (bonded): " << en.intraBond << std::endl 
+	  << "inter: " << en.inter << " ; inter (tail corr.): " << en.tc
 #endif
-                << "; elect: " << en.elect  <<"; real: " << en.real
-		<< "; recip: " << en.recip  << "; self: " << en.self
-		<< "; correction: " << en.correction << std::endl;
+	  << "; elect: " << en.elect << "; real: " << en.real
+	  << "; recip: " << en.recip << "; self: " << en.self
+	  << "; correction: " << en.correction << std::endl;
    else
-      std::cout << "Energy (in K): total: " << en.total << std::endl
+	   std::cout << "Energy (in K): total: " << en.total << std::endl
 #ifdef EN_SUBCAT_OUT
-                << "inter: " << en.inter << " ; inter (tail corr.): " 
-                << en.tc << std::endl << "intra (bonded): "
-                << en.intraBond << " ; intra (nonbonded): " << en.intraNonbond 
-				 << std::endl
+	   << "inter: " << en.inter << " ; inter (tail corr.): "
+	   << en.tc << std::endl << "intra (bonded): "
+	   << en.intraBond << " ; intra (nonbonded): " << en.intraNonbond
+	   << std::endl
 #endif
-		 << "; elect: " << en.elect  <<"; real: " << en.real
-		<< "; recip: " << en.recip  << "; self: " << en.self
-		<< "; correction: " << en.correction  << std::endl;
+	   << "; elect: " << en.elect << "; real: " << en.real
+	   << "; recip: " << en.recip << "; self: " << en.self
+	   << "; correction: " << en.correction << std::endl;
 }
 
 void ConsoleOutput::PrintBanner(std::string const& str) const 
@@ -149,4 +155,5 @@ void ConsoleOutput::PrintBanner(std::string const& str) const
 	     << "--    ==========      --" << std::endl
 	     << "------------------------" << std::endl << std::endl;
 }
+
 

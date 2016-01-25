@@ -1,3 +1,10 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
+Copyright (C) 2015  GOMC Group
+
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "FFSetup.h"
 #include <algorithm>
 #include <iostream>
@@ -15,6 +22,7 @@ const std::string FFSetup::paramFileAlias[] =
 {"CHARMM-Style Parameter File", "Exotic Parameter File"}; 
 const double ff_setup::KCAL_PER_MOL_TO_K = 503.21959899;
 const double ff_setup::RIJ_OVER_2_TO_SIG = 1.7817974362807;
+const double ff_setup::RIJ_TO_SIG = 0.890898718;
 
 const double ff_setup::Bond::FIXED = 99999999;
 
@@ -127,12 +135,12 @@ namespace ff_setup
 
    void Particle::Read(Reader & param, std::string const& firstVar)
    {
-      double e, s, e_1_4, s_1_4, dummy;
+      double e, s, e_1_4, s_1_4, dummy1, dummy2;
       uint expN, expN_1_4;
       std::stringstream values(LoadLine(param, firstVar));      
       if (isCHARMM) //if lj
       {
-	 values >> dummy;
+	 values >> dummy1;
       } 
       values >> e >> s;
       if (isCHARMM)
@@ -144,7 +152,7 @@ namespace ff_setup
 	 values >> expN;
       }
       //If undefined in CHARMM, assign 1-4 to full value.
-      values >> e_1_4 >> s_1_4;
+      values >> dummy2 >> e_1_4 >> s_1_4;
       if (values.fail())
       {
 	 e_1_4 = e;
@@ -178,41 +186,65 @@ namespace ff_setup
 
    void NBfix::Read(Reader & param, std::string const& firstVar)
    {
-      double e, s, Cn;
-      uint expN;
-      ReadKind(param, firstVar);     
-      param.file >> e >> s;
+      double e, s, e_1_4, s_1_4;
+#ifdef MIE_INT_ONLY
+      uint expN, expN_1_4;
+#else
+      double expN, expN_1_4;
+#endif
+   
+      std::stringstream values(LoadLine(param, firstVar));
+      values >> e >> s;
       if (isCHARMM)
       {
 	 expN = ff::part::lj_n;
       }
       else
       {
-	 param.file >> expN;
+	 values >> expN;
       }
-      if (isCHARMM)
+      
+       values >> e_1_4 >> s_1_4;
+      if (values.fail())
       {
-	 Cn = ff::part::lj_Cn;
+	 e_1_4 = e;
+	 s_1_4 = s; 
       }
-      else
+      values >> expN_1_4; 
+      if (isCHARMM || values.fail())
       {
-	 param.file >> Cn;
+	 expN_1_4 = expN;
       }
-
-      Add(e, s, expN, Cn);
+      Add(e, s, expN, e_1_4, s_1_4, expN_1_4);
    }
 
-   void NBfix::Add(double e, double s, const uint expN, double cn)
+   void NBfix::Add(double e, double s,
+#ifdef MIE_INT_ONLY
+const uint expN,
+#else
+const double expN,
+#endif
+	       double e_1_4, double s_1_4,
+#ifdef MIE_INT_ONLY
+const uint expN_1_4
+#else
+const double expN_1_4
+#endif
+	       )
    {
       if (isCHARMM)
       {
 	 e *= -1.0;
-	 s *= RIJ_OVER_2_TO_SIG;
+	 s *= RIJ_TO_SIG;
+	 e_1_4 *= -1.0;
+	 s_1_4 *= RIJ_TO_SIG;
       }
       epsilon.push_back(EnConvIfCHARMM(e));
       sigma.push_back(s);
       n.push_back(expN);
-      Cn.push_back(cn);
+      epsilon_1_4.push_back(EnConvIfCHARMM(e_1_4));
+      sigma_1_4.push_back(s_1_4);
+      n_1_4.push_back(expN_1_4);
 
    }
 
@@ -347,3 +379,4 @@ namespace ff_setup
 #endif
 
 } //end namespace ff_setup
+
