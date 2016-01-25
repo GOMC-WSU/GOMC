@@ -1,3 +1,10 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
+Copyright (C) 2015  GOMC Group
+
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "System.h"
 #include "StaticVals.h"
 #include "CPUSide.h" //Spec declaration
@@ -19,8 +26,11 @@ void CPUSide::Init(PDBSetup const& pdbSet, config_setup::Output const& out,
    timer.Init(out.console.frequency, totSteps);
    outObj.push_back(&console);
    outObj.push_back(&pdb);
-   outObj.push_back(&block);
-   outObj.push_back(&fluct);
+   if (out.statistics.settings.block.enable)
+     outObj.push_back(&block);
+   if (out.statistics.settings.fluct.enable)
+     outObj.push_back(&fluct);
+
 #if ENSEMBLE == GCMC
    outObj.push_back(&hist);
    outObj.push_back(&sample_N_E);
@@ -40,3 +50,4 @@ void CPUSide::Output(const ulong step)
       outObj[o]->Output(step);
    timer.CheckTime(step);
 }
+

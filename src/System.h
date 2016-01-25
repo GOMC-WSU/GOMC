@@ -1,3 +1,10 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
+Copyright (C) 2015  GOMC Group
+
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
@@ -12,11 +19,9 @@
 #include "BoxDimensions.h"
 #include "MoleculeLookup.h"
 #include "MoveSettings.h"
-#include <vector>
 #ifdef CELL_LIST
 #include "CellList.h"
 #endif
-
 
 //Initialization variables
 class Setup;
@@ -58,7 +63,6 @@ class System
    Coordinates coordinates;
    COM com;
 
-
    CalculateEnergy calcEnergy;
 #ifdef CELL_LIST
    CellList cellList;
@@ -68,7 +72,6 @@ class System
    //Procedure to run once move is picked... can also be called directly for
    //debugging...
    void RunMove(uint majKind, double draw, const uint step);
-
 
    ~System();
 
@@ -84,3 +87,4 @@ class System
 };
 
 #endif /*SYSTEM_H*/
+

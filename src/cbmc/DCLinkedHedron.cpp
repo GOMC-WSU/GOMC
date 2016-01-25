@@ -1,3 +1,10 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
+Copyright (C) 2015  GOMC Group
+
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "DCLinkedHedron.h"
@@ -85,9 +92,11 @@ namespace cbmc
       double* bondedEn = data->bonded;
       double* inter = data->inter;
       double* nonbonded = data->nonbonded;
+      double* nonbonded_1_4 = data->nonbonded_1_4;
 	  double* real = data->real;
 	  double* self = data->self;
 	  double* corr = data->correction;
+
 
       //get info about existing geometry
       newMol.SetBasis(hed.Focus(), hed.Prev());
@@ -144,7 +153,8 @@ namespace cbmc
          newMol.AddAtom(hed.Bonded(b), positions[b][winner]);
       }
       newMol.AddEnergy(Energy(bondedEn[winner] + hed.GetEnergy(),
-			      nonbonded[winner], inter[winner], real[winner], 0, self[winner], corr[winner]));
+			      nonbonded[winner] + nonbonded_1_4[winner],
+				  inter[winner], real[winner], 0, self[winner], corr[winner]));
       newMol.MultWeight(hed.GetWeight());
       newMol.MultWeight(stepWeight);
    }
@@ -163,6 +173,7 @@ namespace cbmc
       double* bondedEn = data->bonded;
       double* inter = data->inter;
       double* nonbonded = data->nonbonded;
+      double* nonbonded_1_4 = data->nonbonded_1_4;
 	  double* real = data->real;
 	  double* self = data->self;
 	  double* corr = data->correction;
@@ -236,47 +247,55 @@ namespace cbmc
          positions[b].Add(0, center);
          data->axes.WrapPBC(positions[b], oldMol.GetBox());
       }
-      double stepWeight = EvalLJ(oldMol, molIndex, true);
+      double stepWeight = EvalLJ(oldMol, molIndex);
       for(uint b = 0; b < hed.NumBond(); ++b)
       {
          oldMol.ConfirmOldAtom(hed.Bonded(b));
       }
-      oldMol.AddEnergy(Energy(bondedEn[0] + hed.GetEnergy(), nonbonded[0],
-			      inter[0], real[0], 0, self[0], corr[0]));
+      oldMol.AddEnergy(Energy(bondedEn[0] + hed.GetEnergy(), nonbonded[0] +
+		  nonbonded_1_4[0], inter[0], real[0], 0, self[0], corr[0]));
       oldMol.MultWeight(hed.GetWeight());
       oldMol.MultWeight(stepWeight);
    }
 
-   double DCLinkedHedron::EvalLJ(TrialMol& mol, uint molIndex, bool const isSourceBox)
+   double DCLinkedHedron::EvalLJ(TrialMol& mol, uint molIndex)
    {
       uint nLJTrials = data->nLJTrialsNth;
       double* inter = data->inter;
 	  double* real = data->real;
 	  double* self = data->self;
-      double* nonbonded = data->nonbonded;
 	  double* corr = data->correction;
+      double* nonbonded = data->nonbonded;
+      double* nonbonded_1_4 = data->nonbonded_1_4;
       XYZArray* positions = data->multiPositions;
       std::fill_n(data->inter, nLJTrials, 0.0);
       std::fill_n(data->nonbonded, nLJTrials, 0.0);
-      std::fill_n(real, nLJTrials, 0.0);
-      std::fill_n(self, nLJTrials, 0.0);
+      std::fill_n(nonbonded_1_4, nLJTrials, 0.0);
+	  std::fill_n(real, nLJTrials, 0.0);
+	  std::fill_n(self, nLJTrials, 0.0);
 	  std::fill_n(corr, nLJTrials, 0.0);
-      for (uint b = 0; b < hed.NumBond(); ++b)
+       for (uint b = 0; b < hed.NumBond(); ++b)
       {
-	 data->calc.ParticleInter(inter, real, positions[b], hed.Bonded(b),
-                                  molIndex, mol.GetBox(), nLJTrials);
-         data->calc.ParticleNonbonded(nonbonded, mol, positions[b],
-				      hed.Bonded(b), mol.GetBox(),
-				      nLJTrials);
-	 data->calc.SwapSelf(self, molIndex, hed.Bonded(b), mol.GetBox(), nLJTrials);
-	 data->calc.SwapCorrection(corr, mol, positions[b], hed.Bonded(b), mol.GetBox(), nLJTrials);
-	
+		data->calc.ParticleInter(inter, real, positions[b], hed.Bonded(b),
+									molIndex, mol.GetBox(), nLJTrials);
+		data->calc.ParticleNonbonded(nonbonded, mol, positions[b],
+						  hed.Bonded(b), mol.GetBox(),
+						  nLJTrials);
+		data->calc.ParticleNonbonded_1_4(nonbonded_1_4, mol, positions[b],
+						hed.Bonded(b), mol.GetBox(),
+						nLJTrials);
+		data->calc.SwapSelf(self, molIndex, hed.Bonded(b), 
+						mol.GetBox(), nLJTrials);
+		data->calc.SwapCorrection(corr, mol, positions[b], 
+						hed.Bonded(b), mol.GetBox(), nLJTrials);
+
       }
       double stepWeight = 0;
       for (uint lj = 0; lj < nLJTrials; ++lj)
       {
 	 data->ljWeights[lj] *= exp(-data->ff.beta * 
-				    (inter[lj] + real[lj] + self[lj] + corr[lj] + nonbonded[lj]));
+				    (inter[lj] + nonbonded[lj] + nonbonded_1_4[lj]
+					+ real[lj] + self[lj] + corr[lj]));
          stepWeight += data->ljWeights[lj];
       }
       return stepWeight;
@@ -307,3 +326,4 @@ namespace cbmc
       }
    }
    }
+

@@ -1,3 +1,10 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
+Copyright (C) 2015  GOMC Group
+
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef FF_PARTICLE_H
 #define FF_PARTICLE_H
 
@@ -51,16 +58,8 @@ struct FFParticle
                  const uint kind1, const uint kind2) const;
    virtual double CalcVir(const double distSq,
                   const uint kind1, const uint kind2) const;
-   // Not Implemented
-   void CalcAdd_1_4(double& en, double& vir, const double distSq,
+   virtual void CalcAdd_1_4(double& en, const double distSq,
 		const uint kind1, const uint kind2) const;
-   void CalcSub_1_4(double& en, double& vir, const double distSq,
-		const uint kind1, const uint kind2) const;
-   double CalcEn_1_4(const double distSq, 
-		 const uint kind1, const uint kind2) const;
-   double CalcVir_1_4(const double distSq,
-		  const uint kind1, const uint kind2) const;
-   //Not Implemented
 
   void Init(ff_setup::Particle const& mie,
 	    ff_setup::NBfix const& nbfix,
@@ -81,15 +80,7 @@ struct FFParticle
 	     const double n
 #endif
 	     ) const;
-   // Not Implemented
-   void Calc_1_4(double& en, double& vir, const double distSq, uint index,
-#ifdef MIE_INT_ONLY
-		 const uint n
-#else
-		 const double n
-#endif
-		 ) const;
-   // Not Implemented
+
 
 
 
@@ -100,9 +91,8 @@ struct FFParticle
 
    //vars for lj particles.
    double* mass;
-  //char * name;
-  std::string *nameFirst;
-  std::string *nameSec;
+   std::string *nameFirst;
+   std::string *nameSec;
 
    //vars for LJ-LJ pairs
 #ifdef MIE_INT_ONLY
@@ -113,7 +103,8 @@ struct FFParticle
    //For LJ eps_cn(en) --> 4eps, eps_cn_6 --> 24eps, eps_cn_n --> 48eps
    double * sigmaSq, * epsilon_cn, * epsilon_cn_6, * nOver6,
       * sigmaSq_1_4, * epsilon_cn_1_4, * epsilon_cn_6_1_4, * nOver6_1_4,
-     * enCorrection, * virCorrection, *shiftConst, *An, *Bn, *Cn, *sig6, *sign;
+     * enCorrection, * virCorrection, *shiftConst, *An, *Bn, *Cn, *sig6, *sign,
+     *shiftConst_1_4, *An_1_4, *Bn_1_4, *Cn_1_4, *sig6_1_4, *sign_1_4;
 
   double rCut, rCutSq, rOn, rOnSq, A6, B6, C6, factor1, factor2;
 
@@ -127,6 +118,24 @@ inline void FFParticle::CalcAdd(double& en, double& vir, const double distSq,
    uint idx = FlatIndex(kind1, kind2);
    Calc(en, vir, distSq, idx, n[idx]);
 } 
+
+inline void FFParticle::CalcAdd_1_4(double& en, const double distSq,
+		const uint kind1, const uint kind2) const
+{
+   uint index = FlatIndex(kind1, kind2);
+   double rRat2 = sigmaSq_1_4[index]/distSq;
+   double rRat4 = rRat2 * rRat2;
+   double attract = rRat4 * rRat2;
+#ifdef MIE_INT_ONLY
+   uint n_ij = n_1_4[index];
+   double repulse = num::POW(rRat2, rRat4, attract, n_ij);
+#else
+   double n_ij = n_1_4[index];
+   double repulse = pow(sqrt(rRat2), n_ij);
+#endif
+
+   en += epsilon_cn_1_4[index] * (repulse-attract);
+}
 
 inline void FFParticle::CalcSub(double& en, double& vir, const double distSq,
 				const uint kind1, const uint kind2) const
@@ -205,3 +214,4 @@ inline void FFParticle::Calc(double & en, double & vir,
 }
 
 #endif /*FF_PARTICLE_H*/
+

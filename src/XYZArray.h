@@ -1,3 +1,10 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
+Copyright (C) 2015  GOMC Group
+
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef XYZ_ARRAY_H
 #define XYZ_ARRAY_H
 
@@ -217,14 +224,14 @@ class XYZArray
 		  const uint len) const;
 
    double BoxSize(int box)const{
-     double size;
-     if(x[box]<y[box])
-       size = x[box];
-     else
-       size = y[box];
-     if(z[box]<size)
-       size = z[box];
-     return size;
+	   double size;
+	   if (x[box]<y[box])
+		   size = x[box];
+	   else
+		   size = y[box];
+	   if (z[box]<size)
+		   size = z[box];
+	   return size;
    };
 
    protected:
@@ -423,3 +430,4 @@ inline void XYZArray::CopyRange(XYZArray & dest, const uint srcIndex,
    
 
 #endif /*XYZ_ARRAY_H*/
+

@@ -1,3 +1,10 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
+Copyright (C) 2015  GOMC Group
+
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "DCGraph.h"
 #include "DCFreeHedron.h"
 #include "DCLinkedHedron.h"
@@ -25,9 +32,6 @@ namespace cbmc {
          ++bondCount[bond.a1];
       }
       for (uint atom = 0; atom < setupKind.atoms.size(); ++atom) {
-#ifdef DEBUG
-		  printf("this is the %d atom, bond count is: %d, nodes size: %d\n", atom, bondCount[atom], nodes.size());
-#endif
          if (bondCount[atom] < 2) {
             atomToNode[atom] = -1;
          } else {
@@ -68,18 +72,9 @@ namespace cbmc {
       comp->BuildNew(newMol, molIndex);
       comp->PrepareOld();
       comp->BuildOld(oldMol, molIndex);
-	  
-#ifdef DEBUG
-		  printf("Start building the molecule, node size: %d, current: %d\n", nodes.size(), current);
-#endif
       //Advance along edges, building as we go
       while (!fringe.empty()) 
       {
-		  int i = 1;
-#ifdef DEBUG
-		  i++;
-		  printf("this is the %d atom\n", i);
-#endif
          uint pick = data.prng.randIntExc(fringe.size());
          comp = fringe[pick].component;
          comp->PrepareNew();
@@ -115,3 +110,4 @@ namespace cbmc {
    }
 
 }
+
