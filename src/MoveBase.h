@@ -1,3 +1,10 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
+Copyright (C) 2015  GOMC Group
+
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef TRANSFORMABLE_BASE_H
 #define TRANSFORMABLE_BASE_H
 
@@ -16,8 +23,6 @@
 #include "MolPick.h"
 #include "Forcefield.h"
 
-extern bool DoEwald;
-//#define DEBUG
 #define RECIP
 #define REAL
 
@@ -30,7 +35,7 @@ class MoveBase
       sysPotRef(sys.potential),
       calcEnRef(sys.calcEnergy), comCurrRef(sys.com), 
       coordCurrRef(sys.coordinates), prng(sys.prng), molRef(statV.mol), 
-	BETA(statV.forcefield.beta), DoEwald(sys.calcEnergy.ifEwald())
+	  BETA(statV.forcefield.beta), DoEwald(sys.calcEnergy.ifEwald())
 #ifdef CELL_LIST
       , cellList(sys.cellList), molRemoved(false)
 #endif
@@ -63,7 +68,7 @@ class MoveBase
     BoxDimensions & boxDimRef;
     Molecules const& molRef;
     const double BETA;
-    const bool DoEwald;
+	const bool DoEwald;
 #ifdef CELL_LIST
     CellList& cellList;
     bool molRemoved;
@@ -127,8 +132,8 @@ class Translate : public MoveBase, public MolTransformBase
    virtual void CalcEn();
    virtual void Accept(const uint rejectState, const uint step);
  private:
-   Intermolecular inter;
-   Elect real, recip;
+	Intermolecular inter;
+	Elect real, recip;
    XYZ newCOM;
 };
 
@@ -151,8 +156,8 @@ inline void Translate::CalcEn()
 #endif
    calcEnRef.MoleculeInter(inter, real, newMolPos, m, b, &newCOM);
 #ifdef RECIP
-   if(DoEwald){
-    	   recip.energy = calcEnRef.MolReciprocal(newMolPos, m, b);
+   if (DoEwald){
+	   recip.energy = calcEnRef.MolReciprocal(newMolPos, m, b);
    }
 #endif
 }
@@ -163,23 +168,22 @@ inline void Translate::Accept(const uint rejectState, const uint step)
    double enDiff;
    if (rejectState == mv::fail_state::NO_FAIL)
    {
-     double pr = prng();
-     enDiff = inter.energy;
-      if(DoEwald)
-                    enDiff = inter.energy + real.energy + recip.energy;      //inter.energy, real.energy and recip.energy retain the energy differences rather than total energy
-      if(enDiff * BETA <= 2.3 * 200.0)
-		    res = pr < exp(-BETA * enDiff);	
+	   double pr = prng();
+	   enDiff = inter.energy;
+	   if (DoEwald)
+		   enDiff = inter.energy + real.energy + recip.energy;      //inter.energy, real.energy and recip.energy retain the energy differences rather than total energy
+	   if (enDiff * BETA <= 2.3 * 200.0)
+		   res = pr < exp(-BETA * enDiff);
    }
-//   bool result = (rejectState == mv::fail_state::NO_FAIL) && res;
   
    if (res)
    {
       //Set new energy.
       sysPotRef.Add(b, inter);
-	  if(DoEwald){
+	  if (DoEwald){
 #ifdef REAL
 		  sysPotRef.boxEnergy[b].real += real.energy;
-		    sysPotRef.Add(b, real);        //update elect
+		  sysPotRef.Add(b, real);        //update elect
 #endif 
 #ifdef RECIP		 
 		  sysPotRef.boxEnergy[b].recip += recip.energy;
@@ -213,8 +217,8 @@ class Rotate : public MoveBase, public MolTransformBase
    virtual void CalcEn();
    virtual void Accept(const uint earlyReject, const uint step);
  private:
-   Intermolecular inter;
-   Elect real, recip;
+	 Intermolecular inter;
+	 Elect real, recip;
 };
 
 inline uint Rotate::Prep(const double subDraw, const double movPerc) 
@@ -247,8 +251,8 @@ inline void Rotate::CalcEn()
 #endif
    calcEnRef.MoleculeInter(inter, real, newMolPos, m, b);
 #ifdef RECIP
-   if(DoEwald){
-     	   recip.energy = calcEnRef.MolReciprocal(newMolPos, m, b);
+   if (DoEwald){
+	   recip.energy = calcEnRef.MolReciprocal(newMolPos, m, b);
    }
 #endif
 }
@@ -261,18 +265,17 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
 	{
 		double pr = prng();
 		enDiff = inter.energy;
-		if(DoEwald)
+		if (DoEwald)
 			enDiff = inter.energy + real.energy + recip.energy;
-		if(enDiff * BETA <= 2.3 * 200.0)
-			res = pr < exp(-BETA * enDiff);		
+		if (enDiff * BETA <= 2.3 * 200.0)
+			res = pr < exp(-BETA * enDiff);
 	}
-//	bool result = (rejectState == mv::fail_state::NO_FAIL) && res;
 	
    if (res)
    {
       //Set new energy.
       sysPotRef.Add(b, inter);
-	  if(DoEwald){
+	  if (DoEwald){
 #ifdef REAL
 		  sysPotRef.boxEnergy[b].real += real.energy;
 		  sysPotRef.Add(b, real);
@@ -389,20 +392,22 @@ inline void VolumeTransfer::CalcEn()
    regrewGrid = true;
 #endif
    if (GEMC_KIND == mv::GEMC_NVT){
-     if(DoEwald)
-       sysPotNew = calcEnRef.SystemTotalRecalc(sysPotRef, newMolsPos,
-					       newCOMs, newDim);
-     else
-       sysPotNew = calcEnRef.SystemInter(sysPotRef, newMolsPos,
-                                        newCOMs, newDim);
+	   if (DoEwald){
+		   sysPotNew = calcEnRef.SystemTotalRecalc(sysPotRef, 
+					newMolsPos, newCOMs, newDim);
+	   }
+	   else
+		   sysPotNew = calcEnRef.SystemInter(sysPotRef, 
+					newMolsPos, newCOMs, newDim);
    }
    else{
-     if(DoEwald)
-       sysPotNew = calcEnRef.BoxTotalRecalc(sysPotRef, newMolsPos,
-					    newCOMs, newDim, bPick);
-     else
-       sysPotNew = calcEnRef.BoxInter(sysPotRef, newMolsPos,
-                                     newCOMs, newDim, bPick);
+	   if (DoEwald){
+		   sysPotNew = calcEnRef.BoxTotalRecalc(sysPotRef, 
+					newMolsPos, newCOMs, newDim, bPick);
+	   }
+	   else
+		   sysPotNew = calcEnRef.BoxInter(sysPotRef, 
+					newMolsPos, newCOMs, newDim, bPick);
    }
 }
 
@@ -448,6 +453,7 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       swap(coordCurrRef, newMolsPos);
       swap(comCurrRef, newCOMs);
       boxDimRef = newDim;
+	  calcEnRef.UpdateRestoreRecip();
    }
 #ifdef CELL_LIST
    else if (rejectState == mv::fail_state::NO_FAIL && regrewGrid) 
@@ -456,9 +462,19 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       regrewGrid = false;
    }
 #endif
-   if(result == false)
-     calcEnRef.CalpRestore();
-   
+   if (!result){
+     if (GEMC_KIND == mv::GEMC_NVT){
+       calcEnRef.Calp(0, boxDimRef.axis.BoxSize(0), true);
+       calcEnRef.Calp(1, boxDimRef.axis.BoxSize(1), true);
+       calcEnRef.SetupRecip(0, boxDimRef);
+       calcEnRef.SetupRecip(1, boxDimRef);
+     }
+
+     if (GEMC_KIND == mv::GEMC_NPT){
+       calcEnRef.Calp(bPick, boxDimRef.axis.BoxSize(bPick), true);
+       calcEnRef.SetupRecip(bPick, boxDimRef);
+     }
+   }
    if (GEMC_KIND == mv::GEMC_NVT)
    {
       subPick = mv::GetMoveSubIndex(mv::VOL_TRANSFER);
@@ -473,3 +489,4 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
 #endif
 
 #endif /*TRANSFORMABLE_BASE_H*/
+
