@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 			if (argc < 2)
 				throw std::invalid_argument("Input parameter file (*.dat) not specified on command line!");
 			else
-				inputFileString = argv[argc - 1];
+				inputFileString = argv[1]; //FIRST PARAMETER WILL ALWAYS BE FILE NAME
 
 			inputFileReader.open(inputFileString.c_str(), ios::in | ios::out); //OPEN FILE
 			if (!inputFileReader.is_open()) //CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
