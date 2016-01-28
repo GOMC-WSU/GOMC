@@ -161,7 +161,7 @@ void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
    {
      for(uint j = 0; j < size; j++)
      {
-       if(nbfix.name[i] == nameFirst[j] || nbfix.name[i] ==  nameSec[j])
+       if(nbfix.getname(i) == nameFirst[j] || nbfix.getname(i) ==  nameSec[j])
        {
 	  n[j] = nbfix.n[i];
 	  n_1_4[j] = nbfix.n_1_4[i];
@@ -247,10 +247,10 @@ void FFParticle::Blend(ff_setup::Particle const& mie,
       {
 	 uint idx = FlatIndex(i, j);
 	 //get all name combination for using in nbfix
-	 nameFirst[idx] = mie.name[i]; 
-	 nameFirst[idx] += mie.name[j];
-	 nameSec[idx] = mie.name[j]; 
-	 nameSec[idx] += mie.name[i];
+	 nameFirst[idx] = mie.getname(i); 
+	 nameFirst[idx] += mie.getname(j);
+	 nameSec[idx] = mie.getname(j); 
+	 nameSec[idx] += mie.getname(i);
 
 	 n[idx] = num::MeanA(mie.n, mie.n, i, j);
 	 n_1_4[idx] = num::MeanA(mie.n_1_4, mie.n_1_4, i, j);

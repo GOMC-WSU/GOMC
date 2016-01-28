@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*******************************************************************************
 GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
@@ -9,7 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "DCComponent.h"
 #include "../CBMC.h"
 
-namespace mol_setup { struct MolKind; }
+namespace mol_setup { class MolKind; }
 
 namespace cbmc
 {
