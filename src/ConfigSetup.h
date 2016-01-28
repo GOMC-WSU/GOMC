@@ -59,8 +59,6 @@ namespace config_setup
    class PRNGKind
    {
 	public:
-      std::string kind;
-      MTRand::uint32 seed;
       bool IsRand(void) const { return str::compare(KIND_RANDOM, kind); }
       bool IsSeed(void) const { return str::compare(KIND_SEED, kind); }
       bool IsRestart(void) const { return str::compare(KIND_RESTART, kind); }

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #ifndef PSFOUTPUT_H
 #define PSFOUTPUT_H
 
