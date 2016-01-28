@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /*******************************************************************************
 GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
