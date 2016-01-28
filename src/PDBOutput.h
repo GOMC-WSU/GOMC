@@ -15,7 +15,7 @@
 #include "PDBSetup.h" //For atoms class
 
 class System;
-namespace config_setup { class Output; }
+namespace config_setup { struct Output; }
 class MoveSettings;
 class MoleculeLookup;
 

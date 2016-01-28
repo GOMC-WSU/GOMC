@@ -42,8 +42,9 @@ struct ReadableStepDependentBase
 };
 
 //template <uint N>
-struct SearchableBase
-{  
+class SearchableBase
+{
+public:
    SearchableBase(uint lN) : N(lN), mask(bits::GetMasks(lN)) {}
    //ubiquitous find for element identified by N maskable strings.
    int Find(std::string const*const kindNames,
@@ -60,7 +61,7 @@ struct SearchableBase
       return found;
    }
    
- private:
+private:
    //Check a particular previously read item for a match, if wild
    //cards are active, loop through all of them.
    bool Match(std::string const*const kindNames,

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #ifndef PSFOUTPUT_H
 #define PSFOUTPUT_H
 
@@ -7,7 +8,7 @@
 #include "../lib/BasicTypes.h"
 #include "MolSetup.h"
 
-struct Molecules;
+class Molecules;
 
 class PSFOutput
 {

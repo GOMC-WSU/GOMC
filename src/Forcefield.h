@@ -14,9 +14,9 @@
 namespace config_setup
 { 
   //class FFValues; 
-  class FFKind;
+  struct FFKind;
   //class Temperature;
-  class SystemVals;
+  struct SystemVals;
 }
 class FFSetup;
 class Setup;

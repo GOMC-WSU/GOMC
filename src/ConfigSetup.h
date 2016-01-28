@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
+Copyright (C) 2015  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef CONFIGSETUP_H
 #define CONFIGSETUP_H
 
@@ -50,14 +56,19 @@ namespace config_setup
    };
 
    //Kinds of Mersenne Twister initialization
-   struct PRNGKind
+   class PRNGKind
    {
+	public:
       std::string kind;
       MTRand::uint32 seed;
       bool IsRand(void) const { return str::compare(KIND_RANDOM, kind); }
       bool IsSeed(void) const { return str::compare(KIND_SEED, kind); }
       bool IsRestart(void) const { return str::compare(KIND_RESTART, kind); }
+	  
+	//private
       static const std::string KIND_RANDOM, KIND_SEED, KIND_RESTART;
+      std::string kind;
+      MTRand::uint32 seed;
    }; 
    
 	struct FFKind
@@ -288,4 +299,4 @@ private:
 	static const char configFileAlias[];       // "GO-MC Configuration File"
 };
 
-#endif 
+#endif

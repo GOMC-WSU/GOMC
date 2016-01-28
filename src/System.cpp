@@ -101,8 +101,6 @@ void System::PickMove(uint & kind, double & draw)
 
 void System::RunMove(uint majKind, double draw, const uint step)
 {
-  
-   double Uo = potential.totalEnergy.total;
    //return now if move targets molecule and there's none in that box.
    uint rejectState = SetParams(majKind, draw);
       //If single atom, redo move as displacement
@@ -118,11 +116,8 @@ void System::RunMove(uint majKind, double draw, const uint step)
    if (rejectState == mv::fail_state::NO_FAIL)
       CalcEn(majKind);
    Accept(majKind, rejectState, step);
-   //If large change, recalculate the system energy to compensate for errors.
-   if (potential.totalEnergy.total-Uo > 1e4)
-      potential = calcEnergy.SystemTotal();
-      
 }
+
 uint System::SetParams(const uint kind, const double draw) 
 { return moves[kind]->Prep(draw, statV.movePerc[kind]); }
 

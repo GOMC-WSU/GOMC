@@ -14,8 +14,9 @@ class System;
 #include "MoleculeKind.h" //For member var.
 
 //Note: This info is static and will never change in current ensembles
-struct Molecules
+class Molecules
 {
+public:
    Molecules();
    ~Molecules();
 
@@ -24,14 +25,6 @@ struct Molecules
 
    void Init(Setup& setup, Forcefield& forcefield,
 	     System& sys);
-
-   //Kind index of each molecule and start in master particle array
-   //Plus counts
-   uint* start;
-   uint* kIndex;
-   uint count;
-   uint* countByKind;
-   char* chain;
 
    uint NumAtomsByMol(const uint m) const { return start[m+1]-start[m]; }
    uint NumAtoms(const uint mk) const { return kinds[mk].NumAtoms(); }
@@ -57,7 +50,16 @@ struct Molecules
    void GetRangeStartLength(uint & _start, uint & len, const uint m) const
    { _start=start[m]; len = start[m+1]-_start; }
 
-   MoleculeKind * kinds;
+//private:
+	//Kind index of each molecule and start in master particle array
+	//Plus counts
+	uint* start;
+	uint* kIndex;
+	uint count;
+	uint* countByKind;
+	char* chain;
+	
+	MoleculeKind * kinds;
    uint kindsCount;
    double* pairEnCorrections;
    double* pairVirCorrections;

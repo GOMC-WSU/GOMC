@@ -6,7 +6,7 @@
 
 class Reader;
 namespace config_setup {
-class RestartSettings;
+struct RestartSettings;
 class PRNGKind;
 }
 
