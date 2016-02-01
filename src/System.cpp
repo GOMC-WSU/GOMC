@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "EnsemblePreprocessor.h"
 #include "System.h"
 
@@ -17,6 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveConst.h"           //For array of move objects.
 #include "MoveBase.h"            //For move bases....
 #include "MoleculeTransfer.h"
+#include "IntraSwap.h"
 
 System::System(StaticVals& statics) : 
    statV(statics),
@@ -43,6 +37,7 @@ System::~System()
 {
    delete moves[mv::DISPLACE];
    delete moves[mv::ROTATE];
+   delete moves[mv::INTRA_SWAP];
 #if ENSEMBLE == GEMC
    delete moves[mv::VOL_TRANSFER];
 #endif
@@ -82,6 +77,7 @@ void System::InitMoves()
 {
    moves[mv::DISPLACE] = new Translate(*this, statV);
    moves[mv::ROTATE] = new Rotate(*this, statV);
+   moves[mv::INTRA_SWAP] = new IntraSwap(*this, statV);
 #if ENSEMBLE == GEMC
    moves[mv::VOL_TRANSFER] = new VolumeTransfer(*this, statV);
 #endif
@@ -131,5 +127,4 @@ void System::CalcEn(const uint kind) { moves[kind]->CalcEn(); }
 
 void System::Accept(const uint kind, const uint rejectState, const uint step) 
 { moves[kind]->Accept(rejectState, step); }
-
 
