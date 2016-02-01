@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef FF_ANGLES_H
 #define FF_ANGLES_H
 
@@ -30,8 +23,9 @@ class FFAngles
 	       const uint numPicksPerTrial, const double beta) const;
 
    virtual double Calc(const uint kind, const double ang) const
-   { return (Ktheta[kind] * num::Sq(ang-theta0[kind])); }
-
+   { return (Ktheta[kind] * num::Sq(ang-theta0[kind])); } 
+   
+   
    void Init(ff_setup::Angle const& angle)
    {
       count = angle.getKthetacnt();
@@ -51,4 +45,3 @@ class FFAngleMartini : public FFAngles
 
 };
 #endif /*FF_ANGLES_H*/
-

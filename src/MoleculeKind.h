@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef FF_MOLECULE_H
 #define FF_MOLECULE_H
 
@@ -51,6 +44,7 @@ class MoleculeKind
    uint NumAngles() const { return angles.Count(); }
    uint NumDihs() const { return dihedrals.Count(); }
    uint AtomKind(const uint a) const { return atomKind[a]; }
+   double AtomCharge(const uint a) const { return atomCharge[a]; }
    
    //Initialize this kind
    //Exits program if param and psf files don't match
@@ -64,21 +58,23 @@ class MoleculeKind
 	      const uint molIndex)
    { builder->Build(oldMol, newMol, molIndex); }
 
-   SortedNonbond sortedNB;
-   SortedNonbond_1_4 sortedNB_1_4;
+   SortedNonbond sortedNB, sortedNB_1_4, sortedNB_1_3;
+
    //these are used for total energy calculations, see Geometry.h/cpp
    Nonbond nonBonded;
-   Nonbond *nonBonded_1_4;
+   Nonbond_1_4 nonBonded_1_4;
+   Nonbond_1_3 nonBonded_1_3;
    BondList bondList;
    GeomFeature angles;
    GeomFeature dihedrals;
+   bool oneThree, oneFour;
 
    std::string name;
    std::vector<std::string> atomNames;
    double molMass;
    
    double * atomMass;
-   double * atomCharge;
+  
    
 #if ENSEMBLE == GCMC
    double chemPot;
@@ -97,6 +93,7 @@ class MoleculeKind
    
    uint numAtoms;
    uint * atomKind;
+   double * atomCharge;
 };
 
 
@@ -104,4 +101,3 @@ class MoleculeKind
 
 
 #endif /*FF_MOLECULE_H*/
-

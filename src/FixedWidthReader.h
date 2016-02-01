@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef FIXED_WIDTH_READER_H
 #define FIXED_WIDTH_READER_H
 
@@ -60,4 +53,3 @@ class FixedWidthReader : public Reader
 };
 
 #endif /*FIXED_WIDTH_READER_H*/
-
