@@ -132,7 +132,7 @@ inline uint Translate::Transform()
 {
    subPick = mv::GetMoveSubIndex(mv::DISPLACE, b);
    coordCurrRef.TranslateRand(newMolPos, newCOM, pStart, pLen,
-			      m, b, moveSetRef.Scale(subPick));
+			      m, b, boxDimRef.axis.Min(b)*moveSetRef.Scale(subPick));
    return mv::fail_state::NO_FAIL;
 }
 
