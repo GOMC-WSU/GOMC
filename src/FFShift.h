@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef FF_SHIFT_H
 #define FF_SHIFT_H
 
@@ -25,6 +18,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 // Vir(r) = cn * eps_ij * 6 * ((n/6) * repulse - attract)/rij^2
 // U_lrc = 0
 // Vir_lrc = 0
+//
+// Eelect = qi * qj * (1/r - 1/rcut)
+// Welect = qi * qj * 1/rij^3
 
 struct FF_SHIFT : public FFParticle
 {
@@ -40,6 +36,24 @@ struct FF_SHIFT : public FFParticle
                   const uint kind1, const uint kind2) const;
    virtual void CalcAdd_1_4(double& en, const double distSq,
 		const uint kind1, const uint kind2) const;
+
+   // coulomb interaction functions
+   virtual void CalcCoulombAdd(double& en, double& vir, const double distSq,
+			       const double qi_qj_Fact,
+			       const double boxSize) const;
+   virtual void CalcCoulombSub(double& en, double& vir, const double distSq,
+			       const double qi_qj_Fact,
+			       const double boxSize) const;
+   virtual double CalcCoulombEn(const double distSq,
+				const double qi_qj_Fact,
+			        const double boxSize) const;
+   virtual double CalcCoulombVir(const double distSq,
+				 const double qi_qj_Fact,
+				 const double boxSize) const;
+   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
+				   const double qi_qj_Fact,
+				   const double boxSize) const;
+
    //!Returns Ezero, no energy correction
    virtual double EnergyLRC(const uint kind1, const uint kind2) const
    {return 0.0;}
@@ -56,17 +70,27 @@ struct FF_SHIFT : public FFParticle
 #endif
 	     ) const;
 
+   virtual void CalcCoulomb(double& en, double& vir, const double distSq,
+			    const double qi_qj_Fact, const double boxSize)const;
 };
 
 inline void FF_SHIFT::CalcAdd(double& en, double& vir, const double distSq,
-				const uint kind1, const uint kind2) const
+			      const uint kind1, const uint kind2) const
 {
    uint idx = FlatIndex(kind1, kind2);
    Calc(en, vir, distSq, idx, n[idx]);
 } 
 
+inline void FF_SHIFT::CalcCoulombAdd(double& en, double& vir,
+				     const double distSq,
+				     const double qi_qj_Fact,
+				     const double boxSize) const
+{
+  CalcCoulomb(en, vir, distSq, qi_qj_Fact, boxSize);
+}
+
 inline void FF_SHIFT::CalcAdd_1_4(double& en, const double distSq,
-		const uint kind1, const uint kind2) const
+				  const uint kind1, const uint kind2) const
 {
    uint index = FlatIndex(kind1, kind2);
    double rRat2 = sigmaSq_1_4[index]/distSq;
@@ -83,8 +107,16 @@ inline void FF_SHIFT::CalcAdd_1_4(double& en, const double distSq,
    en += (epsilon_cn_1_4[index] * (repulse-attract) - shiftConst_1_4[index]);
 }
 
+inline void FF_SHIFT::CalcCoulombAdd_1_4(double& en, const double distSq,
+					 const double qi_qj_Fact,
+					 const double boxSize) const
+{
+   double dist = sqrt(distSq);
+   en += scaling_14 * qi_qj_Fact * (1.0/dist - 1.0/rCut); 
+}
+
 inline void FF_SHIFT::CalcSub(double& en, double& vir, const double distSq,
-				const uint kind1, const uint kind2) const
+			      const uint kind1, const uint kind2) const
 {
    double tempEn=0, tempVir=0;
    uint idx = FlatIndex(kind1, kind2);
@@ -93,9 +125,20 @@ inline void FF_SHIFT::CalcSub(double& en, double& vir, const double distSq,
    vir = -1.0 * tempVir;
 } 
 
+inline void FF_SHIFT::CalcCoulombSub(double& en, double& vir,
+				     const double distSq,
+				     const double qi_qj_Fact,
+				     const double boxSize) const
+{
+  double tempEn = 0.0, tempVir = 0.0;
+  CalcCoulomb(tempEn, tempVir, distSq, qi_qj_Fact, boxSize);
+  en  -= tempEn;
+  vir -= tempVir;
+}
+
 //mie potential
 inline double FF_SHIFT::CalcEn(const double distSq,
-                                 const uint kind1, const uint kind2) const
+			       const uint kind1, const uint kind2) const
 {
    uint index = FlatIndex(kind1, kind2);
    double rRat2 = sigmaSq[index]/distSq;
@@ -112,9 +155,17 @@ inline double FF_SHIFT::CalcEn(const double distSq,
    return (epsilon_cn[index] * (repulse-attract) - shiftConst[index]);
 }
 
+inline double FF_SHIFT::CalcCoulombEn(const double distSq,
+				      const double qi_qj_Fact,
+				      const double boxSize) const
+{
+   double dist = sqrt(distSq);
+   return  qi_qj_Fact * (1.0/dist - 1.0/rCut);
+}
+
 //mie potential
 inline double FF_SHIFT::CalcVir(const double distSq,
-                                  const uint kind1, const uint kind2) const
+				const uint kind1, const uint kind2) const
 {
    uint index = FlatIndex(kind1, kind2);
    double rNeg2 = 1.0/distSq;
@@ -133,6 +184,13 @@ inline double FF_SHIFT::CalcVir(const double distSq,
    return epsilon_cn_6[index] * (nOver6[index]*repulse-attract)*rNeg2;
 }
 
+inline double FF_SHIFT::CalcCoulombVir(const double distSq,
+				       const double qi_qj_Fact,
+				       const double boxSize) const
+{  
+  double dist = sqrt(distSq);
+  return qi_qj_Fact/(distSq * dist);
+}
 
 //mie potential
 inline void FF_SHIFT::Calc(double & en, double & vir, 
@@ -159,5 +217,16 @@ inline void FF_SHIFT::Calc(double & en, double & vir,
    vir = epsilon_cn_6[index] * (nOver6[index]*repulse-attract)*rNeg2;
 }
 
-#endif /*FF_SHIFT_H*/
+inline void FF_SHIFT::CalcCoulomb(double & en, double & vir,
+				  const double distSq, 
+				  const double qi_qj_Fact,
+				  const double boxSize)const
+{
+   double dist = sqrt(distSq);
+   en += qi_qj_Fact *(1.0/dist - 1.0/rCut);
+   vir = qi_qj_Fact/(distSq * dist);
+  
+}
 
+
+#endif /*FF_SHIFT_H*/
