@@ -1,18 +1,17 @@
-#ifndef MOLCULETRANSFER_H
-#define MOLCULETRANSFER_H
+#ifndef INTRASWAP_H
+#define INTRASWAP_H
 
-#if ENSEMBLE==GCMC || ENSEMBLE==GEMC
 
 #include "MoveBase.h"
 #include "cbmc/TrialMol.h"
 
 //#define DEBUG_MOVES
 
-class MoleculeTransfer : public MoveBase
+class IntraSwap : public MoveBase
 {
  public:
 
-   MoleculeTransfer(System &sys, StaticVals const& statV) : 
+   IntraSwap(System &sys, StaticVals const& statV) : 
       ffRef(statV.forcefield), molLookRef(sys.molLookupRef), 
       MoveBase(sys, statV) {}
 
@@ -21,8 +20,7 @@ class MoleculeTransfer : public MoveBase
    virtual void CalcEn();
    virtual void Accept(const uint earlyReject, const uint step);
  private:
-   double GetCoeff() const;
-   uint GetBoxPairAndMol(const double subDraw, const double movPerc);
+   uint GetBoxAndMol(const double subDraw, const double movPerc);
    MolPick molPick;
    uint sourceBox, destBox;
    uint pStart, pLen;
@@ -35,12 +33,20 @@ class MoleculeTransfer : public MoveBase
    Forcefield const& ffRef;
 };
 
-inline uint MoleculeTransfer::GetBoxPairAndMol
+inline uint IntraSwap::GetBoxAndMol
 (const double subDraw, const double movPerc)
 {
-   uint state = prng.PickMolAndBoxPair(molIndex, kindIndex,
-				       sourceBox, destBox,
-				       subDraw, movPerc);
+
+#if ENSEMBLE == GCMC
+    sourceBox = mv::BOX0;
+   uint state = prng.PickMol(molIndex, kindIndex, sourceBox, subDraw, movPerc);
+#else
+   uint state = prng.PickMolAndBox(molIndex, kindIndex, sourceBox, subDraw,
+				   movPerc);
+#endif
+
+   //molecule will be removed and insert in same box
+   destBox = sourceBox;
  
    if ( state != mv::fail_state::NO_MOL_OF_KIND_IN_BOX)
    {
@@ -50,10 +56,10 @@ inline uint MoleculeTransfer::GetBoxPairAndMol
    return state;
 }
 
-inline uint MoleculeTransfer::Prep(const double subDraw,
+inline uint IntraSwap::Prep(const double subDraw,
 				   const double movPerc)
 {
-   uint state = GetBoxPairAndMol(subDraw, movPerc);
+   uint state = GetBoxAndMol(subDraw, movPerc);
    newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef,
 			   destBox);
    oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef,
@@ -64,7 +70,7 @@ inline uint MoleculeTransfer::Prep(const double subDraw,
 }
 
 
-inline uint MoleculeTransfer::Transform()
+inline uint IntraSwap::Transform()
 {
    oldVirial_LJ = 0.0; 
    oldVirial_Real = 0.0;
@@ -72,50 +78,29 @@ inline uint MoleculeTransfer::Transform()
 #ifdef CELL_LIST
    cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
 #endif
-   subPick = mv::GetMoveSubIndex(mv::MOL_TRANSFER, sourceBox);
+   subPick = mv::GetMoveSubIndex(mv::INTRA_SWAP, sourceBox);
    molRef.kinds[kindIndex].Build(oldMol, newMol, molIndex);
    return mv::fail_state::NO_FAIL;
 }
 
-inline void MoleculeTransfer::CalcEn()
+inline void IntraSwap::CalcEn()
 {
    if (ffRef.useLRC)
    {
-      tcLose = calcEnRef.MoleculeTailChange(sourceBox, kindIndex, false);
-      tcGain = calcEnRef.MoleculeTailChange(destBox, kindIndex, true);
-      W_tc = exp(-1.0*ffRef.beta*(tcGain.energy + tcLose.energy));
+      // since number of molecule would not change in box,
+      //there is no change in Tc
+      W_tc = 1.0;
    }
 }
 
-inline double MoleculeTransfer::GetCoeff() const
-{
-#if ENSEMBLE == GEMC
-   return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) /
-      (double)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
-      boxDimRef.volume[destBox] * boxDimRef.volInv[sourceBox];
-#elif ENSEMBLE == GCMC
-   if (sourceBox == mv::BOX0) //Delete case
-   {
-      return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
-         boxDimRef.volInv[sourceBox] *
-         exp(-BETA * molRef.kinds[kindIndex].chemPot);
-   }
-   else //Insertion case
-   {
-      return boxDimRef.volume[destBox]/
-         (double)(molLookRef.NumKindInBox(kindIndex, destBox)+1) *
-         exp(BETA * molRef.kinds[kindIndex].chemPot);
-   }
-#endif
-}
 
-inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
+inline void IntraSwap::Accept(const uint rejectState, const uint step)
 {
    bool result;
    //If we didn't skip the move calculation
    if(rejectState == mv::fail_state::NO_FAIL)
    {
-      double molTransCoeff = GetCoeff();
+      double molTransCoeff = 1.0;
       double Wo = oldMol.GetWeight();
       double Wn = newMol.GetWeight();
       double Wrat = Wn / Wo * W_tc;
@@ -123,11 +108,6 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
       result = prng() < molTransCoeff * Wrat;
       if (result)
       {
-         //Add tail corrections
-         sysPotRef.boxEnergy[sourceBox].tc += tcLose.energy;
-         sysPotRef.boxEnergy[destBox].tc += tcGain.energy;
-         sysPotRef.boxVirial[sourceBox].tc += tcLose.virial;
-         sysPotRef.boxVirial[destBox].tc += tcGain.virial;
 
          //Add rest of energy.
          sysPotRef.boxEnergy[sourceBox] -= oldMol.GetEnergy();
@@ -138,8 +118,8 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 	 //Set coordinates, new COM; shift index to new box's list
          newMol.GetCoords().CopyRange(coordCurrRef, 0, pStart, pLen);
          comCurrRef.SetNew(molIndex, destBox);
-         molLookRef.ShiftMolBox(molIndex, sourceBox, destBox,
-				kindIndex);
+         //molLookRef.ShiftMolBox(molIndex, sourceBox, destBox,
+	 //			kindIndex);
 #ifdef CELL_LIST
 	 cellList.AddMol(molIndex, destBox, coordCurrRef);
 #endif
@@ -153,12 +133,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 
 	 //Zero out box energies to prevent small number 
 	 //errors in double.
-	 if (molLookRef.NumInBox(sourceBox) == 0)
-	 {
-	    sysPotRef.boxEnergy[sourceBox].Zero();
-	    sysPotRef.boxVirial[sourceBox].Zero();
-	 }
-	 else if (molLookRef.NumInBox(sourceBox) == 1)
+	 if (molLookRef.NumInBox(sourceBox) == 1)
 	 {
 	    sysPotRef.boxEnergy[sourceBox].inter = 0;
 	    sysPotRef.boxVirial[sourceBox].inter = 0;
@@ -176,10 +151,8 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
    }
    else  //else we didn't even try because we knew it would fail
       result = false;
-   subPick = mv::GetMoveSubIndex(mv::MOL_TRANSFER, sourceBox);
+   subPick = mv::GetMoveSubIndex(mv::INTRA_SWAP, sourceBox);
    moveSetRef.Update(result, subPick, step);
 }
-
-#endif
 
 #endif

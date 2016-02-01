@@ -1,7 +1,6 @@
 /*******************************************************************************
 GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
-
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -59,22 +58,22 @@ namespace config_setup
    //Kinds of Mersenne Twister initialization
    class PRNGKind
    {
-   public:
+	public:
       bool IsRand(void) const { return str::compare(KIND_RANDOM, kind); }
       bool IsSeed(void) const { return str::compare(KIND_SEED, kind); }
       bool IsRestart(void) const { return str::compare(KIND_RESTART, kind); }
-
-   //private:
-	  std::string kind;
-	  MTRand::uint32 seed;
-	  static const std::string KIND_RANDOM, KIND_SEED, KIND_RESTART;
+	  
+	//private
+      static const std::string KIND_RANDOM, KIND_SEED, KIND_RESTART;
+      std::string kind;
+      MTRand::uint32 seed;
    }; 
    
 	struct FFKind
 	{
-		uint numOfKinds;
-		bool isCHARMM, isMARTINI;
-      static const std::string FF_CHARMM, FF_EXOTIC, FF_MARTINI;
+	  uint numOfKinds;
+	  bool isCHARMM, isMARTINI, isEXOTIC;
+	  static const std::string FF_CHARMM, FF_EXOTIC, FF_MARTINI;
 	};
 
    //Files for input.
@@ -152,7 +151,7 @@ namespace config_setup
    //Holds the percentage of each kind of move for this ensemble.
    struct MovePercents
    {
-      double displace, rotate;
+      double displace, rotate, intraSwap;
 #ifdef VARIABLE_VOLUME
       double volume;
 #endif
@@ -161,13 +160,16 @@ namespace config_setup
 #endif
    };
 
-   struct Ewald
+   struct ElectroStatic
    {
-	   bool readEwald;
-	   bool enable;
-	   double alpha;
-	   double KMax;
-	   double oneFourScale;
+      bool readEwald;
+      bool readElect;
+      bool enable;
+      bool ewald;
+      double alpha;
+      double KMax;
+      double oneFourScale;
+      double dielectric;  
    };
 
    struct Volume
@@ -202,7 +204,7 @@ namespace config_setup
 #endif
 	struct SystemVals
 	{
-		Ewald ewald;
+		ElectroStatic elect;
 		Temperature T;
 		FFValues ff;
 		Exclude exclude;
@@ -295,5 +297,4 @@ private:
 	static const char configFileAlias[];       // "GO-MC Configuration File"
 };
 
-#endif 
-
+#endif

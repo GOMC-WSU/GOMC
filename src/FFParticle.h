@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef FF_PARTICLE_H
 #define FF_PARTICLE_H
 
@@ -37,7 +30,8 @@ namespace ff_setup
   class NBfix;
 }
 namespace config_setup 
-{ 
+{
+  struct SystemVals;
   struct FFValues; 
   struct FFKind;
 }
@@ -50,6 +44,7 @@ struct FFParticle
    ~FFParticle(void);
 
    double GetMass(const uint kind) const { return mass[kind]; }
+  // LJ interaction functions
    virtual void CalcAdd(double& en, double& vir, const double distSq,
                 const uint kind1, const uint kind2) const;
    virtual void CalcSub(double& en, double& vir, const double distSq,
@@ -61,9 +56,26 @@ struct FFParticle
    virtual void CalcAdd_1_4(double& en, const double distSq,
 		const uint kind1, const uint kind2) const;
 
+  // coulomb interaction functions
+   virtual void CalcCoulombAdd(double& en, double& vir, const double distSq,
+			       const double qi_qj_Fact,
+			       const double boxSize) const;
+   virtual void CalcCoulombSub(double& en, double& vir, const double distSq,
+			       const double qi_qj_Fact,
+			       const double boxSize) const;
+   virtual double CalcCoulombEn(const double distSq,
+				const double qi_qj_Fact,
+			        const double boxSize) const;
+   virtual double CalcCoulombVir(const double distSq,
+				 const double qi_qj_Fact,
+				 const double boxSize) const;
+   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
+				   const double qi_qj_Fact,
+				   const double boxSize) const;
+
   void Init(ff_setup::Particle const& mie,
 	    ff_setup::NBfix const& nbfix,
-	    config_setup::FFValues const& val,
+	    config_setup::SystemVals const& sys,
 	    config_setup::FFKind const& ffKind);
    //!Returns Energy long-range correction term for a kind pair
    virtual double EnergyLRC(const uint kind1, const uint kind2) const;
@@ -73,6 +85,7 @@ struct FFParticle
    uint NumKinds() const { return count; }
 
  protected:
+
    virtual void Calc(double& en, double& vir, const double distSq, uint index,
 #ifdef MIE_INT_ONLY
 	     const uint n
@@ -80,6 +93,9 @@ struct FFParticle
 	     const double n
 #endif
 	     ) const;
+
+  virtual void CalcCoulomb(double& en, double& vir, const double distSq,
+			 const double qi_qj_Fact, const double boxSize)const;
 
 
 
@@ -106,7 +122,8 @@ struct FFParticle
      * enCorrection, * virCorrection, *shiftConst, *An, *Bn, *Cn, *sig6, *sign,
      *shiftConst_1_4, *An_1_4, *Bn_1_4, *Cn_1_4, *sig6_1_4, *sign_1_4;
 
-  double rCut, rCutSq, rOn, rOnSq, A6, B6, C6, factor1, factor2;
+  double rCut, rCutSq, rOn, rOnSq, rOnCoul, A1, B1, C1, A6, B6, C6,
+    factor1, factor2, scaling_14, alpha, diElectric_1;
 
   uint count, vdwKind;
   bool isMartini;
@@ -118,6 +135,15 @@ inline void FFParticle::CalcAdd(double& en, double& vir, const double distSq,
    uint idx = FlatIndex(kind1, kind2);
    Calc(en, vir, distSq, idx, n[idx]);
 } 
+
+inline void FFParticle::CalcCoulombAdd(double& en, double& vir,
+					const double distSq,
+					const double qi_qj_Fact,
+					const double boxSize) const
+{
+  CalcCoulomb(en, vir, distSq, qi_qj_Fact, boxSize);
+}
+     
 
 inline void FFParticle::CalcAdd_1_4(double& en, const double distSq,
 		const uint kind1, const uint kind2) const
@@ -137,6 +163,15 @@ inline void FFParticle::CalcAdd_1_4(double& en, const double distSq,
    en += epsilon_cn_1_4[index] * (repulse-attract);
 }
 
+inline void FFParticle::CalcCoulombAdd_1_4(double& en, const double distSq,
+					    const double qi_qj_Fact,
+					    const double boxSize) const
+{
+   double dist = sqrt(distSq);
+   double erfc = alpha / boxSize * dist;
+   en += scaling_14 * qi_qj_Fact * (1 - erf(erfc))/ dist; 
+}
+
 inline void FFParticle::CalcSub(double& en, double& vir, const double distSq,
 				const uint kind1, const uint kind2) const
 {
@@ -146,6 +181,17 @@ inline void FFParticle::CalcSub(double& en, double& vir, const double distSq,
    en -= tempEn;
    vir = -1.0 * tempVir;
 } 
+
+inline void FFParticle::CalcCoulombSub(double& en, double& vir,
+					const double distSq,
+					const double qi_qj_Fact,
+					const double boxSize) const
+{
+  double tempEn = 0.0, tempVir = 0.0;
+  CalcCoulomb(tempEn, tempVir, distSq, qi_qj_Fact, boxSize);
+  en  -= tempEn;
+  vir -= tempVir;
+}
 
 //mie potential
 inline double FFParticle::CalcEn(const double distSq,
@@ -166,7 +212,16 @@ inline double FFParticle::CalcEn(const double distSq,
    return epsilon_cn[index] * (repulse-attract);
 }
 
-//mie potential
+inline double FFParticle::CalcCoulombEn(const double distSq,
+					const double qi_qj_Fact,
+					const double boxSize) const
+{
+   double dist = sqrt(distSq);
+   double erfc = alpha / boxSize * dist;
+   return  qi_qj_Fact * (1 - erf(erfc))/ dist;
+}
+
+
 inline double FFParticle::CalcVir(const double distSq,
                                   const uint kind1, const uint kind2) const
 {
@@ -187,6 +242,16 @@ inline double FFParticle::CalcVir(const double distSq,
    return epsilon_cn_6[index] * (nOver6[index]*repulse-attract)*rNeg2;
 }
 
+inline double FFParticle::CalcCoulombVir(const double distSq,
+					 const double qi_qj_Fact,
+					 const double boxSize) const
+{
+  // need to figure out -d(erf)/dr
+  //double dist = sqrt(distSq);
+  //double erfc = alpha / boxSize * dist;
+  //return  qi_qj_Fact * (1 - erf(erfc))/ (distSq * dist);
+  return 0.0;
+}
 
 //mie potential
 inline void FFParticle::Calc(double & en, double & vir, 
@@ -213,5 +278,17 @@ inline void FFParticle::Calc(double & en, double & vir,
    vir = epsilon_cn_6[index] * (nOver6[index]*repulse-attract)*rNeg2;
 }
 
-#endif /*FF_PARTICLE_H*/
+inline void FFParticle::CalcCoulomb(double & en, double & vir,
+				    const double distSq, 
+				    const double qi_qj_Fact,
+				    const double boxSize)const
+{
+   double dist = sqrt(distSq);
+   double erfc = alpha / boxSize * dist;
+   en += qi_qj_Fact * (1 - erf(erfc))/ dist;
+   // need to figure out -d(erf)/dr
+   //vir = qi_qj_Fact * (1 - erf(erfc))/(distSq * dist)
+}
 
+
+#endif /*FF_PARTICLE_H*/
