@@ -1,3 +1,10 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
+Copyright (C) 2015  GOMC Group
+
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "MoveSettings.h" //header spec.
 #include "BoxDimensions.h" //For axis sizes
 #include "StaticVals.h" //For init info.
@@ -6,7 +13,7 @@
 #include "../lib/GeomLib.h"    //For M_PI
 
 const double MoveSettings::TARGET_ACCEPT_FRACT = 0.50;
-const double MoveSettings::TINY_AMOUNT = 0.0000001;
+const double MoveSettings::TINY_AMOUNT = 1e-7;
 
 void MoveSettings::Init(StaticVals const& statV)
 {
@@ -32,11 +39,16 @@ void MoveSettings::Init(StaticVals const& statV)
    }
 
 #if ENSEMBLE == NVT || ENSEMBLE == GCMC 
-   scale[mv::DISPLACE] = boxDimRef.axis.Min(0)/4;
+   //Make the displacement a percent of the box axis length instead of a fixed amount.
+   //   scale[mv::DISPLACE] = boxDimRef.axis.Min(0)/4;
+   scale[mv::DISPLACE] = 0.25;
    scale[mv::ROTATE] = M_PI_4;
 #elif ENSEMBLE == GEMC
-   scale[mv::DISPLACE] = boxDimRef.axis.Min(0)/4;
-   scale[mv::DISPLACE+1] = boxDimRef.axis.Min(1)/4;
+   // Make the displacement a percent of the box axis length instead of a fixed amount.
+   //   scale[mv::DISPLACE] = boxDimRef.axis.Min(0)/4;
+   //   scale[mv::DISPLACE+1] = boxDimRef.axis.Min(1)/4;
+   scale[mv::DISPLACE] = 0.25;
+   scale[mv::DISPLACE+1] = 0.25;
    scale[mv::ROTATE*BOX_TOTAL] = M_PI_4;
    scale[mv::ROTATE*BOX_TOTAL+1] = M_PI_4;
    scale[mv::VOL_TRANSFER*BOX_TOTAL] = 500;
@@ -103,9 +115,8 @@ void MoveSettings::Adjust(const uint majMoveKind,
 {   
    if (tempTries[moveIndex] > 0)
    {
-      double currentAccept =
-	 (double)(tempAccepted[moveIndex])/(double)(tempTries[moveIndex]),
-	 fractOfTargetAccept = currentAccept/TARGET_ACCEPT_FRACT;
+	   double currentAccept = (double)(tempAccepted[moveIndex])/(double)(tempTries[moveIndex]);
+	   double fractOfTargetAccept = currentAccept/TARGET_ACCEPT_FRACT;
 
 #if 0
       if (majMoveKind == mv::VOL_TRANSFER)
@@ -149,13 +160,13 @@ void MoveSettings::Adjust(const uint majMoveKind,
    switch (majMoveKind)
    {
    case mv::DISPLACE :
-      num::Bound<double>(scale[moveIndex], 0.0000000001, 
-			 (boxDimRef.axis.Min(b)/2) - TINY_AMOUNT);
+	   num::Bound<double>(scale[moveIndex], TINY_AMOUNT, 0.5 - TINY_AMOUNT);
       break; 
    case mv::ROTATE :  
-      num::Bound<double>(scale[moveIndex], 0.000001, M_PI-TINY_AMOUNT);      
+	   num::Bound<double>(scale[moveIndex], TINY_AMOUNT, M_PI - TINY_AMOUNT);
       break;
    default:
       break;
    }
 }
+
