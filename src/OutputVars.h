@@ -26,6 +26,7 @@ public:
    uint GetAccepted(uint sub);
    double GetAcceptPercent(uint sub);
    double GetScale(uint sub);
+   double GetMinAxis(uint b) const { return axisRef->Min(b); }
    
 //private:
    //Intermediate vars.
