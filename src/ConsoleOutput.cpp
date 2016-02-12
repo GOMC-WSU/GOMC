@@ -1,6 +1,6 @@
 #include "ConsoleOutput.h"          //For spec;
 #include "EnsemblePreprocessor.h"   //For BOX_TOTAL, ensemble
-#include "MoveConst.h"    //For move index constants, name constants.
+#include "MoveConst.h"				//For move index constants, name constants.
 #include "FFConst.h"                //For density conv.
 #include "System.h"                 //for init
 #include "StaticVals.h"             //for init  
@@ -55,27 +55,32 @@ void ConsoleOutput::PrintSysStat() const
 }
 
 void ConsoleOutput::PrintMoveKind(bool & somethingPrinted,
-				  const uint m,
-				  const uint b,
-				  const ulong step) const
-{      
-   uint sub = mv::GetMoveSubIndex(m, b);
-   if (var->movePercRef[m] == 0.0 && step==0)
-   {
-      somethingPrinted |= true;
-      std::cout << "Reminder: " << mv::MOVE_NAME[sub] 
-		<< " move is off!" << std::endl;
-   }
-   else if (var->movePercRef[m] != 0.0 && step != 0)
-   {
-      somethingPrinted |= true;
-      std::cout << mv::MOVE_NAME[sub] << " -- tries: " << var->GetTries(sub)
-		<< "; # Accept: " << var->GetAccepted(sub)
-		<< "; % Accept : " << var->GetAcceptPercent(sub);
-      if (sub < mv::SCALEABLE)
-	 std::cout << "; Max Amt.: " << var->GetScale(sub);
-      std::cout << std::endl;
-   }
+	const uint m,
+	const uint b,
+	const ulong step) const
+{
+	uint sub = mv::GetMoveSubIndex(m, b);
+	if (var->movePercRef[m] == 0.0 && step == 0)
+	{
+		somethingPrinted |= true;
+		std::cout << "Reminder: " << mv::MOVE_NAME[sub]
+			<< " move is off!" << std::endl;
+	}
+	else if (var->movePercRef[m] != 0.0 && step != 0)
+	{
+		somethingPrinted |= true;
+		std::cout << mv::MOVE_NAME[sub] << " -- tries: " << var->GetTries(sub)
+			<< "; # Accept: " << var->GetAccepted(sub)
+			<< "; % Accept : " << var->GetAcceptPercent(sub);
+		if (sub < mv::SCALEABLE) {
+			//Multiple displacement maximum percent by the box length.
+			if (m == mv::DISPLACE)
+				std::cout << "; Max Amt.: " << var->GetMinAxis(b) * var->GetScale(sub);
+			else
+				std::cout << "; Max Amt.: " << var->GetScale(sub);
+		}
+		std::cout << std::endl;
+	}
 }
 
 void ConsoleOutput::PrintMoveStat(const uint box, const ulong step) const
