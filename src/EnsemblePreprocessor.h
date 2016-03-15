@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef ENSEMBLE_PREPROCESSOR_H
 #define ENSEMBLE_PREPROCESSOR_H
 
@@ -15,7 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #ifndef ENSEMBLE
 //The choice of ensemble.
-#define ENSEMBLE GCMC
+#define ENSEMBLE NVT
 #endif
 
 //Ensemble specific defines, such as what data members are variable
@@ -25,7 +18,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define VARIABLE_VOLUME
 #define VARIABLE_DENSITY
 #define BOX_TOTAL 2
-#define RECIP_ARRAY_SIZE_TWO
 //Do not do vol. trans. if molecule is over the boundary
 //Towhee does this for volume transfers
 //#define NO_VOL_TRANS_IF_OVER_PERIODIC_BOUND
@@ -34,8 +26,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define VARIABLE_DENSITY
 #define BOX_TOTAL 2
 #elif ENSEMBLE == NVT
+#define VARIABLE_PARTICLE_NUMBER
 #define BOX_TOTAL 1
 #endif
 
 #endif /*ENSEMBLE_PREPROCESSOR_H*/
-

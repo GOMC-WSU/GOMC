@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef BOX_DIMENSIONS_H
 #define BOX_DIMENSIONS_H
 
@@ -145,8 +138,7 @@ struct BoxDimensions
 		    const double ax, const double halfAx) const;
 
    double DotProduct(const uint atom, double kx, double ky,
-	   double kz, const XYZArray & Coords, uint box) const;
-
+		     double kz, const XYZArray & Coords, uint box) const; 
 };
 
 inline BoxDimensions::BoxDimensions(BoxDimensions const& other) : 
@@ -499,10 +491,12 @@ inline double BoxDimensions::UnwrapPBC
 }
 
 //Calculate dot product
-inline double BoxDimensions::DotProduct(const uint atom, double kx, double ky, double kz, const XYZArray &Coords, uint box) const
+inline double BoxDimensions::DotProduct(const uint atom, double kx,
+					double ky, double kz,
+					const XYZArray &Coords, uint box) const
 {
-	double x = Coords.x[atom], y = Coords.y[atom], z = Coords.z[atom];
-	return(x * kx + y * ky + z * kz);
+   double x = Coords.x[atom], y = Coords.y[atom], z = Coords.z[atom];
+   return(x * kx + y * ky + z * kz);
 }
-#endif /*BOX_DIMENSIONS_H*/
 
+#endif /*BOX_DIMENSIONS_H*/
