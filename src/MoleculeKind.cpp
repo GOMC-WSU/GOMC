@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "MoleculeKind.h"
 #include "MolSetup.h"
 #include "FFSetup.h"
@@ -82,22 +75,26 @@ void MoleculeKind::Init
 
    //Once-through topology objects
 
+   oneThree = oneFour = false;
+
    if(forcefield.OneThree)
    {
-     nonBonded_1_4 = new Nonbond_1_3; 
-     nonBonded_1_4->Init(molData);
+     nonBonded_1_3.Init(molData);
+     oneThree = true;
    }
    if(forcefield.OneFour)
    {
-     nonBonded_1_4 = new Nonbond_1_4;
-     nonBonded_1_4->Init(molData);
+     nonBonded_1_4.Init(molData);
+     oneFour = true;
    }
    if (forcefield.OneN)
    {
      nonBonded.Init(molData);
    }
+   
    nonEwaldBonded.Init(molData);
-   sortedNB_1_4.Init(*nonBonded_1_4, numAtoms);
+   sortedNB_1_3.Init(nonBonded_1_3, numAtoms);
+   sortedNB_1_4.Init(nonBonded_1_4, numAtoms);
    sortedNB.Init(nonBonded, numAtoms);
    sortedEwaldNB.Init(nonEwaldBonded, numAtoms);
    bondList.Init(molData.bonds);
@@ -112,7 +109,7 @@ void MoleculeKind::Init
 
 MoleculeKind::MoleculeKind() : angles(3), dihedrals(4),
    atomMass(NULL), atomCharge(NULL), builder(NULL), 
-			       atomKind(NULL), nonBonded_1_4(NULL)
+			       atomKind(NULL)
 {}
 
 MoleculeKind::~MoleculeKind()
@@ -121,7 +118,6 @@ MoleculeKind::~MoleculeKind()
    delete[] atomMass;
    delete[] atomCharge;
    delete builder;
-   delete[] nonBonded_1_4;
 }
 
 
@@ -147,4 +143,3 @@ void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
       atomKind[i] = atom.kind;
    }
 }
-

@@ -37,10 +37,11 @@ ConfigSetup::ConfigSetup(void)
 	in.restart.enable = false;
 	in.restart.step = ULONG_MAX;
 	in.prng.seed = UINT_MAX;
-	sys.ewald.readEwald = false;
-	sys.ewald.alpha = DBL_MAX;
-	sys.ewald.KMax = DBL_MAX;
-	sys.ewald.oneFourScale = DBL_MAX;
+	sys.elect.readEwald = false;
+	sys.elect.readElect = false;
+	sys.elect.tolerance = DBL_MAX;
+	sys.elect.oneFourScale = DBL_MAX;
+	sys.elect.dielectric = DBL_MAX;
 	sys.step.total = ULONG_MAX;
 	sys.step.equil = ULONG_MAX;
 	sys.step.adjustment = ULONG_MAX;
@@ -64,6 +65,7 @@ ConfigSetup::ConfigSetup(void)
 	sys.ff.cutoff = DBL_MAX;
 	sys.moves.displace = DBL_MAX;
 	sys.moves.rotate = DBL_MAX;
+	sys.moves.intraSwap = DBL_MAX;
 	out.state.settings.enable = true;
 	out.restart.settings.enable = true;
 	out.console.enable = true;
@@ -152,8 +154,10 @@ void ConfigSetup::Init(const char *fileName)
 			if(checkBool(line[1]))
 			{
 				in.ffKind.numOfKinds++;
+				in.ffKind.isEXOTIC = false;
 				in.ffKind.isMARTINI = false;
 				in.ffKind.isCHARMM = true;
+				std::cout << "REMINDER: CHARMM force field has been selected!" << std::endl;
 			}
 		} else if(line[0] == "ParaTypeEXOTIC") {
 			if(checkBool(line[1]))
@@ -161,13 +165,17 @@ void ConfigSetup::Init(const char *fileName)
 				in.ffKind.numOfKinds++;
 				in.ffKind.isCHARMM = false;
 				in.ffKind.isMARTINI = false;
-			}
+			        in.ffKind.isEXOTIC = true;
+				std::cout << "REMINDER: EXOTIC force field has been selected!" << std::endl;
+		}
 		} else if(line[0] == "ParaTypeMARTINI") {
 			if(checkBool(line[1]))
 			{
 				in.ffKind.numOfKinds ++;
+				in.ffKind.isEXOTIC = false;
 				in.ffKind.isMARTINI = true;
 				in.ffKind.isCHARMM = true;
+				std::cout << "REMINDER: MARTINI force field has been selected!" << std::endl;
 			}
 		} else if(line[0] == "Parameters") {
 			in.files.param.name = line[1];
@@ -245,20 +253,29 @@ void ConfigSetup::Init(const char *fileName)
 		}
 		else if(line[0] == "Ewald")
 		{
-			sys.ewald.enable = checkBool(line[1]);
-			sys.ewald.readEwald = true;
+			sys.elect.ewald = checkBool(line[1]);
+			sys.elect.readEwald = true;
 		}
-		else if(line[0] == "Alpha")
+		else if(line[0] == "ElectroStatic")
 		{
-			sys.ewald.alpha = stringtod(line[1]);
+			sys.elect.enable = checkBool(line[1]);
+			sys.elect.readElect = true;
 		}
-		else if(line[0] == "KMax")
+		else if(line[0] == "Tolerance")
 		{
-			sys.ewald.KMax = stringtod(line[1]);
+			sys.elect.tolerance = stringtod(line[1]);
+			sys.elect.alpha = sqrt(-1 * log(sys.elect.tolerance))/
+			  sys.ff.cutoff;
+			sys.elect.recip_rcut = 2 * (-log(sys.elect.tolerance))/
+			  sys.ff.cutoff;
 		}
 		else if(line[0] == "1-4scaling")
 		{
-			sys.ewald.oneFourScale = stringtod(line[1]);
+			sys.elect.oneFourScale = stringtod(line[1]);
+		}
+		else if(line[0] == "Dielectric")
+		{
+			sys.elect.dielectric = stringtod(line[1]);
 		}
 		else if(line[0] == "RunSteps")
 		{
@@ -276,6 +293,10 @@ void ConfigSetup::Init(const char *fileName)
 		{
 			sys.moves.displace = stringtod(line[1]);
 		}
+		else if(line[0] == "IntraSwapFreq")
+		{
+			sys.moves.intraSwap = stringtod(line[1]);
+		}
 		else if(line[0] == "RotFreq")
 		{
 			sys.moves.rotate = stringtod(line[1]);
@@ -289,7 +310,11 @@ void ConfigSetup::Init(const char *fileName)
 #ifdef VARIABLE_PARTICLE_NUMBER
 		else if(line[0] == "SwapFreq")
 		{
+#if ENSEMBLE == NVT
+		        sys.moves.transfer = 0.000;
+#else
 			sys.moves.transfer = stringtod(line[1]);
+#endif
 		}
 #endif
 		else if(line[0] == "BoxDim") {
@@ -447,16 +472,15 @@ void ConfigSetup::Init(const char *fileName)
 
 void ConfigSetup::fillDefaults(void)
 {
+        if(sys.moves.intraSwap == DBL_MAX)
+	{
+	  std::cout << "By default intra box swap frequency has been set to zero" << std::endl;
+	  sys.moves.intraSwap = 0.000;
+	}
 	if(sys.exclude.EXCLUDE_KIND == UINT_MAX)
 	{
 		std::cout << "Warning: By default value (1-3) for exclude is selected!" << std::endl;
 		sys.exclude.EXCLUDE_KIND = sys.exclude.EXC_ONETHREE_KIND;
-	}
-
-	if(in.ffKind.numOfKinds == 0)
-	{
-		std::cout << "Error: Force field type has not been defined!" << std::endl;
-		exit(0);
 	}
 
 	if(in.prng.kind == "")
@@ -473,10 +497,21 @@ void ConfigSetup::fillDefaults(void)
 	}
 #endif
 
-	if(sys.ewald.enable && sys.ewald.oneFourScale == DBL_MAX)
+	if(sys.elect.enable && sys.elect.oneFourScale == DBL_MAX)
 	{
 		std::cout << "Warning: 1-4 electro static scaling has been set to zero!" << std::endl;
-		sys.ewald.oneFourScale = 0.0f;
+		sys.elect.oneFourScale = 0.0f;
+	}
+	
+	if (sys.elect.ewald == true)
+	{
+	  sys.elect.enable = true;
+	}
+	
+	if(sys.elect.enable && sys.elect.dielectric == DBL_MAX && in.ffKind.isMARTINI)
+	{
+		std::cout << "Warning: Dielectric will be set to 15.0 for Martini forcefield!" << std::endl;
+		sys.elect.dielectric = 15.0f;
 	}
 
 	// Set output files
@@ -528,14 +563,35 @@ void ConfigSetup::verifyInputs(void)
 		std::cout << "Error: Seed is required for INTSEED type seed!" << std::endl;
 		exit(0);
 	}
-	if(in.ffKind.numOfKinds != 1)
+	if(in.ffKind.numOfKinds == 0)
+	{
+	    std::cout << "Error: Force field type has not been defined!" << std::endl;
+	    exit(0);
+	}
+	if(in.ffKind.numOfKinds > 1)
 	{
 		std::cout << "Error: One type of Parameter type should be set!" << std::endl;
 		exit(0);
 	}
+	if((!in.ffKind.isMARTINI && !in.ffKind.isEXOTIC) && (sys.exclude.EXCLUDE_KIND == sys.exclude.EXC_ONETWO_KIND))
+	{
+	    std::cout << "Error: 1-3 interaction is not valid for CHARMM force field!" << std::endl;
+	    exit(0);
+	}
+	if(in.ffKind.isEXOTIC && (sys.exclude.EXCLUDE_KIND == sys.exclude.EXC_ONETWO_KIND))
+	{
+	  std::cout << "Error: 1-3 interaction is not valid for EXOTIC force field!" << std::endl;
+	  exit(0);
+	}
+	if(in.ffKind.isEXOTIC && (sys.exclude.EXCLUDE_KIND == sys.exclude.EXC_ONETHREE_KIND))
+	{
+	  std::cout << "Error: 1-4 interaction is not valid for EXOTIC force field!" << std::endl;
+	  exit(0);
+	}
 	if(in.files.param.name == "")
 	{
-		std::cout << "Error: Parameter file name has not been defined!" << std::endl;
+	  std::cout << "Error: Parameter file name has not been defined!" << std::endl;
+	  exit(0);
 	}
 	if(sys.ff.VDW_KIND == UINT_MAX)
 	{
@@ -555,19 +611,10 @@ void ConfigSetup::verifyInputs(void)
 		std::cout << "Error: Cut off is required!" << std::endl;
 		exit(0);
 	}
-	if(sys.ewald.enable && (sys.ewald.alpha == DBL_MAX))
+	if(sys.elect.ewald && (sys.elect.tolerance == DBL_MAX))
 	{
-		std::cout << "Error: Alpha value has not been specified for Ewald summation!" << std::endl;
+		std::cout << "Error: Tolerance has not been specified for Ewald summation!" << std::endl;
 		exit(0);
-	}
-	if(sys.ewald.enable && (sys.ewald.KMax == DBL_MAX))
-	{
-		std::cout << "Error: KMax value has not been specified for Ewald summation!" << std::endl;
-		exit(0);
-	}
-	if(!sys.ewald.readEwald)
-	{
-		std::cout << "Error: Ewald logic has not been specified!" << std::endl;
 	}
 	if(sys.step.adjustment == ULONG_MAX)
 	{
@@ -604,6 +651,11 @@ void ConfigSetup::verifyInputs(void)
 		std::cout << "Error: Rotation frequency has not been specified!" << std::endl;
 		exit(0);
 	}
+	if(sys.moves.intraSwap == DBL_MAX)
+	{
+		std::cout << "Error: IntraSwap frequency has not been specified!" << std::endl;
+		exit(0);
+	}
 #if ENSEMBLE == GEMC
 	if(sys.moves.volume == DBL_MAX)
 	{
@@ -615,14 +667,10 @@ void ConfigSetup::verifyInputs(void)
 		std::cout << "Error: Molecule swap frequency has not been specified!" << std::endl;
 		exit(0);
 	}
-	if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer + sys.moves.volume - 1.0) > 0.001)
+	if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer + sys.moves.intraSwap + sys.moves.volume - 1.0) > 0.01)
 	{
 		std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
 		exit(0);
-	}
-	else if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer + sys.moves.volume - 1.0) > 0.0001)
-	{
-		std::cout << "Warning: Please double check your move percentage frequency to add up to 1!" << std::endl;
 	}
 #elif ENSEMBLE == GCMC
 	if(sys.moves.transfer == DBL_MAX)
@@ -630,24 +678,16 @@ void ConfigSetup::verifyInputs(void)
 		std::cout << "Error: Molecule swap frequency has not been specified!" << std::endl;
 		exit(0);
 	}
-	if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer - 1.0) > 0.001)
+	if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap + sys.moves.transfer - 1.0) > 0.01)
 	{
 		std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
 		exit(0);
-	}
-	else if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer - 1.0) > 0.0001)
-	{
-		std::cout << "Warning: Please double check your move percentage frequency to add up to 1!" << std::endl;
 	}
 #else
-	if(abs(sys.moves.displace + sys.moves.rotate- 1.0) > 0.001)
+	if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap - 1.0) > 0.01)
 	{
 		std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
 		exit(0);
-	}
-	else if(abs(sys.moves.displace + sys.moves.rotate- 1.0) > 0.0001)
-	{
-		std::cout << "Warning: Please double check your move percentage frequency to add up to 1!" << std::endl;
 	}
 #endif
 
@@ -655,28 +695,33 @@ void ConfigSetup::verifyInputs(void)
 	{
 		if(in.files.pdb.name[i] == "")
 		{
-			std::cout << "Error: Unknown PDB file!" << std::endl;
-			exit(0);
+		  std::cout << "Error: PDB file has not been defined for Box number " << i << "!" <<std::endl;
+		  exit(0);
 		}
 	}
 	for(i = 0 ; i < BOX_TOTAL ; i++)
 	{
 		if(in.files.psf.name[i] == "")
 		{
-			std::cout << "Error: Unknown PSF file!" << std::endl;
+			std::cout << "Error: PSF file has not been defined for Box number " << i << "!" <<std::endl;
 			exit(0);
 		}
 	}
-	if(sys.ff.VDW_KIND != sys.ff.VDW_STD_KIND && sys.ff.rswitch == DBL_MAX)
+	if(!sys.volume.hasVolume)
+	{
+	  std::cout << "Error: This simulation type requires to define " << BOX_TOTAL << " box dimentions!" <<std::endl;
+	  exit(0);
+	}
+	if(sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND && sys.ff.rswitch == DBL_MAX)
 	{
 		std::cout << "Error: Switch cut off has not been defined!" << std::endl;
 		exit(0);
 	}
-	if(sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND && sys.ff.rswitch != DBL_MAX)
+	if((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND || sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND) && sys.ff.rswitch != DBL_MAX)
 	{
 		std::cout << "Warning: Switch cut off will be ignored!" << std::endl;
 	}
-	if(sys.ff.VDW_KIND != sys.ff.VDW_STD_KIND && sys.ff.rswitch >= sys.ff.cutoff)
+	if(sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND && sys.ff.rswitch >= sys.ff.cutoff)
 	{
 		std::cout << "Error: Switch cut off should be smaller than cut off!" << std::endl;
 		exit(0);
@@ -906,4 +951,3 @@ const uint config_setup::FFValues::VDW_STD_KIND = 0,
    config_setup::Exclude::EXC_ONETWO_KIND = 0,
    config_setup::Exclude::EXC_ONETHREE_KIND = 1,
    config_setup::Exclude::EXC_ONEFOUR_KIND = 2;
-

@@ -1,14 +1,8 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "EnsemblePreprocessor.h"
 #include "System.h"
 
 #include "CalculateEnergy.h"
+#include "Ewald.h"
 #include "EnergyTypes.h"
 #include "Setup.h"               //For source of setup data.
 #include "ConfigSetup.h"         //For types directly read from config. file
@@ -17,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveConst.h"           //For array of move objects.
 #include "MoveBase.h"            //For move bases....
 #include "MoleculeTransfer.h"
+#include "IntraSwap.h"
 
 System::System(StaticVals& statics) : 
    statV(statics),
@@ -37,12 +32,13 @@ System::System(StaticVals& statics) :
 #ifdef CELL_LIST
    cellList(statics.mol),
 #endif
-   calcEnergy(statics, *this) {}
+   calcEnergy(statics, *this), calcEwald(statics, *this) {}
 
 System::~System()
 {
    delete moves[mv::DISPLACE];
    delete moves[mv::ROTATE];
+   delete moves[mv::INTRA_SWAP];
 #if ENSEMBLE == GEMC
    delete moves[mv::VOL_TRANSFER];
 #endif
@@ -73,7 +69,8 @@ void System::Init(Setup const& set)
    cellList.SetCutoff(statV.forcefield.rCut);
    cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 #endif
-   calcEnergy.Init(set.config.sys);
+   calcEwald.Init();
+   calcEnergy.Init();
    potential = calcEnergy.SystemTotal();
    InitMoves();
 }
@@ -82,6 +79,7 @@ void System::InitMoves()
 {
    moves[mv::DISPLACE] = new Translate(*this, statV);
    moves[mv::ROTATE] = new Rotate(*this, statV);
+   moves[mv::INTRA_SWAP] = new IntraSwap(*this, statV);
 #if ENSEMBLE == GEMC
    moves[mv::VOL_TRANSFER] = new VolumeTransfer(*this, statV);
 #endif
@@ -105,6 +103,7 @@ void System::PickMove(uint & kind, double & draw)
 
 void System::RunMove(uint majKind, double draw, const uint step)
 {
+  
    double Uo = potential.totalEnergy.total;
    //return now if move targets molecule and there's none in that box.
    uint rejectState = SetParams(majKind, draw);
@@ -135,5 +134,4 @@ void System::CalcEn(const uint kind) { moves[kind]->CalcEn(); }
 
 void System::Accept(const uint kind, const uint rejectState, const uint step) 
 { moves[kind]->Accept(rejectState, step); }
-
 

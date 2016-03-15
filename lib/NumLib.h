@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef NUMERIC_LIB_H
 #define NUMERIC_LIB_H
 
@@ -15,6 +8,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 namespace num
 {
    static const double dbl_margin = 0.00001;
+   static const double qqFact = 167000.00;
+   static const double BIGNUM = 10E40;
    static const uint VDW_STD_KIND = 0, VDW_SHIFT_KIND = 1, VDW_SWITCH_KIND = 2;
 
    template <typename T>
@@ -106,4 +101,3 @@ namespace num
 }
 
 #endif /*NUMERIC_LIB_H*/
-

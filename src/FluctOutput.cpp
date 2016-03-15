@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "FluctOutput.h"
 #include "PDBConst.h"
 #include "OutConst.h"
@@ -93,13 +86,6 @@ void Fluctuations::InitWatchSingle(config_setup::TrackedVars const& tracked)
    flucts[out::ENERGY_INTRA_NB_IDX].Init(tracked.energy.fluct, 
 					 out::ENERGY_INTRA_NB, uniqueName,
 					 BOXES_WITH_U_NB);
-   flucts[out::ENERGY_ELECT_IDX].Init(tracked.energy.fluct, 
-					out::ENERGY_ELECT, uniqueName, BOXES_WITH_U_NB);
-   flucts[out::ENERGY_REAL_IDX].Init(tracked.energy.fluct, 
-					out::ENERGY_REAL, uniqueName, BOXES_WITH_U_NB);
-   flucts[out::ENERGY_RECIP_IDX].Init(tracked.energy.fluct, 
-					out::ENERGY_RECIP, uniqueName, BOXES_WITH_U_NB);
-
 #endif
 
    flucts[out::VIRIAL_TOTAL_IDX].Init(tracked.pressure.fluct, 
@@ -136,10 +122,8 @@ void Fluctuations::InitWatchSingle(config_setup::TrackedVars const& tracked)
       flucts[out::ENERGY_INTRA_B_IDX].SetRef(&var->energyRef[b].intraBond, b);
       flucts[out::ENERGY_INTER_IDX].SetRef(&var->energyRef[b].inter, b);
       flucts[out::ENERGY_TC_IDX].SetRef(&var->energyRef[b].tc, b);
-      flucts[out::ENERGY_INTRA_NB_IDX].SetRef(&var->energyRef[b].intraNonbond, b);
-	  flucts[out::ENERGY_ELECT_IDX].SetRef(&var->energyRef[b].elect, b);
-	  flucts[out::ENERGY_REAL_IDX].SetRef(&var->energyRef[b].real, b);
-	  flucts[out::ENERGY_RECIP_IDX].SetRef(&var->energyRef[b].recip, b);
+      flucts[out::ENERGY_INTRA_NB_IDX].SetRef
+	 (&var->energyRef[b].intraNonbond, b);
 #endif
       flucts[out::VIRIAL_TOTAL_IDX].SetRef(&var->virialRef[b].total, b);
 #ifdef VIR_SUBCAT_OUT
@@ -189,4 +173,3 @@ void Fluctuations::InitWatchMulti(config_setup::TrackedVars const& tracked)
    }
 #endif
 }
-

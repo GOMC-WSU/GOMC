@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "OutConst.h" //For namespace spec;
 
 namespace out
@@ -15,9 +8,6 @@ namespace out
    const std::string ENERGY_TC = "EnergyTC";
    const std::string ENERGY_INTRA_B  = "EnergyIntraBond";
    const std::string ENERGY_INTRA_NB = "EnergyIntraNonbond";
-   const std::string ENERGY_ELECT = "EnergyElect";
-   const std::string ENERGY_REAL = "EnergyReal";
-   const std::string ENERGY_RECIP = "EnergyRecip";
 #endif
    const std::string VIRIAL_TOTAL = "VirialTotal";
 #ifdef VIR_SUBCAT_OUT
@@ -39,4 +29,3 @@ namespace out
    const std::string MOL_FRACTION = "MolFraction";
 #endif
 }
-
