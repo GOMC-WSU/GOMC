@@ -30,10 +30,10 @@ namespace ff_setup
   class NBfix;
 }
 namespace config_setup 
-{ 
-  class SystemVals;
-  class FFValues; 
-  class FFKind;
+{
+  struct SystemVals;
+  struct FFValues; 
+  struct FFKind;
 }
 
 struct FFParticle

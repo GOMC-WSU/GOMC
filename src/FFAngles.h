@@ -38,9 +38,9 @@ class FFAngles
    
    void Init(ff_setup::Angle const& angle)
    {
-      count = angle.Ktheta.size();
-      Ktheta = vect::transfer(angle.Ktheta);
-      theta0 = vect::transfer(angle.theta0);
+      count = angle.getKthetacnt();
+      Ktheta = angle.CopyKtheta();
+      theta0 = angle.Copytheta0();
    }
 
  protected:

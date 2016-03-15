@@ -7,7 +7,7 @@
 #include "../lib/BasicTypes.h"
 #include "MolSetup.h"
 
-struct Molecules;
+class Molecules;
 
 class PSFOutput
 {
