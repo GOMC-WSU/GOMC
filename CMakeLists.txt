@@ -19,7 +19,6 @@ set(ENSEMBLE_NVT ON CACHE BOOL "Build NVT version")
 set(ENSEMBLE_GEMC ON CACHE BOOL "Build GEMC version")
 set(ENSEMBLE_GCMC ON CACHE BOOL "Build GCMC version")
 
-
 #enable config header
 configure_file(
 	"${PROJECT_SOURCE_DIR}/GOMC_Config.h.in"

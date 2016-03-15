@@ -20,9 +20,8 @@ class MoleculeTransfer : public MoveBase
    virtual uint Transform();
    virtual void CalcEn();
    virtual void Accept(const uint earlyReject, const uint step);
-
- private:
    
+ private:
    double GetCoeff() const;
    uint GetBoxPairAndMol(const double subDraw, const double movPerc);
    MolPick molPick;

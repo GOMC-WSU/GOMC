@@ -33,13 +33,17 @@ namespace cbmc
       void SetOldMolBond(const uint i, const double distSq);
 
       DCData* data;
+
       bool angleFix;
+
       uint atom, focus, prev;
       uint bondKind, angleKind;
       double bondLength;
       double bond[2];
       double oldBond[2];
+
       double theta, thetaFix;
+
       double oldBondEnergy, bendEnergy, bendWeight, oneThree;
    };
 }

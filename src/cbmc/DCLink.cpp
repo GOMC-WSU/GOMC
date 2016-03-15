@@ -11,7 +11,9 @@ namespace cbmc
 
    DCLink::DCLink(DCData* data, const mol_setup::MolKind kind,
 		  uint atom, uint focus)
+
      : data(data), atom(atom), focus(focus), angleFix(false)
+
    {
       //will fail quietly if not a part of a valid linear molecule,
       //but we checked that, right?
@@ -24,11 +26,13 @@ namespace cbmc
             bondLength = data->ff.bonds.Length(bonds[i].kind);
 	    bond[2] = bondLength;
 	    bondKind = bonds[i].kind;
+
 	    if (data->ff.angles->AngleEnergy(angleKind) > 10E6)
 	    {
 	       angleFix = true;
 	       thetaFix = data->ff.angles->Angle(angleKind);
 	    }
+
             break;
          }
       }
@@ -100,6 +104,7 @@ namespace cbmc
 	    angleEnergy[trial] = ff.angles->Calc(angleKind, angles[trial]);
 	 }
 
+
 	 double distSq = newMol.AngleDist(bond[1], bond[2], angles[trial]);
 	 nonbonded_1_3[trial] = data->calc.IntraEnergy_1_3(distSq, prev, atom,
 							   molIndex);
@@ -135,6 +140,7 @@ namespace cbmc
 
       for (uint trial = 0; trial < count; trial++)
       {
+
 	 double trialAngle;
 	 double trialEn;
 
@@ -151,11 +157,13 @@ namespace cbmc
 
  	 double distSq = oldMol.AngleDist(oldBond[1], oldBond[2], trialAngle);
 
+
 	 double tempEn = data->calc.IntraEnergy_1_3(distSq, prev, atom, molIndex);
 	 if(isnan(tempEn))
 	    tempEn = num::BIGNUM;
 
          trialEn += tempEn;
+
 
          double trialWeight = exp(-ff.beta * trialEn);
          bendWeight += trialWeight;
@@ -241,6 +249,7 @@ namespace cbmc
                                oldMol.GetBox(), nLJTrials);
       data->calc.ParticleNonbonded(nonbonded, oldMol, positions, atom,
 				   oldMol.GetBox(), nLJTrials);
+
       data->calcEwald.SwapSelf(self, molIndex, atom, oldMol.GetBox(),
 			       nLJTrials);
       data->calcEwald.SwapCorrection(correction, oldMol, positions, atom, 
@@ -258,6 +267,7 @@ namespace cbmc
 	 }
       }
       correction[0] = tempEn;
+
 
 
       double dihLJWeight = 0;
@@ -325,10 +335,12 @@ namespace cbmc
                                newMol.GetBox(), nLJTrials);
       data->calc.ParticleNonbonded(nonbonded, newMol, positions, atom,
 				   newMol.GetBox(), nLJTrials);
+
       data->calcEwald.SwapSelf(self, molIndex, atom, newMol.GetBox(),
 			       nLJTrials);
       data->calcEwald.SwapCorrection(correction, newMol, positions, atom, 
 				     newMol.GetBox(), nLJTrials);
+
  
 
       double dihLJWeight = 0;
