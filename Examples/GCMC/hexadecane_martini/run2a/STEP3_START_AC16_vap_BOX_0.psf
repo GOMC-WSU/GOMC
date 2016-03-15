@@ -1,0 +1,45 @@
+PSF
+
+       3 !NTITLE
+ REMARKS original generated structure x-plor psf file
+ REMARKS topology ../model/Top_Martini.inp 
+ REMARKS segment AC16 { first NONE; last NONE; auto angles dihedrals }
+
+       8 !NATOM
+       1 AC16 1    AC16 C1A  C1     0.000000       72.0000           0
+       2 AC16 1    AC16 C2A  C1     0.000000       72.0000           0
+       3 AC16 1    AC16 C3A  C1     0.000000       72.0000           0
+       4 AC16 1    AC16 C4A  C1     0.000000       72.0000           0
+       5 AC16 2    AC16 C1A  C1     0.000000       72.0000           0
+       6 AC16 2    AC16 C2A  C1     0.000000       72.0000           0
+       7 AC16 2    AC16 C3A  C1     0.000000       72.0000           0
+       8 AC16 2    AC16 C4A  C1     0.000000       72.0000           0
+
+       6 !NBOND: bonds
+       1       2       2       3       3       4       5       6
+       6       7       7       8
+
+       4 !NTHETA: angles
+       1       2       3       2       3       4       5       6       7
+       6       7       8
+
+       2 !NPHI: dihedrals
+       1       2       3       4       5       6       7       8
+
+       0 !NIMPHI: impropers
+
+
+       0 !NDON: donors
+
+
+       0 !NACC: acceptors
+
+
+       0 !NNB
+
+       0       0       0       0       0       0       0       0
+
+
+       1       0 !NGRP
+       0       0       0
+

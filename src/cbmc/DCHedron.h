@@ -40,6 +40,7 @@ namespace cbmc
       //need to go to private
       uint bonded[MAX_BONDS];
 
+
     private:
       void GenerateAnglesNew(TrialMol& newMol, uint molIndex, uint kind,
 			     uint nTrials, uint bType);
@@ -54,7 +55,7 @@ namespace cbmc
       uint focus, prev;
       uint nBonds;
       //atoms bonded to focus, being build
-      
+
       //bond length of atom bonded to focus
       double bondLength[MAX_BONDS];
       double bondLengthOld[MAX_BONDS];

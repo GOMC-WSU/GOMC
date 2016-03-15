@@ -353,7 +353,6 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 					    (*newCOM - 
 					     currentCOM.Get(particleMol[*n]),
 					     box));
-		   
 		 }
 		 else
 		 {
@@ -1004,6 +1003,11 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
 	}
       }
    }
+
+   forcefield.particles->CalcAdd_1_4(eng, distSq, kind1, kind2);
+
+   return eng;
+   
 }
 
 double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,

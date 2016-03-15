@@ -82,7 +82,6 @@ namespace cbmc
 	 double distSq = newMol.AngleDist(bond[0], bond[1], angles[trial]);
 	 nonbonded_1_3[trial] = data->calc.IntraEnergy_1_3(distSq, prev, atom,
 							   molIndex); 
-
 	 if(isnan(nonbonded_1_3[trial]))
 	   nonbonded_1_3[trial] = num::BIGNUM;
 	 
@@ -123,13 +122,11 @@ namespace cbmc
 	    trialAngle = prng.rand(M_PI);
 	    trialEn = ff.angles->Calc(angleKind, trialAngle);
 	 }
-
 	 double distSq = oldMol.AngleDist(oldBond[0], oldBond[1], trialAngle);
 
 	 double tempEn = data->calc.IntraEnergy_1_3(distSq, prev, atom, molIndex);
 	 if(isnan(tempEn))
 	   tempEn = num::BIGNUM;
-
          trialEn += tempEn;
          double trialWeight = exp(-ff.beta * trialEn);
          bendWeight += trialWeight;
@@ -246,10 +243,12 @@ namespace cbmc
       data->axes.WrapPBC(positions, newMol.GetBox());
       data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                                newMol.GetBox(), nLJTrials);
+
       data->calcEwald.SwapSelf(self, molIndex, atom, newMol.GetBox(),
 			       nLJTrials);
       data->calcEwald.SwapCorrection(correction, newMol, positions, atom, 
 				     newMol.GetBox(), nLJTrials);
+
 
       double stepWeight = 0;
       double beta = data->ff.beta;

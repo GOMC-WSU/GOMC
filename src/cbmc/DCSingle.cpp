@@ -63,7 +63,6 @@ namespace cbmc
                                newMol.GetBox(), nLJTrials);
       data->calcEwald.SwapSelf(self, molIndex, atom, newMol.GetBox(),
 			       nLJTrials);
-
       double stepWeight = 0;
       for (uint trial = 0; trial < nLJTrials; ++trial)
       {

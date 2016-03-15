@@ -312,7 +312,7 @@ inline void FF_SWITCH_MARTINI::Calc(double & en, double & vir,
 }
 
 inline void FF_SWITCH_MARTINI::CalcCoulomb(double & en, double & vir,
-				    const double distSq, 
+				    const double distSq,
 				    const double qi_qj_Fact)const
 {
    double dist = sqrt(distSq);
