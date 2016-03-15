@@ -1002,12 +1002,7 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
 						   distSq, qi_qj_Fact);
 	}
       }
-   }
-
-   forcefield.particles->CalcAdd_1_4(eng, distSq, kind1, kind2);
-
-   return eng;
-   
+   }   
 }
 
 double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,
