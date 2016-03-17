@@ -4,7 +4,8 @@
 #include "../lib/BasicTypes.h"
 #include "EnergyTypes.h"
 #include <vector>
-
+#include <stdio.h>
+#include <cstring>
 //
 //    Ewald.h
 //    Energy Calculation functions for Ewald summation method
@@ -113,7 +114,7 @@ class Ewald
 
    //restore cosMol and sinMol
    void RestoreMol(int molIndex)
-   {
+   {/*
      double *tempCos, *tempSin;
      tempCos = cosMolRef[molIndex];
      tempSin = sinMolRef[molIndex];
@@ -121,6 +122,11 @@ class Ewald
      sinMolRef[molIndex] = sinMolRestore;
      cosMolRestore = tempCos;
      sinMolRestore = tempSin;
+    */
+     memcpy(cosMolRef[molIndex], cosMolRestore, sizeof(double)*imageLarge);
+     memcpy(sinMolRef[molIndex], sinMolRestore, sizeof(double)*imageLarge);
+     printf("mol: %d is restored. cos add: %p, sin add: %p, cosRes add: %p, sinRes add: %p\n",
+	    molIndex, cosMolRef[molIndex], sinMolRef[molIndex], cosMolRestore, sinMolRestore);
    }
    
    
@@ -128,7 +134,7 @@ class Ewald
    //   void deAllocateMolCache(double **arr1, double **arr2);
    //   void initMolCache();
    //   void deAllocateMolCache();
-   int findLargeImage();
+   void findLargeImage();
    void exgMolCache();
    //   bool deAllocate;
 
@@ -149,7 +155,7 @@ class Ewald
    int *imageSize;
    //const uint imageTotal = GetImageSize();
    const static uint imageTotal = 22000;
-   const static int imageFlucRate = 1.1;
+   const static double imageFlucRate = 1.1;
    int imageLarge;
    int *kmax;
    double **sumRnew; //cosine serries

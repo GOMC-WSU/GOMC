@@ -20,8 +20,9 @@ class MoleculeTransfer : public MoveBase
    virtual uint Transform();
    virtual void CalcEn();
    virtual void Accept(const uint earlyReject, const uint step);
-   
+
  private:
+   
    double GetCoeff() const;
    uint GetBoxPairAndMol(const double subDraw, const double movPerc);
    MolPick molPick;
@@ -89,7 +90,9 @@ inline void MoleculeTransfer::CalcEn()
       if (ewald && newMol.GetWeight() != 0.0)
       {
 	recipGain.energy = calcEwald.SwapDestRecip(newMol, destBox, sourceBox, molIndex);
+	printf("recipGain: %lf\n", recipGain.energy);
 	recipLose.energy = calcEwald.SwapSourceRecip(oldMol, sourceBox, molIndex);
+	printf("recipLose: %lf\n", recipLose.energy);
 	 W_recip = exp(-1.0 * ffRef.beta * (recipGain.energy +
 					    recipLose.energy));
       }
@@ -191,6 +194,10 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 	 cellList.AddMol(molIndex, sourceBox, coordCurrRef);
 	 if (ewald)
 	 {
+	   for (uint b = 0; b < BOX_TOTAL; b++)
+	   {
+	     calcEwald.BackUpRecip(b);
+	   }
 	   calcEwald.RestoreMol(molIndex);
 	 }
       }
