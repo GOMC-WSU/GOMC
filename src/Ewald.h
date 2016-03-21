@@ -93,11 +93,8 @@ class Ewald
    //back up reciprocate values
    void BackUpRecip( uint box)
    {  
-     for (uint i = 0; i < imageSize[box]; i++)
-      {
-	sumRnew[box][i] = sumRref[box][i];
-	sumInew[box][i] = sumIref[box][i];
-      }
+     std::memcpy(sumRnew[box], sumRref[box], sizeof(double) * imageSize[box]);
+     std::memcpy(sumInew[box], sumIref[box], sizeof(double) * imageSize[box]);
    }
 
    //update reciprocate values
@@ -114,7 +111,7 @@ class Ewald
 
    //restore cosMol and sinMol
    void RestoreMol(int molIndex)
-   {/*
+   {
      double *tempCos, *tempSin;
      tempCos = cosMolRef[molIndex];
      tempSin = sinMolRef[molIndex];
@@ -122,21 +119,13 @@ class Ewald
      sinMolRef[molIndex] = sinMolRestore;
      cosMolRestore = tempCos;
      sinMolRestore = tempSin;
-    */
-     memcpy(cosMolRef[molIndex], cosMolRestore, sizeof(double)*imageLarge);
-     memcpy(sinMolRef[molIndex], sinMolRestore, sizeof(double)*imageLarge);
-     printf("mol: %d is restored. cos add: %p, sin add: %p, cosRes add: %p, sinRes add: %p\n",
-	    molIndex, cosMolRef[molIndex], sinMolRef[molIndex], cosMolRestore, sinMolRestore);
+    
+     //    std::memcpy(cosMolRef[molIndex], cosMolRestore, sizeof(double)*imageLarge);
+     //     std::memcpy(sinMolRef[molIndex], sinMolRestore, sizeof(double)*imageLarge);
    }
    
-   
-   //   void initMolCache(double **arr1, double **arr2);
-   //   void deAllocateMolCache(double **arr1, double **arr2);
-   //   void initMolCache();
-   //   void deAllocateMolCache();
-   void findLargeImage();
+   int findLargeImage();
    void exgMolCache();
-   //   bool deAllocate;
 
    private: 
    
@@ -154,8 +143,8 @@ class Ewald
    double recip_rcut, recip_rcut_Sq;
    int *imageSize;
    //const uint imageTotal = GetImageSize();
-   const static uint imageTotal = 22000;
-   const static double imageFlucRate = 1.1;
+   const int imageTotal;
+   const double imageFlucRate;
    int imageLarge;
    int *kmax;
    double **sumRnew; //cosine serries

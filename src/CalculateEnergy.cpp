@@ -92,12 +92,7 @@ SystemPotential CalculateEnergy::SystemTotal()
 	 calcEwald->UpdateRecip(b); 
       }
    }
-   // if there is volume change in the simulation, initialize cache for backup
-   //   if (ewald && BOXES_WITH_U_NB == 2)
-   //   {
-   //     calcEwald->deAllocateMolCache(&calcEwald->cosMolBoxRecip, &calcEwald->sinMolBoxRecip);
-   //     calcEwald->initMolCache(&calcEwald->cosMolBoxRecip, &calcEwald->sinMolBoxRecip);
-   //   }
+   
    pot.Total();
    return pot;
 }
@@ -353,6 +348,7 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 					    (*newCOM - 
 					     currentCOM.Get(particleMol[*n]),
 					     box));
+		   
 		 }
 		 else
 		 {
@@ -1002,7 +998,7 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
 						   distSq, qi_qj_Fact);
 	}
       }
-   }   
+   }
 }
 
 double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,
