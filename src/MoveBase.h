@@ -463,7 +463,6 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
 	for (uint b = 0; b < BOX_TOTAL; b++)
         {
 	   calcEwald.UpdateRecip(b);
-	   printf("volume change accepted.\n");
 	}
       }     
    }
@@ -474,7 +473,6 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       regrewGrid = false;
       if (ewald)
       {
-	printf("volume change rejected.\n");
 	calcEwald.exgMolCache();
 	 for (uint b = 0; b < BOX_TOTAL; b++)
 	 {

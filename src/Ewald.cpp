@@ -28,7 +28,9 @@ using namespace geom;
 
 Ewald::Ewald(StaticVals const& stat, System & sys) :
    forcefield(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
-   currentCOM(sys.com), ewald(false), sysPotRef(sys.potential), 
+   currentCOM(sys.com), ewald(false), electrostatic(false),
+   sysPotRef(sys.potential), imageLarge(0), imageFlucRate(1.1),
+   imageTotal(22000), alpha(0.0), recip_rcut(0.0), recip_rcut_Sq(0.0),
 #ifdef VARIABLE_PARTICLE_NUMBER
    molLookup(sys.molLookup),
 #else
@@ -153,9 +155,9 @@ void Ewald::InitEwald()
 	}
      }
      //10% more than original, space reserved for image size change
-     findLargeImage();
-     int initImageSize = imageLarge * imageFlucRate;   
-     imageLarge = initImageSize;
+     int initImageSize = findLargeImage();
+     initImageSize *= imageFlucRate;
+       
      cosMolRestore = new double[initImageSize];
      sinMolRestore = new double[initImageSize];
      for (int i = 0; i < mols.count; i++)
@@ -212,9 +214,9 @@ void Ewald::RecipInit(uint box, BoxDimensions const& boxAxes)
       }
    }
    imageSize[box] = counter;
-   printf("box: %d, counter: %d, kmax: %d\n", box, counter, kmax[box]);
-   if (counter > imageTotal){
-     printf("Warning! The Max number of images is fewer than the images demanded.\n");
+   //   printf("box: %d, counter: %d, kmax: %d\n", box, counter, kmax[box]);
+   if (counter > imageLarge * imageFlucRate){
+     printf("Warning! The cached image size is fewer than the images demanded.\n");
      exit(EXIT_FAILURE);
    }
 }
@@ -251,22 +253,23 @@ void Ewald::RecipCountInit(uint box, BoxDimensions const& boxAxes)
       }
    }
    imageSize[box] = counter;
-   printf("box: %d, counter: %d, kmax: %d\n", box, counter, kmax[box]);
+   //   printf("box: %d, counter: %d, kmax: %d\n", box, counter, kmax[box]);
    if (counter > imageTotal){
-     printf("Warning! The Max number of images is fewer than the images demanded.\n");
+     printf("Warning! The Max total of images is fewer than the images demanded.\n");
      exit(EXIT_FAILURE);
    }
 }
 
 
 //compare number of images in different boxes and select the largest one
-void Ewald::findLargeImage()
+int Ewald::findLargeImage()
 {
   for (int b = 0; b < BOXES_WITH_U_NB; b++)
   {
     if (imageLarge < imageSize[b])
       imageLarge = imageSize[b];
   }
+  return imageLarge;
 }
 
 //restore the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
@@ -286,44 +289,38 @@ double Ewald::BoxReciprocal(int box, XYZArray const& molCoords)
 {
    double energyRecip = 0.0; 
    double dotProduct = 0.0;
-   double tempReal, tempImaginary, molReal, molImaginary;
+   double molReal, molImaginary;
    if (box < BOXES_WITH_U_NB)
    {
-      MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+      MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);	 
       for (int i = 0; i < imageSize[box]; i++)
       {
-	 double sumReal = 0.0;
-	 double sumImaginary = 0.0;
-	 MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
+	double sumReal = 0.0;
+	double sumImaginary = 0.0;
+	MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
+	
+	while (thisMol !=end)
+	{
+	  cosMolRef[*thisMol][i] = 0.0;
+	  sinMolRef[*thisMol][i] = 0.0;
+	  MoleculeKind const& thisKind = mols.GetKind(*thisMol);
+	  for (uint j = 0; j < thisKind.NumAtoms(); j++)
+	  {
+	    dotProduct = currentAxes.DotProduct(mols.start[*thisMol] + j,
+						kx[box][i], ky[box][i],
+						kz[box][i], molCoords, box);
 
-	 while (thisMol !=end)
-	 {
-	   molReal = 0; molImaginary = 0;
-	   uint m1 = *thisMol;
-	   MoleculeKind const& thisKind = mols.GetKind(m1);
-	   for (uint j = 0; j < thisKind.NumAtoms(); j++)
-	     {
-	       dotProduct = currentAxes.DotProduct(mols.start[m1] + j,
-						   kx[box][i], ky[box][i],
-						   kz[box][i], molCoords, box);
-
-	       tempReal = (thisKind.AtomCharge(j) * cos(dotProduct));
-	       tempImaginary = (thisKind.AtomCharge(j) * sin(dotProduct));
-	       molReal += tempReal;
-	       sumReal += tempReal;
-	       molImaginary += tempImaginary;
-	       sumImaginary += tempImaginary;
-	     }
-	   cosMolRef[m1][i] = molReal;
-	   sinMolRef[m1][i] = molImaginary;
-	   //	   if ( i == 0)
-	   //  printf("cos address: %p, sin address: %p, molIndex: %d, i: %d, cosMolRef: %lf, sinMolRef: %lf\n", cosMolRef[m1], sinMolRef[m1], m1, i, cosMolRef[m1][i], sinMolRef[m1][i]);
-	   thisMol++;
-	 }
-	 sumRnew[box][i] = sumReal;
-	 sumInew[box][i] = sumImaginary;
-	 energyRecip += ((sumReal * sumReal + sumImaginary * sumImaginary) *
-			 prefact[box][i]);
+	    cosMolRef[*thisMol][i] += (thisKind.AtomCharge(j) * cos(dotProduct));
+	    sinMolRef[*thisMol][i] += (thisKind.AtomCharge(j) * sin(dotProduct));
+	  }
+	  sumReal += cosMolRef[*thisMol][i];
+	  sumImaginary += sinMolRef[*thisMol][i];
+	  thisMol++;
+	}
+	sumRnew[box][i] = sumReal;
+	sumInew[box][i] = sumImaginary;
+	energyRecip += ((sumReal * sumReal + sumImaginary * sumImaginary)
+			* prefact[box][i]);	
       }
    }
 
@@ -445,28 +442,10 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
 {
    double energyRecipNew = 0.0; 
    double energyRecipOld = 0.0; 
-   /*  
-   for (int i = 0; i < imageSize[sourceBox]; i++)
-   {
-     cosMolRestore[i] = cosMolRef[molIndex][i];
-     sinMolRestore[i] = sinMolRef[molIndex][i];
-     if (i == 0)
-       printf("cos address: %p, sin address: %p, molIndex: %d, i: %d, cosMolRef: %lf, sinMolRef: %lf\n", cosMolRef[molIndex], sinMolRef[molIndex],
-	      molIndex, i, cosMolRef[molIndex][i], sinMolRef[molIndex][i]);
-   }
-   */
-   memcpy(cosMolRestore, cosMolRef[molIndex], sizeof(double)*imageLarge);
-   memcpy(sinMolRestore, sinMolRef[molIndex], sizeof(double)*imageLarge);
-   /*   if (molIndex == 29){
-     for ( int i = 0; i<2000; i++){
-       for ( int j = 0; j < imageSize[sourceBox]; j++){
-	 if (j == 0)
-	   printf("cos address: %p, sin address: %p, molIndex: %d, i: %d, cosMolRef: %lf, sinMolRef: %lf\n", cosMolRef[i], sinMolRef[i],
-		  i, j, cosMolRef[i][j], sinMolRef[i][j]);
-       }
-     }
-   }
-   */
+   
+   std::memcpy(cosMolRestore, cosMolRef[molIndex], sizeof(double)*imageLarge);
+   std::memcpy(sinMolRestore, sinMolRef[molIndex], sizeof(double)*imageLarge);
+      
    if (box < BOXES_WITH_U_NB)
    {
       MoleculeKind const& thisKind = newMol.GetKind();
@@ -486,21 +465,15 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
 						   kz[box][i], molCoords, box);
 	    cosMolRef[molIndex][i] += (thisKind.AtomCharge(p) * cos(dotProductNew));
 	    sinMolRef[molIndex][i] += (thisKind.AtomCharge(p) * sin(dotProductNew));
-	    //	    sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
-	    //sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
 	  }
 
 	sumRnew[box][i] = sumRref[box][i] + cosMolRef[molIndex][i];   //sumRealNew;
 	sumInew[box][i] = sumIref[box][i] + sinMolRef[molIndex][i];   //sumImaginaryNew;
-	//	sumRnew[box][i] = sumRref[box][i] + sumRealNew;
-	//sumInew[box][i] = sumIref[box][i] + sumImaginaryNew;
 	energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
 			   * sumInew[box][i]) * prefact[box][i];
       }
       energyRecipOld = sysPotRef.boxEnergy[box].recip;
    }
-   printf("Dest box: %d, molIndex: %d, recip new: %lf, recip old: %lf, ",
-	  box, molIndex, energyRecipNew, energyRecipOld);
    return energyRecipNew - energyRecipOld;
 }
 
@@ -513,38 +486,20 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol, const uint box, cons
    
    if (box < BOXES_WITH_U_NB)
    {
-     //     MoleculeKind const& thisKind = oldMol.GetKind();
-     //     XYZArray molCoords = oldMol.GetCoords();
       for (uint i = 0; i < imageSize[box]; i++)
       {
 	 double sumRealNew = 0.0;
 	 double sumImaginaryNew = 0.0;
 	 double dotProductNew = 0.0;  
-	 //	 uint length = thisKind.NumAtoms();
-	 /*
-	 for (uint p = 0; p < length; ++p)
-	 {
-	    dotProductNew = currentAxes.DotProduct(p, kx[box][i], ky[box][i],
-						kz[box][i], molCoords, box);
-	    
-	    sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
-	    sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
-
-	 }
-	 */
+	 
 	 sumRnew[box][i] = sumRref[box][i] - cosMolRestore[i];
 	 sumInew[box][i] = sumIref[box][i] - sinMolRestore[i];
-	 if (i == 0)
-	   printf("sumRref: %lf, sumIref: %lf, cosMolRes: %lf, sinMolRes: %lf\n"
-		  ,sumRref[box][i],sumIref[box][i],
-		  cosMolRestore[i], sinMolRestore[i]);
+	
 	 energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
 			    * sumInew[box][i]) * prefact[box][i];	 
       }
       energyRecipOld = sysPotRef.boxEnergy[box].recip;
    }
-   printf("source box: %d, molIndex: %d, recip new: %lf, recip old: %lf, ",
-	  box, molIndex, energyRecipNew, energyRecipOld);
    return energyRecipNew - energyRecipOld;
 }
 
