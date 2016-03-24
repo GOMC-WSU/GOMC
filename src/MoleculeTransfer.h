@@ -14,13 +14,15 @@ class MoleculeTransfer : public MoveBase
 
    MoleculeTransfer(System &sys, StaticVals const& statV) : 
       ffRef(statV.forcefield), molLookRef(sys.molLookupRef), 
-      MoveBase(sys, statV) {}
+	MoveBase(sys, statV) {}
 
    virtual uint Prep(const double subDraw, const double movPerc);
    virtual uint Transform();
    virtual void CalcEn();
    virtual void Accept(const uint earlyReject, const uint step);
+
  private:
+   
    double GetCoeff() const;
    uint GetBoxPairAndMol(const double subDraw, const double movPerc);
    MolPick molPick;
@@ -28,9 +30,9 @@ class MoleculeTransfer : public MoveBase
    uint pStart, pLen;
    uint molIndex, kindIndex;
 
-   double W_tc, oldVirial_LJ, oldVirial_Real;
+   double W_tc, W_recip, oldVirial_LJ, oldVirial_Real;
    cbmc::TrialMol oldMol, newMol;
-   Intermolecular tcLose, tcGain;
+   Intermolecular tcLose, tcGain, recipLose, recipGain;
    MoleculeLookup & molLookRef;
    Forcefield const& ffRef;
 };
@@ -84,6 +86,16 @@ inline void MoleculeTransfer::CalcEn()
       tcLose = calcEnRef.MoleculeTailChange(sourceBox, kindIndex, false);
       tcGain = calcEnRef.MoleculeTailChange(destBox, kindIndex, true);
       W_tc = exp(-1.0*ffRef.beta*(tcGain.energy + tcLose.energy));
+      W_recip = 1.0;
+      if (ewald) 
+      {
+	if (newMol.GetWeight() != 0.0){
+	  recipGain.energy = calcEwald.SwapDestRecip(newMol, destBox, sourceBox, molIndex);
+	  recipLose.energy = calcEwald.SwapSourceRecip(oldMol, sourceBox, molIndex);
+	  W_recip = exp(-1.0 * ffRef.beta * (recipGain.energy +
+					    recipLose.energy));
+	}//end if newMol.GetWeight
+      }//end if ewald
    }
 }
 
@@ -118,7 +130,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
       double molTransCoeff = GetCoeff();
       double Wo = oldMol.GetWeight();
       double Wn = newMol.GetWeight();
-      double Wrat = Wn / Wo * W_tc;
+      double Wrat = Wn / Wo * W_tc * W_recip;
 
       result = prng() < molTransCoeff * Wrat;
       if (result)
@@ -134,6 +146,8 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
          sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();
          sysPotRef.boxVirial[sourceBox].inter -= oldVirial_LJ;
 	 sysPotRef.boxVirial[sourceBox].real -= oldVirial_Real;
+	 sysPotRef.boxEnergy[sourceBox].recip += recipLose.energy;
+	 sysPotRef.boxEnergy[destBox].recip += recipGain.energy;
 
 	 //Set coordinates, new COM; shift index to new box's list
          newMol.GetCoords().CopyRange(coordCurrRef, 0, pStart, pLen);
@@ -166,11 +180,30 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 
 	 //Retotal
          sysPotRef.Total();
+	 if (ewald)
+	 {
+	    for (uint b = 0; b < BOX_TOTAL; b++)
+	    {
+	      calcEwald.UpdateRecip(b);
+	    }
+	 }
       }
 #ifdef CELL_LIST
       else
       {
-	cellList.AddMol(molIndex, sourceBox, coordCurrRef);
+	 cellList.AddMol(molIndex, sourceBox, coordCurrRef);
+	 if (ewald)
+	 {
+	   for (uint b = 0; b < BOX_TOTAL; b++)
+	   {
+	     calcEwald.BackUpRecip(b);
+	   }
+	   //when weight is 0, MolDestSwap() will not be executed, thus cos/sin
+	   //molRef will not be changed. Also since no memcpy, doing restore
+	   //results in memory overwrite
+	   if (newMol.GetWeight() != 0.0)
+	     calcEwald.RestoreMol(molIndex);
+	 }
       }
 #endif
    }

@@ -5,6 +5,7 @@
 
 #include "../lib/BasicTypes.h"
 #include "EnergyTypes.h"
+#include "Ewald.h"
 #ifdef CELL_LIST
 #include "CellList.h"
 #endif
@@ -41,19 +42,20 @@ namespace cbmc { class TrialMol; }
 class CalculateEnergy 
 {
    public:
-      CalculateEnergy(StaticVals const& stat, System const& sys);
+      CalculateEnergy(StaticVals const& stat, System & sys);
 
       void Init();
 
       //! Calculates total energy/virial of all boxes in the system
-      SystemPotential SystemTotal() const;
+      SystemPotential SystemTotal() ;
+   
 
       //! Calculates total energy/virial of a single box in the system
       SystemPotential BoxInter(SystemPotential potential,
                                XYZArray const& coords, 
                                XYZArray const& com,
                                BoxDimensions const& boxAxes,
-                               const uint box) const;
+                               const uint box) ;
 
       //! Calculates intermolecule energy of all boxes in the system
       //! @param potential Copy of current energy structure to append result to
@@ -64,7 +66,7 @@ class CalculateEnergy
       SystemPotential SystemInter(SystemPotential potential,
                                   XYZArray const& coords, 
                                   XYZArray const& com,
-                                  BoxDimensions const& boxAxes) const;
+                                  BoxDimensions const& boxAxes) ;
 
       //! Calculates intermolecular energy (LJ and coulomb) of a molecule 
       //!                           were it at molCoords.
@@ -219,6 +221,7 @@ class CalculateEnergy
       const MoleculeLookup& molLookup;
       const BoxDimensions& currentAxes;
       const COM& currentCOM;
+      Ewald *calcEwald;
       bool electrostatic, ewald;
       
       std::vector<int> particleKind;

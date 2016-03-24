@@ -58,12 +58,15 @@ class MoleculeKind
 	      const uint molIndex)
    { builder->Build(oldMol, newMol, molIndex); }
 
-   SortedNonbond sortedNB, sortedNB_1_4, sortedNB_1_3;
+   SortedNonbond sortedNB, sortedNB_1_4, sortedNB_1_3, sortedEwaldNB;
+
 
    //these are used for total energy calculations, see Geometry.h/cpp
    Nonbond nonBonded;
    Nonbond_1_4 nonBonded_1_4;
    Nonbond_1_3 nonBonded_1_3;
+   EwaldNonbond nonEwaldBonded;
+   
    BondList bondList;
    GeomFeature angles;
    GeomFeature dihedrals;

@@ -136,6 +136,9 @@ class BoxDimensions
 
    double UnwrapPBC(double& v, const double ref,
 		    const double ax, const double halfAx) const;
+
+   double DotProduct(const uint atom, double kx, double ky,
+		     double kz, const XYZArray & Coords, uint box) const; 
 };
 
 inline BoxDimensions::BoxDimensions(BoxDimensions const& other) : 
@@ -485,6 +488,15 @@ inline double BoxDimensions::UnwrapPBC
    }
    return v;
 #endif
+}
+
+//Calculate dot product
+inline double BoxDimensions::DotProduct(const uint atom, double kx,
+					double ky, double kz,
+					const XYZArray &Coords, uint box) const
+{
+   double x = Coords.x[atom], y = Coords.y[atom], z = Coords.z[atom];
+   return(x * kx + y * ky + z * kz);
 }
 
 #endif /*BOX_DIMENSIONS_H*/

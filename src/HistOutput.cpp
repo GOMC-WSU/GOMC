@@ -20,7 +20,7 @@ Histogram::Histogram(OutputVars & v)
 void Histogram::Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output)
 {
-   stepsPerOut = output.statistics.settings.hist.frequency;
+   stepsPerOut = output.state.files.hist.stepsPerHistSample;
    enableOut = output.statistics.settings.hist.enable;
    if (enableOut)
    {      
@@ -84,12 +84,15 @@ void Histogram::Sample(const ulong step)
    //Don't output until equilibrated.
    if ((step+1) < stepsTillEquil) return;
    //If equilibrated, add to correct bin for each type in each box.
-   for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
+   if ((step+1) % stepsPerOut == 0)
    {
-      for (uint k = 0; k < var->numKinds; ++k)
+      for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
       {
-         uint count = var->numByKindBox[k+var->numKinds * b];
-         ++molCount[b][k][count];
+	 for (uint k = 0; k < var->numKinds; ++k)
+	 {
+	    uint count = var->numByKindBox[k+var->numKinds * b];
+	    ++molCount[b][k][count];
+	 }
       }
    }
 }
@@ -99,17 +102,20 @@ void Histogram::DoOutput(const ulong step)
    //Don't output until equilibrated.
    if ((step+1) < stepsTillEquil) return;
    //Write to histogram file, if equilibrated.
-   for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
+   if ((step+1) % stepsPerOut == 0)
    {
-      for (uint k = 0; k < var->numKinds; ++k)
+      for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
       {
-	 outF[b][k].open(name[b][k].c_str(), std::ofstream::out);  
-         if (outF[b][k].is_open())   
-            PrintKindHist(b, k);
-         else
-            std::cerr << "Unable to write to file \"" <<  name[b][k] << "\" " 
-                      << "(histogram file)" << std::endl;
-	 outF[b][k].close();
+	 for (uint k = 0; k < var->numKinds; ++k)
+	 {
+	    outF[b][k].open(name[b][k].c_str(), std::ofstream::out);  
+	    if (outF[b][k].is_open())   
+	      PrintKindHist(b, k);
+	    else
+	      std::cerr << "Unable to write to file \"" <<  name[b][k] << "\" " 
+			<< "(histogram file)" << std::endl;
+	    outF[b][k].close();
+	 }
       }
    }
 }

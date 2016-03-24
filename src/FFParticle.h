@@ -58,20 +58,15 @@ struct FFParticle
 
   // coulomb interaction functions
    virtual void CalcCoulombAdd(double& en, double& vir, const double distSq,
-			       const double qi_qj_Fact,
-			       const double boxSize) const;
+			       const double qi_qj_Fact) const;
    virtual void CalcCoulombSub(double& en, double& vir, const double distSq,
-			       const double qi_qj_Fact,
-			       const double boxSize) const;
+			       const double qi_qj_Fact) const;
    virtual double CalcCoulombEn(const double distSq,
-				const double qi_qj_Fact,
-			        const double boxSize) const;
+				const double qi_qj_Fact) const;
    virtual double CalcCoulombVir(const double distSq,
-				 const double qi_qj_Fact,
-				 const double boxSize) const;
+				 const double qi_qj_Fact) const;
    virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
-				   const double qi_qj_Fact,
-				   const double boxSize) const;
+				   const double qi_qj_Fact) const;
 
   void Init(ff_setup::Particle const& mie,
 	    ff_setup::NBfix const& nbfix,
@@ -95,7 +90,7 @@ struct FFParticle
 	     ) const;
 
   virtual void CalcCoulomb(double& en, double& vir, const double distSq,
-			 const double qi_qj_Fact, const double boxSize)const;
+			 const double qi_qj_Fact)const;
 
 
 
@@ -138,10 +133,9 @@ inline void FFParticle::CalcAdd(double& en, double& vir, const double distSq,
 
 inline void FFParticle::CalcCoulombAdd(double& en, double& vir,
 					const double distSq,
-					const double qi_qj_Fact,
-					const double boxSize) const
+					const double qi_qj_Fact) const
 {
-  CalcCoulomb(en, vir, distSq, qi_qj_Fact, boxSize);
+  CalcCoulomb(en, vir, distSq, qi_qj_Fact);
 }
      
 
@@ -164,11 +158,10 @@ inline void FFParticle::CalcAdd_1_4(double& en, const double distSq,
 }
 
 inline void FFParticle::CalcCoulombAdd_1_4(double& en, const double distSq,
-					    const double qi_qj_Fact,
-					    const double boxSize) const
+					    const double qi_qj_Fact) const
 {
    double dist = sqrt(distSq);
-   double erfc = alpha / boxSize * dist;
+   double erfc = alpha * dist;
    en += scaling_14 * qi_qj_Fact * (1 - erf(erfc))/ dist; 
 }
 
@@ -184,11 +177,10 @@ inline void FFParticle::CalcSub(double& en, double& vir, const double distSq,
 
 inline void FFParticle::CalcCoulombSub(double& en, double& vir,
 					const double distSq,
-					const double qi_qj_Fact,
-					const double boxSize) const
+					const double qi_qj_Fact) const
 {
   double tempEn = 0.0, tempVir = 0.0;
-  CalcCoulomb(tempEn, tempVir, distSq, qi_qj_Fact, boxSize);
+  CalcCoulomb(tempEn, tempVir, distSq, qi_qj_Fact);
   en  -= tempEn;
   vir -= tempVir;
 }
@@ -213,11 +205,10 @@ inline double FFParticle::CalcEn(const double distSq,
 }
 
 inline double FFParticle::CalcCoulombEn(const double distSq,
-					const double qi_qj_Fact,
-					const double boxSize) const
+					const double qi_qj_Fact) const
 {
    double dist = sqrt(distSq);
-   double erfc = alpha / boxSize * dist;
+   double erfc = alpha * dist;
    return  qi_qj_Fact * (1 - erf(erfc))/ dist;
 }
 
@@ -243,8 +234,7 @@ inline double FFParticle::CalcVir(const double distSq,
 }
 
 inline double FFParticle::CalcCoulombVir(const double distSq,
-					 const double qi_qj_Fact,
-					 const double boxSize) const
+					 const double qi_qj_Fact) const
 {
   // need to figure out -d(erf)/dr
   //double dist = sqrt(distSq);
@@ -280,11 +270,10 @@ inline void FFParticle::Calc(double & en, double & vir,
 
 inline void FFParticle::CalcCoulomb(double & en, double & vir,
 				    const double distSq, 
-				    const double qi_qj_Fact,
-				    const double boxSize)const
+				    const double qi_qj_Fact)const
 {
    double dist = sqrt(distSq);
-   double erfc = alpha / boxSize * dist;
+   double erfc = alpha * dist;
    en += qi_qj_Fact * (1 - erf(erfc))/ dist;
    // need to figure out -d(erf)/dr
    //vir = qi_qj_Fact * (1 - erf(erfc))/(distSq * dist)

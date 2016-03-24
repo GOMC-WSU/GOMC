@@ -28,6 +28,8 @@ namespace cbmc
       positions.Set(0, oldMol.AtomPosition(atom));
       data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                                oldMol.GetBox(), nLJTrials);
+      data->calcEwald.SwapSelf(self, molIndex, atom, oldMol.GetBox(),
+			       nLJTrials);
 
       for (uint trial = 0; trial < nLJTrials; ++trial)
       {
@@ -59,7 +61,8 @@ namespace cbmc
 			  data->axes.GetAxis(newMol.GetBox()));
       data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                                newMol.GetBox(), nLJTrials);
-
+      data->calcEwald.SwapSelf(self, molIndex, atom, newMol.GetBox(),
+			       nLJTrials);
       double stepWeight = 0;
       for (uint trial = 0; trial < nLJTrials; ++trial)
       {

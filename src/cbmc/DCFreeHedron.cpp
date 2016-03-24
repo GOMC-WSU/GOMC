@@ -46,6 +46,9 @@ namespace cbmc
       seed.BuildNew(newMol, molIndex);
       PRNG& prng = data->prng;
       const CalculateEnergy& calc = data->calc;
+
+      const Ewald& calcEwald = data->calcEwald;
+
       const Forcefield& ff = data->ff;
       uint nLJTrials = data->nLJTrialsNth;
       double* ljWeights = data->ljWeights;
@@ -98,10 +101,20 @@ namespace cbmc
       {
 	 calc.ParticleInter(inter, real, positions[b], hed.Bonded(b), 
 			    molIndex, newMol.GetBox(), nLJTrials);
+	 calcEwald.SwapSelf(self, molIndex, hed.Bonded(b), newMol.GetBox(),
+			    nLJTrials);
+	 calcEwald.SwapCorrection(correction, newMol, positions, b, hed.bonded,
+				  newMol.GetBox(), nLJTrials, hed.Prev(),
+				  false);
       }
 
       calc.ParticleInter(inter, real, positions[hed.NumBond()], hed.Prev(),
                          molIndex, newMol.GetBox(), nLJTrials);
+      calcEwald.SwapSelf(self, molIndex, hed.Prev(), newMol.GetBox(),
+			    nLJTrials);
+      calcEwald.SwapCorrection(correction, newMol, positions, hed.Prev(),
+			       hed.bonded, newMol.GetBox(), nLJTrials,
+			       hed.Prev(), true);
 
       double stepWeight = 0;
       for (uint lj = 0; lj < nLJTrials; ++lj)
@@ -128,6 +141,9 @@ namespace cbmc
       seed.BuildOld(oldMol, molIndex);
       PRNG& prng = data->prng;
       const CalculateEnergy& calc = data->calc;
+
+      const Ewald& calcEwald = data->calcEwald;
+
       const Forcefield& ff = data->ff;
       uint nLJTrials = data->nLJTrialsNth;
       double* ljWeights = data->ljWeights;
@@ -188,10 +204,22 @@ namespace cbmc
       {
 	calc.ParticleInter(inter, real, positions[b], hed.Bonded(b),
                             molIndex, oldMol.GetBox(), nLJTrials);
+
+	calcEwald.SwapSelf(self, molIndex, hed.Bonded(b), oldMol.GetBox(),
+			   nLJTrials);
+	calcEwald.SwapCorrection(correction, oldMol, positions, b, hed.bonded, 
+				 oldMol.GetBox(), nLJTrials, hed.Prev(), false);
       }
       double stepWeight = 0;
       calc.ParticleInter(inter, real, positions[hed.NumBond()], hed.Prev(),
                          molIndex, oldMol.GetBox(), nLJTrials);
+
+      calcEwald.SwapSelf(self, molIndex, hed.Prev(), oldMol.GetBox(),
+			   nLJTrials);
+      calcEwald.SwapCorrection(correction, oldMol, positions, hed.NumBond(),
+			       hed.bonded, oldMol.GetBox(), nLJTrials,
+			       hed.Prev(), true);
+
  
 
       for (uint lj = 0; lj < nLJTrials; ++lj)

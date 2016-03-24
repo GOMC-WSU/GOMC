@@ -11,7 +11,7 @@ namespace cbmc
 {
    DCLinkNoDih::DCLinkNoDih(DCData* data, const mol_setup::MolKind kind,
 			    uint atom, uint focus)
-     : data(data), atom(atom), focus(focus)
+     : data(data), atom(atom), focus(focus), angleFix(false)
    {
       using namespace mol_setup;
       std::vector<Bond> bonds = AtomBonds(kind, atom);
@@ -32,6 +32,11 @@ namespace cbmc
 	 {
             prev = angles[i].a2;
             angleKind = angles[i].kind;
+	    if (data->ff.angles->AngleEnergy(angleKind) > 10E6)
+	    {
+	       angleFix = true;
+	       thetaFix = data->ff.angles->Angle(angleKind);
+	    }
             break;
          }
       }
@@ -63,12 +68,20 @@ namespace cbmc
 
       for (uint trial = 0; trial < count; trial++)
       {
-         angles[trial] = prng.rand(M_PI);
-         angleEnergy[trial] = ff.angles->Calc(angleKind, angles[trial]);
+	 if (angleFix)
+	 {
+	    angles[trial] = thetaFix;
+	    angleEnergy[trial] = 0.0;
+	 }
+	 else
+	 {
+	    angles[trial] = prng.rand(M_PI);
+	    angleEnergy[trial] = ff.angles->Calc(angleKind, angles[trial]); 
+	 }
+
 	 double distSq = newMol.AngleDist(bond[0], bond[1], angles[trial]);
 	 nonbonded_1_3[trial] = data->calc.IntraEnergy_1_3(distSq, prev, atom,
 							   molIndex); 
-
 	 if(isnan(nonbonded_1_3[trial]))
 	   nonbonded_1_3[trial] = num::BIGNUM;
 	 
@@ -97,14 +110,24 @@ namespace cbmc
 
       for (uint trial = 0; trial < count; trial++)
       {
-         double trialAngle = prng.rand(M_PI);
+	 double trialAngle;
+	 double trialEn;
+	 if(angleFix)
+	 {
+	    trialAngle = thetaFix;
+	    trialEn = 0.0;
+	 }
+	 else
+	 {
+	    trialAngle = prng.rand(M_PI);
+	    trialEn = ff.angles->Calc(angleKind, trialAngle);
+	 }
 	 double distSq = oldMol.AngleDist(oldBond[0], oldBond[1], trialAngle);
 
 	 double tempEn = data->calc.IntraEnergy_1_3(distSq, prev, atom, molIndex);
 	 if(isnan(tempEn))
 	   tempEn = num::BIGNUM;
-
-         double trialEn = ff.angles->Calc(angleKind, trialAngle) + tempEn;
+         trialEn += tempEn;
          double trialWeight = exp(-ff.beta * trialEn);
          bendWeight += trialWeight;
       }
@@ -115,6 +138,7 @@ namespace cbmc
       double dummy;
       oldMol.OldThetaAndPhi(atom, focus, theta, dummy);
       const Forcefield& ff = data->ff;
+
       bendEnergy = ff.angles->Calc(angleKind, theta);
       double distSq = oldMol.OldDistSq(prev, atom);
       oneThree = data->calc.IntraEnergy_1_3(distSq, prev, atom, molIndex);
@@ -162,6 +186,23 @@ namespace cbmc
       data->axes.WrapPBC(positions, oldMol.GetBox());
       data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                                oldMol.GetBox(), nLJTrials);
+      data->calcEwald.SwapSelf(self, molIndex, atom, oldMol.GetBox(),
+			       nLJTrials);
+      data->calcEwald.SwapCorrection(correction, oldMol, positions, atom, 
+				     oldMol.GetBox(), nLJTrials);
+
+      const MoleculeKind& thisKind = oldMol.GetKind();
+      double tempEn = 0.0;
+      for (uint i = 0; i < thisKind.NumAtoms(); i++)
+      {
+	 if (oldMol.AtomExists(i) && i != atom)
+	 {
+	    double distSq = oldMol.OldDistSq(i, atom);
+	    tempEn += data->calcEwald.CorrectionOldMol(oldMol, distSq,
+							     i, atom);
+	 }
+      }
+      correction[0] = tempEn;
 
       double stepWeight = 0;
       for (uint trial = 0, count = nLJTrials; trial < count; ++trial)
@@ -202,6 +243,12 @@ namespace cbmc
       data->axes.WrapPBC(positions, newMol.GetBox());
       data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                                newMol.GetBox(), nLJTrials);
+
+      data->calcEwald.SwapSelf(self, molIndex, atom, newMol.GetBox(),
+			       nLJTrials);
+      data->calcEwald.SwapCorrection(correction, newMol, positions, atom, 
+				     newMol.GetBox(), nLJTrials);
+
 
       double stepWeight = 0;
       double beta = data->ff.beta;
