@@ -22,6 +22,16 @@ class FFAngles
 	       PRNG & prng, const uint angKind, const uint numTrials,
 	       const uint numPicksPerTrial, const double beta) const;
 
+   double Angle(const uint kind) const
+   {
+	   return theta0[kind];
+   }
+
+   double AngleEnergy(const uint kind) const
+   {
+	   return Ktheta[kind];
+   }
+
    virtual double Calc(const uint kind, const double ang) const
    { return (Ktheta[kind] * num::Sq(ang-theta0[kind])); } 
    

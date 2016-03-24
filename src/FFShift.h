@@ -39,20 +39,15 @@ struct FF_SHIFT : public FFParticle
 
    // coulomb interaction functions
    virtual void CalcCoulombAdd(double& en, double& vir, const double distSq,
-			       const double qi_qj_Fact,
-			       const double boxSize) const;
+			       const double qi_qj_Fact) const;
    virtual void CalcCoulombSub(double& en, double& vir, const double distSq,
-			       const double qi_qj_Fact,
-			       const double boxSize) const;
+			       const double qi_qj_Fact) const;
    virtual double CalcCoulombEn(const double distSq,
-				const double qi_qj_Fact,
-			        const double boxSize) const;
+				const double qi_qj_Fact) const;
    virtual double CalcCoulombVir(const double distSq,
-				 const double qi_qj_Fact,
-				 const double boxSize) const;
+				 const double qi_qj_Fact) const;
    virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
-				   const double qi_qj_Fact,
-				   const double boxSize) const;
+				   const double qi_qj_Fact) const;
 
    //!Returns Ezero, no energy correction
    virtual double EnergyLRC(const uint kind1, const uint kind2) const
@@ -71,7 +66,7 @@ struct FF_SHIFT : public FFParticle
 	     ) const;
 
    virtual void CalcCoulomb(double& en, double& vir, const double distSq,
-			    const double qi_qj_Fact, const double boxSize)const;
+			    const double qi_qj_Fact)const;
 };
 
 inline void FF_SHIFT::CalcAdd(double& en, double& vir, const double distSq,
@@ -83,10 +78,9 @@ inline void FF_SHIFT::CalcAdd(double& en, double& vir, const double distSq,
 
 inline void FF_SHIFT::CalcCoulombAdd(double& en, double& vir,
 				     const double distSq,
-				     const double qi_qj_Fact,
-				     const double boxSize) const
+				     const double qi_qj_Fact) const
 {
-  CalcCoulomb(en, vir, distSq, qi_qj_Fact, boxSize);
+  CalcCoulomb(en, vir, distSq, qi_qj_Fact);
 }
 
 inline void FF_SHIFT::CalcAdd_1_4(double& en, const double distSq,
@@ -108,8 +102,7 @@ inline void FF_SHIFT::CalcAdd_1_4(double& en, const double distSq,
 }
 
 inline void FF_SHIFT::CalcCoulombAdd_1_4(double& en, const double distSq,
-					 const double qi_qj_Fact,
-					 const double boxSize) const
+					 const double qi_qj_Fact) const
 {
    double dist = sqrt(distSq);
    en += scaling_14 * qi_qj_Fact * (1.0/dist - 1.0/rCut); 
@@ -127,11 +120,10 @@ inline void FF_SHIFT::CalcSub(double& en, double& vir, const double distSq,
 
 inline void FF_SHIFT::CalcCoulombSub(double& en, double& vir,
 				     const double distSq,
-				     const double qi_qj_Fact,
-				     const double boxSize) const
+				     const double qi_qj_Fact) const
 {
   double tempEn = 0.0, tempVir = 0.0;
-  CalcCoulomb(tempEn, tempVir, distSq, qi_qj_Fact, boxSize);
+  CalcCoulomb(tempEn, tempVir, distSq, qi_qj_Fact);
   en  -= tempEn;
   vir -= tempVir;
 }
@@ -156,8 +148,7 @@ inline double FF_SHIFT::CalcEn(const double distSq,
 }
 
 inline double FF_SHIFT::CalcCoulombEn(const double distSq,
-				      const double qi_qj_Fact,
-				      const double boxSize) const
+				      const double qi_qj_Fact) const
 {
    double dist = sqrt(distSq);
    return  qi_qj_Fact * (1.0/dist - 1.0/rCut);
@@ -185,8 +176,7 @@ inline double FF_SHIFT::CalcVir(const double distSq,
 }
 
 inline double FF_SHIFT::CalcCoulombVir(const double distSq,
-				       const double qi_qj_Fact,
-				       const double boxSize) const
+				       const double qi_qj_Fact) const
 {  
   double dist = sqrt(distSq);
   return qi_qj_Fact/(distSq * dist);
@@ -219,8 +209,7 @@ inline void FF_SHIFT::Calc(double & en, double & vir,
 
 inline void FF_SHIFT::CalcCoulomb(double & en, double & vir,
 				  const double distSq, 
-				  const double qi_qj_Fact,
-				  const double boxSize)const
+				  const double qi_qj_Fact)const
 {
    double dist = sqrt(distSq);
    en += qi_qj_Fact *(1.0/dist - 1.0/rCut);

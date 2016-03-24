@@ -323,6 +323,11 @@ namespace cbmc
 	data->calc.ParticleNonbonded(nonbonded, mol, positions[b],
 				     hed.Bonded(b), mol.GetBox(),
 				     nLJTrials);
+	data->calcEwald.SwapSelf(self, molIndex, hed.Bonded(b), mol.GetBox(),
+				 nLJTrials);
+	data->calcEwald.SwapCorrection(correction, mol, positions, b, 
+				       hed.bonded, mol.GetBox(), nLJTrials,
+				       hed.Prev(), false);
 	//data->calc.ParticleNonbonded_1_4(nonbonded_1_4, mol, positions[b], 
 	//				 hed.Bonded(b), mol.GetBox(),
 	//				 nLJTrials);

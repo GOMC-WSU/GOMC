@@ -2,6 +2,7 @@
 #include "System.h"
 
 #include "CalculateEnergy.h"
+#include "Ewald.h"
 #include "EnergyTypes.h"
 #include "Setup.h"               //For source of setup data.
 #include "ConfigSetup.h"         //For types directly read from config. file
@@ -31,7 +32,7 @@ System::System(StaticVals& statics) :
 #ifdef CELL_LIST
    cellList(statics.mol),
 #endif
-   calcEnergy(statics, *this) {}
+   calcEnergy(statics, *this), calcEwald(statics, *this) {}
 
 System::~System()
 {
@@ -68,6 +69,7 @@ void System::Init(Setup const& set)
    cellList.SetCutoff(statV.forcefield.rCut);
    cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 #endif
+   calcEwald.Init();
    calcEnergy.Init();
    potential = calcEnergy.SystemTotal();
    InitMoves();
