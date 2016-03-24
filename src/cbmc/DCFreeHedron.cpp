@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "DCFreeHedron.h"
@@ -13,6 +6,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "../MolSetup.h"
 #include "../Forcefield.h"
 #include "../PRNG.h"
+#include "../../lib/NumLib.h"
 
 namespace cbmc
 {
@@ -27,20 +21,23 @@ namespace cbmc
          for(uint i = 0; i < onFocus.size(); ++i) {
             if (onFocus[i].a1 == prev) {
                anchorBond = data->ff.bonds.Length(onFocus[i].kind);
+	       anchorBondKind = onFocus[i].kind;
                break;
             }
          }
    }
 
 
-   void DCFreeHedron::PrepareNew()
+   void DCFreeHedron::PrepareNew(TrialMol& newMol, uint molIndex)
    {
-      hed.PrepareNew();
+      hed.PrepareNew(newMol, molIndex);
    }
 
-   void DCFreeHedron::PrepareOld()
+   void DCFreeHedron::PrepareOld(TrialMol& oldMol, uint molIndex)
    {
-      hed.PrepareOld();
+      hed.PrepareOld(oldMol, molIndex);
+      double bondLengthOld = sqrt(oldMol.OldDistSq(hed.Focus(), hed.Prev()));
+      oldBondEnergy =  data->ff.bonds.Calc(anchorBondKind, bondLengthOld);
    }
 
 
@@ -49,15 +46,28 @@ namespace cbmc
       seed.BuildNew(newMol, molIndex);
       PRNG& prng = data->prng;
       const CalculateEnergy& calc = data->calc;
+
+      const Ewald& calcEwald = data->calcEwald;
+
       const Forcefield& ff = data->ff;
       uint nLJTrials = data->nLJTrialsNth;
       double* ljWeights = data->ljWeights;
       double* inter = data->inter;
+      double* real = data->real;
+      double* self = data->self;
+      double* correction = data->correction;
+
+      std::fill_n(inter, nLJTrials, 0.0);
+      std::fill_n(self, nLJTrials, 0.0);
+      std::fill_n(real, nLJTrials, 0.0);
+      std::fill_n(correction, nLJTrials, 0.0);
+      std::fill_n(ljWeights, nLJTrials, 0.0);
 
       //get info about existing geometry
       newMol.ShiftBasis(hed.Focus());
       const XYZ center = newMol.AtomPosition(hed.Focus());
       XYZArray* positions = data->multiPositions;
+
       for (uint i = 0; i < hed.NumBond(); ++i)
       {
          positions[i].Set(0, newMol.RawRectCoords(hed.BondLength(i),
@@ -83,20 +93,34 @@ namespace cbmc
       for (uint b = 0; b < hed.NumBond() + 1; ++b)
       {
          data->axes.WrapPBC(positions[b], newMol.GetBox());
+   
       }
 
-      std::fill_n(inter, nLJTrials, 0.0);
+
       for (uint b = 0; b < hed.NumBond(); ++b)
       {
-	 calc.ParticleInter(inter, positions[b], hed.Bonded(b), 
+	 calc.ParticleInter(inter, real, positions[b], hed.Bonded(b), 
 			    molIndex, newMol.GetBox(), nLJTrials);
+	 calcEwald.SwapSelf(self, molIndex, hed.Bonded(b), newMol.GetBox(),
+			    nLJTrials);
+	 calcEwald.SwapCorrection(correction, newMol, positions, b, hed.bonded,
+				  newMol.GetBox(), nLJTrials, hed.Prev(),
+				  false);
       }
-      calc.ParticleInter(inter, positions[hed.NumBond()], hed.Prev(),
+
+      calc.ParticleInter(inter, real, positions[hed.NumBond()], hed.Prev(),
                          molIndex, newMol.GetBox(), nLJTrials);
+      calcEwald.SwapSelf(self, molIndex, hed.Prev(), newMol.GetBox(),
+			    nLJTrials);
+      calcEwald.SwapCorrection(correction, newMol, positions, hed.Prev(),
+			       hed.bonded, newMol.GetBox(), nLJTrials,
+			       hed.Prev(), true);
+
       double stepWeight = 0;
       for (uint lj = 0; lj < nLJTrials; ++lj)
       {
-         ljWeights[lj] = exp(-ff.beta * inter[lj]);
+	ljWeights[lj] = exp(-ff.beta * (inter[lj] + real[lj] + self[lj] +
+					correction[lj]));
          stepWeight += ljWeights[lj];
       }
       uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
@@ -105,7 +129,9 @@ namespace cbmc
          newMol.AddAtom(hed.Bonded(b), positions[b][winner]);
       }
       newMol.AddAtom(hed.Prev(), positions[hed.NumBond()][winner]);
-      newMol.AddEnergy(Energy(hed.GetEnergy(), 0, inter[winner]));
+      newMol.AddEnergy(Energy(hed.GetEnergy(), hed.GetNonBondedEn(),
+			      inter[winner], real[winner],
+			      0.0, self[winner], correction[winner]));
       newMol.MultWeight(hed.GetWeight());
       newMol.MultWeight(stepWeight);
    }
@@ -115,16 +141,28 @@ namespace cbmc
       seed.BuildOld(oldMol, molIndex);
       PRNG& prng = data->prng;
       const CalculateEnergy& calc = data->calc;
+
+      const Ewald& calcEwald = data->calcEwald;
+
       const Forcefield& ff = data->ff;
       uint nLJTrials = data->nLJTrialsNth;
       double* ljWeights = data->ljWeights;
       double* inter = data->inter;
+      double* real = data->real;
+      double* self = data->self;
+      double* correction = data->correction;
+
+      std::fill_n(inter, nLJTrials, 0.0);
+      std::fill_n(self, nLJTrials, 0.0);
+      std::fill_n(real, nLJTrials, 0.0);
+      std::fill_n(correction, nLJTrials, 0.0);
+      std::fill_n(ljWeights, nLJTrials, 0.0);
 
       //get info about existing geometry
       oldMol.SetBasis(hed.Focus(), hed.Prev());
       //Calculate OldMol Bond Energy &
       //Calculate phi weight for nTrials using actual theta of OldMol
-      hed.ConstrainedAnglesOld(data->nAngleTrials - 1, oldMol);
+      hed.ConstrainedAnglesOld(data->nAngleTrials - 1, oldMol, molIndex);
       const XYZ center = oldMol.AtomPosition(hed.Focus());
       XYZArray* positions = data->multiPositions;
       double prevPhi[MAX_BONDS];
@@ -161,30 +199,47 @@ namespace cbmc
          data->axes.WrapPBC(positions[b], oldMol.GetBox());
       }
 
-      std::fill_n(inter, nLJTrials, 0.0);
+
       for (uint b = 0; b < hed.NumBond(); ++b)
       {
-         calc.ParticleInter(inter, positions[b], hed.Bonded(b),
+	calc.ParticleInter(inter, real, positions[b], hed.Bonded(b),
                             molIndex, oldMol.GetBox(), nLJTrials);
+
+	calcEwald.SwapSelf(self, molIndex, hed.Bonded(b), oldMol.GetBox(),
+			   nLJTrials);
+	calcEwald.SwapCorrection(correction, oldMol, positions, b, hed.bonded, 
+				 oldMol.GetBox(), nLJTrials, hed.Prev(), false);
       }
       double stepWeight = 0;
-      calc.ParticleInter(inter, positions[hed.NumBond()], hed.Prev(),
+      calc.ParticleInter(inter, real, positions[hed.NumBond()], hed.Prev(),
                          molIndex, oldMol.GetBox(), nLJTrials);
+
+      calcEwald.SwapSelf(self, molIndex, hed.Prev(), oldMol.GetBox(),
+			   nLJTrials);
+      calcEwald.SwapCorrection(correction, oldMol, positions, hed.NumBond(),
+			       hed.bonded, oldMol.GetBox(), nLJTrials,
+			       hed.Prev(), true);
+
+ 
 
       for (uint lj = 0; lj < nLJTrials; ++lj)
       {
-         stepWeight += exp(-ff.beta * inter[lj]);
+	stepWeight += exp(-ff.beta * (inter[lj] + real[lj] + self[lj] +
+				      correction[lj]));
       }
       for(uint b = 0; b < hed.NumBond(); ++b)
       {
          oldMol.ConfirmOldAtom(hed.Bonded(b));
       }
       oldMol.ConfirmOldAtom(hed.Prev());
-      oldMol.AddEnergy(Energy(hed.GetEnergy(), 0, inter[0]));
+      oldMol.AddEnergy(Energy(hed.GetEnergy() + oldBondEnergy +
+			      hed.GetOldBondEn(),
+			      hed.GetNonBondedEn(),
+			      inter[0], real[0], 0.0,
+			      self[0], correction[0]));
       oldMol.MultWeight(hed.GetWeight());
       oldMol.MultWeight(stepWeight);
    }
 
 
 }
-

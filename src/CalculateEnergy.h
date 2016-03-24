@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef CALCULATEENERGY_H
 #define CALCULATEENERGY_H
 
@@ -12,6 +5,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "../lib/BasicTypes.h"
 #include "EnergyTypes.h"
+#include "Ewald.h"
 #ifdef CELL_LIST
 #include "CellList.h"
 #endif
@@ -48,19 +42,20 @@ namespace cbmc { class TrialMol; }
 class CalculateEnergy 
 {
    public:
-      CalculateEnergy(StaticVals const& stat, System const& sys);
+      CalculateEnergy(StaticVals const& stat, System & sys);
 
       void Init();
 
       //! Calculates total energy/virial of all boxes in the system
-      SystemPotential SystemTotal() const;
+      SystemPotential SystemTotal() ;
+   
 
       //! Calculates total energy/virial of a single box in the system
       SystemPotential BoxInter(SystemPotential potential,
                                XYZArray const& coords, 
                                XYZArray const& com,
                                BoxDimensions const& boxAxes,
-                               const uint box) const;
+                               const uint box) ;
 
       //! Calculates intermolecule energy of all boxes in the system
       //! @param potential Copy of current energy structure to append result to
@@ -71,37 +66,40 @@ class CalculateEnergy
       SystemPotential SystemInter(SystemPotential potential,
                                   XYZArray const& coords, 
                                   XYZArray const& com,
-                                  BoxDimensions const& boxAxes) const;
+                                  BoxDimensions const& boxAxes) ;
 
-      //! Calculates intermolecular energy of a molecule were it at molCoords
+      //! Calculates intermolecular energy (LJ and coulomb) of a molecule 
+      //!                           were it at molCoords.
       //! @param potential Copy of current energy structure to append result to
       //! @param molCoords Molecule coordinates
       //! @param molIndex Index of molecule.
       //! @param box Index of box molecule is in. 
       //! @param newCOM (optional) If COM has changed for new coordinate,
       //!                          allows for that to be considered.
-      //! @return Intermolecular with interactions for that molecule
-      Intermolecular MoleculeInter(XYZArray const& molCoords,
-				   const uint molIndex,
-                                   const uint box,
-				   XYZ const*const newCOM = NULL) const;
+      void MoleculeInter(Intermolecular &inter_LJ,
+			 Intermolecular &inter_coulomb,
+			 XYZArray const& molCoords,
+			 const uint molIndex,
+			 const uint box,
+			 XYZ const*const newCOM = NULL) const;
 
-      //! Calculates Nonbonded intra energy for candidate positions
+      //! Calculates Nonbonded intra energy (LJ and coulomb )for 
+      //!                       candidate positions
       //! @param energy Return array, must be pre-allocated to size n
       //! @param trialMol Partially built trial molecule.
       //! @param trialPos Contains exactly n potential particle positions
       //! @param partIndex Index of particle within the molecule
       //! @param box Index of box molecule is in
       //! @param trials Number of trials ot loop over in position array. (cbmc)
-      void ParticleNonbonded(double* energy,
-                             const cbmc::TrialMol& trialMol,
+      void ParticleNonbonded(double* inter, const cbmc::TrialMol& trialMol,
                              XYZArray const& trialPos,
                              const uint partIndex,
                              const uint box,
                              const uint trials) const;
 
 
-      //! Calculates Nonbonded 1-4 intra energy for candidate positions
+      //! Calculates Nonbonded 1-4 intra energy (LJ and coulomb )for 
+      //!                     candidate positions
       //! and 1-3 interaction in case of  Martini forcefield
       //! @param energy Return array, must be pre-allocated to size n
       //! @param trialMol Partially built trial molecule.
@@ -109,32 +107,32 @@ class CalculateEnergy
       //! @param partIndex Index of particle within the molecule
       //! @param box Index of box molecule is in
       //! @param trials Number of trials ot loop over in position array. (cbmc)
-      void ParticleNonbonded_1_4(double* energy,
-                             const cbmc::TrialMol& trialMol,
-                             XYZArray const& trialPos,
-                             const uint partIndex,
-                             const uint box,
-                             const uint trials) const;
+      void ParticleNonbonded_1_4(double* inter, const cbmc::TrialMol& trialMol,
+				 XYZArray const& trialPos,
+				 const uint partIndex,
+				 const uint box,
+				 const uint trials) const;
 
 
-      //! Calculates Nonbonded intra energy for candidate positions
+      //! Calculates Nonbonded intra energy (LJ and coulomb)for 
+      //!                      candidate positions
       //! @param energy Output Array, at least the size of trialpos
       //! @param trialPos Array of candidate positions
       //! @param partIndex Index of the particle within the molecule
       //! @param molIndex Index of molecule
       //! @param box Index of box molecule is in
       //! @param trials Number of trials ot loop over in position array. (cbmc)
-      void ParticleInter(double* en,
+      void ParticleInter(double* en, double *real,
                          XYZArray const& trialPos,
                          const uint partIndex,
                          const uint molIndex,
                          const uint box,
                          const uint trials) const;
 
-      //! For insertion moves we calculate the virial only if we accept, to
-      //! save work.
-      double MoleculeVirial(const uint molIndex,
-                            const uint box) const;
+      //! For insertion moves we calculate the virial(for LJ and coulomb)
+      //!!only if we accept, to save work.
+      void  MoleculeVirial(double & virial_LJ, double & virial_real,
+			    const uint molIndex, const uint box) const;
 
 
       //! Calculates the change in the TC from adding numChange atoms of a kind
@@ -150,6 +148,16 @@ class CalculateEnergy
                          double & nonBondEn,
                          const uint molIndex,
                          const uint box) const;
+
+      //! Calculates Nonbonded 1_3 intramolecule energy of a full molecule
+      //for Martini forcefield
+      double IntraEnergy_1_3(const double distSq, const uint atom1,
+			     const uint atom2, const uint molIndex) const;
+
+      //! Calculates Nonbonded 1_4 intramolecule energy of a full molecule
+      //for Martini forcefield
+      double IntraEnergy_1_4(const double distSq, const uint atom1,
+			     const uint atom2, const uint molIndex) const;
 
    private: 
 
@@ -189,8 +197,14 @@ class CalculateEnergy
                       const uint box) const;
       
       //! Calculates Nonbonded 1_4 intramolecule energy of a full molecule
-      // and 1-3 interaction for Martini forcefield
       void MolNonbond_1_4(double & energy,
+                      MoleculeKind const& molKind,
+                      const uint molIndex,
+                      const uint box) const;
+
+      //! Calculates Nonbonded 1_3 intramolecule energy of a full molecule
+      //for Martini forcefield
+      void MolNonbond_1_3(double & energy,
                       MoleculeKind const& molKind,
                       const uint molIndex,
                       const uint box) const;
@@ -207,13 +221,15 @@ class CalculateEnergy
       const MoleculeLookup& molLookup;
       const BoxDimensions& currentAxes;
       const COM& currentCOM;
+      Ewald *calcEwald;
+      bool electrostatic, ewald;
       
       std::vector<int> particleKind;
       std::vector<int> particleMol;
+      std::vector<double> particleCharge;
 #ifdef CELL_LIST
       const CellList& cellList;
 #endif
 };
 
 #endif /*ENERGY_H*/
-

@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef PDB_OUTPUT_H
 #define PDB_OUTPUT_H
 
@@ -22,7 +15,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBSetup.h" //For atoms class
 
 class System;
-namespace config_setup { class Output; }
+namespace config_setup { struct Output; }
 class MoveSettings;
 class MoleculeLookup;
 
@@ -85,10 +78,10 @@ struct PDBOutput : OutputableBase
    std::string outRebuildRestartFName[BOX_TOTAL];
    bool enableRestOut;
    ulong stepsRestPerOut;
+   ulong stepsCoordPerOut;
    //NEW_RESTART_CODE
    bool enableOutState;
    std::vector<std::string> pStr;
 };
 
 #endif /*PDB_OUTPUT_H*/
-

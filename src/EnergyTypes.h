@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef ENERGYTYPES_H
 #define ENERGYTYPES_H
 
@@ -65,25 +58,43 @@ struct Intermolecular
    { return Intermolecular(virial + rhs.virial, energy + rhs.energy); }
 };
 
-struct Energy
+class Energy
 {
-   //MEMBERS
-   double intraBond, intraNonbond, inter, tc, total;
-
+public:
    Energy() : intraBond(0.0), intraNonbond(0.0), inter(0.0), 
-      tc(0.0), total(0.0) {}
-   Energy(double bond, double nonbond, double inter) :
+      tc(0.0), total(0.0), real(0.0), recip(0.0), self(0.0),
+     correction(0.0), totalElect(0.0) {}
+   Energy(double bond, double nonbond, double inter, double real,
+	  double recip, double self, double correc) :
       intraBond(bond), intraNonbond(nonbond), inter(inter),
-	 tc(0.0), total(0.0) {}
+	 tc(0.0), real(real), recip(recip), self(self), correction(correc),
+	totalElect(0.0), total(0.0) {}
 
    //VALUE SETTERS
    double Total() 
-   { total = intraBond + intraNonbond + inter + tc; return total; }
-   void Zero() { 
+   { 
+     total = intraBond + intraNonbond + inter + tc + real + recip + self +
+       correction; 
+     return total; 
+   }
+  
+  double TotalElect()
+  {
+    totalElect = real + recip + self + correction;
+    return totalElect;
+  }
+
+   void Zero() 
+   { 
       intraBond = 0.0;
       intraNonbond = 0.0;
       inter = 0.0;
       tc = 0.0;
+      real = 0.0;
+      recip = 0.0;
+      self = 0.0;
+      correction = 0.0;
+      totalElect = 0.0; 
       total = 0.0; 
    }
 
@@ -94,6 +105,11 @@ struct Energy
    { inter += rhs.energy; return *this; }
    Energy& operator-=(Energy const& rhs);
    Energy& operator+=(Energy const& rhs);
+
+//private:
+   //MEMBERS
+   double intraBond, intraNonbond, inter, tc, total, real, recip, self,
+     correction, totalElect;
 };
 
 inline Energy& Energy::operator-=(Energy const& rhs)
@@ -102,7 +118,13 @@ inline Energy& Energy::operator-=(Energy const& rhs)
    intraBond -= rhs.intraBond;
    intraNonbond -= rhs.intraNonbond;
    tc -= rhs.tc;
+   real -= rhs.real;
+   recip -= rhs.recip;
+   self -= rhs.self;
+   correction -= rhs.correction;
+   totalElect -= rhs.totalElect;
    total -= rhs.total;
+
    return *this; 
 }
 
@@ -112,41 +134,114 @@ inline Energy& Energy::operator+=(Energy const& rhs)
    intraBond += rhs.intraBond;
    intraNonbond += rhs.intraNonbond;
    tc += rhs.tc;
+   real += rhs.real;
+   recip += rhs.recip;
+   self += rhs.self;
+   correction += rhs.correction; 
+   totalElect += rhs.totalElect;
    total += rhs.total;
+
    return *this; 
 }
 
-struct Virial
+class Virial
 {
-   //MEMBERS
-   double inter, tc, total;
-
+public:
    Virial() { Zero(); }
 
    //VALUE SETTERS
-   double Total() { return total = inter + tc; }
-   void Zero() { inter = tc = total = 0.0; }
+   double Total() 
+   { 
+     total = inter + tc + real + recip + self + correction; 
+     return total; 
+   }
+
+   double TotalElect()
+   {
+     totalElect = real + recip + self + correction;
+     return totalElect;
+   }
+ 
+   void Zero() 
+   { 
+     inter = 0.0;
+     tc = 0.0;
+     real = 0.0;
+     recip = 0.0;
+     self = 0.0;
+     correction = 0.0;
+     totalElect = 0.0; 
+     total = 0.0; 
+   }
 
    //OPERATORS
    Virial& operator-=(Virial const& rhs)
-   { inter -= rhs.inter; tc -= rhs.tc; total -= rhs.total; return *this; }
+   { 
+     inter -= rhs.inter;
+     tc -= rhs.tc;
+     real -= rhs.real;
+     recip -= rhs.recip;
+     self -= rhs.self;
+     correction -= rhs.correction;
+     totalElect -= rhs.totalElect;
+     total -= rhs.total;
+     return *this;
+   }
+
+ 
    Virial& operator+=(Virial const& rhs)
-   { inter += rhs.inter; tc += rhs.tc; total += rhs.total; return *this; }
+   { 
+     inter += rhs.inter;
+     tc += rhs.tc;
+     real += rhs.real;
+     recip += rhs.recip;
+     self += rhs.self;
+     correction += rhs.correction;
+     totalElect += rhs.totalElect;
+     total += rhs.total;
+     return *this;
+   }
+
    Virial& operator-=(Intermolecular const& rhs)
    { inter -= rhs.virial; return *this; }
    Virial& operator+=(Intermolecular const& rhs)
    { inter += rhs.virial; return *this; }
    //For accounting for dimensionality
    Virial& operator=(Virial const& rhs)
-   { inter = rhs.inter; tc = rhs.tc; total = rhs.total; return *this; } 
-   Virial& operator/=(const double rhs)
-   { inter /= rhs; tc /= rhs; total /= rhs; return *this; }
+   { 
+     inter = rhs.inter;
+     tc = rhs.tc;
+     real = rhs.real;
+     recip = rhs.recip;
+     self = rhs.self;
+     correction = rhs.correction;
+     totalElect = rhs.totalElect;
+     total = rhs.total;
+     return *this;
+   } 
 
+   Virial& operator/=(const double rhs)
+   { 
+     inter /= rhs;
+     tc /= rhs;
+     real /= rhs;
+     recip /= rhs;
+     self /= rhs;
+     correction /= rhs;
+     totalElect /= rhs;
+     total /= rhs;
+     return *this;
+   }
+
+//private:
+   //MEMBERS
+   double inter, tc, real, recip, self, correction, totalElect, total;
 };
 
 
-struct SystemPotential
+class SystemPotential
 {
+public:
    void Zero();
    double Total();
    void Add(const uint b, Intermolecular const& rhs)
@@ -180,7 +275,8 @@ struct SystemPotential
    {
       for (uint b = 0; b < BOX_TOTAL; b++)
 	 Add(b, rhs.boxEnergy[b], rhs.boxVirial[b]);
-      Total();      return *this;
+      Total();      
+      return *this;
    } 
 
    Virial boxVirial[BOX_TOTAL], totalVirial; 
@@ -205,8 +301,11 @@ inline double SystemPotential::Total()
    for (uint b = 0; b < BOX_TOTAL; b++)
    {
       boxEnergy[b].Total();
+      boxEnergy[b].TotalElect();
       totalEnergy += boxEnergy[b];
+
       boxVirial[b].Total();
+      boxVirial[b].TotalElect();
       totalVirial += boxVirial[b];
    }
    return totalEnergy.total;
@@ -223,4 +322,3 @@ inline std::ostream& operator << (std::ostream& out, const Energy& en)
 #endif
 
 #endif
-

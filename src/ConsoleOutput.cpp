@@ -1,13 +1,6 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "ConsoleOutput.h"          //For spec;
 #include "EnsemblePreprocessor.h"   //For BOX_TOTAL, ensemble
-#include "MoveConst.h"    //For move index constants, name constants.
+#include "MoveConst.h"				//For move index constants, name constants.
 #include "FFConst.h"                //For density conv.
 #include "System.h"                 //for init
 #include "StaticVals.h"             //for init  
@@ -21,9 +14,9 @@ void ConsoleOutput::DoOutput(const ulong step)
 {
    if (step==0)
       std::cout << "STARTING SIMULATION!!" << std::endl << std::endl;
-   else 
-      std::cout << "STEP " << step << " of " << totSimSteps << " ("
-		<< (double)(step)/(double)(totSimSteps) * 100.0
+   else
+      std::cout << "STEP " << step+1 << " of " << totSimSteps << " ("
+		<< (double)(step+1)/(double)(totSimSteps) * 100.0
 		<< "% done)" << std::endl << std::endl;
 
    for (uint b = 0; b < BOX_TOTAL; b++)
@@ -62,27 +55,32 @@ void ConsoleOutput::PrintSysStat() const
 }
 
 void ConsoleOutput::PrintMoveKind(bool & somethingPrinted,
-				  const uint m,
-				  const uint b,
-				  const ulong step) const
-{      
-   uint sub = mv::GetMoveSubIndex(m, b);
-   if (var->movePercRef[m] == 0.0 && step==0)
-   {
-      somethingPrinted |= true;
-      std::cout << "Reminder: " << mv::MOVE_NAME[sub] 
-		<< " move is off!" << std::endl;
-   }
-   else if (var->movePercRef[m] != 0.0 && step != 0)
-   {
-      somethingPrinted |= true;
-      std::cout << mv::MOVE_NAME[sub] << " -- tries: " << var->GetTries(sub)
-		<< "; # Accept: " << var->GetAccepted(sub)
-		<< "; % Accept : " << var->GetAcceptPercent(sub);
-      if (sub < mv::SCALEABLE)
-	 std::cout << "; Max Amt.: " << var->GetScale(sub);
-      std::cout << std::endl;
-   }
+	const uint m,
+	const uint b,
+	const ulong step) const
+{
+	uint sub = mv::GetMoveSubIndex(m, b);
+	if (var->movePercRef[m] == 0.0 && step == 0)
+	{
+		somethingPrinted |= true;
+		std::cout << "Reminder: " << mv::MOVE_NAME[sub]
+			<< " move is off!" << std::endl;
+	}
+	else if (var->movePercRef[m] != 0.0 && step != 0)
+	{
+		somethingPrinted |= true;
+		std::cout << mv::MOVE_NAME[sub] << " -- tries: " << var->GetTries(sub)
+			<< "; # Accept: " << var->GetAccepted(sub)
+			<< "; % Accept : " << var->GetAcceptPercent(sub);
+		if (sub < mv::SCALEABLE) {
+			//Multiple displacement maximum percent by the box length.
+			if (m == mv::DISPLACE)
+				std::cout << "; Max Amt.: " << var->GetMinAxis(b) * var->GetScale(sub);
+			else
+				std::cout << "; Max Amt.: " << var->GetScale(sub);
+		}
+		std::cout << std::endl;
+	}
 }
 
 void ConsoleOutput::PrintMoveStat(const uint box, const ulong step) const
@@ -94,6 +92,7 @@ void ConsoleOutput::PrintMoveStat(const uint box, const ulong step) const
 #endif
       PrintMoveKind(somethingPrinted, mv::DISPLACE, box, step);
       PrintMoveKind(somethingPrinted, mv::ROTATE, box, step);
+      PrintMoveKind(somethingPrinted, mv::INTRA_SWAP, box, step);
 #if ENSEMBLE == GCMC
    }
 #endif
@@ -126,18 +125,24 @@ void ConsoleOutput::PrintEnergy(Energy const& en, Virial const& vir,
 {
    if (intraOnly)
       std::cout << "Energy (in K): total: " << en.total << std::endl
-#ifdef EN_SUBCAT_OUT
-		<< "intra (bonded): " << en.intraBond << std::endl 
-#endif
-                << std::endl;
-   else
-      std::cout << "Energy (in K): total: " << en.total << std::endl
-#ifdef EN_SUBCAT_OUT
+		<< "intra (bonded): " << en.intraBond << std::endl
+		<< "intra (nonbonded): " << en.intraNonbond << std::endl
+	        << "inter: " << en.inter << std::endl
+		<< "inter (tail corr.): " << en.tc<< std::endl
+                << "totalElect: " << en.totalElect << std::endl
+		<< "real: " << en.real << std::endl
+		<< "recip: " << en.recip << std::endl
+		<< "self: " << en.self << std::endl
+		<< "correction: " << en.correction << std::endl;
+   /*      std::cout << "Energy (in K): total: " << en.total << std::endl
                 << "inter: " << en.inter << " ; inter (tail corr.): " 
                 << en.tc << std::endl << "intra (bonded): "
-                << en.intraBond << " ; intra (nonbonded): " << en.intraNonbond << std::endl
-#endif
-		<< std::endl;
+                << en.intraBond << " ; intra (nonbonded): " << en.intraNonbond 
+				 << std::endl
+		 << "; elect: " << en.totalElect  <<"; real: " << en.real
+		<< "; recip: " << en.recip  << "; self: " << en.self
+		<< "; correction: " << en.correction  << std::endl;
+   */
 }
 
 void ConsoleOutput::PrintBanner(std::string const& str) const 
@@ -148,5 +153,4 @@ void ConsoleOutput::PrintBanner(std::string const& str) const
 	     << "--    ==========      --" << std::endl
 	     << "------------------------" << std::endl << std::endl;
 }
-
 

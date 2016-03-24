@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef MOVES_CONST_H
 #define MOVES_CONST_H
 
@@ -30,14 +23,17 @@ namespace mv
    const uint DISPLACE = 0;
    const uint ROTATE = 1;
 #if ENSEMBLE == NVT
-   const uint MOVE_KINDS_TOTAL = 2;
+   const uint INTRA_SWAP = 2;
+   const uint MOVE_KINDS_TOTAL = 3;
 #elif ENSEMBLE == GCMC
    const uint MOL_TRANSFER=2;
-   const uint MOVE_KINDS_TOTAL=3;
+   const uint INTRA_SWAP = 3;
+   const uint MOVE_KINDS_TOTAL=4;
 #elif ENSEMBLE == GEMC
    const uint VOL_TRANSFER=2;
    const uint MOL_TRANSFER=3;
-   const uint MOVE_KINDS_TOTAL=4;
+   const uint INTRA_SWAP = 4;
+   const uint MOVE_KINDS_TOTAL=5;
 #endif
 
    const uint BOX0 = 0;
@@ -92,20 +88,22 @@ namespace mv
 
    //////////////////////////////////////////////////////////
    
-   //NVT : 1. Disp (box 0) 2. Rotate (box 0)
-   //GCMC: 1. Disp (box 0) 2. Rotate (box 0) 3. Deletion 4. Insertion
+   //NVT : 1. Disp (box 0) 2. Rotate (box 0) 3. IntraSwap (box 0)
+   //GCMC: 1. Disp (box 0) 2. Rotate (box 0) 3. Deletion (box 0)
+   //      4. Insertion (box 0) 5. IntraSwap (box 0)
    //GEMC: 1. Disp (box 0) 2. Disp (box 1) 3. Rotate (box 0) 4. Rotate (box 1)
    //      5. Vol. (b0->b1) 6. Vol. (b1->b0) 7. Mol Trans (b0->b1), lin.
-   //      8. Mol Trans (b1->b0), lin.
+   //      8. Mol Trans (b1->b0), lin. 9. IntraSwap (box 0)
+   //     10. IntraSwap (box 1)
 
 #if ENSEMBLE == NVT
-   const uint COUNT = 2;
+   const uint COUNT = 3;
    const uint SCALEABLE = 2;
 #elif ENSEMBLE == GCMC
-   const uint COUNT = 4;
+   const uint COUNT = 5;
    const uint SCALEABLE = 2;
 #elif ENSEMBLE == GEMC
-   const uint COUNT = 8;
+   const uint COUNT = 10;
    const uint SCALEABLE = 6;
 #endif
 
@@ -148,7 +146,12 @@ namespace mv
 #if ENSEMBLE == GEMC || ENSEMBLE == NVT
       return maj*BOX_TOTAL + b; 
 #else
-      return maj+b;
+
+       if(maj == mv::INTRA_SWAP)
+	 return maj + b + 1; //in GCMC we care just about box 0. [3+0+1]
+       else
+	 return maj+b; //in GCMC we have deletion and insertion,
+                       //we care about two box. [2+0 or 2+1]
 #endif
    }
 
@@ -162,4 +165,3 @@ namespace mv
 }
 
 #endif /*MOVES_CONST_H*/
-

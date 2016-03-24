@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "StaticVals.h"
 #include "ConfigSetup.h" //For types directly read from config. file
 #include "Setup.h" //For source of setup data.
@@ -41,13 +34,17 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
 	 movePerc[m] = perc.displace; break;
       case mv::ROTATE:
 	 movePerc[m] = perc.rotate; break;
+      case mv::INTRA_SWAP:
+	 movePerc[m] = perc.intraSwap; break;
 #ifdef VARIABLE_VOLUME
       case mv::VOL_TRANSFER :
 	 movePerc[m] = perc.volume; break;
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
+#if ENSEMBLE != NVT
       case mv::MOL_TRANSFER :
 	 movePerc[m] = perc.transfer; break;
+#endif
 #endif
       default:
 	 movePerc[m] = 0.0; break;
@@ -58,4 +55,3 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
       movePerc[m] /= totalPerc;
    totalPerc = 1.0;
 }
-

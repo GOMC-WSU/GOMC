@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef PRNG_SETUP_H
 #define PRNG_SETUP_H
 
@@ -13,7 +6,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 class Reader;
 namespace config_setup {
-class RestartSettings;
+struct RestartSettings;
 class PRNGKind;
 }
 
@@ -61,4 +54,3 @@ struct PRNGSetup
 };
 
 #endif /*PRNG_SETUP_H*/
-
