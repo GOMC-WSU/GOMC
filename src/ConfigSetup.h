@@ -158,7 +158,8 @@ namespace config_setup
       bool enable;
       bool ewald;
       double alpha;
-      double KMax;
+      double tolerance;
+      double recip_rcut;
       double oneFourScale;
       double dielectric;  
    };
@@ -289,3 +290,4 @@ private:
 };
 
 #endif 
+

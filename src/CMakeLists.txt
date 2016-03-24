@@ -9,6 +9,7 @@ set(sources
    CPUSide.cpp
    CalculateEnergy.cpp
    EnPartCntSampleOutput.cpp
+   Ewald.cpp
    FFConst.cpp
    FFDihedrals.cpp
    FFParticle.cpp
@@ -63,6 +64,7 @@ set(headers
    EnergyTypes.h
    EnPartCntSampleOutput.h
    EnsemblePreprocessor.h
+   Ewald.h
    FFAngles.h
    FFBonds.h
    FFConst.h

@@ -2,6 +2,7 @@
 #include "System.h"
 
 #include "CalculateEnergy.h"
+#include "Ewald.h"
 #include "EnergyTypes.h"
 #include "Setup.h"               //For source of setup data.
 #include "ConfigSetup.h"         //For types directly read from config. file
@@ -31,7 +32,7 @@ System::System(StaticVals& statics) :
 #ifdef CELL_LIST
    cellList(statics.mol),
 #endif
-   calcEnergy(statics, *this) {}
+   calcEnergy(statics, *this), calcEwald(statics, *this) {}
 
 System::~System()
 {
@@ -68,6 +69,7 @@ void System::Init(Setup const& set)
    cellList.SetCutoff(statV.forcefield.rCut);
    cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 #endif
+   calcEwald.Init();
    calcEnergy.Init();
    potential = calcEnergy.SystemTotal();
    InitMoves();
@@ -101,8 +103,6 @@ void System::PickMove(uint & kind, double & draw)
 
 void System::RunMove(uint majKind, double draw, const uint step)
 {
-  
-   double Uo = potential.totalEnergy.total;
    //return now if move targets molecule and there's none in that box.
    uint rejectState = SetParams(majKind, draw);
       //If single atom, redo move as displacement
@@ -118,11 +118,8 @@ void System::RunMove(uint majKind, double draw, const uint step)
    if (rejectState == mv::fail_state::NO_FAIL)
       CalcEn(majKind);
    Accept(majKind, rejectState, step);
-   //If large change, recalculate the system energy to compensate for errors.
-   if (potential.totalEnergy.total-Uo > 1e4)
-      potential = calcEnergy.SystemTotal();
-      
 }
+
 uint System::SetParams(const uint kind, const double draw) 
 { return moves[kind]->Prep(draw, statV.movePerc[kind]); }
 

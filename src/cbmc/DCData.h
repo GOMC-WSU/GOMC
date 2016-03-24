@@ -29,6 +29,9 @@ namespace cbmc
       ~DCData();
 
       const CalculateEnergy& calc;
+
+      const Ewald& calcEwald;
+
       const Forcefield& ff;
       const BoxDimensions& axes;
       PRNG& prng;
@@ -58,7 +61,9 @@ namespace cbmc
    };
 
 inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& set):
-  calc(sys.calcEnergy), ff(forcefield), prng(sys.prng), axes(sys.boxDimRef),
+
+  calc(sys.calcEnergy), calcEwald(sys.calcEwald), ff(forcefield),
+  prng(sys.prng), axes(sys.boxDimRef),
   nAngleTrials(set.config.sys.cbmcTrials.bonded.ang),
   nDihTrials(set.config.sys.cbmcTrials.bonded.dih),
   nLJTrialsFirst(set.config.sys.cbmcTrials.nonbonded.first),

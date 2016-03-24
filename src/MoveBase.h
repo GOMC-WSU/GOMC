@@ -13,6 +13,7 @@
 #include "System.h"
 #include "StaticVals.h"
 #include "CalculateEnergy.h"
+#include "Ewald.h"
 #include "MolPick.h"
 #include "Forcefield.h"
 
@@ -21,11 +22,11 @@ class MoveBase
  public:
 
    MoveBase(System & sys, StaticVals const& statV) :
-      boxDimRef(sys.boxDimRef), moveSetRef(sys.moveSettings), 
-      sysPotRef(sys.potential),
-      calcEnRef(sys.calcEnergy), comCurrRef(sys.com), 
-      coordCurrRef(sys.coordinates), prng(sys.prng), molRef(statV.mol), 
-      BETA(statV.forcefield.beta)
+   boxDimRef(sys.boxDimRef), moveSetRef(sys.moveSettings), 
+     sysPotRef(sys.potential),
+     calcEnRef(sys.calcEnergy), calcEwald(sys.calcEwald), comCurrRef(sys.com), 
+     coordCurrRef(sys.coordinates), prng(sys.prng), molRef(statV.mol), 
+     BETA(statV.forcefield.beta), ewald(statV.forcefield.ewald)
 #ifdef CELL_LIST
       , cellList(sys.cellList), molRemoved(false)
 #endif
@@ -54,10 +55,13 @@ class MoveBase
     Coordinates & coordCurrRef;
     COM & comCurrRef;
     CalculateEnergy & calcEnRef;
+    Ewald& calcEwald;
+    
     PRNG & prng;
     BoxDimensions & boxDimRef;
     Molecules const& molRef;
     const double BETA;
+    const bool ewald;
 #ifdef CELL_LIST
     CellList& cellList;
     bool molRemoved;
@@ -121,7 +125,7 @@ class Translate : public MoveBase, public MolTransformBase
    virtual void CalcEn();
    virtual void Accept(const uint rejectState, const uint step);
  private:
-   Intermolecular inter_LJ, inter_Real;
+   Intermolecular inter_LJ, inter_Real, recip;
    XYZ newCOM;
 };
 
@@ -132,7 +136,7 @@ inline uint Translate::Transform()
 {
    subPick = mv::GetMoveSubIndex(mv::DISPLACE, b);
    coordCurrRef.TranslateRand(newMolPos, newCOM, pStart, pLen,
-			      m, b, moveSetRef.Scale(subPick));
+			      m, b, boxDimRef.axis.Min(b)*moveSetRef.Scale(subPick));
    return mv::fail_state::NO_FAIL;
 }
 
@@ -142,6 +146,10 @@ inline void Translate::CalcEn()
    cellList.RemoveMol(m, b, coordCurrRef);
    molRemoved = true;
 #endif
+   if (ewald)
+   {
+     recip.energy = calcEwald.MolReciprocal(newMolPos, m, b);   
+   }
    calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b, &newCOM);
 }
 
@@ -151,7 +159,8 @@ inline void Translate::Accept(const uint rejectState, const uint step)
    if (rejectState == mv::fail_state::NO_FAIL)
    {
       double pr = prng();
-      res = pr < exp(-BETA * (inter_LJ.energy + inter_Real.energy));
+      res = pr < exp(-BETA * (inter_LJ.energy + inter_Real.energy +
+			      recip.energy));
    }
    bool result = (rejectState == mv::fail_state::NO_FAIL) && res;
   
@@ -164,12 +173,27 @@ inline void Translate::Accept(const uint rejectState, const uint step)
       // setting energy and virial of coulomb interaction
       sysPotRef.boxEnergy[b].real += inter_Real.energy;
       sysPotRef.boxVirial[b].real += inter_Real.virial;
+      // setting energy and virial of recip term
+      sysPotRef.boxEnergy[b].recip += recip.energy;
+      sysPotRef.boxVirial[b].recip += recip.virial;
 
       sysPotRef.Total();
       //Copy coords
       newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);	       
       comCurrRef.Set(m, newCOM);
+      if (ewald)
+      {
+	 calcEwald.UpdateRecip(b);
+      }
    }
+   else
+   {
+      if (ewald)
+      {
+	calcEwald.RestoreMol(m);
+      }
+   }
+
 #ifdef CELL_LIST
    if (molRemoved)
    {
@@ -191,7 +215,7 @@ class Rotate : public MoveBase, public MolTransformBase
    virtual void CalcEn();
    virtual void Accept(const uint earlyReject, const uint step);
  private:
-   Intermolecular inter_LJ, inter_Real;
+   Intermolecular inter_LJ, inter_Real, recip;
 };
 
 inline uint Rotate::Prep(const double subDraw, const double movPerc) 
@@ -222,19 +246,23 @@ inline void Rotate::CalcEn()
    cellList.RemoveMol(m, b, coordCurrRef);
    molRemoved = true;
 #endif
-
+   if (ewald)
+   {
+     recip.energy = calcEwald.MolReciprocal(newMolPos, m, b);   
+   }
    calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);
 }
 
 inline void Rotate::Accept(const uint rejectState, const uint step)
 {
-  bool res =false;
-	if (rejectState == mv::fail_state::NO_FAIL)
-	{
-		double pr = prng();
-		res = pr < exp(-BETA * (inter_LJ.energy + inter_Real.energy));
-	}
-	bool result = (rejectState == mv::fail_state::NO_FAIL) && res;
+   bool res =false;
+   if (rejectState == mv::fail_state::NO_FAIL)
+   {
+      double pr = prng();
+      res = pr < exp(-BETA * (inter_LJ.energy + inter_Real.energy +
+			      recip.energy));
+   }
+   bool result = (rejectState == mv::fail_state::NO_FAIL) && res;
 	
    if (result)
    {
@@ -245,12 +273,27 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
       // setting energy and virial of coulomb interaction
       sysPotRef.boxEnergy[b].real += inter_Real.energy;
       sysPotRef.boxVirial[b].real += inter_Real.virial;
+      // setting energy and virial of recip term
+      sysPotRef.boxEnergy[b].recip += recip.energy;
+      sysPotRef.boxVirial[b].recip += recip.virial;
 
       sysPotRef.Total();
 
       //Copy coords
       newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);
+      if (ewald)
+      {
+	 calcEwald.UpdateRecip(b);
+      }
    }
+   else
+   {
+      if (ewald)
+      {
+	calcEwald.RestoreMol(m);
+      }
+   }
+
 #ifdef CELL_LIST
    if (molRemoved)
    {
@@ -275,7 +318,7 @@ class VolumeTransfer : public MoveBase
    double GetCoeff() const;
    virtual void Accept(const uint rejectState, const uint step);
  private:
-   uint bPick; //Note: This is only used for GEMC-NPT
+   uint bPick, bPick2, subPick2;; //Note: This is only used for GEMC-NPT
    SystemPotential sysPotNew;
    BoxDimensions newDim;
    Coordinates newMolsPos;
@@ -289,11 +332,13 @@ class VolumeTransfer : public MoveBase
 };
 
 inline VolumeTransfer::VolumeTransfer(System &sys, StaticVals const& statV)  : 
-   MoveBase(sys, statV), molLookRef(sys.molLookupRef),
-   newDim(sys.boxDimRef), newMolsPos(boxDimRef, newCOMs, sys.molLookupRef,
-				     sys.prng, statV.mol),
-   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol),
-   GEMC_KIND(statV.kindOfGEMC), PRESSURE(statV.pressure)
+		      MoveBase(sys, statV), molLookRef(sys.molLookupRef),
+		      newDim(sys.boxDimRef), newMolsPos(boxDimRef, newCOMs,
+							sys.molLookupRef,
+							sys.prng, statV.mol),
+		      newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef,
+			      statV.mol), GEMC_KIND(statV.kindOfGEMC),
+		      PRESSURE(statV.pressure)
 #ifdef CELL_LIST
    , regrewGrid(false)
 #endif
@@ -311,10 +356,11 @@ inline uint VolumeTransfer::Prep(const double subDraw, const double movPerc)
    }
    if (GEMC_KIND == mv::GEMC_NPT)
    {
-      prng.PickBox(bPick, subDraw, movPerc);
+     
+      prng.PickBoxPair(bPick, bPick2, subDraw, movPerc);
       subPick = mv::GetMoveSubIndex(mv::VOL_TRANSFER, bPick);
+      subPick2 = mv::GetMoveSubIndex(mv::VOL_TRANSFER, bPick2);
    }
-   //prng.PickBoxPair(bSrc, bDest, subDraw, movPerc);
    newDim = boxDimRef;
    coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
    comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
@@ -324,22 +370,30 @@ inline uint VolumeTransfer::Prep(const double subDraw, const double movPerc)
 inline uint VolumeTransfer::Transform()
 {
    uint state = mv::fail_state::NO_FAIL;
-   double max = moveSetRef.Scale(subPick);
    //Reinit, if necessary.
    if (GEMC_KIND == mv::GEMC_NVT)
    {
+      double max = moveSetRef.Scale(subPick);
       coordCurrRef.VolumeTransferTranslate(state, newMolsPos, newCOMs, newDim, 
 					   comCurrRef, max);
    }
    else
    {
-      double scale = 0.0, delta = prng.Sym(max);
-      state = boxDimRef.ShiftVolume(newDim, scale, bPick, delta);
+      double max = moveSetRef.Scale(subPick);
+      double max2 = moveSetRef.Scale(subPick2);
+      double scale1 = 0.0, scale2 = 0.0;
+      double delta1 = prng.Sym(max), delta2 = prng.Sym(max2);
+      state = boxDimRef.ShiftVolume(newDim, scale1, bPick, delta1);
+      state = state && boxDimRef.ShiftVolume(newDim, scale2, bPick2, delta2);
+
       if (state == mv::fail_state::NO_FAIL)
       {
-	 scale = newDim.axis.Get(bPick).x / boxDimRef.axis.Get(bPick).x;
+	 scale1 = newDim.axis.Get(bPick).x / boxDimRef.axis.Get(bPick).x;
+	 scale2 = newDim.axis.Get(bPick2).x / boxDimRef.axis.Get(bPick2).x;
 	 coordCurrRef.TranslateOneBox(newMolsPos, newCOMs, comCurrRef, 
-				      newDim, bPick, scale);
+				      newDim, bPick, scale1);
+	 coordCurrRef.TranslateOneBox(newMolsPos, newCOMs, comCurrRef,
+                                      newDim, bPick2, scale2);
       }
    }
    return state;
@@ -351,13 +405,11 @@ inline void VolumeTransfer::CalcEn()
    cellList.GridAll(newDim, newMolsPos, molLookRef);
    regrewGrid = true;
 #endif
-   if (GEMC_KIND == mv::GEMC_NVT)
-      sysPotNew = calcEnRef.SystemInter(sysPotRef, newMolsPos,
+   sysPotNew = calcEnRef.SystemInter(sysPotRef, newMolsPos,
                                         newCOMs, newDim);
-   else
-      sysPotNew = calcEnRef.BoxInter(sysPotRef, newMolsPos,
-                                     newCOMs, newDim, bPick);
 }
+
+
 
 inline double VolumeTransfer::GetCoeff() const
 {
@@ -378,9 +430,13 @@ inline double VolumeTransfer::GetCoeff() const
    }
    else
    {
-      coeff *= pow(newDim.volume[bPick]/boxDimRef.volume[bPick],
-		   (double)molLookRef.NumInBox(bPick))*
-	 exp(-BETA * PRESSURE * (newDim.volume[bPick]-boxDimRef.volume[bPick]));
+      for (uint b = 0; b < BOX_TOTAL; ++b)
+      {
+	coeff *= pow(newDim.volume[b]/boxDimRef.volume[b],
+		     (double)molLookRef.NumInBox(b)) *
+	  exp(-BETA * PRESSURE * (newDim.volume[b]-boxDimRef.volume[b]));
+      }
+
    }
    return coeff;
 }
@@ -401,23 +457,44 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       swap(coordCurrRef, newMolsPos);
       swap(comCurrRef, newCOMs);
       boxDimRef = newDim;
+
+      if (ewald)
+      {
+	for (uint b = 0; b < BOX_TOTAL; b++)
+        {
+	   calcEwald.UpdateRecip(b);
+	}
+      }     
    }
 #ifdef CELL_LIST
    else if (rejectState == mv::fail_state::NO_FAIL && regrewGrid) 
    {
       cellList.GridAll(boxDimRef, coordCurrRef, molLookRef);
       regrewGrid = false;
+      if (ewald)
+      {
+	calcEwald.exgMolCache();
+	 for (uint b = 0; b < BOX_TOTAL; b++)
+	 {
+	    calcEwald.RecipInit(b, boxDimRef);
+	    calcEwald.BackUpRecip(b);
+	 }
+      }
    }
 #endif
    if (GEMC_KIND == mv::GEMC_NVT)
    {
       subPick = mv::GetMoveSubIndex(mv::VOL_TRANSFER);
+      moveSetRef.Update(result, subPick, step);
    }
    if (GEMC_KIND == mv::GEMC_NPT)
    {
       subPick = mv::GetMoveSubIndex(mv::VOL_TRANSFER, bPick);
+      subPick2 = mv::GetMoveSubIndex(mv::VOL_TRANSFER, bPick2);
+      moveSetRef.Update(result, subPick, step);
+      moveSetRef.Update(result, subPick2, step);
    }
-   moveSetRef.Update(result, subPick, step);
+   
 }
 
 #endif

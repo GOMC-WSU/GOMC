@@ -52,6 +52,9 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
 
    electrostatic = val.elect.enable;
    ewald = val.elect.ewald;
+   alpha= val.elect.alpha;
+   recip_rcut = val.elect.recip_rcut;
+
 
    if(vdwKind == val.ff.VDW_STD_KIND)
      particles = new FFParticle();

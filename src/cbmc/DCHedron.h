@@ -36,6 +36,9 @@ namespace cbmc
       uint NumBond() { return nBonds; }
       uint Focus() { return focus; }
       uint Prev() { return prev; }
+      
+      //need to go to private
+      uint bonded[MAX_BONDS];
 
 
     private:
@@ -52,7 +55,7 @@ namespace cbmc
       uint focus, prev;
       uint nBonds;
       //atoms bonded to focus, being build
-      uint bonded[MAX_BONDS];
+
       //bond length of atom bonded to focus
       double bondLength[MAX_BONDS];
       double bondLengthOld[MAX_BONDS];
@@ -73,3 +76,4 @@ namespace cbmc
 }
 
 #endif
+

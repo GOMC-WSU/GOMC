@@ -43,6 +43,14 @@ struct Nonbond_1_3 : public Nonbond
    virtual void Init(const mol_setup::MolKind& molData);
 };
 
+// for ewald correction energy calculation
+struct EwaldNonbond : public Nonbond
+{
+  virtual void Init(const mol_setup::MolKind& molData);
+
+  
+};
+
 
 //!List of all pairs of particles in bonds.
 struct BondList

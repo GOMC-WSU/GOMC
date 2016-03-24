@@ -91,10 +91,12 @@ void MoleculeKind::Init
    {
      nonBonded.Init(molData);
    }
-
+   
+   nonEwaldBonded.Init(molData);
    sortedNB_1_3.Init(nonBonded_1_3, numAtoms);
    sortedNB_1_4.Init(nonBonded_1_4, numAtoms);
    sortedNB.Init(nonBonded, numAtoms);
+   sortedEwaldNB.Init(nonEwaldBonded, numAtoms);
    bondList.Init(molData.bonds);
    angles.Init(molData.angles, bondList);
    dihedrals.Init(molData.dihedrals, bondList);

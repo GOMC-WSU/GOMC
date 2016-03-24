@@ -188,6 +188,33 @@ void Nonbond_1_3::Init(const mol_setup::MolKind& molData)
    std::copy(part2Vec.begin(), part2Vec.end(), part2);
 }
 
+
+
+void EwaldNonbond::Init(const mol_setup::MolKind& molData)
+{
+   unsigned int numAtoms = molData.atoms.size();
+   std::vector<unsigned int> part1Vec;
+   std::vector<unsigned int> part2Vec;
+   std::vector<char> nonBondedAtoms(numAtoms);
+   //find all possible pairs
+   for (unsigned int i = 0; i < numAtoms; ++i)
+   {
+      //starting at i+1 to ignore double counting
+
+      for (unsigned int j = i + 1; j < numAtoms; ++j)
+      {
+	 part1Vec.push_back(i);
+	 part2Vec.push_back(j);
+      }
+   }
+   count = part1Vec.size();
+   part1 = new uint[count];
+   part2 = new uint[count];
+   std::copy(part1Vec.begin(), part1Vec.end(), part1);
+   std::copy(part2Vec.begin(), part2Vec.end(), part2);
+}
+
+
 void BondList::Init(const std::vector<mol_setup::Bond>& bonds)
 {
    count = bonds.size();

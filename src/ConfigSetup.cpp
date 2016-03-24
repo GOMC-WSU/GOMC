@@ -39,8 +39,7 @@ ConfigSetup::ConfigSetup(void)
 	in.prng.seed = UINT_MAX;
 	sys.elect.readEwald = false;
 	sys.elect.readElect = false;
-	sys.elect.alpha = DBL_MAX;
-	sys.elect.KMax = DBL_MAX;
+	sys.elect.tolerance = DBL_MAX;
 	sys.elect.oneFourScale = DBL_MAX;
 	sys.elect.dielectric = DBL_MAX;
 	sys.step.total = ULONG_MAX;
@@ -262,13 +261,13 @@ void ConfigSetup::Init(const char *fileName)
 			sys.elect.enable = checkBool(line[1]);
 			sys.elect.readElect = true;
 		}
-		else if(line[0] == "Alpha")
+		else if(line[0] == "Tolerance")
 		{
-			sys.elect.alpha = stringtod(line[1]);
-		}
-		else if(line[0] == "KMax")
-		{
-			sys.elect.KMax = stringtod(line[1]);
+			sys.elect.tolerance = stringtod(line[1]);
+			sys.elect.alpha = sqrt(-1 * log(sys.elect.tolerance))/
+			  sys.ff.cutoff;
+			sys.elect.recip_rcut = 2 * (-log(sys.elect.tolerance))/
+			  sys.ff.cutoff;
 		}
 		else if(line[0] == "1-4scaling")
 		{
@@ -504,6 +503,11 @@ void ConfigSetup::fillDefaults(void)
 		sys.elect.oneFourScale = 0.0f;
 	}
 	
+	if (sys.elect.ewald == true)
+	{
+	  sys.elect.enable = true;
+	}
+	
 	if(sys.elect.enable && sys.elect.dielectric == DBL_MAX && in.ffKind.isMARTINI)
 	{
 		std::cout << "Warning: Dielectric will be set to 15.0 for Martini forcefield!" << std::endl;
@@ -607,19 +611,10 @@ void ConfigSetup::verifyInputs(void)
 		std::cout << "Error: Cut off is required!" << std::endl;
 		exit(0);
 	}
-	if(sys.elect.ewald && (sys.elect.alpha == DBL_MAX))
+	if(sys.elect.ewald && (sys.elect.tolerance == DBL_MAX))
 	{
-		std::cout << "Error: Alpha value has not been specified for Ewald summation!" << std::endl;
+		std::cout << "Error: Tolerance has not been specified for Ewald summation!" << std::endl;
 		exit(0);
-	}
-	if(sys.elect.ewald && (sys.elect.KMax == DBL_MAX))
-	{
-		std::cout << "Error: KMax value has not been specified for Ewald summation!" << std::endl;
-		exit(0);
-	}
-	if(!sys.elect.readEwald)
-	{
-		std::cout << "Error: Ewald logic has not been specified!" << std::endl; 
 	}
 	if(sys.step.adjustment == ULONG_MAX)
 	{
