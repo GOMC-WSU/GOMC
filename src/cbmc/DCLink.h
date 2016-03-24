@@ -45,13 +45,18 @@ namespace cbmc
       void SetOldMolBond(const uint i, const double distSq);
 
       DCData* data;
+
+      bool angleFix;
+
       uint atom, focus, prev, prevprev;
       uint bondKind, angleKind, dihKind;
       double bondLength;
       //used for calculating 1-3 and 1-4 distance
       double bond[3];
       double oldBond[3];
-      double theta, phi;
+
+      double theta, phi, thetaFix;
+
       double oldBondEnergy, bendEnergy, bendWeight, oneThree;
    };
 

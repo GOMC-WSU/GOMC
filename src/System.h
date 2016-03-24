@@ -3,7 +3,7 @@
 
 #include "EnsemblePreprocessor.h" //For VARIABLE_<QUANTITY> conditional defines
 #include "CalculateEnergy.h" 
-
+#include "Ewald.h" 
 
 //Member variables
 #include "EnergyTypes.h"
@@ -31,6 +31,12 @@ class System
    //Runs move, picked at random
    void ChooseAndRunMove(const uint step);
 
+   // return ewald
+   Ewald * GetEwald()
+   {
+     return &calcEwald;
+   }
+
    //NOTE:
    //This must also come first... as subsequent values depend on obj.
    //That may be in here, i.e. Box Dimensions
@@ -57,6 +63,9 @@ class System
    COM com;
 
    CalculateEnergy calcEnergy;
+   Ewald  calcEwald;
+   //Ewald ewaldEnergy;
+   //Ewald & calcEwald;
 #ifdef CELL_LIST
    CellList cellList;
 #endif

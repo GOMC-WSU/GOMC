@@ -56,6 +56,23 @@ namespace cbmc
       data->axes.WrapPBC(positions, oldMol.GetBox());      
       data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                                oldMol.GetBox(), nLJTrials);
+      data->calcEwald.SwapSelf(self, molIndex, atom, oldMol.GetBox(),
+			       nLJTrials);
+      data->calcEwald.SwapCorrection(correction, oldMol, positions, atom, 
+				     oldMol.GetBox(), nLJTrials);
+      
+      const MoleculeKind& thisKind = oldMol.GetKind();
+      double tempEn = 0.0;
+      for (uint i = 0; i < thisKind.NumAtoms(); i++)
+      {
+	 if (oldMol.AtomExists(i) && i != atom)
+	 {
+	    double distSq = oldMol.OldDistSq(i, atom);
+	    tempEn += data->calcEwald.CorrectionOldMol(oldMol, distSq,
+							     i, atom);
+	 }
+      }
+      correction[0] = tempEn;
 
       for (uint trial = 0; trial < nLJTrials; trial++)
       {
@@ -91,6 +108,11 @@ namespace cbmc
       data->axes.WrapPBC(positions, newMol.GetBox());
       data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                                newMol.GetBox(), nLJTrials);
+      data->calcEwald.SwapSelf(self, molIndex, atom, newMol.GetBox(),
+			       nLJTrials);
+      data->calcEwald.SwapCorrection(correction, newMol, positions, atom, 
+				     newMol.GetBox(), nLJTrials);
+
       for (uint trial = 0; trial < nLJTrials; trial++)
       {
 	 ljWeights[trial] = exp(-1 * data->ff.beta *

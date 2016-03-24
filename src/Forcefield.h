@@ -14,9 +14,9 @@
 namespace config_setup
 { 
   //class FFValues; 
-  class FFKind;
+  struct FFKind;
   //class Temperature;
-  class SystemVals;
+  struct SystemVals;
 }
 class FFSetup;
 class Setup;
@@ -52,7 +52,8 @@ class Forcefield
    double beta;             //!<Thermodynamic beta = 1/(T) K^-1)
 
    bool OneThree, OneFour, OneN;  // to include 1-3, 1-4 and more interaction
-   bool electrostatic, ewald; //to consider columb interaction
+   bool electrostatic, ewald;     //to consider columb interaction
+   double alpha, recip_rcut;      // ewald terms
    uint vdwKind;      // to define VdW type, standard, shift or switch
    uint exckind;      // to define  exclude kind, 1-2, 1-3, 1-4 
 

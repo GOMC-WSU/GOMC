@@ -1,4 +1,5 @@
 #include "CalculateEnergy.h"        //header for this
+#include "Ewald.h"                  //for ewald calculation
 #include "EnergyTypes.h"            //Energy structs
 #include "EnsemblePreprocessor.h"   //Flags
 #include "../lib/BasicTypes.h"             //uint
@@ -26,7 +27,7 @@
 
 using namespace geom;
 
-CalculateEnergy::CalculateEnergy(StaticVals const& stat, System const& sys) :
+CalculateEnergy::CalculateEnergy(StaticVals const& stat, System & sys) :
    forcefield(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
    currentCOM(sys.com),
 #ifdef VARIABLE_PARTICLE_NUMBER
@@ -42,7 +43,9 @@ CalculateEnergy::CalculateEnergy(StaticVals const& stat, System const& sys) :
 #ifdef CELL_LIST
    , cellList(sys.cellList)
 #endif
-{ }
+{
+  calcEwald = sys.GetEwald();
+}
 
 void CalculateEnergy::Init()
 {
@@ -60,37 +63,61 @@ void CalculateEnergy::Init()
    }
 }
 
-SystemPotential CalculateEnergy::SystemTotal() const
+SystemPotential CalculateEnergy::SystemTotal() 
 {
    SystemPotential pot =
-      SystemInter(SystemPotential(), currentCoords, currentCOM, currentAxes);
+     SystemInter(SystemPotential(), currentCoords, currentCOM, currentAxes);
    //system intra
    for (uint b = 0; b < BOX_TOTAL; ++b)
    {
-      double bondEn = 0.0, nonbondEn = 0.0;
+      double bondEn = 0.0, nonbondEn = 0.0, self = 0.0, correction = 0.0;
       MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b),
-	 end = molLookup.BoxEnd(b);
+	end = molLookup.BoxEnd(b);
       while (thisMol != end)
       {
          MoleculeIntra(bondEn, nonbondEn, *thisMol, b);
+	 if (ewald)
+	 {
+	    correction += calcEwald->MolCorrection(*thisMol, currentAxes, b);
+	 }
          ++thisMol;
       }
       pot.boxEnergy[b].intraBond = bondEn;
       pot.boxEnergy[b].intraNonbond = nonbondEn;
+      
+      if (ewald)
+      {
+	 pot.boxEnergy[b].self = calcEwald->BoxSelf(currentAxes, b);
+	 pot.boxEnergy[b].correction = -1 * correction * num::qqFact;
+	 calcEwald->UpdateRecip(b); 
+      }
    }
+   
    pot.Total();
    return pot;
 }
+
 
 SystemPotential CalculateEnergy::SystemInter
 (SystemPotential potential,
  XYZArray const& coords,
  XYZArray const& com,
- BoxDimensions const& boxAxes) const
+ BoxDimensions const& boxAxes) 
 {
+   if (ewald)
+   {
+     calcEwald->exgMolCache();
+   }
+   
    for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
    {
       potential = BoxInter(potential, coords, com, boxAxes, b);
+    
+      if (ewald)
+      {
+	calcEwald->RecipInit(b, boxAxes);
+	potential.boxEnergy[b].recip = calcEwald->BoxReciprocal(b, coords);
+      }
    }
    potential.Total();
    return potential;
@@ -102,7 +129,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                                           XYZArray const& coords,
                                           XYZArray const& com,
                                           BoxDimensions const& boxAxes,
-                                          const uint box) const
+                                          const uint box)
 {
    //Handles reservoir box case, returning zeroed structure if
    //interactions are off.
@@ -129,7 +156,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 	     particleCharge[pair.Second()] * num::qqFact;		  	
 
 	   forcefield.particles->CalcCoulombAdd(real.energy, partRealVirial, 
-						distSq, qi_qj_fact, boxSize);
+						distSq, qi_qj_fact);
 	   //Add to our pressure components for coulomb interaction.
 	   real.virial -= geom::Dot(virComponents * partRealVirial,
 				    boxAxes.MinImage
@@ -192,7 +219,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 		  forcefield.particles->CalcCoulombAdd(real.energy,
 						      partRealVirial, distSq,
 						      thisKind.AtomKind(i),
-						       qi_qj_fact, boxSize);
+						       qi_qj_fact);
 
 		  //Add to our pressure components.
 		  fMol += (virComponents * partVirial);
@@ -270,14 +297,15 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 
 		 forcefield.particles->CalcCoulombSub(real.energy,
 						      partRealVirial, distSq,
-						      qi_qj_fact, boxSize);
+						      qi_qj_fact);
 		 //Add to our pressure components for coulomb interaction.
-		 real.virial -= geom::Dot(virComponents * partRealVirial,
+		 		 real.virial -= geom::Dot(virComponents * partRealVirial,
 					  currentAxes.MinImage
 					  (currentCOM.Difference
 					   (molIndex, particleMol[*n]), box));
+		 
 	       }
-
+		 
 	       forcefield.particles->CalcSub(inter.energy,
 					    partVirial, distSq,
 					    particleKind[atom],
@@ -311,15 +339,16 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 
 		 forcefield.particles->CalcCoulombAdd(real.energy,
 						      partRealVirial, distSq,
-						      qi_qj_fact, boxSize);
+						      qi_qj_fact);
 		 if (hasNewCOM)
 		 {
 		   //Add to our pressure components.
-		   real.virial -= geom::Dot(virComponents * partRealVirial,
+		   		   real.virial -= geom::Dot(virComponents * partRealVirial,
 					    currentAxes.MinImage
 					    (*newCOM - 
 					     currentCOM.Get(particleMol[*n]),
 					     box));
+		   
 		 }
 		 else
 		 {
@@ -400,8 +429,7 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 
 		     forcefield.particles->CalcCoulombSub(real.energy,
 							  partRealVirial,
-							  distSq, qi_qj_fact,
-							  boxSize);
+							  distSq, qi_qj_fact);
                      
                      fMolO += virComponents * partVirial;
 		     fMolOldReal += virComponents * partRealVirial;
@@ -417,8 +445,7 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 							 distSq, pkI, pkJ);
 		     forcefield.particles->CalcCoulombAdd(real.energy,
 							 partRealVirial,
-							  distSq, qi_qj_fact,
-							  boxSize);
+							  distSq, qi_qj_fact);
                      
                      //Add to our pressure components.
                      fMolN += (virComponents * partVirial);
@@ -504,8 +531,7 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
 		 double qi_qj_Fact = kind.AtomCharge(partIndex) *
 		   kind.AtomCharge(*partner) * num::qqFact;
 		 inter[t] +=
-		   forcefield.particles->CalcCoulombEn(distSq, qi_qj_Fact,
-						       boxSize);
+		   forcefield.particles->CalcCoulombEn(distSq, qi_qj_Fact);
 	       }
             }
          }
@@ -553,8 +579,7 @@ void CalculateEnergy::ParticleNonbonded_1_4(double* inter,
 		double qi_qj_Fact = kind.AtomCharge(partIndex) *
 		  kind.AtomCharge(*partner) * num::qqFact;
 		forcefield.particles->CalcCoulombAdd_1_4(inter[t],
-							 distSq, qi_qj_Fact,
-							 boxSize);
+							 distSq, qi_qj_Fact);
 	      }
 	    }
 	    
@@ -600,8 +625,7 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
 	    {
 	      double qi_qj_Fact = particleCharge[atom] * kindICharge *
 		num::qqFact;
-	      real[t] += forcefield.particles->CalcCoulombEn(distSq, qi_qj_Fact,
-							     boxSize);
+	      real[t] += forcefield.particles->CalcCoulombEn(distSq, qi_qj_Fact);
 	    }
          }
          n.Next();
@@ -635,8 +659,7 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
                {
                   en[t] += forcefield.particles->CalcEn(distSq, kindI,
 							      kindJ);
-		  real[t] += forcefield.particles->CalcEn(distSq, qi_qj_Fact,
-							  boxSize);
+		  real[t] += forcefield.particles->CalcEn(distSq, qi_qj_Fact);
                }
             }
          }
@@ -682,8 +705,7 @@ void CalculateEnergy::MoleculeVirial(double & virial_LJ, double & virial_real,
 		 double qi_qj_Fact = particleCharge[atom] * particleCharge[*n] *
 		   num::qqFact;
 		 double mag_real =
-		   forcefield.particles->CalcCoulombVir(distSq,
-							qi_qj_Fact, boxSize);
+		   forcefield.particles->CalcCoulombVir(distSq, qi_qj_Fact);
 		 vir_real -= geom::Dot(virComponents * mag_real,
 				       currentAxes.MinImage
 				       (currentCOM.Difference(particleMol[atom],
@@ -738,9 +760,7 @@ void CalculateEnergy::MoleculeVirial(double & virial_LJ, double & virial_real,
                      double mag_LJ = forcefield.particles->CalcVir(distSq,
                                                                kindI, kindJ);
 		     double mag_real =
-		       forcefield.particles->CalcCoulombVir(distSq,
-							    qi_qj_Fact,
-							    boxSize);
+		       forcefield.particles->CalcCoulombVir(distSq, qi_qj_Fact);
                      forceOnMol += forceVector * mag_LJ;
 		     forceOnMolReal += forceVector * mag_real;
                   }
@@ -906,8 +926,7 @@ void CalculateEnergy::MolNonbond(double & energy,
 	   * molKind.AtomCharge(molKind.nonBonded.part2[i]);
 	 
 	 forcefield.particles->CalcCoulombAdd(energy, virial,
-						  distSq, qi_qj_Fact,
-						  boxSize);
+						  distSq, qi_qj_Fact);
       }
    }
 }
@@ -941,8 +960,7 @@ void CalculateEnergy::MolNonbond_1_4(double & energy,
 	    molKind.AtomCharge(molKind.nonBonded_1_4.part2[i]);
 
 	  forcefield.particles->CalcCoulombAdd_1_4(energy,
-						   distSq, qi_qj_Fact,
-						   boxSize);
+						   distSq, qi_qj_Fact);
 	}
       }
    }
@@ -977,8 +995,7 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
 	    molKind.AtomCharge(molKind.nonBonded_1_3.part2[i]);
 
 	  forcefield.particles->CalcCoulombAdd_1_4(energy,
-						   distSq, qi_qj_Fact,
-						   boxSize);
+						   distSq, qi_qj_Fact);
 	}
       }
    }
@@ -1004,7 +1021,7 @@ double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,
      double qi_qj_Fact =  num::qqFact * thisKind.AtomCharge(atom1) *
        thisKind.AtomCharge(atom2);
     
-     forcefield.particles->CalcCoulombAdd_1_4(eng, distSq, qi_qj_Fact, boxSize);
+     forcefield.particles->CalcCoulombAdd_1_4(eng, distSq, qi_qj_Fact);
    }
 
    forcefield.particles->CalcAdd_1_4(eng, distSq, kind1, kind2);
@@ -1033,7 +1050,7 @@ double CalculateEnergy::IntraEnergy_1_4(const double distSq, const uint atom1,
      double qi_qj_Fact =  num::qqFact * thisKind.AtomCharge(atom1) *
        thisKind.AtomCharge(atom2);
     
-     forcefield.particles->CalcCoulombAdd_1_4(eng, distSq, qi_qj_Fact, boxSize);
+     forcefield.particles->CalcCoulombAdd_1_4(eng, distSq, qi_qj_Fact);
    }
    forcefield.particles->CalcAdd_1_4(eng, distSq, kind1, kind2);
 

@@ -1,6 +1,11 @@
 #ifndef GEOM_LIB_H
 #define GEOM_LIB_H
 
+//Standard way to get pi constant on most platforms
+//Needs to be defined _before_ including  math.h
+//so that the PI constants come from math.h
+#define _USE_MATH_DEFINES
+
 #include <math.h> //For sqrt, fabs, M_PI
 #include <limits> //for double limits
 
@@ -10,10 +15,7 @@
 //  DEFINES  //
 ///////////////
 
-//Standard way to get pi constant on most platforms
-#define _USE_MATH_DEFINES
-
-//In case that didn't work
+//Just in case any of these weren't included from math.h
 #ifndef M_PI
 //From Mathematica: 
 //N[Pi, 75]

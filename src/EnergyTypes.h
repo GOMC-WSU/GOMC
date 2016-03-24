@@ -58,14 +58,9 @@ struct Intermolecular
    { return Intermolecular(virial + rhs.virial, energy + rhs.energy); }
 };
 
-
-
-struct Energy
+class Energy
 {
-   //MEMBERS
-   double intraBond, intraNonbond, inter, tc, total, real, recip, self,
-     correction, totalElect;
-
+public:
    Energy() : intraBond(0.0), intraNonbond(0.0), inter(0.0), 
       tc(0.0), total(0.0), real(0.0), recip(0.0), self(0.0),
      correction(0.0), totalElect(0.0) {}
@@ -110,6 +105,11 @@ struct Energy
    { inter += rhs.energy; return *this; }
    Energy& operator-=(Energy const& rhs);
    Energy& operator+=(Energy const& rhs);
+
+//private:
+   //MEMBERS
+   double intraBond, intraNonbond, inter, tc, total, real, recip, self,
+     correction, totalElect;
 };
 
 inline Energy& Energy::operator-=(Energy const& rhs)
@@ -144,11 +144,9 @@ inline Energy& Energy::operator+=(Energy const& rhs)
    return *this; 
 }
 
-struct Virial
+class Virial
 {
-   //MEMBERS
-  double inter, tc, real, recip, self, correction, totalElect, total;
-
+public:
    Virial() { Zero(); }
 
    //VALUE SETTERS
@@ -235,11 +233,15 @@ struct Virial
      return *this;
    }
 
+//private:
+   //MEMBERS
+   double inter, tc, real, recip, self, correction, totalElect, total;
 };
 
 
-struct SystemPotential
+class SystemPotential
 {
+public:
    void Zero();
    double Total();
    void Add(const uint b, Intermolecular const& rhs)

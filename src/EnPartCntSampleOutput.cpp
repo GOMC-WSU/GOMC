@@ -101,22 +101,26 @@ void EnPartCntSample::DoOutput(const ulong step)
    //Don't output until equilibrated.
    if ((step+1) < stepsTillEquil) return;
    //Output a sample in the form <N1,... Nk, E_total>
-   for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
+   //Only sample on specified interval.
+   if ((step+1) % stepsPerSample == 0)
    {
-      if (outF[b].is_open())
+      for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
       {
-         for (uint n = 0; n < samplesCollectedInFrame; ++n)
-         {
-            for (uint k = 0; k < var->numKinds; k++)
-            {
-               outF[b] << std::setw(11) << samplesN[b][k][n] << " ";
-            }
-            outF[b] << std::setw(25) << samplesE[b][n] << std::endl;
-         }
+	 if (outF[b].is_open())
+	 {
+	    for (uint n = 0; n < samplesCollectedInFrame; ++n)
+	    {
+	       for (uint k = 0; k < var->numKinds; k++)
+	       {
+		  outF[b] << std::setw(11) << samplesN[b][k][n] << " ";
+	       }
+	       outF[b] << std::setw(25) << samplesE[b][n] << std::endl;
+	    }
+	 }
+	 else
+	   std::cerr << "Unable to write to file \"" <<  name[b] << "\" " 
+		     << "(energy and part. num samples file)" << std::endl;
       }
-      else
-         std::cerr << "Unable to write to file \"" <<  name[b] << "\" " 
-                   << "(energy and part. num samples file)" << std::endl;
    }
    samplesCollectedInFrame = 0;
 }

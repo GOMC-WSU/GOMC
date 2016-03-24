@@ -11,8 +11,9 @@ class System;
 class MoveSettings;
 class MoleculeLookup;
 
-struct OutputVars
+class OutputVars
 {
+public:
    OutputVars(System & sys, StaticVals const& statV);
 
    ~OutputVars(void);
@@ -25,7 +26,9 @@ struct OutputVars
    uint GetAccepted(uint sub);
    double GetAcceptPercent(uint sub);
    double GetScale(uint sub);
+   double GetMinAxis(uint b) const { return axisRef->Min(b); }
    
+//private:
    //Intermediate vars.
    uint * numByBox, * numByKindBox;
    double * molFractionByKindBox, * densityByKindBox,

@@ -10,8 +10,9 @@
 #include "PRNGSetup.h"
 #include "MolSetup.h"
 
-struct Setup
+class Setup
 {
+public:
    //Read order follows each item
    ConfigSetup config;  //1
    PDBSetup pdb;        //2

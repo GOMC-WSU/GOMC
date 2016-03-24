@@ -31,16 +31,16 @@ namespace num
       BoundGt<T>(val, upper);
    }
 
-   //Arithmatic mean
+   //Arithmetic mean.
    inline double MeanA(const uint v1, const uint v2) { return (v1+v2)/2.0; }
    //Geometric mean.
    inline double MeanG(const double v1, const double v2) { return sqrt(v1*v2); }
-   //Arithmatic mean
+   //Arithmetic mean.
    inline double MeanA(std::vector<double> const& v1,
 		       std::vector<double> const& v2,
                        const uint ix1, const uint ix2) 
    { return (v1[ix1]+v2[ix2])*0.5; }
-   //Arithmatic mean
+   //Arithmetic mean.
    inline double MeanA(std::vector<uint> const& v1,
                        std::vector<uint> const& v2,
                        const uint ix1, const uint ix2)
@@ -57,9 +57,12 @@ namespace num
                        const uint ix1, const uint ix2)
    { return sqrt(v1[ix1]*v2[ix2]); }
 
-   inline double Sq(const double v) { return v * v; }
-   inline double Cb(const double v) { return v * v * v; }
-   inline void Cb(double & s, double & c, const double v)
+   template <class Type>
+   inline Type Sq(const Type v) { return v * v; }
+   template <class Type>
+   inline Type Cb(const Type v) { return v * v * v; }
+   template <class Type>
+   inline void Cb(Type & s, Type & c, const Type v)
    { s = v * v; c = s * v; }
    
    inline double POW(const double d2, const double d4, const double d6,
