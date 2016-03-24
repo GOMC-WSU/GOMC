@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "TrialMol.h"
 
 #include "../../lib/BasicTypes.h"
@@ -80,6 +73,7 @@ void TrialMol::AddAtom(const uint index, const XYZ& loc)
    atomBuilt[index] = true;
 }
 
+
 void TrialMol::ConfirmOldAtom(uint i)
 {
    atomBuilt[i] = true;
@@ -113,6 +107,14 @@ void TrialMol::OldThetaAndPhi(const uint atom, const uint lastAtom,
    theta = acos(growthCoords.z / growthCoords.Length());
    phi = atan2(growthCoords.y, growthCoords.x);
    return;
+}
+
+double TrialMol::OldDistSq(const uint lastAtom, const uint atom)
+{
+   XYZ diff = tCoords.Difference(atom, lastAtom);
+   diff = axes->MinImage(diff, box);
+   double distSq= diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
+   return distSq;
 }
 
 //!Return angle in radians between confirmed atoms a, b and c:w
@@ -194,5 +196,32 @@ void TrialMol::SetCoords(const XYZArray& coords, uint start)
    coords.CopyRange(tCoords, start, 0, tCoords.Count());
 }
 
-}
+double TrialMol::AngleDist(const double b1, const double b2, const double theta)
+{ 
+   if(!kind->oneThree)
+     return 0.0;
+   else
+   {
+     double v = b1*b1 - 2*b1*b2*cos(theta) + b2*b2;
+     return v;
+   } 
+ 
+ }
 
+double TrialMol::DihedDist(const double b1, const double b2, const double b3,
+			   const double theta1, const double theta2,
+			   const double phi)
+{ 
+   if(!kind->oneFour)
+     return 0.0;
+   else
+   {
+     double i = b1 * cos(theta1) -b2 + b3 * cos(theta2); 
+     double j = b3 * sin(theta2) * sin(phi);
+     double k = -b1 * sin(theta1) + b3 * sin(theta2) * cos(phi);
+     return (i*i + j*j + k*k);
+   } 
+  
+}
+ 
+}

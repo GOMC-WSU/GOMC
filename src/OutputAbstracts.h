@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef OUTPUT_ABSTRACTS_H
 #define OUTPUT_ABSTRACTS_H
 
@@ -25,8 +18,9 @@ extern std::string prefix; //CALL TO OBTAIN GLOBAL PREFIX DECLARED IN ConfigSetu
 ///  WRITE
 //
 
-struct OutputableBase
+class OutputableBase
 {
+public:
    virtual void Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output) = 0;
 
@@ -62,6 +56,8 @@ struct OutputableBase
       totSimSteps = totSteps;
       firstPrint = true;
    }
+
+//private:
    std::string uniqueName;
    ulong stepsPerOut, stepsTillEquil, totSimSteps;
    bool enableOut, firstPrint;
@@ -71,4 +67,3 @@ struct OutputableBase
 };
 
 #endif /*OUTPUT_ABSTRACTS_H*/
-

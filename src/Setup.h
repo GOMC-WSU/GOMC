@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef SETUP_H
 #define SETUP_H
 
@@ -17,8 +10,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PRNGSetup.h"
 #include "MolSetup.h"
 
-struct Setup
+class Setup
 {
+public:
    //Read order follows each item
    ConfigSetup config;  //1
    PDBSetup pdb;        //2
@@ -47,4 +41,3 @@ struct Setup
 };
 
 #endif
-

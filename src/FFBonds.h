@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef FF_BONDS_H
 #define FF_BONDS_H
 
@@ -36,10 +29,10 @@ class FFBonds
 
    void Init(ff_setup::Bond const& bond)
    {
-      count = bond.Kb.size();
-      Kb = vect::transfer(bond.Kb);
-      b0 = vect::transfer(bond.b0);
-      fixed = vect::transfer(bond.fixed);
+      count = bond.getKbcnt();
+      Kb = bond.CopyKb();
+	  b0 = bond.Copyb0();
+	  fixed = bond.Copyfixed();
    }
  private:
    double * Kb, * b0;
@@ -48,4 +41,3 @@ class FFBonds
 };
 
 #endif /*FF_BONDS_H*/
-

@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef CBMC_H
 #define CBMC_H
 
@@ -16,7 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "../lib/BasicTypes.h"
 
-class MolPick;
+struct MolPick;
 class Forcefield;
 class MoleculeKind;
 class Setup;
@@ -45,4 +38,3 @@ namespace cbmc
 
 
 #endif
-

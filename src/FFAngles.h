@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef FF_ANGLES_H
 #define FF_ANGLES_H
 
@@ -29,14 +22,25 @@ class FFAngles
 	       PRNG & prng, const uint angKind, const uint numTrials,
 	       const uint numPicksPerTrial, const double beta) const;
 
-   virtual double Calc(const uint kind, const double ang) const
-   { return (Ktheta[kind] * num::Sq(ang-theta0[kind])); }
+   double Angle(const uint kind) const
+   {
+	   return theta0[kind];
+   }
 
+   double AngleEnergy(const uint kind) const
+   {
+	   return Ktheta[kind];
+   }
+
+   virtual double Calc(const uint kind, const double ang) const
+   { return (Ktheta[kind] * num::Sq(ang-theta0[kind])); } 
+   
+   
    void Init(ff_setup::Angle const& angle)
    {
-      count = angle.Ktheta.size();
-      Ktheta = vect::transfer(angle.Ktheta);
-      theta0 = vect::transfer(angle.theta0);
+      count = angle.getKthetacnt();
+      Ktheta = angle.CopyKtheta();
+      theta0 = angle.Copytheta0();
    }
 
  protected:
@@ -51,4 +55,3 @@ class FFAngleMartini : public FFAngles
 
 };
 #endif /*FF_ANGLES_H*/
-

@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "EnPartCntSampleOutput.h"
 #include "PDBConst.h"
 #include "OutConst.h"
@@ -16,22 +9,14 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #if ENSEMBLE == GCMC
 
-EnPartCntSample::EnPartCntSample(OutputVars & v)
-{
-	this->var = &v;
-	for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
-	{
-		samplesE[b] = NULL;
-		samplesN[b] = NULL;
-	}
-}
-
 EnPartCntSample::~EnPartCntSample()
 {
    for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
    {
       if (outF[b].is_open()) outF[b].close();
       if (samplesE[b] != NULL) delete[] samplesE[b];
+      for (uint k = 0; k < var->numKinds; ++k)
+         if (samplesN[b][k] != NULL) delete[] samplesN[b][k];
       if (samplesN[b] != NULL) delete[] samplesN[b];
    }
 }
@@ -74,7 +59,9 @@ void EnPartCntSample::Sample(const ulong step)
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
       {
          samplesE[b][samplesCollectedInFrame] =
-	   var->energyRef[b].inter + var->energyRef[b].tc;
+	   var->energyRef[b].inter + var->energyRef[b].tc +
+	   var->energyRef[b].totalElect;
+
          for (uint k = 0; k < var->numKinds; ++k)
          {
             samplesN[b][k][samplesCollectedInFrame] =
@@ -114,22 +101,26 @@ void EnPartCntSample::DoOutput(const ulong step)
    //Don't output until equilibrated.
    if ((step+1) < stepsTillEquil) return;
    //Output a sample in the form <N1,... Nk, E_total>
-   for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
+   //Only sample on specified interval.
+   if ((step+1) % stepsPerSample == 0)
    {
-      if (outF[b].is_open())
+      for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
       {
-         for (uint n = 0; n < samplesCollectedInFrame; ++n)
-         {
-            for (uint k = 0; k < var->numKinds; k++)
-            {
-               outF[b] << std::setw(11) << samplesN[b][k][n] << " ";
-            }
-            outF[b] << std::setw(25) << samplesE[b][n] << std::endl;
-         }
+	 if (outF[b].is_open())
+	 {
+	    for (uint n = 0; n < samplesCollectedInFrame; ++n)
+	    {
+	       for (uint k = 0; k < var->numKinds; k++)
+	       {
+		  outF[b] << std::setw(11) << samplesN[b][k][n] << " ";
+	       }
+	       outF[b] << std::setw(25) << samplesE[b][n] << std::endl;
+	    }
+	 }
+	 else
+	   std::cerr << "Unable to write to file \"" <<  name[b] << "\" " 
+		     << "(energy and part. num samples file)" << std::endl;
       }
-      else
-         std::cerr << "Unable to write to file \"" <<  name[b] << "\" " 
-                   << "(energy and part. num samples file)" << std::endl;
    }
    samplesCollectedInFrame = 0;
 }
@@ -156,4 +147,3 @@ std::string EnPartCntSample::GetFName(std::string const& sampleName,
 }
 
 #endif /*ENSEMBLE==GCMC*/
-

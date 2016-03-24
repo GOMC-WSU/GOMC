@@ -1,10 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef BOX_DIMENSIONS_H
 #define BOX_DIMENSIONS_H
 
@@ -24,7 +17,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 //TODO:
 //Rename to PeriodicBoxes at some point.
-struct BoxDimensions
+class BoxDimensions
 {
  public:
    BoxDimensions() {}
@@ -125,7 +118,7 @@ struct BoxDimensions
    void GetDistSq(double & distSq, XYZArray const& arr, const uint i,
 		  const uint j, const uint b) const;
 
-   
+//private:
    XYZArray axis;     //x, y, z dimensions of each box (a)
    XYZArray halfAx;   //x, y, z dimensions / 2 of each box (a)
    double volume[BOX_TOTAL];     //volume of each box in (a^3)
@@ -143,6 +136,9 @@ struct BoxDimensions
 
    double UnwrapPBC(double& v, const double ref,
 		    const double ax, const double halfAx) const;
+
+   double DotProduct(const uint atom, double kx, double ky,
+		     double kz, const XYZArray & Coords, uint box) const; 
 };
 
 inline BoxDimensions::BoxDimensions(BoxDimensions const& other) : 
@@ -494,5 +490,13 @@ inline double BoxDimensions::UnwrapPBC
 #endif
 }
 
-#endif /*BOX_DIMENSIONS_H*/
+//Calculate dot product
+inline double BoxDimensions::DotProduct(const uint atom, double kx,
+					double ky, double kz,
+					const XYZArray &Coords, uint box) const
+{
+   double x = Coords.x[atom], y = Coords.y[atom], z = Coords.z[atom];
+   return(x * kx + y * ky + z * kz);
+}
 
+#endif /*BOX_DIMENSIONS_H*/

@@ -1,9 +1,40 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [1.6] - 03/24/2016
++ Code cleaning
+
+## [1.5] - 03/24/2016
++ Support for Ewald Summation
+
+## [1.1] - 01/20/2016
++ Supporting Martini forcefield
+
 ## [1.0] - 10/18/2015
 + Changes for input file system.
 + Added Cell list optimization to the GPU and the Serial code.
+
+##[1.00] - 12/4/2015
++ Added Examples of water and DME for NVT and GCMC
++ Added bin/linux, which contains all executable files for linux
+
+##[1.00] Ewald branch - 12/8/2015
++ Improve the initialization of Ewald's parameters, so that non-ewald simulation can also run on ewald code without crashing.
++ CMakeList.txt file is added.
+
+##[1.00] - 12/22/2015
++ Update CPUSide.cpp, move hist into the ifdef of GCMC. Target at the floating operation issue returned by NVT and GEMC simulations.
+
+##[1.00] - 01/25/2016
++ Fix the coherence issue on two boxes simulations, including NPT, GEMC, and two boxes GCMC simulations.
+
++ To fix the issue, Calp() and SetupRecip() have to be recalculated everytime before and after the volume transfer; RecipSinSum and RecipCosSum arrays have to be synchronized in two boxes simulations; GEMC_NVT is different from GEMC_NPT, the difference between GEMC_NVT and GEMC_NPT requires "if" statement.
+
+? GEMC is returning good result from computation; however, it does not return correct results. A potential bug inside of the computation logic.
+
+##[1.00] - -3/15/2016
++ Fix the bug of GEMC simulation. Now all NVT, GCMC, and GEMC are working.
++ Enable the Cache version of GEMC to save time; however, the scalability is limited.
 
 ## [0.972] - 5/11/2015
 + Fixes for PDB output for NVT in the GPU code.
@@ -19,3 +50,4 @@ All notable changes to this project will be documented in this file.
 + Improved move adjustments for better targeting of desired acceptance rate.
 + Various minor bug fixes for fringe conditions.
 + Improvements to I/O handling, inclusion of new output types relating to grand canonical ensemble (fluctuations, energy/particle samples, and distribution of molecule counts).
+
