@@ -26,9 +26,9 @@ class IntraSwap : public MoveBase
    uint pStart, pLen;
    uint molIndex, kindIndex;
 
-   double W_tc, oldVirial_LJ, oldVirial_Real;
+   double W_tc, W_recip, oldVirial_LJ, oldVirial_Real;
    cbmc::TrialMol oldMol, newMol;
-   Intermolecular tcLose, tcGain;
+   Intermolecular tcLose, tcGain, recipLose, recipGain;
    MoleculeLookup & molLookRef;
    Forcefield const& ffRef;
 };
@@ -85,12 +85,21 @@ inline uint IntraSwap::Transform()
 
 inline void IntraSwap::CalcEn()
 {
-   if (ffRef.useLRC)
-   {
-      // since number of molecule would not change in box,
-      //there is no change in Tc
-      W_tc = 1.0;
-   }
+  // since number of molecule would not change in box,
+  //there is no change in Tc
+  W_tc = 1.0;
+   
+  W_recip = 1.0;
+  if (ewald) 
+  {
+    if (newMol.GetWeight() != 0.0)
+    {
+      recipGain.energy = calcEwald.SwapDestRecip(newMol, destBox, sourceBox, molIndex);
+      recipLose.energy = calcEwald.SwapSourceRecip(oldMol, sourceBox, molIndex);
+      W_recip = exp(-1.0 * ffRef.beta * (recipGain.energy +
+					 recipLose.energy));
+    }
+  }
 }
 
 
@@ -103,7 +112,7 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
       double molTransCoeff = 1.0;
       double Wo = oldMol.GetWeight();
       double Wn = newMol.GetWeight();
-      double Wrat = Wn / Wo * W_tc;
+      double Wrat = Wn / Wo * W_tc * W_recip;
 
       result = prng() < molTransCoeff * Wrat;
       if (result)
@@ -114,7 +123,9 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
          sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();
          sysPotRef.boxVirial[sourceBox].inter -= oldVirial_LJ;
 	 sysPotRef.boxVirial[sourceBox].real -= oldVirial_Real;
-
+	 sysPotRef.boxEnergy[sourceBox].recip += recipLose.energy;
+	 sysPotRef.boxEnergy[destBox].recip += recipGain.energy;
+	 
 	 //Set coordinates, new COM; shift index to new box's list
          newMol.GetCoords().CopyRange(coordCurrRef, 0, pStart, pLen);
          comCurrRef.SetNew(molIndex, destBox);
@@ -141,11 +152,24 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
 
 	 //Retotal
          sysPotRef.Total();
+	 if (ewald)
+	 {	
+	   calcEwald.UpdateRecip(sourceBox);
+	 }
       }
 #ifdef CELL_LIST
       else
       {
 	cellList.AddMol(molIndex, sourceBox, coordCurrRef);
+	if (ewald)
+	{
+	  calcEwald.BackUpRecip(sourceBox);
+	   //when weight is 0, MolDestSwap() will not be executed, thus cos/sin
+	   //molRef will not be changed. Also since no memcpy, doing restore
+	   //results in memory overwrite
+	  if (newMol.GetWeight() != 0.0)
+	    calcEwald.RestoreMol(molIndex);
+	}
       }
 #endif
    }

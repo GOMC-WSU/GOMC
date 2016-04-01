@@ -112,8 +112,7 @@ void BlockAverages::DoOutput(const ulong step)
 void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
 {
    blocks[out::ENERGY_TOTAL_IDX].Init(tracked.energy.block, invSteps, 
-				      out::ENERGY_TOTAL, uniqueName, 
-				      BOXES_WITH_U_NB);
+				      out::ENERGY_TOTAL, uniqueName, BOXES_WITH_U_NB);
 
    //Only output energy categories if specifically requested...
 #ifdef EN_SUBCAT_OUT
@@ -128,6 +127,15 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
 					BOXES_WITH_U_NB);
    blocks[out::ENERGY_INTRA_NB_IDX].Init(tracked.energy.block, invSteps, 
 					 out::ENERGY_INTRA_NB, uniqueName,
+                                         BOXES_WITH_U_NB);
+   blocks[out::ENERGY_ELECT_IDX].Init(tracked.energy.block, invSteps, 
+					 out::ENERGY_ELECT, uniqueName,
+                                         BOXES_WITH_U_NB);
+   blocks[out::ENERGY_REAL_IDX].Init(tracked.energy.block, invSteps, 
+					 out::ENERGY_REAL, uniqueName,
+                                         BOXES_WITH_U_NB);
+   blocks[out::ENERGY_RECIP_IDX].Init(tracked.energy.block, invSteps, 
+					 out::ENERGY_RECIP, uniqueName,
                                          BOXES_WITH_U_NB);
 #endif
    blocks[out::VIRIAL_TOTAL_IDX].Init(tracked.pressure.block, invSteps, 
@@ -161,8 +169,10 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
       blocks[out::ENERGY_INTRA_B_IDX].SetRef(&var->energyRef[b].intraBond, b);
       blocks[out::ENERGY_INTER_IDX].SetRef(&var->energyRef[b].inter, b);
       blocks[out::ENERGY_TC_IDX].SetRef(&var->energyRef[b].tc, b);
-      blocks[out::ENERGY_INTRA_NB_IDX].SetRef
-	 (&var->energyRef[b].intraNonbond, b);
+      blocks[out::ENERGY_INTRA_NB_IDX].SetRef(&var->energyRef[b].intraNonbond, b);
+	  blocks[out::ENERGY_ELECT_IDX].SetRef(&var->energyRef[b].totalElect, b);
+	  blocks[out::ENERGY_REAL_IDX].SetRef(&var->energyRef[b].real, b);
+	  blocks[out::ENERGY_RECIP_IDX].SetRef(&var->energyRef[b].recip, b);
 #endif
       blocks[out::VIRIAL_TOTAL_IDX].SetRef(&var->virialRef[b].total, b);
 #ifdef VIR_SUBCAT_OUT

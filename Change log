@@ -46,3 +46,8 @@ All notable changes to this project will be documented in this file.
 ##[1.00] - -3/15/2016
 + Fix the bug of GEMC simulation. Now all NVT, GCMC, and GEMC are working.
 + Enable the Cache version of GEMC to save time; however, the scalability is limited.
+
+##[1.6] - 04/01/2016
++ IntraSwap is added into the code.
++ Blockoutput, fluctoutput are modified to print out ewald energies.
++ Tests of this modification are not done yet.
