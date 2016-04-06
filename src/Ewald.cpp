@@ -29,8 +29,8 @@ using namespace geom;
 Ewald::Ewald(StaticVals const& stat, System & sys) :
    forcefield(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
    currentCOM(sys.com), ewald(false), electrostatic(false),
-   sysPotRef(sys.potential), imageLarge(0), imageFlucRate(1.1),
-   imageTotal(22000), alpha(0.0), recip_rcut(0.0), recip_rcut_Sq(0.0),
+   sysPotRef(sys.potential), imageLarge(0),
+   imageTotal(100000), alpha(0.0), recip_rcut(0.0), recip_rcut_Sq(0.0),
 #ifdef VARIABLE_PARTICLE_NUMBER
    molLookup(sys.molLookup),
 #else
@@ -154,9 +154,9 @@ void Ewald::InitEwald()
 	  RecipCountInit(b, currentAxes);
 	}
      }
-     //10% more than original, space reserved for image size change
+     //10% larger than original box size, reserved for image size change
      int initImageSize = findLargeImage();
-     initImageSize *= imageFlucRate;
+     memoryAllocation = initImageSize;
        
      cosMolRestore = new double[initImageSize];
      sinMolRestore = new double[initImageSize];
@@ -174,6 +174,7 @@ void Ewald::InitEwald()
 void Ewald::RecipInit(uint box, BoxDimensions const& boxAxes)
 {
    uint counter = 0;
+   int oldKmax =  kmax[box];
    double ksqr;
    double alpsqr4 = 1.0 / (4.0 * alpha * alpha);
    double constValue = 2 * M_PI / boxAxes.axis.BoxSize(box);
@@ -213,19 +214,33 @@ void Ewald::RecipInit(uint box, BoxDimensions const& boxAxes)
 	 }
       }
    }
+
    imageSize[box] = counter;
-   //   printf("box: %d, counter: %d, kmax: %d\n", box, counter, kmax[box]);
-   if (counter > imageLarge * imageFlucRate){
-     printf("Warning! The cached image size is fewer than the images demanded.\n");
+   if (oldKmax != kmax[box])
+     printf("box: %d, RecipVectors: %d, kmax: %d\n", box, counter, kmax[box]);
+   
+   if (counter > memoryAllocation)
+   {
+     printf("Error: Volume change in simulation is big.\n");
+     printf("Possible solution is to restart your simulation from restart PDB file\n");
      exit(EXIT_FAILURE);
    }
 }
+
+
 void Ewald::RecipCountInit(uint box, BoxDimensions const& boxAxes)
 {
    uint counter = 0;
    double ksqr;
+#if ENSEMBLE == GEMC
+   double boxSize = 1.1 * boxAxes.axis.BoxSize(box);
+   double constValue = 2 * M_PI / boxSize;
+   kmax[box] = int(recip_rcut * boxSize / (2 * M_PI)) + 1;
+#else 
    double constValue = 2 * M_PI / boxAxes.axis.BoxSize(box);
    kmax[box] = int(recip_rcut * boxAxes.axis.BoxSize(box) / (2 * M_PI)) + 1;
+#endif
+   
    for (int x = 0; x <= kmax[box]; x++)
    {
       int nky_max = sqrt(pow(kmax[box], 2) - pow(x, 2));
@@ -253,9 +268,10 @@ void Ewald::RecipCountInit(uint box, BoxDimensions const& boxAxes)
       }
    }
    imageSize[box] = counter;
-   //   printf("box: %d, counter: %d, kmax: %d\n", box, counter, kmax[box]);
-   if (counter > imageTotal){
-     printf("Warning! The Max total of images is fewer than the images demanded.\n");
+   if (counter > imageTotal)
+   {
+     std::cout<< "Warning! Number of vectors is greater than predefined vector size." << std::endl;
+     std::cout<< "Possible solution is to increase imageTotal variable in Ewald.h file." << std::endl;   
      exit(EXIT_FAILURE);
    }
 }

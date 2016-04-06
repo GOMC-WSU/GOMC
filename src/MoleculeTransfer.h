@@ -89,13 +89,14 @@ inline void MoleculeTransfer::CalcEn()
       W_recip = 1.0;
       if (ewald) 
       {
-	if (newMol.GetWeight() != 0.0){
+	if (newMol.GetWeight() != 0.0)
+	{
 	  recipGain.energy = calcEwald.SwapDestRecip(newMol, destBox, sourceBox, molIndex);
 	  recipLose.energy = calcEwald.SwapSourceRecip(oldMol, sourceBox, molIndex);
 	  W_recip = exp(-1.0 * ffRef.beta * (recipGain.energy +
 					    recipLose.energy));
-	}//end if newMol.GetWeight
-      }//end if ewald
+	}
+      }
    }
 }
 
@@ -176,6 +177,8 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 	 {
 	    sysPotRef.boxEnergy[sourceBox].inter = 0;
 	    sysPotRef.boxVirial[sourceBox].inter = 0;
+	    sysPotRef.boxEnergy[sourceBox].real = 0;
+	    sysPotRef.boxVirial[sourceBox].real = 0;
 	 }
 
 	 //Retotal
