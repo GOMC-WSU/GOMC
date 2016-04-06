@@ -28,7 +28,7 @@ class IntraSwap : public MoveBase
 
    double W_tc, W_recip, oldVirial_LJ, oldVirial_Real;
    cbmc::TrialMol oldMol, newMol;
-   Intermolecular tcLose, tcGain, recipLose, recipGain;
+   Intermolecular tcLose, tcGain, recipDiff;
    MoleculeLookup & molLookRef;
    Forcefield const& ffRef;
 };
@@ -85,7 +85,7 @@ inline uint IntraSwap::Transform()
 
 inline void IntraSwap::CalcEn()
 {
-  // since number of molecule would not change in box,
+  // since number of molecules would not change in the box,
   //there is no change in Tc
   W_tc = 1.0;
    
@@ -94,10 +94,9 @@ inline void IntraSwap::CalcEn()
   {
     if (newMol.GetWeight() != 0.0)
     {
-      recipGain.energy = calcEwald.SwapDestRecip(newMol, destBox, sourceBox, molIndex);
-      recipLose.energy = calcEwald.SwapSourceRecip(oldMol, sourceBox, molIndex);
-      W_recip = exp(-1.0 * ffRef.beta * (recipGain.energy +
-					 recipLose.energy));
+      recipDiff.energy = calcEwald.MolReciprocal(newMol.GetCoords(), molIndex,
+						 sourceBox);
+      W_recip = exp(-1.0 * ffRef.beta * recipDiff.energy);
     }
   }
 }
@@ -117,20 +116,17 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
       result = prng() < molTransCoeff * Wrat;
       if (result)
       {
-
          //Add rest of energy.
          sysPotRef.boxEnergy[sourceBox] -= oldMol.GetEnergy();
          sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();
          sysPotRef.boxVirial[sourceBox].inter -= oldVirial_LJ;
 	 sysPotRef.boxVirial[sourceBox].real -= oldVirial_Real;
-	 sysPotRef.boxEnergy[sourceBox].recip += recipLose.energy;
-	 sysPotRef.boxEnergy[destBox].recip += recipGain.energy;
+	 sysPotRef.boxEnergy[destBox].recip += recipDiff.energy;
 	 
 	 //Set coordinates, new COM; shift index to new box's list
          newMol.GetCoords().CopyRange(coordCurrRef, 0, pStart, pLen);
          comCurrRef.SetNew(molIndex, destBox);
-         //molLookRef.ShiftMolBox(molIndex, sourceBox, destBox,
-	 //			kindIndex);
+         
 #ifdef CELL_LIST
 	 cellList.AddMol(molIndex, destBox, coordCurrRef);
 #endif
@@ -148,6 +144,8 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
 	 {
 	    sysPotRef.boxEnergy[sourceBox].inter = 0;
 	    sysPotRef.boxVirial[sourceBox].inter = 0;
+	    sysPotRef.boxEnergy[sourceBox].real = 0;
+	    sysPotRef.boxVirial[sourceBox].real = 0;
 	 }
 
 	 //Retotal
