@@ -221,8 +221,8 @@ void Ewald::RecipInit(uint box, BoxDimensions const& boxAxes)
    
    if (counter > memoryAllocation)
    {
-     printf("Error: Volume change in simulation is big.\n");
-     printf("Possible solution is to restart your simulation from restart PDB file\n");
+     printf("Error: Kmax exceeded due to large change in system volume.\n");
+     printf("Restart the simulation from restart files\n");
      exit(EXIT_FAILURE);
    }
 }
@@ -270,8 +270,7 @@ void Ewald::RecipCountInit(uint box, BoxDimensions const& boxAxes)
    imageSize[box] = counter;
    if (counter > imageTotal)
    {
-     std::cout<< "Warning! Number of vectors is greater than predefined vector size." << std::endl;
-     std::cout<< "Possible solution is to increase imageTotal variable in Ewald.h file." << std::endl;   
+     std::cout<< "Error: Number of reciprocate vectors is greater than initialized vector size." << std::endl;  
      exit(EXIT_FAILURE);
    }
 }
