@@ -68,7 +68,13 @@ namespace geom
    //NOTE:
    //Vectors must be pre-shifted to the origin.
    inline double Theta(XYZ const& v1, XYZ const& v2)
-   { return acos(Dot(v1, v2) / sqrt(v1.LengthSq() * v2.LengthSq())); }
+   {
+     double value = Dot(v1, v2) / sqrt(v1.LengthSq() * v2.LengthSq()); 
+     if(value < -1.00)
+       return M_PI;
+     else 
+       return acos(value);
+   }
 
    //Returns the dihedral angle between v1 and v3 along v2
    // Derived from http://math.stackexchange.com/questions/47059
