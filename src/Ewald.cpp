@@ -216,8 +216,8 @@ void Ewald::RecipInit(uint box, BoxDimensions const& boxAxes)
    }
 
    imageSize[box] = counter;
-   if (oldKmax != kmax[box])
-     printf("box: %d, RecipVectors: %d, kmax: %d\n", box, counter, kmax[box]);
+   //if (oldKmax != kmax[box])
+   //  printf("box: %d, RecipVectors: %d, kmax: %d\n", box, counter, kmax[box]);
    
    if (counter > memoryAllocation)
    {
