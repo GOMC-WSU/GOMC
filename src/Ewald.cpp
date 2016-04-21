@@ -53,46 +53,49 @@ Ewald::Ewald(StaticVals const& stat, System & sys) :
 
 Ewald::~Ewald()
 {
-  for (int i = 0; i < mols.count; i++)
-    {
-      delete[] cosMolRef[i];
-      delete[] sinMolRef[i];
-      delete[] cosMolBoxRecip[i];
-      delete[] sinMolBoxRecip[i];
-    }
-   for (uint b = 0; b < BOX_TOTAL; b++)
-   {
-      if (kx[b] != NULL)
-      {
-	 delete[] kx[b];
-	 delete[] ky[b];
-	 delete[] kz[b];
-	 delete[] prefact[b];
-	 delete[] sumRnew[b];
-	 delete[] sumInew[b];
-	 delete[] sumRref[b];
-	 delete[] sumIref[b];
-      }
-   }
-   if (kx != NULL)
-   {
-      delete[] kmax;
-      delete[] kx;
-      delete[] ky;
-      delete[] kz;
-      delete[] prefact;
-      delete[] sumRnew;
-      delete[] sumInew;
-      delete[] sumRref;
-      delete[] sumIref;
-      delete[] cosMolRestore;
-      delete[] cosMolRef;
-      delete[] sinMolRestore;
-      delete[] sinMolRef;
-      delete[] cosMolBoxRecip;
-      delete[] sinMolBoxRecip;
-      delete[] imageSize;
-   }
+	if (ewald)
+	{
+		for (int i = 0; i < mols.count; i++)
+		{
+		  delete[] cosMolRef[i];
+		  delete[] sinMolRef[i];
+		  delete[] cosMolBoxRecip[i];
+		  delete[] sinMolBoxRecip[i];
+		}
+		for (uint b = 0; b < BOX_TOTAL; b++)
+		{
+		  if (kx[b] != NULL)
+		  {
+		 delete[] kx[b];
+		 delete[] ky[b];
+		 delete[] kz[b];
+		 delete[] prefact[b];
+		 delete[] sumRnew[b];
+		 delete[] sumInew[b];
+		 delete[] sumRref[b];
+		 delete[] sumIref[b];
+		  }
+		}
+		if (kx != NULL)
+		{
+		  delete[] kmax;
+		  delete[] kx;
+		  delete[] ky;
+		  delete[] kz;
+		  delete[] prefact;
+		  delete[] sumRnew;
+		  delete[] sumInew;
+		  delete[] sumRref;
+		  delete[] sumIref;
+		  delete[] cosMolRestore;
+		  delete[] cosMolRef;
+		  delete[] sinMolRestore;
+		  delete[] sinMolRef;
+		  delete[] cosMolBoxRecip;
+		  delete[] sinMolBoxRecip;
+		  delete[] imageSize;
+		}
+	}
   
 }
 
