@@ -32,13 +32,6 @@ namespace cbmc
             bondLength = data->ff.bonds.Length(bonds[i].kind);
 	    bond[2] = bondLength;
 	    bondKind = bonds[i].kind;
-
-	    if (data->ff.angles->AngleEnergy(angleKind) > 10E6)
-	    {
-	       angleFix = true;
-	       thetaFix = data->ff.angles->Angle(angleKind);
-	    }
-
             break;
          }
       }
@@ -49,6 +42,13 @@ namespace cbmc
 	 if (angles[i].a1 == focus)
 	 {
 	    angleKind = angles[i].kind;
+	    
+	     if (data->ff.angles->AngleEnergy(angleKind) > 10E6)
+	    {
+	       angleFix = true;
+	       thetaFix = data->ff.angles->Angle(angleKind);
+	    }
+
             break;
 	 }
       }
