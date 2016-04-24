@@ -1,6 +1,7 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
 Copyright (C) 2015  GOMC Group
+
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -10,7 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <string>
 
 #include "ConfigSetup.h"
-std::string prefix = ""; //DECLARED STRING PREFIX TO MAKE AVAILABLE GLOBALLY
+
 //#define UINT_MAX 0xffffffff
 //#define ULONG_MAX 0xffffffffUL
 #define DBL_MAX 1.7976931348623158e+308
@@ -138,16 +139,6 @@ void ConfigSetup::Init(const char *fileName)
 {
 	std::vector<std::string> line;
 
-	//ADDED LINES TO GET PREFIX PATH AND 
-	//CONVERT CHAR ARRY TO STRING TYPE TO GET PREFIX PATH
-	//string prefix;
-	std::string inputString(fileName);
-
-	size_t found = inputString.rfind('/');
-	if (found != std::string::npos)
-		prefix = inputString.substr(0, inputString.find_last_of('/')) + '/';
-	//END ADD LINE
-	
 	reader.Open(fileName);
 	while(reader.readNextLine(line))
 	{
@@ -187,7 +178,7 @@ void ConfigSetup::Init(const char *fileName)
 				std::cout << "REMINDER: MARTINI force field has been selected!" << std::endl;
 			}
 		} else if(line[0] == "Parameters") {
-			in.files.param.name = prefix + line[1]; //ADDED PREFIX
+			in.files.param.name = line[1];
 		} else if(line[0] == "Coordinates") {
 			uint boxnum = stringtoi(line[1]);
 			if(boxnum >= BOX_TOTAL)
@@ -195,7 +186,7 @@ void ConfigSetup::Init(const char *fileName)
 				std::cout<< "Error: This simulation requires only " << BOX_TOTAL << " number of PDB file(s)!" << std::endl;
 				exit(0);
 			}
-			in.files.pdb.name[boxnum] = prefix + line[2]; //ADDED PREFIX
+			in.files.pdb.name[boxnum] = line[2];
 		} else if(line[0] == "Structure") {
 			uint boxnum = stringtoi(line[1]);
 			if(boxnum >= BOX_TOTAL)
@@ -203,7 +194,7 @@ void ConfigSetup::Init(const char *fileName)
 				std::cout<< "Error: This simulation requires only " << BOX_TOTAL << " number of PSF file(s)!" << std::endl;
 				exit(0);
 			}
-			in.files.psf.name[boxnum] = prefix + line[2]; //ADDED PREFIX
+			in.files.psf.name[boxnum] = line[2];
 		}
 #if ENSEMBLE == GEMC
 		else if(line[0] == "GEMC")
@@ -529,15 +520,15 @@ void ConfigSetup::fillDefaults(void)
 		std::cout << "Error: Output name is required!" << std::endl;
 		exit(0);
 	}
-	out.state.files.psf.name = prefix + out.statistics.settings.uniqueStr.val + ".psf"; /*ADDED PREFIX*/ 
+	out.state.files.psf.name = out.statistics.settings.uniqueStr.val + ".psf";
 	for(int i = 0; i<BOX_TOTAL; i++)
 	{
 		if(i==0)
-			out.state.files.pdb.name[0] = prefix + out.statistics.settings.uniqueStr.val + "_BOX_0.pdb"; /*ADDED PREFIX*/ 
+			out.state.files.pdb.name[0] = out.statistics.settings.uniqueStr.val + "_BOX_0.pdb";
 		else if(i==1)
-			out.state.files.pdb.name[1] = prefix + out.statistics.settings.uniqueStr.val + "_BOX_1.pdb"; /*ADDED PREFIX*/ 
+			out.state.files.pdb.name[1] = out.statistics.settings.uniqueStr.val + "_BOX_1.pdb";
 	}
-	out.state.files.seed.name = prefix + out.statistics.settings.uniqueStr.val + ".dat"; /*ADDED PREFIX*/ 
+	out.state.files.seed.name = out.statistics.settings.uniqueStr.val + ".dat";
 }
 
 void ConfigSetup::verifyInputs(void)

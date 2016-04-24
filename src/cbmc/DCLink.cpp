@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "DCLink.h"
 #include "TrialMol.h"
 #include "../Forcefield.h"
@@ -32,6 +26,7 @@ namespace cbmc
             bondLength = data->ff.bonds.Length(bonds[i].kind);
 	    bond[2] = bondLength;
 	    bondKind = bonds[i].kind;
+
             break;
          }
       }
@@ -43,10 +38,10 @@ namespace cbmc
 	 {
 	    angleKind = angles[i].kind;
 	    
-	     if (data->ff.angles->AngleEnergy(angleKind) > 10E6)
+	    if (data->ff.angles->AngleEnergy(angleKind) > 10E6)
 	    {
-	       angleFix = true;
-	       thetaFix = data->ff.angles->Angle(angleKind);
+	      angleFix = true;
+	      thetaFix = data->ff.angles->Angle(angleKind);
 	    }
 
             break;

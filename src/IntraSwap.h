@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef INTRASWAP_H
 #define INTRASWAP_H
 
@@ -93,9 +87,9 @@ inline void IntraSwap::CalcEn()
 {
   // since number of molecules would not change in the box,
   //there is no change in Tc
-  W_tc = 1.0;
-   
+  W_tc = 1.0;   
   W_recip = 1.0;
+
   if (ewald) 
   {
     if (newMol.GetWeight() != 0.0)

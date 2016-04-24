@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef TRANSFORMABLE_BASE_H
 #define TRANSFORMABLE_BASE_H
 
@@ -22,6 +16,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Ewald.h"
 #include "MolPick.h"
 #include "Forcefield.h"
+#include <omp.h>
 
 class MoveBase
 {
@@ -142,7 +137,7 @@ inline uint Translate::Transform()
 {
    subPick = mv::GetMoveSubIndex(mv::DISPLACE, b);
    coordCurrRef.TranslateRand(newMolPos, newCOM, pStart, pLen,
-			      m, b, boxDimRef.axis.Min(b)*moveSetRef.Scale(subPick));
+			      m, b, moveSetRef.Scale(subPick));
    return mv::fail_state::NO_FAIL;
 }
 
@@ -152,11 +147,14 @@ inline void Translate::CalcEn()
    cellList.RemoveMol(m, b, coordCurrRef);
    molRemoved = true;
 #endif
+
+   calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b, &newCOM);
+    
    if (ewald)
    {
      recip.energy = calcEwald.MolReciprocal(newMolPos, m, b);   
    }
-   calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b, &newCOM);
+
 }
 
 inline void Translate::Accept(const uint rejectState, const uint step)
@@ -252,16 +250,20 @@ inline void Rotate::CalcEn()
    cellList.RemoveMol(m, b, coordCurrRef);
    molRemoved = true;
 #endif
+
+   calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);       
+
    if (ewald)
    {
-     recip.energy = calcEwald.MolReciprocal(newMolPos, m, b);   
+     recip.energy = calcEwald.MolReciprocal(newMolPos, m, b); 
    }
-   calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);
+
 }
 
 inline void Rotate::Accept(const uint rejectState, const uint step)
 {
    bool res =false;
+
    if (rejectState == mv::fail_state::NO_FAIL)
    {
       double pr = prng();
@@ -324,7 +326,7 @@ class VolumeTransfer : public MoveBase
    double GetCoeff() const;
    virtual void Accept(const uint rejectState, const uint step);
  private:
-   uint bPick, bPick2, subPick2;; //Note: This is only used for GEMC-NPT
+   uint bPick, bPick2, subPick2; //Note: This is only used for GEMC-NPT
    SystemPotential sysPotNew;
    BoxDimensions newDim;
    Coordinates newMolsPos;
