@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef EWALD_H
 #define EWALD_H
 
@@ -12,6 +6,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <stdio.h>
 #include <cstring>
+#include <omp.h>
 //
 //    Ewald.h
 //    Energy Calculation functions for Ewald summation method
@@ -99,8 +94,17 @@ class Ewald
    //back up reciprocate values
    void BackUpRecip( uint box)
    {  
-     std::memcpy(sumRnew[box], sumRref[box], sizeof(double) * imageSize[box]);
-     std::memcpy(sumInew[box], sumIref[box], sizeof(double) * imageSize[box]);
+      uint i;
+#pragma omp parallel for default(shared) private(i)
+      for (i = 0; i < imageSize[box]; i++)
+      {
+	 sumRnew[box][i] = sumRref[box][i];
+	 sumInew[box][i] = sumIref[box][i];
+      }
+  
+  //std::memcpy(sumRnew[box], sumRref[box], sizeof(double) * imageSize[box]);
+  //std::memcpy(sumInew[box], sumIref[box], sizeof(double) * imageSize[box]);
+
    }
 
    //update reciprocate values
