@@ -14,9 +14,11 @@ BUILDING GOMC ON LINUX:
    3. Open CMakeCache.txt file and modifye 
       "CMAKE_CXX_FLAGS_RELEASE:STRING:-O3 -DNDEBUG" 
       to "CMAKE_CXX_FLAGS_RELEASE:STRING=-O3 -qopenmp -DNDEBUG"
+   4. Type "make" to initiate the build process.
    
+   If you compile the code in OMP mode:
    Before running the code, you need to set number of processor. For example,
-   in order to use 4 prcessors execute this command:   
+   in order to use 4 CPU, execute this command:   
    
    setenv OMP_NUM_THREADS 4
 
