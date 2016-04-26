@@ -150,7 +150,7 @@ class Ewald
    int *imageSize;
    //const uint imageTotal = GetImageSize();
    const int imageTotal;
-   const double imageFlucRate;
+   uint memoryAllocation;
    int imageLarge;
    int *kmax;
    double **sumRnew; //cosine serries
