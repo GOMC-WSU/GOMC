@@ -53,7 +53,7 @@ void Simulation::RunSimulation(void)
       system->ChooseAndRunMove(step);
       cpu->Output(step);
 #ifndef NDEBUG
-      if ((step + 1) % 2000 == 0)
+      if ((step + 1) % 1000 == 0)
          RunningCheck(step);
 #endif
    }
