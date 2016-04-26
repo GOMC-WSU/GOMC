@@ -42,7 +42,8 @@ class Ewald
 
    void Init();
 
-   void InitEwald();
+   void AllocMem();
+   void SetNull();
 
    //return size of image with defined Kmax value
    //uint GetImageSize();
@@ -54,8 +55,11 @@ class Ewald
    //calculate self term for a box
    double BoxSelf(BoxDimensions const& boxAxes, uint box) const;
 
-   //calculate reciprocate term for a box
-   double BoxReciprocal(int box, XYZArray const& molCoords);
+   //setup reciprocate term for a box
+   void BoxReciprocalSetup(uint box, XYZArray const& molCoords);
+
+   //calculate reciprocate energy term for a box
+   double BoxReciprocal(uint box) const;
 
    //calculate correction term for a molecule
    double MolCorrection(uint molIndex, BoxDimensions const& boxAxes,
@@ -91,19 +95,29 @@ class Ewald
    //calculate reciprocate term in source box for swap move
    double SwapSourceRecip(const cbmc::TrialMol &oldMol, const uint box, const int molIndex);
 
-   //back up reciprocate values
-   void BackUpRecip( uint box)
+
+   //back up reciptocate value to Ref (will be called during initialization)
+   void SetRecipRef(uint box)
+   {
+#ifdef _OPENMP  
+#pragma omp parallel default(shared) 
+#endif
+     {
+      std::memcpy(sumRref[box], sumRnew[box], sizeof(double) * imageSize[box]);
+      std::memcpy(sumIref[box], sumInew[box], sizeof(double) * imageSize[box]);
+     }
+   }
+
+   //back up reciprocate values to New
+   void BackUpRecip(uint box)
    {  
-      uint i;
-#pragma omp parallel for default(shared) private(i)
-      for (i = 0; i < imageSize[box]; i++)
-      {
-	 sumRnew[box][i] = sumRref[box][i];
-	 sumInew[box][i] = sumIref[box][i];
-      }
-  
-  //std::memcpy(sumRnew[box], sumRref[box], sizeof(double) * imageSize[box]);
-  //std::memcpy(sumInew[box], sumIref[box], sizeof(double) * imageSize[box]);
+#ifdef _OPENMP 
+#pragma omp parallel default(shared)
+#endif
+     {
+      std::memcpy(sumRnew[box], sumRref[box], sizeof(double) * imageSize[box]);
+      std::memcpy(sumInew[box], sumIref[box], sizeof(double) * imageSize[box]);
+     }
 
    }
 
@@ -129,12 +143,9 @@ class Ewald
      sinMolRef[molIndex] = sinMolRestore;
      cosMolRestore = tempCos;
      sinMolRestore = tempSin;
-    
-     //    std::memcpy(cosMolRef[molIndex], cosMolRestore, sizeof(double)*imageLarge);
-     //     std::memcpy(sinMolRef[molIndex], sinMolRestore, sizeof(double)*imageLarge);
    }
    
-   int findLargeImage();
+   uint findLargeImage();
    void exgMolCache();
 
    private: 
@@ -151,12 +162,12 @@ class Ewald
    bool electrostatic, ewald;
    double alpha; 
    double recip_rcut, recip_rcut_Sq;
-   int *imageSize;
+   uint *imageSize;
    //const uint imageTotal = GetImageSize();
    const int imageTotal;
    uint memoryAllocation;
-   int imageLarge;
-   int *kmax;
+   uint imageLarge;
+   uint *kmax;
    double **sumRnew; //cosine serries
    double **sumInew; //sine serries
    double **sumRref;

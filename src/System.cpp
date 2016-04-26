@@ -32,7 +32,8 @@ System::System(StaticVals& statics) :
 #ifdef CELL_LIST
    cellList(statics.mol),
 #endif
-   calcEnergy(statics, *this), calcEwald(statics, *this) {}
+   calcEnergy(statics, *this) , calcEwald(NULL) {}
+   //, calcEwald(statics, *this) {}
 
 System::~System()
 {
@@ -69,8 +70,9 @@ void System::Init(Setup const& set)
    cellList.SetCutoff(statV.forcefield.rCut);
    cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 #endif
-   calcEwald.Init();
-   calcEnergy.Init();
+   calcEwald = new Ewald(statV, *this);
+   calcEwald->Init();
+   calcEnergy.Init(*this);
    potential = calcEnergy.SystemTotal();
    InitMoves();
 }

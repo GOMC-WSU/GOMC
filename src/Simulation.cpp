@@ -18,6 +18,9 @@ Simulation::Simulation(char const*const configFileName)
    system = new System(*staticValues);
    staticValues->Init(set, *system); 
    system->Init(set);
+   //recal Init for static value for initializing ewald since ewald is
+   //initialized in system
+   staticValues->Init(set, *system);
    cpu = new CPUSide(*system, *staticValues);
    cpu->Init(set.pdb, set.config.out, set.config.sys.step.equil,
              totalSteps);
@@ -56,6 +59,7 @@ void Simulation::RunSimulation(void)
 #ifndef NDEBUG
 void Simulation::RunningCheck(const uint step)
 {
+   system->calcEwald->Init();
    SystemPotential pot = system->calcEnergy.SystemTotal();
    
    std::cout 

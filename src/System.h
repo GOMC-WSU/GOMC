@@ -34,7 +34,7 @@ class System
    // return ewald
    Ewald * GetEwald()
    {
-     return &calcEwald;
+     return calcEwald;
    }
 
    //NOTE:
@@ -63,7 +63,7 @@ class System
    COM com;
 
    CalculateEnergy calcEnergy;
-   Ewald  calcEwald;
+   Ewald  *calcEwald;
    //Ewald ewaldEnergy;
    //Ewald & calcEwald;
 #ifdef CELL_LIST

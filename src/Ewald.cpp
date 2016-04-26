@@ -50,13 +50,19 @@ Ewald::~Ewald()
 {
   if (ewald)
   {
+
      for (int i = 0; i < mols.count; i++)
      {
-        delete[] cosMolRef[i];
-	delete[] sinMolRef[i];
-	delete[] cosMolBoxRecip[i];
-	delete[] sinMolBoxRecip[i];
+        //when cached option is choosen
+        if (cosMolRef[i] != NULL)
+	{
+	   delete[] cosMolRef[i];
+	   delete[] sinMolRef[i];
+	   delete[] cosMolBoxRecip[i];
+	   delete[] sinMolBoxRecip[i];
+	}
      }
+
      for (uint b = 0; b < BOX_TOTAL; b++)
      {
         if (kx[b] != NULL)
@@ -71,6 +77,7 @@ Ewald::~Ewald()
 	   delete[] sumIref[b];
 	}
      }
+
      if (kx != NULL)
      {
         delete[] kmax;
@@ -82,17 +89,55 @@ Ewald::~Ewald()
 	delete[] sumInew;
 	delete[] sumRref;
 	delete[] sumIref;
-	delete[] cosMolRestore;
-	delete[] cosMolRef;
-	delete[] sinMolRestore;
-	delete[] sinMolRef;
-	delete[] cosMolBoxRecip;
-	delete[] sinMolBoxRecip;
 	delete[] imageSize;
+	//when cached option is choosen
+	if (cosMolRestore != NULL)
+	{
+	   delete[] cosMolRestore;
+	   delete[] sinMolRestore;
+	}
+	//when cached option is choosen
+	if (cosMolRef != NULL)
+	{
+	   delete[] cosMolRef;
+	   delete[] sinMolRestore;
+	   delete[] sinMolRef;
+	   delete[] cosMolBoxRecip;
+	   delete[] sinMolBoxRecip;
+	}
      }
   }
   
 }
+
+
+void Ewald::SetNull()
+{  
+   //get size of image using defined Kmax
+  //imageSize = imageTotal;   
+  //Set to NULL
+
+  kmax = NULL;
+  imageSize = NULL ;
+  sumRnew = NULL;
+  sumInew = NULL;
+  sumRref = NULL;
+  sumIref = NULL;
+  kx = NULL;
+  ky = NULL;
+  kz = NULL;
+  prefact = NULL;
+  cosMolRef = NULL;
+  sinMolRef = NULL;
+  cosMolBoxRecip = NULL;
+  sinMolBoxRecip = NULL;
+       
+  cosMolRestore = NULL;
+  sinMolRestore = NULL;
+       
+}
+
+
 
 void Ewald::Init()
 {
@@ -114,68 +159,73 @@ void Ewald::Init()
      alpha = forcefield.alpha;
      recip_rcut = forcefield.recip_rcut;
      recip_rcut_Sq = recip_rcut * recip_rcut;
-     InitEwald();
-   }
-      
+     SetNull();
+     AllocMem();
+     //initialize K vectors and reciprocate terms
+     for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
+     {
+        RecipInit(b, currentAxes);
+	BoxReciprocalSetup(b, currentCoords);
+	SetRecipRef(b);
+	printf("box: %d, RecipVectors: %d, kmax: %d\n", b, imageSize[b],
+	       kmax[b]);
+     }
+   }      
 }
 
 
-void Ewald::InitEwald()
-{   
-   if (ewald)
-   {
-     //get size of image using defined Kmax
-     //imageSize = imageTotal;   
-     //allocate memory
-     //allocate memory
-     kmax = new int[BOX_TOTAL];
-     imageSize = new int[BOX_TOTAL];
-     sumRnew = new double*[BOX_TOTAL];
-     sumInew = new double*[BOX_TOTAL];
-     sumRref = new double*[BOX_TOTAL];
-     sumIref = new double*[BOX_TOTAL];
-     kx = new double*[BOX_TOTAL];
-     ky = new double*[BOX_TOTAL];
-     kz = new double*[BOX_TOTAL];
-     prefact = new double*[BOX_TOTAL];
-     cosMolRef = new double*[mols.count];
-     sinMolRef = new double*[mols.count];
-     cosMolBoxRecip = new double*[mols.count];
-     sinMolBoxRecip = new double*[mols.count];
+void Ewald::AllocMem()
+{  
+  //get size of image using defined Kmax  
+  //Allocate Memory
+
+  kmax = new uint[BOX_TOTAL];
+  imageSize = new uint[BOX_TOTAL];
+  sumRnew = new double*[BOX_TOTAL];
+  sumInew = new double*[BOX_TOTAL];
+  sumRref = new double*[BOX_TOTAL];
+  sumIref = new double*[BOX_TOTAL];
+  kx = new double*[BOX_TOTAL];
+  ky = new double*[BOX_TOTAL];
+  kz = new double*[BOX_TOTAL];
+  prefact = new double*[BOX_TOTAL];
+  cosMolRef = new double*[mols.count];
+  sinMolRef = new double*[mols.count];
+  cosMolBoxRecip = new double*[mols.count];
+  sinMolBoxRecip = new double*[mols.count];
      
-     for (uint b = 0; b < BOX_TOTAL; b++)
-     {
-        kx[b] = new double[imageTotal];
-	ky[b] = new double[imageTotal];
-	kz[b] = new double[imageTotal];
-	prefact[b] = new double[imageTotal];
-	sumRnew[b] = new double[imageTotal];
-	sumInew[b] = new double[imageTotal];
-	sumRref[b] = new double[imageTotal];
-	sumIref[b] = new double[imageTotal];
-	if (ewald)
-	{
-	  RecipCountInit(b, currentAxes);
-	}
-     }
-     //10% larger than original box size, reserved for image size change
-     int initImageSize = findLargeImage();
-     memoryAllocation = initImageSize;
-       
-     cosMolRestore = new double[initImageSize];
-     sinMolRestore = new double[initImageSize];
-
-     uint i;
+  for (uint b = 0; b < BOX_TOTAL; b++)
+  {
+     kx[b] = new double[imageTotal];
+     ky[b] = new double[imageTotal];
+     kz[b] = new double[imageTotal];
+     prefact[b] = new double[imageTotal];
+     sumRnew[b] = new double[imageTotal];
+     sumInew[b] = new double[imageTotal];
+     sumRref[b] = new double[imageTotal];
+     sumIref[b] = new double[imageTotal];
+     
+     RecipCountInit(b, currentAxes);
+  }
+  //10% larger than original box size, reserved for image size change
+  uint initImageSize = findLargeImage();
+  memoryAllocation = initImageSize;
+  
+  cosMolRestore = new double[initImageSize];
+  sinMolRestore = new double[initImageSize];
+  
+  uint i;
+#ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i)
-     for (i = 0; i < mols.count; i++)
-       {
-	 cosMolRef[i] = new double[initImageSize];
-	 sinMolRef[i] = new double[initImageSize];
-	 cosMolBoxRecip[i] = new double[initImageSize];
-	 sinMolBoxRecip[i] = new double[initImageSize];
-       }
-
-   }       
+#endif
+  for (i = 0; i < mols.count; i++)
+  {
+     cosMolRef[i] = new double[initImageSize];
+     sinMolRef[i] = new double[initImageSize];
+     cosMolBoxRecip[i] = new double[initImageSize];
+     sinMolBoxRecip[i] = new double[initImageSize];
+  }
+       
 }
 
 
@@ -224,8 +274,6 @@ void Ewald::RecipInit(uint box, BoxDimensions const& boxAxes)
    }
 
    imageSize[box] = counter;
-   //if (oldKmax != kmax[box])
-   //  printf("box: %d, RecipVectors: %d, kmax: %d\n", box, counter, kmax[box]);
    
    if (counter > memoryAllocation)
    {
@@ -235,7 +283,7 @@ void Ewald::RecipInit(uint box, BoxDimensions const& boxAxes)
    }
 }
 
-
+//estimate number of vectors
 void Ewald::RecipCountInit(uint box, BoxDimensions const& boxAxes)
 {
    uint counter = 0;
@@ -285,7 +333,7 @@ void Ewald::RecipCountInit(uint box, BoxDimensions const& boxAxes)
 
 
 //compare number of images in different boxes and select the largest one
-int Ewald::findLargeImage()
+uint Ewald::findLargeImage()
 {
   for (int b = 0; b < BOXES_WITH_U_NB; b++)
   {
@@ -308,10 +356,9 @@ void Ewald::exgMolCache()
 }
 
 //calculate reciprocate term for a box
-double Ewald::BoxReciprocal(int box, XYZArray const& molCoords)
+void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 {
    uint i, j, m;
-   double energyRecip = 0.0; 
    double dotProduct = 0.0;
    double molReal, molImaginary;
 
@@ -319,11 +366,20 @@ double Ewald::BoxReciprocal(int box, XYZArray const& molCoords)
    {
       MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);	 
       MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
+#ifdef _OPENMP      
+#pragma omp parallel default(shared) 
+#endif
+      {
+	 std::memset(sumRnew[box], 0.0, sizeof(double) * imageSize[box]);
+	 std::memset(sumInew[box], 0.0, sizeof(double) * imageSize[box]);
+      }
 
       while (thisMol !=end)
       {	 
 	 MoleculeKind const& thisKind = mols.GetKind(*thisMol);
-#pragma omp parallel for default(shared) private(i, j, dotProduct) 
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(i, j, dotProduct)
+#endif 
 	 for (i = 0; i < imageSize[box]; i++)
 	 {
 	    cosMolRef[*thisMol][i] = 0.0;
@@ -345,8 +401,21 @@ double Ewald::BoxReciprocal(int box, XYZArray const& molCoords)
 	 }
 	 thisMol++;
       }
+   }
+}
 
+
+//calculate reciprocate term for a box
+double Ewald::BoxReciprocal(uint box) const
+{
+   uint i;
+   double energyRecip = 0.0; 
+
+   if (box < BOXES_WITH_U_NB)
+   {
+#ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i) reduction(+:energyRecip)
+#endif
       for (i = 0; i < imageSize[box]; i++)
       {
 	energyRecip += (( sumRnew[box][i] * sumRnew[box][i] +
@@ -373,9 +442,12 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
       uint length = thisKind.NumAtoms();
       uint startAtom = mols.MolStart(molIndex);
       uint i, p, atom;
-      double sumRealNew, sumImaginaryNew, dotProductNew, sumRealOld, sumImaginaryOld;
+      double sumRealNew, sumImaginaryNew, dotProductNew, sumRealOld,
+	sumImaginaryOld;
 
+#ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, p, atom, sumRealNew, sumImaginaryNew, sumRealOld, sumImaginaryOld, dotProductNew) reduction(+:energyRecipNew)
+#endif
       for (i = 0; i < imageSize[box]; i++)
       { 
 	 sumRealNew = 0.0;
@@ -425,7 +497,9 @@ double Ewald::BoxSelf(BoxDimensions const& boxAxes, uint box) const
      length = thisKind.NumAtoms();
      molSelfEnergy = 0.0;
 
+#ifdef _OPENMP
 #pragma omp parallel for default(shared) private(j) reduction(+: molSelfEnergy)
+#endif
      for (j = 0; j < length; j++)
      {
        molSelfEnergy += (thisKind.AtomCharge(j) * thisKind.AtomCharge(j));
@@ -474,16 +548,15 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
    uint image;
    double energyRecipNew = 0.0; 
    double energyRecipOld = 0.0; 
- 
-#pragma omp parallel for default(shared) private(image)  
-   for (image = 0; image < imageLarge; image++)
+
+#ifdef _OPENMP
+#pragma omp parallel default(shared)
+#endif 
    {
-      cosMolRestore[image] = cosMolRef[molIndex][image];
-      sinMolRestore[image] = sinMolRef[molIndex][image];
-  //std::memcpy(cosMolRestore, cosMolRef[molIndex], sizeof(double)*imageLarge);
-  //std::memcpy(sinMolRestore, sinMolRef[molIndex], sizeof(double)*imageLarge);
+   std::memcpy(cosMolRestore, cosMolRef[molIndex], sizeof(double)*imageLarge);
+   std::memcpy(sinMolRestore, sinMolRef[molIndex], sizeof(double)*imageLarge);
    }
-      
+    
    if (box < BOXES_WITH_U_NB)
    {
       uint p, i, length;
@@ -491,7 +564,9 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
       XYZArray molCoords = newMol.GetCoords();
       double dotProductNew;
 
+#ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, p, dotProductNew) reduction(+:energyRecipNew) 
+#endif
       for (i = 0; i < imageSize[box]; i++)
       {
 	 cosMolRef[molIndex][i] = 0.0;
@@ -533,7 +608,9 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol, const uint box, cons
    
    if (box < BOXES_WITH_U_NB)
    {
-#pragma omp parallel for default(shared) private(i) reduction(+:energyRecipNew) 
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(i) reduction(+:energyRecipNew)
+#endif 
       for (i = 0; i < imageSize[box]; i++)
       { 	 
 	 sumRnew[box][i] = sumRref[box][i] - cosMolRestore[i];

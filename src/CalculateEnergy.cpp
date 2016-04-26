@@ -42,14 +42,13 @@ CalculateEnergy::CalculateEnergy(StaticVals const& stat, System & sys) :
    currentAxes(stat.boxDimensions)
 #endif
 #ifdef CELL_LIST
-   , cellList(sys.cellList)
+   , cellList(sys.cellList) {}
 #endif
-{
-  calcEwald = sys.GetEwald();
-}
 
-void CalculateEnergy::Init()
+
+void CalculateEnergy::Init(System & sys)
 {
+   calcEwald = sys.GetEwald();
    electrostatic = forcefield.electrostatic;
    ewald = forcefield.ewald;
    for(uint m = 0; m < mols.count; ++m)
@@ -89,8 +88,7 @@ SystemPotential CalculateEnergy::SystemTotal()
       if (ewald)
       {
 	 pot.boxEnergy[b].self = calcEwald->BoxSelf(currentAxes, b);
-	 pot.boxEnergy[b].correction = -1 * correction * num::qqFact;
-	 calcEwald->UpdateRecip(b); 
+	 pot.boxEnergy[b].correction = -1 * correction * num::qqFact; 
       }
    }
    
@@ -105,21 +103,14 @@ SystemPotential CalculateEnergy::SystemInter
  XYZArray const& com,
  BoxDimensions const& boxAxes) 
 {
-   if (ewald)
-   {
-     calcEwald->exgMolCache();
-   }
 
-   uint b;
-   //#pragma omp parallel for default(shared)  
-   for (b = 0; b < BOXES_WITH_U_NB; ++b)
+   for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
    {
       potential = BoxInter(potential, coords, com, boxAxes, b);
     
       if (ewald)
       {
-	calcEwald->RecipInit(b, boxAxes);
-	potential.boxEnergy[b].recip = calcEwald->BoxReciprocal(b, coords);
+	potential.boxEnergy[b].recip = calcEwald->BoxReciprocal(b);
       }
    }
 
@@ -139,7 +130,6 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
    //interactions are off.
    if (box >= BOXES_WITH_U_NB) return potential;
 
-   //Intermolecular inter, real;
    double tempRForce = 0.0, tempLJForce = 0.0, tempREn = 0.0, tempLJEn = 0.0;
    double boxSize = boxAxes.axis.BoxSize(box);
    double distSq, partVirial, partRealVirial, qi_qj_fact, rEn, ljEn;
@@ -155,7 +145,9 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
      pair.Next();
    }
 
-#pragma omp parallel for default(shared) private(i, distSq, partVirial, partRealVirial, qi_qj_fact, rEn, ljEn, virComponents) reduction(+:tempREn, tempLJEn) reduction(-:tempRForce, tempLJForce)     
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(i, distSq, partVirial, partRealVirial, qi_qj_fact, rEn, ljEn, virComponents) reduction(+:tempREn, tempLJEn) reduction(-:tempRForce, tempLJForce) 
+#endif    
    for (i = 0; i < pair1.size(); i++)
    {
       if (!SameMolecule(pair1[i], pair2[i]) &&
@@ -221,7 +213,6 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 				    const uint box,
 				    XYZ const*const newCOM) const
 {   
-  //Intermolecular inter, real;
    double tempRForce = 0.0, tempLJForce = 0.0, tempREn = 0.0, tempLJEn = 0.0;
    if (box < BOXES_WITH_U_NB)
    {
@@ -249,8 +240,9 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 	   nIndex.push_back(*n);
 	   n.Next();
 	 }
-
-#pragma omp parallel for default(shared) private(i, distSq, partVirial, partRealVirial, qi_qj_fact, rEn, ljEn, virComponents) reduction(+:tempREn, tempLJEn) reduction(-:tempRForce, tempLJForce)      
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(i, distSq, partVirial, partRealVirial, qi_qj_fact, rEn, ljEn, virComponents) reduction(+:tempREn, tempLJEn) reduction(-:tempRForce, tempLJForce)
+#endif      
 	 for(i = 0; i < nIndex.size(); i++)
 	 {
 	    distSq = 0.0;
@@ -304,7 +296,10 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 	   nIndex.push_back(*n);
 	   n.Next();
 	 }
-#pragma omp parallel for default(shared) private(i, distSq, partVirial, partRealVirial, qi_qj_fact, rEn, ljEn, virComponents) reduction(+:tempREn, tempLJEn) reduction(-:tempRForce, tempLJForce) 	 
+
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(i, distSq, partVirial, partRealVirial, qi_qj_fact, rEn, ljEn, virComponents) reduction(+:tempREn, tempLJEn) reduction(-:tempRForce, tempLJForce) 
+#endif	 
 	 for(i = 0; i < nIndex.size(); i++) 
 	 {
 	    distSq = 0.0;
@@ -499,8 +494,10 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
 	nIndex.push_back(*n);
 	n.Next();
       }
- 
-#pragma omp parallel for default(shared) private(i, distSq, qi_qj_Fact) reduction(+:tempLJ, tempReal)     
+
+#ifdef _OPENMP 
+#pragma omp parallel for default(shared) private(i, distSq, qi_qj_Fact) reduction(+:tempLJ, tempReal)  
+#endif   
       for(i = 0; i < nIndex.size(); i++)
       {
 	 distSq = 0.0;
@@ -553,7 +550,10 @@ void CalculateEnergy::MoleculeVirial(double & virial_LJ, double & virial_real,
 	   nIndex.push_back(*n);
 	   n.Next();
 	 }
-#pragma omp parallel for default(shared) private(i, mag_LJ, mag_real, virComponents) reduction(-:vir_real, vir_LJ)	 
+
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(i, mag_LJ, mag_real, virComponents) reduction(-:vir_real, vir_LJ)
+#endif	 
 	 for (i = 0; i < nIndex.size(); i++)
 	 {
 	    distSq = 0.0;
@@ -636,19 +636,38 @@ void CalculateEnergy::MoleculeIntra(double& bondEn,
    // *2 because we'll be storing inverse bond vectors
    XYZArray bondVec(molKind.bondList.count * 2);
    BondVectors(bondVec, molKind, molIndex, box);
+#ifdef _OPENMP
 #pragma omp parallel sections 
+#endif
 {
+#ifdef _OPENMP
 #pragma omp section
+#endif
    MolBond(bondEn, molKind, bondVec, box);
+
+#ifdef _OPENMP
 #pragma omp section
+#endif
    MolAngle(bondEn, molKind, bondVec, box);
+
+#ifdef _OPENMP
 #pragma omp section
+#endif
    MolDihedral(bondEn, molKind, bondVec, box);
+
+#ifdef _OPENMP
 #pragma omp section
+#endif
    MolNonbond(nonBondEn, molKind, molIndex, box);
+
+#ifdef _OPENMP
 #pragma omp section
+#endif
    MolNonbond_1_4(nonBondEn, molKind, molIndex, box);
+
+#ifdef _OPENMP
 #pragma omp section
+#endif
    MolNonbond_1_3(nonBondEn, molKind, molIndex, box);
  }
 }

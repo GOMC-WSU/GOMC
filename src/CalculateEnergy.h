@@ -44,7 +44,7 @@ class CalculateEnergy
    public:
       CalculateEnergy(StaticVals const& stat, System & sys);
 
-      void Init();
+      void Init(System & sys);
 
       //! Calculates total energy/virial of all boxes in the system
       SystemPotential SystemTotal() ;
@@ -221,7 +221,7 @@ class CalculateEnergy
       const MoleculeLookup& molLookup;
       const BoxDimensions& currentAxes;
       const COM& currentCOM;
-      Ewald *calcEwald;
+      const Ewald const *calcEwald;
       bool electrostatic, ewald;
       
       std::vector<int> particleKind;
