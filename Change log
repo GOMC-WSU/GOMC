@@ -1,6 +1,16 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [1.7] - 04/21/2016
++ Fix the bug of free Ewald class, which returns memory segmentation fault if ewald is not activated.
+TO DO: IntraSwap does not work properly. The bug is going to be fixed.
+
+
+##[1.6] - 04/01/2016
++ IntraSwap is added into the code.
++ Blockoutput, fluctoutput are modified to print out ewald energies.
++ Tests of this modification are not done yet.
+
 ## [1.7] - 03/24/2016
 + I/O fixes
 
