@@ -94,7 +94,7 @@ inline void IntraSwap::CalcEn()
   {
     if (newMol.GetWeight() != 0.0)
     {
-      recipDiff.energy = calcEwald.MolReciprocal(newMol.GetCoords(), molIndex,
+      recipDiff.energy = calcEwald->MolReciprocal(newMol.GetCoords(), molIndex,
 						 sourceBox);
       W_recip = exp(-1.0 * ffRef.beta * recipDiff.energy);
     }
@@ -152,7 +152,7 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
          sysPotRef.Total();
 	 if (ewald)
 	 {	
-	   calcEwald.UpdateRecip(sourceBox);
+	   calcEwald->UpdateRecip(sourceBox);
 	 }
       }
 #ifdef CELL_LIST
@@ -161,12 +161,12 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
 	cellList.AddMol(molIndex, sourceBox, coordCurrRef);
 	if (ewald)
 	{
-	  calcEwald.BackUpRecip(sourceBox);
+	  calcEwald->BackUpRecip(sourceBox);
 	   //when weight is 0, MolDestSwap() will not be executed, thus cos/sin
 	   //molRef will not be changed. Also since no memcpy, doing restore
 	   //results in memory overwrite
 	  if (newMol.GetWeight() != 0.0)
-	    calcEwald.RestoreMol(molIndex);
+	    calcEwald->RestoreMol(molIndex);
 	}
       }
 #endif

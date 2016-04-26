@@ -188,13 +188,19 @@ namespace cbmc
 
       data->calc.ParticleInter(inter, real, positions, atom, molIndex, 
                                oldMol.GetBox(), nLJTrials); 
+#ifdef _OPENMP
 #pragma omp parallel sections
+#endif
 {     
+#ifdef _OPENMP
 #pragma omp section
-      data->calcEwald.SwapSelf(self, molIndex, atom, oldMol.GetBox(), 
+#endif
+      data->calcEwald->SwapSelf(self, molIndex, atom, oldMol.GetBox(), 
 			       nLJTrials); 
+#ifdef _OPENMP
 #pragma omp section
-      data->calcEwald.SwapCorrection(correction, oldMol, positions, atom,  
+#endif
+      data->calcEwald->SwapCorrection(correction, oldMol, positions, atom,  
 				     oldMol.GetBox(), nLJTrials); 
 }
  
@@ -205,7 +211,7 @@ namespace cbmc
 	 if (oldMol.AtomExists(i) && i != atom) 
 	 { 
 	    double distSq = oldMol.OldDistSq(i, atom); 
-	    tempEn += data->calcEwald.CorrectionOldMol(oldMol, distSq, 
+	    tempEn += data->calcEwald->CorrectionOldMol(oldMol, distSq, 
 							     i, atom); 
 	 } 
       } 
@@ -251,13 +257,19 @@ namespace cbmc
 
       data->calc.ParticleInter(inter, real, positions, atom, molIndex, 
                                newMol.GetBox(), nLJTrials);
+#ifdef _OPENMP
 #pragma omp parallel sections
-{       
+#endif
+{  
+#ifdef _OPENMP     
 #pragma omp section
-      data->calcEwald.SwapSelf(self, molIndex, atom, newMol.GetBox(), 
-			       nLJTrials); 
+#endif
+      data->calcEwald->SwapSelf(self, molIndex, atom, newMol.GetBox(), 
+			       nLJTrials);
+#ifdef _OPENMP 
 #pragma omp section
-      data->calcEwald.SwapCorrection(correction, newMol, positions, atom,  
+#endif
+      data->calcEwald->SwapCorrection(correction, newMol, positions, atom,  
 				     newMol.GetBox(), nLJTrials); 
  }
 

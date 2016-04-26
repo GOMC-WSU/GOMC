@@ -91,8 +91,8 @@ inline void MoleculeTransfer::CalcEn()
       {
 	if (newMol.GetWeight() != 0.0)
 	{
-	  recipGain.energy = calcEwald.SwapDestRecip(newMol, destBox, sourceBox, molIndex);
-	  recipLose.energy = calcEwald.SwapSourceRecip(oldMol, sourceBox, molIndex);
+	  recipGain.energy = calcEwald->SwapDestRecip(newMol, destBox, sourceBox, molIndex);
+	  recipLose.energy = calcEwald->SwapSourceRecip(oldMol, sourceBox, molIndex);
 	  W_recip = exp(-1.0 * ffRef.beta * (recipGain.energy +
 					    recipLose.energy));
 	}
@@ -187,7 +187,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 	 {
 	    for (uint b = 0; b < BOX_TOTAL; b++)
 	    {
-	      calcEwald.UpdateRecip(b);
+	      calcEwald->UpdateRecip(b);
 	    }
 	 }
       }
@@ -199,13 +199,13 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 	 {
 	   for (uint b = 0; b < BOX_TOTAL; b++)
 	   {
-	     calcEwald.BackUpRecip(b);
+	     calcEwald->BackUpRecip(b);
 	   }
 	   //when weight is 0, MolDestSwap() will not be executed, thus cos/sin
 	   //molRef will not be changed. Also since no memcpy, doing restore
 	   //results in memory overwrite
 	   if (newMol.GetWeight() != 0.0)
-	     calcEwald.RestoreMol(molIndex);
+	     calcEwald->RestoreMol(molIndex);
 	 }
       }
 #endif

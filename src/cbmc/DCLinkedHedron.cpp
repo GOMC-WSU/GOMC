@@ -320,14 +320,29 @@ namespace cbmc
       {
 	data->calc.ParticleInter(inter, real, positions[b], hed.Bonded(b),
                                   molIndex, mol.GetBox(), nLJTrials);
+
+#ifdef _OPENMP
+#pragma omp parallel sections
+#endif
+{  
+#ifdef _OPENMP     
+#pragma omp section
+#endif
 	data->calc.ParticleNonbonded(nonbonded, mol, positions[b],
 				     hed.Bonded(b), mol.GetBox(),
 				     nLJTrials);
-	data->calcEwald.SwapSelf(self, molIndex, hed.Bonded(b), mol.GetBox(),
+#ifdef _OPENMP     
+#pragma omp section
+#endif
+	data->calcEwald->SwapSelf(self, molIndex, hed.Bonded(b), mol.GetBox(),
 				 nLJTrials);
-	data->calcEwald.SwapCorrection(correction, mol, positions, b, 
+#ifdef _OPENMP     
+#pragma omp section
+#endif
+	data->calcEwald->SwapCorrection(correction, mol, positions, b, 
 				       hed.bonded, mol.GetBox(), nLJTrials,
 				       hed.Prev(), false);
+}
 	//data->calc.ParticleNonbonded_1_4(nonbonded_1_4, mol, positions[b], 
 	//				 hed.Bonded(b), mol.GetBox(),
 	//				 nLJTrials);

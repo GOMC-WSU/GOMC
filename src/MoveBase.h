@@ -25,13 +25,15 @@ class MoveBase
    MoveBase(System & sys, StaticVals const& statV) :
    boxDimRef(sys.boxDimRef), moveSetRef(sys.moveSettings), 
      sysPotRef(sys.potential),
-     calcEnRef(sys.calcEnergy), calcEwald(sys.calcEwald), comCurrRef(sys.com), 
+     calcEnRef(sys.calcEnergy), comCurrRef(sys.com), 
      coordCurrRef(sys.coordinates), prng(sys.prng), molRef(statV.mol), 
      BETA(statV.forcefield.beta), ewald(statV.forcefield.ewald)
 #ifdef CELL_LIST
       , cellList(sys.cellList), molRemoved(false)
 #endif
-   {}
+   {
+      calcEwald = sys.GetEwald();
+   }
 
     //Based on the random draw, determine the move kind, box, and 
     //(if necessary) molecule kind.
@@ -56,7 +58,7 @@ class MoveBase
     Coordinates & coordCurrRef;
     COM & comCurrRef;
     CalculateEnergy & calcEnRef;
-    Ewald& calcEwald;
+    Ewald * calcEwald;
     
     PRNG & prng;
     BoxDimensions & boxDimRef;
@@ -152,7 +154,7 @@ inline void Translate::CalcEn()
     
    if (ewald)
    {
-     recip.energy = calcEwald.MolReciprocal(newMolPos, m, b);   
+     recip.energy = calcEwald->MolReciprocal(newMolPos, m, b);   
    }
 
 }
@@ -187,14 +189,14 @@ inline void Translate::Accept(const uint rejectState, const uint step)
       comCurrRef.Set(m, newCOM);
       if (ewald)
       {
-	 calcEwald.UpdateRecip(b);
+	 calcEwald->UpdateRecip(b);
       }
    }
    else
    {
       if (ewald)
       {
-	calcEwald.RestoreMol(m);
+	calcEwald->RestoreMol(m);
       }
    }
 
@@ -255,7 +257,7 @@ inline void Rotate::CalcEn()
 
    if (ewald)
    {
-     recip.energy = calcEwald.MolReciprocal(newMolPos, m, b); 
+     recip.energy = calcEwald->MolReciprocal(newMolPos, m, b); 
    }
 
 }
@@ -291,14 +293,14 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
       newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);
       if (ewald)
       {
-	 calcEwald.UpdateRecip(b);
+	 calcEwald->UpdateRecip(b);
       }
    }
    else
    {
       if (ewald)
       {
-	calcEwald.RestoreMol(m);
+	calcEwald->RestoreMol(m);
       }
    }
 
@@ -413,8 +415,23 @@ inline void VolumeTransfer::CalcEn()
    cellList.GridAll(newDim, newMolsPos, molLookRef);
    regrewGrid = true;
 #endif
+
+   if (ewald)
+   {
+     //back up cached value
+     calcEwald->exgMolCache();
+     for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
+     {
+        //calculate new K vectors
+        calcEwald->RecipInit(b, newDim);
+	//setup reciprocate terms
+	calcEwald->BoxReciprocalSetup(b, newMolsPos);
+     }
+   }
+
    sysPotNew = calcEnRef.SystemInter(sysPotRef, newMolsPos,
                                         newCOMs, newDim);
+   
 }
 
 
@@ -470,7 +487,7 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       {
 	for (uint b = 0; b < BOX_TOTAL; b++)
         {
-	   calcEwald.UpdateRecip(b);
+	   calcEwald->UpdateRecip(b);
 	}
       }     
    }
@@ -481,11 +498,13 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       regrewGrid = false;
       if (ewald)
       {
-	calcEwald.exgMolCache();
+	 calcEwald->exgMolCache();
 	 for (uint b = 0; b < BOX_TOTAL; b++)
 	 {
-	    calcEwald.RecipInit(b, boxDimRef);
-	    calcEwald.BackUpRecip(b);
+	    //calculate K vectors for old dimension
+	    calcEwald->RecipInit(b, boxDimRef);
+	    //setup reciprocate terms for old position
+	    //calcEwald->BoxReciprocalSetup(b, coordCurrRef);
 	 }
       }
    }
