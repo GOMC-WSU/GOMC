@@ -13,7 +13,9 @@
 #include "System.h"
 #include "StaticVals.h"
 #include "CalculateEnergy.h"
+#include "EwaldCached.h"
 #include "Ewald.h"
+#include "NoEwald.h"
 #include "MolPick.h"
 #include "Forcefield.h"
 #include <omp.h>
@@ -58,7 +60,7 @@ class MoveBase
     Coordinates & coordCurrRef;
     COM & comCurrRef;
     CalculateEnergy & calcEnRef;
-    Ewald * calcEwald;
+    EwaldCached * calcEwald;
     
     PRNG & prng;
     BoxDimensions & boxDimRef;
@@ -503,8 +505,6 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
 	 {
 	    //calculate K vectors for old dimension
 	    calcEwald->RecipInit(b, boxDimRef);
-	    //setup reciprocate terms for old position
-	    //calcEwald->BoxReciprocalSetup(b, coordCurrRef);
 	 }
       }
    }

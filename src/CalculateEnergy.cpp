@@ -1,5 +1,7 @@
 #include "CalculateEnergy.h"        //header for this
+#include "EwaldCached.h"            //for ewald calculation
 #include "Ewald.h"                  //for ewald calculation
+#include "NoEwald.h"                //for ewald calculation
 #include "EnergyTypes.h"            //Energy structs
 #include "EnsemblePreprocessor.h"   //Flags
 #include "../lib/BasicTypes.h"             //uint

@@ -3,7 +3,9 @@
 
 #include "EnsemblePreprocessor.h" //For VARIABLE_<QUANTITY> conditional defines
 #include "CalculateEnergy.h" 
-#include "Ewald.h" 
+#include "EwaldCached.h"
+#include "Ewald.h"
+#include "NoEwald.h"
 
 //Member variables
 #include "EnergyTypes.h"
@@ -32,7 +34,7 @@ class System
    void ChooseAndRunMove(const uint step);
 
    // return ewald
-   Ewald * GetEwald()
+   EwaldCached * GetEwald()
    {
      return calcEwald;
    }
@@ -63,7 +65,7 @@ class System
    COM com;
 
    CalculateEnergy calcEnergy;
-   Ewald  *calcEwald;
+   EwaldCached  *calcEwald;
    //Ewald ewaldEnergy;
    //Ewald & calcEwald;
 #ifdef CELL_LIST

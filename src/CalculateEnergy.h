@@ -5,7 +5,9 @@
 
 #include "../lib/BasicTypes.h"
 #include "EnergyTypes.h"
+#include "EwaldCached.h"
 #include "Ewald.h"
+#include "NoEwald.h"
 #ifdef CELL_LIST
 #include "CellList.h"
 #endif
@@ -221,7 +223,7 @@ class CalculateEnergy
       const MoleculeLookup& molLookup;
       const BoxDimensions& currentAxes;
       const COM& currentCOM;
-      const Ewald const *calcEwald;
+      const EwaldCached const *calcEwald;
       bool electrostatic, ewald;
       
       std::vector<int> particleKind;

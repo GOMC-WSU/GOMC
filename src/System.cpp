@@ -2,7 +2,9 @@
 #include "System.h"
 
 #include "CalculateEnergy.h"
+#include "EwaldCached.h"
 #include "Ewald.h"
+#include "NoEwald.h"
 #include "EnergyTypes.h"
 #include "Setup.h"               //For source of setup data.
 #include "ConfigSetup.h"         //For types directly read from config. file
@@ -33,7 +35,6 @@ System::System(StaticVals& statics) :
    cellList(statics.mol),
 #endif
    calcEnergy(statics, *this) , calcEwald(NULL) {}
-   //, calcEwald(statics, *this) {}
 
 System::~System()
 {
@@ -70,8 +71,19 @@ void System::Init(Setup const& set)
    cellList.SetCutoff(statV.forcefield.rCut);
    cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 #endif
-   calcEwald = new Ewald(statV, *this);
-   calcEwald->Init();
+
+   //check if we have to use cached version of ewlad or not.
+   bool ewald = set.config.sys.elect.ewald;
+   bool cached = set.config.sys.elect.cache;
+   
+   if (ewald && cached)
+      calcEwald = new EwaldCached(statV, *this);
+   else if (ewald && !cached)
+      calcEwald = new Ewald(statV, *this);
+   else
+      calcEwald = new NoEwald(statV, *this);
+
+   calcEwald->Init();   
    calcEnergy.Init(*this);
    potential = calcEnergy.SystemTotal();
    InitMoves();
