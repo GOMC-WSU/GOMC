@@ -95,9 +95,6 @@ class Ewald : public EwaldCached
    //back up reciptocate value to Ref (will be called during initialization)
    virtual void SetRecipRef(uint box);
 
-   //back up reciprocate values to New
-   virtual void BackUpRecip(uint box);
-
    //update reciprocate values
    virtual void UpdateRecip(uint box);
 

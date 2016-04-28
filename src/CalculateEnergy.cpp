@@ -43,9 +43,7 @@ CalculateEnergy::CalculateEnergy(StaticVals const& stat, System & sys) :
 #else
    currentAxes(stat.boxDimensions)
 #endif
-#ifdef CELL_LIST
    , cellList(sys.cellList) {}
-#endif
 
 
 void CalculateEnergy::Init(System & sys)
@@ -75,23 +73,22 @@ SystemPotential CalculateEnergy::SystemTotal()
       double bondEn = 0.0, nonbondEn = 0.0, self = 0.0, correction = 0.0;
       MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b),
 	end = molLookup.BoxEnd(b);
+
       while (thisMol != end)
       {
          MoleculeIntra(bondEn, nonbondEn, *thisMol, b);
-	 if (ewald)
-	 {
-	    correction += calcEwald->MolCorrection(*thisMol, currentAxes, b);
-	 }
+	 //calculate correction term of electrostatic interaction
+	 correction += calcEwald->MolCorrection(*thisMol, currentAxes, b);
+	
          ++thisMol;
       }
+
       pot.boxEnergy[b].intraBond = bondEn;
-      pot.boxEnergy[b].intraNonbond = nonbondEn;
+      pot.boxEnergy[b].intraNonbond = nonbondEn; 
+      //calculate self term of electrostatic interaction
+      pot.boxEnergy[b].self = calcEwald->BoxSelf(currentAxes, b);
+      pot.boxEnergy[b].correction = -1 * correction * num::qqFact; 
       
-      if (ewald)
-      {
-	 pot.boxEnergy[b].self = calcEwald->BoxSelf(currentAxes, b);
-	 pot.boxEnergy[b].correction = -1 * correction * num::qqFact; 
-      }
    }
    
    pot.Total();
@@ -108,12 +105,10 @@ SystemPotential CalculateEnergy::SystemInter
 
    for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
    {
+      //calculate LJ interaction and real term of electrostatic interaction
       potential = BoxInter(potential, coords, com, boxAxes, b);
-    
-      if (ewald)
-      {
-	potential.boxEnergy[b].recip = calcEwald->BoxReciprocal(b);
-      }
+      //calculate reciprocate term of electrostatic interaction
+      potential.boxEnergy[b].recip = calcEwald->BoxReciprocal(b);
    }
 
    potential.Total();
@@ -270,7 +265,8 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 		  tempRForce -= geom::Dot(virComponents * partRealVirial,
 					  currentAxes.MinImage
 					  (currentCOM.Difference
-					   (molIndex, particleMol[nIndex[i]]), box));
+					   (molIndex, particleMol[nIndex[i]]),
+					   box));
 		 
 	       }
 		 
@@ -284,7 +280,8 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 	       tempLJForce -= geom::Dot(virComponents * partVirial,
 					currentAxes.MinImage
 					(currentCOM.Difference
-					 (molIndex, particleMol[nIndex[i]]), box));
+					 (molIndex, particleMol[nIndex[i]]),
+					 box));
 	       
 	    } 
 	 }
@@ -306,7 +303,8 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 	 {
 	    distSq = 0.0;
 	    if (currentAxes.InRcut(distSq, virComponents, 
-				   molCoords, p, currentCoords, nIndex[i], box)) 
+				   molCoords, p, currentCoords, nIndex[i],
+				   box)) 
 	    {
 	       partVirial = 0.0;	 
 	       partRealVirial = 0.0;
@@ -334,7 +332,8 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 		   tempRForce -= geom::Dot(virComponents * partRealVirial,
 					   currentAxes.MinImage
 					   (currentCOM.Difference
-					    (molIndex, particleMol[nIndex[i]]), box));
+					    (molIndex, particleMol[nIndex[i]]),
+					    box));
 		 }
 	       }
 

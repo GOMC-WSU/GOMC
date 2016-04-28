@@ -30,10 +30,7 @@ System::System(StaticVals& statics) :
    prng(molLookupRef),
    coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
    com(boxDimRef, coordinates, molLookupRef, statics.mol),
-   moveSettings(boxDimRef),
-#ifdef CELL_LIST
-   cellList(statics.mol),
-#endif
+   moveSettings(boxDimRef), cellList(statics.mol),
    calcEnergy(statics, *this) , calcEwald(NULL) {}
 
 System::~System()
@@ -67,10 +64,8 @@ void System::Init(Setup const& set)
    //particle/molecule ensemble, e.g. NVT
    coordinates.InitFromPDB(set.pdb.atoms);
    com.CalcCOM();
-#ifdef CELL_LIST
    cellList.SetCutoff(statV.forcefield.rCut);
    cellList.GridAll(boxDimRef, coordinates, molLookupRef);
-#endif
 
    //check if we have to use cached version of ewlad or not.
    bool ewald = set.config.sys.elect.ewald;
