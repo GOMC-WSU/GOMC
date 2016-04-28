@@ -758,19 +758,8 @@ void EwaldCached::SetRecipRef(uint box)
   }
 }
 
-   //back up reciprocate values to New
-void EwaldCached::BackUpRecip(uint box)
-{  
-#ifdef _OPENMP 
-#pragma omp parallel default(shared)
-#endif
-  {
-     std::memcpy(sumRnew[box], sumRref[box], sizeof(double) * imageSize[box]);
-     std::memcpy(sumInew[box], sumIref[box], sizeof(double) * imageSize[box]);
-  }  
-}
 
-   //update reciprocate values
+//update reciprocate values
 void EwaldCached::UpdateRecip(uint box)
 {
    double *tempR, *tempI;

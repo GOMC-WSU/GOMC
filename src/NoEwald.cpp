@@ -150,13 +150,6 @@ void NoEwald::SetRecipRef(uint box)
    return;
 }
 
-
-   //back up reciprocate values to New
-void NoEwald::BackUpRecip(uint box)
-{  
-   return;
-}
-
    //update reciprocate values
 void NoEwald::UpdateRecip(uint box)
 {

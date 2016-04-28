@@ -1,16 +1,12 @@
 #ifndef CALCULATEENERGY_H
 #define CALCULATEENERGY_H
 
-#define CELL_LIST
-
 #include "../lib/BasicTypes.h"
 #include "EnergyTypes.h"
 #include "EwaldCached.h"
 #include "Ewald.h"
 #include "NoEwald.h"
-#ifdef CELL_LIST
 #include "CellList.h"
-#endif
 
 #include <vector>
 
@@ -229,9 +225,7 @@ class CalculateEnergy
       std::vector<int> particleKind;
       std::vector<int> particleMol;
       std::vector<double> particleCharge;
-#ifdef CELL_LIST
       const CellList& cellList;
-#endif
 };
 
 #endif /*ENERGY_H*/

@@ -14,9 +14,7 @@
 #include "BoxDimensions.h"
 #include "MoleculeLookup.h"
 #include "MoveSettings.h"
-#ifdef CELL_LIST
 #include "CellList.h"
-#endif
 
 //Initialization variables
 class Setup;
@@ -66,11 +64,7 @@ class System
 
    CalculateEnergy calcEnergy;
    EwaldCached  *calcEwald;
-   //Ewald ewaldEnergy;
-   //Ewald & calcEwald;
-#ifdef CELL_LIST
    CellList cellList;
-#endif
    PRNG prng;
 
    //Procedure to run once move is picked... can also be called directly for
