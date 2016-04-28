@@ -30,7 +30,7 @@ namespace cbmc
  
       const CalculateEnergy& calc; 
 
-      const Ewald const *calcEwald; 
+      const EwaldCached const *calcEwald; 
 
       const Forcefield& ff; 
       const BoxDimensions& axes; 

@@ -39,6 +39,7 @@ ConfigSetup::ConfigSetup(void)
 	in.prng.seed = UINT_MAX;
 	sys.elect.readEwald = false;
 	sys.elect.readElect = false;
+	sys.elect.readCache = false;	
 	sys.elect.tolerance = DBL_MAX;
 	sys.elect.oneFourScale = DBL_MAX;
 	sys.elect.dielectric = DBL_MAX;
@@ -220,6 +221,7 @@ void ConfigSetup::Init(const char *fileName)
 		else if(line[0] == "Temperature")
 		{
 			sys.T.inKelvin = stringtod(line[1]);
+			std::cout<< " Temperature of system has been set to " << sys.T.inKelvin << " K " << std::endl;
 		}
 		else if(line[0] == "Potential")
 		{
@@ -255,6 +257,7 @@ void ConfigSetup::Init(const char *fileName)
 		{
 			sys.elect.ewald = checkBool(line[1]);
 			sys.elect.readEwald = true;
+			std::cout<< "Ewald Summation method will be used to calculate electrostatic interactions." << std::endl;
 		}
 		else if(line[0] == "ElectroStatic")
 		{
@@ -268,6 +271,13 @@ void ConfigSetup::Init(const char *fileName)
 			  sys.ff.cutoff;
 			sys.elect.recip_rcut = 2 * (-log(sys.elect.tolerance))/
 			  sys.ff.cutoff;
+			std::cout<< "Ewald Tolerance is set to: " << sys.elect.tolerance << std::endl;
+		}
+		else if(line[0] == "CachedFourier")
+		{
+		  sys.elect.cache = checkBool(line[1]);
+		  sys.elect.readCache = true;
+		  std::cout<< "Fourier terms will be cached to increase the code performance" << std::endl;
 		}
 		else if(line[0] == "1-4scaling")
 		{
@@ -507,6 +517,12 @@ void ConfigSetup::fillDefaults(void)
 	{
 	  sys.elect.enable = true;
 	}
+
+	if (sys.elect.ewald == true && sys.elect.readCache == false)
+	{
+	  sys.elect.cache = true;
+	  std::cout << "Warning: By default, Fourier terms of ewald method will be cached" << std::endl;
+	}
 	
 	if(sys.elect.enable && sys.elect.dielectric == DBL_MAX && in.ffKind.isMARTINI)
 	{
@@ -613,7 +629,7 @@ void ConfigSetup::verifyInputs(void)
 	}
 	if(sys.elect.ewald && (sys.elect.tolerance == DBL_MAX))
 	{
-		std::cout << "Error: Tolerance has not been specified for Ewald summation!" << std::endl;
+		std::cout << "Error: Tolerance has not been specified for Ewald summation method!" << std::endl;
 		exit(0);
 	}
 	if(sys.step.adjustment == ULONG_MAX)

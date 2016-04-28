@@ -47,7 +47,7 @@ namespace cbmc
       PRNG& prng = data->prng; 
       const CalculateEnergy& calc = data->calc; 
 
-      const Ewald *calcEwald = data->calcEwald; 
+      const EwaldCached *calcEwald = data->calcEwald; 
 
       const Forcefield& ff = data->ff; 
       uint nLJTrials = data->nLJTrialsNth; 
@@ -165,7 +165,7 @@ namespace cbmc
       PRNG& prng = data->prng; 
       const CalculateEnergy& calc = data->calc; 
 
-      const Ewald * calcEwald = data->calcEwald; 
+      const EwaldCached * calcEwald = data->calcEwald; 
 
       const Forcefield& ff = data->ff; 
       uint nLJTrials = data->nLJTrialsNth; 
