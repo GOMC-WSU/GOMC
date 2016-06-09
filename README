@@ -3,10 +3,10 @@ GOMC - GPU Optimized Monte Carlo
 
 BUILDING GOMC ON LINUX:
 
-   If this is the
-   1. In the base (serial code) directory type "./metamake.sh"
-   2. Go to the "bin" subdirectory
-   3. Type "make" to initiate the build process.
+   1. Give execution permission using "chmod u+x metamake.sh"
+   2. In the base (serial code) directory type "./metamake.sh"
+   3. Go to the "bin" subdirectory
+   4. Type "make" to initiate the build process.
 
    NOTES:   
       Building GOMC requires cmake, available at http://www.cmake.org and
