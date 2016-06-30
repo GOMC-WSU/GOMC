@@ -57,14 +57,16 @@ Structure 1  STEP3_START_DME_BOX_Res.psf
 #############################
 Temperature     290.00
 Potential       VDW 
-LRC		true
-Rcut		10   
-Exclude 	1-4 
+LRC	          	true
+Rcut		        10   
+Exclude 	      1-4 
 
 #############################
 # ELECTROSTATIC   
 #############################
-Ewald		false
+ElectroStatic   true
+Ewald		        true
+Tolerance     0.0001
 
 
 
@@ -78,7 +80,7 @@ AdjSteps	   1000
 ################################
 # MOVE FREQUENCY              
 ################################
-DisFreq               0.2  
+DisFreq         0.2  
 RotFreq		      0.2   
 SwapFreq	      0.6
 
@@ -118,7 +120,7 @@ OutputName  DME_290_00_K_u_2605
 # enable, frequency           
 #####################################
 CoordinatesFreq    true   1000
-RestartFreq  	   true   1000
+RestartFreq  	     true   1000
 ConsoleFreq        true   1000
 BlockAverageFreq   true   1000
 FluctuationFreq    true   1000
