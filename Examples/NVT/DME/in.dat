@@ -64,9 +64,9 @@ Exclude 	1-4
 #############################
 # ELECTROSTATIC   
 #############################
-Ewald		true
-Alpha		5.0
-KMax		5.0
+ElectroStatic   true
+Ewald		        true
+Tolerance     0.0001
 
 ################################
 # STEPS 
@@ -79,8 +79,8 @@ AdjSteps	   1000
 # MOVE FREQUENCY              
 ################################
 DisFreq               0.5  
-RotFreq		      0.5   
-
+RotFreq		      0.3   
+IntraSwapFreq   0.2
 
 
 ################################
@@ -98,7 +98,10 @@ BoxDim  0    40.00  40.00  40.00
 ####################################
 #          Mol. Name     Chem. Pot.
 ####################################
-
+CBMC_First   10     
+CBMC_Nth     4
+CBMC_Ang     100
+CBMC_Dih     10
 
 
 
