@@ -66,9 +66,9 @@ Exclude 	1-4
 #############################
 # ELECTROSTATIC   
 #############################
-Ewald		true
-Alpha		5.0
-KMax		5.0
+ElectroStatic   true
+Ewald		        true
+Tolerance     0.0001
 
 ################################
 # STEPS 
