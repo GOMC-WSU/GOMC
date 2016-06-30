@@ -65,7 +65,8 @@ Exclude 	1-4
 #############################
 # ELECTROSTATIC   
 #############################
-Ewald		false
+ElectroStatic   false
+Ewald	        	false
 
 
 
@@ -79,9 +80,9 @@ AdjSteps	   1000
 ################################
 # MOVE FREQUENCY              
 ################################
-DisFreq               0.90  
+DisFreq               0.60  
 RotFreq		      0.10   
-
+IntraSwapFreq   0.30
 
 
 ################################
