@@ -65,7 +65,8 @@ Exclude 	1-4
 #############################
 # ELECTROSTATIC   
 #############################
-Ewald		false
+ElectroStatic   false
+Ewald		        false
 
 
 
@@ -94,7 +95,10 @@ BoxDim  0    90.197  90.197  90.197
 ##############################
 # CBMC TRIALS
 ##############################
-
+CBMC_First   10     
+CBMC_Nth     4
+CBMC_Ang     100
+CBMC_Dih     10
 
 ####################################
 #          Mol. Name     Chem. Pot.
