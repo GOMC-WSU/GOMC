@@ -134,7 +134,7 @@ namespace cbmc
 #ifdef _OPENMP     
 #pragma omp section
 #endif
-      calcEwald->SwapCorrection(correction, newMol, positions, hed.Prev(), 
+      calcEwald->SwapCorrection(correction, newMol, positions, hed.NumBond(), 
 			       hed.bonded, newMol.GetBox(), nLJTrials, 
 			       hed.Prev(), true); 
 }
