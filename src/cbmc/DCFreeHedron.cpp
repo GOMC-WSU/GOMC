@@ -118,7 +118,7 @@ namespace cbmc
                          molIndex, newMol.GetBox(), nLJTrials);
       calcEwald.SwapSelf(self, molIndex, hed.Prev(), newMol.GetBox(),
 			    nLJTrials);
-      calcEwald.SwapCorrection(correction, newMol, positions, hed.Prev(),
+      calcEwald.SwapCorrection(correction, newMol, positions, hed.NumBond(),
 			       hed.bonded, newMol.GetBox(), nLJTrials,
 			       hed.Prev(), true);
 
