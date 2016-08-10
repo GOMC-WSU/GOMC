@@ -23,6 +23,11 @@ void StaticVals::Init(Setup & set, System& sys)
 #endif
 }
 
+void StaticVals::InitOver(Setup & set, System& sys)
+{
+   mol.Init(set, forcefield, sys);
+}
+
 void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
 {
    totalPerc = 0.0;

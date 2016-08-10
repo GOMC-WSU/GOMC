@@ -22,6 +22,7 @@ class StaticVals
 {
  public:
    void Init(Setup & set, System& sys);
+   void InitOver(Setup & set, System& sys);
 
 #if ENSEMBLE == GEMC
    double pressure;
