@@ -40,6 +40,8 @@ ConfigSetup::ConfigSetup(void)
 	sys.elect.readEwald = false;
 	sys.elect.readElect = false;
 	sys.elect.readCache = false;	
+	sys.elect.ewald = false;
+	sys.elect.enable = false;
 	sys.elect.tolerance = DBL_MAX;
 	sys.elect.oneFourScale = DBL_MAX;
 	sys.elect.dielectric = DBL_MAX;
@@ -221,7 +223,7 @@ void ConfigSetup::Init(const char *fileName)
 		else if(line[0] == "Temperature")
 		{
 			sys.T.inKelvin = stringtod(line[1]);
-			std::cout<< " Temperature of system has been set to " << sys.T.inKelvin << " K " << std::endl;
+			std::cout<< "Temperature of system has been set to " << sys.T.inKelvin << " K " << std::endl;
 		}
 		else if(line[0] == "Potential")
 		{
@@ -257,7 +259,10 @@ void ConfigSetup::Init(const char *fileName)
 		{
 			sys.elect.ewald = checkBool(line[1]);
 			sys.elect.readEwald = true;
-			std::cout<< "Ewald Summation method will be used to calculate electrostatic interactions." << std::endl;
+			if(sys.elect.ewald)
+			{
+			   std::cout<< "Ewald Summation method will be used to calculate electrostatic interactions." << std::endl;
+			}
 		}
 		else if(line[0] == "ElectroStatic")
 		{
@@ -277,7 +282,14 @@ void ConfigSetup::Init(const char *fileName)
 		{
 		  sys.elect.cache = checkBool(line[1]);
 		  sys.elect.readCache = true;
-		  std::cout<< "Fourier terms will be cached to increase the code performance" << std::endl;
+		  if(sys.elect.cache)
+		  {
+		     std::cout<< "Fourier terms will be cached to increase the code performance." << std::endl;
+		  }
+		  else
+		  {
+		     std::cout<< "Non cached Fourier terms will be used." << std::endl;
+		  }
 		}
 		else if(line[0] == "1-4scaling")
 		{
@@ -512,7 +524,7 @@ void ConfigSetup::fillDefaults(void)
 		std::cout << "Warning: 1-4 electro static scaling has been set to zero!" << std::endl;
 		sys.elect.oneFourScale = 0.0f;
 	}
-	
+
 	if (sys.elect.ewald == true)
 	{
 	  sys.elect.enable = true;
@@ -521,7 +533,17 @@ void ConfigSetup::fillDefaults(void)
 	if (sys.elect.ewald == true && sys.elect.readCache == false)
 	{
 	  sys.elect.cache = true;
-	  std::cout << "Warning: By default, Fourier terms of ewald method will be cached" << std::endl;
+	  std::cout << "Warning: By default, Fourier terms of ewald method will be cached!" << std::endl;
+	}
+
+	if (sys.elect.ewald == false && sys.elect.enable == true)
+	{
+	  std::cout << "Warning: Ewald method would not be used to calculate electrostatic energy!" << std::endl;
+	}
+
+	if (sys.elect.ewald == false && sys.elect.enable == false)
+	{
+	  std::cout << "Warning: Electrostatic energy would not be calculated!" << std::endl;
 	}
 	
 	if(sys.elect.enable && sys.elect.dielectric == DBL_MAX && in.ffKind.isMARTINI)

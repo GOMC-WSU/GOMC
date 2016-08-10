@@ -20,7 +20,7 @@ Simulation::Simulation(char const*const configFileName)
    system->Init(set);
    //recal Init for static value for initializing ewald since ewald is
    //initialized in system
-   staticValues->Init(set, *system);
+   staticValues->InitOver(set, *system);
    cpu = new CPUSide(*system, *staticValues);
    cpu->Init(set.pdb, set.config.out, set.config.sys.step.equil,
              totalSteps);

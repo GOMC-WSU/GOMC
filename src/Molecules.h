@@ -64,6 +64,8 @@ public:
    double* pairEnCorrections;
    double* pairVirCorrections;
 
+   bool printFlag;
+
 };
 
 

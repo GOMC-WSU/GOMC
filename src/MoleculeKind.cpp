@@ -108,9 +108,9 @@ void MoleculeKind::Init
 }
 
 MoleculeKind::MoleculeKind() : angles(3), dihedrals(4),
-   atomMass(NULL), atomCharge(NULL), builder(NULL), 
-			       atomKind(NULL)
-{}
+			       atomMass(NULL), atomCharge(NULL), builder(NULL), 
+			       atomKind(NULL) {}
+
 
 MoleculeKind::~MoleculeKind()
 {
@@ -142,4 +142,17 @@ void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
       atomCharge[i] = atom.charge;
       atomKind[i] = atom.kind;
    }
+}
+
+double MoleculeKind::PrintChargeInfo()
+{
+   double netCharge = 0.0;
+   
+   for(uint i = 0; i < numAtoms; ++i)
+   {
+      //to calculate net charge
+      netCharge += atomCharge[i];
+   }
+
+   return netCharge;
 }

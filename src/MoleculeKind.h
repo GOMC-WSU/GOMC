@@ -36,7 +36,7 @@ class MoleculeKind
 {
  public:
    
-   MoleculeKind();
+    MoleculeKind();
    ~MoleculeKind();
    
    uint NumAtoms() const { return numAtoms; }
@@ -58,6 +58,8 @@ class MoleculeKind
 	      const uint molIndex)
    { builder->Build(oldMol, newMol, molIndex); }
 
+   
+   double PrintChargeInfo();
    SortedNonbond sortedNB, sortedNB_1_4, sortedNB_1_3, sortedEwaldNB;
 
 
