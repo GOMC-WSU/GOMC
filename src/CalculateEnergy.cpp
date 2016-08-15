@@ -515,8 +515,8 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
 	    }
          }
       }
-      en[t] = tempLJ;
-      real[t] = tempReal;
+      en[t] += tempLJ;
+      real[t] += tempReal;
    }   
 
    return;
@@ -763,11 +763,14 @@ void CalculateEnergy::MolNonbond(double & energy,
                                       (molKind.nonBonded.part1[i]),
                                       molKind.AtomKind
                                       (molKind.nonBonded.part2[i]));
-	 qi_qj_Fact = num::qqFact * molKind.AtomCharge(molKind.nonBonded.part1[i])
-	   * molKind.AtomCharge(molKind.nonBonded.part2[i]);
+	 if (electrostatic)
+	 {
+	   qi_qj_Fact = num::qqFact * molKind.AtomCharge(molKind.nonBonded.part1[i])
+	     * molKind.AtomCharge(molKind.nonBonded.part2[i]);
 	 
-	 forcefield.particles->CalcCoulombAdd(energy, virial,
-						  distSq, qi_qj_Fact);
+	   forcefield.particles->CalcCoulombAdd(energy, virial,
+						distSq, qi_qj_Fact);
+	 }
       }
    }
 }

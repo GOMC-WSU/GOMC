@@ -219,7 +219,7 @@ class CalculateEnergy
       const MoleculeLookup& molLookup;
       const BoxDimensions& currentAxes;
       const COM& currentCOM;
-      const EwaldCached const *calcEwald;
+      const EwaldCached  *calcEwald;
       bool electrostatic, ewald;
       
       std::vector<int> particleKind;
