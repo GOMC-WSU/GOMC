@@ -3,24 +3,23 @@ GOMC - GPU Optimized Monte Carlo
 
 BUILDING GOMC ON LINUX:
 
-   If this is the
    1. In the base (serial code) directory type "./metamake.sh"
    2. Go to the "bin" subdirectory
 
-   If you do not want to compile the code in OPM mode:
+   If you do not want to compile the code in OMP mode:
    3. Type "make" to initiate the build process.
 
    If you want to compile it in OMP mode:
-   3. Open CMakeCache.txt file and modifye 
+   3. Open CMakeCache.txt file and modify 
       "CMAKE_CXX_FLAGS_RELEASE:STRING:-O3 -DNDEBUG" 
       to "CMAKE_CXX_FLAGS_RELEASE:STRING=-O3 -qopenmp -DNDEBUG"
    4. Type "make" to initiate the build process.
    
    If you compile the code in OMP mode:
-   Before running the code, you need to set number of processor. For example,
-   in order to use 4 CPU, execute this command:   
-   
-   setenv OMP_NUM_THREADS 4
+   You can set the number of the threads using the +pN argument, where N is the number of threads.
+   For example:
+      ./GOMC_Serial_XXXX +p4 in.dat
+      Which will run 4 threads and reads input file "in.dat".
 
    NOTES:   
       Building GOMC requires cmake, available at http://www.cmake.org and
