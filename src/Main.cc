@@ -20,11 +20,11 @@ namespace{
     void PrintSimulationFooter();
     void PrintDebugMode();
     bool CheckAndPrintEnsemble();
+    uint ReadNum(char *argv);
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
-   const char * nm = "in.dat";
    PrintSimulationHeader();
    //Only run if valid ensemble was detected.
    if (CheckAndPrintEnsemble())
@@ -32,7 +32,69 @@ int main(void)
 #ifndef NDEBUG
       PrintDebugMode();
 #endif
-      Simulation sim(nm);
+
+      //FOLLOWING LINES ADDED TO OBTAIN INPUT PARAMETER FILE
+      string inputFileString;
+      fstream inputFileReader;
+      uint numThreads;
+
+      //CHECK IF ARGS/FILE PROVIDED IN CMD LINE
+      if (argc < 2)
+      {
+	 std::cout<<"Input parameter file (*.dat or *.conf) not specified on command line!\n";
+	 exit(0);
+      }
+      else
+      {
+	if(argc ==2)
+	{
+	   //FIRST PARAMETER WILL BE FILE NAME
+	  inputFileString = argv[1];
+	  numThreads = 1;
+	}
+	else
+	{
+	  //SECOND PARAMETER WILL BE FILE NAME
+	  inputFileString = argv[2];
+	  
+	  if(argv[1][0] == '+' && argv[1][1] == 'p')
+	  {
+	    numThreads = ReadNum(argv[1]);
+	  }
+	  else
+	  {
+	    std::cout<<"Error: Undefined command to set number of threads!\n";
+	    std::cout<< "Use +p# command to set number of threads.\n";
+	    exit(0);
+	  }
+	  
+	} 
+      }
+
+      //SET NUMBER OF THREADS
+#ifdef _OPENMP
+      omp_set_num_threads(numThreads);
+      std::cout << "Number of threads has been set to: " <<
+	numThreads << std::endl;
+#endif
+
+      //OPEN FILE
+      inputFileReader.open(inputFileString.c_str(), ios::in | ios::out);
+ 
+      //CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
+      if (!inputFileReader.is_open()) 
+      {
+	std::cout<<"Cannot open/find " << inputFileString <<
+	  " in the directory provided!\n";
+	 exit(0);
+      }
+
+      //CLOSE FILE TO NOW PASS TO SIMULATION
+      inputFileReader.close(); 
+
+      //ONCE FILE FOUND PASS STRING TO SIMULATION CLASS TO READ AND
+      //HANDLE PDB|PSF FILE
+      Simulation sim(inputFileString.c_str());
       sim.RunSimulation();
       PrintSimulationFooter();
    }
@@ -131,6 +193,19 @@ std::ostream& PrintHostname(std::ostream& stream)
 #endif
     return stream;
 }
+
+uint ReadNum(char *argv)
+{
+   uint thread = 0;
+
+   for(uint i=2; argv[i] != 0; i++)
+   {
+     thread = thread * 10 + (argv[i]-'0');
+   }
+
+  return thread;
+}
+
 
 }
 
