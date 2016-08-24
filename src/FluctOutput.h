@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef FLUCT_OUTPUT_H
 #define FLUCT_OUTPUT_H
 
@@ -26,99 +20,105 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 struct FluctuationTracker
 {
-   FluctuationTracker(): dblSrc(NULL) {}
-   
-   ~FluctuationTracker() 
-   { 
-      if (outF.is_open())
-      {
-	 outF.close();
-      }
-      if (dblSrc != NULL)
-      {
-	 delete[] dblSrc;
-      }
-      if (uintSrc != NULL)
-      {
-	 delete[] uintSrc;
-      }
-   }
-   
-   //Initializes name, and enable
-   void Init(const bool en, std::string const& var,
-             std::string const& uniqueName, const uint bTot = BOX_TOTAL);
+  FluctuationTracker(): dblSrc(NULL) {}
 
-   //Set one of the pointers to the fluctuating values we're tracking
-   void SetRef(double * loc, const uint b) 
-   {
-      dblSrc[b] = loc;
-      uintSrc[b] = NULL; 
-      outF << std::setprecision(std::numeric_limits<double>::digits10+2) << std::setw(25);
-   }
-   void SetRef(uint * loc, const uint b) 
-   { uintSrc[b] = loc; dblSrc[b] = NULL; }
+  ~FluctuationTracker()
+  {
+    if (outF.is_open())
+    {
+      outF.close();
+    }
+    if (dblSrc != NULL)
+    {
+      delete[] dblSrc;
+    }
+    if (uintSrc != NULL)
+    {
+      delete[] uintSrc;
+    }
+  }
 
-   void Write(const ulong step, const bool firstPrint)
-   { 
-      first = firstPrint;
-      if (enable)
-	 DoWrite(step);
-   }
+  //Initializes name, and enable
+  void Init(const bool en, std::string const& var,
+            std::string const& uniqueName, const uint bTot = BOX_TOTAL);
 
- private:
-   
-   std::string GetFName(std::string const& var, std::string const& uniqueName);
-   
-   void DoWrite(const ulong step);
+  //Set one of the pointers to the fluctuating values we're tracking
+  void SetRef(double * loc, const uint b)
+  {
+    dblSrc[b] = loc;
+    uintSrc[b] = NULL;
+    outF << std::setprecision(std::numeric_limits<double>::digits10+2) << std::setw(25);
+  }
+  void SetRef(uint * loc, const uint b)
+  {
+    uintSrc[b] = loc;
+    dblSrc[b] = NULL;
+  }
 
-   
-   bool first;
-   std::ofstream outF;
-   std::string name, varName;
-   uint ** uintSrc, tot;
-   double ** dblSrc;
-   bool enable;
+  void Write(const ulong step, const bool firstPrint)
+  {
+    first = firstPrint;
+    if (enable)
+      DoWrite(step);
+  }
+
+private:
+
+  std::string GetFName(std::string const& var, std::string const& uniqueName);
+
+  void DoWrite(const ulong step);
+
+
+  bool first;
+  std::ofstream outF;
+  std::string name, varName;
+  uint ** uintSrc, tot;
+  double ** dblSrc;
+  bool enable;
 };
 
 struct Fluctuations : OutputableBase
 {
-   Fluctuations(OutputVars & v){ this->var = &v; }
+  Fluctuations(OutputVars & v)
+  {
+    this->var = &v;
+  }
 
-   //Fluctuations does not need to sample, so does nothing.
-   virtual void Sample(const ulong step) {}
+  //Fluctuations does not need to sample, so does nothing.
+  virtual void Sample(const ulong step) {}
 
-   //No additional init.
-   virtual void Init(pdb_setup::Atoms const& atoms,
-                     config_setup::Output const& output);
-   
-   virtual void DoOutput(const ulong step);
-  
- private:   
+  //No additional init.
+  virtual void Init(pdb_setup::Atoms const& atoms,
+                    config_setup::Output const& output);
 
-   void InitVals(config_setup::EventSettings const& event)
-   {
-      stepsPerOut = event.frequency;
-      enableOut = event.enable;
-   }
-   
-   void AllocFlucts(void)
-   {
-      numKindFlucts = out::TOTAL_K * var->numKinds;
+  virtual void DoOutput(const ulong step);
+
+private:
+
+  void InitVals(config_setup::EventSettings const& event)
+  {
+    stepsPerOut = event.frequency;
+    enableOut = event.enable;
+  }
+
+  void AllocFlucts(void)
+  {
+    numKindFlucts = out::TOTAL_K * var->numKinds;
 #if ENSEMBLE == GCMC || ENSEMBLE == GEMC
-      //we don't have mole fraction with only one kind
-      if (var->numKinds == 1)
-         numKindFlucts--;
+    //we don't have mole fraction with only one kind
+    if (var->numKinds == 1)
+      numKindFlucts--;
 #endif
-      totalFlucts = out::TOTAL_SINGLE + numKindFlucts;
-      flucts= new FluctuationTracker[totalFlucts];
-   }
-   
-   void InitWatchSingle(config_setup::TrackedVars const& tracked);
+    totalFlucts = out::TOTAL_SINGLE + numKindFlucts;
+    flucts= new FluctuationTracker[totalFlucts];
+  }
 
-   void InitWatchMulti(config_setup::TrackedVars const& tracked);
-   
-   FluctuationTracker * flucts;
-   uint numKindFlucts, totalFlucts;
+  void InitWatchSingle(config_setup::TrackedVars const& tracked);
+
+  void InitWatchMulti(config_setup::TrackedVars const& tracked);
+
+  FluctuationTracker * flucts;
+  uint numKindFlucts, totalFlucts;
 };
 
 #endif /*FLUCT_OUTPUT_H*/

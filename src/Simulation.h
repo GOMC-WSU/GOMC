@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef SIMULATION_H
 #define SIMULATION_H
 
@@ -15,21 +9,21 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 class Simulation
 {
- public:
-   explicit Simulation(char const*const configFileName);
-   ~Simulation();
+public:
+  explicit Simulation(char const*const configFileName);
+  ~Simulation();
 
-   void RunSimulation(void);
+  void RunSimulation(void);
 
 #ifndef NDEBUG
-   void RunningCheck(const uint step);
+  void RunningCheck(const uint step);
 #endif
 
- private:
-   StaticVals * staticValues;
-   System * system;
-   CPUSide * cpu;
-   ulong totalSteps;
+private:
+  StaticVals * staticValues;
+  System * system;
+  CPUSide * cpu;
+  ulong totalSteps;
 };
 
 #endif /*SIMULATION_H*/

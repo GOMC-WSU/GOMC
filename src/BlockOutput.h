@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef BLOCK_OUTPUT_H
 #define BLOCK_OUTPUT_H
 
@@ -27,113 +21,122 @@ class System;
 
 struct BlockAverage
 {
-   BlockAverage(): enable(false), block(NULL), uintSrc(NULL), dblSrc(NULL) {}
-   
-   ~BlockAverage() 
-   { 
-      if (outF.is_open())
-      {
-	 outF.close();
-      }
-      if (dblSrc != NULL)
-      {
-	 delete[] dblSrc;
-      }
-      if (uintSrc != NULL)
-      {
-	 delete[] uintSrc;
-      }
-      if (block != NULL)
-      {
-	 delete[] block;
-      }
-   }
+  BlockAverage(): enable(false), block(NULL), uintSrc(NULL), dblSrc(NULL) {}
 
-   //Initializes name, and enable
-   void Init(const bool en, const double scl,
-	     std::string const& var, std::string const& uniqueName,
-	     const uint bTot = BOX_TOTAL);
+  ~BlockAverage()
+  {
+    if (outF.is_open())
+    {
+      outF.close();
+    }
+    if (dblSrc != NULL)
+    {
+      delete[] dblSrc;
+    }
+    if (uintSrc != NULL)
+    {
+      delete[] uintSrc;
+    }
+    if (block != NULL)
+    {
+      delete[] block;
+    }
+  }
 
-   //Set one of the pointers to the block values we're tracking
-   void SetRef(double * loc, const uint b) 
-   {
-      dblSrc[b] = loc;
-      uintSrc[b] = NULL;
-      outF << std::setprecision(std::numeric_limits<double>::digits10+2) << std::setw(25);
-   }
-   void SetRef(uint * loc, const uint b) 
-   { uintSrc[b] = loc; dblSrc[b] = NULL; }
+  //Initializes name, and enable
+  void Init(const bool en, const double scl,
+            std::string const& var, std::string const& uniqueName,
+            const uint bTot = BOX_TOTAL);
 
-   void Sum(void);
+  //Set one of the pointers to the block values we're tracking
+  void SetRef(double * loc, const uint b)
+  {
+    dblSrc[b] = loc;
+    uintSrc[b] = NULL;
+    outF << std::setprecision(std::numeric_limits<double>::digits10+2) << std::setw(25);
+  }
+  void SetRef(uint * loc, const uint b)
+  {
+    uintSrc[b] = loc;
+    dblSrc[b] = NULL;
+  }
 
-   void Write(const ulong step, const bool firstPrint)
-   { 
-      first = firstPrint;
-      if (enable)
-	 DoWrite(step);
-   }
+  void Sum(void);
 
- private:
-   
-   std::string GetFName(std::string const& base, std::string const& uniqueName);
+  void Write(const ulong step, const bool firstPrint)
+  {
+    first = firstPrint;
+    if (enable)
+      DoWrite(step);
+  }
 
-   void Zero(void)
-   {
-      for (uint b = 0; b < tot; b++)
-	 block[b] = 0.0;
-      samples = 0;
-   } 
-   
-   void DoWrite(const ulong step);
-   
-   bool first;
-   std::ofstream outF;
-   std::string name, varName;
-   uint ** uintSrc, tot;
-   double ** dblSrc;
-   double * block, scl;
-   uint samples;
-   bool enable;
+private:
+
+  std::string GetFName(std::string const& base, std::string const& uniqueName);
+
+  void Zero(void)
+  {
+    for (uint b = 0; b < tot; b++)
+      block[b] = 0.0;
+    samples = 0;
+  }
+
+  void DoWrite(const ulong step);
+
+  bool first;
+  std::ofstream outF;
+  std::string name, varName;
+  uint ** uintSrc, tot;
+  double ** dblSrc;
+  double * block, scl;
+  uint samples;
+  bool enable;
 };
 
 struct BlockAverages : OutputableBase
 {
-   BlockAverages(OutputVars & v){ this->var = &v; }
-   
-   ~BlockAverages(void) { if ( blocks != NULL ) delete[] blocks; }
-   
-   //No additional init.
-   virtual void Init(pdb_setup::Atoms const& atoms,
-                     config_setup::Output const& output);
-   
-   virtual void Sample(const ulong step);
-   
-   virtual void DoOutput(const ulong step);
-  
- private:   
+  BlockAverages(OutputVars & v)
+  {
+    this->var = &v;
+  }
 
-   void InitVals(config_setup::EventSettings const& event)
-   {
-      stepsPerOut = event.frequency;
-      invSteps = 1.0/stepsPerOut;
-      enableOut = event.enable;
-   }
+  ~BlockAverages(void)
+  {
+    if ( blocks != NULL ) delete[] blocks;
+  }
 
-   void AllocBlocks(void);
-   
-   void InitWatchSingle(config_setup::TrackedVars const& tracked);
+  //No additional init.
+  virtual void Init(pdb_setup::Atoms const& atoms,
+                    config_setup::Output const& output);
 
-   void InitWatchMulti(config_setup::TrackedVars const& tracked);
+  virtual void Sample(const ulong step);
 
-   //Block vars
-   BlockAverage * blocks;
-   uint numKindBlocks, totalBlocks;
+  virtual void DoOutput(const ulong step);
 
-   //Intermediate vars.
-   uint samplesWrites;
+private:
 
-   //Constants
-   double invSteps;
+  void InitVals(config_setup::EventSettings const& event)
+  {
+    stepsPerOut = event.frequency;
+    invSteps = 1.0/stepsPerOut;
+    enableOut = event.enable;
+  }
+
+  void AllocBlocks(void);
+
+  void InitWatchSingle(config_setup::TrackedVars const& tracked);
+
+  void InitWatchMulti(config_setup::TrackedVars const& tracked);
+
+  //Block vars
+  BlockAverage * blocks;
+  uint numKindBlocks, totalBlocks;
+
+  //Intermediate vars.
+  uint samplesWrites;
+
+  //Constants
+  double invSteps;
 };
 
 #endif /*BLOCK_OUTPUT_H*/

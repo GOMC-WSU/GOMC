@@ -1,15 +1,11 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
 #include "EnsemblePreprocessor.h" //For VARIABLE_<QUANTITY> conditional defines
-#include "CalculateEnergy.h" 
-#include "Ewald.h" 
+#include "CalculateEnergy.h"
+#include "EwaldCached.h"
+#include "Ewald.h"
+#include "NoEwald.h"
 
 //Member variables
 #include "EnergyTypes.h"
@@ -18,9 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BoxDimensions.h"
 #include "MoleculeLookup.h"
 #include "MoveSettings.h"
-#ifdef CELL_LIST
 #include "CellList.h"
-#endif
 
 //Initialization variables
 class Setup;
@@ -29,69 +23,65 @@ class MoveBase;
 
 class System
 {
- public:
-   explicit System(StaticVals& statics);
+public:
+  explicit System(StaticVals& statics);
 
-   void Init(Setup const& setupData);
+  void Init(Setup const& setupData);
 
-   //Runs move, picked at random
-   void ChooseAndRunMove(const uint step);
+  //Runs move, picked at random
+  void ChooseAndRunMove(const uint step);
 
-   // return ewald
-   Ewald * GetEwald()
-   {
-     return &calcEwald;
-   }
+  // return ewald
+  EwaldCached * GetEwald()
+  {
+    return calcEwald;
+  }
 
-   //NOTE:
-   //This must also come first... as subsequent values depend on obj.
-   //That may be in here, i.e. Box Dimensions
-   StaticVals & statV;
+  //NOTE:
+  //This must also come first... as subsequent values depend on obj.
+  //That may be in here, i.e. Box Dimensions
+  StaticVals & statV;
 
-   //NOTE:
-   //Important! These must come first, as other objects may depend
-   //on their val for init!
-   //Only include these variables if they vary for this ensemble...
+  //NOTE:
+  //Important! These must come first, as other objects may depend
+  //on their val for init!
+  //Only include these variables if they vary for this ensemble...
 #ifdef VARIABLE_VOLUME
-   BoxDimensions boxDimensions;
+  BoxDimensions boxDimensions;
 #endif
 #ifdef  VARIABLE_PARTICLE_NUMBER
-   MoleculeLookup molLookup;
+  MoleculeLookup molLookup;
 #endif
 
-   //Use as we don't know where they are...
-   BoxDimensions & boxDimRef;
-   MoleculeLookup & molLookupRef;
+  //Use as we don't know where they are...
+  BoxDimensions & boxDimRef;
+  MoleculeLookup & molLookupRef;
 
-   MoveSettings moveSettings;
-   SystemPotential potential;
-   Coordinates coordinates;
-   COM com;
+  MoveSettings moveSettings;
+  SystemPotential potential;
+  Coordinates coordinates;
+  COM com;
 
-   CalculateEnergy calcEnergy;
-   Ewald  calcEwald;
-   //Ewald ewaldEnergy;
-   //Ewald & calcEwald;
-#ifdef CELL_LIST
-   CellList cellList;
-#endif
-   PRNG prng;
+  CalculateEnergy calcEnergy;
+  EwaldCached  *calcEwald;
+  CellList cellList;
+  PRNG prng;
 
-   //Procedure to run once move is picked... can also be called directly for
-   //debugging...
-   void RunMove(uint majKind, double draw, const uint step);
+  //Procedure to run once move is picked... can also be called directly for
+  //debugging...
+  void RunMove(uint majKind, double draw, const uint step);
 
-   ~System();
+  ~System();
 
- private:
-   void InitMoves();
-   void PickMove(uint & kind, double & draw);
-   uint SetParams(const uint kind, const double draw);
-   uint Transform(const uint kind);
-   void CalcEn(const uint kind);
-   void Accept(const uint kind, const uint rejectState, const uint step);
+private:
+  void InitMoves();
+  void PickMove(uint & kind, double & draw);
+  uint SetParams(const uint kind, const double draw);
+  uint Transform(const uint kind);
+  void CalcEn(const uint kind);
+  void Accept(const uint kind, const uint rejectState, const uint step);
 
-   MoveBase * moves[mv::MOVE_KINDS_TOTAL];
+  MoveBase * moves[mv::MOVE_KINDS_TOTAL];
 };
 
 #endif /*SYSTEM_H*/

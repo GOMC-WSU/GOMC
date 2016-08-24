@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef FF_DIHEDRALS_H
 #define FF_DIHEDRALS_H
 
@@ -15,7 +9,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "../lib/NumLib.h"    //Sq
 #include "../lib/BasicTypes.h" //For "uint"
 
-namespace ff_setup { class Dihedral; }
+namespace ff_setup
+{
+class Dihedral;
+}
 
 //FFDihKind
 //Stores parameters for dihedral kinds
@@ -25,31 +22,31 @@ namespace ff_setup { class Dihedral; }
 //Dihedrals may be calculated by several different styles
 class FFDihedrals
 {
-  public:
-   //calculate the energy of dih kind at angle phi
-   double Calc(const uint kind, const double phi) const;
-   //Initialize with data from parameter files
-   void Init(ff_setup::Dihedral const& dih);
+public:
+  //calculate the energy of dih kind at angle phi
+  double Calc(const uint kind, const double phi) const;
+  //Initialize with data from parameter files
+  void Init(ff_setup::Dihedral const& dih);
 
-   FFDihedrals(void) : Kchi(NULL), delta(NULL), n(NULL) {}
-   ~FFDihedrals(void);
+  FFDihedrals(void) : Kchi(NULL), delta(NULL), n(NULL) {}
+  ~FFDihedrals(void);
 
- private: 
+private:
 
-   //dih kind params
-   SubdividedArray subdiv;
-   double * Kchi, * delta;
-   uint *n;
+  //dih kind params
+  SubdividedArray subdiv;
+  double * Kchi, * delta;
+  uint *n;
 };
 
 inline double FFDihedrals::Calc(const uint kind, const double phi) const
 {
-   double sum = 0.0;
-   for(uint i = subdiv.Begin(kind); i != subdiv.End(kind); ++i)
-   {
-      sum += Kchi[i] * (1 + cos(n[i] * phi - delta[i])); 
-   }
-   return sum;
+  double sum = 0.0;
+  for(uint i = subdiv.Begin(kind); i != subdiv.End(kind); ++i)
+  {
+    sum += Kchi[i] * (1 + cos(n[i] * phi - delta[i]));
+  }
+  return sum;
 }
 
 #endif /*FF_DIHEDRALS_H*/

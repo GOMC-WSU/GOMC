@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef COORDINATES_H
 #define COORDINATES_H
 
@@ -15,49 +9,52 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "COM.h"
 #include "PRNG.h"
 
-//Coordinates array 
+//Coordinates array
 class Coordinates : public XYZArray
 {
- public:
-   //Declare a set of coordinates with no data (but must have proper frame
-   //of reference).
-   Coordinates(BoxDimensions & box, COM & com, 
-	       MoleculeLookup & molLook, PRNG & prng, Molecules const& mol) : 
-      boxDimRef(box), comRef(com), prngRef(prng), molLookRef(molLook),
-      molRef(mol) {}
+public:
+  //Declare a set of coordinates with no data (but must have proper frame
+  //of reference).
+  Coordinates(BoxDimensions & box, COM & com,
+              MoleculeLookup & molLook, PRNG & prng, Molecules const& mol) :
+    boxDimRef(box), comRef(com), prngRef(prng), molLookRef(molLook),
+    molRef(mol) {}
 
-   Coordinates& operator=(Coordinates const& rhs)
-   { this->XYZArray::operator=(rhs); return *this; }
+  Coordinates& operator=(Coordinates const& rhs)
+  {
+    this->XYZArray::operator=(rhs);
+    return *this;
+  }
 
-   //Init from the coordinates grabbed from pdb file read.
-   void InitFromPDB(pdb_setup::Atoms const& atoms);
+  //Init from the coordinates grabbed from pdb file read.
+  void InitFromPDB(pdb_setup::Atoms const& atoms);
 
-   //Translate by a random amount
-   void TranslateRand(XYZArray & dest, XYZ & newCOM, uint & pStart, 
-		      uint & pLen, const uint m, const uint b, 
-		      double max);
+  //Translate by a random amount
+  void TranslateRand(XYZArray & dest, XYZ & newCOM, uint & pStart,
+                     uint & pLen, const uint m, const uint b,
+                     double max);
 
-   //Rotate by a random amount.
-   void RotateRand(XYZArray & dest,  uint & pStart, uint & pLen, const uint m,
-		   const uint b, const double max);
+  //Rotate by a random amount.
+  void RotateRand(XYZArray & dest,  uint & pStart, uint & pLen, const uint m,
+                  const uint b, const double max);
 
-   //scale all in each mol newCOM[m]/oldCOM[m]
-   void VolumeTransferTranslate
-      (uint & state, Coordinates &dest, COM & newCOM, BoxDimensions & newDim,
-       COM const& oldCOM, const double max) const;
+  //scale all in each mol newCOM[m]/oldCOM[m]
+  void VolumeTransferTranslate
+  (uint & state, Coordinates &dest, COM & newCOM, BoxDimensions & newDim,
+   COM const& oldCOM, const double max) const;
 
-   //Helper for TranslateAll
-   void TranslateOneBox(Coordinates & dest, COM & newCOM, COM const& oldCOM,
-			BoxDimensions const& newDim, const uint b, 
-			const double scale) const;
+  //Helper for TranslateAll
+  void TranslateOneBox(Coordinates & dest, COM & newCOM, COM const& oldCOM,
+                       BoxDimensions const& newDim, const uint b,
+                       const double scale) const;
 
- private:
+private:
 
-   BoxDimensions & boxDimRef;
-   COM & comRef;
-   PRNG & prngRef;
-   MoleculeLookup & molLookRef;
-   Molecules const& molRef;
+  BoxDimensions & boxDimRef;
+  COM & comRef;
+  PRNG & prngRef;
+  MoleculeLookup & molLookRef;
+  Molecules const& molRef;
 };
 
 

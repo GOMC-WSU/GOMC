@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef DCGRAPH_H
 #define DCGRAPH_H
 #include "../CBMC.h"
@@ -20,35 +14,35 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 namespace cbmc
 {
 
-   class DCComponent;
+class DCComponent;
 
-   class DCGraph : public CBMC
-   {
-   public:
-      DCGraph(System& sys, const Forcefield& ff,
-         const MoleculeKind& kind, const Setup& set);
+class DCGraph : public CBMC
+{
+public:
+  DCGraph(System& sys, const Forcefield& ff,
+          const MoleculeKind& kind, const Setup& set);
 
-      void Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
-      ~DCGraph();
+  void Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
+  ~DCGraph();
 
-   private:
-      struct Edge
-      {
-         uint destination;
-         DCComponent* component;
-         Edge(uint d, DCComponent* c) : destination(d), component(c) {}
-      };
-      struct Node
-      {
-         DCComponent* starting;
-         std::vector<Edge> edges;
-      };
+private:
+  struct Edge
+  {
+    uint destination;
+    DCComponent* component;
+    Edge(uint d, DCComponent* c) : destination(d), component(c) {}
+  };
+  struct Node
+  {
+    DCComponent* starting;
+    std::vector<Edge> edges;
+  };
 
-      DCData data;
-      std::vector<Node> nodes;
-      std::vector<Edge> fringe;
-      std::vector<bool> visited; //yes, I know
-   };
+  DCData data;
+  std::vector<Node> nodes;
+  std::vector<Edge> fringe;
+  std::vector<bool> visited; //yes, I know
+};
 }
 
 
