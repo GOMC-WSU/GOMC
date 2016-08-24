@@ -52,6 +52,8 @@ double OutputVars::GetScale(uint sub)
 
 double OutputVars::GetAcceptPercent(uint sub)
 {
+  if(GetTries(sub)==0)
+    return 0.0;
   return (double)(GetAccepted(sub))/(double)(GetTries(sub))*100.0;
 }
 
