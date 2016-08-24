@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "Simulation.h"
 #include "GOMC_Config.h"    //For version number
 #include <iostream>
@@ -15,171 +9,205 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define HOSTNAME
 #elif defined(__linux__) || defined(__apple__) || defined(__FreeBSD__)
 #include <unistd.h>
-#include <stdexcept>
 #define HOSTNAME
 #endif
 
-namespace{
-    std::ostream& PrintTime(std::ostream& stream);
-    std::ostream& PrintHostname(std::ostream& stream);
-    std::ostream& PrintVersion(std::ostream& stream);
-    void PrintSimulationHeader();
-    void PrintSimulationFooter();
-    void PrintDebugMode();
-    bool CheckAndPrintEnsemble();
-	void _PAUSE(const char* _MSG);
+namespace
+{
+std::ostream& PrintTime(std::ostream& stream);
+std::ostream& PrintHostname(std::ostream& stream);
+std::ostream& PrintVersion(std::ostream& stream);
+void PrintSimulationHeader();
+void PrintSimulationFooter();
+void PrintDebugMode();
+bool CheckAndPrintEnsemble();
+uint ReadNum(char *argv);
 }
 
 int main(int argc, char *argv[])
 {
-	//const char * nm = "in.dat";//REMOVED TO ALLOW PASSAGE OF ANY NAME
-	PrintSimulationHeader();
-	//Only run if valid ensemble was detected.
-	if (CheckAndPrintEnsemble())
-	{
+  PrintSimulationHeader();
+  //Only run if valid ensemble was detected.
+  if (CheckAndPrintEnsemble())
+  {
 #ifndef NDEBUG
-		PrintDebugMode();
+    PrintDebugMode();
 #endif
-		//FOLLOWING LINES ADDED TO OBTAIN INPUT PARAMETER FILE
-		string inputFileString;
-		fstream inputFileReader;
 
-		try {
-			//CHECK IF ARGS/FILE PROVIDED IN CMD LINE
-			if (argc < 2)
-				throw std::invalid_argument("Input parameter file (*.dat) not specified on command line!");
-			else
-				inputFileString = argv[1]; //FIRST PARAMETER WILL ALWAYS BE FILE NAME
+    //FOLLOWING LINES ADDED TO OBTAIN INPUT PARAMETER FILE
+    string inputFileString;
+    fstream inputFileReader;
+    uint numThreads;
 
-			inputFileReader.open(inputFileString.c_str(), ios::in | ios::out); //OPEN FILE
-			if (!inputFileReader.is_open()) //CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
-				throw std::invalid_argument("Cannot open/find file in the directory provided!");
+    //CHECK IF ARGS/FILE PROVIDED IN CMD LINE
+    if (argc < 2)
+    {
+      std::cout<<"Input parameter file (*.dat or *.conf) not specified on command line!\n";
+      exit(0);
+    }
+    else
+    {
+      if(argc ==2)
+      {
+        //FIRST PARAMETER WILL BE FILE NAME
+        inputFileString = argv[1];
+        numThreads = 1;
+      }
+      else
+      {
+        //SECOND PARAMETER WILL BE FILE NAME
+        inputFileString = argv[2];
 
-			inputFileReader.close(); //CLOSE FILE TO NOW PASS TO SIMULATION
-		}
-		//EXCEPTION HANDLING
-		catch (const std::invalid_argument &ex){
-			cout << "ERROR: " << ex.what() << endl;
-			_PAUSE("Please press ENTER to continue..."); //PAUSE FOR USER TO ACKNOWLEDGE ERROR
-			return 0;
-		}
+        if(argv[1][0] == '+' && argv[1][1] == 'p')
+        {
+          numThreads = ReadNum(argv[1]);
+        }
+        else
+        {
+          std::cout<<"Error: Undefined command to set number of threads!\n";
+          std::cout<< "Use +p# command to set number of threads.\n";
+          exit(0);
+        }
 
-		//ONCE FILE FOUND PASS STRING TO SIMULATION CLASS TO READ AND HANDLE PDB|PSF FILE
-		Simulation sim(inputFileString.c_str());
-		sim.RunSimulation();
-		PrintSimulationFooter();
-	}
-	return 0;
+      }
+    }
+
+    //SET NUMBER OF THREADS
+#ifdef _OPENMP
+    omp_set_num_threads(numThreads);
+    std::cout << "Number of threads has been set to: " <<
+              numThreads << std::endl;
+#endif
+
+    //OPEN FILE
+    inputFileReader.open(inputFileString.c_str(), ios::in | ios::out);
+
+    //CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
+    if (!inputFileReader.is_open())
+    {
+      std::cout<<"Cannot open/find " << inputFileString <<
+               " in the directory provided!\n";
+      exit(0);
+    }
+
+    //CLOSE FILE TO NOW PASS TO SIMULATION
+    inputFileReader.close();
+
+    //ONCE FILE FOUND PASS STRING TO SIMULATION CLASS TO READ AND
+    //HANDLE PDB|PSF FILE
+    Simulation sim(inputFileString.c_str());
+    sim.RunSimulation();
+    PrintSimulationFooter();
+  }
+  return 0;
 }
 
 
-namespace {
+namespace
+{
 
-   void PrintSimulationHeader()
-   {
-      std::cout << PrintVersion << '\n'
-		<< "Started at: " << PrintTime
+void PrintSimulationHeader()
+{
+  std::cout << PrintVersion << '\n'
+            << "Started at: " << PrintTime
 #ifdef HOSTNAME
-		<< "On hostname: " << PrintHostname
+            << "On hostname: " << PrintHostname
 #endif
-		<< "\n\n";
-   }
+            << "\n\n";
+}
 
-   bool CheckAndPrintEnsemble()
-   {
-      bool healthy = true;
-      std::cout << "------------------------------------------------------"
-		<< std::endl
-		<< "This code was compiled to support the ";
+bool CheckAndPrintEnsemble()
+{
+  bool healthy = true;
+  std::cout << "------------------------------------------------------"
+            << std::endl
+            << "This code was compiled to support the ";
 #if ENSEMBLE == NVT
-      std::cout << "canonical (NVT)";
+  std::cout << "canonical (NVT)";
 #elif ENSEMBLE == GEMC
-      std::cout << "Gibbs";
+  std::cout << "Gibbs";
 #elif ENSEMBLE == GCMC
-      std::cout << "grand canonical";
+  std::cout << "grand canonical";
 #else
-      std::cerr << "CRITICAL ERROR! Preprocessor value ENSEMBLE is "
-		<< "invalid or undefined." << std::endl
-		<< "Code will exit.";
-      healthy = false;
+  std::cerr << "CRITICAL ERROR! Preprocessor value ENSEMBLE is "
+            << "invalid or undefined." << std::endl
+            << "Code will exit.";
+  healthy = false;
 #endif
-      std::cout << " ensemble." << std::endl
-		<< "------------------------------------------------------"
-		<< std::endl << std::endl;
-      return healthy;
-   }
+  std::cout << " ensemble." << std::endl
+            << "------------------------------------------------------"
+            << std::endl << std::endl;
+  return healthy;
+}
 
-	void PrintDebugMode()
-	{
-	  std::cout << "#########################################################\n";
-	  std::cout << "################# RUNNING IN DEBUG MODE #################\n";
-	  std::cout << "#########################################################\n";
-	}
+void PrintDebugMode()
+{
+  std::cout << "#########################################################\n";
+  std::cout << "################# RUNNING IN DEBUG MODE #################\n";
+  std::cout << "#########################################################\n";
+}
 
-	void PrintSimulationFooter()
-	{
-		std::cout << PrintVersion << '\n'
-			<< "Completed at: " << PrintTime
-			<< "On hostname: " << PrintHostname
-			<< '\n';
-	}
+void PrintSimulationFooter()
+{
+  std::cout << PrintVersion << '\n'
+            << "Completed at: " << PrintTime
+            << "On hostname: " << PrintHostname
+            << '\n';
+}
 
-	std::ostream& PrintVersion(std::ostream& stream)
-	{
-		stream << "GOMC Serial Version " << GOMC_VERSION_MAJOR 
-			<< '.' << GOMC_VERSION_MINOR;
-		return stream;
-	}
+std::ostream& PrintVersion(std::ostream& stream)
+{
+  stream << "GOMC Serial Version " << GOMC_VERSION_MAJOR
+         << '.' << GOMC_VERSION_MINOR;
+  return stream;
+}
 
-	std::ostream& PrintTime(std::ostream& stream)
-	{
-		time_t timer;
-		time(&timer);
-		stream << asctime(localtime(&timer));
-		return stream;
-	}
+std::ostream& PrintTime(std::ostream& stream)
+{
+  time_t timer;
+  time(&timer);
+  stream << asctime(localtime(&timer));
+  return stream;
+}
 
-	std::ostream& PrintHostname(std::ostream& stream)
-	{
-	#ifdef HOSTNAME
-	#ifdef _WIN32
-		//setup WINSOCK
-		WSADATA wsaData;
-		WSAStartup(MAKEWORD(2,0), &wsaData);
-	#endif
+std::ostream& PrintHostname(std::ostream& stream)
+{
+#ifdef HOSTNAME
+#ifdef _WIN32
+  //setup WINSOCK
+  WSADATA wsaData;
+  WSAStartup(MAKEWORD(2,0), &wsaData);
+#endif
 
-		const int maxNameLength = 80;
-		char hostname[maxNameLength];
-		gethostname(hostname, maxNameLength);
-		//gethostname does not guarantee null termination
-		hostname[maxNameLength - 1] = '\0';
-		stream << hostname;
+  const int maxNameLength = 80;
+  char hostname[maxNameLength];
+  gethostname(hostname, maxNameLength);
+  //gethostname does not guarantee null termination
+  hostname[maxNameLength - 1] = '\0';
+  stream << hostname;
 
-	#ifdef _WIN32
-		//teardown WINSOCK
-		WSACleanup();
-	#endif
-	#else
-		stream << "Hostname Unavailable";
-	#endif
-		return stream;
-	}
+#ifdef _WIN32
+  //teardown WINSOCK
+  WSACleanup();
+#endif
+#else
+  stream << "Hostname Unavailable";
+#endif
+  return stream;
+}
 
-	void _PAUSE(const char* _MSG)
-	{
-	#ifdef max	//	windows.h library defines a function-like macro with the name of max()
-	#define _TEMP_MACRO_ max	//	store the predefined macro in a new one
-	#undef max	//	undefine the problamatic macro.
-	#endif
-		cout << _MSG;
-		cin.ignore(numeric_limits< streamsize >::max(), '\n');
-		if (cin.get() != '\n')
-			cin.ignore(numeric_limits< streamsize >::max(), '\n');
-		cout << endl;
-	#ifdef _Temp_MACRO_
-	#define max _TEMP_MACRO_	// restore the max() macro.
-	#undef _TEMP_MACRO_	// undefine the temporary macro.
-	#endif 
-	}
+uint ReadNum(char *argv)
+{
+  uint thread = 0;
+
+  for(uint i=2; argv[i] != 0; i++)
+  {
+    thread = thread * 10 + (argv[i]-'0');
+  }
+
+  return thread;
+}
+
+
 }
 

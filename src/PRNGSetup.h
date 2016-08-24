@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef PRNG_SETUP_H
 #define PRNG_SETUP_H
 
@@ -11,52 +5,62 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "../lib/BasicTypes.h" //For uint/ulong
 
 class Reader;
-namespace config_setup {
+namespace config_setup
+{
 struct RestartSettings;
 class PRNGKind;
 }
 
 namespace prng_setup
 {
-   struct PRNGInitData
-   {
-      PRNGInitData() : loadArray(NULL) {}
-      //WARNING/NOTE: Object is passed off, NOT deleted.
-      ~PRNGInitData(void) { delete[] loadArray; }
+struct PRNGInitData
+{
+  PRNGInitData() : loadArray(NULL) {}
+  //WARNING/NOTE: Object is passed off, NOT deleted.
+  ~PRNGInitData(void)
+  {
+    delete[] loadArray;
+  }
 
-      //Init from file.
-      void Init(Reader & prngSeed, const ulong resStep);
+  //Init from file.
+  void Init(Reader & prngSeed, const ulong resStep);
 
-      //Init from unsigned integer seed.
-      void Init(const uint seed) { prng = new MTRand((MTRand::uint32)(seed)); }
+  //Init from unsigned integer seed.
+  void Init(const uint seed)
+  {
+    prng = new MTRand((MTRand::uint32)(seed));
+  }
 
-      //Init pure random.
-      void Init(void) { prng = new MTRand(); } 
-      
-      void HandleError(std::string const& mode);
+  //Init pure random.
+  void Init(void)
+  {
+    prng = new MTRand();
+  }
+
+  void HandleError(std::string const& mode);
 
 
-      MTRand * prng;
-    private:
-      
-      //Goto correct step in seed dump file.
-      void Goto(Reader & prngSeed, const ulong resStep);
+  MTRand * prng;
+private:
 
-      //Read in saved seed;
-      void Read(Reader & prngSeed);
+  //Goto correct step in seed dump file.
+  void Goto(Reader & prngSeed, const ulong resStep);
 
-      MTRand::uint32 * loadArray;
-   };
+  //Read in saved seed;
+  void Read(Reader & prngSeed);
+
+  MTRand::uint32 * loadArray;
+};
 }
 
 struct PRNGSetup
 {
-   prng_setup::PRNGInitData prngMaker;
-   void Init(config_setup::RestartSettings const& restart,
-	     config_setup::PRNGKind const& genConf,
-	     std::string const& name);
-   
-   static const std::string seedFileAlias;
+  prng_setup::PRNGInitData prngMaker;
+  void Init(config_setup::RestartSettings const& restart,
+            config_setup::PRNGKind const& genConf,
+            std::string const& name);
+
+  static const std::string seedFileAlias;
 };
 
 #endif /*PRNG_SETUP_H*/
