@@ -4,7 +4,7 @@
 
 CPUSide::CPUSide(System & sys, StaticVals & statV) :
   varRef(sys, statV), pdb(sys, statV), console(varRef), block(varRef),
-  fluct(varRef), hist(varRef)
+  hist(varRef)
 #if ENSEMBLE == GCMC
   , sample_N_E(varRef)
 #endif
@@ -21,8 +21,6 @@ void CPUSide::Init(PDBSetup const& pdbSet, config_setup::Output const& out,
   outObj.push_back(&pdb);
   if (out.statistics.settings.block.enable)
     outObj.push_back(&block);
-  if (out.statistics.settings.fluct.enable)
-    outObj.push_back(&fluct);
 
 #if ENSEMBLE == GCMC
   outObj.push_back(&hist);
