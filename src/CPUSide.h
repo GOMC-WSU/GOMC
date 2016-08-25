@@ -6,7 +6,6 @@
 #include "ConsoleOutput.h"
 #include "PDBOutput.h"
 #include "BlockOutput.h"
-#include "FluctOutput.h"
 #include "HistOutput.h"
 #include "ConfigSetup.h"
 #include "OutputVars.h"
@@ -33,7 +32,6 @@ private:
   ConsoleOutput console;
   PDBOutput pdb;
   BlockAverages block;
-  Fluctuations fluct;
   Histogram hist;
 #if ENSEMBLE == GCMC
   EnPartCntSample sample_N_E;
