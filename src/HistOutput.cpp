@@ -4,6 +4,8 @@
 #include "ConfigSetup.h"
 
 #include <sstream>
+#include <iostream>
+#include <fstream>
 
 Histogram::Histogram(OutputVars & v)
 {
@@ -42,6 +44,7 @@ void Histogram::Init(pdb_setup::Atoms const& atoms,
                                   output.state.files.hist.number,
                                   output.state.files.hist.letter,
                                   b, k);
+	    outF[b][k].open(name[b][k].c_str(), std::ofstream::out);
          }
       }
       //Figure out total of each kind of molecule in ALL boxes, including
@@ -113,8 +116,8 @@ void Histogram::DoOutput(const ulong step)
       {
 	 for (uint k = 0; k < var->numKinds; ++k)
 	 {
-	    outF[b][k].open(name[b][k].c_str(), std::ofstream::out);  
-	    if (outF[b][k].is_open())   
+	    outF[b][k].seekp(0);
+	    if (outF[b][k].is_open())
 	      PrintKindHist(b, k);
 	    else
 	      std::cerr << "Unable to write to file \"" <<  name[b][k] << "\" " 
