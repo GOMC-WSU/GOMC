@@ -102,7 +102,7 @@ void EnPartCntSample::DoOutput(const ulong step)
    if ((step+1) < stepsTillEquil) return;
    //Output a sample in the form <N1,... Nk, E_total>
    //Only sample on specified interval.
-   if ((step+1) % stepsPerSample == 0)
+   if ((step+1) % stepsPerOut == 0)
    {
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
       {
