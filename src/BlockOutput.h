@@ -22,13 +22,8 @@ class System;
 struct BlockAverage
 {
   BlockAverage(): enable(false), block(NULL), uintSrc(NULL), dblSrc(NULL) {}
-
   ~BlockAverage()
   {
-    if (outF.is_open())
-    {
-      outF.close();
-    }
     if (dblSrc != NULL)
     {
       delete[] dblSrc;
@@ -42,10 +37,11 @@ struct BlockAverage
       delete[] block;
     }
   }
-
   //Initializes name, and enable
-  void Init(const bool en, const double scl,
-            std::string const& var, std::string const& uniqueName,
+  void Init(std::ofstream *file, 
+	    const bool en, 
+	    const double scl,
+            std::string const& var,
             const uint bTot = BOX_TOTAL);
 
   //Set one of the pointers to the block values we're tracking
@@ -53,16 +49,13 @@ struct BlockAverage
   {
     dblSrc[b] = loc;
     uintSrc[b] = NULL;
-    outF << std::setprecision(std::numeric_limits<double>::digits10+2) << std::setw(25);
   }
   void SetRef(uint * loc, const uint b)
   {
     uintSrc[b] = loc;
     dblSrc[b] = NULL;
   }
-
   void Sum(void);
-
   void Write(const ulong step, const bool firstPrint)
   {
     first = firstPrint;
@@ -71,20 +64,16 @@ struct BlockAverage
   }
 
 private:
-
-  std::string GetFName(std::string const& base, std::string const& uniqueName);
-
   void Zero(void)
   {
     for (uint b = 0; b < tot; b++)
       block[b] = 0.0;
     samples = 0;
   }
-
   void DoWrite(const ulong step);
-
+  
+  std::ofstream* outF;
   bool first;
-  std::ofstream outF;
   std::string name, varName;
   uint ** uintSrc, tot;
   double ** dblSrc;
@@ -92,7 +81,7 @@ private:
   uint samples;
   bool enable;
 };
-
+/**********************************************************************/
 struct BlockAverages : OutputableBase
 {
   BlockAverages(OutputVars & v)
@@ -102,39 +91,36 @@ struct BlockAverages : OutputableBase
 
   ~BlockAverages(void)
   {
+    if (outF.is_open())
+    {
+      outF.close();
+    }
     if ( blocks != NULL ) delete[] blocks;
   }
-
   //No additional init.
   virtual void Init(pdb_setup::Atoms const& atoms,
                     config_setup::Output const& output);
 
   virtual void Sample(const ulong step);
-
   virtual void DoOutput(const ulong step);
 
 private:
-
   void InitVals(config_setup::EventSettings const& event)
   {
     stepsPerOut = event.frequency;
     invSteps = 1.0/stepsPerOut;
     enableOut = event.enable;
   }
-
   void AllocBlocks(void);
-
   void InitWatchSingle(config_setup::TrackedVars const& tracked);
-
   void InitWatchMulti(config_setup::TrackedVars const& tracked);
 
+  std::ofstream outF;
   //Block vars
   BlockAverage * blocks;
   uint numKindBlocks, totalBlocks;
-
   //Intermediate vars.
   uint samplesWrites;
-
   //Constants
   double invSteps;
 };

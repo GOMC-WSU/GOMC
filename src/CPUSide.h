@@ -19,11 +19,9 @@ class OutputableBase;
 
 struct CPUSide
 {
-
   CPUSide(System & sys, StaticVals & statV);
   void Init(PDBSetup const& pdbSet, config_setup::Output const& out,
             const ulong tillEquil, const ulong totSteps);
-
   void Output(const ulong step);
 
 private:
@@ -36,9 +34,7 @@ private:
 #if ENSEMBLE == GCMC
   EnPartCntSample sample_N_E;
 #endif
-
   OutputVars varRef;
-
 };
 
 #endif /*CPU_SIDE_H*/
