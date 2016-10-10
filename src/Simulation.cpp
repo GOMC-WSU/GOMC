@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "Simulation.h"
 #include "Setup.h"          //For setup object
 
@@ -24,6 +18,9 @@ Simulation::Simulation(char const*const configFileName)
    system = new System(*staticValues);
    staticValues->Init(set, *system); 
    system->Init(set);
+   //recal Init for static value for initializing ewald since ewald is
+   //initialized in system
+   staticValues->InitOver(set, *system);
    cpu = new CPUSide(*system, *staticValues);
    cpu->Init(set.pdb, set.config.out, set.config.sys.step.equil,
              totalSteps);
@@ -62,6 +59,7 @@ void Simulation::RunSimulation(void)
 #ifndef NDEBUG
 void Simulation::RunningCheck(const uint step)
 {
+   system->calcEwald->Init();
    SystemPotential pot = system->calcEnergy.SystemTotal();
    
    std::cout 

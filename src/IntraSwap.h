@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef INTRASWAP_H
 #define INTRASWAP_H
 
@@ -81,9 +75,7 @@ inline uint IntraSwap::Transform()
    oldVirial_LJ = 0.0; 
    oldVirial_Real = 0.0;
    calcEnRef.MoleculeVirial(oldVirial_LJ, oldVirial_Real, molIndex, sourceBox);
-#ifdef CELL_LIST
    cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
-#endif
    subPick = mv::GetMoveSubIndex(mv::INTRA_SWAP, sourceBox);
    molRef.kinds[kindIndex].Build(oldMol, newMol, molIndex);
    return mv::fail_state::NO_FAIL;
@@ -93,17 +85,14 @@ inline void IntraSwap::CalcEn()
 {
   // since number of molecules would not change in the box,
   //there is no change in Tc
-  W_tc = 1.0;
-   
+  W_tc = 1.0;   
   W_recip = 1.0;
-  if (ewald) 
+
+  if (newMol.GetWeight() != 0.0)
   {
-    if (newMol.GetWeight() != 0.0)
-    {
-      recipDiff.energy = calcEwald.MolReciprocal(newMol.GetCoords(), molIndex,
+     recipDiff.energy = calcEwald->MolReciprocal(newMol.GetCoords(), molIndex,
 						 sourceBox);
-      W_recip = exp(-1.0 * ffRef.beta * recipDiff.energy);
-    }
+     W_recip = exp(-1.0 * ffRef.beta * recipDiff.energy);
   }
 }
 
@@ -132,10 +121,7 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
 	 //Set coordinates, new COM; shift index to new box's list
          newMol.GetCoords().CopyRange(coordCurrRef, 0, pStart, pLen);
          comCurrRef.SetNew(molIndex, destBox);
-         
-#ifdef CELL_LIST
 	 cellList.AddMol(molIndex, destBox, coordCurrRef);
-#endif
 
 	 //Calculate the fresh virial.
          double newVirial_LJ = 0.0, newVirial_Real = 0.0;
@@ -153,29 +139,21 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
 	    sysPotRef.boxEnergy[sourceBox].real = 0;
 	    sysPotRef.boxVirial[sourceBox].real = 0;
 	 }
-
+	
+	 calcEwald->UpdateRecip(sourceBox);
 	 //Retotal
          sysPotRef.Total();
-	 if (ewald)
-	 {	
-	   calcEwald.UpdateRecip(sourceBox);
-	 }
       }
-#ifdef CELL_LIST
       else
       {
 	cellList.AddMol(molIndex, sourceBox, coordCurrRef);
-	if (ewald)
-	{
-	  calcEwald.BackUpRecip(sourceBox);
-	   //when weight is 0, MolDestSwap() will not be executed, thus cos/sin
-	   //molRef will not be changed. Also since no memcpy, doing restore
-	   //results in memory overwrite
-	  if (newMol.GetWeight() != 0.0)
-	    calcEwald.RestoreMol(molIndex);
-	}
+
+	//when weight is 0, MolDestSwap() will not be executed, thus cos/sin
+	//molRef will not be changed. Also since no memcpy, doing restore
+	//results in memory overwrite
+	if (newMol.GetWeight() != 0.0)
+	  calcEwald->RestoreMol(molIndex);
       }
-#endif
    }
    else  //else we didn't even try because we knew it would fail
       result = false;

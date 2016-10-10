@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 // MersenneTwister.h
 // Mersenne Twister random number generator -- a C++ class MTRand
 // Based on code by Makoto Matsumoto, Takuji Nishimura, and Shawn Cokus
@@ -183,6 +177,7 @@ inline void MTRand::initialize( const uint32 seed )
 	// In previous versions, most significant bits (MSBs) of the seed affect
 	// only MSBs of the state array.  Modified 9 Jan 2002 by Makoto Matsumoto.
 
+
 	register uint32 *s = state;
 	register uint32 *r = state;
 	register int32 i = 1;
@@ -214,6 +209,7 @@ inline void MTRand::reload()
 inline void MTRand::seed( const uint32 oneSeed )
 {
 
+        std::cout << "Random number seed: " << oneSeed << std::endl<< std::endl;
 	// Seed the generator with a simple uint32
 	initialize(oneSeed);
 	reload();
@@ -262,6 +258,9 @@ inline void MTRand::seed()
 	// Otherwise use a hash of time() and clock() values
 	
 	// First try getting an array from /dev/urandom
+
+        // to be consistence with windows version
+        /*
 	FILE* urandom = fopen( "/dev/urandom", "rb" );
 	if( urandom )
 	{
@@ -274,11 +273,11 @@ inline void MTRand::seed()
 		fclose(urandom);
 		if( success ) { seed( bigSeed, N );  return; }
 	}
-	
+	*/
+
 	// Was not successful, so use time() and clock() instead
 	seedValue = hash( time(NULL), clock() );
 	seed( seedValue );
-	std::cout << "Random number seed: " << seedValue << std::endl;
 }
 
 inline MTRand::MTRand( const uint32 oneSeed )

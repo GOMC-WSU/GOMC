@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef HIST_OUTPUT_H
 #define HIST_OUTPUT_H
 
@@ -42,7 +36,7 @@ struct Histogram : OutputableBase
       
    //Indices 1: boxes 2: kinds 3: count bins up to N_total
    uint ** molCount[BOXES_WITH_U_NB];
-   uint * total;
+   uint * total, stepsPerSample;
    
    std::ofstream * outF [BOXES_WITH_U_NB];
    std::string * name [BOXES_WITH_U_NB];
