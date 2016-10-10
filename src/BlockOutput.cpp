@@ -9,13 +9,17 @@
 
 #include <iostream> //for endl;
 
-void BlockAverage::Init(std::ofstream* file,
+#define OUTPUTWIDTH 16
+
+void BlockAverage::Init(std::ofstream* file0,
+			std::ofstream* file1,
 			const bool en, 
 			const double scale,
-                        std::string const& var,
-                        const uint bTot)
+			std::string const& var,
+			const uint bTot)
 {
-  outF = file;
+  outBlock0 = file0;
+  outBlock1 = file1;
   tot = bTot;
   block = new double[tot];
   uintSrc = new uint *[tot];
@@ -30,6 +34,7 @@ void BlockAverage::Init(std::ofstream* file,
       uintSrc[b] = NULL;
       dblSrc[b] = NULL;
     }
+    printTitle(var, bTot);
   }
 }
 
@@ -45,30 +50,46 @@ void BlockAverage::Sum(void)
 
 void BlockAverage::DoWrite(const ulong step)
 {
-  if (outF->is_open())
+  if (tot >= 1)
   {
-    for (uint b = 0; b < tot; ++b)
+    if (outBlock0->is_open())
     {
-      (*outF) << std::setw(25);
-      (*outF) << block[b];
+      (*outBlock0) << std::setw(OUTPUTWIDTH);
+      (*outBlock0) << block[0];
     }
+    else
+      std::cerr << "Unable to write to Box_0 output file" << std::endl;
   }
-  else
-    std::cerr << "Unable to write to file \"" <<  name << "\" "
-              << varName << std::endl;
+  if (tot >= 2)
+  {
+    if (outBlock1->is_open())
+    {
+      (*outBlock1) << std::setw(OUTPUTWIDTH);
+      (*outBlock1) << block[1];
+    }
+    else
+      std::cerr << "Unable to write to Box_1 output file" << std::endl;
+  }
   Zero();
 }
 
 void BlockAverages::Init(pdb_setup::Atoms const& atoms,
                          config_setup::Output const& output)
 {
-  std::string name = "Blk_Average_Energy.dat";
-  outF.open(name.c_str(), std::ofstream::out);    
+  std::string name = "Blk_" + uniqueName + "_BOX_0.dat";
+  outBlock0.open(name.c_str(), std::ofstream::out);
+  if(BOXES_WITH_U_NB >= 2)
+  {
+    name = "Blk_" + uniqueName + "_BOX_1.dat";
+    outBlock1.open(name.c_str(), std::ofstream::out);
+  }
   InitVals(output.statistics.settings.block);
   AllocBlocks();
   InitWatchSingle(output.statistics.vars);
   InitWatchMulti(output.statistics.vars);
-  outF << std::endl;
+  outBlock0 << std::endl;
+  if(outBlock1.is_open())
+    outBlock1 << std::endl;
 }
 
 void BlockAverages::AllocBlocks(void)
@@ -92,77 +113,67 @@ void BlockAverages::Sample(const ulong step)
 void BlockAverages::DoOutput(const ulong step)
 {
   ulong nextStep = step+1;
-  outF << std::setw(25) << step;
+  outBlock0 << std::setw(OUTPUTWIDTH) << nextStep;
+  outBlock1 << std::setw(OUTPUTWIDTH) << nextStep;
   for (uint v = 0; v < totalBlocks; ++v)
     blocks[v].Write(nextStep, firstPrint);
-  outF << std::endl;
+  outBlock0 << std::endl;
+  if(outBlock1.is_open())
+    outBlock1 << std::endl;
 }
 
 void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
 {
-  
-  outF << std::setw(25) << "TITLES";
-  blocks[out::ENERGY_TOTAL_IDX].Init(&outF, tracked.energy.block, invSteps,
-                                     out::ENERGY_TOTAL, BOXES_WITH_U_NB);
-  outF << std::setw(25) << out::ENERGY_TOTAL;
+  outBlock0 << std::setw(OUTPUTWIDTH) << "STEPS";
+  if(outBlock1.is_open())
+    outBlock1 << std::setw(OUTPUTWIDTH) << "STEPS";
 
+  blocks[out::ENERGY_TOTAL_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps,
+                                     out::ENERGY_TOTAL, BOXES_WITH_U_NB);
   //Only output energy categories if specifically requested...
 #ifdef EN_SUBCAT_OUT
-  blocks[out::ENERGY_INTER_IDX].Init(&outF, tracked.energy.block, invSteps,
+  blocks[out::ENERGY_INTER_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps,
                                      out::ENERGY_INTER,
                                      BOXES_WITH_U_NB);
-  outF << std::setw(25) << out::ENERGY_INTER;
-  blocks[out::ENERGY_TC_IDX].Init(&outF, tracked.energy.block, invSteps,
+  blocks[out::ENERGY_TC_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps,
                                   out::ENERGY_TC,
                                   BOXES_WITH_U_NB);
-  outF << std::setw(25) << out::ENERGY_TC;
-  blocks[out::ENERGY_INTRA_B_IDX].Init(&outF, tracked.energy.block, invSteps,
+  blocks[out::ENERGY_INTRA_B_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps,
                                        out::ENERGY_INTRA_B,
                                        BOXES_WITH_U_NB);
-  outF << std::setw(25) << out::ENERGY_INTRA_B;
-  blocks[out::ENERGY_INTRA_NB_IDX].Init(&outF, tracked.energy.block, invSteps,
+  blocks[out::ENERGY_INTRA_NB_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps,
                                         out::ENERGY_INTRA_NB,
                                         BOXES_WITH_U_NB);
-  outF << std::setw(25) << out::ENERGY_INTRA_NB;
-  blocks[out::ENERGY_ELECT_IDX].Init(&outF, tracked.energy.block, invSteps,
+  blocks[out::ENERGY_ELECT_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps,
                                      out::ENERGY_ELECT,
                                      BOXES_WITH_U_NB);
-  outF << std::setw(25) << out::ENERGY_ELECT;
-  blocks[out::ENERGY_REAL_IDX].Init(&outF, tracked.energy.block, invSteps,
+  blocks[out::ENERGY_REAL_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps,
                                     out::ENERGY_REAL,
                                     BOXES_WITH_U_NB);
-  outF << std::setw(25) << out::ENERGY_REAL;
-  blocks[out::ENERGY_RECIP_IDX].Init(&outF, tracked.energy.block, invSteps,
+  blocks[out::ENERGY_RECIP_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps,
                                      out::ENERGY_RECIP,
                                      BOXES_WITH_U_NB);
-  outF << std::setw(25) << out::ENERGY_RECIP;
 #endif
-  blocks[out::VIRIAL_TOTAL_IDX].Init(&outF, tracked.pressure.block, invSteps,
+  blocks[out::VIRIAL_TOTAL_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps,
                                      out::VIRIAL_TOTAL,
                                      BOXES_WITH_U_NB);
-  outF << std::setw(25) << out::VIRIAL_TOTAL;
 #ifdef VIR_SUBCAT_OUT
-  blocks[out::VIRIAL_INTER_IDX].Init(&outF, tracked.pressure.block, invSteps,
+  blocks[out::VIRIAL_INTER_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps,
                                      out::VIRIAL_INTER,
                                      BOXES_WITH_U_NB);
-  outF << std::setw(25) << out::VIRIAL_INTER;
-  blocks[out::VIRIAL_TC_IDX].Init(&outF, tracked.pressure.block, invSteps,
+  blocks[out::VIRIAL_TC_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps,
                                   out::VIRIAL_TC,
                                   BOXES_WITH_U_NB);
-  outF << std::setw(25) << out::VIRIAL_TC;
 #endif
 
-  blocks[out::PRESSURE_IDX].Init(&outF, tracked.pressure.block, invSteps,
+  blocks[out::PRESSURE_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps,
                                  out::PRESSURE,
                                  BOXES_WITH_U_NB);
-  outF << std::setw(25) << out::PRESSURE;
 #if ENSEMBLE == GEMC
-  blocks[out::VOLUME_IDX].Init(&outF, tracked.volume.block, invSteps,
-                               out::VOLUME);
-  outF << std::setw(25) << out::VOLUME;
-  blocks[out::HEAT_OF_VAP_IDX].Init(&outF, tracked.energy.block, invSteps,
+  blocks[out::VOLUME_IDX].Init(&outBlock0, &outBlock1, tracked.volume.block, invSteps,
+			       out::VOLUME);
+  blocks[out::HEAT_OF_VAP_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps,
                                     out::HEAT_OF_VAP, 1);
-  outF << std::setw(25) << out::HEAT_OF_VAP;
 
   blocks[out::HEAT_OF_VAP_IDX].SetRef(&var->heatOfVap, 0);
 #endif
@@ -205,19 +216,16 @@ void BlockAverages::InitWatchMulti(config_setup::TrackedVars const& tracked)
     std::string trimKindName = var->kindsRef[k].name;
     name = out::MOL_NUM + "_" + trimKindName;
     blocks[bkStart + out::MOL_NUM_IDX*var->numKinds].Init
-      (&outF, tracked.molNum.block, invSteps, name, BOXES_WITH_U_NB);
-    outF << std::setw(25) << name;
+      (&outBlock0, &outBlock1, tracked.molNum.block, invSteps, name, BOXES_WITH_U_NB);
     name = out::DENSITY + "_" + trimKindName;
     blocks[bkStart + out::DENSITY_IDX*var->numKinds].Init
-      (&outF, tracked.density.block, invSteps, name, BOXES_WITH_U_NB);
-    outF << std::setw(25) << name;
+      (&outBlock0, &outBlock1, tracked.density.block, invSteps, name, BOXES_WITH_U_NB);
     //If more than one kind, output mol fractions.
     if (var->numKinds > 1)
     {
       name = out::MOL_FRACTION + "_" + trimKindName;
       blocks[bkStart + out::MOL_FRACTION_IDX*var->numKinds].Init
-	(&outF, tracked.molNum.block, invSteps, name, BOXES_WITH_U_NB);
-      outF << std::setw(25) << name;
+        (&outBlock0, &outBlock1, tracked.molNum.block, invSteps, name, BOXES_WITH_U_NB);
     }    
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
     {
@@ -232,4 +240,18 @@ void BlockAverages::InitWatchMulti(config_setup::TrackedVars const& tracked)
     }
   }
 #endif
+}
+
+void BlockAverage::printTitle(std::string output, uint boxes)
+{
+  if(tot>=1)
+    if((*outBlock0).is_open())
+      (*outBlock0) << std::setw(OUTPUTWIDTH) << output;
+    else
+      std::cerr << "Unable to write to Block_0 output file!" << std::endl;
+  if(tot>=2)
+    if((*outBlock1).is_open())
+      (*outBlock1) << std::setw(OUTPUTWIDTH) << output;
+    else
+      std::cerr << "Unable to write to Block_1 output file!" << std::endl;
 }
