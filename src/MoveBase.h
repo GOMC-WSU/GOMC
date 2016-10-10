@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef TRANSFORMABLE_BASE_H
 #define TRANSFORMABLE_BASE_H
 
@@ -19,9 +13,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "System.h"
 #include "StaticVals.h"
 #include "CalculateEnergy.h"
+#include "EwaldCached.h"
 #include "Ewald.h"
+#include "NoEwald.h"
 #include "MolPick.h"
 #include "Forcefield.h"
+#include <omp.h>
 
 class MoveBase
 {
@@ -30,13 +27,13 @@ class MoveBase
    MoveBase(System & sys, StaticVals const& statV) :
    boxDimRef(sys.boxDimRef), moveSetRef(sys.moveSettings), 
      sysPotRef(sys.potential),
-     calcEnRef(sys.calcEnergy), calcEwald(sys.calcEwald), comCurrRef(sys.com), 
+     calcEnRef(sys.calcEnergy), comCurrRef(sys.com), 
      coordCurrRef(sys.coordinates), prng(sys.prng), molRef(statV.mol), 
-     BETA(statV.forcefield.beta), ewald(statV.forcefield.ewald)
-#ifdef CELL_LIST
-      , cellList(sys.cellList), molRemoved(false)
-#endif
-   {}
+     BETA(statV.forcefield.beta), ewald(statV.forcefield.ewald),
+     cellList(sys.cellList), molRemoved(false)
+   {
+      calcEwald = sys.GetEwald();
+   }
 
     //Based on the random draw, determine the move kind, box, and 
     //(if necessary) molecule kind.
@@ -61,17 +58,15 @@ class MoveBase
     Coordinates & coordCurrRef;
     COM & comCurrRef;
     CalculateEnergy & calcEnRef;
-    Ewald& calcEwald;
+    EwaldCached * calcEwald;
     
     PRNG & prng;
     BoxDimensions & boxDimRef;
     Molecules const& molRef;
     const double BETA;
     const bool ewald;
-#ifdef CELL_LIST
     CellList& cellList;
     bool molRemoved;
-#endif
 };
 
 //Data needed for transforming a molecule's position via inter or intrabox 
@@ -142,21 +137,20 @@ inline uint Translate::Transform()
 {
    subPick = mv::GetMoveSubIndex(mv::DISPLACE, b);
    coordCurrRef.TranslateRand(newMolPos, newCOM, pStart, pLen,
-			      m, b, boxDimRef.axis.Min(b)*moveSetRef.Scale(subPick));
+			      m, b, moveSetRef.Scale(subPick));
    return mv::fail_state::NO_FAIL;
 }
 
 inline void Translate::CalcEn()
 {
-#ifdef CELL_LIST
    cellList.RemoveMol(m, b, coordCurrRef);
    molRemoved = true;
-#endif
-   if (ewald)
-   {
-     recip.energy = calcEwald.MolReciprocal(newMolPos, m, b);   
-   }
+
+   //calculate LJ interaction and real term of electrostatic interaction
    calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b, &newCOM);
+   //calculate reciprocate term of electrostatic interaction
+   recip.energy = calcEwald->MolReciprocal(newMolPos, m, b);   
+
 }
 
 inline void Translate::Accept(const uint rejectState, const uint step)
@@ -187,26 +181,19 @@ inline void Translate::Accept(const uint rejectState, const uint step)
       //Copy coords
       newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);	       
       comCurrRef.Set(m, newCOM);
-      if (ewald)
-      {
-	 calcEwald.UpdateRecip(b);
-      }
+      calcEwald->UpdateRecip(b);
    }
    else
    {
-      if (ewald)
-      {
-	calcEwald.RestoreMol(m);
-      }
+      calcEwald->RestoreMol(m);
    }
 
-#ifdef CELL_LIST
    if (molRemoved)
    {
      cellList.AddMol(m, b, coordCurrRef);
      molRemoved = false;
    }
-#endif
+
    subPick = mv::GetMoveSubIndex(mv::DISPLACE, b);
    moveSetRef.Update(result, subPick, step); 
 }
@@ -248,20 +235,19 @@ inline uint Rotate::Transform()
 
 inline void Rotate::CalcEn()
 {
-#ifdef CELL_LIST
    cellList.RemoveMol(m, b, coordCurrRef);
    molRemoved = true;
-#endif
-   if (ewald)
-   {
-     recip.energy = calcEwald.MolReciprocal(newMolPos, m, b);   
-   }
-   calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);
+
+   //calculate LJ interaction and real term of electrostatic interaction
+   calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);       
+   //calculate reciprocate term of electrostatic interaction
+   recip.energy = calcEwald->MolReciprocal(newMolPos, m, b); 
 }
 
 inline void Rotate::Accept(const uint rejectState, const uint step)
 {
    bool res =false;
+
    if (rejectState == mv::fail_state::NO_FAIL)
    {
       double pr = prng();
@@ -287,26 +273,19 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
 
       //Copy coords
       newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);
-      if (ewald)
-      {
-	 calcEwald.UpdateRecip(b);
-      }
+      calcEwald->UpdateRecip(b);
    }
    else
    {
-      if (ewald)
-      {
-	calcEwald.RestoreMol(m);
-      }
+      calcEwald->RestoreMol(m);
    }
 
-#ifdef CELL_LIST
    if (molRemoved)
    {
      cellList.AddMol(m, b, coordCurrRef);
      molRemoved = false;
    }
-#endif
+
    subPick = mv::GetMoveSubIndex(mv::ROTATE, b);
    moveSetRef.Update(result, subPick, step);
 }
@@ -324,7 +303,7 @@ class VolumeTransfer : public MoveBase
    double GetCoeff() const;
    virtual void Accept(const uint rejectState, const uint step);
  private:
-   uint bPick, bPick2, subPick2;; //Note: This is only used for GEMC-NPT
+   uint bPick, bPick2, subPick2; //Note: This is only used for GEMC-NPT
    SystemPotential sysPotNew;
    BoxDimensions newDim;
    Coordinates newMolsPos;
@@ -332,9 +311,7 @@ class VolumeTransfer : public MoveBase
    MoleculeLookup & molLookRef;
    const uint GEMC_KIND;
    const double PRESSURE;
-#ifdef CELL_LIST
    bool regrewGrid;
-#endif
 };
 
 inline VolumeTransfer::VolumeTransfer(System &sys, StaticVals const& statV)  : 
@@ -344,10 +321,7 @@ inline VolumeTransfer::VolumeTransfer(System &sys, StaticVals const& statV)  :
 							sys.prng, statV.mol),
 		      newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef,
 			      statV.mol), GEMC_KIND(statV.kindOfGEMC),
-		      PRESSURE(statV.pressure)
-#ifdef CELL_LIST
-   , regrewGrid(false)
-#endif
+		      PRESSURE(statV.pressure), regrewGrid(false)
 {
   newMolsPos.Init(sys.coordinates.Count());
   newCOMs.Init(statV.mol.count);
@@ -407,12 +381,22 @@ inline uint VolumeTransfer::Transform()
 
 inline void VolumeTransfer::CalcEn()
 {
-#ifdef CELL_LIST
    cellList.GridAll(newDim, newMolsPos, molLookRef);
    regrewGrid = true;
-#endif
+
+    //back up cached fourier term
+   calcEwald->exgMolCache();
+   for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
+   {
+      //calculate new K vectors
+      calcEwald->RecipInit(b, newDim);
+      //setup reciprocate terms
+      calcEwald->BoxReciprocalSetup(b, newMolsPos);
+   }
+   //calculate total energy
    sysPotNew = calcEnRef.SystemInter(sysPotRef, newMolsPos,
                                         newCOMs, newDim);
+   
 }
 
 
@@ -464,30 +448,24 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       swap(comCurrRef, newCOMs);
       boxDimRef = newDim;
 
-      if (ewald)
+      for (uint b = 0; b < BOX_TOTAL; b++)
       {
-	for (uint b = 0; b < BOX_TOTAL; b++)
-        {
-	   calcEwald.UpdateRecip(b);
-	}
-      }     
+	 calcEwald->UpdateRecip(b);
+      }         
    }
-#ifdef CELL_LIST
    else if (rejectState == mv::fail_state::NO_FAIL && regrewGrid) 
    {
       cellList.GridAll(boxDimRef, coordCurrRef, molLookRef);
       regrewGrid = false;
-      if (ewald)
+
+      calcEwald->exgMolCache();
+      for (uint b = 0; b < BOX_TOTAL; b++)
       {
-	calcEwald.exgMolCache();
-	 for (uint b = 0; b < BOX_TOTAL; b++)
-	 {
-	    calcEwald.RecipInit(b, boxDimRef);
-	    calcEwald.BackUpRecip(b);
-	 }
+	 //calculate K vectors for old dimension
+	 calcEwald->RecipInit(b, boxDimRef);
       }
    }
-#endif
+
    if (GEMC_KIND == mv::GEMC_NVT)
    {
       subPick = mv::GetMoveSubIndex(mv::VOL_TRANSFER);

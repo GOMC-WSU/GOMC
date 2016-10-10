@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "Molecules.h"
 #include "Setup.h"
 #include "PDBSetup.h" //For init
@@ -17,8 +11,8 @@ class System;
 
 
 Molecules::Molecules() : start(NULL), kIndex(NULL), countByKind(NULL),
-   chain(NULL), kinds(NULL), pairEnCorrections(NULL), 
-			 pairVirCorrections(NULL) {}
+			 chain(NULL), kinds(NULL), pairEnCorrections(NULL), 
+			 pairVirCorrections(NULL), printFlag(true) {}
 
 Molecules::~Molecules(void) 
 { 
@@ -53,6 +47,28 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
          std::count(atoms.resNames.begin(), atoms.resNames.end(), 
 		    atoms.resKindNames[mk]);
       kinds[mk].Init(atoms.resKindNames[mk], setup, forcefield, sys);
+   }
+
+   if(printFlag)
+   {
+      //calculating netcharge of all molecule kind
+     double netCharge = 0.0;
+     for (uint mk = 0 ; mk < kindsCount; mk++)
+     {
+        netCharge += kinds[mk].PrintChargeInfo();
+     }
+   
+     if(abs(netCharge) > 10E-7)
+     {
+        std::cout<< "================================================"
+		 << std::endl << std::endl
+		 << "Warning: Sum of the charge in the system is: "
+		 << netCharge << std::endl << std::endl
+		 <<  "================================================"
+		 << std::endl;
+
+	printFlag = false;
+     }
    }
 
    //Pair Correction matrixes

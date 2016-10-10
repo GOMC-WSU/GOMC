@@ -10,6 +10,7 @@ set(sources
    CalculateEnergy.cpp
    EnPartCntSampleOutput.cpp
    Ewald.cpp
+   EwaldCached.cpp
    FFConst.cpp
    FFDihedrals.cpp
    FFParticle.cpp
@@ -26,6 +27,7 @@ set(sources
    MolSetup.cpp
    MoveConst.cpp
    MoveSettings.cpp
+   NoEwald.cpp
    OutConst.cpp
    OutputVars.cpp
    PDBSetup.cpp
@@ -65,6 +67,7 @@ set(headers
    EnPartCntSampleOutput.h
    EnsemblePreprocessor.h
    Ewald.h
+   EwaldCached.h  
    FFAngles.h
    FFBonds.h
    FFConst.h
@@ -93,6 +96,7 @@ set(headers
    MoveBase.h
    MoveConst.h
    MoveSettings.h
+   NoEwald.h
    OutConst.h
    OutputAbstracts.h
    OutputVars.h
