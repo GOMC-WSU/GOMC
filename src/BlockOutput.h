@@ -38,11 +38,12 @@ struct BlockAverage
     }
   }
   //Initializes name, and enable
-  void Init(std::ofstream *file, 
+  void Init(std::ofstream *file0,
+	    std::ofstream *file1, 
 	    const bool en, 
 	    const double scl,
-            std::string const& var,
-            const uint bTot = BOX_TOTAL);
+	    std::string const& var,
+	    const uint bTot = BOX_TOTAL);
 
   //Set one of the pointers to the block values we're tracking
   void SetRef(double * loc, const uint b)
@@ -71,8 +72,10 @@ private:
     samples = 0;
   }
   void DoWrite(const ulong step);
+  void printTitle(std::string output, uint boxes);
   
-  std::ofstream* outF;
+  std::ofstream* outBlock0;
+  std::ofstream* outBlock1;
   bool first;
   std::string name, varName;
   uint ** uintSrc, tot;
@@ -91,9 +94,13 @@ struct BlockAverages : OutputableBase
 
   ~BlockAverages(void)
   {
-    if (outF.is_open())
+    if (outBlock0.is_open())
     {
-      outF.close();
+      outBlock0.close();
+    }
+    if (outBlock1.is_open())
+    {
+      outBlock1.close();
     }
     if ( blocks != NULL ) delete[] blocks;
   }
@@ -115,7 +122,8 @@ private:
   void InitWatchSingle(config_setup::TrackedVars const& tracked);
   void InitWatchMulti(config_setup::TrackedVars const& tracked);
 
-  std::ofstream outF;
+  std::ofstream outBlock0;
+  std::ofstream outBlock1;
   //Block vars
   BlockAverage * blocks;
   uint numKindBlocks, totalBlocks;
