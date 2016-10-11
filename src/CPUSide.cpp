@@ -17,7 +17,6 @@ void CPUSide::Init(PDBSetup const& pdbSet, config_setup::Output const& out,
    varRef.Init(pdbSet.atoms);
    //Initialize output components.
    timer.Init(out.console.frequency, totSteps);
-   hist.Init(pdbSet.atoms, out);
    outObj.push_back(&console);
    outObj.push_back(&pdb);
    if (out.statistics.settings.block.enable)
