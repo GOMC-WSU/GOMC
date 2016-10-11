@@ -74,19 +74,23 @@ void Histogram::Init(pdb_setup::Atoms const& atoms,
 
 Histogram::~Histogram()
 {
-
-   if (total != NULL) delete[] total;
-   for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
-   {
+  if (total != NULL) delete[] total;
+  for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
+  {
+    if (name[b] != NULL) delete[] name[b];
+    if (molCount[b] != NULL) delete[] molCount[b];
+    if (outF != NULL && enableOut)
+    {
       for (uint k = 0; k < var->numKinds; ++k)
       {
-		  if (enableOut)
-		  	if (outF[b][k].is_open()) outF[b][k].close();
+        if (outF[b] != NULL && outF[b][k].is_open())
+          outF[b][k].close();
       }
-      if (name[b] != NULL) delete[] name[b];
-      if (molCount[b] != NULL) delete[] molCount[b];
-	  if (outF[b] != NULL) delete[] outF[b];
-   }
+    }
+    if (outF[b] != NULL) {
+      delete[] outF[b];
+    }
+  }
 }
 
 void Histogram::Sample(const ulong step)
