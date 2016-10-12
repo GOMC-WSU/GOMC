@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [1.8] - 10/12/2016
++ Parallelizing CBMC branched algorithm using OpenMP
++ Bug Fixes
+
 ## [1.7] - 04/21/2016
 + Fix the bug of free Ewald class, which returns memory segmentation fault if ewald is not activated.
 TO DO: IntraSwap does not work properly. The bug is going to be fixed.
