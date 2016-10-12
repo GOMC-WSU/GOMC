@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "PSFOutput.h"
 #include "Molecules.h"
 #include <cstdio>
@@ -13,7 +19,7 @@ namespace{
     const char* dihedralHeader = "!NPHI: dihedrals";
 
     const char* headerFormat = "%8d %s \n";
-    //atom ID, segment name, residue ID, residue name, 
+    //atom ID, segment name, residue ID, residue name,
     //atom name, atom type, charge, mass, and an unused 0
     const char* atomFormat = "%8d%4s%3d%7s%4s%6s%12.6f%14.4f%12d\n";
 
@@ -22,7 +28,7 @@ namespace{
     const int dihPerLine = 2;
 }
 
-PSFOutput::PSFOutput(const Molecules& molecules, mol_setup::MolMap& molMap, 
+PSFOutput::PSFOutput(const Molecules& molecules, mol_setup::MolMap& molMap,
                      const std::vector<std::string>& kindNames) : molecules(&molecules), molNames(kindNames)
 {
     molKinds.resize(molMap.size());
@@ -106,7 +112,7 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
         for(uint at = 0; at < nAtoms; ++at)
         {
             const Atom* thisAtom = &molKinds[thisKind].atoms[at];
-            //atom ID, segment name, residue ID, residue name, 
+            //atom ID, segment name, residue ID, residue name,
             //atom name, atom type, charge, mass, and an unused 0
             fprintf(outfile, atomFormat, atomID, molNames[thisKind].c_str(), molID, molNames[thisKind].c_str(),
                 thisAtom->name.c_str(), thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
@@ -127,7 +133,7 @@ void PSFOutput::PrintBonds(FILE* outfile) const
         const MolKind& thisKind = molKinds[molecules->kIndex[mol]];
          for(uint i = 0; i < thisKind.bonds.size(); ++i)
          {
-             fprintf(outfile, "%8d%8d", thisKind.bonds[i].a0 + atomID, 
+             fprintf(outfile, "%8d%8d", thisKind.bonds[i].a0 + atomID,
                      thisKind.bonds[i].a1 + atomID);
              ++lineEntry;
              if(lineEntry == bondPerLine)
@@ -152,7 +158,7 @@ void PSFOutput::PrintBonds(FILE* outfile) const
          for(uint i = 0; i < thisKind.angles.size(); ++i)
          {
              fprintf(outfile, "%8d%8d%8d", thisKind.angles[i].a0 + atomID,
-                     thisKind.angles[i].a1 + atomID, 
+                     thisKind.angles[i].a1 + atomID,
                      thisKind.angles[i].a2 + atomID);
              ++lineEntry;
              if(lineEntry == anglePerLine)
@@ -190,4 +196,3 @@ void PSFOutput::PrintBonds(FILE* outfile) const
      }
      fputs("\n\n", outfile);
  }
-

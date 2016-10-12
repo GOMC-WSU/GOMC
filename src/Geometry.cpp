@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "Geometry.h"
 #include "MolSetup.h"
 #include "FFSetup.h"
@@ -9,7 +15,7 @@
 
 namespace {
 //returns where p1 and p2 are found as a pair in bList, index+count if backward
-int findPair(uint p1, uint p2, const BondList& bList) 
+int findPair(uint p1, uint p2, const BondList& bList)
 {
    for(uint i = 0; i < bList.count; ++i)
    {
@@ -120,7 +126,7 @@ void Nonbond_1_4::Init(const mol_setup::MolKind& molData)
             nonBondedAtoms[dih.a3] = 1;
          }
       }
- 
+
       //starting at i+1 to ignore double counting
       for (unsigned int j = i + 1; j < nonBondedAtoms.size(); ++j)
       {
@@ -322,4 +328,3 @@ void SortedNonbond::Init(const Nonbond& nb, const uint numAtoms)
    partners = new uint[partnerVec.size()];
    std::copy(partnerVec.begin(), partnerVec.end(), partners);
 }
-

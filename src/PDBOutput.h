@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef PDB_OUTPUT_H
 #define PDB_OUTPUT_H
 
@@ -55,17 +61,17 @@ struct PDBOutput : OutputableBase
    void PrintAtomsRebuildRestart(const uint b);
    void PrintCrystRest(const uint b, const uint step, Writer & out);
    //NEW_RESTART_CODE
-   
+
    void FormatAtom(std::string & line, const uint p, const uint m,
 		   const char chain, std::string const& atomAlias,
 		   std::string const& resName);
 
    void InsertAtomInLine(std::string & line, XYZ const& coor,
-			 std::string const& occ = 
+			 std::string const& occ =
 			 pdb_entry::atom::field::occupancy::BOX[1]);
 
    void PrintEnd(const uint b, Writer & out) { out.file << "END" << std::endl; }
-   
+
    MoveSettings & moveSetRef;
    MoleculeLookup & molLookupRef;
    BoxDimensions& boxDimRef;

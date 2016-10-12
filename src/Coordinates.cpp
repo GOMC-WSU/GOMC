@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "Coordinates.h"
 #include "TransformMatrix.h"
 #include <algorithm>          //For copy
@@ -92,14 +98,14 @@ void Coordinates::TranslateOneBox
 {
    uint pStart=0, pStop=0, pLen=0;
    MoleculeLookup::box_iterator curr = molLookRef.BoxBegin(b),
-      end = molLookRef.BoxEnd(b); 
+      end = molLookRef.BoxEnd(b);
    while (curr != end)
    {
       molRef.GetRange(pStart, pStop, pLen, *curr);
       //Scale CoM for this molecule, translate all atoms by same amount
       newCOM.Scale(*curr, scale);
       XYZ shift = newCOM.Get(*curr);
-      shift -= oldCOM.Get(*curr); 
+      shift -= oldCOM.Get(*curr);
       //Translation of atoms in mol.
       //Unwrap coordinates
       XYZ oldCOMForUnwrap = oldCOM.Get(*curr);
@@ -108,7 +114,5 @@ void Coordinates::TranslateOneBox
       newDim.WrapPBC(dest, pStart, pStop, b);
       ++curr;
    }
-   
+
 }
-
-

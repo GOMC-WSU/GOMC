@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef MOVE_SETTINGS_H
 #define MOVE_SETTINGS_H
 
@@ -11,7 +17,7 @@ class StaticVals;                 //For various initialization constants.
 class BoxDimensions;              //For axis sizes
 
 class MoveSettings
-{ 
+{
  public:
    friend class OutputVars;
    MoveSettings(BoxDimensions & dim) : boxDimRef(dim) {}
@@ -39,10 +45,10 @@ class MoveSettings
 #endif
 
    BoxDimensions & boxDimRef;
-   
+
    static const double TARGET_ACCEPT_FRACT;
    static const double TINY_AMOUNT;
 };
 
-			 
+
 #endif /*MOVE_SETTINGS_H*/

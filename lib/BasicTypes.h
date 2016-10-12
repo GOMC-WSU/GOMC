@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef BASIC_TYPES_H
 #define BASIC_TYPES_H
 
@@ -12,15 +18,15 @@ typedef unsigned long int ulong;
 //single XYZ for use as a temporary and return type
 struct XYZ
 {
-   double x, y, z;   
+   double x, y, z;
 
    XYZ() : x(0.0), y(0.0), z(0.0) {}
    XYZ(double xVal, double yVal, double zVal) : x(xVal), y(yVal), z(zVal) {}
 
-   XYZ& operator+=(XYZ const& rhs) 
+   XYZ& operator+=(XYZ const& rhs)
    { x += rhs.x; y += rhs.y; z += rhs.z; return *this; }
-   XYZ& operator-=(XYZ const& rhs) 
-   { x -= rhs.x; y -= rhs.y; z -= rhs.z; return *this; } 
+   XYZ& operator-=(XYZ const& rhs)
+   { x -= rhs.x; y -= rhs.y; z -= rhs.z; return *this; }
    XYZ& operator*=(XYZ const& rhs)
    { x *= rhs.x; y *= rhs.y; z *= rhs.z; return *this; }
 
@@ -43,7 +49,7 @@ struct XYZ
    double Length() const { return sqrt(LengthSq()); }
    double LengthSq() const { return x * x + y * y + z * z; }
    XYZ& Normalize()
-   { 
+   {
       *this *= (1 / Length());
       return *this;
    }

@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef EN_PART_CNT_SAMPLE_OUTPUT_H
 #define EN_PART_CNT_SAMPLE_OUTPUT_H
 
@@ -30,21 +36,21 @@ struct EnPartCntSample : OutputableBase
                      config_setup::Output const& output);
 
    virtual void DoOutput(const ulong step);
-  
+
  private:
    void WriteHeader(void);
-      
+
    void InitVals(config_setup::EventSettings const& event)
    {
       stepsPerOut = event.frequency;
       enableOut = event.enable;
    }
-   
-   std::string GetFName(std::string const& sampleName, 
+
+   std::string GetFName(std::string const& sampleName,
                         std::string const& histNum,
                         std::string const& histLetter,
                         const uint b);
-   
+
    //samplesE --> per box; samplesN --> per kind, per box
    double * samplesE [BOXES_WITH_U_NB];
    uint ** samplesN [BOXES_WITH_U_NB], stepsPerSample, samplesCollectedInFrame;

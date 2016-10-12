@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef MOLECULES_H
 #define MOLECULES_H
 
@@ -20,7 +26,7 @@ public:
    Molecules();
    ~Molecules();
 
-   const MoleculeKind& GetKind(const uint molIndex) const 
+   const MoleculeKind& GetKind(const uint molIndex) const
    { return kinds[kIndex[molIndex]]; }
 
    void Init(Setup& setup, Forcefield& forcefield,
@@ -39,10 +45,10 @@ public:
    { return MolEnd(molIndex) - MolStart(molIndex); }
 
    void GetRange(uint & _start, uint & stop, uint & len, const uint m) const
-   { 
-      _start=start[m]; 
-      stop = start[m+1]; 
-      len = stop-_start; 
+   {
+      _start=start[m];
+      stop = start[m+1];
+      len = stop-_start;
    }
 
    void GetRangeStartStop(uint & _start, uint & stop, const uint m) const
@@ -58,7 +64,7 @@ public:
 	uint count;
 	uint* countByKind;
 	char* chain;
-	
+
 	MoleculeKind * kinds;
    uint kindsCount;
    double* pairEnCorrections;

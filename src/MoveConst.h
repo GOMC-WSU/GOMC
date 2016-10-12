@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef MOVES_CONST_H
 #define MOVES_CONST_H
 
@@ -52,18 +58,18 @@ namespace mv
    //trial pos to use.
    //
    //This is only valid, generally for linear molecules.
-   const uint TRANS_GEN_TRIAL_LINEAR=3; 
+   const uint TRANS_GEN_TRIAL_LINEAR=3;
    //Pick angles that match Boltzmann acc. for n_ch_bend
    //Pass them to dihedrals, pick one via Boltzman.
    //
-   //Disadvantage: 
+   //Disadvantage:
    // n_ch_lj is limited to a single generated conformation.
    // LJ particle is then locked into place as we must always accept
    // pick it when generating trial conf. in the old box.
    // hence if we had more trial conformations over a free new box particle
    // it'd introduce a bias.
    //
-   // i.e. We must pick ONE and only one of each "thing" per conformation 
+   // i.e. We must pick ONE and only one of each "thing" per conformation
    // phase, hence in the last phase we always have to pick the old conf.
    // in the old box, hence you can't do biased sel. of locations based
    // on the LJ pot.
@@ -87,7 +93,7 @@ namespace mv
    const uint IT_KINDS_TOTAL=2;
 
    //////////////////////////////////////////////////////////
-   
+
    //NVT : 1. Disp (box 0) 2. Rotate (box 0) 3. IntraSwap (box 0)
    //GCMC: 1. Disp (box 0) 2. Rotate (box 0) 3. Deletion (box 0)
    //      4. Insertion (box 0) 5. IntraSwap (box 0)
@@ -111,13 +117,13 @@ namespace mv
    //AUTO REJECTION OR ACCEPTANCE FLAGS
 
    //early exit flags.
-   namespace auto_accept 
-   { 
-      const uint ONLY_IN_BOX_ROT_OR_DISP=0; 
+   namespace auto_accept
+   {
+      const uint ONLY_IN_BOX_ROT_OR_DISP=0;
    }
 
    namespace fail_state
-   { 
+   {
       const uint NO_FAIL = 1;
       const uint ROTATE_ON_SINGLE_ATOM = 2;
       const uint NO_MOL_OF_KIND_IN_BOX = 3;
@@ -126,7 +132,7 @@ namespace mv
    }
 
    inline void GetMoveMajIndex(uint & maj, uint & subDiv, const uint sub)
-   { 
+   {
 #if ENSEMBLE == NVT || ENSEMBLE == GEMC
       maj = sub/BOX_TOTAL;
       subDiv = BOX_TOTAL;
@@ -142,9 +148,9 @@ namespace mv
    }
 
    inline uint GetMoveSubIndex(const uint maj, const uint b = 0)
-   { 
+   {
 #if ENSEMBLE == GEMC || ENSEMBLE == NVT
-      return maj*BOX_TOTAL + b; 
+      return maj*BOX_TOTAL + b;
 #else
 
        if(maj == mv::INTRA_SWAP)

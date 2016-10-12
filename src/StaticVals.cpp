@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "StaticVals.h"
 #include "ConfigSetup.h" //For types directly read from config. file
 #include "Setup.h" //For source of setup data.
@@ -9,8 +15,8 @@ void StaticVals::Init(Setup & set, System& sys)
    forcefield.Init(set);
    mol.Init(set, forcefield, sys);
 #ifndef VARIABLE_VOLUME
-   boxDimensions.Init(set.config.in.restart, 
-		      set.config.sys.volume, set.pdb.cryst, forcefield.rCut, 
+   boxDimensions.Init(set.config.in.restart,
+		      set.config.sys.volume, set.pdb.cryst, forcefield.rCut,
 		      forcefield.rCutSq);
 #endif
 #ifndef VARIABLE_PARTICLE_NUMBER
@@ -55,7 +61,7 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
 	 movePerc[m] = 0.0; break;
       }
       totalPerc += movePerc[m];
-   } 
+   }
    for (uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++)
       movePerc[m] /= totalPerc;
    totalPerc = 1.0;
