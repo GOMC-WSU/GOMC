@@ -1,7 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
-
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -39,7 +38,7 @@ ConfigSetup::ConfigSetup(void)
 	in.prng.seed = UINT_MAX;
 	sys.elect.readEwald = false;
 	sys.elect.readElect = false;
-	sys.elect.readCache = false;	
+	sys.elect.readCache = false;
 	sys.elect.ewald = false;
 	sys.elect.enable = false;
 	sys.elect.tolerance = DBL_MAX;
@@ -211,7 +210,7 @@ void ConfigSetup::Init(const char *fileName)
 			{
 				sys.gemc.kind = mv::GEMC_NPT;
 				std::cout<< " NPT_GEMC simulation has been selected " << std::endl;
-                        } 
+                        }
 		}
 		else if(line[0] == "Pressure")
 		{
@@ -322,7 +321,7 @@ void ConfigSetup::Init(const char *fileName)
 		else if(line[0] == "RotFreq")
 		{
 			sys.moves.rotate = stringtod(line[1]);
-		} 
+		}
 #ifdef VARIABLE_VOLUME
 		else if(line[0] == "VolFreq")
 		{
@@ -370,7 +369,7 @@ void ConfigSetup::Init(const char *fileName)
 		else if(line[0] == "CBMC_Ang")
 		{
 			sys.cbmcTrials.bonded.ang = stringtoi(line[1]);
-		} 
+		}
 		else if(line[0] == "CBMC_Dih")
 		{
 			sys.cbmcTrials.bonded.dih = stringtoi(line[1]);
@@ -386,39 +385,39 @@ void ConfigSetup::Init(const char *fileName)
 			std::string resName = line[1];
 			double val = stringtod(line[2]);
 			sys.chemPot.cp[resName] = val;
-		} 
+		}
 #endif
-		else if(line[0] == "OutputName") 
+		else if(line[0] == "OutputName")
 		{
 			out.statistics.settings.uniqueStr.val = line[1];
-		} 
-		else if(line[0] == "CoordinatesFreq") 
+		}
+		else if(line[0] == "CoordinatesFreq")
 		{
 			out.state.settings.enable = checkBool(line[1]);
 			out.state.settings.frequency = stringtoi(line[2]);
-		} 
-		else if(line[0] == "RestartFreq") 
+		}
+		else if(line[0] == "RestartFreq")
 		{
 			out.restart.settings.enable = checkBool(line[1]);
 			out.restart.settings.frequency = stringtoi(line[2]);
-		} 
-		else if(line[0] == "ConsoleFreq") 
+		}
+		else if(line[0] == "ConsoleFreq")
 		{
 			out.console.enable = checkBool(line[1]);
 			out.console.frequency = stringtoi(line[2]);
-		} 
-		else if(line[0] == "BlockAverageFreq") 
+		}
+		else if(line[0] == "BlockAverageFreq")
 		{
 			out.statistics.settings.block.enable = checkBool(line[1]);
 			out.statistics.settings.block.frequency = stringtoi(line[2]);
-		} 
-		else if(line[0] == "FluctuationFreq") 
+		}
+		else if(line[0] == "FluctuationFreq")
 		{
 			out.statistics.settings.fluct.enable = checkBool(line[1]);
 			out.statistics.settings.fluct.frequency = stringtoi(line[2]);
-		} 
+		}
 #if ENSEMBLE == GCMC
-		else if(line[0] == "HistogramFreq") 
+		else if(line[0] == "HistogramFreq")
 		{
 			out.statistics.settings.hist.enable = checkBool(line[1]);
 			out.statistics.settings.hist.frequency = stringtoi(line[2]);
@@ -430,16 +429,16 @@ void ConfigSetup::Init(const char *fileName)
 		else if(line[0] == "HistName")
 		{
 			out.state.files.hist.sampleName = line[1];
-		} 
-		else if(line[0] == "RunNumber") 
+		}
+		else if(line[0] == "RunNumber")
 		{
 			out.state.files.hist.number = line[1];
-		} 
-		else if(line[0] == "RunLetter") 
+		}
+		else if(line[0] == "RunLetter")
 		{
 			out.state.files.hist.letter = line[1];
-		} 
-		else if(line[0] == "SampleFreq") 
+		}
+		else if(line[0] == "SampleFreq")
 		{
 			out.state.files.hist.stepsPerHistSample = stringtoi(line[1]);
 		}
@@ -545,7 +544,7 @@ void ConfigSetup::fillDefaults(void)
 	{
 	  std::cout << "Warning: Electrostatic energy would not be calculated!" << std::endl;
 	}
-	
+
 	if(sys.elect.enable && sys.elect.dielectric == DBL_MAX && in.ffKind.isMARTINI)
 	{
 		std::cout << "Warning: Dielectric will be set to 15.0 for Martini forcefield!" << std::endl;
@@ -845,7 +844,7 @@ void ConfigSetup::verifyInputs(void)
 	}
 	if(out.statistics.settings.block.frequency == ULONG_MAX)
 	{
-	  
+
 		out.statistics.settings.block.frequency = (ulong)sys.step.total / 100;
 		std::cout << "Warning: By default block average output frequency has been set to " << out.statistics.settings.block.frequency << "!" << std::endl;
 	}
@@ -967,8 +966,8 @@ void ConfigSetup::verifyInputs(void)
 #endif
 }
 
-const std::string config_setup::PRNGKind::KIND_RANDOM = "RANDOM", 
-   config_setup::PRNGKind::KIND_SEED = "INTSEED", 
+const std::string config_setup::PRNGKind::KIND_RANDOM = "RANDOM",
+   config_setup::PRNGKind::KIND_SEED = "INTSEED",
    config_setup::PRNGKind::KIND_RESTART = "RESTART",
    config_setup::FFKind::FF_CHARMM = "CHARMM",
    config_setup::FFKind::FF_EXOTIC = "EXOTIC",

@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "FFParticle.h"
 #include "FFSetup.h" //For our setup info
 #include "ConfigSetup.h"
@@ -62,29 +68,29 @@ void FFParticle::Init(ff_setup::Particle const& mie,
    //Size LJ particle kind arrays
    mass = new double [count];
    vdwKind = sys.ff.VDW_KIND;
-   
+
    //Size LJ-LJ pair arrays
    uint size = num::Sq(count);
    nameFirst = new std::string [size];
-   nameSec = new std::string [size]; 
+   nameSec = new std::string [size];
    isMartini = ffKind.isMARTINI;
 
 
 #ifdef MIE_INT_ONLY
    n = new uint [size];
    n_1_4 = new uint [size];
-#else 
+#else
    n = new double [size];
    n_1_4 = new double [size];
 #endif
    epsilon_cn = new double [size];
-   epsilon_cn_6 = new double [size];   
-   nOver6 = new double [size]; 
+   epsilon_cn_6 = new double [size];
+   nOver6 = new double [size];
    sigmaSq = new double [size];
 
    epsilon_cn_1_4 = new double [size];
    epsilon_cn_6_1_4 = new double [size];
-   nOver6_1_4 = new double [size]; 
+   nOver6_1_4 = new double [size];
    sigmaSq_1_4 = new double [size];
 
    enCorrection = new double [size];
@@ -95,7 +101,7 @@ void FFParticle::Init(ff_setup::Particle const& mie,
      shiftConst = new double [size];
      shiftConst_1_4 = new double [size];
    }
-   
+
    rCut =  sys.ff.cutoff;
    rCutSq = rCut * rCut;
    scaling_14 = sys.elect.oneFourScale;
@@ -117,7 +123,7 @@ void FFParticle::Init(ff_setup::Particle const& mie,
 
       rOn = sys.ff.rswitch;
       //in Martini, Coulomb switching distance is zero
-      rOnCoul = 0.0;     
+      rOnCoul = 0.0;
       rOnSq = rOn * rOn;
       // LJ constants
       A6 = 6.0 * ((6.0+1)*rOn-(6.0+4)*rCut)/(pow(rCut,6.0+2)*
@@ -138,11 +144,11 @@ void FFParticle::Init(ff_setup::Particle const& mie,
    {
      rOn = sys.ff.rswitch;
      rOnSq = rOn * rOn;
-     
+
      factor1 = rCutSq - 3 * rOnSq;
      factor2 = pow((rCutSq - rOnSq), -3);
    }
-   
+
    Blend(mie, rCut);
    AdjNBfix(mie, nbfix, rCut);
 }
@@ -180,11 +186,11 @@ void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
 	  epsilon_cn_6_1_4[j] = epsilon_cn_1_4[j]*6;
 	  nOver6[j] = n[j]/6;
 	  nOver6_1_4[j] = n_1_4[j]/6;
-	  enCorrection[j] = tc/(n[j]-3) * epsilon_cn[j] * 
-            ( pow(rRat, n[j]-3) - 
+	  enCorrection[j] = tc/(n[j]-3) * epsilon_cn[j] *
+            ( pow(rRat, n[j]-3) -
 	      (double)(n[j]-3.0)/3.0 * pow(rRat, 3) );
           virCorrection[j] = tc/(n[j]-3) * epsilon_cn_6[j] *
-            ( (double)(n[j])/6.0 * pow(rRat, n[j]-3) - 
+            ( (double)(n[j])/6.0 * pow(rRat, n[j]-3) -
 	      (double)(n[j]-3.0)/3.0 * pow(rRat, 3) );
 
 
@@ -235,7 +241,7 @@ void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
 	  }
        }
      }
-   }    
+   }
 }
 
 void FFParticle::Blend(ff_setup::Particle const& mie,
@@ -248,38 +254,38 @@ void FFParticle::Blend(ff_setup::Particle const& mie,
       {
 	 uint idx = FlatIndex(i, j);
 	 //get all name combination for using in nbfix
-	 nameFirst[idx] = mie.getname(i); 
+	 nameFirst[idx] = mie.getname(i);
 	 nameFirst[idx] += mie.getname(j);
-	 nameSec[idx] = mie.getname(j); 
+	 nameSec[idx] = mie.getname(j);
 	 nameSec[idx] += mie.getname(i);
 
 	 n[idx] = num::MeanA(mie.n, mie.n, i, j);
 	 n_1_4[idx] = num::MeanA(mie.n_1_4, mie.n_1_4, i, j);
-	 double cn = n[idx]/(n[idx]-6) * pow(n[idx]/6, (6/(n[idx]-6))); 
+	 double cn = n[idx]/(n[idx]-6) * pow(n[idx]/6, (6/(n[idx]-6)));
 	 double sigma = num::MeanA(mie.sigma, mie.sigma, i, j);
 	 double cn_1_4 = n_1_4[idx]/(n_1_4[idx]-6) *
-	   pow(n_1_4[idx]/6, (6/(n_1_4[idx]-6))); 
+	   pow(n_1_4[idx]/6, (6/(n_1_4[idx]-6)));
 	 double sigma_1_4 = num::MeanA(mie.sigma_1_4, mie.sigma_1_4, i, j);
 	 double tc = 1.0;
-	 double rRat = sigma/rCut; 
+	 double rRat = sigma/rCut;
 
 	 num::Cb(sigmaSq[idx], tc, sigma);
 	 //num::Cb(sigmaSq_1_4[idx], tc, sigma_1_4);
 	 sigmaSq_1_4[idx] = sigma_1_4 * sigma_1_4;
 	 tc *= 0.5 * 4.0 * M_PI;
-	 epsilon_cn[idx] = 
+	 epsilon_cn[idx] =
 	    cn * num::MeanG(mie.epsilon, mie.epsilon, i, j);
-	 epsilon_cn_1_4[idx] = 
+	 epsilon_cn_1_4[idx] =
 	    cn * num::MeanG(mie.epsilon_1_4, mie.epsilon_1_4, i, j);
 	 epsilon_cn_6[idx] = epsilon_cn[idx]*6;
 	 epsilon_cn_6_1_4[idx] = epsilon_cn_1_4[idx]*6;
 	 nOver6[idx] = n[idx]/6;
 	 nOver6_1_4[idx] = n_1_4[idx]/6;
-	 enCorrection[idx] = tc/(n[idx]-3) * epsilon_cn[idx] * 
-            ( pow(rRat, n[idx]-3) - 
+	 enCorrection[idx] = tc/(n[idx]-3) * epsilon_cn[idx] *
+            ( pow(rRat, n[idx]-3) -
 	      (double)(n[idx]-3.0)/3.0 * pow(rRat, 3) );
          virCorrection[idx] = tc/(n[idx]-3) * epsilon_cn_6[idx] *
-            ( (double)(n[idx])/6.0 * pow(rRat, n[idx]-3) - 
+            ( (double)(n[idx])/6.0 * pow(rRat, n[idx]-3) -
 	      (double)(n[idx]-3.0)/3.0 * pow(rRat, 3) );
 
 	  if(vdwKind == num::VDW_SHIFT_KIND)
@@ -291,7 +297,7 @@ void FFParticle::Blend(ff_setup::Particle const& mie,
 	    double rRat2_1_4 = sigmaSq_1_4[idx]/rCutSq;
 	    double rRat4_1_4 = rRat2_1_4 * rRat2_1_4;
 	    double attract_1_4 = rRat4_1_4 * rRat2_1_4;
-	    
+
 #ifdef MIE_INT_ONLY
 	    double repulse = num::POW(rRat2, rRat4, attract, n[idx]);
 	    double repulse_1_4 =
@@ -304,7 +310,7 @@ void FFParticle::Blend(ff_setup::Particle const& mie,
 	    shiftConst_1_4[idx] =  epsilon_cn_1_4[idx] *
 	      (repulse_1_4 - attract_1_4);
 	  }
-	  
+
 	  if(vdwKind == num::VDW_SWITCH_KIND && isMartini)
 	  {
 	    double pn = n[idx];

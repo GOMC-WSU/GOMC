@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef OUTPUT_VARS_H
 #define OUTPUT_VARS_H
 
@@ -26,13 +32,13 @@ public:
    uint GetAccepted(uint sub);
    double GetAcceptPercent(uint sub);
    double GetScale(uint sub);
-   
+
 //private:
    //Intermediate vars.
    uint * numByBox, * numByKindBox;
    double * molFractionByKindBox, * densityByKindBox,
       pressure[BOXES_WITH_U_NB];
-   
+
    uint numKinds;
    //Constants
    double T_in_K;
@@ -45,7 +51,7 @@ public:
    Virial * virialRef, * virial,  * virialTotRef;
    MoleculeKind * kindsRef;
    MoleculeLookup * molLookupRef;
-   
+
    //Local copy of res names.
    std::vector<std::string> resKindNames;
    double const* movePercRef;

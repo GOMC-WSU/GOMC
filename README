@@ -1,6 +1,5 @@
 GOMC - GPU Optimized Monte Carlo
 
-
 BUILDING GOMC ON LINUX:
    1. Give execution permission using "chmod u+x metamake.sh"
    2. In the base (serial code) directory type "./metamake.sh"

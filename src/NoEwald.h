@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef NOEWALD_H
 #define NOEWALD_H
 
@@ -12,10 +18,10 @@
 //
 //    Called when Ewlad method was not used.
 //    Energy Calculation functions for Ewald summation method
-//    Calculating self, correction and reciprocate part of ewald    
+//    Calculating self, correction and reciprocate part of ewald
 //
 //    Developed by Y. Li and Mohammad S. Barhaghi
-// 
+//
 //
 
 class StaticVals;
@@ -31,7 +37,7 @@ class BoxDimensions;
 class CalculateEnergy;
 
 
-class NoEwald : public EwaldCached 
+class NoEwald : public EwaldCached
 {
   //friend class CalculateEnergy;
    public:
@@ -44,7 +50,7 @@ class NoEwald : public EwaldCached
 
    //initiliazie term used for ewald calculation
    virtual void RecipInit(uint box, BoxDimensions const& boxAxes);
-   
+
    //calculate self term for a box
    virtual double BoxSelf(BoxDimensions const& boxAxes, uint box) const;
 
@@ -60,23 +66,23 @@ class NoEwald : public EwaldCached
 
    //calculate reciprocate term for displacement and rotation move
    virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
-				const uint box, XYZ const*const newCOM = NULL);	
+				const uint box, XYZ const*const newCOM = NULL);
 
    //calculate self term for CBMC algorithm
-   virtual void SwapSelf(double *self, uint molIndex, uint partIndex, int box, 
+   virtual void SwapSelf(double *self, uint molIndex, uint partIndex, int box,
 			 uint trials) const;
-   
+
    //calculate correction term for linear molecule CBMC algorithm
-   virtual void SwapCorrection(double* energy, const cbmc::TrialMol& trialMol, 
-			       XYZArray const& trialPos, const uint partIndex, 
-			       const uint box, const uint trials) const; 
+   virtual void SwapCorrection(double* energy, const cbmc::TrialMol& trialMol,
+			       XYZArray const& trialPos, const uint partIndex,
+			       const uint box, const uint trials) const;
 
    //calculate correction term for branched molecule CBMC algorithm
    virtual void SwapCorrection(double* energy, const cbmc::TrialMol& trialMol,
-			       XYZArray *trialPos, const int pickedAtom, 
+			       XYZArray *trialPos, const int pickedAtom,
 			       uint *partIndexArray, const uint box,
 			       const uint trials, const uint PrevIndex,
-			       bool Prev) const;  
+			       bool Prev) const;
 
    //calculate correction term for old configuration
    virtual double CorrectionOldMol(const cbmc::TrialMol& oldMol,
@@ -84,8 +90,8 @@ class NoEwald : public EwaldCached
 				   const uint i, const uint j) const;
 
    //calculate reciprocate term in destination box for swap move
-   virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box, 
-				const int sourceBox, const int molIndex);	
+   virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
+				const int sourceBox, const int molIndex);
 
    //calculate reciprocate term in source box for swap move
    virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,

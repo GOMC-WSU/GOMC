@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef XYZ_ARRAY_H
 #define XYZ_ARRAY_H
 
@@ -19,9 +25,9 @@ class XYZArray
    friend class BoxDimensions;
 
    //Declare a set of coordinates with no data.
-   XYZArray(void) : x(NULL), y(NULL), z(NULL), count(0), 
+   XYZArray(void) : x(NULL), y(NULL), z(NULL), count(0),
       allocDone(false) {}
-   
+
    //Declare a set of coordinates of an explicit size.
    explicit XYZArray(const uint n) { allocDone = false; Init(n); }
 
@@ -45,12 +51,12 @@ class XYZArray
    XYZ operator[](const uint i) const { return Get(i); }
 
    //returns a XYZ copy of row i
-   XYZ Get(const uint i) const 
+   XYZ Get(const uint i) const
    { return XYZ(x[i], y[i], z[i]); }
 
    //Returns smallest of x/y/z values in row i
    double Min(const uint i) const
-   { 
+   {
       double result = x[i];
       if (result > y[i])
          result = y[i];
@@ -62,12 +68,12 @@ class XYZArray
    //Set a specific coordinate to a value.
    void Set(const uint i, const double a, const double b, const double c)
    {
-      x[i] = a; 
+      x[i] = a;
       y[i] = b;
       z[i] = c;
    }
 
-   void SetRange(const uint start, const uint stop, 
+   void SetRange(const uint start, const uint stop,
 		 const double a, const double b, const double c);
 
    //Set a specific coordinate to a value.
@@ -77,7 +83,7 @@ class XYZArray
    void SetRange(const uint start, const uint stop, XYZ const& val);
 
    ////////////////////////////////////////////////////////////////////
-   
+
    //Add values in two diferent arrays.
    //Add the value of src[srcI] to this[i]
    void Add(XYZArray & src, const uint i, const uint srcI)
@@ -90,7 +96,7 @@ class XYZArray
    //Subtract the value of src[srcI] from this[i]
    void Sub(XYZArray & src, const uint i, const uint srcI)
    { x[i] -= src.x[srcI]; y[i] -= src.y[srcI]; z[i] -= src.z[srcI]; }
-						
+
    //returns row i - row j
    XYZ Difference(const uint i, const uint j) const
    { return XYZ(x[i] - x[j], y[i] - y[j], z[i] - z[j]); }
@@ -105,25 +111,25 @@ class XYZArray
    { return z[i] - z[j]; }
 
    //return the difference of two rows in two XYZ arrays
-   XYZ Difference(const uint i, XYZArray const& other, 
+   XYZ Difference(const uint i, XYZArray const& other,
 		  const uint otherI) const
-   { 
+   {
       return XYZ( x[i] - other.x[otherI], y[i] - other.y[otherI],
-		  z[i] - other.z[otherI]); 
+		  z[i] - other.z[otherI]);
    }
 
-   double DifferenceX(const uint i, XYZArray const& other,  
+   double DifferenceX(const uint i, XYZArray const& other,
 		      const uint otherI) const
    { return x[i] - other.x[otherI]; }
 
-   double DifferenceY(const uint i, XYZArray const& other, 
+   double DifferenceY(const uint i, XYZArray const& other,
 		      const uint otherI) const
    { return y[i] - other.y[otherI]; }
 
    double DifferenceZ(const uint i, XYZArray const& other,
 		      const uint otherI) const
    { return z[i] - other.z[otherI]; }
-   
+
    ////////////////////////////////////////////////////////////////////
 
    //Add row i to row j
@@ -153,7 +159,7 @@ class XYZArray
    //Scale values of a single element of the array's values.
    void Scale(const uint i, const double a, const double b, const double c)
    { x[i] *= a; y[i] *= b; z[i] *= c; }
-						
+
    //Add values to a single array.
    void Add(const uint i, const double val)
    { x[i] += val; y[i] += val; z[i] += val; }
@@ -186,10 +192,10 @@ class XYZArray
 
    //Copy one point
    void Set(XYZArray & dest, const uint srcIndex, const uint destIndex) const
-   { 
+   {
       dest.x[destIndex] = x[srcIndex];
       dest.y[destIndex] = y[srcIndex];
-      dest.z[destIndex] = z[srcIndex]; 
+      dest.z[destIndex] = z[srcIndex];
    }
 
    //Add a constant transform x+a, y+b... to all values.
@@ -197,7 +203,7 @@ class XYZArray
 
    //Subtract a constant transform x-a, y-b,... to all values.
    void SubAll(XYZ const& val);
-   
+
    //Multiply a constant transform x*a, y*b, ... to all values.
    void ScaleAll(XYZ const& val);
 
@@ -206,10 +212,10 @@ class XYZArray
 
    //Subtract a constant transform x-val, y-val,... to all values.
    void SubAll(const double val);
-   
+
    //Multiply a constant transform x*val, y*val, ... to all values.
    void ScaleAll(const double val);
-   
+
    ////////////////////////////////////////////////////////////////////
 
    //Copy range of points.
@@ -253,8 +259,8 @@ inline void swap(XYZArray& a1, XYZArray& a2)
     swap(a1.count, a2.count);
 }
 
-inline void XYZArray::Uninit() 
-{ 
+inline void XYZArray::Uninit()
+{
    if (x != NULL)
    {
       delete[] x;
@@ -264,11 +270,11 @@ inline void XYZArray::Uninit()
    }
 }
 
-inline void XYZArray::SetRange(const uint start, const uint stop, 
+inline void XYZArray::SetRange(const uint start, const uint stop,
 			       const double a, const double b, const double c)
 { SetRange(start, stop, XYZ(a,b,c)); }
 
-inline void XYZArray::SetRange(const uint start, const uint stop, 
+inline void XYZArray::SetRange(const uint start, const uint stop,
 			       XYZ const& val)
 {
    for(uint i = start; i < stop ; ++i)
@@ -280,7 +286,7 @@ inline void XYZArray::SetRange(const uint start, const uint stop,
 }
 
 inline void XYZArray::Init(const uint n)
-{ 
+{
    count = n;
 
    if (allocDone)
@@ -301,9 +307,9 @@ inline void XYZArray::Init(const uint n)
    allocDone = true;
 }
 
-inline void XYZArray::AddRange(const uint start, const uint stop, 
+inline void XYZArray::AddRange(const uint start, const uint stop,
 			       XYZ const& val)
-{ 
+{
    for(uint i = start; i < stop ; ++i)
    {
       x[i] += val.x;
@@ -314,7 +320,7 @@ inline void XYZArray::AddRange(const uint start, const uint stop,
 
 inline void XYZArray::SubRange(const uint start, const uint stop,
 			       XYZ const& val)
-{ 
+{
    for(uint i = start; i < stop ; ++i)
    {
       x[i] -= val.x;
@@ -325,7 +331,7 @@ inline void XYZArray::SubRange(const uint start, const uint stop,
 
 inline void XYZArray::ScaleRange(const uint start, const uint stop,
 				 XYZ const& val)
-{ 
+{
    for(uint i = start; i < stop ; ++i)
    {
       x[i] *= val.x;
@@ -336,7 +342,7 @@ inline void XYZArray::ScaleRange(const uint start, const uint stop,
 
 inline void XYZArray::AddRange(const uint start, const uint stop,
 			       const double val)
-{ 
+{
    for(uint i = start; i < stop ; ++i)
    {
       x[i] += val;
@@ -347,7 +353,7 @@ inline void XYZArray::AddRange(const uint start, const uint stop,
 
 inline void XYZArray::SubRange(const uint start, const uint stop,
 			       const double val)
-{ 
+{
    for(uint i = start; i < stop ; ++i)
    {
       x[i] -= val;
@@ -358,7 +364,7 @@ inline void XYZArray::SubRange(const uint start, const uint stop,
 
 inline void XYZArray::ScaleRange(const uint start, const uint stop,
 				 const double val)
-{ 
+{
    for(uint i = start; i < stop ; ++i)
    {
       x[i] *= val;
@@ -369,7 +375,7 @@ inline void XYZArray::ScaleRange(const uint start, const uint stop,
 
 //Add a constant transform x+a, y+b... to all values.
 inline void XYZArray::AddAll(XYZ const& val)
-{ 
+{
    AddRange(0, count, val);
 }
 
@@ -378,7 +384,7 @@ inline void XYZArray::SubAll(XYZ const& val)
 {
    SubRange(0, count, val);
 }
-   
+
 //Multiply a constant transform x*a, y*b, ... to all values.
 inline void XYZArray::ScaleAll(XYZ const& val)
 {
@@ -396,7 +402,7 @@ inline void XYZArray::SubAll(const double val)
 {
    SubRange(0, count, val);
 }
-   
+
 //Multiply a constant transform x*val, y*val, ... to all values.
 inline void XYZArray::ScaleAll(const double val)
 {
@@ -404,13 +410,13 @@ inline void XYZArray::ScaleAll(const double val)
 }
 
 //Copy range of points.
-inline void XYZArray::CopyRange(XYZArray & dest, const uint srcIndex, 
+inline void XYZArray::CopyRange(XYZArray & dest, const uint srcIndex,
 				const uint destIndex, const uint len) const
-{ 
+{
    memcpy(dest.x+destIndex, x+srcIndex, len * sizeof(double));
    memcpy(dest.y+destIndex, y+srcIndex, len * sizeof(double));
    memcpy(dest.z+destIndex, z+srcIndex, len * sizeof(double));
 }
-   
+
 
 #endif /*XYZ_ARRAY_H*/

@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef FORCEFIELD_H
 #define FORCEFIELD_H
 
@@ -12,8 +18,8 @@
 #include "PRNG.h"
 
 namespace config_setup
-{ 
-  //class FFValues; 
+{
+  //class FFValues;
   struct FFKind;
   //class Temperature;
   struct SystemVals;
@@ -24,9 +30,9 @@ class FFPrintout;
 
 class Forcefield
 {
- public:   
+ public:
    friend class FFPrintout;
-   
+
    Forcefield();
    ~Forcefield();
    //Initialize contained FFxxxx structs from setup data
@@ -43,7 +49,7 @@ class Forcefield
    double rCut;               //!<Cutoff radius for LJ/Mie potential (angstroms)
    double rCutSq;             //!<Cutoff radius for LJ/Mie potential squared (a^2)
    double rCutOver2;          //!<Cutoff radius for LJ/Mie potential over 2 (a)
-   
+
    double rOn;                // for switch tup of LJ (angstroms)
    double ronSq;              // for switch tup of LJ (a^2)
 
@@ -55,11 +61,11 @@ class Forcefield
    bool electrostatic, ewald;     //to consider columb interaction
    double alpha, recip_rcut;      // ewald terms
    uint vdwKind;      // to define VdW type, standard, shift or switch
-   uint exckind;      // to define  exclude kind, 1-2, 1-3, 1-4 
+   uint exckind;      // to define  exclude kind, 1-2, 1-3, 1-4
 
  private:
    //Initialize primitive member variables from setup data
-   
+
    void InitBasicVals(config_setup::SystemVals const& val,
 		      config_setup::FFKind const& ffKind);
 

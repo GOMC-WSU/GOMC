@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef BOX_DIMENSIONS_H
 #define BOX_DIMENSIONS_H
 
@@ -25,16 +31,16 @@ class BoxDimensions
    BoxDimensions& operator=(BoxDimensions const& other);
 
    void Init(config_setup::RestartSettings const& restart,
-	     config_setup::Volume const& confVolume, 
+	     config_setup::Volume const& confVolume,
 	     pdb_setup::Cryst1 const& cryst, double rc, double rcSq);
 
    XYZ GetAxis(const uint b) const { return axis.Get(b); }
 
    double GetTotVolume() const;
 
-   void SetVolume(const uint b, const double vol);      
-   
-   uint ShiftVolume(BoxDimensions & newDim, double & scale, 
+   void SetVolume(const uint b, const double vol);
+
+   uint ShiftVolume(BoxDimensions & newDim, double & scale,
 		    const uint b, const double delta) const;
 
    //!Calculate and execute volume exchange based on transfer
@@ -45,18 +51,18 @@ class BoxDimensions
     * \param bN box index for box N
     * \param transfer determines amount to be transfered
     */
-   uint ExchangeVolume(BoxDimensions & newDim, double * scale, 
+   uint ExchangeVolume(BoxDimensions & newDim, double * scale,
 		       const double transfer) const;
 
    //Vector btwn two points, accounting for PBC, on an individual axis
    XYZ MinImage(XYZ rawVec, const uint b) const;
-   
+
    //Wrap all coordinates in object.
    void WrapPBC(XYZArray & arr, const uint b) const;
-   
+
    //Unwrap all coordinates in object.
    void UnwrapPBC(XYZArray & arr, const uint b, XYZ const& ref) const;
-   
+
    //Wrap range of coordinates in object
    void WrapPBC(XYZArray & arr, const uint start, const uint stop,
 		const uint b) const;
@@ -70,31 +76,31 @@ class BoxDimensions
 
    //Unwrap one coordinate.
    XYZ UnwrapPBC(XYZ& rawPos, const uint b, XYZ const& ref) const;
-   
+
    //Unwrap one coordinate.
    void WrapPBC(double &x, double &y, double &z, const uint b) const
-   { 
+   {
       WrapPBC(x, axis.x[b]);
-      WrapPBC(y, axis.y[b]); 
-      WrapPBC(z, axis.z[b]); 
+      WrapPBC(y, axis.y[b]);
+      WrapPBC(z, axis.z[b]);
    }
 
    //Unwrap one coordinate.
-   void UnwrapPBC(double & x, double & y, double & z, 
+   void UnwrapPBC(double & x, double & y, double & z,
 		  const uint b, XYZ const& ref) const
    {
-      UnwrapPBC(x, ref.x, axis.x[b], halfAx.x[b]); 
-      UnwrapPBC(y, ref.y, axis.y[b], halfAx.y[b]); 
-      UnwrapPBC(z, ref.z, axis.z[b], halfAx.z[b]); 
+      UnwrapPBC(x, ref.x, axis.x[b], halfAx.x[b]);
+      UnwrapPBC(y, ref.y, axis.y[b], halfAx.y[b]);
+      UnwrapPBC(z, ref.z, axis.z[b], halfAx.z[b]);
    }
 
-   //Returns if within cutoff, if it is, gets distance -- 
+   //Returns if within cutoff, if it is, gets distance --
    //with shortcut, same coordinate array
-   bool InRcut(double & distSq, XYZ & dist, XYZArray const& arr, 
+   bool InRcut(double & distSq, XYZ & dist, XYZArray const& arr,
 	       const uint i, const uint j, const uint b) const;
-   
+
    //Dist squared -- with shortcut, two different coordinate arrays
-   bool InRcut(double & distSq, XYZ & dist, XYZArray const& arr1, 
+   bool InRcut(double & distSq, XYZ & dist, XYZArray const& arr1,
 	       const uint i, XYZArray const& arr2, const uint j,
 	       const uint b) const;
 
@@ -127,7 +133,7 @@ class BoxDimensions
    double rCut;
    double rCutSq;
    double minBoxSize;
-  
+
    //Dist. btwn two points, accounting for PBC, on an individual axis
    double MinImage(double& raw, const double ax, const double halfAx) const;
    double MinImageSigned(double raw, double ax, double halfAx) const;
@@ -138,10 +144,10 @@ class BoxDimensions
 		    const double ax, const double halfAx) const;
 
    double DotProduct(const uint atom, double kx, double ky,
-		     double kz, const XYZArray & Coords, uint box) const; 
+		     double kz, const XYZArray & Coords, uint box) const;
 };
 
-inline BoxDimensions::BoxDimensions(BoxDimensions const& other) : 
+inline BoxDimensions::BoxDimensions(BoxDimensions const& other) :
    axis(other.axis), halfAx(other.halfAx)
 {
    for (uint b = 0; b < BOX_TOTAL; ++b)
@@ -216,7 +222,7 @@ inline double BoxDimensions::MinImage
 #endif
 }
 
-inline double BoxDimensions::MinImageSigned(double raw, 
+inline double BoxDimensions::MinImageSigned(double raw,
       double ax, double halfAx) const
 {
    if (raw > halfAx)
@@ -245,34 +251,34 @@ inline bool BoxDimensions::InRcut
    if (rCut < dist.z)
       return false;
    distSq += dist.z*dist.z;
-   return (rCutSq > distSq); 
+   return (rCutSq > distSq);
 }
 
 inline bool BoxDimensions::InRcut
-(double & distSq, XYZ & dist, XYZArray const& arr1, const uint i, 
+(double & distSq, XYZ & dist, XYZArray const& arr1, const uint i,
  XYZArray const& arr2, const uint j, const uint b) const
 {
    distSq = 0;
-   dist.x = MinImageSigned(arr1.DifferenceX(i, arr2, j), 
+   dist.x = MinImageSigned(arr1.DifferenceX(i, arr2, j),
 			   axis.x[b], halfAx.x[b]);
    if (rCut < dist.x)
       return false;
-   dist.y = MinImageSigned(arr1.DifferenceY(i, arr2, j), 
+   dist.y = MinImageSigned(arr1.DifferenceY(i, arr2, j),
 			   axis.y[b], halfAx.y[b]);
    if (rCut < dist.y)
       return false;
    distSq = dist.x*dist.x + dist.y*dist.y;
    if (rCutSq < distSq)
       return false;
-   dist.z = MinImageSigned(arr1.DifferenceZ(i, arr2, j), 
+   dist.z = MinImageSigned(arr1.DifferenceZ(i, arr2, j),
 			   axis.z[b], halfAx.z[b]);
    if (rCut < dist.z)
       return false;
    distSq += dist.z*dist.z;
-   return (rCutSq > distSq); 
+   return (rCutSq > distSq);
 }
 
-inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr, 
+inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr,
 				  const uint i, const uint j,
 				  const uint b) const
 {
@@ -376,7 +382,7 @@ inline void BoxDimensions::GetDistSq
 
 //Wrap one coordinate.
 inline XYZ BoxDimensions::WrapPBC(XYZ rawPos, const uint b) const
-{ 
+{
    WrapPBC(rawPos.x, rawPos.y, rawPos.z, b);
    return rawPos;
 }
@@ -389,7 +395,7 @@ inline void BoxDimensions::WrapPBC(XYZArray & arr, const uint b) const
 }
 
 //Unwrap all coordinates in object.
-inline void BoxDimensions::UnwrapPBC(XYZArray & arr, const uint b, XYZ 
+inline void BoxDimensions::UnwrapPBC(XYZArray & arr, const uint b, XYZ
       const& ref) const
 {
    for (uint i = 0; i < arr.count; i++)
@@ -405,7 +411,7 @@ inline void BoxDimensions::WrapPBC
 }
 
 //Unwrap range of coordinates in object
-inline void BoxDimensions::UnwrapPBC(XYZArray & arr, const uint start, 
+inline void BoxDimensions::UnwrapPBC(XYZArray & arr, const uint start,
       const uint stop, const uint b,
       XYZ const& ref) const
 {
@@ -435,7 +441,7 @@ inline double BoxDimensions::WrapPBC(double& v, const double ax) const
    //
    // Advantages:
    // No branching
-   // 
+   //
    // Disadvantages:
    // Sometimes a couple of extra ops or a couple of extra compares.
    if (
@@ -458,9 +464,9 @@ inline double BoxDimensions::WrapPBC(double& v, const double ax) const
 inline XYZ BoxDimensions::UnwrapPBC(XYZ & rawPos, const uint b,
 				    XYZ const& ref) const
 {
-   UnwrapPBC(rawPos.x, ref.x, axis.x[b], halfAx.x[b]); 
-   UnwrapPBC(rawPos.y, ref.y, axis.y[b], halfAx.y[b]); 
-   UnwrapPBC(rawPos.z, ref.z, axis.z[b], halfAx.z[b]); 
+   UnwrapPBC(rawPos.x, ref.x, axis.x[b], halfAx.x[b]);
+   UnwrapPBC(rawPos.y, ref.y, axis.y[b], halfAx.y[b]);
+   UnwrapPBC(rawPos.z, ref.z, axis.z[b], halfAx.z[b]);
    return rawPos;
 }
 

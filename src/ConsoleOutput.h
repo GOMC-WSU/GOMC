@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef CONSOLE_OUTPUT_H
 #define CONSOLE_OUTPUT_H
 
@@ -70,7 +76,7 @@ struct ConsoleOutput : OutputableBase
 
    //Console Output does not need to sample, so does nothing.
    virtual void Sample(const ulong step) {}
-   
+
    virtual void Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output)
    {
@@ -87,7 +93,7 @@ struct ConsoleOutput : OutputableBase
 
    void PrintSysStat() const;
 
-   void PrintBanner(std::string const& str) const; 
+   void PrintBanner(std::string const& str) const;
 
    void PrintMoveKind(bool & somethingPrinted, const uint m,
 		      const uint b, const ulong step) const;

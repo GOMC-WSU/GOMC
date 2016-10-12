@@ -1,7 +1,13 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "PDBOutput.h"              //For spec;
 #include "EnsemblePreprocessor.h"   //For BOX_TOTAL, ensemble
 #include "System.h"                 //for init
-#include "StaticVals.h"             //for init  
+#include "StaticVals.h"             //for init
 #include "MoleculeLookup.h"  //for lookup array (to get kind cnts, etc.)
 #include "MoleculeKind.h"           //For kind names
 #include "MoveSettings.h"           //For move settings/state
@@ -12,8 +18,8 @@
 #include <iostream>                 // for cout;
 
 PDBOutput::PDBOutput(System & sys, StaticVals const& statV) :
-   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef), 
-   coordCurrRef(sys.coordinates), 
+   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
+   coordCurrRef(sys.coordinates),
    pStr(coordCurrRef.Count(),GetDefaultAtomStr()),
    boxDimRef(sys.boxDimRef), molRef(statV.mol) { }
 
@@ -59,7 +65,7 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
 #else
          notify = false;
 #endif
-	 
+
          outF[b].Init(output.state.files.pdb.name[b], aliasStr, true, notify);
 	 outF[b].open();
       }
@@ -91,10 +97,10 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
 	  (outRebuildRestartFName[b].end()-4,
 	   outRebuildRestartFName[b].end(),
 	   newStrAddOn);
-	outRebuildRestart[b].Init(outRebuildRestartFName[b], aliasStr, 
+	outRebuildRestart[b].Init(outRebuildRestartFName[b], aliasStr,
 				  true, notify);
       }
-      
+
    }
 }
 
@@ -104,7 +110,7 @@ void PDBOutput::InitPartVec(pdb_setup::Atoms const& atoms)
    //Start particle numbering @ 1
    for (uint b = 0; b < BOX_TOTAL; ++b)
    {
-      MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b), 
+      MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
 	 end = molLookupRef.BoxEnd(b);
       while (m != end)
       {
@@ -123,7 +129,7 @@ void PDBOutput::InitPartVec(pdb_setup::Atoms const& atoms)
 }
 
 void PDBOutput::FormatAtom
-(std::string & line, const uint p, const uint m, const char chain, 
+(std::string & line, const uint p, const uint m, const char chain,
  std::string const& atomAlias, std::string const& resName)
 {
    using namespace pdb_entry::atom::field;
@@ -138,7 +144,7 @@ void PDBOutput::FormatAtom
       ++posAliasStart;
    }
    line.replace(posAliasStart, alias::POS.LENGTH, atomAlias);
-   
+
    //Res (molecule) name
    line.replace(res_name::POS.START, res_name::POS.LENGTH,
 		   resName);
@@ -151,7 +157,7 @@ void PDBOutput::FormatAtom
 }
 
 void PDBOutput::DoOutput(const ulong step)
-{  
+{
    if(enableOutState)
    {
       std::vector<uint> mBox(molRef.count);
@@ -164,7 +170,7 @@ void PDBOutput::DoOutput(const ulong step)
       }
    }
    //NEW_RESTART_CODE
-   
+
    if (((step + 1) % stepsRestPerOut == 0) && enableRestOut)
    {
       DoOutputRebuildRestart(step + 1);
@@ -190,7 +196,7 @@ void PDBOutput::SetMolBoxVec(std::vector<uint> & mBox)
 {
    for (uint b = 0; b < BOX_TOTAL; ++b)
    {
-      MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b), 
+      MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
 	 end = molLookupRef.BoxEnd(b);
       while (m != end)
       {
@@ -205,7 +211,7 @@ void PDBOutput::PrintCryst1(const uint b, Writer & out)
    using namespace pdb_entry::cryst1::field;
    using namespace pdb_entry;
    sstrm::Converter toStr;
-   std::string outStr(pdb_entry::LINE_WIDTH, ' '); 
+   std::string outStr(pdb_entry::LINE_WIDTH, ' ');
    XYZ axis = boxDimRef.axis.Get(b);
    //Tag for crystallography -- cell dimensions.
    outStr.replace(label::POS.START, label::POS.LENGTH, label::CRYST1);
@@ -235,7 +241,7 @@ void PDBOutput::PrintCrystRest(const uint b, const uint step, Writer & out)
    using namespace pdb_entry::cryst1::field;
    using namespace pdb_entry;
    sstrm::Converter toStr;
-   std::string outStr(pdb_entry::LINE_WIDTH, ' '); 
+   std::string outStr(pdb_entry::LINE_WIDTH, ' ');
    XYZ axis = boxDimRef.axis.Get(b);
    //Tag for crystallography -- cell dimensions.
    outStr.replace(label::POS.START, label::POS.LENGTH, label::REMARK);
@@ -317,7 +323,7 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
 	    std::string line = GetDefaultAtomStr();
 	    XYZ coor = coordCurrRef.Get(p);
 
-	    FormatAtom(line, atom, molecule, segname, 
+	    FormatAtom(line, atom, molecule, segname,
 		       molRef.kinds[k].atomNames[p-pStart], resName);
 
 	    //Fill in particle's stock string with new x, y, z, and occupancy

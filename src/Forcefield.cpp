@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "Forcefield.h" //Header spec.
 //Setup partner classes
 #include "Setup.h"
@@ -12,7 +18,7 @@ Forcefield::Forcefield()
 {
   particles = NULL;
   angles = NULL;
-  OneThree = false; //default behavior is to turn off 1-3 interaction 
+  OneThree = false; //default behavior is to turn off 1-3 interaction
   OneFour = true;   // to turn on 1-4 interaction
   OneN = true;      // and turn on 1-n interaction
 }
@@ -40,8 +46,8 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
 			       config_setup::FFKind const& ffKind)
 {
    useLRC = val.ff.doTailCorr;
-   T_in_K = val.T.inKelvin; 
-   rCut = val.ff.cutoff; 
+   T_in_K = val.T.inKelvin;
+   rCut = val.ff.cutoff;
    rCutSq = rCut * rCut;
    rCutOver2 = rCut / 2.0;
    scl_14 = val.ff.oneFourScale;
@@ -88,5 +94,5 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
      OneThree = false, OneFour = true, OneN = true;
      std::cout << "REMINDER! 1-4 Interaction and more is ON\n" << std::endl;
    }
-     
+
 }

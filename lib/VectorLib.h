@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef VECTOR_LIB_H
 #define VECTOR_LIB_H
 
@@ -9,7 +15,7 @@
 namespace vect
 {
    inline std::vector<std::string> split(std::vector<std::string> & elems,
-					 std::string const& s, 
+					 std::string const& s,
 					 const char delim)
    {
       std::stringstream ss(s);
@@ -18,7 +24,7 @@ namespace vect
 	 elems.push_back(item);
       return elems;
    }
-   inline std::vector<std::string> split(const std::string & s, 
+   inline std::vector<std::string> split(const std::string & s,
 					 const char delim)
    {
       std::vector<std::string> elems;
@@ -31,7 +37,7 @@ namespace vect
    T* transfer(const std::vector<T>& vec)
    {
       T* array = new T[vec.size()];
-      std::copy(vec.begin(), vec.end(), array); 
+      std::copy(vec.begin(), vec.end(), array);
       return array;
    }
 
@@ -39,7 +45,7 @@ namespace vect
    template <typename T>
    T* TransferInto(T* array, const std::vector<T>& vec)
    {
-      std::copy(vec.begin(), vec.end(), array); 
+      std::copy(vec.begin(), vec.end(), array);
       return array;
    }
    //overloaded because vector<bool> is a lie and copy may not be supported
@@ -52,7 +58,7 @@ namespace vect
       return array;
 
    }
-   
+
    inline void transfer(char *& arr, std::vector<std::string> const& v,
 			  const uint len)
    {

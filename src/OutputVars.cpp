@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "OutputVars.h"
 #include "UnitConst.h" //For unit conversion factors
 #include "System.h"
@@ -25,7 +31,7 @@ void OutputVars::InitRef(System & sys, StaticVals const& statV)
    molLookupRef = & sys.molLookupRef;
    moveSetRef = & sys.moveSettings;
    movePercRef = statV.movePerc;
-   
+
    virial = new Virial[BOXES_WITH_U_NB];
 }
 
@@ -134,15 +140,15 @@ void OutputVars::CalcAndConvert(void)
 
 	 // Convert density to g/ml (which is equivalent to g/cm3)
 	 // To get kg/m3, multiply output densities by 1000.
-	 *density *= unit::MOLECULES_PER_A3_TO_MOL_PER_CM3 * 
+	 *density *= unit::MOLECULES_PER_A3_TO_MOL_PER_CM3 *
 	    kindsRef[k].molMass;
       }
    }
 #if ENSEMBLE == GEMC
    // delta Hv = (Uv-Ul) + P(Vv-Vl)
-   heatOfVap = energyRef[vapBox].total/numByBox[vapBox] - 
+   heatOfVap = energyRef[vapBox].total/numByBox[vapBox] -
       energyRef[liqBox].total/numByBox[liqBox] +
-      rawPressure[vapBox]*(volumeRef[vapBox]/numByBox[vapBox] - 
+      rawPressure[vapBox]*(volumeRef[vapBox]/numByBox[vapBox] -
 			   volumeRef[liqBox]/numByBox[liqBox]);
    heatOfVap *= unit::K_TO_KJ_PER_MOL;
 #endif

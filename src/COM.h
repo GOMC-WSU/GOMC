@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef COM_H
 #define COM_H
 
@@ -7,22 +13,22 @@
 #include "XYZArray.h" //Parent class
 #include "MoleculeLookup.h" //For box iterators used in initial assignment
 
-//COM array 
+//COM array
 class COM : public XYZArray
 {
  public:
 
-  //void operator=(const COM& b) 
-  COM& operator=(const COM& b)	 
+  //void operator=(const COM& b)
+  COM& operator=(const COM& b)
   {
     this->XYZArray::operator=(b); return *this;
   }
    //Declare a set of coordinates with no data (but must have proper frame
    //of reference).
    COM(BoxDimensions & box, XYZArray & coordinates, MoleculeLookup & molLook,
-       Molecules const& mol) : 
-      boxDimRef(box), coordRef(coordinates), molLookRef(molLook), molRef(mol) 
-      {} 
+       Molecules const& mol) :
+      boxDimRef(box), coordRef(coordinates), molLookRef(molLook), molRef(mol)
+      {}
 
    //Init from the coordinates grabbed from pdb file read.
    void CalcCOM();
@@ -48,7 +54,7 @@ inline void COM::CalcCOM()
       while (current != end)
       {
 	 molRef.GetRange(pStart, pStop, pLen, *current);
-	 boxDimRef.UnwrapPBC(coordRef, pStart, pStop, 
+	 boxDimRef.UnwrapPBC(coordRef, pStart, pStop,
 			     b, coordRef.Get(pStart));
 	 Set(*current, 0, 0, 0);
 	 for (uint p = pStart; p < pStop; p++)

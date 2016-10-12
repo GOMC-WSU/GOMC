@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef CALCULATEENERGY_H
 #define CALCULATEENERGY_H
 
@@ -15,13 +21,13 @@
 //    Energy Calculation functions for Monte Carlo simulation
 //    Calculates using const references to a particular Simulation's members
 //    Brock Jackman Sep. 2013
-//    
+//
 //    Updated to use radial-based intermolecular pressure
 //    Jason Mick    Feb. 2014
 //
 //    Updated with Mohammad B. to use neighbor list.  Fixed various
 //    preexisting flaws in neighbor list codebase to make production ready.
-//    Jason Mick    Feb. 2015 
+//    Jason Mick    Feb. 2015
 //
 
 class StaticVals;
@@ -37,7 +43,7 @@ class BoxDimensions;
 
 namespace cbmc { class TrialMol; }
 
-class CalculateEnergy 
+class CalculateEnergy
 {
    public:
       CalculateEnergy(StaticVals const& stat, System & sys);
@@ -46,11 +52,11 @@ class CalculateEnergy
 
       //! Calculates total energy/virial of all boxes in the system
       SystemPotential SystemTotal() ;
-   
+
 
       //! Calculates total energy/virial of a single box in the system
       SystemPotential BoxInter(SystemPotential potential,
-                               XYZArray const& coords, 
+                               XYZArray const& coords,
                                XYZArray const& com,
                                BoxDimensions const& boxAxes,
                                const uint box) ;
@@ -62,16 +68,16 @@ class CalculateEnergy
       //! @param boxAxes Box Dimenions to evaluate in
       //! @return System potential assuming no molecule changes
       SystemPotential SystemInter(SystemPotential potential,
-                                  XYZArray const& coords, 
+                                  XYZArray const& coords,
                                   XYZArray const& com,
                                   BoxDimensions const& boxAxes) ;
 
-      //! Calculates intermolecular energy (LJ and coulomb) of a molecule 
+      //! Calculates intermolecular energy (LJ and coulomb) of a molecule
       //!                           were it at molCoords.
       //! @param potential Copy of current energy structure to append result to
       //! @param molCoords Molecule coordinates
       //! @param molIndex Index of molecule.
-      //! @param box Index of box molecule is in. 
+      //! @param box Index of box molecule is in.
       //! @param newCOM (optional) If COM has changed for new coordinate,
       //!                          allows for that to be considered.
       void MoleculeInter(Intermolecular &inter_LJ,
@@ -81,7 +87,7 @@ class CalculateEnergy
 			 const uint box,
 			 XYZ const*const newCOM = NULL) const;
 
-      //! Calculates Nonbonded intra energy (LJ and coulomb )for 
+      //! Calculates Nonbonded intra energy (LJ and coulomb )for
       //!                       candidate positions
       //! @param energy Return array, must be pre-allocated to size n
       //! @param trialMol Partially built trial molecule.
@@ -96,7 +102,7 @@ class CalculateEnergy
                              const uint trials) const;
 
 
-      //! Calculates Nonbonded 1-4 intra energy (LJ and coulomb )for 
+      //! Calculates Nonbonded 1-4 intra energy (LJ and coulomb )for
       //!                     candidate positions
       //! and 1-3 interaction in case of  Martini forcefield
       //! @param energy Return array, must be pre-allocated to size n
@@ -112,7 +118,7 @@ class CalculateEnergy
 				 const uint trials) const;
 
 
-      //! Calculates Nonbonded intra energy (LJ and coulomb)for 
+      //! Calculates Nonbonded intra energy (LJ and coulomb)for
       //!                      candidate positions
       //! @param energy Output Array, at least the size of trialpos
       //! @param trialPos Array of candidate positions
@@ -157,16 +163,16 @@ class CalculateEnergy
       double IntraEnergy_1_4(const double distSq, const uint atom1,
 			     const uint atom2, const uint molIndex) const;
 
-   private: 
+   private:
 
       //! Calculates full TC for one box in current system
-      void FullTailCorrection(SystemPotential& pot, 
-                              BoxDimensions const& boxAxes, 
+      void FullTailCorrection(SystemPotential& pot,
+                              BoxDimensions const& boxAxes,
 			      const uint box) const;
 
       //! Calculates bond vectors of a full molecule, stores them in vecs
       void BondVectors(XYZArray & vecs,
-                       MoleculeKind const& molKind, 
+                       MoleculeKind const& molKind,
                        const uint molIndex,
                        const uint box) const;
 
@@ -193,7 +199,7 @@ class CalculateEnergy
                       MoleculeKind const& molKind,
                       const uint molIndex,
                       const uint box) const;
-      
+
       //! Calculates Nonbonded 1_4 intramolecule energy of a full molecule
       void MolNonbond_1_4(double & energy,
                       MoleculeKind const& molKind,
@@ -207,7 +213,7 @@ class CalculateEnergy
                       const uint molIndex,
                       const uint box) const;
 
-  
+
       //! For particles in main coordinates array determines if they belong
       //! to same molecule, using internal arrays.
       bool SameMolecule(const uint p1, const uint p2) const
@@ -221,7 +227,7 @@ class CalculateEnergy
       const COM& currentCOM;
       const EwaldCached  *calcEwald;
       bool electrostatic, ewald;
-      
+
       std::vector<int> particleKind;
       std::vector<int> particleMol;
       std::vector<double> particleCharge;

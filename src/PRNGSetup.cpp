@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include <stdio.h> //for exit
 
 #include "Reader.h" //For file I/O
@@ -11,7 +17,7 @@ const std::string STEP_STR = "STEP";
 
 void PRNGInitData::HandleError(std::string const& mode)
 {
-   std::cerr << "ERROR: Attempt to initialize generator in mode \"" 
+   std::cerr << "ERROR: Attempt to initialize generator in mode \""
       << mode << "\" failed!" << std::endl << std::endl;
    exit(1);
 }
@@ -50,23 +56,23 @@ void PRNGInitData::Read(Reader & prngSeed)
    }
    //Read left
    prngSeed.file >> temp;
-   loadArray[i]= (MTRand::uint32)(temp);	 
+   loadArray[i]= (MTRand::uint32)(temp);
 }
 }
 
-const std::string PRNGSetup::seedFileAlias = 
+const std::string PRNGSetup::seedFileAlias =
 "Seed file for Mersenne Twister pseudo-random number generator";
 
 void PRNGSetup::Init(config_setup::RestartSettings const& restart,
       config_setup::PRNGKind const& genConf,
       std::string const& name)
 {
-   if (genConf.IsRand()) 
+   if (genConf.IsRand())
       prngMaker.Init();
-   else if (genConf.IsSeed()) 
+   else if (genConf.IsSeed())
       prngMaker.Init(genConf.seed);
    else if (genConf.IsRestart())
-   {	 
+   {
       Reader prngSeedFile(name, seedFileAlias);
       prngMaker.Init(prngSeedFile, restart.step);
    }
