@@ -214,12 +214,15 @@ void BlockAverages::InitWatchMulti(config_setup::TrackedVars const& tracked)
     uint bkStart = start + k;
     //Copy each char of the name string.
     std::string trimKindName = var->kindsRef[k].name;
-    name = out::MOL_NUM + "_" + trimKindName;
-    blocks[bkStart + out::MOL_NUM_IDX*var->numKinds].Init
-      (&outBlock0, &outBlock1, tracked.molNum.block, invSteps, name, BOXES_WITH_U_NB);
-    name = out::DENSITY + "_" + trimKindName;
-    blocks[bkStart + out::DENSITY_IDX*var->numKinds].Init
-      (&outBlock0, &outBlock1, tracked.density.block, invSteps, name, BOXES_WITH_U_NB);
+    if (var->numKinds == 1)
+    {
+      name = out::MOL_NUM + "_" + trimKindName;
+      blocks[bkStart + out::MOL_NUM_IDX*var->numKinds].Init
+        (&outBlock0, &outBlock1, tracked.molNum.block, invSteps, name, BOXES_WITH_U_NB);
+      name = out::DENSITY + "_" + trimKindName;
+      blocks[bkStart + out::DENSITY_IDX*var->numKinds].Init
+        (&outBlock0, &outBlock1, tracked.density.block, invSteps, name, BOXES_WITH_U_NB);
+    }
     //If more than one kind, output mol fractions.
     if (var->numKinds > 1)
     {
@@ -231,9 +234,9 @@ void BlockAverages::InitWatchMulti(config_setup::TrackedVars const& tracked)
     {
       uint kArrIdx = b*var->numKinds+k;
       blocks[bkStart + out::MOL_NUM_IDX*var->numKinds].SetRef
-      (&var->numByKindBox[kArrIdx], b);
+        (&var->numByKindBox[kArrIdx], b);
       blocks[bkStart + out::DENSITY_IDX*var->numKinds].SetRef
-      (&var->densityByKindBox[kArrIdx], b);
+        (&var->densityByKindBox[kArrIdx], b);
       if (var->numKinds > 1)
         blocks[bkStart + out::MOL_FRACTION_IDX*var->numKinds].SetRef
         (&var->molFractionByKindBox[kArrIdx], b);
