@@ -301,6 +301,7 @@ namespace cbmc
       double* weights = data->angleWeights;
       double* nonbonded_1_3 =  data->nonbonded_1_3;
       std::fill_n(nonbonded_1_3, nTrials, 0.0);
+      phi[0] = 0.0;
 
       for (uint b = 1; b < nBonds; ++b)
       {
@@ -341,7 +342,7 @@ namespace cbmc
 	       else
 	       {
 		  double fixedbfc = data->ff.angles->Angle(angleKinds[b][c]);
-		  angles[i] = acos((cos(fixedbfc) - cosTerm) /sinTerm) + phi[c];
+		  angles[i] = acos((cos(fixedbfc)-abs(cosTerm))/sinTerm)+phi[c];
 		  double bfcTheta = acos(sinTerm * cos(angles[i] - phi[c]) +
 					cosTerm);
 		  double distSq = newMol.AngleDist(bondLength[b], bondLength[c],
@@ -419,7 +420,7 @@ namespace cbmc
 		   double cosTerm = cos(theta[b]) * cos(theta[c]);
 		   double sinTerm = sin(theta[b]) * sin(theta[c]);
 		   double fixedbfc = data->ff.angles->Angle(angleKinds[b][c]);
-		   angles = acos((cos(fixedbfc) - cosTerm) / sinTerm) + phi[c];
+		   angles = acos((cos(fixedbfc)-abs(cosTerm))/sinTerm)+phi[c];
 		   double bfcTheta = acos(sinTerm * cos(angles - phi[c]) 
 					  + cosTerm);
 		   double distSq = oldMol.AngleDist(bondLengthOld[b],
