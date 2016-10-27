@@ -1,14 +1,10 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "EnsemblePreprocessor.h"
 #include "System.h"
 
 #include "CalculateEnergy.h"
+#include "EwaldCached.h"
 #include "Ewald.h"
+#include "NoEwald.h"
 #include "EnergyTypes.h"
 #include "Setup.h"               //For source of setup data.
 #include "ConfigSetup.h"         //For types directly read from config. file
@@ -34,11 +30,8 @@ System::System(StaticVals& statics) :
    prng(molLookupRef),
    coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
    com(boxDimRef, coordinates, molLookupRef, statics.mol),
-   moveSettings(boxDimRef),
-#ifdef CELL_LIST
-   cellList(statics.mol),
-#endif
-   calcEnergy(statics, *this), calcEwald(statics, *this) {}
+   moveSettings(boxDimRef), cellList(statics.mol),
+   calcEnergy(statics, *this) , calcEwald(NULL) {}
 
 System::~System()
 {
@@ -71,12 +64,22 @@ void System::Init(Setup const& set)
    //particle/molecule ensemble, e.g. NVT
    coordinates.InitFromPDB(set.pdb.atoms);
    com.CalcCOM();
-#ifdef CELL_LIST
    cellList.SetCutoff(statV.forcefield.rCut);
    cellList.GridAll(boxDimRef, coordinates, molLookupRef);
-#endif
-   calcEwald.Init();
-   calcEnergy.Init();
+
+   //check if we have to use cached version of ewlad or not.
+   bool ewald = set.config.sys.elect.ewald;
+   bool cached = set.config.sys.elect.cache;
+   
+   if (ewald && cached)
+      calcEwald = new EwaldCached(statV, *this);
+   else if (ewald && !cached)
+      calcEwald = new Ewald(statV, *this);
+   else
+      calcEwald = new NoEwald(statV, *this);
+
+   calcEwald->Init();   
+   calcEnergy.Init(*this);
    potential = calcEnergy.SystemTotal();
    InitMoves();
 }

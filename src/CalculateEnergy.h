@@ -1,20 +1,12 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef CALCULATEENERGY_H
 #define CALCULATEENERGY_H
 
-#define CELL_LIST
-
 #include "../lib/BasicTypes.h"
 #include "EnergyTypes.h"
+#include "EwaldCached.h"
 #include "Ewald.h"
-#ifdef CELL_LIST
+#include "NoEwald.h"
 #include "CellList.h"
-#endif
 
 #include <vector>
 
@@ -50,7 +42,7 @@ class CalculateEnergy
    public:
       CalculateEnergy(StaticVals const& stat, System & sys);
 
-      void Init();
+      void Init(System & sys);
 
       //! Calculates total energy/virial of all boxes in the system
       SystemPotential SystemTotal() ;
@@ -227,15 +219,13 @@ class CalculateEnergy
       const MoleculeLookup& molLookup;
       const BoxDimensions& currentAxes;
       const COM& currentCOM;
-      Ewald *calcEwald;
+      const EwaldCached  *calcEwald;
       bool electrostatic, ewald;
       
       std::vector<int> particleKind;
       std::vector<int> particleMol;
       std::vector<double> particleCharge;
-#ifdef CELL_LIST
       const CellList& cellList;
-#endif
 };
 
 #endif /*ENERGY_H*/

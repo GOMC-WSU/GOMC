@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef MOLCULETRANSFER_H
 #define MOLCULETRANSFER_H
 
@@ -58,8 +52,7 @@ inline uint MoleculeTransfer::GetBoxPairAndMol
    return state;
 }
 
-inline uint MoleculeTransfer::Prep(const double subDraw,
-				   const double movPerc)
+inline uint MoleculeTransfer::Prep(const double subDraw, const double movPerc)
 {
    uint state = GetBoxPairAndMol(subDraw, movPerc);
    newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef,
@@ -77,9 +70,7 @@ inline uint MoleculeTransfer::Transform()
    oldVirial_LJ = 0.0; 
    oldVirial_Real = 0.0;
    calcEnRef.MoleculeVirial(oldVirial_LJ, oldVirial_Real, molIndex, sourceBox);
-#ifdef CELL_LIST
    cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
-#endif
    subPick = mv::GetMoveSubIndex(mv::MOL_TRANSFER, sourceBox);
    molRef.kinds[kindIndex].Build(oldMol, newMol, molIndex);
    return mv::fail_state::NO_FAIL;
@@ -93,15 +84,14 @@ inline void MoleculeTransfer::CalcEn()
       tcGain = calcEnRef.MoleculeTailChange(destBox, kindIndex, true);
       W_tc = exp(-1.0*ffRef.beta*(tcGain.energy + tcLose.energy));
       W_recip = 1.0;
-      if (ewald) 
+      if (newMol.GetWeight() != 0.0)
       {
-	if (newMol.GetWeight() != 0.0)
-	{
-	  recipGain.energy = calcEwald.SwapDestRecip(newMol, destBox, sourceBox, molIndex);
-	  recipLose.energy = calcEwald.SwapSourceRecip(oldMol, sourceBox, molIndex);
-	  W_recip = exp(-1.0 * ffRef.beta * (recipGain.energy +
+	 recipGain.energy =
+	   calcEwald->SwapDestRecip(newMol, destBox, sourceBox, molIndex);
+	 recipLose.energy =
+	   calcEwald->SwapSourceRecip(oldMol, sourceBox, molIndex);
+	 W_recip = exp(-1.0 * ffRef.beta * (recipGain.energy +
 					    recipLose.energy));
-	}
       }
    }
 }
@@ -161,9 +151,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
          comCurrRef.SetNew(molIndex, destBox);
          molLookRef.ShiftMolBox(molIndex, sourceBox, destBox,
 				kindIndex);
-#ifdef CELL_LIST
 	 cellList.AddMol(molIndex, destBox, coordCurrRef);
-#endif
 
 	 //Calculate the fresh virial.
          double newVirial_LJ = 0.0, newVirial_Real = 0.0;
@@ -187,37 +175,29 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 	    sysPotRef.boxVirial[sourceBox].real = 0;
 	 }
 
+	 for (uint b = 0; b < BOX_TOTAL; b++)
+	 {
+	    calcEwald->UpdateRecip(b);
+	 }
+
 	 //Retotal
          sysPotRef.Total();
-	 if (ewald)
-	 {
-	    for (uint b = 0; b < BOX_TOTAL; b++)
-	    {
-	      calcEwald.UpdateRecip(b);
-	    }
-	 }
       }
-#ifdef CELL_LIST
       else
       {
 	 cellList.AddMol(molIndex, sourceBox, coordCurrRef);
-	 if (ewald)
-	 {
-	   for (uint b = 0; b < BOX_TOTAL; b++)
-	   {
-	     calcEwald.BackUpRecip(b);
-	   }
-	   //when weight is 0, MolDestSwap() will not be executed, thus cos/sin
-	   //molRef will not be changed. Also since no memcpy, doing restore
-	   //results in memory overwrite
-	   if (newMol.GetWeight() != 0.0)
-	     calcEwald.RestoreMol(molIndex);
-	 }
+	 //when weight is 0, MolDestSwap() will not be executed, thus cos/sin
+	 //molRef will not be changed. Also since no memcpy, doing restore
+	 //results in memory overwrite
+	 if (newMol.GetWeight() != 0.0)
+	    calcEwald->RestoreMol(molIndex);
+	 
       }
-#endif
+
    }
    else  //else we didn't even try because we knew it would fail
       result = false;
+
    subPick = mv::GetMoveSubIndex(mv::MOL_TRANSFER, sourceBox);
    moveSetRef.Update(result, subPick, step);
 }

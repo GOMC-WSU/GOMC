@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "FFParticle.h"
 #include "FFSetup.h" //For our setup info
 #include "ConfigSetup.h"
@@ -15,7 +9,8 @@ FFParticle::FFParticle() : mass(NULL), nameFirst(NULL), nameSec(NULL),
 			   epsilon_cn_1_4(NULL), epsilon_cn_6(NULL),
 			   epsilon_cn_6_1_4(NULL), nOver6(NULL),
 			   nOver6_1_4(NULL), enCorrection(NULL),
-			   virCorrection(NULL), shiftConst(NULL), shiftConst_1_4(NULL), An(NULL),
+			   virCorrection(NULL), shiftConst(NULL),
+			   shiftConst_1_4(NULL), An(NULL),
 			   Bn(NULL), Cn(NULL), An_1_4(NULL), Bn_1_4(NULL),
 			   Cn_1_4(NULL), sig6(NULL), sign(NULL),
 			   sig6_1_4(NULL), sign_1_4(NULL), rCut(0), rCutSq(0),

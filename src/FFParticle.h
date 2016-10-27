@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef FF_PARTICLE_H
 #define FF_PARTICLE_H
 
@@ -188,7 +182,7 @@ inline void FFParticle::CalcCoulombSub(double& en, double& vir,
   double tempEn = 0.0, tempVir = 0.0;
   CalcCoulomb(tempEn, tempVir, distSq, qi_qj_Fact);
   en  -= tempEn;
-  vir -= tempVir;
+  vir = -1.0 * tempVir;
 }
 
 //mie potential

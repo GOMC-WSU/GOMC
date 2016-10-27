@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "StaticVals.h"
 #include "ConfigSetup.h" //For types directly read from config. file
 #include "Setup.h" //For source of setup data.
@@ -27,6 +21,11 @@ void StaticVals::Init(Setup & set, System& sys)
    kindOfGEMC = set.config.sys.gemc.kind;
    pressure = set.config.sys.gemc.pressure;
 #endif
+}
+
+void StaticVals::InitOver(Setup & set, System& sys)
+{
+   mol.Init(set, forcefield, sys);
 }
 
 void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)

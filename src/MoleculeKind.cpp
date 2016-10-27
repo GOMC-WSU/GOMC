@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "MoleculeKind.h"
 #include "MolSetup.h"
 #include "FFSetup.h"
@@ -114,9 +108,9 @@ void MoleculeKind::Init
 }
 
 MoleculeKind::MoleculeKind() : angles(3), dihedrals(4),
-   atomMass(NULL), atomCharge(NULL), builder(NULL), 
-			       atomKind(NULL)
-{}
+			       atomMass(NULL), atomCharge(NULL), builder(NULL), 
+			       atomKind(NULL) {}
+
 
 MoleculeKind::~MoleculeKind()
 {
@@ -148,4 +142,17 @@ void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
       atomCharge[i] = atom.charge;
       atomKind[i] = atom.kind;
    }
+}
+
+double MoleculeKind::PrintChargeInfo()
+{
+   double netCharge = 0.0;
+   
+   for(uint i = 0; i < numAtoms; ++i)
+   {
+      //to calculate net charge
+      netCharge += atomCharge[i];
+   }
+
+   return netCharge;
 }
