@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "BlockOutput.h"
 #include "PDBConst.h"
 #include "OutConst.h"
@@ -27,7 +21,7 @@ void BlockAverage::Init(const bool en, const double scale,
    scl = scale;
    if (enable)
    {
-      name = prefix + GetFName(var, uniqueName); /*ADDED PREFIX*/ 
+      name = GetFName(var, uniqueName);
       outF.open(name.c_str(), std::ofstream::out);
       outF.setf(std::ios_base::left, std::ios_base::adjustfield);
       Zero();
