@@ -6,14 +6,17 @@
 
 #include "../lib/BasicTypes.h"
 #include "MolSetup.h"
+#include "System.h"
+#include "MoleculeLookup.h"
 
 class Molecules;
 
 class PSFOutput
 {
 public:
-    PSFOutput(const Molecules& molecules, mol_setup::MolMap& molMap, 
-        const std::vector<std::string>& kindNames);
+  PSFOutput(const Molecules& molecules, const System &sys,
+	    mol_setup::MolMap& molMap, 
+	    const std::vector<std::string>& kindNames);
     
     //Output PSF file to filename using default remarks
     void PrintPSF(const std::string& filename) const;
@@ -23,6 +26,7 @@ public:
 
 private:
     const Molecules* molecules;
+    const MoleculeLookup & molLookRef;
     std::vector<mol_setup::MolKind> molKinds;
     std::vector<std::string> molNames;
     uint totalAtoms;

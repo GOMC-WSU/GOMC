@@ -71,7 +71,7 @@ namespace mol_setup {
 	   MolKind() : incomplete(true) {}
 
    //private:
-	  std::vector<Atom> atoms;
+      std::vector<Atom> atoms;
       std::vector<Bond> bonds;
       std::vector<Angle> angles;
       std::vector<Dihedral> dihedrals;

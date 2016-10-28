@@ -22,8 +22,11 @@ namespace{
     const int dihPerLine = 2;
 }
 
-PSFOutput::PSFOutput(const Molecules& molecules, mol_setup::MolMap& molMap, 
-                     const std::vector<std::string>& kindNames) : molecules(&molecules), molNames(kindNames)
+PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
+		     mol_setup::MolMap& molMap, 
+                     const std::vector<std::string>& kindNames) :
+  molecules(&molecules), molNames(kindNames),
+  molLookRef(sys.molLookup)
 {
     molKinds.resize(molMap.size());
     for(uint i = 0; i < kindNames.size(); ++i)
@@ -37,6 +40,7 @@ void PSFOutput::CountMolecules()
 {
     //count molecules of each kind
     std::vector<uint> molCounts(molKinds.size(), 0);
+    
     for(uint i = 0; i < molecules->count; ++i)
     {
         ++molCounts[molecules->kIndex[i]];
@@ -47,10 +51,14 @@ void PSFOutput::CountMolecules()
     totalDihs = 0;
     for(uint k = 0; k < molCounts.size(); ++k)
     {
-        totalAtoms += molCounts[k] * molKinds[k].atoms.size();
-        totalBonds += molCounts[k] * molKinds[k].bonds.size() / 2;
-        totalAngles += molCounts[k] * molKinds[k].angles.size() / 3;
-        totalDihs += molCounts[k] * molKinds[k].dihedrals.size() / 4;
+      const MoleculeKind& molKind = molecules->GetKind(k);
+      for(uint b = 0; b < BOX_TOTAL; b++)
+      {
+	totalAtoms += molKind.NumAtoms() * molLookRef.NumKindInBox(k, b);
+	totalBonds += molKind.NumBonds() * molLookRef.NumKindInBox(k, b);
+	totalAngles += molKind.NumAngles() * molLookRef.NumKindInBox(k, b);	
+	totalDihs += molKind.NumDihs() * molLookRef.NumKindInBox(k, b);
+      }
     }
 }
 
@@ -63,7 +71,8 @@ void PSFOutput::PrintPSF(const std::string& filename) const
     PrintPSF(filename, remarks);
 }
 
-void PSFOutput::PrintPSF(const std::string& filename, const std::vector<std::string>& remarks) const
+void PSFOutput::PrintPSF(const std::string& filename,
+			 const std::vector<std::string>& remarks) const
 {
     FILE* outfile = fopen(filename.c_str(), "w");
     if (outfile == NULL)

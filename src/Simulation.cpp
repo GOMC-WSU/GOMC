@@ -26,7 +26,7 @@ Simulation::Simulation(char const*const configFileName)
              totalSteps);
 
    //Dump combined PSF
-   PSFOutput psfOut(staticValues->mol, set.mol.kindMap, 
+   PSFOutput psfOut(staticValues->mol, *system, set.mol.kindMap, 
 		    set.pdb.atoms.resKindNames);
    psfOut.PrintPSF(set.config.out.state.files.psf.name);
    std::cout << "Printed combined psf to file " 
