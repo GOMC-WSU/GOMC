@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -13,7 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "../lib/GeomLib.h" //For RadToDeg
 
 namespace ff
-{ 
+{
    static const double DENSITY_N_PER_V_TO_G_ML = 1.660538921;
 
    namespace part
@@ -32,16 +32,16 @@ namespace ff
       }
    }
 
-   namespace dih 
-   { 
-      namespace rot 
-      { 
+   namespace dih
+   {
+      namespace rot
+      {
 	 const uint cis = 0;
 	 const uint trans = 1;
 	 inline uint GetRotKind(const double phi)
-	 { 
+	 {
 	    double ang = geom::RadToDeg(phi);
-	    return ((ang>90||ang<-90)?ff::dih::rot::trans:ff::dih::rot::cis); 
+	    return ((ang>90||ang<-90)?ff::dih::rot::trans:ff::dih::rot::cis);
 	 }
       }
 

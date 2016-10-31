@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -45,12 +45,12 @@ namespace {
    void AssignDihKinds(MolKind& kind, const FFSetup& ffData);
 
 
-   //Builds kindMap from PSF file (does not include coordinates) kindMap 
-   // should be empty returns number of atoms in the file, or READERROR if 
+   //Builds kindMap from PSF file (does not include coordinates) kindMap
+   // should be empty returns number of atoms in the file, or READERROR if
    // the read failed somehow
    int ReadPSF(const char* psfFilename, MolMap& kindMap);
    //adds atoms and molecule data in psf to kindMap
-   //pre: stream is at !NATOMS   post: stream is at end of atom section 
+   //pre: stream is at !NATOMS   post: stream is at end of atom section
    int ReadPSFAtoms(FILE* psf,
       MolMap& kindMap, uint nAtoms);
    //adds bonds in psf to kindMap
@@ -64,7 +64,7 @@ namespace {
    int ReadPSFAngles(FILE* psf, MolMap& kindMap,
       std::vector<std::pair<uint, std::string> >& firstAtom);
    //adds dihedrals in psf to kindMap
-   //pre: stream is before !NPHI   post: stream is in dihedral section just 
+   //pre: stream is before !NPHI   post: stream is in dihedral section just
    //after the first appearance of the last molecule
    int ReadPSFDihedrals(FILE* psf, MolMap& kindMap,
       std::vector<std::pair<uint, std::string> >& firstAtom);
@@ -471,7 +471,7 @@ namespace{
    }
 
    //adds atoms and molecule data in psf to kindMap
-   //pre: stream is at !NATOMS   post: stream is at end of atom section 
+   //pre: stream is at !NATOMS   post: stream is at end of atom section
    int ReadPSFAtoms(FILE* psf, MolMap& kindMap, unsigned int nAtoms)
    {
       char input[512];
@@ -479,7 +479,7 @@ namespace{
       unsigned int molID;
       char segment[11], moleculeName[11], atomName[11], atomType[11];
       double charge, mass;
-      
+
       while (atomID < nAtoms)
       {
          char* check = fgets(input, 511, psf);
@@ -641,7 +641,7 @@ namespace{
          unsigned int molEnd = molBegin + currentMol.atoms.size();
 	 //continue if molecule has more that 3 atoms but has no dihedrals
 	 if(i == 0)
-	   { 
+	   {
 	   // if it is the first molecule and index of dihedral is greater than
 	   // molBegin, it means it does not have any dihedral. It works when
 	   // we have only two molecule kinds.
@@ -659,7 +659,7 @@ namespace{
                fprintf(stderr, "ERROR: Could not find all dihedrals in PSF file ");
                return READERROR;
             }
-	    //for case that molecule has more thatn 3 atoms and represend as 
+	    //for case that molecule has more thatn 3 atoms and represend as
 	    //second molecule but it has no dihedral. It works when
 	    // we have only two molecule kinds and no improper
 	    if (dih.a0 == 0)

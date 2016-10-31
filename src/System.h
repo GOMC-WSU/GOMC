@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -8,8 +8,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define SYSTEM_H
 
 #include "EnsemblePreprocessor.h" //For VARIABLE_<QUANTITY> conditional defines
-#include "CalculateEnergy.h" 
-#include "Ewald.h" 
+#include "CalculateEnergy.h"
+#include "EwaldCached.h"
+#include "Ewald.h"
+#include "NoEwald.h"
 
 //Member variables
 #include "EnergyTypes.h"
@@ -18,9 +20,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BoxDimensions.h"
 #include "MoleculeLookup.h"
 #include "MoveSettings.h"
-#ifdef CELL_LIST
 #include "CellList.h"
-#endif
 
 //Initialization variables
 class Setup;
@@ -38,9 +38,9 @@ class System
    void ChooseAndRunMove(const uint step);
 
    // return ewald
-   Ewald * GetEwald()
+   EwaldCached * GetEwald()
    {
-     return &calcEwald;
+     return calcEwald;
    }
 
    //NOTE:
@@ -69,12 +69,8 @@ class System
    COM com;
 
    CalculateEnergy calcEnergy;
-   Ewald  calcEwald;
-   //Ewald ewaldEnergy;
-   //Ewald & calcEwald;
-#ifdef CELL_LIST
+   EwaldCached  *calcEwald;
    CellList cellList;
-#endif
    PRNG prng;
 
    //Procedure to run once move is picked... can also be called directly for

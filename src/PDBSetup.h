@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -70,7 +70,7 @@ namespace pdb_setup
       {
          currBox = b;
 	 firstResInFile = true;
-         //restart count if new system, second box. 
+         //restart count if new system, second box.
          count = ((b == 1 && restart) ? 0 : count);
       }
       void Assign(std::string const& atomName,
@@ -79,7 +79,7 @@ namespace pdb_setup
 		  const char l_chain,
 		  const double l_x,
 		  const double l_y,
-		  const double l_z, 
+		  const double l_z,
 		  const double l_occ);
       void Read(FixedWidthReader & file);
 
@@ -92,7 +92,7 @@ namespace pdb_setup
 		   resKindNames;
 	   std::vector<uint> startIdxRes, resKinds;
 	   bool restart, firstResInFile;
-	   //CurrRes is used to store res vals, currBox is used to 
+	   //CurrRes is used to store res vals, currBox is used to
 	   //determine box either via the file (new) or the occupancy
 	   //(restart), count allows overwriting of coordinates during
 	   //second box read (restart only)

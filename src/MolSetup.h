@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -23,7 +23,7 @@ namespace mol_setup {
    class Atom
    {
    public:
-      Atom(std::string const& l_name, std::string const& l_type, 
+      Atom(std::string const& l_name, std::string const& l_type,
            const double l_charge, const double l_mass) :
            name(l_name), type(l_type), charge(l_charge), mass(l_mass) {}
    //private:
@@ -37,7 +37,7 @@ namespace mol_setup {
    class Dihedral
    {
    public:
-	   Dihedral(uint atom0, uint atom1, uint atom2, uint atom3) 
+	   Dihedral(uint atom0, uint atom1, uint atom2, uint atom3)
          : a0(atom0), a1(atom1), a2(atom2), a3(atom3) {}
       //some xplor PSF files have duplicate dihedrals, we need to ignore these
       bool operator == (const Dihedral& other) const;
@@ -52,7 +52,7 @@ namespace mol_setup {
    class Angle
    {
    public:
-      Angle(uint atom0, uint atom1, uint atom2) 
+      Angle(uint atom0, uint atom1, uint atom2)
          : a0(atom0), a1(atom1), a2(atom2) {}
 
    //private:
@@ -119,7 +119,7 @@ namespace mol_setup {
 }
 
 //wrapper struct for consistent interface
-class MolSetup 
+class MolSetup
 {
 public:
    //reads BoxTotal PSFs and merges the data, placing the results in kindMap

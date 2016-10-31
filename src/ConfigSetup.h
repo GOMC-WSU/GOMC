@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -47,7 +47,7 @@ namespace config_setup
    /////////////////////////////////////////////////////////////////////////
    // Input-specific structures
 
-   //Could use "EnableEvent", but restart's enable arguably needs its 
+   //Could use "EnableEvent", but restart's enable arguably needs its
    //own struct as "frequency" is misleading name for step number
    struct RestartSettings
    {
@@ -64,8 +64,8 @@ namespace config_setup
       bool IsSeed(void) const { return str::compare(KIND_SEED, kind); }
       bool IsRestart(void) const { return str::compare(KIND_RESTART, kind); }
       static const std::string KIND_RANDOM, KIND_SEED, KIND_RESTART;
-   }; 
-   
+   };
+
 	struct FFKind
 	{
 	  uint numOfKinds;
@@ -76,21 +76,21 @@ namespace config_setup
    //Files for input.
    struct InFiles
    {
-      FileName param; 
+      FileName param;
       FileNames<BOX_TOTAL> pdb, psf;
       FileName seed;
    };
 
    //Input section of config file data.
    struct Input
-   { 
+   {
       RestartSettings restart;
       PRNGKind prng;
       FFKind ffKind;
       InFiles files;
    };
 
-   
+
 
    /////////////////////////////////////////////////////////////////////////
    // System-specific structures
@@ -100,7 +100,7 @@ namespace config_setup
       double inKelvin;
    };
 
-	struct Exclude 
+	struct Exclude
 	{
 		uint EXCLUDE_KIND;
 
@@ -108,7 +108,7 @@ namespace config_setup
 		static const uint EXC_ONETWO_KIND, EXC_ONETHREE_KIND, EXC_ONEFOUR_KIND;
 	};
 
-   struct PotentialConfig 
+   struct PotentialConfig
    {uint kind; double cutoff; double oneFourScale; uint VDW_KIND;};
    struct VDWPot : public PotentialConfig { bool doTailCorr; };
    typedef PotentialConfig VDWShift;
@@ -127,17 +127,17 @@ namespace config_setup
    };
 
 #if ENSEMBLE == GEMC
-   
+
    //Items that effect the system interactions and/or identity, e.g. Temp.
    struct GEMCKind
    {
       uint kind;
       double pressure;
 
-      GEMCKind(): kind(mv::GEMC_NVT) {} 
+      GEMCKind(): kind(mv::GEMC_NVT) {}
 
-   }; 
-   
+   };
+
 #endif
 
    struct Step
@@ -161,13 +161,15 @@ namespace config_setup
    {
       bool readEwald;
       bool readElect;
+      bool readCache;
       bool enable;
       bool ewald;
+      bool cache;
       double alpha;
       double tolerance;
       double recip_rcut;
       double oneFourScale;
-      double dielectric;  
+      double dielectric;
    };
 
    struct Volume
@@ -192,7 +194,7 @@ namespace config_setup
      uint ang, dih;
    };
 
-   struct CBMC { GrowNonbond nonbonded; GrowBond bonded; };   
+   struct CBMC { GrowNonbond nonbonded; GrowBond bonded; };
 
 #if ENSEMBLE == GCMC
    struct ChemicalPotential
@@ -247,15 +249,15 @@ namespace config_setup
       HistFiles hist;
    };
    struct Settings { EventSettings block, hist, fluct; UniqueStr uniqueStr; };
-	    
+
    //Enables for each variable that can be tracked
    struct OutputEnables
    {
       bool block, fluct, hist;
    };
-	 
+
    struct TrackedVars
-   { 
+   {
       OutputEnables energy, pressure;
 #ifdef VARIABLE_VOLUME
       OutputEnables volume;
@@ -290,10 +292,9 @@ private:
 	void verifyInputs(void);
 	InputFileReader reader;
 
-	//Names of config file.		
-	static const char defaultConfigFileName[]; // "in.dat"		
+	//Names of config file.
+	static const char defaultConfigFileName[]; // "in.dat"
 	static const char configFileAlias[];       // "GO-MC Configuration File"
 };
 
-#endif 
-
+#endif

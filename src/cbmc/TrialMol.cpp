@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -24,8 +24,8 @@ namespace cbmc
 {
 
 TrialMol::TrialMol(const MoleculeKind& k, const BoxDimensions& ax,
-		   uint box) 
-  : kind(&k), axes(&ax), box(box), tCoords(k.NumAtoms()), 
+		   uint box)
+  : kind(&k), axes(&ax), box(box), tCoords(k.NumAtoms()),
     totalWeight(1.0)
 {
    atomBuilt = new bool[k.NumAtoms()];
@@ -139,7 +139,7 @@ void TrialMol::SetBasis(const uint p1, const uint p2, const uint p3)
    wVec.Normalize();
    //U will be unit projection of p2->p3 onto plane normal to W
    XYZ uVec = axes->MinImage(tCoords.Difference(p3, p2), box);
-   //V is unit vec perpendicular to both W and U 
+   //V is unit vec perpendicular to both W and U
    XYZ vVec = Cross(wVec, uVec);
    vVec.Normalize();
    //Finish X'
@@ -191,9 +191,9 @@ void TrialMol::ResetBasis()
 double TrialMol::PhiBetweenAngles(double theta1, double theta2,
 				  double interior)
 {
-   double y = (cos(interior) - cos(theta1) * cos(theta2)) 
+   double y = (cos(interior) - cos(theta1) * cos(theta2))
       / (sin(theta1) * sin(theta2));
-   return M_PI_2 - atan2(y, sqrt(1 - y*y)); 
+   return M_PI_2 - atan2(y, sqrt(1 - y*y));
 }
 
 
@@ -203,31 +203,31 @@ void TrialMol::SetCoords(const XYZArray& coords, uint start)
 }
 
 double TrialMol::AngleDist(const double b1, const double b2, const double theta)
-{ 
+{
    if(!kind->oneThree)
      return 0.0;
    else
    {
      double v = b1*b1 - 2*b1*b2*cos(theta) + b2*b2;
      return v;
-   } 
- 
+   }
+
  }
 
 double TrialMol::DihedDist(const double b1, const double b2, const double b3,
 			   const double theta1, const double theta2,
 			   const double phi)
-{ 
+{
    if(!kind->oneFour)
      return 0.0;
    else
    {
-     double i = b1 * cos(theta1) -b2 + b3 * cos(theta2); 
+     double i = b1 * cos(theta1) -b2 + b3 * cos(theta2);
      double j = b3 * sin(theta2) * sin(phi);
      double k = -b1 * sin(theta1) + b3 * sin(theta2) * cos(phi);
      return (i*i + j*j + k*k);
-   } 
-  
+   }
+
 }
- 
+
 }

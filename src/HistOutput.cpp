@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -10,6 +10,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "ConfigSetup.h"
 
 #include <sstream>
+#include <iostream>
+#include <fstream>
 
 Histogram::Histogram(OutputVars & v)
 {
@@ -26,10 +28,11 @@ Histogram::Histogram(OutputVars & v)
 void Histogram::Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output)
 {
-   stepsPerOut = output.state.files.hist.stepsPerHistSample;
+   stepsPerOut = output.statistics.settings.hist.frequency;
+   stepsPerSample = output.state.files.hist.stepsPerHistSample;
    enableOut = output.statistics.settings.hist.enable;
    if (enableOut)
-   {      
+   {
       total = new uint[var->numKinds];
       //Set each kind's initial count to 0
       for (uint k = 0; k < var->numKinds; ++k)
@@ -41,13 +44,14 @@ void Histogram::Init(pdb_setup::Atoms const& atoms,
       {
          name[b] = new std::string[var->numKinds];
          molCount[b] = new uint *[var->numKinds];
-	 outF[b] = new std::ofstream[var->numKinds];
+		 outF[b] = new std::ofstream[var->numKinds];
          for (uint k = 0; k < var->numKinds; ++k)
          {
-            name[b][k] = prefix + GetFName(output.state.files.hist.histName, /*ADDED PREFIX*/ 
+            name[b][k] = GetFName(output.state.files.hist.histName,
                                   output.state.files.hist.number,
                                   output.state.files.hist.letter,
                                   b, k);
+	    outF[b][k].open(name[b][k].c_str(), std::ofstream::out);
          }
       }
       //Figure out total of each kind of molecule in ALL boxes, including
@@ -70,19 +74,29 @@ void Histogram::Init(pdb_setup::Atoms const& atoms,
                molCount[b][k][n]=0;
             }
          }
-      }      
+      }
    }
 }
 
 Histogram::~Histogram()
 {
-   if (total != NULL) delete[] total;
-   for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
-   {
-      if (name[b] != NULL) delete[] name[b];
-      if (molCount[b] != NULL) delete[] molCount[b];
-	  if (outF[b] != NULL) delete[] outF[b];
-   }
+  if (total != NULL) delete[] total;
+  for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
+  {
+    if (name[b] != NULL) delete[] name[b];
+    if (molCount[b] != NULL) delete[] molCount[b];
+    if (outF != NULL && enableOut)
+    {
+      for (uint k = 0; k < var->numKinds; ++k)
+      {
+        if (outF[b] != NULL && outF[b][k].is_open())
+          outF[b][k].close();
+      }
+    }
+    if (outF[b] != NULL) {
+      delete[] outF[b];
+    }
+  }
 }
 
 void Histogram::Sample(const ulong step)
@@ -90,7 +104,7 @@ void Histogram::Sample(const ulong step)
    //Don't output until equilibrated.
    if ((step+1) < stepsTillEquil) return;
    //If equilibrated, add to correct bin for each type in each box.
-   if ((step+1) % stepsPerOut == 0)
+   if ((step+1) % stepsPerSample == 0)
    {
       for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
       {
@@ -102,7 +116,7 @@ void Histogram::Sample(const ulong step)
       }
    }
 }
- 
+
 void Histogram::DoOutput(const ulong step)
 {
    //Don't output until equilibrated.
@@ -114,13 +128,12 @@ void Histogram::DoOutput(const ulong step)
       {
 	 for (uint k = 0; k < var->numKinds; ++k)
 	 {
-	    outF[b][k].open(name[b][k].c_str(), std::ofstream::out);  
-	    if (outF[b][k].is_open())   
+	    outF[b][k].seekp(0);
+	    if (outF[b][k].is_open())
 	      PrintKindHist(b, k);
 	    else
-	      std::cerr << "Unable to write to file \"" <<  name[b][k] << "\" " 
+	      std::cerr << "Unable to write to file \"" <<  name[b][k] << "\" "
 			<< "(histogram file)" << std::endl;
-	    outF[b][k].close();
 	 }
       }
    }
@@ -134,7 +147,7 @@ void Histogram::PrintKindHist(const uint b, const uint k)
    }
 }
 
-std::string Histogram::GetFName(std::string const& histName, 
+std::string Histogram::GetFName(std::string const& histName,
                                 std::string const& histNum,
                                 std::string const& histLetter,
                                 const uint box, const uint kind)

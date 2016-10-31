@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -11,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "../MoleculeKind.h"
 #include "../MolSetup.h"
 #include "../../lib/NumLib.h"
+#include <omp.h>
 
 
 namespace cbmc
@@ -56,7 +57,7 @@ namespace cbmc
             break;
          }
       }
-      
+
    }
 
    void DCLinkNoDih::PrepareNew(TrialMol& newMol, uint molIndex)
@@ -82,15 +83,15 @@ namespace cbmc
 	 else
 	 {
 	    angles[trial] = prng.rand(M_PI);
-	    angleEnergy[trial] = ff.angles->Calc(angleKind, angles[trial]); 
+	    angleEnergy[trial] = ff.angles->Calc(angleKind, angles[trial]);
 	 }
 
 	 double distSq = newMol.AngleDist(bond[0], bond[1], angles[trial]);
 	 nonbonded_1_3[trial] = data->calc.IntraEnergy_1_3(distSq, prev, atom,
-							   molIndex); 
+							   molIndex);
 	 if(isnan(nonbonded_1_3[trial]))
 	   nonbonded_1_3[trial] = num::BIGNUM;
-	 
+
          angleWeights[trial] = exp((angleEnergy[trial] + nonbonded_1_3[trial])
 				   * -ff.beta);
          bendWeight += angleWeights[trial];
@@ -107,7 +108,7 @@ namespace cbmc
       const Forcefield& ff = data->ff;
       uint count = data->nAngleTrials - 1;
       bendWeight = 0;
-      
+
       //set bond distance for old molecule
       double BondDistSq1 = oldMol.OldDistSq(focus, atom);
       double BondDistSq2 = oldMol.OldDistSq(prev, focus);
@@ -190,12 +191,24 @@ namespace cbmc
       }
 
       data->axes.WrapPBC(positions, oldMol.GetBox());
+
       data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                                oldMol.GetBox(), nLJTrials);
-      data->calcEwald.SwapSelf(self, molIndex, atom, oldMol.GetBox(),
+#ifdef _OPENMP
+#pragma omp parallel sections
+#endif
+{
+#ifdef _OPENMP
+#pragma omp section
+#endif
+      data->calcEwald->SwapSelf(self, molIndex, atom, oldMol.GetBox(),
 			       nLJTrials);
-      data->calcEwald.SwapCorrection(correction, oldMol, positions, atom, 
+#ifdef _OPENMP
+#pragma omp section
+#endif
+      data->calcEwald->SwapCorrection(correction, oldMol, positions, atom,
 				     oldMol.GetBox(), nLJTrials);
+}
 
       const MoleculeKind& thisKind = oldMol.GetKind();
       double tempEn = 0.0;
@@ -204,7 +217,7 @@ namespace cbmc
 	 if (oldMol.AtomExists(i) && i != atom)
 	 {
 	    double distSq = oldMol.OldDistSq(i, atom);
-	    tempEn += data->calcEwald.CorrectionOldMol(oldMol, distSq,
+	    tempEn += data->calcEwald->CorrectionOldMol(oldMol, distSq,
 							     i, atom);
 	 }
       }
@@ -247,13 +260,24 @@ namespace cbmc
       }
 
       data->axes.WrapPBC(positions, newMol.GetBox());
+
       data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                                newMol.GetBox(), nLJTrials);
-
-      data->calcEwald.SwapSelf(self, molIndex, atom, newMol.GetBox(),
+#ifdef _OPENMP
+#pragma omp parallel sections
+#endif
+{
+#ifdef _OPENMP
+#pragma omp section
+#endif
+      data->calcEwald->SwapSelf(self, molIndex, atom, newMol.GetBox(),
 			       nLJTrials);
-      data->calcEwald.SwapCorrection(correction, newMol, positions, atom, 
+#ifdef _OPENMP
+#pragma omp section
+#endif
+      data->calcEwald->SwapCorrection(correction, newMol, positions, atom,
 				     newMol.GetBox(), nLJTrials);
+ }
 
 
       double stepWeight = 0;

@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -12,12 +12,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include <vector>
 
-namespace mol_setup { 
+namespace mol_setup {
 class Atom;
 class Bond;
 class Angle;
 class Dihedral;
-class MolKind; 
+class MolKind;
 }
 namespace ff_setup {
 class Bond;
@@ -33,7 +33,7 @@ struct Nonbond
    uint count;
 
    virtual void Init(const mol_setup::MolKind& molData);
-   Nonbond(); 
+   Nonbond();
    ~Nonbond();
 };
 
@@ -54,7 +54,7 @@ struct EwaldNonbond : public Nonbond
 {
   virtual void Init(const mol_setup::MolKind& molData);
 
-  
+
 };
 
 

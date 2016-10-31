@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -50,7 +50,7 @@ void CellList::RemoveMol(const int molIndex, const int box, const XYZArray& pos)
       //
       //If particle isn't at the head of the list, traverse links to find it,
       //relinking once found.
-      if (at == p) 
+      if (at == p)
       {
          head[box][cell] = list[p];
       }
@@ -75,7 +75,7 @@ void CellList::AddMol(const int molIndex, const int box, const XYZArray& pos)
    // For each atom in molecule
    int p = mols->MolStart(molIndex);
    int end = mols->MolEnd(molIndex);
-   
+
    //Note: GridAll assigns everthing to END_CELL
    // so list should point to that
    // if this is the first particle in a particular cell.
@@ -143,7 +143,7 @@ void CellList::RebuildNeighbors(int b)
                      neighbors[b][cell].push_back(
                         ((x + dx + eCells[0]) % eCells[0]) *
 			eCells[2] * eCells[1] +
-                        ((y + dy + eCells[1]) % eCells[1]) * 
+                        ((y + dy + eCells[1]) % eCells[1]) *
 			eCells[2] +
                         ((z + dz + eCells[2]) % eCells[2]));
                      j = neighbors[b][cell].back();
@@ -156,7 +156,7 @@ void CellList::RebuildNeighbors(int b)
 }
 
 void CellList::GridAll(const BoxDimensions& dims,
-		       const XYZArray& pos, 
+		       const XYZArray& pos,
    const MoleculeLookup& lookup)
 {
    list.resize(pos.Count());

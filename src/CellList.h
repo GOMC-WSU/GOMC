@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -80,7 +80,7 @@ inline int CellList::PositionToCell(const XYZ& pos, int box) const
 class CellList::Cell
 {
 public:
-    Cell(int start, const std::vector<int>& list) : 
+    Cell(int start, const std::vector<int>& list) :
      at(start), list(list.begin()) {}
 
    int operator*() const { return at; }
@@ -125,13 +125,13 @@ inline CellList::Neighbors CellList::EnumerateLocal(int cell, int box) const
 inline CellList::Neighbors CellList::EnumerateLocal(const XYZ& pos, int box) const
 { return EnumerateLocal(PositionToCell(pos, box), box); }
 
-inline CellList::Neighbors::Neighbors(const std::vector<int>& partList, 
+inline CellList::Neighbors::Neighbors(const std::vector<int>& partList,
    const std::vector<int>& headList, const std::vector<int>& neighbors) :
-   cell(headList[neighbors[0]], partList), 
+   cell(headList[neighbors[0]], partList),
    head(headList.begin()),
-   neighbor(neighbors.begin()), 
+   neighbor(neighbors.begin()),
    nEnd(neighbors.end())
-{ 
+{
    while(cell.Done()) {
       ++neighbor;
       if(Done()) {
@@ -191,7 +191,7 @@ cell(0),
 nCells(cellList.CellsInBox(box))
 {
    if (cellParticle.Done()) NextCell();
-   if (First() >= Second() && 
+   if (First() >= Second() &&
        !(First()==CellList::END_CELL && Second()==CellList::END_CELL))
       Next();
 }
@@ -220,7 +220,7 @@ inline void CellList::Pairs::Next()
             cellParticle = cellList.EnumerateCell(cell, box);
          }
       }
-      // skip over doubles 
+      // skip over doubles
    } while (First() >= Second());
 }
 #endif

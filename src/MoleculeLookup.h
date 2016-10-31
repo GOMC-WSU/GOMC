@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -14,13 +14,13 @@ namespace pdb_setup { class Atoms; }
 class Molecules;
 
 //CLASS: MoleculeLookup
-//This class provides a randomly chosen molecule index of a given kind in 
-//a given box requires updating with ShiftMolBox when a molecule is 
+//This class provides a randomly chosen molecule index of a given kind in
+//a given box requires updating with ShiftMolBox when a molecule is
 //transferred from one box to another
 class MoleculeLookup
 {
  public:
-   
+
    MoleculeLookup() : molLookup(NULL), boxAndKindStart(NULL) {}
 
    ~MoleculeLookup()
@@ -39,8 +39,8 @@ class MoleculeLookup
 
    uint GetMolNum(const uint subIndex, const uint kind, const uint box)
    { return molLookup[boxAndKindStart[box * numKinds + kind]+subIndex]; }
- 
-   void TotalAndDensity(uint * numByBox, uint * numByKindBox, 
+
+   void TotalAndDensity(uint * numByBox, uint * numByKindBox,
 			double * molFractionByBoxKind,
 			double * densityByKindBox,
 			double const * const volInv) const;
@@ -65,16 +65,16 @@ class MoleculeLookup
  private:
 
 #ifdef VARIABLE_PARTICLE_NUMBER
-   void Shift(const uint index, const uint currentBox, 
+   void Shift(const uint index, const uint currentBox,
 	      const uint intoBox, const uint kind);
 #endif
 
-   
+
    //array of indices for type Molecule, sorted by box and kind for
    //move selection
    uint* molLookup;
    //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
-   //molLookup 
+   //molLookup
    //index [BOX_TOTAL * kind + box + 1] is the element after the end
    //of that kind/box
    uint* boxAndKindStart;
@@ -82,9 +82,9 @@ class MoleculeLookup
 };
 
 inline uint MoleculeLookup::NumKindInBox(const uint kind, const uint box) const
-{ 
-   return boxAndKindStart[box * numKinds + kind + 1] - 
-      boxAndKindStart[box * numKinds + kind]; 
+{
+   return boxAndKindStart[box * numKinds + kind + 1] -
+      boxAndKindStart[box * numKinds + kind];
 }
 
 
@@ -94,7 +94,7 @@ class MoleculeLookup::box_iterator
    friend class MoleculeLookup;
    public:
    bool operator== (const box_iterator& rhs) const { return (pIt == rhs.pIt); }
-   bool operator!= (const box_iterator& rhs) const { return !(*this == rhs); } 
+   bool operator!= (const box_iterator& rhs) const { return !(*this == rhs); }
    bool operator< (const box_iterator& rhs) const { return (pIt < rhs.pIt); }
    bool operator> (const box_iterator& rhs) const { return (rhs < *this); }
    bool operator<= (const box_iterator& rhs) const { return !(rhs < *this); }

@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -74,7 +74,7 @@ class TransformMatrix
    private:
       static const uint N = 3;
       double matrix[N][N];
-      
+
 };
 
 inline void TransformMatrix::SetDiagonal(double d)
@@ -142,21 +142,21 @@ inline XYZ TransformMatrix::Apply(const XYZ& pos) const
    return result;
 }
 
-inline void TransformMatrix::BasisRotation(const XYZ& u, 
+inline void TransformMatrix::BasisRotation(const XYZ& u,
       const XYZ& v, const XYZ& w)
 {
    //column vectors are the basis vectors
-   matrix[0][0] = u.x; 
-   matrix[1][0] = u.y; 
-   matrix[2][0] = u.z; 
+   matrix[0][0] = u.x;
+   matrix[1][0] = u.y;
+   matrix[2][0] = u.z;
 
-   matrix[0][1] = v.x; 
-   matrix[1][1] = v.y; 
-   matrix[2][1] = v.z; 
+   matrix[0][1] = v.x;
+   matrix[1][1] = v.y;
+   matrix[2][1] = v.z;
 
-   matrix[0][2] = w.x; 
-   matrix[1][2] = w.y; 
-   matrix[2][2] = w.z; 
+   matrix[0][2] = w.x;
+   matrix[1][2] = w.y;
+   matrix[2][2] = w.z;
 }
 
 inline TransformMatrix TransformMatrix::operator*(const TransformMatrix& o) const

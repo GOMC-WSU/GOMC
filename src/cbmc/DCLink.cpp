@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -32,6 +32,7 @@ namespace cbmc
             bondLength = data->ff.bonds.Length(bonds[i].kind);
 	    bond[2] = bondLength;
 	    bondKind = bonds[i].kind;
+
             break;
          }
       }
@@ -42,11 +43,11 @@ namespace cbmc
 	 if (angles[i].a1 == focus)
 	 {
 	    angleKind = angles[i].kind;
-	    
-	     if (data->ff.angles->AngleEnergy(angleKind) > 10E6)
+
+	    if (data->ff.angles->AngleEnergy(angleKind) > 10E6)
 	    {
-	       angleFix = true;
-	       thetaFix = data->ff.angles->Angle(angleKind);
+	      angleFix = true;
+	      thetaFix = data->ff.angles->Angle(angleKind);
 	    }
 
             break;
@@ -105,7 +106,7 @@ namespace cbmc
 	    angleEnergy[trial] = 0.0;
 	 }
 	 else
-	 {	   
+	 {
 	    angles[trial] = prng.rand(M_PI);
 	    angleEnergy[trial] = ff.angles->Calc(angleKind, angles[trial]);
 	 }
@@ -156,7 +157,7 @@ namespace cbmc
 	   trialEn = 0.0;
 	 }
 	 else
-	 {	   
+	 {
 	   trialAngle = prng.rand(M_PI);
 	   trialEn = ff.angles->Calc(angleKind, trialAngle);
 	 }
@@ -237,7 +238,7 @@ namespace cbmc
       UseOldDih(oldMol, molIndex, torsion[0], ljWeights[0]);
       oneFour[0] = nonbonded_1_4[0];
       positions.Set(0, oldMol.AtomPosition(atom));
-      
+
       for (uint trial = 1; trial < nLJTrials; ++trial)
       {
 	ljWeights[trial] = GenerateDihedralsOld(oldMol, molIndex, angles,
@@ -253,13 +254,27 @@ namespace cbmc
       data->axes.WrapPBC(positions, oldMol.GetBox());
       data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                                oldMol.GetBox(), nLJTrials);
+
+#ifdef _OPENMP
+#pragma omp parallel sections
+#endif
+{
+#ifdef _OPENMP
+#pragma omp section
+#endif
       data->calc.ParticleNonbonded(nonbonded, oldMol, positions, atom,
 				   oldMol.GetBox(), nLJTrials);
-
-      data->calcEwald.SwapSelf(self, molIndex, atom, oldMol.GetBox(),
+#ifdef _OPENMP
+#pragma omp section
+#endif
+      data->calcEwald->SwapSelf(self, molIndex, atom, oldMol.GetBox(),
 			       nLJTrials);
-      data->calcEwald.SwapCorrection(correction, oldMol, positions, atom, 
+#ifdef _OPENMP
+#pragma omp section
+#endif
+      data->calcEwald->SwapCorrection(correction, oldMol, positions, atom,
 				     oldMol.GetBox(), nLJTrials);
+}
 
       const MoleculeKind& thisKind = oldMol.GetKind();
       double tempEn = 0.0;
@@ -268,7 +283,7 @@ namespace cbmc
 	 if (oldMol.AtomExists(i) && i != atom)
 	 {
 	    double distSq = oldMol.OldDistSq(i, atom);
-	    tempEn += data->calcEwald.CorrectionOldMol(oldMol, distSq,
+	    tempEn += data->calcEwald->CorrectionOldMol(oldMol, distSq,
 							     i, atom);
 	 }
       }
@@ -332,22 +347,36 @@ namespace cbmc
 					 ljWeights[trial]);
 	 oneFour[trial] = nonbonded_1_4[winner];
          torsion[trial] = angleEnergy[winner];
-         positions.Set(trial, newMol.GetRectCoords(bondLength, theta, 
+         positions.Set(trial, newMol.GetRectCoords(bondLength, theta,
 						   angles[winner]));
       }
 
       data->axes.WrapPBC(positions, newMol.GetBox());
       data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                                newMol.GetBox(), nLJTrials);
+
+#ifdef _OPENMP
+#pragma omp parallel sections
+#endif
+{
+#ifdef _OPENMP
+#pragma omp section
+#endif
       data->calc.ParticleNonbonded(nonbonded, newMol, positions, atom,
 				   newMol.GetBox(), nLJTrials);
-
-      data->calcEwald.SwapSelf(self, molIndex, atom, newMol.GetBox(),
+#ifdef _OPENMP
+#pragma omp section
+#endif
+      data->calcEwald->SwapSelf(self, molIndex, atom, newMol.GetBox(),
 			       nLJTrials);
-      data->calcEwald.SwapCorrection(correction, newMol, positions, atom, 
+#ifdef _OPENMP
+#pragma omp section
+#endif
+      data->calcEwald->SwapCorrection(correction, newMol, positions, atom,
 				     newMol.GetBox(), nLJTrials);
+}
 
- 
+
 
       double dihLJWeight = 0;
       double beta = data->ff.beta;
@@ -370,16 +399,16 @@ namespace cbmc
 			      correction[winner]));
    }
 
-   double DCLink::GenerateDihedralsNew(TrialMol& newMol, uint molIndex, 
+   double DCLink::GenerateDihedralsNew(TrialMol& newMol, uint molIndex,
 				       double* angles, double* angleEnergy,
 				       double* angleWeights)
    {
-      double* nonbonded_1_4 = data->nonbonded_1_4;     
+      double* nonbonded_1_4 = data->nonbonded_1_4;
       double stepWeight = 0.0;
       PRNG& prng = data->prng;
       const Forcefield& ff = data->ff;
       std::fill_n(nonbonded_1_4, data->nDihTrials, 0.0);
-      
+
       double theta1 = newMol.GetTheta(prevprev, prev, focus);
 
       for (uint trial = 0, count = data->nDihTrials; trial < count; ++trial)
@@ -400,16 +429,16 @@ namespace cbmc
       return stepWeight;
    }
 
-   double DCLink::GenerateDihedralsOld(TrialMol& oldMol, uint molIndex, 
+   double DCLink::GenerateDihedralsOld(TrialMol& oldMol, uint molIndex,
 				       double* angles, double* angleEnergy,
 				       double* angleWeights)
    {
-      double* nonbonded_1_4 = data->nonbonded_1_4;     
+      double* nonbonded_1_4 = data->nonbonded_1_4;
       double stepWeight = 0.0;
       PRNG& prng = data->prng;
       const Forcefield& ff = data->ff;
       std::fill_n(nonbonded_1_4, data->nDihTrials, 0.0);
-      
+
       double theta1 = oldMol.GetTheta(prevprev, prev, focus);
 
       for (uint trial = 0, count = data->nDihTrials; trial < count; ++trial)
@@ -460,7 +489,7 @@ namespace cbmc
 	 double tempEn = data->calc.IntraEnergy_1_4(distSq, prevprev, atom, molIndex);
 	 if(isnan(tempEn))
 	    tempEn = num::BIGNUM;
-	 
+
          double trialEnergy = ff.dihedrals.Calc(dihKind, trialPhi) + tempEn;
          weight += exp(-beta * trialEnergy);
       }

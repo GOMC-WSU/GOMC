@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -31,14 +31,14 @@ namespace prng_setup
       void Init(const uint seed) { prng = new MTRand((MTRand::uint32)(seed)); }
 
       //Init pure random.
-      void Init(void) { prng = new MTRand(); } 
-      
+      void Init(void) { prng = new MTRand(); }
+
       void HandleError(std::string const& mode);
 
 
       MTRand * prng;
     private:
-      
+
       //Goto correct step in seed dump file.
       void Goto(Reader & prngSeed, const ulong resStep);
 
@@ -55,7 +55,7 @@ struct PRNGSetup
    void Init(config_setup::RestartSettings const& restart,
 	     config_setup::PRNGKind const& genConf,
 	     std::string const& name);
-   
+
    static const std::string seedFileAlias;
 };
 

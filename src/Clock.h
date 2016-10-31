@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -12,7 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "../lib/BasicTypes.h"             //uint, ulong
 #include <iostream> //for cout
 
-struct Clock 
+struct Clock
 {
    Clock(): stepsPerOut(0), prevStep(0), lastStep(0), lastTime(0.0) {}
    void Init(const ulong steps, const ulong totSt)
@@ -32,7 +32,7 @@ inline void Clock::CheckTime(const uint step)
    if (stepDelta == stepsPerOut && step != lastStep)
    {
       double currTime = clock();
-      std::cout << "Steps/sec. : " 
+      std::cout << "Steps/sec. : "
 		<< stepDelta/TimeInSec(lastTime, currTime) << std::endl;
       prevStep = step;
       lastTime = currTime;

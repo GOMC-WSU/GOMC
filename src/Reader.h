@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -24,7 +24,7 @@ inline std::ifstream & operator>>(std::ifstream & is, bool & val)
 {
    is >> std::noboolalpha >> val;
    if (is.fail())
-   { 
+   {
       is.clear();
       is >> std::boolalpha >> val;
    }
@@ -39,15 +39,15 @@ public:
 	  bool useSkipC = false, std::string const*const skipC = NULL,
 	  const bool crit = true, const bool note = true):
    firstVal(""), skipChars(""), skipWordsEnable(false), skipCharsEnable(false)
-   { 
-      Init(name, alias, crit, note); 
-      if (useSkipW && skipW != NULL) 
+   {
+      Init(name, alias, crit, note);
+      if (useSkipW && skipW != NULL)
       { std::string s = *skipW; SetSkipWords(s); }
-      if (useSkipC && skipC != NULL)  
+      if (useSkipC && skipC != NULL)
       { std::string s = *skipC; SetSkipChars(s); }
-   } 
+   }
 
-   ~Reader(void) 
+   ~Reader(void)
    { if (isOpen) close(); }
 
    //Set main class vars.
@@ -56,10 +56,10 @@ public:
    {
       fileName = name; fileAlias = alias; critical = crit; notify = note;
       comp = true; isOpen = false;
-      nameWAlias = fileAlias + " file: ./"  + fileName; 
+      nameWAlias = fileAlias + " file: ./"  + fileName;
    }
 
-   //Open or close a file, with basic protections   
+   //Open or close a file, with basic protections
    void open(void)
    {
       if (isOpen) return;
@@ -69,15 +69,15 @@ public:
 
    void close(void)
    {
-      if (!isOpen) return; 
+      if (!isOpen) return;
       file.close();
       CheckFileState(false, "...could not be closed.", "Finished reading ");
    }
-   
+
    //Go to start of file
-   void FileStartOver(void) 
+   void FileStartOver(void)
    { file.clear(); file.seekg(0, std::ios::beg); }
-  
+
    void SkipLine(void)
    { file.ignore(std::numeric_limits<std::streamsize>::max(),'\n'); }
 
@@ -87,15 +87,15 @@ public:
    bool Read(std::string & firstItem);
 
    //Make public to expose object.
-   std::ifstream file; 
+   std::ifstream file;
  protected:
-   bool GoodFileWData(void) 
+   bool GoodFileWData(void)
    { return file.is_open() && file.good() && !file.eof(); }
 
    void HandleError(std::string const& msg)
    {
       using namespace std;
-      cerr << ((critical)?"Error ":"Warning ") << nameWAlias << endl 
+      cerr << ((critical)?"Error ":"Warning ") << nameWAlias << endl
 	   << msg << endl << endl;
       if (critical)
 	 exit(1);
@@ -106,7 +106,7 @@ public:
       using namespace std;
       cout << msg << nameWAlias << endl << endl;
    }
-   void CheckFileState(const bool expected, 
+   void CheckFileState(const bool expected,
 		       std::string const & errMessage, std::string const& note)
    {
       isOpen = GoodFileWData();
@@ -114,15 +114,15 @@ public:
 	 HandleNote(note);
       else if (isOpen!=expected)
 	 HandleError(errMessage);
-   } 
+   }
 
    //Skip unwanted items -- comments, etc.
    void SetSkipWords(std::string const& skipW)
    { skipWordsEnable = (skipW.length()>0); vect::split(skipWords,skipW,' '); }
-   
+
    void SetSkipChars(std::string const& skipC)
    { skipCharsEnable = (skipC.length()>0); skipChars=skipC; }
-   
+
    bool CheckSkipChars(std::string const& s)
    {
       bool skip = false;
@@ -131,7 +131,7 @@ public:
 	    skip |= (s[0]==skipChars[c]);
       return skip;
    }
-   
+
    bool CheckSkipWords(std::string const& s)
    {
       bool skip = false;
@@ -140,7 +140,7 @@ public:
 	    skip |= str::compare(s,skipWords[w]);
       return skip;
    }
-   
+
    std::string firstVal;
 
    //For skipping unwanted items
@@ -149,7 +149,7 @@ public:
    bool skipWordsEnable, skipCharsEnable;
 
    std::string fileName, fileAlias, nameWAlias;
-   bool critical, notify, isOpen, comp; 
+   bool critical, notify, isOpen, comp;
 };
 
 #endif /*READER_H*/

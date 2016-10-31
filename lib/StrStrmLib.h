@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -38,7 +38,7 @@ namespace sstrm
       std::stringstream strm;
       // sneaky way to use the string as the buffer to avoid copy.
       strm.rdbuf()->pubsetbuf(&str[0], str.length() );
-      return std::distance(std::istream_iterator<std::string>(strm), 
+      return std::distance(std::istream_iterator<std::string>(strm),
 			   std::istream_iterator<std::string>());
    }
 
@@ -62,25 +62,25 @@ namespace sstrm
       return b;
    }
    inline char *& FromStr(char *& c, std::string const& str)
-   { 
+   {
       for (unsigned int i = 0; i < str.length(); i++)
-	 c[i] = str[i]; 
-      return c; 
+	 c[i] = str[i];
+      return c;
    }
 
 
    struct Converter
    {
       std::stringstream strm;
-      
+
       Converter() { AutoFmt(); }
 
       //No width or precision set, by default.
       Converter & AutoFmt()
       { Align(align::RIGHT).Fixed(); return *this; }
-      
+
       Converter & Align(const char align)
-      { 
+      {
 	 if (align == align::LEFT)
 	    strm.setf(std::ios_base::left, std::ios_base::adjustfield);
 	 else //if (align == align::RIGHT)
@@ -92,7 +92,7 @@ namespace sstrm
 	 strm.setf(std::ios_base::fixed, std::ios_base::floatfield);
 	 return *this;
       }
-      
+
       Converter & Precision(const int precision)
       {
 	 if (precision != -1)
@@ -114,12 +114,12 @@ namespace sstrm
       Converter & operator<<(const uint ui) { strm << ui; return *this; }
       Converter & operator<<(std::string const& s)
       { strm << s; return * this; }
-      Converter & operator<<(const bool b) 
-      { 
-	 if (strm.precision()==1) 
+      Converter & operator<<(const bool b)
+      {
+	 if (strm.precision()==1)
 	    strm << std::noboolalpha;
-	 strm << b; 
-	 return *this; 
+	 strm << b;
+	 return *this;
       }
       Converter & operator>>(std::string & str)
       { str = strm.str(); Flush(); return *this; }
@@ -188,10 +188,10 @@ namespace sstrm
 	 str.replace(field.START, field.LENGTH, temp);
       }
 
-      Converter & Flush() 
+      Converter & Flush()
       { strm.clear(); strm.str(""); AutoFmt(); return *this; }
    };
-   
+
    inline void Flush(std::stringstream & strm) { strm.clear(); strm.str(""); }
 }
 

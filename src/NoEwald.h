@@ -4,8 +4,8 @@ Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
-#ifndef EWALD_H
-#define EWALD_H
+#ifndef NOEWALD_H
+#define NOEWALD_H
 
 #include "../lib/BasicTypes.h"
 #include "EnergyTypes.h"
@@ -16,7 +16,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <cassert>
 #include <omp.h>
 //
-//    Calculating Electrostatic calculation without caching Fourier terms.
+//    Called when Ewlad method was not used.
 //    Energy Calculation functions for Ewald summation method
 //    Calculating self, correction and reciprocate part of ewald
 //
@@ -37,12 +37,12 @@ class BoxDimensions;
 class CalculateEnergy;
 
 
-class Ewald : public EwaldCached
+class NoEwald : public EwaldCached
 {
   //friend class CalculateEnergy;
    public:
 
-   Ewald(StaticVals const& stat, System & sys);
+   NoEwald(StaticVals const& stat, System & sys);
 
    virtual void Init();
 
@@ -113,5 +113,4 @@ class Ewald : public EwaldCached
 };
 
 
-
-#endif /*EWALD_H*/
+#endif /*NOEWALD_H*/
