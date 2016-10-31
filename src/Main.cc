@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "Simulation.h"
 #include "GOMC_Config.h"    //For version number
 #include <iostream>
@@ -34,7 +28,7 @@ int main(int argc, char *argv[])
    PrintSimulationHeader();
    //Only run if valid ensemble was detected.
    if (CheckAndPrintEnsemble())
-   {
+   {   
 #ifndef NDEBUG
       PrintDebugMode();
 #endif
@@ -62,7 +56,7 @@ int main(int argc, char *argv[])
 	{
 	  //SECOND PARAMETER WILL BE FILE NAME
 	  inputFileString = argv[2];
-
+	  
 	  if(argv[1][0] == '+' && argv[1][1] == 'p')
 	  {
 	    numThreads = ReadNum(argv[1]);
@@ -73,8 +67,8 @@ int main(int argc, char *argv[])
 	    std::cout<< "Use +p# command to set number of threads.\n";
 	    exit(0);
 	  }
-
-	}
+	  
+	} 
       }
 
       //SET NUMBER OF THREADS
@@ -86,9 +80,9 @@ int main(int argc, char *argv[])
 
       //OPEN FILE
       inputFileReader.open(inputFileString.c_str(), ios::in | ios::out);
-
+ 
       //CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
-      if (!inputFileReader.is_open())
+      if (!inputFileReader.is_open()) 
       {
 	std::cout<<"Cannot open/find " << inputFileString <<
 	  " in the directory provided!\n";
@@ -96,7 +90,7 @@ int main(int argc, char *argv[])
       }
 
       //CLOSE FILE TO NOW PASS TO SIMULATION
-      inputFileReader.close();
+      inputFileReader.close(); 
 
       //ONCE FILE FOUND PASS STRING TO SIMULATION CLASS TO READ AND
       //HANDLE PDB|PSF FILE
@@ -161,7 +155,7 @@ void PrintSimulationFooter()
 
 std::ostream& PrintVersion(std::ostream& stream)
 {
-    stream << "GOMC Serial Version " << GOMC_VERSION_MAJOR
+    stream << "GOMC Serial Version " << GOMC_VERSION_MAJOR 
         << '.' << GOMC_VERSION_MINOR;
     return stream;
 }
@@ -214,3 +208,4 @@ uint ReadNum(char *argv)
 
 
 }
+

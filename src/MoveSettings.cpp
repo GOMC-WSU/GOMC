@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "MoveSettings.h" //header spec.
 #include "BoxDimensions.h" //For axis sizes
 #include "StaticVals.h" //For init info.
@@ -25,8 +19,8 @@ void MoveSettings::Init(StaticVals const& statV)
       {
 	 tempTries[m] = 0;
 	 tempAccepted[m] = 0;
-	 mv::GetMoveMajIndex(maj, subDiv, m);
-	 //baseAdjust *
+	 mv::GetMoveMajIndex(maj, subDiv, m);	 
+	 //baseAdjust * 
 	 /*   ( statV.movePerc[maj] / subDiv / statV.totalPerc );
 	 if (perAdjust[m]==0)
 	 {
@@ -37,7 +31,7 @@ void MoveSettings::Init(StaticVals const& statV)
       accepted[m] = tries[m] = 0;
    }
 
-#if ENSEMBLE == NVT || ENSEMBLE == GCMC
+#if ENSEMBLE == NVT || ENSEMBLE == GCMC 
    scale[mv::DISPLACE] = boxDimRef.axis.Min(0)/4;
    scale[mv::ROTATE] = M_PI_4;
 #elif ENSEMBLE == GEMC
@@ -55,7 +49,7 @@ void MoveSettings::Init(StaticVals const& statV)
 //Process results of move we just did in terms of acceptance counters
 void MoveSettings::Update(const bool isAccepted, const uint moveIndex,
 			  const uint step)
-{
+{ 
    bool adjust = ((step + 1) % perAdjust == 0);
 
    if (moveIndex < mv::SCALEABLE)
@@ -78,11 +72,11 @@ void MoveSettings::Update(const bool isAccepted, const uint moveIndex,
 
    //Refresh acceptance percentage appropriately
    if (moveIndex < mv::SCALEABLE)
-      acceptPercent[moveIndex] =
-	 (double)(tempAccepted[moveIndex]+accepted[moveIndex]) /
+      acceptPercent[moveIndex] = 
+	 (double)(tempAccepted[moveIndex]+accepted[moveIndex]) / 
 	 (double)(tempTries[moveIndex]+tries[moveIndex]);
    else
-      acceptPercent[moveIndex] = (double)(accepted[moveIndex]) /
+      acceptPercent[moveIndex] = (double)(accepted[moveIndex]) / 
 	 (double)(tries[moveIndex]);
 
    //Check whether we need to adjust this move's scaling.
@@ -106,7 +100,7 @@ void MoveSettings::Update(const bool isAccepted, const uint moveIndex,
 //Adjust responsibly
 void MoveSettings::Adjust(const uint majMoveKind,
 			  const uint moveIndex, const uint b)
-{
+{   
    if (tempTries[moveIndex] > 0)
    {
       double currentAccept =
@@ -155,11 +149,11 @@ void MoveSettings::Adjust(const uint majMoveKind,
    switch (majMoveKind)
    {
    case mv::DISPLACE :
-      num::Bound<double>(scale[moveIndex], 0.0000000001,
+      num::Bound<double>(scale[moveIndex], 0.0000000001, 
 			 (boxDimRef.axis.Min(b)/2) - TINY_AMOUNT);
-      break;
-   case mv::ROTATE :
-      num::Bound<double>(scale[moveIndex], 0.000001, M_PI-TINY_AMOUNT);
+      break; 
+   case mv::ROTATE :  
+      num::Bound<double>(scale[moveIndex], 0.000001, M_PI-TINY_AMOUNT);      
       break;
    default:
       break;

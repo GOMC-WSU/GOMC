@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef FF_PARTICLE_H
 #define FF_PARTICLE_H
 
@@ -19,26 +13,26 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 //
 // eps_E_cn = cn * eps_ij
 //                  __________const__________________
-// U_lrc = density * 0.5 * 4.0 / (n-3) * cn * pi * eps_ij * sig_ij^3 *
-//          ( (sig_ij/rij)^(n-3) - (n-3)/3*(sig_ij/rij)^3)
+// U_lrc = density * 0.5 * 4.0 / (n-3) * cn * pi * eps_ij * sig_ij^3 * 
+//          ( (sig_ij/rij)^(n-3) - (n-3)/3*(sig_ij/rij)^3)   
 //
 // Vir(r) = cn * eps_ij * n * (sig_ij/rij)^n - cn * eps_ij * 6 * (sig_ij/rij)^6
 // Vir(r) = cn * eps_ij * n * repulse - cn * eps_ij * 6 * attract
 // Vir(r) = cn * eps_ij * (n * repulse - 6 * attract)
 // Vir(r) = cn * eps_ij * 6 * ((n/6) * repulse - attract)
 //
-// Vir_lrc = density * 0.5 * 4.0 * 2/3 * cn * pi * eps_ij * sig_ij^3 *
-//          ( n/(n-3) * 3/2 * (sig_ij/rij)^(n-3) - 3*(sig_ij/rij)^3)
+// Vir_lrc = density * 0.5 * 4.0 * 2/3 * cn * pi * eps_ij * sig_ij^3 * 
+//          ( n/(n-3) * 3/2 * (sig_ij/rij)^(n-3) - 3*(sig_ij/rij)^3) 
 
-namespace ff_setup
-{
-  class Particle;
+namespace ff_setup 
+{ 
+  class Particle; 
   class NBfix;
 }
-namespace config_setup
+namespace config_setup 
 {
   struct SystemVals;
-  struct FFValues;
+  struct FFValues; 
   struct FFKind;
 }
 
@@ -135,7 +129,7 @@ inline void FFParticle::CalcAdd(double& en, double& vir, const double distSq,
 {
    uint idx = FlatIndex(kind1, kind2);
    Calc(en, vir, distSq, idx, n[idx]);
-}
+} 
 
 inline void FFParticle::CalcCoulombAdd(double& en, double& vir,
 					const double distSq,
@@ -143,7 +137,7 @@ inline void FFParticle::CalcCoulombAdd(double& en, double& vir,
 {
   CalcCoulomb(en, vir, distSq, qi_qj_Fact);
 }
-
+     
 
 inline void FFParticle::CalcAdd_1_4(double& en, const double distSq,
 		const uint kind1, const uint kind2) const
@@ -168,7 +162,7 @@ inline void FFParticle::CalcCoulombAdd_1_4(double& en, const double distSq,
 {
    double dist = sqrt(distSq);
    double erfc = alpha * dist;
-   en += scaling_14 * qi_qj_Fact * (1 - erf(erfc))/ dist;
+   en += scaling_14 * qi_qj_Fact * (1 - erf(erfc))/ dist; 
 }
 
 inline void FFParticle::CalcSub(double& en, double& vir, const double distSq,
@@ -179,7 +173,7 @@ inline void FFParticle::CalcSub(double& en, double& vir, const double distSq,
    Calc(tempEn, tempVir, distSq, idx, n[idx]);
    en -= tempEn;
    vir = -1.0 * tempVir;
-}
+} 
 
 inline void FFParticle::CalcCoulombSub(double& en, double& vir,
 					const double distSq,
@@ -250,7 +244,7 @@ inline double FFParticle::CalcCoulombVir(const double distSq,
 }
 
 //mie potential
-inline void FFParticle::Calc(double & en, double & vir,
+inline void FFParticle::Calc(double & en, double & vir, 
 			     const double distSq, const uint index,
 #ifdef MIE_INT_ONLY
 			     const uint n,
@@ -275,7 +269,7 @@ inline void FFParticle::Calc(double & en, double & vir,
 }
 
 inline void FFParticle::CalcCoulomb(double & en, double & vir,
-				    const double distSq,
+				    const double distSq, 
 				    const double qi_qj_Fact)const
 {
    double dist = sqrt(distSq);

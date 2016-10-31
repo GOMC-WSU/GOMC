@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "FFSetup.h"
 #include <algorithm>
 #include <iostream>
@@ -17,8 +11,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 const uint FFSetup::CHARMM_ALIAS_IDX = 0;
 const uint FFSetup::EXOTIC_ALIAS_IDX = 1;
-const std::string FFSetup::paramFileAlias[] =
-{"CHARMM-Style Parameter File", "Exotic Parameter File"};
+const std::string FFSetup::paramFileAlias[] = 
+{"CHARMM-Style Parameter File", "Exotic Parameter File"}; 
 const double ff_setup::KCAL_PER_MOL_TO_K = 503.21959899;
 const double ff_setup::RIJ_OVER_2_TO_SIG = 1.7817974362807;
 const double ff_setup::RIJ_TO_SIG = 0.890898718;
@@ -26,7 +20,7 @@ const double ff_setup::RIJ_TO_SIG = 0.890898718;
 const double ff_setup::Bond::FIXED = 99999999;
 
 //Map variable names to functions
-   std::map<std::string, ReadableBaseWithFirst *>
+   std::map<std::string, ReadableBaseWithFirst *>  
 FFSetup::SetReadFunctions(const bool isCHARMM)
 {
    std::map<std::string, ReadableBaseWithFirst *> funct;
@@ -45,7 +39,7 @@ FFSetup::SetReadFunctions(const bool isCHARMM)
       //Unique to exotic file
       funct["NONBONDED"] = &mie;
       funct["NONBONDED_MIE"] = &mie;
-      funct["NBFIX"] = &nbfix;
+      funct["NBFIX"] = &nbfix; 
       funct["NBFIX_MIE"] = &nbfix;
    }
    for (sect_it it = funct.begin(); it != funct.end(); ++it)
@@ -65,8 +59,8 @@ void FFSetup::Init(std::string const& name, const bool isCHARMM)
       "CUTNB END CTONN EPS VSWI NBXM INHI";
    map<string, ReadableBaseWithFirst *>::const_iterator sect, currSect;
 
-   Reader param(name,
-		paramFileAlias[isCHARMM?CHARMM_ALIAS_IDX:EXOTIC_ALIAS_IDX],
+   Reader param(name, 
+		paramFileAlias[isCHARMM?CHARMM_ALIAS_IDX:EXOTIC_ALIAS_IDX], 
 		true, &commentStr, true, &commentChar);
    param.open();
    while (param.Read(varName))
@@ -107,9 +101,9 @@ void FFSetup::Init(std::string const& name, const bool isCHARMM)
 namespace ff_setup
 {
 
-   std::string FFBase::ReadKind(Reader & param,
-				std::string const& firstKindName)
-   {
+   std::string FFBase::ReadKind(Reader & param, 
+				std::string const& firstKindName) 
+   { 
       std::string merged=firstKindName, tmp;
       for (uint k = 1; k < numTerms; k++)
       {
@@ -134,11 +128,11 @@ namespace ff_setup
    {
       double e, s, e_1_4, s_1_4, dummy1, dummy2;
       uint expN, expN_1_4;
-      std::stringstream values(LoadLine(param, firstVar));
+      std::stringstream values(LoadLine(param, firstVar));      
       if (isCHARMM()) //if lj
       {
 	 values >> dummy1;
-      }
+      } 
       values >> e >> s;
       if (isCHARMM())
       {
@@ -153,9 +147,9 @@ namespace ff_setup
       if (values.fail())
       {
 	 e_1_4 = e;
-	 s_1_4 = s;
+	 s_1_4 = s; 
       }
-      values >> expN_1_4;
+      values >> expN_1_4; 
       if (isCHARMM() || values.fail())
       {
 	 expN_1_4 = expN;
@@ -189,7 +183,7 @@ namespace ff_setup
 #else
       double expN, expN_1_4;
 #endif
-
+   
       std::stringstream values(LoadLine(param, firstVar));
       values >> e >> s;
 	  if (isCHARMM())
@@ -200,14 +194,14 @@ namespace ff_setup
       {
 	 values >> expN;
       }
-
+      
        values >> e_1_4 >> s_1_4;
       if (values.fail())
       {
 	 e_1_4 = e;
-	 s_1_4 = s;
+	 s_1_4 = s; 
       }
-      values >> expN_1_4;
+      values >> expN_1_4; 
 	  if (isCHARMM() || values.fail())
       {
 	 expN_1_4 = expN;
@@ -265,7 +259,7 @@ const double expN_1_4
       bool hsUB;
       std::stringstream values(LoadLine(param, firstVar));
       values >> coeff >> def;
-      values >> coeffUB >> defUB;
+      values >> coeffUB >> defUB; 
 
       hsUB = !values.fail();
       Add(coeff, def, hsUB, coeffUB, defUB);
@@ -327,12 +321,12 @@ const double expN_1_4
    void Particle::PrintBrief()
    {
       std::cout << "\tSigma\t\tEpsilon\t\tN\n";
-      std::cout << "#Read\t" << sigma.size() << '\t' << '\t' << epsilon.size()
+      std::cout << "#Read\t" << sigma.size() << '\t' << '\t' << epsilon.size() 
 		<< "\t\t" << n.size() << '\n';
       std::cout << "Avg.\t" <<
-	 std::accumulate(sigma.begin(), sigma.end(), 0.0) / sigma.size()
+	 std::accumulate(sigma.begin(), sigma.end(), 0.0) / sigma.size() 
 		<< "\t\t" <<
-	 std::accumulate(epsilon.begin(), epsilon.end(), 0.0) / epsilon.size()
+	 std::accumulate(epsilon.begin(), epsilon.end(), 0.0) / epsilon.size() 
 		<< "\t\t" <<
 	 std::accumulate(n.begin(), n.end(), 0.0) / n.size() << "\n\n";
    }
@@ -349,12 +343,12 @@ const double expN_1_4
    void Angle::PrintBrief()
    {
       std::cout << "\tKtheta\t\ttheta0\n";
-      std::cout << "#Read\t" << Ktheta.size() << '\t' << '\t'
+      std::cout << "#Read\t" << Ktheta.size() << '\t' << '\t' 
 		<< theta0.size() << '\n';
       std::cout << "Avg.\t" <<
-	 std::accumulate(Ktheta.begin(), Ktheta.end(), 0.0) / Ktheta.size()
+	 std::accumulate(Ktheta.begin(), Ktheta.end(), 0.0) / Ktheta.size() 
 		<< "\t\t" <<
-	 std::accumulate(theta0.begin(), theta0.end(), 0.0) / theta0.size()
+	 std::accumulate(theta0.begin(), theta0.end(), 0.0) / theta0.size() 
 		<< "\n\n";
    }
 
@@ -366,10 +360,10 @@ const double expN_1_4
    void Improper::PrintBrief()
    {
       std::cout << "\tKomega\t\tomega0\n";
-      std::cout << "#Read\t" << Komega.size() << '\t' << '\t'
+      std::cout << "#Read\t" << Komega.size() << '\t' << '\t' 
 		<< omega0.size() << '\n';
       std::cout << "Avg.\t" <<
-	 std::accumulate(Komega.begin(),
+	 std::accumulate(Komega.begin(), 
 			 Komega.end(), 0.0) / Komega.size() << "\t" <<
 	 std::accumulate(omega0.begin(),
 			 omega0.end(), 0.0) / omega0.size() << "\n\n";

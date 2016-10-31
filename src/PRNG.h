@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef PRNG_H
 #define PRNG_H
 
@@ -32,14 +26,14 @@ class PRNG
    ~PRNG(void) { delete gen; }
 
    void Init(MTRand * prng) { gen = prng; }
-
+        
    //Saves the current state of the PRNG as ./filename
    void saveState(const char* filename);
-
+   
    ////
    // BASIC GENERATION
    ////
-
+   
    //Standard double generation on [0,1.0]
    double operator()() { return (*gen)(); }
 
@@ -54,18 +48,18 @@ class PRNG
 
    //Generate an unsigned int on [0,bound)
    uint randIntExc(const uint bound) { return (uint)(gen->randInt(bound-1)); }
-
+   
    //Generates number on (-bound,bound)
    double Sym(double bound) { return 2*bound*gen->rand() - bound; }
-
+   
    /////////////////////////////
    //   GENERATION FUNCTIONS  //
    /////////////////////////////
 
-   XYZ SymXYZ(double bound)
-   {
+   XYZ SymXYZ(double bound) 
+   { 
       double bound2 = 2*bound;
-      return XYZ(gen->rand(bound2)-bound, gen->rand(bound2)-bound,
+      return XYZ(gen->rand(bound2)-bound, gen->rand(bound2)-bound, 
 		 gen->rand(bound2)-bound);
    }
 
@@ -76,20 +70,20 @@ class PRNG
          loc.Set(i, randExc(axis.x), randExc(axis.y), randExc(axis.z));
    }
 
-   void FillWithRandomOnSphere(XYZArray & loc, const uint len,
+   void FillWithRandomOnSphere(XYZArray & loc, const uint len, 
 			       const double rAttach, const XYZ& center)
    {
       //Quaternion Method - this was 80% slower in my tests - BGJ
       /*
       XYZ point;
-      double x[4], sum;
+      double x[4], sum; 
       for (uint i = 0; i < len; ++i)
       {
-	 do
+	 do 
 	 {
 	    sum = 0;
 	    for (uint j = 0; j < 4; ++j)
-	    {
+	    {   
 	       x[j]=Sym(1.0);
 	       sum += x[j]*x[j];
 	    }
@@ -154,7 +148,7 @@ class PRNG
    }
 
 
-   void PickBox(uint &b,
+   void PickBox(uint &b, 
 		const double subDraw, const double movPerc) const
    {
       //Calculate "chunk" of move for each box.
@@ -162,10 +156,10 @@ class PRNG
       //Which chunk was our draw in...
       b = (uint)(subDraw/boxDiv);
       //FIXME: Hack to prevent picking invalid boxes, may violate balance
-      if (b != mv::BOX0)
-	 b = mv::BOX1;
+      if (b != mv::BOX0) 
+	 b = mv::BOX1; 
    }
-
+ 
    void PickBox(uint &b, double &subDraw, double &boxDiv,
 		const double movPerc) const
    {
@@ -175,8 +169,8 @@ class PRNG
       b = (uint)(subDraw/boxDiv);
       //clamp if some rand err.
       //FIXME: Hack to prevent picking invalid boxes, may violate balance
-      if (b != mv::BOX0)
-	 b = mv::BOX1;
+      if (b != mv::BOX0) 
+	 b = mv::BOX1; 
       //Get draw down to box we picked, then calculate the size of
       //each molecule kind's chunk.
       subDraw-= b*boxDiv;
@@ -208,7 +202,7 @@ class PRNG
       PickBox(bSrc, subDraw, boxDiv, movPerc);
       SetOtherBox(bDest, bSrc);
    }
-
+   
    //Returns false if none of that kind of molecule in selected box.
    uint PickMol(uint & m, uint & mk, const uint b,
 		const double subDraw, const double subPerc)
@@ -220,11 +214,11 @@ class PRNG
       mk = (uint)(subDraw/molDiv);
 
       //clamp if some rand err.
-      if (mk == mkTot)
+      if (mk == mkTot) 
 	 mk = mkTot -1;
 
       //Pick molecule with the help of molecule lookup table.
-      if (molLookRef.NumKindInBox(mk, b) == 0)
+      if (molLookRef.NumKindInBox(mk, b) == 0) 
 	 rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
       else
       {
@@ -238,7 +232,7 @@ class PRNG
 
    uint PickMolAndBoxPair(uint &m, uint &mk, uint & bSrc, uint & bDest,
 			  double subDraw, const double movPerc)
-   {
+   { 
       double boxDiv=0;
       PickBoxPair(bSrc, bDest, boxDiv, subDraw, movPerc);
       return PickMol(m, mk, bSrc, subDraw, boxDiv);
@@ -247,7 +241,7 @@ class PRNG
    uint PickMolAndBox(uint & m, uint &mk, uint &b,
 		      double subDraw, const double movPerc)
    {
-      double boxDiv=0;
+      double boxDiv=0; 
       PickBox(b, subDraw, boxDiv, movPerc);
       return PickMol(m, mk, b, subDraw, boxDiv);
    }
@@ -280,7 +274,7 @@ inline void PRNG::saveState(const char* filename)
     fout.close();
 
     delete[] saveArray;
-
+   
 }
 
 #endif /*PRNG_H*/

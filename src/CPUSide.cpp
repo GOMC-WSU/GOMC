@@ -1,15 +1,9 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "System.h"
 #include "StaticVals.h"
 #include "CPUSide.h" //Spec declaration
 
 CPUSide::CPUSide(System & sys, StaticVals & statV) :
-   varRef(sys, statV), pdb(sys, statV), console(varRef), block(varRef),
+   varRef(sys, statV), pdb(sys, statV), console(varRef), block(varRef), 
    fluct(varRef), hist(varRef)
 #if ENSEMBLE == GCMC
    , sample_N_E(varRef)
@@ -17,7 +11,7 @@ CPUSide::CPUSide(System & sys, StaticVals & statV) :
   {}
 
 void CPUSide::Init(PDBSetup const& pdbSet, config_setup::Output const& out,
-                   const ulong tillEquil, const ulong totSteps)
+                   const ulong tillEquil, const ulong totSteps) 
 {
    //Initialize arrays in object that collects references and calc'ed vals.
    varRef.Init(pdbSet.atoms);

@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef PSFOUTPUT_H
 #define PSFOUTPUT_H
 
@@ -12,15 +6,18 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "../lib/BasicTypes.h"
 #include "MolSetup.h"
+#include "System.h"
+#include "MoleculeLookup.h"
 
 class Molecules;
 
 class PSFOutput
 {
 public:
-    PSFOutput(const Molecules& molecules, mol_setup::MolMap& molMap,
-        const std::vector<std::string>& kindNames);
-
+  PSFOutput(const Molecules& molecules, const System &sys,
+	    mol_setup::MolMap& molMap, 
+	    const std::vector<std::string>& kindNames);
+    
     //Output PSF file to filename using default remarks
     void PrintPSF(const std::string& filename) const;
 
@@ -29,6 +26,7 @@ public:
 
 private:
     const Molecules* molecules;
+    const MoleculeLookup & molLookRef;
     std::vector<mol_setup::MolKind> molKinds;
     std::vector<std::string> molNames;
     uint totalAtoms;

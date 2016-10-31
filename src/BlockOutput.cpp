@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "BlockOutput.h"
 #include "PDBConst.h"
 #include "OutConst.h"
@@ -64,14 +58,14 @@ void BlockAverage::DoWrite(const ulong step)
       outF << std::endl;
    }
    else
-      std::cerr << "Unable to write to file \"" <<  name << "\" "
+      std::cerr << "Unable to write to file \"" <<  name << "\" " 
 		<< varName << std::endl;
    Zero();
 }
-
-std::string BlockAverage::GetFName(std::string const& base,
+   
+std::string BlockAverage::GetFName(std::string const& base, 
 				   std::string const& uniqueName)
-{
+{ 
    std::string fName = "Blk_";
    varName = base;
    fName += base;
@@ -117,50 +111,50 @@ void BlockAverages::DoOutput(const ulong step)
 
 void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
 {
-   blocks[out::ENERGY_TOTAL_IDX].Init(tracked.energy.block, invSteps,
+   blocks[out::ENERGY_TOTAL_IDX].Init(tracked.energy.block, invSteps, 
 				      out::ENERGY_TOTAL, uniqueName, BOXES_WITH_U_NB);
 
    //Only output energy categories if specifically requested...
 #ifdef EN_SUBCAT_OUT
-   blocks[out::ENERGY_INTER_IDX].Init(tracked.energy.block, invSteps,
+   blocks[out::ENERGY_INTER_IDX].Init(tracked.energy.block, invSteps, 
 				      out::ENERGY_INTER, uniqueName,
 				      BOXES_WITH_U_NB);
-   blocks[out::ENERGY_TC_IDX].Init(tracked.energy.block, invSteps,
+   blocks[out::ENERGY_TC_IDX].Init(tracked.energy.block, invSteps, 
 				   out::ENERGY_TC, uniqueName,
                                    BOXES_WITH_U_NB);
-   blocks[out::ENERGY_INTRA_B_IDX].Init(tracked.energy.block, invSteps,
+   blocks[out::ENERGY_INTRA_B_IDX].Init(tracked.energy.block, invSteps, 
 					out::ENERGY_INTRA_B, uniqueName,
 					BOXES_WITH_U_NB);
-   blocks[out::ENERGY_INTRA_NB_IDX].Init(tracked.energy.block, invSteps,
+   blocks[out::ENERGY_INTRA_NB_IDX].Init(tracked.energy.block, invSteps, 
 					 out::ENERGY_INTRA_NB, uniqueName,
                                          BOXES_WITH_U_NB);
-   blocks[out::ENERGY_ELECT_IDX].Init(tracked.energy.block, invSteps,
+   blocks[out::ENERGY_ELECT_IDX].Init(tracked.energy.block, invSteps, 
 					 out::ENERGY_ELECT, uniqueName,
                                          BOXES_WITH_U_NB);
-   blocks[out::ENERGY_REAL_IDX].Init(tracked.energy.block, invSteps,
+   blocks[out::ENERGY_REAL_IDX].Init(tracked.energy.block, invSteps, 
 					 out::ENERGY_REAL, uniqueName,
                                          BOXES_WITH_U_NB);
-   blocks[out::ENERGY_RECIP_IDX].Init(tracked.energy.block, invSteps,
+   blocks[out::ENERGY_RECIP_IDX].Init(tracked.energy.block, invSteps, 
 					 out::ENERGY_RECIP, uniqueName,
                                          BOXES_WITH_U_NB);
 #endif
-   blocks[out::VIRIAL_TOTAL_IDX].Init(tracked.pressure.block, invSteps,
+   blocks[out::VIRIAL_TOTAL_IDX].Init(tracked.pressure.block, invSteps, 
 				      out::VIRIAL_TOTAL, uniqueName,
                                       BOXES_WITH_U_NB);
 #ifdef VIR_SUBCAT_OUT
-   blocks[out::VIRIAL_INTER_IDX].Init(tracked.pressure.block, invSteps,
+   blocks[out::VIRIAL_INTER_IDX].Init(tracked.pressure.block, invSteps, 
 				      out::VIRIAL_INTER, uniqueName,
                                       BOXES_WITH_U_NB);
-   blocks[out::VIRIAL_TC_IDX].Init(tracked.pressure.block, invSteps,
+   blocks[out::VIRIAL_TC_IDX].Init(tracked.pressure.block, invSteps, 
 				   out::VIRIAL_TC, uniqueName,
                                    BOXES_WITH_U_NB);
 #endif
 
-   blocks[out::PRESSURE_IDX].Init(tracked.pressure.block, invSteps,
+   blocks[out::PRESSURE_IDX].Init(tracked.pressure.block, invSteps, 
 				  out::PRESSURE, uniqueName,
                                   BOXES_WITH_U_NB);
 #if ENSEMBLE == GEMC
-   blocks[out::VOLUME_IDX].Init(tracked.volume.block, invSteps,
+   blocks[out::VOLUME_IDX].Init(tracked.volume.block, invSteps, 
 				out::VOLUME, uniqueName);
    blocks[out::HEAT_OF_VAP_IDX].Init(tracked.energy.block, invSteps,
 				     out::HEAT_OF_VAP, uniqueName, 1);
@@ -189,7 +183,7 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
 #if ENSEMBLE == GEMC
       blocks[out::VOLUME_IDX].SetRef(&var->volumeRef[b], b);
 #endif
-   }
+   }    
 }
 
 void BlockAverages::InitWatchMulti(config_setup::TrackedVars const& tracked)

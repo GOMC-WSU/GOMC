@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
+Copyright (C) 2015  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -17,7 +17,7 @@ namespace cbmc {
    class DCData;
 
    class DCFreeHedron : public DCComponent
-   {
+   {  
    public:
       DCFreeHedron(DCData* data, const mol_setup::MolKind& kind,
 		   uint focus, uint prev);

@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef FF_SHIFT_H
 #define FF_SHIFT_H
 
@@ -80,7 +74,7 @@ inline void FF_SHIFT::CalcAdd(double& en, double& vir, const double distSq,
 {
    uint idx = FlatIndex(kind1, kind2);
    Calc(en, vir, distSq, idx, n[idx]);
-}
+} 
 
 inline void FF_SHIFT::CalcCoulombAdd(double& en, double& vir,
 				     const double distSq,
@@ -111,7 +105,7 @@ inline void FF_SHIFT::CalcCoulombAdd_1_4(double& en, const double distSq,
 					 const double qi_qj_Fact) const
 {
    double dist = sqrt(distSq);
-   en += scaling_14 * qi_qj_Fact * (1.0/dist - 1.0/rCut);
+   en += scaling_14 * qi_qj_Fact * (1.0/dist - 1.0/rCut); 
 }
 
 inline void FF_SHIFT::CalcSub(double& en, double& vir, const double distSq,
@@ -122,7 +116,7 @@ inline void FF_SHIFT::CalcSub(double& en, double& vir, const double distSq,
    Calc(tempEn, tempVir, distSq, idx, n[idx]);
    en -= tempEn;
    vir = -1.0 * tempVir;
-}
+} 
 
 inline void FF_SHIFT::CalcCoulombSub(double& en, double& vir,
 				     const double distSq,
@@ -183,13 +177,13 @@ inline double FF_SHIFT::CalcVir(const double distSq,
 
 inline double FF_SHIFT::CalcCoulombVir(const double distSq,
 				       const double qi_qj_Fact) const
-{
+{  
   double dist = sqrt(distSq);
   return qi_qj_Fact/(distSq * dist);
 }
 
 //mie potential
-inline void FF_SHIFT::Calc(double & en, double & vir,
+inline void FF_SHIFT::Calc(double & en, double & vir, 
 			     const double distSq, const uint index,
 #ifdef MIE_INT_ONLY
 			     const uint n,
@@ -214,13 +208,13 @@ inline void FF_SHIFT::Calc(double & en, double & vir,
 }
 
 inline void FF_SHIFT::CalcCoulomb(double & en, double & vir,
-				  const double distSq,
+				  const double distSq, 
 				  const double qi_qj_Fact)const
 {
    double dist = sqrt(distSq);
    en += qi_qj_Fact *(1.0/dist - 1.0/rCut);
    vir = qi_qj_Fact/(distSq * dist);
-
+  
 }
 
 

@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef OUT_CONST_H
 #define OUT_CONST_H
 
@@ -17,9 +11,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 namespace out
 {
-   extern const std::string ENERGY_TOTAL;
+   extern const std::string ENERGY_TOTAL;   
    static const uint ENERGY_TOTAL_IDX = 0;
-#ifdef EN_SUBCAT_OUT
+#ifdef EN_SUBCAT_OUT 
    extern const std::string ENERGY_INTER;
    static const uint ENERGY_INTER_IDX = 1;
    extern const std::string ENERGY_TC;
@@ -36,7 +30,7 @@ namespace out
    static const uint ENERGY_RECIP_IDX = 7;
 #endif
    extern const std::string VIRIAL_TOTAL;
-#ifdef EN_SUBCAT_OUT
+#ifdef EN_SUBCAT_OUT 
    static const uint VIRIAL_TOTAL_IDX = 8;
 #else
    static const uint VIRIAL_TOTAL_IDX = 1;
@@ -54,7 +48,7 @@ namespace out
 #endif
 #endif
    extern const std::string PRESSURE;
-#if defined(EN_SUBCAT_OUT) && defined(VIR_SUBCAT_OUT)
+#if defined(EN_SUBCAT_OUT) && defined(VIR_SUBCAT_OUT) 
    static const uint PRESSURE_IDX = 11;
 #elif defined(EN_SUBCAT_OUT)
    static const uint PRESSURE_IDX = 9;
@@ -79,7 +73,7 @@ namespace out
 #if defined(EN_SUBCAT_OUT) && defined(VIR_SUBCAT_OUT)
    static const uint VOLUME_IDX = 13;
    static const uint HEAT_OF_VAP_IDX = 14;
-   static const uint TOTAL_SINGLE = 15;
+   static const uint TOTAL_SINGLE = 15; 
 #elif defined(EN_SUBCAT_OUT)
    static const uint VOLUME_IDX = 11;
    static const uint HEAT_OF_VAP_IDX = 12;
