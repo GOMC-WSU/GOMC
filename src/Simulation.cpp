@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -22,17 +22,20 @@ Simulation::Simulation(char const*const configFileName)
    totalSteps = set.config.sys.step.total;
    staticValues = new StaticVals();
    system = new System(*staticValues);
-   staticValues->Init(set, *system); 
+   staticValues->Init(set, *system);
    system->Init(set);
+   //recal Init for static value for initializing ewald since ewald is
+   //initialized in system
+   staticValues->InitOver(set, *system);
    cpu = new CPUSide(*system, *staticValues);
    cpu->Init(set.pdb, set.config.out, set.config.sys.step.equil,
              totalSteps);
 
    //Dump combined PSF
-   PSFOutput psfOut(staticValues->mol, set.mol.kindMap, 
+   PSFOutput psfOut(staticValues->mol, set.mol.kindMap,
 		    set.pdb.atoms.resKindNames);
    psfOut.PrintPSF(set.config.out.state.files.psf.name);
-   std::cout << "Printed combined psf to file " 
+   std::cout << "Printed combined psf to file "
 	     << set.config.out.state.files.psf.name << '\n';
 
 }
@@ -62,9 +65,10 @@ void Simulation::RunSimulation(void)
 #ifndef NDEBUG
 void Simulation::RunningCheck(const uint step)
 {
+   system->calcEwald->Init();
    SystemPotential pot = system->calcEnergy.SystemTotal();
-   
-   std::cout 
+
+   std::cout
       << "================================================================="
       << std::endl << "-------------------------" << std::endl
       << " STEP: " << step

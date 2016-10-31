@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -10,7 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <string>
 
 #include "ConfigSetup.h"
-std::string prefix = ""; //DECLARED STRING PREFIX TO MAKE AVAILABLE GLOBALLY
+
 //#define UINT_MAX 0xffffffff
 //#define ULONG_MAX 0xffffffffUL
 #define DBL_MAX 1.7976931348623158e+308
@@ -38,6 +38,9 @@ ConfigSetup::ConfigSetup(void)
 	in.prng.seed = UINT_MAX;
 	sys.elect.readEwald = false;
 	sys.elect.readElect = false;
+	sys.elect.readCache = false;
+	sys.elect.ewald = false;
+	sys.elect.enable = false;
 	sys.elect.tolerance = DBL_MAX;
 	sys.elect.oneFourScale = DBL_MAX;
 	sys.elect.dielectric = DBL_MAX;
@@ -138,16 +141,6 @@ void ConfigSetup::Init(const char *fileName)
 {
 	std::vector<std::string> line;
 
-	//ADDED LINES TO GET PREFIX PATH AND 
-	//CONVERT CHAR ARRY TO STRING TYPE TO GET PREFIX PATH
-	//string prefix;
-	std::string inputString(fileName);
-
-	size_t found = inputString.rfind('/');
-	if (found != std::string::npos)
-		prefix = inputString.substr(0, inputString.find_last_of('/')) + '/';
-	//END ADD LINE
-	
 	reader.Open(fileName);
 	while(reader.readNextLine(line))
 	{
@@ -187,7 +180,7 @@ void ConfigSetup::Init(const char *fileName)
 				std::cout << "REMINDER: MARTINI force field has been selected!" << std::endl;
 			}
 		} else if(line[0] == "Parameters") {
-			in.files.param.name = prefix + line[1]; //ADDED PREFIX
+			in.files.param.name = line[1];
 		} else if(line[0] == "Coordinates") {
 			uint boxnum = stringtoi(line[1]);
 			if(boxnum >= BOX_TOTAL)
@@ -195,7 +188,7 @@ void ConfigSetup::Init(const char *fileName)
 				std::cout<< "Error: This simulation requires only " << BOX_TOTAL << " number of PDB file(s)!" << std::endl;
 				exit(0);
 			}
-			in.files.pdb.name[boxnum] = prefix + line[2]; //ADDED PREFIX
+			in.files.pdb.name[boxnum] = line[2];
 		} else if(line[0] == "Structure") {
 			uint boxnum = stringtoi(line[1]);
 			if(boxnum >= BOX_TOTAL)
@@ -203,7 +196,7 @@ void ConfigSetup::Init(const char *fileName)
 				std::cout<< "Error: This simulation requires only " << BOX_TOTAL << " number of PSF file(s)!" << std::endl;
 				exit(0);
 			}
-			in.files.psf.name[boxnum] = prefix + line[2]; //ADDED PREFIX
+			in.files.psf.name[boxnum] = line[2];
 		}
 #if ENSEMBLE == GEMC
 		else if(line[0] == "GEMC")
@@ -217,7 +210,7 @@ void ConfigSetup::Init(const char *fileName)
 			{
 				sys.gemc.kind = mv::GEMC_NPT;
 				std::cout<< " NPT_GEMC simulation has been selected " << std::endl;
-                        } 
+                        }
 		}
 		else if(line[0] == "Pressure")
 		{
@@ -229,6 +222,7 @@ void ConfigSetup::Init(const char *fileName)
 		else if(line[0] == "Temperature")
 		{
 			sys.T.inKelvin = stringtod(line[1]);
+			std::cout<< "Temperature of system has been set to " << sys.T.inKelvin << " K " << std::endl;
 		}
 		else if(line[0] == "Potential")
 		{
@@ -264,6 +258,10 @@ void ConfigSetup::Init(const char *fileName)
 		{
 			sys.elect.ewald = checkBool(line[1]);
 			sys.elect.readEwald = true;
+			if(sys.elect.ewald)
+			{
+			   std::cout<< "Ewald Summation method will be used to calculate electrostatic interactions." << std::endl;
+			}
 		}
 		else if(line[0] == "ElectroStatic")
 		{
@@ -277,6 +275,20 @@ void ConfigSetup::Init(const char *fileName)
 			  sys.ff.cutoff;
 			sys.elect.recip_rcut = 2 * (-log(sys.elect.tolerance))/
 			  sys.ff.cutoff;
+			std::cout<< "Ewald Tolerance is set to: " << sys.elect.tolerance << std::endl;
+		}
+		else if(line[0] == "CachedFourier")
+		{
+		  sys.elect.cache = checkBool(line[1]);
+		  sys.elect.readCache = true;
+		  if(sys.elect.cache)
+		  {
+		     std::cout<< "Fourier terms will be cached to increase the code performance." << std::endl;
+		  }
+		  else
+		  {
+		     std::cout<< "Non cached Fourier terms will be used." << std::endl;
+		  }
 		}
 		else if(line[0] == "1-4scaling")
 		{
@@ -309,7 +321,7 @@ void ConfigSetup::Init(const char *fileName)
 		else if(line[0] == "RotFreq")
 		{
 			sys.moves.rotate = stringtod(line[1]);
-		} 
+		}
 #ifdef VARIABLE_VOLUME
 		else if(line[0] == "VolFreq")
 		{
@@ -357,7 +369,7 @@ void ConfigSetup::Init(const char *fileName)
 		else if(line[0] == "CBMC_Ang")
 		{
 			sys.cbmcTrials.bonded.ang = stringtoi(line[1]);
-		} 
+		}
 		else if(line[0] == "CBMC_Dih")
 		{
 			sys.cbmcTrials.bonded.dih = stringtoi(line[1]);
@@ -373,39 +385,39 @@ void ConfigSetup::Init(const char *fileName)
 			std::string resName = line[1];
 			double val = stringtod(line[2]);
 			sys.chemPot.cp[resName] = val;
-		} 
+		}
 #endif
-		else if(line[0] == "OutputName") 
+		else if(line[0] == "OutputName")
 		{
 			out.statistics.settings.uniqueStr.val = line[1];
-		} 
-		else if(line[0] == "CoordinatesFreq") 
+		}
+		else if(line[0] == "CoordinatesFreq")
 		{
 			out.state.settings.enable = checkBool(line[1]);
 			out.state.settings.frequency = stringtoi(line[2]);
-		} 
-		else if(line[0] == "RestartFreq") 
+		}
+		else if(line[0] == "RestartFreq")
 		{
 			out.restart.settings.enable = checkBool(line[1]);
 			out.restart.settings.frequency = stringtoi(line[2]);
-		} 
-		else if(line[0] == "ConsoleFreq") 
+		}
+		else if(line[0] == "ConsoleFreq")
 		{
 			out.console.enable = checkBool(line[1]);
 			out.console.frequency = stringtoi(line[2]);
-		} 
-		else if(line[0] == "BlockAverageFreq") 
+		}
+		else if(line[0] == "BlockAverageFreq")
 		{
 			out.statistics.settings.block.enable = checkBool(line[1]);
 			out.statistics.settings.block.frequency = stringtoi(line[2]);
-		} 
-		else if(line[0] == "FluctuationFreq") 
+		}
+		else if(line[0] == "FluctuationFreq")
 		{
 			out.statistics.settings.fluct.enable = checkBool(line[1]);
 			out.statistics.settings.fluct.frequency = stringtoi(line[2]);
-		} 
+		}
 #if ENSEMBLE == GCMC
-		else if(line[0] == "HistogramFreq") 
+		else if(line[0] == "HistogramFreq")
 		{
 			out.statistics.settings.hist.enable = checkBool(line[1]);
 			out.statistics.settings.hist.frequency = stringtoi(line[2]);
@@ -417,16 +429,16 @@ void ConfigSetup::Init(const char *fileName)
 		else if(line[0] == "HistName")
 		{
 			out.state.files.hist.sampleName = line[1];
-		} 
-		else if(line[0] == "RunNumber") 
+		}
+		else if(line[0] == "RunNumber")
 		{
 			out.state.files.hist.number = line[1];
-		} 
-		else if(line[0] == "RunLetter") 
+		}
+		else if(line[0] == "RunLetter")
 		{
 			out.state.files.hist.letter = line[1];
-		} 
-		else if(line[0] == "SampleFreq") 
+		}
+		else if(line[0] == "SampleFreq")
 		{
 			out.state.files.hist.stepsPerHistSample = stringtoi(line[1]);
 		}
@@ -511,12 +523,28 @@ void ConfigSetup::fillDefaults(void)
 		std::cout << "Warning: 1-4 electro static scaling has been set to zero!" << std::endl;
 		sys.elect.oneFourScale = 0.0f;
 	}
-	
+
 	if (sys.elect.ewald == true)
 	{
 	  sys.elect.enable = true;
 	}
-	
+
+	if (sys.elect.ewald == true && sys.elect.readCache == false)
+	{
+	  sys.elect.cache = true;
+	  std::cout << "Warning: By default, Fourier terms of ewald method will be cached!" << std::endl;
+	}
+
+	if (sys.elect.ewald == false && sys.elect.enable == true)
+	{
+	  std::cout << "Warning: Ewald method would not be used to calculate electrostatic energy!" << std::endl;
+	}
+
+	if (sys.elect.ewald == false && sys.elect.enable == false)
+	{
+	  std::cout << "Warning: Electrostatic energy would not be calculated!" << std::endl;
+	}
+
 	if(sys.elect.enable && sys.elect.dielectric == DBL_MAX && in.ffKind.isMARTINI)
 	{
 		std::cout << "Warning: Dielectric will be set to 15.0 for Martini forcefield!" << std::endl;
@@ -529,15 +557,15 @@ void ConfigSetup::fillDefaults(void)
 		std::cout << "Error: Output name is required!" << std::endl;
 		exit(0);
 	}
-	out.state.files.psf.name = prefix + out.statistics.settings.uniqueStr.val + ".psf"; /*ADDED PREFIX*/ 
+	out.state.files.psf.name = out.statistics.settings.uniqueStr.val + ".psf";
 	for(int i = 0; i<BOX_TOTAL; i++)
 	{
 		if(i==0)
-			out.state.files.pdb.name[0] = prefix + out.statistics.settings.uniqueStr.val + "_BOX_0.pdb"; /*ADDED PREFIX*/ 
+			out.state.files.pdb.name[0] = out.statistics.settings.uniqueStr.val + "_BOX_0.pdb";
 		else if(i==1)
-			out.state.files.pdb.name[1] = prefix + out.statistics.settings.uniqueStr.val + "_BOX_1.pdb"; /*ADDED PREFIX*/ 
+			out.state.files.pdb.name[1] = out.statistics.settings.uniqueStr.val + "_BOX_1.pdb";
 	}
-	out.state.files.seed.name = prefix + out.statistics.settings.uniqueStr.val + ".dat"; /*ADDED PREFIX*/ 
+	out.state.files.seed.name = out.statistics.settings.uniqueStr.val + ".dat";
 }
 
 void ConfigSetup::verifyInputs(void)
@@ -622,7 +650,7 @@ void ConfigSetup::verifyInputs(void)
 	}
 	if(sys.elect.ewald && (sys.elect.tolerance == DBL_MAX))
 	{
-		std::cout << "Error: Tolerance has not been specified for Ewald summation!" << std::endl;
+		std::cout << "Error: Tolerance has not been specified for Ewald summation method!" << std::endl;
 		exit(0);
 	}
 	if(sys.step.adjustment == ULONG_MAX)
@@ -816,7 +844,7 @@ void ConfigSetup::verifyInputs(void)
 	}
 	if(out.statistics.settings.block.frequency == ULONG_MAX)
 	{
-	  
+
 		out.statistics.settings.block.frequency = (ulong)sys.step.total / 100;
 		std::cout << "Warning: By default block average output frequency has been set to " << out.statistics.settings.block.frequency << "!" << std::endl;
 	}
@@ -938,8 +966,8 @@ void ConfigSetup::verifyInputs(void)
 #endif
 }
 
-const std::string config_setup::PRNGKind::KIND_RANDOM = "RANDOM", 
-   config_setup::PRNGKind::KIND_SEED = "INTSEED", 
+const std::string config_setup::PRNGKind::KIND_RANDOM = "RANDOM",
+   config_setup::PRNGKind::KIND_SEED = "INTSEED",
    config_setup::PRNGKind::KIND_RESTART = "RESTART",
    config_setup::FFKind::FF_CHARMM = "CHARMM",
    config_setup::FFKind::FF_EXOTIC = "EXOTIC",

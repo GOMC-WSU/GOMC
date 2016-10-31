@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -11,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "../PRNG.h"
 #include "../Forcefield.h"
 #include "../MolSetup.h"
+#include <omp.h>
 
 namespace cbmc
 {
@@ -18,7 +19,7 @@ namespace cbmc
 			  uint atom, uint focus) :
      data(data), atom(atom),
      focus(focus)
-   { 
+   {
       using namespace mol_setup;
       std::vector<Bond> bonds = AtomBonds(kind, atom);
       for(uint i = 0; i < bonds.size(); ++i)
@@ -59,14 +60,27 @@ namespace cbmc
       data->prng.FillWithRandomOnSphere(positions, nLJTrials, bondLength,
 					oldMol.AtomPosition(focus));
       positions.Set(0, oldMol.AtomPosition(atom));
-      data->axes.WrapPBC(positions, oldMol.GetBox());      
+      data->axes.WrapPBC(positions, oldMol.GetBox());
+
       data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                                oldMol.GetBox(), nLJTrials);
-      data->calcEwald.SwapSelf(self, molIndex, atom, oldMol.GetBox(),
+
+#ifdef _OPENMP
+#pragma omp parallel sections
+#endif
+{
+#ifdef _OPENMP
+#pragma omp section
+#endif
+      data->calcEwald->SwapSelf(self, molIndex, atom, oldMol.GetBox(),
 			       nLJTrials);
-      data->calcEwald.SwapCorrection(correction, oldMol, positions, atom, 
+#ifdef _OPENMP
+#pragma omp section
+#endif
+      data->calcEwald->SwapCorrection(correction, oldMol, positions, atom,
 				     oldMol.GetBox(), nLJTrials);
-      
+}
+
       const MoleculeKind& thisKind = oldMol.GetKind();
       double tempEn = 0.0;
       for (uint i = 0; i < thisKind.NumAtoms(); i++)
@@ -74,7 +88,7 @@ namespace cbmc
 	 if (oldMol.AtomExists(i) && i != atom)
 	 {
 	    double distSq = oldMol.OldDistSq(i, atom);
-	    tempEn += data->calcEwald.CorrectionOldMol(oldMol, distSq,
+	    tempEn += data->calcEwald->CorrectionOldMol(oldMol, distSq,
 							     i, atom);
 	 }
       }
@@ -102,7 +116,7 @@ namespace cbmc
       double* correction = data->correction;
       double* ljWeights = data->ljWeights;
       double stepWeight = 0;
-      
+
       std::fill_n(inter, nLJTrials, 0.0);
       std::fill_n(self, nLJTrials, 0.0);
       std::fill_n(real, nLJTrials, 0.0);
@@ -112,12 +126,24 @@ namespace cbmc
       data->prng.FillWithRandomOnSphere(positions, nLJTrials, bondLength,
 					newMol.AtomPosition(focus));
       data->axes.WrapPBC(positions, newMol.GetBox());
+
       data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                                newMol.GetBox(), nLJTrials);
-      data->calcEwald.SwapSelf(self, molIndex, atom, newMol.GetBox(),
+#ifdef _OPENMP
+#pragma omp parallel sections
+#endif
+{
+#ifdef _OPENMP
+#pragma omp section
+#endif
+      data->calcEwald->SwapSelf(self, molIndex, atom, newMol.GetBox(),
 			       nLJTrials);
-      data->calcEwald.SwapCorrection(correction, newMol, positions, atom, 
+#ifdef _OPENMP
+#pragma omp section
+#endif
+      data->calcEwald->SwapCorrection(correction, newMol, positions, atom,
 				     newMol.GetBox(), nLJTrials);
+}
 
       for (uint trial = 0; trial < nLJTrials; trial++)
       {
@@ -131,5 +157,5 @@ namespace cbmc
       newMol.AddEnergy(Energy(0, 0, inter[winner], real[winner], 0.0,
 			      self[winner], correction[winner]));
       newMol.AddAtom(atom, positions[winner]);
-   }   
+   }
 }

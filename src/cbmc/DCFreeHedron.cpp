@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -17,7 +17,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 namespace cbmc
 {
 
-   DCFreeHedron::DCFreeHedron(DCData* data, const mol_setup::MolKind& kind, 
+   DCFreeHedron::DCFreeHedron(DCData* data, const mol_setup::MolKind& kind,
 			      uint focus, uint prev)
       : data(data), seed(data, focus), hed(data, kind, focus, prev)
    {
@@ -53,7 +53,7 @@ namespace cbmc
       PRNG& prng = data->prng;
       const CalculateEnergy& calc = data->calc;
 
-      const Ewald& calcEwald = data->calcEwald;
+      const EwaldCached *calcEwald = data->calcEwald;
 
       const Forcefield& ff = data->ff;
       uint nLJTrials = data->nLJTrialsNth;
@@ -99,28 +99,51 @@ namespace cbmc
       for (uint b = 0; b < hed.NumBond() + 1; ++b)
       {
          data->axes.WrapPBC(positions[b], newMol.GetBox());
-   
+
       }
 
 
       for (uint b = 0; b < hed.NumBond(); ++b)
       {
-	 calc.ParticleInter(inter, real, positions[b], hed.Bonded(b), 
+	 calc.ParticleInter(inter, real, positions[b], hed.Bonded(b),
 			    molIndex, newMol.GetBox(), nLJTrials);
-	 calcEwald.SwapSelf(self, molIndex, hed.Bonded(b), newMol.GetBox(),
+#ifdef _OPENMP
+#pragma omp parallel sections
+#endif
+{
+#ifdef _OPENMP
+#pragma omp section
+#endif
+	 calcEwald->SwapSelf(self, molIndex, hed.Bonded(b), newMol.GetBox(),
 			    nLJTrials);
-	 calcEwald.SwapCorrection(correction, newMol, positions, b, hed.bonded,
-				  newMol.GetBox(), nLJTrials, hed.Prev(),
-				  false);
+#ifdef _OPENMP
+#pragma omp section
+#endif
+	 calcEwald->SwapCorrection(correction, newMol, positions, b,
+				   hed.bonded,  newMol.GetBox(), nLJTrials,
+				   hed.Prev(), false);
+}
       }
 
       calc.ParticleInter(inter, real, positions[hed.NumBond()], hed.Prev(),
                          molIndex, newMol.GetBox(), nLJTrials);
-      calcEwald.SwapSelf(self, molIndex, hed.Prev(), newMol.GetBox(),
+
+#ifdef _OPENMP
+#pragma omp parallel sections
+#endif
+{
+#ifdef _OPENMP
+#pragma omp section
+#endif
+      calcEwald->SwapSelf(self, molIndex, hed.Prev(), newMol.GetBox(),
 			    nLJTrials);
-      calcEwald.SwapCorrection(correction, newMol, positions, hed.NumBond(),
+#ifdef _OPENMP
+#pragma omp section
+#endif
+      calcEwald->SwapCorrection(correction, newMol, positions, hed.NumBond(),
 			       hed.bonded, newMol.GetBox(), nLJTrials,
 			       hed.Prev(), true);
+}
 
       double stepWeight = 0;
       for (uint lj = 0; lj < nLJTrials; ++lj)
@@ -148,7 +171,7 @@ namespace cbmc
       PRNG& prng = data->prng;
       const CalculateEnergy& calc = data->calc;
 
-      const Ewald& calcEwald = data->calcEwald;
+      const EwaldCached * calcEwald = data->calcEwald;
 
       const Forcefield& ff = data->ff;
       uint nLJTrials = data->nLJTrialsNth;
@@ -211,22 +234,45 @@ namespace cbmc
 	calc.ParticleInter(inter, real, positions[b], hed.Bonded(b),
                             molIndex, oldMol.GetBox(), nLJTrials);
 
-	calcEwald.SwapSelf(self, molIndex, hed.Bonded(b), oldMol.GetBox(),
+#ifdef _OPENMP
+#pragma omp parallel sections
+#endif
+{
+#ifdef _OPENMP
+#pragma omp section
+#endif
+	calcEwald->SwapSelf(self, molIndex, hed.Bonded(b), oldMol.GetBox(),
 			   nLJTrials);
-	calcEwald.SwapCorrection(correction, oldMol, positions, b, hed.bonded, 
-				 oldMol.GetBox(), nLJTrials, hed.Prev(), false);
+#ifdef _OPENMP
+#pragma omp section
+#endif
+	calcEwald->SwapCorrection(correction, oldMol, positions, b,
+				  hed.bonded, oldMol.GetBox(), nLJTrials,
+				  hed.Prev(), false);
+ }
       }
       double stepWeight = 0;
       calc.ParticleInter(inter, real, positions[hed.NumBond()], hed.Prev(),
                          molIndex, oldMol.GetBox(), nLJTrials);
 
-      calcEwald.SwapSelf(self, molIndex, hed.Prev(), oldMol.GetBox(),
+#ifdef _OPENMP
+#pragma omp parallel sections
+#endif
+{
+#ifdef _OPENMP
+#pragma omp section
+#endif
+      calcEwald->SwapSelf(self, molIndex, hed.Prev(), oldMol.GetBox(),
 			   nLJTrials);
-      calcEwald.SwapCorrection(correction, oldMol, positions, hed.NumBond(),
+#ifdef _OPENMP
+#pragma omp section
+#endif
+      calcEwald->SwapCorrection(correction, oldMol, positions, hed.NumBond(),
 			       hed.bonded, oldMol.GetBox(), nLJTrials,
 			       hed.Prev(), true);
+}
 
- 
+
 
       for (uint lj = 0; lj < nLJTrials; ++lj)
       {

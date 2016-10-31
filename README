@@ -1,14 +1,22 @@
 GOMC - GPU Optimized Monte Carlo
 
-
 BUILDING GOMC ON LINUX:
-
    1. Give execution permission using "chmod u+x metamake.sh"
    2. In the base (serial code) directory type "./metamake.sh"
    3. Go to the "bin" subdirectory
-   4. Type "make" to initiate the build process.
+   If you want to compile it in OMP mode:
+   4. Open CMakeCache.txt file and modify
+      "CMAKE_CXX_FLAGS_RELEASE:STRING:-O3 -DNDEBUG"
+      to "CMAKE_CXX_FLAGS_RELEASE:STRING=-O3 -qopenmp -DNDEBUG"
+   5. Type "make" to initiate the build process.
 
-   NOTES:   
+   If you compile the code in OMP mode:
+   You can set the number of the threads using the +pN argument, where N is the number of threads.
+   For example:
+      ./GOMC_Serial_XXXX +p4 in.dat
+      Which will run 4 threads and reads input file "in.dat".
+
+   NOTES:
       Building GOMC requires cmake, available at http://www.cmake.org and
       in most Linux package repositories (as cmake).
 
@@ -45,7 +53,7 @@ CONFIGURING CMAKE:
       	 If bugs are encountered or if a modification is being tested, please
       	 compile in "Debug" mode, which includes the debug symbols which can
       	 be used with gdb and valgrind to track errors.
-      
+
 	 The debugging code is MUCH slower than the release code (as debugger
       	 compiled codes typically are).  Be advised to check that you're
       	 compiling in "Release" build mode if the code seems slow.
@@ -61,7 +69,7 @@ CONFIGURING CMAKE:
 
       	 To build all ensembles simply leave them at their default
       	 value ("On").
-      
+
 	 GEMC includes both GEMC-NVT and GEMC-NPT implementations, which
       	 are switchable via the configuration file.
 
@@ -72,14 +80,12 @@ CONFIGURING CMAKE:
 
       -DCMAKE_CXX_COMPILER=Compiler
 
-      where Compiler is a valid compiler name or full path. If this is 
+      where Compiler is a valid compiler name or full path. If this is
       omitted, CMake will select your default C++ compiler (usually gcc).
 
       NOTES:
-      
+
          It is recommended to use the Intel Compiler and linking
       	 tools (icc/icpc/etc.).  They significantly outperform the default
       	 GNU compiler tools and are available for free for academic use
       	 with registration.
-
-

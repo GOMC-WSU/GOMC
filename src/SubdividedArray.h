@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -15,7 +15,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class SubdividedArray
 {
  public:
-   SubdividedArray(): start(NULL),  subdivCount(0) {}   
+   SubdividedArray(): start(NULL),  subdivCount(0) {}
    SubdividedArray(SubdividedArray const& other)
    {
      subdivCount = other.subdivCount;
@@ -24,7 +24,7 @@ class SubdividedArray
 	start[i] = other.start[i];
    }
    void Init(const uint subdiv)
-   { 
+   {
       if (start != NULL) Cleanup();
       subdivCount = subdiv; start = new uint[subdiv + 1];
    }
@@ -55,6 +55,6 @@ class SubdividedArray
    //note start is one longer than subdivCount to account for length of last
    //actual element
    uint *start, subdivCount;
-};   
+};
 
 #endif /*SUBDIV_ARRAY*/

@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -20,19 +20,19 @@ namespace num
 
    template <typename T>
    inline void BoundGt(double & val, const double bound)
-   { if (val > bound) val = bound; } 
+   { if (val > bound) val = bound; }
 
    template <typename T>
    inline void BoundLt(double & val, const double bound)
-   { if (val < bound) val = bound; } 
+   { if (val < bound) val = bound; }
 
    template <typename T>
    inline void BoundNZDecimal(T & val, const int mult)
-   { BoundLt<T>(val,std::numeric_limits<T>::min() * mult); } 
+   { BoundLt<T>(val,std::numeric_limits<T>::min() * mult); }
 
    template <typename T>
    inline void Bound(T & val, const double lower, const double upper)
-   { 
+   {
       BoundLt<T>(val, lower);
       BoundGt<T>(val, upper);
    }
@@ -44,13 +44,13 @@ namespace num
    //Arithmetic mean.
    inline double MeanA(std::vector<double> const& v1,
 		       std::vector<double> const& v2,
-                       const uint ix1, const uint ix2) 
+                       const uint ix1, const uint ix2)
    { return (v1[ix1]+v2[ix2])*0.5; }
    //Arithmetic mean.
    inline double MeanA(std::vector<uint> const& v1,
                        std::vector<uint> const& v2,
                        const uint ix1, const uint ix2)
-   { 
+   {
 #ifdef MIE_INT_ONLY
      return (v1[ix1]+v2[ix2])/2;
 #else
@@ -70,7 +70,7 @@ namespace num
    template <class Type>
    inline void Cb(Type & s, Type & c, const Type v)
    { s = v * v; c = s * v; }
-   
+
    inline double POW(const double d2, const double d4, const double d6,
 		     uint e)
    {

@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -21,20 +21,20 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ///  READ
 //
 
-struct ReadableBase 
-{ 
-   virtual void Read(Reader & file) = 0; 
+struct ReadableBase
+{
+   virtual void Read(Reader & file) = 0;
    virtual ~ReadableBase() {}
 };
 
-struct FWReadableBase 
-{ 
-   virtual void Read(FixedWidthReader & file) = 0; 
+struct FWReadableBase
+{
+   virtual void Read(FixedWidthReader & file) = 0;
    virtual ~FWReadableBase() {}
 };
-struct ReadableBaseWithFirst 
-{ 
-   virtual void Read(Reader & file, std::string const& firstVar) = 0; 
+struct ReadableBaseWithFirst
+{
+   virtual void Read(Reader & file, std::string const& firstVar) = 0;
    virtual ~ReadableBaseWithFirst() {}
 };
 
@@ -60,13 +60,13 @@ public:
       int found = NOT_FOUND;
       //NOTE: should be < N... was wrong before, wouldn't work for
       // particle case...
-      for (uint w = 0; w < N && found == NOT_FOUND; w++) 
+      for (uint w = 0; w < N && found == NOT_FOUND; w++)
 	 for (uint i = 0; i < readGeomMerged.size() && found == NOT_FOUND; i++)
 	    if (Match(kindNames, readGeomMerged[i], w, wild))
 	       found = i;
       return found;
    }
-   
+
 private:
    //Check a particular previously read item for a match, if wild
    //cards are active, loop through all of them.
@@ -74,9 +74,9 @@ private:
 	      std::string const& merged,
 	      const unsigned numberOfWCBits,
 	      std::string const& wild) const
-   { 
+   {
       bool result = false;
-      for (uint m = 0; m < mask[numberOfWCBits].size(); m++)	 
+      for (uint m = 0; m < mask[numberOfWCBits].size(); m++)
 	 result |= Match(kindNames, mask[numberOfWCBits][m], merged, wild);
       return result;
    }
@@ -87,14 +87,14 @@ private:
 	      std::string const& readGeomMerged,
 	      std::string const& wild) const
    {
-      return str::compare(SearchStr(kindNames, wildCardMask, false, wild), 
+      return str::compare(SearchStr(kindNames, wildCardMask, false, wild),
 			  readGeomMerged) ||
-	 str::compare(SearchStr(kindNames, wildCardMask, true, wild), 
+	 str::compare(SearchStr(kindNames, wildCardMask, true, wild),
 		      readGeomMerged);
    }
 
    //Gets string to use in search
-   std::string SearchStr(std::string const*const v, 
+   std::string SearchStr(std::string const*const v,
 			 const uint wildCardMask,
 			 const bool flip,
 			 std::string const& wild) const

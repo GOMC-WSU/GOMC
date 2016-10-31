@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -27,9 +27,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 struct FluctuationTracker
 {
    FluctuationTracker(): dblSrc(NULL) {}
-   
-   ~FluctuationTracker() 
-   { 
+
+   ~FluctuationTracker()
+   {
       if (outF.is_open())
       {
 	 outF.close();
@@ -43,35 +43,35 @@ struct FluctuationTracker
 	 delete[] uintSrc;
       }
    }
-   
+
    //Initializes name, and enable
    void Init(const bool en, std::string const& var,
              std::string const& uniqueName, const uint bTot = BOX_TOTAL);
 
    //Set one of the pointers to the fluctuating values we're tracking
-   void SetRef(double * loc, const uint b) 
+   void SetRef(double * loc, const uint b)
    {
       dblSrc[b] = loc;
-      uintSrc[b] = NULL; 
+      uintSrc[b] = NULL;
       outF << std::setprecision(std::numeric_limits<double>::digits10+2) << std::setw(25);
    }
-   void SetRef(uint * loc, const uint b) 
+   void SetRef(uint * loc, const uint b)
    { uintSrc[b] = loc; dblSrc[b] = NULL; }
 
    void Write(const ulong step, const bool firstPrint)
-   { 
+   {
       first = firstPrint;
       if (enable)
 	 DoWrite(step);
    }
 
  private:
-   
+
    std::string GetFName(std::string const& var, std::string const& uniqueName);
-   
+
    void DoWrite(const ulong step);
 
-   
+
    bool first;
    std::ofstream outF;
    std::string name, varName;
@@ -90,17 +90,17 @@ struct Fluctuations : OutputableBase
    //No additional init.
    virtual void Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output);
-   
+
    virtual void DoOutput(const ulong step);
-  
- private:   
+
+ private:
 
    void InitVals(config_setup::EventSettings const& event)
    {
       stepsPerOut = event.frequency;
       enableOut = event.enable;
    }
-   
+
    void AllocFlucts(void)
    {
       numKindFlucts = out::TOTAL_K * var->numKinds;
@@ -112,11 +112,11 @@ struct Fluctuations : OutputableBase
       totalFlucts = out::TOTAL_SINGLE + numKindFlucts;
       flucts= new FluctuationTracker[totalFlucts];
    }
-   
+
    void InitWatchSingle(config_setup::TrackedVars const& tracked);
 
    void InitWatchMulti(config_setup::TrackedVars const& tracked);
-   
+
    FluctuationTracker * flucts;
    uint numKindFlucts, totalFlucts;
 };

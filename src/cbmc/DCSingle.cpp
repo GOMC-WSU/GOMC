@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -24,7 +24,7 @@ namespace cbmc
       double* real = data->real;
       double* self = data->self;
       double stepWeight = 0;
-      
+
       std::fill_n(inter, nLJTrials, 0.0);
       std::fill_n(self, nLJTrials, 0.0);
       std::fill_n(real, nLJTrials, 0.0);
@@ -34,7 +34,7 @@ namespace cbmc
       positions.Set(0, oldMol.AtomPosition(atom));
       data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                                oldMol.GetBox(), nLJTrials);
-      data->calcEwald.SwapSelf(self, molIndex, atom, oldMol.GetBox(),
+      data->calcEwald->SwapSelf(self, molIndex, atom, oldMol.GetBox(),
 			       nLJTrials);
 
       for (uint trial = 0; trial < nLJTrials; ++trial)
@@ -67,7 +67,7 @@ namespace cbmc
 			  data->axes.GetAxis(newMol.GetBox()));
       data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                                newMol.GetBox(), nLJTrials);
-      data->calcEwald.SwapSelf(self, molIndex, atom, newMol.GetBox(),
+      data->calcEwald->SwapSelf(self, molIndex, atom, newMol.GetBox(),
 			       nLJTrials);
       double stepWeight = 0;
       for (uint trial = 0; trial < nLJTrials; ++trial)

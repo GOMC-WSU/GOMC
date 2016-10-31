@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -14,7 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <utility>
 #include <iostream>
 
-void MoleculeLookup::Init(const Molecules& mols, 
+void MoleculeLookup::Init(const Molecules& mols,
 			  const pdb_setup::Atoms& atomData)
 {
    numKinds = mols.kindsCount;
@@ -26,7 +26,7 @@ void MoleculeLookup::Init(const Molecules& mols,
    indexVector.resize(BOX_TOTAL);
    for (uint b = 0; b < BOX_TOTAL; ++b)
       indexVector[b].resize(numKinds);
-   for(uint m = 0; m < mols.count; ++m) 
+   for(uint m = 0; m < mols.count; ++m)
    {
       uint box = atomData.box[atomData.startIdxRes[m]];
       uint kind = mols.kIndex[m];
@@ -39,7 +39,7 @@ void MoleculeLookup::Init(const Molecules& mols,
       for (uint k = 0; k < numKinds; ++k)
       {
 	 boxAndKindStart[b * numKinds + k] = progress - molLookup;
-         progress = std::copy(indexVector[b][k].begin(), 
+         progress = std::copy(indexVector[b][k].begin(),
                indexVector[b][k].end(), progress);
       }
    }
@@ -48,14 +48,14 @@ void MoleculeLookup::Init(const Molecules& mols,
 
 uint MoleculeLookup::NumInBox(const uint box) const
 {
-   return boxAndKindStart[(box + 1) * numKinds] 
+   return boxAndKindStart[(box + 1) * numKinds]
       - boxAndKindStart[box * numKinds];
 }
 
 void MoleculeLookup::TotalAndDensity
 (uint * numByBox, uint * numByKindBox, double * molFractionByKindBox,
  double * densityByKindBox, double const*const volInv) const
-{ 
+{
    double invBoxTotal = 0;
    uint mkIdx1, mkIdx2, sum;
    sum = mkIdx1 = mkIdx2 = 0;
@@ -80,7 +80,7 @@ void MoleculeLookup::TotalAndDensity
 	 {
 	    if (sum > 0)
 	    {
-	       molFractionByKindBox[mkIdx2] = 
+	       molFractionByKindBox[mkIdx2] =
 		  numByKindBox[mkIdx2] * invBoxTotal;
 	    }
 	    else
@@ -95,7 +95,7 @@ void MoleculeLookup::TotalAndDensity
 
 #ifdef VARIABLE_PARTICLE_NUMBER
 
-bool MoleculeLookup::ShiftMolBox(const uint mol, const uint currentBox, 
+bool MoleculeLookup::ShiftMolBox(const uint mol, const uint currentBox,
 				 const uint intoBox)
 {
    /*
@@ -113,7 +113,7 @@ bool MoleculeLookup::ShiftMolBox(const uint mol, const uint currentBox,
    return false;
 }
 
-bool MoleculeLookup::ShiftMolBox(const uint mol, const uint currentBox, 
+bool MoleculeLookup::ShiftMolBox(const uint mol, const uint currentBox,
                                  const uint intoBox, const uint kind)
 {
    uint index = std::find(
@@ -126,7 +126,7 @@ bool MoleculeLookup::ShiftMolBox(const uint mol, const uint currentBox,
    return true;
 }
 
-void MoleculeLookup::Shift(const uint index, const uint currentBox, 
+void MoleculeLookup::Shift(const uint index, const uint currentBox,
 			   const uint intoBox, const uint kind)
 {
    uint oldIndex = index;
@@ -168,7 +168,7 @@ MoleculeLookup::box_iterator MoleculeLookup::box_iterator::operator++(int)
 }
 
 
-MoleculeLookup::box_iterator::box_iterator(uint* _pLook, uint* _pSec) 
+MoleculeLookup::box_iterator::box_iterator(uint* _pLook, uint* _pSec)
    : pIt(_pLook + *_pSec) {}
 
 

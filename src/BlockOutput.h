@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -28,9 +28,9 @@ class System;
 struct BlockAverage
 {
    BlockAverage(): enable(false), block(NULL), uintSrc(NULL), dblSrc(NULL) {}
-   
-   ~BlockAverage() 
-   { 
+
+   ~BlockAverage()
+   {
       if (outF.is_open())
       {
 	 outF.close();
@@ -55,26 +55,26 @@ struct BlockAverage
 	     const uint bTot = BOX_TOTAL);
 
    //Set one of the pointers to the block values we're tracking
-   void SetRef(double * loc, const uint b) 
+   void SetRef(double * loc, const uint b)
    {
       dblSrc[b] = loc;
       uintSrc[b] = NULL;
       outF << std::setprecision(std::numeric_limits<double>::digits10+2) << std::setw(25);
    }
-   void SetRef(uint * loc, const uint b) 
+   void SetRef(uint * loc, const uint b)
    { uintSrc[b] = loc; dblSrc[b] = NULL; }
 
    void Sum(void);
 
    void Write(const ulong step, const bool firstPrint)
-   { 
+   {
       first = firstPrint;
       if (enable)
 	 DoWrite(step);
    }
 
  private:
-   
+
    std::string GetFName(std::string const& base, std::string const& uniqueName);
 
    void Zero(void)
@@ -82,10 +82,10 @@ struct BlockAverage
       for (uint b = 0; b < tot; b++)
 	 block[b] = 0.0;
       samples = 0;
-   } 
-   
+   }
+
    void DoWrite(const ulong step);
-   
+
    bool first;
    std::ofstream outF;
    std::string name, varName;
@@ -99,18 +99,18 @@ struct BlockAverage
 struct BlockAverages : OutputableBase
 {
    BlockAverages(OutputVars & v){ this->var = &v; }
-   
+
    ~BlockAverages(void) { if ( blocks != NULL ) delete[] blocks; }
-   
+
    //No additional init.
    virtual void Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output);
-   
+
    virtual void Sample(const ulong step);
-   
+
    virtual void DoOutput(const ulong step);
-  
- private:   
+
+ private:
 
    void InitVals(config_setup::EventSettings const& event)
    {
@@ -120,7 +120,7 @@ struct BlockAverages : OutputableBase
    }
 
    void AllocBlocks(void);
-   
+
    void InitWatchSingle(config_setup::TrackedVars const& tracked);
 
    void InitWatchMulti(config_setup::TrackedVars const& tracked);

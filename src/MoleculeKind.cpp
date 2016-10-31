@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -46,7 +46,7 @@ void MoleculeKind::Init
    std::map<std::string, double>::const_iterator kindCPIt =
       setup.config.sys.chemPot.cp.find(name),
       lastOne = setup.config.sys.chemPot.cp.end();
-   
+
    //If we don't find a chemical potential for a kind in GCMC mode,
    //then quit.
    if (kindCPIt == lastOne)
@@ -59,7 +59,7 @@ void MoleculeKind::Init
 		<< std::endl
 		<< "----------------------------------------"
 		<< std::endl;
-      
+
       //Print out whatever chemical potentials were read.
       for (kindCPIt = setup.config.sys.chemPot.cp.begin();
 	   kindCPIt != lastOne;
@@ -76,7 +76,7 @@ void MoleculeKind::Init
       chemPot = kindCPIt->second;
    }
 #endif
-   
+
    InitAtoms(molData);
 
    //Once-through topology objects
@@ -97,7 +97,7 @@ void MoleculeKind::Init
    {
      nonBonded.Init(molData);
    }
-   
+
    nonEwaldBonded.Init(molData);
    sortedNB_1_3.Init(nonBonded_1_3, numAtoms);
    sortedNB_1_4.Init(nonBonded_1_4, numAtoms);
@@ -114,9 +114,9 @@ void MoleculeKind::Init
 }
 
 MoleculeKind::MoleculeKind() : angles(3), dihedrals(4),
-   atomMass(NULL), atomCharge(NULL), builder(NULL), 
-			       atomKind(NULL)
-{}
+			       atomMass(NULL), atomCharge(NULL), builder(NULL),
+			       atomKind(NULL) {}
+
 
 MoleculeKind::~MoleculeKind()
 {
@@ -148,4 +148,17 @@ void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
       atomCharge[i] = atom.charge;
       atomKind[i] = atom.kind;
    }
+}
+
+double MoleculeKind::PrintChargeInfo()
+{
+   double netCharge = 0.0;
+
+   for(uint i = 0; i < numAtoms; ++i)
+   {
+      //to calculate net charge
+      netCharge += atomCharge[i];
+   }
+
+   return netCharge;
 }

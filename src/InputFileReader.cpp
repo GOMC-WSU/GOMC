@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -50,7 +50,7 @@ void InputFileReader::Open(string inputFileName)
 bool InputFileReader::readNextLine(std::vector<std::string> & str)
 {
 	string line;
-	do 
+	do
 	{
 		if (fs.eof() || fs.bad() || fs.fail())
 		{

@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -23,7 +23,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 //Just in case any of these weren't included from math.h
 #ifndef M_PI
-//From Mathematica: 
+//From Mathematica:
 //N[Pi, 75]
 #define M_PI \
    3.14159265358979323846264338327950288419716939937510582097494459230781640629
@@ -55,10 +55,10 @@ namespace geom
    //Length functions are now directly in XYZ type.
 
    //Returns cross product of two vectors A and B that share a vertex.
-   //NOTE: 
+   //NOTE:
    //To use this on three topologically connected points, we must
    //shift all three points such that the shared vertex is at the origin.
-   inline XYZ Cross(const double x1, const double y1, const double z1, 
+   inline XYZ Cross(const double x1, const double y1, const double z1,
                     const double x2, const double y2, const double z2)
    { return XYZ(y1 * z2 - z1 * y2, z1 * x2 - x1 * z2, x1 * y2 - y1 * x2); }
 
@@ -75,10 +75,10 @@ namespace geom
    //Vectors must be pre-shifted to the origin.
    inline double Theta(XYZ const& v1, XYZ const& v2)
    {
-     double value = Dot(v1, v2) / sqrt(v1.LengthSq() * v2.LengthSq()); 
+     double value = Dot(v1, v2) / sqrt(v1.LengthSq() * v2.LengthSq());
      if(value < -1.00)
        return M_PI;
-     else 
+     else
        return acos(value);
    }
 
@@ -87,14 +87,14 @@ namespace geom
    // See: answer from Rahul Narain
    //
    //             ^            ^ b3
-   //            / b3         / 
+   //            / b3         /
    //    ---b2->/        b2  *)--- this angle ^ is phi
-   //   ^                    |     (NOTE: this is important for chirality!) 
+   //   ^                    |     (NOTE: this is important for chirality!)
    //  /                     | b1
    // / b1                   v
-   // 
+   //
    // 1.)  Normal vectors to component planes:
-   // n1: < b1 x b2 >  n2: < b2 x b3 > ; 
+   // n1: < b1 x b2 >  n2: < b2 x b3 > ;
    // 2.) Orthonormal frame basis:
    // (n1, <b2>, m1) where m1: n1 x <b2>
    // 3.) phi = atan2(y,x)

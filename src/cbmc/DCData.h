@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.70 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -30,7 +30,7 @@ namespace cbmc
 
       const CalculateEnergy& calc;
 
-      const Ewald& calcEwald;
+      const EwaldCached  *calcEwald;
 
       const Forcefield& ff;
       const BoxDimensions& axes;
@@ -56,20 +56,21 @@ namespace cbmc
       double* oneFour;
       double* nonbonded;      //calculated nonbonded 1_N LJ and coulomb energie
       double* nonbonded_1_4;  //calculated nonbonded 1_4 LJ and coulomb energie
-      double* nonbonded_1_3;  //calculated nonbonded 1_3 LJ and coulomb energie 
+      double* nonbonded_1_3;  //calculated nonbonded 1_3 LJ and coulomb energie
       XYZArray multiPositions[MAX_BONDS];
    };
 
 inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& set):
 
-  calc(sys.calcEnergy), calcEwald(sys.calcEwald), ff(forcefield),
+  calc(sys.calcEnergy), ff(forcefield),
   prng(sys.prng), axes(sys.boxDimRef),
   nAngleTrials(set.config.sys.cbmcTrials.bonded.ang),
   nDihTrials(set.config.sys.cbmcTrials.bonded.dih),
   nLJTrialsFirst(set.config.sys.cbmcTrials.nonbonded.first),
-  nLJTrialsNth(set.config.sys.cbmcTrials.nonbonded.nth), 
+  nLJTrialsNth(set.config.sys.cbmcTrials.nonbonded.nth),
   positions(*multiPositions)
 {
+   calcEwald = sys.GetEwald();
    uint maxLJTrials = nLJTrialsFirst;
    if ( nLJTrialsNth > nLJTrialsFirst )
      maxLJTrials = nLJTrialsNth;
@@ -83,7 +84,7 @@ inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& se
    correction = new double[maxLJTrials];
    bonded = new double[maxLJTrials];
    oneFour = new double[maxLJTrials];
-   nonbonded = new double[maxLJTrials];   
+   nonbonded = new double[maxLJTrials];
    ljWeights = new double[maxLJTrials];
 
    uint trialMax = std::max(nAngleTrials, nDihTrials);
