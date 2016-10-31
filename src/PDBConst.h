@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef PDB_CONST_H
 #define PDB_CONST_H
 
@@ -12,7 +6,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "ConstField.h" //For ConstField kind.
 #include "../lib/StrStrmLib.h"
 
-namespace pdb_entry
+namespace pdb_entry 
 {
    static const uint LINE_WIDTH = 80;
    namespace end
@@ -46,13 +40,13 @@ namespace pdb_entry
    {
       namespace field
       {
-	 namespace x
-	 {
+	 namespace x 
+	 { 
 	    static const ConstField POS(6,9);
 	    static const uint PRECISION = 3;
 	    static const char ALIGN = align::RIGHT;
 	 }
-	 namespace y
+	 namespace y 
 	 {
 	    static const ConstField POS(15,9);
 	    static const uint PRECISION = 3;
@@ -64,14 +58,14 @@ namespace pdb_entry
 	    static const uint PRECISION = 3;
 	    static const char ALIGN = align::RIGHT;
 	 }
-	 namespace ang_alpha
-	 {
+	 namespace ang_alpha 
+	 { 
 	    static const ConstField POS(33,7);
 	    static const double DEFAULT = 90.0;
 	    static const uint PRECISION = 2;
 	    static const char ALIGN = align::RIGHT;
 	 }
-	 namespace ang_beta
+	 namespace ang_beta 
 	 {
 	    static const ConstField POS(40,7);
 	    static const double DEFAULT = 90.0;
@@ -90,19 +84,19 @@ namespace pdb_entry
 	    static const ConstField POS(55,11);
 	    static const std::string DEFAULT = "P 1";
 	 }
-	 namespace zvalue
-	 {
-	    static const ConstField POS(66,4);
+	 namespace zvalue 
+	 { 
+	    static const ConstField POS(66,4); 
 	    static const std::string DEFAULT = "1";
 	 }
-	 namespace steps
-	 {
+	 namespace steps 
+	 { 
 	    static const ConstField POS(40,5);
 	    static const std::string STEP = "STEP:";
 	    static const char ALIGN = align::RIGHT;
 	 }
-	 namespace stepsNum
-	 {
+	 namespace stepsNum 
+	 { 
 	    static const ConstField POS(45,12);
 	    static const uint PRECISION = 0;
 	    static const char ALIGN = align::RIGHT;
@@ -165,7 +159,7 @@ namespace pdb_entry
 	 namespace el { static const ConstField POS(76,2); }
 	 namespace charge { static const ConstField POS(78,2); }
       }
-   }
+   }   
 }
 
 #endif /*PDB_CONST_H*/

@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef FF_DIHEDRALS_H
 #define FF_DIHEDRALS_H
 
@@ -34,7 +28,7 @@ class FFDihedrals
    FFDihedrals(void) : Kchi(NULL), delta(NULL), n(NULL) {}
    ~FFDihedrals(void);
 
- private:
+ private: 
 
    //dih kind params
    SubdividedArray subdiv;
@@ -47,7 +41,7 @@ inline double FFDihedrals::Calc(const uint kind, const double phi) const
    double sum = 0.0;
    for(uint i = subdiv.Begin(kind); i != subdiv.End(kind); ++i)
    {
-      sum += Kchi[i] * (1 + cos(n[i] * phi - delta[i]));
+      sum += Kchi[i] * (1 + cos(n[i] * phi - delta[i])); 
    }
    return sum;
 }

@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include <cassert>
 #include "DCLinear.h"
 #include "DCSingle.h"
@@ -14,7 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 using namespace cbmc;
 
 DCLinear::DCLinear(System& sys, const Forcefield& ff,
-   const MoleculeKind& kind, const Setup& set) :
+   const MoleculeKind& kind, const Setup& set) : 
    data(sys, ff, set)
 {
    mol_setup::MolMap::const_iterator it = set.mol.kindMap.find(kind.name);

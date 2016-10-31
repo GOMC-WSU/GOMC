@@ -1,17 +1,11 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "BoxDimensions.h"
 #include "MoveConst.h" //For cutoff-related fail condition
 
 void BoxDimensions::Init(config_setup::RestartSettings const& restart,
-			 config_setup::Volume const& confVolume,
+			 config_setup::Volume const& confVolume, 
 			 pdb_setup::Cryst1 const& cryst,
 			 double rc, double rcSq)
-{
+{ 
    const double TENTH_ANGSTROM = 0.1;
    rCut = rc;
    rCutSq = rcSq;
@@ -23,7 +17,7 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
       axis = confVolume.axis;
    else
    {
-      fprintf(stderr,
+      fprintf(stderr, 
             "Error: Box Volume(s) not specified in PDB or in.dat files.\n");
       exit(EXIT_FAILURE);
    }
@@ -33,7 +27,7 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
    //Init volume/inverse volume.
    for (uint b = 0; b < BOX_TOTAL; b++)
    {
-      volume[b] = axis.x[b] * axis.y[b] * axis.z[b];
+      volume[b] = axis.x[b] * axis.y[b] * axis.z[b]; 
       volInv[b] = 1.0 / volume[b];
    }
 }

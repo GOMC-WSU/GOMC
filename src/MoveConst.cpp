@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "MoveConst.h" //Spec file.
 
 std::vector<std::string> mv::MoveNames()
@@ -29,7 +23,7 @@ std::vector<std::string> mv::MoveNames()
    v.push_back("Molecule Transfer (Box 0 -> Box 1)");
    v.push_back("Molecule Transfer (Box 1 -> Box 0)");
    v.push_back("IntraSwap (Box 0)");
-   v.push_back("IntraSwap (Box 1)");
+   v.push_back("IntraSwap (Box 1)"); 
 #endif
    return v;
 }

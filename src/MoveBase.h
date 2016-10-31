@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef TRANSFORMABLE_BASE_H
 #define TRANSFORMABLE_BASE_H
 
@@ -31,17 +25,17 @@ class MoveBase
  public:
 
    MoveBase(System & sys, StaticVals const& statV) :
-   boxDimRef(sys.boxDimRef), moveSetRef(sys.moveSettings),
+   boxDimRef(sys.boxDimRef), moveSetRef(sys.moveSettings), 
      sysPotRef(sys.potential),
-     calcEnRef(sys.calcEnergy), comCurrRef(sys.com),
-     coordCurrRef(sys.coordinates), prng(sys.prng), molRef(statV.mol),
+     calcEnRef(sys.calcEnergy), comCurrRef(sys.com), 
+     coordCurrRef(sys.coordinates), prng(sys.prng), molRef(statV.mol), 
      BETA(statV.forcefield.beta), ewald(statV.forcefield.ewald),
      cellList(sys.cellList), molRemoved(false)
    {
       calcEwald = sys.GetEwald();
    }
 
-    //Based on the random draw, determine the move kind, box, and
+    //Based on the random draw, determine the move kind, box, and 
     //(if necessary) molecule kind.
     virtual uint Prep(const double subDraw, const double movPerc) = 0;
 
@@ -65,7 +59,7 @@ class MoveBase
     COM & comCurrRef;
     CalculateEnergy & calcEnRef;
     EwaldCached * calcEwald;
-
+    
     PRNG & prng;
     BoxDimensions & boxDimRef;
     Molecules const& molRef;
@@ -75,7 +69,7 @@ class MoveBase
     bool molRemoved;
 };
 
-//Data needed for transforming a molecule's position via inter or intrabox
+//Data needed for transforming a molecule's position via inter or intrabox 
 //moves.
 class MolTransformBase
 {
@@ -88,7 +82,7 @@ class MolTransformBase
    uint b, m, mk;
    uint pStart, pLen;
    //Position
-   XYZArray newMolPos;
+   XYZArray newMolPos; 
 };
 
 inline uint MolTransformBase::GetBoxAndMol
@@ -136,7 +130,7 @@ class Translate : public MoveBase, public MolTransformBase
    XYZ newCOM;
 };
 
-inline uint Translate::Prep(const double subDraw, const double movPerc)
+inline uint Translate::Prep(const double subDraw, const double movPerc) 
 { return GetBoxAndMol(prng, molRef, subDraw, movPerc); }
 
 inline uint Translate::Transform()
@@ -155,7 +149,7 @@ inline void Translate::CalcEn()
    //calculate LJ interaction and real term of electrostatic interaction
    calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b, &newCOM);
    //calculate reciprocate term of electrostatic interaction
-   recip.energy = calcEwald->MolReciprocal(newMolPos, m, b);
+   recip.energy = calcEwald->MolReciprocal(newMolPos, m, b);   
 
 }
 
@@ -169,12 +163,12 @@ inline void Translate::Accept(const uint rejectState, const uint step)
 			      recip.energy));
    }
    bool result = (rejectState == mv::fail_state::NO_FAIL) && res;
-
+  
    if (result)
    {
       //Set new energy.
       // setting energy and virial of LJ interaction
-      sysPotRef.boxEnergy[b].inter += inter_LJ.energy;
+      sysPotRef.boxEnergy[b].inter += inter_LJ.energy;   
       sysPotRef.boxVirial[b].inter += inter_LJ.virial;
       // setting energy and virial of coulomb interaction
       sysPotRef.boxEnergy[b].real += inter_Real.energy;
@@ -185,7 +179,7 @@ inline void Translate::Accept(const uint rejectState, const uint step)
 
       sysPotRef.Total();
       //Copy coords
-      newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);
+      newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);	       
       comCurrRef.Set(m, newCOM);
       calcEwald->UpdateRecip(b);
    }
@@ -201,7 +195,7 @@ inline void Translate::Accept(const uint rejectState, const uint step)
    }
 
    subPick = mv::GetMoveSubIndex(mv::DISPLACE, b);
-   moveSetRef.Update(result, subPick, step);
+   moveSetRef.Update(result, subPick, step); 
 }
 
 class Rotate : public MoveBase, public MolTransformBase
@@ -217,9 +211,9 @@ class Rotate : public MoveBase, public MolTransformBase
    Intermolecular inter_LJ, inter_Real, recip;
 };
 
-inline uint Rotate::Prep(const double subDraw, const double movPerc)
-{
-   uint state = GetBoxAndMol(prng, molRef, subDraw, movPerc);
+inline uint Rotate::Prep(const double subDraw, const double movPerc) 
+{ 
+   uint state = GetBoxAndMol(prng, molRef, subDraw, movPerc); 
    if (state == mv::fail_state::NO_FAIL && molRef.NumAtoms(mk)  <= 1)
 	 state = mv::fail_state::ROTATE_ON_SINGLE_ATOM;
    return state;
@@ -234,7 +228,7 @@ inline uint Translate::ReplaceRot(Rotate const& other)
 inline uint Rotate::Transform()
 {
    subPick = mv::GetMoveSubIndex(mv::ROTATE, b);
-   coordCurrRef.RotateRand(newMolPos, pStart, pLen, m, b,
+   coordCurrRef.RotateRand(newMolPos, pStart, pLen, m, b, 
 			   moveSetRef.Scale(subPick));
    return mv::fail_state::NO_FAIL;
 }
@@ -245,9 +239,9 @@ inline void Rotate::CalcEn()
    molRemoved = true;
 
    //calculate LJ interaction and real term of electrostatic interaction
-   calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);
+   calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);       
    //calculate reciprocate term of electrostatic interaction
-   recip.energy = calcEwald->MolReciprocal(newMolPos, m, b);
+   recip.energy = calcEwald->MolReciprocal(newMolPos, m, b); 
 }
 
 inline void Rotate::Accept(const uint rejectState, const uint step)
@@ -261,12 +255,12 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
 			      recip.energy));
    }
    bool result = (rejectState == mv::fail_state::NO_FAIL) && res;
-
+	
    if (result)
    {
       //Set new energy.
       // setting energy and virial of LJ interaction
-      sysPotRef.boxEnergy[b].inter += inter_LJ.energy;
+      sysPotRef.boxEnergy[b].inter += inter_LJ.energy;   
       sysPotRef.boxVirial[b].inter += inter_LJ.virial;
       // setting energy and virial of coulomb interaction
       sysPotRef.boxEnergy[b].real += inter_Real.energy;
@@ -302,7 +296,7 @@ class VolumeTransfer : public MoveBase
 {
  public:
    VolumeTransfer(System &sys, StaticVals const& statV);
-
+      
    virtual uint Prep(const double subDraw, const double movPerc);
    virtual void CalcEn();
    virtual uint Transform();
@@ -320,7 +314,7 @@ class VolumeTransfer : public MoveBase
    bool regrewGrid;
 };
 
-inline VolumeTransfer::VolumeTransfer(System &sys, StaticVals const& statV)  :
+inline VolumeTransfer::VolumeTransfer(System &sys, StaticVals const& statV)  : 
 		      MoveBase(sys, statV), molLookRef(sys.molLookupRef),
 		      newDim(sys.boxDimRef), newMolsPos(boxDimRef, newCOMs,
 							sys.molLookupRef,
@@ -333,8 +327,8 @@ inline VolumeTransfer::VolumeTransfer(System &sys, StaticVals const& statV)  :
   newCOMs.Init(statV.mol.count);
 }
 
-inline uint VolumeTransfer::Prep(const double subDraw, const double movPerc)
-{
+inline uint VolumeTransfer::Prep(const double subDraw, const double movPerc) 
+{ 
    uint state = mv::fail_state::NO_FAIL;
    if (GEMC_KIND == mv::GEMC_NVT)
    {
@@ -342,7 +336,7 @@ inline uint VolumeTransfer::Prep(const double subDraw, const double movPerc)
    }
    if (GEMC_KIND == mv::GEMC_NPT)
    {
-
+     
       prng.PickBoxPair(bPick, bPick2, subDraw, movPerc);
       subPick = mv::GetMoveSubIndex(mv::VOL_TRANSFER, bPick);
       subPick2 = mv::GetMoveSubIndex(mv::VOL_TRANSFER, bPick2);
@@ -360,7 +354,7 @@ inline uint VolumeTransfer::Transform()
    if (GEMC_KIND == mv::GEMC_NVT)
    {
       double max = moveSetRef.Scale(subPick);
-      coordCurrRef.VolumeTransferTranslate(state, newMolsPos, newCOMs, newDim,
+      coordCurrRef.VolumeTransferTranslate(state, newMolsPos, newCOMs, newDim, 
 					   comCurrRef, max);
    }
    else
@@ -376,7 +370,7 @@ inline uint VolumeTransfer::Transform()
       {
 	 scale1 = newDim.axis.Get(bPick).x / boxDimRef.axis.Get(bPick).x;
 	 scale2 = newDim.axis.Get(bPick2).x / boxDimRef.axis.Get(bPick2).x;
-	 coordCurrRef.TranslateOneBox(newMolsPos, newCOMs, comCurrRef,
+	 coordCurrRef.TranslateOneBox(newMolsPos, newCOMs, comCurrRef, 
 				      newDim, bPick, scale1);
 	 coordCurrRef.TranslateOneBox(newMolsPos, newCOMs, comCurrRef,
                                       newDim, bPick2, scale2);
@@ -402,7 +396,7 @@ inline void VolumeTransfer::CalcEn()
    //calculate total energy
    sysPotNew = calcEnRef.SystemInter(sysPotRef, newMolsPos,
                                         newCOMs, newDim);
-
+   
 }
 
 
@@ -439,7 +433,7 @@ inline double VolumeTransfer::GetCoeff() const
 
 inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
 {
-   double volTransCoeff = GetCoeff(),
+   double volTransCoeff = GetCoeff(), 
       uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
    double accept = volTransCoeff * uBoltz;
    bool result = (rejectState == mv::fail_state::NO_FAIL) && prng() < accept;
@@ -457,9 +451,9 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       for (uint b = 0; b < BOX_TOTAL; b++)
       {
 	 calcEwald->UpdateRecip(b);
-      }
+      }         
    }
-   else if (rejectState == mv::fail_state::NO_FAIL && regrewGrid)
+   else if (rejectState == mv::fail_state::NO_FAIL && regrewGrid) 
    {
       cellList.GridAll(boxDimRef, coordCurrRef, molLookRef);
       regrewGrid = false;
@@ -484,7 +478,7 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       moveSetRef.Update(result, subPick, step);
       moveSetRef.Update(result, subPick2, step);
    }
-
+   
 }
 
 #endif

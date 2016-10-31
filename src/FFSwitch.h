@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef FF_SWITCH_H
 #define FF_SWITCH_H
 
@@ -89,7 +83,7 @@ inline void FF_SWITCH::CalcAdd(double& en, double& vir, const double distSq,
 {
    uint idx = FlatIndex(kind1, kind2);
    Calc(en, vir, distSq, idx, n[idx]);
-}
+} 
 
 inline void FF_SWITCH::CalcCoulombAdd(double& en, double& vir,
 					const double distSq,
@@ -129,7 +123,7 @@ inline void FF_SWITCH::CalcCoulombAdd_1_4(double& en, const double distSq,
    double dist = sqrt(distSq);
    double switchVal = distSq/rCutSq - 1.0;
    switchVal *= switchVal;
-   en += scaling_14 * qi_qj_Fact * switchVal/dist;
+   en += scaling_14 * qi_qj_Fact * switchVal/dist; 
 }
 
 inline void FF_SWITCH::CalcSub(double& en, double& vir, const double distSq,
@@ -140,7 +134,7 @@ inline void FF_SWITCH::CalcSub(double& en, double& vir, const double distSq,
    Calc(tempEn, tempVir, distSq, idx, n[idx]);
    en -= tempEn;
    vir = -1.0 * tempVir;
-}
+} 
 
 inline void FF_SWITCH::CalcCoulombSub(double& en, double& vir,
 					const double distSq,
@@ -157,7 +151,7 @@ inline double FF_SWITCH::CalcEn(const double distSq,
                                  const uint kind1, const uint kind2) const
 {
    uint index = FlatIndex(kind1, kind2);
-
+   
    double rCutSq_rijSq = rCutSq - distSq;
    double rCutSq_rijSq_Sq = rCutSq_rijSq * rCutSq_rijSq;
 
@@ -217,13 +211,13 @@ inline double FF_SWITCH::CalcVir(const double distSq,
 
    double Wij = epsilon_cn_6[index] * (nOver6[index]*repulse-attract)*rNeg2;
    double Eij = epsilon_cn[index] * (repulse-attract);
-
+   
    return (Wij * factE - Eij * factW);
 }
 
 inline double FF_SWITCH::CalcCoulombVir(const double distSq,
 					 const double qi_qj_Fact) const
-{
+{  
    double dist = sqrt(distSq);
    double switchVal = distSq/rCutSq - 1.0;
    switchVal *= switchVal;
@@ -232,7 +226,7 @@ inline double FF_SWITCH::CalcCoulombVir(const double distSq,
 }
 
 //mie potential
-inline void FF_SWITCH::Calc(double & en, double & vir,
+inline void FF_SWITCH::Calc(double & en, double & vir, 
 			     const double distSq, const uint index,
 #ifdef MIE_INT_ONLY
 			     const uint n,
@@ -262,13 +256,13 @@ inline void FF_SWITCH::Calc(double & en, double & vir,
 
    double Wij = epsilon_cn_6[index] * (nOver6[index]*repulse-attract)*rNeg2;
    double Eij = epsilon_cn[index] * (repulse-attract);
-
+   
    en += Eij * factE;
-   vir = Wij * factE - Eij * factW;
+   vir = Wij * factE - Eij * factW;  
 }
 
 inline void FF_SWITCH::CalcCoulomb(double & en, double & vir,
-				    const double distSq,
+				    const double distSq, 
 				    const double qi_qj_Fact)const
 {
    double dist = sqrt(distSq);
@@ -278,7 +272,7 @@ inline void FF_SWITCH::CalcCoulomb(double & en, double & vir,
 
    en += qi_qj_Fact * switchVal/dist;
    vir = -1.0 * qi_qj_Fact * (dSwitchVal/distSq - switchVal/(distSq * dist));
-
+ 
 }
 
 #endif /*FF_SWITCH_H*/

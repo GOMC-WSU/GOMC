@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "Simulation.h"
 #include "Setup.h"          //For setup object
 
@@ -22,7 +16,7 @@ Simulation::Simulation(char const*const configFileName)
    totalSteps = set.config.sys.step.total;
    staticValues = new StaticVals();
    system = new System(*staticValues);
-   staticValues->Init(set, *system);
+   staticValues->Init(set, *system); 
    system->Init(set);
    //recal Init for static value for initializing ewald since ewald is
    //initialized in system
@@ -32,10 +26,10 @@ Simulation::Simulation(char const*const configFileName)
              totalSteps);
 
    //Dump combined PSF
-   PSFOutput psfOut(staticValues->mol, set.mol.kindMap,
+   PSFOutput psfOut(staticValues->mol, *system, set.mol.kindMap, 
 		    set.pdb.atoms.resKindNames);
    psfOut.PrintPSF(set.config.out.state.files.psf.name);
-   std::cout << "Printed combined psf to file "
+   std::cout << "Printed combined psf to file " 
 	     << set.config.out.state.files.psf.name << '\n';
 
 }
@@ -67,8 +61,8 @@ void Simulation::RunningCheck(const uint step)
 {
    system->calcEwald->Init();
    SystemPotential pot = system->calcEnergy.SystemTotal();
-
-   std::cout
+   
+   std::cout 
       << "================================================================="
       << std::endl << "-------------------------" << std::endl
       << " STEP: " << step

@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef SETUP_H
 #define SETUP_H
 
@@ -25,18 +19,18 @@ public:
    FFSetup ff;          //3
    PRNGSetup prng;      //4
    MolSetup mol;        //5
-
+  
    void Init(char const*const configFileName)
    {
       //Read in all config data
-      config.Init(configFileName);
+      config.Init(configFileName); 
       //Read in FF data.
-      ff.Init(config.in.files.param.name,config.in.ffKind.isCHARMM);
+      ff.Init(config.in.files.param.name,config.in.ffKind.isCHARMM); 
       //Read PDB dat
-      pdb.Init(config.in.restart, config.in.files.pdb.name);
+      pdb.Init(config.in.restart, config.in.files.pdb.name); 
       //Read molecule data from psf
       prng.Init(config.in.restart, config.in.prng, config.in.files.seed.name);
-
+      
       if(mol.Init(config.in.restart, config.in.files.psf.name) != 0)
       {
          exit(EXIT_FAILURE);

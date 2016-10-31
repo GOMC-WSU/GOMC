@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #ifndef MOLCULETRANSFER_H
 #define MOLCULETRANSFER_H
 
@@ -18,8 +12,8 @@ class MoleculeTransfer : public MoveBase
 {
  public:
 
-   MoleculeTransfer(System &sys, StaticVals const& statV) :
-      ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
+   MoleculeTransfer(System &sys, StaticVals const& statV) : 
+      ffRef(statV.forcefield), molLookRef(sys.molLookupRef), 
 	MoveBase(sys, statV) {}
 
    virtual uint Prep(const double subDraw, const double movPerc);
@@ -28,7 +22,7 @@ class MoleculeTransfer : public MoveBase
    virtual void Accept(const uint earlyReject, const uint step);
 
  private:
-
+   
    double GetCoeff() const;
    uint GetBoxPairAndMol(const double subDraw, const double movPerc);
    MolPick molPick;
@@ -49,7 +43,7 @@ inline uint MoleculeTransfer::GetBoxPairAndMol
    uint state = prng.PickMolAndBoxPair(molIndex, kindIndex,
 				       sourceBox, destBox,
 				       subDraw, movPerc);
-
+ 
    if ( state != mv::fail_state::NO_MOL_OF_KIND_IN_BOX)
    {
       pStart = pLen = 0;
@@ -73,7 +67,7 @@ inline uint MoleculeTransfer::Prep(const double subDraw, const double movPerc)
 
 inline uint MoleculeTransfer::Transform()
 {
-   oldVirial_LJ = 0.0;
+   oldVirial_LJ = 0.0; 
    oldVirial_Real = 0.0;
    calcEnRef.MoleculeVirial(oldVirial_LJ, oldVirial_Real, molIndex, sourceBox);
    cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
@@ -166,7 +160,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
          sysPotRef.boxVirial[destBox].inter += newVirial_LJ;
 	 sysPotRef.boxVirial[destBox].real += newVirial_Real;
 
-	 //Zero out box energies to prevent small number
+	 //Zero out box energies to prevent small number 
 	 //errors in double.
 	 if (molLookRef.NumInBox(sourceBox) == 0)
 	 {
@@ -197,7 +191,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 	 //results in memory overwrite
 	 if (newMol.GetWeight() != 0.0)
 	    calcEwald->RestoreMol(molIndex);
-
+	 
       }
 
    }

@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include <vector>
 #include <map> //for function lookup table.
 
@@ -24,10 +18,10 @@ const std::string PDBSetup::pdbAlias[] = {"Box 1 PDB coordinate file",
 namespace pdb_setup
 {
    void Remarks::SetRestart(config_setup::RestartSettings const& r )
-   {
+   { 
       restart = r.enable;
       reached = (!restart);
-      restartStep = r.step;
+      restartStep = r.step; 
    }
    void Remarks::Read(FixedWidthReader & pdb)
    {
@@ -71,7 +65,7 @@ namespace pdb_setup
       reached = (readStep == restartStep);
 #ifndef NDEBUG
       if (reached && restart)
-	 std::cout << "Restart step " << restartStep << " reached."
+	 std::cout << "Restart step " << restartStep << " reached." 
 		   << std::endl;
 #endif
    }
@@ -83,7 +77,7 @@ namespace pdb_setup
       {
 	 std::cerr << "ERROR: Restart failed, "
 		   << "GOMC file's identifying tag "
-		   << "\"REMARK  1   GOMC\" is missing"
+		   << "\"REMARK  1   GOMC\" is missing" 
 		   << std::endl << std::endl;
 	 exit(1);
       }
@@ -94,8 +88,8 @@ namespace pdb_setup
 
    void Atoms::Assign(std::string const& atomName,
 		      std::string const& resName,
-		      const uint resNum,
-		      const char l_chain, const double l_x,
+		      const uint resNum, 
+		      const char l_chain, const double l_x, 
 		      const double l_y, const double l_z,
 		      const double l_occ)
    {
@@ -125,7 +119,7 @@ namespace pdb_setup
 	 y.push_back(l_y);
 	 z.push_back(l_z);
       }
-      else if (box[count]==currBox)
+      else if (box[count]==currBox) 
       {
 	 //Overwrite members in 2nd box for restart file
 	 chainLetter[count] = l_chain;
@@ -188,8 +182,8 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
          //Call reader function if remarks were reached,
 	 // or it is a remark
          dataKind = dataKinds.find(varName);
-         if (dataKind != dataKinds.end() &&
-	     (remarks.reached ||
+         if (dataKind != dataKinds.end() && 
+	     (remarks.reached || 
 	      str::compare(dataKind->first,pdb_entry::label::REMARK)))
 	 {
             dataKind->second->Read(pdb);

@@ -1,9 +1,3 @@
-/*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.8
-Copyright (C) 2016  GOMC Group
-A copy of the GNU General Public License can be found in the COPYRIGHT.txt
-along with this program, also can be found at <http://www.gnu.org/licenses/>.
-********************************************************************************/
 #include "FluctOutput.h"
 #include "PDBConst.h"
 #include "OutConst.h"
@@ -40,13 +34,13 @@ void FluctuationTracker::DoWrite(const ulong step)
       outF << std::endl;
    }
    else
-      std::cerr << "Unable to write to file \"" <<  name << "\" "
+      std::cerr << "Unable to write to file \"" <<  name << "\" " 
 		<< varName << std::endl;
 }
-
-std::string FluctuationTracker::GetFName(std::string const& base,
+   
+std::string FluctuationTracker::GetFName(std::string const& base, 
                                          std::string const& uniqueName)
-{
+{ 
    std::string fName = "Fluct_";
    varName = base;
    fName += base;
@@ -86,10 +80,10 @@ void Fluctuations::InitWatchSingle(config_setup::TrackedVars const& tracked)
    flucts[out::ENERGY_TC_IDX].Init(tracked.energy.fluct,
 				   out::ENERGY_TC, uniqueName,
 				   BOXES_WITH_U_NB);
-   flucts[out::ENERGY_INTRA_B_IDX].Init(tracked.energy.fluct,
+   flucts[out::ENERGY_INTRA_B_IDX].Init(tracked.energy.fluct, 
 					out::ENERGY_INTRA_B, uniqueName,
 					BOXES_WITH_U_NB);
-   flucts[out::ENERGY_INTRA_NB_IDX].Init(tracked.energy.fluct,
+   flucts[out::ENERGY_INTRA_NB_IDX].Init(tracked.energy.fluct, 
 					 out::ENERGY_INTRA_NB, uniqueName,
 					 BOXES_WITH_U_NB);
    flucts[out::ENERGY_ELECT_IDX].Init(tracked.energy.fluct, out::ENERGY_ELECT, uniqueName, BOXES_WITH_U_NB);
@@ -97,18 +91,18 @@ void Fluctuations::InitWatchSingle(config_setup::TrackedVars const& tracked)
    flucts[out::ENERGY_RECIP_IDX].Init(tracked.energy.fluct, out::ENERGY_RECIP, uniqueName, BOXES_WITH_U_NB);
 #endif
 
-   flucts[out::VIRIAL_TOTAL_IDX].Init(tracked.pressure.fluct,
+   flucts[out::VIRIAL_TOTAL_IDX].Init(tracked.pressure.fluct, 
 				      out::VIRIAL_TOTAL, uniqueName,
 				      BOXES_WITH_U_NB);
 #ifdef VIR_SUBCAT_OUT
-   flucts[out::VIRIAL_INTER_IDX].Init(tracked.pressure.fluct,
+   flucts[out::VIRIAL_INTER_IDX].Init(tracked.pressure.fluct, 
 				      out::VIRIAL_INTER, uniqueName,
 				      BOXES_WITH_U_NB);
-   flucts[out::VIRIAL_TC_IDX].Init(tracked.pressure.fluct,
+   flucts[out::VIRIAL_TC_IDX].Init(tracked.pressure.fluct, 
 				   out::VIRIAL_TC, uniqueName,
 				   BOXES_WITH_U_NB);
 #endif
-   flucts[out::PRESSURE_IDX].Init(tracked.pressure.fluct,
+   flucts[out::PRESSURE_IDX].Init(tracked.pressure.fluct, 
 				  out::PRESSURE, uniqueName,
 				  BOXES_WITH_U_NB);
 #if ENSEMBLE == GEMC
@@ -119,14 +113,14 @@ void Fluctuations::InitWatchSingle(config_setup::TrackedVars const& tracked)
 
    flucts[out::HEAT_OF_VAP_IDX].SetRef(&var->heatOfVap, 0);
 #endif
-
+   
    for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
    {
       flucts[out::ENERGY_TOTAL_IDX].SetRef(&var->energyRef[b].total, b);
 #if ENSEMBLE == GEMC
       flucts[out::VOLUME_IDX].SetRef(&var->volumeRef[b], b);
 #endif
-
+   
 #ifdef EN_SUBCAT_OUT
       flucts[out::ENERGY_INTRA_B_IDX].SetRef(&var->energyRef[b].intraBond, b);
       flucts[out::ENERGY_INTER_IDX].SetRef(&var->energyRef[b].inter, b);
@@ -142,7 +136,7 @@ void Fluctuations::InitWatchSingle(config_setup::TrackedVars const& tracked)
       flucts[out::VIRIAL_TC_IDX].SetRef(&var->virialRef[b].tc, b);
 #endif
       flucts[out::PRESSURE_IDX].SetRef(&var->pressure[b], b);
-   }
+   } 
 }
 
 void Fluctuations::InitWatchMulti(config_setup::TrackedVars const& tracked)
