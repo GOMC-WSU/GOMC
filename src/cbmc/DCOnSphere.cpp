@@ -1,10 +1,10 @@
 #include "DCOnSphere.h" 
 #include "TrialMol.h" 
 #include "DCData.h" 
-#include "../XYZArray.h" 
-#include "../PRNG.h" 
-#include "../Forcefield.h" 
-#include "../MolSetup.h" 
+#include "XYZArray.h" 
+#include "PRNG.h" 
+#include "Forcefield.h" 
+#include "MolSetup.h" 
 #include <omp.h>
  
 namespace cbmc 

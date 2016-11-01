@@ -4,7 +4,7 @@
 #include <string>
 #include <fstream>
 
-#include "../lib/BasicTypes.h" //For ulong, uint
+#include "BasicTypes.h" //For ulong, uint
 #include "EnergyTypes.h" //For energies.
 #include "MoveSettings.h" //For move settings/state
 #include "MoleculeKind.h" //For kind names

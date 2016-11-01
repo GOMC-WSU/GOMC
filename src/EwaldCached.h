@@ -1,7 +1,7 @@
 #ifndef EWALDCACHED_H
 #define EWALDCACHED_H
 
-#include "../lib/BasicTypes.h"
+#include "BasicTypes.h"
 #include "EnergyTypes.h"
 #include <vector>
 #include <stdio.h>
@@ -14,7 +14,7 @@
 #include "Coordinates.h"
 #include "BoxDimensions.h"
 #include "MoleculeKind.h"
-#include "cbmc/TrialMol.h"
+#include "TrialMol.h"
 
 
 //

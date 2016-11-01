@@ -4,9 +4,9 @@
 #include <vector>
 #include <string>
 
-#include "../lib/BitLib.h" //For bit check, mask generating functions
-#include "../lib/StrLib.h" //For string comparison wrapper.
-#include "../lib/BasicTypes.h" //For ulong
+#include "BitLib.h" //For bit check, mask generating functions
+#include "StrLib.h" //For string comparison wrapper.
+#include "BasicTypes.h" //For ulong
 #include "FFConst.h"
 #include "FixedWidthReader.h"
 #include "Reader.h"

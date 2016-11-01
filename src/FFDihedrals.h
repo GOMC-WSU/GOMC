@@ -6,8 +6,8 @@
 #include "FFConst.h"    //GetRot
 #include "SubdividedArray.h" //Subdivisions in master array for dih sets.
 
-#include "../lib/NumLib.h"    //Sq
-#include "../lib/BasicTypes.h" //For "uint"
+#include "NumLib.h"    //Sq
+#include "BasicTypes.h" //For "uint"
 
 namespace ff_setup { class Dihedral; }
 

@@ -3,7 +3,7 @@
 #include "CalculateEnergy.h"        
 #include "EnergyTypes.h"            //Energy structs
 #include "EnsemblePreprocessor.h"   //Flags
-#include "../lib/BasicTypes.h"             //uint
+#include "BasicTypes.h"             //uint
 #include "System.h"                 //For init
 #include "StaticVals.h"             //For init
 #include "Forcefield.h"             //
@@ -11,9 +11,9 @@
 #include "MoleculeKind.h"
 #include "Coordinates.h"
 #include "BoxDimensions.h"
-#include "cbmc/TrialMol.h"
-#include "../lib/GeomLib.h"
-#include "../lib/NumLib.h"
+#include "TrialMol.h"
+#include "GeomLib.h"
+#include "NumLib.h"
 #include <cassert>
 #include <omp.h>
 

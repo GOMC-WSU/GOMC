@@ -1,11 +1,11 @@
 #ifndef FIXED_WIDTH_READER_H
 #define FIXED_WIDTH_READER_H
 
-#include "../lib/BasicTypes.h" //For "uint"
+#include "BasicTypes.h" //For "uint"
 #include "Reader.h" //Parent class
 #include "ConstField.h" //For ConstField kind.
-#include "../lib/StrLib.h" //FromStr, StripWS
-#include "../lib/StrStrmLib.h" //For stringstream operators
+#include "StrLib.h" //FromStr, StripWS
+#include "StrStrmLib.h" //For stringstream operators
 
 
 class FixedWidthReader : public Reader

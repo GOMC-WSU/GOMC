@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 2.6)
 
 project(GOMC_Serial)
 
+include_directories(lib)
+include_directories(src)
+include_directories(src/cbmc)
+
 #Out-of-source build
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 

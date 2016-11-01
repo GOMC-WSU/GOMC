@@ -16,7 +16,7 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "../lib/BasicTypes.h"
+#include "BasicTypes.h"
 
 //Wrapper class for our random numbers
 class PRNG

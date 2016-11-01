@@ -1,7 +1,7 @@
 #include "FluctOutput.h"
 #include "PDBConst.h"
 #include "OutConst.h"
-#include "../lib/StrLib.h"
+#include "StrLib.h"
 
 void FluctuationTracker::Init(const bool en, std::string const& var,
                               std::string const& uniqueName, const uint bTot)

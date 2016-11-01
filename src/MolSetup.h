@@ -1,7 +1,7 @@
 #ifndef MOLSETUP_H
 #define MOLSETUP_H
 
-#include "../lib/BasicTypes.h"
+#include "BasicTypes.h"
 #include "EnsemblePreprocessor.h"
 
 #include <string>

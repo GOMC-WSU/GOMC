@@ -1,11 +1,11 @@
 #include "TrialMol.h"
 
-#include "../../lib/BasicTypes.h"
-#include "../../lib/GeomLib.h"   //for Theta
-#include "../EnergyTypes.h"
-#include "../MoleculeKind.h"
-#include "../XYZArray.h"
-#include "../BoxDimensions.h"
+#include "BasicTypes.h"
+#include "GeomLib.h"   //for Theta
+#include "EnergyTypes.h"
+#include "MoleculeKind.h"
+#include "XYZArray.h"
+#include "BoxDimensions.h"
 
 #include <cmath>              //for sin, cos, atan2
 #include <utility>            //swap

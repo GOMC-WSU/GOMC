@@ -2,7 +2,7 @@
 #define STATIC_VALS_H
 
 //General includes
-#include "../lib/BasicTypes.h" //For uint
+#include "BasicTypes.h" //For uint
 #include "EnsemblePreprocessor.h" //For VARIABLE_<QUANTITY> conditional defines
 
 //Initialization variables

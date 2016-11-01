@@ -6,7 +6,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #ifndef DCGRAPH_H
 #define DCGRAPH_H
-#include "../CBMC.h"
+#include "CBMC.h"
 #include "DCComponent.h"
 #include "DCData.h"
 #include <vector>

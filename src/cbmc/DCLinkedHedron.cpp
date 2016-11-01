@@ -3,10 +3,10 @@
 #include "DCLinkedHedron.h"
 #include "DCData.h"
 #include "TrialMol.h"
-#include "../MolSetup.h"
-#include "../Forcefield.h"
-#include "../PRNG.h"
-#include "../../lib/NumLib.h"
+#include "MolSetup.h"
+#include "Forcefield.h"
+#include "PRNG.h"
+#include "NumLib.h"
 #include <numeric>
 #include <cassert>
 

@@ -1,8 +1,8 @@
 #include "CBMC.h"
 #include "MoleculeKind.h"
 #include "MolSetup.h"
-#include "cbmc/DCLinear.h"
-#include "cbmc/DCGraph.h"
+#include "DCLinear.h"
+#include "DCGraph.h"
 #include <vector>
 
 

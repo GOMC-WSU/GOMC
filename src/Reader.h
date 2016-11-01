@@ -10,9 +10,9 @@
 #include <iomanip>
 #include <algorithm>
 
-#include "../lib/BasicTypes.h" //for uint, ulong
-#include "../lib/StrLib.h" //for str::compare(,) wrapper
-#include "../lib/VectorLib.h" //For vect::split() string sentence parser
+#include "BasicTypes.h" //for uint, ulong
+#include "StrLib.h" //for str::compare(,) wrapper
+#include "VectorLib.h" //For vect::split() string sentence parser
 
 inline std::ifstream & operator>>(std::ifstream & is, bool & val)
 {

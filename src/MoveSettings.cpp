@@ -2,8 +2,8 @@
 #include "BoxDimensions.h" //For axis sizes
 #include "StaticVals.h" //For init info.
 
-#include "../lib/NumLib.h" //For bounding functions.
-#include "../lib/GeomLib.h"    //For M_PI
+#include "NumLib.h" //For bounding functions.
+#include "GeomLib.h"    //For M_PI
 
 const double MoveSettings::TARGET_ACCEPT_FRACT = 0.50;
 const double MoveSettings::TINY_AMOUNT = 0.0000001;

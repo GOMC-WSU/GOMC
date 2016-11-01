@@ -3,8 +3,8 @@
 
 #include "EnsemblePreprocessor.h" //For "MIE_INT_ONLY" preprocessor.
 #include "FFConst.h" //constants related to particles.
-#include "../lib/BasicTypes.h" //for uint
-#include "../lib/NumLib.h" //For Cb, Sq
+#include "BasicTypes.h" //for uint
+#include "NumLib.h" //For Cb, Sq
 
 // Virial and LJ potential calculation:
 // U(rij) = cn * eps_ij * ( (sig_ij/rij)^n - (sig_ij/rij)^6)

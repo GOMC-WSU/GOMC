@@ -3,8 +3,8 @@
 
 #include <string> //For aliases
 
-#include "../lib/BasicTypes.h" //For uint
-#include "../lib/GeomLib.h" //For RadToDeg
+#include "BasicTypes.h" //For uint
+#include "GeomLib.h" //For RadToDeg
 
 namespace ff
 { 

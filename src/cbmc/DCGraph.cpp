@@ -1,9 +1,9 @@
 #include "DCGraph.h"
 #include "DCFreeHedron.h"
 #include "DCLinkedHedron.h"
-#include "../MolSetup.h"
-#include "../Setup.h"
-#include "../MoleculeKind.h"
+#include "MolSetup.h"
+#include "Setup.h"
+#include "MoleculeKind.h"
 #include <cassert>
 #include <map>
 

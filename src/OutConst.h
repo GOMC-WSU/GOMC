@@ -4,7 +4,7 @@
 #include <string>
 
 #include "EnsemblePreprocessor.h" //For VARIABLE_x, etc.
-#include "../lib/BasicTypes.h" //For uint
+#include "BasicTypes.h" //For uint
 
 #define EN_SUBCAT_OUT
 //#define VIR_SUBCAT_OUT

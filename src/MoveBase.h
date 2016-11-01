@@ -1,7 +1,7 @@
 #ifndef TRANSFORMABLE_BASE_H
 #define TRANSFORMABLE_BASE_H
 
-#include "../lib/BasicTypes.h" //For uint.
+#include "BasicTypes.h" //For uint.
 #include "Molecules.h" //For start
 #include "BoxDimensions.h" //For pbc wrapping
 #include "XYZArray.h" //Parent class

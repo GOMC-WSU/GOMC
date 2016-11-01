@@ -6,7 +6,7 @@
 
 #include "BasicTypes.h" //For ulong/uint
 #include "StrLib.h" //For str::GetDat
-#include "../src/ConstField.h" //For const field type.
+#include "ConstField.h" //For const field type.
 
 namespace align
 {

@@ -1,7 +1,7 @@
 #ifndef NOEWALD_H
 #define NOEWALD_H
 
-#include "../lib/BasicTypes.h"
+#include "BasicTypes.h"
 #include "EnergyTypes.h"
 #include "EwaldCached.h"
 #include <vector>

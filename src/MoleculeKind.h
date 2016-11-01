@@ -1,7 +1,7 @@
 #ifndef FF_MOLECULE_H
 #define FF_MOLECULE_H
 
-#include "../lib/BasicTypes.h"          //For uint
+#include "BasicTypes.h"          //For uint
 #include "EnsemblePreprocessor.h"
 #include "SubdividedArray.h"
 #include "Geometry.h"            //members

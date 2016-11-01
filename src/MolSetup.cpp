@@ -1,10 +1,10 @@
 #include "EnsemblePreprocessor.h"
 #include "MolSetup.h"
-#include "../lib/StrLib.h"
+#include "StrLib.h"
 #include "ConfigSetup.h"    //For definition of restart
 #include "PDBSetup.h"       //For mol names->kinds
 #include "FFSetup.h"        //For geometry kinds
-#include "../lib/BasicTypes.h"
+#include "BasicTypes.h"
 
 #include <cstdio>
 #include <utility>      //for swap (most modern compilers)

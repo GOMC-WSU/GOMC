@@ -1,7 +1,7 @@
 #ifndef CONSOLE_OUTPUT_H
 #define CONSOLE_OUTPUT_H
 
-#include "../lib/BasicTypes.h" //For uint
+#include "BasicTypes.h" //For uint
 #include "OutputAbstracts.h"
 #include "Molecules.h"
 #include "MoleculeKind.h"

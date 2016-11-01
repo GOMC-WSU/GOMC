@@ -8,7 +8,7 @@
  */
 
 #include "EnsemblePreprocessor.h" //For # box const.
-#include "../lib/BasicTypes.h" //For uint
+#include "BasicTypes.h" //For uint
 
 #ifndef NDEBUG
 #include <iostream>

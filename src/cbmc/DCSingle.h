@@ -8,7 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define DCSINGLE_H
 
 #include "DCComponent.h"
-#include "../../lib/BasicTypes.h"
+#include "BasicTypes.h"
 
 namespace mol_setup { class MolKind; }
 

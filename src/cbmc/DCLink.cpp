@@ -1,10 +1,10 @@
 #include "DCLink.h" 
 #include "TrialMol.h" 
-#include "../Forcefield.h" 
-#include "../XYZArray.h" 
-#include "../MoleculeKind.h" 
-#include "../MolSetup.h" 
-#include "../../lib/NumLib.h" 
+#include "Forcefield.h" 
+#include "XYZArray.h" 
+#include "MoleculeKind.h" 
+#include "MolSetup.h" 
+#include "NumLib.h" 
  
 namespace cbmc 
 { 

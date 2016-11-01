@@ -1,7 +1,7 @@
 #ifndef CALCULATEENERGY_H
 #define CALCULATEENERGY_H
 
-#include "../lib/BasicTypes.h"
+#include "BasicTypes.h"
 #include "EnergyTypes.h"
 #include "EwaldCached.h"
 #include "Ewald.h"

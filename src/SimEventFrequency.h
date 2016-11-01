@@ -1,7 +1,7 @@
 #ifndef SIM_EVENT_FREQUENCY_H
 #define SIM_EVENT_FREQUENCY_H
 
-#include "../lib/BasicTypes.h" //for ulong
+#include "BasicTypes.h" //for ulong
 #include "ConfigSetup.h" //for event frequencies from config file.
 
 struct SimEventFrequency

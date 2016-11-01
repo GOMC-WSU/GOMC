@@ -7,7 +7,7 @@
  
 #include "InputAbstracts.h" //For ReadableBase parent class. 
 #include "InputFileReader.h" // Input reader 
-#include "../lib/BasicTypes.h" //for uint, ulong 
+#include "BasicTypes.h" //for uint, ulong 
 #include "EnsemblePreprocessor.h" //For box total; 
 #include "Reader.h" //For config reader 
 #include "FFConst.h" //For # of param file kinds 

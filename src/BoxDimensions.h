@@ -2,7 +2,7 @@
 #define BOX_DIMENSIONS_H
 
 #include "EnsemblePreprocessor.h" //For BOX_TOTAL, ensembles
-#include "../lib/BasicTypes.h" //For uint, etc.
+#include "BasicTypes.h" //For uint, etc.
 #include "PDBSetup.h" //Primary source of volume.
 #include "ConfigSetup.h" //Other potential source of volume (new sys only)
 #include "XYZArray.h" //For axes

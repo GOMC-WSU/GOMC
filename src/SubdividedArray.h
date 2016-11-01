@@ -2,7 +2,7 @@
 #define SUBDIV_ARRAY
 
 #include <cstddef>
-#include "../lib/BasicTypes.h"
+#include "BasicTypes.h"
 
 //Common class used for dihedral, sorted kind array, topology arrays, etc.
 

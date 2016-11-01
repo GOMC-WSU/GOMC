@@ -2,7 +2,7 @@
 #define MOVE_SETTINGS_H
 
 #include "EnsemblePreprocessor.h" //For BOX_TOTAL
-#include "../lib/BasicTypes.h"           //for uint
+#include "BasicTypes.h"           //for uint
 #include "OutputVars.h"
 
 #include "MoveConst.h"           //For sizes of arrays.

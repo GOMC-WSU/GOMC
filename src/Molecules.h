@@ -1,7 +1,7 @@
 #ifndef MOLECULES_H
 #define MOLECULES_H
 
-#include "../lib/BasicTypes.h" //For uint
+#include "BasicTypes.h" //For uint
 #include "MolSetup.h"
 #include <map>
 #include <string>

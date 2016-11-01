@@ -4,7 +4,7 @@
 #include <string> //For constant labels
 
 #include "ConstField.h" //For ConstField kind.
-#include "../lib/StrStrmLib.h"
+#include "StrStrmLib.h"
 
 namespace pdb_entry 
 {

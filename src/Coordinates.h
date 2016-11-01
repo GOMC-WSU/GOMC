@@ -1,7 +1,7 @@
 #ifndef COORDINATES_H
 #define COORDINATES_H
 
-#include "../lib/BasicTypes.h"
+#include "BasicTypes.h"
 #include "Molecules.h" //For start
 #include "BoxDimensions.h" //For pbc wrapping
 #include "XYZArray.h" //Parent class

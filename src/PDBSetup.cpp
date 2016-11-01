@@ -1,7 +1,7 @@
 #include <vector>
 #include <map> //for function lookup table.
 
-#include "../lib/StrLib.h" //for string comparison wrapper
+#include "StrLib.h" //for string comparison wrapper
 #include "PDBSetup.h" //Corresponding header to this body
 #include "FixedWidthReader.h" //For fixed width reader
 #include "ConfigSetup.h" //For restart info

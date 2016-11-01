@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "../lib/BasicTypes.h" //For ulong
+#include "BasicTypes.h" //For ulong
 
 #include "EnsemblePreprocessor.h" //For BOX_TOTAL, etc.
 #include "StaticVals.h"

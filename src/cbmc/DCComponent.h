@@ -6,7 +6,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #ifndef DCCOMPONENT_H
 #define DCCOMPONENT_H
-#include "../../lib/BasicTypes.h"
+#include "BasicTypes.h"
 
 //Class for Deferred Coupling CBMC components
 

@@ -3,9 +3,9 @@
 
 #include "PRNG.h"
 #include "FFSetup.h" //For initialization data
-#include "../lib/BasicTypes.h" //For "uint"
-#include "../lib/VectorLib.h" //For transfer vect --> array function
-#include "../lib/NumLib.h" //For "Sq" function
+#include "BasicTypes.h" //For "uint"
+#include "VectorLib.h" //For transfer vect --> array function
+#include "NumLib.h" //For "Sq" function
 #include <math.h>
 
 class FFAngles

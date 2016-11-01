@@ -4,7 +4,7 @@
 #include "MolSetup.h" // ""
 #include "FFSetup.h"  // ""
 #include "Forcefield.h"
-#include "../lib/VectorLib.h" //for transfer.
+#include "VectorLib.h" //for transfer.
 #include <algorithm> //For count.
 
 class System;

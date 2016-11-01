@@ -4,7 +4,7 @@
 #include <string>
 #include <fstream>
 
-#include "../lib/BasicTypes.h" //For ulong, uint
+#include "BasicTypes.h" //For ulong, uint
 #include "EnergyTypes.h" //For energies.
 #include "MoleculeKind.h" //For kind names
 #include "MoleculeLookup.h" //for lookup array (to get density, kind cnts, etc.

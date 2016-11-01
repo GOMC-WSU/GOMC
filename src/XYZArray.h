@@ -1,7 +1,7 @@
 #ifndef XYZ_ARRAY_H
 #define XYZ_ARRAY_H
 
-#include "../lib/BasicTypes.h"
+#include "BasicTypes.h"
 #include <string.h> //for memset, memcpy, etc.
 #include <stdio.h> //for memset, memcpy, etc.
 #include <utility>      //for swap (most modern compilers)
