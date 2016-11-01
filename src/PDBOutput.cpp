@@ -7,7 +7,7 @@
 #include "MoveSettings.h"           //For move settings/state
 #include "PDBConst.h"               //For field locations/lengths
 
-#include "../lib/StrStrmLib.h"      //For conversion from uint to string
+#include "StrStrmLib.h"      //For conversion from uint to string
 
 #include <iostream>                 // for cout;
 

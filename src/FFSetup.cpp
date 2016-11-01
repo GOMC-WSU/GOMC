@@ -6,7 +6,7 @@
 #include <numeric>
 #endif
 
-#include "../lib/GeomLib.h"
+#include "GeomLib.h"
 
 
 const uint FFSetup::CHARMM_ALIAS_IDX = 0;

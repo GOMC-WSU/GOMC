@@ -1,7 +1,7 @@
 #ifndef EWALD_H
 #define EWALD_H
 
-#include "../lib/BasicTypes.h"
+#include "BasicTypes.h"
 #include "EnergyTypes.h"
 #include "EwaldCached.h"
 #include <vector>

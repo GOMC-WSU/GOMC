@@ -1,7 +1,7 @@
 #include "FFParticle.h"
 #include "FFSetup.h" //For our setup info
 #include "ConfigSetup.h"
-#include "../lib/NumLib.h" //For Sq, Cb, and MeanA/G functions.
+#include "NumLib.h" //For Sq, Cb, and MeanA/G functions.
 
 FFParticle::FFParticle() : mass(NULL), nameFirst(NULL), nameSec(NULL),
 			   n(NULL), n_1_4(NULL), sigmaSq(NULL),

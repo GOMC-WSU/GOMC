@@ -1,6 +1,6 @@
 #ifndef CELLLIST_H
 #define CELLLIST_H
-#include "../lib/BasicTypes.h"
+#include "BasicTypes.h"
 #include "EnsemblePreprocessor.h"
 #include <vector>
 #include <cassert>

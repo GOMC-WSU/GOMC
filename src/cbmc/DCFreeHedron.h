@@ -9,7 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "DCComponent.h"
 #include "DCSingle.h"
 #include "DCHedron.h"
-#include "../CBMC.h"
+#include "CBMC.h"
 
 namespace mol_setup { class MolKind; }
 

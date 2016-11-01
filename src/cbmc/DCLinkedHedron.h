@@ -7,7 +7,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef DCLINKEDHEDRON_H
 #define DCLINKEDHEDRON_H
 #include "DCComponent.h"
-#include "../CBMC.h"
+#include "CBMC.h"
 #include "DCHedron.h"
 
 namespace mol_setup { class MolKind; }

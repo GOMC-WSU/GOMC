@@ -7,10 +7,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef TRIALMOL_H
 #define TRIALMOL_H
 
-#include "../EnergyTypes.h"
-#include "../XYZArray.h"
-#include "../TransformMatrix.h"
-#include "../../lib/BasicTypes.h"
+#include "EnergyTypes.h"
+#include "XYZArray.h"
+#include "TransformMatrix.h"
+#include "BasicTypes.h"
 
 class MoleculeKind;
 class BoxDimensions;

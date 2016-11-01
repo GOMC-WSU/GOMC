@@ -3,8 +3,8 @@
 
 #include "EnsemblePreprocessor.h" //For "MIE_INT_ONLY" preprocessor.
 #include "FFConst.h" //constants related to particles.
-#include "../lib/BasicTypes.h" //for uint
-#include "../lib/NumLib.h" //For Cb, Sq
+#include "BasicTypes.h" //for uint
+#include "NumLib.h" //For Cb, Sq
 #include "FFParticle.h"
 
 

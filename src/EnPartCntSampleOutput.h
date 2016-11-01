@@ -8,8 +8,8 @@
 
 #include "OutputAbstracts.h"
 #include "OutputVars.h"
-#include "../lib/BasicTypes.h" //For ulong, uint
-#include "../lib/StrLib.h"
+#include "BasicTypes.h" //For ulong, uint
+#include "StrLib.h"
 #include "PDBSetup.h" //For atoms class.
 #include "EnergyTypes.h"
 

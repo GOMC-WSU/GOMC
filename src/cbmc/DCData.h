@@ -6,11 +6,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/ 
 #ifndef DCDATA_H 
 #define DCDATA_H 
-#include "../../lib/BasicTypes.h" 
-#include "../XYZArray.h" 
-#include "../Setup.h" 
-#include "../System.h" 
-#include "../CBMC.h" 
+#include "BasicTypes.h" 
+#include "XYZArray.h" 
+#include "Setup.h" 
+#include "System.h" 
+#include "CBMC.h" 
 #include <vector> 
 #include <algorithm> 
  

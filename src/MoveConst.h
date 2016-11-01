@@ -2,7 +2,7 @@
 #define MOVES_CONST_H
 
 #include "EnsemblePreprocessor.h"
-#include "../lib/BasicTypes.h"
+#include "BasicTypes.h"
 
 #include <vector>
 #include <string>

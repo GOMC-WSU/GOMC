@@ -3,7 +3,7 @@
 
 
 #include "MoveBase.h"
-#include "cbmc/TrialMol.h"
+#include "TrialMol.h"
 
 //#define DEBUG_MOVES
 

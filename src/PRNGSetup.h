@@ -2,7 +2,7 @@
 #define PRNG_SETUP_H
 
 #include "MersenneTwister.h"
-#include "../lib/BasicTypes.h" //For uint/ulong
+#include "BasicTypes.h" //For uint/ulong
 
 class Reader;
 namespace config_setup {

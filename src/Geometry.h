@@ -1,7 +1,7 @@
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
 
-#include "../lib/BasicTypes.h"
+#include "BasicTypes.h"
 #include "SubdividedArray.h"
 
 #include <vector>

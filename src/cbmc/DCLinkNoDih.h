@@ -7,7 +7,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef DCLINKNODIH_H
 #define DCLINKNODIH_H
 
-#include "../../lib/BasicTypes.h"
+#include "BasicTypes.h"
 #include "DCComponent.h"
 #include "DCData.h"
 

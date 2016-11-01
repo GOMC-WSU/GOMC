@@ -1,7 +1,7 @@
 #ifndef CONST_FIELD_H
 #define CONST_FIELD_H
 
-#include "../lib/../lib/BasicTypes.h" //For "uint"
+#include "BasicTypes.h" //For "uint"
 
 struct ConstField
 {

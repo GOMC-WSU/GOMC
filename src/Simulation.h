@@ -5,7 +5,7 @@
 #include "CPUSide.h"
 #include "System.h"
 #include "StaticVals.h"
-#include "../lib/BasicTypes.h"
+#include "BasicTypes.h"
 
 class Simulation
 {

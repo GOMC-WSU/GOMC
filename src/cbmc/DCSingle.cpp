@@ -1,10 +1,10 @@
 #include "DCSingle.h" 
 #include "TrialMol.h" 
 #include "DCData.h" 
-#include "../PRNG.h" 
-#include "../CalculateEnergy.h" 
-#include "../XYZArray.h" 
-#include "../Forcefield.h" 
+#include "PRNG.h" 
+#include "CalculateEnergy.h" 
+#include "XYZArray.h" 
+#include "Forcefield.h" 
  
 namespace cbmc 
 { 

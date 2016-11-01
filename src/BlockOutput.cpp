@@ -1,7 +1,7 @@
 #include "BlockOutput.h"
 #include "PDBConst.h"
 #include "OutConst.h"
-#include "../lib/StrLib.h"
+#include "StrLib.h"
 
 #if ENSEMBLE == GEMC
 #include "MoveConst.h" //For box constants, if we're calculating Hv

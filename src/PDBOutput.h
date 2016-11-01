@@ -4,7 +4,7 @@
 #include <vector> //for molecule string storage.
 #include <string> //to store lines of finished data.
 
-#include "../lib/BasicTypes.h" //For uint
+#include "BasicTypes.h" //For uint
 
 #include "OutputAbstracts.h"
 #include "Molecules.h"

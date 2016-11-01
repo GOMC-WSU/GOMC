@@ -3,7 +3,7 @@
 
 //clock() function; CLOCKS_PER_SEC constant
 #include <time.h>
-#include "../lib/BasicTypes.h"             //uint, ulong
+#include "BasicTypes.h"             //uint, ulong
 #include <iostream> //for cout
 
 struct Clock 

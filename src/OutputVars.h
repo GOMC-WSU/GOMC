@@ -1,7 +1,7 @@
 #ifndef OUTPUT_VARS_H
 #define OUTPUT_VARS_H
 
-#include "../lib/BasicTypes.h" //For ulong, uint
+#include "BasicTypes.h" //For ulong, uint
 #include "MoleculeLookup.h" //for lookup array (to get density, kind cnts, etc.
 #include "StaticVals.h"
 #include "BoxDimensions.h"

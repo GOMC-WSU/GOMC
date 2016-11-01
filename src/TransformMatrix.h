@@ -1,7 +1,7 @@
 #ifndef TRANSFORMMATRIX_H
 #define TRANSFORMMATRIX_H
 
-#include "../lib/BasicTypes.h"
+#include "BasicTypes.h"
 #ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
 #endif

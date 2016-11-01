@@ -7,7 +7,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef DCFACTORY_H
 #define DCFACTORY_H
 
-#include "../../lib/BasicTypes.h"
+#include "BasicTypes.h"
 
 namespace cbmc
 {

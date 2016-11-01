@@ -7,7 +7,7 @@
 *
 */
 
-#include "../lib/BasicTypes.h"
+#include "BasicTypes.h"
 
 struct MolPick;
 class Forcefield;

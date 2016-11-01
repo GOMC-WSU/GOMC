@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-#include "../lib/BasicTypes.h"
+#include "BasicTypes.h"
 #include "MolSetup.h"
 #include "System.h"
 #include "MoleculeLookup.h"

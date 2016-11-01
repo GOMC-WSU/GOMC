@@ -3,7 +3,7 @@
 #include "Reader.h" //For file I/O
 #include "PRNGSetup.h" //header spec
 #include "ConfigSetup.h" //For restart, gen kind settings
-#include "../lib/StrLib.h" //for Compare
+#include "StrLib.h" //for Compare
 
 namespace prng_setup
 {

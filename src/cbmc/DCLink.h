@@ -7,7 +7,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef DCLINK_H
 #define DCLINK_H
 
-#include "../../lib/BasicTypes.h"
+#include "BasicTypes.h"
 #include "DCComponent.h"
 #include "DCData.h"
 #include "DCFactory.h"

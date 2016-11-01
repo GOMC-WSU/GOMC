@@ -5,7 +5,7 @@
 #include <map> //for function lookup table.
 
 #include "InputAbstracts.h" //For FWReadableBase
-#include "../lib/BasicTypes.h" //For uint
+#include "BasicTypes.h" //For uint
 #include "EnsemblePreprocessor.h" //For BOX_TOTAL, etc.
 #include "PDBConst.h" //For fields positions, etc.
 #include "XYZArray.h" //For box dimensions.

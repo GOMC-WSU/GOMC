@@ -9,7 +9,7 @@
 #include "InputAbstracts.h" //For readable base, etc.
 #include "Reader.h" //For Reader object
 #include "FFConst.h" //for forcefield constants
-#include "../lib/BasicTypes.h" //for uint
+#include "BasicTypes.h" //for uint
 
 namespace ff_setup
 {

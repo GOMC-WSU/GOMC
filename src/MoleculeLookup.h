@@ -2,7 +2,7 @@
 #define MOLECULELOOKUP_H
 
 #include "EnsemblePreprocessor.h" //for BOX_TOTAL
-#include "../lib/BasicTypes.h" //For uint
+#include "BasicTypes.h" //For uint
 
 namespace pdb_setup { class Atoms; }
 class Molecules;
