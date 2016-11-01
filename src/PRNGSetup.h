@@ -7,7 +7,7 @@
 class Reader;
 namespace config_setup {
 struct RestartSettings;
-class PRNGKind;
+struct PRNGKind;
 }
 
 namespace prng_setup
@@ -43,8 +43,9 @@ namespace prng_setup
    };
 }
 
-struct PRNGSetup
+class PRNGSetup
 {
+public:
    prng_setup::PRNGInitData prngMaker;
    void Init(config_setup::RestartSettings const& restart,
 	     config_setup::PRNGKind const& genConf,
