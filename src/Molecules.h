@@ -88,9 +88,6 @@ public:
   double* pairVirCorrections;
 
   bool printFlag;
-
-   bool printFlag;
-
 };
 
 
