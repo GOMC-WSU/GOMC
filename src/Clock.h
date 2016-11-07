@@ -6,37 +6,43 @@
 #include "BasicTypes.h"             //uint, ulong
 #include <iostream> //for cout
 
-struct Clock 
+struct Clock
 {
-   Clock(): stepsPerOut(0), prevStep(0), lastStep(0), lastTime(0.0) {}
-   void Init(const ulong steps, const ulong totSt)
-   { stepsPerOut = steps; strt = clock(); lastStep = totSt - 1; }
-   void CheckTime(const uint step);
+  Clock(): stepsPerOut(0), prevStep(0), lastStep(0), lastTime(0.0) {}
+  void Init(const ulong steps, const ulong totSt)
+  {
+    stepsPerOut = steps;
+    strt = clock();
+    lastStep = totSt - 1;
+  }
+  void CheckTime(const uint step);
 private:
-   double TimeInSec(const double strt, const double stp)
-   { return (double(stp)-double(strt))/CLOCKS_PER_SEC; }
-   clock_t strt, stop;
-   double lastTime;
-   ulong stepsPerOut, prevStep, lastStep;
+  double TimeInSec(const double strt, const double stp)
+  {
+    return (double(stp)-double(strt))/CLOCKS_PER_SEC;
+  }
+  clock_t strt, stop;
+  double lastTime;
+  ulong stepsPerOut, prevStep, lastStep;
 };
 
 inline void Clock::CheckTime(const uint step)
 {
-   uint stepDelta = step - prevStep;
-   if (stepDelta == stepsPerOut && step != lastStep)
-   {
-      double currTime = clock();
-      std::cout << "Steps/sec. : " 
-		<< stepDelta/TimeInSec(lastTime, currTime) << std::endl;
-      prevStep = step;
-      lastTime = currTime;
-   }
-   else if (step == lastStep)
-   {
-      stop = clock();
-      std::cout << "Simulation Time (total): " << TimeInSec(strt, stop)
-		<< "sec." << std::endl;
-   }
+  uint stepDelta = step - prevStep;
+  if (stepDelta == stepsPerOut && step != lastStep)
+  {
+    double currTime = clock();
+    std::cout << "Steps/sec. : "
+              << stepDelta/TimeInSec(lastTime, currTime) << std::endl;
+    prevStep = step;
+    lastTime = currTime;
+  }
+  else if (step == lastStep)
+  {
+    stop = clock();
+    std::cout << "Simulation Time (total): " << TimeInSec(strt, stop)
+              << "sec." << std::endl;
+  }
 }
 
 #endif /*CLOCK_H*/
