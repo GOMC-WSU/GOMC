@@ -214,15 +214,12 @@ void BlockAverages::InitWatchMulti(config_setup::TrackedVars const& tracked)
     uint bkStart = start + k;
     //Copy each char of the name string.
     std::string trimKindName = var->kindsRef[k].name;
-    if (var->numKinds == 1)
-    {
-      name = out::MOL_NUM + "_" + trimKindName;
-      blocks[bkStart + out::MOL_NUM_IDX*var->numKinds].Init
-        (&outBlock0, &outBlock1, tracked.molNum.block, invSteps, name, BOXES_WITH_U_NB);
-      name = out::DENSITY + "_" + trimKindName;
-      blocks[bkStart + out::DENSITY_IDX*var->numKinds].Init
-        (&outBlock0, &outBlock1, tracked.density.block, invSteps, name, BOXES_WITH_U_NB);
-    }
+    name = out::MOL_NUM + "_" + trimKindName;
+    blocks[bkStart + out::MOL_NUM_IDX*var->numKinds].Init
+      (&outBlock0, &outBlock1, tracked.molNum.block, invSteps, name, BOXES_WITH_U_NB);
+    name = out::DENSITY + "_" + trimKindName;
+    blocks[bkStart + out::DENSITY_IDX*var->numKinds].Init
+      (&outBlock0, &outBlock1, tracked.density.block, invSteps, name, BOXES_WITH_U_NB);
     //If more than one kind, output mol fractions.
     if (var->numKinds > 1)
     {
