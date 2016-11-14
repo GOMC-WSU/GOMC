@@ -15,7 +15,16 @@ void ConsoleOutput::DoOutput(const ulong step)
 {
   if (step==0)
   {
-    std::cout << "Starting simulation..." << std::endl;
+    std::cout << "Initial Simulation Energy:" << std::endl;
+    for(uint b=0; b<BOX_TOTAL; b++)
+    {
+      PrintEnergyTitle(b);
+      std::cout << std::endl;
+      PrintEnergy(b, var->energyRef[b], var->virialRef[b]);
+      std::cout << std::endl << std::endl;
+    }
+
+    std::cout << "Starting Simulation:" << std::endl;
     for(uint b=0; b<BOX_TOTAL; b++)
     {
       PrintMoveTitle(b);
@@ -67,7 +76,7 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
     printElement(var->GetTries(sub), elementWidth);
     printElement(var->GetAccepted(sub), elementWidth);
     printElement(var->GetAcceptPercent(sub), elementWidth);
-    printElement(var->GetScale(sub), elementWidth);
+    //printElement(var->GetScale(sub), elementWidth);
 #if ENSEMBLE == GCMC
   }
 #endif
@@ -77,7 +86,7 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
   printElement(var->GetTries(sub), elementWidth);
   printElement(var->GetAccepted(sub), elementWidth);
   printElement(var->GetAcceptPercent(sub), elementWidth);
-  printElement(var->GetScale(sub), elementWidth);
+  //printElement(var->GetScale(sub), elementWidth);
 #endif
 
 #if ENSEMBLE == GEMC
@@ -88,7 +97,7 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
   printElement(var->GetScale(sub), elementWidth);
 #endif
 
-  printElement(step, elementWidth);
+  printElement(step + 1, elementWidth);
   std::cout << std::endl;
 }
 
@@ -122,7 +131,7 @@ void ConsoleOutput::PrintEnergy(const uint box, Energy const& en, Virial const& 
 
   printElement(en.total, elementWidth);
   printElement(en.intraBond, elementWidth);
-  printElement(en.intraBond, elementWidth);
+  printElement(en.intraNonbond, elementWidth);
   printElement(en.inter, elementWidth);
   printElement(en.tc, elementWidth);
   printElement(en.totalElect, elementWidth);
@@ -195,7 +204,7 @@ void ConsoleOutput::PrintMoveTitle(const uint box)
     printElement("INTRASWAP", elementWidth);
     printElement("INTACCEPT", elementWidth);
     printElement("INTACCEPT%", elementWidth);
-    printElement("INTMAX", elementWidth);
+    //printElement("INTMAX", elementWidth);
 #if ENSEMBLE == GCMC
   }
 #endif
@@ -204,7 +213,7 @@ void ConsoleOutput::PrintMoveTitle(const uint box)
   printElement("TRANSFER", elementWidth);
   printElement("TRANACCEPT", elementWidth);
   printElement("TRANACCEPT%", elementWidth);
-  printElement("TRANMAX", elementWidth);
+  //printElement("TRANMAX", elementWidth);
 #endif
 
 #if ENSEMBLE == GEMC
