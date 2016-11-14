@@ -10,7 +10,6 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
   rCut = rc;
   rCutSq = rcSq;
   minBoxSize = rc * rcSq * 8 + TENTH_ANGSTROM;
-  std::cout << "Min. Box Size: " << minBoxSize << std::endl;
   if (restart.enable && cryst.hasVolume)
     axis = cryst.axis;
   else if (confVolume.hasVolume)
