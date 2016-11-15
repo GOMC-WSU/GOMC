@@ -15,16 +15,17 @@ void ConsoleOutput::DoOutput(const ulong step)
 {
   if (step==0)
   {
-    std::cout << "Initial Simulation Energy:" << std::endl;
+    std::cout << std::endl << "########################## INITIAL SIMULATION ENERGY ##########################" << std::endl;
     for(uint b=0; b<BOX_TOTAL; b++)
     {
       PrintEnergyTitle(b);
       std::cout << std::endl;
       PrintEnergy(b, var->energyRef[b], var->virialRef[b]);
-      std::cout << std::endl << std::endl;
+      std::cout << std::endl;
     }
+    std::cout << "###############################################################################" << std::endl << std::endl;
 
-    std::cout << "Starting Simulation:" << std::endl;
+    std::cout << "############################# STARTING SIMULATION #############################" << std::endl;
     for(uint b=0; b<BOX_TOTAL; b++)
     {
       PrintMoveTitle(b);
@@ -115,11 +116,10 @@ void ConsoleOutput::PrintStatistic(const uint box) const
   for(uint k=0; k<var->numKinds; k++)
   {
     uint kb = k+offset;
-    if(k>1)
+    if(var->numKinds > 1)
       printElement(var->molFractionByKindBox[kb], elementWidth);
-    density += var->densityByKindBox[kb];
   }
-  printElement(density, elementWidth);
+  printElement(var->densityTot[box] * 1000, elementWidth);
   std::cout << std::endl;
 }
 
@@ -172,10 +172,13 @@ void ConsoleOutput::PrintStatisticTitle(const uint box)
   printElement("PRESSURE", elementWidth);
   printElement("TOTALMOL", elementWidth);
 
-  for(uint k=1; k<var->numKinds; k++)
+  for(uint k=0; k < var->numKinds; k++)
   {
-    std::string molName = "MOLFRAC_" + var->resKindNames[k];
-    printElement(molName, elementWidth);
+    if(var->numKinds > 1)
+    {
+      std::string molName = "MOLFRAC_" + var->resKindNames[k];
+      printElement(molName, elementWidth);
+    }
   }
   printElement("TOT_DENSITY", elementWidth);
   std::cout << std::endl;

@@ -127,61 +127,28 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
   outBlock0 << std::setw(OUTPUTWIDTH) << "STEPS";
   if(outBlock1.is_open())
     outBlock1 << std::setw(OUTPUTWIDTH) << "STEPS";
+  //Note: The order of Init should be same as order of SetRef
+  blocks[out::ENERGY_TOTAL_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_TOTAL, BOXES_WITH_U_NB);
+  blocks[out::ENERGY_INTER_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_INTER, BOXES_WITH_U_NB);
+  blocks[out::ENERGY_TC_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_TC, BOXES_WITH_U_NB);
+  blocks[out::ENERGY_INTRA_B_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_INTRA_B, BOXES_WITH_U_NB);
+  blocks[out::ENERGY_INTRA_NB_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_INTRA_NB, BOXES_WITH_U_NB);
+  blocks[out::ENERGY_ELECT_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_ELECT, BOXES_WITH_U_NB);
+  blocks[out::ENERGY_REAL_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_REAL, BOXES_WITH_U_NB);
+  blocks[out::ENERGY_RECIP_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_RECIP, BOXES_WITH_U_NB);
+  blocks[out::VIRIAL_TOTAL_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps, out::VIRIAL_TOTAL, BOXES_WITH_U_NB);
+  blocks[out::PRESSURE_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps, out::PRESSURE, BOXES_WITH_U_NB);
+  blocks[out::MOL_NUM_IDX].Init(&outBlock0, &outBlock1, tracked.molNum.block, invSteps, out::MOL_NUM, BOXES_WITH_U_NB);
+  blocks[out::DENSITY_IDX].Init(&outBlock0, &outBlock1, tracked.density.block, invSteps, out::DENSITY, BOXES_WITH_U_NB);
 
-  blocks[out::ENERGY_TOTAL_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps,
-                                     out::ENERGY_TOTAL, BOXES_WITH_U_NB);
-  //Only output energy categories if specifically requested...
-#ifdef EN_SUBCAT_OUT
-  blocks[out::ENERGY_INTER_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps,
-                                     out::ENERGY_INTER,
-                                     BOXES_WITH_U_NB);
-  blocks[out::ENERGY_TC_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps,
-                                  out::ENERGY_TC,
-                                  BOXES_WITH_U_NB);
-  blocks[out::ENERGY_INTRA_B_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps,
-                                       out::ENERGY_INTRA_B,
-                                       BOXES_WITH_U_NB);
-  blocks[out::ENERGY_INTRA_NB_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps,
-                                        out::ENERGY_INTRA_NB,
-                                        BOXES_WITH_U_NB);
-  blocks[out::ENERGY_ELECT_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps,
-                                     out::ENERGY_ELECT,
-                                     BOXES_WITH_U_NB);
-  blocks[out::ENERGY_REAL_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps,
-                                    out::ENERGY_REAL,
-                                    BOXES_WITH_U_NB);
-  blocks[out::ENERGY_RECIP_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps,
-                                     out::ENERGY_RECIP,
-                                     BOXES_WITH_U_NB);
-#endif
-  blocks[out::VIRIAL_TOTAL_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps,
-                                     out::VIRIAL_TOTAL,
-                                     BOXES_WITH_U_NB);
-#ifdef VIR_SUBCAT_OUT
-  blocks[out::VIRIAL_INTER_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps,
-                                     out::VIRIAL_INTER,
-                                     BOXES_WITH_U_NB);
-  blocks[out::VIRIAL_TC_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps,
-                                  out::VIRIAL_TC,
-                                  BOXES_WITH_U_NB);
-#endif
-
-  blocks[out::PRESSURE_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps,
-                                 out::PRESSURE,
-                                 BOXES_WITH_U_NB);
 #if ENSEMBLE == GEMC
-  blocks[out::VOLUME_IDX].Init(&outBlock0, &outBlock1, tracked.volume.block, invSteps,
-			       out::VOLUME);
-  blocks[out::HEAT_OF_VAP_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps,
-                                    out::HEAT_OF_VAP, 1);
-
-  blocks[out::HEAT_OF_VAP_IDX].SetRef(&var->heatOfVap, 0);
+  blocks[out::VOLUME_IDX].Init(&outBlock0, &outBlock1, tracked.volume.block, invSteps, out::VOLUME, BOXES_WITH_U_NB);
+  blocks[out::HEAT_OF_VAP_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::HEAT_OF_VAP, BOXES_WITH_U_NB);
 #endif
-
+  //Note: The order of Init should be same as order of SetRef
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
   {
     blocks[out::ENERGY_TOTAL_IDX].SetRef(&var->energyRef[b].total, b);
-#ifdef EN_SUBCAT_OUT
     blocks[out::ENERGY_INTRA_B_IDX].SetRef(&var->energyRef[b].intraBond, b);
     blocks[out::ENERGY_INTER_IDX].SetRef(&var->energyRef[b].inter, b);
     blocks[out::ENERGY_TC_IDX].SetRef(&var->energyRef[b].tc, b);
@@ -189,16 +156,15 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
     blocks[out::ENERGY_ELECT_IDX].SetRef(&var->energyRef[b].totalElect, b);
     blocks[out::ENERGY_REAL_IDX].SetRef(&var->energyRef[b].real, b);
     blocks[out::ENERGY_RECIP_IDX].SetRef(&var->energyRef[b].recip, b);
-#endif
     blocks[out::VIRIAL_TOTAL_IDX].SetRef(&var->virialRef[b].total, b);
-#ifdef VIR_SUBCAT_OUT
-    blocks[out::VIRIAL_INTER_IDX].SetRef(&var->virialRef[b].inter, b);
-    blocks[out::VIRIAL_TC_IDX].SetRef(&var->virialRef[b].tc, b);
-#endif
     blocks[out::PRESSURE_IDX].SetRef(&var->pressure[b], b);
+    blocks[out::MOL_NUM_IDX].SetRef(&var->numByBox[b], b);
+    blocks[out::DENSITY_IDX].SetRef(&var->densityTot[b], b);
 #if ENSEMBLE == GEMC
     blocks[out::VOLUME_IDX].SetRef(&var->volumeRef[b], b);
+    blocks[out::HEAT_OF_VAP_IDX].SetRef(&var->heatOfVap, b);
 #endif
+
   }
 }
 
@@ -214,12 +180,6 @@ void BlockAverages::InitWatchMulti(config_setup::TrackedVars const& tracked)
     uint bkStart = start + k;
     //Copy each char of the name string.
     std::string trimKindName = var->kindsRef[k].name;
-    name = out::MOL_NUM + "_" + trimKindName;
-    blocks[bkStart + out::MOL_NUM_IDX*var->numKinds].Init
-      (&outBlock0, &outBlock1, tracked.molNum.block, invSteps, name, BOXES_WITH_U_NB);
-    name = out::DENSITY + "_" + trimKindName;
-    blocks[bkStart + out::DENSITY_IDX*var->numKinds].Init
-      (&outBlock0, &outBlock1, tracked.density.block, invSteps, name, BOXES_WITH_U_NB);
     //If more than one kind, output mol fractions.
     if (var->numKinds > 1)
     {
@@ -230,10 +190,6 @@ void BlockAverages::InitWatchMulti(config_setup::TrackedVars const& tracked)
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
     {
       uint kArrIdx = b*var->numKinds+k;
-      blocks[bkStart + out::MOL_NUM_IDX*var->numKinds].SetRef
-        (&var->numByKindBox[kArrIdx], b);
-      blocks[bkStart + out::DENSITY_IDX*var->numKinds].SetRef
-        (&var->densityByKindBox[kArrIdx], b);
       if (var->numKinds > 1)
         blocks[bkStart + out::MOL_FRACTION_IDX*var->numKinds].SetRef
         (&var->molFractionByKindBox[kArrIdx], b);

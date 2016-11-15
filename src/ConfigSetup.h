@@ -257,11 +257,9 @@ namespace config_setup
       OutputEnables volume; 
 #endif 
 #ifdef VARIABLE_PARTICLE_NUMBER 
-      OutputEnables molNum, acceptAngles; 
-#endif 
-#ifdef VARIABLE_DENSITY 
-      OutputEnables density; 
-#endif 
+      OutputEnables molNum; 
+#endif  
+      OutputEnables density;  
    }; 
  
    struct SysState { EventSettings settings; OutFiles files; }; 
