@@ -2,33 +2,21 @@
 
 namespace out
 {
-const std::string ENERGY_TOTAL = "EnergyTotal";
-#ifdef EN_SUBCAT_OUT
-const std::string ENERGY_INTER = "EnergyInter";
-const std::string ENERGY_TC = "EnergyTC";
-const std::string ENERGY_INTRA_B  = "EnergyIntraB";
-const std::string ENERGY_INTRA_NB = "EnergyIntraNB";
-const std::string ENERGY_ELECT = "EnergyElect";
-const std::string ENERGY_REAL = "EnergyReal";
-const std::string ENERGY_RECIP = "EnergyRecip";
-#endif
-const std::string VIRIAL_TOTAL = "VirialTotal";
-#ifdef VIR_SUBCAT_OUT
-const std::string VIRIAL_INTER = "VirialInter";
-const std::string VIRIAL_TC = "VirialTC";
-#endif
-const std::string PRESSURE = "Pressure";
-#ifdef VARIABLE_VOLUME
-const std::string VOLUME = "Volume";
-#endif
+const std::string ENERGY_TOTAL = "TOT_EN";
+const std::string ENERGY_INTER = "EN_INTER";
+const std::string ENERGY_TC = "EN_TC";
+const std::string ENERGY_INTRA_B  = "EN_INTRA(B)";
+const std::string ENERGY_INTRA_NB = "EN_INTRS(NB)";
+const std::string ENERGY_ELECT = "EN_ELECT";
+const std::string ENERGY_REAL = "EN_REAL";
+const std::string ENERGY_RECIP = "EN_RECIP";
+const std::string VIRIAL_TOTAL = "TOTAL_VIR";
+const std::string PRESSURE = "PRESSURE";
 #if ENSEMBLE == GEMC
-const std::string HEAT_OF_VAP = "HeatOfVap";
+const std::string HEAT_OF_VAP = "HEAT_VAP";
+const std::string VOLUME = "VOLUME";
 #endif
-#ifdef VARIABLE_DENSITY
-const std::string DENSITY = "Density";
-#endif
-#ifdef VARIABLE_PARTICLE_NUMBER
-const std::string MOL_NUM = "MolNum";
-const std::string MOL_FRACTION = "MolFraction";
-#endif
+const std::string DENSITY = "TOT_DENS";
+const std::string MOL_NUM = "TOT_MOL";
+const std::string MOL_FRACTION = "MOLFRACT";
 }

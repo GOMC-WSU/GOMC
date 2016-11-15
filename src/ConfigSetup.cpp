@@ -86,10 +86,8 @@ ConfigSetup::ConfigSetup(void)
   out.statistics.settings.fluct.frequency = ULONG_MAX;
   out.statistics.vars.energy.block = false;
   out.statistics.vars.energy.fluct = false;
-  out.statistics.vars.energy.hist = false;
   out.statistics.vars.pressure.block = false;
   out.statistics.vars.pressure.fluct = false;
-  out.statistics.vars.pressure.hist = false;
 #ifdef VARIABLE_PARTICLE_NUMBER
   sys.moves.transfer = DBL_MAX;
   sys.cbmcTrials.bonded.ang = UINT_MAX;
@@ -98,21 +96,15 @@ ConfigSetup::ConfigSetup(void)
   sys.cbmcTrials.nonbonded.nth = UINT_MAX;
   out.statistics.vars.molNum.block = false;
   out.statistics.vars.molNum.fluct = false;
-  out.statistics.vars.molNum.hist = false;
-  out.statistics.vars.acceptAngles.block = false;
-  out.statistics.vars.acceptAngles.fluct = false;
-  out.statistics.vars.acceptAngles.hist = false;
 #endif
 #ifdef VARIABLE_VOLUME
   sys.moves.volume = DBL_MAX;
   out.statistics.vars.volume.block = false;
   out.statistics.vars.volume.fluct = false;
-  out.statistics.vars.volume.hist = false;
 #endif
 #ifdef VARIABLE_DENSITY
   out.statistics.vars.density.block = false;
   out.statistics.vars.density.fluct = false;
-  out.statistics.vars.density.hist = false;
 #endif
 }
 
@@ -219,18 +211,18 @@ void ConfigSetup::Init(const char *fileName)
       if(line[1] == "NVT")
       {
         sys.gemc.kind = mv::GEMC_NVT;
-        std::cout<< " NVT_GEMC simulation has been selected " << std::endl;
+        std::cout<< "NVT_GEMC simulation has been selected " << std::endl;
       }
       else if(line[1] == "NPT")
       {
         sys.gemc.kind = mv::GEMC_NPT;
-        std::cout<< " NPT_GEMC simulation has been selected " << std::endl;
+        std::cout<< "NPT_GEMC simulation has been selected " << std::endl;
       }
     }
     else if(line[0] == "Pressure")
     {
       sys.gemc.pressure = stringtod(line[1]);
-      std::cout<< " Pressure of system has been set to " << sys.gemc.pressure << " bar " << std::endl;
+      std::cout<< "Pressure of system has been set to " << sys.gemc.pressure << " bar " << std::endl;
       sys.gemc.pressure *= unit::BAR_TO_K_MOLECULE_PER_A3;
     }
 #endif
@@ -464,42 +456,29 @@ void ConfigSetup::Init(const char *fileName)
     {
       out.statistics.vars.energy.block = checkBool(line[1]);
       out.statistics.vars.energy.fluct = checkBool(line[2]);
-      out.statistics.vars.energy.hist = checkBool(line[3]);
     }
     else if(line[0] == "OutPressure")
     {
       out.statistics.vars.pressure.block = checkBool(line[1]);
       out.statistics.vars.pressure.fluct = checkBool(line[2]);
-      out.statistics.vars.pressure.hist = checkBool(line[3]);
     }
 #ifdef VARIABLE_PARTICLE_NUMBER
     else if(line[0] == "OutMolNum")
     {
       out.statistics.vars.molNum.block = checkBool(line[1]);
       out.statistics.vars.molNum.fluct = checkBool(line[2]);
-      out.statistics.vars.molNum.hist = checkBool(line[3]);
-    }
-    else if(line[0] == "OutAcceptAngles")
-    {
-      out.statistics.vars.acceptAngles.block = checkBool(line[1]);
-      out.statistics.vars.acceptAngles.fluct = checkBool(line[2]);
-      out.statistics.vars.acceptAngles.hist = checkBool(line[3]);
     }
 #endif
-#ifdef VARIABLE_DENSITY
     else if(line[0] == "OutDensity")
     {
       out.statistics.vars.density.block = checkBool(line[1]);
       out.statistics.vars.density.fluct = checkBool(line[2]);
-      out.statistics.vars.density.hist = checkBool(line[3]);
     }
-#endif
 #ifdef VARIABLE_VOLUME
     else if(line[0] == "OutVolume")
     {
       out.statistics.vars.volume.block = checkBool(line[1]);
       out.statistics.vars.volume.fluct = checkBool(line[2]);
-      out.statistics.vars.volume.hist = checkBool(line[3]);
     }
 #endif
     else
@@ -942,10 +921,6 @@ void ConfigSetup::verifyInputs(void)
   {
     std::cout<< "Warning: Output block average has been set off, molecule number output for block average will be ignored!" << std::endl;
   }
-  if(!out.statistics.settings.block.enable && out.statistics.vars.acceptAngles.block)
-  {
-    std::cout<< "Warning: Output block average has been set off, accept angles output for block average will be ignored!" << std::endl;
-  }
 #endif
 #ifdef VARIABLE_DENSITY
   if(!out.statistics.settings.block.enable && out.statistics.vars.density.block)
@@ -971,10 +946,6 @@ void ConfigSetup::verifyInputs(void)
   if(!out.statistics.settings.fluct.enable && out.statistics.vars.molNum.fluct)
   {
     std::cout<< "Warning: Output fluctuation has been set off, molecule number ouput for fluctuation will be ignored!" << std::endl;
-  }
-  if(!out.statistics.settings.fluct.enable && out.statistics.vars.acceptAngles.fluct)
-  {
-    std::cout<< "Warning: Output fluctuation has been set off, accept angles ouput for fluctuation will be ignored!" << std::endl;
   }
 #endif
 #ifdef VARIABLE_DENSITY

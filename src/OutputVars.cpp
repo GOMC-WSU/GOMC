@@ -114,6 +114,7 @@ void OutputVars::CalcAndConvert(void)
     virial[b] /= unit::DIMENSIONALITY;
     virial[b] /= volumeRef[b];
     rawPressure[b] = 0.0;
+    densityTot[b] = 0.0;
     for (uint k = 0; k < numKinds; k++)
     {
       double * density = &densityByKindBox[k+numKinds*b];
@@ -137,6 +138,7 @@ void OutputVars::CalcAndConvert(void)
   }
   for (uint b = 0; b < BOX_TOTAL; b++)
   {
+    densityTot[b] = 0.0;
     for (uint k = 0; k < numKinds; k++)
     {
       double * density = &densityByKindBox[k+numKinds*b];
@@ -145,6 +147,7 @@ void OutputVars::CalcAndConvert(void)
       // To get kg/m3, multiply output densities by 1000.
       *density *= unit::MOLECULES_PER_A3_TO_MOL_PER_CM3 *
                   kindsRef[k].molMass;
+      densityTot[b] += densityByKindBox[k+numKinds*b];
     }
   }
 #if ENSEMBLE == GEMC
