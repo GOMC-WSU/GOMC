@@ -102,10 +102,8 @@ ConfigSetup::ConfigSetup(void)
   out.statistics.vars.volume.block = false;
   out.statistics.vars.volume.fluct = false;
 #endif
-#ifdef VARIABLE_DENSITY
   out.statistics.vars.density.block = false;
   out.statistics.vars.density.fluct = false;
-#endif
 }
 
 bool ConfigSetup::checkBool(string str)
