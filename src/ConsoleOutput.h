@@ -37,12 +37,28 @@ public:
   {
     enableOut = output.console.enable;
     stepsPerOut = output.console.frequency;
+    enableEnergy = output.statistics.vars.energy.fluct;
+    enablePressure = output.statistics.vars.pressure.fluct;
+#ifdef VARIABLE_VOLUME    
+    enableVolume = output.statistics.vars.volume.fluct;
+#else
+    enableVolume = false;
+#endif
+
+#ifdef VARIABLE_PARTICLE_NUMBER
+    enableMol = output.statistics.vars.molNum.fluct;
+#else
+    enableMol = false;
+#endif
+    enableDens = output.statistics.vars.density.fluct;
     DoOutput(0);
   }
   virtual void DoOutput(const ulong step);
 
 private:
   const static int elementWidth = 16;
+  bool enableEnergy, enablePressure, enableDens, enableVolume, enableMol;
+
   void PrintMove(const uint box, const ulong step) const;
   void PrintMoveStat(const uint box, const ulong step) const;
   void PrintStatistic(const uint box) const;

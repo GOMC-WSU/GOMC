@@ -5,6 +5,7 @@
 #include <time.h>
 #include "BasicTypes.h"             //uint, ulong
 #include <iostream> //for cout
+#include <sys/time.h> //for timing
 
 struct Clock
 {
@@ -12,7 +13,9 @@ struct Clock
   void Init(const ulong steps, const ulong totSt)
   {
     stepsPerOut = steps;
-    strt = clock();
+    gettimeofday(&tv, &tz);
+    strt = (double)tv.tv_sec + (double)tv.tv_usec/1000000;
+    lastTime = strt;
     lastStep = totSt - 1;
   }
   void CheckTime(const uint step);
@@ -21,8 +24,10 @@ private:
   {
     return (double(stp)-double(strt))/CLOCKS_PER_SEC;
   }
-  clock_t strt, stop;
-  double lastTime;
+ 
+  struct timeval tv;
+  struct timezone tz;
+  double strt, stop, lastTime;
   ulong stepsPerOut, prevStep, lastStep;
 };
 
@@ -31,16 +36,18 @@ inline void Clock::CheckTime(const uint step)
   uint stepDelta = step - prevStep;
   if (stepDelta == stepsPerOut && step != lastStep)
   {
-    double currTime = clock();
+    gettimeofday(&tv, &tz);
+    double currTime = (double)tv.tv_sec + (double)tv.tv_usec/1000000;
     std::cout << "Steps/sec. : "
-              << stepDelta/TimeInSec(lastTime, currTime) << std::endl;
+              << stepDelta/(currTime - lastTime) << std::endl;
     prevStep = step;
     lastTime = currTime;
   }
   else if (step == lastStep)
   {
-    stop = clock();
-    std::cout << "Simulation Time (total): " << TimeInSec(strt, stop)
+    gettimeofday(&tv, &tz);
+    stop = (double)tv.tv_sec + (double)tv.tv_usec/1000000;
+    std::cout << "Simulation Time (total): " << (stop - strt)
               << "sec." << std::endl;
   }
 }
