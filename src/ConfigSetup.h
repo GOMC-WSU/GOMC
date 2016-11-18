@@ -242,12 +242,12 @@ namespace config_setup
       FileName psf, seed; 
       HistFiles hist; 
    }; 
-   struct Settings { EventSettings block, hist, fluct; UniqueStr uniqueStr; }; 
+   struct Settings { EventSettings block, hist; UniqueStr uniqueStr; }; 
 	     
    //Enables for each variable that can be tracked 
    struct OutputEnables 
    { 
-      bool block, fluct, hist; 
+      bool block, fluct; 
    }; 
 	  
    struct TrackedVars 

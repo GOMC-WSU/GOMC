@@ -67,10 +67,9 @@ ConfigSetup::ConfigSetup(void)
   out.state.settings.enable = true;
   out.restart.settings.enable = true;
   out.console.enable = true;
-  out.statistics.settings.fluct.enable = true;
   out.statistics.settings.block.enable = true;
 #if ENSEMBLE == GCMC
-  out.statistics.settings.hist.enable = true;
+  out.statistics.settings.hist.enable = false;
   out.statistics.settings.hist.frequency = ULONG_MAX;
   out.state.files.hist.histName = "";
   out.state.files.hist.letter = "";
@@ -83,7 +82,6 @@ ConfigSetup::ConfigSetup(void)
   out.restart.settings.frequency = ULONG_MAX;
   out.console.frequency = ULONG_MAX;
   out.statistics.settings.block.frequency = ULONG_MAX;
-  out.statistics.settings.fluct.frequency = ULONG_MAX;
   out.statistics.vars.energy.block = false;
   out.statistics.vars.energy.fluct = false;
   out.statistics.vars.pressure.block = false;
@@ -417,11 +415,6 @@ void ConfigSetup::Init(const char *fileName)
     {
       out.statistics.settings.block.enable = checkBool(line[1]);
       out.statistics.settings.block.frequency = stringtoi(line[2]);
-    }
-    else if(line[0] == "FluctuationFreq")
-    {
-      out.statistics.settings.fluct.enable = checkBool(line[1]);
-      out.statistics.settings.fluct.frequency = stringtoi(line[2]);
     }
 #if ENSEMBLE == GCMC
     else if(line[0] == "HistogramFreq")
@@ -789,7 +782,7 @@ void ConfigSetup::verifyInputs(void)
 #endif
   if(sys.T.inKelvin == DBL_MAX)
   {
-    std::cout << "Error: Temperature has not been defined!" << std::endl;
+    std::cout << "Error: Temperature has not been specified!" << std::endl;
     exit(0);
   }
   if(out.statistics.settings.uniqueStr.val == "")
@@ -797,32 +790,23 @@ void ConfigSetup::verifyInputs(void)
     std::cout<< "Error: Output name has not been specified!" << std::endl;
     exit(0);
   }
-  if(out.state.settings.enable && out.state.settings.frequency == ULONG_MAX)
+  if(!out.state.settings.enable)
   {
-    std::cout << "Error: Coordinates output frequency has not been specified!" << std::endl;
-    exit(0);
+    std::cout << "Warning: Coordinates output is disabled!" << std::endl;
   }
-  if(out.restart.settings.enable && out.restart.settings.frequency == ULONG_MAX)
+  if(!out.restart.settings.enable)
   {
-    std::cout << "Error: Restart coordinate output frequency has not been specified!" << std::endl;
-    exit(0);
+    std::cout << "Warning: Restart coordinate output is disabled!" << std::endl;
+  }
+  if(!out.console.enable)
+  {
+    std::cout << "Warning: Console output frequency is disabled!" << std::endl;
+  }
+  if(!out.statistics.settings.block.enable)
+  {
+    std::cout << "Warning: Block average output is disabled!" << std::endl;
   }
   if(out.console.enable && out.console.frequency == ULONG_MAX)
-  {
-    std::cout << "Error: Console output frequency has not been specified!" << std::endl;
-    exit(0);
-  }
-  if(out.statistics.settings.block.enable && out.statistics.settings.block.frequency == ULONG_MAX)
-  {
-    std::cout << "Error: Block average output frequency has not been specified!" << std::endl;
-    exit(0);
-  }
-  if(out.statistics.settings.fluct.enable && out.statistics.settings.fluct.frequency == ULONG_MAX)
-  {
-    std::cout << "Error: Fluctuation output frequency has not been specified!" << std::endl;
-    exit(0);
-  }
-  if(out.console.frequency == ULONG_MAX)
   {
     if(sys.step.total > 1000)
     {
@@ -834,41 +818,27 @@ void ConfigSetup::verifyInputs(void)
     }
     std::cout << "Warning: By default console output frequency has been set to " << out.console.frequency << "!" << std::endl;
   }
-  if(out.restart.settings.frequency == ULONG_MAX)
+  if(out.restart.settings.enable && out.restart.settings.frequency == ULONG_MAX)
   {
     out.restart.settings.frequency = (ulong)sys.step.total;
     std::cout << "Warning: By default restart coordinate output frequency has been set to " << out.restart.settings.frequency << "!" << std::endl;
   }
-  if(out.state.settings.frequency == ULONG_MAX)
+  if(out.state.settings.enable && out.state.settings.frequency == ULONG_MAX)
   {
     out.state.settings.frequency = (ulong)sys.step.total / 10;
     std::cout << "Warning: By default coordinate output frequency has been set to " << out.state.settings.frequency << "!" << std::endl;
   }
-  if(out.statistics.settings.block.frequency == ULONG_MAX)
+  if(out.statistics.settings.block.enable && out.statistics.settings.block.frequency == ULONG_MAX)
   {
-
     out.statistics.settings.block.frequency = (ulong)sys.step.total / 100;
     std::cout << "Warning: By default block average output frequency has been set to " << out.statistics.settings.block.frequency << "!" << std::endl;
   }
-  if(out.statistics.settings.fluct.frequency == ULONG_MAX)
-  {
-    if(sys.step.total > 1000)
-    {
-      out.statistics.settings.fluct.frequency = (ulong)sys.step.total / 1000;
-    }
-    else
-    {
-      out.statistics.settings.fluct.frequency = (ulong)sys.step.total / 100;
-    }
-    std::cout << "Warning: By default fluctuation output frequency has been set to " << out.statistics.settings.fluct.frequency << "!" << std::endl;
-  }
 #if ENSEMBLE == GCMC
-  if(out.statistics.settings.hist.enable && out.statistics.settings.hist.frequency == ULONG_MAX)
+  if(!out.statistics.settings.hist.enable)
   {
-    std::cout << "Error: Histogram output frequency has not been specified!" << std::endl;
-    exit(0);
+    std::cout << "Warning: Histogram output is disabled!" << std::endl;
   }
-  if(out.statistics.settings.hist.frequency == ULONG_MAX)
+  if(out.statistics.settings.hist.enable && out.statistics.settings.hist.frequency == ULONG_MAX)
   {
     if(sys.step.total > 1000)
     {
@@ -920,42 +890,38 @@ void ConfigSetup::verifyInputs(void)
     std::cout<< "Warning: Output block average has been set off, molecule number output for block average will be ignored!" << std::endl;
   }
 #endif
-#ifdef VARIABLE_DENSITY
   if(!out.statistics.settings.block.enable && out.statistics.vars.density.block)
   {
     std::cout<< "Warning: Output block average has been set off, density output for block average will be ignored!" << std::endl;
   }
-#endif
 #ifdef VARIABLE_VOLUME
-  if(!out.statistics.settings.block.enable && out.statistics.vars.volume.fluct)
+  if(!out.statistics.settings.block.enable && out.statistics.vars.volume.block)
   {
     std::cout<< "Warning: Output block average has been set off, volume ouput for block average will be ignored!" << std::endl;
   }
 #endif
-  if(!out.statistics.settings.fluct.enable && out.statistics.vars.energy.fluct)
+  if(!out.console.enable && out.statistics.vars.energy.fluct)
   {
-    std::cout<< "Warning: Output fluctuation has been set off, energy ouput for fluctuation will be ignored!" << std::endl;
+    std::cout<< "Warning: Console output has been set off, energy fluctuation ouput will be ignored!" << std::endl;
   }
-  if(!out.statistics.settings.fluct.enable && out.statistics.vars.pressure.fluct)
+  if(!out.console.enable && out.statistics.vars.pressure.fluct)
   {
-    std::cout<< "Warning: Output fluctuation has been set off, pressure ouput for fluctuation will be ignored!" << std::endl;
+    std::cout<< "Warning: Console output has been set off, pressure fluctuation ouput will be ignored!" << std::endl;
   }
 #ifdef VARIABLE_PARTICLE_NUMBER
-  if(!out.statistics.settings.fluct.enable && out.statistics.vars.molNum.fluct)
+  if(!out.console.enable && out.statistics.vars.molNum.fluct)
   {
-    std::cout<< "Warning: Output fluctuation has been set off, molecule number ouput for fluctuation will be ignored!" << std::endl;
+    std::cout<< "Warning: Console output has been set off, molecule number fluctuation ouput will be ignored!" << std::endl;
   }
 #endif
-#ifdef VARIABLE_DENSITY
-  if(!out.statistics.settings.fluct.enable && out.statistics.vars.density.fluct)
+  if(!out.console.enable && out.statistics.vars.density.fluct)
   {
-    std::cout<< "Warning: Output fluctuation has been set off, density ouput for fluctuation will be ignored!" << std::endl;
+    std::cout<< "Warning: Console output has been set off, density fluctuation ouput will be ignored!" << std::endl;
   }
-#endif
 #ifdef VARIABLE_VOLUME
-  if(!out.statistics.settings.fluct.enable && out.statistics.vars.volume.fluct)
+  if(!out.console.enable && out.statistics.vars.volume.fluct)
   {
-    std::cout<< "Warning: Output fluctuation has been set off, volume ouput for fluctuation will be ignored!" << std::endl;
+    std::cout<< "Warning: Console output has been set off, volume fluctuation ouput will be ignored!" << std::endl;
   }
 #endif
 }

@@ -30,8 +30,11 @@ void ConsoleOutput::DoOutput(const ulong step)
     {
       PrintMoveTitle(b);
       std::cout << std::endl;
-      PrintEnergyTitle(b);
-      std::cout << std::endl;
+      if(enableEnergy)
+      {
+	PrintEnergyTitle(b);
+	std::cout << std::endl;
+      }
       PrintStatisticTitle(b);
       std::cout << std::endl;
     }
@@ -42,8 +45,11 @@ void ConsoleOutput::DoOutput(const ulong step)
     {
       PrintMove(b, step);
       std::cout << std::endl;
-      PrintEnergy(b, var->energyRef[b], var->virialRef[b]);
-      std::cout << std::endl;
+      if(enableEnergy)
+      {
+	PrintEnergy(b, var->energyRef[b], var->virialRef[b]);
+	std::cout << std::endl;
+      }
       PrintStatistic(b);
       std::cout << std::endl;
     }
@@ -110,16 +116,20 @@ void ConsoleOutput::PrintStatistic(const uint box) const
   title += (box? "1":"0");
   printElement(title, elementWidth);
 
-  printElement(var->volumeRef[box] , elementWidth);
-  printElement(var->pressure[box] , elementWidth);
-  printElement(var->numByBox[box], elementWidth);
+  if(enableVolume)
+    printElement(var->volumeRef[box] , elementWidth);
+  if(enablePressure)
+    printElement(var->pressure[box] , elementWidth);
+  if(enableMol)
+    printElement(var->numByBox[box], elementWidth);
   for(uint k=0; k<var->numKinds; k++)
   {
     uint kb = k+offset;
     if(var->numKinds > 1)
       printElement(var->molFractionByKindBox[kb], elementWidth);
   }
-  printElement(var->densityTot[box] * 1000, elementWidth);
+  if(enableDens)
+    printElement(var->densityTot[box] * 1000, elementWidth);
   std::cout << std::endl;
 }
 
@@ -168,9 +178,12 @@ void ConsoleOutput::PrintStatisticTitle(const uint box)
   title += (box? "1": "0");
   printElement(title, elementWidth);
 
-  printElement("VOLUME", elementWidth);
-  printElement("PRESSURE", elementWidth);
-  printElement("TOTALMOL", elementWidth);
+  if(enableVolume)
+    printElement("VOLUME", elementWidth);
+  if(enablePressure)
+    printElement("PRESSURE", elementWidth);
+  if(enableMol)
+    printElement("TOTALMOL", elementWidth);
 
   for(uint k=0; k < var->numKinds; k++)
   {
@@ -180,7 +193,8 @@ void ConsoleOutput::PrintStatisticTitle(const uint box)
       printElement(molName, elementWidth);
     }
   }
-  printElement("TOT_DENSITY", elementWidth);
+  if(enableDens)
+    printElement("TOT_DENSITY", elementWidth);
   std::cout << std::endl;
 }
 
