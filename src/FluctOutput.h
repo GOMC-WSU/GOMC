@@ -1,29 +1,28 @@
-#ifndef BLOCK_OUTPUT_H
-#define BLOCK_OUTPUT_H
+#ifndef FLUCT_OUTPUT_H
+#define FLUCT_OUTPUT_H
 
 #include <string>
 #include <fstream>
 
 #include "BasicTypes.h" //For ulong, uint
 #include "EnergyTypes.h" //For energies.
+#include "MoveSettings.h" //For move settings/state
 #include "MoleculeKind.h" //For kind names
 #include "MoleculeLookup.h" //for lookup array (to get density, kind cnts, etc.
 #include "OutConst.h"
 #include "OutputAbstracts.h"
-#include "OutputVars.h"
+#include "System.h"
 #include "StaticVals.h"
 #include "PDBSetup.h" //For atoms class.
-#include "BoxDimensions.h" //For BOXES_WITH_VOLUME
+#include "BoxDimensions.h" //For "boxes with volume."
 
 #include <limits> //for std::numeric_limits
 
-class System;
-
-struct BlockAverage
+struct FluctuationTracker
 {
-   BlockAverage(): enable(false), block(NULL), uintSrc(NULL), dblSrc(NULL) {}
+   FluctuationTracker(): dblSrc(NULL) {}
    
-   ~BlockAverage() 
+   ~FluctuationTracker() 
    { 
       if (outF.is_open())
       {
@@ -37,28 +36,21 @@ struct BlockAverage
       {
 	 delete[] uintSrc;
       }
-      if (block != NULL)
-      {
-	 delete[] block;
-      }
    }
-
+   
    //Initializes name, and enable
-   void Init(const bool en, const double scl,
-	     std::string const& var, std::string const& uniqueName,
-	     const uint bTot = BOX_TOTAL);
+   void Init(const bool en, std::string const& var,
+             std::string const& uniqueName, const uint bTot = BOX_TOTAL);
 
-   //Set one of the pointers to the block values we're tracking
+   //Set one of the pointers to the fluctuating values we're tracking
    void SetRef(double * loc, const uint b) 
    {
       dblSrc[b] = loc;
-      uintSrc[b] = NULL;
+      uintSrc[b] = NULL; 
       outF << std::setprecision(std::numeric_limits<double>::digits10+2) << std::setw(25);
    }
    void SetRef(uint * loc, const uint b) 
    { uintSrc[b] = loc; dblSrc[b] = NULL; }
-
-   void Sum(void);
 
    void Write(const ulong step, const bool firstPrint)
    { 
@@ -69,38 +61,29 @@ struct BlockAverage
 
  private:
    
-   std::string GetFName(std::string const& base, std::string const& uniqueName);
-
-   void Zero(void)
-   {
-      for (uint b = 0; b < tot; b++)
-	 block[b] = 0.0;
-      samples = 0;
-   } 
+   std::string GetFName(std::string const& var, std::string const& uniqueName);
    
    void DoWrite(const ulong step);
+
    
    bool first;
    std::ofstream outF;
    std::string name, varName;
    uint ** uintSrc, tot;
    double ** dblSrc;
-   double * block, scl;
-   uint samples;
    bool enable;
 };
 
-struct BlockAverages : OutputableBase
+struct Fluctuations : OutputableBase
 {
-   BlockAverages(OutputVars & v){ this->var = &v; }
-   
-   ~BlockAverages(void) { if ( blocks != NULL ) delete[] blocks; }
-   
+   Fluctuations(OutputVars & v){ this->var = &v; }
+
+   //Fluctuations does not need to sample, so does nothing.
+   virtual void Sample(const ulong step) {}
+
    //No additional init.
    virtual void Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output);
-   
-   virtual void Sample(const ulong step);
    
    virtual void DoOutput(const ulong step);
   
@@ -109,25 +92,27 @@ struct BlockAverages : OutputableBase
    void InitVals(config_setup::EventSettings const& event)
    {
       stepsPerOut = event.frequency;
-      invSteps = 1.0/stepsPerOut;
       enableOut = event.enable;
    }
-
-   void AllocBlocks(void);
+   
+   void AllocFlucts(void)
+   {
+      numKindFlucts = out::TOTAL_K * var->numKinds;
+#if ENSEMBLE == GCMC || ENSEMBLE == GEMC
+      //we don't have mole fraction with only one kind
+      if (var->numKinds == 1)
+         numKindFlucts--;
+#endif
+      totalFlucts = out::TOTAL_SINGLE + numKindFlucts;
+      flucts= new FluctuationTracker[totalFlucts];
+   }
    
    void InitWatchSingle(config_setup::TrackedVars const& tracked);
 
    void InitWatchMulti(config_setup::TrackedVars const& tracked);
-
-   //Block vars
-   BlockAverage * blocks;
-   uint numKindBlocks, totalBlocks;
-
-   //Intermediate vars.
-   uint samplesWrites;
-
-   //Constants
-   double invSteps;
+   
+   FluctuationTracker * flucts;
+   uint numKindFlucts, totalFlucts;
 };
 
-#endif /*BLOCK_OUTPUT_H*/
+#endif /*FLUCT_OUTPUT_H*/
