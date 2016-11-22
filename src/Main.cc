@@ -9,23 +9,28 @@
 #define HOSTNAME
 #elif defined(__linux__) || defined(__apple__) || defined(__FreeBSD__)
 #include <unistd.h>
+#include <sys/sysinfo.h>
+#include <sys/utsname.h>
 #define HOSTNAME
 #endif
 
 namespace{
-    std::ostream& PrintTime(std::ostream& stream);
-    std::ostream& PrintHostname(std::ostream& stream);
-    std::ostream& PrintVersion(std::ostream& stream);
-    void PrintSimulationHeader();
-    void PrintSimulationFooter();
-    void PrintDebugMode();
-    bool CheckAndPrintEnsemble();
-    uint ReadNum(char *argv);
+  std::ostream& PrintTime(std::ostream& stream);
+  std::ostream& PrintHostname(std::ostream& stream);
+  std::ostream& PrintVersion(std::ostream& stream);
+  void PrintSimulationHeader();
+  void PrintSimulationFooter();
+  void PrintDebugMode();
+  bool CheckAndPrintEnsemble();
+  uint ReadNum(char *argv);
 }
+
+void PrintHardwareInfo();
 
 int main(int argc, char *argv[])
 {
    PrintSimulationHeader();
+   PrintHardwareInfo();
    //Only run if valid ensemble was detected.
    if (CheckAndPrintEnsemble())
    {   
@@ -138,45 +143,45 @@ namespace {
       return healthy;
    }
 
-void PrintDebugMode()
-{
-  std::cout << "#########################################################\n";
-  std::cout << "################# RUNNING IN DEBUG MODE #################\n";
-  std::cout << "#########################################################\n";
-}
-
-void PrintSimulationFooter()
-{
+  void PrintDebugMode()
+  {
+    std::cout << "#########################################################\n";
+    std::cout << "################# RUNNING IN DEBUG MODE #################\n";
+    std::cout << "#########################################################\n";
+  }
+  
+  void PrintSimulationFooter()
+  {
     std::cout << PrintVersion << '\n'
-        << "Completed at: " << PrintTime
-        << "On hostname: " << PrintHostname
-        << '\n';
-}
-
-std::ostream& PrintVersion(std::ostream& stream)
-{
+	      << "Completed at: " << PrintTime
+	      << "On hostname: " << PrintHostname
+	      << '\n';
+  }
+  
+  std::ostream& PrintVersion(std::ostream& stream)
+  {
     stream << "GOMC Serial Version " << GOMC_VERSION_MAJOR 
-        << '.' << GOMC_VERSION_MINOR;
+	   << '.' << GOMC_VERSION_MINOR;
     return stream;
-}
+  }
 
-std::ostream& PrintTime(std::ostream& stream)
-{
+  std::ostream& PrintTime(std::ostream& stream)
+  {
     time_t timer;
     time(&timer);
     stream << asctime(localtime(&timer));
     return stream;
-}
-
-std::ostream& PrintHostname(std::ostream& stream)
-{
+  }
+  
+  std::ostream& PrintHostname(std::ostream& stream)
+  {
 #ifdef HOSTNAME
 #ifdef _WIN32
     //setup WINSOCK
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2,0), &wsaData);
 #endif
-
+    
     const int maxNameLength = 80;
     char hostname[maxNameLength];
     gethostname(hostname, maxNameLength);
@@ -192,20 +197,45 @@ std::ostream& PrintHostname(std::ostream& stream)
     stream << "Hostname Unavailable";
 #endif
     return stream;
-}
+  }
 
-uint ReadNum(char *argv)
+  uint ReadNum(char *argv)
+  {
+    uint thread = 0;
+    
+    for(uint i=2; argv[i] != 0; i++)
+      {
+	thread = thread * 10 + (argv[i]-'0');
+      }
+
+    return thread;
+  }
+}
+  
+void PrintHardwareInfo()
 {
-   uint thread = 0;
-
-   for(uint i=2; argv[i] != 0; i++)
-   {
-     thread = thread * 10 + (argv[i]-'0');
-   }
-
-  return thread;
-}
-
-
+#ifndef _WIN32
+  struct sysinfo mem;
+  const double megabyte = 1024 * 1024;
+  struct utsname name;
+  uname(&name);
+  std::cout << std::setprecision(1) << std::fixed;
+  std::cout << "Total number of CPUs: " << get_nprocs() << std::endl;
+  std::cout << "Total number of CPUs available: " << sysconf(_SC_NPROCESSORS_ONLN) << std::endl;
+  std::cout << "Model name:" << std::flush;
+  system("awk -F: '/model name/ {print $2;exit}' /proc/cpuinfo");
+  std::cout << std::endl;
+  std::cout << "System name: " << name.sysname << std::endl;
+  std::cout << "Release: " << name.release << std::endl;
+  std::cout << "Version: " << name.version << std::endl;
+  std::cout << "Kernel Architecture: " << name.machine << std::endl;
+  if(sysinfo(&mem)==0)
+  {
+    std::cout << "Total Ram: " << mem.totalram / megabyte << "MB" << std::endl;
+    std::cout << "Used Ram: " << mem.totalram / megabyte - mem.freeram / megabyte << "MB" << std::endl;
+  }
+  std::cout << "Working in the current directory " << get_current_dir_name() << std::endl;
+  std::cout << std::endl;
+#endif
 }
 
