@@ -3,8 +3,8 @@
 
 struct MolPick
 {
-   uint box, kind, index, start, numAtoms; 
-	  
+  uint box, kind, index, start, numAtoms;
+
 };
 
 #endif /*MOL_PICK_H*/

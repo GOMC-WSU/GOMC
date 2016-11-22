@@ -96,9 +96,12 @@ inline uint MolTransformBase::GetBoxAndMol
    uint state = prng.PickMolAndBox(m, mk, b, subDraw, movPerc);
 #endif
    pStart = pLen = 0;
-   molRef.GetRangeStartLength(pStart, pLen, m);
-   newMolPos.Uninit();
-   newMolPos.Init(pLen);
+   if(state == mv::fail_state::NO_FAIL)
+   {
+     molRef.GetRangeStartLength(pStart, pLen, m);
+     newMolPos.Uninit();
+     newMolPos.Init(pLen);
+   }
    return state;
 }
 
