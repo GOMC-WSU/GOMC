@@ -31,7 +31,7 @@ public:
    //Intermediate vars.
    uint * numByBox, * numByKindBox;
    double * molFractionByKindBox, * densityByKindBox,
-     pressure[BOXES_WITH_U_NB], densityTot[BOXES_WITH_U_NB];
+      pressure[BOXES_WITH_U_NB];
    
    uint numKinds;
    //Constants

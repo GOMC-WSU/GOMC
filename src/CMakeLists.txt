@@ -15,6 +15,7 @@ set(sources
    FFDihedrals.cpp
    FFParticle.cpp
    FFSetup.cpp
+   FluctOutput.cpp
    Forcefield.cpp
    Geometry.cpp
    HistOutput.cpp
@@ -77,6 +78,7 @@ set(headers
    FFSwitch.h
    FFSwitchMartini.h
    FixedWidthReader.h
+   FluctOutput.h
    Forcefield.h
    FxdWidthWrtr.h
    Geometry.h

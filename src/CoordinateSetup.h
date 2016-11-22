@@ -11,7 +11,7 @@ struct CoordinateSetup
   std::vector<double> partZ;
   std::vector<unsigned int> partBox;
 
-  void Init(const std::string& pdbFilename);
+  void Init(const std::string& pdbFilename); 
   void SetCOM(const MolSetupData& molData);
 }
 

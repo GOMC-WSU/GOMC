@@ -6,6 +6,7 @@
 #include "ConsoleOutput.h"
 #include "PDBOutput.h"
 #include "BlockOutput.h"
+#include "FluctOutput.h"
 #include "HistOutput.h"
 #include "ConfigSetup.h"
 #include "OutputVars.h"
@@ -19,22 +20,27 @@ class OutputableBase;
 
 struct CPUSide
 {
-  CPUSide(System & sys, StaticVals & statV);
-  void Init(PDBSetup const& pdbSet, config_setup::Output const& out,
-            const ulong tillEquil, const ulong totSteps);
-  void Output(const ulong step);
 
+   CPUSide(System & sys, StaticVals & statV);
+   void Init(PDBSetup const& pdbSet, config_setup::Output const& out,
+             const ulong tillEquil, const ulong totSteps);
+   
+   void Output(const ulong step);
+   
 private:
-  Clock timer;
-  std::vector<OutputableBase *> outObj;
-  ConsoleOutput console;
-  PDBOutput pdb;
-  BlockAverages block;
-  Histogram hist;
+   Clock timer;
+   std::vector<OutputableBase *> outObj;
+   ConsoleOutput console;
+   PDBOutput pdb;
+   BlockAverages block;
+   Fluctuations fluct;
+   Histogram hist;
 #if ENSEMBLE == GCMC
-  EnPartCntSample sample_N_E;
+   EnPartCntSample sample_N_E;
 #endif
-  OutputVars varRef;
+
+   OutputVars varRef;
+   
 };
 
 #endif /*CPU_SIDE_H*/
