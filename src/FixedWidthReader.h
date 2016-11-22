@@ -10,46 +10,69 @@
 
 class FixedWidthReader : public Reader
 {
- public:
-   FixedWidthReader(std::string const& name, std::string const& alias,
-		  const bool crit = true, const bool note = true):
-   Reader(name, alias, false, NULL, false, NULL, crit, note), line("") {}
+public:
+  FixedWidthReader(std::string const& name, std::string const& alias,
+                   const bool crit = true, const bool note = true):
+    Reader(name, alias, false, NULL, false, NULL, crit, note), line("") {}
 
-   //Functions to get values from file, using fields.
-   FixedWidthReader & Get(double & d, ConstField const& field)
-   { sstrm::FromStr(d, Str(field)); return *this; }
-   FixedWidthReader & Get(float & f, ConstField const& field)
-   { sstrm::FromStr(f, Str(field)); return *this; }
-   FixedWidthReader & Get(uint & ui, ConstField const& field)
-   { sstrm::FromStr(ui, Str(field)); return *this; }
-   FixedWidthReader & Get(ulong & ul, ConstField const& field)
-   { sstrm::FromStr(ul, Str(field)); return *this; }
-   FixedWidthReader & Get(std::string & s, ConstField const& field)
-   { s=sstrm::StripWS(Str(field)); return *this; }
-   FixedWidthReader & Get(char & c, ConstField const& field)
-   { c = line[field.START]; return *this; }
+  //Functions to get values from file, using fields.
+  FixedWidthReader & Get(double & d, ConstField const& field)
+  {
+    sstrm::FromStr(d, Str(field));
+    return *this;
+  }
+  FixedWidthReader & Get(float & f, ConstField const& field)
+  {
+    sstrm::FromStr(f, Str(field));
+    return *this;
+  }
+  FixedWidthReader & Get(uint & ui, ConstField const& field)
+  {
+    sstrm::FromStr(ui, Str(field));
+    return *this;
+  }
+  FixedWidthReader & Get(ulong & ul, ConstField const& field)
+  {
+    sstrm::FromStr(ul, Str(field));
+    return *this;
+  }
+  FixedWidthReader & Get(std::string & s, ConstField const& field)
+  {
+    s=sstrm::StripWS(Str(field));
+    return *this;
+  }
+  FixedWidthReader & Get(char & c, ConstField const& field)
+  {
+    c = line[field.START];
+    return *this;
+  }
 
-   std::string GetLineCopy() const { return line; }
+  std::string GetLineCopy() const
+  {
+    return line;
+  }
 
-   //Gets line.
-   bool Read(std::string & str, ConstField const& field) 
-   { 
-      if (GoodFileWData())
-      {
-	 std::getline(file, line); 
-	 str = Str(field);
+  //Gets line.
+  bool Read(std::string & str, ConstField const& field)
+  {
+    if (GoodFileWData())
+    {
+      std::getline(file, line);
+      str = Str(field);
 #ifndef NDEBUG
       //big ol' waste of lines
       //std::cout << line << std::endl;
 #endif
-      }
-      return GoodFileWData(); 
-   }
+    }
+    return GoodFileWData();
+  }
 
- protected:
-   std::string Str(ConstField const& field)
-   { return line.substr(field.START, field.LENGTH); }
-   std::string line;
+protected:
+  std::string Str(ConstField const& field)
+  {
+    return line.substr(field.START, field.LENGTH);
+  }
+  std::string line;
 };
 
 #endif /*FIXED_WIDTH_READER_H*/
