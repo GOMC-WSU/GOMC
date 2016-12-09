@@ -149,6 +149,7 @@ void OutputVars::CalcAndConvert(void)
                   kindsRef[k].molMass;
       densityTot[b] += densityByKindBox[k+numKinds*b];
     }
+    densityTot[b] *= 1000;
   }
 #if ENSEMBLE == GEMC
   // delta Hv = (Uv-Ul) + P(Vv-Vl)
