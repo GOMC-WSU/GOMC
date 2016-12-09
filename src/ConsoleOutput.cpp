@@ -33,7 +33,6 @@ void ConsoleOutput::DoOutput(const ulong step)
       if(enableEnergy)
       {
 	PrintEnergyTitle(b);
-	std::cout << std::endl;
       }
       PrintStatisticTitle(b);
       std::cout << std::endl;
@@ -129,7 +128,7 @@ void ConsoleOutput::PrintStatistic(const uint box) const
       printElement(var->molFractionByKindBox[kb], elementWidth);
   }
   if(enableDens)
-    printElement(var->densityTot[box] * 1000, elementWidth);
+    printElement(var->densityTot[box], elementWidth);
   std::cout << std::endl;
 }
 
