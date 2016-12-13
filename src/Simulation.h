@@ -9,21 +9,21 @@
 
 class Simulation
 {
- public:
-   explicit Simulation(char const*const configFileName);
-   ~Simulation();
+public:
+  explicit Simulation(char const*const configFileName);
+  ~Simulation();
 
-   void RunSimulation(void);
+  void RunSimulation(void);
 
 #ifndef NDEBUG
-   void RunningCheck(const uint step);
+  void RunningCheck(const uint step);
 #endif
 
- private:
-   StaticVals * staticValues;
-   System * system;
-   CPUSide * cpu;
-   ulong totalSteps;
+private:
+  StaticVals * staticValues;
+  System * system;
+  CPUSide * cpu;
+  ulong totalSteps;
 };
 
 #endif /*SIMULATION_H*/

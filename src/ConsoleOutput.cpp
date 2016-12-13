@@ -8,144 +8,244 @@
 #include "PDBConst.h"               //For resname len.
 #include "OutputVars.h"
 
-#include <iostream>                 // for cout;
+#include <iostream>                 // std::cout, std::fixed
+#include <iomanip>                  // std::setprecision
 
 void ConsoleOutput::DoOutput(const ulong step)
 {
-   if (step==0)
-      std::cout << "STARTING SIMULATION!!" << std::endl << std::endl;
-   else
-      std::cout << "STEP " << step+1 << " of " << totSimSteps << " ("
-		<< (double)(step+1)/(double)(totSimSteps) * 100.0
-		<< "% done)" << std::endl << std::endl;
-
-   for (uint b = 0; b < BOX_TOTAL; b++)
-      PrintBox(b, step);
-
-   PrintSysStat();
-}
-
-void ConsoleOutput::PrintBox(const uint box, const ulong step) const
-{
-   std::cout << std::endl;
-   std::string banner = "BOX ";
-   uint offset = box * var->numKinds;
-   banner += (box?"1 ":"0 ");
-   PrintBanner(banner);
-   
-   std::cout << "Volume: " << var->volumeRef[box] << " A^3" << std::endl
-	     << "Tot # mol: " << var->numByBox[box] << std::endl << std::endl;
-   
-   for(uint k = 0; k < var->numKinds; ++k)
-      PrintMolKind(k, k+offset);
-
-   PrintEnergy(var->energyRef[box], var->virialRef[box],
-               (box < BOXES_WITH_U_NB));
-
-   if (step > 0 )
-   {
-      PrintMoveStat(box, step);
-   }
-}
-
-void ConsoleOutput::PrintSysStat() const
-{
-   PrintBanner("SYSTEM");
-   PrintEnergy(*(var->energyTotRef), *(var->virialTotRef));
-}
-
-void ConsoleOutput::PrintMoveKind(bool & somethingPrinted,
-				  const uint m,
-				  const uint b,
-				  const ulong step) const
-{      
-   uint sub = mv::GetMoveSubIndex(m, b);
-   if (var->movePercRef[m] == 0.0 && step==0)
-   {
-      somethingPrinted |= true;
-      std::cout << "Reminder: " << mv::MOVE_NAME[sub] 
-		<< " move is off!" << std::endl;
-   }
-   else if (var->movePercRef[m] != 0.0 && step != 0)
-   {
-      somethingPrinted |= true;
-      std::cout << mv::MOVE_NAME[sub] << " -- tries: " << var->GetTries(sub)
-		<< "; # Accept: " << var->GetAccepted(sub)
-		<< "; % Accept : " << var->GetAcceptPercent(sub);
-      if (sub < mv::SCALEABLE)
-	 std::cout << "; Max Amt.: " << var->GetScale(sub);
+  if (step==0)
+  {
+    std::cout << std::endl << "########################## INITIAL SIMULATION ENERGY ##########################" << std::endl;
+    for(uint b=0; b<BOX_TOTAL; b++)
+    {
+      PrintEnergyTitle(b);
       std::cout << std::endl;
-   }
+      PrintEnergy(b, var->energyRef[b], var->virialRef[b]);
+      std::cout << std::endl;
+    }
+    std::cout << "###############################################################################" << std::endl << std::endl;
+
+    std::cout << "############################# STARTING SIMULATION #############################" << std::endl;
+    for(uint b=0; b<BOX_TOTAL; b++)
+    {
+      PrintMoveTitle(b);
+      std::cout << std::endl;
+      if(enableEnergy)
+      {
+	PrintEnergyTitle(b);
+      }
+      PrintStatisticTitle(b);
+      std::cout << std::endl;
+    }
+  }
+  else
+  {
+    for(uint b=0; b<BOX_TOTAL; b++)
+    {
+      PrintMove(b, step);
+      std::cout << std::endl;
+      if(enableEnergy)
+      {
+	PrintEnergy(b, var->energyRef[b], var->virialRef[b]);
+	std::cout << std::endl;
+      }
+      PrintStatistic(b);
+      std::cout << std::endl;
+    }
+  }
 }
 
-void ConsoleOutput::PrintMoveStat(const uint box, const ulong step) const
+void ConsoleOutput::PrintMove(const uint box, const ulong step) const
 {
-   bool somethingPrinted = false;
+  uint sub;
+  std::string title = "MOVE_BOX_";
+  title += (box? "1": "0");
+  printElement(title, elementWidth);
+
 #if ENSEMBLE == GCMC
-   if (box == mv::BOX0)
-   {
+  if(box == mv::BOX0)
+  {
 #endif
-      PrintMoveKind(somethingPrinted, mv::DISPLACE, box, step);
-      PrintMoveKind(somethingPrinted, mv::ROTATE, box, step);
-      PrintMoveKind(somethingPrinted, mv::INTRA_SWAP, box, step);
+    sub = mv::GetMoveSubIndex(mv::DISPLACE, box);
+    printElement(var->GetTries(sub), elementWidth);
+    printElement(var->GetAccepted(sub), elementWidth);
+    printElement(var->GetAcceptPercent(sub), elementWidth);
+    printElement(var->GetScale(sub), elementWidth);
+
+    sub = mv::GetMoveSubIndex(mv::ROTATE, box);
+    printElement(var->GetTries(sub), elementWidth);
+    printElement(var->GetAccepted(sub), elementWidth);
+    printElement(var->GetAcceptPercent(sub), elementWidth);
+    printElement(var->GetScale(sub), elementWidth);
+
+    sub = mv::GetMoveSubIndex(mv::INTRA_SWAP, box);
+    printElement(var->GetTries(sub), elementWidth);
+    printElement(var->GetAccepted(sub), elementWidth);
+    printElement(var->GetAcceptPercent(sub), elementWidth);
+    //printElement(var->GetScale(sub), elementWidth);
 #if ENSEMBLE == GCMC
-   }
+  }
 #endif
 
-#if ENSEMBLE == GCMC || ENSEMBLE == GEMC
-   PrintMoveKind(somethingPrinted, mv::MOL_TRANSFER, box, step);
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
+  sub = mv::GetMoveSubIndex(mv::MOL_TRANSFER, box);
+  printElement(var->GetTries(sub), elementWidth);
+  printElement(var->GetAccepted(sub), elementWidth);
+  printElement(var->GetAcceptPercent(sub), elementWidth);
+  //printElement(var->GetScale(sub), elementWidth);
 #endif
 
 #if ENSEMBLE == GEMC
-   PrintMoveKind(somethingPrinted, mv::VOL_TRANSFER, box, step);
+  sub = mv::GetMoveSubIndex(mv::VOL_TRANSFER, box);
+  printElement(var->GetTries(sub), elementWidth);
+  printElement(var->GetAccepted(sub), elementWidth);
+  printElement(var->GetAcceptPercent(sub), elementWidth);
+  printElement(var->GetScale(sub), elementWidth);
 #endif
-   if (somethingPrinted)
-      std::cout << std::endl;
+
+  printElement(step + 1, elementWidth);
+  std::cout << std::endl;
 }
 
-void ConsoleOutput::PrintMolKind(const uint k, const uint kb) const
+void ConsoleOutput::PrintStatistic(const uint box) const
 {
-   std::cout << "Molecule Type " << var->resKindNames[k] << std::endl
-	     << "-------------------" << std::endl
-	     << "Number: " << var->numByKindBox[kb] << " ;" << std::endl;
-   if (k > 1)
-      std::cout <<  "Mol. Fraction: " << var->molFractionByKindBox[kb]
-                << " ;" << std::endl;
-   std::cout << "Density: "  << var->densityByKindBox[kb] 
-	     << " g/ml" << std::endl << std::endl;
+  double density = 0.0;
+  uint offset = box * var->numKinds;
+  std::string title = "STAT_BOX_";
+  title += (box? "1":"0");
+  printElement(title, elementWidth);
+
+  if(enableVolume)
+    printElement(var->volumeRef[box] , elementWidth);
+  if(enablePressure)
+    printElement(var->pressure[box] , elementWidth);
+  if(enableMol)
+    printElement(var->numByBox[box], elementWidth);
+  for(uint k=0; k<var->numKinds; k++)
+  {
+    uint kb = k+offset;
+    if(var->numKinds > 1)
+      printElement(var->molFractionByKindBox[kb], elementWidth);
+  }
+  if(enableDens)
+    printElement(var->densityTot[box], elementWidth);
+  std::cout << std::endl;
 }
 
-void ConsoleOutput::PrintEnergy(Energy const& en, Virial const& vir,
-                                const bool intraOnly) const
+void ConsoleOutput::PrintEnergy(const uint box, Energy const& en, Virial const& vir) const
 {
-   if (intraOnly)
-      std::cout << "Energy (in K): total: " << en.total << std::endl
-		<< "intra (bonded): " << en.intraBond << std::endl
-		<< "intra (nonbonded): " << en.intraNonbond << std::endl
-	        << "inter: " << en.inter << std::endl
-		<< "inter (tail corr.): " << en.tc<< std::endl
-                << "totalElect: " << en.totalElect << std::endl
-		<< "real: " << en.real << std::endl
-		<< "recip: " << en.recip << std::endl
-		<< "self: " << en.self << std::endl
-		<< "correction: " << en.correction << std::endl;
-   /*      std::cout << "Energy (in K): total: " << en.total << std::endl
-                << "inter: " << en.inter << " ; inter (tail corr.): " 
-                << en.tc << std::endl << "intra (bonded): "
-                << en.intraBond << " ; intra (nonbonded): " << en.intraNonbond 
-				 << std::endl
-		 << "; elect: " << en.totalElect  <<"; real: " << en.real
-		<< "; recip: " << en.recip  << "; self: " << en.self
-		<< "; correction: " << en.correction  << std::endl;
-   */
+  std::string title = "ENERGY_BOX_";
+  title += (box? "1":"0");
+  printElement(title, elementWidth);
+
+  printElement(en.total, elementWidth);
+  printElement(en.intraBond, elementWidth);
+  printElement(en.intraNonbond, elementWidth);
+  printElement(en.inter, elementWidth);
+  printElement(en.tc, elementWidth);
+  printElement(en.totalElect, elementWidth);
+  printElement(en.real, elementWidth);
+  printElement(en.recip, elementWidth);
+  printElement(en.self, elementWidth);
+  printElement(en.correction, elementWidth);
+  std::cout << std::endl;
 }
 
-void ConsoleOutput::PrintBanner(std::string const& str) const 
+void ConsoleOutput::PrintEnergyTitle(const uint box)
 {
-   std::cout << "------------------------" << std::endl
-	     << "--    ==========      --" << std::endl
-	     << "--  === "<< str << " ===    --" << std::endl
-	     << "--    ==========      --" << std::endl
-	     << "------------------------" << std::endl << std::endl;
+  std::string title = "ETITLE_BOX_";
+  title += (box? "1": "0");
+  printElement(title, elementWidth);
+
+  printElement("TOTAL", elementWidth);
+  printElement("INTRA(B)", elementWidth);
+  printElement("INTRA(N)", elementWidth);
+  printElement("INTER(LJ)", elementWidth);
+  printElement("LRC", elementWidth);
+  printElement("TOTAL_ELECT", elementWidth);
+  printElement("REAL", elementWidth);
+  printElement("RECIP", elementWidth);
+  printElement("SELF", elementWidth);
+  printElement("CORR", elementWidth);
+  std::cout << std::endl;
 }
 
+void ConsoleOutput::PrintStatisticTitle(const uint box)
+{
+  uint offset = box * var->numKinds;
+  std::string title = "STITLE_BOX_";
+  title += (box? "1": "0");
+  printElement(title, elementWidth);
+
+  if(enableVolume)
+    printElement("VOLUME", elementWidth);
+  if(enablePressure)
+    printElement("PRESSURE", elementWidth);
+  if(enableMol)
+    printElement("TOTALMOL", elementWidth);
+
+  for(uint k=0; k < var->numKinds; k++)
+  {
+    if(var->numKinds > 1)
+    {
+      std::string molName = "MOLFRAC_" + var->resKindNames[k];
+      printElement(molName, elementWidth);
+    }
+  }
+  if(enableDens)
+    printElement("TOT_DENSITY", elementWidth);
+  std::cout << std::endl;
+}
+
+void ConsoleOutput::PrintMoveTitle(const uint box)
+{
+  std::string title = "MTITLE_BOX_";
+  title += (box? "1": "0");
+  printElement(title, elementWidth);
+
+#if ENSEMBLE == GCMC
+  if(box == mv::BOX0)
+  {
+#endif
+    printElement("DISTRY", elementWidth);
+    printElement("DISACCEPT", elementWidth);
+    printElement("DISACCEPT%", elementWidth);
+    printElement("DISMAX", elementWidth);
+
+    printElement("ROTATE", elementWidth);
+    printElement("ROTACCEPT", elementWidth);
+    printElement("ROTACCEPT%", elementWidth);
+    printElement("ROTMAX", elementWidth);
+
+    printElement("INTRASWAP", elementWidth);
+    printElement("INTACCEPT", elementWidth);
+    printElement("INTACCEPT%", elementWidth);
+    //printElement("INTMAX", elementWidth);
+#if ENSEMBLE == GCMC
+  }
+#endif
+
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
+  printElement("TRANSFER", elementWidth);
+  printElement("TRANACCEPT", elementWidth);
+  printElement("TRANACCEPT%", elementWidth);
+  //printElement("TRANMAX", elementWidth);
+#endif
+
+#if ENSEMBLE == GEMC
+  printElement("VOLUME", elementWidth);
+  printElement("VOLACCEPT", elementWidth);
+  printElement("VOLACCEPT%", elementWidth);
+  printElement("VOLMAX", elementWidth);
+#endif
+
+  printElement("STEP", elementWidth);
+  std::cout << std::endl;
+}
+
+template <typename T>
+void ConsoleOutput::printElement( const T t, const int width) const
+{
+  const char separator = ' ';
+  std::cout << left << std::fixed << std::setprecision(4) << setw(width) << setfill(separator) << t;
+}
