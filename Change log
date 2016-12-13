@@ -1,6 +1,12 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [1.9] - 12/12/2016
++ Revision on output. We now only generate one output file.
++ Bug fixes
++ Printing some hardware information
++ Changes to example files which can be found at GOMC_Examples repository
+
 ## [1.8] - 10/12/2016
 + Parallelizing CBMC branched algorithm using OpenMP
 + Bug Fixes
