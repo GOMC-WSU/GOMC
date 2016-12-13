@@ -242,12 +242,12 @@ namespace config_setup
       FileName psf, seed; 
       HistFiles hist; 
    }; 
-   struct Settings { EventSettings block, hist, fluct; UniqueStr uniqueStr; }; 
+   struct Settings { EventSettings block, hist; UniqueStr uniqueStr; }; 
 	     
    //Enables for each variable that can be tracked 
    struct OutputEnables 
    { 
-      bool block, fluct, hist; 
+      bool block, fluct; 
    }; 
 	  
    struct TrackedVars 
@@ -257,11 +257,9 @@ namespace config_setup
       OutputEnables volume; 
 #endif 
 #ifdef VARIABLE_PARTICLE_NUMBER 
-      OutputEnables molNum, acceptAngles; 
-#endif 
-#ifdef VARIABLE_DENSITY 
-      OutputEnables density; 
-#endif 
+      OutputEnables molNum; 
+#endif  
+      OutputEnables density;  
    }; 
  
    struct SysState { EventSettings settings; OutFiles files; }; 
