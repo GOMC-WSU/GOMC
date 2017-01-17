@@ -1,8 +1,10 @@
 Current Release: 1.9 (12/12/2016)
 
 GOMC - GPU Optimized Monte Carlo
+============
 
 BUILDING GOMC ON LINUX:
+----------------
    1. Give execution permission using "chmod u+x metamake.sh"
    2. In the base (serial code) directory type "./metamake.sh"
    3. Go to the "bin" subdirectory
@@ -23,7 +25,7 @@ BUILDING GOMC ON LINUX:
       in most Linux package repositories (as cmake).
 
 BUILDING GOMC ON WINDOWS:
-
+-----------------
    1. Open the Windows-compatible CMake GUI.
    2. Set the Source Folder to the GOMC root folder.
    3. Set the build Folder to your Build Folder.
