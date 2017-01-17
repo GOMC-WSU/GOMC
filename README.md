@@ -1,5 +1,7 @@
 Current Release: 1.9 (12/12/2016)
 
+We recommend the [GOMC Project Website](http://gomc.eng.wayne.edu/ "GOMC Website") and the [user manual](http://gomc.eng.wayne.edu/GOMC_files/GOMC_Manual.pdf "User Manual") for further information and examples.
+
 GOMC - GPU Optimized Monte Carlo
 ============
 
