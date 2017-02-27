@@ -78,22 +78,25 @@ inline uint MoleculeTransfer::Transform()
 
 inline void MoleculeTransfer::CalcEn()
 {
+   W_tc = 1.0;
+   W_recip = 1.0;
    if (ffRef.useLRC)
    {
       tcLose = calcEnRef.MoleculeTailChange(sourceBox, kindIndex, false);
       tcGain = calcEnRef.MoleculeTailChange(destBox, kindIndex, true);
       W_tc = exp(-1.0*ffRef.beta*(tcGain.energy + tcLose.energy));
-      W_recip = 1.0;
-      if (newMol.GetWeight() != 0.0)
-      {
-	 recipGain.energy =
-	   calcEwald->SwapDestRecip(newMol, destBox, sourceBox, molIndex);
-	 recipLose.energy =
-	   calcEwald->SwapSourceRecip(oldMol, sourceBox, molIndex);
-	 W_recip = exp(-1.0 * ffRef.beta * (recipGain.energy +
-					    recipLose.energy));
-      }
    }
+   
+   if (newMol.GetWeight() != 0.0)
+   {
+      recipGain.energy =
+	calcEwald->SwapDestRecip(newMol, destBox, sourceBox, molIndex);
+      recipLose.energy =
+	calcEwald->SwapSourceRecip(oldMol, sourceBox, molIndex);
+      W_recip = exp(-1.0 * ffRef.beta * (recipGain.energy +
+					 recipLose.energy));
+   }
+
 }
 
 inline double MoleculeTransfer::GetCoeff() const
@@ -130,6 +133,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
       double Wrat = Wn / Wo * W_tc * W_recip;
 
       result = prng() < molTransCoeff * Wrat;
+
       if (result)
       {
          //Add tail corrections
@@ -197,6 +201,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
    }
    else  //else we didn't even try because we knew it would fail
       result = false;
+
 
    subPick = mv::GetMoveSubIndex(mv::MOL_TRANSFER, sourceBox);
    moveSetRef.Update(result, subPick, step);
