@@ -180,19 +180,21 @@ inline void Translate::Accept(const uint rejectState, const uint step)
       sysPotRef.boxEnergy[b].recip += recip.energy;
       sysPotRef.boxVirial[b].recip += recip.virial;
 
-      sysPotRef.Total();
       //Copy coords
       newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);	       
       comCurrRef.Set(m, newCOM);
       calcEwald->UpdateRecip(b);
-   }
-   else
-   {
-      calcEwald->RestoreMol(m);
+
+      sysPotRef.Total();
    }
 
-   if (molRemoved)
+   if(molRemoved)
    {
+     // It means that Recip energy is calculated and move not accepted
+     if(!result)
+     {
+       calcEwald->RestoreMol(m);
+     }
      cellList.AddMol(m, b, coordCurrRef);
      molRemoved = false;
    }
@@ -272,19 +274,21 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
       sysPotRef.boxEnergy[b].recip += recip.energy;
       sysPotRef.boxVirial[b].recip += recip.virial;
 
-      sysPotRef.Total();
-
       //Copy coords
       newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);
       calcEwald->UpdateRecip(b);
-   }
-   else
-   {
-      calcEwald->RestoreMol(m);
+
+      sysPotRef.Total();
    }
 
-   if (molRemoved)
+   if(molRemoved)
    {
+     // It means that Recip energy is calculated and move not accepted
+     if(!result)
+     {
+       calcEwald->RestoreMol(m);
+     }
+
      cellList.AddMol(m, b, coordCurrRef);
      molRemoved = false;
    }
