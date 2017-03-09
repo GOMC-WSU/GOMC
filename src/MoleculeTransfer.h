@@ -199,7 +199,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
       }
 
    }
-   else  //else we didn't even try because we knew it would fail
+   else  //we didn't even try because we knew it would fail
       result = false;
 
 

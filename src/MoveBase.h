@@ -30,7 +30,7 @@ class MoveBase
      calcEnRef(sys.calcEnergy), comCurrRef(sys.com), 
      coordCurrRef(sys.coordinates), prng(sys.prng), molRef(statV.mol), 
      BETA(statV.forcefield.beta), ewald(statV.forcefield.ewald),
-     cellList(sys.cellList), molRemoved(false)
+     cellList(sys.cellList)
    {
       calcEwald = sys.GetEwald();
    }
@@ -66,7 +66,6 @@ class MoveBase
     const double BETA;
     const bool ewald;
     CellList& cellList;
-    bool molRemoved;
 };
 
 //Data needed for transforming a molecule's position via inter or intrabox 
@@ -147,7 +146,6 @@ inline uint Translate::Transform()
 inline void Translate::CalcEn()
 {
    cellList.RemoveMol(m, b, coordCurrRef);
-   molRemoved = true;
 
    //calculate LJ interaction and real term of electrostatic interaction
    calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b, &newCOM);
@@ -158,46 +156,42 @@ inline void Translate::CalcEn()
 
 inline void Translate::Accept(const uint rejectState, const uint step)
 {
-   bool res =false;
-   if (rejectState == mv::fail_state::NO_FAIL)
+   bool result;
+   //If we didn't skip the move calculation
+   if(rejectState == mv::fail_state::NO_FAIL)
    {
-      double pr = prng();
-      res = pr < exp(-BETA * (inter_LJ.energy + inter_Real.energy +
-			      recip.energy));
-   }
-   bool result = (rejectState == mv::fail_state::NO_FAIL) && res;
-  
-   if (result)
-   {
-      //Set new energy.
-      // setting energy and virial of LJ interaction
-      sysPotRef.boxEnergy[b].inter += inter_LJ.energy;   
-      sysPotRef.boxVirial[b].inter += inter_LJ.virial;
-      // setting energy and virial of coulomb interaction
-      sysPotRef.boxEnergy[b].real += inter_Real.energy;
-      sysPotRef.boxVirial[b].real += inter_Real.virial;
-      // setting energy and virial of recip term
-      sysPotRef.boxEnergy[b].recip += recip.energy;
-      sysPotRef.boxVirial[b].recip += recip.virial;
+      result = prng() < exp(-BETA * (inter_LJ.energy + inter_Real.energy +
+				     recip.energy));
+ 
+      if(result)
+      {
+	 //Set new energy.
+	 //setting energy and virial of LJ interaction
+	 sysPotRef.boxEnergy[b].inter += inter_LJ.energy;   
+	 sysPotRef.boxVirial[b].inter += inter_LJ.virial;
+	 // setting energy and virial of coulomb interaction
+	 sysPotRef.boxEnergy[b].real += inter_Real.energy;
+	 sysPotRef.boxVirial[b].real += inter_Real.virial;
+	 // setting energy and virial of recip term
+	 sysPotRef.boxEnergy[b].recip += recip.energy;
+	 sysPotRef.boxVirial[b].recip += recip.virial;
 
-      //Copy coords
-      newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);	       
-      comCurrRef.Set(m, newCOM);
-      calcEwald->UpdateRecip(b);
-
-      sysPotRef.Total();
+	 //Copy coords
+	 newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);	       
+	 comCurrRef.Set(m, newCOM);
+	 calcEwald->UpdateRecip(b);
+	 
+	 sysPotRef.Total();
+      }
+      else
+      {
+	 cellList.AddMol(m, b, coordCurrRef);
+	 calcEwald->RestoreMol(m);     
+      }      
    }
+   else
+      result = false; //we didn't even try because we knew it would fail
 
-   if(molRemoved)
-   {
-     // It means that Recip energy is calculated and move not accepted
-     if(!result)
-     {
-       calcEwald->RestoreMol(m);
-     }
-     cellList.AddMol(m, b, coordCurrRef);
-     molRemoved = false;
-   }
 
    subPick = mv::GetMoveSubIndex(mv::DISPLACE, b);
    moveSetRef.Update(result, subPick, step); 
@@ -241,7 +235,6 @@ inline uint Rotate::Transform()
 inline void Rotate::CalcEn()
 {
    cellList.RemoveMol(m, b, coordCurrRef);
-   molRemoved = true;
 
    //calculate LJ interaction and real term of electrostatic interaction
    calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);       
@@ -251,47 +244,41 @@ inline void Rotate::CalcEn()
 
 inline void Rotate::Accept(const uint rejectState, const uint step)
 {
-   bool res =false;
-
-   if (rejectState == mv::fail_state::NO_FAIL)
+   bool result;
+   //If we didn't skip the move calculation
+   if(rejectState == mv::fail_state::NO_FAIL)
    {
-      double pr = prng();
-      res = pr < exp(-BETA * (inter_LJ.energy + inter_Real.energy +
+      result = prng() < exp(-BETA * (inter_LJ.energy + inter_Real.energy +
 			      recip.energy));
-   }
-   bool result = (rejectState == mv::fail_state::NO_FAIL) && res;
 	
-   if (result)
-   {
-      //Set new energy.
-      // setting energy and virial of LJ interaction
-      sysPotRef.boxEnergy[b].inter += inter_LJ.energy;   
-      sysPotRef.boxVirial[b].inter += inter_LJ.virial;
-      // setting energy and virial of coulomb interaction
-      sysPotRef.boxEnergy[b].real += inter_Real.energy;
-      sysPotRef.boxVirial[b].real += inter_Real.virial;
-      // setting energy and virial of recip term
-      sysPotRef.boxEnergy[b].recip += recip.energy;
-      sysPotRef.boxVirial[b].recip += recip.virial;
+      if(result)
+      {
+	 //Set new energy.
+	 //setting energy and virial of LJ interaction
+	 sysPotRef.boxEnergy[b].inter += inter_LJ.energy;   
+	 sysPotRef.boxVirial[b].inter += inter_LJ.virial;
+	 // setting energy and virial of coulomb interaction
+	 sysPotRef.boxEnergy[b].real += inter_Real.energy;
+	 sysPotRef.boxVirial[b].real += inter_Real.virial;
+	 // setting energy and virial of recip term
+	 sysPotRef.boxEnergy[b].recip += recip.energy;
+	 sysPotRef.boxVirial[b].recip += recip.virial;
+	 
+	 //Copy coords
+	 newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);
+	 calcEwald->UpdateRecip(b);
 
-      //Copy coords
-      newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);
-      calcEwald->UpdateRecip(b);
-
-      sysPotRef.Total();
+	 sysPotRef.Total();
+      }
+      else
+      {
+	 calcEwald->RestoreMol(m);
+	 cellList.AddMol(m, b, coordCurrRef);
+      }
    }
+   else
+      result = false; //didn't even try because we knew it would fail
 
-   if(molRemoved)
-   {
-     // It means that Recip energy is calculated and move not accepted
-     if(!result)
-     {
-       calcEwald->RestoreMol(m);
-     }
-
-     cellList.AddMol(m, b, coordCurrRef);
-     molRemoved = false;
-   }
 
    subPick = mv::GetMoveSubIndex(mv::ROTATE, b);
    moveSetRef.Update(result, subPick, step);
@@ -410,13 +397,8 @@ inline void VolumeTransfer::CalcEn()
 
 inline double VolumeTransfer::GetCoeff() const
 {
-   ////Log-volume style shift -- is turned off, at present.
-   //
-   //return pow(newDim.volume[b_i]/boxDimRef.volume[b_i],
-   //	      (double)molLookRef.NumInBox(b_i)+1) *
-   //  pow(newDim.volume[b_ii]/boxDimRef.volume[b_ii],
-   //	 (double)molLookRef.NumInBox(b_ii)+1);
    double coeff = 1.0;
+
    if (GEMC_KIND == mv::GEMC_NVT)
    {
       for (uint b = 0; b < BOX_TOTAL; ++b)
@@ -440,17 +422,16 @@ inline double VolumeTransfer::GetCoeff() const
 
 inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
 {
-   double volTransCoeff = GetCoeff(), 
-      uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
+   double volTransCoeff = GetCoeff(); 
+   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
    double accept = volTransCoeff * uBoltz;
    bool result = (rejectState == mv::fail_state::NO_FAIL) && prng() < accept;
+
    if (result)
    {
       //Set new energy.
       sysPotRef = sysPotNew;
       //Swap... next time we'll use the current members.
-      //NOTE:
-      //This will be less efficient for NPT, but necessary evil.
       swap(coordCurrRef, newMolsPos);
       swap(comCurrRef, newCOMs);
       boxDimRef = newDim;
