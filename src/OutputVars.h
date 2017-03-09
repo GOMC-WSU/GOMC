@@ -32,6 +32,7 @@ public:
    uint * numByBox, * numByKindBox;
    double * molFractionByKindBox, * densityByKindBox,
      pressure[BOXES_WITH_U_NB], densityTot[BOX_TOTAL];
+   double pTensor[3][3];
    
    uint numKinds;
    //Constants
