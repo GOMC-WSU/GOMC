@@ -30,7 +30,7 @@ class MoleculeTransfer : public MoveBase
    uint pStart, pLen;
    uint molIndex, kindIndex;
 
-   double W_tc, W_recip, oldVirial_LJ, oldVirial_Real;
+   double W_tc, W_recip;
    cbmc::TrialMol oldMol, newMol;
    Intermolecular tcLose, tcGain, recipLose, recipGain;
    MoleculeLookup & molLookRef;
@@ -40,11 +40,10 @@ class MoleculeTransfer : public MoveBase
 inline uint MoleculeTransfer::GetBoxPairAndMol
 (const double subDraw, const double movPerc)
 {
-   uint state = prng.PickMolAndBoxPair(molIndex, kindIndex,
-				       sourceBox, destBox,
+   uint state = prng.PickMolAndBoxPair(molIndex, kindIndex, sourceBox, destBox,
 				       subDraw, movPerc);
  
-   if ( state != mv::fail_state::NO_MOL_OF_KIND_IN_BOX)
+   if (state != mv::fail_state::NO_MOL_OF_KIND_IN_BOX)
    {
       pStart = pLen = 0;
       molRef.GetRangeStartLength(pStart, pLen, molIndex);
@@ -55,10 +54,8 @@ inline uint MoleculeTransfer::GetBoxPairAndMol
 inline uint MoleculeTransfer::Prep(const double subDraw, const double movPerc)
 {
    uint state = GetBoxPairAndMol(subDraw, movPerc);
-   newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef,
-			   destBox);
-   oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef,
-			   sourceBox);
+   newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
+   oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
    oldMol.SetCoords(coordCurrRef, pStart);
    W_tc = 1.0;
    return state;
@@ -67,9 +64,6 @@ inline uint MoleculeTransfer::Prep(const double subDraw, const double movPerc)
 
 inline uint MoleculeTransfer::Transform()
 {
-   oldVirial_LJ = 0.0; 
-   oldVirial_Real = 0.0;
-   calcEnRef.MoleculeVirial(oldVirial_LJ, oldVirial_Real, molIndex, sourceBox);
    cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
    subPick = mv::GetMoveSubIndex(mv::MOL_TRANSFER, sourceBox);
    molRef.kinds[kindIndex].Build(oldMol, newMol, molIndex);
@@ -93,8 +87,7 @@ inline void MoleculeTransfer::CalcEn()
 	calcEwald->SwapDestRecip(newMol, destBox, sourceBox, molIndex);
       recipLose.energy =
 	calcEwald->SwapSourceRecip(oldMol, sourceBox, molIndex);
-      W_recip = exp(-1.0 * ffRef.beta * (recipGain.energy +
-					 recipLose.energy));
+      W_recip = exp(-1.0 * ffRef.beta * (recipGain.energy + recipLose.energy));
    }
 
 }
@@ -139,14 +132,10 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
          //Add tail corrections
          sysPotRef.boxEnergy[sourceBox].tc += tcLose.energy;
          sysPotRef.boxEnergy[destBox].tc += tcGain.energy;
-         sysPotRef.boxVirial[sourceBox].tc += tcLose.virial;
-         sysPotRef.boxVirial[destBox].tc += tcGain.virial;
 
          //Add rest of energy.
          sysPotRef.boxEnergy[sourceBox] -= oldMol.GetEnergy();
          sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();
-         sysPotRef.boxVirial[sourceBox].inter -= oldVirial_LJ;
-	 sysPotRef.boxVirial[sourceBox].real -= oldVirial_Real;
 	 sysPotRef.boxEnergy[sourceBox].recip += recipLose.energy;
 	 sysPotRef.boxEnergy[destBox].recip += recipGain.energy;
 
@@ -157,12 +146,6 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 				kindIndex);
 	 cellList.AddMol(molIndex, destBox, coordCurrRef);
 
-	 //Calculate the fresh virial.
-         double newVirial_LJ = 0.0, newVirial_Real = 0.0;
-	 calcEnRef.MoleculeVirial(newVirial_LJ, newVirial_Real,
-				  molIndex,destBox);
-         sysPotRef.boxVirial[destBox].inter += newVirial_LJ;
-	 sysPotRef.boxVirial[destBox].real += newVirial_Real;
 
 	 //Zero out box energies to prevent small number 
 	 //errors in double.
@@ -201,7 +184,6 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
    }
    else  //we didn't even try because we knew it would fail
       result = false;
-
 
    subPick = mv::GetMoveSubIndex(mv::MOL_TRANSFER, sourceBox);
    moveSetRef.Update(result, subPick, step);

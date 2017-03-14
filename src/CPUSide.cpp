@@ -27,7 +27,7 @@ void CPUSide::Init(PDBSetup const& pdbSet, config_setup::Output const& out,
   outObj.push_back(&sample_N_E);
 #endif
   //Calculate pressure, heat of vap. (if applicable), etc.
-  varRef.CalcAndConvert();
+  varRef.CalcAndConvert(0);
   for (uint o = 0; o < outObj.size(); o++)
     outObj[o]->Init(pdbSet.atoms, out, tillEquil, totSteps);
 }
@@ -35,7 +35,7 @@ void CPUSide::Init(PDBSetup const& pdbSet, config_setup::Output const& out,
 void CPUSide::Output(const ulong step)
 {
   //Calculate pressure, heat of vap. (if applicable), etc.
-  varRef.CalcAndConvert();
+  varRef.CalcAndConvert(step);
   //Do standard output events.
   for (uint o = 0; o < outObj.size(); o++)
     outObj[o]->Output(step);

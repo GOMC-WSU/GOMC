@@ -69,6 +69,7 @@ EwaldCached::~EwaldCached()
 	   delete[] kx[b];
 	   delete[] ky[b];
 	   delete[] kz[b];
+	   delete[] hsqr[b];
 	   delete[] prefact[b];
 	   delete[] sumRnew[b];
 	   delete[] sumInew[b];
@@ -83,6 +84,7 @@ EwaldCached::~EwaldCached()
 	delete[] kx;
 	delete[] ky;
 	delete[] kz;
+	delete[] hsqr;
 	delete[] prefact;
 	delete[] sumRnew;
 	delete[] sumInew;
@@ -125,6 +127,7 @@ void EwaldCached::SetNull()
   kx = NULL;
   ky = NULL;
   kz = NULL;
+  hsqr = NULL;
   prefact = NULL;
   cosMolRef = NULL;
   sinMolRef = NULL;
@@ -145,7 +148,7 @@ void EwaldCached::Init()
       {
          particleKind.push_back(molKind.AtomKind(a));
          particleMol.push_back(m);
-   particleCharge.push_back(molKind.AtomCharge(a));
+	 particleCharge.push_back(molKind.AtomCharge(a));
       }
    }
 
@@ -162,8 +165,8 @@ void EwaldCached::Init()
       RecipInit(b, currentAxes);
       BoxReciprocalSetup(b, currentCoords);
       SetRecipRef(b);
-      printf("box: %d, RecipVectors: %d, kmax: %d\n", b, imageSize[b],
-       kmax[b]);
+      printf("Box %d, RecipVectors: %d, kmax: %d, alpha: %f6\n",
+	     b, imageSize[b], kmax[b], alpha);
    }      
 }
 
@@ -182,6 +185,7 @@ void EwaldCached::AllocMem()
   kx = new double*[BOX_TOTAL];
   ky = new double*[BOX_TOTAL];
   kz = new double*[BOX_TOTAL];
+  hsqr = new double*[BOX_TOTAL];
   prefact = new double*[BOX_TOTAL];
   cosMolRef = new double*[mols.count];
   sinMolRef = new double*[mols.count];
@@ -193,6 +197,7 @@ void EwaldCached::AllocMem()
      kx[b] = new double[imageTotal];
      ky[b] = new double[imageTotal];
      kz[b] = new double[imageTotal];
+     hsqr[b] = new double[imageTotal];
      prefact[b] = new double[imageTotal];
      sumRnew[b] = new double[imageTotal];
      sumInew[b] = new double[imageTotal];
@@ -259,6 +264,7 @@ void EwaldCached::RecipInit(uint box, BoxDimensions const& boxAxes)
 	       kx[box][counter] = constValue * x;
 	       ky[box][counter] = constValue * y;
 	       kz[box][counter] = constValue * z;
+	       hsqr[box][counter] = ksqr;
 	       prefact[box][counter] = num::qqFact * exp(-ksqr * alpsqr4)/
 		 (ksqr * vol);
 	       counter++;
@@ -415,6 +421,175 @@ double EwaldCached::BoxReciprocal(uint box) const
    }
 
    return energyRecip; 
+}
+
+Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
+{
+   Virial tempVir = virial;
+
+   double wT11 = 0.0, wT12 = 0.0, wT13 = 0.0;
+   double wT22 = 0.0, wT23 = 0.0, wT33 = 0.0;
+
+   double recipIntra = 0.0;
+   double constVal = 1.0 / (4.0 * alpha * alpha);
+   double factor, arg, charge;
+   uint i, length, start;
+   
+   MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box),
+     end = molLookup.BoxEnd(box);
+
+   XYZ atomC, comC, diffC;
+
+
+   for (i = 0; i < imageSize[box]; i++)
+   {
+      factor = prefact[box][i] * (sumRnew[box][i] * sumRnew[box][i] +
+				  sumInew[box][i] * sumInew[box][i]);
+       
+       
+      wT11 += factor * (1.0 - 2.0 * (constVal + 1.0 / hsqr[box][i]) *
+			kx[box][i] * kx[box][i]);
+      wT12 += factor * (-2.0 * (constVal + 1.0 / hsqr[box][i]) *
+			kx[box][i] * ky[box][i]);
+      wT13 += factor * (-2.0 * (constVal + 1.0 / hsqr[box][i]) *
+			kx[box][i] * kz[box][i]);
+
+      wT22 += factor * (1.0 - 2.0 * (constVal + 1.0 / hsqr[box][i]) *
+			ky[box][i] * ky[box][i]);
+      wT23 += factor * (-2.0 * (constVal + 1.0 / hsqr[box][i]) *
+			ky[box][i] * kz[box][i]);
+
+      wT33 += factor * (1.0 - 2.0 * (constVal + 1.0 / hsqr[box][i]) *
+			kz[box][i] * kz[box][i]); 
+   }
+
+
+   //the intramolecular part should be substracted
+   while (thisMol != end)
+   {
+      length = mols.GetKind(*thisMol).NumAtoms();
+      start = mols.MolStart(*thisMol);
+      comC = currentCOM.Get(*thisMol);
+
+      for (uint p = 0; p < length; p++)
+      {
+	 uint atom = start + p;
+	 //compute the vector of the bead to the COM (p)
+	 //comC = currentCoords.Difference(atom, currentCOM, *thisMol);
+	 	   
+	 atomC = currentCoords.Get(atom);
+
+	 diffC = atomC - comC;
+
+	 // charge = particleCharge[atom];
+	 charge = mols.GetKind(*thisMol).AtomCharge(p);
+
+	 for (i = 0; i < imageSize[box]; i++)
+	 {
+	    //compute the dot product of k and r
+	    arg = kx[box][i] * atomC.x + ky[box][i] * atomC.y +
+	      kz[box][i] * atomC.z;
+
+	    factor = prefact[box][i] * 2.0 * (-1.0 * sumRnew[box][i]*sin(arg) +
+					      sumInew[box][i]*cos(arg))*charge;
+
+	    wT11 += factor * (kx[box][i] * diffC.x);
+	    wT12 += factor * 0.5 *(kx[box][i] * diffC.y + ky[box][i] * diffC.x);
+	    wT13 += factor * 0.5 *(kx[box][i] * diffC.z + kz[box][i] * diffC.x);
+
+	    wT22 += factor * (ky[box][i] * diffC.y);
+	    wT23 += factor * 0.5 *(ky[box][i] * diffC.z + kz[box][i] * diffC.y);
+
+	    wT33 += factor * (kz[box][i] * diffC.z);
+	 }
+      }
+      ++thisMol;
+   }
+
+   // set the all tensor values
+   tempVir.recipTens[0][0] = wT11;
+   tempVir.recipTens[0][1] = wT12;
+   tempVir.recipTens[0][2] = wT13;
+
+   tempVir.recipTens[1][0] = wT12;
+   tempVir.recipTens[1][1] = wT22;
+   tempVir.recipTens[1][2] = wT23;
+
+   tempVir.recipTens[2][0] = wT13;
+   tempVir.recipTens[2][1] = wT23;
+   tempVir.recipTens[2][2] = wT33;  
+   
+   // setting virial of reciprocal cpace
+   tempVir.recip = wT11 + wT22 + wT33;
+
+   return tempVir;
+ 
+}
+
+Virial EwaldCached::ForceCorrection(Virial& virial, uint box) const
+{
+  Virial tempVir = virial;
+
+   double rT11 = 0.0, rT12 = 0.0, rT13 = 0.0;
+   double rT22 = 0.0, rT23 = 0.0, rT33 = 0.0;
+   double constValue = 2.0 * alpha / sqrt(M_PI);
+
+   double dist, distSq, pRF, expConstValue, temp;
+   uint i;
+   XYZ virC, comC;
+ 
+   MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box),
+     end = molLookup.BoxEnd(box);
+
+   while (thisMol != end)
+   {  
+      MoleculeKind& thisKind = mols.kinds[mols.kIndex[*thisMol]];
+      comC = currentCOM.Get(*thisMol);
+
+      for (uint i = 0; i < thisKind.NumAtoms(); i++)
+      {
+	for (uint j = i + 1; j < thisKind.NumAtoms(); j++)
+	{
+	  currentAxes.InRcut(distSq, virC, currentCoords,
+			     mols.start[*thisMol] + i,
+			     mols.start[*thisMol] + j, box);
+	  dist = sqrt(distSq);
+	  expConstValue = exp(-1.0 * alpha * alpha * distSq);
+	  temp = erf(alpha * dist);
+
+	  pRF = (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
+		 (constValue * expConstValue - temp / dist)) / distSq;
+	  //calculate the top diagonal of pressure tensor
+	  rT11 += pRF * (virC.x * comC.x);
+	  rT12 += pRF * (0.5 * (virC.x * comC.y + virC.y * comC.x));
+	  rT13 += pRF * (0.5 * (virC.x * comC.z + virC.z * comC.x));
+
+	  rT22 += pRF * (virC.y * comC.y);
+	  rT23 += pRF * (0.5 * (virC.y * comC.z + virC.z * comC.y));
+	   
+	  rT33 += pRF * (virC.z * comC.z);
+	}
+      }
+      ++thisMol;
+   }
+
+   // correction part of electrostatic
+   tempVir.corrTens[0][0] = rT11 * num::qqFact;
+   tempVir.corrTens[0][1] = rT12 * num::qqFact;
+   tempVir.corrTens[0][2] = rT13 * num::qqFact;
+
+   tempVir.corrTens[1][0] = rT12 * num::qqFact;
+   tempVir.corrTens[1][1] = rT22 * num::qqFact;
+   tempVir.corrTens[1][2] = rT23 * num::qqFact;
+
+   tempVir.corrTens[2][0] = rT13 * num::qqFact;
+   tempVir.corrTens[2][1] = rT23 * num::qqFact;
+   tempVir.corrTens[2][2] = rT33 * num::qqFact;   
+
+   // setting virial of correction term 
+   tempVir.correction = (rT11 + rT22 + rT33) * num::qqFact;
+
+   return tempVir;
 }
 
 

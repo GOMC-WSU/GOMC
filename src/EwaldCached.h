@@ -70,6 +70,12 @@ class EwaldCached
    //calculate reciprocate energy term for a box
    virtual double BoxReciprocal(uint box) const;
 
+   //calculate reciprocate force term for a box
+   virtual Virial ForceReciprocal(Virial& virial, uint box) const;
+
+   //calculate correction force term for a box
+   virtual Virial ForceCorrection(Virial& virial, uint box) const;
+
    //calculate correction term for a molecule
    virtual double MolCorrection(uint molIndex, BoxDimensions const& boxAxes,
 				uint box)const;
@@ -155,6 +161,7 @@ class EwaldCached
    double **kx;
    double **ky; 
    double **kz;
+   double **hsqr;
    double **prefact;
    
 

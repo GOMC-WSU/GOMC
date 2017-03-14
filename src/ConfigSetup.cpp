@@ -2,6 +2,7 @@
 #include <string> //for var names, etc.
 #include <vector>
 #include <string>
+#include <iomanip>
 
 #include "ConfigSetup.h"
 
@@ -43,6 +44,8 @@ ConfigSetup::ConfigSetup(void)
   sys.step.total = ULONG_MAX;
   sys.step.equil = ULONG_MAX;
   sys.step.adjustment = ULONG_MAX;
+  sys.step.pressureCalcFreq = ULONG_MAX;
+  sys.step.pressureCalc = true;
   in.ffKind.numOfKinds = 0;
   sys.exclude.EXCLUDE_KIND = UINT_MAX;
   in.prng.kind = "";
@@ -278,7 +281,7 @@ void ConfigSetup::Init(const char *fileName)
                         sys.ff.cutoff;
       sys.elect.recip_rcut = 2 * (-log(sys.elect.tolerance))/
                              sys.ff.cutoff;
-      std::cout<< "Ewald Tolerance is set to: " << sys.elect.tolerance << std::endl;
+      printf("Ewald Tolerance is set to: %E \n", sys.elect.tolerance);
     }
     else if(line[0] == "CachedFourier")
     {
@@ -312,6 +315,25 @@ void ConfigSetup::Init(const char *fileName)
     else if(line[0] == "AdjSteps")
     {
       sys.step.adjustment = stringtoi(line[1]);
+    }
+    else if(line[0] == "PressureCalc")
+    {
+      sys.step.pressureCalc = checkBool(line[1]);
+
+      if(sys.step.pressureCalc && (line.size() == 3))
+      {
+	sys.step.pressureCalcFreq = stringtoi(line[2]);
+	std::cout << "Note: Pressure will be calculated every " << sys.step.pressureCalcFreq << " steps.\n";
+      }
+      else if(sys.step.pressureCalc && (line.size() == 2))
+      {
+	std::cout << "Error: Pressure calculation frequency has not been set!\n";
+	exit(0);
+      }
+      else if(!sys.step.pressureCalc)
+      {
+	std::cout << "Warning: Pressure calculation is turned off.\n";
+      }
     }
     else if(line[0] == "DisFreq")
     {
@@ -494,6 +516,7 @@ void ConfigSetup::fillDefaults(void)
     std::cout << "By default intra box swap frequency has been set to zero" << std::endl;
     sys.moves.intraSwap = 0.000;
   }
+
   if(sys.exclude.EXCLUDE_KIND == UINT_MAX)
   {
     std::cout << "Warning: By default value (1-3) for exclude is selected!" << std::endl;
@@ -833,6 +856,11 @@ void ConfigSetup::verifyInputs(void)
     out.statistics.settings.block.frequency = (ulong)sys.step.total / 100;
     std::cout << "Warning: By default block average output frequency has been set to " << out.statistics.settings.block.frequency << "!" << std::endl;
   }
+  if(sys.step.pressureCalc && (sys.step.pressureCalcFreq == ULONG_MAX))
+  {
+    sys.step.pressureCalcFreq = (ulong)(out.statistics.settings.block.frequency / 100);
+    std::cout << "Warning: By default pressure will be calculated every " << sys.step.pressureCalcFreq << " steps!";
+  }
 #if ENSEMBLE == GCMC
   if(!out.statistics.settings.hist.enable)
   {
@@ -927,24 +955,24 @@ void ConfigSetup::verifyInputs(void)
 }
 
 const std::string config_setup::PRNGKind::KIND_RANDOM = "RANDOM",
-                                          config_setup::PRNGKind::KIND_SEED = "INTSEED",
-                                                                  config_setup::PRNGKind::KIND_RESTART = "RESTART",
-                                                                                          config_setup::FFKind::FF_CHARMM = "CHARMM",
-                                                                                                                config_setup::FFKind::FF_EXOTIC = "EXOTIC",
-                                                                                                                                      config_setup::FFKind::FF_MARTINI = "MARTINI",
-                                                                                                                                                            config_setup::FFValues::VDW = "VDW",
-                                                                                                                                                                                    config_setup::FFValues::VDW_SHIFT = "VDW_SHIFT",
-                                                                                                                                                                                                            config_setup::FFValues::VDW_SWITCH = "VDW_SWITCH",
-                                                                                                                                                                                                                                    config_setup::Exclude::EXC_ONETWO = "1-2",
-                                                                                                                                                                                                                                                           config_setup::Exclude::EXC_ONETHREE = "1-3",
-                                                                                                                                                                                                                                                                                  config_setup::Exclude::EXC_ONEFOUR = "1-4";
+		config_setup::PRNGKind::KIND_SEED = "INTSEED",
+		config_setup::PRNGKind::KIND_RESTART = "RESTART",
+		config_setup::FFKind::FF_CHARMM = "CHARMM",
+		config_setup::FFKind::FF_EXOTIC = "EXOTIC",
+		config_setup::FFKind::FF_MARTINI = "MARTINI",
+		config_setup::FFValues::VDW = "VDW",
+		config_setup::FFValues::VDW_SHIFT = "VDW_SHIFT",
+		config_setup::FFValues::VDW_SWITCH = "VDW_SWITCH",
+		config_setup::Exclude::EXC_ONETWO = "1-2",
+		config_setup::Exclude::EXC_ONETHREE = "1-3",
+		config_setup::Exclude::EXC_ONEFOUR = "1-4";
 
 const char ConfigSetup::defaultConfigFileName[] = "in.dat";
 const char ConfigSetup::configFileAlias[] = "GO-MC Configuration File";
 
 const uint config_setup::FFValues::VDW_STD_KIND = 0,
-                                   config_setup::FFValues::VDW_SHIFT_KIND = 1,
-                                                           config_setup::FFValues::VDW_SWITCH_KIND = 2,
-                                                                                   config_setup::Exclude::EXC_ONETWO_KIND = 0,
-                                                                                                          config_setup::Exclude::EXC_ONETHREE_KIND = 1,
-                                                                                                                                 config_setup::Exclude::EXC_ONEFOUR_KIND = 2;
+		config_setup::FFValues::VDW_SHIFT_KIND = 1,
+		config_setup::FFValues::VDW_SWITCH_KIND = 2,
+		config_setup::Exclude::EXC_ONETWO_KIND = 0,
+		config_setup::Exclude::EXC_ONETHREE_KIND = 1,
+		config_setup::Exclude::EXC_ONEFOUR_KIND = 2;

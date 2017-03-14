@@ -26,7 +26,7 @@ class IntraSwap : public MoveBase
    uint pStart, pLen;
    uint molIndex, kindIndex;
 
-   double W_tc, W_recip, oldVirial_LJ, oldVirial_Real;
+   double W_tc, W_recip;
    cbmc::TrialMol oldMol, newMol;
    Intermolecular tcLose, tcGain, recipDiff;
    MoleculeLookup & molLookRef;
@@ -48,7 +48,7 @@ inline uint IntraSwap::GetBoxAndMol
    //molecule will be removed and insert in same box
    destBox = sourceBox;
  
-   if ( state != mv::fail_state::NO_MOL_OF_KIND_IN_BOX)
+   if (state != mv::fail_state::NO_MOL_OF_KIND_IN_BOX)
    {
       pStart = pLen = 0;
       molRef.GetRangeStartLength(pStart, pLen, molIndex);
@@ -56,14 +56,11 @@ inline uint IntraSwap::GetBoxAndMol
    return state;
 }
 
-inline uint IntraSwap::Prep(const double subDraw,
-				   const double movPerc)
+inline uint IntraSwap::Prep(const double subDraw, const double movPerc)
 {
    uint state = GetBoxAndMol(subDraw, movPerc);
-   newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef,
-			   destBox);
-   oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef,
-			   sourceBox);
+   newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
+   oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
    oldMol.SetCoords(coordCurrRef, pStart);
    W_tc = 1.0;
    return state;
@@ -72,9 +69,6 @@ inline uint IntraSwap::Prep(const double subDraw,
 
 inline uint IntraSwap::Transform()
 {
-   oldVirial_LJ = 0.0; 
-   oldVirial_Real = 0.0;
-   calcEnRef.MoleculeVirial(oldVirial_LJ, oldVirial_Real, molIndex, sourceBox);
    cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
    subPick = mv::GetMoveSubIndex(mv::INTRA_SWAP, sourceBox);
    molRef.kinds[kindIndex].Build(oldMol, newMol, molIndex);
@@ -114,8 +108,6 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
          //Add rest of energy.
          sysPotRef.boxEnergy[sourceBox] -= oldMol.GetEnergy();
          sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();
-         sysPotRef.boxVirial[sourceBox].inter -= oldVirial_LJ;
-	 sysPotRef.boxVirial[sourceBox].real -= oldVirial_Real;
 	 sysPotRef.boxEnergy[destBox].recip += recipDiff.energy;
 	 
 	 //Set coordinates, new COM; shift index to new box's list
@@ -123,12 +115,6 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
          comCurrRef.SetNew(molIndex, destBox);
 	 cellList.AddMol(molIndex, destBox, coordCurrRef);
 
-	 //Calculate the fresh virial.
-         double newVirial_LJ = 0.0, newVirial_Real = 0.0;
-	 calcEnRef.MoleculeVirial(newVirial_LJ, newVirial_Real,
-				  molIndex,destBox);
-         sysPotRef.boxVirial[destBox].inter += newVirial_LJ;
-	 sysPotRef.boxVirial[destBox].real += newVirial_Real;
 
 	 //Zero out box energies to prevent small number 
 	 //errors in double.

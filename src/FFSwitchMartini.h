@@ -43,10 +43,6 @@ struct FF_SWITCH_MARTINI : public FFParticle
 {
 public:
 
-  virtual void CalcAdd(double& en, double& vir, const double distSq,
-                       const uint kind1, const uint kind2) const;
-  virtual void CalcSub(double& en, double& vir, const double distSq,
-                       const uint kind1, const uint kind2) const;
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2) const;
   virtual double CalcVir(const double distSq,
@@ -55,10 +51,6 @@ public:
                            const uint kind1, const uint kind2) const;
 
   // coulomb interaction functions
-  virtual void CalcCoulombAdd(double& en, double& vir, const double distSq,
-                              const double qi_qj_Fact) const;
-  virtual void CalcCoulombSub(double& en, double& vir, const double distSq,
-                              const double qi_qj_Fact) const;
   virtual double CalcCoulombEn(const double distSq,
                                const double qi_qj_Fact) const;
   virtual double CalcCoulombVir(const double distSq,
@@ -78,35 +70,8 @@ public:
     return 0.0;
   }
 
-private:
-  virtual void Calc(double& en, double& vir, const double distSq, uint index,
-#ifdef MIE_INT_ONLY
-                    const uint n
-#else
-                    const double n
-#endif
-                   ) const;
-
-  virtual void CalcCoulomb(double& en, double& vir, const double distSq,
-                           const double qi_qj_Fact)const;
-
 };
 
-inline void FF_SWITCH_MARTINI::CalcAdd(double& en, double& vir,
-                                       const double distSq,
-                                       const uint kind1,
-                                       const uint kind2) const
-{
-  uint idx = FlatIndex(kind1, kind2);
-  Calc(en, vir, distSq, idx, n[idx]);
-}
-
-inline void FF_SWITCH_MARTINI::CalcCoulombAdd(double& en, double& vir,
-    const double distSq,
-    const double qi_qj_Fact) const
-{
-  CalcCoulomb(en, vir, distSq, qi_qj_Fact);
-}
 
 inline void FF_SWITCH_MARTINI::CalcAdd_1_4(double& en, const double distSq,
     const uint kind1,
@@ -154,31 +119,11 @@ inline void FF_SWITCH_MARTINI::CalcCoulombAdd_1_4(double& en,
   en += scaling_14 * qi_qj_Fact * diElectric_1 * (coul + 1.0/dist);
 }
 
-inline void FF_SWITCH_MARTINI::CalcSub(double& en, double& vir,
-                                       const double distSq,
-                                       const uint kind1,
-                                       const uint kind2) const
-{
-  double tempEn=0, tempVir=0;
-  uint idx = FlatIndex(kind1, kind2);
-  Calc(tempEn, tempVir, distSq, idx, n[idx]);
-  en -= tempEn;
-  vir = -1.0 * tempVir;
-}
-
-inline void FF_SWITCH_MARTINI::CalcCoulombSub(double& en, double& vir,
-    const double distSq,
-    const double qi_qj_Fact) const
-{
-  double tempEn = 0.0, tempVir = 0.0;
-  CalcCoulomb(tempEn, tempVir, distSq, qi_qj_Fact);
-  en  -= tempEn;
-  vir -= tempVir;
-}
 
 //mie potential
 inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
-                                        const uint kind1, const uint kind2) const
+                                        const uint kind1,
+					const uint kind2) const
 {
   uint index = FlatIndex(kind1, kind2);
 
@@ -211,7 +156,7 @@ inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
 }
 
 inline double FF_SWITCH_MARTINI::CalcCoulombEn(const double distSq,
-    const double qi_qj_Fact) const
+					       const double qi_qj_Fact) const
 {
   // in Martini, the Coulomb switching distance is zero, so we will have
   // sqrt(distSq) - rOnCoul =  sqrt(distSq)
@@ -225,7 +170,8 @@ inline double FF_SWITCH_MARTINI::CalcCoulombEn(const double distSq,
 
 //mie potential
 inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
-    const uint kind1, const uint kind2) const
+					 const uint kind1,
+					 const uint kind2) const
 {
   uint index = FlatIndex(kind1, kind2);
   double n_ij = n[index];
@@ -253,7 +199,7 @@ inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
 }
 
 inline double FF_SWITCH_MARTINI::CalcCoulombVir(const double distSq,
-    const double qi_qj_Fact) const
+						const double qi_qj_Fact) const
 {
   // in Martini, the Coulomb switching distance is zero, so we will have
   // sqrt(distSq) - rOnCoul =  sqrt(distSq)
@@ -264,72 +210,6 @@ inline double FF_SWITCH_MARTINI::CalcCoulombVir(const double distSq,
 
   double virCoul = A1/rij_ronCoul_2 + B1/rij_ronCoul_3;
   return qi_qj_Fact * diElectric_1 * ( 1.0/(dist * distSq) + virCoul/dist);
-}
-
-
-//mie potential
-inline void FF_SWITCH_MARTINI::Calc(double & en, double & vir,
-                                    const double distSq, const uint index,
-#ifdef MIE_INT_ONLY
-                                    const uint n,
-#else
-                                    const double n
-#endif
-                                   ) const
-{
-
-  double r_1 = 1/sqrt(distSq);
-  double r_2 = 1.0/distSq;
-  double r_4 = r_2 * r_2;
-  double r_6 = r_4 * r_2;
-  double r_8 = r_4 * r_4;
-  double r_n = pow(r_1, n);
-  double r_n2 = pow(r_1, n + 2);
-
-  double rij_ron = sqrt(distSq) - rOn;
-  double rij_ron_2 = rij_ron * rij_ron;
-  double rij_ron_3 = rij_ron_2 * rij_ron;
-  double rij_ron_4 = rij_ron_2 * rij_ron_2;
-
-  //energy
-  double shifttempRep = -(An[index]/3.0)*rij_ron_3 -
-                        (Bn[index]/4.0)*rij_ron_4 - Cn[index];
-  double shifttempAtt = -(A6/3.0)*rij_ron_3 - (B6/4.0)*rij_ron_4 - C6;
-
-  const double shiftRep = ( distSq > rOnSq ? shifttempRep : -Cn[index]);
-  const double shiftAtt = ( distSq > rOnSq ? shifttempAtt : -C6);
-
-  en += epsilon_cn[index] * (sign[index] * (r_n + shiftRep) -
-                             sig6[index] * (r_6 + shiftAtt));
-
-  //virial
-  double dshifttempRep = An[index] * rij_ron_2 + Bn[index] * rij_ron_3;
-  double dshifttempAtt = A6 * rij_ron_2 + B6 * rij_ron_3;
-
-  const double dshiftRep = ( distSq > rOnSq ? dshifttempRep * r_1 : 0);
-  const double dshiftAtt = ( distSq > rOnSq ? dshifttempAtt * r_1 : 0);
-
-  vir = epsilon_cn[index] * (sign[index] *
-                             (n * r_n2 + dshiftRep) -
-                             sig6[index] * (6.0 * r_8 + dshiftAtt));
-
-}
-
-inline void FF_SWITCH_MARTINI::CalcCoulomb(double & en, double & vir,
-    const double distSq,
-    const double qi_qj_Fact)const
-{
-  double dist = sqrt(distSq);
-  double rij_ronCoul_2 = distSq;
-  double rij_ronCoul_3 = dist * distSq;
-  double rij_ronCoul_4 = distSq * distSq;
-
-  double coul = -(A1/3.0) * rij_ronCoul_3 - (B1/4.0) * rij_ronCoul_4 - C1;
-  double virCoul = A1/rij_ronCoul_2 + B1/rij_ronCoul_3;
-
-  en += qi_qj_Fact * diElectric_1 * (1.0/dist + coul);
-  vir = qi_qj_Fact * diElectric_1 * (1.0/(dist * distSq) + virCoul/dist);
-
 }
 
 

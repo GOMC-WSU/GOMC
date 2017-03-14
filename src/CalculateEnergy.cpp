@@ -70,6 +70,7 @@ SystemPotential CalculateEnergy::SystemTotal()
    //system intra
    for (uint b = 0; b < BOX_TOTAL; ++b)
    {
+      ForceCalc(b);
       double bondEn = 0.0, nonbondEn = 0.0, self = 0.0, correction = 0.0;
       MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b),
 	end = molLookup.BoxEnd(b);
@@ -117,20 +118,84 @@ SystemPotential CalculateEnergy::SystemInter
 
 
 SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
-    XYZArray const& coords,
-    XYZArray const& com,
-    BoxDimensions const& boxAxes,
-    const uint box)
+					  XYZArray const& coords,
+					  XYZArray const& com,
+					  BoxDimensions const& boxAxes,
+					  const uint box)
 {
    //Handles reservoir box case, returning zeroed structure if
    //interactions are off.
-   if (box >= BOXES_WITH_U_NB) return potential;
+   if (box >= BOXES_WITH_U_NB)
+     return potential;
 
-   double tempRForce = 0.0, tempLJForce = 0.0, tempREn = 0.0, tempLJEn = 0.0;
-   double boxSize = boxAxes.axis.BoxSize(box);
-   double distSq, partVirial, partRealVirial, qi_qj_fact, rEn, ljEn;
+   double tempREn = 0.0, tempLJEn = 0.0;
+   double distSq, qi_qj_fact;
    uint i;
    XYZ virComponents;
+   std::vector<uint> pair1, pair2;
+   CellList::Pairs pair = cellList.EnumeratePairs(box);
+
+   //store atom pair index
+   while (!pair.Done()) 
+   {
+     pair1.push_back(pair.First());
+     pair2.push_back(pair.Second());
+     pair.Next();
+   }
+
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents) reduction(+:tempREn, tempLJEn) 
+#endif    
+   for (i = 0; i < pair1.size(); i++)
+   {
+      if(!SameMolecule(pair1[i], pair2[i]) &&
+	 boxAxes.InRcut(distSq, virComponents,coords, pair1[i], pair2[i], box)) 
+      {
+	 if (electrostatic)
+	 {
+	   qi_qj_fact = particleCharge[pair1[i]] *
+	     particleCharge[pair2[i]] * num::qqFact;		  	
+
+	   tempREn += forcefield.particles->CalcCoulombEn(distSq, qi_qj_fact);
+	 }
+	 
+	 tempLJEn +=forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
+						 particleKind[pair2[i]]);
+      }      
+   }
+
+   
+   // setting energy and virial of LJ interaction
+   potential.boxEnergy[box].inter = tempLJEn;   
+   // setting energy and virial of coulomb interaction
+   potential.boxEnergy[box].real = tempREn;
+
+   // set correction energy and virial   
+   if (forcefield.useLRC) 
+   {
+      EnergyCorrection(potential, boxAxes, box);
+   }
+
+   potential.Total();
+
+   return potential;
+}
+
+
+Virial CalculateEnergy::ForceCalc(const uint box)
+{
+   //store virial and energy of reference and modify the virial
+   Virial tempVir;
+
+   //tensors for VDW and real part of electrostatic
+   double vT11 = 0.0, vT12 = 0.0, vT13 = 0.0;
+   double vT22 = 0.0, vT23 = 0.0, vT33 = 0.0;
+   double rT11 = 0.0, rT12 = 0.0, rT13 = 0.0;
+   double rT22 = 0.0, rT23 = 0.0, rT33 = 0.0;
+
+   double distSq, pVF, pRF, qi_qj;
+   uint i;
+   XYZ virC, comC;
    std::vector<uint> pair1, pair2;
    CellList::Pairs pair = cellList.EnumeratePairs(box);
    //store atom pair index
@@ -142,81 +207,119 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
    }
 
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, distSq, partVirial, partRealVirial, qi_qj_fact, rEn, ljEn, virComponents) reduction(+:tempREn, tempLJEn) reduction(-:tempRForce, tempLJForce) 
+#pragma omp parallel for default(shared) private(i, distSq, pVF, pRF, qi_qj, virC, comC) reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33) 
 #endif    
    for (i = 0; i < pair1.size(); i++)
    {
       if (!SameMolecule(pair1[i], pair2[i]) &&
-	  boxAxes.InRcut(distSq, virComponents, coords, pair1[i],
-			 pair2[i], box)) 
+	  currentAxes.InRcut(distSq, virC, currentCoords, pair1[i],
+			     pair2[i], box)) 
       {
-	 partVirial = 0.0;
-	 partRealVirial = 0.0;
-	 rEn = 0.0;
-	 ljEn = 0.0;
+	 pVF = 0.0;
+	 pRF = 0.0;
+
+	 //calculate the distance between com of two molecule
+	 comC = currentCOM.Difference(particleMol[pair1[i]],
+				      particleMol[pair2[i]]);
+	 //calculate the minimum image between com of two molecule
+	 comC = currentAxes.MinImage(comC, box);
+
 	 if (electrostatic)
 	 {
-	   qi_qj_fact = particleCharge[pair1[i]] *
-	     particleCharge[pair2[i]] * num::qqFact;		  	
+	   qi_qj = particleCharge[pair1[i]] * particleCharge[pair2[i]];		  	
 
-	   forcefield.particles->CalcCoulombAdd(rEn, partRealVirial, 
-						distSq, qi_qj_fact);
-	   tempREn += rEn;
-	   //Add to our pressure components for coulomb interaction.
-	   tempRForce -= geom::Dot(virComponents * partRealVirial,
-				    boxAxes.MinImage
-				    (com.Difference(particleMol[pair1[i]], 
-						  particleMol[pair2[i]]), box));
+	   pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj);
+	   //calculate the top diagonal of pressure tensor
+	   rT11 += pRF * (virC.x * comC.x);
+	   rT12 += pRF * (0.5 * (virC.x * comC.y + virC.y * comC.x));
+	   rT13 += pRF * (0.5 * (virC.x * comC.z + virC.z * comC.x));
+
+	   rT22 += pRF * (virC.y * comC.y);
+	   rT23 += pRF * (0.5 * (virC.y * comC.z + virC.z * comC.y));
+	   
+	   rT33 += pRF * (virC.z * comC.z);
 	 }
 	 
-	 forcefield.particles->CalcAdd(ljEn, partVirial, distSq,
-				       particleKind[pair1[i]],
-				       particleKind[pair2[i]]);
-	 tempLJEn += ljEn;
+	 pVF = forcefield.particles->CalcVir(distSq, particleKind[pair1[i]],
+					     particleKind[pair2[i]]);
+	 //calculate the top diagonal of pressure tensor
+	 vT11 += pVF * (virC.x * comC.x);
+	 vT12 += pVF * (0.5 * (virC.x * comC.y + virC.y * comC.x));
+	 vT13 += pVF * (0.5 * (virC.x * comC.z + virC.z * comC.x));
 
-	 //Add to our pressure components for LJ interaction.
-	 tempLJForce -= geom::Dot(virComponents * partVirial,
-				  boxAxes.MinImage
-				  (com.Difference(particleMol[pair1[i]], 
-						  particleMol[pair2[i]]), box));
+	 vT22 += pVF * (virC.y * comC.y);
+	 vT23 += pVF * (0.5 * (virC.y * comC.z + virC.z * comC.y));
 	 
-	 
+	 vT33 += pVF * (virC.z * comC.z);
       }      
    }
 
+   // set the all tensor values
+   tempVir.interTens[0][0] = vT11;
+   tempVir.interTens[0][1] = vT12;
+   tempVir.interTens[0][2] = vT13;
+
+   tempVir.interTens[1][0] = vT12;
+   tempVir.interTens[1][1] = vT22;
+   tempVir.interTens[1][2] = vT23;
+
+   tempVir.interTens[2][0] = vT13;
+   tempVir.interTens[2][1] = vT23;
+   tempVir.interTens[2][2] = vT33;
    
-   // setting energy and virial of LJ interaction
-   potential.boxEnergy[box].inter = tempLJEn;   
-   potential.boxVirial[box].inter = tempLJForce;
-   // setting energy and virial of coulomb interaction
-   potential.boxEnergy[box].real = tempREn;
-   potential.boxVirial[box].real = tempRForce;
+   if (electrostatic)
+   {
+      // real part of electrostatic
+     tempVir.realTens[0][0] = rT11 * num::qqFact;
+     tempVir.realTens[0][1] = rT12 * num::qqFact;
+     tempVir.realTens[0][2] = rT13 * num::qqFact;
+
+     tempVir.realTens[1][0] = rT12 * num::qqFact;
+     tempVir.realTens[1][1] = rT22 * num::qqFact;
+     tempVir.realTens[1][2] = rT23 * num::qqFact;
+
+     tempVir.realTens[2][0] = rT13 * num::qqFact;
+     tempVir.realTens[2][1] = rT23 * num::qqFact;
+     tempVir.realTens[2][2] = rT33 * num::qqFact;   
+   }
+
+   // setting virial of LJ   
+   tempVir.inter = vT11 + vT22 + vT33;
+   // setting virial of coulomb 
+   tempVir.real = (rT11 + rT22 + rT33) * num::qqFact;
    
    if (forcefield.useLRC) 
    {
-      FullTailCorrection(potential, boxAxes, box);
+     ForceCorrection(tempVir, currentAxes, box);
    }
+   
+   //calculate reciprocate term of force
+   tempVir = calcEwald->ForceReciprocal(tempVir, box);
+   //calculate correction term of force
+   //tempVir = calcEwald->ForceCorrection(tempVir, box);
 
-   potential.Total();
+   tempVir.Total();
 
-   return potential;
+   std::cout << "Inter: " << tempVir.inter << ", Tc: " << tempVir.tc
+	     << ", Real: " << tempVir.real << ", Recip: " << tempVir.recip
+	     << ", P Total: " << tempVir.total << std::endl;
+
+   return tempVir;
 }
+
+
 
 void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 				    Intermolecular &inter_coulomb,
 				    XYZArray const& molCoords,
 				    const uint molIndex,
-				    const uint box,
-				    XYZ const*const newCOM) const
+				    const uint box) const
 {   
-   double tempRForce = 0.0, tempLJForce = 0.0, tempREn = 0.0, tempLJEn = 0.0;
+   double tempREn = 0.0, tempLJEn = 0.0;
    if (box < BOXES_WITH_U_NB)
    {
-      double boxSize = currentAxes.axis.BoxSize(box);
-      bool hasNewCOM = !(newCOM == NULL);
       uint length = mols.GetKind(molIndex).NumAtoms();
       uint start = mols.MolStart(molIndex);
-      double rEn, ljEn;
 
       for (uint p = 0; p < length; ++p) 
       {
@@ -225,7 +328,7 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 							 box);
 	 n = cellList.EnumerateLocal(currentCoords[atom], box);
 	 
-	 double partVirial, partRealVirial, qi_qj_fact, distSq; 
+	 double qi_qj_fact, distSq; 
 	 uint i;
 	 XYZ virComponents;
 	 std::vector<uint> nIndex;
@@ -236,8 +339,9 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 	   nIndex.push_back(*n);
 	   n.Next();
 	 }
+
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, distSq, partVirial, partRealVirial, qi_qj_fact, rEn, ljEn, virComponents) reduction(+:tempREn, tempLJEn) reduction(-:tempRForce, tempLJForce)
+#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents) reduction(+:tempREn, tempLJEn)
 #endif      
 	 for(i = 0; i < nIndex.size(); i++)
 	 {
@@ -246,42 +350,18 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 	    if (currentAxes.InRcut(distSq, virComponents, 
 				   currentCoords, atom, nIndex[i], box)) 
 	    {
-	       partVirial = 0.0;	
-	       partRealVirial = 0.0;
-	       rEn = 0.0;
-	       ljEn = 0.0;
 	       if (electrostatic)
 	       {
 		 qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
 		   num::qqFact;
 
-		 forcefield.particles->CalcCoulombSub(rEn,
-						      partRealVirial, distSq,
-						      qi_qj_fact);
-		 tempREn += rEn;
-
-		 //Add to our pressure components for coulomb interaction.
-		  tempRForce -= geom::Dot(virComponents * partRealVirial,
-					  currentAxes.MinImage
-					  (currentCOM.Difference
-					   (molIndex, particleMol[nIndex[i]]),
-					   box));
-		 
+		 tempREn -= forcefield.particles->CalcCoulombEn(distSq,
+								qi_qj_fact);
 	       }
 		 
-	       forcefield.particles->CalcSub(ljEn,
-					    partVirial, distSq,
-					    particleKind[atom],
-					    particleKind[nIndex[i]]);
-	       
-	       tempLJEn += ljEn;
-	       //Add to our pressure components for LJ interaction.
-	       tempLJForce -= geom::Dot(virComponents * partVirial,
-					currentAxes.MinImage
-					(currentCOM.Difference
-					 (molIndex, particleMol[nIndex[i]]),
-					 box));
-	       
+	       tempLJEn -=forcefield.particles->CalcEn(distSq,
+						       particleKind[atom],
+						       particleKind[nIndex[i]]);
 	    } 
 	 }
 
@@ -296,75 +376,33 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 	 }
 
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, distSq, partVirial, partRealVirial, qi_qj_fact, rEn, ljEn, virComponents) reduction(+:tempREn, tempLJEn) reduction(-:tempRForce, tempLJForce) 
+#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents) reduction(+:tempREn, tempLJEn)
 #endif	 
 	 for(i = 0; i < nIndex.size(); i++) 
 	 {
 	    distSq = 0.0;
 	    if (currentAxes.InRcut(distSq, virComponents, 
-				   molCoords, p, currentCoords, nIndex[i],
-				   box)) 
+				   molCoords, p, currentCoords, nIndex[i],box)) 
 	    {
-	       partVirial = 0.0;	 
-	       partRealVirial = 0.0;
-	       rEn = 0.0;
-	       ljEn = 0.0;
 	       if (electrostatic)
 	       {
 		 qi_qj_fact = particleCharge[atom] *
 		   particleCharge[nIndex[i]] * num::qqFact;	       
-
-		 forcefield.particles->CalcCoulombAdd(rEn,
-						      partRealVirial, distSq,
-						      qi_qj_fact);
-		 tempREn += rEn;
-		 if (hasNewCOM)
-		 {
-		   //Add to our pressure components.
-		   tempRForce -=
-		     geom::Dot(virComponents * partRealVirial,
-			       currentAxes.MinImage(*newCOM - currentCOM.Get(particleMol[nIndex[i]]),box));
-		   
-		 }
-		 else
-		 {
-		   tempRForce -= geom::Dot(virComponents * partRealVirial,
-					   currentAxes.MinImage
-					   (currentCOM.Difference
-					    (molIndex, particleMol[nIndex[i]]),
-					    box));
-		 }
+		 
+		 tempREn += forcefield.particles->CalcCoulombEn(distSq,
+								qi_qj_fact);
 	       }
 
-	       forcefield.particles->CalcAdd(ljEn, partVirial,
-					     distSq, particleKind[atom],
-					     particleKind[nIndex[i]]);
-	       
-	       tempLJEn += ljEn;
-	       if (hasNewCOM)
-	       {
-		  //Add to our pressure components.
-		  tempLJForce -= geom::Dot(virComponents * partVirial,
-					   currentAxes.MinImage
-					   (*newCOM - 
-					    currentCOM.Get(particleMol[nIndex[i]]), box));
-	       }
-	       else
-	       {
-		  tempLJForce -= geom::Dot(virComponents * partVirial,
-					   currentAxes.MinImage
-					   (currentCOM.Difference
-					    (molIndex, particleMol[nIndex[i]]), box));
-	       }
+	       tempLJEn +=forcefield.particles->CalcEn(distSq,
+						       particleKind[atom],
+						       particleKind[nIndex[i]]);
 	    }
 	 }
       }
    }
    
    inter_LJ.energy = tempLJEn;
-   inter_LJ.virial = tempLJForce;
    inter_coulomb.energy = tempREn;
-   inter_coulomb.virial = tempRForce;
 }
 
 // Calculate 1-N nonbonded intra energy
@@ -395,10 +433,9 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
         if (currentAxes.InRcut(distSq, trialPos, t, trialMol.GetCoords(),
                                *partner, box))
         {
-          inter[t] +=
-            forcefield.particles->CalcEn(distSq,
-                                         kind.AtomKind(partIndex),
-                                         kind.AtomKind(*partner));
+          inter[t] += forcefield.particles->CalcEn(distSq,
+						   kind.AtomKind(partIndex),
+						   kind.AtomKind(*partner));
           if (electrostatic)
           {
             double qi_qj_Fact = kind.AtomCharge(partIndex) *
@@ -521,80 +558,6 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
    return;
 }
 
-void CalculateEnergy::MoleculeVirial(double & virial_LJ, double & virial_real,
-                                     const uint molIndex, const uint box) const
-{
-   double vir_LJ = 0.0;
-   double vir_real = 0.0;
-
-   if (box < BOXES_WITH_U_NB)
-   {
-      double boxSize = currentAxes.axis.BoxSize(box);
-      const MoleculeKind& thisKind = mols.GetKind(molIndex);
-      uint thisStart = mols.MolStart(molIndex);
-      uint thisLength = thisKind.NumAtoms();
-      double mag_LJ, mag_real, qi_qj_Fact, distSq;
-      uint p, i;
-      XYZ virComponents;
-      std::vector<uint> nIndex;
-
-      for (p = 0; p < thisLength; ++p) 
-      {
-	 uint atom = thisStart + p;
-	 CellList::Neighbors n =
-	    cellList.EnumerateLocal(currentCoords[atom], box);
-	 //clear and assign atom Index
-	 nIndex.clear();
-	 while (!n.Done()) 
-	 {
-	   nIndex.push_back(*n);
-	   n.Next();
-	 }
-
-#ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, mag_LJ, mag_real, virComponents) reduction(-:vir_real, vir_LJ)
-#endif	 
-	 for (i = 0; i < nIndex.size(); i++)
-	 {
-	    distSq = 0.0;
-
-	    if (particleMol[atom] != particleMol[nIndex[i]] &&
-		currentAxes.InRcut(distSq, virComponents, currentCoords, 
-				   atom, nIndex[i], box))
-	    {
-	       mag_LJ = forcefield.particles->CalcVir(distSq,
-							 particleKind[atom],
-							 particleKind[nIndex[i]]);
-	       if (electrostatic)
-	       {
-		 qi_qj_Fact = particleCharge[atom] * particleCharge[nIndex[i]] *
-		   num::qqFact;
-
-		 mag_real =
-		   forcefield.particles->CalcCoulombVir(distSq, qi_qj_Fact);
-
-		 vir_real -= geom::Dot(virComponents * mag_real,
-				       currentAxes.MinImage
-				       (currentCOM.Difference(particleMol[atom],
-							      particleMol[nIndex[i]]), box));
-	       }
-	       
-	       vir_LJ -= geom::Dot(virComponents * mag_LJ,
-				   currentAxes.MinImage
-				   (currentCOM.Difference(particleMol[atom],
-							  particleMol[nIndex[i]]), box));
-	       
-	    }
-
-	 }
-      }
-
-   }
-   
-   virial_LJ = vir_LJ;
-   virial_real = vir_real;
-}
-
 
 //Calculates the change in the TC from adding numChange atoms of a kind
 Intermolecular CalculateEnergy::MoleculeTailChange(const uint box,
@@ -614,12 +577,10 @@ Intermolecular CalculateEnergy::MoleculeTailChange(const uint box,
       double rhoDeltaIJ_2 = sign * 2.0 *
                             (double)(molLookup.NumKindInBox(j, box)) * currentAxes.volInv[box];
       delta.energy += mols.pairEnCorrections[mkIdxIJ] * rhoDeltaIJ_2;
-      delta.virial -= mols.pairVirCorrections[mkIdxIJ] * rhoDeltaIJ_2;
     }
+
     //We already calculated part of the change for this type in the loop
     delta.energy += mols.pairEnCorrections[mkIdxII] *
-                    currentAxes.volInv[box];
-    delta.virial -= mols.pairVirCorrections[mkIdxII] *
                     currentAxes.volInv[box];
   }
   return delta;
@@ -726,37 +687,29 @@ void CalculateEnergy::MolNonbond(double & energy,
   double distSq;
   double qi_qj_Fact;
   double boxSize = currentAxes.axis.BoxSize(box);
-  double virial; //we will throw this away
+
   for (uint i = 0; i < molKind.nonBonded.count; ++i)
   {
-    uint p1 = mols.start[molIndex] + molKind.nonBonded.part1[i];
-    uint p2 = mols.start[molIndex] + molKind.nonBonded.part2[i];
+     uint p1 = mols.start[molIndex] + molKind.nonBonded.part1[i];
+     uint p2 = mols.start[molIndex] + molKind.nonBonded.part2[i];
 
-    if (currentAxes.InRcut(distSq, currentCoords, p1, p2, box))
-    {
-      forcefield.particles->CalcAdd(energy, virial, distSq,
-                                    molKind.AtomKind
-                                    (molKind.nonBonded.part1[i]),
-                                    molKind.AtomKind
-                                    (molKind.nonBonded.part2[i]));
-      if (electrostatic)
-      {
-        forcefield.particles->CalcAdd(energy, virial, distSq,
-                                      molKind.AtomKind
-                                      (molKind.nonBonded.part1[i]),
-                                      molKind.AtomKind
-                                      (molKind.nonBonded.part2[i]));
+     if (currentAxes.InRcut(distSq, currentCoords, p1, p2, box))
+     {
+        energy += forcefield.particles->CalcEn(distSq, molKind.AtomKind
+					       (molKind.nonBonded.part1[i]),
+					       molKind.AtomKind
+					       (molKind.nonBonded.part2[i]));
         if (electrostatic)
         {
-         qi_qj_Fact = num::qqFact * molKind.AtomCharge(molKind.nonBonded.part1[i])
-           * molKind.AtomCharge(molKind.nonBonded.part2[i]);
+           qi_qj_Fact = num::qqFact *
+	     molKind.AtomCharge(molKind.nonBonded.part1[i]) *
+	     molKind.AtomCharge(molKind.nonBonded.part2[i]);
        
-         forcefield.particles->CalcCoulombAdd(energy, virial,
-                distSq, qi_qj_Fact);
-       }
-      }
-    }
+	   energy += forcefield.particles->CalcCoulombEn( distSq, qi_qj_Fact);
+	}
+     }
   }
+
 }
 
 void CalculateEnergy::MolNonbond_1_4(double & energy,
@@ -887,14 +840,13 @@ double CalculateEnergy::IntraEnergy_1_4(const double distSq, const uint atom1,
 }
 
 //!Calculates energy and virial tail corrections for the box
-void CalculateEnergy::FullTailCorrection(SystemPotential& pot,
-    BoxDimensions const& boxAxes,
-    const uint box) const
+void CalculateEnergy::EnergyCorrection(SystemPotential& pot,
+				       BoxDimensions const& boxAxes,
+				       const uint box) const
 {
   if (box < BOXES_WITH_U_NB)
   {
     double en = 0.0;
-    double vir = 0.0;
 
     for (uint i = 0; i < mols.kindsCount; ++i)
     {
@@ -904,12 +856,32 @@ void CalculateEnergy::FullTailCorrection(SystemPotential& pot,
         uint numJ = molLookup.NumKindInBox(j, box);
         en += mols.pairEnCorrections[i * mols.kindsCount + j] * numI * numJ
               * boxAxes.volInv[box];
-        vir -= mols.pairVirCorrections[i * mols.kindsCount + j] *
-               numI * numJ * boxAxes.volInv[box];
       }
     }
     pot.boxEnergy[box].tc = en;
-    pot.boxVirial[box].tc = vir;
   }
 }
+
+void CalculateEnergy::ForceCorrection(Virial& virial,
+				      BoxDimensions const& boxAxes,
+				      const uint box) const
+{
+  if (box < BOXES_WITH_U_NB)
+  {
+    double vir = 0.0;
+
+    for (uint i = 0; i < mols.kindsCount; ++i)
+    {
+      uint numI = molLookup.NumKindInBox(i, box);
+      for (uint j = 0; j < mols.kindsCount; ++j)
+      {
+        uint numJ = molLookup.NumKindInBox(j, box);
+        vir += mols.pairVirCorrections[i * mols.kindsCount + j] *
+               numI * numJ * boxAxes.volInv[box];
+      }
+    }
+    virial.tc = vir;
+  }
+}
+
 

@@ -17,6 +17,8 @@ struct XYZ
    XYZ() : x(0.0), y(0.0), z(0.0) {}
    XYZ(double xVal, double yVal, double zVal) : x(xVal), y(yVal), z(zVal) {}
 
+   XYZ& operator=(XYZ const& rhs) 
+   { x = rhs.x; y = rhs.y; z = rhs.z; return *this; }
    XYZ& operator+=(XYZ const& rhs)
    { x += rhs.x; y += rhs.y; z += rhs.z; return *this; }
    XYZ& operator-=(XYZ const& rhs)

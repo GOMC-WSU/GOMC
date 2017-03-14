@@ -136,7 +136,8 @@ namespace config_setup
  
    struct Step 
    { 
-      ulong total, equil, adjustment; 
+     ulong total, equil, adjustment, pressureCalcFreq;
+     bool pressureCalc;
    }; 
  
    //Holds the percentage of each kind of move for this ensemble. 

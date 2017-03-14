@@ -67,6 +67,19 @@ double NoEwald::BoxReciprocal(uint box) const
 }
 
 
+//calculate reciprocate force term for a box
+Virial NoEwald::ForceReciprocal(Virial& virial, uint box) const
+{
+   return virial; 
+}
+
+//calculate correction force term for a box
+Virial NoEwald::ForceCorrection(Virial& virial, uint box) const
+{
+   return virial; 
+}
+
+
 //calculate reciprocate term for displacement and rotation move
 double NoEwald::MolReciprocal(XYZArray const& molCoords,
 			      const uint molIndex, const uint box,
