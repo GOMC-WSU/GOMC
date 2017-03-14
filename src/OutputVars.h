@@ -6,6 +6,7 @@
 #include "StaticVals.h"
 #include "BoxDimensions.h"
 #include "EnergyTypes.h"
+#include "CalculateEnergy.h"
 
 class System;
 class MoveSettings;
@@ -21,7 +22,7 @@ public:
    void Init(pdb_setup::Atoms const& atoms);
    void InitRef(System & sys, StaticVals const& statV);
 
-   void CalcAndConvert(void);
+   void CalcAndConvert(ulong step);
    uint GetTries(uint sub);
    uint GetAccepted(uint sub);
    double GetAcceptPercent(uint sub);
@@ -32,7 +33,9 @@ public:
    uint * numByBox, * numByKindBox;
    double * molFractionByKindBox, * densityByKindBox,
      pressure[BOXES_WITH_U_NB], densityTot[BOX_TOTAL];
-   double pTensor[3][3];
+   double pressureTens[BOXES_WITH_U_NB][3][3];
+   ulong pCalcFreq;
+   bool pressureCalc;
    
    uint numKinds;
    //Constants
@@ -46,7 +49,8 @@ public:
    Virial * virialRef, * virial,  * virialTotRef;
    MoleculeKind * kindsRef;
    MoleculeLookup * molLookupRef;
-   
+   CalculateEnergy& calc;
+
    //Local copy of res names.
    std::vector<std::string> resKindNames;
    double const* movePercRef;

@@ -76,6 +76,7 @@ void Ewald::AllocMem()
   kx = new double*[BOX_TOTAL];
   ky = new double*[BOX_TOTAL];
   kz = new double*[BOX_TOTAL];
+  hsqr = new double*[BOX_TOTAL];
   prefact = new double*[BOX_TOTAL];
      
   for (uint b = 0; b < BOX_TOTAL; b++)
@@ -83,6 +84,7 @@ void Ewald::AllocMem()
      kx[b] = new double[imageTotal];
      ky[b] = new double[imageTotal];
      kz[b] = new double[imageTotal];
+     hsqr[b] = new double[imageTotal];
      prefact[b] = new double[imageTotal];
      sumRnew[b] = new double[imageTotal];
      sumInew[b] = new double[imageTotal];
@@ -130,6 +132,7 @@ void Ewald::RecipInit(uint box, BoxDimensions const& boxAxes)
 	       kx[box][counter] = constValue * x;
 	       ky[box][counter] = constValue * y;
 	       kz[box][counter] = constValue * z;
+	       hsqr[box][counter] = ksqr;
 	       prefact[box][counter] = num::qqFact * exp(-ksqr * alpsqr4)/
 		 (ksqr * vol);
 	       counter++;

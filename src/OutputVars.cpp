@@ -8,10 +8,8 @@
 #include "MoveConst.h" //For box constants, if we're calculating Hv
 #endif
 
-OutputVars::OutputVars(System & sys, StaticVals const& statV)
-{
-  InitRef(sys, statV);
-}
+OutputVars::OutputVars(System & sys, StaticVals const& statV) :
+  calc(sys.calcEnergy) { InitRef(sys, statV); }
 
 void OutputVars::InitRef(System & sys, StaticVals const& statV)
 {
@@ -22,11 +20,13 @@ void OutputVars::InitRef(System & sys, StaticVals const& statV)
   energyTotRef = & sys.potential.totalEnergy;
   virialTotRef = & sys.potential.totalVirial;
   energyRef = sys.potential.boxEnergy;
-  virialRef = sys.potential.boxVirial;
+  virialRef = sys.potential.boxVirial; //
   kindsRef = statV.mol.kinds;
   molLookupRef = & sys.molLookupRef;
   moveSetRef = & sys.moveSettings;
   movePercRef = statV.movePerc;
+  pCalcFreq = statV.simEventFreq.pCalcFreq;
+  pressureCalc = statV.simEventFreq.pressureCalc;
 
   virial = new Virial[BOXES_WITH_U_NB];
 }
@@ -84,7 +84,7 @@ OutputVars::~OutputVars(void)
     delete[] densityByKindBox;
 }
 
-void OutputVars::CalcAndConvert(void)
+void OutputVars::CalcAndConvert(ulong step)
 {
   double rawPressure[BOXES_WITH_U_NB];
 
@@ -110,9 +110,27 @@ void OutputVars::CalcAndConvert(void)
     //Account for dimensionality of virial (raw "virial" is actually a
     //multiple of the true virial, based on the dimensions stress is exerted
     //in)
+    
+    if (((step+1) % pCalcFreq == 0) && pressureCalc)
+    {
+      virialRef[b] = calc.ForceCalc(b);
+      *virialTotRef += virialRef[b];
+    }
+    
     virial[b] = virialRef[b];
     virial[b] /= unit::DIMENSIONALITY;
     virial[b] /= volumeRef[b];
+    virial[b].Total();
+    //save the pressure tensor for print
+    for (int i = 0; i < 3; i++)
+    {
+      for (int j = 0; j < 3; j++)
+      {
+	pressureTens[b][i][j] = virial[b].totalTens[i][j] * unit::DIMENSIONALITY
+	 *  unit::K_MOLECULE_PER_A3_TO_BAR;
+      }
+    }
+    
     rawPressure[b] = 0.0;
     densityTot[b] = 0.0;
     for (uint k = 0; k < numKinds; k++)
@@ -129,7 +147,7 @@ void OutputVars::CalcAndConvert(void)
     // Finish ideal component
     rawPressure[b] *= T_in_K;
     // Add the virial component
-    rawPressure[b] -= virial[b].total;
+    rawPressure[b] += virial[b].total;
 
     // Convert to desired units
     // ( starting: K * molecule / Angstrom^3 )
