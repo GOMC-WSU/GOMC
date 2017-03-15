@@ -383,7 +383,7 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
  
 	    for (j = 0; j < thisKind.NumAtoms(); j++)
 	    {
-	      dotProduct = currentAxes.DotProduct(mols.start[*thisMol] + j,
+	      dotProduct = currentAxes.DotProduct(mols.MolStart(*thisMol) + j,
 						  kx[box][i], ky[box][i],
 						  kz[box][i], molCoords, box);
 
@@ -427,13 +427,16 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
 {
    Virial tempVir = virial;
 
+   if (box >= BOXES_WITH_U_NB)
+     return tempVir;
+
    double wT11 = 0.0, wT12 = 0.0, wT13 = 0.0;
    double wT22 = 0.0, wT23 = 0.0, wT33 = 0.0;
 
    double recipIntra = 0.0;
    double constVal = 1.0 / (4.0 * alpha * alpha);
    double factor, arg, charge;
-   uint i, length, start;
+   uint i, p, length, start, atom;
    
    MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box),
      end = molLookup.BoxEnd(box);
@@ -463,6 +466,8 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
 			kz[box][i] * kz[box][i]); 
    }
 
+   double part1 = wT11 + wT22 + wT33;
+   std::cout << "**Recip1: " << part1 << std::endl;
 
    //the intramolecular part should be substracted
    while (thisMol != end)
@@ -471,9 +476,9 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
       start = mols.MolStart(*thisMol);
       comC = currentCOM.Get(*thisMol);
 
-      for (uint p = 0; p < length; p++)
+      for (p = 0; p < length; p++)
       {
-	 uint atom = start + p;
+	 atom = start + p;
 	 //compute the vector of the bead to the COM (p)
 	 //comC = currentCoords.Difference(atom, currentCOM, *thisMol);
 	 	   
@@ -487,11 +492,14 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
 	 for (i = 0; i < imageSize[box]; i++)
 	 {
 	    //compute the dot product of k and r
-	    arg = kx[box][i] * atomC.x + ky[box][i] * atomC.y +
-	      kz[box][i] * atomC.z;
+	    //arg = kx[box][i] * atomC.x + ky[box][i] * atomC.y +
+	    //  kz[box][i] * atomC.z;
 
-	    factor = prefact[box][i] * 2.0 * (-1.0 * sumRnew[box][i]*sin(arg) +
-					      sumInew[box][i]*cos(arg))*charge;
+	    arg = currentAxes.DotProduct(atom, kx[box][i], ky[box][i],
+					 kz[box][i], currentCoords, box);
+
+	    factor = prefact[box][i] * 2.0 * (sumInew[box][i]*cos(arg) -
+					      sumRnew[box][i]*sin(arg))*charge;
 
 	    wT11 += factor * (kx[box][i] * diffC.x);
 	    wT12 += factor * 0.5 *(kx[box][i] * diffC.y + ky[box][i] * diffC.x);
@@ -505,7 +513,9 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
       }
       ++thisMol;
    }
-
+   double part2 = wT11 + wT22 + wT33 - part1;
+   std::cout << "**Recip2: " << part2 << std::endl;
+   
    // set the all tensor values
    tempVir.recipTens[0][0] = wT11;
    tempVir.recipTens[0][1] = wT12;
@@ -551,8 +561,8 @@ Virial EwaldCached::ForceCorrection(Virial& virial, uint box) const
 	for (uint j = i + 1; j < thisKind.NumAtoms(); j++)
 	{
 	  currentAxes.InRcut(distSq, virC, currentCoords,
-			     mols.start[*thisMol] + i,
-			     mols.start[*thisMol] + j, box);
+			     mols.MolStart(*thisMol) + i,
+			     mols.MolStart(*thisMol) + j, box);
 	  dist = sqrt(distSq);
 	  expConstValue = exp(-1.0 * alpha * alpha * distSq);
 	  temp = erf(alpha * dist);
@@ -690,13 +700,15 @@ double EwaldCached::MolCorrection(uint molIndex, BoxDimensions const& boxAxes,
    XYZ virComponents; 
    
    MoleculeKind& thisKind = mols.kinds[mols.kIndex[molIndex]];
-   for (uint i = 0; i < thisKind.NumAtoms(); i++)
+   uint atomSize = thisKind.NumAtoms();
+   uint start = mols.MolStart(molIndex);
+
+   for (uint i = 0; i < atomSize; i++)
    {
-      for (uint j = i + 1; j < thisKind.NumAtoms(); j++)
+      for (uint j = i + 1; j < atomSize; j++)
       {
 	 currentAxes.InRcut(distSq, virComponents, currentCoords,
-			    mols.start[molIndex] + i,
-			    mols.start[molIndex] + j, box);
+			    start + i, start + j, box);
 	 dist = sqrt(distSq);
 	 correction += (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
 			erf(alpha * dist) / dist);
