@@ -29,6 +29,9 @@ public:
   //Init from the coordinates grabbed from pdb file read.
   void InitFromPDB(pdb_setup::Atoms const& atoms);
 
+  // to see if they are within defined volume or not.
+  void CheckCoordinate();
+
   //Translate by a random amount
   void TranslateRand(XYZArray & dest, XYZ & newCOM, uint & pStart,
                      uint & pLen, const uint m, const uint b,

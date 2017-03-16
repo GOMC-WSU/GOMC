@@ -480,9 +480,9 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
       {
 	 atom = start + p;
 	 //compute the vector of the bead to the COM (p)
-	 //comC = currentCoords.Difference(atom, currentCOM, *thisMol);
-	 	   
+	 // need to unwrap the atom coordinate
 	 atomC = currentCoords.Get(atom);
+	 currentAxes.UnwrapPBC(atomC, box, comC);
 
 	 diffC = atomC - comC;
 

@@ -12,7 +12,73 @@ void Coordinates::InitFromPDB(pdb_setup::Atoms const& atoms)
   std::copy(atoms.x.begin(), atoms.x.end(), x);
   std::copy(atoms.y.begin(), atoms.y.end(), y);
   std::copy(atoms.z.begin(), atoms.z.end(), z);
+  CheckCoordinate();
   comRef.CalcCOM();
+}
+
+void Coordinates::CheckCoordinate()
+{
+  int p, start, atom, length, stRange, endRange;
+  XYZ min, max, diffV;
+
+  for (uint b = 0; b < BOX_TOTAL; b++)
+  {
+    MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b),
+      end = molLookRef.BoxEnd(b), endc = molLookRef.BoxEnd(b);
+    //find the min and max coordinate
+    stRange = molRef.MolStart(*thisMol);
+    --endc;
+    endRange = molRef.MolStart(*endc) + molRef.GetKind(*endc).NumAtoms();
+    
+    min.x = *std::min_element(x + stRange, x + endRange);
+    max.x = *std::max_element(x + stRange, x + endRange);
+    min.y = *std::min_element(y + stRange, y + endRange);
+    max.y = *std::max_element(y + stRange, y + endRange);
+    min.z = *std::min_element(z + stRange, z + endRange);
+    max.z = *std::max_element(z + stRange, z + endRange);
+
+    diffV = max - min;
+    //printf("start: %d, end: %d\n", stRange, endRange);
+    printf("Minimum coordinates in box %d: x= %4.3f, y= %4.3f, z= %4.3f\n",
+	   b, min.x, min.y, min.z);
+    printf("Maximum coordinates in box %d: x= %4.3f, y= %4.3f, z= %4.3f\n",
+	   b, max.x, max.y, max.z);
+
+    //check to see if molecules are in the box or not
+    if( diffV.x > boxDimRef.axis.Get(b).x ||
+	diffV.y > boxDimRef.axis.Get(b).y ||
+	diffV.z > boxDimRef.axis.Get(b).z)
+    {
+      printf("Molecules are not packed inside the defined box dimension.\n");
+      exit(0);
+    }
+
+
+    if(min.x < 0.0 || min.y < 0.0 || min.z < 0.0)
+    {
+      //shift all the molecules to positive axis
+       XYZ shiftV = min;
+       shiftV *= -1.0;
+       printf("Note: Molecules in the box %d will be shifted to origin by vector [%4.3f, %4.3f, %4.3f].\n", b, shiftV.x, shiftV.y, shiftV.z);
+    
+       while (thisMol != end)
+       {
+	 start = molRef.MolStart(*thisMol);
+	 MoleculeKind const& thisKind = molRef.GetKind(*thisMol);
+      
+	 for (p = 0; p < thisKind.NumAtoms(); p++)
+	 {
+	    atom = start + p;
+	    x[atom] += shiftV.x;
+	    y[atom] += shiftV.y;
+	    z[atom] += shiftV.z;
+	 }
+	 ++thisMol;
+       }
+    
+    }
+  }
+
 }
 
 //Translate by a random amount
