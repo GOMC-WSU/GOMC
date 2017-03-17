@@ -102,7 +102,9 @@ void Ewald::RecipInit(uint box, BoxDimensions const& boxAxes)
    int x, y, z, nky_max, nky_min, nkz_max, nkz_min;   
    double ksqr;
    double alpsqr4 = 1.0 / (4.0 * alpha * alpha);
-   double constValue = 2 * M_PI / boxAxes.axis.BoxSize(box);
+   XYZ constValue = boxAxes.axis.Get(box);
+   constValue.Inverse();
+   constValue *= 2 * M_PI;
    double vol = boxAxes.volume[box] / (4 * M_PI);
    kmax[box] = int(recip_rcut * boxAxes.axis.BoxSize(box) / (2 * M_PI)) + 1;
  
@@ -124,14 +126,14 @@ void Ewald::RecipInit(uint box, BoxDimensions const& boxAxes)
 	 }
 	 for (z = nkz_min; z <= nkz_max; z++)
          {
-	   ksqr = pow((constValue * x), 2) + pow((constValue * y), 2) +
-	     pow ((constValue * z), 2);
+	   ksqr = pow((constValue.x * x), 2) + pow((constValue.y * y), 2) +
+	     pow ((constValue.z * z), 2);
 	    
 	    if (ksqr < recip_rcut_Sq)
 	    {
-	       kx[box][counter] = constValue * x;
-	       ky[box][counter] = constValue * y;
-	       kz[box][counter] = constValue * z;
+	       kx[box][counter] = constValue.x * x;
+	       ky[box][counter] = constValue.y * y;
+	       kz[box][counter] = constValue.z * z;
 	       hsqr[box][counter] = ksqr;
 	       prefact[box][counter] = num::qqFact * exp(-ksqr * alpsqr4)/
 		 (ksqr * vol);

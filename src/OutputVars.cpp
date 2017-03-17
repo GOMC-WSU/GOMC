@@ -115,7 +115,13 @@ void OutputVars::CalcAndConvert(ulong step)
     {
       virialRef[b] = calc.ForceCalc(b);
       *virialTotRef += virialRef[b];
-    }
+      surfaceTens[b] = (virialRef[b].totalTens[2][2] - 0.5 *
+			(virialRef[b].totalTens[0][0] +
+			 virialRef[b].totalTens[1][1]));
+      surfaceTens[b] *= unit::K_TO_MN_PER_M /
+	(2.0 * axisRef->Get(b).x * axisRef->Get(b).y);
+      printf("Surface_Tension: %4.3f\n", surfaceTens[b]);
+    }  
     
     virial[b] = virialRef[b];
     virial[b] /= unit::DIMENSIONALITY;

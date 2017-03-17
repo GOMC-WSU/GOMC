@@ -74,6 +74,18 @@ public:
     return result;
   }
 
+  //Returns biggest of x/y/z values in row i
+  double Max(const uint i) const
+  {
+    double result = x[i];
+    if (y[i] > result)
+      result = y[i];
+    if (z[i] > result)
+      result = z[i];
+    return result;
+  }
+
+
   //Set a specific coordinate to a value.
   void Set(const uint i, const double a, const double b, const double c)
   {
@@ -291,7 +303,7 @@ public:
   //used for ewald calculation, need to be fixed
   double BoxSize(int box)const
   {
-    return x[box];
+    return Max(box);
   };
 
 protected:

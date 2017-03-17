@@ -295,15 +295,14 @@ Virial CalculateEnergy::ForceCalc(const uint box)
    
    //calculate reciprocate term of force
    tempVir = calcEwald->ForceReciprocal(tempVir, box);
-   //calculate correction term of force
-   //tempVir = calcEwald->ForceCorrection(tempVir, box);
 
    tempVir.Total();
 
+   /*
    std::cout << "Inter: " << tempVir.inter << ", Tc: " << tempVir.tc
 	     << ", Real: " << tempVir.real << ", Recip: " << tempVir.recip
 	     << ", P Total: " << tempVir.total << std::endl;
-
+   */
    return tempVir;
 }
 
@@ -416,7 +415,6 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
   if (box >= BOXES_WITH_U_B)
     return;
 
-  double boxSize = currentAxes.axis.BoxSize(box);
   const MoleculeKind& kind = trialMol.GetKind();
   //loop over all partners of the trial particle
   const uint* partner = kind.sortedNB.Begin(partIndex);
@@ -462,7 +460,6 @@ void CalculateEnergy::ParticleNonbonded_1_4(double* inter,
   if (box >= BOXES_WITH_U_B)
     return;
 
-  double boxSize = currentAxes.axis.BoxSize(box);
   const MoleculeKind& kind = trialMol.GetKind();
 
 
@@ -512,7 +509,6 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
    if (box >= BOXES_WITH_U_NB)
       return;
 
-   double boxSize = currentAxes.axis.BoxSize(box);
    double distSq, qi_qj_Fact, tempLJ, tempReal;
    uint i, t;
    MoleculeKind const& thisKind = mols.GetKind(molIndex);
@@ -686,7 +682,6 @@ void CalculateEnergy::MolNonbond(double & energy,
 
   double distSq;
   double qi_qj_Fact;
-  double boxSize = currentAxes.axis.BoxSize(box);
 
   for (uint i = 0; i < molKind.nonBonded.count; ++i)
   {
@@ -722,7 +717,7 @@ void CalculateEnergy::MolNonbond_1_4(double & energy,
 
   double distSq;
   double qi_qj_Fact;
-  double boxSize = currentAxes.axis.BoxSize(box);
+ 
   for (uint i = 0; i < molKind.nonBonded_1_4.count; ++i)
   {
     uint p1 = mols.start[molIndex] + molKind.nonBonded_1_4.part1[i];
@@ -757,7 +752,7 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
 
   double distSq;
   double qi_qj_Fact;
-  double boxSize = currentAxes.axis.BoxSize(box);
+
   for (uint i = 0; i < molKind.nonBonded_1_3.count; ++i)
   {
     uint p1 = mols.start[molIndex] + molKind.nonBonded_1_3.part1[i];
@@ -791,7 +786,6 @@ double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,
     return 0.0;
 
   double eng = 0.0;
-  double  boxSize = 0.0; //dummy because 1-3 is only for Martini
 
   MoleculeKind const& thisKind = mols.GetKind(molIndex);
   uint kind1 = thisKind.AtomKind(atom1);
@@ -820,7 +814,7 @@ double CalculateEnergy::IntraEnergy_1_4(const double distSq, const uint atom1,
     return 0.0;
 
   double eng = 0.0;
-  double  boxSize = 0.0; //dummy because 1-3 is only for Martini
+
 
   MoleculeKind const& thisKind = mols.GetKind(molIndex);
   uint kind1 = thisKind.AtomKind(atom1);

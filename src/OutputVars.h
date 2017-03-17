@@ -34,6 +34,7 @@ public:
    double * molFractionByKindBox, * densityByKindBox,
      pressure[BOXES_WITH_U_NB], densityTot[BOX_TOTAL];
    double pressureTens[BOXES_WITH_U_NB][3][3];
+   double surfaceTens[BOXES_WITH_U_NB];
    ulong pCalcFreq;
    bool pressureCalc;
    
