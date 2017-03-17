@@ -234,7 +234,10 @@ void EwaldCached::RecipInit(uint box, BoxDimensions const& boxAxes)
    int x, y, z, nky_max, nky_min, nkz_max, nkz_min;   
    double ksqr;
    double alpsqr4 = 1.0 / (4.0 * alpha * alpha);
-   double constValue = 2 * M_PI / boxAxes.axis.BoxSize(box);
+   XYZ constValue = boxAxes.axis.Get(box);
+   constValue.Inverse();
+   constValue *= 2 * M_PI;
+
    double vol = boxAxes.volume[box] / (4 * M_PI);
    kmax[box] = int(recip_rcut * boxAxes.axis.BoxSize(box) / (2 * M_PI)) + 1;
  
@@ -256,14 +259,14 @@ void EwaldCached::RecipInit(uint box, BoxDimensions const& boxAxes)
 	 }
 	 for (z = nkz_min; z <= nkz_max; z++)
          {
-	   ksqr = pow((constValue * x), 2) + pow((constValue * y), 2) +
-	     pow ((constValue * z), 2);
+	   ksqr = pow((constValue.x * x), 2) + pow((constValue.y * y), 2) +
+	     pow ((constValue.z * z), 2);
 	    
 	    if (ksqr < recip_rcut_Sq)
 	    {
-	       kx[box][counter] = constValue * x;
-	       ky[box][counter] = constValue * y;
-	       kz[box][counter] = constValue * z;
+	       kx[box][counter] = constValue.x * x;
+	       ky[box][counter] = constValue.y * y;
+	       kz[box][counter] = constValue.z * z;
 	       hsqr[box][counter] = ksqr;
 	       prefact[box][counter] = num::qqFact * exp(-ksqr * alpsqr4)/
 		 (ksqr * vol);
@@ -294,14 +297,16 @@ void EwaldCached::RecipCountInit(uint box, BoxDimensions const& boxAxes)
 {
    uint counter = 0;
    double ksqr;
+   double boxSize;
 #if ENSEMBLE == GEMC
-   double boxSize = 1.1 * boxAxes.axis.BoxSize(box);
-   double constValue = 2 * M_PI / boxSize;
-   kmax[box] = int(recip_rcut * boxSize / (2 * M_PI)) + 1;
-#else 
-   double constValue = 2 * M_PI / boxAxes.axis.BoxSize(box);
-   kmax[box] = int(recip_rcut * boxAxes.axis.BoxSize(box) / (2 * M_PI)) + 1;
+   boxSize = 1.1 * boxAxes.axis.BoxSize(box);
+#else
+   boxSize = boxAxes.axis.BoxSize(box);
 #endif
+   XYZ constValue = boxAxes.axis.Get(box);
+   constValue.Inverse();
+   constValue *= 2 * M_PI;
+   kmax[box] = int(recip_rcut * boxSize / (2 * M_PI)) + 1;
    
    for (int x = 0; x <= kmax[box]; x++)
    {
@@ -321,8 +326,8 @@ void EwaldCached::RecipCountInit(uint box, BoxDimensions const& boxAxes)
 	 }
 	 for (int z = nkz_min; z <= nkz_max; z++)
          {
-	   ksqr = pow((constValue * x), 2) + pow((constValue * y), 2) +
-	     pow ((constValue * z), 2);
+	   ksqr = pow((constValue.x * x), 2) + pow((constValue.y * y), 2) +
+	     pow ((constValue.z * z), 2);
 	    
 	    if (ksqr < recip_rcut_Sq)
 	       counter++;
@@ -467,7 +472,7 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
    }
 
    double part1 = wT11 + wT22 + wT33;
-   std::cout << "**Recip1: " << part1 << std::endl;
+   //std::cout << "**Recip1: " << part1 << std::endl;
 
    //the intramolecular part should be substracted
    while (thisMol != end)
@@ -492,9 +497,6 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
 	 for (i = 0; i < imageSize[box]; i++)
 	 {
 	    //compute the dot product of k and r
-	    //arg = kx[box][i] * atomC.x + ky[box][i] * atomC.y +
-	    //  kz[box][i] * atomC.z;
-
 	    arg = currentAxes.DotProduct(atom, kx[box][i], ky[box][i],
 					 kz[box][i], currentCoords, box);
 
@@ -514,7 +516,7 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
       ++thisMol;
    }
    double part2 = wT11 + wT22 + wT33 - part1;
-   std::cout << "**Recip2: " << part2 << std::endl;
+   //std::cout << "**Recip2: " << part2 << std::endl;
    
    // set the all tensor values
    tempVir.recipTens[0][0] = wT11;

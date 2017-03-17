@@ -24,6 +24,8 @@ static const double MOLECULES_PER_A3_TO_MOL_PER_CM3 = 1.660539277;
 //
 static const double K_MOLECULE_PER_A3_TO_BAR = 138.0649;
 
+// convert K to mN/m (dyne)
+static const double K_TO_MN_PER_M = 1.380649;
 
 //
 // bar --> A3 / (K * molecule)

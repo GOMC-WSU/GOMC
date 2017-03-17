@@ -42,6 +42,13 @@ struct XYZ
 
    XYZ operator-() const { return XYZ(*this) * -1.0; }
 
+   void Inverse()
+  { 
+     x = 1.0 / x; 
+     y = 1.0 / y; 
+     z = 1.0 / z; 
+  }
+
    double Length() const { return sqrt(LengthSq()); }
    double LengthSq() const { return x * x + y * y + z * z; }
    XYZ& Normalize()

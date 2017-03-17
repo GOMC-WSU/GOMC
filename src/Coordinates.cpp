@@ -59,7 +59,7 @@ void Coordinates::CheckCoordinate()
       //shift all the molecules to positive axis
        XYZ shiftV = min;
        shiftV *= -1.0;
-       printf("Note: Molecules in the box %d will be shifted to origin by vector [%4.3f, %4.3f, %4.3f].\n", b, shiftV.x, shiftV.y, shiftV.z);
+       printf("Note: Molecules in the box %d will be shifted to origin by \n vector [%4.3f, %4.3f, %4.3f].\n", b, shiftV.x, shiftV.y, shiftV.z);
     
        while (thisMol != end)
        {
