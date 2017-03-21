@@ -49,7 +49,7 @@ public:
   //Helper for TranslateAll
   void TranslateOneBox(Coordinates & dest, COM & newCOM, COM const& oldCOM,
                        BoxDimensions const& newDim, const uint b,
-                       const double scale) const;
+                       const XYZ& scale) const;
 
 private:
 

@@ -251,6 +251,14 @@ public:
     z[i] *= val;
   }
 
+  //Multiply values within an array
+  void Scale(const uint i, XYZ const& val)
+  {
+    x[i] *= val.x;
+    y[i] *= val.y;
+    z[i] *= val.z;
+  }
+
   //Add a constant transform x+a, y+b... to range of values.
   void AddRange(const uint start, const uint stop, XYZ const& val);
 

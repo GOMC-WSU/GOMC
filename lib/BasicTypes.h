@@ -25,6 +25,8 @@ struct XYZ
    { x -= rhs.x; y -= rhs.y; z -= rhs.z; return *this; }
    XYZ& operator*=(XYZ const& rhs)
    { x *= rhs.x; y *= rhs.y; z *= rhs.z; return *this; }
+   XYZ& operator/=(XYZ const& rhs)
+   { x /= rhs.x; y /= rhs.y; z /= rhs.z; return *this; }
 
    XYZ& operator*=(const double a)
    { x *= a; y *= a; z *= a; return *this; }
@@ -35,6 +37,8 @@ struct XYZ
    { return XYZ(*this) -= rhs; }
    XYZ operator*(XYZ const& rhs) const
    { return XYZ(*this) *= rhs; }
+  XYZ operator/(XYZ const& rhs) const
+   { return XYZ(*this) /= rhs; }
 
 
    XYZ operator*(const double a) const

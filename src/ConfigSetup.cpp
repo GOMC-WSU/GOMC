@@ -352,6 +352,12 @@ void ConfigSetup::Init(const char *fileName)
     {
       sys.moves.volume = stringtod(line[1]);
     }
+    else if(line[0] == "useConstantArea")
+    {
+      sys.volume.cstArea = checkBool(line[1]);
+      if (sys.volume.cstArea)
+	std::cout << "Note: Volume will change with constant X-Y area!\n";
+    } 
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
     else if(line[0] == "SwapFreq")

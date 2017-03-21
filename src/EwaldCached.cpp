@@ -299,7 +299,7 @@ void EwaldCached::RecipCountInit(uint box, BoxDimensions const& boxAxes)
    double ksqr;
    double boxSize;
 #if ENSEMBLE == GEMC
-   boxSize = 1.1 * boxAxes.axis.BoxSize(box);
+   boxSize = 1.25 * boxAxes.axis.BoxSize(box);
 #else
    boxSize = boxAxes.axis.BoxSize(box);
 #endif
@@ -536,72 +536,6 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
 
    return tempVir;
  
-}
-
-Virial EwaldCached::ForceCorrection(Virial& virial, uint box) const
-{
-  Virial tempVir = virial;
-
-   double rT11 = 0.0, rT12 = 0.0, rT13 = 0.0;
-   double rT22 = 0.0, rT23 = 0.0, rT33 = 0.0;
-   double constValue = 2.0 * alpha / sqrt(M_PI);
-
-   double dist, distSq, pRF, expConstValue, temp;
-   uint i;
-   XYZ virC, comC;
- 
-   MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box),
-     end = molLookup.BoxEnd(box);
-
-   while (thisMol != end)
-   {  
-      MoleculeKind& thisKind = mols.kinds[mols.kIndex[*thisMol]];
-      comC = currentCOM.Get(*thisMol);
-
-      for (uint i = 0; i < thisKind.NumAtoms(); i++)
-      {
-	for (uint j = i + 1; j < thisKind.NumAtoms(); j++)
-	{
-	  currentAxes.InRcut(distSq, virC, currentCoords,
-			     mols.MolStart(*thisMol) + i,
-			     mols.MolStart(*thisMol) + j, box);
-	  dist = sqrt(distSq);
-	  expConstValue = exp(-1.0 * alpha * alpha * distSq);
-	  temp = erf(alpha * dist);
-
-	  pRF = (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
-		 (constValue * expConstValue - temp / dist)) / distSq;
-	  //calculate the top diagonal of pressure tensor
-	  rT11 += pRF * (virC.x * comC.x);
-	  rT12 += pRF * (0.5 * (virC.x * comC.y + virC.y * comC.x));
-	  rT13 += pRF * (0.5 * (virC.x * comC.z + virC.z * comC.x));
-
-	  rT22 += pRF * (virC.y * comC.y);
-	  rT23 += pRF * (0.5 * (virC.y * comC.z + virC.z * comC.y));
-	   
-	  rT33 += pRF * (virC.z * comC.z);
-	}
-      }
-      ++thisMol;
-   }
-
-   // correction part of electrostatic
-   tempVir.corrTens[0][0] = rT11 * num::qqFact;
-   tempVir.corrTens[0][1] = rT12 * num::qqFact;
-   tempVir.corrTens[0][2] = rT13 * num::qqFact;
-
-   tempVir.corrTens[1][0] = rT12 * num::qqFact;
-   tempVir.corrTens[1][1] = rT22 * num::qqFact;
-   tempVir.corrTens[1][2] = rT23 * num::qqFact;
-
-   tempVir.corrTens[2][0] = rT13 * num::qqFact;
-   tempVir.corrTens[2][1] = rT23 * num::qqFact;
-   tempVir.corrTens[2][2] = rT33 * num::qqFact;   
-
-   // setting virial of correction term 
-   tempVir.correction = (rT11 + rT22 + rT33) * num::qqFact;
-
-   return tempVir;
 }
 
 

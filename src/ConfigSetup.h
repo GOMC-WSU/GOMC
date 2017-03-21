@@ -169,10 +169,11 @@ namespace config_setup
  
    struct Volume 
    { 
-      bool hasVolume; 
+     bool hasVolume, cstArea; 
       uint boxCoordRead; 
       XYZArray axis; 
-      Volume(void) : hasVolume(false), boxCoordRead(0), axis(BOX_TOTAL)  {} 
+   Volume(void) : hasVolume(false), cstArea(false),
+	boxCoordRead(0), axis(BOX_TOTAL)  {} 
    }; 
  
    //If particle number varies (e.g. GCMC, GEMC) load in parameters for 

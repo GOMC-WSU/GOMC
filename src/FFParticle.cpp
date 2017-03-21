@@ -99,6 +99,7 @@ void FFParticle::Init(ff_setup::Particle const& mie,
    rCut =  sys.ff.cutoff;
    rCutSq = rCut * rCut;
    scaling_14 = sys.elect.oneFourScale;
+   ewald = sys.elect.ewald;
    alpha = sys.elect.alpha;
    diElectric_1 = 1.0/sys.elect.dielectric;
 
