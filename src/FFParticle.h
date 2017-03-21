@@ -108,7 +108,7 @@ protected:
          factor1, factor2, scaling_14, alpha, diElectric_1;
 
   uint count, vdwKind;
-  bool isMartini;
+  bool isMartini, ewald;
 };
 
 

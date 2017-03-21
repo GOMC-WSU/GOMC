@@ -304,7 +304,8 @@ class VolumeTransfer : public MoveBase
    double GetCoeff() const;
    virtual void Accept(const uint rejectState, const uint step);
  private:
-   uint bPick, bPick2, subPick2; //Note: This is only used for GEMC-NPT
+   //Note: This is only used for GEMC-NPT
+   uint bPick[BOX_TOTAL], subPick, subPickT[BOX_TOTAL]; 
    SystemPotential sysPotNew;
    BoxDimensions newDim;
    Coordinates newMolsPos;
@@ -338,9 +339,11 @@ inline uint VolumeTransfer::Prep(const double subDraw, const double movPerc)
    if (GEMC_KIND == mv::GEMC_NPT)
    {
      
-      prng.PickBoxPair(bPick, bPick2, subDraw, movPerc);
-      subPick = mv::GetMoveSubIndex(mv::VOL_TRANSFER, bPick);
-      subPick2 = mv::GetMoveSubIndex(mv::VOL_TRANSFER, bPick2);
+      prng.PickBoxPair(bPick[0], bPick[1], subDraw, movPerc);
+      for (uint b = 0; b < BOX_TOTAL; b++)
+      {
+	subPickT[bPick[b]] = mv::GetMoveSubIndex(mv::VOL_TRANSFER, bPick[b]);
+      }
    }
    newDim = boxDimRef;
    coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
@@ -360,21 +363,25 @@ inline uint VolumeTransfer::Transform()
    }
    else
    {
-      double max = moveSetRef.Scale(subPick);
-      double max2 = moveSetRef.Scale(subPick2);
-      double scale1 = 0.0, scale2 = 0.0;
-      double delta1 = prng.Sym(max), delta2 = prng.Sym(max2);
-      state = boxDimRef.ShiftVolume(newDim, scale1, bPick, delta1);
-      state = state && boxDimRef.ShiftVolume(newDim, scale2, bPick2, delta2);
+      XYZ scale[BOX_TOTAL];
+      for (uint b = 0; b < BOX_TOTAL; b++)
+      {
+	if (state == mv::fail_state::NO_FAIL)
+	{
+	   double max = moveSetRef.Scale(subPickT[bPick[b]]);
+	   double delta = prng.Sym(max);
+	   state =  boxDimRef.ShiftVolume(newDim, scale[bPick[b]],
+					  bPick[b], delta);
+	}
+      }
 
       if (state == mv::fail_state::NO_FAIL)
       {
-	 scale1 = newDim.axis.Get(bPick).x / boxDimRef.axis.Get(bPick).x;
-	 scale2 = newDim.axis.Get(bPick2).x / boxDimRef.axis.Get(bPick2).x;
-	 coordCurrRef.TranslateOneBox(newMolsPos, newCOMs, comCurrRef, 
-				      newDim, bPick, scale1);
-	 coordCurrRef.TranslateOneBox(newMolsPos, newCOMs, comCurrRef,
-                                      newDim, bPick2, scale2);
+	 for (uint b = 0; b < BOX_TOTAL; b++)
+	 {
+	    coordCurrRef.TranslateOneBox(newMolsPos, newCOMs, comCurrRef, 
+				      newDim, bPick[b], scale[bPick[b]]);
+	 }
       }
    }
    return state;
@@ -474,10 +481,11 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
    }
    if (GEMC_KIND == mv::GEMC_NPT)
    {
-      subPick = mv::GetMoveSubIndex(mv::VOL_TRANSFER, bPick);
-      subPick2 = mv::GetMoveSubIndex(mv::VOL_TRANSFER, bPick2);
-      moveSetRef.Update(result, subPick, step);
-      moveSetRef.Update(result, subPick2, step);
+     for (uint b = 0; b < BOX_TOTAL; b++)
+     {
+      subPickT[bPick[b]] = mv::GetMoveSubIndex(mv::VOL_TRANSFER, bPick[b]);
+      moveSetRef.Update(result, subPickT[bPick[b]], step);
+     }
    }
    
 }

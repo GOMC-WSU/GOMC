@@ -135,11 +135,9 @@ void Coordinates::VolumeTransferTranslate
 (uint & state, Coordinates & dest, COM & newCOM, BoxDimensions & newDim,
  COM const& oldCOM, const double max) const
 {
-  double scale[BOX_TOTAL], transfer = prngRef.Sym(max);
-  for (uint b = 0; b < BOX_TOTAL; ++b)
-  {
-    scale[b] = 0.0;
-  }
+  XYZ scale[BOX_TOTAL];
+  double transfer = prngRef.Sym(max);
+ 
   //Scale cell
   state = boxDimRef.ExchangeVolume(newDim, scale, transfer);
   //If scaling succeeded (if it wouldn't take the box to below 2*rcut, cont.
@@ -154,7 +152,7 @@ void Coordinates::VolumeTransferTranslate
 //Assumes dest is already initialized
 void Coordinates::TranslateOneBox
 (Coordinates & dest, COM & newCOM, COM const& oldCOM,
- BoxDimensions const& newDim, const uint b, const double scale) const
+ BoxDimensions const& newDim, const uint b, const XYZ& scale) const
 {
   uint pStart=0, pStop=0, pLen=0;
   MoleculeLookup::box_iterator curr = molLookRef.BoxBegin(b),

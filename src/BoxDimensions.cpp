@@ -28,51 +28,54 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
   {
     volume[b] = axis.x[b] * axis.y[b] * axis.z[b];
     volInv[b] = 1.0 / volume[b];
+    //check to see if initial box size is cubic or not
+    cubic[b] = ((axis.x[b] == axis.y[b]) && (axis.y[b] == axis.z[b]));
   }
+  constArea = confVolume.cstArea;
 }
 
 uint BoxDimensions::ShiftVolume
-(BoxDimensions & newDim, double & scale, const uint b, const double delta) const
+(BoxDimensions & newDim, XYZ & scale, const uint b, const double delta) const
 {
   uint rejectState = mv::fail_state::NO_FAIL;
   double newVolume = volume[b] + delta;
-  newDim = *this;
+  //newDim = *this;
+
+  newDim.SetVolume(b, newVolume);
 
   //If move would shrink any box axis to be less than 2 * rcut, then
   //automatically reject to prevent errors.
   if ( newVolume < minBoxSize )
   {
-    std::cout << "WARNING!!! box shrunk below 2*rc! Auto-rejecting!" << std::endl;
+    std::cout << "WARNING!!! box shrunk below 2*rc! Auto-rejecting!"
+	      << std::endl;
     rejectState = mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
   }
-  else
-  {
-    newDim.SetVolume(b, newVolume);
-    scale = newDim.axis.Get(b).x / axis.Get(b).x;
-  }
+  scale = newDim.axis.Get(b) / axis.Get(b);
+
   return rejectState;
 }
 
 uint BoxDimensions::ExchangeVolume
-(BoxDimensions & newDim, double * scale, const double transfer) const
+(BoxDimensions & newDim, XYZ * scale, const double transfer) const
 {
   uint state = mv::fail_state::NO_FAIL;
-  //double vRat = volume[bO]*volInv[bN];
-  //double expTr = vRat*exp(transfer);
   double vTot = volume[0] + volume[1];
   newDim = *this;
-  //newDim.volume[bO] = expTr * vTot / (1 + expTr);
 
   newDim.SetVolume(0, volume[0] + transfer);
   newDim.SetVolume(1, vTot - newDim.volume[0]);
+
   //If move would shrink any box axis to be less than 2 * rcut, then
   //automatically reject to prevent errors.
   for (uint b = 0; b < BOX_TOTAL && state == mv::fail_state::NO_FAIL; b++)
   {
-    scale[b] = newDim.axis.Get(b).x / axis.Get(b).x;
+    scale[b] = newDim.axis.Get(b) / axis.Get(b);
     if (newDim.volume[b] < minBoxSize)
     {
-      state = mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
+      std::cout << "WARNING!!! box shrunk below 2*rc! Auto-rejecting!"
+	      << std::endl;
+      state = state && mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
     }
   }
   return state;
