@@ -89,6 +89,8 @@ ConfigSetup::ConfigSetup(void)
   out.statistics.vars.energy.fluct = false;
   out.statistics.vars.pressure.block = false;
   out.statistics.vars.pressure.fluct = false;
+  out.statistics.vars.surfaceTension.block = false;
+  out.statistics.vars.surfaceTension.fluct = false;
 #ifdef VARIABLE_PARTICLE_NUMBER
   sys.moves.transfer = DBL_MAX;
   sys.cbmcTrials.bonded.ang = UINT_MAX;
@@ -221,23 +223,31 @@ void ConfigSetup::Init(const char *fileName)
     else if(line[0] == "Pressure")
     {
       sys.gemc.pressure = stringtod(line[1]);
-      std::cout<< "Pressure of system has been set to " << sys.gemc.pressure << " bar " << std::endl;
+      std::cout<< "Pressure of system has been set to " <<
+	std::setprecision(5) << sys.gemc.pressure << " bar " << std::endl;
       sys.gemc.pressure *= unit::BAR_TO_K_MOLECULE_PER_A3;
     }
 #endif
     else if(line[0] == "Temperature")
     {
       sys.T.inKelvin = stringtod(line[1]);
-      std::cout<< "Temperature of system has been set to " << sys.T.inKelvin << " K " << std::endl;
+      std::cout<< "Temperature of system has been set to " <<
+	std::setprecision(5) << sys.T.inKelvin << " K " << std::endl;
     }
     else if(line[0] == "Potential")
     {
       if(line[1] == "VDW")
         sys.ff.VDW_KIND = sys.ff.VDW_STD_KIND;
       else if(line[1] == "SHIFT")
+      {
         sys.ff.VDW_KIND = sys.ff.VDW_SHIFT_KIND;
+	std::cout << "Shift method will be used to truncate the VDW interaction.\n";
+      }
       else if(line[1] == "SWITCH")
+      {
         sys.ff.VDW_KIND = sys.ff.VDW_SWITCH_KIND;
+	std::cout << "Switch method will be used to truncate the VDW interaction.\n";
+      }
     }
     else if(line[0] == "LRC")
     {
@@ -492,6 +502,11 @@ void ConfigSetup::Init(const char *fileName)
     {
       out.statistics.vars.density.block = checkBool(line[1]);
       out.statistics.vars.density.fluct = checkBool(line[2]);
+    }
+    else if(line[0] == "OutSurfaceTension")
+    {
+      out.statistics.vars.surfaceTension.block = checkBool(line[1]);
+      out.statistics.vars.surfaceTension.fluct = checkBool(line[2]);
     }
 #ifdef VARIABLE_VOLUME
     else if(line[0] == "OutVolume")
@@ -918,6 +933,16 @@ void ConfigSetup::verifyInputs(void)
   {
     std::cout<< "Warning: Output block average has been set off, pressure output for block average will be ignored!" << std::endl;
   }
+  if(!sys.step.pressureCalc && out.statistics.vars.pressure.block)
+  {
+    std::cout<< "Warning: Pressure calculation has been turn off, pressure output for block average will be ignored!" << std::endl;
+    out.statistics.vars.pressure.block = false;
+  }
+  if(!sys.step.pressureCalc && out.statistics.vars.surfaceTension.block)
+  {
+    std::cout<< "Warning: Pressure calculation has been turn off, surface tension output for block average will be ignored!" << std::endl;
+    out.statistics.vars.surfaceTension.block = false;
+  }
 #ifdef VARIABLE_PARTICLE_NUMBER
   if(!out.statistics.settings.block.enable && out.statistics.vars.molNum.block)
   {
@@ -941,6 +966,16 @@ void ConfigSetup::verifyInputs(void)
   if(!out.console.enable && out.statistics.vars.pressure.fluct)
   {
     std::cout<< "Warning: Console output has been set off, pressure fluctuation ouput will be ignored!" << std::endl;
+  }
+  if(!sys.step.pressureCalc && out.statistics.vars.pressure.fluct)
+  {
+    std::cout<< "Warning: Pressure calculation has been turn off, pressure fluctuation output will be ignored!" << std::endl;
+    out.statistics.vars.pressure.fluct = false;
+  }
+  if(!sys.step.pressureCalc && out.statistics.vars.surfaceTension.fluct)
+  {
+    std::cout<< "Warning: Pressure calculation has been turn off, surface tension fluctuation output will be ignored!" << std::endl;
+    out.statistics.vars.surfaceTension.fluct = false;
   }
 #ifdef VARIABLE_PARTICLE_NUMBER
   if(!out.console.enable && out.statistics.vars.molNum.fluct)

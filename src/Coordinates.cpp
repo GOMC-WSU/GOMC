@@ -39,9 +39,9 @@ void Coordinates::CheckCoordinate()
 
     diffV = max - min;
     //printf("start: %d, end: %d\n", stRange, endRange);
-    printf("Minimum coordinates in box %d: x= %4.3f, y= %4.3f, z= %4.3f\n",
+    printf("Minimum coordinates in box %d: x = %8.3f, y = %8.3f, z = %8.3f\n",
 	   b, min.x, min.y, min.z);
-    printf("Maximum coordinates in box %d: x= %4.3f, y= %4.3f, z= %4.3f\n",
+    printf("Maximum coordinates in box %d: x = %8.3f, y = %8.3f, z = %8.3f\n",
 	   b, max.x, max.y, max.z);
 
     //check to see if molecules are in the box or not

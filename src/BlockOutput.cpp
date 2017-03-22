@@ -142,12 +142,13 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
   blocks[out::PRESSURE_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps, out::PRESSURE, BOXES_WITH_U_NB);
   blocks[out::MOL_NUM_IDX].Init(&outBlock0, &outBlock1, tracked.molNum.block, invSteps, out::MOL_NUM, BOXES_WITH_U_NB);
   blocks[out::DENSITY_IDX].Init(&outBlock0, &outBlock1, tracked.density.block, invSteps, out::DENSITY, BOXES_WITH_U_NB);
-
+  blocks[out::SURF_TENSION_IDX].Init(&outBlock0, &outBlock1, tracked.surfaceTension.block, invSteps, out::SURF_TENSION, BOXES_WITH_U_NB);
 #if ENSEMBLE == GEMC
   blocks[out::VOLUME_IDX].Init(&outBlock0, &outBlock1, tracked.volume.block, invSteps, out::VOLUME, BOXES_WITH_U_NB);
   blocks[out::HEAT_OF_VAP_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::HEAT_OF_VAP, BOXES_WITH_U_NB);
 #endif
-  //Note: The order of Init should be same as order of SetRef
+
+  //Note: The order of Init should be same as order of Init
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
   {
     blocks[out::ENERGY_TOTAL_IDX].SetRef(&var->energyRef[b].total, b);
@@ -162,6 +163,7 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
     blocks[out::PRESSURE_IDX].SetRef(&var->pressure[b], b);
     blocks[out::MOL_NUM_IDX].SetRef(&var->numByBox[b], b);
     blocks[out::DENSITY_IDX].SetRef(&var->densityTot[b], b);
+    blocks[out::SURF_TENSION_IDX].SetRef(&var->surfaceTens[b], b);
 #if ENSEMBLE == GEMC
     blocks[out::VOLUME_IDX].SetRef(&var->volumeRef[b], b);
     blocks[out::HEAT_OF_VAP_IDX].SetRef(&var->heatOfVap, b);

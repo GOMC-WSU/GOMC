@@ -39,6 +39,7 @@ public:
     stepsPerOut = output.console.frequency;
     enableEnergy = output.statistics.vars.energy.fluct;
     enablePressure = output.statistics.vars.pressure.fluct;
+    enableSurfTension = output.statistics.vars.surfaceTension.fluct;
 #ifdef VARIABLE_VOLUME    
     enableVolume = output.statistics.vars.volume.fluct;
 #else
@@ -58,10 +59,11 @@ public:
 private:
   const static int elementWidth = 16;
   bool enableEnergy, enablePressure, enableDens, enableVolume, enableMol;
-
+  bool enableSurfTension;
   void PrintMove(const uint box, const ulong step) const;
   void PrintMoveStat(const uint box, const ulong step) const;
   void PrintStatistic(const uint box) const;
+  void PrintPressureTensor(const uint box) const;
   void PrintEnergy(const uint box, Energy const& en, Virial const& vir) const;
   void PrintEnergyTitle(const uint box);
   void PrintStatisticTitle(const uint box);
