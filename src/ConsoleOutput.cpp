@@ -51,6 +51,9 @@ void ConsoleOutput::DoOutput(const ulong step)
       }
       PrintStatistic(b);
       std::cout << std::endl;
+
+      PrintPressureTensor(b);
+      std::cout << std::endl;
     }
   }
 }
@@ -121,16 +124,42 @@ void ConsoleOutput::PrintStatistic(const uint box) const
     printElement(var->pressure[box] , elementWidth);
   if(enableMol)
     printElement(var->numByBox[box], elementWidth);
+  
+
   for(uint k=0; k<var->numKinds; k++)
   {
     uint kb = k+offset;
     if(var->numKinds > 1)
       printElement(var->molFractionByKindBox[kb], elementWidth);
   }
+
   if(enableDens)
     printElement(var->densityTot[box], elementWidth);
+  if(enableSurfTension)
+    printElement(var->surfaceTens[box], elementWidth);
+
   std::cout << std::endl;
 }
+
+void ConsoleOutput::PrintPressureTensor(const uint box) const
+{
+   std::string title = "PRESSURE_BOX_";
+   title += (box? "1":"0");
+
+   if(enablePressure)
+   {
+      printElement(title, elementWidth);
+      for(uint i = 0; i < 3; i++)
+      {
+	 for(uint j = 0; j < 3; j++)
+	 {
+	   printElement(var->pressureTens[box][i][j], elementWidth);
+	 }
+      }
+   }
+   std::cout << std::endl;  
+}
+
 
 void ConsoleOutput::PrintEnergy(const uint box, Energy const& en, Virial const& vir) const
 {
@@ -183,6 +212,7 @@ void ConsoleOutput::PrintStatisticTitle(const uint box)
     printElement("PRESSURE", elementWidth);
   if(enableMol)
     printElement("TOTALMOL", elementWidth);
+  
 
   for(uint k=0; k < var->numKinds; k++)
   {
@@ -192,10 +222,15 @@ void ConsoleOutput::PrintStatisticTitle(const uint box)
       printElement(molName, elementWidth);
     }
   }
+
   if(enableDens)
     printElement("TOT_DENSITY", elementWidth);
+  if(enableSurfTension)
+    printElement("SURF_TENSION", elementWidth);
+
   std::cout << std::endl;
 }
+
 
 void ConsoleOutput::PrintMoveTitle(const uint box)
 {
@@ -247,5 +282,6 @@ template <typename T>
 void ConsoleOutput::printElement( const T t, const int width) const
 {
   const char separator = ' ';
-  std::cout << left << std::fixed << std::setprecision(4) << setw(width) << setfill(separator) << t;
+  std::cout << left << std::fixed << std::setprecision(4) << setw(width) <<
+    setfill(separator) << t;
 }

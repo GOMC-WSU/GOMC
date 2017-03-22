@@ -115,27 +115,28 @@ void OutputVars::CalcAndConvert(ulong step)
     {
       virialRef[b] = calc.ForceCalc(b);
       *virialTotRef += virialRef[b];
+      //calculate surface tension in mN/M
       surfaceTens[b] = (virialRef[b].totalTens[2][2] - 0.5 *
 			(virialRef[b].totalTens[0][0] +
 			 virialRef[b].totalTens[1][1]));
       surfaceTens[b] *= unit::K_TO_MN_PER_M /
 	(2.0 * axisRef->Get(b).x * axisRef->Get(b).y);
-      printf("Surface_Tension: %4.3f\n", surfaceTens[b]);
+
+      //save the pressure tensor for print
+      for (int i = 0; i < 3; i++)
+      {
+	 for (int j = 0; j < 3; j++)
+	 {
+	    pressureTens[b][i][j] = virialRef[b].totalTens[i][j];
+	 }
+      }
     }  
     
     virial[b] = virialRef[b];
     virial[b] /= unit::DIMENSIONALITY;
     virial[b] /= volumeRef[b];
     virial[b].Total();
-    //save the pressure tensor for print
-    for (int i = 0; i < 3; i++)
-    {
-      for (int j = 0; j < 3; j++)
-      {
-	pressureTens[b][i][j] = virial[b].totalTens[i][j] * unit::DIMENSIONALITY
-	 *  unit::K_MOLECULE_PER_A3_TO_BAR;
-      }
-    }
+    
     
     rawPressure[b] = 0.0;
     densityTot[b] = 0.0;

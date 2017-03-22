@@ -32,14 +32,16 @@ extern const std::string MOL_NUM;
 static const uint MOL_NUM_IDX = 10;
 extern const std::string DENSITY;
 static const uint DENSITY_IDX = 11;
+extern const std::string SURF_TENSION;
+static const uint SURF_TENSION_IDX = 12;
 #if ENSEMBLE == NVT || ENSEMBLE == GCMC
-static const uint TOTAL_SINGLE = 12;
+static const uint TOTAL_SINGLE = 13;
 #else
 extern const std::string VOLUME;
 extern const std::string HEAT_OF_VAP;
-static const uint VOLUME_IDX = 12;
-static const uint HEAT_OF_VAP_IDX = 13;
-static const uint TOTAL_SINGLE = 14;
+static const uint VOLUME_IDX = 13;
+static const uint HEAT_OF_VAP_IDX = 14;
+static const uint TOTAL_SINGLE = 15;
 #endif
 
 //MULTI

@@ -12,6 +12,7 @@
 #include <cstring>          //strstr
 
 #include <iostream>
+#include <iomanip>
 
 
 
@@ -321,7 +322,7 @@ void AssignDihKinds(MolKind& kind, const FFSetup& ffData)
 
 void mol_setup::PrintMolMapVerbose(const MolMap& kindMap)
 {
-  std::cout << "Molecules in PSF:\n\n";
+  std::cout << "\nMolecules in PSF:\n";
   MolMap::const_iterator it = kindMap.begin();
   while (it != kindMap.end())
   {
@@ -330,17 +331,18 @@ void mol_setup::PrintMolMapVerbose(const MolMap& kindMap)
     for (uint i = 0; i < it->second.atoms.size(); i++)
     {
       std::cout << i << "\t" << it->second.atoms[i].name << '\t' <<
-                it->second.atoms[i].type << '\t' << it->second.atoms[i].charge <<
-                '\t' << it->second.atoms[i].mass << std::endl;
+	it->second.atoms[i].type << '\t' << std::setprecision(4) <<
+	it->second.atoms[i].charge <<'\t' << std::setprecision(4) <<
+	it->second.atoms[i].mass << std::endl;
     }
-    std::cout << std::endl << "Bonds:";
+    std::cout << "Bonds:";
     for (uint i = 0; i < it->second.bonds.size(); i++)
     {
       if (i % 20 == 0)
         std::cout << std::endl;
       std::cout << "[" << it->second.bonds[i].a0 << ' ' << it->second.bonds[i].a1 << ']' << ' ';
     }
-    std::cout << std::endl << std::endl << "Angles:";
+    std::cout << std::endl << "Angles:";
     for (uint i = 0; i < it->second.angles.size(); i++)
     {
       if (i % 24 == 0)
@@ -349,7 +351,7 @@ void mol_setup::PrintMolMapVerbose(const MolMap& kindMap)
                 << it->second.angles[i].a1 << ' '
                 << it->second.angles[i].a2 << ']' << ' ';
     }
-    std::cout << std::endl << std::endl << "Dihedrals:";
+    std::cout << std::endl << "Dihedrals:";
     for (uint i = 0; i < it->second.dihedrals.size(); i++)
     {
       if (i % 24 == 0)

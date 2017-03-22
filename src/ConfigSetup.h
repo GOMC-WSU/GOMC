@@ -262,6 +262,7 @@ namespace config_setup
       OutputEnables molNum; 
 #endif  
       OutputEnables density;  
+      OutputEnables surfaceTension;
    }; 
  
    struct SysState { EventSettings settings; OutFiles files; }; 
