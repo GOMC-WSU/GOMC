@@ -303,7 +303,7 @@ void ConfigSetup::Init(const char *fileName)
       }
       else
       {
-        std::cout<< "Non cached Fourier terms will be used." << std::endl;
+        std::cout<< "None cached Fourier terms will be used." << std::endl;
       }
     }
     else if(line[0] == "1-4scaling")

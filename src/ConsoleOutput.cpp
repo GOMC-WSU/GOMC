@@ -188,7 +188,7 @@ void ConsoleOutput::PrintEnergyTitle(const uint box)
 
   printElement("TOTAL", elementWidth);
   printElement("INTRA(B)", elementWidth);
-  printElement("INTRA(N)", elementWidth);
+  printElement("INTRA(NB)", elementWidth);
   printElement("INTER(LJ)", elementWidth);
   printElement("LRC", elementWidth);
   printElement("TOTAL_ELECT", elementWidth);

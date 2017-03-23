@@ -165,7 +165,7 @@ void EwaldCached::Init()
       RecipInit(b, currentAxes);
       BoxReciprocalSetup(b, currentCoords);
       SetRecipRef(b);
-      printf("Box %d, RecipVectors: %d, kmax: %d, alpha: %f6\n",
+      printf("Box %d, RecipVectors: %6d, kmax: %d, alpha: %f6\n",
 	     b, imageSize[b], kmax[b], alpha);
    }      
 }
@@ -206,7 +206,7 @@ void EwaldCached::AllocMem()
      
      RecipCountInit(b, currentAxes);
   }
-  //10% larger than original box size, reserved for image size change
+  //25% larger than original box size, reserved for image size change
   uint initImageSize = findLargeImage();
   memoryAllocation = initImageSize;
   
@@ -281,7 +281,7 @@ void EwaldCached::RecipInit(uint box, BoxDimensions const& boxAxes)
    if (counter > memoryAllocation)
    {
      std::cout<< "Error: Kmax exceeded due to large change in system volume.\n";
-     std::cout<< "Restart the simulation from restart files\n";
+     std::cout<< "Restart the simulation from restart files or turn off the CachedFourier method to calculate reciprocal space calculations.\n";
      exit(EXIT_FAILURE);
    }
 
@@ -346,6 +346,7 @@ void EwaldCached::RecipCountInit(uint box, BoxDimensions const& boxAxes)
 //compare number of images in different boxes and select the largest one
 uint EwaldCached::findLargeImage()
 {
+  imageLarge = 0;
   for (int b = 0; b < BOXES_WITH_U_NB; b++)
   {
     if (imageLarge < imageSize[b])
@@ -448,7 +449,9 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
 
    XYZ atomC, comC, diffC;
 
-
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(i, factor) reduction(+:wT11, wT12, wT13, wT22, wT23, wT33) 
+#endif
    for (i = 0; i < imageSize[box]; i++)
    {
       factor = prefact[box][i] * (sumRnew[box][i] * sumRnew[box][i] +
@@ -471,10 +474,7 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
 			kz[box][i] * kz[box][i]); 
    }
 
-   double part1 = wT11 + wT22 + wT33;
-   //std::cout << "**Recip1: " << part1 << std::endl;
-
-   //the intramolecular part should be substracted
+   //the intramolecular part
    while (thisMol != end)
    {
       length = mols.GetKind(*thisMol).NumAtoms();
@@ -494,6 +494,9 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
 	 // charge = particleCharge[atom];
 	 charge = mols.GetKind(*thisMol).AtomCharge(p);
 
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(i, arg, factor) reduction(+:wT11, wT12, wT13, wT22, wT23, wT33) 
+#endif
 	 for (i = 0; i < imageSize[box]; i++)
 	 {
 	    //compute the dot product of k and r
@@ -515,8 +518,6 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
       }
       ++thisMol;
    }
-   double part2 = wT11 + wT22 + wT33 - part1;
-   //std::cout << "**Recip2: " << part2 << std::endl;
    
    // set the all tensor values
    tempVir.recipTens[0][0] = wT11;
@@ -608,9 +609,6 @@ double EwaldCached::BoxSelf(BoxDimensions const& boxAxes, uint box) const
      length = thisKind.NumAtoms();
      molSelfEnergy = 0.0;
 
-#ifdef _OPENMP
-#pragma omp parallel for default(shared) private(j) reduction(+: molSelfEnergy)
-#endif
      for (j = 0; j < length; j++)
      {
        molSelfEnergy += (thisKind.AtomCharge(j) * thisKind.AtomCharge(j));

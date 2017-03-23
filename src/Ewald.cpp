@@ -89,10 +89,8 @@ void Ewald::AllocMem()
      sumRnew[b] = new double[imageTotal];
      sumInew[b] = new double[imageTotal];
      sumRref[b] = new double[imageTotal];
-     sumIref[b] = new double[imageTotal];
-     
-  }
-       
+     sumIref[b] = new double[imageTotal];     
+  }      
 }
 
 
