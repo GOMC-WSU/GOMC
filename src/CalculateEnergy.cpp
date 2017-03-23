@@ -67,21 +67,36 @@ SystemPotential CalculateEnergy::SystemTotal()
 {
    SystemPotential pot =
      SystemInter(SystemPotential(), currentCoords, currentCOM, currentAxes);
+
    //system intra
    for (uint b = 0; b < BOX_TOTAL; ++b)
    {
-      ForceCalc(b);
+      pot.boxVirial[b] = ForceCalc(b);
+      uint i;
+      double *bondEnergy = new double[2];
+      bondEnergy[0] = 0.0, bondEnergy[1] = 0.0;
       double bondEn = 0.0, nonbondEn = 0.0, self = 0.0, correction = 0.0;
-      MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b),
-	end = molLookup.BoxEnd(b);
+      MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b);
+      MoleculeLookup::box_iterator end = molLookup.BoxEnd(b);
+      std::vector<int> molID;
 
       while (thisMol != end)
       {
-         MoleculeIntra(bondEn, nonbondEn, *thisMol, b);
-	 //calculate correction term of electrostatic interaction
-	 correction += calcEwald->MolCorrection(*thisMol, currentAxes, b);
-	
+	 molID.push_back(*thisMol);
          ++thisMol;
+      }
+
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(i, bondEnergy) reduction(+:bondEn, nonbondEn, correction) 
+#endif
+      for (i = 0; i < molID.size(); i++)
+      {
+	 //calculate nonbonded energy
+	 bondEnergy = MoleculeIntra(molID[i], b);
+	 bondEn += bondEnergy[0];
+	 nonbondEn += bondEnergy[1];
+	 //calculate correction term of electrostatic interaction
+	 correction += calcEwald->MolCorrection(molID[i], currentAxes, b);
       }
 
       pot.boxEnergy[b].intraBond = bondEn;
@@ -112,6 +127,7 @@ SystemPotential CalculateEnergy::SystemInter
    }
 
    potential.Total();
+
    return potential;
 }
 
@@ -584,26 +600,30 @@ Intermolecular CalculateEnergy::MoleculeTailChange(const uint box,
 
 
 //Calculates intramolecular energy of a full molecule
-void CalculateEnergy::MoleculeIntra(double& bondEn,
-                                    double& nonBondEn,
-                                    const uint molIndex,
-                                    const uint box) const
+double* CalculateEnergy::MoleculeIntra(const uint molIndex,
+					const uint box) const
 {
    MoleculeKind& molKind = mols.kinds[mols.kIndex[molIndex]];
    // *2 because we'll be storing inverse bond vectors
    XYZArray bondVec(molKind.bondList.count * 2);
+   double *bondEn = new double[2];
+   bondEn[0] = 0.0 , bondEn[1] = 0.0;
+
    BondVectors(bondVec, molKind, molIndex, box);
-   MolBond(bondEn, molKind, bondVec, box);
 
-   MolAngle(bondEn, molKind, bondVec, box);
+   MolBond(bondEn[0], molKind, bondVec, box);
 
-   MolDihedral(bondEn, molKind, bondVec, box);
+   MolAngle(bondEn[0], molKind, bondVec, box);
 
-   MolNonbond(nonBondEn, molKind, molIndex, box);
+   MolDihedral(bondEn[0], molKind, bondVec, box);
 
-   MolNonbond_1_4(nonBondEn, molKind, molIndex, box);
+   MolNonbond(bondEn[1], molKind, molIndex, box);
 
-   MolNonbond_1_3(nonBondEn, molKind, molIndex, box);
+   MolNonbond_1_4(bondEn[1], molKind, molIndex, box);
+
+   MolNonbond_1_3(bondEn[1], molKind, molIndex, box);
+
+   return bondEn;
 }
 
 void CalculateEnergy::BondVectors(XYZArray & vecs,

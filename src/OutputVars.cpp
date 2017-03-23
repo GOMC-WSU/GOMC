@@ -127,7 +127,9 @@ void OutputVars::CalcAndConvert(ulong step)
       {
 	 for (int j = 0; j < 3; j++)
 	 {
-	    pressureTens[b][i][j] = virialRef[b].totalTens[i][j];
+	    //convert K to bar
+	    pressureTens[b][i][j] = virialRef[b].totalTens[i][j] *
+	      unit::K_MOLECULE_PER_A3_TO_BAR / volumeRef[b];
 	 }
       }
     }  
