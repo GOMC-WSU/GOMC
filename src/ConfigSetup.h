@@ -120,19 +120,17 @@ namespace config_setup
       static const uint VDW_STD_KIND, VDW_SHIFT_KIND, VDW_SWITCH_KIND; 
    }; 
  
-#if ENSEMBLE == GEMC 
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
     
    //Items that effect the system interactions and/or identity, e.g. Temp. 
    struct GEMCKind 
    { 
       uint kind; 
       double pressure; 
- 
-      GEMCKind(): kind(mv::GEMC_NVT) {}  
- 
    };  
     
 #endif 
+
  
    struct Step 
    { 
@@ -210,7 +208,7 @@ namespace config_setup
 		CBMC cbmcTrials; 
 #if ENSEMBLE == GCMC 
 		ChemicalPotential chemPot; 
-#elif ENSEMBLE == GEMC 
+#elif ENSEMBLE == GEMC || ENSEMBLE == NPT
 		GEMCKind gemc; 
 #endif 
    }; 

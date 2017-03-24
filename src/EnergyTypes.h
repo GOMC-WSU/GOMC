@@ -15,7 +15,7 @@
 #endif
 
 #ifndef BOXES_WITH_U_NB
-#if ENSEMBLE == GCMC || ENSEMBLE == NVT
+#if ENSEMBLE == GCMC || ENSEMBLE == NVT || ENSEMBLE == NPT
 #define BOXES_WITH_U_NB 1
 #elif ENSEMBLE == GEMC
 //case for NVT, GCMC
@@ -24,7 +24,7 @@
 #endif
 
 #ifndef BOXES_WITH_U_B
-#if ENSEMBLE == NVT
+#if ENSEMBLE == NVT || ENSEMBLE == NPT
 #define BOXES_WITH_U_B 1
 #elif ENSEMBLE == GEMC || ENSEMBLE == GCMC
 //case for NVT, GCMC

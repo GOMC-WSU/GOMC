@@ -20,20 +20,18 @@ void MoveSettings::Init(StaticVals const& statV)
 	 tempTries[m] = 0;
 	 tempAccepted[m] = 0;
 	 mv::GetMoveMajIndex(maj, subDiv, m);	 
-	 //baseAdjust * 
-	 /*   ( statV.movePerc[maj] / subDiv / statV.totalPerc );
-	 if (perAdjust[m]==0)
-	 {
-	    perAdjust[m] = statV.simEventFreq.total;
-	    }*/
       }
       acceptPercent[m] = 0.0;
       accepted[m] = tries[m] = 0;
    }
 
-#if ENSEMBLE == NVT || ENSEMBLE == GCMC 
+#if ENSEMBLE == NVT || ENSEMBLE == GCMC
    scale[mv::DISPLACE] = boxDimRef.axis.Min(0)/4;
    scale[mv::ROTATE] = M_PI_4;
+#elif ENSEMBLE == NPT
+   scale[mv::DISPLACE] = boxDimRef.axis.Min(0)/4;
+   scale[mv::ROTATE] = M_PI_4;
+   scale[mv::VOL_TRANSFER] = 500;
 #elif ENSEMBLE == GEMC
    scale[mv::DISPLACE] = boxDimRef.axis.Min(0)/4;
    scale[mv::DISPLACE+1] = boxDimRef.axis.Min(1)/4;

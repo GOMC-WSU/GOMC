@@ -59,6 +59,11 @@ ConfigSetup::ConfigSetup(void)
   sys.gemc.kind = UINT_MAX;
   sys.gemc.pressure = DBL_MAX;
 #endif
+#if ENSEMBLE == NPT
+  sys.gemc.kind = mv::GEMC_NPT;
+  sys.gemc.pressure = DBL_MAX;
+#endif
+
   sys.T.inKelvin = DBL_MAX;
   sys.ff.VDW_KIND = UINT_MAX;
   sys.ff.doTailCorr = true;
@@ -228,6 +233,16 @@ void ConfigSetup::Init(const char *fileName)
       sys.gemc.pressure *= unit::BAR_TO_K_MOLECULE_PER_A3;
     }
 #endif
+#if ENSEMBLE == NPT
+    else if(line[0] == "Pressure")
+    {
+      sys.gemc.kind = mv::GEMC_NPT;
+      sys.gemc.pressure = stringtod(line[1]);
+      std::cout<< "Pressure of system has been set to " <<
+	std::setprecision(5) << sys.gemc.pressure << " bar " << std::endl;
+      sys.gemc.pressure *= unit::BAR_TO_K_MOLECULE_PER_A3;
+    }
+#endif
     else if(line[0] == "Temperature")
     {
       sys.T.inKelvin = stringtod(line[1]);
@@ -372,7 +387,7 @@ void ConfigSetup::Init(const char *fileName)
 #ifdef VARIABLE_PARTICLE_NUMBER
     else if(line[0] == "SwapFreq")
     {
-#if ENSEMBLE == NVT
+#if ENSEMBLE == NVT || ENSEMBLE == NPT
       sys.moves.transfer = 0.000;
 #else
       sys.moves.transfer = stringtod(line[1]);
@@ -596,7 +611,7 @@ void ConfigSetup::fillDefaults(void)
     std::cout << "Error: Output name is required!" << std::endl;
     exit(0);
   }
-  out.state.files.psf.name = out.statistics.settings.uniqueStr.val + ".psf";
+  out.state.files.psf.name = out.statistics.settings.uniqueStr.val + "_merged.psf";
   for(int i = 0; i<BOX_TOTAL; i++)
   {
     if(i==0)
@@ -621,6 +636,14 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Warning: Pressure will be ignored for GEMC-NVT!" << std::endl;
   }
 #endif
+#if ENSEMBLE == NPT
+  if(sys.gemc.pressure == DBL_MAX)
+  {
+    std::cout << "Error: Pressure has not been specified for NPT simulation!" << std::endl;
+    exit(0);
+  }
+#endif
+
   if(in.restart.enable == true && in.restart.step == ULONG_MAX)
   {
     std::cout << "Error: Restart step is needed!" << std::endl;
@@ -732,6 +755,13 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: IntraSwap frequency has not been specified!" << std::endl;
     exit(0);
   }
+#if ENSEMBLE == NPT
+  if(sys.moves.volume == DBL_MAX)
+  {
+    std::cout << "Error: Volume swap frequency has not been specified!" << std::endl;
+    exit(0);
+  }
+#endif
 #if ENSEMBLE == GEMC
   if(sys.moves.volume == DBL_MAX)
   {
@@ -748,6 +778,18 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
     exit(0);
   }
+#elif ENSEMBLE == NPT
+  if(sys.moves.volume == DBL_MAX)
+  {
+    std::cout << "Error: Volume swap frequency has not been specified!" << std::endl;
+    exit(0);
+  }
+  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap + sys.moves.volume - 1.0) > 0.01)
+  {
+    std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
+    exit(0);
+  }
+
 #elif ENSEMBLE == GCMC
   if(sys.moves.transfer == DBL_MAX)
   {

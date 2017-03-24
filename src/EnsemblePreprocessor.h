@@ -5,6 +5,7 @@
 #define NVT 1
 #define GEMC 2
 #define GCMC 3
+#define NPT 4
 
 #ifndef ENSEMBLE
 //The choice of ensemble.
@@ -27,6 +28,11 @@
 #define BOX_TOTAL 2
 #elif ENSEMBLE == NVT
 #define VARIABLE_PARTICLE_NUMBER
+#define BOX_TOTAL 1
+#elif ENSEMBLE == NPT
+#define VARIABLE_PARTICLE_NUMBER
+#define VARIABLE_VOLUME
+#define VARIABLE_DENSITY
 #define BOX_TOTAL 1
 #endif
 

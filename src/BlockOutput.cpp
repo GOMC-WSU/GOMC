@@ -147,6 +147,9 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
   blocks[out::VOLUME_IDX].Init(&outBlock0, &outBlock1, tracked.volume.block, invSteps, out::VOLUME, BOXES_WITH_U_NB);
   blocks[out::HEAT_OF_VAP_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::HEAT_OF_VAP, BOXES_WITH_U_NB);
 #endif
+#if ENSEMBLE == NPT
+  blocks[out::VOLUME_IDX].Init(&outBlock0, &outBlock1, tracked.volume.block, invSteps, out::VOLUME, BOXES_WITH_U_NB);
+#endif
 
   //Note: The order of Init should be same as order of Init
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
@@ -167,6 +170,9 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
 #if ENSEMBLE == GEMC
     blocks[out::VOLUME_IDX].SetRef(&var->volumeRef[b], b);
     blocks[out::HEAT_OF_VAP_IDX].SetRef(&var->heatOfVap, b);
+#endif
+#if ENSEMBLE == NPT
+    blocks[out::VOLUME_IDX].SetRef(&var->volumeRef[b], b);
 #endif
 
   }

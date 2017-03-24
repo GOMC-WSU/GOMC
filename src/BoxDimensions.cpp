@@ -39,13 +39,12 @@ uint BoxDimensions::ShiftVolume
 {
   uint rejectState = mv::fail_state::NO_FAIL;
   double newVolume = volume[b] + delta;
-  //newDim = *this;
 
   newDim.SetVolume(b, newVolume);
 
   //If move would shrink any box axis to be less than 2 * rcut, then
   //automatically reject to prevent errors.
-  if ( newVolume < minBoxSize )
+  if ((newDim.axis.x[b] < rCut || newDim.axis.y[b] < rCut || newDim.axis.z[b] < rCut))
   {
     std::cout << "WARNING!!! box shrunk below 2*rc! Auto-rejecting!"
 	      << std::endl;
@@ -71,7 +70,7 @@ uint BoxDimensions::ExchangeVolume
   for (uint b = 0; b < BOX_TOTAL && state == mv::fail_state::NO_FAIL; b++)
   {
     scale[b] = newDim.axis.Get(b) / axis.Get(b);
-    if (newDim.volume[b] < minBoxSize)
+    if ((newDim.axis.x[b] < rCut || newDim.axis.y[b] < rCut || newDim.axis.z[b] < rCut))
     {
       std::cout << "WARNING!!! box shrunk below 2*rc! Auto-rejecting!"
 	      << std::endl;

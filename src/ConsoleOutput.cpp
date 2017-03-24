@@ -98,7 +98,7 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
   //printElement(var->GetScale(sub), elementWidth);
 #endif
 
-#if ENSEMBLE == GEMC
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
   sub = mv::GetMoveSubIndex(mv::VOL_TRANSFER, box);
   printElement(var->GetTries(sub), elementWidth);
   printElement(var->GetAccepted(sub), elementWidth);
@@ -267,7 +267,7 @@ void ConsoleOutput::PrintMoveTitle(const uint box)
   //printElement("TRANMAX", elementWidth);
 #endif
 
-#if ENSEMBLE == GEMC
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
   printElement("VOLUME", elementWidth);
   printElement("VOLACCEPT", elementWidth);
   printElement("VOLACCEPT%", elementWidth);
