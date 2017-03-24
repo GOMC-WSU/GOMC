@@ -36,6 +36,10 @@ extern const std::string SURF_TENSION;
 static const uint SURF_TENSION_IDX = 12;
 #if ENSEMBLE == NVT || ENSEMBLE == GCMC
 static const uint TOTAL_SINGLE = 13;
+#elif ENSEMBLE == NPT
+extern const std::string VOLUME;
+static const uint VOLUME_IDX = 13;
+static const uint TOTAL_SINGLE = 14;
 #else
 extern const std::string VOLUME;
 extern const std::string HEAT_OF_VAP;

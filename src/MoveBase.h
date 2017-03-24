@@ -291,7 +291,7 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
    moveSetRef.Update(result, subPick, step);
 }
 
-#if ENSEMBLE == GEMC
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
 
 class VolumeTransfer : public MoveBase
 {
@@ -338,8 +338,11 @@ inline uint VolumeTransfer::Prep(const double subDraw, const double movPerc)
    }
    if (GEMC_KIND == mv::GEMC_NPT)
    {
-     
+#if ENSEMBLE == NPT
+      prng.PickBox(bPick[0], subDraw, movPerc);
+#else
       prng.PickBoxPair(bPick[0], bPick[1], subDraw, movPerc);
+#endif
       for (uint b = 0; b < BOX_TOTAL; b++)
       {
 	subPickT[bPick[b]] = mv::GetMoveSubIndex(mv::VOL_TRANSFER, bPick[b]);

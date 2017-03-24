@@ -24,10 +24,12 @@ class StaticVals
    void Init(Setup & set, System& sys);
    void InitOver(Setup & set, System& sys);
 
-#if ENSEMBLE == GEMC
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
    double pressure;
    uint kindOfGEMC;
 #endif
+
+   
    Forcefield forcefield;
    SimEventFrequency simEventFreq;
    //All the static molecule info --  kind, start index

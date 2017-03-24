@@ -16,6 +16,9 @@ const std::string PRESSURE = "PRESSURE";
 const std::string HEAT_OF_VAP = "HEAT_VAP";
 const std::string VOLUME = "VOLUME";
 #endif
+#if ENSEMBLE == NPT
+const std::string VOLUME = "VOLUME";
+#endif
 const std::string DENSITY = "TOT_DENS";
 const std::string MOL_NUM = "TOT_MOL";
 const std::string MOL_FRACTION = "MOLFRACT";
