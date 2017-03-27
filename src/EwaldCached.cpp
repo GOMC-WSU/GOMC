@@ -298,12 +298,13 @@ void EwaldCached::RecipCountInit(uint box, BoxDimensions const& boxAxes)
    uint counter = 0;
    double ksqr;
    double boxSize;
-#if ENSEMBLE == GEMC
+   XYZ constValue = boxAxes.axis.Get(box);
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
    boxSize = 1.25 * boxAxes.axis.BoxSize(box);
+   constValue *= 1.25;
 #else
    boxSize = boxAxes.axis.BoxSize(box);
 #endif
-   XYZ constValue = boxAxes.axis.Get(box);
    constValue.Inverse();
    constValue *= 2 * M_PI;
    kmax[box] = int(recip_rcut * boxSize / (2 * M_PI)) + 1;
