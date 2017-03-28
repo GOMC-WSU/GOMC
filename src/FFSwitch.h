@@ -93,17 +93,9 @@ inline void FF_SWITCH::CalcCoulombAdd_1_4(double& en, const double distSq,
     const double qi_qj_Fact) const
 {
   double dist = sqrt(distSq);
-  if(!ewald)
-  {
-     double switchVal = distSq/rCutSq - 1.0;
-     switchVal *= switchVal;
-     en += scaling_14 * qi_qj_Fact * switchVal/dist;
-  }
-  else
-  {
-    double erfc = alpha * dist;
-    en += scaling_14 * qi_qj_Fact * (1 - erf(erfc))/ dist;
-  }
+  double switchVal = distSq/rCutSq - 1.0;
+  switchVal *= switchVal;
+  en += scaling_14 * qi_qj_Fact * switchVal/dist;
 }
 
 
@@ -138,17 +130,9 @@ inline double FF_SWITCH::CalcCoulombEn(const double distSq,
                                        const double qi_qj_Fact) const
 {
   double dist = sqrt(distSq);
-  if(!ewald)
-  {
-     double switchVal = distSq/rCutSq - 1.0;
-     switchVal *= switchVal;
-     return  qi_qj_Fact * switchVal/dist;
-  }
-  else
-  {
-     double erfc = alpha * dist;
-     return  qi_qj_Fact * (1 - erf(erfc))/ dist;
-  }
+  double switchVal = distSq/rCutSq - 1.0;
+  switchVal *= switchVal;
+  return  qi_qj_Fact * switchVal/dist;
 }
 
 //mie potential
@@ -188,20 +172,10 @@ inline double FF_SWITCH::CalcCoulombVir(const double distSq,
                                         const double qi_qj) const
 {
   double dist = sqrt(distSq);
-  if(!ewald)
-  {
-     double switchVal = distSq/rCutSq - 1.0;
-     switchVal *= switchVal;
-     double dSwitchVal = 2.0 * (distSq/rCutSq - 1.0) * 2.0 * dist/rCutSq;
-     return -1.0 * qi_qj * (dSwitchVal/distSq - switchVal/(distSq * dist));
-  }
-  else
-  {
-     double constValue = 2.0 * alpha / sqrt(M_PI);
-     double expConstValue = exp(-1.0 * alpha * alpha * distSq);
-     double temp = 1.0 - erf(alpha * dist);
-     return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
-  }
+  double switchVal = distSq/rCutSq - 1.0;
+  switchVal *= switchVal;
+  double dSwitchVal = 2.0 * (distSq/rCutSq - 1.0) * 2.0 * dist/rCutSq;
+  return -1.0 * qi_qj * (dSwitchVal/distSq - switchVal/(distSq * dist));
 }
 
 
