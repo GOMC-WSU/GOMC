@@ -76,15 +76,7 @@ inline void FF_SHIFT::CalcCoulombAdd_1_4(double& en, const double distSq,
     const double qi_qj_Fact) const
 {
   double dist = sqrt(distSq);
-  if(!ewald)
-  {
-     en += scaling_14 * qi_qj_Fact * (1.0/dist - 1.0/rCut);
-  }
-  else
-  {
-    double erfc = alpha * dist;
-    en += scaling_14 * qi_qj_Fact * (1 - erf(erfc))/ dist;
-  }
+  en += scaling_14 * qi_qj_Fact * (1.0/dist - 1.0/rCut);
 }
 
 
@@ -111,15 +103,7 @@ inline double FF_SHIFT::CalcCoulombEn(const double distSq,
                                       const double qi_qj_Fact) const
 {
   double dist = sqrt(distSq);
-  if(!ewald)
-  {
-     return  qi_qj_Fact * (1.0/dist - 1.0/rCut);
-  }
-  else
-  {
-     double erfc = alpha * dist;
-     return  qi_qj_Fact * (1 - erf(erfc))/ dist;
-  }
+  return  qi_qj_Fact * (1.0/dist - 1.0/rCut);
 }
 
 //mie potential
@@ -147,17 +131,7 @@ inline double FF_SHIFT::CalcCoulombVir(const double distSq,
                                        const double qi_qj) const
 {
   double dist = sqrt(distSq);
-  if(!ewald)
-  { 
-     return qi_qj/(distSq * dist);
-  }
-  else
-  {
-     double constValue = 2.0 * alpha / sqrt(M_PI);
-     double expConstValue = exp(-1.0 * alpha * alpha * distSq);
-     double temp = 1.0 - erf(alpha * dist);
-     return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
-  }
+  return qi_qj/(distSq * dist);
 }
 
 

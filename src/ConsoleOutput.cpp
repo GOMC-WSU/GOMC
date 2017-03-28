@@ -114,9 +114,12 @@ void ConsoleOutput::PrintStatistic(const uint box) const
 {
   double density = 0.0;
   uint offset = box * var->numKinds;
-  std::string title = "STAT_BOX_";
-  title += (box? "1":"0");
-  printElement(title, elementWidth);
+  if(enableStat)
+  {
+     std::string title = "STAT_BOX_";
+     title += (box? "1":"0");
+     printElement(title, elementWidth);
+  }
 
   if(enableVolume)
     printElement(var->volumeRef[box] , elementWidth);
@@ -143,18 +146,22 @@ void ConsoleOutput::PrintStatistic(const uint box) const
 
 void ConsoleOutput::PrintPressureTensor(const uint box) const
 {
-   std::string title = "PRESSURE_BOX_";
-   title += (box? "1":"0");
-
    if(enablePressure)
    {
+      std::string title = "PRESSURE_BOX_";
+      title += (box? "1":"0");
       printElement(title, elementWidth);
       for(uint i = 0; i < 3; i++)
       {
+	 //If you calculate the pressure tensor for W12, W13, W23 we print all 9 values of tensor
+	 /*
 	 for(uint j = 0; j < 3; j++)
 	 {
 	   printElement(var->pressureTens[box][i][j], elementWidth);
 	 }
+	 */
+	 // Else, just print the diameter of the pressure Tensor, W11, W22, W33
+	 printElement(var->pressureTens[box][i][i], elementWidth);
       }
    }
    std::cout << std::endl;  
@@ -202,9 +209,12 @@ void ConsoleOutput::PrintEnergyTitle(const uint box)
 void ConsoleOutput::PrintStatisticTitle(const uint box)
 {
   uint offset = box * var->numKinds;
-  std::string title = "STITLE_BOX_";
-  title += (box? "1": "0");
-  printElement(title, elementWidth);
+  if(enableStat)
+  {
+     std::string title = "STITLE_BOX_";
+     title += (box? "1": "0");
+     printElement(title, elementWidth);
+  }
 
   if(enableVolume)
     printElement("VOLUME", elementWidth);

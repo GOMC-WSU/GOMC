@@ -197,7 +197,9 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
    return potential;
 }
 
-
+// NOTE: The calculation of W12, W13, W23 is expensive and would not be 
+// requied for pressure and surface tension calculation. So, they have been 
+// commented out. In case you need to calculate them, uncomment them. 
 Virial CalculateEnergy::ForceCalc(const uint box)
 {
    //store virial and energy of reference and modify the virial
@@ -247,11 +249,11 @@ Virial CalculateEnergy::ForceCalc(const uint box)
 	   pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj);
 	   //calculate the top diagonal of pressure tensor
 	   rT11 += pRF * (virC.x * comC.x);
-	   rT12 += pRF * (0.5 * (virC.x * comC.y + virC.y * comC.x));
-	   rT13 += pRF * (0.5 * (virC.x * comC.z + virC.z * comC.x));
+	   //rT12 += pRF * (0.5 * (virC.x * comC.y + virC.y * comC.x));
+	   //rT13 += pRF * (0.5 * (virC.x * comC.z + virC.z * comC.x));
 
 	   rT22 += pRF * (virC.y * comC.y);
-	   rT23 += pRF * (0.5 * (virC.y * comC.z + virC.z * comC.y));
+	   //rT23 += pRF * (0.5 * (virC.y * comC.z + virC.z * comC.y));
 	   
 	   rT33 += pRF * (virC.z * comC.z);
 	 }
@@ -260,11 +262,11 @@ Virial CalculateEnergy::ForceCalc(const uint box)
 					     particleKind[pair2[i]]);
 	 //calculate the top diagonal of pressure tensor
 	 vT11 += pVF * (virC.x * comC.x);
-	 vT12 += pVF * (0.5 * (virC.x * comC.y + virC.y * comC.x));
-	 vT13 += pVF * (0.5 * (virC.x * comC.z + virC.z * comC.x));
+	 //vT12 += pVF * (0.5 * (virC.x * comC.y + virC.y * comC.x));
+	 //vT13 += pVF * (0.5 * (virC.x * comC.z + virC.z * comC.x));
 
 	 vT22 += pVF * (virC.y * comC.y);
-	 vT23 += pVF * (0.5 * (virC.y * comC.z + virC.z * comC.y));
+	 //vT23 += pVF * (0.5 * (virC.y * comC.z + virC.z * comC.y));
 	 
 	 vT33 += pVF * (virC.z * comC.z);
       }      
@@ -314,11 +316,6 @@ Virial CalculateEnergy::ForceCalc(const uint box)
 
    tempVir.Total();
 
-   /*
-   std::cout << "Inter: " << tempVir.inter << ", Tc: " << tempVir.tc
-	     << ", Real: " << tempVir.real << ", Recip: " << tempVir.recip
-	     << ", P Total: " << tempVir.total << std::endl;
-   */
    return tempVir;
 }
 

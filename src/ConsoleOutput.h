@@ -52,6 +52,11 @@ public:
     enableMol = false;
 #endif
     enableDens = output.statistics.vars.density.fluct;
+    if (enableVolume || enablePressure || enableMol || enableDens ||
+	enableSurfTension)
+    {
+      enableStat = true;
+    }
     DoOutput(0);
   }
   virtual void DoOutput(const ulong step);
@@ -59,7 +64,7 @@ public:
 private:
   const static int elementWidth = 16;
   bool enableEnergy, enablePressure, enableDens, enableVolume, enableMol;
-  bool enableSurfTension;
+  bool enableSurfTension, enableStat;
   void PrintMove(const uint box, const ulong step) const;
   void PrintMoveStat(const uint box, const ulong step) const;
   void PrintStatistic(const uint box) const;

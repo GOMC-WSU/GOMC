@@ -430,6 +430,9 @@ double EwaldCached::BoxReciprocal(uint box) const
    return energyRecip; 
 }
 
+// NOTE: The calculation of W12, W13, W23 is expensive and would not be 
+// requied for pressure and surface tension calculation. So, they have been 
+// commented out. In case you need to calculate them, uncomment them. 
 Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
 {
    Virial tempVir = virial;
@@ -461,15 +464,15 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
        
       wT11 += factor * (1.0 - 2.0 * (constVal + 1.0 / hsqr[box][i]) *
 			kx[box][i] * kx[box][i]);
-      wT12 += factor * (-2.0 * (constVal + 1.0 / hsqr[box][i]) *
-			kx[box][i] * ky[box][i]);
-      wT13 += factor * (-2.0 * (constVal + 1.0 / hsqr[box][i]) *
-			kx[box][i] * kz[box][i]);
+      //wT12 += factor * (-2.0 * (constVal + 1.0 / hsqr[box][i]) *
+      //			kx[box][i] * ky[box][i]);
+      // wT13 += factor * (-2.0 * (constVal + 1.0 / hsqr[box][i]) *
+      //			kx[box][i] * kz[box][i]);
 
       wT22 += factor * (1.0 - 2.0 * (constVal + 1.0 / hsqr[box][i]) *
 			ky[box][i] * ky[box][i]);
-      wT23 += factor * (-2.0 * (constVal + 1.0 / hsqr[box][i]) *
-			ky[box][i] * kz[box][i]);
+      // wT23 += factor * (-2.0 * (constVal + 1.0 / hsqr[box][i]) *
+      //			ky[box][i] * kz[box][i]);
 
       wT33 += factor * (1.0 - 2.0 * (constVal + 1.0 / hsqr[box][i]) *
 			kz[box][i] * kz[box][i]); 
@@ -508,11 +511,11 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
 					      sumRnew[box][i]*sin(arg))*charge;
 
 	    wT11 += factor * (kx[box][i] * diffC.x);
-	    wT12 += factor * 0.5 *(kx[box][i] * diffC.y + ky[box][i] * diffC.x);
-	    wT13 += factor * 0.5 *(kx[box][i] * diffC.z + kz[box][i] * diffC.x);
+	    //wT12 += factor * 0.5 *(kx[box][i] * diffC.y + ky[box][i] * diffC.x);
+	    //wT13 += factor * 0.5 *(kx[box][i] * diffC.z + kz[box][i] * diffC.x);
 
 	    wT22 += factor * (ky[box][i] * diffC.y);
-	    wT23 += factor * 0.5 *(ky[box][i] * diffC.z + kz[box][i] * diffC.y);
+	    //wT23 += factor * 0.5 *(ky[box][i] * diffC.z + kz[box][i] * diffC.y);
 
 	    wT33 += factor * (kz[box][i] * diffC.z);
 	 }
