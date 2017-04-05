@@ -47,6 +47,7 @@ void Simulation::RunSimulation(void)
 {
    for (ulong step = 0; step < totalSteps; step++)
    {
+      system->moveSettings.AdjustMoves(step);
       system->ChooseAndRunMove(step);
       cpu->Output(step);
 #ifndef NDEBUG

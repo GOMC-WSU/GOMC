@@ -118,6 +118,9 @@ class EwaldCached
    //update reciprocate values
    virtual void UpdateRecip(uint box);
 
+   //update the hx,y,z hsqr and prefact
+   virtual void UpdateRecipVec(uint box);
+
    //restore cosMol and sinMol
    virtual void RestoreMol(int molIndex);
 
@@ -141,6 +144,7 @@ class EwaldCached
    double alpha; 
    double recip_rcut, recip_rcut_Sq;
    uint *imageSize;
+   uint *imageSizeRef;
    //const uint imageTotal = GetImageSize();
    const int imageTotal;
    uint memoryAllocation;
@@ -156,11 +160,11 @@ class EwaldCached
    double **sinMolRef;
    double **cosMolBoxRecip;
    double **sinMolBoxRecip;
-   double **kx;
-   double **ky; 
-   double **kz;
-   double **hsqr;
-   double **prefact;
+   double **kx, **kxRef;
+   double **ky, **kyRef; 
+   double **kz, **kzRef;
+   double **hsqr, **hsqrRef;
+   double **prefact, **prefactRef;
    
 
    std::vector<int> particleKind;

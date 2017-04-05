@@ -71,6 +71,11 @@ EwaldCached::~EwaldCached()
 	   delete[] kz[b];
 	   delete[] hsqr[b];
 	   delete[] prefact[b];
+	   delete[] kxRef[b];
+	   delete[] kyRef[b];
+	   delete[] kzRef[b];
+	   delete[] hsqrRef[b];
+	   delete[] prefactRef[b];
 	   delete[] sumRnew[b];
 	   delete[] sumInew[b];
 	   delete[] sumRref[b];
@@ -86,11 +91,17 @@ EwaldCached::~EwaldCached()
 	delete[] kz;
 	delete[] hsqr;
 	delete[] prefact;
+	delete[] kxRef;
+	delete[] kyRef;
+	delete[] kzRef;
+	delete[] hsqrRef;
+	delete[] prefactRef;
 	delete[] sumRnew;
 	delete[] sumInew;
 	delete[] sumRref;
 	delete[] sumIref;
 	delete[] imageSize;
+	delete[] imageSizeRef;
 	//when cached option is choosen
 	if (cosMolRestore != NULL)
 	{
@@ -120,6 +131,7 @@ void EwaldCached::SetNull()
 
   kmax = NULL;
   imageSize = NULL ;
+  imageSizeRef = NULL ;
   sumRnew = NULL;
   sumInew = NULL;
   sumRref = NULL;
@@ -129,6 +141,11 @@ void EwaldCached::SetNull()
   kz = NULL;
   hsqr = NULL;
   prefact = NULL;
+  kxRef = NULL;
+  kyRef = NULL;
+  kzRef = NULL;
+  hsqrRef = NULL;
+  prefactRef = NULL;
   cosMolRef = NULL;
   sinMolRef = NULL;
   cosMolBoxRecip = NULL;
@@ -136,7 +153,6 @@ void EwaldCached::SetNull()
        
   cosMolRestore = NULL;
   sinMolRestore = NULL;
-       
 }
 
 void EwaldCached::Init()
@@ -178,6 +194,7 @@ void EwaldCached::AllocMem()
 
   kmax = new uint[BOX_TOTAL];
   imageSize = new uint[BOX_TOTAL];
+  imageSizeRef = new uint[BOX_TOTAL];
   sumRnew = new double*[BOX_TOTAL];
   sumInew = new double*[BOX_TOTAL];
   sumRref = new double*[BOX_TOTAL];
@@ -187,6 +204,11 @@ void EwaldCached::AllocMem()
   kz = new double*[BOX_TOTAL];
   hsqr = new double*[BOX_TOTAL];
   prefact = new double*[BOX_TOTAL];
+  kxRef = new double*[BOX_TOTAL];
+  kyRef = new double*[BOX_TOTAL];
+  kzRef = new double*[BOX_TOTAL];
+  hsqrRef = new double*[BOX_TOTAL];
+  prefactRef = new double*[BOX_TOTAL];
   cosMolRef = new double*[mols.count];
   sinMolRef = new double*[mols.count];
   cosMolBoxRecip = new double*[mols.count];
@@ -199,6 +221,11 @@ void EwaldCached::AllocMem()
      kz[b] = new double[imageTotal];
      hsqr[b] = new double[imageTotal];
      prefact[b] = new double[imageTotal];
+     kxRef[b] = new double[imageTotal];
+     kyRef[b] = new double[imageTotal];
+     kzRef[b] = new double[imageTotal];
+     hsqrRef[b] = new double[imageTotal];
+     prefactRef[b] = new double[imageTotal];
      sumRnew[b] = new double[imageTotal];
      sumInew[b] = new double[imageTotal];
      sumRref[b] = new double[imageTotal];
@@ -384,10 +411,10 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 #pragma omp parallel for default(shared) private(i, j, dotProduct)
 #endif 
 	 for (i = 0; i < imageSize[box]; i++)
-	 {
+	 { 
 	    cosMolRef[*thisMol][i] = 0.0;
 	    sinMolRef[*thisMol][i] = 0.0;
- 
+
 	    for (j = 0; j < thisKind.NumAtoms(); j++)
 	    {
 	      dotProduct = currentAxes.DotProduct(mols.MolStart(*thisMol) + j,
@@ -456,26 +483,26 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, factor) reduction(+:wT11, wT12, wT13, wT22, wT23, wT33) 
 #endif
-   for (i = 0; i < imageSize[box]; i++)
+   for (i = 0; i < imageSizeRef[box]; i++)
    {
-      factor = prefact[box][i] * (sumRnew[box][i] * sumRnew[box][i] +
-				  sumInew[box][i] * sumInew[box][i]);
-       
-       
-      wT11 += factor * (1.0 - 2.0 * (constVal + 1.0 / hsqr[box][i]) *
-			kx[box][i] * kx[box][i]);
-      //wT12 += factor * (-2.0 * (constVal + 1.0 / hsqr[box][i]) *
-      //			kx[box][i] * ky[box][i]);
-      // wT13 += factor * (-2.0 * (constVal + 1.0 / hsqr[box][i]) *
-      //			kx[box][i] * kz[box][i]);
+      factor = prefactRef[box][i] * (sumRref[box][i] * sumRref[box][i] +
+				     sumIref[box][i] * sumIref[box][i]);
+        
+      wT11 += factor * (1.0 - 2.0 * (constVal + 1.0 / hsqrRef[box][i]) *
+			kxRef[box][i] * kxRef[box][i]);
+      
+      wT22 += factor * (1.0 - 2.0 * (constVal + 1.0 / hsqrRef[box][i]) *
+			kyRef[box][i] * kyRef[box][i]);
 
-      wT22 += factor * (1.0 - 2.0 * (constVal + 1.0 / hsqr[box][i]) *
-			ky[box][i] * ky[box][i]);
-      // wT23 += factor * (-2.0 * (constVal + 1.0 / hsqr[box][i]) *
-      //			ky[box][i] * kz[box][i]);
+      wT33 += factor * (1.0 - 2.0 * (constVal + 1.0 / hsqrRef[box][i]) *
+			kzRef[box][i] * kzRef[box][i]); 
+      /*
+	wT12 += factor * (-2.0 * (constVal + 1.0 / hsqrRef[box][i]) * kxRef[box][i] * kyRef[box][i]);
 
-      wT33 += factor * (1.0 - 2.0 * (constVal + 1.0 / hsqr[box][i]) *
-			kz[box][i] * kz[box][i]); 
+	wT13 += factor * (-2.0 * (constVal + 1.0 / hsqrRef[box][i]) * kxRef[box][i] * kzRef[box][i]);
+
+	wT23 += factor * (-2.0 * (constVal + 1.0 / hsqrRef[box][i]) * kyRef[box][i] * kzRef[box][i]);
+       */
    }
 
    //the intramolecular part
@@ -501,23 +528,26 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, arg, factor) reduction(+:wT11, wT12, wT13, wT22, wT23, wT33) 
 #endif
-	 for (i = 0; i < imageSize[box]; i++)
+	 for (i = 0; i < imageSizeRef[box]; i++)
 	 {
 	    //compute the dot product of k and r
-	    arg = currentAxes.DotProduct(atom, kx[box][i], ky[box][i],
-					 kz[box][i], currentCoords, box);
+	    arg = currentAxes.DotProduct(atom, kxRef[box][i], kyRef[box][i],
+					 kzRef[box][i], currentCoords, box);
 
-	    factor = prefact[box][i] * 2.0 * (sumInew[box][i]*cos(arg) -
-					      sumRnew[box][i]*sin(arg))*charge;
+	    factor = prefactRef[box][i] * 2.0 * (sumIref[box][i]*cos(arg) -
+						 sumRref[box][i]*sin(arg)) * charge;
 
-	    wT11 += factor * (kx[box][i] * diffC.x);
-	    //wT12 += factor * 0.5 *(kx[box][i] * diffC.y + ky[box][i] * diffC.x);
-	    //wT13 += factor * 0.5 *(kx[box][i] * diffC.z + kz[box][i] * diffC.x);
+	    wT11 += factor * (kxRef[box][i] * diffC.x);
+	    
+	    wT22 += factor * (kyRef[box][i] * diffC.y);
 
-	    wT22 += factor * (ky[box][i] * diffC.y);
-	    //wT23 += factor * 0.5 *(ky[box][i] * diffC.z + kz[box][i] * diffC.y);
+	    wT33 += factor * (kzRef[box][i] * diffC.z);
 
-	    wT33 += factor * (kz[box][i] * diffC.z);
+	    /*
+	      wT12 += factor * 0.5 *(kxRef[box][i] * diffC.y + kyRef[box][i] * diffC.x);
+	      wT13 += factor * 0.5 *(kxRef[box][i] * diffC.z + kzRef[box][i] * diffC.x);
+	      wT23 += factor * 0.5 *(kyRef[box][i] * diffC.z + kzRef[box][i] * diffC.y);
+	    */
 	 }
       }
       ++thisMol;
@@ -564,7 +594,7 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, p, atom, sumRealNew, sumImaginaryNew, sumRealOld, sumImaginaryOld, dotProductNew) reduction(+:energyRecipNew)
 #endif
-      for (i = 0; i < imageSize[box]; i++)
+      for (i = 0; i < imageSizeRef[box]; i++)
       { 
 	 sumRealNew = 0.0;
 	 sumImaginaryNew = 0.0;
@@ -577,8 +607,9 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
 	 for (p = 0; p < length; ++p)
 	 {
 	    atom = startAtom + p;
-	    dotProductNew = currentAxes.DotProduct(p, kx[box][i], ky[box][i],
-						   kz[box][i], molCoords, box);
+	    dotProductNew = currentAxes.DotProduct(p, kxRef[box][i],
+						   kyRef[box][i], kzRef[box][i],
+						   molCoords, box);
 	    
 	    sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
 	    sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
@@ -590,7 +621,7 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
 	 sinMolRef[molIndex][i] = sumImaginaryNew;
 	 
 	 energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
-			    * sumInew[box][i]) * prefact[box][i];	 
+			    * sumInew[box][i]) * prefactRef[box][i];	 
       }
    }
 
@@ -683,7 +714,7 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, p, dotProductNew) reduction(+:energyRecipNew) 
 #endif
-      for (i = 0; i < imageSize[box]; i++)
+      for (i = 0; i < imageSizeRef[box]; i++)
       {
 	 cosMolRef[molIndex][i] = 0.0;
 	 sinMolRef[molIndex][i] = 0.0;
@@ -691,8 +722,9 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
 	
 	 for (p = 0; p < length; ++p)
 	 {
-	    dotProductNew = currentAxes.DotProduct(p, kx[box][i], ky[box][i],
-						   kz[box][i], molCoords, box);
+	    dotProductNew = currentAxes.DotProduct(p, kxRef[box][i],
+						   kyRef[box][i], kzRef[box][i],
+						   molCoords, box);
 	    cosMolRef[molIndex][i] += (thisKind.AtomCharge(p) *
 				       cos(dotProductNew));
 	    sinMolRef[molIndex][i] += (thisKind.AtomCharge(p) *
@@ -705,7 +737,7 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
 	 sumInew[box][i] = sumIref[box][i] + sinMolRef[molIndex][i];   
 
 	 energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
-			    * sumInew[box][i]) * prefact[box][i];
+			    * sumInew[box][i]) * prefactRef[box][i];
       }
 
       energyRecipOld = sysPotRef.boxEnergy[box].recip;
@@ -728,13 +760,13 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i) reduction(+:energyRecipNew)
 #endif 
-      for (i = 0; i < imageSize[box]; i++)
+      for (i = 0; i < imageSizeRef[box]; i++)
       { 	 
 	 sumRnew[box][i] = sumRref[box][i] - cosMolRestore[i];
 	 sumInew[box][i] = sumIref[box][i] - sinMolRestore[i];
 	
 	 energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
-			    * sumInew[box][i]) * prefact[box][i];	 
+			    * sumInew[box][i]) * prefactRef[box][i];	 
       }
 
       energyRecipOld = sysPotRef.boxEnergy[box].recip;
@@ -880,6 +912,15 @@ void EwaldCached::SetRecipRef(uint box)
   {
      std::memcpy(sumRref[box], sumRnew[box], sizeof(double) * imageSize[box]);
      std::memcpy(sumIref[box], sumInew[box], sizeof(double) * imageSize[box]);
+     std::memcpy(kxRef[box], kx[box], sizeof(double) * imageSize[box]);
+     std::memcpy(kyRef[box], ky[box], sizeof(double) * imageSize[box]);
+     std::memcpy(kzRef[box], kz[box], sizeof(double) * imageSize[box]);
+     std::memcpy(hsqrRef[box], hsqr[box], sizeof(double) * imageSize[box]);
+     std::memcpy(prefactRef[box], prefact[box], sizeof(double) *imageSize[box]);
+  }
+  for(uint b= 0; b < BOX_TOTAL; b++)
+  {
+    imageSizeRef[b] = imageSize[b];
   }
 }
 
@@ -894,6 +935,33 @@ void EwaldCached::UpdateRecip(uint box)
    sumIref[box] = sumInew[box];
    sumRnew[box] = tempR;
    sumInew[box] = tempI;
+}
+
+void EwaldCached::UpdateRecipVec(uint box)
+{
+  double *tempKx, *tempKy, *tempKz, *tempHsqr, *tempPrefact;
+   tempKx = kxRef[box];
+   tempKy = kyRef[box];
+   tempKz = kzRef[box];
+   tempHsqr = hsqrRef[box];
+   tempPrefact = prefactRef[box];
+
+   kxRef[box] = kx[box];
+   kyRef[box] = ky[box];
+   kzRef[box] = kz[box];
+   hsqrRef[box] = hsqr[box];
+   prefactRef[box] = prefact[box];
+   
+   kx[box] = tempKx;
+   ky[box] = tempKy;
+   kz[box] = tempKz;
+   hsqr[box] = tempHsqr;
+   prefact[box] = tempPrefact;
+
+   for(uint b = 0; b < BOX_TOTAL; b++)
+   {
+     imageSizeRef[b] = imageSize[b];
+   }
 }
 
 //restore cosMol and sinMol
