@@ -444,8 +444,8 @@ inline double VolumeTransfer::GetCoeff() const
 
 inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
 {
-   double volTransCoeff = GetCoeff(), 
-      uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
+   double volTransCoeff = GetCoeff(); 
+   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
    double accept = volTransCoeff * uBoltz;
    bool result = (rejectState == mv::fail_state::NO_FAIL) && prng() < accept;
    if (result)
@@ -462,6 +462,7 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       for (uint b = 0; b < BOX_TOTAL; b++)
       {
 	 calcEwald->UpdateRecip(b);
+	 calcEwald->UpdateRecipVec(b);
       }         
    }
    else if (rejectState == mv::fail_state::NO_FAIL && regrewGrid) 
@@ -470,16 +471,13 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       regrewGrid = false;
 
       calcEwald->exgMolCache();
-      for (uint b = 0; b < BOX_TOTAL; b++)
-      {
-	 //calculate K vectors for old dimension
-	 calcEwald->RecipInit(b, boxDimRef);
-      }
    }
 
    if (GEMC_KIND == mv::GEMC_NVT)
    {
-      subPick = mv::GetMoveSubIndex(mv::VOL_TRANSFER);
+      subPick = mv::GetMoveSubIndex(mv::VOL_TRANSFER, 0);
+      moveSetRef.Update(result, subPick, step);
+      subPick = mv::GetMoveSubIndex(mv::VOL_TRANSFER, 1);
       moveSetRef.Update(result, subPick, step);
    }
    if (GEMC_KIND == mv::GEMC_NPT)

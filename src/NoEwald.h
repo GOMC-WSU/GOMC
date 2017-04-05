@@ -104,6 +104,9 @@ class NoEwald : public EwaldCached
    //update reciprocate values
    virtual void UpdateRecip(uint box);
 
+   //update the hx,y,z hsqr and prefact
+   virtual void UpdateRecipVec(uint box);
+
    //restore cosMol and sinMol
    virtual void RestoreMol(int molIndex);
 

@@ -111,7 +111,7 @@ void OutputVars::CalcAndConvert(ulong step)
     //multiple of the true virial, based on the dimensions stress is exerted
     //in)
     
-    if (((step+1) % pCalcFreq == 0) && pressureCalc)
+    if (((step + 1) % pCalcFreq == 0) && pressureCalc)
     {
       virialRef[b] = calc.ForceCalc(b);
       *virialTotRef += virialRef[b];

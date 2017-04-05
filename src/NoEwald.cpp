@@ -163,10 +163,16 @@ void NoEwald::SetRecipRef(uint box)
    return;
 }
 
-   //update reciprocate values
+//update reciprocate values
 void NoEwald::UpdateRecip(uint box)
 {
    return;
+}
+
+//update the hx,y,z hsqr and prefact
+void NoEwald::UpdateRecipVec(uint box)
+{
+  return;
 }
 
 //restore cosMol and sinMol

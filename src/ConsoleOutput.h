@@ -67,13 +67,16 @@ private:
   bool enableSurfTension, enableStat;
   void PrintMove(const uint box, const ulong step) const;
   void PrintMoveStat(const uint box, const ulong step) const;
-  void PrintStatistic(const uint box) const;
-  void PrintPressureTensor(const uint box) const;
-  void PrintEnergy(const uint box, Energy const& en, Virial const& vir) const;
-  void PrintEnergyTitle(const uint box);
-  void PrintStatisticTitle(const uint box);
-  void PrintMoveTitle(const uint box);
+  void PrintStatistic(const uint box, const ulong step) const;
+  void PrintPressureTensor(const uint box, const ulong step) const;
+  void PrintEnergy(const uint box, Energy const& en, Virial const& vir,
+		   const ulong step) const;
+  void PrintEnergyTitle();
+  void PrintStatisticTitle();
+  void PrintMoveTitle();
   template <typename T> void printElement ( const T t, const int width) const;
+  template <typename T> void printElementStep ( const T t, const ulong step,
+						const int width) const;
 };
 
 #endif /*CONSOLE_OUTPUT_H*/

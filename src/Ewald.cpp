@@ -69,6 +69,7 @@ void Ewald::AllocMem()
 
   kmax = new uint[BOX_TOTAL];
   imageSize = new uint[BOX_TOTAL];
+  imageSizeRef = new uint[BOX_TOTAL];
   sumRnew = new double*[BOX_TOTAL];
   sumInew = new double*[BOX_TOTAL];
   sumRref = new double*[BOX_TOTAL];
@@ -78,6 +79,11 @@ void Ewald::AllocMem()
   kz = new double*[BOX_TOTAL];
   hsqr = new double*[BOX_TOTAL];
   prefact = new double*[BOX_TOTAL];
+  kxRef = new double*[BOX_TOTAL];
+  kyRef = new double*[BOX_TOTAL];
+  kzRef = new double*[BOX_TOTAL];
+  hsqrRef = new double*[BOX_TOTAL];
+  prefactRef = new double*[BOX_TOTAL];
      
   for (uint b = 0; b < BOX_TOTAL; b++)
   {
@@ -86,6 +92,11 @@ void Ewald::AllocMem()
      kz[b] = new double[imageTotal];
      hsqr[b] = new double[imageTotal];
      prefact[b] = new double[imageTotal];
+     kxRef[b] = new double[imageTotal];
+     kyRef[b] = new double[imageTotal];
+     kzRef[b] = new double[imageTotal];
+     hsqrRef[b] = new double[imageTotal];
+     prefactRef[b] = new double[imageTotal];
      sumRnew[b] = new double[imageTotal];
      sumInew[b] = new double[imageTotal];
      sumRref[b] = new double[imageTotal];
@@ -245,7 +256,7 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, p, atom, sumRealNew, sumImaginaryNew, sumRealOld, sumImaginaryOld, dotProductNew, dotProductOld) reduction(+:energyRecipNew, energyRecipOld)
 #endif
-      for (i = 0; i < imageSize[box]; i++)
+      for (i = 0; i < imageSizeRef[box]; i++)
       { 
 	 sumRealNew = 0.0;
 	 sumImaginaryNew = 0.0;
@@ -257,11 +268,13 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
 	 for (p = 0; p < length; ++p)
 	 {
 	    atom = startAtom + p;
-	    dotProductNew = currentAxes.DotProduct(p, kx[box][i], ky[box][i],
-						   kz[box][i], molCoords, box);
+	    dotProductNew = currentAxes.DotProduct(p, kxRef[box][i],
+						   kyRef[box][i], kzRef[box][i],
+						   molCoords, box);
 
-	    dotProductOld = currentAxes.DotProduct(atom, kx[box][i], ky[box][i],
-						kz[box][i], currentCoords, box);
+	    dotProductOld = currentAxes.DotProduct(atom, kxRef[box][i],
+						   kyRef[box][i],kzRef[box][i],
+						   currentCoords, box);
 	    
 	    sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
 	    sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
@@ -274,7 +287,7 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
 	 sumInew[box][i] = sumIref[box][i] - sumImaginaryOld + sumImaginaryNew;
 	 
 	 energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
-			    * sumInew[box][i]) * prefact[box][i];	 
+			    * sumInew[box][i]) * prefactRef[box][i];	 
       }
    }
 
@@ -303,7 +316,7 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, p, dotProductNew, sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew) 
 #endif
-      for (i = 0; i < imageSize[box]; i++)
+      for (i = 0; i < imageSizeRef[box]; i++)
       {
 	 sumRealNew = 0.0;
 	 sumImaginaryNew = 0.0;
@@ -311,8 +324,9 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
 	
 	 for (p = 0; p < length; ++p)
 	 {
-	    dotProductNew = currentAxes.DotProduct(p, kx[box][i], ky[box][i],
-						   kz[box][i], molCoords, box);
+	    dotProductNew = currentAxes.DotProduct(p, kxRef[box][i],
+						   kyRef[box][i], kzRef[box][i],
+						   molCoords, box);
 
 	    sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
 	    sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
@@ -324,7 +338,7 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
 	 sumInew[box][i] = sumIref[box][i] + sumImaginaryNew;
    
 	 energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
-			    * sumInew[box][i]) * prefact[box][i];
+			    * sumInew[box][i]) * prefactRef[box][i];
       }
 
       energyRecipOld = sysPotRef.boxEnergy[box].recip;
@@ -352,7 +366,7 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, p, dotProductNew, sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
 #endif 
-      for (i = 0; i < imageSize[box]; i++)
+      for (i = 0; i < imageSizeRef[box]; i++)
       { 
 	 sumRealNew = 0.0;
 	 sumImaginaryNew = 0.0;
@@ -360,8 +374,9 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 
 	 for (p = 0; p < length; ++p)
 	 {
-	    dotProductNew = currentAxes.DotProduct(p, kx[box][i], ky[box][i],
-						   kz[box][i], molCoords, box);
+	    dotProductNew = currentAxes.DotProduct(p, kxRef[box][i],
+						   kyRef[box][i], kzRef[box][i],
+						   molCoords, box);
 	    
 	    sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
 	    sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
@@ -371,7 +386,7 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 	 sumInew[box][i] = sumIref[box][i] - sumImaginaryNew;
 	
 	 energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
-			    * sumInew[box][i]) * prefact[box][i];	 
+			    * sumInew[box][i]) * prefactRef[box][i];	 
       }
 
       energyRecipOld = sysPotRef.boxEnergy[box].recip;
