@@ -3,6 +3,7 @@
 #include <algorithm>          //For copy
 #include <cmath>
 #include <cassert>
+#include <omp.h>
 
 void Coordinates::InitFromPDB(pdb_setup::Atoms const& atoms)
 {
@@ -154,24 +155,52 @@ void Coordinates::TranslateOneBox
 (Coordinates & dest, COM & newCOM, COM const& oldCOM,
  BoxDimensions const& newDim, const uint b, const XYZ& scale) const
 {
-  uint pStart=0, pStop=0, pLen=0;
+  uint pStart=0, pStop=0, pLen=0, i;
   MoleculeLookup::box_iterator curr = molLookRef.BoxBegin(b),
                                end = molLookRef.BoxEnd(b);
+  std::vector<int> molID;
+  XYZ shift, oldCOMForUnwrap;
+
+#ifdef _OPENMP
+  while (curr != end)
+  {
+     molID.push_back(*curr);
+     ++curr;
+  }
+
+#pragma omp parallel for default(shared) private(i, pStart, pStop, pLen, shift, oldCOMForUnwrap)
+  for (i = 0; i < molID.size(); i++)
+  {
+     molRef.GetRange(pStart, pStop, pLen, molID[i]);
+     //Scale CoM for this molecule, translate all atoms by same amount
+     newCOM.Scale(molID[i], scale);
+     shift = newCOM.Get(molID[i]);
+     shift -= oldCOM.Get(molID[i]);
+     //Translation of atoms in mol.
+     //Unwrap coordinates
+     oldCOMForUnwrap = oldCOM.Get(molID[i]);
+     boxDimRef.UnwrapPBC(dest, pStart, pStop, b, oldCOMForUnwrap);
+     dest.AddRange(pStart, pStop, shift);
+     newDim.WrapPBC(dest, pStart, pStop, b);
+  }
+#else
+
   while (curr != end)
   {
     molRef.GetRange(pStart, pStop, pLen, *curr);
     //Scale CoM for this molecule, translate all atoms by same amount
     newCOM.Scale(*curr, scale);
-    XYZ shift = newCOM.Get(*curr);
+    shift = newCOM.Get(*curr);
     shift -= oldCOM.Get(*curr);
     //Translation of atoms in mol.
     //Unwrap coordinates
-    XYZ oldCOMForUnwrap = oldCOM.Get(*curr);
+    oldCOMForUnwrap = oldCOM.Get(*curr);
     boxDimRef.UnwrapPBC(dest, pStart, pStop, b, oldCOMForUnwrap);
     dest.AddRange(pStart, pStop, shift);
     newDim.WrapPBC(dest, pStart, pStop, b);
     ++curr;
   }
+#endif
 
 }
 
