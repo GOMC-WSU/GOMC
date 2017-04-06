@@ -505,9 +505,14 @@ inline void XYZArray::ScaleAll(const double val)
 inline void XYZArray::CopyRange(XYZArray & dest, const uint srcIndex,
                                 const uint destIndex, const uint len) const
 {
-  memcpy(dest.x+destIndex, x+srcIndex, len * sizeof(double));
-  memcpy(dest.y+destIndex, y+srcIndex, len * sizeof(double));
-  memcpy(dest.z+destIndex, z+srcIndex, len * sizeof(double));
+#ifdef _OPENMP  
+#pragma omp parallel default(shared) 
+#endif
+  {
+     memcpy(dest.x+destIndex, x+srcIndex, len * sizeof(double));
+     memcpy(dest.y+destIndex, y+srcIndex, len * sizeof(double));
+     memcpy(dest.z+destIndex, z+srcIndex, len * sizeof(double));
+  }
 }
 
 
