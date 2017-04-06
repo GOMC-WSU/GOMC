@@ -6,6 +6,7 @@
 #include <stdio.h> //for memset, memcpy, etc.
 #include <utility>      //for swap (most modern compilers)
 #include <algorithm>      //for swap pre-c++11 compilers
+#include <omp.h>
 
 //Forward declare to give accesss to internal arrays.
 class BoxDimensions;
