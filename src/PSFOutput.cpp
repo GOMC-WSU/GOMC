@@ -39,26 +39,24 @@ PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
 
 void PSFOutput::CountMolecules()
 {
-    //count molecules of each kind
-    std::vector<uint> molCounts(molKinds.size(), 0);
-    
-    for(uint i = 0; i < molecules->count; ++i)
-    {
-        ++molCounts[molecules->kIndex[i]];
-    }
     totalAngles = 0;
     totalAtoms = 0;
     totalBonds = 0;
     totalDihs = 0;
-    for(uint k = 0; k < molCounts.size(); ++k)
+    uint atomT = 0;
+
+    for(uint b = 0; b < BOX_TOTAL; b++)
     {
-      const MoleculeKind& molKind = molecules->GetKind(k);
-      for(uint b = 0; b < BOX_TOTAL; b++)
+      for(uint k = 0; k < molKinds.size(); ++k)
       {
+	const MoleculeKind& molKind = molecules->GetKind(atomT);
+
 	totalAtoms += molKind.NumAtoms() * molLookRef.NumKindInBox(k, b);
 	totalBonds += molKind.NumBonds() * molLookRef.NumKindInBox(k, b);
 	totalAngles += molKind.NumAngles() * molLookRef.NumKindInBox(k, b);	
 	totalDihs += molKind.NumDihs() * molLookRef.NumKindInBox(k, b);
+
+	atomT += molLookRef.NumKindInBox(k, b);
       }
     }
 }
