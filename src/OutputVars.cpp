@@ -115,24 +115,25 @@ void OutputVars::CalcAndConvert(ulong step)
     {
       virialRef[b] = calc.ForceCalc(b);
       *virialTotRef += virialRef[b];
-      //calculate surface tension in mN/M
-      surfaceTens[b] = (virialRef[b].totalTens[2][2] - 0.5 *
-			(virialRef[b].totalTens[0][0] +
-			 virialRef[b].totalTens[1][1]));
-      surfaceTens[b] *= unit::K_TO_MN_PER_M /
-	(2.0 * axisRef->Get(b).x * axisRef->Get(b).y);
-
-      //save the pressure tensor for print
-      for (int i = 0; i < 3; i++)
-      {
-	 for (int j = 0; j < 3; j++)
-	 {
-	    //convert K to bar
-	    pressureTens[b][i][j] = virialRef[b].totalTens[i][j] *
-	      unit::K_MOLECULE_PER_A3_TO_BAR / volumeRef[b];
-	 }
-      }
     }  
+
+    //calculate surface tension in mN/M
+    surfaceTens[b] = (virialRef[b].totalTens[2][2] - 0.5 *
+		      (virialRef[b].totalTens[0][0] +
+		       virialRef[b].totalTens[1][1]));
+    surfaceTens[b] *= unit::K_TO_MN_PER_M /
+      (2.0 * axisRef->Get(b).x * axisRef->Get(b).y);
+
+    //save the pressure tensor for print
+    for (int i = 0; i < 3; i++)
+    {
+       for (int j = 0; j < 3; j++)
+       {
+	  //convert K to bar
+	  pressureTens[b][i][j] = virialRef[b].totalTens[i][j] *
+	    unit::K_MOLECULE_PER_A3_TO_BAR / volumeRef[b];
+       }
+    }
     
     virial[b] = virialRef[b];
     virial[b] /= unit::DIMENSIONALITY;
