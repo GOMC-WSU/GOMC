@@ -33,7 +33,7 @@ namespace cbmc
 	 { 
             prev = angles[i].a2; 
             angleKind = angles[i].kind; 
-	    if (data->ff.angles->AngleEnergy(angleKind) > 10E7) 
+	    if (data->ff.angles->AngleFixed(angleKind)) 
 	    { 
 	       angleFix = true; 
 	       thetaFix = data->ff.angles->Angle(angleKind); 

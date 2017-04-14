@@ -54,7 +54,7 @@ public:
   virtual double CalcCoulombEn(const double distSq,
                                const double qi_qj_Fact) const;
   virtual double CalcCoulombVir(const double distSq,
-                                const double qi_qj_Fact) const;
+                                const double qi_qj) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact) const;
 
@@ -109,14 +109,23 @@ inline void FF_SWITCH_MARTINI::CalcCoulombAdd_1_4(double& en,
     const double distSq,
     const double qi_qj_Fact) const
 {
-  // in Martini, the Coulomb switching distance is zero, so we will have
-  // sqrt(distSq) - rOnCoul =  sqrt(distSq)
-  double dist = sqrt(distSq);
-  double rij_ronCoul_3 = dist * distSq;
-  double rij_ronCoul_4 = distSq * distSq;
-
-  double coul = -(A1/3.0) * rij_ronCoul_3 - (B1/4.0) * rij_ronCoul_4 - C1;
-  en += scaling_14 * qi_qj_Fact * diElectric_1 * (coul + 1.0/dist);
+  if(ewald)
+  {
+     double dist = sqrt(distSq);
+     double erfc = alpha * dist;
+     en += scaling_14 * qi_qj_Fact * (1 - erf(erfc))/ dist;
+  }
+  else
+  {
+     // in Martini, the Coulomb switching distance is zero, so we will have
+     // sqrt(distSq) - rOnCoul =  sqrt(distSq)
+     double dist = sqrt(distSq);
+     double rij_ronCoul_3 = dist * distSq;
+     double rij_ronCoul_4 = distSq * distSq;
+     
+     double coul = -(A1/3.0) * rij_ronCoul_3 - (B1/4.0) * rij_ronCoul_4 - C1;
+     en += scaling_14 * qi_qj_Fact * diElectric_1 * (coul + 1.0/dist);
+  }
 }
 
 
@@ -158,14 +167,23 @@ inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
 inline double FF_SWITCH_MARTINI::CalcCoulombEn(const double distSq,
 					       const double qi_qj_Fact) const
 {
-  // in Martini, the Coulomb switching distance is zero, so we will have
-  // sqrt(distSq) - rOnCoul =  sqrt(distSq)
-  double dist = sqrt(distSq);
-  double rij_ronCoul_3 = dist * distSq;
-  double rij_ronCoul_4 = distSq * distSq;
-
-  double coul = -(A1/3.0) * rij_ronCoul_3 - (B1/4.0) * rij_ronCoul_4 - C1;
-  return qi_qj_Fact  * diElectric_1 * (1.0/dist + coul);
+  if(ewald)
+  {
+     double dist = sqrt(distSq);
+     double erfc = alpha * dist;
+     return  qi_qj_Fact * (1 - erf(erfc))/ dist;
+  }
+  else
+  {     
+     // in Martini, the Coulomb switching distance is zero, so we will have
+     // sqrt(distSq) - rOnCoul =  sqrt(distSq)
+     double dist = sqrt(distSq);
+     double rij_ronCoul_3 = dist * distSq;
+     double rij_ronCoul_4 = distSq * distSq;
+     
+     double coul = -(A1/3.0) * rij_ronCoul_3 - (B1/4.0) * rij_ronCoul_4 - C1;
+     return qi_qj_Fact  * diElectric_1 * (1.0/dist + coul);
+  }
 }
 
 //mie potential
@@ -199,17 +217,28 @@ inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
 }
 
 inline double FF_SWITCH_MARTINI::CalcCoulombVir(const double distSq,
-						const double qi_qj_Fact) const
+						const double qi_qj) const
 {
-  // in Martini, the Coulomb switching distance is zero, so we will have
-  // sqrt(distSq) - rOnCoul =  sqrt(distSq)
-  double dist = sqrt(distSq);
-  double rij_ronCoul_2 = distSq;
-  double rij_ronCoul_3 = dist * distSq;
-  double rij_ronCoul_4 = distSq * distSq;
+  if(ewald)
+  {
+     double dist = sqrt(distSq);
+     double constValue = 2.0 * alpha / sqrt(M_PI);
+     double expConstValue = exp(-1.0 * alpha * alpha * distSq);
+     double temp = 1.0 - erf(alpha * dist);
+     return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+  }
+  else
+  {
+     // in Martini, the Coulomb switching distance is zero, so we will have
+     // sqrt(distSq) - rOnCoul =  sqrt(distSq)
+     double dist = sqrt(distSq);
+     double rij_ronCoul_2 = distSq;
+     double rij_ronCoul_3 = dist * distSq;
+     double rij_ronCoul_4 = distSq * distSq;
 
-  double virCoul = A1/rij_ronCoul_2 + B1/rij_ronCoul_3;
-  return qi_qj_Fact * diElectric_1 * ( 1.0/(dist * distSq) + virCoul/dist);
+     double virCoul = A1/rij_ronCoul_2 + B1/rij_ronCoul_3;
+     return qi_qj * diElectric_1 * ( 1.0/(dist * distSq) + virCoul/dist);
+  }
 }
 
 

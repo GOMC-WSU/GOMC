@@ -37,7 +37,7 @@ public:
   virtual double CalcCoulombEn(const double distSq,
                                const double qi_qj_Fact) const;
   virtual double CalcCoulombVir(const double distSq,
-                                const double qi_qj_Fact) const;
+                                const double qi_qj) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact) const;
 
@@ -75,8 +75,17 @@ inline void FF_SHIFT::CalcAdd_1_4(double& en, const double distSq,
 inline void FF_SHIFT::CalcCoulombAdd_1_4(double& en, const double distSq,
     const double qi_qj_Fact) const
 {
-  double dist = sqrt(distSq);
-  en += scaling_14 * qi_qj_Fact * (1.0/dist - 1.0/rCut);
+  if(ewald)
+  {
+     double dist = sqrt(distSq);
+     double erfc = alpha * dist;
+     en += scaling_14 * qi_qj_Fact * (1 - erf(erfc))/ dist;
+  }
+  else
+  {
+     double dist = sqrt(distSq);
+     en += scaling_14 * qi_qj_Fact * (1.0/dist - 1.0/rCut);
+  }
 }
 
 
@@ -102,8 +111,17 @@ inline double FF_SHIFT::CalcEn(const double distSq,
 inline double FF_SHIFT::CalcCoulombEn(const double distSq,
                                       const double qi_qj_Fact) const
 {
-  double dist = sqrt(distSq);
-  return  qi_qj_Fact * (1.0/dist - 1.0/rCut);
+  if(ewald)
+  {
+     double dist = sqrt(distSq);
+     double erfc = alpha * dist;
+     return  qi_qj_Fact * (1 - erf(erfc))/ dist;
+  }
+  else
+  {
+     double dist = sqrt(distSq);
+     return  qi_qj_Fact * (1.0/dist - 1.0/rCut);
+  }
 }
 
 //mie potential
@@ -130,8 +148,19 @@ inline double FF_SHIFT::CalcVir(const double distSq,
 inline double FF_SHIFT::CalcCoulombVir(const double distSq,
                                        const double qi_qj) const
 {
-  double dist = sqrt(distSq);
-  return qi_qj/(distSq * dist);
+  if(ewald)
+  {
+     double dist = sqrt(distSq);
+     double constValue = 2.0 * alpha / sqrt(M_PI);
+     double expConstValue = exp(-1.0 * alpha * alpha * distSq);
+     double temp = 1.0 - erf(alpha * dist);
+     return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+  }
+  else
+  {
+     double dist = sqrt(distSq);
+     return qi_qj/(distSq * dist);
+  }
 }
 
 

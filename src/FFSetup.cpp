@@ -18,6 +18,7 @@ const double ff_setup::RIJ_OVER_2_TO_SIG = 1.7817974362807;
 const double ff_setup::RIJ_TO_SIG = 0.890898718;
 
 const double ff_setup::Bond::FIXED = 99999999;
+const double ff_setup::Angle::FIXED = 99999999;
 
 //Map variable names to functions
 std::map<std::string, ReadableBaseWithFirst *>
@@ -267,6 +268,7 @@ void Angle::Read(Reader & param, std::string const& firstVar)
 void Angle::Add(const double coeff, const double def, const bool hsUB,
                 const double coeffUB, const double defUB)
 {
+  fixed.push_back(coeff>FIXED);
   Ktheta.push_back(EnConvIfCHARMM(coeff));
   theta0.push_back(geom::DegToRad(def));
   hasUB.push_back(hsUB);
