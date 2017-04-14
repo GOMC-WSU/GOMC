@@ -104,7 +104,7 @@ namespace cbmc
       bool angleFix = false;
       std::fill_n(nonbonded_1_3, nTrials, 0.0);
 
-      if(data->ff.angles->AngleEnergy(kind) > 10E7)
+      if(data->ff.angles->AngleFixed(kind))
       {
 	angleFix = true;
 	thetaFix = data->ff.angles->Angle(kind);
@@ -150,7 +150,7 @@ namespace cbmc
       bool angleFix = false;
       std::fill_n(nonbonded_1_3, nTrials, 0.0);
     
-      if(data->ff.angles->AngleEnergy(kind) > 10E7)
+      if(data->ff.angles->AngleFixed(kind))
       {
 	angleFix = true;
 	thetaFix = data->ff.angles->Angle(kind);
