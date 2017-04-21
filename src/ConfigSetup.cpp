@@ -306,7 +306,7 @@ void ConfigSetup::Init(const char *fileName)
                         sys.ff.cutoff;
       sys.elect.recip_rcut = 2 * (-log(sys.elect.tolerance))/
                              sys.ff.cutoff;
-      printf("Ewald Tolerance is set to: %E \n", sys.elect.tolerance);
+      //printf("Ewald Tolerance is set to: %E \n", sys.elect.tolerance);
     }
     else if(line[0] == "CachedFourier")
     {
