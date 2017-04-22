@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 2.6)
 
 project(GOMC_Serial)
 
+find_package(CUDA)
+
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_30,code=sm_30)
+
 include_directories(lib)
 include_directories(src)
 include_directories(src/cbmc)
@@ -22,7 +26,9 @@ ENDIF(NOT CMAKE_BUILD_TYPE)
 set(ENSEMBLE_NVT ON CACHE BOOL "Build NVT version")
 set(ENSEMBLE_GEMC ON CACHE BOOL "Build GEMC version")
 set(ENSEMBLE_GCMC ON CACHE BOOL "Build GCMC version")
-set(ENSEMBLE_NPT ON CACHE BOOL "Build NPT version")
+set(ENSEMBLE_GPU_NVT ON CACHE BOOL "Build GPU NVT version")
+set(ENSEMBLE_GPU_GEMC ON CACHE BOOL "Build GPU GEMC version")
+set(ENSEMBLE_GPU_GCMC ON CACHE BOOL "Build GPU GCMC version")
 
 #enable config header
 configure_file(
@@ -43,13 +49,13 @@ elseif(MSVC)
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "${CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT} /MT /Zi /O2 /Ob1 /D NDEBUG")
 endif()
 
+#CUDA compile
+#cuda_compile(HELPER_O helper.cu)
+#cuda_compile(DRIVER_O driver.cu OPTIONS -G)
 
-#EnsemblePreprocessor defines NVT = 1, GEMC = 2, GCMC = 3, NPT = 4
+#cuda_add_executable(driver ${HELPER_O} ${DRIVER_O})
 
-#NPT (Isothermal-Isobaric) Ensemble
-set(NPT_flags "-DENSEMBLE=4")
-set(NPT_name "GOMC_Serial_NPT")
-
+#EnsemblePreprocessor defines NVT = 1, GEMC = 2, GCMC = 3
 #Grand Canonical Monte Carlo
 set(GC_flags "-DENSEMBLE=3")
 set(GC_name "GOMC_Serial_GCMC")
