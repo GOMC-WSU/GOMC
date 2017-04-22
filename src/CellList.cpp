@@ -4,7 +4,6 @@
 #include "XYZArray.h"
 #include "MoleculeLookup.h"
 
-
 #include <algorithm>
 
 CellList::CellList(const Molecules& mols)
@@ -171,6 +170,7 @@ void CellList::GridAll(const BoxDimensions& dims,
                    END_CELL);
     MoleculeLookup::box_iterator it = lookup.BoxBegin(b),
                                  end = lookup.BoxEnd(b);
+
     // For each molecule per box
     while (it != end)
     {
