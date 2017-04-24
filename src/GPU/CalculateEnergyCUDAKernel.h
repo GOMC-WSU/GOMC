@@ -6,13 +6,12 @@
 #include "XYZArray.h"
 #include "BoxDimensions.h"
 #include "MoleculeLookup.h"
-#include "FFSetup.h"
-#include "ConfigSetup.h"
 
 using namespace std;
 
-void InitGPUForceField(ff_setup::Particle const& mie,
-		    config_setup::FFKind const& ffKind);
+void InitGPUForceField(double const *sigmaSq, double const *epsilon_Cn,
+		       double const *n, uint VDW_Kind,
+		       bool isMartini, int sizeSq);
 
 __device__ double MinImageSignedGPU(double raw,double ax, double halfAx);
 

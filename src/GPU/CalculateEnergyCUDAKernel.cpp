@@ -3,12 +3,23 @@
 #ifdef GOMC_CUDA
 
 #include <cuda.h>
-__constant__ double gpu_sigma[100];
-__constant__ double gpu_epsilon[100];
-__constant__ int gpu_n[100];
+__constant__ double gpu_sigmaSq[1000];
+__constant__ double gpu_epsilon_Cn[1000];
+__constant__ double gpu_n[1000];
+__constant__ int gpu_VDW_Kind;
+__constant__ bool gpu_isMartini;
 
 
-void InitGPUForceField();
+void InitGPUForceField(double const *sigmaSq, double const *epsilon_Cn,
+		       double const *n, uint VDW_Kind,
+		       bool isMartini, int sizeSq)
+{
+  cudaMemcpyToSymbol("gpu_VDW_Kind", &VDW_Kind, sizeof(int));
+  cudaMemcpyToSymbol("gpu_isMartini", &isMartini, sizeof(int));
+  cudaMemcpyToSymbol("gpu_sigmaSq", sigmaSq, sizeSq * sizeof(double));
+  cudaMemcpyToSymbol("gpu_epsilon_Cn", epsilon_Cn, sizeSq * sizeof(double));
+  cudaMemcpyToSymbol("gpu_n", n, sizeSq * sizeof(double));
+}
 
 __device__ double MinImageSignedGpu(double raw,double ax, double halfAx) 
 {

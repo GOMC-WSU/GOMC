@@ -2,6 +2,7 @@
 #include "FFSetup.h" //For our setup info
 #include "ConfigSetup.h"
 #include "NumLib.h" //For Sq, Cb, and MeanA/G functions.
+#include "CalculateEnergyCUDAKernel.h"
 
 FFParticle::FFParticle() : mass(NULL), nameFirst(NULL), nameSec(NULL),
 			   n(NULL), n_1_4(NULL), sigmaSq(NULL),
@@ -146,6 +147,10 @@ void FFParticle::Init(ff_setup::Particle const& mie,
    
    Blend(mie, rCut);
    AdjNBfix(mie, nbfix, rCut);
+
+#ifdef GOMC_CUDA
+   InitGPUForceField(sigmaSq, epsilon_cn, n, vdwKind, isMartini, size);
+#endif   
 }
 
 double FFParticle::EnergyLRC(const uint kind1, const uint kind2) const
