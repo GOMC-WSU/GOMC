@@ -98,6 +98,8 @@ void FFParticle::Init(ff_setup::Particle const& mie,
    
    rCut =  sys.ff.cutoff;
    rCutSq = rCut * rCut;
+   rCutLow = sys.ff.cutoffLow;
+   rCutLowSq = rCutLow * rCutLow;
    scaling_14 = sys.elect.oneFourScale;
    ewald = sys.elect.ewald;
    alpha = sys.elect.alpha;

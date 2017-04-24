@@ -167,6 +167,9 @@ inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
 inline double FF_SWITCH_MARTINI::CalcCoulombEn(const double distSq,
 					       const double qi_qj_Fact) const
 {
+  if(distSq <= rCutLowSq)
+    return num::BIGNUM;
+
   if(ewald)
   {
      double dist = sqrt(distSq);

@@ -138,6 +138,9 @@ inline double FF_SWITCH::CalcEn(const double distSq,
 inline double FF_SWITCH::CalcCoulombEn(const double distSq,
                                        const double qi_qj_Fact) const
 {
+  if(distSq <= rCutLowSq)
+    return num::BIGNUM;
+
   if(ewald)
   {
      double dist = sqrt(distSq);
