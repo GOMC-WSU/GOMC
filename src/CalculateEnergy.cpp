@@ -17,6 +17,7 @@
 #include "NumLib.h"
 #include <cassert>
 #include <omp.h>
+#include "CalculateEnergyCUDAKernel.h"
 
 //
 //    CalculateEnergy.cpp
@@ -154,18 +155,25 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
    //store atom pair index
    while (!pair.Done()) 
    {
-     pair1.push_back(pair.First());
-     pair2.push_back(pair.Second());
-     pair.Next();
+     if(!SameMolecule(pair1[i], pair2[i]))
+     {
+       pair1.push_back(pair.First());
+       pair2.push_back(pair.Second());
+       pair.Next();
+     }
    }
+
+#ifdef GOMC_CUDA
+   // epsilon ina
+   CallBoxInterGPU(pair1, pair2, coords, boxAxesx, molLookup, electrostatic, particleCharge, particleKind, box);
+#endif
 
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents) reduction(+:tempREn, tempLJEn) 
 #endif    
    for (i = 0; i < pair1.size(); i++)
    {
-      if(!SameMolecule(pair1[i], pair2[i]) &&
-	 boxAxes.InRcut(distSq, virComponents,coords, pair1[i], pair2[i], box)) 
+      if(boxAxes.InRcut(distSq, virComponents,coords, pair1[i], pair2[i], box)) 
       {
 	 if (electrostatic)
 	 {
