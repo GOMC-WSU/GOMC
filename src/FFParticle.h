@@ -106,6 +106,7 @@ protected:
 
   double rCut, rCutSq, rOn, rOnSq, rOnCoul, A1, B1, C1, A6, B6, C6,
          factor1, factor2, scaling_14, alpha, diElectric_1;
+  double rCutLow, rCutLowSq;
 
   uint count, vdwKind;
   bool isMartini, ewald;
@@ -163,9 +164,16 @@ inline double FFParticle::CalcEn(const double distSq,
 inline double FFParticle::CalcCoulombEn(const double distSq,
                                         const double qi_qj_Fact) const
 {
-  double dist = sqrt(distSq);
-  double erfc = alpha * dist;
-  return  qi_qj_Fact * (1 - erf(erfc))/ dist;
+  if(distSq > rCutLowSq)
+  {
+     double dist = sqrt(distSq);
+     double erfc = alpha * dist;
+     return  qi_qj_Fact * (1 - erf(erfc))/ dist;
+  }
+  else
+  {
+     return num::BIGNUM;
+  }
 }
 
 
