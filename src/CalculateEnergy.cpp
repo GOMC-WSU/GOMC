@@ -155,7 +155,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
    //store atom pair index
    while (!pair.Done()) 
    {
-     if(!SameMolecule(pair1[i], pair2[i]))
+     if(!SameMolecule(pair.First(), pair.Second()))
      {
        pair1.push_back(pair.First());
        pair2.push_back(pair.Second());
@@ -164,8 +164,8 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
    }
 
 #ifdef GOMC_CUDA
-   // epsilon ina
-   CallBoxInterGPU(pair1, pair2, coords, boxAxes, molLookup, electrostatic, particleCharge, particleKind, box);
+   CallBoxInterGPU(pair1, pair2, coords, boxAxes, molLookup, 
+		   electrostatic, particleCharge, particleKind, box);
 #endif
 
 #ifdef _OPENMP
@@ -227,18 +227,26 @@ Virial CalculateEnergy::ForceCalc(const uint box)
    //store atom pair index
    while (!pair.Done()) 
    {
-     pair1.push_back(pair.First());
-     pair2.push_back(pair.Second());
-     pair.Next();
+     if(!SameMolecule(pair.First(), pair.Second()))
+     {
+       pair1.push_back(pair.First());
+       pair2.push_back(pair.Second());
+       pair.Next();
+     }
    }
+
+#ifdef GOMC_CUDA
+   CallBoxInterForceGPU(pair1, pair2, currentCoords, currentCOM, boxAxes, 
+			molLookup, electrostatic, particleCharge, particleKind, 
+			particleMol, box);
+#endif
 
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, distSq, pVF, pRF, qi_qj, virC, comC) reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33) 
 #endif    
    for (i = 0; i < pair1.size(); i++)
    {
-      if (!SameMolecule(pair1[i], pair2[i]) &&
-	  currentAxes.InRcut(distSq, virC, currentCoords, pair1[i],
+      if (currentAxes.InRcut(distSq, virC, currentCoords, pair1[i],
 			     pair2[i], box)) 
       {
 	 pVF = 0.0;
