@@ -126,7 +126,8 @@ set(headers
    cbmc/DCLinkNoDih.h
    cbmc/DCOnSphere.h
    cbmc/DCSingle.h
-   cbmc/TrialMol.h)
+   cbmc/TrialMol.h
+   GPU/CalculateEnergyCUDAKernel.h)
 
 set(libHeaders
    ../lib/BasicTypes.h
@@ -137,6 +138,8 @@ set(libHeaders
    ../lib/StrStrmLib.h
    ../lib/VectorLib.h)
 
+set(cudaSources
+   GPU/CalculateEnergyCUDAKernel.cu)
 
 source_group("Header Files" FILES ${headers})
 source_group("Lib Headers" FILES ${libHeaders})
@@ -186,10 +189,10 @@ if(ENSEMBLE_NPT)
 endif()
 
 if(ENSEMBLE_GPU_NVT)
-   add_executable(NVT ${sources} ${headers} ${libHeaders})
-   set_target_properties(NVT PROPERTIES 
-      OUTPUT_NAME ${NVT_name}
-      COMPILE_FLAGS "${NVT_flags}")
+   add_executable(GPU_NVT ${sources} ${headers} ${libHeaders} ${cudaSources})
+   set_target_properties(GPU_NVT PROPERTIES 
+      OUTPUT_NAME ${GPU_NVT_name}
+      COMPILE_FLAGS "${GPU_NVT_flags}")
    if(WIN32)
       #needed for hostname
       target_link_libraries(NVT ws2_32)
@@ -197,10 +200,10 @@ if(ENSEMBLE_GPU_NVT)
 endif()
 
 if(ENSEMBLE_GPU_GEMC)
-   add_executable(GEMC ${sources} ${headers} ${libHeaders})
-   set_target_properties(GEMC PROPERTIES 
-      OUTPUT_NAME ${GE_name}
-      COMPILE_FLAGS "${GE_flags}")
+   add_executable(GPU_GEMC ${sources} ${headers} ${libHeaders} ${cudaSources})
+   set_target_properties(GPU_GEMC PROPERTIES 
+      OUTPUT_NAME ${GPU_GE_name}
+      COMPILE_FLAGS "${GPU_GE_flags}")
    if(WIN32)
       #needed for hostname
       target_link_libraries(GEMC ws2_32)
@@ -208,10 +211,10 @@ if(ENSEMBLE_GPU_GEMC)
 endif()
 
 if(ENSEMBLE_GPU_GCMC)
-   add_executable(GCMC ${sources} ${headers} ${libHeaders})
-   set_target_properties(GCMC PROPERTIES 
-      OUTPUT_NAME ${GC_name}
-      COMPILE_FLAGS "${GC_flags}")
+   cuda_add_executable(GPU_GCMC ${sources} ${headers} ${libHeaders} ${cudaSources})
+   set_target_properties(GPU_GCMC PROPERTIES 
+      OUTPUT_NAME ${GPU_GC_name}
+      COMPILE_FLAGS "${GPU_GC_flags}")
    if(WIN32)
       #needed for hostname
       target_link_libraries(GCMC ws2_32)
@@ -219,10 +222,10 @@ if(ENSEMBLE_GPU_GCMC)
 endif()
 
 if(ENSEMBLE_GPU_NPT)
-   add_executable(NPT ${sources} ${headers} ${libHeaders})
-   set_target_properties(NPT PROPERTIES 
-      OUTPUT_NAME ${NPT_name}
-      COMPILE_FLAGS "${NPT_flags}")
+   add_executable(GPU_NPT ${sources} ${headers} ${libHeaders} ${cudaSources})
+   set_target_properties(GPU_NPT PROPERTIES 
+      OUTPUT_NAME ${GPU_NPT_name}
+      COMPILE_FLAGS "${GPU_NPT_flags}")
    if(WIN32)
       #needed for hostname
       target_link_libraries(NPT ws2_32)
