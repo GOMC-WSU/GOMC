@@ -2,6 +2,7 @@
 
 #ifdef GOMC_CUDA
 #include <cuda.h>
+#include <cuda_runtime.h>
 #include <vector>
 #include "XYZArray.h"
 #include "BoxDimensions.h"
