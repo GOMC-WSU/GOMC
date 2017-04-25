@@ -99,6 +99,8 @@ void FFParticle::Init(ff_setup::Particle const& mie,
    
    rCut =  sys.ff.cutoff;
    rCutSq = rCut * rCut;
+   rCutLow = sys.ff.cutoffLow;
+   rCutLowSq = rCutLow * rCutLow;
    scaling_14 = sys.elect.oneFourScale;
    ewald = sys.elect.ewald;
    alpha = sys.elect.alpha;
@@ -149,7 +151,8 @@ void FFParticle::Init(ff_setup::Particle const& mie,
    AdjNBfix(mie, nbfix, rCut);
 
 #ifdef GOMC_CUDA
-   InitGPUForceField(sigmaSq, epsilon_cn, n, vdwKind, isMartini, size);
+   InitGPUForceField(sigmaSq, epsilon_cn, n, vdwKind, isMartini, size, rCut,
+		     rCutLow, rOn, alpha, ewald, diElectric_1);
 #endif   
 }
 

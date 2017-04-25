@@ -69,6 +69,7 @@ ConfigSetup::ConfigSetup(void)
   sys.ff.doTailCorr = true;
   sys.ff.rswitch = DBL_MAX;
   sys.ff.cutoff = DBL_MAX;
+  sys.ff.cutoffLow = DBL_MAX;
   sys.moves.displace = DBL_MAX;
   sys.moves.rotate = DBL_MAX;
   sys.moves.intraSwap = DBL_MAX;
@@ -275,6 +276,12 @@ void ConfigSetup::Init(const char *fileName)
     else if(line[0] == "Rcut")
     {
       sys.ff.cutoff = stringtod(line[1]);
+      std::cout << "Cut off  is set to " << sys.ff.cutoff << " A.\n";
+    }
+    else if(line[0] == "RcutLow")
+    {
+      sys.ff.cutoffLow = stringtod(line[1]);
+      std::cout << "Cut off Low is set to " << sys.ff.cutoffLow << " A.\n";
     }
     else if(line[0] == "Exclude")
     {
@@ -709,6 +716,11 @@ void ConfigSetup::verifyInputs(void)
   {
     std::cout << "Error: Cut off is required!" << std::endl;
     exit(0);
+  }
+  if(sys.ff.cutoffLow == DBL_MAX)
+  {
+    std::cout << "Warning: Cut off Low is set to 1 A!" << std::endl;
+    sys.ff.cutoffLow = 1.00;
   }
   if(sys.elect.ewald && (sys.elect.tolerance == DBL_MAX))
   {

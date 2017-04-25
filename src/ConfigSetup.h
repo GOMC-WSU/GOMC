@@ -112,7 +112,7 @@ namespace config_setup
    struct FFValues 
    { 
       uint VDW_KIND; 
-      double cutoff, rswitch, oneFourScale; 
+      double cutoff, cutoffLow, rswitch, oneFourScale; 
       bool doTailCorr; 
       std::string kind; 
  
