@@ -80,13 +80,16 @@ public:
               const double l_x,
               const double l_y,
               const double l_z,
-              const double l_occ);
+              const double l_occ,
+	      const double l_beta);
+
   void Read(FixedWidthReader & file);
 
   //private:
   //member data
   std::vector<char> chainLetter; //chain ids of each molecule
   std::vector<double> x, y, z; //coordinates of each particle
+  std::vector<char> beta;  //beta value of each molecule
   std::vector<uint> box;
   std::vector<std::string> atomAliases, resNamesFull, resNames,
       resKindNames;
