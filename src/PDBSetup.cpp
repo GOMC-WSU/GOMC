@@ -94,11 +94,13 @@ void Atoms::Assign(std::string const& atomName,
                    const uint resNum,
                    const char l_chain, const double l_x,
                    const double l_y, const double l_z,
-                   const double l_occ)
+                   const double l_occ,
+		   const double l_beta)
 {
   if (!restart || currBox == 0)
   {
     //box.push_back((bool)(restart?(uint)(l_occ):currBox));
+    beta.push_back(l_beta);
     box.push_back(currBox);
     atomAliases.push_back(atomName);
     resNamesFull.push_back(resName);
@@ -146,9 +148,10 @@ void Atoms::Read(FixedWidthReader & file)
   .Get(resNum, field::res_num::POS)
   .Get(l_chain,field::chain::POS).Get(l_x,field::x::POS)
   .Get(l_y,field::y::POS).Get(l_z,field::z::POS)
-  .Get(l_occ, field::occupancy::POS);
+  .Get(l_occ, field::occupancy::POS)
+  .Get(l_beta, field::beta::POS);
   Assign(atomName, resName, resNum, l_chain, l_x, l_y, l_z,
-         l_occ);
+         l_occ, l_beta);
 }
 
 } //end namespace pdb_setup
