@@ -127,7 +127,10 @@ set(headers
    cbmc/DCOnSphere.h
    cbmc/DCSingle.h
    cbmc/TrialMol.h
-   GPU/CalculateEnergyCUDAKernel.h)
+   GPU/CalculateEnergyCUDAKernel.h
+   GPU/CalculateForceCUDAKernel.h
+   GPU/ConstantDefinitionsCUDAKernel.h
+   GPU/CalculateMinImageCUDAKernel.h)
 
 set(libHeaders
    ../lib/BasicTypes.h
@@ -139,7 +142,8 @@ set(libHeaders
    ../lib/VectorLib.h)
 
 set(cudaSources
-   GPU/CalculateEnergyCUDAKernel.cu)
+   GPU/CalculateEnergyCUDAKernel.cu
+   GPU/CalculateForceCUDAKernel.cu)
 
 source_group("Header Files" FILES ${headers})
 source_group("Lib Headers" FILES ${libHeaders})

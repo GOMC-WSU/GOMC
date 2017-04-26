@@ -165,7 +165,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
    }
 
 #ifdef GOMC_CUDA
-   CallBoxInterGPU(pair1, pair2, coords, boxAxes, molLookup, 
+   CallBoxInterGPU(pair1, pair2, coords, boxAxes, molLookup, mols,
 		   electrostatic, particleCharge, particleKind, box);
 #endif
 

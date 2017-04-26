@@ -3,6 +3,7 @@
 #ifdef GOMC_CUDA
 #include <cuda.h>
 #include <cuda_runtime.h>
+#include "GeomLib.h"
 
 __constant__ double gpu_sigmaSq[1000];
 __constant__ double gpu_epsilon_Cn[1000];
@@ -17,10 +18,9 @@ __constant__ double gpu_alpha;
 __constant__ bool gpu_ewald;
 __constant__ double gpu_diElectric_1;
 
-#define VDW_STD_KIND 0
-#define VDW_SHIFT_KIND 1
-#define VDW_SWITCH_KIND 2
-#define M_PI 3.14159265358979323846264338327950288419716939937510582097494459230781640629
+#define GPU_VDW_STD_KIND 0
+#define GPU_VDW_SHIFT_KIND 1
+#define GPU_VDW_SWITCH_KIND 2
 
 void InitGPUForceField(double const *sigmaSq, double const *epsilon_Cn,
 		       double const *n, uint VDW_Kind, bool isMartini,
@@ -34,7 +34,7 @@ void InitGPUForceField(double const *sigmaSq, double const *epsilon_Cn,
   cudaMemcpyToSymbol("gpu_epsilon_Cn", &epsilon_Cn, countSq * sizeof(double));
   cudaMemcpyToSymbol("gpu_n", &n, countSq * sizeof(double));
   cudaMemcpyToSymbol("gpu_rCut", &Rcut, sizeof(double));
-  cudaMemcpyToSymbol("gpu_rCutLow", 7RcutLow, sizeof(double));
+  cudaMemcpyToSymbol("gpu_rCutLow", &RcutLow, sizeof(double));
   cudaMemcpyToSymbol("gpu_rOn", &Ron, sizeof(double));
   cudaMemcpyToSymbol("gpu_count", &count, sizeof(int));
   cudaMemcpyToSymbol("gpu_alpha", &alpha, sizeof(double));

@@ -117,7 +117,7 @@ void Atoms::Assign(std::string const& atomName,
                               resKindNames.end(),
                               resName) - resKindNames.begin();
       // if not push it to resKindNames -> new molecule found
-      if (kIndex==resKindNames.size())
+      if (kIndex == resKindNames.size())
       {
         resKindNames.push_back(resName);
       }
