@@ -3,7 +3,6 @@
 #include "PRNG.h" //For index selection
 #include "PDBSetup.h" //For init.
 #include "Molecules.h" //For init.
-#include <vector>
 #include <algorithm>
 #include <utility>
 #include <iostream>
@@ -13,18 +12,35 @@ void MoleculeLookup::Init(const Molecules& mols,
 {
   numKinds = mols.kindsCount;
   molLookup = new uint[mols.count];
+  fixInBox = new uint*[BOX_TOTAL];
+  
   //+1 to store end value
   boxAndKindStart = new uint[numKinds * BOX_TOTAL + 1];
   // vector[box][kind] = list of mol indices for kind in box
   std::vector<std::vector<std::vector<uint> > > indexVector;
   indexVector.resize(BOX_TOTAL);
+  fixedAtom.resize(mols.count);
+
+
   for (uint b = 0; b < BOX_TOTAL; ++b)
+  {
+    fixInBox[b] = new uint[numKinds];
     indexVector[b].resize(numKinds);
+    for (uint k = 0; k < numKinds; ++k)
+    {
+      fixInBox[b][k] = 0;
+    }
+  }
+
   for(uint m = 0; m < mols.count; ++m)
   {
     uint box = atomData.box[atomData.startIdxRes[m]];
     uint kind = mols.kIndex[m];
     indexVector[box][kind].push_back(m);
+    fixedAtom[m] = atomData.molBeta[m];
+
+    if(fixedAtom[m] == 1)
+      ++fixInBox[box][kind];
   }
 
   uint* progress = molLookup;

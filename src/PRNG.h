@@ -242,15 +242,23 @@ public:
       mk = mkTot -1;
 
     //Pick molecule with the help of molecule lookup table.
-    if (molLookRef.NumKindInBox(mk, b) == 0)
+    if ((molLookRef.NumKindInBox(mk, b) == 0) || 
+	molLookRef.NumKindInBox(mk, b) == molLookRef.GetFixInBox(mk, b))
+    {
       rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+    }
     else
     {
       //Among the ones of that kind in that box, pick one @ random.
-      uint mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
-      //Lookup true index in table.
-      m = molLookRef.GetMolNum(mOff, mk, b);
+      do
+      {
+	uint mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
+	//Lookup true index in table.
+	m = molLookRef.GetMolNum(mOff, mk, b);
+      }while(molLookRef.IsFix(m));
+
     }
+
     return rejectState;
   }
 

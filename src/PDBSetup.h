@@ -89,11 +89,11 @@ public:
   //member data
   std::vector<char> chainLetter; //chain ids of each molecule
   std::vector<double> x, y, z; //coordinates of each particle
-  std::vector<char> beta;  //beta value of each molecule
+  std::vector<double> beta;  //beta value of each molecule
   std::vector<uint> box;
   std::vector<std::string> atomAliases, resNamesFull, resNames,
       resKindNames;
-  std::vector<uint> startIdxRes, resKinds;
+  std::vector<uint> startIdxRes, resKinds, molBeta;
   bool restart, firstResInFile;
   //CurrRes is used to store res vals, currBox is used to
   //determine box either via the file (new) or the occupancy
