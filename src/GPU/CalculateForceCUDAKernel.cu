@@ -210,15 +210,15 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
 
 __device__ double CalcCoulombForceGPU(double distSq, double qi_qj)
 {
-  if(gpu_VDW_Kind == VDW_STD_KIND)
+  if(gpu_VDW_Kind == GPU_VDW_STD_KIND)
   {
     return CalcCoulombVirParticleGPU(distSq, qi_qj);
   }
-  else if(gpu_VDW_Kind == VDW_SHIFT_KIND)
+  else if(gpu_VDW_Kind == GPU_VDW_SHIFT_KIND)
   {
     return CalcCoulombVirShiftGPU(distSq, qi_qj);
   }
-  else if(gpu_VDW_Kind == VDW_SWITCH_KIND && gpu_isMartini)
+  else if(gpu_VDW_Kind == GPU_VDW_SWITCH_KIND && gpu_isMartini)
   {
     return CalcCoulombVirSwitchMartiniGPU(distSq, qi_qj);
   }
@@ -229,15 +229,15 @@ __device__ double CalcCoulombForceGPU(double distSq, double qi_qj)
 __device__ double CalcEnForceGPU(double distSq, int kind1, int kind2)
 {
   int index = FlatIndexGPU(kind1, kind2);
-  if(gpu_VDW_Kind == VDW_STD_KIND)
+  if(gpu_VDW_Kind == GPU_VDW_STD_KIND)
   {
     return CalcVirParticleGPU(distSq, index);
   }
-  else if(gpu_VDW_Kind == VDW_SHIFT_KIND)
+  else if(gpu_VDW_Kind == GPU_VDW_SHIFT_KIND)
   {
     return CalcVirShiftGPU(distSq, index);
   }
-  else if(gpu_VDW_Kind == VDW_SWITCH_KIND && gpu_isMartini)
+  else if(gpu_VDW_Kind == GPU_VDW_SWITCH_KIND && gpu_isMartini)
   {
     return CalcVirSwitchMartiniGPU(distSq, index);
   }

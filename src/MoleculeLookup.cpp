@@ -15,11 +15,13 @@ void MoleculeLookup::Init(const Molecules& mols,
   molLookup = new uint[mols.count];
   //+1 to store end value
   boxAndKindStart = new uint[numKinds * BOX_TOTAL + 1];
+
   // vector[box][kind] = list of mol indices for kind in box
   std::vector<std::vector<std::vector<uint> > > indexVector;
   indexVector.resize(BOX_TOTAL);
   for (uint b = 0; b < BOX_TOTAL; ++b)
     indexVector[b].resize(numKinds);
+
   for(uint m = 0; m < mols.count; ++m)
   {
     uint box = atomData.box[atomData.startIdxRes[m]];
@@ -89,23 +91,6 @@ void MoleculeLookup::TotalAndDensity
 
 #ifdef VARIABLE_PARTICLE_NUMBER
 
-bool MoleculeLookup::ShiftMolBox(const uint mol, const uint currentBox,
-                                 const uint intoBox)
-{
-  /*
-  uint index = std::find(molLookup + boxAndKindStart[currentBox * numKinds],
-        molLookup + boxAndKindStart[(currentBox + 1) * numKinds], mol)
-        - molLookup;
-  //linear search, small array. Backwards search because we want last >= start
-  for(uint kind = numKinds - 1; kind >= 0; --kind) {
-     if(index >= boxAndKindStart[currentBox * numKinds + kind]) {
-        Shift(index, currentBox, intoBox, kind);
-        return true;
-     }
-  }
-  */
-  return false;
-}
 
 bool MoleculeLookup::ShiftMolBox(const uint mol, const uint currentBox,
                                  const uint intoBox, const uint kind)
