@@ -104,20 +104,27 @@ void Atoms::Assign(std::string const& atomName,
     resNamesFull.push_back(resName);
     if (resNum != currRes || firstResInFile)
     {
+      // count = number of atoms so far
+      // startIdxRes = start of each molecule
       startIdxRes.push_back(count);
+      // currRes = molecule number
       currRes = resNum;
+      // resName = name of each molecule
       resNames.push_back(resName);
       chainLetter.push_back(l_chain);
       //Check if this kind of residue has been found
       uint kIndex = std::find(resKindNames.begin(),
                               resKindNames.end(),
                               resName) - resKindNames.begin();
+      // if not push it to resKindNames -> new molecule found
       if (kIndex==resKindNames.size())
       {
         resKindNames.push_back(resName);
       }
+      // pushes the index of the residue to the resKinds
       resKinds.push_back(kIndex);
     }
+    // push the coordinates of atoms to x, y, and z
     x.push_back(l_x);
     y.push_back(l_y);
     z.push_back(l_z);

@@ -8,10 +8,10 @@
 
 void CallBoxInterGPU(vector<int> pair1,
 		     vector<int> pair2,
-		     Coordinates const& coords,
-		     BoxDimensions const& boxAxes,
-		     MoleculeLookup const& molLookup,
-		     Molecules const&mols,
+		     XYZArray const &coords,
+		     BoxDimensions const &boxAxes,
+		     MoleculeLookup const &molLookup,
+		     Molecules const &mols,
 		     bool electrostatic,
 		     vector<double> particleCharge,
 		     vector<int> particleKind,
@@ -91,6 +91,8 @@ void CallBoxInterGPU(vector<int> pair1,
   cudaFree(gpu_x);
   cudaFree(gpu_y);
   cudaFree(gpu_z);
+  cudaFree(gpu_particleCharge);
+  cudaFree(gpu_particleKind); 
   delete [] cpu_x;
   delete [] cpu_y;
   delete [] cpu_z;
@@ -173,9 +175,82 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2)
 
 __device__ int FlatIndexGPU(int i, int j)
 {
-  return i + j*count;
+  return i + j * count;
 }
 
+//ElectroStatic Calculation
+//**************************************************************//
+__device__ double CalcCoulombParticleGPU(double distSq, double qi_qj_fact)
+{
+  double dist = sqrt(distSq);
+  double value = gpu_alpha * dist;
+  return qi_qj_fact * (1 - erf(value))/dist;
+}
+
+__device__ double CalcCoulombShiftGPU(double distSq, double qi_qj_fact)
+{
+  if(gpu_ewald)
+  {
+    double dist = sqrt(distSq);
+    double value = gpu_alpha * dist;
+    return qi_qj_fact * (1 - erf(value))/dist;
+  }
+  else
+  {
+    double dist = sqrt(distSq);
+    return qi_qj_fact * (1.0/dist - 1.0/gpu_rCut);
+  }
+}
+
+__device__ double CalcCoulombSwitchMartiniGPU(double distSq, double qi_qj_fact)
+{
+  if(gpu_ewald)
+  {
+    double dist = sqrt(distSq);
+    double value = gpu_alpha * dist;
+    return qi_qj_fact * (1 - erf(value)) / dist;
+  }
+  else
+  {
+    // in Martini, the Coulomb switching distance is zero, so we will have
+    // sqrt(distSq) - rOnCoul =  sqrt(distSq)
+    double dist = sqrt(distSq);
+    double rij_ronCoul_3 = dist * distSq;
+    double rij_ronCoul_4 = distSq * distSq;
+    
+    double A1 = 1.0 * (-(1.0+4)*gpu_rCut)/(pow(gpu_rCut,1.0+2) *
+					   pow(gpu_rCut, 2));
+    double B1 = -1.0 * (-(1.0+3)*gpu_rCut)/(pow(gpu_rCut,1.0+2) *
+					    pow(gpu_rCut, 3));
+    double C1 = 1.0/pow(gpu_rCut, 1.0) - A1/3.0*pow(gpu_rCut,3)-
+      B1/4.0 *pow(gpu_rCut,4);
+
+    double coul = -(A1/3.0) * rij_ronCoul_3 - (B1/4.0) * rij_ronCoul_4 - C1;
+    return qi_qj_fact * gpu_diElectric_1 * (1.0/dist + coul);
+  }
+}
+
+
+__device__ double CalcCoulombSwitchGPU(double distSq, double qi_qj_fact)
+{
+  if(gpu_ewald)
+  {
+    double dist = sqrt(distSq);
+    double value = alpha * dist;
+    return qi_qj_fact * (1 - erf(value)) / dist;
+  }
+  else
+  {
+    double rCutSq = gpu_rCut * gpu_rCut;
+    double dist = sqrt(distSq);
+    double switchVal = distSq/rCutSq - 1.0;
+    switchVal *= switchVal;
+    return qi_qj_fact * switchVal/dist;
+  }
+}
+
+//VDW Calculation
+//**************************************************************//
 __device__ double CalcEnParticleGPU(double distSq, int index)
 {
   double rRat2 = gpu_sigmaSq[index]/distSq;
@@ -183,13 +258,6 @@ __device__ double CalcEnParticleGPU(double distSq, int index)
   double attract = rRat4 * rRat2;
   double repulse = pow(rRat2, gpu_n[index]/2.0);
   return gpu_epsilon_Cn[index] * (repulse-attract);
-}
-
-__device__ double CalcCoulombParticleGPU(double distSq, double qi_qj_fact)
-{
-  double dist = sqrt(distSq);
-  double value = gpu_alpha * dist;
-  return qi_qj_fact * (1 - erf(value))/dist;
 }
 
 __device__ double CalcEnShiftGPU(double distSq, int index)
@@ -206,21 +274,6 @@ __device__ double CalcEnShiftGPU(double distSq, int index)
   double shiftConst = gpu_epsilon_Cn[index] * (shiftRepulse - shiftAttract);
 
   return (gpu_epsilon_Cn[index] * (repulse-attract) - shiftConst);
-}
-
-__device__ double CalcCoulombShiftGPU(double distSq, double qi_qj_fact)
-{
-  if(gpu_ewald)
-  {
-    double dist = sqrt(distSq);
-    double value = gpu_alpha * dist;
-    return qi_qj_fact * (1 - erf(value))/dist;
-  }
-  else
-  {
-    double dist = sqrt(distSq);
-    return qi_qj_fact * (1.0/dist - 1.0/gpu_rCut);
-  }
 }
 
 __device__ double CalcEnSwitchMartiniGPU(double distSq, int index)
@@ -264,31 +317,6 @@ __device__ double CalcEnSwitchMartiniGPU(double distSq, int index)
   return Eij;
 }
 
-__device__ double CalcCoulombSwitchMartiniGPU(double distSq, double qi_qj_fact)
-{
-  if(gpu_ewald)
-  {
-    double dist = sqrt(distSq);
-    double value = gpu_alpha * dist;
-    return qi_qj_fact * (1 - erf(value)) / dist;
-  }
-  else
-  {
-    double dist = sqrt(distSq);
-    double rij_ronCoul_3 = dist * distSq;
-    double rij_ronCoul_4 = distSq * distSq;
-    
-    double A1 = 1.0 * (-(1.0+4)*gpu_rCut)/(pow(gpu_rCut,1.0+2) *
-					   pow(gpu_rCut, 2));
-    double B1 = -1.0 * (-(1.0+3)*gpu_rCut)/(pow(gpu_rCut,1.0+2) *
-					    pow(gpu_rCut, 3));
-    double C1 = 1.0/pow(gpu_rCut, 1.0) - A1/3.0*pow(gpu_rCut,3)-
-      B1/4.0 *pow(gpu_rCut,4);
-
-    double coul = -(A1/3.0) * rij_ronCoul_3 - (B1/4.0) * rij_ronCoul_4 - C1;
-    return qi_qj_fact * gpu_diElectric_1 * (1.0/dist + coul);
-  }
-}
 
 __device__ double CalcEnSwitchGPU(double distSq, int index)
 {
@@ -311,24 +339,6 @@ __device__ double CalcEnSwitchGPU(double distSq, int index)
   const double facte = ( distSq > rOnSq ? fE : 1.0);
   
   return (gpu_epsilon_Cn[index] * (repulse-attract)) * factE;
-}
-
-__device__ double CalcCoulombSwitchGPU(double distSq, double qi_qj_fact)
-{
-  double rCutSq = gpu_rCut * gpu_rCut;
-  if(gpu_ewald)
-  {
-    double dist = sqrt(distSq);
-    double value = alpha * dist;
-    return qi_qj_fact * (1 - erf(value)) / dist;
-  }
-  else
-  {
-    double dist = sqrt(distSq);
-    double switchVal = distSq/rCutSq - 1.0;
-    switchVal *= switchVal;
-    return qi_qj_fact * switchVal/dist;
-  }
 }
 
 #endif

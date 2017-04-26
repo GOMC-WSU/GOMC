@@ -18,6 +18,7 @@
 #include <cassert>
 #include <omp.h>
 #include "CalculateEnergyCUDAKernel.h"
+#include "CalculateForceCUDAKernel.h"
 
 //
 //    CalculateEnergy.cpp
@@ -236,9 +237,9 @@ Virial CalculateEnergy::ForceCalc(const uint box)
    }
 
 #ifdef GOMC_CUDA
-   CallBoxInterForceGPU(pair1, pair2, currentCoords, currentCOM, boxAxes, 
-			molLookup, electrostatic, particleCharge, particleKind, 
-			particleMol, box);
+   CallBoxInterForceGPU(pair1, pair2, currentCoords, currentCOM, currentAxes, 
+			molLookup, mols, electrostatic, particleCharge,
+			particleKind, particleMol, box);
 #endif
 
 #ifdef _OPENMP
