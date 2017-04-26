@@ -106,7 +106,8 @@ void Atoms::Assign(std::string const& atomName,
     resNamesFull.push_back(resName);
     if (resNum != currRes || firstResInFile)
     {
-      startIdxRes.push_back(count);
+      molBeta.push_back(l_beta);
+      startIdxRes.push_back(count);      
       currRes = resNum;
       resNames.push_back(resName);
       chainLetter.push_back(l_chain);
@@ -142,7 +143,7 @@ void Atoms::Read(FixedWidthReader & file)
   char l_chain;
   uint resNum;
   std::string resName, atomName;
-  double l_x, l_y, l_z, l_occ;
+  double l_x, l_y, l_z, l_occ, l_beta;
   file.Get(atomName, field::alias::POS)
   .Get(resName, field::res_name::POS)
   .Get(resNum, field::res_num::POS)

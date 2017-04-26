@@ -8,11 +8,12 @@
 void Coordinates::InitFromPDB(pdb_setup::Atoms const& atoms)
 {
   //Allocate master array and push stuff to it.
-  XYZArray::Init(atoms.x.size());
+  XYZArray::Init(atoms.beta.size());
   //Transfer without creating a new array.
   std::copy(atoms.x.begin(), atoms.x.end(), x);
   std::copy(atoms.y.begin(), atoms.y.end(), y);
   std::copy(atoms.z.begin(), atoms.z.end(), z);
+
   CheckCoordinate();
   comRef.CalcCOM();
 }

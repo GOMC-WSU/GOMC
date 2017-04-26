@@ -8,6 +8,7 @@
 #include "MoleculeLookup.h" //For box iterators used in initial assignment
 #include "COM.h"
 #include "PRNG.h"
+#include <algorithm> 
 
 //Coordinates array
 class Coordinates : public XYZArray
@@ -17,7 +18,7 @@ public:
   //of reference).
   Coordinates(BoxDimensions & box, COM & com,
               MoleculeLookup & molLook, PRNG & prng, Molecules const& mol) :
-    boxDimRef(box), comRef(com), prngRef(prng), molLookRef(molLook),
+  boxDimRef(box), comRef(com), prngRef(prng), molLookRef(molLook),
     molRef(mol) {}
 
   Coordinates& operator=(Coordinates const& rhs)
