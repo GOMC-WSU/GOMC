@@ -20,6 +20,7 @@ __constant__ double gpu_diElectric_1;
 #define VDW_STD_KIND 0
 #define VDW_SHIFT_KIND 1
 #define VDW_SWITCH_KIND 2
+#define M_PI 3.14159265358979323846264338327950288419716939937510582097494459230781640629
 
 void InitGPUForceField(double const *sigmaSq, double const *epsilon_Cn,
 		       double const *n, uint VDW_Kind, bool isMartini,
