@@ -71,12 +71,19 @@ void System::Init(Setup const& set)
    bool ewald = set.config.sys.elect.ewald;
    bool cached = set.config.sys.elect.cache;
    
-   if (ewald && cached)
-      calcEwald = new EwaldCached(statV, *this);
-   else if (ewald && !cached)
-      calcEwald = new Ewald(statV, *this);
+#ifdef GOMC_CUDA
+   if(ewald)
+     calcEwald = new Ewald(statV, *this);
    else
-      calcEwald = new NoEwald(statV, *this);
+     calcEwald = new NoEwald(statV, *this);
+#else
+   if (ewald && cached)
+     calcEwald = new EwaldCached(statV, *this);
+   else if (ewald && !cached)
+     calcEwald = new Ewald(statV, *this);
+   else
+     calcEwald = new NoEwald(statV, *this);
+#endif
 
    calcEwald->Init();   
    calcEnergy.Init(*this);

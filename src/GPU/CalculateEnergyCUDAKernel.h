@@ -6,7 +6,6 @@
 #include <vector>
 #include "XYZArray.h"
 #include "BoxDimensions.h"
-#include "MoleculeLookup.h"
 
 using namespace std;
 
@@ -16,8 +15,6 @@ void CallBoxInterGPU(vector<uint> pair1,
 		     vector<uint> pair2,
 		     XYZArray const &coords,
 		     BoxDimensions const &boxAxes,
-		     MoleculeLookup const &molLookup,
-		     Molecules const &mols,
 		     bool electrostatic,
 		     vector<double> particleCharge,
 		     vector<int> particleKind,
@@ -33,8 +30,8 @@ __global__ void BoxInterGPU(int *gpu_pair1,
 			    double zAxes,
 			    bool electrostatic,
 			    double *gpu_particleCharge,
-			    int *gpu_particleKind);
-
+			    int *gpu_particleKind,
+			    int pairSize);
 
 
 __device__ double CalcCoulombGPU(double distSq, double qi_qj_fact);

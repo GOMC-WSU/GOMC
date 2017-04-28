@@ -19,53 +19,15 @@ void CallBoxInterForceGPU(vector<uint> pair1,
 			  vector<int> particleMol,
 			  uint const box)
 {
-  int atomNumber = 0;
-  for(int k = 0; k < molLookup.GetNumKind; k++)
-  {
-    atomNumber += molLookup.NumKindInBox(k, box) * mols.NumAtoms(k);
-  }
-  int molNumber = molLookup.NumInBox(box);
+  int atomNumber = currentCoords.Count();
+  int molNumber = currentCOM.Count();
   int *gpu_pair1, *gpu_pair2;
-  int start, length, i = 0, j = 0;
   int *gpu_particleKind;
   int *gpu_particleMol;
   int blocksPerGrid, threadsPerBlock;
   double *gpu_particleCharge;
   double *gpu_x, *gpu_y, *gpu_z;
-  double *cpu_x, *cpu_y, *cpu_z;
   double *gpu_comx, *gpu_comy, *gpu_comz;
-  double *cpu_comx, *cpu_comy, *cpu_comz;
-  MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box),
-    end = molLookup.BoxEnd(box);
-
-  cpu_x = new double[atomNumber];
-  cpu_y = new double[atomNumber];
-  cpu_z = new double[atomNumber];
-  cpu_comx = new double[molNumber];
-  cpu_comy = new double[molNumber];
-  cpu_comz = new double[molNumber];
-  
-  
-  while(thisMol != end)
-  {
-    cpu_comx[i] = currentCOM.x[*thisMol];
-    cpu_comy[i] = currentCOM.y[*thisMol];
-    cpu_comz[i] = currentCOM.z[*thisMol];
-
-    start = mols.MolStart(*thisMol);
-    length = mols.NumAtomsByMol(*thisMol);
-    
-    for(int a = 0; a < length; a++)
-    {
-      cpu_x[j] = currentCoords.x[start + a];
-      cpu_y[j] = currentCoords.y[start + a];
-      cpu_z[j] = currentCoords.z[start + a];
-      j++;
-    }
-
-    i++;
-    thisMol++;
-  }
 
   cudaMalloc((void**) &gpu_pair1, pair1.size() * sizeof(int));
   cudaMalloc((void**) &gpu_pair2, pair2.size() * sizeof(int));
@@ -81,14 +43,17 @@ void CallBoxInterForceGPU(vector<uint> pair1,
 	     cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_pair2, &pair2[0], pair2.size() * sizeof(int), 
 	     cudaMemcpyHosttoDevice);
-  cudaMemcpy(gpu_x, cpu_x, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_y, cpu_y, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_z, cpu_z, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_comx, cpu_comx, molNumber * sizeof(double),
+  cudaMemcpy(gpu_x, currentCoords.x, atomNumber * sizeof(double),
 	     cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_comy, cpu_comy, molNumber * sizeof(double),
+  cudaMemcpy(gpu_y, currentCoords.y, atomNumber * sizeof(double),
 	     cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_comz, cpu_comz, molNumber * sizeof(double),
+  cudaMemcpy(gpu_z, currentCoords.z, atomNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_comx, currentCOM.x, molNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_comy, currentCOM.y, molNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_comz, currentCOM.z, molNumber * sizeof(double),
 	     cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleCharge, &particleCharge[0], 
 	     particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
@@ -113,7 +78,8 @@ void CallBoxInterForceGPU(vector<uint> pair1,
 						  electrostatic,
 						  gpu_particleCharge,
 						  gpu_particleKind,
-						  gpu_particleMol);
+						  gpu_particleMol,
+						  pair1.size());
 
   cudaFree(gpu_pair1);
   cudaFree(gpu_pair2);
@@ -126,12 +92,6 @@ void CallBoxInterForceGPU(vector<uint> pair1,
   cudaFree(gpu_comx);
   cudaFree(gpu_comy);
   cudaFree(gpu_comz);
-  delete [] cpu_x;
-  delete [] cpu_y;
-  delete [] cpu_z;
-  delete [] cpu_comx;
-  delete [] cpu_comy;
-  delete [] cpu_comz;
 }
 
 __global__ void BoxInterForceGPU(int *gpu_pair1,
@@ -148,9 +108,12 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
 				 bool electrostatic,
 				 double *gpu_particleCharge,
 				 int *gpu_particleKind,
-				 int *gpu_particleMol)
+				 int *gpu_particleMol,
+				 int pairSize)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
+  if(threadID > pairSize)
+    return;
   double distSq;
   double virX, virY, virZ;
   double pRF = 0.0, qi_qj, pVF = 0.0;
