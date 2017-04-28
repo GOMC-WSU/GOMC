@@ -64,8 +64,7 @@ private:
                   std::string const& resName);
 
   void InsertAtomInLine(std::string & line, XYZ const& coor,
-                        std::string const& occ =
-                          pdb_entry::atom::field::occupancy::BOX[1]);
+                        std::string const& occ, std::string const& beta);
 
   void PrintEnd(const uint b, Writer & out)
   {

@@ -268,7 +268,8 @@ void PDBOutput::PrintCrystRest(const uint b, const uint step, Writer & out)
 
 
 void PDBOutput::InsertAtomInLine(std::string & line, XYZ const& coor,
-                                 std::string const& occ)
+                                 std::string const& occ,
+				 std::string const& beta)
 {
   using namespace pdb_entry::atom::field;
   using namespace pdb_entry;
@@ -282,6 +283,8 @@ void PDBOutput::InsertAtomInLine(std::string & line, XYZ const& coor,
   toStr.Replace(line, coor.z, z::POS);
   toStr.Align(occupancy::ALIGN);
   toStr.Replace(line, occ, occupancy::POS);
+  toStr.Align(beta::ALIGN);
+  toStr.Replace(line, beta, beta::POS);
 }
 
 void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
@@ -294,6 +297,7 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
   for (uint m = 0; m < molRef.count; ++m)
   {
     //Loop through particles in mol.
+    uint beta = molLookupRef.GetBeta(m);
     molRef.GetRangeStartStop(pStart, pEnd, m);
     inThisBox = (mBox[m]==b);
     for (uint p = pStart; p < pEnd; ++p)
@@ -303,7 +307,7 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
       {
         coor = coordCurrRef.Get(p);
       }
-      InsertAtomInLine(pStr[p], coor, occupancy::BOX[mBox[m]]);
+      InsertAtomInLine(pStr[p], coor, occupancy::BOX[mBox[m]], beta::FIX[beta]);
       //Write finished string out.
       outF[b].file << pStr[p] << std::endl;
     }
@@ -314,8 +318,10 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
 //NEW_RESTART_CODE
 void PDBOutput::PrintAtomsRebuildRestart(const uint b)
 {
+  using namespace pdb_entry::atom::field;
+  using namespace pdb_entry;
   char segname='A';
-  uint molecule=0, atom=0, pStart = 0, pEnd = 0;
+  uint molecule=0, atom=0, pStart = 0, pEnd = 0; 
   for (uint k = 0; k < molRef.kindsCount; ++k)
   {
     uint countByKind = molLookupRef.NumKindInBox(k, b);
@@ -323,6 +329,7 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
     for (uint kI = 0; kI < countByKind; ++kI)
     {
       uint molI = molLookupRef.GetMolNum(kI, k, b);
+      uint beta = molLookupRef.GetBeta(molI);
       molRef.GetRangeStartStop(pStart, pEnd, molI);
       for (uint p = pStart; p < pEnd; ++p)
       {
@@ -333,7 +340,7 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
                    molRef.kinds[k].atomNames[p-pStart], resName);
 
         //Fill in particle's stock string with new x, y, z, and occupancy
-        InsertAtomInLine(line, coor);
+        InsertAtomInLine(line, coor, occupancy::BOX[0], beta::FIX[beta]);
         //Write finished string out.
         outRebuildRestart[b].file << line << std::endl;
         ++atom;
