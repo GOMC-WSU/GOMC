@@ -52,6 +52,11 @@ public:
     return fixInBox[box][m];
   }
 
+  uint GetBeta( const uint m) const
+  {
+    return fixedAtom[m];
+  }
+
   bool IsFix(const uint m)
   {
     return (fixedAtom[m] == 1);
