@@ -16,6 +16,9 @@
 #include "NumLib.h"
 #include <cassert>
 #include <omp.h>
+#ifdef GOMC_CUDA
+#include "CalculateEwaldCUDAKernel.h"
+#endif
 
 //
 //   
@@ -175,6 +178,11 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
       MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);	 
       MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
 
+#ifdef GOMC_CUDA
+      CallBoxReciprocalSetupGPU(molCoords, kx[box], ky[box], kz[box],
+				particleCharge, imageSize[box], sumRnew[box], 
+				sumInew[box]);
+#else
 #ifdef _OPENMP      
 #pragma omp parallel default(shared) 
 #endif
@@ -209,6 +217,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 	 }
 	 thisMol++;
       }
+#endif
    }
 }
 
@@ -221,6 +230,10 @@ double Ewald::BoxReciprocal(uint box) const
 
    if (box < BOXES_WITH_U_NB)
    {
+#ifdef GOMC_CUDA
+     CallBoxReciprocalGPU(prefact[box], sumRnew[box], sumInew[box], 
+			  imageSize[box]);
+#else
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i) reduction(+:energyRecip)
 #endif
@@ -230,6 +243,7 @@ double Ewald::BoxReciprocal(uint box) const
 			  sumInew[box][i] * sumInew[box][i]) *
 			prefact[box][i]);	
       }
+#endif
    }
 
    return energyRecip; 

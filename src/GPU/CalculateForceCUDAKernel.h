@@ -14,8 +14,6 @@ void CallBoxInterForceGPU(vector<uint> pair1,
 			  XYZArray const &currentCoords,
 			  XYZArray const &currentCOM,
 			  BoxDimensions const& boxAxes,
-			  MoleculeLookup const& molLookup,
-			  Molecules const&mols,
 			  bool electrostatic,
 			  vector<double> particleCharge,
 			  vector<int> particleKind,
@@ -36,7 +34,8 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
 				 bool electrostatic,
 				 double *gpu_particleCharge,
 				 int *gpu_particleKind,
-				 int *gpu_particleMol);
+				 int *gpu_particleMol,
+				 int pairSize);
 
 __device__ double CalcCoulombForceGPU(double distSq, double qi_qj);
 __device__ double CalcEnForceGPU(double distSq, int kind1, int kind2);

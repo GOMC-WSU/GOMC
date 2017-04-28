@@ -10,32 +10,19 @@ void CallBoxInterGPU(vector<int> pair1,
 		     vector<int> pair2,
 		     XYZArray const &coords,
 		     BoxDimensions const &boxAxes,
-		     MoleculeLookup const &molLookup,
-		     Molecules const &mols,
 		     bool electrostatic,
 		     vector<double> particleCharge,
 		     vector<int> particleKind,
 		     uint const box)
 {
-  int atomNumber = 0;
-  for(int k = 0; k < molLookup.GetNumKind; k++)
-  {
-    atomNumber += molLookup.NumKindInBox(k, box) * mols.NumAtoms(k);
-  }
+  int atomNumber = coords.Count();
   int *gpu_pair1, *gpu_pair2, *gpu_particleKind;
   int start, length;
   int i = 0;
   int blocksPerGrid, threadsPerBlock;
   double *gpu_particleCharge;
-  double *gpu_x, *gpu_y, *gpu_z;
-  double *cpu_x, *cpu_y, *cpu_z;
-  
-  MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box),
-    end = molLookup.BoxEnd(box);
+  double *gpu_x, *gpu_y, *gpu_z; 
 
-  cpu_x = new double[atomNumber];
-  cpu_y = new double[atomNumber];
-  cpu_z = new double[atomNumber];
   cudaMalloc((void**) &gpu_pair1, pair1.size() * sizeof(int));
   cudaMalloc((void**) &gpu_pair2, pair2.size() * sizeof(int));
   cudaMalloc((void**) &gpu_x, atomNumber * sizeof(double));
@@ -54,23 +41,12 @@ void CallBoxInterGPU(vector<int> pair1,
   cudaMemcpy(gpu_particleKind, &particleKind[0], 
 	     particleKind.size() * sizeof(int), cudaMemcpyHostToDevice);
 
-  while(thisMol != end)
-  {
-    start = mols.MolStart(*thisMol);
-    length = mols.NumAtomsByMol(*thisMol);
-    
-    for(int a = 0; a < length; a++)
-    {
-      cpu_x[i] = coords.x[start + a];
-      cpu_y[i] = coords.y[start + a];
-      cpu_z[i] = coords.z[start + a];
-      i++;
-    }
-    thisMol++;
-  }
-  cudaMemcpy(gpu_x, cpu_x, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_y, cpu_y, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_z, cpu_z, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_x, coords.x, atomNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_y, coords.y, atomNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_z, coords.z, atomNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
 
   threadsPerBlock = 256;
   blocksPerGrid = (int)(pair1.size()/threadsPerBlock) + 1;
@@ -84,7 +60,8 @@ void CallBoxInterGPU(vector<int> pair1,
 						  boxAxes.GetAxis(box).z, 
 						  electrostatic, 
 						  gpu_particleCharge, 
-						  gpu_particleKind);
+						  gpu_particleKind,
+						  pair1.size());
   
   cudaFree(gpu_pair1);
   cudaFree(gpu_pair2);
@@ -92,10 +69,7 @@ void CallBoxInterGPU(vector<int> pair1,
   cudaFree(gpu_y);
   cudaFree(gpu_z);
   cudaFree(gpu_particleCharge);
-  cudaFree(gpu_particleKind); 
-  delete [] cpu_x;
-  delete [] cpu_y;
-  delete [] cpu_z;
+  cudaFree(gpu_particleKind);
 }
 
 __global__ void BoxInterGPU(int *gpu_pair1,
@@ -108,9 +82,12 @@ __global__ void BoxInterGPU(int *gpu_pair1,
 			    double zAxes,
 			    bool electrostatic,
 			    double *gpu_particleCharge,
-			    int *gpu_particleKind)
+			    int *gpu_particleKind,
+			    int pairSize)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
+  if(threadID>=pairSize)
+    return;
   double distSq;
   double tempLJEn;
   double tmepREn;

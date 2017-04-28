@@ -52,12 +52,6 @@ elseif(MSVC)
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "${CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT} /MT /Zi /O2 /Ob1 /D NDEBUG")
 endif()
 
-#CUDA compile
-#cuda_compile(HELPER_O helper.cu)
-#cuda_compile(DRIVER_O driver.cu OPTIONS -G)
-
-#cuda_add_executable(driver ${HELPER_O} ${DRIVER_O})
-
 #EnsemblePreprocessor defines NVT = 1, GEMC = 2, GCMC = 3, NPT = 4
 
 #NPT (Isothermal-Isobaric) Ensemble
