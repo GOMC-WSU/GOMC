@@ -2,14 +2,15 @@ cmake_minimum_required(VERSION 2.6)
 
 project(GOMC_Serial)
 
-# CUDA 
-find_package(CUDA)
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_30,code=sm_30)
+# find CUDA and set it up
+set(CUDA_ENABLE ON CACHE BOOL true)
+IF(CUDA_ENABLE)
+    include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
+ENDIF(CUDA_ENABLE)
 
 include_directories(lib)
 include_directories(src)
 include_directories(src/cbmc)
-include_directories(src/GPU)
 
 #Out-of-source build
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -58,28 +59,16 @@ endif()
 set(NPT_flags "-DENSEMBLE=4")
 set(NPT_name "GOMC_Serial_NPT")
 
-set(GPU_NPT_flags "-DENSEMBLE=4 -DGOMC_CUDA")
-set(GPU_NPT_name "GOMC_GPU_NPT")
-
 #Grand Canonical Monte Carlo
 set(GC_flags "-DENSEMBLE=3")
 set(GC_name "GOMC_Serial_GCMC")
-
-set(GPU_GC_flags "-DENSEMBLE=3 -DGOMC_CUDA")
-set(GPU_GC_name "GOMC_GPU_GCMC")
 
 #Gibbs Ensemble Monte Carlo
 set(GE_flags "-DENSEMBLE=2")
 set(GE_name "GOMC_Serial_GEMC")
 
-set(GPU_GE_flags "DENSEMBLE=2 -DGOMC_CUDA")
-set(GPU_GE_name "GOMC_GPU_GEMC")
-
 #NVT (Canonical) Ensemble
 set(NVT_flags "-DENSEMBLE=1")
 set(NVT_name "GOMC_Serial_NVT")
-
-set(GPU_NVT_flags "-DENSEMBLE=1 -DGOMC_CUDA")
-set(GPU_NVT_name "GOMC_GPU_NVT")
 
 add_subdirectory(src)
