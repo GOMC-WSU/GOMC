@@ -2,7 +2,9 @@
 #include "FFSetup.h" //For our setup info
 #include "ConfigSetup.h"
 #include "NumLib.h" //For Sq, Cb, and MeanA/G functions.
+#ifdef GOMC_CUDA
 #include "ConstantDefinitionsCUDAKernel.h"
+#endif
 
 FFParticle::FFParticle() : mass(NULL), nameFirst(NULL), nameSec(NULL),
 			   n(NULL), n_1_4(NULL), sigmaSq(NULL),

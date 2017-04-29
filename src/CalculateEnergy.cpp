@@ -17,8 +17,10 @@
 #include "NumLib.h"
 #include <cassert>
 #include <omp.h>
+#ifdef GOMC_CUDA
 #include "CalculateEnergyCUDAKernel.h"
 #include "CalculateForceCUDAKernel.h"
+#endif
 
 //
 //    CalculateEnergy.cpp
