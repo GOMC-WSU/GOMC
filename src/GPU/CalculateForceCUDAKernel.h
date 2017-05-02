@@ -1,14 +1,13 @@
 #pragma once
 
 #ifdef GOMC_CUDA
-#include <cuda.h>
-#include <cuda_runtime.h>
 #include <vector>
+#include "XYZArray.h"
+#include "BoxDimensions.h"
 
 using namespace std;
 
 __device__ int FlatIndexGPU(int i, int j);
-
 void CallBoxInterForceGPU(vector<uint> pair1,
 			  vector<uint> pair2,
 			  XYZArray const &currentCoords,
@@ -53,5 +52,4 @@ __device__ double CalcVirParticleGPU(double distSq, double index);
 __device__ double CalcVirShiftGPU(double distSq, double index);
 __device__ double CalcVirSwitchMartiniGPU(double distSq, double index);
 __device__ double CalcVirSwitchGPU(double distSq, double index);
-
 #endif

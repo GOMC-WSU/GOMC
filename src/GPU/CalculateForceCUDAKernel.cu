@@ -35,9 +35,9 @@ void CallBoxInterForceGPU(vector<uint> pair1,
   cudaMalloc((void**) &gpu_y, atomNumber * sizeof(double));
   cudaMalloc((void**) &gpu_z, atomNumber * sizeof(double));
   cudaMalloc((void**) &gpu_particleCharge, 
-	     particleCharge.size * sizeof(double));
-  cudaMalloc((void**) &gpu_particleKind, particleKind.size * sizeof(int));
-  cudaMalloc((void**) &gpu_particleMol, particleMol.size * sizeof(int));
+	     particleCharge.size() * sizeof(double));
+  cudaMalloc((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
+  cudaMalloc((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
 
   cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int), 
 	     cudaMemcpyHostToDevice);

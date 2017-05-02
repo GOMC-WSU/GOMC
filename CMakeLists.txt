@@ -2,12 +2,6 @@ cmake_minimum_required(VERSION 2.6)
 
 project(GOMC_Serial)
 
-# find CUDA and set it up
-set(CUDA_ENABLE ON CACHE BOOL true)
-IF(CUDA_ENABLE)
-    include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
-ENDIF(CUDA_ENABLE)
-
 include_directories(lib)
 include_directories(src)
 include_directories(src/cbmc)
@@ -71,4 +65,14 @@ set(GE_name "GOMC_Serial_GEMC")
 set(NVT_flags "-DENSEMBLE=1")
 set(NVT_name "GOMC_Serial_NVT")
 
-add_subdirectory(src)
+# Set Source and Header files
+include(${PROJECT_SOURCE_DIR}/CMake/FileLists.cmake)
+
+# Setup Serial version
+include(${PROJECT_SOURCE_DIR}/CMake/GOMCSerialSetup.cmake)
+
+# find CUDA and set it up
+find_package(CUDA)
+IF(CUDA_FOUND)
+    include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
+ENDIF(CUDA_FOUND)
