@@ -9,7 +9,7 @@
 
 #ifndef ENSEMBLE
 //The choice of ensemble.
-#define ENSEMBLE NVT
+#define ENSEMBLE GCMC
 #endif
 
 //Ensemble specific defines, such as what data members are variable
