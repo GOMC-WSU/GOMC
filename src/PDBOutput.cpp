@@ -52,7 +52,7 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
       toStr << b;
       toStr >> numStr;
       aliasStr = "Output PDB file for Box ";
-      aliasStr += bStr;
+      aliasStr += numStr;
       bool notify;
 #ifndef NDEBUG
       notify = true;
@@ -77,7 +77,7 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
       toStr << b;
       toStr >> numStr;
       aliasStr = "Output PDB file for Box ";
-      aliasStr += bStr;
+      aliasStr += numStr;
       bool notify;
 #ifndef NDEBUG
       notify = true;
