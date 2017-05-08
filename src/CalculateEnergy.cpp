@@ -162,8 +162,8 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
      {
        pair1.push_back(pair.First());
        pair2.push_back(pair.Second());
-       pair.Next();
      }
+     pair.Next();
    }
 
 #ifdef GOMC_CUDA
@@ -232,8 +232,8 @@ Virial CalculateEnergy::ForceCalc(const uint box)
      {
        pair1.push_back(pair.First());
        pair2.push_back(pair.Second());
-       pair.Next();
      }
+     pair.Next();
    }
 
 #ifdef GOMC_CUDA

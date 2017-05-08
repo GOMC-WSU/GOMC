@@ -56,7 +56,7 @@ endif
 DARWIN = $(strip $(findstring DARWIN, $(OSUPPER)))
 
 # Location of the CUDA Toolkit binaries and libraries
-CUDA_PATH       ?= /usr/local/cuda-7.5
+CUDA_PATH       ?= /usr/local/cuda-8.0
 CUDA_INC_PATH   ?= $(CUDA_PATH)/include
 CUDA_LIB_PATH   ?= $(CUDA_PATH)/lib
 CUDA_BIN_PATH   ?= $(CUDA_PATH)/bin
