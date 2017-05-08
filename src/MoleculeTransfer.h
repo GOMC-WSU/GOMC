@@ -40,7 +40,9 @@ class MoleculeTransfer : public MoveBase
 inline uint MoleculeTransfer::GetBoxPairAndMol
 (const double subDraw, const double movPerc)
 {
-   uint state = prng.PickMolAndBoxPair(molIndex, kindIndex, sourceBox, destBox,
+   // Need to call a function to pick a molecule that is not fixed but cannot be
+   // swap between boxes. (beta != 1, beta !=2)
+   uint state = prng.PickMolAndBoxPair2(molIndex, kindIndex, sourceBox, destBox,
 				       subDraw, movPerc);
  
    if (state != mv::fail_state::NO_MOL_OF_KIND_IN_BOX)
