@@ -299,6 +299,7 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
     //Loop through particles in mol.
     uint beta = molLookupRef.GetBeta(m);
     molRef.GetRangeStartStop(pStart, pEnd, m);
+    XYZ ref = coordCurrRef.Get(pStart);
     inThisBox = (mBox[m]==b);
     for (uint p = pStart; p < pEnd; ++p)
     {
@@ -306,6 +307,7 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
       if (inThisBox)
       {
         coor = coordCurrRef.Get(p);
+	boxDimRef.UnwrapPBC(coor, b, ref);
       }
       InsertAtomInLine(pStr[p], coor, occupancy::BOX[mBox[m]], beta::FIX[beta]);
       //Write finished string out.
@@ -331,11 +333,12 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
       uint molI = molLookupRef.GetMolNum(kI, k, b);
       uint beta = molLookupRef.GetBeta(molI);
       molRef.GetRangeStartStop(pStart, pEnd, molI);
+      XYZ ref = coordCurrRef.Get(pStart);
       for (uint p = pStart; p < pEnd; ++p)
       {
         std::string line = GetDefaultAtomStr();
         XYZ coor = coordCurrRef.Get(p);
-
+	boxDimRef.UnwrapPBC(coor, b, ref);			       
         FormatAtom(line, atom, molecule, segname,
                    molRef.kinds[k].atomNames[p-pStart], resName);
 
