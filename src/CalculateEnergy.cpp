@@ -239,7 +239,7 @@ Virial CalculateEnergy::ForceCalc(const uint box)
 #ifdef GOMC_CUDA
    CallBoxInterForceGPU(pair1, pair2, currentCoords, currentCOM, currentAxes,
 			electrostatic, particleCharge,
-			particleKind, particleMol, box);
+			particleKind, particleMol, tempVir.inter, tempVir.real, box);
 #else
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, distSq, pVF, pRF, qi_qj, virC, comC) reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33) 
