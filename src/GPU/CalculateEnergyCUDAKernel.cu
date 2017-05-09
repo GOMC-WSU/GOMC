@@ -5,6 +5,7 @@
 #include <cuda.h>
 #include "ConstantDefinitionsCUDA.h"
 #include "CalculateMinImageCUDA.h"
+#include "cub/cub.h"
 
 void CallBoxInterGPU(vector<int> pair1,
 		     vector<int> pair2,
@@ -13,6 +14,8 @@ void CallBoxInterGPU(vector<int> pair1,
 		     bool electrostatic,
 		     vector<double> particleCharge,
 		     vector<int> particleKind,
+		     double &REn,
+		     double &LJEn,
 		     uint const box)
 {
   int atomNumber = coords.Count();
@@ -21,33 +24,42 @@ void CallBoxInterGPU(vector<int> pair1,
   int i = 0;
   int blocksPerGrid, threadsPerBlock;
   double *gpu_particleCharge;
-  double *gpu_x, *gpu_y, *gpu_z; 
+  double *gpu_x, *gpu_y, *gpu_z;
+  double *gpu_REn, *gpu_LJEn;
+  double *gpu_final_REn, *gpu_final_LJEn;
+  double cpu_final_REn, cpu_final_LJEn;
 
-  cudaMalloc((void**) &gpu_pair1, pair1.size() * sizeof(int));
-  cudaMalloc((void**) &gpu_pair2, pair2.size() * sizeof(int));
-  cudaMalloc((void**) &gpu_x, atomNumber * sizeof(double));
-  cudaMalloc((void**) &gpu_y, atomNumber * sizeof(double));
-  cudaMalloc((void**) &gpu_z, atomNumber * sizeof(double));
-  cudaMalloc((void**) &gpu_particleCharge, 
-	     particleCharge.size * sizeof(double));
-  cudaMalloc((void**) &gpu_particleKind, particleKind.size * sizeof(int));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_pair1, pair1.size() * sizeof(int)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_pair2, pair2.size() * sizeof(int)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_x, atomNumber * sizeof(double)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_y, atomNumber * sizeof(double)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_z, atomNumber * sizeof(double)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_particleCharge, 
+	     particleCharge.size * sizeof(double)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_particleKind, particleKind.size * sizeof(int)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_REn, pair1.size() * sizeof(double)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_LJEn, pair1.size() * sizeof(double)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_final_REn, sizeof(double)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_final_LJEn, sizeof(double)));
 
-  cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int), 
-	     cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_pair2, &pair2[0], pair2.size() * sizeof(int), 
-	     cudaMemcpyHosttoDevice);
-  cudaMemcpy(gpu_particleCharge, &particleCharge[0], 
-	     particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_particleKind, &particleKind[0], 
-	     particleKind.size() * sizeof(int), cudaMemcpyHostToDevice);
 
-  cudaMemcpy(gpu_x, coords.x, atomNumber * sizeof(double),
-	     cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_y, coords.y, atomNumber * sizeof(double),
-	     cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_z, coords.z, atomNumber * sizeof(double),
-	     cudaMemcpyHostToDevice);
+  // Copy necessary data to GPU
+  cub::CubDebugExit(cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int), 
+	     cudaMemcpyHostToDevice));
+  cub::CubDebugExit(cudaMemcpy(gpu_pair2, &pair2[0], pair2.size() * sizeof(int), 
+	     cudaMemcpyHosttoDevice));
+  cub::CubDebugExit(cudaMemcpy(gpu_particleCharge, &particleCharge[0], 
+	     particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice));
+  cub::CubDebugExit(cudaMemcpy(gpu_particleKind, &particleKind[0], 
+	     particleKind.size() * sizeof(int), cudaMemcpyHostToDevice));
+  cub::CubDebugExit(cudaMemcpy(gpu_x, coords.x, atomNumber * sizeof(double),
+	     cudaMemcpyHostToDevice));
+  cub::CubDebugExit(cudaMemcpy(gpu_y, coords.y, atomNumber * sizeof(double),
+	     cudaMemcpyHostToDevice));
+  cub::CubDebugExit(cudaMemcpy(gpu_z, coords.z, atomNumber * sizeof(double),
+	     cudaMemcpyHostToDevice));
 
+  // Run the kernel...
   threadsPerBlock = 256;
   blocksPerGrid = (int)(pair1.size()/threadsPerBlock) + 1;
   BoxInterGPU<<<blocksPerGrid, threadsPerBlock>>>(gpu_pair1, 
@@ -61,8 +73,32 @@ void CallBoxInterGPU(vector<int> pair1,
 						  electrostatic, 
 						  gpu_particleCharge, 
 						  gpu_particleKind,
+						  gpu_REn,
+						  gpu_LJEn,
 						  pair1.size());
-  
+
+  // ReduceSum
+  void * d_temp_storage = NULL;
+  size_t temp_storage_bytes = 0;
+  cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn, gpu_final_REn, pair1.size());
+  cub::CubDebugExit(cudaMalloc(&d_temp_storage, temp_storage_bytes);
+  cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn, gpu_final_REn, pair1.size());
+  cudaFree(d_temp_storage);
+
+  // LJ ReduceSum
+  d_temp_storage = NULL;
+  temp_storage_bytes = 0;
+  cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn, gpu_final_LJEn, pair1.size());
+  cub::CubDebugExit(cudaMalloc(&d_temp_storage, temp_storage_bytes);
+  cub::DeviceReduce::Sum(d_temp_storage, temp-storage_bytes, gpu_LJEn, gpu_final_LJEn, pair1.size());
+  cudaFree(d_temp_storage);
+
+  // Copy back the result to CPU ! :)
+  cub::CubDebugExit(cudaMemcpy(gpu_final_REn, &cpu_final_REn, sizeof(double)));
+  cub::CubDebugExit(cudaMemcpy(gpu_final_LJEn, &cpu_final_LJEn, sizeof(double)));
+  REn = cpu_final_REn;
+  LJEn = cpu_final_LJEn;
+
   cudaFree(gpu_pair1);
   cudaFree(gpu_pair2);
   cudaFree(gpu_x);
@@ -83,14 +119,14 @@ __global__ void BoxInterGPU(int *gpu_pair1,
 			    bool electrostatic,
 			    double *gpu_particleCharge,
 			    int *gpu_particleKind,
+			    double *gpu_REn,
+			    double *gpu_LJEn,
 			    int pairSize)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   if(threadID>=pairSize)
     return;
   double distSq;
-  double tempLJEn;
-  double tmepREn;
   double qi_qj_fact;
   double qqFact = 167000.0;
   if(InRcutGPU(distSq, gpu_x[pair1[threadID]], gpu_y[pair1[threadID]], 
@@ -102,9 +138,9 @@ __global__ void BoxInterGPU(int *gpu_pair1,
     {
       qi_qj_fact = gpu_particleCharge[gpu_pair1[threadID]] * 
 	particleCharge[gpu_pair2[threadID]] * qqFact;
-      tempREn = CalcCoulombEnGPU(distSq, qi_qj_fact);
+      gpu_REn[threadID] = CalcCoulombEnGPU(distSq, qi_qj_fact);
     }
-    tempLJEn = CalcEnGPU(distSq, gpu_particleKind[gpu_pair1[threadID]], 
+    gpu_LJEn[threadID] = CalcEnGPU(distSq, gpu_particleKind[gpu_pair1[threadID]], 
 			 gpu_particleKind[gpu_pair2[threadID]]);
   } 
 }

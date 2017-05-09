@@ -168,7 +168,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
 #ifdef GOMC_CUDA
    CallBoxInterGPU(pair1, pair2, coords, boxAxes, electrostatic, 
-		   particleCharge, particleKind, box);
+		   particleCharge, particleKind, tempREn, tempLJEn, box);
 #else
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents) reduction(+:tempREn, tempLJEn) 
