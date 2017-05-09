@@ -5,6 +5,7 @@
 #include <cuda.h>
 #include "ConstantDefinitionsCUDA.h"
 #include "CalculateMinImageCUDA.h"
+#include "cub/cub.h"
 
 void CallBoxInterForceGPU(vector<uint> pair1,
 			  vector<uint> pair2,
@@ -17,6 +18,8 @@ void CallBoxInterForceGPU(vector<uint> pair1,
 			  vector<double> particleCharge,
 			  vector<int> particleKind,
 			  vector<int> particleMol,
+              double &virInter,
+              double &virReal,
 			  uint const box)
 {
   int atomNumber = currentCoords.Count();
@@ -28,40 +31,53 @@ void CallBoxInterForceGPU(vector<uint> pair1,
   double *gpu_particleCharge;
   double *gpu_x, *gpu_y, *gpu_z;
   double *gpu_comx, *gpu_comy, *gpu_comz;
+  double *gpu_virInter, *gpu_virReal;
+  double *gpu_final_virInter, *gpu_final_virReal;
 
-  cudaMalloc((void**) &gpu_pair1, pair1.size() * sizeof(int));
-  cudaMalloc((void**) &gpu_pair2, pair2.size() * sizeof(int));
-  cudaMalloc((void**) &gpu_x, atomNumber * sizeof(double));
-  cudaMalloc((void**) &gpu_y, atomNumber * sizeof(double));
-  cudaMalloc((void**) &gpu_z, atomNumber * sizeof(double));
-  cudaMalloc((void**) &gpu_particleCharge, 
-	     particleCharge.size() * sizeof(double));
-  cudaMalloc((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
-  cudaMalloc((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_pair1, pair1.size() * sizeof(int)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_pair2, pair2.size() * sizeof(int)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_x, atomNumber * sizeof(double)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_y, atomNumber * sizeof(double)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_z, atomNumber * sizeof(double)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_particleCharge, 
+	     particleCharge.size() * sizeof(double)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_particleKind, 
+	     particleKind.size() * sizeof(int)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_particleMol, 
+	     particleMol.size() * sizeof(int)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_virInter, 
+	     pair1.size() * sizeof(double)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_virReal, 
+	     pair1.size() * sizeof(double)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_final_virReal, 
+	     pair1.size() * sizeof(double)));
+  cub::CubDebugExit(cudaMalloc((void**) &gpu_final_virInter, 
+	     pair1.size() * sizeof(double)));
 
-  cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int), 
-	     cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_pair2, &pair2[0], pair2.size() * sizeof(int), 
-	     cudaMemcpyHosttoDevice);
-  cudaMemcpy(gpu_x, currentCoords.x, atomNumber * sizeof(double),
-	     cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_y, currentCoords.y, atomNumber * sizeof(double),
-	     cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_z, currentCoords.z, atomNumber * sizeof(double),
-	     cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_comx, currentCOM.x, molNumber * sizeof(double),
-	     cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_comy, currentCOM.y, molNumber * sizeof(double),
-	     cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_comz, currentCOM.z, molNumber * sizeof(double),
-	     cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_particleCharge, &particleCharge[0], 
-	     particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_particleKind, &particleKind[0], 
-	     particleKind.size() * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_particleMol, &particleMol[0], 
-	     particleMol.size() * sizeof(int), cudaMemcpyHostToDevice);
+  cub::CubDebugExit(cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int),
+    cudaMemcpyHostToDevice));
+  cub::CubDebugExit(cudaMemcpy(gpu_pair2, &pair2[0], pair2.size() * sizeof(int),
+    cudaMemcpyHosttoDevice));
+  cub::CubDebugExit(cudaMemcpy(gpu_x, currentCoords.x,
+    atomNumber * sizeof(double), cudaMemcpyHostToDevice));
+  cub::CubDebugExit(cudaMemcpy(gpu_y, currentCoords.y, 
+    atomNumber * sizeof(double), cudaMemcpyHostToDevice));
+  cub::CubDebugExit(cudaMemcpy(gpu_z, currentCoords.z,
+    atomNumber * sizeof(double), cudaMemcpyHostToDevice));
+  cub::CubDebugExit(cudaMemcpy(gpu_comx, currentCOM.x,
+    molNumber * sizeof(double), cudaMemcpyHostToDevice));
+  cub::CubDebugExit(cudaMemcpy(gpu_comy, currentCOM.y,
+    molNumber * sizeof(double), cudaMemcpyHostToDevice));
+  cub::CubDebugExit(cudaMemcpy(gpu_comz, currentCOM.z,
+    molNumber * sizeof(double), cudaMemcpyHostToDevice));
+  cub::CubDebugExit(cudaMemcpy(gpu_particleCharge, &particleCharge[0],
+    particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice));
+  cub::CubDebugExit(cudaMemcpy(gpu_particleKind, &particleKind[0],
+    particleKind.size() * sizeof(int), cudaMemcpyHostToDevice));
+  cub::CubDebugExit(cudaMemcpy(gpu_particleMol, &particleMol[0],
+    particleMol.size() * sizeof(int), cudaMemcpyHostToDevice));
 
+  // Run the kernel...
   threadsPerBlock = 256;
   blocksPerGrid = (int)(pair1.size()/threadsPerBlock) + 1;
   BoxInterGPU<<<blocksPerGrid, threadsPerBlock>>>(gpu_pair1,
@@ -79,7 +95,35 @@ void CallBoxInterForceGPU(vector<uint> pair1,
 						  gpu_particleCharge,
 						  gpu_particleKind,
 						  gpu_particleMol,
+                          gpu_virInter,
+                          gpu_virReal,
 						  pair1.size());
+
+  // ReduceSum // Virial of LJ
+  void * d_temp_storage = NULL;
+  size_t temp_storage_bytes = 0;
+  cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_virInter,
+    gpu_final_virInter, pair1.size());
+  cub::CubDebugExit(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+  cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_virInter,
+    gpu_final_virInter, pair1.size());
+  cudaFree(d_temp_storage);
+
+  // ReduceSum // Virial of Coulomb
+  d_temp_storage = NULL;
+  temp_storage_bytes = 0;
+  cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_virReal,
+    gpu_final_virReal, pair1.size());
+  cub::CubDebugExit(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+  cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_virReal,
+    gpu_final_virReal, pair1.size());
+  cudaFree(d_temp_storage);
+
+  // Copy back the result to CPU ! :)
+  cub::CubDebugExit(cudaMemcpy(gpu_final_virInter, &virInter, sizeof(double),
+    cudaMemcpyDeviceToHost));
+  cub::CubDebugExit(cudaMemcpy(gpu_final_virReal, &virReal, sizeof(double),
+    cudaMemcpyDeviceToHost));
 
   cudaFree(gpu_pair1);
   cudaFree(gpu_pair2);
@@ -169,6 +213,9 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
     vT13 = pVF * (0.5 * (virX * diff_comz + virZ * diff_comx));
     vT23 = pVF * (0.5 * (virY * diff_comz + virZ * diff_comy));
   }
+
+  gpu_virInter[threadID] = vT11 + vT22 + vT33;
+  gpu_virReal[threadID] = rT11 + rT22 + rT33;
 }
 
 __device__ double CalcCoulombForceGPU(double distSq, double qi_qj)
