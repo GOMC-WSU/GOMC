@@ -47,11 +47,11 @@ void Coordinates::CheckCoordinate()
 	   b, max.x, max.y, max.z);
 
     //check to see if molecules are in the box or not
-    if( diffV.x > boxDimRef.axis.Get(b).x ||
-	diffV.y > boxDimRef.axis.Get(b).y ||
-	diffV.z > boxDimRef.axis.Get(b).z)
+    if( diffV.x > 1.5 * boxDimRef.axis.Get(b).x ||
+	diffV.y > 1.5 * boxDimRef.axis.Get(b).y ||
+	diffV.z > 1.5 * boxDimRef.axis.Get(b).z)
     {
-      printf("Molecules are not packed inside the defined box dimension.\n");
+      printf("Molecules are packed outside of the defined box dimension.\n");
       exit(0);
     }
 
@@ -77,10 +77,12 @@ void Coordinates::CheckCoordinate()
 	 }
 	 ++thisMol;
        }
-    
     }
+    printf("Wrapping molecules inside the simulation box %d:\n", b);
+    boxDimRef.WrapPBC(*this, b);
+ 
   }
-
+  
 }
 
 //Translate by a random amount
