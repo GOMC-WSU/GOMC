@@ -12,7 +12,7 @@ namespace cbmc
    DCOnSphere::DCOnSphere(DCData* data, const mol_setup::MolKind kind, 
 			  uint atom, uint focus) : 
      data(data), atom(atom), 
-     focus(focus) 
+     focus(focus), bondFix(true) 
    {  
       using namespace mol_setup; 
       std::vector<Bond> bonds = AtomBonds(kind, atom); 
@@ -20,18 +20,49 @@ namespace cbmc
       { 
          if(bonds[i].a0 == focus || bonds[i].a1 == focus) 
 	 { 
-            bondLength = data->ff.bonds.Length(bonds[i].kind); 
-	    bondKind = bonds[i].kind; 
+            eqBondLength = data->ff.bonds.Length(bonds[i].kind); 
+	    bondKind = bonds[i].kind;
+	    bondFix = data->ff.bonds.bondFixed(bondKind);
             break; 
          } 
       } 
    } 
  
-   void DCOnSphere::SetOldBondEnergy(TrialMol& oldMol) 
+   void DCOnSphere::SetOldBond(TrialMol& oldMol) 
    { 
      double BondDistSq = oldMol.OldDistSq(focus, atom); 
-     oldBondEnergy = data->ff.bonds.Calc(bondKind, sqrt(BondDistSq)); 
+     oldBondLength = sqrt(BondDistSq);
+     oldBondEnergy = data->ff.bonds.Calc(bondKind, oldBondLength);
+     oldBondWeight = exp(-1 * data->ff.beta * oldBondEnergy);
    } 
+
+   void DCOnSphere::SetNewBond(TrialMol& newMol)
+   {
+     if(bondFix)
+     {
+       newBondLength = eqBondLength;
+       newBondEnergy = data->ff.bonds.Calc(bondKind, newBondLength);
+       newBondWeight = exp(-1 * data->ff.beta * newBondEnergy);
+     }
+     else
+     {
+        double bond, bf;
+        do
+        {
+	   do
+	   {
+	      bond = 0.2 * data->prng.rand() + 0.9;
+	      bf = bond * bond * bond / 1.331;
+
+	   }while(bf < data->prng.rand());
+
+	   newBondLength = bond * eqBondLength;
+	   newBondEnergy = data->ff.bonds.Calc(bondKind, newBondLength);
+	   newBondWeight = exp(-1 * data->ff.beta * newBondEnergy);  
+ 
+	}while(newBondWeight < data->prng.rand());
+     }
+   }
  
    void DCOnSphere::BuildOld(TrialMol& oldMol, uint molIndex) 
    { 
@@ -49,9 +80,9 @@ namespace cbmc
       std::fill_n(correction, nLJTrials, 0.0); 
       //considering bond energy for old molecule. There is no need to calculate 
       //for new molecule since we dont sample bond. 
-      SetOldBondEnergy(oldMol); 
+      SetOldBond(oldMol); 
  
-      data->prng.FillWithRandomOnSphere(positions, nLJTrials, bondLength, 
+      data->prng.FillWithRandomOnSphere(positions, nLJTrials, oldBondLength, 
 					oldMol.AtomPosition(focus)); 
       positions.Set(0, oldMol.AtomPosition(atom)); 
       data->axes.WrapPBC(positions, oldMol.GetBox()); 
@@ -94,7 +125,7 @@ namespace cbmc
 			   (inter[trial] + real[trial] + self[trial] + 
 			    correction[trial])); 
       } 
-      oldMol.MultWeight(stepWeight); 
+      oldMol.MultWeight(stepWeight * oldBondWeight); 
       oldMol.AddEnergy(Energy(oldBondEnergy, 0.0, inter[0], real[0], 0.0, 
 			      self[0], correction[0])); 
       oldMol.ConfirmOldAtom(atom); 
@@ -116,8 +147,10 @@ namespace cbmc
       std::fill_n(real, nLJTrials, 0.0); 
       std::fill_n(correction, nLJTrials, 0.0); 
       std::fill_n(ljWeights, nLJTrials, 0.0); 
+
+      SetNewBond(newMol);
  
-      data->prng.FillWithRandomOnSphere(positions, nLJTrials, bondLength, 
+      data->prng.FillWithRandomOnSphere(positions, nLJTrials, newBondLength, 
 					newMol.AtomPosition(focus)); 
       data->axes.WrapPBC(positions, newMol.GetBox()); 
 
@@ -147,9 +180,9 @@ namespace cbmc
          stepWeight += ljWeights[trial]; 
       } 
       uint winner = data->prng.PickWeighted(ljWeights, nLJTrials, stepWeight); 
-      newMol.MultWeight(stepWeight); 
-      newMol.AddEnergy(Energy(0, 0, inter[winner], real[winner], 0.0, 
-			      self[winner], correction[winner])); 
+      newMol.MultWeight(stepWeight * newBondWeight); 
+      newMol.AddEnergy(Energy(newBondEnergy, 0, inter[winner], real[winner],
+			      0.0, self[winner], correction[winner])); 
       newMol.AddAtom(atom, positions[winner]); 
    }    
 }      

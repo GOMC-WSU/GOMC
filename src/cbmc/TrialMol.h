@@ -129,7 +129,6 @@ class TrialMol
       RotationMatrix growthToWorld;
       RotationMatrix worldToGrowth;
       XYZ basisPoint;
-      //bool oneThree, oneFour;
 };
 }
 

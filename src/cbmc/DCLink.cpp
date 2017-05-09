@@ -12,7 +12,7 @@ namespace cbmc
    DCLink::DCLink(DCData* data, const mol_setup::MolKind kind, 
 		  uint atom, uint focus) 
 
-     : data(data), atom(atom), focus(focus), angleFix(false) 
+     : data(data), atom(atom), focus(focus), angleFix(false), bondFix(false) 
 
    { 
       //will fail quietly if not a part of a valid linear molecule, 
@@ -23,10 +23,9 @@ namespace cbmc
       { 
          if (bonds[i].a0 == focus || bonds[i].a1 == focus) 
 	 { 
-            bondLength = data->ff.bonds.Length(bonds[i].kind); 
-	    bond[2] = bondLength; 
+            eqBondLength = data->ff.bonds.Length(bonds[i].kind);  
 	    bondKind = bonds[i].kind; 
-
+	    bondFix = data->ff.bonds.bondFixed(bondKind);
             break; 
          } 
       } 
@@ -91,6 +90,8 @@ namespace cbmc
       uint count = data->nAngleTrials; 
       std::fill_n(nonbonded_1_3, count, 0.0); 
       bendWeight = 0; 
+
+      SetNewBond(newMol);
  
       for (uint trial = 0; trial < count; trial++) 
       { 
@@ -132,12 +133,7 @@ namespace cbmc
       bendWeight = 0; 
  
       //set bond distance for old molecule 
-      double BondDistSq1 = oldMol.OldDistSq(focus, atom); 
-      double BondDistSq2 = oldMol.OldDistSq(prev, focus); 
-      double BondDistSq3 = oldMol.OldDistSq(prevprev, prev); 
-      SetOldMolBond(2, BondDistSq1); 
-      SetOldMolBond(1, BondDistSq2); 
-      SetOldMolBond(0, BondDistSq3); 
+      SetOldBond(oldMol); 
  
       for (uint trial = 0; trial < count; trial++) 
       { 
@@ -159,7 +155,8 @@ namespace cbmc
  	 double distSq = oldMol.AngleDist(oldBond[1], oldBond[2], trialAngle); 
 
  
-	 double tempEn = data->calc.IntraEnergy_1_3(distSq, prev, atom, molIndex); 
+	 double tempEn = data->calc.IntraEnergy_1_3(distSq, prev, atom,
+						    molIndex); 
 	 if(isnan(tempEn)) 
 	    tempEn = num::BIGNUM; 
  
@@ -179,11 +176,7 @@ namespace cbmc
       bendEnergy = ff.angles->Calc(angleKind, theta); 
       double distSq = oldMol.OldDistSq(prev, atom); 
       oneThree = data->calc.IntraEnergy_1_3(distSq, prev, atom, molIndex); 
-      bendWeight += exp(-ff.beta * (bendEnergy + oneThree)); 
-      //considering bond energy for old molecule. There is no need to calculate 
-      //for new molecule since we dont sample bond. 
-      double BondDistSq = oldMol.OldDistSq(focus, atom); 
-      oldBondEnergy = ff.bonds.Calc(bondKind, sqrt(BondDistSq)); 
+      bendWeight += exp(-ff.beta * (bendEnergy + oneThree));  
    } 
  
    void DCLink::AlignBasis(TrialMol& mol) 
@@ -191,10 +184,48 @@ namespace cbmc
       mol.SetBasis(focus, prev, prevprev); 
    } 
  
-   void DCLink::SetOldMolBond(const uint i, const double distSq) 
+   void DCLink::SetOldBond(TrialMol& oldMol) 
    { 
-     oldBond[i] = sqrt(distSq); 
+     double BondDistSq1 = oldMol.OldDistSq(focus, atom); 
+     double BondDistSq2 = oldMol.OldDistSq(prev, focus); 
+     double BondDistSq3 = oldMol.OldDistSq(prevprev, prev); 
+     oldBond[2] = sqrt(BondDistSq1);
+     oldBond[1] = sqrt(BondDistSq2);
+     oldBond[0] = sqrt(BondDistSq3);
+
+     //bond length from focus to atom
+     oldBondLength = sqrt(BondDistSq1);
+     oldBondEnergy = data->ff.bonds.Calc(bondKind, oldBondLength);
+     oldBondWeight = exp(-1 * data->ff.beta * oldBondEnergy);
    } 
+
+   void DCLink::SetNewBond(TrialMol& newMol) 
+   {
+     if(bondFix)
+     {
+       newBondLength = eqBondLength;
+       newBondEnergy = data->ff.bonds.Calc(bondKind, newBondLength);
+       newBondWeight = exp(-1 * data->ff.beta * newBondEnergy);
+     }
+     else
+     {
+        double bond, bf;
+        do
+        {
+	   do
+	   {
+	      bond = 0.2 * data->prng.rand() + 0.9;
+	      bf = bond * bond * bond / 1.331;
+
+	   }while(bf < data->prng.rand());
+
+	   newBondLength = bond * eqBondLength;
+	   newBondEnergy = data->ff.bonds.Calc(bondKind, newBondLength);
+	   newBondWeight = exp(-1 * data->ff.beta * newBondEnergy);  
+ 
+	}while(newBondWeight < data->prng.rand());
+     }
+   }
  
    void DCLink::BuildOld(TrialMol& oldMol, uint molIndex) 
    { 
@@ -241,7 +272,7 @@ namespace cbmc
 					ljWeights[trial]); 
          torsion[trial] = angleEnergy[winner]; 
 	 oneFour[trial] = nonbonded_1_4[winner]; 
-         positions.Set(trial, oldMol.GetRectCoords(bondLength, theta, 
+         positions.Set(trial, oldMol.GetRectCoords(oldBondLength, theta, 
 						   angles[winner])); 
       } 
  
@@ -294,7 +325,7 @@ namespace cbmc
 				  correction[trial])); 
          dihLJWeight += ljWeights[trial]; 
       } 
-      oldMol.MultWeight(dihLJWeight * bendWeight); 
+      oldMol.MultWeight(dihLJWeight * bendWeight * oldBondWeight); 
       oldMol.ConfirmOldAtom(atom); 
       oldMol.AddEnergy(Energy(torsion[0] + bendEnergy + oldBondEnergy, 
 			      nonbonded[0] + oneThree + oneFour[0], 
@@ -341,7 +372,7 @@ namespace cbmc
 					 ljWeights[trial]); 
 	 oneFour[trial] = nonbonded_1_4[winner]; 
          torsion[trial] = angleEnergy[winner]; 
-         positions.Set(trial, newMol.GetRectCoords(bondLength, theta,  
+         positions.Set(trial, newMol.GetRectCoords(newBondLength, theta,  
 						   angles[winner])); 
       } 
  
@@ -385,11 +416,11 @@ namespace cbmc
       } 
  
       uint winner = prng.PickWeighted(ljWeights, nLJTrials, dihLJWeight); 
-      newMol.MultWeight(dihLJWeight * bendWeight); 
+      newMol.MultWeight(dihLJWeight * bendWeight * newBondWeight); 
       newMol.AddAtom(atom, positions[winner]); 
-      newMol.AddEnergy(Energy(torsion[winner] + bendEnergy, nonbonded[winner] + 
-			      oneThree + oneFour[winner], inter[winner], 
-			      real[winner], 0.0, self[winner], 
+      newMol.AddEnergy(Energy(torsion[winner] + bendEnergy + newBondEnergy,
+			      nonbonded[winner] + oneThree + oneFour[winner],
+			      inter[winner], real[winner], 0.0, self[winner], 
 			      correction[winner])); 
    } 
  
@@ -480,7 +511,8 @@ namespace cbmc
 	 double distSq = oldMol.DihedDist(oldBond[0], oldBond[1], oldBond[2], 
 					  theta0, theta, trialPhi); 
  
-	 double tempEn = data->calc.IntraEnergy_1_4(distSq, prevprev, atom, molIndex); 
+	 double tempEn = data->calc.IntraEnergy_1_4(distSq, prevprev, atom,
+						    molIndex); 
 	 if(isnan(tempEn)) 
 	    tempEn = num::BIGNUM; 
 	  

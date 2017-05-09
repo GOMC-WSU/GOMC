@@ -52,6 +52,12 @@ public:
     return gen->rand(bound);
   }
 
+  //Generate a double on a [0,1]
+  double rand()
+  {
+    return gen->rand();
+  }
+
   //Generate a double on a [0,b)
   double randExc(double const bound)
   {

@@ -26,12 +26,15 @@ namespace cbmc
       void BuildNew(TrialMol& newMol, uint molIndex);
       DCComponent* Clone() { return new DCOnSphere(*this); };
    private:
-      void SetOldBondEnergy(TrialMol& oldMol);
+      void SetOldBond(TrialMol& oldMol);
+      void SetNewBond(TrialMol& newMol);
       DCData* data;
       uint atom, focus;
       uint bondKind;
-      double bondLength;
-      double oldBondEnergy;
+      double eqBondLength, oldBondLength, newBondLength;
+      double oldBondEnergy, oldBondWeight;
+      double newBondEnergy, newBondWeight;
+      bool bondFix;
    };
 
 

@@ -25,17 +25,17 @@ class FFAngles
 
    double Angle(const uint kind) const
    {
-	   return theta0[kind];
+     return theta0[kind];
    }
 
    double AngleEnergy(const uint kind) const
    {
-	   return Ktheta[kind];
+     return Ktheta[kind];
    }
 
    bool AngleFixed(const uint kind) const
    {
-	   return fixed[kind];
+     return fixed[kind];
    }
 
    virtual double Calc(const uint kind, const double ang) const

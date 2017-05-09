@@ -17,6 +17,11 @@ public:
     delete[] fixed;
   }
 
+  bool bondFixed(const uint kind) const
+  {
+    return fixed[kind];
+  }
+  
   double Calc(const uint kind, const double dist) const
   {
     return (fixed[kind] ? 0.0 : Kb[kind] * num::Sq(dist-b0[kind]));
