@@ -82,7 +82,7 @@ void CallBoxInterGPU(vector<int> pair1,
   size_t temp_storage_bytes = 0;
   cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
     gpu_final_REn, pair1.size());
-  cub::CubDebugExit(cudaMalloc(&d_temp_storage, temp_storage_bytes);
+  cub::CubDebugExit(cudaMalloc(&d_temp_storage, temp_storage_bytes));
   cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
     gpu_final_REn, pair1.size());
   cudaFree(d_temp_storage);
@@ -98,10 +98,10 @@ void CallBoxInterGPU(vector<int> pair1,
   cudaFree(d_temp_storage);
 
   // Copy back the result to CPU ! :)
-  cub::CubDebugExit(cudaMemcpy(gpu_final_REn, &cpu_final_REn, sizeof(double),
-    cudaMemcpyDeviceToHost));
-  cub::CubDebugExit(cudaMemcpy(gpu_final_LJEn, &cpu_final_LJEn, sizeof(double),
-    cudaMemcpyDeviceToHost));
+  cub::CubDebugExit(cudaMemcpy(&cpu_final_REn, gpu_final_REn, sizeof(double),
+			       cudaMemcpyDeviceToHost));
+  cub::CubDebugExit(cudaMemcpy(&cpu_final_LJEn, gpu_final_LJEn, sizeof(double),
+			       cudaMemcpyDeviceToHost));
   REn = cpu_final_REn;
   LJEn = cpu_final_LJEn;
 
