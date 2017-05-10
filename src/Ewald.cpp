@@ -179,8 +179,23 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
       MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
 
 #ifdef GOMC_CUDA
-      CallBoxReciprocalSetupGPU(molCoords, kx[box], ky[box], kz[box],
-				particleCharge, imageSize[box], sumRnew[box], 
+      XYZArray thisBoxCoords(molLookup.NumInBox(box));
+      std::vector<double> chargeBox;
+      i = 0;
+      while (thisMol != end)
+      {
+	MoleculeKind const& thisKind = mols.GetKind(*thisMol);
+	for (j = 0; j < thisKind.NumAtoms(); j++)
+	{
+	  thisBoxCoords[i] = mols.MolStart(*thisMol) + j;
+	  chargeBox.push(thisKind.AtomCharge(j));
+	  i++;
+	}
+	thisMol++;
+      }
+
+      CallBoxReciprocalSetupGPU(thisBoxCoords, kx[box], ky[box], kz[box],
+				chargeBox, imageSize[box], sumRnew[box], 
 				sumInew[box]);
 #else
 #ifdef _OPENMP      
@@ -232,7 +247,7 @@ double Ewald::BoxReciprocal(uint box) const
    {
 #ifdef GOMC_CUDA
      CallBoxReciprocalGPU(prefact[box], sumRnew[box], sumInew[box], 
-			  imageSize[box]);
+			  energyRecip, imageSize[box]);
 #else
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i) reduction(+:energyRecip)
