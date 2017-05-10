@@ -40,18 +40,7 @@ namespace cbmc
 	    } 
             break; 
          } 
-      } 
- 
-      std::vector<Bond> bond2 = AtomBonds(kind, prev); 
-      for (uint i = 0; i < bond2.size(); ++i) 
-      { 
-         if (bond2[i].a0 == focus || bond2[i].a1 == focus) 
-	 { 
-            bond[0] = data->ff.bonds.Length(bond2[i].kind); 
-            break; 
-         } 
-      } 
-       
+      }   
    } 
  
    void DCLinkNoDih::PrepareNew(TrialMol& newMol, uint molIndex) 
@@ -74,13 +63,12 @@ namespace cbmc
 	 if (angleFix) 
 	 { 
 	    angles[trial] = thetaFix; 
-	    angleEnergy[trial] = 0.0; 
 	 } 
 	 else 
 	 { 
-	    angles[trial] = prng.rand(M_PI); 
-	    angleEnergy[trial] = ff.angles->Calc(angleKind, angles[trial]);  
+	    angles[trial] = prng.rand(M_PI);   
 	 } 
+	 angleEnergy[trial] = ff.angles->Calc(angleKind, angles[trial]);
 
 	 double distSq = newMol.AngleDist(bond[0], bond[1], angles[trial]); 
 	 nonbonded_1_3[trial] = data->calc.IntraEnergy_1_3(distSq, prev, atom, 
@@ -115,15 +103,14 @@ namespace cbmc
 	 if(angleFix) 
 	 { 
 	    trialAngle = thetaFix; 
-	    trialEn = 0.0; 
 	 } 
 	 else 
 	 { 
 	    trialAngle = prng.rand(M_PI); 
-	    trialEn = ff.angles->Calc(angleKind, trialAngle); 
 	 } 
+	 trialEn = ff.angles->Calc(angleKind, trialAngle);
+
 	 double distSq = oldMol.AngleDist(oldBond[0], oldBond[1], trialAngle); 
- 
 	 double tempEn = data->calc.IntraEnergy_1_3(distSq,prev,atom,molIndex); 
 	 
 	 if(isnan(tempEn)) 
@@ -142,7 +129,7 @@ namespace cbmc
       const Forcefield& ff = data->ff; 
 
       bendEnergy = ff.angles->Calc(angleKind, theta); 
-      double distSq = oldMol.OldDistSq(prev, atom); 
+      double distSq = oldMol.GetDistSq(prev, atom); 
       oneThree = data->calc.IntraEnergy_1_3(distSq, prev, atom, molIndex); 
       bendWeight += exp(-ff.beta * (bendEnergy + oneThree));  
    } 
@@ -154,13 +141,13 @@ namespace cbmc
  
    void DCLinkNoDih::SetOldBond(TrialMol& oldMol) 
    { 
-     double BondDistSq1 = oldMol.OldDistSq(focus, atom); 
-     double BondDistSq2 = oldMol.OldDistSq(prev, focus); 
+     double BondDistSq1 = oldMol.GetDistSq(focus, atom); 
+     double BondDistSq2 = oldMol.GetDistSq(prev, focus); 
      oldBond[1] = sqrt(BondDistSq1); 
      oldBond[0] = sqrt(BondDistSq2);
 
      //bond length from focus to atom
-     oldBondLength = sqrt(BondDistSq1);
+     oldBondLength = oldBond[1];
      oldBondEnergy = data->ff.bonds.Calc(bondKind, oldBondLength);
      oldBondWeight = exp(-1 * data->ff.beta * oldBondEnergy);
    } 
@@ -191,6 +178,7 @@ namespace cbmc
  
 	}while(newBondWeight < data->prng.rand());
      }
+     bond[0] = sqrt(newMol.GetDistSq(prev, focus));
      bond[1] = newBondLength;
    } 
  
@@ -230,12 +218,12 @@ namespace cbmc
 #pragma omp section
 #endif
       data->calcEwald->SwapSelf(self, molIndex, atom, oldMol.GetBox(), 
-			       nLJTrials); 
+				nLJTrials); 
 #ifdef _OPENMP
 #pragma omp section
 #endif
       data->calcEwald->SwapCorrection(correction, oldMol, positions, atom,  
-				     oldMol.GetBox(), nLJTrials); 
+				      oldMol.GetBox(), nLJTrials); 
 }
  
       const MoleculeKind& thisKind = oldMol.GetKind(); 
@@ -244,9 +232,9 @@ namespace cbmc
       { 
 	 if (oldMol.AtomExists(i) && i != atom) 
 	 { 
-	    double distSq = oldMol.OldDistSq(i, atom); 
+	    double distSq = oldMol.GetDistSq(i, atom); 
 	    tempEn += data->calcEwald->CorrectionOldMol(oldMol, distSq, 
-							     i, atom); 
+							i, atom); 
 	 } 
       } 
       correction[0] = tempEn; 

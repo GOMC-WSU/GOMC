@@ -30,7 +30,7 @@ namespace cbmc
  
    void DCOnSphere::SetOldBond(TrialMol& oldMol) 
    { 
-     double BondDistSq = oldMol.OldDistSq(focus, atom); 
+     double BondDistSq = oldMol.GetDistSq(focus, atom); 
      oldBondLength = sqrt(BondDistSq);
      oldBondEnergy = data->ff.bonds.Calc(bondKind, oldBondLength);
      oldBondWeight = exp(-1 * data->ff.beta * oldBondEnergy);
@@ -112,7 +112,7 @@ namespace cbmc
       { 
 	 if (oldMol.AtomExists(i) && i != atom) 
 	 { 
-	    double distSq = oldMol.OldDistSq(i, atom); 
+	    double distSq = oldMol.GetDistSq(i, atom); 
 	    tempEn += data->calcEwald->CorrectionOldMol(oldMol, distSq, 
 							     i, atom); 
 	 } 

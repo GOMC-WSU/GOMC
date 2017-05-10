@@ -32,9 +32,6 @@ namespace cbmc {
       DCSingle seed;
       DCHedron hed;
       double anchorBond;
-      //anchor bond energy of old molecule
-      double oldBondEnergy;
-      uint anchorBondKind;
    };
 }
 

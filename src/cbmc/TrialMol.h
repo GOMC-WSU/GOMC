@@ -92,7 +92,7 @@ class TrialMol
 		       const double phi);
 
       //!calculate distance between two atom in oldMol
-      double OldDistSq(const uint atom, const uint lastAtom);
+      double GetDistSq(const uint atom, const uint lastAtom);
 
       const Energy& GetEnergy() const { return en; }
       double GetWeight() const { return totalWeight; }

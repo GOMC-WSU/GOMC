@@ -109,7 +109,7 @@ void TrialMol::OldThetaAndPhi(const uint atom, const uint lastAtom,
   return;
 }
 
-double TrialMol::OldDistSq(const uint lastAtom, const uint atom)
+double TrialMol::GetDistSq(const uint lastAtom, const uint atom)
 {
   XYZ diff = tCoords.Difference(atom, lastAtom);
   diff = axes->MinImage(diff, box);

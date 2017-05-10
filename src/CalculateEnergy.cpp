@@ -808,7 +808,7 @@ double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,
   uint kind1 = thisKind.AtomKind(atom1);
   uint kind2 = thisKind.AtomKind(atom2);
 
-  if (electrostatic)
+  if(electrostatic)
   {
     double qi_qj_Fact =  num::qqFact * thisKind.AtomCharge(atom1) *
                          thisKind.AtomCharge(atom2);

@@ -12,7 +12,6 @@
 
 namespace
 {
-   //Wish I could use lambdas..
    struct FindA1
    {
       FindA1(uint x) : x(x) {};
@@ -47,7 +46,8 @@ namespace cbmc
       {
 	    if (onFocus[i].a1 == prev) 
 	    {
-               anchorBond = data->ff.bonds.Length(onFocus[i].kind);
+	       anchorKind = onFocus[i].kind;
+               eqAnchorBond = data->ff.bonds.Length(onFocus[i].kind);
                break;
             }
       }
@@ -61,18 +61,20 @@ namespace cbmc
       for (uint i = 0; i < nBonds; ++i)
       {
          bonded[i] = onFocus[i].a1;
-         bondLength[i] = data->ff.bonds.Length(onFocus[i].kind);
+         eqBondLength[i] = data->ff.bonds.Length(onFocus[i].kind);
 	 bondKinds[i] = onFocus[i].kind;
       }
       vector<Angle> angles = AtomMidAngles(kind, focus);
       for (uint i = 0; i < nBonds; ++i)
       {
          typedef vector<Angle>::const_iterator Aiter;
-         Aiter free = find_if(angles.begin(), angles.end(), FindAngle(prev, bonded[i]));
+         Aiter free = find_if(angles.begin(), angles.end(),
+			      FindAngle(prev, bonded[i]));
          assert(free != angles.end());
          angleKinds[i][i] = free->kind;
          for (uint j = i + 1; j < nBonds; ++j) {
-            Aiter pair = find_if(angles.begin(), angles.end(), FindAngle(bonded[i], bonded[j]));
+            Aiter pair = find_if(angles.begin(), angles.end(),
+				 FindAngle(bonded[i], bonded[j]));
             angleKinds[i][j] = pair->kind;
             angleKinds[j][i] = pair->kind;
          }
@@ -123,12 +125,8 @@ namespace cbmc
 #endif      
       for (i = 0; i < nTrials; ++i)
       {
-	 if(angleFix)
-	   data->angleEnergy[i] = 0.0;
-	 else
-	   data->angleEnergy[i] = data->ff.angles->Calc(kind, data->angles[i]);
-	 
-	 distSq = newMol.AngleDist(anchorBond, bondLength[bType],
+	 data->angleEnergy[i] = data->ff.angles->Calc(kind, data->angles[i]);
+	 distSq = newMol.AngleDist(newAnchorBond, newBondLength[bType],
 				   data->angles[i]);
 	 nonbonded_1_3[i] =
 	   data->calc.IntraEnergy_1_3(distSq, prev, bonded[bType], molIndex);
@@ -169,12 +167,8 @@ namespace cbmc
 #endif  
       for (i = 0; i < nTrials; ++i)
       {
-	 if(angleFix)
-	   data->angleEnergy[i] = 0.0;
-	 else
-	   data->angleEnergy[i] = data->ff.angles->Calc(kind, data->angles[i]);
-
-	 distSq = oldMol.AngleDist(anchorBondOld, bondLengthOld[bType],
+	 data->angleEnergy[i] = data->ff.angles->Calc(kind, data->angles[i]);
+	 distSq = oldMol.AngleDist(oldAnchorBond, oldBondLength[bType],
 				   data->angles[i]);
 	 nonbonded_1_3[i] =
 	   data->calc.IntraEnergy_1_3(distSq, prev, bonded[bType], molIndex);
@@ -212,10 +206,6 @@ namespace cbmc
          double stepWeight = std::accumulate(data->angleWeights,
 					     data->angleWeights + nTrials, 
 					     0.0);
-         //uint winner = data->prng.PickWeighted(data->angleWeights,
-	 //				       nTrials, stepWeight);
-         //theta[i] = data->angles[winner];
-         //bendEnergy += data->angleEnergy[winner];
          thetaWeight[i] = stepWeight;
       }
    }
@@ -225,26 +215,121 @@ namespace cbmc
       
       bendEnergy = 0.0;
       oneThree = 0.0;
+      SetNewBond(newMol);
       FreeAnglesNew(newMol, molIndex, data->nAngleTrials);
       ConstrainedAngles(newMol, molIndex, data->nAngleTrials);
    }
 
    void DCHedron::PrepareOld(TrialMol& oldMol, uint molIndex)
    {
-      oldBondEnergy = 0.0;
       oneThree = 0.0;
+      bendEnergy = 0.0;
+      SetOldBond(oldMol);
+      FreeAnglesOld(oldMol, molIndex, data->nAngleTrials - 1);
+   }
+
+   void DCHedron::SetNewBond(TrialMol& newMol)
+   {
+      newBondEnergy = 0.0;
+      newBondWeight = 1.0;
+      double tempEn, tempW;
+      for (uint i = 0; i < nBonds; ++i)
+      {
+	 if(data->ff.bonds.bondFixed(bondKinds[i]))
+	 {
+	   newBondLength[i] = eqBondLength[i];
+	   tempEn = data->ff.bonds.Calc(bondKinds[i], newBondLength[i]);
+	   tempW = exp(-1 * data->ff.beta * tempEn);
+	 }
+	 else
+	 {
+	   double bond, bf;
+	   do
+	   {
+	     do
+	     {
+	       bond = 0.2 * data->prng.rand() + 0.9;
+	       bf = bond * bond * bond / 1.331;
+	       
+	     }while(bf < data->prng.rand());
+	     
+	     newBondLength[i] = bond * eqBondLength[i];
+	     tempEn = data->ff.bonds.Calc(bondKinds[i], newBondLength[i]);
+	     tempW = exp(-1 * data->ff.beta * tempEn);  
+ 
+	   }while(tempW < data->prng.rand());
+	 }
+	 newBondEnergy += tempEn;
+	 newBondWeight *= tempW;
+      }
+      //find the anchor
+      if(newMol.AtomExists(focus) && newMol.AtomExists(prev))
+      {
+	 //if both prev and focus are already built, we just use them 
+	 newAnchorBond = sqrt(newMol.GetDistSq(focus, prev));
+	 //tempEn = data->ff.bonds.Calc(anchorKind, newAnchorBond);
+	 //tempW = exp(-1 * data->ff.beta * tempEn); 
+	 //oldBondEnergy += tempEn;
+	 //oldBondWeight *= tempW;
+      }
+      else
+      {
+	 if(data->ff.bonds.bondFixed(anchorKind))
+	 {
+	    newAnchorBond = eqAnchorBond;
+	    tempEn = data->ff.bonds.Calc(anchorKind, newAnchorBond);
+	    tempW = exp(-1 * data->ff.beta * tempEn);
+	 }
+	 else
+	 {
+	    double bond, bf;
+	    do
+	    {
+	       do
+	       {
+		  bond = 0.2 * data->prng.rand() + 0.9;
+		  bf = bond * bond * bond / 1.331;
+		  
+	       }while(bf < data->prng.rand());
+	       
+	       newAnchorBond = bond * eqAnchorBond;
+	       tempEn = data->ff.bonds.Calc(anchorKind, newAnchorBond);
+	       tempW = exp(-1 * data->ff.beta * tempEn);  
+	       
+	    }while(tempW < data->prng.rand());
+	 }
+	 newBondEnergy += tempEn;
+	 newBondWeight *= tempW;
+      }
+   }
+   
+   void DCHedron::SetOldBond(TrialMol& oldMol)
+   {
+      double tempEn, tempW;
+      oldBondEnergy = 0.0;
+      oldBondWeight = 1.0;
       //set bond distance for old molecule
       for (uint i = 0; i < nBonds; ++i)
       {
-	bondLengthOld[i] = sqrt(oldMol.OldDistSq(focus, bonded[i]));
-	oldBondEnergy +=  data->ff.bonds.Calc(bondKinds[i], bondLengthOld[i]);
+	oldBondLength[i] = sqrt(oldMol.GetDistSq(focus, bonded[i]));
+	tempEn = data->ff.bonds.Calc(bondKinds[i], oldBondLength[i]);
+	tempW = exp(-1 * data->ff.beta * tempEn);
+	oldBondEnergy += tempEn;
+	oldBondWeight *= tempW;
       }
-      anchorBondOld = sqrt(oldMol.OldDistSq(focus, prev));
-
-      bendEnergy = 0.0;
-      FreeAnglesOld(oldMol, molIndex, data->nAngleTrials - 1);
-
-
+      //add old anchor
+      if(oldMol.AtomExists(focus) && oldMol.AtomExists(prev))
+      {
+	oldAnchorBond = sqrt(oldMol.GetDistSq(focus, prev));
+      }
+      else
+      {
+	oldAnchorBond = sqrt(oldMol.GetDistSq(focus, prev));
+	tempEn = data->ff.bonds.Calc(anchorKind, oldAnchorBond);
+	tempW = exp(-1 * data->ff.beta * tempEn); 
+	oldBondEnergy += tempEn;
+	oldBondWeight *= tempW;
+      }
    }
 
 
@@ -258,9 +343,9 @@ namespace cbmc
 	 
          oldMol.OldThetaAndPhi(bonded[b], focus, theta[b], phi[b]);
          double thetaEnergy = data->ff.angles->Calc(angleKinds[b][b], theta[b]);
-	 double distSq = oldMol.OldDistSq(prev, bonded[b]);
-	 double nonbondedEn =
-	   data->calc.IntraEnergy_1_3(distSq, prev, bonded[b], molIndex);
+	 double distSq = oldMol.GetDistSq(prev, bonded[b]);
+	 double nonbondedEn = data->calc.IntraEnergy_1_3(distSq, prev,
+							 bonded[b], molIndex);
 
          thetaWeight[b] += exp(-1* data->ff.beta * (thetaEnergy + nonbondedEn));
          bendEnergy += thetaEnergy;
@@ -278,7 +363,7 @@ namespace cbmc
 	       double bfcTheta = acos(sinTerm * cos(phi[b] - phi[c]) + 
 				      cosTerm);
 	
-	       double distSq = oldMol.OldDistSq(bonded[c], bonded[b]);
+	       double distSq = oldMol.GetDistSq(bonded[c], bonded[b]);
 	       nonbondedEn +=  data->calc.IntraEnergy_1_3(distSq, bonded[c],
 						      bonded[b], molIndex);
 	       
@@ -321,12 +406,12 @@ namespace cbmc
 	    
             for (uint i = 0; i < nTrials; ++i)
             {
-	       if(data->ff.angles->AngleEnergy(angleKinds[b][c]) <= 10E7)
+	       if(!data->ff.angles->AngleFixed(angleKinds[b][c]))
 	       {
 		 double bfcTheta = acos(sinTerm * cos(angles[i] - phi[c]) +
 					cosTerm);
-		 double distSq = newMol.AngleDist(bondLength[b], bondLength[c],
-						  bfcTheta);
+		 double distSq = newMol.AngleDist(newBondLength[b],
+						  newBondLength[c], bfcTheta);
 		 double tempEn = data->calc.IntraEnergy_1_3(distSq, bonded[b],
 							    bonded[c],
 							    molIndex);
@@ -345,8 +430,8 @@ namespace cbmc
 		  angles[i] = acos((cos(fixedbfc)-abs(cosTerm))/sinTerm)+phi[c];
 		  double bfcTheta = acos(sinTerm * cos(angles[i] - phi[c]) +
 					cosTerm);
-		  double distSq = newMol.AngleDist(bondLength[b], bondLength[c],
-						   bfcTheta);
+		  double distSq = newMol.AngleDist(newBondLength[b],
+						   newBondLength[c], bfcTheta);
 		  double tempEn = data->calc.IntraEnergy_1_3(distSq, bonded[b],
 							     bonded[c],
 							     molIndex);
@@ -400,14 +485,14 @@ namespace cbmc
 	    //compare to angles determined in previous iterations
 	    for (uint c = 0; c < b; ++c) 
 	    {	       
-	       if(data->ff.angles->AngleEnergy(angleKinds[b][c]) <= 10E7)
+	       if(!data->ff.angles->AngleFixed(angleKinds[b][c]))
 	       {
 		 double cosTerm = cos(theta[b]) * cos(theta[c]);
 		 double sinTerm = sin(theta[b]) * sin(theta[c]);
 		 double bfcTheta = acos(sinTerm * cos(angles - phi[c]) 
 					+ cosTerm);
-		 double distSq = oldMol.AngleDist(bondLengthOld[b],
-						bondLengthOld[c], bfcTheta);
+		 double distSq = oldMol.AngleDist(oldBondLength[b],
+						oldBondLength[c], bfcTheta);
 		 nonbondedEng += data->calc.IntraEnergy_1_3(distSq, bonded[b],
 							   bonded[c], molIndex);
 		 if(isnan(nonbondedEng))
@@ -423,8 +508,8 @@ namespace cbmc
 		   angles = acos((cos(fixedbfc)-abs(cosTerm))/sinTerm)+phi[c];
 		   double bfcTheta = acos(sinTerm * cos(angles - phi[c]) 
 					  + cosTerm);
-		   double distSq = oldMol.AngleDist(bondLengthOld[b],
-						bondLengthOld[c], bfcTheta);
+		   double distSq = oldMol.AngleDist(oldBondLength[b],
+						    oldBondLength[c], bfcTheta);
 		   nonbondedEng += data->calc.IntraEnergy_1_3(distSq, bonded[b],
 							   bonded[c], molIndex);
 		   if(isnan(nonbondedEng))

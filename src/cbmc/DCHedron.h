@@ -27,12 +27,17 @@ namespace cbmc
       uint Bonded(uint i) const { return bonded[i]; }
       double Theta(uint i) const { return theta[i]; }
       double Phi(uint i) const { return phi[i]; }
-      double BondLength(uint i) const { return bondLength[i]; }
-      double BondLengthOld(uint i) const { return bondLengthOld[i]; }
+      double BondLength(uint i) const { return newBondLength[i]; }
+      double BondLengthOld(uint i) const { return oldBondLength[i]; }
+      double GetNewAnchor() const {return newAnchorBond; }
+      double GetOldAnchor() const {return oldAnchorBond; }
       double GetWeight();
       double GetEnergy() { return bendEnergy; }
       double GetNonBondedEn() { return oneThree; }
       double GetOldBondEn() { return oldBondEnergy; }
+      double GetNewBondEn() { return newBondEnergy; }
+      double GetOldBondW() { return oldBondWeight; }
+      double GetNewBondW() { return newBondWeight; }
       uint NumBond() { return nBonds; }
       uint Focus() { return focus; }
       uint Prev() { return prev; }
@@ -49,7 +54,8 @@ namespace cbmc
       void FreeAnglesNew(TrialMol& newMol, uint molIndex, uint nTrials);
       void FreeAnglesOld(TrialMol& oldMol, uint molIndex, uint nTrials);
       void ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTrials);
-
+      void SetOldBond(TrialMol& oldMol); 
+      void SetNewBond(TrialMol& newMol);
 
       DCData* data;
       uint focus, prev;
@@ -57,21 +63,25 @@ namespace cbmc
       //atoms bonded to focus, being build
 
       //bond length of atom bonded to focus
-      double bondLength[MAX_BONDS];
-      double bondLengthOld[MAX_BONDS];
+      double eqBondLength[MAX_BONDS];
+      double newBondLength[MAX_BONDS];
+      double oldBondLength[MAX_BONDS];
       
       //angleKinds[i][j] = kind between bonded[i] and bonded[j]
       //except angleKinds[i][i] = kind between bonded[i] and prev
       uint angleKinds[MAX_BONDS][MAX_BONDS];
       //bondKind between bonded[i] and focus
       uint bondKinds[MAX_BONDS];
+      uint anchorKind;
 
       double theta[MAX_BONDS];
       double thetaWeight[MAX_BONDS];
       double phi[MAX_BONDS];
       double phiWeight[MAX_BONDS];
-      double bendEnergy, oldBondEnergy, oneThree;
-      double anchorBond, anchorBondOld;
+      double bendEnergy, oneThree;
+      double eqAnchorBond, newAnchorBond, oldAnchorBond;
+      double oldBondEnergy, oldBondWeight;
+      double newBondEnergy, newBondWeight;
    };
 }
 

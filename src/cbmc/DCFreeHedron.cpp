@@ -18,10 +18,11 @@ namespace cbmc
          using namespace mol_setup; 
          using namespace std; 
          vector<Bond> onFocus = AtomBonds(kind, hed.Focus()); 
-         for(uint i = 0; i < onFocus.size(); ++i) { 
-            if (onFocus[i].a1 == prev) { 
+         for(uint i = 0; i < onFocus.size(); ++i)
+	 { 
+            if (onFocus[i].a1 == prev)
+	    { 
                anchorBond = data->ff.bonds.Length(onFocus[i].kind); 
-	       anchorBondKind = onFocus[i].kind; 
                break; 
             } 
          } 
@@ -30,14 +31,13 @@ namespace cbmc
  
    void DCFreeHedron::PrepareNew(TrialMol& newMol, uint molIndex) 
    { 
-      hed.PrepareNew(newMol, molIndex); 
+      hed.PrepareNew(newMol, molIndex);
+      anchorBond = hed.GetNewAnchor();
    } 
  
    void DCFreeHedron::PrepareOld(TrialMol& oldMol, uint molIndex) 
    { 
-      hed.PrepareOld(oldMol, molIndex); 
-      double bondLengthOld = sqrt(oldMol.OldDistSq(hed.Focus(), hed.Prev())); 
-      oldBondEnergy =  data->ff.bonds.Calc(anchorBondKind, bondLengthOld); 
+      hed.PrepareOld(oldMol, molIndex);  
    } 
  
  
@@ -74,7 +74,8 @@ namespace cbmc
                                                   hed.Theta(i), hed.Phi(i))); 
       } 
       //add anchor atom 
-      positions[hed.NumBond()].Set(0, newMol.RawRectCoords(anchorBond, 0, 0)); 
+      positions[hed.NumBond()].Set(0, newMol.RawRectCoords(hed.GetNewAnchor(),
+							   0, 0)); 
  
       //counting backward to preserve prototype 
       for (uint lj = nLJTrials; lj-- > 0;) 
@@ -152,10 +153,11 @@ namespace cbmc
          newMol.AddAtom(hed.Bonded(b), positions[b][winner]); 
       } 
       newMol.AddAtom(hed.Prev(), positions[hed.NumBond()][winner]); 
-      newMol.AddEnergy(Energy(hed.GetEnergy(), hed.GetNonBondedEn(), 
-			      inter[winner], real[winner], 
-			      0.0, self[winner], correction[winner])); 
-      newMol.MultWeight(hed.GetWeight()); 
+      newMol.AddEnergy(Energy(hed.GetEnergy() + hed.GetNewBondEn(),
+			      hed.GetNonBondedEn(), inter[winner],
+			      real[winner], 0.0, self[winner],
+			      correction[winner])); 
+      newMol.MultWeight(hed.GetWeight() * hed.GetNewBondW()); 
       newMol.MultWeight(stepWeight); 
    } 
  
@@ -278,12 +280,10 @@ namespace cbmc
          oldMol.ConfirmOldAtom(hed.Bonded(b)); 
       } 
       oldMol.ConfirmOldAtom(hed.Prev()); 
-      oldMol.AddEnergy(Energy(hed.GetEnergy() + oldBondEnergy + 
-			      hed.GetOldBondEn(), 
-			      hed.GetNonBondedEn(), 
-			      inter[0], real[0], 0.0, 
+      oldMol.AddEnergy(Energy(hed.GetEnergy() + hed.GetOldBondEn(), 
+			      hed.GetNonBondedEn(), inter[0], real[0], 0.0, 
 			      self[0], correction[0])); 
-      oldMol.MultWeight(hed.GetWeight()); 
+      oldMol.MultWeight(hed.GetWeight() * hed.GetOldBondW()); 
       oldMol.MultWeight(stepWeight); 
    } 
  

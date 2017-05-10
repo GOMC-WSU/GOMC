@@ -57,26 +57,6 @@ namespace cbmc
             break; 
          } 
       } 
- 
-      std::vector<Bond> bond2 = AtomBonds(kind, focus); 
-      for (uint i = 0; i < bond2.size(); ++i) 
-      { 
-         if (bond2[i].a0 == prev || bond2[i].a1 == prev) 
-	 { 
-            bond[1] = data->ff.bonds.Length(bond2[i].kind); 
-            break; 
-         } 
-      } 
- 
-      std::vector<Bond> bond3 = AtomBonds(kind, prev); 
-      for (uint i = 0; i < bond3.size(); ++i) 
-      { 
-         if (bond3[i].a0 == prevprev || bond3[i].a1 == prevprev) 
-	 { 
-            bond[0] = data->ff.bonds.Length(bond3[i].kind); 
-            break; 
-         } 
-      } 
    } 
  
    void DCLink::PrepareNew(TrialMol& newMol, uint molIndex) 
@@ -98,14 +78,12 @@ namespace cbmc
 	 if (angleFix) 
 	 { 
 	    angles[trial] = thetaFix; 
-	    angleEnergy[trial] = 0.0; 
 	 } 
 	 else 
 	 {	    
-	    angles[trial] = prng.rand(M_PI); 
-	    angleEnergy[trial] = ff.angles->Calc(angleKind, angles[trial]); 
+	    angles[trial] = prng.rand(M_PI); 	    
 	 } 
- 
+	 angleEnergy[trial] = ff.angles->Calc(angleKind, angles[trial]); 
 
 	 double distSq = newMol.AngleDist(bond[1], bond[2], angles[trial]); 
 	 nonbonded_1_3[trial] = data->calc.IntraEnergy_1_3(distSq, prev, atom, 
@@ -137,24 +115,20 @@ namespace cbmc
  
       for (uint trial = 0; trial < count; trial++) 
       { 
-
 	 double trialAngle; 
 	 double trialEn; 
  
-	 if (angleFix) 
+	 if(angleFix) 
 	 { 
 	   trialAngle = thetaFix; 
-	   trialEn = 0.0; 
 	 } 
 	 else 
 	 {	    
 	   trialAngle = prng.rand(M_PI); 
-	   trialEn = ff.angles->Calc(angleKind, trialAngle); 
 	 } 
- 
- 	 double distSq = oldMol.AngleDist(oldBond[1], oldBond[2], trialAngle); 
+	 trialEn = ff.angles->Calc(angleKind, trialAngle);
 
- 
+ 	 double distSq = oldMol.AngleDist(oldBond[1], oldBond[2], trialAngle);  
 	 double tempEn = data->calc.IntraEnergy_1_3(distSq, prev, atom,
 						    molIndex); 
 	 if(isnan(tempEn)) 
@@ -162,7 +136,6 @@ namespace cbmc
  
          trialEn += tempEn; 
 
- 
          double trialWeight = exp(-ff.beta * trialEn); 
          bendWeight += trialWeight; 
       } 
@@ -174,7 +147,7 @@ namespace cbmc
       const Forcefield& ff = data->ff; 
 
       bendEnergy = ff.angles->Calc(angleKind, theta); 
-      double distSq = oldMol.OldDistSq(prev, atom); 
+      double distSq = oldMol.GetDistSq(prev, atom); 
       oneThree = data->calc.IntraEnergy_1_3(distSq, prev, atom, molIndex); 
       bendWeight += exp(-ff.beta * (bendEnergy + oneThree));  
    } 
@@ -186,15 +159,15 @@ namespace cbmc
  
    void DCLink::SetOldBond(TrialMol& oldMol) 
    { 
-     double BondDistSq1 = oldMol.OldDistSq(focus, atom); 
-     double BondDistSq2 = oldMol.OldDistSq(prev, focus); 
-     double BondDistSq3 = oldMol.OldDistSq(prevprev, prev); 
+     double BondDistSq1 = oldMol.GetDistSq(focus, atom); 
+     double BondDistSq2 = oldMol.GetDistSq(prev, focus); 
+     double BondDistSq3 = oldMol.GetDistSq(prevprev, prev); 
      oldBond[2] = sqrt(BondDistSq1);
      oldBond[1] = sqrt(BondDistSq2);
      oldBond[0] = sqrt(BondDistSq3);
 
      //bond length from focus to atom
-     oldBondLength = sqrt(BondDistSq1);
+     oldBondLength = oldBond[2];
      oldBondEnergy = data->ff.bonds.Calc(bondKind, oldBondLength);
      oldBondWeight = exp(-1 * data->ff.beta * oldBondEnergy);
    } 
@@ -225,6 +198,9 @@ namespace cbmc
  
 	}while(newBondWeight < data->prng.rand());
      }
+     bond[2] = newBondLength;
+     bond[1] = sqrt(newMol.GetDistSq(prev, focus));
+     bond[0] = sqrt(newMol.GetDistSq(prevprev, prev));
    }
  
    void DCLink::BuildOld(TrialMol& oldMol, uint molIndex) 
@@ -307,7 +283,7 @@ namespace cbmc
       { 
 	 if (oldMol.AtomExists(i) && i != atom) 
 	 { 
-	    double distSq = oldMol.OldDistSq(i, atom); 
+	    double distSq = oldMol.GetDistSq(i, atom); 
 	    tempEn += data->calcEwald->CorrectionOldMol(oldMol, distSq, 
 							     i, atom); 
 	 } 
@@ -472,8 +448,7 @@ namespace cbmc
          angleEnergy[trial] = ff.dihedrals.Calc(dihKind, angles[trial]); 
 	 double distSq = oldMol.DihedDist(oldBond[0], oldBond[1], oldBond[2], 
 					  theta1, theta, angles[trial]); 
- 
- 
+  
 	 nonbonded_1_4[trial] = data->calc.IntraEnergy_1_4(distSq, prevprev, 
 							   atom, molIndex); 
  
@@ -499,7 +474,7 @@ namespace cbmc
       double theta0 = oldMol.GetTheta(prevprev, prev, focus); 
  
       energy = ff.dihedrals.Calc(dihKind, phi); 
-      double distSq = oldMol.OldDistSq(prevprev, atom); 
+      double distSq = oldMol.GetDistSq(prevprev, atom); 
  
       nonbonded_1_4[0] = data->calc.IntraEnergy_1_4(distSq, prevprev, atom, 
 						    molIndex); 

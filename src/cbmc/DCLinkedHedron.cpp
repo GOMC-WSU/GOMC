@@ -38,13 +38,13 @@ namespace cbmc
          using namespace mol_setup;
          using namespace std;
          vector<Bond> onPrev = AtomBonds(kind, hed.Prev());
-         onPrev.erase(remove_if(onPrev.begin(), onPrev.end(), FindA1(hed.Focus())), onPrev.end());
+         onPrev.erase(remove_if(onPrev.begin(), onPrev.end(),
+				FindA1(hed.Focus())), onPrev.end());
          nPrevBonds = onPrev.size();
 
          for(uint i = 0; i < nPrevBonds; ++i)
 	 {
             prevBonded[i] = onPrev[i].a1;
-	    prevBondedLength[i] = data->ff.bonds.Length(onPrev[i].kind);
          }
 
 	 vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
@@ -73,6 +73,12 @@ namespace cbmc
    void DCLinkedHedron::PrepareNew(TrialMol& newMol, uint molIndex)
    {
      hed.PrepareNew(newMol, molIndex);
+     focusPrevLength = hed.GetNewAnchor();
+     for(uint i = 0; i < nPrevBonds; ++i)
+     {
+        prevBondedLength[i] = sqrt(newMol.GetDistSq(hed.Prev(),
+						    prevBonded[i]));
+     }
    }
 
    void DCLinkedHedron::PrepareOld(TrialMol& oldMol, uint molIndex)
@@ -80,9 +86,10 @@ namespace cbmc
      hed.PrepareOld(oldMol, molIndex);
      for(uint i = 0; i < nPrevBonds; ++i)
      {
-       prevBondedLengthOld[i] = sqrt(oldMol.OldDistSq(hed.Prev(), prevBonded[i]));
+       prevBondedLengthOld[i] = sqrt(oldMol.GetDistSq(hed.Prev(),
+						      prevBonded[i]));
      }
-       focusPrevLengthOld = sqrt(oldMol.OldDistSq(hed.Focus(), hed.Prev()));
+       focusPrevLengthOld = hed.GetOldAnchor();
    }
 
 
@@ -165,11 +172,12 @@ namespace cbmc
       {
          newMol.AddAtom(hed.Bonded(b), positions[b][winner]);
       }
-      newMol.AddEnergy(Energy(bondedEn[winner] + hed.GetEnergy(),
+      newMol.AddEnergy(Energy(bondedEn[winner] + hed.GetEnergy() +
+			      hed.GetNewBondEn(),
 			      nonbonded[winner] + hed.GetNonBondedEn() +
 			      oneFour[winner], inter[winner], real[winner],
 			      0.0, self[winner], correction[winner]));
-      newMol.MultWeight(hed.GetWeight());
+      newMol.MultWeight(hed.GetWeight() * hed.GetNewBondW());
       newMol.MultWeight(stepWeight);
    }
 
@@ -294,7 +302,7 @@ namespace cbmc
 			      inter[0], real[0], 0.0, self[0],
 			      correction[0]));
  
-      oldMol.MultWeight(hed.GetWeight());
+      oldMol.MultWeight(hed.GetWeight() * hed.GetOldBondW());
       oldMol.MultWeight(stepWeight);
    }
 
@@ -387,11 +395,11 @@ namespace cbmc
             for (uint p = 0; p < nPrevBonds; ++p)
 	    {
 	       double theta0 = newMol.GetTheta(prevBonded[p], hed.Prev(),
-					    hed.Focus());
+					       hed.Focus());
 	       double distSq =
 		 newMol.DihedDist(prevBondedLength[p], focusPrevLength,
-			       hed.BondLength(b), theta0, theta1,
-			       trialPhi - prevPhi[p]);
+				  hed.BondLength(b), theta0, theta1,
+				  trialPhi - prevPhi[p]);
 	       nonbonded_1_4[tor] +=
 		 data->calc.IntraEnergy_1_4(distSq, prevBonded[p],
 					    hed.Bonded(b), molIndex);
@@ -437,8 +445,8 @@ namespace cbmc
 					    hed.Focus());
 	       double distSq =
 		 oldMol.DihedDist(prevBondedLengthOld[p], focusPrevLengthOld,
-			       hed.BondLengthOld(b), theta0, theta1,
-			       trialPhi - prevPhi[p]);
+				  hed.BondLengthOld(b), theta0, theta1,
+				  trialPhi - prevPhi[p]);
 	       nonbonded_1_4[tor] +=
 		 data->calc.IntraEnergy_1_4(distSq, prevBonded[p],
 					    hed.Bonded(b), molIndex);
