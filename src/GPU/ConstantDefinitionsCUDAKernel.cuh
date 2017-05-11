@@ -1,28 +1,29 @@
-#pragma once
+#ifndef CONSTANT_DEFINITIONS_CUDA_KERNEL
+#define CONSTANT_DEFINITIONS_CUDA_KERNEL
 
 #ifdef GOMC_CUDA
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include "GeomLib.h"
 
-__constant__ double gpu_sigmaSq[1000];
-__constant__ double gpu_epsilon_Cn[1000];
-__constant__ double gpu_n[1000];
-__constant__ int gpu_VDW_Kind;
-__constant__ int gpu_count;
-__constant__ bool gpu_isMartini;
-__constant__ double gpu_rCut;
-__constant__ double gpu_rCutLow;
-__constant__ double gpu_rOn;
-__constant__ double gpu_alpha;
-__constant__ bool gpu_ewald;
-__constant__ double gpu_diElectric_1;
+extern __constant__ double gpu_sigmaSq[1000];
+extern __constant__ double gpu_epsilon_Cn[1000];
+extern __constant__ double gpu_n[1000];
+extern __constant__ int gpu_VDW_Kind;
+extern __constant__ int gpu_count;
+extern __constant__ bool gpu_isMartini;
+extern __constant__ double gpu_rCut;
+extern __constant__ double gpu_rCutLow;
+extern __constant__ double gpu_rOn;
+extern __constant__ double gpu_alpha;
+extern __constant__ bool gpu_ewald;
+extern __constant__ double gpu_diElectric_1;
 
 #define GPU_VDW_STD_KIND 0
 #define GPU_VDW_SHIFT_KIND 1
 #define GPU_VDW_SWITCH_KIND 2
 
-void InitGPUForceField(double const *sigmaSq, double const *epsilon_Cn,
+inline void InitGPUForceField(double const *sigmaSq, double const *epsilon_Cn,
 		       double const *n, uint VDW_Kind, bool isMartini,
 		       int count, int Rcut, int RcutLow, int Ron, double alpha,
 		       bool ewald, double diElectric_1)
@@ -42,4 +43,10 @@ void InitGPUForceField(double const *sigmaSq, double const *epsilon_Cn,
   cudaMemcpyToSymbol("gpu_diElectric_1", &diElectric_1, sizeof(double));
 }
 
-#endif
+__device__ inline int FlatIndexGPU(int i, int j)
+{
+  return i + j * gpu_count;
+}
+
+#endif /*GOMC_CUDA*/
+#endif /*CONSTANT_DEFINITIONS_CUDA_KERNEL*/

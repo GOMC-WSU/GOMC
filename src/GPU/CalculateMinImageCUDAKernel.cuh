@@ -1,12 +1,13 @@
-#pragma once
+#ifndef CALCULATE_MIN_IMAGE_CUDA_KERNEL
+#define CALCULATE_MIN_IMAGE_CUDA_KERNEL
 
 #ifdef GOMC_CUDA
 
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "ConstantDefinitionsCUDA.h"
+#include "ConstantDefinitionsCUDAKernel.cuh"
 
-__device__ double MinImageSignedGPU(double raw,double ax, double halfAx) 
+__device__ inline double MinImageSignedGPU(double raw,double ax, double halfAx) 
 {
   if (raw > halfAx)
     raw -= ax;
@@ -16,7 +17,7 @@ __device__ double MinImageSignedGPU(double raw,double ax, double halfAx)
 }
 
 // Call by calculate energy whether it is in rCut
-__device__ bool InRcutGPU(double &distSq, double gpu_x1, double gpu_y1, 
+__device__ inline bool InRcutGPU(double &distSq, double gpu_x1, double gpu_y1, 
 			  double gpu_z1, double gpu_x2, double gpu_y2, 
 			  double gpu_z2, double xAxes, double yAxes, 
 			  double zAxes, double xHalfAxes, double yHalfAxes, 
@@ -32,7 +33,7 @@ __device__ bool InRcutGPU(double &distSq, double gpu_x1, double gpu_y1,
 }
 
 // Call by force calculate to return the distance and virial component
-__device__ bool InRcutGPU(double &distSq, double &virX, double &virY, 
+__device__ inline bool InRcutGPU(double &distSq, double &virX, double &virY, 
 			  double &virZ, double gpu_x1, double gpu_y1, 
 			  double gpu_z1, double gpu_x2, double gpu_y2, 
 			  double gpu_z2, double xAxes, double yAxes, 
@@ -47,4 +48,5 @@ __device__ bool InRcutGPU(double &distSq, double &virX, double &virY,
   return ((gpu_rCut * gpu_rCut) > distSq);
 }
 
-#endif
+#endif /*GOMC_CUDA*/
+#endif /*CALCULATE_MIN_IMAGE_CUDA_KERNEL*/

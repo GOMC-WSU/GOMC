@@ -18,8 +18,8 @@
 #include <cassert>
 #include <omp.h>
 #ifdef GOMC_CUDA
-#include "CalculateEnergyCUDAKernel.h"
-#include "CalculateForceCUDAKernel.h"
+#include "CalculateEnergyCUDAKernel.cuh"
+#include "CalculateForceCUDAKernel.cuh"		 
 #endif
 
 //

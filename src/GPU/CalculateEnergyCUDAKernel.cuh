@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef CALCULATE_ENERGY_CUDA_KERNEL
+#define CALCULATE_ENERGY_CUDA_KERNEL
 #ifdef GOMC_CUDA
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -9,8 +9,6 @@
 
 using namespace std;
 
-__device__ int FlatIndexGPU(int i, int j);
-
 void CallBoxInterGPU(vector<uint> pair1,
 		     vector<uint> pair2,
 		     XYZArray const &coords,
@@ -18,6 +16,8 @@ void CallBoxInterGPU(vector<uint> pair1,
 		     bool electrostatic,
 		     vector<double> particleCharge,
 		     vector<int> particleKind,
+		     double &REn,
+		     double &RLJEn,
 		     uint const box);
 
 __global__ void BoxInterGPU(int *gpu_pair1,
@@ -31,6 +31,8 @@ __global__ void BoxInterGPU(int *gpu_pair1,
 			    bool electrostatic,
 			    double *gpu_particleCharge,
 			    int *gpu_particleKind,
+			    double *gpu_REn,
+			    double *gpu_LJEn,
 			    int pairSize);
 
 
@@ -51,4 +53,5 @@ __device__ double CalcEnShiftGPU(double distSq, int index);
 __device__ double CalcEnSwitchMartiniGPU(double distSq, int index);
 __device__ double CalcEnSwitchGPU(double distSq, int index);
 
-#endif
+#endif /*GOMC_CUDA*/
+#endif /*CALCULATE_ENERGY_CUDA_KERNEL*/

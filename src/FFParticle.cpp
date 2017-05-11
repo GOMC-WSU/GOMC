@@ -3,7 +3,7 @@
 #include "ConfigSetup.h"
 #include "NumLib.h" //For Sq, Cb, and MeanA/G functions.
 #ifdef GOMC_CUDA
-#include "ConstantDefinitionsCUDAKernel.h"
+#include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
 
 FFParticle::FFParticle() : mass(NULL), nameFirst(NULL), nameSec(NULL),

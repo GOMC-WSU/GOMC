@@ -1,7 +1,6 @@
 # Find CUDA is enabled, set it up
 
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_30,code=sm_30)
-set(CUDA_SEPARABLE_COMPILATION OFF)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};--gpu-architecture=compute_35;--gpu-code=compute_35,sm_35)
 include_directories(src/GPU)
 
 set(GPU_NPT_flags "-DENSEMBLE=4 -DGOMC_CUDA")
@@ -27,8 +26,7 @@ if(ENSEMBLE_GPU_NVT)
 endif()
 
 if(ENSEMBLE_GPU_GEMC)
-    cuda_add_executable(GPU_GEMC ${cudaSources} ${cudaHeaders} 
-    ${sources} ${headers} ${libHeaders})
+    cuda_add_executable(GPU_GEMC ${cudaSources} ${cudaHeaders} ${sources} ${headers} ${libHeaders})
     set_target_properties(GPU_GEMC PROPERTIES
         OUTPUT_NAME ${GPU_GE_name}
         COMPILE_FLAGS "${GPU_GE_flags}")
@@ -41,9 +39,6 @@ endif()
 if(ENSEMBLE_GPU_GCMC)
     cuda_add_executable(GPU_GCMC ${cudaSources} ${cudaHeaders} 
     ${sources} ${headers} ${libHeaders})
-    #CUDA_ADD_LIBRARY(cudaStaticLib STATIC ${cudaSources})
-    #cuda_add_executable(GPU_GCMC ${sources} ${cudaSources})
-    #target_link_libraries(GPU_GCMC cudaStaticLib)
     set_target_properties(GPU_GCMC PROPERTIES 
         OUTPUT_NAME ${GPU_GC_name}
         COMPILE_FLAGS "${GPU_GC_flags}")

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CALCULATE_FORCE_CUDA_KERNEL
+#define CALCULATE_FORCE_CUDA_KERNEL
 
 #ifdef GOMC_CUDA
 #include <vector>
@@ -7,7 +8,6 @@
 
 using namespace std;
 
-__device__ int FlatIndexGPU(int i, int j);
 void CallBoxInterForceGPU(vector<uint> pair1,
 			  vector<uint> pair2,
 			  XYZArray const &currentCoords,
@@ -17,6 +17,8 @@ void CallBoxInterForceGPU(vector<uint> pair1,
 			  vector<double> particleCharge,
 			  vector<int> particleKind,
 			  vector<int> particleMol,
+			  double &virInter,
+			  double &virReal,
 			  uint const box);
 
 __global__ void BoxInterForceGPU(int *gpu_pair1,
@@ -34,6 +36,8 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
 				 double *gpu_particleCharge,
 				 int *gpu_particleKind,
 				 int *gpu_particleMol,
+				 double *gpu_virInter,
+				 double *gpu_virReal,
 				 int pairSize);
 
 __device__ double CalcCoulombForceGPU(double distSq, double qi_qj);
@@ -48,8 +52,10 @@ __device__ double CalcCoulombVirSwitchGPU(double distSq, double qi_qj);
 
 //VDW Calculation
 //*****************************************************************//
-__device__ double CalcVirParticleGPU(double distSq, double index);
-__device__ double CalcVirShiftGPU(double distSq, double index);
-__device__ double CalcVirSwitchMartiniGPU(double distSq, double index);
-__device__ double CalcVirSwitchGPU(double distSq, double index);
-#endif
+__device__ double CalcVirParticleGPU(double distSq, int index);
+__device__ double CalcVirShiftGPU(double distSq, int index);
+__device__ double CalcVirSwitchMartiniGPU(double distSq, int index);
+__device__ double CalcVirSwitchGPU(double distSq, int index);
+
+#endif /*GOMC_CUDA*/
+#endif /*CALCULATE_FORCE_CUDA_KERNEL*/
