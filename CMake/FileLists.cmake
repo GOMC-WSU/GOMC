@@ -138,11 +138,11 @@ set(libHeaders
    lib/VectorLib.h)
 
 set(cudaHeaders
-    src/GPU/CalculateEnergyCUDAKernel.h
-    src/GPU/CalculateForceCUDAKernel.h
-    src/GPU/ConstantDefinitionsCUDAKernel.h
-    src/GPU/CalculateMinImageCUDAKernel.h
-    src/GPU/CalculateEwaldCUDAKernel.h)
+    src/GPU/ConstantDefinitionsCUDAKernel.cuh
+    src/GPU/CalculateMinImageCUDAKernel.cuh
+    src/GPU/CalculateEnergyCUDAKernel.cuh
+    src/GPU/CalculateForceCUDAKernel.cuh
+    src/GPU/CalculateEwaldCUDAKernel.cuh)
 
 set(cudaSources
     src/GPU/CalculateEnergyCUDAKernel.cu

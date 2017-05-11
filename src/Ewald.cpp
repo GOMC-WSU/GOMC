@@ -17,7 +17,7 @@
 #include <cassert>
 #include <omp.h>
 #ifdef GOMC_CUDA
-#include "CalculateEwaldCUDAKernel.h"
+#include "CalculateEwaldCUDAKernel.cuh"
 #endif
 
 //
@@ -187,8 +187,8 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 	MoleculeKind const& thisKind = mols.GetKind(*thisMol);
 	for (j = 0; j < thisKind.NumAtoms(); j++)
 	{
-	  thisBoxCoords[i] = mols.MolStart(*thisMol) + j;
-	  chargeBox.push(thisKind.AtomCharge(j));
+	  thisBoxCoords[i] = molCoords[mols.MolStart(*thisMol) + j];
+	  chargeBox.push_back(thisKind.AtomCharge(j));
 	  i++;
 	}
 	thisMol++;

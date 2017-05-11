@@ -108,14 +108,14 @@ endif
 
 
 # Common includes and paths for CUDA
-INCLUDES      := -Ilib,src,src/GPU,src/cbmc -L/opt/cuda/sdk/C/lib64 -L/opt/cuda/lib64/ -lcudart -lcuda -O3 -w
+INCLUDES      := -Ilib,lib/cub,src,src/GPU,src/cbmc -L/opt/cuda/sdk/C/lib64 -L/opt/cuda/lib64/ -lcudart -lcuda -O3 -w
 # Target rules
 all: build
 
 build: GOMC.out
 
 GOMC.out: 
-	$(NVCC) ./src/*.cpp ./src/GPU/*.cu ./src/cbmc/*.cpp $(NVCCFLAGS) $(GENCODE_FLAGS) $(INCLUDES) -lm -o GOMC.out
+	$(NVCC) ./src/*.cpp ./src/GPU/*.cu ./src/cbmc/*.cpp $(NVCCFLAGS) $(GENCODE_FLAGS) $(INCLUDES) -DGOMC_CUDA -DNDEBUG -rdc=true -lm -o GOMC.out
 
 run: build
 	./src

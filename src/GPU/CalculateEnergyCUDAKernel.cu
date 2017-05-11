@@ -1,14 +1,14 @@
-#include "CalculateEnergyCUDAKernel.h"
-
 #ifdef GOMC_CUDA
 
 #include <cuda.h>
-#include "ConstantDefinitionsCUDA.h"
-#include "CalculateMinImageCUDA.h"
-#include "cub/cub.h"
+#include "ConstantDefinitionsCUDAKernel.cuh"
+#include "CalculateMinImageCUDAKernel.cuh"
+#include "cub/cub.cuh"
 
-void CallBoxInterGPU(vector<int> pair1,
-		     vector<int> pair2,
+using namespace cub;
+
+void CallBoxInterGPU(vector<uint> pair1,
+		     vector<uint> pair2,
 		     XYZArray const &coords,
 		     BoxDimensions const &boxAxes,
 		     bool electrostatic,
@@ -29,35 +29,38 @@ void CallBoxInterGPU(vector<int> pair1,
   double *gpu_final_REn, *gpu_final_LJEn;
   double cpu_final_REn, cpu_final_LJEn;
 
-  cub::CubDebugExit(cudaMalloc((void**) &gpu_pair1, pair1.size() * sizeof(int)));
-  cub::CubDebugExit(cudaMalloc((void**) &gpu_pair2, pair2.size() * sizeof(int)));
-  cub::CubDebugExit(cudaMalloc((void**) &gpu_x, atomNumber * sizeof(double)));
-  cub::CubDebugExit(cudaMalloc((void**) &gpu_y, atomNumber * sizeof(double)));
-  cub::CubDebugExit(cudaMalloc((void**) &gpu_z, atomNumber * sizeof(double)));
-  cub::CubDebugExit(cudaMalloc((void**) &gpu_particleCharge, 
-	     particleCharge.size * sizeof(double)));
-  cub::CubDebugExit(cudaMalloc((void**) &gpu_particleKind, particleKind.size * sizeof(int)));
-  cub::CubDebugExit(cudaMalloc((void**) &gpu_REn, pair1.size() * sizeof(double)));
-  cub::CubDebugExit(cudaMalloc((void**) &gpu_LJEn, pair1.size() * sizeof(double)));
-  cub::CubDebugExit(cudaMalloc((void**) &gpu_final_REn, sizeof(double)));
-  cub::CubDebugExit(cudaMalloc((void**) &gpu_final_LJEn, sizeof(double)));
+  CubDebugExit(cudaMalloc((void**) &gpu_pair1, pair1.size() * sizeof(int)));
+  CubDebugExit(cudaMalloc((void**) &gpu_pair2, pair2.size() * sizeof(int)));
+  CubDebugExit(cudaMalloc((void**) &gpu_x, atomNumber * sizeof(double)));
+  CubDebugExit(cudaMalloc((void**) &gpu_y, atomNumber * sizeof(double)));
+  CubDebugExit(cudaMalloc((void**) &gpu_z, atomNumber * sizeof(double)));
+  CubDebugExit(cudaMalloc((void**) &gpu_particleCharge, 
+			  particleCharge.size() * sizeof(double)));
+  CubDebugExit(cudaMalloc((void**) &gpu_particleKind,
+			  particleKind.size() * sizeof(int)));
+  CubDebugExit(cudaMalloc((void**) &gpu_REn, pair1.size() * sizeof(double)));
+  CubDebugExit(cudaMalloc((void**) &gpu_LJEn, pair1.size() * sizeof(double)));
+  CubDebugExit(cudaMalloc((void**) &gpu_final_REn, sizeof(double)));
+  CubDebugExit(cudaMalloc((void**) &gpu_final_LJEn, sizeof(double)));
 
 
   // Copy necessary data to GPU
-  cub::CubDebugExit(cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int), 
-	     cudaMemcpyHostToDevice));
-  cub::CubDebugExit(cudaMemcpy(gpu_pair2, &pair2[0], pair2.size() * sizeof(int), 
-	     cudaMemcpyHosttoDevice));
-  cub::CubDebugExit(cudaMemcpy(gpu_particleCharge, &particleCharge[0], 
-	     particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice));
-  cub::CubDebugExit(cudaMemcpy(gpu_particleKind, &particleKind[0], 
-	     particleKind.size() * sizeof(int), cudaMemcpyHostToDevice));
-  cub::CubDebugExit(cudaMemcpy(gpu_x, coords.x, atomNumber * sizeof(double),
-	     cudaMemcpyHostToDevice));
-  cub::CubDebugExit(cudaMemcpy(gpu_y, coords.y, atomNumber * sizeof(double),
-	     cudaMemcpyHostToDevice));
-  cub::CubDebugExit(cudaMemcpy(gpu_z, coords.z, atomNumber * sizeof(double),
-	     cudaMemcpyHostToDevice));
+  CubDebugExit(cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int),
+			  cudaMemcpyHostToDevice));
+  CubDebugExit(cudaMemcpy(gpu_pair2, &pair2[0], pair2.size() * sizeof(int),
+			  cudaMemcpyHostToDevice));
+  CubDebugExit(cudaMemcpy(gpu_particleCharge, &particleCharge[0], 
+			  particleCharge.size() * sizeof(double),
+			  cudaMemcpyHostToDevice));
+  CubDebugExit(cudaMemcpy(gpu_particleKind, &particleKind[0], 
+			  particleKind.size() * sizeof(int),
+			  cudaMemcpyHostToDevice));
+  CubDebugExit(cudaMemcpy(gpu_x, coords.x, atomNumber * sizeof(double),
+			  cudaMemcpyHostToDevice));
+  CubDebugExit(cudaMemcpy(gpu_y, coords.y, atomNumber * sizeof(double),
+			  cudaMemcpyHostToDevice));
+  CubDebugExit(cudaMemcpy(gpu_z, coords.z, atomNumber * sizeof(double),
+			  cudaMemcpyHostToDevice));
 
   // Run the kernel...
   threadsPerBlock = 256;
@@ -80,28 +83,28 @@ void CallBoxInterGPU(vector<int> pair1,
   // ReduceSum
   void * d_temp_storage = NULL;
   size_t temp_storage_bytes = 0;
-  cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
-    gpu_final_REn, pair1.size());
-  cub::CubDebugExit(cudaMalloc(&d_temp_storage, temp_storage_bytes));
-  cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
-    gpu_final_REn, pair1.size());
+  DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
+		    gpu_final_REn, pair1.size());
+  CubDebugExit(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+  DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
+		    gpu_final_REn, pair1.size());
   cudaFree(d_temp_storage);
 
   // LJ ReduceSum
   d_temp_storage = NULL;
   temp_storage_bytes = 0;
-  cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
-    gpu_final_LJEn, pair1.size());
-  cub::CubDebugExit(cudaMalloc(&d_temp_storage, temp_storage_bytes);
-  cub::DeviceReduce::Sum(d_temp_storage, temp-storage_bytes, gpu_LJEn,
-    gpu_final_LJEn, pair1.size());
+  DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
+		    gpu_final_LJEn, pair1.size());
+  CubDebugExit(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+  DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
+		    gpu_final_LJEn, pair1.size());
   cudaFree(d_temp_storage);
 
   // Copy back the result to CPU ! :)
-  cub::CubDebugExit(cudaMemcpy(&cpu_final_REn, gpu_final_REn, sizeof(double),
-			       cudaMemcpyDeviceToHost));
-  cub::CubDebugExit(cudaMemcpy(&cpu_final_LJEn, gpu_final_LJEn, sizeof(double),
-			       cudaMemcpyDeviceToHost));
+  CubDebugExit(cudaMemcpy(&cpu_final_REn, gpu_final_REn, sizeof(double),
+			  cudaMemcpyDeviceToHost));
+  CubDebugExit(cudaMemcpy(&cpu_final_LJEn, gpu_final_LJEn, sizeof(double),
+			  cudaMemcpyDeviceToHost));
   REn = cpu_final_REn;
   LJEn = cpu_final_LJEn;
 
@@ -135,20 +138,21 @@ __global__ void BoxInterGPU(int *gpu_pair1,
   double distSq;
   double qi_qj_fact;
   double qqFact = 167000.0;
-  if(InRcutGPU(distSq, gpu_x[pair1[threadID]], gpu_y[pair1[threadID]], 
-	       gpu_z[pair1[threadID]], gpu_x[pair2[threadID]], 
-	       gpu_y[pair2[threadID]], gpu_z[pair2[threadID]], 
+  if(InRcutGPU(distSq, gpu_x[gpu_pair1[threadID]], gpu_y[gpu_pair1[threadID]], 
+	       gpu_z[gpu_pair1[threadID]], gpu_x[gpu_pair2[threadID]], 
+	       gpu_y[gpu_pair2[threadID]], gpu_z[gpu_pair2[threadID]], 
 	       xAxes, yAxes, zAxes, xAxes/2.0, yAxes/2.0, zAxes/2.0))
   {
     if(electrostatic)
     {
       qi_qj_fact = gpu_particleCharge[gpu_pair1[threadID]] * 
-	particleCharge[gpu_pair2[threadID]] * qqFact;
-      gpu_REn[threadID] = CalcCoulombEnGPU(distSq, qi_qj_fact);
+	gpu_particleCharge[gpu_pair2[threadID]] * qqFact;
+      gpu_REn[threadID] = CalcCoulombGPU(distSq, qi_qj_fact);
     }
-    gpu_LJEn[threadID] = CalcEnGPU(distSq, gpu_particleKind[gpu_pair1[threadID]], 
-			 gpu_particleKind[gpu_pair2[threadID]]);
-  } 
+    gpu_LJEn[threadID] = CalcEnGPU(distSq, 
+				   gpu_particleKind[gpu_pair1[threadID]],
+				   gpu_particleKind[gpu_pair2[threadID]]);
+  }
 }
 
 __device__ double CalcCoulombGPU(double distSq, double qi_qj_fact)
@@ -190,11 +194,6 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2)
   }
   else
     return CalcEnSwitchGPU(distSq, index);
-}
-
-__device__ int FlatIndexGPU(int i, int j)
-{
-  return i + j * count;
 }
 
 //ElectroStatic Calculation
@@ -255,7 +254,7 @@ __device__ double CalcCoulombSwitchGPU(double distSq, double qi_qj_fact)
   if(gpu_ewald)
   {
     double dist = sqrt(distSq);
-    double value = alpha * dist;
+    double value = gpu_alpha * dist;
     return qi_qj_fact * (1 - erf(value)) / dist;
   }
   else
@@ -343,19 +342,19 @@ __device__ double CalcEnSwitchGPU(double distSq, int index)
   double rOnSq = gpu_rOn * gpu_rOn;
   
   double rCutSq_rijSq =rCutSq  - distSq;
-  double rCutSq_rijSq_Sq = rCutSq_rijSq * rcutSq_rijSq;
+  double rCutSq_rijSq_Sq = rCutSq_rijSq * rCutSq_rijSq;
   
   double rRat2 = gpu_sigmaSq[index]/distSq;
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
   
-  double repulse = power(rRat2, gpu_n[index]/2.0);
+  double repulse = pow(rRat2, gpu_n[index]/2.0);
   
   double factor1 = rCutSq - 3 * rOnSq;
   double factor2 = pow((rCutSq - rOnSq), -3);
-  double fE = rcutSq_rijSq_Sq * factor2 * (factor1 + 2 * distSq);
+  double fE = rCutSq_rijSq_Sq * factor2 * (factor1 + 2 * distSq);
 
-  const double facte = ( distSq > rOnSq ? fE : 1.0);
+  const double factE = ( distSq > rOnSq ? fE : 1.0);
   
   return (gpu_epsilon_Cn[index] * (repulse-attract)) * factE;
 }
