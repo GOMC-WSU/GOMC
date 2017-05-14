@@ -8,6 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <string> //for var names, etc.
 #include <vector>
 #include <string>
+#include <iomanip>
 
 #include "ConfigSetup.h"
 
@@ -49,6 +50,8 @@ ConfigSetup::ConfigSetup(void)
   sys.step.total = ULONG_MAX;
   sys.step.equil = ULONG_MAX;
   sys.step.adjustment = ULONG_MAX;
+  sys.step.pressureCalcFreq = ULONG_MAX;
+  sys.step.pressureCalc = true;
   in.ffKind.numOfKinds = 0;
   sys.exclude.EXCLUDE_KIND = UINT_MAX;
   in.prng.kind = "";
@@ -62,11 +65,17 @@ ConfigSetup::ConfigSetup(void)
   sys.gemc.kind = UINT_MAX;
   sys.gemc.pressure = DBL_MAX;
 #endif
+#if ENSEMBLE == NPT
+  sys.gemc.kind = mv::GEMC_NPT;
+  sys.gemc.pressure = DBL_MAX;
+#endif
+
   sys.T.inKelvin = DBL_MAX;
   sys.ff.VDW_KIND = UINT_MAX;
   sys.ff.doTailCorr = true;
   sys.ff.rswitch = DBL_MAX;
   sys.ff.cutoff = DBL_MAX;
+  sys.ff.cutoffLow = DBL_MAX;
   sys.moves.displace = DBL_MAX;
   sys.moves.rotate = DBL_MAX;
   sys.moves.intraSwap = DBL_MAX;
@@ -92,6 +101,8 @@ ConfigSetup::ConfigSetup(void)
   out.statistics.vars.energy.fluct = false;
   out.statistics.vars.pressure.block = false;
   out.statistics.vars.pressure.fluct = false;
+  out.statistics.vars.surfaceTension.block = false;
+  out.statistics.vars.surfaceTension.fluct = false;
 #ifdef VARIABLE_PARTICLE_NUMBER
   sys.moves.transfer = DBL_MAX;
   sys.cbmcTrials.bonded.ang = UINT_MAX;
@@ -224,23 +235,41 @@ void ConfigSetup::Init(const char *fileName)
     else if(line[0] == "Pressure")
     {
       sys.gemc.pressure = stringtod(line[1]);
-      std::cout<< "Pressure of system has been set to " << sys.gemc.pressure << " bar " << std::endl;
+      std::cout<< "Pressure of system has been set to " <<
+	std::setprecision(5) << sys.gemc.pressure << " bar " << std::endl;
+      sys.gemc.pressure *= unit::BAR_TO_K_MOLECULE_PER_A3;
+    }
+#endif
+#if ENSEMBLE == NPT
+    else if(line[0] == "Pressure")
+    {
+      sys.gemc.kind = mv::GEMC_NPT;
+      sys.gemc.pressure = stringtod(line[1]);
+      std::cout<< "Pressure of system has been set to " <<
+	std::setprecision(5) << sys.gemc.pressure << " bar " << std::endl;
       sys.gemc.pressure *= unit::BAR_TO_K_MOLECULE_PER_A3;
     }
 #endif
     else if(line[0] == "Temperature")
     {
       sys.T.inKelvin = stringtod(line[1]);
-      std::cout<< "Temperature of system has been set to " << sys.T.inKelvin << " K " << std::endl;
+      std::cout<< "Temperature of system has been set to " <<
+	std::setprecision(5) << sys.T.inKelvin << " K " << std::endl;
     }
     else if(line[0] == "Potential")
     {
       if(line[1] == "VDW")
         sys.ff.VDW_KIND = sys.ff.VDW_STD_KIND;
       else if(line[1] == "SHIFT")
+      {
         sys.ff.VDW_KIND = sys.ff.VDW_SHIFT_KIND;
+	std::cout << "Shift method will be used to truncate the VDW interaction.\n";
+      }
       else if(line[1] == "SWITCH")
+      {
         sys.ff.VDW_KIND = sys.ff.VDW_SWITCH_KIND;
+	std::cout << "Switch method will be used to truncate the VDW interaction.\n";
+      }
     }
     else if(line[0] == "LRC")
     {
@@ -253,6 +282,12 @@ void ConfigSetup::Init(const char *fileName)
     else if(line[0] == "Rcut")
     {
       sys.ff.cutoff = stringtod(line[1]);
+      std::cout << "Cut off  is set to " << sys.ff.cutoff << " A.\n";
+    }
+    else if(line[0] == "RcutLow")
+    {
+      sys.ff.cutoffLow = stringtod(line[1]);
+      std::cout << "Cut off Low is set to " << sys.ff.cutoffLow << " A.\n";
     }
     else if(line[0] == "Exclude")
     {
@@ -284,7 +319,7 @@ void ConfigSetup::Init(const char *fileName)
                         sys.ff.cutoff;
       sys.elect.recip_rcut = 2 * (-log(sys.elect.tolerance))/
                              sys.ff.cutoff;
-      std::cout<< "Ewald Tolerance is set to: " << sys.elect.tolerance << std::endl;
+      //printf("Ewald Tolerance is set to: %E \n", sys.elect.tolerance);
     }
     else if(line[0] == "CachedFourier")
     {
@@ -296,7 +331,7 @@ void ConfigSetup::Init(const char *fileName)
       }
       else
       {
-        std::cout<< "Non cached Fourier terms will be used." << std::endl;
+        std::cout<< "None cached Fourier terms will be used." << std::endl;
       }
     }
     else if(line[0] == "1-4scaling")
@@ -319,6 +354,25 @@ void ConfigSetup::Init(const char *fileName)
     {
       sys.step.adjustment = stringtoi(line[1]);
     }
+    else if(line[0] == "PressureCalc")
+    {
+      sys.step.pressureCalc = checkBool(line[1]);
+
+      if(sys.step.pressureCalc && (line.size() == 3))
+      {
+	sys.step.pressureCalcFreq = stringtoi(line[2]);
+	std::cout << "Note: Pressure will be calculated every " << sys.step.pressureCalcFreq << " steps.\n";
+      }
+      else if(sys.step.pressureCalc && (line.size() == 2))
+      {
+	std::cout << "Error: Pressure calculation frequency has not been set!\n";
+	exit(0);
+      }
+      else if(!sys.step.pressureCalc)
+      {
+	std::cout << "Warning: Pressure calculation is turned off.\n";
+      }
+    }
     else if(line[0] == "DisFreq")
     {
       sys.moves.displace = stringtod(line[1]);
@@ -336,11 +390,17 @@ void ConfigSetup::Init(const char *fileName)
     {
       sys.moves.volume = stringtod(line[1]);
     }
+    else if(line[0] == "useConstantArea")
+    {
+      sys.volume.cstArea = checkBool(line[1]);
+      if (sys.volume.cstArea)
+	std::cout << "Note: Volume will change with constant X-Y area!\n";
+    } 
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
     else if(line[0] == "SwapFreq")
     {
-#if ENSEMBLE == NVT
+#if ENSEMBLE == NVT || ENSEMBLE == NPT
       sys.moves.transfer = 0.000;
 #else
       sys.moves.transfer = stringtod(line[1]);
@@ -471,6 +531,11 @@ void ConfigSetup::Init(const char *fileName)
       out.statistics.vars.density.block = checkBool(line[1]);
       out.statistics.vars.density.fluct = checkBool(line[2]);
     }
+    else if(line[0] == "OutSurfaceTension")
+    {
+      out.statistics.vars.surfaceTension.block = checkBool(line[1]);
+      out.statistics.vars.surfaceTension.fluct = checkBool(line[2]);
+    }
 #ifdef VARIABLE_VOLUME
     else if(line[0] == "OutVolume")
     {
@@ -500,6 +565,7 @@ void ConfigSetup::fillDefaults(void)
     std::cout << "By default intra box swap frequency has been set to zero" << std::endl;
     sys.moves.intraSwap = 0.000;
   }
+
   if(sys.exclude.EXCLUDE_KIND == UINT_MAX)
   {
     std::cout << "Warning: By default value (1-3) for exclude is selected!" << std::endl;
@@ -558,7 +624,7 @@ void ConfigSetup::fillDefaults(void)
     std::cout << "Error: Output name is required!" << std::endl;
     exit(0);
   }
-  out.state.files.psf.name = out.statistics.settings.uniqueStr.val + ".psf";
+  out.state.files.psf.name = out.statistics.settings.uniqueStr.val + "_merged.psf";
   for(int i = 0; i<BOX_TOTAL; i++)
   {
     if(i==0)
@@ -583,6 +649,14 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Warning: Pressure will be ignored for GEMC-NVT!" << std::endl;
   }
 #endif
+#if ENSEMBLE == NPT
+  if(sys.gemc.pressure == DBL_MAX)
+  {
+    std::cout << "Error: Pressure has not been specified for NPT simulation!" << std::endl;
+    exit(0);
+  }
+#endif
+
   if(in.restart.enable == true && in.restart.step == ULONG_MAX)
   {
     std::cout << "Error: Restart step is needed!" << std::endl;
@@ -649,6 +723,11 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Cut off is required!" << std::endl;
     exit(0);
   }
+  if(sys.ff.cutoffLow == DBL_MAX)
+  {
+    std::cout << "Warning: Cut off Low is set to 1 A!" << std::endl;
+    sys.ff.cutoffLow = 1.00;
+  }
   if(sys.elect.ewald && (sys.elect.tolerance == DBL_MAX))
   {
     std::cout << "Error: Tolerance has not been specified for Ewald summation method!" << std::endl;
@@ -694,6 +773,13 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: IntraSwap frequency has not been specified!" << std::endl;
     exit(0);
   }
+#if ENSEMBLE == NPT
+  if(sys.moves.volume == DBL_MAX)
+  {
+    std::cout << "Error: Volume swap frequency has not been specified!" << std::endl;
+    exit(0);
+  }
+#endif
 #if ENSEMBLE == GEMC
   if(sys.moves.volume == DBL_MAX)
   {
@@ -710,6 +796,18 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
     exit(0);
   }
+#elif ENSEMBLE == NPT
+  if(sys.moves.volume == DBL_MAX)
+  {
+    std::cout << "Error: Volume swap frequency has not been specified!" << std::endl;
+    exit(0);
+  }
+  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap + sys.moves.volume - 1.0) > 0.01)
+  {
+    std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
+    exit(0);
+  }
+
 #elif ENSEMBLE == GCMC
   if(sys.moves.transfer == DBL_MAX)
   {
@@ -839,6 +937,11 @@ void ConfigSetup::verifyInputs(void)
     out.statistics.settings.block.frequency = (ulong)sys.step.total / 100;
     std::cout << "Warning: By default block average output frequency has been set to " << out.statistics.settings.block.frequency << "!" << std::endl;
   }
+  if(sys.step.pressureCalc && (sys.step.pressureCalcFreq == ULONG_MAX))
+  {
+    sys.step.pressureCalcFreq = (ulong)(out.statistics.settings.block.frequency / 100);
+    std::cout << "Warning: By default pressure will be calculated every " << sys.step.pressureCalcFreq << " steps!";
+  }
 #if ENSEMBLE == GCMC
   if(!out.statistics.settings.hist.enable)
   {
@@ -890,6 +993,16 @@ void ConfigSetup::verifyInputs(void)
   {
     std::cout<< "Warning: Output block average has been set off, pressure output for block average will be ignored!" << std::endl;
   }
+  if(!sys.step.pressureCalc && out.statistics.vars.pressure.block)
+  {
+    std::cout<< "Warning: Pressure calculation has been turn off, pressure output for block average will be ignored!" << std::endl;
+    out.statistics.vars.pressure.block = false;
+  }
+  if(!sys.step.pressureCalc && out.statistics.vars.surfaceTension.block)
+  {
+    std::cout<< "Warning: Pressure calculation has been turn off, surface tension output for block average will be ignored!" << std::endl;
+    out.statistics.vars.surfaceTension.block = false;
+  }
 #ifdef VARIABLE_PARTICLE_NUMBER
   if(!out.statistics.settings.block.enable && out.statistics.vars.molNum.block)
   {
@@ -914,6 +1027,16 @@ void ConfigSetup::verifyInputs(void)
   {
     std::cout<< "Warning: Console output has been set off, pressure fluctuation ouput will be ignored!" << std::endl;
   }
+  if(!sys.step.pressureCalc && out.statistics.vars.pressure.fluct)
+  {
+    std::cout<< "Warning: Pressure calculation has been turn off, pressure fluctuation output will be ignored!" << std::endl;
+    out.statistics.vars.pressure.fluct = false;
+  }
+  if(!sys.step.pressureCalc && out.statistics.vars.surfaceTension.fluct)
+  {
+    std::cout<< "Warning: Pressure calculation has been turn off, surface tension fluctuation output will be ignored!" << std::endl;
+    out.statistics.vars.surfaceTension.fluct = false;
+  }
 #ifdef VARIABLE_PARTICLE_NUMBER
   if(!out.console.enable && out.statistics.vars.molNum.fluct)
   {
@@ -933,24 +1056,24 @@ void ConfigSetup::verifyInputs(void)
 }
 
 const std::string config_setup::PRNGKind::KIND_RANDOM = "RANDOM",
-                                          config_setup::PRNGKind::KIND_SEED = "INTSEED",
-                                                                  config_setup::PRNGKind::KIND_RESTART = "RESTART",
-                                                                                          config_setup::FFKind::FF_CHARMM = "CHARMM",
-                                                                                                                config_setup::FFKind::FF_EXOTIC = "EXOTIC",
-                                                                                                                                      config_setup::FFKind::FF_MARTINI = "MARTINI",
-                                                                                                                                                            config_setup::FFValues::VDW = "VDW",
-                                                                                                                                                                                    config_setup::FFValues::VDW_SHIFT = "VDW_SHIFT",
-                                                                                                                                                                                                            config_setup::FFValues::VDW_SWITCH = "VDW_SWITCH",
-                                                                                                                                                                                                                                    config_setup::Exclude::EXC_ONETWO = "1-2",
-                                                                                                                                                                                                                                                           config_setup::Exclude::EXC_ONETHREE = "1-3",
-                                                                                                                                                                                                                                                                                  config_setup::Exclude::EXC_ONEFOUR = "1-4";
+		config_setup::PRNGKind::KIND_SEED = "INTSEED",
+		config_setup::PRNGKind::KIND_RESTART = "RESTART",
+		config_setup::FFKind::FF_CHARMM = "CHARMM",
+		config_setup::FFKind::FF_EXOTIC = "EXOTIC",
+		config_setup::FFKind::FF_MARTINI = "MARTINI",
+		config_setup::FFValues::VDW = "VDW",
+		config_setup::FFValues::VDW_SHIFT = "VDW_SHIFT",
+		config_setup::FFValues::VDW_SWITCH = "VDW_SWITCH",
+		config_setup::Exclude::EXC_ONETWO = "1-2",
+		config_setup::Exclude::EXC_ONETHREE = "1-3",
+		config_setup::Exclude::EXC_ONEFOUR = "1-4";
 
 const char ConfigSetup::defaultConfigFileName[] = "in.dat";
 const char ConfigSetup::configFileAlias[] = "GO-MC Configuration File";
 
 const uint config_setup::FFValues::VDW_STD_KIND = 0,
-                                   config_setup::FFValues::VDW_SHIFT_KIND = 1,
-                                                           config_setup::FFValues::VDW_SWITCH_KIND = 2,
-                                                                                   config_setup::Exclude::EXC_ONETWO_KIND = 0,
-                                                                                                          config_setup::Exclude::EXC_ONETHREE_KIND = 1,
-                                                                                                                                 config_setup::Exclude::EXC_ONEFOUR_KIND = 2;
+		config_setup::FFValues::VDW_SHIFT_KIND = 1,
+		config_setup::FFValues::VDW_SWITCH_KIND = 2,
+		config_setup::Exclude::EXC_ONETWO_KIND = 0,
+		config_setup::Exclude::EXC_ONETHREE_KIND = 1,
+		config_setup::Exclude::EXC_ONEFOUR_KIND = 2;

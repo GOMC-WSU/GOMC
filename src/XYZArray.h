@@ -12,6 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <stdio.h> //for memset, memcpy, etc.
 #include <utility>      //for swap (most modern compilers)
 #include <algorithm>      //for swap pre-c++11 compilers
+#include <omp.h>
 
 //Forward declare to give accesss to internal arrays.
 class BoxDimensions;
@@ -79,6 +80,18 @@ public:
       result = z[i];
     return result;
   }
+
+  //Returns biggest of x/y/z values in row i
+  double Max(const uint i) const
+  {
+    double result = x[i];
+    if (y[i] > result)
+      result = y[i];
+    if (z[i] > result)
+      result = z[i];
+    return result;
+  }
+
 
   //Set a specific coordinate to a value.
   void Set(const uint i, const double a, const double b, const double c)
@@ -245,6 +258,14 @@ public:
     z[i] *= val;
   }
 
+  //Multiply values within an array
+  void Scale(const uint i, XYZ const& val)
+  {
+    x[i] *= val.x;
+    y[i] *= val.y;
+    z[i] *= val.z;
+  }
+
   //Add a constant transform x+a, y+b... to range of values.
   void AddRange(const uint start, const uint stop, XYZ const& val);
 
@@ -297,7 +318,7 @@ public:
   //used for ewald calculation, need to be fixed
   double BoxSize(int box)const
   {
-    return x[box];
+    return Max(box);
   };
 
 protected:
@@ -491,9 +512,14 @@ inline void XYZArray::ScaleAll(const double val)
 inline void XYZArray::CopyRange(XYZArray & dest, const uint srcIndex,
                                 const uint destIndex, const uint len) const
 {
-  memcpy(dest.x+destIndex, x+srcIndex, len * sizeof(double));
-  memcpy(dest.y+destIndex, y+srcIndex, len * sizeof(double));
-  memcpy(dest.z+destIndex, z+srcIndex, len * sizeof(double));
+#ifdef _OPENMP  
+#pragma omp parallel default(shared) 
+#endif
+  {
+     memcpy(dest.x+destIndex, x+srcIndex, len * sizeof(double));
+     memcpy(dest.y+destIndex, y+srcIndex, len * sizeof(double));
+     memcpy(dest.z+destIndex, z+srcIndex, len * sizeof(double));
+  }
 }
 
 

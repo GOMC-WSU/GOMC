@@ -12,12 +12,16 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 struct SimEventFrequency
 {
-  ulong total, perAdjust, tillEquil;
+  ulong total, perAdjust, tillEquil, pCalcFreq;
+  bool pressureCalc;
+
   void Init(config_setup::Step const& s)
   {
     total = s.total;
     perAdjust = s.adjustment;
     tillEquil = s.equil;
+    pCalcFreq = s.pressureCalcFreq;
+    pressureCalc = s.pressureCalc;
   }
 };
 

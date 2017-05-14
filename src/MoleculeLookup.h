@@ -133,6 +133,12 @@ public:
     ++pIt;
     return *this;
   }
+  box_iterator& operator-- ()
+  {
+    --pIt;
+    return *this;
+  }
+  
   box_iterator operator++ (int);
   const uint& operator*() const
   {

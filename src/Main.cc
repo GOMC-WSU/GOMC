@@ -137,6 +137,8 @@ namespace {
       std::cout << "Gibbs";
 #elif ENSEMBLE == GCMC
       std::cout << "grand canonical";
+#elif ENSEMBLE == NPT
+      std::cout << "isobaric-isothermal";
 #else
       std::cerr << "CRITICAL ERROR! Preprocessor value ENSEMBLE is "
 		<< "invalid or undefined." << std::endl

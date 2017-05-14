@@ -118,7 +118,7 @@ namespace config_setup
    struct FFValues 
    { 
       uint VDW_KIND; 
-      double cutoff, rswitch, oneFourScale; 
+      double cutoff, cutoffLow, rswitch, oneFourScale; 
       bool doTailCorr; 
       std::string kind; 
  
@@ -126,23 +126,22 @@ namespace config_setup
       static const uint VDW_STD_KIND, VDW_SHIFT_KIND, VDW_SWITCH_KIND; 
    }; 
  
-#if ENSEMBLE == GEMC 
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
     
    //Items that effect the system interactions and/or identity, e.g. Temp. 
    struct GEMCKind 
    { 
       uint kind; 
       double pressure; 
- 
-      GEMCKind(): kind(mv::GEMC_NVT) {}  
- 
    };  
     
 #endif 
+
  
    struct Step 
    { 
-      ulong total, equil, adjustment; 
+     ulong total, equil, adjustment, pressureCalcFreq;
+     bool pressureCalc;
    }; 
  
    //Holds the percentage of each kind of move for this ensemble. 
@@ -174,10 +173,11 @@ namespace config_setup
  
    struct Volume 
    { 
-      bool hasVolume; 
+     bool hasVolume, cstArea; 
       uint boxCoordRead; 
       XYZArray axis; 
-      Volume(void) : hasVolume(false), boxCoordRead(0), axis(BOX_TOTAL)  {} 
+   Volume(void) : hasVolume(false), cstArea(false),
+	boxCoordRead(0), axis(BOX_TOTAL)  {} 
    }; 
  
    //If particle number varies (e.g. GCMC, GEMC) load in parameters for 
@@ -214,7 +214,7 @@ namespace config_setup
 		CBMC cbmcTrials; 
 #if ENSEMBLE == GCMC 
 		ChemicalPotential chemPot; 
-#elif ENSEMBLE == GEMC 
+#elif ENSEMBLE == GEMC || ENSEMBLE == NPT
 		GEMCKind gemc; 
 #endif 
    }; 
@@ -266,6 +266,7 @@ namespace config_setup
       OutputEnables molNum; 
 #endif  
       OutputEnables density;  
+      OutputEnables surfaceTension;
    }; 
  
    struct SysState { EventSettings settings; OutFiles files; }; 

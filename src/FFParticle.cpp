@@ -104,7 +104,10 @@ void FFParticle::Init(ff_setup::Particle const& mie,
    
    rCut =  sys.ff.cutoff;
    rCutSq = rCut * rCut;
+   rCutLow = sys.ff.cutoffLow;
+   rCutLowSq = rCutLow * rCutLow;
    scaling_14 = sys.elect.oneFourScale;
+   ewald = sys.elect.ewald;
    alpha = sys.elect.alpha;
    diElectric_1 = 1.0/sys.elect.dielectric;
 
@@ -173,8 +176,8 @@ void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
 	  n[j] = nbfix.n[i];
 	  n_1_4[j] = nbfix.n_1_4[i];
 	  double rRat = nbfix.sigma[i]/rCut, tc = 1.0;
+	  //calculating sig^2 and tc*sig^3
 	  num::Cb(sigmaSq[j], tc, nbfix.sigma[i]);
-	  //num::Cb(sigmaSq_1_4[j], tc, nbfix.sigma_1_4[i]);
 	  sigmaSq_1_4[j] = nbfix.sigma_1_4[i] * nbfix.sigma_1_4[i];
 	  tc *= 0.5 * 4.0 * M_PI;
 	  double cn = n[j]/(n[j]-6) *pow(n[j]/6, (6/(n[j]-6)));
@@ -244,8 +247,7 @@ void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
    }    
 }
 
-void FFParticle::Blend(ff_setup::Particle const& mie,
-		       const double rCut)
+void FFParticle::Blend(ff_setup::Particle const& mie, const double rCut)
 {
    for(uint i = 0; i < count; ++i)
    {
@@ -268,9 +270,8 @@ void FFParticle::Blend(ff_setup::Particle const& mie,
 	 double sigma_1_4 = num::MeanA(mie.sigma_1_4, mie.sigma_1_4, i, j);
 	 double tc = 1.0;
 	 double rRat = sigma/rCut; 
-
+	 // calculate sig^2 and tc*sig^3
 	 num::Cb(sigmaSq[idx], tc, sigma);
-	 //num::Cb(sigmaSq_1_4[idx], tc, sigma_1_4);
 	 sigmaSq_1_4[idx] = sigma_1_4 * sigma_1_4;
 	 tc *= 0.5 * 4.0 * M_PI;
 	 epsilon_cn[idx] = 

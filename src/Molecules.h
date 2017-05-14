@@ -79,7 +79,7 @@ public:
     len = start[m+1]-_start;
   }
 
-//private:
+  //private:
   //Kind index of each molecule and start in master particle array
   //Plus counts
   uint* start;

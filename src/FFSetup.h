@@ -172,6 +172,10 @@ public:
   {
     return vect::transfer(Ktheta);
   }
+  bool * Copyfixed() const
+  {
+    return vect::transfer(fixed);
+  }
   double *Copytheta0() const
   {
     return vect::transfer(theta0);
@@ -184,10 +188,12 @@ public:
   void PrintBrief();
 #endif
 private:
+  static const double FIXED;
   std::vector<double> Ktheta, theta0, Kub, bUB0;
   //XXX This is not a real vector
   //XXX Do not use with std algorithms, they are not required to work
   std::vector<bool> hasUB;
+  std::vector<bool> fixed;
 };
 
 class Dihedral : public ReadableBaseWithFirst, public FFBase

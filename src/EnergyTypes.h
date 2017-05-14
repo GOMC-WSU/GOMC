@@ -21,7 +21,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #endif
 
 #ifndef BOXES_WITH_U_NB
-#if ENSEMBLE == GCMC || ENSEMBLE == NVT
+#if ENSEMBLE == GCMC || ENSEMBLE == NVT || ENSEMBLE == NPT
 #define BOXES_WITH_U_NB 1
 #elif ENSEMBLE == GEMC
 //case for NVT, GCMC
@@ -30,7 +30,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #endif
 
 #ifndef BOXES_WITH_U_B
-#if ENSEMBLE == NVT
+#if ENSEMBLE == NVT || ENSEMBLE == NPT
 #define BOXES_WITH_U_B 1
 #elif ENSEMBLE == GEMC || ENSEMBLE == GCMC
 //case for NVT, GCMC
@@ -186,7 +186,16 @@ public:
   //VALUE SETTERS
   double Total()
   {
+    TotalElect();
     total = inter + tc + real + recip + self + correction;
+    for (int i = 0; i < 3; i++)
+    {
+      for (int j = 0; j < 3; j++)
+      {
+	totalTens[i][j] = interTens[i][j] + realTens[i][j] + recipTens[i][j] +
+	  corrTens[i][j];
+      }
+    }
     return total;
   }
 
@@ -206,6 +215,17 @@ public:
     correction = 0.0;
     totalElect = 0.0;
     total = 0.0;
+    for (int i = 0; i < 3; i++)
+    {
+      for (int j = 0; j < 3; j++)
+      {
+	totalTens[i][j] = 0.0;
+	interTens[i][j] = 0.0;
+	realTens[i][j]  = 0.0;
+	recipTens[i][j] = 0.0;
+	corrTens[i][j]  = 0.0;
+      }
+    }
   }
 
   //OPERATORS
@@ -219,6 +239,19 @@ public:
     correction -= rhs.correction;
     totalElect -= rhs.totalElect;
     total -= rhs.total;
+    
+    for (int i = 0; i < 3; i++)
+    {
+      for (int j = 0; j < 3; j++)
+      {
+	totalTens[i][j] -= rhs.totalTens[i][j];
+	interTens[i][j] -= rhs.interTens[i][j];
+	realTens[i][j]  -= rhs.realTens[i][j];
+	recipTens[i][j] -= rhs.recipTens[i][j];
+	corrTens[i][j]  -= rhs.corrTens[i][j];
+      }
+    }
+
     return *this;
   }
 
@@ -233,6 +266,19 @@ public:
     correction += rhs.correction;
     totalElect += rhs.totalElect;
     total += rhs.total;
+
+    for (int i = 0; i < 3; i++)
+    {
+      for (int j = 0; j < 3; j++)
+      {
+	totalTens[i][j] += rhs.totalTens[i][j];
+	interTens[i][j] += rhs.interTens[i][j];
+	realTens[i][j]  += rhs.realTens[i][j];
+	recipTens[i][j] += rhs.recipTens[i][j];
+	corrTens[i][j]  += rhs.corrTens[i][j];
+      }
+    }
+
     return *this;
   }
 
@@ -257,6 +303,19 @@ public:
     correction = rhs.correction;
     totalElect = rhs.totalElect;
     total = rhs.total;
+
+    for (int i = 0; i < 3; i++)
+    {
+      for (int j = 0; j < 3; j++)
+      {
+	totalTens[i][j] = rhs.totalTens[i][j];
+	interTens[i][j] = rhs.interTens[i][j];
+	realTens[i][j]  = rhs.realTens[i][j];
+	recipTens[i][j] = rhs.recipTens[i][j];
+	corrTens[i][j]  = rhs.corrTens[i][j];
+      }
+    }
+
     return *this;
   }
 
@@ -270,12 +329,28 @@ public:
     correction /= rhs;
     totalElect /= rhs;
     total /= rhs;
+
+    for (int i = 0; i < 3; i++)
+    {
+      for (int j = 0; j < 3; j++)
+      {
+	totalTens[i][j] /= rhs;
+	interTens[i][j] /= rhs;
+	realTens[i][j]  /= rhs;
+	recipTens[i][j] /= rhs;
+	corrTens[i][j]  /= rhs;
+      }
+    }
+
     return *this;
   }
 
 //private:
   //MEMBERS
   double inter, tc, real, recip, self, correction, totalElect, total;
+  //Store the pressure tensor
+  double interTens[3][3], realTens[3][3], recipTens[3][3], totalTens[3][3],
+    corrTens[3][3];
 };
 
 

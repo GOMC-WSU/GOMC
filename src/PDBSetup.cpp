@@ -66,7 +66,7 @@ void Remarks::CheckStep(std::string const& varName,
   {
     std::cerr << "ERROR: Restart failed, "
               << "GOMC file's step REMARK is "
-              << "malformed." << std::endl << std::endl;
+              << "malformed." << std::endl;
     exit(1);
   }
   reached = (readStep == restartStep);
@@ -85,7 +85,7 @@ void Remarks::CheckGOMC(std::string const& varName)
     std::cerr << "ERROR: Restart failed, "
               << "GOMC file's identifying tag "
               << "\"REMARK  1   GOMC\" is missing"
-              << std::endl << std::endl;
+              << std::endl;
     exit(1);
   }
 }

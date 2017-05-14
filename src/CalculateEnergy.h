@@ -56,13 +56,16 @@ public:
   //! Calculates total energy/virial of all boxes in the system
   SystemPotential SystemTotal() ;
 
-
   //! Calculates total energy/virial of a single box in the system
   SystemPotential BoxInter(SystemPotential potential,
                            XYZArray const& coords,
                            XYZArray const& com,
                            BoxDimensions const& boxAxes,
                            const uint box) ;
+
+  //! Calculate force and virial for the box  
+  Virial ForceCalc(const uint box);
+
 
   //! Calculates intermolecule energy of all boxes in the system
   //! @param potential Copy of current energy structure to append result to
@@ -83,12 +86,9 @@ public:
   //! @param box Index of box molecule is in.
   //! @param newCOM (optional) If COM has changed for new coordinate,
   //!                          allows for that to be considered.
-  void MoleculeInter(Intermolecular &inter_LJ,
-                     Intermolecular &inter_coulomb,
-                     XYZArray const& molCoords,
-                     const uint molIndex,
-                     const uint box,
-                     XYZ const*const newCOM = NULL) const;
+  void MoleculeInter(Intermolecular &inter_LJ, Intermolecular &inter_coulomb,
+                     XYZArray const& molCoords, const uint molIndex,
+                     const uint box) const;
 
   //! Calculates Nonbonded intra energy (LJ and coulomb )for
   //!                       candidate positions
@@ -136,11 +136,6 @@ public:
                      const uint box,
                      const uint trials) const;
 
-  //! For insertion moves we calculate the virial(for LJ and coulomb)
-  //!!only if we accept, to save work.
-  void  MoleculeVirial(double & virial_LJ, double & virial_real,
-                       const uint molIndex, const uint box) const;
-
 
   //! Calculates the change in the TC from adding numChange atoms of a kind
   //! @param box Index of box under consideration
@@ -151,10 +146,7 @@ public:
                                     const bool add) const;
 
   //! Calculates intramolecular energy of a full molecule
-  void MoleculeIntra(double & bondEn,
-                     double & nonBondEn,
-                     const uint molIndex,
-                     const uint box) const;
+  double* MoleculeIntra(const uint molIndex, const uint box) const;
 
   //! Calculates Nonbonded 1_3 intramolecule energy of a full molecule
   //for Martini forcefield
@@ -168,10 +160,14 @@ public:
 
 private:
 
-  //! Calculates full TC for one box in current system
-  void FullTailCorrection(SystemPotential& pot,
-                          BoxDimensions const& boxAxes,
-                          const uint box) const;
+  //! Calculates full TC energy for one box in current system
+  void EnergyCorrection(SystemPotential& pot, BoxDimensions const& boxAxes,
+			const uint box) const;
+
+  //! Calculates full TC virial for one box in current system
+  void ForceCorrection(Virial& virial, BoxDimensions const& boxAxes,
+		       const uint box) const;
+
 
   //! Calculates bond vectors of a full molecule, stores them in vecs
   void BondVectors(XYZArray & vecs,

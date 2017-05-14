@@ -16,7 +16,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 namespace mv
 {
-#if ENSEMBLE == GEMC
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
 //////////////////////////////////////////////////////////
 // ENSEMBLE KINDS
 const uint GEMC_NVT = 0;
@@ -40,6 +40,10 @@ const uint VOL_TRANSFER=2;
 const uint MOL_TRANSFER=3;
 const uint INTRA_SWAP = 4;
 const uint MOVE_KINDS_TOTAL=5;
+#elif ENSEMBLE == NPT
+const uint VOL_TRANSFER=2;
+const uint INTRA_SWAP = 3;
+const uint MOVE_KINDS_TOTAL=4;
 #endif
 
 const uint BOX0 = 0;
@@ -101,6 +105,7 @@ const uint IT_KINDS_TOTAL=2;
 //      5. Vol. (b0->b1) 6. Vol. (b1->b0) 7. Mol Trans (b0->b1), lin.
 //      8. Mol Trans (b1->b0), lin. 9. IntraSwap (box 0)
 //     10. IntraSwap (box 1)
+//NPT : 1. Disp (box 0) 2. Rotate (box 0) 3. IntraSwap (box 0) 4. Vol. (box 0)
 
 #if ENSEMBLE == NVT
 const uint COUNT = 3;
@@ -111,6 +116,9 @@ const uint SCALEABLE = 2;
 #elif ENSEMBLE == GEMC
 const uint COUNT = 10;
 const uint SCALEABLE = 6;
+#elif ENSEMBLE == NPT
+const uint COUNT = 4;
+const uint SCALEABLE = 3;
 #endif
 
 
@@ -131,9 +139,10 @@ const uint INNER_CUTOFF_NEW_TRIAL_POS=4;
 const uint VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF=5;
 }
 
+//It has never been called!
 inline void GetMoveMajIndex(uint & maj, uint & subDiv, const uint sub)
 {
-#if ENSEMBLE == NVT || ENSEMBLE == GEMC
+#if ENSEMBLE == NVT || ENSEMBLE == GEMC || ENSEMBLE == NPT
   maj = sub/BOX_TOTAL;
   subDiv = BOX_TOTAL;
 #elif ENSEMBLE == GCMC
@@ -149,7 +158,7 @@ inline void GetMoveMajIndex(uint & maj, uint & subDiv, const uint sub)
 
 inline uint GetMoveSubIndex(const uint maj, const uint b = 0)
 {
-#if ENSEMBLE == GEMC || ENSEMBLE == NVT
+#if ENSEMBLE == GEMC || ENSEMBLE == NVT || ENSEMBLE == NPT
   return maj*BOX_TOTAL + b;
 #else
 

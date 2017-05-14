@@ -17,11 +17,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class FFAngles
 {
  public:
-   FFAngles(void) : Ktheta(NULL), theta0(NULL) {}
+ FFAngles(void) : Ktheta(NULL), theta0(NULL), fixed(NULL) {}
    ~FFAngles(void)
    { 
       delete[] Ktheta;
       delete[] theta0;
+      delete[] fixed;
    }
 
    void AngGen(double * ang, double * en, double & weightAng, 
@@ -38,8 +39,15 @@ class FFAngles
 	   return Ktheta[kind];
    }
 
+   bool AngleFixed(const uint kind) const
+   {
+	   return fixed[kind];
+   }
+
    virtual double Calc(const uint kind, const double ang) const
-   { return (Ktheta[kind] * num::Sq(ang-theta0[kind])); } 
+   { 
+     return (fixed[kind] ? 0.0 : Ktheta[kind] * num::Sq(ang-theta0[kind])); 
+   } 
    
    
    void Init(ff_setup::Angle const& angle)
@@ -47,17 +55,22 @@ class FFAngles
       count = angle.getKthetacnt();
       Ktheta = angle.CopyKtheta();
       theta0 = angle.Copytheta0();
+      fixed = angle.Copyfixed();
    }
 
  protected:
    double * Ktheta, * theta0;
+   bool * fixed;
    uint count;
 };
 
 class FFAngleMartini : public FFAngles
 {
    virtual double Calc(const uint kind, const double ang) const
-   { return (Ktheta[kind] * num::Sq(cos(ang)-cos(theta0[kind]))); }
+   { 
+     return (fixed[kind] ? 0.0 : Ktheta[kind] *
+	     num::Sq(cos(ang) - cos(theta0[kind]))); 
+   }
 
 };
 #endif /*FF_ANGLES_H*/

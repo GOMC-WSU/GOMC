@@ -174,3 +174,13 @@ if(ENSEMBLE_GCMC)
    endif()
 endif()
 
+if(ENSEMBLE_NPT)
+   add_executable(NPT ${sources} ${headers} ${libHeaders})
+   set_target_properties(NPT PROPERTIES 
+      OUTPUT_NAME ${NPT_name}
+      COMPILE_FLAGS "${NPT_flags}")
+   if(WIN32)
+      #needed for hostname
+      target_link_libraries(NPT ws2_32)
+   endif()
+endif()

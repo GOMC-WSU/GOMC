@@ -43,7 +43,7 @@ public:
 
   void SetVolume(const uint b, const double vol);
 
-  uint ShiftVolume(BoxDimensions & newDim, double & scale,
+  uint ShiftVolume(BoxDimensions & newDim, XYZ & scale,
                    const uint b, const double delta) const;
 
   //!Calculate and execute volume exchange based on transfer
@@ -54,7 +54,7 @@ public:
    * \param bN box index for box N
    * \param transfer determines amount to be transfered
    */
-  uint ExchangeVolume(BoxDimensions & newDim, double * scale,
+  uint ExchangeVolume(BoxDimensions & newDim, XYZ * scale,
                       const double transfer) const;
 
   //Vector btwn two points, accounting for PBC, on an individual axis
@@ -140,6 +140,8 @@ public:
   double rCutSq;
   double minBoxSize;
 
+  bool cubic[BOX_TOTAL], constArea;
+
   //Dist. btwn two points, accounting for PBC, on an individual axis
   double MinImage(double& raw, const double ax, const double halfAx) const;
   double MinImageSigned(double raw, double ax, double halfAx) const;
@@ -160,9 +162,11 @@ inline BoxDimensions::BoxDimensions(BoxDimensions const& other) :
   {
     volume[b] = other.volume[b];
     volInv[b] = other.volInv[b];
+    cubic[b] = other.cubic[b];
   }
   rCut = other.rCut;
   rCutSq = other.rCutSq;
+  constArea = other.constArea;
 }
 
 inline BoxDimensions& BoxDimensions::operator=(BoxDimensions const& other)
@@ -171,12 +175,15 @@ inline BoxDimensions& BoxDimensions::operator=(BoxDimensions const& other)
   {
     volume[b] = other.volume[b];
     volInv[b] = other.volInv[b];
+    cubic[b] = other.cubic[b];
   }
   other.axis.CopyRange(axis,0,0,BOX_TOTAL);
   other.halfAx.CopyRange(halfAx,0,0,BOX_TOTAL);
   minBoxSize = other.minBoxSize;
   rCut = other.rCut;
   rCutSq = other.rCutSq;
+  constArea = other.constArea;
+ 
   return *this;
 }
 
@@ -191,13 +198,36 @@ inline double BoxDimensions::GetTotVolume() const
 
 inline void BoxDimensions::SetVolume(const uint b, const double vol)
 {
-  double newAxX_b = pow(vol, (1.0/3.0));
-  XYZ newAx_b(newAxX_b, newAxX_b, newAxX_b);
-  volume[b] = vol;
-  volInv[b] = 1.0/vol;
-  axis.Set(b, newAx_b);
-  newAx_b *= 0.5;
-  halfAx.Set(b, newAx_b);
+   if (cubic[b] && !constArea)
+   {
+      double newAxX_b = pow(vol, (1.0/3.0));
+      XYZ newAx_b(newAxX_b, newAxX_b, newAxX_b);
+      axis.Set(b, newAx_b);
+      newAx_b *= 0.5;
+      halfAx.Set(b, newAx_b);
+   }
+   else if (constArea)
+   {
+     double area = axis.x[b] * axis.y[b];
+     double newAxX_b = vol / area;
+     XYZ newAx_b(axis.x[b], axis.y[b], newAxX_b);
+     axis.Set(b, newAx_b);
+     newAx_b *= 0.5;
+     halfAx.Set(b, newAx_b);
+   }
+   else
+   {
+     double z_x = axis.z[b] / axis.x[b];
+     double y_x = axis.y[b] / axis.x[b];
+     double newAxX_b = pow(vol / (z_x * y_x), (1.0/3.0));
+     XYZ newAx_b(newAxX_b, y_x * newAxX_b, newAxX_b * z_x);    
+     axis.Set(b, newAx_b);
+     newAx_b *= 0.5;
+     halfAx.Set(b, newAx_b);
+   }
+   volume[b] = vol;
+   volInv[b] = 1.0/vol;
+   
 }
 
 inline XYZ BoxDimensions::MinImage(XYZ rawVec, const uint b) const
