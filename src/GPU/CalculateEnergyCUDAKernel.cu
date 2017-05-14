@@ -1,5 +1,5 @@
 #ifdef GOMC_CUDA
-
+#include "CalculateEnergyCUDAKernel.cuh"
 #include <cuda.h>
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #include "CalculateMinImageCUDAKernel.cuh"
@@ -20,8 +20,6 @@ void CallBoxInterGPU(vector<uint> pair1,
 {
   int atomNumber = coords.Count();
   int *gpu_pair1, *gpu_pair2, *gpu_particleKind;
-  int start, length;
-  int i = 0;
   int blocksPerGrid, threadsPerBlock;
   double *gpu_particleCharge;
   double *gpu_x, *gpu_y, *gpu_z;
@@ -115,6 +113,10 @@ void CallBoxInterGPU(vector<uint> pair1,
   cudaFree(gpu_z);
   cudaFree(gpu_particleCharge);
   cudaFree(gpu_particleKind);
+  cudaFree(gpu_REn);
+  cudaFree(gpu_LJEn);
+  cudaFree(gpu_final_REn);
+  cudaFree(gpu_final_LJEn);
 }
 
 __global__ void BoxInterGPU(int *gpu_pair1,

@@ -179,9 +179,21 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
       MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
 
 #ifdef GOMC_CUDA
-      XYZArray thisBoxCoords(molLookup.NumInBox(box));
+      int numberOfAtoms = 0;
+      while(thisMol != end)
+      {
+	MoleculeKind const& thisKind = mols.GetKind(*thisMol);
+	for(j=0; j<thisKind.NumAtoms(); j++)
+	{
+	  numberOfAtoms++;
+	}
+	thisMol++;
+      }
+      XYZArray thisBoxCoords(numberOfAtoms);
       std::vector<double> chargeBox;
       i = 0;
+      thisMol = molLookup.BoxBegin(box);
+      end = molLookup.BoxEnd(box);
       while (thisMol != end)
       {
 	MoleculeKind const& thisKind = mols.GetKind(*thisMol);
