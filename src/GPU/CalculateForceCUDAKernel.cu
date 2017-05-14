@@ -125,9 +125,9 @@ void CallBoxInterForceGPU(vector<uint> pair1,
   cudaFree(d_temp_storage);
   
   // Copy back the result to CPU ! :)
-  CubDebugExit(cudaMemcpy(gpu_final_virInter, &virInter, sizeof(double),
+  CubDebugExit(cudaMemcpy(&virInter, gpu_final_virInter, sizeof(double),
 			  cudaMemcpyDeviceToHost));
-  CubDebugExit(cudaMemcpy(gpu_final_virReal, &virReal, sizeof(double),
+  CubDebugExit(cudaMemcpy(&virReal, gpu_final_virReal, sizeof(double),
 			  cudaMemcpyDeviceToHost));
   
   cudaFree(gpu_pair1);
@@ -141,6 +141,10 @@ void CallBoxInterForceGPU(vector<uint> pair1,
   cudaFree(gpu_comx);
   cudaFree(gpu_comy);
   cudaFree(gpu_comz);
+  cudaFree(gpu_virReal);
+  cudaFree(gpu_virInter);
+  cudaFree(gpu_final_virReal);
+  cudaFree(gpu_final_virInter);
 }
 
 __global__ void BoxInterForceGPU(int *gpu_pair1,
