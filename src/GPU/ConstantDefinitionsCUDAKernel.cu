@@ -1,5 +1,3 @@
-#include "ConstantDefinitionsCUDAKernel.cuh"
-
 __constant__ double gpu_sigmaSq[1000];
 __constant__ double gpu_epsilon_Cn[1000];
 __constant__ double gpu_n[1000];

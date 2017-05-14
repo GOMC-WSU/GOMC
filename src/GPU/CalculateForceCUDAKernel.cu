@@ -1,14 +1,11 @@
 #ifdef GOMC_CUDA
 
 #include <cuda.h>
+#include "CalculateForceCUDAKernel.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #include "CalculateMinImageCUDAKernel.cuh"
-#include "MoleculeLookup.h"
-#include "Molecules.h"
 #include "cub/cub.cuh"
-#include <vector>
 
-using namespace std;
 using namespace cub;
 
 void CallBoxInterForceGPU(vector<uint> pair1,
@@ -16,8 +13,6 @@ void CallBoxInterForceGPU(vector<uint> pair1,
 			  XYZArray const &currentCoords,
 			  XYZArray const &currentCOM,
 			  BoxDimensions const& boxAxes,
-			  MoleculeLookup const& molLookup,
-			  Molecules const&mols,
 			  bool electrostatic,
 			  vector<double> particleCharge,
 			  vector<int> particleKind,
@@ -57,6 +52,9 @@ void CallBoxInterForceGPU(vector<uint> pair1,
 			  pair1.size() * sizeof(double)));
   CubDebugExit(cudaMalloc((void**) &gpu_final_virInter, 
 			  pair1.size() * sizeof(double)));
+  CubDebugExit(cudaMalloc((void**) &gpu_comx, molNumber * sizeof(double)));
+  CubDebugExit(cudaMalloc((void**) &gpu_comy, molNumber * sizeof(double)));
+  CubDebugExit(cudaMalloc((void**) &gpu_comz, molNumber * sizeof(double)));
 
   CubDebugExit(cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int),
 			  cudaMemcpyHostToDevice));
@@ -127,9 +125,9 @@ void CallBoxInterForceGPU(vector<uint> pair1,
   cudaFree(d_temp_storage);
   
   // Copy back the result to CPU ! :)
-  CubDebugExit(cudaMemcpy(gpu_final_virInter, &virInter, sizeof(double),
+  CubDebugExit(cudaMemcpy(&virInter, gpu_final_virInter, sizeof(double),
 			  cudaMemcpyDeviceToHost));
-  CubDebugExit(cudaMemcpy(gpu_final_virReal, &virReal, sizeof(double),
+  CubDebugExit(cudaMemcpy(&virReal, gpu_final_virReal, sizeof(double),
 			  cudaMemcpyDeviceToHost));
   
   cudaFree(gpu_pair1);
@@ -143,6 +141,10 @@ void CallBoxInterForceGPU(vector<uint> pair1,
   cudaFree(gpu_comx);
   cudaFree(gpu_comy);
   cudaFree(gpu_comz);
+  cudaFree(gpu_virReal);
+  cudaFree(gpu_virInter);
+  cudaFree(gpu_final_virReal);
+  cudaFree(gpu_final_virInter);
 }
 
 __global__ void BoxInterForceGPU(int *gpu_pair1,
@@ -308,7 +310,7 @@ __device__ double CalcCoulombVirSwitchMartiniGPU(double distSq, double qi_qj)
      double dist = sqrt(distSq);
      double rij_ronCoul_2 = distSq;
      double rij_ronCoul_3 = dist * distSq;
-     double rij_ronCoul_4 = distSq * distSq;
+     
      double A1 = 1.0 * (-(1.0+4)*gpu_rCut)/(pow(gpu_rCut,1.0+2) *
 					   pow(gpu_rCut, 2));
      double B1 = -1.0 * (-(1.0+3)*gpu_rCut)/(pow(gpu_rCut,1.0+2) *
