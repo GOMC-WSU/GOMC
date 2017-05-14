@@ -2,6 +2,7 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
+#include "CalculateEwaldCUDAKernel.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #include "CalculateMinImageCUDAKernel.cuh"
 #include "cub/cub.cuh"
@@ -23,9 +24,6 @@ void CallBoxReciprocalSetupGPU(XYZArray const & coords,
   double *gpu_kx, *gpu_ky, *gpu_kz;
   double *gpu_particleCharge;
   double *gpu_sumRnew, *gpu_sumInew;
-  double *gpu_imageSize;
-  int start, length;
-  int i = 0;
   int blocksPerGrid, threadsPerBlock;
   int atomNumber = coords.Count();
 

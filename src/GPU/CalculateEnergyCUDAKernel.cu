@@ -1,5 +1,5 @@
 #ifdef GOMC_CUDA
-
+#include "CalculateEnergyCUDAKernel.cuh"
 #include <cuda.h>
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #include "CalculateMinImageCUDAKernel.cuh"
@@ -20,8 +20,6 @@ void CallBoxInterGPU(vector<uint> pair1,
 {
   int atomNumber = coords.Count();
   int *gpu_pair1, *gpu_pair2, *gpu_particleKind;
-  int start, length;
-  int i = 0;
   int blocksPerGrid, threadsPerBlock;
   double *gpu_particleCharge;
   double *gpu_x, *gpu_y, *gpu_z;
