@@ -113,6 +113,10 @@ void CallBoxInterGPU(vector<uint> pair1,
   cudaFree(gpu_z);
   cudaFree(gpu_particleCharge);
   cudaFree(gpu_particleKind);
+  cudaFree(gpu_REn);
+  cudaFree(gpu_LJEn);
+  cudaFree(gpu_final_REn);
+  cudaFree(gpu_final_LJEn);
 }
 
 __global__ void BoxInterGPU(int *gpu_pair1,
