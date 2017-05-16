@@ -13,9 +13,9 @@
 
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
 		       double const *epsilon_Cn, double const *n,
-		       uint VDW_Kind, bool isMartini, int count,
-		       int Rcut, int RcutLow, int Ron, double alpha,
-		       bool ewald, double diElectric_1);
+		       int VDW_Kind, int isMartini, int count,
+		       double Rcut, double RcutLow, double Ron, double alpha,
+		       int ewald, double diElectric_1);
 
 #endif /*GOMC_CUDA*/
 #endif /*CONSTANT_DEFINITIONS_CUDA_KERNEL*/
