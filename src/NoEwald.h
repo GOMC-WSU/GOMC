@@ -61,8 +61,10 @@ class NoEwald : public EwaldCached
    virtual Virial ForceCorrection(Virial& virial, uint box) const;
 
    //calculate correction term for a molecule
-   virtual double MolCorrection(uint molIndex, BoxDimensions const& boxAxes,
-				uint box)const;
+   virtual double MolCorrection(uint molIndex, uint box)const;
+
+   //calculate correction term for fixed molecule in the box
+   virtual double FixMolCorrection(uint box)const;
 
    //calculate reciprocate term for displacement and rotation move
    virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,

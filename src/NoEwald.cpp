@@ -97,8 +97,13 @@ double NoEwald::BoxSelf(BoxDimensions const& boxAxes, uint box) const
 
 
 //calculate correction term for a molecule
-double NoEwald::MolCorrection(uint molIndex, BoxDimensions const& boxAxes,
-			      uint box) const
+double NoEwald::MolCorrection(uint molIndex, uint box) const
+{
+   return 0.0;
+}
+
+//calculate correction term for fixed molecule in the box
+double NoEwald::FixMolCorrection(uint box) const
 {
    return 0.0;
 }
