@@ -210,7 +210,11 @@ private:
   //! to same molecule, using internal arrays.
   bool SameMolecule(const uint p1, const uint p2) const
   {
-    return (particleMol[p1] == particleMol[p2]);
+    //We dont calculate the energy between two atom of same molecule or
+    //two pair of fix molecule
+    uint pair1 = particleMol[p1];
+    uint pair2 = particleMol[p2];
+    return ((pair1 == pair2) || molLookup.NoInteract(pair1, pair2));
   }
 
   const Forcefield& forcefield;

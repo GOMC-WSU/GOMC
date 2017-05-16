@@ -96,8 +96,11 @@ SystemPotential CalculateEnergy::SystemTotal()
 	 bondEn += bondEnergy[0];
 	 nonbondEn += bondEnergy[1];
 	 //calculate correction term of electrostatic interaction
-	 correction += calcEwald->MolCorrection(molID[i], currentAxes, b);
+	 correction += calcEwald->MolCorrection(molID[i], b);
       }
+
+      //calculate correction term of electrostatic interaction for fixed atom
+      correction += calcEwald->FixMolCorrection(b);
 
       pot.boxEnergy[b].intraBond = bondEn;
       pot.boxEnergy[b].intraNonbond = nonbondEn; 
@@ -599,13 +602,17 @@ Intermolecular CalculateEnergy::MoleculeTailChange(const uint box,
 //Calculates intramolecular energy of a full molecule
 double* CalculateEnergy::MoleculeIntra(const uint molIndex,
 					const uint box) const
-{
+{  double *bondEn = new double[2];
+   bondEn[0] = 0.0 , bondEn[1] = 0.0;
+
+   //We dont need to calculate the intra energy for a fix molecule
+   if(molLookup.IsFix(molIndex))
+     return bondEn;
+   
    MoleculeKind& molKind = mols.kinds[mols.kIndex[molIndex]];
    // *2 because we'll be storing inverse bond vectors
    XYZArray bondVec(molKind.bondList.count * 2);
-   double *bondEn = new double[2];
-   bondEn[0] = 0.0 , bondEn[1] = 0.0;
-
+   
    BondVectors(bondVec, molKind, molIndex, box);
 
    MolBond(bondEn[0], molKind, bondVec, box);

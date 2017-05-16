@@ -42,6 +42,7 @@ EwaldCached::EwaldCached(StaticVals const& stat, System & sys) :
 #else
    currentAxes(stat.boxDimensions)
 #endif
+   , cellList(sys.cellList)
 { }
 
 
@@ -658,10 +659,15 @@ double EwaldCached::BoxSelf(BoxDimensions const& boxAxes, uint box) const
 
 
 //calculate correction term for a molecule
-double EwaldCached::MolCorrection(uint molIndex, BoxDimensions const& boxAxes,
-				  uint box) const
+double EwaldCached::MolCorrection(uint molIndex, uint box) const
 {
    if (box >= BOXES_WITH_U_NB)
+     return 0.0;
+
+   //We dont need to calculate the correction energy for a fix molecule.
+   //We consider the adsorbent as one molecule and later calculate the 
+   //correction energy for that. 
+   if (molLookup.IsFix(molIndex))
      return 0.0;
 
    double dist, distSq;
@@ -681,6 +687,50 @@ double EwaldCached::MolCorrection(uint molIndex, BoxDimensions const& boxAxes,
 	 dist = sqrt(distSq);
 	 correction += (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
 			erf(alpha * dist) / dist);
+      }
+   }
+
+   return correction;
+}
+
+//calculate correction term for fixed molecule in a box
+double EwaldCached::FixMolCorrection(uint box) const
+{
+   if (box >= BOXES_WITH_U_NB)
+     return 0.0;
+
+   //We consider the adsorbent as one molecule and later calculate the 
+   //correction energy for that. 
+
+   int i;
+   double dist, distSq;
+   double correction = 0.0;
+   XYZ virComponents; 
+   std::vector<uint> pair1, pair2;
+   CellList::Pairs pair = cellList.EnumeratePairs(box);
+
+   //store atom pair index
+   while (!pair.Done()) 
+   {
+     pair1.push_back(pair.First());
+     pair2.push_back(pair.Second());
+     pair.Next();
+   }
+
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(i, dist, distSq) reduction(+:correction) 
+#endif 
+   for (i = 0; i < pair1.size(); i++)
+   {
+     //If both atom are fixed
+     if(molLookup.NoInteract(particleMol[pair1[i]], particleMol[pair2[i]]))
+     {
+
+       currentAxes.InRcut(distSq, virComponents, currentCoords, pair1[i],
+			  pair2[i], box);
+       dist = sqrt(distSq);
+       correction += (particleCharge[pair1[i]] * particleCharge[pair2[i]] *
+		      erf(alpha * dist) / dist);
       }
    }
 

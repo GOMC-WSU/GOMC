@@ -15,7 +15,7 @@
 #include "BoxDimensions.h"
 #include "MoleculeKind.h"
 #include "TrialMol.h"
-
+#include "CellList.h"
 
 //
 //    Calculating Electrostatic calculation with caching Fourier terms.
@@ -75,8 +75,10 @@ class EwaldCached
 
 
    //calculate correction term for a molecule
-   virtual double MolCorrection(uint molIndex, BoxDimensions const& boxAxes,
-				uint box)const;
+   virtual double MolCorrection(uint molIndex, uint box)const;
+
+   //calculate correction term for fixed molecule in the box
+   virtual double FixMolCorrection(uint box)const;
 
    //calculate reciprocate term for displacement and rotation move
    virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
@@ -138,7 +140,7 @@ class EwaldCached
    const BoxDimensions& currentAxes;
    const COM& currentCOM;
    const SystemPotential &sysPotRef;
-   
+   const CellList& cellList;
 
    bool electrostatic, ewald;
    double alpha; 

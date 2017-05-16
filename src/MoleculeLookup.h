@@ -66,9 +66,14 @@ public:
     return fixedAtom[m];
   }
 
-  bool IsFix(const uint m)
+  bool IsFix(const uint m) const
   {
     return (fixedAtom[m] == 1);
+  }
+  
+  bool NoInteract(const uint m, const uint n) const
+  {
+    return ((fixedAtom[m] == 1) && (fixedAtom[n] == 1));
   }
 
   bool IsNoSwap(const uint m)
