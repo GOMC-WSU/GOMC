@@ -167,8 +167,9 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
    }
 
 #ifdef GOMC_CUDA
-   CallBoxInterGPU(pair1, pair2, coords, boxAxes, electrostatic, 
-		   particleCharge, particleKind, tempREn, tempLJEn, box);
+   CallBoxInterGPU(forcefield.particles->getCUDAVars(), pair1, pair2, coords, 
+		   boxAxes, electrostatic, particleCharge, particleKind, 
+		   tempREn, tempLJEn, box);
 #else
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents) reduction(+:tempREn, tempLJEn) 
@@ -189,12 +190,13 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 						 particleKind[pair2[i]]);
       }      
    }
-   
+#endif
+
    // setting energy and virial of LJ interaction
    potential.boxEnergy[box].inter = tempLJEn;   
    // setting energy and virial of coulomb interaction
    potential.boxEnergy[box].real = tempREn;
-#endif
+
    // set correction energy and virial   
    if (forcefield.useLRC) 
    {
@@ -237,9 +239,10 @@ Virial CalculateEnergy::ForceCalc(const uint box)
    }
 
 #ifdef GOMC_CUDA
-   CallBoxInterForceGPU(pair1, pair2, currentCoords, currentCOM, currentAxes,
-			electrostatic, particleCharge,
-			particleKind, particleMol, tempVir.inter, tempVir.real, box);
+   CallBoxInterForceGPU(forcefield.particles->getCUDAVars(), pair1, pair2, 
+			currentCoords, currentCOM, currentAxes,	electrostatic, 
+			particleCharge,	particleKind, particleMol, 
+			tempVir.inter, tempVir.real, box);
 #else
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, distSq, pVF, pRF, qi_qj, virC, comC) reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33) 
@@ -316,12 +319,12 @@ Virial CalculateEnergy::ForceCalc(const uint box)
      tempVir.realTens[2][1] = rT23 * num::qqFact;
      tempVir.realTens[2][2] = rT33 * num::qqFact;   
    }
+#endif
 
    // setting virial of LJ   
    tempVir.inter = vT11 + vT22 + vT33;
    // setting virial of coulomb 
    tempVir.real = (rT11 + rT22 + rT33) * num::qqFact;
-#endif
 
    if (forcefield.useLRC) 
    {

@@ -8,7 +8,8 @@
 
 using namespace cub;
 
-void CallBoxInterForceGPU(vector<uint> pair1,
+void CallBoxInterForceGPU(VariablesCUDA *vars,
+			  vector<uint> pair1,
 			  vector<uint> pair2,
 			  XYZArray const &currentCoords,
 			  XYZArray const &currentCOM,
@@ -33,54 +34,48 @@ void CallBoxInterForceGPU(vector<uint> pair1,
   double *gpu_virInter, *gpu_virReal;
   double *gpu_final_virInter, *gpu_final_virReal;
 
-  CubDebugExit(cudaMalloc((void**) &gpu_pair1, pair1.size() * sizeof(int)));
-  CubDebugExit(cudaMalloc((void**) &gpu_pair2, pair2.size() * sizeof(int)));
-  CubDebugExit(cudaMalloc((void**) &gpu_x, atomNumber * sizeof(double)));
-  CubDebugExit(cudaMalloc((void**) &gpu_y, atomNumber * sizeof(double)));
-  CubDebugExit(cudaMalloc((void**) &gpu_z, atomNumber * sizeof(double)));
-  CubDebugExit(cudaMalloc((void**) &gpu_particleCharge, 
-			  particleCharge.size() * sizeof(double)));
-  CubDebugExit(cudaMalloc((void**) &gpu_particleKind, 
-			  particleKind.size() * sizeof(int)));
-  CubDebugExit(cudaMalloc((void**) &gpu_particleMol, 
-			  particleMol.size() * sizeof(int)));
-  CubDebugExit(cudaMalloc((void**) &gpu_virInter, 
-			  pair1.size() * sizeof(double)));
-  CubDebugExit(cudaMalloc((void**) &gpu_virReal, 
-			  pair1.size() * sizeof(double)));
-  CubDebugExit(cudaMalloc((void**) &gpu_final_virReal, 
-			  pair1.size() * sizeof(double)));
-  CubDebugExit(cudaMalloc((void**) &gpu_final_virInter, 
-			  pair1.size() * sizeof(double)));
-  CubDebugExit(cudaMalloc((void**) &gpu_comx, molNumber * sizeof(double)));
-  CubDebugExit(cudaMalloc((void**) &gpu_comy, molNumber * sizeof(double)));
-  CubDebugExit(cudaMalloc((void**) &gpu_comz, molNumber * sizeof(double)));
+  cudaMalloc((void**) &gpu_pair1, pair1.size() * sizeof(int));
+  cudaMalloc((void**) &gpu_pair2, pair2.size() * sizeof(int));
+  cudaMalloc((void**) &gpu_x, atomNumber * sizeof(double));
+  cudaMalloc((void**) &gpu_y, atomNumber * sizeof(double));
+  cudaMalloc((void**) &gpu_z, atomNumber * sizeof(double));
+  cudaMalloc((void**) &gpu_particleCharge, 
+	     particleCharge.size() * sizeof(double));
+  cudaMalloc((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
+  cudaMalloc((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
+  cudaMalloc((void**) &gpu_virInter, pair1.size() * sizeof(double));
+  cudaMalloc((void**) &gpu_virReal, pair1.size() * sizeof(double));
+  cudaMalloc((void**) &gpu_final_virReal, pair1.size() * sizeof(double));
+  cudaMalloc((void**) &gpu_final_virInter, pair1.size() * sizeof(double));
+  cudaMalloc((void**) &gpu_comx, molNumber * sizeof(double));
+  cudaMalloc((void**) &gpu_comy, molNumber * sizeof(double));
+  cudaMalloc((void**) &gpu_comz, molNumber * sizeof(double));
 
-  CubDebugExit(cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int),
-			  cudaMemcpyHostToDevice));
-  CubDebugExit(cudaMemcpy(gpu_pair2, &pair2[0], pair2.size() * sizeof(int),
-			  cudaMemcpyHostToDevice));
-  CubDebugExit(cudaMemcpy(gpu_x, currentCoords.x, atomNumber * sizeof(double),
-			  cudaMemcpyHostToDevice));
-  CubDebugExit(cudaMemcpy(gpu_y, currentCoords.y, atomNumber * sizeof(double),
-			  cudaMemcpyHostToDevice));
-  CubDebugExit(cudaMemcpy(gpu_z, currentCoords.z, atomNumber * sizeof(double),
-			  cudaMemcpyHostToDevice));
-  CubDebugExit(cudaMemcpy(gpu_comx, currentCOM.x, molNumber * sizeof(double),
-			  cudaMemcpyHostToDevice));
-  CubDebugExit(cudaMemcpy(gpu_comy, currentCOM.y, molNumber * sizeof(double),
-			  cudaMemcpyHostToDevice));
-  CubDebugExit(cudaMemcpy(gpu_comz, currentCOM.z, molNumber * sizeof(double),
-			  cudaMemcpyHostToDevice));
-  CubDebugExit(cudaMemcpy(gpu_particleCharge, &particleCharge[0],
-			  particleCharge.size() * sizeof(double),
-			  cudaMemcpyHostToDevice));
-  CubDebugExit(cudaMemcpy(gpu_particleKind, &particleKind[0],
-			  particleKind.size() * sizeof(int),
-			  cudaMemcpyHostToDevice));
-  CubDebugExit(cudaMemcpy(gpu_particleMol, &particleMol[0],
-			  particleMol.size() * sizeof(int),
-			  cudaMemcpyHostToDevice));
+  cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_pair2, &pair2[0], pair2.size() * sizeof(int),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_x, currentCoords.x, atomNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_y, currentCoords.y, atomNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_z, currentCoords.z, atomNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_comx, currentCOM.x, molNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_comy, currentCOM.y, molNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_comz, currentCOM.z, molNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_particleCharge, &particleCharge[0],
+	     particleCharge.size() * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_particleKind, &particleKind[0],
+	     particleKind.size() * sizeof(int),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_particleMol, &particleMol[0],
+	     particleMol.size() * sizeof(int),
+	     cudaMemcpyHostToDevice);
 
   // Run the kernel...
   threadsPerBlock = 256;
@@ -102,14 +97,26 @@ void CallBoxInterForceGPU(vector<uint> pair1,
 						       gpu_particleMol,
 						       gpu_virInter,
 						       gpu_virReal,
-						       pair1.size());
+						       pair1.size(),
+						       vars->gpu_sigmaSq,
+						       vars->gpu_epsilon_Cn,
+						       vars->gpu_n,
+						       vars->gpu_VDW_Kind,
+						       vars->gpu_isMartini,
+						       vars->gpu_count,
+						       vars->gpu_rCut,
+						       vars->gpu_rCutLow,
+						       vars->gpu_rOn,
+						       vars->gpu_alpha,
+						       vars->gpu_ewald,
+						       vars->gpu_diElectric_1);
 
   // ReduceSum // Virial of LJ
   void * d_temp_storage = NULL;
   size_t temp_storage_bytes = 0;
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_virInter,
 		    gpu_final_virInter, pair1.size());
-  CubDebugExit(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+  cudaMalloc(&d_temp_storage, temp_storage_bytes);
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_virInter,
 		    gpu_final_virInter, pair1.size());
   cudaFree(d_temp_storage);
@@ -119,16 +126,16 @@ void CallBoxInterForceGPU(vector<uint> pair1,
   temp_storage_bytes = 0;
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_virReal,
 		    gpu_final_virReal, pair1.size());
-  CubDebugExit(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+  cudaMalloc(&d_temp_storage, temp_storage_bytes);
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_virReal,
 		    gpu_final_virReal, pair1.size());
   cudaFree(d_temp_storage);
   
   // Copy back the result to CPU ! :)
-  CubDebugExit(cudaMemcpy(&virInter, gpu_final_virInter, sizeof(double),
-			  cudaMemcpyDeviceToHost));
-  CubDebugExit(cudaMemcpy(&virReal, gpu_final_virReal, sizeof(double),
-			  cudaMemcpyDeviceToHost));
+  cudaMemcpy(&virInter, gpu_final_virInter, sizeof(double),
+	     cudaMemcpyDeviceToHost);
+  cudaMemcpy(&virReal, gpu_final_virReal, sizeof(double),
+	     cudaMemcpyDeviceToHost);
   
   cudaFree(gpu_pair1);
   cudaFree(gpu_pair2);
@@ -164,7 +171,19 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
 				 int *gpu_particleMol,
 				 double *gpu_virInter,
 				 double *gpu_virReal,
-				 int pairSize)
+				 int pairSize,
+				 double *gpu_sigmaSq,
+				 double *gpu_epsilon_Cn,
+				 double *gpu_n,
+				 int *gpu_VDW_Kind,
+				 int *gpu_isMartini,
+				 int *gpu_count,
+				 double *gpu_rCut,
+				 double *gpu_rCutLow,
+				 double *gpu_rOn,
+				 double *gpu_alpha,
+				 int *gpu_ewald,
+				 double *gpu_diElectric_1)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   if(threadID > pairSize)
@@ -173,17 +192,18 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
   double virX, virY, virZ;
   double pRF = 0.0, qi_qj, pVF = 0.0;
   //tensors for VDW and real part of electrostatic
-  double vT11 = 0.0, vT12 = 0.0, vT13 = 0.0;
-  double vT22 = 0.0, vT23 = 0.0, vT33 = 0.0;
-  double rT11 = 0.0, rT12 = 0.0, rT13 = 0.0;
-  double rT22 = 0.0, rT23 = 0.0, rT33 = 0.0;
+  double vT11 = 0.0, vT22 = 0.0, vT33 = 0.0;
+  double rT11 = 0.0, rT22 = 0.0, rT33 = 0.0;
+  // extra tensors reserved for later on
+  //double vT12 = 0.0, vT13 = 0.0, vT23 = 0.0;
+  //double rT12 = 0.0, rT13 = 0.0, rT23 = 0.0;
   double diff_comx, diff_comy, diff_comz;
 
   if(InRcutGPU(distSq, virX, virY, virZ, gpu_x[gpu_pair1[threadID]], 
 	       gpu_y[gpu_pair1[threadID]], gpu_z[gpu_pair1[threadID]], 
 	       gpu_x[gpu_pair2[threadID]], gpu_y[gpu_pair2[threadID]], 
 	       gpu_z[gpu_pair2[threadID]], xAxes, yAxes, zAxes, xAxes/2.0, 
-	       yAxes/2.0, zAxes/2.0))
+	       yAxes/2.0, zAxes/2.0, gpu_rCut[0]))
   {
     diff_comx = gpu_comx[gpu_particleMol[gpu_pair1[threadID]]] - 
       gpu_comx[gpu_particleMol[gpu_pair2[threadID]]];
@@ -200,75 +220,93 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
     {
       qi_qj = gpu_particleCharge[gpu_pair1[threadID]] * 
 	gpu_particleCharge[gpu_pair2[threadID]];
-      pRF = CalcCoulombForceGPU(distSq, qi_qj);
+      pRF = CalcCoulombForceGPU(distSq, qi_qj, gpu_VDW_Kind[0], gpu_ewald[0],
+				gpu_isMartini[0], gpu_alpha[0], gpu_rCut[0],
+				gpu_diElectric_1[0]);
       
       rT11 = pRF * (virX * diff_comx);
       rT22 = pRF * (virY * diff_comy);
       rT33 = pRF * (virZ * diff_comz);
       
       //extra tensor calculations
-      rT12 = pRF * (0.5 * (virX * diff_comy + virY * diff_comx));
-      rT13 = pRF * (0.5 * (virX * diff_comz + virZ * diff_comx));
-      rT23 = pRF * (0.5 * (virY * diff_comz + virZ * diff_comy));
+      //rT12 = pRF * (0.5 * (virX * diff_comy + virY * diff_comx));
+      //rT13 = pRF * (0.5 * (virX * diff_comz + virZ * diff_comx));
+      //rT23 = pRF * (0.5 * (virY * diff_comz + virZ * diff_comy));
     }
     
     pVF = CalcEnForceGPU(distSq, gpu_particleKind[gpu_pair1[threadID]], 
-			 gpu_particleKind[gpu_pair2[threadID]]);
+			 gpu_particleKind[gpu_pair2[threadID]],
+			 gpu_sigmaSq, gpu_n, gpu_epsilon_Cn, gpu_rCut[0],
+			 gpu_rOn[0], gpu_isMartini[0], gpu_VDW_Kind[0],
+			 gpu_count[0]);
     
     vT11 = pVF * (virX * diff_comx);
     vT22 = pVF * (virY * diff_comy);
     vT33 = pVF * (virZ * diff_comz);
       
     //extra tensor calculations
-    vT12 = pVF * (0.5 * (virX * diff_comy + virY * diff_comx));
-    vT13 = pVF * (0.5 * (virX * diff_comz + virZ * diff_comx));
-    vT23 = pVF * (0.5 * (virY * diff_comz + virZ * diff_comy));
+    //vT12 = pVF * (0.5 * (virX * diff_comy + virY * diff_comx));
+    //vT13 = pVF * (0.5 * (virX * diff_comz + virZ * diff_comx));
+    //vT23 = pVF * (0.5 * (virY * diff_comz + virZ * diff_comy));
   }
 
   gpu_virInter[threadID] = vT11 + vT22 + vT33;
   gpu_virReal[threadID] = rT11 + rT22 + rT33;
 }
 
-__device__ double CalcCoulombForceGPU(double distSq, double qi_qj)
+__device__ double CalcCoulombForceGPU(double distSq, double qi_qj,
+				      int gpu_VDW_Kind, int gpu_ewald,
+				      int gpu_isMartini, double gpu_alpha,
+				      double gpu_rCut, double gpu_diElectric_1)
 {
   if(gpu_VDW_Kind == GPU_VDW_STD_KIND)
   {
-    return CalcCoulombVirParticleGPU(distSq, qi_qj);
+    return CalcCoulombVirParticleGPU(distSq, qi_qj, gpu_alpha);
   }
   else if(gpu_VDW_Kind == GPU_VDW_SHIFT_KIND)
   {
-    return CalcCoulombVirShiftGPU(distSq, qi_qj);
+    return CalcCoulombVirShiftGPU(distSq, qi_qj, gpu_ewald, gpu_alpha);
   }
   else if(gpu_VDW_Kind == GPU_VDW_SWITCH_KIND && gpu_isMartini)
   {
-    return CalcCoulombVirSwitchMartiniGPU(distSq, qi_qj);
+    return CalcCoulombVirSwitchMartiniGPU(distSq, qi_qj, gpu_ewald, gpu_alpha,
+					  gpu_rCut, gpu_diElectric_1);
   }
   else
-    return CalcCoulombVirSwitchGPU(distSq, qi_qj);
+    return CalcCoulombVirSwitchGPU(distSq, qi_qj, gpu_ewald, gpu_alpha,
+				   gpu_rCut);
 }
 
-__device__ double CalcEnForceGPU(double distSq, int kind1, int kind2)
+__device__ double CalcEnForceGPU(double distSq, int kind1, int kind2,
+				 double *gpu_sigmaSq, double *gpu_n,
+				 double *gpu_epsilon_Cn, double gpu_rCut,
+				 double gpu_rOn, int gpu_isMartini,
+				 int gpu_VDW_Kind, int gpu_count)
 {
-  int index = FlatIndexGPU(kind1, kind2);
+  int index = FlatIndexGPU(kind1, kind2, gpu_count);
   if(gpu_VDW_Kind == GPU_VDW_STD_KIND)
   {
-    return CalcVirParticleGPU(distSq, index);
+    return CalcVirParticleGPU(distSq, index, gpu_sigmaSq, gpu_n,
+			      gpu_epsilon_Cn);
   }
   else if(gpu_VDW_Kind == GPU_VDW_SHIFT_KIND)
   {
-    return CalcVirShiftGPU(distSq, index);
+    return CalcVirShiftGPU(distSq, index, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn);
   }
   else if(gpu_VDW_Kind == GPU_VDW_SWITCH_KIND && gpu_isMartini)
   {
-    return CalcVirSwitchMartiniGPU(distSq, index);
+    return CalcVirSwitchMartiniGPU(distSq, index, gpu_sigmaSq, gpu_n,
+				   gpu_epsilon_Cn, gpu_rCut, gpu_rOn);
   }
   else
-    return CalcVirSwitchGPU(distSq, index);
+    return CalcVirSwitchGPU(distSq, index, gpu_sigmaSq, gpu_epsilon_Cn, gpu_n,
+			    gpu_rCut, gpu_rOn);
 }
 
 //ElectroStatic Calculation
 //**************************************************************//
-__device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj)
+__device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
+					    double gpu_alpha)
 {
   double dist = sqrt(distSq);
   double constValue = 2.0 * gpu_alpha / sqrt(M_PI);
@@ -277,7 +315,8 @@ __device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj)
   return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
 }
 
-__device__ double CalcCoulombVirShiftGPU(double distSq, double qi_qj)
+__device__ double CalcCoulombVirShiftGPU(double distSq, double qi_qj,
+					 int gpu_ewald, double gpu_alpha)
 {
   if(gpu_ewald)
   {
@@ -293,7 +332,11 @@ __device__ double CalcCoulombVirShiftGPU(double distSq, double qi_qj)
     return qi_qj/(distSq * dist);
   }
 }
-__device__ double CalcCoulombVirSwitchMartiniGPU(double distSq, double qi_qj)
+__device__ double CalcCoulombVirSwitchMartiniGPU(double distSq, double qi_qj,
+						 int gpu_ewald,
+						 double gpu_alpha,
+						 double gpu_rCut,
+						 double gpu_diElectric_1)
 {
   if(gpu_ewald)
   {
@@ -321,7 +364,9 @@ __device__ double CalcCoulombVirSwitchMartiniGPU(double distSq, double qi_qj)
   }
 }
 
-__device__ double CalcCoulombVirSwitchGPU(double distSq, double qi_qj)
+__device__ double CalcCoulombVirSwitchGPU(double distSq, double qi_qj,
+					  int gpu_ewald, double gpu_alpha,
+					  double gpu_rCut)
 {
   if(gpu_ewald)
   {
@@ -345,7 +390,9 @@ __device__ double CalcCoulombVirSwitchGPU(double distSq, double qi_qj)
 
 //VDW Calculation
 //*****************************************************************//
-__device__ double CalcVirParticleGPU(double distSq, int index)
+__device__ double CalcVirParticleGPU(double distSq, int index,
+				     double *gpu_sigmaSq, double *gpu_n,
+				     double *gpu_epsilon_Cn)
 {
   double rNeg2 = 1.0/distSq;
   double rRat2 = gpu_sigmaSq[index] * rNeg2;
@@ -356,7 +403,8 @@ __device__ double CalcVirParticleGPU(double distSq, int index)
     ((gpu_n[index]/6.0) * repulse - attract) * rNeg2;
 }
 
-__device__ double CalcVirShiftGPU(double distSq, int index)
+__device__ double CalcVirShiftGPU(double distSq, int index, double *gpu_sigmaSq,
+				  double *gpu_n, double *gpu_epsilon_Cn)
 {
   double rNeg2 = 1.0/distSq;
   double rRat2 = gpu_sigmaSq[index] * rNeg2;
@@ -367,7 +415,10 @@ __device__ double CalcVirShiftGPU(double distSq, int index)
     ((gpu_n[index]/6.0) * repulse - attract) * rNeg2;
 }
 
-__device__ double CalcVirSwitchMartiniGPU(double distSq, int index)
+__device__ double CalcVirSwitchMartiniGPU(double distSq, int index,
+					  double *gpu_sigmaSq, double *gpu_n,
+					  double *gpu_epsilon_Cn,
+					  double gpu_rCut, double gpu_rOn)
 {
   double r_1 = 1.0/sqrt(distSq);
   double r_8 = pow(r_1, 8);
@@ -403,7 +454,10 @@ __device__ double CalcVirSwitchMartiniGPU(double distSq, int index)
   return Wij;
 }
 
-__device__ double CalcVirSwitchGPU(double distSq, int index)
+__device__ double CalcVirSwitchGPU(double distSq, int index,
+				   double *gpu_sigmaSq, double *gpu_epsilon_Cn,
+				   double *gpu_n, double gpu_rCut,
+				   double gpu_rOn)
 {
   double rCutSq = gpu_rCut * gpu_rCut;
   double rCutSq_rijSq = rCutSq - distSq;

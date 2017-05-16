@@ -5,6 +5,9 @@
 #include "FFConst.h" //constants related to particles.
 #include "BasicTypes.h" //for uint
 #include "NumLib.h" //For Cb, Sq
+#ifdef GOMC_CUDA
+#include "VariablesCUDA.h"
+#endif
 
 // Virial and LJ potential calculation:
 // U(rij) = cn * eps_ij * ( (sig_ij/rij)^n - (sig_ij/rij)^6)
@@ -31,9 +34,9 @@ class NBfix;
 }
 namespace config_setup
 {
-struct SystemVals;
-struct FFValues;
-struct FFKind;
+  struct SystemVals;
+  struct FFValues;
+  struct FFKind;
 }
 
 struct FFParticle
@@ -42,7 +45,7 @@ public:
 
   FFParticle();
   ~FFParticle(void);
-
+  
   double GetMass(const uint kind) const
   {
     return mass[kind];
@@ -77,6 +80,12 @@ public:
     return count;
   }
 
+#ifdef GOMC_CUDA
+  VariablesCUDA *getCUDAVars() {
+    return varCUDA;
+  }
+#endif
+
 protected:
 
   uint FlatIndex(const uint i, const uint j) const
@@ -110,6 +119,9 @@ protected:
 
   uint count, vdwKind;
   bool isMartini, ewald;
+#ifdef GOMC_CUDA
+  VariablesCUDA *varCUDA;
+#endif
 };
 
 
