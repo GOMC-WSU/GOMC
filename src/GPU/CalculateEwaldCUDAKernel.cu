@@ -32,36 +32,36 @@ void CallBoxReciprocalSetupGPU(XYZArray const &coords,
   int blocksPerGrid, threadsPerBlock;
   int atomNumber = coords.Count();
 
-  CubDebugExit(cudaMalloc((void**) &gpu_x, atomNumber * sizeof(double)));
-  CubDebugExit(cudaMalloc((void**) &gpu_y, atomNumber * sizeof(double)));
-  CubDebugExit(cudaMalloc((void**) &gpu_z, atomNumber * sizeof(double)));
-  CubDebugExit(cudaMalloc((void**) &gpu_particleCharge, 
-			  particleCharge.size() * sizeof(double)));
-  CubDebugExit(cudaMalloc((void**) &gpu_sumRnew, imageSize * sizeof(double)));
-  CubDebugExit(cudaMalloc((void**) &gpu_sumInew, imageSize * sizeof(double)));
-  CubDebugExit(cudaMalloc((void**) &gpu_kx, imageSize * sizeof(double)));
-  CubDebugExit(cudaMalloc((void**) &gpu_ky, imageSize * sizeof(double)));
-  CubDebugExit(cudaMalloc((void**) &gpu_kz, imageSize * sizeof(double)));
+  cudaMalloc((void**) &gpu_x, atomNumber * sizeof(double));
+  cudaMalloc((void**) &gpu_y, atomNumber * sizeof(double));
+  cudaMalloc((void**) &gpu_z, atomNumber * sizeof(double));
+  cudaMalloc((void**) &gpu_particleCharge, 
+	     particleCharge.size() * sizeof(double));
+  cudaMalloc((void**) &gpu_sumRnew, imageSize * sizeof(double));
+  cudaMalloc((void**) &gpu_sumInew, imageSize * sizeof(double));
+  cudaMalloc((void**) &gpu_kx, imageSize * sizeof(double));
+  cudaMalloc((void**) &gpu_ky, imageSize * sizeof(double));
+  cudaMalloc((void**) &gpu_kz, imageSize * sizeof(double));
   cudaMalloc((void**) &gpu_prefact, imageSize * sizeof(double));
   cudaMalloc((void**) &gpu_energyRecip, imageSize * sizeof(double));
   cudaMalloc((void**) &gpu_final_energyRecip, sizeof(double));
 
-  CubDebugExit(cudaMemcpy(gpu_particleCharge, &particleCharge[0],
-			  particleCharge.size() * sizeof(double),
-			  cudaMemcpyHostToDevice));
+  cudaMemcpy(gpu_particleCharge, &particleCharge[0],
+	     particleCharge.size() * sizeof(double),
+	     cudaMemcpyHostToDevice);
 
-  CubDebugExit(cudaMemcpy(gpu_x, coords.x, atomNumber * sizeof(double),
-			  cudaMemcpyHostToDevice));
-  CubDebugExit(cudaMemcpy(gpu_y, coords.y, atomNumber * sizeof(double),
-			  cudaMemcpyHostToDevice));
-  CubDebugExit(cudaMemcpy(gpu_z, coords.z, atomNumber * sizeof(double),
-			  cudaMemcpyHostToDevice));
-  CubDebugExit(cudaMemcpy(gpu_kx, kx, imageSize * sizeof(double),
-			  cudaMemcpyHostToDevice));
-  CubDebugExit(cudaMemcpy(gpu_ky, ky, imageSize * sizeof(double),
-			  cudaMemcpyHostToDevice));
-  CubDebugExit(cudaMemcpy(gpu_kz, kz, imageSize * sizeof(double),
-			  cudaMemcpyHostToDevice));
+  cudaMemcpy(gpu_x, coords.x, atomNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_y, coords.y, atomNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_z, coords.z, atomNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_kx, kx, imageSize * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_ky, ky, imageSize * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_kz, kz, imageSize * sizeof(double),
+	     cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_prefact, prefact, imageSize * sizeof(double),
 	     cudaMemcpyHostToDevice);
 
@@ -81,22 +81,21 @@ void CallBoxReciprocalSetupGPU(XYZArray const &coords,
 						       gpu_energyRecip,
 						       imageSize);
 
-  CubDebugExit(cudaMemcpy(sumRnew, gpu_sumRnew, imageSize * sizeof(double), 
-			  cudaMemcpyDeviceToHost));
-  CubDebugExit(cudaMemcpy(sumInew, gpu_sumInew, imageSize * sizeof(double),
-			  cudaMemcpyDeviceToHost));
+  cudaMemcpy(sumRnew, gpu_sumRnew, imageSize * sizeof(double), 
+	     cudaMemcpyDeviceToHost);
+  cudaMemcpy(sumInew, gpu_sumInew, imageSize * sizeof(double),
+	     cudaMemcpyDeviceToHost);
 
   // ReduceSum
   void * d_temp_storage = NULL;
   size_t temp_storage_bytes = 0;
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_energyRecip,
 		    gpu_final_energyRecip, imageSize);
-  CubDebugExit(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+  cudaMalloc(&d_temp_storage, temp_storage_bytes);
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_energyRecip,
 		    gpu_final_energyRecip, imageSize);
-  
-  CubDebugExit(cudaMemcpy(&energyRecip, gpu_final_energyRecip, 
-			  sizeof(double), cudaMemcpyDeviceToHost));
+  cudaMemcpy(&energyRecip, gpu_final_energyRecip, 
+	     sizeof(double), cudaMemcpyDeviceToHost);
 
   cudaFree(gpu_x);
   cudaFree(gpu_y);
@@ -112,6 +111,180 @@ void CallBoxReciprocalSetupGPU(XYZArray const &coords,
   cudaFree(gpu_final_energyRecip);
 }
 
+void CallMolReciprocalGPU(XYZArray const &currentCoords,
+			  XYZArray const &newCoords,
+			  double const *kx,
+			  double const *ky,
+			  double const *kz,
+			  vector<double> particleCharge,
+			  uint imageSize,
+			  double const *sumRref,
+			  double const *sumIref,
+			  double *sumRnew,
+			  double *sumInew,
+			  double const *prefactRef,
+			  double &energyRecipNew)
+{
+  // Calculate atom number
+  int atomNumber = currentCoords.Count();
+  // Current coordinates
+  double *gpu_cx, *gpu_cy, *gpu_cz;
+  // New coordinates
+  double *gpu_nx, *gpu_ny, *gpu_nz;
+  double *gpu_kx, *gpu_ky, *gpu_kz;
+  double *gpu_particleCharge;
+  double *gpu_sumRnew, *gpu_sumInew;
+  double *gpu_sumRref, *gpu_sumIref;
+  int blocksPerGrid, threadsPerBlock;
+  double *gpu_prefactRef;
+  double *gpu_energyRecipNew, *gpu_final_energyRecipNew;
+
+  cudaMalloc((void**) &gpu_cx, atomNumber * sizeof(double));
+  cudaMalloc((void**) &gpu_cy, atomNumber * sizeof(double));
+  cudaMalloc((void**) &gpu_cz, atomNumber * sizeof(double));
+  cudaMalloc((void**) &gpu_nx, atomNumber * sizeof(double));
+  cudaMalloc((void**) &gpu_ny, atomNumber * sizeof(double));
+  cudaMalloc((void**) &gpu_nz, atomNumber * sizeof(double));
+  cudaMalloc((void**) &gpu_particleCharge, 
+	     particleCharge.size() * sizeof(double));
+  cudaMalloc((void**) &gpu_sumRnew, imageSize * sizeof(double));
+  cudaMalloc((void**) &gpu_sumInew, imageSize * sizeof(double));
+  cudaMalloc((void**) &gpu_sumRref, imageSize * sizeof(double));
+  cudaMalloc((void**) &gpu_sumIref, imageSize * sizeof(double));
+  cudaMalloc((void**) &gpu_kx, imageSize * sizeof(double));
+  cudaMalloc((void**) &gpu_ky, imageSize * sizeof(double));
+  cudaMalloc((void**) &gpu_kz, imageSize * sizeof(double));
+  cudaMalloc((void**) &gpu_prefactRef, imageSize * sizeof(double));
+  cudaMalloc((void**) &gpu_energyRecipNew, imageSize * sizeof(double));
+  cudaMalloc((void**) &gpu_final_energyRecipNew, sizeof(double));
+
+  cudaMemcpy(gpu_particleCharge, &particleCharge[0],
+	     particleCharge.size() * sizeof(double),
+	     cudaMemcpyHostToDevice);
+
+  cudaMemcpy(gpu_cx, currentCoords.x, atomNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_cy, currentCoords.y, atomNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_cz, currentCoords.z, atomNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+
+  cudaMemcpy(gpu_nx, newCoords.x, atomNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_ny, newCoords.y, atomNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_nz, newCoords.z, atomNumber * sizeof(double),
+	     cudaMemcpyHostToDevice);
+
+  cudaMemcpy(gpu_kx, kx, imageSize * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_ky, ky, imageSize * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_kz, kz, imageSize * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_prefactRef, prefactRef, imageSize * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_sumRref, sumRref, imageSize * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_sumIref, sumIref, imageSize * sizeof(double),
+	     cudaMemcpyHostToDevice);
+
+  threadsPerBlock = 256;
+  blocksPerGrid = (int)(imageSize/threadsPerBlock) + 1;
+  MolReciprocalGPU<<<blocksPerGrid, threadsPerBlock>>>(gpu_cx, gpu_cy, gpu_cz,
+						       gpu_nx, gpu_ny, gpu_nz,
+						       gpu_kx, gpu_ky, gpu_kz, 
+						       atomNumber, 
+						       gpu_particleCharge,
+						       gpu_sumRnew,
+						       gpu_sumInew,
+						       gpu_sumRref,
+						       gpu_sumIref,
+						       gpu_prefactRef,
+						       gpu_energyRecipNew,
+						       imageSize);
+  cudaMemcpy(sumRnew, gpu_sumRnew, imageSize * sizeof(double),
+	     cudaMemcpyDeviceToHost);
+  cudaMemcpy(sumInew, gpu_sumInew, imageSize * sizeof(double),
+	     cudaMemcpyDeviceToHost);
+
+  // ReduceSum
+  void * d_temp_storage = NULL;
+  size_t temp_storage_bytes = 0;
+  DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_energyRecipNew,
+		    gpu_final_energyRecipNew, imageSize);
+  cudaMalloc(&d_temp_storage, temp_storage_bytes);
+  DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_energyRecipNew,
+		    gpu_final_energyRecipNew, imageSize);
+  cudaMemcpy(&energyRecipNew, gpu_final_energyRecipNew, 
+	     sizeof(double), cudaMemcpyDeviceToHost);
+
+  
+  cudaFree(gpu_cx);
+  cudaFree(gpu_cy);
+  cudaFree(gpu_cz);
+  cudaFree(gpu_nx);
+  cudaFree(gpu_ny);
+  cudaFree(gpu_nz);
+  cudaFree(gpu_particleCharge);
+  cudaFree(gpu_sumRref);
+  cudaFree(gpu_sumIref);
+  cudaFree(gpu_sumRnew);
+  cudaFree(gpu_sumInew);
+  cudaFree(gpu_kx);
+  cudaFree(gpu_ky);
+  cudaFree(gpu_kz);
+  cudaFree(gpu_prefactRef);
+  cudaFree(gpu_energyRecipNew);
+  cudaFree(gpu_final_energyRecipNew);
+}
+
+__global__ void MolReciprocalGPU(double *gpu_cx, double *gpu_cy, double *gpu_cz,
+				 double *gpu_nx, double *gpu_ny, double *gpu_nz,
+				 double *gpu_kx, double *gpu_ky, double *gpu_kz,
+				 int atomNumber,
+				 double *gpu_particleCharge,
+				 double *gpu_sumRnew,
+				 double *gpu_sumInew,
+				 double *gpu_sumRref,
+				 double *gpu_sumIref,
+				 double *gpu_prefactRef,
+				 double *gpu_energyRecipNew,
+				 int imageSize)
+{
+  int threadID = blockIdx.x * blockDim.x + threadIdx.x;
+  if(threadID>=imageSize)
+    return;
+  int p;
+  double dotProductOld = 0.0, dotProductNew = 0.0;
+  double sumRealNew = 0.0, sumImaginaryNew = 0.0;
+  double sumRealOld = 0.0, sumImaginaryOld = 0.0; 
+  
+  for(p = 0; p < atomNumber; p++)
+  {
+    dotProductOld = DotProduct(gpu_kx[threadID], gpu_ky[threadID], 
+			       gpu_kz[threadID],
+			       gpu_cx[p], gpu_cy[p], gpu_cz[p]);
+    dotProductNew = DotProduct(gpu_kx[threadID], gpu_ky[threadID], 
+			       gpu_kz[threadID],
+			       gpu_nx[p], gpu_ny[p], gpu_nz[p]);
+    sumRealNew += (gpu_particleCharge[p] * cos(dotProductNew));
+    sumImaginaryNew += (gpu_particleCharge[p] * sin(dotProductNew));
+    sumRealOld += (gpu_particleCharge[p] * cos(dotProductOld));
+    sumImaginaryOld += (gpu_particleCharge[p] * sin(dotProductOld));
+  }
+
+  gpu_sumRnew[threadID] = gpu_sumRref[threadID] - sumRealOld + sumRealNew;
+  gpu_sumInew[threadID] = gpu_sumIref[threadID] - sumImaginaryOld +
+    sumImaginaryNew;
+
+  gpu_energyRecipNew[threadID] = ((gpu_sumRnew[threadID] * 
+				   gpu_sumRnew[threadID] + 
+				   gpu_sumInew[threadID] * 
+				   gpu_sumInew[threadID]) * 
+				  gpu_prefactRef[threadID]);
+}
+
 __global__ void BoxReciprocalSetupGPU(double *gpu_x,
 				      double *gpu_y,
 				      double *gpu_z,
@@ -122,7 +295,7 @@ __global__ void BoxReciprocalSetupGPU(double *gpu_x,
 				      double *gpu_particleCharge,
 				      double *gpu_sumRnew,
 				      double *gpu_sumInew,
-				      double imageSize)
+				      int imageSize)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   if(threadID>=imageSize)
