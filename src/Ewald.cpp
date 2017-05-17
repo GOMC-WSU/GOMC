@@ -203,7 +203,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
       }
       CallBoxReciprocalSetupGPU(thisBoxCoords, kx[box], ky[box], kz[box],
 				chargeBox, imageSize[box], sumRnew[box], 
-				sumInew[box]);
+				sumInew[box], prefact[box], currentEnergyRecip);
 #else
 #ifdef _OPENMP      
 #pragma omp parallel default(shared) 
@@ -253,8 +253,7 @@ double Ewald::BoxReciprocal(uint box) const
    if (box < BOXES_WITH_U_NB)
    {
 #ifdef GOMC_CUDA
-     CallBoxReciprocalGPU(prefact[box], sumRnew[box], sumInew[box], 
-			  energyRecip, imageSize[box]);
+     return currentEnergyRecip;
 #else
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i) reduction(+:energyRecip)

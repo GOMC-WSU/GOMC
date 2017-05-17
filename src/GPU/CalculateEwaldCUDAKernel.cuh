@@ -16,7 +16,9 @@ void CallBoxReciprocalSetupGPU(XYZArray const & coords,
 			       vector<double> particleCharge,
 			       uint imageSize,
 			       double *sumRnew,
-			       double *sumInew);
+			       double *sumInew,
+			       double *prefact,
+			       double &energyRecip);
 
 __global__ void BoxReciprocalSetupGPU(double * gpu_x,
 				      double * gpu_y,
@@ -29,12 +31,6 @@ __global__ void BoxReciprocalSetupGPU(double * gpu_x,
 				      double * gpu_sumRnew,
 				      double * gpu_sumInew,
 				      double imageSize);
-
-void CallBoxReciprocalGPU(double * prefact,
-			  double * sumRnew,
-			  double * sumInew,
-			  double & energyRecip,
-			  int imageSize);
 
 __global__ void BoxReciprocalGPU(double *gpu_prefact,
 				 double *gpu_sumRnew,
