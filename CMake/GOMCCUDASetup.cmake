@@ -1,6 +1,12 @@
 # Find CUDA is enabled, set it up
 
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};--gpu-architecture=compute_35;--gpu-code=compute_35,sm_35;-DGOMC_CUDA)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-DGOMC_CUDA)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-Wno-deprecated-gpu-targets)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_20,code=sm_20)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_20,code=sm_21)
+#set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_30,code=sm_30)
+#set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_35,code=sm_35)
+#set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_50,code=sm_50)
 include_directories(src/GPU)
 
 set(GPU_NPT_flags "-DENSEMBLE=4 -DGOMC_CUDA")

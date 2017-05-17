@@ -51,19 +51,19 @@ endif()
 
 #NPT (Isothermal-Isobaric) Ensemble
 set(NPT_flags "-DENSEMBLE=4")
-set(NPT_name "GOMC_Serial_NPT")
+set(NPT_name "GOMC_CPU_NPT")
 
 #Grand Canonical Monte Carlo
 set(GC_flags "-DENSEMBLE=3")
-set(GC_name "GOMC_Serial_GCMC")
+set(GC_name "GOMC_CPU_GCMC")
 
 #Gibbs Ensemble Monte Carlo
 set(GE_flags "-DENSEMBLE=2")
-set(GE_name "GOMC_Serial_GEMC")
+set(GE_name "GOMC_CPU_GEMC")
 
 #NVT (Canonical) Ensemble
 set(NVT_flags "-DENSEMBLE=1")
-set(NVT_name "GOMC_Serial_NVT")
+set(NVT_name "GOMC_CPU_NVT")
 
 # Set Source and Header files
 include(${PROJECT_SOURCE_DIR}/CMake/FileLists.cmake)

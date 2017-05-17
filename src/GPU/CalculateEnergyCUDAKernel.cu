@@ -165,6 +165,8 @@ __global__ void BoxInterGPU(int *gpu_pair1,
   double distSq;
   double qi_qj_fact;
   double qqFact = 167000.0;
+  gpu_REn[threadID] = 0.0;
+  gpu_LJEn[threadID] = 0.0;
   if(InRcutGPU(distSq, gpu_x[gpu_pair1[threadID]], gpu_y[gpu_pair1[threadID]], 
 	       gpu_z[gpu_pair1[threadID]], gpu_x[gpu_pair2[threadID]], 
 	       gpu_y[gpu_pair2[threadID]], gpu_z[gpu_pair2[threadID]], 

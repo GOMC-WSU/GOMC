@@ -164,7 +164,7 @@ void FFParticle::Init(ff_setup::Particle const& mie,
   
 #ifdef GOMC_CUDA
   InitGPUForceField(*varCUDA, sigmaSq, epsilon_cn, n, vdwKind, isMartini, 
-		    size, rCut, rCutLow, rOn, alpha, ewald, diElectric_1);
+		    count, rCut, rCutLow, rOn, alpha, ewald, diElectric_1);
 #endif   
 }
 

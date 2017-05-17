@@ -11,7 +11,7 @@
 using namespace std;
 using namespace cub;
 
-void CallBoxReciprocalSetupGPU(XYZArray const & coords,
+void CallBoxReciprocalSetupGPU(XYZArray const &coords,
 			       double const *kx,
 			       double const *ky,
 			       double const *kz,
@@ -133,16 +133,16 @@ void CallBoxReciprocalGPU(double * prefact,
   cudaFree(gpu_prefact);
 }
 
-__global__ void BoxReciprocalSetupGPU(double * gpu_x,
-				      double * gpu_y,
-				      double * gpu_z,
-				      double * gpu_kx,
-				      double * gpu_ky,
-				      double * gpu_kz,
+__global__ void BoxReciprocalSetupGPU(double *gpu_x,
+				      double *gpu_y,
+				      double *gpu_z,
+				      double *gpu_kx,
+				      double *gpu_ky,
+				      double *gpu_kz,
 				      double atomNumber,
-				      double * gpu_particleCharge,
-				      double * gpu_sumRnew,
-				      double * gpu_sumInew,
+				      double *gpu_particleCharge,
+				      double *gpu_sumRnew,
+				      double *gpu_sumInew,
 				      double imageSize)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
@@ -153,7 +153,7 @@ __global__ void BoxReciprocalSetupGPU(double * gpu_x,
   
   gpu_sumRnew[threadID] = 0.0;
   gpu_sumInew[threadID] = 0.0;
-  for(i=0; i<atomNumber; i++)
+  for(i = 0; i<atomNumber; i++)
   {
     dotP = DotProduct(gpu_kx[threadID], gpu_ky[threadID], gpu_kz[threadID],
 		      gpu_x[i], gpu_y[i], gpu_z[i]);
@@ -172,8 +172,9 @@ __global__ void BoxReciprocalGPU(double *gpu_prefact,
   if(threadID>=imageSize)
     return;
   
-  gpu_energyRecip[threadID] = gpu_sumRnew[threadID] * gpu_sumRnew[threadID] +
-    gpu_sumInew[threadID] * gpu_sumInew[threadID] * gpu_prefact[threadID];
+  gpu_energyRecip[threadID] = ((gpu_sumRnew[threadID] * gpu_sumRnew[threadID] +
+				gpu_sumInew[threadID] * gpu_sumInew[threadID]) *
+			       gpu_prefact[threadID]);
 }
 
 __device__ double DotProduct(double kx, double ky, double kz, 

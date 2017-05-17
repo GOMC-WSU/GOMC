@@ -638,7 +638,7 @@ double EwaldCached::BoxSelf(BoxDimensions const& boxAxes, uint box) const
    double self = 0.0;
    double molSelfEnergy;
    uint i, j, length;
-   for (i = 0; i < mols.kindsCount; i++)
+   for (i = 0; i < mols.GetKindsCount(); i++)
    {
      MoleculeKind const& thisKind = mols.kinds[i];
      length = thisKind.NumAtoms();
