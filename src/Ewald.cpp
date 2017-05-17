@@ -287,7 +287,21 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
       uint i, p, atom;
       double sumRealNew, sumImaginaryNew, dotProductNew, dotProductOld,
 	sumRealOld, sumImaginaryOld;
-
+#ifdef GOMC_CUDA
+      XYZArray cCoords(length);
+      XYZArray nCoords(length);
+      std::vector<double> MolCharge;
+      for(p = 0; p < length; p++)
+      {
+	cCoords.Set(p, currentCoords[startAtom + p]);
+	nCoords.Set(p, molCoords[p]);
+	MolCharge.push_back(thisKind.AtomCharge(p));
+      }
+      CallMolReciprocalGPU(cCoords, nCoords, kxRef[box], kyRef[box], kzRef[box],
+			   MolCharge, imageSizeRef[box], sumRref[box],
+			   sumIref[box], sumRnew[box], sumInew[box],
+			   prefactRef[box], energyRecipNew);
+#else
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, p, atom, sumRealNew, sumImaginaryNew, sumRealOld, sumImaginaryOld, dotProductNew, dotProductOld) reduction(+:energyRecipNew, energyRecipOld)
 #endif
@@ -324,8 +338,8 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
 	 energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
 			    * sumInew[box][i]) * prefactRef[box][i];	 
       }
+#endif
    }
-
    return energyRecipNew - sysPotRef.boxEnergy[box].recip; 
 }
 
