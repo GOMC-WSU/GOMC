@@ -42,7 +42,6 @@ EwaldCached::EwaldCached(StaticVals const& stat, System & sys) :
 #else
    currentAxes(stat.boxDimensions)
 #endif
-   , cellList(sys.cellList)
 { }
 
 
@@ -702,34 +701,44 @@ double EwaldCached::FixMolCorrection(uint box) const
    //We consider the adsorbent as one molecule and later calculate the 
    //correction energy for that. 
 
-   int i;
+   int i, j;
    double dist, distSq;
    double correction = 0.0;
    XYZ virComponents; 
-   std::vector<uint> pair1, pair2;
-   CellList::Pairs pair = cellList.EnumeratePairs(box);
+   MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
+   MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+   std::vector<int> atomID;
 
-   //store atom pair index
-   while (!pair.Done()) 
+   while (thisMol != end)
    {
-     pair1.push_back(pair.First());
-     pair2.push_back(pair.Second());
-     pair.Next();
+     //We need to store the atom index of fixed molecule
+     if(molLookup.IsFix(*thisMol))
+     {
+       MoleculeKind& molKind = mols.kinds[mols.kIndex[*thisMol]];
+       uint start =  mols.MolStart(*thisMol);
+       uint molSize = molKind.NumAtoms();
+       for(int j = 0; j < molSize; j++)
+       {
+	 atomID.push_back(start + j);
+       }
+     }
+     ++thisMol;
    }
 
+
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, dist, distSq) reduction(+:correction) 
+#pragma omp parallel for default(shared) private(i, j, dist, distSq) reduction(+:correction) 
 #endif 
-   for (i = 0; i < pair1.size(); i++)
+   for (i = 0; i < atomID.size(); i++)
    {
-     //If both atom are fixed
-     if(molLookup.NoInteract(particleMol[pair1[i]], particleMol[pair2[i]]))
+     
+     for (j = i + 1; j < atomID.size(); j++)
      {
 
-       currentAxes.InRcut(distSq, virComponents, currentCoords, pair1[i],
-			  pair2[i], box);
+       currentAxes.InRcut(distSq, virComponents, currentCoords, atomID[i],
+			  atomID[j], box);
        dist = sqrt(distSq);
-       correction += (particleCharge[pair1[i]] * particleCharge[pair2[i]] *
+       correction += (particleCharge[atomID[i]] * particleCharge[atomID[j]] *
 		      erf(alpha * dist) / dist);
       }
    }

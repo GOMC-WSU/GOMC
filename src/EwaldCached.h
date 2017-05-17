@@ -15,7 +15,6 @@
 #include "BoxDimensions.h"
 #include "MoleculeKind.h"
 #include "TrialMol.h"
-#include "CellList.h"
 
 //
 //    Calculating Electrostatic calculation with caching Fourier terms.
@@ -140,7 +139,6 @@ class EwaldCached
    const BoxDimensions& currentAxes;
    const COM& currentCOM;
    const SystemPotential &sysPotRef;
-   const CellList& cellList;
 
    bool electrostatic, ewald;
    double alpha; 
