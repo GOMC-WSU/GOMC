@@ -69,6 +69,8 @@ class Ewald : public EwaldCached
    //update sinMol and cosMol
    virtual void exgMolCache();
 
+ private:
+   double currentEnergyRecip;
 };
 
 
