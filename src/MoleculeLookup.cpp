@@ -11,7 +11,7 @@
 void MoleculeLookup::Init(const Molecules& mols,
                           const pdb_setup::Atoms& atomData)
 {
-  numKinds = mols.kindsCount;
+  numKinds = mols.GetKindsCount();
   molLookup = new uint[mols.count];
   //+1 to store end value
   boxAndKindStart = new uint[numKinds * BOX_TOTAL + 1];

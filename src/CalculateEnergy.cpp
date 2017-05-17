@@ -242,7 +242,8 @@ Virial CalculateEnergy::ForceCalc(const uint box)
    CallBoxInterForceGPU(forcefield.particles->getCUDAVars(), pair1, pair2, 
 			currentCoords, currentCOM, currentAxes,	electrostatic, 
 			particleCharge,	particleKind, particleMol, 
-			tempVir.inter, tempVir.real, box);
+		        rT11, rT12, rT13, rT22, rT23, rT33, vT11, vT12, vT13, 
+			vT22, vT23, vT33, box);
 #else
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, distSq, pVF, pRF, qi_qj, virC, comC) reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33) 
@@ -290,6 +291,7 @@ Virial CalculateEnergy::ForceCalc(const uint box)
 	 vT33 += pVF * (virC.z * comC.z);
       }      
    }
+#endif
 
    // set the all tensor values
    tempVir.interTens[0][0] = vT11;
@@ -319,7 +321,6 @@ Virial CalculateEnergy::ForceCalc(const uint box)
      tempVir.realTens[2][1] = rT23 * num::qqFact;
      tempVir.realTens[2][2] = rT33 * num::qqFact;   
    }
-#endif
 
    // setting virial of LJ   
    tempVir.inter = vT11 + vT22 + vT33;
@@ -599,12 +600,12 @@ Intermolecular CalculateEnergy::MoleculeTailChange(const uint box,
   {
 
     double sign = (add ? 1.0 : -1.0);
-    uint mkIdxII = kind * mols.kindsCount + kind;
-    for (uint j = 0; j < mols.kindsCount; ++j)
+    uint mkIdxII = kind * mols.GetKindsCount() + kind;
+    for (uint j = 0; j < mols.GetKindsCount(); ++j)
     {
-      uint mkIdxIJ = j * mols.kindsCount + kind;
+      uint mkIdxIJ = j * mols.GetKindsCount() + kind;
       double rhoDeltaIJ_2 = sign * 2.0 *
-                            (double)(molLookup.NumKindInBox(j, box)) * currentAxes.volInv[box];
+	(double)(molLookup.NumKindInBox(j, box)) * currentAxes.volInv[box];
       delta.energy += mols.pairEnCorrections[mkIdxIJ] * rhoDeltaIJ_2;
     }
 
@@ -879,13 +880,13 @@ void CalculateEnergy::EnergyCorrection(SystemPotential& pot,
   {
     double en = 0.0;
 
-    for (uint i = 0; i < mols.kindsCount; ++i)
+    for (uint i = 0; i < mols.GetKindsCount(); ++i)
     {
       uint numI = molLookup.NumKindInBox(i, box);
-      for (uint j = 0; j < mols.kindsCount; ++j)
+      for (uint j = 0; j < mols.GetKindsCount(); ++j)
       {
         uint numJ = molLookup.NumKindInBox(j, box);
-        en += mols.pairEnCorrections[i * mols.kindsCount + j] * numI * numJ
+        en += mols.pairEnCorrections[i * mols.GetKindsCount() + j] * numI * numJ
               * boxAxes.volInv[box];
       }
     }
@@ -901,13 +902,13 @@ void CalculateEnergy::ForceCorrection(Virial& virial,
   {
     double vir = 0.0;
 
-    for (uint i = 0; i < mols.kindsCount; ++i)
+    for (uint i = 0; i < mols.GetKindsCount(); ++i)
     {
       uint numI = molLookup.NumKindInBox(i, box);
-      for (uint j = 0; j < mols.kindsCount; ++j)
+      for (uint j = 0; j < mols.GetKindsCount(); ++j)
       {
         uint numJ = molLookup.NumKindInBox(j, box);
-        vir += mols.pairVirCorrections[i * mols.kindsCount + j] *
+        vir += mols.pairVirCorrections[i * mols.GetKindsCount() + j] *
                numI * numJ * boxAxes.volInv[box];
       }
     }

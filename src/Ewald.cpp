@@ -179,33 +179,28 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
       MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
 
 #ifdef GOMC_CUDA
-      int numberOfAtoms = 0;
-      while(thisMol != end)
+      int numberOfAtoms = 0, i = 0;
+
+      for(int k = 0; k < mols.GetKindsCount(); k++)
       {
-	MoleculeKind const& thisKind = mols.GetKind(*thisMol);
-	for(j=0; j<thisKind.NumAtoms(); j++)
-	{
-	  numberOfAtoms++;
-	}
-	thisMol++;
+	MoleculeKind const& thisKind = mols.kinds[k];		
+	numberOfAtoms += thisKind.NumAtoms() * molLookup.NumKindInBox(k, box);
       }
+
       XYZArray thisBoxCoords(numberOfAtoms);
       std::vector<double> chargeBox;
-      i = 0;
-      thisMol = molLookup.BoxBegin(box);
-      end = molLookup.BoxEnd(box);
+
       while (thisMol != end)
       {
 	MoleculeKind const& thisKind = mols.GetKind(*thisMol);
 	for (j = 0; j < thisKind.NumAtoms(); j++)
 	{
-	  thisBoxCoords[i] = molCoords[mols.MolStart(*thisMol) + j];
+	  thisBoxCoords.Set(i, molCoords[mols.MolStart(*thisMol) + j]);
 	  chargeBox.push_back(thisKind.AtomCharge(j));
 	  i++;
 	}
 	thisMol++;
       }
-
       CallBoxReciprocalSetupGPU(thisBoxCoords, kx[box], ky[box], kz[box],
 				chargeBox, imageSize[box], sumRnew[box], 
 				sumInew[box]);
