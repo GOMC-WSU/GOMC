@@ -143,15 +143,8 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
 						       vars->gpu_ewald,
 						       vars->gpu_diElectric_1);
 
-  cudaError_t err;
-  err = cudaGetLastError();
-  if(err != cudaSuccess)
-  {
-    std::cout << cudaGetErrorString(err) << std::endl;
-    exit(-1);
-  }
   // ReduceSum // Virial of LJ
-  void * d_temp_storage = NULL;
+  void *d_temp_storage = NULL;
   size_t temp_storage_bytes = 0;
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_vT11,
 		    gpu_final_value, pair1.size());
