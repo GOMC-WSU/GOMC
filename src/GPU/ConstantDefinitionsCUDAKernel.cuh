@@ -5,7 +5,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include "GeomLib.h"
-#include "VariablesCUDA.h"
+#include "VariablesCUDA.cuh"
 
 #define GPU_VDW_STD_KIND 0
 #define GPU_VDW_SHIFT_KIND 1

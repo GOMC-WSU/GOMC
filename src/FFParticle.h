@@ -6,7 +6,7 @@
 #include "BasicTypes.h" //for uint
 #include "NumLib.h" //For Cb, Sq
 #ifdef GOMC_CUDA
-#include "VariablesCUDA.h"
+#include "VariablesCUDA.cuh"
 #endif
 
 // Virial and LJ potential calculation:
