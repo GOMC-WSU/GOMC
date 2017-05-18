@@ -110,7 +110,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
 		    gpu_final_LJEn, pair1.size());
   cudaFree(d_temp_storage);
-
   // Copy back the result to CPU ! :)
   CubDebugExit(cudaMemcpy(&cpu_final_REn, gpu_final_REn, sizeof(double),
 			  cudaMemcpyDeviceToHost));
