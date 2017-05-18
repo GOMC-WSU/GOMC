@@ -6,7 +6,7 @@
 #include <vector>
 #include "XYZArray.h"
 #include "BoxDimensions.h"
-#include "VariablesCUDA.h"
+#include "VariablesCUDA.cuh"
 
 using namespace std;
 
