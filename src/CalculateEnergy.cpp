@@ -19,7 +19,8 @@
 #include <omp.h>
 #ifdef GOMC_CUDA
 #include "CalculateEnergyCUDAKernel.cuh"
-#include "CalculateForceCUDAKernel.cuh"		 
+#include "CalculateForceCUDAKernel.cuh"
+#include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
 
 //
@@ -52,19 +53,26 @@ CalculateEnergy::CalculateEnergy(StaticVals const& stat, System & sys) :
 
 void CalculateEnergy::Init(System & sys)
 {
-   calcEwald = sys.GetEwald();
-   electrostatic = forcefield.electrostatic;
-   ewald = forcefield.ewald;
-   for(uint m = 0; m < mols.count; ++m)
-   {
-      const MoleculeKind& molKind = mols.GetKind(m);
-      for(uint a = 0; a < molKind.NumAtoms(); ++a)
-      {
-         particleKind.push_back(molKind.AtomKind(a));
-         particleMol.push_back(m);
-	 particleCharge.push_back(molKind.AtomCharge(a));
-      }
-   }
+  uint maxAtomInMol = 0;
+  calcEwald = sys.GetEwald();
+  electrostatic = forcefield.electrostatic;
+  ewald = forcefield.ewald;
+  for(uint m = 0; m < mols.count; ++m)
+  {
+    const MoleculeKind& molKind = mols.GetKind(m);
+    if(molKind.NumAtoms() > maxAtomInMol)
+      maxAtomInMol = molKind.NumAtoms();
+    for(uint a = 0; a < molKind.NumAtoms(); ++a)
+    {
+      particleKind.push_back(molKind.AtomKind(a));
+      particleMol.push_back(m);
+      particleCharge.push_back(molKind.AtomCharge(a));
+    }
+  }
+#ifdef GOMC_CUDA
+  InitCoordinatesCUDA(forcefield.particles->getCUDAVars(),
+		      currentCoords.Count(), maxAtomInMol, currentCOM.Count());
+#endif
 }
 
 SystemPotential CalculateEnergy::SystemTotal() 

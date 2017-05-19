@@ -70,7 +70,7 @@ class Ewald : public EwaldCached
    virtual void exgMolCache();
 
  private:
-   double currentEnergyRecip;
+   double currentEnergyRecip[BOX_TOTAL];
 };
 
 

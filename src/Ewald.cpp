@@ -18,6 +18,7 @@
 #include <omp.h>
 #ifdef GOMC_CUDA
 #include "CalculateEwaldCUDAKernel.cuh"
+#include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
 
 //
@@ -61,7 +62,7 @@ void Ewald::Init()
       SetRecipRef(b);
       printf("box: %d, RecipVectors: %d, kmax: %d\n", b, imageSize[b],
 	     kmax[b]);
-   }      
+   }
 }
 
 
@@ -88,6 +89,18 @@ void Ewald::AllocMem()
   hsqrRef = new double*[BOX_TOTAL];
   prefactRef = new double*[BOX_TOTAL];
      
+  for(uint b = 0; b < BOX_TOTAL; b++)
+  {
+     RecipCountInit(b, currentAxes);
+  }
+  //25% larger than original box size, reserved for image size change
+  imageTotal = findLargeImage();
+  memoryAllocation = imageTotal;
+
+#ifdef GOMC_CUDA
+  InitEwaldVariablesCUDA(forcefield.particles->getCUDAVars(), imageTotal);
+#endif  
+  
   for (uint b = 0; b < BOX_TOTAL; b++)
   {
      kx[b] = new double[imageTotal];
@@ -104,7 +117,7 @@ void Ewald::AllocMem()
      sumInew[b] = new double[imageTotal];
      sumRref[b] = new double[imageTotal];
      sumIref[b] = new double[imageTotal];     
-  }      
+  }
 }
 
 
@@ -201,9 +214,11 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 	}
 	thisMol++;
       }
-      CallBoxReciprocalSetupGPU(thisBoxCoords, kx[box], ky[box], kz[box],
+      CallBoxReciprocalSetupGPU(forcefield.particles->getCUDAVars(),
+				thisBoxCoords, kx[box], ky[box], kz[box],
 				chargeBox, imageSize[box], sumRnew[box], 
-				sumInew[box], prefact[box], currentEnergyRecip);
+				sumInew[box], prefact[box], hsqr[box],
+				currentEnergyRecip[box], box);
 #else
 #ifdef _OPENMP      
 #pragma omp parallel default(shared) 
@@ -253,7 +268,7 @@ double Ewald::BoxReciprocal(uint box) const
    if (box < BOXES_WITH_U_NB)
    {
 #ifdef GOMC_CUDA
-     return currentEnergyRecip;
+     return currentEnergyRecip[box];
 #else
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i) reduction(+:energyRecip)
@@ -295,10 +310,9 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
 	cCoords.Set(p, currentCoords[startAtom + p]);
 	MolCharge.push_back(thisKind.AtomCharge(p));
       }
-      CallMolReciprocalGPU(cCoords, molCoords, kxRef[box], kyRef[box],
-			   kzRef[box], MolCharge, imageSizeRef[box],
-			   sumRref[box], sumIref[box], sumRnew[box],
-			   sumInew[box], prefactRef[box], energyRecipNew);
+      CallMolReciprocalGPU(forcefield.particles->getCUDAVars(),
+			   cCoords, molCoords, MolCharge, imageSizeRef[box],
+			   sumRnew[box], sumInew[box], energyRecipNew, box);
 #else
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, p, atom, sumRealNew, sumImaginaryNew, sumRealOld, sumImaginaryOld, dotProductNew, dotProductOld) reduction(+:energyRecipNew, energyRecipOld)
@@ -366,10 +380,10 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
       {
 	MolCharge.push_back(thisKind.AtomCharge(p));
       }
-      CallSwapReciprocalGPU(molCoords, kxRef[box], kyRef[box], kzRef[box],
-			    MolCharge, imageSizeRef[box], sumRref[box],
-			    sumIref[box], sumRnew[box], sumInew[box],
-			    prefactRef[box], insert, energyRecipNew);
+      CallSwapReciprocalGPU(forcefield.particles->getCUDAVars(),
+			    molCoords, MolCharge, imageSizeRef[box],
+			    sumRnew[box], sumInew[box],
+			    insert, energyRecipNew, box);
 #else
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, p, dotProductNew, sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew) 
@@ -427,10 +441,11 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
       {
 	MolCharge.push_back(thisKind.AtomCharge(p));
       }
-      CallSwapReciprocalGPU(molCoords, kxRef[box], kyRef[box], kzRef[box],
-			    MolCharge, imageSizeRef[box], sumRref[box],
-			    sumIref[box], sumRnew[box], sumInew[box],
-			    prefactRef[box], insert, energyRecipNew);
+      CallSwapReciprocalGPU(forcefield.particles->getCUDAVars(),
+			    molCoords, MolCharge, imageSizeRef[box],
+			    sumRnew[box], sumInew[box],
+			    insert, energyRecipNew, box);
+
 #else
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, p, dotProductNew, sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
