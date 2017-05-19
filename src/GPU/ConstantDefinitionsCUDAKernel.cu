@@ -97,6 +97,7 @@ void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal)
   vars->gpu_prefactRef = new double *[BOX_TOTAL];
   vars->gpu_hsqr = new double *[BOX_TOTAL];
   vars->gpu_hsqrRef = new double *[BOX_TOTAL];
+
   for(uint b = 0; b < BOX_TOTAL; b++)
   {
     cudaMalloc(&vars->gpu_kx[b], imageTotal * sizeof(double));

@@ -1,5 +1,6 @@
 #include "Simulation.h"
 #include "GOMC_Config.h"    //For version number
+#include "cuda.h"
 #include <iostream>
 #include <ctime>
 
@@ -26,11 +27,17 @@ namespace{
 }
 
 void PrintHardwareInfo();
+#ifdef GOMC_CUDA
+void PrintGPUHardwareInfo();
+#endif
 
 int main(int argc, char *argv[])
 {
    PrintSimulationHeader();
    PrintHardwareInfo();
+#ifdef GOMC_CUDA
+   PrintGPUHardwareInfo();
+#endif
    //Only run if valid ensemble was detected.
    if (CheckAndPrintEnsemble())
    {   
@@ -242,3 +249,31 @@ void PrintHardwareInfo()
 #endif
 }
 
+#ifdef GOMC_CUDA
+void PrintGPUHardwareInfo()
+{
+  int nDevices;
+  int fast = 0;
+  int fastIndex = 0;
+
+  cudaGetDeviceCount(&nDevices);
+  for (int i = 0; i < nDevices; i++)
+  {
+    cudaDeviceProp prop;
+    cudaGetDeviceProperties(&prop, i);
+    printf("Device Number: %d\n", i);
+    printf("  Device name: %s\n", prop.name);
+    printf("  Memory Clock Rate (KHz): %d\n", prop.memoryClockRate);
+    printf("  Memory Bus Width (bits): %d\n", prop.memoryBusWidth);
+    printf("  Peak Memory Bandwidth (GB/s): %f\n\n",
+           2.0*prop.memoryClockRate*(prop.memoryBusWidth/8)/1.0e6);
+    if( prop.memoryClockRate > fast)
+    {
+      fast =  prop.memoryClockRate;
+      fastIndex = i;
+    }
+  }
+  cudaSetDevice(fastIndex);
+  printf("Using Device Number: %d\n", fastIndex);
+}
+#endif
