@@ -85,8 +85,8 @@ void System::Init(Setup const& set)
      calcEwald = new NoEwald(statV, *this);
 #endif
 
-   calcEwald->Init();   
    calcEnergy.Init(*this);
+   calcEwald->Init();
    potential = calcEnergy.SystemTotal();
    InitMoves();
 }

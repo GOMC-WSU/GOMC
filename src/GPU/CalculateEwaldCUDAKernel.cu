@@ -36,7 +36,7 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
   cudaMalloc((void**) &gpu_energyRecip, imageSize * sizeof(double));
   cudaMalloc((void**) &gpu_final_energyRecip, sizeof(double));
 
-  cudaMemcpy(gpu_particleCharge, &particleCharge[0],
+  cudaMemcpy(gpu_particleCharge, &particleCharge[0], 
 	     particleCharge.size() * sizeof(double),
 	     cudaMemcpyHostToDevice);
 
@@ -71,18 +71,22 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
 		       vars->gpu_sumRnew[box],
 		       vars->gpu_sumInew[box], 
 		       imageSize);
-  BoxReciprocalGPU<<<blocksPerGrid,
-    threadsPerBlock>>>(vars->gpu_prefact[box],
+
+  BoxReciprocalGPU<<<blocksPerGrid,threadsPerBlock>>>(vars->gpu_prefact[box],
 		       vars->gpu_sumRnew[box],
 		       vars->gpu_sumInew[box],
 		       gpu_energyRecip,
-		       imageSize);
-  
+			 imageSize);
+ 
+#ifndef NDEBUG
   // In the future maybe we could remove this for Nondebug?
-  cudaMemcpy(sumRnew, vars->gpu_sumRnew[box], imageSize * sizeof(double), 
+  cudaMemcpy(sumRnew, vars->gpu_sumRnew[box], 
+	     imageSize * sizeof(double), 
 	     cudaMemcpyDeviceToHost);
-  cudaMemcpy(sumInew, vars->gpu_sumInew[box], imageSize * sizeof(double),
+  cudaMemcpy(sumInew, vars->gpu_sumInew[box], 
+	     imageSize * sizeof(double),
 	     cudaMemcpyDeviceToHost);
+#endif
 
   // ReduceSum
   void *d_temp_storage = NULL;
@@ -146,7 +150,8 @@ void CallMolReciprocalGPU(VariablesCUDA *vars,
   MolReciprocalGPU<<<blocksPerGrid,
     threadsPerBlock>>>(vars->gpu_x, vars->gpu_y, vars->gpu_z,
 		       vars->gpu_nx, vars->gpu_ny, vars->gpu_nz,
-		       vars->gpu_kx[box], vars->gpu_ky[box], vars->gpu_kz[box], 
+		       vars->gpu_kxRef[box], vars->gpu_kyRef[box],
+		       vars->gpu_kzRef[box], 
 		       atomNumber,
 		       gpu_particleCharge,
 		       vars->gpu_sumRnew[box],
@@ -156,10 +161,12 @@ void CallMolReciprocalGPU(VariablesCUDA *vars,
 		       vars->gpu_prefactRef[box],
 		       gpu_energyRecipNew,
 		       imageSize);
+#ifndef NDEBUG
   cudaMemcpy(sumRnew, vars->gpu_sumRnew[box], imageSize * sizeof(double),
 	     cudaMemcpyDeviceToHost);
   cudaMemcpy(sumInew, vars->gpu_sumInew[box], imageSize * sizeof(double),
 	     cudaMemcpyDeviceToHost);
+#endif
 
   // ReduceSum
   void *d_temp_storage = NULL;
@@ -216,7 +223,8 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars,
   blocksPerGrid = (int)(imageSize/threadsPerBlock) + 1;
   SwapReciprocalGPU<<<blocksPerGrid,
     threadsPerBlock>>>(vars->gpu_x, vars->gpu_y, vars->gpu_z,
-		       vars->gpu_kx[box], vars->gpu_ky[box], vars->gpu_kz[box], 
+		       vars->gpu_kxRef[box], vars->gpu_kyRef[box],
+		       vars->gpu_kzRef[box], 
 		       atomNumber, 
 		       gpu_particleCharge,
 		       vars->gpu_sumRnew[box],
@@ -228,11 +236,13 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars,
 		       gpu_energyRecipNew,
 		       imageSize);
 
+#ifndef NDEBUG
   // In the future maybe we could remove this for Nondebug?
   cudaMemcpy(sumRnew, vars->gpu_sumRnew[box], imageSize * sizeof(double),
 	     cudaMemcpyDeviceToHost);
   cudaMemcpy(sumInew, vars->gpu_sumInew[box], imageSize * sizeof(double),
 	     cudaMemcpyDeviceToHost);
+#endif
 
   // ReduceSum
   void *d_temp_storage = NULL;
@@ -363,7 +373,7 @@ __global__ void BoxReciprocalSetupGPU(double *gpu_x,
     return;
   int i;
   double dotP;
-  
+ 
   gpu_sumRnew[threadID] = 0.0;
   gpu_sumInew[threadID] = 0.0;
   for(i = 0; i<atomNumber; i++)
