@@ -4,12 +4,14 @@
 #ifdef GOMC_CUDA
 #include <cuda.h>
 #include <cuda_runtime.h>
+#include "VariablesCUDA.cuh"
 #include <vector>
 #include "XYZArray.h"
 
 using namespace std;
 
-void CallBoxReciprocalSetupGPU(XYZArray const & coords,
+void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
+			       XYZArray const &coords,
 			       double const *kx,
 			       double const *ky,
 			       double const *kz,
@@ -18,35 +20,29 @@ void CallBoxReciprocalSetupGPU(XYZArray const & coords,
 			       double *sumRnew,
 			       double *sumInew,
 			       double *prefact,
-			       double &energyRecip);
+			       double *hsqr,
+			       double &energyRecip,
+			       uint box);
 
-void CallMolReciprocalGPU(XYZArray const &currentCoords,
+void CallMolReciprocalGPU(VariablesCUDA *vars,
+			  XYZArray const &currentCoords,
 			  XYZArray const &newCoords,
-			  double const *kx,
-			  double const *ky,
-			  double const *kz,
 			  vector<double> particleCharge,
 			  uint imageSize,
-			  double const *sumRref,
-			  double const *sumIref,
 			  double *sumRnew,
 			  double *sumInew,
-			  double const *prefactRef,
-			  double &energyRecipNew);
+			  double &energyRecipNew,
+			  uint box);
 
-void CallSwapReciprocalGPU(XYZArray const &coords,
-			   double const *kx,
-			   double const *ky,
-			   double const *kz,
+void CallSwapReciprocalGPU(VariablesCUDA *vars,
+			   XYZArray const &coords,
 			   vector<double> particleCharge,
 			   uint imageSize,
-			   double const *sumRref,
-			   double const *sumIref,
 			   double *sumRnew,
 			   double *sumInew,
-			   double const *prefactRef,
 			   int const insert,
-			   double &energyRecipNew);
+			   double &energyRecipNew,
+			   uint box);
 
 __global__ void BoxReciprocalSetupGPU(double * gpu_x,
 				      double * gpu_y,

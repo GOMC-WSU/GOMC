@@ -23,16 +23,12 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   int *gpu_pair1, *gpu_pair2, *gpu_particleKind;
   int blocksPerGrid, threadsPerBlock;
   double *gpu_particleCharge;
-  double *gpu_x, *gpu_y, *gpu_z;
   double *gpu_REn, *gpu_LJEn;
   double *gpu_final_REn, *gpu_final_LJEn;
   double cpu_final_REn, cpu_final_LJEn;
 
   cudaMalloc((void**) &gpu_pair1, pair1.size() * sizeof(int));
   cudaMalloc((void**) &gpu_pair2, pair2.size() * sizeof(int));
-  cudaMalloc((void**) &gpu_x, atomNumber * sizeof(double));
-  cudaMalloc((void**) &gpu_y, atomNumber * sizeof(double));
-  cudaMalloc((void**) &gpu_z, atomNumber * sizeof(double));
   cudaMalloc((void**) &gpu_particleCharge, 
   	     particleCharge.size() * sizeof(double));
   cudaMalloc((void**) &gpu_particleKind,
@@ -54,11 +50,11 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   cudaMemcpy(gpu_particleKind, &particleKind[0], 
 	     particleKind.size() * sizeof(int),
 	     cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_x, coords.x, atomNumber * sizeof(double),
+  cudaMemcpy(vars->gpu_x, coords.x, atomNumber * sizeof(double),
 	     cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_y, coords.y, atomNumber * sizeof(double),
+  cudaMemcpy(vars->gpu_y, coords.y, atomNumber * sizeof(double),
 	     cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_z, coords.z, atomNumber * sizeof(double),
+  cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double),
 	     cudaMemcpyHostToDevice);
 
   // Run the kernel...
@@ -66,9 +62,9 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   blocksPerGrid = (int)(pair1.size()/threadsPerBlock) + 1;
   BoxInterGPU<<<blocksPerGrid, threadsPerBlock>>>(gpu_pair1, 
 						  gpu_pair2, 
-						  gpu_x, 
-						  gpu_y, 
-						  gpu_z, 
+						  vars->gpu_x, 
+						  vars->gpu_y, 
+						  vars->gpu_z, 
 						  boxAxes.GetAxis(box).x, 
 						  boxAxes.GetAxis(box).y, 
 						  boxAxes.GetAxis(box).z, 
@@ -120,9 +116,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
 
   cudaFree(gpu_pair1);
   cudaFree(gpu_pair2);
-  cudaFree(gpu_x);
-  cudaFree(gpu_y);
-  cudaFree(gpu_z);
   cudaFree(gpu_particleCharge);
   cudaFree(gpu_particleKind);
   cudaFree(gpu_REn);

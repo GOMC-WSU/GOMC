@@ -6,6 +6,7 @@
 #include <cuda_runtime.h>
 #include "GeomLib.h"
 #include "VariablesCUDA.cuh"
+#include "EnsemblePreprocessor.h"
 
 #define GPU_VDW_STD_KIND 0
 #define GPU_VDW_SHIFT_KIND 1
@@ -16,6 +17,12 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
 		       int VDW_Kind, int isMartini, int count,
 		       double Rcut, double RcutLow, double Ron, double alpha,
 		       int ewald, double diElectric_1);
+void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
+			 uint maxAtomsInMol, uint maxMolNumber);
+void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal);
+void CopyCurrentToRefCUDA(VariablesCUDA *vars, uint box, uint imageTotal);
+void UpdateRecipVecCUDA(VariablesCUDA *vars, uint box);
+void UpdateRecipCUDA(VariablesCUDA *vars, uint box);
 
 #endif /*GOMC_CUDA*/
 #endif /*CONSTANT_DEFINITIONS_CUDA_KERNEL*/

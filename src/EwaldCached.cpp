@@ -29,9 +29,7 @@ using namespace geom;
 
 EwaldCached::EwaldCached(StaticVals const& stat, System & sys) :
    forcefield(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
-   currentCOM(sys.com), ewald(false), electrostatic(false),
-   sysPotRef(sys.potential), imageLarge(0),
-   imageTotal(100000), alpha(0.0), recip_rcut(0.0), recip_rcut_Sq(0.0),
+   currentCOM(sys.com), sysPotRef(sys.potential),
 #ifdef VARIABLE_PARTICLE_NUMBER
    molLookup(sys.molLookup),
 #else
@@ -42,15 +40,22 @@ EwaldCached::EwaldCached(StaticVals const& stat, System & sys) :
 #else
    currentAxes(stat.boxDimensions)
 #endif
-{ }
+{ 
+  ewald = false;
+  electrostatic = false;
+  imageLarge = 0;
+  alpha = 0.0;
+  recip_rcut = 0.0;
+  recip_rcut_Sq = 0.0;
+}
 
 
 EwaldCached::~EwaldCached()
 {
-  if (ewald)
+  if(ewald)
   {
 
-     for (int i = 0; i < mols.count; i++)
+     for(int i = 0; i < mols.count; i++)
      {
         //when cached option is choosen
         if (cosMolRef[i] != NULL)
@@ -213,8 +218,16 @@ void EwaldCached::AllocMem()
   sinMolRef = new double*[mols.count];
   cosMolBoxRecip = new double*[mols.count];
   sinMolBoxRecip = new double*[mols.count];
+
+  for(uint b = 0; b < BOX_TOTAL; b++)
+  {
+     RecipCountInit(b, currentAxes);
+  }
+  //25% larger than original box size, reserved for image size change
+  imageTotal = findLargeImage();
+  memoryAllocation = imageTotal;
      
-  for (uint b = 0; b < BOX_TOTAL; b++)
+  for(uint b = 0; b < BOX_TOTAL; b++)
   {
      kx[b] = new double[imageTotal];
      ky[b] = new double[imageTotal];
@@ -230,15 +243,10 @@ void EwaldCached::AllocMem()
      sumInew[b] = new double[imageTotal];
      sumRref[b] = new double[imageTotal];
      sumIref[b] = new double[imageTotal];
-     
-     RecipCountInit(b, currentAxes);
   }
-  //25% larger than original box size, reserved for image size change
-  uint initImageSize = findLargeImage();
-  memoryAllocation = initImageSize;
   
-  cosMolRestore = new double[initImageSize];
-  sinMolRestore = new double[initImageSize];
+  cosMolRestore = new double[imageTotal];
+  sinMolRestore = new double[imageTotal];
   
   uint i;
 #ifdef _OPENMP
@@ -246,10 +254,10 @@ void EwaldCached::AllocMem()
 #endif
   for (i = 0; i < mols.count; i++)
   {
-     cosMolRef[i] = new double[initImageSize];
-     sinMolRef[i] = new double[initImageSize];
-     cosMolBoxRecip[i] = new double[initImageSize];
-     sinMolBoxRecip[i] = new double[initImageSize];
+     cosMolRef[i] = new double[imageTotal];
+     sinMolRef[i] = new double[imageTotal];
+     cosMolBoxRecip[i] = new double[imageTotal];
+     sinMolBoxRecip[i] = new double[imageTotal];
   }
        
 }
@@ -363,11 +371,6 @@ void EwaldCached::RecipCountInit(uint box, BoxDimensions const& boxAxes)
       }
    }
    imageSize[box] = counter;
-   if (counter > imageTotal)
-   {
-     std::cout<< "Error: Number of reciprocate vectors is greater than initialized vector size." << std::endl;  
-     exit(EXIT_FAILURE);
-   }
 }
 
 
@@ -918,6 +921,10 @@ void EwaldCached::SetRecipRef(uint box)
      std::memcpy(hsqrRef[box], hsqr[box], sizeof(double) * imageSize[box]);
      std::memcpy(prefactRef[box], prefact[box], sizeof(double) *imageSize[box]);
   }
+#ifdef GOMC_CUDA
+  CopyCurrentToRefCUDA(forcefield.particles->getCUDAVars(),
+		       box, imageSize[box]);
+#endif
   for(uint b= 0; b < BOX_TOTAL; b++)
   {
     imageSizeRef[b] = imageSize[b];
@@ -928,40 +935,46 @@ void EwaldCached::SetRecipRef(uint box)
 //update reciprocate values
 void EwaldCached::UpdateRecip(uint box)
 {
-   double *tempR, *tempI;
-   tempR = sumRref[box];
-   tempI = sumIref[box];
-   sumRref[box] = sumRnew[box];
-   sumIref[box] = sumInew[box];
-   sumRnew[box] = tempR;
-   sumInew[box] = tempI;
+  double *tempR, *tempI;
+  tempR = sumRref[box];
+  tempI = sumIref[box];
+  sumRref[box] = sumRnew[box];
+  sumIref[box] = sumInew[box];
+  sumRnew[box] = tempR;
+  sumInew[box] = tempI;
+#ifdef GOMC_CUDA
+  UpdateRecipCUDA(forcefield.particles->getCUDAVars(), box);
+#endif
 }
 
 void EwaldCached::UpdateRecipVec(uint box)
 {
   double *tempKx, *tempKy, *tempKz, *tempHsqr, *tempPrefact;
-   tempKx = kxRef[box];
-   tempKy = kyRef[box];
-   tempKz = kzRef[box];
-   tempHsqr = hsqrRef[box];
-   tempPrefact = prefactRef[box];
-
-   kxRef[box] = kx[box];
-   kyRef[box] = ky[box];
-   kzRef[box] = kz[box];
-   hsqrRef[box] = hsqr[box];
-   prefactRef[box] = prefact[box];
-   
-   kx[box] = tempKx;
-   ky[box] = tempKy;
-   kz[box] = tempKz;
-   hsqr[box] = tempHsqr;
-   prefact[box] = tempPrefact;
-
-   for(uint b = 0; b < BOX_TOTAL; b++)
-   {
-     imageSizeRef[b] = imageSize[b];
-   }
+  tempKx = kxRef[box];
+  tempKy = kyRef[box];
+  tempKz = kzRef[box];
+  tempHsqr = hsqrRef[box];
+  tempPrefact = prefactRef[box];
+  
+  kxRef[box] = kx[box];
+  kyRef[box] = ky[box];
+  kzRef[box] = kz[box];
+  hsqrRef[box] = hsqr[box];
+  prefactRef[box] = prefact[box];
+  
+  kx[box] = tempKx;
+  ky[box] = tempKy;
+  kz[box] = tempKz;
+  hsqr[box] = tempHsqr;
+  prefact[box] = tempPrefact;
+#ifdef GOMC_CUDA
+  UpdateRecipVecCUDA(forcefield.particles->getCUDAVars(), box);
+#endif
+  
+  for(uint b = 0; b < BOX_TOTAL; b++)
+  {
+    imageSizeRef[b] = imageSize[b];
+  }
 }
 
 //restore cosMol and sinMol

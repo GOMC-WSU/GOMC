@@ -15,7 +15,9 @@
 #include "BoxDimensions.h"
 #include "MoleculeKind.h"
 #include "TrialMol.h"
-
+#ifdef GOMC_CUDA
+#include "ConstantDefinitionsCUDAKernel.cuh"
+#endif
 
 //
 //    Calculating Electrostatic calculation with caching Fourier terms.
@@ -146,7 +148,7 @@ class EwaldCached
    uint *imageSize;
    uint *imageSizeRef;
    //const uint imageTotal = GetImageSize();
-   const int imageTotal;
+   uint imageTotal;
    uint memoryAllocation;
    uint imageLarge;
    uint *kmax;
