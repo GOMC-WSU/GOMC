@@ -1,5 +1,4 @@
-#ifndef CALCULATE_ENERGY_CUDA_KERNEL
-#define CALCULATE_ENERGY_CUDA_KERNEL
+#pragma once
 #ifdef GOMC_CUDA
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -93,4 +92,3 @@ __device__ double CalcEnSwitchGPU(double distSq, int index, double *gpu_sigmaSq,
 				  double gpu_rCut, double gpu_rOn);
 
 #endif /*GOMC_CUDA*/
-#endif /*CALCULATE_ENERGY_CUDA_KERNEL*/

@@ -284,8 +284,8 @@ __global__ void SwapReciprocalGPU(double *gpu_x, double *gpu_y, double *gpu_z,
 
   for(p = 0; p < atomNumber; p++)
   {
-    dotProduct = DotProduct(gpu_kx[threadID], gpu_ky[threadID],gpu_kz[threadID],
-			    gpu_x[p], gpu_y[p], gpu_z[p]);
+    dotProduct = DotProductGPU(gpu_kx[threadID], gpu_ky[threadID],
+			       gpu_kz[threadID], gpu_x[p], gpu_y[p], gpu_z[p]);
     sumReal += (gpu_particleCharge[p] * cos(dotProduct));
     sumImaginary += (gpu_particleCharge[p] * sin(dotProduct));
   }
@@ -333,10 +333,10 @@ __global__ void MolReciprocalGPU(double *gpu_cx, double *gpu_cy, double *gpu_cz,
   
   for(p = 0; p < atomNumber; p++)
   {
-    dotProductOld = DotProduct(gpu_kx[threadID], gpu_ky[threadID], 
+    dotProductOld = DotProductGPU(gpu_kx[threadID], gpu_ky[threadID], 
 			       gpu_kz[threadID],
 			       gpu_cx[p], gpu_cy[p], gpu_cz[p]);
-    dotProductNew = DotProduct(gpu_kx[threadID], gpu_ky[threadID], 
+    dotProductNew = DotProductGPU(gpu_kx[threadID], gpu_ky[threadID], 
 			       gpu_kz[threadID],
 			       gpu_nx[p], gpu_ny[p], gpu_nz[p]);
     sumRealNew += (gpu_particleCharge[p] * cos(dotProductNew));
@@ -378,7 +378,7 @@ __global__ void BoxReciprocalSetupGPU(double *gpu_x,
   gpu_sumInew[threadID] = 0.0;
   for(i = 0; i<atomNumber; i++)
   {
-    dotP = DotProduct(gpu_kx[threadID], gpu_ky[threadID], gpu_kz[threadID],
+    dotP = DotProductGPU(gpu_kx[threadID], gpu_ky[threadID], gpu_kz[threadID],
 		      gpu_x[i], gpu_y[i], gpu_z[i]);
     gpu_sumRnew[threadID] += gpu_particleCharge[i] * cos(dotP);
     gpu_sumInew[threadID] += gpu_particleCharge[i] * sin(dotP);
@@ -398,12 +398,6 @@ __global__ void BoxReciprocalGPU(double *gpu_prefact,
   gpu_energyRecip[threadID] = ((gpu_sumRnew[threadID] * gpu_sumRnew[threadID] +
 				gpu_sumInew[threadID] * gpu_sumInew[threadID]) *
 			       gpu_prefact[threadID]);
-}
-
-__device__ double DotProduct(double kx, double ky, double kz, 
-			     double x, double y, double z)
-{
-  return (kx * x + ky * y + kz * z);
 }
 
 #endif
