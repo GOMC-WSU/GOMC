@@ -88,8 +88,5 @@ __global__ void BoxReciprocalGPU(double *gpu_prefact,
 				 double *gpu_energyRecip,
 				 int imageSize);
 
-__device__ double DotProduct(double kx, double ky, double kz,
-			     double x, double y, double z);
-
 #endif /*GOMC_CUDA*/
 #endif /*CALCULATE_EWALD_CUDA_KERNEL*/

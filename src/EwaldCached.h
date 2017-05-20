@@ -17,6 +17,7 @@
 #include "TrialMol.h"
 #ifdef GOMC_CUDA
 #include "ConstantDefinitionsCUDAKernel.cuh"
+#include "CalculateForceCUDAKernel.cuh"
 #endif
 
 //

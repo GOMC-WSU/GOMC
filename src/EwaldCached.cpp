@@ -483,6 +483,46 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
 
    XYZ atomC, comC, diffC;
 
+#ifdef GOMC_CUDA
+   int numberOfAtoms = 0, atomIndex = 0;
+
+   for(int k = 0; k < mols.GetKindsCount(); k++)
+   {
+     MoleculeKind const& thisKind = mols.kinds[k];		
+     numberOfAtoms += thisKind.NumAtoms() * molLookup.NumKindInBox(k, box);
+   }
+
+   XYZArray thisBoxCoords(numberOfAtoms);
+   XYZArray thisBoxCOMDiff(numberOfAtoms);
+   std::vector<double> chargeBox;
+
+   while (thisMol != end)
+   {
+      length = mols.GetKind(*thisMol).NumAtoms();
+      start = mols.MolStart(*thisMol);
+      comC = currentCOM.Get(*thisMol);
+
+      for (p = 0; p < length; p++)
+      {
+	atom = start + p;
+	//compute the vector of the bead to the COM (p)
+	// need to unwrap the atom coordinate
+	atomC = currentCoords.Get(atom);
+	currentAxes.UnwrapPBC(atomC, box, comC);	
+	diffC = atomC - comC;
+
+	thisBoxCoords.Set(atomIndex, atomC);	
+	thisBoxCOMDiff.Set(atomIndex, diffC);
+	chargeBox.push_back(mols.GetKind(*thisMol).AtomCharge(p));
+	atomIndex++;
+      }
+   }
+
+   CallForceReciprocalGPU(forcefield.particles->getCUDAVars(), thisBoxCoords,
+			  thisBoxCOMDiff, chargeBox, wT11, wT12,
+			  wT13, wT22, wT23, wT33, imageSizeRef[box], constVal,
+			  box);
+#else
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, factor) reduction(+:wT11, wT12, wT13, wT22, wT23, wT33) 
 #endif
@@ -508,7 +548,7 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
        */
    }
 
-   //the intramolecular part
+   //Intramolecular part
    while (thisMol != end)
    {
       length = mols.GetKind(*thisMol).NumAtoms();
@@ -555,7 +595,8 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
       }
       ++thisMol;
    }
-   
+#endif
+
    // set the all tensor values
    tempVir.recipTens[0][0] = wT11;
    tempVir.recipTens[0][1] = wT12;

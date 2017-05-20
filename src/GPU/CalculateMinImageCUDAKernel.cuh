@@ -1,6 +1,4 @@
-#ifndef CALCULATE_MIN_IMAGE_CUDA_KERNEL
-#define CALCULATE_MIN_IMAGE_CUDA_KERNEL
-
+#pragma once
 #ifdef GOMC_CUDA
 
 #include <cuda.h>
@@ -55,5 +53,10 @@ __device__ inline int FlatIndexGPU(int i, int j, int gpu_count)
   return i + j * gpu_count;
 }
 
+__device__ inline double DotProductGPU(double kx, double ky, double kz, 
+			     double x, double y, double z)
+{
+  return (kx * x + ky * y + kz * z);
+}
+
 #endif /*GOMC_CUDA*/
-#endif /*CALCULATE_MIN_IMAGE_CUDA_KERNEL*/
