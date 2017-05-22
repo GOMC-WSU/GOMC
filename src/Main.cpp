@@ -232,7 +232,7 @@ void PrintHardwareInfo()
   std::cout << "Total number of CPUs: " << get_nprocs() << std::endl;
   std::cout << "Total number of CPUs available: " << sysconf(_SC_NPROCESSORS_ONLN) << std::endl;
   std::cout << "Model name:" << std::flush;
-  if(!system("awk -F: '/model name/ {print $2;exit}' /proc/cpuinfo"))
+  if(system("awk -F: '/model name/ {print $2;exit}' /proc/cpuinfo"))
     std::cout << "Couldn't retrieve CPU information" << std::endl;
   std::cout << std::endl;
   std::cout << "System name: " << name.sysname << std::endl;
