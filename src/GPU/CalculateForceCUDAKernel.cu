@@ -8,6 +8,16 @@
 
 using namespace cub;
 
+#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+   if (code != cudaSuccess) 
+   {
+      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
+
 void CallBoxInterForceGPU(VariablesCUDA *vars,
 			  vector<uint> &pair1,
 			  vector<uint> &pair2,
@@ -217,11 +227,11 @@ void CallForceReciprocalGPU(VariablesCUDA *vars,
 	     cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_z, currentCoords.z, atomNumber * sizeof(double),
 	     cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_nx, currentCOMDiff.x, atomNumber * sizeof(double),
+  cudaMemcpy(vars->gpu_dx, currentCOMDiff.x, atomNumber * sizeof(double),
 	     cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_ny, currentCOMDiff.y, atomNumber * sizeof(double),
+  cudaMemcpy(vars->gpu_dy, currentCOMDiff.y, atomNumber * sizeof(double),
 	     cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_nz, currentCOMDiff.z, atomNumber * sizeof(double),
+  cudaMemcpy(vars->gpu_dz, currentCOMDiff.z, atomNumber * sizeof(double),
 	     cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleCharge, &particleCharge[0],
 	     particleCharge.size() * sizeof(double),
@@ -234,9 +244,9 @@ void CallForceReciprocalGPU(VariablesCUDA *vars,
     threadsPerBlock>>>(vars->gpu_x,
 		       vars->gpu_y,
 		       vars->gpu_z,
-		       vars->gpu_nx,
-		       vars->gpu_ny,
-		       vars->gpu_nz,
+		       vars->gpu_dx,
+		       vars->gpu_dy,
+		       vars->gpu_dz,
 		       vars->gpu_kxRef[box], 
 		       vars->gpu_kyRef[box],
 		       vars->gpu_kzRef[box],
@@ -288,6 +298,7 @@ void CallForceReciprocalGPU(VariablesCUDA *vars,
 
   cudaFree(gpu_particleCharge);
   cudaFree(gpu_final_value);
+  //cudaFree(d_temp_storage);
 }
 
 __global__ void BoxInterForceGPU(int *gpu_pair1,
@@ -460,7 +471,7 @@ __global__ void ForceReciprocalGPU(double *gpu_x,
 
     factor = gpu_prefactRef[threadID] * 2.0 *
       (gpu_sumIref[threadID] * cos(arg) - gpu_sumRref[threadID] * sin(arg)) *
-      gpu_particleCharge[threadID];
+      gpu_particleCharge[i];
 
     gpu_rT11[threadID] += factor * (gpu_kxRef[threadID] * gpu_comDx[i]);
     gpu_rT12[threadID] += factor * 0.5 *(gpu_kxRef[threadID] * gpu_comDy[i] +

@@ -57,6 +57,10 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   cudaMalloc(&vars->gpu_x, atomNumber * sizeof(double));
   cudaMalloc(&vars->gpu_y, atomNumber * sizeof(double));
   cudaMalloc(&vars->gpu_z, atomNumber * sizeof(double));
+
+  cudaMalloc(&vars->gpu_dx, atomNumber * sizeof(double));
+  cudaMalloc(&vars->gpu_dy, atomNumber * sizeof(double));
+  cudaMalloc(&vars->gpu_dz, atomNumber * sizeof(double));
   
   cudaMalloc(&vars->gpu_nx, maxAtomsInMol * sizeof(double));
   cudaMalloc(&vars->gpu_ny, maxAtomsInMol * sizeof(double));
