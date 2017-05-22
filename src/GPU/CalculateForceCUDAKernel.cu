@@ -8,16 +8,6 @@
 
 using namespace cub;
 
-#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
-{
-   if (code != cudaSuccess) 
-   {
-      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-      if (abort) exit(code);
-   }
-}
-
 void CallBoxInterForceGPU(VariablesCUDA *vars,
 			  vector<uint> &pair1,
 			  vector<uint> &pair2,
@@ -298,7 +288,7 @@ void CallForceReciprocalGPU(VariablesCUDA *vars,
 
   cudaFree(gpu_particleCharge);
   cudaFree(gpu_final_value);
-  //cudaFree(d_temp_storage);
+  cudaFree(d_temp_storage);
 }
 
 __global__ void BoxInterForceGPU(int *gpu_pair1,
