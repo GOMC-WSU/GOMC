@@ -466,7 +466,6 @@ double EwaldCached::BoxReciprocal(uint box) const
 Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
 {
    Virial tempVir = virial;
-
    if (box >= BOXES_WITH_U_NB)
      return tempVir;
 
@@ -513,9 +512,11 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
 
 	thisBoxCoords.Set(atomIndex, atomC);	
 	thisBoxCOMDiff.Set(atomIndex, diffC);
-	chargeBox.push_back(mols.GetKind(*thisMol).AtomCharge(p));
+	double atomCharge = mols.GetKind(*thisMol).AtomCharge(p);
+	chargeBox.push_back(atomCharge);
 	atomIndex++;
       }
+      thisMol++;
    }
 
    CallForceReciprocalGPU(forcefield.particles->getCUDAVars(), thisBoxCoords,

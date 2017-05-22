@@ -32,6 +32,7 @@ class VariablesCUDA {
   double *gpu_diElectric_1;
   double *gpu_x, *gpu_y, *gpu_z;
   double *gpu_nx, *gpu_ny, *gpu_nz;
+  double *gpu_dx, *gpu_dy, *gpu_dz;
   double **gpu_kx, **gpu_ky, **gpu_kz;
   double **gpu_kxRef, **gpu_kyRef, **gpu_kzRef;
   double **gpu_sumRnew, **gpu_sumInew, **gpu_sumRref, **gpu_sumIref;
