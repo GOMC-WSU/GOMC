@@ -49,6 +49,23 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   cudaMalloc((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
   cudaMalloc((void**) &gpu_final_value, sizeof(double));
 
+  if(electrostatic)
+  {
+    cudaMalloc(&vars->gpu_rT11, pair1.size() * sizeof(double));
+    cudaMalloc(&vars->gpu_rT12, pair1.size() * sizeof(double));
+    cudaMalloc(&vars->gpu_rT13, pair1.size() * sizeof(double));
+    cudaMalloc(&vars->gpu_rT22, pair1.size() * sizeof(double));
+    cudaMalloc(&vars->gpu_rT23, pair1.size() * sizeof(double));
+    cudaMalloc(&vars->gpu_rT33, pair1.size() * sizeof(double));
+  }
+
+  cudaMalloc(&vars->gpu_vT11, pair1.size() * sizeof(double));
+  cudaMalloc(&vars->gpu_vT12, pair1.size() * sizeof(double));
+  cudaMalloc(&vars->gpu_vT13, pair1.size() * sizeof(double));
+  cudaMalloc(&vars->gpu_vT22, pair1.size() * sizeof(double));
+  cudaMalloc(&vars->gpu_vT23, pair1.size() * sizeof(double));
+  cudaMalloc(&vars->gpu_vT33, pair1.size() * sizeof(double));
+
   cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int),
 	     cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_pair2, &pair2[0], pair2.size() * sizeof(int),
@@ -186,6 +203,21 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   cudaFree(gpu_particleMol);
   cudaFree(gpu_particleCharge);
   cudaFree(gpu_final_value);
+  if(electrostatic)
+  {
+    cudaFree(vars->gpu_rT11);
+    cudaFree(vars->gpu_rT12);
+    cudaFree(vars->gpu_rT13);
+    cudaFree(vars->gpu_rT22);
+    cudaFree(vars->gpu_rT23);
+    cudaFree(vars->gpu_rT33);
+  }
+  cudaFree(vars->gpu_vT11);
+  cudaFree(vars->gpu_vT12);
+  cudaFree(vars->gpu_vT13);
+  cudaFree(vars->gpu_vT22);
+  cudaFree(vars->gpu_vT23);
+  cudaFree(vars->gpu_vT33);
 }
 
 void CallForceReciprocalGPU(VariablesCUDA *vars,
@@ -210,7 +242,13 @@ void CallForceReciprocalGPU(VariablesCUDA *vars,
   cudaMalloc((void**) &gpu_particleCharge, 
 	     particleCharge.size() * sizeof(double));
   cudaMalloc((void**) &gpu_final_value, sizeof(double));
-
+  cudaMalloc(&vars->gpu_rT11, imageSize * sizeof(double));
+  cudaMalloc(&vars->gpu_rT12, imageSize * sizeof(double));
+  cudaMalloc(&vars->gpu_rT13, imageSize * sizeof(double));
+  cudaMalloc(&vars->gpu_rT22, imageSize * sizeof(double));
+  cudaMalloc(&vars->gpu_rT23, imageSize * sizeof(double));
+  cudaMalloc(&vars->gpu_rT33, imageSize * sizeof(double));
+  
   cudaMemcpy(vars->gpu_x, currentCoords.x, atomNumber * sizeof(double),
 	     cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_y, currentCoords.y, atomNumber * sizeof(double),
@@ -289,6 +327,12 @@ void CallForceReciprocalGPU(VariablesCUDA *vars,
   cudaFree(gpu_particleCharge);
   cudaFree(gpu_final_value);
   cudaFree(d_temp_storage);
+  cudaFree(vars->gpu_rT11);
+  cudaFree(vars->gpu_rT12);
+  cudaFree(vars->gpu_rT13);
+  cudaFree(vars->gpu_rT22);
+  cudaFree(vars->gpu_rT23);
+  cudaFree(vars->gpu_rT33);
 }
 
 __global__ void BoxInterForceGPU(int *gpu_pair1,
