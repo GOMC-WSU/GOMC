@@ -6,28 +6,6 @@
 #include <iostream>
 #include <stdio.h>
 
-#define GPU_VDW_STD_KIND 0
-#define GPU_VDW_SHIFT_KIND 1
-#define GPU_VDW_SWITCH_KIND 2
-
-void printFreeMemory()
-{
-  size_t free_byte ;
-  size_t total_byte ;
-  cudaError_t cuda_status = cudaMemGetInfo( &free_byte, &total_byte ) ;
-  
-  if ( cudaSuccess != cuda_status ){ 
-    printf("Error: cudaMemGetInfo fails, %s \n", 
-	   cudaGetErrorString(cuda_status) );
-    exit(1);
-  }
-  double free_db = (double)free_byte ;
-  double total_db = (double)total_byte ;
-  double used_db = total_db - free_db ;
-  printf("GPU memory usage: used = %f, free = %f MB, total = %f MB\n",
-	 used_db/1024.0/1024.0, free_db/1024.0/1024.0, total_db/1024.0/1024.0);
-}
-
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq, 
 		       double const *epsilon_Cn,
 		       double const *n, int VDW_Kind, int isMartini,
@@ -87,6 +65,19 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   cudaMalloc(&vars->gpu_comx, maxMolNumber * sizeof(double));
   cudaMalloc(&vars->gpu_comy, maxMolNumber * sizeof(double));
   cudaMalloc(&vars->gpu_comz, maxMolNumber * sizeof(double));
+
+  cudaMalloc(&vars->gpu_rT11, MAX_PAIR_SIZE * sizeof(double));
+  cudaMalloc(&vars->gpu_rT12, MAX_PAIR_SIZE * sizeof(double));
+  cudaMalloc(&vars->gpu_rT13, MAX_PAIR_SIZE * sizeof(double));
+  cudaMalloc(&vars->gpu_rT22, MAX_PAIR_SIZE * sizeof(double));
+  cudaMalloc(&vars->gpu_rT23, MAX_PAIR_SIZE * sizeof(double));
+  cudaMalloc(&vars->gpu_rT33, MAX_PAIR_SIZE * sizeof(double));
+  cudaMalloc(&vars->gpu_vT11, MAX_PAIR_SIZE * sizeof(double));
+  cudaMalloc(&vars->gpu_vT12, MAX_PAIR_SIZE * sizeof(double));
+  cudaMalloc(&vars->gpu_vT13, MAX_PAIR_SIZE * sizeof(double));
+  cudaMalloc(&vars->gpu_vT22, MAX_PAIR_SIZE * sizeof(double));
+  cudaMalloc(&vars->gpu_vT23, MAX_PAIR_SIZE * sizeof(double));
+  cudaMalloc(&vars->gpu_vT33, MAX_PAIR_SIZE * sizeof(double));
 }
 
 void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal)
