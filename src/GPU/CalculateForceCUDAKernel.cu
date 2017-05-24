@@ -5,8 +5,37 @@
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #include "CalculateMinImageCUDAKernel.cuh"
 #include "cub/cub.cuh"
+#include <stdio.h>
 
 using namespace cub;
+
+#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+   if (code != cudaSuccess) 
+   {
+      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
+
+void printFreeMemory()
+{
+  size_t free_byte ;
+  size_t total_byte ;
+  cudaError_t cuda_status = cudaMemGetInfo( &free_byte, &total_byte ) ;
+  
+  if ( cudaSuccess != cuda_status ){ 
+    printf("Error: cudaMemGetInfo fails, %s \n", 
+	   cudaGetErrorString(cuda_status) );
+    exit(1);
+  }
+  double free_db = (double)free_byte ;
+  double total_db = (double)total_byte ;
+  double used_db = total_db - free_db ;
+  printf("GPU memory usage: used = %f, free = %f MB, total = %f MB\n",
+	 used_db/1024.0/1024.0, free_db/1024.0/1024.0, total_db/1024.0/1024.0);
+}
 
 void CallBoxInterForceGPU(VariablesCUDA *vars,
 			  vector<uint> &pair1,
@@ -49,25 +78,8 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   cudaMalloc((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
   cudaMalloc((void**) &gpu_final_value, sizeof(double));
 
-  if(electrostatic)
-  {
-    cudaMalloc(&vars->gpu_rT11, pair1.size() * sizeof(double));
-    cudaMalloc(&vars->gpu_rT12, pair1.size() * sizeof(double));
-    cudaMalloc(&vars->gpu_rT13, pair1.size() * sizeof(double));
-    cudaMalloc(&vars->gpu_rT22, pair1.size() * sizeof(double));
-    cudaMalloc(&vars->gpu_rT23, pair1.size() * sizeof(double));
-    cudaMalloc(&vars->gpu_rT33, pair1.size() * sizeof(double));
-  }
-
-  cudaMalloc(&vars->gpu_vT11, pair1.size() * sizeof(double));
-  cudaMalloc(&vars->gpu_vT12, pair1.size() * sizeof(double));
-  cudaMalloc(&vars->gpu_vT13, pair1.size() * sizeof(double));
-  cudaMalloc(&vars->gpu_vT22, pair1.size() * sizeof(double));
-  cudaMalloc(&vars->gpu_vT23, pair1.size() * sizeof(double));
-  cudaMalloc(&vars->gpu_vT33, pair1.size() * sizeof(double));
-
   cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int),
-	     cudaMemcpyHostToDevice);
+		       cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_pair2, &pair2[0], pair2.size() * sizeof(int),
 	     cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_x, currentCoords.x, atomNumber * sizeof(double),
@@ -135,7 +147,7 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
 						       vars->gpu_alpha,
 						       vars->gpu_ewald,
 						       vars->gpu_diElectric_1);
-
+  cudaDeviceSynchronize();
   // ReduceSum // Virial of LJ
   void *d_temp_storage = NULL;
   size_t temp_storage_bytes = 0;
@@ -203,21 +215,6 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   cudaFree(gpu_particleMol);
   cudaFree(gpu_particleCharge);
   cudaFree(gpu_final_value);
-  if(electrostatic)
-  {
-    cudaFree(vars->gpu_rT11);
-    cudaFree(vars->gpu_rT12);
-    cudaFree(vars->gpu_rT13);
-    cudaFree(vars->gpu_rT22);
-    cudaFree(vars->gpu_rT23);
-    cudaFree(vars->gpu_rT33);
-  }
-  cudaFree(vars->gpu_vT11);
-  cudaFree(vars->gpu_vT12);
-  cudaFree(vars->gpu_vT13);
-  cudaFree(vars->gpu_vT22);
-  cudaFree(vars->gpu_vT23);
-  cudaFree(vars->gpu_vT33);
 }
 
 void CallForceReciprocalGPU(VariablesCUDA *vars,
@@ -242,12 +239,6 @@ void CallForceReciprocalGPU(VariablesCUDA *vars,
   cudaMalloc((void**) &gpu_particleCharge, 
 	     particleCharge.size() * sizeof(double));
   cudaMalloc((void**) &gpu_final_value, sizeof(double));
-  cudaMalloc(&vars->gpu_rT11, imageSize * sizeof(double));
-  cudaMalloc(&vars->gpu_rT12, imageSize * sizeof(double));
-  cudaMalloc(&vars->gpu_rT13, imageSize * sizeof(double));
-  cudaMalloc(&vars->gpu_rT22, imageSize * sizeof(double));
-  cudaMalloc(&vars->gpu_rT23, imageSize * sizeof(double));
-  cudaMalloc(&vars->gpu_rT33, imageSize * sizeof(double));
   
   cudaMemcpy(vars->gpu_x, currentCoords.x, atomNumber * sizeof(double),
 	     cudaMemcpyHostToDevice);
@@ -327,12 +318,6 @@ void CallForceReciprocalGPU(VariablesCUDA *vars,
   cudaFree(gpu_particleCharge);
   cudaFree(gpu_final_value);
   cudaFree(d_temp_storage);
-  cudaFree(vars->gpu_rT11);
-  cudaFree(vars->gpu_rT12);
-  cudaFree(vars->gpu_rT13);
-  cudaFree(vars->gpu_rT22);
-  cudaFree(vars->gpu_rT23);
-  cudaFree(vars->gpu_rT33);
 }
 
 __global__ void BoxInterForceGPU(int *gpu_pair1,

@@ -319,12 +319,6 @@ void EwaldCached::RecipInit(uint box, BoxDimensions const& boxAxes)
      std::cout<< "Restart the simulation from restart files or turn off the CachedFourier method to calculate reciprocal space calculations.\n";
      exit(EXIT_FAILURE);
    }
-
-   if (counter > imageTotal)
-   {
-     std::cout<< "Error: Number of reciprocate vectors is greater than initialized vector size." << std::endl;  
-     exit(EXIT_FAILURE);
-   }
 }
 
 //estimate number of vectors

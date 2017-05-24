@@ -11,6 +11,7 @@
 #define GPU_VDW_STD_KIND 0
 #define GPU_VDW_SHIFT_KIND 1
 #define GPU_VDW_SWITCH_KIND 2
+#define MAX_PAIR_SIZE 10000000
 
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
 		       double const *epsilon_Cn, double const *n,

@@ -77,27 +77,27 @@ void CalculateEnergy::Init(System & sys)
 
 SystemPotential CalculateEnergy::SystemTotal() 
 {
-   SystemPotential pot =
-     SystemInter(SystemPotential(), currentCoords, currentCOM, currentAxes);
-
-   //system intra
-   for (uint b = 0; b < BOX_TOTAL; ++b)
-   {
-      pot.boxVirial[b] = ForceCalc(b);
-      uint i;
-      double *bondEnergy = new double[2];
-      bondEnergy[0] = 0.0, bondEnergy[1] = 0.0;
-      double bondEn = 0.0, nonbondEn = 0.0, self = 0.0, correction = 0.0;
-      MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b);
-      MoleculeLookup::box_iterator end = molLookup.BoxEnd(b);
-      std::vector<int> molID;
-
-      while (thisMol != end)
-      {
-	 molID.push_back(*thisMol);
-         ++thisMol;
-      }
-
+  SystemPotential pot =
+    SystemInter(SystemPotential(), currentCoords, currentCOM, currentAxes);
+  
+  //system intra
+  for (uint b = 0; b < BOX_TOTAL; ++b)
+  {
+    pot.boxVirial[b] = ForceCalc(b);
+    uint i;
+    double *bondEnergy = new double[2];
+    bondEnergy[0] = 0.0, bondEnergy[1] = 0.0;
+    double bondEn = 0.0, nonbondEn = 0.0, self = 0.0, correction = 0.0;
+    MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b);
+    MoleculeLookup::box_iterator end = molLookup.BoxEnd(b);
+    std::vector<int> molID;
+     
+    while (thisMol != end)
+    {
+      molID.push_back(*thisMol);
+      ++thisMol;
+    }
+     
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, bondEnergy) reduction(+:bondEn, nonbondEn, correction) 
 #endif
@@ -247,11 +247,42 @@ Virial CalculateEnergy::ForceCalc(const uint box)
    }
 
 #ifdef GOMC_CUDA
-   CallBoxInterForceGPU(forcefield.particles->getCUDAVars(), pair1, pair2, 
-			currentCoords, currentCOM, currentAxes,	electrostatic, 
-			particleCharge,	particleKind, particleMol, 
-		        rT11, rT12, rT13, rT22, rT23, rT33, vT11, vT12, vT13, 
-			vT22, vT23, vT33, box);
+   uint pairSize = pair1.size();
+   uint currentIndex = 0;
+   double vT11t = 0.0, vT12t = 0.0, vT13t = 0.0;
+   double vT22t = 0.0, vT23t = 0.0, vT33t = 0.0;
+   double rT11t = 0.0, rT12t = 0.0, rT13t = 0.0;
+   double rT22t = 0.0, rT23t = 0.0, rT33t = 0.0;
+   while(currentIndex < pairSize)
+   {
+     uint max = currentIndex + MAX_PAIR_SIZE;
+     max = (max < pairSize ? max : pairSize-1);
+     
+     std::vector<uint>::const_iterator first1 = pair1.begin() + currentIndex;
+     std::vector<uint>::const_iterator last1 = pair1.begin() + max;
+     std::vector<uint>::const_iterator first2 = pair2.begin() + currentIndex;
+     std::vector<uint>::const_iterator last2 = pair2.begin() + max;
+     std::vector<uint> subPair1(first1, last1);
+     std::vector<uint> subPair2(first2, last2);
+     CallBoxInterForceGPU(forcefield.particles->getCUDAVars(), subPair1, 
+			  subPair2, currentCoords, currentCOM, currentAxes, 
+			  electrostatic, particleCharge, particleKind, 
+			  particleMol, rT11t, rT12t, rT13t, rT22t, rT23t, rT33t,
+			  vT11t, vT12t, vT13t, vT22t, vT23t, vT33t, box);
+     rT11 += rT11t;
+     rT12 += rT12t;
+     rT13 += rT13t;
+     rT22 += rT22t;
+     rT23 += rT23t;
+     rT33 += rT33t;
+     vT11 += vT11t;
+     vT12 += vT12t;
+     vT13 += vT13t;
+     vT22 += vT22t;
+     vT23 += vT23t;
+     vT33 += vT33t;
+     currentIndex += MAX_PAIR_SIZE;
+   }
 #else
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, distSq, pVF, pRF, qi_qj, virC, comC) reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33) 

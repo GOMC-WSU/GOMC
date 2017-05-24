@@ -172,7 +172,8 @@ void Ewald::RecipInit(uint box, BoxDimensions const& boxAxes)
    
    if (counter > imageTotal)
    {
-     std::cout<< "Error: Number of reciprocate vectors is greater than initialized vector size." << std::endl;  
+     std::cout<< "Error: Kmax exceeded due to large change in system volume.\n";
+     std::cout<< "Restart the simulation from restart files.\n";
      exit(EXIT_FAILURE);
    }
 }

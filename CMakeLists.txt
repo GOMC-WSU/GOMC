@@ -69,7 +69,7 @@ set(NVT_name "GOMC_CPU_NVT")
 include(${PROJECT_SOURCE_DIR}/CMake/FileLists.cmake)
 
 # Setup Serial version
-include(${PROJECT_SOURCE_DIR}/CMake/GOMCSerialSetup.cmake)
+include(${PROJECT_SOURCE_DIR}/CMake/GOMCCPUSetup.cmake)
 
 # find CUDA and set it up
 set(CUDA_SEPARABLE_COMPILATION ON)
