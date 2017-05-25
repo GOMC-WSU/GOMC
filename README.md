@@ -1,6 +1,6 @@
 Current Release: 1.9 (12/12/2016)
 
-[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/GOMC-WSU/GOMC)
+[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/GOMC_WSU/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
 
 We recommend the [GOMC Project Website](http://gomc.eng.wayne.edu/ "GOMC Website") and the [user manual](http://gomc.eng.wayne.edu/GOMC_files/GOMC_Manual.pdf "User Manual") for further information and examples.
 
