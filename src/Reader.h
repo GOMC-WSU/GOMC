@@ -62,7 +62,7 @@ public:
     notify = note;
     comp = true;
     isOpen = false;
-    nameWAlias = fileAlias + " file: ./"  + fileName;
+    nameWAlias = fileAlias + ": ./"  + fileName;
   }
 
   //Open or close a file, with basic protections
