@@ -153,10 +153,7 @@ void PDBOutput::FormatAtom
   //Res (molecule) chain (letter)
   line[chain::POS.START] = chain;
   //Res (molecule) # -- add 1 to start counting @ 1
-  if(m + 1 <= 9999)
-    toStr.Align(res_num::ALIGN).Replace(line, m + 1, res_num::POS);
-  else
-    toStr.Align(res_num::ALIGN).Replace(line, m - 9998, res_num::POS);
+  toStr.Align(res_num::ALIGN).Replace(line, (m % 9999) + 1, res_num::POS);
 
   toStr.Fixed().Align(beta::ALIGN).Precision(beta::PRECISION);
   toStr.Replace(line, beta::DEFAULT, beta::POS);

@@ -663,12 +663,6 @@ double EwaldCached::MolCorrection(uint molIndex, uint box) const
    if (box >= BOXES_WITH_U_NB)
      return 0.0;
 
-   //We dont need to calculate the correction energy for a fix molecule.
-   //We consider the adsorbent as one molecule and later calculate the 
-   //correction energy for that. 
-   if (molLookup.IsFix(molIndex))
-     return 0.0;
-
    double dist, distSq;
    double correction = 0.0;
    XYZ virComponents; 
@@ -692,59 +686,6 @@ double EwaldCached::MolCorrection(uint molIndex, uint box) const
    return correction;
 }
 
-//calculate correction term for fixed molecule in a box
-double EwaldCached::FixMolCorrection(uint box) const
-{
-   if (box >= BOXES_WITH_U_NB)
-     return 0.0;
-
-   //We consider the adsorbent as one molecule and later calculate the 
-   //correction energy for that. 
-
-   int i, j;
-   double dist, distSq;
-   double correction = 0.0;
-   XYZ virComponents; 
-   MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
-   MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
-   std::vector<int> atomID;
-
-   while (thisMol != end)
-   {
-     //We need to store the atom index of fixed molecule
-     if(molLookup.IsFix(*thisMol))
-     {
-       MoleculeKind& molKind = mols.kinds[mols.kIndex[*thisMol]];
-       uint start =  mols.MolStart(*thisMol);
-       uint molSize = molKind.NumAtoms();
-       for(int j = 0; j < molSize; j++)
-       {
-	 atomID.push_back(start + j);
-       }
-     }
-     ++thisMol;
-   }
-
-
-#ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, j, dist, distSq) reduction(+:correction) 
-#endif 
-   for (i = 0; i < atomID.size(); i++)
-   {
-     
-     for (j = i + 1; j < atomID.size(); j++)
-     {
-
-       currentAxes.InRcut(distSq, virComponents, currentCoords, atomID[i],
-			  atomID[j], box);
-       dist = sqrt(distSq);
-       correction += (particleCharge[atomID[i]] * particleCharge[atomID[j]] *
-		      erf(alpha * dist) / dist);
-      }
-   }
-
-   return correction;
-}
 
 //calculate reciprocate term in destination box for swap move
 double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,

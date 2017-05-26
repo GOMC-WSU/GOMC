@@ -102,11 +102,6 @@ double NoEwald::MolCorrection(uint molIndex, uint box) const
    return 0.0;
 }
 
-//calculate correction term for fixed molecule in the box
-double NoEwald::FixMolCorrection(uint box) const
-{
-   return 0.0;
-}
 
 //calculate reciprocate term in destination box for swap move
 double NoEwald::SwapDestRecip(const cbmc::TrialMol &newMol,
