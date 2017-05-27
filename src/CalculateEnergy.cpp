@@ -175,9 +175,28 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
    }
 
 #ifdef GOMC_CUDA
-   CallBoxInterGPU(forcefield.particles->getCUDAVars(), pair1, pair2, coords, 
-		   boxAxes, electrostatic, particleCharge, particleKind, 
-		   tempREn, tempLJEn, box);
+   uint pairSize = pair1.size();
+   uint currentIndex = 0;
+   double REn = 0.0, LJEn = 0.0;
+   while(currentIndex < pairSize)
+   {
+     uint max = currentIndex + MAX_PAIR_SIZE;
+     max = (max < pairSize ? max : pairSize-1);
+     
+     std::vector<uint>::const_iterator first1 = pair1.begin() + currentIndex;
+     std::vector<uint>::const_iterator last1 = pair1.begin() + max;
+     std::vector<uint>::const_iterator first2 = pair2.begin() + currentIndex;
+     std::vector<uint>::const_iterator last2 = pair2.begin() + max;
+     std::vector<uint> subPair1(first1, last1);
+     std::vector<uint> subPair2(first2, last2);
+
+     CallBoxInterGPU(forcefield.particles->getCUDAVars(), subPair1, subPair2,
+		     coords, boxAxes, electrostatic, particleCharge,
+		     particleKind, REn, LJEn, box);
+     tempREn += REn;
+     tempLJEn += LJEn;
+     currentIndex += MAX_PAIR_SIZE;
+   }
 #else
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents) reduction(+:tempREn, tempLJEn) 
