@@ -1,6 +1,8 @@
 #include "Simulation.h"
 #include "GOMC_Config.h"    //For version number
+#ifdef GOMC_CUDA
 #include "cuda.h"
+#endif
 #include <iostream>
 #include <ctime>
 
