@@ -15,6 +15,10 @@
 #include "NumLib.h"
 #include <cassert>
 #include <omp.h>
+#ifdef GOMC_CUDA
+#include "ConstantDefinitionsCUDAKernel.cuh"
+#include "VariablesCUDA.cuh"
+#endif
 
 //
 //   
@@ -54,77 +58,78 @@ EwaldCached::~EwaldCached()
 {
   if(ewald)
   {
+#ifdef GOMC_CUDA
+    DestroyEwaldCUDAVars(forcefield.particles->getCUDAVars());
+#endif  
+    for(int i = 0; i < mols.count; i++)
+    {
+      //when cached option is choosen
+      if (cosMolRef[i] != NULL)
+      {
+	delete[] cosMolRef[i];
+	delete[] sinMolRef[i];
+	delete[] cosMolBoxRecip[i];
+	delete[] sinMolBoxRecip[i];
+      }
+    }
+    
+    for (uint b = 0; b < BOX_TOTAL; b++)
+    {
+      if (kx[b] != NULL)
+      {
+	delete[] kx[b];
+	delete[] ky[b];
+	delete[] kz[b];
+	delete[] hsqr[b];
+	delete[] prefact[b];
+	delete[] kxRef[b];
+	delete[] kyRef[b];
+	delete[] kzRef[b];
+	delete[] hsqrRef[b];
+	delete[] prefactRef[b];
+	delete[] sumRnew[b];
+	delete[] sumInew[b];
+	delete[] sumRref[b];
+	delete[] sumIref[b];
+      }
+    }
 
-     for(int i = 0; i < mols.count; i++)
-     {
-        //when cached option is choosen
-        if (cosMolRef[i] != NULL)
-	{
-	   delete[] cosMolRef[i];
-	   delete[] sinMolRef[i];
-	   delete[] cosMolBoxRecip[i];
-	   delete[] sinMolBoxRecip[i];
-	}
-     }
-
-     for (uint b = 0; b < BOX_TOTAL; b++)
-     {
-        if (kx[b] != NULL)
-	{
-	   delete[] kx[b];
-	   delete[] ky[b];
-	   delete[] kz[b];
-	   delete[] hsqr[b];
-	   delete[] prefact[b];
-	   delete[] kxRef[b];
-	   delete[] kyRef[b];
-	   delete[] kzRef[b];
-	   delete[] hsqrRef[b];
-	   delete[] prefactRef[b];
-	   delete[] sumRnew[b];
-	   delete[] sumInew[b];
-	   delete[] sumRref[b];
-	   delete[] sumIref[b];
-	}
-     }
-
-     if (kx != NULL)
-     {
-        delete[] kmax;
-	delete[] kx;
-	delete[] ky;
-	delete[] kz;
-	delete[] hsqr;
-	delete[] prefact;
-	delete[] kxRef;
-	delete[] kyRef;
-	delete[] kzRef;
-	delete[] hsqrRef;
-	delete[] prefactRef;
-	delete[] sumRnew;
-	delete[] sumInew;
-	delete[] sumRref;
-	delete[] sumIref;
-	delete[] imageSize;
-	delete[] imageSizeRef;
-	//when cached option is choosen
-	if (cosMolRestore != NULL)
-	{
-	   delete[] cosMolRestore;
-	   delete[] sinMolRestore;
-	}
-	//when cached option is choosen
-	if (cosMolRef != NULL)
-	{
-	   delete[] cosMolRef;
-	   delete[] sinMolRestore;
-	   delete[] sinMolRef;
-	   delete[] cosMolBoxRecip;
-	   delete[] sinMolBoxRecip;
-	}
-     }
-  }
-  
+    if (kx != NULL)
+    {
+      delete[] kmax;
+      delete[] kx;
+      delete[] ky;
+      delete[] kz;
+      delete[] hsqr;
+      delete[] prefact;
+      delete[] kxRef;
+      delete[] kyRef;
+      delete[] kzRef;
+      delete[] hsqrRef;
+      delete[] prefactRef;
+      delete[] sumRnew;
+      delete[] sumInew;
+      delete[] sumRref;
+      delete[] sumIref;
+      delete[] imageSize;
+      delete[] imageSizeRef;
+      //when cached option is choosen
+      if (cosMolRestore != NULL)
+      {
+	delete[] cosMolRestore;
+	delete[] sinMolRestore;
+      }
+      //when cached option is choosen
+      if (cosMolRef != NULL)
+      {
+	delete[] cosMolRef;
+	delete[] sinMolRestore;
+	delete[] sinMolRef;
+	delete[] cosMolBoxRecip;
+	delete[] sinMolBoxRecip;
+      }
+    }
+  } 
 }
 
 

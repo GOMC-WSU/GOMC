@@ -24,6 +24,7 @@ void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal);
 void CopyCurrentToRefCUDA(VariablesCUDA *vars, uint box, uint imageTotal);
 void UpdateRecipVecCUDA(VariablesCUDA *vars, uint box);
 void UpdateRecipCUDA(VariablesCUDA *vars, uint box);
+void DestroyEwaldCUDAVars(VariablesCUDA *vars);
 void DestroyCUDAVars(VariablesCUDA *vars);
 
 #endif /*GOMC_CUDA*/
