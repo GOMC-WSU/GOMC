@@ -2,6 +2,8 @@
 
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-DGOMC_CUDA)
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-Wno-deprecated-gpu-targets)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-Xcompiler -std=c++98)
+#set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-Xcompiler -D__CORRECT_ISO_CPP11_MATH_H_PROTO)
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_20,code=sm_20)
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_20,code=sm_21)
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-gencode arch=compute_30,code=sm_30)

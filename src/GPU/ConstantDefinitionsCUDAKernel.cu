@@ -168,6 +168,41 @@ void UpdateRecipCUDA(VariablesCUDA *vars, uint box)
   vars->gpu_sumInew[box] = tempI;
 }
 
+void DestroyEwaldCUDAVars(VariablesCUDA *vars)
+{
+  for(uint b=0; b<BOX_TOTAL; b++)
+  {
+    cudaFree(vars->gpu_kx[b]);
+    cudaFree(vars->gpu_ky[b]);
+    cudaFree(vars->gpu_kz[b]);
+    cudaFree(vars->gpu_kxRef[b]);
+    cudaFree(vars->gpu_kyRef[b]);
+    cudaFree(vars->gpu_kzRef[b]);
+    cudaFree(vars->gpu_sumRnew[b]);
+    cudaFree(vars->gpu_sumRref[b]);
+    cudaFree(vars->gpu_sumInew[b]);
+    cudaFree(vars->gpu_sumIref[b]);
+    cudaFree(vars->gpu_prefact[b]);
+    cudaFree(vars->gpu_prefactRef[b]);
+    cudaFree(vars->gpu_hsqr[b]);
+    cudaFree(vars->gpu_hsqrRef[b]);
+  }
+  delete [] vars->gpu_kx;
+  delete [] vars->gpu_ky;
+  delete [] vars->gpu_kz;
+  delete [] vars->gpu_kxRef;
+  delete [] vars->gpu_kyRef;
+  delete [] vars->gpu_kzRef;
+  delete [] vars->gpu_sumRnew;
+  delete [] vars->gpu_sumRref;
+  delete [] vars->gpu_sumInew;
+  delete [] vars->gpu_sumIref;
+  delete [] vars->gpu_prefact;
+  delete [] vars->gpu_prefactRef;
+  delete [] vars->gpu_hsqr;
+  delete [] vars->gpu_hsqrRef;
+}
+
 void DestroyCUDAVars(VariablesCUDA *vars)
 {
   cudaFree(vars->gpu_sigmaSq);
@@ -206,37 +241,6 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   cudaFree(vars->gpu_vT22);
   cudaFree(vars->gpu_vT23);
   cudaFree(vars->gpu_vT33);
-  for(uint b=0; b<BOX_TOTAL; b++)
-  {
-    cudaFree(vars->gpu_kx[b]);
-    cudaFree(vars->gpu_ky[b]);
-    cudaFree(vars->gpu_kz[b]);
-    cudaFree(vars->gpu_kxRef[b]);
-    cudaFree(vars->gpu_kyRef[b]);
-    cudaFree(vars->gpu_kzRef[b]);
-    cudaFree(vars->gpu_sumRnew[b]);
-    cudaFree(vars->gpu_sumRref[b]);
-    cudaFree(vars->gpu_sumInew[b]);
-    cudaFree(vars->gpu_sumIref[b]);
-    cudaFree(vars->gpu_prefact[b]);
-    cudaFree(vars->gpu_prefactRef[b]);
-    cudaFree(vars->gpu_hsqr[b]);
-    cudaFree(vars->gpu_hsqrRef[b]);
-  }
-  delete [] vars->gpu_kx;
-  delete [] vars->gpu_ky;
-  delete [] vars->gpu_kz;
-  delete [] vars->gpu_kxRef;
-  delete [] vars->gpu_kyRef;
-  delete [] vars->gpu_kzRef;
-  delete [] vars->gpu_sumRnew;
-  delete [] vars->gpu_sumRref;
-  delete [] vars->gpu_sumInew;
-  delete [] vars->gpu_sumIref;
-  delete [] vars->gpu_prefact;
-  delete [] vars->gpu_prefactRef;
-  delete [] vars->gpu_hsqr;
-  delete [] vars->gpu_hsqrRef;
 }
 
 #endif /*GOMC_CUDA*/
