@@ -49,7 +49,7 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
       //Get alias string, based on box #.
       bStr = "Box ";
       numStr = "";
-      toStr << b;
+      toStr << b+1;
       toStr >> numStr;
       aliasStr = "Output PDB file for Box ";
       aliasStr += numStr;
@@ -74,7 +74,7 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
       //Get alias string, based on box #.
       bStr = "Box ";
       numStr = "";
-      toStr << b;
+      toStr << b+1;
       toStr >> numStr;
       aliasStr = "Output PDB file for Box ";
       aliasStr += numStr;

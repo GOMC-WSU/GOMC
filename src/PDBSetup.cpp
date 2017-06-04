@@ -20,9 +20,11 @@ namespace pdb_setup
 {
 void Remarks::SetRestart(config_setup::RestartSettings const& r )
 {
-  restart = r.enable;
-  reached = (!restart);
+  //restart = r.enable;
+  //reached = (!restart);
   restartStep = r.step;
+  restart = false;
+  reached = true;
 }
 void Remarks::Read(FixedWidthReader & pdb)
 {
@@ -86,7 +88,8 @@ void Remarks::CheckGOMC(std::string const& varName)
 
 void Atoms::SetRestart(config_setup::RestartSettings const& r )
 {
-  restart = r.enable;
+  //restart = r.enable;
+  restart = false;
 }
 
 void Atoms::Assign(std::string const& atomName,

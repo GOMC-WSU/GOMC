@@ -167,10 +167,10 @@ namespace config_setup
  
    struct Volume 
    { 
-     bool hasVolume, cstArea; 
+      bool hasVolume, cstArea, cstVolBox0; 
       uint boxCoordRead; 
       XYZArray axis; 
-   Volume(void) : hasVolume(false), cstArea(false),
+      Volume(void) : hasVolume(false), cstArea(false), cstVolBox0(false),
 	boxCoordRead(0), axis(BOX_TOTAL)  {} 
    }; 
  

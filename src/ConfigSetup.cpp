@@ -389,7 +389,13 @@ void ConfigSetup::Init(const char *fileName)
       sys.volume.cstArea = checkBool(line[1]);
       if (sys.volume.cstArea)
 	std::cout << "Note: Volume will change with constant X-Y area!\n";
-    } 
+    }
+    else if(line[0] == "FixVolBox0")
+    {
+      sys.volume.cstVolBox0 = checkBool(line[1]);
+      if (sys.volume.cstVolBox0)
+	std::cout << "Note: Volume of Box 1 Remains Constant!\n";
+    }
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
     else if(line[0] == "SwapFreq")
@@ -649,16 +655,21 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Pressure has not been specified for NPT simulation!" << std::endl;
     exit(0);
   }
+  if(sys.volume.cstVolBox0)
+  {
+    std::cout << "Note: Volume cannot be fix for NPT simulation.\n";
+    exit(0);
+  }
 #endif
 
   if(in.restart.enable == true && in.restart.step == ULONG_MAX)
   {
-    std::cout << "Error: Restart step is needed!" << std::endl;
-    exit(0);
+    //std::cout << "Error: Restart step is needed!" << std::endl;
+    //exit(0);
   }
   if(in.restart.enable == false && in.restart.step != ULONG_MAX)
   {
-    std::cout << "Warning: Restart step will not be used!" << std::endl;
+    //std::cout << "Warning: Restart step will not be used!" << std::endl;
   }
   if(in.prng.kind == "RANDOM" && in.prng.seed != UINT_MAX)
   {

@@ -305,6 +305,7 @@ void ConsoleOutput::printElement( const T t, const int width) const
   const char separator = ' ';
   std::cout << right << std::fixed << std::setprecision(4) << setw(width) <<
     setfill(separator) << t;
+  
 }
 
 template <typename T>
