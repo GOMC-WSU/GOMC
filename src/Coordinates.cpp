@@ -42,9 +42,9 @@ void Coordinates::CheckCoordinate()
     diffV = max - min;
     //printf("start: %d, end: %d\n", stRange, endRange);
     printf("Minimum coordinates in box %d: x = %8.3f, y = %8.3f, z = %8.3f\n",
-	   b, min.x, min.y, min.z);
+	   b+1, min.x, min.y, min.z);
     printf("Maximum coordinates in box %d: x = %8.3f, y = %8.3f, z = %8.3f\n",
-	   b, max.x, max.y, max.z);
+	   b+1, max.x, max.y, max.z);
 
     //check to see if molecules are in the box or not
     if( diffV.x > 1.5 * boxDimRef.axis.Get(b).x ||
@@ -61,7 +61,7 @@ void Coordinates::CheckCoordinate()
       //shift all the molecules to positive axis
        XYZ shiftV = min;
        shiftV *= -1.0;
-       printf("Note: Molecules in the box %d will be shifted to origin by \n vector [%4.3f, %4.3f, %4.3f].\n", b, shiftV.x, shiftV.y, shiftV.z);
+       printf("Note: Molecules in the box %d will be shifted to origin by \n vector [%4.3f, %4.3f, %4.3f].\n", b+1, shiftV.x, shiftV.y, shiftV.z);
     
        while (thisMol != end)
        {
@@ -78,7 +78,7 @@ void Coordinates::CheckCoordinate()
 	 ++thisMol;
        }
     }
-    printf("Wrapping molecules inside the simulation box %d:\n", b);
+    printf("Wrapping molecules inside the simulation box %d:\n", b+1);
     boxDimRef.WrapPBC(*this, b);
  
   }

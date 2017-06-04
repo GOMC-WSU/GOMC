@@ -163,7 +163,8 @@ std::vector<Bond> mol_setup::AtomBonds(const MolKind& molKind, uint atom)
 }
 
 int mol_setup::ReadCombinePSF(MolMap& kindMap,
-                              std::string const*const psfFilename, const int numFiles)
+                              std::string const*const psfFilename,
+			      const int numFiles)
 {
   int errorcode = ReadPSF(psfFilename[0].c_str(), kindMap);
   if (errorcode < 0)
@@ -187,8 +188,12 @@ int MolSetup::Init(const config_setup::RestartSettings& restart,
                    const std::string* psfFilename)
 {
   kindMap.clear();
-  //int numFiles = ( restart.enable ? 1 : 2 );
-  int numFiles = BOX_TOTAL;
+  int numFiles;
+  if(restart.enable)
+    numFiles = 1;
+  else
+    numFiles = BOX_TOTAL;
+
   return ReadCombinePSF(kindMap, psfFilename, numFiles);
 }
 
@@ -211,8 +216,8 @@ namespace
 
 void AssignMolKinds(MolKind& kind, const pdb_setup::Atoms& pdbData, const std::string& name)
 {
-  uint index = std::find(pdbData.resKindNames.begin(), pdbData.resKindNames.end(), name)
-               - pdbData.resKindNames.end();
+  uint index = std::find(pdbData.resKindNames.begin(),
+			 pdbData.resKindNames.end(), name) - pdbData.resKindNames.end();
   kind.kindIndex = index;
 }
 
@@ -405,7 +410,8 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap)
     check = fgets(input, 511, psf);
     if (check == NULL)
     {
-      fprintf(stderr, "ERROR: Unable to read atoms from PSF file %s", psfFilename);
+      fprintf(stderr, "ERROR: Unable to read atoms from PSF file %s",
+	      psfFilename);
       fclose(psf);
       return READERROR;
     }

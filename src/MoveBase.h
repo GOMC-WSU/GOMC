@@ -33,6 +33,9 @@ class MoveBase
      cellList(sys.cellList), molRemoved(false)
    {
       calcEwald = sys.GetEwald();
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT     
+      fixBox0 = statV.fixVolBox0;
+#endif
    }
 
     //Based on the random draw, determine the move kind, box, and 
@@ -66,7 +69,7 @@ class MoveBase
     const double BETA;
     const bool ewald;
     CellList& cellList;
-    bool molRemoved;
+    bool molRemoved, fixBox0;
 };
 
 //Data needed for transforming a molecule's position via inter or intrabox 
@@ -371,6 +374,9 @@ inline uint VolumeTransfer::Transform()
       {
 	if (state == mv::fail_state::NO_FAIL)
 	{
+	  if ((bPick[b] == 0) && fixBox0)
+	     continue;
+
 	   double max = moveSetRef.Scale(subPickT[bPick[b]]);
 	   double delta = prng.Sym(max);
 	   state =  boxDimRef.ShiftVolume(newDim, scale[bPick[b]],
@@ -382,6 +388,9 @@ inline uint VolumeTransfer::Transform()
       {
 	 for (uint b = 0; b < BOX_TOTAL; b++)
 	 {
+	    if ((bPick[b] == 0) && fixBox0)
+	       continue;
+
 	    coordCurrRef.TranslateOneBox(newMolsPos, newCOMs, comCurrRef, 
 				      newDim, bPick[b], scale[bPick[b]]);
 	 }
@@ -397,17 +406,23 @@ inline void VolumeTransfer::CalcEn()
 
     //back up cached fourier term
    calcEwald->exgMolCache();
+   sysPotNew = sysPotRef;
    for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
    {
+      if ((bPick[b] == 0) && fixBox0)
+	continue;
+
       //calculate new K vectors
-      calcEwald->RecipInit(b, newDim);
+      calcEwald->RecipInit(bPick[b], newDim);
       //setup reciprocate terms
-      calcEwald->BoxReciprocalSetup(b, newMolsPos);
+      calcEwald->BoxReciprocalSetup(bPick[b], newMolsPos);
+      //calculate LJ interaction and real term of electrostatic interaction
+      sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs, newDim,
+				     bPick[b]);
+      //calculate reciprocate term of electrostatic interaction
+      sysPotNew.boxEnergy[bPick[b]].recip = calcEwald->BoxReciprocal(bPick[b]);
    }
-   //calculate total energy
-   sysPotNew = calcEnRef.SystemInter(sysPotRef, newMolsPos,
-                                        newCOMs, newDim);
-   
+   sysPotNew.Total();  
 }
 
 
@@ -433,6 +448,9 @@ inline double VolumeTransfer::GetCoeff() const
    {
       for (uint b = 0; b < BOX_TOTAL; ++b)
       {
+	if ((bPick[b] == 0) && fixBox0)
+	  continue;
+
 	coeff *= pow(newDim.volume[b]/boxDimRef.volume[b],
 		     (double)molLookRef.NumInBox(b)) *
 	  exp(-BETA * PRESSURE * (newDim.volume[b]-boxDimRef.volume[b]));
@@ -461,6 +479,9 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
 
       for (uint b = 0; b < BOX_TOTAL; b++)
       {
+	 if ((bPick[b] == 0) && fixBox0)
+	   continue;
+	 
 	 calcEwald->UpdateRecip(b);
 	 calcEwald->UpdateRecipVec(b);
       }         
@@ -484,8 +505,11 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
    {
      for (uint b = 0; b < BOX_TOTAL; b++)
      {
-      subPickT[bPick[b]] = mv::GetMoveSubIndex(mv::VOL_TRANSFER, bPick[b]);
-      moveSetRef.Update(result, subPickT[bPick[b]], step);
+       if ((bPick[b] == 0) && fixBox0)
+	 continue;
+
+       subPickT[bPick[b]] = mv::GetMoveSubIndex(mv::VOL_TRANSFER, bPick[b]);
+       moveSetRef.Update(result, subPickT[bPick[b]], step);
      }
    }
    
