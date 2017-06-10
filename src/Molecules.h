@@ -73,6 +73,11 @@ public:
     len = start[m+1]-_start;
   }
 
+  uint GetKindsCount() const
+  {
+    return kindsCount;
+  }
+
   //private:
   //Kind index of each molecule and start in master particle array
   //Plus counts

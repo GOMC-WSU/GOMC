@@ -17,6 +17,11 @@
 #include "NumLib.h"
 #include <cassert>
 #include <omp.h>
+#ifdef GOMC_CUDA
+#include "CalculateEnergyCUDAKernel.cuh"
+#include "CalculateForceCUDAKernel.cuh"
+#include "ConstantDefinitionsCUDAKernel.cuh"
+#endif
 
 //
 //    CalculateEnergy.cpp
@@ -48,44 +53,51 @@ CalculateEnergy::CalculateEnergy(StaticVals const& stat, System & sys) :
 
 void CalculateEnergy::Init(System & sys)
 {
-   calcEwald = sys.GetEwald();
-   electrostatic = forcefield.electrostatic;
-   ewald = forcefield.ewald;
-   for(uint m = 0; m < mols.count; ++m)
-   {
-      const MoleculeKind& molKind = mols.GetKind(m);
-      for(uint a = 0; a < molKind.NumAtoms(); ++a)
-      {
-         particleKind.push_back(molKind.AtomKind(a));
-         particleMol.push_back(m);
-	 particleCharge.push_back(molKind.AtomCharge(a));
-      }
-   }
+  uint maxAtomInMol = 0;
+  calcEwald = sys.GetEwald();
+  electrostatic = forcefield.electrostatic;
+  ewald = forcefield.ewald;
+  for(uint m = 0; m < mols.count; ++m)
+  {
+    const MoleculeKind& molKind = mols.GetKind(m);
+    if(molKind.NumAtoms() > maxAtomInMol)
+      maxAtomInMol = molKind.NumAtoms();
+    for(uint a = 0; a < molKind.NumAtoms(); ++a)
+    {
+      particleKind.push_back(molKind.AtomKind(a));
+      particleMol.push_back(m);
+      particleCharge.push_back(molKind.AtomCharge(a));
+    }
+  }
+#ifdef GOMC_CUDA
+  InitCoordinatesCUDA(forcefield.particles->getCUDAVars(),
+		      currentCoords.Count(), maxAtomInMol, currentCOM.Count());
+#endif
 }
 
 SystemPotential CalculateEnergy::SystemTotal() 
 {
-   SystemPotential pot =
-     SystemInter(SystemPotential(), currentCoords, currentCOM, currentAxes);
-
-   //system intra
-   for (uint b = 0; b < BOX_TOTAL; ++b)
-   {
-      pot.boxVirial[b] = ForceCalc(b);
-      uint i;
-      double *bondEnergy = new double[2];
-      bondEnergy[0] = 0.0, bondEnergy[1] = 0.0;
-      double bondEn = 0.0, nonbondEn = 0.0, self = 0.0, correction = 0.0;
-      MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b);
-      MoleculeLookup::box_iterator end = molLookup.BoxEnd(b);
-      std::vector<int> molID;
-
-      while (thisMol != end)
-      {
-	 molID.push_back(*thisMol);
-         ++thisMol;
-      }
-
+  SystemPotential pot =
+    SystemInter(SystemPotential(), currentCoords, currentCOM, currentAxes);
+  
+  //system intra
+  for (uint b = 0; b < BOX_TOTAL; ++b)
+  {
+    pot.boxVirial[b] = ForceCalc(b);
+    uint i;
+    double *bondEnergy = new double[2];
+    bondEnergy[0] = 0.0, bondEnergy[1] = 0.0;
+    double bondEn = 0.0, nonbondEn = 0.0, self = 0.0, correction = 0.0;
+    MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b);
+    MoleculeLookup::box_iterator end = molLookup.BoxEnd(b);
+    std::vector<int> molID;
+     
+    while (thisMol != end)
+    {
+      molID.push_back(*thisMol);
+      ++thisMol;
+    }
+     
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, bondEnergy) reduction(+:bondEn, nonbondEn, correction) 
 #endif
@@ -154,18 +166,44 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
    //store atom pair index
    while (!pair.Done()) 
    {
-     pair1.push_back(pair.First());
-     pair2.push_back(pair.Second());
+     if(!SameMolecule(pair.First(), pair.Second()))
+     {
+       pair1.push_back(pair.First());
+       pair2.push_back(pair.Second());
+     }
      pair.Next();
    }
 
+#ifdef GOMC_CUDA
+   uint pairSize = pair1.size();
+   uint currentIndex = 0;
+   double REn = 0.0, LJEn = 0.0;
+   while(currentIndex < pairSize)
+   {
+     uint max = currentIndex + MAX_PAIR_SIZE;
+     max = (max < pairSize ? max : pairSize-1);
+     
+     std::vector<uint>::const_iterator first1 = pair1.begin() + currentIndex;
+     std::vector<uint>::const_iterator last1 = pair1.begin() + max;
+     std::vector<uint>::const_iterator first2 = pair2.begin() + currentIndex;
+     std::vector<uint>::const_iterator last2 = pair2.begin() + max;
+     std::vector<uint> subPair1(first1, last1);
+     std::vector<uint> subPair2(first2, last2);
+
+     CallBoxInterGPU(forcefield.particles->getCUDAVars(), subPair1, subPair2,
+		     coords, boxAxes, electrostatic, particleCharge,
+		     particleKind, REn, LJEn, box);
+     tempREn += REn;
+     tempLJEn += LJEn;
+     currentIndex += MAX_PAIR_SIZE;
+   }
+#else
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents) reduction(+:tempREn, tempLJEn) 
 #endif    
    for (i = 0; i < pair1.size(); i++)
    {
-      if(!SameMolecule(pair1[i], pair2[i]) &&
-	 boxAxes.InRcut(distSq, virComponents,coords, pair1[i], pair2[i], box)) 
+      if(boxAxes.InRcut(distSq, virComponents,coords, pair1[i], pair2[i], box)) 
       {
 	 if (electrostatic)
 	 {
@@ -179,8 +217,8 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 						 particleKind[pair2[i]]);
       }      
    }
+#endif
 
-   
    // setting energy and virial of LJ interaction
    potential.boxEnergy[box].inter = tempLJEn;   
    // setting energy and virial of coulomb interaction
@@ -219,18 +257,58 @@ Virial CalculateEnergy::ForceCalc(const uint box)
    //store atom pair index
    while (!pair.Done()) 
    {
-     pair1.push_back(pair.First());
-     pair2.push_back(pair.Second());
+     if(!SameMolecule(pair.First(), pair.Second()))
+     {
+       pair1.push_back(pair.First());
+       pair2.push_back(pair.Second());
+     }
      pair.Next();
    }
 
+#ifdef GOMC_CUDA
+   uint pairSize = pair1.size();
+   uint currentIndex = 0;
+   double vT11t = 0.0, vT12t = 0.0, vT13t = 0.0;
+   double vT22t = 0.0, vT23t = 0.0, vT33t = 0.0;
+   double rT11t = 0.0, rT12t = 0.0, rT13t = 0.0;
+   double rT22t = 0.0, rT23t = 0.0, rT33t = 0.0;
+   while(currentIndex < pairSize)
+   {
+     uint max = currentIndex + MAX_PAIR_SIZE;
+     max = (max < pairSize ? max : pairSize-1);
+     
+     std::vector<uint>::const_iterator first1 = pair1.begin() + currentIndex;
+     std::vector<uint>::const_iterator last1 = pair1.begin() + max;
+     std::vector<uint>::const_iterator first2 = pair2.begin() + currentIndex;
+     std::vector<uint>::const_iterator last2 = pair2.begin() + max;
+     std::vector<uint> subPair1(first1, last1);
+     std::vector<uint> subPair2(first2, last2);
+     CallBoxInterForceGPU(forcefield.particles->getCUDAVars(), subPair1, 
+			  subPair2, currentCoords, currentCOM, currentAxes, 
+			  electrostatic, particleCharge, particleKind, 
+			  particleMol, rT11t, rT12t, rT13t, rT22t, rT23t, rT33t,
+			  vT11t, vT12t, vT13t, vT22t, vT23t, vT33t, box);
+     rT11 += rT11t;
+     rT12 += rT12t;
+     rT13 += rT13t;
+     rT22 += rT22t;
+     rT23 += rT23t;
+     rT33 += rT33t;
+     vT11 += vT11t;
+     vT12 += vT12t;
+     vT13 += vT13t;
+     vT22 += vT22t;
+     vT23 += vT23t;
+     vT33 += vT33t;
+     currentIndex += MAX_PAIR_SIZE;
+   }
+#else
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, distSq, pVF, pRF, qi_qj, virC, comC) reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33) 
 #endif    
    for (i = 0; i < pair1.size(); i++)
    {
-      if (!SameMolecule(pair1[i], pair2[i]) &&
-	  currentAxes.InRcut(distSq, virC, currentCoords, pair1[i],
+      if (currentAxes.InRcut(distSq, virC, currentCoords, pair1[i],
 			     pair2[i], box)) 
       {
 	 pVF = 0.0;
@@ -271,6 +349,7 @@ Virial CalculateEnergy::ForceCalc(const uint box)
 	 vT33 += pVF * (virC.z * comC.z);
       }      
    }
+#endif
 
    // set the all tensor values
    tempVir.interTens[0][0] = vT11;
@@ -305,7 +384,7 @@ Virial CalculateEnergy::ForceCalc(const uint box)
    tempVir.inter = vT11 + vT22 + vT33;
    // setting virial of coulomb 
    tempVir.real = (rT11 + rT22 + rT33) * num::qqFact;
-   
+
    if (forcefield.useLRC) 
    {
      ForceCorrection(tempVir, currentAxes, box);
@@ -579,12 +658,12 @@ Intermolecular CalculateEnergy::MoleculeTailChange(const uint box,
   {
 
     double sign = (add ? 1.0 : -1.0);
-    uint mkIdxII = kind * mols.kindsCount + kind;
-    for (uint j = 0; j < mols.kindsCount; ++j)
+    uint mkIdxII = kind * mols.GetKindsCount() + kind;
+    for (uint j = 0; j < mols.GetKindsCount(); ++j)
     {
-      uint mkIdxIJ = j * mols.kindsCount + kind;
+      uint mkIdxIJ = j * mols.GetKindsCount() + kind;
       double rhoDeltaIJ_2 = sign * 2.0 *
-                            (double)(molLookup.NumKindInBox(j, box)) * currentAxes.volInv[box];
+	(double)(molLookup.NumKindInBox(j, box)) * currentAxes.volInv[box];
       delta.energy += mols.pairEnCorrections[mkIdxIJ] * rhoDeltaIJ_2;
     }
 
@@ -859,13 +938,13 @@ void CalculateEnergy::EnergyCorrection(SystemPotential& pot,
   {
     double en = 0.0;
 
-    for (uint i = 0; i < mols.kindsCount; ++i)
+    for (uint i = 0; i < mols.GetKindsCount(); ++i)
     {
       uint numI = molLookup.NumKindInBox(i, box);
-      for (uint j = 0; j < mols.kindsCount; ++j)
+      for (uint j = 0; j < mols.GetKindsCount(); ++j)
       {
         uint numJ = molLookup.NumKindInBox(j, box);
-        en += mols.pairEnCorrections[i * mols.kindsCount + j] * numI * numJ
+        en += mols.pairEnCorrections[i * mols.GetKindsCount() + j] * numI * numJ
               * boxAxes.volInv[box];
       }
     }
@@ -881,13 +960,13 @@ void CalculateEnergy::ForceCorrection(Virial& virial,
   {
     double vir = 0.0;
 
-    for (uint i = 0; i < mols.kindsCount; ++i)
+    for (uint i = 0; i < mols.GetKindsCount(); ++i)
     {
       uint numI = molLookup.NumKindInBox(i, box);
-      for (uint j = 0; j < mols.kindsCount; ++j)
+      for (uint j = 0; j < mols.GetKindsCount(); ++j)
       {
         uint numJ = molLookup.NumKindInBox(j, box);
-        vir += mols.pairVirCorrections[i * mols.kindsCount + j] *
+        vir += mols.pairVirCorrections[i * mols.GetKindsCount() + j] *
                numI * numJ * boxAxes.volInv[box];
       }
     }
