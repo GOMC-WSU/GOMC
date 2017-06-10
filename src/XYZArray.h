@@ -314,9 +314,9 @@ public:
   {
     return Max(box);
   };
+  double * x, * y, * z;
 
 protected:
-  double * x, * y, * z;
   uint count;
   bool allocDone;
 };
