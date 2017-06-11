@@ -32,10 +32,6 @@ struct FF_SHIFT : public FFParticle
 {
 public:
 
-  virtual void CalcAdd(double& en, double& vir, const double distSq,
-                       const uint kind1, const uint kind2) const;
-  virtual void CalcSub(double& en, double& vir, const double distSq,
-                       const uint kind1, const uint kind2) const;
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2) const;
   virtual double CalcVir(const double distSq,
@@ -44,14 +40,10 @@ public:
                            const uint kind1, const uint kind2) const;
 
   // coulomb interaction functions
-  virtual void CalcCoulombAdd(double& en, double& vir, const double distSq,
-                              const double qi_qj_Fact) const;
-  virtual void CalcCoulombSub(double& en, double& vir, const double distSq,
-                              const double qi_qj_Fact) const;
   virtual double CalcCoulombEn(const double distSq,
                                const double qi_qj_Fact) const;
   virtual double CalcCoulombVir(const double distSq,
-                                const double qi_qj_Fact) const;
+                                const double qi_qj) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact) const;
 
@@ -65,33 +57,8 @@ public:
   {
     return 0.0;
   }
-
-private:
-  virtual void Calc(double& en, double& vir, const double distSq, uint index,
-#ifdef MIE_INT_ONLY
-                    const uint n
-#else
-                    const double n
-#endif
-                   ) const;
-
-  virtual void CalcCoulomb(double& en, double& vir, const double distSq,
-                           const double qi_qj_Fact)const;
 };
 
-inline void FF_SHIFT::CalcAdd(double& en, double& vir, const double distSq,
-                              const uint kind1, const uint kind2) const
-{
-  uint idx = FlatIndex(kind1, kind2);
-  Calc(en, vir, distSq, idx, n[idx]);
-}
-
-inline void FF_SHIFT::CalcCoulombAdd(double& en, double& vir,
-                                     const double distSq,
-                                     const double qi_qj_Fact) const
-{
-  CalcCoulomb(en, vir, distSq, qi_qj_Fact);
-}
 
 inline void FF_SHIFT::CalcAdd_1_4(double& en, const double distSq,
                                   const uint kind1, const uint kind2) const
@@ -114,29 +81,19 @@ inline void FF_SHIFT::CalcAdd_1_4(double& en, const double distSq,
 inline void FF_SHIFT::CalcCoulombAdd_1_4(double& en, const double distSq,
     const double qi_qj_Fact) const
 {
-  double dist = sqrt(distSq);
-  en += scaling_14 * qi_qj_Fact * (1.0/dist - 1.0/rCut);
+  if(ewald)
+  {
+     double dist = sqrt(distSq);
+     double erfc = alpha * dist;
+     en += scaling_14 * qi_qj_Fact * (1 - erf(erfc))/ dist;
+  }
+  else
+  {
+     double dist = sqrt(distSq);
+     en += scaling_14 * qi_qj_Fact * (1.0/dist - 1.0/rCut);
+  }
 }
 
-inline void FF_SHIFT::CalcSub(double& en, double& vir, const double distSq,
-                              const uint kind1, const uint kind2) const
-{
-  double tempEn=0, tempVir=0;
-  uint idx = FlatIndex(kind1, kind2);
-  Calc(tempEn, tempVir, distSq, idx, n[idx]);
-  en -= tempEn;
-  vir = -1.0 * tempVir;
-}
-
-inline void FF_SHIFT::CalcCoulombSub(double& en, double& vir,
-                                     const double distSq,
-                                     const double qi_qj_Fact) const
-{
-  double tempEn = 0.0, tempVir = 0.0;
-  CalcCoulomb(tempEn, tempVir, distSq, qi_qj_Fact);
-  en  -= tempEn;
-  vir -= tempVir;
-}
 
 //mie potential
 inline double FF_SHIFT::CalcEn(const double distSq,
@@ -160,8 +117,20 @@ inline double FF_SHIFT::CalcEn(const double distSq,
 inline double FF_SHIFT::CalcCoulombEn(const double distSq,
                                       const double qi_qj_Fact) const
 {
-  double dist = sqrt(distSq);
-  return  qi_qj_Fact * (1.0/dist - 1.0/rCut);
+  if(distSq <= rCutLowSq)
+    return num::BIGNUM;
+
+  if(ewald)
+  {
+     double dist = sqrt(distSq);
+     double erfc = alpha * dist;
+     return  qi_qj_Fact * (1 - erf(erfc))/ dist;
+  }
+  else
+  {
+     double dist = sqrt(distSq);
+     return  qi_qj_Fact * (1.0/dist - 1.0/rCut);
+  }
 }
 
 //mie potential
@@ -186,45 +155,21 @@ inline double FF_SHIFT::CalcVir(const double distSq,
 }
 
 inline double FF_SHIFT::CalcCoulombVir(const double distSq,
-                                       const double qi_qj_Fact) const
+                                       const double qi_qj) const
 {
-  double dist = sqrt(distSq);
-  return qi_qj_Fact/(distSq * dist);
-}
-
-//mie potential
-inline void FF_SHIFT::Calc(double & en, double & vir,
-                           const double distSq, const uint index,
-#ifdef MIE_INT_ONLY
-                           const uint n,
-#else
-                           const double n
-#endif
-                          ) const
-{
-  double rNeg2 = 1.0/distSq;
-  double rRat2 = rNeg2 * sigmaSq[index];
-  double rRat4 = rRat2 * rRat2;
-  double attract = rRat4 * rRat2;
-#ifdef MIE_INT_ONLY
-  double repulse = num::POW(rRat2, rRat4, attract, n);
-#else
-  double repulse = pow(sqrt(rRat2), n);
-#endif
-
-  en += (epsilon_cn[index] * (repulse-attract) - shiftConst[index]);
-  //Virial is the derivative of the pressure... mu
-  vir = epsilon_cn_6[index] * (nOver6[index]*repulse-attract)*rNeg2;
-}
-
-inline void FF_SHIFT::CalcCoulomb(double & en, double & vir,
-                                  const double distSq,
-                                  const double qi_qj_Fact)const
-{
-  double dist = sqrt(distSq);
-  en += qi_qj_Fact *(1.0/dist - 1.0/rCut);
-  vir = qi_qj_Fact/(distSq * dist);
-
+  if(ewald)
+  {
+     double dist = sqrt(distSq);
+     double constValue = 2.0 * alpha / sqrt(M_PI);
+     double expConstValue = exp(-1.0 * alpha * alpha * distSq);
+     double temp = 1.0 - erf(alpha * dist);
+     return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+  }
+  else
+  {
+     double dist = sqrt(distSq);
+     return qi_qj/(distSq * dist);
+  }
 }
 
 

@@ -21,7 +21,8 @@ namespace{
     const char* headerFormat = "%8d %s \n";
     //atom ID, segment name, residue ID, residue name, 
     //atom name, atom type, charge, mass, and an unused 0
-    const char* atomFormat = "%8d%4s%3d%7s%4s%6s%12.6f%14.4f%12d\n";
+    //const char* atomFormat = "%8d%4s%3d%7s%4s%6s%12.6f%14.4f%12d\n";
+    const char* atomFormat = "%8d %-5s%-5d%-5s%-5s%-3s%12.6f%14.4f%12d\n";
 
     const int bondPerLine = 4;
     const int anglePerLine = 3;
@@ -44,26 +45,24 @@ PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
 
 void PSFOutput::CountMolecules()
 {
-    //count molecules of each kind
-    std::vector<uint> molCounts(molKinds.size(), 0);
-    
-    for(uint i = 0; i < molecules->count; ++i)
-    {
-        ++molCounts[molecules->kIndex[i]];
-    }
     totalAngles = 0;
     totalAtoms = 0;
     totalBonds = 0;
     totalDihs = 0;
-    for(uint k = 0; k < molCounts.size(); ++k)
+    uint atomT = 0;
+
+    for(uint b = 0; b < BOX_TOTAL; b++)
     {
-      const MoleculeKind& molKind = molecules->GetKind(k);
-      for(uint b = 0; b < BOX_TOTAL; b++)
+      for(uint k = 0; k < molKinds.size(); ++k)
       {
+	const MoleculeKind& molKind = molecules->GetKind(atomT);
+
 	totalAtoms += molKind.NumAtoms() * molLookRef.NumKindInBox(k, b);
 	totalBonds += molKind.NumBonds() * molLookRef.NumKindInBox(k, b);
 	totalAngles += molKind.NumAngles() * molLookRef.NumKindInBox(k, b);	
 	totalDihs += molKind.NumDihs() * molLookRef.NumKindInBox(k, b);
+
+	atomT += molLookRef.NumKindInBox(k, b);
       }
     }
 }
@@ -123,11 +122,15 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
             const Atom* thisAtom = &molKinds[thisKind].atoms[at];
             //atom ID, segment name, residue ID, residue name, 
             //atom name, atom type, charge, mass, and an unused 0
+
             fprintf(outfile, atomFormat, atomID, molNames[thisKind].c_str(), molID, molNames[thisKind].c_str(),
                 thisAtom->name.c_str(), thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
             ++atomID;
         }
         ++molID;
+
+	if(molID == 10000)
+	  molID = 1;
     }
     fputc('\n', outfile);
 }

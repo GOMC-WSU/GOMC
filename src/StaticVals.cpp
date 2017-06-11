@@ -23,7 +23,7 @@ void StaticVals::Init(Setup & set, System& sys)
    molLookup.Init(mol, set.pdb.atoms);
 #endif
    InitMovePercents(set.config.sys.moves);
-#if ENSEMBLE == GEMC
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
    kindOfGEMC = set.config.sys.gemc.kind;
    pressure = set.config.sys.gemc.pressure;
 #endif
@@ -52,7 +52,7 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
 	 movePerc[m] = perc.volume; break;
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
-#if ENSEMBLE != NVT
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
       case mv::MOL_TRANSFER :
 	 movePerc[m] = perc.transfer; break;
 #endif

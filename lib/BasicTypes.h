@@ -23,12 +23,16 @@ struct XYZ
    XYZ() : x(0.0), y(0.0), z(0.0) {}
    XYZ(double xVal, double yVal, double zVal) : x(xVal), y(yVal), z(zVal) {}
 
+   XYZ& operator=(XYZ const& rhs) 
+   { x = rhs.x; y = rhs.y; z = rhs.z; return *this; }
    XYZ& operator+=(XYZ const& rhs)
    { x += rhs.x; y += rhs.y; z += rhs.z; return *this; }
    XYZ& operator-=(XYZ const& rhs)
    { x -= rhs.x; y -= rhs.y; z -= rhs.z; return *this; }
    XYZ& operator*=(XYZ const& rhs)
    { x *= rhs.x; y *= rhs.y; z *= rhs.z; return *this; }
+   XYZ& operator/=(XYZ const& rhs)
+   { x /= rhs.x; y /= rhs.y; z /= rhs.z; return *this; }
 
    XYZ& operator*=(const double a)
    { x *= a; y *= a; z *= a; return *this; }
@@ -39,12 +43,21 @@ struct XYZ
    { return XYZ(*this) -= rhs; }
    XYZ operator*(XYZ const& rhs) const
    { return XYZ(*this) *= rhs; }
+  XYZ operator/(XYZ const& rhs) const
+   { return XYZ(*this) /= rhs; }
 
 
    XYZ operator*(const double a) const
    { return XYZ(*this) *= a; }
 
    XYZ operator-() const { return XYZ(*this) * -1.0; }
+
+   void Inverse()
+  { 
+     x = 1.0 / x; 
+     y = 1.0 / y; 
+     z = 1.0 / z; 
+  }
 
    double Length() const { return sqrt(LengthSq()); }
    double LengthSq() const { return x * x + y * y + z * z; }

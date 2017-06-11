@@ -6,6 +6,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "Simulation.h"
 #include "GOMC_Config.h"    //For version number
+#ifdef GOMC_CUDA
+#include "cuda.h"
+#endif
 #include <iostream>
 #include <ctime>
 
@@ -32,11 +35,17 @@ namespace{
 }
 
 void PrintHardwareInfo();
+#ifdef GOMC_CUDA
+void PrintGPUHardwareInfo();
+#endif
 
 int main(int argc, char *argv[])
 {
    PrintSimulationHeader();
    PrintHardwareInfo();
+#ifdef GOMC_CUDA
+   //PrintGPUHardwareInfo();
+#endif
    //Only run if valid ensemble was detected.
    if (CheckAndPrintEnsemble())
    {   
@@ -137,6 +146,8 @@ namespace {
       std::cout << "Gibbs";
 #elif ENSEMBLE == GCMC
       std::cout << "grand canonical";
+#elif ENSEMBLE == NPT
+      std::cout << "isobaric-isothermal";
 #else
       std::cerr << "CRITICAL ERROR! Preprocessor value ENSEMBLE is "
 		<< "invalid or undefined." << std::endl
@@ -229,7 +240,8 @@ void PrintHardwareInfo()
   std::cout << "Total number of CPUs: " << get_nprocs() << std::endl;
   std::cout << "Total number of CPUs available: " << sysconf(_SC_NPROCESSORS_ONLN) << std::endl;
   std::cout << "Model name:" << std::flush;
-  system("awk -F: '/model name/ {print $2;exit}' /proc/cpuinfo");
+  if(system("awk -F: '/model name/ {print $2;exit}' /proc/cpuinfo"))
+    std::cout << "Couldn't retrieve CPU information" << std::endl;
   std::cout << std::endl;
   std::cout << "System name: " << name.sysname << std::endl;
   std::cout << "Release: " << name.release << std::endl;
@@ -245,3 +257,34 @@ void PrintHardwareInfo()
 #endif
 }
 
+#ifdef GOMC_CUDA
+void PrintGPUHardwareInfo()
+{
+  int nDevices;
+  int fast = 0;
+  int fastIndex = 0;
+
+  cudaGetDeviceCount(&nDevices);
+  if(nDevices<=4)
+  {
+    for (int i = 0; i < nDevices; i++)
+    {
+      cudaDeviceProp prop;
+      cudaGetDeviceProperties(&prop, i);
+      printf("Device Number: %d\n", i);
+      printf("  Device name: %s\n", prop.name);
+      printf("  Memory Clock Rate (KHz): %d\n", prop.memoryClockRate);
+      printf("  Memory Bus Width (bits): %d\n", prop.memoryBusWidth);
+      printf("  Peak Memory Bandwidth (GB/s): %f\n\n",
+	     2.0*prop.memoryClockRate*(prop.memoryBusWidth/8)/1.0e6);
+      if( prop.memoryClockRate > fast)
+      {
+	fast =  prop.memoryClockRate;
+	fastIndex = i;
+      }
+    }
+  }
+  cudaSetDevice(fastIndex);
+  printf("Using Device Number: %d\n", fastIndex);
+}
+#endif
