@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.9
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -116,12 +116,12 @@ void OutputVars::CalcAndConvert(ulong step)
     //Account for dimensionality of virial (raw "virial" is actually a
     //multiple of the true virial, based on the dimensions stress is exerted
     //in)
-    
+
     if (((step + 1) % pCalcFreq == 0) && pressureCalc)
     {
       virialRef[b] = calc.ForceCalc(b);
       *virialTotRef += virialRef[b];
-    }  
+    }
 
     //calculate surface tension in mN/M
     surfaceTens[b] = (virialRef[b].totalTens[2][2] - 0.5 *
@@ -140,13 +140,13 @@ void OutputVars::CalcAndConvert(ulong step)
 	    unit::K_MOLECULE_PER_A3_TO_BAR / volumeRef[b];
        }
     }
-    
+
     virial[b] = virialRef[b];
     virial[b] /= unit::DIMENSIONALITY;
     virial[b] /= volumeRef[b];
     virial[b].Total();
-    
-    
+
+
     rawPressure[b] = 0.0;
     densityTot[b] = 0.0;
     for (uint k = 0; k < numKinds; k++)

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.9
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -7,7 +7,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBOutput.h"              //For spec;
 #include "EnsemblePreprocessor.h"   //For BOX_TOTAL, ensemble
 #include "System.h"                 //for init
-#include "StaticVals.h"             //for init  
+#include "StaticVals.h"             //for init
 #include "MoleculeLookup.h"  //for lookup array (to get kind cnts, etc.)
 #include "MoleculeKind.h"           //For kind names
 #include "MoveSettings.h"           //For move settings/state
@@ -160,7 +160,7 @@ void PDBOutput::FormatAtom
   line[chain::POS.START] = chain;
   //Res (molecule) # -- add 1 to start counting @ 1
   toStr.Align(res_num::ALIGN).Replace(line, (m % 9999) + 1, res_num::POS);
-  
+
   toStr.Fixed().Align(beta::ALIGN).Precision(beta::PRECISION);
   toStr.Replace(line, beta::DEFAULT, beta::POS);
 }

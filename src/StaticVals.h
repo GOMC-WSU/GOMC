@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.9
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -35,7 +35,7 @@ class StaticVals
    uint kindOfGEMC;
 #endif
 
-   
+
    Forcefield forcefield;
    SimEventFrequency simEventFreq;
    //All the static molecule info --  kind, start index
@@ -48,7 +48,7 @@ class StaticVals
 #ifndef VARIABLE_VOLUME
    BoxDimensions boxDimensions;
 #endif
-#ifndef  VARIABLE_PARTICLE_NUMBER   
+#ifndef  VARIABLE_PARTICLE_NUMBER
    MoleculeLookup molLookup;
 #endif
    bool IsEquil(const uint step) { return step >= simEventFreq.tillEquil; }

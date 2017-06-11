@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.9
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -19,7 +19,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 void BlockAverage::Init(std::ofstream* file0,
 			std::ofstream* file1,
-			const bool en, 
+			const bool en,
 			const double scale,
 			std::string const& var,
 			const uint bTot)
@@ -202,7 +202,7 @@ void BlockAverages::InitWatchMulti(config_setup::TrackedVars const& tracked)
       name = out::MOL_FRACTION + "_" + trimKindName;
       blocks[bkStart + out::MOL_FRACTION_IDX*var->numKinds].Init
         (&outBlock0, &outBlock1, tracked.molNum.block, invSteps, name, BOXES_WITH_U_NB);
-    }    
+    }
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
     {
       uint kArrIdx = b*var->numKinds+k;

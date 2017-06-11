@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifdef GOMC_CUDA
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -6,7 +12,7 @@
 #include <iostream>
 #include <stdio.h>
 
-void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq, 
+void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
 		       double const *epsilon_Cn,
 		       double const *n, int VDW_Kind, int isMartini,
 		       int count, double Rcut, double RcutLow,
@@ -57,11 +63,11 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   cudaMalloc(&vars->gpu_dx, atomNumber * sizeof(double));
   cudaMalloc(&vars->gpu_dy, atomNumber * sizeof(double));
   cudaMalloc(&vars->gpu_dz, atomNumber * sizeof(double));
-  
+
   cudaMalloc(&vars->gpu_nx, maxAtomsInMol * sizeof(double));
   cudaMalloc(&vars->gpu_ny, maxAtomsInMol * sizeof(double));
   cudaMalloc(&vars->gpu_nz, maxAtomsInMol * sizeof(double));
-  
+
   cudaMalloc(&vars->gpu_comx, maxMolNumber * sizeof(double));
   cudaMalloc(&vars->gpu_comy, maxMolNumber * sizeof(double));
   cudaMalloc(&vars->gpu_comz, maxMolNumber * sizeof(double));
@@ -109,7 +115,7 @@ void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal)
     cudaMalloc(&vars->gpu_sumRref[b], imageTotal * sizeof(double));
     cudaMalloc(&vars->gpu_sumInew[b], imageTotal * sizeof(double));
     cudaMalloc(&vars->gpu_sumIref[b], imageTotal * sizeof(double));
-    
+
     cudaMalloc(&vars->gpu_prefact[b], imageTotal * sizeof(double));
     cudaMalloc(&vars->gpu_prefactRef[b], imageTotal * sizeof(double));
     cudaMalloc(&vars->gpu_hsqr[b], imageTotal * sizeof(double));
@@ -143,13 +149,13 @@ void UpdateRecipVecCUDA(VariablesCUDA *vars, uint box)
   tempKz = vars->gpu_kzRef[box];
   tempHsqr = vars->gpu_hsqrRef[box];
   tempPrefact = vars->gpu_prefactRef[box];
-  
+
   vars->gpu_kxRef[box] = vars->gpu_kx[box];
   vars->gpu_kyRef[box] = vars->gpu_ky[box];
   vars->gpu_kzRef[box] = vars->gpu_kz[box];
   vars->gpu_hsqrRef[box] = vars->gpu_hsqr[box];
   vars->gpu_prefactRef[box] = vars->gpu_prefact[box];
-  
+
   vars->gpu_kx[box] = tempKx;
   vars->gpu_ky[box] = tempKy;
   vars->gpu_kz[box] = tempKz;

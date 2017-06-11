@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.9
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -49,15 +49,15 @@ namespace cbmc
       using namespace mol_setup;
       using namespace std;
       vector<Bond> onFocus = AtomBonds(kind, focus);
-      for(uint i = 0; i < onFocus.size(); ++i) 
+      for(uint i = 0; i < onFocus.size(); ++i)
       {
-	    if (onFocus[i].a1 == prev) 
+	    if (onFocus[i].a1 == prev)
 	    {
                anchorBond = data->ff.bonds.Length(onFocus[i].kind);
                break;
             }
       }
-      
+
       onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
 		    onFocus.end());
       vector<Bond> onPrev = AtomBonds(kind, prev);
@@ -124,16 +124,16 @@ namespace cbmc
 	  data->angles[i] = data->prng.rand(M_PI);
       }
 
-#ifdef _OPENMP 
+#ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, distSq)
-#endif      
+#endif
       for (i = 0; i < nTrials; ++i)
       {
 	 if(angleFix)
 	   data->angleEnergy[i] = 0.0;
 	 else
 	   data->angleEnergy[i] = data->ff.angles->Calc(kind, data->angles[i]);
-	 
+
 	 distSq = newMol.AngleDist(anchorBond, bondLength[bType],
 				   data->angles[i]);
 	 nonbonded_1_3[i] =
@@ -155,7 +155,7 @@ namespace cbmc
       double distSq, thetaFix;
       bool angleFix = false;
       std::fill_n(nonbonded_1_3, nTrials, 0.0);
-    
+
       if(data->ff.angles->AngleFixed(kind))
       {
 	angleFix = true;
@@ -170,9 +170,9 @@ namespace cbmc
 	   data->angles[i] = data->prng.rand(M_PI);
       }
 
-#ifdef _OPENMP 
+#ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, distSq)
-#endif  
+#endif
       for (i = 0; i < nTrials; ++i)
       {
 	 if(angleFix)
@@ -199,7 +199,7 @@ namespace cbmc
       {
 	 GenerateAnglesNew(newMol, molIndex, angleKinds[i][i], nTrials, i);
          double stepWeight = std::accumulate(data->angleWeights,
-					     data->angleWeights + nTrials, 
+					     data->angleWeights + nTrials,
 					     0.0);
          uint winner = data->prng.PickWeighted(data->angleWeights,
 					       nTrials, stepWeight);
@@ -211,12 +211,12 @@ namespace cbmc
    }
 
    void DCHedron::FreeAnglesOld(TrialMol& oldMol, uint molIndex, uint nTrials)
-   {  
+   {
       for (uint i = 0; i < nBonds; ++i)
       {
 	 GenerateAnglesOld(oldMol, molIndex, angleKinds[i][i], nTrials, i);
          double stepWeight = std::accumulate(data->angleWeights,
-					     data->angleWeights + nTrials, 
+					     data->angleWeights + nTrials,
 					     0.0);
          //uint winner = data->prng.PickWeighted(data->angleWeights,
 	 //				       nTrials, stepWeight);
@@ -228,7 +228,7 @@ namespace cbmc
 
    void DCHedron::PrepareNew(TrialMol& newMol, uint molIndex)
    {
-      
+
       bendEnergy = 0.0;
       oneThree = 0.0;
       FreeAnglesNew(newMol, molIndex, data->nAngleTrials);
@@ -261,7 +261,7 @@ namespace cbmc
       const Forcefield& ff = data->ff;
       for (uint b = 0; b < nBonds; ++b)
       {
-	 
+
          oldMol.OldThetaAndPhi(bonded[b], focus, theta[b], phi[b]);
          double thetaEnergy = data->ff.angles->Calc(angleKinds[b][b], theta[b]);
 	 double distSq = oldMol.OldDistSq(prev, bonded[b]);
@@ -271,7 +271,7 @@ namespace cbmc
          thetaWeight[b] += exp(-1* data->ff.beta * (thetaEnergy + nonbondedEn));
          bendEnergy += thetaEnergy;
 	 oneThree += nonbondedEn;
-	 
+
 	 if (b!=0)
 	 {
 	    double phiEnergy = 0.0;
@@ -281,15 +281,15 @@ namespace cbmc
 	    {
 	       double cosTerm = cos(theta[b]) * cos(theta[c]);
 	       double sinTerm = sin(theta[b]) * sin(theta[c]);
-	       double bfcTheta = acos(sinTerm * cos(phi[b] - phi[c]) + 
+	       double bfcTheta = acos(sinTerm * cos(phi[b] - phi[c]) +
 				      cosTerm);
-	
+
 	       double distSq = oldMol.OldDistSq(bonded[c], bonded[b]);
 	       nonbondedEn +=  data->calc.IntraEnergy_1_3(distSq, bonded[c],
 						      bonded[b], molIndex);
-	       
+
 	       phiEnergy += ff.angles->Calc(angleKinds[b][c], bfcTheta);
-	       
+
 	    }
 	    phiWeight[b] = exp(-ff.beta * (phiEnergy + nonbondedEn));
 	    bendEnergy += phiEnergy;
@@ -311,10 +311,10 @@ namespace cbmc
 
       for (uint b = 1; b < nBonds; ++b)
       {
-         //pick "twist" angles 
+         //pick "twist" angles
          for (uint i = 0; i < nTrials; ++i)
 	 {
-	    angles[i] = data->prng.rand(M_PI * 2); 
+	    angles[i] = data->prng.rand(M_PI * 2);
 	    energies[i] = 0.0;
 	    nonbonded_1_3[i] = 0.0;
          }
@@ -323,8 +323,8 @@ namespace cbmc
          for (uint c = 0; c < b; ++c)
 	 {
             double cosTerm = cos(theta[b]) * cos(theta[c]);
-            double sinTerm = sin(theta[b]) * sin(theta[c]);  
-	    
+            double sinTerm = sin(theta[b]) * sin(theta[c]);
+
             for (uint i = 0; i < nTrials; ++i)
             {
 	       if(data->ff.angles->AngleEnergy(angleKinds[b][c]) <= 10E7)
@@ -369,9 +369,9 @@ namespace cbmc
          //calculate weights from combined energy
          double stepWeight = 0.0;
 	 uint i;
-#ifdef _OPENMP 
+#ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i) reduction(+:stepWeight)
-#endif 
+#endif
          for (i = 0; i < nTrials; ++i)
 	 {
 	   weights[i] = exp(-1 * data->ff.beta * (energies[i] +
@@ -394,23 +394,23 @@ namespace cbmc
    {
       IncorporateOld(oldMol, molIndex);
 
-      for (uint b = 1; b < nBonds; ++b) 
+      for (uint b = 1; b < nBonds; ++b)
       {
 	 double stepWeight = 0.0;
-	 //pick "twist" angles 
-	 for (uint i = 0; i < nTrials; ++i) 
+	 //pick "twist" angles
+	 for (uint i = 0; i < nTrials; ++i)
 	 {
 	    double angles  = data->prng.rand(M_PI * 2);
 	    double energies = 0.0;
 	    double nonbondedEng = 0.0;
 	    //compare to angles determined in previous iterations
-	    for (uint c = 0; c < b; ++c) 
-	    {	       
+	    for (uint c = 0; c < b; ++c)
+	    {
 	       if(data->ff.angles->AngleEnergy(angleKinds[b][c]) <= 10E7)
 	       {
 		 double cosTerm = cos(theta[b]) * cos(theta[c]);
 		 double sinTerm = sin(theta[b]) * sin(theta[c]);
-		 double bfcTheta = acos(sinTerm * cos(angles - phi[c]) 
+		 double bfcTheta = acos(sinTerm * cos(angles - phi[c])
 					+ cosTerm);
 		 double distSq = oldMol.AngleDist(bondLengthOld[b],
 						bondLengthOld[c], bfcTheta);
@@ -427,7 +427,7 @@ namespace cbmc
 		   double sinTerm = sin(theta[b]) * sin(theta[c]);
 		   double fixedbfc = data->ff.angles->Angle(angleKinds[b][c]);
 		   angles = acos((cos(fixedbfc)-abs(cosTerm))/sinTerm)+phi[c];
-		   double bfcTheta = acos(sinTerm * cos(angles - phi[c]) 
+		   double bfcTheta = acos(sinTerm * cos(angles - phi[c])
 					  + cosTerm);
 		   double distSq = oldMol.AngleDist(bondLengthOld[b],
 						bondLengthOld[c], bfcTheta);
@@ -440,7 +440,7 @@ namespace cbmc
 						     bfcTheta);
 	       }
 	    }
-	    
+
 	    //calculate weights from combined energy
 	    double weights = exp(-1 * data->ff.beta *(energies + nonbondedEng));
 	    stepWeight += weights;
