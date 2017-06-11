@@ -1,4 +1,4 @@
-Current Release: 1.9 (12/12/2016)
+Current Release: 2.0 (6/11/2017)
 
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/GOMC_WSU/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
 
