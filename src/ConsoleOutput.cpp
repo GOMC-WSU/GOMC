@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.9
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -9,7 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveConst.h"    //For move index constants, name constants.
 #include "FFConst.h"                //For density conv.
 #include "System.h"                 //for init
-#include "StaticVals.h"             //for init  
+#include "StaticVals.h"             //for init
 #include "MoleculeKind.h"           //For kind names
 #include "PDBConst.h"               //For resname len.
 #include "OutputVars.h"
@@ -28,7 +28,7 @@ void ConsoleOutput::DoOutput(const ulong step)
     std::cout << std::endl;
 
     for (uint b = 0; b < BOX_TOTAL; b++)
-    {     
+    {
       PrintEnergy(b, var->energyRef[b], var->virialRef[b], -1);
       std::cout <<  std::endl;
     }
@@ -38,7 +38,7 @@ void ConsoleOutput::DoOutput(const ulong step)
 
     PrintMoveTitle();
     std::cout << std::endl;
-   
+
     if(enableEnergy)
     {
        PrintEnergyTitle();
@@ -150,7 +150,7 @@ void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const
   if(enableMol)
   {
     printElement(var->numByBox[box], elementWidth);
-  
+
     for(uint k = 0; k<var->numKinds; k++)
     {
       uint kb = k+offset;
@@ -173,7 +173,7 @@ void ConsoleOutput::PrintPressureTensor(const uint box, const ulong step) const
    std::string title = "PRES_";
    title += (box? "1:":"0:");
    printElementStep(title, step + 1, elementWidth);
-   
+
    for(uint i = 0; i < 3; i++)
    {
      //If you calculate the pressure tensor for W12, W13, W23 we print all 9 values of tensor
@@ -186,7 +186,7 @@ void ConsoleOutput::PrintPressureTensor(const uint box, const ulong step) const
      // Else, just print the diameter of the pressure Tensor, W11, W22, W33
      printElement(var->pressureTens[box][i][i], elementWidth);
    }
-   std::cout << std::endl;  
+   std::cout << std::endl;
 }
 
 
@@ -248,7 +248,7 @@ void ConsoleOutput::PrintStatisticTitle()
   if(enableMol)
   {
     printElement("TOTALMOL", elementWidth);
-  
+
     for(uint k = 0; k < var->numKinds; k++)
     {
       if(var->numKinds > 1)
@@ -272,13 +272,13 @@ void ConsoleOutput::PrintMoveTitle()
 {
   std::string title = "MTITLE:";
   title += "     STEP";
-  printElement(title, elementWidth); 
+  printElement(title, elementWidth);
 
   printElement("DISTRY", elementWidth);
   printElement("DISACCEPT", elementWidth);
   printElement("DISACCEPT%", elementWidth);
   printElement("DISMAX", elementWidth);
-  
+
   printElement("ROTATE", elementWidth);
   printElement("ROTACCEPT", elementWidth);
   printElement("ROTACCEPT%", elementWidth);

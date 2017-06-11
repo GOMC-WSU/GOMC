@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.9
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -128,7 +128,7 @@ inline void FF_SWITCH_MARTINI::CalcCoulombAdd_1_4(double& en,
      double dist = sqrt(distSq);
      double rij_ronCoul_3 = dist * distSq;
      double rij_ronCoul_4 = distSq * distSq;
-     
+
      double coul = -(A1/3.0) * rij_ronCoul_3 - (B1/4.0) * rij_ronCoul_4 - C1;
      en += scaling_14 * qi_qj_Fact * diElectric_1 * (coul + 1.0/dist);
   }
@@ -183,13 +183,13 @@ inline double FF_SWITCH_MARTINI::CalcCoulombEn(const double distSq,
      return  qi_qj_Fact * (1 - erf(erfc))/ dist;
   }
   else
-  {     
+  {
      // in Martini, the Coulomb switching distance is zero, so we will have
      // sqrt(distSq) - rOnCoul =  sqrt(distSq)
      double dist = sqrt(distSq);
      double rij_ronCoul_3 = dist * distSq;
      double rij_ronCoul_4 = distSq * distSq;
-     
+
      double coul = -(A1/3.0) * rij_ronCoul_3 - (B1/4.0) * rij_ronCoul_4 - C1;
      return qi_qj_Fact  * diElectric_1 * (1.0/dist + coul);
   }

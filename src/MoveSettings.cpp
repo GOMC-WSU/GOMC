@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.9
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -25,7 +25,7 @@ void MoveSettings::Init(StaticVals const& statV)
       {
 	 tempTries[m] = 0;
 	 tempAccepted[m] = 0;
-	 mv::GetMoveMajIndex(maj, subDiv, m);	 
+	 mv::GetMoveMajIndex(maj, subDiv, m);
       }
       acceptPercent[m] = 0.0;
       accepted[m] = tries[m] = 0;
@@ -53,7 +53,7 @@ void MoveSettings::Init(StaticVals const& statV)
 //Process results of move we just did in terms of acceptance counters
 void MoveSettings::Update(const bool isAccepted, const uint moveIndex,
 			  const uint step)
-{ 
+{
    if (moveIndex < mv::SCALEABLE)
    {
       tempTries[moveIndex]++;
@@ -75,13 +75,13 @@ void MoveSettings::Update(const bool isAccepted, const uint moveIndex,
 
    //Refresh acceptance percentage appropriately
    if (moveIndex < mv::SCALEABLE)
-      acceptPercent[moveIndex] = 
-	 (double)(tempAccepted[moveIndex]+accepted[moveIndex]) / 
+      acceptPercent[moveIndex] =
+	 (double)(tempAccepted[moveIndex]+accepted[moveIndex]) /
 	 (double)(tempTries[moveIndex]+tries[moveIndex]);
    else
-      acceptPercent[moveIndex] = (double)(accepted[moveIndex]) / 
+      acceptPercent[moveIndex] = (double)(accepted[moveIndex]) /
 	 (double)(tries[moveIndex]);
- 
+
 }
 
 void MoveSettings::AdjustMoves(const uint step)
@@ -102,7 +102,7 @@ void MoveSettings::AdjustMoves(const uint step)
 //Adjust responsibly
 void MoveSettings::Adjust(const uint majMoveKind,
 			  const uint moveIndex, const uint b)
-{   
+{
    if (tempTries[moveIndex] > 0)
    {
       double currentAccept = (double)(tempAccepted[moveIndex])/
@@ -128,11 +128,11 @@ void MoveSettings::Adjust(const uint majMoveKind,
    switch (majMoveKind)
    {
    case mv::DISPLACE :
-      num::Bound<double>(scale[moveIndex], 0.0000000001, 
+      num::Bound<double>(scale[moveIndex], 0.0000000001,
 			 (boxDimRef.axis.Min(b)/2) - TINY_AMOUNT);
-      break; 
-   case mv::ROTATE :  
-      num::Bound<double>(scale[moveIndex], 0.000001, M_PI-TINY_AMOUNT);      
+      break;
+   case mv::ROTATE :
+      num::Bound<double>(scale[moveIndex], 0.000001, M_PI-TINY_AMOUNT);
       break;
    default:
       break;
