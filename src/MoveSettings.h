@@ -30,6 +30,8 @@ public:
   void Init(StaticVals const& statV);
 
   void Update(const bool isAccepted, const uint moveIndex, const uint step);
+  
+  void AdjustMoves(const uint step);
 
   void Adjust(const uint majMoveKind, const uint moveIndex, const uint b);
 

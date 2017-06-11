@@ -45,6 +45,7 @@ public:
     stepsPerOut = output.console.frequency;
     enableEnergy = output.statistics.vars.energy.fluct;
     enablePressure = output.statistics.vars.pressure.fluct;
+    enableSurfTension = output.statistics.vars.surfaceTension.fluct;
 #ifdef VARIABLE_VOLUME    
     enableVolume = output.statistics.vars.volume.fluct;
 #else
@@ -57,6 +58,11 @@ public:
     enableMol = false;
 #endif
     enableDens = output.statistics.vars.density.fluct;
+    if (enableVolume || enablePressure || enableMol || enableDens ||
+	enableSurfTension)
+    {
+      enableStat = true;
+    }
     DoOutput(0);
   }
   virtual void DoOutput(const ulong step);
@@ -64,15 +70,19 @@ public:
 private:
   const static int elementWidth = 16;
   bool enableEnergy, enablePressure, enableDens, enableVolume, enableMol;
-
+  bool enableSurfTension, enableStat;
   void PrintMove(const uint box, const ulong step) const;
   void PrintMoveStat(const uint box, const ulong step) const;
-  void PrintStatistic(const uint box) const;
-  void PrintEnergy(const uint box, Energy const& en, Virial const& vir) const;
-  void PrintEnergyTitle(const uint box);
-  void PrintStatisticTitle(const uint box);
-  void PrintMoveTitle(const uint box);
+  void PrintStatistic(const uint box, const ulong step) const;
+  void PrintPressureTensor(const uint box, const ulong step) const;
+  void PrintEnergy(const uint box, Energy const& en, Virial const& vir,
+		   const ulong step) const;
+  void PrintEnergyTitle();
+  void PrintStatisticTitle();
+  void PrintMoveTitle();
   template <typename T> void printElement ( const T t, const int width) const;
+  template <typename T> void printElementStep ( const T t, const ulong step,
+						const int width) const;
 };
 
 #endif /*CONSOLE_OUTPUT_H*/

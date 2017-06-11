@@ -44,7 +44,7 @@ System::~System()
    delete moves[mv::DISPLACE];
    delete moves[mv::ROTATE];
    delete moves[mv::INTRA_SWAP];
-#if ENSEMBLE == GEMC
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
    delete moves[mv::VOL_TRANSFER];
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
@@ -77,15 +77,22 @@ void System::Init(Setup const& set)
    bool ewald = set.config.sys.elect.ewald;
    bool cached = set.config.sys.elect.cache;
    
-   if (ewald && cached)
-      calcEwald = new EwaldCached(statV, *this);
-   else if (ewald && !cached)
-      calcEwald = new Ewald(statV, *this);
+#ifdef GOMC_CUDA
+   if(ewald)
+     calcEwald = new Ewald(statV, *this);
    else
-      calcEwald = new NoEwald(statV, *this);
+     calcEwald = new NoEwald(statV, *this);
+#else
+   if (ewald && cached)
+     calcEwald = new EwaldCached(statV, *this);
+   else if (ewald && !cached)
+     calcEwald = new Ewald(statV, *this);
+   else
+     calcEwald = new NoEwald(statV, *this);
+#endif
 
-   calcEwald->Init();   
    calcEnergy.Init(*this);
+   calcEwald->Init();
    potential = calcEnergy.SystemTotal();
    InitMoves();
 }
@@ -95,7 +102,7 @@ void System::InitMoves()
    moves[mv::DISPLACE] = new Translate(*this, statV);
    moves[mv::ROTATE] = new Rotate(*this, statV);
    moves[mv::INTRA_SWAP] = new IntraSwap(*this, statV);
-#if ENSEMBLE == GEMC
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
    moves[mv::VOL_TRANSFER] = new VolumeTransfer(*this, statV);
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC

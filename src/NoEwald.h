@@ -60,6 +60,12 @@ class NoEwald : public EwaldCached
    //calculate reciprocate energy term for a box
    virtual double BoxReciprocal(uint box) const;
 
+   //calculate reciprocate force term for a box
+   virtual Virial ForceReciprocal(Virial& virial, uint box) const;
+
+   //calculate correction force term for a box
+   virtual Virial ForceCorrection(Virial& virial, uint box) const;
+
    //calculate correction term for a molecule
    virtual double MolCorrection(uint molIndex, BoxDimensions const& boxAxes,
 				uint box)const;
@@ -103,6 +109,9 @@ class NoEwald : public EwaldCached
 
    //update reciprocate values
    virtual void UpdateRecip(uint box);
+
+   //update the hx,y,z hsqr and prefact
+   virtual void UpdateRecipVec(uint box);
 
    //restore cosMol and sinMol
    virtual void RestoreMol(int molIndex);

@@ -30,20 +30,25 @@ std::vector<std::string> mv::MoveNames()
   v.push_back("Molecule Transfer (Box 1 -> Box 0)");
   v.push_back("IntraSwap (Box 0)");
   v.push_back("IntraSwap (Box 1)");
+#elif ENSEMBLE == NPT
+  v.push_back("Displace (Box 0)");
+  v.push_back("Rotate (Box 0)");
+  v.push_back("Volume Transfer (Box 0)");
+  v.push_back("IntraSwap (Box 0)");;
 #endif
   return v;
 }
 
 std::vector<std::string> mv::ScaleMoveNames()
 {
-#if ENSEMBLE == GEMC
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
   std::vector<std::string> v(VOL_TRANSFER+1);
 #else
   std::vector<std::string> v(ROTATE+1);
 #endif
   v[DISPLACE] = "DISPLACE";
   v[ROTATE] = "ROTATE";
-#if ENSEMBLE == GEMC
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
   v[VOL_TRANSFER] = "VOLUME";
 #endif
   return v;

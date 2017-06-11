@@ -60,10 +60,6 @@ public:
   //Registers shift of mol into intoBox
   //Returns true if shift was successful, false otherwise
   bool ShiftMolBox(const uint mol, const uint currentBox,
-                   const uint intoBox);
-
-  //Same as above, but providing kind increases performance
-  bool ShiftMolBox(const uint mol, const uint currentBox,
                    const uint intoBox, const uint kind);
 #endif
 
@@ -133,6 +129,12 @@ public:
     ++pIt;
     return *this;
   }
+  box_iterator& operator-- ()
+  {
+    --pIt;
+    return *this;
+  }
+  
   box_iterator operator++ (int);
   const uint& operator*() const
   {

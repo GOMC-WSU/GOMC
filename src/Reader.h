@@ -121,7 +121,7 @@ protected:
   {
     using namespace std;
     cerr << ((critical)?"Error ":"Warning ") << nameWAlias << endl
-         << msg << endl << endl;
+         << msg << endl;
     if (critical)
       exit(1);
   }
@@ -129,7 +129,7 @@ protected:
   void HandleNote(std::string const& msg)
   {
     using namespace std;
-    cout << msg << nameWAlias << endl << endl;
+    cout << msg << nameWAlias << endl;
   }
   void CheckFileState(const bool expected,
                       std::string const & errMessage, std::string const& note)

@@ -115,6 +115,7 @@ void PDBOutput::InitPartVec(pdb_setup::Atoms const& atoms)
     while (m != end)
     {
       uint mI = *m;
+
       std::string resName = atoms.resNames[mI];
       molRef.GetRangeStartStop(pStart, pEnd, mI);
 
@@ -136,7 +137,14 @@ void PDBOutput::FormatAtom
   using namespace pdb_entry;
   sstrm::Converter toStr;
   //Atom #
-  toStr.Align(res_num::ALIGN).Replace(line, p + 1, atom_num::POS);
+  if(p + 1 < 100000)
+  {
+    toStr.Align(res_num::ALIGN).Replace(line, p + 1, atom_num::POS);
+  }
+  else
+  {
+     toStr.Align(res_num::ALIGN).Replace(line, "*****", atom_num::POS);
+  }
 
   uint posAliasStart = alias::POS.START;
   if (atomAlias.length() == 1)
@@ -151,7 +159,8 @@ void PDBOutput::FormatAtom
   //Res (molecule) chain (letter)
   line[chain::POS.START] = chain;
   //Res (molecule) # -- add 1 to start counting @ 1
-  toStr.Align(res_num::ALIGN).Replace(line, m + 1, res_num::POS);
+  toStr.Align(res_num::ALIGN).Replace(line, (m % 9999) + 1, res_num::POS);
+  
   toStr.Fixed().Align(beta::ALIGN).Precision(beta::PRECISION);
   toStr.Replace(line, beta::DEFAULT, beta::POS);
 }
