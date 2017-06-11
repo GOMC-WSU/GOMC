@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.0] - 6/11/2017
++ NPT added
++ GPU implementation has been added to the project
+
 ## [1.9] - 12/12/2016
 + Revision on output. We now only generate one output file.
 + Bug fixes
