@@ -78,6 +78,7 @@ ConfigSetup::ConfigSetup(void)
   out.console.enable = true;
   out.statistics.settings.block.enable = true;
 #if ENSEMBLE == GCMC
+  sys.chemPot.isFugacity = false;
   out.statistics.settings.hist.enable = false;
   out.statistics.settings.hist.frequency = ULONG_MAX;
   out.state.files.hist.histName = "";
@@ -456,6 +457,18 @@ void ConfigSetup::Init(const char *fileName)
       std::string resName = line[1];
       double val = stringtod(line[2]);
       sys.chemPot.cp[resName] = val;
+    }
+    else if(line[0] == "Fugacity")
+    {
+      if(line.size() != 3)
+      {
+	std::cout << "Error: Fugacity parameters have not been specified!" << std::endl;
+	exit(0);
+      }
+      sys.chemPot.isFugacity = true;
+      std::string resName = line[1];
+      double val = stringtod(line[2]);
+      sys.chemPot.cp[resName] = val * unit::BAR_TO_K_MOLECULE_PER_A3;
     }
 #endif
     else if(line[0] == "OutputName")
