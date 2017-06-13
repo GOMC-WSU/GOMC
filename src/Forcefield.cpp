@@ -54,7 +54,9 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
   ewald = val.elect.ewald;
   alpha= val.elect.alpha;
   recip_rcut = val.elect.recip_rcut;
-
+#if ENSEMBLE == GCMC
+  isFugacity = val.chemPot.isFugacity;
+#endif
 
   if(vdwKind == val.ff.VDW_STD_KIND)
     particles = new FFParticle();

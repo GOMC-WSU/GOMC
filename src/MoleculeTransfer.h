@@ -103,15 +103,33 @@ inline double MoleculeTransfer::GetCoeff() const
 #elif ENSEMBLE == GCMC
    if (sourceBox == mv::BOX0) //Delete case
    {
-      return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
+     if(ffRef.isFugacity)
+     {
+       return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
+         boxDimRef.volInv[sourceBox] /
+         (BETA * molRef.kinds[kindIndex].chemPot);
+     }
+     else
+     {
+       return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
          boxDimRef.volInv[sourceBox] *
          exp(-BETA * molRef.kinds[kindIndex].chemPot);
+     }
    }
    else //Insertion case
    {
-      return boxDimRef.volume[destBox]/
+     if(ffRef.isFugacity)
+     {
+       return boxDimRef.volume[destBox]/
+         (double)(molLookRef.NumKindInBox(kindIndex, destBox)+1) *
+         (BETA * molRef.kinds[kindIndex].chemPot);
+     }
+     else
+     {
+       return boxDimRef.volume[destBox]/
          (double)(molLookRef.NumKindInBox(kindIndex, destBox)+1) *
          exp(BETA * molRef.kinds[kindIndex].chemPot);
+     }
    }
 #endif
 }

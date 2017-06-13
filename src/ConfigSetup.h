@@ -193,6 +193,7 @@ namespace config_setup
 #if ENSEMBLE == GCMC 
    struct ChemicalPotential 
    { 
+      bool isFugacity;
       std::map<std::string, double> cp; 
    }; 
 #endif 
