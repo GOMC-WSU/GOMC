@@ -26,6 +26,18 @@ void ConsoleOutput::DoOutput(const ulong step)
       PrintEnergy(b, var->energyRef[b], var->virialRef[b], -1);
       std::cout <<  std::endl;
     }
+
+    if(enableStat)
+    {
+      PrintStatisticTitle();
+      std::cout << std::endl;
+    }
+    for (uint b = 0; b < BOX_TOTAL; b++)
+    {
+      PrintStatistic(b, step);
+      std::cout << std::endl;
+    }
+    
     std::cout << "###############################################################################" << std::endl;
 
     std::cout << "############################# STARTING SIMULATION #############################" << std::endl << std::endl;
