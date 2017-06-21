@@ -109,23 +109,8 @@ inline void FF_SWITCH_MARTINI::CalcCoulombAdd_1_4(double& en,
     const double distSq,
     const double qi_qj_Fact) const
 {
-  if(ewald)
-  {
-     double dist = sqrt(distSq);
-     double val = alpha * dist;
-     en += qi_qj_Fact * (scaling_14 - 1.0 + erfc(val))/ dist;
-  }
-  else
-  {
-     // in Martini, the Coulomb switching distance is zero, so we will have
-     // sqrt(distSq) - rOnCoul =  sqrt(distSq)
-     double dist = sqrt(distSq);
-     double rij_ronCoul_3 = dist * distSq;
-     double rij_ronCoul_4 = distSq * distSq;
-     
-     double coul = -(A1/3.0) * rij_ronCoul_3 - (B1/4.0) * rij_ronCoul_4 - C1;
-     en += scaling_14 * qi_qj_Fact * diElectric_1 * (coul + 1.0/dist);
-  }
+   double dist = sqrt(distSq);
+   en += qi_qj_Fact * scaling_14 / dist;
 }
 
 

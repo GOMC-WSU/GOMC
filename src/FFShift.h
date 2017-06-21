@@ -75,17 +75,8 @@ inline void FF_SHIFT::CalcAdd_1_4(double& en, const double distSq,
 inline void FF_SHIFT::CalcCoulombAdd_1_4(double& en, const double distSq,
     const double qi_qj_Fact) const
 {
-  if(ewald)
-  {
-     double dist = sqrt(distSq);
-     double val = alpha * dist;
-     en += qi_qj_Fact * (scaling_14 - 1.0 + erfc(val))/ dist;
-  }
-  else
-  {
-     double dist = sqrt(distSq);
-     en += scaling_14 * qi_qj_Fact * (1.0/dist - 1.0/rCut);
-  }
+   double dist = sqrt(distSq);
+   en += scaling_14 * qi_qj_Fact / dist;
 }
 
 
