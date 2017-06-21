@@ -815,7 +815,6 @@ double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,
 
     forcefield.particles->CalcCoulombAdd_1_4(eng, distSq, qi_qj_Fact);
   }
-
   forcefield.particles->CalcAdd_1_4(eng, distSq, kind1, kind2);
 
   return eng;

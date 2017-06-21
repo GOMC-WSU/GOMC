@@ -135,9 +135,17 @@ inline void FFParticle::CalcAdd_1_4(double& en, const double distSq,
 inline void FFParticle::CalcCoulombAdd_1_4(double& en, const double distSq,
     const double qi_qj_Fact) const
 {
-  double dist = sqrt(distSq);
-  double erfc = alpha * dist;
-  en += scaling_14 * qi_qj_Fact * (1 - erf(erfc))/ dist;
+  if(ewald)
+  {
+    double dist = sqrt(distSq);
+    double val = alpha * dist;
+    en += qi_qj_Fact * (scaling_14 - 1.0 + erfc(val))/ dist;
+  }
+  else
+  {
+    double dist = sqrt(distSq);
+    en += qi_qj_Fact * scaling_14/ dist;
+  }
 }
 
 
@@ -164,15 +172,19 @@ inline double FFParticle::CalcEn(const double distSq,
 inline double FFParticle::CalcCoulombEn(const double distSq,
                                         const double qi_qj_Fact) const
 {
-  if(distSq > rCutLowSq)
+  if(distSq <= rCutLowSq)
+    return num::BIGNUM;
+
+  if(ewald)
   {
      double dist = sqrt(distSq);
-     double erfc = alpha * dist;
-     return  qi_qj_Fact * (1 - erf(erfc))/ dist;
+     double val = alpha * dist;
+     return  qi_qj_Fact * erfc(val)/ dist;
   }
   else
   {
-     return num::BIGNUM;
+     double dist = sqrt(distSq);
+     return  qi_qj_Fact / dist;
   }
 }
 
@@ -200,11 +212,19 @@ inline double FFParticle::CalcVir(const double distSq,
 inline double FFParticle::CalcCoulombVir(const double distSq,
 					 const double qi_qj) const
 {
-  double dist = sqrt(distSq);
-  double constValue = 2.0 * alpha / sqrt(M_PI);
-  double expConstValue = exp(-1.0 * alpha * alpha * distSq);
-  double temp = 1.0 - erf(alpha * dist);
-  return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+  if(ewald)
+  {
+    double dist = sqrt(distSq);
+    double constValue = 2.0 * alpha / sqrt(M_PI);
+    double expConstValue = exp(-1.0 * alpha * alpha * distSq);
+    double temp = 1.0 - erf(alpha * dist);
+    return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+  }
+  else
+  {
+     double dist = sqrt(distSq);
+     return qi_qj/(distSq * dist);
+  }
 }
 
 #endif /*FF_PARTICLE_H*/

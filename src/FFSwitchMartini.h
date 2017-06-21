@@ -112,8 +112,8 @@ inline void FF_SWITCH_MARTINI::CalcCoulombAdd_1_4(double& en,
   if(ewald)
   {
      double dist = sqrt(distSq);
-     double erfc = alpha * dist;
-     en += scaling_14 * qi_qj_Fact * (1 - erf(erfc))/ dist;
+     double val = alpha * dist;
+     en += qi_qj_Fact * (scaling_14 - 1.0 + erfc(val))/ dist;
   }
   else
   {
@@ -173,8 +173,8 @@ inline double FF_SWITCH_MARTINI::CalcCoulombEn(const double distSq,
   if(ewald)
   {
      double dist = sqrt(distSq);
-     double erfc = alpha * dist;
-     return  qi_qj_Fact * (1 - erf(erfc))/ dist;
+     double val = alpha * dist;
+     return  qi_qj_Fact * erfc(val)/ dist;
   }
   else
   {     
@@ -227,7 +227,7 @@ inline double FF_SWITCH_MARTINI::CalcCoulombVir(const double distSq,
      double dist = sqrt(distSq);
      double constValue = 2.0 * alpha / sqrt(M_PI);
      double expConstValue = exp(-1.0 * alpha * alpha * distSq);
-     double temp = 1.0 - erf(alpha * dist);
+     double temp = erfc(alpha * dist);
      return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   }
   else
