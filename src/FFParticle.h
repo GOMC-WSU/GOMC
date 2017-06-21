@@ -135,17 +135,8 @@ inline void FFParticle::CalcAdd_1_4(double& en, const double distSq,
 inline void FFParticle::CalcCoulombAdd_1_4(double& en, const double distSq,
     const double qi_qj_Fact) const
 {
-  if(ewald)
-  {
-    double dist = sqrt(distSq);
-    double val = alpha * dist;
-    en += qi_qj_Fact * (scaling_14 - 1.0 + erfc(val))/ dist;
-  }
-  else
-  {
-    double dist = sqrt(distSq);
-    en += qi_qj_Fact * scaling_14/ dist;
-  }
+  double dist = sqrt(distSq);
+  en += qi_qj_Fact * scaling_14 / dist;
 }
 
 
