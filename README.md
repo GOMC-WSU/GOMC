@@ -71,6 +71,7 @@ CONFIGURING CMAKE:
       -DENSEMBLE_GEMC=<On|Off>
       -DENSEMBLE_NVT=<On|Off>
       -DENSEMBLE_GCMC=<On|Off>
+      -DENSEMBLE_NPT=<On|Off>
 
       NOTES:
          CMake will prepare build rules for all ensembles that are On.
@@ -80,9 +81,6 @@ CONFIGURING CMAKE:
 
 	 GEMC includes both GEMC-NVT and GEMC-NPT implementations, which
       	 are switchable via the configuration file.
-
-      	 The GEMC-NPT implementation can be used as an NPT ensemble code if the
-      	 molecule transfer move is switched off.
 
    SET COMPILER:
 
