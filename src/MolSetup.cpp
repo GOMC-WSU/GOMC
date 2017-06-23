@@ -211,8 +211,8 @@ namespace
 
 void AssignMolKinds(MolKind& kind, const pdb_setup::Atoms& pdbData, const std::string& name)
 {
-  uint index = std::find(pdbData.resKindNames.begin(), pdbData.resKindNames.end(), name)
-               - pdbData.resKindNames.end();
+  uint index = std::find(pdbData.resKindNames.begin(),
+			 pdbData.resKindNames.end(), name) - pdbData.resKindNames.end();
   kind.kindIndex = index;
 }
 
@@ -405,7 +405,8 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap)
     check = fgets(input, 511, psf);
     if (check == NULL)
     {
-      fprintf(stderr, "ERROR: Unable to read atoms from PSF file %s", psfFilename);
+      fprintf(stderr, "ERROR: Unable to read atoms from PSF file %s",
+	      psfFilename);
       fclose(psf);
       return READERROR;
     }
@@ -444,6 +445,7 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap)
     }
   }
   //find angle header+count
+  psf = fopen(psfFilename, "r");
   while (strstr(input, "!NTHETA") == NULL)
   {
     check = fgets(input, 511, psf);
@@ -465,6 +467,7 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap)
     }
   }
   //find dihedrals header+count
+  psf = fopen(psfFilename, "r");
   while (strstr(input, "!NPHI") == NULL)
   {
     check = fgets(input, 511, psf);
@@ -576,7 +579,8 @@ int ReadPSFBonds(FILE* psf, MolMap& kindMap,
     {
       currentMol.bonds.push_back(Bond(atom0 - molBegin, atom1 - molBegin));
       dummy = fscanf(psf, "%u %u", &atom0, &atom1);
-
+      if(dummy != 2)
+	break;
     }
   }
   return 0;
@@ -616,6 +620,8 @@ int ReadPSFAngles(FILE* psf, MolMap& kindMap,
       currentMol.angles.push_back(Angle(atom0 - molBegin, atom1 - molBegin,
                                         atom2 - molBegin));
       dummy = fscanf(psf, "%u %u %u", &atom0, &atom1, &atom2);
+      if(dummy != 3)
+	break;
     }
   }
   return 0;
@@ -694,12 +700,14 @@ int ReadPSFDihedrals(FILE* psf, MolMap& kindMap,
       dih.a2 -= molBegin;
       dih.a3 -= molBegin;
       //some xplor PSF files have duplicate dihedrals, we need to ignore these
-      if (std::find(currentMol.dihedrals.begin(), currentMol.dihedrals.end(), dih)
-          == currentMol.dihedrals.end())
+      if (std::find(currentMol.dihedrals.begin(), currentMol.dihedrals.end(),
+		    dih) == currentMol.dihedrals.end())
       {
         currentMol.dihedrals.push_back(dih);
       }
       dummy = fscanf(psf, "%u %u %u %u", &dih.a0, &dih.a1, &dih.a2, &dih.a3);
+      if(dummy != 4)
+	break;
     }
   }
   return 0;

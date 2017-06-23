@@ -100,6 +100,7 @@ public:
   //(restart), count allows overwriting of coordinates during
   //second box read (restart only)
   uint currBox, count, currRes;
+  std::string currResname;
 };
 
 }

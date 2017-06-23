@@ -104,11 +104,12 @@ void Atoms::Assign(std::string const& atomName,
     box.push_back(currBox);
     atomAliases.push_back(atomName);
     resNamesFull.push_back(resName);
-    if (resNum != currRes || firstResInFile)
+    if (resNum != currRes || resName !=currResname || firstResInFile)
     {
       molBeta.push_back(l_beta);
       startIdxRes.push_back(count);      
       currRes = resNum;
+      currResname = resName;
       resNames.push_back(resName);
       chainLetter.push_back(l_chain);
       //Check if this kind of residue has been found
