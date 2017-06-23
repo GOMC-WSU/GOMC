@@ -338,6 +338,10 @@ inline uint VolumeTransfer::Prep(const double subDraw, const double movPerc)
    if (GEMC_KIND == mv::GEMC_NVT)
    {
       subPick = mv::GetMoveSubIndex(mv::VOL_TRANSFER);
+      for (uint b = 0; b < BOX_TOTAL; b++)
+      {
+	bPick[b] = b;
+      }
    }
    if (GEMC_KIND == mv::GEMC_NPT)
    {

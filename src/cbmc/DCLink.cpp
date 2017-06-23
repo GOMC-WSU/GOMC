@@ -208,9 +208,7 @@ namespace cbmc
       double* nonbonded = data->nonbonded; 
       double* nonbonded_1_4 = data->nonbonded_1_4; 
       double* inter = data->inter; 
-      double* real = data->real; 
-      double* self = data->self; 
-      double* correction = data->correction; 
+      double* real = data->real;  
       double* oneFour = data->oneFour; 
       uint nLJTrials = data->nLJTrialsNth; 
       XYZArray& positions = data->positions; 
@@ -218,10 +216,8 @@ namespace cbmc
  
       std::fill_n(inter, nLJTrials, 0.0); 
       std::fill_n(nonbonded, nLJTrials, 0.0); 
-      std::fill_n(nonbonded_1_4, nLJTrials, 0.0); 
-      std::fill_n(self, nLJTrials, 0.0); 
-      std::fill_n(real, nLJTrials, 0.0); 
-      std::fill_n(correction, nLJTrials, 0.0); 
+      std::fill_n(nonbonded_1_4, nLJTrials, 0.0);  
+      std::fill_n(real, nLJTrials, 0.0);  
       std::fill_n(ljWeights, nLJTrials, 0.0); 
       std::fill_n(angles, data->nDihTrials, 0.0); 
       std::fill_n(angleWeights, data->nDihTrials, 0.0); 
@@ -249,56 +245,22 @@ namespace cbmc
       data->calc.ParticleInter(inter, real, positions, atom, molIndex, 
                                oldMol.GetBox(), nLJTrials); 
 
-#ifdef _OPENMP
-#pragma omp parallel sections
-#endif
-{  
-#ifdef _OPENMP     
-#pragma omp section
-#endif
       data->calc.ParticleNonbonded(nonbonded, oldMol, positions, atom, 
 				   oldMol.GetBox(), nLJTrials); 
-#ifdef _OPENMP 
-#pragma omp section
-#endif
-      data->calcEwald->SwapSelf(self, molIndex, atom, oldMol.GetBox(), 
-			       nLJTrials); 
-#ifdef _OPENMP 
-#pragma omp section
-#endif
-      data->calcEwald->SwapCorrection(correction, oldMol, positions, atom,  
-				     oldMol.GetBox(), nLJTrials); 
-}
- 
-      const MoleculeKind& thisKind = oldMol.GetKind(); 
-      double tempEn = 0.0; 
-      for (uint i = 0; i < thisKind.NumAtoms(); i++) 
-      { 
-	 if (oldMol.AtomExists(i) && i != atom) 
-	 { 
-	    double distSq = oldMol.OldDistSq(i, atom); 
-	    tempEn += data->calcEwald->CorrectionOldMol(oldMol, distSq, 
-							     i, atom); 
-	 } 
-      } 
-      correction[0] = tempEn; 
- 
-
  
       double dihLJWeight = 0; 
       for (uint trial = 0; trial < nLJTrials; ++trial) 
       { 
          ljWeights[trial] *= exp(-data->ff.beta * 
 				 (inter[trial] + real[trial] + 
-				  nonbonded[trial] + self[trial] + 
-				  correction[trial])); 
+				  nonbonded[trial])); 
          dihLJWeight += ljWeights[trial]; 
       } 
       oldMol.MultWeight(dihLJWeight * bendWeight); 
       oldMol.ConfirmOldAtom(atom); 
       oldMol.AddEnergy(Energy(torsion[0] + bendEnergy + oldBondEnergy, 
 			      nonbonded[0] + oneThree + oneFour[0], 
-			      inter[0], real[0], 0.0, self[0], correction[0])); 
+			      inter[0], real[0], 0.0, 0.0, 0.0)); 
    } 
  
    void DCLink::BuildNew(TrialMol& newMol, uint molIndex) 
@@ -313,8 +275,6 @@ namespace cbmc
       double* nonbonded_1_4 = data->nonbonded_1_4; 
       double* inter = data->inter; 
       double* real = data->real; 
-      double* self = data->self; 
-      double* correction = data->correction; 
       double* oneFour = data->oneFour; 
       uint nLJTrials = data->nLJTrialsNth; 
       XYZArray& positions = data->positions; 
@@ -322,10 +282,8 @@ namespace cbmc
  
       std::fill_n(inter, nLJTrials, 0.0); 
       std::fill_n(nonbonded, nLJTrials, 0.0); 
-      std::fill_n(nonbonded_1_4, nLJTrials, 0.0); 
-      std::fill_n(self, nLJTrials, 0.0); 
+      std::fill_n(nonbonded_1_4, nLJTrials, 0.0);
       std::fill_n(real, nLJTrials, 0.0); 
-      std::fill_n(correction, nLJTrials, 0.0); 
       std::fill_n(ljWeights, nLJTrials, 0.0); 
       std::fill_n(angles, data->nDihTrials, 0.0); 
       std::fill_n(angleWeights, data->nDihTrials, 0.0); 
@@ -349,28 +307,8 @@ namespace cbmc
       data->calc.ParticleInter(inter, real, positions, atom, molIndex, 
                                newMol.GetBox(), nLJTrials); 
 
-#ifdef _OPENMP
-#pragma omp parallel sections
-#endif
-{  
-#ifdef _OPENMP     
-#pragma omp section
-#endif
       data->calc.ParticleNonbonded(nonbonded, newMol, positions, atom, 
 				   newMol.GetBox(), nLJTrials); 
-#ifdef _OPENMP     
-#pragma omp section
-#endif
-      data->calcEwald->SwapSelf(self, molIndex, atom, newMol.GetBox(), 
-			       nLJTrials); 
-#ifdef _OPENMP     
-#pragma omp section
-#endif
-      data->calcEwald->SwapCorrection(correction, newMol, positions, atom,  
-				     newMol.GetBox(), nLJTrials); 
-}
-
-  
  
       double dihLJWeight = 0; 
       double beta = data->ff.beta; 
@@ -378,8 +316,7 @@ namespace cbmc
       { 
          ljWeights[trial] *= exp(-data->ff.beta * 
 				 (inter[trial] + real[trial] + 
-				  nonbonded[trial] + self[trial] + 
-				  correction[trial])); 
+				  nonbonded[trial])); 
  
          dihLJWeight += ljWeights[trial]; 
       } 
@@ -389,8 +326,7 @@ namespace cbmc
       newMol.AddAtom(atom, positions[winner]); 
       newMol.AddEnergy(Energy(torsion[winner] + bendEnergy, nonbonded[winner] + 
 			      oneThree + oneFour[winner], inter[winner], 
-			      real[winner], 0.0, self[winner], 
-			      correction[winner])); 
+			      real[winner], 0.0, 0.0, 0.0)); 
    } 
  
    double DCLink::GenerateDihedralsNew(TrialMol& newMol, uint molIndex,  
