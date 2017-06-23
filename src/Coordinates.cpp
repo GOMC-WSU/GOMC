@@ -54,32 +54,20 @@ void Coordinates::CheckCoordinate()
       printf("Molecules are packed outside of the defined box dimension.\n");
       exit(0);
     }
-
-
-    if(min.x < 0.0 || min.y < 0.0 || min.z < 0.0)
-    {
-      //shift all the molecules to positive axis
-       XYZ shiftV = min;
-       shiftV *= -1.0;
-       printf("Note: Molecules in the box %d will be shifted to origin by \n vector [%4.3f, %4.3f, %4.3f].\n", b+1, shiftV.x, shiftV.y, shiftV.z);
-    
-       while (thisMol != end)
-       {
-	 start = molRef.MolStart(*thisMol);
-	 MoleculeKind const& thisKind = molRef.GetKind(*thisMol);
-      
-	 for (p = 0; p < thisKind.NumAtoms(); p++)
-	 {
-	    atom = start + p;
-	    x[atom] += shiftV.x;
-	    y[atom] += shiftV.y;
-	    z[atom] += shiftV.z;
-	 }
-	 ++thisMol;
-       }
-    }
+  
     printf("Wrapping molecules inside the simulation box %d:\n", b+1);
-    boxDimRef.WrapPBC(*this, b);
+    while (thisMol != end)
+    {
+       start = molRef.MolStart(*thisMol);
+       MoleculeKind const& thisKind = molRef.GetKind(*thisMol);
+      
+       for (p = 0; p < thisKind.NumAtoms(); p++)
+       {
+	  atom = start + p;
+	  boxDimRef.WrapPBC(x[atom], y[atom], z[atom], b);
+       }
+       ++thisMol;
+    }
  
   }
   

@@ -34,7 +34,7 @@ void ConsoleOutput::DoOutput(const ulong step)
     }
     for (uint b = 0; b < BOX_TOTAL; b++)
     {
-      PrintStatistic(b, step);
+      PrintStatistic(b, -1);
       std::cout << std::endl;
     }
     

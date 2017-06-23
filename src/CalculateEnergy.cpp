@@ -172,7 +172,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 	   qi_qj_fact = particleCharge[pair1[i]] *
 	     particleCharge[pair2[i]] * num::qqFact;		  	
 
-	   tempREn += forcefield.particles->CalcCoulombEn(distSq, qi_qj_fact);
+	   tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact);
 	 }
 	 
 	 tempLJEn +=forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
