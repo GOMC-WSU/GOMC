@@ -472,6 +472,7 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap)
     }
   }
   //find dihedrals header+count
+  psf = fopen(psfFilename, "r");
   while (strstr(input, "!NPHI") == NULL)
   {
     check = fgets(input, 511, psf);
@@ -704,12 +705,14 @@ int ReadPSFDihedrals(FILE* psf, MolMap& kindMap,
       dih.a2 -= molBegin;
       dih.a3 -= molBegin;
       //some xplor PSF files have duplicate dihedrals, we need to ignore these
-      if (std::find(currentMol.dihedrals.begin(), currentMol.dihedrals.end(), dih)
-          == currentMol.dihedrals.end())
+      if (std::find(currentMol.dihedrals.begin(), currentMol.dihedrals.end(),
+		    dih) == currentMol.dihedrals.end())
       {
         currentMol.dihedrals.push_back(dih);
       }
       dummy = fscanf(psf, "%u %u %u %u", &dih.a0, &dih.a1, &dih.a2, &dih.a3);
+      if(dummy != 4)
+	break;
     }
   }
   return 0;
