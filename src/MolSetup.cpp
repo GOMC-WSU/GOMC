@@ -450,6 +450,7 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap)
     }
   }
   //find angle header+count
+  psf = fopen(psfFilename, "r");
   while (strstr(input, "!NTHETA") == NULL)
   {
     check = fgets(input, 511, psf);
@@ -582,7 +583,8 @@ int ReadPSFBonds(FILE* psf, MolMap& kindMap,
     {
       currentMol.bonds.push_back(Bond(atom0 - molBegin, atom1 - molBegin));
       dummy = fscanf(psf, "%u %u", &atom0, &atom1);
-
+      if(dummy != 2)
+	break;
     }
   }
   return 0;
@@ -622,6 +624,8 @@ int ReadPSFAngles(FILE* psf, MolMap& kindMap,
       currentMol.angles.push_back(Angle(atom0 - molBegin, atom1 - molBegin,
                                         atom2 - molBegin));
       dummy = fscanf(psf, "%u %u %u", &atom0, &atom1, &atom2);
+      if(dummy != 3)
+	break;
     }
   }
   return 0;

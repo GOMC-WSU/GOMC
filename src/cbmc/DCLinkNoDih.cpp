@@ -165,17 +165,13 @@ namespace cbmc
       AlignBasis(oldMol); 
       IncorporateOld(oldMol, molIndex); 
       double* inter = data->inter; 
-      double* real = data->real; 
-      double* self = data->self; 
-      double* correction = data->correction; 
+      double* real = data->real;  
       uint nLJTrials = data->nLJTrialsNth; 
       XYZArray& positions = data->positions; 
       PRNG& prng = data->prng; 
  
-      std::fill_n(inter, nLJTrials, 0.0); 
-      std::fill_n(self, nLJTrials, 0.0); 
-      std::fill_n(real, nLJTrials, 0.0); 
-      std::fill_n(correction, nLJTrials, 0.0); 
+      std::fill_n(inter, nLJTrials, 0.0);  
+      std::fill_n(real, nLJTrials, 0.0);  
  
       positions.Set(0, oldMol.AtomPosition(atom)); 
       for (uint trial = 1, count = nLJTrials; trial < count; ++trial) 
@@ -188,45 +184,16 @@ namespace cbmc
 
       data->calc.ParticleInter(inter, real, positions, atom, molIndex, 
                                oldMol.GetBox(), nLJTrials); 
-#ifdef _OPENMP
-#pragma omp parallel sections
-#endif
-{     
-#ifdef _OPENMP
-#pragma omp section
-#endif
-      data->calcEwald->SwapSelf(self, molIndex, atom, oldMol.GetBox(), 
-			       nLJTrials); 
-#ifdef _OPENMP
-#pragma omp section
-#endif
-      data->calcEwald->SwapCorrection(correction, oldMol, positions, atom,  
-				     oldMol.GetBox(), nLJTrials); 
-}
- 
-      const MoleculeKind& thisKind = oldMol.GetKind(); 
-      double tempEn = 0.0; 
-      for (uint i = 0; i < thisKind.NumAtoms(); i++) 
-      { 
-	 if (oldMol.AtomExists(i) && i != atom) 
-	 { 
-	    double distSq = oldMol.OldDistSq(i, atom); 
-	    tempEn += data->calcEwald->CorrectionOldMol(oldMol, distSq, 
-							     i, atom); 
-	 } 
-      } 
-      correction[0] = tempEn; 
  
       double stepWeight = 0; 
       for (uint trial = 0, count = nLJTrials; trial < count; ++trial) 
       { 
-	stepWeight += exp(-data->ff.beta * (inter[trial] + real[trial] + 
-					    self[trial] + correction[trial])); 
+	stepWeight += exp(-data->ff.beta * (inter[trial] + real[trial])); 
       } 
       oldMol.MultWeight(stepWeight * bendWeight); 
       oldMol.ConfirmOldAtom(atom); 
       oldMol.AddEnergy(Energy(bendEnergy + oldBondEnergy, oneThree, inter[0], 
-			      real[0], 0.0, self[0], correction[0])); 
+			      real[0], 0.0, 0.0, 0.0)); 
    } 
  
    void DCLinkNoDih::BuildNew(TrialMol& newMol, uint molIndex) 
@@ -235,16 +202,12 @@ namespace cbmc
       double* ljWeights = data->ljWeights; 
       double* inter = data->inter; 
       double* real = data->real; 
-      double* self = data->self; 
-      double* correction = data->correction; 
       uint nLJTrials = data->nLJTrialsNth; 
       XYZArray& positions = data->positions; 
       PRNG& prng = data->prng; 
  
       std::fill_n(inter, nLJTrials, 0.0); 
-      std::fill_n(self, nLJTrials, 0.0); 
       std::fill_n(real, nLJTrials, 0.0); 
-      std::fill_n(correction, nLJTrials, 0.0); 
       std::fill_n(ljWeights, nLJTrials, 0.0); 
  
       for (uint trial = 0, count = nLJTrials; trial < count; ++trial) 
@@ -257,30 +220,13 @@ namespace cbmc
 
       data->calc.ParticleInter(inter, real, positions, atom, molIndex, 
                                newMol.GetBox(), nLJTrials);
-#ifdef _OPENMP
-#pragma omp parallel sections
-#endif
-{  
-#ifdef _OPENMP     
-#pragma omp section
-#endif
-      data->calcEwald->SwapSelf(self, molIndex, atom, newMol.GetBox(), 
-			       nLJTrials);
-#ifdef _OPENMP 
-#pragma omp section
-#endif
-      data->calcEwald->SwapCorrection(correction, newMol, positions, atom,  
-				     newMol.GetBox(), nLJTrials); 
- }
-
  
       double stepWeight = 0; 
       double beta = data->ff.beta; 
       for (uint trial = 0, count = nLJTrials; trial < count; ++trial) 
       { 
 	 ljWeights[trial] = exp(-data->ff.beta * 
-				(inter[trial] + real[trial] + self[trial] + 
-				 correction[trial])); 
+				(inter[trial] + real[trial])); 
          stepWeight += ljWeights[trial]; 
       } 
  
@@ -288,8 +234,7 @@ namespace cbmc
       newMol.MultWeight(stepWeight * bendWeight); 
       newMol.AddAtom(atom, positions[winner]); 
       newMol.AddEnergy(Energy(bendEnergy, oneThree, inter[winner], 
-			      real[winner], 0.0, self[winner], 
-			      correction[winner])); 
+			      real[winner], 0.0, 0.0, 0.0)); 
    } 
  
 }           

@@ -67,26 +67,11 @@ class NoEwald : public EwaldCached
    virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
 				const uint box, XYZ const*const newCOM = NULL);	
 
-   //calculate self term for CBMC algorithm
-   virtual void SwapSelf(double *self, uint molIndex, uint partIndex, int box, 
-			 uint trials) const;
+   //calculate self term after swap move
+   virtual double SwapSelf(const cbmc::TrialMol& trialMo) const;
    
-   //calculate correction term for linear molecule CBMC algorithm
-   virtual void SwapCorrection(double* energy, const cbmc::TrialMol& trialMol, 
-			       XYZArray const& trialPos, const uint partIndex, 
-			       const uint box, const uint trials) const; 
-
-   //calculate correction term for branched molecule CBMC algorithm
-   virtual void SwapCorrection(double* energy, const cbmc::TrialMol& trialMol,
-			       XYZArray *trialPos, const int pickedAtom, 
-			       uint *partIndexArray, const uint box,
-			       const uint trials, const uint PrevIndex,
-			       bool Prev) const;  
-
-   //calculate correction term for old configuration
-   virtual double CorrectionOldMol(const cbmc::TrialMol& oldMol,
-				   const double distSq,
-				   const uint i, const uint j) const;
+   //calculate correction term after swap move
+   virtual double SwapCorrection(const cbmc::TrialMol& trialMol) const; 
 
    //calculate reciprocate term in destination box for swap move
    virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box, 

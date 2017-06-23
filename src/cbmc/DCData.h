@@ -49,8 +49,6 @@ namespace cbmc
       XYZArray& positions;     //candidate positions for inclusion (alias for multiPositions[0]) 
       double* inter;          //intermolecule energies, reused for new and old 
       double* real;           //short range coulomb interaction 
-      double* self;           //self-self coulomb interactiopn 
-      double* correction;     //correction term of coulomb interaction 
       double* ljWeights; 
       double* bonded; 
       double* oneFour; 
@@ -79,9 +77,7 @@ inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& se
       multiPositions[i] = XYZArray(maxLJTrials); 
    } 
    inter = new double[maxLJTrials]; 
-   real = new double[maxLJTrials]; 
-   self = new double[maxLJTrials]; 
-   correction = new double[maxLJTrials]; 
+   real = new double[maxLJTrials];  
    bonded = new double[maxLJTrials]; 
    oneFour = new double[maxLJTrials]; 
    nonbonded = new double[maxLJTrials];    
@@ -99,8 +95,6 @@ inline DCData::~DCData()
 { 
    delete[] inter; 
    delete[] real; 
-   delete[] self; 
-   delete[] correction; 
    delete[] bonded; 
    delete[] oneFour; 
    delete[] nonbonded; 
