@@ -43,6 +43,8 @@ public:
                            const uint kind1, const uint kind2) const;
 
   // coulomb interaction functions
+  virtual double CalcCoulomb(const double distSq,
+			     const double qi_qj_Fact) const;
   virtual double CalcCoulombEn(const double distSq,
                                const double qi_qj_Fact) const;
   virtual double CalcCoulombVir(const double distSq,
@@ -124,6 +126,25 @@ inline double FF_SWITCH::CalcEn(const double distSq,
   return (epsilon_cn[index] * (repulse-attract)) * factE;
 }
 
+inline double FF_SWITCH::CalcCoulomb(const double distSq,
+                                       const double qi_qj_Fact) const
+{
+  if(ewald)
+  {
+     double dist = sqrt(distSq);
+     double val = alpha * dist;
+     return  qi_qj_Fact * erfc(val)/ dist;
+  }
+  else
+  {
+     double dist = sqrt(distSq);
+     double switchVal = distSq/rCutSq - 1.0;
+     switchVal *= switchVal;
+     return  qi_qj_Fact * switchVal/dist;
+  }
+}
+
+//will be used in energy calculation after each move
 inline double FF_SWITCH::CalcCoulombEn(const double distSq,
                                        const double qi_qj_Fact) const
 {
