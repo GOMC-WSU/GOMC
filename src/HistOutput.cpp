@@ -20,7 +20,8 @@ Histogram::Histogram(OutputVars & v)
 void Histogram::Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output)
 {
-  stepsPerOut = output.state.files.hist.stepsPerHistSample;
+  stepsPerSample = output.state.files.hist.stepsPerHistSample;
+  stepsPerOut = output.statistics.settings.hist.frequency;
   enableOut = output.statistics.settings.hist.enable;
   if (enableOut)
   {
@@ -84,7 +85,7 @@ void Histogram::Sample(const ulong step)
   //Don't output until equilibrated.
   if ((step+1) < stepsTillEquil) return;
   //If equilibrated, add to correct bin for each type in each box.
-  if ((step+1) % stepsPerOut == 0)
+  if ((step+1) % stepsPerSample == 0)
   {
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
     {
