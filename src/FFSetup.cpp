@@ -29,7 +29,7 @@ FFSetup::SetReadFunctions(const bool isCHARMM)
   funct["BONDS"] = &bond;
   funct["ANGLES"] = &angle;
   funct["DIHEDRALS"] = &dih;
-  funct["IMPROPERS"] = &imp;
+  funct["IMPROPER"] = &imp;
   if (isCHARMM)
   {
     funct["NONBONDED"] = &mie;
