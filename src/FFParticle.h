@@ -63,7 +63,8 @@ public:
   virtual double CalcCoulombVir(const double distSq,
                                 const double qi_qj) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
-                                  const double qi_qj_Fact) const;
+                                  const double qi_qj_Fact,
+				  const bool NB) const;
 
   void Init(ff_setup::Particle const& mie,
             ff_setup::NBfix const& nbfix,
@@ -135,10 +136,14 @@ inline void FFParticle::CalcAdd_1_4(double& en, const double distSq,
 }
 
 inline void FFParticle::CalcCoulombAdd_1_4(double& en, const double distSq,
-    const double qi_qj_Fact) const
+					   const double qi_qj_Fact,
+					   const bool NB) const
 {
   double dist = sqrt(distSq);
-  en += qi_qj_Fact * scaling_14 / dist;
+  if(NB)
+    en += qi_qj_Fact / dist;
+  else
+    en += qi_qj_Fact * scaling_14 / dist;
 }
 
 

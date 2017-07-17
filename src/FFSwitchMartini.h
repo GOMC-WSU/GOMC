@@ -58,7 +58,8 @@ public:
   virtual double CalcCoulombVir(const double distSq,
                                 const double qi_qj) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
-                                  const double qi_qj_Fact) const;
+                                  const double qi_qj_Fact,
+				  const bool NB) const;
 
 
   //!Returns Ezero, no energy correction
@@ -108,11 +109,15 @@ inline void FF_SWITCH_MARTINI::CalcAdd_1_4(double& en, const double distSq,
 }
 
 inline void FF_SWITCH_MARTINI::CalcCoulombAdd_1_4(double& en,
-    const double distSq,
-    const double qi_qj_Fact) const
+						  const double distSq,
+						  const double qi_qj_Fact,
+						  const bool NB) const
 {
    double dist = sqrt(distSq);
-   en += qi_qj_Fact * scaling_14 / dist;
+   if(NB)
+     en += qi_qj_Fact / dist;
+   else
+     en += qi_qj_Fact * scaling_14 / dist;
 }
 
 
