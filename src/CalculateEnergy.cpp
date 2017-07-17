@@ -451,8 +451,8 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
           {
             double qi_qj_Fact = kind.AtomCharge(partIndex) *
                                 kind.AtomCharge(*partner) * num::qqFact;
-            inter[t] +=
-              forcefield.particles->CalcCoulombEn(distSq, qi_qj_Fact);
+            forcefield.particles->CalcCoulombAdd_1_4(inter[t], distSq,
+						     qi_qj_Fact, true);
           }
         }
       }
@@ -460,55 +460,6 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
     ++partner;
   }
 }
-
-// Calculate 1-4 nonbonded intra energy
-// Calculate 1-3 nonbonded intra energy for Martini force field
-void CalculateEnergy::ParticleNonbonded_1_4(double* inter,
-    cbmc::TrialMol const& trialMol,
-    XYZArray const& trialPos,
-    const uint partIndex,
-    const uint box,
-    const uint trials) const
-{
-  if (box >= BOXES_WITH_U_B)
-    return;
-
-  const MoleculeKind& kind = trialMol.GetKind();
-
-
-  //loop over all partners of the trial particle
-  const uint* partner = kind.sortedNB_1_4.Begin(partIndex);
-  const uint* end = kind.sortedNB_1_4.End(partIndex);
-  while (partner != end)
-  {
-    if (trialMol.AtomExists(*partner))
-    {
-
-      for (uint t = 0; t < trials; ++t)
-      {
-        double distSq;
-        if (currentAxes.InRcut(distSq, trialPos, t, trialMol.GetCoords(),
-                               *partner, box))
-        {
-
-          forcefield.particles->CalcAdd_1_4(inter[t], distSq,
-                                            kind.AtomKind(partIndex),
-                                            kind.AtomKind(*partner));
-          if (electrostatic)
-          {
-            double qi_qj_Fact = kind.AtomCharge(partIndex) *
-                                kind.AtomCharge(*partner) * num::qqFact;
-            forcefield.particles->CalcCoulombAdd_1_4(inter[t],
-                distSq, qi_qj_Fact);
-          }
-        }
-
-      }
-    }
-    ++partner;
-  }
-}
-
 
 
 //! Calculates Nonbonded intra energy for candidate positions in trialPos
@@ -689,6 +640,7 @@ void CalculateEnergy::MolDihedral(double & energy,
   }
 }
 
+// Calculate 1-N nonbonded intra energy
 void CalculateEnergy::MolNonbond(double & energy,
                                  MoleculeKind const& molKind,
                                  const uint molIndex,
@@ -717,13 +669,15 @@ void CalculateEnergy::MolNonbond(double & energy,
 	     molKind.AtomCharge(molKind.nonBonded.part1[i]) *
 	     molKind.AtomCharge(molKind.nonBonded.part2[i]);
        
-	   energy += forcefield.particles->CalcCoulombEn( distSq, qi_qj_Fact);
+	   forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
+						    qi_qj_Fact, true);
 	}
      }
   }
 
 }
 
+// Calculate 1-4 nonbonded intra energy
 void CalculateEnergy::MolNonbond_1_4(double & energy,
                                      MoleculeKind const& molKind,
                                      const uint molIndex,
@@ -752,13 +706,14 @@ void CalculateEnergy::MolNonbond_1_4(double & energy,
                      molKind.AtomCharge(molKind.nonBonded_1_4.part1[i]) *
                      molKind.AtomCharge(molKind.nonBonded_1_4.part2[i]);
 
-        forcefield.particles->CalcCoulombAdd_1_4(energy,
-            distSq, qi_qj_Fact);
+        forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
+						 qi_qj_Fact, false);
       }
     }
   }
 }
 
+// Calculate 1-3 nonbonded intra energy
 void CalculateEnergy::MolNonbond_1_3(double & energy,
                                      MoleculeKind const& molKind,
                                      const uint molIndex,
@@ -787,13 +742,14 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
                      molKind.AtomCharge(molKind.nonBonded_1_3.part1[i]) *
                      molKind.AtomCharge(molKind.nonBonded_1_3.part2[i]);
 
-        forcefield.particles->CalcCoulombAdd_1_4(energy,
-            distSq, qi_qj_Fact);
+        forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
+						 qi_qj_Fact, false);
       }
     }
   }
 }
 
+// Calculate 1-3 nonbonded intra energy
 double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,
                                         const uint atom2, const uint molIndex) const
 {
@@ -813,7 +769,7 @@ double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,
     double qi_qj_Fact =  num::qqFact * thisKind.AtomCharge(atom1) *
                          thisKind.AtomCharge(atom2);
 
-    forcefield.particles->CalcCoulombAdd_1_4(eng, distSq, qi_qj_Fact);
+    forcefield.particles->CalcCoulombAdd_1_4(eng, distSq, qi_qj_Fact, false);
   }
   forcefield.particles->CalcAdd_1_4(eng, distSq, kind1, kind2);
 
@@ -821,6 +777,7 @@ double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,
 
 }
 
+// Calculate 1-4 nonbonded intra energy
 double CalculateEnergy::IntraEnergy_1_4(const double distSq, const uint atom1,
                                         const uint atom2, const uint molIndex) const
 {
@@ -841,7 +798,7 @@ double CalculateEnergy::IntraEnergy_1_4(const double distSq, const uint atom1,
     double qi_qj_Fact =  num::qqFact * thisKind.AtomCharge(atom1) *
                          thisKind.AtomCharge(atom2);
 
-    forcefield.particles->CalcCoulombAdd_1_4(eng, distSq, qi_qj_Fact);
+    forcefield.particles->CalcCoulombAdd_1_4(eng, distSq, qi_qj_Fact, false);
   }
   forcefield.particles->CalcAdd_1_4(eng, distSq, kind1, kind2);
 
