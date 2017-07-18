@@ -5,6 +5,7 @@
 #include "PDBSetup.h"       //For mol names->kinds
 #include "FFSetup.h"        //For geometry kinds
 #include "BasicTypes.h"
+#include "GeomLib.h"
 
 #include <cstdio>
 #include <utility>      //for swap (most modern compilers)
@@ -40,6 +41,9 @@ void AssignBondKinds(MolKind& kind, const FFSetup& ffData);
 void AssignAngleKinds(MolKind& kind, const FFSetup& ffData);
 void AssignDihKinds(MolKind& kind, const FFSetup& ffData);
 
+void BriefBondKinds(MolKind& kind, const FFSetup& ffData);
+void BriefAngleKinds(MolKind& kind, const FFSetup& ffData);
+void BriefDihKinds(MolKind& kind, const FFSetup& ffData);
 
 //Builds kindMap from PSF file (does not include coordinates) kindMap
 // should be empty returns number of atoms in the file, or READERROR if
@@ -208,6 +212,10 @@ void MolSetup::AssignKinds(const pdb_setup::Atoms& pdbAtoms, const FFSetup& ffDa
     AssignBondKinds(it->second, ffData);
     AssignAngleKinds(it->second, ffData);
     AssignDihKinds(it->second, ffData);
+    //Print bonded Information
+    BriefBondKinds(it->second, ffData);
+    BriefAngleKinds(it->second, ffData);
+    BriefDihKinds(it->second, ffData);
   }
 }
 
@@ -266,6 +274,44 @@ void AssignBondKinds(MolKind& kind, const FFSetup& ffData)
   }
 }
 
+void BriefBondKinds(MolKind& kind, const FFSetup& ffData)
+{
+  const uint ATOMS_PER = 2;
+  std::string elementNames[ATOMS_PER];
+  bool readKind[kind.bonds.size()];
+
+  printf("Bonds parameter:\n");
+  printf("%-19s %15s %15s \n", "Atom Types", "Kb(K)", "b0(A)");
+  for (uint i = 0; i < kind.bonds.size(); ++i)
+  {
+    readKind[i] = false;
+  }
+
+  for (uint i = 0; i < kind.bonds.size(); ++i)
+  {
+    uint search = kind.bonds[i].kind;
+    if(!readKind[search])
+    {
+      elementNames[0] = kind.atoms[kind.bonds[i].a0].type;
+      elementNames[1] = kind.atoms[kind.bonds[i].a1].type;
+
+      std::string bondName;
+      for (uint m = 0; m < ATOMS_PER; ++m)
+        bondName.append(elementNames[m]).append(" ");
+
+      printf("%-20s", bondName.c_str());
+      if(ffData.bond.GetKb(search) > 99999999)
+        printf("%15s %15.4f \n", "FIX", ffData.bond.Getb0(search));
+      else
+	printf("%15.6f %15.4f \n", ffData.bond.GetKb(search),
+	       ffData.bond.Getb0(search));
+
+      readKind[search] = true;
+    }
+  }
+  std::cout << std::endl;
+}
+
 void AssignAngleKinds(MolKind& kind, const FFSetup& ffData)
 {
   const uint ATOMS_PER = 3;
@@ -295,6 +341,46 @@ void AssignAngleKinds(MolKind& kind, const FFSetup& ffData)
   }
 }
 
+void BriefAngleKinds(MolKind& kind, const FFSetup& ffData)
+{
+  const uint ATOMS_PER = 3;
+  std::string elementNames[ATOMS_PER];
+  bool readKind[kind.angles.size()];
+
+  printf("Angles parameter:\n");
+  printf("%-19s %15s %15s \n", "Atom Types", "Ktheta(K)", "theta0(degree)");
+  for (uint i = 0; i < kind.angles.size(); ++i)
+  {
+    readKind[i] = false;
+  }
+
+  double coef = 180.00 / M_PI;
+  for (uint i = 0; i < kind.angles.size(); ++i)
+  {
+    uint search = kind.angles[i].kind;
+    if(!readKind[search])
+    {
+      elementNames[0] = kind.atoms[kind.angles[i].a0].type;
+      elementNames[1] = kind.atoms[kind.angles[i].a1].type;
+      elementNames[2] = kind.atoms[kind.angles[i].a2].type;
+      
+      std::string angleName;
+      for (uint m = 0; m < ATOMS_PER; ++m)
+        angleName.append(elementNames[m]).append(" ");
+
+      printf("%-20s", angleName.c_str());
+      if(ffData.angle.GetKtheta(search) > 99999999)
+        printf("%15s %15.4f \n", "FIX", ffData.angle.Gettheta0(search) *coef);
+      else
+	printf("%15.6f %15.4f \n", ffData.angle.GetKtheta(search),
+	       ffData.angle.Gettheta0(search) * coef);
+
+      readKind[search] = true;
+    }
+  }
+  std::cout << std::endl;
+}
+
 void AssignDihKinds(MolKind& kind, const FFSetup& ffData)
 {
   const uint ATOMS_PER = 4;
@@ -321,6 +407,54 @@ void AssignDihKinds(MolKind& kind, const FFSetup& ffData)
     kind.dihedrals[i].kind = search;
   }
 }
+
+void BriefDihKinds(MolKind& kind, const FFSetup& ffData)
+{
+  const uint ATOMS_PER = 4;
+
+  std::string elementNames[ATOMS_PER];
+  double coef = 180.00 / M_PI;
+  bool readKind[kind.dihedrals.size()];
+
+  printf("Dihedrals parameter:\n");
+  printf("%-19s %15s %15s %15s \n", "Atom Types", "Kchi(K)", "n", "delta(degree)");
+  for (uint i = 0; i < kind.dihedrals.size(); ++i)
+  {
+    readKind[i] = false;
+  }
+
+  for (uint i = 0; i < kind.dihedrals.size(); ++i)
+  {
+    uint search = kind.dihedrals[i].kind;
+    std::string dName = ffData.dih.name[search];
+    if(!readKind[search])
+    { 
+      elementNames[0] = kind.atoms[kind.dihedrals[i].a0].type;
+      elementNames[1] = kind.atoms[kind.dihedrals[i].a1].type;
+      elementNames[2] = kind.atoms[kind.dihedrals[i].a2].type;
+      elementNames[3] = kind.atoms[kind.dihedrals[i].a3].type;
+
+      std::string dihedralName;
+      for (uint m = 0; m < ATOMS_PER; ++m)
+        dihedralName.append(elementNames[m]).append(" ");
+
+      uint dihsize = ffData.dih.GetSizeDih(dName);
+      
+      for(uint j = 0; j < dihsize; j++)
+      {
+	printf("%-20s", dihedralName.c_str());
+	printf("%15.6f %15d %15.4f \n", ffData.dih.GetKchi(dName, j),
+	       ffData.dih.Getn(dName, j),
+	       ffData.dih.Getdelta(dName, j) * coef);
+      }
+      std::cout << std::endl;
+      readKind[search] = true;
+      
+    }
+  }
+}
+
+
 }
 
 
@@ -340,14 +474,14 @@ void mol_setup::PrintMolMapVerbose(const MolMap& kindMap)
 	it->second.atoms[i].charge <<'\t' << std::setprecision(4) <<
 	it->second.atoms[i].mass << std::endl;
     }
-    std::cout << "Bonds:";
+    std::cout << "\nBonds:";
     for (uint i = 0; i < it->second.bonds.size(); i++)
     {
       if (i % 20 == 0)
         std::cout << std::endl;
       std::cout << "[" << it->second.bonds[i].a0 << ' ' << it->second.bonds[i].a1 << ']' << ' ';
     }
-    std::cout << std::endl << "Angles:";
+    std::cout << std::endl << "\nAngles:";
     for (uint i = 0; i < it->second.angles.size(); i++)
     {
       if (i % 24 == 0)
@@ -356,7 +490,7 @@ void mol_setup::PrintMolMapVerbose(const MolMap& kindMap)
                 << it->second.angles[i].a1 << ' '
                 << it->second.angles[i].a2 << ']' << ' ';
     }
-    std::cout << std::endl << "Dihedrals:";
+    std::cout << std::endl << "\nDihedrals:";
     for (uint i = 0; i < it->second.dihedrals.size(); i++)
     {
       if (i % 24 == 0)

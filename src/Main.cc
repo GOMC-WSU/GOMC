@@ -81,6 +81,8 @@ int main(int argc, char *argv[])
       omp_set_num_threads(numThreads);
       std::cout << "Number of threads has been set to: " <<
 	numThreads << std::endl;
+#else
+      std::cout << "Number of threads has been set to: 1\n";
 #endif
 
       //OPEN FILE
