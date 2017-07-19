@@ -25,6 +25,12 @@ struct EnPartCntSample : OutputableBase
   EnPartCntSample(OutputVars & v)
   {
     this->var = &v;
+    for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
+    {
+      samplesE[b] = NULL;;
+      samplesN[b] = NULL;
+    }
+    
   }
 
   ~EnPartCntSample();

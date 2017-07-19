@@ -15,8 +15,11 @@ EnPartCntSample::~EnPartCntSample()
    {
       if (outF[b].is_open()) outF[b].close();
       if (samplesE[b] != NULL) delete[] samplesE[b];
-      for (uint k = 0; k < var->numKinds; ++k)
-         if (samplesN[b][k] != NULL) delete[] samplesN[b][k];
+      if(samplesN[b] != NULL)
+      {
+	for (uint k = 0; k < var->numKinds; ++k)
+	  if (samplesN[b][k] != NULL) delete[] samplesN[b][k];
+      }
       if (samplesN[b] != NULL) delete[] samplesN[b];
    }
 }
