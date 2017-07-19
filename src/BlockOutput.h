@@ -87,9 +87,12 @@ private:
 /**********************************************************************/
 struct BlockAverages : OutputableBase
 {
+  BlockAverages(): blocks(NULL) {}
+  
   BlockAverages(OutputVars & v)
   {
     this->var = &v;
+    blocks = NULL;
   }
 
   ~BlockAverages(void)
@@ -102,7 +105,10 @@ struct BlockAverages : OutputableBase
     {
       outBlock1.close();
     }
-    if ( blocks != NULL ) delete[] blocks;
+    if ( blocks != NULL )
+    {  
+      delete[] blocks;
+    }
   }
   //No additional init.
   virtual void Init(pdb_setup::Atoms const& atoms,
