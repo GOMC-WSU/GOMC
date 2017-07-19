@@ -76,17 +76,17 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
   if(exckind == val.exclude.EXC_ONETWO_KIND && ffKind.isMARTINI)
   {
     OneThree = true, OneFour = true, OneN = true;
-    std::cout << "REMINDER! 1-3 Interaction and more is ON for Martini forcefield\n";
+    //std::cout << "REMINDER! 1-3 Interaction and more is ON for Martini forcefield\n";
   }
   else if(exckind == val.exclude.EXC_ONEFOUR_KIND)
   {
     OneThree = false, OneFour = false, OneN = true;
-    std::cout << "REMINDER! 1-3 and 1-4 Interaction is OFF\n";
+    //std::cout << "REMINDER! 1-3 and 1-4 Interaction is OFF\n";
   }
   else
   {
     OneThree = false, OneFour = true, OneN = true;
-    std::cout << "REMINDER! 1-4 Interaction and more is ON\n";
+    //std::cout << "REMINDER! 1-4 Interaction and more is ON\n";
   }
 
 }

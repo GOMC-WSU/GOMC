@@ -143,6 +143,7 @@ void ConfigSetup::Init(const char *fileName)
     if(line[0] == "Restart")
     {
       in.restart.enable = checkBool(line[1]);
+      printf("%-30s %-s \n", "Info: Restart simulation",  "Active");
     }
     else if(line[0] == "FirstStep")
     {
@@ -151,10 +152,12 @@ void ConfigSetup::Init(const char *fileName)
     else if(line[0] == "PRNG")
     {
       in.prng.kind = line[1];
+      printf("Info: Random seed Active.\n");
     }
     else if(line[0] == "Random_Seed")
     {
       in.prng.seed = stringtoi(line[1]);
+      printf("Info: Constant seed Active.\n");
     }
     else if(line[0] == "ParaTypeCHARMM")
     {
@@ -164,7 +167,7 @@ void ConfigSetup::Init(const char *fileName)
         in.ffKind.isEXOTIC = false;
         in.ffKind.isMARTINI = false;
         in.ffKind.isCHARMM = true;
-        std::cout << "REMINDER: CHARMM force field has been selected!" << std::endl;
+	printf("Info: PARAMETER file: CHARMM format!\n");
       }
     }
     else if(line[0] == "ParaTypeEXOTIC")
@@ -175,7 +178,7 @@ void ConfigSetup::Init(const char *fileName)
         in.ffKind.isCHARMM = false;
         in.ffKind.isMARTINI = false;
         in.ffKind.isEXOTIC = true;
-        std::cout << "REMINDER: EXOTIC force field has been selected!" << std::endl;
+	printf("Info: PARAMETER file: EXOTIC format!\n");
       }
     }
     else if(line[0] == "ParaTypeMARTINI")
@@ -186,7 +189,7 @@ void ConfigSetup::Init(const char *fileName)
         in.ffKind.isEXOTIC = false;
         in.ffKind.isMARTINI = true;
         in.ffKind.isCHARMM = true;
-        std::cout << "REMINDER: MARTINI force field has been selected!" << std::endl;
+	printf("Info: PARAMETER file: MARTINI using CHARMM format!\n");
       }
     }
     else if(line[0] == "Parameters")
@@ -198,7 +201,7 @@ void ConfigSetup::Init(const char *fileName)
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL)
       {
-        std::cout<< "Error: This simulation requires only " << BOX_TOTAL << " number of PDB file(s)!" << std::endl;
+        std::cout<< "Error: Simulation requires " << BOX_TOTAL << " PDB file(s)!" << std::endl;
         exit(0);
       }
       in.files.pdb.name[boxnum] = line[2];
@@ -208,7 +211,7 @@ void ConfigSetup::Init(const char *fileName)
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL)
       {
-        std::cout<< "Error: This simulation requires only " << BOX_TOTAL << " number of PSF file(s)!" << std::endl;
+        std::cout<< "Error: Simulation requires " << BOX_TOTAL << " PSF file(s)!" << std::endl;
         exit(0);
       }
       in.files.psf.name[boxnum] = line[2];
@@ -219,19 +222,18 @@ void ConfigSetup::Init(const char *fileName)
       if(line[1] == "NVT")
       {
         sys.gemc.kind = mv::GEMC_NVT;
-        std::cout<< "NVT_GEMC simulation has been selected " << std::endl;
+	printf("Info: Running NVT_GEMC.\n");
       }
       else if(line[1] == "NPT")
       {
         sys.gemc.kind = mv::GEMC_NPT;
-        std::cout<< "NPT_GEMC simulation has been selected " << std::endl;
+	printf("Info: Running NPT_GEMC.\n");
       }
     }
     else if(line[0] == "Pressure")
     {
       sys.gemc.pressure = stringtod(line[1]);
-      std::cout<< "Pressure of system has been set to " <<
-	std::setprecision(5) << sys.gemc.pressure << " bar " << std::endl;
+      printf("%-30s %-4.4f bar.\n", "Info: Input Pressure", sys.gemc.pressure);
       sys.gemc.pressure *= unit::BAR_TO_K_MOLECULE_PER_A3;
     }
 #endif
@@ -240,30 +242,31 @@ void ConfigSetup::Init(const char *fileName)
     {
       sys.gemc.kind = mv::GEMC_NPT;
       sys.gemc.pressure = stringtod(line[1]);
-      std::cout<< "Pressure of system has been set to " <<
-	std::setprecision(5) << sys.gemc.pressure << " bar " << std::endl;
+      printf("%-30s %-4.4f bar.\n", "Info: Input Pressure", sys.gemc.pressure);
       sys.gemc.pressure *= unit::BAR_TO_K_MOLECULE_PER_A3;
     }
 #endif
     else if(line[0] == "Temperature")
     {
       sys.T.inKelvin = stringtod(line[1]);
-      std::cout<< "Temperature of system has been set to " <<
-	std::setprecision(5) << sys.T.inKelvin << " K " << std::endl;
+      printf("%-30s %-4.4f K.\n", "Info: Input Temperature", sys.T.inKelvin);
     }
     else if(line[0] == "Potential")
     {
       if(line[1] == "VDW")
+      {
         sys.ff.VDW_KIND = sys.ff.VDW_STD_KIND;
+	printf("%-30s %-s \n", "Info: Non-truncated potential", "Active");
+      }
       else if(line[1] == "SHIFT")
       {
         sys.ff.VDW_KIND = sys.ff.VDW_SHIFT_KIND;
-	std::cout << "Shift method will be used to truncate the VDW interaction.\n";
+        printf("%-30s %-s \n", "Info: Shift truncated potential", "Active");
       }
       else if(line[1] == "SWITCH")
       {
         sys.ff.VDW_KIND = sys.ff.VDW_SWITCH_KIND;
-	std::cout << "Switch method will be used to truncate the VDW interaction.\n";
+	printf("%-30s %-s \n", "Info: Switch truncated potential", "Active");
       }
     }
     else if(line[0] == "LRC")
@@ -277,21 +280,30 @@ void ConfigSetup::Init(const char *fileName)
     else if(line[0] == "Rcut")
     {
       sys.ff.cutoff = stringtod(line[1]);
-      std::cout << "Cut off  is set to " << sys.ff.cutoff << " A.\n";
+      printf("%-30s %-4.4f A.\n", "Info: Cutoff", sys.ff.cutoff);
     }
     else if(line[0] == "RcutLow")
     {
       sys.ff.cutoffLow = stringtod(line[1]);
-      std::cout << "Cut off Low is set to " << sys.ff.cutoffLow << " A.\n";
+      printf("%-30s %-4.4f A.\n", "Info: Short Range Cutoff", sys.ff.cutoffLow);
     }
     else if(line[0] == "Exclude")
     {
       if(line[1] == sys.exclude.EXC_ONETWO)
+      {
         sys.exclude.EXCLUDE_KIND = sys.exclude.EXC_ONETWO_KIND;
+	printf("%-30s %-s \n", "Info: Exclude", "ONE-TWO");
+      }
       else if(line[1] == sys.exclude.EXC_ONETHREE)
+      {
         sys.exclude.EXCLUDE_KIND = sys.exclude.EXC_ONETHREE_KIND;
+	printf("%-30s %-s \n", "Info: Exclude", "ONE-THREE");
+      }
       else if(line[1] == sys.exclude.EXC_ONEFOUR)
+      {
         sys.exclude.EXCLUDE_KIND = sys.exclude.EXC_ONEFOUR_KIND;
+	printf("%-30s %-s \n", "Info: Exclude", "ONE-FOUR");
+      }
     }
     else if(line[0] == "Ewald")
     {
@@ -299,7 +311,7 @@ void ConfigSetup::Init(const char *fileName)
       sys.elect.readEwald = true;
       if(sys.elect.ewald)
       {
-        std::cout<< "Ewald Summation method will be used to calculate electrostatic interactions." << std::endl;
+	printf("%-30s %-s \n", "Info: Ewald Summation" , "Active");
       }
     }
     else if(line[0] == "ElectroStatic")
@@ -314,7 +326,8 @@ void ConfigSetup::Init(const char *fileName)
                         sys.ff.cutoff;
       sys.elect.recip_rcut = 2 * (-log(sys.elect.tolerance))/
                              sys.ff.cutoff;
-      //printf("Ewald Tolerance is set to: %E \n", sys.elect.tolerance);
+      printf("%-30s %-1.3E \n", "Info: Ewald Summation Tolerance" ,
+	     sys.elect.tolerance);
     }
     else if(line[0] == "CachedFourier")
     {
@@ -322,11 +335,11 @@ void ConfigSetup::Init(const char *fileName)
       sys.elect.readCache = true;
       if(sys.elect.cache)
       {
-        std::cout<< "Fourier terms will be cached to increase the code performance." << std::endl;
+	printf("%-30s %-s \n", "Info: Cache Ewald Fourier", "Active");
       }
       else
       {
-        std::cout<< "None cached Fourier terms will be used." << std::endl;
+	printf("%-30s %-s \n", "Info: Cache Ewald Fourier", "Deactive");
       }
     }
     else if(line[0] == "1-4scaling")
@@ -336,18 +349,24 @@ void ConfigSetup::Init(const char *fileName)
     else if(line[0] == "Dielectric")
     {
       sys.elect.dielectric = stringtod(line[1]);
+      printf("%-30s %-4.4f \n", "Info: Dielectric", sys.elect.dielectric);
     }
     else if(line[0] == "RunSteps")
     {
       sys.step.total = stringtoi(line[1]);
+      printf("%-30s %-d \n", "Info: Total number of steps", sys.step.total);
     }
     else if(line[0] == "EqSteps")
     {
       sys.step.equil = stringtoi(line[1]);
+      printf("%-30s %-d \n", "Info: Number of equilibration steps",
+	     sys.step.equil);
     }
     else if(line[0] == "AdjSteps")
     {
       sys.step.adjustment = stringtoi(line[1]);
+      printf("%-30s %-d \n", "Info: Move adjustment frequency",
+	     sys.step.adjustment);
     }
     else if(line[0] == "PressureCalc")
     {
@@ -356,7 +375,8 @@ void ConfigSetup::Init(const char *fileName)
       if(sys.step.pressureCalc && (line.size() == 3))
       {
 	sys.step.pressureCalcFreq = stringtoi(line[2]);
-	std::cout << "Note: Pressure will be calculated every " << sys.step.pressureCalcFreq << " steps.\n";
+	printf("%-30s %-d \n", "Info: Pressure calculation frequency",
+	       sys.step.pressureCalcFreq);
       }
       else if(sys.step.pressureCalc && (line.size() == 2))
       {
@@ -365,37 +385,47 @@ void ConfigSetup::Init(const char *fileName)
       }
       else if(!sys.step.pressureCalc)
       {
-	std::cout << "Warning: Pressure calculation is turned off.\n";
+        printf("%-30s %-s \n", "Info: Pressure calculation", "Deactive");
       }
     }
     else if(line[0] == "DisFreq")
     {
       sys.moves.displace = stringtod(line[1]);
+      printf("%-30s %-4.4f \n", "Info: Displacement move frequency",
+	     sys.moves.displace);
     }
     else if(line[0] == "IntraSwapFreq")
     {
       sys.moves.intraSwap = stringtod(line[1]);
+      printf("%-30s %-4.4f \n", "Info: Intra-Swap move frequency",
+	     sys.moves.intraSwap);
     }
     else if(line[0] == "RotFreq")
     {
       sys.moves.rotate = stringtod(line[1]);
+      printf("%-30s %-4.4f \n", "Info: Rotation move frequency",
+	     sys.moves.rotate);
     }
 #ifdef VARIABLE_VOLUME
     else if(line[0] == "VolFreq")
     {
       sys.moves.volume = stringtod(line[1]);
+      printf("%-30s %-4.4f \n", "Info: Volume move frequency",
+	     sys.moves.volume);
     }
     else if(line[0] == "useConstantArea")
     {
       sys.volume.cstArea = checkBool(line[1]);
-      if (sys.volume.cstArea)
-	std::cout << "Note: Volume will change with constant X-Y area!\n";
+      if(sys.volume.cstArea)
+	printf("Info: Volume change using constant X-Y area.\n");
+      else
+	printf("Info: Volume change using constant ratio.\n");
     }
     else if(line[0] == "FixVolBox0")
     {
       sys.volume.cstVolBox0 = checkBool(line[1]);
       if (sys.volume.cstVolBox0)
-	std::cout << "Note: Volume of Box 1 Remains Constant!\n";
+        printf("%-30s %-d \n", "Info: Fix volume box", 1);
     }
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
@@ -406,6 +436,8 @@ void ConfigSetup::Init(const char *fileName)
 #else
       sys.moves.transfer = stringtod(line[1]);
 #endif
+      printf("%-30s %-4.4f \n", "Info: Molecule swap  move frequency",
+	     sys.moves.transfer);
     }
 #endif
     else if(line[0] == "BoxDim")
@@ -419,8 +451,8 @@ void ConfigSetup::Init(const char *fileName)
         temp.x = stringtod(line[2]);
         temp.y = stringtod(line[3]);
         temp.z = stringtod(line[4]);
-
         sys.volume.axis.Set(box, temp);
+	printf("%-30s: %-5d %-4.4f %-4.4f %-4.4f \n", "Info: Simulation dimension of box", box, temp.x, temp.y, temp.z);
       }
       else
       {
@@ -457,6 +489,8 @@ void ConfigSetup::Init(const char *fileName)
       std::string resName = line[1];
       double val = stringtod(line[2]);
       sys.chemPot.cp[resName] = val;
+      printf("%-30s %-6s %-6.4f K.\n", "Info: Chemical potential:",
+	     resName.c_str(), val);
     }
     else if(line[0] == "Fugacity")
     {
@@ -469,37 +503,75 @@ void ConfigSetup::Init(const char *fileName)
       std::string resName = line[1];
       double val = stringtod(line[2]);
       sys.chemPot.cp[resName] = val * unit::BAR_TO_K_MOLECULE_PER_A3;
+      printf("%-30s %-6s %-6.4f bar.\n", "Info: Fugacity:", resName.c_str(),
+	     val);
     }
 #endif
     else if(line[0] == "OutputName")
     {
       out.statistics.settings.uniqueStr.val = line[1];
+      printf("%-30s %-s \n", "Info: Output name", line[1].c_str());
     }
     else if(line[0] == "CoordinatesFreq")
     {
       out.state.settings.enable = checkBool(line[1]);
       out.state.settings.frequency = stringtoi(line[2]);
+      if(out.state.settings.enable)
+      {
+	printf("%-30s %-d \n", "Info: Coordinate frequency:",
+	       out.state.settings.frequency);
+      }
+      else
+	printf("%-30s %-s \n", "Info: Printing coordinate", "Deactive");
     }
     else if(line[0] == "RestartFreq")
     {
       out.restart.settings.enable = checkBool(line[1]);
       out.restart.settings.frequency = stringtoi(line[2]);
+      if(out.restart.settings.enable)
+      {
+	printf("%-30s %-d \n", "Info: Restart frequency:",
+	       out.restart.settings.frequency);
+      }
+      else
+	printf("%-30s %-s \n", "Info: Printing restart coordinate", "Deactive");
     }
     else if(line[0] == "ConsoleFreq")
     {
       out.console.enable = checkBool(line[1]);
       out.console.frequency = stringtoi(line[2]);
+      if(out.console.enable)
+      {
+	printf("%-30s %-d \n", "Info: Console output frequency:",
+	       out.console.frequency);
+      }
+      else
+	printf("%-30s %-s \n", "Info: Console output", "Deactive");
     }
     else if(line[0] == "BlockAverageFreq")
     {
       out.statistics.settings.block.enable = checkBool(line[1]);
       out.statistics.settings.block.frequency = stringtoi(line[2]);
+      if(out.statistics.settings.block.enable)
+      {
+	printf("%-30s %-d \n", "Info: Average output frequency:",
+	       out.statistics.settings.block.frequency);
+      }
+      else
+	printf("%-30s %-s \n", "Info: Average output", "Deactive");
     }
 #if ENSEMBLE == GCMC
     else if(line[0] == "HistogramFreq")
     {
       out.statistics.settings.hist.enable = checkBool(line[1]);
       out.statistics.settings.hist.frequency = stringtoi(line[2]);
+      if(out.statistics.settings.hist.enable)
+      {
+	printf("%-30s %-d \n", "Info: Histogram output frequency:",
+	       out.statistics.settings.hist.frequency);
+      }
+      else
+	printf("%-30s %-s \n", "Info: Histogram output", "Deactive");
     }
     else if(line[0] == "DistName")
     {

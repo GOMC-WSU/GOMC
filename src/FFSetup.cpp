@@ -81,6 +81,7 @@ void FFSetup::Init(std::string const& name, const bool isCHARMM)
   dih.clean_names();
 
 #ifndef NDEBUG
+/*
   if (isCHARMM)
   {
     std::cout << "Lennard-Jones Particles:\n";
@@ -96,6 +97,7 @@ void FFSetup::Init(std::string const& name, const bool isCHARMM)
   angle.PrintBrief();
   std::cout << "Dihedrals:\n";
   dih.PrintBrief();
+*/
 #endif
 }
 

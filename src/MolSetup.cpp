@@ -281,7 +281,7 @@ void BriefBondKinds(MolKind& kind, const FFSetup& ffData)
   bool readKind[kind.bonds.size()];
 
   printf("Bonds parameter:\n");
-  printf("%-19s %15s %15s \n", "Atom Types", "Kb(K)", "b0(A)");
+  printf("%-19s %15s %20s \n", "Atom Types", "Kb(K)", "b0(A)");
   for (uint i = 0; i < kind.bonds.size(); ++i)
   {
     readKind[i] = false;
@@ -297,13 +297,13 @@ void BriefBondKinds(MolKind& kind, const FFSetup& ffData)
 
       std::string bondName;
       for (uint m = 0; m < ATOMS_PER; ++m)
-        bondName.append(elementNames[m]).append(" ");
+        bondName.append(elementNames[m]).append("  ");
 
       printf("%-20s", bondName.c_str());
       if(ffData.bond.GetKb(search) > 99999999)
-        printf("%15s %15.4f \n", "FIX", ffData.bond.Getb0(search));
+        printf("%15s %20.4f \n", "FIX", ffData.bond.Getb0(search));
       else
-	printf("%15.6f %15.4f \n", ffData.bond.GetKb(search),
+	printf("%15.6f %20.4f \n", ffData.bond.GetKb(search),
 	       ffData.bond.Getb0(search));
 
       readKind[search] = true;
@@ -348,7 +348,7 @@ void BriefAngleKinds(MolKind& kind, const FFSetup& ffData)
   bool readKind[kind.angles.size()];
 
   printf("Angles parameter:\n");
-  printf("%-19s %15s %15s \n", "Atom Types", "Ktheta(K)", "theta0(degree)");
+  printf("%-19s %15s %20s \n", "Atom Types", "Ktheta(K)", "theta0(degree)");
   for (uint i = 0; i < kind.angles.size(); ++i)
   {
     readKind[i] = false;
@@ -366,13 +366,13 @@ void BriefAngleKinds(MolKind& kind, const FFSetup& ffData)
       
       std::string angleName;
       for (uint m = 0; m < ATOMS_PER; ++m)
-        angleName.append(elementNames[m]).append(" ");
+        angleName.append(elementNames[m]).append("  ");
 
       printf("%-20s", angleName.c_str());
       if(ffData.angle.GetKtheta(search) > 99999999)
-        printf("%15s %15.4f \n", "FIX", ffData.angle.Gettheta0(search) *coef);
+        printf("%15s %20.4f \n", "FIX", ffData.angle.Gettheta0(search) *coef);
       else
-	printf("%15.6f %15.4f \n", ffData.angle.GetKtheta(search),
+	printf("%15.6f %20.4f \n", ffData.angle.GetKtheta(search),
 	       ffData.angle.Gettheta0(search) * coef);
 
       readKind[search] = true;
@@ -417,7 +417,8 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData)
   bool readKind[kind.dihedrals.size()];
 
   printf("Dihedrals parameter:\n");
-  printf("%-19s %15s %15s %15s \n", "Atom Types", "Kchi(K)", "n", "delta(degree)");
+  printf("%-19s %15s %4s %15s \n", "Atom Types", "Kchi(K)", "n",
+	 "delta(degree)");
   for (uint i = 0; i < kind.dihedrals.size(); ++i)
   {
     readKind[i] = false;
@@ -436,22 +437,21 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData)
 
       std::string dihedralName;
       for (uint m = 0; m < ATOMS_PER; ++m)
-        dihedralName.append(elementNames[m]).append(" ");
+        dihedralName.append(elementNames[m]).append("  ");
 
       uint dihsize = ffData.dih.GetSizeDih(dName);
       
       for(uint j = 0; j < dihsize; j++)
       {
 	printf("%-20s", dihedralName.c_str());
-	printf("%15.6f %15d %15.4f \n", ffData.dih.GetKchi(dName, j),
+	printf("%15.6f %4d %15.4f \n", ffData.dih.GetKchi(dName, j),
 	       ffData.dih.Getn(dName, j),
 	       ffData.dih.Getdelta(dName, j) * coef);
       }
-      std::cout << std::endl;
-      readKind[search] = true;
-      
+      readKind[search] = true;      
     }
   }
+  std::cout << endl;
 }
 
 
