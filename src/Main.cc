@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
       //CHECK IF ARGS/FILE PROVIDED IN CMD LINE
       if (argc < 2)
       {
-	 std::cout<<"Input parameter file (*.dat or *.conf) not specified on command line!\n";
+	 std::cout<<"Error: Input parameter file (*.dat or *.conf) not specified on command line!\n";
 	 exit(0);
       }
       else
@@ -79,10 +79,9 @@ int main(int argc, char *argv[])
       //SET NUMBER OF THREADS
 #ifdef _OPENMP
       omp_set_num_threads(numThreads);
-      std::cout << "Number of threads has been set to: " <<
-	numThreads << std::endl;
+      printf("%-30s %-d \n", "Info: Number of threads", numThreads);
 #else
-      std::cout << "Number of threads has been set to: 1\n";
+      printf("%-30s %-d \n", "Info: Number of threads", 1);
 #endif
 
       //OPEN FILE
@@ -91,7 +90,7 @@ int main(int argc, char *argv[])
       //CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
       if (!inputFileReader.is_open()) 
       {
-	std::cout<<"Cannot open/find " << inputFileString <<
+	std::cout<<"Error: Cannot open/find " << inputFileString <<
 	  " in the directory provided!\n";
 	 exit(0);
       }
@@ -113,20 +112,18 @@ namespace {
 
    void PrintSimulationHeader()
    {
-      std::cout << PrintVersion << '\n'
-		<< "Started at: " << PrintTime
+     std::cout << PrintVersion << '\n'
+		<< "Info: Start Time: " << PrintTime
 #ifdef HOSTNAME
-		<< "On hostname: " << PrintHostname
+		<< "Info: Host Name: " << PrintHostname
 #endif
-		<< "\n\n";
+		<< "\n";
    }
 
    bool CheckAndPrintEnsemble()
    {
       bool healthy = true;
-      std::cout << "------------------------------------------------------"
-		<< std::endl
-		<< "This code was compiled to support the ";
+      std::cout << "Info: GOMC Compiled to run ";
 #if ENSEMBLE == NVT
       std::cout << "canonical (NVT)";
 #elif ENSEMBLE == GEMC
@@ -141,17 +138,15 @@ namespace {
 		<< "Code will exit.";
       healthy = false;
 #endif
-      std::cout << " ensemble." << std::endl
-		<< "------------------------------------------------------"
-		<< std::endl << std::endl;
+      std::cout << " ensemble." << std::endl;
       return healthy;
    }
 
   void PrintDebugMode()
   {
-    std::cout << "#########################################################\n";
-    std::cout << "################# RUNNING IN DEBUG MODE #################\n";
-    std::cout << "#########################################################\n";
+    std::cout << "################################################################################\n";
+    std::cout << "########################## RUNNING GOMC IN DEBUG MODE ##########################\n";
+    std::cout << "################################################################################\n";
   }
   
   void PrintSimulationFooter()
@@ -164,7 +159,7 @@ namespace {
   
   std::ostream& PrintVersion(std::ostream& stream)
   {
-    stream << "GOMC Serial Version " << GOMC_VERSION_MAJOR 
+    stream << "Info: GOMC Serial Version " << GOMC_VERSION_MAJOR 
 	   << '.' << GOMC_VERSION_MINOR;
     return stream;
   }
@@ -198,7 +193,7 @@ namespace {
     WSACleanup();
 #endif
 #else
-    stream << "Hostname Unavailable";
+    stream << "Info: Hostname Unavailable";
 #endif
     return stream;
   }
@@ -224,21 +219,21 @@ void PrintHardwareInfo()
   struct utsname name;
   uname(&name);
   std::cout << std::setprecision(1) << std::fixed;
-  std::cout << "Total number of CPUs: " << get_nprocs() << std::endl;
-  std::cout << "Total number of CPUs available: " << sysconf(_SC_NPROCESSORS_ONLN) << std::endl;
-  std::cout << "Model name:" << std::flush;
+  std::cout << "Info: Total number of CPUs: " << get_nprocs() << std::endl;
+  std::cout << "Info: Total number of CPUs available: " << sysconf(_SC_NPROCESSORS_ONLN) << std::endl;
+  std::cout << "Info: Model name:" << std::flush;
   system("awk -F: '/model name/ {print $2;exit}' /proc/cpuinfo");
-  std::cout << std::endl;
-  std::cout << "System name: " << name.sysname << std::endl;
-  std::cout << "Release: " << name.release << std::endl;
-  std::cout << "Version: " << name.version << std::endl;
-  std::cout << "Kernel Architecture: " << name.machine << std::endl;
+  //std::cout << std::endl;
+  std::cout << "Info: System name: " << name.sysname << std::endl;
+  std::cout << "Info: Release: " << name.release << std::endl;
+  std::cout << "Info: Version: " << name.version << std::endl;
+  std::cout << "Info: Kernel Architecture: " << name.machine << std::endl;
   if(sysinfo(&mem)==0)
   {
-    std::cout << "Total Ram: " << mem.totalram / megabyte << "MB" << std::endl;
-    std::cout << "Used Ram: " << mem.totalram / megabyte - mem.freeram / megabyte << "MB" << std::endl;
+    std::cout << "Info: Total Ram: " << mem.totalram / megabyte << "MB" << std::endl;
+    std::cout << "Info: Used Ram: " << mem.totalram / megabyte - mem.freeram / megabyte << "MB" << std::endl;
   }
-  std::cout << "Working in the current directory " << get_current_dir_name() << std::endl;
+  std::cout << "Info: Working in the current directory: " << get_current_dir_name();
   std::cout << std::endl;
 #endif
 }

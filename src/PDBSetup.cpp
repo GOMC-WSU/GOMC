@@ -11,8 +11,8 @@
 #if BOX_TOTAL == 1
 const std::string PDBSetup::pdbAlias[] = {"system PDB coordinate file"};
 #else
-const std::string PDBSetup::pdbAlias[] = {"Box 1 PDB coordinate File",
-                                          "Box 2 PDB coordinate File"
+const std::string PDBSetup::pdbAlias[] = {"box 1 PDB coordinate file",
+                                          "box 2 PDB coordinate file"
                                          };
 #endif
 
