@@ -83,7 +83,7 @@ Histogram::~Histogram()
 void Histogram::Sample(const ulong step)
 {
   //Don't output until equilibrated.
-  if ((step+1) < stepsTillEquil) return;
+  if ((step) < stepsTillEquil) return;
   //If equilibrated, add to correct bin for each type in each box.
   if ((step+1) % stepsPerSample == 0)
   {
@@ -101,7 +101,7 @@ void Histogram::Sample(const ulong step)
 void Histogram::DoOutput(const ulong step)
 {
   //Don't output until equilibrated.
-  if ((step+1) < stepsTillEquil) return;
+  if ((step) < stepsTillEquil) return;
   //Write to histogram file, if equilibrated.
   if ((step+1) % stepsPerOut == 0)
   {

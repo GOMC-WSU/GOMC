@@ -55,7 +55,7 @@ void EnPartCntSample::Init(pdb_setup::Atoms const& atoms,
 void EnPartCntSample::Sample(const ulong step)
 {
    //Don't sample until equilibrated.
-   if ((step+1) < stepsTillEquil) return;
+   if ((step) < stepsTillEquil) return;
    //Only sample on specified interval.
    if ((step+1) % stepsPerSample == 0)
    {
@@ -102,7 +102,7 @@ void EnPartCntSample::WriteHeader(void)
 void EnPartCntSample::DoOutput(const ulong step)
 {
    //Don't output until equilibrated.
-   if ((step+1) < stepsTillEquil) return;
+   if ((step) < stepsTillEquil) return;
    //Output a sample in the form <N1,... Nk, E_total>
    //Only sample on specified interval.
    if ((step+1) % stepsPerOut == 0)
