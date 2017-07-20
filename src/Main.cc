@@ -29,15 +29,14 @@ void PrintHardwareInfo();
 
 int main(int argc, char *argv[])
 {
+#ifndef NDEBUG
+   PrintDebugMode();
+#endif
    PrintSimulationHeader();
    PrintHardwareInfo();
    //Only run if valid ensemble was detected.
    if (CheckAndPrintEnsemble())
    {   
-#ifndef NDEBUG
-      PrintDebugMode();
-#endif
-
       //FOLLOWING LINES ADDED TO OBTAIN INPUT PARAMETER FILE
       string inputFileString;
       fstream inputFileReader;
@@ -123,22 +122,22 @@ namespace {
    bool CheckAndPrintEnsemble()
    {
       bool healthy = true;
-      std::cout << "Info: GOMC Compiled to run ";
+      std::cout << "Info: GOMC COMPILED TO RUN ";
 #if ENSEMBLE == NVT
-      std::cout << "canonical (NVT)";
+      std::cout << "CANONICAL (NVT)";
 #elif ENSEMBLE == GEMC
-      std::cout << "Gibbs";
+      std::cout << "GIBBS";
 #elif ENSEMBLE == GCMC
-      std::cout << "grand canonical";
+      std::cout << "GRAND CANONICAL";
 #elif ENSEMBLE == NPT
-      std::cout << "isobaric-isothermal";
+      std::cout << "ISOBARIC-ISOTHERMAL";
 #else
       std::cerr << "CRITICAL ERROR! Preprocessor value ENSEMBLE is "
 		<< "invalid or undefined." << std::endl
 		<< "Code will exit.";
       healthy = false;
 #endif
-      std::cout << " ensemble." << std::endl;
+      std::cout << " ENSEMBLE." << std::endl;
       return healthy;
    }
 
@@ -152,8 +151,8 @@ namespace {
   void PrintSimulationFooter()
   {
     std::cout << PrintVersion << '\n'
-	      << "Completed at: " << PrintTime
-	      << "On hostname: " << PrintHostname
+	      << "Info: Completed at: " << PrintTime
+	      << "Info: On hostname: " << PrintHostname
 	      << '\n';
   }
   

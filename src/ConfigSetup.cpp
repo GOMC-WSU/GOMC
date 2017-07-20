@@ -138,12 +138,13 @@ void ConfigSetup::Init(const char *fileName)
   std::vector<std::string> line;
 
   reader.Open(fileName);
+  printf("\n%-40s %-s\n", "Reading Input File:", fileName);
   while(reader.readNextLine(line))
   {
     if(line[0] == "Restart")
     {
       in.restart.enable = checkBool(line[1]);
-      printf("%-30s %-s \n", "Info: Restart simulation",  "Active");
+      printf("%-40s %-s \n", "Info: Restart simulation",  "Active");
     }
     else if(line[0] == "FirstStep")
     {
@@ -152,12 +153,12 @@ void ConfigSetup::Init(const char *fileName)
     else if(line[0] == "PRNG")
     {
       in.prng.kind = line[1];
-      printf("Info: Random seed Active.\n");
+      printf("%-40s %-s \n", "Info: Random seed", "Active");
     }
     else if(line[0] == "Random_Seed")
     {
       in.prng.seed = stringtoi(line[1]);
-      printf("Info: Constant seed Active.\n");
+      printf("%-40s %-s \n", "Info: Constant seed", "Active");
     }
     else if(line[0] == "ParaTypeCHARMM")
     {
@@ -201,7 +202,7 @@ void ConfigSetup::Init(const char *fileName)
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL)
       {
-        std::cout<< "Error: Simulation requires " << BOX_TOTAL << " PDB file(s)!" << std::endl;
+        std::cout<< "Error: Simulation requires "<<BOX_TOTAL<<" PDB file(s)!\n";
         exit(0);
       }
       in.files.pdb.name[boxnum] = line[2];
@@ -211,7 +212,7 @@ void ConfigSetup::Init(const char *fileName)
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL)
       {
-        std::cout<< "Error: Simulation requires " << BOX_TOTAL << " PSF file(s)!" << std::endl;
+        std::cout<< "Error: Simulation requires "<<BOX_TOTAL<<" PSF file(s)!\n";
         exit(0);
       }
       in.files.psf.name[boxnum] = line[2];
@@ -222,18 +223,18 @@ void ConfigSetup::Init(const char *fileName)
       if(line[1] == "NVT")
       {
         sys.gemc.kind = mv::GEMC_NVT;
-	printf("Info: Running NVT_GEMC.\n");
+	printf("Info: Running NVT_GEMC\n");
       }
       else if(line[1] == "NPT")
       {
         sys.gemc.kind = mv::GEMC_NPT;
-	printf("Info: Running NPT_GEMC.\n");
+	printf("Info: Running NPT_GEMC\n");
       }
     }
     else if(line[0] == "Pressure")
     {
       sys.gemc.pressure = stringtod(line[1]);
-      printf("%-30s %-4.4f bar.\n", "Info: Input Pressure", sys.gemc.pressure);
+      printf("%-40s %-4.4f bar\n", "Info: Input Pressure", sys.gemc.pressure);
       sys.gemc.pressure *= unit::BAR_TO_K_MOLECULE_PER_A3;
     }
 #endif
@@ -242,36 +243,37 @@ void ConfigSetup::Init(const char *fileName)
     {
       sys.gemc.kind = mv::GEMC_NPT;
       sys.gemc.pressure = stringtod(line[1]);
-      printf("%-30s %-4.4f bar.\n", "Info: Input Pressure", sys.gemc.pressure);
+      printf("%-40s %-4.4f bar\n", "Info: Input Pressure", sys.gemc.pressure);
       sys.gemc.pressure *= unit::BAR_TO_K_MOLECULE_PER_A3;
     }
 #endif
     else if(line[0] == "Temperature")
     {
       sys.T.inKelvin = stringtod(line[1]);
-      printf("%-30s %-4.4f K.\n", "Info: Input Temperature", sys.T.inKelvin);
+      printf("%-40s %-4.4f K\n", "Info: Input Temperature", sys.T.inKelvin);
     }
     else if(line[0] == "Potential")
     {
       if(line[1] == "VDW")
       {
         sys.ff.VDW_KIND = sys.ff.VDW_STD_KIND;
-	printf("%-30s %-s \n", "Info: Non-truncated potential", "Active");
+	printf("%-40s %-s \n", "Info: Non-truncated potential", "Active");
       }
       else if(line[1] == "SHIFT")
       {
         sys.ff.VDW_KIND = sys.ff.VDW_SHIFT_KIND;
-        printf("%-30s %-s \n", "Info: Shift truncated potential", "Active");
+        printf("%-40s %-s \n", "Info: Shift truncated potential", "Active");
       }
       else if(line[1] == "SWITCH")
       {
         sys.ff.VDW_KIND = sys.ff.VDW_SWITCH_KIND;
-	printf("%-30s %-s \n", "Info: Switch truncated potential", "Active");
+	printf("%-40s %-s \n", "Info: Switch truncated potential", "Active");
       }
     }
     else if(line[0] == "LRC")
     {
       sys.ff.doTailCorr = checkBool(line[1]);
+      printf("%-40s %-s \n", "Info: Long Range Correction", "Active");
     }
     else if(line[0] == "Rswitch")
     {
@@ -280,29 +282,30 @@ void ConfigSetup::Init(const char *fileName)
     else if(line[0] == "Rcut")
     {
       sys.ff.cutoff = stringtod(line[1]);
-      printf("%-30s %-4.4f A.\n", "Info: Cutoff", sys.ff.cutoff);
+      printf("%-40s %-4.4f A\n", "Info: Cutoff", sys.ff.cutoff);
     }
     else if(line[0] == "RcutLow")
     {
       sys.ff.cutoffLow = stringtod(line[1]);
-      printf("%-30s %-4.4f A.\n", "Info: Short Range Cutoff", sys.ff.cutoffLow);
+      printf("%-40s %-4.4f A.\n", "Info: Short Range Cutoff", sys.ff.cutoffLow);
     }
     else if(line[0] == "Exclude")
     {
       if(line[1] == sys.exclude.EXC_ONETWO)
       {
         sys.exclude.EXCLUDE_KIND = sys.exclude.EXC_ONETWO_KIND;
-	printf("%-30s %-s \n", "Info: Exclude", "ONE-TWO");
+	printf("%-40s %-s \n", "Info: Exclude", "ONE-TWO");
       }
       else if(line[1] == sys.exclude.EXC_ONETHREE)
       {
         sys.exclude.EXCLUDE_KIND = sys.exclude.EXC_ONETHREE_KIND;
-	printf("%-30s %-s \n", "Info: Exclude", "ONE-THREE");
+	printf("%-40s %-s \n", "Info: Exclude", "ONE-THREE");
       }
       else if(line[1] == sys.exclude.EXC_ONEFOUR)
       {
         sys.exclude.EXCLUDE_KIND = sys.exclude.EXC_ONEFOUR_KIND;
-	printf("%-30s %-s \n", "Info: Exclude", "ONE-FOUR");
+	printf("%-40s %-s \n", "Info: Exclude", "ONE-FOUR");
+	printf("Warning: Modified 1-4 VDW parameters will be ignored!\n");
       }
     }
     else if(line[0] == "Ewald")
@@ -311,7 +314,7 @@ void ConfigSetup::Init(const char *fileName)
       sys.elect.readEwald = true;
       if(sys.elect.ewald)
       {
-	printf("%-30s %-s \n", "Info: Ewald Summation" , "Active");
+	printf("%-40s %-s \n", "Info: Ewald Summation" , "Active");
       }
     }
     else if(line[0] == "ElectroStatic")
@@ -326,7 +329,7 @@ void ConfigSetup::Init(const char *fileName)
                         sys.ff.cutoff;
       sys.elect.recip_rcut = 2 * (-log(sys.elect.tolerance))/
                              sys.ff.cutoff;
-      printf("%-30s %-1.3E \n", "Info: Ewald Summation Tolerance" ,
+      printf("%-40s %-1.3E \n", "Info: Ewald Summation Tolerance" ,
 	     sys.elect.tolerance);
     }
     else if(line[0] == "CachedFourier")
@@ -335,11 +338,11 @@ void ConfigSetup::Init(const char *fileName)
       sys.elect.readCache = true;
       if(sys.elect.cache)
       {
-	printf("%-30s %-s \n", "Info: Cache Ewald Fourier", "Active");
+	printf("%-40s %-s \n", "Info: Cache Ewald Fourier", "Active");
       }
       else
       {
-	printf("%-30s %-s \n", "Info: Cache Ewald Fourier", "Deactive");
+	printf("%-40s %-s \n", "Info: Cache Ewald Fourier", "Deactive");
       }
     }
     else if(line[0] == "1-4scaling")
@@ -349,68 +352,64 @@ void ConfigSetup::Init(const char *fileName)
     else if(line[0] == "Dielectric")
     {
       sys.elect.dielectric = stringtod(line[1]);
-      printf("%-30s %-4.4f \n", "Info: Dielectric", sys.elect.dielectric);
+      printf("%-40s %-4.4f \n", "Info: Dielectric", sys.elect.dielectric);
     }
     else if(line[0] == "RunSteps")
     {
       sys.step.total = stringtoi(line[1]);
-      printf("%-30s %-d \n", "Info: Total number of steps", sys.step.total);
+      printf("%-40s %-d \n", "Info: Total number of steps", sys.step.total);
     }
     else if(line[0] == "EqSteps")
     {
       sys.step.equil = stringtoi(line[1]);
-      printf("%-30s %-d \n", "Info: Number of equilibration steps",
+      printf("%-40s %-d \n", "Info: Number of equilibration steps",
 	     sys.step.equil);
     }
     else if(line[0] == "AdjSteps")
     {
       sys.step.adjustment = stringtoi(line[1]);
-      printf("%-30s %-d \n", "Info: Move adjustment frequency",
+      printf("%-40s %-d \n", "Info: Move adjustment frequency",
 	     sys.step.adjustment);
     }
     else if(line[0] == "PressureCalc")
     {
       sys.step.pressureCalc = checkBool(line[1]);
+      sys.step.pressureCalcFreq = stringtoi(line[2]);
 
-      if(sys.step.pressureCalc && (line.size() == 3))
+      if(sys.step.pressureCalc && (line.size() == 2))
       {
-	sys.step.pressureCalcFreq = stringtoi(line[2]);
-	printf("%-30s %-d \n", "Info: Pressure calculation frequency",
-	       sys.step.pressureCalcFreq);
-      }
-      else if(sys.step.pressureCalc && (line.size() == 2))
-      {
-	std::cout << "Error: Pressure calculation frequency has not been set!\n";
+	std::cout<< "Error: Pressure calculation frequency is not specified!\n";
 	exit(0);
       }
-      else if(!sys.step.pressureCalc)
-      {
-        printf("%-30s %-s \n", "Info: Pressure calculation", "Deactive");
-      }
+      if(!sys.step.pressureCalc)
+        printf("%-40s %-s \n", "Info: Pressure calculation", "Deactive");
+      else
+	printf("%-40s %-d \n", "Info: Pressure calculation frequency",
+	       sys.step.pressureCalcFreq);
     }
     else if(line[0] == "DisFreq")
     {
       sys.moves.displace = stringtod(line[1]);
-      printf("%-30s %-4.4f \n", "Info: Displacement move frequency",
+      printf("%-40s %-4.4f \n", "Info: Displacement move frequency",
 	     sys.moves.displace);
     }
     else if(line[0] == "IntraSwapFreq")
     {
       sys.moves.intraSwap = stringtod(line[1]);
-      printf("%-30s %-4.4f \n", "Info: Intra-Swap move frequency",
+      printf("%-40s %-4.4f \n", "Info: Intra-Swap move frequency",
 	     sys.moves.intraSwap);
     }
     else if(line[0] == "RotFreq")
     {
       sys.moves.rotate = stringtod(line[1]);
-      printf("%-30s %-4.4f \n", "Info: Rotation move frequency",
+      printf("%-40s %-4.4f \n", "Info: Rotation move frequency",
 	     sys.moves.rotate);
     }
 #ifdef VARIABLE_VOLUME
     else if(line[0] == "VolFreq")
     {
       sys.moves.volume = stringtod(line[1]);
-      printf("%-30s %-4.4f \n", "Info: Volume move frequency",
+      printf("%-40s %-4.4f \n", "Info: Volume move frequency",
 	     sys.moves.volume);
     }
     else if(line[0] == "useConstantArea")
@@ -425,7 +424,7 @@ void ConfigSetup::Init(const char *fileName)
     {
       sys.volume.cstVolBox0 = checkBool(line[1]);
       if (sys.volume.cstVolBox0)
-        printf("%-30s %-d \n", "Info: Fix volume box", 1);
+        printf("%-40s %-d \n", "Info: Fix volume box", 1);
     }
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
@@ -436,7 +435,7 @@ void ConfigSetup::Init(const char *fileName)
 #else
       sys.moves.transfer = stringtod(line[1]);
 #endif
-      printf("%-30s %-4.4f \n", "Info: Molecule swap  move frequency",
+      printf("%-40s %-4.4f \n", "Info: Molecule swap move frequency",
 	     sys.moves.transfer);
     }
 #endif
@@ -452,11 +451,14 @@ void ConfigSetup::Init(const char *fileName)
         temp.y = stringtod(line[3]);
         temp.z = stringtod(line[4]);
         sys.volume.axis.Set(box, temp);
-	printf("%-30s: %-5d %-4.4f %-4.4f %-4.4f \n", "Info: Simulation dimension of box", box, temp.x, temp.y, temp.z);
+	printf("%-40s %-d: %-6.4f %-4.4f %-4.4f \n",
+	       "Info: Simulation dimension of box",
+	       box, temp.x, temp.y, temp.z);
       }
       else
       {
-        std::cout<< "Error: This simulation requires only " << BOX_TOTAL << " number of box dimension(s)!" << std::endl;
+        std::cout<< "Error: This simulation requires only " << BOX_TOTAL <<
+	  " number of box dimension(s)!" << std::endl;
         exit(0);
       }
     }
@@ -483,95 +485,127 @@ void ConfigSetup::Init(const char *fileName)
     {
       if(line.size() != 3)
       {
-        std::cout << "Error: Chemical potential parameters have not been specified!" << std::endl;
+        std::cout <<"Error: Chemical potential parameters are not specified!\n";
         exit(0);
       }
       std::string resName = line[1];
       double val = stringtod(line[2]);
       sys.chemPot.cp[resName] = val;
-      printf("%-30s %-6s %-6.4f K.\n", "Info: Chemical potential:",
+      printf("%-40s %-6s %-6.4f K\n", "Info: Chemical potential",
 	     resName.c_str(), val);
     }
     else if(line[0] == "Fugacity")
     {
       if(line.size() != 3)
       {
-	std::cout << "Error: Fugacity parameters have not been specified!" << std::endl;
+	std::cout <<"Error: Fugacity parameters are not specified!\n";
 	exit(0);
       }
       sys.chemPot.isFugacity = true;
       std::string resName = line[1];
       double val = stringtod(line[2]);
       sys.chemPot.cp[resName] = val * unit::BAR_TO_K_MOLECULE_PER_A3;
-      printf("%-30s %-6s %-6.4f bar.\n", "Info: Fugacity:", resName.c_str(),
+      printf("%-40s %-6s %-6.4f bar\n", "Info: Fugacity", resName.c_str(),
 	     val);
     }
 #endif
     else if(line[0] == "OutputName")
     {
       out.statistics.settings.uniqueStr.val = line[1];
-      printf("%-30s %-s \n", "Info: Output name", line[1].c_str());
+      printf("%-40s %-s \n", "Info: Output name", line[1].c_str());
     }
     else if(line[0] == "CoordinatesFreq")
     {
       out.state.settings.enable = checkBool(line[1]);
       out.state.settings.frequency = stringtoi(line[2]);
+      if(out.state.settings.enable && (line.size() == 2))
+	out.state.settings.frequency = (ulong)sys.step.total / 10;
+
       if(out.state.settings.enable)
       {
-	printf("%-30s %-d \n", "Info: Coordinate frequency:",
+	printf("%-40s %-d \n", "Info: Coordinate frequency",
 	       out.state.settings.frequency);
       }
       else
-	printf("%-30s %-s \n", "Info: Printing coordinate", "Deactive");
+	printf("%-40s %-s \n", "Info: Printing coordinate", "Deactive");
     }
     else if(line[0] == "RestartFreq")
     {
       out.restart.settings.enable = checkBool(line[1]);
       out.restart.settings.frequency = stringtoi(line[2]);
+      if(out.restart.settings.enable && (line.size() == 2))
+	out.restart.settings.frequency = (ulong)sys.step.total;
+
       if(out.restart.settings.enable)
       {
-	printf("%-30s %-d \n", "Info: Restart frequency:",
+	printf("%-40s %-d \n", "Info: Restart frequency",
 	       out.restart.settings.frequency);
       }
       else
-	printf("%-30s %-s \n", "Info: Printing restart coordinate", "Deactive");
+	printf("%-40s %-s \n", "Info: Printing restart coordinate", "Deactive");
     }
     else if(line[0] == "ConsoleFreq")
     {
       out.console.enable = checkBool(line[1]);
       out.console.frequency = stringtoi(line[2]);
+      if(out.console.enable && (line.size() == 2))
+      {
+	 if(sys.step.total > 1000)
+	 {
+	   out.console.frequency = (ulong)sys.step.total / 1000;
+	 }
+	 else
+	 {
+	   out.console.frequency = (ulong)sys.step.total / 100;
+	 }
+      }
       if(out.console.enable)
       {
-	printf("%-30s %-d \n", "Info: Console output frequency:",
+	printf("%-40s %-d \n", "Info: Console output frequency",
 	       out.console.frequency);
       }
       else
-	printf("%-30s %-s \n", "Info: Console output", "Deactive");
+	printf("%-40s %-s \n", "Info: Console output", "Deactive");
     }
     else if(line[0] == "BlockAverageFreq")
     {
       out.statistics.settings.block.enable = checkBool(line[1]);
       out.statistics.settings.block.frequency = stringtoi(line[2]);
+      if(out.statistics.settings.block.enable && (line.size() == 2))
+	out.statistics.settings.block.frequency = (ulong)sys.step.total / 100;
+	
       if(out.statistics.settings.block.enable)
       {
-	printf("%-30s %-d \n", "Info: Average output frequency:",
+	printf("%-40s %-d \n", "Info: Average output frequency",
 	       out.statistics.settings.block.frequency);
       }
       else
-	printf("%-30s %-s \n", "Info: Average output", "Deactive");
+	printf("%-40s %-s \n", "Info: Average output", "Deactive");
     }
 #if ENSEMBLE == GCMC
     else if(line[0] == "HistogramFreq")
     {
       out.statistics.settings.hist.enable = checkBool(line[1]);
       out.statistics.settings.hist.frequency = stringtoi(line[2]);
+      if(out.statistics.settings.hist.enable && (line.size() == 2))
+      {
+	if(sys.step.total > 1000)
+	{
+	  out.statistics.settings.hist.frequency = (ulong)sys.step.total / 1000;
+	}
+	else
+	{
+	  out.statistics.settings.hist.frequency = (ulong)sys.step.total / 100;
+	}
+      }
+
       if(out.statistics.settings.hist.enable)
       {
-	printf("%-30s %-d \n", "Info: Histogram output frequency:",
+	printf("%-40s %-d \n", "Info: Histogram output frequency",
 	       out.statistics.settings.hist.frequency);
       }
       else
-	printf("%-30s %-s \n", "Info: Histogram output", "Deactive");
+	printf("%-40s %-s \n", "Info: Histogram output", "Deactive");
     }
     else if(line[0] == "DistName")
     {
@@ -592,6 +626,8 @@ void ConfigSetup::Init(const char *fileName)
     else if(line[0] == "SampleFreq")
     {
       out.state.files.hist.stepsPerHistSample = stringtoi(line[1]);
+      printf("%-40s %-d \n", "Info: Histogram sample frequency",
+	       out.state.files.hist.stepsPerHistSample);
     }
 #endif
     else if(line[0] == "OutEnergy")
@@ -628,6 +664,12 @@ void ConfigSetup::Init(const char *fileName)
       out.statistics.vars.volume.fluct = checkBool(line[2]);
     }
 #endif
+    else if((sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND) &&
+	    (sys.ff.rswitch != DBL_MAX))
+    {
+      printf("%-40s %-4.4f \n", "Info: Switch distance",
+	     sys.ff.rswitch);
+    }
     else
     {
       cout << "Warning: Unknown input " << line[0] << "!" << endl;
@@ -641,81 +683,81 @@ void ConfigSetup::Init(const char *fileName)
 
   //*********** Verify inputs ***********//
   verifyInputs();
+  printf("%-40s %-s\n\n", "Finished Reading Input File:", fileName);
 }
 
 void ConfigSetup::fillDefaults(void)
 {
+  if(sys.elect.ewald == true)
+  {
+    sys.elect.enable = true;
+  }
+
   if(sys.moves.intraSwap == DBL_MAX)
   {
-    std::cout << "By default intra box swap frequency has been set to zero" << std::endl;
     sys.moves.intraSwap = 0.000;
+    printf("%-40s %-4.4f \n", "Default: Intra-Swap move frequency",
+	     sys.moves.intraSwap);
   }
 
   if(sys.exclude.EXCLUDE_KIND == UINT_MAX)
   {
-    std::cout << "Warning: By default value (1-3) for exclude is selected!" << std::endl;
-    sys.exclude.EXCLUDE_KIND = sys.exclude.EXC_ONETHREE_KIND;
+    sys.exclude.EXCLUDE_KIND = sys.exclude.EXC_ONEFOUR_KIND;
+    printf("%-40s %-s \n", "Default: Exclude", "ONE-FOUR");
+  }
+
+  if(sys.elect.enable && sys.elect.oneFourScale == DBL_MAX)
+  {
+    sys.elect.oneFourScale = 0.0f;
+    if(sys.exclude.EXCLUDE_KIND != sys.exclude.EXC_ONEFOUR_KIND)
+    {
+      printf("%-40s %-s \n", "Default: Modified 1-4 Electrostatic scaling",
+	     sys.elect.oneFourScale);
+    }
   }
 
   if(in.prng.kind == "")
   {
-    std::cout << "Warning: By default, random seed has been selected!" << std::endl;
     in.prng.kind = in.prng.KIND_RANDOM;
+    printf("%-40s %-s \n", "Default: Random seed", "Active");
   }
 
 #if ENSEMBLE == GEMC
   if(sys.gemc.kind == UINT_MAX)
   {
-    std::cout << "Warning: By default, GEMC-NVT has been selected!" << std::endl;
     sys.gemc.kind = mv::GEMC_NVT;
+    printf("Default: Running NVT_GEMC\n");
   }
 #endif
-  if(sys.elect.enable && sys.elect.oneFourScale == DBL_MAX)
-  {
-    std::cout << "Warning: 1-4 electro static scaling has been set to zero!" << std::endl;
-    sys.elect.oneFourScale = 0.0f;
-  }
-
-  if (sys.elect.ewald == true)
-  {
-    sys.elect.enable = true;
-  }
 
   if (sys.elect.ewald == true && sys.elect.readCache == false)
   {
     sys.elect.cache = true;
-    std::cout << "Warning: By default, Fourier terms of ewald method will be cached!" << std::endl;
-  }
-
-  if (sys.elect.ewald == false && sys.elect.enable == true)
-  {
-    std::cout << "Warning: Ewald method would not be used to calculate electrostatic energy!" << std::endl;
-  }
-
-  if (sys.elect.ewald == false && sys.elect.enable == false)
-  {
-    std::cout << "Warning: Electrostatic energy would not be calculated!" << std::endl;
+    printf("%-40s %-s \n", "Default: Cache Ewald Fourier", "Active");
   }
 
   if(sys.elect.enable && sys.elect.dielectric == DBL_MAX && in.ffKind.isMARTINI)
   {
-    std::cout << "Warning: Dielectric will be set to 15.0 for Martini forcefield!" << std::endl;
     sys.elect.dielectric = 15.0f;
+    printf("%-40s %-4.4f \n", "Default: Dielectric", sys.elect.dielectric);
   }
 
-  // Set output files
-  if(out.statistics.settings.uniqueStr.val == "")
+  if(sys.ff.cutoffLow == DBL_MAX)
   {
-    std::cout << "Error: Output name is required!" << std::endl;
-    exit(0);
+    sys.ff.cutoffLow = 1.00;
+    printf("%-40s %-4.4f \n", "Default: Short Range Cutoff", sys.ff.cutoffLow);
   }
-  out.state.files.psf.name = out.statistics.settings.uniqueStr.val + "_merged.psf";
+
+  out.state.files.psf.name = out.statistics.settings.uniqueStr.val +
+    "_merged.psf";
   for(int i = 0; i<BOX_TOTAL; i++)
   {
     if(i==0)
-      out.state.files.pdb.name[0] = out.statistics.settings.uniqueStr.val + "_BOX_0.pdb";
+      out.state.files.pdb.name[0] = out.statistics.settings.uniqueStr.val +
+	"_BOX_0.pdb";
     else if(i==1)
-      out.state.files.pdb.name[1] = out.statistics.settings.uniqueStr.val + "_BOX_1.pdb";
+      out.state.files.pdb.name[1] = out.statistics.settings.uniqueStr.val +
+	"_BOX_1.pdb";
   }
   out.state.files.seed.name = out.statistics.settings.uniqueStr.val + ".dat";
 }
@@ -723,26 +765,51 @@ void ConfigSetup::fillDefaults(void)
 void ConfigSetup::verifyInputs(void)
 {
   int i;
+  if(!sys.elect.enable && sys.elect.oneFourScale != DBL_MAX)
+  {
+    printf("Warning: 1-4 Electrostatic scaling will be ignored.\n");
+  }
+
+  if((sys.elect.oneFourScale != 0.0) &&
+     (sys.exclude.EXCLUDE_KIND == sys.exclude.EXC_ONEFOUR_KIND))
+  {
+    printf("Warning: 1-4 Electrostatic scaling will be ignored.\n");
+    sys.elect.oneFourScale = 0.0f;
+  }
+
+  if (sys.elect.ewald == false && sys.elect.enable == true)
+  {
+    printf("%-40s %-s \n",
+	   "Warning: Electrostatic calculation with Ewlad method", "Deactive");
+  }
+
+  // Set output files
+  if(out.statistics.settings.uniqueStr.val == "")
+  {
+    std::cout << "Error: Output name is not specified!" << std::endl;
+    exit(0);
+  }
+  
 #if ENSEMBLE == GEMC
   if(sys.gemc.kind == mv::GEMC_NPT && sys.gemc.pressure == DBL_MAX)
   {
-    std::cout << "Error: Pressure has not been specified for GEMC-NPT!" << std::endl;
+    std::cout << "Error: Pressure is not specified for NPT-GEMC!" << std::endl;
     exit(0);
   }
   if(sys.gemc.kind == mv::GEMC_NVT && sys.gemc.pressure != DBL_MAX)
   {
-    std::cout << "Warning: Pressure will be ignored for GEMC-NVT!" << std::endl;
+    std::cout << "Warning: Pressure will be ignored in NVT-GEMC" << std::endl;
   }
 #endif
 #if ENSEMBLE == NPT
   if(sys.gemc.pressure == DBL_MAX)
   {
-    std::cout << "Error: Pressure has not been specified for NPT simulation!" << std::endl;
+    std::cout << "Error: Pressure is not specified for NPT!" << std::endl;
     exit(0);
   }
   if(sys.volume.cstVolBox0)
   {
-    std::cout << "Note: Volume cannot be fix for NPT simulation.\n";
+    std::cout << "Warning: Fix volume of box 1 will be ignored.\n";
     exit(0);
   }
 #endif
@@ -758,161 +825,165 @@ void ConfigSetup::verifyInputs(void)
   }
   if(in.prng.kind == "RANDOM" && in.prng.seed != UINT_MAX)
   {
-    std::cout << "Warning: Seed will not be used for RANDOM type seed!" << std::endl;
+    std::cout << "Warning: Seed value will be ignored." << std::endl;
   }
   if(in.prng.kind == "INTSEED" && in.prng.seed == UINT_MAX)
   {
-    std::cout << "Error: Seed is required for INTSEED type seed!" << std::endl;
+    std::cout << "Error: Seed value is not specified!" << std::endl;
     exit(0);
   }
   if(in.ffKind.numOfKinds == 0)
   {
-    std::cout << "Error: Force field type has not been defined!" << std::endl;
+    std::cout << "Error: Force field type is not specified!" << std::endl;
     exit(0);
   }
   if(in.ffKind.numOfKinds > 1)
   {
-    std::cout << "Error: One type of Parameter type should be set!" << std::endl;
+    std::cout << "Error: Multiple Parameter types are specified!" << std::endl;
     exit(0);
   }
-  if((!in.ffKind.isMARTINI && !in.ffKind.isEXOTIC) && (sys.exclude.EXCLUDE_KIND == sys.exclude.EXC_ONETWO_KIND))
+  if((!in.ffKind.isMARTINI && !in.ffKind.isEXOTIC) &&
+     (sys.exclude.EXCLUDE_KIND == sys.exclude.EXC_ONETWO_KIND))
   {
-    std::cout << "Error: 1-3 interaction is not valid for CHARMM force field!" << std::endl;
-    exit(0);
+    std::cout << "Warning: Exclude 1-2 is set for CHARMM type parameter.\n";
   }
-  if(in.ffKind.isEXOTIC && (sys.exclude.EXCLUDE_KIND == sys.exclude.EXC_ONETWO_KIND))
+  if(in.ffKind.isEXOTIC &&
+     (sys.exclude.EXCLUDE_KIND == sys.exclude.EXC_ONETWO_KIND))
   {
-    std::cout << "Error: 1-3 interaction is not valid for EXOTIC force field!" << std::endl;
-    exit(0);
+    std::cout << "Warning: Exclude 1-2 is set for EXOTIC type parameter.\n";
   }
-  if(in.ffKind.isEXOTIC && (sys.exclude.EXCLUDE_KIND == sys.exclude.EXC_ONETHREE_KIND))
+  if(in.ffKind.isEXOTIC &&
+     (sys.exclude.EXCLUDE_KIND == sys.exclude.EXC_ONETHREE_KIND))
   {
-    std::cout << "Error: 1-4 interaction is not valid for EXOTIC force field!" << std::endl;
-    exit(0);
+    std::cout << "Warning: Exclude 1-3 is set for EXOTIC type parameter.\n";
   }
   if(in.files.param.name == "")
   {
-    std::cout << "Error: Parameter file name has not been defined!" << std::endl;
+    std::cout << "Error: Parameter file name is not specified!" << std::endl;
     exit(0);
   }
   if(sys.ff.VDW_KIND == UINT_MAX)
   {
-    std::cout << "Error: Potential type has not been specified!" << std::endl;
+    std::cout << "Error: Potential type is not specified!" << std::endl;
     exit(0);
   }
   if(sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND && sys.ff.doTailCorr == false)
   {
-    std::cout << "Warning: Long Range Correction has been disabled for standard VDW potential type!" << std::endl;
+    std::cout << "Warning: Long Range Correction is deactive for " <<
+      "Non-truncated potential." << std::endl;
   }
-  if((sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND || sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND) && sys.ff.doTailCorr)
+  if(((sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND) ||
+      (sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND)) && sys.ff.doTailCorr)
   {
-    std::cout << "Warning: Long Range Correction will be disabled for shift and switch potential!" << std::endl;
+    std::cout << "Warning: Long Range Correction is Active for " <<
+      "truncated potential." << std::endl;
   }
   if(sys.ff.cutoff == DBL_MAX)
   {
-    std::cout << "Error: Cut off is required!" << std::endl;
+    std::cout << "Error: Cutoff is not specified!" << std::endl;
     exit(0);
   }
-  if(sys.ff.cutoffLow == DBL_MAX)
-  {
-    std::cout << "Warning: Cut off Low is set to 1 A!" << std::endl;
-    sys.ff.cutoffLow = 1.00;
-  }
+
   if(sys.elect.ewald && (sys.elect.tolerance == DBL_MAX))
   {
-    std::cout << "Error: Tolerance has not been specified for Ewald summation method!" << std::endl;
+    std::cout << "Error: Tolerance is not specified!" << std::endl;
     exit(0);
   }
   if(sys.step.adjustment == ULONG_MAX)
   {
-    std::cout << "Error: Adjustment steps has not been specified!" << std::endl;
+    std::cout << "Error: Move adjustment frequency is not specified!\n";
     exit(0);
   }
   if(sys.step.equil == ULONG_MAX)
   {
-    std::cout << "Error: Equilibrium steps has not been specified!" << std::endl;
-    exit(0);
+   std::cout << "Error: Equilibration steps is not specified!\n";
+  exit(0);
   }
   if(sys.step.total == ULONG_MAX)
   {
-    std::cout << "Error: Total run steps has not been specified!" << std::endl;
+    std::cout << "Error: Total run steps is not specified!" << std::endl;
     exit(0);
   }
   if(sys.step.adjustment > sys.step.equil)
   {
-    std::cout << "Error: Adjustment steps should be smaller than Equilibrium steps!" << std::endl;
+    std::cout << "Error: Move adjustment frequency should be smaller " <<
+      "than Equilibration steps!" << std::endl;
     exit(0);
   }
   if(sys.step.equil > sys.step.total)
   {
-    std::cout << "Error: Equilibrium steps should be smaller than Total run steps!" << std::endl;
+    std::cout << "Error: Equilibration steps should be smaller than " <<
+      "Total run steps!" << std::endl;
     exit(0);
   }
   if(sys.moves.displace == DBL_MAX)
   {
-    std::cout << "Error: Displacement frequency has not been specified!" << std::endl;
+    std::cout << "Error: Displacement move frequency is not specified!\n";
     exit(0);
   }
   if(sys.moves.rotate == DBL_MAX)
   {
-    std::cout << "Error: Rotation frequency has not been specified!" << std::endl;
+    std::cout << "Error: Rotation move frequency is not specified!\n";
     exit(0);
   }
   if(sys.moves.intraSwap == DBL_MAX)
   {
-    std::cout << "Error: IntraSwap frequency has not been specified!" << std::endl;
+    std::cout << "Error: Intra-Swap move frequency is not specified!\n";
     exit(0);
   }
 #if ENSEMBLE == NPT
   if(sys.moves.volume == DBL_MAX)
   {
-    std::cout << "Error: Volume swap frequency has not been specified!" << std::endl;
+    std::cout << "Error: Volume move frequency is not specified!" << std::endl;
     exit(0);
   }
 #endif
 #if ENSEMBLE == GEMC
   if(sys.moves.volume == DBL_MAX)
   {
-    std::cout << "Error: Volume swap frequency has not been specified!" << std::endl;
+    std::cout << "Error: Volume move frequency is not specified!" << std::endl;
     exit(0);
   }
   if(sys.moves.transfer == DBL_MAX)
   {
-    std::cout << "Error: Molecule swap frequency has not been specified!" << std::endl;
+    std::cout << "Error: Molecule swap move frequency is not specified!\n";
     exit(0);
   }
-  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer + sys.moves.intraSwap + sys.moves.volume - 1.0) > 0.01)
+  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
+	 sys.moves.intraSwap + sys.moves.volume - 1.0) > 0.01)
   {
-    std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
+    std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(0);
   }
 #elif ENSEMBLE == NPT
   if(sys.moves.volume == DBL_MAX)
   {
-    std::cout << "Error: Volume swap frequency has not been specified!" << std::endl;
+    std::cout << "Error: Volume move frequency is not specified!" << std::endl;
     exit(0);
   }
-  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap + sys.moves.volume - 1.0) > 0.01)
+  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
+	 sys.moves.volume - 1.0) > 0.01)
   {
-    std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
+    std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(0);
   }
 
 #elif ENSEMBLE == GCMC
   if(sys.moves.transfer == DBL_MAX)
   {
-    std::cout << "Error: Molecule swap frequency has not been specified!" << std::endl;
+    std::cout << "Error: Molecule swap move frequency is not specified!\n";
     exit(0);
   }
-  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap + sys.moves.transfer - 1.0) > 0.01)
+  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
+	 sys.moves.transfer - 1.0) > 0.01)
   {
-    std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
+    std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(0);
   }
 #else
-  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap - 1.0) > 0.01)
+  if(abs(sys.moves.displace +sys.moves.rotate +sys.moves.intraSwap -1.0) > 0.01)
   {
-    std::cout << "Error: Sum of move frequncies are not equal to one!" << std::endl;
+    std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(0);
   }
 #endif
@@ -921,7 +992,8 @@ void ConfigSetup::verifyInputs(void)
   {
     if(in.files.pdb.name[i] == "")
     {
-      std::cout << "Error: PDB file has not been defined for Box number " << i << "!" <<std::endl;
+      std::cout << "Error: PDB file is not been specified for box number "
+		<< i << "!" <<std::endl;
       exit(0);
     }
   }
@@ -929,218 +1001,193 @@ void ConfigSetup::verifyInputs(void)
   {
     if(in.files.psf.name[i] == "")
     {
-      std::cout << "Error: PSF file has not been defined for Box number " << i << "!" <<std::endl;
+      std::cout << "Error: PSF file is not specified for box number " <<
+	i << "!" <<std::endl;
       exit(0);
     }
   }
   if(!sys.volume.hasVolume)
   {
-    std::cout << "Error: This simulation type requires to define " << BOX_TOTAL << " box dimentions!" <<std::endl;
+    std::cout << "Error: This simulation requires to define " << BOX_TOTAL <<
+      " box dimentions!" <<std::endl;
     exit(0);
   }
   if(sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND && sys.ff.rswitch == DBL_MAX)
   {
-    std::cout << "Error: Switch cut off has not been defined!" << std::endl;
+    std::cout << "Error: Switch distance is not specified!" << std::endl;
     exit(0);
   }
-  if((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND || sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND) && sys.ff.rswitch != DBL_MAX)
+  if(((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND) ||
+      (sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND)) && sys.ff.rswitch != DBL_MAX)
   {
-    std::cout << "Warning: Switch cut off will be ignored!" << std::endl;
+    std::cout << "Warning: Switch distance will be ignored." << std::endl;
   }
-  if(sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND && sys.ff.rswitch >= sys.ff.cutoff)
+  if(sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND &&
+     sys.ff.rswitch >= sys.ff.cutoff)
   {
-    std::cout << "Error: Switch cut off should be smaller than cut off!" << std::endl;
+    std::cout << "Error: Switch distance should be less than Cutoff!\n";
     exit(0);
   }
 #ifdef VARIABLE_PARTICLE_NUMBER
   if(sys.cbmcTrials.bonded.ang == UINT_MAX)
   {
-    std::cout << "Error: CBMC number of angle trials has not been specified!" << std::endl;
+    std::cout << "Error: CBMC number of angle trials is not specified!\n";
     exit(0);
   }
   if(sys.cbmcTrials.bonded.dih == UINT_MAX)
   {
-    std::cout << "Error: CBMC number of dihedral trials has not been specified!" << std::endl;
+    std::cout << "Error: CBMC number of dihedral trials is not specified!\n";
     exit(0);
   }
   if(sys.cbmcTrials.nonbonded.first == UINT_MAX)
   {
-    std::cout << "Error: CBMC number of first site trials has not been specified!" << std::endl;
+    std::cout << "Error: CBMC number of first site trials is not specified!\n";
     exit(0);
   }
   if(sys.cbmcTrials.nonbonded.nth == UINT_MAX)
   {
-    std::cout << "Error: CBMC number of nth site trials has not been specified!" << std::endl;
+    std::cout << "Error: CBMC number of nth site trials is not specified!\n";
     exit(0);
   }
 #endif
   if(sys.T.inKelvin == DBL_MAX)
   {
-    std::cout << "Error: Temperature has not been specified!" << std::endl;
+    std::cout << "Error: Temperature is not specified!\n";
     exit(0);
   }
   if(out.statistics.settings.uniqueStr.val == "")
   {
-    std::cout<< "Error: Output name has not been specified!" << std::endl;
+    std::cout<< "Error: Output name is not specified!\n";
     exit(0);
-  }
-  if(!out.state.settings.enable)
-  {
-    std::cout << "Warning: Coordinates output is disabled!" << std::endl;
-  }
-  if(!out.restart.settings.enable)
-  {
-    std::cout << "Warning: Restart coordinate output is disabled!" << std::endl;
-  }
-  if(!out.console.enable)
-  {
-    std::cout << "Warning: Console output frequency is disabled!" << std::endl;
-  }
-  if(!out.statistics.settings.block.enable)
-  {
-    std::cout << "Warning: Block average output is disabled!" << std::endl;
   }
   if(out.console.enable && out.console.frequency == ULONG_MAX)
   {
-    if(sys.step.total > 1000)
-    {
-      out.console.frequency = (ulong)sys.step.total / 1000;
-    }
-    else
-    {
-      out.console.frequency = (ulong)sys.step.total / 100;
-    }
-    std::cout << "Warning: By default console output frequency has been set to " << out.console.frequency << "!" << std::endl;
+    std::cout << "Error: Console output frequency is not specified!\n";
+    exit(0);
   }
   if(out.restart.settings.enable && out.restart.settings.frequency == ULONG_MAX)
   {
-    out.restart.settings.frequency = (ulong)sys.step.total;
-    std::cout << "Warning: By default restart coordinate output frequency has been set to " << out.restart.settings.frequency << "!" << std::endl;
+    std::cout << "Error: Restart coordinate frequency is not specified!\n";
+    exit(0);
   }
   if(out.state.settings.enable && out.state.settings.frequency == ULONG_MAX)
   {
-    out.state.settings.frequency = (ulong)sys.step.total / 10;
-    std::cout << "Warning: By default coordinate output frequency has been set to " << out.state.settings.frequency << "!" << std::endl;
+    std::cout << "Error: Coordinate frequency is not specified!\n";
+    exit(0);
   }
-  if(out.statistics.settings.block.enable && out.statistics.settings.block.frequency == ULONG_MAX)
+  if(out.statistics.settings.block.enable &&
+     out.statistics.settings.block.frequency == ULONG_MAX)
   {
-    out.statistics.settings.block.frequency = (ulong)sys.step.total / 100;
-    std::cout << "Warning: By default block average output frequency has been set to " << out.statistics.settings.block.frequency << "!" << std::endl;
-  }
-  if(sys.step.pressureCalc && (sys.step.pressureCalcFreq == ULONG_MAX))
-  {
-    sys.step.pressureCalcFreq = (ulong)(out.statistics.settings.block.frequency / 100);
-    std::cout << "Warning: By default pressure will be calculated every " << sys.step.pressureCalcFreq << " steps!";
+    std::cout << "Error: Average output frequency is not specified!\n";
+    exit(0);
   }
 #if ENSEMBLE == GCMC
-  if(!out.statistics.settings.hist.enable)
+  if(out.statistics.settings.hist.enable &&
+     out.statistics.settings.hist.frequency == ULONG_MAX)
   {
-    std::cout << "Warning: Histogram output is disabled!" << std::endl;
-  }
-  if(out.statistics.settings.hist.enable && out.statistics.settings.hist.frequency == ULONG_MAX)
-  {
-    if(sys.step.total > 1000)
-    {
-      out.statistics.settings.hist.frequency = (ulong)sys.step.total / 1000;
-    }
-    else
-    {
-      out.statistics.settings.hist.frequency = (ulong)sys.step.total / 100;
-    }
-    std::cout << "Warning: By default histogram output frequency has been set to " << out.statistics.settings.hist.frequency << "!" << std::endl;
+    std::cout << "Error: Histogram output frequency is not specified!\n";
+    exit(0);
   }
   if(out.state.files.hist.histName == "")
   {
-    std::cout << "Error: Distribution file name has not been set!" << std::endl;
+    std::cout << "Error: Distribution file name is not specified!" << std::endl;
     exit(0);
   }
   if(out.state.files.hist.sampleName == "")
   {
-    std::cout << "Error: Histogram file name of has not been set!" << std::endl;
+    std::cout << "Error: Histogram file name of is not specified!" << std::endl;
     exit(0);
   }
   if(out.state.files.hist.letter == "")
   {
-    std::cout << "Error: Run Letter of histogram file name has not been set!" << std::endl;
+    std::cout << "Error: Run Letter of histogram file name is not specified!\n";
     exit(0);
   }
   if(out.state.files.hist.number == "")
   {
-    std::cout << "Error: Run number of histogram file has not been set!" << std::endl;
+    std::cout << "Error: Run number of histogram file is not specified!\n";
     exit(0);
   }
   if(out.state.files.hist.stepsPerHistSample == UINT_MAX)
   {
-    std::cout << "Error: Histogram output sample frequency has not been set!" << std::endl;
+    std::cout << "Error: Histogram output sample frequency is not specified!\n";
     exit(0);
   }
 #endif
   if(!out.statistics.settings.block.enable && out.statistics.vars.energy.block)
   {
-    std::cout<< "Warning: Output block average has been set off, energy output for block average will be ignored!" << std::endl;
+    printf("Note: Energy average output will be ignored.\n");
+    out.statistics.vars.energy.block = false;   
   }
-  if(!out.statistics.settings.block.enable && out.statistics.vars.pressure.block)
+  if(!out.statistics.settings.block.enable &&
+     out.statistics.vars.pressure.block)
   {
-    std::cout<< "Warning: Output block average has been set off, pressure output for block average will be ignored!" << std::endl;
+    printf("Note: Average output Deactived. Pressure average output will be ignored.\n");
+    out.statistics.vars.pressure.block = false;
   }
   if(!sys.step.pressureCalc && out.statistics.vars.pressure.block)
   {
-    std::cout<< "Warning: Pressure calculation has been turn off, pressure output for block average will be ignored!" << std::endl;
+    printf("Note: Pressure Calculation Deactived. Pressure average output will be ignored.\n");
     out.statistics.vars.pressure.block = false;
   }
   if(!sys.step.pressureCalc && out.statistics.vars.surfaceTension.block)
   {
-    std::cout<< "Warning: Pressure calculation has been turn off, surface tension output for block average will be ignored!" << std::endl;
+    printf("Note: Pressure Calculation Deactived. Surface Tension average output will be ignored.\n");
     out.statistics.vars.surfaceTension.block = false;
   }
 #ifdef VARIABLE_PARTICLE_NUMBER
   if(!out.statistics.settings.block.enable && out.statistics.vars.molNum.block)
   {
-    std::cout<< "Warning: Output block average has been set off, molecule number output for block average will be ignored!" << std::endl;
+    printf("Note: Average output Deactived. Molecule average output will be ignored.\n");
+    out.statistics.vars.molNum.block = false;
   }
 #endif
   if(!out.statistics.settings.block.enable && out.statistics.vars.density.block)
   {
-    std::cout<< "Warning: Output block average has been set off, density output for block average will be ignored!" << std::endl;
+    printf("Note: Average output Deactived. Density average output will be ignored.\n");
+    out.statistics.vars.density.block = false;
   }
 #ifdef VARIABLE_VOLUME
   if(!out.statistics.settings.block.enable && out.statistics.vars.volume.block)
   {
-    std::cout<< "Warning: Output block average has been set off, volume ouput for block average will be ignored!" << std::endl;
+    printf("Note: Average output Deactived. Volume average output will be ignored.\n");
+    out.statistics.vars.volume.block = false;
   }
 #endif
   if(!out.console.enable && out.statistics.vars.energy.fluct)
   {
-    std::cout<< "Warning: Console output has been set off, energy fluctuation ouput will be ignored!" << std::endl;
+    printf("Note: Console output Deactived. Energy output will be ignored.\n");
+    out.statistics.vars.energy.fluct = false;
   }
   if(!out.console.enable && out.statistics.vars.pressure.fluct)
   {
-    std::cout<< "Warning: Console output has been set off, pressure fluctuation ouput will be ignored!" << std::endl;
+    printf("Note: Console output Deactived. Pressure output will be ignored.\n");
+    out.statistics.vars.pressure.fluct = false;
   }
   if(!sys.step.pressureCalc && out.statistics.vars.pressure.fluct)
   {
-    std::cout<< "Warning: Pressure calculation has been turn off, pressure fluctuation output will be ignored!" << std::endl;
+    printf("Note: Pressure Calculation Deactived. Pressure output will be ignored.\n");
     out.statistics.vars.pressure.fluct = false;
   }
   if(!sys.step.pressureCalc && out.statistics.vars.surfaceTension.fluct)
   {
-    std::cout<< "Warning: Pressure calculation has been turn off, surface tension fluctuation output will be ignored!" << std::endl;
+    printf("Note: Pressure Calculation Deactived. Surface Tension output will be ignored.\n");
     out.statistics.vars.surfaceTension.fluct = false;
   }
 #ifdef VARIABLE_PARTICLE_NUMBER
   if(!out.console.enable && out.statistics.vars.molNum.fluct)
   {
-    std::cout<< "Warning: Console output has been set off, molecule number fluctuation ouput will be ignored!" << std::endl;
+    printf("Note: Console output Deactived. Molecule output will be ignored.\n");
   }
 #endif
   if(!out.console.enable && out.statistics.vars.density.fluct)
   {
-    std::cout<< "Warning: Console output has been set off, density fluctuation ouput will be ignored!" << std::endl;
+    printf("Note: Console output Deactived. Density output will be ignored.\n");
   }
 #ifdef VARIABLE_VOLUME
   if(!out.console.enable && out.statistics.vars.volume.fluct)
   {
-    std::cout<< "Warning: Console output has been set off, volume fluctuation ouput will be ignored!" << std::endl;
+    printf("Note: Console output Deactived. Volume output will be ignored.\n");
   }
 #endif
 }
