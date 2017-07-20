@@ -15,8 +15,8 @@ void ConsoleOutput::DoOutput(const ulong step)
 {
   if (step == 0)
   {
-    std::cout << std::endl<< "###############################################################################" << std::endl;
-    std::cout << "########################## INITIAL SIMULATION ENERGY ##########################" << std::endl << std::endl;
+    std::cout << std::endl<< "################################################################################" << std::endl;
+    std::cout << "########################## INITIAL SIMULATION ENERGY ###########################" << std::endl << std::endl;
 
     PrintEnergyTitle();
     std::cout << std::endl;
@@ -38,9 +38,9 @@ void ConsoleOutput::DoOutput(const ulong step)
       std::cout << std::endl;
     }
     
-    std::cout << "###############################################################################" << std::endl;
+    std::cout << "################################################################################" << std::endl;
 
-    std::cout << "############################# STARTING SIMULATION #############################" << std::endl << std::endl;
+    std::cout << "############################# STARTING SIMULATION ##############################" << std::endl << std::endl;
 
     PrintMoveTitle();
     std::cout << std::endl;
