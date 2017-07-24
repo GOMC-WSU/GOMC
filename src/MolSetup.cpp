@@ -212,9 +212,28 @@ void MolSetup::AssignKinds(const pdb_setup::Atoms& pdbAtoms, const FFSetup& ffDa
     AssignBondKinds(it->second, ffData);
     AssignAngleKinds(it->second, ffData);
     AssignDihKinds(it->second, ffData);
-    //Print bonded Information
+  }
+
+  //Print bonded Information
+  printf("Bonds parameter:\n");
+  printf("%-19s %15s %20s \n", "Atom Types", "Kb(K)", "b0(A)");
+  for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it)
+  {
     BriefBondKinds(it->second, ffData);
+  }
+  
+  printf("Angles parameter:\n");
+  printf("%-19s %15s %20s \n", "Atom Types", "Ktheta(K)", "theta0(degree)");
+  for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it)
+  {
     BriefAngleKinds(it->second, ffData);
+  }
+
+  printf("Dihedrals parameter:\n");
+  printf("%-19s %15s %4s %15s \n", "Atom Types", "Kchi(K)", "n",
+	 "delta(degree)");
+  for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it)
+  {
     BriefDihKinds(it->second, ffData);
   }
 }
@@ -280,8 +299,6 @@ void BriefBondKinds(MolKind& kind, const FFSetup& ffData)
   std::string elementNames[ATOMS_PER];
   bool readKind[kind.bonds.size()];
 
-  printf("Bonds parameter:\n");
-  printf("%-19s %15s %20s \n", "Atom Types", "Kb(K)", "b0(A)");
   for (uint i = 0; i < kind.bonds.size(); ++i)
   {
     readKind[i] = false;
@@ -347,8 +364,6 @@ void BriefAngleKinds(MolKind& kind, const FFSetup& ffData)
   std::string elementNames[ATOMS_PER];
   bool readKind[kind.angles.size()];
 
-  printf("Angles parameter:\n");
-  printf("%-19s %15s %20s \n", "Atom Types", "Ktheta(K)", "theta0(degree)");
   for (uint i = 0; i < kind.angles.size(); ++i)
   {
     readKind[i] = false;
@@ -416,9 +431,6 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData)
   double coef = 180.00 / M_PI;
   bool readKind[kind.dihedrals.size()];
 
-  printf("Dihedrals parameter:\n");
-  printf("%-19s %15s %4s %15s \n", "Atom Types", "Kchi(K)", "n",
-	 "delta(degree)");
   for (uint i = 0; i < kind.dihedrals.size(); ++i)
   {
     readKind[i] = false;
