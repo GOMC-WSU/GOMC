@@ -342,7 +342,7 @@ void ConfigSetup::Init(const char *fileName)
       }
       else
       {
-	printf("%-40s %-s \n", "Info: Cache Ewald Fourier", "Deactive");
+	printf("%-40s %-s \n", "Info: Cache Ewald Fourier", "Inactive");
       }
     }
     else if(line[0] == "1-4scaling")
@@ -382,7 +382,7 @@ void ConfigSetup::Init(const char *fileName)
 	exit(0);
       }
       if(!sys.step.pressureCalc)
-        printf("%-40s %-s \n", "Info: Pressure calculation", "Deactive");
+        printf("%-40s %-s \n", "Info: Pressure calculation", "Inactive");
       else
 	printf("%-40s %-d \n", "Info: Pressure calculation frequency",
 	       sys.step.pressureCalcFreq);
@@ -527,7 +527,7 @@ void ConfigSetup::Init(const char *fileName)
 	       out.state.settings.frequency);
       }
       else
-	printf("%-40s %-s \n", "Info: Printing coordinate", "Deactive");
+	printf("%-40s %-s \n", "Info: Printing coordinate", "Inactive");
     }
     else if(line[0] == "RestartFreq")
     {
@@ -542,7 +542,7 @@ void ConfigSetup::Init(const char *fileName)
 	       out.restart.settings.frequency);
       }
       else
-	printf("%-40s %-s \n", "Info: Printing restart coordinate", "Deactive");
+	printf("%-40s %-s \n", "Info: Printing restart coordinate", "Inactive");
     }
     else if(line[0] == "ConsoleFreq")
     {
@@ -565,7 +565,7 @@ void ConfigSetup::Init(const char *fileName)
 	       out.console.frequency);
       }
       else
-	printf("%-40s %-s \n", "Info: Console output", "Deactive");
+	printf("%-40s %-s \n", "Info: Console output", "Inactive");
     }
     else if(line[0] == "BlockAverageFreq")
     {
@@ -580,7 +580,7 @@ void ConfigSetup::Init(const char *fileName)
 	       out.statistics.settings.block.frequency);
       }
       else
-	printf("%-40s %-s \n", "Info: Average output", "Deactive");
+	printf("%-40s %-s \n", "Info: Average output", "Inactive");
     }
 #if ENSEMBLE == GCMC
     else if(line[0] == "HistogramFreq")
@@ -605,7 +605,7 @@ void ConfigSetup::Init(const char *fileName)
 	       out.statistics.settings.hist.frequency);
       }
       else
-	printf("%-40s %-s \n", "Info: Histogram output", "Deactive");
+	printf("%-40s %-s \n", "Info: Histogram output", "Inactive");
     }
     else if(line[0] == "DistName")
     {
@@ -767,20 +767,20 @@ void ConfigSetup::verifyInputs(void)
   int i;
   if(!sys.elect.enable && sys.elect.oneFourScale != DBL_MAX)
   {
-    printf("Warning: 1-4 Electrostatic scaling will be ignored.\n");
+    printf("Warning: 1-4 Electrostatic scaling set, but will be ignored.\n");
   }
 
   if((sys.elect.oneFourScale != 0.0) &&
      (sys.exclude.EXCLUDE_KIND == sys.exclude.EXC_ONEFOUR_KIND))
   {
-    printf("Warning: 1-4 Electrostatic scaling will be ignored.\n");
+    printf("Warning: 1-4 Electrostatic scaling set, but will be ignored.\n");
     sys.elect.oneFourScale = 0.0f;
   }
 
   if (sys.elect.ewald == false && sys.elect.enable == true)
   {
     printf("%-40s %-s \n",
-	   "Warning: Electrostatic calculation with Ewlad method", "Deactive");
+	   "Warning: Electrostatic calculation with Ewlad method", "Inactive");
   }
 
   // Set output files
@@ -798,7 +798,8 @@ void ConfigSetup::verifyInputs(void)
   }
   if(sys.gemc.kind == mv::GEMC_NVT && sys.gemc.pressure != DBL_MAX)
   {
-    std::cout << "Warning: Pressure will be ignored in NVT-GEMC" << std::endl;
+    std::cout << "Warning: Input pressure set, but will be ignored in NVT-GEMC"
+	      << std::endl;
   }
 #endif
 #if ENSEMBLE == NPT
@@ -809,7 +810,7 @@ void ConfigSetup::verifyInputs(void)
   }
   if(sys.volume.cstVolBox0)
   {
-    std::cout << "Warning: Fix volume of box 1 will be ignored.\n";
+    std::cout << "Warning: Fix volume of box 1 set, but will be ignored.\n";
     exit(0);
   }
 #endif
@@ -825,7 +826,7 @@ void ConfigSetup::verifyInputs(void)
   }
   if(in.prng.kind == "RANDOM" && in.prng.seed != UINT_MAX)
   {
-    std::cout << "Warning: Seed value will be ignored." << std::endl;
+    std::cout << "Warning: Seed value set, but will be ignored." << std::endl;
   }
   if(in.prng.kind == "INTSEED" && in.prng.seed == UINT_MAX)
   {
@@ -869,7 +870,7 @@ void ConfigSetup::verifyInputs(void)
   }
   if(sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND && sys.ff.doTailCorr == false)
   {
-    std::cout << "Warning: Long Range Correction is deactive for " <<
+    std::cout << "Warning: Long Range Correction is Inactive for " <<
       "Non-truncated potential." << std::endl;
   }
   if(((sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND) ||
@@ -1020,7 +1021,8 @@ void ConfigSetup::verifyInputs(void)
   if(((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND) ||
       (sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND)) && sys.ff.rswitch != DBL_MAX)
   {
-    std::cout << "Warning: Switch distance will be ignored." << std::endl;
+    std::cout << "Warning: Switch distance set, but will be ignored."
+	      << std::endl;
   }
   if(sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND &&
      sys.ff.rswitch >= sys.ff.cutoff)
@@ -1116,78 +1118,78 @@ void ConfigSetup::verifyInputs(void)
 #endif
   if(!out.statistics.settings.block.enable && out.statistics.vars.energy.block)
   {
-    printf("Note: Energy average output will be ignored.\n");
+    printf("Note: Average output Inactived. Energy average output will be ignored.\n");
     out.statistics.vars.energy.block = false;   
   }
   if(!out.statistics.settings.block.enable &&
      out.statistics.vars.pressure.block)
   {
-    printf("Note: Average output Deactived. Pressure average output will be ignored.\n");
+    printf("Note: Average output Inactived. Pressure average output will be ignored.\n");
     out.statistics.vars.pressure.block = false;
   }
   if(!sys.step.pressureCalc && out.statistics.vars.pressure.block)
   {
-    printf("Note: Pressure Calculation Deactived. Pressure average output will be ignored.\n");
+    printf("Note: Pressure Calculation Inactived. Pressure average output will be ignored.\n");
     out.statistics.vars.pressure.block = false;
   }
   if(!sys.step.pressureCalc && out.statistics.vars.surfaceTension.block)
   {
-    printf("Note: Pressure Calculation Deactived. Surface Tension average output will be ignored.\n");
+    printf("Note: Pressure Calculation Inactived. Surface Tension average output will be ignored.\n");
     out.statistics.vars.surfaceTension.block = false;
   }
 #ifdef VARIABLE_PARTICLE_NUMBER
   if(!out.statistics.settings.block.enable && out.statistics.vars.molNum.block)
   {
-    printf("Note: Average output Deactived. Molecule average output will be ignored.\n");
+    printf("Note: Average output Inactived. Molecule average output will be ignored.\n");
     out.statistics.vars.molNum.block = false;
   }
 #endif
   if(!out.statistics.settings.block.enable && out.statistics.vars.density.block)
   {
-    printf("Note: Average output Deactived. Density average output will be ignored.\n");
+    printf("Note: Average output Inactived. Density average output will be ignored.\n");
     out.statistics.vars.density.block = false;
   }
 #ifdef VARIABLE_VOLUME
   if(!out.statistics.settings.block.enable && out.statistics.vars.volume.block)
   {
-    printf("Note: Average output Deactived. Volume average output will be ignored.\n");
+    printf("Note: Average output Inactived. Volume average output will be ignored.\n");
     out.statistics.vars.volume.block = false;
   }
 #endif
   if(!out.console.enable && out.statistics.vars.energy.fluct)
   {
-    printf("Note: Console output Deactived. Energy output will be ignored.\n");
+    printf("Note: Console output Inactived. Energy output will be ignored.\n");
     out.statistics.vars.energy.fluct = false;
   }
   if(!out.console.enable && out.statistics.vars.pressure.fluct)
   {
-    printf("Note: Console output Deactived. Pressure output will be ignored.\n");
+    printf("Note: Console output Inactived. Pressure output will be ignored.\n");
     out.statistics.vars.pressure.fluct = false;
   }
   if(!sys.step.pressureCalc && out.statistics.vars.pressure.fluct)
   {
-    printf("Note: Pressure Calculation Deactived. Pressure output will be ignored.\n");
+    printf("Note: Pressure Calculation Inactived. Pressure output will be ignored.\n");
     out.statistics.vars.pressure.fluct = false;
   }
   if(!sys.step.pressureCalc && out.statistics.vars.surfaceTension.fluct)
   {
-    printf("Note: Pressure Calculation Deactived. Surface Tension output will be ignored.\n");
+    printf("Note: Pressure Calculation Inactived. Surface Tension output will be ignored.\n");
     out.statistics.vars.surfaceTension.fluct = false;
   }
 #ifdef VARIABLE_PARTICLE_NUMBER
   if(!out.console.enable && out.statistics.vars.molNum.fluct)
   {
-    printf("Note: Console output Deactived. Molecule output will be ignored.\n");
+    printf("Note: Console output Inactived. Molecule output will be ignored.\n");
   }
 #endif
   if(!out.console.enable && out.statistics.vars.density.fluct)
   {
-    printf("Note: Console output Deactived. Density output will be ignored.\n");
+    printf("Note: Console output Inactived. Density output will be ignored.\n");
   }
 #ifdef VARIABLE_VOLUME
   if(!out.console.enable && out.statistics.vars.volume.fluct)
   {
-    printf("Note: Console output Deactived. Volume output will be ignored.\n");
+    printf("Note: Console output Inactived. Volume output will be ignored.\n");
   }
 #endif
 }
