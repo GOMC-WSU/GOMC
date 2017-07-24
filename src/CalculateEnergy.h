@@ -99,7 +99,7 @@ public:
                          const uint trials) const;
 
 
-  //! Calculates Nonbonded intra energy (LJ and coulomb)for
+  //! Calculates Nonbonded inter energy (LJ and coulomb)for
   //!                      candidate positions
   //! @param energy Output Array, at least the size of trialpos
   //! @param trialPos Array of candidate positions

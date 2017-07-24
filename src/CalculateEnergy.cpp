@@ -462,7 +462,7 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
 }
 
 
-//! Calculates Nonbonded intra energy for candidate positions in trialPos
+//! Calculates Nonbonded inter energy for candidate positions in trialPos
 void CalculateEnergy::ParticleInter(double* en, double *real,
                                     XYZArray const& trialPos,
                                     const uint partIndex,
