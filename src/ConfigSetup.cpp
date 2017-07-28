@@ -153,12 +153,8 @@ void ConfigSetup::Init(const char *fileName)
     else if(line[0] == "PRNG")
     {
       in.prng.kind = line[1];
-      printf("%-40s %-s \n", "Info: Random seed", "Active");
-    }
-    else if(line[0] == "Random_Seed")
-    {
-      in.prng.seed = stringtoi(line[1]);
-      printf("%-40s %-s \n", "Info: Constant seed", "Active");
+      if("RANDOM" == line[1])
+	printf("%-40s %-s \n", "Info: Random seed", "Active");
     }
     else if(line[0] == "ParaTypeCHARMM")
     {
@@ -669,6 +665,14 @@ void ConfigSetup::Init(const char *fileName)
     {
       printf("%-40s %-4.4f \n", "Info: Switch distance",
 	     sys.ff.rswitch);
+    }
+    else if(line[0] == "Random_Seed")
+    {
+      in.prng.seed = stringtoi(line[1]);
+      if("INTSEED" == in.prng.kind)
+	printf("%-40s %-s \n", "Info: Constant seed", "Active");
+      else
+	printf("Warning: Constant seed set, but will be ignored.\n");
     }
     else
     {
