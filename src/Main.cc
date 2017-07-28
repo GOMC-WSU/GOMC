@@ -78,9 +78,9 @@ int main(int argc, char *argv[])
       //SET NUMBER OF THREADS
 #ifdef _OPENMP
       omp_set_num_threads(numThreads);
-      printf("%-30s %-d \n", "Info: Number of threads", numThreads);
+      printf("%-40s %-d \n", "Info: Number of threads", numThreads);
 #else
-      printf("%-30s %-d \n", "Info: Number of threads", 1);
+      printf("%-40s %-d \n", "Info: Number of threads", 1);
 #endif
 
       //OPEN FILE
