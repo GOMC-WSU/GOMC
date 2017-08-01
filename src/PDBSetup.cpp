@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include <vector>
 #include <map> //for function lookup table.
 
@@ -119,12 +125,15 @@ void Atoms::Assign(std::string const& atomName,
       uint kIndex = std::find(resKindNames.begin(),
                               resKindNames.end(),
                               resName) - resKindNames.begin();
-      if (kIndex==resKindNames.size())
+      // if not push it to resKindNames -> new molecule found
+      if (kIndex == resKindNames.size())
       {
         resKindNames.push_back(resName);
       }
+      // pushes the index of the residue to the resKinds
       resKinds.push_back(kIndex);
     }
+    // push the coordinates of atoms to x, y, and z
     x.push_back(l_x);
     y.push_back(l_y);
     z.push_back(l_z);

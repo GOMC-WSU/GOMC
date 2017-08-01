@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef EWALDCACHED_H
 #define EWALDCACHED_H
 
@@ -15,14 +21,18 @@
 #include "BoxDimensions.h"
 #include "MoleculeKind.h"
 #include "TrialMol.h"
+#ifdef GOMC_CUDA
+#include "ConstantDefinitionsCUDAKernel.cuh"
+#include "CalculateForceCUDAKernel.cuh"
+#endif
 
 //
 //    Calculating Electrostatic calculation with caching Fourier terms.
 //    Energy Calculation functions for Ewald summation method
-//    Calculating self, correction and reciprocate part of ewald    
+//    Calculating self, correction and reciprocate part of ewald
 //
 //    Developed by Y. Li and Mohammad S. Barhaghi
-// 
+//
 //
 
 class StaticVals;
@@ -40,12 +50,12 @@ class CalculateEnergy;
 namespace cbmc { class TrialMol; }
 namespace config_setup{ class SystemVals; }
 
-class EwaldCached 
+class EwaldCached
 {
    public:
 
    EwaldCached(StaticVals const& stat, System & sys);
-    
+
    ~EwaldCached();
 
    virtual void Init();
@@ -59,7 +69,7 @@ class EwaldCached
    //initiliazie term used for ewald calculation
    virtual void RecipInit(uint box, BoxDimensions const& boxAxes);
    virtual void RecipCountInit(uint box, BoxDimensions const& boxAxes);
-   
+
    //calculate self term for a box
    virtual double BoxSelf(BoxDimensions const& boxAxes, uint box) const;
 
@@ -78,7 +88,7 @@ class EwaldCached
 
    //calculate reciprocate term for displacement and rotation move
    virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
-				const uint box, XYZ const*const newCOM = NULL);	
+				const uint box, XYZ const*const newCOM = NULL);
 
    //calculate self term after swap move
    virtual double SwapSelf(const cbmc::TrialMol& trialMo) const;
@@ -87,8 +97,8 @@ class EwaldCached
    virtual double SwapCorrection(const cbmc::TrialMol& trialMo) const; 
 
    //calculate reciprocate term in destination box for swap move
-   virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box, 
-				const int sourceBox, const int molIndex);	
+   virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
+				const int sourceBox, const int molIndex);
 
    //calculate reciprocate term in source box for swap move
    virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
@@ -111,8 +121,8 @@ class EwaldCached
 
    uint findLargeImage();
 
-   protected: 
-   
+   protected:
+
    const Forcefield& forcefield;
    const Molecules& mols;
    const Coordinates& currentCoords;
@@ -122,12 +132,12 @@ class EwaldCached
    const SystemPotential &sysPotRef;
 
    bool electrostatic, ewald;
-   double alpha; 
+   double alpha;
    double recip_rcut, recip_rcut_Sq;
    uint *imageSize;
    uint *imageSizeRef;
    //const uint imageTotal = GetImageSize();
-   const int imageTotal;
+   uint imageTotal;
    uint memoryAllocation;
    uint imageLarge;
    uint *kmax;
@@ -142,16 +152,16 @@ class EwaldCached
    double **cosMolBoxRecip;
    double **sinMolBoxRecip;
    double **kx, **kxRef;
-   double **ky, **kyRef; 
+   double **ky, **kyRef;
    double **kz, **kzRef;
    double **hsqr, **hsqrRef;
    double **prefact, **prefactRef;
-   
+
 
    std::vector<int> particleKind;
    std::vector<int> particleMol;
    std::vector<double> particleCharge;
-   
+
 };
 
 

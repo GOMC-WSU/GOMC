@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef BASIC_TYPES_H
 #define BASIC_TYPES_H
 
@@ -17,7 +23,7 @@ struct XYZ
    XYZ() : x(0.0), y(0.0), z(0.0) {}
    XYZ(double xVal, double yVal, double zVal) : x(xVal), y(yVal), z(zVal) {}
 
-   XYZ& operator=(XYZ const& rhs) 
+   XYZ& operator=(XYZ const& rhs)
    { x = rhs.x; y = rhs.y; z = rhs.z; return *this; }
    XYZ& operator+=(XYZ const& rhs)
    { x += rhs.x; y += rhs.y; z += rhs.z; return *this; }
@@ -47,10 +53,10 @@ struct XYZ
    XYZ operator-() const { return XYZ(*this) * -1.0; }
 
    void Inverse()
-  { 
-     x = 1.0 / x; 
-     y = 1.0 / y; 
-     z = 1.0 / z; 
+  {
+     x = 1.0 / x;
+     y = 1.0 / y;
+     z = 1.0 / z;
   }
 
    double Length() const { return sqrt(LengthSq()); }

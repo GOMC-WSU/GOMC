@@ -1,6 +1,12 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "NoEwald.h"
 #include "EwaldCached.h"
-#include "CalculateEnergy.h"        
+#include "CalculateEnergy.h"
 #include "EnergyTypes.h"            //Energy structs
 #include "EnsemblePreprocessor.h"   //Flags
 #include "BasicTypes.h"             //uint
@@ -18,12 +24,12 @@
 #include <omp.h>
 
 //
-//   
+//
 //    Energy Calculation functions for Ewald summation method
-//    Calculating self, correction and reciprocate part of ewald    
+//    Calculating self, correction and reciprocate part of ewald
 //
 //    Developed by Y. Li and Mohammad S. Barhaghi
-// 
+//
 //
 
 using namespace geom;
@@ -35,48 +41,48 @@ void NoEwald::Init()
 {
 
    electrostatic = forcefield.electrostatic;
-   ewald = forcefield.ewald; 
+   ewald = forcefield.ewald;
    SetNull();
-      
+
 }
 
 
 void NoEwald::AllocMem()
-{  
-   return;     
+{
+   return;
 }
 
 
 void NoEwald::RecipInit(uint box, BoxDimensions const& boxAxes)
 {
-   return;   
+   return;
 }
 
 
 //calculate reciprocate term for a box
 void NoEwald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 {
-   return;   
+   return;
 }
 
 
 //calculate reciprocate term for a box
 double NoEwald::BoxReciprocal(uint box) const
 {
-   return 0.0; 
+   return 0.0;
 }
 
 
 //calculate reciprocate force term for a box
 Virial NoEwald::ForceReciprocal(Virial& virial, uint box) const
 {
-   return virial; 
+   return virial;
 }
 
 //calculate correction force term for a box
 Virial NoEwald::ForceCorrection(Virial& virial, uint box) const
 {
-   return virial; 
+   return virial;
 }
 
 
@@ -85,7 +91,7 @@ double NoEwald::MolReciprocal(XYZArray const& molCoords,
 			      const uint molIndex, const uint box,
 			      XYZ const*const newCOM)
 {
-   return 0.0; 
+   return 0.0;
 }
 
 
@@ -106,7 +112,7 @@ double NoEwald::MolCorrection(uint molIndex, uint box) const
 //calculate reciprocate term in destination box for swap move
 double NoEwald::SwapDestRecip(const cbmc::TrialMol &newMol,
 			      const uint box, const int sourceBox,
-			      const int molIndex) 
+			      const int molIndex)
 {
    return 0.0;
 }
@@ -161,5 +167,3 @@ void NoEwald::exgMolCache()
 {
    return;
 }
-
-
