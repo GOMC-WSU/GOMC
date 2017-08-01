@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef MOLECULELOOKUP_H
 #define MOLECULELOOKUP_H
 
@@ -95,10 +101,6 @@ public:
   //Registers shift of mol into intoBox
   //Returns true if shift was successful, false otherwise
   bool ShiftMolBox(const uint mol, const uint currentBox,
-                   const uint intoBox);
-
-  //Same as above, but providing kind increases performance
-  bool ShiftMolBox(const uint mol, const uint currentBox,
                    const uint intoBox, const uint kind);
 #endif
 
@@ -176,7 +178,7 @@ public:
     --pIt;
     return *this;
   }
-  
+
   box_iterator operator++ (int);
   const uint& operator*() const
   {

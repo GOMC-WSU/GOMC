@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef BLOCK_OUTPUT_H
 #define BLOCK_OUTPUT_H
 
@@ -39,8 +45,8 @@ struct BlockAverage
   }
   //Initializes name, and enable
   void Init(std::ofstream *file0,
-	    std::ofstream *file1, 
-	    const bool en, 
+	    std::ofstream *file1,
+	    const bool en,
 	    const double scl,
 	    std::string const& var,
 	    const uint bTot = BOX_TOTAL);
@@ -73,7 +79,7 @@ private:
   }
   void DoWrite(const ulong step);
   void printTitle(std::string output, uint boxes);
-  
+
   std::ofstream* outBlock0;
   std::ofstream* outBlock1;
   bool first;

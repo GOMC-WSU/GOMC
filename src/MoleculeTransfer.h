@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef MOLCULETRANSFER_H
 #define MOLCULETRANSFER_H
 
@@ -12,8 +18,8 @@ class MoleculeTransfer : public MoveBase
 {
  public:
 
-   MoleculeTransfer(System &sys, StaticVals const& statV) : 
-      ffRef(statV.forcefield), molLookRef(sys.molLookupRef), 
+   MoleculeTransfer(System &sys, StaticVals const& statV) :
+      ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
 	MoveBase(sys, statV) {}
 
    virtual uint Prep(const double subDraw, const double movPerc);
@@ -22,7 +28,7 @@ class MoleculeTransfer : public MoveBase
    virtual void Accept(const uint earlyReject, const uint step);
 
  private:
-   
+
    double GetCoeff() const;
    uint GetBoxPairAndMol(const double subDraw, const double movPerc);
    MolPick molPick;
@@ -45,7 +51,7 @@ inline uint MoleculeTransfer::GetBoxPairAndMol
    // swap between boxes. (beta != 1, beta !=2)
    uint state = prng.PickMolAndBoxPair2(molIndex, kindIndex, sourceBox, destBox,
 				       subDraw, movPerc);
- 
+
    if (state != mv::fail_state::NO_MOL_OF_KIND_IN_BOX)
    {
       pStart = pLen = 0;
@@ -87,7 +93,7 @@ inline void MoleculeTransfer::CalcEn()
       tcGain = calcEnRef.MoleculeTailChange(destBox, kindIndex, true);
       W_tc = exp(-1.0*ffRef.beta*(tcGain.energy + tcLose.energy));
    }
-   
+
    if (newMol.GetWeight() != 0.0)
    {
       correct_new = calcEwald->SwapCorrection(newMol);
@@ -185,7 +191,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 	 cellList.AddMol(molIndex, destBox, coordCurrRef);
 
 
-	 //Zero out box energies to prevent small number 
+	 //Zero out box energies to prevent small number
 	 //errors in double.
 	 if (molLookRef.NumInBox(sourceBox) == 0)
 	 {
@@ -216,7 +222,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 	 //results in memory overwrite
 	 if (newMol.GetWeight() != 0.0)
 	    calcEwald->RestoreMol(molIndex);
-	 
+
       }
 
    }

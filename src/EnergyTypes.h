@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef ENERGYTYPES_H
 #define ENERGYTYPES_H
 
@@ -233,7 +239,7 @@ public:
     correction -= rhs.correction;
     totalElect -= rhs.totalElect;
     total -= rhs.total;
-    
+
     for (int i = 0; i < 3; i++)
     {
       for (int j = 0; j < 3; j++)

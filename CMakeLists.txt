@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 
-project(GOMC_Serial)
+project(GOMC)
 
 include_directories(lib)
 include_directories(src)
@@ -10,8 +10,8 @@ include_directories(src/cbmc)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 #Versioning
-set (GOMC_VERSION_MAJOR 1)
-set (GOMC_VERSION_MINOR 17)
+set (GOMC_VERSION_MAJOR 2)
+set (GOMC_VERSION_MINOR 00)
 
 IF(NOT CMAKE_BUILD_TYPE)
    SET(CMAKE_BUILD_TYPE Release CACHE STRING
@@ -23,6 +23,10 @@ set(ENSEMBLE_NVT ON CACHE BOOL "Build NVT version")
 set(ENSEMBLE_GEMC ON CACHE BOOL "Build GEMC version")
 set(ENSEMBLE_GCMC ON CACHE BOOL "Build GCMC version")
 set(ENSEMBLE_NPT ON CACHE BOOL "Build NPT version")
+set(ENSEMBLE_GPU_NVT ON CACHE BOOL "Build GPU NVT version")
+set(ENSEMBLE_GPU_GEMC ON CACHE BOOL "Build GPU GEMC version")
+set(ENSEMBLE_GPU_GCMC ON CACHE BOOL "Build GPU GCMC version")
+set(ENSEMBLE_GPU_NPT ON CACHE BOOL "Build GPU NPT version")
 
 #enable config header
 configure_file(
@@ -43,23 +47,33 @@ elseif(MSVC)
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "${CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT} /MT /Zi /O2 /Ob1 /D NDEBUG")
 endif()
 
-
 #EnsemblePreprocessor defines NVT = 1, GEMC = 2, GCMC = 3, NPT = 4
 
 #NPT (Isothermal-Isobaric) Ensemble
 set(NPT_flags "-DENSEMBLE=4")
-set(NPT_name "GOMC_Serial_NPT")
+set(NPT_name "GOMC_CPU_NPT")
 
 #Grand Canonical Monte Carlo
 set(GC_flags "-DENSEMBLE=3")
-set(GC_name "GOMC_Serial_GCMC")
+set(GC_name "GOMC_CPU_GCMC")
 
 #Gibbs Ensemble Monte Carlo
 set(GE_flags "-DENSEMBLE=2")
-set(GE_name "GOMC_Serial_GEMC")
+set(GE_name "GOMC_CPU_GEMC")
 
 #NVT (Canonical) Ensemble
 set(NVT_flags "-DENSEMBLE=1")
-set(NVT_name "GOMC_Serial_NVT")
+set(NVT_name "GOMC_CPU_NVT")
 
-add_subdirectory(src)
+# Set Source and Header files
+include(${PROJECT_SOURCE_DIR}/CMake/FileLists.cmake)
+
+# Setup Serial version
+include(${PROJECT_SOURCE_DIR}/CMake/GOMCCPUSetup.cmake)
+
+# find CUDA and set it up
+set(CUDA_SEPARABLE_COMPILATION ON)
+find_package(CUDA)
+IF(CUDA_FOUND)
+    include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
+ENDIF(CUDA_FOUND)

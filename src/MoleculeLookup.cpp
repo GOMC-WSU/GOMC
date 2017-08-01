@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "MoleculeLookup.h" //Header spec.
 #include "EnsemblePreprocessor.h" //For box total
 #include "PRNG.h" //For index selection
@@ -10,13 +16,14 @@
 void MoleculeLookup::Init(const Molecules& mols,
                           const pdb_setup::Atoms& atomData)
 {
-  numKinds = mols.kindsCount;
+  numKinds = mols.GetKindsCount();
   molLookup = new uint[mols.count];
   fixInBox = new uint*[BOX_TOTAL];
   noSwapInBox = new uint*[BOX_TOTAL];
 
   //+1 to store end value
   boxAndKindStart = new uint[numKinds * BOX_TOTAL + 1];
+
   // vector[box][kind] = list of mol indices for kind in box
   std::vector<std::vector<std::vector<uint> > > indexVector;
   indexVector.resize(BOX_TOTAL);
@@ -111,23 +118,6 @@ void MoleculeLookup::TotalAndDensity
 
 #ifdef VARIABLE_PARTICLE_NUMBER
 
-bool MoleculeLookup::ShiftMolBox(const uint mol, const uint currentBox,
-                                 const uint intoBox)
-{
-  /*
-  uint index = std::find(molLookup + boxAndKindStart[currentBox * numKinds],
-        molLookup + boxAndKindStart[(currentBox + 1) * numKinds], mol)
-        - molLookup;
-  //linear search, small array. Backwards search because we want last >= start
-  for(uint kind = numKinds - 1; kind >= 0; --kind) {
-     if(index >= boxAndKindStart[currentBox * numKinds + kind]) {
-        Shift(index, currentBox, intoBox, kind);
-        return true;
-     }
-  }
-  */
-  return false;
-}
 
 bool MoleculeLookup::ShiftMolBox(const uint mol, const uint currentBox,
                                  const uint intoBox, const uint kind)

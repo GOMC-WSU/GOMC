@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef NUMERIC_LIB_H
 #define NUMERIC_LIB_H
 
@@ -5,11 +11,13 @@
 #include <vector> //for vector average
 #include "BasicTypes.h" //For uint, XYZ
 
+#define DBL_MAX 1.7976931348623158e+308
+
 namespace num
 {
    static const double dbl_margin = 0.00001;
    static const double qqFact = 167000.00;
-   static const double BIGNUM = 10E40;
+   static const double BIGNUM = DBL_MAX;
    static const uint VDW_STD_KIND = 0, VDW_SHIFT_KIND = 1, VDW_SWITCH_KIND = 2;
 
    template <typename T>

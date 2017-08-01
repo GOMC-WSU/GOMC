@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef CONSOLE_OUTPUT_H
 #define CONSOLE_OUTPUT_H
 
@@ -40,7 +46,7 @@ public:
     enableEnergy = output.statistics.vars.energy.fluct;
     enablePressure = output.statistics.vars.pressure.fluct;
     enableSurfTension = output.statistics.vars.surfaceTension.fluct;
-#ifdef VARIABLE_VOLUME    
+#ifdef VARIABLE_VOLUME
     enableVolume = output.statistics.vars.volume.fluct;
 #else
     enableVolume = false;
