@@ -228,20 +228,21 @@ void MolSetup::AssignKinds(const pdb_setup::Atoms& pdbAtoms, const FFSetup& ffDa
     BriefBondKinds(it->second, ffData);
   }
   
-  printf("Angles parameter:\n");
+  printf("\nAngles parameter:\n");
   printf("%-19s %15s %20s \n", "Atom Types", "Ktheta(K)", "theta0(degree)");
   for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it)
   {
     BriefAngleKinds(it->second, ffData);
   }
 
-  printf("Dihedrals parameter:\n");
+  printf("\nDihedrals parameter:\n");
   printf("%-19s %15s %4s %15s \n", "Atom Types", "Kchi(K)", "n",
 	 "delta(degree)");
   for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it)
   {
     BriefDihKinds(it->second, ffData);
   }
+  std::cout << std::endl;
 }
 
 namespace
@@ -304,6 +305,8 @@ void BriefBondKinds(MolKind& kind, const FFSetup& ffData)
   const uint ATOMS_PER = 2;
   std::string elementNames[ATOMS_PER];
   bool readKind[kind.bonds.size()];
+  if(kind.bonds.size() == 0)
+    return;
 
   for (uint i = 0; i < kind.bonds.size(); ++i)
   {
@@ -369,6 +372,9 @@ void BriefAngleKinds(MolKind& kind, const FFSetup& ffData)
   const uint ATOMS_PER = 3;
   std::string elementNames[ATOMS_PER];
   bool readKind[kind.angles.size()];
+
+  if(kind.angles.size() == 0)
+    return;
 
   for (uint i = 0; i < kind.angles.size(); ++i)
   {
@@ -436,6 +442,9 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData)
   std::string elementNames[ATOMS_PER];
   double coef = 180.00 / M_PI;
   bool readKind[kind.dihedrals.size()];
+
+  if(kind.dihedrals.size() == 0)
+    return;
 
   for (uint i = 0; i < kind.dihedrals.size(); ++i)
   {

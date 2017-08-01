@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
    PrintSimulationHeader();
    PrintHardwareInfo();
 #ifdef GOMC_CUDA
-   //PrintGPUHardwareInfo();
+   PrintGPUHardwareInfo();
 #endif
    //Only run if valid ensemble was detected.
    if (CheckAndPrintEnsemble())
@@ -232,6 +232,7 @@ void PrintHardwareInfo()
   const double megabyte = 1024 * 1024;
   struct utsname name;
   uname(&name);
+  printf("CPU information:\n");
   std::cout << std::setprecision(1) << std::fixed;
   std::cout << "Info: Total number of CPUs: " << get_nprocs() << std::endl;
   std::cout << "Info: Total number of CPUs available: " << sysconf(_SC_NPROCESSORS_ONLN) << std::endl;
@@ -260,17 +261,18 @@ void PrintGPUHardwareInfo()
   int fastIndex = 0;
 
   cudaGetDeviceCount(&nDevices);
-  if(nDevices<=4)
+  if(nDevices <= 4)
   {
+    printf("GPU information:\n");
     for (int i = 0; i < nDevices; i++)
     {
       cudaDeviceProp prop;
       cudaGetDeviceProperties(&prop, i);
-      printf("Device Number: %d\n", i);
-      printf("  Device name: %s\n", prop.name);
-      printf("  Memory Clock Rate (KHz): %d\n", prop.memoryClockRate);
-      printf("  Memory Bus Width (bits): %d\n", prop.memoryBusWidth);
-      printf("  Peak Memory Bandwidth (GB/s): %f\n\n",
+      printf("Info: Device Number: %d\n", i);
+      printf("Info: Device name: %s\n", prop.name);
+      printf("Info: Memory Clock Rate (KHz): %d\n", prop.memoryClockRate);
+      printf("Info: Memory Bus Width (bits): %d\n", prop.memoryBusWidth);
+      printf("Info: Peak Memory Bandwidth (GB/s): %f\n",
 	     2.0*prop.memoryClockRate*(prop.memoryBusWidth/8)/1.0e6);
       if( prop.memoryClockRate > fast)
       {
@@ -280,6 +282,6 @@ void PrintGPUHardwareInfo()
     }
   }
   cudaSetDevice(fastIndex);
-  printf("Using Device Number: %d\n", fastIndex);
+  printf("Info: Using Device Number: %d\n", fastIndex);
 }
 #endif
