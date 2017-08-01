@@ -54,15 +54,24 @@ void BlockAverage::Sum(void)
       block[b] += *dblSrc[b] * scl;
 }
 
-void BlockAverage::DoWrite(const ulong step)
+void BlockAverage::DoWrite(const ulong step, uint precision)
 {
   if (tot >= 1)
   {
     if (outBlock0->is_open())
     {
-      (*outBlock0) << left << std::fixed  << std::setprecision(4) <<
-	std::setw(OUTPUTWIDTH);
-      (*outBlock0) << block[0];
+      if(abs(block[0]) > 9999999999.9999)
+      {
+	(*outBlock0) << left << std::fixed  << std::setprecision(0) <<
+	  std::setw(OUTPUTWIDTH);
+	(*outBlock0) << 9999999999;
+      }
+      else
+      {
+	(*outBlock0) << left << std::fixed  << std::setprecision(precision) <<
+	  std::setw(OUTPUTWIDTH);
+	(*outBlock0) << block[0];
+      }
     }
     else
       std::cerr << "Unable to write to Box_0 output file" << std::endl;
@@ -71,9 +80,18 @@ void BlockAverage::DoWrite(const ulong step)
   {
     if (outBlock1->is_open())
     {
-      (*outBlock1) << left << std::fixed  << std::setprecision(4) <<
-	std::setw(OUTPUTWIDTH);
-      (*outBlock1) << block[1];
+      if(abs(block[0]) > 9999999999.9999)
+      {
+	(*outBlock1) << left << std::fixed  << std::setprecision(0) <<
+	  std::setw(OUTPUTWIDTH);
+	(*outBlock1) << 9999999999;
+      }
+      else
+      {
+	(*outBlock1) << left << std::fixed  << std::setprecision(precision) <<
+	  std::setw(OUTPUTWIDTH);
+	(*outBlock1) << block[1];
+      }
     }
     else
       std::cerr << "Unable to write to Box_1 output file" << std::endl;
@@ -124,7 +142,12 @@ void BlockAverages::DoOutput(const ulong step)
   outBlock0 << left << std::fixed << std::setw(OUTPUTWIDTH) << nextStep;
   outBlock1 << left << std::fixed << std::setw(OUTPUTWIDTH) << nextStep;
   for (uint v = 0; v < totalBlocks; ++v)
-    blocks[v].Write(nextStep, firstPrint);
+  {
+    if(v < out::TOTAL_SINGLE)
+      blocks[v].Write(nextStep, firstPrint);
+    else
+      blocks[v].Write(nextStep, firstPrint, 8);
+  }
   outBlock0 << std::endl;
   if(outBlock1.is_open())
     outBlock1 << std::endl;
