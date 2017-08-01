@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "EnPartCntSampleOutput.h"
 #include "PDBConst.h"
 #include "OutConst.h"
@@ -91,7 +97,7 @@ void EnPartCntSample::WriteHeader(void)
 	 outF[b].setf(std::ios_base::left, std::ios_base::adjustfield);
       }
       else
-         std::cerr << "Unable to write to file \"" <<  name[b] << "\" " 
+         std::cerr << "Unable to write to file \"" <<  name[b] << "\" "
                    << "(energy and part. num samples file)" << std::endl;
    }
 }
@@ -118,19 +124,19 @@ void EnPartCntSample::DoOutput(const ulong step)
 	    }
 	 }
 	 else
-	   std::cerr << "Unable to write to file \"" <<  name[b] << "\" " 
+	   std::cerr << "Unable to write to file \"" <<  name[b] << "\" "
 		     << "(energy and part. num samples file)" << std::endl;
       }
    }
    samplesCollectedInFrame = 0;
 }
 
-   
-std::string EnPartCntSample::GetFName(std::string const& sampleName, 
+
+std::string EnPartCntSample::GetFName(std::string const& sampleName,
                                       std::string const& histNum,
                                       std::string const& histLetter,
                                       const uint box)
-{ 
+{
    std::stringstream sstrm;
    std::string fName = sampleName, strBox;
    fName += histNum;

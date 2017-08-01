@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef BOX_DIMENSIONS_H
 #define BOX_DIMENSIONS_H
 
@@ -177,7 +183,7 @@ inline BoxDimensions& BoxDimensions::operator=(BoxDimensions const& other)
   rCut = other.rCut;
   rCutSq = other.rCutSq;
   constArea = other.constArea;
- 
+
   return *this;
 }
 
@@ -214,14 +220,14 @@ inline void BoxDimensions::SetVolume(const uint b, const double vol)
      double z_x = axis.z[b] / axis.x[b];
      double y_x = axis.y[b] / axis.x[b];
      double newAxX_b = pow(vol / (z_x * y_x), (1.0/3.0));
-     XYZ newAx_b(newAxX_b, y_x * newAxX_b, newAxX_b * z_x);    
+     XYZ newAx_b(newAxX_b, y_x * newAxX_b, newAxX_b * z_x);
      axis.Set(b, newAx_b);
      newAx_b *= 0.5;
      halfAx.Set(b, newAx_b);
    }
    volume[b] = vol;
    volInv[b] = 1.0/vol;
-   
+
 }
 
 inline XYZ BoxDimensions::MinImage(XYZ rawVec, const uint b) const

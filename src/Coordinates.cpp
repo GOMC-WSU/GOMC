@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "Coordinates.h"
 #include "TransformMatrix.h"
 #include <algorithm>          //For copy
@@ -30,7 +36,7 @@ void Coordinates::CheckCoordinate()
     stRange = molRef.MolStart(*thisMol);
     --endc;
     endRange = molRef.MolStart(*endc) + molRef.GetKind(*endc).NumAtoms();
-    
+
     min.x = *std::min_element(x + stRange, x + endRange);
     max.x = *std::max_element(x + stRange, x + endRange);
     min.y = *std::min_element(y + stRange, y + endRange);
@@ -61,12 +67,12 @@ void Coordinates::CheckCoordinate()
        XYZ shiftV = min;
        shiftV *= -1.0;
        printf("Note: Molecules in the box %d will be shifted to origin by \n vector [%4.3f, %4.3f, %4.3f].\n", b, shiftV.x, shiftV.y, shiftV.z);
-    
+
        while (thisMol != end)
        {
 	 start = molRef.MolStart(*thisMol);
 	 MoleculeKind const& thisKind = molRef.GetKind(*thisMol);
-      
+
 	 for (p = 0; p < thisKind.NumAtoms(); p++)
 	 {
 	    atom = start + p;
@@ -76,7 +82,7 @@ void Coordinates::CheckCoordinate()
 	 }
 	 ++thisMol;
        }
-    
+
     }
   }
 
@@ -138,7 +144,7 @@ void Coordinates::VolumeTransferTranslate
 {
   XYZ scale[BOX_TOTAL];
   double transfer = prngRef.Sym(max);
- 
+
   //Scale cell
   state = boxDimRef.ExchangeVolume(newDim, scale, transfer);
   //If scaling succeeded (if it wouldn't take the box to below 2*rcut, cont.
@@ -203,5 +209,3 @@ void Coordinates::TranslateOneBox
 #endif
 
 }
-
-

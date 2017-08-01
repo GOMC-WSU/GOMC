@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "EnsemblePreprocessor.h"
 #include "System.h"
 
@@ -15,7 +21,7 @@
 #include "MoleculeTransfer.h"
 #include "IntraSwap.h"
 
-System::System(StaticVals& statics) : 
+System::System(StaticVals& statics) :
    statV(statics),
 #ifdef VARIABLE_VOLUME
    boxDimRef(boxDimensions),
@@ -50,17 +56,17 @@ void System::Init(Setup const& set)
 {
    prng.Init(set.prng.prngMaker.prng);
 #ifdef VARIABLE_VOLUME
-   boxDimensions.Init(set.config.in.restart, 
+   boxDimensions.Init(set.config.in.restart,
 		      set.config.sys.volume, set.pdb.cryst,
 		      statV.forcefield.rCut,
 		      statV.forcefield.rCutSq);
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
-   molLookup.Init(statV.mol, set.pdb.atoms); 
+   molLookup.Init(statV.mol, set.pdb.atoms);
 #endif
    moveSettings.Init(statV);
    //Note... the following calls use box iterators, so must come after
-   //the molecule lookup initialization, in case we're in a constant 
+   //the molecule lookup initialization, in case we're in a constant
    //particle/molecule ensemble, e.g. NVT
    coordinates.InitFromPDB(set.pdb.atoms);
    com.CalcCOM();
@@ -70,7 +76,7 @@ void System::Init(Setup const& set)
    //check if we have to use cached version of ewlad or not.
    bool ewald = set.config.sys.elect.ewald;
    bool cached = set.config.sys.elect.cache;
-   
+
 #ifdef GOMC_CUDA
    if(ewald)
      calcEwald = new Ewald(statV, *this);
@@ -112,8 +118,8 @@ void System::ChooseAndRunMove(const uint step)
    RunMove(majKind, draw, step);
 }
 void System::PickMove(uint & kind, double & draw)
-{ 
-   prng.PickArbDist(kind, draw, statV.movePerc, statV.totalPerc, 
+{
+   prng.PickArbDist(kind, draw, statV.movePerc, statV.totalPerc,
 		    mv::MOVE_KINDS_TOTAL);
 }
 
@@ -136,13 +142,12 @@ void System::RunMove(uint majKind, double draw, const uint step)
    Accept(majKind, rejectState, step);
 }
 
-uint System::SetParams(const uint kind, const double draw) 
+uint System::SetParams(const uint kind, const double draw)
 { return moves[kind]->Prep(draw, statV.movePerc[kind]); }
 
 uint System::Transform(const uint kind) { return moves[kind]->Transform(); }
 
 void System::CalcEn(const uint kind) { moves[kind]->CalcEn(); }
 
-void System::Accept(const uint kind, const uint rejectState, const uint step) 
+void System::Accept(const uint kind, const uint rejectState, const uint step)
 { moves[kind]->Accept(rejectState, step); }
-

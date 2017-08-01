@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef FF_PARTICLE_H
 #define FF_PARTICLE_H
 
@@ -45,7 +51,7 @@ public:
 
   FFParticle();
   ~FFParticle(void);
-  
+
   double GetMass(const uint kind) const
   {
     return mass[kind];

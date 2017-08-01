@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "DCLinkedHedron.h"
@@ -219,7 +225,7 @@ namespace cbmc
          //not using theta, so this is a wasted cos and sqrt
          oldMol.OldThetaAndPhi(prevBonded[i], hed.Prev(), t, prevPhi[i]);
       }
-      XYZ rotationAxis = oldMol.AtomPosition(hed.Focus()) - 
+      XYZ rotationAxis = oldMol.AtomPosition(hed.Focus()) -
       oldMol.AtomPosition(hed.Prev());
       rotationAxis = data->axes.MinImage(rotationAxis, oldMol.GetBox());
       rotationAxis *= (1 / rotationAxis.Length());
@@ -293,7 +299,7 @@ namespace cbmc
 			      hed.GetNonBondedEn() + oneFour[0],
 			      inter[0], real[0], 0.0, self[0],
 			      correction[0]));
- 
+
       oldMol.MultWeight(hed.GetWeight());
       oldMol.MultWeight(stepWeight);
    }
@@ -324,26 +330,26 @@ namespace cbmc
 #ifdef _OPENMP
 #pragma omp parallel sections
 #endif
-{  
-#ifdef _OPENMP     
+{
+#ifdef _OPENMP
 #pragma omp section
 #endif
 	data->calc.ParticleNonbonded(nonbonded, mol, positions[b],
 				     hed.Bonded(b), mol.GetBox(),
 				     nLJTrials);
-#ifdef _OPENMP     
+#ifdef _OPENMP
 #pragma omp section
 #endif
 	data->calcEwald->SwapSelf(self, molIndex, hed.Bonded(b), mol.GetBox(),
 				 nLJTrials);
-#ifdef _OPENMP     
+#ifdef _OPENMP
 #pragma omp section
 #endif
-	data->calcEwald->SwapCorrection(correction, mol, positions, b, 
+	data->calcEwald->SwapCorrection(correction, mol, positions, b,
 				       hed.bonded, mol.GetBox(), nLJTrials,
 				       hed.Prev(), false);
 }
-	//data->calc.ParticleNonbonded_1_4(nonbonded_1_4, mol, positions[b], 
+	//data->calc.ParticleNonbonded_1_4(nonbonded_1_4, mol, positions[b],
 	//				 hed.Bonded(b), mol.GetBox(),
 	//				 nLJTrials);
 
@@ -351,7 +357,7 @@ namespace cbmc
       double stepWeight = 0;
       for (uint lj = 0; lj < nLJTrials; ++lj)
       {
-	 data->ljWeights[lj] *= exp(-data->ff.beta * 
+	 data->ljWeights[lj] *= exp(-data->ff.beta *
 				    (inter[lj] + nonbonded[lj] + real[lj] +
 				     self[lj] + correction[lj]));
          stepWeight += data->ljWeights[lj];
@@ -401,8 +407,8 @@ namespace cbmc
                torEnergy[tor] += ff.dihedrals.Calc(dihKinds[b][p],
 						   trialPhi - prevPhi[p]);
             }
-	 }        
-	 torWeights[tor] = exp(-ff.beta *(torEnergy[tor] + nonbonded_1_4[tor]));   
+	 }
+	 torWeights[tor] = exp(-ff.beta *(torEnergy[tor] + nonbonded_1_4[tor]));
       }
    }
 
@@ -448,9 +454,9 @@ namespace cbmc
                torEnergy[tor] += ff.dihedrals.Calc(dihKinds[b][p],
 						   trialPhi - prevPhi[p]);
             }
-	 }        
+	 }
 	 torWeights[tor] = exp(-ff.beta *(torEnergy[tor] + nonbonded_1_4[tor]));
       }
    }
-   
+
 }

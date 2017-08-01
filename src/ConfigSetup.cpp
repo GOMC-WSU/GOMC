@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include <map> //for function handle storage.
 #include <string> //for var names, etc.
 #include <vector>
@@ -389,7 +395,7 @@ void ConfigSetup::Init(const char *fileName)
       sys.volume.cstArea = checkBool(line[1]);
       if (sys.volume.cstArea)
 	std::cout << "Note: Volume will change with constant X-Y area!\n";
-    } 
+    }
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
     else if(line[0] == "SwapFreq")

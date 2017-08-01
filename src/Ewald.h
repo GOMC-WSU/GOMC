@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef EWALD_H
 #define EWALD_H
 
@@ -12,10 +18,10 @@
 //
 //    Calculating Electrostatic calculation without caching Fourier terms.
 //    Energy Calculation functions for Ewald summation method
-//    Calculating self, correction and reciprocate part of ewald    
+//    Calculating self, correction and reciprocate part of ewald
 //
 //    Developed by Y. Li and Mohammad S. Barhaghi
-// 
+//
 //
 
 class StaticVals;
@@ -31,7 +37,7 @@ class BoxDimensions;
 class CalculateEnergy;
 
 
-class Ewald : public EwaldCached 
+class Ewald : public EwaldCached
 {
   //friend class CalculateEnergy;
    public:
@@ -44,7 +50,7 @@ class Ewald : public EwaldCached
 
    //initiliazie term used for ewald calculation
    virtual void RecipInit(uint box, BoxDimensions const& boxAxes);
-   
+
    //setup reciprocate term for a box
    virtual void BoxReciprocalSetup(uint box, XYZArray const& molCoords);
 
@@ -53,11 +59,11 @@ class Ewald : public EwaldCached
 
    //calculate reciprocate term for displacement and rotation move
    virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
-				const uint box, XYZ const*const newCOM = NULL);	
+				const uint box, XYZ const*const newCOM = NULL);
 
    //calculate reciprocate term in destination box for swap move
-   virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box, 
-				const int sourceBox, const int molIndex);	
+   virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
+				const int sourceBox, const int molIndex);
 
    //calculate reciprocate term in source box for swap move
    virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
