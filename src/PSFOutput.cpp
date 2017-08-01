@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #include "PSFOutput.h"
 #include "Molecules.h"
 #include <cstdio>
@@ -13,7 +19,7 @@ namespace{
     const char* dihedralHeader = "!NPHI: dihedrals";
 
     const char* headerFormat = "%8d %s \n";
-    //atom ID, segment name, residue ID, residue name, 
+    //atom ID, segment name, residue ID, residue name,
     //atom name, atom type, charge, mass, and an unused 0
     //const char* atomFormat = "%8d%4s%3d%7s%4s%6s%12.6f%14.4f%12d\n";
     const char* atomFormat = "%8d %-5s%-5d%-5s%-5s%-3s%12.6f%14.4f%12d\n";
@@ -24,7 +30,7 @@ namespace{
 }
 
 PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
-		     mol_setup::MolMap& molMap, 
+		     mol_setup::MolMap& molMap,
                      const std::vector<std::string>& kindNames) :
   molecules(&molecules), molNames(kindNames),
   molLookRef(sys.molLookup)
@@ -53,7 +59,7 @@ void PSFOutput::CountMolecules()
 
 	totalAtoms += molKind.NumAtoms() * molLookRef.NumKindInBox(k, b);
 	totalBonds += molKind.NumBonds() * molLookRef.NumKindInBox(k, b);
-	totalAngles += molKind.NumAngles() * molLookRef.NumKindInBox(k, b);	
+	totalAngles += molKind.NumAngles() * molLookRef.NumKindInBox(k, b);
 	totalDihs += molKind.NumDihs() * molLookRef.NumKindInBox(k, b);
 
 	atomT += molLookRef.NumKindInBox(k, b);
@@ -114,7 +120,7 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
         for(uint at = 0; at < nAtoms; ++at)
         {
             const Atom* thisAtom = &molKinds[thisKind].atoms[at];
-            //atom ID, segment name, residue ID, residue name, 
+            //atom ID, segment name, residue ID, residue name,
             //atom name, atom type, charge, mass, and an unused 0
 
             fprintf(outfile, atomFormat, atomID, molNames[thisKind].c_str(), molID, molNames[thisKind].c_str(),
@@ -139,7 +145,7 @@ void PSFOutput::PrintBonds(FILE* outfile) const
         const MolKind& thisKind = molKinds[molecules->kIndex[mol]];
          for(uint i = 0; i < thisKind.bonds.size(); ++i)
          {
-             fprintf(outfile, "%8d%8d", thisKind.bonds[i].a0 + atomID, 
+             fprintf(outfile, "%8d%8d", thisKind.bonds[i].a0 + atomID,
                      thisKind.bonds[i].a1 + atomID);
              ++lineEntry;
              if(lineEntry == bondPerLine)
@@ -164,7 +170,7 @@ void PSFOutput::PrintBonds(FILE* outfile) const
          for(uint i = 0; i < thisKind.angles.size(); ++i)
          {
              fprintf(outfile, "%8d%8d%8d", thisKind.angles[i].a0 + atomID,
-                     thisKind.angles[i].a1 + atomID, 
+                     thisKind.angles[i].a1 + atomID,
                      thisKind.angles[i].a2 + atomID);
              ++lineEntry;
              if(lineEntry == anglePerLine)
@@ -202,4 +208,3 @@ void PSFOutput::PrintBonds(FILE* outfile) const
      }
      fputs("\n\n", outfile);
  }
-

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 
-project(GOMC_Serial)
+project(GOMC)
 
 include_directories(lib)
 include_directories(src)

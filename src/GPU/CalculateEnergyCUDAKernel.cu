@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifdef GOMC_CUDA
 #include "CalculateEnergyCUDAKernel.cuh"
 #include <cuda.h>
@@ -29,7 +35,7 @@ void CallBoxInterGPU(VariablesCUDA *vars,
 
   cudaMalloc((void**) &gpu_pair1, pair1.size() * sizeof(int));
   cudaMalloc((void**) &gpu_pair2, pair2.size() * sizeof(int));
-  cudaMalloc((void**) &gpu_particleCharge, 
+  cudaMalloc((void**) &gpu_particleCharge,
   	     particleCharge.size() * sizeof(double));
   cudaMalloc((void**) &gpu_particleKind,
 	     particleKind.size() * sizeof(int));
@@ -44,10 +50,10 @@ void CallBoxInterGPU(VariablesCUDA *vars,
 	     cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_pair2, &pair2[0], pair2.size() * sizeof(int),
 	     cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_particleCharge, &particleCharge[0], 
+  cudaMemcpy(gpu_particleCharge, &particleCharge[0],
 	     particleCharge.size() * sizeof(double),
 	     cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_particleKind, &particleKind[0], 
+  cudaMemcpy(gpu_particleKind, &particleKind[0],
 	     particleKind.size() * sizeof(int),
 	     cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_x, coords.x, atomNumber * sizeof(double),
@@ -60,16 +66,16 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   // Run the kernel...
   threadsPerBlock = 256;
   blocksPerGrid = (int)(pair1.size()/threadsPerBlock) + 1;
-  BoxInterGPU<<<blocksPerGrid, threadsPerBlock>>>(gpu_pair1, 
-						  gpu_pair2, 
-						  vars->gpu_x, 
-						  vars->gpu_y, 
-						  vars->gpu_z, 
-						  boxAxes.GetAxis(box).x, 
-						  boxAxes.GetAxis(box).y, 
-						  boxAxes.GetAxis(box).z, 
-						  electrostatic, 
-						  gpu_particleCharge, 
+  BoxInterGPU<<<blocksPerGrid, threadsPerBlock>>>(gpu_pair1,
+						  gpu_pair2,
+						  vars->gpu_x,
+						  vars->gpu_y,
+						  vars->gpu_z,
+						  boxAxes.GetAxis(box).x,
+						  boxAxes.GetAxis(box).y,
+						  boxAxes.GetAxis(box).z,
+						  electrostatic,
+						  gpu_particleCharge,
 						  gpu_particleKind,
 						  gpu_REn,
 						  gpu_LJEn,
@@ -159,23 +165,23 @@ __global__ void BoxInterGPU(int *gpu_pair1,
   double qqFact = 167000.0;
   gpu_REn[threadID] = 0.0;
   gpu_LJEn[threadID] = 0.0;
-  if(InRcutGPU(distSq, gpu_x[gpu_pair1[threadID]], gpu_y[gpu_pair1[threadID]], 
-	       gpu_z[gpu_pair1[threadID]], gpu_x[gpu_pair2[threadID]], 
-	       gpu_y[gpu_pair2[threadID]], gpu_z[gpu_pair2[threadID]], 
-	       xAxes, yAxes, zAxes, xAxes/2.0, yAxes/2.0, zAxes/2.0, 
+  if(InRcutGPU(distSq, gpu_x[gpu_pair1[threadID]], gpu_y[gpu_pair1[threadID]],
+	       gpu_z[gpu_pair1[threadID]], gpu_x[gpu_pair2[threadID]],
+	       gpu_y[gpu_pair2[threadID]], gpu_z[gpu_pair2[threadID]],
+	       xAxes, yAxes, zAxes, xAxes/2.0, yAxes/2.0, zAxes/2.0,
 	       gpu_rCut[0]))
   {
     if(electrostatic)
     {
-      qi_qj_fact = gpu_particleCharge[gpu_pair1[threadID]] * 
+      qi_qj_fact = gpu_particleCharge[gpu_pair1[threadID]] *
 	gpu_particleCharge[gpu_pair2[threadID]] * qqFact;
-      gpu_REn[threadID] = CalcCoulombGPU(distSq, qi_qj_fact, gpu_rCutLow[0], 
+      gpu_REn[threadID] = CalcCoulombGPU(distSq, qi_qj_fact, gpu_rCutLow[0],
 					 gpu_ewald[0], gpu_VDW_Kind[0],
 					 gpu_alpha[0], gpu_rCut[0],
 					 gpu_isMartini[0],
 					 gpu_diElectric_1[0]);
     }
-    gpu_LJEn[threadID] = CalcEnGPU(distSq, 
+    gpu_LJEn[threadID] = CalcEnGPU(distSq,
 				   gpu_particleKind[gpu_pair1[threadID]],
 				   gpu_particleKind[gpu_pair2[threadID]],
 				   gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
@@ -184,7 +190,7 @@ __global__ void BoxInterGPU(int *gpu_pair1,
   }
 }
 
-__device__ double CalcCoulombGPU(double distSq, double qi_qj_fact, 
+__device__ double CalcCoulombGPU(double distSq, double qi_qj_fact,
 				 double gpu_rCutLow, int gpu_ewald,
 				 int gpu_VDW_Kind, double gpu_alpha,
 				 double gpu_rCut, int gpu_isMartini,
@@ -285,7 +291,7 @@ __device__ double CalcCoulombSwitchMartiniGPU(double distSq, double qi_qj_fact,
     double dist = sqrt(distSq);
     double rij_ronCoul_3 = dist * distSq;
     double rij_ronCoul_4 = distSq * distSq;
-    
+
     double A1 = 1.0 * (-(1.0+4)*gpu_rCut)/(pow(gpu_rCut,1.0+2) *
 					   pow(gpu_rCut, 2));
     double B1 = -1.0 * (-(1.0+3)*gpu_rCut)/(pow(gpu_rCut,1.0+2) *
@@ -359,7 +365,7 @@ __device__ double CalcEnSwitchMartiniGPU(double distSq, int index,
   double r_4 = r_2 * r_2;
   double r_6 = r_4 * r_2;
   double r_n = pow(r_2, gpu_n[index]/2.0);
-  
+
   double rij_ron = sqrt(distSq) - gpu_rOn;
   double rij_ron_2 = rij_ron * rij_ron;
   double rij_ron_3 = rij_ron_2 * rij_ron;
@@ -389,7 +395,7 @@ __device__ double CalcEnSwitchMartiniGPU(double distSq, int index,
 
   double sig6 = pow(gpu_sigmaSq[index], 3);
   double sign = pow(gpu_sigmaSq[index], pn/2);
-  double Eij = gpu_epsilon_Cn[index] * (sign * (r_n + shiftRep) - 
+  double Eij = gpu_epsilon_Cn[index] * (sign * (r_n + shiftRep) -
 					sig6 * (r_6 + shiftAtt));
   return Eij;
 }
@@ -401,22 +407,22 @@ __device__ double CalcEnSwitchGPU(double distSq, int index, double *gpu_sigmaSq,
 {
   double rCutSq = gpu_rCut * gpu_rCut;
   double rOnSq = gpu_rOn * gpu_rOn;
-  
+
   double rCutSq_rijSq =rCutSq  - distSq;
   double rCutSq_rijSq_Sq = rCutSq_rijSq * rCutSq_rijSq;
-  
+
   double rRat2 = gpu_sigmaSq[index]/distSq;
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
-  
+
   double repulse = pow(rRat2, gpu_n[index]/2.0);
-  
+
   double factor1 = rCutSq - 3 * rOnSq;
   double factor2 = pow((rCutSq - rOnSq), -3);
   double fE = rCutSq_rijSq_Sq * factor2 * (factor1 + 2 * distSq);
 
   const double factE = ( distSq > rOnSq ? fE : 1.0);
-  
+
   return (gpu_epsilon_Cn[index] * (repulse-attract)) * factE;
 }
 

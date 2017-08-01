@@ -1,3 +1,9 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef EWALDCACHED_H
 #define EWALDCACHED_H
 
@@ -23,10 +29,10 @@
 //
 //    Calculating Electrostatic calculation with caching Fourier terms.
 //    Energy Calculation functions for Ewald summation method
-//    Calculating self, correction and reciprocate part of ewald    
+//    Calculating self, correction and reciprocate part of ewald
 //
 //    Developed by Y. Li and Mohammad S. Barhaghi
-// 
+//
 //
 
 class StaticVals;
@@ -44,12 +50,12 @@ class CalculateEnergy;
 namespace cbmc { class TrialMol; }
 namespace config_setup{ class SystemVals; }
 
-class EwaldCached 
+class EwaldCached
 {
    public:
 
    EwaldCached(StaticVals const& stat, System & sys);
-    
+
    ~EwaldCached();
 
    virtual void Init();
@@ -63,7 +69,7 @@ class EwaldCached
    //initiliazie term used for ewald calculation
    virtual void RecipInit(uint box, BoxDimensions const& boxAxes);
    virtual void RecipCountInit(uint box, BoxDimensions const& boxAxes);
-   
+
    //calculate self term for a box
    virtual double BoxSelf(BoxDimensions const& boxAxes, uint box) const;
 
@@ -83,23 +89,23 @@ class EwaldCached
 
    //calculate reciprocate term for displacement and rotation move
    virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
-				const uint box, XYZ const*const newCOM = NULL);	
+				const uint box, XYZ const*const newCOM = NULL);
 
    //calculate self term for CBMC algorithm
-   virtual void SwapSelf(double *self, uint molIndex, uint partIndex, int box, 
+   virtual void SwapSelf(double *self, uint molIndex, uint partIndex, int box,
 			 uint trials) const;
-   
+
    //calculate correction term for linear molecule CBMC algorithm
-   virtual void SwapCorrection(double* energy, const cbmc::TrialMol& trialMol, 
-			       XYZArray const& trialPos, const uint partIndex, 
-			       const uint box, const uint trials) const; 
+   virtual void SwapCorrection(double* energy, const cbmc::TrialMol& trialMol,
+			       XYZArray const& trialPos, const uint partIndex,
+			       const uint box, const uint trials) const;
 
    //calculate correction term for branched molecule CBMC algorithm
    virtual void SwapCorrection(double* energy, const cbmc::TrialMol& trialMol,
-			       XYZArray *trialPos, const int pickedAtom, 
+			       XYZArray *trialPos, const int pickedAtom,
 			       uint *partIndexArray, const uint box,
 			       const uint trials, const uint PrevIndex,
-			       bool Prev) const;  
+			       bool Prev) const;
 
    //calculate correction term for old configuration
    virtual double CorrectionOldMol(const cbmc::TrialMol& oldMol,
@@ -107,8 +113,8 @@ class EwaldCached
 				   const uint i, const uint j) const;
 
    //calculate reciprocate term in destination box for swap move
-   virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box, 
-				const int sourceBox, const int molIndex);	
+   virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
+				const int sourceBox, const int molIndex);
 
    //calculate reciprocate term in source box for swap move
    virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
@@ -132,8 +138,8 @@ class EwaldCached
 
    uint findLargeImage();
 
-   protected: 
-   
+   protected:
+
    const Forcefield& forcefield;
    const Molecules& mols;
    const Coordinates& currentCoords;
@@ -141,10 +147,10 @@ class EwaldCached
    const BoxDimensions& currentAxes;
    const COM& currentCOM;
    const SystemPotential &sysPotRef;
-   
+
 
    bool electrostatic, ewald;
-   double alpha; 
+   double alpha;
    double recip_rcut, recip_rcut_Sq;
    uint *imageSize;
    uint *imageSizeRef;
@@ -164,16 +170,16 @@ class EwaldCached
    double **cosMolBoxRecip;
    double **sinMolBoxRecip;
    double **kx, **kxRef;
-   double **ky, **kyRef; 
+   double **ky, **kyRef;
    double **kz, **kzRef;
    double **hsqr, **hsqrRef;
    double **prefact, **prefactRef;
-   
+
 
    std::vector<int> particleKind;
    std::vector<int> particleMol;
    std::vector<double> particleCharge;
-   
+
 };
 
 

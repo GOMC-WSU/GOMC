@@ -1,8 +1,14 @@
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+Copyright (C) 2016  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
 #include "EnsemblePreprocessor.h" //For VARIABLE_<QUANTITY> conditional defines
-#include "CalculateEnergy.h" 
+#include "CalculateEnergy.h"
 #include "EwaldCached.h"
 #include "Ewald.h"
 #include "NoEwald.h"
