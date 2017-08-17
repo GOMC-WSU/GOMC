@@ -58,8 +58,8 @@ ConfigSetup::ConfigSetup(void)
   in.files.param.name = "";
   for(i=0; i<BOX_TOTAL; i++)
   {
-    in.files.pdb.name[i] == "";
-    in.files.psf.name[i] == "";
+    in.files.pdb.name[i] = "";
+    in.files.psf.name[i] = "";
   }
 #if ENSEMBLE == GEMC
   sys.gemc.kind = UINT_MAX;
@@ -93,7 +93,7 @@ ConfigSetup::ConfigSetup(void)
   out.state.files.hist.sampleName = "";
   out.state.files.hist.stepsPerHistSample = UINT_MAX;
 #endif
-  out.statistics.settings.uniqueStr.val == "";
+  out.statistics.settings.uniqueStr.val = "";
   out.state.settings.frequency = ULONG_MAX;
   out.restart.settings.frequency = ULONG_MAX;
   out.console.frequency = ULONG_MAX;

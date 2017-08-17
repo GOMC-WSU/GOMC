@@ -14,7 +14,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <cstring>
 #include <cassert>
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 //
 //    Called when Ewlad method was not used.
 //    Energy Calculation functions for Ewald summation method

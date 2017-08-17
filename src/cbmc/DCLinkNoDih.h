@@ -10,6 +10,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BasicTypes.h"
 #include "DCComponent.h"
 #include "DCData.h"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace cbmc
 {
