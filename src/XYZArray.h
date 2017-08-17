@@ -12,7 +12,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <stdio.h> //for memset, memcpy, etc.
 #include <utility>      //for swap (most modern compilers)
 #include <algorithm>      //for swap pre-c++11 compilers
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 //Forward declare to give accesss to internal arrays.
 class BoxDimensions;

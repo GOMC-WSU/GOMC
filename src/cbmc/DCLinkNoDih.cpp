@@ -5,7 +5,6 @@
 #include "MoleculeKind.h" 
 #include "MolSetup.h" 
 #include "NumLib.h"
-#include <omp.h> 
  
  
 namespace cbmc 

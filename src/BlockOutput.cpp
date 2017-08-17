@@ -240,13 +240,25 @@ void BlockAverages::InitWatchMulti(config_setup::TrackedVars const& tracked)
 void BlockAverage::printTitle(std::string output, uint boxes)
 {
   if(tot>=1)
+  {
     if((*outBlock0).is_open())
+    {
       (*outBlock0) << left << std::fixed << std::setw(OUTPUTWIDTH) << output;
+    }
     else
+    {
       std::cerr << "Unable to write to Block_0 output file!" << std::endl;
+    }
+  }
   if(tot>=2)
+  {
     if((*outBlock1).is_open())
+    {
       (*outBlock1) << left << std::fixed << std::setw(OUTPUTWIDTH) << output;
+    }
     else
+    {
       std::cerr << "Unable to write to Block_1 output file!" << std::endl;
+    }
+  }
 }

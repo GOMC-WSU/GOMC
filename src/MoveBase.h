@@ -24,7 +24,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "NoEwald.h"
 #include "MolPick.h"
 #include "Forcefield.h"
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 class MoveBase
 {

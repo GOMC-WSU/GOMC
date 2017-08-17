@@ -5,7 +5,6 @@
 #include "PRNG.h" 
 #include "Forcefield.h" 
 #include "MolSetup.h" 
-#include <omp.h>
  
 namespace cbmc 
 { 

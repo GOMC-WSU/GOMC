@@ -9,7 +9,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <algorithm>          //For copy
 #include <cmath>
 #include <cassert>
-#include <omp.h>
 
 void Coordinates::InitFromPDB(pdb_setup::Atoms const& atoms)
 {
