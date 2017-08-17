@@ -227,7 +227,7 @@ namespace {
 
 void PrintHardwareInfo()
 {
-#ifndef _WIN32
+#ifdef __linux__
   struct sysinfo mem;
   const double megabyte = 1024 * 1024;
   struct utsname name;
