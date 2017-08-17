@@ -288,7 +288,7 @@ void EwaldCached::RecipInit(uint box, BoxDimensions const& boxAxes)
 
    for (x = 0; x <= kmax[box]; x++)
    {
-      nky_max = sqrt(pow(kmax[box], 2) - pow(x, 2));
+      nky_max = sqrt(pow((double)kmax[box], 2) - pow((double)x, 2));
       nky_min = -nky_max;
       if (x == 0.0)
       {
@@ -296,7 +296,7 @@ void EwaldCached::RecipInit(uint box, BoxDimensions const& boxAxes)
       }
       for (y = nky_min; y <= nky_max; y++)
       {
-	 nkz_max = sqrt(pow(kmax[box], 2) - pow(x, 2) - pow(y, 2));
+	 nkz_max = sqrt(pow((double)kmax[box], 2) - pow((double)x, 2) - pow((double)y, 2));
 	 nkz_min = -nkz_max;
 	 if (x == 0.0 && y == 0.0)
          {
@@ -350,7 +350,7 @@ void EwaldCached::RecipCountInit(uint box, BoxDimensions const& boxAxes)
 
    for (int x = 0; x <= kmax[box]; x++)
    {
-      int nky_max = sqrt(pow(kmax[box], 2) - pow(x, 2));
+      int nky_max = sqrt(pow((double)kmax[box], 2) - pow((double)x, 2));
       int nky_min = -nky_max;
       if (x == 0.0)
       {
@@ -358,7 +358,7 @@ void EwaldCached::RecipCountInit(uint box, BoxDimensions const& boxAxes)
       }
       for (int y = nky_min; y <= nky_max; y++)
       {
-	 int nkz_max = sqrt(pow(kmax[box], 2) - pow(x, 2) - pow(y, 2));
+	 int nkz_max = sqrt(pow((double)kmax[box], 2) - pow((double)x, 2) - pow((double)y, 2));
 	 int nkz_min = -nkz_max;
 	 if (x == 0.0 && y == 0.0)
          {
