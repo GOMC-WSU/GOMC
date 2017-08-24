@@ -94,15 +94,6 @@ void Simulation::RunningCheck(const uint step)
       << std::setw(12) << pot.totalEnergy.self << " | "
       << std::setw(12) << pot.totalEnergy.correction << " | "
       << std::setw(12) << pot.totalEnergy.recip << std::endl
-      << "-------------------------" << std::endl
-      << "Virial            INTER |           TC" << std::endl
-      << "System: "
-      << std::setw(15) << system->potential.totalVirial.inter << " | "
-      << std::setw(12) << system->potential.totalVirial.tc << std::endl
-      << "Recalc: "
-      << std::setw(15) << pot.totalVirial.inter << " | "
-      << std::setw(12) << pot.totalVirial.tc << std::endl
-      << "-------------------------" << std::endl
       << "================================================================"
       << std::endl << std::endl;
 

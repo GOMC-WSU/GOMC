@@ -86,23 +86,27 @@ public:
               const double l_x,
               const double l_y,
               const double l_z,
-              const double l_occ);
+              const double l_occ,
+	      const double l_beta);
+
   void Read(FixedWidthReader & file);
 
   //private:
   //member data
   std::vector<char> chainLetter; //chain ids of each molecule
   std::vector<double> x, y, z; //coordinates of each particle
+  std::vector<double> beta;  //beta value of each molecule
   std::vector<uint> box;
   std::vector<std::string> atomAliases, resNamesFull, resNames,
       resKindNames;
-  std::vector<uint> startIdxRes, resKinds;
+  std::vector<uint> startIdxRes, resKinds, molBeta;
   bool restart, firstResInFile;
   //CurrRes is used to store res vals, currBox is used to
   //determine box either via the file (new) or the occupancy
   //(restart), count allows overwriting of coordinates during
   //second box read (restart only)
   uint currBox, count, currRes;
+  std::string currResname;
 };
 
 }

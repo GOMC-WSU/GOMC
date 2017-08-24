@@ -63,11 +63,11 @@ struct BlockAverage
     dblSrc[b] = NULL;
   }
   void Sum(void);
-  void Write(const ulong step, const bool firstPrint)
+  void Write(const ulong step, const bool firstPrint, uint precision = 4)
   {
     first = firstPrint;
     if (enable)
-      DoWrite(step);
+      DoWrite(step, precision);
   }
 
 private:
@@ -77,7 +77,7 @@ private:
       block[b] = 0.0;
     samples = 0;
   }
-  void DoWrite(const ulong step);
+  void DoWrite(const ulong step, uint precision);
   void printTitle(std::string output, uint boxes);
 
   std::ofstream* outBlock0;
@@ -93,9 +93,12 @@ private:
 /**********************************************************************/
 struct BlockAverages : OutputableBase
 {
+  BlockAverages(): blocks(NULL) {}
+  
   BlockAverages(OutputVars & v)
   {
     this->var = &v;
+    blocks = NULL;
   }
 
   ~BlockAverages(void)
@@ -108,7 +111,10 @@ struct BlockAverages : OutputableBase
     {
       outBlock1.close();
     }
-    if ( blocks != NULL ) delete[] blocks;
+    if ( blocks != NULL )
+    {  
+      delete[] blocks;
+    }
   }
   //No additional init.
   virtual void Init(pdb_setup::Atoms const& atoms,

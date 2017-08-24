@@ -37,6 +37,7 @@ class MoleculeTransfer : public MoveBase
    uint molIndex, kindIndex;
 
    double W_tc, W_recip;
+   double correct_old, correct_new, self_old, self_new;
    cbmc::TrialMol oldMol, newMol;
    Intermolecular tcLose, tcGain, recipLose, recipGain;
    MoleculeLookup & molLookRef;
@@ -46,7 +47,9 @@ class MoleculeTransfer : public MoveBase
 inline uint MoleculeTransfer::GetBoxPairAndMol
 (const double subDraw, const double movPerc)
 {
-   uint state = prng.PickMolAndBoxPair(molIndex, kindIndex, sourceBox, destBox,
+   // Need to call a function to pick a molecule that is not fixed but cannot be
+   // swap between boxes. (beta != 1, beta !=2)
+   uint state = prng.PickMolAndBoxPair2(molIndex, kindIndex, sourceBox, destBox,
 				       subDraw, movPerc);
 
    if (state != mv::fail_state::NO_MOL_OF_KIND_IN_BOX)
@@ -63,7 +66,6 @@ inline uint MoleculeTransfer::Prep(const double subDraw, const double movPerc)
    newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
    oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
    oldMol.SetCoords(coordCurrRef, pStart);
-   W_tc = 1.0;
    return state;
 }
 
@@ -80,6 +82,11 @@ inline void MoleculeTransfer::CalcEn()
 {
    W_tc = 1.0;
    W_recip = 1.0;
+   correct_old = 0.0;
+   correct_new = 0.0;
+   self_old = 0.0;
+   self_new = 0.0;
+
    if (ffRef.useLRC)
    {
       tcLose = calcEnRef.MoleculeTailChange(sourceBox, kindIndex, false);
@@ -89,11 +96,18 @@ inline void MoleculeTransfer::CalcEn()
 
    if (newMol.GetWeight() != 0.0)
    {
+      correct_new = calcEwald->SwapCorrection(newMol);
+      correct_old = calcEwald->SwapCorrection(oldMol);
+      self_new = calcEwald->SwapSelf(newMol);
+      self_old = calcEwald->SwapSelf(oldMol);
       recipGain.energy =
 	calcEwald->SwapDestRecip(newMol, destBox, sourceBox, molIndex);
       recipLose.energy =
 	calcEwald->SwapSourceRecip(oldMol, sourceBox, molIndex);
-      W_recip = exp(-1.0 * ffRef.beta * (recipGain.energy + recipLose.energy));
+      //need to contribute the self and correction energy 
+      W_recip = exp(-1.0 * ffRef.beta * (recipGain.energy + recipLose.energy +
+					 correct_new - correct_old +
+					 self_new - self_old));
    }
 
 }
@@ -107,15 +121,33 @@ inline double MoleculeTransfer::GetCoeff() const
 #elif ENSEMBLE == GCMC
    if (sourceBox == mv::BOX0) //Delete case
    {
-      return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
+     if(ffRef.isFugacity)
+     {
+       return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
+         boxDimRef.volInv[sourceBox] /
+         (BETA * molRef.kinds[kindIndex].chemPot);
+     }
+     else
+     {
+       return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
          boxDimRef.volInv[sourceBox] *
          exp(-BETA * molRef.kinds[kindIndex].chemPot);
+     }
    }
    else //Insertion case
    {
-      return boxDimRef.volume[destBox]/
+     if(ffRef.isFugacity)
+     {
+       return boxDimRef.volume[destBox]/
+         (double)(molLookRef.NumKindInBox(kindIndex, destBox)+1) *
+         (BETA * molRef.kinds[kindIndex].chemPot);
+     }
+     else
+     {
+       return boxDimRef.volume[destBox]/
          (double)(molLookRef.NumKindInBox(kindIndex, destBox)+1) *
          exp(BETA * molRef.kinds[kindIndex].chemPot);
+     }
    }
 #endif
 }
@@ -138,12 +170,18 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
          //Add tail corrections
          sysPotRef.boxEnergy[sourceBox].tc += tcLose.energy;
          sysPotRef.boxEnergy[destBox].tc += tcGain.energy;
-
          //Add rest of energy.
          sysPotRef.boxEnergy[sourceBox] -= oldMol.GetEnergy();
          sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();
+	 //Add Reciprocal energy
 	 sysPotRef.boxEnergy[sourceBox].recip += recipLose.energy;
 	 sysPotRef.boxEnergy[destBox].recip += recipGain.energy;
+	 //Add correction energy
+	 sysPotRef.boxEnergy[sourceBox].correction -= correct_old;
+	 sysPotRef.boxEnergy[destBox].correction += correct_new;
+	 //Add self energy
+	 sysPotRef.boxEnergy[sourceBox].self -= self_old;
+	 sysPotRef.boxEnergy[destBox].self += self_new;
 
 	 //Set coordinates, new COM; shift index to new box's list
          newMol.GetCoords().CopyRange(coordCurrRef, 0, pStart, pLen);

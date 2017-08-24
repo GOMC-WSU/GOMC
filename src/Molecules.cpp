@@ -61,7 +61,7 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
      double netCharge = 0.0;
      for (uint mk = 0 ; mk < kindsCount; mk++)
      {
-        netCharge += kinds[mk].PrintChargeInfo();
+       netCharge += (countByKind[mk] * kinds[mk].PrintChargeInfo());
      }
 
      if(abs(netCharge) > 10E-7)

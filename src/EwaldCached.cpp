@@ -20,7 +20,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "GeomLib.h"
 #include "NumLib.h"
 #include <cassert>
-#include <omp.h>
 #ifdef GOMC_CUDA
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #include "VariablesCUDA.cuh"
@@ -289,7 +288,7 @@ void EwaldCached::RecipInit(uint box, BoxDimensions const& boxAxes)
 
    for (x = 0; x <= kmax[box]; x++)
    {
-      nky_max = sqrt(pow(kmax[box], 2) - pow(x, 2));
+      nky_max = sqrt(pow((double)kmax[box], 2) - pow((double)x, 2));
       nky_min = -nky_max;
       if (x == 0.0)
       {
@@ -297,7 +296,7 @@ void EwaldCached::RecipInit(uint box, BoxDimensions const& boxAxes)
       }
       for (y = nky_min; y <= nky_max; y++)
       {
-	 nkz_max = sqrt(pow(kmax[box], 2) - pow(x, 2) - pow(y, 2));
+	 nkz_max = sqrt(pow((double)kmax[box], 2) - pow((double)x, 2) - pow((double)y, 2));
 	 nkz_min = -nkz_max;
 	 if (x == 0.0 && y == 0.0)
          {
@@ -351,7 +350,7 @@ void EwaldCached::RecipCountInit(uint box, BoxDimensions const& boxAxes)
 
    for (int x = 0; x <= kmax[box]; x++)
    {
-      int nky_max = sqrt(pow(kmax[box], 2) - pow(x, 2));
+      int nky_max = sqrt(pow((double)kmax[box], 2) - pow((double)x, 2));
       int nky_min = -nky_max;
       if (x == 0.0)
       {
@@ -359,7 +358,7 @@ void EwaldCached::RecipCountInit(uint box, BoxDimensions const& boxAxes)
       }
       for (int y = nky_min; y <= nky_max; y++)
       {
-	 int nkz_max = sqrt(pow(kmax[box], 2) - pow(x, 2) - pow(y, 2));
+	 int nkz_max = sqrt(pow((double)kmax[box], 2) - pow((double)x, 2) - pow((double)y, 2));
 	 int nkz_min = -nkz_max;
 	 if (x == 0.0 && y == 0.0)
          {
@@ -708,8 +707,7 @@ double EwaldCached::BoxSelf(BoxDimensions const& boxAxes, uint box) const
 
 
 //calculate correction term for a molecule
-double EwaldCached::MolCorrection(uint molIndex, BoxDimensions const& boxAxes,
-				  uint box) const
+double EwaldCached::MolCorrection(uint molIndex, uint box) const
 {
    if (box >= BOXES_WITH_U_NB)
      return 0.0;
@@ -736,6 +734,7 @@ double EwaldCached::MolCorrection(uint molIndex, BoxDimensions const& boxAxes,
 
    return correction;
 }
+
 
 //calculate reciprocate term in destination box for swap move
 double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
@@ -825,131 +824,47 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 }
 
 
-//calculate self term for CBMC algorithm
-void EwaldCached::SwapSelf(double *self, uint molIndex, uint partIndex,
-			   int box, uint trials) const
+double EwaldCached::SwapSelf(const cbmc::TrialMol& trialMol) const
 {
-   if (box >= BOXES_WITH_U_NB)
-     return;
+   if (trialMol.GetBox() >= BOXES_WITH_U_NB)
+     return 0.0;
 
-   MoleculeKind const& thisKind = mols.GetKind(molIndex);
+   MoleculeKind const& thisKind = trialMol.GetKind();
+   uint atomSize = thisKind.NumAtoms();
+   double en_self = 0.0;
 
-   for (uint t = 0; t < trials; t++)
+   for (uint i = 0; i < atomSize; i++)
    {
-     self[t] -= (thisKind.AtomCharge(partIndex) *
-		 thisKind.AtomCharge(partIndex) * alpha *
-		 num::qqFact / sqrt(M_PI));
+     en_self -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(i)); 
    }
-
+   return (en_self * alpha * num::qqFact / sqrt(M_PI));
 }
 
 //calculate correction term for linear molecule CBMC algorithm
-void EwaldCached::SwapCorrection(double* energy,
-				 const cbmc::TrialMol& trialMol,
-				 XYZArray const& trialPos,
-				 const uint partIndex, const uint box,
-				 const uint trials) const
+double EwaldCached::SwapCorrection(const cbmc::TrialMol& trialMol) const
 {
-   if (box >= BOXES_WITH_U_NB)
-     return;
-
-   double dist;
-   const MoleculeKind& thisKind = trialMol.GetKind();
-
-   //loop over all partners of the trial particle
-   const uint* partner = thisKind.sortedEwaldNB.Begin(partIndex);
-   const uint* end = thisKind.sortedEwaldNB.End(partIndex);
-   while (partner != end)
-   {
-      if (trialMol.AtomExists(*partner))
-      {
-	 for (uint t = 0; t < trials; ++t)
-	 {
-	   double distSq;
-	   if (currentAxes.InRcut(distSq, trialPos, t, trialMol.GetCoords(),
-				  *partner, box))
-	   {
-	     dist = sqrt(distSq);
-	     energy[t] -= (thisKind.AtomCharge(*partner) *
-			   thisKind.AtomCharge(partIndex) * erf(alpha * dist) *
-			   num::qqFact / dist);
-	   }
-	 }
-      }
-      ++partner;
-   }
-}
-
-
-//calculate correction term for branched molecule CBMC algorithm
-void EwaldCached::SwapCorrection(double* energy,
-				 const cbmc::TrialMol& trialMol,
-				 XYZArray *trialPos,
-				 const int pickedAtom,
-				 uint *partIndexArray, const uint box,
-				 const uint trials,
-				 const uint prevIndex, bool prev) const
-{
-   if (box >= BOXES_WITH_U_NB)
-     return;
-
-   double dist, distSq;
-   const MoleculeKind& thisKind = trialMol.GetKind();
-   uint pickedAtomIndex = partIndexArray[pickedAtom];
-
-   if(prev)
-      pickedAtomIndex = prevIndex;
-
-   for (int t = 0; t < trials; t++)
-   {
-      //loop through all previous new atoms generated simultanously,
-      //and calculate the pair interactions between the picked atom and
-      //the prev atoms.
-      for (int newAtom = 0; newAtom < pickedAtom; newAtom++)
-      {
-	 distSq = 0;
-	 if (currentAxes.InRcut(distSq, trialPos[newAtom], t,
-				trialPos[pickedAtom], t, box))
-	 {
-	   dist = sqrt(distSq);
-	   energy[t] -= (thisKind.AtomCharge(pickedAtomIndex) *
-			 thisKind.AtomCharge(partIndexArray[newAtom]) *
-			 erf(alpha * dist) * num::qqFact / dist);
-	 }
-      }
-
-      //loop through the array of new molecule's atoms, and calculate the pair
-      //interactions between the picked atom and the atoms have been created
-      //previously and added
-      for (int count = 0; count < thisKind.NumAtoms(); count++)
-      {
-	 if (trialMol.AtomExists(count))
-	 {
-	    distSq = 0;
-	    if (currentAxes.InRcut(distSq, trialMol.GetCoords(), count,
-				   trialPos[pickedAtom], t, box))
-	    {
-	       dist = sqrt(distSq);
-	       energy[t] -= (thisKind.AtomCharge(pickedAtomIndex) *
-			     thisKind.AtomCharge(count) *
-			     erf(alpha * dist) * num::qqFact / dist);
-	    }
-	 }
-      }
-   }
-}
-
-double EwaldCached::CorrectionOldMol(const cbmc::TrialMol& oldMol,
-				     const double distSq, const uint i,
-				     const uint j) const
-{
-  if (oldMol.GetBox() >= BOXES_WITH_U_NB)
+   if (trialMol.GetBox() >= BOXES_WITH_U_NB)
      return 0.0;
 
-   const MoleculeKind& thisKind = oldMol.GetKind();
-   double dist = sqrt(distSq);
-   return (-1 * thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
-	   erf(alpha * dist) * num::qqFact / dist);
+   double dist, distSq;
+   double correction = 0.0;
+   XYZ virComponents;
+   const MoleculeKind& thisKind = trialMol.GetKind();
+   uint atomSize = thisKind.NumAtoms();
+
+   for (uint i = 0; i < atomSize; i++)
+   {
+      for (uint j = i + 1; j < atomSize; j++)
+      {
+	 currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
+			    i, j, trialMol.GetBox());
+
+	 dist = sqrt(distSq);
+	 correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
+			erf(alpha * dist) / dist);
+      }
+   }
+   return num::qqFact * correction;
 }
 
 

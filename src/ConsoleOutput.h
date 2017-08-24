@@ -80,7 +80,10 @@ private:
   void PrintEnergyTitle();
   void PrintStatisticTitle();
   void PrintMoveTitle();
-  template <typename T> void printElement ( const T t, const int width) const;
+  void printElement (const double t, const int width, uint percision = 4) const;
+  void printElement (const uint t, const int width) const;
+  void printElement (const std::string t, const int width) const;
+
   template <typename T> void printElementStep ( const T t, const ulong step,
 						const int width) const;
 };

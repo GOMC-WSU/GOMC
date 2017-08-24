@@ -17,8 +17,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #if BOX_TOTAL == 1
 const std::string PDBSetup::pdbAlias[] = {"system PDB coordinate file"};
 #else
-const std::string PDBSetup::pdbAlias[] = {"Box 1 PDB coordinate file",
-                                          "Box 2 PDB coordinate file"
+const std::string PDBSetup::pdbAlias[] = {"box 1 PDB coordinate file",
+                                          "box 2 PDB coordinate file"
                                          };
 #endif
 
@@ -26,9 +26,11 @@ namespace pdb_setup
 {
 void Remarks::SetRestart(config_setup::RestartSettings const& r )
 {
-  restart = r.enable;
-  reached = (!restart);
+  //restart = r.enable;
+  //reached = (!restart);
   restartStep = r.step;
+  restart = false;
+  reached = true;
 }
 void Remarks::Read(FixedWidthReader & pdb)
 {
@@ -92,7 +94,8 @@ void Remarks::CheckGOMC(std::string const& varName)
 
 void Atoms::SetRestart(config_setup::RestartSettings const& r )
 {
-  restart = r.enable;
+  //restart = r.enable;
+  restart = false;
 }
 
 void Atoms::Assign(std::string const& atomName,
@@ -100,22 +103,22 @@ void Atoms::Assign(std::string const& atomName,
                    const uint resNum,
                    const char l_chain, const double l_x,
                    const double l_y, const double l_z,
-                   const double l_occ)
+                   const double l_occ,
+		   const double l_beta)
 {
   if (!restart || currBox == 0)
   {
     //box.push_back((bool)(restart?(uint)(l_occ):currBox));
+    beta.push_back(l_beta);
     box.push_back(currBox);
     atomAliases.push_back(atomName);
     resNamesFull.push_back(resName);
-    if (resNum != currRes || firstResInFile)
+    if (resNum != currRes || resName !=currResname || firstResInFile)
     {
-      // count = number of atoms so far
-      // startIdxRes = start of each molecule
-      startIdxRes.push_back(count);
-      // currRes = molecule number
+      molBeta.push_back(l_beta);
+      startIdxRes.push_back(count);      
       currRes = resNum;
-      // resName = name of each molecule
+      currResname = resName;
       resNames.push_back(resName);
       chainLetter.push_back(l_chain);
       //Check if this kind of residue has been found
@@ -153,15 +156,16 @@ void Atoms::Read(FixedWidthReader & file)
   char l_chain;
   uint resNum;
   std::string resName, atomName;
-  double l_x, l_y, l_z, l_occ;
+  double l_x, l_y, l_z, l_occ, l_beta;
   file.Get(atomName, field::alias::POS)
   .Get(resName, field::res_name::POS)
   .Get(resNum, field::res_num::POS)
   .Get(l_chain,field::chain::POS).Get(l_x,field::x::POS)
   .Get(l_y,field::y::POS).Get(l_z,field::z::POS)
-  .Get(l_occ, field::occupancy::POS);
+  .Get(l_occ, field::occupancy::POS)
+  .Get(l_beta, field::beta::POS);
   Assign(atomName, resName, resNum, l_chain, l_x, l_y, l_z,
-         l_occ);
+         l_occ, l_beta);
 }
 
 } //end namespace pdb_setup

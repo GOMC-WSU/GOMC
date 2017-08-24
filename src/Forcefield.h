@@ -62,6 +62,9 @@ public:
   double alpha, recip_rcut;      // ewald terms
   uint vdwKind;      // to define VdW type, standard, shift or switch
   uint exckind;      // to define  exclude kind, 1-2, 1-3, 1-4
+#if ENSEMBLE == GCMC
+  bool isFugacity;   // to check if we are using fugacity instead of chemical potential
+#endif
 
 private:
   //Initialize primitive member variables from setup data

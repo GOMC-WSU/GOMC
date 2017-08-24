@@ -21,8 +21,11 @@ EnPartCntSample::~EnPartCntSample()
    {
       if (outF[b].is_open()) outF[b].close();
       if (samplesE[b] != NULL) delete[] samplesE[b];
-      for (uint k = 0; k < var->numKinds; ++k)
-         if (samplesN[b][k] != NULL) delete[] samplesN[b][k];
+      if(samplesN[b] != NULL)
+      {
+	for (uint k = 0; k < var->numKinds; ++k)
+	  if (samplesN[b][k] != NULL) delete[] samplesN[b][k];
+      }
       if (samplesN[b] != NULL) delete[] samplesN[b];
    }
 }
@@ -58,7 +61,7 @@ void EnPartCntSample::Init(pdb_setup::Atoms const& atoms,
 void EnPartCntSample::Sample(const ulong step)
 {
    //Don't sample until equilibrated.
-   if ((step+1) < stepsTillEquil) return;
+   if ((step) < stepsTillEquil) return;
    //Only sample on specified interval.
    if ((step+1) % stepsPerSample == 0)
    {
@@ -105,7 +108,7 @@ void EnPartCntSample::WriteHeader(void)
 void EnPartCntSample::DoOutput(const ulong step)
 {
    //Don't output until equilibrated.
-   if ((step+1) < stepsTillEquil) return;
+   if ((step) < stepsTillEquil) return;
    //Output a sample in the form <N1,... Nk, E_total>
    //Only sample on specified interval.
    if ((step+1) % stepsPerOut == 0)

@@ -105,23 +105,7 @@ public:
                          const uint trials) const;
 
 
-  //! Calculates Nonbonded 1-4 intra energy (LJ and coulomb )for
-  //!                     candidate positions
-  //! and 1-3 interaction in case of  Martini forcefield
-  //! @param energy Return array, must be pre-allocated to size n
-  //! @param trialMol Partially built trial molecule.
-  //! @param trialPos Contains exactly n potential particle positions
-  //! @param partIndex Index of particle within the molecule
-  //! @param box Index of box molecule is in
-  //! @param trials Number of trials ot loop over in position array. (cbmc)
-  void ParticleNonbonded_1_4(double* inter, const cbmc::TrialMol& trialMol,
-                             XYZArray const& trialPos,
-                             const uint partIndex,
-                             const uint box,
-                             const uint trials) const;
-
-
-  //! Calculates Nonbonded intra energy (LJ and coulomb)for
+  //! Calculates Nonbonded inter energy (LJ and coulomb)for
   //!                      candidate positions
   //! @param energy Output Array, at least the size of trialpos
   //! @param trialPos Array of candidate positions
@@ -216,7 +200,10 @@ private:
   //! to same molecule, using internal arrays.
   bool SameMolecule(const uint p1, const uint p2) const
   {
-    return (particleMol[p1] == particleMol[p2]);
+    //We dont calculate the energy between two atom of same molecule or
+    uint pair1 = particleMol[p1];
+    uint pair2 = particleMol[p2];
+    return (pair1 == pair2);
   }
 
   const Forcefield& forcefield;

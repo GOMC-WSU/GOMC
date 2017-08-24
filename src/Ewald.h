@@ -14,7 +14,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <cstring>
 #include <cassert>
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 //
 //    Calculating Electrostatic calculation without caching Fourier terms.
 //    Energy Calculation functions for Ewald summation method

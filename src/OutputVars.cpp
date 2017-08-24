@@ -116,12 +116,15 @@ void OutputVars::CalcAndConvert(ulong step)
     //Account for dimensionality of virial (raw "virial" is actually a
     //multiple of the true virial, based on the dimensions stress is exerted
     //in)
-
-    if (((step + 1) % pCalcFreq == 0) && pressureCalc)
+    
+    if (pressureCalc)
     {
-      virialRef[b] = calc.ForceCalc(b);
-      *virialTotRef += virialRef[b];
-    }
+      if((step + 1) % pCalcFreq == 0)
+      {
+	virialRef[b] = calc.ForceCalc(b);
+	*virialTotRef += virialRef[b];
+      }
+    }  
 
     //calculate surface tension in mN/M
     surfaceTens[b] = (virialRef[b].totalTens[2][2] - 0.5 *

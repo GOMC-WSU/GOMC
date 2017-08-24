@@ -13,7 +13,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <cstring>
 #include <cassert>
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 #include "Molecules.h"
 #include "Forcefield.h"
@@ -84,33 +86,17 @@ class EwaldCached
 
 
    //calculate correction term for a molecule
-   virtual double MolCorrection(uint molIndex, BoxDimensions const& boxAxes,
-				uint box)const;
+   virtual double MolCorrection(uint molIndex, uint box)const;
 
    //calculate reciprocate term for displacement and rotation move
    virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
 				const uint box, XYZ const*const newCOM = NULL);
 
-   //calculate self term for CBMC algorithm
-   virtual void SwapSelf(double *self, uint molIndex, uint partIndex, int box,
-			 uint trials) const;
-
-   //calculate correction term for linear molecule CBMC algorithm
-   virtual void SwapCorrection(double* energy, const cbmc::TrialMol& trialMol,
-			       XYZArray const& trialPos, const uint partIndex,
-			       const uint box, const uint trials) const;
-
-   //calculate correction term for branched molecule CBMC algorithm
-   virtual void SwapCorrection(double* energy, const cbmc::TrialMol& trialMol,
-			       XYZArray *trialPos, const int pickedAtom,
-			       uint *partIndexArray, const uint box,
-			       const uint trials, const uint PrevIndex,
-			       bool Prev) const;
-
-   //calculate correction term for old configuration
-   virtual double CorrectionOldMol(const cbmc::TrialMol& oldMol,
-				   const double distSq,
-				   const uint i, const uint j) const;
+   //calculate self term after swap move
+   virtual double SwapSelf(const cbmc::TrialMol& trialMo) const;
+   
+   //calculate correction term after swap move
+   virtual double SwapCorrection(const cbmc::TrialMol& trialMo) const; 
 
    //calculate reciprocate term in destination box for swap move
    virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
@@ -119,7 +105,6 @@ class EwaldCached
    //calculate reciprocate term in source box for swap move
    virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
 				  const uint box, const int molIndex);
-
 
    //back up reciptocate value to Ref (will be called during initialization)
    virtual void SetRecipRef(uint box);
@@ -147,7 +132,6 @@ class EwaldCached
    const BoxDimensions& currentAxes;
    const COM& currentCOM;
    const SystemPotential &sysPotRef;
-
 
    bool electrostatic, ewald;
    double alpha;

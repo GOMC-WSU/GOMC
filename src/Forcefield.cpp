@@ -60,7 +60,9 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
   ewald = val.elect.ewald;
   alpha= val.elect.alpha;
   recip_rcut = val.elect.recip_rcut;
-
+#if ENSEMBLE == GCMC
+  isFugacity = val.chemPot.isFugacity;
+#endif
 
   if(vdwKind == val.ff.VDW_STD_KIND)
     particles = new FFParticle();
@@ -77,20 +79,22 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
     angles = new FFAngles();
 
   // Define type of interaction to be included. ex. 1-3, 1-4 and more
-  if(exckind == val.exclude.EXC_ONETWO_KIND && ffKind.isMARTINI)
+  if(exckind == val.exclude.EXC_ONETWO_KIND)
   {
     OneThree = true, OneFour = true, OneN = true;
-    std::cout << "REMINDER! 1-3 Interaction and more is ON for Martini forcefield\n";
+  }
+  else if(exckind == val.exclude.EXC_ONETHREE_KIND)
+  {
+    OneThree = false, OneFour = true, OneN = true;
   }
   else if(exckind == val.exclude.EXC_ONEFOUR_KIND)
   {
     OneThree = false, OneFour = false, OneN = true;
-    std::cout << "REMINDER! 1-3 and 1-4 Interaction is OFF\n";
   }
   else
   {
-    OneThree = false, OneFour = true, OneN = true;
-    std::cout << "REMINDER! 1-4 Interaction and more is ON\n";
+    std::cout << "Error: Unknown exclude value.\n";
+    exit(0);
   }
 
 }

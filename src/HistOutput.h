@@ -43,6 +43,7 @@ private:
   //Indices 1: boxes 2: kinds 3: count bins up to N_total
   uint ** molCount[BOXES_WITH_U_NB];
   uint * total;
+  uint stepsPerSample;
 
   std::ofstream * outF [BOXES_WITH_U_NB];
   std::string * name [BOXES_WITH_U_NB];

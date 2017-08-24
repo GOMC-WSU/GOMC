@@ -21,8 +21,8 @@ void ConsoleOutput::DoOutput(const ulong step)
 {
   if (step == 0)
   {
-    std::cout << std::endl<< "###############################################################################" << std::endl;
-    std::cout << "########################## INITIAL SIMULATION ENERGY ##########################" << std::endl << std::endl;
+    std::cout << std::endl<< "################################################################################" << std::endl;
+    std::cout << "########################## INITIAL SIMULATION ENERGY ###########################" << std::endl << std::endl;
 
     PrintEnergyTitle();
     std::cout << std::endl;
@@ -32,9 +32,22 @@ void ConsoleOutput::DoOutput(const ulong step)
       PrintEnergy(b, var->energyRef[b], var->virialRef[b], -1);
       std::cout <<  std::endl;
     }
-    std::cout << "###############################################################################" << std::endl;
 
-    std::cout << "############################# STARTING SIMULATION #############################" << std::endl << std::endl;
+    if(enableStat)
+    {
+      PrintStatisticTitle();
+      std::cout << std::endl;
+    
+      for (uint b = 0; b < BOX_TOTAL; b++)
+      {
+	PrintStatistic(b, -1);
+	std::cout << std::endl;
+      }
+    }
+    
+    std::cout << "################################################################################" << std::endl;
+
+    std::cout << "############################# STARTING SIMULATION ##############################" << std::endl << std::endl;
 
     PrintMoveTitle();
     std::cout << std::endl;
@@ -156,7 +169,7 @@ void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const
       uint kb = k+offset;
 
       if(var->numKinds > 1)
-	printElement(var->molFractionByKindBox[kb], elementWidth);
+	printElement(var->molFractionByKindBox[kb], elementWidth, 6);
     }
   }
 
@@ -190,8 +203,8 @@ void ConsoleOutput::PrintPressureTensor(const uint box, const ulong step) const
 }
 
 
-void ConsoleOutput::PrintEnergy(const uint box, Energy const& en, Virial const& vir,
-				const ulong step) const
+void ConsoleOutput::PrintEnergy(const uint box, Energy const& en,
+				Virial const& vir, const ulong step) const
 {
   std::string title = "ENER_";
   title += (box? "1:":"0:");
@@ -305,11 +318,34 @@ void ConsoleOutput::PrintMoveTitle()
   std::cout << std::endl;
 }
 
-template <typename T>
-void ConsoleOutput::printElement( const T t, const int width) const
+void ConsoleOutput::printElement(const double t, const int width,
+				 uint percision) const
 {
   const char separator = ' ';
-  std::cout << right << std::fixed << std::setprecision(4) << setw(width) <<
+  if(abs(t) > 9999999999.9999)
+  {
+    std::cout << right << std::fixed << std::setprecision(0) <<
+      setw(width) << setfill(separator) << 9999999999;
+  }
+  else
+  {
+    std::cout << right << std::fixed << std::setprecision(percision) <<
+      setw(width) << setfill(separator) << t;
+  }
+  
+}
+
+void ConsoleOutput::printElement(const uint t, const int width) const
+{
+  const char separator = ' ';
+  std::cout << right << std::fixed  << setw(width) <<
+    setfill(separator) << t;
+}
+
+void ConsoleOutput::printElement(const std::string t, const int width) const
+{
+  const char separator = ' ';
+  std::cout << right << std::fixed << setw(width) <<
     setfill(separator) << t;
 }
 
