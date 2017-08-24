@@ -177,6 +177,7 @@ namespace beta
 {
 static const ConstField POS(60,6);
 static const double DEFAULT = 0.00;
+ static const std::string FIX[] = {"0.00", "1.00", "2.00"};
 static const uint PRECISION = 2;
 static const char ALIGN = align::RIGHT;
 }

@@ -33,6 +33,7 @@ class StaticVals
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
    double pressure;
    uint kindOfGEMC;
+   bool fixVolBox0;
 #endif
 
 

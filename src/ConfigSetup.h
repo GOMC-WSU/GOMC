@@ -164,56 +164,57 @@ namespace config_setup
       bool enable;
       bool ewald;
       bool cache;
-      double alpha;
-      double tolerance;
-      double recip_rcut;
-      double oneFourScale;
-      double dielectric;
-   };
-
-   struct Volume
-   {
-     bool hasVolume, cstArea;
-      uint boxCoordRead;
-      XYZArray axis;
-   Volume(void) : hasVolume(false), cstArea(false),
-	boxCoordRead(0), axis(BOX_TOTAL)  {}
-   };
-
-   //If particle number varies (e.g. GCMC, GEMC) load in parameters for
-   //configurational bias
-   struct GrowNonbond
-   {
-     uint first, nth;
-   };
-
-   //If particle number varies (e.g. GCMC, GEMC) load in parameters for
-   //configurational bias
-   struct GrowBond
-   {
-     uint ang, dih;
-   };
-
-   struct CBMC { GrowNonbond nonbonded; GrowBond bonded; };
-
-#if ENSEMBLE == GCMC
-   struct ChemicalPotential
-   {
-      std::map<std::string, double> cp;
-   };
-#endif
-	struct SystemVals
-	{
-		ElectroStatic elect;
-		Temperature T;
-		FFValues ff;
-		Exclude exclude;
-		Step step;
-		MovePercents moves;
-		Volume volume; //May go unused
-		CBMC cbmcTrials;
-#if ENSEMBLE == GCMC
-		ChemicalPotential chemPot;
+      double alpha; 
+      double tolerance; 
+      double recip_rcut; 
+      double oneFourScale; 
+      double dielectric;   
+   }; 
+ 
+   struct Volume 
+   { 
+      bool hasVolume, cstArea, cstVolBox0; 
+      uint boxCoordRead; 
+      XYZArray axis; 
+      Volume(void) : hasVolume(false), cstArea(false), cstVolBox0(false),
+	boxCoordRead(0), axis(BOX_TOTAL)  {} 
+   }; 
+ 
+   //If particle number varies (e.g. GCMC, GEMC) load in parameters for 
+   //configurational bias 
+   struct GrowNonbond 
+   { 
+     uint first, nth; 
+   }; 
+ 
+   //If particle number varies (e.g. GCMC, GEMC) load in parameters for 
+   //configurational bias 
+   struct GrowBond 
+   { 
+     uint ang, dih; 
+   }; 
+ 
+   struct CBMC { GrowNonbond nonbonded; GrowBond bonded; };    
+ 
+#if ENSEMBLE == GCMC 
+   struct ChemicalPotential 
+   { 
+      bool isFugacity;
+      std::map<std::string, double> cp; 
+   }; 
+#endif 
+	struct SystemVals 
+	{ 
+		ElectroStatic elect; 
+		Temperature T; 
+		FFValues ff; 
+		Exclude exclude; 
+		Step step; 
+		MovePercents moves; 
+		Volume volume; //May go unused 
+		CBMC cbmcTrials; 
+#if ENSEMBLE == GCMC 
+		ChemicalPotential chemPot; 
 #elif ENSEMBLE == GEMC || ENSEMBLE == NPT
 		GEMCKind gemc;
 #endif

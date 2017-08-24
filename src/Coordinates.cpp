@@ -9,16 +9,16 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <algorithm>          //For copy
 #include <cmath>
 #include <cassert>
-#include <omp.h>
 
 void Coordinates::InitFromPDB(pdb_setup::Atoms const& atoms)
 {
   //Allocate master array and push stuff to it.
-  XYZArray::Init(atoms.x.size());
+  XYZArray::Init(atoms.beta.size());
   //Transfer without creating a new array.
   std::copy(atoms.x.begin(), atoms.x.end(), x);
   std::copy(atoms.y.begin(), atoms.y.end(), y);
   std::copy(atoms.z.begin(), atoms.z.end(), z);
+
   CheckCoordinate();
   comRef.CalcCOM();
 }
@@ -47,45 +47,35 @@ void Coordinates::CheckCoordinate()
     diffV = max - min;
     //printf("start: %d, end: %d\n", stRange, endRange);
     printf("Minimum coordinates in box %d: x = %8.3f, y = %8.3f, z = %8.3f\n",
-	   b, min.x, min.y, min.z);
+	   b+1, min.x, min.y, min.z);
     printf("Maximum coordinates in box %d: x = %8.3f, y = %8.3f, z = %8.3f\n",
-	   b, max.x, max.y, max.z);
+	   b+1, max.x, max.y, max.z);
 
     //check to see if molecules are in the box or not
-    if( diffV.x > boxDimRef.axis.Get(b).x ||
-	diffV.y > boxDimRef.axis.Get(b).y ||
-	diffV.z > boxDimRef.axis.Get(b).z)
+    if( diffV.x > 1.5 * boxDimRef.axis.Get(b).x ||
+	diffV.y > 1.5 * boxDimRef.axis.Get(b).y ||
+	diffV.z > 1.5 * boxDimRef.axis.Get(b).z)
     {
-      printf("Molecules are not packed inside the defined box dimension.\n");
+      printf("Molecules are packed outside of the defined box dimension.\n");
       exit(0);
     }
-
-
-    if(min.x < 0.0 || min.y < 0.0 || min.z < 0.0)
+  
+    printf("Wrapping molecules inside the simulation box %d:\n", b+1);
+    while (thisMol != end)
     {
-      //shift all the molecules to positive axis
-       XYZ shiftV = min;
-       shiftV *= -1.0;
-       printf("Note: Molecules in the box %d will be shifted to origin by \n vector [%4.3f, %4.3f, %4.3f].\n", b, shiftV.x, shiftV.y, shiftV.z);
-
-       while (thisMol != end)
+       start = molRef.MolStart(*thisMol);
+       MoleculeKind const& thisKind = molRef.GetKind(*thisMol);
+      
+       for (p = 0; p < thisKind.NumAtoms(); p++)
        {
-	 start = molRef.MolStart(*thisMol);
-	 MoleculeKind const& thisKind = molRef.GetKind(*thisMol);
-
-	 for (p = 0; p < thisKind.NumAtoms(); p++)
-	 {
-	    atom = start + p;
-	    x[atom] += shiftV.x;
-	    y[atom] += shiftV.y;
-	    z[atom] += shiftV.z;
-	 }
-	 ++thisMol;
+	  atom = start + p;
+	  boxDimRef.WrapPBC(x[atom], y[atom], z[atom], b);
        }
-
+       ++thisMol;
     }
+ 
   }
-
+  
 }
 
 //Translate by a random amount

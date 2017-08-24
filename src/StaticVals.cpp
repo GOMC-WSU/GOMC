@@ -26,6 +26,7 @@ void StaticVals::Init(Setup & set, System& sys)
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
    kindOfGEMC = set.config.sys.gemc.kind;
    pressure = set.config.sys.gemc.pressure;
+   fixVolBox0 = set.config.sys.volume.cstVolBox0;
 #endif
 }
 

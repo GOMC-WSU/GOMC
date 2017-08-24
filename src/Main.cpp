@@ -41,18 +41,17 @@ void PrintGPUHardwareInfo();
 
 int main(int argc, char *argv[])
 {
+#ifndef NDEBUG
+   PrintDebugMode();
+#endif
    PrintSimulationHeader();
    PrintHardwareInfo();
 #ifdef GOMC_CUDA
-   //PrintGPUHardwareInfo();
+   PrintGPUHardwareInfo();
 #endif
    //Only run if valid ensemble was detected.
    if (CheckAndPrintEnsemble())
-   {
-#ifndef NDEBUG
-      PrintDebugMode();
-#endif
-
+   {   
       //FOLLOWING LINES ADDED TO OBTAIN INPUT PARAMETER FILE
       string inputFileString;
       fstream inputFileReader;
@@ -61,7 +60,7 @@ int main(int argc, char *argv[])
       //CHECK IF ARGS/FILE PROVIDED IN CMD LINE
       if (argc < 2)
       {
-	 std::cout<<"Input parameter file (*.dat or *.conf) not specified on command line!\n";
+	 std::cout<<"Error: Input parameter file (*.dat or *.conf) not specified on command line!\n";
 	 exit(0);
       }
       else
@@ -94,8 +93,9 @@ int main(int argc, char *argv[])
       //SET NUMBER OF THREADS
 #ifdef _OPENMP
       omp_set_num_threads(numThreads);
-      std::cout << "Number of threads has been set to: " <<
-	numThreads << std::endl;
+      printf("%-40s %-d \n", "Info: Number of threads", numThreads);
+#else
+      printf("%-40s %-d \n", "Info: Number of threads", 1);
 #endif
 
       //OPEN FILE
@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
       //CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
       if (!inputFileReader.is_open())
       {
-	std::cout<<"Cannot open/find " << inputFileString <<
+	std::cout<<"Error: Cannot open/find " << inputFileString <<
 	  " in the directory provided!\n";
 	 exit(0);
       }
@@ -126,58 +126,54 @@ namespace {
 
    void PrintSimulationHeader()
    {
-      std::cout << PrintVersion << '\n'
-		<< "Started at: " << PrintTime
+     std::cout << PrintVersion << '\n'
+		<< "Info: Start Time: " << PrintTime
 #ifdef HOSTNAME
-		<< "On hostname: " << PrintHostname
+		<< "Info: Host Name: " << PrintHostname
 #endif
-		<< "\n\n";
+		<< "\n";
    }
 
    bool CheckAndPrintEnsemble()
    {
       bool healthy = true;
-      std::cout << "------------------------------------------------------"
-		<< std::endl
-		<< "This code was compiled to support the ";
+      std::cout << "Info: GOMC COMPILED TO RUN ";
 #if ENSEMBLE == NVT
-      std::cout << "canonical (NVT)";
+      std::cout << "CANONICAL (NVT)";
 #elif ENSEMBLE == GEMC
-      std::cout << "Gibbs";
+      std::cout << "GIBBS";
 #elif ENSEMBLE == GCMC
-      std::cout << "grand canonical";
+      std::cout << "GRAND CANONICAL";
 #elif ENSEMBLE == NPT
-      std::cout << "isobaric-isothermal";
+      std::cout << "ISOBARIC-ISOTHERMAL";
 #else
       std::cerr << "CRITICAL ERROR! Preprocessor value ENSEMBLE is "
 		<< "invalid or undefined." << std::endl
 		<< "Code will exit.";
       healthy = false;
 #endif
-      std::cout << " ensemble." << std::endl
-		<< "------------------------------------------------------"
-		<< std::endl << std::endl;
+      std::cout << " ENSEMBLE." << std::endl;
       return healthy;
    }
 
   void PrintDebugMode()
   {
-    std::cout << "#########################################################\n";
-    std::cout << "################# RUNNING IN DEBUG MODE #################\n";
-    std::cout << "#########################################################\n";
+    std::cout << "################################################################################\n";
+    std::cout << "########################## RUNNING GOMC IN DEBUG MODE ##########################\n";
+    std::cout << "################################################################################\n";
   }
 
   void PrintSimulationFooter()
   {
     std::cout << PrintVersion << '\n'
-	      << "Completed at: " << PrintTime
-	      << "On hostname: " << PrintHostname
+	      << "Info: Completed at: " << PrintTime
+	      << "Info: On hostname: " << PrintHostname
 	      << '\n';
   }
 
   std::ostream& PrintVersion(std::ostream& stream)
   {
-    stream << "GOMC Serial Version " << GOMC_VERSION_MAJOR
+    stream << "Info: GOMC Serial Version " << GOMC_VERSION_MAJOR 
 	   << '.' << GOMC_VERSION_MINOR;
     return stream;
   }
@@ -211,7 +207,7 @@ namespace {
     WSACleanup();
 #endif
 #else
-    stream << "Hostname Unavailable";
+    stream << "Info: Hostname Unavailable";
 #endif
     return stream;
   }
@@ -231,28 +227,28 @@ namespace {
 
 void PrintHardwareInfo()
 {
-#ifndef _WIN32
+#ifdef __linux__
   struct sysinfo mem;
   const double megabyte = 1024 * 1024;
   struct utsname name;
   uname(&name);
+  printf("CPU information:\n");
   std::cout << std::setprecision(1) << std::fixed;
-  std::cout << "Total number of CPUs: " << get_nprocs() << std::endl;
-  std::cout << "Total number of CPUs available: " << sysconf(_SC_NPROCESSORS_ONLN) << std::endl;
-  std::cout << "Model name:" << std::flush;
-  if(system("awk -F: '/model name/ {print $2;exit}' /proc/cpuinfo"))
-    std::cout << "Couldn't retrieve CPU information" << std::endl;
-  std::cout << std::endl;
-  std::cout << "System name: " << name.sysname << std::endl;
-  std::cout << "Release: " << name.release << std::endl;
-  std::cout << "Version: " << name.version << std::endl;
-  std::cout << "Kernel Architecture: " << name.machine << std::endl;
+  std::cout << "Info: Total number of CPUs: " << get_nprocs() << std::endl;
+  std::cout << "Info: Total number of CPUs available: " << sysconf(_SC_NPROCESSORS_ONLN) << std::endl;
+  std::cout << "Info: Model name:" << std::flush;
+  system("awk -F: '/model name/ {print $2;exit}' /proc/cpuinfo");
+  //std::cout << std::endl;
+  std::cout << "Info: System name: " << name.sysname << std::endl;
+  std::cout << "Info: Release: " << name.release << std::endl;
+  std::cout << "Info: Version: " << name.version << std::endl;
+  std::cout << "Info: Kernel Architecture: " << name.machine << std::endl;
   if(sysinfo(&mem)==0)
   {
-    std::cout << "Total Ram: " << mem.totalram / megabyte << "MB" << std::endl;
-    std::cout << "Used Ram: " << mem.totalram / megabyte - mem.freeram / megabyte << "MB" << std::endl;
+    std::cout << "Info: Total Ram: " << mem.totalram / megabyte << "MB" << std::endl;
+    std::cout << "Info: Used Ram: " << mem.totalram / megabyte - mem.freeram / megabyte << "MB" << std::endl;
   }
-  std::cout << "Working in the current directory " << get_current_dir_name() << std::endl;
+  std::cout << "Info: Working in the current directory: " << get_current_dir_name();
   std::cout << std::endl;
 #endif
 }
@@ -265,17 +261,18 @@ void PrintGPUHardwareInfo()
   int fastIndex = 0;
 
   cudaGetDeviceCount(&nDevices);
-  if(nDevices<=4)
+  if(nDevices <= 4)
   {
+    printf("GPU information:\n");
     for (int i = 0; i < nDevices; i++)
     {
       cudaDeviceProp prop;
       cudaGetDeviceProperties(&prop, i);
-      printf("Device Number: %d\n", i);
-      printf("  Device name: %s\n", prop.name);
-      printf("  Memory Clock Rate (KHz): %d\n", prop.memoryClockRate);
-      printf("  Memory Bus Width (bits): %d\n", prop.memoryBusWidth);
-      printf("  Peak Memory Bandwidth (GB/s): %f\n\n",
+      printf("Info: Device Number: %d\n", i);
+      printf("Info: Device name: %s\n", prop.name);
+      printf("Info: Memory Clock Rate (KHz): %d\n", prop.memoryClockRate);
+      printf("Info: Memory Bus Width (bits): %d\n", prop.memoryBusWidth);
+      printf("Info: Peak Memory Bandwidth (GB/s): %f\n",
 	     2.0*prop.memoryClockRate*(prop.memoryBusWidth/8)/1.0e6);
       if( prop.memoryClockRate > fast)
       {
@@ -285,6 +282,6 @@ void PrintGPUHardwareInfo()
     }
   }
   cudaSetDevice(fastIndex);
-  printf("Using Device Number: %d\n", fastIndex);
+  printf("Info: Using Device Number: %d\n", fastIndex);
 }
 #endif

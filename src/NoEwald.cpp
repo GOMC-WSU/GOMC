@@ -21,7 +21,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "GeomLib.h"
 #include "NumLib.h"
 #include <cassert>
-#include <omp.h>
 
 //
 //
@@ -103,11 +102,11 @@ double NoEwald::BoxSelf(BoxDimensions const& boxAxes, uint box) const
 
 
 //calculate correction term for a molecule
-double NoEwald::MolCorrection(uint molIndex, BoxDimensions const& boxAxes,
-			      uint box) const
+double NoEwald::MolCorrection(uint molIndex, uint box) const
 {
    return 0.0;
 }
+
 
 //calculate reciprocate term in destination box for swap move
 double NoEwald::SwapDestRecip(const cbmc::TrialMol &newMol,
@@ -120,48 +119,23 @@ double NoEwald::SwapDestRecip(const cbmc::TrialMol &newMol,
 
 //calculate reciprocate term in source box for swap move
 double NoEwald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
-				       const uint box, const int molIndex)
+				const uint box, const int molIndex) 
 {
    return 0.0;
 }
 
 
-//calculate self term for CBMC algorithm
-void NoEwald::SwapSelf(double *self, uint molIndex, uint partIndex,
-		       int box, uint trials) const
-{
-   return;
-}
-
-//calculate correction term for linear molecule CBMC algorithm
-void NoEwald::SwapCorrection(double* energy,
-			     const cbmc::TrialMol& trialMol,
-			     XYZArray const& trialPos,
-			     const uint partIndex, const uint box,
-			     const uint trials) const
-{
-   return;
-}
-
-
-//calculate correction term for branched molecule CBMC algorithm
-void NoEwald::SwapCorrection(double* energy,
-			     const cbmc::TrialMol& trialMol,
-			     XYZArray *trialPos, const int pickedAtom,
-			     uint *partIndexArray, const uint box,
-			     const uint trials,
-			     const uint prevIndex, bool prev) const
-{
-   return;
-}
-
-double NoEwald::CorrectionOldMol(const cbmc::TrialMol& oldMol,
-				 const double distSq, const uint i,
-				 const uint j) const
+//calculate self term after swap move
+double NoEwald::SwapSelf(const cbmc::TrialMol& trialMol) const
 {
    return 0.0;
 }
 
+//calculate correction term after swap move
+double NoEwald::SwapCorrection(const cbmc::TrialMol& trialMol) const
+{
+   return 0.0;
+}
 
 //back up reciptocate value to Ref (will be called during initialization)
 void NoEwald::SetRecipRef(uint box)

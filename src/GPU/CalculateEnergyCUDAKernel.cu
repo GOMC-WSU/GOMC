@@ -196,10 +196,6 @@ __device__ double CalcCoulombGPU(double distSq, double qi_qj_fact,
 				 double gpu_rCut, int gpu_isMartini,
 				 double gpu_diElectric_1)
 {
-  double rCutLowSq = gpu_rCutLow * gpu_rCutLow;
-  if(distSq <= rCutLowSq)
-    return DBL_MAX;
-
   if(gpu_VDW_Kind == GPU_VDW_STD_KIND)
   {
     return CalcCoulombParticleGPU(distSq, qi_qj_fact, gpu_alpha);
