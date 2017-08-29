@@ -155,9 +155,9 @@ void BlockAverages::DoOutput(const ulong step)
 
 void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
 {
-  outBlock0 << left << std::fixed << std::setw(OUTPUTWIDTH) << "STEPS";
+  outBlock0 << left << std::fixed << std::setw(OUTPUTWIDTH) << "#STEPS";
   if(outBlock1.is_open())
-    outBlock1 << left << std::fixed << std::setw(OUTPUTWIDTH) << "STEPS";
+    outBlock1 << left << std::fixed << std::setw(OUTPUTWIDTH) << "#STEPS";
   //Note: The order of Init should be same as order of SetRef
   blocks[out::ENERGY_TOTAL_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_TOTAL, BOXES_WITH_U_NB);
   blocks[out::ENERGY_INTER_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_INTER, BOXES_WITH_U_NB);
