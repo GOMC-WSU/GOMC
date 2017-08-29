@@ -186,7 +186,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
    while(currentIndex < pairSize)
    {
      uint max = currentIndex + MAX_PAIR_SIZE;
-     max = (max < pairSize ? max : pairSize-1);
+     max = (max < pairSize ? max : pairSize);
 
      std::vector<uint>::const_iterator first1 = pair1.begin() + currentIndex;
      std::vector<uint>::const_iterator last1 = pair1.begin() + max;
@@ -280,7 +280,7 @@ Virial CalculateEnergy::ForceCalc(const uint box)
    while(currentIndex < pairSize)
    {
      uint max = currentIndex + MAX_PAIR_SIZE;
-     max = (max < pairSize ? max : pairSize-1);
+     max = (max < pairSize ? max : pairSize);
 
      std::vector<uint>::const_iterator first1 = pair1.begin() + currentIndex;
      std::vector<uint>::const_iterator last1 = pair1.begin() + max;
