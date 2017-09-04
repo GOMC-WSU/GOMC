@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -45,14 +45,14 @@ class TrialMol
 
       //!Sets an orthonormal basis for coordinate conversion.
       /*!\param p1 Index of particle new additions will be bonded to
-       * \param p2 Index of particle that will be in angles with new additions 
+       * \param p2 Index of particle that will be in angles with new additions
        * \param p3 Index of particle against which dihedrals will be measured
        */
       void SetBasis(uint p1, uint p2, uint p3);
 
       //!Sets an orthonormal basis for coordinate conversion.
       /*!\param p1 Index of particle new additions will be bonded to
-       * \param p2 Index of particle that will be in angles with new additions 
+       * \param p2 Index of particle that will be in angles with new additions
        */
       void SetBasis(uint p1, uint p2);
 
@@ -66,7 +66,7 @@ class TrialMol
       XYZ GetRectCoords(double bond, double theta, double phi) const;
 
       XYZ RawRectCoords(double bond, double theta, double phi) const;
-      
+
       // Returns the dihedral angle between two positions
       /* \param theta1 Theta spherical coordinate of first position
        * \param theta2 Theta spherical coordinate of second position
@@ -80,9 +80,9 @@ class TrialMol
 
       //!Calculates theta and phi coords for atom in the current basis
       //!centered on lastAtom. theta in [0, pi], phi in (-pi, pi]
-      void OldThetaAndPhi(uint atom, uint lastAtom, 
+      void OldThetaAndPhi(uint atom, uint lastAtom,
             double& theta, double& phi) const;
-      
+
       //!calculate distance between atoms belong to specified angle
       double AngleDist(const double b1, const double b2, const double theta);
 

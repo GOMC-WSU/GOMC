@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -164,57 +164,57 @@ namespace config_setup
       bool enable;
       bool ewald;
       bool cache;
-      double alpha; 
-      double tolerance; 
-      double recip_rcut; 
-      double oneFourScale; 
-      double dielectric;   
-   }; 
- 
-   struct Volume 
-   { 
-      bool hasVolume, cstArea, cstVolBox0; 
-      uint boxCoordRead; 
-      XYZArray axis; 
+      double alpha;
+      double tolerance;
+      double recip_rcut;
+      double oneFourScale;
+      double dielectric;
+   };
+
+   struct Volume
+   {
+      bool hasVolume, cstArea, cstVolBox0;
+      uint boxCoordRead;
+      XYZArray axis;
       Volume(void) : hasVolume(false), cstArea(false), cstVolBox0(false),
-	boxCoordRead(0), axis(BOX_TOTAL)  {} 
-   }; 
- 
-   //If particle number varies (e.g. GCMC, GEMC) load in parameters for 
-   //configurational bias 
-   struct GrowNonbond 
-   { 
-     uint first, nth; 
-   }; 
- 
-   //If particle number varies (e.g. GCMC, GEMC) load in parameters for 
-   //configurational bias 
-   struct GrowBond 
-   { 
-     uint ang, dih; 
-   }; 
- 
-   struct CBMC { GrowNonbond nonbonded; GrowBond bonded; };    
- 
-#if ENSEMBLE == GCMC 
-   struct ChemicalPotential 
-   { 
+	boxCoordRead(0), axis(BOX_TOTAL)  {}
+   };
+
+   //If particle number varies (e.g. GCMC, GEMC) load in parameters for
+   //configurational bias
+   struct GrowNonbond
+   {
+     uint first, nth;
+   };
+
+   //If particle number varies (e.g. GCMC, GEMC) load in parameters for
+   //configurational bias
+   struct GrowBond
+   {
+     uint ang, dih;
+   };
+
+   struct CBMC { GrowNonbond nonbonded; GrowBond bonded; };
+
+#if ENSEMBLE == GCMC
+   struct ChemicalPotential
+   {
       bool isFugacity;
-      std::map<std::string, double> cp; 
-   }; 
-#endif 
-	struct SystemVals 
-	{ 
-		ElectroStatic elect; 
-		Temperature T; 
-		FFValues ff; 
-		Exclude exclude; 
-		Step step; 
-		MovePercents moves; 
-		Volume volume; //May go unused 
-		CBMC cbmcTrials; 
-#if ENSEMBLE == GCMC 
-		ChemicalPotential chemPot; 
+      std::map<std::string, double> cp;
+   };
+#endif
+	struct SystemVals
+	{
+		ElectroStatic elect;
+		Temperature T;
+		FFValues ff;
+		Exclude exclude;
+		Step step;
+		MovePercents moves;
+		Volume volume; //May go unused
+		CBMC cbmcTrials;
+#if ENSEMBLE == GCMC
+		ChemicalPotential chemPot;
 #elif ENSEMBLE == GEMC || ENSEMBLE == NPT
 		GEMCKind gemc;
 #endif

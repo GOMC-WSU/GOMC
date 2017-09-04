@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -104,7 +104,7 @@ inline void MoleculeTransfer::CalcEn()
 	calcEwald->SwapDestRecip(newMol, destBox, sourceBox, molIndex);
       recipLose.energy =
 	calcEwald->SwapSourceRecip(oldMol, sourceBox, molIndex);
-      //need to contribute the self and correction energy 
+      //need to contribute the self and correction energy
       W_recip = exp(-1.0 * ffRef.beta * (recipGain.energy + recipLose.energy +
 					 correct_new - correct_old +
 					 self_new - self_old));

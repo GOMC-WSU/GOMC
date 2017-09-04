@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -119,7 +119,7 @@ double NoEwald::SwapDestRecip(const cbmc::TrialMol &newMol,
 
 //calculate reciprocate term in source box for swap move
 double NoEwald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
-				const uint box, const int molIndex) 
+				const uint box, const int molIndex)
 {
    return 0.0;
 }

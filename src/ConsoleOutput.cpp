@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -37,14 +37,14 @@ void ConsoleOutput::DoOutput(const ulong step)
     {
       PrintStatisticTitle();
       std::cout << std::endl;
-    
+
       for (uint b = 0; b < BOX_TOTAL; b++)
       {
 	PrintStatistic(b, -1);
 	std::cout << std::endl;
       }
     }
-    
+
     std::cout << "################################################################################" << std::endl;
 
     std::cout << "############################# STARTING SIMULATION ##############################" << std::endl << std::endl;
@@ -332,7 +332,7 @@ void ConsoleOutput::printElement(const double t, const int width,
     std::cout << right << std::fixed << std::setprecision(percision) <<
       setw(width) << setfill(separator) << t;
   }
-  
+
 }
 
 void ConsoleOutput::printElement(const uint t, const int width) const

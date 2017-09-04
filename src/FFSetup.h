@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -257,7 +257,7 @@ public:
     std::map< std::string, std::vector<uint> >::const_iterator it = n.find(s);
     return it->second[pos];
   }
-  
+
 #ifndef NDEBUG
   void PrintBrief();
 #endif

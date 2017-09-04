@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 1.0 (Serial version)
-Copyright (C) 2015  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
+Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -36,7 +36,7 @@ namespace cbmc
       uint NumBond() { return nBonds; }
       uint Focus() { return focus; }
       uint Prev() { return prev; }
-      
+
       //need to go to private
       uint bonded[MAX_BONDS];
 
@@ -59,7 +59,7 @@ namespace cbmc
       //bond length of atom bonded to focus
       double bondLength[MAX_BONDS];
       double bondLengthOld[MAX_BONDS];
-      
+
       //angleKinds[i][j] = kind between bonded[i] and bonded[j]
       //except angleKinds[i][i] = kind between bonded[i] and prev
       uint angleKinds[MAX_BONDS][MAX_BONDS];
@@ -76,4 +76,3 @@ namespace cbmc
 }
 
 #endif
-

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -233,7 +233,7 @@ public:
     SetOtherBox(bDest, bSrc);
   }
 
-  //Returns false if none of that kind of molecule in selected box or molecule 
+  //Returns false if none of that kind of molecule in selected box or molecule
   //is fixed using tag (beta == 1).
   uint PickMol(uint & m, uint & mk, const uint b,
                const double subDraw, const double subPerc)
@@ -249,7 +249,7 @@ public:
       mk = mkTot -1;
 
     //Pick molecule with the help of molecule lookup table.
-    if ((molLookRef.NumKindInBox(mk, b) == 0) || 
+    if ((molLookRef.NumKindInBox(mk, b) == 0) ||
 	molLookRef.NumKindInBox(mk, b) == molLookRef.GetFixInBox(mk, b))
     {
       rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
@@ -270,7 +270,7 @@ public:
     return rejectState;
   }
 
-  //Returns false if none of that kind of molecule in selected box or molecule 
+  //Returns false if none of that kind of molecule in selected box or molecule
   //is fixed using tag (beta >= 1).
   uint PickMol2(uint & m, uint & mk, const uint b,
                const double subDraw, const double subPerc)
@@ -286,7 +286,7 @@ public:
       mk = mkTot -1;
 
     //Pick molecule with the help of molecule lookup table.
-    if ((molLookRef.NumKindInBox(mk, b) == 0) || 
+    if ((molLookRef.NumKindInBox(mk, b) == 0) ||
 	molLookRef.NumKindInBox(mk, b) == (molLookRef.GetNoSwapInBox(mk, b) +
 					   molLookRef.GetFixInBox(mk, b)))
     {

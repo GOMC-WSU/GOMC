@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 #endif
    //Only run if valid ensemble was detected.
    if (CheckAndPrintEnsemble())
-   {   
+   {
       //FOLLOWING LINES ADDED TO OBTAIN INPUT PARAMETER FILE
       string inputFileString;
       fstream inputFileReader;
@@ -173,7 +173,7 @@ namespace {
 
   std::ostream& PrintVersion(std::ostream& stream)
   {
-    stream << "Info: GOMC Serial Version " << GOMC_VERSION_MAJOR 
+    stream << "Info: GOMC Serial Version " << GOMC_VERSION_MAJOR
 	   << '.' << GOMC_VERSION_MINOR;
     return stream;
   }

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -61,7 +61,7 @@ public:
     return fixInBox[box][m];
   }
 
-  // Return the number of atom that cannot transfer to other box 
+  // Return the number of atom that cannot transfer to other box
   uint GetNoSwapInBox( const uint m, const uint box) const
   {
     return noSwapInBox[box][m];
@@ -76,7 +76,7 @@ public:
   {
     return (fixedAtom[m] == 1);
   }
-  
+
   bool NoInteract(const uint m, const uint n) const
   {
     return ((fixedAtom[m] == 1) && (fixedAtom[n] == 1));
