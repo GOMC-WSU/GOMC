@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -54,15 +54,24 @@ void BlockAverage::Sum(void)
       block[b] += *dblSrc[b] * scl;
 }
 
-void BlockAverage::DoWrite(const ulong step)
+void BlockAverage::DoWrite(const ulong step, uint precision)
 {
   if (tot >= 1)
   {
     if (outBlock0->is_open())
     {
-      (*outBlock0) << left << std::fixed  << std::setprecision(4) <<
-	std::setw(OUTPUTWIDTH);
-      (*outBlock0) << block[0];
+      if(abs(block[0]) > 9999999999.9999)
+      {
+	(*outBlock0) << left << std::fixed  << std::setprecision(0) <<
+	  std::setw(OUTPUTWIDTH);
+	(*outBlock0) << 9999999999;
+      }
+      else
+      {
+	(*outBlock0) << left << std::fixed  << std::setprecision(precision) <<
+	  std::setw(OUTPUTWIDTH);
+	(*outBlock0) << block[0];
+      }
     }
     else
       std::cerr << "Unable to write to Box_0 output file" << std::endl;
@@ -71,9 +80,18 @@ void BlockAverage::DoWrite(const ulong step)
   {
     if (outBlock1->is_open())
     {
-      (*outBlock1) << left << std::fixed  << std::setprecision(4) <<
-	std::setw(OUTPUTWIDTH);
-      (*outBlock1) << block[1];
+      if(abs(block[0]) > 9999999999.9999)
+      {
+	(*outBlock1) << left << std::fixed  << std::setprecision(0) <<
+	  std::setw(OUTPUTWIDTH);
+	(*outBlock1) << 9999999999;
+      }
+      else
+      {
+	(*outBlock1) << left << std::fixed  << std::setprecision(precision) <<
+	  std::setw(OUTPUTWIDTH);
+	(*outBlock1) << block[1];
+      }
     }
     else
       std::cerr << "Unable to write to Box_1 output file" << std::endl;
@@ -124,7 +142,12 @@ void BlockAverages::DoOutput(const ulong step)
   outBlock0 << left << std::fixed << std::setw(OUTPUTWIDTH) << nextStep;
   outBlock1 << left << std::fixed << std::setw(OUTPUTWIDTH) << nextStep;
   for (uint v = 0; v < totalBlocks; ++v)
-    blocks[v].Write(nextStep, firstPrint);
+  {
+    if(v < out::TOTAL_SINGLE)
+      blocks[v].Write(nextStep, firstPrint);
+    else
+      blocks[v].Write(nextStep, firstPrint, 8);
+  }
   outBlock0 << std::endl;
   if(outBlock1.is_open())
     outBlock1 << std::endl;
@@ -132,9 +155,9 @@ void BlockAverages::DoOutput(const ulong step)
 
 void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
 {
-  outBlock0 << left << std::fixed << std::setw(OUTPUTWIDTH) << "STEPS";
+  outBlock0 << left << std::fixed << std::setw(OUTPUTWIDTH) << "#STEPS";
   if(outBlock1.is_open())
-    outBlock1 << left << std::fixed << std::setw(OUTPUTWIDTH) << "STEPS";
+    outBlock1 << left << std::fixed << std::setw(OUTPUTWIDTH) << "#STEPS";
   //Note: The order of Init should be same as order of SetRef
   blocks[out::ENERGY_TOTAL_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_TOTAL, BOXES_WITH_U_NB);
   blocks[out::ENERGY_INTER_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_INTER, BOXES_WITH_U_NB);
@@ -217,13 +240,25 @@ void BlockAverages::InitWatchMulti(config_setup::TrackedVars const& tracked)
 void BlockAverage::printTitle(std::string output, uint boxes)
 {
   if(tot>=1)
+  {
     if((*outBlock0).is_open())
+    {
       (*outBlock0) << left << std::fixed << std::setw(OUTPUTWIDTH) << output;
+    }
     else
+    {
       std::cerr << "Unable to write to Block_0 output file!" << std::endl;
+    }
+  }
   if(tot>=2)
+  {
     if((*outBlock1).is_open())
+    {
       (*outBlock1) << left << std::fixed << std::setw(OUTPUTWIDTH) << output;
+    }
     else
+    {
       std::cerr << "Unable to write to Block_1 output file!" << std::endl;
+    }
+  }
 }

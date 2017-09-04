@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -33,6 +33,7 @@ class IntraSwap : public MoveBase
    uint molIndex, kindIndex;
 
    double W_tc, W_recip;
+   double correct_old, correct_new;
    cbmc::TrialMol oldMol, newMol;
    Intermolecular tcLose, tcGain, recipDiff;
    MoleculeLookup & molLookRef;
@@ -87,12 +88,18 @@ inline void IntraSwap::CalcEn()
   //there is no change in Tc
   W_tc = 1.0;
   W_recip = 1.0;
+  correct_old = 0.0;
+  correct_new = 0.0;
 
   if (newMol.GetWeight() != 0.0)
   {
+     correct_new = calcEwald->SwapCorrection(newMol);
+     correct_old = calcEwald->SwapCorrection(oldMol);
      recipDiff.energy = calcEwald->MolReciprocal(newMol.GetCoords(), molIndex,
 						 sourceBox);
-     W_recip = exp(-1.0 * ffRef.beta * recipDiff.energy);
+     //self energy is same
+     W_recip = exp(-1.0 * ffRef.beta * (recipDiff.energy + correct_new -
+					correct_old));
   }
 }
 
@@ -114,7 +121,11 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
          //Add rest of energy.
          sysPotRef.boxEnergy[sourceBox] -= oldMol.GetEnergy();
          sysPotRef.boxEnergy[destBox] += newMol.GetEnergy();
+	 //Add Reciprocal energy difference
 	 sysPotRef.boxEnergy[destBox].recip += recipDiff.energy;
+	 //Add correction energy
+	 sysPotRef.boxEnergy[sourceBox].correction -= correct_old;
+	 sysPotRef.boxEnergy[destBox].correction += correct_new;
 
 	 //Set coordinates, new COM; shift index to new box's list
          newMol.GetCoords().CopyRange(coordCurrRef, 0, pStart, pLen);

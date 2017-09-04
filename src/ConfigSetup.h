@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -173,10 +173,10 @@ namespace config_setup
 
    struct Volume
    {
-     bool hasVolume, cstArea;
+      bool hasVolume, cstArea, cstVolBox0;
       uint boxCoordRead;
       XYZArray axis;
-   Volume(void) : hasVolume(false), cstArea(false),
+      Volume(void) : hasVolume(false), cstArea(false), cstVolBox0(false),
 	boxCoordRead(0), axis(BOX_TOTAL)  {}
    };
 
@@ -199,6 +199,7 @@ namespace config_setup
 #if ENSEMBLE == GCMC
    struct ChemicalPotential
    {
+      bool isFugacity;
       std::map<std::string, double> cp;
    };
 #endif

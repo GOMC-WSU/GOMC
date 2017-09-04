@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -150,6 +150,14 @@ public:
   {
     return Kb.size();
   }
+  double GetKb(uint i) const
+  {
+    return Kb[i];
+  }
+  double Getb0(uint i) const
+  {
+    return b0[i];
+  }
 #ifndef NDEBUG
   void PrintBrief();
 #endif
@@ -184,6 +192,14 @@ public:
   {
     return Ktheta.size();
   }
+  double GetKtheta(uint i) const
+  {
+    return Ktheta[i];
+  }
+  double Gettheta0(uint i) const
+  {
+    return theta0[i];
+  }
 #ifndef NDEBUG
   void PrintBrief();
 #endif
@@ -217,6 +233,31 @@ public:
     std::copy(itDbl->second.begin(), itDbl->second.end(), delta_in + count);
     return itDbl->second.size();
   }
+
+  uint GetSizeDih(std::string s) const
+  {
+    std::map< std::string, std::vector<double> >::const_iterator it = Kchi.find(s);
+    return it->second.size();
+  }
+
+  double GetKchi(std::string s, uint pos) const
+  {
+    std::map< std::string, std::vector<double> >::const_iterator it = Kchi.find(s);
+    return it->second[pos];
+  }
+
+  double Getdelta(std::string s, uint pos) const
+  {
+    std::map< std::string, std::vector<double> >::const_iterator it = delta.find(s);
+    return it->second[pos];
+  }
+
+  uint Getn(std::string s, uint pos) const
+  {
+    std::map< std::string, std::vector<uint> >::const_iterator it = n.find(s);
+    return it->second[pos];
+  }
+
 #ifndef NDEBUG
   void PrintBrief();
 #endif

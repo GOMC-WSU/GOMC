@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -49,12 +49,15 @@ public:
                            const uint kind1, const uint kind2) const;
 
   // coulomb interaction functions
+  virtual double CalcCoulomb(const double distSq,
+			     const double qi_qj_Fact) const;
   virtual double CalcCoulombEn(const double distSq,
                                const double qi_qj_Fact) const;
   virtual double CalcCoulombVir(const double distSq,
                                 const double qi_qj) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
-                                  const double qi_qj_Fact) const;
+                                  const double qi_qj_Fact,
+				  const bool NB) const;
 
   //!Returns Ezero, no energy correction
   virtual double EnergyLRC(const uint kind1, const uint kind2) const
@@ -96,21 +99,14 @@ inline void FF_SWITCH::CalcAdd_1_4(double& en, const double distSq,
 }
 
 inline void FF_SWITCH::CalcCoulombAdd_1_4(double& en, const double distSq,
-    const double qi_qj_Fact) const
+					  const double qi_qj_Fact,
+					  const bool NB) const
 {
-  if(ewald)
-  {
-     double dist = sqrt(distSq);
-     double erfc = alpha * dist;
-     en += scaling_14 * qi_qj_Fact * (1 - erf(erfc))/ dist;
-  }
+  double dist = sqrt(distSq);
+  if(NB)
+    en += qi_qj_Fact / dist;
   else
-  {
-     double dist = sqrt(distSq);
-     double switchVal = distSq/rCutSq - 1.0;
-     switchVal *= switchVal;
-     en += scaling_14 * qi_qj_Fact * switchVal/dist;
-  }
+    en += qi_qj_Fact * scaling_14 / dist;
 }
 
 
@@ -141,6 +137,25 @@ inline double FF_SWITCH::CalcEn(const double distSq,
   return (epsilon_cn[index] * (repulse-attract)) * factE;
 }
 
+inline double FF_SWITCH::CalcCoulomb(const double distSq,
+                                       const double qi_qj_Fact) const
+{
+  if(ewald)
+  {
+     double dist = sqrt(distSq);
+     double val = alpha * dist;
+     return  qi_qj_Fact * erfc(val)/ dist;
+  }
+  else
+  {
+     double dist = sqrt(distSq);
+     double switchVal = distSq/rCutSq - 1.0;
+     switchVal *= switchVal;
+     return  qi_qj_Fact * switchVal/dist;
+  }
+}
+
+//will be used in energy calculation after each move
 inline double FF_SWITCH::CalcCoulombEn(const double distSq,
                                        const double qi_qj_Fact) const
 {
@@ -150,8 +165,8 @@ inline double FF_SWITCH::CalcCoulombEn(const double distSq,
   if(ewald)
   {
      double dist = sqrt(distSq);
-     double erfc = alpha * dist;
-     return  qi_qj_Fact * (1 - erf(erfc))/ dist;
+     double val = alpha * dist;
+     return  qi_qj_Fact * erfc(val)/ dist;
   }
   else
   {
@@ -203,7 +218,7 @@ inline double FF_SWITCH::CalcCoulombVir(const double distSq,
      double dist = sqrt(distSq);
      double constValue = 2.0 * alpha / sqrt(M_PI);
      double expConstValue = exp(-1.0 * alpha * alpha * distSq);
-     double temp = 1.0 - erf(alpha * dist);
+     double temp = erfc(alpha * dist);
      return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   }
   else

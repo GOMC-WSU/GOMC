@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -26,6 +26,7 @@ void StaticVals::Init(Setup & set, System& sys)
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
    kindOfGEMC = set.config.sys.gemc.kind;
    pressure = set.config.sys.gemc.pressure;
+   fixVolBox0 = set.config.sys.volume.cstVolBox0;
 #endif
 }
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -11,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBSetup.h"       //For mol names->kinds
 #include "FFSetup.h"        //For geometry kinds
 #include "BasicTypes.h"
+#include "GeomLib.h"
 
 #include <cstdio>
 #include <utility>      //for swap (most modern compilers)
@@ -46,6 +47,9 @@ void AssignBondKinds(MolKind& kind, const FFSetup& ffData);
 void AssignAngleKinds(MolKind& kind, const FFSetup& ffData);
 void AssignDihKinds(MolKind& kind, const FFSetup& ffData);
 
+void BriefBondKinds(MolKind& kind, const FFSetup& ffData);
+void BriefAngleKinds(MolKind& kind, const FFSetup& ffData);
+void BriefDihKinds(MolKind& kind, const FFSetup& ffData);
 
 //Builds kindMap from PSF file (does not include coordinates) kindMap
 // should be empty returns number of atoms in the file, or READERROR if
@@ -169,7 +173,8 @@ std::vector<Bond> mol_setup::AtomBonds(const MolKind& molKind, uint atom)
 }
 
 int mol_setup::ReadCombinePSF(MolMap& kindMap,
-                              std::string const*const psfFilename, const int numFiles)
+                              std::string const*const psfFilename,
+			      const int numFiles)
 {
   int errorcode = ReadPSF(psfFilename[0].c_str(), kindMap);
   if (errorcode < 0)
@@ -193,8 +198,12 @@ int MolSetup::Init(const config_setup::RestartSettings& restart,
                    const std::string* psfFilename)
 {
   kindMap.clear();
-  //int numFiles = ( restart.enable ? 1 : 2 );
-  int numFiles = BOX_TOTAL;
+  int numFiles;
+  if(restart.enable)
+    numFiles = 1;
+  else
+    numFiles = BOX_TOTAL;
+
   return ReadCombinePSF(kindMap, psfFilename, numFiles);
 }
 
@@ -210,6 +219,30 @@ void MolSetup::AssignKinds(const pdb_setup::Atoms& pdbAtoms, const FFSetup& ffDa
     AssignAngleKinds(it->second, ffData);
     AssignDihKinds(it->second, ffData);
   }
+
+  //Print bonded Information
+  printf("Bonds parameter:\n");
+  printf("%-19s %15s %20s \n", "Atom Types", "Kb(K)", "b0(A)");
+  for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it)
+  {
+    BriefBondKinds(it->second, ffData);
+  }
+
+  printf("\nAngles parameter:\n");
+  printf("%-19s %15s %20s \n", "Atom Types", "Ktheta(K)", "theta0(degree)");
+  for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it)
+  {
+    BriefAngleKinds(it->second, ffData);
+  }
+
+  printf("\nDihedrals parameter:\n");
+  printf("%-19s %15s %4s %15s \n", "Atom Types", "Kchi(K)", "n",
+	 "delta(degree)");
+  for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it)
+  {
+    BriefDihKinds(it->second, ffData);
+  }
+  std::cout << std::endl;
 }
 
 namespace
@@ -217,8 +250,8 @@ namespace
 
 void AssignMolKinds(MolKind& kind, const pdb_setup::Atoms& pdbData, const std::string& name)
 {
-  uint index = std::find(pdbData.resKindNames.begin(), pdbData.resKindNames.end(), name)
-               - pdbData.resKindNames.end();
+  uint index = std::find(pdbData.resKindNames.begin(),
+			 pdbData.resKindNames.end(), name) - pdbData.resKindNames.end();
   kind.kindIndex = index;
 }
 
@@ -267,6 +300,44 @@ void AssignBondKinds(MolKind& kind, const FFSetup& ffData)
   }
 }
 
+void BriefBondKinds(MolKind& kind, const FFSetup& ffData)
+{
+  const uint ATOMS_PER = 2;
+  std::string elementNames[ATOMS_PER];
+  bool readKind[kind.bonds.size()];
+  if(kind.bonds.size() == 0)
+    return;
+
+  for (uint i = 0; i < kind.bonds.size(); ++i)
+  {
+    readKind[i] = false;
+  }
+
+  for (uint i = 0; i < kind.bonds.size(); ++i)
+  {
+    uint search = kind.bonds[i].kind;
+    if(!readKind[search])
+    {
+      elementNames[0] = kind.atoms[kind.bonds[i].a0].type;
+      elementNames[1] = kind.atoms[kind.bonds[i].a1].type;
+
+      std::string bondName;
+      for (uint m = 0; m < ATOMS_PER; ++m)
+        bondName.append(elementNames[m]).append("  ");
+
+      printf("%-20s", bondName.c_str());
+      if(ffData.bond.GetKb(search) > 99999999)
+        printf("%15s %20.4f \n", "FIX", ffData.bond.Getb0(search));
+      else
+	printf("%15.6f %20.4f \n", ffData.bond.GetKb(search),
+	       ffData.bond.Getb0(search));
+
+      readKind[search] = true;
+    }
+  }
+  std::cout << std::endl;
+}
+
 void AssignAngleKinds(MolKind& kind, const FFSetup& ffData)
 {
   const uint ATOMS_PER = 3;
@@ -296,6 +367,47 @@ void AssignAngleKinds(MolKind& kind, const FFSetup& ffData)
   }
 }
 
+void BriefAngleKinds(MolKind& kind, const FFSetup& ffData)
+{
+  const uint ATOMS_PER = 3;
+  std::string elementNames[ATOMS_PER];
+  bool readKind[kind.angles.size()];
+
+  if(kind.angles.size() == 0)
+    return;
+
+  for (uint i = 0; i < kind.angles.size(); ++i)
+  {
+    readKind[i] = false;
+  }
+
+  double coef = 180.00 / M_PI;
+  for (uint i = 0; i < kind.angles.size(); ++i)
+  {
+    uint search = kind.angles[i].kind;
+    if(!readKind[search])
+    {
+      elementNames[0] = kind.atoms[kind.angles[i].a0].type;
+      elementNames[1] = kind.atoms[kind.angles[i].a1].type;
+      elementNames[2] = kind.atoms[kind.angles[i].a2].type;
+
+      std::string angleName;
+      for (uint m = 0; m < ATOMS_PER; ++m)
+        angleName.append(elementNames[m]).append("  ");
+
+      printf("%-20s", angleName.c_str());
+      if(ffData.angle.GetKtheta(search) > 99999999)
+        printf("%15s %20.4f \n", "FIX", ffData.angle.Gettheta0(search) *coef);
+      else
+	printf("%15.6f %20.4f \n", ffData.angle.GetKtheta(search),
+	       ffData.angle.Gettheta0(search) * coef);
+
+      readKind[search] = true;
+    }
+  }
+  std::cout << std::endl;
+}
+
 void AssignDihKinds(MolKind& kind, const FFSetup& ffData)
 {
   const uint ATOMS_PER = 4;
@@ -322,6 +434,54 @@ void AssignDihKinds(MolKind& kind, const FFSetup& ffData)
     kind.dihedrals[i].kind = search;
   }
 }
+
+void BriefDihKinds(MolKind& kind, const FFSetup& ffData)
+{
+  const uint ATOMS_PER = 4;
+
+  std::string elementNames[ATOMS_PER];
+  double coef = 180.00 / M_PI;
+  bool readKind[kind.dihedrals.size()];
+
+  if(kind.dihedrals.size() == 0)
+    return;
+
+  for (uint i = 0; i < kind.dihedrals.size(); ++i)
+  {
+    readKind[i] = false;
+  }
+
+  for (uint i = 0; i < kind.dihedrals.size(); ++i)
+  {
+    uint search = kind.dihedrals[i].kind;
+    std::string dName = ffData.dih.name[search];
+    if(!readKind[search])
+    {
+      elementNames[0] = kind.atoms[kind.dihedrals[i].a0].type;
+      elementNames[1] = kind.atoms[kind.dihedrals[i].a1].type;
+      elementNames[2] = kind.atoms[kind.dihedrals[i].a2].type;
+      elementNames[3] = kind.atoms[kind.dihedrals[i].a3].type;
+
+      std::string dihedralName;
+      for (uint m = 0; m < ATOMS_PER; ++m)
+        dihedralName.append(elementNames[m]).append("  ");
+
+      uint dihsize = ffData.dih.GetSizeDih(dName);
+
+      for(uint j = 0; j < dihsize; j++)
+      {
+	printf("%-20s", dihedralName.c_str());
+	printf("%15.6f %4d %15.4f \n", ffData.dih.GetKchi(dName, j),
+	       ffData.dih.Getn(dName, j),
+	       ffData.dih.Getdelta(dName, j) * coef);
+      }
+      readKind[search] = true;
+    }
+  }
+  std::cout << endl;
+}
+
+
 }
 
 
@@ -341,14 +501,14 @@ void mol_setup::PrintMolMapVerbose(const MolMap& kindMap)
 	it->second.atoms[i].charge <<'\t' << std::setprecision(4) <<
 	it->second.atoms[i].mass << std::endl;
     }
-    std::cout << "Bonds:";
+    std::cout << "\nBonds:";
     for (uint i = 0; i < it->second.bonds.size(); i++)
     {
       if (i % 20 == 0)
         std::cout << std::endl;
       std::cout << "[" << it->second.bonds[i].a0 << ' ' << it->second.bonds[i].a1 << ']' << ' ';
     }
-    std::cout << std::endl << "Angles:";
+    std::cout << std::endl << "\nAngles:";
     for (uint i = 0; i < it->second.angles.size(); i++)
     {
       if (i % 24 == 0)
@@ -357,7 +517,7 @@ void mol_setup::PrintMolMapVerbose(const MolMap& kindMap)
                 << it->second.angles[i].a1 << ' '
                 << it->second.angles[i].a2 << ']' << ' ';
     }
-    std::cout << std::endl << "Dihedrals:";
+    std::cout << std::endl << "\nDihedrals:";
     for (uint i = 0; i < it->second.dihedrals.size(); i++)
     {
       if (i % 24 == 0)
@@ -411,7 +571,8 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap)
     check = fgets(input, 511, psf);
     if (check == NULL)
     {
-      fprintf(stderr, "ERROR: Unable to read atoms from PSF file %s", psfFilename);
+      fprintf(stderr, "ERROR: Unable to read atoms from PSF file %s",
+	      psfFilename);
       fclose(psf);
       return READERROR;
     }
@@ -450,6 +611,7 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap)
     }
   }
   //find angle header+count
+  psf = fopen(psfFilename, "r");
   while (strstr(input, "!NTHETA") == NULL)
   {
     check = fgets(input, 511, psf);
@@ -471,6 +633,7 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap)
     }
   }
   //find dihedrals header+count
+  psf = fopen(psfFilename, "r");
   while (strstr(input, "!NPHI") == NULL)
   {
     check = fgets(input, 511, psf);
@@ -582,7 +745,8 @@ int ReadPSFBonds(FILE* psf, MolMap& kindMap,
     {
       currentMol.bonds.push_back(Bond(atom0 - molBegin, atom1 - molBegin));
       dummy = fscanf(psf, "%u %u", &atom0, &atom1);
-
+      if(dummy != 2)
+	break;
     }
   }
   return 0;
@@ -622,6 +786,8 @@ int ReadPSFAngles(FILE* psf, MolMap& kindMap,
       currentMol.angles.push_back(Angle(atom0 - molBegin, atom1 - molBegin,
                                         atom2 - molBegin));
       dummy = fscanf(psf, "%u %u %u", &atom0, &atom1, &atom2);
+      if(dummy != 3)
+	break;
     }
   }
   return 0;
@@ -700,12 +866,14 @@ int ReadPSFDihedrals(FILE* psf, MolMap& kindMap,
       dih.a2 -= molBegin;
       dih.a3 -= molBegin;
       //some xplor PSF files have duplicate dihedrals, we need to ignore these
-      if (std::find(currentMol.dihedrals.begin(), currentMol.dihedrals.end(), dih)
-          == currentMol.dihedrals.end())
+      if (std::find(currentMol.dihedrals.begin(), currentMol.dihedrals.end(),
+		    dih) == currentMol.dihedrals.end())
       {
         currentMol.dihedrals.push_back(dih);
       }
       dummy = fscanf(psf, "%u %u %u %u", &dih.a0, &dih.a1, &dih.a2, &dih.a3);
+      if(dummy != 4)
+	break;
     }
   }
   return 0;

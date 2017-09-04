@@ -1,6 +1,15 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.1] - 9/4/2017
++ Adsorption
++ Fixed the bug where GPU and CPU total energy calculations where slighty different.
++ Removed some unused variables
++ Removed some warnings
++ Fixed pow function ambiguity in some compilers like clang
++ Fixed compiling bug for Clock.h when using clang (mac users)
++ Set a maximum of 9999999999 for output energies
+
 ## [2.0] - 6/11/2017
 + NPT added
 + GPU implementation has been added to the project

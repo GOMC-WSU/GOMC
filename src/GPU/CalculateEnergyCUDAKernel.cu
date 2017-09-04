@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -196,10 +196,6 @@ __device__ double CalcCoulombGPU(double distSq, double qi_qj_fact,
 				 double gpu_rCut, int gpu_isMartini,
 				 double gpu_diElectric_1)
 {
-  double rCutLowSq = gpu_rCutLow * gpu_rCutLow;
-  if(distSq <= rCutLowSq)
-    return DBL_MAX;
-
   if(gpu_VDW_Kind == GPU_VDW_STD_KIND)
   {
     return CalcCoulombParticleGPU(distSq, qi_qj_fact, gpu_alpha);

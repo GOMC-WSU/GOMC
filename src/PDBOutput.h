@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -70,8 +70,7 @@ private:
                   std::string const& resName);
 
   void InsertAtomInLine(std::string & line, XYZ const& coor,
-                        std::string const& occ =
-                          pdb_entry::atom::field::occupancy::BOX[1]);
+                        std::string const& occ, std::string const& beta);
 
   void PrintEnd(const uint b, Writer & out)
   {
