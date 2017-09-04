@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -113,18 +113,26 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
     //silly psfs index from 1
     uint atomID = 1;
     uint molID = 1;
+    uint currKind = molecules->kIndex[0];
     for(uint mol = 0; mol < molecules->count; ++mol)
     {
         uint thisKind = molecules->kIndex[mol];
         uint nAtoms = molKinds[thisKind].atoms.size();
+	if(thisKind != currKind)
+	{
+	   currKind = thisKind;
+	   molID = 1;
+	}
+
         for(uint at = 0; at < nAtoms; ++at)
         {
             const Atom* thisAtom = &molKinds[thisKind].atoms[at];
             //atom ID, segment name, residue ID, residue name,
             //atom name, atom type, charge, mass, and an unused 0
 
-            fprintf(outfile, atomFormat, atomID, molNames[thisKind].c_str(), molID, molNames[thisKind].c_str(),
-                thisAtom->name.c_str(), thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+            fprintf(outfile, atomFormat, atomID, molNames[thisKind].c_str(),
+		    molID, molNames[thisKind].c_str(), thisAtom->name.c_str(),
+		    thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass,0);
             ++atomID;
         }
         ++molID;

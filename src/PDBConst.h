@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -177,6 +177,7 @@ namespace beta
 {
 static const ConstField POS(60,6);
 static const double DEFAULT = 0.00;
+ static const std::string FIX[] = {"0.00", "1.00", "2.00"};
 static const uint PRECISION = 2;
 static const char ALIGN = align::RIGHT;
 }

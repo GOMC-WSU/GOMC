@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -57,12 +57,15 @@ public:
                            const uint kind1, const uint kind2) const;
 
   // coulomb interaction functions
+  virtual double CalcCoulomb(const double distSq,
+			     const double qi_qj_Fact) const;
   virtual double CalcCoulombEn(const double distSq,
                                const double qi_qj_Fact) const;
   virtual double CalcCoulombVir(const double distSq,
                                 const double qi_qj) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
-                                  const double qi_qj_Fact) const;
+                                  const double qi_qj_Fact,
+				  const bool NB) const;
 
 
   //!Returns Ezero, no energy correction
@@ -112,26 +115,15 @@ inline void FF_SWITCH_MARTINI::CalcAdd_1_4(double& en, const double distSq,
 }
 
 inline void FF_SWITCH_MARTINI::CalcCoulombAdd_1_4(double& en,
-    const double distSq,
-    const double qi_qj_Fact) const
+						  const double distSq,
+						  const double qi_qj_Fact,
+						  const bool NB) const
 {
-  if(ewald)
-  {
-     double dist = sqrt(distSq);
-     double erfc = alpha * dist;
-     en += scaling_14 * qi_qj_Fact * (1 - erf(erfc))/ dist;
-  }
-  else
-  {
-     // in Martini, the Coulomb switching distance is zero, so we will have
-     // sqrt(distSq) - rOnCoul =  sqrt(distSq)
-     double dist = sqrt(distSq);
-     double rij_ronCoul_3 = dist * distSq;
-     double rij_ronCoul_4 = distSq * distSq;
-
-     double coul = -(A1/3.0) * rij_ronCoul_3 - (B1/4.0) * rij_ronCoul_4 - C1;
-     en += scaling_14 * qi_qj_Fact * diElectric_1 * (coul + 1.0/dist);
-  }
+   double dist = sqrt(distSq);
+   if(NB)
+     en += qi_qj_Fact / dist;
+   else
+     en += qi_qj_Fact * scaling_14 / dist;
 }
 
 
@@ -170,6 +162,29 @@ inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
   return Eij;
 }
 
+inline double FF_SWITCH_MARTINI::CalcCoulomb(const double distSq,
+					     const double qi_qj_Fact) const
+{
+  if(ewald)
+  {
+     double dist = sqrt(distSq);
+     double val = alpha * dist;
+     return  qi_qj_Fact * erfc(val)/ dist;
+  }
+  else
+  {
+     // in Martini, the Coulomb switching distance is zero, so we will have
+     // sqrt(distSq) - rOnCoul =  sqrt(distSq)
+     double dist = sqrt(distSq);
+     double rij_ronCoul_3 = dist * distSq;
+     double rij_ronCoul_4 = distSq * distSq;
+
+     double coul = -(A1/3.0) * rij_ronCoul_3 - (B1/4.0) * rij_ronCoul_4 - C1;
+     return qi_qj_Fact  * diElectric_1 * (1.0/dist + coul);
+  }
+}
+
+//will be used in energy calculation after each move
 inline double FF_SWITCH_MARTINI::CalcCoulombEn(const double distSq,
 					       const double qi_qj_Fact) const
 {
@@ -179,8 +194,8 @@ inline double FF_SWITCH_MARTINI::CalcCoulombEn(const double distSq,
   if(ewald)
   {
      double dist = sqrt(distSq);
-     double erfc = alpha * dist;
-     return  qi_qj_Fact * (1 - erf(erfc))/ dist;
+     double val = alpha * dist;
+     return  qi_qj_Fact * erfc(val)/ dist;
   }
   else
   {
@@ -233,7 +248,7 @@ inline double FF_SWITCH_MARTINI::CalcCoulombVir(const double distSq,
      double dist = sqrt(distSq);
      double constValue = 2.0 * alpha / sqrt(M_PI);
      double expConstValue = exp(-1.0 * alpha * alpha * distSq);
-     double temp = 1.0 - erf(alpha * dist);
+     double temp = erfc(alpha * dist);
      return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   }
   else
