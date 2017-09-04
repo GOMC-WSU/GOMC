@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -387,7 +387,7 @@ void ConfigSetup::Init(const char *fileName)
       if(!sys.step.pressureCalc)
         printf("%-40s %-s \n", "Info: Pressure calculation", "Inactive");
       else
-      {	
+      {
 	printf("%-40s %-d \n", "Info: Pressure calculation frequency",
 	       sys.step.pressureCalcFreq);
       }
@@ -541,7 +541,7 @@ void ConfigSetup::Init(const char *fileName)
       out.restart.settings.enable = checkBool(line[1]);
       if(line.size() == 3)
 	out.restart.settings.frequency = stringtoi(line[2]);
-      
+
       if(out.restart.settings.enable && (line.size() == 2))
 	out.restart.settings.frequency = (ulong)sys.step.total;
 
@@ -586,7 +586,7 @@ void ConfigSetup::Init(const char *fileName)
 
       if(out.statistics.settings.block.enable && (line.size() == 2))
 	out.statistics.settings.block.frequency = (ulong)sys.step.total / 100;
-	
+
       if(out.statistics.settings.block.enable)
       {
 	printf("%-40s %-d \n", "Info: Average output frequency",
@@ -812,7 +812,7 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Output name is not specified!" << std::endl;
     exit(0);
   }
-  
+
 #if ENSEMBLE == GEMC
   if(sys.gemc.kind == mv::GEMC_NPT && sys.gemc.pressure == DBL_MAX)
   {
@@ -1142,7 +1142,7 @@ void ConfigSetup::verifyInputs(void)
   if(!out.statistics.settings.block.enable && out.statistics.vars.energy.block)
   {
     printf("Note: Average output Inactived. Energy average output will be ignored.\n");
-    out.statistics.vars.energy.block = false;   
+    out.statistics.vars.energy.block = false;
   }
   if(!out.statistics.settings.block.enable &&
      out.statistics.vars.pressure.block)

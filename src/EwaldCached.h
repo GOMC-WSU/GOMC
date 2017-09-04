@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -94,9 +94,9 @@ class EwaldCached
 
    //calculate self term after swap move
    virtual double SwapSelf(const cbmc::TrialMol& trialMo) const;
-   
+
    //calculate correction term after swap move
-   virtual double SwapCorrection(const cbmc::TrialMol& trialMo) const; 
+   virtual double SwapCorrection(const cbmc::TrialMol& trialMo) const;
 
    //calculate reciprocate term in destination box for swap move
    virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -326,7 +326,7 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
   using namespace pdb_entry::atom::field;
   using namespace pdb_entry;
   char segname='A';
-  uint molecule=0, atom=0, pStart = 0, pEnd = 0; 
+  uint molecule=0, atom=0, pStart = 0, pEnd = 0;
   for (uint k = 0; k < molRef.kindsCount; ++k)
   {
     uint countByKind = molLookupRef.NumKindInBox(k, b);
@@ -341,7 +341,7 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
       {
         std::string line = GetDefaultAtomStr();
         XYZ coor = coordCurrRef.Get(p);
-	boxDimRef.UnwrapPBC(coor, b, ref);			       
+	boxDimRef.UnwrapPBC(coor, b, ref);
         FormatAtom(line, atom, molecule, segname,
                    molRef.kinds[k].atomNames[p-pStart], resName);
 

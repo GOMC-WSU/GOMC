@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -636,11 +636,11 @@ double* CalculateEnergy::MoleculeIntra(const uint molIndex,
 					const uint box) const
 {  double *bondEn = new double[2];
    bondEn[0] = 0.0 , bondEn[1] = 0.0;
-   
+
    MoleculeKind& molKind = mols.kinds[mols.kIndex[molIndex]];
    // *2 because we'll be storing inverse bond vectors
    XYZArray bondVec(molKind.bondList.count * 2);
-   
+
    BondVectors(bondVec, molKind, molIndex, box);
 
    MolBond(bondEn[0], molKind, bondVec, box);
@@ -752,7 +752,7 @@ void CalculateEnergy::MolNonbond(double & energy,
            qi_qj_Fact = num::qqFact *
 	     molKind.AtomCharge(molKind.nonBonded.part1[i]) *
 	     molKind.AtomCharge(molKind.nonBonded.part2[i]);
-       
+
 	   forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
 						    qi_qj_Fact, true);
 	}

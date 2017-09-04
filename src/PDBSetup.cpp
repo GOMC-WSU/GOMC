@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -116,7 +116,7 @@ void Atoms::Assign(std::string const& atomName,
     if (resNum != currRes || resName !=currResname || firstResInFile)
     {
       molBeta.push_back(l_beta);
-      startIdxRes.push_back(count);      
+      startIdxRes.push_back(count);
       currRes = resNum;
       currResname = resName;
       resNames.push_back(resName);

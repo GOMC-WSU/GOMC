@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -227,7 +227,7 @@ void MolSetup::AssignKinds(const pdb_setup::Atoms& pdbAtoms, const FFSetup& ffDa
   {
     BriefBondKinds(it->second, ffData);
   }
-  
+
   printf("\nAngles parameter:\n");
   printf("%-19s %15s %20s \n", "Atom Types", "Ktheta(K)", "theta0(degree)");
   for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it)
@@ -390,7 +390,7 @@ void BriefAngleKinds(MolKind& kind, const FFSetup& ffData)
       elementNames[0] = kind.atoms[kind.angles[i].a0].type;
       elementNames[1] = kind.atoms[kind.angles[i].a1].type;
       elementNames[2] = kind.atoms[kind.angles[i].a2].type;
-      
+
       std::string angleName;
       for (uint m = 0; m < ATOMS_PER; ++m)
         angleName.append(elementNames[m]).append("  ");
@@ -456,7 +456,7 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData)
     uint search = kind.dihedrals[i].kind;
     std::string dName = ffData.dih.name[search];
     if(!readKind[search])
-    { 
+    {
       elementNames[0] = kind.atoms[kind.dihedrals[i].a0].type;
       elementNames[1] = kind.atoms[kind.dihedrals[i].a1].type;
       elementNames[2] = kind.atoms[kind.dihedrals[i].a2].type;
@@ -467,7 +467,7 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData)
         dihedralName.append(elementNames[m]).append("  ");
 
       uint dihsize = ffData.dih.GetSizeDih(dName);
-      
+
       for(uint j = 0; j < dihsize; j++)
       {
 	printf("%-20s", dihedralName.c_str());
@@ -475,7 +475,7 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData)
 	       ffData.dih.Getn(dName, j),
 	       ffData.dih.Getdelta(dName, j) * coef);
       }
-      readKind[search] = true;      
+      readKind[search] = true;
     }
   }
   std::cout << endl;

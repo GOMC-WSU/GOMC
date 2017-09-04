@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -59,13 +59,13 @@ void Coordinates::CheckCoordinate()
       printf("Molecules are packed outside of the defined box dimension.\n");
       exit(0);
     }
-  
+
     printf("Wrapping molecules inside the simulation box %d:\n", b+1);
     while (thisMol != end)
     {
        start = molRef.MolStart(*thisMol);
        MoleculeKind const& thisKind = molRef.GetKind(*thisMol);
-      
+
        for (p = 0; p < thisKind.NumAtoms(); p++)
        {
 	  atom = start + p;
@@ -73,9 +73,9 @@ void Coordinates::CheckCoordinate()
        }
        ++thisMol;
     }
- 
+
   }
-  
+
 }
 
 //Translate by a random amount

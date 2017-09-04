@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -41,7 +41,7 @@ class MoveBase
      cellList(sys.cellList), molRemoved(false)
    {
       calcEwald = sys.GetEwald();
-#if ENSEMBLE == GEMC || ENSEMBLE == NPT     
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
       fixBox0 = statV.fixVolBox0;
 #endif
    }
@@ -403,7 +403,7 @@ inline uint VolumeTransfer::Transform()
 	    if ((bPick[b] == 0) && fixBox0)
 	       continue;
 
-	    coordCurrRef.TranslateOneBox(newMolsPos, newCOMs, comCurrRef, 
+	    coordCurrRef.TranslateOneBox(newMolsPos, newCOMs, comCurrRef,
 				      newDim, bPick[b], scale[bPick[b]]);
 	 }
       }
@@ -434,7 +434,7 @@ inline void VolumeTransfer::CalcEn()
       //calculate reciprocate term of electrostatic interaction
       sysPotNew.boxEnergy[bPick[b]].recip = calcEwald->BoxReciprocal(bPick[b]);
    }
-   sysPotNew.Total();  
+   sysPotNew.Total();
 }
 
 
@@ -493,7 +493,7 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       {
 	 if ((bPick[b] == 0) && fixBox0)
 	   continue;
-	 
+
 	 calcEwald->UpdateRecip(b);
 	 calcEwald->UpdateRecipVec(b);
       }

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.0
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -126,7 +126,7 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
 	 //Add correction energy
 	 sysPotRef.boxEnergy[sourceBox].correction -= correct_old;
 	 sysPotRef.boxEnergy[destBox].correction += correct_new;
-	 
+
 	 //Set coordinates, new COM; shift index to new box's list
          newMol.GetCoords().CopyRange(coordCurrRef, 0, pStart, pLen);
          comCurrRef.SetNew(molIndex, destBox);
