@@ -304,7 +304,7 @@ void BriefBondKinds(MolKind& kind, const FFSetup& ffData)
 {
   const uint ATOMS_PER = 2;
   std::string elementNames[ATOMS_PER];
-  bool readKind[kind.bonds.size()];
+  bool *readKind = new bool[kind.bonds.size()];
   if(kind.bonds.size() == 0)
     return;
 
@@ -336,6 +336,7 @@ void BriefBondKinds(MolKind& kind, const FFSetup& ffData)
     }
   }
   std::cout << std::endl;
+  delete [] readKind;
 }
 
 void AssignAngleKinds(MolKind& kind, const FFSetup& ffData)
@@ -371,7 +372,7 @@ void BriefAngleKinds(MolKind& kind, const FFSetup& ffData)
 {
   const uint ATOMS_PER = 3;
   std::string elementNames[ATOMS_PER];
-  bool readKind[kind.angles.size()];
+  bool *readKind = new bool[kind.angles.size()];
 
   if(kind.angles.size() == 0)
     return;
@@ -406,6 +407,7 @@ void BriefAngleKinds(MolKind& kind, const FFSetup& ffData)
     }
   }
   std::cout << std::endl;
+  delete [] readKind;
 }
 
 void AssignDihKinds(MolKind& kind, const FFSetup& ffData)
@@ -441,7 +443,7 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData)
 
   std::string elementNames[ATOMS_PER];
   double coef = 180.00 / M_PI;
-  bool readKind[kind.dihedrals.size()];
+  bool *readKind = new bool[kind.dihedrals.size()];
 
   if(kind.dihedrals.size() == 0)
     return;
@@ -479,6 +481,7 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData)
     }
   }
   std::cout << endl;
+  delete [] readKind;
 }
 
 
