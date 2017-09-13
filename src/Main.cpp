@@ -173,7 +173,7 @@ namespace {
 
   std::ostream& PrintVersion(std::ostream& stream)
   {
-    stream << "Info: GOMC Serial Version " << GOMC_VERSION_MAJOR
+    stream << "Info: GOMC Version " << GOMC_VERSION_MAJOR
 	   << '.' << GOMC_VERSION_MINOR;
     return stream;
   }
