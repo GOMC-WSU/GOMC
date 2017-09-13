@@ -76,9 +76,10 @@ uint BoxDimensions::ExchangeVolume
   for (uint b = 0; b < BOX_TOTAL && state == mv::fail_state::NO_FAIL; b++)
   {
     scale[b] = newDim.axis.Get(b) / axis.Get(b);
-    if ((newDim.axis.x[b] < rCut || newDim.axis.y[b] < rCut || newDim.axis.z[b] < rCut))
+    if ((newDim.halfAx.x[b] < rCut || newDim.halfAx.y[b] < rCut ||
+	 newDim.halfAx.z[b] < rCut))
     {
-      std::cout << "WARNING!!! box shrunk below 2*rc! Auto-rejecting!"
+      std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!"
 	      << std::endl;
       state = state && mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
     }
