@@ -1,6 +1,7 @@
 Current Release: 2.1 (9/4/2017)
 
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/GOMC_WSU/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
+[![Build Status](https://travis-ci.org/GOMC-WSU/GOMC.svg?branch=master)](https://travis-ci.org/GOMC-WSU/GOMC)
 
 We recommend the [GOMC Project Website](http://gomc.eng.wayne.edu/ "GOMC Website") and the [user manual](http://gomc.eng.wayne.edu/GOMC_files/GOMC_Manual.pdf "User Manual") for further information and examples.
 
@@ -10,10 +11,10 @@ GOMC - GPU Optimized Monte Carlo
 BUILDING GOMC ON LINUX:
 ----------------
    1. Give execution permission using "chmod u+x metamake.sh"
-   2. In the base (serial code) directory type "./metamake.sh"
-   3. Go to the "bin" subdirectory
+   2. In the base directory type "./metamake.sh"
+   3. Step 2 should generate all the executables in "bin" directory
    If you want to compile it in OMP mode:
-   4. Open CMakeCache.txt file and modify
+   4. Open CMakeCache.txt file in "bin" directory and modify
       "CMAKE_CXX_FLAGS_RELEASE:STRING:-O3 -DNDEBUG"
       to "CMAKE_CXX_FLAGS_RELEASE:STRING=-O3 -qopenmp -DNDEBUG"
    5. Type "make" to initiate the build process.
