@@ -562,43 +562,34 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
    MoleculeKind const& thisKind = mols.GetKind(molIndex);
    uint kindI = thisKind.AtomKind(partIndex);
    double kindICharge = thisKind.AtomCharge(partIndex);
-   std::vector<uint> nIndex;
 
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(t, distSq, qi_qj_Fact) reduction(+:tempLJ, tempReal)
+#endif
    for(t = 0; t < trials; ++t)
    {
-      nIndex.clear();
       tempReal = 0.0;
       tempLJ = 0.0;
       CellList::Neighbors n = cellList.EnumerateLocal(trialPos[t], box);
       while (!n.Done())
       {
-	nIndex.push_back(*n);
+	distSq = 0.0;
+	if (currentAxes.InRcut(distSq, trialPos, t, currentCoords,
+			       *n, box))
+	{
+	  tempLJ += forcefield.particles->CalcEn(distSq, kindI,
+						 particleKind[*n]);
+	  if (electrostatic)
+	  {
+	    qi_qj_Fact = particleCharge[*n] * kindICharge * num::qqFact;
+	    tempReal += forcefield.particles->CalcCoulombEn(distSq, qi_qj_Fact);
+	  }
+	}
 	n.Next();
-      }
-
-#ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, distSq, qi_qj_Fact) reduction(+:tempLJ, tempReal)
-#endif
-      for(i = 0; i < nIndex.size(); i++)
-      {
-	 distSq = 0.0;
-
-         if (currentAxes.InRcut(distSq, trialPos, t, currentCoords,
-				nIndex[i], box))
-	 {
-            tempLJ += forcefield.particles->CalcEn(distSq, kindI,
-						 particleKind[nIndex[i]]);
-	    if (electrostatic)
-	    {
-	      qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
-	      tempReal += forcefield.particles->CalcCoulombEn(distSq, qi_qj_Fact);
-	    }
-         }
       }
       en[t] += tempLJ;
       real[t] += tempReal;
    }
-
    return;
 }
 
