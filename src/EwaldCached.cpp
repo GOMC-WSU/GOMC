@@ -78,7 +78,7 @@ EwaldCached::~EwaldCached()
       }
     }
 
-    for (uint b = 0; b < BOX_TOTAL; b++)
+    for (uint b = 0; b < BOXES_WITH_U_NB; b++)
     {
       if (kx[b] != NULL)
       {
@@ -207,29 +207,29 @@ void EwaldCached::AllocMem()
   //get size of image using defined Kmax
   //Allocate Memory
 
-  kmax = new uint[BOX_TOTAL];
-  imageSize = new uint[BOX_TOTAL];
-  imageSizeRef = new uint[BOX_TOTAL];
-  sumRnew = new double*[BOX_TOTAL];
-  sumInew = new double*[BOX_TOTAL];
-  sumRref = new double*[BOX_TOTAL];
-  sumIref = new double*[BOX_TOTAL];
-  kx = new double*[BOX_TOTAL];
-  ky = new double*[BOX_TOTAL];
-  kz = new double*[BOX_TOTAL];
-  hsqr = new double*[BOX_TOTAL];
-  prefact = new double*[BOX_TOTAL];
-  kxRef = new double*[BOX_TOTAL];
-  kyRef = new double*[BOX_TOTAL];
-  kzRef = new double*[BOX_TOTAL];
-  hsqrRef = new double*[BOX_TOTAL];
-  prefactRef = new double*[BOX_TOTAL];
+  kmax = new uint[BOXES_WITH_U_NB];
+  imageSize = new uint[BOXES_WITH_U_NB];
+  imageSizeRef = new uint[BOXES_WITH_U_NB];
+  sumRnew = new double*[BOXES_WITH_U_NB];
+  sumInew = new double*[BOXES_WITH_U_NB];
+  sumRref = new double*[BOXES_WITH_U_NB];
+  sumIref = new double*[BOXES_WITH_U_NB];
+  kx = new double*[BOXES_WITH_U_NB];
+  ky = new double*[BOXES_WITH_U_NB];
+  kz = new double*[BOXES_WITH_U_NB];
+  hsqr = new double*[BOXES_WITH_U_NB];
+  prefact = new double*[BOXES_WITH_U_NB];
+  kxRef = new double*[BOXES_WITH_U_NB];
+  kyRef = new double*[BOXES_WITH_U_NB];
+  kzRef = new double*[BOXES_WITH_U_NB];
+  hsqrRef = new double*[BOXES_WITH_U_NB];
+  prefactRef = new double*[BOXES_WITH_U_NB];
   cosMolRef = new double*[mols.count];
   sinMolRef = new double*[mols.count];
   cosMolBoxRecip = new double*[mols.count];
   sinMolBoxRecip = new double*[mols.count];
 
-  for(uint b = 0; b < BOX_TOTAL; b++)
+  for(uint b = 0; b < BOXES_WITH_U_NB; b++)
   {
      RecipCountInit(b, currentAxes);
   }
@@ -237,7 +237,7 @@ void EwaldCached::AllocMem()
   imageTotal = findLargeImage();
   memoryAllocation = imageTotal;
 
-  for(uint b = 0; b < BOX_TOTAL; b++)
+  for(uint b = 0; b < BOXES_WITH_U_NB; b++)
   {
      kx[b] = new double[imageTotal];
      ky[b] = new double[imageTotal];
@@ -887,7 +887,7 @@ void EwaldCached::SetRecipRef(uint box)
   CopyCurrentToRefCUDA(forcefield.particles->getCUDAVars(),
 		       box, imageSize[box]);
 #endif
-  for(uint b= 0; b < BOX_TOTAL; b++)
+  for(uint b= 0; b < BOXES_WITH_U_NB; b++)
   {
     imageSizeRef[b] = imageSize[b];
   }
@@ -933,7 +933,7 @@ void EwaldCached::UpdateRecipVec(uint box)
   UpdateRecipVecCUDA(forcefield.particles->getCUDAVars(), box);
 #endif
 
-  for(uint b = 0; b < BOX_TOTAL; b++)
+  for(uint b = 0; b < BOXES_WITH_U_NB; b++)
   {
     imageSizeRef[b] = imageSize[b];
   }
