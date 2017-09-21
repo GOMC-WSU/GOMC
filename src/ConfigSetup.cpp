@@ -359,18 +359,18 @@ void ConfigSetup::Init(const char *fileName)
     else if(line[0] == "RunSteps")
     {
       sys.step.total = stringtoi(line[1]);
-      printf("%-40s %-d \n", "Info: Total number of steps", sys.step.total);
+      printf("%-40s %-lu \n", "Info: Total number of steps", sys.step.total);
     }
     else if(line[0] == "EqSteps")
     {
       sys.step.equil = stringtoi(line[1]);
-      printf("%-40s %-d \n", "Info: Number of equilibration steps",
+      printf("%-40s %-lu \n", "Info: Number of equilibration steps",
 	     sys.step.equil);
     }
     else if(line[0] == "AdjSteps")
     {
       sys.step.adjustment = stringtoi(line[1]);
-      printf("%-40s %-d \n", "Info: Move adjustment frequency",
+      printf("%-40s %-lu \n", "Info: Move adjustment frequency",
 	     sys.step.adjustment);
     }
     else if(line[0] == "PressureCalc")
@@ -388,7 +388,7 @@ void ConfigSetup::Init(const char *fileName)
         printf("%-40s %-s \n", "Info: Pressure calculation", "Inactive");
       else
       {
-	printf("%-40s %-d \n", "Info: Pressure calculation frequency",
+	printf("%-40s %-lu \n", "Info: Pressure calculation frequency",
 	       sys.step.pressureCalcFreq);
       }
     }
@@ -530,7 +530,7 @@ void ConfigSetup::Init(const char *fileName)
 
       if(out.state.settings.enable)
       {
-	printf("%-40s %-d \n", "Info: Coordinate frequency",
+	printf("%-40s %-lu \n", "Info: Coordinate frequency",
 	       out.state.settings.frequency);
       }
       else
@@ -547,7 +547,7 @@ void ConfigSetup::Init(const char *fileName)
 
       if(out.restart.settings.enable)
       {
-	printf("%-40s %-d \n", "Info: Restart frequency",
+	printf("%-40s %-lu \n", "Info: Restart frequency",
 	       out.restart.settings.frequency);
       }
       else
@@ -572,7 +572,7 @@ void ConfigSetup::Init(const char *fileName)
       }
       if(out.console.enable)
       {
-	printf("%-40s %-d \n", "Info: Console output frequency",
+	printf("%-40s %-lu \n", "Info: Console output frequency",
 	       out.console.frequency);
       }
       else
@@ -589,7 +589,7 @@ void ConfigSetup::Init(const char *fileName)
 
       if(out.statistics.settings.block.enable)
       {
-	printf("%-40s %-d \n", "Info: Average output frequency",
+	printf("%-40s %-lu \n", "Info: Average output frequency",
 	       out.statistics.settings.block.frequency);
       }
       else
@@ -616,7 +616,7 @@ void ConfigSetup::Init(const char *fileName)
 
       if(out.statistics.settings.hist.enable)
       {
-	printf("%-40s %-d \n", "Info: Histogram output frequency",
+	printf("%-40s %-lu \n", "Info: Histogram output frequency",
 	       out.statistics.settings.hist.frequency);
       }
       else
@@ -734,7 +734,7 @@ void ConfigSetup::fillDefaults(void)
     sys.elect.oneFourScale = 0.0f;
     if(sys.exclude.EXCLUDE_KIND != sys.exclude.EXC_ONEFOUR_KIND)
     {
-      printf("%-40s %-s \n", "Default: Modified 1-4 Electrostatic scaling",
+      printf("%-40s %-lf \n", "Default: Modified 1-4 Electrostatic scaling",
 	     sys.elect.oneFourScale);
     }
   }

@@ -65,7 +65,9 @@ uint BoxDimensions::ExchangeVolume
 (BoxDimensions & newDim, XYZ * scale, const double transfer) const
 {
   uint state = mv::fail_state::NO_FAIL;
-  double vTot = volume[0] + volume[1];
+  double vTot = 0;
+  for(int i=0; i<BOX_TOTAL; i++)
+    vTot += volume[i];
   newDim = *this;
 
   newDim.SetVolume(0, volume[0] + transfer);
@@ -81,7 +83,7 @@ uint BoxDimensions::ExchangeVolume
     {
       std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!"
 	      << std::endl;
-      state = state && mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
+      state = (bool)state && (bool)mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
     }
   }
   return state;
