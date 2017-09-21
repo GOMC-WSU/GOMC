@@ -61,6 +61,8 @@ class MoveBase
     //This function carries out actions based on the internal acceptance state.
     virtual void Accept(const uint rejectState, const uint step) = 0;
 
+    virtual ~MoveBase() {}
+
  protected:
     uint subPick;
     //If a single molecule move, this is set by the target.
