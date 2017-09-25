@@ -76,25 +76,25 @@ void Ewald::AllocMem()
   //get size of image using defined Kmax
   //Allocate Memory
 
-  kmax = new uint[BOX_TOTAL];
-  imageSize = new uint[BOX_TOTAL];
-  imageSizeRef = new uint[BOX_TOTAL];
-  sumRnew = new double*[BOX_TOTAL];
-  sumInew = new double*[BOX_TOTAL];
-  sumRref = new double*[BOX_TOTAL];
-  sumIref = new double*[BOX_TOTAL];
-  kx = new double*[BOX_TOTAL];
-  ky = new double*[BOX_TOTAL];
-  kz = new double*[BOX_TOTAL];
-  hsqr = new double*[BOX_TOTAL];
-  prefact = new double*[BOX_TOTAL];
-  kxRef = new double*[BOX_TOTAL];
-  kyRef = new double*[BOX_TOTAL];
-  kzRef = new double*[BOX_TOTAL];
-  hsqrRef = new double*[BOX_TOTAL];
-  prefactRef = new double*[BOX_TOTAL];
+  kmax = new uint[BOXES_WITH_U_NB];
+  imageSize = new uint[BOXES_WITH_U_NB];
+  imageSizeRef = new uint[BOXES_WITH_U_NB];
+  sumRnew = new double*[BOXES_WITH_U_NB];
+  sumInew = new double*[BOXES_WITH_U_NB];
+  sumRref = new double*[BOXES_WITH_U_NB];
+  sumIref = new double*[BOXES_WITH_U_NB];
+  kx = new double*[BOXES_WITH_U_NB];
+  ky = new double*[BOXES_WITH_U_NB];
+  kz = new double*[BOXES_WITH_U_NB];
+  hsqr = new double*[BOXES_WITH_U_NB];
+  prefact = new double*[BOXES_WITH_U_NB];
+  kxRef = new double*[BOXES_WITH_U_NB];
+  kyRef = new double*[BOXES_WITH_U_NB];
+  kzRef = new double*[BOXES_WITH_U_NB];
+  hsqrRef = new double*[BOXES_WITH_U_NB];
+  prefactRef = new double*[BOXES_WITH_U_NB];
 
-  for(uint b = 0; b < BOX_TOTAL; b++)
+  for(uint b = 0; b < BOXES_WITH_U_NB; b++)
   {
      RecipCountInit(b, currentAxes);
   }
@@ -106,7 +106,7 @@ void Ewald::AllocMem()
   InitEwaldVariablesCUDA(forcefield.particles->getCUDAVars(), imageTotal);
 #endif
 
-  for (uint b = 0; b < BOX_TOTAL; b++)
+  for (uint b = 0; b < BOXES_WITH_U_NB; b++)
   {
      kx[b] = new double[imageTotal];
      ky[b] = new double[imageTotal];
