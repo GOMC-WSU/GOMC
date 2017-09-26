@@ -5,6 +5,7 @@ A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "BoxDimensions.h"
+#include "BoxDimensionsNonOrth.h"
 #include "MoveConst.h" //For cutoff-related fail condition
 
 void BoxDimensions::Init(config_setup::RestartSettings const& restart,

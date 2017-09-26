@@ -78,23 +78,24 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
    totalPerc = 1.0;
 }
 
-void StaticVals::IsBoxOrthogonal(config_setup::Volume const& confVolume)
+void StaticVals::IsBoxOrthogonal(config_setup::Volume const& vol)
 {
   double cosAngle[BOX_TOTAL][3];
   double orthogonal[BOX_TOTAL];
+  XYZ temp;
   isOrthogonal = false;
 
   for (uint b = 0; b < BOX_TOTAL; b++)
   {
-    double cellLengthX = cellBasis[b].Length(0);
-    double cellLengthY = cellBasis[b].Length(1);
-    double cellLengthZ = cellBasis[b].Length(2);
+    double cellLengthX = vol.axis[b].Length(0);
+    double cellLengthY = vol.axis[b].Length(1);
+    double cellLengthZ = vol.axis[b].Length(2);
     //Find Cosine Angle of alpha, beta and gamma
-    cosAngle[b][0] = DotProduct(confVolume[b].Get(1), confVolume[b].Get(2)) /
+    cosAngle[b][0] = temp.DotProduct(vol.axis[b].Get(1), vol.axis[b].Get(2)) /
       (cellLengthY * cellLengthZ);
-    cosAngle[b][1] = DotProduct(confVolume[b].Get(0), confVolume[b].Get(2)) /
+    cosAngle[b][1] = temp.DotProduct(vol.axis[b].Get(0), vol.axis[b].Get(2)) /
       (cellLengthX * cellLengthZ);
-    cosAngle[b][2] = DotProduct(confVolume[b].Get(0), confVolume[b].Get(1)) /
+    cosAngle[b][2] = temp.DotProduct(vol.axis[b].Get(0), vol.axis[b].Get(1)) /
       (cellLengthX * cellLengthY);
     
     orthogonal[b] = ((int(cosAngle[b][0]) == 90) &&

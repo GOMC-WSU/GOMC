@@ -8,6 +8,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define CELLLIST_H
 #include "BasicTypes.h"
 #include "EnsemblePreprocessor.h"
+#include "BoxDimensions.h"
+#include "BoxDimensionsNonOrth.h"
 #include <vector>
 #include <cassert>
 #include <iostream>

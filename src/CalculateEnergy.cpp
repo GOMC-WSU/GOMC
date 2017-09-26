@@ -18,6 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeKind.h"
 #include "Coordinates.h"
 #include "BoxDimensions.h"
+#include "BoxDimensionsNonOrth.h"
 #include "TrialMol.h"
 #include "GeomLib.h"
 #include "NumLib.h"
@@ -40,7 +41,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 using namespace geom;
 
-CalculateEnergy::CalculateEnergy(StaticVals const& stat, System & sys) :
+CalculateEnergy::CalculateEnergy(StaticVals & stat, System & sys) :
   forcefield(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
   currentCOM(sys.com),
 #ifdef VARIABLE_PARTICLE_NUMBER
@@ -49,9 +50,9 @@ CalculateEnergy::CalculateEnergy(StaticVals const& stat, System & sys) :
   molLookup(stat.molLookup),
 #endif
 #ifdef VARIABLE_VOLUME
-  currentAxes(sys.boxDimensions)
+  currentAxes(*sys.GetBoxDim())
 #else
-   currentAxes(stat.boxDimensions)
+   currentAxes(*stat.GetBoxDim())
 #endif
    , cellList(sys.cellList) {}
 

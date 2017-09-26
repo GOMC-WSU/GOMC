@@ -10,6 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BasicTypes.h" //For uint.
 #include "Molecules.h" //For start
 #include "BoxDimensions.h" //For pbc wrapping
+#include "BoxDimensionsNonOrth.h"
 #include "XYZArray.h" //Parent class
 #include "MoveSettings.h"
 #include "Coordinates.h"
@@ -33,7 +34,7 @@ class MoveBase
  public:
 
    MoveBase(System & sys, StaticVals const& statV) :
-   boxDimRef(sys.boxDimRef), moveSetRef(sys.moveSettings),
+     boxDimRef(*sys.GetBoxDim()), moveSetRef(sys.moveSettings),
      sysPotRef(sys.potential),
      calcEnRef(sys.calcEnergy), comCurrRef(sys.com),
      coordCurrRef(sys.coordinates), prng(sys.prng), molRef(statV.mol),

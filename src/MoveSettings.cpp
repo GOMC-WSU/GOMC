@@ -6,6 +6,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "MoveSettings.h" //header spec.
 #include "BoxDimensions.h" //For axis sizes
+#include "BoxDimensionsNonOrth.h"
 #include "StaticVals.h" //For init info.
 
 #include "NumLib.h" //For bounding functions.
