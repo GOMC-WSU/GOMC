@@ -32,12 +32,12 @@ System::System(StaticVals& statics) :
    coordinates(*boxDimRef, com, molLookupRef, prng, statics.mol),
    com(*boxDimRef, coordinates, molLookupRef, statics.mol),
    moveSettings(*boxDimRef), cellList(statics.mol, *boxDimRef),
-  calcEnergy(statics, *this)
+   calcEnergy(statics, *this)
 {
   calcEwald = NULL;
-  boxDimRef = NULL;
-  boxDimensions = NULL;
+  
 #ifdef VARIABLE_VOLUME
+  boxDimensions = NULL;
   if(statics.isOrthogonal)
   {
     boxDimensions = new BoxDimensions();
@@ -47,6 +47,7 @@ System::System(StaticVals& statics) :
     boxDimensions = new BoxDimensionsNonOrth();
   }
 #else
+  boxDimRef = NULL;
   boxDimRef = statics.GetBoxDim();
 #endif
 } 

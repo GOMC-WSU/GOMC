@@ -43,7 +43,7 @@ struct XYZ
    { return XYZ(*this) -= rhs; }
    XYZ operator*(XYZ const& rhs) const
    { return XYZ(*this) *= rhs; }
-  XYZ operator/(XYZ const& rhs) const
+   XYZ operator/(XYZ const& rhs) const
    { return XYZ(*this) /= rhs; }
 
 
@@ -53,14 +53,19 @@ struct XYZ
    XYZ operator-() const { return XYZ(*this) * -1.0; }
 
    void Inverse()
-  {
+   {
      x = 1.0 / x;
      y = 1.0 / y;
      z = 1.0 / z;
-  }
-
+   }
+  
    double Length() const { return sqrt(LengthSq()); }
    double LengthSq() const { return x * x + y * y + z * z; }
+   double DotProduct(const XYZ &A, const XYZ &B) const
+   {
+     return A.x * B.x + A.y * B.y + A.z * B.z;
+   }
+
    XYZ& Normalize()
    {
       *this *= (1 / Length());

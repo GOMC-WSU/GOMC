@@ -36,7 +36,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 using namespace geom;
 
-EwaldCached::EwaldCached(StaticVals const& stat, System & sys) :
+EwaldCached::EwaldCached(StaticVals & stat, System & sys) :
    forcefield(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
    currentCOM(sys.com), sysPotRef(sys.potential),
 #ifdef VARIABLE_PARTICLE_NUMBER
@@ -45,9 +45,9 @@ EwaldCached::EwaldCached(StaticVals const& stat, System & sys) :
    molLookup(stat.molLookup),
 #endif
 #ifdef VARIABLE_VOLUME
-   currentAxes(sys.boxDimensions)
+   currentAxes(*sys.GetBoxDim())
 #else
-   currentAxes(stat.boxDimensions)
+   currentAxes(*stat.GetBoxDim())
 #endif
 {
   ewald = false;

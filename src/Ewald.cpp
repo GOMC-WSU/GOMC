@@ -37,7 +37,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 using namespace geom;
 
-Ewald::Ewald(StaticVals const& stat, System & sys) : EwaldCached(stat, sys) {}
+Ewald::Ewald(StaticVals & stat, System & sys) : EwaldCached(stat, sys) {}
 
 void Ewald::Init()
 {

@@ -46,7 +46,11 @@ class System
 
    BoxDimensions * GetBoxDim()
    {
+#ifdef VARIABLE_VOLUME
      return boxDimensions;
+#else
+     return boxDimRef;
+#endif
    }
 
    //NOTE:

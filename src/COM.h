@@ -10,6 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BasicTypes.h"
 #include "Molecules.h" //For start
 #include "BoxDimensions.h" //For pbc wrapping
+#include "BoxDimensionsNonOrth.h"
 #include "XYZArray.h" //Parent class
 #include "MoleculeLookup.h" //For box iterators used in initial assignment
 

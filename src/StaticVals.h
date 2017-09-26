@@ -32,7 +32,7 @@ class StaticVals
    ~StaticVals();
    void Init(Setup & set, System& sys);
    void InitOver(Setup & set, System& sys);
-   void IsBoxOrthogonal(config_setup::Volume const& confVolume);
+   void IsBoxOrthogonal(config_setup::Volume const& vol);
    BoxDimensions * GetBoxDim()
    {
      return boxDimensions;

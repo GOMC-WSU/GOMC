@@ -44,7 +44,7 @@ class Ewald : public EwaldCached
   //friend class CalculateEnergy;
    public:
 
-   Ewald(StaticVals const& stat, System & sys);
+   Ewald(StaticVals & stat, System & sys);
 
    virtual void Init();
 

@@ -61,7 +61,7 @@ namespace cbmc
 inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& set):
 
   calc(sys.calcEnergy), ff(forcefield),
-  prng(sys.prng), axes(sys.boxDimRef),
+  prng(sys.prng), axes(*sys.GetBoxDim()),
   nAngleTrials(set.config.sys.cbmcTrials.bonded.ang),
   nDihTrials(set.config.sys.cbmcTrials.bonded.dih),
   nLJTrialsFirst(set.config.sys.cbmcTrials.nonbonded.first),
