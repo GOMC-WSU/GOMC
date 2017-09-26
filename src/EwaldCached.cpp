@@ -426,7 +426,7 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 	    {
 	      dotProduct = currentAxes.DotProduct(mols.MolStart(*thisMol) + j,
 						  kx[box][i], ky[box][i],
-						  kz[box][i], molCoords, box);
+						  kz[box][i], molCoords);
 
 	      cosMolRef[*thisMol][i] += (thisKind.AtomCharge(j) *
 					 cos(dotProduct));
@@ -580,7 +580,7 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
 	 {
 	    //compute the dot product of k and r
 	    arg = currentAxes.DotProduct(atom, kxRef[box][i], kyRef[box][i],
-					 kzRef[box][i], currentCoords, box);
+					 kzRef[box][i], currentCoords);
 
 	    factor = prefactRef[box][i] * 2.0 * (sumIref[box][i]*cos(arg) -
 						 sumRref[box][i]*sin(arg)) * charge;
@@ -658,7 +658,7 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
 	    atom = startAtom + p;
 	    dotProductNew = currentAxes.DotProduct(p, kxRef[box][i],
 						   kyRef[box][i], kzRef[box][i],
-						   molCoords, box);
+						   molCoords);
 
 	    sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
 	    sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
@@ -773,7 +773,7 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
 	 {
 	    dotProductNew = currentAxes.DotProduct(p, kxRef[box][i],
 						   kyRef[box][i], kzRef[box][i],
-						   molCoords, box);
+						   molCoords);
 	    cosMolRef[molIndex][i] += (thisKind.AtomCharge(p) *
 				       cos(dotProductNew));
 	    sinMolRef[molIndex][i] += (thisKind.AtomCharge(p) *

@@ -160,6 +160,14 @@ public:
     return z[i] - z[j];
   }
 
+  double Length(const uint i) const
+  {
+    return sqrt(x[i] * x[i] + y[i] * y[i] + z[i] * z[i]);
+  }
+
+  //calculate the adjoint and return the determinant
+  double AdjointMatrix(XYZArray &Inv);
+
   //return the difference of two rows in two XYZ arrays
   XYZ Difference(const uint i, XYZArray const& other,
                  const uint otherI) const
@@ -522,6 +530,24 @@ inline void XYZArray::CopyRange(XYZArray & dest, const uint srcIndex,
      memcpy(dest.y+destIndex, y+srcIndex, len * sizeof(double));
      memcpy(dest.z+destIndex, z+srcIndex, len * sizeof(double));
   }
+}
+
+inline double XYZArray::AdjointMatrix(XYZArray &Inv)
+{
+  Inv.x[0] = y[1] * z[2] - y[2] * z[1];
+  Inv.y[0] = y[2] * z[0] - y[0] * z[2];
+  Inv.z[0] = y[0] * z[1] - y[1] * z[0];
+
+  Inv.x[1] = x[2] * z[1] - x[1] * z[2];
+  Inv.y[1] = x[0] * z[2] - x[2] * z[0];
+  Inv.z[1] = x[1] * z[0] - x[0] * z[1];
+
+  Inv.x[2] = x[1] * y[2] - x[2] * y[1];
+  Inv.y[2] = x[2] * y[0] - x[0] * y[2];
+  Inv.z[2] = x[0] * y[1] - x[1] * y[0];
+
+  double det = x[0] * Inv.x[0] + x[1] * Inv.y[0] + x[2] * Inv.z[0];
+  return det;
 }
 
 

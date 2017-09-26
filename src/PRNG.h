@@ -17,6 +17,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "EnsemblePreprocessor.h"
 #include "MoleculeLookup.h"
 #include "MoveConst.h"
+#include "BoxDimensions.h"
+#include "BoxDimensionsNonOrth.h"
 #include "XYZArray.h"
 #include <fstream>
 #include <iostream>
@@ -94,10 +96,15 @@ public:
   }
 
   //Used to pick first position of
-  void FillWithRandom(XYZArray & loc, const uint len, XYZ const& axis)
+  void FillWithRandom(XYZArray & loc, const uint len, BoxDimensions const& dims,
+		      const uint b)
   {
     for (uint i = 0; i < len; ++i)
-      loc.Set(i, randExc(axis.x), randExc(axis.y), randExc(axis.z));
+    {
+      loc.Set(i, randExc(dims.axis.x[b]), randExc(dims.axis.y[b]),
+	      randExc(dims.axis.z[b]));
+      loc.Set(i, dims.TransformSlant(loc.Get(i), b));
+    }
   }
 
   void FillWithRandomOnSphere(XYZArray & loc, const uint len,

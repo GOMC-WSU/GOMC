@@ -15,9 +15,19 @@ void StaticVals::Init(Setup & set, System& sys)
    forcefield.Init(set);
    mol.Init(set, forcefield, sys);
 #ifndef VARIABLE_VOLUME
-   boxDimensions.Init(set.config.in.restart,
-		      set.config.sys.volume, set.pdb.cryst, forcefield.rCut,
-		      forcefield.rCutSq);
+   IsBoxOrthogonal(set.config.sys.volume);
+
+   if(isOrthogonal)
+   {
+     boxDimensions = new BoxDimensions();
+   }
+   else
+   {
+     boxDimensions = new BoxDimensionsNonOrth();
+   }
+
+   boxDimensions->Init(set.config.in.restart, set.config.sys.volume,
+		       set.pdb.cryst, forcefield.rCut, forcefield.rCutSq);
 #endif
 #ifndef VARIABLE_PARTICLE_NUMBER
    molLookup.Init(mol, set.pdb.atoms);
@@ -66,4 +76,42 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
    for (uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++)
       movePerc[m] /= totalPerc;
    totalPerc = 1.0;
+}
+
+void StaticVals::IsBoxOrthogonal(config_setup::Volume const& confVolume)
+{
+  double cosAngle[BOX_TOTAL][3];
+  double orthogonal[BOX_TOTAL];
+  isOrthogonal = false;
+
+  for (uint b = 0; b < BOX_TOTAL; b++)
+  {
+    double cellLengthX = cellBasis[b].Length(0);
+    double cellLengthY = cellBasis[b].Length(1);
+    double cellLengthZ = cellBasis[b].Length(2);
+    //Find Cosine Angle of alpha, beta and gamma
+    cosAngle[b][0] = DotProduct(confVolume[b].Get(1), confVolume[b].Get(2)) /
+      (cellLengthY * cellLengthZ);
+    cosAngle[b][1] = DotProduct(confVolume[b].Get(0), confVolume[b].Get(2)) /
+      (cellLengthX * cellLengthZ);
+    cosAngle[b][2] = DotProduct(confVolume[b].Get(0), confVolume[b].Get(1)) /
+      (cellLengthX * cellLengthY);
+    
+    orthogonal[b] = ((int(cosAngle[b][0]) == 90) &&
+		     (int(cosAngle[b][1]) == 90) &&
+		     (int(cosAngle[b][2]) == 90));
+    isOrthogonal = (isOrthogonal || orthogonal[b]);
+  }
+}
+
+
+StaticVals::StaticVals()
+{
+  isOrthogonal = false;
+  boxDimensions = NULL;
+}
+
+StaticVals::~StaticVals()
+{
+  delete[] boxDimensions;
 }
