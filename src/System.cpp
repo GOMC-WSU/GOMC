@@ -23,21 +23,33 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 System::System(StaticVals& statics) :
    statV(statics),
-#ifdef VARIABLE_VOLUME
-   boxDimRef(boxDimensions),
-#else
-   boxDimRef(statics.boxDimensions),
-#endif
 #ifdef VARIABLE_PARTICLE_NUMBER
    molLookupRef(molLookup),
 #else
    molLookupRef(statics.molLookup),
 #endif
    prng(molLookupRef),
-   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
-   com(boxDimRef, coordinates, molLookupRef, statics.mol),
-   moveSettings(boxDimRef), cellList(statics.mol),
-   calcEnergy(statics, *this) , calcEwald(NULL) {}
+   coordinates(*boxDimRef, com, molLookupRef, prng, statics.mol),
+   com(*boxDimRef, coordinates, molLookupRef, statics.mol),
+   moveSettings(*boxDimRef), cellList(statics.mol, *boxDimRef),
+  calcEnergy(statics, *this)
+{
+  calcEwald = NULL;
+  boxDimRef = NULL;
+  boxDimensions = NULL;
+#ifdef VARIABLE_VOLUME
+  if(statics.isOrthogonal)
+  {
+    boxDimensions = new BoxDimensions();
+  }
+  else
+  {
+    boxDimensions = new BoxDimensionsNonOrth();
+  }
+#else
+  boxDimRef = statics.GetBoxDim();
+#endif
+} 
 
 System::~System()
 {
@@ -56,10 +68,11 @@ void System::Init(Setup const& set)
 {
    prng.Init(set.prng.prngMaker.prng);
 #ifdef VARIABLE_VOLUME
-   boxDimensions.Init(set.config.in.restart,
-		      set.config.sys.volume, set.pdb.cryst,
-		      statV.forcefield.rCut,
-		      statV.forcefield.rCutSq);
+   boxDimensions->Init(set.config.in.restart,
+		       set.config.sys.volume, set.pdb.cryst,
+		       statV.forcefield.rCut,
+		       statV.forcefield.rCutSq);
+   boxDimRef = boxDimensions;
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
    molLookup.Init(statV.mol, set.pdb.atoms);
@@ -71,7 +84,7 @@ void System::Init(Setup const& set)
    coordinates.InitFromPDB(set.pdb.atoms);
    com.CalcCOM();
    cellList.SetCutoff(statV.forcefield.rCut);
-   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
+   cellList.GridAll(*boxDimRef, coordinates, molLookupRef);
 
    //check if we have to use cached version of ewlad or not.
    bool ewald = set.config.sys.elect.ewald;

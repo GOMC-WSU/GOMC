@@ -12,9 +12,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include <algorithm>
 
-CellList::CellList(const Molecules& mols)
+CellList::CellList(const Molecules& mols, const BoxDimensions& dims)
   : mols(&mols)
 {
+  dimensions = dims;
   isBuilt = false;
 }
 
@@ -167,6 +168,7 @@ void CellList::GridAll(const BoxDimensions& dims,
                        const XYZArray& pos,
                        const MoleculeLookup& lookup)
 {
+  dimensions = dims;
   list.resize(pos.Count());
   ResizeGrid(dims);
   for (int b = 0; b < BOX_TOTAL; ++b)

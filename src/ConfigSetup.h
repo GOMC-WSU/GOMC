@@ -175,9 +175,15 @@ namespace config_setup
    {
       bool hasVolume, cstArea, cstVolBox0;
       uint boxCoordRead;
-      XYZArray axis;
+      XYZArray axis[BOX_TOTAL];
       Volume(void) : hasVolume(false), cstArea(false), cstVolBox0(false),
-	boxCoordRead(0), axis(BOX_TOTAL)  {}
+	boxCoordRead(0) 
+     {
+       for(uint b = 0; b < BOX_TOTAL; ++b)
+       {
+	 axis[b] = XYZArray(3);
+       }
+     }
    };
 
    //If particle number varies (e.g. GCMC, GEMC) load in parameters for

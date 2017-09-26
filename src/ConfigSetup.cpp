@@ -444,21 +444,67 @@ void ConfigSetup::Init(const char *fileName)
 	     sys.moves.transfer);
     }
 #endif
-    else if(line[0] == "BoxDim")
+    else if(line[0] == "CellBasisVector1")
     {
       uint box = stringtoi(line[1]);
       if(box < BOX_TOTAL)
       {
         XYZ temp;
         sys.volume.boxCoordRead++;
-        sys.volume.hasVolume = (sys.volume.boxCoordRead == BOX_TOTAL);
+        sys.volume.hasVolume = (sys.volume.boxCoordRead == 3 * BOX_TOTAL);
         temp.x = stringtod(line[2]);
         temp.y = stringtod(line[3]);
         temp.z = stringtod(line[4]);
-        sys.volume.axis.Set(box, temp);
-	printf("%-40s %-d: %-6.4f %-4.4f %-4.4f \n",
-	       "Info: Simulation dimension of box",
-	       box, temp.x, temp.y, temp.z);
+        sys.volume.axis[box].Set(0, temp);
+	printf("%s %-d: %-29s %-6.4f %-4.4f %-4.4f \n",
+	       "Info: Box ", box, " Periodic Cell Basis 1",
+	       temp.x, temp.y, temp.z);
+      }
+      else
+      {
+        std::cout<< "Error: This simulation requires only " << BOX_TOTAL <<
+	  " number of box dimension(s)!" << std::endl;
+        exit(0);
+      }
+    }
+    else if(line[0] == "CellBasisVector2")
+    {
+      uint box = stringtoi(line[1]);
+      if(box < BOX_TOTAL)
+      {
+        XYZ temp;
+        sys.volume.boxCoordRead++;
+        sys.volume.hasVolume = (sys.volume.boxCoordRead == 3 * BOX_TOTAL);
+        temp.x = stringtod(line[2]);
+        temp.y = stringtod(line[3]);
+        temp.z = stringtod(line[4]);
+        sys.volume.axis[box].Set(1, temp);
+	printf("%s %-d: %-29s %-6.4f %-4.4f %-4.4f \n",
+	       "Info: Box ", box, " Periodic Cell Basis 2",
+	       temp.x, temp.y, temp.z);
+      }
+      else
+      {
+        std::cout<< "Error: This simulation requires only " << BOX_TOTAL <<
+	  " number of box dimension(s)!" << std::endl;
+        exit(0);
+      }
+    }
+    else if(line[0] == "CellBasisVector2")
+    {
+      uint box = stringtoi(line[1]);
+      if(box < BOX_TOTAL)
+      {
+        XYZ temp;
+        sys.volume.boxCoordRead++;
+        sys.volume.hasVolume = (sys.volume.boxCoordRead == 3 * BOX_TOTAL);
+        temp.x = stringtod(line[2]);
+        temp.y = stringtod(line[3]);
+        temp.z = stringtod(line[4]);
+        sys.volume.axis[box].Set(2, temp);
+	printf("%s %-d: %-29s %-6.4f %-4.4f %-4.4f \n",
+	       "Info: Box ", box, " Periodic Cell Basis 3",
+	       temp.x, temp.y, temp.z);
       }
       else
       {
@@ -1032,8 +1078,8 @@ void ConfigSetup::verifyInputs(void)
   }
   if(!sys.volume.hasVolume)
   {
-    std::cout << "Error: This simulation requires to define " << BOX_TOTAL <<
-      " box dimentions!" <<std::endl;
+    std::cout << "Error: This simulation requires to define " << 3* BOX_TOTAL <<
+      " cell basis vectors!" <<std::endl;
     exit(0);
   }
   if(sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND && sys.ff.rswitch == DBL_MAX)

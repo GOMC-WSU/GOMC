@@ -20,7 +20,7 @@ class MoleculeLookup;
 class CellList
 {
 public:
-  explicit CellList(const Molecules& mols);
+  explicit CellList(const Molecules& mols, const BoxDimensions& dims);
 
   void SetCutoff(double cut)
   {
@@ -32,7 +32,7 @@ public:
   void GridAll(const BoxDimensions& dims, const XYZArray& pos, const MoleculeLookup& lookup);
 
   // Index of cell containing position
-  int PositionToCell(const XYZ& pos, int box) const;
+  int PositionToCell(const XYZ& posRef, int box) const;
 
   // Iterates over all particles in a cell
   class Cell;
@@ -69,14 +69,17 @@ private:
   XYZ cellSize[BOX_TOTAL];
   int edgeCells[BOX_TOTAL][3];
   const Molecules* mols;
+  BoxDimensions dimensions;
   double cutoff;
   bool isBuilt;
 };
 
 
 
-inline int CellList::PositionToCell(const XYZ& pos, int box) const
+inline int CellList::PositionToCell(const XYZ& posRef, int box) const
 {
+  //Transfer to unslant coordinate to find the neighbor
+  XYZ pos = dimensions.TransformUnSlant(posRef, box);
   int x = (int)(pos.x / cellSize[box].x);
   int y = (int)(pos.y / cellSize[box].y);
   int z = (int)(pos.z / cellSize[box].z);

@@ -233,11 +233,11 @@ void PDBOutput::PrintCryst1(const uint b, Writer & out)
   toStr.Replace(outStr, axis.z, z::POS);
   //Add facet angles.
   toStr.Fixed().Align(ang_alpha::ALIGN).Precision(ang_alpha::PRECISION);
-  toStr.Replace(outStr, ang_alpha::DEFAULT, ang_alpha::POS);
+  toStr.Replace(outStr, boxDimRef.cosAngle[b][0], ang_alpha::POS);
   toStr.Fixed().Align(ang_beta::ALIGN).Precision(ang_beta::PRECISION);
-  toStr.Replace(outStr, ang_beta::DEFAULT, ang_beta::POS);
+  toStr.Replace(outStr, boxDimRef.cosAngle[b][1], ang_beta::POS);
   toStr.Fixed().Align(ang_gamma::ALIGN).Precision(ang_gamma::PRECISION);
-  toStr.Replace(outStr, ang_gamma::DEFAULT, ang_gamma::POS);
+  toStr.Replace(outStr, boxDimRef.cosAngle[b][2], ang_gamma::POS);
   //Add extra text junk.
   outStr.replace(space::POS.START, space::POS.LENGTH, space::DEFAULT);
   outStr.replace(zvalue::POS.START, zvalue::POS.LENGTH, zvalue::DEFAULT);

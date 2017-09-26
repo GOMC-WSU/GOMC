@@ -250,7 +250,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 	    {
 	      dotProduct = currentAxes.DotProduct(mols.MolStart(*thisMol) + j,
 						  kx[box][i], ky[box][i],
-						  kz[box][i], molCoords, box);
+						  kz[box][i], molCoords);
 
 	      sumReal += (thisKind.AtomCharge(j) * cos(dotProduct));
 	      sumImaginary += (thisKind.AtomCharge(j) * sin(dotProduct));
@@ -337,11 +337,11 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
 	    atom = startAtom + p;
 	    dotProductNew = currentAxes.DotProduct(p, kxRef[box][i],
 						   kyRef[box][i], kzRef[box][i],
-						   molCoords, box);
+						   molCoords);
 
 	    dotProductOld = currentAxes.DotProduct(atom, kxRef[box][i],
 						   kyRef[box][i],kzRef[box][i],
-						   currentCoords, box);
+						   currentCoords);
 
 	    sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
 	    sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
@@ -404,7 +404,7 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
 	 {
 	    dotProductNew = currentAxes.DotProduct(p, kxRef[box][i],
 						   kyRef[box][i], kzRef[box][i],
-						   molCoords, box);
+						   molCoords);
 
 	    sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
 	    sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
@@ -466,7 +466,7 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 	 {
 	    dotProductNew = currentAxes.DotProduct(p, kxRef[box][i],
 						   kyRef[box][i], kzRef[box][i],
-						   molCoords, box);
+						   molCoords);
 
 	    sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
 	    sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));

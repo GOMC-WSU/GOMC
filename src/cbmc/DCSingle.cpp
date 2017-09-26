@@ -27,8 +27,7 @@ namespace cbmc
       std::fill_n(inter, nLJTrials, 0.0);
       std::fill_n(real, nLJTrials, 0.0);
 
-      prng.FillWithRandom(data->positions, nLJTrials,
-			  data->axes.GetAxis(oldMol.GetBox()));
+      prng.FillWithRandom(positions, nLJTrials, data->axes, oldMol.GetBox());
       positions.Set(0, oldMol.AtomPosition(atom));
       data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                                oldMol.GetBox(), nLJTrials);
@@ -57,8 +56,7 @@ namespace cbmc
       std::fill_n(real, nLJTrials, 0.0);
       std::fill_n(ljWeights, nLJTrials, 0.0);
 
-      prng.FillWithRandom(positions, nLJTrials,
-			  data->axes.GetAxis(newMol.GetBox()));
+      prng.FillWithRandom(positions, nLJTrials, data->axes, newMol.GetBox());
       data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                                newMol.GetBox(), nLJTrials);
 

@@ -18,6 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Coordinates.h"
 #include "PRNG.h"
 #include "BoxDimensions.h"
+#include "BoxDimensionsNonOrth.h"
 #include "MoleculeLookup.h"
 #include "MoveSettings.h"
 #include "CellList.h"
@@ -43,6 +44,11 @@ class System
      return calcEwald;
    }
 
+   BoxDimensions * GetBoxDim()
+   {
+     return boxDimensions;
+   }
+
    //NOTE:
    //This must also come first... as subsequent values depend on obj.
    //That may be in here, i.e. Box Dimensions
@@ -53,14 +59,14 @@ class System
    //on their val for init!
    //Only include these variables if they vary for this ensemble...
 #ifdef VARIABLE_VOLUME
-   BoxDimensions boxDimensions;
+   BoxDimensions *boxDimensions;
 #endif
 #ifdef  VARIABLE_PARTICLE_NUMBER
    MoleculeLookup molLookup;
 #endif
 
    //Use as we don't know where they are...
-   BoxDimensions & boxDimRef;
+   BoxDimensions *boxDimRef;
    MoleculeLookup & molLookupRef;
 
    MoveSettings moveSettings;

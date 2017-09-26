@@ -43,14 +43,16 @@ void Coordinates::CheckCoordinate()
     max.y = *std::max_element(y + stRange, y + endRange);
     min.z = *std::min_element(z + stRange, z + endRange);
     max.z = *std::max_element(z + stRange, z + endRange);
-
-    diffV = max - min;
+    
     //printf("start: %d, end: %d\n", stRange, endRange);
     printf("Minimum coordinates in box %d: x = %8.3f, y = %8.3f, z = %8.3f\n",
 	   b+1, min.x, min.y, min.z);
     printf("Maximum coordinates in box %d: x = %8.3f, y = %8.3f, z = %8.3f\n",
 	   b+1, max.x, max.y, max.z);
 
+    min = boxDimRef.TransformUnSlant(min, b);
+    max = boxDimRef.TransformUnSlant(max, b);
+    diffV = max - min;
     //check to see if molecules are in the box or not
     if( diffV.x > 1.5 * boxDimRef.axis.Get(b).x ||
 	diffV.y > 1.5 * boxDimRef.axis.Get(b).y ||
@@ -156,6 +158,7 @@ void Coordinates::TranslateOneBox
                                end = molLookRef.BoxEnd(b);
   std::vector<int> molID;
   XYZ shift, oldCOMForUnwrap;
+  XYZ unslant, slant;
 
 #ifdef _OPENMP
   while (curr != end)
@@ -169,7 +172,14 @@ void Coordinates::TranslateOneBox
   {
      molRef.GetRange(pStart, pStop, pLen, molID[i]);
      //Scale CoM for this molecule, translate all atoms by same amount
-     newCOM.Scale(molID[i], scale);
+     //convert the COM to unslant coordinate
+     unslant = boxDimRef.TransformUnSlant(newCOM.Get(molID[i]), b);
+     //scale the COM
+     unslant *= scale;
+     //convert to slant coordinate
+     slant = newDim.TransformSlant(unslant, b);
+     //calculate the difference of new and old COM
+     newCOM.Set(molID[i], slant);
      shift = newCOM.Get(molID[i]);
      shift -= oldCOM.Get(molID[i]);
      //Translation of atoms in mol.
@@ -185,7 +195,14 @@ void Coordinates::TranslateOneBox
   {
     molRef.GetRange(pStart, pStop, pLen, *curr);
     //Scale CoM for this molecule, translate all atoms by same amount
-    newCOM.Scale(*curr, scale);
+    //convert the COM to unslant coordinate
+    unslant = boxDimRef.TransformUnSlant(newCOM.Get(*curr), b);
+    //scale the COM
+    unslant *= scale;
+    //convert to slant coordinate
+    slant = newDim.TransformSlant(unslant, b);
+    //calculate the difference of new and old COM
+    newCOM.Set(*curr, slant);
     shift = newCOM.Get(*curr);
     shift -= oldCOM.Get(*curr);
     //Translation of atoms in mol.
