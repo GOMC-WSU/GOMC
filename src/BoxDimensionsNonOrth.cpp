@@ -15,13 +15,8 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
 {
   rCut = rc;
   rCutSq = rcSq;
-  cellLength.Init(BOX_TOTAL);
-  faceLength.Init(BOX_TOTAL);
-  axis.Init(BOX_TOTAL);
   for (uint b = 0; b < BOX_TOTAL; b++)
   {
-    cellBasis[b] = XYZArray(3);
-    cellBasis_Inv[b] = XYZArray(3);
     //if (restart.enable && cryst.hasVolume)
     //  axis = cryst.axis;
     if(confVolume.hasVolume)
@@ -62,7 +57,6 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     axis.Set(b, cellLength[b]);
   }
   //We should consider the half of the face distance
-  halfAx.Init(BOX_TOTAL);
   faceLength.CopyRange(halfAx, 0, 0, BOX_TOTAL);
   halfAx.ScaleRange(0, BOX_TOTAL, 0.5);
 
@@ -71,9 +65,9 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     //check to see if initial box size is cubic or not
     cubic[b] = ((axis.x[b] == axis.y[b]) && (axis.y[b] == axis.z[b]));
     //check to see if box is orthogonal or not
-    orthogonal[b] = ((int(cosAngle[b][0]) == 90) &&
-		     (int(cosAngle[b][1]) == 90) &&
-		     (int(cosAngle[b][2]) == 90));
+    orthogonal[b] = ((cosAngle[b][0] == 0.0) &&
+		     (cosAngle[b][1] == 0.0) &&
+		     (cosAngle[b][2] == 0.0));
   }
   constArea = confVolume.cstArea;
 }
@@ -109,7 +103,7 @@ void BoxDimensionsNonOrth::CalcCellDimensions()
 }
 
 
-inline BoxDimensionsNonOrth& BoxDimensionsNonOrth::operator=(BoxDimensionsNonOrth const& other)
+BoxDimensionsNonOrth& BoxDimensionsNonOrth::operator=(BoxDimensionsNonOrth const& other)
 {
   for (uint b = 0; b < BOX_TOTAL; ++b)
   {
@@ -136,7 +130,7 @@ inline BoxDimensionsNonOrth& BoxDimensionsNonOrth::operator=(BoxDimensionsNonOrt
 }
 
 
-inline void BoxDimensionsNonOrth::SetVolume(const uint b, const double vol)
+void BoxDimensionsNonOrth::SetVolume(const uint b, const double vol)
 {
    if (cubic[b] && !constArea)
    {
@@ -163,18 +157,15 @@ inline void BoxDimensionsNonOrth::SetVolume(const uint b, const double vol)
    CalcCellDimensions();
 }
 
-inline XYZ BoxDimensionsNonOrth::MinImage(XYZ rawVec, const uint b) const
+XYZ BoxDimensionsNonOrth::MinImage(XYZ rawVec, const uint b) const
 {
-  rawVec.x = BoxDimensions::MinImageSigned(rawVec.x, faceLength.x[b],
-					   halfAx.x[b]);
-  rawVec.y = BoxDimensions::MinImageSigned(rawVec.y, faceLength.y[b],
-					   halfAx.y[b]);
-  rawVec.z = BoxDimensions::MinImageSigned(rawVec.z, faceLength.z[b],
-					   halfAx.z[b]);
+  rawVec.x = MinImageSigned(rawVec.x, faceLength.x[b], halfAx.x[b]);
+  rawVec.y = MinImageSigned(rawVec.y, faceLength.y[b], halfAx.y[b]);
+  rawVec.z = MinImageSigned(rawVec.z, faceLength.z[b], halfAx.z[b]);
   return rawVec;
 }
 
-inline void BoxDimensionsNonOrth::WrapPBC(double &x, double &y, double &z,
+void BoxDimensionsNonOrth::WrapPBC(double &x, double &y, double &z,
 					  const uint b) const
 {
   //convert XYZ to unslant
@@ -190,7 +181,7 @@ inline void BoxDimensionsNonOrth::WrapPBC(double &x, double &y, double &z,
   z = slant.z; 
 }
 
-inline void BoxDimensionsNonOrth::UnwrapPBC(double & x, double & y, double & z,
+void BoxDimensionsNonOrth::UnwrapPBC(double & x, double & y, double & z,
 					    const uint b, XYZ const& ref) const
 {
   //convert XYZ to unslant
@@ -209,7 +200,7 @@ inline void BoxDimensionsNonOrth::UnwrapPBC(double & x, double & y, double & z,
 }
 
 //Calculate transform
-inline XYZ BoxDimensionsNonOrth::TransformUnSlant(const XYZ &A, const uint b) const
+XYZ BoxDimensionsNonOrth::TransformUnSlant(const XYZ &A, const uint b) const
 {
   XYZ temp;
   temp.x = A.x * cellBasis_Inv[b].Get(0).x + A.y * cellBasis_Inv[b].Get(1).x +
@@ -223,7 +214,7 @@ inline XYZ BoxDimensionsNonOrth::TransformUnSlant(const XYZ &A, const uint b) co
 }
 
 //Calculate transform
-inline XYZ BoxDimensionsNonOrth::TransformSlant(const XYZ &A,const uint b) const
+XYZ BoxDimensionsNonOrth::TransformSlant(const XYZ &A,const uint b) const
 {
   XYZ temp;
   temp.x = A.x * cellBasis[b].Get(0).x + A.y * cellBasis[b].Get(1).x +
@@ -237,7 +228,7 @@ inline XYZ BoxDimensionsNonOrth::TransformSlant(const XYZ &A,const uint b) const
 }
 
 //Calculate AxB product
-inline XYZ BoxDimensionsNonOrth::CrossProduct(const XYZ &A,const XYZ &B) const
+XYZ BoxDimensionsNonOrth::CrossProduct(const XYZ &A,const XYZ &B) const
 {
   XYZ temp;
   temp.x = A.y * B.z - A.z * B.y;

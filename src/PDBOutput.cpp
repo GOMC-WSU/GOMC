@@ -21,7 +21,7 @@ PDBOutput::PDBOutput(System & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   coordCurrRef(sys.coordinates),
   pStr(coordCurrRef.Count(),GetDefaultAtomStr()),
-  boxDimRef(*sys.GetBoxDim()), molRef(statV.mol) { }
+  boxDimRef(sys.boxDimRef), molRef(statV.mol) { }
 
 std::string PDBOutput::GetDefaultAtomStr()
 {

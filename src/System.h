@@ -44,14 +44,23 @@ class System
      return calcEwald;
    }
 
-   BoxDimensions * GetBoxDim()
-   {
 #ifdef VARIABLE_VOLUME
+   BoxDimensions * BoxDim(const bool isOrthogonal)
+   {
+     boxDimensions = NULL;
+     if(isOrthogonal)
+     {
+       boxDimensions = new BoxDimensions();
+     }
+     else
+     {
+       boxDimensions = new BoxDimensionsNonOrth();
+     }
      return boxDimensions;
-#else
-     return boxDimRef;
-#endif
    }
+#endif
+
+
 
    //NOTE:
    //This must also come first... as subsequent values depend on obj.
@@ -70,7 +79,7 @@ class System
 #endif
 
    //Use as we don't know where they are...
-   BoxDimensions *boxDimRef;
+   BoxDimensions & boxDimRef;
    MoleculeLookup & molLookupRef;
 
    MoveSettings moveSettings;

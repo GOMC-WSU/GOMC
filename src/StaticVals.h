@@ -28,15 +28,17 @@ class System;
 class StaticVals
 {
  public:
-   StaticVals();
+   StaticVals(Setup & set);
    ~StaticVals();
    void Init(Setup & set, System& sys);
    void InitOver(Setup & set, System& sys);
    void IsBoxOrthogonal(config_setup::Volume const& vol);
+#ifndef VARIABLE_VOLUME  
    BoxDimensions * GetBoxDim()
    {
      return boxDimensions;
    }
+#endif
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
    double pressure;

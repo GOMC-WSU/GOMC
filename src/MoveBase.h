@@ -34,7 +34,7 @@ class MoveBase
  public:
 
    MoveBase(System & sys, StaticVals const& statV) :
-     boxDimRef(*sys.GetBoxDim()), moveSetRef(sys.moveSettings),
+     boxDimRef(sys.boxDimRef), moveSetRef(sys.moveSettings),
      sysPotRef(sys.potential),
      calcEnRef(sys.calcEnergy), comCurrRef(sys.com),
      coordCurrRef(sys.coordinates), prng(sys.prng), molRef(statV.mol),
@@ -330,9 +330,9 @@ class VolumeTransfer : public MoveBase
 
 inline VolumeTransfer::VolumeTransfer(System &sys, StaticVals const& statV)  :
 		      MoveBase(sys, statV), molLookRef(sys.molLookupRef),
-		      newDim(sys.boxDimRef), newMolsPos(boxDimRef, newCOMs,
-							sys.molLookupRef,
-							sys.prng, statV.mol),
+		      newDim(sys.boxDimRef),
+		      newMolsPos(boxDimRef, newCOMs, sys.molLookupRef,
+				 sys.prng, statV.mol),
 		      newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef,
 			      statV.mol), GEMC_KIND(statV.kindOfGEMC),
 		      PRESSURE(statV.pressure), regrewGrid(false)

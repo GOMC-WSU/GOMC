@@ -15,10 +15,8 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
 {
   rCut = rc;
   rCutSq = rcSq;
-  
   for (uint b = 0; b < BOX_TOTAL; b++)
   {
-    cellBasis[b] = XYZArray(3);
     //if (restart.enable && cryst.hasVolume)
     //  axis = cryst.axis;
     if(confVolume.hasVolume)
@@ -44,7 +42,6 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
     volInv[b] = 1.0 / volume[b];
   }
 
-  halfAx.Init(BOX_TOTAL);
   axis.CopyRange(halfAx, 0, 0, BOX_TOTAL);
   halfAx.ScaleRange(0, BOX_TOTAL, 0.5);
 
@@ -53,9 +50,9 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
     //check to see if initial box size is cubic or not
     cubic[b] = ((axis.x[b] == axis.y[b]) && (axis.y[b] == axis.z[b]));
     //check to see if box is orthogonal or not
-    orthogonal[b] = ((int(cosAngle[b][0]) == 90) &&
-		     (int(cosAngle[b][1]) == 90) &&
-		     (int(cosAngle[b][2]) == 90));
+    orthogonal[b] = ((cosAngle[b][0] == 0.0) &&
+		     (cosAngle[b][1] == 0.0) &&
+		     (cosAngle[b][2] == 0.0));
   }
   constArea = confVolume.cstArea;
 }
@@ -108,11 +105,12 @@ uint BoxDimensions::ExchangeVolume
   return state;
 }
 
-inline BoxDimensions::BoxDimensions(BoxDimensions const& other) :
+BoxDimensions::BoxDimensions(BoxDimensions const& other) :
   axis(other.axis), halfAx(other.halfAx)
 {
   for (uint b = 0; b < BOX_TOTAL; ++b)
   {
+    cellBasis[b] = XYZArray(3);
     other.cellBasis[b].CopyRange(cellBasis[b], 0, 0, 3);
     volume[b] = other.volume[b];
     volInv[b] = other.volInv[b];
@@ -128,7 +126,7 @@ inline BoxDimensions::BoxDimensions(BoxDimensions const& other) :
   constArea = other.constArea;
 }
 
-inline BoxDimensions& BoxDimensions::operator=(BoxDimensions const& other)
+BoxDimensions& BoxDimensions::operator=(BoxDimensions const& other)
 {
   for (uint b = 0; b < BOX_TOTAL; ++b)
   {
@@ -144,7 +142,6 @@ inline BoxDimensions& BoxDimensions::operator=(BoxDimensions const& other)
   }
   other.axis.CopyRange(axis, 0, 0, BOX_TOTAL);
   other.halfAx.CopyRange(halfAx, 0, 0, BOX_TOTAL);
-  minBoxSize = other.minBoxSize;
   rCut = other.rCut;
   rCutSq = other.rCutSq;
   constArea = other.constArea;
@@ -152,7 +149,7 @@ inline BoxDimensions& BoxDimensions::operator=(BoxDimensions const& other)
   return *this;
 }
 
-inline double BoxDimensions::GetTotVolume() const
+double BoxDimensions::GetTotVolume() const
 {
   double sum = 0.0;
   for (uint b = 0; b < BOX_TOTAL; b++)
@@ -161,7 +158,7 @@ inline double BoxDimensions::GetTotVolume() const
 }
 
 
-inline void BoxDimensions::SetVolume(const uint b, const double vol)
+void BoxDimensions::SetVolume(const uint b, const double vol)
 {
    if (cubic[b] && !constArea)
    {
@@ -199,7 +196,7 @@ inline void BoxDimensions::SetVolume(const uint b, const double vol)
 
 }
 
-inline XYZ BoxDimensions::MinImage(XYZ rawVec, const uint b) const
+XYZ BoxDimensions::MinImage(XYZ rawVec, const uint b) const
 {
   rawVec.x = MinImageSigned(rawVec.x, axis.x[b], halfAx.x[b]);
   rawVec.y = MinImageSigned(rawVec.y, axis.y[b], halfAx.y[b]);
@@ -212,7 +209,7 @@ inline XYZ BoxDimensions::MinImage(XYZ rawVec, const uint b) const
 //Throws out sign (as per Brock's suggestion) as we don't care about it
 //and thus can eliminate a branch and (potentially) one compare.
 //
-inline double BoxDimensions::MinImage
+double BoxDimensions::MinImage
 (double& raw, const double ax, const double halfAx) const
 {
   raw = fabs(raw);
@@ -227,8 +224,7 @@ inline double BoxDimensions::MinImage
 #endif
 }
 
-inline double BoxDimensions::MinImageSigned(double raw,
-    double ax, double halfAx) const
+double BoxDimensions::MinImageSigned(double raw, double ax, double halfAx) const
 {
   if (raw > halfAx)
     raw -= ax;
@@ -237,9 +233,9 @@ inline double BoxDimensions::MinImageSigned(double raw,
   return raw;
 }
 
-inline bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
-				  XYZArray const& arr, const uint i,
-				  const uint j, const uint b) const
+bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
+			   XYZArray const& arr, const uint i,
+			   const uint j, const uint b) const
 {
   dist = MinImage(arr.Difference(i, j), b);
   distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
@@ -247,7 +243,7 @@ inline bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
 }
 
 
-inline bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
+bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
 				  XYZArray const& arr1, const uint i,
 				  XYZArray const& arr2, const uint j,
 				  const uint b) const
@@ -257,7 +253,7 @@ inline bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
   return (rCutSq > distSq);
 }
 
-inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr,
+bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr,
 				  const uint i, const uint j,
 				  const uint b) const
 {
@@ -267,7 +263,7 @@ inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr,
 }
 
 
-inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr1,
+bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr1,
 				  const uint i, XYZArray const& arr2,
 				  const uint j, const uint b) const
 {
@@ -277,7 +273,7 @@ inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr1,
 }
 
 
-inline void BoxDimensions::GetDistSq(double & distSq, XYZArray const& arr1,
+void BoxDimensions::GetDistSq(double & distSq, XYZArray const& arr1,
                                      const uint i, XYZArray const& arr2,
 				     const uint j, const uint b) const
 {
@@ -285,7 +281,7 @@ inline void BoxDimensions::GetDistSq(double & distSq, XYZArray const& arr1,
   distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
 }
 
-inline void BoxDimensions::GetDistSq(double & distSq, XYZArray const& arr,
+void BoxDimensions::GetDistSq(double & distSq, XYZArray const& arr,
 				     const uint i, const uint j,
 				     const uint b) const
 {
@@ -294,21 +290,21 @@ inline void BoxDimensions::GetDistSq(double & distSq, XYZArray const& arr,
 }
 
 //Wrap one coordinate.
-inline XYZ BoxDimensions::WrapPBC(XYZ rawPos, const uint b) const
+XYZ BoxDimensions::WrapPBC(XYZ rawPos, const uint b) const
 {
   WrapPBC(rawPos.x, rawPos.y, rawPos.z, b);
   return rawPos;
 }
 
 //Wrap all coordinates in object.
-inline void BoxDimensions::WrapPBC(XYZArray & arr, const uint b) const
+void BoxDimensions::WrapPBC(XYZArray & arr, const uint b) const
 {
   for (uint i = 0; i < arr.count; i++)
     WrapPBC(arr.x[i], arr.y[i], arr.z[i], b);
 }
 
 //Unwrap all coordinates in object.
-inline void BoxDimensions::UnwrapPBC(XYZArray & arr, const uint b, XYZ
+void BoxDimensions::UnwrapPBC(XYZArray & arr, const uint b, XYZ
                                      const& ref) const
 {
   for (uint i = 0; i < arr.count; i++)
@@ -316,14 +312,14 @@ inline void BoxDimensions::UnwrapPBC(XYZArray & arr, const uint b, XYZ
 }
 
 //Wrap range of coordinates in object
-inline void BoxDimensions::WrapPBC
+void BoxDimensions::WrapPBC
 (XYZArray & arr, const uint start, const uint stop, const uint b) const
 {
   for (uint i = start; i < stop; i++)
     WrapPBC(arr.x[i], arr.y[i], arr.z[i], b);
 }
 
-inline void BoxDimensions::WrapPBC(double &x, double &y, double &z,
+void BoxDimensions::WrapPBC(double &x, double &y, double &z,
 				   const uint b) const
 {
   WrapPBC(x, axis.x[b]);
@@ -331,7 +327,7 @@ inline void BoxDimensions::WrapPBC(double &x, double &y, double &z,
   WrapPBC(z, axis.z[b]);
 }
 
-inline void BoxDimensions::UnwrapPBC(double & x, double & y, double & z,
+void BoxDimensions::UnwrapPBC(double & x, double & y, double & z,
 				     const uint b, XYZ const& ref) const
 {
   UnwrapPBC(x, ref.x, axis.x[b], halfAx.x[b]);
@@ -340,7 +336,7 @@ inline void BoxDimensions::UnwrapPBC(double & x, double & y, double & z,
 }
 
 //Unwrap range of coordinates in object
-inline void BoxDimensions::UnwrapPBC(XYZArray & arr, const uint start,
+void BoxDimensions::UnwrapPBC(XYZArray & arr, const uint start,
                                      const uint stop, const uint b,
                                      XYZ const& ref) const
 {
@@ -352,7 +348,7 @@ inline void BoxDimensions::UnwrapPBC(XYZArray & arr, const uint start,
 // Note, here we can't do the fabs trick as we need to know which end
 // to wrap on.
 //
-inline double BoxDimensions::WrapPBC(double& v, const double ax) const
+double BoxDimensions::WrapPBC(double& v, const double ax) const
 {
   //assert(v < 2*ax);
 
@@ -390,14 +386,14 @@ inline double BoxDimensions::WrapPBC(double& v, const double ax) const
 }
 
 //Unwrap one coordinate.
-inline XYZ BoxDimensions::UnwrapPBC(XYZ & rawPos, const uint b,
+XYZ BoxDimensions::UnwrapPBC(XYZ & rawPos, const uint b,
                                     XYZ const& ref) const
 {
   UnwrapPBC(rawPos.x, rawPos.y, rawPos.z, b, ref);
   return rawPos;
 }
 
-inline double BoxDimensions::UnwrapPBC
+double BoxDimensions::UnwrapPBC
 (double& v, const double ref, const double ax, const double halfAx) const
 {
   //If absolute value of X dist btwn pt and ref is > 0.5 * box_axis
@@ -425,7 +421,7 @@ inline double BoxDimensions::UnwrapPBC
 
 
 //Calculate dot product
-inline double BoxDimensions::DotProduct(const uint atom, double kx,
+double BoxDimensions::DotProduct(const uint atom, double kx,
                                         double ky, double kz,
                                         const XYZArray &Coords) const
 {
@@ -434,19 +430,19 @@ inline double BoxDimensions::DotProduct(const uint atom, double kx,
 }
 
 //Calculate dot product
-inline double BoxDimensions::DotProduct(const XYZ &A,const XYZ &B) const
+double BoxDimensions::DotProduct(const XYZ &A,const XYZ &B) const
 {
   return(A.x * B.x + A.y * B.y + A.z * B.z);
 }
 
 //Calculate transform
-inline XYZ BoxDimensions::TransformSlant(const XYZ &A,const uint b) const
+XYZ BoxDimensions::TransformSlant(const XYZ &A,const uint b) const
 {
   return A;
 }
 
 //Calculate transform
-inline XYZ BoxDimensions::TransformUnSlant(const XYZ &A, const uint b) const
+XYZ BoxDimensions::TransformUnSlant(const XYZ &A, const uint b) const
 {
   return A;
 }

@@ -13,13 +13,25 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class BoxDimensionsNonOrth : public BoxDimensions
 {
 public:
-  BoxDimensionsNonOrth() {}
+  BoxDimensionsNonOrth() : BoxDimensions()
+  {
+    cellLength.Init(BOX_TOTAL);
+    faceLength.Init(BOX_TOTAL);
+    for (uint b = 0; b < BOX_TOTAL; b++)
+    {
+      cellBasis[b] = XYZArray(3);
+      cellBasis_Inv[b] = XYZArray(3);          
+    }
+  }
   BoxDimensionsNonOrth(BoxDimensionsNonOrth const& other) : BoxDimensions(other)
   {
+    cellLength.Init(BOX_TOTAL);
+    faceLength.Init(BOX_TOTAL);
     other.cellLength.CopyRange(cellLength, 0, 0, BOX_TOTAL);
     other.faceLength.CopyRange(faceLength, 0, 0, BOX_TOTAL);
     for (uint b = 0; b < BOX_TOTAL; ++b)
     {   
+      cellBasis_Inv[b] = XYZArray(3);
       other.cellBasis_Inv[b].CopyRange(cellBasis_Inv[b], 0, 0, 3);
     }
   }
