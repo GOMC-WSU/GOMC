@@ -45,7 +45,7 @@ EwaldCached::EwaldCached(StaticVals & stat, System & sys) :
    molLookup(stat.molLookup),
 #endif
 #ifdef VARIABLE_VOLUME
-   currentAxes(*sys.GetBoxDim())
+   currentAxes(sys.boxDimRef)
 #else
    currentAxes(*stat.GetBoxDim())
 #endif

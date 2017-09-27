@@ -20,9 +20,9 @@ OutputVars::OutputVars(System & sys, StaticVals const& statV) :
 void OutputVars::InitRef(System & sys, StaticVals const& statV)
 {
   T_in_K = statV.forcefield.T_in_K;
-  volumeRef = sys.boxDimRef->volume;
-  axisRef = &sys.boxDimRef->axis;
-  volInvRef = sys.boxDimRef->volInv;
+  volumeRef = sys.boxDimRef.volume;
+  axisRef = &sys.boxDimRef.axis;
+  volInvRef = sys.boxDimRef.volInv;
   energyTotRef = & sys.potential.totalEnergy;
   virialTotRef = & sys.potential.totalVirial;
   energyRef = sys.potential.boxEnergy;

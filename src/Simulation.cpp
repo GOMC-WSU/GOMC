@@ -20,7 +20,7 @@ Simulation::Simulation(char const*const configFileName)
    Setup set;
    set.Init(configFileName);
    totalSteps = set.config.sys.step.total;
-   staticValues = new StaticVals();
+   staticValues = new StaticVals(set);
    system = new System(*staticValues);
    staticValues->Init(set, *system);
    system->Init(set);

@@ -24,7 +24,15 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class BoxDimensions
 {
 public:
-  BoxDimensions() {}
+  BoxDimensions()
+  {
+    axis.Init(BOX_TOTAL);
+    halfAx.Init(BOX_TOTAL);
+    for (uint b = 0; b < BOX_TOTAL; b++)
+    {
+      cellBasis[b] = XYZArray(3);           
+    }
+  }
   BoxDimensions(BoxDimensions const& other);
   virtual BoxDimensions& operator=(BoxDimensions const& other);
 
@@ -128,7 +136,6 @@ public:
 
   double rCut;
   double rCutSq;
-  double minBoxSize;
 
   bool cubic[BOX_TOTAL], orthogonal[BOX_TOTAL], constArea;
 

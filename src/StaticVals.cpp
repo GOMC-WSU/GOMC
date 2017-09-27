@@ -15,17 +15,6 @@ void StaticVals::Init(Setup & set, System& sys)
    forcefield.Init(set);
    mol.Init(set, forcefield, sys);
 #ifndef VARIABLE_VOLUME
-   IsBoxOrthogonal(set.config.sys.volume);
-
-   if(isOrthogonal)
-   {
-     boxDimensions = new BoxDimensions();
-   }
-   else
-   {
-     boxDimensions = new BoxDimensionsNonOrth();
-   }
-
    boxDimensions->Init(set.config.in.restart, set.config.sys.volume,
 		       set.pdb.cryst, forcefield.rCut, forcefield.rCutSq);
 #endif
@@ -98,21 +87,34 @@ void StaticVals::IsBoxOrthogonal(config_setup::Volume const& vol)
     cosAngle[b][2] = temp.DotProduct(vol.axis[b].Get(0), vol.axis[b].Get(1)) /
       (cellLengthX * cellLengthY);
     
-    orthogonal[b] = ((int(cosAngle[b][0]) == 90) &&
-		     (int(cosAngle[b][1]) == 90) &&
-		     (int(cosAngle[b][2]) == 90));
+    orthogonal[b] = ((cosAngle[b][0] == 0.0) &&
+		     (cosAngle[b][1] == 0.0) &&
+		     (cosAngle[b][2] == 0.0));
     isOrthogonal = (isOrthogonal || orthogonal[b]);
   }
 }
 
 
-StaticVals::StaticVals()
+StaticVals::StaticVals(Setup & set)
 {
-  isOrthogonal = false;
-  boxDimensions = NULL;
+   isOrthogonal = false;
+   IsBoxOrthogonal(set.config.sys.volume);
+#ifndef VARIABLE_VOLUME
+   boxDimensions = NULL;
+   if(isOrthogonal)
+   {
+     boxDimensions = new BoxDimensions();
+   }
+   else
+   {
+     boxDimensions = new BoxDimensionsNonOrth();
+   }
+#endif
 }
 
 StaticVals::~StaticVals()
 {
+#ifndef VARIABLE_VOLUME
   delete[] boxDimensions;
+#endif
 }

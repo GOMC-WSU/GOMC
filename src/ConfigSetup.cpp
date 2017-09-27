@@ -490,7 +490,7 @@ void ConfigSetup::Init(const char *fileName)
         exit(0);
       }
     }
-    else if(line[0] == "CellBasisVector2")
+    else if(line[0] == "CellBasisVector3")
     {
       uint box = stringtoi(line[1]);
       if(box < BOX_TOTAL)
