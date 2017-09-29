@@ -150,7 +150,10 @@ void ConfigSetup::Init(const char *fileName)
     if(line[0] == "Restart")
     {
       in.restart.enable = checkBool(line[1]);
-      printf("%-40s %-s \n", "Info: Restart simulation",  "Active");
+      if(in.restart.enable)
+      {
+	printf("%-40s %-s \n", "Info: Restart simulation",  "Active");
+      }
     }
     else if(line[0] == "FirstStep")
     {
@@ -456,7 +459,7 @@ void ConfigSetup::Init(const char *fileName)
         temp.y = stringtod(line[3]);
         temp.z = stringtod(line[4]);
         sys.volume.axis[box].Set(0, temp);
-	printf("%s %-d: %-29s %-6.4f %-4.4f %-4.4f \n",
+	printf("%s %-d: %-28s %-3.4f %-4.4f %-4.4f \n",
 	       "Info: Box ", box, " Periodic Cell Basis 1",
 	       temp.x, temp.y, temp.z);
       }

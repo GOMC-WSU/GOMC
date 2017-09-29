@@ -46,7 +46,12 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     volInv[b] = 1.0 / volume[b];
     //Calculate distance between two faces
     faceLength.Set(b, volume[b]/bxc.Length(), volume[b]/cxa.Length(),
-		   volume[b]/axb.Length());
+    		   volume[b]/axb.Length());
+    //normalizing unitcell
+    for(uint i = 0; i < 3; i++)
+    {
+      cellBasis[b].Set(i, cellBasis[b].Get(i).Normalize());
+    }
     //Calculate the adjoint and determinant
     double det = cellBasis[b].AdjointMatrix(cellBasis_Inv[b]);
     //Calculate the inverse matrix of cell basis
@@ -57,7 +62,8 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     axis.Set(b, cellLength[b]);
   }
   //We should consider the half of the face distance
-  faceLength.CopyRange(halfAx, 0, 0, BOX_TOTAL);
+  //faceLength.CopyRange(halfAx, 0, 0, BOX_TOTAL);
+  axis.CopyRange(halfAx, 0, 0, BOX_TOTAL);
   halfAx.ScaleRange(0, BOX_TOTAL, 0.5);
 
   for (uint b = 0; b < BOX_TOTAL; b++)
@@ -157,12 +163,15 @@ void BoxDimensionsNonOrth::SetVolume(const uint b, const double vol)
    CalcCellDimensions();
 }
 
-XYZ BoxDimensionsNonOrth::MinImage(XYZ rawVec, const uint b) const
+XYZ BoxDimensionsNonOrth::MinImage(XYZ rawVecRef, const uint b) const
 {
-  rawVec.x = MinImageSigned(rawVec.x, faceLength.x[b], halfAx.x[b]);
-  rawVec.y = MinImageSigned(rawVec.y, faceLength.y[b], halfAx.y[b]);
-  rawVec.z = MinImageSigned(rawVec.z, faceLength.z[b], halfAx.z[b]);
-  return rawVec;
+  XYZ rawVec = TransformUnSlant(rawVecRef, b);
+  rawVecRef = BoxDimensions:: MinImage(rawVec, b);
+  rawVecRef = TransformSlant(rawVecRef, b);
+  //rawVec.x = MinImageSigned(rawVec.x, faceLength.x[b], halfAx.x[b]);
+  //rawVec.y = MinImageSigned(rawVec.y, faceLength.y[b], halfAx.y[b]);
+  //rawVec.z = MinImageSigned(rawVec.z, faceLength.z[b], halfAx.z[b]);
+  return rawVecRef;
 }
 
 void BoxDimensionsNonOrth::WrapPBC(double &x, double &y, double &z,
@@ -203,13 +212,18 @@ void BoxDimensionsNonOrth::UnwrapPBC(double & x, double & y, double & z,
 XYZ BoxDimensionsNonOrth::TransformUnSlant(const XYZ &A, const uint b) const
 {
   XYZ temp;
+  
   temp.x = A.x * cellBasis_Inv[b].Get(0).x + A.y * cellBasis_Inv[b].Get(1).x +
     A.z * cellBasis_Inv[b].Get(2).x;
   temp.y = A.x * cellBasis_Inv[b].Get(0).y + A.y * cellBasis_Inv[b].Get(1).y +
     A.z * cellBasis_Inv[b].Get(2).y;
   temp.z = A.x * cellBasis_Inv[b].Get(0).z + A.y * cellBasis_Inv[b].Get(1).z +
     A.z * cellBasis_Inv[b].Get(2).z;
-
+  /*
+  temp.x = DotProduct(A, cellBasis_Inv[b].Get(0));
+  temp.y = DotProduct(A, cellBasis_Inv[b].Get(1));
+  temp.z = DotProduct(A, cellBasis_Inv[b].Get(2));
+  */
   return temp;
 }
 
@@ -217,13 +231,18 @@ XYZ BoxDimensionsNonOrth::TransformUnSlant(const XYZ &A, const uint b) const
 XYZ BoxDimensionsNonOrth::TransformSlant(const XYZ &A,const uint b) const
 {
   XYZ temp;
+  
   temp.x = A.x * cellBasis[b].Get(0).x + A.y * cellBasis[b].Get(1).x +
     A.z * cellBasis[b].Get(2).x;
   temp.y = A.x * cellBasis[b].Get(0).y + A.y * cellBasis[b].Get(1).y +
     A.z * cellBasis[b].Get(2).y;
   temp.z = A.x * cellBasis[b].Get(0).z + A.y * cellBasis[b].Get(1).z +
     A.z * cellBasis[b].Get(2).z;
-
+  /*
+  temp.x = DotProduct(A, cellBasis[b].Get(0));
+  temp.y = DotProduct(A, cellBasis[b].Get(1));
+  temp.z = DotProduct(A, cellBasis[b].Get(2));
+  */
   return temp;
 }
 

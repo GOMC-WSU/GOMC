@@ -90,14 +90,14 @@ void StaticVals::IsBoxOrthogonal(config_setup::Volume const& vol)
     orthogonal[b] = ((cosAngle[b][0] == 0.0) &&
 		     (cosAngle[b][1] == 0.0) &&
 		     (cosAngle[b][2] == 0.0));
-    isOrthogonal = (isOrthogonal || orthogonal[b]);
+    isOrthogonal = (isOrthogonal && orthogonal[b]);
   }
 }
 
 
 StaticVals::StaticVals(Setup & set)
 {
-   isOrthogonal = false;
+   isOrthogonal = true;
    IsBoxOrthogonal(set.config.sys.volume);
 #ifndef VARIABLE_VOLUME
    boxDimensions = NULL;

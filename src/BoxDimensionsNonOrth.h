@@ -48,7 +48,7 @@ public:
   void CalcCellDimensions();
 
   //Vector btwn two points, accounting for PBC, on an individual axis
-  virtual XYZ MinImage(XYZ rawVec, const uint b) const;
+  virtual XYZ MinImage(XYZ rawVecRef, const uint b) const;
 
   //Unwrap one coordinate.
   virtual void WrapPBC(double &x, double &y, double &z, const uint b) const;
