@@ -44,9 +44,6 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     //Calculate volume = A.(B x C)
     volume[b] = DotProduct(cellBasis[b].Get(0), bxc);
     volInv[b] = 1.0 / volume[b];
-    //Calculate distance between two faces
-    faceLength.Set(b, volume[b]/bxc.Length(), volume[b]/cxa.Length(),
-    		   volume[b]/axb.Length());
     //normalizing unitcell
     for(uint i = 0; i < 3; i++)
     {
@@ -61,8 +58,7 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     //axis.Set(b, unslant.x, unslant.y, unslant.z); 
     axis.Set(b, cellLength[b]);
   }
-  //We should consider the half of the face distance
-  //faceLength.CopyRange(halfAx, 0, 0, BOX_TOTAL);
+  //Set half axis
   axis.CopyRange(halfAx, 0, 0, BOX_TOTAL);
   halfAx.ScaleRange(0, BOX_TOTAL, 0.5);
 
@@ -78,34 +74,17 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
   constArea = confVolume.cstArea;
 }
 
-void BoxDimensionsNonOrth::CalcCellDimensions()
+void BoxDimensionsNonOrth::CalcCellDimensions(const uint b)
 {
-  for (uint b = 0; b < BOX_TOTAL; b++)
+  //normalizing unitcell
+  for(uint i = 0; i < 3; i++)
   {
-    XYZ scale = axis.Get(b) / cellLength.Get(b);
-    //Calculate new cell basis
-    cellBasis[b].Scale(0, scale.x);
-    cellBasis[b].Scale(1, scale.y);
-    cellBasis[b].Scale(2, scale.z);
-    //Set cell length
-    cellLength.Set(b, axis[b]);
-    //Calculate Cross Product
-    XYZ axb = CrossProduct(cellBasis[b].Get(0), cellBasis[b].Get(1));
-    XYZ bxc = CrossProduct(cellBasis[b].Get(1), cellBasis[b].Get(2));
-    XYZ cxa = CrossProduct(cellBasis[b].Get(2), cellBasis[b].Get(0));
-    //Calculate volume = A.(B x C)
-    volume[b] = DotProduct(cellBasis[b].Get(0), bxc);
-    volInv[b] = 1.0 / volume[b];
-    //Calculate distance between two faces
-    faceLength.Set(b, volume[b]/bxc.Length(), volume[b]/cxa.Length(),
-		   volume[b]/axb.Length());
-    //Calculate the adjoint and determinant
-    double det = cellBasis[b].AdjointMatrix(cellBasis_Inv[b]);
-    //Calculate the inverse matrix of cell basis
-    cellBasis_Inv[b].ScaleRange(0, 3, 1.0/det);    
+    cellBasis[b].Set(i, cellBasis[b].Get(i).Normalize());
   }
-  faceLength.CopyRange(halfAx, 0, 0, BOX_TOTAL);
-  halfAx.ScaleRange(0, BOX_TOTAL, 0.5);
+  //Calculate the adjoint and determinant
+  double det = cellBasis[b].AdjointMatrix(cellBasis_Inv[b]);
+  //Calculate the inverse matrix of cell basis
+  cellBasis_Inv[b].ScaleRange(0, 3, 1.0/det);
 }
 
 
@@ -127,40 +106,90 @@ BoxDimensionsNonOrth& BoxDimensionsNonOrth::operator=(BoxDimensionsNonOrth const
   other.axis.CopyRange(axis, 0, 0, BOX_TOTAL);
   other.halfAx.CopyRange(halfAx, 0, 0, BOX_TOTAL);
   other.cellLength.CopyRange(cellLength, 0, 0, BOX_TOTAL);
-  other.faceLength.CopyRange(faceLength, 0, 0, BOX_TOTAL);
   rCut = other.rCut;
   rCutSq = other.rCutSq;
   constArea = other.constArea;
-
   return *this;
+}
+
+
+uint BoxDimensionsNonOrth::ShiftVolume(BoxDimensionsNonOrth & newDim,
+				       XYZ & scale, const uint b,
+				       const double delta) const
+{
+  uint rejectState = mv::fail_state::NO_FAIL;
+  double newVolume = volume[b] + delta;
+  newDim = *this;
+  newDim.SetVolume(b, newVolume);
+
+  //If move would shrink any box axis to be less than 2 * rcut, then
+  //automatically reject to prevent errors.
+  if ((newDim.halfAx.x[b] < rCut || newDim.halfAx.y[b] < rCut ||
+       newDim.halfAx.z[b] < rCut))
+  {
+    std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!"
+	      << std::endl;
+    rejectState = mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
+  }
+  scale = newDim.axis.Get(b) / axis.Get(b);
+
+  return rejectState;
+}
+
+uint BoxDimensionsNonOrth::ExchangeVolume(BoxDimensionsNonOrth & newDim,
+					  XYZ * scale,
+					  const double transfer) const
+{
+  uint state = mv::fail_state::NO_FAIL;
+  double vTot = GetTotVolume();
+  newDim = *this;
+
+  newDim.SetVolume(0, volume[0] + transfer);
+  newDim.SetVolume(1, vTot - newDim.volume[0]);
+
+  //If move would shrink any box axis to be less than 2 * rcut, then
+  //automatically reject to prevent errors.
+  for (uint b = 0; b < BOX_TOTAL && state == mv::fail_state::NO_FAIL; b++)
+  {
+    scale[b] = newDim.axis.Get(b) / axis.Get(b);
+    if ((newDim.halfAx.x[b] < rCut || newDim.halfAx.y[b] < rCut ||
+	 newDim.halfAx.z[b] < rCut))
+    {
+      std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!"
+	      << std::endl;
+      state = state && mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
+    }
+  }
+  return state;
 }
 
 
 void BoxDimensionsNonOrth::SetVolume(const uint b, const double vol)
 {
-   if (cubic[b] && !constArea)
+   if(constArea)
    {
-      double newAxX_b = pow(vol, (1.0/3.0));
-      XYZ newAx_b(newAxX_b, newAxX_b, newAxX_b);
-      axis.Set(b, newAx_b);
-   }
-   else if (constArea)
-   {
-     double area = axis.x[b] * axis.y[b];
-     double newAxX_b = vol / area;
-     XYZ newAx_b(axis.x[b], axis.y[b], newAxX_b);
-     axis.Set(b, newAx_b);
+     double ratio = vol / volume[b];   
+     axis.Scale(b, 1.0, 1.0, ratio);
+     halfAx.Scale(b, 1.0, 1.0, ratio);
+     cellLength.Scale(b, 1.0, 1.0, ratio);
+     //Keep a and b same and change c
+     cellBasis[b].Scale(2, ratio);
    }
    else
    {
-     double z_x = axis.z[b] / axis.x[b];
-     double y_x = axis.y[b] / axis.x[b];
-     double newAxX_b = pow(vol / (z_x * y_x), (1.0/3.0));
-     XYZ newAx_b(newAxX_b, y_x * newAxX_b, newAxX_b * z_x);
-     axis.Set(b, newAx_b);
+     double ratio = pow(vol / volume[b], (1.0/3.0));
+     axis.Scale(b, ratio);
+     halfAx.Scale(b, ratio);
+     cellLength.Scale(b, ratio);
+     for(uint i = 0; i < 0; i++)
+     {
+       cellBasis[b].Scale(i, ratio);
+     }
    }
+   volume[b] = vol;
+   volInv[b] = 1.0 / volume[b];
    //Calculate new cell dimension
-   CalcCellDimensions();
+   CalcCellDimensions(b);
 }
 
 XYZ BoxDimensionsNonOrth::MinImage(XYZ rawVecRef, const uint b) const
@@ -168,9 +197,6 @@ XYZ BoxDimensionsNonOrth::MinImage(XYZ rawVecRef, const uint b) const
   XYZ rawVec = TransformUnSlant(rawVecRef, b);
   rawVecRef = BoxDimensions:: MinImage(rawVec, b);
   rawVecRef = TransformSlant(rawVecRef, b);
-  //rawVec.x = MinImageSigned(rawVec.x, faceLength.x[b], halfAx.x[b]);
-  //rawVec.y = MinImageSigned(rawVec.y, faceLength.y[b], halfAx.y[b]);
-  //rawVec.z = MinImageSigned(rawVec.z, faceLength.z[b], halfAx.z[b]);
   return rawVecRef;
 }
 
@@ -219,11 +245,6 @@ XYZ BoxDimensionsNonOrth::TransformUnSlant(const XYZ &A, const uint b) const
     A.z * cellBasis_Inv[b].Get(2).y;
   temp.z = A.x * cellBasis_Inv[b].Get(0).z + A.y * cellBasis_Inv[b].Get(1).z +
     A.z * cellBasis_Inv[b].Get(2).z;
-  /*
-  temp.x = DotProduct(A, cellBasis_Inv[b].Get(0));
-  temp.y = DotProduct(A, cellBasis_Inv[b].Get(1));
-  temp.z = DotProduct(A, cellBasis_Inv[b].Get(2));
-  */
   return temp;
 }
 
@@ -238,11 +259,6 @@ XYZ BoxDimensionsNonOrth::TransformSlant(const XYZ &A,const uint b) const
     A.z * cellBasis[b].Get(2).y;
   temp.z = A.x * cellBasis[b].Get(0).z + A.y * cellBasis[b].Get(1).z +
     A.z * cellBasis[b].Get(2).z;
-  /*
-  temp.x = DotProduct(A, cellBasis[b].Get(0));
-  temp.y = DotProduct(A, cellBasis[b].Get(1));
-  temp.z = DotProduct(A, cellBasis[b].Get(2));
-  */
   return temp;
 }
 

@@ -16,7 +16,6 @@ public:
   BoxDimensionsNonOrth() : BoxDimensions()
   {
     cellLength.Init(BOX_TOTAL);
-    faceLength.Init(BOX_TOTAL);
     for (uint b = 0; b < BOX_TOTAL; b++)
     {
       cellBasis[b] = XYZArray(3);
@@ -26,9 +25,7 @@ public:
   BoxDimensionsNonOrth(BoxDimensionsNonOrth const& other) : BoxDimensions(other)
   {
     cellLength.Init(BOX_TOTAL);
-    faceLength.Init(BOX_TOTAL);
     other.cellLength.CopyRange(cellLength, 0, 0, BOX_TOTAL);
-    other.faceLength.CopyRange(faceLength, 0, 0, BOX_TOTAL);
     for (uint b = 0; b < BOX_TOTAL; ++b)
     {   
       cellBasis_Inv[b] = XYZArray(3);
@@ -44,8 +41,15 @@ public:
 
   virtual void SetVolume(const uint b, const double vol);
 
+  virtual uint ShiftVolume(BoxDimensionsNonOrth & newDim, XYZ & scale,
+			   const uint b, const double delta) const;
+
+  //!Calculate and execute volume exchange based on transfer
+  virtual uint ExchangeVolume(BoxDimensionsNonOrth & newDim, XYZ * scale,
+			      const double transfer) const;
+
   //Construct cell basis based on new axis dimension
-  void CalcCellDimensions();
+  void CalcCellDimensions(const uint b);
 
   //Vector btwn two points, accounting for PBC, on an individual axis
   virtual XYZ MinImage(XYZ rawVecRef, const uint b) const;
@@ -66,7 +70,6 @@ public:
 //private:
   XYZArray cellBasis_Inv[BOX_TOTAL]; //inverse cell matrix for each box
   XYZArray cellLength;                //Length of a, b, c for each box
-  XYZArray faceLength;                //Length between two faces for each box
 
   XYZ CrossProduct(const XYZ &A, const XYZ &B) const;   //Calc AxB product  
 };
