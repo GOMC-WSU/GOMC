@@ -49,12 +49,12 @@ public:
 
   virtual void SetVolume(const uint b, const double vol);
 
-  uint ShiftVolume(BoxDimensions & newDim, XYZ & scale,
-                   const uint b, const double delta) const;
+  virtual uint ShiftVolume(BoxDimensions & newDim, XYZ & scale,
+			   const uint b, const double delta) const;
 
   //!Calculate and execute volume exchange based on transfer
-  uint ExchangeVolume(BoxDimensions & newDim, XYZ * scale,
-                      const double transfer) const;
+  virtual uint ExchangeVolume(BoxDimensions & newDim, XYZ * scale,
+			      const double transfer) const;
 
   //Vector btwn two points, accounting for PBC, on an individual axis
   virtual XYZ MinImage(XYZ rawVec, const uint b) const;

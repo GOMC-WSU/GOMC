@@ -62,7 +62,6 @@ uint BoxDimensions::ShiftVolume
 {
   uint rejectState = mv::fail_state::NO_FAIL;
   double newVolume = volume[b] + delta;
-
   newDim.SetVolume(b, newVolume);
 
   //If move would shrink any box axis to be less than 2 * rcut, then
@@ -84,7 +83,6 @@ uint BoxDimensions::ExchangeVolume
 {
   uint state = mv::fail_state::NO_FAIL;
   double vTot = GetTotVolume();
-  newDim = *this;
 
   newDim.SetVolume(0, volume[0] + transfer);
   newDim.SetVolume(1, vTot - newDim.volume[0]);
@@ -145,7 +143,6 @@ BoxDimensions& BoxDimensions::operator=(BoxDimensions const& other)
   rCut = other.rCut;
   rCutSq = other.rCutSq;
   constArea = other.constArea;
-
   return *this;
 }
 
@@ -157,40 +154,26 @@ double BoxDimensions::GetTotVolume() const
   return sum;
 }
 
-
 void BoxDimensions::SetVolume(const uint b, const double vol)
 {
-   if (cubic[b] && !constArea)
+   if(constArea)
    {
-      double newAxX_b = pow(vol, (1.0/3.0));
-      XYZ newAx_b(newAxX_b, newAxX_b, newAxX_b);
-      axis.Set(b, newAx_b);
-      newAx_b *= 0.5;
-      halfAx.Set(b, newAx_b);
-   }
-   else if (constArea)
-   {
-     double area = axis.x[b] * axis.y[b];
-     double newAxX_b = vol / area;
-     XYZ newAx_b(axis.x[b], axis.y[b], newAxX_b);
-     axis.Set(b, newAx_b);
-     newAx_b *= 0.5;
-     halfAx.Set(b, newAx_b);
+     double ratio = vol / volume[b];
+     axis.Scale(b, 1.0, 1.0, ratio);
+     halfAx.Scale(b, 1.0, 1.0, ratio);
+     //Keep a and b same and change c
+     cellBasis[b].Scale(2, ratio);
    }
    else
    {
-     double z_x = axis.z[b] / axis.x[b];
-     double y_x = axis.y[b] / axis.x[b];
-     double newAxX_b = pow(vol / (z_x * y_x), (1.0/3.0));
-     XYZ newAx_b(newAxX_b, y_x * newAxX_b, newAxX_b * z_x);
-     axis.Set(b, newAx_b);
-     newAx_b *= 0.5;
-     halfAx.Set(b, newAx_b);
+     double ratio = pow(vol / volume[b], (1.0/3.0));
+     axis.Scale(b, ratio);
+     halfAx.Scale(b, ratio);
+     for(uint i = 0; i < 0; i++)
+     {
+       cellBasis[b].Scale(i, ratio);
+     }
    }
-
-   cellBasis[b].Set(0, XYZ(axis.x[b], 0, 0));
-   cellBasis[b].Set(1, XYZ(0, axis.y[b], 0));
-   cellBasis[b].Set(2, XYZ(0, 0, axis.z[b]));
    volume[b] = vol;
    volInv[b] = 1.0/vol;
 

@@ -72,7 +72,6 @@ void StaticVals::IsBoxOrthogonal(config_setup::Volume const& vol)
   double cosAngle[BOX_TOTAL][3];
   double orthogonal[BOX_TOTAL];
   XYZ temp;
-  isOrthogonal = false;
 
   for (uint b = 0; b < BOX_TOTAL; b++)
   {
