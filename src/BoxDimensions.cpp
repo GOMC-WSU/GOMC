@@ -179,131 +179,8 @@ void BoxDimensions::SetVolume(const uint b, const double vol)
 
 }
 
-XYZ BoxDimensions::MinImage(XYZ rawVec, const uint b) const
-{
-  rawVec.x = MinImageSigned(rawVec.x, axis.x[b], halfAx.x[b]);
-  rawVec.y = MinImageSigned(rawVec.y, axis.y[b], halfAx.y[b]);
-  rawVec.z = MinImageSigned(rawVec.z, axis.z[b], halfAx.z[b]);
-  return rawVec;
-}
 
-//Dist. btwn two points, accounting for PBC, on an individual axis
-//
-//Throws out sign (as per Brock's suggestion) as we don't care about it
-//and thus can eliminate a branch and (potentially) one compare.
-//
-double BoxDimensions::MinImage
-(double& raw, const double ax, const double halfAx) const
-{
-  raw = fabs(raw);
-  //If shorter over periodic boundary, get that dist.
-#ifdef NO_BRANCHING_MIN_IMAGE
-  rawDiff = ax-raw;
-  return (raw > halfAx)?rawDiff:raw;
-#else
-  if (raw > halfAx)
-    raw = ax-raw;
-  return raw; //...just pass back if distance is already minimum
-#endif
-}
-
-double BoxDimensions::MinImageSigned(double raw, double ax, double halfAx) const
-{
-  if (raw > halfAx)
-    raw -= ax;
-  else if (raw < -halfAx)
-    raw += ax;
-  return raw;
-}
-
-bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
-			   XYZArray const& arr, const uint i,
-			   const uint j, const uint b) const
-{
-  dist = MinImage(arr.Difference(i, j), b);
-  distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
-  return (rCutSq > distSq);
-}
-
-
-bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
-				  XYZArray const& arr1, const uint i,
-				  XYZArray const& arr2, const uint j,
-				  const uint b) const
-{
-  dist = MinImage(arr1.Difference(i, arr2, j), b);
-  distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
-  return (rCutSq > distSq);
-}
-
-bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr,
-				  const uint i, const uint j,
-				  const uint b) const
-{
-  XYZ dist = MinImage(arr.Difference(i, j), b);
-  distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
-  return (rCutSq > distSq);
-}
-
-
-bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr1,
-				  const uint i, XYZArray const& arr2,
-				  const uint j, const uint b) const
-{
-  XYZ dist = MinImage(arr1.Difference(i, arr2, j), b);
-  distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
-  return (rCutSq > distSq);
-}
-
-
-void BoxDimensions::GetDistSq(double & distSq, XYZArray const& arr1,
-                                     const uint i, XYZArray const& arr2,
-				     const uint j, const uint b) const
-{
-  XYZ dist = MinImage(arr1.Difference(i, arr2, j), b);
-  distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
-}
-
-void BoxDimensions::GetDistSq(double & distSq, XYZArray const& arr,
-				     const uint i, const uint j,
-				     const uint b) const
-{
-  XYZ dist = MinImage(arr.Difference(i, j), b);
-  distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
-}
-
-//Wrap one coordinate.
-XYZ BoxDimensions::WrapPBC(XYZ rawPos, const uint b) const
-{
-  WrapPBC(rawPos.x, rawPos.y, rawPos.z, b);
-  return rawPos;
-}
-
-//Wrap all coordinates in object.
-void BoxDimensions::WrapPBC(XYZArray & arr, const uint b) const
-{
-  for (uint i = 0; i < arr.count; i++)
-    WrapPBC(arr.x[i], arr.y[i], arr.z[i], b);
-}
-
-//Unwrap all coordinates in object.
-void BoxDimensions::UnwrapPBC(XYZArray & arr, const uint b, XYZ
-                                     const& ref) const
-{
-  for (uint i = 0; i < arr.count; i++)
-    UnwrapPBC(arr.x[i], arr.y[i], arr.z[i], b, ref);
-}
-
-//Wrap range of coordinates in object
-void BoxDimensions::WrapPBC
-(XYZArray & arr, const uint start, const uint stop, const uint b) const
-{
-  for (uint i = start; i < stop; i++)
-    WrapPBC(arr.x[i], arr.y[i], arr.z[i], b);
-}
-
-void BoxDimensions::WrapPBC(double &x, double &y, double &z,
-				   const uint b) const
+void BoxDimensions::WrapPBC(double &x, double &y, double &z, const uint b) const
 {
   WrapPBC(x, axis.x[b]);
   WrapPBC(y, axis.y[b]);
@@ -311,21 +188,13 @@ void BoxDimensions::WrapPBC(double &x, double &y, double &z,
 }
 
 void BoxDimensions::UnwrapPBC(double & x, double & y, double & z,
-				     const uint b, XYZ const& ref) const
+			      const uint b, XYZ const& ref) const
 {
   UnwrapPBC(x, ref.x, axis.x[b], halfAx.x[b]);
   UnwrapPBC(y, ref.y, axis.y[b], halfAx.y[b]);
   UnwrapPBC(z, ref.z, axis.z[b], halfAx.z[b]);
 }
 
-//Unwrap range of coordinates in object
-void BoxDimensions::UnwrapPBC(XYZArray & arr, const uint start,
-                                     const uint stop, const uint b,
-                                     XYZ const& ref) const
-{
-  for (uint i = start; i < stop; i++)
-    UnwrapPBC(arr.x[i], arr.y[i], arr.z[i], b, ref);
-}
 
 //
 // Note, here we can't do the fabs trick as we need to know which end
@@ -368,16 +237,8 @@ double BoxDimensions::WrapPBC(double& v, const double ax) const
 #endif
 }
 
-//Unwrap one coordinate.
-XYZ BoxDimensions::UnwrapPBC(XYZ & rawPos, const uint b,
-                                    XYZ const& ref) const
-{
-  UnwrapPBC(rawPos.x, rawPos.y, rawPos.z, b, ref);
-  return rawPos;
-}
-
-double BoxDimensions::UnwrapPBC
-(double& v, const double ref, const double ax, const double halfAx) const
+double BoxDimensions::UnwrapPBC(double& v, const double ref, const double ax,
+				const double halfAx) const
 {
   //If absolute value of X dist btwn pt and ref is > 0.5 * box_axis
   //If ref > 0.5 * box_axis, add box_axis to pt (to wrap out + side)
@@ -402,11 +263,47 @@ double BoxDimensions::UnwrapPBC
 #endif
 }
 
+XYZ BoxDimensions::MinImage(XYZ rawVec, const uint b) const
+{
+  rawVec.x = MinImageSigned(rawVec.x, axis.x[b], halfAx.x[b]);
+  rawVec.y = MinImageSigned(rawVec.y, axis.y[b], halfAx.y[b]);
+  rawVec.z = MinImageSigned(rawVec.z, axis.z[b], halfAx.z[b]);
+  return rawVec;
+}
+
+//Dist. btwn two points, accounting for PBC, on an individual axis
+//
+//Throws out sign (as per Brock's suggestion) as we don't care about it
+//and thus can eliminate a branch and (potentially) one compare.
+//
+double BoxDimensions::MinImage
+(double& raw, const double ax, const double halfAx) const
+{
+  raw = fabs(raw);
+  //If shorter over periodic boundary, get that dist.
+#ifdef NO_BRANCHING_MIN_IMAGE
+  rawDiff = ax-raw;
+  return (raw > halfAx)?rawDiff:raw;
+#else
+  if (raw > halfAx)
+    raw = ax-raw;
+  return raw; //...just pass back if distance is already minimum
+#endif
+}
+
+double BoxDimensions::MinImageSigned(double raw, double ax, double halfAx) const
+{
+  if (raw > halfAx)
+    raw -= ax;
+  else if (raw < -halfAx)
+    raw += ax;
+  return raw;
+}
+
 
 //Calculate dot product
-double BoxDimensions::DotProduct(const uint atom, double kx,
-                                        double ky, double kz,
-                                        const XYZArray &Coords) const
+double BoxDimensions::DotProduct(const uint atom, double kx, double ky,
+				 double kz, const XYZArray &Coords) const
 {
   double x = Coords.x[atom], y = Coords.y[atom], z = Coords.z[atom];
   return(x * kx + y * ky + z * kz);
@@ -418,14 +315,4 @@ double BoxDimensions::DotProduct(const XYZ &A,const XYZ &B) const
   return(A.x * B.x + A.y * B.y + A.z * B.z);
 }
 
-//Calculate transform
-XYZ BoxDimensions::TransformSlant(const XYZ &A,const uint b) const
-{
-  return A;
-}
 
-//Calculate transform
-XYZ BoxDimensions::TransformUnSlant(const XYZ &A, const uint b) const
-{
-  return A;
-}

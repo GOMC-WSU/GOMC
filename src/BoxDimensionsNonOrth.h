@@ -74,6 +74,33 @@ public:
   XYZ CrossProduct(const XYZ &A, const XYZ &B) const;   //Calc AxB product  
 };
 
+//Calculate transform
+inline XYZ BoxDimensionsNonOrth::TransformUnSlant(const XYZ &A,
+						  const uint b) const
+{
+  XYZ temp;
+  
+  temp.x = A.x * cellBasis_Inv[b].Get(0).x + A.y * cellBasis_Inv[b].Get(1).x +
+    A.z * cellBasis_Inv[b].Get(2).x;
+  temp.y = A.x * cellBasis_Inv[b].Get(0).y + A.y * cellBasis_Inv[b].Get(1).y +
+    A.z * cellBasis_Inv[b].Get(2).y;
+  temp.z = A.x * cellBasis_Inv[b].Get(0).z + A.y * cellBasis_Inv[b].Get(1).z +
+    A.z * cellBasis_Inv[b].Get(2).z;
+  return temp;
+}
 
+//Calculate transform
+inline XYZ BoxDimensionsNonOrth::TransformSlant(const XYZ &A,const uint b) const
+{
+  XYZ temp;
+  
+  temp.x = A.x * cellBasis[b].Get(0).x + A.y * cellBasis[b].Get(1).x +
+    A.z * cellBasis[b].Get(2).x;
+  temp.y = A.x * cellBasis[b].Get(0).y + A.y * cellBasis[b].Get(1).y +
+    A.z * cellBasis[b].Get(2).y;
+  temp.z = A.x * cellBasis[b].Get(0).z + A.y * cellBasis[b].Get(1).z +
+    A.z * cellBasis[b].Get(2).z;
+  return temp;
+}
 
 #endif /*BOX_DIMENSIONS_NONORTHO_H*/
