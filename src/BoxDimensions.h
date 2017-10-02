@@ -155,4 +155,124 @@ public:
 };
 
 
+//Wrap one coordinate.
+inline XYZ BoxDimensions::WrapPBC(XYZ rawPos, const uint b) const
+{
+  WrapPBC(rawPos.x, rawPos.y, rawPos.z, b);
+  return rawPos;
+}
+
+
+//Unwrap one coordinate.
+inline XYZ BoxDimensions::UnwrapPBC(XYZ & rawPos, const uint b,
+                                    XYZ const& ref) const
+{
+  UnwrapPBC(rawPos.x, rawPos.y, rawPos.z, b, ref);
+  return rawPos;
+}
+
+//Wrap all coordinates in object.
+inline void BoxDimensions::WrapPBC(XYZArray & arr, const uint b) const
+{
+  for (uint i = 0; i < arr.count; i++)
+    WrapPBC(arr.x[i], arr.y[i], arr.z[i], b);
+}
+
+//Unwrap all coordinates in object.
+inline void BoxDimensions::UnwrapPBC(XYZArray & arr, const uint b, XYZ
+                                     const& ref) const
+{
+  for (uint i = 0; i < arr.count; i++)
+    UnwrapPBC(arr.x[i], arr.y[i], arr.z[i], b, ref);
+}
+
+//Wrap range of coordinates in object
+inline void BoxDimensions::WrapPBC(XYZArray & arr, const uint start,
+				   const uint stop, const uint b) const
+{
+  for (uint i = start; i < stop; i++)
+    WrapPBC(arr.x[i], arr.y[i], arr.z[i], b);
+}
+
+
+//Unwrap range of coordinates in object
+inline void BoxDimensions::UnwrapPBC(XYZArray & arr, const uint start,
+                                     const uint stop, const uint b,
+                                     XYZ const& ref) const
+{
+  for (uint i = start; i < stop; i++)
+    UnwrapPBC(arr.x[i], arr.y[i], arr.z[i], b, ref);
+}
+
+
+inline bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
+				  XYZArray const& arr, const uint i,
+				  const uint j, const uint b) const
+{
+  dist = MinImage(arr.Difference(i, j), b);
+  distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
+  return (rCutSq > distSq);
+}
+
+
+inline bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
+				  XYZArray const& arr1, const uint i,
+				  XYZArray const& arr2, const uint j,
+				  const uint b) const
+{
+  dist = MinImage(arr1.Difference(i, arr2, j), b);
+  distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
+  return (rCutSq > distSq);
+}
+
+inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr,
+				  const uint i, const uint j,
+				  const uint b) const
+{
+  XYZ dist = MinImage(arr.Difference(i, j), b);
+  distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
+  return (rCutSq > distSq);
+}
+
+
+inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr1,
+				  const uint i, XYZArray const& arr2,
+				  const uint j, const uint b) const
+{
+  XYZ dist = MinImage(arr1.Difference(i, arr2, j), b);
+  distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
+  return (rCutSq > distSq);
+}
+
+
+inline void BoxDimensions::GetDistSq(double & distSq, XYZArray const& arr1,
+                                     const uint i, XYZArray const& arr2,
+				     const uint j, const uint b) const
+{
+  XYZ dist = MinImage(arr1.Difference(i, arr2, j), b);
+  distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
+}
+
+inline void BoxDimensions::GetDistSq(double & distSq, XYZArray const& arr,
+				     const uint i, const uint j,
+				     const uint b) const
+{
+  XYZ dist = MinImage(arr.Difference(i, j), b);
+  distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
+}
+
+//Calculate transform
+inline XYZ BoxDimensions::TransformSlant(const XYZ &A,const uint b) const
+{
+  return A;
+}
+
+//Calculate transform
+inline XYZ BoxDimensions::TransformUnSlant(const XYZ &A, const uint b) const
+{
+  return A;
+}
+
+
+
 #endif /*BOX_DIMENSIONS_H*/
