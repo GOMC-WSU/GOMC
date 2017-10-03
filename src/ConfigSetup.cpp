@@ -849,10 +849,20 @@ void ConfigSetup::verifyInputs(void)
     sys.elect.oneFourScale = 0.0f;
   }
 
-  if (sys.elect.ewald == false && sys.elect.enable == true)
+  if(sys.elect.ewald == false && sys.elect.enable == true)
   {
     printf("%-40s %-s \n",
 	   "Warning: Electrostatic calculation with Ewlad method", "Inactive");
+  }
+
+  if(in.restart.enable  && sys.volume.hasVolume)
+  {
+    printf("Warning: Cell dimension set, but will be ignored in restart mode.\n");
+  }
+
+  if(in.prng.kind == "RANDOM" && in.prng.seed != UINT_MAX)
+  {
+    printf("Warning: Seed value set, but will be ignored.\n");
   }
 
   // Set output files
@@ -887,19 +897,6 @@ void ConfigSetup::verifyInputs(void)
   }
 #endif
 
-  if(in.restart.enable == true && in.restart.step == ULONG_MAX)
-  {
-    //std::cout << "Error: Restart step is needed!" << std::endl;
-    //exit(0);
-  }
-  if(in.restart.enable == false && in.restart.step != ULONG_MAX)
-  {
-    //std::cout << "Warning: Restart step will not be used!" << std::endl;
-  }
-  if(in.prng.kind == "RANDOM" && in.prng.seed != UINT_MAX)
-  {
-    std::cout << "Warning: Seed value set, but will be ignored." << std::endl;
-  }
   if(in.prng.kind == "INTSEED" && in.prng.seed == UINT_MAX)
   {
     std::cout << "Error: Seed value is not specified!" << std::endl;
@@ -1079,7 +1076,7 @@ void ConfigSetup::verifyInputs(void)
       exit(0);
     }
   }
-  if(!sys.volume.hasVolume)
+  if(!sys.volume.hasVolume && !in.restart.enable)
   {
     std::cout << "Error: This simulation requires to define " << 3* BOX_TOTAL <<
       " cell basis vectors!" <<std::endl;

@@ -15,7 +15,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 const double MoveSettings::TARGET_ACCEPT_FRACT = 0.50;
 const double MoveSettings::TINY_AMOUNT = 0.0000001;
 
-void MoveSettings::Init(StaticVals const& statV)
+void MoveSettings::Init(StaticVals const& statV,
+			pdb_setup::Remarks const& remarks)
 {
    uint baseAdjust = statV.simEventFreq.perAdjust;
    uint maj = 0, subDiv = 0;
@@ -31,23 +32,35 @@ void MoveSettings::Init(StaticVals const& statV)
       acceptPercent[m] = 0.0;
       accepted[m] = tries[m] = 0;
    }
-
-#if ENSEMBLE == NVT || ENSEMBLE == GCMC
-   scale[mv::DISPLACE] = boxDimRef.axis.Min(0)/4;
-   scale[mv::ROTATE] = M_PI_4;
-#elif ENSEMBLE == NPT
-   scale[mv::DISPLACE] = boxDimRef.axis.Min(0)/4;
-   scale[mv::ROTATE] = M_PI_4;
-   scale[mv::VOL_TRANSFER] = 500;
-#elif ENSEMBLE == GEMC
-   scale[mv::DISPLACE] = boxDimRef.axis.Min(0)/4;
-   scale[mv::DISPLACE+1] = boxDimRef.axis.Min(1)/4;
-   scale[mv::ROTATE*BOX_TOTAL] = M_PI_4;
-   scale[mv::ROTATE*BOX_TOTAL+1] = M_PI_4;
-   scale[mv::VOL_TRANSFER*BOX_TOTAL] = 500;
-   scale[mv::VOL_TRANSFER*BOX_TOTAL+1] = 500;
-   GEMC_KIND = statV.kindOfGEMC;
+   
+   if(remarks.restart)
+   {
+     for(uint b; b < BOX_TOTAL; b++)
+     {
+       uint disp = mv::GetMoveSubIndex(mv::DISPLACE, b);
+       scale[disp] = remarks.disp[b];
+       uint rotate = mv::GetMoveSubIndex(mv::ROTATE, b);
+       scale[rotate] = remarks.rotate[b];
+#if ENSEMBLE == NPT || ENSEMBLE == GEMC
+       uint volume = mv::GetMoveSubIndex(mv::VOL_TRANSFER, b);
+       scale[volume] = remarks.vol[b];
 #endif
+     }
+   }
+   else
+   {
+     for(uint b; b < BOX_TOTAL; b++)
+     {
+       uint disp = mv::GetMoveSubIndex(mv::DISPLACE, b);
+       scale[disp] = boxDimRef.axis.Min(b)/4;;
+       uint rotate = mv::GetMoveSubIndex(mv::ROTATE, b);
+       scale[rotate] = M_PI_4;
+#if ENSEMBLE == NPT || ENSEMBLE == GEMC
+       uint volume = mv::GetMoveSubIndex(mv::VOL_TRANSFER, b);
+       scale[volume] = boxDimRef.volume[b] / 100.0;
+#endif
+     }
+   }
 
 }
 
