@@ -71,6 +71,14 @@ class EwaldCached
 
    //initiliazie term used for ewald calculation
    virtual void RecipInit(uint box, BoxDimensions const& boxAxes);
+
+   //initiliazie wave vector for orthogonal box
+   void RecipInitOrth(uint box, BoxDimensions const& boxAxes);
+
+   //initiliazie wave vector for non-orthogonal box
+   void RecipInitNonOrth(uint box, BoxDimensions const& boxAxes);
+
+   //Get initial estimate of memory required
    virtual void RecipCountInit(uint box, BoxDimensions const& boxAxes);
 
    //calculate self term for a box

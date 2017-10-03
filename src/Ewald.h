@@ -50,9 +50,6 @@ class Ewald : public EwaldCached
 
    virtual void AllocMem();
 
-   //initiliazie term used for ewald calculation
-   virtual void RecipInit(uint box, BoxDimensions const& boxAxes);
-
    //setup reciprocate term for a box
    virtual void BoxReciprocalSetup(uint box, XYZArray const& molCoords);
 
