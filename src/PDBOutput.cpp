@@ -17,9 +17,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include <iostream>                 // for cout;
 
-PDBOutput::PDBOutput(System & sys, StaticVals const& statV) :
+PDBOutput::PDBOutput(System  & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
-  coordCurrRef(sys.coordinates),
+  coordCurrRef(sys.coordinates), comCurrRef(sys.com),
   pStr(coordCurrRef.Count(),GetDefaultAtomStr()),
   boxDimRef(sys.boxDimRef), molRef(statV.mol) { }
 
@@ -250,20 +250,28 @@ void PDBOutput::PrintCrystRest(const uint b, const uint step, Writer & out)
 {
   using namespace pdb_entry::cryst1::field;
   using namespace pdb_entry;
+  using namespace pdb_entry::remark::field;
+  double displace = moveSetRef.Scale(mv::GetMoveSubIndex(mv::DISPLACE, b));
+  double rotate = moveSetRef.Scale(mv::GetMoveSubIndex(mv::ROTATE, b));
+  double volume = 0.0;
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
+  volume = moveSetRef.Scale(mv::GetMoveSubIndex(mv::VOL_TRANSFER, b));
+#endif  
   sstrm::Converter toStr;
   std::string outStr(pdb_entry::LINE_WIDTH, ' ');
   XYZ axis = boxDimRef.axis.Get(b);
-  //Tag for crystallography -- cell dimensions.
-  outStr.replace(label::POS.START, label::POS.LENGTH, label::REMARK);
-  //Add box dimensions
-  toStr.Fixed().Align(x::ALIGN).Precision(x::PRECISION);
-  toStr.Replace(outStr, axis.x, x::POS);
-  toStr.Fixed().Align(y::ALIGN).Precision(y::PRECISION);
-  toStr.Replace(outStr, axis.y, y::POS);
-  toStr.Fixed().Align(z::ALIGN).Precision(z::PRECISION);
-  toStr.Replace(outStr, axis.z, z::POS);
-  //Add facet angles.
-  outStr.replace(steps::POS.START, steps::POS.LENGTH, steps::STEP);
+  //Tag for remark
+  outStr.replace(label::POS.START, label::POS.LENGTH, label::REMARK); 
+  //Tag GOMC
+  outStr.replace(name::POS.START, name::POS.LENGTH, name::STR_GOMC);
+  //Add max amount of displacement, rotate, and volume
+  toStr.Fixed().Align(dis::ALIGN).Precision(dis::PRECISION);
+  toStr.Replace(outStr, displace, dis::POS);
+  toStr.Fixed().Align(rot::ALIGN).Precision(rot::PRECISION);
+  toStr.Replace(outStr, rotate, rot::POS);
+  toStr.Fixed().Align(vol::ALIGN).Precision(vol::PRECISION);
+  toStr.Replace(outStr, volume, vol::POS);
+  //Add steps number
   toStr.Fixed().Align(stepsNum::ALIGN).Precision(stepsNum::PRECISION);
   toStr.Replace(outStr, step, stepsNum::POS);
   //Write cell line
@@ -303,7 +311,7 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
     //Loop through particles in mol.
     uint beta = molLookupRef.GetBeta(m);
     molRef.GetRangeStartStop(pStart, pEnd, m);
-    XYZ ref = coordCurrRef.Get(pStart);
+    XYZ ref = comCurrRef.Get(m);
     inThisBox = (mBox[m]==b);
     for (uint p = pStart; p < pEnd; ++p)
     {
@@ -337,7 +345,7 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
       uint molI = molLookupRef.GetMolNum(kI, k, b);
       uint beta = molLookupRef.GetBeta(molI);
       molRef.GetRangeStartStop(pStart, pEnd, molI);
-      XYZ ref = coordCurrRef.Get(pStart);
+      XYZ ref = comCurrRef.Get(molI);
       for (uint p = pStart; p < pEnd; ++p)
       {
         std::string line = GetDefaultAtomStr();
