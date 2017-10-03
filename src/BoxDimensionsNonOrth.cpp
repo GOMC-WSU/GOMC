@@ -17,10 +17,33 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
   rCutSq = rcSq;
   for (uint b = 0; b < BOX_TOTAL; b++)
   {
-    //if (restart.enable && cryst.hasVolume)
-    //  axis = cryst.axis;
-    if(confVolume.hasVolume)
+    if(restart.enable && cryst.hasVolume)
+    { 
+      axis = cryst.axis;
+      double alpha = cos(cryst.cellAngle[b][0] * M_PI / 180.0);
+      double beta  = cos(cryst.cellAngle[b][1] * M_PI / 180.0);
+      double gamma = cos(cryst.cellAngle[b][2] * M_PI / 180.0);
+      if(float(cryst.cellAngle[b][0]) == 90.0)
+	alpha = 0.0;
+      if(float(cryst.cellAngle[b][1]) == 90.0)
+	beta = 0.0;
+      if(float(cryst.cellAngle[b][2]) == 90.0)
+	gamma = 0.0;
+      double cosASq = alpha * alpha;
+      double cosBSq = beta * beta;
+      double cosGSq = gamma * gamma;
+      double temp = (alpha - beta * gamma) / (sqrt(1.0 - cosGSq));
+      cellBasis[b].Set(0, 1.0, 0.0, 0.0);
+      cellBasis[b].Set(1, gamma, sqrt(1.0 - cosGSq), 0.0);
+      cellBasis[b].Set(2, beta, temp, sqrt(1.0 - cosBSq - temp*temp));
+      cellBasis[b].Scale(0, axis.Get(b).x);
+      cellBasis[b].Scale(1, axis.Get(b).y);
+      cellBasis[b].Scale(2, axis.Get(b).z);
+    }
+    else if(confVolume.hasVolume)
+    {
       confVolume.axis[b].CopyRange(cellBasis[b], 0, 0, 3);
+    }
     else
     {
       fprintf(stderr,
@@ -42,7 +65,7 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     XYZ bxc = CrossProduct(cellBasis[b].Get(1), cellBasis[b].Get(2));
     XYZ cxa = CrossProduct(cellBasis[b].Get(2), cellBasis[b].Get(0));
     //Calculate volume = A.(B x C)
-    volume[b] = DotProduct(cellBasis[b].Get(0), bxc);
+    volume[b] = abs(DotProduct(cellBasis[b].Get(0), bxc));
     volInv[b] = 1.0 / volume[b];
     //normalizing unitcell
     for(uint i = 0; i < 3; i++)
