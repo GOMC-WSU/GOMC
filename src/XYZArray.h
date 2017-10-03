@@ -325,11 +325,7 @@ public:
   //Copy range of points.
   void CopyRange(XYZArray & dest, const uint srcIndex, const uint destIndex,
                  const uint len) const;
-  //used for ewald calculation, need to be fixed
-  double BoxSize(int box)const
-  {
-    return Max(box);
-  };
+
   double * x, * y, * z;
 
 protected:

@@ -126,64 +126,6 @@ void Ewald::AllocMem()
 }
 
 
-void Ewald::RecipInit(uint box, BoxDimensions const& boxAxes)
-{
-   uint counter = 0;
-   int x, y, z, nky_max, nky_min, nkz_max, nkz_min;
-   double ksqr;
-   double alpsqr4 = 1.0 / (4.0 * alpha * alpha);
-   XYZ constValue = boxAxes.axis.Get(box);
-   constValue.Inverse();
-   constValue *= 2 * M_PI;
-   double vol = boxAxes.volume[box] / (4 * M_PI);
-   kmax[box] = int(recip_rcut * boxAxes.axis.BoxSize(box) / (2 * M_PI)) + 1;
-
-   for (x = 0; x <= kmax[box]; x++)
-   {
-      nky_max = sqrt(pow((double)kmax[box], 2) - pow((double)x, 2));
-      nky_min = -nky_max;
-      if (x == 0.0)
-      {
-	 nky_min = 0;
-      }
-      for (y = nky_min; y <= nky_max; y++)
-      {
-	 nkz_max = sqrt(pow((double)kmax[box], 2) - pow((double)x, 2) - pow((double)y, 2));
-	 nkz_min = -nkz_max;
-	 if (x == 0.0 && y == 0.0)
-         {
-	    nkz_min = 1;
-	 }
-	 for (z = nkz_min; z <= nkz_max; z++)
-         {
-	   ksqr = pow((constValue.x * x), 2) + pow((constValue.y * y), 2) +
-	     pow ((constValue.z * z), 2);
-
-	    if (ksqr < recip_rcut_Sq)
-	    {
-	       kx[box][counter] = constValue.x * x;
-	       ky[box][counter] = constValue.y * y;
-	       kz[box][counter] = constValue.z * z;
-	       hsqr[box][counter] = ksqr;
-	       prefact[box][counter] = num::qqFact * exp(-ksqr * alpsqr4)/
-		 (ksqr * vol);
-	       counter++;
-	    }
-	 }
-      }
-   }
-
-   imageSize[box] = counter;
-
-   if (counter > imageTotal)
-   {
-     std::cout<< "Error: Kmax exceeded due to large change in system volume.\n";
-     std::cout<< "Restart the simulation from restart files.\n";
-     exit(EXIT_FAILURE);
-   }
-}
-
-
 //calculate reciprocate term for a box
 void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 {

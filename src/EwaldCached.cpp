@@ -275,43 +275,54 @@ void EwaldCached::AllocMem()
 
 void EwaldCached::RecipInit(uint box, BoxDimensions const& boxAxes)
 {
+  if(boxAxes.orthogonal[box])
+    RecipInitOrth(box, boxAxes);
+  else
+    RecipInitNonOrth(box, boxAxes);
+}
+
+void EwaldCached::RecipInitOrth(uint box, BoxDimensions const& boxAxes)
+{
    uint counter = 0;
-   int x, y, z, nky_max, nky_min, nkz_max, nkz_min;
-   double ksqr;
+   int x, y, z, nkx_max, nky_max, nky_min, nkz_max, nkz_min;
+   double ksqr, kX, kY, kZ;
    double alpsqr4 = 1.0 / (4.0 * alpha * alpha);
    XYZ constValue = boxAxes.axis.Get(box);
    constValue.Inverse();
    constValue *= 2 * M_PI;
 
    double vol = boxAxes.volume[box] / (4 * M_PI);
-   kmax[box] = int(recip_rcut * boxAxes.axis.BoxSize(box) / (2 * M_PI)) + 1;
+   nkx_max = int(recip_rcut * boxAxes.axis.Get(box).x / (2 * M_PI)) + 1;
+   nky_max = int(recip_rcut * boxAxes.axis.Get(box).y / (2 * M_PI)) + 1;
+   nkz_max = int(recip_rcut * boxAxes.axis.Get(box).z / (2 * M_PI)) + 1;
+   kmax[box] = std::max(std::max(nkx_max, nky_max), std::max(nky_max, nkz_max));
 
-   for (x = 0; x <= kmax[box]; x++)
+   for(x = 0; x <= nkx_max; x++)
    {
-      nky_max = sqrt(pow((double)kmax[box], 2) - pow((double)x, 2));
-      nky_min = -nky_max;
-      if (x == 0.0)
-      {
+      if(x == 0.0)
 	 nky_min = 0;
-      }
-      for (y = nky_min; y <= nky_max; y++)
-      {
-	 nkz_max = sqrt(pow((double)kmax[box], 2) - pow((double)x, 2) - pow((double)y, 2));
-	 nkz_min = -nkz_max;
-	 if (x == 0.0 && y == 0.0)
-         {
-	    nkz_min = 1;
-	 }
-	 for (z = nkz_min; z <= nkz_max; z++)
-         {
-	   ksqr = pow((constValue.x * x), 2) + pow((constValue.y * y), 2) +
-	     pow ((constValue.z * z), 2);
+      else	
+	nky_min = -nky_max;
 
-	    if (ksqr < recip_rcut_Sq)
+      for(y = nky_min; y <= nky_max; y++)
+      {
+	 if(x == 0.0 && y == 0.0)
+	   nkz_min = 1;
+	 else
+	   nkz_min = -nkz_max;
+
+	 for(z = nkz_min; z <= nkz_max; z++)
+         {
+	    kX = constValue.x * x;
+	    kY = constValue.y * y;
+	    kZ = constValue.z * z;
+	    ksqr = kX * kX + kY * kY + kZ * kZ;
+
+	    if(ksqr < recip_rcut_Sq)
 	    {
-	       kx[box][counter] = constValue.x * x;
-	       ky[box][counter] = constValue.y * y;
-	       kz[box][counter] = constValue.z * z;
+	       kx[box][counter] = kX;
+	       ky[box][counter] = kY;
+	       kz[box][counter] = kZ;
 	       hsqr[box][counter] = ksqr;
 	       prefact[box][counter] = num::qqFact * exp(-ksqr * alpsqr4)/
 		 (ksqr * vol);
@@ -323,10 +334,75 @@ void EwaldCached::RecipInit(uint box, BoxDimensions const& boxAxes)
 
    imageSize[box] = counter;
 
-   if (counter > memoryAllocation)
+   if (counter > imageTotal)
    {
      std::cout<< "Error: Kmax exceeded due to large change in system volume.\n";
-     std::cout<< "Restart the simulation from restart files or turn off the CachedFourier method to calculate reciprocal space calculations.\n";
+     std::cout<< "Restart the simulation from restart files.\n";
+     exit(EXIT_FAILURE);
+   }
+}
+
+void EwaldCached::RecipInitNonOrth(uint box, BoxDimensions const& boxAxes)
+{
+   uint counter = 0;
+   int x, y, z, nkx_max, nky_max, nky_min, nkz_max, nkz_min;
+   double ksqr, kX, kY, kZ;
+   double alpsqr4 = 1.0 / (4.0 * alpha * alpha);
+   XYZArray cellB(boxAxes.cellBasis[box]);
+   cellB.Scale(0, boxAxes.axis.Get(box).x);
+   cellB.Scale(1, boxAxes.axis.Get(box).y);
+   cellB.Scale(2, boxAxes.axis.Get(box).z);
+   XYZArray cellB_Inv(3);
+   double det = cellB.AdjointMatrix(cellB_Inv);
+   cellB_Inv.ScaleRange(0, 3, (2 * M_PI)/det);
+
+   double vol = boxAxes.volume[box] / (4 * M_PI);
+   nkx_max = int(recip_rcut * boxAxes.axis.Get(box).x / (2 * M_PI)) + 1;
+   nky_max = int(recip_rcut * boxAxes.axis.Get(box).y / (2 * M_PI)) + 1;
+   nkz_max = int(recip_rcut * boxAxes.axis.Get(box).z / (2 * M_PI)) + 1;
+   kmax[box] = std::max(std::max(nkx_max, nky_max), std::max(nky_max, nkz_max));
+
+   for (x = 0; x <= nkx_max; x++)
+   {
+      if(x == 0.0)
+	 nky_min = 0;
+      else	
+	nky_min = -nky_max;
+
+      for(y = nky_min; y <= nky_max; y++)
+      {
+	 if(x == 0.0 && y == 0.0)
+	   nkz_min = 1;
+	 else
+	   nkz_min = -nkz_max;
+	 
+	 for(z = nkz_min; z <= nkz_max; z++)
+         {
+	   kX = boxAxes.DotProduct(cellB_Inv.Get(0), XYZ(x, y, z));
+	   kY = boxAxes.DotProduct(cellB_Inv.Get(1), XYZ(x, y, z));
+	   kZ = boxAxes.DotProduct(cellB_Inv.Get(2), XYZ(x, y, z));
+	   ksqr = kX * kX + kY * kY + kZ * kZ;
+
+	    if(ksqr < recip_rcut_Sq)
+	    {
+	       kx[box][counter] = kX;
+	       ky[box][counter] = kY;
+	       kz[box][counter] = kZ;
+	       hsqr[box][counter] = ksqr;
+	       prefact[box][counter] = num::qqFact * exp(-ksqr * alpsqr4)/
+		 (ksqr * vol);
+	       counter++;
+	    }
+	 }
+      }
+   }
+
+   imageSize[box] = counter;
+
+   if(counter > imageTotal)
+   {
+     std::cout<< "Error: Kmax exceeded due to large change in system volume.\n";
+     std::cout<< "Restart the simulation from restart files.\n";
      exit(EXIT_FAILURE);
    }
 }
@@ -335,42 +411,52 @@ void EwaldCached::RecipInit(uint box, BoxDimensions const& boxAxes)
 void EwaldCached::RecipCountInit(uint box, BoxDimensions const& boxAxes)
 {
    uint counter = 0;
-   double ksqr;
-   double boxSize;
+   int x, y, z, nkx_max, nky_max, nky_min, nkz_max, nkz_min;
+   double ksqr, excess, kX, kY, kZ;
+   XYZArray cellB(boxAxes.cellBasis[box]);
    XYZ constValue = boxAxes.axis.Get(box);
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
-   boxSize = 1.25 * boxAxes.axis.BoxSize(box);
-   constValue *= 1.25;
+   excess = 1.25;
 #else
-   boxSize = boxAxes.axis.BoxSize(box);
+   excess = 1.00;
 #endif
-   constValue.Inverse();
-   constValue *= 2 * M_PI;
-   kmax[box] = int(recip_rcut * boxSize / (2 * M_PI)) + 1;
+   constValue *= excess;
+   cellB.Scale(0, constValue.x);
+   cellB.Scale(1, constValue.y);
+   cellB.Scale(2, constValue.z);
+   XYZArray cellB_Inv(3);
+   double det = cellB.AdjointMatrix(cellB_Inv);
+   cellB_Inv.ScaleRange(0, 3, (2 * M_PI)/det);
 
-   for (int x = 0; x <= kmax[box]; x++)
+   nkx_max = int(recip_rcut * constValue.x /(2 * M_PI)) + 1;
+   nky_max = int(recip_rcut * constValue.y /(2 * M_PI)) + 1;
+   nkz_max = int(recip_rcut * constValue.z /(2 * M_PI)) + 1;
+
+   for(x = 0; x <= nkx_max; x++)
    {
-      int nky_max = sqrt(pow((double)kmax[box], 2) - pow((double)x, 2));
-      int nky_min = -nky_max;
-      if (x == 0.0)
-      {
+      if(x == 0.0)
 	 nky_min = 0;
-      }
-      for (int y = nky_min; y <= nky_max; y++)
-      {
-	 int nkz_max = sqrt(pow((double)kmax[box], 2) - pow((double)x, 2) - pow((double)y, 2));
-	 int nkz_min = -nkz_max;
-	 if (x == 0.0 && y == 0.0)
-         {
-	    nkz_min = 1;
-	 }
-	 for (int z = nkz_min; z <= nkz_max; z++)
-         {
-	   ksqr = pow((constValue.x * x), 2) + pow((constValue.y * y), 2) +
-	     pow ((constValue.z * z), 2);
+      else	
+	nky_min = -nky_max;
 
-	    if (ksqr < recip_rcut_Sq)
+      for(y = nky_min; y <= nky_max; y++)
+      {
+	 if(x == 0.0 && y == 0.0)
+	   nkz_min = 1;
+	 else
+	   nkz_min = -nkz_max;
+
+	 for(z = nkz_min; z <= nkz_max; z++)
+         {
+	    kX = boxAxes.DotProduct(cellB_Inv.Get(0), XYZ(x, y, z));
+	    kY = boxAxes.DotProduct(cellB_Inv.Get(1), XYZ(x, y, z));
+	    kZ = boxAxes.DotProduct(cellB_Inv.Get(2), XYZ(x, y, z));
+	    ksqr = kX * kX + kY * kY + kZ * kZ;
+
+	    if(ksqr < recip_rcut_Sq)
+	    {
 	       counter++;
+	    }
 	 }
       }
    }
