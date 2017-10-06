@@ -545,8 +545,6 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
   }
 }
 
-
-//! Calculates Nonbonded inter energy for candidate positions in trialPos
 void CalculateEnergy::ParticleInter(double* en, double *real,
                                     XYZArray const& trialPos,
                                     const uint partIndex,
@@ -554,52 +552,95 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
                                     const uint box,
                                     const uint trials) const
 {
-   if (box >= BOXES_WITH_U_NB)
-      return;
-
-   double distSq, qi_qj_Fact, tempLJ, tempReal;
-   uint i, t;
-   MoleculeKind const& thisKind = mols.GetKind(molIndex);
-   uint kindI = thisKind.AtomKind(partIndex);
-   double kindICharge = thisKind.AtomCharge(partIndex);
-   std::vector<uint> nIndex;
-
-   for(t = 0; t < trials; ++t)
-   {
-      nIndex.clear();
-      tempReal = 0.0;
-      tempLJ = 0.0;
-      CellList::Neighbors n = cellList.EnumerateLocal(trialPos[t], box);
-      while (!n.Done())
-      {
-	nIndex.push_back(*n);
-	n.Next();
-      }
+  if(box >= BOXES_WITH_U_NB)
+    return;
 
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, distSq, qi_qj_Fact) reduction(+:tempLJ, tempReal)
-#endif
-      for(i = 0; i < nIndex.size(); i++)
+  uint id, start, end;
+  uint p = omp_get_max_threads();
+  //printf("Thread #: %d\n", p);
+
+#pragma omp parallel sections private(start, end)
+  {
+    #pragma omp section 
+    {
+      if(Schedule(start, end, p, 0, trials))
       {
-	 distSq = 0.0;
+    //printf("Thread ID: %d, Start: %d, End:%d\n", omp_get_thread_num(), start, end);
+	ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, start,
+      end);
+       }
+    }
 
-         if (currentAxes.InRcut(distSq, trialPos, t, currentCoords,
-				nIndex[i], box))
+    #pragma omp section
+    {
+      if(Schedule(start, end, p, 1, trials))
+      {
+    //printf("Thread ID: %d, Start: %d, End:%d\n", omp_get_thread_num(), start, end);
+	ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, start,
+      end);
+       }
+    }
+  
+    #pragma omp section
+    {
+      if(Schedule(start, end, p, 2, trials))
+      {
+    //printf("Thread ID: %d, Start: %d, End:%d\n", omp_get_thread_num(), start, end);
+	ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, start,
+      end);
+       }
+    }
+
+    #pragma omp section
+    {
+      if(Schedule(start, end, p, 3, trials))
+      {
+    //printf("Thread ID: %d, Start: %d, End:%d\n", omp_get_thread_num(), start, end);
+	ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, start,
+      end);
+       }
+    }
+  }
+
+#else
+  ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, 0, trials);
+#endif
+ 
+}
+
+//! Calculates Nonbonded inter energy for candidate positions in trialPos
+void CalculateEnergy::ParticleInterRange(double* en, double *real,
+					 XYZArray const& trialPos,
+					 const uint partIndex,
+					 const uint molIndex,
+					 const uint box,
+					 const uint start,
+					 const uint end) const
+{
+   double distSq, qi_qj_Fact;
+   MoleculeKind const& thisKind = mols.GetKind(molIndex);
+   uint kindI = thisKind.AtomKind(partIndex);
+   double kindICharge = thisKind.AtomCharge(partIndex) * num::qqFact;
+
+   for(uint t = start; t < end; ++t)
+   {
+     CellList::Neighbors n = cellList.EnumerateLocal(trialPos[t], box);
+     while (!n.Done())
+     {
+       distSq = 0.0;
+       if(currentAxes.InRcut(distSq, trialPos, t, currentCoords, *n, box))
+       {
+	  en[t] +=forcefield.particles->CalcEn(distSq, kindI, particleKind[*n]);
+	 if(electrostatic)
 	 {
-            tempLJ += forcefield.particles->CalcEn(distSq, kindI,
-						 particleKind[nIndex[i]]);
-	    if (electrostatic)
-	    {
-	      qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
-	      tempReal += forcefield.particles->CalcCoulombEn(distSq, qi_qj_Fact);
-	    }
-         }
-      }
-      en[t] += tempLJ;
-      real[t] += tempReal;
+	   qi_qj_Fact = particleCharge[*n] * kindICharge ;
+	   real[t] += forcefield.particles->CalcCoulombEn(distSq, qi_qj_Fact);
+	 }
+       }
+       n.Next();
+     }
    }
-
-   return;
 }
 
 
