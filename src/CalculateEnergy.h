@@ -120,6 +120,14 @@ public:
                      const uint box,
                      const uint trials) const;
 
+void ParticleInterRange(double* en, double *real,
+			XYZArray const& trialPos,
+			const uint partIndex,
+			const uint molIndex,
+			const uint box,
+			const uint start,
+			const uint end) const;
+
 
   //! Calculates the change in the TC from adding numChange atoms of a kind
   //! @param box Index of box under consideration
@@ -204,6 +212,30 @@ private:
     uint pair1 = particleMol[p1];
     uint pair2 = particleMol[p2];
     return (pair1 == pair2);
+  }
+
+  bool Schedule(uint& start, uint& end, const uint ptot, const uint sID,
+		const uint trials) const
+  {
+    uint section = 4;
+    uint chunk = trials / section;
+    uint rem = trials % section;
+    if(trials < section)
+    {
+      chunk = 1;
+      rem = 0;
+    }
+
+    start = sID * chunk;
+    if(sID != section-1)
+      end = start + chunk;
+    else
+      end = start + chunk + rem;
+    
+    if(end <= trials)
+      return true;
+    else
+      return false;
   }
 
   const Forcefield& forcefield;
