@@ -214,29 +214,24 @@ private:
     return (pair1 == pair2);
   }
 
-  bool Schedule(uint& start, uint& end, const uint ptot, const uint sID,
-		const uint trials) const
-  {
-    uint section = 4;
-    uint chunk = trials / section;
-    uint rem = trials % section;
-    if(trials < section)
-    {
-      chunk = 1;
-      rem = 0;
-    }
 
-    start = sID * chunk;
-    if(sID != section-1)
-      end = start + chunk;
-    else
-      end = start + chunk + rem;
-    
-    if(end <= trials)
-      return true;
-    else
-      return false;
+  void GetSchedule(int numberOfTrials, std::vector<int>& data) const
+  {
+    int sections = data.size();
+    uint i = 0;
+    while(sections > 0)
+    {
+      data[i] = ceil(numberOfTrials/sections);
+      numberOfTrials -= data[i];
+      sections--;
+      i++;
+    }
+    for(int i = 1; i < data.size(); i++)
+    {
+      data[i] += data[i-1];
+    }
   }
+  
 
   const Forcefield& forcefield;
   const Molecules& mols;
