@@ -556,50 +556,51 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
     return;
 
 #ifdef _OPENMP
-  uint id, start, end;
   uint p = omp_get_max_threads();
-  //printf("Thread #: %d\n", p);
+  std::vector<int> chunks;
+  chunks.resize(8);
+  GetSchedule(trials, chunks);
 
-#pragma omp parallel sections private(start, end)
+#pragma omp parallel sections
   {
     #pragma omp section 
     {
-      if(Schedule(start, end, p, 0, trials))
-      {
-    //printf("Thread ID: %d, Start: %d, End:%d\n", omp_get_thread_num(), start, end);
-	ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, start,
-      end);
-       }
+      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, 0, chunks[0]);
     }
 
     #pragma omp section
     {
-      if(Schedule(start, end, p, 1, trials))
-      {
-    //printf("Thread ID: %d, Start: %d, End:%d\n", omp_get_thread_num(), start, end);
-	ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, start,
-      end);
-       }
+      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[0], chunks[1]);
     }
   
     #pragma omp section
     {
-      if(Schedule(start, end, p, 2, trials))
-      {
-    //printf("Thread ID: %d, Start: %d, End:%d\n", omp_get_thread_num(), start, end);
-	ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, start,
-      end);
-       }
+      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[1], chunks[2]);
     }
 
     #pragma omp section
     {
-      if(Schedule(start, end, p, 3, trials))
-      {
-    //printf("Thread ID: %d, Start: %d, End:%d\n", omp_get_thread_num(), start, end);
-	ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, start,
-      end);
-       }
+      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[2], chunks[3]);
+    }
+    
+    #pragma omp section 
+    {
+      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[3], chunks[4]);
+    }
+
+    #pragma omp section
+    {
+      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[4], chunks[5]);
+    }
+  
+    #pragma omp section
+    {
+      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[5], chunks[6]);
+    }
+
+    #pragma omp section
+    {
+      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[6], chunks[7]);
     }
   }
 
