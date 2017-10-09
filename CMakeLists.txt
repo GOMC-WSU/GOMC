@@ -6,6 +6,11 @@ include_directories(lib)
 include_directories(src)
 include_directories(src/cbmc)
 
+#fix new policy of cmake about FindOpenMP.cmake (will have to check later if they fixed this issue)
+if(POLICY CMP0012)
+  cmake_policy(SET CMP0012 NEW)
+endif()
+
 #Out-of-source build
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
@@ -82,3 +87,10 @@ find_package(CUDA)
 IF(CUDA_FOUND)
     include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
 ENDIF(CUDA_FOUND)
+
+# find OpenMP and set it up
+find_package(OpenMP)
+if (OPENMP_FOUND)
+	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
