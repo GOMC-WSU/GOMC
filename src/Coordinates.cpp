@@ -26,7 +26,7 @@ void Coordinates::InitFromPDB(pdb_setup::Atoms const& atoms)
 void Coordinates::CheckCoordinate()
 {
   int p, start, atom, length, stRange, endRange;
-  XYZ min, max, diffV;
+  XYZ min, max, diffV, diffX, diffY, diffZ;
 
   for (uint b = 0; b < BOX_TOTAL; b++)
   {
@@ -50,18 +50,6 @@ void Coordinates::CheckCoordinate()
     printf("Maximum coordinates in box %d: x = %8.3f, y = %8.3f, z = %8.3f\n",
 	   b+1, max.x, max.y, max.z);
 
-    min = boxDimRef.TransformUnSlant(min, b);
-    max = boxDimRef.TransformUnSlant(max, b);
-    diffV = max - min;
-    //check to see if molecules are in the box or not
-    if( diffV.x > 1.5 * boxDimRef.axis.Get(b).x ||
-	diffV.y > 1.5 * boxDimRef.axis.Get(b).y ||
-	diffV.z > 1.5 * boxDimRef.axis.Get(b).z)
-    {
-      printf("Molecules are packed outside of the defined box dimension.\n");
-      exit(0);
-    }
-
     printf("Wrapping molecules inside the simulation box %d:\n", b+1);
     while (thisMol != end)
     {
@@ -73,6 +61,17 @@ void Coordinates::CheckCoordinate()
 	  atom = start + p;
 	  boxDimRef.WrapPBC(x[atom], y[atom], z[atom], b);
        }
+
+       diffV = comRef.Get(*thisMol);
+       diffV = boxDimRef.TransformUnSlant(diffV, b);
+       if( diffV.x > 1.5 * boxDimRef.axis.Get(b).x ||
+	   diffV.y > 1.5 * boxDimRef.axis.Get(b).y ||
+	   diffV.z > 1.5 * boxDimRef.axis.Get(b).z)
+       {
+	 printf("Molecules %d is packed outside of the defined box dimension.\n", *thisMol);
+	 exit(0);
+       }
+
        ++thisMol;
     }
 
