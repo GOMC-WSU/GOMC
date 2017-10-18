@@ -26,7 +26,7 @@ void Coordinates::InitFromPDB(pdb_setup::Atoms const& atoms)
 void Coordinates::CheckCoordinate()
 {
   int p, start, atom, length, stRange, endRange;
-  XYZ min, max, diffV, diffX, diffY, diffZ;
+  XYZ min, max;
 
   for (uint b = 0; b < BOX_TOTAL; b++)
   {
@@ -60,23 +60,22 @@ void Coordinates::CheckCoordinate()
        {
 	  atom = start + p;
 	  boxDimRef.WrapPBC(x[atom], y[atom], z[atom], b);
-       }
+	  //check to see if it is in the box or not
+	  XYZ unSlant(x[atom], y[atom], z[atom]);
+	  unSlant = boxDimRef.TransformUnSlant(unSlant, b);
 
-       diffV = comRef.Get(*thisMol);
-       diffV = boxDimRef.TransformUnSlant(diffV, b);
-       if( diffV.x > 1.5 * boxDimRef.axis.Get(b).x ||
-	   diffV.y > 1.5 * boxDimRef.axis.Get(b).y ||
-	   diffV.z > 1.5 * boxDimRef.axis.Get(b).z)
-       {
-	 printf("Molecules %d is packed outside of the defined box dimension.\n", *thisMol);
-	 exit(0);
+	  if(unSlant.x > boxDimRef.axis.Get(b).x ||
+	     unSlant.y > boxDimRef.axis.Get(b).y ||
+	     unSlant.z > boxDimRef.axis.Get(b).z)
+	  {
+	    printf("Molecules %d is packed outside of the defined box dimension.\n", *thisMol);
+	    exit(0);
+	  }
        }
 
        ++thisMol;
     }
-
   }
-
 }
 
 //Translate by a random amount
