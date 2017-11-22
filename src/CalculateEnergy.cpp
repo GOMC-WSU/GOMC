@@ -130,8 +130,8 @@ SystemPotential CalculateEnergy::SystemTotal()
    {
      if(pot.boxEnergy[b].total > 1.0e11)
      {
-       printf("Warning: Large energy detected due to the overlap in initial configuration of simulation box %d!\n", b+1);
-       printf("Total energy calculation will be perform  EqStep to preseve the enegy information.\n");
+       printf("Warning: Large energy detected due to the overlap in initial configuration of simulation box %d!\n", b);
+       printf("Warning: Total energy calculation will be perform at EqStep to preseve the enegy information.\n");
      }
    }
 

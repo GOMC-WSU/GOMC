@@ -44,13 +44,12 @@ void Coordinates::CheckCoordinate()
     min.z = *std::min_element(z + stRange, z + endRange);
     max.z = *std::max_element(z + stRange, z + endRange);
     
-    //printf("start: %d, end: %d\n", stRange, endRange);
     printf("Minimum coordinates in box %d: x = %8.3f, y = %8.3f, z = %8.3f\n",
-	   b+1, min.x, min.y, min.z);
+	   b, min.x, min.y, min.z);
     printf("Maximum coordinates in box %d: x = %8.3f, y = %8.3f, z = %8.3f\n",
-	   b+1, max.x, max.y, max.z);
+	   b, max.x, max.y, max.z);
 
-    printf("Wrapping molecules inside the simulation box %d:\n", b+1);
+    printf("Wrapping molecules inside the simulation box %d:\n", b);
     while (thisMol != end)
     {
        start = molRef.MolStart(*thisMol);
