@@ -19,6 +19,7 @@ CPUSide::CPUSide(System & sys, StaticVals & statV) :
 void CPUSide::Init(PDBSetup const& pdbSet, config_setup::Output const& out,
                    const ulong tillEquil, const ulong totSteps)
 {
+  equilSteps = tillEquil;
   //Initialize arrays in object that collects references and calc'ed vals.
   varRef.Init(pdbSet.atoms);
   //Initialize output components.

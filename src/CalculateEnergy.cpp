@@ -122,10 +122,19 @@ SystemPotential CalculateEnergy::SystemTotal()
       //calculate self term of electrostatic interaction
       pot.boxEnergy[b].self = calcEwald->BoxSelf(currentAxes, b);
       pot.boxEnergy[b].correction = -1 * correction * num::qqFact;
-
    }
 
    pot.Total();
+
+   for (uint b = 0; b < BOX_TOTAL; ++b)
+   {
+     if(pot.boxEnergy[b].total > 1.0e11)
+     {
+       printf("Warning: Large energy detected due to the overlap in initial configuration of simulation box %d!\n", b+1);
+       printf("Total energy calculation will be perform  EqStep to preseve the enegy information.\n");
+     }
+   }
+
    return pot;
 }
 
