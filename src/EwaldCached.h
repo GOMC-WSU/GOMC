@@ -21,6 +21,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Forcefield.h"
 #include "Coordinates.h"
 #include "BoxDimensions.h"
+#include "BoxDimensionsNonOrth.h"
 #include "MoleculeKind.h"
 #include "TrialMol.h"
 #ifdef GOMC_CUDA
@@ -56,7 +57,7 @@ class EwaldCached
 {
    public:
 
-   EwaldCached(StaticVals const& stat, System & sys);
+   EwaldCached(StaticVals & stat, System & sys);
 
    ~EwaldCached();
 
@@ -70,6 +71,14 @@ class EwaldCached
 
    //initiliazie term used for ewald calculation
    virtual void RecipInit(uint box, BoxDimensions const& boxAxes);
+
+   //initiliazie wave vector for orthogonal box
+   void RecipInitOrth(uint box, BoxDimensions const& boxAxes);
+
+   //initiliazie wave vector for non-orthogonal box
+   void RecipInitNonOrth(uint box, BoxDimensions const& boxAxes);
+
+   //Get initial estimate of memory required
    virtual void RecipCountInit(uint box, BoxDimensions const& boxAxes);
 
    //calculate self term for a box

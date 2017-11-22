@@ -101,15 +101,28 @@ namespace zvalue
 static const ConstField POS(66,4);
 static const std::string DEFAULT = "1";
 }
-namespace steps
+namespace dis
 {
-static const ConstField POS(40,5);
-static const std::string STEP = "STEP:";
+static const ConstField POS(15,10);
+static const uint PRECISION = 3;
 static const char ALIGN = align::RIGHT;
 }
+namespace rot
+{
+static const ConstField POS(25,10);
+static const uint PRECISION = 5;
+static const char ALIGN = align::RIGHT;
+}
+namespace vol
+{
+static const ConstField POS(35,12);
+static const uint PRECISION = 3;
+static const char ALIGN = align::RIGHT;
+}
+
 namespace stepsNum
 {
-static const ConstField POS(45,12);
+static const ConstField POS(50,15);
 static const uint PRECISION = 0;
 static const char ALIGN = align::RIGHT;
 }

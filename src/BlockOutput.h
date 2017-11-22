@@ -20,6 +20,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "StaticVals.h"
 #include "PDBSetup.h" //For atoms class.
 #include "BoxDimensions.h" //For BOXES_WITH_VOLUME
+#include "BoxDimensionsNonOrth.h"
 
 #include <limits> //for std::numeric_limits
 

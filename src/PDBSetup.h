@@ -27,17 +27,14 @@ namespace pdb_setup
 {
 struct Remarks : FWReadableBase
 {
+  uint currBox;
+  double  disp[BOX_TOTAL], rotate[BOX_TOTAL], vol[BOX_TOTAL];
   bool restart, reached;
-  ulong restartStep;
-
   void SetRestart(config_setup::RestartSettings const& r);
   void Read(FixedWidthReader & pdb);
+  void SetBox(const uint b){currBox = b;}
 
 private:
-  void HandleRemark(const uint num, std::string const& varName,
-                    const ulong step);
-  void CheckStep(std::string const& varName,
-                 const ulong readStep);
   void CheckGOMC(std::string const& varName);
 };
 
@@ -47,22 +44,10 @@ struct Cryst1 : FWReadableBase
   uint currBox;
   bool hasVolume;
   XYZArray axis;
+  double cellAngle[BOX_TOTAL][3];
   Cryst1(void) : currBox(0), hasVolume(false), axis(BOX_TOTAL) {}
-  void SetBox(const uint b)
-  {
-    currBox = b;
-  }
-  void Read(FixedWidthReader & pdb)
-  {
-    XYZ temp;
-    using namespace pdb_entry::cryst1::field;
-    hasVolume = true;
-    pdb.Get(temp.x, x::POS)
-    .Get(temp.y, y::POS)
-    .Get(temp.z, z::POS);
-    axis.Set(currBox, temp);
-  }
-
+  void SetBox(const uint b){currBox = b;}
+  void Read(FixedWidthReader & pdb);
 };
 
 class Atoms : public FWReadableBase
@@ -76,8 +61,6 @@ public:
   {
     currBox = b;
     firstResInFile = true;
-    //restart count if new system, second box.
-    count = ((b == 1 && restart) ? 0 : count);
   }
   void Assign(std::string const& atomName,
               std::string const& resName,

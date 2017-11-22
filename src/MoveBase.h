@@ -10,6 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BasicTypes.h" //For uint.
 #include "Molecules.h" //For start
 #include "BoxDimensions.h" //For pbc wrapping
+#include "BoxDimensionsNonOrth.h"
 #include "XYZArray.h" //Parent class
 #include "MoveSettings.h"
 #include "Coordinates.h"
@@ -33,7 +34,7 @@ class MoveBase
  public:
 
    MoveBase(System & sys, StaticVals const& statV) :
-   boxDimRef(sys.boxDimRef), moveSetRef(sys.moveSettings),
+     boxDimRef(sys.boxDimRef), moveSetRef(sys.moveSettings),
      sysPotRef(sys.potential),
      calcEnRef(sys.calcEnergy), comCurrRef(sys.com),
      coordCurrRef(sys.coordinates), prng(sys.prng), molRef(statV.mol),
@@ -321,25 +322,27 @@ class VolumeTransfer : public MoveBase
    uint bPick[BOX_TOTAL], subPick, subPickT[BOX_TOTAL];
    SystemPotential sysPotNew;
    BoxDimensions newDim;
+   BoxDimensionsNonOrth newDimNonOrth;
    Coordinates newMolsPos;
    COM newCOMs;
    MoleculeLookup & molLookRef;
    const uint GEMC_KIND;
    const double PRESSURE;
-   bool regrewGrid;
+   bool regrewGrid, isOrth;
 };
 
 inline VolumeTransfer::VolumeTransfer(System &sys, StaticVals const& statV)  :
 		      MoveBase(sys, statV), molLookRef(sys.molLookupRef),
-		      newDim(sys.boxDimRef), newMolsPos(boxDimRef, newCOMs,
-							sys.molLookupRef,
-							sys.prng, statV.mol),
+		      newMolsPos(boxDimRef, newCOMs, sys.molLookupRef,
+				 sys.prng, statV.mol),
+		      newDim(), newDimNonOrth(),
 		      newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef,
 			      statV.mol), GEMC_KIND(statV.kindOfGEMC),
 		      PRESSURE(statV.pressure), regrewGrid(false)
 {
   newMolsPos.Init(sys.coordinates.Count());
   newCOMs.Init(statV.mol.count);
+  isOrth = statV.isOrthogonal;
 }
 
 inline uint VolumeTransfer::Prep(const double subDraw, const double movPerc)
@@ -365,7 +368,12 @@ inline uint VolumeTransfer::Prep(const double subDraw, const double movPerc)
 	subPickT[bPick[b]] = mv::GetMoveSubIndex(mv::VOL_TRANSFER, bPick[b]);
       }
    }
-   newDim = boxDimRef;
+   
+   if(isOrth)
+     newDim = boxDimRef;
+   else
+     newDimNonOrth = *((BoxDimensionsNonOrth*)(&boxDimRef));
+
    coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
    comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
    return state;
@@ -378,8 +386,12 @@ inline uint VolumeTransfer::Transform()
    if (GEMC_KIND == mv::GEMC_NVT)
    {
       double max = moveSetRef.Scale(subPick);
-      coordCurrRef.VolumeTransferTranslate(state, newMolsPos, newCOMs, newDim,
-					   comCurrRef, max);
+      if(isOrth)
+	coordCurrRef.VolumeTransferTranslate(state, newMolsPos, newCOMs, newDim,
+					     comCurrRef, max);
+      else
+	coordCurrRef.VolumeTransferTranslate(state, newMolsPos, newCOMs,
+					     newDimNonOrth, comCurrRef, max);
    }
    else
    {
@@ -393,8 +405,12 @@ inline uint VolumeTransfer::Transform()
 
 	   double max = moveSetRef.Scale(subPickT[bPick[b]]);
 	   double delta = prng.Sym(max);
-	   state =  boxDimRef.ShiftVolume(newDim, scale[bPick[b]],
-					  bPick[b], delta);
+	   if(isOrth)
+	     state =  boxDimRef.ShiftVolume(newDim, scale[bPick[b]],
+					    bPick[b], delta);
+	   else
+	     state =  boxDimRef.ShiftVolume(newDimNonOrth, scale[bPick[b]],
+					    bPick[b], delta);
 	}
       }
 
@@ -405,8 +421,12 @@ inline uint VolumeTransfer::Transform()
 	    if ((bPick[b] == 0) && fixBox0)
 	       continue;
 
-	    coordCurrRef.TranslateOneBox(newMolsPos, newCOMs, comCurrRef,
-				      newDim, bPick[b], scale[bPick[b]]);
+	    if(isOrth)
+	      coordCurrRef.TranslateOneBox(newMolsPos, newCOMs, comCurrRef,
+					   newDim, bPick[b], scale[bPick[b]]);
+	    else
+	      coordCurrRef.TranslateOneBox(newMolsPos, newCOMs, comCurrRef,
+					   newDimNonOrth, bPick[b], scale[bPick[b]]);
 	 }
       }
    }
@@ -415,63 +435,83 @@ inline uint VolumeTransfer::Transform()
 
 inline void VolumeTransfer::CalcEn()
 {
-   cellList.GridAll(newDim, newMolsPos, molLookRef);
-   regrewGrid = true;
+  if(isOrth)
+    cellList.GridAll(newDim, newMolsPos, molLookRef);
+  else
+    cellList.GridAll(newDimNonOrth, newMolsPos, molLookRef);
+    
+  regrewGrid = true;
 
-    //back up cached fourier term
-   calcEwald->exgMolCache();
-   sysPotNew = sysPotRef;
-   for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
-   {
-      if ((bPick[b] == 0) && fixBox0)
-	continue;
-
-      //calculate new K vectors
+  //back up cached fourier term
+  calcEwald->exgMolCache();
+  sysPotNew = sysPotRef;
+  for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
+  {
+    if ((bPick[b] == 0) && fixBox0)
+      continue;
+    
+    //calculate new K vectors
+    if(isOrth)
       calcEwald->RecipInit(bPick[b], newDim);
-      //setup reciprocate terms
-      calcEwald->BoxReciprocalSetup(bPick[b], newMolsPos);
-      //calculate LJ interaction and real term of electrostatic interaction
+    else
+      calcEwald->RecipInit(bPick[b], newDimNonOrth);
+    //setup reciprocate terms
+    calcEwald->BoxReciprocalSetup(bPick[b], newMolsPos);
+    //calculate LJ interaction and real term of electrostatic interaction
+    if(isOrth)
       sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs, newDim,
 				     bPick[b]);
-      //calculate reciprocate term of electrostatic interaction
-      sysPotNew.boxEnergy[bPick[b]].recip = calcEwald->BoxReciprocal(bPick[b]);
-   }
-   sysPotNew.Total();
+    else
+      sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs,
+				     newDimNonOrth, bPick[b]);
+    //calculate reciprocate term of electrostatic interaction
+    sysPotNew.boxEnergy[bPick[b]].recip = calcEwald->BoxReciprocal(bPick[b]);
+  }
+  sysPotNew.Total();
 }
 
 
 
 inline double VolumeTransfer::GetCoeff() const
 {
-   ////Log-volume style shift -- is turned off, at present.
-   //
-   //return pow(newDim.volume[b_i]/boxDimRef.volume[b_i],
-   //	      (double)molLookRef.NumInBox(b_i)+1) *
-   //  pow(newDim.volume[b_ii]/boxDimRef.volume[b_ii],
-   //	 (double)molLookRef.NumInBox(b_ii)+1);
-   double coeff = 1.0;
-   if (GEMC_KIND == mv::GEMC_NVT)
-   {
-      for (uint b = 0; b < BOX_TOTAL; ++b)
-      {
-	 coeff *= pow(newDim.volume[b]/boxDimRef.volume[b],
-		      (double)molLookRef.NumInBox(b));
-      }
-   }
-   else
-   {
-      for (uint b = 0; b < BOX_TOTAL; ++b)
-      {
-	if ((bPick[b] == 0) && fixBox0)
-	  continue;
-
+  ////Log-volume style shift -- is turned off, at present.
+  //
+  //return pow(newDim.volume[b_i]/boxDimRef.volume[b_i],
+  //	      (double)molLookRef.NumInBox(b_i)+1) *
+  //  pow(newDim.volume[b_ii]/boxDimRef.volume[b_ii],
+  //	 (double)molLookRef.NumInBox(b_ii)+1);
+  double coeff = 1.0;
+  if (GEMC_KIND == mv::GEMC_NVT)
+  {
+    for (uint b = 0; b < BOX_TOTAL; ++b)
+    {
+      if(isOrth)
+	coeff *= pow(newDim.volume[b]/boxDimRef.volume[b],
+		     (double)molLookRef.NumInBox(b));
+      else
+	coeff *= pow(newDimNonOrth.volume[b]/boxDimRef.volume[b],
+		     (double)molLookRef.NumInBox(b));
+    }
+  }
+  else
+  {
+    for (uint b = 0; b < BOX_TOTAL; ++b)
+    {
+      if ((bPick[b] == 0) && fixBox0)
+	continue;
+      
+      if(isOrth)
 	coeff *= pow(newDim.volume[b]/boxDimRef.volume[b],
 		     (double)molLookRef.NumInBox(b)) *
 	  exp(-BETA * PRESSURE * (newDim.volume[b]-boxDimRef.volume[b]));
-      }
+      else
+	coeff *= pow(newDimNonOrth.volume[b]/boxDimRef.volume[b],
+		     (double)molLookRef.NumInBox(b)) *
+	  exp(-BETA * PRESSURE * (newDimNonOrth.volume[b]-boxDimRef.volume[b]));
+    }
 
-   }
-   return coeff;
+  }
+  return coeff;
 }
 
 inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
@@ -489,7 +529,10 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       //This will be less efficient for NPT, but necessary evil.
       swap(coordCurrRef, newMolsPos);
       swap(comCurrRef, newCOMs);
-      boxDimRef = newDim;
+      if(isOrth)
+	boxDimRef = newDim;
+      else
+        *((BoxDimensionsNonOrth*)(&boxDimRef)) = newDimNonOrth;
 
       for (uint b = 0; b < BOX_TOTAL; b++)
       {

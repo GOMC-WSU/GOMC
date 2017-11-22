@@ -20,7 +20,7 @@ Simulation::Simulation(char const*const configFileName)
    Setup set;
    set.Init(configFileName);
    totalSteps = set.config.sys.step.total;
-   staticValues = new StaticVals();
+   staticValues = new StaticVals(set);
    system = new System(*staticValues);
    staticValues->Init(set, *system);
    system->Init(set);
@@ -56,8 +56,20 @@ void Simulation::RunSimulation(void)
       system->moveSettings.AdjustMoves(step);
       system->ChooseAndRunMove(step);
       cpu->Output(step);
+
+     if((step + 1) == cpu->equilSteps)
+     {
+       if(abs(system->potential.totalEnergy.total) > 1.0e+14)
+       {
+	 printf("Info: Performing total energy calculation to preserve the"
+		" enegy information.\n\n");
+	 system->calcEwald->Init();
+	 system->potential = system->calcEnergy.SystemTotal();
+       }
+     } 
+
 #ifndef NDEBUG
-      if ((step + 1) % 1000 == 0)
+      if((step + 1) % 1000 == 0)
          RunningCheck(step);
 #endif
    }

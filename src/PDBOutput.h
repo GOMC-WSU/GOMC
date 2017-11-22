@@ -77,11 +77,17 @@ private:
     out.file << "END" << std::endl;
   }
 
+  double ConvAng(const double t)
+  {
+    return acos(t) * 180.0 / M_PI;
+  }
+
   MoveSettings & moveSetRef;
   MoleculeLookup & molLookupRef;
   BoxDimensions& boxDimRef;
   Molecules const& molRef;
   Coordinates & coordCurrRef;
+  COM & comCurrRef;
 
   Writer outF[BOX_TOTAL];
   //NEW_RESTART_CODE
