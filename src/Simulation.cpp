@@ -59,7 +59,7 @@ void Simulation::RunSimulation(void)
 
      if((step + 1) == cpu->equilSteps)
      {
-       printf("Performing total energy calculation to preseve the enegy information.\n");
+       printf("Info: Performing total energy calculation to preseve the enegy information.\n\n");
        system->calcEwald->Init();
        system->potential = system->calcEnergy.SystemTotal();
      } 

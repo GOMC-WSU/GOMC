@@ -17,8 +17,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #if BOX_TOTAL == 1
 const std::string PDBSetup::pdbAlias[] = {"system PDB coordinate file"};
 #else
-const std::string PDBSetup::pdbAlias[] = {"box 1 PDB coordinate file",
-                                          "box 2 PDB coordinate file"
+const std::string PDBSetup::pdbAlias[] = {"box 0 PDB coordinate file",
+                                          "box 1 PDB coordinate file"
                                          };
 #endif
 
