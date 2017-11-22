@@ -136,7 +136,7 @@ bool ConfigSetup::checkBool(string str)
   else if(str == "OFF" || str == "FALSE" || str == "NO")
     return false;
   std::cout << "Error: " << str << "couldn't be recognized!" << std::endl;
-  exit(0);
+  exit(EXIT_FAILURE);
 }
 
 void ConfigSetup::Init(const char *fileName)
@@ -208,7 +208,7 @@ void ConfigSetup::Init(const char *fileName)
       if(boxnum >= BOX_TOTAL)
       {
         std::cout<< "Error: Simulation requires "<<BOX_TOTAL<<" PDB file(s)!\n";
-        exit(0);
+        exit(EXIT_FAILURE);
       }
       in.files.pdb.name[boxnum] = line[2];
     }
@@ -218,7 +218,7 @@ void ConfigSetup::Init(const char *fileName)
       if(boxnum >= BOX_TOTAL)
       {
         std::cout<< "Error: Simulation requires "<<BOX_TOTAL<<" PSF file(s)!\n";
-        exit(0);
+        exit(EXIT_FAILURE);
       }
       in.files.psf.name[boxnum] = line[2];
     }
@@ -385,7 +385,7 @@ void ConfigSetup::Init(const char *fileName)
       if(sys.step.pressureCalc && (line.size() == 2))
       {
 	std::cout<< "Error: Pressure calculation frequency is not specified!\n";
-	exit(0);
+	exit(EXIT_FAILURE);
       }
       if(!sys.step.pressureCalc)
         printf("%-40s %-s \n", "Info: Pressure calculation", "Inactive");
@@ -467,7 +467,7 @@ void ConfigSetup::Init(const char *fileName)
       {
         std::cout<< "Error: This simulation requires only " << BOX_TOTAL <<
 	  " number of box dimension(s)!" << std::endl;
-        exit(0);
+        exit(EXIT_FAILURE);
       }
     }
     else if(line[0] == "CellBasisVector2")
@@ -490,7 +490,7 @@ void ConfigSetup::Init(const char *fileName)
       {
         std::cout<< "Error: This simulation requires only " << BOX_TOTAL <<
 	  " number of box dimension(s)!" << std::endl;
-        exit(0);
+        exit(EXIT_FAILURE);
       }
     }
     else if(line[0] == "CellBasisVector3")
@@ -513,7 +513,7 @@ void ConfigSetup::Init(const char *fileName)
       {
         std::cout<< "Error: This simulation requires only " << BOX_TOTAL <<
 	  " number of box dimension(s)!" << std::endl;
-        exit(0);
+        exit(EXIT_FAILURE);
       }
     }
 #ifdef VARIABLE_PARTICLE_NUMBER
@@ -540,7 +540,7 @@ void ConfigSetup::Init(const char *fileName)
       if(line.size() != 3)
       {
         std::cout <<"Error: Chemical potential parameters are not specified!\n";
-        exit(0);
+        exit(EXIT_FAILURE);
       }
       std::string resName = line[1];
       double val = stringtod(line[2]);
@@ -553,7 +553,7 @@ void ConfigSetup::Init(const char *fileName)
       if(line.size() != 3)
       {
 	std::cout <<"Error: Fugacity parameters are not specified!\n";
-	exit(0);
+	exit(EXIT_FAILURE);
       }
       sys.chemPot.isFugacity = true;
       std::string resName = line[1];
@@ -869,14 +869,14 @@ void ConfigSetup::verifyInputs(void)
   if(out.statistics.settings.uniqueStr.val == "")
   {
     std::cout << "Error: Output name is not specified!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
 
 #if ENSEMBLE == GEMC
   if(sys.gemc.kind == mv::GEMC_NPT && sys.gemc.pressure == DBL_MAX)
   {
     std::cout << "Error: Pressure is not specified for NPT-GEMC!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(sys.gemc.kind == mv::GEMC_NVT && sys.gemc.pressure != DBL_MAX)
   {
@@ -888,29 +888,29 @@ void ConfigSetup::verifyInputs(void)
   if(sys.gemc.pressure == DBL_MAX)
   {
     std::cout << "Error: Pressure is not specified for NPT!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(sys.volume.cstVolBox0)
   {
     std::cout << "Warning: Fix volume of box 1 set, but will be ignored.\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
 #endif
 
   if(in.prng.kind == "INTSEED" && in.prng.seed == UINT_MAX)
   {
     std::cout << "Error: Seed value is not specified!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(in.ffKind.numOfKinds == 0)
   {
     std::cout << "Error: Force field type is not specified!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(in.ffKind.numOfKinds > 1)
   {
     std::cout << "Error: Multiple Parameter types are specified!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if((!in.ffKind.isMARTINI && !in.ffKind.isEXOTIC) &&
      (sys.exclude.EXCLUDE_KIND == sys.exclude.EXC_ONETWO_KIND))
@@ -930,12 +930,12 @@ void ConfigSetup::verifyInputs(void)
   if(in.files.param.name == "")
   {
     std::cout << "Error: Parameter file name is not specified!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(sys.ff.VDW_KIND == UINT_MAX)
   {
     std::cout << "Error: Potential type is not specified!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND && sys.ff.doTailCorr == false)
   {
@@ -951,110 +951,110 @@ void ConfigSetup::verifyInputs(void)
   if(sys.ff.cutoff == DBL_MAX)
   {
     std::cout << "Error: Cutoff is not specified!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
 
   if(sys.elect.ewald && (sys.elect.tolerance == DBL_MAX))
   {
     std::cout << "Error: Tolerance is not specified!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(sys.step.adjustment == ULONG_MAX)
   {
     std::cout << "Error: Move adjustment frequency is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(sys.step.equil == ULONG_MAX)
   {
    std::cout << "Error: Equilibration steps is not specified!\n";
-  exit(0);
+  exit(EXIT_FAILURE);
   }
   if(sys.step.total == ULONG_MAX)
   {
     std::cout << "Error: Total run steps is not specified!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(sys.step.adjustment > sys.step.equil)
   {
     std::cout << "Error: Move adjustment frequency should be smaller " <<
       "than Equilibration steps!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(sys.step.equil > sys.step.total)
   {
     std::cout << "Error: Equilibration steps should be smaller than " <<
       "Total run steps!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(sys.moves.displace == DBL_MAX)
   {
     std::cout << "Error: Displacement move frequency is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(sys.moves.rotate == DBL_MAX)
   {
     std::cout << "Error: Rotation move frequency is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(sys.moves.intraSwap == DBL_MAX)
   {
     std::cout << "Error: Intra-Swap move frequency is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
 #if ENSEMBLE == NPT
   if(sys.moves.volume == DBL_MAX)
   {
     std::cout << "Error: Volume move frequency is not specified!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
 #endif
 #if ENSEMBLE == GEMC
   if(sys.moves.volume == DBL_MAX)
   {
     std::cout << "Error: Volume move frequency is not specified!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(sys.moves.transfer == DBL_MAX)
   {
     std::cout << "Error: Molecule swap move frequency is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
 	 sys.moves.intraSwap + sys.moves.volume - 1.0) > 0.01)
   {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
 #elif ENSEMBLE == NPT
   if(sys.moves.volume == DBL_MAX)
   {
     std::cout << "Error: Volume move frequency is not specified!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
 	 sys.moves.volume - 1.0) > 0.01)
   {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
 
 #elif ENSEMBLE == GCMC
   if(sys.moves.transfer == DBL_MAX)
   {
     std::cout << "Error: Molecule swap move frequency is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
 	 sys.moves.transfer - 1.0) > 0.01)
   {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
 #else
   if(abs(sys.moves.displace +sys.moves.rotate +sys.moves.intraSwap -1.0) > 0.01)
   {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
 #endif
 
@@ -1064,7 +1064,7 @@ void ConfigSetup::verifyInputs(void)
     {
       std::cout << "Error: PDB file is not been specified for box number "
 		<< i << "!" <<std::endl;
-      exit(0);
+      exit(EXIT_FAILURE);
     }
   }
   for(i = 0 ; i < BOX_TOTAL ; i++)
@@ -1073,19 +1073,19 @@ void ConfigSetup::verifyInputs(void)
     {
       std::cout << "Error: PSF file is not specified for box number " <<
 	i << "!" <<std::endl;
-      exit(0);
+      exit(EXIT_FAILURE);
     }
   }
   if(!sys.volume.hasVolume && !in.restart.enable)
   {
     std::cout << "Error: This simulation requires to define " << 3* BOX_TOTAL <<
       " cell basis vectors!" <<std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND && sys.ff.rswitch == DBL_MAX)
   {
     std::cout << "Error: Switch distance is not specified!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND) ||
       (sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND)) && sys.ff.rswitch != DBL_MAX)
@@ -1097,92 +1097,92 @@ void ConfigSetup::verifyInputs(void)
      sys.ff.rswitch >= sys.ff.cutoff)
   {
     std::cout << "Error: Switch distance should be less than Cutoff!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
 #ifdef VARIABLE_PARTICLE_NUMBER
   if(sys.cbmcTrials.bonded.ang == UINT_MAX)
   {
     std::cout << "Error: CBMC number of angle trials is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(sys.cbmcTrials.bonded.dih == UINT_MAX)
   {
     std::cout << "Error: CBMC number of dihedral trials is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(sys.cbmcTrials.nonbonded.first == UINT_MAX)
   {
     std::cout << "Error: CBMC number of first site trials is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(sys.cbmcTrials.nonbonded.nth == UINT_MAX)
   {
     std::cout << "Error: CBMC number of nth site trials is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
 #endif
   if(sys.T.inKelvin == DBL_MAX)
   {
     std::cout << "Error: Temperature is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(out.statistics.settings.uniqueStr.val == "")
   {
     std::cout<< "Error: Output name is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(out.console.enable && out.console.frequency == ULONG_MAX)
   {
     std::cout << "Error: Console output frequency is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(out.restart.settings.enable && out.restart.settings.frequency == ULONG_MAX)
   {
     std::cout << "Error: Restart coordinate frequency is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(out.state.settings.enable && out.state.settings.frequency == ULONG_MAX)
   {
     std::cout << "Error: Coordinate frequency is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(out.statistics.settings.block.enable &&
      out.statistics.settings.block.frequency == ULONG_MAX)
   {
     std::cout << "Error: Average output frequency is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
 #if ENSEMBLE == GCMC
   if(out.statistics.settings.hist.enable &&
      out.statistics.settings.hist.frequency == ULONG_MAX)
   {
     std::cout << "Error: Histogram output frequency is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(out.state.files.hist.histName == "")
   {
     std::cout << "Error: Distribution file name is not specified!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(out.state.files.hist.sampleName == "")
   {
     std::cout << "Error: Histogram file name of is not specified!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(out.state.files.hist.letter == "")
   {
     std::cout << "Error: Run Letter of histogram file name is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(out.state.files.hist.number == "")
   {
     std::cout << "Error: Run number of histogram file is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
   if(out.state.files.hist.stepsPerHistSample == UINT_MAX)
   {
     std::cout << "Error: Histogram output sample frequency is not specified!\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
 #endif
   if(!out.statistics.settings.block.enable && out.statistics.vars.energy.block)

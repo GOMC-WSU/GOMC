@@ -59,9 +59,13 @@ void Simulation::RunSimulation(void)
 
      if((step + 1) == cpu->equilSteps)
      {
-       printf("Info: Performing total energy calculation to preseve the enegy information.\n\n");
-       system->calcEwald->Init();
-       system->potential = system->calcEnergy.SystemTotal();
+       if(abs(system->potential.totalEnergy.total) > 1.0e+14)
+       {
+	 printf("Info: Performing total energy calculation to preserve the"
+		" enegy information.\n\n");
+	 system->calcEwald->Init();
+	 system->potential = system->calcEnergy.SystemTotal();
+       }
      } 
 
 #ifndef NDEBUG

@@ -126,13 +126,13 @@ SystemPotential CalculateEnergy::SystemTotal()
 
    pot.Total();
 
-   for (uint b = 0; b < BOX_TOTAL; ++b)
+   if(pot.totalEnergy.total > 1.0e14)
    {
-     if(pot.boxEnergy[b].total > 1.0e11)
-     {
-       printf("Warning: Large energy detected due to the overlap in initial configuration of simulation box %d!\n", b);
-       printf("Warning: Total energy calculation will be perform at EqStep to preseve the enegy information.\n");
-     }
+     std::cout << "\nWarning: Large energy detected due to the overlap in "
+       "initial configuration.\n"
+       "         Total energy calculation will be perform at EqStep to "
+       "preserve the\n"
+       "         enegy information.\n";
    }
 
    return pot;
