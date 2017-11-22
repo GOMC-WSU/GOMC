@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
 Copyright (C) 2016  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -120,6 +120,14 @@ public:
                      const uint box,
                      const uint trials) const;
 
+void ParticleInterRange(double* en, double *real,
+			XYZArray const& trialPos,
+			const uint partIndex,
+			const uint molIndex,
+			const uint box,
+			const uint start,
+			const uint end) const;
+
 
   //! Calculates the change in the TC from adding numChange atoms of a kind
   //! @param box Index of box under consideration
@@ -205,6 +213,25 @@ private:
     uint pair2 = particleMol[p2];
     return (pair1 == pair2);
   }
+
+
+  void GetSchedule(int numberOfTrials, std::vector<int>& data) const
+  {
+    int sections = data.size();
+    uint i = 0;
+    while(sections > 0)
+    {
+      data[i] = ceil(numberOfTrials/sections);
+      numberOfTrials -= data[i];
+      sections--;
+      i++;
+    }
+    for(int i = 1; i < data.size(); i++)
+    {
+      data[i] += data[i-1];
+    }
+  }
+  
 
   const Forcefield& forcefield;
   const Molecules& mols;
