@@ -18,7 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 const uint FFSetup::CHARMM_ALIAS_IDX = 0;
 const uint FFSetup::EXOTIC_ALIAS_IDX = 1;
 const std::string FFSetup::paramFileAlias[] =
-{"CHARMM-Style Parameter File", "EXOTIC Parameter File"};
+{"CHARMM-Style parameter file", "EXOTIC-Style parameter file"};
 const double ff_setup::KCAL_PER_MOL_TO_K = 503.21959899;
 const double ff_setup::RIJ_OVER_2_TO_SIG = 1.7817974362807;
 const double ff_setup::RIJ_TO_SIG = 0.890898718;
@@ -44,9 +44,7 @@ FFSetup::SetReadFunctions(const bool isCHARMM)
   else
   {
     //Unique to exotic file
-    funct["NONBONDED"] = &mie;
     funct["NONBONDED_MIE"] = &mie;
-    funct["NBFIX"] = &nbfix;
     funct["NBFIX_MIE"] = &nbfix;
   }
   for (sect_it it = funct.begin(); it != funct.end(); ++it)
@@ -78,33 +76,34 @@ void FFSetup::Init(std::string const& name, const bool isCHARMM)
       param.SkipLine(); //Skip rest of line for sect. heading
       currSectName = varName;
       currSect = sect; //Save for later calls.
+      std::cout << "Reading " << currSectName << " parameters.\n";
     }
     else
       currSect->second->Read(param, varName);
   }
+
   param.close();
+
+  //check if we read nonbonded parameter 
+  if(mie.sigma.size() == 0)
+  {
+    if(isCHARMM)
+    {
+      std::cout << "Error: CHARMM-Style parameter is set but EXOTIC-Style parameter file was found.\n" 
+	"       Either set EXOTIC-Style in config file or change the keyword\n"
+	"       \"NONBONDED_MIE\" to \"NONBONDED\" in the parameter files.\n";
+    }
+    else
+    {
+      	std::cout << "Error: EXOTIC-Style parameter is set but CHARMM-Style parameter file was found.\n" 
+	 "       Either set CHARMM-Style in config file or change the keyword\n"
+	 "       \"NONBONDED\" to \"NONBONDED_MIE\" in the parameter files.\n";
+    }
+    exit(EXIT_FAILURE);
+  }
+  
   //Adjust dih names so lookup finds kind indices rather than term counts
   dih.clean_names();
-
-#ifndef NDEBUG
-/*
-  if (isCHARMM)
-  {
-    std::cout << "Lennard-Jones Particles:\n";
-  }
-  else
-  {
-    std::cout << "Mie Particles:\n";
-  }
-  mie.PrintBrief();
-  std::cout << "Bonds:\n";
-  bond.PrintBrief();
-  std::cout << "Angles:\n";
-  angle.PrintBrief();
-  std::cout << "Dihedrals:\n";
-  dih.PrintBrief();
-*/
-#endif
 }
 
 namespace ff_setup

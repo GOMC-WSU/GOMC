@@ -11,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeLookup.h" //for lookup array (to get density, kind cnts, etc.
 #include "StaticVals.h"
 #include "BoxDimensions.h"
+#include "BoxDimensionsNonOrth.h"
 #include "EnergyTypes.h"
 #include "CalculateEnergy.h"
 

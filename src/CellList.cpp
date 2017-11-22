@@ -6,15 +6,17 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "CellList.h"
 #include "BoxDimensions.h"
+#include "BoxDimensionsNonOrth.h"
 #include "Molecules.h"
 #include "XYZArray.h"
 #include "MoleculeLookup.h"
 
 #include <algorithm>
 
-CellList::CellList(const Molecules& mols)
+CellList::CellList(const Molecules& mols,  BoxDimensions& dims)
   : mols(&mols)
 {
+  dimensions = &dims;
   isBuilt = false;
 }
 
@@ -163,10 +165,11 @@ void CellList::RebuildNeighbors(int b)
   }
 }
 
-void CellList::GridAll(const BoxDimensions& dims,
+void CellList::GridAll( BoxDimensions& dims,
                        const XYZArray& pos,
                        const MoleculeLookup& lookup)
 {
+  dimensions = &dims;
   list.resize(pos.Count());
   ResizeGrid(dims);
   for (int b = 0; b < BOX_TOTAL; ++b)

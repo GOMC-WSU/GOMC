@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
       if (argc < 2)
       {
 	 std::cout<<"Error: Input parameter file (*.dat or *.conf) not specified on command line!\n";
-	 exit(0);
+	 exit(EXIT_FAILURE);
       }
       else
       {
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 	  {
 	    std::cout<<"Error: Undefined command to set number of threads!\n";
 	    std::cout<< "Use +p# command to set number of threads.\n";
-	    exit(0);
+	    exit(EXIT_FAILURE);
 	  }
 
 	}
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
       {
 	std::cout<<"Error: Cannot open/find " << inputFileString <<
 	  " in the directory provided!\n";
-	 exit(0);
+	 exit(EXIT_FAILURE);
       }
 
       //CLOSE FILE TO NOW PASS TO SIMULATION

@@ -24,9 +24,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 System::System(StaticVals& statics) :
    statV(statics),
 #ifdef VARIABLE_VOLUME
-   boxDimRef(boxDimensions),
+   boxDimRef(*BoxDim(statics.isOrthogonal)),
 #else
-   boxDimRef(statics.boxDimensions),
+   boxDimRef(*statics.GetBoxDim()),
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
    molLookupRef(molLookup),
@@ -36,8 +36,11 @@ System::System(StaticVals& statics) :
    prng(molLookupRef),
    coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
    com(boxDimRef, coordinates, molLookupRef, statics.mol),
-   moveSettings(boxDimRef), cellList(statics.mol),
-   calcEnergy(statics, *this) , calcEwald(NULL) {}
+   moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
+   calcEnergy(statics, *this)
+{
+  calcEwald = NULL;
+} 
 
 System::~System()
 {
@@ -56,15 +59,15 @@ void System::Init(Setup const& set)
 {
    prng.Init(set.prng.prngMaker.prng);
 #ifdef VARIABLE_VOLUME
-   boxDimensions.Init(set.config.in.restart,
-		      set.config.sys.volume, set.pdb.cryst,
-		      statV.forcefield.rCut,
-		      statV.forcefield.rCutSq);
+   boxDimensions->Init(set.config.in.restart,
+		       set.config.sys.volume, set.pdb.cryst,
+		       statV.forcefield.rCut,
+		       statV.forcefield.rCutSq);
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
    molLookup.Init(statV.mol, set.pdb.atoms);
 #endif
-   moveSettings.Init(statV);
+   moveSettings.Init(statV, set.pdb.remarks);
    //Note... the following calls use box iterators, so must come after
    //the molecule lookup initialization, in case we're in a constant
    //particle/molecule ensemble, e.g. NVT

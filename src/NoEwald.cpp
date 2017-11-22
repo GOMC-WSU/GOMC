@@ -33,7 +33,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 using namespace geom;
 
-NoEwald::NoEwald(StaticVals const& stat, System & sys) :
+NoEwald::NoEwald(StaticVals & stat, System & sys) :
   EwaldCached(stat, sys) {}
 
 void NoEwald::Init()

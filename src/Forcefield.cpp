@@ -94,7 +94,7 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
   else
   {
     std::cout << "Error: Unknown exclude value.\n";
-    exit(0);
+    exit(EXIT_FAILURE);
   }
 
 }

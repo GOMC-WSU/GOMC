@@ -44,14 +44,11 @@ class Ewald : public EwaldCached
   //friend class CalculateEnergy;
    public:
 
-   Ewald(StaticVals const& stat, System & sys);
+   Ewald(StaticVals & stat, System & sys);
 
    virtual void Init();
 
    virtual void AllocMem();
-
-   //initiliazie term used for ewald calculation
-   virtual void RecipInit(uint box, BoxDimensions const& boxAxes);
 
    //setup reciprocate term for a box
    virtual void BoxReciprocalSetup(uint box, XYZArray const& molCoords);

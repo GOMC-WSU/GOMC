@@ -18,6 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Forcefield.h"
 #include "SimEventFrequency.h"
 #include "BoxDimensions.h"
+#include "BoxDimensionsNonOrth.h"
 #include "MoleculeLookup.h"
 #include "Molecules.h"
 
@@ -27,15 +28,24 @@ class System;
 class StaticVals
 {
  public:
+   StaticVals(Setup & set);
+   ~StaticVals();
    void Init(Setup & set, System& sys);
    void InitOver(Setup & set, System& sys);
+   void IsBoxOrthogonal(config_setup::Volume const& vol);
+#ifndef VARIABLE_VOLUME  
+   BoxDimensions * GetBoxDim()
+   {
+     return boxDimensions;
+   }
+#endif
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
    double pressure;
    uint kindOfGEMC;
    bool fixVolBox0;
 #endif
-
+   bool isOrthogonal;
 
    Forcefield forcefield;
    SimEventFrequency simEventFreq;
@@ -47,7 +57,7 @@ class StaticVals
 
    //Only include these variables if they're static for this ensemble...
 #ifndef VARIABLE_VOLUME
-   BoxDimensions boxDimensions;
+   BoxDimensions *boxDimensions;
 #endif
 #ifndef  VARIABLE_PARTICLE_NUMBER
    MoleculeLookup molLookup;
