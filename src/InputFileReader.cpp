@@ -38,7 +38,7 @@ void InputFileReader::Open(string inputFileName)
   if(!fs.is_open())
   {
     std::cout << "Cannot open input file!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
 }
 

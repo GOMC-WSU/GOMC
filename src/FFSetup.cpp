@@ -44,9 +44,7 @@ FFSetup::SetReadFunctions(const bool isCHARMM)
   else
   {
     //Unique to exotic file
-    funct["NONBONDED"] = &mie;
     funct["NONBONDED_MIE"] = &mie;
-    funct["NBFIX"] = &nbfix;
     funct["NBFIX_MIE"] = &nbfix;
   }
   for (sect_it it = funct.begin(); it != funct.end(); ++it)
@@ -78,33 +76,34 @@ void FFSetup::Init(std::string const& name, const bool isCHARMM)
       param.SkipLine(); //Skip rest of line for sect. heading
       currSectName = varName;
       currSect = sect; //Save for later calls.
+      std::cout << "Reading " << currSectName << " parameters.\n";
     }
     else
       currSect->second->Read(param, varName);
   }
+
   param.close();
+
+  //check if we read nonbonded parameter 
+  if(mie.sigma.size() == 0)
+  {
+    if(isCHARMM)
+    {
+      std::cout << "Error: CHARMM-Style parameter is set but EXOTIC-Style parameter file was found.\n" 
+	"       Either set EXOTIC-Style in config file or change the keyword\n"
+	"       \"NONBONDED_MIE\" to \"NONBONDED\" in the parameter files.\n";
+    }
+    else
+    {
+      	std::cout << "Error: EXOTIC-Style parameter is set but CHARMM-Style parameter file was found.\n" 
+	 "       Either set CHARMM-Style in config file or change the keyword\n"
+	 "       \"NONBONDED\" to \"NONBONDED_MIE\" in the parameter files.\n";
+    }
+    exit(EXIT_FAILURE);
+  }
+  
   //Adjust dih names so lookup finds kind indices rather than term counts
   dih.clean_names();
-
-#ifndef NDEBUG
-/*
-  if (isCHARMM)
-  {
-    std::cout << "Lennard-Jones Particles:\n";
-  }
-  else
-  {
-    std::cout << "Mie Particles:\n";
-  }
-  mie.PrintBrief();
-  std::cout << "Bonds:\n";
-  bond.PrintBrief();
-  std::cout << "Angles:\n";
-  angle.PrintBrief();
-  std::cout << "Dihedrals:\n";
-  dih.PrintBrief();
-*/
-#endif
 }
 
 namespace ff_setup
