@@ -56,8 +56,16 @@ void Simulation::RunSimulation(void)
       system->moveSettings.AdjustMoves(step);
       system->ChooseAndRunMove(step);
       cpu->Output(step);
+
+     if((step + 1) == cpu->equilSteps)
+     {
+       printf("Performing total energy calculation to preseve the enegy information.\n");
+       system->calcEwald->Init();
+       system->potential = system->calcEnergy.SystemTotal();
+     } 
+
 #ifndef NDEBUG
-      if ((step + 1) % 1000 == 0)
+      if((step + 1) % 1000 == 0)
          RunningCheck(step);
 #endif
    }
