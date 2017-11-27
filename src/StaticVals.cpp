@@ -114,6 +114,7 @@ StaticVals::StaticVals(Setup & set)
 StaticVals::~StaticVals()
 {
 #ifndef VARIABLE_VOLUME
-  delete[] boxDimensions;
+  delete boxDimensions;
 #endif
 }
+
