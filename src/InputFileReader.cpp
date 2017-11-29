@@ -60,7 +60,7 @@ bool InputFileReader::readNextLine(std::vector<std::string> & str)
     if(!line.size())
       line = "#";
   }
-  while (line[0] == '#' || line[0] == ' ' || line[0] == '\0');
+  while (line[0] == '#' || line[0] == '\0');
 
   istringstream iss(line);
   copy(istream_iterator<std::string>(iss),

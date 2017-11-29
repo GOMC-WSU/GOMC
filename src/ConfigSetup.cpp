@@ -147,6 +147,9 @@ void ConfigSetup::Init(const char *fileName)
   printf("\n%-40s %-s\n", "Reading Input File:", fileName);
   while(reader.readNextLine(line))
   {
+    if(line.size() == 0)
+      continue;
+
     if(line[0] == "Restart")
     {
       in.restart.enable = checkBool(line[1]);
