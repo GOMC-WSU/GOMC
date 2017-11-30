@@ -116,8 +116,11 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
       double Wrat = Wn / Wo * W_tc * W_recip;
 
       //safety to make sure move will be rejected in overlap case
-      if(newMol.GetEnergy().real < 1.0e20)
+      if((newMol.GetEnergy().real < 1.0e15) &&
+	 (oldMol.GetEnergy().real < 1.0e15))
+      {
 	result = prng() < molTransCoeff * Wrat;
+      }
       else
 	result = false;
       
