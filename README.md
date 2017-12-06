@@ -13,17 +13,11 @@ BUILDING GOMC ON LINUX:
    1. Give execution permission using "chmod u+x metamake.sh"
    2. In the base directory type "./metamake.sh"
    3. Step 2 should generate all the executables in "bin" directory
-   If you want to compile it in OMP mode:
-   4. Open CMakeCache.txt file in "bin" directory and modify
-      "CMAKE_CXX_FLAGS_RELEASE:STRING:-O3 -DNDEBUG"
-      to "CMAKE_CXX_FLAGS_RELEASE:STRING=-O3 -qopenmp -DNDEBUG"
-   5. Type "make" to initiate the build process.
 
-   If you compile the code in OMP mode:
    You can set the number of the threads using the +pN argument, where N is the number of threads.
    For example:
-      ./GOMC_Serial_XXXX +p4 in.dat
-      Which will run 4 threads and reads input file "in.dat".
+      ./GOMC_<CPU|GPU>_XXXX +p4 in.conf
+      Which will run 4 threads and reads input file "in.conf".
 
    NOTES:
       Building GOMC requires cmake, available at http://www.cmake.org and
