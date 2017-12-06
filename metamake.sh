@@ -31,7 +31,7 @@ wget "${LINK}" > /dev/null 2>&1
 #unzip
 echo "==== Extracting the CUB library..."
 for z in *.zip; do
-    tar -xvf "$z" > /dev/null 2>&1
+    unzip "$z" > /dev/null 2>&1
     rm "$z" > /dev/null 2>&1
 done
 
@@ -42,7 +42,7 @@ for d in */ ; do
 done
 cd ..
 rmdir temp
-
+cd ..
 mkdir -p bin
 cd bin
 ICC_PATH="$(which icc)"
