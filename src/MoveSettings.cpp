@@ -18,8 +18,6 @@ const double MoveSettings::TINY_AMOUNT = 0.0000001;
 void MoveSettings::Init(StaticVals const& statV,
 			pdb_setup::Remarks const& remarks)
 {
-   uint baseAdjust = statV.simEventFreq.perAdjust;
-   uint maj = 0, subDiv = 0;
    perAdjust = statV.simEventFreq.perAdjust;
    for (uint m = 0; m < mv::COUNT; m++)
    {
@@ -27,7 +25,6 @@ void MoveSettings::Init(StaticVals const& statV,
       {
 	 tempTries[m] = 0;
 	 tempAccepted[m] = 0;
-	 mv::GetMoveMajIndex(maj, subDiv, m);
       }
       acceptPercent[m] = 0.0;
       accepted[m] = tries[m] = 0;
@@ -57,7 +54,7 @@ void MoveSettings::Init(StaticVals const& statV,
        scale[rotate] = M_PI_4;
 #if ENSEMBLE == NPT || ENSEMBLE == GEMC
        uint volume = mv::GetMoveSubIndex(mv::VOL_TRANSFER, b);
-       scale[volume] = boxDimRef.volume[b] / 100.0;
+       scale[volume] = 500;
 #endif
      }
    }
