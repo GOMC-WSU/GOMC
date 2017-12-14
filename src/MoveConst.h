@@ -32,17 +32,17 @@ const uint ROTATE = 1;
 const uint INTRA_SWAP = 2;
 const uint MOVE_KINDS_TOTAL = 3;
 #elif ENSEMBLE == GCMC
-const uint MOL_TRANSFER=2;
-const uint INTRA_SWAP = 3;
+const uint INTRA_SWAP = 2;
+const uint MOL_TRANSFER=3;
 const uint MOVE_KINDS_TOTAL=4;
 #elif ENSEMBLE == GEMC
-const uint VOL_TRANSFER=2;
-const uint MOL_TRANSFER=3;
-const uint INTRA_SWAP = 4;
+const uint INTRA_SWAP = 2;
+const uint VOL_TRANSFER=3;
+const uint MOL_TRANSFER=4;
 const uint MOVE_KINDS_TOTAL=5;
 #elif ENSEMBLE == NPT
-const uint VOL_TRANSFER=2;
-const uint INTRA_SWAP = 3;
+const uint INTRA_SWAP = 2;
+const uint VOL_TRANSFER=3;
 const uint MOVE_KINDS_TOTAL=4;
 #endif
 
@@ -99,12 +99,12 @@ const uint IT_KINDS_TOTAL=2;
 //////////////////////////////////////////////////////////
 
 //NVT : 1. Disp (box 0) 2. Rotate (box 0) 3. IntraSwap (box 0)
-//GCMC: 1. Disp (box 0) 2. Rotate (box 0) 3. Deletion (box 0)
-//      4. Insertion (box 0) 5. IntraSwap (box 0)
+//GCMC: 1. Disp (box 0) 2. Rotate (box 0) 3. IntraSwap (box 0)
+//      4. Deletion (box 0)   5. Insertion (box 0) 
 //GEMC: 1. Disp (box 0) 2. Disp (box 1) 3. Rotate (box 0) 4. Rotate (box 1)
-//      5. Vol. (b0->b1) 6. Vol. (b1->b0) 7. Mol Trans (b0->b1), lin.
-//      8. Mol Trans (b1->b0), lin. 9. IntraSwap (box 0)
-//     10. IntraSwap (box 1)
+//      5. IntraSwap (box 0)            6. IntraSwap (box 1)
+//      7. Vol. (b0->b1) 8. Vol. (b1->b0) 9. Mol Trans (b0->b1), lin.
+//     10. Mol Trans (b1->b0)
 //NPT : 1. Disp (box 0) 2. Rotate (box 0) 3. IntraSwap (box 0) 4. Vol. (box 0)
 
 #if ENSEMBLE == NVT
@@ -139,34 +139,16 @@ const uint INNER_CUTOFF_NEW_TRIAL_POS=4;
 const uint VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF=5;
 }
 
-//It has never been called!
-inline void GetMoveMajIndex(uint & maj, uint & subDiv, const uint sub)
-{
-#if ENSEMBLE == NVT || ENSEMBLE == GEMC || ENSEMBLE == NPT
-  maj = sub/BOX_TOTAL;
-  subDiv = BOX_TOTAL;
-#elif ENSEMBLE == GCMC
-  if (maj > MOL_TRANSFER)
-    maj--;
-  //Adjust for single box moves.
-  maj = sub;
-  subDiv = BOX_TOTAL;
-  if (maj < MOL_TRANSFER)
-    subDiv = 1;
-#endif
-}
 
 inline uint GetMoveSubIndex(const uint maj, const uint b = 0)
 {
-#if ENSEMBLE == GEMC || ENSEMBLE == NVT || ENSEMBLE == NPT
-  return maj*BOX_TOTAL + b;
-#else
-
-  if(maj == mv::INTRA_SWAP)
-    return maj + b + 1; //in GCMC we care just about box 0. [3+0+1]
+#if ENSEMBLE == GCMC
+  if(maj == mv::MOL_TRANSFER)
+    return maj + b;
   else
-    return maj+b; //in GCMC we have deletion and insertion,
-  //we care about two box. [2+0 or 2+1]
+    return maj;
+#else
+  return maj*BOX_TOTAL + b;
 #endif
 }
 
