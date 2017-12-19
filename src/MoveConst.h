@@ -36,13 +36,13 @@ const uint INTRA_SWAP = 2;
 const uint MOL_TRANSFER=3;
 const uint MOVE_KINDS_TOTAL=4;
 #elif ENSEMBLE == GEMC
-const uint INTRA_SWAP = 2;
-const uint VOL_TRANSFER=3;
+const uint VOL_TRANSFER=2;
+const uint INTRA_SWAP = 3;
 const uint MOL_TRANSFER=4;
 const uint MOVE_KINDS_TOTAL=5;
 #elif ENSEMBLE == NPT
-const uint INTRA_SWAP = 2;
-const uint VOL_TRANSFER=3;
+const uint VOL_TRANSFER=2;
+const uint INTRA_SWAP = 3;
 const uint MOVE_KINDS_TOTAL=4;
 #endif
 
@@ -101,11 +101,11 @@ const uint IT_KINDS_TOTAL=2;
 //NVT : 1. Disp (box 0) 2. Rotate (box 0) 3. IntraSwap (box 0)
 //GCMC: 1. Disp (box 0) 2. Rotate (box 0) 3. IntraSwap (box 0)
 //      4. Deletion (box 0)   5. Insertion (box 0) 
-//GEMC: 1. Disp (box 0) 2. Disp (box 1) 3. Rotate (box 0) 4. Rotate (box 1)
-//      5. IntraSwap (box 0)            6. IntraSwap (box 1)
-//      7. Vol. (b0->b1) 8. Vol. (b1->b0) 9. Mol Trans (b0->b1), lin.
-//     10. Mol Trans (b1->b0)
-//NPT : 1. Disp (box 0) 2. Rotate (box 0) 3. IntraSwap (box 0) 4. Vol. (box 0)
+//GEMC: 1. Disp (box 0)  2. Disp (box 1) 3. Rotate (box 0) 4. Rotate (box 1)
+//      5. Vol. (b0->b1) 6. Vol. (b1->b0) 
+//      7. IntraSwap (box 0)  8. IntraSwap (box 1)
+//      9. Mol Trans (b0->b1), 10. Mol Trans (b1->b0)
+//NPT : 1. Disp (box 0) 2. Rotate (box 0) 3. Vol. (box 0) 4. IntraSwap (box 0)
 
 #if ENSEMBLE == NVT
 const uint COUNT = 3;
