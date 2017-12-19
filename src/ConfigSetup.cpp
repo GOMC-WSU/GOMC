@@ -286,6 +286,8 @@ void ConfigSetup::Init(const char *fileName)
     else if(line[0] == "Rswitch")
     {
       sys.ff.rswitch = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: Switch distance",
+	     sys.ff.rswitch);
     }
     else if(line[0] == "Rcut")
     {
@@ -731,12 +733,6 @@ void ConfigSetup::Init(const char *fileName)
       out.statistics.vars.volume.fluct = checkBool(line[2]);
     }
 #endif
-    else if((sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND) &&
-	    (sys.ff.rswitch != DBL_MAX))
-    {
-      printf("%-40s %-4.4f \n", "Info: Switch distance",
-	     sys.ff.rswitch);
-    }
     else if(line[0] == "Random_Seed")
     {
       in.prng.seed = stringtoi(line[1]);
