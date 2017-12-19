@@ -32,7 +32,7 @@ void MoveSettings::Init(StaticVals const& statV,
    
    if(remarks.restart)
    {
-     for(uint b; b < BOX_TOTAL; b++)
+     for(uint b = 0; b < BOX_TOTAL; b++)
      {
        uint disp = mv::GetMoveSubIndex(mv::DISPLACE, b);
        scale[disp] = remarks.disp[b];
@@ -46,7 +46,7 @@ void MoveSettings::Init(StaticVals const& statV,
    }
    else
    {
-     for(uint b; b < BOX_TOTAL; b++)
+     for(uint b = 0; b < BOX_TOTAL; b++)
      {
        uint disp = mv::GetMoveSubIndex(mv::DISPLACE, b);
        scale[disp] = boxDimRef.axis.Min(b)/4;;
