@@ -855,7 +855,7 @@ void ConfigSetup::verifyInputs(void)
   if(sys.elect.ewald == false && sys.elect.enable == true)
   {
     printf("%-40s %-s \n",
-	   "Warning: Electrostatic calculation with Ewlad method", "Inactive");
+	   "Warning: Electrostatic calculation with Ewald method", "Inactive");
   }
 
   if(in.restart.enable  && sys.volume.hasVolume)
