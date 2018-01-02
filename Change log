@@ -1,6 +1,16 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.20] - 1/2/2018
++ Non orthogonal implementation
++ Removed CUB library from our source code and we will automatically download CUB library before compiling (newest version all the time!).
++ Removed compute_20 and compute_21 since they are depricated and CUDA 9 will generate fatal error. 
++ Fixed a problem where the input reader will skip random_seed because there was a "info" print in an "else if" and would block anything after that.
++ Fixed a bug in MoveSettings where two for loops where not initialized.
++ Fixed a bug where in simulation of polar molecules, if any atom of the molecule has no VDW parameter (e.g. water), there is a chance that during insertion, atom of opposite charge will overlap and generate a very large energy value. Current mechanism of avoiding overlap is not working properly
++ Fixed a bug where STDOUT was printing out garbage because input reader was passing empty vector.
++ Fixed a problem where we were receiving seg fault at the end of the simulation (removed [] from destructor in Static.cpp). 
+
 ## [2.11] - 9/25/2017
 + Bug fixes
 
