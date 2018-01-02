@@ -11,31 +11,38 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "DCHedron.h"
 #include "CBMC.h"
 
-namespace mol_setup { class MolKind; }
+namespace mol_setup
+{
+class MolKind;
+}
 
-namespace cbmc {
-   class DCData;
+namespace cbmc
+{
+class DCData;
 
-   class DCFreeHedron : public DCComponent
-   {
-   public:
-      DCFreeHedron(DCData* data, const mol_setup::MolKind& kind,
-		   uint focus, uint prev);
-      void PrepareNew(TrialMol& newMol, uint molIndex);
-      void PrepareOld(TrialMol& oldMol, uint molIndex);
-      void BuildOld(TrialMol& oldMol, uint molIndex);
-      void BuildNew(TrialMol& newMol, uint molIndex);
-      DCComponent* Clone() { return new DCFreeHedron(*this); };
+class DCFreeHedron : public DCComponent
+{
+public:
+  DCFreeHedron(DCData* data, const mol_setup::MolKind& kind,
+               uint focus, uint prev);
+  void PrepareNew(TrialMol& newMol, uint molIndex);
+  void PrepareOld(TrialMol& oldMol, uint molIndex);
+  void BuildOld(TrialMol& oldMol, uint molIndex);
+  void BuildNew(TrialMol& newMol, uint molIndex);
+  DCComponent* Clone()
+  {
+    return new DCFreeHedron(*this);
+  };
 
-   private:
-      DCData* data;
-      DCSingle seed;
-      DCHedron hed;
-      double anchorBond;
-      //anchor bond energy of old molecule
-      double oldBondEnergy;
-      uint anchorBondKind;
-   };
+private:
+  DCData* data;
+  DCSingle seed;
+  DCHedron hed;
+  double anchorBond;
+  //anchor bond energy of old molecule
+  double oldBondEnergy;
+  uint anchorBondKind;
+};
 }
 
 #endif

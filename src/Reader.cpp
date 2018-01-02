@@ -12,7 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 bool Reader::Read(std::string & firstItem)
 {
   while(GoodFileWData() && (file >> firstVal) )
-    if ( CheckSkipChars(firstVal)||CheckSkipWords(firstVal) )
+    if ( CheckSkipChars(firstVal) || CheckSkipWords(firstVal) )
       SkipLine();
     else
       break;

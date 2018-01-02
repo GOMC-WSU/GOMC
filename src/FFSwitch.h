@@ -37,8 +37,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 // dSwitchVa = 2.0 * (rij^2/rcut^2 - 1.0) * 2.0 * rij/rcut^2
 
 
-struct FF_SWITCH : public FFParticle
-{
+struct FF_SWITCH : public FFParticle {
 public:
 
   virtual double CalcEn(const double distSq,
@@ -50,14 +49,14 @@ public:
 
   // coulomb interaction functions
   virtual double CalcCoulomb(const double distSq,
-			     const double qi_qj_Fact) const;
+                             const double qi_qj_Fact) const;
   virtual double CalcCoulombEn(const double distSq,
                                const double qi_qj_Fact) const;
   virtual double CalcCoulombVir(const double distSq,
                                 const double qi_qj) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact,
-				  const bool NB) const;
+                                  const bool NB) const;
 
   //!Returns Ezero, no energy correction
   virtual double EnergyLRC(const uint kind1, const uint kind2) const
@@ -80,7 +79,7 @@ inline void FF_SWITCH::CalcAdd_1_4(double& en, const double distSq,
   double rCutSq_rijSq = rCutSq - distSq;
   double rCutSq_rijSq_Sq = rCutSq_rijSq * rCutSq_rijSq;
 
-  double rRat2 = sigmaSq_1_4[index]/distSq;
+  double rRat2 = sigmaSq_1_4[index] / distSq;
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
 #ifdef MIE_INT_ONLY
@@ -95,12 +94,12 @@ inline void FF_SWITCH::CalcAdd_1_4(double& en, const double distSq,
 
   const double factE = ( distSq > rOnSq ? fE : 1.0);
 
-  en += (epsilon_cn_1_4[index] * (repulse-attract)) * factE;
+  en += (epsilon_cn_1_4[index] * (repulse - attract)) * factE;
 }
 
 inline void FF_SWITCH::CalcCoulombAdd_1_4(double& en, const double distSq,
-					  const double qi_qj_Fact,
-					  const bool NB) const
+    const double qi_qj_Fact,
+    const bool NB) const
 {
   double dist = sqrt(distSq);
   if(NB)
@@ -119,7 +118,7 @@ inline double FF_SWITCH::CalcEn(const double distSq,
   double rCutSq_rijSq = rCutSq - distSq;
   double rCutSq_rijSq_Sq = rCutSq_rijSq * rCutSq_rijSq;
 
-  double rRat2 = sigmaSq[index]/distSq;
+  double rRat2 = sigmaSq[index] / distSq;
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
 #ifdef MIE_INT_ONLY
@@ -134,24 +133,21 @@ inline double FF_SWITCH::CalcEn(const double distSq,
 
   const double factE = ( distSq > rOnSq ? fE : 1.0);
 
-  return (epsilon_cn[index] * (repulse-attract)) * factE;
+  return (epsilon_cn[index] * (repulse - attract)) * factE;
 }
 
 inline double FF_SWITCH::CalcCoulomb(const double distSq,
-                                       const double qi_qj_Fact) const
+                                     const double qi_qj_Fact) const
 {
-  if(ewald)
-  {
-     double dist = sqrt(distSq);
-     double val = alpha * dist;
-     return  qi_qj_Fact * erfc(val)/ dist;
-  }
-  else
-  {
-     double dist = sqrt(distSq);
-     double switchVal = distSq/rCutSq - 1.0;
-     switchVal *= switchVal;
-     return  qi_qj_Fact * switchVal/dist;
+  if(ewald) {
+    double dist = sqrt(distSq);
+    double val = alpha * dist;
+    return  qi_qj_Fact * erfc(val) / dist;
+  } else {
+    double dist = sqrt(distSq);
+    double switchVal = distSq / rCutSq - 1.0;
+    switchVal *= switchVal;
+    return  qi_qj_Fact * switchVal / dist;
   }
 }
 
@@ -162,18 +158,15 @@ inline double FF_SWITCH::CalcCoulombEn(const double distSq,
   if(distSq <= rCutLowSq)
     return num::BIGNUM;
 
-  if(ewald)
-  {
-     double dist = sqrt(distSq);
-     double val = alpha * dist;
-     return  qi_qj_Fact * erfc(val)/ dist;
-  }
-  else
-  {
-     double dist = sqrt(distSq);
-     double switchVal = distSq/rCutSq - 1.0;
-     switchVal *= switchVal;
-     return  qi_qj_Fact * switchVal/dist;
+  if(ewald) {
+    double dist = sqrt(distSq);
+    double val = alpha * dist;
+    return  qi_qj_Fact * erfc(val) / dist;
+  } else {
+    double dist = sqrt(distSq);
+    double switchVal = distSq / rCutSq - 1.0;
+    switchVal *= switchVal;
+    return  qi_qj_Fact * switchVal / dist;
   }
 }
 
@@ -186,7 +179,7 @@ inline double FF_SWITCH::CalcVir(const double distSq,
   double rCutSq_rijSq = rCutSq - distSq;
   double rCutSq_rijSq_Sq = rCutSq_rijSq * rCutSq_rijSq;
 
-  double rNeg2 = 1.0/distSq;
+  double rNeg2 = 1.0 / distSq;
   double rRat2 = rNeg2 * sigmaSq[index];
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
@@ -204,8 +197,8 @@ inline double FF_SWITCH::CalcVir(const double distSq,
   const double factE = ( distSq > rOnSq ? fE : 1.0);
   const double factW = ( distSq > rOnSq ? fW : 0.0);
 
-  double Wij = epsilon_cn_6[index] * (nOver6[index]*repulse-attract)*rNeg2;
-  double Eij = epsilon_cn[index] * (repulse-attract);
+  double Wij = epsilon_cn_6[index] * (nOver6[index] * repulse - attract) * rNeg2;
+  double Eij = epsilon_cn[index] * (repulse - attract);
 
   return (Wij * factE - Eij * factW);
 }
@@ -213,21 +206,18 @@ inline double FF_SWITCH::CalcVir(const double distSq,
 inline double FF_SWITCH::CalcCoulombVir(const double distSq,
                                         const double qi_qj) const
 {
-  if(ewald)
-  {
-     double dist = sqrt(distSq);
-     double constValue = 2.0 * alpha / sqrt(M_PI);
-     double expConstValue = exp(-1.0 * alpha * alpha * distSq);
-     double temp = erfc(alpha * dist);
-     return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
-  }
-  else
-  {
-     double dist = sqrt(distSq);
-     double switchVal = distSq/rCutSq - 1.0;
-     switchVal *= switchVal;
-     double dSwitchVal = 2.0 * (distSq/rCutSq - 1.0) * 2.0 * dist/rCutSq;
-     return -1.0 * qi_qj * (dSwitchVal/distSq - switchVal/(distSq * dist));
+  if(ewald) {
+    double dist = sqrt(distSq);
+    double constValue = 2.0 * alpha / sqrt(M_PI);
+    double expConstValue = exp(-1.0 * alpha * alpha * distSq);
+    double temp = erfc(alpha * dist);
+    return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+  } else {
+    double dist = sqrt(distSq);
+    double switchVal = distSq / rCutSq - 1.0;
+    switchVal *= switchVal;
+    double dSwitchVal = 2.0 * (distSq / rCutSq - 1.0) * 2.0 * dist / rCutSq;
+    return -1.0 * qi_qj * (dSwitchVal / distSq - switchVal / (distSq * dist));
   }
 }
 

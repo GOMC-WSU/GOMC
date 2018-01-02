@@ -7,8 +7,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef FXD_WIDTH_WRTR
 #define FXD_WIDTH_WRTR
 
-struct FxdWidthWrtr : Writer
-{
+struct FxdWidthWrtr : Writer {
 
   FxdWidthWrtr(std::string const& nm, std::string const& als,
                const bool crit, const bool note) :

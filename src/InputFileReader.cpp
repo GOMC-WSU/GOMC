@@ -35,8 +35,7 @@ InputFileReader::~InputFileReader()
 void InputFileReader::Open(string inputFileName)
 {
   fs.open(inputFileName.c_str(), fstream::in);
-  if(!fs.is_open())
-  {
+  if(!fs.is_open()) {
     std::cout << "Cannot open input file!" << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -50,17 +49,14 @@ void InputFileReader::Open(string inputFileName)
 bool InputFileReader::readNextLine(std::vector<std::string> & str)
 {
   string line;
-  do
-  {
-    if (fs.eof() || fs.bad() || fs.fail())
-    {
+  do {
+    if (fs.eof() || fs.bad() || fs.fail()) {
       return false;
     }
     std::getline(fs, line);
     if(!line.size())
       line = "#";
-  }
-  while (line[0] == '#' || line[0] == '\0');
+  } while (line[0] == '#' || line[0] == '\0');
 
   istringstream iss(line);
   copy(istream_iterator<std::string>(iss),

@@ -13,11 +13,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
-		       double const *epsilon_Cn,
-		       double const *n, int VDW_Kind, int isMartini,
-		       int count, double Rcut, double RcutLow,
-		       double Ron, double alpha,
-		       int ewald, double diElectric_1)
+                       double const *epsilon_Cn,
+                       double const *n, int VDW_Kind, int isMartini,
+                       int count, double Rcut, double RcutLow,
+                       double Ron, double alpha,
+                       int ewald, double diElectric_1)
 {
   int countSq = count * count;
   cudaMalloc(&vars.gpu_sigmaSq, countSq * sizeof(double));
@@ -34,27 +34,27 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
   cudaMalloc(&vars.gpu_diElectric_1, sizeof(double));
 
   cudaMemcpy(vars.gpu_sigmaSq, sigmaSq, countSq * sizeof(double),
-	     cudaMemcpyHostToDevice);
+             cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_epsilon_Cn, epsilon_Cn, countSq * sizeof(double),
-	     cudaMemcpyHostToDevice);
+             cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_n, n, countSq * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_VDW_Kind, &VDW_Kind, sizeof(int),
-	     cudaMemcpyHostToDevice);
+             cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_isMartini, &isMartini, sizeof(int),
-	     cudaMemcpyHostToDevice);
+             cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_count, &count, sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_rCut, &Rcut, sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_rCutLow, &RcutLow, sizeof(double),
-	     cudaMemcpyHostToDevice);
+             cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_rOn, &Ron, sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_alpha, &alpha, sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_ewald, &ewald, sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_diElectric_1, &diElectric_1, sizeof(double),
-	     cudaMemcpyHostToDevice);
+             cudaMemcpyHostToDevice);
 }
 
 void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
-			 uint maxAtomsInMol, uint maxMolNumber)
+                         uint maxAtomsInMol, uint maxMolNumber)
 {
   cudaMalloc(&vars->gpu_x, atomNumber * sizeof(double));
   cudaMalloc(&vars->gpu_y, atomNumber * sizeof(double));
@@ -103,8 +103,7 @@ void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal)
   vars->gpu_hsqr = new double *[BOX_TOTAL];
   vars->gpu_hsqrRef = new double *[BOX_TOTAL];
 
-  for(uint b = 0; b < BOX_TOTAL; b++)
-  {
+  for(uint b = 0; b < BOX_TOTAL; b++) {
     cudaMalloc(&vars->gpu_kx[b], imageTotal * sizeof(double));
     cudaMalloc(&vars->gpu_ky[b], imageTotal * sizeof(double));
     cudaMalloc(&vars->gpu_kz[b], imageTotal * sizeof(double));
@@ -126,19 +125,19 @@ void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal)
 void CopyCurrentToRefCUDA(VariablesCUDA *vars, uint box, uint imageTotal)
 {
   cudaMemcpy(vars->gpu_sumRref[box], vars->gpu_sumRnew[box],
-	     imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
+             imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
   cudaMemcpy(vars->gpu_sumIref[box], vars->gpu_sumInew[box],
-	     imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
+             imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
   cudaMemcpy(vars->gpu_prefactRef[box], vars->gpu_prefact[box],
-	     imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
+             imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
   cudaMemcpy(vars->gpu_hsqrRef[box], vars->gpu_hsqr[box],
-	     imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
+             imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
   cudaMemcpy(vars->gpu_kxRef[box], vars->gpu_kx[box],
-	     imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
+             imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
   cudaMemcpy(vars->gpu_kyRef[box], vars->gpu_ky[box],
-	     imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
+             imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
   cudaMemcpy(vars->gpu_kzRef[box], vars->gpu_kz[box],
-	     imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
+             imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
 }
 
 void UpdateRecipVecCUDA(VariablesCUDA *vars, uint box)
@@ -176,8 +175,7 @@ void UpdateRecipCUDA(VariablesCUDA *vars, uint box)
 
 void DestroyEwaldCUDAVars(VariablesCUDA *vars)
 {
-  for(uint b=0; b<BOX_TOTAL; b++)
-  {
+  for(uint b = 0; b < BOX_TOTAL; b++) {
     cudaFree(vars->gpu_kx[b]);
     cudaFree(vars->gpu_ky[b]);
     cudaFree(vars->gpu_kz[b]);

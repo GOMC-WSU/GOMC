@@ -28,15 +28,13 @@ struct Output;
 class MoveSettings;
 class MoleculeLookup;
 
-struct PDBOutput : OutputableBase
-{
+struct PDBOutput : OutputableBase {
 public:
   PDBOutput(System & sys, StaticVals const& statV);
 
   ~PDBOutput()
   {
-    for (uint b = 0; b < BOX_TOTAL; ++b)
-    {
+    for (uint b = 0; b < BOX_TOTAL; ++b) {
       outF[b].close();
     }
   }

@@ -30,83 +30,80 @@ class MoveBase;
 
 class System
 {
- public:
-   explicit System(StaticVals& statics);
+public:
+  explicit System(StaticVals& statics);
 
-   void Init(Setup const& setupData);
+  void Init(Setup const& setupData);
 
-   //Runs move, picked at random
-   void ChooseAndRunMove(const uint step);
+  //Runs move, picked at random
+  void ChooseAndRunMove(const uint step);
 
-   // return ewald
-   EwaldCached * GetEwald()
-   {
-     return calcEwald;
-   }
+  // return ewald
+  EwaldCached * GetEwald()
+  {
+    return calcEwald;
+  }
 
 #ifdef VARIABLE_VOLUME
-   BoxDimensions * BoxDim(const bool isOrthogonal)
-   {
-     boxDimensions = NULL;
-     if(isOrthogonal)
-     {
-       boxDimensions = new BoxDimensions();
-     }
-     else
-     {
-       boxDimensions = new BoxDimensionsNonOrth();
-     }
-     return boxDimensions;
-   }
+  BoxDimensions * BoxDim(const bool isOrthogonal)
+  {
+    boxDimensions = NULL;
+    if(isOrthogonal) {
+      boxDimensions = new BoxDimensions();
+    } else {
+      boxDimensions = new BoxDimensionsNonOrth();
+    }
+    return boxDimensions;
+  }
 #endif
 
 
 
-   //NOTE:
-   //This must also come first... as subsequent values depend on obj.
-   //That may be in here, i.e. Box Dimensions
-   StaticVals & statV;
+  //NOTE:
+  //This must also come first... as subsequent values depend on obj.
+  //That may be in here, i.e. Box Dimensions
+  StaticVals & statV;
 
-   //NOTE:
-   //Important! These must come first, as other objects may depend
-   //on their val for init!
-   //Only include these variables if they vary for this ensemble...
+  //NOTE:
+  //Important! These must come first, as other objects may depend
+  //on their val for init!
+  //Only include these variables if they vary for this ensemble...
 #ifdef VARIABLE_VOLUME
-   BoxDimensions *boxDimensions;
+  BoxDimensions *boxDimensions;
 #endif
 #ifdef  VARIABLE_PARTICLE_NUMBER
-   MoleculeLookup molLookup;
+  MoleculeLookup molLookup;
 #endif
 
-   //Use as we don't know where they are...
-   BoxDimensions & boxDimRef;
-   MoleculeLookup & molLookupRef;
+  //Use as we don't know where they are...
+  BoxDimensions & boxDimRef;
+  MoleculeLookup & molLookupRef;
 
-   MoveSettings moveSettings;
-   SystemPotential potential;
-   Coordinates coordinates;
-   COM com;
+  MoveSettings moveSettings;
+  SystemPotential potential;
+  Coordinates coordinates;
+  COM com;
 
-   CalculateEnergy calcEnergy;
-   EwaldCached  *calcEwald;
-   CellList cellList;
-   PRNG prng;
+  CalculateEnergy calcEnergy;
+  EwaldCached  *calcEwald;
+  CellList cellList;
+  PRNG prng;
 
-   //Procedure to run once move is picked... can also be called directly for
-   //debugging...
-   void RunMove(uint majKind, double draw, const uint step);
+  //Procedure to run once move is picked... can also be called directly for
+  //debugging...
+  void RunMove(uint majKind, double draw, const uint step);
 
-   ~System();
+  ~System();
 
- private:
-   void InitMoves();
-   void PickMove(uint & kind, double & draw);
-   uint SetParams(const uint kind, const double draw);
-   uint Transform(const uint kind);
-   void CalcEn(const uint kind);
-   void Accept(const uint kind, const uint rejectState, const uint step);
+private:
+  void InitMoves();
+  void PickMove(uint & kind, double & draw);
+  uint SetParams(const uint kind, const double draw);
+  uint Transform(const uint kind);
+  void CalcEn(const uint kind);
+  void Accept(const uint kind, const uint rejectState, const uint step);
 
-   MoveBase * moves[mv::MOVE_KINDS_TOTAL];
+  MoveBase * moves[mv::MOVE_KINDS_TOTAL];
 };
 
 #endif /*SYSTEM_H*/

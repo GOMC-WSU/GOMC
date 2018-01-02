@@ -48,8 +48,7 @@ private:
 inline double FFDihedrals::Calc(const uint kind, const double phi) const
 {
   double sum = 0.0;
-  for(uint i = subdiv.Begin(kind); i != subdiv.End(kind); ++i)
-  {
+  for(uint i = subdiv.Begin(kind); i != subdiv.End(kind); ++i) {
     sum += Kchi[i] * (1 + cos(n[i] * phi - delta[i]));
   }
   return sum;

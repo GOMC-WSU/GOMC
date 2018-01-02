@@ -48,65 +48,77 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 namespace geom
 {
-   inline double RadToDeg(const double ang) { return ang * RAD_TO_DEG; }
-   inline double DegToRad(const double ang) { return ang * DEG_TO_RAD; }
+inline double RadToDeg(const double ang)
+{
+  return ang * RAD_TO_DEG;
+}
+inline double DegToRad(const double ang)
+{
+  return ang * DEG_TO_RAD;
+}
 
-   //NOTE:
-   //Length functions are now directly in XYZ type.
+//NOTE:
+//Length functions are now directly in XYZ type.
 
-   //Returns cross product of two vectors A and B that share a vertex.
-   //NOTE:
-   //To use this on three topologically connected points, we must
-   //shift all three points such that the shared vertex is at the origin.
-   inline XYZ Cross(const double x1, const double y1, const double z1,
-                    const double x2, const double y2, const double z2)
-   { return XYZ(y1 * z2 - z1 * y2, z1 * x2 - x1 * z2, x1 * y2 - y1 * x2); }
+//Returns cross product of two vectors A and B that share a vertex.
+//NOTE:
+//To use this on three topologically connected points, we must
+//shift all three points such that the shared vertex is at the origin.
+inline XYZ Cross(const double x1, const double y1, const double z1,
+                 const double x2, const double y2, const double z2)
+{
+  return XYZ(y1 * z2 - z1 * y2, z1 * x2 - x1 * z2, x1 * y2 - y1 * x2);
+}
 
-   //Wrapper for cross product using vector types
-   inline XYZ Cross(XYZ const& v1, XYZ const& v2)
-   { return Cross(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z); }
+//Wrapper for cross product using vector types
+inline XYZ Cross(XYZ const& v1, XYZ const& v2)
+{
+  return Cross(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z);
+}
 
-   //Geometric dot product
-   inline double Dot(XYZ const& v1, XYZ const& v2)
-   { return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z; }
+//Geometric dot product
+inline double Dot(XYZ const& v1, XYZ const& v2)
+{
+  return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+}
 
-   //Generates angle between two vectors sharing a common vertex.
-   //NOTE:
-   //Vectors must be pre-shifted to the origin.
-   inline double Theta(XYZ const& v1, XYZ const& v2)
-   {
-     double value = Dot(v1, v2) / sqrt(v1.LengthSq() * v2.LengthSq());
-     if(value < -1.00)
-       return M_PI;
-     else
-       return acos(value);
-   }
+//Generates angle between two vectors sharing a common vertex.
+//NOTE:
+//Vectors must be pre-shifted to the origin.
+inline double Theta(XYZ const& v1, XYZ const& v2)
+{
+  double value = Dot(v1, v2) / sqrt(v1.LengthSq() * v2.LengthSq());
+  if(value < -1.00)
+    return M_PI;
+  else
+    return acos(value);
+}
 
-   //Returns the dihedral angle between v1 and v3 along v2
-   // Derived from http://math.stackexchange.com/questions/47059
-   // See: answer from Rahul Narain
-   //
-   //             ^            ^ b3
-   //            / b3         /
-   //    ---b2->/        b2  *)--- this angle ^ is phi
-   //   ^                    |     (NOTE: this is important for chirality!)
-   //  /                     | b1
-   // / b1                   v
-   //
-   // 1.)  Normal vectors to component planes:
-   // n1: < b1 x b2 >  n2: < b2 x b3 > ;
-   // 2.) Orthonormal frame basis:
-   // (n1, <b2>, m1) where m1: n1 x <b2>
-   // 3.) phi = atan2(y,x)
-   //
-   // NOTE:
-   // cos-1 route avoided as it's inaccurate near 0 or pi.
-   inline double Phi(XYZ const& b1, XYZ const& b2, XYZ const& b3)
-   {
-      XYZ n1 = Cross(b1, b2).Normalize(), n2 = Cross(b2, b3).Normalize(),
-         m1 = Cross(n1, XYZ(b2).Normalize()).Normalize();
-      return atan2(Dot(m1, n2), Dot(n1, n2));
-   }
+//Returns the dihedral angle between v1 and v3 along v2
+// Derived from http://math.stackexchange.com/questions/47059
+// See: answer from Rahul Narain
+//
+//             ^            ^ b3
+//            / b3         /
+//    ---b2->/        b2  *)--- this angle ^ is phi
+//   ^                    |     (NOTE: this is important for chirality!)
+//  /                     | b1
+// / b1                   v
+//
+// 1.)  Normal vectors to component planes:
+// n1: < b1 x b2 >  n2: < b2 x b3 > ;
+// 2.) Orthonormal frame basis:
+// (n1, <b2>, m1) where m1: n1 x <b2>
+// 3.) phi = atan2(y,x)
+//
+// NOTE:
+// cos-1 route avoided as it's inaccurate near 0 or pi.
+inline double Phi(XYZ const& b1, XYZ const& b2, XYZ const& b3)
+{
+  XYZ n1 = Cross(b1, b2).Normalize(), n2 = Cross(b2, b3).Normalize(),
+      m1 = Cross(n1, XYZ(b2).Normalize()).Normalize();
+  return atan2(Dot(m1, n2), Dot(n1, n2));
+}
 
 }
 

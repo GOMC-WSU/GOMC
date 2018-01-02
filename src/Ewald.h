@@ -42,40 +42,40 @@ class CalculateEnergy;
 class Ewald : public EwaldCached
 {
   //friend class CalculateEnergy;
-   public:
+public:
 
-   Ewald(StaticVals & stat, System & sys);
+  Ewald(StaticVals & stat, System & sys);
 
-   virtual void Init();
+  virtual void Init();
 
-   virtual void AllocMem();
+  virtual void AllocMem();
 
-   //setup reciprocate term for a box
-   virtual void BoxReciprocalSetup(uint box, XYZArray const& molCoords);
+  //setup reciprocate term for a box
+  virtual void BoxReciprocalSetup(uint box, XYZArray const& molCoords);
 
-   //calculate reciprocate energy term for a box
-   virtual double BoxReciprocal(uint box) const;
+  //calculate reciprocate energy term for a box
+  virtual double BoxReciprocal(uint box) const;
 
-   //calculate reciprocate term for displacement and rotation move
-   virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
-				const uint box, XYZ const*const newCOM = NULL);
+  //calculate reciprocate term for displacement and rotation move
+  virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
+                               const uint box, XYZ const*const newCOM = NULL);
 
-   //calculate reciprocate term in destination box for swap move
-   virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
-				const int sourceBox, const int molIndex);
+  //calculate reciprocate term in destination box for swap move
+  virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
+                               const int sourceBox, const int molIndex);
 
-   //calculate reciprocate term in source box for swap move
-   virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
-				  const uint box, const int molIndex);
+  //calculate reciprocate term in source box for swap move
+  virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
+                                 const uint box, const int molIndex);
 
-   //restore cosMol and sinMol
-   virtual void RestoreMol(int molIndex);
+  //restore cosMol and sinMol
+  virtual void RestoreMol(int molIndex);
 
-   //update sinMol and cosMol
-   virtual void exgMolCache();
+  //update sinMol and cosMol
+  virtual void exgMolCache();
 
- private:
-   double currentEnergyRecip[BOX_TOTAL];
+private:
+  double currentEnergyRecip[BOX_TOTAL];
 };
 
 

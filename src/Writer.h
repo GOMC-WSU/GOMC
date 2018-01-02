@@ -85,7 +85,7 @@ protected:
   void HandleError(std::string const& msg)
   {
     using namespace std;
-    cerr << ((critical)?"Error ":"Warning ") << nameWAlias << endl
+    cerr << ((critical) ? "Error " : "Warning ") << nameWAlias << endl
          << msg << endl;
     if (critical)
       exit(1);
@@ -101,9 +101,9 @@ protected:
                       std::string const & errMessage, std::string const& note)
   {
     isOpen = GoodFileWData();
-    if (isOpen==expected && notify)
+    if (isOpen == expected && notify)
       HandleNote(note);
-    else if (isOpen!=expected)
+    else if (isOpen != expected)
       HandleError(errMessage);
   }
 

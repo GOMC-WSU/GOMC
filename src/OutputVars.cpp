@@ -15,7 +15,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #endif
 
 OutputVars::OutputVars(System & sys, StaticVals const& statV) :
-  calc(sys.calcEnergy) { InitRef(sys, statV); }
+  calc(sys.calcEnergy)
+{
+  InitRef(sys, statV);
+}
 
 void OutputVars::InitRef(System & sys, StaticVals const& statV)
 {
@@ -58,9 +61,9 @@ double OutputVars::GetScale(uint sub)
 
 double OutputVars::GetAcceptPercent(uint sub)
 {
-  if(GetTries(sub)==0)
+  if(GetTries(sub) == 0)
     return 0.0;
-  return (double)(GetAccepted(sub))/(double)(GetTries(sub))*100.0;
+  return (double)(GetAccepted(sub)) / (double)(GetTries(sub)) * 100.0;
 }
 
 void OutputVars::Init(pdb_setup::Atoms const& atoms)
@@ -104,44 +107,38 @@ void OutputVars::CalcAndConvert(ulong step)
 
 #if ENSEMBLE == GEMC
   //Determine which box is liquid for purposes of heat of vap.
-  if (densityByKindBox[numKinds] > densityByKindBox[0])
-  {
+  if (densityByKindBox[numKinds] > densityByKindBox[0]) {
     vapBox = mv::BOX0;
     liqBox = mv::BOX1;
   }
 #endif
 
-  for (uint b = 0; b < BOXES_WITH_U_NB; b++)
-  {
+  for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
     //Account for dimensionality of virial (raw "virial" is actually a
     //multiple of the true virial, based on the dimensions stress is exerted
     //in)
 
-    if (pressureCalc)
-    {
-      if((step + 1) % pCalcFreq == 0)
-      {
-	virialRef[b] = calc.ForceCalc(b);
-	*virialTotRef += virialRef[b];
+    if (pressureCalc) {
+      if((step + 1) % pCalcFreq == 0) {
+        virialRef[b] = calc.ForceCalc(b);
+        *virialTotRef += virialRef[b];
       }
     }
 
     //calculate surface tension in mN/M
     surfaceTens[b] = (virialRef[b].totalTens[2][2] - 0.5 *
-		      (virialRef[b].totalTens[0][0] +
-		       virialRef[b].totalTens[1][1]));
+                      (virialRef[b].totalTens[0][0] +
+                       virialRef[b].totalTens[1][1]));
     surfaceTens[b] *= unit::K_TO_MN_PER_M /
-      (2.0 * axisRef->Get(b).x * axisRef->Get(b).y);
+                      (2.0 * axisRef->Get(b).x * axisRef->Get(b).y);
 
     //save the pressure tensor for print
-    for (int i = 0; i < 3; i++)
-    {
-       for (int j = 0; j < 3; j++)
-       {
-	  //convert K to bar
-	  pressureTens[b][i][j] = virialRef[b].totalTens[i][j] *
-	    unit::K_MOLECULE_PER_A3_TO_BAR / volumeRef[b];
-       }
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++) {
+        //convert K to bar
+        pressureTens[b][i][j] = virialRef[b].totalTens[i][j] *
+                                unit::K_MOLECULE_PER_A3_TO_BAR / volumeRef[b];
+      }
     }
 
     virial[b] = virialRef[b];
@@ -152,9 +149,8 @@ void OutputVars::CalcAndConvert(ulong step)
 
     rawPressure[b] = 0.0;
     densityTot[b] = 0.0;
-    for (uint k = 0; k < numKinds; k++)
-    {
-      double * density = &densityByKindBox[k+numKinds*b];
+    for (uint k = 0; k < numKinds; k++) {
+      double * density = &densityByKindBox[k + numKinds * b];
 
       // Instead of converting to mass first
       // (an alternate route to calculate the ideal gas pressure)
@@ -173,27 +169,25 @@ void OutputVars::CalcAndConvert(ulong step)
     pressure[b] = rawPressure[b];
     pressure[b] *= unit::K_MOLECULE_PER_A3_TO_BAR;
   }
-  for (uint b = 0; b < BOX_TOTAL; b++)
-  {
+  for (uint b = 0; b < BOX_TOTAL; b++) {
     densityTot[b] = 0.0;
-    for (uint k = 0; k < numKinds; k++)
-    {
-      double * density = &densityByKindBox[k+numKinds*b];
+    for (uint k = 0; k < numKinds; k++) {
+      double * density = &densityByKindBox[k + numKinds * b];
 
       // Convert density to g/ml (which is equivalent to g/cm3)
       // To get kg/m3, multiply output densities by 1000.
       *density *= unit::MOLECULES_PER_A3_TO_MOL_PER_CM3 *
                   kindsRef[k].molMass;
-      densityTot[b] += densityByKindBox[k+numKinds*b];
+      densityTot[b] += densityByKindBox[k + numKinds * b];
     }
     densityTot[b] *= 1000;
   }
 #if ENSEMBLE == GEMC
   // delta Hv = (Uv-Ul) + P(Vv-Vl)
-  heatOfVap = energyRef[vapBox].total/numByBox[vapBox] -
-              energyRef[liqBox].total/numByBox[liqBox] +
-              rawPressure[vapBox]*(volumeRef[vapBox]/numByBox[vapBox] -
-                                   volumeRef[liqBox]/numByBox[liqBox]);
+  heatOfVap = energyRef[vapBox].total / numByBox[vapBox] -
+              energyRef[liqBox].total / numByBox[liqBox] +
+              rawPressure[vapBox] * (volumeRef[vapBox] / numByBox[vapBox] -
+                                     volumeRef[liqBox] / numByBox[liqBox]);
   heatOfVap *= unit::K_TO_KJ_PER_MOL;
 #endif
 

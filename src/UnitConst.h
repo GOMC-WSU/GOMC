@@ -55,7 +55,7 @@ static const double K_TO_KJ_PER_MOL = 0.008314462;
 //
 // dimensionality of the virial (3D = 3)
 //
-static const uint DIMENSIONALITY=3;
+static const uint DIMENSIONALITY = 3;
 
 }
 

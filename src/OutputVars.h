@@ -22,52 +22,52 @@ class MoleculeLookup;
 class OutputVars
 {
 public:
-   OutputVars(System & sys, StaticVals const& statV);
+  OutputVars(System & sys, StaticVals const& statV);
 
-   ~OutputVars(void);
+  ~OutputVars(void);
 
-   void Init(pdb_setup::Atoms const& atoms);
-   void InitRef(System & sys, StaticVals const& statV);
+  void Init(pdb_setup::Atoms const& atoms);
+  void InitRef(System & sys, StaticVals const& statV);
 
-   void CalcAndConvert(ulong step);
-   uint GetTries(uint sub);
-   uint GetAccepted(uint sub);
-   double GetAcceptPercent(uint sub);
-   double GetScale(uint sub);
+  void CalcAndConvert(ulong step);
+  uint GetTries(uint sub);
+  uint GetAccepted(uint sub);
+  double GetAcceptPercent(uint sub);
+  double GetScale(uint sub);
 
 //private:
-   //Intermediate vars.
-   uint * numByBox, * numByKindBox;
-   double * molFractionByKindBox, * densityByKindBox,
-     pressure[BOXES_WITH_U_NB], densityTot[BOX_TOTAL];
-   double pressureTens[BOXES_WITH_U_NB][3][3];
-   double surfaceTens[BOXES_WITH_U_NB];
-   ulong pCalcFreq;
-   bool pressureCalc;
+  //Intermediate vars.
+  uint * numByBox, * numByKindBox;
+  double * molFractionByKindBox, * densityByKindBox,
+         pressure[BOXES_WITH_U_NB], densityTot[BOX_TOTAL];
+  double pressureTens[BOXES_WITH_U_NB][3][3];
+  double surfaceTens[BOXES_WITH_U_NB];
+  ulong pCalcFreq;
+  bool pressureCalc;
 
-   uint numKinds;
-   //Constants
-   double T_in_K;
+  uint numKinds;
+  //Constants
+  double T_in_K;
 
-   //References
-   double * volumeRef;
-   XYZArray * axisRef;
-   double * volInvRef;
-   Energy * energyRef, * energyTotRef;
-   Virial * virialRef, * virial,  * virialTotRef;
-   MoleculeKind * kindsRef;
-   MoleculeLookup * molLookupRef;
-   CalculateEnergy& calc;
+  //References
+  double * volumeRef;
+  XYZArray * axisRef;
+  double * volInvRef;
+  Energy * energyRef, * energyTotRef;
+  Virial * virialRef, * virial,  * virialTotRef;
+  MoleculeKind * kindsRef;
+  MoleculeLookup * molLookupRef;
+  CalculateEnergy& calc;
 
-   //Local copy of res names.
-   std::vector<std::string> resKindNames;
-   double const* movePercRef;
-   MoveSettings * moveSetRef;
+  //Local copy of res names.
+  std::vector<std::string> resKindNames;
+  double const* movePercRef;
+  MoveSettings * moveSetRef;
 
 #if ENSEMBLE == GCMC
-   double * chemPot;
+  double * chemPot;
 #elif ENSEMBLE == GEMC
-   double heatOfVap;
+  double heatOfVap;
 #endif
 };
 

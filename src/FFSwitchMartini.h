@@ -45,8 +45,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 //
 
 
-struct FF_SWITCH_MARTINI : public FFParticle
-{
+struct FF_SWITCH_MARTINI : public FFParticle {
 public:
 
   virtual double CalcEn(const double distSq,
@@ -58,14 +57,14 @@ public:
 
   // coulomb interaction functions
   virtual double CalcCoulomb(const double distSq,
-			     const double qi_qj_Fact) const;
+                             const double qi_qj_Fact) const;
   virtual double CalcCoulombEn(const double distSq,
                                const double qi_qj_Fact) const;
   virtual double CalcCoulombVir(const double distSq,
                                 const double qi_qj) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact,
-				  const bool NB) const;
+                                  const bool NB) const;
 
 
   //!Returns Ezero, no energy correction
@@ -87,7 +86,7 @@ inline void FF_SWITCH_MARTINI::CalcAdd_1_4(double& en, const double distSq,
     const uint kind2) const
 {
   uint index = FlatIndex(kind1, kind2);
-  double r_2 = 1.0/distSq;
+  double r_2 = 1.0 / distSq;
   double r_4 = r_2 * r_2;
   double r_6 = r_4 * r_2;
 #ifdef MIE_INT_ONLY
@@ -103,9 +102,9 @@ inline void FF_SWITCH_MARTINI::CalcAdd_1_4(double& en, const double distSq,
   double rij_ron_3 = rij_ron_2 * rij_ron;
   double rij_ron_4 = rij_ron_2 * rij_ron_2;
 
-  double shifttempRep = -(An_1_4[index]/3.0)*rij_ron_3 -
-                        (Bn_1_4[index]/4.0)*rij_ron_4 - Cn_1_4[index];
-  double shifttempAtt = -(A6/3.0)*rij_ron_3 - (B6/4.0)*rij_ron_4 - C6;
+  double shifttempRep = -(An_1_4[index] / 3.0) * rij_ron_3 -
+                        (Bn_1_4[index] / 4.0) * rij_ron_4 - Cn_1_4[index];
+  double shifttempAtt = -(A6 / 3.0) * rij_ron_3 - (B6 / 4.0) * rij_ron_4 - C6;
 
   const double shiftRep = ( distSq > rOnSq ? shifttempRep : -Cn_1_4[index]);
   const double shiftAtt = ( distSq > rOnSq ? shifttempAtt : -C6);
@@ -115,26 +114,26 @@ inline void FF_SWITCH_MARTINI::CalcAdd_1_4(double& en, const double distSq,
 }
 
 inline void FF_SWITCH_MARTINI::CalcCoulombAdd_1_4(double& en,
-						  const double distSq,
-						  const double qi_qj_Fact,
-						  const bool NB) const
+    const double distSq,
+    const double qi_qj_Fact,
+    const bool NB) const
 {
-   double dist = sqrt(distSq);
-   if(NB)
-     en += qi_qj_Fact / dist;
-   else
-     en += qi_qj_Fact * scaling_14 / dist;
+  double dist = sqrt(distSq);
+  if(NB)
+    en += qi_qj_Fact / dist;
+  else
+    en += qi_qj_Fact * scaling_14 / dist;
 }
 
 
 //mie potential
 inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
                                         const uint kind1,
-					const uint kind2) const
+                                        const uint kind2) const
 {
   uint index = FlatIndex(kind1, kind2);
 
-  double r_2 = 1.0/distSq;
+  double r_2 = 1.0 / distSq;
   double r_4 = r_2 * r_2;
   double r_6 = r_4 * r_2;
 #ifdef MIE_INT_ONLY
@@ -150,9 +149,9 @@ inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
   double rij_ron_3 = rij_ron_2 * rij_ron;
   double rij_ron_4 = rij_ron_2 * rij_ron_2;
 
-  double shifttempRep = -(An[index]/3.0)*rij_ron_3 -
-                        (Bn[index]/4.0)*rij_ron_4 - Cn[index];
-  double shifttempAtt = -(A6/3.0)*rij_ron_3 - (B6/4.0)*rij_ron_4 - C6;
+  double shifttempRep = -(An[index] / 3.0) * rij_ron_3 -
+                        (Bn[index] / 4.0) * rij_ron_4 - Cn[index];
+  double shifttempAtt = -(A6 / 3.0) * rij_ron_3 - (B6 / 4.0) * rij_ron_4 - C6;
 
   const double shiftRep = ( distSq > rOnSq ? shifttempRep : -Cn[index]);
   const double shiftAtt = ( distSq > rOnSq ? shifttempAtt : -C6);
@@ -163,62 +162,56 @@ inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
 }
 
 inline double FF_SWITCH_MARTINI::CalcCoulomb(const double distSq,
-					     const double qi_qj_Fact) const
+    const double qi_qj_Fact) const
 {
-  if(ewald)
-  {
-     double dist = sqrt(distSq);
-     double val = alpha * dist;
-     return  qi_qj_Fact * erfc(val)/ dist;
-  }
-  else
-  {
-     // in Martini, the Coulomb switching distance is zero, so we will have
-     // sqrt(distSq) - rOnCoul =  sqrt(distSq)
-     double dist = sqrt(distSq);
-     double rij_ronCoul_3 = dist * distSq;
-     double rij_ronCoul_4 = distSq * distSq;
+  if(ewald) {
+    double dist = sqrt(distSq);
+    double val = alpha * dist;
+    return  qi_qj_Fact * erfc(val) / dist;
+  } else {
+    // in Martini, the Coulomb switching distance is zero, so we will have
+    // sqrt(distSq) - rOnCoul =  sqrt(distSq)
+    double dist = sqrt(distSq);
+    double rij_ronCoul_3 = dist * distSq;
+    double rij_ronCoul_4 = distSq * distSq;
 
-     double coul = -(A1/3.0) * rij_ronCoul_3 - (B1/4.0) * rij_ronCoul_4 - C1;
-     return qi_qj_Fact  * diElectric_1 * (1.0/dist + coul);
+    double coul = -(A1 / 3.0) * rij_ronCoul_3 - (B1 / 4.0) * rij_ronCoul_4 - C1;
+    return qi_qj_Fact  * diElectric_1 * (1.0 / dist + coul);
   }
 }
 
 //will be used in energy calculation after each move
 inline double FF_SWITCH_MARTINI::CalcCoulombEn(const double distSq,
-					       const double qi_qj_Fact) const
+    const double qi_qj_Fact) const
 {
   if(distSq <= rCutLowSq)
     return num::BIGNUM;
 
-  if(ewald)
-  {
-     double dist = sqrt(distSq);
-     double val = alpha * dist;
-     return  qi_qj_Fact * erfc(val)/ dist;
-  }
-  else
-  {
-     // in Martini, the Coulomb switching distance is zero, so we will have
-     // sqrt(distSq) - rOnCoul =  sqrt(distSq)
-     double dist = sqrt(distSq);
-     double rij_ronCoul_3 = dist * distSq;
-     double rij_ronCoul_4 = distSq * distSq;
+  if(ewald) {
+    double dist = sqrt(distSq);
+    double val = alpha * dist;
+    return  qi_qj_Fact * erfc(val) / dist;
+  } else {
+    // in Martini, the Coulomb switching distance is zero, so we will have
+    // sqrt(distSq) - rOnCoul =  sqrt(distSq)
+    double dist = sqrt(distSq);
+    double rij_ronCoul_3 = dist * distSq;
+    double rij_ronCoul_4 = distSq * distSq;
 
-     double coul = -(A1/3.0) * rij_ronCoul_3 - (B1/4.0) * rij_ronCoul_4 - C1;
-     return qi_qj_Fact  * diElectric_1 * (1.0/dist + coul);
+    double coul = -(A1 / 3.0) * rij_ronCoul_3 - (B1 / 4.0) * rij_ronCoul_4 - C1;
+    return qi_qj_Fact  * diElectric_1 * (1.0 / dist + coul);
   }
 }
 
 //mie potential
 inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
-					 const uint kind1,
-					 const uint kind2) const
+    const uint kind1,
+    const uint kind2) const
 {
   uint index = FlatIndex(kind1, kind2);
   double n_ij = n[index];
 
-  double r_1 = 1.0/sqrt(distSq);
+  double r_1 = 1.0 / sqrt(distSq);
   double r_8 = pow(r_1, 8);
   double r_n2 = pow(r_1, n_ij + 2);
 
@@ -241,27 +234,24 @@ inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
 }
 
 inline double FF_SWITCH_MARTINI::CalcCoulombVir(const double distSq,
-						const double qi_qj) const
+    const double qi_qj) const
 {
-  if(ewald)
-  {
-     double dist = sqrt(distSq);
-     double constValue = 2.0 * alpha / sqrt(M_PI);
-     double expConstValue = exp(-1.0 * alpha * alpha * distSq);
-     double temp = erfc(alpha * dist);
-     return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
-  }
-  else
-  {
-     // in Martini, the Coulomb switching distance is zero, so we will have
-     // sqrt(distSq) - rOnCoul =  sqrt(distSq)
-     double dist = sqrt(distSq);
-     double rij_ronCoul_2 = distSq;
-     double rij_ronCoul_3 = dist * distSq;
-     double rij_ronCoul_4 = distSq * distSq;
+  if(ewald) {
+    double dist = sqrt(distSq);
+    double constValue = 2.0 * alpha / sqrt(M_PI);
+    double expConstValue = exp(-1.0 * alpha * alpha * distSq);
+    double temp = erfc(alpha * dist);
+    return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+  } else {
+    // in Martini, the Coulomb switching distance is zero, so we will have
+    // sqrt(distSq) - rOnCoul =  sqrt(distSq)
+    double dist = sqrt(distSq);
+    double rij_ronCoul_2 = distSq;
+    double rij_ronCoul_3 = dist * distSq;
+    double rij_ronCoul_4 = distSq * distSq;
 
-     double virCoul = A1/rij_ronCoul_2 + B1/rij_ronCoul_3;
-     return qi_qj * diElectric_1 * ( 1.0/(dist * distSq) + virCoul/dist);
+    double virCoul = A1 / rij_ronCoul_2 + B1 / rij_ronCoul_3;
+    return qi_qj * diElectric_1 * ( 1.0 / (dist * distSq) + virCoul / dist);
   }
 }
 

@@ -17,8 +17,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBSetup.h" //For atoms class.
 #include "EnergyTypes.h"
 
-struct Histogram : OutputableBase
-{
+struct Histogram : OutputableBase {
 
   Histogram(OutputVars & v);
 

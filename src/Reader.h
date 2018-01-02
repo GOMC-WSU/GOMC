@@ -23,8 +23,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 inline std::ifstream & operator>>(std::ifstream & is, bool & val)
 {
   is >> std::noboolalpha >> val;
-  if (is.fail())
-  {
+  if (is.fail()) {
     is.clear();
     is >> std::boolalpha >> val;
   }
@@ -41,13 +40,11 @@ public:
     firstVal(""), skipChars(""), skipWordsEnable(false), skipCharsEnable(false)
   {
     Init(name, alias, crit, note);
-    if (useSkipW && skipW != NULL)
-    {
+    if (useSkipW && skipW != NULL) {
       std::string s = *skipW;
       SetSkipWords(s);
     }
-    if (useSkipC && skipC != NULL)
-    {
+    if (useSkipC && skipC != NULL) {
       std::string s = *skipC;
       SetSkipChars(s);
     }
@@ -95,13 +92,12 @@ public:
 
   void SkipLine(void)
   {
-    file.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
 
   void Skip(void)
   {
-    if (GoodFileWData())
-    {
+    if (GoodFileWData()) {
       std::string dummy;
       file >> dummy;
     }
@@ -120,7 +116,7 @@ protected:
   void HandleError(std::string const& msg)
   {
     using namespace std;
-    cerr << ((critical)?"Error ":"Warning ") << nameWAlias << endl
+    cerr << ((critical) ? "Error " : "Warning ") << nameWAlias << endl
          << msg << endl;
     if (critical)
       exit(1);
@@ -135,23 +131,23 @@ protected:
                       std::string const & errMessage, std::string const& note)
   {
     isOpen = GoodFileWData();
-    if (isOpen==expected && notify)
+    if (isOpen == expected && notify)
       HandleNote(note);
-    else if (isOpen!=expected)
+    else if (isOpen != expected)
       HandleError(errMessage);
   }
 
   //Skip unwanted items -- comments, etc.
   void SetSkipWords(std::string const& skipW)
   {
-    skipWordsEnable = (skipW.length()>0);
-    vect::split(skipWords,skipW,' ');
+    skipWordsEnable = (skipW.length() > 0);
+    vect::split(skipWords, skipW, ' ');
   }
 
   void SetSkipChars(std::string const& skipC)
   {
-    skipCharsEnable = (skipC.length()>0);
-    skipChars=skipC;
+    skipCharsEnable = (skipC.length() > 0);
+    skipChars = skipC;
   }
 
   bool CheckSkipChars(std::string const& s)
@@ -159,7 +155,7 @@ protected:
     bool skip = false;
     if (skipCharsEnable && !skip)
       for (uint c = 0; c < skipChars.length() && !skip; c++)
-        skip |= (s[0]==skipChars[c]);
+        skip |= (s[0] == skipChars[c]);
     return skip;
   }
 
@@ -168,7 +164,7 @@ protected:
     bool skip = false;
     if (skipWordsEnable)
       for (uint w = 0; w < skipWords.size() && !skip; w++)
-        skip |= str::compare(s,skipWords[w]);
+        skip |= str::compare(s, skipWords[w]);
     return skip;
   }
 

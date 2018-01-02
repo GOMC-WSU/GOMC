@@ -27,47 +27,55 @@ class System;
 
 class StaticVals
 {
- public:
-   StaticVals(Setup & set);
-   ~StaticVals();
-   void Init(Setup & set, System& sys);
-   void InitOver(Setup & set, System& sys);
-   void IsBoxOrthogonal(config_setup::Volume const& vol);
-#ifndef VARIABLE_VOLUME  
-   BoxDimensions * GetBoxDim()
-   {
-     return boxDimensions;
-   }
+public:
+  StaticVals(Setup & set);
+  ~StaticVals();
+  void Init(Setup & set, System& sys);
+  void InitOver(Setup & set, System& sys);
+  void IsBoxOrthogonal(config_setup::Volume const& vol);
+#ifndef VARIABLE_VOLUME
+  BoxDimensions * GetBoxDim()
+  {
+    return boxDimensions;
+  }
 #endif
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
-   double pressure;
-   uint kindOfGEMC;
-   bool fixVolBox0;
+  double pressure;
+  uint kindOfGEMC;
+  bool fixVolBox0;
 #endif
-   bool isOrthogonal;
+  bool isOrthogonal;
 
-   Forcefield forcefield;
-   SimEventFrequency simEventFreq;
-   //All the static molecule info --  kind, start index
-   Molecules mol;
+  Forcefield forcefield;
+  SimEventFrequency simEventFreq;
+  //All the static molecule info --  kind, start index
+  Molecules mol;
 
-   double movePerc[mv::MOVE_KINDS_TOTAL];
-   double totalPerc;
+  double movePerc[mv::MOVE_KINDS_TOTAL];
+  double totalPerc;
 
-   //Only include these variables if they're static for this ensemble...
+  //Only include these variables if they're static for this ensemble...
 #ifndef VARIABLE_VOLUME
-   BoxDimensions *boxDimensions;
+  BoxDimensions *boxDimensions;
 #endif
 #ifndef  VARIABLE_PARTICLE_NUMBER
-   MoleculeLookup molLookup;
+  MoleculeLookup molLookup;
 #endif
-   bool IsEquil(const uint step) { return step >= simEventFreq.tillEquil; }
-   bool DoAdjust(const uint move) { return move%simEventFreq.perAdjust == 0; }
-   double AcceptPercent(const uint tempAccept)
-   { return (double)(tempAccept)/(double)(simEventFreq.perAdjust); }
+  bool IsEquil(const uint step)
+  {
+    return step >= simEventFreq.tillEquil;
+  }
+  bool DoAdjust(const uint move)
+  {
+    return move % simEventFreq.perAdjust == 0;
+  }
+  double AcceptPercent(const uint tempAccept)
+  {
+    return (double)(tempAccept) / (double)(simEventFreq.perAdjust);
+  }
 
-   void InitMovePercents(config_setup::MovePercents const& percent);
+  void InitMovePercents(config_setup::MovePercents const& percent);
 };
 
 #endif /*STATIC_VALS_H*/

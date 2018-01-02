@@ -41,7 +41,7 @@ const uint trans = 1;
 inline uint GetRotKind(const double phi)
 {
   double ang = geom::RadToDeg(phi);
-  return ((ang>90||ang<-90)?ff::dih::rot::trans:ff::dih::rot::cis);
+  return ((ang > 90 || ang < -90) ? ff::dih::rot::trans : ff::dih::rot::cis);
 }
 }
 

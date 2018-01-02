@@ -168,15 +168,11 @@ inline CellList::Neighbors::Neighbors(const std::vector<int>& partList,
   neighbor(neighbors.begin()),
   nEnd(neighbors.end())
 {
-  while(cell.Done())
-  {
+  while(cell.Done()) {
     ++neighbor;
-    if(Done())
-    {
+    if(Done()) {
       break;
-    }
-    else
-    {
+    } else {
       cell.Jump(head[*neighbor]);
     }
   }
@@ -187,15 +183,11 @@ inline void CellList::Neighbors::Next()
 {
   cell.Next();
   // skip over empty cells
-  while(cell.Done())
-  {
+  while(cell.Done()) {
     ++neighbor;
-    if(Done())
-    {
+    if(Done()) {
       break;
-    }
-    else
-    {
+    } else {
       cell.Jump(head[*neighbor]);
     }
   }
@@ -241,43 +233,35 @@ inline CellList::Pairs::Pairs(const CellList& cellList, int box) :
 {
   if (cellParticle.Done()) NextCell();
   if (First() >= Second() &&
-      !(First()==CellList::END_CELL && Second()==CellList::END_CELL))
+      !(First() == CellList::END_CELL && Second() == CellList::END_CELL))
     Next();
 }
 
 inline void CellList::Pairs::NextCell()
 {
-  do
-  {
+  do {
     ++cell;
     if (cell >= nCells) return;
     cellParticle = cellList.EnumerateCell(cell, box);
     localParticle = cellList.EnumerateLocal(cell, box);
     // skip empty cells
-  }
-  while (cellParticle.Done());
+  } while (cellParticle.Done());
 }
 
 inline void CellList::Pairs::Next()
 {
-  do
-  {
+  do {
     cellParticle.Next();
-    if (cellParticle.Done())
-    {
+    if (cellParticle.Done()) {
       localParticle.Next();
-      if (localParticle.Done())
-      {
+      if (localParticle.Done()) {
         NextCell();
         if (Done()) return;
-      }
-      else
-      {
+      } else {
         cellParticle = cellList.EnumerateCell(cell, box);
       }
     }
     // skip over doubles
-  }
-  while (First() >= Second());
+  } while (First() >= Second());
 }
 #endif

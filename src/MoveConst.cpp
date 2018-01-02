@@ -42,9 +42,9 @@ std::vector<std::string> mv::MoveNames()
 std::vector<std::string> mv::ScaleMoveNames()
 {
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
-  std::vector<std::string> v(VOL_TRANSFER+1);
+  std::vector<std::string> v(VOL_TRANSFER + 1);
 #else
-  std::vector<std::string> v(ROTATE+1);
+  std::vector<std::string> v(ROTATE + 1);
 #endif
   v[DISPLACE] = "DISPLACE";
   v[ROTATE] = "ROTATE";

@@ -33,28 +33,28 @@ const uint INTRA_SWAP = 2;
 const uint MOVE_KINDS_TOTAL = 3;
 #elif ENSEMBLE == GCMC
 const uint INTRA_SWAP = 2;
-const uint MOL_TRANSFER=3;
-const uint MOVE_KINDS_TOTAL=4;
+const uint MOL_TRANSFER = 3;
+const uint MOVE_KINDS_TOTAL = 4;
 #elif ENSEMBLE == GEMC
-const uint VOL_TRANSFER=2;
+const uint VOL_TRANSFER = 2;
 const uint INTRA_SWAP = 3;
-const uint MOL_TRANSFER=4;
-const uint MOVE_KINDS_TOTAL=5;
+const uint MOL_TRANSFER = 4;
+const uint MOVE_KINDS_TOTAL = 5;
 #elif ENSEMBLE == NPT
-const uint VOL_TRANSFER=2;
+const uint VOL_TRANSFER = 2;
 const uint INTRA_SWAP = 3;
-const uint MOVE_KINDS_TOTAL=4;
+const uint MOVE_KINDS_TOTAL = 4;
 #endif
 
 const uint BOX0 = 0;
 const uint BOX1 = 1;
 
-const uint PICK_ONE_MOLECULE=0;
-const uint PICK_ALL_MOLECULE=1;
+const uint PICK_ONE_MOLECULE = 0;
+const uint PICK_ALL_MOLECULE = 1;
 
-const uint TRANS_DISPLACE=0;
-const uint TRANS_ROTATE=1;
-const uint TRANS_SCALE_COM=2;
+const uint TRANS_DISPLACE = 0;
+const uint TRANS_ROTATE = 1;
+const uint TRANS_SCALE_COM = 2;
 //Vlugt CBMC scheme, simple gen.
 //
 //Weight comes from the intramolecular potential (LJ(inter, intra)+TC)
@@ -62,7 +62,7 @@ const uint TRANS_SCALE_COM=2;
 //trial pos to use.
 //
 //This is only valid, generally for linear molecules.
-const uint TRANS_GEN_TRIAL_LINEAR=3;
+const uint TRANS_GEN_TRIAL_LINEAR = 3;
 //Pick angles that match Boltzmann acc. for n_ch_bend
 //Pass them to dihedrals, pick one via Boltzman.
 //
@@ -83,26 +83,26 @@ const uint TRANS_GEN_TRIAL_LINEAR=3;
 // if first dihedral, dihedral, lj is old (j=k=1)
 // if first lj ... just LJ is old., i.e. in old box
 // Now each phase incorporates the weight of the last, so the pick
-const uint GEN_TRIAL_DECOUPLED=4;
+const uint GEN_TRIAL_DECOUPLED = 4;
 //Pick angles that match boltz. acc., then pick dihedrals based on
 // wi * Wb / Wt
 //We now have if i = j = k = 1 is the only case where the old conf.
 //is used.  Otherwise since each step depends on the last
-const uint GEN_TRIAL_COUPLED=5;
-const uint GEN_TRIAL_COUPLED_DECOUPLED=6;
-const uint TRANS_KINDS_TOTAL=7;
+const uint GEN_TRIAL_COUPLED = 5;
+const uint GEN_TRIAL_COUPLED_DECOUPLED = 6;
+const uint TRANS_KINDS_TOTAL = 7;
 
-const uint IT_SINGLE_MOL=0;
-const uint IT_ALL_MOL=1;
-const uint IT_KINDS_TOTAL=2;
+const uint IT_SINGLE_MOL = 0;
+const uint IT_ALL_MOL = 1;
+const uint IT_KINDS_TOTAL = 2;
 
 //////////////////////////////////////////////////////////
 
 //NVT : 1. Disp (box 0) 2. Rotate (box 0) 3. IntraSwap (box 0)
 //GCMC: 1. Disp (box 0) 2. Rotate (box 0) 3. IntraSwap (box 0)
-//      4. Deletion (box 0)   5. Insertion (box 0) 
+//      4. Deletion (box 0)   5. Insertion (box 0)
 //GEMC: 1. Disp (box 0)  2. Disp (box 1) 3. Rotate (box 0) 4. Rotate (box 1)
-//      5. Vol. (b0->b1) 6. Vol. (b1->b0) 
+//      5. Vol. (b0->b1) 6. Vol. (b1->b0)
 //      7. IntraSwap (box 0)  8. IntraSwap (box 1)
 //      9. Mol Trans (b0->b1), 10. Mol Trans (b1->b0)
 //NPT : 1. Disp (box 0) 2. Rotate (box 0) 3. Vol. (box 0) 4. IntraSwap (box 0)
@@ -127,7 +127,7 @@ const uint SCALEABLE = 3;
 //early exit flags.
 namespace auto_accept
 {
-const uint ONLY_IN_BOX_ROT_OR_DISP=0;
+const uint ONLY_IN_BOX_ROT_OR_DISP = 0;
 }
 
 namespace fail_state
@@ -135,8 +135,8 @@ namespace fail_state
 const uint NO_FAIL = 1;
 const uint ROTATE_ON_SINGLE_ATOM = 2;
 const uint NO_MOL_OF_KIND_IN_BOX = 3;
-const uint INNER_CUTOFF_NEW_TRIAL_POS=4;
-const uint VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF=5;
+const uint INNER_CUTOFF_NEW_TRIAL_POS = 4;
+const uint VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF = 5;
 }
 
 
@@ -148,7 +148,7 @@ inline uint GetMoveSubIndex(const uint maj, const uint b = 0)
   else
     return maj;
 #else
-  return maj*BOX_TOTAL + b;
+  return maj * BOX_TOTAL + b;
 #endif
 }
 

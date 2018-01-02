@@ -44,7 +44,7 @@ public:
   }
   FixedWidthReader & Get(std::string & s, ConstField const& field)
   {
-    s=sstrm::StripWS(Str(field));
+    s = sstrm::StripWS(Str(field));
     return *this;
   }
   FixedWidthReader & Get(char & c, ConstField const& field)
@@ -61,8 +61,7 @@ public:
   //Gets line.
   bool Read(std::string & str, ConstField const& field)
   {
-    if (GoodFileWData())
-    {
+    if (GoodFileWData()) {
       std::getline(file, line);
       str = Str(field);
 #ifndef NDEBUG

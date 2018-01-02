@@ -9,8 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "BasicTypes.h" //For "uint"
 
-struct ConstField
-{
+struct ConstField {
   ConstField(const uint st, const uint len) : START(st), LENGTH(len) {}
   const uint START;
   const uint LENGTH;

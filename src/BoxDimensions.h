@@ -28,17 +28,16 @@ public:
   {
     axis.Init(BOX_TOTAL);
     halfAx.Init(BOX_TOTAL);
-    for (uint b = 0; b < BOX_TOTAL; b++)
-    {
-      cellBasis[b] = XYZArray(3);           
+    for (uint b = 0; b < BOX_TOTAL; b++) {
+      cellBasis[b] = XYZArray(3);
     }
   }
   BoxDimensions(BoxDimensions const& other);
   virtual BoxDimensions& operator=(BoxDimensions const& other);
 
   virtual void Init(config_setup::RestartSettings const& restart,
-		    config_setup::Volume const& confVolume,
-		    pdb_setup::Cryst1 const& cryst, double rc, double rcSq);
+                    config_setup::Volume const& confVolume,
+                    pdb_setup::Cryst1 const& cryst, double rc, double rcSq);
 
   XYZ GetAxis(const uint b) const
   {
@@ -50,11 +49,11 @@ public:
   virtual void SetVolume(const uint b, const double vol);
 
   virtual uint ShiftVolume(BoxDimensions & newDim, XYZ & scale,
-			   const uint b, const double delta) const;
+                           const uint b, const double delta) const;
 
   //!Calculate and execute volume exchange based on transfer
   virtual uint ExchangeVolume(BoxDimensions & newDim, XYZ * scale,
-			      const double transfer) const;
+                              const double transfer) const;
 
   //Vector btwn two points, accounting for PBC, on an individual axis
   virtual XYZ MinImage(XYZ rawVec, const uint b) const;
@@ -84,22 +83,22 @@ public:
 
   //Unwrap one coordinate.
   virtual void UnwrapPBC(double & x, double & y, double & z,
-			 const uint b, XYZ const& ref) const;
+                         const uint b, XYZ const& ref) const;
 
   //Returns if within cutoff, if it is, gets distance --
   //with shortcut, same coordinate array
   bool InRcut(double & distSq, XYZ & dist, XYZArray const& arr,
-	      const uint i, const uint j, const uint b) const;
+              const uint i, const uint j, const uint b) const;
 
   //Dist squared -- with shortcut, two different coordinate arrays
   bool InRcut(double & distSq, XYZ & dist, XYZArray const& arr1,
-	      const uint i, XYZArray const& arr2, const uint j,
-	      const uint b) const;
+              const uint i, XYZArray const& arr2, const uint j,
+              const uint b) const;
 
   //Returns if within cutoff, if it is, gets distance --
   //with shortcut, same coordinate array
   bool InRcut(double & distSq, XYZArray const& arr,
-               const uint i, const uint j, const uint b) const;
+              const uint i, const uint j, const uint b) const;
 
   //Dist squared -- with shortcut, two different coordinate arrays
   bool InRcut(double & distSq, XYZArray const& arr1,
@@ -188,7 +187,7 @@ inline void BoxDimensions::UnwrapPBC(XYZArray & arr, const uint b, XYZ
 
 //Wrap range of coordinates in object
 inline void BoxDimensions::WrapPBC(XYZArray & arr, const uint start,
-				   const uint stop, const uint b) const
+                                   const uint stop, const uint b) const
 {
   for (uint i = start; i < stop; i++)
     WrapPBC(arr.x[i], arr.y[i], arr.z[i], b);
@@ -206,63 +205,63 @@ inline void BoxDimensions::UnwrapPBC(XYZArray & arr, const uint start,
 
 
 inline bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
-				  XYZArray const& arr, const uint i,
-				  const uint j, const uint b) const
+                                  XYZArray const& arr, const uint i,
+                                  const uint j, const uint b) const
 {
   dist = MinImage(arr.Difference(i, j), b);
-  distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
+  distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
   return (rCutSq > distSq);
 }
 
 
 inline bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
-				  XYZArray const& arr1, const uint i,
-				  XYZArray const& arr2, const uint j,
-				  const uint b) const
+                                  XYZArray const& arr1, const uint i,
+                                  XYZArray const& arr2, const uint j,
+                                  const uint b) const
 {
   dist = MinImage(arr1.Difference(i, arr2, j), b);
-  distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
+  distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
   return (rCutSq > distSq);
 }
 
 inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr,
-				  const uint i, const uint j,
-				  const uint b) const
+                                  const uint i, const uint j,
+                                  const uint b) const
 {
   XYZ dist = MinImage(arr.Difference(i, j), b);
-  distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
+  distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
   return (rCutSq > distSq);
 }
 
 
 inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr1,
-				  const uint i, XYZArray const& arr2,
-				  const uint j, const uint b) const
+                                  const uint i, XYZArray const& arr2,
+                                  const uint j, const uint b) const
 {
   XYZ dist = MinImage(arr1.Difference(i, arr2, j), b);
-  distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
+  distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
   return (rCutSq > distSq);
 }
 
 
 inline void BoxDimensions::GetDistSq(double & distSq, XYZArray const& arr1,
                                      const uint i, XYZArray const& arr2,
-				     const uint j, const uint b) const
+                                     const uint j, const uint b) const
 {
   XYZ dist = MinImage(arr1.Difference(i, arr2, j), b);
-  distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
+  distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
 }
 
 inline void BoxDimensions::GetDistSq(double & distSq, XYZArray const& arr,
-				     const uint i, const uint j,
-				     const uint b) const
+                                     const uint i, const uint j,
+                                     const uint b) const
 {
   XYZ dist = MinImage(arr.Difference(i, j), b);
-  distSq = dist.x*dist.x + dist.y*dist.y + dist.z*dist.z;
+  distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
 }
 
 //Calculate transform
-inline XYZ BoxDimensions::TransformSlant(const XYZ &A,const uint b) const
+inline XYZ BoxDimensions::TransformSlant(const XYZ &A, const uint b) const
 {
   return A;
 }

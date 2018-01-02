@@ -120,13 +120,13 @@ public:
                      const uint box,
                      const uint trials) const;
 
-void ParticleInterRange(double* en, double *real,
-			XYZArray const& trialPos,
-			const uint partIndex,
-			const uint molIndex,
-			const uint box,
-			const uint start,
-			const uint end) const;
+  void ParticleInterRange(double* en, double *real,
+                          XYZArray const& trialPos,
+                          const uint partIndex,
+                          const uint molIndex,
+                          const uint box,
+                          const uint start,
+                          const uint end) const;
 
 
   //! Calculates the change in the TC from adding numChange atoms of a kind
@@ -154,11 +154,11 @@ private:
 
   //! Calculates full TC energy for one box in current system
   void EnergyCorrection(SystemPotential& pot, BoxDimensions const& boxAxes,
-			const uint box) const;
+                        const uint box) const;
 
   //! Calculates full TC virial for one box in current system
   void ForceCorrection(Virial& virial, BoxDimensions const& boxAxes,
-		       const uint box) const;
+                       const uint box) const;
 
 
   //! Calculates bond vectors of a full molecule, stores them in vecs
@@ -219,19 +219,17 @@ private:
   {
     int sections = data.size();
     uint i = 0;
-    while(sections > 0)
-    {
-      data[i] = ceil(numberOfTrials/sections);
+    while(sections > 0) {
+      data[i] = ceil(numberOfTrials / sections);
       numberOfTrials -= data[i];
       sections--;
       i++;
     }
-    for(int i = 1; i < data.size(); i++)
-    {
-      data[i] += data[i-1];
+    for(int i = 1; i < data.size(); i++) {
+      data[i] += data[i - 1];
     }
   }
-  
+
 
   const Forcefield& forcefield;
   const Molecules& mols;
