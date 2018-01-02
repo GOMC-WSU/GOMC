@@ -8,9 +8,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifdef GOMC_CUDA
 
 #include "EnsemblePreprocessor.h"
-class VariablesCUDA {
- public:
-  VariablesCUDA() {
+class VariablesCUDA
+{
+public:
+  VariablesCUDA()
+  {
     gpu_sigmaSq = NULL;
     gpu_epsilon_Cn = NULL;
     gpu_n = NULL;

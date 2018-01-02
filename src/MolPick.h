@@ -7,8 +7,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef MOL_PICK_H
 #define MOL_PICK_H
 
-struct MolPick
-{
+struct MolPick {
   uint box, kind, index, start, numAtoms;
 
 };

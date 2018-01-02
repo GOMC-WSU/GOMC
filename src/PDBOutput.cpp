@@ -20,7 +20,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 PDBOutput::PDBOutput(System  & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   coordCurrRef(sys.coordinates), comCurrRef(sys.com),
-  pStr(coordCurrRef.Count(),GetDefaultAtomStr()),
+  pStr(coordCurrRef.Count(), GetDefaultAtomStr()),
   boxDimRef(sys.boxDimRef), molRef(statV.mol) { }
 
 std::string PDBOutput::GetDefaultAtomStr()
@@ -40,7 +40,7 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
   sstrm::Converter toStr;
   enableOutState = output.state.settings.enable;
   enableRestOut = output.restart.settings.enable;
-  enableOut = enableOutState|enableRestOut;
+  enableOut = enableOutState | enableRestOut;
   stepsCoordPerOut = output.state.settings.frequency;
   stepsRestPerOut = output.restart.settings.frequency;
   if (stepsCoordPerOut < stepsRestPerOut)
@@ -48,14 +48,12 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
   else
     stepsPerOut = output.restart.settings.frequency;
 
-  if (enableOutState)
-  {
-    for (uint b = 0; b < BOX_TOTAL; ++b)
-    {
+  if (enableOutState) {
+    for (uint b = 0; b < BOX_TOTAL; ++b) {
       //Get alias string, based on box #.
       bStr = "Box ";
       numStr = "";
-      toStr << b+1;
+      toStr << b + 1;
       toStr >> numStr;
       aliasStr = "Output PDB file for Box ";
       aliasStr += numStr;
@@ -73,14 +71,12 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
     DoOutput(0);
   }
 
-  if (enableRestOut)
-  {
-    for (uint b = 0; b < BOX_TOTAL; ++b)
-    {
+  if (enableRestOut) {
+    for (uint b = 0; b < BOX_TOTAL; ++b) {
       //Get alias string, based on box #.
       bStr = "Box ";
       numStr = "";
-      toStr << b+1;
+      toStr << b + 1;
       toStr >> numStr;
       aliasStr = "Output PDB file for Box ";
       aliasStr += numStr;
@@ -94,7 +90,7 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
       outRebuildRestartFName[b] = output.state.files.pdb.name[b];
       std::string newStrAddOn = "_restart.pdb";
       outRebuildRestartFName[b].replace
-      (outRebuildRestartFName[b].end()-4,
+      (outRebuildRestartFName[b].end() - 4,
        outRebuildRestartFName[b].end(),
        newStrAddOn);
       outRebuildRestart[b].Init(outRebuildRestartFName[b], aliasStr,
@@ -108,19 +104,16 @@ void PDBOutput::InitPartVec(pdb_setup::Atoms const& atoms)
 {
   uint pStart = 0, pEnd = 0;
   //Start particle numbering @ 1
-  for (uint b = 0; b < BOX_TOTAL; ++b)
-  {
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);
-    while (m != end)
-    {
+    while (m != end) {
       uint mI = *m;
 
       std::string resName = atoms.resNames[mI];
       molRef.GetRangeStartStop(pStart, pEnd, mI);
 
-      for (uint p = pStart; p < pEnd; ++p)
-      {
+      for (uint p = pStart; p < pEnd; ++p) {
         FormatAtom(pStr[p], p, mI, molRef.chain[mI],
                    atoms.atomAliases[p], resName);
       }
@@ -137,18 +130,14 @@ void PDBOutput::FormatAtom
   using namespace pdb_entry;
   sstrm::Converter toStr;
   //Atom #
-  if(p + 1 < 100000)
-  {
+  if(p + 1 < 100000) {
     toStr.Align(res_num::ALIGN).Replace(line, p + 1, atom_num::POS);
-  }
-  else
-  {
-     toStr.Align(res_num::ALIGN).Replace(line, "*****", atom_num::POS);
+  } else {
+    toStr.Align(res_num::ALIGN).Replace(line, "*****", atom_num::POS);
   }
 
   uint posAliasStart = alias::POS.START;
-  if (atomAlias.length() == 1)
-  {
+  if (atomAlias.length() == 1) {
     ++posAliasStart;
   }
   line.replace(posAliasStart, alias::POS.LENGTH, atomAlias);
@@ -167,12 +156,10 @@ void PDBOutput::FormatAtom
 
 void PDBOutput::DoOutput(const ulong step)
 {
-  if(enableOutState)
-  {
+  if(enableOutState) {
     std::vector<uint> mBox(molRef.count);
     SetMolBoxVec(mBox);
-    for (uint b = 0; b < BOX_TOTAL; ++b)
-    {
+    for (uint b = 0; b < BOX_TOTAL; ++b) {
       PrintCryst1(b, outF[b]);
       PrintAtoms(b, mBox);
       PrintEnd(b, outF[b]);
@@ -180,8 +167,7 @@ void PDBOutput::DoOutput(const ulong step)
   }
   //NEW_RESTART_CODE
 
-  if (((step + 1) % stepsRestPerOut == 0) && enableRestOut)
-  {
+  if (((step + 1) % stepsRestPerOut == 0) && enableRestOut) {
     DoOutputRebuildRestart(step + 1);
   }
   //NEW_RESTART_CODE
@@ -190,8 +176,7 @@ void PDBOutput::DoOutput(const ulong step)
 //NEW_RESTART_CODE
 void PDBOutput::DoOutputRebuildRestart(const uint step)
 {
-  for (uint b = 0; b < BOX_TOTAL; ++b)
-  {
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
     outRebuildRestart[b].openOverwrite();
     PrintCrystRest(b, step, outRebuildRestart[b]);
     PrintCryst1(b, outRebuildRestart[b]);
@@ -204,12 +189,10 @@ void PDBOutput::DoOutputRebuildRestart(const uint step)
 
 void PDBOutput::SetMolBoxVec(std::vector<uint> & mBox)
 {
-  for (uint b = 0; b < BOX_TOTAL; ++b)
-  {
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);
-    while (m != end)
-    {
+    while (m != end) {
       mBox[*m] = b;
       ++m;
     }
@@ -256,12 +239,12 @@ void PDBOutput::PrintCrystRest(const uint b, const uint step, Writer & out)
   double volume = 0.0;
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   volume = moveSetRef.Scale(mv::GetMoveSubIndex(mv::VOL_TRANSFER, b));
-#endif  
+#endif
   sstrm::Converter toStr;
   std::string outStr(pdb_entry::LINE_WIDTH, ' ');
   XYZ axis = boxDimRef.axis.Get(b);
   //Tag for remark
-  outStr.replace(label::POS.START, label::POS.LENGTH, label::REMARK); 
+  outStr.replace(label::POS.START, label::POS.LENGTH, label::REMARK);
   //Tag GOMC
   outStr.replace(name::POS.START, name::POS.LENGTH, name::STR_GOMC);
   //Add max amount of displacement, rotate, and volume
@@ -281,7 +264,7 @@ void PDBOutput::PrintCrystRest(const uint b, const uint step, Writer & out)
 
 void PDBOutput::InsertAtomInLine(std::string & line, XYZ const& coor,
                                  std::string const& occ,
-				 std::string const& beta)
+                                 std::string const& beta)
 {
   using namespace pdb_entry::atom::field;
   using namespace pdb_entry;
@@ -306,20 +289,17 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
   bool inThisBox = false;
   uint pStart = 0, pEnd = 0;
   //Loop through all molecules
-  for (uint m = 0; m < molRef.count; ++m)
-  {
+  for (uint m = 0; m < molRef.count; ++m) {
     //Loop through particles in mol.
     uint beta = molLookupRef.GetBeta(m);
     molRef.GetRangeStartStop(pStart, pEnd, m);
     XYZ ref = comCurrRef.Get(m);
-    inThisBox = (mBox[m]==b);
-    for (uint p = pStart; p < pEnd; ++p)
-    {
+    inThisBox = (mBox[m] == b);
+    for (uint p = pStart; p < pEnd; ++p) {
       XYZ coor;
-      if (inThisBox)
-      {
+      if (inThisBox) {
         coor = coordCurrRef.Get(p);
-	boxDimRef.UnwrapPBC(coor, b, ref);
+        boxDimRef.UnwrapPBC(coor, b, ref);
       }
       InsertAtomInLine(pStr[p], coor, occupancy::BOX[mBox[m]], beta::FIX[beta]);
       //Write finished string out.
@@ -334,25 +314,22 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
 {
   using namespace pdb_entry::atom::field;
   using namespace pdb_entry;
-  char segname='A';
-  uint molecule=0, atom=0, pStart = 0, pEnd = 0;
-  for (uint k = 0; k < molRef.kindsCount; ++k)
-  {
+  char segname = 'A';
+  uint molecule = 0, atom = 0, pStart = 0, pEnd = 0;
+  for (uint k = 0; k < molRef.kindsCount; ++k) {
     uint countByKind = molLookupRef.NumKindInBox(k, b);
     std::string resName = molRef.kinds[k].name;
-    for (uint kI = 0; kI < countByKind; ++kI)
-    {
+    for (uint kI = 0; kI < countByKind; ++kI) {
       uint molI = molLookupRef.GetMolNum(kI, k, b);
       uint beta = molLookupRef.GetBeta(molI);
       molRef.GetRangeStartStop(pStart, pEnd, molI);
       XYZ ref = comCurrRef.Get(molI);
-      for (uint p = pStart; p < pEnd; ++p)
-      {
+      for (uint p = pStart; p < pEnd; ++p) {
         std::string line = GetDefaultAtomStr();
         XYZ coor = coordCurrRef.Get(p);
-	boxDimRef.UnwrapPBC(coor, b, ref);
+        boxDimRef.UnwrapPBC(coor, b, ref);
         FormatAtom(line, atom, molecule, segname,
-                   molRef.kinds[k].atomNames[p-pStart], resName);
+                   molRef.kinds[k].atomNames[p - pStart], resName);
 
         //Fill in particle's stock string with new x, y, z, and occupancy
         InsertAtomInLine(line, coor, occupancy::BOX[0], beta::FIX[beta]);
@@ -363,7 +340,7 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
       ++molecule;
     }
     ++segname;
-    molecule=0;
+    molecule = 0;
   }
 }
 //NEW_RESTART_CODE

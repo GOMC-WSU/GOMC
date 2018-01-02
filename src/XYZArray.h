@@ -364,8 +364,7 @@ inline void swap(XYZArray& a1, XYZArray& a2)
 
 inline void XYZArray::Uninit()
 {
-  if (x != NULL)
-  {
+  if (x != NULL) {
     delete[] x;
     delete[] y;
     delete[] z;
@@ -376,14 +375,13 @@ inline void XYZArray::Uninit()
 inline void XYZArray::SetRange(const uint start, const uint stop,
                                const double a, const double b, const double c)
 {
-  SetRange(start, stop, XYZ(a,b,c));
+  SetRange(start, stop, XYZ(a, b, c));
 }
 
 inline void XYZArray::SetRange(const uint start, const uint stop,
                                XYZ const& val)
 {
-  for(uint i = start; i < stop ; ++i)
-  {
+  for(uint i = start; i < stop ; ++i) {
     x[i] = val.x;
     y[i] = val.y;
     z[i] = val.z;
@@ -394,8 +392,7 @@ inline void XYZArray::Init(const uint n)
 {
   count = n;
 
-  if (allocDone)
-  {
+  if (allocDone) {
     allocDone = false;
     if (x != NULL)
       delete[] x;
@@ -415,8 +412,7 @@ inline void XYZArray::Init(const uint n)
 inline void XYZArray::AddRange(const uint start, const uint stop,
                                XYZ const& val)
 {
-  for(uint i = start; i < stop ; ++i)
-  {
+  for(uint i = start; i < stop ; ++i) {
     x[i] += val.x;
     y[i] += val.y;
     z[i] += val.z;
@@ -426,8 +422,7 @@ inline void XYZArray::AddRange(const uint start, const uint stop,
 inline void XYZArray::SubRange(const uint start, const uint stop,
                                XYZ const& val)
 {
-  for(uint i = start; i < stop ; ++i)
-  {
+  for(uint i = start; i < stop ; ++i) {
     x[i] -= val.x;
     y[i] -= val.y;
     z[i] -= val.z;
@@ -437,8 +432,7 @@ inline void XYZArray::SubRange(const uint start, const uint stop,
 inline void XYZArray::ScaleRange(const uint start, const uint stop,
                                  XYZ const& val)
 {
-  for(uint i = start; i < stop ; ++i)
-  {
+  for(uint i = start; i < stop ; ++i) {
     x[i] *= val.x;
     y[i] *= val.y;
     z[i] *= val.z;
@@ -448,8 +442,7 @@ inline void XYZArray::ScaleRange(const uint start, const uint stop,
 inline void XYZArray::AddRange(const uint start, const uint stop,
                                const double val)
 {
-  for(uint i = start; i < stop ; ++i)
-  {
+  for(uint i = start; i < stop ; ++i) {
     x[i] += val;
     y[i] += val;
     z[i] += val;
@@ -459,8 +452,7 @@ inline void XYZArray::AddRange(const uint start, const uint stop,
 inline void XYZArray::SubRange(const uint start, const uint stop,
                                const double val)
 {
-  for(uint i = start; i < stop ; ++i)
-  {
+  for(uint i = start; i < stop ; ++i) {
     x[i] -= val;
     y[i] -= val;
     z[i] -= val;
@@ -470,8 +462,7 @@ inline void XYZArray::SubRange(const uint start, const uint stop,
 inline void XYZArray::ScaleRange(const uint start, const uint stop,
                                  const double val)
 {
-  for(uint i = start; i < stop ; ++i)
-  {
+  for(uint i = start; i < stop ; ++i) {
     x[i] *= val;
     y[i] *= val;
     z[i] *= val;
@@ -519,12 +510,12 @@ inline void XYZArray::CopyRange(XYZArray & dest, const uint srcIndex,
                                 const uint destIndex, const uint len) const
 {
 #ifdef _OPENMP
-#pragma omp parallel default(shared)
+  #pragma omp parallel default(shared)
 #endif
   {
-     memcpy(dest.x+destIndex, x+srcIndex, len * sizeof(double));
-     memcpy(dest.y+destIndex, y+srcIndex, len * sizeof(double));
-     memcpy(dest.z+destIndex, z+srcIndex, len * sizeof(double));
+    memcpy(dest.x + destIndex, x + srcIndex, len * sizeof(double));
+    memcpy(dest.y + destIndex, y + srcIndex, len * sizeof(double));
+    memcpy(dest.z + destIndex, z + srcIndex, len * sizeof(double));
   }
 }
 

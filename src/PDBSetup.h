@@ -25,28 +25,32 @@ struct FWReadableBase;
 
 namespace pdb_setup
 {
-struct Remarks : FWReadableBase
-{
+struct Remarks : FWReadableBase {
   uint currBox;
   double  disp[BOX_TOTAL], rotate[BOX_TOTAL], vol[BOX_TOTAL];
   bool restart, reached;
   void SetRestart(config_setup::RestartSettings const& r);
   void Read(FixedWidthReader & pdb);
-  void SetBox(const uint b){currBox = b;}
+  void SetBox(const uint b)
+  {
+    currBox = b;
+  }
 
 private:
   void CheckGOMC(std::string const& varName);
 };
 
-struct Cryst1 : FWReadableBase
-{
+struct Cryst1 : FWReadableBase {
   //box dimensions
   uint currBox;
   bool hasVolume;
   XYZArray axis;
   double cellAngle[BOX_TOTAL][3];
   Cryst1(void) : currBox(0), hasVolume(false), axis(BOX_TOTAL) {}
-  void SetBox(const uint b){currBox = b;}
+  void SetBox(const uint b)
+  {
+    currBox = b;
+  }
   void Read(FixedWidthReader & pdb);
 };
 
@@ -70,7 +74,7 @@ public:
               const double l_y,
               const double l_z,
               const double l_occ,
-	      const double l_beta);
+              const double l_beta);
 
   void Read(FixedWidthReader & file);
 
@@ -94,8 +98,7 @@ public:
 
 }
 
-struct PDBSetup
-{
+struct PDBSetup {
   pdb_setup::Atoms atoms;
   pdb_setup::Cryst1 cryst;
   pdb_setup::Remarks remarks;

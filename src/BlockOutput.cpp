@@ -18,11 +18,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define OUTPUTWIDTH 16
 
 void BlockAverage::Init(std::ofstream* file0,
-			std::ofstream* file1,
-			const bool en,
-			const double scale,
-			std::string const& var,
-			const uint bTot)
+                        std::ofstream* file1,
+                        const bool en,
+                        const double scale,
+                        std::string const& var,
+                        const uint bTot)
 {
   outBlock0 = file0;
   outBlock1 = file1;
@@ -32,11 +32,9 @@ void BlockAverage::Init(std::ofstream* file0,
   dblSrc = new double *[tot];
   enable = en;
   scl = scale;
-  if (enable)
-  {
+  if (enable) {
     Zero();
-    for (uint b = 0; b < tot; ++b)
-    {
+    for (uint b = 0; b < tot; ++b) {
       uintSrc[b] = NULL;
       dblSrc[b] = NULL;
     }
@@ -56,44 +54,32 @@ void BlockAverage::Sum(void)
 
 void BlockAverage::DoWrite(const ulong step, uint precision)
 {
-  if (tot >= 1)
-  {
-    if (outBlock0->is_open())
-    {
-      if(abs(block[0]) > 9999999999.9999)
-      {
-	(*outBlock0) << left << std::fixed  << std::setprecision(0) <<
-	  std::setw(OUTPUTWIDTH);
-	(*outBlock0) << 9999999999;
+  if (tot >= 1) {
+    if (outBlock0->is_open()) {
+      if(abs(block[0]) > 9999999999.9999) {
+        (*outBlock0) << left << std::fixed  << std::setprecision(0) <<
+                     std::setw(OUTPUTWIDTH);
+        (*outBlock0) << 9999999999;
+      } else {
+        (*outBlock0) << left << std::fixed  << std::setprecision(precision) <<
+                     std::setw(OUTPUTWIDTH);
+        (*outBlock0) << block[0];
       }
-      else
-      {
-	(*outBlock0) << left << std::fixed  << std::setprecision(precision) <<
-	  std::setw(OUTPUTWIDTH);
-	(*outBlock0) << block[0];
-      }
-    }
-    else
+    } else
       std::cerr << "Unable to write to Box_0 output file" << std::endl;
   }
-  if (tot >= 2)
-  {
-    if (outBlock1->is_open())
-    {
-      if(abs(block[0]) > 9999999999.9999)
-      {
-	(*outBlock1) << left << std::fixed  << std::setprecision(0) <<
-	  std::setw(OUTPUTWIDTH);
-	(*outBlock1) << 9999999999;
+  if (tot >= 2) {
+    if (outBlock1->is_open()) {
+      if(abs(block[0]) > 9999999999.9999) {
+        (*outBlock1) << left << std::fixed  << std::setprecision(0) <<
+                     std::setw(OUTPUTWIDTH);
+        (*outBlock1) << 9999999999;
+      } else {
+        (*outBlock1) << left << std::fixed  << std::setprecision(precision) <<
+                     std::setw(OUTPUTWIDTH);
+        (*outBlock1) << block[1];
       }
-      else
-      {
-	(*outBlock1) << left << std::fixed  << std::setprecision(precision) <<
-	  std::setw(OUTPUTWIDTH);
-	(*outBlock1) << block[1];
-      }
-    }
-    else
+    } else
       std::cerr << "Unable to write to Box_1 output file" << std::endl;
   }
   Zero();
@@ -104,8 +90,7 @@ void BlockAverages::Init(pdb_setup::Atoms const& atoms,
 {
   std::string name = "Blk_" + uniqueName + "_BOX_0.dat";
   outBlock0.open(name.c_str(), std::ofstream::out);
-  if(BOXES_WITH_U_NB >= 2)
-  {
+  if(BOXES_WITH_U_NB >= 2) {
     name = "Blk_" + uniqueName + "_BOX_1.dat";
     outBlock1.open(name.c_str(), std::ofstream::out);
   }
@@ -138,11 +123,10 @@ void BlockAverages::Sample(const ulong step)
 
 void BlockAverages::DoOutput(const ulong step)
 {
-  ulong nextStep = step+1;
+  ulong nextStep = step + 1;
   outBlock0 << left << std::fixed << std::setw(OUTPUTWIDTH) << nextStep;
   outBlock1 << left << std::fixed << std::setw(OUTPUTWIDTH) << nextStep;
-  for (uint v = 0; v < totalBlocks; ++v)
-  {
+  for (uint v = 0; v < totalBlocks; ++v) {
     if(v < out::TOTAL_SINGLE)
       blocks[v].Write(nextStep, firstPrint);
     else
@@ -181,8 +165,7 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
 #endif
 
   //Note: The order of Init should be same as order of Init
-  for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
-  {
+  for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
     blocks[out::ENERGY_TOTAL_IDX].SetRef(&var->energyRef[b].total, b);
     blocks[out::ENERGY_INTRA_B_IDX].SetRef(&var->energyRef[b].intraBond, b);
     blocks[out::ENERGY_INTER_IDX].SetRef(&var->energyRef[b].inter, b);
@@ -214,23 +197,20 @@ void BlockAverages::InitWatchMulti(config_setup::TrackedVars const& tracked)
   uint start = out::TOTAL_SINGLE;
   //Var is molecule kind name plus the prepend related output info kind.
   std::string name;
-  for (uint k = 0; k < var->numKinds; ++k)
-  {
+  for (uint k = 0; k < var->numKinds; ++k) {
     uint bkStart = start + k;
     //Copy each char of the name string.
     std::string trimKindName = var->kindsRef[k].name;
     //If more than one kind, output mol fractions.
-    if (var->numKinds > 1)
-    {
+    if (var->numKinds > 1) {
       name = out::MOL_FRACTION + "_" + trimKindName;
-      blocks[bkStart + out::MOL_FRACTION_IDX*var->numKinds].Init
-        (&outBlock0, &outBlock1, tracked.molNum.block, invSteps, name, BOXES_WITH_U_NB);
+      blocks[bkStart + out::MOL_FRACTION_IDX * var->numKinds].Init
+      (&outBlock0, &outBlock1, tracked.molNum.block, invSteps, name, BOXES_WITH_U_NB);
     }
-    for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
-    {
-      uint kArrIdx = b*var->numKinds+k;
+    for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+      uint kArrIdx = b * var->numKinds + k;
       if (var->numKinds > 1)
-        blocks[bkStart + out::MOL_FRACTION_IDX*var->numKinds].SetRef
+        blocks[bkStart + out::MOL_FRACTION_IDX * var->numKinds].SetRef
         (&var->molFractionByKindBox[kArrIdx], b);
     }
   }
@@ -239,25 +219,17 @@ void BlockAverages::InitWatchMulti(config_setup::TrackedVars const& tracked)
 
 void BlockAverage::printTitle(std::string output, uint boxes)
 {
-  if(tot>=1)
-  {
-    if((*outBlock0).is_open())
-    {
+  if(tot >= 1) {
+    if((*outBlock0).is_open()) {
       (*outBlock0) << left << std::fixed << std::setw(OUTPUTWIDTH) << output;
-    }
-    else
-    {
+    } else {
       std::cerr << "Unable to write to Block_0 output file!" << std::endl;
     }
   }
-  if(tot>=2)
-  {
-    if((*outBlock1).is_open())
-    {
+  if(tot >= 2) {
+    if((*outBlock1).is_open()) {
       (*outBlock1) << left << std::fixed << std::setw(OUTPUTWIDTH) << output;
-    }
-    else
-    {
+    } else {
       std::cerr << "Unable to write to Block_1 output file!" << std::endl;
     }
   }

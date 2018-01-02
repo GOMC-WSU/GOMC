@@ -48,7 +48,7 @@ public:
   //returns index of the offset-th element of kind
   uint Index(const uint kind, const uint offset) const
   {
-    return start[kind]+offset;
+    return start[kind] + offset;
   }
 
   //Return first el, last el, or length of subdiv

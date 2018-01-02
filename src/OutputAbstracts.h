@@ -35,16 +35,12 @@ public:
 
   virtual void Output(const ulong step)
   {
-    if (!enableOut)
-    {
+    if (!enableOut) {
       return;
-    }
-    else
-    {
+    } else {
       Sample(step);
     }
-    if ((step+1) % stepsPerOut == 0)
-    {
+    if ((step + 1) % stepsPerOut == 0) {
       DoOutput(step);
       firstPrint = false;
     }

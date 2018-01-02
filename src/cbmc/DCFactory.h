@@ -11,14 +11,14 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 namespace cbmc
 {
-   class DCComponent;
+class DCComponent;
 
-   class DCFactory
-   {
-    public:
-     virtual DCComponent* MakeComponent(uint previous) = 0;
-     virtual ~DCFactory() {};
-   };
+class DCFactory
+{
+public:
+  virtual DCComponent* MakeComponent(uint previous) = 0;
+  virtual ~DCFactory() {};
+};
 }
 
 #endif

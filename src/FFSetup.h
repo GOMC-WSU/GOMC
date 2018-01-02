@@ -65,8 +65,7 @@ public:
 
   double EnConvIfCHARMM(double val) const
   {
-    if (CHARMM)
-    {
+    if (CHARMM) {
       val *= KCAL_PER_MOL_TO_K;
     }
     return val;

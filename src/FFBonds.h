@@ -25,7 +25,7 @@ public:
 
   double Calc(const uint kind, const double dist) const
   {
-    return (fixed[kind] ? 0.0 : Kb[kind] * num::Sq(dist-b0[kind]));
+    return (fixed[kind] ? 0.0 : Kb[kind] * num::Sq(dist - b0[kind]));
   }
 
   double Length(const uint kind) const

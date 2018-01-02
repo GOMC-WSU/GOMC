@@ -119,7 +119,7 @@ double TrialMol::OldDistSq(const uint lastAtom, const uint atom)
 {
   XYZ diff = tCoords.Difference(atom, lastAtom);
   diff = axes->MinImage(diff, box);
-  double distSq= diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
+  double distSq = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
   return distSq;
 }
 
@@ -158,13 +158,10 @@ void TrialMol::SetBasis(const uint p1, const uint p2)
   wVec.Normalize();
   XYZ uVec;
   //check to make sure our W isn't in line with the standard X Axis
-  if (wVec.x < 0.8)
-  {
+  if (wVec.x < 0.8) {
     //V will be W x the standard X unit vec
     uVec = XYZ(1.0, 0.0, 0.0);
-  }
-  else
-  {
+  } else {
     //V will be W x the standard Y unit vec
     uVec = XYZ(0.0, 1.0, 0.0);
   }
@@ -195,7 +192,7 @@ double TrialMol::PhiBetweenAngles(double theta1, double theta2,
 {
   double y = (cos(interior) - cos(theta1) * cos(theta2))
              / (sin(theta1) * sin(theta2));
-  return M_PI_2 - atan2(y, sqrt(1 - y*y));
+  return M_PI_2 - atan2(y, sqrt(1 - y * y));
 }
 
 
@@ -208,9 +205,8 @@ double TrialMol::AngleDist(const double b1, const double b2, const double theta)
 {
   if(!kind->oneThree)
     return 0.0;
-  else
-  {
-    double v = b1*b1 - 2*b1*b2*cos(theta) + b2*b2;
+  else {
+    double v = b1 * b1 - 2 * b1 * b2 * cos(theta) + b2 * b2;
     return v;
   }
 
@@ -222,12 +218,11 @@ double TrialMol::DihedDist(const double b1, const double b2, const double b3,
 {
   if(!kind->oneFour)
     return 0.0;
-  else
-  {
-    double i = b1 * cos(theta1) -b2 + b3 * cos(theta2);
+  else {
+    double i = b1 * cos(theta1) - b2 + b3 * cos(theta2);
     double j = b3 * sin(theta2) * sin(phi);
     double k = -b1 * sin(theta1) + b3 * sin(theta2) * cos(phi);
-    return (i*i + j*j + k*k);
+    return (i * i + j * j + k * k);
   }
 
 }
