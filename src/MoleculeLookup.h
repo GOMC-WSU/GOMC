@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -25,15 +25,14 @@ class MoleculeLookup
 {
 public:
 
- MoleculeLookup() : molLookup(NULL), boxAndKindStart(NULL), fixInBox(NULL),
-    noSwapInBox(NULL){}
+  MoleculeLookup() : molLookup(NULL), boxAndKindStart(NULL), fixInBox(NULL),
+    noSwapInBox(NULL) {}
 
   ~MoleculeLookup()
   {
     delete[] molLookup;
     delete[] boxAndKindStart;
-    for (uint b = 0; b < BOX_TOTAL; ++b)
-    {
+    for (uint b = 0; b < BOX_TOTAL; ++b) {
       delete [] fixInBox[b];
       delete [] noSwapInBox[b];
     }
@@ -89,13 +88,13 @@ public:
 
   uint GetMolNum(const uint subIndex, const uint kind, const uint box)
   {
-    return molLookup[boxAndKindStart[box * numKinds + kind]+subIndex];
+    return molLookup[boxAndKindStart[box * numKinds + kind] + subIndex];
   }
 
   void TotalAndDensity(uint * numByBox, uint * numByKindBox,
                        double * molFractionByBoxKind,
                        double * densityByKindBox,
-		       double const * const volInv) const;
+                       double const * const volInv) const;
 
 #ifdef VARIABLE_PARTICLE_NUMBER
   //Registers shift of mol into intoBox

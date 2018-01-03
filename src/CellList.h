@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -8,6 +8,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define CELLLIST_H
 #include "BasicTypes.h"
 #include "EnsemblePreprocessor.h"
+#include "BoxDimensions.h"
+#include "BoxDimensionsNonOrth.h"
 #include <vector>
 #include <cassert>
 #include <iostream>
@@ -20,7 +22,7 @@ class MoleculeLookup;
 class CellList
 {
 public:
-  explicit CellList(const Molecules& mols);
+  explicit CellList(const Molecules& mols, BoxDimensions& dims);
 
   void SetCutoff(double cut)
   {
@@ -29,10 +31,10 @@ public:
 
   void RemoveMol(const int molIndex, const int box, const XYZArray& pos);
   void AddMol(const int molIndex, const int box, const XYZArray& pos);
-  void GridAll(const BoxDimensions& dims, const XYZArray& pos, const MoleculeLookup& lookup);
+  void GridAll(BoxDimensions& dims, const XYZArray& pos, const MoleculeLookup& lookup);
 
   // Index of cell containing position
-  int PositionToCell(const XYZ& pos, int box) const;
+  int PositionToCell(const XYZ& posRef, int box) const;
 
   // Iterates over all particles in a cell
   class Cell;
@@ -69,14 +71,17 @@ private:
   XYZ cellSize[BOX_TOTAL];
   int edgeCells[BOX_TOTAL][3];
   const Molecules* mols;
+  BoxDimensions *dimensions;
   double cutoff;
   bool isBuilt;
 };
 
 
 
-inline int CellList::PositionToCell(const XYZ& pos, int box) const
+inline int CellList::PositionToCell(const XYZ& posRef, int box) const
 {
+  //Transfer to unslant coordinate to find the neighbor
+  XYZ pos = dimensions->TransformUnSlant(posRef, box);
   int x = (int)(pos.x / cellSize[box].x);
   int y = (int)(pos.y / cellSize[box].y);
   int z = (int)(pos.z / cellSize[box].z);
@@ -163,15 +168,11 @@ inline CellList::Neighbors::Neighbors(const std::vector<int>& partList,
   neighbor(neighbors.begin()),
   nEnd(neighbors.end())
 {
-  while(cell.Done())
-  {
+  while(cell.Done()) {
     ++neighbor;
-    if(Done())
-    {
+    if(Done()) {
       break;
-    }
-    else
-    {
+    } else {
       cell.Jump(head[*neighbor]);
     }
   }
@@ -182,15 +183,11 @@ inline void CellList::Neighbors::Next()
 {
   cell.Next();
   // skip over empty cells
-  while(cell.Done())
-  {
+  while(cell.Done()) {
     ++neighbor;
-    if(Done())
-    {
+    if(Done()) {
       break;
-    }
-    else
-    {
+    } else {
       cell.Jump(head[*neighbor]);
     }
   }
@@ -236,43 +233,35 @@ inline CellList::Pairs::Pairs(const CellList& cellList, int box) :
 {
   if (cellParticle.Done()) NextCell();
   if (First() >= Second() &&
-      !(First()==CellList::END_CELL && Second()==CellList::END_CELL))
+      !(First() == CellList::END_CELL && Second() == CellList::END_CELL))
     Next();
 }
 
 inline void CellList::Pairs::NextCell()
 {
-  do
-  {
+  do {
     ++cell;
     if (cell >= nCells) return;
     cellParticle = cellList.EnumerateCell(cell, box);
     localParticle = cellList.EnumerateLocal(cell, box);
     // skip empty cells
-  }
-  while (cellParticle.Done());
+  } while (cellParticle.Done());
 }
 
 inline void CellList::Pairs::Next()
 {
-  do
-  {
+  do {
     cellParticle.Next();
-    if (cellParticle.Done())
-    {
+    if (cellParticle.Done()) {
       localParticle.Next();
-      if (localParticle.Done())
-      {
+      if (localParticle.Done()) {
         NextCell();
         if (Done()) return;
-      }
-      else
-      {
+      } else {
         cellParticle = cellList.EnumerateCell(cell, box);
       }
     }
     // skip over doubles
-  }
-  while (First() >= Second());
+  } while (First() >= Second());
 }
 #endif

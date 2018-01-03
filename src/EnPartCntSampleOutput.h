@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -26,13 +26,11 @@ namespace config_setup
 class Output;
 }
 
-struct EnPartCntSample : OutputableBase
-{
+struct EnPartCntSample : OutputableBase {
   EnPartCntSample(OutputVars & v)
   {
     this->var = &v;
-    for (uint b = 0; b < BOXES_WITH_U_NB; ++b)
-    {
+    for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       samplesE[b] = NULL;;
       samplesN[b] = NULL;
     }

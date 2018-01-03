@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -27,8 +27,7 @@ class Virial;
 class MoveSettings;
 class MoleculeLookup;
 
-struct ConsoleOutput : OutputableBase
-{
+struct ConsoleOutput : OutputableBase {
 public:
   ConsoleOutput(OutputVars & v)
   {
@@ -59,8 +58,7 @@ public:
 #endif
     enableDens = output.statistics.vars.density.fluct;
     if (enableVolume || enablePressure || enableMol || enableDens ||
-	enableSurfTension)
-    {
+        enableSurfTension) {
       enableStat = true;
     }
     DoOutput(0);
@@ -76,7 +74,7 @@ private:
   void PrintStatistic(const uint box, const ulong step) const;
   void PrintPressureTensor(const uint box, const ulong step) const;
   void PrintEnergy(const uint box, Energy const& en, Virial const& vir,
-		   const ulong step) const;
+                   const ulong step) const;
   void PrintEnergyTitle();
   void PrintStatisticTitle();
   void PrintMoveTitle();
@@ -85,7 +83,7 @@ private:
   void printElement (const std::string t, const int width) const;
 
   template <typename T> void printElementStep ( const T t, const ulong step,
-						const int width) const;
+      const int width) const;
 };
 
 #endif /*CONSOLE_OUTPUT_H*/

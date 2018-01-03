@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -26,31 +26,24 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
 
   std::vector<uint> atomToNode(setupKind.atoms.size(), 0);
   std::vector<uint> bondCount(setupKind.atoms.size(), 0);
-  for (uint b = 0; b < setupKind.bonds.size(); ++b)
-  {
+  for (uint b = 0; b < setupKind.bonds.size(); ++b) {
     const Bond& bond = setupKind.bonds[b];
     ++bondCount[bond.a0];
     ++bondCount[bond.a1];
   }
-  for (uint atom = 0; atom < setupKind.atoms.size(); ++atom)
-  {
-    if (bondCount[atom] < 2)
-    {
+  for (uint atom = 0; atom < setupKind.atoms.size(); ++atom) {
+    if (bondCount[atom] < 2) {
       atomToNode[atom] = -1;
-    }
-    else
-    {
+    } else {
       std::vector<Bond> bonds = AtomBonds(setupKind, atom);
       atomToNode[atom] = nodes.size();
       nodes.push_back(Node());
       Node& node = nodes.back();
       node.starting = new DCFreeHedron(&data, setupKind, atom,
                                        bonds[0].a1);
-      for (uint i = 0; i < bonds.size(); ++i)
-      {
+      for (uint i = 0; i < bonds.size(); ++i) {
         uint partner = bonds[i].a1;
-        if(bondCount[partner] == 1)
-        {
+        if(bondCount[partner] == 1) {
           continue;
         }
         Edge e = Edge(partner, new DCLinkedHedron(&data, setupKind, partner, atom));
@@ -59,10 +52,8 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
     }
   }
   //reassign destination values from atom indices to node indices
-  for (uint i = 0; i < nodes.size(); ++i)
-  {
-    for (uint j = 0; j < nodes[i].edges.size(); ++j)
-    {
+  for (uint i = 0; i < nodes.size(); ++i) {
+    for (uint j = 0; j < nodes[i].edges.size(); ++j) {
       uint& dest = nodes[i].edges[j].destination;
       dest = atomToNode[dest];
       assert(dest != -1);
@@ -82,8 +73,7 @@ void DCGraph::Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
   comp->PrepareOld(oldMol, molIndex);
   comp->BuildOld(oldMol, molIndex);
   //Advance along edges, building as we go
-  while (!fringe.empty())
-  {
+  while (!fringe.empty()) {
     uint pick = data.prng.randIntExc(fringe.size());
     comp = fringe[pick].component;
     comp->PrepareNew(newMol, molIndex);
@@ -97,11 +87,9 @@ void DCGraph::Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
     fringe.pop_back();
     visited[current] = true;
     //add edges to unvisited nodes
-    for(uint i = 0; i < nodes[current].edges.size(); ++i)
-    {
+    for(uint i = 0; i < nodes[current].edges.size(); ++i) {
       Edge& e = nodes[current].edges[i];
-      if(!visited[e.destination])
-      {
+      if(!visited[e.destination]) {
         fringe.push_back(e);
       }
     }
@@ -110,12 +98,10 @@ void DCGraph::Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 
 DCGraph::~DCGraph()
 {
-  for(uint v = 0; v < nodes.size(); ++v)
-  {
+  for(uint v = 0; v < nodes.size(); ++v) {
     Node& node = nodes[v];
     delete node.starting;
-    for(uint e = 0; e < node.edges.size(); ++ e)
-    {
+    for(uint e = 0; e < node.edges.size(); ++ e) {
       delete node.edges[e].component;
     }
   }

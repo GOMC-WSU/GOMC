@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -42,9 +42,9 @@ std::vector<std::string> mv::MoveNames()
 std::vector<std::string> mv::ScaleMoveNames()
 {
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
-  std::vector<std::string> v(VOL_TRANSFER+1);
+  std::vector<std::string> v(VOL_TRANSFER + 1);
 #else
-  std::vector<std::string> v(ROTATE+1);
+  std::vector<std::string> v(ROTATE + 1);
 #endif
   v[DISPLACE] = "DISPLACE";
   v[ROTATE] = "ROTATE";

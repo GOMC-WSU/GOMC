@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.1
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -10,7 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "EnsemblePreprocessor.h" //For BOX_TOTAL
 #include "BasicTypes.h"           //for uint
 #include "OutputVars.h"
-
+#include "PDBSetup.h" //Primary source of volume.
 #include "MoveConst.h"           //For sizes of arrays.
 
 class StaticVals;                 //For various initialization constants.
@@ -27,7 +27,7 @@ public:
     return *this;
   }
 
-  void Init(StaticVals const& statV);
+  void Init(StaticVals const& statV, pdb_setup::Remarks const& remarks);
 
   void Update(const bool isAccepted, const uint moveIndex, const uint step);
 

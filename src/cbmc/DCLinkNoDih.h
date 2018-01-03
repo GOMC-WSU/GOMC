@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -16,39 +16,42 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 namespace cbmc
 {
-   class DCLinkNoDih : public DCComponent
-   {
-    public:
-      DCLinkNoDih(DCData* data, const mol_setup::MolKind kind,
-		  uint atom, uint focus);
+class DCLinkNoDih : public DCComponent
+{
+public:
+  DCLinkNoDih(DCData* data, const mol_setup::MolKind kind,
+              uint atom, uint focus);
 
-      virtual void PrepareNew(TrialMol& newMol, uint molIndex);
-      virtual void PrepareOld(TrialMol& oldMol, uint molIndex);
-      virtual void BuildOld(TrialMol& oldMol, uint molIndex);
-      virtual void BuildNew(TrialMol& newMol, uint molIndex);
+  virtual void PrepareNew(TrialMol& newMol, uint molIndex);
+  virtual void PrepareOld(TrialMol& oldMol, uint molIndex);
+  virtual void BuildOld(TrialMol& oldMol, uint molIndex);
+  virtual void BuildNew(TrialMol& newMol, uint molIndex);
 
-      virtual DCLinkNoDih* Clone() { return new DCLinkNoDih(*this); };
+  virtual DCLinkNoDih* Clone()
+  {
+    return new DCLinkNoDih(*this);
+  };
 
-    private:
-      void IncorporateOld(TrialMol& oldMol, uint molIndex);
-      void IncorporateNew(TrialMol& newMol, uint molIndex);
-      void AlignBasis(TrialMol& mol);
-      void SetOldMolBond(const uint i, const double distSq);
+private:
+  void IncorporateOld(TrialMol& oldMol, uint molIndex);
+  void IncorporateNew(TrialMol& newMol, uint molIndex);
+  void AlignBasis(TrialMol& mol);
+  void SetOldMolBond(const uint i, const double distSq);
 
-      DCData* data;
+  DCData* data;
 
-      bool angleFix;
+  bool angleFix;
 
-      uint atom, focus, prev;
-      uint bondKind, angleKind;
-      double bondLength;
-      double bond[2];
-      double oldBond[2];
+  uint atom, focus, prev;
+  uint bondKind, angleKind;
+  double bondLength;
+  double bond[2];
+  double oldBond[2];
 
-      double theta, thetaFix;
+  double theta, thetaFix;
 
-      double oldBondEnergy, bendEnergy, bendWeight, oneThree;
-   };
+  double oldBondEnergy, bendEnergy, bendWeight, oneThree;
+};
 }
 
 #endif

@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -35,16 +35,12 @@ public:
 
   virtual void Output(const ulong step)
   {
-    if (!enableOut)
-    {
+    if (!enableOut) {
       return;
-    }
-    else
-    {
+    } else {
       Sample(step);
     }
-    if ((step+1) % stepsPerOut == 0)
-    {
+    if ((step + 1) % stepsPerOut == 0) {
       DoOutput(step);
       firstPrint = false;
     }

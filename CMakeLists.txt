@@ -6,12 +6,17 @@ include_directories(lib)
 include_directories(src)
 include_directories(src/cbmc)
 
+#fix new policy of cmake about FindOpenMP.cmake (will have to check later if they fixed this issue)
+if(POLICY CMP0012)
+  cmake_policy(SET CMP0012 NEW)
+endif()
+
 #Out-of-source build
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 #Versioning
 set (GOMC_VERSION_MAJOR 2)
-set (GOMC_VERSION_MINOR 11)
+set (GOMC_VERSION_MINOR 20)
 
 IF(NOT CMAKE_BUILD_TYPE)
    SET(CMAKE_BUILD_TYPE Release CACHE STRING
@@ -41,7 +46,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall") 
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}") 
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 elseif(MSVC)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
@@ -82,3 +87,10 @@ find_package(CUDA)
 IF(CUDA_FOUND)
     include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
 ENDIF(CUDA_FOUND)
+
+# find OpenMP and set it up
+find_package(OpenMP)
+if (OPENMP_FOUND)
+	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()

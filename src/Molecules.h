@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -39,7 +39,7 @@ public:
 
   uint NumAtomsByMol(const uint m) const
   {
-    return start[m+1]-start[m];
+    return start[m + 1] - start[m];
   }
   uint NumAtoms(const uint mk) const
   {
@@ -63,20 +63,20 @@ public:
 
   void GetRange(uint & _start, uint & stop, uint & len, const uint m) const
   {
-    _start=start[m];
-    stop = start[m+1];
-    len = stop-_start;
+    _start = start[m];
+    stop = start[m + 1];
+    len = stop - _start;
   }
 
   void GetRangeStartStop(uint & _start, uint & stop, const uint m) const
   {
-    _start=start[m];
-    stop = start[m+1];
+    _start = start[m];
+    stop = start[m + 1];
   }
   void GetRangeStartLength(uint & _start, uint & len, const uint m) const
   {
-    _start=start[m];
-    len = start[m+1]-_start;
+    _start = start[m];
+    len = start[m + 1] - _start;
   }
 
   uint GetKindsCount() const

@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -10,6 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BasicTypes.h"
 #include "Molecules.h" //For start
 #include "BoxDimensions.h" //For pbc wrapping
+#include "BoxDimensionsNonOrth.h"
 #include "XYZArray.h" //Parent class
 #include "MoleculeLookup.h" //For box iterators used in initial assignment
 #include "COM.h"
@@ -27,7 +28,7 @@ public:
   //of reference).
   Coordinates(BoxDimensions & box, COM & com,
               MoleculeLookup & molLook, PRNG & prng, Molecules const& mol) :
-  boxDimRef(box), comRef(com), prngRef(prng), molLookRef(molLook),
+    boxDimRef(box), comRef(com), prngRef(prng), molLookRef(molLook),
     molRef(mol) {}
 
   Coordinates& operator=(Coordinates const& rhs)

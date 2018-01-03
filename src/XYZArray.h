@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -160,6 +160,14 @@ public:
     return z[i] - z[j];
   }
 
+  double Length(const uint i) const
+  {
+    return sqrt(x[i] * x[i] + y[i] * y[i] + z[i] * z[i]);
+  }
+
+  //calculate the adjoint and return the determinant
+  double AdjointMatrix(XYZArray &Inv);
+
   //return the difference of two rows in two XYZ arrays
   XYZ Difference(const uint i, XYZArray const& other,
                  const uint otherI) const
@@ -317,11 +325,7 @@ public:
   //Copy range of points.
   void CopyRange(XYZArray & dest, const uint srcIndex, const uint destIndex,
                  const uint len) const;
-  //used for ewald calculation, need to be fixed
-  double BoxSize(int box)const
-  {
-    return Max(box);
-  };
+
   double * x, * y, * z;
 
 protected:
@@ -360,8 +364,7 @@ inline void swap(XYZArray& a1, XYZArray& a2)
 
 inline void XYZArray::Uninit()
 {
-  if (x != NULL)
-  {
+  if (x != NULL) {
     delete[] x;
     delete[] y;
     delete[] z;
@@ -372,14 +375,13 @@ inline void XYZArray::Uninit()
 inline void XYZArray::SetRange(const uint start, const uint stop,
                                const double a, const double b, const double c)
 {
-  SetRange(start, stop, XYZ(a,b,c));
+  SetRange(start, stop, XYZ(a, b, c));
 }
 
 inline void XYZArray::SetRange(const uint start, const uint stop,
                                XYZ const& val)
 {
-  for(uint i = start; i < stop ; ++i)
-  {
+  for(uint i = start; i < stop ; ++i) {
     x[i] = val.x;
     y[i] = val.y;
     z[i] = val.z;
@@ -390,8 +392,7 @@ inline void XYZArray::Init(const uint n)
 {
   count = n;
 
-  if (allocDone)
-  {
+  if (allocDone) {
     allocDone = false;
     if (x != NULL)
       delete[] x;
@@ -411,8 +412,7 @@ inline void XYZArray::Init(const uint n)
 inline void XYZArray::AddRange(const uint start, const uint stop,
                                XYZ const& val)
 {
-  for(uint i = start; i < stop ; ++i)
-  {
+  for(uint i = start; i < stop ; ++i) {
     x[i] += val.x;
     y[i] += val.y;
     z[i] += val.z;
@@ -422,8 +422,7 @@ inline void XYZArray::AddRange(const uint start, const uint stop,
 inline void XYZArray::SubRange(const uint start, const uint stop,
                                XYZ const& val)
 {
-  for(uint i = start; i < stop ; ++i)
-  {
+  for(uint i = start; i < stop ; ++i) {
     x[i] -= val.x;
     y[i] -= val.y;
     z[i] -= val.z;
@@ -433,8 +432,7 @@ inline void XYZArray::SubRange(const uint start, const uint stop,
 inline void XYZArray::ScaleRange(const uint start, const uint stop,
                                  XYZ const& val)
 {
-  for(uint i = start; i < stop ; ++i)
-  {
+  for(uint i = start; i < stop ; ++i) {
     x[i] *= val.x;
     y[i] *= val.y;
     z[i] *= val.z;
@@ -444,8 +442,7 @@ inline void XYZArray::ScaleRange(const uint start, const uint stop,
 inline void XYZArray::AddRange(const uint start, const uint stop,
                                const double val)
 {
-  for(uint i = start; i < stop ; ++i)
-  {
+  for(uint i = start; i < stop ; ++i) {
     x[i] += val;
     y[i] += val;
     z[i] += val;
@@ -455,8 +452,7 @@ inline void XYZArray::AddRange(const uint start, const uint stop,
 inline void XYZArray::SubRange(const uint start, const uint stop,
                                const double val)
 {
-  for(uint i = start; i < stop ; ++i)
-  {
+  for(uint i = start; i < stop ; ++i) {
     x[i] -= val;
     y[i] -= val;
     z[i] -= val;
@@ -466,8 +462,7 @@ inline void XYZArray::SubRange(const uint start, const uint stop,
 inline void XYZArray::ScaleRange(const uint start, const uint stop,
                                  const double val)
 {
-  for(uint i = start; i < stop ; ++i)
-  {
+  for(uint i = start; i < stop ; ++i) {
     x[i] *= val;
     y[i] *= val;
     z[i] *= val;
@@ -515,13 +510,31 @@ inline void XYZArray::CopyRange(XYZArray & dest, const uint srcIndex,
                                 const uint destIndex, const uint len) const
 {
 #ifdef _OPENMP
-#pragma omp parallel default(shared)
+  #pragma omp parallel default(shared)
 #endif
   {
-     memcpy(dest.x+destIndex, x+srcIndex, len * sizeof(double));
-     memcpy(dest.y+destIndex, y+srcIndex, len * sizeof(double));
-     memcpy(dest.z+destIndex, z+srcIndex, len * sizeof(double));
+    memcpy(dest.x + destIndex, x + srcIndex, len * sizeof(double));
+    memcpy(dest.y + destIndex, y + srcIndex, len * sizeof(double));
+    memcpy(dest.z + destIndex, z + srcIndex, len * sizeof(double));
   }
+}
+
+inline double XYZArray::AdjointMatrix(XYZArray &Inv)
+{
+  Inv.x[0] = y[1] * z[2] - y[2] * z[1];
+  Inv.y[0] = y[2] * z[0] - y[0] * z[2];
+  Inv.z[0] = y[0] * z[1] - y[1] * z[0];
+
+  Inv.x[1] = x[2] * z[1] - x[1] * z[2];
+  Inv.y[1] = x[0] * z[2] - x[2] * z[0];
+  Inv.z[1] = x[1] * z[0] - x[0] * z[1];
+
+  Inv.x[2] = x[1] * y[2] - x[2] * y[1];
+  Inv.y[2] = x[2] * y[0] - x[0] * y[2];
+  Inv.z[2] = x[0] * y[1] - x[1] * y[0];
+
+  double det = x[0] * Inv.x[0] + x[1] * Inv.y[0] + x[2] * Inv.z[0];
+  return det;
 }
 
 

@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -17,6 +17,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "EnsemblePreprocessor.h"
 #include "MoleculeLookup.h"
 #include "MoveConst.h"
+#include "BoxDimensions.h"
+#include "BoxDimensionsNonOrth.h"
 #include "XYZArray.h"
 #include <fstream>
 #include <iostream>
@@ -73,13 +75,13 @@ public:
   //Generate an unsigned int on [0,bound)
   uint randIntExc(const uint bound)
   {
-    return (uint)(gen->randInt(bound-1));
+    return (uint)(gen->randInt(bound - 1));
   }
 
   //Generates number on (-bound,bound)
   double Sym(double bound)
   {
-    return 2*bound*gen->rand() - bound;
+    return 2 * bound * gen->rand() - bound;
   }
 
   /////////////////////////////
@@ -88,16 +90,20 @@ public:
 
   XYZ SymXYZ(double bound)
   {
-    double bound2 = 2*bound;
-    return XYZ(gen->rand(bound2)-bound, gen->rand(bound2)-bound,
-               gen->rand(bound2)-bound);
+    double bound2 = 2 * bound;
+    return XYZ(gen->rand(bound2) - bound, gen->rand(bound2) - bound,
+               gen->rand(bound2) - bound);
   }
 
   //Used to pick first position of
-  void FillWithRandom(XYZArray & loc, const uint len, XYZ const& axis)
+  void FillWithRandom(XYZArray & loc, const uint len, BoxDimensions const& dims,
+                      const uint b)
   {
-    for (uint i = 0; i < len; ++i)
-      loc.Set(i, randExc(axis.x), randExc(axis.y), randExc(axis.z));
+    for (uint i = 0; i < len; ++i) {
+      loc.Set(i, randExc(dims.axis.x[b]), randExc(dims.axis.y[b]),
+              randExc(dims.axis.z[b]));
+      loc.Set(i, dims.TransformSlant(loc.Get(i), b));
+    }
   }
 
   void FillWithRandomOnSphere(XYZArray & loc, const uint len,
@@ -126,8 +132,7 @@ public:
         }
         */
     //Pick on cos(phi) - this was faster and always uses 2 rand calls
-    for (uint i = 0; i < len; ++i)
-    {
+    for (uint i = 0; i < len; ++i) {
       loc.Set(i, PickOnUnitSphere() * rAttach + center);
     }
   }
@@ -151,14 +156,13 @@ public:
   {
     double sum = 0.0, prevSum = 0.0, draw = rand(Wt);
     pick = 0;
-    for (; pick < len && sum < draw; ++pick)
-    {
+    for (; pick < len && sum < draw; ++pick) {
       prevSum = sum;
       sum += w[pick];
     }
-    if (pick!=0)
+    if (pick != 0)
       --pick;
-    subDraw = draw-prevSum;
+    subDraw = draw - prevSum;
   }
 
   //Pick an integer in range 0, n given a list of weights, and their sum totalWeight
@@ -166,8 +170,7 @@ public:
   {
     double draw = rand(totalWeight);
     double sum = 0.0;
-    for(uint i = 0; i < n; ++i)
-    {
+    for(uint i = 0; i < n; ++i) {
       sum += weights[i];
       if(sum >= draw)
         return i;
@@ -182,9 +185,9 @@ public:
                const double subDraw, const double movPerc) const
   {
     //Calculate "chunk" of move for each box.
-    double boxDiv = movPerc/BOX_TOTAL;
+    double boxDiv = movPerc / BOX_TOTAL;
     //Which chunk was our draw in...
-    b = (uint)(subDraw/boxDiv);
+    b = (uint)(subDraw / boxDiv);
     //FIXME: Hack to prevent picking invalid boxes, may violate balance
     if (b != mv::BOX0)
       b = mv::BOX1;
@@ -194,16 +197,16 @@ public:
                const double movPerc) const
   {
     //Calculate "chunk" of move for each box.
-    boxDiv = movPerc/BOX_TOTAL;
+    boxDiv = movPerc / BOX_TOTAL;
     //Which chunk was our draw in...
-    b = (uint)(subDraw/boxDiv);
+    b = (uint)(subDraw / boxDiv);
     //clamp if some rand err.
     //FIXME: Hack to prevent picking invalid boxes, may violate balance
     if (b != mv::BOX0)
       b = mv::BOX1;
     //Get draw down to box we picked, then calculate the size of
     //each molecule kind's chunk.
-    subDraw-= b*boxDiv;
+    subDraw -= b * boxDiv;
   }
 
   void SetOtherBox(uint & bDest, const uint bSrc) const
@@ -240,30 +243,26 @@ public:
   {
     uint rejectState = mv::fail_state::NO_FAIL;
     uint mkTot = molLookRef.GetNumKind();
-    double molDiv = subPerc/mkTot;
+    double molDiv = subPerc / mkTot;
     //Which molecule kind chunk are we in?
-    mk = (uint)(subDraw/molDiv);
+    mk = (uint)(subDraw / molDiv);
 
     //clamp if some rand err.
     if (mk == mkTot)
-      mk = mkTot -1;
+      mk = mkTot - 1;
 
     //Pick molecule with the help of molecule lookup table.
     if ((molLookRef.NumKindInBox(mk, b) == 0) ||
-	molLookRef.NumKindInBox(mk, b) == molLookRef.GetFixInBox(mk, b))
-    {
+        molLookRef.NumKindInBox(mk, b) == molLookRef.GetFixInBox(mk, b)) {
       rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
-    }
-    else
-    {
+    } else {
       //Among the ones of that kind in that box, pick one @ random.
       //Molecule with a tag (beta == 1) cannot be selected.
-      do
-      {
-	uint mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
-	//Lookup true index in table.
-	m = molLookRef.GetMolNum(mOff, mk, b);
-      }while(molLookRef.IsFix(m));
+      do {
+        uint mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
+        //Lookup true index in table.
+        m = molLookRef.GetMolNum(mOff, mk, b);
+      } while(molLookRef.IsFix(m));
 
     }
 
@@ -273,35 +272,31 @@ public:
   //Returns false if none of that kind of molecule in selected box or molecule
   //is fixed using tag (beta >= 1).
   uint PickMol2(uint & m, uint & mk, const uint b,
-               const double subDraw, const double subPerc)
+                const double subDraw, const double subPerc)
   {
     uint rejectState = mv::fail_state::NO_FAIL;
     uint mkTot = molLookRef.GetNumKind();
-    double molDiv = subPerc/mkTot;
+    double molDiv = subPerc / mkTot;
     //Which molecule kind chunk are we in?
-    mk = (uint)(subDraw/molDiv);
+    mk = (uint)(subDraw / molDiv);
 
     //clamp if some rand err.
     if (mk == mkTot)
-      mk = mkTot -1;
+      mk = mkTot - 1;
 
     //Pick molecule with the help of molecule lookup table.
     if ((molLookRef.NumKindInBox(mk, b) == 0) ||
-	molLookRef.NumKindInBox(mk, b) == (molLookRef.GetNoSwapInBox(mk, b) +
-					   molLookRef.GetFixInBox(mk, b)))
-    {
+        molLookRef.NumKindInBox(mk, b) == (molLookRef.GetNoSwapInBox(mk, b) +
+                                           molLookRef.GetFixInBox(mk, b))) {
       rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
-    }
-    else
-    {
+    } else {
       //Among the ones of that kind in that box, pick one @ random.
       //Molecule with a tag (beta == 2 and beta == 1) cannot be selected.
-      do
-      {
-	uint mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
-	//Lookup true index in table.
-	m = molLookRef.GetMolNum(mOff, mk, b);
-      }while(molLookRef.IsNoSwap(m));
+      do {
+        uint mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
+        //Lookup true index in table.
+        m = molLookRef.GetMolNum(mOff, mk, b);
+      } while(molLookRef.IsNoSwap(m));
 
     }
 
@@ -312,16 +307,16 @@ public:
   uint PickMolAndBoxPair(uint &m, uint &mk, uint & bSrc, uint & bDest,
                          double subDraw, const double movPerc)
   {
-    double boxDiv=0;
+    double boxDiv = 0;
     PickBoxPair(bSrc, bDest, boxDiv, subDraw, movPerc);
     return PickMol(m, mk, bSrc, subDraw, boxDiv);
   }
 
   // pick a molecule that can be transfer to other box (beta == 0)
   uint PickMolAndBoxPair2(uint &m, uint &mk, uint & bSrc, uint & bDest,
-                         double subDraw, const double movPerc)
+                          double subDraw, const double movPerc)
   {
-    double boxDiv=0;
+    double boxDiv = 0;
     PickBoxPair(bSrc, bDest, boxDiv, subDraw, movPerc);
     return PickMol2(m, mk, bSrc, subDraw, boxDiv);
   }
@@ -329,7 +324,7 @@ public:
   uint PickMolAndBox(uint & m, uint &mk, uint &b,
                      double subDraw, const double movPerc)
   {
-    double boxDiv=0;
+    double boxDiv = 0;
     PickBox(b, subDraw, boxDiv, movPerc);
     return PickMol(m, mk, b, subDraw, boxDiv);
   }
@@ -345,8 +340,7 @@ inline void PRNG::saveState(const char* filename)
   std::ofstream fout;
   fout.open(filename);
 
-  if(!fout.is_open())
-  {
+  if(!fout.is_open()) {
     std::cerr << "Failed to save PRNG state to file: " << filename << '\n';
     return;
   }
@@ -354,8 +348,7 @@ inline void PRNG::saveState(const char* filename)
   MTRand::uint32* saveArray = new MTRand::uint32[MTRand::N + 1];
   gen->save(saveArray);
 
-  for(uint i = 0; i < MTRand::N + 1; ++i)
-  {
+  for(uint i = 0; i < MTRand::N + 1; ++i) {
     fout << saveArray[i] << '\n';
   }
 

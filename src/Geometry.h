@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -28,8 +28,7 @@ class FFBase;
 class FFSetup;
 
 // for 1-5 and more interaction
-struct Nonbond
-{
+struct Nonbond {
   uint* part1;
   uint* part2;
   uint count;
@@ -40,20 +39,17 @@ struct Nonbond
 };
 
 // for 1-4  interaction
-struct Nonbond_1_4 : public Nonbond
-{
+struct Nonbond_1_4 : public Nonbond {
   virtual void Init(const mol_setup::MolKind& molData);
 };
 
 // for 1-3  interaction, used for Martini ForceField
-struct Nonbond_1_3 : public Nonbond
-{
+struct Nonbond_1_3 : public Nonbond {
   virtual void Init(const mol_setup::MolKind& molData);
 };
 
 // for ewald correction energy calculation
-struct EwaldNonbond : public Nonbond
-{
+struct EwaldNonbond : public Nonbond {
   virtual void Init(const mol_setup::MolKind& molData);
 
 
@@ -61,8 +57,7 @@ struct EwaldNonbond : public Nonbond
 
 
 //!List of all pairs of particles in bonds.
-struct BondList
-{
+struct BondList {
   uint* part1;
   uint* part2;
   uint* kinds;

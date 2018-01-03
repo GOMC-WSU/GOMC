@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -88,10 +88,8 @@ private:
 
 inline void TransformMatrix::SetDiagonal(double d)
 {
-  for(uint i = 0; i < N; ++i)
-  {
-    for(uint j = 0; j < N; ++j)
-    {
+  for(uint i = 0; i < N; ++i) {
+    for(uint j = 0; j < N; ++j) {
       matrix[i][j] = 0.0;
     }
     matrix[i][i] = d;
@@ -173,13 +171,10 @@ inline void TransformMatrix::BasisRotation(const XYZ& u,
 inline TransformMatrix TransformMatrix::operator*(const TransformMatrix& o) const
 {
   TransformMatrix result(0.0);
-  for(uint i = 0; i < N; ++i)
-  {
-    for(uint j = 0; j < N; ++j)
-    {
+  for(uint i = 0; i < N; ++i) {
+    for(uint j = 0; j < N; ++j) {
       double entry = 0.0;
-      for(uint k = 0; k < N; ++k)
-      {
+      for(uint k = 0; k < N; ++k) {
         result.matrix[i][j] += matrix[i][k] * o.matrix[k][j];
       }
     }
@@ -193,10 +188,8 @@ inline TransformMatrix TransformMatrix::Inverse() const
   //this method does not work in the general case, but it works when we only have
   //rotations and translations
   //transpose orthagonal rotation section
-  for(uint i = 0; i < 3; ++i)
-  {
-    for(uint j = 0; j < 3; ++j)
-    {
+  for(uint i = 0; i < 3; ++i) {
+    for(uint j = 0; j < 3; ++j) {
       inverse.matrix[i][j] = matrix[j][i];
     }
   }
@@ -224,14 +217,12 @@ inline TransformMatrix TransformMatrix::CrossProduct(const XYZ& vector)
 inline TransformMatrix TransformMatrix::TensorProduct(const XYZ& u)
 {
   TransformMatrix tens;
-  for(uint i = 0; i < 3; ++i)
-  {
+  for(uint i = 0; i < 3; ++i) {
     tens.matrix[0][i] = u.x;
     tens.matrix[1][i] = u.y;
     tens.matrix[2][i] = u.z;
   }
-  for(uint i = 0; i < 3; ++i)
-  {
+  for(uint i = 0; i < 3; ++i) {
     tens.matrix[i][0] *= u.x;
     tens.matrix[i][1] *= u.y;
     tens.matrix[i][2] *= u.z;
@@ -246,10 +237,8 @@ inline TransformMatrix TransformMatrix::FromAxisAngle(double theta,
   double c = cos(theta);
   TransformMatrix r(c);
   double s = sin(theta);
-  for (uint i = 0; i < N; ++i)
-  {
-    for (uint j = 0; j < N; ++j)
-    {
+  for (uint i = 0; i < N; ++i) {
+    for (uint j = 0; j < N; ++j) {
       r.matrix[i][j] += s * cross.matrix[i][j] +
                         (1 - c) * tensor.matrix[i][j];
     }

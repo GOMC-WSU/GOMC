@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -20,36 +20,33 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "StaticVals.h"
 #include "PDBSetup.h" //For atoms class.
 #include "BoxDimensions.h" //For BOXES_WITH_VOLUME
+#include "BoxDimensionsNonOrth.h"
 
 #include <limits> //for std::numeric_limits
 
 class System;
 
-struct BlockAverage
-{
+struct BlockAverage {
   BlockAverage(): enable(false), block(NULL), uintSrc(NULL), dblSrc(NULL) {}
   ~BlockAverage()
   {
-    if (dblSrc != NULL)
-    {
+    if (dblSrc != NULL) {
       delete[] dblSrc;
     }
-    if (uintSrc != NULL)
-    {
+    if (uintSrc != NULL) {
       delete[] uintSrc;
     }
-    if (block != NULL)
-    {
+    if (block != NULL) {
       delete[] block;
     }
   }
   //Initializes name, and enable
   void Init(std::ofstream *file0,
-	    std::ofstream *file1,
-	    const bool en,
-	    const double scl,
-	    std::string const& var,
-	    const uint bTot = BOX_TOTAL);
+            std::ofstream *file1,
+            const bool en,
+            const double scl,
+            std::string const& var,
+            const uint bTot = BOX_TOTAL);
 
   //Set one of the pointers to the block values we're tracking
   void SetRef(double * loc, const uint b)
@@ -91,8 +88,7 @@ private:
   bool enable;
 };
 /**********************************************************************/
-struct BlockAverages : OutputableBase
-{
+struct BlockAverages : OutputableBase {
   BlockAverages(): blocks(NULL) {}
 
   BlockAverages(OutputVars & v)
@@ -103,16 +99,13 @@ struct BlockAverages : OutputableBase
 
   ~BlockAverages(void)
   {
-    if (outBlock0.is_open())
-    {
+    if (outBlock0.is_open()) {
       outBlock0.close();
     }
-    if (outBlock1.is_open())
-    {
+    if (outBlock1.is_open()) {
       outBlock1.close();
     }
-    if ( blocks != NULL )
-    {
+    if ( blocks != NULL ) {
       delete[] blocks;
     }
   }
@@ -127,7 +120,7 @@ private:
   void InitVals(config_setup::EventSettings const& event)
   {
     stepsPerOut = event.frequency;
-    invSteps = 1.0/stepsPerOut;
+    invSteps = 1.0 / stepsPerOut;
     enableOut = event.enable;
   }
   void AllocBlocks(void);
