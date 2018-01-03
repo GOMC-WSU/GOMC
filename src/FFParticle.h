@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -40,13 +40,12 @@ class NBfix;
 }
 namespace config_setup
 {
-  struct SystemVals;
-  struct FFValues;
-  struct FFKind;
+struct SystemVals;
+struct FFValues;
+struct FFKind;
 }
 
-struct FFParticle
-{
+struct FFParticle {
 public:
 
   FFParticle();
@@ -66,14 +65,14 @@ public:
 
   // coulomb interaction functions
   virtual double CalcCoulomb(const double distSq,
-			     const double qi_qj_Fact) const;
+                             const double qi_qj_Fact) const;
   virtual double CalcCoulombEn(const double distSq,
                                const double qi_qj_Fact) const;
   virtual double CalcCoulombVir(const double distSq,
                                 const double qi_qj) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact,
-				  const bool NB) const;
+                                  const bool NB) const;
 
   void Init(ff_setup::Particle const& mie,
             ff_setup::NBfix const& nbfix,
@@ -90,7 +89,8 @@ public:
   }
 
 #ifdef GOMC_CUDA
-  VariablesCUDA *getCUDAVars() {
+  VariablesCUDA *getCUDAVars()
+  {
     return varCUDA;
   }
 #endif
@@ -139,7 +139,7 @@ inline void FFParticle::CalcAdd_1_4(double& en, const double distSq,
                                     const uint kind1, const uint kind2) const
 {
   uint index = FlatIndex(kind1, kind2);
-  double rRat2 = sigmaSq_1_4[index]/distSq;
+  double rRat2 = sigmaSq_1_4[index] / distSq;
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
 #ifdef MIE_INT_ONLY
@@ -150,12 +150,12 @@ inline void FFParticle::CalcAdd_1_4(double& en, const double distSq,
   double repulse = pow(sqrt(rRat2), n_ij);
 #endif
 
-  en += epsilon_cn_1_4[index] * (repulse-attract);
+  en += epsilon_cn_1_4[index] * (repulse - attract);
 }
 
 inline void FFParticle::CalcCoulombAdd_1_4(double& en, const double distSq,
-					   const double qi_qj_Fact,
-					   const bool NB) const
+    const double qi_qj_Fact,
+    const bool NB) const
 {
   double dist = sqrt(distSq);
   if(NB)
@@ -171,7 +171,7 @@ inline double FFParticle::CalcEn(const double distSq,
                                  const uint kind1, const uint kind2) const
 {
   uint index = FlatIndex(kind1, kind2);
-  double rRat2 = sigmaSq[index]/distSq;
+  double rRat2 = sigmaSq[index] / distSq;
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
 #ifdef MIE_INT_ONLY
@@ -182,22 +182,19 @@ inline double FFParticle::CalcEn(const double distSq,
   double repulse = pow(sqrt(rRat2), n_ij);
 #endif
 
-  return epsilon_cn[index] * (repulse-attract);
+  return epsilon_cn[index] * (repulse - attract);
 }
 
 inline double FFParticle::CalcCoulomb(const double distSq,
-				      const double qi_qj_Fact) const
+                                      const double qi_qj_Fact) const
 {
-  if(ewald)
-  {
-     double dist = sqrt(distSq);
-     double val = alpha * dist;
-     return  qi_qj_Fact * erfc(val)/ dist;
-  }
-  else
-  {
-     double dist = sqrt(distSq);
-     return  qi_qj_Fact / dist;
+  if(ewald) {
+    double dist = sqrt(distSq);
+    double val = alpha * dist;
+    return  qi_qj_Fact * erfc(val) / dist;
+  } else {
+    double dist = sqrt(distSq);
+    return  qi_qj_Fact / dist;
   }
 }
 
@@ -208,16 +205,13 @@ inline double FFParticle::CalcCoulombEn(const double distSq,
   if(distSq <= rCutLowSq)
     return num::BIGNUM;
 
-  if(ewald)
-  {
-     double dist = sqrt(distSq);
-     double val = alpha * dist;
-     return  qi_qj_Fact * erfc(val)/ dist;
-  }
-  else
-  {
-     double dist = sqrt(distSq);
-     return  qi_qj_Fact / dist;
+  if(ewald) {
+    double dist = sqrt(distSq);
+    double val = alpha * dist;
+    return  qi_qj_Fact * erfc(val) / dist;
+  } else {
+    double dist = sqrt(distSq);
+    return  qi_qj_Fact / dist;
   }
 }
 
@@ -226,7 +220,7 @@ inline double FFParticle::CalcVir(const double distSq,
                                   const uint kind1, const uint kind2) const
 {
   uint index = FlatIndex(kind1, kind2);
-  double rNeg2 = 1.0/distSq;
+  double rNeg2 = 1.0 / distSq;
   double rRat2 = rNeg2 * sigmaSq[index];
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
@@ -239,24 +233,21 @@ inline double FFParticle::CalcVir(const double distSq,
 #endif
 
   //Virial is the derivative of the pressure... mu
-  return epsilon_cn_6[index] * (nOver6[index]*repulse-attract)*rNeg2;
+  return epsilon_cn_6[index] * (nOver6[index] * repulse - attract) * rNeg2;
 }
 
 inline double FFParticle::CalcCoulombVir(const double distSq,
-					 const double qi_qj) const
+    const double qi_qj) const
 {
-  if(ewald)
-  {
+  if(ewald) {
     double dist = sqrt(distSq);
     double constValue = 2.0 * alpha / sqrt(M_PI);
     double expConstValue = exp(-1.0 * alpha * alpha * distSq);
     double temp = 1.0 - erf(alpha * dist);
     return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
-  }
-  else
-  {
-     double dist = sqrt(distSq);
-     return qi_qj/(distSq * dist);
+  } else {
+    double dist = sqrt(distSq);
+    return qi_qj / (distSq * dist);
   }
 }
 

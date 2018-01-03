@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -34,8 +34,7 @@ DCLinear::DCLinear(System& sys, const Forcefield& ff,
   forward.push_back(new DCLinkNoDih(&data, setupKind, 2, 1));
   backward.push_back(new DCLinkNoDih(&data, setupKind, size - 3, size - 2));
 
-  for (uint i = 3; i < size; ++i)
-  {
+  for (uint i = 3; i < size; ++i) {
     forward.push_back(new DCLink(&data, setupKind, i, i - 1));
     backward.push_back(new DCLink(&data, setupKind, size - i - 1, size - i));
   }
@@ -43,8 +42,7 @@ DCLinear::DCLinear(System& sys, const Forcefield& ff,
 
 DCLinear::~DCLinear()
 {
-  for(uint i = 0; i < forward.size(); ++i)
-  {
+  for(uint i = 0; i < forward.size(); ++i) {
     delete forward[i];
     delete backward[i];
   }
@@ -54,13 +52,11 @@ void DCLinear::Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 {
   std::vector<DCComponent*>& comps =
     data.prng.randInt(1) ? forward : backward;
-  for(uint i = 0; i < comps.size(); ++i)
-  {
+  for(uint i = 0; i < comps.size(); ++i) {
     comps[i]->PrepareNew(newMol, molIndex);
     comps[i]->BuildNew(newMol, molIndex);
   }
-  for(uint i = 0; i < comps.size(); ++i)
-  {
+  for(uint i = 0; i < comps.size(); ++i) {
     comps[i]->PrepareOld(oldMol, molIndex);
     comps[i]->BuildOld(oldMol, molIndex);
   }

@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -35,10 +35,9 @@ InputFileReader::~InputFileReader()
 void InputFileReader::Open(string inputFileName)
 {
   fs.open(inputFileName.c_str(), fstream::in);
-  if(!fs.is_open())
-  {
+  if(!fs.is_open()) {
     std::cout << "Cannot open input file!" << std::endl;
-    exit(0);
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -50,17 +49,14 @@ void InputFileReader::Open(string inputFileName)
 bool InputFileReader::readNextLine(std::vector<std::string> & str)
 {
   string line;
-  do
-  {
-    if (fs.eof() || fs.bad() || fs.fail())
-    {
+  do {
+    if (fs.eof() || fs.bad() || fs.fail()) {
       return false;
     }
     std::getline(fs, line);
     if(!line.size())
       line = "#";
-  }
-  while (line[0] == '#' || line[0] == ' ' || line[0] == '\0');
+  } while (line[0] == '#' || line[0] == '\0');
 
   istringstream iss(line);
   copy(istream_iterator<std::string>(iss),

@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -25,7 +25,7 @@ public:
 
   double Calc(const uint kind, const double dist) const
   {
-    return (fixed[kind] ? 0.0 : Kb[kind] * num::Sq(dist-b0[kind]));
+    return (fixed[kind] ? 0.0 : Kb[kind] * num::Sq(dist - b0[kind]));
   }
 
   double Length(const uint kind) const

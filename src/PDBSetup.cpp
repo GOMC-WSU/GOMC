@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -17,8 +17,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #if BOX_TOTAL == 1
 const std::string PDBSetup::pdbAlias[] = {"system PDB coordinate file"};
 #else
-const std::string PDBSetup::pdbAlias[] = {"box 1 PDB coordinate file",
-                                          "box 2 PDB coordinate file"
+const std::string PDBSetup::pdbAlias[] = {"box 0 PDB coordinate file",
+                                          "box 1 PDB coordinate file"
                                          };
 #endif
 
@@ -26,76 +26,56 @@ namespace pdb_setup
 {
 void Remarks::SetRestart(config_setup::RestartSettings const& r )
 {
-  //restart = r.enable;
-  //reached = (!restart);
-  restartStep = r.step;
-  restart = false;
+  restart = r.enable;
   reached = true;
 }
 void Remarks::Read(FixedWidthReader & pdb)
 {
   using namespace pdb_entry::remark::field;
-  if (!restart) return;
-  uint remNum;
-  ulong readStep;
+  using namespace pdb_entry::cryst1::field;
+
+  if(!restart)
+    return;
+
+  //check if GOMC is taged and read the max dis, rot, vol value
   std::string varName;
-  pdb.Get(remNum, rem_num::POS).Get(varName, name::POS)
-  .Get(readStep, data::POS);
-  HandleRemark(remNum, varName, readStep);
-}
+  pdb.Get(varName, name::POS)
+  .Get(disp[currBox], dis::POS)
+  .Get(rotate[currBox], rot::POS)
+  .Get(vol[currBox], vol::POS);
 
-void Remarks::HandleRemark(const uint num,
-                           std::string const& varName,
-                           const ulong step)
-{
-  switch (num)
-  {
-  case 2:
-    CheckStep(varName, step);
-    break;
-  case 1:
-    CheckGOMC(varName);
-  default:
-    break;
-  }
-}
-
-void Remarks::CheckStep(std::string const& varName,
-                        const ulong readStep)
-{
-  using namespace pdb_entry::remark::field;
-  if (!str::compare(varName, name::STR_STEP))   //malformed PDB
-  {
-    std::cerr << "ERROR: Restart failed, "
-              << "GOMC file's step REMARK is "
-              << "malformed." << std::endl;
-    exit(1);
-  }
-  reached = (readStep == restartStep);
-#ifndef NDEBUG
-  if (reached && restart)
-    std::cout << "Restart step " << restartStep << " reached."
-              << std::endl;
-#endif
+  CheckGOMC(varName);
 }
 
 void Remarks::CheckGOMC(std::string const& varName)
 {
   using namespace pdb_entry::remark::field;
-  if (!str::compare(varName, name::STR_GOMC))
-  {
+  if (!str::compare(varName, name::STR_GOMC)) {
     std::cerr << "ERROR: Restart failed, "
               << "GOMC file's identifying tag "
-              << "\"REMARK  1   GOMC\" is missing"
+              << "\"REMARK     GOMC\" is missing"
               << std::endl;
     exit(1);
   }
 }
 
+void Cryst1::Read(FixedWidthReader & pdb)
+{
+  XYZ temp;
+  using namespace pdb_entry::cryst1::field;
+  hasVolume = true;
+  pdb.Get(temp.x, x::POS)
+  .Get(temp.y, y::POS)
+  .Get(temp.z, z::POS)
+  .Get(cellAngle[currBox][0], ang_alpha::POS)
+  .Get(cellAngle[currBox][1], ang_beta::POS)
+  .Get(cellAngle[currBox][2], ang_gamma::POS);
+  axis.Set(currBox, temp);
+}
+
 void Atoms::SetRestart(config_setup::RestartSettings const& r )
 {
-  //restart = r.enable;
-  restart = false;
+  restart = r.enable;
 }
 
 void Atoms::Assign(std::string const& atomName,
@@ -104,48 +84,35 @@ void Atoms::Assign(std::string const& atomName,
                    const char l_chain, const double l_x,
                    const double l_y, const double l_z,
                    const double l_occ,
-		   const double l_beta)
+                   const double l_beta)
 {
-  if (!restart || currBox == 0)
-  {
-    //box.push_back((bool)(restart?(uint)(l_occ):currBox));
-    beta.push_back(l_beta);
-    box.push_back(currBox);
-    atomAliases.push_back(atomName);
-    resNamesFull.push_back(resName);
-    if (resNum != currRes || resName !=currResname || firstResInFile)
-    {
-      molBeta.push_back(l_beta);
-      startIdxRes.push_back(count);
-      currRes = resNum;
-      currResname = resName;
-      resNames.push_back(resName);
-      chainLetter.push_back(l_chain);
-      //Check if this kind of residue has been found
-      uint kIndex = std::find(resKindNames.begin(),
-                              resKindNames.end(),
-                              resName) - resKindNames.begin();
-      // if not push it to resKindNames -> new molecule found
-      if (kIndex == resKindNames.size())
-      {
-        resKindNames.push_back(resName);
-      }
-      // pushes the index of the residue to the resKinds
-      resKinds.push_back(kIndex);
+  //box.push_back((bool)(restart?(uint)(l_occ):currBox));
+  beta.push_back(l_beta);
+  box.push_back(currBox);
+  atomAliases.push_back(atomName);
+  resNamesFull.push_back(resName);
+  if (resNum != currRes || resName != currResname || firstResInFile) {
+    molBeta.push_back(l_beta);
+    startIdxRes.push_back(count);
+    currRes = resNum;
+    currResname = resName;
+    resNames.push_back(resName);
+    chainLetter.push_back(l_chain);
+    //Check if this kind of residue has been found
+    uint kIndex = std::find(resKindNames.begin(), resKindNames.end(),
+                            resName) - resKindNames.begin();
+    // if not push it to resKindNames -> new molecule found
+    if(kIndex == resKindNames.size()) {
+      resKindNames.push_back(resName);
     }
-    // push the coordinates of atoms to x, y, and z
-    x.push_back(l_x);
-    y.push_back(l_y);
-    z.push_back(l_z);
+    // pushes the index of the residue to the resKinds
+    resKinds.push_back(kIndex);
   }
-  else if (box[count]==currBox)
-  {
-    //Overwrite members in 2nd box for restart file
-    chainLetter[count] = l_chain;
-    x[count] = l_x;
-    y[count] = l_y;
-    z[count] = l_z;
-  }
+  // push the coordinates of atoms to x, y, and z
+  x.push_back(l_x);
+  y.push_back(l_y);
+  z.push_back(l_z);
+
   count++;
   firstResInFile = false;
 }
@@ -160,8 +127,8 @@ void Atoms::Read(FixedWidthReader & file)
   file.Get(atomName, field::alias::POS)
   .Get(resName, field::res_name::POS)
   .Get(resNum, field::res_num::POS)
-  .Get(l_chain,field::chain::POS).Get(l_x,field::x::POS)
-  .Get(l_y,field::y::POS).Get(l_z,field::z::POS)
+  .Get(l_chain, field::chain::POS).Get(l_x, field::x::POS)
+  .Get(l_y, field::y::POS).Get(l_z, field::z::POS)
   .Get(l_occ, field::occupancy::POS)
   .Get(l_beta, field::beta::POS);
   Assign(atomName, resName, resNum, l_chain, l_x, l_y, l_z,
@@ -177,26 +144,18 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
   map<string, FWReadableBase *>::const_iterator dataKind;
   remarks.SetRestart(restart);
   atoms.SetRestart(restart);
-#ifndef NDEBUG
-  std::cout << (restart.enable?
-                "Reading GOMC dumped restart PDB file(s).":
-                "Reading new system from PDB file(s).") << std::endl;
-#endif
-  for (uint b = 0; b < BOX_TOTAL; b++)
-  {
-    std::string varName="";
+
+  for (uint b = 0; b < BOX_TOTAL; b++) {
+    std::string varName = "";
+    remarks.SetBox(b);
     cryst.SetBox(b);
     atoms.SetBox(b);
     FixedWidthReader pdb(name[b], pdbAlias[b]);
     pdb.open();
-    while (pdb.Read(varName, pdb_entry::label::POS))
-    {
+    while (pdb.Read(varName, pdb_entry::label::POS)) {
       //If end of frame, and this is the frame we wanted,
-      //end read on this
-      //file
-      if (remarks.reached &&
-          str::compare(varName, pdb_entry::end::STR))
-      {
+      //end read on this file
+      if (remarks.reached && str::compare(varName, pdb_entry::end::STR)) {
         break;
       }
       //Call reader function if remarks were reached,
@@ -204,8 +163,7 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
       dataKind = dataKinds.find(varName);
       if (dataKind != dataKinds.end() &&
           (remarks.reached ||
-           str::compare(dataKind->first,pdb_entry::label::REMARK)))
-      {
+           str::compare(dataKind->first, pdb_entry::label::REMARK))) {
         dataKind->second->Read(pdb);
       }
     }

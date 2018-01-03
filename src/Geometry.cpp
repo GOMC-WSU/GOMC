@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -18,8 +18,7 @@ namespace
 //returns where p1 and p2 are found as a pair in bList, index+count if backward
 int findPair(uint p1, uint p2, const BondList& bList)
 {
-  for(uint i = 0; i < bList.count; ++i)
-  {
+  for(uint i = 0; i < bList.count; ++i) {
     if(bList.part1[i] == p1 && bList.part2[i] == p2)
       return i;
     else if (bList.part1[i] == p2 && bList.part2[i] == p1)
@@ -42,8 +41,7 @@ void Nonbond::Init(const mol_setup::MolKind& molData)
 {
   unsigned int numAtoms = molData.atoms.size();
   //no nonbonded atoms
-  if (numAtoms < 5)
-  {
+  if (numAtoms < 5) {
     return;
   }
   std::vector<unsigned int> part1Vec;
@@ -54,25 +52,20 @@ void Nonbond::Init(const mol_setup::MolKind& molData)
   //with the target atom (not checking bonds because either it's
   //diatomic or all bonds are part of angles
   //Also, ignore any index less than i to avoid double counting
-  for (unsigned int i = 0; i < numAtoms; ++i)
-  {
+  for (unsigned int i = 0; i < numAtoms; ++i) {
     nonBondedAtoms.assign(i, 0);
     nonBondedAtoms.insert(nonBondedAtoms.end(), numAtoms - i, 1);
-    for (unsigned int j = 0; j < molData.angles.size(); ++j)
-    {
+    for (unsigned int j = 0; j < molData.angles.size(); ++j) {
       const mol_setup::Angle& ang = molData.angles[j];
-      if (ang.a0 == i || ang.a1 == i || ang.a2 == i)
-      {
+      if (ang.a0 == i || ang.a1 == i || ang.a2 == i) {
         nonBondedAtoms[ang.a0] = 0;
         nonBondedAtoms[ang.a1] = 0;
         nonBondedAtoms[ang.a2] = 0;
       }
     }
-    for (unsigned int j = 0; j < molData.dihedrals.size(); ++j)
-    {
+    for (unsigned int j = 0; j < molData.dihedrals.size(); ++j) {
       const mol_setup::Dihedral& dih = molData.dihedrals[j];
-      if (dih.a0 == i || dih.a1 == i || dih.a2 == i || dih.a3 == i)
-      {
+      if (dih.a0 == i || dih.a1 == i || dih.a2 == i || dih.a3 == i) {
         nonBondedAtoms[dih.a0] = 0;
         nonBondedAtoms[dih.a1] = 0;
         nonBondedAtoms[dih.a2] = 0;
@@ -80,10 +73,8 @@ void Nonbond::Init(const mol_setup::MolKind& molData)
       }
     }
     //starting at i+1 to ignore double counting
-    for (unsigned int j = i + 1; j < nonBondedAtoms.size(); ++j)
-    {
-      if (nonBondedAtoms[j] == 1)
-      {
+    for (unsigned int j = i + 1; j < nonBondedAtoms.size(); ++j) {
+      if (nonBondedAtoms[j] == 1) {
         part1Vec.push_back(i);
         part2Vec.push_back(j);
       }
@@ -102,8 +93,7 @@ void Nonbond_1_4::Init(const mol_setup::MolKind& molData)
 {
   unsigned int numAtoms = molData.atoms.size();
   //no nonbonded atoms
-  if (numAtoms < 4)
-  {
+  if (numAtoms < 4) {
     return;
   }
   std::vector<unsigned int> part1Vec;
@@ -114,25 +104,20 @@ void Nonbond_1_4::Init(const mol_setup::MolKind& molData)
   //with the target atom (not checking bonds because either it's
   //diatomic or all bonds are part of angles
   //Also, ignore any index less than i to avoid double counting
-  for (unsigned int i = 0; i < numAtoms; ++i)
-  {
+  for (unsigned int i = 0; i < numAtoms; ++i) {
     nonBondedAtoms.assign(i, 0);
     nonBondedAtoms.insert(nonBondedAtoms.end(), numAtoms - i, 0);
-    for (unsigned int j = 0; j < molData.dihedrals.size(); ++j)
-    {
+    for (unsigned int j = 0; j < molData.dihedrals.size(); ++j) {
       const mol_setup::Dihedral& dih = molData.dihedrals[j];
-      if (dih.a0 == i || dih.a3 == i)
-      {
+      if (dih.a0 == i || dih.a3 == i) {
         nonBondedAtoms[dih.a0] = 1;
         nonBondedAtoms[dih.a3] = 1;
       }
     }
 
     //starting at i+1 to ignore double counting
-    for (unsigned int j = i + 1; j < nonBondedAtoms.size(); ++j)
-    {
-      if (nonBondedAtoms[j] == 1)
-      {
+    for (unsigned int j = i + 1; j < nonBondedAtoms.size(); ++j) {
+      if (nonBondedAtoms[j] == 1) {
         part1Vec.push_back(i);
         part2Vec.push_back(j);
       }
@@ -150,8 +135,7 @@ void Nonbond_1_3::Init(const mol_setup::MolKind& molData)
 {
   unsigned int numAtoms = molData.atoms.size();
   //no nonbonded atoms
-  if (numAtoms < 3)
-  {
+  if (numAtoms < 3) {
     return;
   }
   std::vector<unsigned int> part1Vec;
@@ -162,27 +146,22 @@ void Nonbond_1_3::Init(const mol_setup::MolKind& molData)
   //with the target atom (not checking bonds because either it's
   //diatomic or all bonds are part of angles
   //Also, ignore any index less than i to avoid double counting
-  for (unsigned int i = 0; i < numAtoms; ++i)
-  {
+  for (unsigned int i = 0; i < numAtoms; ++i) {
     nonBondedAtoms.assign(i, 0);
     nonBondedAtoms.insert(nonBondedAtoms.end(), numAtoms - i, 0);
 
 
-    for (unsigned int j = 0; j < molData.angles.size(); ++j)
-    {
+    for (unsigned int j = 0; j < molData.angles.size(); ++j) {
       const mol_setup::Angle& ang = molData.angles[j];
-      if (ang.a0 == i || ang.a2 == i)
-      {
+      if (ang.a0 == i || ang.a2 == i) {
         nonBondedAtoms[ang.a0] = 1;
         nonBondedAtoms[ang.a2] = 1;
       }
     }
 
     //starting at i+1 to ignore double counting
-    for (unsigned int j = i + 1; j < nonBondedAtoms.size(); ++j)
-    {
-      if (nonBondedAtoms[j] == 1)
-      {
+    for (unsigned int j = i + 1; j < nonBondedAtoms.size(); ++j) {
+      if (nonBondedAtoms[j] == 1) {
         part1Vec.push_back(i);
         part2Vec.push_back(j);
       }
@@ -204,12 +183,10 @@ void EwaldNonbond::Init(const mol_setup::MolKind& molData)
   std::vector<unsigned int> part2Vec;
   std::vector<char> nonBondedAtoms(numAtoms);
   //find all possible pairs
-  for (unsigned int i = 0; i < numAtoms; ++i)
-  {
+  for (unsigned int i = 0; i < numAtoms; ++i) {
     //starting at i+1 to ignore double counting
 
-    for (unsigned int j = i + 1; j < numAtoms; ++j)
-    {
+    for (unsigned int j = i + 1; j < numAtoms; ++j) {
       part1Vec.push_back(i);
       part2Vec.push_back(j);
     }
@@ -228,8 +205,7 @@ void BondList::Init(const std::vector<mol_setup::Bond>& bonds)
   part1 = new uint[count];
   part2 = new uint[count];
   kinds = new uint[count];
-  for (uint i = 0; i < count; ++i)
-  {
+  for (uint i = 0; i < count; ++i) {
     part1[i] = bonds[i].a0;
     part2[i] = bonds[i].a1;
     kinds[i] = bonds[i].kind;
@@ -268,8 +244,7 @@ void GeomFeature::Init(const std::vector<mol_setup::Angle>& angles, const BondLi
   bondIndices = new uint[count * bondsPer];
 
   int bondCounter = 0;
-  for (uint i = 0; i < angles.size(); ++i)
-  {
+  for (uint i = 0; i < angles.size(); ++i) {
     bondIndices[bondCounter] =
       findPair(angles[i].a0, angles[i].a1, bList);
     ++bondCounter;
@@ -291,8 +266,7 @@ void GeomFeature::Init(const std::vector<mol_setup::Dihedral>& dihs, const BondL
   bondIndices = new uint[count * bondsPer];
 
   int bondCounter = 0;
-  for (uint i = 0; i < dihs.size(); ++i)
-  {
+  for (uint i = 0; i < dihs.size(); ++i) {
     bondIndices[bondCounter] =
       findPair(dihs[i].a0, dihs[i].a1, bList);
     ++bondCounter;
@@ -314,11 +288,9 @@ void SortedNonbond::Init(const Nonbond& nb, const uint numAtoms)
   std::vector<uint> partnerVec;
   uint oldSize = 0;
   subdiv.Init(numAtoms);
-  for (uint i = 0; i < numAtoms; ++i)
-  {
+  for (uint i = 0; i < numAtoms; ++i) {
     oldSize = partnerVec.size();
-    for (uint j = 0; j < nb.count; ++j)
-    {
+    for (uint j = 0; j < nb.count; ++j) {
       if (nb.part1[j] == i)
         partnerVec.push_back(nb.part2[j]);
       else if (nb.part2[j] == i)

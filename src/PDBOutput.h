@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -28,15 +28,13 @@ struct Output;
 class MoveSettings;
 class MoleculeLookup;
 
-struct PDBOutput : OutputableBase
-{
+struct PDBOutput : OutputableBase {
 public:
   PDBOutput(System & sys, StaticVals const& statV);
 
   ~PDBOutput()
   {
-    for (uint b = 0; b < BOX_TOTAL; ++b)
-    {
+    for (uint b = 0; b < BOX_TOTAL; ++b) {
       outF[b].close();
     }
   }
@@ -77,11 +75,17 @@ private:
     out.file << "END" << std::endl;
   }
 
+  double ConvAng(const double t)
+  {
+    return acos(t) * 180.0 / M_PI;
+  }
+
   MoveSettings & moveSetRef;
   MoleculeLookup & molLookupRef;
   BoxDimensions& boxDimRef;
   Molecules const& molRef;
   Coordinates & coordCurrRef;
+  COM & comCurrRef;
 
   Writer outF[BOX_TOTAL];
   //NEW_RESTART_CODE

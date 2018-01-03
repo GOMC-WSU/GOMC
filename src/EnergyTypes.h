@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -38,8 +38,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #endif
 #endif
 
-struct Intermolecular
-{
+struct Intermolecular {
   //MEMBERS
   double virial, energy;
 
@@ -188,12 +187,10 @@ public:
   {
     TotalElect();
     total = inter + tc + real + recip + self + correction;
-    for (int i = 0; i < 3; i++)
-    {
-      for (int j = 0; j < 3; j++)
-      {
-	totalTens[i][j] = interTens[i][j] + realTens[i][j] + recipTens[i][j] +
-	  corrTens[i][j];
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++) {
+        totalTens[i][j] = interTens[i][j] + realTens[i][j] + recipTens[i][j] +
+                          corrTens[i][j];
       }
     }
     return total;
@@ -215,15 +212,13 @@ public:
     correction = 0.0;
     totalElect = 0.0;
     total = 0.0;
-    for (int i = 0; i < 3; i++)
-    {
-      for (int j = 0; j < 3; j++)
-      {
-	totalTens[i][j] = 0.0;
-	interTens[i][j] = 0.0;
-	realTens[i][j]  = 0.0;
-	recipTens[i][j] = 0.0;
-	corrTens[i][j]  = 0.0;
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++) {
+        totalTens[i][j] = 0.0;
+        interTens[i][j] = 0.0;
+        realTens[i][j]  = 0.0;
+        recipTens[i][j] = 0.0;
+        corrTens[i][j]  = 0.0;
       }
     }
   }
@@ -240,15 +235,13 @@ public:
     totalElect -= rhs.totalElect;
     total -= rhs.total;
 
-    for (int i = 0; i < 3; i++)
-    {
-      for (int j = 0; j < 3; j++)
-      {
-	totalTens[i][j] -= rhs.totalTens[i][j];
-	interTens[i][j] -= rhs.interTens[i][j];
-	realTens[i][j]  -= rhs.realTens[i][j];
-	recipTens[i][j] -= rhs.recipTens[i][j];
-	corrTens[i][j]  -= rhs.corrTens[i][j];
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++) {
+        totalTens[i][j] -= rhs.totalTens[i][j];
+        interTens[i][j] -= rhs.interTens[i][j];
+        realTens[i][j]  -= rhs.realTens[i][j];
+        recipTens[i][j] -= rhs.recipTens[i][j];
+        corrTens[i][j]  -= rhs.corrTens[i][j];
       }
     }
 
@@ -267,15 +260,13 @@ public:
     totalElect += rhs.totalElect;
     total += rhs.total;
 
-    for (int i = 0; i < 3; i++)
-    {
-      for (int j = 0; j < 3; j++)
-      {
-	totalTens[i][j] += rhs.totalTens[i][j];
-	interTens[i][j] += rhs.interTens[i][j];
-	realTens[i][j]  += rhs.realTens[i][j];
-	recipTens[i][j] += rhs.recipTens[i][j];
-	corrTens[i][j]  += rhs.corrTens[i][j];
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++) {
+        totalTens[i][j] += rhs.totalTens[i][j];
+        interTens[i][j] += rhs.interTens[i][j];
+        realTens[i][j]  += rhs.realTens[i][j];
+        recipTens[i][j] += rhs.recipTens[i][j];
+        corrTens[i][j]  += rhs.corrTens[i][j];
       }
     }
 
@@ -304,15 +295,13 @@ public:
     totalElect = rhs.totalElect;
     total = rhs.total;
 
-    for (int i = 0; i < 3; i++)
-    {
-      for (int j = 0; j < 3; j++)
-      {
-	totalTens[i][j] = rhs.totalTens[i][j];
-	interTens[i][j] = rhs.interTens[i][j];
-	realTens[i][j]  = rhs.realTens[i][j];
-	recipTens[i][j] = rhs.recipTens[i][j];
-	corrTens[i][j]  = rhs.corrTens[i][j];
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++) {
+        totalTens[i][j] = rhs.totalTens[i][j];
+        interTens[i][j] = rhs.interTens[i][j];
+        realTens[i][j]  = rhs.realTens[i][j];
+        recipTens[i][j] = rhs.recipTens[i][j];
+        corrTens[i][j]  = rhs.corrTens[i][j];
       }
     }
 
@@ -330,15 +319,13 @@ public:
     totalElect /= rhs;
     total /= rhs;
 
-    for (int i = 0; i < 3; i++)
-    {
-      for (int j = 0; j < 3; j++)
-      {
-	totalTens[i][j] /= rhs;
-	interTens[i][j] /= rhs;
-	realTens[i][j]  /= rhs;
-	recipTens[i][j] /= rhs;
-	corrTens[i][j]  /= rhs;
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++) {
+        totalTens[i][j] /= rhs;
+        interTens[i][j] /= rhs;
+        realTens[i][j]  /= rhs;
+        recipTens[i][j] /= rhs;
+        corrTens[i][j]  /= rhs;
       }
     }
 
@@ -350,7 +337,7 @@ public:
   double inter, tc, real, recip, self, correction, totalElect, total;
   //Store the pressure tensor
   double interTens[3][3], realTens[3][3], recipTens[3][3], totalTens[3][3],
-    corrTens[3][3];
+         corrTens[3][3];
 };
 
 
@@ -376,8 +363,7 @@ public:
   }
   SystemPotential& operator=(SystemPotential const& rhs)
   {
-    for (uint b = 0; b < BOX_TOTAL; b++)
-    {
+    for (uint b = 0; b < BOX_TOTAL; b++) {
       boxVirial[b] = rhs.boxVirial[b];
       boxEnergy[b] = rhs.boxEnergy[b];
     }
@@ -387,8 +373,7 @@ public:
   }
   SystemPotential& operator+=(SystemPotential const& rhs)
   {
-    for (uint b = 0; b < BOX_TOTAL; b++)
-    {
+    for (uint b = 0; b < BOX_TOTAL; b++) {
       boxVirial[b] += rhs.boxVirial[b];
       boxEnergy[b] += rhs.boxEnergy[b];
     }
@@ -409,8 +394,7 @@ public:
 
 inline void SystemPotential::Zero()
 {
-  for (uint b = 0; b < BOX_TOTAL; b++)
-  {
+  for (uint b = 0; b < BOX_TOTAL; b++) {
     boxEnergy[b].Zero();
     boxVirial[b].Zero();
   }
@@ -422,8 +406,7 @@ inline double SystemPotential::Total()
 {
   totalEnergy.Zero();
   totalVirial.Zero();
-  for (uint b = 0; b < BOX_TOTAL; b++)
-  {
+  for (uint b = 0; b < BOX_TOTAL; b++) {
     boxEnergy[b].Total();
     boxEnergy[b].TotalElect();
     totalEnergy += boxEnergy[b];

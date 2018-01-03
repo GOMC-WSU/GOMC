@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -41,7 +41,7 @@ const uint trans = 1;
 inline uint GetRotKind(const double phi)
 {
   double ang = geom::RadToDeg(phi);
-  return ((ang>90||ang<-90)?ff::dih::rot::trans:ff::dih::rot::cis);
+  return ((ang > 90 || ang < -90) ? ff::dih::rot::trans : ff::dih::rot::cis);
 }
 }
 

@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -26,12 +26,11 @@ void Coordinates::InitFromPDB(pdb_setup::Atoms const& atoms)
 void Coordinates::CheckCoordinate()
 {
   int p, start, atom, length, stRange, endRange;
-  XYZ min, max, diffV;
+  XYZ min, max;
 
-  for (uint b = 0; b < BOX_TOTAL; b++)
-  {
+  for (uint b = 0; b < BOX_TOTAL; b++) {
     MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b),
-      end = molLookRef.BoxEnd(b), endc = molLookRef.BoxEnd(b);
+                                 end = molLookRef.BoxEnd(b), endc = molLookRef.BoxEnd(b);
     //find the min and max coordinate
     stRange = molRef.MolStart(*thisMol);
     --endc;
@@ -44,38 +43,34 @@ void Coordinates::CheckCoordinate()
     min.z = *std::min_element(z + stRange, z + endRange);
     max.z = *std::max_element(z + stRange, z + endRange);
 
-    diffV = max - min;
-    //printf("start: %d, end: %d\n", stRange, endRange);
     printf("Minimum coordinates in box %d: x = %8.3f, y = %8.3f, z = %8.3f\n",
-	   b+1, min.x, min.y, min.z);
+           b, min.x, min.y, min.z);
     printf("Maximum coordinates in box %d: x = %8.3f, y = %8.3f, z = %8.3f\n",
-	   b+1, max.x, max.y, max.z);
+           b, max.x, max.y, max.z);
 
-    //check to see if molecules are in the box or not
-    if( diffV.x > 1.5 * boxDimRef.axis.Get(b).x ||
-	diffV.y > 1.5 * boxDimRef.axis.Get(b).y ||
-	diffV.z > 1.5 * boxDimRef.axis.Get(b).z)
-    {
-      printf("Molecules are packed outside of the defined box dimension.\n");
-      exit(0);
+    printf("Wrapping molecules inside the simulation box %d:\n", b);
+    while (thisMol != end) {
+      start = molRef.MolStart(*thisMol);
+      MoleculeKind const& thisKind = molRef.GetKind(*thisMol);
+
+      for (p = 0; p < thisKind.NumAtoms(); p++) {
+        atom = start + p;
+        boxDimRef.WrapPBC(x[atom], y[atom], z[atom], b);
+        //check to see if it is in the box or not
+        XYZ unSlant(x[atom], y[atom], z[atom]);
+        unSlant = boxDimRef.TransformUnSlant(unSlant, b);
+
+        if(unSlant.x > boxDimRef.axis.Get(b).x ||
+            unSlant.y > boxDimRef.axis.Get(b).y ||
+            unSlant.z > boxDimRef.axis.Get(b).z) {
+          printf("Molecules %d is packed outside of the defined box dimension.\n", *thisMol);
+          exit(0);
+        }
+      }
+
+      ++thisMol;
     }
-
-    printf("Wrapping molecules inside the simulation box %d:\n", b+1);
-    while (thisMol != end)
-    {
-       start = molRef.MolStart(*thisMol);
-       MoleculeKind const& thisKind = molRef.GetKind(*thisMol);
-
-       for (p = 0; p < thisKind.NumAtoms(); p++)
-       {
-	  atom = start + p;
-	  boxDimRef.WrapPBC(x[atom], y[atom], z[atom], b);
-       }
-       ++thisMol;
-    }
-
   }
-
 }
 
 //Translate by a random amount
@@ -84,7 +79,7 @@ void Coordinates::TranslateRand
  const uint m, const uint b, const double max)
 {
   XYZ shift = prngRef.SymXYZ(max);
-  uint stop=0;
+  uint stop = 0;
   //Get range.
   molRef.GetRange(pStart, stop, pLen, m);
   //Copy coordinates
@@ -117,8 +112,7 @@ void Coordinates::RotateRand
 
   boxDimRef.UnwrapPBC(dest, b, center);
   //Do rotation
-  for (uint p = 0; p < pLen; p++)   //Rotate each point.
-  {
+  for (uint p = 0; p < pLen; p++) { //Rotate each point.
     dest.Add(p, -center);
     dest.Set(p, matrix.Apply(dest.Get(p)));
     dest.Add(p, center);
@@ -138,8 +132,7 @@ void Coordinates::VolumeTransferTranslate
   //Scale cell
   state = boxDimRef.ExchangeVolume(newDim, scale, transfer);
   //If scaling succeeded (if it wouldn't take the box to below 2*rcut, cont.
-  for (uint b = 0; b < BOX_TOTAL && (state == mv::fail_state::NO_FAIL); ++b)
-  {
+  for (uint b = 0; b < BOX_TOTAL && (state == mv::fail_state::NO_FAIL); ++b) {
     TranslateOneBox(dest, newCOM, oldCOM, newDim, b, scale[b]);
   }
 }
@@ -151,41 +144,53 @@ void Coordinates::TranslateOneBox
 (Coordinates & dest, COM & newCOM, COM const& oldCOM,
  BoxDimensions const& newDim, const uint b, const XYZ& scale) const
 {
-  uint pStart=0, pStop=0, pLen=0, i;
+  uint pStart = 0, pStop = 0, pLen = 0, i;
   MoleculeLookup::box_iterator curr = molLookRef.BoxBegin(b),
                                end = molLookRef.BoxEnd(b);
   std::vector<int> molID;
   XYZ shift, oldCOMForUnwrap;
+  XYZ unslant, slant;
 
 #ifdef _OPENMP
-  while (curr != end)
-  {
-     molID.push_back(*curr);
-     ++curr;
+  while (curr != end) {
+    molID.push_back(*curr);
+    ++curr;
   }
 
-#pragma omp parallel for default(shared) private(i, pStart, pStop, pLen, shift, oldCOMForUnwrap)
-  for (i = 0; i < molID.size(); i++)
-  {
-     molRef.GetRange(pStart, pStop, pLen, molID[i]);
-     //Scale CoM for this molecule, translate all atoms by same amount
-     newCOM.Scale(molID[i], scale);
-     shift = newCOM.Get(molID[i]);
-     shift -= oldCOM.Get(molID[i]);
-     //Translation of atoms in mol.
-     //Unwrap coordinates
-     oldCOMForUnwrap = oldCOM.Get(molID[i]);
-     boxDimRef.UnwrapPBC(dest, pStart, pStop, b, oldCOMForUnwrap);
-     dest.AddRange(pStart, pStop, shift);
-     newDim.WrapPBC(dest, pStart, pStop, b);
+  #pragma omp parallel for default(shared) private(i, pStart, pStop, pLen, shift, oldCOMForUnwrap)
+  for (i = 0; i < molID.size(); i++) {
+    molRef.GetRange(pStart, pStop, pLen, molID[i]);
+    //Scale CoM for this molecule, translate all atoms by same amount
+    //convert the COM to unslant coordinate
+    unslant = boxDimRef.TransformUnSlant(newCOM.Get(molID[i]), b);
+    //scale the COM
+    unslant *= scale;
+    //convert to slant coordinate
+    slant = newDim.TransformSlant(unslant, b);
+    //calculate the difference of new and old COM
+    newCOM.Set(molID[i], slant);
+    shift = newCOM.Get(molID[i]);
+    shift -= oldCOM.Get(molID[i]);
+    //Translation of atoms in mol.
+    //Unwrap coordinates
+    oldCOMForUnwrap = oldCOM.Get(molID[i]);
+    boxDimRef.UnwrapPBC(dest, pStart, pStop, b, oldCOMForUnwrap);
+    dest.AddRange(pStart, pStop, shift);
+    newDim.WrapPBC(dest, pStart, pStop, b);
   }
 #else
 
-  while (curr != end)
-  {
+  while (curr != end) {
     molRef.GetRange(pStart, pStop, pLen, *curr);
     //Scale CoM for this molecule, translate all atoms by same amount
-    newCOM.Scale(*curr, scale);
+    //convert the COM to unslant coordinate
+    unslant = boxDimRef.TransformUnSlant(newCOM.Get(*curr), b);
+    //scale the COM
+    unslant *= scale;
+    //convert to slant coordinate
+    slant = newDim.TransformSlant(unslant, b);
+    //calculate the difference of new and old COM
+    newCOM.Set(*curr, slant);
     shift = newCOM.Get(*curr);
     shift -= oldCOM.Get(*curr);
     //Translation of atoms in mol.

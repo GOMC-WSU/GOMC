@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -12,7 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 bool Reader::Read(std::string & firstItem)
 {
   while(GoodFileWData() && (file >> firstVal) )
-    if ( CheckSkipChars(firstVal)||CheckSkipWords(firstVal) )
+    if ( CheckSkipChars(firstVal) || CheckSkipWords(firstVal) )
       SkipLine();
     else
       break;

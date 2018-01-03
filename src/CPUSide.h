@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -23,13 +23,13 @@ class System;
 class StaticVals;
 class OutputableBase;
 
-struct CPUSide
-{
+struct CPUSide {
   CPUSide(System & sys, StaticVals & statV);
   void Init(PDBSetup const& pdbSet, config_setup::Output const& out,
             const ulong tillEquil, const ulong totSteps);
   void Output(const ulong step);
 
+  ulong equilSteps;
 private:
   Clock timer;
   std::vector<OutputableBase *> outObj;

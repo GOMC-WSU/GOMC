@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -18,7 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 const uint FFSetup::CHARMM_ALIAS_IDX = 0;
 const uint FFSetup::EXOTIC_ALIAS_IDX = 1;
 const std::string FFSetup::paramFileAlias[] =
-{"CHARMM-Style Parameter File", "EXOTIC Parameter File"};
+{"CHARMM-Style parameter file", "EXOTIC-Style parameter file"};
 const double ff_setup::KCAL_PER_MOL_TO_K = 503.21959899;
 const double ff_setup::RIJ_OVER_2_TO_SIG = 1.7817974362807;
 const double ff_setup::RIJ_TO_SIG = 0.890898718;
@@ -36,21 +36,15 @@ FFSetup::SetReadFunctions(const bool isCHARMM)
   funct["ANGLES"] = &angle;
   funct["DIHEDRALS"] = &dih;
   funct["IMPROPER"] = &imp;
-  if (isCHARMM)
-  {
+  if (isCHARMM) {
     funct["NONBONDED"] = &mie;
     funct["NBFIX"] = &nbfix;
-  }
-  else
-  {
+  } else {
     //Unique to exotic file
-    funct["NONBONDED"] = &mie;
     funct["NONBONDED_MIE"] = &mie;
-    funct["NBFIX"] = &nbfix;
     funct["NBFIX_MIE"] = &nbfix;
   }
-  for (sect_it it = funct.begin(); it != funct.end(); ++it)
-  {
+  for (sect_it it = funct.begin(); it != funct.end(); ++it) {
     (dynamic_cast<ff_setup::FFBase *>(it->second))->setIsCHARMM(isCHARMM);
   }
   return funct;
@@ -60,51 +54,45 @@ void FFSetup::Init(std::string const& name, const bool isCHARMM)
 {
   using namespace std;
   sectKind = SetReadFunctions(isCHARMM);
-  string currSectName="", varName="";
+  string currSectName = "", varName = "";
   string commentChar = "*!";
   string commentStr = "REMARK set AEXP REXP HAEX AAEX NBOND "
                       "CUTNB END CTONN EPS VSWI NBXM INHI";
   map<string, ReadableBaseWithFirst *>::const_iterator sect, currSect;
 
   Reader param(name,
-               paramFileAlias[isCHARMM?CHARMM_ALIAS_IDX:EXOTIC_ALIAS_IDX],
+               paramFileAlias[isCHARMM ? CHARMM_ALIAS_IDX : EXOTIC_ALIAS_IDX],
                true, &commentStr, true, &commentChar);
   param.open();
-  while (param.Read(varName))
-  {
+  while (param.Read(varName)) {
     sect = sectKind.find(varName);
-    if ( sect != sectKind.end() )
-    {
+    if ( sect != sectKind.end() ) {
       param.SkipLine(); //Skip rest of line for sect. heading
       currSectName = varName;
       currSect = sect; //Save for later calls.
-    }
-    else
+      std::cout << "Reading " << currSectName << " parameters.\n";
+    } else
       currSect->second->Read(param, varName);
   }
+
   param.close();
+
+  //check if we read nonbonded parameter
+  if(mie.sigma.size() == 0) {
+    if(isCHARMM) {
+      std::cout << "Error: CHARMM-Style parameter is set but EXOTIC-Style parameter file was found.\n"
+                "       Either set EXOTIC-Style in config file or change the keyword\n"
+                "       \"NONBONDED_MIE\" to \"NONBONDED\" in the parameter files.\n";
+    } else {
+      std::cout << "Error: EXOTIC-Style parameter is set but CHARMM-Style parameter file was found.\n"
+                "       Either set CHARMM-Style in config file or change the keyword\n"
+                "       \"NONBONDED\" to \"NONBONDED_MIE\" in the parameter files.\n";
+    }
+    exit(EXIT_FAILURE);
+  }
+
   //Adjust dih names so lookup finds kind indices rather than term counts
   dih.clean_names();
-
-#ifndef NDEBUG
-/*
-  if (isCHARMM)
-  {
-    std::cout << "Lennard-Jones Particles:\n";
-  }
-  else
-  {
-    std::cout << "Mie Particles:\n";
-  }
-  mie.PrintBrief();
-  std::cout << "Bonds:\n";
-  bond.PrintBrief();
-  std::cout << "Angles:\n";
-  angle.PrintBrief();
-  std::cout << "Dihedrals:\n";
-  dih.PrintBrief();
-*/
-#endif
 }
 
 namespace ff_setup
@@ -113,9 +101,8 @@ namespace ff_setup
 std::string FFBase::ReadKind(Reader & param,
                              std::string const& firstKindName)
 {
-  std::string merged=firstKindName, tmp;
-  for (uint k = 1; k < numTerms; k++)
-  {
+  std::string merged = firstKindName, tmp;
+  for (uint k = 1; k < numTerms; k++) {
     param.file >> tmp;
     merged += tmp;
   }
@@ -138,29 +125,23 @@ void Particle::Read(Reader & param, std::string const& firstVar)
   double e, s, e_1_4, s_1_4, dummy1, dummy2;
   uint expN, expN_1_4;
   std::stringstream values(LoadLine(param, firstVar));
-  if (isCHARMM())   //if lj
-  {
+  if (isCHARMM()) { //if lj
     values >> dummy1;
   }
   values >> e >> s;
-  if (isCHARMM())
-  {
+  if (isCHARMM()) {
     expN = ff::part::lj_n;
-  }
-  else
-  {
+  } else {
     values >> expN;
   }
   //If undefined in CHARMM, assign 1-4 to full value.
   values >> dummy2 >> e_1_4 >> s_1_4;
-  if (values.fail())
-  {
+  if (values.fail()) {
     e_1_4 = e;
     s_1_4 = s;
   }
   values >> expN_1_4;
-  if (isCHARMM() || values.fail())
-  {
+  if (isCHARMM() || values.fail()) {
     expN_1_4 = expN;
   }
   Add(e, s, expN, e_1_4, s_1_4, expN_1_4);
@@ -169,8 +150,7 @@ void Particle::Read(Reader & param, std::string const& firstVar)
 void Particle::Add(double e, double s, const uint expN,
                    double e_1_4, double s_1_4, const uint expN_1_4)
 {
-  if (isCHARMM())
-  {
+  if (isCHARMM()) {
     e *= -1.0;
     s *= RIJ_OVER_2_TO_SIG;
     e_1_4 *= -1.0;
@@ -195,24 +175,19 @@ void NBfix::Read(Reader & param, std::string const& firstVar)
 
   std::stringstream values(LoadLine(param, firstVar));
   values >> e >> s;
-  if (isCHARMM())
-  {
+  if (isCHARMM()) {
     expN = ff::part::lj_n;
-  }
-  else
-  {
+  } else {
     values >> expN;
   }
 
   values >> e_1_4 >> s_1_4;
-  if (values.fail())
-  {
+  if (values.fail()) {
     e_1_4 = e;
     s_1_4 = s;
   }
   values >> expN_1_4;
-  if (isCHARMM() || values.fail())
-  {
+  if (isCHARMM() || values.fail()) {
     expN_1_4 = expN;
   }
   Add(e, s, expN, e_1_4, s_1_4, expN_1_4);
@@ -232,8 +207,7 @@ void NBfix::Add(double e, double s,
 #endif
                )
 {
-  if (isCHARMM())
-  {
+  if (isCHARMM()) {
     e *= -1.0;
     s *= RIJ_TO_SIG;
     e_1_4 *= -1.0;
@@ -257,7 +231,7 @@ void Bond::Read(Reader & param, std::string const& firstVar)
 }
 void Bond::Add(const double coeff, const double def)
 {
-  fixed.push_back(coeff>FIXED);
+  fixed.push_back(coeff > FIXED);
   Kb.push_back(EnConvIfCHARMM(coeff));
   b0.push_back(def);
 }
@@ -276,17 +250,14 @@ void Angle::Read(Reader & param, std::string const& firstVar)
 void Angle::Add(const double coeff, const double def, const bool hsUB,
                 const double coeffUB, const double defUB)
 {
-  fixed.push_back(coeff>FIXED);
+  fixed.push_back(coeff > FIXED);
   Ktheta.push_back(EnConvIfCHARMM(coeff));
   theta0.push_back(geom::DegToRad(def));
   hasUB.push_back(hsUB);
-  if (hsUB)
-  {
+  if (hsUB) {
     Kub.push_back(EnConvIfCHARMM(coeffUB));
     bUB0.push_back(defUB);
-  }
-  else
-  {
+  } else {
     Kub.push_back(0.0);
     bUB0.push_back(0.0);
   }
@@ -315,8 +286,7 @@ void Improper::Read(Reader & param, std::string const& firstVar)
   double coeff, def;
   std::string merged = ReadKind(param, firstVar);
   //If new value
-  if (validname(merged) == false)
-  {
+  if (validname(merged) == false) {
     param.file >> coeff >> def;
     Add(coeff, def);
   }

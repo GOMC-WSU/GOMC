@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -20,12 +20,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define MAX_PAIR_SIZE 10000000
 
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
-		       double const *epsilon_Cn, double const *n,
-		       int VDW_Kind, int isMartini, int count,
-		       double Rcut, double RcutLow, double Ron, double alpha,
-		       int ewald, double diElectric_1);
+                       double const *epsilon_Cn, double const *n,
+                       int VDW_Kind, int isMartini, int count,
+                       double Rcut, double RcutLow, double Ron, double alpha,
+                       int ewald, double diElectric_1);
 void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
-			 uint maxAtomsInMol, uint maxMolNumber);
+                         uint maxAtomsInMol, uint maxMolNumber);
 void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal);
 void CopyCurrentToRefCUDA(VariablesCUDA *vars, uint box, uint imageTotal);
 void UpdateRecipVecCUDA(VariablesCUDA *vars, uint box);

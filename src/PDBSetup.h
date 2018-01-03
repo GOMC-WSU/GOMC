@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -25,44 +25,33 @@ struct FWReadableBase;
 
 namespace pdb_setup
 {
-struct Remarks : FWReadableBase
-{
+struct Remarks : FWReadableBase {
+  uint currBox;
+  double  disp[BOX_TOTAL], rotate[BOX_TOTAL], vol[BOX_TOTAL];
   bool restart, reached;
-  ulong restartStep;
-
   void SetRestart(config_setup::RestartSettings const& r);
   void Read(FixedWidthReader & pdb);
+  void SetBox(const uint b)
+  {
+    currBox = b;
+  }
 
 private:
-  void HandleRemark(const uint num, std::string const& varName,
-                    const ulong step);
-  void CheckStep(std::string const& varName,
-                 const ulong readStep);
   void CheckGOMC(std::string const& varName);
 };
 
-struct Cryst1 : FWReadableBase
-{
+struct Cryst1 : FWReadableBase {
   //box dimensions
   uint currBox;
   bool hasVolume;
   XYZArray axis;
+  double cellAngle[BOX_TOTAL][3];
   Cryst1(void) : currBox(0), hasVolume(false), axis(BOX_TOTAL) {}
   void SetBox(const uint b)
   {
     currBox = b;
   }
-  void Read(FixedWidthReader & pdb)
-  {
-    XYZ temp;
-    using namespace pdb_entry::cryst1::field;
-    hasVolume = true;
-    pdb.Get(temp.x, x::POS)
-    .Get(temp.y, y::POS)
-    .Get(temp.z, z::POS);
-    axis.Set(currBox, temp);
-  }
-
+  void Read(FixedWidthReader & pdb);
 };
 
 class Atoms : public FWReadableBase
@@ -76,8 +65,6 @@ public:
   {
     currBox = b;
     firstResInFile = true;
-    //restart count if new system, second box.
-    count = ((b == 1 && restart) ? 0 : count);
   }
   void Assign(std::string const& atomName,
               std::string const& resName,
@@ -87,7 +74,7 @@ public:
               const double l_y,
               const double l_z,
               const double l_occ,
-	      const double l_beta);
+              const double l_beta);
 
   void Read(FixedWidthReader & file);
 
@@ -111,8 +98,7 @@ public:
 
 }
 
-struct PDBSetup
-{
+struct PDBSetup {
   pdb_setup::Atoms atoms;
   pdb_setup::Cryst1 cryst;
   pdb_setup::Remarks remarks;

@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -85,7 +85,7 @@ protected:
   void HandleError(std::string const& msg)
   {
     using namespace std;
-    cerr << ((critical)?"Error ":"Warning ") << nameWAlias << endl
+    cerr << ((critical) ? "Error " : "Warning ") << nameWAlias << endl
          << msg << endl;
     if (critical)
       exit(1);
@@ -101,9 +101,9 @@ protected:
                       std::string const & errMessage, std::string const& note)
   {
     isOpen = GoodFileWData();
-    if (isOpen==expected && notify)
+    if (isOpen == expected && notify)
       HandleNote(note);
-    else if (isOpen!=expected)
+    else if (isOpen != expected)
       HandleError(errMessage);
   }
 

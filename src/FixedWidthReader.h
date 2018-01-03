@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -44,7 +44,7 @@ public:
   }
   FixedWidthReader & Get(std::string & s, ConstField const& field)
   {
-    s=sstrm::StripWS(Str(field));
+    s = sstrm::StripWS(Str(field));
     return *this;
   }
   FixedWidthReader & Get(char & c, ConstField const& field)
@@ -61,8 +61,7 @@ public:
   //Gets line.
   bool Read(std::string & str, ConstField const& field)
   {
-    if (GoodFileWData())
-    {
+    if (GoodFileWData()) {
       std::getline(file, line);
       str = Str(field);
 #ifndef NDEBUG

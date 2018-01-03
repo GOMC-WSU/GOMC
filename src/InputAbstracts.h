@@ -1,6 +1,6 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.11
-Copyright (C) 2016  GOMC Group
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
@@ -21,26 +21,22 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ///  READ
 //
 
-struct ReadableBase
-{
+struct ReadableBase {
   virtual void Read(Reader & file) = 0;
   virtual ~ReadableBase() {}
 };
 
-struct FWReadableBase
-{
+struct FWReadableBase {
   virtual void Read(FixedWidthReader & file) = 0;
   virtual ~FWReadableBase() {}
 };
-struct ReadableBaseWithFirst
-{
+struct ReadableBaseWithFirst {
   virtual void Read(Reader & file, std::string const& firstVar) = 0;
   virtual ~ReadableBaseWithFirst() {}
 };
 
 //N is # of elements involved in search
-struct ReadableStepDependentBase
-{
+struct ReadableStepDependentBase {
   virtual void Read(Reader & file, const ulong totalSteps,
                     std::string const& kindName) = 0;
   virtual ~ReadableStepDependentBase() {}
@@ -99,11 +95,10 @@ private:
                         const bool flip,
                         std::string const& wild) const
   {
-    std::string s="";
-    for (uint i = 0; i < N; i++)
-    {
-      uint idx =  (flip?N-1-i:i);
-      s += (bits::Check(wildCardMask,idx)? wild : v[idx]);
+    std::string s = "";
+    for (uint i = 0; i < N; i++) {
+      uint idx =  (flip ? N - 1 - i : i);
+      s += (bits::Check(wildCardMask, idx) ? wild : v[idx]);
     }
     return s;
   }
