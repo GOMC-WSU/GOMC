@@ -84,6 +84,22 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   cudaMalloc(&vars->gpu_vT22, MAX_PAIR_SIZE * sizeof(double));
   cudaMalloc(&vars->gpu_vT23, MAX_PAIR_SIZE * sizeof(double));
   cudaMalloc(&vars->gpu_vT33, MAX_PAIR_SIZE * sizeof(double));
+
+  cudaMalloc(&vars->gpu_nonOrth, sizeof(int));
+  vars->gpu_cell_x = new double *[BOX_TOTAL];
+  vars->gpu_cell_y = new double *[BOX_TOTAL];
+  vars->gpu_cell_z = new double *[BOX_TOTAL];
+  vars->gpu_Invcell_x = new double *[BOX_TOTAL];
+  vars->gpu_Invcell_y = new double *[BOX_TOTAL];
+  vars->gpu_Invcell_z = new double *[BOX_TOTAL];
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    cudaMalloc(&vars->gpu_cell_x[b], 3 * sizeof(double));
+    cudaMalloc(&vars->gpu_cell_y[b], 3 * sizeof(double));
+    cudaMalloc(&vars->gpu_cell_z[b], 3 * sizeof(double));
+    cudaMalloc(&vars->gpu_Invcell_x[b], 3 * sizeof(double));
+    cudaMalloc(&vars->gpu_Invcell_y[b], 3 * sizeof(double));
+    cudaMalloc(&vars->gpu_Invcell_z[b], 3 * sizeof(double));
+  }
 }
 
 void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal)
@@ -173,6 +189,33 @@ void UpdateRecipCUDA(VariablesCUDA *vars, uint box)
   vars->gpu_sumInew[box] = tempI;
 }
 
+void UpdateCellBasisCUDA(VariablesCUDA *vars, uint box, double *cellBasis_x,
+			 double *cellBasis_y, double *cellBasis_z)
+{
+  int nonOrth = 0;
+  cudaMemcpy(vars->gpu_cell_x[box], cellBasis_x, 3 * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_cell_y[box], cellBasis_y, 3 * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_cell_z[box], cellBasis_z, 3 * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_nonOrth, &nonOrth, sizeof(int), cudaMemcpyHostToDevice);
+}
+
+void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box, 
+			    double *invCellBasis_x, double *invCellBasis_y,
+			    double *invCellBasis_z)
+{
+  int nonOrth = 1;
+  cudaMemcpy(vars->gpu_Invcell_x[box], invCellBasis_x, 3 * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_Invcell_y[box], invCellBasis_y, 3 * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_Invcell_z[box], invCellBasis_z, 3 * sizeof(double),
+	     cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_nonOrth, &nonOrth, sizeof(int), cudaMemcpyHostToDevice);
+} 
+
 void DestroyEwaldCUDAVars(VariablesCUDA *vars)
 {
   for(uint b = 0; b < BOX_TOTAL; b++) {
@@ -245,6 +288,21 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   cudaFree(vars->gpu_vT22);
   cudaFree(vars->gpu_vT23);
   cudaFree(vars->gpu_vT33);
+  cudaFree(vars->gpu_nonOrth);
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    cudaFree(vars->gpu_cell_x[b]);
+    cudaFree(vars->gpu_cell_y[b]);
+    cudaFree(vars->gpu_cell_z[b]);
+    cudaFree(vars->gpu_Invcell_x[b]);
+    cudaFree(vars->gpu_Invcell_y[b]);
+    cudaFree(vars->gpu_Invcell_z[b]);
+  }
+  delete [] vars-> gpu_cell_x;
+  delete [] vars-> gpu_cell_y;
+  delete [] vars-> gpu_cell_z;
+  delete [] vars-> gpu_Invcell_x;
+  delete [] vars-> gpu_Invcell_y;
+  delete [] vars-> gpu_Invcell_z;
 }
 
 #endif /*GOMC_CUDA*/
