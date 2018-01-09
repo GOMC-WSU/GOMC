@@ -184,6 +184,19 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   uint pairSize = pair1.size();
   uint currentIndex = 0;
   double REn = 0.0, LJEn = 0.0;
+  //update unitcell in GPU
+  UpdateCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
+      boxAxes.cellBasis[box].x, boxAxes.cellBasis[box].y,
+      boxAxes.cellBasis[box].z);
+
+  if(!boxAxes.orthogonal[box])
+  {
+    BoxDimensionsNonOrth newAxes = *((BoxDimensionsNonOrth*)(&boxAxes));
+    UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
+      newAxes.cellBasis_Inv[box].x, newAxes.cellBasis_Inv[box].y,
+      newAxes.cellBasis_Inv[box].z);
+  }    
+
   while(currentIndex < pairSize) {
     uint max = currentIndex + MAX_PAIR_SIZE;
     max = (max < pairSize ? max : pairSize);
@@ -202,6 +215,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
     tempLJEn += LJEn;
     currentIndex += MAX_PAIR_SIZE;
   }
+
 #else
 #ifdef _OPENMP
   #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents) reduction(+:tempREn, tempLJEn)

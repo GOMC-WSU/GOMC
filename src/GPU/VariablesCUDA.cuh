@@ -51,5 +51,8 @@ public:
   double *gpu_rT22, *gpu_rT23, *gpu_rT33;
   double *gpu_vT11, *gpu_vT12, *gpu_vT13;
   double *gpu_vT22, *gpu_vT23, *gpu_vT33;
+  double **gpu_cell_x, **gpu_cell_y, **gpu_cell_z;
+  double **gpu_Invcell_x, **gpu_Invcell_y, **gpu_Invcell_z;
+  int *gpu_nonOrth;
 };
 #endif

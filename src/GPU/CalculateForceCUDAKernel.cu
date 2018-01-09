@@ -151,7 +151,15 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
       vars->gpu_rOn,
       vars->gpu_alpha,
       vars->gpu_ewald,
-      vars->gpu_diElectric_1);
+      vars->gpu_diElectric_1,
+      vars->gpu_cell_x,
+      vars->gpu_cell_y,
+      vars->gpu_cell_z,
+      vars->gpu_Invcell_x,
+      vars->gpu_Invcell_y,
+      vars->gpu_Invcell_z,
+      box,
+      vars->gpu_nonOrth);
   cudaDeviceSynchronize();
   // ReduceSum // Virial of LJ
   void *d_temp_storage = NULL;
@@ -363,7 +371,15 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                                  double *gpu_rOn,
                                  double *gpu_alpha,
                                  int *gpu_ewald,
-                                 double *gpu_diElectric_1)
+                                 double *gpu_diElectric_1,
+				 double **gpu_cell_x,
+				 double **gpu_cell_y,
+				 double **gpu_cell_z,
+				 double **gpu_Invcell_x,
+				 double **gpu_Invcell_y,
+				 double **gpu_Invcell_z,
+				 int box,
+				 int *gpu_nonOrth)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   if(threadID >= pairSize)
@@ -384,7 +400,9 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                gpu_y[gpu_pair1[threadID]], gpu_z[gpu_pair1[threadID]],
                gpu_x[gpu_pair2[threadID]], gpu_y[gpu_pair2[threadID]],
                gpu_z[gpu_pair2[threadID]], xAxes, yAxes, zAxes, xAxes / 2.0,
-               yAxes / 2.0, zAxes / 2.0, gpu_rCut[0])) {
+               yAxes / 2.0, zAxes / 2.0, gpu_rCut[0], box, gpu_nonOrth[0],
+	       gpu_cell_x, gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
+	       gpu_Invcell_z)) {
     diff_comx = gpu_comx[gpu_particleMol[gpu_pair1[threadID]]] -
                 gpu_comx[gpu_particleMol[gpu_pair2[threadID]]];
     diff_comy = gpu_comy[gpu_particleMol[gpu_pair1[threadID]]] -
