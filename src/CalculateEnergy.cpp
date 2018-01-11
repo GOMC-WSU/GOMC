@@ -104,7 +104,7 @@ SystemPotential CalculateEnergy::SystemTotal()
 #endif
     for (i = 0; i < molID.size(); i++) {
       //calculate nonbonded energy
-      MoleculeIntra(bondEnergy, molID[i], b);
+      MoleculeIntra(molID[i], b, bondEnergy);
       bondEn += bondEnergy[0];
       nonbondEn += bondEnergy[1];
       //calculate correction term of electrostatic interaction
