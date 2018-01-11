@@ -88,8 +88,7 @@ SystemPotential CalculateEnergy::SystemTotal()
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     pot.boxVirial[b] = ForceCalc(b);
     uint i;
-    double *bondEnergy = new double[2];
-    bondEnergy[0] = 0.0, bondEnergy[1] = 0.0;
+    double bondEnergy[2] = {0};
     double bondEn = 0.0, nonbondEn = 0.0, self = 0.0, correction = 0.0;
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(b);
@@ -105,7 +104,7 @@ SystemPotential CalculateEnergy::SystemTotal()
 #endif
     for (i = 0; i < molID.size(); i++) {
       //calculate nonbonded energy
-      bondEnergy = MoleculeIntra(molID[i], b);
+      MoleculeIntra(bondEnergy, molID[i], b);
       bondEn += bondEnergy[0];
       nonbondEn += bondEnergy[1];
       //calculate correction term of electrostatic interaction
@@ -654,10 +653,9 @@ Intermolecular CalculateEnergy::MoleculeTailChange(const uint box,
 
 
 //Calculates intramolecular energy of a full molecule
-double* CalculateEnergy::MoleculeIntra(const uint molIndex,
-                                       const uint box) const
+void CalculateEnergy::MoleculeIntra(const uint molIndex,
+                                    const uint box, double *bondEn) const
 {
-  double *bondEn = new double[2];
   bondEn[0] = 0.0, bondEn[1] = 0.0;
 
   MoleculeKind& molKind = mols.kinds[mols.kIndex[molIndex]];
@@ -677,8 +675,6 @@ double* CalculateEnergy::MoleculeIntra(const uint molIndex,
   MolNonbond_1_4(bondEn[1], molKind, molIndex, box);
 
   MolNonbond_1_3(bondEn[1], molKind, molIndex, box);
-
-  return bondEn;
 }
 
 void CalculateEnergy::BondVectors(XYZArray & vecs,
