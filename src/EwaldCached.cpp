@@ -245,7 +245,7 @@ void EwaldCached::AllocMem()
   cosMolRestore = new double[imageTotal];
   sinMolRestore = new double[imageTotal];
 
-  uint i;
+  int i;
 #ifdef _OPENMP
   #pragma omp parallel for default(shared) private(i)
 #endif
@@ -451,7 +451,8 @@ uint EwaldCached::findLargeImage()
 //calculate reciprocate term for a box
 void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 {
-  uint i, j, m;
+  uint j, m;
+  int i;
   double dotProduct = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
@@ -498,7 +499,7 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 //calculate reciprocate term for a box
 double EwaldCached::BoxReciprocal(uint box) const
 {
-  uint i;
+  int i;
   double energyRecip = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
@@ -530,7 +531,8 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
   double recipIntra = 0.0;
   double constVal = 1.0 / (4.0 * alpha * alpha);
   double factor, arg, charge;
-  uint i, p, length, start, atom;
+  uint p, length, start, atom;
+  int i;
 
   MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box),
                                end = molLookup.BoxEnd(box);
@@ -679,7 +681,8 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
     MoleculeKind const& thisKind = mols.GetKind(molIndex);
     uint length = thisKind.NumAtoms();
     uint startAtom = mols.MolStart(molIndex);
-    uint i, p, atom;
+    uint p, atom;
+	int i;
     double sumRealNew, sumImaginaryNew, dotProductNew, sumRealOld,
            sumImaginaryOld;
 
@@ -790,7 +793,8 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
   }
 
   if (box < BOXES_WITH_U_NB) {
-    uint p, i, length;
+    uint p, length;
+	int i;
     MoleculeKind const& thisKind = newMol.GetKind();
     XYZArray molCoords = newMol.GetCoords();
     double dotProductNew;
@@ -838,7 +842,7 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
   double energyRecipOld = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
-    uint i;
+    int i;
 #ifdef _OPENMP
     #pragma omp parallel for default(shared) private(i) reduction(+:energyRecipNew)
 #endif

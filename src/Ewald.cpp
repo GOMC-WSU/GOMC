@@ -124,7 +124,8 @@ void Ewald::AllocMem()
 //calculate reciprocate term for a box
 void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 {
-  uint i, j, m;
+  uint j, m;
+  int i;
   double dotProduct = 0.0;
   double sumReal = 0.0;
   double sumImaginary = 0.0;
@@ -198,7 +199,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 //calculate reciprocate term for a box
 double Ewald::BoxReciprocal(uint box) const
 {
-  uint i;
+  int i;
   double energyRecip = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
@@ -232,7 +233,8 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
     MoleculeKind const& thisKind = mols.GetKind(molIndex);
     uint length = thisKind.NumAtoms();
     uint startAtom = mols.MolStart(molIndex);
-    uint i, p, atom;
+    uint p, atom;
+	int i;
     double sumRealNew, sumImaginaryNew, dotProductNew, dotProductOld,
            sumRealOld, sumImaginaryOld;
 #ifdef GOMC_CUDA
@@ -297,7 +299,8 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
 
 
   if (box < BOXES_WITH_U_NB) {
-    uint p, i, length;
+    uint p, length;
+	int i;
     MoleculeKind const& thisKind = newMol.GetKind();
     XYZArray molCoords = newMol.GetCoords();
     double dotProductNew, sumRealNew, sumImaginaryNew;
@@ -354,7 +357,8 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
   double energyRecipOld = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
-    uint i, p;
+    uint p;
+	int i;
     double sumRealNew, sumImaginaryNew, dotProductNew;
     MoleculeKind const& thisKind = oldMol.GetKind();
     XYZArray molCoords = oldMol.GetCoords();

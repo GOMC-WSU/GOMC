@@ -101,7 +101,7 @@ void DCHedron::GenerateAnglesNew(TrialMol& newMol, uint molIndex,
                                  uint kind, uint nTrials, uint bType)
 {
   double* nonbonded_1_3 =  data->nonbonded_1_3;
-  uint i;
+  int i;
   double distSq, thetaFix;
   bool angleFix = false;
   std::fill_n(nonbonded_1_3, nTrials, 0.0);
@@ -144,7 +144,7 @@ void DCHedron::GenerateAnglesOld(TrialMol& oldMol, uint molIndex,
                                  uint kind, uint nTrials, uint bType)
 {
   double* nonbonded_1_3 =  data->nonbonded_1_3;
-  uint i;
+  int i;
   double distSq, thetaFix;
   bool angleFix = false;
   std::fill_n(nonbonded_1_3, nTrials, 0.0);
@@ -345,7 +345,7 @@ void DCHedron::ConstrainedAngles(TrialMol& newMol, uint molIndex,
 
     //calculate weights from combined energy
     double stepWeight = 0.0;
-    uint i;
+    int i;
 #ifdef _OPENMP
     #pragma omp parallel for default(shared) private(i) reduction(+:stepWeight)
 #endif

@@ -144,7 +144,8 @@ void Coordinates::TranslateOneBox
 (Coordinates & dest, COM & newCOM, COM const& oldCOM,
  BoxDimensions const& newDim, const uint b, const XYZ& scale) const
 {
-  uint pStart = 0, pStop = 0, pLen = 0, i;
+  uint pStart = 0, pStop = 0, pLen = 0;
+  int i;
   MoleculeLookup::box_iterator curr = molLookRef.BoxBegin(b),
                                end = molLookRef.BoxEnd(b);
   std::vector<int> molID;
