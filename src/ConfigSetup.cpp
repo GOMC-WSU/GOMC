@@ -636,7 +636,7 @@ void ConfigSetup::fillDefaults(void)
   }
 
   if(sys.ff.cutoffLow == DBL_MAX) {
-    sys.ff.cutoffLow = 1.00;
+    sys.ff.cutoffLow = 0.00;
     printf("%-40s %-4.4f \n", "Default: Short Range Cutoff", sys.ff.cutoffLow);
   }
 

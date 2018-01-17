@@ -185,8 +185,8 @@ void EwaldCached::Init()
     RecipInit(b, currentAxes);
     BoxReciprocalSetup(b, currentCoords);
     SetRecipRef(b);
-    printf("Box %d, RecipVectors: %6d, kmax: %d, alpha: %f6\n",
-           b, imageSize[b], kmax[b], alpha);
+    printf("Box: %d, RecipVectors: %6d, kmax: %d\n",
+           b, imageSize[b], kmax[b]);
   }
 }
 
