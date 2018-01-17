@@ -30,6 +30,11 @@ void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal);
 void CopyCurrentToRefCUDA(VariablesCUDA *vars, uint box, uint imageTotal);
 void UpdateRecipVecCUDA(VariablesCUDA *vars, uint box);
 void UpdateRecipCUDA(VariablesCUDA *vars, uint box);
+void UpdateCellBasisCUDA(VariablesCUDA *vars, uint box, double *cellBasis_x,
+			 double *cellBasis_y, double *cellBasis_z);
+void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box, 
+			    double *invCellBasis_x, double *invCellBasis_y,
+			    double *invCellBasis_z);
 void DestroyEwaldCUDAVars(VariablesCUDA *vars);
 void DestroyCUDAVars(VariablesCUDA *vars);
 

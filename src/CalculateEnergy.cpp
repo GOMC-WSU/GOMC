@@ -88,8 +88,7 @@ SystemPotential CalculateEnergy::SystemTotal()
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     pot.boxVirial[b] = ForceCalc(b);
     uint i;
-    double *bondEnergy = new double[2];
-    bondEnergy[0] = 0.0, bondEnergy[1] = 0.0;
+    double bondEnergy[2] = {0};
     double bondEn = 0.0, nonbondEn = 0.0, self = 0.0, correction = 0.0;
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(b);
@@ -105,7 +104,7 @@ SystemPotential CalculateEnergy::SystemTotal()
 #endif
     for (i = 0; i < molID.size(); i++) {
       //calculate nonbonded energy
-      bondEnergy = MoleculeIntra(molID[i], b);
+      MoleculeIntra(molID[i], b, bondEnergy);
       bondEn += bondEnergy[0];
       nonbondEn += bondEnergy[1];
       //calculate correction term of electrostatic interaction
@@ -184,6 +183,19 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   uint pairSize = pair1.size();
   uint currentIndex = 0;
   double REn = 0.0, LJEn = 0.0;
+  //update unitcell in GPU
+  UpdateCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
+      boxAxes.cellBasis[box].x, boxAxes.cellBasis[box].y,
+      boxAxes.cellBasis[box].z);
+
+  if(!boxAxes.orthogonal[box])
+  {
+    BoxDimensionsNonOrth newAxes = *((BoxDimensionsNonOrth*)(&boxAxes));
+    UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
+      newAxes.cellBasis_Inv[box].x, newAxes.cellBasis_Inv[box].y,
+      newAxes.cellBasis_Inv[box].z);
+  }    
+
   while(currentIndex < pairSize) {
     uint max = currentIndex + MAX_PAIR_SIZE;
     max = (max < pairSize ? max : pairSize);
@@ -202,6 +214,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
     tempLJEn += LJEn;
     currentIndex += MAX_PAIR_SIZE;
   }
+
 #else
 #ifdef _OPENMP
   #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents) reduction(+:tempREn, tempLJEn)
@@ -640,10 +653,9 @@ Intermolecular CalculateEnergy::MoleculeTailChange(const uint box,
 
 
 //Calculates intramolecular energy of a full molecule
-double* CalculateEnergy::MoleculeIntra(const uint molIndex,
-                                       const uint box) const
+void CalculateEnergy::MoleculeIntra(const uint molIndex,
+                                    const uint box, double *bondEn) const
 {
-  double *bondEn = new double[2];
   bondEn[0] = 0.0, bondEn[1] = 0.0;
 
   MoleculeKind& molKind = mols.kinds[mols.kIndex[molIndex]];
@@ -663,8 +675,6 @@ double* CalculateEnergy::MoleculeIntra(const uint molIndex,
   MolNonbond_1_4(bondEn[1], molKind, molIndex, box);
 
   MolNonbond_1_3(bondEn[1], molKind, molIndex, box);
-
-  return bondEn;
 }
 
 void CalculateEnergy::BondVectors(XYZArray & vecs,

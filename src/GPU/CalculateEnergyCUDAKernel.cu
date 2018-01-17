@@ -91,7 +91,14 @@ void CallBoxInterGPU(VariablesCUDA *vars,
       vars->gpu_rOn,
       vars->gpu_alpha,
       vars->gpu_ewald,
-      vars->gpu_diElectric_1);
+      vars->gpu_diElectric_1,
+      vars->gpu_nonOrth,
+      vars->gpu_cell_x[box],
+      vars->gpu_cell_y[box],
+      vars->gpu_cell_z[box],
+      vars->gpu_Invcell_x[box],
+      vars->gpu_Invcell_y[box],
+      vars->gpu_Invcell_z[box]);
 
   // ReduceSum
   void * d_temp_storage = NULL;
@@ -155,7 +162,14 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             double *gpu_rOn,
                             double *gpu_alpha,
                             int *gpu_ewald,
-                            double *gpu_diElectric_1)
+                            double *gpu_diElectric_1,
+			    int *gpu_nonOrth,
+			    double *gpu_cell_x,
+			    double *gpu_cell_y,
+			    double *gpu_cell_z,
+			    double *gpu_Invcell_x,
+			    double *gpu_Invcell_y,
+			    double *gpu_Invcell_z)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   if(threadID >= pairSize)
@@ -169,7 +183,8 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                gpu_z[gpu_pair1[threadID]], gpu_x[gpu_pair2[threadID]],
                gpu_y[gpu_pair2[threadID]], gpu_z[gpu_pair2[threadID]],
                xAxes, yAxes, zAxes, xAxes / 2.0, yAxes / 2.0, zAxes / 2.0,
-               gpu_rCut[0])) {
+               gpu_rCut[0], gpu_nonOrth[0], gpu_cell_x, gpu_cell_y,
+	       gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z)) {
     if(electrostatic) {
       qi_qj_fact = gpu_particleCharge[gpu_pair1[threadID]] *
                    gpu_particleCharge[gpu_pair2[threadID]] * qqFact;

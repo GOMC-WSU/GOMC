@@ -92,7 +92,14 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                                  double *gpu_rOn,
                                  double *gpu_alpha,
                                  int *gpu_ewald,
-                                 double *gpu_diElectric_1);
+                                 double *gpu_diElectric_1,
+				 double *gpu_cell_x,
+				 double *gpu_cell_y,
+				 double *gpu_cell_z,
+				 double *gpu_Invcell_x,
+				 double *gpu_Invcell_y,
+				 double *gpu_Invcell_z,
+				 int *gpu_nonOrth);
 
 __global__ void ForceReciprocalGPU(double *gpu_x,
                                    double *gpu_y,

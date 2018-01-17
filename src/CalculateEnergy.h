@@ -138,7 +138,7 @@ public:
                                     const bool add) const;
 
   //! Calculates intramolecular energy of a full molecule
-  double* MoleculeIntra(const uint molIndex, const uint box) const;
+  void MoleculeIntra(const uint molIndex, const uint box, double *bondEn) const;
 
   //! Calculates Nonbonded 1_3 intramolecule energy of a full molecule
   //for Martini forcefield
