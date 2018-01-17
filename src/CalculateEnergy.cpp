@@ -87,7 +87,7 @@ SystemPotential CalculateEnergy::SystemTotal()
   //system intra
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     pot.boxVirial[b] = ForceCalc(b);
-    uint i;
+    int i;
     double bondEnergy[2] = {0};
     double bondEn = 0.0, nonbondEn = 0.0, self = 0.0, correction = 0.0;
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b);
@@ -165,7 +165,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
   double tempREn = 0.0, tempLJEn = 0.0;
   double distSq, qi_qj_fact;
-  uint i;
+  int i;
   XYZ virComponents;
   std::vector<uint> pair1, pair2;
   CellList::Pairs pair = cellList.EnumeratePairs(box);
@@ -264,7 +264,7 @@ Virial CalculateEnergy::ForceCalc(const uint box)
   double rT22 = 0.0, rT23 = 0.0, rT33 = 0.0;
 
   double distSq, pVF, pRF, qi_qj;
-  uint i;
+  int i;
   XYZ virC, comC;
   std::vector<uint> pair1, pair2;
   CellList::Pairs pair = cellList.EnumeratePairs(box);
@@ -424,7 +424,7 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
       n = cellList.EnumerateLocal(currentCoords[atom], box);
 
       double qi_qj_fact, distSq;
-      uint i;
+      int i;
       XYZ virComponents;
       std::vector<uint> nIndex;
 
