@@ -62,7 +62,7 @@ void Ewald::Init()
     RecipInit(b, currentAxes);
     BoxReciprocalSetup(b, currentCoords);
     SetRecipRef(b);
-    printf("box: %d, RecipVectors: %d, kmax: %d\n", b, imageSize[b],
+    printf("Box: %d, RecipVectors: %d, kmax: %d\n", b, imageSize[b],
            kmax[b]);
   }
 }
