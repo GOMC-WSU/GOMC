@@ -78,6 +78,7 @@ ConfigSetup::ConfigSetup(void)
   sys.moves.displace = DBL_MAX;
   sys.moves.rotate = DBL_MAX;
   sys.moves.intraSwap = DBL_MAX;
+  sys.moves.multiParticleDisplace = DBL_MAX;
   out.state.settings.enable = true;
   out.restart.settings.enable = true;
   out.console.enable = true;
@@ -308,7 +309,8 @@ void ConfigSetup::Init(const char *fileName)
         sys.step.pressureCalcFreq = stringtoi(line[2]);
 
       if(sys.step.pressureCalc && (line.size() == 2)) {
-        std::cout << "Error: Pressure calculation frequency is not specified!\n";
+        std::cout <<
+          "Error: Pressure calculation frequency is not specified!\n";
         exit(EXIT_FAILURE);
       }
       if(!sys.step.pressureCalc)
@@ -321,6 +323,11 @@ void ConfigSetup::Init(const char *fileName)
       sys.moves.displace = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Displacement move frequency",
              sys.moves.displace);
+    } else if(line[0] == "MultiParticleDisFreq") {
+      sys.moves.multiParticleDisplace = stringtod(line[1]);
+      printf("%-40s %-4.4f \n",
+             "Info: Multi-Particle displacement move frequency",
+             sys.moves.multiParticleDisplace);
     } else if(line[0] == "IntraSwapFreq") {
       sys.moves.intraSwap = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Intra-Swap move frequency",
@@ -782,6 +789,11 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Displacement move frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
+  if(sys.moves.multiParticleDisplace == DBL_MAX) {
+    std::cout <<
+      "Error: Multi-Particle Displacement move frequency is not specified!\n";
+    exit(EXIT_FAILURE);
+  }
   if(sys.moves.rotate == DBL_MAX) {
     std::cout << "Error: Rotation move frequency is not specified!\n";
     exit(EXIT_FAILURE);
@@ -805,7 +817,8 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Molecule swap move frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
-  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
+  if(abs(sys.moves.displace + sys.moves.multiParticleDisplace +
+         sys.moves.rotate + sys.moves.transfer +
          sys.moves.intraSwap + sys.moves.volume - 1.0) > 0.01) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(EXIT_FAILURE);
@@ -815,7 +828,8 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Volume move frequency is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
-  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
+  if(abs(sys.moves.displace + sys.moves.multiParticleDisplace +
+         sys.moves.rotate + sys.moves.intraSwap +
          sys.moves.volume - 1.0) > 0.01) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(EXIT_FAILURE);
@@ -826,13 +840,15 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Molecule swap move frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
-  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
+  if(abs(sys.moves.displace + sys.moves.multiParticleDisplace + 
+         sys.moves.rotate + sys.moves.intraSwap +
          sys.moves.transfer - 1.0) > 0.01) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #else
-  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap - 1.0) > 0.01) {
+  if(abs(sys.moves.displace + sys.moves.multiParticleDisplace + 
+         sys.moves.rotate + sys.moves.intraSwap - 1.0) > 0.01) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
