@@ -27,7 +27,7 @@ const uint GEMC_NPT = 1;
 
 //////////////////////////////////////////////////////////
 const uint DISPLACE = 0;
-const uint MPDISPLACE = 1
+const uint MPDISPLACE = 1;
 const uint ROTATE = 2;
 #if ENSEMBLE == NVT
 const uint INTRA_SWAP = 3;
