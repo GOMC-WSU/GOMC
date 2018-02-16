@@ -234,7 +234,7 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
     uint length = thisKind.NumAtoms();
     uint startAtom = mols.MolStart(molIndex);
     uint p, atom;
-	int i;
+	  int i;
     double sumRealNew, sumImaginaryNew, dotProductNew, dotProductOld,
            sumRealOld, sumImaginaryOld;
 #ifdef GOMC_CUDA

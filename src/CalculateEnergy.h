@@ -66,6 +66,9 @@ public:
   //! Calculate force and virial for the box
   Virial ForceCalc(const uint box);
 
+  //! Calculate force of a molecule
+  Virial ForceCalcMol(uint moleculeIDReference, uint box);
+
 
   //! Calculates intermolecule energy of all boxes in the system
   //! @param potential Copy of current energy structure to append result to
