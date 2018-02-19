@@ -73,6 +73,9 @@ void System::Init(Setup const& set)
   //particle/molecule ensemble, e.g. NVT
   coordinates.InitFromPDB(set.pdb.atoms);
   com.CalcCOM();
+  // Allocate space for atom forces
+  atomForcesOld.Init(set.pdb.atoms.beta.size());
+  atomForcesNew.Init(set.pdb.atoms.beta.size());
   cellList.SetCutoff(statV.forcefield.rCut);
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 

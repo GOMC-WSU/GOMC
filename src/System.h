@@ -82,6 +82,8 @@ public:
   MoveSettings moveSettings;
   SystemPotential potential;
   Coordinates coordinates;
+  XYZArray atomForcesOld;
+  XYZArray atomForcesNew;
   COM com;
 
   CalculateEnergy calcEnergy;
