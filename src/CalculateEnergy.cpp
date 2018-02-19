@@ -44,6 +44,8 @@ using namespace geom;
 CalculateEnergy::CalculateEnergy(StaticVals & stat, System & sys) :
   forcefield(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
   currentCOM(sys.com),
+  atomForcesOld(sys.atomForcesOld), // forces value for each atom before trial
+  atomForcesNew(atomForcesNew),     // forces value for each atom after trial
 #ifdef VARIABLE_PARTICLE_NUMBER
   molLookup(sys.molLookup),
 #else
@@ -933,7 +935,9 @@ void CalculateEnergy::ForceCorrection(Virial& virial,
 
 // Calculate the force of a molecule
 // Used by Multi_Particle
-Virial CalculateEnergy::ForceCalcMol(uint moleculeIDReference, uint box)
+void CalculateEnergy::ForceCalcMol(XYZArray& forces,
+                                   uint moleculeIDReference,
+                                   uint box)
 {
   uint length = mols.GetKind(moleculeIDReference).NumAtoms();
   uint start = mols.MolStart(moleculeIDReference);
@@ -945,7 +949,7 @@ Virial CalculateEnergy::ForceCalcMol(uint moleculeIDReference, uint box)
   Virial tempVir;
   double pVF = 0.0, pRF = 0.0;
   double distSq;
-  XYZ virC, comC;
+  XYZ directionBetweenAtoms, force;
   double qi_qj;
   uint secondAtom;
 
@@ -966,70 +970,30 @@ Virial CalculateEnergy::ForceCalcMol(uint moleculeIDReference, uint box)
       secondAtom = nIndex[i];
 
       // Calculate the distance squared of two molecules
-      currentAxes.InRcut(distSq, virC, currentCoords, atom, secondAtom, box);
-
-      // Calculate the distance between center of mass of two molecules
-      comC = currentCOM.Difference(particleMol[atom], particleMol[secondAtom]);
-      // Calculate the minimum image between center of mass of two molecules
-      comC = currentAxes.MinImage(comC, box);
+      currentAxes.InRcut(distSq, directionBetweenAtoms, currentCoords, atom, secondAtom, box); 
 
       if(electrostatic) {
         qi_qj = particleCharge[atom] * particleCharge[secondAtom];
-
         pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj);
         // Calculate the pressure tensor
-        rT11 += pRF * (virC.x * comC.x);
-        rT22 += pRF * (virC.y * comC.y);
-        rT33 += pRF * (virC.z * comC.z);
+        rT11 += pRF * (directionBetweenAtoms.x);
+        rT22 += pRF * (directionBetweenAtoms.y);
+        rT33 += pRF * (directionBetweenAtoms.z);
       }
       pVF = forcefield.particles->CalcVir(distSq, particleKind[atom],
                                           particleKind[secondAtom]);
-      vT11 += pVF * (virC.x * comC.x);
-      vT22 += pVF * (virC.y * comC.y);
-      vT33 += pVF * (virC.z * comC.z);
+      vT11 += pVF * (directionBetweenAtoms.x);
+      vT22 += pVF * (directionBetweenAtoms.y);
+      vT33 += pVF * (directionBetweenAtoms.z);
     }
+    forces[atom].x = vT11;
+    forces[atom].y = vT22;
+    forces[atom].z = vT33;
+    
+    if(electrostatic) {
+      forces[atom].x += rT11 * num::qqFact;
+      forces[atom].y += rT22 * num::qqFact;
+      forces[atom].z += rT33 * num::qqFact;
+    }  
   }
-
-  // set the all tensor values
-  tempVir.interTens[0][0] = vT11;
-  tempVir.interTens[0][1] = vT12;
-  tempVir.interTens[0][2] = vT13;
-
-  tempVir.interTens[1][0] = vT12;
-  tempVir.interTens[1][1] = vT22;
-  tempVir.interTens[1][2] = vT23;
-
-  tempVir.interTens[2][0] = vT13;
-  tempVir.interTens[2][1] = vT23;
-  tempVir.interTens[2][2] = vT33;
-
-  if (electrostatic) {
-    // real part of electrostatic
-    tempVir.realTens[0][0] = rT11 * num::qqFact;
-    tempVir.realTens[0][1] = rT12 * num::qqFact;
-    tempVir.realTens[0][2] = rT13 * num::qqFact;
-
-    tempVir.realTens[1][0] = rT12 * num::qqFact;
-    tempVir.realTens[1][1] = rT22 * num::qqFact;
-    tempVir.realTens[1][2] = rT23 * num::qqFact;
-
-    tempVir.realTens[2][0] = rT13 * num::qqFact;
-    tempVir.realTens[2][1] = rT23 * num::qqFact;
-    tempVir.realTens[2][2] = rT33 * num::qqFact;
-  }
-
-  // setting virial of LJ
-  tempVir.inter = vT11 + vT22 + vT33;
-  // setting virial of coulomb
-  tempVir.real = (rT11 + rT22 + rT33) * num::qqFact;
-
-  if (forcefield.useLRC) {
-    ForceCorrection(tempVir, currentAxes, box);
-  }
-
-  //calculate reciprocate term of force
-  tempVir = calcEwald->ForceReciprocal(tempVir, box);
-
-  tempVir.Total();
-  return tempVir;
 }

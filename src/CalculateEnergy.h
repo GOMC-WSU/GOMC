@@ -67,7 +67,7 @@ public:
   Virial ForceCalc(const uint box);
 
   //! Calculate force of a molecule
-  Virial ForceCalcMol(uint moleculeIDReference, uint box);
+  void ForceCalcMol(XYZArray& forces, uint moleculeIDReference, uint box);
 
 
   //! Calculates intermolecule energy of all boxes in the system
@@ -241,6 +241,8 @@ private:
   const BoxDimensions& currentAxes;
   const COM& currentCOM;
   const EwaldCached  *calcEwald;
+  XYZArray& atomForcesOld;
+  XYZArray& atomForcesNew;
   bool electrostatic, ewald;
 
   std::vector<int> particleKind;
