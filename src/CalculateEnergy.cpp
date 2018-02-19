@@ -935,6 +935,9 @@ void CalculateEnergy::ForceCorrection(Virial& virial,
 
 // Calculate the force of a molecule
 // Used by Multi_Particle
+// forces array is whether the old or new forces (before/after trial)
+// moleculeIDReference is the id of the molecule of interest
+// box is the box which the molecule resides
 void CalculateEnergy::ForceCalcMol(XYZArray& forces,
                                    uint moleculeIDReference,
                                    uint box)
@@ -986,14 +989,11 @@ void CalculateEnergy::ForceCalcMol(XYZArray& forces,
       vT22 += pVF * (directionBetweenAtoms.y);
       vT33 += pVF * (directionBetweenAtoms.z);
     }
-    forces[atom].x = vT11;
-    forces[atom].y = vT22;
-    forces[atom].z = vT33;
     
+    // store in the XYZArray
+    forces.Set(atom, vT11, vT22, vT33);
     if(electrostatic) {
-      forces[atom].x += rT11 * num::qqFact;
-      forces[atom].y += rT22 * num::qqFact;
-      forces[atom].z += rT33 * num::qqFact;
+      forces.Add(atom, rT11, rT22, rT33);
     }  
   }
 }
