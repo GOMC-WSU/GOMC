@@ -96,6 +96,7 @@ set(headers
    src/MoveBase.h
    src/MoveConst.h
    src/MoveSettings.h
+   src/MultiParticle.h
    src/NoEwald.h
    src/OutConst.h
    src/OutputAbstracts.h

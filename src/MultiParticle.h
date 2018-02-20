@@ -30,21 +30,23 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
                                  boxDimRef, bPick);
 }
 
-inline uint Transform()
+inline uint MultiParticle::Transform()
 {
   // Based on the reference force decided whether to displace or rotate each
   // individual particle.
-
+  return 0;
 }
 
 inline void MultiParticle::CalcEn() 
 {
   // Calculate the new force and energy and we will compare that to the
   // reference values in Accept() function 
+  return;
 }
 
-inline void Accept(const uint rejectState, const uint step)
+inline void MultiParticle::Accept(const uint rejectState, const uint step)
 {
   // Here we compare the values of reference and trial and decide whether to 
   // accept or reject the move
+  return;
 }
