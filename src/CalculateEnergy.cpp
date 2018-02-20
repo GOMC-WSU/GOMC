@@ -19,6 +19,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Coordinates.h"
 #include "BoxDimensions.h"
 #include "BoxDimensionsNonOrth.h"
+#include "TransformMatrix.h"
 #include "TrialMol.h"
 #include "GeomLib.h"
 #include "NumLib.h"
@@ -58,7 +59,10 @@ CalculateEnergy::CalculateEnergy(StaticVals & stat, System & sys) :
 #else
   currentAxes(*stat.GetBoxDim())
 #endif
-  , cellList(sys.cellList) {}
+  , cellList(sys.cellList)
+{
+  multiParticleEnabled = stat.multiParticleEnabled;
+}
 
 
 void CalculateEnergy::Init(System & sys)
@@ -67,7 +71,6 @@ void CalculateEnergy::Init(System & sys)
   calcEwald = sys.GetEwald();
   electrostatic = forcefield.electrostatic;
   ewald = forcefield.ewald;
-  multiParticleEnabled = sys.moves.multiParticleEnabled;
   for(uint m = 0; m < mols.count; ++m) {
     const MoleculeKind& molKind = mols.GetKind(m);
     if(molKind.NumAtoms() > maxAtomInMol)
