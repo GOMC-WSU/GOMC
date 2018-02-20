@@ -26,7 +26,7 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
 inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
 {
   prng.PickBox(bPick, subDraw, movPerc);
-  sysPotRef = calcEnRef.BoxInter(sysPotRef, currentCoords, currentCOM, 
+  sysPotRef = calcEnRef.BoxInter(sysPotRef, coordCurrRef, comCurrRef, 
                                  boxDimRef, bPick);
 }
 
@@ -34,7 +34,7 @@ inline uint Transform()
 {
   // Based on the reference force decided whether to displace or rotate each
   // individual particle.
-  
+
 }
 
 inline void MultiParticle::CalcEn() 
