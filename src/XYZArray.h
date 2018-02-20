@@ -392,7 +392,7 @@ inline void XYZArray::SetRange(const uint start, const uint stop,
   }
 }
 
-inline void ResetRange(const uint start, const uint stop) 
+inline void XYZArray::ResetRange(const uint start, const uint stop) 
 {
   const uint len = stop - start;
   memset(this->x, 0, len * sizeof(double));
@@ -400,7 +400,7 @@ inline void ResetRange(const uint start, const uint stop)
   memset(this->z, 0, len * sizeof(double));
 }
 
-inline void Reset()
+inline void XYZArray::Reset()
 {
   ResetRange(0, count);
 }
