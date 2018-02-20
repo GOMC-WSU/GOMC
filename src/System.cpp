@@ -106,6 +106,7 @@ void System::Init(Setup const& set)
 void System::InitMoves()
 {
   moves[mv::DISPLACE] = new Translate(*this, statV);
+  moves[mv::MULTIPARTICLE] = new MultiParticle(*this, statV);
   moves[mv::ROTATE] = new Rotate(*this, statV);
   moves[mv::INTRA_SWAP] = new IntraSwap(*this, statV);
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT

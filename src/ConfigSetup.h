@@ -155,6 +155,7 @@ struct Step {
 
 //Holds the percentage of each kind of move for this ensemble.
 struct MovePercents {
+  bool multiParticleEnabled;
   double displace, rotate, intraSwap, multiParticle;
 #ifdef VARIABLE_VOLUME
   double volume;

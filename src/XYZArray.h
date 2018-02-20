@@ -114,6 +114,10 @@ public:
 
   void SetRange(const uint start, const uint stop, XYZ const& val);
 
+  void ResetRange(const uint start, const uint stop);
+
+  void Reset();
+
   ////////////////////////////////////////////////////////////////////
 
   //Add values in two diferent arrays.
@@ -386,6 +390,19 @@ inline void XYZArray::SetRange(const uint start, const uint stop,
     y[i] = val.y;
     z[i] = val.z;
   }
+}
+
+inline void ResetRange(const uint start, const uint stop) 
+{
+  const uint len = stop - start;
+  memset(this->x, 0, len * sizeof(double));
+  memset(this->y, 0, len * sizeof(double));
+  memset(this->z, 0, len * sizeof(double));
+}
+
+inline void Reset()
+{
+  ResetRange(0, count);
 }
 
 inline void XYZArray::Init(const uint n)

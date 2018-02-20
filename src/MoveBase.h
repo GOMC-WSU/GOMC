@@ -562,6 +562,6 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
 
 }
 
-#endif
+#endif 
 
 #endif /*TRANSFORMABLE_BASE_H*/
