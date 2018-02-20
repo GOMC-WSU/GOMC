@@ -44,8 +44,10 @@ using namespace geom;
 CalculateEnergy::CalculateEnergy(StaticVals & stat, System & sys) :
   forcefield(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
   currentCOM(sys.com),
-  atomForcesOld(sys.atomForcesOld), // forces value for each atom before trial
-  atomForcesNew(atomForcesNew),     // forces value for each atom after trial
+  atomForcesOld(sys.atomForcesOld), // Forces value for each atom before trial
+  atomForcesNew(sys.atomForcesNew), // Forces value for each atom after trial
+  atomTorqueOld(sys.atomTorqueOld), // Torque value for each atom before trial
+  atomTorqueNew(sys.atomTorqueNew), // Torque value for each atom before trial
 #ifdef VARIABLE_PARTICLE_NUMBER
   molLookup(sys.molLookup),
 #else
@@ -172,7 +174,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   double rT11 = 0.0, rT22 = 0.0, rT33 = 0.0;
   double vT11 = 0.0, vT22 = 0.0, vT33 = 0.0;
   int i;
-  XYZ virComponents;
+  XYZ virComponents, distFromCOM, tempForce, tempTorque;
   std::vector<uint> pair1, pair2;
   CellList::Pairs pair = cellList.EnumeratePairs(box);
 
@@ -235,29 +237,43 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
         qi_qj_fact = qi_qj * num::qqFact;
 
         tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact);
-        if(multiParticleEnabled) {
+      }
+      tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
+                  particleKind[pair2[i]]);
+
+      // Calculating the force and torque of each atom
+      if(multiParticleEnabled) {
+        distFromCOM = currentCoords.Difference(pair1[i], currentCOM, pair1[i]);
+        distFromCOM = currentAxes.MinImage(distFromCOM, box);
+        if(electrostatic) {
           pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj);
           rT11 = pRF * (virComponents.x) * num::qqFact;
           rT22 = pRF * (virComponents.y) * num::qqFact;
           rT33 = pRF * (virComponents.z) * num::qqFact;
         }
-      }
-      tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
-                  particleKind[pair2[i]]);
-      if(multiParticleEnabled) {
         pVF = forcefield.particles->CalcVir(distSq, particleKind[pair1[i]],
                                             particleKind[pair2[i]]);
         vT11 = pVF * (virComponents.x);
         vT22 = pVF * (virComponents.y);
         vT33 = pVF * (virComponents.z);
-      }
+        // add force to first atom and substract from the second atom
+        atomForcesNew.Add(pair1[i], vT11, vT22, vT33);
+        atomForcesNew.Sub(pair2[i], vT11, vT22, vT33);
 
-      // add force to first atom and substract from the second atom
-      atomForcesOld.Add(pair1[i], vT11, vT22, vT33);
-      atomForcesOld.Sub(pair2[i], vT11, vT22, vT33);
-      if(electrostatic) {
-        atomForcesOld.Add(pair1[i], rT11, rT22, rT33);
-        atomForcesOld.Sub(pair2[i], rT11, rT22, rT33);
+        tempForce = XYZ(vT11, vT22, vT33);
+        tempTorque = CrossProduct(distFromCOM, tempForce);
+        atomTorqueNew.Add(pair1[i], tempTorque);
+        atomTorqueNew.Sub(pair2[i], tempTorque);
+        
+        if(electrostatic) {
+          atomForcesNew.Add(pair1[i], rT11, rT22, rT33);
+          atomForcesNew.Sub(pair2[i], rT11, rT22, rT33);
+
+          tempForce = XYZ(rT11, rT22, rT33);
+          tempTorque = CrossProduct(distFromCOM, tempForce);
+          atomTorqueNew.Add(pair1[i], tempTorque);
+          atomTorqueNew.Sub(pair2[i], tempTorque);
+        }
       }
     }
   }

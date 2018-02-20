@@ -243,6 +243,8 @@ private:
   const EwaldCached  *calcEwald;
   XYZArray& atomForcesOld;
   XYZArray& atomForcesNew;
+  XYZArray& atomTorqueOld;
+  XYZArray& atomTorqueNew;
   bool multiParticleEnabled;
   bool electrostatic, ewald;
 
