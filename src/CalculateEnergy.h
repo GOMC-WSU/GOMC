@@ -243,6 +243,7 @@ private:
   const EwaldCached  *calcEwald;
   XYZArray& atomForcesOld;
   XYZArray& atomForcesNew;
+  bool multiParticleEnabled;
   bool electrostatic, ewald;
 
   std::vector<int> particleKind;

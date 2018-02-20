@@ -65,6 +65,7 @@ void CalculateEnergy::Init(System & sys)
   calcEwald = sys.GetEwald();
   electrostatic = forcefield.electrostatic;
   ewald = forcefield.ewald;
+  multiParticleEnabled = sys.moves.multiParticleEnabled;
   for(uint m = 0; m < mols.count; ++m) {
     const MoleculeKind& molKind = mols.GetKind(m);
     if(molKind.NumAtoms() > maxAtomInMol)
@@ -166,11 +167,17 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
     return potential;
 
   double tempREn = 0.0, tempLJEn = 0.0;
-  double distSq, qi_qj_fact;
+  double pRF = 0.0, pVF = 0.0;
+  double distSq, qi_qj_fact, qi_qj;
+  double rT11 = 0.0, rT22 = 0.0, rT33 = 0.0;
+  double vT11 = 0.0, vT22 = 0.0, vT33 = 0.0;
   int i;
   XYZ virComponents;
   std::vector<uint> pair1, pair2;
   CellList::Pairs pair = cellList.EnumeratePairs(box);
+
+  // Set atomForce to zero
+  atomForcesOld.Reset();
 
   //store atom pair index
   while (!pair.Done()) {
@@ -224,14 +231,34 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   for (i = 0; i < pair1.size(); i++) {
     if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)) {
       if (electrostatic) {
-        qi_qj_fact = particleCharge[pair1[i]] *
-                     particleCharge[pair2[i]] * num::qqFact;
+        qi_qj = particleCharge[pair1[i]] * particleCharge[pair2[i]];
+        qi_qj_fact = qi_qj * num::qqFact;
 
         tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact);
+        if(multiParticleEnabled) {
+          pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj);
+          rT11 = pRF * (virComponents.x) * num::qqFact;
+          rT22 = pRF * (virComponents.y) * num::qqFact;
+          rT33 = pRF * (virComponents.z) * num::qqFact;
+        }
       }
-
       tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
                   particleKind[pair2[i]]);
+      if(multiParticleEnabled) {
+        pVF = forcefield.particles->CalcVir(distSq, particleKind[pair1[i]],
+                                            particleKind[pair2[i]]);
+        vT11 = pVF * (virComponents.x);
+        vT22 = pVF * (virComponents.y);
+        vT33 = pVF * (virComponents.z);
+      }
+
+      // add force to first atom and substract from the second atom
+      atomForcesOld.Add(pair1[i], vT11, vT22, vT33);
+      atomForcesOld.Sub(pair2[i], vT11, vT22, vT33);
+      if(electrostatic) {
+        atomForcesOld.Add(pair1[i], rT11, rT22, rT33);
+        atomForcesOld.Sub(pair2[i], rT11, rT22, rT33);
+      }
     }
   }
 #endif
@@ -993,7 +1020,7 @@ void CalculateEnergy::ForceCalcMol(XYZArray& forces,
     // store in the XYZArray
     forces.Set(atom, vT11, vT22, vT33);
     if(electrostatic) {
-      forces.Add(atom, rT11, rT22, rT33);
+      forces.Add(atom, rT11*num::qqFact, rT22::qqFact, rT33::qqFact);
     }  
   }
 }

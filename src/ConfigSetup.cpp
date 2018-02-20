@@ -78,6 +78,7 @@ ConfigSetup::ConfigSetup(void)
   sys.moves.displace = DBL_MAX;
   sys.moves.rotate = DBL_MAX;
   sys.moves.intraSwap = DBL_MAX;
+  sys.moves.multiParticleEnabled = false;
   sys.moves.multiParticle = DBL_MAX;
   out.state.settings.enable = true;
   out.restart.settings.enable = true;
@@ -325,6 +326,9 @@ void ConfigSetup::Init(const char *fileName)
              sys.moves.displace);
     } else if(line[0] == "MultiParticleFreq") {
       sys.moves.multiParticle = stringtod(line[1]);
+      if(sys.moves.multiParticle != 0.00) {
+        sys.moves.multiParticleEnabled = true;
+      }
       printf("%-40s %-4.4f \n",
              "Info: Multi-Particle move frequency",
              sys.moves.multiParticle);
