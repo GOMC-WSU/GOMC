@@ -46,6 +46,7 @@ public:
   bool fixVolBox0;
 #endif
   bool isOrthogonal;
+  bool multiParticleEnabled;
 
   Forcefield forcefield;
   SimEventFrequency simEventFreq;
