@@ -76,6 +76,8 @@ void System::Init(Setup const& set)
   // Allocate space for atom forces
   atomForcesOld.Init(set.pdb.atoms.beta.size());
   atomForcesNew.Init(set.pdb.atoms.beta.size());
+  atomTorqueOld.Init(set.pdb.atoms.beta.size());
+  atomTorqueNew.Init(set.pdb.atoms.beta.size());
   cellList.SetCutoff(statV.forcefield.rCut);
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 
