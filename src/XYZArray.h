@@ -232,6 +232,14 @@ public:
     z[i] += val.z;
   }
 
+  // Sub XYZ value val to row i
+  void Sub(const uint i, XYZ const& val)
+  {
+    x[i] -= val.x;
+    y[i] -= val.y;
+    z[i] -= val.z;
+  }
+
   //Sub values from a single element of the array's values.
   void Sub(const uint i, const double a, const double b, const double c)
   {

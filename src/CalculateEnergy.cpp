@@ -19,7 +19,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Coordinates.h"
 #include "BoxDimensions.h"
 #include "BoxDimensionsNonOrth.h"
-#include "TransformMatrix.h"
 #include "TrialMol.h"
 #include "GeomLib.h"
 #include "NumLib.h"
@@ -264,7 +263,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
         atomForcesNew.Sub(pair2[i], vT11, vT22, vT33);
 
         tempForce = XYZ(vT11, vT22, vT33);
-        tempTorque = CrossProduct(distFromCOM, tempForce);
+        tempTorque = Cross(distFromCOM, tempForce);
         atomTorqueNew.Add(pair1[i], tempTorque);
         atomTorqueNew.Sub(pair2[i], tempTorque);
         
@@ -273,7 +272,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
           atomForcesNew.Sub(pair2[i], rT11, rT22, rT33);
 
           tempForce = XYZ(rT11, rT22, rT33);
-          tempTorque = CrossProduct(distFromCOM, tempForce);
+          tempTorque = Cross(distFromCOM, tempForce);
           atomTorqueNew.Add(pair1[i], tempTorque);
           atomTorqueNew.Sub(pair2[i], tempTorque);
         }
@@ -1039,7 +1038,7 @@ void CalculateEnergy::ForceCalcMol(XYZArray& forces,
     // store in the XYZArray
     forces.Set(atom, vT11, vT22, vT33);
     if(electrostatic) {
-      forces.Add(atom, rT11*num::qqFact, rT22::qqFact, rT33::qqFact);
+      forces.Add(atom, rT11*num::qqFact, rT22*num::qqFact, rT33*num::qqFact);
     }  
   }
 }

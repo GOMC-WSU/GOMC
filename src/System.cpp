@@ -20,6 +20,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveBase.h"            //For move bases....
 #include "MoleculeTransfer.h"
 #include "IntraSwap.h"
+#include "MultiParticle.h"
 
 System::System(StaticVals& statics) :
   statV(statics),
