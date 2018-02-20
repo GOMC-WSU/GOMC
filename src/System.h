@@ -82,10 +82,10 @@ public:
   MoveSettings moveSettings;
   SystemPotential potential;
   Coordinates coordinates;
-  XYZArray atomForcesOld;
-  XYZArray atomForcesNew;
-  XYZArray atomTorqueOld;
-  XYZArray atomTorqueNew;
+  XYZArray atomForceRef;
+  XYZArray atomTorqueRef;
+  XYZArray molForceRef;
+  XYZArray molTorqueRef;
   COM com;
 
   CalculateEnergy calcEnergy;
