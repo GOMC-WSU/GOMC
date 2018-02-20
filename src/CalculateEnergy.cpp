@@ -44,10 +44,10 @@ using namespace geom;
 CalculateEnergy::CalculateEnergy(StaticVals & stat, System & sys) :
   forcefield(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
   currentCOM(sys.com),
-  atomForcesOld(sys.atomForcesOld), // Forces value for each atom before trial
-  atomForcesNew(sys.atomForcesNew), // Forces value for each atom after trial
-  atomTorqueOld(sys.atomTorqueOld), // Torque value for each atom before trial
-  atomTorqueNew(sys.atomTorqueNew), // Torque value for each atom before trial
+  atomForcesRef(sys.atomForceRef),
+  atomTorqueRef(sys.atomTorqueRef),
+  molForcesRef(sys.molForceRef),
+  molTorqueRef(sys.molTorqueRef),
 #ifdef VARIABLE_PARTICLE_NUMBER
   molLookup(sys.molLookup),
 #else
@@ -89,7 +89,8 @@ void CalculateEnergy::Init(System & sys)
 SystemPotential CalculateEnergy::SystemTotal()
 {
   SystemPotential pot =
-    SystemInter(SystemPotential(), currentCoords, currentCOM, currentAxes);
+    SystemInter(SystemPotential(), currentCoords, currentCOM, atomForceRef,
+                molForceRef, atomTorqueRef, molTorqueRef, currentAxes);
 
   //system intra
   for (uint b = 0; b < BOX_TOTAL; ++b) {
@@ -139,15 +140,19 @@ SystemPotential CalculateEnergy::SystemTotal()
 }
 
 
-SystemPotential CalculateEnergy::SystemInter
-(SystemPotential potential,
- XYZArray const& coords,
- XYZArray const& com,
- BoxDimensions const& boxAxes)
+SystemPotential CalculateEnergy::SystemInter(SystemPotential potential,
+  XYZArray const& coords,
+  XYZArray const& com,
+  XYZArray& atomForce,
+  XYZArray& molForce,
+  XYZArray& atomTorque,
+  XYZArray& molTorque,
+  BoxDimensions const& boxAxes)
 {
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
     //calculate LJ interaction and real term of electrostatic interaction
-    potential = BoxInter(potential, coords, com, boxAxes, b);
+    potential = BoxInter(potential, coords, com, atomForce, molForce,
+                         atomTorque, molTorque, boxAxes, b);
     //calculate reciprocate term of electrostatic interaction
     potential.boxEnergy[b].recip = calcEwald->BoxReciprocal(b);
   }
@@ -162,6 +167,10 @@ SystemPotential CalculateEnergy::SystemInter
 SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
     XYZArray const& coords,
     XYZArray const& com,
+    XYZArray& atomForce,
+    XYZArray& molForce,
+    XYZArray& atomTorque,
+    XYZArray& molTorque,
     BoxDimensions const& boxAxes,
     const uint box)
 {
@@ -176,12 +185,13 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   double rT11 = 0.0, rT22 = 0.0, rT33 = 0.0;
   double vT11 = 0.0, vT22 = 0.0, vT33 = 0.0;
   int i;
-  XYZ virComponents, distFromCOM, tempForce, tempTorque;
+  XYZ virComponents, distFromCOM, forceLJ, forceReal;
   std::vector<uint> pair1, pair2;
   CellList::Pairs pair = cellList.EnumeratePairs(box);
 
-  // Set atomForce to zero
-  atomForcesOld.Reset();
+  // Set forces to zero
+  atomForce.Reset();
+  molForce.Reset();
 
   //store atom pair index
   while (!pair.Done()) {
@@ -245,37 +255,22 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
       // Calculating the force and torque of each atom
       if(multiParticleEnabled) {
-        distFromCOM = currentCoords.Difference(pair1[i], currentCOM, pair1[i]);
+        virComponents.Normalize();
+        distFromCOM = currentCoords.Difference(pair1[i], currentCOM,
+                                               particleMol[pair1[i]]);
         distFromCOM = currentAxes.MinImage(distFromCOM, box);
         if(electrostatic) {
-          pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj);
-          rT11 = pRF * (virComponents.x) * num::qqFact;
-          rT22 = pRF * (virComponents.y) * num::qqFact;
-          rT33 = pRF * (virComponents.z) * num::qqFact;
+          pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_Fact);
+          forceReal = virComponents * pRF;
         }
         pVF = forcefield.particles->CalcVir(distSq, particleKind[pair1[i]],
                                             particleKind[pair2[i]]);
-        vT11 = pVF * (virComponents.x);
-        vT22 = pVF * (virComponents.y);
-        vT33 = pVF * (virComponents.z);
+        forceLJ = virComponents * pVF;
         // add force to first atom and substract from the second atom
-        atomForcesNew.Add(pair1[i], vT11, vT22, vT33);
-        atomForcesNew.Sub(pair2[i], vT11, vT22, vT33);
-
-        tempForce = XYZ(vT11, vT22, vT33);
-        tempTorque = Cross(distFromCOM, tempForce);
-        atomTorqueNew.Add(pair1[i], tempTorque);
-        atomTorqueNew.Sub(pair2[i], tempTorque);
-        
-        if(electrostatic) {
-          atomForcesNew.Add(pair1[i], rT11, rT22, rT33);
-          atomForcesNew.Sub(pair2[i], rT11, rT22, rT33);
-
-          tempForce = XYZ(rT11, rT22, rT33);
-          tempTorque = Cross(distFromCOM, tempForce);
-          atomTorqueNew.Add(pair1[i], tempTorque);
-          atomTorqueNew.Sub(pair2[i], tempTorque);
-        }
+        atomForce.Add(pair1[i], forceLJ + forceReal);
+        atomForce.Sub(pair2[i], forceLJ + forceReal);
+        molForce.Add(particleMol[pair1[i]], forceLJ + forceReal);
+        molForce.Sub(particleMol[pair2[i]], forceLJ + forceReal);
       }
     }
   }
@@ -289,6 +284,10 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   // set correction energy and virial
   if (forcefield.useLRC) {
     EnergyCorrection(potential, boxAxes, box);
+  }
+
+  if(multiParticleEnabled) {
+    CalculateTorque(coords, com, atomForce, atomTorque, molTorque, box);
   }
 
   potential.Total();
@@ -1040,5 +1039,40 @@ void CalculateEnergy::ForceCalcMol(XYZArray& forces,
     if(electrostatic) {
       forces.Add(atom, rT11*num::qqFact, rT22*num::qqFact, rT33*num::qqFact);
     }  
+  }
+}
+
+//! Calculate Torque
+void CalculateEnergy::CalculateTorque(XYZArray& const coordinates,
+                                      XYZArray& const com,
+                                      XYZArray& atomForce,
+                                      XYZArray& atomTorque,
+                                      XYZArray& molTorque,
+                                      const uint box)
+{
+  uint length, start;
+  XYZ tempTorque, distFromCOM;
+  // set torque array to zero
+  atomTorque.Reset();
+  molTorque.Reset();
+
+  // molecule iterator
+  MoleculeLookup::box_iterator thisMol = molLook.BoxBegin(box);
+  MOleculeLookup::box_iterator end = molLook.BoxEnd(box);
+
+  while(thisMol != end) {
+    length = mols.GetKind(moleculeIDReference).NumAtoms();
+    start = mols.MolStart(moleculeIDReference);
+    if(length==1)
+      continue;
+
+    // atom iterator
+    for (uint p=start; p<start+length; p++) {
+      distFromCOM = coordinates.Difference(p, com, (*thisMol));
+      distFromCOM = currentAxes.MinImage(distFromCOM, box);
+      tempTorque = Cross(distFromCOM, atomForce[p]);
+      atomTorque.Set(p, tempTorque);
+      molTorque.Add((*thisMol), tempTorque);
+    }
   }
 }

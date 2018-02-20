@@ -403,9 +403,9 @@ inline void XYZArray::SetRange(const uint start, const uint stop,
 inline void XYZArray::ResetRange(const uint start, const uint stop) 
 {
   const uint len = stop - start;
-  memset(this->x, 0, len * sizeof(double));
-  memset(this->y, 0, len * sizeof(double));
-  memset(this->z, 0, len * sizeof(double));
+  memset(this->x, start, len * sizeof(double));
+  memset(this->y, start, len * sizeof(double));
+  memset(this->z, start, len * sizeof(double));
 }
 
 inline void XYZArray::Reset()

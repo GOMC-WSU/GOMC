@@ -60,6 +60,10 @@ public:
   SystemPotential BoxInter(SystemPotential potential,
                            XYZArray const& coords,
                            XYZArray const& com,
+                           XYZArray& atomForce,
+                           XYZArray& molForce,
+                           XYZArray& atomTorque,
+                           XYZArray& molTorque,
                            BoxDimensions const& boxAxes,
                            const uint box) ;
 
@@ -79,6 +83,10 @@ public:
   SystemPotential SystemInter(SystemPotential potential,
                               XYZArray const& coords,
                               XYZArray const& com,
+                              XYZArray& atomForce,
+                              XYZArray& molForce,
+                              XYZArray& atomTorque,
+                              XYZArray& molTorque,
                               BoxDimensions const& boxAxes) ;
 
   //! Calculates intermolecular energy (LJ and coulomb) of a molecule
@@ -154,6 +162,13 @@ public:
                          const uint atom2, const uint molIndex) const;
 
 private:
+  //! Calculate Torque
+  void CalculateTorque(XYZArray& const coordinates,
+                       XYZArray& const com,
+                       XYZArray& atomForce,
+                       XYZArray& atomTorque,
+                       XYZArray& molTorque,
+                       const uint box);
 
   //! Calculates full TC energy for one box in current system
   void EnergyCorrection(SystemPotential& pot, BoxDimensions const& boxAxes,
@@ -241,10 +256,10 @@ private:
   const BoxDimensions& currentAxes;
   const COM& currentCOM;
   const EwaldCached  *calcEwald;
-  XYZArray& atomForcesOld;
-  XYZArray& atomForcesNew;
-  XYZArray& atomTorqueOld;
-  XYZArray& atomTorqueNew;
+  XYZArray& atomForceRef;
+  XYZArray& atomTorqueRef;
+  XYZArray& molForceRef;
+  XYZArray& molTorqueRef;
   bool multiParticleEnabled;
   bool electrostatic, ewald;
 
