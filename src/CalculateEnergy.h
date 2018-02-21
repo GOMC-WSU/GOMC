@@ -91,8 +91,6 @@ public:
                               XYZArray const& com,
                               XYZArray& atomForce,
                               XYZArray& molForce,
-                              XYZArray& atomTorque,
-                              XYZArray& molTorque,
                               BoxDimensions const& boxAxes) ;
 
   //! Calculates intermolecular energy (LJ and coulomb) of a molecule
@@ -173,6 +171,7 @@ public:
                        XYZArray const& atomForce,
                        XYZArray& atomTorque,
                        XYZArray& molTorque,
+                       vector<uint> moveType,
                        const uint box);
 private:
 
@@ -263,9 +262,7 @@ private:
   const COM& currentCOM;
   const EwaldCached  *calcEwald;
   XYZArray& atomForceRef;
-  XYZArray& atomTorqueRef;
   XYZArray& molForceRef;
-  XYZArray& molTorqueRef;
   bool multiParticleEnabled;
   bool electrostatic, ewald;
 
