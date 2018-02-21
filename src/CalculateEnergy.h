@@ -60,17 +60,10 @@ public:
   SystemPotential BoxInter(SystemPotential potential,
                            XYZArray const& coords,
                            XYZArray const& com,
-                           BoxDimensions const& boxAxes,
-                           const uint box);
-  SystemPotential BoxInter(SystemPotential potential,
-                           XYZArray const& coords,
-                           XYZArray const& com,
                            XYZArray& atomForce,
                            XYZArray& molForce,
-                           XYZArray& atomTorque,
-                           XYZArray& molTorque,
                            BoxDimensions const& boxAxes,
-                           const uint box) ;
+                           const uint box);
 
   //! Calculate force and virial for the box
   Virial ForceCalc(const uint box);
@@ -103,7 +96,9 @@ public:
   //! @param newCOM (optional) If COM has changed for new coordinate,
   //!                          allows for that to be considered.
   void MoleculeInter(Intermolecular &inter_LJ, Intermolecular &inter_coulomb,
-                     XYZArray const& molCoords, const uint molIndex,
+                     XYZArray const& molCoords, XYZArray& atomForce,
+                     XYZArray& molForce, XYZArray& atomTorque,
+                     XYZArray& molTorque, const uint molIndex,
                      const uint box) const;
 
   //! Calculates Nonbonded intra energy (LJ and coulomb )for
@@ -165,15 +160,14 @@ public:
   //for Martini forcefield
   double IntraEnergy_1_4(const double distSq, const uint atom1,
                          const uint atom2, const uint molIndex) const;
-
-private:
   //! Calculate Torque
   void CalculateTorque(XYZArray const& coordinates,
                        XYZArray const& com,
-                       XYZArray& atomForce,
+                       XYZArray const& atomForce,
                        XYZArray& atomTorque,
                        XYZArray& molTorque,
                        const uint box);
+private:
 
   //! Calculates full TC energy for one box in current system
   void EnergyCorrection(SystemPotential& pot, BoxDimensions const& boxAxes,
