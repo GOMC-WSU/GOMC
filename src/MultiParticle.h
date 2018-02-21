@@ -237,6 +237,15 @@ void MultiParticle::RotateForceBiased(uint molIndex)
   uint start, stop, len;
   molRef.GetRange(start, stop, len, molIndex);
 
+  for(uint i=start; i<stop; i++) {
+    XYZ ith = newMolsPos[i];
+    XYZ unwrapped = boxDimRef.UnwrapPBC(ith, bPick, center);
+    newMolsPos.Set(i, unwrapped);
+    newMolsPos.Add(i, -center);
+    newMolsPos.Set(i, matrix.Apply(newMolsPos[i]));
+    newMolsPos.Add(i, center);
+    newMolsPos.Set(i, boxDimRef.WrapPBC(newMolsPos[i], bPick));
+  }
 }
 
 void MultiParticle::TranslateForceBiased(uint molIndex)

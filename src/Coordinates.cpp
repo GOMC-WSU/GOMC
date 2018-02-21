@@ -137,8 +137,6 @@ void Coordinates::VolumeTransferTranslate
   }
 }
 
-
-
 //Assumes dest is already initialized
 void Coordinates::TranslateOneBox
 (Coordinates & dest, COM & newCOM, COM const& oldCOM,
