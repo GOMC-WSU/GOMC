@@ -13,9 +13,12 @@ public:
   virtual void CalcEn();
   virtual uint Transform();
   virtual void Accept(const uint rejectState, const uint step);
-  virtual double GetCoeff();
+  double GetCoeff();
 private:
   uint bPick;
+  double w_new, w_old;
+  double t_max, r_max;
+  double lambda;
   SystemPotential sysPotNew;
   XYZArray& atomForceRef;
   XYZArray atomForceNew;
@@ -31,13 +34,12 @@ private:
   COM newCOMs;
   vector<uint> moveType;
   const MoleculeLookup& molLookup;
-  double w_new, w_old;
-  double t_max, r_max;
-  double lambda;
 };
 
 inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   MoveBase(sys, statV),
+  newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
+  newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef,statV.mol),
   atomForceRef(sys.atomForceRef),
   atomTorqueRef(sys.atomTorqueRef),
   molForceRef(sys.molForceRef),
@@ -50,7 +52,7 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   molTorqueNew.Init(sys.molTorqueRef.Count());
   t_k.Init(sys.com.Count());
   r_k.Init(sys.com.Count());
-  newMolPos.Init(sys.coordinates.Count());
+  newMolsPos.Init(sys.coordinates.Count());
   newCOMs.Init(sys.com.Count());
   moveType.resize(sys.com.Count());
   lambda = 0.5;
@@ -69,13 +71,13 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   r_max = 0.09 * 2 * M_PI;
 
   MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(bPick);
-  MoleculeLookup::box_iterator end = molLook.BoxEnd(bPick);
+  MoleculeLookup::box_iterator end = molLookup.BoxEnd(bPick);
   while(thisMol != end) {
     uint length = molRef.GetKind(*thisMol).NumAtoms();
     if(length==1)
       moveType[*thisMol] = 0;
     else
-      moveType[*thisMol] = prng.RandInt(1);
+      moveType[*thisMol] = prng.randInt(1);
   }
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
@@ -95,16 +97,16 @@ inline void MultiParticle::CalcEn()
 {
   // Calculate the new force and energy and we will compare that to the
   // reference values in Accept() function
-  cellList.GridAll(boxDimRef, newMolsPos, molLookRef);
+  cellList.GridAll(boxDimRef, newMolsPos, molLookup);
 
   sysPotNew = sysPotRef;
-  sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolPos, newCOMs, atomForceNew,
+  sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs, atomForceNew,
                                  molForceNew, atomTorqueNew, molTorqueNew,
                                  boxDimRef, bPick);
   return;
 }
 
-inline double MultiParticle::GetCoeff() const
+inline double MultiParticle::GetCoeff()
 {
   // calculate (w_new->old/w_old->new) and return it.
   uint length, start;
@@ -114,42 +116,42 @@ inline double MultiParticle::GetCoeff() const
   w_new = 1.0;
   uint molNumber;
   MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(bPick);
-  MoleculeLookup::box_iterator end = molLook.BoxEnd(bPick);
+  MoleculeLookup::box_iterator end = molLookup.BoxEnd(bPick);
 
   while(thisMol != end) {
     molNumber = *thisMol;
     if(moveType[molNumber]) { // == 1 -> rotate
       lbt = molTorqueRef.Get(molNumber) * lambda * BETA;
-      w_old *= lbt.x * exp(lbf.x * r_k.Get(molNumber]).x)/
+      w_old *= lbt.x * exp(lbf.x * r_k.Get(molNumber).x)/
         (2.0*sinh(lbt.x * r_max));
-      w_old *= lbt.y * exp(lbf.y * r_k.Get(molNumber]).y)/
+      w_old *= lbt.y * exp(lbf.y * r_k.Get(molNumber).y)/
         (2.0*sinh(lbt.y * r_max));
-      w_old *= lbt.z * exp(lbf.z * r_k.Get(molNumber]).z)/
+      w_old *= lbt.z * exp(lbf.z * r_k.Get(molNumber).z)/
         (2.0*sinh(lbt.z * r_max));
 
       lbt = molTorqueNew.Get(molNumber) * lambda * BETA;
-      w_new *= lbt.x * exp(lbf.x * -1 * r_k.Get(molNumber]).x)/
+      w_new *= lbt.x * exp(lbf.x * -1 * r_k.Get(molNumber).x)/
         (2.0*sinh(lbt.x * r_max));
-      w_new *= lbt.y * exp(lbf.y * -1 * r_k.Get(molNumber]).y)/
+      w_new *= lbt.y * exp(lbf.y * -1 * r_k.Get(molNumber).y)/
         (2.0*sinh(lbt.y * r_max));
-      w_new *= lbt.z * exp(lbf.z * -1 * r_k.Get(molNumber]).z)/
+      w_new *= lbt.z * exp(lbf.z * -1 * r_k.Get(molNumber).z)/
         (2.0*sinh(lbt.z * r_max));
     }
     else { // displace
       lbf = molForceRef.Get(molNumber) * lambda * BETA;
-      w_old *= lbf.x * exp(lbf.x * t_k.Get(molNumber]).x)/
+      w_old *= lbf.x * exp(lbf.x * t_k.Get(molNumber).x)/
         (2.0*sinh(lbf.x * t_max));
-      w_old *= lbf.y * exp(lbf.y * t_k.Get(molNumber]).y)/
+      w_old *= lbf.y * exp(lbf.y * t_k.Get(molNumber).y)/
         (2.0*sinh(lbf.y * t_max));
-      w_old *= lbf.z * exp(lbf.z * t_k.Get(molNumber]).z)/
+      w_old *= lbf.z * exp(lbf.z * t_k.Get(molNumber).z)/
         (2.0*sinh(lbf.z * t_max));
 
       lbf = molForceNew.Get(molNumber) * lambda * BETA;
-      w_new *= lbf.x * exp(lbf.x * -1 * t_k.Get(molNumber]).x)/
+      w_new *= lbf.x * exp(lbf.x * -1 * t_k.Get(molNumber).x)/
         (2.0*sinh(lbf.x * t_max));
-      w_new *= lbf.y * exp(lbf.y * -1 * t_k.Get(molNumber]).y)/
+      w_new *= lbf.y * exp(lbf.y * -1 * t_k.Get(molNumber).y)/
         (2.0*sinh(lbf.y * t_max));
-      w_new *= lbf.z * exp(lbf.z * -1 * t_k.Get(molNumber]).z)/
+      w_new *= lbf.z * exp(lbf.z * -1 * t_k.Get(molNumber).z)/
         (2.0*sinh(lbf.z * t_max));
 
     }
@@ -175,7 +177,7 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
     swap(atomTorqueRef, atomTorqueNew);
   }
   else {
-    cellList.GridAll(boxDimRef, coordCurrRef, molLookRef);
+    cellList.GridAll(boxDimRef, coordCurrRef, molLookup);
   }
   return;
 }
