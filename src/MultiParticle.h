@@ -94,11 +94,11 @@ inline uint MultiParticle::Transform()
   MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(bPick);
   MoleculeLookup::box_iterator end = molLookup.BoxEnd(bPick);
   while(thisMol != end) {
-    molIndex = (*thisMol);
+    double molIndex = (*thisMol);
     if(moveType[molIndex]) { // rotate
       RotateForceBiased(molIndex);
     } else { // displacement
-      DisplaceForceBiased(molIndex);
+      TranslateForceBiased(molIndex);
     }
     thisMol++;
   } 
@@ -201,30 +201,30 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
 
 inline void MultiParticle::CalculateTrialDistRot(uint molIndex)
 {
-  XYZ lbf; // lambda * BETA * force
-  XYZ lbt; // lambda * BETA * torque
-  double num, rand;
+  XYZ lbf, lbfmax; // lambda * BETA * force
+  XYZ lbt, lbtmax; // lambda * BETA * torque
+  double rand;
   XYZ num;
   if(moveType[molIndex]) { // rotate
-    lbt = molTorqueRef.Get(molNumber) * lambda * BETA;
+    lbt = molTorqueRef.Get(molIndex) * lambda * BETA;
     lbtmax = lbt * r_max;
     rand = prng();
-    num.x = ln(exp(-1 * lbtmax.x ) + 2 * rand * sinh(lbtmax.x ));
+    num.x = log(exp(-1 * lbtmax.x ) + 2 * rand * sinh(lbtmax.x ));
     rand = prng();
-    num.y = ln(exp(-1 * lbtmax.y ) + 2 * rand * sinh(lbtmax.y ));
+    num.y = log(exp(-1 * lbtmax.y ) + 2 * rand * sinh(lbtmax.y ));
     rand = prng();
-    num.z = ln(exp(-1 * lbtmax.z ) + 2 * rand * sinh(lbtmax.z ));
+    num.z = log(exp(-1 * lbtmax.z ) + 2 * rand * sinh(lbtmax.z ));
     r_k.Set(molIndex, num/lbt);
   }
   else { // displace
-    lbf = molForceRef.Get(molNumber) * lambda * BETA;
+    lbf = molForceRef.Get(molIndex) * lambda * BETA;
     lbfmax = lbf * t_max;
     rand = prng();
-    num.x = ln(exp(-1 * lbfmax.x ) + 2 * rand * sinh(lbfmax.x ));
+    num.x = log(exp(-1 * lbfmax.x ) + 2 * rand * sinh(lbfmax.x ));
     rand = prng();
-    num.y = ln(exp(-1 * lbfmax.y ) + 2 * rand * sinh(lbfmax.y ));
+    num.y = log(exp(-1 * lbfmax.y ) + 2 * rand * sinh(lbfmax.y ));
     rand = prng();
-    num.z = ln(exp(-1 * lbfmax.z ) + 2 * rand * sinh(lbfmax.z ));
+    num.z = log(exp(-1 * lbfmax.z ) + 2 * rand * sinh(lbfmax.z ));
     t_k.Set(molIndex, num/lbf);
   }
 }
