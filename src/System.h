@@ -83,9 +83,7 @@ public:
   SystemPotential potential;
   Coordinates coordinates;
   XYZArray atomForceRef;
-  XYZArray atomTorqueRef;
   XYZArray molForceRef;
-  XYZArray molTorqueRef;
   COM com;
 
   CalculateEnergy calcEnergy;

@@ -23,9 +23,9 @@ private:
   double t_max, r_max;
   double lambda;
   SystemPotential sysPotNew;
-  XYZArray& atomTorqueRef;
+  XYZArray atomTorqueRef;
   XYZArray atomTorqueNew;
-  XYZArray& molTorqueRef;
+  XYZArray molTorqueRef;
   XYZArray molTorqueNew;
   XYZArray t_k;
   XYZArray r_k;
@@ -43,12 +43,12 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   MoveBase(sys, statV),
   newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef,statV.mol),
-  atomTorqueRef(sys.atomTorqueRef),
-  molTorqueRef(sys.molTorqueRef),
   molLookup(sys.molLookup)
 {
-  atomTorqueNew.Init(sys.atomTorqueRef.Count());
-  molTorqueNew.Init(sys.molTorqueRef.Count());
+  atomTorqueNew.Init(sys.coordinates.Count());
+  molTorqueNew.Init(sys.com.Count());
+  atomTorqueRef.Init(sys.coordinates.Count());
+  molTorqueRef.Init(sys.com.Count());
   t_k.Init(sys.com.Count());
   r_k.Init(sys.com.Count());
   newMolsPos.Init(sys.coordinates.Count());
@@ -115,9 +115,9 @@ inline void MultiParticle::CalcEn()
   sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs, atomForceNew,
                                  molForceNew, boxDimRef, bPick);
   calcEnRef.CalculateTorque(coordCurrRef, comCurrRef, atomForceRef, atomTorqueRef,
-                            molTorqueRef, bPick);
+                            molTorqueRef, moveType, bPick);
   calcEnRef.CalculateTorque(newMolsPos, newCOMs, atomForceNew, atomTorqueNew,
-                            molTorqueNew, bPick);
+                            molTorqueNew, moveType, bPick);
   return;
 }
 
@@ -231,7 +231,12 @@ inline void MultiParticle::CalculateTrialDistRot(uint molIndex)
 
 void MultiParticle::RotateForceBiased(uint molIndex)
 {
-  
+  XYZ rot = r_k.Get(molIndex);
+  RotationMatrix matrix = RotationMatrix::FromAxisAngle(rot.Length(), rot);
+  XYZ center = newCOMs.Get(molIndex);
+  uint start, stop, len;
+  molRef.GetRange(start, stop, len, molIndex);
+
 }
 
 void MultiParticle::TranslateForceBiased(uint molIndex)

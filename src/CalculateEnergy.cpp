@@ -45,9 +45,7 @@ CalculateEnergy::CalculateEnergy(StaticVals & stat, System & sys) :
   forcefield(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
   currentCOM(sys.com),
   atomForceRef(sys.atomForceRef),
-  atomTorqueRef(sys.atomTorqueRef),
   molForceRef(sys.molForceRef),
-  molTorqueRef(sys.molTorqueRef),
 #ifdef VARIABLE_PARTICLE_NUMBER
   molLookup(sys.molLookup),
 #else
@@ -90,7 +88,7 @@ SystemPotential CalculateEnergy::SystemTotal()
 {
   SystemPotential pot =
     SystemInter(SystemPotential(), currentCoords, currentCOM, atomForceRef,
-                molForceRef, atomTorqueRef, molTorqueRef, currentAxes);
+                molForceRef, currentAxes);
 
   //system intra
   for (uint b = 0; b < BOX_TOTAL; ++b) {
@@ -145,15 +143,12 @@ SystemPotential CalculateEnergy::SystemInter(SystemPotential potential,
   XYZArray const& com,
   XYZArray& atomForce,
   XYZArray& molForce,
-  XYZArray& atomTorque,
-  XYZArray& molTorque,
   BoxDimensions const& boxAxes)
 {
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
     //calculate LJ interaction and real term of electrostatic interaction
     potential = BoxInter(potential, coords, com, atomForce, molForce,
                          boxAxes, b);
-    CalculateTorque(coords, com, atomForce, atomTorque, molTorque, b);
     //calculate reciprocate term of electrostatic interaction
     potential.boxEnergy[b].recip = calcEwald->BoxReciprocal(b);
   }
@@ -1119,6 +1114,7 @@ void CalculateEnergy::CalculateTorque(XYZArray const& coordinates,
                                       XYZArray const& atomForce,
                                       XYZArray& atomTorque,
                                       XYZArray& molTorque,
+                                      vector<uint> moveType,
                                       const uint box)
 {
   if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
@@ -1135,8 +1131,10 @@ void CalculateEnergy::CalculateTorque(XYZArray const& coordinates,
     while(thisMol != end) {
       length = mols.GetKind(*thisMol).NumAtoms();
       start = mols.MolStart(*thisMol);
-      if(length==1)
+      if(length==1 || !moveType[*thisMol]) {
+        thisMol++;
         continue;
+      }
 
       // atom iterator
       for (uint p=start; p<start+length; p++) {
