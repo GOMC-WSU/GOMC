@@ -60,6 +60,11 @@ public:
   SystemPotential BoxInter(SystemPotential potential,
                            XYZArray const& coords,
                            XYZArray const& com,
+                           BoxDimensions const& boxAxes,
+                           const uint box);
+  SystemPotential BoxInter(SystemPotential potential,
+                           XYZArray const& coords,
+                           XYZArray const& com,
                            XYZArray& atomForce,
                            XYZArray& molForce,
                            XYZArray& atomTorque,
@@ -163,8 +168,8 @@ public:
 
 private:
   //! Calculate Torque
-  void CalculateTorque(XYZArray& const coordinates,
-                       XYZArray& const com,
+  void CalculateTorque(XYZArray const& coordinates,
+                       XYZArray const& com,
                        XYZArray& atomForce,
                        XYZArray& atomTorque,
                        XYZArray& molTorque,
