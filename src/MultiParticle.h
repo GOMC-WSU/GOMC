@@ -20,12 +20,8 @@ private:
   double t_max, r_max;
   double lambda;
   SystemPotential sysPotNew;
-  XYZArray& atomForceRef;
-  XYZArray atomForceNew;
   XYZArray& atomTorqueRef;
   XYZArray atomTorqueNew;
-  XYZArray& molForceRef;
-  XYZArray molForceNew;
   XYZArray& molTorqueRef;
   XYZArray molTorqueNew;
   XYZArray t_k;
@@ -40,15 +36,11 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   MoveBase(sys, statV),
   newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef,statV.mol),
-  atomForceRef(sys.atomForceRef),
   atomTorqueRef(sys.atomTorqueRef),
-  molForceRef(sys.molForceRef),
   molTorqueRef(sys.molTorqueRef),
   molLookup(sys.molLookup)
 {
-  atomForceNew.Init(sys.atomForceRef.Count());
   atomTorqueNew.Init(sys.atomTorqueRef.Count());
-  molForceNew.Init(sys.molForceRef.Count());
   molTorqueNew.Init(sys.molTorqueRef.Count());
   t_k.Init(sys.com.Count());
   r_k.Init(sys.com.Count());
@@ -103,6 +95,10 @@ inline void MultiParticle::CalcEn()
   sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs, atomForceNew,
                                  molForceNew, atomTorqueNew, molTorqueNew,
                                  boxDimRef, bPick);
+  CalculateTorque(coordCurrRef, comCurrRef, atomForceRef, atomTorqueRef,
+                  molTorqueRef, bPick);
+  CalculateTorque(newMolsPos, newCOMs, atomForceNew, atomTorqueNew,
+                  molTorqueNew, bPick);
   return;
 }
 
@@ -122,41 +118,41 @@ inline double MultiParticle::GetCoeff()
     molNumber = *thisMol;
     if(moveType[molNumber]) { // == 1 -> rotate
       lbt = molTorqueRef.Get(molNumber) * lambda * BETA;
-      w_old *= lbt.x * exp(lbf.x * r_k.Get(molNumber).x)/
+      w_new *= lbt.x * exp(lbf.x * r_k.Get(molNumber).x)/
         (2.0*sinh(lbt.x * r_max));
-      w_old *= lbt.y * exp(lbf.y * r_k.Get(molNumber).y)/
+      w_new *= lbt.y * exp(lbf.y * r_k.Get(molNumber).y)/
         (2.0*sinh(lbt.y * r_max));
-      w_old *= lbt.z * exp(lbf.z * r_k.Get(molNumber).z)/
+      w_new *= lbt.z * exp(lbf.z * r_k.Get(molNumber).z)/
         (2.0*sinh(lbt.z * r_max));
 
       lbt = molTorqueNew.Get(molNumber) * lambda * BETA;
-      w_new *= lbt.x * exp(lbf.x * -1 * r_k.Get(molNumber).x)/
+      w_old *= lbt.x * exp(lbf.x * -1 * r_k.Get(molNumber).x)/
         (2.0*sinh(lbt.x * r_max));
-      w_new *= lbt.y * exp(lbf.y * -1 * r_k.Get(molNumber).y)/
+      w_old *= lbt.y * exp(lbf.y * -1 * r_k.Get(molNumber).y)/
         (2.0*sinh(lbt.y * r_max));
-      w_new *= lbt.z * exp(lbf.z * -1 * r_k.Get(molNumber).z)/
+      w_old *= lbt.z * exp(lbf.z * -1 * r_k.Get(molNumber).z)/
         (2.0*sinh(lbt.z * r_max));
     }
     else { // displace
       lbf = molForceRef.Get(molNumber) * lambda * BETA;
-      w_old *= lbf.x * exp(lbf.x * t_k.Get(molNumber).x)/
+      w_new *= lbf.x * exp(lbf.x * t_k.Get(molNumber).x)/
         (2.0*sinh(lbf.x * t_max));
-      w_old *= lbf.y * exp(lbf.y * t_k.Get(molNumber).y)/
+      w_new *= lbf.y * exp(lbf.y * t_k.Get(molNumber).y)/
         (2.0*sinh(lbf.y * t_max));
-      w_old *= lbf.z * exp(lbf.z * t_k.Get(molNumber).z)/
+      w_new *= lbf.z * exp(lbf.z * t_k.Get(molNumber).z)/
         (2.0*sinh(lbf.z * t_max));
 
       lbf = molForceNew.Get(molNumber) * lambda * BETA;
-      w_new *= lbf.x * exp(lbf.x * -1 * t_k.Get(molNumber).x)/
+      w_old *= lbf.x * exp(lbf.x * -1 * t_k.Get(molNumber).x)/
         (2.0*sinh(lbf.x * t_max));
-      w_new *= lbf.y * exp(lbf.y * -1 * t_k.Get(molNumber).y)/
+      w_old *= lbf.y * exp(lbf.y * -1 * t_k.Get(molNumber).y)/
         (2.0*sinh(lbf.y * t_max));
-      w_new *= lbf.z * exp(lbf.z * -1 * t_k.Get(molNumber).z)/
+      w_old *= lbf.z * exp(lbf.z * -1 * t_k.Get(molNumber).z)/
         (2.0*sinh(lbf.z * t_max));
 
     }
   }
-  return w_old/w_new;
+  return w_new/w_old;
 }
 
 inline void MultiParticle::Accept(const uint rejectState, const uint step)

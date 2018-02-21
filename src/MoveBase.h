@@ -42,8 +42,12 @@ public:
     calcEnRef(sys.calcEnergy), comCurrRef(sys.com),
     coordCurrRef(sys.coordinates), prng(sys.prng), molRef(statV.mol),
     BETA(statV.forcefield.beta), ewald(statV.forcefield.ewald),
-    cellList(sys.cellList), molRemoved(false)
+    cellList(sys.cellList), molRemoved(false),
+    atomForceRef(sys.atomForceRef),
+    molForceRef(sys.molForceRef),
   {
+    atomForceNew.Init(sys.atomForceRef.Count());
+    molForceNew.Init(sys.molForceRef.Count());
     calcEwald = sys.GetEwald();
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
     fixBox0 = statV.fixVolBox0;
@@ -76,6 +80,10 @@ protected:
   COM & comCurrRef;
   CalculateEnergy & calcEnRef;
   EwaldCached * calcEwald;
+  XYZArray& atomForceRef;
+  XYZArray atomForceNew;
+  XYZArray& molForceRef;
+  XYZArray molForceNew;
 
   PRNG & prng;
   BoxDimensions & boxDimRef;
@@ -168,7 +176,10 @@ inline void Translate::CalcEn()
   molRemoved = true;
 
   //calculate LJ interaction and real term of electrostatic interaction
-  calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);
+  atomForceRef.CopyRange(atomForceNew, 0, 0, atomForceRef.Count());
+  molForceRef.CopyRange(molForceNew, 0, 0, molForceRef.Count());
+  calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, atomForceNew, 
+                          molForceNew, m, b);
   //calculate reciprocate term of electrostatic interaction
   recip.energy = calcEwald->MolReciprocal(newMolPos, m, b);
 
@@ -196,8 +207,9 @@ inline void Translate::Accept(const uint rejectState, const uint step)
     //Copy coords
     newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);
     comCurrRef.Set(m, newCOM);
+    swap(atomForceRef, atomForceNew);
+    swap(molForceRef, molForceNew);
     calcEwald->UpdateRecip(b);
-
     sysPotRef.Total();
   }
 
@@ -255,7 +267,10 @@ inline void Rotate::CalcEn()
   molRemoved = true;
 
   //calculate LJ interaction and real term of electrostatic interaction
-  calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);
+  atomForceRef.CopyRange(atomForceNew, 0, 0, atomForceRef.Count());
+  molForceRef.CopyRange(molForceNew, 0, 0, molForceRef.Count());
+  calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, atomForceNew,
+                          molForceNew, m, b);
   //calculate reciprocate term of electrostatic interaction
   recip.energy = calcEwald->MolReciprocal(newMolPos, m, b);
 }
@@ -282,6 +297,8 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
 
     //Copy coords
     newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);
+    swap(atomForceRef, atomForceNew);
+    swap(molForceRef, molForceNew);
     calcEwald->UpdateRecip(b);
 
     sysPotRef.Total();
@@ -332,10 +349,11 @@ inline VolumeTransfer::VolumeTransfer(System &sys, StaticVals const& statV)  :
   MoveBase(sys, statV), molLookRef(sys.molLookupRef),
   newMolsPos(boxDimRef, newCOMs, sys.molLookupRef,
              sys.prng, statV.mol),forcefield(statV.forcefield),
-		      newDim(), newDimNonOrth(),
-		      newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef,
-			      statV.mol), GEMC_KIND(statV.kindOfGEMC),
-		      PRESSURE(statV.pressure), regrewGrid(false)
+	newDim(), newDimNonOrth(),
+	newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef,
+		      statV.mol), GEMC_KIND(statV.kindOfGEMC),
+	PRESSURE(statV.pressure), regrewGrid(false),
+
 {
   newMolsPos.Init(sys.coordinates.Count());
   newCOMs.Init(statV.mol.count);
@@ -444,11 +462,13 @@ inline void VolumeTransfer::CalcEn()
     calcEwald->BoxReciprocalSetup(bPick[b], newMolsPos);
     //calculate LJ interaction and real term of electrostatic interaction
     if(isOrth)
-      sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs, newDim,
+      sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs, 
+                                     atomForceNew, molForceNew, newDim,
                                      bPick[b]);
     else
-      sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs,
-                                     newDimNonOrth, bPick[b]);
+      sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs, 
+                                     atomForceNew, molForceNew, newDimNonOrth,
+                                     bPick[b]);
     //calculate reciprocate term of electrostatic interaction
     sysPotNew.boxEnergy[bPick[b]].recip = calcEwald->BoxReciprocal(bPick[b]);
   }
@@ -508,8 +528,12 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
     //This will be less efficient for NPT, but necessary evil.
     swap(coordCurrRef, newMolsPos);
     swap(comCurrRef, newCOMs);
+    swap(atomForceRef, atomForceNew);
+    swap(molForceRef, molForceNew);
     if(isOrth)
+    {
       boxDimRef = newDim;
+    }
     else
       *((BoxDimensionsNonOrth*)(&boxDimRef)) = newDimNonOrth;
 
