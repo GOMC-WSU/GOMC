@@ -4,6 +4,9 @@
 #include "System.h"
 #include "StaticVals.h"
 
+#define MPDISPLACE 0
+#define MPROTATE 1
+
 class MultiParticle : public MoveBase
 {
 public:
@@ -30,6 +33,10 @@ private:
   COM newCOMs;
   vector<uint> moveType;
   const MoleculeLookup& molLookup;
+
+  void CalculateTrialDistRot(uint molIndex);
+  void RotateForceBiased(uint molIndex);
+  void TranslateForceBiased(uint molIndex);
 };
 
 inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
@@ -67,9 +74,11 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   while(thisMol != end) {
     uint length = molRef.GetKind(*thisMol).NumAtoms();
     if(length==1)
-      moveType[*thisMol] = 0;
+      moveType[*thisMol] = MPDISPLACE;
     else
       moveType[*thisMol] = prng.randInt(1);
+    CalculateTrialDistRot(*thisMol);
+    thisMol++;
   }
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
@@ -82,6 +91,17 @@ inline uint MultiParticle::Transform()
   // individual particle.
 
   // move particles according to force and torque and store them in the new pos
+  MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(bPick);
+  MoleculeLookup::box_iterator end = molLookup.BoxEnd(bPick);
+  while(thisMol != end) {
+    molIndex = (*thisMol);
+    if(moveType[molIndex]) { // rotate
+      RotateForceBiased(molIndex);
+    } else { // displacement
+      DisplaceForceBiased(molIndex);
+    }
+    thisMol++;
+  } 
   return 0;
 }
 
@@ -93,12 +113,11 @@ inline void MultiParticle::CalcEn()
 
   sysPotNew = sysPotRef;
   sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs, atomForceNew,
-                                 molForceNew, atomTorqueNew, molTorqueNew,
-                                 boxDimRef, bPick);
-  CalculateTorque(coordCurrRef, comCurrRef, atomForceRef, atomTorqueRef,
-                  molTorqueRef, bPick);
-  CalculateTorque(newMolsPos, newCOMs, atomForceNew, atomTorqueNew,
-                  molTorqueNew, bPick);
+                                 molForceNew, boxDimRef, bPick);
+  calcEnRef.CalculateTorque(coordCurrRef, comCurrRef, atomForceRef, atomTorqueRef,
+                            molTorqueRef, bPick);
+  calcEnRef.CalculateTorque(newMolsPos, newCOMs, atomForceNew, atomTorqueNew,
+                            molTorqueNew, bPick);
   return;
 }
 
@@ -151,6 +170,7 @@ inline double MultiParticle::GetCoeff()
         (2.0*sinh(lbf.z * t_max));
 
     }
+    thisMol++;
   }
   return w_new/w_old;
 }
@@ -175,5 +195,56 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   else {
     cellList.GridAll(boxDimRef, coordCurrRef, molLookup);
   }
-  return;
+  subPick = mv::GetMoveSubIndex(mv::MULTIPARTICLE, bPick);
+  moveSetRef.Update(result, subPick, step);
+}
+
+inline void MultiParticle::CalculateTrialDistRot(uint molIndex)
+{
+  XYZ lbf; // lambda * BETA * force
+  XYZ lbt; // lambda * BETA * torque
+  double num, rand;
+  XYZ num;
+  if(moveType[molIndex]) { // rotate
+    lbt = molTorqueRef.Get(molNumber) * lambda * BETA;
+    lbtmax = lbt * r_max;
+    rand = prng();
+    num.x = ln(exp(-1 * lbtmax.x ) + 2 * rand * sinh(lbtmax.x ));
+    rand = prng();
+    num.y = ln(exp(-1 * lbtmax.y ) + 2 * rand * sinh(lbtmax.y ));
+    rand = prng();
+    num.z = ln(exp(-1 * lbtmax.z ) + 2 * rand * sinh(lbtmax.z ));
+    r_k.Set(molIndex, num/lbt);
+  }
+  else { // displace
+    lbf = molForceRef.Get(molNumber) * lambda * BETA;
+    lbfmax = lbf * t_max;
+    rand = prng();
+    num.x = ln(exp(-1 * lbfmax.x ) + 2 * rand * sinh(lbfmax.x ));
+    rand = prng();
+    num.y = ln(exp(-1 * lbfmax.y ) + 2 * rand * sinh(lbfmax.y ));
+    rand = prng();
+    num.z = ln(exp(-1 * lbfmax.z ) + 2 * rand * sinh(lbfmax.z ));
+    t_k.Set(molIndex, num/lbf);
+  }
+}
+
+void MultiParticle::RotateForceBiased(uint molIndex)
+{
+  
+}
+
+void MultiParticle::TranslateForceBiased(uint molIndex)
+{
+  XYZ shift = t_k.Get(molIndex);
+  uint stop, start, len;
+
+  molRef.GetRange(start, stop, len, molIndex);
+  //Add translation
+  newMolsPos.AddRange(start, stop, shift);
+  newCOMs.Set(molIndex, newCOMs.Get(molIndex) + shift);
+
+  for(uint i=start; i<stop; i++)
+    newMolsPos.Set(i, boxDimRef.WrapPBC(newMolsPos.Get(i), bPick));
+  newCOMs.Set(molIndex, boxDimRef.WrapPBC(newMolsPos.Get(molIndex), bPick));
 }

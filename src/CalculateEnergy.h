@@ -68,8 +68,16 @@ public:
   //! Calculate force and virial for the box
   Virial ForceCalc(const uint box);
 
-  //! Calculate force of a molecule
-  void ForceCalcMol(XYZArray& forces, uint moleculeIDReference, uint box);
+  //! Calculate change force of a molecule
+  void MoleculeForceAdd(XYZArray const& molCoords,
+                                         XYZArray& atomForce,
+                                         XYZArray& molForce,
+                                         const uint molIndex,
+                                         const uint box);
+  void MoleculeForceSub(XYZArray& atomForce,
+                                         XYZArray& molForce,
+                                         const uint molIndex,
+                                         const uint box);                                     
 
 
   //! Calculates intermolecule energy of all boxes in the system
@@ -97,8 +105,7 @@ public:
   //!                          allows for that to be considered.
   void MoleculeInter(Intermolecular &inter_LJ, Intermolecular &inter_coulomb,
                      XYZArray const& molCoords, XYZArray& atomForce,
-                     XYZArray& molForce, XYZArray& atomTorque,
-                     XYZArray& molTorque, const uint molIndex,
+                     XYZArray& molForce, const uint molIndex,
                      const uint box) const;
 
   //! Calculates Nonbonded intra energy (LJ and coulomb )for

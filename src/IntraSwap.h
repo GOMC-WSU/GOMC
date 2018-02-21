@@ -129,6 +129,11 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
       sysPotRef.boxEnergy[sourceBox].correction -= correct_old;
       sysPotRef.boxEnergy[destBox].correction += correct_new;
 
+      //Calculate the change of force 
+      calcEnRef.MoleculeForceSub(atomForceRef, molForceRef, molIndex, destBox);
+      calcEnRef.MoleculeForceAdd(newMol.GetCoords(), atomForceRef, molForceRef,
+                                 molIndex, destBox);
+
       //Set coordinates, new COM; shift index to new box's list
       newMol.GetCoords().CopyRange(coordCurrRef, 0, pStart, pLen);
       comCurrRef.SetNew(molIndex, destBox);

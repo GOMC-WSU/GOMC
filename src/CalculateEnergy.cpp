@@ -14,7 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "System.h"                 //For init
 #include "StaticVals.h"             //For init
 #include "Forcefield.h"             //
-#include "moleculeLookup.h"
+#include "MoleculeLookup.h"
 #include "MoleculeKind.h"
 #include "Coordinates.h"
 #include "BoxDimensions.h"
@@ -179,10 +179,8 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   double tempREn = 0.0, tempLJEn = 0.0;
   double pRF = 0.0, pVF = 0.0;
   double distSq, qi_qj_fact, qi_qj;
-  double rT11 = 0.0, rT22 = 0.0, rT33 = 0.0;
-  double vT11 = 0.0, vT22 = 0.0, vT33 = 0.0;
   int i;
-  XYZ virComponents, distFromCOM, forceLJ, forceReal;
+  XYZ virComponents, forceLJ, forceReal;
   std::vector<uint> pair1, pair2;
   CellList::Pairs pair = cellList.EnumeratePairs(box);
 
@@ -460,8 +458,9 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
       n = cellList.EnumerateLocal(currentCoords[atom], box);
 
       double qi_qj_fact, distSq;
+      double pRF = 0.0, pVF = 0.0;
       int i;
-      XYZ virComponents;
+      XYZ virComponents, forceLJ, forceReal;
       std::vector<uint> nIndex;
 
       //store atom index in neighboring cell
@@ -1001,68 +1000,116 @@ void CalculateEnergy::ForceCorrection(Virial& virial,
   }
 }
 
-// Calculate the force of a molecule
-// Used by Multi_Particle
-// forces array is whether the old or new forces (before/after trial)
-// moleculeIDReference is the id of the molecule of interest
-// box is the box which the molecule resides
-void CalculateEnergy::ForceCalcMol(XYZArray& forces,
-                                   uint moleculeIDReference,
-                                   uint box)
+// Calculate the change force of a molecule
+void CalculateEnergy::MoleculeForceAdd(XYZArray const& molCoords,
+                                       XYZArray& atomForce,
+                                       XYZArray& molForce,
+                                       const uint molIndex,
+                                       const uint box)
 {
-  uint length = mols.GetKind(moleculeIDReference).NumAtoms();
-  uint start = mols.MolStart(moleculeIDReference);
-  //tensors for VDW and real part of electrostatic
-  double vT11 = 0.0, vT12 = 0.0, vT13 = 0.0;
-  double vT22 = 0.0, vT23 = 0.0, vT33 = 0.0;
-  double rT11 = 0.0, rT12 = 0.0, rT13 = 0.0;
-  double rT22 = 0.0, rT23 = 0.0, rT33 = 0.0;
-  Virial tempVir;
-  double pVF = 0.0, pRF = 0.0;
-  double distSq;
-  XYZ directionBetweenAtoms, force;
-  double qi_qj;
-  uint secondAtom;
+  if (box < BOXES_WITH_U_NB) {
+    uint length = mols.GetKind(molIndex).NumAtoms();
+    uint start = mols.MolStart(molIndex);
 
-  for (uint p = 0; p < length; ++p) {
-    uint atom = start + p;
-    CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom], box);
+    for (uint p = 0; p < length; ++p) {
+      uint atom = start + p;
+      CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom], box);
 
-    double qi_qj_fact, distSq;
-    std::vector<uint> nIndex;
+      double qi_qj_fact, distSq;
+      double pRF = 0.0, pVF = 0.0;
+      int i;
+      XYZ virComponents, forceLJ, forceReal;
+      std::vector<uint> nIndex;
 
-    //store atom index in neighboring cell
-    while (!n.Done()) {
-      nIndex.push_back(*n);
-      n.Next();
-    }
-
-    for(int i=0; i<nIndex.size(); i++) {
-      secondAtom = nIndex[i];
-
-      // Calculate the distance squared of two molecules
-      currentAxes.InRcut(distSq, directionBetweenAtoms, currentCoords, atom, secondAtom, box); 
-
-      if(electrostatic) {
-        qi_qj = particleCharge[atom] * particleCharge[secondAtom];
-        pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj);
-        // Calculate the pressure tensor
-        rT11 += pRF * (directionBetweenAtoms.x);
-        rT22 += pRF * (directionBetweenAtoms.y);
-        rT33 += pRF * (directionBetweenAtoms.z);
+      while (!n.Done()) {
+        nIndex.push_back(*n);
+        n.Next();
       }
-      pVF = forcefield.particles->CalcVir(distSq, particleKind[atom],
-                                          particleKind[secondAtom]);
-      vT11 += pVF * (directionBetweenAtoms.x);
-      vT22 += pVF * (directionBetweenAtoms.y);
-      vT33 += pVF * (directionBetweenAtoms.z);
+
+#ifdef _OPENMP
+      #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents)
+#endif
+      for(i = 0; i < nIndex.size(); i++) {
+        distSq = 0.0;
+        if (currentAxes.InRcut(distSq, virComponents,
+                               molCoords, p, currentCoords, nIndex[i], box)) {
+          if(multiParticleEnabled) {
+            virComponents.Normalize();
+            if(electrostatic) {
+              qi_qj_fact = particleCharge[atom] *
+                           particleCharge[nIndex[i]] * num::qqFact;
+              pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact);
+              forceReal = virComponents * pRF;
+            }
+            pVF = forcefield.particles->CalcVir(distSq, particleKind[atom],
+                                                particleKind[nIndex[i]]);
+            forceLJ = virComponents * pVF;
+            // add new force
+            atomForce.Add(atom, forceLJ + forceReal);
+            atomForce.Sub(nIndex[i], forceLJ + forceReal);
+            molForce.Add(particleMol[atom], forceLJ + forceReal);
+            molForce.Sub(particleMol[nIndex[i]], forceLJ + forceReal);
+          }
+        }
+      }
     }
-    
-    // store in the XYZArray
-    forces.Set(atom, vT11, vT22, vT33);
-    if(electrostatic) {
-      forces.Add(atom, rT11*num::qqFact, rT22*num::qqFact, rT33*num::qqFact);
-    }  
+  }
+}
+
+void CalculateEnergy::MoleculeForceSub(XYZArray& atomForce,
+                                       XYZArray& molForce,
+                                       const uint molIndex,
+                                       const uint box)
+{
+  if (box < BOXES_WITH_U_NB) {
+    uint length = mols.GetKind(molIndex).NumAtoms();
+    uint start = mols.MolStart(molIndex);
+
+    for (uint p = 0; p < length; ++p) {
+      uint atom = start + p;
+      CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom], box);
+
+      double qi_qj_fact, distSq;
+      double pRF = 0.0, pVF = 0.0;
+      int i;
+      XYZ virComponents, forceLJ, forceReal;
+      std::vector<uint> nIndex;
+
+      //store atom index in neighboring cell
+      while (!n.Done()) {
+        nIndex.push_back(*n);
+        n.Next();
+      }
+
+#ifdef _OPENMP
+      #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents)
+#endif
+
+for(i = 0; i < nIndex.size(); i++) {
+        distSq = 0.0;
+        //Subtract old energy
+        if (currentAxes.InRcut(distSq, virComponents,
+                               currentCoords, atom, nIndex[i], box)) {
+          if(multiParticleEnabled) {
+            qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
+                         num::qqFact;
+            virComponents.Normalize();
+            if(electrostatic) {
+              pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact);
+              forceReal = virComponents * pRF;
+            }
+            pVF = forcefield.particles->CalcVir(distSq, particleKind[atom],
+                                                particleKind[nIndex[i]]);
+            forceLJ = virComponents * pVF;
+            
+            atomForce.Sub(atom, forceLJ + forceReal);
+            atomForce.Add(nIndex[i], forceLJ + forceReal);
+            molForce.Sub(particleMol[atom], forceLJ + forceReal);
+            molForce.Add(particleMol[nIndex[i]], forceLJ + forceReal);
+          }
+        }
+      }
+    }
   }
 }
 
@@ -1099,6 +1146,7 @@ void CalculateEnergy::CalculateTorque(XYZArray const& coordinates,
         atomTorque.Set(p, tempTorque);
         molTorque.Add((*thisMol), tempTorque);
       }
+      thisMol++;
     }
   }
 }
