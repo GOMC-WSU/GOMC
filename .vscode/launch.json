@@ -11,9 +11,10 @@
       "program": "${workspaceFolder}/bin/GOMC_CPU_NVT",
       "args": ["in.conf"],
       "stopAtEntry": false,
-      "cwd": "${workspaceFolder}/bin/",
+      "cwd": "${workspaceFolder}/",
       "environment": [],
-      "externalConsole": true,
+      "externalConsole": false,
+      "internalConsoleOptions": "openOnFirstSessionStart",
       "MIMode": "gdb",
       "setupCommands": [
           {
