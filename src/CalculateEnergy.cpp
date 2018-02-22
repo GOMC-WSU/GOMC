@@ -245,7 +245,6 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
       // Calculating the force and torque of each atom
       if(multiParticleEnabled) {
-        virComponents.Normalize();
         if(electrostatic) {
           pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact);
           forceReal = virComponents * pRF;
@@ -484,7 +483,6 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                       particleKind[nIndex[i]]);
 
           if(multiParticleEnabled) {
-            virComponents.Normalize();
             if(electrostatic) {
               pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact);
               forceReal = virComponents * pRF;
@@ -530,7 +528,6 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                       particleKind[atom],
                       particleKind[nIndex[i]]);
           if(multiParticleEnabled) {
-            virComponents.Normalize();
             if(electrostatic) {
               pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact);
               forceReal = virComponents * pRF;
@@ -1029,7 +1026,6 @@ void CalculateEnergy::MoleculeForceAdd(XYZArray const& molCoords,
         if (currentAxes.InRcut(distSq, virComponents,
                                molCoords, p, currentCoords, nIndex[i], box)) {
           if(multiParticleEnabled) {
-            virComponents.Normalize();
             if(electrostatic) {
               qi_qj_fact = particleCharge[atom] *
                            particleCharge[nIndex[i]] * num::qqFact;
@@ -1088,7 +1084,6 @@ for(i = 0; i < nIndex.size(); i++) {
           if(multiParticleEnabled) {
             qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
                          num::qqFact;
-            virComponents.Normalize();
             if(electrostatic) {
               pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact);
               forceReal = virComponents * pRF;
