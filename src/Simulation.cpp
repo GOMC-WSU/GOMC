@@ -75,21 +75,24 @@ void Simulation::RunSimulation(void)
 #ifndef NDEBUG
 void Simulation::RunningCheck(const uint step)
 {
+  double sysForce = TotalForce();
   system->calcEwald->Init();
   SystemPotential pot = system->calcEnergy.SystemTotal();
+  double reCalcForce = TotalForce();
 
   std::cout
       << "================================================================="
       << std::endl << "-------------------------" << std::endl
       << " STEP: " << step
       << std::endl << "-------------------------" << std::endl
-      << "Energy       INTRA B |     INTRA NB |        INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
+      << "Energy       INTRA B |     INTRA NB |        INTER |           TC |       FORCE  |         REAL |         SELF |   CORRECTION |        RECIP"
       << std::endl
       << "System: "
       << std::setw(12) << system->potential.totalEnergy.intraBond << " | "
       << std::setw(12) << system->potential.totalEnergy.intraNonbond << " | "
       << std::setw(12) << system->potential.totalEnergy.inter << " | "
       << std::setw(12) << system->potential.totalEnergy.tc << " | "
+      << std::setw(12) << sysForce << " | "
       << std::setw(12) << system->potential.totalEnergy.real << " | "
       << std::setw(12) << system->potential.totalEnergy.self << " | "
       << std::setw(12) << system->potential.totalEnergy.correction << " | "
@@ -99,6 +102,7 @@ void Simulation::RunningCheck(const uint step)
       << std::setw(12) << pot.totalEnergy.intraNonbond << " | "
       << std::setw(12) << pot.totalEnergy.inter << " | "
       << std::setw(12) << pot.totalEnergy.tc << " | "
+      << std::setw(12) << reCalcForce << " | "
       << std::setw(12) << pot.totalEnergy.real << " | "
       << std::setw(12) << pot.totalEnergy.self << " | "
       << std::setw(12) << pot.totalEnergy.correction << " | "
@@ -107,4 +111,13 @@ void Simulation::RunningCheck(const uint step)
       << std::endl << std::endl;
 
 }
+
+double Simulation::TotalForce()
+{
+  double total = 0.0;
+  for(uint i=0; i<system->molForceRef.Count(); i++)
+    total += system->molForceRef[i].Length();
+  return total;
+}
+
 #endif

@@ -42,6 +42,9 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
     case mv::DISPLACE:
       movePerc[m] = perc.displace;
       break;
+    case mv::MULTIPARTICLE:
+      movePerc[m] = perc.multiParticle;
+      break;
     case mv::ROTATE:
       movePerc[m] = perc.rotate;
       break;
