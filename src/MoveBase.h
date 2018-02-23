@@ -44,7 +44,9 @@ public:
     BETA(statV.forcefield.beta), ewald(statV.forcefield.ewald),
     cellList(sys.cellList), molRemoved(false),
     atomForceRef(sys.atomForceRef),
-    molForceRef(sys.molForceRef)
+    molForceRef(sys.molForceRef),
+    atomForceRecRef(sys.atomForceRecRef),
+    molForceRecRef(sys.molForceRecRef)
   {
     atomForceNew.Init(sys.atomForceRef.Count());
     molForceNew.Init(sys.molForceRef.Count());
@@ -84,6 +86,8 @@ protected:
   XYZArray atomForceNew;
   XYZArray& molForceRef;
   XYZArray molForceNew;
+  XYZArray& atomForceRecRef;
+  XYZArray& molForceRecRef;
 
   PRNG & prng;
   BoxDimensions & boxDimRef;
@@ -201,7 +205,7 @@ inline void Translate::Accept(const uint rejectState, const uint step)
     // setting energy and virial of coulomb interaction
     sysPotRef.boxEnergy[b].real += inter_Real.energy;
     // setting energy and virial of recip term
-    sysPotRef.boxEnergy[b].recip += recip.energy;;
+    sysPotRef.boxEnergy[b].recip += recip.energy;
 
     //Copy coords
     newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);
@@ -209,6 +213,10 @@ inline void Translate::Accept(const uint rejectState, const uint step)
     swap(atomForceRef, atomForceNew);
     swap(molForceRef, molForceNew);
     calcEwald->UpdateRecip(b);
+ 
+    //Calculate the new reciprocate force! very expensive for single move
+    calcEwald->ForceReciprocal(atomForceRecRef, molForceRecRef, b);
+
     sysPotRef.Total();
   }
 
@@ -299,6 +307,9 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
     swap(atomForceRef, atomForceNew);
     swap(molForceRef, molForceNew);
     calcEwald->UpdateRecip(b);
+
+    //Calculate the new reciprocate force! very expensive for single move
+    calcEwald->ForceReciprocal(atomForceRecRef, molForceRecRef, b);
 
     sysPotRef.Total();
   }
@@ -539,9 +550,13 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       if ((bPick[b] == 0) && fixBox0)
         continue;
 
-      calcEwald->UpdateRecip(b);
-      calcEwald->UpdateRecipVec(b);
+      calcEwald->UpdateRecip(bPick[b]);
+      calcEwald->UpdateRecipVec(bPick[b]);
+      
+      //Calculate the new reciprocate force
+      calcEwald->ForceReciprocal(atomForceRecRef, molForceRecRef, bPick[b]);
     }
+
   } else if (rejectState == mv::fail_state::NO_FAIL && regrewGrid) {
     cellList.GridAll(boxDimRef, coordCurrRef, molLookRef);
     regrewGrid = false;

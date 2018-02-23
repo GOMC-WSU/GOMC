@@ -23,10 +23,10 @@ private:
   double t_max, r_max;
   double lambda;
   SystemPotential sysPotNew;
-  XYZArray atomTorqueRef;
-  XYZArray atomTorqueNew;
   XYZArray molTorqueRef;
   XYZArray molTorqueNew;
+  XYZArray atomForceRecNew;
+  XYZArray molForceRecNew;
   XYZArray t_k;
   XYZArray r_k;
   Coordinates newMolsPos;
@@ -45,10 +45,11 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef,statV.mol),
   molLookup(sys.molLookup)
 {
-  atomTorqueNew.Init(sys.coordinates.Count());
   molTorqueNew.Init(sys.com.Count());
-  atomTorqueRef.Init(sys.coordinates.Count());
   molTorqueRef.Init(sys.com.Count());
+  atomForceRecNew.Init(sys.coordinates.Count());
+  molForceRecNew.Init(sys.com.Count());
+  
   t_k.Init(sys.com.Count());
   r_k.Init(sys.com.Count());
   newMolsPos.Init(sys.coordinates.Count());
@@ -112,14 +113,27 @@ inline void MultiParticle::CalcEn()
   // reference values in Accept() function
   cellList.GridAll(boxDimRef, newMolsPos, molLookup);
 
+  //back up cached fourier term
+  calcEwald->exgMolCache();
+  //setup reciprocate vectors for new positions
+  calcEwald->BoxReciprocalSetup(bPick, newMolsPos);
+
   sysPotNew = sysPotRef;
+  //calculate short range energy and force
   sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs, atomForceNew,
                                  molForceNew, boxDimRef, bPick);
-  calcEnRef.CalculateTorque(coordCurrRef, comCurrRef, atomForceRef, atomTorqueRef,
-                            molTorqueRef, moveType, bPick);
-  calcEnRef.CalculateTorque(newMolsPos, newCOMs, atomForceNew, atomTorqueNew,
-                            molTorqueNew, moveType, bPick);
-  return;
+  //calculate long range of new electrostatic energy
+  sysPotNew.boxEnergy[bPick].recip = calcEwald->BoxReciprocal(bPick);
+  //Calculate long range of new electrostatic force
+  calcEwald->BoxForceReciprocal(newMolsPos, atomForceRecNew, molForceRecNew,
+				bPick);
+  //Calculate Torque for old positions
+  calcEnRef.CalculateTorque(coordCurrRef, comCurrRef, atomForceRef,
+			    atomForceRecRef, molTorqueRef, moveType, bPick);
+  //Calculate Torque for new positions
+  calcEnRef.CalculateTorque(newMolsPos, newCOMs, atomForceNew, atomForceRecNew,
+			    molTorqueNew, moveType, bPick);
+  sysPotNew.Total();
 }
 
 inline double MultiParticle::GetCoeff()
@@ -153,8 +167,10 @@ inline double MultiParticle::GetCoeff()
         (2.0*sinh(lbt_old.z * r_max));
     }
     else { // displace
-      lbf_old = molForceRef.Get(molNumber) * lambda * BETA;
-      lbf_new = molForceNew.Get(molNumber) * lambda * BETA;
+      lbf_old = (molForceRef.Get(molNumber) + molForceRecRef.Get(molNumber)) *
+	lambda * BETA;
+      lbf_new = (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber)) *
+	lambda * BETA;
       w_ratio *= lbf_new.x * exp(lbf_new.x * -1 * t_k.Get(molNumber).x)/
         (2.0*sinh(lbf_new.x * t_max));
       w_ratio *= lbf_new.y * exp(lbf_new.y * -1 * t_k.Get(molNumber).y)/
@@ -188,11 +204,15 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
     swap(comCurrRef, newCOMs);
     swap(molForceRef, molForceNew);
     swap(atomForceRef, atomForceNew);
+    swap(molForceRecRef, molForceRecNew);
+    swap(atomForceRecRef, atomForceRecNew);
     swap(molTorqueRef, molTorqueNew);
-    swap(atomTorqueRef, atomTorqueNew);
+    //update reciprocate value
+    calcEwald->UpdateRecip(bPick);
   }
   else {
     cellList.GridAll(boxDimRef, coordCurrRef, molLookup);
+    calcEwald->exgMolCache();
   }
   subPick = mv::GetMoveSubIndex(mv::MULTIPARTICLE, bPick);
   moveSetRef.Update(result, subPick, step);
@@ -223,7 +243,8 @@ inline void MultiParticle::CalculateTrialDistRot(uint molIndex)
     r_k.Set(molIndex, temp);
   }
   else { // displace
-    lbf = molForceRef.Get(molIndex) * lambda * BETA;
+    lbf = (molForceRef.Get(molIndex) * molForceRecRef.Get(molIndex)) *
+      lambda * BETA;
     lbfmax = lbf * t_max;
     rand = prng();
     num.x = log(exp(-1 * lbfmax.x ) + 2 * rand * sinh(lbfmax.x ));

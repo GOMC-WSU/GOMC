@@ -84,6 +84,8 @@ public:
   Coordinates coordinates;
   XYZArray atomForceRef;
   XYZArray molForceRef;
+  XYZArray atomForceRecRef;
+  XYZArray molForceRecRef;
   COM com;
 
   CalculateEnergy calcEnergy;

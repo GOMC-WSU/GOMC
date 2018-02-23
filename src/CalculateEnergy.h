@@ -169,8 +169,8 @@ public:
   void CalculateTorque(XYZArray const& coordinates,
                        XYZArray const& com,
                        XYZArray const& atomForce,
-                       XYZArray& atomTorque,
-                       XYZArray& molTorque,
+		       XYZArray const& atomForceRec,
+		       XYZArray& molTorque,
                        vector<uint> moveType,
                        const uint box);
 private:

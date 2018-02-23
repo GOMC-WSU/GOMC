@@ -77,6 +77,9 @@ void System::Init(Setup const& set)
   // Allocate space for atom forces
   atomForceRef.Init(set.pdb.atoms.beta.size());
   molForceRef.Init(com.Count());
+  // Allocate space for reciprocate force
+  atomForceRecRef.Init(set.pdb.atoms.beta.size());
+  molForceRecRef.Init(com.Count());
   cellList.SetCutoff(statV.forcefield.rCut);
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 

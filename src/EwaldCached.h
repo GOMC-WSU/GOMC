@@ -96,6 +96,15 @@ public:
   //calculate reciprocate energy term for a box
   virtual double BoxReciprocal(uint box) const;
 
+  //calculate reciprocate force term for a box with molCoords
+  virtual void BoxForceReciprocal(XYZArray const& molCoords,
+				  XYZArray& atomForceRec, XYZArray& molForceRec,
+				  uint box);
+
+  //calculate reciprocate force term for a box with Reference value
+  virtual void ForceReciprocal(XYZArray& atomForceRec, XYZArray& molForceRec,
+			       uint box);
+
   //calculate reciprocate force term for a box
   virtual Virial VirialReciprocal(Virial& virial, uint box) const;
 
@@ -146,8 +155,10 @@ protected:
   const BoxDimensions& currentAxes;
   const COM& currentCOM;
   const SystemPotential &sysPotRef;
+  XYZArray& atomForceRecRef;
+  XYZArray& molForceRecRef;
 
-  bool electrostatic, ewald;
+  bool electrostatic, ewald, multiParticleEnabled;
   double alpha;
   double recip_rcut, recip_rcut_Sq;
   uint *imageSize;

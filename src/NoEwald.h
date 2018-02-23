@@ -62,6 +62,15 @@ public:
   //calculate reciprocate energy term for a box
   virtual double BoxReciprocal(uint box) const;
 
+  //calculate reciprocate force term for a box with molCoords
+  virtual void BoxForceReciprocal(XYZArray const& molCoords,
+				  XYZArray& atomForceRec, XYZArray& molForceRec,
+				  uint box);
+
+  //calculate reciprocate force term for a box with Reference value
+  virtual void ForceReciprocal(XYZArray& atomForceRec, XYZArray& molForceRec,
+			       uint box);
+
   //calculate reciprocate force term for a box
   virtual Virial VirialReciprocal(Virial& virial, uint box) const;
 
