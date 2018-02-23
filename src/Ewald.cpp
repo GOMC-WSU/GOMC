@@ -62,6 +62,8 @@ void Ewald::Init()
     RecipInit(b, currentAxes);
     BoxReciprocalSetup(b, currentCoords);
     SetRecipRef(b);
+    //calculate reciprocate force
+    ForceReciprocal(atomForceRecRef, molForceRecRef, b);
     printf("Box: %d, RecipVectors: %d, kmax: %d\n", b, imageSize[b],
            kmax[b]);
   }

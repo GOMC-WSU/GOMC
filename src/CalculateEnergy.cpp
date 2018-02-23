@@ -92,7 +92,6 @@ SystemPotential CalculateEnergy::SystemTotal()
 
   //system intra
   for (uint b = 0; b < BOX_TOTAL; ++b) {
-    pot.boxVirial[b] = VirialCalc(b);
     int i;
     double bondEnergy[2] = {0};
     double bondEn = 0.0, nonbondEn = 0.0, self = 0.0, correction = 0.0;
@@ -122,6 +121,9 @@ SystemPotential CalculateEnergy::SystemTotal()
     //calculate self term of electrostatic interaction
     pot.boxEnergy[b].self = calcEwald->BoxSelf(currentAxes, b);
     pot.boxEnergy[b].correction = -1 * correction * num::qqFact;
+
+    //Calculate Virial
+    pot.boxVirial[b] = VirialCalc(b);
   }
 
   pot.Total();
@@ -179,9 +181,6 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   std::vector<uint> pair1, pair2;
   CellList::Pairs pair = cellList.EnumeratePairs(box);
 
-  // Set forces to zero
-  atomForce.Reset();
-  molForce.Reset();
 
   //store atom pair index
   while (!pair.Done()) {
@@ -1005,7 +1004,7 @@ void CalculateEnergy::MoleculeForceAdd(XYZArray const& molCoords,
 
     for (uint p = 0; p < length; ++p) {
       uint atom = start + p;
-      CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom], box);
+      CellList::Neighbors n = cellList.EnumerateLocal(molCoords[p], box);
 
       double qi_qj_fact, distSq;
       double pRF = 0.0, pVF = 0.0;
@@ -1107,7 +1106,7 @@ for(i = 0; i < nIndex.size(); i++) {
 void CalculateEnergy::CalculateTorque(XYZArray const& coordinates,
                                       XYZArray const& com,
                                       XYZArray const& atomForce,
-                                      XYZArray& atomTorque,
+				      XYZArray const& atomForceRec,
                                       XYZArray& molTorque,
                                       vector<uint> moveType,
                                       const uint box)
@@ -1115,9 +1114,6 @@ void CalculateEnergy::CalculateTorque(XYZArray const& coordinates,
   if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
     uint length, start;
     XYZ tempTorque, distFromCOM;
-    // set torque array to zero
-    atomTorque.Reset();
-    molTorque.Reset();
 
     // molecule iterator
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
@@ -1126,17 +1122,17 @@ void CalculateEnergy::CalculateTorque(XYZArray const& coordinates,
     while(thisMol != end) {
       length = mols.GetKind(*thisMol).NumAtoms();
       start = mols.MolStart(*thisMol);
-      if(length==1 || !moveType[*thisMol]) {
+      molTorque.Set(*thisMol, 0.0, 0.0, 0.0);
+      if(length == 1 || !moveType[*thisMol]) {
         thisMol++;
         continue;
       }
 
       // atom iterator
-      for (uint p=start; p<start+length; p++) {
+      for(uint p = start; p < start + length; p++) {
         distFromCOM = coordinates.Difference(p, com, (*thisMol));
         distFromCOM = currentAxes.MinImage(distFromCOM, box);
-        tempTorque = Cross(distFromCOM, atomForce[p]);
-        atomTorque.Set(p, tempTorque);
+        tempTorque = Cross(distFromCOM, atomForce[p] + atomForceRec[p]);
         molTorque.Add((*thisMol), tempTorque);
       }
       thisMol++;

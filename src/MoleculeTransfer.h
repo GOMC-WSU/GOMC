@@ -174,6 +174,11 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
       sysPotRef.boxEnergy[sourceBox].self -= self_old;
       sysPotRef.boxEnergy[destBox].self += self_new;
 
+      //Calculate the change of force 
+      calcEnRef.MoleculeForceSub(atomForceRef, molForceRef, molIndex,sourceBox);
+      calcEnRef.MoleculeForceAdd(newMol.GetCoords(), atomForceRef, molForceRef,
+                                 molIndex, destBox);
+
       //Set coordinates, new COM; shift index to new box's list
       newMol.GetCoords().CopyRange(coordCurrRef, 0, pStart, pLen);
       comCurrRef.SetNew(molIndex, destBox);
@@ -196,6 +201,8 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 
       for (uint b = 0; b < BOX_TOTAL; b++) {
         calcEwald->UpdateRecip(b);
+	//Calculate the new reciprocate force! very expensive for single move
+	calcEwald->ForceReciprocal(atomForceRecRef, molForceRecRef, b);
       }
 
       //Retotal

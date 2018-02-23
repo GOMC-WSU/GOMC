@@ -139,7 +139,6 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
       comCurrRef.SetNew(molIndex, destBox);
       cellList.AddMol(molIndex, destBox, coordCurrRef);
 
-
       //Zero out box energies to prevent small number
       //errors in double.
       if (molLookRef.NumInBox(sourceBox) == 1) {
@@ -149,7 +148,10 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
         sysPotRef.boxVirial[sourceBox].real = 0;
       }
 
-      calcEwald->UpdateRecip(sourceBox);
+      calcEwald->UpdateRecip(destBox);
+      //Calculate the new reciprocate force! very expensive for single move
+      calcEwald->ForceReciprocal(atomForceRecRef, molForceRecRef, destBox);
+      
       //Retotal
       sysPotRef.Total();
     } else {
