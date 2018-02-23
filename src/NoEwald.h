@@ -63,17 +63,14 @@ public:
   virtual double BoxReciprocal(uint box) const;
 
   //calculate reciprocate force term for a box
-  virtual Virial ForceReciprocal(Virial& virial, uint box) const;
-
-  //calculate correction force term for a box
-  virtual Virial ForceCorrection(Virial& virial, uint box) const;
+  virtual Virial VirialReciprocal(Virial& virial, uint box) const;
 
   //calculate correction term for a molecule
   virtual double MolCorrection(uint molIndex, uint box)const;
 
   //calculate reciprocate term for displacement and rotation move
   virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
-                               const uint box, XYZ const*const newCOM = NULL);
+                               const uint box);
 
   //calculate self term after swap move
   virtual double SwapSelf(const cbmc::TrialMol& trialMo) const;

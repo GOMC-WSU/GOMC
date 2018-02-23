@@ -519,7 +519,7 @@ double EwaldCached::BoxReciprocal(uint box) const
 // NOTE: The calculation of W12, W13, W23 is expensive and would not be
 // requied for pressure and surface tension calculation. So, they have been
 // commented out. In case you need to calculate them, uncomment them.
-Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
+Virial EwaldCached::VirialReciprocal(Virial& virial, uint box) const
 {
   Virial tempVir = virial;
   if (box >= BOXES_WITH_U_NB)
@@ -665,15 +665,13 @@ Virial EwaldCached::ForceReciprocal(Virial& virial, uint box) const
   tempVir.recip = wT11 + wT22 + wT33;
 
   return tempVir;
-
 }
 
 
 //calculate reciprocate term for displacement and rotation move
 double EwaldCached::MolReciprocal(XYZArray const& molCoords,
                                   const uint molIndex,
-                                  const uint box,
-                                  XYZ const*const newCOM)
+                                  const uint box)
 {
   double energyRecipNew = 0.0;
 
@@ -681,8 +679,7 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
     MoleculeKind const& thisKind = mols.GetKind(molIndex);
     uint length = thisKind.NumAtoms();
     uint startAtom = mols.MolStart(molIndex);
-    uint p, atom;
-	int i;
+    uint p, atom, i;
     double sumRealNew, sumImaginaryNew, dotProductNew, sumRealOld,
            sumImaginaryOld;
 
