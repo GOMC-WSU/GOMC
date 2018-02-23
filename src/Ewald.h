@@ -58,7 +58,7 @@ public:
 
   //calculate reciprocate term for displacement and rotation move
   virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
-                               const uint box, XYZ const*const newCOM = NULL);
+                               const uint box);
 
   //calculate reciprocate term in destination box for swap move
   virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,

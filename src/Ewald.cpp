@@ -223,8 +223,7 @@ double Ewald::BoxReciprocal(uint box) const
 
 //calculate reciprocate term for displacement and rotation move
 double Ewald::MolReciprocal(XYZArray const& molCoords,
-                            const uint molIndex, const uint box,
-                            XYZ const*const newCOM)
+                            const uint molIndex, const uint box)
 {
   double energyRecipNew = 0.0;
   double energyRecipOld = 0.0;

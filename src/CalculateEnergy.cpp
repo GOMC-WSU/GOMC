@@ -92,7 +92,7 @@ SystemPotential CalculateEnergy::SystemTotal()
 
   //system intra
   for (uint b = 0; b < BOX_TOTAL; ++b) {
-    pot.boxVirial[b] = ForceCalc(b);
+    pot.boxVirial[b] = VirialCalc(b);
     int i;
     double bondEnergy[2] = {0};
     double bondEn = 0.0, nonbondEn = 0.0, self = 0.0, correction = 0.0;
@@ -280,7 +280,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 // NOTE: The calculation of W12, W13, W23 is expensive and would not be
 // requied for pressure and surface tension calculation. So, they have been
 // commented out. In case you need to calculate them, uncomment them.
-Virial CalculateEnergy::ForceCalc(const uint box)
+Virial CalculateEnergy::VirialCalc(const uint box)
 {
   //store virial and energy of reference and modify the virial
   Virial tempVir;
@@ -421,11 +421,11 @@ Virial CalculateEnergy::ForceCalc(const uint box)
   tempVir.real = (rT11 + rT22 + rT33) * num::qqFact;
 
   if (forcefield.useLRC) {
-    ForceCorrection(tempVir, currentAxes, box);
+    VirialCorrection(tempVir, currentAxes, box);
   }
 
   //calculate reciprocate term of force
-  tempVir = calcEwald->ForceReciprocal(tempVir, box);
+  tempVir = calcEwald->VirialReciprocal(tempVir, box);
 
   tempVir.Total();
 
@@ -973,9 +973,9 @@ void CalculateEnergy::EnergyCorrection(SystemPotential& pot,
   }
 }
 
-void CalculateEnergy::ForceCorrection(Virial& virial,
-                                      BoxDimensions const& boxAxes,
-                                      const uint box) const
+void CalculateEnergy::VirialCorrection(Virial& virial,
+				       BoxDimensions const& boxAxes,
+				       const uint box) const
 {
   if (box < BOXES_WITH_U_NB) {
     double vir = 0.0;
