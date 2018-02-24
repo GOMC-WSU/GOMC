@@ -77,7 +77,9 @@ public:
   void MoleculeForceSub(XYZArray& atomForce,
                                          XYZArray& molForce,
                                          const uint molIndex,
-                                         const uint box);                                     
+                                         const uint box);
+
+  void ResetForce(XYZArray& atomForce, XYZArray& molForce, uint box);
 
 
   //! Calculates intermolecule energy of all boxes in the system
