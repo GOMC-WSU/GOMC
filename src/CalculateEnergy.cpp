@@ -181,6 +181,8 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   std::vector<uint> pair1, pair2;
   CellList::Pairs pair = cellList.EnumeratePairs(box);
 
+  // Reset Force Arrays
+  ResetForce(atomForce, molForce, box);
 
   //store atom pair index
   while (!pair.Done()) {
@@ -1106,7 +1108,7 @@ for(i = 0; i < nIndex.size(); i++) {
 void CalculateEnergy::CalculateTorque(XYZArray const& coordinates,
                                       XYZArray const& com,
                                       XYZArray const& atomForce,
-				      XYZArray const& atomForceRec,
+				                              XYZArray const& atomForceRec,
                                       XYZArray& molTorque,
                                       vector<uint> moveType,
                                       const uint box)
@@ -1123,7 +1125,7 @@ void CalculateEnergy::CalculateTorque(XYZArray const& coordinates,
       length = mols.GetKind(*thisMol).NumAtoms();
       start = mols.MolStart(*thisMol);
       molTorque.Set(*thisMol, 0.0, 0.0, 0.0);
-      if(length == 1 || !moveType[*thisMol]) {
+      if(!moveType[*thisMol]) {
         thisMol++;
         continue;
       }
@@ -1134,6 +1136,28 @@ void CalculateEnergy::CalculateTorque(XYZArray const& coordinates,
         distFromCOM = currentAxes.MinImage(distFromCOM, box);
         tempTorque = Cross(distFromCOM, atomForce[p] + atomForceRec[p]);
         molTorque.Add((*thisMol), tempTorque);
+      }
+      thisMol++;
+    }
+  }
+}
+
+void CalculateEnergy::ResetForce(XYZArray& atomForce, XYZArray& molForce, uint box)
+{
+  if(multiParticleEnabled) {
+    uint length, start;
+
+    // molecule iterator
+    MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
+    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+
+    while(thisMol != end) {
+      length = mols.GetKind(*thisMol).NumAtoms();
+      start = mols.MolStart(*thisMol);
+
+      molForce.Set(*thisMol, 0.0, 0.0, 0.0);
+      for(uint p = start; p < start + length; p++) {
+        atomForce.Set(p, 0.0, 0.0, 0.0);
       }
       thisMol++;
     }
