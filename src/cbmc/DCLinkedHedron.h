@@ -9,6 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "DCComponent.h"
 #include "CBMC.h"
 #include "DCHedron.h"
+#include "TransformMatrix.h"
 
 namespace mol_setup
 {
@@ -32,16 +33,13 @@ public:
     return new DCLinkedHedron(*this);
   };
 private:
-  void ChooseTorsionNew(TrialMol& newMol, uint molIndex, double prevPhi[]);
-  void ChooseTorsionOld(TrialMol& oldMol, uint molIndex, double prevPhi[]);
+  void ChooseTorsion(TrialMol& mol, uint molIndex, double prevPhi[],
+		     RotationMatrix& cross, RotationMatrix& tensor);
   double EvalLJ(TrialMol& mol, uint molIndex);
   DCData* data;
   DCHedron hed;
   uint nPrevBonds;
   uint prevBonded[MAX_BONDS];
-  double prevBondedLength[MAX_BONDS];
-  double prevBondedLengthOld[MAX_BONDS];
-  double focusPrevLength, focusPrevLengthOld;
   //kind[bonded][previous]
   uint dihKinds[MAX_BONDS][MAX_BONDS];
 };

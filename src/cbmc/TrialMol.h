@@ -11,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "XYZArray.h"
 #include "TransformMatrix.h"
 #include "BasicTypes.h"
+#include "MoleculeKind.h"
 
 class MoleculeKind;
 class BoxDimensions;
@@ -100,6 +101,9 @@ public:
   //!calculate distance between two atom in oldMol
   double OldDistSq(const uint atom, const uint lastAtom);
 
+  //calculate min image distance between a and b
+  double DistSq(const XYZ& a, const XYZ& b);
+
   const Energy& GetEnergy() const
   {
     return en;
@@ -128,6 +132,11 @@ public:
   const MoleculeKind& GetKind() const
   {
     return *kind;
+  }
+
+  bool OneFour() const
+  {
+    return kind->oneFour;
   }
 
   //!Returns reference to coordinates of TrialMol.

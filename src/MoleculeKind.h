@@ -87,6 +87,10 @@ public:
     builder->Build(oldMol, newMol, molIndex);
   }
 
+  //CBMC for regrowth move
+  void Regrowth(cbmc::TrialMol& oldMol, cbmc::TrialMol& newMol,
+		const uint molIndex)
+  { builder->Regrowth(oldMol, newMol, molIndex); }
 
   double PrintChargeInfo();
   SortedNonbond sortedNB, sortedNB_1_4, sortedNB_1_3, sortedEwaldNB;
