@@ -78,6 +78,7 @@ ConfigSetup::ConfigSetup(void)
   sys.moves.displace = DBL_MAX;
   sys.moves.rotate = DBL_MAX;
   sys.moves.intraSwap = DBL_MAX;
+  sys.moves.regrowth = DBL_MAX;
   out.state.settings.enable = true;
   out.restart.settings.enable = true;
   out.console.enable = true;
@@ -325,6 +326,10 @@ void ConfigSetup::Init(const char *fileName)
       sys.moves.intraSwap = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Intra-Swap move frequency",
              sys.moves.intraSwap);
+    } else if(line[0] == "RegrowthFreq") {
+      sys.moves.regrowth = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: Regrowth move frequency",
+             sys.moves.regrowth);
     } else if(line[0] == "RotFreq") {
       sys.moves.rotate = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Rotation move frequency",
@@ -600,6 +605,12 @@ void ConfigSetup::fillDefaults(void)
            sys.moves.intraSwap);
   }
 
+  if(sys.moves.regrowth == DBL_MAX) {
+    sys.moves.regrowth = 0.000;
+    printf("%-40s %-4.4f \n", "Default: Regrowth move frequency",
+	   sys.moves.intraSwap);
+  }
+
   if(sys.exclude.EXCLUDE_KIND == UINT_MAX) {
     sys.exclude.EXCLUDE_KIND = sys.exclude.EXC_ONEFOUR_KIND;
     printf("%-40s %-s \n", "Default: Exclude", "ONE-FOUR");
@@ -806,7 +817,8 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
-         sys.moves.intraSwap + sys.moves.volume - 1.0) > 0.01) {
+         sys.moves.intraSwap + sys.moves.volume +
+	 sys.moves.regrowth - 1.0) > 0.01) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(EXIT_FAILURE);
   }
@@ -816,7 +828,7 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.volume - 1.0) > 0.01) {
+         sys.moves.volume + sys.moves.regrowth - 1.0) > 0.01) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(EXIT_FAILURE);
   }
@@ -827,12 +839,13 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.transfer - 1.0) > 0.01) {
+         sys.moves.transfer + sys.moves.regrowth - 1.0) > 0.01) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #else
-  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap - 1.0) > 0.01) {
+  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
+	 sys.moves.regrowth - 1.0) > 0.01) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }

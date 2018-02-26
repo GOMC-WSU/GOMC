@@ -30,20 +30,24 @@ const uint DISPLACE = 0;
 const uint ROTATE = 1;
 #if ENSEMBLE == NVT
 const uint INTRA_SWAP = 2;
-const uint MOVE_KINDS_TOTAL = 3;
+const uint REGROWTH = 3;
+const uint MOVE_KINDS_TOTAL = 4;
 #elif ENSEMBLE == GCMC
 const uint INTRA_SWAP = 2;
-const uint MOL_TRANSFER = 3;
-const uint MOVE_KINDS_TOTAL = 4;
+const uint REGROWTH = 3;
+const uint MOL_TRANSFER = 4;
+const uint MOVE_KINDS_TOTAL = 5;
 #elif ENSEMBLE == GEMC
 const uint VOL_TRANSFER = 2;
 const uint INTRA_SWAP = 3;
-const uint MOL_TRANSFER = 4;
-const uint MOVE_KINDS_TOTAL = 5;
+const uint REGROWTH = 4;
+const uint MOL_TRANSFER = 5;
+const uint MOVE_KINDS_TOTAL = 6;
 #elif ENSEMBLE == NPT
 const uint VOL_TRANSFER = 2;
 const uint INTRA_SWAP = 3;
-const uint MOVE_KINDS_TOTAL = 4;
+const uint REGROWTH = 4;
+const uint MOVE_KINDS_TOTAL = 5;
 #endif
 
 const uint BOX0 = 0;
@@ -98,26 +102,33 @@ const uint IT_KINDS_TOTAL = 2;
 
 //////////////////////////////////////////////////////////
 
-//NVT : 1. Disp (box 0) 2. Rotate (box 0) 3. IntraSwap (box 0)
-//GCMC: 1. Disp (box 0) 2. Rotate (box 0) 3. IntraSwap (box 0)
-//      4. Deletion (box 0)   5. Insertion (box 0)
-//GEMC: 1. Disp (box 0)  2. Disp (box 1) 3. Rotate (box 0) 4. Rotate (box 1)
-//      5. Vol. (b0->b1) 6. Vol. (b1->b0)
-//      7. IntraSwap (box 0)  8. IntraSwap (box 1)
-//      9. Mol Trans (b0->b1), 10. Mol Trans (b1->b0)
-//NPT : 1. Disp (box 0) 2. Rotate (box 0) 3. Vol. (box 0) 4. IntraSwap (box 0)
+//NVT : 1. Disp (box 0)         2. Rotate (box 0)     3. IntraSwap (box 0) 
+//      4. Regrowth (box 0)
+//
+//GCMC: 1. Disp (box 0)         2. Rotate (box 0)     3. IntraSwap (box 0)
+//      4. Regrowth (box 0)     5. Deletion (box 0)   6. Insertion (box 0)
+//
+//GEMC: 1. Disp (box 0)         2. Disp (box 1) 
+//      3. Rotate (box 0)       4. Rotate (box 1)
+//      5. Vol. (b0->b1)        6. Vol. (b1->b0)
+//      7. IntraSwap (box 0)    8. IntraSwap (box 1)
+//      9. Regrowth (box 0)    10. Regrowth (box 1)
+//     11. Mol Trans (b0->b1), 12. Mol Trans (b1->b0)
+//
+//NPT : 1. Disp (box 0)         2. Rotate (box 0)     3. Vol. (box 0) 
+//      4. IntraSwap (box 0)    5. Regrowth (box 0)
 
 #if ENSEMBLE == NVT
-const uint COUNT = 3;
+const uint COUNT = 4;
 const uint SCALEABLE = 2;
 #elif ENSEMBLE == GCMC
-const uint COUNT = 5;
+const uint COUNT = 6;
 const uint SCALEABLE = 2;
 #elif ENSEMBLE == GEMC
-const uint COUNT = 10;
+const uint COUNT = 12;
 const uint SCALEABLE = 6;
 #elif ENSEMBLE == NPT
-const uint COUNT = 4;
+const uint COUNT = 5;
 const uint SCALEABLE = 3;
 #endif
 
