@@ -46,6 +46,14 @@ DCLinkedHedron::DCLinkedHedron
 {
   using namespace mol_setup;
   using namespace std;
+  vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
+  onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
+                onFocus.end());
+  //Find the atoms bonded to focus, except prev
+  for (uint i = 0; i < hed.NumBond(); ++i) {
+    bondKinds[i] = onFocus[i].kind;
+  } 
+
   vector<Bond> onPrev = AtomBonds(kind, hed.Prev());
   onPrev.erase(remove_if(onPrev.begin(), onPrev.end(), FindA1(hed.Focus())),
 	       onPrev.end());
@@ -69,12 +77,43 @@ DCLinkedHedron::DCLinkedHedron
 
 void DCLinkedHedron::PrepareNew(TrialMol& newMol, uint molIndex)
 {
+  //Get new bond information
+  SetBondLengthNew(newMol);
+  hed.SetBondNew(bondLength, anchorBond);
   hed.PrepareNew(newMol, molIndex);
+  bondEnergy = 0.0;
+  for(uint i = 0; i < hed.NumBond(); ++i) {
+    bondEnergy += data->ff.bonds.Calc(bondKinds[i], bondLength[i]);
+  }
 }
 
 void DCLinkedHedron::PrepareOld(TrialMol& oldMol, uint molIndex)
 {
+  //Get old bond information
+  SetBondLengthOld(oldMol);
+  hed.SetBondOld(bondLengthOld, anchorBondOld);
   hed.PrepareOld(oldMol, molIndex);
+  bondEnergy = 0.0;
+  for(uint i = 0; i < hed.NumBond(); ++i) {
+    bondEnergy += data->ff.bonds.Calc(bondKinds[i], bondLengthOld[i]);
+  }
+}
+
+void DCLinkedHedron::SetBondLengthNew(TrialMol& newMol)
+{
+  for(uint i = 0; i < hed.NumBond(); ++i) {
+    bondLength[i] = data->ff.bonds.Length(bondKinds[i]);
+  }
+  //anchorBond is built, we need the actual length
+  anchorBond =  sqrt(newMol.OldDistSq(hed.Focus(), hed.Prev()));
+}
+
+void DCLinkedHedron::SetBondLengthOld(TrialMol& oldMol)
+{
+  for(uint i = 0; i < hed.NumBond(); ++i) {
+    bondLengthOld[i] = sqrt(oldMol.OldDistSq(hed.Focus(), hed.Bonded(i)));
+  }
+  anchorBondOld = sqrt(oldMol.OldDistSq(hed.Focus(), hed.Prev()));
 }
 
 void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
@@ -106,7 +145,7 @@ void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
   double prevPhi[MAX_BONDS];
   for (uint i = 0; i < hed.NumBond(); ++i) {
     //get position and shift to origin
-    positions[i].Set(0, newMol.RawRectCoords(hed.BondLength(i),
+    positions[i].Set(0, newMol.RawRectCoords(bondLength[i],
                      hed.Theta(i), hed.Phi(i)));
   }
   for (uint i = 0; i < nPrevBonds; ++i) {
@@ -148,7 +187,7 @@ void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
   for(uint b = 0; b < hed.NumBond(); ++b) {
     newMol.AddAtom(hed.Bonded(b), positions[b][winner]);
   }
-  newMol.AddEnergy(Energy(bondedEn[winner] + hed.GetEnergy(),
+  newMol.AddEnergy(Energy(bondedEn[winner] + hed.GetEnergy() + bondEnergy,
                           nonbonded[winner] + hed.GetNonBondedEn() +
                           oneFour[winner], inter[winner], real[winner],
                           0.0, 0.0, 0.0));
@@ -266,9 +305,8 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
   for(uint b = 0; b < hed.NumBond(); ++b) {
     oldMol.ConfirmOldAtom(hed.Bonded(b));
   }
-  oldMol.AddEnergy(Energy(bondedEn[0] + hed.GetEnergy() +
-                          hed.GetOldBondEn(), nonbonded[0] +
-                          hed.GetNonBondedEn() + oneFour[0],
+  oldMol.AddEnergy(Energy(bondedEn[0] + hed.GetEnergy() + bondEnergy,
+			  nonbonded[0] + hed.GetNonBondedEn() + oneFour[0],
                           inter[0], real[0], 0.0, 0.0, 0.0));
 
   oldMol.MultWeight(hed.GetWeight());
