@@ -39,7 +39,8 @@ public:
   };
 
 private:
-  void BondEnergy(TrialMol& mol);
+  double BondEnergyNew(TrialMol& newMol);
+  double BondEnergyOld(TrialMol& oldMol);
   DCData* data;
   uint atom, focus;
   uint bondKind;
