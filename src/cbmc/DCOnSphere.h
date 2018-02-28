@@ -30,17 +30,21 @@ public:
   void PrepareOld(TrialMol& oldMol, uint molIndex) {};
   void BuildOld(TrialMol& oldMol, uint molIndex);
   void BuildNew(TrialMol& newMol, uint molIndex);
+  void SetBondLengthNew(TrialMol& newMol);
+  void SetBondLengthOld(TrialMol& oldMol);
+
   DCComponent* Clone()
   {
     return new DCOnSphere(*this);
   };
+
 private:
-  void SetOldBondEnergy(TrialMol& oldMol);
+  void BondEnergy(TrialMol& mol);
   DCData* data;
   uint atom, focus;
   uint bondKind;
-  double bondLength;
-  double oldBondEnergy;
+  double bondLength, bondLengthOld;
+  double bondEnergy;
 };
 
 

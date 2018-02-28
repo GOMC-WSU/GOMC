@@ -13,27 +13,40 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 namespace mol_setup { class MolKind; }
 
 namespace cbmc {
-   class DCData;
+class DCData;
 
-   class DCFreeHedronSeed : public DCComponent
-   {  
-   public:
-      DCFreeHedronSeed(DCData* data, const mol_setup::MolKind& kind,
-		       uint focus, uint prev);
-      void PrepareNew(TrialMol& newMol, uint molIndex);
-      void PrepareOld(TrialMol& oldMol, uint molIndex);
-      void BuildOld(TrialMol& oldMol, uint molIndex);
-      void BuildNew(TrialMol& newMol, uint molIndex);
-      DCComponent* Clone() { return new DCFreeHedronSeed(*this); };
+class DCFreeHedronSeed : public DCComponent
+{  
+public:
+  DCFreeHedronSeed(DCData* data, const mol_setup::MolKind& kind,
+		   uint focus, uint prev);
+  void PrepareNew(TrialMol& newMol, uint molIndex);
+  void PrepareOld(TrialMol& oldMol, uint molIndex);
+  void BuildOld(TrialMol& oldMol, uint molIndex);
+  void BuildNew(TrialMol& newMol, uint molIndex);
+  void SetBondLengthNew(TrialMol& newMol);
+  void SetBondLengthOld(TrialMol& oldMol);
 
-   private:
-      DCData* data;
-      DCHedron hed;
-      double anchorBond;
-      //anchor bond energy of old molecule
-      double oldBondEnergy;
-      uint anchorBondKind;
-   };
+  DCComponent* Clone()
+  { 
+    return new DCFreeHedronSeed(*this); 
+  };
+  
+private:
+  DCData* data;
+  DCHedron hed;
+  //bond length of prev bonded to focus
+  double anchorBond, anchorBondOld;
+  //bond energy of built branch
+  double bondEnergy;
+  uint anchorKind;
+  
+  //bond length of atom bonded to focus
+  double bondLength[MAX_BONDS];
+  double bondLengthOld[MAX_BONDS];
+  //bondKind between bonded[i] and focus
+  uint bondKinds[MAX_BONDS];
+};
 }
 
 #endif

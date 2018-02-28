@@ -28,10 +28,14 @@ public:
   void PrepareOld(TrialMol& oldMol, uint molIndex);
   void BuildOld(TrialMol& oldMol, uint molIndex);
   void BuildNew(TrialMol& newMol, uint molIndex);
+  void SetBondLengthNew(TrialMol& newMol);
+  void SetBondLengthOld(TrialMol& oldMol);
+
   DCComponent* Clone()
   {
     return new DCLinkedHedron(*this);
   };
+
 private:
   void ChooseTorsion(TrialMol& mol, uint molIndex, double prevPhi[],
 		     RotationMatrix& cross, RotationMatrix& tensor);
@@ -42,6 +46,16 @@ private:
   uint prevBonded[MAX_BONDS];
   //kind[bonded][previous]
   uint dihKinds[MAX_BONDS][MAX_BONDS];
+
+  //bond energy of built branch
+  double bondEnergy;
+  //bond length of prev bonded to focus
+  double anchorBond, anchorBondOld;
+  //bond length of atom bonded to focus
+  double bondLength[MAX_BONDS];
+  double bondLengthOld[MAX_BONDS];
+  //bondKind between bonded[i] and focus
+  uint bondKinds[MAX_BONDS];
 };
 }
 #endif

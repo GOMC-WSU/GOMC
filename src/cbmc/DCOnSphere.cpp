@@ -23,17 +23,25 @@ DCOnSphere::DCOnSphere(DCData* data, const mol_setup::MolKind kind,
   std::vector<Bond> bonds = AtomBonds(kind, atom);
   for(uint i = 0; i < bonds.size(); ++i) {
     if(bonds[i].a0 == focus || bonds[i].a1 == focus) {
-      bondLength = data->ff.bonds.Length(bonds[i].kind);
       bondKind = bonds[i].kind;
       break;
     }
   }
 }
 
-void DCOnSphere::SetOldBondEnergy(TrialMol& oldMol)
+void DCOnSphere::SetBondLengthNew(TrialMol& newMol)
 {
-  double BondDistSq = oldMol.OldDistSq(focus, atom);
-  oldBondEnergy = data->ff.bonds.Calc(bondKind, sqrt(BondDistSq));
+  bondLength = data->ff.bonds.Length(bondKind);
+}
+
+void DCOnSphere::SetBondLengthOld(TrialMol& oldMol)
+{
+  bondLengthOld = sqrt(oldMol.OldDistSq(focus, atom));
+}
+
+void DCOnSphere::BondEnergy(TrialMol& mol)
+{
+  bondEnergy = data->ff.bonds.Calc(bondKind, bondLength);
 }
 
 void DCOnSphere::BuildOld(TrialMol& oldMol, uint molIndex)
@@ -46,9 +54,9 @@ void DCOnSphere::BuildOld(TrialMol& oldMol, uint molIndex)
 
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
-  //considering bond energy for old molecule. There is no need to calculate
-  //for new molecule since we dont sample bond.
-  SetOldBondEnergy(oldMol);
+  //calculate bond energy for old molecule.
+  bondEnergy = 0.0;
+  BondEnergy(oldMol);
 
   data->prng.FillWithRandomOnSphere(positions, nLJTrials, bondLength,
                                     oldMol.AtomPosition(focus));
@@ -64,7 +72,7 @@ void DCOnSphere::BuildOld(TrialMol& oldMol, uint molIndex)
                       (inter[trial] + real[trial]));
   }
   oldMol.MultWeight(stepWeight);
-  oldMol.AddEnergy(Energy(oldBondEnergy, 0.0, inter[0], real[0], 0.0,
+  oldMol.AddEnergy(Energy(bondEnergy, 0.0, inter[0], real[0], 0.0,
                           0.0, 0.0));
   oldMol.ConfirmOldAtom(atom);
 }
@@ -81,6 +89,9 @@ void DCOnSphere::BuildNew(TrialMol& newMol, uint molIndex)
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
   std::fill_n(ljWeights, nLJTrials, 0.0);
+  //calculate bond energy for old molecule.
+  bondEnergy = 0.0;
+  BondEnergy(newMol);
 
   data->prng.FillWithRandomOnSphere(positions, nLJTrials, bondLength,
                                     newMol.AtomPosition(focus));
@@ -97,7 +108,7 @@ void DCOnSphere::BuildNew(TrialMol& newMol, uint molIndex)
   }
   uint winner = data->prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
   newMol.MultWeight(stepWeight);
-  newMol.AddEnergy(Energy(0, 0, inter[winner], real[winner], 0.0,
+  newMol.AddEnergy(Energy(bondEnergy, 0, inter[winner], real[winner], 0.0,
                           0.0, 0.0));
   newMol.AddAtom(atom, positions[winner]);
 }
