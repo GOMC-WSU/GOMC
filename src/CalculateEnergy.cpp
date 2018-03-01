@@ -244,7 +244,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
       tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
                   particleKind[pair2[i]]);
 
-      // Calculating the force and torque of each atom
+      // Calculating the force 
       if(multiParticleEnabled) {
         if(electrostatic) {
           pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact);
@@ -1108,7 +1108,7 @@ for(i = 0; i < nIndex.size(); i++) {
 void CalculateEnergy::CalculateTorque(XYZArray const& coordinates,
                                       XYZArray const& com,
                                       XYZArray const& atomForce,
-				                              XYZArray const& atomForceRec,
+				      XYZArray const& atomForceRec,
                                       XYZArray& molTorque,
                                       vector<uint> moveType,
                                       const uint box)
