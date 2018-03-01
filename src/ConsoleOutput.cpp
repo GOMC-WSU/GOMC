@@ -98,13 +98,13 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
     printElement(var->GetAcceptPercent(sub), elementWidth);
     printElement(var->GetScale(sub), elementWidth);
 
-    sub = mv::GetMoveSubIndex(mv::MULTIPARTICLE, box);
+    sub = mv::GetMoveSubIndex(mv::ROTATE, box);
     printElement(var->GetTries(sub), elementWidth);
     printElement(var->GetAccepted(sub), elementWidth);
     printElement(var->GetAcceptPercent(sub), elementWidth);
     printElement(var->GetScale(sub), elementWidth);
 
-    sub = mv::GetMoveSubIndex(mv::ROTATE, box);
+    sub = mv::GetMoveSubIndex(mv::MULTIPARTICLE, box);
     printElement(var->GetTries(sub), elementWidth);
     printElement(var->GetAccepted(sub), elementWidth);
     printElement(var->GetAcceptPercent(sub), elementWidth);
@@ -278,15 +278,15 @@ void ConsoleOutput::PrintMoveTitle()
   printElement("DISACCEPT%", elementWidth);
   printElement("DISMAX", elementWidth);
 
-  printElement("MULTIPARTICLE", elementWidth);
-  printElement("MPACCEPT", elementWidth);
-  printElement("MPACCEPT%", elementWidth);
-  printElement("MPMAX", elementWidth);
-
   printElement("ROTATE", elementWidth);
   printElement("ROTACCEPT", elementWidth);
   printElement("ROTACCEPT%", elementWidth);
   printElement("ROTMAX", elementWidth);
+
+  printElement("MULTIPARTICLE", elementWidth);
+  printElement("MPACCEPT", elementWidth);
+  printElement("MPACCEPT%", elementWidth);
+  printElement("MPMAX", elementWidth);
 
   printElement("INTRASWAP", elementWidth);
   printElement("INTACCEPT", elementWidth);
