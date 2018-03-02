@@ -143,41 +143,10 @@ void Coordinates::TranslateOneBox
  BoxDimensions const& newDim, const uint b, const XYZ& scale) const
 {
   uint pStart = 0, pStop = 0, pLen = 0;
-  int i;
   MoleculeLookup::box_iterator curr = molLookRef.BoxBegin(b),
                                end = molLookRef.BoxEnd(b);
-  std::vector<int> molID;
   XYZ shift, oldCOMForUnwrap;
   XYZ unslant, slant;
-
-#ifdef _OPENMP
-  while (curr != end) {
-    molID.push_back(*curr);
-    ++curr;
-  }
-
-  #pragma omp parallel for default(shared) private(i, pStart, pStop, pLen, shift, oldCOMForUnwrap)
-  for (i = 0; i < molID.size(); i++) {
-    molRef.GetRange(pStart, pStop, pLen, molID[i]);
-    //Scale CoM for this molecule, translate all atoms by same amount
-    //convert the COM to unslant coordinate
-    unslant = boxDimRef.TransformUnSlant(newCOM.Get(molID[i]), b);
-    //scale the COM
-    unslant *= scale;
-    //convert to slant coordinate
-    slant = newDim.TransformSlant(unslant, b);
-    //calculate the difference of new and old COM
-    newCOM.Set(molID[i], slant);
-    shift = newCOM.Get(molID[i]);
-    shift -= oldCOM.Get(molID[i]);
-    //Translation of atoms in mol.
-    //Unwrap coordinates
-    oldCOMForUnwrap = oldCOM.Get(molID[i]);
-    boxDimRef.UnwrapPBC(dest, pStart, pStop, b, oldCOMForUnwrap);
-    dest.AddRange(pStart, pStop, shift);
-    newDim.WrapPBC(dest, pStart, pStop, b);
-  }
-#else
 
   while (curr != end) {
     molRef.GetRange(pStart, pStop, pLen, *curr);
@@ -200,6 +169,5 @@ void Coordinates::TranslateOneBox
     newDim.WrapPBC(dest, pStart, pStop, b);
     ++curr;
   }
-#endif
 
 }
