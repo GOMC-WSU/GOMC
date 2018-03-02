@@ -539,60 +539,42 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
 {
   if(box >= BOXES_WITH_U_NB)
     return;
-
-#ifdef _OPENMP
-  uint p = omp_get_max_threads();
-  std::vector<int> chunks;
-  chunks.resize(8);
-  GetSchedule(trials, chunks);
-
-  #pragma omp parallel sections
-  {
-    #pragma omp section
-    {
-      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, 0, chunks[0]);
+  
+  double distSq, qi_qj_Fact, tempLJ, tempReal;
+  uint i, t;
+  MoleculeKind const& thisKind = mols.GetKind(molIndex);
+  uint kindI = thisKind.AtomKind(partIndex);
+  double kindICharge = thisKind.AtomCharge(partIndex);
+  std::vector<uint> nIndex;
+  
+  for(t = 0; t < trials; ++t) {
+    nIndex.clear();
+    tempReal = 0.0;
+    tempLJ = 0.0;
+    CellList::Neighbors n = cellList.EnumerateLocal(trialPos[t], box);
+    while (!n.Done()) {
+      nIndex.push_back(*n);
+      n.Next();
     }
-
-    #pragma omp section
-    {
-      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[0], chunks[1]);
+    
+#ifdef _OPENMP 
+#pragma omp parallel for default(shared) private(i, distSq, qi_qj_Fact) reduction(+:tempLJ, tempReal)  
+#endif   
+    for(i = 0; i < nIndex.size(); i++) {
+      distSq = 0.0;
+      
+      if(currentAxes.InRcut(distSq, trialPos, t, currentCoords,nIndex[i],box)) {
+	tempLJ += forcefield.particles->CalcEn(distSq, kindI, 
+					       particleKind[nIndex[i]]);
+	if(electrostatic) {
+	  qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
+	  tempReal += forcefield.particles->CalcCoulombEn(distSq, qi_qj_Fact);
+	}
+      }
     }
-
-    #pragma omp section
-    {
-      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[1], chunks[2]);
-    }
-
-    #pragma omp section
-    {
-      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[2], chunks[3]);
-    }
-
-    #pragma omp section
-    {
-      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[3], chunks[4]);
-    }
-
-    #pragma omp section
-    {
-      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[4], chunks[5]);
-    }
-
-    #pragma omp section
-    {
-      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[5], chunks[6]);
-    }
-
-    #pragma omp section
-    {
-      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[6], chunks[7]);
-    }
+    en[t] += tempLJ;
+    real[t] += tempReal;
   }
-
-#else
-  ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, 0, trials);
-#endif
-
 }
 
 //! Calculates Nonbonded inter energy for candidate positions in trialPos
