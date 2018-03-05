@@ -1059,7 +1059,7 @@ void CalculateEnergy::MoleculeForceSub(XYZArray& atomForce,
       #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents)
 #endif
 
-for(i = 0; i < nIndex.size(); i++) {
+      for(i = 0; i < nIndex.size(); i++) {
         distSq = 0.0;
         //Subtract old energy
         if (currentAxes.InRcut(distSq, virComponents,
@@ -1090,7 +1090,7 @@ for(i = 0; i < nIndex.size(); i++) {
 void CalculateEnergy::CalculateTorque(XYZArray const& coordinates,
                                       XYZArray const& com,
                                       XYZArray const& atomForce,
-				      XYZArray const& atomForceRec,
+				                              XYZArray const& atomForceRec,
                                       XYZArray& molTorque,
                                       vector<uint> moveType,
                                       const uint box)

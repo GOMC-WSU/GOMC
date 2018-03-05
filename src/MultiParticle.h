@@ -239,13 +239,13 @@ inline void MultiParticle::CalculateTrialDistRot()
       lbt = molTorqueRef.Get(molIndex) * lambda * BETA;
       lbtmax = lbt * r_max;
       if(lbt.Length()) {
-	rand = prng();
-	num.x = log(exp(-1 * lbtmax.x ) + 2 * rand * sinh(lbtmax.x ));
-	rand = prng();
-	num.y = log(exp(-1 * lbtmax.y ) + 2 * rand * sinh(lbtmax.y ));
-	rand = prng();
-	num.z = log(exp(-1 * lbtmax.z ) + 2 * rand * sinh(lbtmax.z ));
-	num /= lbt;
+        rand = prng();
+        num.x = log(exp(-1 * lbtmax.x ) + 2 * rand * sinh(lbtmax.x ));
+        rand = prng();
+        num.y = log(exp(-1 * lbtmax.y ) + 2 * rand * sinh(lbtmax.y ));
+        rand = prng();
+        num.z = log(exp(-1 * lbtmax.z ) + 2 * rand * sinh(lbtmax.z ));
+        num /= lbt;
       }
       r_k.Set(molIndex, num);
     }
@@ -254,13 +254,13 @@ inline void MultiParticle::CalculateTrialDistRot()
         lambda * BETA;
       lbfmax = lbf * t_max;
       if(lbf.Length()) {
-	rand = prng();
-	num.x = log(exp(-1 * lbfmax.x ) + 2 * rand * sinh(lbfmax.x ));
-	rand = prng();
-	num.y = log(exp(-1 * lbfmax.y ) + 2 * rand * sinh(lbfmax.y ));
-	rand = prng();
-	num.z = log(exp(-1 * lbfmax.z ) + 2 * rand * sinh(lbfmax.z ));
-	num /= lbf;
+        rand = prng();
+        num.x = log(exp(-1 * lbfmax.x ) + 2 * rand * sinh(lbfmax.x ));
+        rand = prng();
+        num.y = log(exp(-1 * lbfmax.y ) + 2 * rand * sinh(lbfmax.y ));
+        rand = prng();
+        num.z = log(exp(-1 * lbfmax.z ) + 2 * rand * sinh(lbfmax.z ));
+        num /= lbf;
       }
       t_k.Set(molIndex, num);
     }

@@ -584,7 +584,8 @@ Virial EwaldCached::VirialReciprocal(Virial& virial, uint box) const
                          box);
 #else
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(i, factor) reduction(+:wT11, wT12, wT13, wT22, wT23, wT33)
+  #pragma omp parallel for default(shared) private(i, factor) \
+  reduction(+:wT11, wT12, wT13, wT22, wT23, wT33)
 #endif
   for (i = 0; i < imageSizeRef[box]; i++) {
     factor = prefactRef[box][i] * (sumRref[box][i] * sumRref[box][i] +
@@ -626,7 +627,8 @@ Virial EwaldCached::VirialReciprocal(Virial& virial, uint box) const
       charge = mols.GetKind(*thisMol).AtomCharge(p);
 
 #ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(i, arg, factor) reduction(+:wT11, wT12, wT13, wT22, wT23, wT33)
+      #pragma omp parallel for default(shared) private(i, arg, factor) \
+      reduction(+:wT11, wT12, wT13, wT22, wT23, wT33)
 #endif
       for (i = 0; i < imageSizeRef[box]; i++) {
         //compute the dot product of k and r
@@ -997,87 +999,87 @@ void EwaldCached::exgMolCache()
 
 //calculate reciprocate force term for a box with molCoords
 void EwaldCached::BoxForceReciprocal(XYZArray const& molCoords,
-				     XYZArray& atomForceRec,
-				     XYZArray& molForceRec,
-				     uint box)
+                                     XYZArray& atomForceRec,
+                                     XYZArray& molForceRec,
+                                     uint box)
 {
   if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
-
     // molecule iterator
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
 
-     while(thisMol != end) {
-       uint molIndex = *thisMol;
-       uint length, start, p, i;
-       double dot, factor;
-       molForceRec.Set(molIndex, 0.0, 0.0, 0.0);
-       length = mols.GetKind(molIndex).NumAtoms();
-       start = mols.MolStart(molIndex);
+    while(thisMol != end) {
+      uint molIndex = *thisMol;
+      uint length, start, p, i;
+      double dot, factor;
+      molForceRec.Set(molIndex, 0.0, 0.0, 0.0);
+      length = mols.GetKind(molIndex).NumAtoms();
+      start = mols.MolStart(molIndex);
 
-       for(p = start; p < start + length; p++) {
-	 double X = 0.0, Y = 0.0, Z = 0.0;
+      for(p = start; p < start + length; p++) {
+        double X = 0.0, Y = 0.0, Z = 0.0;
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, dot, factor) reduction(+:X, Y, Z)
+        #pragma omp parallel for default(shared) private(i, dot, factor) \
+        reduction(+:X, Y, Z)
 #endif
-	 for(i = 0; i < imageSize[box]; i++) {
-	   dot = currentAxes.DotProduct(p, kx[box][i], ky[box][i], kz[box][i],
-					molCoords);
-	   
-	   factor = particleCharge[p] * prefact[box][i] *
-	     (sin(dot) * sumRnew[box][i] - cos(dot) * sumInew[box][i]);
-	   
-	   X += factor * kx[box][i];
-	   Y += factor * ky[box][i];
-	   Z += factor * kz[box][i];
-	 }
-	 atomForceRec.Set(p, X, Y, Z);
-	 molForceRec.Add(molIndex, X, Y, Z);
-       }
-       thisMol++;
-     }
+        for(i = 0; i < imageSize[box]; i++) {
+          dot = currentAxes.DotProduct(p, kx[box][i], ky[box][i], kz[box][i],
+                                       molCoords);
+  
+          factor = particleCharge[p] * prefact[box][i] *
+                  (sin(dot) * sumRnew[box][i] - cos(dot) * sumInew[box][i]);
+
+          X += factor * kx[box][i];
+          Y += factor * ky[box][i];
+          Z += factor * kz[box][i];
+        }
+        atomForceRec.Set(p, X, Y, Z);
+        molForceRec.Add(molIndex, X, Y, Z);
+      }
+      thisMol++;
+    }
   }
 }
 
 //calculate reciprocate force term for a box with Reference value
 void EwaldCached::ForceReciprocal(XYZArray& atomForceRec, XYZArray& molForceRec,
-				  uint box)
+				                          uint box)
 {
   if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
-
     // molecule iterator
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
 
-     while(thisMol != end) {
-       uint molIndex = *thisMol;
-       uint length, start, p, i;
-       double dot, factor;
-       length = mols.GetKind(molIndex).NumAtoms();
-       start = mols.MolStart(molIndex);
-       molForceRec.Set(molIndex, 0.0, 0.0, 0.0);
+    while(thisMol != end) {
+      uint molIndex = *thisMol;
+      uint length, start, p, i;
+      double dot, factor;
+      length = mols.GetKind(molIndex).NumAtoms();
+      start = mols.MolStart(molIndex);
+      molForceRec.Set(molIndex, 0.0, 0.0, 0.0);
 
-       for(p = start; p < start + length; p++) {
-	 double X = 0.0, Y = 0.0, Z = 0.0;
+      for(p = start; p < start + length; p++) {
+        double X = 0.0, Y = 0.0, Z = 0.0;
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, dot, factor) reduction(+:X, Y, Z)
+        #pragma omp parallel for default(shared) \
+        private(i, dot, factor) reduction(+:X, Y, Z)
 #endif
-	 for(i = 0; i < imageSizeRef[box]; i++) {
-	   dot = currentAxes.DotProduct(p, kxRef[box][i], kyRef[box][i],
-					kzRef[box][i], currentCoords);
-	   
-	   factor = particleCharge[p] * prefactRef[box][i] *
-	     (sin(dot) * sumRref[box][i] - cos(dot) * sumIref[box][i]);
-	   
-	   X += factor * kxRef[box][i];
-	   Y += factor * kyRef[box][i];
-	   Z += factor * kzRef[box][i];
-	 }
-	 atomForceRec.Set(p, X, Y, Z);
-	 molForceRec.Add(molIndex, X, Y, Z);
-       }
-       thisMol++;
-     }
+        for(i = 0; i < imageSizeRef[box]; i++) {
+          dot = currentAxes.DotProduct(p, kxRef[box][i], kyRef[box][i],
+                                        kzRef[box][i], currentCoords);
+    
+          factor = particleCharge[p] * prefactRef[box][i] *
+                    (sin(dot) * sumRref[box][i] - cos(dot) * sumIref[box][i]);
+    
+          X += factor * kxRef[box][i];
+          Y += factor * kyRef[box][i];
+          Z += factor * kzRef[box][i];
+        }
+        atomForceRec.Set(p, X, Y, Z);
+        molForceRec.Add(molIndex, X, Y, Z);
+      }
+      thisMol++;
+    }
   }
 }
 
