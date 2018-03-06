@@ -57,7 +57,7 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   moveType.resize(sys.com.Count());
   lambda = 0.5;
   t_max = 0.05;
-  r_max = 0.05 * 2 * M_PI;
+  r_max = 0.01 * 2 * M_PI;
 }
 
 inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
@@ -78,6 +78,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
       moveType[*thisMol] = MPDISPLACE;
     else
       moveType[*thisMol] = (prng.randInt(1) ? MPROTATE : MPDISPLACE);
+    //moveType[*thisMol] = MPROTATE;
 
     thisMol++;
   }
