@@ -677,7 +677,7 @@ Virial EwaldCached::VirialReciprocal(Virial& virial, uint box) const
 
 //calculate reciprocate term for displacement and rotation move
 double EwaldCached::MolReciprocal(XYZArray const& molCoords,
-				  const uint molIndex,
+				                          const uint molIndex,
                                   const uint box)
 {
   double energyRecipNew = 0.0;
@@ -1026,13 +1026,14 @@ void EwaldCached::BoxForceReciprocal(XYZArray const& molCoords,
           dot = currentAxes.DotProduct(p, kx[box][i], ky[box][i], kz[box][i],
                                        molCoords);
   
-          factor = particleCharge[p] * prefact[box][i] *
+          factor = 2.0 * particleCharge[p] * prefact[box][i] *
                   (sin(dot) * sumRnew[box][i] - cos(dot) * sumInew[box][i]);
 
           X += factor * kx[box][i];
           Y += factor * ky[box][i];
           Z += factor * kz[box][i];
         }
+        //printf("Atomforce: %lf, %lf, %lf\n", X, Y, Z);
         atomForceRec.Set(p, X, Y, Z);
         molForceRec.Add(molIndex, X, Y, Z);
       }
@@ -1068,7 +1069,7 @@ void EwaldCached::ForceReciprocal(XYZArray& atomForceRec, XYZArray& molForceRec,
           dot = currentAxes.DotProduct(p, kxRef[box][i], kyRef[box][i],
                                         kzRef[box][i], currentCoords);
     
-          factor = particleCharge[p] * prefactRef[box][i] *
+          factor = 2.0 * particleCharge[p] * prefactRef[box][i] *
                     (sin(dot) * sumRref[box][i] - cos(dot) * sumIref[box][i]);
     
           X += factor * kxRef[box][i];
