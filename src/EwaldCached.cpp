@@ -1070,8 +1070,7 @@ void EwaldCached::ForceReciprocal(XYZArray& atomForceRec, XYZArray& molForceRec,
                                         kzRef[box][i], currentCoords);
     
           factor = 2.0 * particleCharge[p] * prefactRef[box][i] *
-                    (cos(dot) * sumIref[box][i] - sin(dot) * sumRref[box][i]);
-    
+                   (cos(dot) * sumIref[box][i] - sin(dot) * sumRref[box][i]);
           X += factor * kxRef[box][i];
           Y += factor * kyRef[box][i];
           Z += factor * kzRef[box][i];
