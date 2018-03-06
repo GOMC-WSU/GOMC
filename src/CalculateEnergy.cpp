@@ -58,7 +58,6 @@ CalculateEnergy::CalculateEnergy(StaticVals & stat, System & sys) :
 #endif
   , cellList(sys.cellList)
 {
-  multiParticleEnabled = stat.multiParticleEnabled;
 }
 
 
@@ -68,6 +67,7 @@ void CalculateEnergy::Init(System & sys)
   calcEwald = sys.GetEwald();
   electrostatic = forcefield.electrostatic;
   ewald = forcefield.ewald;
+  multiParticleEnabled = sys.statV.multiParticleEnabled;
   for(uint m = 0; m < mols.count; ++m) {
     const MoleculeKind& molKind = mols.GetKind(m);
     if(molKind.NumAtoms() > maxAtomInMol)
