@@ -249,7 +249,7 @@ void ConfigSetup::Init(const char *fileName)
       printf("%-40s %-4.4f A\n", "Info: Cutoff", sys.ff.cutoff);
     } else if(line[0] == "RcutLow") {
       sys.ff.cutoffLow = stringtod(line[1]);
-      printf("%-40s %-4.4f A.\n", "Info: Short Range Cutoff", sys.ff.cutoffLow);
+      printf("%-40s %-4.4f A\n", "Info: Short Range Cutoff", sys.ff.cutoffLow);
     } else if(line[0] == "Exclude") {
       if(line[1] == sys.exclude.EXC_ONETWO) {
         sys.exclude.EXCLUDE_KIND = sys.exclude.EXC_ONETWO_KIND;

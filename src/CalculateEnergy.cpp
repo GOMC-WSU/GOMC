@@ -125,7 +125,7 @@ SystemPotential CalculateEnergy::SystemTotal()
               "initial configuration.\n"
               "         Total energy calculation will be perform at EqStep to "
               "preserve the\n"
-              "         enegy information.\n";
+              "         energy information.\n";
   }
 
   return pot;
