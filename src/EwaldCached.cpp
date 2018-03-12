@@ -197,7 +197,6 @@ void EwaldCached::UpdateVectorsAndRecipTerms()
 
 void EwaldCached::AllocMem()
 {
-  cout << "EwaldCached.cpp AllocMem() function" << endl;
   //get size of image using defined Kmax
   //Allocate Memory
 
@@ -228,7 +227,6 @@ void EwaldCached::AllocMem()
   }
   //25% larger than original box size, reserved for image size change
   imageTotal = findLargeImage();
-  memoryAllocation = imageTotal;
 
   for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
     kx[b] = new double[imageTotal];

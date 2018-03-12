@@ -157,7 +157,6 @@ protected:
   uint *imageSizeRef;
   //const uint imageTotal = GetImageSize();
   uint imageTotal;
-  uint memoryAllocation;
   uint imageLarge;
   uint *kmax;
   double **sumRnew; //cosine serries
