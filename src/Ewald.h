@@ -45,6 +45,7 @@ class Ewald : public EwaldCached
 public:
 
   Ewald(StaticVals & stat, System & sys);
+  ~Ewald();
 
   virtual void Init();
 
