@@ -69,6 +69,9 @@ Histogram::~Histogram()
 {
   if (total != NULL) delete[] total;
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+    for (uint k = 0; k < var->numKinds; ++k) {
+      delete[] molCount[b][k];
+    }
     if (name[b] != NULL) delete[] name[b];
     if (molCount[b] != NULL) delete[] molCount[b];
     if (outF[b] != NULL) delete[] outF[b];
