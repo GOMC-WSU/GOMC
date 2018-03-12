@@ -39,7 +39,7 @@ public:
   void ChooseAndRunMove(const uint step);
 
   // return ewald
-  EwaldCached * GetEwald()
+  Ewald * GetEwald()
   {
     return calcEwald;
   }
