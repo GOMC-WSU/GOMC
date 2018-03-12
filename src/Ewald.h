@@ -75,7 +75,7 @@ public:
   virtual void exgMolCache();
 
 private:
-  double currentEnergyRecip[BOX_TOTAL];
+  double currentEnergyRecip[BOXES_WITH_U_NB];
 };
 
 
