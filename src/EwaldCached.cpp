@@ -120,7 +120,6 @@ EwaldCached::~EwaldCached()
       //when cached option is choosen
       if (cosMolRef != NULL) {
         delete[] cosMolRef;
-        delete[] sinMolRestore;
         delete[] sinMolRef;
         delete[] cosMolBoxRecip;
         delete[] sinMolBoxRecip;
