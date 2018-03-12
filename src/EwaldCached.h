@@ -107,8 +107,6 @@ public:
   //update sinMol and cosMol
   virtual void exgMolCache();
 
-  void UpdateVectorsAndRecipTerms();
-
 private:
   
   double *cosMolRestore; //cos()*charge
