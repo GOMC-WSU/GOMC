@@ -75,7 +75,7 @@ public:
   //uint GetImageSize();
 
   //initiliazie term used for ewald calculation
-  virtual void RecipInit(uint box, BoxDimensions const& boxAxes);
+  void RecipInit(uint box, BoxDimensions const& boxAxes);
 
   //initiliazie wave vector for orthogonal box
   void RecipInitOrth(uint box, BoxDimensions const& boxAxes);
@@ -84,7 +84,7 @@ public:
   void RecipInitNonOrth(uint box, BoxDimensions const& boxAxes);
 
   //Get initial estimate of memory required
-  virtual void RecipCountInit(uint box, BoxDimensions const& boxAxes);
+  void RecipCountInit(uint box, BoxDimensions const& boxAxes);
 
   //calculate self term for a box
   virtual double BoxSelf(BoxDimensions const& boxAxes, uint box) const;
@@ -134,8 +134,6 @@ public:
 
   //update sinMol and cosMol
   virtual void exgMolCache();
-
-  uint findLargeImage();
 
   void UpdateVectorsAndRecipTerms();
 

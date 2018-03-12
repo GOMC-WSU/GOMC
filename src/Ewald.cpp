@@ -480,3 +480,14 @@ void Ewald::exgMolCache()
 {
   return;
 }
+
+//compare number of images in different boxes and select the largest one
+uint Ewald::findLargeImage()
+{
+  imageLarge = 0;
+  for (int b = 0; b < BOXES_WITH_U_NB; b++) {
+    if (imageLarge < imageSize[b])
+      imageLarge = imageSize[b];
+  }
+  return imageLarge;
+}

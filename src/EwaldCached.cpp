@@ -304,19 +304,6 @@ void EwaldCached::RecipCountInit(uint box, BoxDimensions const& boxAxes)
   imageSize[box] = counter;
 }
 
-
-//compare number of images in different boxes and select the largest one
-uint EwaldCached::findLargeImage()
-{
-  imageLarge = 0;
-  for (int b = 0; b < BOXES_WITH_U_NB; b++) {
-    if (imageLarge < imageSize[b])
-      imageLarge = imageSize[b];
-  }
-  return imageLarge;
-}
-
-
 //calculate reciprocate term for a box
 void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 {

@@ -74,6 +74,8 @@ public:
   //restore cosMol and sinMol
   virtual void RestoreMol(int molIndex);
 
+  uint findLargeImage();
+
   //update sinMol and cosMol
   virtual void exgMolCache();
 
