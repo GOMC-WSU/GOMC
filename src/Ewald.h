@@ -71,6 +71,15 @@ public:
   //calculate reciprocate energy term for a box
   virtual double BoxReciprocal(uint box) const;
 
+    //calculate correction term for a molecule
+  virtual double MolCorrection(uint molIndex, uint box)const;
+
+  //calculate self term for a box
+  virtual double BoxSelf(BoxDimensions const& boxAxes, uint box) const;
+
+  //calculate reciprocate force term for a box
+  virtual Virial ForceReciprocal(Virial& virial, uint box) const;
+
   //calculate reciprocate term for displacement and rotation move
   virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
                                const uint box, XYZ const*const newCOM = NULL);
