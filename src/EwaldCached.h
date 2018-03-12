@@ -71,9 +71,6 @@ public:
 
   virtual void AllocMem();
 
-  //Get initial estimate of memory required
-  void RecipCountInit(uint box, BoxDimensions const& boxAxes);
-
   //calculate self term for a box
   virtual double BoxSelf(BoxDimensions const& boxAxes, uint box) const;
 

@@ -62,6 +62,9 @@ public:
   //initiliazie wave vector for non-orthogonal box
   void RecipInitNonOrth(uint box, BoxDimensions const& boxAxes);
 
+  //Get initial estimate of memory required
+  void RecipCountInit(uint box, BoxDimensions const& boxAxes);
+
   //setup reciprocate term for a box
   virtual void BoxReciprocalSetup(uint box, XYZArray const& molCoords);
 
