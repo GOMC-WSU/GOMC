@@ -124,12 +124,17 @@ void Ewald::Init()
   recip_rcut_Sq = recip_rcut * recip_rcut;
   AllocMem();
   //initialize K vectors and reciprocate terms
+  UpdateVectorsAndRecipTerms();
+}
+
+void Ewald::UpdateVectorsAndRecipTerms()
+{
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-    RecipInit(b, currentAxes);
-    BoxReciprocalSetup(b, currentCoords);
-    SetRecipRef(b);
-    printf("Box: %d, RecipVectors: %d, kmax: %d\n", b, imageSize[b],
-           kmax[b]);
+  RecipInit(b, currentAxes);
+  BoxReciprocalSetup(b, currentCoords);
+  SetRecipRef(b);
+  printf("Box: %d, RecipVectors: %6d, kmax: %d\n",
+          b, imageSize[b], kmax[b]);
   }
 }
 
@@ -893,5 +898,4 @@ Virial Ewald::ForceReciprocal(Virial& virial, uint box) const
   tempVir.recip = wT11 + wT22 + wT33;
 
   return tempVir;
-
 }

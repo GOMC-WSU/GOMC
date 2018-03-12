@@ -89,18 +89,6 @@ void EwaldCached::Init()
   UpdateVectorsAndRecipTerms();
 }
 
-void EwaldCached::UpdateVectorsAndRecipTerms()
-{
-    for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-    RecipInit(b, currentAxes);
-    BoxReciprocalSetup(b, currentCoords);
-    SetRecipRef(b);
-    printf("Box: %d, RecipVectors: %6d, kmax: %d\n",
-            b, imageSize[b], kmax[b]);
-    }
-}
-
-
 void EwaldCached::AllocMem()
 {
   cosMolRef = new double*[mols.count];
