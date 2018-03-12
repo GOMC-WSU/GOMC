@@ -65,7 +65,7 @@ FFParticle::~FFParticle(void)
   delete[] sign_1_4;
 #ifdef GOMC_CUDA
   DestroyCUDAVars(varCUDA);
-  delete[] varCUDA;
+  delete varCUDA;
 #endif
 }
 
