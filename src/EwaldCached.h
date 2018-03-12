@@ -138,6 +138,8 @@ public:
 
   uint findLargeImage();
 
+  void UpdateVectorsAndRecipTerms();
+
 protected:
 
   const Forcefield& forcefield;

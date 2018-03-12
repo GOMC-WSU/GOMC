@@ -75,7 +75,7 @@ void Simulation::RunSimulation(void)
 #ifndef NDEBUG
 void Simulation::RunningCheck(const uint step)
 {
-  system->calcEwald->Init();
+  system->calcEwald->UpdateVectorsAndRecipTerms();
   SystemPotential pot = system->calcEnergy.SystemTotal();
 
   std::cout
