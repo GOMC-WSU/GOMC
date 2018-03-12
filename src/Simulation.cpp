@@ -42,9 +42,9 @@ Simulation::Simulation(char const*const configFileName)
 
 Simulation::~Simulation()
 {
-  delete staticValues;
-  delete system;
   delete cpu;
+  delete system;
+  delete staticValues;
 }
 
 
