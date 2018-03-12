@@ -101,6 +101,9 @@ public:
   //update reciprocate values
   virtual void UpdateRecip(uint box);
 
+  //update the hx,y,z hsqr and prefact
+  virtual void UpdateRecipVec(uint box);
+
   //calculate self term after swap move
   virtual double SwapSelf(const cbmc::TrialMol& trialMo) const;
   

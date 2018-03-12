@@ -89,9 +89,6 @@ public:
   virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                  const uint box, const int molIndex);
 
-  //update the hx,y,z hsqr and prefact
-  virtual void UpdateRecipVec(uint box);
-
   //restore cosMol and sinMol
   virtual void RestoreMol(int molIndex);
 
