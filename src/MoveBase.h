@@ -75,7 +75,7 @@ protected:
   Coordinates & coordCurrRef;
   COM & comCurrRef;
   CalculateEnergy & calcEnRef;
-  EwaldCached * calcEwald;
+  Ewald * calcEwald;
 
   PRNG & prng;
   BoxDimensions & boxDimRef;
