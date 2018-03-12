@@ -19,6 +19,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "Molecules.h"
 #include "Forcefield.h"
+#include "Ewald.h"
 #include "Coordinates.h"
 #include "BoxDimensions.h"
 #include "BoxDimensionsNonOrth.h"

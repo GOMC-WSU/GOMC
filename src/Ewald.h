@@ -9,7 +9,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "BasicTypes.h"
 #include "EnergyTypes.h"
-#include "EwaldCached.h"
 #include <vector>
 #include <stdio.h>
 #include <cstring>
