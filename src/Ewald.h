@@ -53,6 +53,15 @@ public:
 
   virtual void AllocMem();
 
+  //initiliazie term used for ewald calculation
+  void RecipInit(uint box, BoxDimensions const& boxAxes);
+
+    //initiliazie wave vector for orthogonal box
+  void RecipInitOrth(uint box, BoxDimensions const& boxAxes);
+
+  //initiliazie wave vector for non-orthogonal box
+  void RecipInitNonOrth(uint box, BoxDimensions const& boxAxes);
+
   //setup reciprocate term for a box
   virtual void BoxReciprocalSetup(uint box, XYZArray const& molCoords);
 
