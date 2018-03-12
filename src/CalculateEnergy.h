@@ -237,7 +237,7 @@ private:
   const MoleculeLookup& molLookup;
   const BoxDimensions& currentAxes;
   const COM& currentCOM;
-  const EwaldCached  *calcEwald;
+  const Ewald  *calcEwald;
   bool electrostatic, ewald;
 
   std::vector<int> particleKind;
