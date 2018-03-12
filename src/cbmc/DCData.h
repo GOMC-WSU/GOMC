@@ -30,7 +30,7 @@ public:
 
   const CalculateEnergy& calc;
 
-  const EwaldCached  *calcEwald;
+  const Ewald  *calcEwald;
 
   const Forcefield& ff;
   const BoxDimensions& axes;
