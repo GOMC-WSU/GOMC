@@ -59,18 +59,16 @@ namespace config_setup
 class SystemVals;
 }
 
-class EwaldCached
+class EwaldCached : public Ewald
 {
 public:
 
   EwaldCached(StaticVals & stat, System & sys);
-
   ~EwaldCached();
 
   virtual void Init();
 
   virtual void AllocMem();
-  void SetNull();
 
   //return size of image with defined Kmax value
   //uint GetImageSize();
@@ -140,46 +138,14 @@ public:
 
   void UpdateVectorsAndRecipTerms();
 
-protected:
-
-  const Forcefield& forcefield;
-  const Molecules& mols;
-  const Coordinates& currentCoords;
-  const MoleculeLookup& molLookup;
-  const BoxDimensions& currentAxes;
-  const COM& currentCOM;
-  const SystemPotential &sysPotRef;
-
-  bool electrostatic, ewald;
-  double alpha;
-  double recip_rcut, recip_rcut_Sq;
-  uint *imageSize;
-  uint *imageSizeRef;
-  //const uint imageTotal = GetImageSize();
-  uint imageTotal;
-  uint imageLarge;
-  uint *kmax;
-  double **sumRnew; //cosine serries
-  double **sumInew; //sine serries
-  double **sumRref;
-  double **sumIref;
+private:
+  
   double *cosMolRestore; //cos()*charge
   double *sinMolRestore; //sin()*charge
   double **cosMolRef;
   double **sinMolRef;
   double **cosMolBoxRecip;
   double **sinMolBoxRecip;
-  double **kx, **kxRef;
-  double **ky, **kyRef;
-  double **kz, **kzRef;
-  double **hsqr, **hsqrRef;
-  double **prefact, **prefactRef;
-
-
-  std::vector<int> particleKind;
-  std::vector<int> particleMol;
-  std::vector<double> particleCharge;
-
 };
 
 

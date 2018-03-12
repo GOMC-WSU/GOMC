@@ -36,28 +36,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 using namespace geom;
 
-EwaldCached::EwaldCached(StaticVals & stat, System & sys) :
-  forcefield(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
-  currentCOM(sys.com), sysPotRef(sys.potential),
-#ifdef VARIABLE_PARTICLE_NUMBER
-  molLookup(sys.molLookup),
-#else
-  molLookup(stat.molLookup),
-#endif
-#ifdef VARIABLE_VOLUME
-  currentAxes(sys.boxDimRef)
-#else
-  currentAxes(*stat.GetBoxDim())
-#endif
-{
-  ewald = false;
-  electrostatic = false;
-  imageLarge = 0;
-  alpha = 0.0;
-  recip_rcut = 0.0;
-  recip_rcut_Sq = 0.0;
-}
-
+EwaldCached::EwaldCached(StaticVals & stat, System & sys) : Ewald(stat, sys) { }
 
 EwaldCached::~EwaldCached()
 {
@@ -89,39 +68,6 @@ EwaldCached::~EwaldCached()
   }
 }
 
-
-void EwaldCached::SetNull()
-{
-  //get size of image using defined Kmax
-  //imageSize = imageTotal;
-  //Set to NULL
-
-  kmax = NULL;
-  imageSize = NULL ;
-  imageSizeRef = NULL ;
-  sumRnew = NULL;
-  sumInew = NULL;
-  sumRref = NULL;
-  sumIref = NULL;
-  kx = NULL;
-  ky = NULL;
-  kz = NULL;
-  hsqr = NULL;
-  prefact = NULL;
-  kxRef = NULL;
-  kyRef = NULL;
-  kzRef = NULL;
-  hsqrRef = NULL;
-  prefactRef = NULL;
-  cosMolRef = NULL;
-  sinMolRef = NULL;
-  cosMolBoxRecip = NULL;
-  sinMolBoxRecip = NULL;
-
-  cosMolRestore = NULL;
-  sinMolRestore = NULL;
-}
-
 void EwaldCached::Init()
 {
   for(uint m = 0; m < mols.count; ++m) {
@@ -138,7 +84,6 @@ void EwaldCached::Init()
   alpha = forcefield.alpha;
   recip_rcut = forcefield.recip_rcut;
   recip_rcut_Sq = recip_rcut * recip_rcut;
-  SetNull();
   AllocMem();
   //initialize K vectors and reciprocate terms
   UpdateVectorsAndRecipTerms();
