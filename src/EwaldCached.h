@@ -71,18 +71,6 @@ public:
 
   virtual void AllocMem();
 
-  //return size of image with defined Kmax value
-  //uint GetImageSize();
-
-  //initiliazie term used for ewald calculation
-  void RecipInit(uint box, BoxDimensions const& boxAxes);
-
-  //initiliazie wave vector for orthogonal box
-  void RecipInitOrth(uint box, BoxDimensions const& boxAxes);
-
-  //initiliazie wave vector for non-orthogonal box
-  void RecipInitNonOrth(uint box, BoxDimensions const& boxAxes);
-
   //Get initial estimate of memory required
   void RecipCountInit(uint box, BoxDimensions const& boxAxes);
 
