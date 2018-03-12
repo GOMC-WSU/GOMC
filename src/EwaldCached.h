@@ -81,12 +81,6 @@ public:
   virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
                                const uint box, XYZ const*const newCOM = NULL);
 
-  //calculate self term after swap move
-  virtual double SwapSelf(const cbmc::TrialMol& trialMo) const;
-
-  //calculate correction term after swap move
-  virtual double SwapCorrection(const cbmc::TrialMol& trialMo) const;
-
   //calculate reciprocate term in destination box for swap move
   virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
                                const int sourceBox, const int molIndex);
@@ -94,9 +88,6 @@ public:
   //calculate reciprocate term in source box for swap move
   virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                  const uint box, const int molIndex);
-
-  //update reciprocate values
-  virtual void UpdateRecip(uint box);
 
   //update the hx,y,z hsqr and prefact
   virtual void UpdateRecipVec(uint box);
