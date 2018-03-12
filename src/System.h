@@ -85,7 +85,7 @@ public:
   COM com;
 
   CalculateEnergy calcEnergy;
-  EwaldCached  *calcEwald;
+  Ewald *calcEwald;
   CellList cellList;
   PRNG prng;
 
