@@ -954,3 +954,32 @@ void Ewald::UpdateRecip(uint box)
   UpdateRecipCUDA(forcefield.particles->getCUDAVars(), box);
 #endif
 }
+
+void Ewald::UpdateRecipVec(uint box)
+{
+  double *tempKx, *tempKy, *tempKz, *tempHsqr, *tempPrefact;
+  tempKx = kxRef[box];
+  tempKy = kyRef[box];
+  tempKz = kzRef[box];
+  tempHsqr = hsqrRef[box];
+  tempPrefact = prefactRef[box];
+
+  kxRef[box] = kx[box];
+  kyRef[box] = ky[box];
+  kzRef[box] = kz[box];
+  hsqrRef[box] = hsqr[box];
+  prefactRef[box] = prefact[box];
+
+  kx[box] = tempKx;
+  ky[box] = tempKy;
+  kz[box] = tempKz;
+  hsqr[box] = tempHsqr;
+  prefact[box] = tempPrefact;
+#ifdef GOMC_CUDA
+  UpdateRecipVecCUDA(forcefield.particles->getCUDAVars(), box);
+#endif
+
+  for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
+    imageSizeRef[b] = imageSize[b];
+  }
+}
