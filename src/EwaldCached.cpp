@@ -163,6 +163,9 @@ void EwaldCached::AllocMem()
   cosMolBoxRecip = new double*[mols.count];
   sinMolBoxRecip = new double*[mols.count];
 
+  //25% larger than original box size, reserved for image size change
+  imageTotal = findLargeImage();
+
   cosMolRestore = new double[imageTotal];
   sinMolRestore = new double[imageTotal];
 
