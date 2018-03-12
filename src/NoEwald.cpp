@@ -34,29 +34,23 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 using namespace geom;
 
 NoEwald::NoEwald(StaticVals & stat, System & sys) :
-  EwaldCached(stat, sys) {}
+  Ewald(stat, sys) {}
 
 void NoEwald::Init()
 {
-
   electrostatic = forcefield.electrostatic;
   ewald = forcefield.ewald;
-  SetNull();
-
 }
-
 
 void NoEwald::AllocMem()
 {
   return;
 }
 
-
 void NoEwald::RecipInit(uint box, BoxDimensions const& boxAxes)
 {
   return;
 }
-
 
 //calculate reciprocate term for a box
 void NoEwald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)

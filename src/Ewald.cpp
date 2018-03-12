@@ -37,7 +37,27 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 using namespace geom;
 
-Ewald::Ewald(StaticVals & stat, System & sys) : EwaldCached(stat, sys) {}
+Ewald::Ewald(StaticVals & stat, System & sys) :
+  forcefield(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
+  currentCOM(sys.com), sysPotRef(sys.potential),
+#ifdef VARIABLE_PARTICLE_NUMBER
+  molLookup(sys.molLookup),
+#else
+  molLookup(stat.molLookup),
+#endif
+#ifdef VARIABLE_VOLUME
+  currentAxes(sys.boxDimRef)
+#else
+  currentAxes(*stat.GetBoxDim())
+#endif
+{
+  ewald = false;
+  electrostatic = false;
+  imageLarge = 0;
+  alpha = 0.0;
+  recip_rcut = 0.0;
+  recip_rcut_Sq = 0.0;
+}
 
 Ewald::~Ewald()
 {
@@ -102,7 +122,6 @@ void Ewald::Init()
   alpha = forcefield.alpha;
   recip_rcut = forcefield.recip_rcut;
   recip_rcut_Sq = recip_rcut * recip_rcut;
-  SetNull();
   AllocMem();
   //initialize K vectors and reciprocate terms
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
@@ -113,7 +132,6 @@ void Ewald::Init()
            kmax[b]);
   }
 }
-
 
 void Ewald::AllocMem()
 {
