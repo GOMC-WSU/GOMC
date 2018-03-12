@@ -180,13 +180,18 @@ void EwaldCached::Init()
   SetNull();
   AllocMem();
   //initialize K vectors and reciprocate terms
-  for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+  UpdateVectorsAndRecipTerms();
+}
+
+void EwaldCached::UpdateVectorsAndRecipTerms()
+{
+    for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
     RecipInit(b, currentAxes);
     BoxReciprocalSetup(b, currentCoords);
     SetRecipRef(b);
     printf("Box: %d, RecipVectors: %6d, kmax: %d\n",
-           b, imageSize[b], kmax[b]);
-  }
+            b, imageSize[b], kmax[b]);
+    }
 }
 
 
