@@ -70,7 +70,9 @@ void Ewald::Init()
 
 void Ewald::AllocMem()
 {
-  cout << "Ewald.cpp AllocMem() function" << endl;
+  //25% larger than original box size, reserved for image size change
+  imageTotal = findLargeImage();
+
 #ifdef GOMC_CUDA
   InitEwaldVariablesCUDA(forcefield.particles->getCUDAVars(), imageTotal);
 #endif
