@@ -44,8 +44,10 @@ System::System(StaticVals& statics) :
 
 System::~System()
 {
+#ifdef VARIABLE_VOLUME
   if (boxDimensions != NULL)
     delete boxDimensions;
+#endif
   if (calcEwald != NULL)
     delete calcEwald;
   delete moves[mv::DISPLACE];
