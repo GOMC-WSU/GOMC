@@ -899,3 +899,58 @@ Virial Ewald::ForceReciprocal(Virial& virial, uint box) const
 
   return tempVir;
 }
+
+//calculate correction term for linear molecule CBMC algorithm
+double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol) const
+{
+  if (trialMol.GetBox() >= BOXES_WITH_U_NB)
+    return 0.0;
+
+  double dist, distSq;
+  double correction = 0.0;
+  XYZ virComponents;
+  const MoleculeKind& thisKind = trialMol.GetKind();
+  uint atomSize = thisKind.NumAtoms();
+
+  for (uint i = 0; i < atomSize; i++) {
+    for (uint j = i + 1; j < atomSize; j++) {
+      currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
+                         i, j, trialMol.GetBox());
+
+      dist = sqrt(distSq);
+      correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
+                     erf(alpha * dist) / dist);
+    }
+  }
+  return num::qqFact * correction;
+}
+
+double Ewald::SwapSelf(const cbmc::TrialMol& trialMol) const
+{
+  if (trialMol.GetBox() >= BOXES_WITH_U_NB)
+    return 0.0;
+
+  MoleculeKind const& thisKind = trialMol.GetKind();
+  uint atomSize = thisKind.NumAtoms();
+  double en_self = 0.0;
+
+  for (uint i = 0; i < atomSize; i++) {
+    en_self -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(i));
+  }
+  return (en_self * alpha * num::qqFact / sqrt(M_PI));
+}
+
+//update reciprocate values
+void Ewald::UpdateRecip(uint box)
+{
+  double *tempR, *tempI;
+  tempR = sumRref[box];
+  tempI = sumIref[box];
+  sumRref[box] = sumRnew[box];
+  sumIref[box] = sumInew[box];
+  sumRnew[box] = tempR;
+  sumInew[box] = tempI;
+#ifdef GOMC_CUDA
+  UpdateRecipCUDA(forcefield.particles->getCUDAVars(), box);
+#endif
+}

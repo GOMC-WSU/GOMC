@@ -94,6 +94,15 @@ public:
 
   //back up reciptocate value to Ref (will be called during initialization)
   virtual void SetRecipRef(uint box);
+
+    //calculate correction term after swap move
+  virtual double SwapCorrection(const cbmc::TrialMol& trialMo) const;
+
+  //update reciprocate values
+  virtual void UpdateRecip(uint box);
+
+  //calculate self term after swap move
+  virtual double SwapSelf(const cbmc::TrialMol& trialMo) const;
   
   //restore cosMol and sinMol
   virtual void RestoreMol(int molIndex);
