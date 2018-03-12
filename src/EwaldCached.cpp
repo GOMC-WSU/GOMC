@@ -197,6 +197,7 @@ void EwaldCached::UpdateVectorsAndRecipTerms()
 
 void EwaldCached::AllocMem()
 {
+  cout << "EwaldCached.cpp AllocMem() function" << endl;
   //get size of image using defined Kmax
   //Allocate Memory
 

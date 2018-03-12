@@ -70,6 +70,7 @@ void Ewald::Init()
 
 void Ewald::AllocMem()
 {
+  cout << "Ewald.cpp AllocMem() function" << endl;
 #ifdef GOMC_CUDA
   InitEwaldVariablesCUDA(forcefield.particles->getCUDAVars(), imageTotal);
 #endif
