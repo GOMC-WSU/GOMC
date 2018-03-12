@@ -127,58 +127,6 @@ void EwaldCached::AllocMem()
 
 }
 
-//estimate number of vectors
-void EwaldCached::RecipCountInit(uint box, BoxDimensions const& boxAxes)
-{
-  uint counter = 0;
-  int x, y, z, nkx_max, nky_max, nky_min, nkz_max, nkz_min;
-  double ksqr, excess, kX, kY, kZ;
-  XYZArray cellB(boxAxes.cellBasis[box]);
-  XYZ constValue = boxAxes.axis.Get(box);
-#if ENSEMBLE == GEMC || ENSEMBLE == NPT
-  excess = 1.25;
-#else
-  excess = 1.00;
-#endif
-  constValue *= excess;
-  cellB.Scale(0, constValue.x);
-  cellB.Scale(1, constValue.y);
-  cellB.Scale(2, constValue.z);
-  XYZArray cellB_Inv(3);
-  double det = cellB.AdjointMatrix(cellB_Inv);
-  cellB_Inv.ScaleRange(0, 3, (2 * M_PI) / det);
-
-  nkx_max = int(recip_rcut * constValue.x / (2 * M_PI)) + 1;
-  nky_max = int(recip_rcut * constValue.y / (2 * M_PI)) + 1;
-  nkz_max = int(recip_rcut * constValue.z / (2 * M_PI)) + 1;
-
-  for(x = 0; x <= nkx_max; x++) {
-    if(x == 0.0)
-      nky_min = 0;
-    else
-      nky_min = -nky_max;
-
-    for(y = nky_min; y <= nky_max; y++) {
-      if(x == 0.0 && y == 0.0)
-        nkz_min = 1;
-      else
-        nkz_min = -nkz_max;
-
-      for(z = nkz_min; z <= nkz_max; z++) {
-        kX = boxAxes.DotProduct(cellB_Inv.Get(0), XYZ(x, y, z));
-        kY = boxAxes.DotProduct(cellB_Inv.Get(1), XYZ(x, y, z));
-        kZ = boxAxes.DotProduct(cellB_Inv.Get(2), XYZ(x, y, z));
-        ksqr = kX * kX + kY * kY + kZ * kZ;
-
-        if(ksqr < recip_rcut_Sq) {
-          counter++;
-        }
-      }
-    }
-  }
-  imageSize[box] = counter;
-}
-
 //calculate reciprocate term for a box
 void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 {
