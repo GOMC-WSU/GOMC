@@ -9,6 +9,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "BasicTypes.h"
 #include "EnergyTypes.h"
+#include "Molecules.h"
+#include "Forcefield.h"
+#include "TrialMol.h"
 #include <vector>
 #include <stdio.h>
 #include <cstring>
