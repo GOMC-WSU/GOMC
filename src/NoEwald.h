@@ -9,7 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "BasicTypes.h"
 #include "EnergyTypes.h"
-#include "EwaldCached.h"
+#include "Ewald.h"
 #include <vector>
 #include <stdio.h>
 #include <cstring>
@@ -39,7 +39,7 @@ class BoxDimensions;
 class CalculateEnergy;
 
 
-class NoEwald : public EwaldCached
+class NoEwald : public Ewald
 {
   //friend class CalculateEnergy;
 public:
