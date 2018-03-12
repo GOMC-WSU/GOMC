@@ -91,6 +91,8 @@ OutputVars::~OutputVars(void)
     delete[] molFractionByKindBox;
   if ( densityByKindBox != NULL )
     delete[] densityByKindBox;
+  if ( virial != NULL )
+    delete [] virial;
 }
 
 void OutputVars::CalcAndConvert(ulong step)

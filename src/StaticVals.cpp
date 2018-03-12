@@ -31,6 +31,8 @@ void StaticVals::Init(Setup & set, System& sys)
 
 void StaticVals::InitOver(Setup & set, System& sys)
 {
+  if(mol!=NULL)
+    delete mol;
   mol.Init(set, forcefield, sys);
 }
 
