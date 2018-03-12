@@ -44,6 +44,10 @@ System::System(StaticVals& statics) :
 
 System::~System()
 {
+  if (boxDimensions != NULL)
+    delete boxDimensions;
+  if (calcEwald != NULL)
+    delete calcEwald;
   delete moves[mv::DISPLACE];
   delete moves[mv::ROTATE];
   delete moves[mv::INTRA_SWAP];

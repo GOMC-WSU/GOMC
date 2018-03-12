@@ -545,7 +545,8 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap)
     }
   }
   //find angle header+count
-  psf = fopen(psfFilename, "r");
+  //psf = fopen(psfFilename, "r");
+  fseek(psf, 0, SEEK_SET);
   while (strstr(input, "!NTHETA") == NULL) {
     check = fgets(input, 511, psf);
     if (check == NULL) {
@@ -563,7 +564,8 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap)
     }
   }
   //find dihedrals header+count
-  psf = fopen(psfFilename, "r");
+  //psf = fopen(psfFilename, "r");
+  fseek(psf, 0, SEEK_SET);
   while (strstr(input, "!NPHI") == NULL) {
     check = fgets(input, 511, psf);
     if (check == NULL) {
