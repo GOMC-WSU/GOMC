@@ -105,9 +105,6 @@ public:
   virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                  const uint box, const int molIndex);
 
-  //back up reciptocate value to Ref (will be called during initialization)
-  virtual void SetRecipRef(uint box);
-
   //update reciprocate values
   virtual void UpdateRecip(uint box);
 

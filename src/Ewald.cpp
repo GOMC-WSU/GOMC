@@ -667,3 +667,27 @@ void Ewald::RecipCountInit(uint box, BoxDimensions const& boxAxes)
   }
   imageSize[box] = counter;
 }
+
+//back up reciptocate value to Ref (will be called during initialization)
+void Ewald::SetRecipRef(uint box)
+{
+#ifdef _OPENMP
+  #pragma omp parallel default(shared)
+#endif
+  {
+    std::memcpy(sumRref[box], sumRnew[box], sizeof(double) * imageSize[box]);
+    std::memcpy(sumIref[box], sumInew[box], sizeof(double) * imageSize[box]);
+    std::memcpy(kxRef[box], kx[box], sizeof(double) * imageSize[box]);
+    std::memcpy(kyRef[box], ky[box], sizeof(double) * imageSize[box]);
+    std::memcpy(kzRef[box], kz[box], sizeof(double) * imageSize[box]);
+    std::memcpy(hsqrRef[box], hsqr[box], sizeof(double) * imageSize[box]);
+    std::memcpy(prefactRef[box], prefact[box], sizeof(double) *imageSize[box]);
+  }
+#ifdef GOMC_CUDA
+  CopyCurrentToRefCUDA(forcefield.particles->getCUDAVars(),
+                       box, imageSize[box]);
+#endif
+  for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
+    imageSizeRef[b] = imageSize[b];
+  }
+}
