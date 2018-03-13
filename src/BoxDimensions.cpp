@@ -9,6 +9,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "GeomLib.h"
 #include "MoveConst.h" //For cutoff-related fail condition
 
+using namespace geom;
+
 void BoxDimensions::Init(config_setup::RestartSettings const& restart,
                          config_setup::Volume const& confVolume,
                          pdb_setup::Cryst1 const& cryst,
