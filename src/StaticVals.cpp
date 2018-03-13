@@ -6,7 +6,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "StaticVals.h"
 #include "ConfigSetup.h" //For types directly read from config. file
+#include "GeomLib.h"
 #include "Setup.h" //For source of setup data.
+
+using namespace geom;
 
 void StaticVals::Init(Setup & set, System& sys)
 {
