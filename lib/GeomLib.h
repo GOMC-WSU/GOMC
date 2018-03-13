@@ -16,6 +16,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <limits> //for double limits
 
 #include "BasicTypes.h" //For uint, XYZ
+#include "XYZArray.h"
 
 /////////////////////////////////////////////////////////////
 //  DEFINES  //
