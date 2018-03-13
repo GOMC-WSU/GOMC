@@ -248,7 +248,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
         sumImaginary = 0.0;
 
         for (j = 0; j < thisKind.NumAtoms(); j++) {
-          dotProduct = currentAxes.DotProduct(mols.MolStart(*thisMol) + j,
+          dotProduct = currentAxes.Dot(mols.MolStart(*thisMol) + j,
                                               kx[box][i], ky[box][i],
                                               kz[box][i], molCoords);
 
@@ -330,11 +330,11 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
 
       for (p = 0; p < length; ++p) {
         atom = startAtom + p;
-        dotProductNew = currentAxes.DotProduct(p, kxRef[box][i],
+        dotProductNew = currentAxes.Dot(p, kxRef[box][i],
                                                kyRef[box][i], kzRef[box][i],
                                                molCoords);
 
-        dotProductOld = currentAxes.DotProduct(atom, kxRef[box][i],
+        dotProductOld = currentAxes.Dot(atom, kxRef[box][i],
                                                kyRef[box][i], kzRef[box][i],
                                                currentCoords);
 
@@ -394,9 +394,9 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
       dotProductNew = 0.0;
 
       for (p = 0; p < length; ++p) {
-        dotProductNew = currentAxes.DotProduct(p, kxRef[box][i],
-                                               kyRef[box][i], kzRef[box][i],
-                                               molCoords);
+        dotProductNew = currentAxes.Dot(p, kxRef[box][i],
+                                        kyRef[box][i], kzRef[box][i],
+                                        molCoords);
 
         sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
         sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
@@ -461,7 +461,7 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
       dotProductNew = 0.0;
 
       for (p = 0; p < length; ++p) {
-        dotProductNew = currentAxes.DotProduct(p, kxRef[box][i],
+        dotProductNew = currentAxes.Dot(p, kxRef[box][i],
                                                kyRef[box][i], kzRef[box][i],
                                                molCoords);
 
@@ -594,9 +594,9 @@ void Ewald::RecipInitNonOrth(uint box, BoxDimensions const& boxAxes)
         nkz_min = -nkz_max;
 
       for(z = nkz_min; z <= nkz_max; z++) {
-        kX = boxAxes.DotProduct(cellB_Inv.Get(0), XYZ(x, y, z));
-        kY = boxAxes.DotProduct(cellB_Inv.Get(1), XYZ(x, y, z));
-        kZ = boxAxes.DotProduct(cellB_Inv.Get(2), XYZ(x, y, z));
+        kX = boxAxes.Dot(cellB_Inv.Get(0), XYZ(x, y, z));
+        kY = boxAxes.Dot(cellB_Inv.Get(1), XYZ(x, y, z));
+        kZ = boxAxes.Dot(cellB_Inv.Get(2), XYZ(x, y, z));
         ksqr = kX * kX + kY * kY + kZ * kZ;
 
         if(ksqr < recip_rcut_Sq) {
@@ -659,9 +659,9 @@ void Ewald::RecipCountInit(uint box, BoxDimensions const& boxAxes)
         nkz_min = -nkz_max;
 
       for(z = nkz_min; z <= nkz_max; z++) {
-        kX = boxAxes.DotProduct(cellB_Inv.Get(0), XYZ(x, y, z));
-        kY = boxAxes.DotProduct(cellB_Inv.Get(1), XYZ(x, y, z));
-        kZ = boxAxes.DotProduct(cellB_Inv.Get(2), XYZ(x, y, z));
+        kX = boxAxes.Dot(cellB_Inv.Get(0), XYZ(x, y, z));
+        kY = boxAxes.Dot(cellB_Inv.Get(1), XYZ(x, y, z));
+        kZ = boxAxes.Dot(cellB_Inv.Get(2), XYZ(x, y, z));
         ksqr = kX * kX + kY * kY + kZ * kZ;
 
         if(ksqr < recip_rcut_Sq) {
@@ -858,7 +858,7 @@ Virial Ewald::ForceReciprocal(Virial& virial, uint box) const
 #endif
       for (i = 0; i < imageSizeRef[box]; i++) {
         //compute the dot product of k and r
-        arg = currentAxes.DotProduct(atom, kxRef[box][i], kyRef[box][i],
+        arg = currentAxes.Dot(atom, kxRef[box][i], kyRef[box][i],
                                      kzRef[box][i], currentCoords);
 
         factor = prefactRef[box][i] * 2.0 * (sumIref[box][i] * cos(arg) -

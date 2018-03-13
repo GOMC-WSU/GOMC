@@ -145,7 +145,7 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
         sinMolRef[*thisMol][i] = 0.0;
 
         for (j = 0; j < thisKind.NumAtoms(); j++) {
-          dotProduct = currentAxes.DotProduct(mols.MolStart(*thisMol) + j,
+          dotProduct = currentAxes.Dot(mols.MolStart(*thisMol) + j,
                                               kx[box][i], ky[box][i],
                                               kz[box][i], molCoords);
 
@@ -214,7 +214,7 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
 
       for (p = 0; p < length; ++p) {
         atom = startAtom + p;
-        dotProductNew = currentAxes.DotProduct(p, kxRef[box][i],
+        dotProductNew = currentAxes.Dot(p, kxRef[box][i],
                                                kyRef[box][i], kzRef[box][i],
                                                molCoords);
 
@@ -268,7 +268,7 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
       dotProductNew = 0.0;
 
       for (p = 0; p < length; ++p) {
-        dotProductNew = currentAxes.DotProduct(p, kxRef[box][i],
+        dotProductNew = currentAxes.Dot(p, kxRef[box][i],
                                                kyRef[box][i], kzRef[box][i],
                                                molCoords);
         cosMolRef[molIndex][i] += (thisKind.AtomCharge(p) *

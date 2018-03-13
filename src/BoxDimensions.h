@@ -146,11 +146,6 @@ public:
 
   double UnwrapPBC(double& v, const double ref,
                    const double ax, const double halfAx) const;
-
-  double DotProduct(const uint atom, double kx, double ky,
-                    double kz, const XYZArray &Coords) const;
-
-  double DotProduct(const XYZ &A, const XYZ &B) const;
 };
 
 
