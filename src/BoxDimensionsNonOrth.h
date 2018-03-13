@@ -68,8 +68,6 @@ public:
 //private:
   XYZArray cellBasis_Inv[BOX_TOTAL]; //inverse cell matrix for each box
   XYZArray cellLength;                //Length of a, b, c for each box
-
-  XYZ CrossProduct(const XYZ &A, const XYZ &B) const;   //Calc AxB product
 };
 
 //Calculate transform

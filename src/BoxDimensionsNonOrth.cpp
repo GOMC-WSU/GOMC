@@ -55,9 +55,9 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     cosAngle[b][2] = Dot(cellBasis[b].Get(0), cellBasis[b].Get(1)) /
                      (cellLength.Get(b).x * cellLength.Get(b).y);
     //Calculate Cross Product
-    XYZ axb = CrossProduct(cellBasis[b].Get(0), cellBasis[b].Get(1));
-    XYZ bxc = CrossProduct(cellBasis[b].Get(1), cellBasis[b].Get(2));
-    XYZ cxa = CrossProduct(cellBasis[b].Get(2), cellBasis[b].Get(0));
+    XYZ axb = Cross(cellBasis[b].Get(0), cellBasis[b].Get(1));
+    XYZ bxc = Cross(cellBasis[b].Get(1), cellBasis[b].Get(2));
+    XYZ cxa = Cross(cellBasis[b].Get(2), cellBasis[b].Get(0));
     //Calculate volume = A.(B x C)
     volume[b] = abs(Dot(cellBasis[b].Get(0), bxc));
     volInv[b] = 1.0 / volume[b];
@@ -237,15 +237,4 @@ void BoxDimensionsNonOrth::UnwrapPBC(double & x, double & y, double & z,
   x = slant.x;
   y = slant.y;
   z = slant.z;
-}
-
-//Calculate AxB product
-XYZ BoxDimensionsNonOrth::CrossProduct(const XYZ &A, const XYZ &B) const
-{
-  XYZ temp;
-  temp.x = A.y * B.z - A.z * B.y;
-  temp.y = A.z * B.x - A.x * B.z;
-  temp.z = A.x * B.y - A.y * B.x;
-
-  return temp;
 }
