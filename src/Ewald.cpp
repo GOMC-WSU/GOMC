@@ -248,7 +248,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
         sumImaginary = 0.0;
 
         for (j = 0; j < thisKind.NumAtoms(); j++) {
-          dotProduct = currentAxes.Dot(mols.MolStart(*thisMol) + j,
+          dotProduct = Dot(mols.MolStart(*thisMol) + j,
                                               kx[box][i], ky[box][i],
                                               kz[box][i], molCoords);
 
@@ -330,11 +330,11 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
 
       for (p = 0; p < length; ++p) {
         atom = startAtom + p;
-        dotProductNew = currentAxes.Dot(p, kxRef[box][i],
+        dotProductNew = Dot(p, kxRef[box][i],
                                                kyRef[box][i], kzRef[box][i],
                                                molCoords);
 
-        dotProductOld = currentAxes.Dot(atom, kxRef[box][i],
+        dotProductOld = Dot(atom, kxRef[box][i],
                                                kyRef[box][i], kzRef[box][i],
                                                currentCoords);
 
@@ -394,7 +394,7 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
       dotProductNew = 0.0;
 
       for (p = 0; p < length; ++p) {
-        dotProductNew = currentAxes.Dot(p, kxRef[box][i],
+        dotProductNew = Dot(p, kxRef[box][i],
                                         kyRef[box][i], kzRef[box][i],
                                         molCoords);
 
@@ -461,7 +461,7 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
       dotProductNew = 0.0;
 
       for (p = 0; p < length; ++p) {
-        dotProductNew = currentAxes.Dot(p, kxRef[box][i],
+        dotProductNew = Dot(p, kxRef[box][i],
                                                kyRef[box][i], kzRef[box][i],
                                                molCoords);
 
@@ -858,7 +858,7 @@ Virial Ewald::ForceReciprocal(Virial& virial, uint box) const
 #endif
       for (i = 0; i < imageSizeRef[box]; i++) {
         //compute the dot product of k and r
-        arg = currentAxes.Dot(atom, kxRef[box][i], kyRef[box][i],
+        arg = Dot(atom, kxRef[box][i], kyRef[box][i],
                                      kzRef[box][i], currentCoords);
 
         factor = prefactRef[box][i] * 2.0 * (sumIref[box][i] * cos(arg) -
