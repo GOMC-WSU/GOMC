@@ -109,10 +109,6 @@ struct XYZ {
   {
     return x * x + y * y + z * z;
   }
-  double DotProduct(const XYZ &A, const XYZ &B) const
-  {
-    return A.x * B.x + A.y * B.y + A.z * B.z;
-  }
 
   XYZ& Normalize()
   {

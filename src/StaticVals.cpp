@@ -76,18 +76,17 @@ void StaticVals::IsBoxOrthogonal(config_setup::Volume const& vol)
 {
   double cosAngle[BOX_TOTAL][3];
   double orthogonal[BOX_TOTAL];
-  XYZ temp;
 
   for (uint b = 0; b < BOX_TOTAL; b++) {
     double cellLengthX = vol.axis[b].Length(0);
     double cellLengthY = vol.axis[b].Length(1);
     double cellLengthZ = vol.axis[b].Length(2);
     //Find Cosine Angle of alpha, beta and gamma
-    cosAngle[b][0] = temp.DotProduct(vol.axis[b].Get(1), vol.axis[b].Get(2)) /
+    cosAngle[b][0] = Dot(vol.axis[b].Get(1), vol.axis[b].Get(2)) /
                      (cellLengthY * cellLengthZ);
-    cosAngle[b][1] = temp.DotProduct(vol.axis[b].Get(0), vol.axis[b].Get(2)) /
+    cosAngle[b][1] = Dot(vol.axis[b].Get(0), vol.axis[b].Get(2)) /
                      (cellLengthX * cellLengthZ);
-    cosAngle[b][2] = temp.DotProduct(vol.axis[b].Get(0), vol.axis[b].Get(1)) /
+    cosAngle[b][2] = Dot(vol.axis[b].Get(0), vol.axis[b].Get(1)) /
                      (cellLengthX * cellLengthY);
 
     orthogonal[b] = ((cosAngle[b][0] == 0.0) &&

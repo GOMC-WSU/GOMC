@@ -82,6 +82,13 @@ inline double Dot(XYZ const& v1, XYZ const& v2)
   return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
+//Geometric dot product for atomcoordinates.K
+inline double Dot(const uint atom, double kx, double ky, double kz,
+                  const XYZArray &Coords) const
+{
+  return(Coords.x[atom] * kx + Coords.y[atom] * ky + Coords.z[atom] * kz);
+}
+
 //Generates angle between two vectors sharing a common vertex.
 //NOTE:
 //Vectors must be pre-shifted to the origin.

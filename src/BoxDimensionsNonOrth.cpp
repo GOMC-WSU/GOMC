@@ -48,18 +48,18 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     cellLength.Set(b, cellBasis[b].Length(0), cellBasis[b].Length(1),
                    cellBasis[b].Length(2));
     //Find Cosine Angle of alpha, beta and gamma
-    cosAngle[b][0] = DotProduct(cellBasis[b].Get(1), cellBasis[b].Get(2)) /
+    cosAngle[b][0] = Dot(cellBasis[b].Get(1), cellBasis[b].Get(2)) /
                      (cellLength.Get(b).y * cellLength.Get(b).z);
-    cosAngle[b][1] = DotProduct(cellBasis[b].Get(0), cellBasis[b].Get(2)) /
+    cosAngle[b][1] = Dot(cellBasis[b].Get(0), cellBasis[b].Get(2)) /
                      (cellLength.Get(b).x * cellLength.Get(b).z);
-    cosAngle[b][2] = DotProduct(cellBasis[b].Get(0), cellBasis[b].Get(1)) /
+    cosAngle[b][2] = Dot(cellBasis[b].Get(0), cellBasis[b].Get(1)) /
                      (cellLength.Get(b).x * cellLength.Get(b).y);
     //Calculate Cross Product
     XYZ axb = CrossProduct(cellBasis[b].Get(0), cellBasis[b].Get(1));
     XYZ bxc = CrossProduct(cellBasis[b].Get(1), cellBasis[b].Get(2));
     XYZ cxa = CrossProduct(cellBasis[b].Get(2), cellBasis[b].Get(0));
     //Calculate volume = A.(B x C)
-    volume[b] = abs(DotProduct(cellBasis[b].Get(0), bxc));
+    volume[b] = abs(Dot(cellBasis[b].Get(0), bxc));
     volInv[b] = 1.0 / volume[b];
     //normalizing unitcell
     for(uint i = 0; i < 3; i++) {

@@ -6,6 +6,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "BoxDimensions.h"
 #include "BoxDimensionsNonOrth.h"
+#include "GeomLib.h"
 #include "MoveConst.h" //For cutoff-related fail condition
 
 void BoxDimensions::Init(config_setup::RestartSettings const& restart,
@@ -48,11 +49,11 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
     axis.Set(b, cellBasis[b].Length(0), cellBasis[b].Length(1),
              cellBasis[b].Length(2));
     //Find Cosine Angle of alpha, beta and gamma
-    cosAngle[b][0] = DotProduct(cellBasis[b].Get(1), cellBasis[b].Get(2)) /
+    cosAngle[b][0] = Dot(cellBasis[b].Get(1), cellBasis[b].Get(2)) /
                      (axis.Get(b).y * axis.Get(b).z);
-    cosAngle[b][1] = DotProduct(cellBasis[b].Get(0), cellBasis[b].Get(2)) /
+    cosAngle[b][1] = Dot(cellBasis[b].Get(0), cellBasis[b].Get(2)) /
                      (axis.Get(b).x * axis.Get(b).z);
-    cosAngle[b][2] = DotProduct(cellBasis[b].Get(0), cellBasis[b].Get(1)) /
+    cosAngle[b][2] = Dot(cellBasis[b].Get(0), cellBasis[b].Get(1)) /
                      (axis.Get(b).x * axis.Get(b).y);
 
     volume[b] = axis.x[b] * axis.y[b] * axis.z[b];
@@ -308,20 +309,3 @@ double BoxDimensions::MinImageSigned(double raw, double ax, double halfAx) const
     raw += ax;
   return raw;
 }
-
-
-//Calculate dot product
-double BoxDimensions::DotProduct(const uint atom, double kx, double ky,
-                                 double kz, const XYZArray &Coords) const
-{
-  double x = Coords.x[atom], y = Coords.y[atom], z = Coords.z[atom];
-  return(x * kx + y * ky + z * kz);
-}
-
-//Calculate dot product
-double BoxDimensions::DotProduct(const XYZ &A, const XYZ &B) const
-{
-  return(A.x * B.x + A.y * B.y + A.z * B.z);
-}
-
-
