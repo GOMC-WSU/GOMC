@@ -594,9 +594,9 @@ void Ewald::RecipInitNonOrth(uint box, BoxDimensions const& boxAxes)
         nkz_min = -nkz_max;
 
       for(z = nkz_min; z <= nkz_max; z++) {
-        kX = boxAxes.Dot(cellB_Inv.Get(0), XYZ(x, y, z));
-        kY = boxAxes.Dot(cellB_Inv.Get(1), XYZ(x, y, z));
-        kZ = boxAxes.Dot(cellB_Inv.Get(2), XYZ(x, y, z));
+        kX = Dot(cellB_Inv.Get(0), XYZ(x, y, z));
+        kY = Dot(cellB_Inv.Get(1), XYZ(x, y, z));
+        kZ = Dot(cellB_Inv.Get(2), XYZ(x, y, z));
         ksqr = kX * kX + kY * kY + kZ * kZ;
 
         if(ksqr < recip_rcut_Sq) {
@@ -659,9 +659,9 @@ void Ewald::RecipCountInit(uint box, BoxDimensions const& boxAxes)
         nkz_min = -nkz_max;
 
       for(z = nkz_min; z <= nkz_max; z++) {
-        kX = boxAxes.Dot(cellB_Inv.Get(0), XYZ(x, y, z));
-        kY = boxAxes.Dot(cellB_Inv.Get(1), XYZ(x, y, z));
-        kZ = boxAxes.Dot(cellB_Inv.Get(2), XYZ(x, y, z));
+        kX = Dot(cellB_Inv.Get(0), XYZ(x, y, z));
+        kY = Dot(cellB_Inv.Get(1), XYZ(x, y, z));
+        kZ = Dot(cellB_Inv.Get(2), XYZ(x, y, z));
         ksqr = kX * kX + kY * kY + kZ * kZ;
 
         if(ksqr < recip_rcut_Sq) {
