@@ -177,15 +177,10 @@ void BoxDimensions::SetVolume(const uint b, const double vol)
     double ratio = vol / volume[b];
     axis.Scale(b, 1.0, 1.0, ratio);
     halfAx.Scale(b, 1.0, 1.0, ratio);
-    //Keep a and b same and change c
-    cellBasis[b].Scale(2, ratio);
   } else {
     double ratio = pow(vol / volume[b], (1.0 / 3.0));
     axis.Scale(b, ratio);
     halfAx.Scale(b, ratio);
-    for(uint i = 0; i < 3; i++) {
-      cellBasis[b].Scale(i, ratio);
-    }
   }
   volume[b] = vol;
   volInv[b] = 1.0 / vol;
