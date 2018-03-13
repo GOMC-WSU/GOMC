@@ -84,8 +84,8 @@ inline double Dot(XYZ const& v1, XYZ const& v2)
 }
 
 //Geometric dot product for atomcoordinates.K
-inline double Dot(const uint atom, double kx, double ky, double kz,
-                  const XYZArray &Coords) const
+inline double Dot(const uint atom, const double kx, const double ky,
+                  const double kz, const XYZArray &Coords)
 {
   return(Coords.x[atom] * kx + Coords.y[atom] * ky + Coords.z[atom] * kz);
 }
