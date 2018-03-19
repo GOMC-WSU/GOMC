@@ -91,16 +91,57 @@ void EwaldCached::Init()
 
 void EwaldCached::AllocMem()
 {
+  kmax = new uint[BOXES_WITH_U_NB];
+  imageSize = new uint[BOXES_WITH_U_NB];
+  imageSizeRef = new uint[BOXES_WITH_U_NB];
+  sumRnew = new double*[BOXES_WITH_U_NB];
+  sumInew = new double*[BOXES_WITH_U_NB];
+  sumRref = new double*[BOXES_WITH_U_NB];
+  sumIref = new double*[BOXES_WITH_U_NB];
+  kx = new double*[BOXES_WITH_U_NB];
+  ky = new double*[BOXES_WITH_U_NB];
+  kz = new double*[BOXES_WITH_U_NB];
+  hsqr = new double*[BOXES_WITH_U_NB];
+  prefact = new double*[BOXES_WITH_U_NB];
+  kxRef = new double*[BOXES_WITH_U_NB];
+  kyRef = new double*[BOXES_WITH_U_NB];
+  kzRef = new double*[BOXES_WITH_U_NB];
+  hsqrRef = new double*[BOXES_WITH_U_NB];
+  prefactRef = new double*[BOXES_WITH_U_NB];
+
   cosMolRef = new double*[mols.count];
   sinMolRef = new double*[mols.count];
   cosMolBoxRecip = new double*[mols.count];
   sinMolBoxRecip = new double*[mols.count];
+  imageSize = new uint[BOXES_WITH_U_NB];
+  imageSizeRef = new uint[BOXES_WITH_U_NB];
+
+  for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
+    RecipCountInit(b, currentAxes);
+  }
 
   //25% larger than original box size, reserved for image size change
   imageTotal = findLargeImage();
 
   cosMolRestore = new double[imageTotal];
   sinMolRestore = new double[imageTotal];
+
+  for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
+    kx[b] = new double[imageTotal];
+    ky[b] = new double[imageTotal];
+    kz[b] = new double[imageTotal];
+    hsqr[b] = new double[imageTotal];
+    prefact[b] = new double[imageTotal];
+    kxRef[b] = new double[imageTotal];
+    kyRef[b] = new double[imageTotal];
+    kzRef[b] = new double[imageTotal];
+    hsqrRef[b] = new double[imageTotal];
+    prefactRef[b] = new double[imageTotal];
+    sumRnew[b] = new double[imageTotal];
+    sumInew[b] = new double[imageTotal];
+    sumRref[b] = new double[imageTotal];
+    sumIref[b] = new double[imageTotal];
+  }
 
   int i;
 #ifdef _OPENMP
