@@ -54,13 +54,13 @@ public:
   virtual void AllocMem();
 
   //initiliazie term used for ewald calculation
-  void RecipInit(uint box, BoxDimensions const& boxAxes);
+  virtual void RecipInit(uint box, BoxDimensions const& boxAxes);
 
     //initiliazie wave vector for orthogonal box
-  void RecipInitOrth(uint box, BoxDimensions const& boxAxes);
+  virtual void RecipInitOrth(uint box, BoxDimensions const& boxAxes);
 
   //initiliazie wave vector for non-orthogonal box
-  void RecipInitNonOrth(uint box, BoxDimensions const& boxAxes);
+  virtual void RecipInitNonOrth(uint box, BoxDimensions const& boxAxes);
 
   //Get initial estimate of memory required
   void RecipCountInit(uint box, BoxDimensions const& boxAxes);

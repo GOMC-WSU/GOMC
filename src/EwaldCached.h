@@ -67,33 +67,33 @@ public:
   EwaldCached(StaticVals & stat, System & sys);
   ~EwaldCached();
 
-  void Init();
+  virtual void Init();
 
-  void AllocMem();
+  virtual void AllocMem();
 
   //setup reciprocate term for a box
-  void BoxReciprocalSetup(uint box, XYZArray const& molCoords);
+  virtual void BoxReciprocalSetup(uint box, XYZArray const& molCoords);
 
   //calculate reciprocate energy term for a box
-  double BoxReciprocal(uint box) const;
+  virtual double BoxReciprocal(uint box) const;
 
   //calculate reciprocate term for displacement and rotation move
-  double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
+  virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
                                const uint box, XYZ const*const newCOM = NULL);
 
   //calculate reciprocate term in destination box for swap move
-  double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
+  virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
                                const int sourceBox, const int molIndex);
 
   //calculate reciprocate term in source box for swap move
-  double SwapSourceRecip(const cbmc::TrialMol &oldMol,
+  virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                  const uint box, const int molIndex);
 
   //restore cosMol and sinMol
-  void RestoreMol(int molIndex);
+  virtual void RestoreMol(int molIndex);
 
   //update sinMol and cosMol
-  void exgMolCache();
+  virtual void exgMolCache();
 
 private:
   
