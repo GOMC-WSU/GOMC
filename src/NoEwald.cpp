@@ -160,3 +160,8 @@ void NoEwald::exgMolCache()
 {
   return;
 }
+
+void NoEwald::UpdateVectorsAndRecipTerms()
+{
+  return;
+}

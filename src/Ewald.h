@@ -115,7 +115,7 @@ public:
   //update sinMol and cosMol
   virtual void exgMolCache();
 
-  void UpdateVectorsAndRecipTerms();
+  virtual void UpdateVectorsAndRecipTerms();
 
 private:
   double currentEnergyRecip[BOXES_WITH_U_NB];
