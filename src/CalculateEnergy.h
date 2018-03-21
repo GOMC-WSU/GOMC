@@ -215,22 +215,6 @@ private:
   }
 
 
-  void GetSchedule(int numberOfTrials, std::vector<int>& data) const
-  {
-    int sections = data.size();
-    uint i = 0;
-    while(sections > 0) {
-      data[i] = ceil(numberOfTrials / sections);
-      numberOfTrials -= data[i];
-      sections--;
-      i++;
-    }
-    for(int i = 1; i < data.size(); i++) {
-      data[i] += data[i - 1];
-    }
-  }
-
-
   const Forcefield& forcefield;
   const Molecules& mols;
   const Coordinates& currentCoords;
