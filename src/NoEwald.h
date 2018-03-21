@@ -105,6 +105,8 @@ public:
   //update sinMol and cosMol
   virtual void exgMolCache();
 
+  virtual void UpdateVectorsAndRecipTerms();
+
 };
 
 
