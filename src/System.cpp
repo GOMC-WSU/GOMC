@@ -20,6 +20,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveBase.h"            //For move bases....
 #include "MoleculeTransfer.h"
 #include "IntraSwap.h"
+#include "Regrowth.h"
 
 System::System(StaticVals& statics) :
   statV(statics),
@@ -53,6 +54,7 @@ System::~System()
   delete moves[mv::DISPLACE];
   delete moves[mv::ROTATE];
   delete moves[mv::INTRA_SWAP];
+  delete moves[mv::REGROWTH];
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   delete moves[mv::VOL_TRANSFER];
 #endif
@@ -111,6 +113,7 @@ void System::InitMoves()
   moves[mv::DISPLACE] = new Translate(*this, statV);
   moves[mv::ROTATE] = new Rotate(*this, statV);
   moves[mv::INTRA_SWAP] = new IntraSwap(*this, statV);
+  moves[mv::REGROWTH] = new Regrowth(*this, statV);
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   moves[mv::VOL_TRANSFER] = new VolumeTransfer(*this, statV);
 #endif

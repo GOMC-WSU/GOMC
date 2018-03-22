@@ -52,6 +52,9 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
     case mv::INTRA_SWAP:
       movePerc[m] = perc.intraSwap;
       break;
+    case mv::REGROWTH:
+      movePerc[m] = perc.regrowth;
+      break;
 #ifdef VARIABLE_VOLUME
     case mv::VOL_TRANSFER :
       movePerc[m] = perc.volume;

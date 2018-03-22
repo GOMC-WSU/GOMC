@@ -8,6 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define DCLINEAR_H
 #include "CBMC.h"
 #include "DCData.h"
+#include "DCGraph.h"
 #include <vector>
 
 class System;
@@ -15,23 +16,27 @@ class Forcefield;
 class MoleculeKind;
 class Setup;
 
-namespace cbmc
-{
-class DCComponent;
-
-class DCLinear : public CBMC
-{
-public:
-  DCLinear(System& sys, const Forcefield& ff,
-           const MoleculeKind& kind, const Setup& set);
-
-  void Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
-  ~DCLinear();
-
-private:
-  std::vector<DCComponent*> forward, backward;
-  DCData data;
-};
+namespace cbmc{
+  class DCComponent;
+  
+  class DCLinear : public CBMC
+  {
+  public:
+    DCLinear(System& sys, const Forcefield& ff,
+	     const MoleculeKind& kind, const Setup& set);
+    
+    void Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
+    void Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
+    ~DCLinear();
+    
+  private:
+    uint atomSize;
+    //used for when number of atom > 2
+    DCGraph *graph;
+    //used for when number of atom < 3
+    std::vector<DCComponent*> forward, backward;
+    DCData data;
+  };
 }
 
 #endif

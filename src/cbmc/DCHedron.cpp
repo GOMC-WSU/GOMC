@@ -50,32 +50,25 @@ DCHedron::DCHedron(DCData* data, const mol_setup::MolKind& kind,
   using namespace mol_setup;
   using namespace std;
   vector<Bond> onFocus = AtomBonds(kind, focus);
-  for(uint i = 0; i < onFocus.size(); ++i) {
-    if (onFocus[i].a1 == prev) {
-      anchorBond = data->ff.bonds.Length(onFocus[i].kind);
-      break;
-    }
-  }
-
   onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
                 onFocus.end());
-  vector<Bond> onPrev = AtomBonds(kind, prev);
-  onPrev.erase(remove_if(onPrev.begin(), onPrev.end(), FindA1(focus)),
-               onPrev.end());
   nBonds = onFocus.size();
+
   for (uint i = 0; i < nBonds; ++i) {
     bonded[i] = onFocus[i].a1;
-    bondLength[i] = data->ff.bonds.Length(onFocus[i].kind);
-    bondKinds[i] = onFocus[i].kind;
   }
+
   vector<Angle> angles = AtomMidAngles(kind, focus);
   for (uint i = 0; i < nBonds; ++i) {
     typedef vector<Angle>::const_iterator Aiter;
-    Aiter free = find_if(angles.begin(), angles.end(), FindAngle(prev, bonded[i]));
+    Aiter free = find_if(angles.begin(), angles.end(),
+			 FindAngle(prev, bonded[i]));
     assert(free != angles.end());
     angleKinds[i][i] = free->kind;
+
     for (uint j = i + 1; j < nBonds; ++j) {
-      Aiter pair = find_if(angles.begin(), angles.end(), FindAngle(bonded[i], bonded[j]));
+      Aiter pair = find_if(angles.begin(), angles.end(),
+			   FindAngle(bonded[i], bonded[j]));
       angleKinds[i][j] = pair->kind;
       angleKinds[j][i] = pair->kind;
     }
@@ -85,6 +78,21 @@ DCHedron::DCHedron(DCData* data, const mol_setup::MolKind& kind,
   phiWeight[0] = 1.0;
 }
 
+void DCHedron::SetBondNew(double const *bondLen, double const &anchBond)
+{
+  for(uint i = 0; i < nBonds; ++i) {
+    bondLength[i] = bondLen[i];
+  }
+  anchorBond = anchBond;
+}
+
+void DCHedron::SetBondOld(double const *bondLen, double const &anchBond)
+{
+  for(uint i = 0; i < nBonds; ++i) {
+    bondLengthOld[i] = bondLen[i];
+  }
+  anchorBondOld = anchBond;
+}
 
 double DCHedron::GetWeight()
 {
@@ -206,17 +214,12 @@ void DCHedron::FreeAnglesOld(TrialMol& oldMol, uint molIndex, uint nTrials)
     double stepWeight = std::accumulate(data->angleWeights,
                                         data->angleWeights + nTrials,
                                         0.0);
-    //uint winner = data->prng.PickWeighted(data->angleWeights,
-    //				       nTrials, stepWeight);
-    //theta[i] = data->angles[winner];
-    //bendEnergy += data->angleEnergy[winner];
     thetaWeight[i] = stepWeight;
   }
 }
 
 void DCHedron::PrepareNew(TrialMol& newMol, uint molIndex)
 {
-
   bendEnergy = 0.0;
   oneThree = 0.0;
   FreeAnglesNew(newMol, molIndex, data->nAngleTrials);
@@ -225,19 +228,9 @@ void DCHedron::PrepareNew(TrialMol& newMol, uint molIndex)
 
 void DCHedron::PrepareOld(TrialMol& oldMol, uint molIndex)
 {
-  oldBondEnergy = 0.0;
   oneThree = 0.0;
-  //set bond distance for old molecule
-  for (uint i = 0; i < nBonds; ++i) {
-    bondLengthOld[i] = sqrt(oldMol.OldDistSq(focus, bonded[i]));
-    oldBondEnergy +=  data->ff.bonds.Calc(bondKinds[i], bondLengthOld[i]);
-  }
-  anchorBondOld = sqrt(oldMol.OldDistSq(focus, prev));
-
   bendEnergy = 0.0;
   FreeAnglesOld(oldMol, molIndex, data->nAngleTrials - 1);
-
-
 }
 
 
@@ -283,8 +276,7 @@ void DCHedron::IncorporateOld(TrialMol& oldMol, uint molIndex)
 }
 
 
-void DCHedron::ConstrainedAngles(TrialMol& newMol, uint molIndex,
-                                 uint nTrials)
+void DCHedron::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTrials)
 {
   double* angles = data->angles;
   double* energies = data->angleEnergy;

@@ -17,6 +17,15 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 namespace cbmc
 {
 
+struct FindA1 {
+  FindA1(uint x) : x(x) {};
+  bool operator()(const mol_setup::Bond& b)
+  {
+    return (b.a1 == x);
+  }
+  uint x;
+};
+
 DCFreeHedron::DCFreeHedron(DCData* data, const mol_setup::MolKind& kind,
                            uint focus, uint prev)
   : data(data), seed(data, focus), hed(data, kind, focus, prev)
@@ -26,35 +35,68 @@ DCFreeHedron::DCFreeHedron(DCData* data, const mol_setup::MolKind& kind,
   vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
   for(uint i = 0; i < onFocus.size(); ++i) {
     if (onFocus[i].a1 == prev) {
-      anchorBond = data->ff.bonds.Length(onFocus[i].kind);
-      anchorBondKind = onFocus[i].kind;
+      anchorKind = onFocus[i].kind;
       break;
     }
+  }
+
+  onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
+                onFocus.end());
+  //Find the atoms bonded to focus, except prev
+  for (uint i = 0; i < hed.NumBond(); ++i) {
+    bondKinds[i] = onFocus[i].kind;
   }
 }
 
 
 void DCFreeHedron::PrepareNew(TrialMol& newMol, uint molIndex)
 {
+  //Get new bond information
+  SetBondLengthNew(newMol);
+  hed.SetBondNew(bondLength, anchorBond);
   hed.PrepareNew(newMol, molIndex);
+  bondEnergy = 0.0;
+  for(uint i = 0; i < hed.NumBond(); ++i) {
+    bondEnergy += data->ff.bonds.Calc(bondKinds[i], bondLength[i]);
+  }
+  bondEnergy +=  data->ff.bonds.Calc(anchorKind, anchorBond);
 }
 
 void DCFreeHedron::PrepareOld(TrialMol& oldMol, uint molIndex)
 {
+  //Get old bond information
+  SetBondLengthOld(oldMol);
+  hed.SetBondOld(bondLengthOld, anchorBondOld);
   hed.PrepareOld(oldMol, molIndex);
-  double bondLengthOld = sqrt(oldMol.OldDistSq(hed.Focus(), hed.Prev()));
-  oldBondEnergy =  data->ff.bonds.Calc(anchorBondKind, bondLengthOld);
+  bondEnergy = 0.0;
+  for(uint i = 0; i < hed.NumBond(); ++i) {
+    bondEnergy += data->ff.bonds.Calc(bondKinds[i], bondLengthOld[i]);
+  }
+  bondEnergy +=  data->ff.bonds.Calc(anchorKind, anchorBondOld);
 }
 
+void DCFreeHedron::SetBondLengthNew(TrialMol& newMol)
+{
+  for(uint i = 0; i < hed.NumBond(); ++i) {
+    bondLength[i] = data->ff.bonds.Length(bondKinds[i]);
+  }
+  anchorBond = data->ff.bonds.Length(anchorKind); 
+}
+
+void DCFreeHedron::SetBondLengthOld(TrialMol& oldMol)
+{
+  for(uint i = 0; i < hed.NumBond(); ++i) {
+    bondLengthOld[i] = sqrt(oldMol.OldDistSq(hed.Focus(), hed.Bonded(i)));
+  }
+  anchorBondOld = sqrt(oldMol.OldDistSq(hed.Focus(), hed.Prev()));
+}
 
 void DCFreeHedron::BuildNew(TrialMol& newMol, uint molIndex)
 {
   seed.BuildNew(newMol, molIndex);
   PRNG& prng = data->prng;
   const CalculateEnergy& calc = data->calc;
-
   const Ewald *calcEwald = data->calcEwald;
-
   const Forcefield& ff = data->ff;
   uint nLJTrials = data->nLJTrialsNth;
   double* ljWeights = data->ljWeights;
@@ -71,8 +113,8 @@ void DCFreeHedron::BuildNew(TrialMol& newMol, uint molIndex)
   XYZArray* positions = data->multiPositions;
 
   for (uint i = 0; i < hed.NumBond(); ++i) {
-    positions[i].Set(0, newMol.RawRectCoords(hed.BondLength(i),
-                     hed.Theta(i), hed.Phi(i)));
+    positions[i].Set(0, newMol.RawRectCoords(bondLength[i], hed.Theta(i),
+					     hed.Phi(i)));
   }
   //add anchor atom
   positions[hed.NumBond()].Set(0, newMol.RawRectCoords(anchorBond, 0, 0));
@@ -93,7 +135,6 @@ void DCFreeHedron::BuildNew(TrialMol& newMol, uint molIndex)
     data->axes.WrapPBC(positions[b], newMol.GetBox());
   }
 
-
   for (uint b = 0; b < hed.NumBond(); ++b) {
     calc.ParticleInter(inter, real, positions[b], hed.Bonded(b),
                        molIndex, newMol.GetBox(), nLJTrials);
@@ -106,12 +147,14 @@ void DCFreeHedron::BuildNew(TrialMol& newMol, uint molIndex)
     ljWeights[lj] = exp(-ff.beta * (inter[lj] + real[lj]));
     stepWeight += ljWeights[lj];
   }
+
   uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
   for(uint b = 0; b < hed.NumBond(); ++b) {
     newMol.AddAtom(hed.Bonded(b), positions[b][winner]);
   }
+
   newMol.AddAtom(hed.Prev(), positions[hed.NumBond()][winner]);
-  newMol.AddEnergy(Energy(hed.GetEnergy(), hed.GetNonBondedEn(),
+  newMol.AddEnergy(Energy(hed.GetEnergy() + bondEnergy, hed.GetNonBondedEn(),
                           inter[winner], real[winner],
                           0.0, 0.0, 0.0));
   newMol.MultWeight(hed.GetWeight());
@@ -123,9 +166,7 @@ void DCFreeHedron::BuildOld(TrialMol& oldMol, uint molIndex)
   seed.BuildOld(oldMol, molIndex);
   PRNG& prng = data->prng;
   const CalculateEnergy& calc = data->calc;
-
   const Ewald * calcEwald = data->calcEwald;
-
   const Forcefield& ff = data->ff;
   uint nLJTrials = data->nLJTrialsNth;
   double* ljWeights = data->ljWeights;
@@ -190,12 +231,10 @@ void DCFreeHedron::BuildOld(TrialMol& oldMol, uint molIndex)
   }
 
   oldMol.ConfirmOldAtom(hed.Prev());
-  oldMol.AddEnergy(Energy(hed.GetEnergy() + oldBondEnergy +
-                          hed.GetOldBondEn(), hed.GetNonBondedEn(),
+  oldMol.AddEnergy(Energy(hed.GetEnergy() + bondEnergy, hed.GetNonBondedEn(),
                           inter[0], real[0], 0.0, 0.0, 0.0));
   oldMol.MultWeight(hed.GetWeight());
   oldMol.MultWeight(stepWeight);
 }
-
 
 }

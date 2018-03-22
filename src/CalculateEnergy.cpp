@@ -125,7 +125,7 @@ SystemPotential CalculateEnergy::SystemTotal()
               "initial configuration.\n"
               "         Total energy calculation will be perform at EqStep to "
               "preserve the\n"
-              "         enegy information.\n";
+              "         energy information.\n";
   }
 
   return pot;
@@ -539,7 +539,6 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
 {
   if(box >= BOXES_WITH_U_NB)
     return;
-
   double distSq, qi_qj_Fact, tempLJ, tempReal;
   uint i, t;
   MoleculeKind const& thisKind = mols.GetKind(molIndex);
