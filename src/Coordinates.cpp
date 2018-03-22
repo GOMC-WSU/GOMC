@@ -27,8 +27,10 @@ void Coordinates::CheckCoordinate()
 {
   int p, start, atom, length, stRange, endRange;
   XYZ min, max;
+  bool sawZeroCoordinate;
 
   for (uint b = 0; b < BOX_TOTAL; b++) {
+    sawZeroCoordinate =  false;
     MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b),
                                  end = molLookRef.BoxEnd(b), endc = molLookRef.BoxEnd(b);
     //find the min and max coordinate
@@ -55,6 +57,16 @@ void Coordinates::CheckCoordinate()
 
       for (p = 0; p < thisKind.NumAtoms(); p++) {
         atom = start + p;
+        if(!x[atom] && !y[atom] && !z[atom]) {
+          if(sawZeroCoordinate) {
+            printf("Error: Multiple atoms with zero coordinates were found.\n");
+            exit(EXIT_FAILURE);
+          }
+          else {
+            sawZeroCoordinate = true;
+          }
+        }
+
         boxDimRef.WrapPBC(x[atom], y[atom], z[atom], b);
         //check to see if it is in the box or not
         XYZ unSlant(x[atom], y[atom], z[atom]);
@@ -65,7 +77,7 @@ void Coordinates::CheckCoordinate()
             unSlant.z > boxDimRef.axis.Get(b).z ||
             unSlant.x < 0 || unSlant.y < 0 || unSlant.z < 0) {
           printf("Molecules %d is packed outside of the defined box dimension.\n", *thisMol);
-          exit(0);
+          exit(EXIT_FAILURE);
         }
       }
       ++thisMol;
