@@ -33,8 +33,7 @@ void MoleculeKind::Init
     setup.mol.kindMap.find(l_name);
   if(dataIterator == setup.mol.kindMap.end()) {
     std::cerr << "================================================"
-              << std::endl << std::endl
-              << "Error: Molecule " << l_name
+              << std::endl << "Error: Molecule " << l_name
               << " not found in PDB file. Exiting." << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -50,8 +49,7 @@ void MoleculeKind::Init
   //then quit.
   if (kindCPIt == lastOne) {
     std::cerr << "================================================"
-              << std::endl << std::endl
-              << "Error: chemical potential is missing for "
+              << std::endl << "Error: chemical potential is missing for "
               << name << "." << std::endl << std::endl
               << "Here are the listed chemical potentials:"
               << std::endl

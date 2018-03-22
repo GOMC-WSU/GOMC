@@ -54,6 +54,26 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
     kinds[mk].Init(atoms.resKindNames[mk], setup, forcefield, sys);
   }
 
+#if ENSEMBLE == GCMC
+  //check to have all the molecules in psf file that defined in config file
+  std::map<std::string, double>::const_iterator kindCPIt =
+    setup.config.sys.chemPot.cp.begin(),
+    lastOne = setup.config.sys.chemPot.cp.end();
+
+  while(kindCPIt != lastOne) {
+    std::string molName = kindCPIt->first;
+    mol_setup::MolMap::const_iterator dataIterator =
+    setup.mol.kindMap.find(molName);
+    if(dataIterator == setup.mol.kindMap.end()) {
+      std::cerr << "================================================"
+                << std::endl << "Error: Molecule " << molName
+                << " not found in PDB file. Exiting." << std::endl;
+      exit(EXIT_FAILURE);
+    } 
+    kindCPIt++;
+  }
+  #endif
+
   if(printFlag) {
     //calculating netcharge of all molecule kind
     double netCharge = 0.0;
