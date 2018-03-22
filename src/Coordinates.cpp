@@ -62,12 +62,12 @@ void Coordinates::CheckCoordinate()
 
         if(unSlant.x > boxDimRef.axis.Get(b).x ||
             unSlant.y > boxDimRef.axis.Get(b).y ||
-            unSlant.z > boxDimRef.axis.Get(b).z) {
+            unSlant.z > boxDimRef.axis.Get(b).z ||
+            unSlant.x < 0 || unSlant.y < 0 || unSlant.z < 0) {
           printf("Molecules %d is packed outside of the defined box dimension.\n", *thisMol);
           exit(0);
         }
       }
-
       ++thisMol;
     }
   }
