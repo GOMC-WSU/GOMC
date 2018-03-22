@@ -51,6 +51,12 @@ inline uint MoleculeTransfer::GetBoxPairAndMol
   // swap between boxes. (beta != 1, beta !=2)
   uint state = prng.PickMolAndBoxPair2(molIndex, kindIndex, sourceBox, destBox,
                                        subDraw, movPerc);
+#if ENSEMBLE == GCMC
+  if(state == mv::fail_state::NO_MOL_OF_KIND_IN_BOX && sourceBox == mv::BOX1) {
+    printf("Error: There are no molecules of kind %d left in reservoir.\n", kindIndex);
+    exit(EXIT_FAILURE);
+  }
+#endif
 
   if (state != mv::fail_state::NO_MOL_OF_KIND_IN_BOX) {
     pStart = pLen = 0;
