@@ -40,11 +40,10 @@ set(sources
    src/System.cpp
    src/cbmc/DCGraph.cpp
    src/cbmc/DCFreeHedron.cpp
+   src/cbmc/DCFreeHedronSeed.cpp
    src/cbmc/DCLinkedHedron.cpp
    src/cbmc/DCHedron.cpp
    src/cbmc/DCLinear.cpp
-   src/cbmc/DCLink.cpp
-   src/cbmc/DCLinkNoDih.cpp
    src/cbmc/DCOnSphere.cpp
    src/cbmc/DCSingle.cpp
    src/cbmc/TrialMol.cpp)
@@ -107,6 +106,7 @@ set(headers
    src/PRNGSetup.h
    src/PSFOutput.h
    src/Reader.h
+   src/Regrowth.h
    src/SeedReader.h
    src/Setup.h
    src/SimEventFrequency.h
@@ -120,12 +120,11 @@ set(headers
    src/cbmc/DCComponent.h
    src/cbmc/DCData.h
    src/cbmc/DCFreeHedron.h
+   src/cbmc/DCFreeHedronSeed.h
    src/cbmc/DCLinkedHedron.h
    src/cbmc/DCGraph.h
    src/cbmc/DCHedron.h
    src/cbmc/DCLinear.h
-   src/cbmc/DCLink.h
-   src/cbmc/DCLinkNoDih.h
    src/cbmc/DCOnSphere.h
    src/cbmc/DCSingle.h
    src/cbmc/TrialMol.h)

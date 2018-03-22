@@ -123,6 +123,14 @@ double TrialMol::OldDistSq(const uint lastAtom, const uint atom)
   return distSq;
 }
 
+double TrialMol::DistSq(const XYZ& a, const XYZ& b)
+{
+  XYZ diff = a - b;
+  diff = axes->MinImage(diff, box);
+  double distSq= diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
+  return distSq;
+}
+
 //!Return angle in radians between confirmed atoms a, b and c:w
 double TrialMol::GetTheta(uint a, uint b, uint c) const
 {

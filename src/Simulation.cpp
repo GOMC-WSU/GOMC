@@ -59,7 +59,7 @@ void Simulation::RunSimulation(void)
     if((step + 1) == cpu->equilSteps) {
       if(abs(system->potential.totalEnergy.total) > 1.0e+14) {
         printf("Info: Performing total energy calculation to preserve the"
-               " enegy information.\n\n");
+               " energy information.\n\n");
         system->calcEwald->Init();
         system->potential = system->calcEnergy.SystemTotal();
       }
