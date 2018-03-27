@@ -122,6 +122,7 @@ struct XYZ {
 inline std::ostream& operator << (std::ostream & stream, const XYZ& p)
 {
   stream << "[" << p.x << ", " << p.y << ", " << p.z << "]";
+  return stream;
 }
 
 #endif /*BASIC_TYPES_H*/
