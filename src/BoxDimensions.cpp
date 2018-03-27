@@ -112,13 +112,13 @@ uint BoxDimensions::ExchangeVolume
 
   //If move would shrink any box axis to be less than 2 * rcut, then
   //automatically reject to prevent errors.
-  for (uint b = 0; b < BOX_TOTAL && state == mv::fail_state::NO_FAIL; b++) {
+  for (uint b = 0; b < BOX_TOTAL; b++) {
     scale[b] = newDim.axis.Get(b) / axis.Get(b);
     if ((newDim.halfAx.x[b] < rCut || newDim.halfAx.y[b] < rCut ||
          newDim.halfAx.z[b] < rCut)) {
       std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!"
                 << std::endl;
-      state = (bool)state && (bool)mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
+      return mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
     }
   }
   return state;
