@@ -148,17 +148,31 @@ private:
 
 inline CellList::Cell CellList::EnumerateCell(int cell, int box) const
 {
+  if(cell >= head[box].size())
+  {
+    std::cout << "CellList.h:153: box " << box << ", Out of cell"<< std::endl;
+  }
   return CellList::Cell(head[box][cell], list);
 }
 
 inline CellList::Neighbors CellList::EnumerateLocal(int cell, int box) const
 {
+  if(cell >= head[box].size())
+  {
+    std::cout << "CellList.h:162: box " << box << ", Out of cell"<< std::endl;
+  }
   return CellList::Neighbors(list, head[box], neighbors[box][cell]);
 }
 
 inline CellList::Neighbors CellList::EnumerateLocal(const XYZ& pos, int box) const
 {
-  return EnumerateLocal(PositionToCell(pos, box), box);
+  int cell = PositionToCell(pos, box);
+  if(cell >= head[box].size())
+  {
+    std::cout << "CellList.h:172: box " << box << ", pos: " << pos
+      << std::endl;
+  }
+  return EnumerateLocal(cell, box);
 }
 
 inline CellList::Neighbors::Neighbors(const std::vector<int>& partList,

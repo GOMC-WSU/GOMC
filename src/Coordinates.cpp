@@ -144,8 +144,10 @@ void Coordinates::VolumeTransferTranslate
   //Scale cell
   state = boxDimRef.ExchangeVolume(newDim, scale, transfer);
   //If scaling succeeded (if it wouldn't take the box to below 2*rcut, cont.
-  for (uint b = 0; b < BOX_TOTAL && (state == mv::fail_state::NO_FAIL); ++b) {
-    TranslateOneBox(dest, newCOM, oldCOM, newDim, b, scale[b]);
+  if(state == mv::fail_state::NO_FAIL) {
+    for (uint b = 0; b < BOX_TOTAL; ++b) {
+      TranslateOneBox(dest, newCOM, oldCOM, newDim, b, scale[b]);
+    } 
   }
 }
 
