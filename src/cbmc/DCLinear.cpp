@@ -20,57 +20,35 @@ DCLinear::DCLinear(System& sys, const Forcefield& ff,
   const mol_setup::MolKind setupKind = it->second;
   uint size = kind.NumAtoms();
   atomSize = size;
-
-  if(atomSize < 3)
-  {
-    forward.push_back(new DCSingle(&data, 0));
-    backward.push_back(new DCSingle(&data, size - 1));
-
-    if(size > 1)
-    {
-      forward.push_back(new DCOnSphere(&data, setupKind, 1, 0));
-      backward.push_back(new DCOnSphere(&data, setupKind, size - 2, size - 1));
-    }
-  }
-  else
-  {
-    graph = new DCGraph(sys, ff, kind, set);
+  //First atom of the molecule
+  forward.push_back(new DCSingle(&data, 0));
+  backward.push_back(new DCSingle(&data, size - 1));
+  //second atom of the molecule
+  if(atomSize < 3) {
+    forward.push_back(new DCOnSphere(&data, setupKind, 1, 0));
+    backward.push_back(new DCOnSphere(&data, setupKind, size - 2, size - 1));
   }
 }
 
 DCLinear::~DCLinear()
 {
-  if(atomSize < 3){
-    for(uint i = 0; i < forward.size(); ++i) {
-      delete forward[i];
-      delete backward[i];
-    }
-  }
-  else {
-    delete graph;
+  for(uint i = 0; i < forward.size(); ++i) {
+    delete forward[i];
+    delete backward[i];
   }
 }
 
 void DCLinear::Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 {
-  if(atomSize < 3)
-  {
-    std::vector<DCComponent*>& comps =data.prng.randInt(1) ? forward : backward;
-    for(uint i = 0; i < comps.size(); ++i)
-    {
-      comps[i]->PrepareNew(newMol, molIndex);
-      comps[i]->BuildNew(newMol, molIndex);
-    }
-
-    for(uint i = 0; i < comps.size(); ++i)
-    {
-      comps[i]->PrepareOld(oldMol, molIndex);
-      comps[i]->BuildOld(oldMol, molIndex);
-    }
+  std::vector<DCComponent*>& comps =data.prng.randInt(1) ? forward : backward;
+  for(uint i = 0; i < comps.size(); ++i) {
+    comps[i]->PrepareNew(newMol, molIndex);
+    comps[i]->BuildNew(newMol, molIndex);
   }
-  else
-  {
-    graph->Build(oldMol, newMol, molIndex);
+
+  for(uint i = 0; i < comps.size(); ++i) {
+    comps[i]->PrepareOld(oldMol, molIndex);
+    comps[i]->BuildOld(oldMol, molIndex);
   }
 }
 
@@ -78,9 +56,9 @@ void DCLinear::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 {
   //perform Intra-Swap move within the same box
   if(atomSize < 2) {
-    return Build(oldMol, newMol, molIndex);
-  }
-  else if(atomSize < 3) {
+    Build(oldMol, newMol, molIndex);
+    return;
+  } else {
     //we only have two atoms in molecule: atom 0, 1
     uint fix = data.prng.randInt(1);
     uint grow = 1 - fix;
@@ -95,8 +73,5 @@ void DCLinear::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
     comps[1]->BuildNew(newMol, molIndex);
     comps[1]->PrepareOld(oldMol, molIndex);
     comps[1]->BuildOld(oldMol, molIndex);
-  }
-  else {
-    graph->Regrowth(oldMol, newMol, molIndex);
   }
 }

@@ -629,8 +629,10 @@ void Ewald::RecipCountInit(uint box, BoxDimensions const& boxAxes)
   double ksqr, excess, kX, kY, kZ;
   XYZArray cellB(boxAxes.cellBasis[box]);
   XYZ constValue = boxAxes.axis.Get(box);
-#if ENSEMBLE == GEMC || ENSEMBLE == NPT
+#if ENSEMBLE == GEMC
   excess = 1.25;
+#elif ENSEMBLE == NPT
+  excess = 1.5;
 #else
   excess = 1.00;
 #endif
