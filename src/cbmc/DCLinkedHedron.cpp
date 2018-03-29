@@ -370,10 +370,10 @@ void DCLinkedHedron::ChooseTorsion(TrialMol& mol, uint molIndex,
       double trialPhi = hed.Phi(b) + torsion[tor];
       XYZ bondedC;
       if(mol.OneFour()) {
-	//convert chosen torsion to 3D positions for bonded atoms to focus
-	RotationMatrix spin = RotationMatrix::FromAxisAngle(-torsion[tor],
-							    cross, tensor);
-	bondedC = spin.Apply(positions[b][0]) + center;
+        //convert chosen torsion to 3D positions for bonded atoms to focus
+        RotationMatrix spin = RotationMatrix::FromAxisAngle(-torsion[tor],
+                        cross, tensor);
+        bondedC = spin.Apply(positions[b][0]) + center;
       }
 
       for (uint p = 0; p < nPrevBonds; ++p) {
