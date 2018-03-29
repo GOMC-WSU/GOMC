@@ -26,11 +26,11 @@ DCLinear::DCLinear(System& sys, const Forcefield& ff,
     forward.push_back(new DCSingle(&data, 0));
     backward.push_back(new DCSingle(&data, size - 1));
 
-    if(size < 2)
-      return;
-  
-    forward.push_back(new DCOnSphere(&data, setupKind, 1, 0));
-    backward.push_back(new DCOnSphere(&data, setupKind, size - 2, size - 1));
+    if(size > 1)
+    {
+      forward.push_back(new DCOnSphere(&data, setupKind, 1, 0));
+      backward.push_back(new DCOnSphere(&data, setupKind, size - 2, size - 1));
+    }
   }
   else
   {

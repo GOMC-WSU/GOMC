@@ -53,7 +53,7 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
                                        bonds[0].a1);
       //Atoms bonded to atom will be build from focus (atom) in specified loc.
       node.restarting = new DCFreeHedronSeed(&data, setupKind, atom,
-					     bonds[0].a1);
+					                                   bonds[0].a1);
       //set the atom index of the node  
       node.atomIndex = atom;
       //Loop through all the bonds
@@ -190,42 +190,42 @@ void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
       //Copy the all atoms bonded to fixNode's focus                          
       for(uint b = 0; b < nodes[fixNode].partnerIndex.size(); b++)
       {
-	uint partner = nodes[fixNode].partnerIndex[b];
-	newMol.AddAtom(partner, oldMol.AtomPosition(partner));
-	oldMol.ConfirmOldAtom(partner);
+        uint partner = nodes[fixNode].partnerIndex[b];
+        newMol.AddAtom(partner, oldMol.AtomPosition(partner));
+        oldMol.ConfirmOldAtom(partner);
       }
       //Copy the edges of the new node to fringe
       fringe = nodes[fixNode].edges;
       //remove the edge that we travelled from 
       for( uint f = 0; f < fringe.size(); f++)
       {
-	if(fringe[f].destination == current)
-	  fringe.erase(fringe.begin() + f);
+        if(fringe[f].destination == current)
+          fringe.erase(fringe.begin() + f);
       }
       //Continue along picked edges and copy the coordinates
       while(!fringe.empty())
       {
-	fixNode = fringe[0].destination;
-	//Copy the all atoms bonded to fixNode's focus
-	for(uint b = 0; b < nodes[fixNode].partnerIndex.size(); b++)
-	{
-	  uint partner = nodes[fixNode].partnerIndex[b];
-	  newMol.AddAtom(partner, oldMol.AtomPosition(partner));
-	  oldMol.ConfirmOldAtom(partner);
-	}
-	//Travel to new fixNode, remove traversed edge
-	fringe[0] = fringe.back();
-	fringe.pop_back();
-	visited[fixNode] = true;
-	//Add edges to unvisited nodes
-	for(uint i = 0; i < nodes[fixNode].edges.size(); ++i)
-	{
-	  Edge& e = nodes[fixNode].edges[i];
-	  if(!visited[e.destination])
-	  {
-	    fringe.push_back(e);
-	  }
-	}
+        fixNode = fringe[0].destination;
+        //Copy the all atoms bonded to fixNode's focus
+        for(uint b = 0; b < nodes[fixNode].partnerIndex.size(); b++)
+        {
+          uint partner = nodes[fixNode].partnerIndex[b];
+          newMol.AddAtom(partner, oldMol.AtomPosition(partner));
+          oldMol.ConfirmOldAtom(partner);
+        }
+        //Travel to new fixNode, remove traversed edge
+        fringe[0] = fringe.back();
+        fringe.pop_back();
+        visited[fixNode] = true;
+        //Add edges to unvisited nodes
+        for(uint i = 0; i < nodes[fixNode].edges.size(); ++i)
+        {
+          Edge& e = nodes[fixNode].edges[i];
+          if(!visited[e.destination])
+          {
+            fringe.push_back(e);
+          }
+        }
       }
       //Now Start building the rest of the molecule from current
       //Copy the edges of the current node to fringe
@@ -235,27 +235,27 @@ void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
       //Advance along edges, building as we go
       while(!fringe.empty())
       {
-	//Randomely pick one of the edges connected to node
-	uint pick = data.prng.randIntExc(fringe.size());
-	DCComponent* comp = fringe[pick].component;
-	//Call DCLinkedHedron and build all Atoms connected to selected edge
-	comp->PrepareNew(newMol, molIndex);
-	comp->BuildNew(newMol, molIndex);
-	comp->PrepareOld(oldMol, molIndex);
-	comp->BuildOld(oldMol, molIndex);
-	current = fringe[pick].destination;
-	//Remove the edge that we visited
-	fringe[pick] = fringe.back();
-	fringe.pop_back();
-	visited[current] = true;
-	for(uint i = 0; i < nodes[current].edges.size(); ++i)
-	{
-	  Edge& e = nodes[current].edges[i];
-	  if(!visited[e.destination])
-	  {
-	    fringe.push_back(e);
-	  }
-	}
+        //Randomely pick one of the edges connected to node
+        uint pick = data.prng.randIntExc(fringe.size());
+        DCComponent* comp = fringe[pick].component;
+        //Call DCLinkedHedron and build all Atoms connected to selected edge
+        comp->PrepareNew(newMol, molIndex);
+        comp->BuildNew(newMol, molIndex);
+        comp->PrepareOld(oldMol, molIndex);
+        comp->BuildOld(oldMol, molIndex);
+        current = fringe[pick].destination;
+        //Remove the edge that we visited
+        fringe[pick] = fringe.back();
+        fringe.pop_back();
+        visited[current] = true;
+        for(uint i = 0; i < nodes[current].edges.size(); ++i)
+        {
+          Edge& e = nodes[current].edges[i];
+          if(!visited[e.destination])
+          {
+            fringe.push_back(e);
+          }
+        }
       }
     }
   }
@@ -266,6 +266,7 @@ DCGraph::~DCGraph()
   for(uint v = 0; v < nodes.size(); ++v) {
     Node& node = nodes[v];
     delete node.starting;
+    delete node.restarting;
     for(uint e = 0; e < node.edges.size(); ++ e) {
       delete node.edges[e].component;
     }

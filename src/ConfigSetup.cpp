@@ -19,7 +19,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 int stringtoi(const std::string& s)
 {
   std::istringstream str(s);
-  int i;
+  uint i;
   str >> i;
   return i;
 }
