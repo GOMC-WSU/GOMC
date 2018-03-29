@@ -239,7 +239,10 @@ void ConfigSetup::Init(const char *fileName)
       }
     } else if(line[0] == "LRC") {
       sys.ff.doTailCorr = checkBool(line[1]);
-      printf("%-40s %-s \n", "Info: Long Range Correction", "Active");
+      if(sys.ff.doTailCorr)
+	printf("%-40s %-s \n", "Info: Long Range Correction", "Active");
+      else
+	printf("%-40s %-s \n", "Info: Long Range Correction", "Inactive");
     } else if(line[0] == "Rswitch") {
       sys.ff.rswitch = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Switch distance",
@@ -348,8 +351,8 @@ void ConfigSetup::Init(const char *fileName)
         printf("Info: Volume change using constant ratio.\n");
     } else if(line[0] == "FixVolBox0") {
       sys.volume.cstVolBox0 = checkBool(line[1]);
-      if (sys.volume.cstVolBox0)
-        printf("%-40s %-d \n", "Info: Fix volume box", 1);
+      if(sys.volume.cstVolBox0)
+        printf("%-40s %-d \n", "Info: Fix volume box", 0);
     }
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
@@ -373,12 +376,9 @@ void ConfigSetup::Init(const char *fileName)
         temp.y = stringtod(line[3]);
         temp.z = stringtod(line[4]);
         sys.volume.axis[box].Set(0, temp);
-        printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n",
-               "Info: Box ", box, " Periodic Cell Basis 1",
-               temp.x, temp.y, temp.z);
       } else {
         std::cout << "Error: This simulation requires only " << BOX_TOTAL <<
-                  " number of box dimension(s)!" << std::endl;
+                  " sets of Cell Basis Vector!" << std::endl;
         exit(EXIT_FAILURE);
       }
     } else if(line[0] == "CellBasisVector2") {
@@ -391,12 +391,9 @@ void ConfigSetup::Init(const char *fileName)
         temp.y = stringtod(line[3]);
         temp.z = stringtod(line[4]);
         sys.volume.axis[box].Set(1, temp);
-        printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n",
-               "Info: Box ", box, " Periodic Cell Basis 2",
-               temp.x, temp.y, temp.z);
       } else {
         std::cout << "Error: This simulation requires only " << BOX_TOTAL <<
-                  " number of box dimension(s)!" << std::endl;
+                  " sets of Cell Basis Vector!" << std::endl;
         exit(EXIT_FAILURE);
       }
     } else if(line[0] == "CellBasisVector3") {
@@ -409,12 +406,9 @@ void ConfigSetup::Init(const char *fileName)
         temp.y = stringtod(line[3]);
         temp.z = stringtod(line[4]);
         sys.volume.axis[box].Set(2, temp);
-        printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n",
-               "Info: Box ", box, " Periodic Cell Basis 3",
-               temp.x, temp.y, temp.z);
       } else {
         std::cout << "Error: This simulation requires only " << BOX_TOTAL <<
-                  " number of box dimension(s)!" << std::endl;
+                  " sets of Cell Basis Vector!" << std::endl;
         exit(EXIT_FAILURE);
       }
     }
@@ -608,7 +602,7 @@ void ConfigSetup::fillDefaults(void)
   if(sys.moves.regrowth == DBL_MAX) {
     sys.moves.regrowth = 0.000;
     printf("%-40s %-4.4f \n", "Default: Regrowth move frequency",
-	   sys.moves.intraSwap);
+	   sys.moves.regrowth);
   }
 
   if(sys.exclude.EXCLUDE_KIND == UINT_MAX) {
@@ -712,7 +706,7 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(sys.volume.cstVolBox0) {
-    std::cout << "Warning: Fix volume of box 1 set, but will be ignored.\n";
+    std::cout << "Warning: Fix volume of box 0 set, but will be ignored.\n";
     exit(EXIT_FAILURE);
   }
 #endif
@@ -866,8 +860,8 @@ void ConfigSetup::verifyInputs(void)
     }
   }
   if(!sys.volume.hasVolume && !in.restart.enable) {
-    std::cout << "Error: This simulation requires to define " << 3 * BOX_TOTAL <<
-              " cell basis vectors!" << std::endl;
+    std::cout << "Error: This simulation requires to define "<< 3 * BOX_TOTAL <<
+              " Cell Basis vectors!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if(sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND && sys.ff.rswitch == DBL_MAX) {
