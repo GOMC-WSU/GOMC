@@ -166,7 +166,7 @@ void TrialMol::SetBasis(const uint p1, const uint p2)
   wVec.Normalize();
   XYZ uVec;
   //check to make sure our W isn't in line with the standard X Axis
-  if (wVec.x < 0.8) {
+  if (abs(wVec.x) < 0.8) {
     //V will be W x the standard X unit vec
     uVec = XYZ(1.0, 0.0, 0.0);
   } else {
