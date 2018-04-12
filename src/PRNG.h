@@ -169,15 +169,26 @@ public:
   uint PickWeighted(const double *weights, const uint n, double totalWeight)
   {
     double draw = rand(totalWeight);
+    
+    if(abs(draw-totalWeight)-0.001) {
+      return n-1;
+    }
+
     double sum = 0.0;
     for(uint i = 0; i < n; ++i) {
       sum += weights[i];
       if(sum >= draw)
         return i;
     }
-    //ya dun goofed, totalWeight was greater than the actual total
-    //enjoy your segfault (this shouldn't fail gracefully)
-    return -1;
+    
+    // If the code gets to here that means the total of all the weights was
+    // more than totalWeight. So let's print out a message and exit the program
+    std::cerr << "Error: In PRNG::PickWeighted() the total of all weights was" << std::endl;
+    std::cerr << "more than totalWeight" << std::endl << "Debug info:\n";
+    std::cerr << "totalWeight: " << totalWeight << std::endl;
+    std::cerr << "draw: " << draw << std::endl;
+    std::cerr << "sum: " << sum << std::endl;
+    exit(EXIT_FAILURE);
   }
 
 
