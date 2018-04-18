@@ -83,7 +83,7 @@ void Simulation::RunningCheck(const uint step)
       << std::endl << "-------------------------" << std::endl
       << " STEP: " << step
       << std::endl << "-------------------------" << std::endl
-      << "Energy       INTRA B |     INTRA NB |        INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
+      << "Energy       INTRA B |     INTRA NB |         INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
       << std::endl
       << "System: "
       << std::setw(12) << system->potential.totalEnergy.intraBond << " | "
