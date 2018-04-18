@@ -119,6 +119,7 @@ inline void Regrowth::Accept(const uint rejectState, const uint step)
       else
 	result = false;
 
+
       if(result)
       {
          //Add rest of energy.

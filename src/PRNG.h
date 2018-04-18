@@ -169,16 +169,20 @@ public:
   uint PickWeighted(const double *weights, const uint n, double totalWeight)
   {
     double draw = rand(totalWeight);
-    
-    if(abs(draw-totalWeight)-0.001) {
-      return n-1;
-    }
-
     double sum = 0.0;
     for(uint i = 0; i < n; ++i) {
       sum += weights[i];
-      if(sum >= draw)
+      if(sum >= draw) {
         return i;
+      }
+    }
+    int lastZero = n;
+    for(uint i=n-1; i>0 && !weights[i]; i--) {
+        lastZero = i;
+    }
+    lastZero--;
+    if(abs(draw-totalWeight)<0.001) {
+      return lastZero;
     }
     
     // If the code gets to here that means the total of all the weights was

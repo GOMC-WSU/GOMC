@@ -148,32 +148,38 @@ private:
 
 inline CellList::Cell CellList::EnumerateCell(int cell, int box) const
 {
+#ifndef NDEBUG
   if(cell >= head[box].size())
   {
     std::cout << "CellList.h:153: box " << box << ", Out of cell"<< std::endl;
   }
+#endif
   return CellList::Cell(head[box][cell], list);
 }
 
 inline CellList::Neighbors CellList::EnumerateLocal(int cell, int box) const
 {
+#ifndef NDEBUG
   if(cell >= head[box].size())
   {
     std::cout << "CellList.h:162: box " << box << ", Out of cell"<< std::endl;
     std::cout << "AxisDimensions: " << dimensions->GetAxis(box) << std::endl;
   }
+#endif
   return CellList::Neighbors(list, head[box], neighbors[box][cell]);
 }
 
 inline CellList::Neighbors CellList::EnumerateLocal(const XYZ& pos, int box) const
 {
   int cell = PositionToCell(pos, box);
+#ifndef NDEBUG
   if(cell >= head[box].size())
   {
     std::cout << "CellList.h:172: box " << box << ", pos: " << pos
       << std::endl;
     std::cout << "AxisDimensions: " << dimensions->GetAxis(box) << std::endl;
   }
+#endif
   return EnumerateLocal(cell, box);
 }
 

@@ -149,7 +149,6 @@ void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
   oldMol.ConfirmOldAtom(seedInx);
   //check if we want to grow all atoms from node's focus or not
   bool growAll = data.prng() < 1.0 / nodes.size();
-
   if(growAll)
   {      
     DCComponent* comp = nodes[current].restarting;
