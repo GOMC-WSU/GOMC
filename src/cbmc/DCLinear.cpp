@@ -24,7 +24,7 @@ DCLinear::DCLinear(System& sys, const Forcefield& ff,
   forward.push_back(new DCSingle(&data, 0));
   backward.push_back(new DCSingle(&data, size - 1));
   //second atom of the molecule
-  if(atomSize < 3) {
+  if(atomSize > 1) {
     forward.push_back(new DCOnSphere(&data, setupKind, 1, 0));
     backward.push_back(new DCOnSphere(&data, setupKind, size - 2, size - 1));
   }
