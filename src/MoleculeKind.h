@@ -92,7 +92,7 @@ public:
 		const uint molIndex)
   { builder->Regrowth(oldMol, newMol, molIndex); }
 
-  double PrintChargeInfo();
+  double GetMoleculeCharge();
   SortedNonbond sortedNB, sortedNB_1_4, sortedNB_1_3, sortedEwaldNB;
 
 
@@ -108,7 +108,7 @@ public:
   bool oneThree, oneFour;
 
   std::string name;
-  std::vector<std::string> atomNames;
+  std::vector<std::string> atomNames, atomTypeNames;
   double molMass;
 
   double * atomMass;

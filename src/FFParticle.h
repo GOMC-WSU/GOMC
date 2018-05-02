@@ -11,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "FFConst.h" //constants related to particles.
 #include "BasicTypes.h" //for uint
 #include "NumLib.h" //For Cb, Sq
+#include "Setup.h"
 #ifdef GOMC_CUDA
 #include "VariablesCUDA.cuh"
 #endif
@@ -55,6 +56,13 @@ public:
   {
     return mass[kind];
   }
+
+  double GetEpsilon(const uint i, const uint j) const;
+  double GetEpsilon_1_4(const uint i, const uint j) const;
+  double GetSigma(const uint i, const uint j) const;
+  double GetSigma_1_4(const uint i, const uint j) const;
+  double GetN(const uint i, const uint j) const;
+  double GetN_1_4(const uint i, const uint j) const;
   // LJ interaction functions
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2) const;
@@ -117,10 +125,10 @@ protected:
   double *n, *n_1_4;
 #endif
   //For LJ eps_cn(en) --> 4eps, eps_cn_6 --> 24eps, eps_cn_n --> 48eps
-  double * sigmaSq, * epsilon_cn, * epsilon_cn_6, * nOver6,
-         * sigmaSq_1_4, * epsilon_cn_1_4, * epsilon_cn_6_1_4, * nOver6_1_4,
-         * enCorrection, * virCorrection, *shiftConst, *An, *Bn, *Cn, *sig6, *sign,
-         *shiftConst_1_4, *An_1_4, *Bn_1_4, *Cn_1_4, *sig6_1_4, *sign_1_4;
+  double * sigmaSq, * epsilon, * epsilon_1_4,* epsilon_cn, * epsilon_cn_6,
+    * nOver6, * sigmaSq_1_4, * epsilon_cn_1_4, * epsilon_cn_6_1_4, * nOver6_1_4,
+    * enCorrection, * virCorrection, *shiftConst, *An, *Bn, *Cn, *sig6,
+    *sign, *shiftConst_1_4, *An_1_4, *Bn_1_4, *Cn_1_4, *sig6_1_4, *sign_1_4;
 
   double rCut, rCutSq, rOn, rOnSq, rOnCoul, A1, B1, C1, A6, B6, C6,
          factor1, factor2, scaling_14, alpha, diElectric_1;

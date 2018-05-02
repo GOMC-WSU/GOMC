@@ -84,6 +84,10 @@ public:
     return kindsCount;
   }
 
+  void PrintLJInfo(std::vector<uint> &totAtomKind, 
+		   std::vector<std::string> &names,
+		   Forcefield & forcefield);
+
   //private:
   //Kind index of each molecule and start in master particle array
   //Plus counts

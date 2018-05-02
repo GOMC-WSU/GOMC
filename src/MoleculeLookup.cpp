@@ -18,8 +18,6 @@ void MoleculeLookup::Init(const Molecules& mols,
 {
   numKinds = mols.GetKindsCount();
   molLookup = new uint[mols.count];
-  fixInBox = new uint*[BOX_TOTAL];
-  noSwapInBox = new uint*[BOX_TOTAL];
 
   //+1 to store end value
   boxAndKindStart = new uint[numKinds * BOX_TOTAL + 1];
@@ -31,13 +29,7 @@ void MoleculeLookup::Init(const Molecules& mols,
 
 
   for (uint b = 0; b < BOX_TOTAL; ++b) {
-    fixInBox[b] = new uint[numKinds];
-    noSwapInBox[b] = new uint[numKinds];
     indexVector[b].resize(numKinds);
-    for (uint k = 0; k < numKinds; ++k) {
-      fixInBox[b][k] = 0;
-      noSwapInBox[b][k] = 0;
-    }
   }
 
   for(uint m = 0; m < mols.count; ++m) {
@@ -56,11 +48,7 @@ void MoleculeLookup::Init(const Molecules& mols,
 	 canMoveKind.end()) 
 	canMoveKind.push_back(kind);
 
-    } else if(fixedAtom[m] == 1) {
-      ++fixInBox[box][kind];
-
     } else if(fixedAtom[m] == 2) {
-      ++noSwapInBox[box][kind];
       if(std::find(canMoveKind.begin(), canMoveKind.end(), kind) ==
 	 canMoveKind.end()) 
       canMoveKind.push_back(kind);
