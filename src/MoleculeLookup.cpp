@@ -46,12 +46,28 @@ void MoleculeLookup::Init(const Molecules& mols,
     indexVector[box][kind].push_back(m);
     fixedAtom[m] = atomData.molBeta[m];
 
-    if(fixedAtom[m] == 1)
+    //Find the kind that can be swap(beta == 0) or move(beta == 0 or 2)
+    if(fixedAtom[m] == 0) {
+      if(std::find(canSwapKind.begin(), canSwapKind.end(), kind) ==
+	 canSwapKind.end()) 
+	canSwapKind.push_back(kind);
+
+      if(std::find(canMoveKind.begin(), canMoveKind.end(), kind) ==
+	 canMoveKind.end()) 
+	canMoveKind.push_back(kind);
+
+    } else if(fixedAtom[m] == 1) {
       ++fixInBox[box][kind];
 
-    if(fixedAtom[m] == 2)
+    } else if(fixedAtom[m] == 2) {
       ++noSwapInBox[box][kind];
+      if(std::find(canMoveKind.begin(), canMoveKind.end(), kind) ==
+	 canMoveKind.end()) 
+      canMoveKind.push_back(kind);
+   
+    } 
   }
+
 
   uint* progress = molLookup;
   for (uint b = 0; b < BOX_TOTAL; ++b) {

@@ -53,7 +53,8 @@ inline uint MoleculeTransfer::GetBoxPairAndMol
                                        subDraw, movPerc);
 #if ENSEMBLE == GCMC
   if(state == mv::fail_state::NO_MOL_OF_KIND_IN_BOX && sourceBox == mv::BOX1) {
-    printf("Error: There are no molecules of kind %d left in reservoir.\n", kindIndex);
+    std::cout << "Error: There are no molecules of kind " <<
+      molRef.kinds[kindIndex].name << " left in reservoir.\n";
     exit(EXIT_FAILURE);
   }
 #endif

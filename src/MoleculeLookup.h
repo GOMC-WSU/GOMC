@@ -48,6 +48,26 @@ public:
     return numKinds;
   }
 
+  uint GetNumCanSwapKind(void) const
+  {
+    return canSwapKind.size();
+  }
+
+  uint GetNumCanMoveKind(void) const
+  {
+    return canMoveKind.size();
+  }
+
+  uint GetCanSwapKind(const uint k) const
+  {
+    return canSwapKind[k];
+  }
+
+  uint GetCanMoveKind(const uint k) const
+  {
+    return canMoveKind[k];
+  }
+
   //Returns number of given kind in given box
   uint NumKindInBox(const uint kind, const uint box) const;
 
@@ -127,6 +147,8 @@ private:
   uint* boxAndKindStart;
   uint numKinds;
   std::vector <uint> fixedAtom;
+  std::vector <uint> canSwapKind;
+  std::vector <uint> canMoveKind;
   uint **fixInBox;    //cannot rotate, translate, swap
   uint **noSwapInBox; //cannot swap
 };
