@@ -32,6 +32,10 @@ struct Clock {
     lastStep = totSt - 1;
   }
   void CheckTime(const uint step);
+  void SetStart();
+  void SetStop();
+  double GetTimDiff();
+
 private:
   double TimeInSec(const double strt, const double stp)
   {
@@ -43,7 +47,7 @@ private:
   struct timezone tz;
   double strt, stop, lastTime;
 #elif _WIN32
-  clock_t strt, lastTime;
+  clock_t strt, stop, lastTime;
 #endif
   ulong stepsPerOut, prevStep, lastStep;
 };
@@ -72,13 +76,38 @@ inline void Clock::CheckTime(const uint step)
     std::cout << "Simulation Time (total): " << (stop - strt)
               << " sec." << std::endl;
 #elif _WIN32
-    clock_t stop = clock();
+    stop = clock();
     std::cout << "Simulation Time (total): "
               << ((double)stop - strt / CLOCKS_PER_SEC)
               << " sec." << std::endl;
 #endif
 
   }
+}
+
+inline void Clock::SetStart()
+{
+#if defined(__linux__) || defined(__APPLE__)
+  gettimeofday(&tv, &tz);
+  strt = (double)tv.tv_sec + (double)tv.tv_usec/1000000;
+#elif _WIN32
+  strt = clock();
+#endif
+}
+
+inline void Clock::SetStop()
+{
+#if defined(__linux__) || defined(__APPLE__)
+  gettimeofday(&tv, &tz);
+  stop = (double)tv.tv_sec + (double)tv.tv_usec/1000000;
+#elif _WIN32
+  stop = clock();
+#endif
+}
+
+inline double Clock::GetTimDiff()
+{
+  return (stop - strt);
 }
 
 #endif /*CLOCK_H*/

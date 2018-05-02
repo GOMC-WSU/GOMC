@@ -22,6 +22,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeLookup.h"
 #include "MoveSettings.h"
 #include "CellList.h"
+#include "Clock.h"
 
 //Initialization variables
 class Setup;
@@ -37,6 +38,9 @@ public:
 
   //Runs move, picked at random
   void ChooseAndRunMove(const uint step);
+
+  //print move time
+  void PrintTime();
 
   // return ewald
   Ewald * GetEwald()
@@ -104,6 +108,8 @@ private:
   void Accept(const uint kind, const uint rejectState, const uint step);
 
   MoveBase * moves[mv::MOVE_KINDS_TOTAL];
+  double moveTime[mv::MOVE_KINDS_TOTAL];
+  Clock time;
 };
 
 #endif /*SYSTEM_H*/
