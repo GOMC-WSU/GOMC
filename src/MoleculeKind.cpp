@@ -132,6 +132,7 @@ void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
   for(uint i = 0; i < numAtoms; ++i) {
     const mol_setup::Atom& atom = molData.atoms[i];
     atomNames.push_back(atom.name);
+    atomTypeNames.push_back(atom.type);
     atomMass[i] = atom.mass;
     molMass += atom.mass;
     atomCharge[i] = atom.charge;
@@ -139,7 +140,7 @@ void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
   }
 }
 
-double MoleculeKind::PrintChargeInfo()
+double MoleculeKind::GetMoleculeCharge()
 {
   double netCharge = 0.0;
 

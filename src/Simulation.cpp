@@ -82,7 +82,7 @@ void Simulation::RunningCheck(const uint step)
   std::cout
       << "================================================================="
       << std::endl << "-------------------------" << std::endl
-      << " STEP: " << step
+      << " STEP: " << step+1
       << std::endl << "-------------------------" << std::endl
       << "Energy       INTRA B |     INTRA NB |         INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
       << std::endl

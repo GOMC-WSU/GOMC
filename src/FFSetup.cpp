@@ -134,8 +134,12 @@ void Particle::Read(Reader & param, std::string const& firstVar)
   } else {
     values >> expN;
   }
+  
+  if (isCHARMM()) { //if lj
+    values >> dummy2;
+  }
   //If undefined in CHARMM, assign 1-4 to full value.
-  values >> dummy2 >> e_1_4 >> s_1_4;
+  values >> e_1_4 >> s_1_4;
   if (values.fail()) {
     e_1_4 = e;
     s_1_4 = s;

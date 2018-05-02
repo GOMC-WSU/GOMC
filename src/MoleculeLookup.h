@@ -25,19 +25,12 @@ class MoleculeLookup
 {
 public:
 
-  MoleculeLookup() : molLookup(NULL), boxAndKindStart(NULL), fixInBox(NULL),
-    noSwapInBox(NULL) {}
+  MoleculeLookup() : molLookup(NULL), boxAndKindStart(NULL) {}
 
   ~MoleculeLookup()
   {
     delete[] molLookup;
     delete[] boxAndKindStart;
-    for (uint b = 0; b < BOX_TOTAL; ++b) {
-      delete [] fixInBox[b];
-      delete [] noSwapInBox[b];
-    }
-    delete [] fixInBox;
-    delete [] noSwapInBox;
   }
 
   //Initialize this object to be consistent with Molecules mols
@@ -74,18 +67,6 @@ public:
   //!Returns total number of molecules in a given box
   uint NumInBox(const uint box) const;
 
-  // Return the number of fix atom in box
-  uint GetFixInBox( const uint m, const uint box) const
-  {
-    return fixInBox[box][m];
-  }
-
-  // Return the number of atom that cannot transfer to other box
-  uint GetNoSwapInBox( const uint m, const uint box) const
-  {
-    return noSwapInBox[box][m];
-  }
-
   uint GetBeta( const uint m) const
   {
     return fixedAtom[m];
@@ -94,11 +75,6 @@ public:
   bool IsFix(const uint m) const
   {
     return (fixedAtom[m] == 1);
-  }
-
-  bool NoInteract(const uint m, const uint n) const
-  {
-    return ((fixedAtom[m] == 1) && (fixedAtom[n] == 1));
   }
 
   bool IsNoSwap(const uint m)
@@ -147,10 +123,8 @@ private:
   uint* boxAndKindStart;
   uint numKinds;
   std::vector <uint> fixedAtom;
-  std::vector <uint> canSwapKind;
-  std::vector <uint> canMoveKind;
-  uint **fixInBox;    //cannot rotate, translate, swap
-  uint **noSwapInBox; //cannot swap
+  std::vector <uint> canSwapKind; //Kinds that can move intra and inter box
+  std::vector <uint> canMoveKind; //Kinds that can move intra box only
 };
 
 inline uint MoleculeLookup::NumKindInBox(const uint kind, const uint box) const
