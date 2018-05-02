@@ -106,6 +106,8 @@ void System::Init(Setup const& set)
   calcEwald->Init();
   potential = calcEnergy.SystemTotal();
   InitMoves();
+  for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++)
+    moveTime[m] = 0.0;
 }
 
 void System::InitMoves()
@@ -127,7 +129,10 @@ void System::ChooseAndRunMove(const uint step)
   double draw = 0;
   uint majKind = 0;
   PickMove(majKind, draw);
+  time.SetStart();
   RunMove(majKind, draw, step);
+  time.SetStop();
+  moveTime[majKind] += time.GetTimDiff();
 }
 void System::PickMove(uint & kind, double & draw)
 {
@@ -171,4 +176,21 @@ void System::CalcEn(const uint kind)
 void System::Accept(const uint kind, const uint rejectState, const uint step)
 {
   moves[kind]->Accept(rejectState, step);
+}
+
+void System::PrintTime()
+{
+  //std::cout << "MC moves Execution time:\n";
+  printf("%-30s %10.4f sec.\n", "Displacement:", moveTime[mv::DISPLACE]);
+  printf("%-30s %10.4f sec.\n", "Rotation:", moveTime[mv::ROTATE]);
+  printf("%-30s %10.4f sec.\n", "Intra-Swap:", moveTime[mv::INTRA_SWAP]);
+  printf("%-30s %10.4f sec.\n", "Regrowth:", moveTime[mv::REGROWTH]);
+
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
+  printf("%-30s %10.4f sec.\n", "Molecule-Transfer:",
+	 moveTime[mv::MOL_TRANSFER]);
+#endif
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
+  printf("%-30s %10.4f sec.\n","Volume-Transfer:", moveTime[mv::VOL_TRANSFER]);
+#endif
 }
