@@ -51,13 +51,15 @@ Simulation::~Simulation()
 
 void Simulation::RunSimulation(void)
 {
+  double startEnergy = system->potential.totalEnergy.total;
   for (ulong step = 0; step < totalSteps; step++) {
     system->moveSettings.AdjustMoves(step);
     system->ChooseAndRunMove(step);
     cpu->Output(step);
 
     if((step + 1) == cpu->equilSteps) {
-      if(abs(system->potential.totalEnergy.total) > 1.0e+14) {
+      double currEnergy = system->potential.totalEnergy.total;
+      if(abs(currEnergy - startEnergy) > 1.0e+10) {
         printf("Info: Performing total energy calculation to preserve the"
                " energy information.\n\n");
         system->calcEwald->Init();
