@@ -415,12 +415,20 @@ void ConfigSetup::Init(const char *fileName)
 #ifdef VARIABLE_PARTICLE_NUMBER
     else if(line[0] == "CBMC_First") {
       sys.cbmcTrials.nonbonded.first = stringtoi(line[1]);
+      printf("%-40s %-4d \n", "Info: CBMC First atom trials",
+             sys.cbmcTrials.nonbonded.first);
     } else if(line[0] == "CBMC_Nth") {
       sys.cbmcTrials.nonbonded.nth = stringtoi(line[1]);
+      printf("%-40s %-4d \n", "Info: CBMC Secondary atom trials",
+             sys.cbmcTrials.nonbonded.nth);
     } else if(line[0] == "CBMC_Ang") {
       sys.cbmcTrials.bonded.ang = stringtoi(line[1]);
+      printf("%-40s %-4d \n", "Info: CBMC Angle trials",
+             sys.cbmcTrials.bonded.ang);
     } else if(line[0] == "CBMC_Dih") {
       sys.cbmcTrials.bonded.dih = stringtoi(line[1]);
+      printf("%-40s %-4d \n", "Info: CBMC Dihedral trials",
+             sys.cbmcTrials.bonded.dih);
     }
 #endif
 #if ENSEMBLE == GCMC
