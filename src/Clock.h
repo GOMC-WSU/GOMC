@@ -37,10 +37,6 @@ struct Clock {
   double GetTimDiff();
 
 private:
-  double TimeInSec(const double strt, const double stp)
-  {
-    return (double(stp) - double(strt)) / CLOCKS_PER_SEC;
-  }
 
 #if defined(__linux__) || defined(__APPLE__)
   struct timeval tv;
@@ -64,7 +60,7 @@ inline void Clock::CheckTime(const uint step)
 #elif _WIN32
     clock_t currTime = clock();
     std::cout << "Steps/sec. : "
-              << stepDelta / ((double)currTime - lastTime / CLOCKS_PER_SEC)
+              << stepDelta / (((double)currTime - lastTime) / CLOCKS_PER_SEC)
               << std::endl;
 #endif
     prevStep = step;
@@ -78,7 +74,7 @@ inline void Clock::CheckTime(const uint step)
 #elif _WIN32
     stop = clock();
     std::cout << "Simulation Time (total): "
-              << ((double)stop - strt / CLOCKS_PER_SEC)
+              << (((double)stop - strt) / CLOCKS_PER_SEC)
               << " sec." << std::endl;
 #endif
 
@@ -107,7 +103,11 @@ inline void Clock::SetStop()
 
 inline double Clock::GetTimDiff()
 {
+#if defined(__linux__) || defined(__APPLE__)
   return (stop - strt);
+#elif _WIN32
+  return (stop - strt) / CLOCKS_PER_SEC;
+#endif
 }
 
 #endif /*CLOCK_H*/
