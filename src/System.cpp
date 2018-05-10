@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -188,9 +188,9 @@ void System::PrintTime()
 
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   printf("%-30s %10.4f sec.\n", "Molecule-Transfer:",
-	 moveTime[mv::MOL_TRANSFER]);
+         moveTime[mv::MOL_TRANSFER]);
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
-  printf("%-30s %10.4f sec.\n","Volume-Transfer:", moveTime[mv::VOL_TRANSFER]);
+  printf("%-30s %10.4f sec.\n", "Volume-Transfer:", moveTime[mv::VOL_TRANSFER]);
 #endif
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -52,11 +52,11 @@ DCLinkedHedron::DCLinkedHedron
   //Find the atoms bonded to focus, except prev
   for (uint i = 0; i < hed.NumBond(); ++i) {
     bondKinds[i] = onFocus[i].kind;
-  } 
+  }
 
   vector<Bond> onPrev = AtomBonds(kind, hed.Prev());
   onPrev.erase(remove_if(onPrev.begin(), onPrev.end(), FindA1(hed.Focus())),
-	       onPrev.end());
+               onPrev.end());
   nPrevBonds = onPrev.size();
 
   for(uint i = 0; i < nPrevBonds; ++i) {
@@ -270,24 +270,23 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
       double theta1 =  hed.Theta(b);
       double trialPhi = hed.Phi(b) + torsion[tor];
       XYZ bondedC;
-      if(oldMol.OneFour())
-      {
-	//convert chosen torsion to 3D positions for bonded atoms to focus
-	RotationMatrix spin = RotationMatrix::FromAxisAngle(-torsion[tor],
-							    cross, tensor);
-	bondedC = spin.Apply(positions[b][0]) + center;
+      if(oldMol.OneFour()) {
+        //convert chosen torsion to 3D positions for bonded atoms to focus
+        RotationMatrix spin = RotationMatrix::FromAxisAngle(-torsion[tor],
+                              cross, tensor);
+        bondedC = spin.Apply(positions[b][0]) + center;
       }
 
       for (uint p = 0; p < nPrevBonds; ++p) {
-	if(oldMol.OneFour()) {
-	  double distSq = oldMol.DistSq(bondedC,
-					oldMol.AtomPosition(prevBonded[p]));
-	  nonbonded_1_4[tor] +=
-	    data->calc.IntraEnergy_1_4(distSq, prevBonded[p],
-				       hed.Bonded(b), molIndex);
-	  if(isnan(nonbonded_1_4[tor]))
-	    nonbonded_1_4[tor] = num::BIGNUM;
-	}
+        if(oldMol.OneFour()) {
+          double distSq = oldMol.DistSq(bondedC,
+                                        oldMol.AtomPosition(prevBonded[p]));
+          nonbonded_1_4[tor] +=
+            data->calc.IntraEnergy_1_4(distSq, prevBonded[p],
+                                       hed.Bonded(b), molIndex);
+          if(isnan(nonbonded_1_4[tor]))
+            nonbonded_1_4[tor] = num::BIGNUM;
+        }
         torEnergy[tor] += ff.dihedrals.Calc(dihKinds[b][p],
                                             trialPhi - prevPhi[p]);
       }
@@ -306,7 +305,7 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
     oldMol.ConfirmOldAtom(hed.Bonded(b));
   }
   oldMol.AddEnergy(Energy(bondedEn[0] + hed.GetEnergy() + bondEnergy,
-			  nonbonded[0] + hed.GetNonBondedEn() + oneFour[0],
+                          nonbonded[0] + hed.GetNonBondedEn() + oneFour[0],
                           inter[0], real[0], 0.0, 0.0, 0.0));
 
   oldMol.MultWeight(hed.GetWeight());
@@ -342,8 +341,8 @@ double DCLinkedHedron::EvalLJ(TrialMol& mol, uint molIndex)
 }
 
 void DCLinkedHedron::ChooseTorsion(TrialMol& mol, uint molIndex,
-				   double prevPhi[], RotationMatrix& cross,
-				   RotationMatrix& tensor)
+                                   double prevPhi[], RotationMatrix& cross,
+                                   RotationMatrix& tensor)
 {
   double* torsion = data->angles;
   double* torEnergy = data->angleEnergy;
@@ -372,19 +371,19 @@ void DCLinkedHedron::ChooseTorsion(TrialMol& mol, uint molIndex,
       if(mol.OneFour()) {
         //convert chosen torsion to 3D positions for bonded atoms to focus
         RotationMatrix spin = RotationMatrix::FromAxisAngle(-torsion[tor],
-                        cross, tensor);
+                              cross, tensor);
         bondedC = spin.Apply(positions[b][0]) + center;
       }
 
       for (uint p = 0; p < nPrevBonds; ++p) {
-	if(mol.OneFour()) {
-	  double distSq = mol.DistSq(bondedC,mol.AtomPosition(prevBonded[p]));
-	  nonbonded_1_4[tor] +=
-	    data->calc.IntraEnergy_1_4(distSq, prevBonded[p],
-				       hed.Bonded(b), molIndex);
-        if(isnan(nonbonded_1_4[tor]))
-          nonbonded_1_4[tor] = num::BIGNUM;
-	}
+        if(mol.OneFour()) {
+          double distSq = mol.DistSq(bondedC, mol.AtomPosition(prevBonded[p]));
+          nonbonded_1_4[tor] +=
+            data->calc.IntraEnergy_1_4(distSq, prevBonded[p],
+                                       hed.Bonded(b), molIndex);
+          if(isnan(nonbonded_1_4[tor]))
+            nonbonded_1_4[tor] = num::BIGNUM;
+        }
 
         torEnergy[tor] += ff.dihedrals.Calc(dihKinds[b][p],
                                             trialPhi - prevPhi[p]);

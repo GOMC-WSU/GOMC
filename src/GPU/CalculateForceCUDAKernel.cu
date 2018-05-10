@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -371,13 +371,13 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                                  double *gpu_alpha,
                                  int *gpu_ewald,
                                  double *gpu_diElectric_1,
-				 double *gpu_cell_x,
-				 double *gpu_cell_y,
-				 double *gpu_cell_z,
-				 double *gpu_Invcell_x,
-				 double *gpu_Invcell_y,
-				 double *gpu_Invcell_z,
-				 int *gpu_nonOrth)
+                                 double *gpu_cell_x,
+                                 double *gpu_cell_y,
+                                 double *gpu_cell_z,
+                                 double *gpu_Invcell_x,
+                                 double *gpu_Invcell_y,
+                                 double *gpu_Invcell_z,
+                                 int *gpu_nonOrth)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   if(threadID >= pairSize)
@@ -399,8 +399,8 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                gpu_x[gpu_pair2[threadID]], gpu_y[gpu_pair2[threadID]],
                gpu_z[gpu_pair2[threadID]], xAxes, yAxes, zAxes, xAxes / 2.0,
                yAxes / 2.0, zAxes / 2.0, gpu_rCut[0], gpu_nonOrth[0],
-	       gpu_cell_x, gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
-	       gpu_Invcell_z)) {
+               gpu_cell_x, gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
+               gpu_Invcell_z)) {
     diff_comx = gpu_comx[gpu_particleMol[gpu_pair1[threadID]]] -
                 gpu_comx[gpu_particleMol[gpu_pair2[threadID]]];
     diff_comy = gpu_comy[gpu_particleMol[gpu_pair1[threadID]]] -

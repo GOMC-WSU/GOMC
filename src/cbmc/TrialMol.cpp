@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -127,7 +127,7 @@ double TrialMol::DistSq(const XYZ& a, const XYZ& b)
 {
   XYZ diff = a - b;
   diff = axes->MinImage(diff, box);
-  double distSq= diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
+  double distSq = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
   return distSq;
 }
 

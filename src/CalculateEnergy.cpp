@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -185,16 +185,15 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   double REn = 0.0, LJEn = 0.0;
   //update unitcell in GPU
   UpdateCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
-      boxAxes.cellBasis[box].x, boxAxes.cellBasis[box].y,
-      boxAxes.cellBasis[box].z);
+                      boxAxes.cellBasis[box].x, boxAxes.cellBasis[box].y,
+                      boxAxes.cellBasis[box].z);
 
-  if(!boxAxes.orthogonal[box])
-  {
+  if(!boxAxes.orthogonal[box]) {
     BoxDimensionsNonOrth newAxes = *((BoxDimensionsNonOrth*)(&boxAxes));
     UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
-      newAxes.cellBasis_Inv[box].x, newAxes.cellBasis_Inv[box].y,
-      newAxes.cellBasis_Inv[box].z);
-  }    
+                           newAxes.cellBasis_Inv[box].x, newAxes.cellBasis_Inv[box].y,
+                           newAxes.cellBasis_Inv[box].z);
+  }
 
   while(currentIndex < pairSize) {
     uint max = currentIndex + MAX_PAIR_SIZE;
@@ -545,7 +544,7 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
   uint kindI = thisKind.AtomKind(partIndex);
   double kindICharge = thisKind.AtomCharge(partIndex);
   std::vector<uint> nIndex;
-  
+
   for(t = 0; t < trials; ++t) {
     nIndex.clear();
     tempReal = 0.0;
@@ -555,20 +554,20 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
       nIndex.push_back(*n);
       n.Next();
     }
-    
-#ifdef _OPENMP 
-#pragma omp parallel for default(shared) private(i, distSq, qi_qj_Fact) reduction(+:tempLJ, tempReal)  
-#endif   
+
+#ifdef _OPENMP
+    #pragma omp parallel for default(shared) private(i, distSq, qi_qj_Fact) reduction(+:tempLJ, tempReal)
+#endif
     for(i = 0; i < nIndex.size(); i++) {
       distSq = 0.0;
-      
-      if(currentAxes.InRcut(distSq, trialPos, t, currentCoords,nIndex[i],box)) {
-	tempLJ += forcefield.particles->CalcEn(distSq, kindI, 
-					       particleKind[nIndex[i]]);
-	if(electrostatic) {
-	  qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
-	  tempReal += forcefield.particles->CalcCoulombEn(distSq, qi_qj_Fact);
-	}
+
+      if(currentAxes.InRcut(distSq, trialPos, t, currentCoords, nIndex[i], box)) {
+        tempLJ += forcefield.particles->CalcEn(distSq, kindI,
+                                               particleKind[nIndex[i]]);
+        if(electrostatic) {
+          qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
+          tempReal += forcefield.particles->CalcCoulombEn(distSq, qi_qj_Fact);
+        }
       }
     }
     en[t] += tempLJ;

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -240,9 +240,9 @@ void ConfigSetup::Init(const char *fileName)
     } else if(line[0] == "LRC") {
       sys.ff.doTailCorr = checkBool(line[1]);
       if(sys.ff.doTailCorr)
-	printf("%-40s %-s \n", "Info: Long Range Correction", "Active");
+        printf("%-40s %-s \n", "Info: Long Range Correction", "Active");
       else
-	printf("%-40s %-s \n", "Info: Long Range Correction", "Inactive");
+        printf("%-40s %-s \n", "Info: Long Range Correction", "Inactive");
     } else if(line[0] == "Rswitch") {
       sys.ff.rswitch = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Switch distance",
@@ -610,7 +610,7 @@ void ConfigSetup::fillDefaults(void)
   if(sys.moves.regrowth == DBL_MAX) {
     sys.moves.regrowth = 0.000;
     printf("%-40s %-4.4f \n", "Default: Regrowth move frequency",
-	   sys.moves.regrowth);
+           sys.moves.regrowth);
   }
 
   if(sys.exclude.EXCLUDE_KIND == UINT_MAX) {
@@ -661,7 +661,7 @@ void ConfigSetup::fillDefaults(void)
     toStr << i;
     toStr >> numStr;
     out.state.files.pdb.name[i] = out.statistics.settings.uniqueStr.val +
-                                    "_BOX_" + numStr + ".pdb";
+                                  "_BOX_" + numStr + ".pdb";
   }
   out.state.files.seed.name = out.statistics.settings.uniqueStr.val + ".dat";
 }
@@ -820,7 +820,7 @@ void ConfigSetup::verifyInputs(void)
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
          sys.moves.intraSwap + sys.moves.volume +
-	 sys.moves.regrowth - 1.0) > 0.01) {
+         sys.moves.regrowth - 1.0) > 0.01) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(EXIT_FAILURE);
   }
@@ -847,7 +847,7 @@ void ConfigSetup::verifyInputs(void)
   }
 #else
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-	 sys.moves.regrowth - 1.0) > 0.01) {
+         sys.moves.regrowth - 1.0) > 0.01) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
@@ -868,7 +868,7 @@ void ConfigSetup::verifyInputs(void)
     }
   }
   if(!sys.volume.hasVolume && !in.restart.enable) {
-    std::cout << "Error: This simulation requires to define "<< 3 * BOX_TOTAL <<
+    std::cout << "Error: This simulation requires to define " << 3 * BOX_TOTAL <<
               " Cell Basis vectors!" << std::endl;
     exit(EXIT_FAILURE);
   }

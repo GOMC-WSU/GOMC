@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -187,8 +187,8 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 
         for (j = 0; j < thisKind.NumAtoms(); j++) {
           dotProduct = Dot(mols.MolStart(*thisMol) + j,
-                                              kx[box][i], ky[box][i],
-                                              kz[box][i], molCoords);
+                           kx[box][i], ky[box][i],
+                           kz[box][i], molCoords);
 
           cosMolRef[*thisMol][i] += (thisKind.AtomCharge(j) *
                                      cos(dotProduct));
@@ -237,7 +237,7 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
     uint length = thisKind.NumAtoms();
     uint startAtom = mols.MolStart(molIndex);
     uint p, atom;
-	int i;
+    int i;
     double sumRealNew, sumImaginaryNew, dotProductNew, sumRealOld,
            sumImaginaryOld;
 
@@ -256,8 +256,8 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
       for (p = 0; p < length; ++p) {
         atom = startAtom + p;
         dotProductNew = Dot(p, kxRef[box][i],
-                                               kyRef[box][i], kzRef[box][i],
-                                               molCoords);
+                            kyRef[box][i], kzRef[box][i],
+                            molCoords);
 
         sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
         sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
@@ -294,7 +294,7 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
 
   if (box < BOXES_WITH_U_NB) {
     uint p, length;
-	int i;
+    int i;
     MoleculeKind const& thisKind = newMol.GetKind();
     XYZArray molCoords = newMol.GetCoords();
     double dotProductNew;
@@ -310,8 +310,8 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
 
       for (p = 0; p < length; ++p) {
         dotProductNew = Dot(p, kxRef[box][i],
-                                               kyRef[box][i], kzRef[box][i],
-                                               molCoords);
+                            kyRef[box][i], kzRef[box][i],
+                            molCoords);
         cosMolRef[molIndex][i] += (thisKind.AtomCharge(p) *
                                    cos(dotProductNew));
         sinMolRef[molIndex][i] += (thisKind.AtomCharge(p) *

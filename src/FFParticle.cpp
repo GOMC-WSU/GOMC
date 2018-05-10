@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -202,9 +202,9 @@ void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
         double cn = n[j] / (n[j] - 6) * pow(n[j] / 6, (6 / (n[j] - 6)));
         double cn_1_4 = n_1_4[j] / (n_1_4[j] - 6) *
                         pow(n_1_4[j] / 6, (6 / (n_1_4[j] - 6)));
-	epsilon[j] = nbfix.epsilon[i];
+        epsilon[j] = nbfix.epsilon[i];
         epsilon_cn[j] = cn * nbfix.epsilon[i];
-	epsilon_1_4[j] = nbfix.epsilon_1_4[i];
+        epsilon_1_4[j] = nbfix.epsilon_1_4[i];
         epsilon_cn_1_4[j] = cn_1_4 * nbfix.epsilon_1_4[i];
         epsilon_cn_6[j] = epsilon_cn[j] * 6;
         epsilon_cn_6_1_4[j] = epsilon_cn_1_4[j] * 6;
@@ -243,7 +243,7 @@ void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
           double pn = n[j];
           An[j] = pn * ((pn + 1) * rOn - (pn + 4) * rCut) / (pow(rCut, pn + 2) *
                   pow(rCut - rOn, 2));
-          Bn[j] = -pn * ((pn + 1) * rOn - (pn + 3) *rCut) / (pow(rCut, pn + 2) *
+          Bn[j] = -pn * ((pn + 1) * rOn - (pn + 3) * rCut) / (pow(rCut, pn + 2) *
                   pow(rCut - rOn, 3));
           Cn[j] = 1.0 / pow(rCut, pn) - An[j] / 3.0 * pow(rCut - rOn, 3) -
                   Bn[j] / 4.0 * pow(rCut - rOn, 4);
@@ -257,7 +257,7 @@ void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
           Bn_1_4[j] = -pn_1_4 * ((pn_1_4 + 1) * rOn - (pn_1_4 + 3) * rCut) /
                       (pow(rCut, pn_1_4 + 2) * pow(rCut - rOn, 3));
           Cn_1_4[j] = 1.0 / pow(rCut, pn_1_4) - An_1_4[j] / 3.0 *
-	    pow(rCut - rOn, 3) - Bn_1_4[j] / 4.0 * pow(rCut - rOn, 4);
+                      pow(rCut - rOn, 3) - Bn_1_4[j] / 4.0 * pow(rCut - rOn, 4);
           sig6_1_4[j] = pow(nbfix.sigma_1_4[i], 6);
           sign_1_4[j] = pow(nbfix.sigma_1_4[i], pn_1_4);
         }
@@ -331,7 +331,7 @@ void FFParticle::Blend(ff_setup::Particle const& mie, const double rCut)
         double pn = n[idx];
         An[idx] = pn * ((pn + 1) * rOn - (pn + 4) * rCut) / (pow(rCut, pn + 2) *
                   pow(rCut - rOn, 2));
-        Bn[idx] = -pn * ((pn + 1) * rOn - (pn + 3) *rCut) / (pow(rCut, pn + 2) *
+        Bn[idx] = -pn * ((pn + 1) * rOn - (pn + 3) * rCut) / (pow(rCut, pn + 2) *
                   pow(rCut - rOn, 3));
         Cn[idx] = 1.0 / pow(rCut, pn) - An[idx] / 3.0 * pow(rCut - rOn, 3) -
                   Bn[idx] / 4.0 * pow(rCut - rOn, 4);
@@ -345,7 +345,7 @@ void FFParticle::Blend(ff_setup::Particle const& mie, const double rCut)
         Bn_1_4[idx] = -pn_1_4 * ((pn_1_4 + 1) * rOn - (pn_1_4 + 3) * rCut) /
                       (pow(rCut, pn_1_4 + 2) * pow(rCut - rOn, 3));
         Cn_1_4[idx] = 1.0 / pow(rCut, pn_1_4) - An_1_4[idx] / 3.0 *
-                      pow(rCut - rOn, 3) - Bn_1_4[idx] / 4.0*pow(rCut - rOn, 4);
+                      pow(rCut - rOn, 3) - Bn_1_4[idx] / 4.0 * pow(rCut - rOn, 4);
         sig6_1_4[idx] = pow(sigma_1_4, 6);
         sign_1_4[idx] = pow(sigma_1_4, pn_1_4);
       }

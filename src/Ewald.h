@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -56,7 +56,7 @@ public:
   //initiliazie term used for ewald calculation
   virtual void RecipInit(uint box, BoxDimensions const& boxAxes);
 
-    //initiliazie wave vector for orthogonal box
+  //initiliazie wave vector for orthogonal box
   virtual void RecipInitOrth(uint box, BoxDimensions const& boxAxes);
 
   //initiliazie wave vector for non-orthogonal box
@@ -71,7 +71,7 @@ public:
   //calculate reciprocate energy term for a box
   virtual double BoxReciprocal(uint box) const;
 
-    //calculate correction term for a molecule
+  //calculate correction term for a molecule
   virtual double MolCorrection(uint molIndex, uint box)const;
 
   //calculate self term for a box
@@ -95,7 +95,7 @@ public:
   //back up reciptocate value to Ref (will be called during initialization)
   virtual void SetRecipRef(uint box);
 
-    //calculate correction term after swap move
+  //calculate correction term after swap move
   virtual double SwapCorrection(const cbmc::TrialMol& trialMo) const;
 
   //update reciprocate values
@@ -106,7 +106,7 @@ public:
 
   //calculate self term after swap move
   virtual double SwapSelf(const cbmc::TrialMol& trialMo) const;
-  
+
   //restore cosMol and sinMol
   virtual void RestoreMol(int molIndex);
 

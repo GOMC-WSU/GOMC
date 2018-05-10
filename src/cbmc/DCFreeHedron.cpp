@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -80,7 +80,7 @@ void DCFreeHedron::SetBondLengthNew(TrialMol& newMol)
   for(uint i = 0; i < hed.NumBond(); ++i) {
     bondLength[i] = data->ff.bonds.Length(bondKinds[i]);
   }
-  anchorBond = data->ff.bonds.Length(anchorKind); 
+  anchorBond = data->ff.bonds.Length(anchorKind);
 }
 
 void DCFreeHedron::SetBondLengthOld(TrialMol& oldMol)
@@ -114,7 +114,7 @@ void DCFreeHedron::BuildNew(TrialMol& newMol, uint molIndex)
 
   for (uint i = 0; i < hed.NumBond(); ++i) {
     positions[i].Set(0, newMol.RawRectCoords(bondLength[i], hed.Theta(i),
-					     hed.Phi(i)));
+                     hed.Phi(i)));
   }
   //add anchor atom
   positions[hed.NumBond()].Set(0, newMol.RawRectCoords(anchorBond, 0, 0));

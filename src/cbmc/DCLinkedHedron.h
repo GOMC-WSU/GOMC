@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -38,7 +38,7 @@ public:
 
 private:
   void ChooseTorsion(TrialMol& mol, uint molIndex, double prevPhi[],
-		     RotationMatrix& cross, RotationMatrix& tensor);
+                     RotationMatrix& cross, RotationMatrix& tensor);
   double EvalLJ(TrialMol& mol, uint molIndex);
   DCData* data;
   DCHedron hed;

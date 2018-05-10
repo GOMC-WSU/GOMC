@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -89,8 +89,10 @@ public:
 
   //CBMC for regrowth move
   void Regrowth(cbmc::TrialMol& oldMol, cbmc::TrialMol& newMol,
-		const uint molIndex)
-  { builder->Regrowth(oldMol, newMol, molIndex); }
+                const uint molIndex)
+  {
+    builder->Regrowth(oldMol, newMol, molIndex);
+  }
 
   double GetMoleculeCharge();
   SortedNonbond sortedNB, sortedNB_1_4, sortedNB_1_3, sortedEwaldNB;

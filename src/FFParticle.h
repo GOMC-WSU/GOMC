@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -125,10 +125,10 @@ protected:
   double *n, *n_1_4;
 #endif
   //For LJ eps_cn(en) --> 4eps, eps_cn_6 --> 24eps, eps_cn_n --> 48eps
-  double * sigmaSq, * epsilon, * epsilon_1_4,* epsilon_cn, * epsilon_cn_6,
-    * nOver6, * sigmaSq_1_4, * epsilon_cn_1_4, * epsilon_cn_6_1_4, * nOver6_1_4,
-    * enCorrection, * virCorrection, *shiftConst, *An, *Bn, *Cn, *sig6,
-    *sign, *shiftConst_1_4, *An_1_4, *Bn_1_4, *Cn_1_4, *sig6_1_4, *sign_1_4;
+  double * sigmaSq, * epsilon, * epsilon_1_4, * epsilon_cn, * epsilon_cn_6,
+         * nOver6, * sigmaSq_1_4, * epsilon_cn_1_4, * epsilon_cn_6_1_4, * nOver6_1_4,
+         * enCorrection, * virCorrection, *shiftConst, *An, *Bn, *Cn, *sig6,
+         *sign, *shiftConst_1_4, *An_1_4, *Bn_1_4, *Cn_1_4, *sig6_1_4, *sign_1_4;
 
   double rCut, rCutSq, rOn, rOnSq, rOnCoul, A1, B1, C1, A6, B6, C6,
          factor1, factor2, scaling_14, alpha, diElectric_1;

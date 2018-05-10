@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -15,25 +15,26 @@ class Forcefield;
 class MoleculeKind;
 class Setup;
 
-namespace cbmc{
-  class DCComponent;
-  
-  class DCLinear : public CBMC
-  {
-  public:
-    DCLinear(System& sys, const Forcefield& ff,
-	     const MoleculeKind& kind, const Setup& set);
-    
-    void Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
-    void Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
-    ~DCLinear();
-    
-  private:
-    uint atomSize;
-    //used for when number of atom < 3
-    std::vector<DCComponent*> forward, backward;
-    DCData data;
-  };
+namespace cbmc
+{
+class DCComponent;
+
+class DCLinear : public CBMC
+{
+public:
+  DCLinear(System& sys, const Forcefield& ff,
+           const MoleculeKind& kind, const Setup& set);
+
+  void Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
+  void Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
+  ~DCLinear();
+
+private:
+  uint atomSize;
+  //used for when number of atom < 3
+  std::vector<DCComponent*> forward, backward;
+  DCData data;
+};
 }
 
 #endif

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -177,14 +177,14 @@ public:
       }
     }
     int lastZero = n;
-    for(uint i=n-1; i>0 && !weights[i]; i--) {
-        lastZero = i;
+    for(uint i = n - 1; i > 0 && !weights[i]; i--) {
+      lastZero = i;
     }
     lastZero--;
-    if(abs(draw-totalWeight)<0.001) {
+    if(abs(draw - totalWeight) < 0.001) {
       return lastZero;
     }
-    
+
     // If the code gets to here that means the total of all the weights was
     // more than totalWeight. So let's print out a message and exit the program
     std::cerr << "Error: In PRNG::PickWeighted() the total of all weights was" << std::endl;

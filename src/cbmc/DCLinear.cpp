@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -40,7 +40,7 @@ DCLinear::~DCLinear()
 
 void DCLinear::Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 {
-  std::vector<DCComponent*>& comps =data.prng.randInt(1) ? forward : backward;
+  std::vector<DCComponent*>& comps = data.prng.randInt(1) ? forward : backward;
   for(uint i = 0; i < comps.size(); ++i) {
     comps[i]->PrepareNew(newMol, molIndex);
     comps[i]->BuildNew(newMol, molIndex);
@@ -64,7 +64,7 @@ void DCLinear::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
     uint grow = 1 - fix;
     //If fix == 0, forward (build atom 1), else backward (build atom 0)
     std::vector<DCComponent*>& comps = fix ? backward : forward;
-    
+
     //copy the coordinate of the fix atom
     newMol.AddAtom(fix, oldMol.AtomPosition(fix));
     oldMol.ConfirmOldAtom(fix);
