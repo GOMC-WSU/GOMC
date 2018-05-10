@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -91,6 +91,8 @@ OutputVars::~OutputVars(void)
     delete[] molFractionByKindBox;
   if ( densityByKindBox != NULL )
     delete[] densityByKindBox;
+  if ( virial != NULL )
+    delete [] virial;
 }
 
 void OutputVars::CalcAndConvert(ulong step)

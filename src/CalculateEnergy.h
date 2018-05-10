@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -215,29 +215,13 @@ private:
   }
 
 
-  void GetSchedule(int numberOfTrials, std::vector<int>& data) const
-  {
-    int sections = data.size();
-    uint i = 0;
-    while(sections > 0) {
-      data[i] = ceil(numberOfTrials / sections);
-      numberOfTrials -= data[i];
-      sections--;
-      i++;
-    }
-    for(int i = 1; i < data.size(); i++) {
-      data[i] += data[i - 1];
-    }
-  }
-
-
   const Forcefield& forcefield;
   const Molecules& mols;
   const Coordinates& currentCoords;
   const MoleculeLookup& molLookup;
   const BoxDimensions& currentAxes;
   const COM& currentCOM;
-  const EwaldCached  *calcEwald;
+  const Ewald  *calcEwald;
   bool electrostatic, ewald;
 
   std::vector<int> particleKind;

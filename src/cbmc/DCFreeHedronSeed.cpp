@@ -6,7 +6,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #define _USE_MATH_DEFINES
 #include <math.h>
-#include "DCFreeHedron.h"
+#include "DCFreeHedronSeed.h"
 #include "DCData.h"
 #include "TrialMol.h"
 #include "MolSetup.h"
@@ -26,9 +26,9 @@ struct FindA1 {
   uint x;
 };
 
-DCFreeHedron::DCFreeHedron(DCData* data, const mol_setup::MolKind& kind,
-                           uint focus, uint prev)
-  : data(data), seed(data, focus), hed(data, kind, focus, prev)
+DCFreeHedronSeed::DCFreeHedronSeed(DCData* data, const mol_setup::MolKind& kind,
+                                   uint focus, uint prev)
+  : data(data), hed(data, kind, focus, prev)
 {
   using namespace mol_setup;
   using namespace std;
@@ -49,7 +49,7 @@ DCFreeHedron::DCFreeHedron(DCData* data, const mol_setup::MolKind& kind,
 }
 
 
-void DCFreeHedron::PrepareNew(TrialMol& newMol, uint molIndex)
+void DCFreeHedronSeed::PrepareNew(TrialMol& newMol, uint molIndex)
 {
   //Get new bond information
   SetBondLengthNew(newMol);
@@ -62,7 +62,7 @@ void DCFreeHedron::PrepareNew(TrialMol& newMol, uint molIndex)
   bondEnergy +=  data->ff.bonds.Calc(anchorKind, anchorBond);
 }
 
-void DCFreeHedron::PrepareOld(TrialMol& oldMol, uint molIndex)
+void DCFreeHedronSeed::PrepareOld(TrialMol& oldMol, uint molIndex)
 {
   //Get old bond information
   SetBondLengthOld(oldMol);
@@ -75,7 +75,7 @@ void DCFreeHedron::PrepareOld(TrialMol& oldMol, uint molIndex)
   bondEnergy +=  data->ff.bonds.Calc(anchorKind, anchorBondOld);
 }
 
-void DCFreeHedron::SetBondLengthNew(TrialMol& newMol)
+void DCFreeHedronSeed::SetBondLengthNew(TrialMol& newMol)
 {
   for(uint i = 0; i < hed.NumBond(); ++i) {
     bondLength[i] = data->ff.bonds.Length(bondKinds[i]);
@@ -83,7 +83,7 @@ void DCFreeHedron::SetBondLengthNew(TrialMol& newMol)
   anchorBond = data->ff.bonds.Length(anchorKind);
 }
 
-void DCFreeHedron::SetBondLengthOld(TrialMol& oldMol)
+void DCFreeHedronSeed::SetBondLengthOld(TrialMol& oldMol)
 {
   for(uint i = 0; i < hed.NumBond(); ++i) {
     bondLengthOld[i] = sqrt(oldMol.OldDistSq(hed.Focus(), hed.Bonded(i)));
@@ -91,9 +91,8 @@ void DCFreeHedron::SetBondLengthOld(TrialMol& oldMol)
   anchorBondOld = sqrt(oldMol.OldDistSq(hed.Focus(), hed.Prev()));
 }
 
-void DCFreeHedron::BuildNew(TrialMol& newMol, uint molIndex)
+void DCFreeHedronSeed::BuildNew(TrialMol& newMol, uint molIndex)
 {
-  seed.BuildNew(newMol, molIndex);
   PRNG& prng = data->prng;
   const CalculateEnergy& calc = data->calc;
   const Ewald *calcEwald = data->calcEwald;
@@ -161,9 +160,8 @@ void DCFreeHedron::BuildNew(TrialMol& newMol, uint molIndex)
   newMol.MultWeight(stepWeight);
 }
 
-void DCFreeHedron::BuildOld(TrialMol& oldMol, uint molIndex)
+void DCFreeHedronSeed::BuildOld(TrialMol& oldMol, uint molIndex)
 {
-  seed.BuildOld(oldMol, molIndex);
   PRNG& prng = data->prng;
   const CalculateEnergy& calc = data->calc;
   const Ewald * calcEwald = data->calcEwald;
@@ -191,6 +189,7 @@ void DCFreeHedron::BuildOld(TrialMol& oldMol, uint molIndex)
     data->axes.UnwrapPBC(positions[i], 0, 1, oldMol.GetBox(), center);
     positions[i].Add(0, -center);
   }
+
   //add anchor atom
   positions[hed.NumBond()].Set(0, oldMol.AtomPosition(hed.Prev()));
   data->axes.UnwrapPBC(positions[hed.NumBond()], 0, 1,

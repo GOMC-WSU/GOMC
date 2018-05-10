@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -16,6 +16,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <limits> //for double limits
 
 #include "BasicTypes.h" //For uint, XYZ
+#include "XYZArray.h"
 
 /////////////////////////////////////////////////////////////
 //  DEFINES  //
@@ -80,6 +81,13 @@ inline XYZ Cross(XYZ const& v1, XYZ const& v2)
 inline double Dot(XYZ const& v1, XYZ const& v2)
 {
   return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+}
+
+//Geometric dot product for atomcoordinates.K
+inline double Dot(const uint atom, const double kx, const double ky,
+                  const double kz, const XYZArray &Coords)
+{
+  return(Coords.x[atom] * kx + Coords.y[atom] * ky + Coords.z[atom] * kz);
 }
 
 //Generates angle between two vectors sharing a common vertex.

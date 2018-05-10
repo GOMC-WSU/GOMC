@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -18,8 +18,6 @@ void MoleculeLookup::Init(const Molecules& mols,
 {
   numKinds = mols.GetKindsCount();
   molLookup = new uint[mols.count];
-  fixInBox = new uint*[BOX_TOTAL];
-  noSwapInBox = new uint*[BOX_TOTAL];
 
   //+1 to store end value
   boxAndKindStart = new uint[numKinds * BOX_TOTAL + 1];
@@ -31,13 +29,7 @@ void MoleculeLookup::Init(const Molecules& mols,
 
 
   for (uint b = 0; b < BOX_TOTAL; ++b) {
-    fixInBox[b] = new uint[numKinds];
-    noSwapInBox[b] = new uint[numKinds];
     indexVector[b].resize(numKinds);
-    for (uint k = 0; k < numKinds; ++k) {
-      fixInBox[b][k] = 0;
-      noSwapInBox[b][k] = 0;
-    }
   }
 
   for(uint m = 0; m < mols.count; ++m) {
@@ -46,12 +38,24 @@ void MoleculeLookup::Init(const Molecules& mols,
     indexVector[box][kind].push_back(m);
     fixedAtom[m] = atomData.molBeta[m];
 
-    if(fixedAtom[m] == 1)
-      ++fixInBox[box][kind];
+    //Find the kind that can be swap(beta == 0) or move(beta == 0 or 2)
+    if(fixedAtom[m] == 0) {
+      if(std::find(canSwapKind.begin(), canSwapKind.end(), kind) ==
+          canSwapKind.end())
+        canSwapKind.push_back(kind);
 
-    if(fixedAtom[m] == 2)
-      ++noSwapInBox[box][kind];
+      if(std::find(canMoveKind.begin(), canMoveKind.end(), kind) ==
+          canMoveKind.end())
+        canMoveKind.push_back(kind);
+
+    } else if(fixedAtom[m] == 2) {
+      if(std::find(canMoveKind.begin(), canMoveKind.end(), kind) ==
+          canMoveKind.end())
+        canMoveKind.push_back(kind);
+
+    }
   }
+
 
   uint* progress = molLookup;
   for (uint b = 0; b < BOX_TOTAL; ++b) {

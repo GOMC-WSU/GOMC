@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -27,8 +27,10 @@ void Coordinates::CheckCoordinate()
 {
   int p, start, atom, length, stRange, endRange;
   XYZ min, max;
+  bool sawZeroCoordinate;
 
   for (uint b = 0; b < BOX_TOTAL; b++) {
+    sawZeroCoordinate =  false;
     MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b),
                                  end = molLookRef.BoxEnd(b), endc = molLookRef.BoxEnd(b);
     //find the min and max coordinate
@@ -55,6 +57,15 @@ void Coordinates::CheckCoordinate()
 
       for (p = 0; p < thisKind.NumAtoms(); p++) {
         atom = start + p;
+        if(!x[atom] && !y[atom] && !z[atom]) {
+          if(sawZeroCoordinate) {
+            printf("Error: Multiple atoms with zero coordinates were found.\n");
+            exit(EXIT_FAILURE);
+          } else {
+            sawZeroCoordinate = true;
+          }
+        }
+
         boxDimRef.WrapPBC(x[atom], y[atom], z[atom], b);
         //check to see if it is in the box or not
         XYZ unSlant(x[atom], y[atom], z[atom]);
@@ -62,12 +73,12 @@ void Coordinates::CheckCoordinate()
 
         if(unSlant.x > boxDimRef.axis.Get(b).x ||
             unSlant.y > boxDimRef.axis.Get(b).y ||
-            unSlant.z > boxDimRef.axis.Get(b).z) {
+            unSlant.z > boxDimRef.axis.Get(b).z ||
+            unSlant.x < 0 || unSlant.y < 0 || unSlant.z < 0) {
           printf("Molecules %d is packed outside of the defined box dimension.\n", *thisMol);
-          exit(0);
+          exit(EXIT_FAILURE);
         }
       }
-
       ++thisMol;
     }
   }
@@ -132,8 +143,10 @@ void Coordinates::VolumeTransferTranslate
   //Scale cell
   state = boxDimRef.ExchangeVolume(newDim, scale, transfer);
   //If scaling succeeded (if it wouldn't take the box to below 2*rcut, cont.
-  for (uint b = 0; b < BOX_TOTAL && (state == mv::fail_state::NO_FAIL); ++b) {
-    TranslateOneBox(dest, newCOM, oldCOM, newDim, b, scale[b]);
+  if(state == mv::fail_state::NO_FAIL) {
+    for (uint b = 0; b < BOX_TOTAL; ++b) {
+      TranslateOneBox(dest, newCOM, oldCOM, newDim, b, scale[b]);
+    }
   }
 }
 
@@ -145,41 +158,10 @@ void Coordinates::TranslateOneBox
  BoxDimensions const& newDim, const uint b, const XYZ& scale) const
 {
   uint pStart = 0, pStop = 0, pLen = 0;
-  int i;
   MoleculeLookup::box_iterator curr = molLookRef.BoxBegin(b),
                                end = molLookRef.BoxEnd(b);
-  std::vector<int> molID;
   XYZ shift, oldCOMForUnwrap;
   XYZ unslant, slant;
-
-#ifdef _OPENMP
-  while (curr != end) {
-    molID.push_back(*curr);
-    ++curr;
-  }
-
-  #pragma omp parallel for default(shared) private(i, pStart, pStop, pLen, shift, oldCOMForUnwrap)
-  for (i = 0; i < molID.size(); i++) {
-    molRef.GetRange(pStart, pStop, pLen, molID[i]);
-    //Scale CoM for this molecule, translate all atoms by same amount
-    //convert the COM to unslant coordinate
-    unslant = boxDimRef.TransformUnSlant(newCOM.Get(molID[i]), b);
-    //scale the COM
-    unslant *= scale;
-    //convert to slant coordinate
-    slant = newDim.TransformSlant(unslant, b);
-    //calculate the difference of new and old COM
-    newCOM.Set(molID[i], slant);
-    shift = newCOM.Get(molID[i]);
-    shift -= oldCOM.Get(molID[i]);
-    //Translation of atoms in mol.
-    //Unwrap coordinates
-    oldCOMForUnwrap = oldCOM.Get(molID[i]);
-    boxDimRef.UnwrapPBC(dest, pStart, pStop, b, oldCOMForUnwrap);
-    dest.AddRange(pStart, pStop, shift);
-    newDim.WrapPBC(dest, pStart, pStop, b);
-  }
-#else
 
   while (curr != end) {
     molRef.GetRange(pStart, pStop, pLen, *curr);
@@ -202,6 +184,4 @@ void Coordinates::TranslateOneBox
     newDim.WrapPBC(dest, pStart, pStop, b);
     ++curr;
   }
-#endif
-
 }

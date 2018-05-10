@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -32,18 +32,18 @@ struct Clock {
     lastStep = totSt - 1;
   }
   void CheckTime(const uint step);
+  void SetStart();
+  void SetStop();
+  double GetTimDiff();
+
 private:
-  double TimeInSec(const double strt, const double stp)
-  {
-    return (double(stp) - double(strt)) / CLOCKS_PER_SEC;
-  }
 
 #if defined(__linux__) || defined(__APPLE__)
   struct timeval tv;
   struct timezone tz;
   double strt, stop, lastTime;
 #elif _WIN32
-  clock_t strt, lastTime;
+  clock_t strt, stop, lastTime;
 #endif
   ulong stepsPerOut, prevStep, lastStep;
 };
@@ -60,7 +60,7 @@ inline void Clock::CheckTime(const uint step)
 #elif _WIN32
     clock_t currTime = clock();
     std::cout << "Steps/sec. : "
-              << stepDelta / ((double)currTime - lastTime / CLOCKS_PER_SEC)
+              << stepDelta / (((double)currTime - lastTime) / CLOCKS_PER_SEC)
               << std::endl;
 #endif
     prevStep = step;
@@ -72,13 +72,42 @@ inline void Clock::CheckTime(const uint step)
     std::cout << "Simulation Time (total): " << (stop - strt)
               << " sec." << std::endl;
 #elif _WIN32
-    clock_t stop = clock();
+    stop = clock();
     std::cout << "Simulation Time (total): "
-              << ((double)stop - strt / CLOCKS_PER_SEC)
+              << (((double)stop - strt) / CLOCKS_PER_SEC)
               << " sec." << std::endl;
 #endif
 
   }
+}
+
+inline void Clock::SetStart()
+{
+#if defined(__linux__) || defined(__APPLE__)
+  gettimeofday(&tv, &tz);
+  strt = (double)tv.tv_sec + (double)tv.tv_usec / 1000000;
+#elif _WIN32
+  strt = clock();
+#endif
+}
+
+inline void Clock::SetStop()
+{
+#if defined(__linux__) || defined(__APPLE__)
+  gettimeofday(&tv, &tz);
+  stop = (double)tv.tv_sec + (double)tv.tv_usec / 1000000;
+#elif _WIN32
+  stop = clock();
+#endif
+}
+
+inline double Clock::GetTimDiff()
+{
+#if defined(__linux__) || defined(__APPLE__)
+  return (stop - strt);
+#elif _WIN32
+  return (stop - strt) / CLOCKS_PER_SEC;
+#endif
 }
 
 #endif /*CLOCK_H*/

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -120,12 +120,12 @@ SystemPotential CalculateEnergy::SystemTotal()
 
   pot.Total();
 
-  if(pot.totalEnergy.total > 1.0e14) {
+  if(pot.totalEnergy.total > 1.0e12) {
     std::cout << "\nWarning: Large energy detected due to the overlap in "
               "initial configuration.\n"
               "         Total energy calculation will be perform at EqStep to "
               "preserve the\n"
-              "         enegy information.\n";
+              "         energy information.\n";
   }
 
   return pot;
@@ -185,16 +185,15 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   double REn = 0.0, LJEn = 0.0;
   //update unitcell in GPU
   UpdateCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
-      boxAxes.cellBasis[box].x, boxAxes.cellBasis[box].y,
-      boxAxes.cellBasis[box].z);
+                      boxAxes.cellBasis[box].x, boxAxes.cellBasis[box].y,
+                      boxAxes.cellBasis[box].z);
 
-  if(!boxAxes.orthogonal[box])
-  {
+  if(!boxAxes.orthogonal[box]) {
     BoxDimensionsNonOrth newAxes = *((BoxDimensionsNonOrth*)(&boxAxes));
     UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
-      newAxes.cellBasis_Inv[box].x, newAxes.cellBasis_Inv[box].y,
-      newAxes.cellBasis_Inv[box].z);
-  }    
+                           newAxes.cellBasis_Inv[box].x, newAxes.cellBasis_Inv[box].y,
+                           newAxes.cellBasis_Inv[box].z);
+  }
 
   while(currentIndex < pairSize) {
     uint max = currentIndex + MAX_PAIR_SIZE;
@@ -539,60 +538,41 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
 {
   if(box >= BOXES_WITH_U_NB)
     return;
+  double distSq, qi_qj_Fact, tempLJ, tempReal;
+  uint i, t;
+  MoleculeKind const& thisKind = mols.GetKind(molIndex);
+  uint kindI = thisKind.AtomKind(partIndex);
+  double kindICharge = thisKind.AtomCharge(partIndex);
+  std::vector<uint> nIndex;
+
+  for(t = 0; t < trials; ++t) {
+    nIndex.clear();
+    tempReal = 0.0;
+    tempLJ = 0.0;
+    CellList::Neighbors n = cellList.EnumerateLocal(trialPos[t], box);
+    while (!n.Done()) {
+      nIndex.push_back(*n);
+      n.Next();
+    }
 
 #ifdef _OPENMP
-  uint p = omp_get_max_threads();
-  std::vector<int> chunks;
-  chunks.resize(8);
-  GetSchedule(trials, chunks);
-
-  #pragma omp parallel sections
-  {
-    #pragma omp section
-    {
-      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, 0, chunks[0]);
-    }
-
-    #pragma omp section
-    {
-      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[0], chunks[1]);
-    }
-
-    #pragma omp section
-    {
-      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[1], chunks[2]);
-    }
-
-    #pragma omp section
-    {
-      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[2], chunks[3]);
-    }
-
-    #pragma omp section
-    {
-      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[3], chunks[4]);
-    }
-
-    #pragma omp section
-    {
-      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[4], chunks[5]);
-    }
-
-    #pragma omp section
-    {
-      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[5], chunks[6]);
-    }
-
-    #pragma omp section
-    {
-      ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, chunks[6], chunks[7]);
-    }
-  }
-
-#else
-  ParticleInterRange(en, real, trialPos, partIndex, molIndex, box, 0, trials);
+    #pragma omp parallel for default(shared) private(i, distSq, qi_qj_Fact) reduction(+:tempLJ, tempReal)
 #endif
+    for(i = 0; i < nIndex.size(); i++) {
+      distSq = 0.0;
 
+      if(currentAxes.InRcut(distSq, trialPos, t, currentCoords, nIndex[i], box)) {
+        tempLJ += forcefield.particles->CalcEn(distSq, kindI,
+                                               particleKind[nIndex[i]]);
+        if(electrostatic) {
+          qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
+          tempReal += forcefield.particles->CalcCoulombEn(distSq, qi_qj_Fact);
+        }
+      }
+    }
+    en[t] += tempLJ;
+    real[t] += tempReal;
+  }
 }
 
 //! Calculates Nonbonded inter energy for candidate positions in trialPos

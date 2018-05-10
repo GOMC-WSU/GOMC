@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -148,17 +148,36 @@ private:
 
 inline CellList::Cell CellList::EnumerateCell(int cell, int box) const
 {
+#ifndef NDEBUG
+  if(cell >= head[box].size()) {
+    std::cout << "CellList.h:153: box " << box << ", Out of cell" << std::endl;
+  }
+#endif
   return CellList::Cell(head[box][cell], list);
 }
 
 inline CellList::Neighbors CellList::EnumerateLocal(int cell, int box) const
 {
+#ifndef NDEBUG
+  if(cell >= head[box].size()) {
+    std::cout << "CellList.h:162: box " << box << ", Out of cell" << std::endl;
+    std::cout << "AxisDimensions: " << dimensions->GetAxis(box) << std::endl;
+  }
+#endif
   return CellList::Neighbors(list, head[box], neighbors[box][cell]);
 }
 
 inline CellList::Neighbors CellList::EnumerateLocal(const XYZ& pos, int box) const
 {
-  return EnumerateLocal(PositionToCell(pos, box), box);
+  int cell = PositionToCell(pos, box);
+#ifndef NDEBUG
+  if(cell >= head[box].size()) {
+    std::cout << "CellList.h:172: box " << box << ", pos: " << pos
+              << std::endl;
+    std::cout << "AxisDimensions: " << dimensions->GetAxis(box) << std::endl;
+  }
+#endif
+  return EnumerateLocal(cell, box);
 }
 
 inline CellList::Neighbors::Neighbors(const std::vector<int>& partList,

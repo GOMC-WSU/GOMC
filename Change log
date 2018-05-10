@@ -1,6 +1,22 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.30] - 5/10/2018
++ Added Regrowth move
++ Cleaned up the code and removed any memory leaks and bugs.
++ Redesigned Ewald, EwaldCached, and NoEwald to be more efficient and allocate less memory.
++ Added an error when multiple atoms have zero coordinates.
++ Added an error when resorvoir is empty and should print an error message and exit.
++ Fixed some typo in output.
++ Fix a bug where seed number output and input was not the same size, so we changed int to uint while reading to avoid overflow. They both use uint now.
++ Increase memory allocation for NPT simulation in Ewald.
++ Fixed a bug in PickWeighted() function where it was return a value larger than the array.
++ Printing individual timing information for each move.
++ To avoid getting large energy we are recalculating the total system at equilbrium step.
++ Print CBMC information including first atom trial, secondary atom trials, angle trials, and dihedral trials.
++ Fix a bug where in windows the clock() function was returning a wrong value
++ Fix compiler warning for macOS in ConfigSetup file
+
 ## [2.20] - 1/2/2018
 + Non orthogonal implementation
 + Removed CUB library from our source code and we will automatically download CUB library before compiling (newest version all the time!).

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -20,6 +20,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveBase.h"            //For move bases....
 #include "MoleculeTransfer.h"
 #include "IntraSwap.h"
+#include "Regrowth.h"
 
 System::System(StaticVals& statics) :
   statV(statics),
@@ -44,9 +45,16 @@ System::System(StaticVals& statics) :
 
 System::~System()
 {
+#ifdef VARIABLE_VOLUME
+  if (boxDimensions != NULL)
+    delete boxDimensions;
+#endif
+  if (calcEwald != NULL)
+    delete calcEwald;
   delete moves[mv::DISPLACE];
   delete moves[mv::ROTATE];
   delete moves[mv::INTRA_SWAP];
+  delete moves[mv::REGROWTH];
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   delete moves[mv::VOL_TRANSFER];
 #endif
@@ -98,6 +106,8 @@ void System::Init(Setup const& set)
   calcEwald->Init();
   potential = calcEnergy.SystemTotal();
   InitMoves();
+  for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++)
+    moveTime[m] = 0.0;
 }
 
 void System::InitMoves()
@@ -105,6 +115,7 @@ void System::InitMoves()
   moves[mv::DISPLACE] = new Translate(*this, statV);
   moves[mv::ROTATE] = new Rotate(*this, statV);
   moves[mv::INTRA_SWAP] = new IntraSwap(*this, statV);
+  moves[mv::REGROWTH] = new Regrowth(*this, statV);
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   moves[mv::VOL_TRANSFER] = new VolumeTransfer(*this, statV);
 #endif
@@ -118,7 +129,10 @@ void System::ChooseAndRunMove(const uint step)
   double draw = 0;
   uint majKind = 0;
   PickMove(majKind, draw);
+  time.SetStart();
   RunMove(majKind, draw, step);
+  time.SetStop();
+  moveTime[majKind] += time.GetTimDiff();
 }
 void System::PickMove(uint & kind, double & draw)
 {
@@ -162,4 +176,21 @@ void System::CalcEn(const uint kind)
 void System::Accept(const uint kind, const uint rejectState, const uint step)
 {
   moves[kind]->Accept(rejectState, step);
+}
+
+void System::PrintTime()
+{
+  //std::cout << "MC moves Execution time:\n";
+  printf("%-30s %10.4f sec.\n", "Displacement:", moveTime[mv::DISPLACE]);
+  printf("%-30s %10.4f sec.\n", "Rotation:", moveTime[mv::ROTATE]);
+  printf("%-30s %10.4f sec.\n", "Intra-Swap:", moveTime[mv::INTRA_SWAP]);
+  printf("%-30s %10.4f sec.\n", "Regrowth:", moveTime[mv::REGROWTH]);
+
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
+  printf("%-30s %10.4f sec.\n", "Molecule-Transfer:",
+         moveTime[mv::MOL_TRANSFER]);
+#endif
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
+  printf("%-30s %10.4f sec.\n", "Volume-Transfer:", moveTime[mv::VOL_TRANSFER]);
+#endif
 }

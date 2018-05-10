@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -108,7 +108,12 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
     printElement(var->GetTries(sub), elementWidth);
     printElement(var->GetAccepted(sub), elementWidth);
     printElement(var->GetAcceptPercent(sub), elementWidth);
-    //printElement(var->GetScale(sub), elementWidth);
+
+    sub = mv::GetMoveSubIndex(mv::REGROWTH, box);
+    printElement(var->GetTries(sub), elementWidth);
+    printElement(var->GetAccepted(sub), elementWidth);
+    printElement(var->GetAcceptPercent(sub), elementWidth);
+
 #if ENSEMBLE == GCMC
   }
 #endif
@@ -281,6 +286,9 @@ void ConsoleOutput::PrintMoveTitle()
   printElement("INTACCEPT", elementWidth);
   printElement("INTACCEPT%", elementWidth);
 
+  printElement("REGROWTH", elementWidth);
+  printElement("REGROWACCEPT", elementWidth);
+  printElement("REGROWACCEPT%", elementWidth);
 
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   printElement("TRANSFER", elementWidth);
