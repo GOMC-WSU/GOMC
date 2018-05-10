@@ -187,7 +187,7 @@ uint BoxDimensionsNonOrth::ExchangeVolume(BoxDimensionsNonOrth & newDim,
       std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!"
                 << std::endl;
       std::cout << "AxisDimensions: " << newDim.GetAxis(b) << std::endl;
-      state = state && mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
+      state = mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
     }
   }
   return state;

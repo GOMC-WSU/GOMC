@@ -656,12 +656,12 @@ void ConfigSetup::fillDefaults(void)
   out.state.files.psf.name = out.statistics.settings.uniqueStr.val +
                              "_merged.psf";
   for(int i = 0; i < BOX_TOTAL; i++) {
-    if(i == 0)
-      out.state.files.pdb.name[0] = out.statistics.settings.uniqueStr.val +
-                                    "_BOX_0.pdb";
-    else if(i == 1)
-      out.state.files.pdb.name[1] = out.statistics.settings.uniqueStr.val +
-                                    "_BOX_1.pdb";
+    sstrm::Converter toStr;
+    std::string numStr = "";
+    toStr << i;
+    toStr >> numStr;
+    out.state.files.pdb.name[i] = out.statistics.settings.uniqueStr.val +
+                                    "_BOX_" + numStr + ".pdb";
   }
   out.state.files.seed.name = out.statistics.settings.uniqueStr.val + ".dat";
 }
