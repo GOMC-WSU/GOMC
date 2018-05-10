@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -190,31 +190,31 @@ void UpdateRecipCUDA(VariablesCUDA *vars, uint box)
 }
 
 void UpdateCellBasisCUDA(VariablesCUDA *vars, uint box, double *cellBasis_x,
-			 double *cellBasis_y, double *cellBasis_z)
+                         double *cellBasis_y, double *cellBasis_z)
 {
   int nonOrth = 0;
   cudaMemcpy(vars->gpu_cell_x[box], cellBasis_x, 3 * sizeof(double),
-	     cudaMemcpyHostToDevice);
+             cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_cell_y[box], cellBasis_y, 3 * sizeof(double),
-	     cudaMemcpyHostToDevice);
+             cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_cell_z[box], cellBasis_z, 3 * sizeof(double),
-	     cudaMemcpyHostToDevice);
+             cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_nonOrth, &nonOrth, sizeof(int), cudaMemcpyHostToDevice);
 }
 
-void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box, 
-			    double *invCellBasis_x, double *invCellBasis_y,
-			    double *invCellBasis_z)
+void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
+                            double *invCellBasis_x, double *invCellBasis_y,
+                            double *invCellBasis_z)
 {
   int nonOrth = 1;
   cudaMemcpy(vars->gpu_Invcell_x[box], invCellBasis_x, 3 * sizeof(double),
-	     cudaMemcpyHostToDevice);
+             cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_Invcell_y[box], invCellBasis_y, 3 * sizeof(double),
-	     cudaMemcpyHostToDevice);
+             cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_Invcell_z[box], invCellBasis_z, 3 * sizeof(double),
-	     cudaMemcpyHostToDevice);
+             cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_nonOrth, &nonOrth, sizeof(int), cudaMemcpyHostToDevice);
-} 
+}
 
 void DestroyEwaldCUDAVars(VariablesCUDA *vars)
 {

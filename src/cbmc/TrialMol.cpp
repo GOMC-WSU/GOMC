@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -123,6 +123,14 @@ double TrialMol::OldDistSq(const uint lastAtom, const uint atom)
   return distSq;
 }
 
+double TrialMol::DistSq(const XYZ& a, const XYZ& b)
+{
+  XYZ diff = a - b;
+  diff = axes->MinImage(diff, box);
+  double distSq = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
+  return distSq;
+}
+
 //!Return angle in radians between confirmed atoms a, b and c:w
 double TrialMol::GetTheta(uint a, uint b, uint c) const
 {
@@ -158,7 +166,7 @@ void TrialMol::SetBasis(const uint p1, const uint p2)
   wVec.Normalize();
   XYZ uVec;
   //check to make sure our W isn't in line with the standard X Axis
-  if (wVec.x < 0.8) {
+  if (abs(wVec.x) < 0.8) {
     //V will be W x the standard X unit vec
     uVec = XYZ(1.0, 0.0, 0.0);
   } else {

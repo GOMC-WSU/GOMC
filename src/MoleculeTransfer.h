@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -51,6 +51,13 @@ inline uint MoleculeTransfer::GetBoxPairAndMol
   // swap between boxes. (beta != 1, beta !=2)
   uint state = prng.PickMolAndBoxPair2(molIndex, kindIndex, sourceBox, destBox,
                                        subDraw, movPerc);
+#if ENSEMBLE == GCMC
+  if(state == mv::fail_state::NO_MOL_OF_KIND_IN_BOX && sourceBox == mv::BOX1) {
+    std::cout << "Error: There are no molecules of kind " <<
+              molRef.kinds[kindIndex].name << " left in reservoir.\n";
+    exit(EXIT_FAILURE);
+  }
+#endif
 
   if (state != mv::fail_state::NO_MOL_OF_KIND_IN_BOX) {
     pStart = pLen = 0;
@@ -194,7 +201,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
         sysPotRef.boxVirial[sourceBox].real = 0;
       }
 
-      for (uint b = 0; b < BOX_TOTAL; b++) {
+      for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
         calcEwald->UpdateRecip(b);
       }
 

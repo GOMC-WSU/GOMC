@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -134,8 +134,12 @@ void Particle::Read(Reader & param, std::string const& firstVar)
   } else {
     values >> expN;
   }
+
+  if (isCHARMM()) { //if lj
+    values >> dummy2;
+  }
   //If undefined in CHARMM, assign 1-4 to full value.
-  values >> dummy2 >> e_1_4 >> s_1_4;
+  values >> e_1_4 >> s_1_4;
   if (values.fail()) {
     e_1_4 = e;
     s_1_4 = s;

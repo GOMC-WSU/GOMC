@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -42,24 +42,26 @@ Simulation::Simulation(char const*const configFileName)
 
 Simulation::~Simulation()
 {
-  delete staticValues;
-  delete system;
   delete cpu;
+  delete system;
+  delete staticValues;
 }
 
 
 
 void Simulation::RunSimulation(void)
 {
+  double startEnergy = system->potential.totalEnergy.total;
   for (ulong step = 0; step < totalSteps; step++) {
     system->moveSettings.AdjustMoves(step);
     system->ChooseAndRunMove(step);
     cpu->Output(step);
 
     if((step + 1) == cpu->equilSteps) {
-      if(abs(system->potential.totalEnergy.total) > 1.0e+14) {
+      double currEnergy = system->potential.totalEnergy.total;
+      if(abs(currEnergy - startEnergy) > 1.0e+10) {
         printf("Info: Performing total energy calculation to preserve the"
-               " enegy information.\n\n");
+               " energy information.\n\n");
         system->calcEwald->Init();
         system->potential = system->calcEnergy.SystemTotal();
       }
@@ -70,20 +72,21 @@ void Simulation::RunSimulation(void)
       RunningCheck(step);
 #endif
   }
+  system->PrintTime();
 }
 
 #ifndef NDEBUG
 void Simulation::RunningCheck(const uint step)
 {
-  system->calcEwald->Init();
+  system->calcEwald->UpdateVectorsAndRecipTerms();
   SystemPotential pot = system->calcEnergy.SystemTotal();
 
   std::cout
       << "================================================================="
       << std::endl << "-------------------------" << std::endl
-      << " STEP: " << step
+      << " STEP: " << step + 1
       << std::endl << "-------------------------" << std::endl
-      << "Energy       INTRA B |     INTRA NB |        INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
+      << "Energy       INTRA B |     INTRA NB |         INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
       << std::endl
       << "System: "
       << std::setw(12) << system->potential.totalEnergy.intraBond << " | "

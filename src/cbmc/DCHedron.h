@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -27,6 +27,8 @@ public:
   void PrepareOld(TrialMol& oldMol, uint molIndex);
   void IncorporateOld(TrialMol& oldMol, uint molIndex);
   void ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol, uint molIndex);
+  void SetBondNew(double const *bondLen, double const &anchBond);
+  void SetBondOld(double const *bondLen, double const &anchBond);
   uint Bonded(uint i) const
   {
     return bonded[i];
@@ -39,14 +41,6 @@ public:
   {
     return phi[i];
   }
-  double BondLength(uint i) const
-  {
-    return bondLength[i];
-  }
-  double BondLengthOld(uint i) const
-  {
-    return bondLengthOld[i];
-  }
   double GetWeight();
   double GetEnergy()
   {
@@ -55,10 +49,6 @@ public:
   double GetNonBondedEn()
   {
     return oneThree;
-  }
-  double GetOldBondEn()
-  {
-    return oldBondEnergy;
   }
   uint NumBond()
   {
@@ -86,7 +76,6 @@ private:
   void FreeAnglesOld(TrialMol& oldMol, uint molIndex, uint nTrials);
   void ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTrials);
 
-
   DCData* data;
   uint focus, prev;
   uint nBonds;
@@ -99,14 +88,11 @@ private:
   //angleKinds[i][j] = kind between bonded[i] and bonded[j]
   //except angleKinds[i][i] = kind between bonded[i] and prev
   uint angleKinds[MAX_BONDS][MAX_BONDS];
-  //bondKind between bonded[i] and focus
-  uint bondKinds[MAX_BONDS];
-
   double theta[MAX_BONDS];
   double thetaWeight[MAX_BONDS];
   double phi[MAX_BONDS];
   double phiWeight[MAX_BONDS];
-  double bendEnergy, oldBondEnergy, oneThree;
+  double bendEnergy, oneThree;
   double anchorBond, anchorBondOld;
 };
 }

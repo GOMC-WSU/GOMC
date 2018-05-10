@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -70,7 +70,12 @@ Histogram::~Histogram()
   if (total != NULL) delete[] total;
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
     if (name[b] != NULL) delete[] name[b];
-    if (molCount[b] != NULL) delete[] molCount[b];
+    if (molCount[b] != NULL) {
+      for (uint k = 0; k < var->numKinds; ++k) {
+        delete[] molCount[b][k];
+      }
+      delete[] molCount[b];
+    }
     if (outF[b] != NULL) delete[] outF[b];
   }
 }

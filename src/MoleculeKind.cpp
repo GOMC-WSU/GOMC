@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -33,8 +33,7 @@ void MoleculeKind::Init
     setup.mol.kindMap.find(l_name);
   if(dataIterator == setup.mol.kindMap.end()) {
     std::cerr << "================================================"
-              << std::endl << std::endl
-              << "Error: Molecule " << l_name
+              << std::endl << "Error: Molecule " << l_name
               << " not found in PDB file. Exiting." << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -50,8 +49,7 @@ void MoleculeKind::Init
   //then quit.
   if (kindCPIt == lastOne) {
     std::cerr << "================================================"
-              << std::endl << std::endl
-              << "Error: chemical potential is missing for "
+              << std::endl << "Error: chemical potential is missing for "
               << name << "." << std::endl << std::endl
               << "Here are the listed chemical potentials:"
               << std::endl
@@ -134,6 +132,7 @@ void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
   for(uint i = 0; i < numAtoms; ++i) {
     const mol_setup::Atom& atom = molData.atoms[i];
     atomNames.push_back(atom.name);
+    atomTypeNames.push_back(atom.type);
     atomMass[i] = atom.mass;
     molMass += atom.mass;
     atomCharge[i] = atom.charge;
@@ -141,7 +140,7 @@ void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
   }
 }
 
-double MoleculeKind::PrintChargeInfo()
+double MoleculeKind::GetMoleculeCharge()
 {
   double netCharge = 0.0;
 

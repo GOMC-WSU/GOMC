@@ -4,8 +4,8 @@ Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
-#ifndef INTRASWAP_H
-#define INTRASWAP_H
+#ifndef IREGROWTH_H
+#define IREGROWTH_H
 
 
 #include "MoveBase.h"
@@ -13,11 +13,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 //#define DEBUG_MOVES
 
-class IntraSwap : public MoveBase
+class Regrowth : public MoveBase
 {
 public:
 
-  IntraSwap(System &sys, StaticVals const& statV) :
+  Regrowth(System &sys, StaticVals const& statV) :
     ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
     MoveBase(sys, statV) {}
 
@@ -32,15 +32,15 @@ private:
   uint pStart, pLen;
   uint molIndex, kindIndex;
 
-  double W_tc, W_recip;
+  double W_recip;
   double correct_old, correct_new;
   cbmc::TrialMol oldMol, newMol;
-  Intermolecular tcLose, tcGain, recipDiff;
+  Intermolecular recipDiff;
   MoleculeLookup & molLookRef;
   Forcefield const& ffRef;
 };
 
-inline uint IntraSwap::GetBoxAndMol
+inline uint Regrowth::GetBoxAndMol
 (const double subDraw, const double movPerc)
 {
 
@@ -62,30 +62,26 @@ inline uint IntraSwap::GetBoxAndMol
   return state;
 }
 
-inline uint IntraSwap::Prep(const double subDraw, const double movPerc)
+inline uint Regrowth::Prep(const double subDraw, const double movPerc)
 {
   uint state = GetBoxAndMol(subDraw, movPerc);
   newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
   oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
   oldMol.SetCoords(coordCurrRef, pStart);
-  W_tc = 1.0;
   return state;
 }
 
 
-inline uint IntraSwap::Transform()
+inline uint Regrowth::Transform()
 {
   cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
-  subPick = mv::GetMoveSubIndex(mv::INTRA_SWAP, sourceBox);
-  molRef.kinds[kindIndex].Build(oldMol, newMol, molIndex);
+  molRef.kinds[kindIndex].Regrowth(oldMol, newMol, molIndex);
   return mv::fail_state::NO_FAIL;
 }
 
-inline void IntraSwap::CalcEn()
+inline void Regrowth::CalcEn()
 {
   // since number of molecules would not change in the box,
-  //there is no change in Tc
-  W_tc = 1.0;
   W_recip = 1.0;
   correct_old = 0.0;
   correct_new = 0.0;
@@ -102,22 +98,22 @@ inline void IntraSwap::CalcEn()
 }
 
 
-inline void IntraSwap::Accept(const uint rejectState, const uint step)
+inline void Regrowth::Accept(const uint rejectState, const uint step)
 {
   bool result;
   //If we didn't skip the move calculation
   if(rejectState == mv::fail_state::NO_FAIL) {
-    double molTransCoeff = 1.0;
     double Wo = oldMol.GetWeight();
     double Wn = newMol.GetWeight();
-    double Wrat = Wn / Wo * W_tc * W_recip;
+    double Wrat = Wn / Wo * W_recip;
 
     //safety to make sure move will be rejected in overlap case
     if((newMol.GetEnergy().real < 1.0e15) &&
         (oldMol.GetEnergy().real < 1.0e15)) {
-      result = prng() < molTransCoeff * Wrat;
+      result = prng() < Wrat;
     } else
       result = false;
+
 
     if(result) {
       //Add rest of energy.
@@ -158,7 +154,8 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
     }
   } else //else we didn't even try because we knew it would fail
     result = false;
-  subPick = mv::GetMoveSubIndex(mv::INTRA_SWAP, sourceBox);
+
+  subPick = mv::GetMoveSubIndex(mv::REGROWTH, sourceBox);
   moveSetRef.Update(result, subPick, step);
 }
 

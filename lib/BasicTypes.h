@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -9,6 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include <cstddef>
 #include <math.h>
+#include <ostream>
 
 typedef unsigned int uint;
 typedef unsigned long int ulong;
@@ -109,10 +110,6 @@ struct XYZ {
   {
     return x * x + y * y + z * z;
   }
-  double DotProduct(const XYZ &A, const XYZ &B) const
-  {
-    return A.x * B.x + A.y * B.y + A.z * B.z;
-  }
 
   XYZ& Normalize()
   {
@@ -121,5 +118,11 @@ struct XYZ {
   }
 
 };
+
+inline std::ostream& operator << (std::ostream & stream, const XYZ& p)
+{
+  stream << "[" << p.x << ", " << p.y << ", " << p.z << "]";
+  return stream;
+}
 
 #endif /*BASIC_TYPES_H*/

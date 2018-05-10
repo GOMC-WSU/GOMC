@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -172,12 +172,27 @@ public:
     double sum = 0.0;
     for(uint i = 0; i < n; ++i) {
       sum += weights[i];
-      if(sum >= draw)
+      if(sum >= draw) {
         return i;
+      }
     }
-    //ya dun goofed, totalWeight was greater than the actual total
-    //enjoy your segfault (this shouldn't fail gracefully)
-    return -1;
+    int lastZero = n;
+    for(uint i = n - 1; i > 0 && !weights[i]; i--) {
+      lastZero = i;
+    }
+    lastZero--;
+    if(abs(draw - totalWeight) < 0.001) {
+      return lastZero;
+    }
+
+    // If the code gets to here that means the total of all the weights was
+    // more than totalWeight. So let's print out a message and exit the program
+    std::cerr << "Error: In PRNG::PickWeighted() the total of all weights was" << std::endl;
+    std::cerr << "more than totalWeight" << std::endl << "Debug info:\n";
+    std::cerr << "totalWeight: " << totalWeight << std::endl;
+    std::cerr << "draw: " << draw << std::endl;
+    std::cerr << "sum: " << sum << std::endl;
+    exit(EXIT_FAILURE);
   }
 
 
@@ -242,18 +257,19 @@ public:
                const double subDraw, const double subPerc)
   {
     uint rejectState = mv::fail_state::NO_FAIL;
-    uint mkTot = molLookRef.GetNumKind();
+    uint mkTot = molLookRef.GetNumCanMoveKind();
     double molDiv = subPerc / mkTot;
     //Which molecule kind chunk are we in?
-    mk = (uint)(subDraw / molDiv);
+    uint k = (uint)(subDraw / molDiv);
 
     //clamp if some rand err.
-    if (mk == mkTot)
-      mk = mkTot - 1;
+    if (k == mkTot)
+      k = mkTot - 1;
+
+    mk = molLookRef.GetCanMoveKind(k);
 
     //Pick molecule with the help of molecule lookup table.
-    if ((molLookRef.NumKindInBox(mk, b) == 0) ||
-        molLookRef.NumKindInBox(mk, b) == molLookRef.GetFixInBox(mk, b)) {
+    if ((molLookRef.NumKindInBox(mk, b) == 0)) {
       rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
     } else {
       //Among the ones of that kind in that box, pick one @ random.
@@ -275,19 +291,19 @@ public:
                 const double subDraw, const double subPerc)
   {
     uint rejectState = mv::fail_state::NO_FAIL;
-    uint mkTot = molLookRef.GetNumKind();
+    uint mkTot = molLookRef.GetNumCanSwapKind();
     double molDiv = subPerc / mkTot;
     //Which molecule kind chunk are we in?
-    mk = (uint)(subDraw / molDiv);
+    uint k = (uint)(subDraw / molDiv);
 
     //clamp if some rand err.
-    if (mk == mkTot)
-      mk = mkTot - 1;
+    if (k == mkTot)
+      k = mkTot - 1;
+
+    mk = molLookRef.GetCanSwapKind(k);
 
     //Pick molecule with the help of molecule lookup table.
-    if ((molLookRef.NumKindInBox(mk, b) == 0) ||
-        molLookRef.NumKindInBox(mk, b) == (molLookRef.GetNoSwapInBox(mk, b) +
-                                           molLookRef.GetFixInBox(mk, b))) {
+    if ((molLookRef.NumKindInBox(mk, b) == 0)) {
       rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
     } else {
       //Among the ones of that kind in that box, pick one @ random.

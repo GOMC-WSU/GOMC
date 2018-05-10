@@ -1,4 +1,4 @@
-Current Release: 2.20 (1/2/2018)
+Current Release: 2.30 (5/1/2018)
 
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/GOMC_WSU/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
 [![Build Status](https://travis-ci.org/GOMC-WSU/GOMC.svg?branch=master)](https://travis-ci.org/GOMC-WSU/GOMC)
@@ -10,9 +10,11 @@ GOMC - GPU Optimized Monte Carlo
 
 BUILDING GOMC ON LINUX:
 ----------------
-   1. Give execution permission using "chmod u+x metamake.sh"
-   2. In the base directory type "./metamake.sh"
-   3. Step 2 should generate all the executables in "bin" directory
+   1. Clone or download our code from GitHub using "git clone https://github.com/GOMC-WSU/GOMC.git"
+   2. Go into the GOMC directory using "cd GOMC"
+   3. Give execution permission using "chmod u+x metamake.sh"
+   4. In the base directory type "./metamake.sh"
+   5. Step 2 should generate all the executables in "bin" directory
 
    You can set the number of the threads using the +pN argument, where N is the number of threads.
    For example:
@@ -22,6 +24,9 @@ BUILDING GOMC ON LINUX:
    NOTES:
       Building GOMC requires cmake, available at http://www.cmake.org and
       in most Linux package repositories (as cmake).
+      If you wish to utilize NVIDIA graphic cards you will need to install
+      NVIDIA toolkit before compiling. The metamake file will automatically
+      detect the location of CUDA installation. (More info in Manual)
 
 BUILDING GOMC ON WINDOWS:
 -----------------
@@ -39,54 +44,3 @@ BUILDING GOMC ON WINDOWS:
    NOTES:
       You can also use CMake from the Windows command line if its directory is
       added to the PATH environment variable.
-
-CONFIGURING CMAKE:
-   CMake has a ridiculously expansive set of options, so this document will
-   only reproduce the most obviously relevant ones.
-   When possible, options should be passed into CMake via command line options
-   rather than the CMake.txt file.
-
-   SET BUILD MODE:
-
-      -DCMAKE_BUILD_TYPE=<None|Debug|Release|ReleaseWithDebInfo|MinSizeRel>
-
-      NOTES:
-         Typically it is advised to build in "Release" mode.
-
-      	 If bugs are encountered or if a modification is being tested, please
-      	 compile in "Debug" mode, which includes the debug symbols which can
-      	 be used with gdb and valgrind to track errors.
-
-	 The debugging code is MUCH slower than the release code (as debugger
-      	 compiled codes typically are).  Be advised to check that you're
-      	 compiling in "Release" build mode if the code seems slow.
-
-   SET ENSEMBLES:
-
-      -DENSEMBLE_GEMC=<On|Off>
-      -DENSEMBLE_NVT=<On|Off>
-      -DENSEMBLE_GCMC=<On|Off>
-      -DENSEMBLE_NPT=<On|Off>
-
-      NOTES:
-         CMake will prepare build rules for all ensembles that are On.
-
-      	 To build all ensembles simply leave them at their default
-      	 value ("On").
-
-	 GEMC includes both GEMC-NVT and GEMC-NPT implementations, which
-      	 are switchable via the configuration file.
-
-   SET COMPILER:
-
-      -DCMAKE_CXX_COMPILER=Compiler
-
-      where Compiler is a valid compiler name or full path. If this is
-      omitted, CMake will select your default C++ compiler (usually gcc).
-
-      NOTES:
-
-         It is recommended to use the Intel Compiler and linking
-      	 tools (icc/icpc/etc.).  They significantly outperform the default
-      	 GNU compiler tools and are available for free for academic use
-      	 with registration.

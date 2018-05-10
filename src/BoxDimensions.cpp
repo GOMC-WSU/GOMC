@@ -1,12 +1,15 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "BoxDimensions.h"
 #include "BoxDimensionsNonOrth.h"
+#include "GeomLib.h"
 #include "MoveConst.h" //For cutoff-related fail condition
+
+using namespace geom;
 
 void BoxDimensions::Init(config_setup::RestartSettings const& restart,
                          config_setup::Volume const& confVolume,
@@ -45,14 +48,29 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
       exit(EXIT_FAILURE);
     }
 
+    //Print Box dimensio info
+    printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n",
+           "Info: Box ", b, " Periodic Cell Basis 1",
+           cellBasis[b].Get(0).x, cellBasis[b].Get(0).y,
+           cellBasis[b].Get(0).z);
+    printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n",
+           "Info: Box ", b, " Periodic Cell Basis 2",
+           cellBasis[b].Get(1).x, cellBasis[b].Get(1).y,
+           cellBasis[b].Get(1).z);
+    printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n\n",
+           "Info: Box ", b, " Periodic Cell Basis 3",
+           cellBasis[b].Get(2).x, cellBasis[b].Get(2).y,
+           cellBasis[b].Get(2).z);
+
+
     axis.Set(b, cellBasis[b].Length(0), cellBasis[b].Length(1),
              cellBasis[b].Length(2));
     //Find Cosine Angle of alpha, beta and gamma
-    cosAngle[b][0] = DotProduct(cellBasis[b].Get(1), cellBasis[b].Get(2)) /
+    cosAngle[b][0] = Dot(cellBasis[b].Get(1), cellBasis[b].Get(2)) /
                      (axis.Get(b).y * axis.Get(b).z);
-    cosAngle[b][1] = DotProduct(cellBasis[b].Get(0), cellBasis[b].Get(2)) /
+    cosAngle[b][1] = Dot(cellBasis[b].Get(0), cellBasis[b].Get(2)) /
                      (axis.Get(b).x * axis.Get(b).z);
-    cosAngle[b][2] = DotProduct(cellBasis[b].Get(0), cellBasis[b].Get(1)) /
+    cosAngle[b][2] = Dot(cellBasis[b].Get(0), cellBasis[b].Get(1)) /
                      (axis.Get(b).x * axis.Get(b).y);
 
     volume[b] = axis.x[b] * axis.y[b] * axis.z[b];
@@ -91,6 +109,7 @@ uint BoxDimensions::ShiftVolume
        newDim.halfAx.z[b] < rCut)) {
     std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!"
               << std::endl;
+    std::cout << "AxisDimensions: " << newDim.GetAxis(b) << std::endl;
     rejectState = mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
   }
   scale = newDim.axis.Get(b) / axis.Get(b);
@@ -109,13 +128,14 @@ uint BoxDimensions::ExchangeVolume
 
   //If move would shrink any box axis to be less than 2 * rcut, then
   //automatically reject to prevent errors.
-  for (uint b = 0; b < BOX_TOTAL && state == mv::fail_state::NO_FAIL; b++) {
+  for (uint b = 0; b < BOX_TOTAL; b++) {
     scale[b] = newDim.axis.Get(b) / axis.Get(b);
     if ((newDim.halfAx.x[b] < rCut || newDim.halfAx.y[b] < rCut ||
          newDim.halfAx.z[b] < rCut)) {
       std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!"
                 << std::endl;
-      state = (bool)state && (bool)mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
+      std::cout << "AxisDimensions: " << newDim.GetAxis(b) << std::endl;
+      return mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
     }
   }
   return state;
@@ -131,7 +151,7 @@ BoxDimensions::BoxDimensions(BoxDimensions const& other) :
     volInv[b] = other.volInv[b];
     cubic[b] = other.cubic[b];
     orthogonal[b] = other.orthogonal[b];
-    for(uint i = 0; i < 0; i++) {
+    for(uint i = 0; i < 3; i++) {
       cosAngle[b][i] = other.cosAngle[b][i];
     }
   }
@@ -148,7 +168,7 @@ BoxDimensions& BoxDimensions::operator=(BoxDimensions const& other)
     volInv[b] = other.volInv[b];
     cubic[b] = other.cubic[b];
     orthogonal[b] = other.orthogonal[b];
-    for(uint i = 0; i < 0; i++) {
+    for(uint i = 0; i < 3; i++) {
       cosAngle[b][i] = other.cosAngle[b][i];
     }
   }
@@ -174,15 +194,10 @@ void BoxDimensions::SetVolume(const uint b, const double vol)
     double ratio = vol / volume[b];
     axis.Scale(b, 1.0, 1.0, ratio);
     halfAx.Scale(b, 1.0, 1.0, ratio);
-    //Keep a and b same and change c
-    cellBasis[b].Scale(2, ratio);
   } else {
     double ratio = pow(vol / volume[b], (1.0 / 3.0));
     axis.Scale(b, ratio);
     halfAx.Scale(b, ratio);
-    for(uint i = 0; i < 0; i++) {
-      cellBasis[b].Scale(i, ratio);
-    }
   }
   volume[b] = vol;
   volInv[b] = 1.0 / vol;
@@ -308,20 +323,3 @@ double BoxDimensions::MinImageSigned(double raw, double ax, double halfAx) const
     raw += ax;
   return raw;
 }
-
-
-//Calculate dot product
-double BoxDimensions::DotProduct(const uint atom, double kx, double ky,
-                                 double kz, const XYZArray &Coords) const
-{
-  double x = Coords.x[atom], y = Coords.y[atom], z = Coords.z[atom];
-  return(x * kx + y * ky + z * kz);
-}
-
-//Calculate dot product
-double BoxDimensions::DotProduct(const XYZ &A, const XYZ &B) const
-{
-  return(A.x * B.x + A.y * B.y + A.z * B.z);
-}
-
-

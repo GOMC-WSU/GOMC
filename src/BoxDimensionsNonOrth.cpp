@@ -1,12 +1,15 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "BoxDimensionsNonOrth.h"
 #include "BoxDimensions.h"
+#include "GeomLib.h"
 #include "MoveConst.h" //For cutoff-related fail condition
+
+using namespace geom;
 
 void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
                                 config_setup::Volume const& confVolume,
@@ -44,22 +47,38 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
               "Error: Cell Basis not specified in PDB or in.dat files.\n");
       exit(EXIT_FAILURE);
     }
+
+    //Print Box dimensio info
+    printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n",
+           "Info: Box ", b, " Periodic Cell Basis 1",
+           cellBasis[b].Get(0).x, cellBasis[b].Get(0).y,
+           cellBasis[b].Get(0).z);
+    printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n",
+           "Info: Box ", b, " Periodic Cell Basis 2",
+           cellBasis[b].Get(1).x, cellBasis[b].Get(1).y,
+           cellBasis[b].Get(1).z);
+    printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n\n",
+           "Info: Box ", b, " Periodic Cell Basis 3",
+           cellBasis[b].Get(2).x, cellBasis[b].Get(2).y,
+           cellBasis[b].Get(2).z);
+
+
     //Find the length of a, b, c
     cellLength.Set(b, cellBasis[b].Length(0), cellBasis[b].Length(1),
                    cellBasis[b].Length(2));
     //Find Cosine Angle of alpha, beta and gamma
-    cosAngle[b][0] = DotProduct(cellBasis[b].Get(1), cellBasis[b].Get(2)) /
+    cosAngle[b][0] = Dot(cellBasis[b].Get(1), cellBasis[b].Get(2)) /
                      (cellLength.Get(b).y * cellLength.Get(b).z);
-    cosAngle[b][1] = DotProduct(cellBasis[b].Get(0), cellBasis[b].Get(2)) /
+    cosAngle[b][1] = Dot(cellBasis[b].Get(0), cellBasis[b].Get(2)) /
                      (cellLength.Get(b).x * cellLength.Get(b).z);
-    cosAngle[b][2] = DotProduct(cellBasis[b].Get(0), cellBasis[b].Get(1)) /
+    cosAngle[b][2] = Dot(cellBasis[b].Get(0), cellBasis[b].Get(1)) /
                      (cellLength.Get(b).x * cellLength.Get(b).y);
     //Calculate Cross Product
-    XYZ axb = CrossProduct(cellBasis[b].Get(0), cellBasis[b].Get(1));
-    XYZ bxc = CrossProduct(cellBasis[b].Get(1), cellBasis[b].Get(2));
-    XYZ cxa = CrossProduct(cellBasis[b].Get(2), cellBasis[b].Get(0));
+    XYZ axb = Cross(cellBasis[b].Get(0), cellBasis[b].Get(1));
+    XYZ bxc = Cross(cellBasis[b].Get(1), cellBasis[b].Get(2));
+    XYZ cxa = Cross(cellBasis[b].Get(2), cellBasis[b].Get(0));
     //Calculate volume = A.(B x C)
-    volume[b] = abs(DotProduct(cellBasis[b].Get(0), bxc));
+    volume[b] = abs(Dot(cellBasis[b].Get(0), bxc));
     volInv[b] = 1.0 / volume[b];
     //normalizing unitcell
     for(uint i = 0; i < 3; i++) {
@@ -111,7 +130,7 @@ BoxDimensionsNonOrth& BoxDimensionsNonOrth::operator=(BoxDimensionsNonOrth const
     volInv[b] = other.volInv[b];
     cubic[b] = other.cubic[b];
     orthogonal[b] = other.orthogonal[b];
-    for(uint i = 0; i < 0; i++) {
+    for(uint i = 0; i < 3; i++) {
       cosAngle[b][i] = other.cosAngle[b][i];
     }
   }
@@ -140,6 +159,7 @@ uint BoxDimensionsNonOrth::ShiftVolume(BoxDimensionsNonOrth & newDim,
        newDim.halfAx.z[b] < rCut)) {
     std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!"
               << std::endl;
+    std::cout << "AxisDimensions: " << newDim.GetAxis(b) << std::endl;
     rejectState = mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
   }
   scale = newDim.axis.Get(b) / axis.Get(b);
@@ -166,7 +186,8 @@ uint BoxDimensionsNonOrth::ExchangeVolume(BoxDimensionsNonOrth & newDim,
          newDim.halfAx.z[b] < rCut)) {
       std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!"
                 << std::endl;
-      state = state && mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
+      std::cout << "AxisDimensions: " << newDim.GetAxis(b) << std::endl;
+      state = mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
     }
   }
   return state;
@@ -180,16 +201,11 @@ void BoxDimensionsNonOrth::SetVolume(const uint b, const double vol)
     axis.Scale(b, 1.0, 1.0, ratio);
     halfAx.Scale(b, 1.0, 1.0, ratio);
     cellLength.Scale(b, 1.0, 1.0, ratio);
-    //Keep a and b same and change c
-    cellBasis[b].Scale(2, ratio);
   } else {
     double ratio = pow(vol / volume[b], (1.0 / 3.0));
     axis.Scale(b, ratio);
     halfAx.Scale(b, ratio);
     cellLength.Scale(b, ratio);
-    for(uint i = 0; i < 0; i++) {
-      cellBasis[b].Scale(i, ratio);
-    }
   }
   volume[b] = vol;
   volInv[b] = 1.0 / volume[b];
@@ -237,15 +253,4 @@ void BoxDimensionsNonOrth::UnwrapPBC(double & x, double & y, double & z,
   x = slant.x;
   y = slant.y;
   z = slant.z;
-}
-
-//Calculate AxB product
-XYZ BoxDimensionsNonOrth::CrossProduct(const XYZ &A, const XYZ &B) const
-{
-  XYZ temp;
-  temp.x = A.y * B.z - A.z * B.y;
-  temp.y = A.z * B.x - A.x * B.z;
-  temp.z = A.x * B.y - A.y * B.x;
-
-  return temp;
 }
