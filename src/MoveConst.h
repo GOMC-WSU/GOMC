@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -102,20 +102,20 @@ const uint IT_KINDS_TOTAL = 2;
 
 //////////////////////////////////////////////////////////
 
-//NVT : 1. Disp (box 0)         2. Rotate (box 0)     3. IntraSwap (box 0) 
+//NVT : 1. Disp (box 0)         2. Rotate (box 0)     3. IntraSwap (box 0)
 //      4. Regrowth (box 0)
 //
 //GCMC: 1. Disp (box 0)         2. Rotate (box 0)     3. IntraSwap (box 0)
 //      4. Regrowth (box 0)     5. Deletion (box 0)   6. Insertion (box 0)
 //
-//GEMC: 1. Disp (box 0)         2. Disp (box 1) 
+//GEMC: 1. Disp (box 0)         2. Disp (box 1)
 //      3. Rotate (box 0)       4. Rotate (box 1)
 //      5. Vol. (b0->b1)        6. Vol. (b1->b0)
 //      7. IntraSwap (box 0)    8. IntraSwap (box 1)
 //      9. Regrowth (box 0)    10. Regrowth (box 1)
 //     11. Mol Trans (b0->b1), 12. Mol Trans (b1->b0)
 //
-//NPT : 1. Disp (box 0)         2. Rotate (box 0)     3. Vol. (box 0) 
+//NPT : 1. Disp (box 0)         2. Rotate (box 0)     3. Vol. (box 0)
 //      4. IntraSwap (box 0)    5. Regrowth (box 0)
 
 #if ENSEMBLE == NVT

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -53,22 +53,22 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
                                        bonds[0].a1);
       //Atoms bonded to atom will be build from focus (atom) in specified loc.
       node.restarting = new DCFreeHedronSeed(&data, setupKind, atom,
-					                                   bonds[0].a1);
-      //set the atom index of the node  
+                                             bonds[0].a1);
+      //set the atom index of the node
       node.atomIndex = atom;
       //Loop through all the bonds
       for (uint i = 0; i < bonds.size(); ++i) {
         uint partner = bonds[i].a1;
-	//Store partner index for each node
-	node.partnerIndex.push_back(partner);
+        //Store partner index for each node
+        node.partnerIndex.push_back(partner);
         if(bondCount[partner] == 1) {
           continue;
         }
-	//Add partner to the edge list of node and initialize it with partner
-	//and the atom in DCLinkedHedron
-	//Atoms will be build from prev(atom) to focus (partner)
+        //Add partner to the edge list of node and initialize it with partner
+        //and the atom in DCLinkedHedron
+        //Atoms will be build from prev(atom) to focus (partner)
         Edge e = Edge(partner, new DCLinkedHedron(&data, setupKind, partner,
-						  atom));
+                      atom));
         node.edges.push_back(e);
       }
     }
@@ -102,7 +102,7 @@ void DCGraph::Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 }
 
 void DCGraph::BuildEdges(TrialMol& oldMol, TrialMol& newMol, uint molIndex,
-			 const uint cur)
+                         const uint cur)
 {
   uint current = cur;
   //Copy the edges of the node to fringe
@@ -149,8 +149,7 @@ void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
   oldMol.ConfirmOldAtom(seedInx);
   //check if we want to grow all atoms from node's focus or not
   bool growAll = data.prng() < 1.0 / nodes.size();
-  if(growAll)
-  {      
+  if(growAll) {
     DCComponent* comp = nodes[current].restarting;
     //Call DCFreeHedronSeed to build all Atoms connected to the node's focus
     comp->PrepareNew(newMol, molIndex);
@@ -159,24 +158,18 @@ void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
     comp->BuildOld(oldMol, molIndex);
     //Build all edges
     BuildEdges(oldMol, newMol, molIndex, current);
-  }
-  else
-  {
+  } else {
     //Copy the all atoms bonded to node's focus
-    for(uint b = 0; b < nodes[current].partnerIndex.size(); b++)
-    {
+    for(uint b = 0; b < nodes[current].partnerIndex.size(); b++) {
       uint partner = nodes[current].partnerIndex[b];
       newMol.AddAtom(partner, oldMol.AtomPosition(partner));
       oldMol.ConfirmOldAtom(partner);
     }
-    
-    if(nodes[current].edges.size() == 1)
-    {
+
+    if(nodes[current].edges.size() == 1) {
       //If current is the terminal node, continue building all edges
       BuildEdges(oldMol, newMol, molIndex, current);
-    }
-    else
-    {
+    } else {
       //First we pick a edge and continue copying the coordinate
       //Then continue to build the rest of the molecule from current
       //Copy the edges of the node to fringe
@@ -186,28 +179,24 @@ void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
       //Travel to picked edges and make it as new fixNode
       uint fixNode = fringe[pickFixEdg].destination;
       visited[fixNode] = true;
-      //Copy the all atoms bonded to fixNode's focus                          
-      for(uint b = 0; b < nodes[fixNode].partnerIndex.size(); b++)
-      {
+      //Copy the all atoms bonded to fixNode's focus
+      for(uint b = 0; b < nodes[fixNode].partnerIndex.size(); b++) {
         uint partner = nodes[fixNode].partnerIndex[b];
         newMol.AddAtom(partner, oldMol.AtomPosition(partner));
         oldMol.ConfirmOldAtom(partner);
       }
       //Copy the edges of the new node to fringe
       fringe = nodes[fixNode].edges;
-      //remove the edge that we travelled from 
-      for( uint f = 0; f < fringe.size(); f++)
-      {
+      //remove the edge that we travelled from
+      for( uint f = 0; f < fringe.size(); f++) {
         if(fringe[f].destination == current)
           fringe.erase(fringe.begin() + f);
       }
       //Continue along picked edges and copy the coordinates
-      while(!fringe.empty())
-      {
+      while(!fringe.empty()) {
         fixNode = fringe[0].destination;
         //Copy the all atoms bonded to fixNode's focus
-        for(uint b = 0; b < nodes[fixNode].partnerIndex.size(); b++)
-        {
+        for(uint b = 0; b < nodes[fixNode].partnerIndex.size(); b++) {
           uint partner = nodes[fixNode].partnerIndex[b];
           newMol.AddAtom(partner, oldMol.AtomPosition(partner));
           oldMol.ConfirmOldAtom(partner);
@@ -217,11 +206,9 @@ void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
         fringe.pop_back();
         visited[fixNode] = true;
         //Add edges to unvisited nodes
-        for(uint i = 0; i < nodes[fixNode].edges.size(); ++i)
-        {
+        for(uint i = 0; i < nodes[fixNode].edges.size(); ++i) {
           Edge& e = nodes[fixNode].edges[i];
-          if(!visited[e.destination])
-          {
+          if(!visited[e.destination]) {
             fringe.push_back(e);
           }
         }
@@ -232,8 +219,7 @@ void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
       //Remove the fixed edge from fringe
       fringe.erase(fringe.begin() + pickFixEdg);
       //Advance along edges, building as we go
-      while(!fringe.empty())
-      {
+      while(!fringe.empty()) {
         //Randomely pick one of the edges connected to node
         uint pick = data.prng.randIntExc(fringe.size());
         DCComponent* comp = fringe[pick].component;
@@ -247,11 +233,9 @@ void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
         fringe[pick] = fringe.back();
         fringe.pop_back();
         visited[current] = true;
-        for(uint i = 0; i < nodes[current].edges.size(); ++i)
-        {
+        for(uint i = 0; i < nodes[current].edges.size(); ++i) {
           Edge& e = nodes[current].edges[i];
-          if(!visited[e.destination])
-          {
+          if(!visited[e.destination]) {
             fringe.push_back(e);
           }
         }

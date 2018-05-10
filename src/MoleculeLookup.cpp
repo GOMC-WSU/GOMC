@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -41,19 +41,19 @@ void MoleculeLookup::Init(const Molecules& mols,
     //Find the kind that can be swap(beta == 0) or move(beta == 0 or 2)
     if(fixedAtom[m] == 0) {
       if(std::find(canSwapKind.begin(), canSwapKind.end(), kind) ==
-	 canSwapKind.end()) 
-	canSwapKind.push_back(kind);
+          canSwapKind.end())
+        canSwapKind.push_back(kind);
 
       if(std::find(canMoveKind.begin(), canMoveKind.end(), kind) ==
-	 canMoveKind.end()) 
-	canMoveKind.push_back(kind);
+          canMoveKind.end())
+        canMoveKind.push_back(kind);
 
     } else if(fixedAtom[m] == 2) {
       if(std::find(canMoveKind.begin(), canMoveKind.end(), kind) ==
-	 canMoveKind.end()) 
-      canMoveKind.push_back(kind);
-   
-    } 
+          canMoveKind.end())
+        canMoveKind.push_back(kind);
+
+    }
   }
 
 

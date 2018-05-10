@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -30,7 +30,7 @@ CBMC* MakeCBMC(System& sys, const Forcefield& ff,
       branched = true;
   }
   bool cyclic = (kind.NumBonds() > kind.NumAtoms() - 1) ? true : false;
-*/
+  */
 
 //Any molecule woth 3 atoms and more will be built in DCGraph
   if (kind.NumAtoms() > 2) {

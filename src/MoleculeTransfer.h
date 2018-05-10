@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -54,7 +54,7 @@ inline uint MoleculeTransfer::GetBoxPairAndMol
 #if ENSEMBLE == GCMC
   if(state == mv::fail_state::NO_MOL_OF_KIND_IN_BOX && sourceBox == mv::BOX1) {
     std::cout << "Error: There are no molecules of kind " <<
-      molRef.kinds[kindIndex].name << " left in reservoir.\n";
+              molRef.kinds[kindIndex].name << " left in reservoir.\n";
     exit(EXIT_FAILURE);
   }
 #endif

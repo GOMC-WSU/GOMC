@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -130,11 +130,11 @@ void Ewald::Init()
 void Ewald::UpdateVectorsAndRecipTerms()
 {
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-  RecipInit(b, currentAxes);
-  BoxReciprocalSetup(b, currentCoords);
-  SetRecipRef(b);
-  printf("Box: %d, RecipVectors: %6d, kmax: %d\n",
-          b, imageSize[b], kmax[b]);
+    RecipInit(b, currentAxes);
+    BoxReciprocalSetup(b, currentCoords);
+    SetRecipRef(b);
+    printf("Box: %d, RecipVectors: %6d, kmax: %d\n",
+           b, imageSize[b], kmax[b]);
   }
 }
 
@@ -249,8 +249,8 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 
         for (j = 0; j < thisKind.NumAtoms(); j++) {
           dotProduct = Dot(mols.MolStart(*thisMol) + j,
-                                              kx[box][i], ky[box][i],
-                                              kz[box][i], molCoords);
+                           kx[box][i], ky[box][i],
+                           kz[box][i], molCoords);
 
           sumReal += (thisKind.AtomCharge(j) * cos(dotProduct));
           sumImaginary += (thisKind.AtomCharge(j) * sin(dotProduct));
@@ -303,7 +303,7 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
     uint length = thisKind.NumAtoms();
     uint startAtom = mols.MolStart(molIndex);
     uint p, atom;
-	int i;
+    int i;
     double sumRealNew, sumImaginaryNew, dotProductNew, dotProductOld,
            sumRealOld, sumImaginaryOld;
 #ifdef GOMC_CUDA
@@ -331,12 +331,12 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
       for (p = 0; p < length; ++p) {
         atom = startAtom + p;
         dotProductNew = Dot(p, kxRef[box][i],
-                                               kyRef[box][i], kzRef[box][i],
-                                               molCoords);
+                            kyRef[box][i], kzRef[box][i],
+                            molCoords);
 
         dotProductOld = Dot(atom, kxRef[box][i],
-                                               kyRef[box][i], kzRef[box][i],
-                                               currentCoords);
+                            kyRef[box][i], kzRef[box][i],
+                            currentCoords);
 
         sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
         sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
@@ -369,7 +369,7 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
 
   if (box < BOXES_WITH_U_NB) {
     uint p, length;
-	int i;
+    int i;
     MoleculeKind const& thisKind = newMol.GetKind();
     XYZArray molCoords = newMol.GetCoords();
     double dotProductNew, sumRealNew, sumImaginaryNew;
@@ -395,8 +395,8 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
 
       for (p = 0; p < length; ++p) {
         dotProductNew = Dot(p, kxRef[box][i],
-                                        kyRef[box][i], kzRef[box][i],
-                                        molCoords);
+                            kyRef[box][i], kzRef[box][i],
+                            molCoords);
 
         sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
         sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
@@ -435,7 +435,7 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 
   if (box < BOXES_WITH_U_NB) {
     uint p;
-	int i;
+    int i;
     double sumRealNew, sumImaginaryNew, dotProductNew;
     MoleculeKind const& thisKind = oldMol.GetKind();
     XYZArray molCoords = oldMol.GetCoords();
@@ -462,8 +462,8 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 
       for (p = 0; p < length; ++p) {
         dotProductNew = Dot(p, kxRef[box][i],
-                                               kyRef[box][i], kzRef[box][i],
-                                               molCoords);
+                            kyRef[box][i], kzRef[box][i],
+                            molCoords);
 
         sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
         sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
@@ -861,7 +861,7 @@ Virial Ewald::ForceReciprocal(Virial& virial, uint box) const
       for (i = 0; i < imageSizeRef[box]; i++) {
         //compute the dot product of k and r
         arg = Dot(atom, kxRef[box][i], kyRef[box][i],
-                                     kzRef[box][i], currentCoords);
+                  kzRef[box][i], currentCoords);
 
         factor = prefactRef[box][i] * 2.0 * (sumIref[box][i] * cos(arg) -
                                              sumRref[box][i] * sin(arg)) * charge;

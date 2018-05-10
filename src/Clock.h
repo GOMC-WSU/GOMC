@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -85,7 +85,7 @@ inline void Clock::SetStart()
 {
 #if defined(__linux__) || defined(__APPLE__)
   gettimeofday(&tv, &tz);
-  strt = (double)tv.tv_sec + (double)tv.tv_usec/1000000;
+  strt = (double)tv.tv_sec + (double)tv.tv_usec / 1000000;
 #elif _WIN32
   strt = clock();
 #endif
@@ -95,7 +95,7 @@ inline void Clock::SetStop()
 {
 #if defined(__linux__) || defined(__APPLE__)
   gettimeofday(&tv, &tz);
-  stop = (double)tv.tv_sec + (double)tv.tv_usec/1000000;
+  stop = (double)tv.tv_sec + (double)tv.tv_usec / 1000000;
 #elif _WIN32
   stop = clock();
 #endif

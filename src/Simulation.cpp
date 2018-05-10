@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -84,7 +84,7 @@ void Simulation::RunningCheck(const uint step)
   std::cout
       << "================================================================="
       << std::endl << "-------------------------" << std::endl
-      << " STEP: " << step+1
+      << " STEP: " << step + 1
       << std::endl << "-------------------------" << std::endl
       << "Energy       INTRA B |     INTRA NB |         INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
       << std::endl

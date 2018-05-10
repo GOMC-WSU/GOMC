@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -62,13 +62,13 @@ DCHedron::DCHedron(DCData* data, const mol_setup::MolKind& kind,
   for (uint i = 0; i < nBonds; ++i) {
     typedef vector<Angle>::const_iterator Aiter;
     Aiter free = find_if(angles.begin(), angles.end(),
-			 FindAngle(prev, bonded[i]));
+                         FindAngle(prev, bonded[i]));
     assert(free != angles.end());
     angleKinds[i][i] = free->kind;
 
     for (uint j = i + 1; j < nBonds; ++j) {
       Aiter pair = find_if(angles.begin(), angles.end(),
-			   FindAngle(bonded[i], bonded[j]));
+                           FindAngle(bonded[i], bonded[j]));
       angleKinds[i][j] = pair->kind;
       angleKinds[j][i] = pair->kind;
     }
