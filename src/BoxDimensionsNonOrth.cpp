@@ -18,6 +18,7 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
 {
   rCut = rc;
   rCutSq = rcSq;
+  minVol = rCutSq * rCut + 0.001;
   for (uint b = 0; b < BOX_TOTAL; b++) {
     if(restart.enable && cryst.hasVolume) {
       axis = cryst.axis;
@@ -50,17 +51,17 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
 
     //Print Box dimensio info
     printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n",
-           "Info: Box ", b, " Periodic Cell Basis 1",
-           cellBasis[b].Get(0).x, cellBasis[b].Get(0).y,
-           cellBasis[b].Get(0).z);
+	   "Info: Box ", b, " Periodic Cell Basis 1",
+	   cellBasis[b].Get(0).x, cellBasis[b].Get(0).y,
+	   cellBasis[b].Get(0).z);
     printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n",
-           "Info: Box ", b, " Periodic Cell Basis 2",
-           cellBasis[b].Get(1).x, cellBasis[b].Get(1).y,
-           cellBasis[b].Get(1).z);
+	   "Info: Box ", b, " Periodic Cell Basis 2",
+	   cellBasis[b].Get(1).x, cellBasis[b].Get(1).y,
+	   cellBasis[b].Get(1).z);
     printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n\n",
-           "Info: Box ", b, " Periodic Cell Basis 3",
-           cellBasis[b].Get(2).x, cellBasis[b].Get(2).y,
-           cellBasis[b].Get(2).z);
+	   "Info: Box ", b, " Periodic Cell Basis 3",
+	   cellBasis[b].Get(2).x, cellBasis[b].Get(2).y,
+	   cellBasis[b].Get(2).z);
 
 
     //Find the length of a, b, c
@@ -153,6 +154,9 @@ uint BoxDimensionsNonOrth::ShiftVolume(BoxDimensionsNonOrth & newDim,
   newDim = *this;
   newDim.SetVolume(b, newVolume);
 
+  if(newVolume < minVol)
+   return mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
+
   //If move would shrink any box axis to be less than 2 * rcut, then
   //automatically reject to prevent errors.
   if ((newDim.halfAx.x[b] < rCut || newDim.halfAx.y[b] < rCut ||
@@ -177,6 +181,11 @@ uint BoxDimensionsNonOrth::ExchangeVolume(BoxDimensionsNonOrth & newDim,
 
   newDim.SetVolume(0, volume[0] + transfer);
   newDim.SetVolume(1, vTot - newDim.volume[0]);
+
+  for (uint b = 0; b < BOX_TOTAL; b++) {
+    if(newDim.volume[b] < minVol)
+      return mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
+  }
 
   //If move would shrink any box axis to be less than 2 * rcut, then
   //automatically reject to prevent errors.

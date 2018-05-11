@@ -135,6 +135,7 @@ public:
 
   double rCut;
   double rCutSq;
+  double minVol;
 
   bool cubic[BOX_TOTAL], orthogonal[BOX_TOTAL], constArea;
 
