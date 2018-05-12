@@ -92,7 +92,7 @@ SystemPotential CalculateEnergy::SystemTotal()
     double bondEn = 0.0, nonbondEn = 0.0, self = 0.0, correction = 0.0;
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(b);
-    std::vector<int> molID;
+    std::vector<uint> molID;
 
     while (thisMol != end) {
       molID.push_back(*thisMol);
@@ -539,13 +539,13 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
   if(box >= BOXES_WITH_U_NB)
     return;
   double distSq, qi_qj_Fact, tempLJ, tempReal;
-  uint i, t;
+  int i;
   MoleculeKind const& thisKind = mols.GetKind(molIndex);
   uint kindI = thisKind.AtomKind(partIndex);
   double kindICharge = thisKind.AtomCharge(partIndex);
   std::vector<uint> nIndex;
 
-  for(t = 0; t < trials; ++t) {
+  for(uint t = 0; t < trials; ++t) {
     nIndex.clear();
     tempReal = 0.0;
     tempLJ = 0.0;
