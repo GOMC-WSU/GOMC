@@ -27,6 +27,11 @@ DCOnSphere::DCOnSphere(DCData* data, const mol_setup::MolKind kind,
       break;
     }
   }
+    
+  if(data->nLJTrialsNth < 1) {
+    std::cout << "Error: CBMC secondary atom trials must be greater than 0.\n";
+    exit(EXIT_FAILURE);
+  }
 }
 
 void DCOnSphere::SetBondLengthNew(TrialMol& newMol)
