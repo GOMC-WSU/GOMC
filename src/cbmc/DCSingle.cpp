@@ -14,7 +14,14 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 namespace cbmc
 {
-
+DCSingle::DCSingle(DCData* data, uint atom) : data(data), atom(atom)
+{
+  if(data->nLJTrialsFirst < 1) {
+    std::cout << "Error: CBMC first atom trials must be greater than 0.\n";
+    exit(EXIT_FAILURE);
+  }
+}
+    
 void DCSingle::BuildOld(TrialMol& oldMol, uint molIndex)
 {
   PRNG& prng = data->prng;

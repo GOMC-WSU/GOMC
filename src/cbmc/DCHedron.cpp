@@ -76,6 +76,10 @@ DCHedron::DCHedron(DCData* data, const mol_setup::MolKind& kind,
 
   phi[0] = 0.0;
   phiWeight[0] = 1.0;
+  if(data->nAngleTrials < 1) {
+    std::cout << "Error: CBMC angle trials must be greater than 0.\n";
+    exit(EXIT_FAILURE);
+  }
 }
 
 void DCHedron::SetBondNew(double const *bondLen, double const &anchBond)

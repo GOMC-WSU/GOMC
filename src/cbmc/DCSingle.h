@@ -22,7 +22,7 @@ class DCData;
 class DCSingle : public DCComponent
 {
 public:
-  DCSingle(DCData* data, uint atom) : data(data), atom(atom) {}
+  DCSingle(DCData* data, uint atom);
   void PrepareNew(TrialMol& newMol, uint molIndex) {};
   void PrepareOld(TrialMol& oldMol, uint molIndex) {};
   void BuildOld(TrialMol& oldMol, uint molIndex);
