@@ -106,7 +106,7 @@ inline double Clock::GetTimDiff()
 #if defined(__linux__) || defined(__APPLE__)
   return (stop - strt);
 #elif _WIN32
-  return (stop - strt) / CLOCKS_PER_SEC;
+  return (double)(stop - strt) / CLOCKS_PER_SEC;
 #endif
 }
 
