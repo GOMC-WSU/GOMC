@@ -18,7 +18,7 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
 {
   rCut = rc;
   rCutSq = rcSq;
-  minVol = rCutSq * rCut + 0.001;
+  minVol = 8.0 * rCutSq * rCut + 0.001;
   for (uint b = 0; b < BOX_TOTAL; b++) {
     if(restart.enable && cryst.hasVolume) {
       axis = cryst.axis;
@@ -104,13 +104,10 @@ uint BoxDimensions::ShiftVolume
   double newVolume = volume[b] + delta;
   newDim.SetVolume(b, newVolume);
 
-  if(newVolume < minVol)
-   return mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
-
   //If move would shrink any box axis to be less than 2 * rcut, then
   //automatically reject to prevent errors.
   if ((newDim.halfAx.x[b] < rCut || newDim.halfAx.y[b] < rCut ||
-       newDim.halfAx.z[b] < rCut)) {
+       newDim.halfAx.z[b] < rCut || newVolume < minVol)) {
     std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!"
               << std::endl;
     std::cout << "AxisDimensions: " << newDim.GetAxis(b) << std::endl;
@@ -130,17 +127,12 @@ uint BoxDimensions::ExchangeVolume
   newDim.SetVolume(0, volume[0] + transfer);
   newDim.SetVolume(1, vTot - newDim.volume[0]);
 
-  for (uint b = 0; b < BOX_TOTAL; b++) {
-    if(newDim.volume[b] < minVol)
-      return mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
-  }
-
   //If move would shrink any box axis to be less than 2 * rcut, then
   //automatically reject to prevent errors.
   for (uint b = 0; b < BOX_TOTAL; b++) {
     scale[b] = newDim.axis.Get(b) / axis.Get(b);
     if ((newDim.halfAx.x[b] < rCut || newDim.halfAx.y[b] < rCut ||
-         newDim.halfAx.z[b] < rCut)) {
+         newDim.halfAx.z[b] < rCut || newDim.volume[b] < minVol)) {
       std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!"
                 << std::endl;
       std::cout << "AxisDimensions: " << newDim.GetAxis(b) << std::endl;
