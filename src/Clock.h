@@ -13,7 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream> //for cout
 #if defined(__linux__) || defined(__APPLE__)
 #include <sys/time.h> //for timing
-#elif _WIN32
+#elif (_WIN32) || (__CYGWIN__)
 #include <time.h>
 #endif
 
@@ -25,7 +25,7 @@ struct Clock {
 #if defined(__linux__) || defined(__APPLE__)
     gettimeofday(&tv, &tz);
     strt = (double)tv.tv_sec + (double)tv.tv_usec / 1000000;
-#elif _WIN32
+#elif (_WIN32) || (__CYGWIN__)
     strt = clock();
 #endif
     lastTime = strt;
@@ -42,7 +42,7 @@ private:
   struct timeval tv;
   struct timezone tz;
   double strt, stop, lastTime;
-#elif _WIN32
+#elif (_WIN32) || (__CYGWIN__)
   clock_t strt, stop, lastTime;
 #endif
   ulong stepsPerOut, prevStep, lastStep;
@@ -57,7 +57,7 @@ inline void Clock::CheckTime(const uint step)
     double currTime = (double)tv.tv_sec + (double)tv.tv_usec / 1000000;
     std::cout << "Steps/sec. : "
               << stepDelta / (currTime - lastTime) << std::endl;
-#elif _WIN32
+#elif (_WIN32) || (__CYGWIN__)
     clock_t currTime = clock();
     std::cout << "Steps/sec. : "
               << stepDelta / (((double)currTime - lastTime) / CLOCKS_PER_SEC)
@@ -71,7 +71,7 @@ inline void Clock::CheckTime(const uint step)
     stop = (double)tv.tv_sec + (double)tv.tv_usec / 1000000;
     std::cout << "Simulation Time (total): " << (stop - strt)
               << " sec." << std::endl;
-#elif _WIN32
+#elif (_WIN32) || (__CYGWIN__)
     stop = clock();
     std::cout << "Simulation Time (total): "
               << (((double)stop - strt) / CLOCKS_PER_SEC)
@@ -86,7 +86,7 @@ inline void Clock::SetStart()
 #if defined(__linux__) || defined(__APPLE__)
   gettimeofday(&tv, &tz);
   strt = (double)tv.tv_sec + (double)tv.tv_usec / 1000000;
-#elif _WIN32
+#elif (_WIN32) || (__CYGWIN__)
   strt = clock();
 #endif
 }
@@ -96,7 +96,7 @@ inline void Clock::SetStop()
 #if defined(__linux__) || defined(__APPLE__)
   gettimeofday(&tv, &tz);
   stop = (double)tv.tv_sec + (double)tv.tv_usec / 1000000;
-#elif _WIN32
+#elif (_WIN32) || (__CYGWIN__)
   stop = clock();
 #endif
 }
@@ -105,7 +105,7 @@ inline double Clock::GetTimDiff()
 {
 #if defined(__linux__) || defined(__APPLE__)
   return (stop - strt);
-#elif _WIN32
+#elif (_WIN32) || (__CYGWIN__)
   return (double)(stop - strt) / CLOCKS_PER_SEC;
 #endif
 }
