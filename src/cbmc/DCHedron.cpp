@@ -317,7 +317,7 @@ void DCHedron::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTrials)
           energies[i] += data->ff.angles->Calc(angleKinds[b][c],
                                                bfcTheta);
 
-	  if(abs(angles[i]) > 1.0) {
+	  if(abs(angles[i]) > 2.0 * M_PI) {
 	    std::cout << "Error: Cannot constrain fix angle for " <<
 	      newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
 	      newMol.GetKind().atomTypeNames[focus] << " " <<
@@ -388,7 +388,7 @@ void DCHedron::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
           energies += data->ff.angles->Calc(angleKinds[b][c],
                                             bfcTheta);
 	  
-	  if(abs(angles) > 1.0) {
+	  if(abs(angles) > 2.0 * M_PI) {
 	    std::cout << "Error: Cannot constrain fix angle for " <<
 	      oldMol.GetKind().atomTypeNames[bonded[b]] << " " <<
 	      oldMol.GetKind().atomTypeNames[focus] << " " <<
