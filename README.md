@@ -10,21 +10,21 @@ We recommend the [GOMC Project Website](http://gomc.eng.wayne.edu/ "GOMC Website
 ## Building GOMC on GNU/Linux, macOS, or Cygwin:
 
   1. Clone or download our code from GitHub:
-  ```bash
-  git clone https://github.com/GOMC-WSU/GOMC.git
-  ```
+      ```bash
+      git clone https://github.com/GOMC-WSU/GOMC.git
+      ```
   2. Go into the GOMC directory: 
-  ```bash
-  cd GOMC
-  ```
+      ```bash
+      cd GOMC
+      ```
   3. Give execution permission: 
-  ```bash
-  chmod u+x metamake.sh
-  ```
+      ```bash
+      chmod u+x metamake.sh
+      ```
   4. Run metamake file:
-  ```bash
-  ./metamake.sh
-  ```
+      ```bash
+      ./metamake.sh
+      ```
   5. Step 4 should generate all the executables in ```bin``` directory
 
   You can set the number of the threads using the +pN argument, where N is the number of threads.
@@ -32,6 +32,7 @@ We recommend the [GOMC Project Website](http://gomc.eng.wayne.edu/ "GOMC Website
   ```bash
   ./GOMC_<CPU|GPU>_XXXX +p4 in.conf
   ```
+
   Which will run 4 threads and reads input file "in.conf".
 
   NOTES:
