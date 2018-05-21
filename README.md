@@ -1,3 +1,5 @@
+GOMC - GPU Optimized Monte Carlo
+============
 Current Release: 2.31 (5/21/2018)
 
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/GOMC_WSU/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
@@ -5,10 +7,7 @@ Current Release: 2.31 (5/21/2018)
 
 We recommend the [GOMC Project Website](http://gomc.eng.wayne.edu/ "GOMC Website") and the [user manual](http://gomc.eng.wayne.edu/GOMC_files/GOMC_Manual.pdf "User Manual") for further information and examples.
 
-GOMC - GPU Optimized Monte Carlo
-============
-
-BUILDING GOMC ON GNU/LINUX, macOS, or CYGWIN:
+Building GOMC on GNU/Linux, macOS, or Cygwin:
 ----------------
    1. Clone or download our code from GitHub:
    ```
