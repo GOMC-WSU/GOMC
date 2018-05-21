@@ -10,15 +10,19 @@ GOMC - GPU Optimized Monte Carlo
 
 BUILDING GOMC ON LINUX:
 ----------------
-   1. Clone or download our code from GitHub using "git clone https://github.com/GOMC-WSU/GOMC.git"
-   2. Go into the GOMC directory using "cd GOMC"
-   3. Give execution permission using "chmod u+x metamake.sh"
-   4. In the base directory type "./metamake.sh"
+   1. Clone or download our code from GitHub using:
+   ```git clone https://github.com/GOMC-WSU/GOMC.git```
+   2. Go into the GOMC directory using 
+   ```cd GOMC```
+   3. Give execution permission using 
+   ```chmod u+x metamake.sh```
+   4. In the base directory type 
+   ```./metamake.sh```
    5. Step 2 should generate all the executables in "bin" directory
 
    You can set the number of the threads using the +pN argument, where N is the number of threads.
    For example:
-      ./GOMC_<CPU|GPU>_XXXX +p4 in.conf
+      ```./GOMC_<CPU|GPU>_XXXX +p4 in.conf```
       Which will run 4 threads and reads input file "in.conf".
 
    NOTES:
