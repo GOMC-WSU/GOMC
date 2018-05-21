@@ -26,7 +26,7 @@ BUILDING GOMC ON LINUX:
    ```
    ./metamake.sh
    ```
-   5. Step 2 should generate all the executables in ```bin``` directory
+   5. Step 4 should generate all the executables in ```bin``` directory
 
    You can set the number of the threads using the +pN argument, where N is the number of threads.
    For example:
