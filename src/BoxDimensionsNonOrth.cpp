@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -18,6 +18,7 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
 {
   rCut = rc;
   rCutSq = rcSq;
+  minVol = 8.0 * rCutSq * rCut + 0.001;
   for (uint b = 0; b < BOX_TOTAL; b++) {
     if(restart.enable && cryst.hasVolume) {
       axis = cryst.axis;
@@ -50,17 +51,17 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
 
     //Print Box dimensio info
     printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n",
-           "Info: Box ", b, " Periodic Cell Basis 1",
-           cellBasis[b].Get(0).x, cellBasis[b].Get(0).y,
-           cellBasis[b].Get(0).z);
+	   "Info: Box ", b, " Periodic Cell Basis 1",
+	   cellBasis[b].Get(0).x, cellBasis[b].Get(0).y,
+	   cellBasis[b].Get(0).z);
     printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n",
-           "Info: Box ", b, " Periodic Cell Basis 2",
-           cellBasis[b].Get(1).x, cellBasis[b].Get(1).y,
-           cellBasis[b].Get(1).z);
+	   "Info: Box ", b, " Periodic Cell Basis 2",
+	   cellBasis[b].Get(1).x, cellBasis[b].Get(1).y,
+	   cellBasis[b].Get(1).z);
     printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n\n",
-           "Info: Box ", b, " Periodic Cell Basis 3",
-           cellBasis[b].Get(2).x, cellBasis[b].Get(2).y,
-           cellBasis[b].Get(2).z);
+	   "Info: Box ", b, " Periodic Cell Basis 3",
+	   cellBasis[b].Get(2).x, cellBasis[b].Get(2).y,
+	   cellBasis[b].Get(2).z);
 
 
     //Find the length of a, b, c
@@ -156,7 +157,7 @@ uint BoxDimensionsNonOrth::ShiftVolume(BoxDimensionsNonOrth & newDim,
   //If move would shrink any box axis to be less than 2 * rcut, then
   //automatically reject to prevent errors.
   if ((newDim.halfAx.x[b] < rCut || newDim.halfAx.y[b] < rCut ||
-       newDim.halfAx.z[b] < rCut)) {
+       newDim.halfAx.z[b] < rCut || newVolume < minVol)) {
     std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!"
               << std::endl;
     std::cout << "AxisDimensions: " << newDim.GetAxis(b) << std::endl;
@@ -180,14 +181,14 @@ uint BoxDimensionsNonOrth::ExchangeVolume(BoxDimensionsNonOrth & newDim,
 
   //If move would shrink any box axis to be less than 2 * rcut, then
   //automatically reject to prevent errors.
-  for (uint b = 0; b < BOX_TOTAL && state == mv::fail_state::NO_FAIL; b++) {
+  for (uint b = 0; b < BOX_TOTAL; b++) {
     scale[b] = newDim.axis.Get(b) / axis.Get(b);
     if ((newDim.halfAx.x[b] < rCut || newDim.halfAx.y[b] < rCut ||
-         newDim.halfAx.z[b] < rCut)) {
+         newDim.halfAx.z[b] < rCut || newDim.volume[b] < minVol)) {
       std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!"
                 << std::endl;
       std::cout << "AxisDimensions: " << newDim.GetAxis(b) << std::endl;
-      state = mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
+      return  mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
     }
   }
   return state;

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -76,6 +76,11 @@ DCHedron::DCHedron(DCData* data, const mol_setup::MolKind& kind,
 
   phi[0] = 0.0;
   phiWeight[0] = 1.0;
+
+  if(data->nAngleTrials < 1) {
+    std::cout << "Error: CBMC angle trials must be greater than 0.\n";
+    exit(EXIT_FAILURE);
+  }
 }
 
 void DCHedron::SetBondNew(double const *bondLen, double const &anchBond)
@@ -130,18 +135,12 @@ void DCHedron::GenerateAnglesNew(TrialMol& newMol, uint molIndex,
   #pragma omp parallel for default(shared) private(i, distSq)
 #endif
   for (i = 0; i < nTrials; ++i) {
-    if(angleFix)
-      data->angleEnergy[i] = 0.0;
-    else
-      data->angleEnergy[i] = data->ff.angles->Calc(kind, data->angles[i]);
+    data->angleEnergy[i] = data->ff.angles->Calc(kind, data->angles[i]);
 
     distSq = newMol.AngleDist(anchorBond, bondLength[bType],
                               data->angles[i]);
     nonbonded_1_3[i] =
       data->calc.IntraEnergy_1_3(distSq, prev, bonded[bType], molIndex);
-
-    if(isnan(nonbonded_1_3[i]))
-      nonbonded_1_3[i] = num::BIGNUM;
 
     data->angleWeights[i] = exp((data->angleEnergy[i] + nonbonded_1_3[i])
                                 * -data->ff.beta);
@@ -173,18 +172,12 @@ void DCHedron::GenerateAnglesOld(TrialMol& oldMol, uint molIndex,
   #pragma omp parallel for default(shared) private(i, distSq)
 #endif
   for (i = 0; i < nTrials; ++i) {
-    if(angleFix)
-      data->angleEnergy[i] = 0.0;
-    else
-      data->angleEnergy[i] = data->ff.angles->Calc(kind, data->angles[i]);
+    data->angleEnergy[i] = data->ff.angles->Calc(kind, data->angles[i]);
 
     distSq = oldMol.AngleDist(anchorBondOld, bondLengthOld[bType],
                               data->angles[i]);
     nonbonded_1_3[i] =
       data->calc.IntraEnergy_1_3(distSq, prev, bonded[bType], molIndex);
-
-    if(isnan(nonbonded_1_3[i]))
-      nonbonded_1_3[i] = num::BIGNUM;
 
     data->angleWeights[i] = exp((data->angleEnergy[i] + nonbonded_1_3[i])
                                 * -data->ff.beta);
@@ -299,7 +292,7 @@ void DCHedron::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTrials)
       double sinTerm = sin(theta[b]) * sin(theta[c]);
 
       for (uint i = 0; i < nTrials; ++i) {
-        if(data->ff.angles->AngleEnergy(angleKinds[b][c]) <= 10E7) {
+        if(!data->ff.angles->AngleFixed(angleKinds[b][c])) {
           double bfcTheta = acos(sinTerm * cos(angles[i] - phi[c]) +
                                  cosTerm);
           double distSq = newMol.AngleDist(bondLength[b], bondLength[c],
@@ -308,29 +301,29 @@ void DCHedron::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTrials)
                           bonded[c],
                           molIndex);
 
-          if(isnan(tempEn))
-            tempEn = num::BIGNUM;
-
           nonbonded_1_3[i] += tempEn;
-
           energies[i] += data->ff.angles->Calc(angleKinds[b][c],
                                                bfcTheta);
         } else {
-          double fixedbfc = data->ff.angles->Angle(angleKinds[b][c]);
-          angles[i] = acos((cos(fixedbfc) - abs(cosTerm)) / sinTerm) + phi[c];
-          double bfcTheta = acos(sinTerm * cos(angles[i] - phi[c]) +
-                                 cosTerm);
+          double bfcTheta = data->ff.angles->Angle(angleKinds[b][c]);
+          angles[i] = acos((cos(bfcTheta) - cosTerm) / sinTerm) + phi[c];
           double distSq = newMol.AngleDist(bondLength[b], bondLength[c],
                                            bfcTheta);
           double tempEn = data->calc.IntraEnergy_1_3(distSq, bonded[b],
                           bonded[c],
                           molIndex);
-          if(isnan(tempEn))
-            tempEn = num::BIGNUM;
 
           nonbonded_1_3[i] += tempEn;
           energies[i] += data->ff.angles->Calc(angleKinds[b][c],
                                                bfcTheta);
+
+	  if(abs(angles[i]) > 2.0 * M_PI) {
+	    std::cout << "Error: Cannot constrain fix angle for " <<
+	      newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
+	      newMol.GetKind().atomTypeNames[focus] << " " <<
+	      newMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
+	    exit(EXIT_FAILURE);
+	  }
         }
       }
     }
@@ -371,7 +364,7 @@ void DCHedron::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
       double nonbondedEng = 0.0;
       //compare to angles determined in previous iterations
       for (uint c = 0; c < b; ++c) {
-        if(data->ff.angles->AngleEnergy(angleKinds[b][c]) <= 10E7) {
+        if(!data->ff.angles->AngleFixed(angleKinds[b][c])) {
           double cosTerm = cos(theta[b]) * cos(theta[c]);
           double sinTerm = sin(theta[b]) * sin(theta[c]);
           double bfcTheta = acos(sinTerm * cos(angles - phi[c])
@@ -380,26 +373,28 @@ void DCHedron::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
                                            bondLengthOld[c], bfcTheta);
           nonbondedEng += data->calc.IntraEnergy_1_3(distSq, bonded[b],
                           bonded[c], molIndex);
-          if(isnan(nonbondedEng))
-            nonbondedEng = num::BIGNUM;
 
           energies += data->ff.angles->Calc(angleKinds[b][c], bfcTheta);
         } else {
           double cosTerm = cos(theta[b]) * cos(theta[c]);
           double sinTerm = sin(theta[b]) * sin(theta[c]);
-          double fixedbfc = data->ff.angles->Angle(angleKinds[b][c]);
-          angles = acos((cos(fixedbfc) - abs(cosTerm)) / sinTerm) + phi[c];
-          double bfcTheta = acos(sinTerm * cos(angles - phi[c])
-                                 + cosTerm);
+          double bfcTheta = data->ff.angles->Angle(angleKinds[b][c]);
+          angles = acos((cos(bfcTheta) - cosTerm) / sinTerm) + phi[c];
           double distSq = oldMol.AngleDist(bondLengthOld[b],
                                            bondLengthOld[c], bfcTheta);
           nonbondedEng += data->calc.IntraEnergy_1_3(distSq, bonded[b],
                           bonded[c], molIndex);
-          if(isnan(nonbondedEng))
-            nonbondedEng = num::BIGNUM;
 
           energies += data->ff.angles->Calc(angleKinds[b][c],
                                             bfcTheta);
+	  
+	  if(abs(angles) > 2.0 * M_PI) {
+	    std::cout << "Error: Cannot constrain fix angle for " <<
+	      oldMol.GetKind().atomTypeNames[bonded[b]] << " " <<
+	      oldMol.GetKind().atomTypeNames[focus] << " " <<
+	      oldMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
+	    exit(EXIT_FAILURE);
+	  }
         }
       }
 

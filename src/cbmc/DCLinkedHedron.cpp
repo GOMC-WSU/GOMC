@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -73,6 +73,17 @@ DCLinkedHedron::DCLinkedHedron
       dihKinds[i][j] = match->kind;
     }
   }
+    
+  if(data->nLJTrialsNth < 1) {
+    std::cout << "Error: CBMC secondary atom trials must be greater than 0.\n";
+    exit(EXIT_FAILURE);
+  }
+    
+  if(data->nDihTrials < 1) {
+    std::cout << "Error: CBMC dihedral trials must be greater than 0.\n";
+    exit(EXIT_FAILURE);
+  }
+    
 }
 
 void DCLinkedHedron::PrepareNew(TrialMol& newMol, uint molIndex)
