@@ -1,6 +1,13 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.31] - 5/21/2018
++ Compiling problem fixed on CYGWIN
++ Fix to the error checking of volume exchange if simulation volume became negative
++ Fix the equation to impose fix angle if the angle is less than 90. Generate error if constrained angle is not possible.
++ Fixed a bug where move timings were 0 in windows.
++ Fixed the issue where input files imported from NVT to NPT had zero volume, default value of 500 will be assigned in those cases.
+
 ## [2.30] - 5/10/2018
 + Added Regrowth move
 + Cleaned up the code and removed any memory leaks and bugs.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.30
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -92,7 +92,7 @@ SystemPotential CalculateEnergy::SystemTotal()
     double bondEn = 0.0, nonbondEn = 0.0, self = 0.0, correction = 0.0;
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(b);
-    std::vector<int> molID;
+    std::vector<uint> molID;
 
     while (thisMol != end) {
       molID.push_back(*thisMol);
@@ -539,13 +539,13 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
   if(box >= BOXES_WITH_U_NB)
     return;
   double distSq, qi_qj_Fact, tempLJ, tempReal;
-  uint i, t;
+  int i;
   MoleculeKind const& thisKind = mols.GetKind(molIndex);
   uint kindI = thisKind.AtomKind(partIndex);
   double kindICharge = thisKind.AtomCharge(partIndex);
   std::vector<uint> nIndex;
 
-  for(t = 0; t < trials; ++t) {
+  for(uint t = 0; t < trials; ++t) {
     nIndex.clear();
     tempReal = 0.0;
     tempLJ = 0.0;
@@ -842,6 +842,9 @@ double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,
   }
   forcefield.particles->CalcAdd_1_4(eng, distSq, kind1, kind2);
 
+  if(isnan(eng))
+      eng = num::BIGNUM;
+
   return eng;
 
 }
@@ -869,6 +872,9 @@ double CalculateEnergy::IntraEnergy_1_4(const double distSq, const uint atom1,
     forcefield.particles->CalcCoulombAdd_1_4(eng, distSq, qi_qj_Fact, false);
   }
   forcefield.particles->CalcAdd_1_4(eng, distSq, kind1, kind2);
+
+  if(isnan(eng))
+      eng = num::BIGNUM;
 
   return eng;
 
