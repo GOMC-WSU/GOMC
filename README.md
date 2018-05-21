@@ -8,7 +8,7 @@ We recommend the [GOMC Project Website](http://gomc.eng.wayne.edu/ "GOMC Website
 GOMC - GPU Optimized Monte Carlo
 ============
 
-BUILDING GOMC ON LINUX:
+BUILDING GOMC ON GNU/LINUX, macOS, or CYGWIN:
 ----------------
    1. Clone or download our code from GitHub:
    ```
