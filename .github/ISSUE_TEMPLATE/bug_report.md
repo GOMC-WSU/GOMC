@@ -20,6 +20,9 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
+**Input files**
+Please include all the files you used to run the simulation.
+
 **Desktop (please complete the following information):**
  - OS: [e.g. Ubuntu, Fedora, CentOS, Windows, Cygwin, macOS, ...]
  - Ensemble [e.g. NPT, NVT, GCMC, GEMC]
