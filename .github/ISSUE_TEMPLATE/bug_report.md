@@ -19,10 +19,9 @@ If applicable, add screenshots to help explain your problem.
 **Input files**
 Please include all the files you used to run the simulation.
 
-**Operating system (please complete the following information):**
+**Please complete the following information:**
  - OS: [e.g. Ubuntu, Fedora, CentOS, Windows, Cygwin, macOS, ...]
- 
- **Code (please complete the following information)**
+ - Ensemble: [e.g. NPT, NVT, GEMC, GCMC]
  - Code version [e.g. 2.31]
 
 **Additional context**
