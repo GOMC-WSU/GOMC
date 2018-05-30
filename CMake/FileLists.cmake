@@ -86,6 +86,9 @@ set(headers
    src/InputFileReader.h
    src/IntraSwap.h
    src/MersenneTwister.h
+   src/MoleculeExchange1.h
+   src/MoleculeExchange2.h
+   src/MoleculeExchange3.h
    src/MoleculeKind.h
    src/MoleculeLookup.h
    src/MoleculeTransfer.h

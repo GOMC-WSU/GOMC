@@ -208,15 +208,15 @@ struct CBMC {
   GrowBond bonded;
 };
 
-struct MEMCVal { 
+struct MEMCVal {
   bool enable, readVol, readRatio, readSmallBB, readLargeBB;
   bool readSK, readLK;
   bool MEMC1, MEMC2, MEMC3;
   XYZ subVol;
   std::string smallKind, largeKind;
   uint exchangeRatio;
-  uint smallBBAtom1, smallBBAtom2;
-  uint largeBBAtom1, largeBBAtom2;
+  std::string smallBBAtom1, smallBBAtom2;
+  std::string largeBBAtom1, largeBBAtom2;
   MEMCVal(void) : {
     MEMC1 = MEMC2 = MEMC3 = false;
     readVol = readRatio = readSmallBB = false;

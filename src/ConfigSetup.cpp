@@ -249,55 +249,55 @@ void ConfigSetup::Init(const char *fileName)
       printf("%-40s %-4.4f \n", "Info: Switch distance", sys.ff.rswitch);
     } else if(line[0] == "ExchangeVolumeDim") {
       if(line.size() == 4) {
-	XYZ temp;
-	temp.x = stringtod(line[1]);
-	temp.y = stringtod(line[2]);
-	temp.z = stringtod(line[3]);
-	sys.memcVal.subVol = temp;
-	printf("%-40s %-4.3f %-4.3f %-4.3f A\n",
-	       "Info: Exchange Sub-Volume Dimensions", temp.x, temp.y, temp.z);
-	sys.memc.readVol = true;
+        XYZ temp;
+        temp.x = stringtod(line[1]);
+        temp.y = stringtod(line[2]);
+        temp.z = stringtod(line[3]);
+        sys.memcVal.subVol = temp;
+        printf("%-40s %-4.3f %-4.3f %-4.3f A\n",
+               "Info: Exchange Sub-Volume Dimensions", temp.x, temp.y, temp.z);
+        sys.memc.readVol = true;
       }
     } else if(line[0] == "ExchangeRatio") {
       if(line.size() == 2) {
         uint val = stringtoi(line[1]);
-	sys.memcVal.exchangeRatio = val;
-	sys.memcVal.readRatio = true;
-	printf("%-40s %-d \n", "Info: ExchangeRatio", val);
+        sys.memcVal.exchangeRatio = val;
+        sys.memcVal.readRatio = true;
+        printf("%-40s %-d \n", "Info: ExchangeRatio", val);
       }
     } else if(line[0] == "ExchangeLargeKind") {
       if(line.size() == 2) {
         std::string resName = line[1];
-	sys.memcVal.largeKind = resName;
-	sys.memcVal.readLK = true;
-	printf("%-40s %-s \n", "Info: Exchange Large Kind", resName);
+        sys.memcVal.largeKind = resName;
+        sys.memcVal.readLK = true;
+        printf("%-40s %-s \n", "Info: Exchange Large Kind", resName);
       }
     } else if(line[0] == "ExchangeSmallKind") {
       if(line.size() == 2) {
         std::string resName = line[1];
-	sys.memcVal.smallKind = resName;
-	sys.memcVal.readSK = true;
-	printf("%-40s %-s \n", "Info: Exchange Small Kind", resName);
+        sys.memcVal.smallKind = resName;
+        sys.memcVal.readSK = true;
+        printf("%-40s %-s \n", "Info: Exchange Small Kind", resName);
       }
     } else if(line[0] == "SmallKindBackBone") {
       if(line.size() == 3) {
-        uint atom1 = stringtoi(line[1]);
-	uint atom2 = stringtoi(line[2]);
-	sys.memcVal.smallBBAtom1 = atom1;
-	sys.memcVal.smallBBAtom2 = atom2;
-	sys.memcVal.readSmallBB = true;
-	printf("%-40s %-d - %-d \n", "Info: Atom Index in Small Kind BackBone",
-	       atom1, atom2);
+        std::string atom1 = line[1];
+        std::string atom2 = line[2];
+        sys.memcVal.smallBBAtom1 = atom1;
+        sys.memcVal.smallBBAtom2 = atom2;
+        sys.memcVal.readSmallBB = true;
+        printf("%-40s %-s - %-s \n", "Info: Atom Names in Small Kind BackBone",
+               atom1, atom2);
       }
     } else if(line[0] == "LargeKindBackBone") {
       if(line.size() == 3) {
-        uint atom1 = stringtoi(line[1]);
-	uint atom2 = stringtoi(line[2]);
-	sys.memcVal.largeBBAtom1 = atom1;
-	sys.memcVal.largeBBAtom2 = atom2;
-	sys.memcVal.readLargeBB = true;
-	printf("%-40s %-d - %-d \n", "Info: Atom Index in Large Kind BackBone",
-	       atom1, atom2);
+        std::string atom1 = line[1];
+        std::string atom2 = line[2];
+        sys.memcVal.largeBBAtom1 = atom1;
+        sys.memcVal.largeBBAtom2 = atom2;
+        sys.memcVal.readLargeBB = true;
+        printf("%-40s %-s - %-s \n", "Info: Atom Names in Large Kind BackBone",
+               atom1, atom2);
       }
     } else if(line[0] == "Rcut") {
       sys.ff.cutoff = stringtod(line[1]);
