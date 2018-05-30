@@ -657,6 +657,26 @@ void CalculateEnergy::MoleculeIntra(const uint molIndex,
   MolNonbond_1_3(bondEn[1], molKind, molIndex, box);
 }
 
+//used in molecule exchange for calculating bonded and intraNonbonded energy
+void CalculateEnergy::MoleculeIntra(cbmc::TrialMol &mol,
+                                    const uint molIndex) const
+{
+  uint box = mol.GetBox();
+  double bondEn = 0.0, intraNonbondEn = 0.0;
+  MoleculeKind& molKind = mols.kinds[mols.kIndex[molIndex]];
+  // *2 because we'll be storing inverse bond vectors
+  XYZArray bondVec(molKind.bondList.count * 2);
+  BondVectors(bondVec, molKind, molIndex, box);
+    
+  MolBond(bondEn, molKind, bondVec, box);
+  MolAngle(bondEn, molKind, bondVec, box);
+  MolDihedral(bondEn, molKind, bondVec, box);
+  MolNonbond(intraNonbondEn, molKind, molIndex, box);
+  MolNonbond_1_4(intraNonbondEn, molKind, molIndex, box);
+  MolNonbond_1_3(intraNonbondEn, molKind, molIndex, box);
+  mol.AddEnergy(Energy(bondEn, intraNonbondEn, 0.0, 0.0, 0.0, 0.0, 0.0));
+}
+
 void CalculateEnergy::BondVectors(XYZArray & vecs,
                                   MoleculeKind const& molKind,
                                   const uint molIndex,

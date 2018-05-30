@@ -81,8 +81,7 @@ Virial NoEwald::ForceCorrection(Virial& virial, uint box) const
 
 //calculate reciprocate term for displacement and rotation move
 double NoEwald::MolReciprocal(XYZArray const& molCoords,
-                              const uint molIndex, const uint box,
-                              XYZ const*const newCOM)
+                              const uint molIndex, const uint box)
 {
   return 0.0;
 }
@@ -114,6 +113,15 @@ double NoEwald::SwapDestRecip(const cbmc::TrialMol &newMol,
 //calculate reciprocate term in source box for swap move
 double NoEwald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                 const uint box, const int molIndex)
+{
+  return 0.0;
+}
+
+
+//calculate reciprocate term for inserting some molecules (kindA) in destination
+// box and removing a molecule (kindB) from destination box
+double NoEwald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
+                          const std::vector<cbmc::TrialMol> &oldMol)
 {
   return 0.0;
 }

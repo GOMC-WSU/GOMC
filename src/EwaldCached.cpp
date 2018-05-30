@@ -227,8 +227,7 @@ double EwaldCached::BoxReciprocal(uint box) const
 //calculate reciprocate term for displacement and rotation move
 double EwaldCached::MolReciprocal(XYZArray const& molCoords,
                                   const uint molIndex,
-                                  const uint box,
-                                  XYZ const*const newCOM)
+                                  const uint box)
 {
   double energyRecipNew = 0.0;
 
@@ -357,6 +356,18 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
     energyRecipOld = sysPotRef.boxEnergy[box].recip;
   }
   return energyRecipNew - energyRecipOld;
+}
+
+//calculate reciprocate term for inserting some molecules (kindA) in destination
+// box and removing a molecule (kindB) from destination box
+double EwaldCached::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
+                              const std::vector<cbmc::TrialMol> &oldMol)
+{
+  //This function should not be called in IDExchange move
+  std::cout << "Error: Cached Fourier method cannot be used while " <<
+    "performing Identity Exchange move!" << std::endl;
+  exit(EXIT_FAILURE);
+  return 0.0;
 }
 
 //restore cosMol and sinMol
