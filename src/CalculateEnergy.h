@@ -140,6 +140,10 @@ public:
   //! Calculates intramolecular energy of a full molecule
   void MoleculeIntra(const uint molIndex, const uint box, double *bondEn) const;
 
+  //used in molecule exchange for calculating bonded and intraNonbonded energy
+  void MoleculeIntra(cbmc::TrialMol &mol, const uint molIndex) const;
+
+    
   //! Calculates Nonbonded 1_3 intramolecule energy of a full molecule
   //for Martini forcefield
   double IntraEnergy_1_3(const double distSq, const uint atom1,

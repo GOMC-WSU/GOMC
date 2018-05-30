@@ -292,8 +292,7 @@ double Ewald::BoxReciprocal(uint box) const
 
 //calculate reciprocate term for displacement and rotation move
 double Ewald::MolReciprocal(XYZArray const& molCoords,
-                            const uint molIndex, const uint box,
-                            XYZ const*const newCOM)
+                            const uint molIndex, const uint box)
 {
   double energyRecipNew = 0.0;
   double energyRecipOld = 0.0;
@@ -481,6 +480,74 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
   return energyRecipNew - energyRecipOld;
 }
 
+
+//calculate reciprocate term for inserting some molecules (kindA) in destination
+// box and removing molecule (kindB) from destination box
+double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
+                        const std::vector<cbmc::TrialMol> &oldMol)
+{
+    double energyRecipNew = 0.0;
+    double energyRecipOld = 0.0;
+    uint box = newMol[0].GetBox();
+    
+    if (box < BOXES_WITH_U_NB)
+    {
+        uint p, i, m, lengthNew, lengthOld;
+        MoleculeKind const& thisKindNew = newMol[0].GetKind();
+        MoleculeKind const& thisKindOld = oldMol[0].GetKind();
+        double dotProductNew, sumRealNew, sumImaginaryNew;
+        lengthNew = thisKindNew.NumAtoms();
+        lengthOld = thisKindOld.NumAtoms();
+        
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(i, p, dotProductNew, sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
+#endif
+        for (i = 0; i < imageSizeRef[box]; i++)
+        {
+            sumRealNew = 0.0;
+            sumImaginaryNew = 0.0;
+            dotProductNew = 0.0;
+            
+            for (m = 0; m < newMol.size(); m++)
+            {
+                for (p = 0; p < lengthNew; ++p)
+                {
+                    dotProductNew = currentAxes.DotProduct(p, kxRef[box][i],
+                                                           kyRef[box][i],kzRef[box][i],
+                                                           newMol[m].GetCoords(), box);
+                    
+                    sumRealNew += (thisKindNew.AtomCharge(p) * cos(dotProductNew));
+                    sumImaginaryNew += (thisKindNew.AtomCharge(p) *sin(dotProductNew));
+                }
+            }
+            
+            for (m = 0; m < oldMol.size(); m++)
+            {
+                for (p = 0; p < lengthOld; ++p)
+                {
+                    dotProductNew = currentAxes.DotProduct(p, kxRef[box][i],
+                                                           kyRef[box][i],kzRef[box][i],
+                                                           oldMol[m].GetCoords(), box);
+                    
+                    sumRealNew -= (thisKindOld.AtomCharge(p) * cos(dotProductNew));
+                    sumImaginaryNew -= (thisKindOld.AtomCharge(p) *sin(dotProductNew));
+                }
+            }
+            
+            //sumRealNew;
+            sumRnew[box][i] = sumRref[box][i] + sumRealNew;
+            //sumImaginaryNew;
+            sumInew[box][i] = sumIref[box][i] + sumImaginaryNew;
+            
+            energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
+                               * sumInew[box][i]) * prefactRef[box][i];
+        }
+        
+        energyRecipOld = sysPotRef.boxEnergy[box].recip;
+    }
+    
+    return energyRecipNew - energyRecipOld;
+}
 
 //restore cosMol and sinMol
 void Ewald::RestoreMol(int molIndex)
