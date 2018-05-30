@@ -47,6 +47,7 @@ ConfigSetup::ConfigSetup(void)
   sys.elect.tolerance = DBL_MAX;
   sys.elect.oneFourScale = DBL_MAX;
   sys.elect.dielectric = DBL_MAX;
+  sys.memcVal.enable = false;
   sys.step.total = ULONG_MAX;
   sys.step.equil = ULONG_MAX;
   sys.step.adjustment = ULONG_MAX;
@@ -245,8 +246,59 @@ void ConfigSetup::Init(const char *fileName)
         printf("%-40s %-s \n", "Info: Long Range Correction", "Inactive");
     } else if(line[0] == "Rswitch") {
       sys.ff.rswitch = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: Switch distance",
-             sys.ff.rswitch);
+      printf("%-40s %-4.4f \n", "Info: Switch distance", sys.ff.rswitch);
+    } else if(line[0] == "ExchangeVolumeDim") {
+      if(line.size() == 4) {
+	XYZ temp;
+	temp.x = stringtod(line[1]);
+	temp.y = stringtod(line[2]);
+	temp.z = stringtod(line[3]);
+	sys.memcVal.subVol = temp;
+	printf("%-40s %-4.3f %-4.3f %-4.3f A\n",
+	       "Info: Exchange Sub-Volume Dimensions", temp.x, temp.y, temp.z);
+	sys.memc.readVol = true;
+      }
+    } else if(line[0] == "ExchangeRatio") {
+      if(line.size() == 2) {
+        uint val = stringtoi(line[1]);
+	sys.memcVal.exchangeRatio = val;
+	sys.memcVal.readRatio = true;
+	printf("%-40s %-d \n", "Info: ExchangeRatio", val);
+      }
+    } else if(line[0] == "ExchangeLargeKind") {
+      if(line.size() == 2) {
+        std::string resName = line[1];
+	sys.memcVal.largeKind = resName;
+	sys.memcVal.readLK = true;
+	printf("%-40s %-s \n", "Info: Exchange Large Kind", resName);
+      }
+    } else if(line[0] == "ExchangeSmallKind") {
+      if(line.size() == 2) {
+        std::string resName = line[1];
+	sys.memcVal.smallKind = resName;
+	sys.memcVal.readSK = true;
+	printf("%-40s %-s \n", "Info: Exchange Small Kind", resName);
+      }
+    } else if(line[0] == "SmallKindBackBone") {
+      if(line.size() == 3) {
+        uint atom1 = stringtoi(line[1]);
+	uint atom2 = stringtoi(line[2]);
+	sys.memcVal.smallBBAtom1 = atom1;
+	sys.memcVal.smallBBAtom2 = atom2;
+	sys.memcVal.readSmallBB = true;
+	printf("%-40s %-d - %-d \n", "Info: Atom Index in Small Kind BackBone",
+	       atom1, atom2);
+      }
+    } else if(line[0] == "LargeKindBackBone") {
+      if(line.size() == 3) {
+        uint atom1 = stringtoi(line[1]);
+	uint atom2 = stringtoi(line[2]);
+	sys.memcVal.largeBBAtom1 = atom1;
+	sys.memcVal.largeBBAtom2 = atom2;
+	sys.memcVal.readLargeBB = true;
+	printf("%-40s %-d - %-d \n", "Info: Atom Index in Large Kind BackBone",
+	       atom1, atom2);
+      }
     } else if(line[0] == "Rcut") {
       sys.ff.cutoff = stringtod(line[1]);
       printf("%-40s %-4.4f A\n", "Info: Cutoff", sys.ff.cutoff);
@@ -312,7 +364,7 @@ void ConfigSetup::Init(const char *fileName)
         sys.step.pressureCalcFreq = stringtoi(line[2]);
 
       if(sys.step.pressureCalc && (line.size() == 2)) {
-        std::cout << "Error: Pressure calculation frequency is not specified!\n";
+        std::cout <<"Error: Pressure calculation frequency is not specified!\n";
         exit(EXIT_FAILURE);
       }
       if(!sys.step.pressureCalc)
@@ -364,6 +416,30 @@ void ConfigSetup::Init(const char *fileName)
 #endif
       printf("%-40s %-4.4f \n", "Info: Molecule swap move frequency",
              sys.moves.transfer);
+    } else if(line[0] == "MEMC-1Freq") {
+      sys.moves.memc = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: MEMC-1 move frequency",
+	     sys.moves.memc);
+      if(sys.moves.memc > 0.0) {
+	sys.memcVal.enable = true;
+	sys.memcVal.MEMC1 = true
+      }
+    } else if(line[0] == "MEMC-2Freq") {
+      sys.moves.memc = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: MEMC-2 move frequency",
+	     sys.moves.memc);
+      if(sys.moves.memc > 0.0) {
+	sys.memcVal.enable = true;
+	sys.memcVal.MEMC2 = true
+      }
+    } else if(line[0] == "MEMC-3Freq") {
+      sys.moves.memc = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: MEMC-3 move frequency",
+	     sys.moves.memc);
+      if(sys.moves.memc > 0.0) {
+	sys.memcVal.enable = true;
+	sys.memcVal.MEMC3 = true
+      }
     }
 #endif
     else if(line[0] == "CellBasisVector1") {
@@ -613,6 +689,15 @@ void ConfigSetup::fillDefaults(void)
            sys.moves.regrowth);
   }
 
+  #ifdef VARIABLE_PARTICLE_NUMBER
+  if(sys.moves.memc == DBL_MAX)
+  {
+    sys.moves.memc = 0.0;
+    printf("%-40s %-4.4f \n", "Default: MEMC move frequency",
+	     sys.moves.memc);
+  }
+#endif
+
   if(sys.exclude.EXCLUDE_KIND == UINT_MAX) {
     sys.exclude.EXCLUDE_KIND = sys.exclude.EXC_ONEFOUR_KIND;
     printf("%-40s %-s \n", "Default: Exclude", "ONE-FOUR");
@@ -819,8 +904,8 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
-         sys.moves.intraSwap + sys.moves.volume +
-         sys.moves.regrowth - 1.0) > 0.01) {
+         sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
+	 sys.moves.memc - 1.0) > 0.01) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(EXIT_FAILURE);
   }
@@ -841,7 +926,7 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.transfer + sys.moves.regrowth - 1.0) > 0.01) {
+         sys.moves.transfer + sys.moves.regrowth +sys.moves.memc- 1.0) > 0.01) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
@@ -868,7 +953,7 @@ void ConfigSetup::verifyInputs(void)
     }
   }
   if(!sys.volume.hasVolume && !in.restart.enable) {
-    std::cout << "Error: This simulation requires to define " << 3 * BOX_TOTAL <<
+    std::cout << "Error: This simulation requires to define " << 3 * BOX_TOTAL<<
               " Cell Basis vectors!" << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -903,6 +988,33 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: CBMC number of nth site trials is not specified!\n";
     exit(EXIT_FAILURE);
   }
+  if(sys.memcVal.enable) {
+    if(!sys.memcVal.readVol) {
+      std::cout << "Error: In MEMC method, Sub-Volume is not specified!\n";
+      exit(EXIT_FAILURE);
+    }
+    if(!sys.memcVal.readRatio) {
+      std::cout << "Error: In MEMC method, Exchange Ratio is not specified!\n";
+      exit(EXIT_FAILURE);
+    }
+    if(!sys.memcVal.readSK) {
+      std::cout << "Error: In MEMC method, Small Kind is not specified!\n";
+      exit(EXIT_FAILURE);
+    }
+    if(!sys.memcVal.readLK) {
+      std::cout << "Error: In MEMC method, Large Kind is not specified!\n";
+      exit(EXIT_FAILURE);
+    }
+    if(!sys.memcVal.readLargeBB) {
+      std::cout << "Error: In MEMC method, Large Kind BackBone is not specified!\n";
+      exit(EXIT_FAILURE);
+    }
+    if(sys.memcVal.MEMC2 && !sys.memcVal.readSmallBB) {
+      std::cout << "Error: In MEMC method, Small Kind BackBone is not specified!\n";
+      exit(EXIT_FAILURE);
+    }
+  }
+  
 #endif
   if(sys.T.inKelvin == DBL_MAX) {
     std::cout << "Error: Temperature is not specified!\n";
