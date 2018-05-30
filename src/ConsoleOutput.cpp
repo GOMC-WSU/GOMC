@@ -123,7 +123,11 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
   printElement(var->GetTries(sub), elementWidth);
   printElement(var->GetAccepted(sub), elementWidth);
   printElement(var->GetAcceptPercent(sub), elementWidth);
-  //printElement(var->GetScale(sub), elementWidth);
+
+  sub = mv::GetMoveSubIndex(mv::MEMC, box);
+  printElement(var->GetTries(sub), elementWidth);
+  printElement(var->GetAccepted(sub), elementWidth);
+  printElement(var->GetAcceptPercent(sub), elementWidth);
 #endif
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
@@ -294,6 +298,10 @@ void ConsoleOutput::PrintMoveTitle()
   printElement("TRANSFER", elementWidth);
   printElement("TRANACCEPT", elementWidth);
   printElement("TRANACCEPT%", elementWidth);
+    
+  printElement("MOLEXCHANGE", elementWidth);
+  printElement("MOLEXACCEPT", elementWidth);
+  printElement("MOLEXACCEPT%", elementWidth);
 #endif
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
