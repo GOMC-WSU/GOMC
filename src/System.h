@@ -100,7 +100,7 @@ public:
   ~System();
 
 private:
-  void InitMoves();
+  void InitMoves(Setup const& set);
   void PickMove(uint & kind, double & draw);
   uint SetParams(const uint kind, const double draw);
   uint Transform(const uint kind);

@@ -21,6 +21,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeTransfer.h"
 #include "IntraSwap.h"
 #include "Regrowth.h"
+#include "MoleculeExchange1.h"
+#include "MoleculeExchange2.h"
+#include "MoleculeExchange3.h"
 
 System::System(StaticVals& statics) :
   statV(statics),
@@ -60,6 +63,7 @@ System::~System()
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   delete moves[mv::MOL_TRANSFER];
+  delete moves[mv::MEMC];
 #endif
 }
 
@@ -105,12 +109,12 @@ void System::Init(Setup const& set)
   calcEnergy.Init(*this);
   calcEwald->Init();
   potential = calcEnergy.SystemTotal();
-  InitMoves();
+  InitMoves(set);
   for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++)
     moveTime[m] = 0.0;
 }
 
-void System::InitMoves()
+void System::InitMoves(Setup const& set)
 {
   moves[mv::DISPLACE] = new Translate(*this, statV);
   moves[mv::ROTATE] = new Rotate(*this, statV);
@@ -121,6 +125,13 @@ void System::InitMoves()
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   moves[mv::MOL_TRANSFER] = new MoleculeTransfer(*this, statV);
+    if(set.config.sys.memcVal.MEME1) {
+      moves[mv::MEMC] = new MoleculeExchange1(*this, statV);
+    } else if (set.config.sys.memcVal.MEME2) {
+      moves[mv::MEMC] = new MoleculeExchange2(*this, statV);
+    } else {
+      moves[mv::MEMC] = new MoleculeExchange3(*this, statV);
+    }
 #endif
 }
 
@@ -189,6 +200,7 @@ void System::PrintTime()
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   printf("%-30s %10.4f sec.\n", "Molecule-Transfer:",
          moveTime[mv::MOL_TRANSFER]);
+  printf("%-30s %10.4f sec.\n", "Molecule-Exchange:", moveTime[mv::MEMC]);
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   printf("%-30s %10.4f sec.\n", "Volume-Transfer:", moveTime[mv::VOL_TRANSFER]);

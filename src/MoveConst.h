@@ -35,14 +35,16 @@ const uint MOVE_KINDS_TOTAL = 4;
 #elif ENSEMBLE == GCMC
 const uint INTRA_SWAP = 2;
 const uint REGROWTH = 3;
-const uint MOL_TRANSFER = 4;
-const uint MOVE_KINDS_TOTAL = 5;
+const uint MEMC = 4;
+const uint MOL_TRANSFER = 5;
+const uint MOVE_KINDS_TOTAL = 6;
 #elif ENSEMBLE == GEMC
 const uint VOL_TRANSFER = 2;
 const uint INTRA_SWAP = 3;
 const uint REGROWTH = 4;
-const uint MOL_TRANSFER = 5;
-const uint MOVE_KINDS_TOTAL = 6;
+const uint MEMC = 5;
+const uint MOL_TRANSFER = 6;
+const uint MOVE_KINDS_TOTAL = 7;
 #elif ENSEMBLE == NPT
 const uint VOL_TRANSFER = 2;
 const uint INTRA_SWAP = 3;
@@ -106,14 +108,16 @@ const uint IT_KINDS_TOTAL = 2;
 //      4. Regrowth (box 0)
 //
 //GCMC: 1. Disp (box 0)         2. Rotate (box 0)     3. IntraSwap (box 0)
-//      4. Regrowth (box 0)     5. Deletion (box 0)   6. Insertion (box 0)
+//      4. Regrowth (box 0)     5. MEMC (box 0)       6. Deletion (box 0)
+//      7. Insertion (box 0)
 //
 //GEMC: 1. Disp (box 0)         2. Disp (box 1)
 //      3. Rotate (box 0)       4. Rotate (box 1)
 //      5. Vol. (b0->b1)        6. Vol. (b1->b0)
 //      7. IntraSwap (box 0)    8. IntraSwap (box 1)
 //      9. Regrowth (box 0)    10. Regrowth (box 1)
-//     11. Mol Trans (b0->b1), 12. Mol Trans (b1->b0)
+//     11. MEMC (box 0)        12. MEMC (box 1)
+//     13. Mol Trans (b0->b1), 14. Mol Trans (b1->b0)
 //
 //NPT : 1. Disp (box 0)         2. Rotate (box 0)     3. Vol. (box 0)
 //      4. IntraSwap (box 0)    5. Regrowth (box 0)
@@ -122,10 +126,10 @@ const uint IT_KINDS_TOTAL = 2;
 const uint COUNT = 4;
 const uint SCALEABLE = 2;
 #elif ENSEMBLE == GCMC
-const uint COUNT = 6;
+const uint COUNT = 7;
 const uint SCALEABLE = 2;
 #elif ENSEMBLE == GEMC
-const uint COUNT = 12;
+const uint COUNT = 14;
 const uint SCALEABLE = 6;
 #elif ENSEMBLE == NPT
 const uint COUNT = 5;
