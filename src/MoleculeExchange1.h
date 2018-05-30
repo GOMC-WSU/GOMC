@@ -129,7 +129,7 @@ inline void MoleculeExchange1::AdjustExRatio()
     if(exMin == 0)
       exMin = 1;
 
-    subPick = mv::GetMoveSubIndex(mv::ID_EXCHANGE, sourceBox);
+    subPick = mv::GetMoveSubIndex(mv::MEMC, sourceBox);
     double currAccept = moveSetRef.GetAccept(subPick);
     if(abs(currAccept - lastAccept) > 0.05 * currAccept)
     {
@@ -779,12 +779,12 @@ inline void MoleculeExchange1::Accept(const uint rejectState, const uint step)
       result = false;
 
 #if ENSEMBLE == GEMC
-   subPick = mv::GetMoveSubIndex(mv::ID_EXCHANGE, sourceBox);
+   subPick = mv::GetMoveSubIndex(mv::MEMC, sourceBox);
    moveSetRef.Update(result, subPick, step);
-   subPick = mv::GetMoveSubIndex(mv::ID_EXCHANGE, destBox);
+   subPick = mv::GetMoveSubIndex(mv::MEMC, destBox);
    moveSetRef.Update(result, subPick, step);
 #elif ENSEMBLE == GCMC
-   subPick = mv::GetMoveSubIndex(mv::ID_EXCHANGE);
+   subPick = mv::GetMoveSubIndex(mv::MEMC);
    moveSetRef.Update(result, subPick, step);
 #endif
 }
