@@ -160,7 +160,7 @@ struct MovePercents {
   double volume;
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
-  double transfer;
+  double transfer, memc;
 #endif
 };
 
@@ -208,6 +208,22 @@ struct CBMC {
   GrowBond bonded;
 };
 
+struct MEMCVal { 
+  bool enable, readVol, readRatio, readSmallBB, readLargeBB;
+  bool readSK, readLK;
+  bool MEMC1, MEMC2, MEMC3;
+  XYZ subVol;
+  std::string smallKind, largeKind;
+  uint exchangeRatio;
+  uint smallBBAtom1, smallBBAtom2;
+  uint largeBBAtom1, largeBBAtom2;
+  MEMCVal(void) : {
+    MEMC1 = MEMC2 = MEMC3 = false;
+    readVol = readRatio = readSmallBB = false;
+    readLargeBB = readSK = readLK = false;
+  }
+};
+
 #if ENSEMBLE == GCMC
 struct ChemicalPotential {
   bool isFugacity;
@@ -223,6 +239,7 @@ struct SystemVals {
   MovePercents moves;
   Volume volume; //May go unused
   CBMC cbmcTrials;
+  MEMCVal memcVal;
 #if ENSEMBLE == GCMC
   ChemicalPotential chemPot;
 #elif ENSEMBLE == GEMC || ENSEMBLE == NPT
