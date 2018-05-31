@@ -256,7 +256,7 @@ void ConfigSetup::Init(const char *fileName)
         sys.memcVal.subVol = temp;
         printf("%-40s %-4.3f %-4.3f %-4.3f A\n",
                "Info: Exchange Sub-Volume Dimensions", temp.x, temp.y, temp.z);
-        sys.memc.readVol = true;
+        sys.memcVal.readVol = true;
       }
     } else if(line[0] == "ExchangeRatio") {
       if(line.size() == 2) {
@@ -989,6 +989,12 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(sys.memcVal.enable) {
+    if((sys.memcVal.MEMC1 && sys.memcVal.MEMC2) ||
+       (sys.memcVal.MEMC1 && sys.memcVal.MEMC3) || 
+       (sys.memcVal.MEMC2 && sys.memcVal.MEMC3)) {
+      std::cout << "Error: Multiple MEMC methods are specified!\n";
+      exit(EXIT_FAILURE);
+    }
     if(!sys.memcVal.readVol) {
       std::cout << "Error: In MEMC method, Sub-Volume is not specified!\n";
       exit(EXIT_FAILURE);

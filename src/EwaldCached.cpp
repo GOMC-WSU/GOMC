@@ -365,7 +365,7 @@ double EwaldCached::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
 {
   //This function should not be called in IDExchange move
   std::cout << "Error: Cached Fourier method cannot be used while " <<
-    "performing Identity Exchange move!" << std::endl;
+    "performing Molecule Exchange move!" << std::endl;
   exit(EXIT_FAILURE);
   return 0.0;
 }
