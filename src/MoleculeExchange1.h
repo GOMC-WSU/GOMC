@@ -26,6 +26,7 @@ class MoleculeExchange1 : public MoveBase
      enableID = statV.memcVal.enable;
      largeBB[0] = -1;
      largeBB[1] = -1;
+
      if(enableID) {
        if(cavity.x >= cavity.y)
          cavity.y = cavity.x;
@@ -42,31 +43,33 @@ class MoleculeExchange1 : public MoveBase
            kindS = k;
          }
        }
-         if(kindS == -1) {
-             printf("Error: Residue name %s was not found in PDB file as small molecule kind to be exchanged.\n", statV.memcVal.smallKind);
-             exit(EXIT_FAILURE);
-         }
-         if(kindL == -1) {
-             printf("Error: Residue name %s was not found in PDB file as large molecule kind to be exchanged.\n", statV.memcVal.largeKind);
-             exit(EXIT_FAILURE);
-         }
+
+       if(kindS == -1) {
+	 printf("Error: Residue name %s was not found in PDB file as small molecule kind to be exchanged.\n", statV.memcVal.smallKind);
+	 exit(EXIT_FAILURE);
+       }
+
+       if(kindL == -1) {
+	 printf("Error: Residue name %s was not found in PDB file as large molecule kind to be exchanged.\n", statV.memcVal.largeKind);
+	 exit(EXIT_FAILURE);
+       }
          
-         for(uint i = 0; i < molRef.kinds[kindL].NumAtoms(); i++) {
-             if(molRef.kinds[kindL].atomNames == statV.memcVal.smallBBAtom1) {
-                 largeBB[0] == i;
-             } else if(molRef.kinds[kindL].atomNames == statV.memcVal.smallBBAtom2) {
-                largeBB[1] == i;
-             }
-         }
+       for(uint i = 0; i < molRef.kinds[kindL].NumAtoms(); i++) {
+	 if(molRef.kinds[kindL].atomNames == statV.memcVal.largeBBAtom1) {
+	   largeBB[0] == i;
+	 } else if(molRef.kinds[kindL].atomNames == statV.memcVal.largeBBAtom2){
+	   largeBB[1] == i;
+	 }
+       }
          
-         for(uint i = 0; i < 2; i++) {
-             if(largeBB[i] == -1) {
-                 printf("Error: Atom name %s or %s was not found in the residue %s.\n",
-                        statV.memcVal.smallBBAtom1, statV.memcVal.smallBBAtom1,
-                        statV.memcVal.largeKind);
-                 exit(EXIT_FAILURE);
-             }
-         }
+       for(uint i = 0; i < 2; i++) {
+	 if(largeBB[i] == -1) {
+	   printf("Error: Atom name %s or %s was not found in %s residue.\n",
+		  statV.memcVal.largeBBAtom1, statV.memcVal.largeBBAtom2,
+		  statV.memcVal.largeKind);
+	   exit(EXIT_FAILURE);
+	 }
+       }
      }
 
      //checking the acceptance statistic for each kind
@@ -791,4 +794,4 @@ inline void MoleculeExchange1::Accept(const uint rejectState, const uint step)
 
 #endif
 
-#endif
+#endif        
