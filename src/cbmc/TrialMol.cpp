@@ -25,27 +25,43 @@ namespace cbmc
 
 TrialMol::TrialMol(const MoleculeKind& k, const BoxDimensions& ax,
                    uint box)
-  : kind(&k), axes(&ax), box(box), tCoords(k.NumAtoms()),
+  : kind(&k), axes(&ax), box(box), tCoords(k.NumAtoms()), cavMatrix(3),
     totalWeight(1.0)
 {
   atomBuilt = new bool[k.NumAtoms()];
   std::fill_n(atomBuilt, k.NumAtoms(), false);
   growthToWorld.LoadIdentity();
+  seedInCav = false;
+  seedFix = false;
+  rotateBB = false;
+  cavMatrix.Set(0, 1.0, 0.0, 0.0);
+  cavMatrix.Set(1, 0.0, 1.0, 0.0);
+  cavMatrix.Set(2, 0.0, 0.0, 1.0);
 }
 
 TrialMol::TrialMol()
-  : kind(NULL), axes(NULL), box(0), tCoords(0), atomBuilt(NULL)
+  : kind(NULL), axes(NULL), box(0), tCoords(0), atomBuilt(NULL),
+    seedInCav(false), seedFix(false), rotateBB(false), cavMatrix(3)
 {
+  cavMatrix.Set(0, 1.0, 0.0, 0.0);
+  cavMatrix.Set(1, 0.0, 1.0, 0.0);
+  cavMatrix.Set(2, 0.0, 0.0, 1.0);
 }
 
 TrialMol::TrialMol(const TrialMol& other) :
   kind(other.kind), axes(other.axes), box(other.box),
-  tCoords(other.tCoords), en(other.en),
+  tCoords(other.tCoords), cavMatrix(other.cavMatrix), en(other.en),
   totalWeight(other.totalWeight),
   basisPoint(other.basisPoint)
 {
   atomBuilt = new bool[kind->NumAtoms()];
   std::copy(other.atomBuilt, other.atomBuilt + kind->NumAtoms(), atomBuilt);
+  seedInCav = false;
+  seedFix = false;
+  rotateBB = false;
+  cavMatrix.Set(0, 1.0, 0.0, 0.0);
+  cavMatrix.Set(1, 0.0, 1.0, 0.0);
+  cavMatrix.Set(2, 0.0, 0.0, 1.0);
 }
 
 TrialMol& TrialMol::operator=(TrialMol other)
@@ -66,6 +82,18 @@ void swap(TrialMol& a, TrialMol& b)
   swap(a.atomBuilt, b.atomBuilt);
   swap(a.growthToWorld, b.growthToWorld);
   swap(a.worldToGrowth, b.worldToGrowth);
+  a.seedInCav = false;
+  b.seedInCav = false;
+  a.seedFix = false;
+  b.seedFix = false;
+  a.rotateBB = false;
+  b.rotateBB = false;
+  a.cavMatrix.Set(0, 1.0, 0.0, 0.0);
+  a.cavMatrix.Set(1, 0.0, 1.0, 0.0);
+  a.cavMatrix.Set(2, 0.0, 0.0, 1.0);
+  b.cavMatrix.Set(0, 1.0, 0.0, 0.0);
+  b.cavMatrix.Set(1, 0.0, 1.0, 0.0);
+  b.cavMatrix.Set(2, 0.0, 0.0, 1.0);
 }
 
 TrialMol::~TrialMol()
@@ -233,6 +261,43 @@ double TrialMol::DihedDist(const double b1, const double b2, const double b3,
     return (i * i + j * j + k * k);
   }
 
+}
+
+void TrialMol::SetCavMatrix(const XYZArray& matrix)
+{
+  matrix.CopyRange(cavMatrix, 0, 0, 3);
+}
+
+void TrialMol::SetSeed(const XYZ& coords, const XYZ& rmax, const bool inCav,
+		       const bool fixCOM, const bool rotBB)
+{
+  sCoords = coords;
+  sRmax = rmax;
+  seedInCav = inCav;
+  seedFix = fixCOM;
+  rotateBB = rotBB;
+}
+
+void TrialMol::SetSeed(const bool inCav, const bool fixCOM, const bool rotBB)
+{
+  seedInCav = inCav;
+  seedFix = fixCOM;
+  rotateBB = rotBB;
+}
+
+XYZ TrialMol::GetCOM()
+{
+  XYZ tcom;
+  XYZArray temp(tCoords);
+  //axes->UnwrapPBC(temp, box, tCoords.Get(0));
+  tCoords = temp;
+
+  for(uint p = 0; p < tCoords.Count(); p++) {
+    tcom += tCoords.Get(p);
+  }
+  tcom *= (1.0 / tCoords.Count());
+ 
+  return tcom;
 }
 
 }
