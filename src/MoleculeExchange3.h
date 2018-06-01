@@ -134,13 +134,12 @@ inline uint MoleculeExchange3::PickMolInCav()
    uint state = mv::fail_state::NO_FAIL;
    //pick a random small kind in dense phase and use the COM as cavity center
    uint pickedS, pickedKS;
-   state = prng.PickMol(kindL, pickedKS, pickedS, sourceBox);
+   state = prng.PickMol(kindS, pickedKS, pickedS, sourceBox);
    if(state == mv::fail_state::NO_FAIL)
    {
      center = comCurrRef.Get(pickedS);
      //Pick random vector and find two vectors that are perpendicular to V1
-     cavA.Set(0, prng.RandomUnitVect());
-     cavA.GramSchmidt();
+     cavA.SSetBasis(prng.RandomUnitVect());
      //Calculate inverse matrix for cav here Inv = transpose
      cavA.TransposeMatrix(invCavA);
 
@@ -174,7 +173,7 @@ inline uint MoleculeExchange3::PickMolInCav()
        
        //pick a molecule from Large kind in destBox
        numInCavB = 1;
-       state = prng.PickMol(kindS, kindIndexB, molIndexB, numInCavB, destBox);
+       state = prng.PickMol(kindL, kindIndexB, molIndexB, numInCavB, destBox);
      }
      else
      {
@@ -200,27 +199,22 @@ inline uint MoleculeExchange3::ReplaceMolecule()
    numInCavA = 1;
    numInCavB = exchangeRate;
    //pick a random molecule of Large kind in dens box
-   state = prng.PickMol(kindS, kindIndexA, molIndexA, numInCavA, sourceBox);
+   state = prng.PickMol(kindL, kindIndexA, molIndexA, numInCavA, sourceBox);
 
    if(state == mv::fail_state::NO_FAIL)
    {
-     //Set the V1 to the vector from first to last atom
-     uint pStart = 0;
-     uint pLen = 0;
-     molRef.GetRangeStartLength(pStart, pLen, molIndexA[0]);
-     //use random for now
-     cavA.Set(0, prng.RandomUnitVect());
-     cavA.GramSchmidt();
+     //Set the V1 to a random vector and calculate two vector perpendicular to V1
+     cavA.SetBasis(prng.RandomUnitVect());
      //Calculate inverse matrix for cav. Here Inv = Transpose 
      cavA.TransposeMatrix(invCavA);
      //use the first atom in molecule as the center
-     center = coordCurrRef.Get(pStart);
+     center = coordCurrRef.Get(largeBB[0]);
      //find how many of KindS exist in this center
      calcEnRef.FindMolInCavity(molInCav, center, cavity, invCavA, sourceBox,
 			       kindS, exchangeRate);
      totMolInCav = molInCav[kindS].size();
      //pick exchangeRate number of Small molecule from dest box
-     state = prng.PickMol(kindL, kindIndexB, molIndexB, numInCavB, destBox);  
+     state = prng.PickMol(kindS, kindIndexB, molIndexB, numInCavB, destBox);
    }
    return state;
 }

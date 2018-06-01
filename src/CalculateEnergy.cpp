@@ -938,3 +938,66 @@ void CalculateEnergy::ForceCorrection(Virial& virial,
     virial.tc = vir;
   }
 }
+
+bool CalculateEnergy::FindMolInCavity(std::vector< std::vector<uint> > &mol,
+                                      const XYZ& center, const XYZ& cavDim,
+                                      const XYZArray& invCav, const uint box,
+                                      const uint kind, const uint exRatio)
+{
+    uint k;
+    mol.clear();
+    mol.resize(molLookup.GetNumKind());
+    uint maxLength = max(cavDim.x, cavDim.y);
+    maxLength = max(maxLength, cavDim.z);
+    
+    if(maxLength <= rCut)
+    {
+        CellList::Neighbors n = cellList.EnumerateLocal(center, box);
+        while (!n.Done())
+        {
+            if(currentAxes.InCavity(currentCOM.Get(particleMol[*n]), center, cavDim,
+                                    invCav, box))
+            {
+                uint molIndex = particleMol[*n];
+                //if molecule can be transfer between boxes
+                if(!molLookup.IsNoSwap(molIndex))
+                {
+                    k = mols.GetMolKind(molIndex);
+                    bool exist = std::find(mol[k].begin(), mol[k].end(), molIndex) !=
+                    mol[k].end();
+                    if(!exist)
+                        mol[k].push_back(molIndex);
+                }
+            }
+            n.Next();
+        }
+    }
+    else
+    {
+        MoleculeLookup::box_iterator n = molLookup.BoxBegin(box);
+        MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+        while (n != end)
+        {
+            if(currentAxes.InCavity(currentCOM.Get(*n), center, cavDim, invCav, box))
+            {
+                uint molIndex = *n;
+                //if molecule can be transfer between boxes
+                if(!molLookup.IsNoSwap(molIndex))
+                {
+                    k = mols.GetMolKind(molIndex);
+                    bool exist = std::find(mol[k].begin(), mol[k].end(), molIndex) !=
+                    mol[k].end();
+                    if(!exist)
+                        mol[k].push_back(molIndex);
+                }
+            }
+            n++;
+        }
+    }
+    
+    //If the is exRate and more molecule kind in cavity, return true.
+    if(mol[kind].size() >= exRatio)
+        return true;
+    else
+        return false;
+}
