@@ -120,14 +120,6 @@ public:
                      const uint box,
                      const uint trials) const;
 
-  void ParticleInterRange(double* en, double *real,
-                          XYZArray const& trialPos,
-                          const uint partIndex,
-                          const uint molIndex,
-                          const uint box,
-                          const uint start,
-                          const uint end) const;
-
 
   //! Calculates the change in the TC from adding numChange atoms of a kind
   //! @param box Index of box under consideration

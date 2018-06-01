@@ -157,7 +157,7 @@ void DCFreeHedronSeed::BuildNew(TrialMol& newMol, uint molIndex)
                           inter[winner], real[winner],
                           0.0, 0.0, 0.0));
   newMol.MultWeight(hed.GetWeight());
-  newMol.MultWeight(stepWeight);
+  newMol.MultWeight(stepWeight / nLJTrials);
 }
 
 void DCFreeHedronSeed::BuildOld(TrialMol& oldMol, uint molIndex)
@@ -233,7 +233,7 @@ void DCFreeHedronSeed::BuildOld(TrialMol& oldMol, uint molIndex)
   oldMol.AddEnergy(Energy(hed.GetEnergy() + bondEnergy, hed.GetNonBondedEn(),
                           inter[0], real[0], 0.0, 0.0, 0.0));
   oldMol.MultWeight(hed.GetWeight());
-  oldMol.MultWeight(stepWeight);
+  oldMol.MultWeight(stepWeight / nLJTrials);
 }
 
 }
