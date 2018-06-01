@@ -28,6 +28,12 @@ class MoleculeExchange3 : public MoveBase
      enableID = statV.memcVal.enable;
 
      if(enableID) {
+       if(molLookRef.GetNumCanSwapKind() < 2) {
+	 std::cout << "Error: MEMC move cannot be applied to pure systems or"<<
+	   " systems, where only one molecule type is allowed to be swapped.\n";
+	 exit(EXIT_FAILURE);
+       }
+
        if(cavity.x >= cavity.y)
          cavity.y = cavity.x;
        else
@@ -36,11 +42,11 @@ class MoleculeExchange3 : public MoveBase
        volCav = cavity.x * cavity.y * cavity.z;
        exchangeRatio = statV.memcVal.exchangeRatio;
          
-       for(uint k = 0; k < molLookRef.GetNumKind(); k++) {
+       for(uint k = 0; k < molLookRef.GetNumCanSwapKind(); k++) {
          if(molRef.kinds[k].name == statV.memcVal.largeKind) {
-           kindL = k;
+           kindL = molLookRef.GetCanSwapKind(k);
          } else if(molRef.kinds[k].name == statV.memcVal.smallKind) {
-           kindS = k;
+           kindS = molLookRef.GetCanSwapKind(k);
          }
        }
 
@@ -69,10 +75,6 @@ class MoleculeExchange3 : public MoveBase
    uint ReplaceMolecule();
    void CalcTc();
    double GetCoeff() const;
-   //calculate factorial
-   double Factorial(const uint n) const;
-   //calculate ratio of factorial
-   double Factorial(const uint n, const uint count) const;
    uint GetBoxPairAndMol(const double subDraw, const double movPerc);
 
    bool insertL, enableID;
@@ -203,7 +205,7 @@ inline uint MoleculeExchange3::ReplaceMolecule()
 
    if(state == mv::fail_state::NO_FAIL)
    {
-     //Set the V1 to a random vector and calculate two vector perpendicular to V1
+     //Set V1 to a random vector and calculate two vector perpendicular to V1
      cavA.SetBasis(prng.RandomUnitVect());
      //Calculate inverse matrix for cav. Here Inv = Transpose 
      cavA.TransposeMatrix(invCavA);
@@ -220,7 +222,7 @@ inline uint MoleculeExchange3::ReplaceMolecule()
 }
 
 inline uint MoleculeExchange3::GetBoxPairAndMol(const double subDraw,
-					       const double movPerc)
+						const double movPerc)
 {
    uint state = mv::fail_state::NO_FAIL; 
    //deside to insert or remove the big molecule
@@ -263,12 +265,10 @@ inline uint MoleculeExchange3::GetBoxPairAndMol(const double subDraw,
    if(insertL)
    {
      state = PickMolInCav();
-     trial[sourceBox][kindL]++;
    }
    else
    {
      state = ReplaceMolecule();
-     trial[sourceBox][kindS]++;
    }  
    
    if(state == mv::fail_state::NO_FAIL)
@@ -350,7 +350,7 @@ inline uint MoleculeExchange3::Prep(const double subDraw, const double movPerc)
        coordCurrRef.CopyRange(molB, pStartB[n], 0, pLenB[n]);
        boxDimRef.UnwrapPBC(molB, destBox, comCurrRef.Get(molIndexB[n]));
        oldMolB[n].SetCoords(molB, 0);
-       //set coordinate of moleB to newMolB, later it will shift to tempD
+       //set coordinate of moleB to newMolB, later it will shift
        newMolB[n].SetCoords(molB, 0);
        //copy cavA matrix to slant the new trial of molB
        newMolB[n].SetCavMatrix(cavA);
@@ -569,9 +569,9 @@ inline double MoleculeExchange3::GetCoeff() const
   if(insertL)
   {
     //kindA is the small molecule
-    double ratioF =  Factorial(totMolInCav - 1) /
-      (Factorial(totMolInCav - exchangeRate) *
-       Factorial(numTypeADest, exchangeRate));
+    double ratioF = num::Factorial(totMolInCav - 1) /
+      (num::Factorial(totMolInCav - exchangeRate) *
+       num::Factorial(numTypeADest, exchangeRate));
     double ratioV = pow(volDest / volCav, exchangeRate - 1);
     double ratioM = numTypeASource * numTypeBDest / (numTypeBSource + 1.0);
     return ratioF * ratioV * ratioM;
@@ -579,9 +579,9 @@ inline double MoleculeExchange3::GetCoeff() const
   else
   {
     //kindA is the big molecule
-    double ratioF =  Factorial(totMolInCav) *
-      Factorial(numTypeBDest - exchangeRate, exchangeRate) /
-      Factorial(totMolInCav + exchangeRate - 1);
+    double ratioF = num::Factorial(totMolInCav) *
+      num::Factorial(numTypeBDest - exchangeRate, exchangeRate) /
+      num::Factorial(totMolInCav + exchangeRate - 1);
     double ratioV = pow(volCav / volDest, exchangeRate - 1);
     double ratioM = numTypeASource /
       ((numTypeADest + 1.0) * (numTypeBSource + exchangeRate));
@@ -595,16 +595,16 @@ inline double MoleculeExchange3::GetCoeff() const
     if(insertL)
     {
       //Insert Large molecule
-      double ratioF =  Factorial(totMolInCav - 1) /
-	Factorial(totMolInCav - exchangeRate);
+      double ratioF = num::Factorial(totMolInCav - 1) /
+	num::Factorial(totMolInCav - exchangeRate);
       double ratioM = numTypeASource / (numTypeBSource + 1.0);
       return (insB / delA) * ratioF * ratioM / pow(volCav, exchangeRate - 1);
     }
     else
     {
       //Delete Large Molecule
-      double ratioF = Factorial(totMolInCav) /
-	Factorial(totMolInCav + exchangeRate - 1);
+      double ratioF = num::Factorial(totMolInCav) /
+	num::Factorial(totMolInCav + exchangeRate - 1);
       double ratioM =  numTypeASource / (numTypeBSource + exchangeRate);
       return (insB / delA) * ratioF * ratioM * pow(volCav, exchangeRate - 1);
     }
@@ -616,16 +616,16 @@ inline double MoleculeExchange3::GetCoeff() const
     if(insertL)
     {
       //Insert Large molecule
-      double ratioF =  Factorial(totMolInCav - 1) /
-	Factorial(totMolInCav - exchangeRate);
+      double ratioF = num::Factorial(totMolInCav - 1) /
+	num::Factorial(totMolInCav - exchangeRate);
       double ratioM =  numTypeASource / (numTypeBSource + 1.0);
       return exp(delA + insB) * ratioF * ratioM / pow(volCav, exchangeRate - 1);
     }
     else
     {
       //Delete Large Molecule
-      double ratioF = Factorial(totMolInCav) /
-	Factorial(totMolInCav + exchangeRate - 1);
+      double ratioF = num::Factorial(totMolInCav) /
+	num::Factorial(totMolInCav + exchangeRate - 1);
       double ratioM = numTypeASource / (numTypeBSource + exchangeRate);
       return exp(delA + insB) * ratioF * ratioM * pow(volCav, exchangeRate - 1);
     }
@@ -677,35 +677,9 @@ inline void MoleculeExchange3::RecoverMol(const bool A, const uint n,
   }
 }
 
-//return n!
-inline double MoleculeExchange3::Factorial(const uint n) const
-{
-  double result = 1.0;
-  for(uint i = 2; i <= n; i++)
-  {
-    result *= i;
-  }
-
-  return result;
-}
-
-//return (n+count)!/n! 
-inline double MoleculeExchange3::Factorial(const uint n, const uint count) const
-{
-  double result = 1.0;
-  for(uint i = 1; i <= count; i++)
-  {
-    result *= n + i;
-  }
-
-  return result;
-}
-
 inline void MoleculeExchange3::Accept(const uint rejectState, const uint step)
 {
-   bool result; 
-   //print acceptance information
-   PrintAcceptance(step);
+   bool result;
 
    //If we didn't skip the move calculation
    if(rejectState == mv::fail_state::NO_FAIL)
@@ -727,9 +701,7 @@ inline void MoleculeExchange3::Accept(const uint rejectState, const uint step)
 
       if(result)
       {
-	 //update acceptance
-	 accept[sourceBox][kindIndexB[0]]++;
-         //Add tail corrections
+	 //Add tail corrections
          sysPotRef.boxEnergy[sourceBox].tc = tcNew[sourceBox].energy;
          sysPotRef.boxEnergy[destBox].tc = tcNew[destBox].energy;
 
