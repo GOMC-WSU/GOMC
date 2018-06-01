@@ -159,6 +159,19 @@ public:
     return atomBuilt[index];
   }
 
+  //Used in MEMC move
+  XYZ Transform(const XYZ& a) {return cavMatrix.Transform(a);}
+  void TransposeMatrix(XYZArray &invMatrix)
+  {return cavMatrix.TransposeMatrix(invMatrix);}
+  bool HasCav() const {return seedInCav;}
+  bool SeedFix() const {return seedFix;}
+  bool RotateBB() const {return rotateBB;}
+  void SetCavMatrix(const XYZArray& matrix);
+  XYZ GetSeed() const {return sCoords;}
+  XYZ GetSubVol() const {return cavity;}
+  //return unwrap com of tcoords so tcoords must be set
+  XYZ GetCOM();
+
   ~TrialMol();
 
 private:
@@ -167,14 +180,16 @@ private:
   const MoleculeKind* kind;
   const BoxDimensions* axes;
   uint box;
-  XYZArray tCoords;
+  XYZArray tCoords, cavMatrix;
   Energy en;
   double totalWeight;
-  bool* atomBuilt;
   RotationMatrix growthToWorld;
   RotationMatrix worldToGrowth;
   XYZ basisPoint;
-  //bool oneThree, oneFour;
+  XYZ sCoords, cavity; //The center and cavity dimensions
+  bool seedInCav, seedFix, rotateBB;
+  bool* atomBuilt;
+
 };
 }
 
