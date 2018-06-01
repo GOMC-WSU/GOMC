@@ -421,7 +421,7 @@ inline uint MoleculeExchange3::Transform()
   //Deleting A, B from their box
   if(insertL)
   {
-    //Remove the fixed COM small mol at the end because we insert it at fist
+    //Remove the fixed COM small mol at the end because we insert it at first
     for(uint n = numInCavA; n > 0; n--)
     {
       cellList.RemoveMol(molIndexA[n-1], sourceBox, coordCurrRef);

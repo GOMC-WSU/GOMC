@@ -203,7 +203,7 @@ void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
                           oneFour[winner], inter[winner], real[winner],
                           0.0, 0.0, 0.0));
   newMol.MultWeight(hed.GetWeight());
-  newMol.MultWeight(stepWeight);
+  newMol.MultWeight(stepWeight / nLJTrials);
 }
 
 void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
@@ -320,7 +320,7 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
                           inter[0], real[0], 0.0, 0.0, 0.0));
 
   oldMol.MultWeight(hed.GetWeight());
-  oldMol.MultWeight(stepWeight);
+  oldMol.MultWeight(stepWeight / nLJTrials);
 }
 
 double DCLinkedHedron::EvalLJ(TrialMol& mol, uint molIndex)

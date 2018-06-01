@@ -575,36 +575,6 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
   }
 }
 
-//! Calculates Nonbonded inter energy for candidate positions in trialPos
-void CalculateEnergy::ParticleInterRange(double* en, double *real,
-    XYZArray const& trialPos,
-    const uint partIndex,
-    const uint molIndex,
-    const uint box,
-    const uint start,
-    const uint end) const
-{
-  double distSq, qi_qj_Fact;
-  MoleculeKind const& thisKind = mols.GetKind(molIndex);
-  uint kindI = thisKind.AtomKind(partIndex);
-  double kindICharge = thisKind.AtomCharge(partIndex) * num::qqFact;
-
-  for(uint t = start; t < end; ++t) {
-    CellList::Neighbors n = cellList.EnumerateLocal(trialPos[t], box);
-    while (!n.Done()) {
-      distSq = 0.0;
-      if(currentAxes.InRcut(distSq, trialPos, t, currentCoords, *n, box)) {
-        en[t] += forcefield.particles->CalcEn(distSq, kindI, particleKind[*n]);
-        if(electrostatic) {
-          qi_qj_Fact = particleCharge[*n] * kindICharge ;
-          real[t] += forcefield.particles->CalcCoulombEn(distSq, qi_qj_Fact);
-        }
-      }
-      n.Next();
-    }
-  }
-}
-
 
 //Calculates the change in the TC from adding numChange atoms of a kind
 Intermolecular CalculateEnergy::MoleculeTailChange(const uint box,
