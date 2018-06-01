@@ -279,7 +279,6 @@ public:
         //Lookup true index in table.
         m = molLookRef.GetMolNum(mOff, mk, b);
       } while(molLookRef.IsFix(m));
-
     }
 
     return rejectState;
@@ -313,12 +312,38 @@ public:
         //Lookup true index in table.
         m = molLookRef.GetMolNum(mOff, mk, b);
       } while(molLookRef.IsNoSwap(m));
-
     }
 
     return rejectState;
   }
 
+  // In MEMC move pick n molecules of kind mk
+  uint PickMol(const uint mk, std::vector<uint> &mk2,
+               std::vector<uint> &m2, const uint n, const uint b)
+  {
+    uint rejectState = mv::fail_state::NO_FAIL;
+    //Pick molecule with the help of molecule lookup table.
+    if ((molLookRef.NumKindInBox(mk, b) == 0)) {
+      rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+    } else if (molLookRef.NumKindInBox(mk, b) < n){
+      rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+    } else {
+      for(uint i = 0; i < n; i++) {
+        //Among the ones of that kind in that box, pick one @ random.
+        //Molecule with a tag (beta == 2 and beta == 1) cannot be selected.
+        do {
+          uint mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
+          //Lookup true index in table.
+          m = molLookRef.GetMolNum(mOff, mk, b);
+        } while(molLookRef.IsNoSwap(m) || std::find(m2.begin(), m2.end(), m) != m2.end());
+        m2.push_back(m);
+        mk2.push_back(mk);
+      }
+    }
+      
+    return rejectState;
+  }
+    
   // pick a molecule that is not fixed (beta != 1)
   uint PickMolAndBoxPair(uint &m, uint &mk, uint & bSrc, uint & bDest,
                          double subDraw, const double movPerc)

@@ -178,29 +178,21 @@ inline uint MoleculeExchange2::PickMolInCav()
    uint state = mv::fail_state::NO_FAIL;
    //pick a random small kind in dense phase and use the COM as cavity center
    uint pickedS, pickedKS;
-   state = prng.PickMol(kindL, pickedKS, pickedS, sourceBox);
+   state = prng.PickMol(kindS, pickedKS, pickedS, sourceBox);
    if(state == mv::fail_state::NO_FAIL)
    {
      center = comCurrRef.Get(pickedS);
-     ///*
      //If we want to orient the cavity with backbone of picked small mol
-     uint pStart = 0;
-     uint pLen = 0;
-     molRef.GetRangeStartLength(pStart, pLen, pickedS);
-     if(pLen == 1)
+     if(molRef.NumAtoms(kindS) == 1)
      {
-       cavA.Set(0, prng.RandomUnitVect());
+       cavA.SetBasis(prng.RandomUnitVect());
      }
      else
      {
        uint pEnd = pStart + pLen -1;
-       cavA.Set(0, boxDimRef.MinImage(coordCurrRef.Difference(pStart, pEnd),
+       cavA.SetBasis(boxDimRef.MinImage(coordCurrRef.Difference(smallBB[0], smallBB[1]),
 				      sourceBox));
      }
-     //*/
-     //else Pick random vector and find two vectors that are perpendicular to V1
-     //cavA.Set(0, prng.RandomUnitVect());
-     cavA.GramSchmidt();
      //Calculate inverse matrix for cav here Inv = transpose
      cavA.TransposeMatrix(invCavA);
 
@@ -234,7 +226,7 @@ inline uint MoleculeExchange2::PickMolInCav()
        
        //pick a molecule from Large kind in destBox
        numInCavB = 1;
-       state = prng.PickMol(kindS, kindIndexB, molIndexB, numInCavB, destBox);
+       state = prng.PickMol(kindL, kindIndexB, molIndexB, numInCavB, destBox);
      }
      else
      {
@@ -260,25 +252,21 @@ inline uint MoleculeExchange2::ReplaceMolecule()
    numInCavA = 1;
    numInCavB = exchangeRate;
    //pick a random molecule of Large kind in dens box
-   state = prng.PickMol(kindS, kindIndexA, molIndexA, numInCavA, sourceBox);
+   state = prng.PickMol(kindL, kindIndexA, molIndexA, numInCavA, sourceBox);
 
    if(state == mv::fail_state::NO_FAIL)
    {
-     //Set the V1 to the vector from first to last atom
-     uint pStart = 0;
-     uint pLen = 0;
-     molRef.GetRangeStartLength(pStart, pLen, molIndexA[0]);
-     if(pLen == 1)
+     //Set the V1 to the backbone of the large molecule
+     if(molRef.NumAtoms(kindL) == 1)
      {
-       cavA.Set(0, prng.RandomUnitVect());
+       cavA.SetBasis(prng.RandomUnitVect());
      }
      else
      {
        uint pEnd = pStart + pLen -1;
-       cavA.Set(0, boxDimRef.MinImage(coordCurrRef.Difference(pStart, pEnd),
+       cavA.SetBasis(boxDimRef.MinImage(coordCurrRef.Difference(largeBB[0], largeBB[1]),
 				      sourceBox));
      }
-     cavA.GramSchmidt();
      //Calculate inverse matrix for cav. Here Inv = Transpose 
      cavA.TransposeMatrix(invCavA);
      //Use to shift to the COM of new molecule
@@ -288,7 +276,7 @@ inline uint MoleculeExchange2::ReplaceMolecule()
 			       kindS, exchangeRate);
      totMolInCav = molInCav[kindS].size();
      //pick exchangeRate number of Small molecule from dest box
-     state = prng.PickMol(kindL, kindIndexB, molIndexB, numInCavB, destBox);  
+     state = prng.PickMol(kindS, kindIndexB, molIndexB, numInCavB, destBox);  
    }
    return state;
 }

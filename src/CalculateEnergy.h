@@ -153,6 +153,11 @@ public:
   //for Martini forcefield
   double IntraEnergy_1_4(const double distSq, const uint atom1,
                          const uint atom2, const uint molIndex) const;
+    
+  //Finding the molecule inside cavity and store the molecule Index.
+  bool FindMolInCavity(std::vector< std::vector<uint> > &mol, const XYZ& center,
+                       const XYZ& cavDim, const XYZArray& invCav,
+                       const uint box, const uint kind, const uint exRatio);
 
 private:
 

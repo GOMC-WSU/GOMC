@@ -168,8 +168,7 @@ inline uint MoleculeExchange1::PickMolInCav()
    //Use to shift the new insterted molecule
    center = temp;
    //Pick random vector anad find two vectors that are perpendicular to V1
-   cavA.Set(0, prng.RandomUnitVect());
-   cavA.GramSchmidt();
+   cavA.SetBasis(prng.RandomUnitVect());
    //Calculate inverse matrix for cav here Inv = transpose
    cavA.TransposeMatrix(invCavA);
 
@@ -181,7 +180,6 @@ inline uint MoleculeExchange1::PickMolInCav()
      kindIndexA.clear();
      molIndexB.clear();
      kindIndexB.clear();
-     //printf("MolS in cav: %d.\n", molInCav[kindS].size());
      //Find the exchangeRatio number of molecules kind 0 in cavity
      numInCavA = exchangeRatio;
      totMolInCav = molInCav[kindS].size();
@@ -196,7 +194,7 @@ inline uint MoleculeExchange1::PickMolInCav()
 
      //pick a molecule from Large kind in destBox
      numInCavB = 1;
-     state = prng.PickMol(kindS, kindIndexB, molIndexB, numInCavB, destBox);
+     state = prng.PickMol(kindL, kindIndexB, molIndexB, numInCavB, destBox);
    }
    else
    {
@@ -221,25 +219,21 @@ inline uint MoleculeExchange1::ReplaceMolecule()
    numInCavA = 1;
    numInCavB = exchangeRatio;
    //pick a random molecule of Large kind in dens box
-   state = prng.PickMol(kindS, kindIndexA, molIndexA, numInCavA, sourceBox);
+   state = prng.PickMol(kindL, kindIndexA, molIndexA, numInCavA, sourceBox);
 
    if(state == mv::fail_state::NO_FAIL)
    {
-     //Set the V1 to the vector from first to last atom
-     uint pStart = 0;
-     uint pLen = 0;
-     molRef.GetRangeStartLength(pStart, pLen, molIndexA[0]);
-     if(pLen == 1)
+     //Set the V1 to the backbone of the large molecule
+     if(molRef.NumAtoms(kindL) == 1)
      {
-       cavA.Set(0, prng.RandomUnitVect());
+       cavA.SetBasis(prng.RandomUnitVect());
      }
      else
      {
        uint pEnd = pStart + pLen -1;
-       cavA.Set(0, boxDimRef.MinImage(coordCurrRef.Difference(pStart, pEnd),
+       cavA.SetBasis(boxDimRef.MinImage(coordCurrRef.Difference(largeBB[0], largeBB[1]),
 				      sourceBox));
      }
-     cavA.GramSchmidt();
      //Calculate inverse matrix for cav. Here Inv = Transpose 
      cavA.TransposeMatrix(invCavA);
      //Use to shift to the COM of new molecule
@@ -249,7 +243,7 @@ inline uint MoleculeExchange1::ReplaceMolecule()
 			       kindS, exchangeRatio);
      totMolInCav = molInCav[kindS].size();
      //pick exchangeRatio number of Small molecule from dest box
-     state = prng.PickMol(kindL, kindIndexB, molIndexB, numInCavB, destBox);  
+     state = prng.PickMol(kindS, kindIndexB, molIndexB, numInCavB, destBox);
    }
    return state;
 }

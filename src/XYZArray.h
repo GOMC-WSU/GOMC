@@ -349,7 +349,21 @@ inline XYZArray::XYZArray(XYZArray const& other)
 //copy and swap assignment
 inline XYZArray& XYZArray::operator=(XYZArray other)
 {
-  swap(*this, other);
+  if(allocDone) {
+    if(count != other.count) {
+      std::cout << "Error: XYZArray equal operator, size mismatch.\n"
+      exit(EXIT_FAILURE);
+    }
+    count = other.count;
+    for(uint i = 0; i < count; i++) {
+      x[i] = other.x[i];
+      y[i] = other.y[i];
+      z[i] = other.z[i];
+    }
+  } else {
+    std::cout << "Error: XYZArray equal operator, mempry not allocated.\n"
+    exit(EXIT_FAILURE);
+  }
   return *this;
 }
 
@@ -537,6 +551,54 @@ inline double XYZArray::AdjointMatrix(XYZArray &Inv)
 
   double det = x[0] * Inv.x[0] + x[1] * Inv.y[0] + x[2] * Inv.z[0];
   return det;
+}
+
+//Find two vectors that are perpendicular to V1 using Gram-Schmidt method
+inline void XYZArray::SetBasis(XYZ const & v1)
+{
+  using namespace geom;
+  v1.Normalize();
+  XYZ v2;
+  if(abs(v1.x) < 0.8) {
+      //v3 will be v1 x the standard X unit vec
+      v2 = XYZ(1.0, 0.0, 0.0);
+  } else {
+      //v3 will be v1 x the standard Y unit vec
+      v2 = XYZ(0.0, 1.0, 0.0);
+  }
+  XYZ v3 = Cross(v1, v2);
+  v3.Normalize();
+  //v2 is unit vec perpendicular to both v3 and v2
+  v2 = Cross(v3, v1);
+  //set v1 az z axis of cell basis
+  this->Set(0, v3);
+  this->Set(1, v2);
+  this->Set(2, v1);
+}
+
+inline void XYZArray::TransposeMatrix(XYZArray &Inv)
+{
+  Inv.x[0] = x[0];
+  Inv.x[1] = y[0];
+  Inv.x[2] = z[0];
+    
+  Inv.y[0] = x[1];
+  Inv.y[1] = y[1];
+  Inv.y[2] = z[1];
+    
+  Inv.z[0] = x[2];
+  Inv.z[1] = y[2];
+  Inv.z[2] = z[2];
+}
+
+//Calculate transform of A using dot product
+inline XYZ XYZArray::Transform(const XYZ &A) const
+{
+  XYZ temp;
+  temp.x = A.x * x[0] + A.y * x[1] + A.z * x[2];
+  temp.y = A.x * y[0] + A.y * y[1] + A.z * y[2];
+  temp.z = A.x * z[0] + A.y * z[1] + A.z * z[2];
+  return temp;
 }
 
 

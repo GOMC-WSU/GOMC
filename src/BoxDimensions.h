@@ -118,6 +118,10 @@ public:
   //Dist squared with same coordinate array
   void GetDistSq(double & distSq, XYZArray const& arr, const uint i,
                  const uint j, const uint b) const;
+  
+  //True if arr is inside cavDim with geometric center of center.
+  bool InCavity(XYZ const& arr, XYZ const& center, XYZ const& cavDim,
+                XYZArray const& invCav, const uint b) const;
 
   //Transform A to unslant coordinate
   virtual XYZ TransformUnSlant(const XYZ &A, const uint b) const;
@@ -254,6 +258,21 @@ inline void BoxDimensions::GetDistSq(double & distSq, XYZArray const& arr,
 {
   XYZ dist = MinImage(arr.Difference(i, j), b);
   distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
+}
+
+inline bool BoxDimensions::InCavity(XYZ const& arr, XYZ const& center,
+                                    XYZ const& cavDim, XYZArray const& invCav,
+                                    const uint b) const
+{
+  XYZ halfDim = cavDim * 0.5;
+  halfDim *= halfDim;
+  XYZ diff = MinImage(arr - center, b);
+  diff = invCav.Transform(diff);
+  diff *= diff;
+  if(diff.x > halfDim.x || diff.y > halfDim.y || diff.z > halfDim.z)
+    return false;
+  else
+    return true;
 }
 
 //Calculate transform
