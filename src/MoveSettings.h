@@ -40,6 +40,16 @@ public:
     return scale[move];
   }
 
+  double GetAccept(const uint move) const
+  {
+    return acceptPercent[move];
+  }
+
+  double GetTrial(const uint move) const
+  {
+    return tries[move];
+  }
+
 private:
   double scale[mv::SCALEABLE];
   double acceptPercent[mv::COUNT];

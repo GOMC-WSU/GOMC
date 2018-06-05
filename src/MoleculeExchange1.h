@@ -4,9 +4,11 @@
 #if ENSEMBLE==GCMC || ENSEMBLE==GEMC
 
 #include "MoveBase.h"
-#include "cbmc/TrialMol.h"
+#include "TrialMol.h"
+#include "GeomLib.h"
 
 using std::vector;
+using namespace geom;
 
 // MEMC-1 Move:
 //
@@ -51,19 +53,20 @@ class MoleculeExchange1 : public MoveBase
        }
 
        if(kindS == -1) {
-	 printf("Error: Residue name %s was not found in PDB file as small molecule kind to be exchanged.\n", statV.memcVal.smallKind);
+	 printf("Error: Residue name %s was not found in PDB file as small molecule kind to be exchanged.\n", statV.memcVal.smallKind.c_str());
 	 exit(EXIT_FAILURE);
        }
 
        if(kindL == -1) {
-	 printf("Error: Residue name %s was not found in PDB file as large molecule kind to be exchanged.\n", statV.memcVal.largeKind);
+	 printf("Error: Residue name %s was not found in PDB file as large molecule kind to be exchanged.\n", statV.memcVal.largeKind.c_str());
 	 exit(EXIT_FAILURE);
        }
          
        for(uint i = 0; i < molRef.kinds[kindL].NumAtoms(); i++) {
-	 if(molRef.kinds[kindL].atomNames == statV.memcVal.largeBBAtom1) {
+	 if(molRef.kinds[kindL].atomNames[i] == statV.memcVal.largeBBAtom1) {
 	   largeBB[0] == i;
-	 } else if(molRef.kinds[kindL].atomNames == statV.memcVal.largeBBAtom2){
+	 }
+	 else if(molRef.kinds[kindL].atomNames[i] ==statV.memcVal.largeBBAtom2){
 	   largeBB[1] == i;
 	 }
        }
@@ -71,8 +74,9 @@ class MoleculeExchange1 : public MoveBase
        for(uint i = 0; i < 2; i++) {
 	 if(largeBB[i] == -1) {
 	   printf("Error: Atom name %s or %s was not found in %s residue.\n",
-		  statV.memcVal.largeBBAtom1, statV.memcVal.largeBBAtom2,
-		  statV.memcVal.largeKind);
+		  statV.memcVal.largeBBAtom1.c_str(),
+		  statV.memcVal.largeBBAtom2.c_str(),
+		  statV.memcVal.largeKind.c_str());
 	   exit(EXIT_FAILURE);
 	 }
        }
@@ -170,9 +174,9 @@ inline uint MoleculeExchange1::PickMolInCav()
    //Use to shift the new insterted molecule
    center = temp;
    //Pick random vector anad find two vectors that are perpendicular to V1
-   cavA.SetBasis(prng.RandomUnitVect());
+   SetBasis(cavA, prng.RandomUnitVect());
    //Calculate inverse matrix for cav here Inv = transpose
-   cavA.TransposeMatrix(invCavA);
+   TransposeMatrix(invCavA, cavA);
 
    //Find the molecule kind 0 in the cavity
    if(calcEnRef.FindMolInCavity(molInCav, center, cavity, invCavA,
@@ -228,16 +232,14 @@ inline uint MoleculeExchange1::ReplaceMolecule()
      //Set the V1 to the backbone of the large molecule
      if(molRef.NumAtoms(kindL) == 1)
      {
-       cavA.SetBasis(prng.RandomUnitVect());
+       SetBasis(cavA, prng.RandomUnitVect());
      }
      else
      {
-       cavA.SetBasis(boxDimRef.MinImage(coordCurrRef.Difference(largeBB[0],
-								largeBB[1]),
-					sourceBox));
+       SetBasis(cavA, boxDimRef.MinImage(coordCurrRef.Difference(largeBB[0], largeBB[1]), sourceBox));
      }
      //Calculate inverse matrix for cav. Here Inv = Transpose 
-     cavA.TransposeMatrix(invCavA);
+     TransposeMatrix(invCavA, cavA);
      //Use to shift to the COM of new molecule
      center = comCurrRef.Get(molIndexA[0]);
      //find how many of KindS exist in this center

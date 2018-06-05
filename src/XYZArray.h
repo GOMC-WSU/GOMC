@@ -7,7 +7,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef XYZ_ARRAY_H
 #define XYZ_ARRAY_H
 
-//#include "GeomLib.h"
 #include "BasicTypes.h"
 #include <string.h> //for memset, memcpy, etc.
 #include <stdio.h> //for memset, memcpy, etc.
@@ -169,15 +168,6 @@ public:
 
   //calculate the adjoint and return the determinant
   double AdjointMatrix(XYZArray &Inv);
-  
-  //Set basis using V as the z axis
-  void SetBasis(XYZ const & V);
-    
-  // Transpose the matrix
-  void TransposeMatrix(XYZArray &Inv);
-    
-  // transfor the matrix using the basis cell.
-  XYZ Transform(const XYZ &A) const;
     
   //return the difference of two rows in two XYZ arrays
   XYZ Difference(const uint i, XYZArray const& other,
@@ -549,56 +539,5 @@ inline double XYZArray::AdjointMatrix(XYZArray &Inv)
   double det = x[0] * Inv.x[0] + x[1] * Inv.y[0] + x[2] * Inv.z[0];
   return det;
 }
-
-//Find two vectors that are perpendicular to V1 using Gram-Schmidt method
- void XYZArray::SetBasis(XYZ const & V)
-{
-  //using namespace geom;
-  XYZ v1 = V;
-  v1.Normalize();
-  XYZ v2;
-  if(abs(v1.x) < 0.8) {
-      //v3 will be v1 x the standard X unit vec
-      v2 = XYZ(1.0, 0.0, 0.0);
-  } else {
-      //v3 will be v1 x the standard Y unit vec
-      v2 = XYZ(0.0, 1.0, 0.0);
-  }
-  //XYZ v3 = Cross(v1, v2);
-  XYZ v3;
-  v3.Normalize();
-  //v2 is unit vec perpendicular to both v3 and v2
-  //v2 = Cross(v3, v1);
-  //set v1 az z axis of cell basis
-  this->Set(0, v3);
-  this->Set(1, v2);
-  this->Set(2, v1);
-}
-
-inline void XYZArray::TransposeMatrix(XYZArray &Inv)
-{
-  Inv.x[0] = x[0];
-  Inv.x[1] = y[0];
-  Inv.x[2] = z[0];
-    
-  Inv.y[0] = x[1];
-  Inv.y[1] = y[1];
-  Inv.y[2] = z[1];
-    
-  Inv.z[0] = x[2];
-  Inv.z[1] = y[2];
-  Inv.z[2] = z[2];
-}
-
-//Calculate transform of A using dot product
-inline XYZ XYZArray::Transform(const XYZ &A) const
-{
-  XYZ temp;
-  temp.x = A.x * x[0] + A.y * x[1] + A.z * x[2];
-  temp.y = A.x * y[0] + A.y * y[1] + A.z * y[2];
-  temp.z = A.x * z[0] + A.y * z[1] + A.z * z[2];
-  return temp;
-}
-
 
 #endif /*XYZ_ARRAY_H*/

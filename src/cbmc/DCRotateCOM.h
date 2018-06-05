@@ -9,6 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "DCComponent.h"
 #include "XYZArray.h"
 #include "CBMC.h"
+#include "GeomLib.h"
 
 namespace mol_setup { class MolKind; }
 

@@ -12,6 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "TransformMatrix.h"
 #include "BasicTypes.h"
 #include "MoleculeKind.h"
+#include "GeomLib.h"
 
 class MoleculeKind;
 class BoxDimensions;
@@ -66,6 +67,9 @@ public:
 
   //!Shifts the current basis to the position of p1, but does not rotate it.
   void ShiftBasis(uint p1);
+
+  //!Shifts the current basis to the XYZ coordinate.
+  void ShiftBasis(XYZ cent);
 
   //!Resets basis to box coordinate system
   void ResetBasis();
@@ -164,9 +168,9 @@ public:
   void SetSeed(const XYZ& coords, const XYZ& cav, const bool inCav,
 	       const bool fixCOM, const bool rotBB);
   void SetSeed(const bool inCav, const bool fixCOM, const bool rotBB);
-  XYZ Transform(const XYZ& a) {return cavMatrix.Transform(a);}
+  XYZ Transform(const XYZ& a) {return geom::Transform(cavMatrix, a);}
   void TransposeMatrix(XYZArray &invMatrix)
-  {return cavMatrix.TransposeMatrix(invMatrix);}
+  {return geom::TransposeMatrix(invMatrix, cavMatrix);}
   bool HasCav() const {return comInCav;}
   bool COMFix() const {return comFix;}
   bool RotateBB() const {return rotateBB;}
