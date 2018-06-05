@@ -8,6 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "DCFreeHedron.h"
 #include "DCLinkedHedron.h"
 #include "DCFreeHedronSeed.h"
+#include "DCRotateCOM.h"
 #include "MolSetup.h"
 #include "Setup.h"
 #include "MoleculeKind.h"
@@ -24,6 +25,8 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
   MolMap::const_iterator it = set.mol.kindMap.find(kind.name);
   assert(it != set.mol.kindMap.end());
   const MolKind setupKind = it->second;
+
+  idExchange = new DCRotateCOM(&data);
 
   std::vector<uint> atomToNode(setupKind.atoms.size(), 0);
   std::vector<uint> bondCount(setupKind.atoms.size(), 0);
@@ -244,6 +247,216 @@ void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
   }
 }
 
+void DCGraph::BuildIDNew(TrialMol& newMol, uint molIndex)
+{
+  idExchange->PrepareNew(newMol, molIndex);
+  idExchange->BuildNew(newMol, molIndex);
+}
+
+void DCGraph::BuildIDOld(TrialMol& oldMol, uint molIndex)
+{
+  idExchange->PrepareOld(oldMol, molIndex);
+  idExchange->BuildOld(oldMol, molIndex);
+}
+
+void DCGraph::BuildOld(TrialMol& oldMol, uint molIndex)
+{
+  //Randomely pick a node to call DCFreeHedron on it
+  uint current = data.prng.randIntExc(nodes.size());
+  visited.assign(nodes.size(), false);
+  //Visiting the node
+  visited[current] = true;
+  DCComponent* comp = nodes[current].starting;
+  //Call DCFreeHedron to build all Atoms connected to the node
+  comp->PrepareOld(oldMol, molIndex);
+  comp->BuildOld(oldMol, molIndex);
+  //Advance along edges, building as we go
+  //Copy the edges of the node to fringe
+  fringe = nodes[current].edges;
+  //Advance along edges, building as we go
+  while(!fringe.empty())
+  {
+    //Randomely pick one of the edges connected to node
+    uint pick = data.prng.randIntExc(fringe.size());
+    DCComponent* comp = fringe[pick].component;
+    //Call DCLinkedHedron and build all Atoms connected to selected edge
+    comp->PrepareOld(oldMol, molIndex);
+    comp->BuildOld(oldMol, molIndex);
+
+    //Travel to new node, remove traversed edge
+    //Current node is the edge that we picked
+    current = fringe[pick].destination;
+    //Remove the edge that we visited
+    fringe[pick] = fringe.back();
+    fringe.pop_back();
+    //Visiting the node
+    visited[current] = true;
+
+    //Add edges to unvisited nodes
+    for(uint i = 0; i < nodes[current].edges.size(); ++i)
+    {
+      Edge& e = nodes[current].edges[i];
+      if(!visited[e.destination])
+      {
+        fringe.push_back(e);
+      }
+    }
+  }
+}
+
+void DCGraph::BuildNew(TrialMol& newMol, uint molIndex)
+{
+  //Randomely pick a node to call DCFreeHedron on it
+  uint current = data.prng.randIntExc(nodes.size());
+  visited.assign(nodes.size(), false);
+  //Visiting the node
+  visited[current] = true;
+  DCComponent* comp = nodes[current].starting;
+  //Call DCFreeHedron to build all Atoms connected to the node
+  comp->PrepareNew(newMol, molIndex);
+  comp->BuildNew(newMol, molIndex);
+  //Advance along edges, building as we go
+  //Copy the edges of the node to fringe
+  fringe = nodes[current].edges;
+  //Advance along edges, building as we go
+  while(!fringe.empty())
+  {
+    //Randomely pick one of the edges connected to node
+    uint pick = data.prng.randIntExc(fringe.size());
+    DCComponent* comp = fringe[pick].component;
+    //Call DCLinkedHedron and build all Atoms connected to selected edge
+    comp->PrepareNew(newMol, molIndex);
+    comp->BuildNew(newMol, molIndex);
+
+    //Travel to new node, remove traversed edge
+    //Current node is the edge that we picked
+    current = fringe[pick].destination;
+    //Remove the edge that we visited
+    fringe[pick] = fringe.back();
+    fringe.pop_back();
+    //Visiting the node
+    visited[current] = true;
+
+    //Add edges to unvisited nodes
+    for(uint i = 0; i < nodes[current].edges.size(); ++i)
+    {
+      Edge& e = nodes[current].edges[i];
+      if(!visited[e.destination])
+      {
+        fringe.push_back(e);
+      }
+    }
+  }
+}
+
+void DCGraph::BuildGrowOld(TrialMol& oldMol, uint molIndex)
+{
+  //Use node 0 because atom zero is in node zero
+  uint current = 0;
+  visited.assign(nodes.size(), false);
+  //Visiting the node
+  visited[current] = true;
+  //Copy the current node's focus coordinate
+  uint seedInx = nodes[current].atomIndex;
+  if(seedInx != 0)
+  {
+    std::cout << "In MEMC-3 move, atom 0 must be a node." 
+	      << "atom 0 must be bounded to two or more atoms! \n";
+    exit(1);
+  }
+  DCComponent* comp = nodes[current].starting;
+  //Call DCFreeHedron to build all Atoms connected to the node
+  comp->PrepareOld(oldMol, molIndex);
+  comp->BuildOld(oldMol, molIndex);
+  //Advance along edges, building as we go
+  //Copy the edges of the node to fringe
+  fringe = nodes[current].edges;
+  //Advance along edges, building as we go
+  while(!fringe.empty())
+  {
+    //Randomely pick one of the edges connected to node
+    uint pick = data.prng.randIntExc(fringe.size());
+    DCComponent* comp = fringe[pick].component;
+    //Call DCLinkedHedron and build all Atoms connected to selected edge
+    comp->PrepareOld(oldMol, molIndex);
+    comp->BuildOld(oldMol, molIndex);
+
+    //Travel to new node, remove traversed edge
+    //Current node is the edge that we picked
+    current = fringe[pick].destination;
+    //Remove the edge that we visited
+    fringe[pick] = fringe.back();
+    fringe.pop_back();
+    //Visiting the node
+    visited[current] = true;
+
+    //Add edges to unvisited nodes
+    for(uint i = 0; i < nodes[current].edges.size(); ++i)
+    {
+      Edge& e = nodes[current].edges[i];
+      if(!visited[e.destination])
+      {
+        fringe.push_back(e);
+      }
+    }
+  }
+}
+
+
+void DCGraph::BuildGrowNew(TrialMol& newMol, uint molIndex)
+{
+  //Randomely pick a node to call DCFreeHedron on it
+  uint current = 0;
+  visited.assign(nodes.size(), false);
+  //Visiting the node
+  visited[current] = true;
+  //Copy the current node's focus coordinate
+  uint seedInx = nodes[current].atomIndex;
+  if(seedInx != 0)
+  {
+    std::cout << "In MEMC-3 move, atom 0 must be a node." 
+	      << "atom 0 must be bounded to two or more atoms! \n";
+    exit(1);
+  }
+  DCComponent* comp = nodes[current].starting;
+  //Call DCFreeHedron to build all Atoms connected to the node
+  comp->PrepareNew(newMol, molIndex);
+  comp->BuildNew(newMol, molIndex);
+  //Advance along edges, building as we go
+  //Copy the edges of the node to fringe
+  fringe = nodes[current].edges;
+  //Advance along edges, building as we go
+  while(!fringe.empty())
+  {
+    //Randomely pick one of the edges connected to node
+    uint pick = data.prng.randIntExc(fringe.size());
+    DCComponent* comp = fringe[pick].component;
+    //Call DCLinkedHedron and build all Atoms connected to selected edge
+    comp->PrepareNew(newMol, molIndex);
+    comp->BuildNew(newMol, molIndex);
+
+    //Travel to new node, remove traversed edge
+    //Current node is the edge that we picked
+    current = fringe[pick].destination;
+    //Remove the edge that we visited
+    fringe[pick] = fringe.back();
+    fringe.pop_back();
+    //Visiting the node
+    visited[current] = true;
+
+    //Add edges to unvisited nodes
+    for(uint i = 0; i < nodes[current].edges.size(); ++i)
+    {
+      Edge& e = nodes[current].edges[i];
+      if(!visited[e.destination])
+      {
+        fringe.push_back(e);
+      }
+    }
+  }
+}
+
+
 DCGraph::~DCGraph()
 {
   for(uint v = 0; v < nodes.size(); ++v) {
@@ -254,6 +467,7 @@ DCGraph::~DCGraph()
       delete node.edges[e].component;
     }
   }
+  delete idExchange;
 }
 
 

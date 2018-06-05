@@ -160,15 +160,18 @@ public:
   }
 
   //Used in MEMC move
+  void SetSeed(const XYZ& coords, const XYZ& cav, const bool inCav,
+	       const bool fixCOM, const bool rotBB);
+  void SetSeed(const bool inCav, const bool fixCOM, const bool rotBB);
   XYZ Transform(const XYZ& a) {return cavMatrix.Transform(a);}
   void TransposeMatrix(XYZArray &invMatrix)
   {return cavMatrix.TransposeMatrix(invMatrix);}
-  bool HasCav() const {return seedInCav;}
-  bool SeedFix() const {return seedFix;}
+  bool HasCav() const {return comInCav;}
+  bool COMFix() const {return comFix;}
   bool RotateBB() const {return rotateBB;}
   void SetCavMatrix(const XYZArray& matrix);
-  XYZ GetSeed() const {return sCoords;}
-  XYZ GetSubVol() const {return cavity;}
+  XYZ GetCavityCenter() const {return cavityCenter;}
+  XYZ GetCavity() const {return cavity;}
   //return unwrap com of tcoords so tcoords must be set
   XYZ GetCOM();
 
@@ -186,8 +189,8 @@ private:
   RotationMatrix growthToWorld;
   RotationMatrix worldToGrowth;
   XYZ basisPoint;
-  XYZ sCoords, cavity; //The center and cavity dimensions
-  bool seedInCav, seedFix, rotateBB;
+  XYZ cavityCenter, cavity; //The center and cavity dimensions
+  bool comInCav, comFix, rotateBB;
   bool* atomBuilt;
 
 };

@@ -268,20 +268,20 @@ void TrialMol::SetCavMatrix(const XYZArray& matrix)
   matrix.CopyRange(cavMatrix, 0, 0, 3);
 }
 
-void TrialMol::SetSeed(const XYZ& coords, const XYZ& rmax, const bool inCav,
+void TrialMol::SetSeed(const XYZ& coords, const XYZ& cav, const bool inCav,
 		       const bool fixCOM, const bool rotBB)
 {
-  sCoords = coords;
-  sRmax = rmax;
-  seedInCav = inCav;
-  seedFix = fixCOM;
+  cavityCenter = coords;
+  cavity = cav;
+  comInCav = inCav;
+  comFix = fixCOM;
   rotateBB = rotBB;
 }
 
 void TrialMol::SetSeed(const bool inCav, const bool fixCOM, const bool rotBB)
 {
-  seedInCav = inCav;
-  seedFix = fixCOM;
+  comInCav = inCav;
+  comFix = fixCOM;
   rotateBB = rotBB;
 }
 
