@@ -63,6 +63,7 @@ void CalculateEnergy::Init(System & sys)
   calcEwald = sys.GetEwald();
   electrostatic = forcefield.electrostatic;
   ewald = forcefield.ewald;
+  rCut = forcefield.rCut;
   for(uint m = 0; m < mols.count; ++m) {
     const MoleculeKind& molKind = mols.GetKind(m);
     if(molKind.NumAtoms() > maxAtomInMol)
@@ -917,8 +918,7 @@ bool CalculateEnergy::FindMolInCavity(std::vector< std::vector<uint> > &mol,
     uint k;
     mol.clear();
     mol.resize(molLookup.GetNumKind());
-    uint maxLength = max(cavDim.x, cavDim.y);
-    maxLength = max(maxLength, cavDim.z);
+    double maxLength = cavDim.Max();
     
     if(maxLength <= rCut)
     {

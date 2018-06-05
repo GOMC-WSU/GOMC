@@ -41,6 +41,7 @@ public:
   }
 
   void AddAtom(uint index, const XYZ& position);
+  void SetAtomCoords(uint index, const XYZ& loc);
 
   void AddEnergy(const Energy& energy)
   {

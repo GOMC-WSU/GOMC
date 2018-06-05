@@ -24,7 +24,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 class Setup;
 class System;
-struct config_setup::MEMCVal;
 
 class StaticVals
 {
@@ -64,7 +63,7 @@ public:
   MoleculeLookup molLookup;
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
-  MEMCVal  memcVal
+  config_setup::MEMCVal  memcVal;
 #endif
  
   bool IsEquil(const uint step)

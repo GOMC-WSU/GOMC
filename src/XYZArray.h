@@ -7,9 +7,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef XYZ_ARRAY_H
 #define XYZ_ARRAY_H
 
+//#include "GeomLib.h"
 #include "BasicTypes.h"
 #include <string.h> //for memset, memcpy, etc.
 #include <stdio.h> //for memset, memcpy, etc.
+#include <cmath>
 #include <utility>      //for swap (most modern compilers)
 #include <algorithm>      //for swap pre-c++11 compilers
 #ifdef _OPENMP
@@ -167,7 +169,16 @@ public:
 
   //calculate the adjoint and return the determinant
   double AdjointMatrix(XYZArray &Inv);
-
+  
+  //Set basis using V as the z axis
+  void SetBasis(XYZ const & V);
+    
+  // Transpose the matrix
+  void TransposeMatrix(XYZArray &Inv);
+    
+  // transfor the matrix using the basis cell.
+  XYZ Transform(const XYZ &A) const;
+    
   //return the difference of two rows in two XYZ arrays
   XYZ Difference(const uint i, XYZArray const& other,
                  const uint otherI) const
@@ -349,21 +360,7 @@ inline XYZArray::XYZArray(XYZArray const& other)
 //copy and swap assignment
 inline XYZArray& XYZArray::operator=(XYZArray other)
 {
-  if(allocDone) {
-    if(count != other.count) {
-      std::cout << "Error: XYZArray equal operator, size mismatch.\n"
-      exit(EXIT_FAILURE);
-    }
-    count = other.count;
-    for(uint i = 0; i < count; i++) {
-      x[i] = other.x[i];
-      y[i] = other.y[i];
-      z[i] = other.z[i];
-    }
-  } else {
-    std::cout << "Error: XYZArray equal operator, mempry not allocated.\n"
-    exit(EXIT_FAILURE);
-  }
+  swap(*this, other);
   return *this;
 }
 
@@ -554,9 +551,10 @@ inline double XYZArray::AdjointMatrix(XYZArray &Inv)
 }
 
 //Find two vectors that are perpendicular to V1 using Gram-Schmidt method
-inline void XYZArray::SetBasis(XYZ const & v1)
+ void XYZArray::SetBasis(XYZ const & V)
 {
-  using namespace geom;
+  //using namespace geom;
+  XYZ v1 = V;
   v1.Normalize();
   XYZ v2;
   if(abs(v1.x) < 0.8) {
@@ -566,10 +564,11 @@ inline void XYZArray::SetBasis(XYZ const & v1)
       //v3 will be v1 x the standard Y unit vec
       v2 = XYZ(0.0, 1.0, 0.0);
   }
-  XYZ v3 = Cross(v1, v2);
+  //XYZ v3 = Cross(v1, v2);
+  XYZ v3;
   v3.Normalize();
   //v2 is unit vec perpendicular to both v3 and v2
-  v2 = Cross(v3, v1);
+  //v2 = Cross(v3, v1);
   //set v1 az z axis of cell basis
   this->Set(0, v3);
   this->Set(1, v2);

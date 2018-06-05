@@ -25,7 +25,6 @@ set(sources
    src/MoleculeLookup.cpp
    src/Molecules.cpp
    src/MolSetup.cpp
-   src/MoveConst.cpp
    src/MoveSettings.cpp
    src/NoEwald.cpp
    src/OutConst.cpp
@@ -45,6 +44,7 @@ set(sources
    src/cbmc/DCHedron.cpp
    src/cbmc/DCLinear.cpp
    src/cbmc/DCOnSphere.cpp
+   src/cbmc/DCRotateCOM.cpp
    src/cbmc/DCSingle.cpp
    src/cbmc/TrialMol.cpp)
 
@@ -129,6 +129,7 @@ set(headers
    src/cbmc/DCHedron.h
    src/cbmc/DCLinear.h
    src/cbmc/DCOnSphere.h
+   src/cbmc/DCRotateCOM.h
    src/cbmc/DCSingle.h
    src/cbmc/TrialMol.h)
 

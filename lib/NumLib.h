@@ -82,7 +82,7 @@ inline double MeanG(std::vector<double> const& v1,
 }
 
 //return n!
-inline double Factorial(const uint n) const
+inline double Factorial(const uint n)
 {
   double result = 1.0;
   for(uint i = 2; i <= n; i++) {
@@ -92,7 +92,7 @@ inline double Factorial(const uint n) const
 }
 
 //return (n+count)!/n! 
-inline double Factorial(const uint n, const uint count) const
+inline double Factorial(const uint n, const uint count)
 {
   double result = 1.0;
   for(uint i = 1; i <= count; i++) {
