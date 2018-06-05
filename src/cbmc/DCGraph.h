@@ -32,6 +32,12 @@ public:
   void Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
   void BuildEdges(TrialMol& oldMol, TrialMol& newMol, uint molIndex,
                   const uint current);
+  void BuildIDNew(TrialMol& newMol, uint molIndex);
+  void BuildIDOld(TrialMol& oldMol, uint molIndex);
+  void BuildNew(TrialMol& newMol, uint molIndex);
+  void BuildOld(TrialMol& oldMol, uint molIndex);
+  void BuildGrowNew(TrialMol& newMol, uint molIndex);
+  void BuildGrowOld(TrialMol& oldMol, uint molIndex);
   ~DCGraph();
 
 private:
@@ -57,6 +63,7 @@ private:
     std::vector<uint> partnerIndex;
   };
 
+  DCComponent *idExchange;
   DCData data;
   std::vector<Node> nodes;
   std::vector<Edge> fringe;

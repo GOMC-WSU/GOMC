@@ -8,6 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "DCLinear.h"
 #include "DCSingle.h"
 #include "DCOnSphere.h"
+#include "DCRotateCOM.h"
 
 using namespace cbmc;
 
@@ -20,6 +21,8 @@ DCLinear::DCLinear(System& sys, const Forcefield& ff,
   const mol_setup::MolKind setupKind = it->second;
   uint size = kind.NumAtoms();
   atomSize = size;
+  
+  idExchange = new DCRotateCOM(&data);
   //First atom of the molecule
   forward.push_back(new DCSingle(&data, 0));
   backward.push_back(new DCSingle(&data, size - 1));
@@ -36,6 +39,7 @@ DCLinear::~DCLinear()
     delete forward[i];
     delete backward[i];
   }
+  delete idExchange;
 }
 
 void DCLinear::Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
@@ -73,5 +77,59 @@ void DCLinear::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
     comps[1]->BuildNew(newMol, molIndex);
     comps[1]->PrepareOld(oldMol, molIndex);
     comps[1]->BuildOld(oldMol, molIndex);
+  }
+}
+
+void DCLinear::BuildIDNew(TrialMol& newMol, uint molIndex)
+{
+  idExchange->PrepareNew(newMol, molIndex);
+  idExchange->BuildNew(newMol, molIndex);
+}
+
+void DCLinear::BuildIDOld(TrialMol& oldMol, uint molIndex)
+{
+  idExchange->PrepareOld(oldMol, molIndex);
+  idExchange->BuildOld(oldMol, molIndex);
+}
+
+void DCLinear::BuildOld(TrialMol& oldMol, uint molIndex)
+{
+  std::vector<DCComponent*>& comps =data.prng.randInt(1) ? forward : backward;
+  for(uint i = 0; i < comps.size(); ++i)
+  {
+    comps[i]->PrepareOld(oldMol, molIndex);
+    comps[i]->BuildOld(oldMol, molIndex);
+  }
+}
+
+void DCLinear::BuildNew(TrialMol& newMol, uint molIndex)
+{
+  std::vector<DCComponent*>& comps =data.prng.randInt(1) ? forward : backward;
+  for(uint i = 0; i < comps.size(); ++i)
+  {
+    comps[i]->PrepareNew(newMol, molIndex);
+    comps[i]->BuildNew(newMol, molIndex);
+  }
+}
+
+void DCLinear::BuildGrowOld(TrialMol& oldMol, uint molIndex)
+{
+  //Need to find the atom to start growing
+  std::vector<DCComponent*>& comps = forward;
+  for(uint i = 0; i < comps.size(); ++i)
+  {
+    comps[i]->PrepareOld(oldMol, molIndex);
+    comps[i]->BuildOld(oldMol, molIndex);
+  }
+}
+
+void DCLinear::BuildGrowNew(TrialMol& newMol, uint molIndex)
+{
+  //Need to find the atom to start growing
+  std::vector<DCComponent*>& comps = forward;
+  for(uint i = 0; i < comps.size(); ++i)
+  {
+    comps[i]->PrepareNew(newMol, molIndex);
+    comps[i]->BuildNew(newMol, molIndex);
   }
 }

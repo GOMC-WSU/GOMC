@@ -33,6 +33,15 @@ public:
   virtual void Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex) = 0;
   //Regrowing the molecule using a CBMC algorithm, oldMol and newMol
   virtual void Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex) = 0;
+  //Rigid insertion of molecule and perform position and rotational trial
+  virtual void BuildIDNew(TrialMol& newMol, uint molIndex) = 0;
+  virtual void BuildIDOld(TrialMol& oldMol, uint molIndex) = 0;
+  //Build the molecule using CD-CBMC
+  virtual void BuildNew(TrialMol& newMol, uint molIndex) = 0;
+  virtual void BuildOld(TrialMol& oldMol, uint molIndex) = 0;
+  //Grow the molecule from predefined atom (node)
+  virtual void BuildGrowNew(TrialMol& newMol, uint molIndex) = 0;
+  virtual void BuildGrowOld(TrialMol& oldMol, uint molIndex) = 0;
 
   virtual ~CBMC() {}
 };

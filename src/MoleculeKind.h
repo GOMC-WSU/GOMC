@@ -94,6 +94,37 @@ public:
     builder->Regrowth(oldMol, newMol, molIndex);
   }
 
+  //Used in MEMC move
+  void BuildIDNew(cbmc::TrialMol& newMol, const uint molIndex)
+  { 
+    builder->BuildIDNew(newMol, molIndex); 
+  }
+
+  void BuildIDOld(cbmc::TrialMol& oldMol, const uint molIndex)
+  { 
+    builder->BuildIDOld(oldMol, molIndex); 
+  }
+
+  void BuildNew(cbmc::TrialMol& newMol, const uint molIndex)
+  { 
+    builder->BuildNew(newMol, molIndex); 
+  }
+
+  void BuildOld(cbmc::TrialMol& oldMol, const uint molIndex)
+  { 
+    builder->BuildOld(oldMol, molIndex); 
+  }
+
+  void BuildGrowNew(cbmc::TrialMol& newMol, const uint molIndex)
+  { 
+    builder->BuildGrowNew(newMol, molIndex); 
+  }
+
+  void BuildGrowOld(cbmc::TrialMol& oldMol, const uint molIndex)
+  { 
+    builder->BuildGrowOld(oldMol, molIndex); 
+  }
+
   double GetMoleculeCharge();
   SortedNonbond sortedNB, sortedNB_1_4, sortedNB_1_3, sortedEwaldNB;
 

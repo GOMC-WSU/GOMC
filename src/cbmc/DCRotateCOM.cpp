@@ -56,28 +56,21 @@ namespace cbmc
   {
     PRNG& prng = data->prng;
 
-    if(newMol.SeedFix())
-    {
-      if(newMol.HasCav())
-	COM = newMol.GetSeed();
-      else
-	prng.FillWithRandom(COM, data->axes.GetAxis(newMol.GetBox()));
+    if(newMol.COMFix()) {
+      COM = newMol.GetCavityCenter();
     }
-    else
-    {
+    else if(newMol.HasCav()) {
       //new center of mass that need to be transfered 
-      if(newMol.HasCav())
-      {
-	//Pick molecule in cav dimension
-	prng.FillWithRandomInCavity(COM, newMol.GetSubVol());
-	//rotate using cavity matrix
-	COM = newMol.Transform(COM);
-	//add center 
-	COM += newMol.GetSeed();
-      }
-      else
-	prng.FillWithRandom(COM, data->axes.GetAxis(newMol.GetBox())); 
+      //Pick molecule in cav dimension
+      prng.FillWithRandomInCavity(COM, newMol.GetCavity());
+      //rotate using cavity matrix
+      COM = newMol.Transform(COM);
+      //add center 
+      COM += newMol.GetCavityCenter();
+    } else {
+      prng.FillWithRandom(COM, data->axes, newMol.GetBox()); 
     }
+ 
 
     XYZ diff = COM - oldCOM;
      
@@ -106,14 +99,14 @@ namespace cbmc
     if(oldMol.HasCav())
     {
       //Pick molecule in cav dimension
-      prng.FillWithRandomInCavity(COM, oldMol.GetSubVol());
+      prng.FillWithRandomInCavity(COM, oldMol.GetCavity());
       //rotate using cavity matrix
       COM = oldMol.Transform(COM);
       //add center 
-      COM += oldMol.GetSeed();
+      COM += oldMol.GetCavityCenter();
     }
     else
-      prng.FillWithRandom(COM, data->axes.GetAxis(oldMol.GetBox())); 
+      prng.FillWithRandom(COM, data->axes, oldMol.GetBox()); 
 
     XYZ diff = COM - oldCOM;
      
@@ -156,7 +149,7 @@ namespace cbmc
       totalTrials = fLJTrials;
     }
 
-    if(newMol.SeedFix())
+    if(newMol.COMFix())
     {
       fLJTrials = 1;
       totalTrials = nLJTrials;
@@ -291,7 +284,7 @@ namespace cbmc
       totalTrials = fLJTrials;
     }
 
-    if(oldMol.SeedFix())
+    if(oldMol.COMFix())
     {
       fLJTrials = 1;
       totalTrials = nLJTrials;
