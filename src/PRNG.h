@@ -95,6 +95,12 @@ public:
     return XYZ(gen->rand(bound2) - bound, gen->rand(bound2) - bound,
                gen->rand(bound2) - bound);
   }
+    
+  // return between [-bound, bound]
+  double SymExc(double bound)
+  {
+    return 2 * gen->rand(bound) - bound;
+  }
 
   //Used to pick first position of
   void FillWithRandom(XYZArray & loc, const uint len, BoxDimensions const& dims,
@@ -334,10 +340,11 @@ public:
       rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
     } else {
       for(uint i = 0; i < n; i++) {
+        uint mOff, m;
         //Among the ones of that kind in that box, pick one @ random.
         //Molecule with a tag (beta == 2 and beta == 1) cannot be selected.
         do {
-          uint mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
+          mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
           //Lookup true index in table.
           m = molLookRef.GetMolNum(mOff, mk, b);
         } while(molLookRef.IsNoSwap(m) || 

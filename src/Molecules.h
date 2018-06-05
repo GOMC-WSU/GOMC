@@ -34,6 +34,11 @@ public:
     return kinds[kIndex[molIndex]];
   }
 
+  uint GetMolKind(const uint molIndex) const
+  {
+    return kIndex[molIndex];
+  }
+    
   void Init(Setup& setup, Forcefield& forcefield,
             System& sys);
 

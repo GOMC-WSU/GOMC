@@ -34,7 +34,7 @@ void DCSingle::BuildOld(TrialMol& oldMol, uint molIndex)
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
 
-  if(oldMol.SeedFix()) {
+  if(oldMol.COMFix()) {
     nLJTrials = 1;
   } else {
     prng.FillWithRandom(positions, nLJTrials, data->axes, oldMol.GetBox());
@@ -66,9 +66,9 @@ void DCSingle::BuildNew(TrialMol& newMol, uint molIndex)
   std::fill_n(real, nLJTrials, 0.0);
   std::fill_n(ljWeights, nLJTrials, 0.0);
 
-  if(newMol.SeedFix()) {
+  if(newMol.COMFix()) {
     nLJTrials = 1;
-    positions.Set(0, data->axes.WrapPBC(newMol.GetSeed(), newMol.GetBox()));
+    positions.Set(0, data->axes.WrapPBC(newMol.GetCavityCenter(), newMol.GetBox()));
   } else {
     prng.FillWithRandom(positions, nLJTrials, data->axes, newMol.GetBox());
   }

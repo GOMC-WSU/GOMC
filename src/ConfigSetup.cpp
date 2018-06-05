@@ -270,14 +270,14 @@ void ConfigSetup::Init(const char *fileName)
         std::string resName = line[1];
         sys.memcVal.largeKind = resName;
         sys.memcVal.readLK = true;
-        printf("%-40s %-s \n", "Info: Exchange Large Kind", resName);
+        printf("%-40s %-s \n", "Info: Exchange Large Kind", resName.c_str());
       }
     } else if(line[0] == "ExchangeSmallKind") {
       if(line.size() == 2) {
         std::string resName = line[1];
         sys.memcVal.smallKind = resName;
         sys.memcVal.readSK = true;
-        printf("%-40s %-s \n", "Info: Exchange Small Kind", resName);
+        printf("%-40s %-s \n", "Info: Exchange Small Kind", resName.c_str());
       }
     } else if(line[0] == "SmallKindBackBone") {
       if(line.size() == 3) {
@@ -287,7 +287,7 @@ void ConfigSetup::Init(const char *fileName)
         sys.memcVal.smallBBAtom2 = atom2;
         sys.memcVal.readSmallBB = true;
         printf("%-40s %-s - %-s \n", "Info: Atom Names in Small Kind BackBone",
-               atom1, atom2);
+               atom1.c_str(), atom2.c_str());
       }
     } else if(line[0] == "LargeKindBackBone") {
       if(line.size() == 3) {
@@ -297,7 +297,7 @@ void ConfigSetup::Init(const char *fileName)
         sys.memcVal.largeBBAtom2 = atom2;
         sys.memcVal.readLargeBB = true;
         printf("%-40s %-s - %-s \n", "Info: Atom Names in Large Kind BackBone",
-               atom1, atom2);
+               atom1.c_str(), atom2.c_str());
       }
     } else if(line[0] == "Rcut") {
       sys.ff.cutoff = stringtod(line[1]);
@@ -422,7 +422,7 @@ void ConfigSetup::Init(const char *fileName)
 	     sys.moves.memc);
       if(sys.moves.memc > 0.0) {
 	sys.memcVal.enable = true;
-	sys.memcVal.MEMC1 = true
+    sys.memcVal.MEMC1 = true;
       }
     } else if(line[0] == "MEMC-2Freq") {
       sys.moves.memc = stringtod(line[1]);
@@ -430,7 +430,7 @@ void ConfigSetup::Init(const char *fileName)
 	     sys.moves.memc);
       if(sys.moves.memc > 0.0) {
 	sys.memcVal.enable = true;
-	sys.memcVal.MEMC2 = true
+    sys.memcVal.MEMC2 = true;
       }
     } else if(line[0] == "MEMC-3Freq") {
       sys.moves.memc = stringtod(line[1]);
@@ -438,7 +438,7 @@ void ConfigSetup::Init(const char *fileName)
 	     sys.moves.memc);
       if(sys.moves.memc > 0.0) {
 	sys.memcVal.enable = true;
-	sys.memcVal.MEMC3 = true
+    sys.memcVal.MEMC3 = true;
       }
     }
 #endif

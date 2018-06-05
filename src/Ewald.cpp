@@ -512,9 +512,8 @@ double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
             {
                 for (p = 0; p < lengthNew; ++p)
                 {
-                    dotProductNew = currentAxes.DotProduct(p, kxRef[box][i],
-                                                           kyRef[box][i],kzRef[box][i],
-                                                           newMol[m].GetCoords(), box);
+                    dotProductNew = Dot(p, kxRef[box][i], kyRef[box][i],kzRef[box][i],
+                                        newMol[m].GetCoords());
                     
                     sumRealNew += (thisKindNew.AtomCharge(p) * cos(dotProductNew));
                     sumImaginaryNew += (thisKindNew.AtomCharge(p) *sin(dotProductNew));
@@ -525,9 +524,8 @@ double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
             {
                 for (p = 0; p < lengthOld; ++p)
                 {
-                    dotProductNew = currentAxes.DotProduct(p, kxRef[box][i],
-                                                           kyRef[box][i],kzRef[box][i],
-                                                           oldMol[m].GetCoords(), box);
+                    dotProductNew = Dot(p, kxRef[box][i], kyRef[box][i],kzRef[box][i],
+                                        oldMol[m].GetCoords());
                     
                     sumRealNew -= (thisKindOld.AtomCharge(p) * cos(dotProductNew));
                     sumImaginaryNew -= (thisKindOld.AtomCharge(p) *sin(dotProductNew));
