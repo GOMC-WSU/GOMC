@@ -12,6 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBSetup.h" //Primary source of volume.
 #include "ConfigSetup.h" //Other potential source of volume (new sys only)
 #include "XYZArray.h" //For axes
+#include "GeomLib.h"
 #include <cstdio>
 #include <cstdlib>
 
@@ -267,7 +268,7 @@ inline bool BoxDimensions::InCavity(XYZ const& arr, XYZ const& center,
   XYZ halfDim = cavDim * 0.5;
   halfDim *= halfDim;
   XYZ diff = MinImage(arr - center, b);
-  diff = invCav.Transform(diff);
+  diff = geom::Transform(invCav, diff);
   diff *= diff;
   if(diff.x > halfDim.x || diff.y > halfDim.y || diff.z > halfDim.z)
     return false;

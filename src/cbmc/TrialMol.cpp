@@ -107,7 +107,7 @@ void TrialMol::AddAtom(const uint index, const XYZ& loc)
   atomBuilt[index] = true;
 }
     
-void SetAtomCoords(uint index, const XYZ& loc)
+void TrialMol::SetAtomCoords(uint index, const XYZ& loc)
 {
   tCoords.Set(index, loc);
 }
@@ -218,6 +218,11 @@ void TrialMol::SetBasis(const uint p1, const uint p2)
 void TrialMol::ShiftBasis(const uint p1)
 {
   basisPoint = tCoords.Get(p1);
+}
+
+void TrialMol::ShiftBasis(const XYZ cent)
+{
+  basisPoint = cent;
 }
 
 void TrialMol::ResetBasis()

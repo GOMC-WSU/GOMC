@@ -167,12 +167,6 @@ inline uint GetMoveSubIndex(const uint maj, const uint b = 0)
 #endif
 }
 
-//Names of above moves as strings for output.
-std::vector<std::string> MoveNames();
-const std::vector<std::string> MOVE_NAME(MoveNames());
-std::vector<std::string> ScaleMoveNames();
-const std::vector<std::string> SCALE_MOVE_NAME(ScaleMoveNames());
-//Used enums -- immutable and take no space
 
 }
 

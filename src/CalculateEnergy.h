@@ -151,6 +151,9 @@ public:
                        const XYZ& cavDim, const XYZArray& invCav,
                        const uint box, const uint kind, const uint exRatio);
 
+  //!Calculates energy corrections for the box
+  double EnergyCorrection(const uint box, const uint *kCount) const;
+
 private:
 
   //! Calculates full TC energy for one box in current system

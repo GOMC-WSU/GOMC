@@ -219,6 +219,18 @@ public:
       b = mv::BOX1;
   }
 
+  void PickBool(bool &b, const double subDraw, const double movPerc) const
+  {
+    //Calculate "chunk" of move for each box.
+    double boxDiv = movPerc / 2;
+    //Which chunk was our draw in...
+    b = (uint)(subDraw/boxDiv);
+    //FIXME: Hack to prevent picking invalid boxes, may violate balance
+    if (b != mv::BOX0)
+      b = mv::BOX1;
+    b = (b > 0 ? true : false);
+  }
+
   void PickBox(uint &b, double &subDraw, double &boxDiv,
                const double movPerc) const
   {
@@ -325,6 +337,29 @@ public:
       } while(molLookRef.IsNoSwap(m));
     }
 
+    return rejectState;
+  }
+
+  // In MEMC move pick n molecules of kind mk
+  uint PickMol(const uint mk, uint &mk2, uint &m2, const uint b)
+  {
+    uint rejectState = mv::fail_state::NO_FAIL;
+    //Pick molecule with the help of molecule lookup table.
+    if ((molLookRef.NumKindInBox(mk, b) == 0)) {
+      rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+    } else {
+      uint mOff, m;
+      //Among the ones of that kind in that box, pick one @ random.
+      //Molecule with a tag (beta == 2 and beta == 1) cannot be selected.
+      do {
+	mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
+	//Lookup true index in table.
+	m = molLookRef.GetMolNum(mOff, mk, b);
+      } while(molLookRef.IsNoSwap(m));
+      m2 = m;
+      mk2 = mk;
+    }
+    
     return rejectState;
   }
 

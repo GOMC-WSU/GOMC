@@ -74,6 +74,10 @@ public:
   {
     return move % simEventFreq.perAdjust == 0;
   }
+  uint GetPerAdjust() const 
+  { 
+    return simEventFreq.perAdjust; 
+  }
   double AcceptPercent(const uint tempAccept)
   {
     return (double)(tempAccept) / (double)(simEventFreq.perAdjust);

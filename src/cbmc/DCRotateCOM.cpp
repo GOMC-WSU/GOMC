@@ -167,8 +167,8 @@ namespace cbmc
 	  backBone = prng.RandomUnitVect();
 	}
 	XYZArray T(3);
-	T.SetBasis(backBone);
-	T.TransposeMatrix(invMatrix);
+	geom::SetBasis(T, backBone);
+	geom::TransposeMatrix(invMatrix, T);
       }
     }
  
@@ -208,9 +208,9 @@ namespace cbmc
 	  {
 	    XYZ coord = multiPosRotions[a][index];
 	    //transform backbone to z axis
-	    coord = invMatrix.Transform(coord);
+	    coord = geom::Transform(invMatrix, coord);
 	    //rotate around z
-	    coord = rotateMatrix.Transform(coord);
+	    coord = geom::Transform(rotateMatrix, coord);
 	    //transfer backbone to cavity orientation
 	    coord = newMol.Transform(coord);
 	    multiPosRotions[a].Set(index + r, coord); 
@@ -336,9 +336,9 @@ namespace cbmc
 	  {
 	    XYZ coord = multiPosRotions[a][index];
 	    //transform backbone to z axis
-	    coord = invMatrix.Transform(coord);
+	    coord = geom::Transform(invMatrix, coord);
 	    //rotate around z
-	    coord = rotateMatrix.Transform(coord);
+	    coord = geom::Transform(rotateMatrix, coord);
 	    //transfer backbone to cavity orientation
 	    coord = oldMol.Transform(coord);
 	    multiPosRotions[a].Set(index + r, coord); 
