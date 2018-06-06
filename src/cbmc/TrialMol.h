@@ -168,6 +168,7 @@ public:
   void SetSeed(const XYZ& coords, const XYZ& cav, const bool inCav,
 	       const bool fixCOM, const bool rotBB);
   void SetSeed(const bool inCav, const bool fixCOM, const bool rotBB);
+  void SetBackBone(const uint bb[2]);
   XYZ Transform(const XYZ& a) {return geom::Transform(cavMatrix, a);}
   void TransposeMatrix(XYZArray &invMatrix)
   {return geom::TransposeMatrix(invMatrix, cavMatrix);}
@@ -179,6 +180,7 @@ public:
   XYZ GetCavity() const {return cavity;}
   //return unwrap com of tcoords so tcoords must be set
   XYZ GetCOM();
+  uint GetAtomBB(const uint i) const { return backbone[i];}
 
   ~TrialMol();
 
@@ -195,6 +197,7 @@ private:
   RotationMatrix worldToGrowth;
   XYZ basisPoint;
   XYZ cavityCenter, cavity; //The center and cavity dimensions
+  uint backbone[2];
   bool comInCav, comFix, rotateBB;
   bool* atomBuilt;
 

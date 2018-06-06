@@ -431,7 +431,9 @@ inline uint MoleculeExchange2::Prep(const double subDraw, const double movPerc)
        if(insertL) 
        { 
 	 //Inserting Lmol from destBox to the center of cavity in sourceBox 
-	 newMolB[n].SetSeed(center, cavity, true, true, true); 
+	 newMolB[n].SetSeed(center, cavity, true, true, true);
+     // Set the Backbone of large molecule to be inserted
+     newMolB[n].SetBackBone(largeBB);
 	 //perform rotational trial move in destBox for L oldMol 
 	 oldMolB[n].SetSeed(false, false, false); 
        } 
@@ -439,8 +441,10 @@ inline uint MoleculeExchange2::Prep(const double subDraw, const double movPerc)
        { 
 	 if(n == 0) 
 	 { 
-	   //Inserting Smol from destBox to the center of cavity in sourceBox 
-	   newMolB[n].SetSeed(center, cavity, true, true, true); 
+	   //Inserting Small from destBox to the center of cavity in sourceBox
+	   newMolB[n].SetSeed(center, cavity, true, true, true);
+       // Set the Backbone of small molecule to be inserted
+       newMolB[n].SetBackBone(smallBB);
 	 } 
 	 else 
 	 { 
@@ -461,7 +465,9 @@ inline uint MoleculeExchange2::Prep(const double subDraw, const double movPerc)
 	 if(n == 0) 
 	 { 
 	   //perform trial move in cavity with fix COM for S oldMol 
-	   oldMolA[n].SetSeed(center, cavity, true, true, true); 
+	   oldMolA[n].SetSeed(center, cavity, true, true, true);
+       // Set the Backbone of small molecule to be deleted
+       oldMolA[n].SetBackBone(smallBB);
 	 } 
 	 else 
 	 { 
@@ -474,7 +480,9 @@ inline uint MoleculeExchange2::Prep(const double subDraw, const double movPerc)
 	 //Inserting L mol from sourceBox to destBox 
 	 newMolA[n].SetSeed(false, false, false); 
 	 //perform rotational trial move on COM for L oldMol 
-	 oldMolA[n].SetSeed(center, cavity, true, true, true); 
+	 oldMolA[n].SetSeed(center, cavity, true, true, true);
+     // Set the Backbone of large molecule to be deleted
+     oldMolA[n].SetBackBone(largeBB);
        } 
      } 
    } 
