@@ -69,7 +69,7 @@ class MoleculeExchange3 : public MoveBase
 	 if(molRef.kinds[kindL].atomNames[i] == statV.memcVal.largeBBAtom1) { 
 	   largeBB[0] = i;
 	 } 
-	 else if(molRef.kinds[kindL].atomNames[i] ==statV.memcVal.largeBBAtom2){
+	 if(molRef.kinds[kindL].atomNames[i] ==statV.memcVal.largeBBAtom2){
 	   largeBB[1] = i; 
 	 } 
        } 
