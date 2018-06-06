@@ -1,0 +1,166 @@
+*
+* Topology File for Mie General model (Mick, Soroush Barhaghi, and Potoff) United Atom Force Field
+*
+* Parameters From:
+*
+* "Mie potentials for phase equilibria calculations: Application to alkanes and perfluoroalkanes." 
+* Potoff, Jeffrey J., and Damien A. Bernard-Brunel. 
+* The Journal of Physical Chemistry B 113.44 (2009): 14725-14731.
+*
+*
+* "Optimized Mie Potentials for Phase Equilibria: Understanding the limits of transferability in branched alkanes" 
+* Jason R. Mick, Mohammad Soroush Barhaghi, Jeffrey J. Potoff.
+*
+*
+
+
+BONDS
+!
+!V(bond) = Kb(b - b0)**2
+!
+!Kb: kcal/mole/A**2
+!b0: A
+!
+! Kb (kcal/mol) = Kb (K) * Boltz. const.; (9999999999 if no stretching)
+!
+!atom type     Kb              b0        description
+CH3 CH3        9999999999      1.540   ! (ethane) 
+CH3 CH2        9999999999      1.540   ! (ex. propane) 
+CH2 CH2        9999999999      1.540   ! (ex. n-butane) 
+CH3 CHS        9999999999      1.540   ! (ex. 2-methylpropane)
+CH3 CHL        9999999999      1.540   ! (ex. 2-methylpentane) 
+CH3 CTS        9999999999      1.540   ! (ex. 2,2-dimethylpropane)
+CH3 CTL        9999999999      1.540   ! (ex. 2,2-dimethylpentane) 
+CH2 CHS        9999999999      1.540   ! (ex. 2-methylbutane) 
+CH2 CHL        9999999999      1.540   ! (ex. 2-methylpentane) 
+CH2 CTS        9999999999      1.540   ! (ex. 2,2-dimethylbutane)  
+CH2 CTL        9999999999      1.540   ! (ex. 2,2-dimethylpentane) 
+CHS CHS        9999999999      1.540   ! (ex. 2,3-dimethylbutane) 
+CHL CHL        9999999999      1.540   ! (ex. 2,3-dimethylpentane)
+CHS CTS        9999999999      1.540   ! (ex. 2,2,3-trimethylbutane)
+CHL CTL        9999999999      1.540   ! (ex. 2,2,3-trimethylpentane)  
+CTT CTT        9999999999      1.580   ! (2,2,3,3-tetramethylbutane)
+CF3 CF3	       9999999999      1.540   ! 
+CF3 CF2        9999999999      1.540   !
+CF2 CF2        9999999999      1.540   !
+
+
+
+ANGLES
+!
+!V(angle) = Ktheta(Theta - Theta0)**2
+!
+!Ktheta: kcal/mole/rad**2
+!Theta0: degrees
+!
+! Ktheta (kcal/mol) = Ktheta (K) * Boltz. const.
+!
+!atom types         Ktheta       Theta0  
+CH3 CH2 CH3         31250        114.00 ! (propane only)
+CH3 CH2 CH2         31250        114.00 ! (ex. n-butane)
+CH3 CH2 CHS         31250        114.00 ! (ex. 2-methylbutane)
+CH3 CH2 CHL         31250        114.00 ! (ex. 3-methylpentane)
+CH3 CH2 CTS         31250        114.00 ! (ex. 2,2-dimethylbutane) 
+CH3 CH2 CTL         31250        114.00 ! (ex. 3,3-dimethylhexane)
+CH2 CH2 CH2         31250        114.00 ! (ex. n-pentane)
+CH2 CH2 CHL         31250        114.00 ! (ex. 2-methylpentane)
+CH2 CH2 CTL         31250        114.00 ! (ex. 2,2-dimethylpentane)
+CHL CH2 CHL         31250        114.00 ! (ex. 2,4-dimethylpentane)
+CHL CH2 CTL         31250        114.00 ! (ex. 2,2,4-trimethylpentane) 
+CH3 CHS CH3         31250        112.00 ! (ex. isobutane)
+CH3 CHL CH3         31250        112.00 ! (ex. 2-methylpentane)
+CH3 CHS CH2         31250        112.00 ! (ex. 2-methylbutane)
+CH3 CHL CH2         31250        112.00 ! (ex. 2-methylpentane)
+CH3 CHS CHS         31250        112.00 ! (2,3-dimethylbutane only)
+CH3 CHL CHL         31250        112.00 ! (ex. 2,3-dimethylpentane)
+CH3 CHS CTS         31250        112.00 ! (2,2,3-trimethylbutane only)
+CH3 CHL CTL         31250        112.00 ! (ex. 2,2,3-trimethylpentane)
+CH2 CHL CH2         31250        112.00 ! (ex. 3-methylpentane)
+CH2 CHL CHL         31250        112.00 ! (ex. 2,3-dimethylpentane)
+CH2 CHL CTL         31250        112.00 ! (ex. 2,2,3-trimethylpentane)
+CHL CHL CHL         31250        112.00 ! (ex. 2,3,4-trimethylpentane)
+CH3 CTS CH3         31250        109.47 ! (ex. 2,2-dimethylpropane)
+CH3 CTL CH3         31250        109.47 ! (ex. 2,2-dimethylpentane)
+CH3 CTS CH2         31250        109.47 ! (ex. 2,2-dimethylbutane)
+CH3 CTL CH2         31250        109.47 ! (ex. 2,2-dimethylpentane)
+CH3 CTS CHS         31250        109.47 ! (ex. 2,2,3-trimethylbutane)
+CH3 CTL CHL         31250        109.47 ! (ex. 2,2,3-trimethylpentane)
+CH2 CTL CH2         31250        109.47 ! (ex. 3,3-dimethylpentane)
+CH3 CTT CTT         31250        111.00 ! (2,2,3,3-tetramethylbutane)     
+CH3 CTT CH3         31250        107.00 ! (2,2,3,3-tetramethylbutane)
+CF3 CF2 CF3	    31250	 114.00	! perfluorocarbons
+CF2 CF2 CF3	    31250	 114.00	! 
+CF2 CF2 CF2	    31250	 114.00	! 
+
+
+DIHEDRALS
+!
+!V(dihedral) = Kchi(1 + cos(n(chi) - delta))
+!
+!Kchi: kcal/mole
+!n: multiplicity
+!delta: degrees
+!
+! Kchi (kcal/mol) = Kchi (K) * Boltz. const.
+! Boltzmann = 0.0019872041 kcal / (mol * K)
+!
+! TraPPE Inherits most of its dihedrals from OPLS UA
+! X-CT-CH1-X fitted to QM data in this work
+!
+!atom types         Kchi        n    delta              description
+X   CH2 CH2 X         0.000000  0      0.0   ! OPLS (ex. n-butane)
+X   CH2 CH2 X       355.029964  1      0.0   ! "" 
+X   CH2 CH2 X       -68.189775  2    180.0   ! "" 
+X   CH2 CH2 X       791.317812  3      0.0   ! "" 
+X   CH2 CHS X      -251.059767  0      0.0   ! OPLS -- short backbone (ex. 2-methylbutane)
+X   CH2 CHS X       428.729993  1      0.0   ! "" 
+X   CH2 CHS X      -111.850111  2    180.0   ! "" 
+X   CH2 CHS X       441.270224  3      0.0   ! "" 
+X   CH2 CHL X      -251.059767  0      0.0   ! (same as prev., but for long backbone)
+X   CH2 CHL X       428.729993  1      0.0   ! ""
+X   CH2 CHL X      -111.850111  2    180.0   ! "" 
+X   CH2 CHL X       441.270224  3      0.0   ! "" 
+X   CHS CHS X      -251.059767  0      0.0   ! OPLS -- short backbone (ex. 2,3-dimethylbutane)
+X   CHS CHS X       428.729993  1      0.0   ! "" 
+X   CHS CHS X      -111.850111  2    180.0   ! "" 
+X   CHS CHS X       441.270224  3      0.0   ! ""
+X   CHL CHL X      -251.059767  0      0.0   ! (same as prev., but for long backbone)
+X   CHL CHL X       428.729993  1      0.0   ! ""
+X   CHL CHL X      -111.850111  2    180.0   ! "" 
+X   CHL CHL X       441.270224  3      0.0   ! "" 
+X   CTS CH2 X       461.289809  3      0.0   ! OPLS -- short backbone (ex. 2,2-DMBut)
+X   CTL CH2 X       461.289809  3      0.0   ! (same as prev., but for long backbone)
+X   CTS CHS X       1369.00000  3      0.0   ! this work -- short backbone (ex. 2,2,3-TriMBut)
+X   CTL CHL X       1369.00000  3      0.0   ! this work -- long backbone (ex. 2,2,3-TriMPen)
+X   CTS CTS X      2950.910000  0      0.0   ! this work -- from QM
+X   CTS CTS X     -2047.060000  3      0.0   ! (ex. 2,2,3,3-tetramethylbutane)
+X   CTS CTS X       529.250000  6    180.0   ! ""
+X   CTS CTS X       150.160000 12      0.0   ! ""
+! perfluorocarbons: use wacky seven term torsion
+X   CF2 CF2 X	   -1577.68	0      0.0  !	Fit to MP2/6-31+g(d,p) data for perfluorobutane
+X   CF2 CF2 X	     791.61	1      0.0  !	
+X   CF2 CF2 X	     333.65	2      0.0  !	
+X   CF2 CF2 X	     854.01	3      0.0  !	
+X   CF2 CF2 X	     349.25	4      0.0  !	
+X   CF2 CF2 X	     211.51	5      0.0  !	
+X   CF2 CF2 X	     117.66	6      0.0  !	
+X   CF2 CF2 X	     -83.44	7      0.0  !	
+
+
+NONBONDED_MIE
+!
+!V(mie) = 4*eps*((sig_ij/r_ij)^n-(sig_ij/r_ij)^6)
+!
+!atom   eps          sig_ij     n    description
+CH4     161.00       3.740      14   ! Potoff, 2009
+CH3     121.25       3.783      16   ! Potoff, 2009 
+CH2      61.00       3.990      16   ! Potoff, 2009 
+CHS      15.00       4.700      16   ! alkanes w/ 4 or less carbons in backbone
+CHL      14.00       4.700      16   ! alkanes w/ 5 or more carbons in backbone 
+CTS       1.45       6.100      16   ! alkanes w/ 4 or less carbons in backbone
+CTL       1.20       6.200      16   ! alkanes w/ 5 or more carbons in backbone
+CTT       1.45       6.100      16   ! 2,2,3,3-tetramethylbutane (same as CTS)
+CF4     269.00       4.355      36   ! Potoff, 2009
+CF3     155.75       4.475      36   ! Potoff, 2009
+CF2      72.20       4.75       44   ! Potoff, 2009; modified for new torsion
+
