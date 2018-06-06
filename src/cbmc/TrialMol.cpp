@@ -293,6 +293,12 @@ void TrialMol::SetSeed(const bool inCav, const bool fixCOM, const bool rotBB)
   comFix = fixCOM;
   rotateBB = rotBB;
 }
+    
+void TrialMol::SetBackBone(const uint bb[2])
+{
+  backbone[0] = bb[0];
+  backbone[1] = bb[1];
+}
 
 XYZ TrialMol::GetCOM()
 {
