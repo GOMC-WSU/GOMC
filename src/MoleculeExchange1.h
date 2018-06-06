@@ -6,6 +6,7 @@
 #include "MoveBase.h"
 #include "TrialMol.h"
 #include "GeomLib.h"
+#include <cmath>
 
 using std::vector;
 using namespace geom;
@@ -64,10 +65,10 @@ class MoleculeExchange1 : public MoveBase
          
        for(uint i = 0; i < molRef.kinds[kindL].NumAtoms(); i++) {
 	 if(molRef.kinds[kindL].atomNames[i] == statV.memcVal.largeBBAtom1) {
-	   largeBB[0] == i;
+	   largeBB[0] = i;
 	 }
 	 else if(molRef.kinds[kindL].atomNames[i] ==statV.memcVal.largeBBAtom2){
-	   largeBB[1] == i;
+	   largeBB[1] = i;
 	 }
        }
          
@@ -109,13 +110,13 @@ class MoleculeExchange1 : public MoveBase
    uint largeBB[2];
    uint sourceBox, destBox;
    uint perAdjust, molInCavCount, counter;
-   uint numInCavA, numInCavB, exchangeRatio, kindS, kindL, totMolInCav;
+   uint numInCavA, numInCavB, kindS, kindL, totMolInCav;
    vector<uint> pStartA, pLenA, pStartB, pLenB;
    vector<uint> molIndexA, kindIndexA, molIndexB, kindIndexB;
    vector< vector<uint> > molInCav;
    vector<cbmc::TrialMol> oldMolA, newMolA, oldMolB, newMolB;
 
-   int exDiff;
+   int exDiff, exchangeRatio;
    double volCav, lastAccept;
    double numTypeASource, numTypeBSource, numTypeADest, numTypeBDest;
    XYZ center, cavity;
