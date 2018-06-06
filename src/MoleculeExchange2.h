@@ -197,8 +197,10 @@ inline uint MoleculeExchange2::PickMolInCav()
        SetBasis(cavA, prng.RandomUnitVect()); 
      } 
      else 
-     { 
-       SetBasis(cavA, boxDimRef.MinImage(coordCurrRef.Difference(smallBB[0], smallBB[1]), sourceBox)); 
+     {
+       uint start = molRef.MolStart(pickedS) + smallBB[0];
+       uint end = molRef.MolStart(pickedS) + smallBB[1];
+       SetBasis(cavA, boxDimRef.MinImage(coordCurrRef.Difference(start, end), sourceBox));
      } 
      //Calculate inverse matrix for cav here Inv = transpose 
      TransposeMatrix(invCavA, cavA); 
@@ -269,8 +271,10 @@ inline uint MoleculeExchange2::ReplaceMolecule()
        SetBasis(cavA, prng.RandomUnitVect()); 
      } 
      else 
-     { 
-       SetBasis(cavA, boxDimRef.MinImage(coordCurrRef.Difference(largeBB[0], largeBB[1]), sourceBox)); 
+     {
+       uint start = molRef.MolStart(molIndexA[0]) + largeBB[0];
+       uint end = molRef.MolStart(molIndexA[0]) + largeBB[1];
+       SetBasis(cavA, boxDimRef.MinImage(coordCurrRef.Difference(start, end), sourceBox)); 
      } 
      //Calculate inverse matrix for cav. Here Inv = Transpose  
      TransposeMatrix(invCavA, cavA); 

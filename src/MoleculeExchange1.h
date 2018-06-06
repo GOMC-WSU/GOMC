@@ -237,7 +237,9 @@ inline uint MoleculeExchange1::ReplaceMolecule()
      }
      else
      {
-       SetBasis(cavA, boxDimRef.MinImage(coordCurrRef.Difference(largeBB[0], largeBB[1]), sourceBox));
+       uint start = molRef.MolStart(molIndexA[0]) + largeBB[0];
+       uint end = molRef.MolStart(molIndexA[0]) + largeBB[1];
+       SetBasis(cavA, boxDimRef.MinImage(coordCurrRef.Difference(start, end), sourceBox));
      }
      //Calculate inverse matrix for cav. Here Inv = Transpose 
      TransposeMatrix(invCavA, cavA);
