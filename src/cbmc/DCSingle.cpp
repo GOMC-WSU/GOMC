@@ -39,7 +39,7 @@ void DCSingle::BuildOld(TrialMol& oldMol, uint molIndex)
   } else {
     prng.FillWithRandom(positions, nLJTrials, data->axes, oldMol.GetBox());
   }
-  positions.Set(0, oldMol.AtomPosition(atom));
+  positions.Set(0, data->axes.WrapPBC(oldMol.AtomPosition(atom), oldMol.GetBox()));
   data->calc.ParticleInter(inter, real, positions, atom, molIndex,
                            oldMol.GetBox(), nLJTrials);
 
