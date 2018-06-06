@@ -245,7 +245,8 @@ inline uint MoleculeExchange3::ReplaceMolecule()
      //Calculate inverse matrix for cav. Here Inv = Transpose 
      TransposeMatrix(invCavA, cavA);
      //use the first atom in molecule as the center
-     center = coordCurrRef.Get(largeBB[0]);
+     uint start = molRef.MolStart(molIndexA[0]) + largeBB[0];
+     center = coordCurrRef.Get(start);
      //find how many of KindS exist in this center
      calcEnRef.FindMolInCavity(molInCav, center, cavity, invCavA, sourceBox,
 			       kindS, exchangeRatio);
