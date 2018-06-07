@@ -19,7 +19,7 @@ namespace cbmc {
    class DCRotateCOM : public DCComponent
    {  
    public:
-      DCRotateCOM(DCData* data);
+      DCRotateCOM(DCData* data, const mol_setup::MolKind kind);
       void PrepareNew(TrialMol& newMol, uint molIndex);
       void PrepareOld(TrialMol& oldMol, uint molIndex);
       void PickTransferCOMNew(TrialMol& newMol, uint molIndex);
@@ -36,6 +36,7 @@ namespace cbmc {
       XYZArray rotateMatrix;
       //inverse of matrix
       XYZArray invMatrix;
+      XYZArray *multiPosRotions;
       uint atomNumber;
    };
 }

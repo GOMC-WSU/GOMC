@@ -26,7 +26,7 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
   assert(it != set.mol.kindMap.end());
   const MolKind setupKind = it->second;
 
-  idExchange = new DCRotateCOM(&data);
+  idExchange = new DCRotateCOM(&data, setupKind);
 
   std::vector<uint> atomToNode(setupKind.atoms.size(), 0);
   std::vector<uint> bondCount(setupKind.atoms.size(), 0);
@@ -351,19 +351,25 @@ void DCGraph::BuildNew(TrialMol& newMol, uint molIndex)
 
 void DCGraph::BuildGrowOld(TrialMol& oldMol, uint molIndex)
 {
-  //Use node 0 because atom zero is in node zero
-  uint current = 0;
   visited.assign(nodes.size(), false);
-  //Visiting the node
-  visited[current] = true;
-  //Copy the current node's focus coordinate
-  uint seedInx = nodes[current].atomIndex;
-  if(seedInx != 0)
-  {
-    std::cout << "In MEMC-3 move, atom 0 must be a node." 
-	      << "atom 0 must be bounded to two or more atoms! \n";
+  //Use backbone atom to start the node
+  uint current = -1;
+  for(uint i = 0; i < nodes.size(); i++) {
+    if(nodes[i].atomIndex == oldMol.GetAtomBB(0)) {
+      current = i;
+      break;
+    }
+  }
+
+  if(current == -1) {
+    std::cout << "In MEMC-3 move, atom index "<< oldMol.GetAtomBB(0)<<
+        " must be a node."
+        << "This atom must be bounded to two or more atoms! \n";
     exit(1);
   }
+    
+  //Visiting the node
+  visited[current] = true;
   DCComponent* comp = nodes[current].starting;
   //Call DCFreeHedron to build all Atoms connected to the node
   comp->PrepareOld(oldMol, molIndex);
@@ -405,19 +411,25 @@ void DCGraph::BuildGrowOld(TrialMol& oldMol, uint molIndex)
 
 void DCGraph::BuildGrowNew(TrialMol& newMol, uint molIndex)
 {
-  //Randomely pick a node to call DCFreeHedron on it
-  uint current = 0;
   visited.assign(nodes.size(), false);
-  //Visiting the node
-  visited[current] = true;
-  //Copy the current node's focus coordinate
-  uint seedInx = nodes[current].atomIndex;
-  if(seedInx != 0)
-  {
-    std::cout << "In MEMC-3 move, atom 0 must be a node." 
-	      << "atom 0 must be bounded to two or more atoms! \n";
+  //Use backbone atom to start the node
+  uint current = -1;
+  for(uint i = 0; i < nodes.size(); i++) {
+    if(nodes[i].atomIndex == newMol.GetAtomBB(0)) {
+      current = i;
+      break;
+    }
+  }
+    
+  if(current == -1) {
+    std::cout << "In MEMC-3 move, atom index "<< newMol.GetAtomBB(0)<<
+        " must be a node."
+        << "This atom must be bounded to two or more atoms! \n";
     exit(1);
   }
+    
+  //Visiting the node
+  visited[current] = true;
   DCComponent* comp = nodes[current].starting;
   //Call DCFreeHedron to build all Atoms connected to the node
   comp->PrepareNew(newMol, molIndex);
