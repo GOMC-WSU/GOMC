@@ -40,7 +40,7 @@ public:
   const uint nDihTrials;
   const uint nLJTrialsFirst;
   const uint nLJTrialsNth;
-  const uint totalTrials;
+  uint totalTrials;
 
   //used for both angles and dihedrals
   double* angles;
@@ -72,12 +72,17 @@ inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& se
   nDihTrials(set.config.sys.cbmcTrials.bonded.dih),
   nLJTrialsFirst(set.config.sys.cbmcTrials.nonbonded.first),
   nLJTrialsNth(set.config.sys.cbmcTrials.nonbonded.nth),
-  positions(*multiPositions), totalTrials(nLJTrialsFirst * nLJTrialsNth)
+  positions(*multiPositions)
 {
   calcEwald = sys.GetEwald();
   uint maxLJTrials = nLJTrialsFirst;
   if ( nLJTrialsNth > nLJTrialsFirst )
     maxLJTrials = nLJTrialsNth;
+   
+  totalTrials = nLJTrialsFirst * nLJTrialsNth;
+  if(totalTrials == 0)
+    totalTrials = maxLJTrials;
+    
   for(uint i = 0; i < MAX_BONDS; ++i) {
     multiPositions[i] = XYZArray(maxLJTrials);
   }

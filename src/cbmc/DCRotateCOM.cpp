@@ -35,6 +35,11 @@ namespace cbmc
     rotateMatrix.Set(2, 0.0, 0.0, 1.0);
     atomNumber = kind.atoms.size();
     multiPosRotions = new XYZArray[atomNumber];
+      
+    if(data->totalTrials < 1) {
+      std::cout << "Error: CBMC first or secondary atom trials must be greater than 0.\n";
+      exit(EXIT_FAILURE);
+    }
     for(uint i = 0; i < atomNumber; ++i) {
       multiPosRotions[i] = XYZArray(data->totalTrials);
     }
