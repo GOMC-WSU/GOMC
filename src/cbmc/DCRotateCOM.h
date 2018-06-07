@@ -20,6 +20,7 @@ namespace cbmc {
    {  
    public:
       DCRotateCOM(DCData* data, const mol_setup::MolKind kind);
+      ~DCRotateCOM() {delete[] multiPosRotions;}
       void PrepareNew(TrialMol& newMol, uint molIndex);
       void PrepareOld(TrialMol& oldMol, uint molIndex);
       void PickTransferCOMNew(TrialMol& newMol, uint molIndex);
