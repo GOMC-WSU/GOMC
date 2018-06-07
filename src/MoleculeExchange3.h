@@ -399,6 +399,8 @@ inline uint MoleculeExchange3::Prep(const double subDraw, const double movPerc)
        {
 	 //Inserting Lmol from destBox to the center of cavity in sourceBox
 	 newMolB[n].SetSeed(center, cavity, true, true, true);
+     // Set the a otom of large molecule to be inserted in COM of cavity
+     newMolB[n].SetBackBone(largeBB);
 	 //perform rotational trial move in destBox for L oldMol
 	 oldMolB[n].SetSeed(false, false, false);
        }
@@ -442,6 +444,8 @@ inline uint MoleculeExchange3::Prep(const double subDraw, const double movPerc)
 	 newMolA[n].SetSeed(false, false, false);
 	 //perform rotational trial move on COM for L oldMol
 	 oldMolA[n].SetSeed(center, cavity, true, true, true);
+     // Set the atom of the large molecule to be inserted in COM
+     oldMolA[n].SetBackBone(largeBB);
        }
      }
    }

@@ -248,9 +248,7 @@ namespace cbmc
  
     newMol.AddEnergy(Energy(0.0, 0.0, inter[winner], real[winner], 0.0, 0.0,
 			    0.0)); 
-    newMol.MultWeight(stepWeight / totalTrials); 
-
-    delete[] multiPosRotions; 
+    newMol.MultWeight(stepWeight / totalTrials);
   } 
  
   void DCRotateCOM::BuildOld(TrialMol& oldMol, uint molIndex) 
@@ -371,8 +369,6 @@ namespace cbmc
  
     oldMol.AddEnergy(Energy(0.0, 0.0, inter[0], real[0], 0.0, 0.0, 0.0)); 
     oldMol.MultWeight(stepWeight / totalTrials); 
-
-    delete[] multiPosRotions; 
   }
  
 }              
