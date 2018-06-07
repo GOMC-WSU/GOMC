@@ -17,19 +17,27 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 This file is only called from MoleculeExchange and IntraMoleculeExchange file.
 This file depend on ensemble kind, swap the COM of small molecules with one 
 large molecule.
-
-
+ 
+Molecule is allowed to have trial position in Box or trial position
+in cavity (HasCav()), or no trial position (COMFix()).
+ 
+Molecule is allowed to have rotation around COM or around Z-axis
 */ 
 
 namespace cbmc 
 { 
  
-  DCRotateCOM::DCRotateCOM(DCData* data) 
+  DCRotateCOM::DCRotateCOM(DCData* data, const mol_setup::MolKind kind)
     : data(data) , rotateMatrix(3), invMatrix(3)
   {
     rotateMatrix.Set(0, 0.0, 0.0, 0.0);
     rotateMatrix.Set(1, 0.0, 0.0, 0.0);
     rotateMatrix.Set(2, 0.0, 0.0, 1.0);
+    atomNumber = kind.atoms.size();
+    multiPosRotions = new XYZArray[atomNumber];
+    for(uint i = 0; i < atomNumber; ++i) {
+      multiPosRotions[i] = XYZArray(data->totalTrials);
+    }
   }
   
   void DCRotateCOM::RandRotateZ()
@@ -47,7 +55,6 @@ namespace cbmc
   void DCRotateCOM::PrepareNew(TrialMol& newMol, uint molIndex) 
   { 
     newMol.SetWeight(1.0);
-    atomNumber = newMol.GetCoords().Count();
     //old center of mass
     oldCOM = newMol.GetCOM();
   } 
@@ -86,7 +93,6 @@ namespace cbmc
   void DCRotateCOM::PrepareOld(TrialMol& oldMol, uint molIndex) 
   { 
     oldMol.SetWeight(1.0);
-    atomNumber = oldMol.GetCoords().Count();
     //old center of mass
     oldCOM = oldMol.GetCOM();
     COM = oldCOM;
@@ -134,14 +140,7 @@ namespace cbmc
  
     std::fill_n(inter, totalTrials, 0.0); 
     std::fill_n(real, totalTrials, 0.0); 
-    std::fill_n(ljWeights, totalTrials, 0.0); 
- 
-    XYZArray *multiPosRotions;  
-    multiPosRotions = new XYZArray[atomNumber];
-    for(uint i = 0; i < atomNumber; ++i) 
-    { 
-      multiPosRotions[i] = XYZArray(totalTrials); 
-    }
+    std::fill_n(ljWeights, totalTrials, 0.0);
 
     if(atomNumber == 1)
     {
@@ -160,7 +159,8 @@ namespace cbmc
 	XYZ backBone;
 	if(atomNumber != 1)
 	{
-	  backBone = newMol.GetCoords().Difference(0, atomNumber - 1);
+	  backBone = newMol.GetCoords().Difference(newMol.GetAtomBB(0),
+                                               newMol.GetAtomBB(1));
 	}
 	else
 	{
@@ -269,14 +269,7 @@ namespace cbmc
 
     std::fill_n(inter, totalTrials, 0.0); 
     std::fill_n(real, totalTrials, 0.0);  
-    std::fill_n(ljWeights, totalTrials, 0.0); 
-      
-    XYZArray *multiPosRotions;  
-    multiPosRotions = new XYZArray[atomNumber];
-    for(uint i = 0; i < atomNumber; ++i) 
-    { 
-      multiPosRotions[i] = XYZArray(totalTrials); 
-    }
+    std::fill_n(ljWeights, totalTrials, 0.0);
 
     if(atomNumber == 1)
     {

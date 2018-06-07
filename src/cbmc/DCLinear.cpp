@@ -22,7 +22,7 @@ DCLinear::DCLinear(System& sys, const Forcefield& ff,
   uint size = kind.NumAtoms();
   atomSize = size;
   
-  idExchange = new DCRotateCOM(&data);
+  idExchange = new DCRotateCOM(&data, setupKind);
   //First atom of the molecule
   forward.push_back(new DCSingle(&data, 0));
   backward.push_back(new DCSingle(&data, size - 1));
@@ -114,8 +114,8 @@ void DCLinear::BuildNew(TrialMol& newMol, uint molIndex)
 
 void DCLinear::BuildGrowOld(TrialMol& oldMol, uint molIndex)
 {
-  //Need to find the atom to start growing
-  std::vector<DCComponent*>& comps = forward;
+  //If backbone is atom 0, we use forward, otherwise backward
+  std::vector<DCComponent*>& comps = oldMol.GetAtomBB(0) ? backward : forward;
   for(uint i = 0; i < comps.size(); ++i)
   {
     comps[i]->PrepareOld(oldMol, molIndex);
@@ -125,8 +125,8 @@ void DCLinear::BuildGrowOld(TrialMol& oldMol, uint molIndex)
 
 void DCLinear::BuildGrowNew(TrialMol& newMol, uint molIndex)
 {
-  //Need to find the atom to start growing
-  std::vector<DCComponent*>& comps = forward;
+  //If backbone is atom 0, we use forward, otherwise backward
+  std::vector<DCComponent*>& comps = newMol.GetAtomBB(0) ? backward : forward;
   for(uint i = 0; i < comps.size(); ++i)
   {
     comps[i]->PrepareNew(newMol, molIndex);
