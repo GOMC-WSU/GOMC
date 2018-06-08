@@ -38,6 +38,7 @@ ConfigSetup::ConfigSetup(void)
   int i;
   in.restart.enable = false;
   in.restart.step = ULONG_MAX;
+  in.restart.recalcTrajectory = false;
   in.prng.seed = UINT_MAX;
   sys.elect.readEwald = false;
   sys.elect.readElect = false;
@@ -298,6 +299,10 @@ void ConfigSetup::Init(const char *fileName)
     } else if(line[0] == "RunSteps") {
       sys.step.total = stringtoi(line[1]);
       printf("%-40s %-lu \n", "Info: Total number of steps", sys.step.total);
+      if(sys.step.total == 0) {
+        in.restart.recalcTrajectory = true;
+        printf("%-40s %-s \n", "Info: Recalculate Trajectory", "Active");
+      }
     } else if(line[0] == "EqSteps") {
       sys.step.equil = stringtoi(line[1]);
       printf("%-40s %-lu \n", "Info: Number of equilibration steps",
@@ -786,8 +791,8 @@ void ConfigSetup::verifyInputs(void)
               "than Equilibration steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
-  if(sys.step.equil > sys.step.total) {
-    std::cout << "Error: Equilibration steps should be smaller than " <<
+  if(sys.step.equil > sys.step.total && !in.restart.recalcTrajectory) {
+    std::cout << "Error: Equilibratisys.step.totalon steps should be smaller than " <<
               "Total run steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
