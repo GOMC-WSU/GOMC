@@ -27,35 +27,49 @@ namespace pdb_setup
 void Remarks::SetRestart(config_setup::RestartSettings const& r )
 {
   restart = r.enable;
-  reached = true;
+  recalcTrajectory = r.recalcTrajectory;
+  if(recalcTrajectory)
+    reached = false;
+  else
+    reached = true;
 }
 void Remarks::Read(FixedWidthReader & pdb)
 {
   using namespace pdb_entry::remark::field;
   using namespace pdb_entry::cryst1::field;
 
-  if(!restart)
-    return;
+  if(restart) {
+    //check if GOMC is taged and read the max dis, rot, vol value
+    std::string varName;
+    pdb.Get(varName, name::POS)
+    .Get(disp[currBox], dis::POS)
+    .Get(rotate[currBox], rot::POS)
+    .Get(vol[currBox], vol::POS);
 
-  //check if GOMC is taged and read the max dis, rot, vol value
-  std::string varName;
-  pdb.Get(varName, name::POS)
-  .Get(disp[currBox], dis::POS)
-  .Get(rotate[currBox], rot::POS)
-  .Get(vol[currBox], vol::POS);
+    CheckGOMC(varName);
+  }
+  if(recalcTrajectory) {
+    std::string varName;
+    pdb.Get(varName, name::POS)
+    .Get(frameNumber[currBox], frameNum::POS)
+    .Get(step[currBox], stepsNum::POS);
 
-  CheckGOMC(varName);
+    if(frameNumber[currBox] == targetFrame[currBox])
+      reached = true;
+
+    CheckGOMC(varName);
+  }
 }
 
 void Remarks::CheckGOMC(std::string const& varName)
 {
   using namespace pdb_entry::remark::field;
   if (!str::compare(varName, name::STR_GOMC)) {
-    std::cerr << "ERROR: Restart failed, "
+    std::cerr << "ERROR: "
               << "GOMC file's identifying tag "
               << "\"REMARK     GOMC\" is missing"
               << std::endl;
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -138,7 +152,7 @@ void Atoms::Read(FixedWidthReader & file)
 } //end namespace pdb_setup
 
 void PDBSetup::Init(config_setup::RestartSettings const& restart,
-                    std::string const*const name)
+                    std::string const*const name, uint frameNum)
 {
   using namespace std;
   map<string, FWReadableBase *>::const_iterator dataKind;
@@ -148,6 +162,7 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
   for (uint b = 0; b < BOX_TOTAL; b++) {
     std::string varName = "";
     remarks.SetBox(b);
+    remarks.SetFrameNumber(b, frameNum);
     cryst.SetBox(b);
     atoms.SetBox(b);
     FixedWidthReader pdb(name[b], pdbAlias[b]);
@@ -158,6 +173,7 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
       if (remarks.reached && str::compare(varName, pdb_entry::end::STR)) {
         break;
       }
+
       //Call reader function if remarks were reached,
       // or it is a remark
       dataKind = dataKinds.find(varName);
