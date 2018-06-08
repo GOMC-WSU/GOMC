@@ -28,12 +28,18 @@ namespace pdb_setup
 struct Remarks : FWReadableBase {
   uint currBox;
   double  disp[BOX_TOTAL], rotate[BOX_TOTAL], vol[BOX_TOTAL];
-  bool restart, reached;
+  ulong step[BOX_TOTAL];
+  uint frameNumber[BOX_TOTAL], targetFrame[BOX_TOTAL];
+  bool restart, reached, recalcTrajectory;
   void SetRestart(config_setup::RestartSettings const& r);
   void Read(FixedWidthReader & pdb);
   void SetBox(const uint b)
   {
     currBox = b;
+  }
+  void SetFrameNumber(const uint b, const uint frameNum)
+  {
+    targetFrame[b] = frameNum;
   }
 
 private:
@@ -104,7 +110,7 @@ struct PDBSetup {
   pdb_setup::Remarks remarks;
   PDBSetup(void) : dataKinds(SetReadFunctions()) {}
   void Init(config_setup::RestartSettings const& restart,
-            std::string const*const name);
+            std::string const*const name, uint frameNumber = 0);
 private:
   //Map variable names to functions
   std::map<std::string, FWReadableBase *>  SetReadFunctions(void)
