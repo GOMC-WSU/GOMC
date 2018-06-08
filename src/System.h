@@ -39,6 +39,9 @@ public:
   //Runs move, picked at random
   void ChooseAndRunMove(const uint step);
 
+  // Recalculate Trajectory
+  void RecalculateTrajectory(Setup & set, uint frameNum);
+
   //print move time
   void PrintTime();
 

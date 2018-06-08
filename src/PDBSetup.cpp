@@ -11,7 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBSetup.h" //Corresponding header to this body
 #include "FixedWidthReader.h" //For fixed width reader
 #include "ConfigSetup.h" //For restart info
-
+#include "MoveConst.h"
 #include <stdlib.h> //for exit
 
 #if BOX_TOTAL == 1
@@ -28,10 +28,12 @@ void Remarks::SetRestart(config_setup::RestartSettings const& r )
 {
   restart = r.enable;
   recalcTrajectory = r.recalcTrajectory;
-  if(recalcTrajectory)
-    reached = false;
-  else
-    reached = true;
+  for(uint b=0; b<BOX_TOTAL; b++) {
+    if(recalcTrajectory)
+      reached[b] = false;
+    else
+      reached[b] = true;
+  }
 }
 void Remarks::Read(FixedWidthReader & pdb)
 {
@@ -55,7 +57,7 @@ void Remarks::Read(FixedWidthReader & pdb)
     .Get(step[currBox], stepsNum::POS);
 
     if(frameNumber[currBox] == targetFrame[currBox])
-      reached = true;
+      reached[currBox] = true;
 
     CheckGOMC(varName);
   }
@@ -90,6 +92,7 @@ void Cryst1::Read(FixedWidthReader & pdb)
 void Atoms::SetRestart(config_setup::RestartSettings const& r )
 {
   restart = r.enable;
+  recalcTrajectory = r.recalcTrajectory;
 }
 
 void Atoms::Assign(std::string const& atomName,
@@ -145,6 +148,9 @@ void Atoms::Read(FixedWidthReader & file)
   .Get(l_y, field::y::POS).Get(l_z, field::z::POS)
   .Get(l_occ, field::occupancy::POS)
   .Get(l_beta, field::beta::POS);
+  if(recalcTrajectory && (uint)l_occ != currBox) {
+    return;
+  }
   Assign(atomName, resName, resNum, l_chain, l_x, l_y, l_z,
          l_occ, l_beta);
 }
@@ -170,7 +176,7 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
     while (pdb.Read(varName, pdb_entry::label::POS)) {
       //If end of frame, and this is the frame we wanted,
       //end read on this file
-      if (remarks.reached && str::compare(varName, pdb_entry::end::STR)) {
+      if (remarks.reached[b] && str::compare(varName, pdb_entry::end::STR)) {
         break;
       }
 
@@ -178,11 +184,30 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
       // or it is a remark
       dataKind = dataKinds.find(varName);
       if (dataKind != dataKinds.end() &&
-          (remarks.reached ||
+          (remarks.reached[b] ||
            str::compare(dataKind->first, pdb_entry::label::REMARK))) {
         dataKind->second->Read(pdb);
       }
     }
     pdb.close();
   }
+}
+
+std::vector<ulong> PDBSetup::GetFrameSteps(std::string const*const name)
+{
+  map<string, FWReadableBase *>::const_iterator dataKind;
+  remarks.SetBox(mv::BOX0);
+  FixedWidthReader pdb(name[mv::BOX0], pdbAlias[mv::BOX0]);
+  pdb.open();
+  std::string varName;
+  uint count = 0;
+  while (pdb.Read(varName, pdb_entry::label::POS)) {
+    if(varName == pdb_entry::label::REMARK) {
+      dataKind = dataKinds.find(varName);
+      dataKind->second->Read(pdb);
+      remarks.frameSteps.push_back(remarks.step[mv::BOX0]);
+      count++;
+    }
+  }
+  return remarks.frameSteps;
 }

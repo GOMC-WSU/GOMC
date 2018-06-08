@@ -365,7 +365,7 @@ void PDBOutput::PrintRemark(const uint b, const uint step, Writer & out)
   
   // Print Frame number
   frameNumber[b]++;
-  toStr.Fixed().Align(dis::ALIGN).Precision(dis::PRECISION);
+  toStr.Fixed().Align(frameNum::ALIGN).Precision(frameNum::PRECISION);
   toStr.Replace(outStr, frameNumber[b], frameNum::POS);
 
   // Print step number
