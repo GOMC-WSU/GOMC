@@ -155,12 +155,30 @@ void Atoms::Read(FixedWidthReader & file)
          l_occ, l_beta);
 }
 
+void Atoms::Clear()
+{
+  chainLetter.clear();
+  x.clear();
+  y.clear();
+  z.clear();
+  beta.clear();
+  box.clear();
+  atomAliases.clear();
+  resNamesFull.clear();
+  resNames.clear();
+  resKindNames.clear();
+  startIdxRes.clear();
+  resKinds.clear();
+  molBeta.clear();
+}
+
 } //end namespace pdb_setup
 
 void PDBSetup::Init(config_setup::RestartSettings const& restart,
                     std::string const*const name, uint frameNum)
 {
   using namespace std;
+  atoms.Clear();
   map<string, FWReadableBase *>::const_iterator dataKind;
   remarks.SetRestart(restart);
   atoms.SetRestart(restart);

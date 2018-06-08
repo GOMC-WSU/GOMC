@@ -84,6 +84,7 @@ public:
               const double l_beta);
 
   void Read(FixedWidthReader & file);
+  void Clear();
 
   //private:
   //member data
