@@ -42,6 +42,7 @@ struct Remarks : FWReadableBase {
   {
     targetFrame[b] = frameNum;
   }
+  void Clear();
 
 private:
   void CheckGOMC(std::string const& varName);

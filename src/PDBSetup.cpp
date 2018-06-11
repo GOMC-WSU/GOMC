@@ -75,6 +75,11 @@ void Remarks::CheckGOMC(std::string const& varName)
   }
 }
 
+void Remarks::Clear()
+{
+  frameSteps.clear();
+}
+
 void Cryst1::Read(FixedWidthReader & pdb)
 {
   XYZ temp;
@@ -170,6 +175,7 @@ void Atoms::Clear()
   startIdxRes.clear();
   resKinds.clear();
   molBeta.clear();
+  count = 0;
 }
 
 } //end namespace pdb_setup
@@ -178,7 +184,11 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
                     std::string const*const name, uint frameNum)
 {
   using namespace std;
+  // Clear the vectors for both atoms and remarks in case Init was called 
+  // more than once
   atoms.Clear();
+  remarks.Clear();
+
   map<string, FWReadableBase *>::const_iterator dataKind;
   remarks.SetRestart(restart);
   atoms.SetRestart(restart);
