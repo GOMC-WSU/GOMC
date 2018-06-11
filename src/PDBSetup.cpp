@@ -207,6 +207,13 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
         dataKind->second->Read(pdb);
       }
     }
+    // If the recalcTrajectory is true and reached was still false
+    // it means we couldn't find a remark and hence have to exit with error
+    if(!remarks.reached[b] && remarks.recalcTrajectory) {
+      std::cerr << "Error: Recalculate Trajectory is active..." << std::endl
+                << ".. and couldn't find remark in PDB file!" << std::endl;
+      exit(EXIT_FAILURE);
+    }
     pdb.close();
   }
 }
