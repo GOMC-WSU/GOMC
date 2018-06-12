@@ -6,7 +6,6 @@
 #include "TrialMol.h"
 #include "GeomLib.h"
 #include "MoleculeExchange1.h"
-#include "MoleculeExchange2.h"
 #include <cmath>
 
 using std::vector;
