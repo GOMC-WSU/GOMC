@@ -24,6 +24,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeExchange1.h"
 #include "MoleculeExchange2.h"
 #include "MoleculeExchange3.h"
+#include "IntraMoleculeExchange1.h"
+#include "IntraMoleculeExchange2.h"
+#include "IntraMoleculeExchange3.h"
 
 System::System(StaticVals& statics) :
   statV(statics),
@@ -58,6 +61,7 @@ System::~System()
   delete moves[mv::ROTATE];
   delete moves[mv::INTRA_SWAP];
   delete moves[mv::REGROWTH];
+  delete moves[mv::INTRA_MEMC];
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   delete moves[mv::VOL_TRANSFER];
 #endif
@@ -120,6 +124,14 @@ void System::InitMoves(Setup const& set)
   moves[mv::ROTATE] = new Rotate(*this, statV);
   moves[mv::INTRA_SWAP] = new IntraSwap(*this, statV);
   moves[mv::REGROWTH] = new Regrowth(*this, statV);
+  if(set.config.sys.intraMemcVal.MEMC1) {
+    moves[mv::INTRA_MEMC] = new IntraMoleculeExchange1(*this, statV);
+  } else if (set.config.sys.memcVal.MEMC2) {
+    moves[mv::INTRA_MEMC] = new IntraMoleculeExchange2(*this, statV);
+  } else {
+    moves[mv::INTRA_MEMC] = new IntraMoleculeExchange3(*this, statV);
+  }
+
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   moves[mv::VOL_TRANSFER] = new VolumeTransfer(*this, statV);
 #endif
@@ -196,6 +208,7 @@ void System::PrintTime()
   printf("%-30s %10.4f sec.\n", "Rotation:", moveTime[mv::ROTATE]);
   printf("%-30s %10.4f sec.\n", "Intra-Swap:", moveTime[mv::INTRA_SWAP]);
   printf("%-30s %10.4f sec.\n", "Regrowth:", moveTime[mv::REGROWTH]);
+  printf("%-30s %10.4f sec.\n", "Intra-MEMC:", moveTime[mv::INTRA_MEMC]);
 
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   printf("%-30s %10.4f sec.\n", "Molecule-Transfer:",

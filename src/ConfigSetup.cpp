@@ -48,6 +48,7 @@ ConfigSetup::ConfigSetup(void)
   sys.elect.oneFourScale = DBL_MAX;
   sys.elect.dielectric = DBL_MAX;
   sys.memcVal.enable = false;
+  sys.intraMemcVal.enable = false;
   sys.step.total = ULONG_MAX;
   sys.step.equil = ULONG_MAX;
   sys.step.adjustment = ULONG_MAX;
@@ -254,29 +255,37 @@ void ConfigSetup::Init(const char *fileName)
         temp.y = stringtod(line[2]);
         temp.z = stringtod(line[3]);
         sys.memcVal.subVol = temp;
+        sys.intraMemcVal.subVol = temp;
         printf("%-40s %-4.3f %-4.3f %-4.3f A\n",
                "Info: Exchange Sub-Volume Dimensions", temp.x, temp.y, temp.z);
         sys.memcVal.readVol = true;
+        sys.intraMemcVal.readVol = true;
       }
     } else if(line[0] == "ExchangeRatio") {
       if(line.size() == 2) {
         uint val = stringtoi(line[1]);
         sys.memcVal.exchangeRatio = val;
+        sys.intraMemcVal.exchangeRatio = val;
         sys.memcVal.readRatio = true;
+        sys.intraMemcVal.readRatio = true;
         printf("%-40s %-d \n", "Info: ExchangeRatio", val);
       }
     } else if(line[0] == "ExchangeLargeKind") {
       if(line.size() == 2) {
         std::string resName = line[1];
         sys.memcVal.largeKind = resName;
+        sys.intraMemcVal.largeKind = resName;
         sys.memcVal.readLK = true;
+        sys.intraMemcVal.readLK = true;
         printf("%-40s %-s \n", "Info: Exchange Large Kind", resName.c_str());
       }
     } else if(line[0] == "ExchangeSmallKind") {
       if(line.size() == 2) {
         std::string resName = line[1];
         sys.memcVal.smallKind = resName;
+        sys.intraMemcVal.smallKind = resName;
         sys.memcVal.readSK = true;
+        sys.intraMemcVal.readSK = true;
         printf("%-40s %-s \n", "Info: Exchange Small Kind", resName.c_str());
       }
     } else if(line[0] == "SmallKindBackBone") {
@@ -286,6 +295,9 @@ void ConfigSetup::Init(const char *fileName)
         sys.memcVal.smallBBAtom1 = atom1;
         sys.memcVal.smallBBAtom2 = atom2;
         sys.memcVal.readSmallBB = true;
+        sys.intraMemcVal.smallBBAtom1 = atom1;
+        sys.intraMemcVal.smallBBAtom2 = atom2;
+        sys.intraMemcVal.readSmallBB = true;
         printf("%-40s %-s - %-s \n", "Info: Atom Names in Small Kind BackBone",
                atom1.c_str(), atom2.c_str());
       }
@@ -296,6 +308,9 @@ void ConfigSetup::Init(const char *fileName)
         sys.memcVal.largeBBAtom1 = atom1;
         sys.memcVal.largeBBAtom2 = atom2;
         sys.memcVal.readLargeBB = true;
+        sys.intraMemcVal.largeBBAtom1 = atom1;
+        sys.intraMemcVal.largeBBAtom2 = atom2;
+        sys.intraMemcVal.readLargeBB = true;
         printf("%-40s %-s - %-s \n", "Info: Atom Names in Large Kind BackBone",
                atom1.c_str(), atom2.c_str());
       }
@@ -389,6 +404,30 @@ void ConfigSetup::Init(const char *fileName)
       sys.moves.rotate = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Rotation move frequency",
              sys.moves.rotate);
+    }else if(line[0] == "IntraMEMC-1Freq") {
+      sys.moves.intraMemc = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: IntraMEMC-1 move frequency",
+	     sys.moves.intraMemc);
+      if(sys.moves.intraMemc > 0.0) {
+	      sys.intraMemcVal.enable = true;
+        sys.intraMemcVal.MEMC1 = true;
+      }
+    } else if(line[0] == "IntraMEMC-2Freq") {
+      sys.moves.intraMemc = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: IntraMEMC-2 move frequency",
+	     sys.moves.intraMemc);
+      if(sys.moves.intraMemc > 0.0) {
+        sys.intraMemcVal.enable = true;
+        sys.intraMemcVal.MEMC2 = true;
+      }
+    } else if(line[0] == "IntraMEMC-3Freq") {
+      sys.moves.intraMemc = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: IntraMEMC-3 move frequency",
+	     sys.moves.intraMemc);
+      if(sys.moves.intraMemc > 0.0) {
+	      sys.intraMemcVal.enable = true;
+        sys.intraMemcVal.MEMC3 = true;
+      }
     }
 #ifdef VARIABLE_VOLUME
     else if(line[0] == "VolFreq") {
@@ -421,24 +460,24 @@ void ConfigSetup::Init(const char *fileName)
       printf("%-40s %-4.4f \n", "Info: MEMC-1 move frequency",
 	     sys.moves.memc);
       if(sys.moves.memc > 0.0) {
-	sys.memcVal.enable = true;
-    sys.memcVal.MEMC1 = true;
+	      sys.memcVal.enable = true;
+        sys.memcVal.MEMC1 = true;
       }
     } else if(line[0] == "MEMC-2Freq") {
       sys.moves.memc = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: MEMC-2 move frequency",
 	     sys.moves.memc);
       if(sys.moves.memc > 0.0) {
-	sys.memcVal.enable = true;
-    sys.memcVal.MEMC2 = true;
+        sys.memcVal.enable = true;
+        sys.memcVal.MEMC2 = true;
       }
     } else if(line[0] == "MEMC-3Freq") {
       sys.moves.memc = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: MEMC-3 move frequency",
 	     sys.moves.memc);
       if(sys.moves.memc > 0.0) {
-	sys.memcVal.enable = true;
-    sys.memcVal.MEMC3 = true;
+	      sys.memcVal.enable = true;
+        sys.memcVal.MEMC3 = true;
       }
     }
 #endif
@@ -683,6 +722,13 @@ void ConfigSetup::fillDefaults(void)
            sys.moves.intraSwap);
   }
 
+  if(sys.moves.intraMemc == DBL_MAX)
+  {
+    sys.moves.intraMemc = 0.0;
+    printf("%-40s %-4.4f \n", "Default: Intra-MEMC move frequency",
+	     sys.moves.intraMemc);
+  }
+
   if(sys.moves.regrowth == DBL_MAX) {
     sys.moves.regrowth = 0.000;
     printf("%-40s %-4.4f \n", "Default: Regrowth move frequency",
@@ -905,7 +951,7 @@ void ConfigSetup::verifyInputs(void)
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
          sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
-	 sys.moves.memc - 1.0) > 0.01) {
+	 sys.moves.memc + sys.moves.intraMemc - 1.0) > 0.01) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(EXIT_FAILURE);
   }
@@ -915,7 +961,7 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.volume + sys.moves.regrowth - 1.0) > 0.01) {
+         sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc - 1.0) > 0.01) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(EXIT_FAILURE);
   }
@@ -926,13 +972,14 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.transfer + sys.moves.regrowth +sys.moves.memc- 1.0) > 0.01) {
+         sys.moves.transfer + sys.moves.regrowth + sys.moves.memc
+         + sys.moves.intraMemc - 1.0) > 0.01) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #else
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.regrowth - 1.0) > 0.01) {
+         sys.moves.regrowth + sys.moves.intraMemc - 1.0) > 0.01) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
@@ -988,35 +1035,45 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: CBMC number of nth site trials is not specified!\n";
     exit(EXIT_FAILURE);
   }
-  if(sys.memcVal.enable) {
+  if(sys.memcVal.enable || sys.intraMemcVal.enable) {
     if((sys.memcVal.MEMC1 && sys.memcVal.MEMC2) ||
        (sys.memcVal.MEMC1 && sys.memcVal.MEMC3) || 
        (sys.memcVal.MEMC2 && sys.memcVal.MEMC3)) {
       std::cout << "Error: Multiple MEMC methods are specified!\n";
       exit(EXIT_FAILURE);
     }
-    if(!sys.memcVal.readVol) {
+    if((sys.intraMemcVal.MEMC1 && sys.intraMemcVal.MEMC2) ||
+       (sys.intraMemcVal.MEMC1 && sys.intraMemcVal.MEMC3) || 
+       (sys.intraMemcVal.MEMC2 && sys.intraMemcVal.MEMC3)) {
+      std::cout << "Error: Multiple Intra-MEMC methods are specified!\n";
+      exit(EXIT_FAILURE);
+    }
+    if(!sys.memcVal.readVol || !sys.intraMemcVal.readVol) {
       std::cout << "Error: In MEMC method, Sub-Volume is not specified!\n";
       exit(EXIT_FAILURE);
     }
-    if(!sys.memcVal.readRatio) {
+    if(!sys.memcVal.readRatio || !sys.intraMemcVal.readRatio) {
       std::cout << "Error: In MEMC method, Exchange Ratio is not specified!\n";
       exit(EXIT_FAILURE);
     }
-    if(!sys.memcVal.readSK) {
+    if(!sys.memcVal.readSK || !sys.intraMemcVal.readSK) {
       std::cout << "Error: In MEMC method, Small Kind is not specified!\n";
       exit(EXIT_FAILURE);
     }
-    if(!sys.memcVal.readLK) {
+    if(!sys.memcVal.readLK || !sys.intraMemcVal.readLK) {
       std::cout << "Error: In MEMC method, Large Kind is not specified!\n";
       exit(EXIT_FAILURE);
     }
-    if(!sys.memcVal.readLargeBB) {
+    if(!sys.memcVal.readLargeBB || !sys.intraMemcVal.readLargeBB) {
       std::cout << "Error: In MEMC method, Large Kind BackBone is not specified!\n";
       exit(EXIT_FAILURE);
     }
     if(sys.memcVal.MEMC2 && !sys.memcVal.readSmallBB) {
       std::cout << "Error: In MEMC method, Small Kind BackBone is not specified!\n";
+      exit(EXIT_FAILURE);
+    }
+    if(sys.intraMemcVal.MEMC2 && !sys.intraMemcVal.readSmallBB) {
+      std::cout << "Error: In Intra-MEMC method, Small Kind BackBone is not specified!\n";
       exit(EXIT_FAILURE);
     }
   }

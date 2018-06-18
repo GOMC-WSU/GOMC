@@ -15,7 +15,9 @@ using namespace geom;
 //
 // Swapping one Large molecule with one or more small molecules in dense phase 
 // and vice versa.
-// Sub-Volume location and orientation is random.
+// Sub-Volume location and orientation is random for kindL insertion.
+// Sub-Volume center and orientation is on COM of kindL and aligned with
+// backbone of kindL for kindL deletion.
 
 class MoleculeExchange1 : public MoveBase
 {
@@ -139,8 +141,7 @@ inline void MoleculeExchange1::SetMEMC(StaticVals const& statV)
 
 inline void MoleculeExchange1::AdjustExRatio()
 {
-  if(((counter + 1) % perAdjust) == 0)
-  {
+  if(((counter + 1) % perAdjust) == 0) {
     uint exMax = ceil((float)molInCavCount / (float)perAdjust);
     uint exMin = ceil((float)exMax / 2.0);
     if(exMin == 0)
@@ -148,22 +149,18 @@ inline void MoleculeExchange1::AdjustExRatio()
 
     subPick = mv::GetMoveSubIndex(mv::MEMC, sourceBox);
     double currAccept = moveSetRef.GetAccept(subPick);
-    if(abs(currAccept - lastAccept) > 0.05 * currAccept)
-    {
-      if(currAccept > lastAccept)
-      {
-	exchangeRatio += exDiff;
-      }
-      else
-      {
-	exDiff *= -1;
-	exchangeRatio += exDiff;
+    if(abs(currAccept - lastAccept) >= 0.05 * currAccept) {
+      if(currAccept > lastAccept) {
+	      exchangeRatio += exDiff;
+      } else {
+        exDiff *= -1;
+        exchangeRatio += exDiff;
       }
       lastAccept = currAccept;
       if(exchangeRatio < exMin)
-	exchangeRatio  = exMin;
+	      exchangeRatio  = exMin;
       if(exchangeRatio > exMax)
-	exchangeRatio = exMax;
+      	exchangeRatio = exMax;
     }
     molInCavCount = 0;
     counter = 0;
@@ -223,7 +220,7 @@ inline uint MoleculeExchange1::PickMolInCav()
    //Find the molecule kind 0 in the cavity
    if(calcEnRef.FindMolInCavity(molInCav, center, cavity, invCavA,
 				sourceBox, kindS, exchangeRatio)) {
-     //Find the exchangeRatio number of molecules kind 0 in cavity
+     //Find the exchangeRatio number of molecules kindS in cavity
      numInCavA = exchangeRatio;
      totMolInCav = molInCav[kindS].size();
      for(uint n = 0; n < numInCavA; n++) {
@@ -485,6 +482,7 @@ inline void MoleculeExchange1::CalcTc()
     W_tc = exp(-1.0 * ffRef.beta * delTC); 
   }
 }
+
 inline void MoleculeExchange1::CalcEn()
 {   
    W_recip = 1.0;
@@ -683,15 +681,13 @@ inline void MoleculeExchange1::Accept(const uint rejectState, const uint step)
         sysPotRef.Total();
       } else {
         //transfer molA from destBox to source
-        for(uint n = 0; n < numInCavA; n++)
-        {
+        for(uint n = 0; n < numInCavA; n++) {
           cellList.RemoveMol(molIndexA[n], destBox, coordCurrRef);
           RecoverMol(true, n, destBox, sourceBox);
           cellList.AddMol(molIndexA[n], sourceBox, coordCurrRef);
         }
         //transfer molB from sourceBox to dest
-        for(uint n = 0; n < numInCavB; n++)
-        {
+        for(uint n = 0; n < numInCavB; n++) {
           cellList.RemoveMol(molIndexB[n], sourceBox, coordCurrRef);
           RecoverMol(false, n, sourceBox, destBox);
           cellList.AddMol(molIndexB[n], destBox, coordCurrRef);

@@ -490,9 +490,8 @@ double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
     double energyRecipOld = 0.0;
     uint box = newMol[0].GetBox();
     
-    if (box < BOXES_WITH_U_NB)
-    {
-        uint p, i, m, lengthNew, lengthOld;
+    if (box < BOXES_WITH_U_NB) {
+        int p, i, m, lengthNew, lengthOld;
         MoleculeKind const& thisKindNew = newMol[0].GetKind();
         MoleculeKind const& thisKindOld = oldMol[0].GetKind();
         double dotProductNew, sumRealNew, sumImaginaryNew;
@@ -502,16 +501,13 @@ double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, p, dotProductNew, sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
 #endif
-        for (i = 0; i < imageSizeRef[box]; i++)
-        {
+        for (i = 0; i < imageSizeRef[box]; i++) {
             sumRealNew = 0.0;
             sumImaginaryNew = 0.0;
             dotProductNew = 0.0;
             
-            for (m = 0; m < newMol.size(); m++)
-            {
-                for (p = 0; p < lengthNew; ++p)
-                {
+            for (m = 0; m < newMol.size(); m++) {
+                for (p = 0; p < lengthNew; ++p) {
                     dotProductNew = Dot(p, kxRef[box][i], kyRef[box][i],kzRef[box][i],
                                         newMol[m].GetCoords());
                     
@@ -520,10 +516,8 @@ double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
                 }
             }
             
-            for (m = 0; m < oldMol.size(); m++)
-            {
-                for (p = 0; p < lengthOld; ++p)
-                {
+            for (m = 0; m < oldMol.size(); m++) {
+                for (p = 0; p < lengthOld; ++p) {
                     dotProductNew = Dot(p, kxRef[box][i], kyRef[box][i],kzRef[box][i],
                                         oldMol[m].GetCoords());
                     

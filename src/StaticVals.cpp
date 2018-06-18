@@ -55,6 +55,9 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
     case mv::REGROWTH:
       movePerc[m] = perc.regrowth;
       break;
+    case mv::INTRA_MEMC:
+      movePerc[m] = perc.intraMemc;
+      break;
 #ifdef VARIABLE_VOLUME
     case mv::VOL_TRANSFER :
       movePerc[m] = perc.volume;
@@ -106,7 +109,8 @@ void StaticVals::IsBoxOrthogonal(config_setup::Volume const& vol)
 }
 
 
-StaticVals::StaticVals(Setup & set) : memcVal(set.config.sys.memcVal)
+StaticVals::StaticVals(Setup & set) : memcVal(set.config.sys.memcVal),
+  intraMemcVal(set.config.sys.intraMemcVal)
 {
   isOrthogonal = true;
   IsBoxOrthogonal(set.config.sys.volume);
