@@ -110,12 +110,14 @@ inline void MoleculeExchange1::SetMEMC(StaticVals const& statV)
        }
 
        if(kindS == -1) {
-          printf("Error: Residue name %s was not found in PDB file as small molecule kind to be exchanged.\n", statV.memcVal.smallKind.c_str());
+          printf("Error: Residue name %s was not found in PDB file as small molecule kind to be exchanged.\n", 
+            statV.memcVal.smallKind.c_str());
           exit(EXIT_FAILURE);
        }
 
        if(kindL == -1) {
-          printf("Error: Residue name %s was not found in PDB file as large molecule kind to be exchanged.\n", statV.memcVal.largeKind.c_str());
+          printf("Error: Residue name %s was not found in PDB file as large molecule kind to be exchanged.\n", 
+            statV.memcVal.largeKind.c_str());
           exit(EXIT_FAILURE);
        }
          
@@ -123,7 +125,7 @@ inline void MoleculeExchange1::SetMEMC(StaticVals const& statV)
           if(molRef.kinds[kindL].atomNames[i] == statV.memcVal.largeBBAtom1) {
             largeBB[0] = i;
           }
-          if(molRef.kinds[kindL].atomNames[i] ==statV.memcVal.largeBBAtom2){
+          if(molRef.kinds[kindL].atomNames[i] == statV.memcVal.largeBBAtom2){
             largeBB[1] = i;
           }
        }
@@ -138,11 +140,13 @@ inline void MoleculeExchange1::SetMEMC(StaticVals const& statV)
           }
        }
 
-       if(molRef.kinds[kindL].NumAtoms() > 1) {
-         if(largeBB[0] == largeBB[1]) {
-           printf("Error: Atom names in large molecule backbone cannot be same!\n");
-           exit(EXIT_FAILURE);
-         }
+       if(statV.memcVal.MEMC1 || statV.memcVal.MEMC2) {
+          if(molRef.kinds[kindL].NumAtoms() > 1) {
+            if(largeBB[0] == largeBB[1]) {
+              printf("Error: Atom names in large molecule backbone cannot be same!\n");
+              exit(EXIT_FAILURE);
+            }
+          }
        }
 }
 

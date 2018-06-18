@@ -116,7 +116,7 @@ inline void IntraMoleculeExchange1::SetMEMC(StaticVals const& statV)
           if(molRef.kinds[kindL].atomNames[i] == statV.intraMemcVal.largeBBAtom1) {
             largeBB[0] = i;
           }
-          if(molRef.kinds[kindL].atomNames[i] ==statV.intraMemcVal.largeBBAtom2){
+          if(molRef.kinds[kindL].atomNames[i] == statV.intraMemcVal.largeBBAtom2){
             largeBB[1] = i;
           }
        }
@@ -131,11 +131,13 @@ inline void IntraMoleculeExchange1::SetMEMC(StaticVals const& statV)
           }
        }
 
-       if(molRef.kinds[kindL].NumAtoms() > 1) {
-         if(largeBB[0] == largeBB[1]) {
-           printf("Error: Atom names in large molecule backbone cannot be same!\n");
-           exit(EXIT_FAILURE);
-         }
+       if(statV.intraMemcVal.MEMC1 || statV.intraMemcVal.MEMC2) {
+          if(molRef.kinds[kindL].NumAtoms() > 1) {
+            if(largeBB[0] == largeBB[1]) {
+              printf("Error: Atom names in large molecule backbone cannot be same!\n");
+              exit(EXIT_FAILURE);
+            }
+          }
        }
 }
 
