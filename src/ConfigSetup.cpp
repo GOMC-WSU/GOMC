@@ -1076,6 +1076,14 @@ void ConfigSetup::verifyInputs(void)
       std::cout << "Error: In Intra-MEMC method, Small Kind BackBone is not specified!\n";
       exit(EXIT_FAILURE);
     }
+    if(sys.memcVal.enable && sys.intraMemcVal.enable) {
+      if((sys.memcVal.MEMC1 && !sys.intraMemcVal.MEMC1) ||
+        (sys.memcVal.MEMC2 && !sys.intraMemcVal.MEMC2) || 
+        (sys.memcVal.MEMC3 && !sys.intraMemcVal.MEMC3)) {
+        std::cout << "Error: Intra-MEMC method is not same as MEMC method!\n";
+        exit(EXIT_FAILURE);
+      }
+    }
   }
   
 #endif
