@@ -115,7 +115,7 @@ inline void MoleculeExchange2::AdjustExRatio()
     uint exMin = 1; 
     subPick = mv::GetMoveSubIndex(mv::MEMC, sourceBox); 
     double currAccept = moveSetRef.GetAccept(subPick); 
-    if(abs(currAccept - lastAccept) > 0.05 * currAccept) { 
+    if(abs(currAccept - lastAccept) >= 0.05 * currAccept) { 
       if(currAccept >= lastAccept) { 
 	      exchangeRatio += exDiff; 
       } else { 
@@ -139,16 +139,12 @@ inline uint MoleculeExchange2::PickMolInCav()
    //pick a random small kind in dense phase and use the COM as cavity center 
    uint pickedS, pickedKS; 
    state = prng.PickMol(kindS, pickedKS, pickedS, sourceBox); 
-   if(state == mv::fail_state::NO_FAIL) 
-   { 
+   if(state == mv::fail_state::NO_FAIL) { 
      center = comCurrRef.Get(pickedS); 
      //If we want to orient the cavity with backbone of picked small mol 
-     if(molRef.NumAtoms(kindS) == 1) 
-     { 
+     if(molRef.NumAtoms(kindS) == 1) { 
        SetBasis(cavA, prng.RandomUnitVect()); 
-     } 
-     else 
-     {
+     } else {
        uint start = molRef.MolStart(pickedS) + smallBB[0];
        uint end = molRef.MolStart(pickedS) + smallBB[1];
        SetBasis(cavA, boxDimRef.MinImage(coordCurrRef.Difference(start, end), sourceBox));
@@ -158,34 +154,30 @@ inline uint MoleculeExchange2::PickMolInCav()
  
      //Find the molecule kind 0 in the cavity 
      if(calcEnRef.FindMolInCavity(molInCav, center, cavity, invCavA, sourceBox, 
-				  kindS, exchangeRatio)) 
-     { 
+				  kindS, exchangeRatio)) { 
        //Find the exchangeRatio number of molecules kind 0 in cavity 
        numInCavA = exchangeRatio; 
        //add the random picked small molecule to the list. 
        molIndexA.push_back(pickedS); 
        kindIndexA.push_back(pickedKS); 
        totMolInCav = molInCav[kindS].size(); 
-       for(uint s = 0; s < totMolInCav; s++) 
-       { 
-	 if(pickedS == molInCav[kindS][s]) 
-	   molInCav[kindS].erase(molInCav[kindS].begin() + s); 
+       //delete the picked small molecule from list
+       for(uint s = 0; s < totMolInCav; s++) { 
+	      if(pickedS == molInCav[kindS][s]) 
+	        molInCav[kindS].erase(molInCav[kindS].begin() + s); 
        } 
-       for(uint n = 1; n < numInCavA; n++) 
-       { 
-	 //pick random exchangeRatio number of kindS in cavity 
-	 uint picked = prng.randIntExc(molInCav[kindS].size()); 
-	 molIndexA.push_back(molInCav[kindS][picked]); 
-	 kindIndexA.push_back(molRef.GetMolKind(molIndexA[n])); 
-	 molInCav[kindS].erase(molInCav[kindS].begin() + picked); 
+       for(uint n = 1; n < numInCavA; n++) { 
+        //pick random exchangeRatio number of kindS in cavity 
+        uint picked = prng.randIntExc(molInCav[kindS].size()); 
+        molIndexA.push_back(molInCav[kindS][picked]); 
+        kindIndexA.push_back(molRef.GetMolKind(molIndexA[n])); 
+        molInCav[kindS].erase(molInCav[kindS].begin() + picked); 
        }  
         
        //pick a molecule from Large kind in destBox 
        numInCavB = 1; 
        state = prng.PickMol(kindL, kindIndexB, molIndexB, numInCavB, destBox); 
-     } 
-     else 
-     { 
+     } else { 
        //reject the move 
        state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX; 
      } 
@@ -206,15 +198,11 @@ inline uint MoleculeExchange2::ReplaceMolecule()
    //pick a random molecule of Large kind in dens box 
    state = prng.PickMol(kindL, kindIndexA, molIndexA, numInCavA, sourceBox); 
  
-   if(state == mv::fail_state::NO_FAIL) 
-   {
+   if(state == mv::fail_state::NO_FAIL) {
      //Set the V1 to the backbone of the large molecule 
-     if(molRef.NumAtoms(kindL) == 1) 
-     { 
+     if(molRef.NumAtoms(kindL) == 1) { 
        SetBasis(cavA, prng.RandomUnitVect()); 
-     } 
-     else 
-     {
+     } else {
        uint start = molRef.MolStart(molIndexA[0]) + largeBB[0];
        uint end = molRef.MolStart(molIndexA[0]) + largeBB[1];
        SetBasis(cavA, boxDimRef.MinImage(coordCurrRef.Difference(start, end), sourceBox)); 
@@ -237,23 +225,20 @@ inline uint MoleculeExchange2::ReplaceMolecule()
 inline uint MoleculeExchange2::Prep(const double subDraw, const double movPerc) 
 { 
    uint state = GetBoxPairAndMol(subDraw, movPerc); 
-   if(state == mv::fail_state::NO_FAIL) 
-   {  
+   if(state == mv::fail_state::NO_FAIL) {  
      numTypeASource =(double)(molLookRef.NumKindInBox(kindIndexA[0],sourceBox)); 
      numTypeADest = (double)(molLookRef.NumKindInBox(kindIndexA[0], destBox)); 
      numTypeBSource =(double)(molLookRef.NumKindInBox(kindIndexB[0],sourceBox)); 
      numTypeBDest =(double)(molLookRef.NumKindInBox(kindIndexB[0], destBox)); 
      //transfering type A from source to dest 
-     for(uint n = 0; n < numInCavA; n++) 
-     { 
+     for(uint n = 0; n < numInCavA; n++) { 
        newMolA.push_back(cbmc::TrialMol(molRef.kinds[kindIndexA[n]], boxDimRef, 
 					destBox)); 
        oldMolA.push_back(cbmc::TrialMol(molRef.kinds[kindIndexA[n]], boxDimRef, 
 					sourceBox)); 
      } 
  
-     for(uint n = 0; n < numInCavB; n++) 
-     { 
+     for(uint n = 0; n < numInCavB; n++) { 
        //transfering type B from dest to source 
        newMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef, 
 					sourceBox)); 
@@ -262,8 +247,7 @@ inline uint MoleculeExchange2::Prep(const double subDraw, const double movPerc)
      } 
  
      //set the old coordinate after unwrap them 
-     for(uint n = 0; n < numInCavA; n++) 
-     { 
+     for(uint n = 0; n < numInCavA; n++) { 
        XYZArray molA(pLenA[n]); 
        coordCurrRef.CopyRange(molA, pStartA[n], 0, pLenA[n]); 
        boxDimRef.UnwrapPBC(molA, sourceBox, comCurrRef.Get(molIndexA[n])); 
@@ -274,8 +258,7 @@ inline uint MoleculeExchange2::Prep(const double subDraw, const double movPerc)
        oldMolA[n].SetCavMatrix(cavA); 
      } 
  
-     for(uint n = 0; n < numInCavB; n++) 
-     { 
+     for(uint n = 0; n < numInCavB; n++) { 
        XYZArray molB(pLenB[n]);      
        coordCurrRef.CopyRange(molB, pStartB[n], 0, pLenB[n]); 
        boxDimRef.UnwrapPBC(molB, destBox, comCurrRef.Get(molIndexB[n])); 
@@ -286,64 +269,50 @@ inline uint MoleculeExchange2::Prep(const double subDraw, const double movPerc)
        newMolB[n].SetCavMatrix(cavA); 
      } 
  
-     for(uint n = 0; n < numInCavB; n++) 
-     { 
+     for(uint n = 0; n < numInCavB; n++) { 
        //SetSeed(has cavity, COM is fixed, rotate around Backbone) 
-       if(insertL) 
-       { 
-	 //Inserting Lmol from destBox to the center of cavity in sourceBox 
-	 newMolB[n].SetSeed(center, cavity, true, true, true);
-     // Set the Backbone of large molecule to be inserted
-     newMolB[n].SetBackBone(largeBB);
-	 //perform rotational trial move in destBox for L oldMol 
-	 oldMolB[n].SetSeed(false, false, false); 
-       } 
-       else 
-       { 
-	 if(n == 0) 
-	 { 
-	   //Inserting Small from destBox to the center of cavity in sourceBox
-	   newMolB[n].SetSeed(center, cavity, true, true, true);
-       // Set the Backbone of small molecule to be inserted
-       newMolB[n].SetBackBone(smallBB);
-	 } 
-	 else 
-	 { 
-	   //Inserting S mol from destBox to the cavity in sourceBox 
-	   newMolB[n].SetSeed(center, cavity, true, false, false); 
-	 } 
-	 //perform trial move in destBox for S oldMol 
-	 oldMolB[n].SetSeed(false, false, false); 
+       if(insertL) { 
+          //Inserting Lmol from destBox to the center of cavity in sourceBox 
+          newMolB[n].SetSeed(center, cavity, true, true, true);
+          // Set the Backbone of large molecule to be inserted
+          newMolB[n].SetBackBone(largeBB);
+          //perform rotational trial move in destBox for L oldMol 
+          oldMolB[n].SetSeed(false, false, false); 
+       } else { 
+          if(n == 0) { 
+            //Inserting Small from destBox to the center of cavity in sourceBox
+            newMolB[n].SetSeed(center, cavity, true, true, true);
+            // Set the Backbone of small molecule to be inserted
+            newMolB[n].SetBackBone(smallBB);
+          } else { 
+            //Inserting S mol from destBox to the cavity in sourceBox 
+            newMolB[n].SetSeed(center, cavity, true, false, false); 
+          } 
+          //perform trial move in destBox for S oldMol 
+          oldMolB[n].SetSeed(false, false, false); 
        } 
      } 
  
-     for(uint n = 0; n < numInCavA; n++) 
-     { 
-       if(insertL) 
-       { 
-	 //Inserting S mol from sourceBox to destBox 
-	 newMolA[n].SetSeed(false, false, false); 
-	 if(n == 0) 
-	 { 
-	   //perform trial move in cavity with fix COM for S oldMol 
-	   oldMolA[n].SetSeed(center, cavity, true, true, true);
-       // Set the Backbone of small molecule to be deleted
-       oldMolA[n].SetBackBone(smallBB);
-	 } 
-	 else 
-	 { 
-	   //perform trial move in cavity in sourceBox for S oldMol 
-	   oldMolA[n].SetSeed(center, cavity, true, false, false); 
-	 } 
-       } 
-       else 
-       { 
-	 //Inserting L mol from sourceBox to destBox 
-	 newMolA[n].SetSeed(false, false, false); 
-	 //perform rotational trial move on COM for L oldMol 
-	 oldMolA[n].SetSeed(center, cavity, true, true, true);
-     // Set the Backbone of large molecule to be deleted
-     oldMolA[n].SetBackBone(largeBB);
+     for(uint n = 0; n < numInCavA; n++) { 
+       if(insertL) { 
+          //Inserting S mol from sourceBox to destBox 
+          newMolA[n].SetSeed(false, false, false); 
+          if(n == 0) { 
+            //perform trial move in cavity with fix COM for S oldMol 
+            oldMolA[n].SetSeed(center, cavity, true, true, true);
+            // Set the Backbone of small molecule to be deleted
+            oldMolA[n].SetBackBone(smallBB);
+          } else { 
+            //perform trial move in cavity in sourceBox for S oldMol 
+            oldMolA[n].SetSeed(center, cavity, true, false, false); 
+          } 
+       } else { 
+          //Inserting L mol from sourceBox to destBox 
+          newMolA[n].SetSeed(false, false, false); 
+          //perform rotational trial move on COM for L oldMol 
+          oldMolA[n].SetSeed(center, cavity, true, true, true);
+          // Set the Backbone of large molecule to be deleted
+          oldMolA[n].SetBackBone(largeBB);
        } 
      } 
    } 
@@ -359,7 +328,7 @@ inline uint MoleculeExchange2::Transform()
   //Calc Old energy and delete A from source 
   if(insertL) 
   { 
-    //Remove the fixed COM small mol at the end because we insert it at fist 
+    //Remove the fixed COM small mol at the end because we insert it at first 
     for(uint n = numInCavA; n > 0; n--) 
     { 
       cellList.RemoveMol(molIndexA[n-1], sourceBox, coordCurrRef); 

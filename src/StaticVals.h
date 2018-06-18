@@ -54,6 +54,7 @@ public:
 
   double movePerc[mv::MOVE_KINDS_TOTAL];
   double totalPerc;
+  config_setup::MEMCVal  intraMemcVal;
 
   //Only include these variables if they're static for this ensemble...
 #ifndef VARIABLE_VOLUME
@@ -62,7 +63,7 @@ public:
 #ifndef  VARIABLE_PARTICLE_NUMBER
   MoleculeLookup molLookup;
 #endif
-#ifdef VARIABLE_PARTICLE_NUMBER
+#ifdef  VARIABLE_PARTICLE_NUMBER
   config_setup::MEMCVal  memcVal;
 #endif
  

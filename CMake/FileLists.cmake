@@ -84,6 +84,9 @@ set(headers
    src/HistOutput.h
    src/InputAbstracts.h
    src/InputFileReader.h
+   src/IntraMoleculeExchange1.h
+   src/IntraMoleculeExchange2.h
+   src/IntraMoleculeExchange3.h
    src/IntraSwap.h
    src/MersenneTwister.h
    src/MoleculeExchange1.h

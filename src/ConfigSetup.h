@@ -155,7 +155,7 @@ struct Step {
 
 //Holds the percentage of each kind of move for this ensemble.
 struct MovePercents {
-  double displace, rotate, intraSwap, regrowth;
+  double displace, rotate, intraSwap, intraMemc, regrowth;
 #ifdef VARIABLE_VOLUME
   double volume;
 #endif
@@ -239,7 +239,7 @@ struct SystemVals {
   MovePercents moves;
   Volume volume; //May go unused
   CBMC cbmcTrials;
-  MEMCVal memcVal;
+  MEMCVal memcVal, intraMemcVal;
 #if ENSEMBLE == GCMC
   ChemicalPotential chemPot;
 #elif ENSEMBLE == GEMC || ENSEMBLE == NPT
