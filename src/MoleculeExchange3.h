@@ -47,33 +47,6 @@ class MoleculeExchange3 : public MoleculeExchange1
 
 inline void MoleculeExchange3::SetMEMC(StaticVals const& statV) 
 {
-       for(uint k = 0; k < molLookRef.GetNumCanSwapKind(); k++) {
-         if(molRef.kinds[k].name == statV.memcVal.largeKind) {
-           kindL = molLookRef.GetCanSwapKind(k);
-         } else if(molRef.kinds[k].name == statV.memcVal.smallKind) {
-           kindS = molLookRef.GetCanSwapKind(k);
-         }
-       }
-
-       if(kindS == -1) {
-          printf("Error: Residue name %s was not found in PDB file as small molecule kind to be exchanged.\n", statV.memcVal.smallKind.c_str());
-          exit(EXIT_FAILURE);
-       }
-
-       if(kindL == -1) {
-          printf("Error: Residue name %s was not found in PDB file as large molecule kind to be exchanged.\n", statV.memcVal.largeKind.c_str());
-          exit(EXIT_FAILURE);
-       }
-
-       for(uint i = 0; i < molRef.kinds[kindL].NumAtoms(); i++) { 
-          if(molRef.kinds[kindL].atomNames[i] == statV.memcVal.largeBBAtom1) { 
-            largeBB[0] = i;
-          } 
-          if(molRef.kinds[kindL].atomNames[i] ==statV.memcVal.largeBBAtom2){
-            largeBB[1] = i; 
-          } 
-       } 
-
        if(largeBB[0] != largeBB[1]) {
           printf("Error: In ME-3 move, atom name of backbone should be same.\n");
           printf("Atom names in backbone was set to %s or %s in %s residue.\n",
@@ -82,16 +55,6 @@ inline void MoleculeExchange3::SetMEMC(StaticVals const& statV)
             statV.memcVal.largeKind.c_str());
           exit(EXIT_FAILURE); 	
        }
-          
-       for(uint i = 0; i < 2; i++) { 
-          if(largeBB[i] == -1) { 
-            printf("Error: Atom name %s or %s was not found in %s residue.\n", 
-              statV.memcVal.largeBBAtom1.c_str(), 
-              statV.memcVal.largeBBAtom2.c_str(), 
-              statV.memcVal.largeKind.c_str()); 
-            exit(EXIT_FAILURE); 
-          } 
-        } 
 }
 
 inline void MoleculeExchange3::AdjustExRatio()
