@@ -126,7 +126,7 @@ void System::InitMoves(Setup const& set)
   moves[mv::REGROWTH] = new Regrowth(*this, statV);
   if(set.config.sys.intraMemcVal.MEMC1) {
     moves[mv::INTRA_MEMC] = new IntraMoleculeExchange1(*this, statV);
-  } else if (set.config.sys.memcVal.MEMC2) {
+  } else if (set.config.sys.intraMemcVal.MEMC2) {
     moves[mv::INTRA_MEMC] = new IntraMoleculeExchange2(*this, statV);
   } else {
     moves[mv::INTRA_MEMC] = new IntraMoleculeExchange3(*this, statV);

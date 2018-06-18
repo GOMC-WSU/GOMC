@@ -170,7 +170,7 @@ inline uint IntraMoleculeExchange3::PickMolInCav()
    //After picking a large molecule, set the cavityB, and count kindS in cavityB
    if(state == mv::fail_state::NO_FAIL) {
      //use the predefine atom in kindL as the centerB
-     uint start = molRef.MolStart(molIndexA[0]) + largeBB[0];
+     uint start = molRef.MolStart(molIndexB[0]) + largeBB[0];
      centerB = coordCurrRef.Get(start);
      //Set V1 to a random vector and calculate two vector perpendicular to V1
      SetBasis(cavB, prng.RandomUnitVect());
