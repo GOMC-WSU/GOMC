@@ -103,6 +103,20 @@ inline void IntraMoleculeExchange2::SetMEMC(StaticVals const& statV)
             exit(EXIT_FAILURE); 
           } 
        } 
+
+       if(molRef.kinds[kindL].NumAtoms() > 1) {
+         if(largeBB[0] == largeBB[1]) {
+           printf("Error: Atom names in large molecule backbone cannot be same!\n");
+           exit(EXIT_FAILURE);
+         }
+       }
+
+       if(molRef.kinds[kindS].NumAtoms() > 1) {
+         if(smallBB[0] == smallBB[1]) {
+           printf("Error: Atom names in small molecule backbone cannot be same!\n");
+           exit(EXIT_FAILURE);
+         }
+       }
 }
 
 inline void IntraMoleculeExchange2::AdjustExRatio()
