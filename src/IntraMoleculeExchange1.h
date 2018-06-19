@@ -287,6 +287,7 @@ inline uint IntraMoleculeExchange1::GetBoxPairAndMol(const double subDraw,
 inline uint IntraMoleculeExchange1::Prep(const double subDraw,
 					const double movPerc)
 {
+   //AdjustExRatio();
    uint state = GetBoxPairAndMol(subDraw, movPerc);
    if(state == mv::fail_state::NO_FAIL) {
      //transfering type A from source 
