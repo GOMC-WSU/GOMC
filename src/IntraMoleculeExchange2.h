@@ -103,6 +103,8 @@ inline void IntraMoleculeExchange2::AdjustExRatio()
     }
     molInCavCount = 0;
     counter = 0;
+    printf("ExchangeRatio: %d, Average kindS in cavity: %d \n", exchangeRatio,
+      exMax);
   }
 }
 
@@ -187,6 +189,7 @@ inline uint IntraMoleculeExchange2::PickMolInCav()
 inline uint IntraMoleculeExchange2::Prep(const double subDraw,
 					  const double movPerc)
 {
+   //AdjustExRatio();
    uint state = GetBoxPairAndMol(subDraw, movPerc);
    if(state == mv::fail_state::NO_FAIL) {
      //transfering type A from source 
