@@ -60,8 +60,9 @@ void Simulation::RunSimulation(void)
     if((step + 1) == cpu->equilSteps) {
       double currEnergy = system->potential.totalEnergy.total;
       if(abs(currEnergy - startEnergy) > 1.0e+10) {
-        printf("Info: Performing total energy calculation to preserve the"
-               " energy information.\n\n");
+        printf("Info: Recalculating the total energies to insure the accuracy"
+               " of the computed \n" 
+	       "      running energies.\n\n");
         system->calcEwald->Init();
         system->potential = system->calcEnergy.SystemTotal();
       }

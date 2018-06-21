@@ -124,9 +124,9 @@ SystemPotential CalculateEnergy::SystemTotal()
   if(pot.totalEnergy.total > 1.0e12) {
     std::cout << "\nWarning: Large energy detected due to the overlap in "
               "initial configuration.\n"
-              "         Total energy calculation will be perform at EqStep to "
-              "preserve the\n"
-              "         energy information.\n";
+              "         The total energy will be recalculated at EqStep to "  
+              "ensure the accuracy \n"
+              "         of the computed running energies.\n";
   }
 
   return pot;
