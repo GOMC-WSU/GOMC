@@ -658,6 +658,11 @@ void ConfigSetup::fillDefaults(void)
     printf("%-40s %-4.4f \n", "Default: Short Range Cutoff", sys.ff.cutoffLow);
   }
 
+  if(out.statistics.settings.block.enable && in.restart.recalcTrajectory) {
+    out.statistics.settings.block.enable = false;
+    printf("%-40s \n", "Warning: Average output is activated but it will be ignored.");
+  }
+
   out.state.files.psf.name = out.statistics.settings.uniqueStr.val +
                              "_merged.psf";
   for(int i = 0; i < BOX_TOTAL; i++) {
@@ -786,7 +791,8 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Total run steps is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
-  if(sys.step.adjustment > sys.step.equil && !in.restart.enable) {
+  if(sys.step.adjustment > sys.step.equil && !in.restart.enable &&
+     !in.restart.recalcTrajectory) {
     std::cout << "Error: Move adjustment frequency should be smaller " <<
               "than Equilibration steps!" << std::endl;
     exit(EXIT_FAILURE);
