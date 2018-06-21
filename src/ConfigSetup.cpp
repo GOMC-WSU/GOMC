@@ -786,7 +786,7 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Total run steps is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
-  if(sys.step.adjustment > sys.step.equil) {
+  if(sys.step.adjustment > sys.step.equil && !in.restart.enable) {
     std::cout << "Error: Move adjustment frequency should be smaller " <<
               "than Equilibration steps!" << std::endl;
     exit(EXIT_FAILURE);
