@@ -116,10 +116,7 @@ void MoveSettings::Adjust(const uint majMoveKind,
 
     accepted[moveIndex] += tempAccepted[moveIndex];
     tries[moveIndex] += tempTries[moveIndex];
-#if 0
-    if (majMoveKind == mv::VOL_TRANSFER)
-      std::cout << "scale[moveIndex]: " << scale[moveIndex] << std::endl;
-#endif
+
   }
   tempAccepted[moveIndex] = tempTries[moveIndex] = 0;
   //Bound our values to prevent to big or too small a move.
@@ -131,6 +128,14 @@ void MoveSettings::Adjust(const uint majMoveKind,
   case mv::ROTATE :
     num::Bound<double>(scale[moveIndex], 0.000001, M_PI - TINY_AMOUNT);
     break;
+#if ENSEMBLE == NPT || ENSEMBLE == GEMC
+  case mv::VOL_TRANSFER : {
+    //Warning: This will lead to have acceptance > %50
+    double maxVolExchange = boxDimRef.MinVolume() - boxDimRef.minVol;
+    num::Bound<double>(scale[moveIndex], 0.001,  maxVolExchange - 0.001);
+    break;
+  }
+#endif
   default:
     break;
   }

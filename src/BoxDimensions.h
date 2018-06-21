@@ -47,6 +47,9 @@ public:
 
   double GetTotVolume() const;
 
+  //Return minimum volume of simulation boxes.
+  double MinVolume() const;
+
   virtual void SetVolume(const uint b, const double vol);
 
   virtual uint ShiftVolume(BoxDimensions & newDim, XYZ & scale,
