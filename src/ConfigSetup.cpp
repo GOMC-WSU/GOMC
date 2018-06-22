@@ -663,6 +663,16 @@ void ConfigSetup::fillDefaults(void)
     printf("%-40s \n", "Warning: Average output is activated but it will be ignored.");
   }
 
+  if(out.restart.settings.enable && in.restart.recalcTrajectory) {
+    out.restart.settings.enable = false;
+    printf("%-40s \n", "Warning: Printing restart coordinate is activated but it will be ignored.");
+  }
+
+  if(out.state.settings.enable && in.restart.recalcTrajectory) {
+    out.state.settings.enable = false;
+    printf("%-40s \n", "Warning: Printing coordinate is activated but it will be ignored.");
+  }
+
   out.state.files.psf.name = out.statistics.settings.uniqueStr.val +
                              "_merged.psf";
   for(int i = 0; i < BOX_TOTAL; i++) {
