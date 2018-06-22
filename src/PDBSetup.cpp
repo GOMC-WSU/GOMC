@@ -11,7 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBSetup.h" //Corresponding header to this body
 #include "FixedWidthReader.h" //For fixed width reader
 #include "ConfigSetup.h" //For restart info
-
+#include "MoveConst.h"
 #include <stdlib.h> //for exit
 
 #if BOX_TOTAL == 1
@@ -27,36 +27,57 @@ namespace pdb_setup
 void Remarks::SetRestart(config_setup::RestartSettings const& r )
 {
   restart = r.enable;
-  reached = true;
+  recalcTrajectory = r.recalcTrajectory;
+  for(uint b=0; b<BOX_TOTAL; b++) {
+    if(recalcTrajectory)
+      reached[b] = false;
+    else
+      reached[b] = true;
+  }
 }
 void Remarks::Read(FixedWidthReader & pdb)
 {
   using namespace pdb_entry::remark::field;
   using namespace pdb_entry::cryst1::field;
 
-  if(!restart)
-    return;
+  if(restart) {
+    //check if GOMC is taged and read the max dis, rot, vol value
+    std::string varName;
+    pdb.Get(varName, name::POS)
+    .Get(disp[currBox], dis::POS)
+    .Get(rotate[currBox], rot::POS)
+    .Get(vol[currBox], vol::POS);
 
-  //check if GOMC is taged and read the max dis, rot, vol value
-  std::string varName;
-  pdb.Get(varName, name::POS)
-  .Get(disp[currBox], dis::POS)
-  .Get(rotate[currBox], rot::POS)
-  .Get(vol[currBox], vol::POS);
+    CheckGOMC(varName);
+  }
+  if(recalcTrajectory) {
+    std::string varName;
+    pdb.Get(varName, name::POS)
+    .Get(frameNumber[currBox], frameNum::POS)
+    .Get(step[currBox], stepsNum::POS);
 
-  CheckGOMC(varName);
+    if(frameNumber[currBox] == targetFrame[currBox])
+      reached[currBox] = true;
+
+    CheckGOMC(varName);
+  }
 }
 
 void Remarks::CheckGOMC(std::string const& varName)
 {
   using namespace pdb_entry::remark::field;
   if (!str::compare(varName, name::STR_GOMC)) {
-    std::cerr << "ERROR: Restart failed, "
+    std::cerr << "ERROR: "
               << "GOMC file's identifying tag "
               << "\"REMARK     GOMC\" is missing"
               << std::endl;
-    exit(1);
+    exit(EXIT_FAILURE);
   }
+}
+
+void Remarks::Clear()
+{
+  frameSteps.clear();
 }
 
 void Cryst1::Read(FixedWidthReader & pdb)
@@ -76,6 +97,7 @@ void Cryst1::Read(FixedWidthReader & pdb)
 void Atoms::SetRestart(config_setup::RestartSettings const& r )
 {
   restart = r.enable;
+  recalcTrajectory = r.recalcTrajectory;
 }
 
 void Atoms::Assign(std::string const& atomName,
@@ -131,16 +153,42 @@ void Atoms::Read(FixedWidthReader & file)
   .Get(l_y, field::y::POS).Get(l_z, field::z::POS)
   .Get(l_occ, field::occupancy::POS)
   .Get(l_beta, field::beta::POS);
+  if(recalcTrajectory && (uint)l_occ != currBox) {
+    return;
+  }
   Assign(atomName, resName, resNum, l_chain, l_x, l_y, l_z,
          l_occ, l_beta);
+}
+
+void Atoms::Clear()
+{
+  chainLetter.clear();
+  x.clear();
+  y.clear();
+  z.clear();
+  beta.clear();
+  box.clear();
+  atomAliases.clear();
+  resNamesFull.clear();
+  resNames.clear();
+  resKindNames.clear();
+  startIdxRes.clear();
+  resKinds.clear();
+  molBeta.clear();
+  count = 0;
 }
 
 } //end namespace pdb_setup
 
 void PDBSetup::Init(config_setup::RestartSettings const& restart,
-                    std::string const*const name)
+                    std::string const*const name, uint frameNum)
 {
   using namespace std;
+  // Clear the vectors for both atoms and remarks in case Init was called 
+  // more than once
+  atoms.Clear();
+  remarks.Clear();
+
   map<string, FWReadableBase *>::const_iterator dataKind;
   remarks.SetRestart(restart);
   atoms.SetRestart(restart);
@@ -148,6 +196,7 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
   for (uint b = 0; b < BOX_TOTAL; b++) {
     std::string varName = "";
     remarks.SetBox(b);
+    remarks.SetFrameNumber(b, frameNum);
     cryst.SetBox(b);
     atoms.SetBox(b);
     FixedWidthReader pdb(name[b], pdbAlias[b]);
@@ -155,18 +204,45 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
     while (pdb.Read(varName, pdb_entry::label::POS)) {
       //If end of frame, and this is the frame we wanted,
       //end read on this file
-      if (remarks.reached && str::compare(varName, pdb_entry::end::STR)) {
+      if (remarks.reached[b] && str::compare(varName, pdb_entry::end::STR)) {
         break;
       }
+
       //Call reader function if remarks were reached,
       // or it is a remark
       dataKind = dataKinds.find(varName);
       if (dataKind != dataKinds.end() &&
-          (remarks.reached ||
+          (remarks.reached[b] ||
            str::compare(dataKind->first, pdb_entry::label::REMARK))) {
         dataKind->second->Read(pdb);
       }
     }
+    // If the recalcTrajectory is true and reached was still false
+    // it means we couldn't find a remark and hence have to exit with error
+    if(!remarks.reached[b] && remarks.recalcTrajectory) {
+      std::cerr << "Error: Recalculate Trajectory is active..." << std::endl
+                << ".. and couldn't find remark in PDB file!" << std::endl;
+      exit(EXIT_FAILURE);
+    }
     pdb.close();
   }
+}
+
+std::vector<ulong> PDBSetup::GetFrameSteps(std::string const*const name)
+{
+  map<string, FWReadableBase *>::const_iterator dataKind;
+  remarks.SetBox(mv::BOX0);
+  FixedWidthReader pdb(name[mv::BOX0], pdbAlias[mv::BOX0]);
+  pdb.open();
+  std::string varName;
+  uint count = 0;
+  while (pdb.Read(varName, pdb_entry::label::POS)) {
+    if(varName == pdb_entry::label::REMARK) {
+      dataKind = dataKinds.find(varName);
+      dataKind->second->Read(pdb);
+      remarks.frameSteps.push_back(remarks.step[mv::BOX0]);
+      count++;
+    }
+  }
+  return remarks.frameSteps;
 }

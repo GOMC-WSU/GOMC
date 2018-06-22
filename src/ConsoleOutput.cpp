@@ -45,8 +45,10 @@ void ConsoleOutput::DoOutput(const ulong step)
 
     std::cout << "############################# STARTING SIMULATION ##############################" << std::endl << std::endl;
 
-    PrintMoveTitle();
-    std::cout << std::endl;
+    if(!forceOutput) {
+      PrintMoveTitle();
+      std::cout << std::endl;
+    }
 
     if(enableEnergy) {
       PrintEnergyTitle();
@@ -59,8 +61,10 @@ void ConsoleOutput::DoOutput(const ulong step)
     }
   } else {
     for(uint b = 0; b < BOX_TOTAL; b++) {
-      PrintMove(b, step);
-      std::cout << std::endl;
+      if(!forceOutput) {
+        PrintMove(b, step);
+        std::cout << std::endl;
+      }
 
       if(enableEnergy) {
         PrintEnergy(b, var->energyRef[b], var->virialRef[b], step);

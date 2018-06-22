@@ -61,6 +61,7 @@ private:
   void DoOutputRebuildRestart(const uint step);
   void PrintAtomsRebuildRestart(const uint b);
   void PrintCrystRest(const uint b, const uint step, Writer & out);
+  void PrintRemark(const uint b, const uint step, Writer & out);
   //NEW_RESTART_CODE
 
   void FormatAtom(std::string & line, const uint p, const uint m,
@@ -97,6 +98,7 @@ private:
   //NEW_RESTART_CODE
   bool enableOutState;
   std::vector<std::string> pStr;
+  int frameNumber[BOX_TOTAL];
 };
 
 #endif /*PDB_OUTPUT_H*/

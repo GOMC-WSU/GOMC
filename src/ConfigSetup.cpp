@@ -38,6 +38,7 @@ ConfigSetup::ConfigSetup(void)
   int i;
   in.restart.enable = false;
   in.restart.step = ULONG_MAX;
+  in.restart.recalcTrajectory = false;
   in.prng.seed = UINT_MAX;
   sys.elect.readEwald = false;
   sys.elect.readElect = false;
@@ -298,6 +299,10 @@ void ConfigSetup::Init(const char *fileName)
     } else if(line[0] == "RunSteps") {
       sys.step.total = stringtoi(line[1]);
       printf("%-40s %-lu \n", "Info: Total number of steps", sys.step.total);
+      if(sys.step.total == 0) {
+        in.restart.recalcTrajectory = true;
+        printf("%-40s %-s \n", "Info: Recalculate Trajectory", "Active");
+      }
     } else if(line[0] == "EqSteps") {
       sys.step.equil = stringtoi(line[1]);
       printf("%-40s %-lu \n", "Info: Number of equilibration steps",
@@ -653,6 +658,21 @@ void ConfigSetup::fillDefaults(void)
     printf("%-40s %-4.4f \n", "Default: Short Range Cutoff", sys.ff.cutoffLow);
   }
 
+  if(out.statistics.settings.block.enable && in.restart.recalcTrajectory) {
+    out.statistics.settings.block.enable = false;
+    printf("%-40s \n", "Warning: Average output is activated but it will be ignored.");
+  }
+
+  if(out.restart.settings.enable && in.restart.recalcTrajectory) {
+    out.restart.settings.enable = false;
+    printf("%-40s \n", "Warning: Printing restart coordinate is activated but it will be ignored.");
+  }
+
+  if(out.state.settings.enable && in.restart.recalcTrajectory) {
+    out.state.settings.enable = false;
+    printf("%-40s \n", "Warning: Printing coordinate is activated but it will be ignored.");
+  }
+
   out.state.files.psf.name = out.statistics.settings.uniqueStr.val +
                              "_merged.psf";
   for(int i = 0; i < BOX_TOTAL; i++) {
@@ -781,13 +801,14 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Total run steps is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
-  if(sys.step.adjustment > sys.step.equil) {
+  if(sys.step.adjustment > sys.step.equil && !in.restart.enable &&
+     !in.restart.recalcTrajectory) {
     std::cout << "Error: Move adjustment frequency should be smaller " <<
               "than Equilibration steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
-  if(sys.step.equil > sys.step.total) {
-    std::cout << "Error: Equilibration steps should be smaller than " <<
+  if(sys.step.equil > sys.step.total && !in.restart.recalcTrajectory) {
+    std::cout << "Error: Equilibratisys.step.totalon steps should be smaller than " <<
               "Total run steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
