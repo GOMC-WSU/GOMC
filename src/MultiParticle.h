@@ -78,8 +78,6 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
       moveType[*thisMol] = MPDISPLACE;
     else
       moveType[*thisMol] = (prng.randInt(1) ? MPROTATE : MPDISPLACE);
-    //moveType[*thisMol] = MPROTATE;
-
     thisMol++;
   }
   //Calculate Torque for old positions
@@ -154,21 +152,20 @@ inline double MultiParticle::GetCoeff()
     if(moveType[molNumber]) { // == 1 -> rotate
       lbt_old = molTorqueRef.Get(molNumber) * lambda * BETA;
       lbt_new = molTorqueNew.Get(molNumber) * lambda * BETA;
-      if(lbt_old.Length()) {
-        w_ratio *= lbt_new.x * exp(lbt_new.x * -1 * r_k.Get(molNumber).x)/
-          (2.0*sinh(lbt_new.x * r_max));
-        w_ratio *= lbt_new.y * exp(lbt_new.y * -1 * r_k.Get(molNumber).y)/
-          (2.0*sinh(lbt_new.y * r_max));
-        w_ratio *= lbt_new.z * exp(lbt_new.z * -1 * r_k.Get(molNumber).z)/
-          (2.0*sinh(lbt_new.z * r_max));
 
-        w_ratio /= lbt_old.x * exp(lbt_old.x * r_k.Get(molNumber).x)/
-          (2.0*sinh(lbt_old.x * r_max));
-        w_ratio /= lbt_old.y * exp(lbt_old.y * r_k.Get(molNumber).y)/
-          (2.0*sinh(lbt_old.y * r_max));
-        w_ratio /= lbt_old.z * exp(lbt_old.z * r_k.Get(molNumber).z)/
-          (2.0*sinh(lbt_old.z * r_max));
-      }
+      w_ratio *= lbt_new.x * exp(lbt_new.x * -1 * r_k.Get(molNumber).x)/
+        (2.0*sinh(lbt_new.x * r_max));
+      w_ratio *= lbt_new.y * exp(lbt_new.y * -1 * r_k.Get(molNumber).y)/
+        (2.0*sinh(lbt_new.y * r_max));
+      w_ratio *= lbt_new.z * exp(lbt_new.z * -1 * r_k.Get(molNumber).z)/
+        (2.0*sinh(lbt_new.z * r_max));
+
+      w_ratio /= lbt_old.x * exp(lbt_old.x * r_k.Get(molNumber).x)/
+        (2.0*sinh(lbt_old.x * r_max));
+      w_ratio /= lbt_old.y * exp(lbt_old.y * r_k.Get(molNumber).y)/
+        (2.0*sinh(lbt_old.y * r_max));
+      w_ratio /= lbt_old.z * exp(lbt_old.z * r_k.Get(molNumber).z)/
+        (2.0*sinh(lbt_old.z * r_max));
     }
     else { // displace
       lbf_old = (molForceRef.Get(molNumber) + molForceRecRef.Get(molNumber)) *
@@ -176,21 +173,19 @@ inline double MultiParticle::GetCoeff()
       lbf_new = (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber)) *
 	      lambda * BETA;
 
-      if(lbf_old.Length()) {
-        w_ratio *= lbf_new.x * exp(lbf_new.x * -1 * t_k.Get(molNumber).x)/
-          (2.0*sinh(lbf_new.x * t_max));
-        w_ratio *= lbf_new.y * exp(lbf_new.y * -1 * t_k.Get(molNumber).y)/
-          (2.0*sinh(lbf_new.y * t_max));
-        w_ratio *= lbf_new.z * exp(lbf_new.z * -1 * t_k.Get(molNumber).z)/
-          (2.0*sinh(lbf_new.z * t_max));
+      w_ratio *= lbf_new.x * exp(lbf_new.x * -1 * t_k.Get(molNumber).x)/
+        (2.0*sinh(lbf_new.x * t_max));
+      w_ratio *= lbf_new.y * exp(lbf_new.y * -1 * t_k.Get(molNumber).y)/
+        (2.0*sinh(lbf_new.y * t_max));
+      w_ratio *= lbf_new.z * exp(lbf_new.z * -1 * t_k.Get(molNumber).z)/
+        (2.0*sinh(lbf_new.z * t_max));
 
-        w_ratio /= lbf_old.x * exp(lbf_old.x * t_k.Get(molNumber).x)/
-          (2.0*sinh(lbf_old.x * t_max));
-        w_ratio /= lbf_old.y * exp(lbf_old.y * t_k.Get(molNumber).y)/
-          (2.0*sinh(lbf_old.y * t_max));
-        w_ratio /= lbf_old.z * exp(lbf_old.z * t_k.Get(molNumber).z)/
-          (2.0*sinh(lbf_old.z * t_max));
-      }
+      w_ratio /= lbf_old.x * exp(lbf_old.x * t_k.Get(molNumber).x)/
+        (2.0*sinh(lbf_old.x * t_max));
+      w_ratio /= lbf_old.y * exp(lbf_old.y * t_k.Get(molNumber).y)/
+        (2.0*sinh(lbf_old.y * t_max));
+      w_ratio /= lbf_old.z * exp(lbf_old.z * t_k.Get(molNumber).z)/
+        (2.0*sinh(lbf_old.z * t_max));
     }
     thisMol++;
   }
@@ -276,9 +271,10 @@ void MultiParticle::RotateForceBiased(uint molIndex)
   RotationMatrix matrix;
   if(rotLen) {
     matrix = RotationMatrix::FromAxisAngle(rotLen, rot * (1.0/rotLen));
-  } else { //If force was zero, rotate randomly
-     matrix = RotationMatrix::FromAxisAngle(prng.Sym(r_max),
-					    prng.PickOnUnitSphere());
+  } else {
+    std::cerr << "Error: Zero torque detected!" << std::endl;
+              << "Exiting!" << std::endl;
+    exit(EXIT_FAILURE);
   }
 
   XYZ center = newCOMs.Get(molIndex);
@@ -306,7 +302,9 @@ void MultiParticle::TranslateForceBiased(uint molIndex)
   XYZ shift = t_k.Get(molIndex);
   //If force was zero, displace randomly
   if(!shift.Length()) {
-    shift = prng.SymXYZ(t_max);
+    std::cerr << "Error: Zero force detected!" << std::endl;
+              << "Exiting!" << std::endl;
+    exit(EXIT_FAILURE);
   }
 
   XYZ newcom = newCOMs.Get(molIndex);
