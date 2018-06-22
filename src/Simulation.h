@@ -30,6 +30,9 @@ private:
   System * system;
   CPUSide * cpu;
   ulong totalSteps;
+  Setup set;
+  std::vector<ulong> frameSteps;
+  uint remarksCount;
 };
 
 #endif /*SIMULATION_H*/
