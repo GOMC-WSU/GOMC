@@ -13,6 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "ConfigSetup.h" //For restart info
 #include "MoveConst.h"
 #include <stdlib.h> //for exit
+#include <string> // for to_string
 
 #if BOX_TOTAL == 1
 const std::string PDBSetup::pdbAlias[] = {"system PDB coordinate file"};
@@ -199,7 +200,17 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
     remarks.SetFrameNumber(b, frameNum);
     cryst.SetBox(b);
     atoms.SetBox(b);
-    FixedWidthReader pdb(name[b], pdbAlias[b]);
+    std::string alias;
+    if(remarks.recalcTrajectory) {
+      sstrm::Converter toStr;
+      std::string numStr = "";
+      toStr << frameNum;
+      toStr >> numStr;
+      alias = pdbAlias[b] + " frame " + numStr;
+    } else {
+      alias = pdbAlias[b];
+    }
+    FixedWidthReader pdb(name[b], alias);
     pdb.open();
     while (pdb.Read(varName, pdb_entry::label::POS)) {
       //If end of frame, and this is the frame we wanted,
