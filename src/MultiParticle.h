@@ -272,7 +272,7 @@ void MultiParticle::RotateForceBiased(uint molIndex)
   if(rotLen) {
     matrix = RotationMatrix::FromAxisAngle(rotLen, rot * (1.0/rotLen));
   } else {
-    std::cerr << "Error: Zero torque detected!" << std::endl;
+    std::cerr << "Error: Zero torque detected!" << std::endl
               << "Exiting!" << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -302,7 +302,7 @@ void MultiParticle::TranslateForceBiased(uint molIndex)
   XYZ shift = t_k.Get(molIndex);
   //If force was zero, displace randomly
   if(!shift.Length()) {
-    std::cerr << "Error: Zero force detected!" << std::endl;
+    std::cerr << "Error: Zero force detected!" << std::endl
               << "Exiting!" << std::endl;
     exit(EXIT_FAILURE);
   }
