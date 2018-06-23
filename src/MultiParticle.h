@@ -4,8 +4,16 @@
 #include "System.h"
 #include "StaticVals.h"
 
-#define MPDISPLACE 0
-#define MPROTATE 1
+namespace mp {
+  const int MPDISPLACE = 0;
+  const int MPROTATE = 1;
+  const int MPMVCOUNT = 2;
+  const int MPALLDISPLACE = 0;
+  const int MPALLROTATE = 1;
+  const int MPALLRANDOM = 2;
+  const int MPTOTALTYPES = 3;
+  const double TARGET_ACCEPT_FRACT = 0.3;
+}
 
 class MultiParticle : public MoveBase
 {
@@ -16,12 +24,15 @@ public:
   virtual void CalcEn();
   virtual uint Transform();
   virtual void Accept(const uint rejectState, const uint step);
-  double GetCoeff();
 private:
   uint bPick;
+  uint typePick;
+  uint perAdjust;
   double w_new, w_old;
   double t_max, r_max;
   double lambda;
+  uint tries[mp::MPMVCOUNT];
+  uint accepted[mp::MPMVCOUNT];
   SystemPotential sysPotNew;
   XYZArray molTorqueRef;
   XYZArray molTorqueNew;
@@ -32,8 +43,12 @@ private:
   Coordinates newMolsPos;
   COM newCOMs;
   vector<uint> moveType;
+  uint MultiParticleType;
   const MoleculeLookup& molLookup;
 
+  double GetCoeff();
+  void UpdateMoveSetting(bool isAccepted);
+  void AdjustMoves(const uint step);
   void CalculateTrialDistRot();
   void RotateForceBiased(uint molIndex);
   void TranslateForceBiased(uint molIndex);
@@ -45,6 +60,8 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef,statV.mol),
   molLookup(sys.molLookup)
 {
+  perAdjust = statV.simEventFreq.perAdjust;
+
   molTorqueNew.Init(sys.com.Count());
   molTorqueRef.Init(sys.com.Count());
   atomForceRecNew.Init(sys.coordinates.Count());
@@ -68,16 +85,27 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
 #else
   prng.PickBox(bPick, subDraw, movPerc);
 #endif
-  // subPick = mv::GetMoveSubIndex(mv::MULTIPARTICLE, bPick);
+  typePick = prng.randIntExc(mp::MPTOTALTYPES);
 
   MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(bPick);
   MoleculeLookup::box_iterator end = molLookup.BoxEnd(bPick);
   while(thisMol != end) {
     uint length = molRef.GetKind(*thisMol).NumAtoms();
-    if(length == 1)
-      moveType[*thisMol] = MPDISPLACE;
-    else
-      moveType[*thisMol] = (prng.randInt(1) ? MPROTATE : MPDISPLACE);
+    if(length == 1) {
+      moveType[*thisMol] = mp::MPDISPLACE;
+    } else {
+      if(typePick == mp::MPALLDISPLACE) {
+        moveType[*thisMol] = mp::MPDISPLACE;
+      } else if(typePick == mp::MPALLROTATE) {
+        moveType[*thisMol] = mp::MPROTATE;
+      } else if(typePick == mp::MPALLRANDOM) {
+        moveType[*thisMol] = (prng.randInt(1) ? mp::MPROTATE : mp::MPDISPLACE);
+      } else {
+        std::cerr << "Error: Something went wrong preping in MultiParticle!"
+                  << std::endl;
+        exit(EXIT_FAILURE);
+      }
+    }
     thisMol++;
   }
   //Calculate Torque for old positions
@@ -216,8 +244,11 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
     cellList.GridAll(boxDimRef, coordCurrRef, molLookup);
     calcEwald->exgMolCache();
   }
-  subPick = mv::GetMoveSubIndex(mv::MULTIPARTICLE, bPick);
-  moveSetRef.Update(result, subPick, step);
+  // Do not need this anymore since we are storing values here
+  //subPick = mv::GetMoveSubIndex(mv::MULTIPARTICLE, bPick);
+  //moveSetRef.Update(result, subPick, step);
+  UpdateMoveSetting(result);
+  AdjustMoves(step);
 }
 
 inline void MultiParticle::CalculateTrialDistRot()
@@ -271,7 +302,7 @@ void MultiParticle::RotateForceBiased(uint molIndex)
   RotationMatrix matrix;
   if(rotLen) {
     matrix = RotationMatrix::FromAxisAngle(rotLen, rot * (1.0/rotLen));
-  } else {
+  } else { // if torque is zero we exit
     std::cerr << "Error: Zero torque detected!" << std::endl
               << "Exiting!" << std::endl;
     exit(EXIT_FAILURE);
@@ -300,7 +331,7 @@ void MultiParticle::RotateForceBiased(uint molIndex)
 void MultiParticle::TranslateForceBiased(uint molIndex)
 {
   XYZ shift = t_k.Get(molIndex);
-  //If force was zero, displace randomly
+  //If force was zero, exit the application
   if(!shift.Length()) {
     std::cerr << "Error: Zero force detected!" << std::endl
               << "Exiting!" << std::endl;
@@ -322,4 +353,29 @@ void MultiParticle::TranslateForceBiased(uint molIndex)
   //set the new coordinate
   temp.CopyRange(newMolsPos, 0, start, len);
   newCOMs.Set(molIndex, newcom);
+}
+
+void MultiParticle::AdjustMoves(const uint step)
+{
+  if((step+1) % perAdjust == 0 ) {
+    double currentAccept = (double)accepted[mp::MPDISPLACE] /
+                          (double)tries[mp::MPDISPLACE];
+    double fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
+    t_max *= fractOfTargetAccept;
+
+    currentAccept = (double)accepted[mp::MPROTATE] /
+                    (double)tries[mp::MPROTATE];
+    fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
+    r_max *= fractOfTargetAccept;
+  }
+}
+
+void MultiParticle::UpdateMoveSetting(bool isAccepted)
+{
+  if(typePick != mp::MPALLRANDOM) {
+    tries[typePick]++;
+    if(isAccepted) {
+      accepted[typePick]++;
+    }
+  }
 }
