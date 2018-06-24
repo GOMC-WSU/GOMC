@@ -94,16 +94,20 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
     if(length == 1) {
       moveType[*thisMol] = mp::MPDISPLACE;
     } else {
-      if(typePick == mp::MPALLDISPLACE) {
-        moveType[*thisMol] = mp::MPDISPLACE;
-      } else if(typePick == mp::MPALLROTATE) {
-        moveType[*thisMol] = mp::MPROTATE;
-      } else if(typePick == mp::MPALLRANDOM) {
-        moveType[*thisMol] = (prng.randInt(1) ? mp::MPROTATE : mp::MPDISPLACE);
-      } else {
-        std::cerr << "Error: Something went wrong preping in MultiParticle!"
-                  << std::endl;
-        exit(EXIT_FAILURE);
+      switch(typePick) {
+        case mp::MPALLDISPLACE:
+          moveType[*thisMol] = mp::MPDISPLACE;
+          break;
+        case mp::MPALLROTATE:
+          moveType[*thisMol] = mp::MPROTATE;
+          break;
+        case mp::MPALLRANDOM:
+          moveType[*thisMol] = (prng.randInt(1) ? mp::MPROTATE : mp::MPDISPLACE);
+          break;
+        default:
+          std::cerr << "Error: Something went wrong preping MultiParticle!\n"
+                    << "Type Pick value is not valid!\n";
+          exit(EXIT_FAILURE);
       }
     }
     thisMol++;
@@ -157,10 +161,10 @@ inline void MultiParticle::CalcEn()
   sysPotNew.boxEnergy[bPick].recip = calcEwald->BoxReciprocal(bPick);
   //Calculate long range of new electrostatic force
   calcEwald->BoxForceReciprocal(newMolsPos, atomForceRecNew, molForceRecNew,
-				bPick);
+				                        bPick);
   //Calculate Torque for new positions
   calcEnRef.CalculateTorque(newMolsPos, newCOMs, atomForceNew, atomForceRecNew,
-			    molTorqueNew, moveType, bPick);
+			                      molTorqueNew, moveType, bPick);
   sysPotNew.Total();
 }
 
@@ -244,9 +248,7 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
     cellList.GridAll(boxDimRef, coordCurrRef, molLookup);
     calcEwald->exgMolCache();
   }
-  // Do not need this anymore since we are storing values here
-  //subPick = mv::GetMoveSubIndex(mv::MULTIPARTICLE, bPick);
-  //moveSetRef.Update(result, subPick, step);
+
   UpdateMoveSetting(result);
   AdjustMoves(step);
 }
