@@ -31,8 +31,8 @@ private:
   double w_new, w_old;
   double t_max, r_max;
   double lambda;
-  uint tries[mp::MPMVCOUNT];
-  uint accepted[mp::MPMVCOUNT];
+  uint tries[mp::MPMVCOUNT][BOX_TOTAL];
+  uint accepted[mp::MPMVCOUNT][BOX_TOTAL];
   SystemPotential sysPotNew;
   XYZArray molTorqueRef;
   XYZArray molTorqueNew;
@@ -360,13 +360,13 @@ void MultiParticle::TranslateForceBiased(uint molIndex)
 void MultiParticle::AdjustMoves(const uint step)
 {
   if((step+1) % perAdjust == 0 ) {
-    double currentAccept = (double)accepted[mp::MPDISPLACE] /
-                          (double)tries[mp::MPDISPLACE];
+    double currentAccept = (double)accepted[mp::MPDISPLACE][bPick] /
+                          (double)tries[mp::MPDISPLACE][bPick];
     double fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
     t_max *= fractOfTargetAccept;
 
-    currentAccept = (double)accepted[mp::MPROTATE] /
-                    (double)tries[mp::MPROTATE];
+    currentAccept = (double)accepted[mp::MPROTATE][bPick] /
+                    (double)tries[mp::MPROTATE][bPick];
     fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
     r_max *= fractOfTargetAccept;
   }
@@ -375,9 +375,9 @@ void MultiParticle::AdjustMoves(const uint step)
 void MultiParticle::UpdateMoveSetting(bool isAccepted)
 {
   if(typePick != mp::MPALLRANDOM) {
-    tries[typePick]++;
+    tries[typePick][bPick]++;
     if(isAccepted) {
-      accepted[typePick]++;
+      accepted[typePick][bPick]++;
     }
   }
 }
