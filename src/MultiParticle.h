@@ -29,7 +29,7 @@ private:
   uint typePick;
   uint perAdjust;
   double w_new, w_old;
-  double t_max, r_max;
+  double t_max[BOX_TOTAL], r_max[BOX_TOTAL];
   double lambda;
   uint tries[mp::MPMVCOUNT][BOX_TOTAL];
   uint accepted[mp::MPMVCOUNT][BOX_TOTAL];
@@ -72,9 +72,14 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   newMolsPos.Init(sys.coordinates.Count());
   newCOMs.Init(sys.com.Count());
   moveType.resize(sys.com.Count());
+
+  // set default value for r_max, t_max, and lambda
+  // the value of lambda is based on the paper
   lambda = 0.5;
-  t_max = 0.05;
-  r_max = 0.01 * 2 * M_PI;
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    t_max[b] = 0.05;
+    r_max[b] = 0.01 * 2 * M_PI;
+  }
 }
 
 inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
@@ -186,18 +191,18 @@ inline double MultiParticle::GetCoeff()
       lbt_new = molTorqueNew.Get(molNumber) * lambda * BETA;
 
       w_ratio *= lbt_new.x * exp(lbt_new.x * -1 * r_k.Get(molNumber).x)/
-        (2.0*sinh(lbt_new.x * r_max));
+        (2.0*sinh(lbt_new.x * r_max[bPick]));
       w_ratio *= lbt_new.y * exp(lbt_new.y * -1 * r_k.Get(molNumber).y)/
-        (2.0*sinh(lbt_new.y * r_max));
+        (2.0*sinh(lbt_new.y * r_max[bPick]));
       w_ratio *= lbt_new.z * exp(lbt_new.z * -1 * r_k.Get(molNumber).z)/
-        (2.0*sinh(lbt_new.z * r_max));
+        (2.0*sinh(lbt_new.z * r_max[bPick]));
 
       w_ratio /= lbt_old.x * exp(lbt_old.x * r_k.Get(molNumber).x)/
-        (2.0*sinh(lbt_old.x * r_max));
+        (2.0*sinh(lbt_old.x * r_max[bPick]));
       w_ratio /= lbt_old.y * exp(lbt_old.y * r_k.Get(molNumber).y)/
-        (2.0*sinh(lbt_old.y * r_max));
+        (2.0*sinh(lbt_old.y * r_max[bPick]));
       w_ratio /= lbt_old.z * exp(lbt_old.z * r_k.Get(molNumber).z)/
-        (2.0*sinh(lbt_old.z * r_max));
+        (2.0*sinh(lbt_old.z * r_max[bPick]));
     }
     else { // displace
       lbf_old = (molForceRef.Get(molNumber) + molForceRecRef.Get(molNumber)) *
@@ -206,18 +211,18 @@ inline double MultiParticle::GetCoeff()
 	      lambda * BETA;
 
       w_ratio *= lbf_new.x * exp(lbf_new.x * -1 * t_k.Get(molNumber).x)/
-        (2.0*sinh(lbf_new.x * t_max));
+        (2.0*sinh(lbf_new.x * t_max[bPick]));
       w_ratio *= lbf_new.y * exp(lbf_new.y * -1 * t_k.Get(molNumber).y)/
-        (2.0*sinh(lbf_new.y * t_max));
+        (2.0*sinh(lbf_new.y * t_max[bPick]));
       w_ratio *= lbf_new.z * exp(lbf_new.z * -1 * t_k.Get(molNumber).z)/
-        (2.0*sinh(lbf_new.z * t_max));
+        (2.0*sinh(lbf_new.z * t_max[bPick]));
 
       w_ratio /= lbf_old.x * exp(lbf_old.x * t_k.Get(molNumber).x)/
-        (2.0*sinh(lbf_old.x * t_max));
+        (2.0*sinh(lbf_old.x * t_max[bPick]));
       w_ratio /= lbf_old.y * exp(lbf_old.y * t_k.Get(molNumber).y)/
-        (2.0*sinh(lbf_old.y * t_max));
+        (2.0*sinh(lbf_old.y * t_max[bPick]));
       w_ratio /= lbf_old.z * exp(lbf_old.z * t_k.Get(molNumber).z)/
-        (2.0*sinh(lbf_old.z * t_max));
+        (2.0*sinh(lbf_old.z * t_max[bPick]));
     }
     thisMol++;
   }
@@ -266,7 +271,7 @@ inline void MultiParticle::CalculateTrialDistRot()
     XYZ num;
     if(moveType[molIndex]) { // rotate
       lbt = molTorqueRef.Get(molIndex) * lambda * BETA;
-      lbtmax = lbt * r_max;
+      lbtmax = lbt * r_max[bPick];
       if(lbt.Length()) {
         rand = prng();
         num.x = log(exp(-1 * lbtmax.x ) + 2 * rand * sinh(lbtmax.x ));
@@ -281,7 +286,7 @@ inline void MultiParticle::CalculateTrialDistRot()
     else { // displace
       lbf = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) *
         lambda * BETA;
-      lbfmax = lbf * t_max;
+      lbfmax = lbf * t_max[bPick];
       if(lbf.Length()) {
         rand = prng();
         num.x = log(exp(-1 * lbfmax.x ) + 2 * rand * sinh(lbfmax.x ));
@@ -363,12 +368,12 @@ void MultiParticle::AdjustMoves(const uint step)
     double currentAccept = (double)accepted[mp::MPDISPLACE][bPick] /
                           (double)tries[mp::MPDISPLACE][bPick];
     double fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
-    t_max *= fractOfTargetAccept;
+    t_max[bPick] *= fractOfTargetAccept;
 
     currentAccept = (double)accepted[mp::MPROTATE][bPick] /
                     (double)tries[mp::MPROTATE][bPick];
     fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
-    r_max *= fractOfTargetAccept;
+    r_max[bPick] *= fractOfTargetAccept;
   }
 }
 
