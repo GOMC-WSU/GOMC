@@ -111,7 +111,7 @@ BoxDimensionsNonOrth& BoxDimensionsNonOrth::operator=(BoxDimensionsNonOrth const
     volInv[b] = other.volInv[b];
     cubic[b] = other.cubic[b];
     orthogonal[b] = other.orthogonal[b];
-    for(uint i = 0; i < 0; i++) {
+    for(uint i = 0; i < 3; i++) {
       cosAngle[b][i] = other.cosAngle[b][i];
     }
   }
@@ -187,7 +187,7 @@ void BoxDimensionsNonOrth::SetVolume(const uint b, const double vol)
     axis.Scale(b, ratio);
     halfAx.Scale(b, ratio);
     cellLength.Scale(b, ratio);
-    for(uint i = 0; i < 0; i++) {
+    for(uint i = 0; i < 3; i++) {
       cellBasis[b].Scale(i, ratio);
     }
   }

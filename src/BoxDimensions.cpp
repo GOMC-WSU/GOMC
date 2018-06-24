@@ -131,7 +131,7 @@ BoxDimensions::BoxDimensions(BoxDimensions const& other) :
     volInv[b] = other.volInv[b];
     cubic[b] = other.cubic[b];
     orthogonal[b] = other.orthogonal[b];
-    for(uint i = 0; i < 0; i++) {
+    for(uint i = 0; i < 3; i++) {
       cosAngle[b][i] = other.cosAngle[b][i];
     }
   }
@@ -148,7 +148,7 @@ BoxDimensions& BoxDimensions::operator=(BoxDimensions const& other)
     volInv[b] = other.volInv[b];
     cubic[b] = other.cubic[b];
     orthogonal[b] = other.orthogonal[b];
-    for(uint i = 0; i < 0; i++) {
+    for(uint i = 0; i < 3; i++) {
       cosAngle[b][i] = other.cosAngle[b][i];
     }
   }
@@ -180,7 +180,7 @@ void BoxDimensions::SetVolume(const uint b, const double vol)
     double ratio = pow(vol / volume[b], (1.0 / 3.0));
     axis.Scale(b, ratio);
     halfAx.Scale(b, ratio);
-    for(uint i = 0; i < 0; i++) {
+    for(uint i = 0; i < 3; i++) {
       cellBasis[b].Scale(i, ratio);
     }
   }
