@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -12,6 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Forcefield.h"
 #include "VectorLib.h" //for transfer.
 #include <algorithm> //For count.
+#include <string>
 
 class System;
 
@@ -54,11 +55,33 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
     kinds[mk].Init(atoms.resKindNames[mk], setup, forcefield, sys);
   }
 
+#if ENSEMBLE == GCMC
+  //check to have all the molecules in psf file that defined in config file
+  std::map<std::string, double>::const_iterator kindCPIt =
+    setup.config.sys.chemPot.cp.begin(),
+    lastOne = setup.config.sys.chemPot.cp.end();
+
+  while(kindCPIt != lastOne) {
+    std::string molName = kindCPIt->first;
+    mol_setup::MolMap::const_iterator dataIterator =
+      setup.mol.kindMap.find(molName);
+    if(dataIterator == setup.mol.kindMap.end()) {
+      std::cerr << "================================================"
+                << std::endl << "Error: Molecule " << molName
+                << " was not defined in the PDB file." << std::endl
+                << "================================================"
+                << std::endl;
+      exit(EXIT_FAILURE);
+    }
+    kindCPIt++;
+  }
+#endif
+
   if(printFlag) {
     //calculating netcharge of all molecule kind
     double netCharge = 0.0;
     for (uint mk = 0 ; mk < kindsCount; mk++) {
-      netCharge += (countByKind[mk] * kinds[mk].PrintChargeInfo());
+      netCharge += (countByKind[mk] * kinds[mk].GetMoleculeCharge());
     }
 
     if(abs(netCharge) > 10E-7) {
@@ -69,9 +92,24 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
                 <<  "================================================"
                 << std::endl;
 
-      printFlag = false;
     }
   }
+
+  //Print LJ nonbonded info
+  std::vector<uint> totAtomKind;
+  std::vector<std::string> atomNames;
+  for(uint i = 0; i < kindsCount; ++i) {
+    for(uint j = 0; j < kinds[i].NumAtoms(); j++) {
+      if(std::find(totAtomKind.begin(), totAtomKind.end(), kinds[i].AtomKind(j))
+          == totAtomKind.end()) {
+        totAtomKind.push_back(kinds[i].AtomKind(j));
+        atomNames.push_back(kinds[i].atomTypeNames[j]);
+      }
+    }
+  }
+
+  PrintLJInfo(totAtomKind, atomNames, forcefield);
+  printFlag = false;
 
   //Pair Correction matrixes
   pairEnCorrections = new double[kindsCount * kindsCount];
@@ -98,4 +136,43 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
     }
   }
 
+}
+
+void Molecules::PrintLJInfo(std::vector<uint> &totAtomKind,
+                            std::vector<std::string> &names,
+                            Forcefield & forcefield)
+{
+  if(printFlag) {
+    uint size =  totAtomKind.size();
+    printf("NonBonded 1-4 parameters:\n");
+    printf("%-6s %-10s %17s %11s %7s \n", "Type1", "Type2", "Epsilon(K)",
+           "Sigma(A)", "N");
+    for(uint i = 0; i < size; i++) {
+      for(uint j = i; j < size; j++) {
+        printf("%-6s %-10s %17.4f %11.4f %7.2f \n", names[i].c_str(),
+               names[j].c_str(),
+               forcefield.particles->GetEpsilon_1_4(totAtomKind[i],
+                   totAtomKind[j]),
+               forcefield.particles->GetSigma_1_4(totAtomKind[i],
+                   totAtomKind[j]),
+               forcefield.particles->GetN_1_4(totAtomKind[i],
+                                              totAtomKind[j]));
+      }
+    }
+
+    std::cout << std::endl;
+    printf("NonBonded parameters:\n");
+    printf("%-6s %-10s %17s %11s %7s \n", "Type1", "Type2", "Epsilon(K)",
+           "Sigma(A)", "N");
+    for(uint i = 0; i < size; i++) {
+      for(uint j = i; j < size; j++) {
+        printf("%-6s %-10s %17.4f %11.4f %7.2f \n", names[i].c_str(),
+               names[j].c_str(),
+               forcefield.particles->GetEpsilon(totAtomKind[i], totAtomKind[j]),
+               forcefield.particles->GetSigma(totAtomKind[i], totAtomKind[j]),
+               forcefield.particles->GetN(totAtomKind[i], totAtomKind[j]));
+      }
+    }
+    std::cout << std::endl;
+  }
 }

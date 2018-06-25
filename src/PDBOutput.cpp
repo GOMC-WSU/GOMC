@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -21,7 +21,11 @@ PDBOutput::PDBOutput(System  & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   coordCurrRef(sys.coordinates), comCurrRef(sys.com),
   pStr(coordCurrRef.Count(), GetDefaultAtomStr()),
-  boxDimRef(sys.boxDimRef), molRef(statV.mol) { }
+  boxDimRef(sys.boxDimRef), molRef(statV.mol)
+{
+  for(int i=0; i<BOX_TOTAL; i++)
+    frameNumber[i] = 0;
+}
 
 std::string PDBOutput::GetDefaultAtomStr()
 {
@@ -160,6 +164,7 @@ void PDBOutput::DoOutput(const ulong step)
     std::vector<uint> mBox(molRef.count);
     SetMolBoxVec(mBox);
     for (uint b = 0; b < BOX_TOTAL; ++b) {
+      PrintRemark(b, step, outF[b]);
       PrintCryst1(b, outF[b]);
       PrintAtoms(b, mBox);
       PrintEnd(b, outF[b]);
@@ -308,8 +313,6 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
   }
 }
 
-
-//NEW_RESTART_CODE
 void PDBOutput::PrintAtomsRebuildRestart(const uint b)
 {
   using namespace pdb_entry::atom::field;
@@ -343,4 +346,32 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
     molecule = 0;
   }
 }
-//NEW_RESTART_CODE
+
+// This function should print a remark for recalculating trajectory
+// The format is the following:
+// REMARK GOMC <frame number> <step number>
+void PDBOutput::PrintRemark(const uint b, const uint step, Writer & out)
+{
+  using namespace pdb_entry::cryst1::field;
+  using namespace pdb_entry;
+  using namespace pdb_entry::remark::field;
+
+  sstrm::Converter toStr;
+  std::string outStr(pdb_entry::LINE_WIDTH, ' ');
+  //Tag for remark
+  outStr.replace(label::POS.START, label::POS.LENGTH, label::REMARK);
+  //Tag GOMC
+  outStr.replace(name::POS.START, name::POS.LENGTH, name::STR_GOMC);
+  
+  // Print Frame number
+  frameNumber[b]++;
+  toStr.Fixed().Align(frameNum::ALIGN).Precision(frameNum::PRECISION);
+  toStr.Replace(outStr, frameNumber[b], frameNum::POS);
+
+  // Print step number
+  toStr.Fixed().Align(stepsNum::ALIGN).Precision(stepsNum::PRECISION);
+  toStr.Replace(outStr, step+1, stepsNum::POS);
+
+  //Write cell line
+  out.file << outStr << std::endl;
+}

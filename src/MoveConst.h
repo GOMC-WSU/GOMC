@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -31,19 +31,23 @@ const uint MULTIPARTICLE = 1;
 const uint ROTATE = 2;
 #if ENSEMBLE == NVT
 const uint INTRA_SWAP = 3;
-const uint MOVE_KINDS_TOTAL = 4;
+const uint REGROWTH = 4;
+const uint MOVE_KINDS_TOTAL = 5;
 #elif ENSEMBLE == GCMC
 const uint INTRA_SWAP = 3;
-const uint MOL_TRANSFER = 4;
-const uint MOVE_KINDS_TOTAL = 5;
+const uint REGROWTH = 4;
+const uint MOL_TRANSFER = 5;
+const uint MOVE_KINDS_TOTAL = 6;
 #elif ENSEMBLE == GEMC
 const uint VOL_TRANSFER = 3;
 const uint INTRA_SWAP = 4;
-const uint MOL_TRANSFER = 5;
-const uint MOVE_KINDS_TOTAL = 6;
+const uint REGROWTH = 5;
+const uint MOL_TRANSFER = 6;
+const uint MOVE_KINDS_TOTAL = 7;
 #elif ENSEMBLE == NPT
 const uint VOL_TRANSFER = 3;
 const uint INTRA_SWAP = 4;
+const uint REGROWTH = 5;
 const uint MOVE_KINDS_TOTAL = 5;
 #endif
 
@@ -99,31 +103,35 @@ const uint IT_KINDS_TOTAL = 2;
 
 //////////////////////////////////////////////////////////
 
-//NVT : 1. Disp (box 0) 2. MultiParticle (box 0) 3. Rotate (box 0)
-//      4. IntraSwap (box 0)
-//GCMC: 1. Disp (box 0) 2. MultiParticle (box 0) 3. Rotate (box 0)
-//      4. IntraSwap (box 0) 5. Deletion (box 0)   6. Insertion (box 0)
-//GEMC: 1. Disp (box 0)  2. Disp (box 1)
-//      3. MultiParticle (box 0) 4. MultiParticle (box 1)
-//      5. Rotate (box 0) 6. Rotate (box 1)
-//      7. Vol. (b0->b1) 8. Vol. (b1->b0)
-//      9. IntraSwap (box 0)  10. IntraSwap (box 1)
-//      11. Mol Trans (b0->b1), 12. Mol Trans (b1->b0)
-//NPT : 1. Disp (box 0) 2. MultiParticle (box 0) 3. Rotate (box 0)
-//      4. Vol. (box 0) 5. IntraSwap (box 0)
+//NVT : 1. Disp (box 0)         2. MultiParticle      3. Rotate (box 0)     
+//      4. IntraSwap (box 0)    5. Regrowth (box 0)
+//
+//GCMC: 1. Disp (box 0)         2. MultiParticle      3. Rotate (box 0)     
+//      4. IntraSwap (box 0)    5. Regrowth (box 0)   6. Deletion (box 0)
+//      7. Insertion (box 0)
+//
+//GEMC: 1. Disp (box 0)         2. Disp (box 1)       3. MultiParticle      
+//      4. Rotate (box 0)       5. Rotate (box 1)
+//      6. Vol. (b0->b1)        7. Vol. (b1->b0)
+//      8. IntraSwap (box 0)    9. IntraSwap (box 1)
+//     10. Regrowth (box 0)    11. Regrowth (box 1)
+//     12. Mol Trans (b0->b1), 13. Mol Trans (b1->b0)
+//
+//NPT : 1. Disp (box 0)         3. MultiParticle      3. Rotate (box 0)
+//      4. Vol. (box 0)         5. IntraSwap (box 0)  6. Regrowth (box 0)
 
 #if ENSEMBLE == NVT
-const uint COUNT = 4;
+const uint COUNT = 5;
 const uint SCALEABLE = 3;
 #elif ENSEMBLE == GCMC
-const uint COUNT = 6;
+const uint COUNT = 7;
 const uint SCALEABLE = 3;
 #elif ENSEMBLE == GEMC
-const uint COUNT = 12;
-const uint SCALEABLE = 8;
+const uint COUNT = 13;
+const uint SCALEABLE = 7;
 #elif ENSEMBLE == NPT
-const uint COUNT = 5;
-const uint SCALEABLE = 4;
+const uint COUNT = 6;
+>>>>>>> a1971a2d852943e50afc008f1e4dd540d631c362
 #endif
 
 

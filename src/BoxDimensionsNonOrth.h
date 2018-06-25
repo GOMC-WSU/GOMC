@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -68,8 +68,6 @@ public:
 //private:
   XYZArray cellBasis_Inv[BOX_TOTAL]; //inverse cell matrix for each box
   XYZArray cellLength;                //Length of a, b, c for each box
-
-  XYZ CrossProduct(const XYZ &A, const XYZ &B) const;   //Calc AxB product
 };
 
 //Calculate transform

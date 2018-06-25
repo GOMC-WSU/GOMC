@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -119,7 +119,12 @@ static const ConstField POS(35, 12);
 static const uint PRECISION = 3;
 static const char ALIGN = align::RIGHT;
 }
-
+namespace frameNum
+{
+static const ConstField POS(15, 10);
+static const uint PRECISION = 0;
+static const char ALIGN = align::RIGHT;
+}
 namespace stepsNum
 {
 static const ConstField POS(50, 15);

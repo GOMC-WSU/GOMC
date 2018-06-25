@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -22,6 +22,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeLookup.h"
 #include "MoveSettings.h"
 #include "CellList.h"
+#include "Clock.h"
 
 //Initialization variables
 class Setup;
@@ -38,8 +39,14 @@ public:
   //Runs move, picked at random
   void ChooseAndRunMove(const uint step);
 
+  // Recalculate Trajectory
+  void RecalculateTrajectory(Setup & set, uint frameNum);
+
+  //print move time
+  void PrintTime();
+
   // return ewald
-  EwaldCached * GetEwald()
+  Ewald * GetEwald()
   {
     return calcEwald;
   }
@@ -89,7 +96,7 @@ public:
   COM com;
 
   CalculateEnergy calcEnergy;
-  EwaldCached  *calcEwald;
+  Ewald *calcEwald;
   CellList cellList;
   PRNG prng;
 
@@ -108,6 +115,8 @@ private:
   void Accept(const uint kind, const uint rejectState, const uint step);
 
   MoveBase * moves[mv::MOVE_KINDS_TOTAL];
+  double moveTime[mv::MOVE_KINDS_TOTAL];
+  Clock time;
 };
 
 #endif /*SYSTEM_H*/

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -81,7 +81,7 @@ protected:
   Coordinates & coordCurrRef;
   COM & comCurrRef;
   CalculateEnergy & calcEnRef;
-  EwaldCached * calcEwald;
+  Ewald * calcEwald;
   XYZArray& atomForceRef;
   XYZArray atomForceNew;
   XYZArray& molForceRef;
@@ -358,11 +358,11 @@ private:
 inline VolumeTransfer::VolumeTransfer(System &sys, StaticVals const& statV)  :
   MoveBase(sys, statV), molLookRef(sys.molLookupRef),
   newMolsPos(boxDimRef, newCOMs, sys.molLookupRef,
-             sys.prng, statV.mol),forcefield(statV.forcefield),
-	newDim(), newDimNonOrth(),
-	newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef,
-		      statV.mol), GEMC_KIND(statV.kindOfGEMC),
-	PRESSURE(statV.pressure), regrewGrid(false)
+             sys.prng, statV.mol), forcefield(statV.forcefield),
+  newDim(), newDimNonOrth(),
+  newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef,
+          statV.mol), GEMC_KIND(statV.kindOfGEMC),
+  PRESSURE(statV.pressure), regrewGrid(false)
 {
   newMolsPos.Init(sys.coordinates.Count());
   newCOMs.Init(statV.mol.count);
@@ -565,17 +565,16 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
     //update unitcell to the original in GPU
     for (uint box = 0; box < BOX_TOTAL; box++) {
       UpdateCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
-			  boxDimRef.cellBasis[box].x,
-			  boxDimRef.cellBasis[box].y,
-			  boxDimRef.cellBasis[box].z);
-      if(!isOrth)
-      {
+                          boxDimRef.cellBasis[box].x,
+                          boxDimRef.cellBasis[box].y,
+                          boxDimRef.cellBasis[box].z);
+      if(!isOrth) {
         BoxDimensionsNonOrth newAxes = *((BoxDimensionsNonOrth*)(&boxDimRef));
         UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
                                newAxes.cellBasis_Inv[box].x,
                                newAxes.cellBasis_Inv[box].y,
                                newAxes.cellBasis_Inv[box].z);
-      }  
+      }
     }
 #endif
   }

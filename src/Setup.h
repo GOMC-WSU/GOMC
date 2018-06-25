@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -32,7 +32,7 @@ public:
     config.Init(configFileName);
     //Read in FF data.
     ff.Init(config.in.files.param.name, config.in.ffKind.isCHARMM);
-    //Read PDB dat
+    //Read PDB data
     pdb.Init(config.in.restart, config.in.files.pdb.name);
     //Read molecule data from psf
     prng.Init(config.in.restart, config.in.prng, config.in.files.seed.name);

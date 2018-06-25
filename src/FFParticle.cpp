@@ -1,11 +1,10 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "FFParticle.h"
-#include "FFSetup.h" //For our setup info
 #include "ConfigSetup.h"
 #include "NumLib.h" //For Sq, Cb, and MeanA/G functions.
 #ifdef GOMC_CUDA
@@ -14,8 +13,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 FFParticle::FFParticle() : mass(NULL), nameFirst(NULL), nameSec(NULL),
   n(NULL), n_1_4(NULL), sigmaSq(NULL),
-  sigmaSq_1_4(NULL), epsilon_cn(NULL),
-  epsilon_cn_1_4(NULL), epsilon_cn_6(NULL),
+  sigmaSq_1_4(NULL), epsilon_cn(NULL), epsilon(NULL),
+  epsilon_1_4(NULL), epsilon_cn_1_4(NULL), epsilon_cn_6(NULL),
   epsilon_cn_6_1_4(NULL), nOver6(NULL),
   nOver6_1_4(NULL), enCorrection(NULL),
   virCorrection(NULL), shiftConst(NULL),
@@ -37,12 +36,14 @@ FFParticle::~FFParticle(void)
 
   delete[] sigmaSq;
   delete[] n;
+  delete[] epsilon;
   delete[] epsilon_cn;
   delete[] epsilon_cn_6;
   delete[] nOver6;
   // parameter for 1-4 interaction, same one will be used for 1-3 interaction
   delete[] sigmaSq_1_4;
   delete[] n_1_4;
+  delete[] epsilon_1_4;
   delete[] epsilon_cn_1_4;
   delete[] epsilon_cn_6_1_4;
   delete[] nOver6_1_4;
@@ -65,7 +66,7 @@ FFParticle::~FFParticle(void)
   delete[] sign_1_4;
 #ifdef GOMC_CUDA
   DestroyCUDAVars(varCUDA);
-  delete[] varCUDA;
+  delete varCUDA;
 #endif
 }
 
@@ -97,11 +98,13 @@ void FFParticle::Init(ff_setup::Particle const& mie,
   n = new double [size];
   n_1_4 = new double [size];
 #endif
+  epsilon = new double [size];
   epsilon_cn = new double [size];
   epsilon_cn_6 = new double [size];
   nOver6 = new double [size];
   sigmaSq = new double [size];
 
+  epsilon_1_4 = new double [size];
   epsilon_cn_1_4 = new double [size];
   epsilon_cn_6_1_4 = new double [size];
   nOver6_1_4 = new double [size];
@@ -199,7 +202,9 @@ void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
         double cn = n[j] / (n[j] - 6) * pow(n[j] / 6, (6 / (n[j] - 6)));
         double cn_1_4 = n_1_4[j] / (n_1_4[j] - 6) *
                         pow(n_1_4[j] / 6, (6 / (n_1_4[j] - 6)));
+        epsilon[j] = nbfix.epsilon[i];
         epsilon_cn[j] = cn * nbfix.epsilon[i];
+        epsilon_1_4[j] = nbfix.epsilon_1_4[i];
         epsilon_cn_1_4[j] = cn_1_4 * nbfix.epsilon_1_4[i];
         epsilon_cn_6[j] = epsilon_cn[j] * 6;
         epsilon_cn_6_1_4[j] = epsilon_cn_1_4[j] * 6;
@@ -251,8 +256,8 @@ void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
                       (pow(rCut, pn_1_4 + 2) * pow(rCut - rOn, 2));
           Bn_1_4[j] = -pn_1_4 * ((pn_1_4 + 1) * rOn - (pn_1_4 + 3) * rCut) /
                       (pow(rCut, pn_1_4 + 2) * pow(rCut - rOn, 3));
-          Cn_1_4[j] = 1.0 / pow(rCut, pn_1_4) - An_1_4[j] / 3.0 * pow(rCut - rOn, 3) -
-                      Bn_1_4[j] / 4.0 * pow(rCut - rOn, 4);
+          Cn_1_4[j] = 1.0 / pow(rCut, pn_1_4) - An_1_4[j] / 3.0 *
+                      pow(rCut - rOn, 3) - Bn_1_4[j] / 4.0 * pow(rCut - rOn, 4);
           sig6_1_4[j] = pow(nbfix.sigma_1_4[i], 6);
           sign_1_4[j] = pow(nbfix.sigma_1_4[i], pn_1_4);
         }
@@ -285,10 +290,10 @@ void FFParticle::Blend(ff_setup::Particle const& mie, const double rCut)
       num::Cb(sigmaSq[idx], tc, sigma);
       sigmaSq_1_4[idx] = sigma_1_4 * sigma_1_4;
       tc *= 0.5 * 4.0 * M_PI;
-      epsilon_cn[idx] =
-        cn * num::MeanG(mie.epsilon, mie.epsilon, i, j);
-      epsilon_cn_1_4[idx] =
-        cn * num::MeanG(mie.epsilon_1_4, mie.epsilon_1_4, i, j);
+      epsilon[idx] = num::MeanG(mie.epsilon, mie.epsilon, i, j);
+      epsilon_cn[idx] = cn * epsilon[idx];
+      epsilon_1_4[idx] = num::MeanG(mie.epsilon_1_4, mie.epsilon_1_4, i, j);
+      epsilon_cn_1_4[idx] = cn * epsilon_1_4[idx];
       epsilon_cn_6[idx] = epsilon_cn[idx] * 6;
       epsilon_cn_6_1_4[idx] = epsilon_cn_1_4[idx] * 6;
       nOver6[idx] = n[idx] / 6;
@@ -346,4 +351,35 @@ void FFParticle::Blend(ff_setup::Particle const& mie, const double rCut)
       }
     }
   }
+}
+
+double FFParticle::GetEpsilon(const uint i, const uint j) const
+{
+  uint idx = FlatIndex(i, j);
+  return epsilon[idx];
+}
+double FFParticle::GetEpsilon_1_4(const uint i, const uint j) const
+{
+  uint idx = FlatIndex(i, j);
+  return epsilon_1_4[idx];
+}
+double FFParticle::GetSigma(const uint i, const uint j) const
+{
+  uint idx = FlatIndex(i, j);
+  return sqrt(sigmaSq[idx]);
+}
+double FFParticle::GetSigma_1_4(const uint i, const uint j) const
+{
+  uint idx = FlatIndex(i, j);
+  return sqrt(sigmaSq_1_4[idx]);
+}
+double FFParticle::GetN(const uint i, const uint j) const
+{
+  uint idx = FlatIndex(i, j);
+  return n[idx];
+}
+double FFParticle::GetN_1_4(const uint i, const uint j) const
+{
+  uint idx = FlatIndex(i, j);
+  return n_1_4[idx];
 }

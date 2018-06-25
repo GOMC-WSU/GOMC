@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -45,8 +45,10 @@ void ConsoleOutput::DoOutput(const ulong step)
 
     std::cout << "############################# STARTING SIMULATION ##############################" << std::endl << std::endl;
 
-    PrintMoveTitle();
-    std::cout << std::endl;
+    if(!forceOutput) {
+      PrintMoveTitle();
+      std::cout << std::endl;
+    }
 
     if(enableEnergy) {
       PrintEnergyTitle();
@@ -59,8 +61,10 @@ void ConsoleOutput::DoOutput(const ulong step)
     }
   } else {
     for(uint b = 0; b < BOX_TOTAL; b++) {
-      PrintMove(b, step);
-      std::cout << std::endl;
+      if(!forceOutput) {
+        PrintMove(b, step);
+        std::cout << std::endl;
+      }
 
       if(enableEnergy) {
         PrintEnergy(b, var->energyRef[b], var->virialRef[b], step);
@@ -114,7 +118,12 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
     printElement(var->GetTries(sub), elementWidth);
     printElement(var->GetAccepted(sub), elementWidth);
     printElement(var->GetAcceptPercent(sub), elementWidth);
-    //printElement(var->GetScale(sub), elementWidth);
+
+    sub = mv::GetMoveSubIndex(mv::REGROWTH, box);
+    printElement(var->GetTries(sub), elementWidth);
+    printElement(var->GetAccepted(sub), elementWidth);
+    printElement(var->GetAcceptPercent(sub), elementWidth);
+
 #if ENSEMBLE == GCMC
   }
 #endif
@@ -292,6 +301,9 @@ void ConsoleOutput::PrintMoveTitle()
   printElement("INTACCEPT", elementWidth);
   printElement("INTACCEPT%", elementWidth);
 
+  printElement("REGROWTH", elementWidth);
+  printElement("REGROWACCEPT", elementWidth);
+  printElement("REGROWACCEPT%", elementWidth);
 
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   printElement("TRANSFER", elementWidth);

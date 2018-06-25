@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -46,21 +46,21 @@ DCLinkedHedron::DCLinkedHedron
 {
   using namespace mol_setup;
   using namespace std;
+  vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
+  onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
+                onFocus.end());
+  //Find the atoms bonded to focus, except prev
+  for (uint i = 0; i < hed.NumBond(); ++i) {
+    bondKinds[i] = onFocus[i].kind;
+  }
+
   vector<Bond> onPrev = AtomBonds(kind, hed.Prev());
-  onPrev.erase(remove_if(onPrev.begin(), onPrev.end(), FindA1(hed.Focus())), onPrev.end());
+  onPrev.erase(remove_if(onPrev.begin(), onPrev.end(), FindA1(hed.Focus())),
+               onPrev.end());
   nPrevBonds = onPrev.size();
 
   for(uint i = 0; i < nPrevBonds; ++i) {
     prevBonded[i] = onPrev[i].a1;
-    prevBondedLength[i] = data->ff.bonds.Length(onPrev[i].kind);
-  }
-
-  vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
-  for(uint i = 0; i < onFocus.size(); ++i) {
-    if (onFocus[i].a1 == prev) {
-      focusPrevLength = data->ff.bonds.Length(onFocus[i].kind);
-      break;
-    }
   }
 
   vector<Dihedral> dihs = DihsOnBond(kind, hed.Focus(), hed.Prev());
@@ -73,23 +73,59 @@ DCLinkedHedron::DCLinkedHedron
       dihKinds[i][j] = match->kind;
     }
   }
+    
+  if(data->nLJTrialsNth < 1) {
+    std::cout << "Error: CBMC secondary atom trials must be greater than 0.\n";
+    exit(EXIT_FAILURE);
+  }
+    
+  if(data->nDihTrials < 1) {
+    std::cout << "Error: CBMC dihedral trials must be greater than 0.\n";
+    exit(EXIT_FAILURE);
+  }
+    
 }
-
 
 void DCLinkedHedron::PrepareNew(TrialMol& newMol, uint molIndex)
 {
+  //Get new bond information
+  SetBondLengthNew(newMol);
+  hed.SetBondNew(bondLength, anchorBond);
   hed.PrepareNew(newMol, molIndex);
+  bondEnergy = 0.0;
+  for(uint i = 0; i < hed.NumBond(); ++i) {
+    bondEnergy += data->ff.bonds.Calc(bondKinds[i], bondLength[i]);
+  }
 }
 
 void DCLinkedHedron::PrepareOld(TrialMol& oldMol, uint molIndex)
 {
+  //Get old bond information
+  SetBondLengthOld(oldMol);
+  hed.SetBondOld(bondLengthOld, anchorBondOld);
   hed.PrepareOld(oldMol, molIndex);
-  for(uint i = 0; i < nPrevBonds; ++i) {
-    prevBondedLengthOld[i] = sqrt(oldMol.OldDistSq(hed.Prev(), prevBonded[i]));
+  bondEnergy = 0.0;
+  for(uint i = 0; i < hed.NumBond(); ++i) {
+    bondEnergy += data->ff.bonds.Calc(bondKinds[i], bondLengthOld[i]);
   }
-  focusPrevLengthOld = sqrt(oldMol.OldDistSq(hed.Focus(), hed.Prev()));
 }
 
+void DCLinkedHedron::SetBondLengthNew(TrialMol& newMol)
+{
+  for(uint i = 0; i < hed.NumBond(); ++i) {
+    bondLength[i] = data->ff.bonds.Length(bondKinds[i]);
+  }
+  //anchorBond is built, we need the actual length
+  anchorBond =  sqrt(newMol.OldDistSq(hed.Focus(), hed.Prev()));
+}
+
+void DCLinkedHedron::SetBondLengthOld(TrialMol& oldMol)
+{
+  for(uint i = 0; i < hed.NumBond(); ++i) {
+    bondLengthOld[i] = sqrt(oldMol.OldDistSq(hed.Focus(), hed.Bonded(i)));
+  }
+  anchorBondOld = sqrt(oldMol.OldDistSq(hed.Focus(), hed.Prev()));
+}
 
 void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
 {
@@ -120,7 +156,7 @@ void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
   double prevPhi[MAX_BONDS];
   for (uint i = 0; i < hed.NumBond(); ++i) {
     //get position and shift to origin
-    positions[i].Set(0, newMol.RawRectCoords(hed.BondLength(i),
+    positions[i].Set(0, newMol.RawRectCoords(bondLength[i],
                      hed.Theta(i), hed.Phi(i)));
   }
   for (uint i = 0; i < nPrevBonds; ++i) {
@@ -137,7 +173,7 @@ void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
 
   //counting backward to preserve prototype
   for (uint lj = nLJTrials; lj-- > 0;) {
-    ChooseTorsionNew(newMol, molIndex, prevPhi);
+    ChooseTorsion(newMol, molIndex, prevPhi, cross, tensor);
     ljWeights[lj] = std::accumulate(torWeights,
                                     torWeights + nDihTrials, 0.0);
     uint winner = prng.PickWeighted(torWeights, nDihTrials, ljWeights[lj]);
@@ -162,7 +198,7 @@ void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
   for(uint b = 0; b < hed.NumBond(); ++b) {
     newMol.AddAtom(hed.Bonded(b), positions[b][winner]);
   }
-  newMol.AddEnergy(Energy(bondedEn[winner] + hed.GetEnergy(),
+  newMol.AddEnergy(Energy(bondedEn[winner] + hed.GetEnergy() + bondEnergy,
                           nonbonded[winner] + hed.GetNonBondedEn() +
                           oneFour[winner], inter[winner], real[winner],
                           0.0, 0.0, 0.0));
@@ -221,7 +257,7 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
 
   //counting backward to preserve prototype
   for (uint lj = nLJTrials; lj-- > 1;) {
-    ChooseTorsionOld(oldMol, molIndex, prevPhi);
+    ChooseTorsion(oldMol, molIndex, prevPhi, cross, tensor);
     ljWeights[lj] = std::accumulate(torWeights, torWeights + nDihTrials,
                                     0.0);
     uint winner = prng.PickWeighted(torWeights, nDihTrials, ljWeights[lj]);
@@ -244,19 +280,24 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
     for (uint b = 0; b < hed.NumBond(); ++b) {
       double theta1 =  hed.Theta(b);
       double trialPhi = hed.Phi(b) + torsion[tor];
-      for (uint p = 0; p < nPrevBonds; ++p) {
-        double theta0 = oldMol.GetTheta(prevBonded[p], hed.Prev(),
-                                        hed.Focus());
-        double distSq =
-          oldMol.DihedDist(prevBondedLengthOld[p], focusPrevLengthOld,
-                           hed.BondLengthOld(b), theta0, theta1,
-                           trialPhi - prevPhi[p]);
-        nonbonded_1_4[tor] +=
-          data->calc.IntraEnergy_1_4(distSq, prevBonded[p],
-                                     hed.Bonded(b), molIndex);
-        if(isnan(nonbonded_1_4[tor]))
-          nonbonded_1_4[tor] = num::BIGNUM;
+      XYZ bondedC;
+      if(oldMol.OneFour()) {
+        //convert chosen torsion to 3D positions for bonded atoms to focus
+        RotationMatrix spin = RotationMatrix::FromAxisAngle(-torsion[tor],
+                              cross, tensor);
+        bondedC = spin.Apply(positions[b][0]) + center;
+      }
 
+      for (uint p = 0; p < nPrevBonds; ++p) {
+        if(oldMol.OneFour()) {
+          double distSq = oldMol.DistSq(bondedC,
+                                        oldMol.AtomPosition(prevBonded[p]));
+          nonbonded_1_4[tor] +=
+            data->calc.IntraEnergy_1_4(distSq, prevBonded[p],
+                                       hed.Bonded(b), molIndex);
+          if(isnan(nonbonded_1_4[tor]))
+            nonbonded_1_4[tor] = num::BIGNUM;
+        }
         torEnergy[tor] += ff.dihedrals.Calc(dihKinds[b][p],
                                             trialPhi - prevPhi[p]);
       }
@@ -274,9 +315,8 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
   for(uint b = 0; b < hed.NumBond(); ++b) {
     oldMol.ConfirmOldAtom(hed.Bonded(b));
   }
-  oldMol.AddEnergy(Energy(bondedEn[0] + hed.GetEnergy() +
-                          hed.GetOldBondEn(), nonbonded[0] +
-                          hed.GetNonBondedEn() + oneFour[0],
+  oldMol.AddEnergy(Energy(bondedEn[0] + hed.GetEnergy() + bondEnergy,
+                          nonbonded[0] + hed.GetNonBondedEn() + oneFour[0],
                           inter[0], real[0], 0.0, 0.0, 0.0));
 
   oldMol.MultWeight(hed.GetWeight());
@@ -311,8 +351,9 @@ double DCLinkedHedron::EvalLJ(TrialMol& mol, uint molIndex)
   return stepWeight;
 }
 
-void DCLinkedHedron::ChooseTorsionNew(TrialMol& newMol, uint molIndex,
-                                      double prevPhi[])
+void DCLinkedHedron::ChooseTorsion(TrialMol& mol, uint molIndex,
+                                   double prevPhi[], RotationMatrix& cross,
+                                   RotationMatrix& tensor)
 {
   double* torsion = data->angles;
   double* torEnergy = data->angleEnergy;
@@ -320,12 +361,15 @@ void DCLinkedHedron::ChooseTorsionNew(TrialMol& newMol, uint molIndex,
   double* nonbonded_1_4 = data->nonbonded_1_4;
   uint nDihTrials = data->nDihTrials;
   const Forcefield& ff = data->ff;
+  //To get the information if initial posotion before applying torsion
+  XYZArray* positions = data->multiPositions;
 
   std::fill_n(torsion, data->nDihTrials, 0.0);
   std::fill_n(torWeights, data->nDihTrials, 0.0);
   std::fill_n(torEnergy, data->nDihTrials, 0.0);
   std::fill_n(nonbonded_1_4, data->nDihTrials, 0.0);
 
+  const XYZ center = mol.AtomPosition(hed.Focus());
   //select torsion based on all dihedral angles
   for (uint tor = 0; tor < nDihTrials; ++tor) {
     torsion[tor] = data->prng.rand(M_PI * 2);
@@ -334,18 +378,23 @@ void DCLinkedHedron::ChooseTorsionNew(TrialMol& newMol, uint molIndex,
     for (uint b = 0; b < hed.NumBond(); ++b) {
       double theta1 =  hed.Theta(b);
       double trialPhi = hed.Phi(b) + torsion[tor];
+      XYZ bondedC;
+      if(mol.OneFour()) {
+        //convert chosen torsion to 3D positions for bonded atoms to focus
+        RotationMatrix spin = RotationMatrix::FromAxisAngle(-torsion[tor],
+                              cross, tensor);
+        bondedC = spin.Apply(positions[b][0]) + center;
+      }
+
       for (uint p = 0; p < nPrevBonds; ++p) {
-        double theta0 = newMol.GetTheta(prevBonded[p], hed.Prev(),
-                                        hed.Focus());
-        double distSq =
-          newMol.DihedDist(prevBondedLength[p], focusPrevLength,
-                           hed.BondLength(b), theta0, theta1,
-                           trialPhi - prevPhi[p]);
-        nonbonded_1_4[tor] +=
-          data->calc.IntraEnergy_1_4(distSq, prevBonded[p],
-                                     hed.Bonded(b), molIndex);
-        if(isnan(nonbonded_1_4[tor]))
-          nonbonded_1_4[tor] = num::BIGNUM;
+        if(mol.OneFour()) {
+          double distSq = mol.DistSq(bondedC, mol.AtomPosition(prevBonded[p]));
+          nonbonded_1_4[tor] +=
+            data->calc.IntraEnergy_1_4(distSq, prevBonded[p],
+                                       hed.Bonded(b), molIndex);
+          if(isnan(nonbonded_1_4[tor]))
+            nonbonded_1_4[tor] = num::BIGNUM;
+        }
 
         torEnergy[tor] += ff.dihedrals.Calc(dihKinds[b][p],
                                             trialPhi - prevPhi[p]);
@@ -355,47 +404,5 @@ void DCLinkedHedron::ChooseTorsionNew(TrialMol& newMol, uint molIndex,
   }
 }
 
-void DCLinkedHedron::ChooseTorsionOld(TrialMol& oldMol, uint molIndex,
-                                      double prevPhi[])
-{
-  double* torsion = data->angles;
-  double* torEnergy = data->angleEnergy;
-  double* torWeights = data->angleWeights;
-  double* nonbonded_1_4 = data->nonbonded_1_4;
-  uint nDihTrials = data->nDihTrials;
-  const Forcefield& ff = data->ff;
 
-  std::fill_n(torsion, data->nDihTrials, 0.0);
-  std::fill_n(torWeights, data->nDihTrials, 0.0);
-  std::fill_n(torEnergy, data->nDihTrials, 0.0);
-  std::fill_n(nonbonded_1_4, data->nDihTrials, 0.0);
-
-  //select torsion based on all dihedral angles
-  for (uint tor = 0; tor < nDihTrials; ++tor) {
-    torsion[tor] = data->prng.rand(M_PI * 2);
-    torEnergy[tor] = 0.0;
-    nonbonded_1_4[tor] = 0.0;
-    for (uint b = 0; b < hed.NumBond(); ++b) {
-      double theta1 =  hed.Theta(b);
-      double trialPhi = hed.Phi(b) + torsion[tor];
-      for (uint p = 0; p < nPrevBonds; ++p) {
-        double theta0 = oldMol.GetTheta(prevBonded[p], hed.Prev(),
-                                        hed.Focus());
-        double distSq =
-          oldMol.DihedDist(prevBondedLengthOld[p], focusPrevLengthOld,
-                           hed.BondLengthOld(b), theta0, theta1,
-                           trialPhi - prevPhi[p]);
-        nonbonded_1_4[tor] +=
-          data->calc.IntraEnergy_1_4(distSq, prevBonded[p],
-                                     hed.Bonded(b), molIndex);
-        if(isnan(nonbonded_1_4[tor]))
-          nonbonded_1_4[tor] = num::BIGNUM;
-
-        torEnergy[tor] += ff.dihedrals.Calc(dihKinds[b][p],
-                                            trialPhi - prevPhi[p]);
-      }
-    }
-    torWeights[tor] = exp(-ff.beta * (torEnergy[tor] + nonbonded_1_4[tor]));
-  }
-}
 }

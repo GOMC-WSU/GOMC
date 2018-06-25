@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -40,7 +40,10 @@ public:
     } else {
       Sample(step);
     }
-    if ((step + 1) % stepsPerOut == 0) {
+
+    // We will output either when the step number is every stepsPerOut
+    // Or recalculate trajectory is enabled (forceOutput)
+    if (((step + 1) % stepsPerOut == 0) || forceOutput) {
       DoOutput(step);
       firstPrint = false;
     }
@@ -62,12 +65,23 @@ public:
     stepsTillEquil = tillEquil;
     totSimSteps = totSteps;
     firstPrint = true;
+
+    // We will use forceOutput for recalculate trajectory
+    // If we are not running any simulation then the step will stay 0
+    // But we still need to output console for each frame
+    // So by setting this value to true we will force all the outputs to 
+    // output even though the step is zero
+    if(totSteps == 0)
+      forceOutput = true;
+    else
+      forceOutput = false;
   }
 
 //private:
   std::string uniqueName;
   ulong stepsPerOut, stepsTillEquil, totSimSteps;
   bool enableOut, firstPrint;
+  bool forceOutput;
 
   //Contains references to various objects.
   OutputVars * var;

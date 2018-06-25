@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -12,10 +12,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "ConstantDefinitionsCUDAKernel.cuh"
 
 __device__ inline void TransformSlantGPU(double &tx, double &ty, double &tz,
-					 double x, double y, double z, 
-					 double *gpu_cell_x,
-					 double *gpu_cell_y,
-					 double *gpu_cell_z)
+    double x, double y, double z,
+    double *gpu_cell_x,
+    double *gpu_cell_y,
+    double *gpu_cell_z)
 {
   tx = x * gpu_cell_x[0] + y * gpu_cell_x[1] + z * gpu_cell_x[2];
   ty = x * gpu_cell_y[0] + y * gpu_cell_y[1] + z * gpu_cell_y[2];
@@ -23,10 +23,10 @@ __device__ inline void TransformSlantGPU(double &tx, double &ty, double &tz,
 }
 
 __device__ inline void TransformUnSlantGPU(double &tx, double &ty, double &tz,
-					   double x, double y, double z,
-					   double *gpu_Invcell_x, 
-					   double *gpu_Invcell_y, 
-					   double *gpu_Invcell_z)
+    double x, double y, double z,
+    double *gpu_Invcell_x,
+    double *gpu_Invcell_y,
+    double *gpu_Invcell_z)
 {
   tx = x * gpu_Invcell_x[0] + y * gpu_Invcell_x[1] + z * gpu_Invcell_x[2];
   ty = x * gpu_Invcell_y[0] + y * gpu_Invcell_y[1] + z * gpu_Invcell_y[2];
@@ -49,9 +49,9 @@ __device__ inline bool InRcutGPU(double &distSq, double gpu_x1, double gpu_y1,
                                  double zAxes, double xHalfAxes,
                                  double yHalfAxes, double zHalfAxes,
                                  double gpu_rCut, int gpu_nonOrth,
-				 double *gpu_cell_x, double *gpu_cell_y,
-				 double *gpu_cell_z, double *gpu_Invcell_x,
-				 double *gpu_Invcell_y, double *gpu_Invcell_z)
+                                 double *gpu_cell_x, double *gpu_cell_y,
+                                 double *gpu_cell_z, double *gpu_Invcell_x,
+                                 double *gpu_Invcell_y, double *gpu_Invcell_z)
 {
   distSq = 0;
   double tx, ty, tz;
@@ -59,14 +59,14 @@ __device__ inline bool InRcutGPU(double &distSq, double gpu_x1, double gpu_y1,
   double dy = gpu_y1 - gpu_y2;
   double dz = gpu_z1 - gpu_z2;
 
-  if(gpu_nonOrth) {   
+  if(gpu_nonOrth) {
     TransformUnSlantGPU(tx, ty, tz, dx, dy, dz, gpu_Invcell_x, gpu_Invcell_y,
-			gpu_Invcell_z);
+                        gpu_Invcell_z);
     tx = MinImageSignedGPU(tx, xAxes, xHalfAxes);
     ty = MinImageSignedGPU(ty, yAxes, yHalfAxes);
     tz = MinImageSignedGPU(tz, zAxes, zHalfAxes);
     TransformSlantGPU(dx, dy, dz, tx, ty, tz, gpu_cell_x, gpu_cell_y,
-		      gpu_cell_z);
+                      gpu_cell_z);
   } else {
     dx = MinImageSignedGPU(dx, xAxes, xHalfAxes);
     dy = MinImageSignedGPU(dy, yAxes, yHalfAxes);
@@ -85,9 +85,9 @@ __device__ inline bool InRcutGPU(double &distSq, double &virX, double &virY,
                                  double zAxes, double xHalfAxes,
                                  double yHalfAxes, double zHalfAxes,
                                  double gpu_rCut, int gpu_nonOrth,
-				 double *gpu_cell_x, double *gpu_cell_y,
-				 double *gpu_cell_z, double *gpu_Invcell_x,
-				 double *gpu_Invcell_y, double *gpu_Invcell_z)
+                                 double *gpu_cell_x, double *gpu_cell_y,
+                                 double *gpu_cell_z, double *gpu_Invcell_x,
+                                 double *gpu_Invcell_y, double *gpu_Invcell_z)
 {
   distSq = 0;
   double tx, ty, tz;
@@ -96,12 +96,12 @@ __device__ inline bool InRcutGPU(double &distSq, double &virX, double &virY,
   virZ = gpu_z1 - gpu_z2;
   if(gpu_nonOrth) {
     TransformUnSlantGPU(tx, ty, tz, virX, virY, virZ, gpu_Invcell_x,
-			gpu_Invcell_y, gpu_Invcell_z);
+                        gpu_Invcell_y, gpu_Invcell_z);
     tx = MinImageSignedGPU(tx, xAxes, xHalfAxes);
     ty = MinImageSignedGPU(ty, yAxes, yHalfAxes);
     tz = MinImageSignedGPU(tz, zAxes, zHalfAxes);
     TransformSlantGPU(virX, virY, virZ, tx, ty, tz, gpu_cell_x, gpu_cell_y,
-		      gpu_cell_z);
+                      gpu_cell_z);
   } else {
     virX = MinImageSignedGPU(virX, xAxes, xHalfAxes);
     virY = MinImageSignedGPU(virY, yAxes, yHalfAxes);

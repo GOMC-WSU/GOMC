@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -34,29 +34,23 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 using namespace geom;
 
 NoEwald::NoEwald(StaticVals & stat, System & sys) :
-  EwaldCached(stat, sys) {}
+  Ewald(stat, sys) {}
 
 void NoEwald::Init()
 {
-
   electrostatic = forcefield.electrostatic;
   ewald = forcefield.ewald;
-  SetNull();
-
 }
-
 
 void NoEwald::AllocMem()
 {
   return;
 }
 
-
 void NoEwald::RecipInit(uint box, BoxDimensions const& boxAxes)
 {
   return;
 }
-
 
 //calculate reciprocate term for a box
 void NoEwald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
@@ -172,6 +166,11 @@ void NoEwald::RestoreMol(int molIndex)
 
 //restore the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
 void NoEwald::exgMolCache()
+{
+  return;
+}
+
+void NoEwald::UpdateVectorsAndRecipTerms()
 {
   return;
 }

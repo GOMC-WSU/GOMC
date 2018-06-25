@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -29,23 +29,38 @@ public:
           const MoleculeKind& kind, const Setup& set);
 
   void Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
+  void Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
+  void BuildEdges(TrialMol& oldMol, TrialMol& newMol, uint molIndex,
+                  const uint current);
   ~DCGraph();
 
 private:
+  //Store edge's atom that are connected to node and has more than 1 bond
+  //Each edge is a node as well
   struct Edge {
-    uint destination;
+    uint destination; //destination is partner node index.
     DCComponent* component;
     Edge(uint d, DCComponent* c) : destination(d), component(c) {}
   };
+
+  //Store the branching atom and all Atoms that are connected to this
+  //branching atom
   struct Node {
-    DCComponent* starting;
+    uint atomIndex;
+    //starting will be initialized with DCFreeHedron using random loc
+    DCComponent *starting;
+    //starting will be initialized with DCFreeHedronSeed, using specify seed
+    DCComponent *restarting;
+    //all the atom that are connected to this node and has more than 1 bond
+    //will be in edges and initialized with DCLinkedHedron
     std::vector<Edge> edges;
+    std::vector<uint> partnerIndex;
   };
 
   DCData data;
   std::vector<Node> nodes;
   std::vector<Edge> fringe;
-  std::vector<bool> visited; //yes, I know
+  std::vector<bool> visited;
 };
 }
 
