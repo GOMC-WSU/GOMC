@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -18,6 +18,9 @@ CellList::CellList(const Molecules& mols,  BoxDimensions& dims)
 {
   dimensions = &dims;
   isBuilt = false;
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    edgeCells[b][0] = edgeCells[b][1] = edgeCells[b][2] = 0;
+  }
 }
 
 bool CellList::IsExhaustive() const
@@ -122,7 +125,6 @@ void CellList::RebuildNeighbors(int b)
   for (int i = 0; i < nCells; ++i) {
     neighbors[b][i].clear();
   }
-  int j;
 
   for (int x = 0; x < eCells[0]; ++x) {
     for (int y = 0; y < eCells[1]; ++y) {
@@ -138,7 +140,6 @@ void CellList::RebuildNeighbors(int b)
                 ((y + dy + eCells[1]) % eCells[1]) *
                 eCells[2] +
                 ((z + dz + eCells[2]) % eCells[2]));
-              j = neighbors[b][cell].back();
             }
           }
         }

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -372,16 +372,18 @@ inline void swap(XYZArray& a1, XYZArray& a2)
   swap(a1.y, a2.y);
   swap(a1.z, a2.z);
   swap(a1.count, a2.count);
+  swap(a1.allocDone, a2.allocDone);
 }
 
 inline void XYZArray::Uninit()
 {
-  if (x != NULL) {
+  if (x != NULL)
     delete[] x;
+  if (y != NULL)
     delete[] y;
+  if (z != NULL)
     delete[] z;
-    allocDone = false;
-  }
+  allocDone = false;
 }
 
 inline void XYZArray::SetRange(const uint start, const uint stop,

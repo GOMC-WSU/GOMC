@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -545,7 +545,7 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap)
     }
   }
   //find angle header+count
-  psf = fopen(psfFilename, "r");
+  fseek(psf, 0, SEEK_SET);
   while (strstr(input, "!NTHETA") == NULL) {
     check = fgets(input, 511, psf);
     if (check == NULL) {
@@ -563,7 +563,7 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap)
     }
   }
   //find dihedrals header+count
-  psf = fopen(psfFilename, "r");
+  fseek(psf, 0, SEEK_SET);
   while (strstr(input, "!NPHI") == NULL) {
     check = fgets(input, 511, psf);
     if (check == NULL) {

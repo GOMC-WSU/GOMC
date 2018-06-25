@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -135,6 +135,7 @@ public:
 
   double rCut;
   double rCutSq;
+  double minVol;
 
   bool cubic[BOX_TOTAL], orthogonal[BOX_TOTAL], constArea;
 
@@ -146,11 +147,6 @@ public:
 
   double UnwrapPBC(double& v, const double ref,
                    const double ax, const double halfAx) const;
-
-  double DotProduct(const uint atom, double kx, double ky,
-                    double kz, const XYZArray &Coords) const;
-
-  double DotProduct(const XYZ &A, const XYZ &B) const;
 };
 
 

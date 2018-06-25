@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -31,10 +31,10 @@ void CopyCurrentToRefCUDA(VariablesCUDA *vars, uint box, uint imageTotal);
 void UpdateRecipVecCUDA(VariablesCUDA *vars, uint box);
 void UpdateRecipCUDA(VariablesCUDA *vars, uint box);
 void UpdateCellBasisCUDA(VariablesCUDA *vars, uint box, double *cellBasis_x,
-			 double *cellBasis_y, double *cellBasis_z);
-void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box, 
-			    double *invCellBasis_x, double *invCellBasis_y,
-			    double *invCellBasis_z);
+                         double *cellBasis_y, double *cellBasis_z);
+void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
+                            double *invCellBasis_x, double *invCellBasis_y,
+                            double *invCellBasis_z);
 void DestroyEwaldCUDAVars(VariablesCUDA *vars);
 void DestroyCUDAVars(VariablesCUDA *vars);
 

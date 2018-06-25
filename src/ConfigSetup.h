@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -50,6 +50,7 @@ struct FileNames {
 struct RestartSettings {
   bool enable;
   ulong step;
+  bool recalcTrajectory;
   bool operator()(void)
   {
     return enable;
@@ -155,8 +156,7 @@ struct Step {
 
 //Holds the percentage of each kind of move for this ensemble.
 struct MovePercents {
-  bool multiParticleEnabled;
-  double displace, rotate, intraSwap, multiParticle;
+  double displace, rotate, intraSwap, regrowth, multiParticle;
 #ifdef VARIABLE_VOLUME
   double volume;
 #endif

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -36,7 +36,11 @@ void MoveSettings::Init(StaticVals const& statV,
       scale[rotate] = remarks.rotate[b];
 #if ENSEMBLE == NPT || ENSEMBLE == GEMC
       uint volume = mv::GetMoveSubIndex(mv::VOL_TRANSFER, b);
-      scale[volume] = remarks.vol[b];
+      if (remarks.vol[b] > 0.1) {
+          scale[volume] = remarks.vol[b];
+      } else {
+          scale[volume] = 500;
+      }
 #endif
     }
   } else {

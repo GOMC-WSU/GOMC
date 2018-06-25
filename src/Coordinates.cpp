@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.20
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -27,8 +27,10 @@ void Coordinates::CheckCoordinate()
 {
   int p, start, atom, length, stRange, endRange;
   XYZ min, max;
+  bool sawZeroCoordinate;
 
   for (uint b = 0; b < BOX_TOTAL; b++) {
+    sawZeroCoordinate =  false;
     MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b),
                                  end = molLookRef.BoxEnd(b), endc = molLookRef.BoxEnd(b);
     //find the min and max coordinate
@@ -55,6 +57,15 @@ void Coordinates::CheckCoordinate()
 
       for (p = 0; p < thisKind.NumAtoms(); p++) {
         atom = start + p;
+        if(!x[atom] && !y[atom] && !z[atom]) {
+          if(sawZeroCoordinate) {
+            printf("Error: Multiple atoms with zero coordinates were found.\n");
+            exit(EXIT_FAILURE);
+          } else {
+            sawZeroCoordinate = true;
+          }
+        }
+
         boxDimRef.WrapPBC(x[atom], y[atom], z[atom], b);
         //check to see if it is in the box or not
         XYZ unSlant(x[atom], y[atom], z[atom]);
@@ -62,12 +73,12 @@ void Coordinates::CheckCoordinate()
 
         if(unSlant.x > boxDimRef.axis.Get(b).x ||
             unSlant.y > boxDimRef.axis.Get(b).y ||
-            unSlant.z > boxDimRef.axis.Get(b).z) {
+            unSlant.z > boxDimRef.axis.Get(b).z ||
+            unSlant.x < 0 || unSlant.y < 0 || unSlant.z < 0) {
           printf("Molecules %d is packed outside of the defined box dimension.\n", *thisMol);
-          exit(0);
+          exit(EXIT_FAILURE);
         }
       }
-
       ++thisMol;
     }
   }
@@ -132,8 +143,10 @@ void Coordinates::VolumeTransferTranslate
   //Scale cell
   state = boxDimRef.ExchangeVolume(newDim, scale, transfer);
   //If scaling succeeded (if it wouldn't take the box to below 2*rcut, cont.
-  for (uint b = 0; b < BOX_TOTAL && (state == mv::fail_state::NO_FAIL); ++b) {
-    TranslateOneBox(dest, newCOM, oldCOM, newDim, b, scale[b]);
+  if(state == mv::fail_state::NO_FAIL) {
+    for (uint b = 0; b < BOX_TOTAL; ++b) {
+      TranslateOneBox(dest, newCOM, oldCOM, newDim, b, scale[b]);
+    }
   }
 }
 
@@ -169,5 +182,4 @@ void Coordinates::TranslateOneBox
     newDim.WrapPBC(dest, pStart, pStop, b);
     ++curr;
   }
-
 }
