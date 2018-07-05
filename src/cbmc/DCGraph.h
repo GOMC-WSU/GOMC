@@ -30,6 +30,7 @@ public:
 
   void Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
   void Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
+  void CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
   void BuildEdges(TrialMol& oldMol, TrialMol& newMol, uint molIndex,
                   const uint current);
   void BuildIDNew(TrialMol& newMol, uint molIndex);
