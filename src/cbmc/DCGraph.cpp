@@ -85,6 +85,34 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
       assert(dest != -1);
     }
   }
+
+  InitCrankShaft(setupKind);
+}
+
+
+void DCGraph::InitCrankShaft(mol_setup::MolKind& kind)
+{
+  using namespace mol_setup;
+  using namespace std;
+  vector<Node> tempNodes = nodes;
+  while(!tempNodes.empty()) {
+    //start from last node, find the atom index of the node
+    uint a0 = tempNodes.back().atomIndex;
+    //Find the dihedrals that end with a0
+    vector<Dihedral> dihs = AtomEndDihs(kind, a0);
+    while(!dihs.empty()) {
+      //find the last atomindex in the dihedral
+      uint a3 = dihs.back().a3;
+      //Check if the a3 is a node or not
+      for(uint n = 0; n < tempNodes.size(); n++) {
+	if(tempNodes[n].atomIndex == a3) {
+	  shaftNodesDih.push_back(new DCCrankShaftDih(&data, kind, a0, a3));
+	}
+      }
+      dihs.pop_back();	
+    }
+    tempNodes.pop_back();
+  }
 }
 
 void DCGraph::Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
