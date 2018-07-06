@@ -6,7 +6,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "DCCrankShaftDih.h"
 #include "TrialMol.h"
-#include "DCData.h"
 #include "PRNG.h"
 #include "MolSetup.h"
 #include "Forcefield.h"
@@ -75,8 +74,8 @@ void DCCrankShaftDih::PrepareOld(TrialMol& oldMol, uint molIndex)
   XYZ center = oldMol.AtomPosition(a0);
   for(uint i = 0; i < numAtom; i++) {
     //Unwrap the coordinates with respect to a0.
-    XYZ coord = data->axes.UnwrapPBC(oldMol.AtomPosition(atoms[i]), 
-                                    oldMol.GetBox(), center);
+    XYZ temp = oldMol.AtomPosition(atoms[i]);
+    XYZ coord = data->axes.UnwrapPBC(temp, oldMol.GetBox(), center);
     //Shift the atoms to origin
     coord -= center;
     multiPosRotions[i].Set(0, coord); 
@@ -88,8 +87,8 @@ void DCCrankShaftDih::PrepareNew(TrialMol& newMol, uint molIndex)
   XYZ center = newMol.AtomPosition(a0);
   for(uint i = 0; i < numAtom; i++) {
     //Unwrap the coordinates with respect to a0.
-    XYZ coord = data->axes.UnwrapPBC(newMol.AtomPosition(atoms[i]),
-                                    newMol.GetBox(), center);
+    XYZ temp = newMol.AtomPosition(atoms[i]);
+    XYZ coord = data->axes.UnwrapPBC(temp, newMol.GetBox(), center);
     //Shift the atoms to origin
     coord -= center;
     multiPosRotions[i].Set(0, coord);  

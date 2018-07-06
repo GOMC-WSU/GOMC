@@ -37,6 +37,7 @@ set(sources
    src/Simulation.cpp
    src/StaticVals.cpp
    src/System.cpp
+   src/cbmc/DCCrankShaftDih.cpp
    src/cbmc/DCGraph.cpp
    src/cbmc/DCFreeHedron.cpp
    src/cbmc/DCFreeHedronSeed.cpp
@@ -62,6 +63,7 @@ set(headers
    src/ConstField.h
    src/Coordinates.h
    src/CoordinateSetup.h
+   src/CrankShaft.h
    src/CPUSide.h
    src/EnergyTypes.h
    src/EnPartCntSampleOutput.h
@@ -124,6 +126,7 @@ set(headers
    src/Writer.h
    src/XYZArray.h
    src/cbmc/DCComponent.h
+   src/cbmc/DCCrankShaftDih.h
    src/cbmc/DCData.h
    src/cbmc/DCFreeHedron.h
    src/cbmc/DCFreeHedronSeed.h
