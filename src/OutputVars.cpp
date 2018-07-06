@@ -122,7 +122,7 @@ void OutputVars::CalcAndConvert(ulong step)
 
     if (pressureCalc) {
       if((step + 1) % pCalcFreq == 0) {
-        virialRef[b] = calc.VirialCalc(b);
+        virialRef[b] = calc.ForceCalc(b);
         *virialTotRef += virialRef[b];
       }
     }

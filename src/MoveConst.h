@@ -131,7 +131,7 @@ const uint COUNT = 13;
 const uint SCALEABLE = 7;
 #elif ENSEMBLE == NPT
 const uint COUNT = 6;
->>>>>>> a1971a2d852943e50afc008f1e4dd540d631c362
+const uint SCALEABLE = 4;
 #endif
 
 

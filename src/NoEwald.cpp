@@ -67,20 +67,23 @@ double NoEwald::BoxReciprocal(uint box) const
 
 //calculate reciprocate force term for a box with molCoords
 void NoEwald::BoxForceReciprocal(XYZArray const& molCoords,
-				 XYZArray& atomForceRec, XYZArray& molForceRec,
-				 uint box)
+				                         XYZArray& atomForceRec, XYZArray& molForceRec,
+				                         uint box)
 {
   return;
 }
 
 //calculate reciprocate force term for a box with Reference value
 void NoEwald::ForceReciprocal(XYZArray& atomForceRec, XYZArray& molForceRec,
-			      uint box)
+			                        uint box)
 {
   return;
 }
 
-
+Virial NoEwald::ForceReciprocal(Virial& virial, uint box) const
+{
+  return virial;
+}
 
 //calculate reciprocate force term for a box
 Virial NoEwald::VirialReciprocal(Virial& virial, uint box) const

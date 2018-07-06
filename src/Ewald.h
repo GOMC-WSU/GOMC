@@ -117,6 +117,16 @@ public:
 
   virtual void UpdateVectorsAndRecipTerms();
 
+  //calculate reciprocate force term for a box with molCoords
+  virtual void BoxForceReciprocal(XYZArray const& molCoords,
+                                  XYZArray& atomForceRec,
+                                  XYZArray& molForceRec,
+                                  uint box);
+  
+  //calculate reciprocate force term for a box with Reference value
+  virtual void ForceReciprocal(XYZArray& atomForceRec, XYZArray& molForceRec,
+				                       uint box);
+
 private:
   double currentEnergyRecip[BOXES_WITH_U_NB];
 
@@ -129,7 +139,7 @@ protected:
   const COM& currentCOM;
   const SystemPotential &sysPotRef;
 
-  bool electrostatic, ewald;
+  bool electrostatic, ewald, multiParticleEnabled;
   double alpha;
   double recip_rcut, recip_rcut_Sq;
   uint *imageSize;
