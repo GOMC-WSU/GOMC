@@ -66,7 +66,7 @@ public:
                            const uint box);
 
   //! Calculate force and virial for the box
-  Virial VirialCalc(const uint box);
+  Virial ForceCalc(const uint box);
 
   //! Calculate change force of a molecule
   void MoleculeForceAdd(XYZArray const& molCoords,
@@ -246,7 +246,7 @@ private:
   const MoleculeLookup& molLookup;
   const BoxDimensions& currentAxes;
   const COM& currentCOM;
-  const Ewald  *calcEwald;
+  const Ewald *calcEwald;
   XYZArray& atomForceRef;
   XYZArray& molForceRef;
   bool multiParticleEnabled;

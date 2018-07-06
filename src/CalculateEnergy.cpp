@@ -123,7 +123,7 @@ SystemPotential CalculateEnergy::SystemTotal()
     pot.boxEnergy[b].correction = -1 * correction * num::qqFact;
 
     //Calculate Virial
-    pot.boxVirial[b] = VirialCalc(b);
+    pot.boxVirial[b] = ForceCalc(b);
   }
 
   pot.Total();
@@ -280,7 +280,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 // NOTE: The calculation of W12, W13, W23 is expensive and would not be
 // requied for pressure and surface tension calculation. So, they have been
 // commented out. In case you need to calculate them, uncomment them.
-Virial CalculateEnergy::VirialCalc(const uint box)
+Virial CalculateEnergy::ForceCalc(const uint box)
 {
   //store virial and energy of reference and modify the virial
   Virial tempVir;
@@ -425,7 +425,7 @@ Virial CalculateEnergy::VirialCalc(const uint box)
   }
 
   //calculate reciprocate term of force
-  tempVir = calcEwald->VirialReciprocal(tempVir, box);
+  tempVir = calcEwald->ForceReciprocal(tempVir, box);
 
   tempVir.Total();
 
