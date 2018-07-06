@@ -9,9 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "DCLinkedHedron.h"
 #include "DCFreeHedronSeed.h"
 #include "DCRotateCOM.h"
-#include "MolSetup.h"
-#include "Setup.h"
-#include "MoleculeKind.h"
+#include "DCCrankShaftDih.h"
 #include <cassert>
 #include <map>
 
@@ -90,7 +88,7 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
 }
 
 
-void DCGraph::InitCrankShaft(mol_setup::MolKind& kind)
+void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
 {
   using namespace mol_setup;
   using namespace std;
@@ -103,11 +101,13 @@ void DCGraph::InitCrankShaft(mol_setup::MolKind& kind)
     while(!dihs.empty()) {
       //find the last atomindex in the dihedral
       uint a3 = dihs.back().a3;
+      uint a2 = dihs.back().a2;
+      uint a1 = dihs.back().a1;
       //Check if the a3 is a node or not
       for(uint n = 0; n < tempNodes.size(); n++) {
-	if(tempNodes[n].atomIndex == a3) {
-	  shaftNodesDih.push_back(new DCCrankShaftDih(&data, kind, a0, a3));
-	}
+        if(tempNodes[n].atomIndex == a3) {
+          shaftNodesDih.push_back(new DCCrankShaftDih(&data, kind, a0, a1, a2, a3));
+        }
       }
       dihs.pop_back();	
     }

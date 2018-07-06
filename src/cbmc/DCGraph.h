@@ -9,6 +9,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CBMC.h"
 #include "DCComponent.h"
 #include "DCData.h"
+#include "MolSetup.h"
+#include "Setup.h"
 #include "MoleculeKind.h"
 #include <vector>
 #include <utility>
@@ -44,7 +46,7 @@ public:
 
 private:
   //Find the two nodes that are forming dihedral or angle and initialize it.
-  void InitCrankShaft(mol_setup::MolKind& kind);
+  void InitCrankShaft(const mol_setup::MolKind& kind);
   //Store edge's atom that are connected to node and has more than 1 bond
   //Each edge is a node as well
   struct Edge {

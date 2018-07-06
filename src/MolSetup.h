@@ -99,6 +99,8 @@ public:
 
 //List of dihedrals with atom at one end, atom first
 std::vector<Dihedral> AtomEndDihs(const MolKind& molKind, uint atom);
+//List of dihedrals with atom0 at one end, and atom3 at the other end, atom0 first
+std::vector<Dihedral> AtomStartEndDihs(const MolKind& molKind, uint atom0, uint atom3);
 //List of dihedrals with atom and partner in middle, atom in a1
 std::vector<Dihedral> DihsOnBond(const MolKind& molKind, uint atom, uint partner);
 //List of angles with atom at one end, atom first
