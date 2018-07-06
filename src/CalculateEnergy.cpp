@@ -614,17 +614,11 @@ void CalculateEnergy::MoleculeIntra(const uint molIndex,
   XYZArray bondVec(molKind.bondList.count * 2);
 
   BondVectors(bondVec, molKind, molIndex, box);
-
   MolBond(bondEn[0], molKind, bondVec, box);
-
   MolAngle(bondEn[0], molKind, bondVec, box);
-
   MolDihedral(bondEn[0], molKind, bondVec, box);
-
   MolNonbond(bondEn[1], molKind, molIndex, box);
-
   MolNonbond_1_4(bondEn[1], molKind, molIndex, box);
-
   MolNonbond_1_3(bondEn[1], molKind, molIndex, box);
 }
 
@@ -637,8 +631,8 @@ void CalculateEnergy::MoleculeIntra(cbmc::TrialMol &mol,
   MoleculeKind& molKind = mols.kinds[mols.kIndex[molIndex]];
   // *2 because we'll be storing inverse bond vectors
   XYZArray bondVec(molKind.bondList.count * 2);
-  BondVectors(bondVec, molKind, molIndex, box);
-    
+
+  BondVectors(bondVec, mol.GetCoords(), molKind, molIndex, box);  
   MolBond(bondEn, molKind, bondVec, box);
   MolAngle(bondEn, molKind, bondVec, box);
   MolDihedral(bondEn, molKind, bondVec, box);
@@ -657,6 +651,23 @@ void CalculateEnergy::BondVectors(XYZArray & vecs,
     uint p1 = mols.start[molIndex] + molKind.bondList.part1[i];
     uint p2 = mols.start[molIndex] + molKind.bondList.part2[i];
     XYZ dist = currentCoords.Difference(p2, p1);
+    dist = currentAxes.MinImage(dist, box);
+
+    //store inverse vectors at i+count
+    vecs.Set(i, dist);
+    vecs.Set(i + molKind.bondList.count, -dist.x, -dist.y, -dist.z);
+  }
+}
+
+void CalculateEnergy::BondVectors(XYZArray & vecs, XYZArray const& pos,
+                                  MoleculeKind const& molKind,
+                                  const uint molIndex,
+                                  const uint box) const
+{
+  for (uint i = 0; i < molKind.bondList.count; ++i) {
+    uint p1 = molKind.bondList.part1[i];
+    uint p2 = molKind.bondList.part2[i];
+    XYZ dist = pos.Difference(p2, p1);
     dist = currentAxes.MinImage(dist, box);
 
     //store inverse vectors at i+count

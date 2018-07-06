@@ -95,6 +95,24 @@ std::vector<Dihedral> mol_setup::AtomEndDihs(const MolKind& molKind, uint atom)
   return result;
 }
 
+//List of dihedrals with atom0 at one end, and atom3 at the other end, atom0 first
+std::vector<Dihedral> mol_setup::AtomStartEndDihs(const MolKind& molKind, uint atom0, uint atom3)
+{
+  std::vector<Dihedral> result;
+  typedef std::vector<Dihedral>::const_iterator Diter;
+  for (Diter it = molKind.dihedrals.begin(), end = molKind.dihedrals.end(); it < end; ++it) {
+    if ((it->a0 == atom0 && it->a3 == atom3) || (it->a0 == atom3 && it->a3 == atom0))  {
+      result.push_back(*it);
+    }
+
+    if (it->a3 == atom0) {
+      std::swap(result.back().a0, result.back().a3);
+      std::swap(result.back().a1, result.back().a2);
+    }
+  }
+  return result;
+}
+
 std::vector<Dihedral> mol_setup::DihsOnBond(const MolKind& molKind, uint atom, uint partner)
 {
   std::vector<Dihedral> result;

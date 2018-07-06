@@ -170,6 +170,12 @@ private:
                    MoleculeKind const& molKind,
                    const uint molIndex,
                    const uint box) const;
+             
+  //! Calculates bond vectors using pos, stores them in vecs
+  void BondVectors(XYZArray & vecs, XYZArray const& pos,
+                   MoleculeKind const& molKind,
+                   const uint molIndex,
+                   const uint box) const;
 
   //! Calculates bond stretch intramolecular energy of a full molecule
   void MolBond(double & energy,
