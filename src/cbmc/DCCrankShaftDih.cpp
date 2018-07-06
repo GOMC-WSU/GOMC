@@ -33,6 +33,7 @@ DCCrankShaftDih::DCCrankShaftDih(DCData* data, const mol_setup::MolKind& kind,
   using namespace mol_setup;
   using namespace std;
   vector<bool> visited(kind.atoms.size(), false);
+  totAtoms = kind.atoms.size();
   //Find all the atoms that bonds with atoms a1
   vector<Bond> bonds = AtomBonds(kind, a1);
   //Remove the a0-a1 bond
@@ -71,23 +72,27 @@ DCCrankShaftDih::DCCrankShaftDih(DCData* data, const mol_setup::MolKind& kind,
 
 void DCCrankShaftDih::PrepareOld(TrialMol& oldMol, uint molIndex)
 {
+  XYZ center = oldMol.AtomPosition(a0);
   for(uint i = 0; i < numAtom; i++) {
     //Unwrap the coordinates with respect to a0.
-    XYZ coord = data->axes.UnwrapPBC(oldMol.AtomPosition(atoms[i]), oldMol.GetBox(),
-                            oldMol.AtomPosition(a0));
-    multiPosRotions[i].Set(0, coord);
-    
+    XYZ coord = data->axes.UnwrapPBC(oldMol.AtomPosition(atoms[i]), 
+                                    oldMol.GetBox(), center);
+    //Shift the atoms to origin
+    coord -= center;
+    multiPosRotions[i].Set(0, coord); 
   }
 }
 
 void DCCrankShaftDih::PrepareNew(TrialMol& newMol, uint molIndex)
 {
+  XYZ center = newMol.AtomPosition(a0);
   for(uint i = 0; i < numAtom; i++) {
     //Unwrap the coordinates with respect to a0.
-    XYZ coord = data->axes.UnwrapPBC(newMol.AtomPosition(atoms[i]), newMol.GetBox(),
-                            newMol.AtomPosition(a0));
-    multiPosRotions[i].Set(0, coord);
-    
+    XYZ coord = data->axes.UnwrapPBC(newMol.AtomPosition(atoms[i]),
+                                    newMol.GetBox(), center);
+    //Shift the atoms to origin
+    coord -= center;
+    multiPosRotions[i].Set(0, coord);  
   }
 }
 
@@ -95,8 +100,7 @@ void DCCrankShaftDih::PrepareNew(TrialMol& newMol, uint molIndex)
 void DCCrankShaftDih::BuildOld(TrialMol& oldMol, uint molIndex)
 {
   PRNG& prng = data->prng;
-  XYZArray& positions = data->positions;
-  uint nLJTrials = data->nLJTrialsFirst;
+  uint nLJTrials = data->nLJTrialsNth;
   double* inter = data->inter;
   double* real = data->real;
   double stepWeight = 0;
@@ -104,14 +108,35 @@ void DCCrankShaftDih::BuildOld(TrialMol& oldMol, uint molIndex)
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
 
-  if(oldMol.COMFix()) {
-    nLJTrials = 1;
-  } else {
-    prng.FillWithRandom(positions, nLJTrials, data->axes, oldMol.GetBox());
+  //Set up rotation matrix using a0-a3 axis.
+  XYZ center = oldMol.AtomPosition(a0);
+  XYZ rotAxis = oldMol.AtomPosition(a0) - oldMol.AtomPosition(a3);
+  rotAxis = data->axes.MinImage(rotAxis, oldMol.GetBox());
+  rotAxis.Normalize();
+  RotationMatrix cross = RotationMatrix::CrossProduct(rotAxis);
+  RotationMatrix tensor = RotationMatrix::TensorProduct(rotAxis);
+
+  //Spin all nLJTrial except the original coordinates
+  for (uint lj = nLJTrials; lj-- > 1;) {
+    double theta = data->prng.rand(M_PI * 2.0);
+    RotationMatrix spin = RotationMatrix::FromAxisAngle(theta, cross, tensor);
+
+    for (uint a = 0; a < numAtom; a++) {
+      //find positions
+      multiPosRotions[a].Set(lj, spin.Apply(multiPosRotions[a][0]));
+      multiPosRotions[a].Add(lj, center);
+    }
   }
-  positions.Set(0, data->axes.WrapPBC(oldMol.AtomPosition(atom), oldMol.GetBox()));
-  data->calc.ParticleInter(inter, real, positions, atom, molIndex,
-                           oldMol.GetBox(), nLJTrials);
+
+  for (uint a = 0; a < numAtom; a++) {
+    //Shift original coordinate back.
+    multiPosRotions[a].Add(0, center);
+    //Wrap the atom coordinates
+    data->axes.WrapPBC(multiPosRotions[a], oldMol.GetBox());
+    //Calculate nonbonded energy
+    data->calc.ParticleInter(inter, real, multiPosRotions[a], atoms[a], molIndex,
+                             oldMol.GetBox(), nLJTrials);
+  }
 
   for (uint trial = 0; trial < nLJTrials; ++trial) {
     stepWeight += exp(-1 * data->ff.beta *
@@ -120,33 +145,54 @@ void DCCrankShaftDih::BuildOld(TrialMol& oldMol, uint molIndex)
   oldMol.MultWeight(stepWeight / nLJTrials);
   oldMol.AddEnergy(Energy(0.0, 0.0, inter[0], real[0],
                           0.0, 0.0, 0.0));
-  oldMol.ConfirmOldAtom(atom);
+
+  for (uint a = 0; a < totAtoms; a++) {                        
+    oldMol.ConfirmOldAtom(a);
+  }
 }
 
 void DCCrankShaftDih::BuildNew(TrialMol& newMol, uint molIndex)
 {
   PRNG& prng = data->prng;
-  XYZArray& positions = data->positions;
-  uint nLJTrials = data->nLJTrialsFirst;
+  uint nLJTrials = data->nLJTrialsNth;
   double* inter = data->inter;
   double* real = data->real;
   double* ljWeights = data->ljWeights;
+  double stepWeight = 0;
 
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
   std::fill_n(ljWeights, nLJTrials, 0.0);
 
-  if(newMol.COMFix()) {
-    nLJTrials = 1;
-    positions.Set(0, data->axes.WrapPBC(newMol.GetCavityCenter(), newMol.GetBox()));
-  } else {
-    prng.FillWithRandom(positions, nLJTrials, data->axes, newMol.GetBox());
-  }
-  data->calc.ParticleInter(inter, real, positions, atom, molIndex,
-                           newMol.GetBox(), nLJTrials);
+  //Set up rotation matrix using a0-a3 axis.
+  XYZ center = newMol.AtomPosition(a0);
+  XYZ rotAxis = newMol.AtomPosition(a0) - newMol.AtomPosition(a3);
+  rotAxis = data->axes.MinImage(rotAxis, newMol.GetBox());
+  rotAxis.Normalize();
+  RotationMatrix cross = RotationMatrix::CrossProduct(rotAxis);
+  RotationMatrix tensor = RotationMatrix::TensorProduct(rotAxis);
 
-  double stepWeight = 0;
-  for (uint trial = 0; trial < nLJTrials; ++trial) {
+  //Go backward to to preserve prototype
+  for (uint lj = nLJTrials; lj-- > 0;) {
+    double theta = data->prng.rand(M_PI * 2.0);
+    RotationMatrix spin = RotationMatrix::FromAxisAngle(theta, cross, tensor);
+
+    for (uint a = 0; a < numAtom; a++) {
+      //find positions
+      multiPosRotions[a].Set(lj, spin.Apply(multiPosRotions[a][0]));
+      multiPosRotions[a].Add(lj, center);
+    }
+  }
+
+  for (uint a = 0; a < numAtom; a++) {
+    //Wrap the atom coordinates
+    data->axes.WrapPBC(multiPosRotions[a], newMol.GetBox());
+    //Calculate nonbonded energy
+    data->calc.ParticleInter(inter, real, multiPosRotions[a], atoms[a], molIndex,
+                             newMol.GetBox(), nLJTrials);
+  }
+  
+  for (uint trial = 0; trial < nLJTrials; trial++) {
     ljWeights[trial] = exp(-1 * data->ff.beta *
                            (inter[trial] + real[trial]));
     stepWeight += ljWeights[trial];
@@ -155,6 +201,13 @@ void DCCrankShaftDih::BuildNew(TrialMol& newMol, uint molIndex)
   newMol.MultWeight(stepWeight / nLJTrials);
   newMol.AddEnergy(Energy(0.0, 0.0, inter[winner], real[winner],
                           0.0, 0.0, 0.0));
-  newMol.AddAtom(atom, positions[winner]);
+
+  for (uint a = 0; a < numAtom; a++) { 
+    newMol.AddAtom(atoms[a], multiPosRotions[a][winner]);
+  }
+
+  for (uint a = 0; a < totAtoms; a++) {                                                      
+     newMol.ConfirmOldAtom(a);
+  }
 }
 }

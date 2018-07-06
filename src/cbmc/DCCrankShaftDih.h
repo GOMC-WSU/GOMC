@@ -38,7 +38,7 @@ public:
 private:
   DCData* data;
   XYZArray *multiPosRotions;
-  uint a0, a1, a2, a3, numAtom;
+  uint a0, a1, a2, a3, numAtom, totAtoms;
   std::vector<uint> atoms;
 };
 }
