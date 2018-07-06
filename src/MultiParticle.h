@@ -256,6 +256,9 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
 
   UpdateMoveSetting(result);
   AdjustMoves(step);
+
+  subPick = mv::GetMoveSubIndex(mv::MULTIPARTICLE, bPick);
+  moveSetRef.Update(result, subPick, step);
 }
 
 inline void MultiParticle::CalculateTrialDistRot()

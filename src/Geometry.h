@@ -9,6 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "BasicTypes.h"
 #include "SubdividedArray.h"
+#include <assert.h>
 
 #include <vector>
 
@@ -97,6 +98,7 @@ public:
   //!/param b index of bond within feature; in [0, bondsPer)
   uint GetBond(uint feature, uint b) const
   {
+    assert((feature * bondsPer + b) < (count * bondsPer));
     return bondIndices[feature * bondsPer + b];
   }
 
