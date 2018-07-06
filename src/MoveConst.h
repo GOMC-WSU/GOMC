@@ -110,12 +110,12 @@ const uint IT_KINDS_TOTAL = 2;
 //      4. IntraSwap (box 0)    5. Regrowth (box 0)   6. Deletion (box 0)
 //      7. Insertion (box 0)
 //
-//GEMC: 1. Disp (box 0)         2. Disp (box 1)       3. MultiParticle      
-//      4. Rotate (box 0)       5. Rotate (box 1)
-//      6. Vol. (b0->b1)        7. Vol. (b1->b0)
-//      8. IntraSwap (box 0)    9. IntraSwap (box 1)
-//     10. Regrowth (box 0)    11. Regrowth (box 1)
-//     12. Mol Trans (b0->b1), 13. Mol Trans (b1->b0)
+//GEMC: 1. Disp (box 0)         2. Disp (box 1)       3. MultiParticle (box 0)      
+//      4. MultiParticle (box 1)5. Rotate (box 0)     6. Rotate (box 1)
+//      7. Vol. (b0->b1)        8. Vol. (b1->b0)
+//      9. IntraSwap (box 0)   10. IntraSwap (box 1)
+//     11. Regrowth (box 0)    12. Regrowth (box 1)
+//     13. Mol Trans (b0->b1), 14. Mol Trans (b1->b0)
 //
 //NPT : 1. Disp (box 0)         3. MultiParticle      3. Rotate (box 0)
 //      4. Vol. (box 0)         5. IntraSwap (box 0)  6. Regrowth (box 0)
@@ -127,8 +127,8 @@ const uint SCALEABLE = 3;
 const uint COUNT = 7;
 const uint SCALEABLE = 3;
 #elif ENSEMBLE == GEMC
-const uint COUNT = 13;
-const uint SCALEABLE = 7;
+const uint COUNT = 14;
+const uint SCALEABLE = 8;
 #elif ENSEMBLE == NPT
 const uint COUNT = 6;
 const uint SCALEABLE = 4;
