@@ -83,8 +83,8 @@ void DCLinear::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 void DCLinear::CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 {
   //No crank shaft move for molecule with two atoms.
-  //Instead we perform Intra-Swap move within the same box
-  Build(oldMol, newMol, molIndex);
+  //Instead we perform Regrowth move within the same box
+  Regrowth(oldMol, newMol, molIndex);
 }
 
 void DCLinear::BuildIDNew(TrialMol& newMol, uint molIndex)

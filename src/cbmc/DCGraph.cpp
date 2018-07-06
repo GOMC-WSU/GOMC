@@ -115,6 +115,23 @@ void DCGraph::InitCrankShaft(mol_setup::MolKind& kind)
   }
 }
 
+void DCGraph::CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
+{
+  if(nodes.size() < 4) {
+    //No crank shaft move for molecule with less than 4 nodes.
+    //Instead we perform Regrowth move within the same box
+    Regrowth(oldMol, newMol, molIndex);
+  } else {
+    //Pick a random node pair
+    uint pick = data.prng.randIntExc(shaftNodesDih.size());
+    //Call DCCrankShaftDih and rotate a1 and a2 nodes around a0-a3 shaft
+    shaftNodesDih[pick]->PrepareNew(newMol, molIndex);
+    shaftNodesDih[pick]->BuildNew(newMol, molIndex);
+    shaftNodesDih[pick]->PrepareOld(oldMol, molIndex);
+    shaftNodesDih[pick]->BuildOld(oldMol, molIndex);
+  }
+}
+
 void DCGraph::Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 {
   //Randomely pick a node to call DCFreeHedron on it
