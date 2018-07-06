@@ -8,8 +8,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define DCCRANKSHAFT_H
 
 #include "DCComponent.h"
+#include "DCData.h"
 #include "BasicTypes.h"
 #include "TransformMatrix.h"
+#include <vector>
 
 namespace mol_setup
 {
