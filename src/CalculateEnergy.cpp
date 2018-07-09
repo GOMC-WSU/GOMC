@@ -632,13 +632,13 @@ void CalculateEnergy::MoleculeIntra(cbmc::TrialMol &mol,
   // *2 because we'll be storing inverse bond vectors
   XYZArray bondVec(molKind.bondList.count * 2);
 
-  BondVectors(bondVec, mol.GetCoords(), molKind, molIndex, box);  
+  BondVectors(bondVec, mol.GetCoords(), molKind, box);  
   MolBond(bondEn, molKind, bondVec, box);
   MolAngle(bondEn, molKind, bondVec, box);
   MolDihedral(bondEn, molKind, bondVec, box);
-  MolNonbond(intraNonbondEn, molKind, molIndex, box);
-  MolNonbond_1_4(intraNonbondEn, molKind, molIndex, box);
-  MolNonbond_1_3(intraNonbondEn, molKind, molIndex, box);
+  MolNonbond(intraNonbondEn, mol.GetCoords(), molKind, box);
+  MolNonbond_1_4(intraNonbondEn, mol.GetCoords(), molKind, box);
+  MolNonbond_1_3(intraNonbondEn, mol.GetCoords(), molKind, box);
   mol.AddEnergy(Energy(bondEn, intraNonbondEn, 0.0, 0.0, 0.0, 0.0, 0.0));
 }
 
@@ -661,7 +661,6 @@ void CalculateEnergy::BondVectors(XYZArray & vecs,
 
 void CalculateEnergy::BondVectors(XYZArray & vecs, XYZArray const& pos,
                                   MoleculeKind const& molKind,
-                                  const uint molIndex,
                                   const uint box) const
 {
   for (uint i = 0; i < molKind.bondList.count; ++i) {
@@ -755,6 +754,39 @@ void CalculateEnergy::MolNonbond(double & energy,
 
 }
 
+// Calculate 1-N nonbonded intra energy uisng pos
+void CalculateEnergy::MolNonbond(double & energy, XYZArray const& pos,
+                                 MoleculeKind const& molKind,
+                                 const uint box) const
+{
+  if (box >= BOXES_WITH_U_B)
+    return;
+
+  double distSq;
+  double qi_qj_Fact;
+
+  for (uint i = 0; i < molKind.nonBonded.count; ++i) {
+    uint p1 = molKind.nonBonded.part1[i];
+    uint p2 = molKind.nonBonded.part2[i];
+
+    if (currentAxes.InRcut(distSq, pos, p1, p2, box)) {
+      energy += forcefield.particles->CalcEn(distSq, molKind.AtomKind
+                                             (molKind.nonBonded.part1[i]),
+                                             molKind.AtomKind
+                                             (molKind.nonBonded.part2[i]));
+      if (electrostatic) {
+        qi_qj_Fact = num::qqFact *
+                     molKind.AtomCharge(molKind.nonBonded.part1[i]) *
+                     molKind.AtomCharge(molKind.nonBonded.part2[i]);
+
+        forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
+            qi_qj_Fact, true);
+      }
+    }
+  }
+
+}
+
 // Calculate 1-4 nonbonded intra energy
 void CalculateEnergy::MolNonbond_1_4(double & energy,
                                      MoleculeKind const& molKind,
@@ -788,6 +820,38 @@ void CalculateEnergy::MolNonbond_1_4(double & energy,
   }
 }
 
+// Calculate 1-4 nonbonded intra energy using pos
+void CalculateEnergy::MolNonbond_1_4(double & energy, XYZArray const& pos,
+                                     MoleculeKind const& molKind,
+                                     const uint box) const
+{
+  if (box >= BOXES_WITH_U_B)
+    return;
+
+  double distSq;
+  double qi_qj_Fact;
+
+  for (uint i = 0; i < molKind.nonBonded_1_4.count; ++i) {
+    uint p1 = molKind.nonBonded_1_4.part1[i];
+    uint p2 = molKind.nonBonded_1_4.part2[i];
+    if (currentAxes.InRcut(distSq, pos, p1, p2, box)) {
+      forcefield.particles->CalcAdd_1_4(energy, distSq,
+                                        molKind.AtomKind
+                                        (molKind.nonBonded_1_4.part1[i]),
+                                        molKind.AtomKind
+                                        (molKind.nonBonded_1_4.part2[i]));
+      if (electrostatic) {
+        qi_qj_Fact = num::qqFact *
+                     molKind.AtomCharge(molKind.nonBonded_1_4.part1[i]) *
+                     molKind.AtomCharge(molKind.nonBonded_1_4.part2[i]);
+
+        forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
+            qi_qj_Fact, false);
+      }
+    }
+  }
+}
+
 // Calculate 1-3 nonbonded intra energy
 void CalculateEnergy::MolNonbond_1_3(double & energy,
                                      MoleculeKind const& molKind,
@@ -804,6 +868,38 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
     uint p1 = mols.start[molIndex] + molKind.nonBonded_1_3.part1[i];
     uint p2 = mols.start[molIndex] + molKind.nonBonded_1_3.part2[i];
     if (currentAxes.InRcut(distSq, currentCoords, p1, p2, box)) {
+      forcefield.particles->CalcAdd_1_4(energy, distSq,
+                                        molKind.AtomKind
+                                        (molKind.nonBonded_1_3.part1[i]),
+                                        molKind.AtomKind
+                                        (molKind.nonBonded_1_3.part2[i]));
+      if (electrostatic) {
+        qi_qj_Fact = num::qqFact *
+                     molKind.AtomCharge(molKind.nonBonded_1_3.part1[i]) *
+                     molKind.AtomCharge(molKind.nonBonded_1_3.part2[i]);
+
+        forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
+            qi_qj_Fact, false);
+      }
+    }
+  }
+}
+
+// Calculate 1-3 nonbonded intra energy
+void CalculateEnergy::MolNonbond_1_3(double & energy, XYZArray const& pos,
+                                     MoleculeKind const& molKind,
+                                     const uint box) const
+{
+  if (box >= BOXES_WITH_U_B)
+    return;
+
+  double distSq;
+  double qi_qj_Fact;
+
+  for (uint i = 0; i < molKind.nonBonded_1_3.count; ++i) {
+    uint p1 = molKind.nonBonded_1_3.part1[i];
+    uint p2 = molKind.nonBonded_1_3.part2[i];
+    if (currentAxes.InRcut(distSq, pos, p1, p2, box)) {
       forcefield.particles->CalcAdd_1_4(energy, distSq,
                                         molKind.AtomKind
                                         (molKind.nonBonded_1_3.part1[i]),
