@@ -93,6 +93,7 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
   using namespace mol_setup;
   using namespace std;
   vector<Node> tempNodes = nodes;
+  vector<bool> visited(kind.atoms.size(), false);
   while(!tempNodes.empty()) {
     //start from last node, find the atom index of the node
     uint a0 = tempNodes.back().atomIndex;
@@ -106,7 +107,13 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
       //Check if the a3 is a node or not
       //for(uint n = 0; n < tempNodes.size(); n++) {
       //  if(tempNodes[n].atomIndex == a3) {
+        if(!(visited[a0] && visited[a1] && visited[a2] && visited[a3])) {
           shaftNodesDih.push_back(new DCCrankShaftDih(&data, kind, a0, a1, a2, a3));
+          visited[a0] = true;
+          visited[a1] = true;
+          visited[a2] = true;
+          visited[a3] = true;
+        }
       //  }
      // }
       dihs.pop_back();	
@@ -117,7 +124,7 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
 
 void DCGraph::CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 {
-  if(nodes.size() < 4) {
+  if(shaftNodesDih.size() == 0) {
     //No crank shaft move for molecule with less than 4 nodes.
     //Instead we perform Regrowth move within the same box
     Regrowth(oldMol, newMol, molIndex);
