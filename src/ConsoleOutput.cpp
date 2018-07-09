@@ -119,6 +119,11 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
     printElement(var->GetAccepted(sub), elementWidth);
     printElement(var->GetAcceptPercent(sub), elementWidth);
 
+    sub = mv::GetMoveSubIndex(mv::CRANKSHAFT, box);
+    printElement(var->GetTries(sub), elementWidth);
+    printElement(var->GetAccepted(sub), elementWidth);
+    printElement(var->GetAcceptPercent(sub), elementWidth);
+
 #if ENSEMBLE == GCMC
   }
 #endif
@@ -302,6 +307,10 @@ void ConsoleOutput::PrintMoveTitle()
   printElement("INTRAMOLEXCHANGE", elementWidth);
   printElement("INTMOLEXCACCEPT", elementWidth);
   printElement("INTMOLEXACCEPT%", elementWidth);
+
+  printElement("CRANKSHAFT", elementWidth);
+  printElement("CRSHAFTACCEPT", elementWidth);
+  printElement("CRSHAFTACCEPT%", elementWidth);
 
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   printElement("TRANSFER", elementWidth);
