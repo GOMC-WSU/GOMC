@@ -74,7 +74,7 @@ private:
   std::vector<Node> nodes;
   std::vector<Edge> fringe;
   std::vector<bool> visited;
-  std::vector<DCComponent*> shaftNodesDih;
+  std::vector<DCComponent*> shaftNodesDih, shaftNodesAng;
 };
 }
 

@@ -37,6 +37,7 @@ set(sources
    src/Simulation.cpp
    src/StaticVals.cpp
    src/System.cpp
+   src/cbmc/DCCrankShaftAng.cpp
    src/cbmc/DCCrankShaftDih.cpp
    src/cbmc/DCGraph.cpp
    src/cbmc/DCFreeHedron.cpp
@@ -126,6 +127,7 @@ set(headers
    src/Writer.h
    src/XYZArray.h
    src/cbmc/DCComponent.h
+   src/cbmc/DCCrankShaftAng.h
    src/cbmc/DCCrankShaftDih.h
    src/cbmc/DCData.h
    src/cbmc/DCFreeHedron.h

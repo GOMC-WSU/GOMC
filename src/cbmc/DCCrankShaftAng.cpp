@@ -4,7 +4,7 @@ Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
-#include "DCCrankShaftDih.h"
+#include "DCCrankShaftAng.h"
 #include "TrialMol.h"
 #include "PRNG.h"
 #include "MolSetup.h"
@@ -25,9 +25,9 @@ namespace cbmc
   uint x;
 };
 
-DCCrankShaftDih::DCCrankShaftDih(DCData* data, const mol_setup::MolKind& kind,
-                                uint a0, uint a1, uint a2, uint a3) : 
-                                data(data), a0(a0), a1(a1), a2(a2), a3(a3)
+DCCrankShaftAng::DCCrankShaftAng(DCData* data, const mol_setup::MolKind& kind,
+                                uint a0, uint a1, uint a2) : 
+                                data(data), a0(a0), a1(a1), a2(a2)
 {
   using namespace mol_setup;
   using namespace std;
@@ -48,7 +48,7 @@ DCCrankShaftDih::DCCrankShaftDih(DCData* data, const mol_setup::MolKind& kind,
 
     vector<Bond> temp = AtomBonds(kind, bonds[b].a1);
     //Remove a2-a3 bonds
-    temp.erase(remove_if(temp.begin(), temp.end(), FindA1(a3)), temp.end());
+    temp.erase(remove_if(temp.begin(), temp.end(), FindA1(a1)), temp.end());
     for(uint i = 0; i < temp.size(); i++) {
       if(!visited[temp[i].a0]) {
         bonds.push_back(temp[i]);
@@ -69,7 +69,7 @@ DCCrankShaftDih::DCCrankShaftDih(DCData* data, const mol_setup::MolKind& kind,
   }
 }
 
-void DCCrankShaftDih::PrepareOld(TrialMol& oldMol, uint molIndex)
+void DCCrankShaftAng::PrepareOld(TrialMol& oldMol, uint molIndex)
 {
   XYZ center = oldMol.AtomPosition(a0);
   for(uint i = 0; i < numAtom; i++) {
@@ -82,7 +82,7 @@ void DCCrankShaftDih::PrepareOld(TrialMol& oldMol, uint molIndex)
   }
 }
 
-void DCCrankShaftDih::PrepareNew(TrialMol& newMol, uint molIndex)
+void DCCrankShaftAng::PrepareNew(TrialMol& newMol, uint molIndex)
 {
   XYZ center = newMol.AtomPosition(a0);
   for(uint i = 0; i < numAtom; i++) {
@@ -96,7 +96,7 @@ void DCCrankShaftDih::PrepareNew(TrialMol& newMol, uint molIndex)
 }
 
     
-void DCCrankShaftDih::BuildOld(TrialMol& oldMol, uint molIndex)
+void DCCrankShaftAng::BuildOld(TrialMol& oldMol, uint molIndex)
 {
   PRNG& prng = data->prng;
   uint nLJTrials = data->nLJTrialsNth;
@@ -109,7 +109,7 @@ void DCCrankShaftDih::BuildOld(TrialMol& oldMol, uint molIndex)
 
   //Set up rotation matrix using a0-a3 axis.
   XYZ center = oldMol.AtomPosition(a0);
-  XYZ rotAxis = oldMol.AtomPosition(a0) - oldMol.AtomPosition(a3);
+  XYZ rotAxis = oldMol.AtomPosition(a0) - oldMol.AtomPosition(a2);
   rotAxis = data->axes.MinImage(rotAxis, oldMol.GetBox());
   rotAxis.Normalize();
   RotationMatrix cross = RotationMatrix::CrossProduct(rotAxis);
@@ -150,7 +150,7 @@ void DCCrankShaftDih::BuildOld(TrialMol& oldMol, uint molIndex)
   }
 }
 
-void DCCrankShaftDih::BuildNew(TrialMol& newMol, uint molIndex)
+void DCCrankShaftAng::BuildNew(TrialMol& newMol, uint molIndex)
 {
   PRNG& prng = data->prng;
   uint nLJTrials = data->nLJTrialsNth;
@@ -165,7 +165,7 @@ void DCCrankShaftDih::BuildNew(TrialMol& newMol, uint molIndex)
 
   //Set up rotation matrix using a0-a3 axis.
   XYZ center = newMol.AtomPosition(a0);
-  XYZ rotAxis = newMol.AtomPosition(a0) - newMol.AtomPosition(a3);
+  XYZ rotAxis = newMol.AtomPosition(a0) - newMol.AtomPosition(a2);
   rotAxis = data->axes.MinImage(rotAxis, newMol.GetBox());
   rotAxis.Normalize();
   RotationMatrix cross = RotationMatrix::CrossProduct(rotAxis);
