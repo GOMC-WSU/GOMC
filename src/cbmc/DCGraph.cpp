@@ -104,11 +104,11 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
       uint a2 = dihs.back().a2;
       uint a1 = dihs.back().a1;
       //Check if the a3 is a node or not
-      for(uint n = 0; n < tempNodes.size(); n++) {
-        if(tempNodes[n].atomIndex == a3) {
+      //for(uint n = 0; n < tempNodes.size(); n++) {
+      //  if(tempNodes[n].atomIndex == a3) {
           shaftNodesDih.push_back(new DCCrankShaftDih(&data, kind, a0, a1, a2, a3));
-        }
-      }
+      //  }
+     // }
       dihs.pop_back();	
     }
     tempNodes.pop_back();
