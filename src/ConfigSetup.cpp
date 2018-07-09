@@ -82,6 +82,8 @@ ConfigSetup::ConfigSetup(void)
   sys.moves.intraSwap = DBL_MAX;
   sys.moves.regrowth = DBL_MAX;
   sys.moves.crankShaft = DBL_MAX;
+  sys.moves.memc = DBL_MAX;
+  sys.moves.intraMemc = DBL_MAX;
   out.state.settings.enable = true;
   out.restart.settings.enable = true;
   out.console.enable = true;
@@ -727,8 +729,7 @@ void ConfigSetup::fillDefaults(void)
            sys.moves.intraSwap);
   }
 
-  if(sys.moves.intraMemc == DBL_MAX)
-  {
+  if(sys.moves.intraMemc == DBL_MAX) {
     sys.moves.intraMemc = 0.0;
     printf("%-40s %-4.4f \n", "Default: Intra-MEMC move frequency",
 	     sys.moves.intraMemc);

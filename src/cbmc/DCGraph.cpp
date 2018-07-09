@@ -159,8 +159,8 @@ void DCGraph::CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
     Regrowth(oldMol, newMol, molIndex);
   } else {
     //Decide to perform rotation around two atoms that form angle or dihedral
-   // std::vector<DCComponent*>& shaftNodes = data.prng.randInt(1) ? shaftNodesDih : shaftNodesAng;
-    std::vector<DCComponent*>& shaftNodes = shaftNodesAng;
+   std::vector<DCComponent*>& shaftNodes = data.prng.randInt(1) ?
+     shaftNodesDih : shaftNodesAng;
     //Pick a random node pair
     uint pick = data.prng.randIntExc(shaftNodes.size());
     //Call DCCrankShaftDih and rotate a1 and a2 nodes around a0-a3 shaft

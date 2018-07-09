@@ -35,10 +35,14 @@ DCCrankShaftAng::DCCrankShaftAng(DCData* data, const mol_setup::MolKind& kind,
   totAtoms = kind.atoms.size();
   //Find all the atoms that bonds with atoms a1
   vector<Bond> bonds = AtomBonds(kind, a1);
-  //Remove the a0-a1 bond
+  //Remove the a0-a1 and a1-a2 bond
   bonds.erase(remove_if(bonds.begin(), bonds.end(), FindA1(a0)), bonds.end());
+  bonds.erase(remove_if(bonds.begin(), bonds.end(), FindA1(a2)), bonds.end());
+  //Store the a1 index
+  atoms.push_back(a1);
+  visited[a1] = true;
 
-  //Loop through atoms that are bonded to a1
+  //Loop through other atoms that are bonded to a1
   for(uint b = 0; b < bonds.size(); b++) {
     //Store the atom index if it doesnot exist
     if(!visited[bonds[b].a0]) {
@@ -47,8 +51,6 @@ DCCrankShaftAng::DCCrankShaftAng(DCData* data, const mol_setup::MolKind& kind,
     }
 
     vector<Bond> temp = AtomBonds(kind, bonds[b].a1);
-    //Remove a2-a3 bonds
-    temp.erase(remove_if(temp.begin(), temp.end(), FindA1(a1)), temp.end());
     for(uint i = 0; i < temp.size(); i++) {
       if(!visited[temp[i].a0]) {
         bonds.push_back(temp[i]);
