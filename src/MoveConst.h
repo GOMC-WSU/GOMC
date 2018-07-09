@@ -32,28 +32,32 @@ const uint ROTATE = 1;
 const uint INTRA_SWAP = 2;
 const uint REGROWTH = 3;
 const uint INTRA_MEMC = 4;
-const uint MOVE_KINDS_TOTAL = 5;
+const uint CRANKSHAFT = 5;
+const uint MOVE_KINDS_TOTAL = 6;
 #elif ENSEMBLE == GCMC
 const uint INTRA_SWAP = 2;
 const uint REGROWTH = 3;
 const uint INTRA_MEMC = 4;
-const uint MEMC = 5;
-const uint MOL_TRANSFER = 6;
-const uint MOVE_KINDS_TOTAL = 7;
+const uint CRANKSHAFT = 5;
+const uint MEMC = 6;
+const uint MOL_TRANSFER = 7;
+const uint MOVE_KINDS_TOTAL = 8;
 #elif ENSEMBLE == GEMC
 const uint VOL_TRANSFER = 2;
 const uint INTRA_SWAP = 3;
 const uint REGROWTH = 4;
 const uint INTRA_MEMC = 5;
-const uint MEMC = 6;
-const uint MOL_TRANSFER = 7;
-const uint MOVE_KINDS_TOTAL = 8;
+const uint CRANKSHAFT = 6;
+const uint MEMC = 7;
+const uint MOL_TRANSFER = 8;
+const uint MOVE_KINDS_TOTAL = 9;
 #elif ENSEMBLE == NPT
 const uint VOL_TRANSFER = 2;
 const uint INTRA_SWAP = 3;
 const uint REGROWTH = 4;
 const uint INTRA_MEMC = 5;
-const uint MOVE_KINDS_TOTAL = 6;
+const uint CRANKSHAFT = 6;
+const uint MOVE_KINDS_TOTAL = 7;
 #endif
 
 const uint BOX0 = 0;
@@ -109,11 +113,11 @@ const uint IT_KINDS_TOTAL = 2;
 //////////////////////////////////////////////////////////
 
 //NVT : 1. Disp (box 0)         2. Rotate (box 0)     3. IntraSwap (box 0)
-//      4. Regrowth (box 0)     5. IntraMEMC (box 0)
+//      4. Regrowth (box 0)     5. IntraMEMC (box 0)  6. CrankShaft (box 0)
 //
 //GCMC: 1. Disp (box 0)         2. Rotate (box 0)     3. IntraSwap (box 0)
-//      4. Regrowth (box 0)     5. IntraMEMC (box 0)  6. MEMC (box 0)       
-//      7. Deletion (box 0)     8. Insertion (box 0)
+//      4. Regrowth (box 0)     5. IntraMEMC (box 0)  6. CrankShaft (box 0)        
+//      7. MEMC (box 0)         8. Deletion (box 0)   9. Insertion (box 0)
 //
 //GEMC: 1. Disp (box 0)         2. Disp (box 1)
 //      3. Rotate (box 0)       4. Rotate (box 1)
@@ -121,23 +125,25 @@ const uint IT_KINDS_TOTAL = 2;
 //      7. IntraSwap (box 0)    8. IntraSwap (box 1)
 //      9. Regrowth (box 0)    10. Regrowth (box 1)
 //     11. IntraMEMC (box 0)   12. IntraMEMC (box 1)
-//     13. MEMC (box 0)        14. MEMC (box 1)
-//     15. Mol Trans (b0->b1), 16. Mol Trans (b1->b0)
+//     13. CrankShaft (box 0)  14. CrankShaft (box 1)
+//     15. MEMC (box 0)        16. MEMC (box 1)
+//     17. Mol Trans (b0->b1), 18. Mol Trans (b1->b0)
 //
 //NPT : 1. Disp (box 0)         2. Rotate (box 0)     3. Vol. (box 0)
 //      4. IntraSwap (box 0)    5. Regrowth (box 0)   6. IntraMEMC (box 0)
+//      7. CrankShaft (box 0)
 
 #if ENSEMBLE == NVT
-const uint COUNT = 5;
+const uint COUNT = 6;
 const uint SCALEABLE = 2;
 #elif ENSEMBLE == GCMC
-const uint COUNT = 8;
+const uint COUNT = 9;
 const uint SCALEABLE = 2;
 #elif ENSEMBLE == GEMC
-const uint COUNT = 16;
+const uint COUNT = 18;
 const uint SCALEABLE = 6;
 #elif ENSEMBLE == NPT
-const uint COUNT = 6;
+const uint COUNT = 7;
 const uint SCALEABLE = 3;
 #endif
 

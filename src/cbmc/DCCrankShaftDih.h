@@ -4,8 +4,8 @@ Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
-#ifndef DCCRANKSHAFT_H
-#define DCCRANKSHAFT_H
+#ifndef DCCRANKSHAFTDIH_H
+#define DCCRANKSHAFTDIH_H
 
 #include "DCComponent.h"
 #include "DCData.h"
