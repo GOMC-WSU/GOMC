@@ -58,6 +58,9 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
     case mv::INTRA_MEMC:
       movePerc[m] = perc.intraMemc;
       break;
+    case mv::CRANKSHAFT:
+      movePerc[m] = perc.crankShaft;
+      break;
 #ifdef VARIABLE_VOLUME
     case mv::VOL_TRANSFER :
       movePerc[m] = perc.volume;
