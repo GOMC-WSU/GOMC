@@ -92,60 +92,78 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
 #if ENSEMBLE == GCMC
   if(box == mv::BOX0) {
 #endif
-    sub = mv::GetMoveSubIndex(mv::DISPLACE, box);
-    printElement(var->GetTries(sub), elementWidth);
-    printElement(var->GetAccepted(sub), elementWidth);
-    printElement(var->GetAcceptPercent(sub), elementWidth);
-    printElement(var->GetScale(sub), elementWidth);
+    if(var->Perfromed(mv::DISPLACE)) {
+      sub = mv::GetMoveSubIndex(mv::DISPLACE, box);
+      printElement(var->GetTries(sub), elementWidth);
+      printElement(var->GetAccepted(sub), elementWidth);
+      printElement(var->GetAcceptPercent(sub), elementWidth);
+      printElement(var->GetScale(sub), elementWidth);
+    }
 
-    sub = mv::GetMoveSubIndex(mv::ROTATE, box);
-    printElement(var->GetTries(sub), elementWidth);
-    printElement(var->GetAccepted(sub), elementWidth);
-    printElement(var->GetAcceptPercent(sub), elementWidth);
-    printElement(var->GetScale(sub), elementWidth);
+    if(var->Perfromed(mv::ROTATE)) {
+      sub = mv::GetMoveSubIndex(mv::ROTATE, box);
+      printElement(var->GetTries(sub), elementWidth);
+      printElement(var->GetAccepted(sub), elementWidth);
+      printElement(var->GetAcceptPercent(sub), elementWidth);
+      printElement(var->GetScale(sub), elementWidth);
+    }
 
-    sub = mv::GetMoveSubIndex(mv::INTRA_SWAP, box);
-    printElement(var->GetTries(sub), elementWidth);
-    printElement(var->GetAccepted(sub), elementWidth);
-    printElement(var->GetAcceptPercent(sub), elementWidth);
+    if(var->Perfromed(mv::INTRA_SWAP)) {
+      sub = mv::GetMoveSubIndex(mv::INTRA_SWAP, box);
+      printElement(var->GetTries(sub), elementWidth);
+      printElement(var->GetAccepted(sub), elementWidth);
+      printElement(var->GetAcceptPercent(sub), elementWidth);
+    }
 
-    sub = mv::GetMoveSubIndex(mv::REGROWTH, box);
-    printElement(var->GetTries(sub), elementWidth);
-    printElement(var->GetAccepted(sub), elementWidth);
-    printElement(var->GetAcceptPercent(sub), elementWidth);
+    if(var->Perfromed(mv::REGROWTH)) {
+      sub = mv::GetMoveSubIndex(mv::REGROWTH, box);
+      printElement(var->GetTries(sub), elementWidth);
+      printElement(var->GetAccepted(sub), elementWidth);
+      printElement(var->GetAcceptPercent(sub), elementWidth);
+    }
 
-    sub = mv::GetMoveSubIndex(mv::INTRA_MEMC, box);
-    printElement(var->GetTries(sub), elementWidth);
-    printElement(var->GetAccepted(sub), elementWidth);
-    printElement(var->GetAcceptPercent(sub), elementWidth);
+    if(var->Perfromed(mv::INTRA_MEMC)) {
+      sub = mv::GetMoveSubIndex(mv::INTRA_MEMC, box);
+      printElement(var->GetTries(sub), elementWidth);
+      printElement(var->GetAccepted(sub), elementWidth);
+      printElement(var->GetAcceptPercent(sub), elementWidth);
+    }
 
-    sub = mv::GetMoveSubIndex(mv::CRANKSHAFT, box);
-    printElement(var->GetTries(sub), elementWidth);
-    printElement(var->GetAccepted(sub), elementWidth);
-    printElement(var->GetAcceptPercent(sub), elementWidth);
+    if(var->Perfromed(mv::CRANKSHAFT)) {
+      sub = mv::GetMoveSubIndex(mv::CRANKSHAFT, box);
+      printElement(var->GetTries(sub), elementWidth);
+      printElement(var->GetAccepted(sub), elementWidth);
+      printElement(var->GetAcceptPercent(sub), elementWidth);
+    }
 
 #if ENSEMBLE == GCMC
   }
 #endif
 
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-  sub = mv::GetMoveSubIndex(mv::MOL_TRANSFER, box);
-  printElement(var->GetTries(sub), elementWidth);
-  printElement(var->GetAccepted(sub), elementWidth);
-  printElement(var->GetAcceptPercent(sub), elementWidth);
+  if(var->Perfromed(mv::MOL_TRANSFER)) {
+    sub = mv::GetMoveSubIndex(mv::MOL_TRANSFER, box);
+    printElement(var->GetTries(sub), elementWidth);
+    printElement(var->GetAccepted(sub), elementWidth);
+    printElement(var->GetAcceptPercent(sub), elementWidth);
+  }
 
-  sub = mv::GetMoveSubIndex(mv::MEMC, box);
-  printElement(var->GetTries(sub), elementWidth);
-  printElement(var->GetAccepted(sub), elementWidth);
-  printElement(var->GetAcceptPercent(sub), elementWidth);
+  if(var->Perfromed(mv::MEMC)) {
+    sub = mv::GetMoveSubIndex(mv::MEMC, box);
+    printElement(var->GetTries(sub), elementWidth);
+    printElement(var->GetAccepted(sub), elementWidth);
+    printElement(var->GetAcceptPercent(sub), elementWidth);
+  }
 #endif
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
-  sub = mv::GetMoveSubIndex(mv::VOL_TRANSFER, box);
-  printElement(var->GetTries(sub), elementWidth);
-  printElement(var->GetAccepted(sub), elementWidth);
-  printElement(var->GetAcceptPercent(sub), elementWidth);
-  printElement(var->GetScale(sub), elementWidth);
+  if(var->Perfromed(mv::VOL_TRANSFER)) {
+    sub = mv::GetMoveSubIndex(mv::VOL_TRANSFER, box);
+    printElement(var->GetTries(sub), elementWidth);
+    printElement(var->GetAccepted(sub), elementWidth);
+    printElement(var->GetAcceptPercent(sub), elementWidth);
+    printElement(var->GetScale(sub), elementWidth);
+  }
 #endif
 
   std::cout << std::endl;
@@ -285,48 +303,65 @@ void ConsoleOutput::PrintMoveTitle()
   std::string title = "MTITLE:";
   title += "     STEP";
   printElement(title, elementWidth);
+  if(var->Perfromed(mv::DISPLACE)) {
+    printElement("DISTRY", elementWidth);
+    printElement("DISACCEPT", elementWidth);
+    printElement("DISACCEPT%", elementWidth);
+    printElement("DISMAX", elementWidth);
+  }
 
-  printElement("DISTRY", elementWidth);
-  printElement("DISACCEPT", elementWidth);
-  printElement("DISACCEPT%", elementWidth);
-  printElement("DISMAX", elementWidth);
+  if(var->Perfromed(mv::ROTATE)) {
+    printElement("ROTATE", elementWidth);
+    printElement("ROTACCEPT", elementWidth);
+    printElement("ROTACCEPT%", elementWidth);
+    printElement("ROTMAX", elementWidth);
+  }
 
-  printElement("ROTATE", elementWidth);
-  printElement("ROTACCEPT", elementWidth);
-  printElement("ROTACCEPT%", elementWidth);
-  printElement("ROTMAX", elementWidth);
+  if(var->Perfromed(mv::INTRA_SWAP)) {
+    printElement("INTRASWAP", elementWidth);
+    printElement("INTACCEPT", elementWidth);
+    printElement("INTACCEPT%", elementWidth);
+  }
 
-  printElement("INTRASWAP", elementWidth);
-  printElement("INTACCEPT", elementWidth);
-  printElement("INTACCEPT%", elementWidth);
+  if(var->Perfromed(mv::REGROWTH)) {
+    printElement("REGROWTH", elementWidth);
+    printElement("REGROWACCEPT", elementWidth);
+    printElement("REGROWACCEPT%", elementWidth);
+  }
 
-  printElement("REGROWTH", elementWidth);
-  printElement("REGROWACCEPT", elementWidth);
-  printElement("REGROWACCEPT%", elementWidth);
+  if(var->Perfromed(mv::INTRA_MEMC)) {
+    printElement("INTRAMOLEXCHANGE", elementWidth);
+    printElement("INTMOLEXCACCEPT", elementWidth);
+    printElement("INTMOLEXACCEPT%", elementWidth);
+  }
 
-  printElement("INTRAMOLEXCHANGE", elementWidth);
-  printElement("INTMOLEXCACCEPT", elementWidth);
-  printElement("INTMOLEXACCEPT%", elementWidth);
-
-  printElement("CRANKSHAFT", elementWidth);
-  printElement("CRSHAFTACCEPT", elementWidth);
-  printElement("CRSHAFTACCEPT%", elementWidth);
+  if(var->Perfromed(mv::CRANKSHAFT)) {
+    printElement("CRANKSHAFT", elementWidth);
+    printElement("CRKSHAFTACCEPT", elementWidth);
+    printElement("CRKSHAFTACCEPT%", elementWidth);
+  }
 
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-  printElement("TRANSFER", elementWidth);
-  printElement("TRANACCEPT", elementWidth);
-  printElement("TRANACCEPT%", elementWidth);
+  if(var->Perfromed(mv::MOL_TRANSFER)) {
+    printElement("TRANSFER", elementWidth);
+    printElement("TRANACCEPT", elementWidth);
+    printElement("TRANACCEPT%", elementWidth);
+  }
     
-  printElement("MOLEXCHANGE", elementWidth);
-  printElement("MOLEXACCEPT", elementWidth);
-  printElement("MOLEXACCEPT%", elementWidth);
+  if(var->Perfromed(mv::MEMC)) {
+    printElement("MOLEXCHANGE", elementWidth);
+    printElement("MOLEXACCEPT", elementWidth);
+    printElement("MOLEXACCEPT%", elementWidth);
+  }
 #endif
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
-  printElement("VOLUME", elementWidth);
-  printElement("VOLACCEPT", elementWidth);
-  printElement("VOLACCEPT%", elementWidth);
-  printElement("VOLMAX", elementWidth);
+  if(var->Perfromed(mv::VOL_TRANSFER)) {
+    printElement("VOLUME", elementWidth);
+    printElement("VOLACCEPT", elementWidth);
+    printElement("VOLACCEPT%", elementWidth);
+    printElement("VOLMAX", elementWidth);
+  }
 #endif
 
   std::cout << std::endl;

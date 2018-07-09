@@ -40,6 +40,11 @@ void OutputVars::InitRef(System & sys, StaticVals const& statV)
   virial = new Virial[BOXES_WITH_U_NB];
 }
 
+bool OutputVars::Perfromed(uint moveKind)
+{
+  return (movePercRef[moveKind] > 0.0);
+}
+
 uint OutputVars::GetTries(uint sub)
 {
   return (sub < mv::SCALEABLE ?
