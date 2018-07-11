@@ -108,7 +108,23 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
       uint a3 = dihs.back().a3;
 
       if(!(visited[a0] && visited[a1] && visited[a2] && visited[a3])) {
-        shaftNodesDih.push_back(new DCCrankShaftDih(&data, kind, a0, a1, a2, a3));
+        bool fixAngle = false;
+        //Find all the angle that forms x-a0-a1
+        vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
+        //Find all the angle that forms a2-a3-x
+        vector<Angle> tempAng = AtomMidEndAngles(kind, a3, a2);
+        //merge all the angle
+        angle.insert(angle.end(), tempAng.begin(), tempAng.end());
+        //Check to see if any of these angles are fixed or not.
+        for(uint a = 0; a < angle.size(); a++) {
+          if(data.ff.angles->AngleFixed(angle[a].kind)) {
+            fixAngle = true;
+          }
+        }
+        //If there was no fix angles, we create DCCrankShaftDih
+        if(!fixAngle) {
+          shaftNodesDih.push_back(new DCCrankShaftDih(&data, kind, a0, a1, a2, a3));
+        }
         visited[a0] = true;
         visited[a1] = true;
         visited[a2] = true;
@@ -133,7 +149,23 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
       uint a2 = angles.back().a2;
 
       if(!(visited[a0] && visited[a1] && visited[a2])) {
-        shaftNodesAng.push_back(new DCCrankShaftAng(&data, kind, a0, a1, a2));
+        bool fixAngle = false;
+        //Find all the angle that forms x-a0-a1
+        vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
+        //Find all the angle that forms a1-a2-x
+        vector<Angle> tempAng = AtomMidEndAngles(kind, a2, a1);
+        //merge all the angle
+        angle.insert(angle.end(), tempAng.begin(), tempAng.end());
+        //Check to see if any of these angles are fixed or not.
+        for(uint a = 0; a < angle.size(); a++) {
+          if(data.ff.angles->AngleFixed(angle[a].kind)) {
+            fixAngle = true;
+          }
+        }
+        //If there was no fix angles, we create DCCrankShaftDih
+        if(!fixAngle) {
+          shaftNodesAng.push_back(new DCCrankShaftAng(&data, kind, a0, a1, a2));
+        }
         visited[a0] = true;
         visited[a1] = true;
         visited[a2] = true;
