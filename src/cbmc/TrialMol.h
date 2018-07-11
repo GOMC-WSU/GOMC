@@ -49,6 +49,11 @@ public:
     en += energy;
   }
 
+  void SetEnergy(const Energy& energy)
+  {
+    en = energy;
+  }
+
   //!Confirms that atom at index i has been built (used for oldMols)
   void ConfirmOldAtom(uint i);
 

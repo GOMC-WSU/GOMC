@@ -629,6 +629,7 @@ void CalculateEnergy::MoleculeIntra(cbmc::TrialMol &mol,
   uint box = mol.GetBox();
   double bondEn = 0.0, intraNonbondEn = 0.0;
   MoleculeKind& molKind = mols.kinds[mols.kIndex[molIndex]];
+  Energy en = mol.GetEnergy();
   // *2 because we'll be storing inverse bond vectors
   XYZArray bondVec(molKind.bondList.count * 2);
 
@@ -639,7 +640,9 @@ void CalculateEnergy::MoleculeIntra(cbmc::TrialMol &mol,
   MolNonbond(intraNonbondEn, mol.GetCoords(), molKind, box);
   MolNonbond_1_4(intraNonbondEn, mol.GetCoords(), molKind, box);
   MolNonbond_1_3(intraNonbondEn, mol.GetCoords(), molKind, box);
-  mol.AddEnergy(Energy(bondEn, intraNonbondEn, 0.0, 0.0, 0.0, 0.0, 0.0));
+  en.intraBond = bondEn;
+  en.intraNonbond = intraNonbondEn;
+  mol.SetEnergy(en);
 }
 
 void CalculateEnergy::BondVectors(XYZArray & vecs,

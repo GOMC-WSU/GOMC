@@ -175,17 +175,25 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
     tempNodes.pop_back();
   }
 
-  if(shaftNodesDih.size() == 0) {
-    if(shaftNodesAng.size() != 0) {
+  hasCrankShaft = true;
+  if((shaftNodesAng.size() == 0) || (shaftNodesDih.size() == 0)) {
+    if(shaftNodesAng.size() == 0) {
+      shaftNodesAng = shaftNodesDih;
+    } else {
       shaftNodesDih = shaftNodesAng;
     }
   }
+
+  if((shaftNodesAng.size() == 0) && (shaftNodesDih.size() == 0)) {
+    hasCrankShaft = false;
+  }
+
 
 }
 
 void DCGraph::CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 {
-  if(shaftNodesAng.size() == 0) {
+  if(!hasCrankShaft) {
     //No crank shaft move for molecule with less than 4 nodes.
     //Instead we perform Regrowth move within the same box
     Regrowth(oldMol, newMol, molIndex);
