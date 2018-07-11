@@ -71,6 +71,7 @@ private:
 
   DCComponent *idExchange;
   DCData data;
+  bool hasCrankShaft;
   std::vector<Node> nodes;
   std::vector<Edge> fringe;
   std::vector<bool> visited;
