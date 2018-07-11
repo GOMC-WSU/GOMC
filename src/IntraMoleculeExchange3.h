@@ -39,6 +39,7 @@ class IntraMoleculeExchange3 : public IntraMoleculeExchange1
    virtual void AdjustExRatio();
    virtual void SetMEMC(StaticVals const& statV);
    virtual uint PickMolInCav();
+   virtual double GetCoeff() const;
 };
 
 inline void IntraMoleculeExchange3::SetMEMC(StaticVals const& statV) 
@@ -283,6 +284,14 @@ inline void IntraMoleculeExchange3::CalcEn()
                                       correctDiff));
 }
 
+inline double IntraMoleculeExchange3::GetCoeff() const
+{
+  double ratioF =  num::Factorial(numSCavA - 1) * num::Factorial(numSCavB) /
+    (num::Factorial(numSCavA - exchangeRatio) *
+     num::Factorial(numSCavB + exchangeRatio - 1));
+
+  return ratioF;
+}
 
 inline void IntraMoleculeExchange3::Accept(const uint rejectState,
 					  const uint step)
