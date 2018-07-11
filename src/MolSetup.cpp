@@ -145,7 +145,6 @@ std::vector<Angle> mol_setup::AtomEndAngles(const MolKind& molKind, uint atom)
   return result;
 }
 
-
 std::vector<Angle> mol_setup::AtomMidAngles(const MolKind& molKind, uint atom)
 {
   std::vector<Angle> result;
@@ -158,6 +157,21 @@ std::vector<Angle> mol_setup::AtomMidAngles(const MolKind& molKind, uint atom)
   return result;
 }
 
+//List of angles with atom at one end, and mid in middle, atom first
+std::vector<Angle> mol_setup::AtomMidEndAngles(const MolKind& molKind, uint mid, uint atom)
+{
+  std::vector<Angle> result;
+  typedef std::vector<Angle>::const_iterator Aiter;
+  for (Aiter it = molKind.angles.begin(), end = molKind.angles.end(); it < end; ++it) {
+    if ((it->a0 == atom || it->a2 == atom) && (it->a1 == mid)) {
+      result.push_back(*it);
+    }
+    if (it->a2 == atom) {
+      std::swap(result.back().a0, result.back().a2);
+    }
+  }
+  return result;
+}
 
 //List of bonds with atom at one end, atom first
 std::vector<Bond> mol_setup::AtomBonds(const MolKind& molKind, uint atom)
