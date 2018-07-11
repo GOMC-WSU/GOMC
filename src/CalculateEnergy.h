@@ -170,6 +170,11 @@ private:
                    MoleculeKind const& molKind,
                    const uint molIndex,
                    const uint box) const;
+             
+  //! Calculates bond vectors using pos, stores them in vecs
+  void BondVectors(XYZArray & vecs, XYZArray const& pos,
+                   MoleculeKind const& molKind,
+                   const uint box) const;
 
   //! Calculates bond stretch intramolecular energy of a full molecule
   void MolBond(double & energy,
@@ -195,11 +200,21 @@ private:
                   const uint molIndex,
                   const uint box) const;
 
+  //! Calculates Nonbonded 1_N intramolecule energy of a full molecule using pos
+  void MolNonbond(double & energy, XYZArray const& pos,
+                  MoleculeKind const& molKind,
+                  const uint box) const;
+
   //! Calculates Nonbonded 1_4 intramolecule energy of a full molecule
   void MolNonbond_1_4(double & energy,
                       MoleculeKind const& molKind,
                       const uint molIndex,
                       const uint box) const;
+
+  //! Calculates Nonbonded 1_4 intramolecule energy of a full molecule using pos
+  void MolNonbond_1_4(double & energy, XYZArray const& pos,
+                      MoleculeKind const& molKind,
+                      const uint box) const;                    
 
   //! Calculates Nonbonded 1_3 intramolecule energy of a full molecule
   //for Martini forcefield
@@ -207,6 +222,12 @@ private:
                       MoleculeKind const& molKind,
                       const uint molIndex,
                       const uint box) const;
+
+  //! Calculates Nonbonded 1_3 intramolecule energy of a full molecule using pos
+  //for Martini forcefield
+  void MolNonbond_1_3(double & energy, XYZArray const& pos,
+                      MoleculeKind const& molKind,
+                      const uint box) const;                    
 
   //! For particles in main coordinates array determines if they belong
   //! to same molecule, using internal arrays.
