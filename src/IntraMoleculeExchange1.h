@@ -66,7 +66,7 @@ class IntraMoleculeExchange1 : public MoveBase
    void ShiftMol(const uint n, const bool kindA);
    void RecoverMol(const uint n, const bool kindA);
    virtual uint PickMolInCav();
-   double GetCoeff() const;
+   virtual double GetCoeff() const;
    uint GetBoxPairAndMol(const double subDraw, const double movPerc);
  
    bool enableID;
