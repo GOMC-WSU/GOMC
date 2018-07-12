@@ -32,7 +32,7 @@ private:
   uint pStart, pLen;
   uint molIndex, kindIndex;
 
-  double W_recip, W_bonded;
+  double W_recip;
   double correct_old, correct_new;
   cbmc::TrialMol oldMol, newMol;
   Intermolecular recipDiff;
@@ -86,18 +86,8 @@ inline void CrankShaft::CalcEn()
 {
   // since number of molecules would not change in the box,
   W_recip = 1.0;
-  W_bonded = 1.0;
   correct_old = 0.0;
   correct_new = 0.0;
-  //Calculate bonded and intra-nonbonded energy
-  calcEnRef.MoleculeIntra(newMol, molIndex); 
-  calcEnRef.MoleculeIntra(oldMol, molIndex);
-
-  W_bonded = exp(-1.0 * ffRef.beta * ((newMol.GetEnergy().intraBond +
-				       newMol.GetEnergy().intraNonbond) -
-				      (oldMol.GetEnergy().intraBond +
-				       oldMol.GetEnergy().intraNonbond)));
-
 
   if (newMol.GetWeight() != 0.0) {
     correct_new = calcEwald->SwapCorrection(newMol);
@@ -118,7 +108,7 @@ inline void CrankShaft::Accept(const uint rejectState, const uint step)
   if(rejectState == mv::fail_state::NO_FAIL) {
     double Wo = oldMol.GetWeight();
     double Wn = newMol.GetWeight();
-    double Wrat = Wn / Wo * W_recip * W_bonded;
+    double Wrat = Wn / Wo * W_recip;
 
     //safety to make sure move will be rejected in overlap case
     if((newMol.GetEnergy().real < 1.0e15) &&
