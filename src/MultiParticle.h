@@ -188,6 +188,11 @@ inline double MultiParticle::GetCoeff()
     molNumber = *thisMol;
     if(moveType[molNumber]) { // == 1 -> rotate
       lbt_old = molTorqueRef.Get(molNumber) * lambda * BETA;
+      if(!lbt_old.Length())
+      {
+        thisMol++;
+        continue;
+      }
       lbt_new = molTorqueNew.Get(molNumber) * lambda * BETA;
 
       w_ratio *= lbt_new.x * exp(lbt_new.x * -1 * r_k.Get(molNumber).x)/
@@ -207,6 +212,11 @@ inline double MultiParticle::GetCoeff()
     else { // displace
       lbf_old = (molForceRef.Get(molNumber) + molForceRecRef.Get(molNumber)) *
 	      lambda * BETA;
+      if(!lbf_old.Length())
+      {
+        thisMol++;
+        continue;
+      }
       lbf_new = (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber)) *
 	      lambda * BETA;
 
@@ -313,9 +323,10 @@ void MultiParticle::RotateForceBiased(uint molIndex)
   if(rotLen) {
     matrix = RotationMatrix::FromAxisAngle(rotLen, rot * (1.0/rotLen));
   } else { // if torque is zero we exit
-    std::cerr << "Error: Zero torque detected!" << std::endl
+    return;
+    /*std::cerr << "Error: Zero torque detected!" << std::endl
               << "Exiting!" << std::endl;
-    exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);*/
   }
 
   XYZ center = newCOMs.Get(molIndex);
@@ -343,9 +354,10 @@ void MultiParticle::TranslateForceBiased(uint molIndex)
   XYZ shift = t_k.Get(molIndex);
   //If force was zero, exit the application
   if(!shift.Length()) {
-    std::cerr << "Error: Zero force detected!" << std::endl
+    return;
+    /*std::cerr << "Error: Zero force detected!" << std::endl
               << "Exiting!" << std::endl;
-    exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);*/
   }
 
   XYZ newcom = newCOMs.Get(molIndex);
@@ -372,11 +384,14 @@ void MultiParticle::AdjustMoves(const uint step)
                           (double)tries[mp::MPDISPLACE][bPick];
     double fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
     t_max[bPick] *= fractOfTargetAccept;
+    num::Bound<double>(t_max[bPick], 0.001,
+                       (boxDimRef.axis.Min(bPick) / 2) - 0.001);
 
     currentAccept = (double)accepted[mp::MPROTATE][bPick] /
                     (double)tries[mp::MPROTATE][bPick];
     fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
     r_max[bPick] *= fractOfTargetAccept;
+    num::Bound<double>(r_max[bPick], 0.001, M_PI - 0.001);
   }
 }
 
