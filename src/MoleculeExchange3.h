@@ -40,6 +40,7 @@ class MoleculeExchange3 : public MoleculeExchange1
 
    virtual void AdjustExRatio();
    virtual void SetMEMC(StaticVals const& statV);
+   virtual void SetExchangeData();
    virtual uint PickMolInCav();
    virtual uint ReplaceMolecule();
    virtual double GetCoeff() const;
@@ -47,14 +48,16 @@ class MoleculeExchange3 : public MoleculeExchange1
 
 inline void MoleculeExchange3::SetMEMC(StaticVals const& statV) 
 {
-       if(largeBB[0] != largeBB[1]) {
-          printf("Error: In ME-3 move, atom name of backbone should be same.\n");
-          printf("Atom names in backbone was set to %s or %s in %s residue.\n",
-            statV.memcVal.largeBBAtom1.c_str(), 
-            statV.memcVal.largeBBAtom2.c_str(), 
-            statV.memcVal.largeKind.c_str());
-          exit(EXIT_FAILURE); 	
-       }
+  for(uint t = 0; t < exchangeRatioVec.size(); t++) {
+    if(largeBBVec[t][0] != largeBBVec[t][1]) {
+      printf("Error: In ME-3 move, atom name of backbone should be same.\n");
+      printf("Atom names in backbone was set to %s or %s in %s residue.\n",
+      statV.memcVal.largeBBAtom1[t].c_str(), 
+      statV.memcVal.largeBBAtom2[t].c_str(), 
+      statV.memcVal.largeKind[t].c_str());
+      exit(EXIT_FAILURE); 	
+    }
+  }
 }
 
 inline void MoleculeExchange3::AdjustExRatio()
@@ -81,6 +84,11 @@ inline void MoleculeExchange3::AdjustExRatio()
     molInCavCount = 0; 
     counter = 0; 
   } 
+}
+
+inline void MoleculeExchange3::SetExchangeData()
+{
+  MoleculeExchange1::SetExchangeData();
 }
 
 inline uint MoleculeExchange3::PickMolInCav()

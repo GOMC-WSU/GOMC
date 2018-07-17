@@ -38,20 +38,23 @@ class IntraMoleculeExchange3 : public IntraMoleculeExchange1
 
    virtual void AdjustExRatio();
    virtual void SetMEMC(StaticVals const& statV);
+   virtual void SetExchangeData();
    virtual uint PickMolInCav();
    virtual double GetCoeff() const;
 };
 
 inline void IntraMoleculeExchange3::SetMEMC(StaticVals const& statV) 
 {
-       if(largeBB[0] != largeBB[1]) {
-          printf("Error: In ME-3 move, atom name of backbone should be same.\n");
-          printf("Atom names in backbone was set to %s or %s in %s residue.\n",
-            statV.intraMemcVal.largeBBAtom1.c_str(), 
-            statV.intraMemcVal.largeBBAtom2.c_str(), 
-            statV.intraMemcVal.largeKind.c_str());
-          exit(EXIT_FAILURE); 	
-       } 
+  for(uint t = 0; t < exchangeRatioVec.size(); t++) {
+    if(largeBBVec[t][0] != largeBBVec[t][1]) {
+      printf("Error: In ME-3 move, atom name of backbone should be same.\n");
+      printf("Atom names in backbone was set to %s or %s in %s residue.\n",
+      statV.intraMemcVal.largeBBAtom1[t].c_str(), 
+      statV.intraMemcVal.largeBBAtom2[t].c_str(), 
+      statV.intraMemcVal.largeKind[t].c_str());
+      exit(EXIT_FAILURE); 	
+    } 
+  }
 }
 
 inline void IntraMoleculeExchange3::AdjustExRatio()
@@ -80,6 +83,11 @@ inline void IntraMoleculeExchange3::AdjustExRatio()
     printf("ExchangeRatio: %d, Average kindS in cavity: %d \n", exchangeRatio,
       exMax);
   }
+}
+
+inline void IntraMoleculeExchange3::SetExchangeData()
+{
+  IntraMoleculeExchange1::SetExchangeData();
 }
 
 inline uint IntraMoleculeExchange3::PickMolInCav()

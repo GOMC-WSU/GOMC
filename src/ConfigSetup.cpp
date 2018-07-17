@@ -167,7 +167,7 @@ void ConfigSetup::Init(const char *fileName)
         in.ffKind.isEXOTIC = false;
         in.ffKind.isMARTINI = false;
         in.ffKind.isCHARMM = true;
-        printf("Info: PARAMETER file: CHARMM format!\n");
+        printf("%-40s %-s \n", "Info: PARAMETER file", "CHARMM format!");
       }
     } else if(line[0] == "ParaTypeEXOTIC") {
       if(checkBool(line[1])) {
@@ -175,7 +175,7 @@ void ConfigSetup::Init(const char *fileName)
         in.ffKind.isCHARMM = false;
         in.ffKind.isMARTINI = false;
         in.ffKind.isEXOTIC = true;
-        printf("Info: PARAMETER file: EXOTIC format!\n");
+        printf("%-40s %-s \n", "Info: PARAMETER file", "EXOTIC format!");
       }
     } else if(line[0] == "ParaTypeMARTINI") {
       if(checkBool(line[1])) {
@@ -183,7 +183,7 @@ void ConfigSetup::Init(const char *fileName)
         in.ffKind.isEXOTIC = false;
         in.ffKind.isMARTINI = true;
         in.ffKind.isCHARMM = true;
-        printf("Info: PARAMETER file: MARTINI using CHARMM format!\n");
+        printf("%-40s %-s \n", "Info: PARAMETER file", "MARTINI using CHARMM format!");
       }
     } else if(line[0] == "Parameters") {
       in.files.param.name = line[1];
@@ -262,57 +262,89 @@ void ConfigSetup::Init(const char *fileName)
         sys.intraMemcVal.readVol = true;
       }
     } else if(line[0] == "ExchangeRatio") {
-      if(line.size() == 2) {
-        uint val = stringtoi(line[1]);
-        sys.memcVal.exchangeRatio = val;
-        sys.intraMemcVal.exchangeRatio = val;
+      if(line.size() >= 2) {
+        printf("%-41s", "Info: ExchangeRatio");
+        for(uint i = 1; i < line.size(); i++) {
+          uint val = stringtoi(line[i]);
+          sys.memcVal.exchangeRatio.push_back(val);
+          sys.intraMemcVal.exchangeRatio.push_back(val);
+          printf("%-5d", val);
+        }
+        std::cout << endl;        
         sys.memcVal.readRatio = true;
         sys.intraMemcVal.readRatio = true;
-        printf("%-40s %-d \n", "Info: ExchangeRatio", val);
       }
     } else if(line[0] == "ExchangeLargeKind") {
-      if(line.size() == 2) {
-        std::string resName = line[1];
-        sys.memcVal.largeKind = resName;
-        sys.intraMemcVal.largeKind = resName;
+      if(line.size() >= 2) {
+        printf("%-41s", "Info: Exchange Large Kind");
+        for(uint i = 1; i < line.size(); i++) {
+          std::string resName = line[i];
+          sys.memcVal.largeKind.push_back(resName);
+          sys.intraMemcVal.largeKind.push_back(resName);
+          printf("%-5s", resName.c_str());
+        }
+        std::cout << endl; 
         sys.memcVal.readLK = true;
         sys.intraMemcVal.readLK = true;
-        printf("%-40s %-s \n", "Info: Exchange Large Kind", resName.c_str());
       }
     } else if(line[0] == "ExchangeSmallKind") {
-      if(line.size() == 2) {
-        std::string resName = line[1];
-        sys.memcVal.smallKind = resName;
-        sys.intraMemcVal.smallKind = resName;
+      if(line.size() >= 2) {
+        printf("%-41s", "Info: Exchange Small Kind");
+        for(uint i = 1; i < line.size(); i++) {
+          std::string resName = line[i];
+          sys.memcVal.smallKind.push_back(resName);
+          sys.intraMemcVal.smallKind.push_back(resName);
+          printf("%-5s", resName.c_str());
+        }
+        std::cout << endl; 
         sys.memcVal.readSK = true;
         sys.intraMemcVal.readSK = true;
-        printf("%-40s %-s \n", "Info: Exchange Small Kind", resName.c_str());
       }
     } else if(line[0] == "SmallKindBackBone") {
-      if(line.size() == 3) {
-        std::string atom1 = line[1];
-        std::string atom2 = line[2];
-        sys.memcVal.smallBBAtom1 = atom1;
-        sys.memcVal.smallBBAtom2 = atom2;
+      if((line.size() % 2) == 0) {
+        std::cout <<"Error: Atom Names in Small Kind BackBone must be in pair!\n";
+        exit(EXIT_FAILURE);
+      }
+      if(line.size() >= 3) {
+        printf("%-41s", "Info: Atom Names in Small Kind BackBone");
+        for(uint i = 1; i < line.size() - 1; i += 2) {
+          if(i != 1) {
+            printf(" , ");
+          }
+          std::string atom1 = line[i];
+          std::string atom2 = line[i+1];
+          sys.memcVal.smallBBAtom1.push_back(atom1);
+          sys.memcVal.smallBBAtom2.push_back(atom2);      
+          sys.intraMemcVal.smallBBAtom1.push_back(atom1);
+          sys.intraMemcVal.smallBBAtom2.push_back(atom2);
+          printf("%-s - %-s", atom1.c_str(), atom2.c_str());
+        }
+        std::cout << endl;
         sys.memcVal.readSmallBB = true;
-        sys.intraMemcVal.smallBBAtom1 = atom1;
-        sys.intraMemcVal.smallBBAtom2 = atom2;
         sys.intraMemcVal.readSmallBB = true;
-        printf("%-40s %-s - %-s \n", "Info: Atom Names in Small Kind BackBone",
-               atom1.c_str(), atom2.c_str());
       }
     } else if(line[0] == "LargeKindBackBone") {
-      if(line.size() == 3) {
-        std::string atom1 = line[1];
-        std::string atom2 = line[2];
-        sys.memcVal.largeBBAtom1 = atom1;
-        sys.memcVal.largeBBAtom2 = atom2;
+      if((line.size() % 2) == 0) {
+        std::cout <<"Error: Atom Names in Large Kind BackBone must be in pair!\n";
+        exit(EXIT_FAILURE);
+      }
+      if(line.size() >= 3) {
+        printf("%-41s", "Info: Atom Names in Large Kind BackBone");
+        for(uint i = 1; i < line.size() - 1; i += 2) {
+          if(i != 1) {
+            printf(" , ");
+          }
+          std::string atom1 = line[i];
+          std::string atom2 = line[i+1];
+          sys.memcVal.largeBBAtom1.push_back(atom1);
+          sys.memcVal.largeBBAtom2.push_back(atom2);
+          sys.intraMemcVal.largeBBAtom1.push_back(atom1);
+          sys.intraMemcVal.largeBBAtom2.push_back(atom2);
+          printf("%-s - %-s", atom1.c_str(), atom2.c_str());
+        }
+        std::cout << endl;
         sys.memcVal.readLargeBB = true;
-        sys.intraMemcVal.largeBBAtom1 = atom1;
-        sys.intraMemcVal.largeBBAtom2 = atom2;
         sys.intraMemcVal.readLargeBB = true;
-        printf("%-40s %-s - %-s \n", "Info: Atom Names in Large Kind BackBone",
-               atom1.c_str(), atom2.c_str());
       }
     } else if(line[0] == "Rcut") {
       sys.ff.cutoff = stringtod(line[1]);
@@ -330,7 +362,6 @@ void ConfigSetup::Init(const char *fileName)
       } else if(line[1] == sys.exclude.EXC_ONEFOUR) {
         sys.exclude.EXCLUDE_KIND = sys.exclude.EXC_ONEFOUR_KIND;
         printf("%-40s %-s \n", "Info: Exclude", "ONE-FOUR");
-        printf("Warning: Modified 1-4 VDW parameters will be ignored!\n");
       }
     } else if(line[0] == "Ewald") {
       sys.elect.ewald = checkBool(line[1]);
@@ -404,7 +435,7 @@ void ConfigSetup::Init(const char *fileName)
       sys.moves.rotate = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Rotation move frequency",
              sys.moves.rotate);
-    }else if(line[0] == "IntraMEMC-1Freq") {
+    } else if(line[0] == "IntraMEMC-1Freq") {
       sys.moves.intraMemc = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: IntraMEMC-1 move frequency",
 	     sys.moves.intraMemc);
@@ -1056,6 +1087,12 @@ void ConfigSetup::verifyInputs(void)
       std::cout << "Error: In MEMC method, Exchange Ratio is not specified!\n";
       exit(EXIT_FAILURE);
     }
+    if(sys.memcVal.largeKind.size() != sys.memcVal.exchangeRatio.size()) {
+      std::cout << "Error: In MEMC method, specified number of Large Kinds is " <<
+      sys.memcVal.largeKind.size() << ", but " << sys.memcVal.exchangeRatio.size()
+      << " exchange ratio is specified!\n";
+      exit(EXIT_FAILURE);
+    }
     if(!sys.memcVal.readSK || !sys.intraMemcVal.readSK) {
       std::cout << "Error: In MEMC method, Small Kind is not specified!\n";
       exit(EXIT_FAILURE);
@@ -1064,16 +1101,37 @@ void ConfigSetup::verifyInputs(void)
       std::cout << "Error: In MEMC method, Large Kind is not specified!\n";
       exit(EXIT_FAILURE);
     }
+    if((sys.memcVal.largeKind.size() != sys.memcVal.smallKind.size()) ||
+      (sys.intraMemcVal.largeKind.size() != sys.intraMemcVal.smallKind.size())) {
+      std::cout << "Error: In MEMC method, specified number of Large Kinds is not " <<
+      " equal as specified number of Small Kinds!\n";
+      exit(EXIT_FAILURE);
+    }
     if(!sys.memcVal.readLargeBB || !sys.intraMemcVal.readLargeBB) {
       std::cout << "Error: In MEMC method, Large Kind BackBone is not specified!\n";
       exit(EXIT_FAILURE);
     }
-    if(sys.memcVal.MEMC2 && !sys.memcVal.readSmallBB) {
-      std::cout << "Error: In MEMC method, Small Kind BackBone is not specified!\n";
+    if(sys.memcVal.largeKind.size() != sys.memcVal.largeBBAtom1.size()) {
+      std::cout << "Error: In MEMC method, specified number of Large Kinds is " <<
+      sys.memcVal.largeKind.size() << ", but " << sys.memcVal.largeBBAtom1.size()
+      << " sets of Large Molecule BackBone is specified!\n";
       exit(EXIT_FAILURE);
     }
+    if(sys.memcVal.MEMC2 && !sys.memcVal.readSmallBB) {
+      std::cout << "Error: In MEMC-2 method, Small Kind BackBone is not specified!\n";
+      exit(EXIT_FAILURE);
+    }
+
+    if(sys.memcVal.MEMC2 && (sys.memcVal.smallKind.size() !=
+                            sys.memcVal.smallBBAtom1.size())) {
+      std::cout << "Error: In MEMC-2 method, specified number of Small Kinds is " <<
+      sys.memcVal.smallKind.size() << ", but " << sys.memcVal.smallBBAtom1.size()
+      << " sets of Small Molecule BackBone is specified!\n";
+      exit(EXIT_FAILURE);
+    }
+
     if(sys.intraMemcVal.MEMC2 && !sys.intraMemcVal.readSmallBB) {
-      std::cout << "Error: In Intra-MEMC method, Small Kind BackBone is not specified!\n";
+      std::cout << "Error: In Intra-MEMC-2 method, Small Kind BackBone is not specified!\n";
       exit(EXIT_FAILURE);
     }
     if(sys.memcVal.enable && sys.intraMemcVal.enable) {
