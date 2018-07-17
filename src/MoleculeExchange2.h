@@ -25,8 +25,6 @@ class MoleculeExchange2 : public MoleculeExchange1
    MoleculeExchange2(System &sys, StaticVals const& statV) : 
    MoleculeExchange1(sys, statV)
    { 
-     smallBB[0] = -1; 
-     smallBB[1] = -1; 
      if(enableID) { 
        SetMEMC(statV); 
      } 
@@ -41,20 +39,25 @@ class MoleculeExchange2 : public MoleculeExchange1
  
    virtual void AdjustExRatio(); 
    virtual void SetMEMC(StaticVals const& statV);
+   virtual void SetExchangeData();
    virtual uint PickMolInCav(); 
    virtual uint ReplaceMolecule();  
    virtual double GetCoeff() const; 
 
    uint smallBB[2];
+   //To store total sets of exchange pairs
+   vector< vector<uint> > smallBBVec;
 }; 
 
 inline void MoleculeExchange2::SetMEMC(StaticVals const& statV) 
 {
+  for(uint t = 0; t < exchangeRatioVec.size(); t++) {
+    smallBB[0] = smallBB[1] = -1;
        for(uint i = 0; i < molRef.kinds[kindS].NumAtoms(); i++) { 
-          if(molRef.kinds[kindS].atomNames[i] == statV.memcVal.smallBBAtom1) { 
+          if(molRef.kinds[kindS].atomNames[i] == statV.memcVal.smallBBAtom1[t]) { 
             smallBB[0] = i;
           } 
-            if(molRef.kinds[kindS].atomNames[i] ==statV.memcVal.smallBBAtom2){
+          if(molRef.kinds[kindS].atomNames[i] == statV.memcVal.smallBBAtom2[t]){
             smallBB[1] = i; 
           } 
        } 
@@ -62,26 +65,22 @@ inline void MoleculeExchange2::SetMEMC(StaticVals const& statV)
        for(uint i = 0; i < 2; i++) { 
           if(smallBB[i] == -1) { 
             printf("Error: Atom name %s or %s was not found in %s residue.\n", 
-              statV.memcVal.smallBBAtom1.c_str(),
-              statV.memcVal.smallBBAtom2.c_str(), 
-              statV.memcVal.smallKind.c_str()); 
+              statV.memcVal.smallBBAtom1[t].c_str(),
+              statV.memcVal.smallBBAtom2[t].c_str(), 
+              statV.memcVal.smallKind[t].c_str()); 
             exit(EXIT_FAILURE); 
           } 
        } 
 
-       if(molRef.kinds[kindL].NumAtoms() > 1) {
-         if(largeBB[0] == largeBB[1]) {
-           printf("Error: Atom names in large molecule backbone cannot be same!\n");
-           exit(EXIT_FAILURE);
-         }
-       }
-
-       if(molRef.kinds[kindS].NumAtoms() > 1) {
+       if(molRef.kinds[kindSVec[t]].NumAtoms() > 1) {
          if(smallBB[0] == smallBB[1]) {
            printf("Error: Atom names in small molecule backbone cannot be same!\n");
            exit(EXIT_FAILURE);
          }
        }
+    vector<uint> temp(smallBB, smallBB + 2);
+    smallBBVec.push_back(temp);
+  }
 }
  
 inline void MoleculeExchange2::AdjustExRatio() 
@@ -109,6 +108,19 @@ inline void MoleculeExchange2::AdjustExRatio()
     counter = 0; 
   } 
 } 
+
+
+inline void MoleculeExchange2::SetExchangeData()
+{
+  uint exType = prng.randIntExc(exchangeRatioVec.size());
+  kindS = kindSVec[exType];
+  kindL = kindLVec[exType];
+  exchangeRatio = exchangeRatioVec[exType];
+  largeBB[0] = largeBBVec[exType][0];
+  largeBB[1] = largeBBVec[exType][1];
+  smallBB[0] = smallBBVec[exType][0];
+  smallBB[1] = smallBBVec[exType][1];
+}
  
 inline uint MoleculeExchange2::PickMolInCav() 
 { 

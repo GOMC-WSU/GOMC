@@ -25,12 +25,10 @@ class MoleculeExchange1 : public MoveBase
 
    MoleculeExchange1(System &sys, StaticVals const& statV) :
    ffRef(statV.forcefield), molLookRef(sys.molLookupRef), MoveBase(sys, statV),
-   cavity(statV.memcVal.subVol), cavA(3), invCavA(3), kindS(-1), kindL(-1),
+   cavity(statV.memcVal.subVol), cavA(3), invCavA(3),
    perAdjust(statV.GetPerAdjust())
    {
      enableID = statV.memcVal.enable;
-     largeBB[0] = -1;
-     largeBB[1] = -1;
 
      if(enableID) {
         if(molLookRef.GetNumCanSwapKind() < 2) {
@@ -45,7 +43,7 @@ class MoleculeExchange1 : public MoveBase
           cavity.x = cavity.y;
               
         volCav = cavity.x * cavity.y * cavity.z;
-        exchangeRatio = statV.memcVal.exchangeRatio;
+        exchangeRatioVec = statV.memcVal.exchangeRatio;
 
         SetMEMC(statV); 
 
@@ -66,6 +64,7 @@ class MoleculeExchange1 : public MoveBase
 
    virtual void AdjustExRatio();
    virtual void SetMEMC(StaticVals const& statV);
+   virtual void SetExchangeData();
    void SetBox();
    void ShiftMol(const bool A, const uint n, const uint from, const uint to);
    void RecoverMol(const bool A, const uint n, const uint from, const uint to);
@@ -84,6 +83,9 @@ class MoleculeExchange1 : public MoveBase
    vector<uint> molIndexA, kindIndexA, molIndexB, kindIndexB;
    vector< vector<uint> > molInCav;
    vector<cbmc::TrialMol> oldMolA, newMolA, oldMolB, newMolB;
+   //To store total sets of exchange pairs
+   vector<uint> exchangeRatioVec, kindSVec, kindLVec;
+   vector< vector<uint> > largeBBVec;
 
    int exDiff, exchangeRatio;
    double volCav, lastAccept;
@@ -101,31 +103,33 @@ class MoleculeExchange1 : public MoveBase
 
 inline void MoleculeExchange1::SetMEMC(StaticVals const& statV) 
 {
+  for(uint t = 0; t < exchangeRatioVec.size(); t++) {
+    kindS = kindL = largeBB[0] = largeBB[1] = -1;
        for(uint k = 0; k < molLookRef.GetNumCanSwapKind(); k++) {
-         if(molRef.kinds[k].name == statV.memcVal.largeKind) {
+         if(molRef.kinds[k].name == statV.memcVal.largeKind[t]) {
            kindL = molLookRef.GetCanSwapKind(k);
-         } else if(molRef.kinds[k].name == statV.memcVal.smallKind) {
+         } else if(molRef.kinds[k].name == statV.memcVal.smallKind[t]) {
 	          kindS = molLookRef.GetCanSwapKind(k);
          }
        }
 
        if(kindS == -1) {
           printf("Error: Residue name %s was not found in PDB file as small molecule kind to be exchanged.\n", 
-            statV.memcVal.smallKind.c_str());
+            statV.memcVal.smallKind[t].c_str());
           exit(EXIT_FAILURE);
        }
 
        if(kindL == -1) {
           printf("Error: Residue name %s was not found in PDB file as large molecule kind to be exchanged.\n", 
-            statV.memcVal.largeKind.c_str());
+            statV.memcVal.largeKind[t].c_str());
           exit(EXIT_FAILURE);
        }
          
        for(uint i = 0; i < molRef.kinds[kindL].NumAtoms(); i++) {
-          if(molRef.kinds[kindL].atomNames[i] == statV.memcVal.largeBBAtom1) {
+          if(molRef.kinds[kindL].atomNames[i] == statV.memcVal.largeBBAtom1[t]) {
             largeBB[0] = i;
           }
-          if(molRef.kinds[kindL].atomNames[i] == statV.memcVal.largeBBAtom2){
+          if(molRef.kinds[kindL].atomNames[i] == statV.memcVal.largeBBAtom2[t]){
             largeBB[1] = i;
           }
        }
@@ -133,9 +137,9 @@ inline void MoleculeExchange1::SetMEMC(StaticVals const& statV)
        for(uint i = 0; i < 2; i++) {
           if(largeBB[i] == -1) {
             printf("Error: Atom name %s or %s was not found in %s residue.\n",
-              statV.memcVal.largeBBAtom1.c_str(),
-              statV.memcVal.largeBBAtom2.c_str(),
-              statV.memcVal.largeKind.c_str());
+              statV.memcVal.largeBBAtom1[t].c_str(),
+              statV.memcVal.largeBBAtom2[t].c_str(),
+              statV.memcVal.largeKind[t].c_str());
             exit(EXIT_FAILURE);
           }
        }
@@ -148,6 +152,11 @@ inline void MoleculeExchange1::SetMEMC(StaticVals const& statV)
             }
           }
        }
+    kindSVec.push_back(kindS);
+    kindLVec.push_back(kindL);
+    vector<uint> temp(largeBB, largeBB + 2);
+    largeBBVec.push_back(temp);
+  }
 }
 
 inline void MoleculeExchange1::AdjustExRatio()
@@ -183,35 +192,44 @@ inline void MoleculeExchange1::AdjustExRatio()
 inline void MoleculeExchange1::SetBox()
 {
 #if ENSEMBLE == GEMC
-   double density;
-   double maxDens = 0.0;
-   uint densB;
-   //choose the sourceBox to be the dense phase
-   for(uint b = 0; b < BOX_TOTAL; b++)
-   {
-     density = 0.0;
-     for(uint k = 0; k < molLookRef.GetNumKind(); k++)
-     {
-       density += molLookRef.NumKindInBox(k, b) * boxDimRef.volInv[b] *
-	 molRef.kinds[k].molMass;
-     }
-     if(density > maxDens)
-     {
-       maxDens = density;
-       densB = b;
-     }
-   }
+  uint densB = mv::BOX0;
+  if(((counter + 1) % perAdjust) == 0) {
+    double density;
+    double maxDens = 0.0;
+    //choose the sourceBox to be the dense phase
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      density = 0.0;
+      for(uint k = 0; k < molLookRef.GetNumKind(); k++) {
+        density += molLookRef.NumKindInBox(k, b) * boxDimRef.volInv[b] *
+                    molRef.kinds[k].molMass;
+      }
+      if(density > maxDens) {
+        maxDens = density;
+        densB = b;
+      }
+    }
+  }
 
-   //Pick box in dense phase
-   sourceBox = densB; 
-   //Pick the destination box
-   prng.SetOtherBox(destBox, sourceBox);
-   //prng.PickBoxPair(sourceBox, destBox, subDraw, movPerc);
+  //Pick box in dense phase
+  sourceBox = densB; 
+  //Pick the destination box
+  prng.SetOtherBox(destBox, sourceBox);
+  //prng.PickBoxPair(sourceBox, destBox, subDraw, movPerc);
 
 #elif ENSEMBLE == GCMC
    sourceBox = 0;
    destBox = 1;
 #endif
+}
+
+inline void MoleculeExchange1::SetExchangeData()
+{
+  uint exType = prng.randIntExc(exchangeRatioVec.size());
+  kindS = kindSVec[exType];
+  kindL = kindLVec[exType];
+  exchangeRatio = exchangeRatioVec[exType];
+  largeBB[0] = largeBBVec[exType][0];
+  largeBB[1] = largeBBVec[exType][1];
 }
 
 
@@ -296,6 +314,8 @@ inline uint MoleculeExchange1::GetBoxPairAndMol(const double subDraw,
    prng.PickBool(insertL, subDraw, movPerc);
    //Set the source and dest Box.
    SetBox();
+   //pick one of the exchange type
+   SetExchangeData();
 
    //adjust exchange rate based on number of small kind in cavity
    //AdjustExRatio();

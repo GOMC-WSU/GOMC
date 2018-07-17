@@ -22,12 +22,10 @@ class IntraMoleculeExchange1 : public MoveBase
 
    IntraMoleculeExchange1(System &sys, StaticVals const& statV) :
    ffRef(statV.forcefield), molLookRef(sys.molLookupRef), MoveBase(sys, statV),
-   cavity(statV.intraMemcVal.subVol), cavA(3), invCavA(3), kindS(-1), kindL(-1),
+   cavity(statV.intraMemcVal.subVol), cavA(3), invCavA(3),
    perAdjust(statV.GetPerAdjust()), cavB(3), invCavB(3) 
    {
      enableID = statV.intraMemcVal.enable;
-     largeBB[0] = -1;
-     largeBB[1] = -1;
 
      if(enableID) {
         if(molLookRef.GetNumCanSwapKind() < 2) {
@@ -42,7 +40,7 @@ class IntraMoleculeExchange1 : public MoveBase
           cavity.x = cavity.y;
               
         volCav = cavity.x * cavity.y * cavity.z;
-        exchangeRatio = statV.intraMemcVal.exchangeRatio;
+        exchangeRatioVec = statV.intraMemcVal.exchangeRatio;
 
         SetMEMC(statV); 
 
@@ -63,6 +61,7 @@ class IntraMoleculeExchange1 : public MoveBase
 
    virtual void AdjustExRatio();
    virtual void SetMEMC(StaticVals const& statV);
+   virtual void SetExchangeData();
    void ShiftMol(const uint n, const bool kindA);
    void RecoverMol(const uint n, const bool kindA);
    virtual uint PickMolInCav();
@@ -78,6 +77,9 @@ class IntraMoleculeExchange1 : public MoveBase
    vector<uint> molIndexA, kindIndexA, molIndexB, kindIndexB;
    vector<cbmc::TrialMol> oldMolA, newMolA, oldMolB, newMolB;
    vector< vector<uint> > molInCav;
+    //To store total sets of exchange pairs
+   vector<uint> exchangeRatioVec, kindSVec, kindLVec;
+   vector< vector<uint> > largeBBVec;
 
    int exDiff, exchangeRatio;
    double volCav, lastAccept;
@@ -92,31 +94,33 @@ class IntraMoleculeExchange1 : public MoveBase
 
 inline void IntraMoleculeExchange1::SetMEMC(StaticVals const& statV) 
 {
+  for(uint t = 0; t < exchangeRatioVec.size(); t++) {
+    kindS = kindL = largeBB[0] = largeBB[1] = -1;
        for(uint k = 0; k < molLookRef.GetNumCanSwapKind(); k++) {
-         if(molRef.kinds[k].name == statV.intraMemcVal.largeKind) {
+         if(molRef.kinds[k].name == statV.intraMemcVal.largeKind[t]) {
            kindL = molLookRef.GetCanSwapKind(k);
-         } else if(molRef.kinds[k].name == statV.intraMemcVal.smallKind) {
+         } else if(molRef.kinds[k].name == statV.intraMemcVal.smallKind[t]) {
 	          kindS = molLookRef.GetCanSwapKind(k);
          }
        }
 
        if(kindS == -1) {
           printf("Error: Residue name %s was not found in PDB file as small molecule kind to be exchanged.\n",
-            statV.intraMemcVal.smallKind.c_str());
+            statV.intraMemcVal.smallKind[t].c_str());
           exit(EXIT_FAILURE);
        }
 
        if(kindL == -1) {
           printf("Error: Residue name %s was not found in PDB file as large molecule kind to be exchanged.\n",
-            statV.intraMemcVal.largeKind.c_str());
+            statV.intraMemcVal.largeKind[t].c_str());
           exit(EXIT_FAILURE);
        }
          
        for(uint i = 0; i < molRef.kinds[kindL].NumAtoms(); i++) {
-          if(molRef.kinds[kindL].atomNames[i] == statV.intraMemcVal.largeBBAtom1) {
+          if(molRef.kinds[kindL].atomNames[i] == statV.intraMemcVal.largeBBAtom1[t]) {
             largeBB[0] = i;
           }
-          if(molRef.kinds[kindL].atomNames[i] == statV.intraMemcVal.largeBBAtom2){
+          if(molRef.kinds[kindL].atomNames[i] == statV.intraMemcVal.largeBBAtom2[t]){
             largeBB[1] = i;
           }
        }
@@ -124,9 +128,9 @@ inline void IntraMoleculeExchange1::SetMEMC(StaticVals const& statV)
        for(uint i = 0; i < 2; i++) {
           if(largeBB[i] == -1) {
             printf("Error: Atom name %s or %s was not found in %s residue.\n",
-              statV.intraMemcVal.largeBBAtom1.c_str(),
-              statV.intraMemcVal.largeBBAtom2.c_str(),
-              statV.intraMemcVal.largeKind.c_str());
+              statV.intraMemcVal.largeBBAtom1[t].c_str(),
+              statV.intraMemcVal.largeBBAtom2[t].c_str(),
+              statV.intraMemcVal.largeKind[t].c_str());
             exit(EXIT_FAILURE);
           }
        }
@@ -139,6 +143,11 @@ inline void IntraMoleculeExchange1::SetMEMC(StaticVals const& statV)
             }
           }
        }
+    kindSVec.push_back(kindS);
+    kindLVec.push_back(kindL);
+    vector<uint> temp(largeBB, largeBB + 2);
+    largeBBVec.push_back(temp);
+  }
 }
 
 inline void IntraMoleculeExchange1::AdjustExRatio()
@@ -169,6 +178,16 @@ inline void IntraMoleculeExchange1::AdjustExRatio()
     printf("Average Mol In Cavity: %d. Exchange Ratio: %d \n", exMax,
 	   exchangeRatio);
   }
+}
+
+inline void IntraMoleculeExchange1::SetExchangeData()
+{
+  uint exType = prng.randIntExc(exchangeRatioVec.size());
+  kindS = kindSVec[exType];
+  kindL = kindLVec[exType];
+  exchangeRatio = exchangeRatioVec[exType];
+  largeBB[0] = largeBBVec[exType][0];
+  largeBB[1] = largeBBVec[exType][1];
 }
 
 inline uint IntraMoleculeExchange1::PickMolInCav()
@@ -243,6 +262,8 @@ inline uint IntraMoleculeExchange1::GetBoxPairAndMol(const double subDraw,
 #else
    prng.PickBox(sourceBox, subDraw, movPerc);
 #endif
+
+   SetExchangeData();
 
    molIndexA.clear();
    kindIndexA.clear();
