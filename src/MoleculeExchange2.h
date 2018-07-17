@@ -53,11 +53,11 @@ inline void MoleculeExchange2::SetMEMC(StaticVals const& statV)
 {
   for(uint t = 0; t < exchangeRatioVec.size(); t++) {
     smallBB[0] = smallBB[1] = -1;
-       for(uint i = 0; i < molRef.kinds[kindS].NumAtoms(); i++) { 
-          if(molRef.kinds[kindS].atomNames[i] == statV.memcVal.smallBBAtom1[t]) { 
+       for(uint i = 0; i < molRef.kinds[kindSVec[t]].NumAtoms(); i++) { 
+          if(molRef.kinds[kindSVec[t]].atomNames[i] == statV.memcVal.smallBBAtom1[t]) { 
             smallBB[0] = i;
           } 
-          if(molRef.kinds[kindS].atomNames[i] == statV.memcVal.smallBBAtom2[t]){
+          if(molRef.kinds[kindSVec[t]].atomNames[i] == statV.memcVal.smallBBAtom2[t]){
             smallBB[1] = i; 
           } 
        } 
