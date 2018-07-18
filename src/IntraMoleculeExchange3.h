@@ -104,18 +104,22 @@ inline uint IntraMoleculeExchange3::PickMolInCav()
      TransposeMatrix(invCavA, cavA); 
 
      //Find the small molecule kind in the cavityA
-     if(calcEnRef.FindMolInCavity(molInCav, centerA, cavity, invCavA,
-        sourceBox, kindS, exchangeRatio)) {
+     if((exchangeRatio == 1) || calcEnRef.FindMolInCavity(molInCav, centerA,
+        cavity, invCavA, sourceBox, kindS, exchangeRatio)) {
         //Find the exchangeRatio number of molecules kindS in cavity
         numInCavA = exchangeRatio;
         //add the random picked small molecule to the list. 
         molIndexA.push_back(pickedS); 
         kindIndexA.push_back(pickedKS);
-        numSCavA = molInCav[kindS].size();
-        //delete the picked small molecule from list
-        for(uint s = 0; s < numSCavA; s++) { 
-          if(pickedS == molInCav[kindS][s]) 
-            molInCav[kindS].erase(molInCav[kindS].begin() + s); 
+        if(exchangeRatio == 1) {
+          numSCavA = 1;
+        } else {
+          numSCavA = molInCav[kindS].size();
+          //delete the picked small molecule from list
+          for(uint s = 0; s < numSCavA; s++) { 
+            if(pickedS == molInCav[kindS][s]) 
+              molInCav[kindS].erase(molInCav[kindS].begin() + s); 
+          }
         }
 
         for(uint n = 1; n < numInCavA; n++) {
@@ -148,10 +152,14 @@ inline uint IntraMoleculeExchange3::PickMolInCav()
      SetBasis(cavB, prng.RandomUnitVect());
      //Calculate inverse matrix for cav. Here Inv = Transpose 
      TransposeMatrix(invCavB, cavB);
-     //find how many of KindS exist in this centerB (COM of kindL)
-     calcEnRef.FindMolInCavity(molInCav, centerB, cavity, invCavB,
-			       sourceBox, kindS, exchangeRatio);
-     numSCavB = molInCav[kindS].size();
+     if(exchangeRatio == 1) {
+       numSCavB = 0;
+     } else {
+      //find how many of KindS exist in this centerB (COM of kindL)
+      calcEnRef.FindMolInCavity(molInCav, centerB, cavity, invCavB,
+              sourceBox, kindS, exchangeRatio);
+      numSCavB = molInCav[kindS].size();
+     }
    }
    return state;
 }
