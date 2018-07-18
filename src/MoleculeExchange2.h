@@ -142,19 +142,24 @@ inline uint MoleculeExchange2::PickMolInCav()
      TransposeMatrix(invCavA, cavA); 
  
      //Find the molecule kind 0 in the cavity 
-     if(calcEnRef.FindMolInCavity(molInCav, center, cavity, invCavA, sourceBox, 
-				  kindS, exchangeRatio)) { 
+     if((exchangeRatio == 1) || calcEnRef.FindMolInCavity(molInCav, center,
+       cavity, invCavA, sourceBox, kindS, exchangeRatio)) { 
        //Find the exchangeRatio number of molecules kind 0 in cavity 
        numInCavA = exchangeRatio; 
        //add the random picked small molecule to the list. 
        molIndexA.push_back(pickedS); 
-       kindIndexA.push_back(pickedKS); 
-       totMolInCav = molInCav[kindS].size(); 
-       //delete the picked small molecule from list
-       for(uint s = 0; s < totMolInCav; s++) { 
-	      if(pickedS == molInCav[kindS][s]) 
-	        molInCav[kindS].erase(molInCav[kindS].begin() + s); 
-       } 
+       kindIndexA.push_back(pickedKS);
+       if(exchangeRatio == 1) {
+        totMolInCav = 1;
+       } else {
+          totMolInCav = molInCav[kindS].size(); 
+          //delete the picked small molecule from list
+          for(uint s = 0; s < totMolInCav; s++) { 
+            if(pickedS == molInCav[kindS][s]) 
+              molInCav[kindS].erase(molInCav[kindS].begin() + s); 
+          } 
+       }
+       
        for(uint n = 1; n < numInCavA; n++) { 
         //pick random exchangeRatio number of kindS in cavity 
         uint picked = prng.randIntExc(molInCav[kindS].size()); 
@@ -199,11 +204,15 @@ inline uint MoleculeExchange2::ReplaceMolecule()
      //Calculate inverse matrix for cav. Here Inv = Transpose  
      TransposeMatrix(invCavA, cavA); 
      //Use to shift to the COM of new molecule 
-     center = comCurrRef.Get(molIndexA[0]); 
-     //find how many of KindS exist in this center 
-     calcEnRef.FindMolInCavity(molInCav, center, cavity, invCavA, sourceBox, 
-			       kindS, exchangeRatio); 
-     totMolInCav = molInCav[kindS].size(); 
+     center = comCurrRef.Get(molIndexA[0]);
+     if(exchangeRatio == 1) {
+       totMolInCav = 0;
+     } else { 
+        //find how many of KindS exist in this center 
+        calcEnRef.FindMolInCavity(molInCav, center, cavity, invCavA, sourceBox, 
+                                  kindS, exchangeRatio); 
+        totMolInCav = molInCav[kindS].size(); 
+     }
      //pick exchangeRatio number of Small molecule from dest box 
      state = prng.PickMol(kindS, kindIndexB, molIndexB, numInCavB, destBox);   
    } 

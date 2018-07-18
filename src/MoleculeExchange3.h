@@ -106,17 +106,21 @@ inline uint MoleculeExchange3::PickMolInCav()
      TransposeMatrix(invCavA, cavA);
 
      //Find the molecule kind 0 in the cavity
-     if(calcEnRef.FindMolInCavity(molInCav, center, cavity, invCavA, sourceBox,
-				  kindS, exchangeRatio)) {
+     if((exchangeRatio == 1) || calcEnRef.FindMolInCavity(molInCav, center,
+       cavity, invCavA, sourceBox, kindS, exchangeRatio)) {
        //Find the exchangeRatio number of molecules kind 0 in cavity
        numInCavA = exchangeRatio;
        //add the random picked small molecule to the list.
        molIndexA.push_back(pickedS);
        kindIndexA.push_back(pickedKS);
-       totMolInCav = molInCav[kindS].size();
-       for(uint s = 0; s < totMolInCav; s++) {
-	      if(pickedS == molInCav[kindS][s])
-	        molInCav[kindS].erase(molInCav[kindS].begin() + s);
+       if(exchangeRatio == 1) {
+        totMolInCav = 1;
+       } else {
+          totMolInCav = molInCav[kindS].size();
+          for(uint s = 0; s < totMolInCav; s++) {
+            if(pickedS == molInCav[kindS][s])
+              molInCav[kindS].erase(molInCav[kindS].begin() + s);
+          }
        }
 
        for(uint n = 1; n < numInCavA; n++) {
@@ -159,10 +163,14 @@ inline uint MoleculeExchange3::ReplaceMolecule()
      //use the predefine atom in kindL as the center
      uint start = molRef.MolStart(molIndexA[0]) + largeBB[0];
      center = coordCurrRef.Get(start);
-     //find how many of KindS exist in this center
-     calcEnRef.FindMolInCavity(molInCav, center, cavity, invCavA, sourceBox,
-			       kindS, exchangeRatio);
-     totMolInCav = molInCav[kindS].size();
+     if(exchangeRatio == 1) {
+       totMolInCav = 0;
+     } else { 
+        //find how many of KindS exist in this center
+        calcEnRef.FindMolInCavity(molInCav, center, cavity, invCavA, sourceBox,
+                kindS, exchangeRatio);
+        totMolInCav = molInCav[kindS].size();
+     }
      //pick exchangeRatio number of Small molecule from dest box
      state = prng.PickMol(kindS, kindIndexB, molIndexB, numInCavB, destBox);
    }
