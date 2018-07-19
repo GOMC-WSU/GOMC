@@ -81,6 +81,9 @@ ConfigSetup::ConfigSetup(void)
   sys.moves.rotate = DBL_MAX;
   sys.moves.intraSwap = DBL_MAX;
   sys.moves.regrowth = DBL_MAX;
+  sys.moves.crankShaft = DBL_MAX;
+  sys.moves.memc = DBL_MAX;
+  sys.moves.intraMemc = DBL_MAX;
   out.state.settings.enable = true;
   out.restart.settings.enable = true;
   out.console.enable = true;
@@ -431,6 +434,10 @@ void ConfigSetup::Init(const char *fileName)
       sys.moves.regrowth = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Regrowth move frequency",
              sys.moves.regrowth);
+    } else if(line[0] == "CrankShaftFreq") {
+      sys.moves.crankShaft = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: Crank-Shaft move frequency",
+             sys.moves.crankShaft);
     } else if(line[0] == "RotFreq") {
       sys.moves.rotate = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Rotation move frequency",
@@ -753,8 +760,7 @@ void ConfigSetup::fillDefaults(void)
            sys.moves.intraSwap);
   }
 
-  if(sys.moves.intraMemc == DBL_MAX)
-  {
+  if(sys.moves.intraMemc == DBL_MAX) {
     sys.moves.intraMemc = 0.0;
     printf("%-40s %-4.4f \n", "Default: Intra-MEMC move frequency",
 	     sys.moves.intraMemc);
@@ -764,6 +770,12 @@ void ConfigSetup::fillDefaults(void)
     sys.moves.regrowth = 0.000;
     printf("%-40s %-4.4f \n", "Default: Regrowth move frequency",
            sys.moves.regrowth);
+  }
+
+  if(sys.moves.crankShaft == DBL_MAX) {
+    sys.moves.crankShaft = 0.000;
+    printf("%-40s %-4.4f \n", "Default: Crank-Shaft move frequency",
+           sys.moves.crankShaft);
   }
 
   #ifdef VARIABLE_PARTICLE_NUMBER
@@ -982,7 +994,7 @@ void ConfigSetup::verifyInputs(void)
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
          sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
-	 sys.moves.memc + sys.moves.intraMemc - 1.0) > 0.01) {
+	 sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(EXIT_FAILURE);
   }
@@ -992,7 +1004,8 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc - 1.0) > 0.01) {
+         sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc + 
+         sys.moves.crankShaft - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(EXIT_FAILURE);
   }
@@ -1003,14 +1016,15 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.transfer + sys.moves.regrowth + sys.moves.memc
-         + sys.moves.intraMemc - 1.0) > 0.01) {
+         sys.moves.transfer + sys.moves.regrowth + sys.moves.memc + 
+         sys.moves.intraMemc + sys.moves.crankShaft - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #else
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.regrowth + sys.moves.intraMemc - 1.0) > 0.01) {
+         sys.moves.regrowth + sys.moves.intraMemc + sys.moves.crankShaft - 
+         1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
