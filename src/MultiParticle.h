@@ -143,7 +143,7 @@ inline uint MultiParticle::Transform()
       TranslateForceBiased(molIndex);
     }
     thisMol++;
-  } 
+  }
   return state;
 }
 
@@ -235,6 +235,12 @@ inline double MultiParticle::GetCoeff()
         (2.0*sinh(lbf_old.z * t_max[bPick]));
     }
     thisMol++;
+
+    // In case where force or torque is a large negative number (ex. -800)
+    // the exp value becomes inf. In these situations we have to return 0 to
+    // reject the move
+    if(isinf(w_ratio))
+      return 0.0;
   }
   return w_ratio;
 }
