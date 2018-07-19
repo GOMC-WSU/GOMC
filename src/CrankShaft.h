@@ -25,6 +25,7 @@ public:
   virtual uint Transform();
   virtual void CalcEn();
   virtual void Accept(const uint earlyReject, const uint step);
+  virtual void PrintAcceptKind();
 private:
   uint GetBoxAndMol(const double subDraw, const double movPerc);
   MolPick molPick;
@@ -40,8 +41,20 @@ private:
   Forcefield const& ffRef;
 };
 
-inline uint CrankShaft::GetBoxAndMol
-(const double subDraw, const double movPerc)
+void CrankShaft::PrintAcceptKind() {
+  for(uint k = 0; k < molRef.GetKindsCount(); k++) {
+    printf("%-30s %-5s ", "% Accepted Crank-Shaft ", molRef.kinds[k].name.c_str());
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      if(trial[b][k] > 0)
+        printf("%10.5f ", (double)(100.0 * accepted[b][k]/trial[b][k]));
+      else  
+        printf("%10.5f ", 0.0);
+    }
+    std::cout << std::endl;
+  }
+}
+
+inline uint CrankShaft::GetBoxAndMol(const double subDraw, const double movPerc)
 {
 
 #if ENSEMBLE == GCMC
@@ -160,6 +173,7 @@ inline void CrankShaft::Accept(const uint rejectState, const uint step)
 
   subPick = mv::GetMoveSubIndex(mv::CRANKSHAFT, sourceBox);
   moveSetRef.Update(result, subPick, step);
+  AcceptKind(result, kindIndex, sourceBox);
 }
 
 #endif

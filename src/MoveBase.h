@@ -48,6 +48,8 @@ public:
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
     fixBox0 = statV.fixVolBox0;
 #endif
+    trial.resize(BOX_TOTAL);
+    accepted.resize(BOX_TOTAL);
   }
 
   //Based on the random draw, determine the move kind, box, and
@@ -64,6 +66,13 @@ public:
 
   //This function carries out actions based on the internal acceptance state.
   virtual void Accept(const uint rejectState, const uint step) = 0;
+
+  //This function carries out actions based on the internal acceptance state and
+  //molecule kind
+  void AcceptKind(const uint rejectState, const uint kind, const uint box);
+
+  //This function print the internal acceptance state for each molecule kind
+  virtual void PrintAcceptKind() = 0;
 
   virtual ~MoveBase() {}
 
@@ -84,7 +93,17 @@ protected:
   const bool ewald;
   CellList& cellList;
   bool molRemoved, fixBox0;
+  //For move acceptance of each molecule kind
+  std::vector< std::vector<uint> > trial, accepted;
 };
+
+inline void MoveBase::AcceptKind(const uint rejectState, const uint kind,
+                                const uint box)
+{
+  trial[box][kind]++;
+  if(rejectState)
+    accepted[box][kind]++;
+}
 
 //Data needed for transforming a molecule's position via inter or intrabox
 //moves.
@@ -137,17 +156,37 @@ class Translate : public MoveBase, public MolTransformBase
 {
 public:
 
-  Translate(System &sys, StaticVals const& statV) : MoveBase(sys, statV) {}
+  Translate(System &sys, StaticVals const& statV) : MoveBase(sys, statV) 
+  {
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      trial[b].resize(molRef.GetKindsCount(), 0);
+      accepted[b].resize(molRef.GetKindsCount(), 0);
+    }
+  }
 
   virtual uint Prep(const double subDraw, const double movPerc);
   uint ReplaceRot(Rotate const& other);
   virtual uint Transform();
   virtual void CalcEn();
   virtual void Accept(const uint rejectState, const uint step);
+  virtual void PrintAcceptKind();
 private:
   Intermolecular inter_LJ, inter_Real, recip;
   XYZ newCOM;
 };
+
+void Translate::PrintAcceptKind() {
+  for(uint k = 0; k < molRef.GetKindsCount(); k++) {
+    printf("%-30s %-5s ", "% Accepted Displacement ", molRef.kinds[k].name.c_str());
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      if(trial[b][k] > 0)
+        printf("%10.5f ", (double)(100.0 * accepted[b][k]/trial[b][k]));
+      else
+        printf("%10.5f ", 0.0);
+    }
+    std::cout << std::endl;
+  }
+}
 
 inline uint Translate::Prep(const double subDraw, const double movPerc)
 {
@@ -212,20 +251,41 @@ inline void Translate::Accept(const uint rejectState, const uint step)
 
   subPick = mv::GetMoveSubIndex(mv::DISPLACE, b);
   moveSetRef.Update(result, subPick, step);
+  AcceptKind(result, mk, b);
 }
 
 class Rotate : public MoveBase, public MolTransformBase
 {
 public:
-  Rotate(System &sys, StaticVals const& statV) : MoveBase(sys, statV) {}
+  Rotate(System &sys, StaticVals const& statV) : MoveBase(sys, statV) 
+  {
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      trial[b].resize(molRef.GetKindsCount(), 0);
+      accepted[b].resize(molRef.GetKindsCount(), 0);
+    }
+  }
 
   virtual uint Prep(const double subDraw, const double movPerc);
   virtual uint Transform();
   virtual void CalcEn();
   virtual void Accept(const uint earlyReject, const uint step);
+  virtual void PrintAcceptKind();
 private:
   Intermolecular inter_LJ, inter_Real, recip;
 };
+
+void Rotate::PrintAcceptKind() {
+  for(uint k = 0; k < molRef.GetKindsCount(); k++) {
+    printf("%-30s %-5s ", "% Accepted Rotation ", molRef.kinds[k].name.c_str());
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      if(trial[b][k] > 0)
+        printf("%10.5f ", (double)(100.0 * accepted[b][k]/trial[b][k]));
+      else
+        printf("%10.5f ", 0.0);
+    }
+    std::cout << std::endl;
+  }
+}
 
 inline uint Rotate::Prep(const double subDraw, const double movPerc)
 {
@@ -299,6 +359,7 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
 
   subPick = mv::GetMoveSubIndex(mv::ROTATE, b);
   moveSetRef.Update(result, subPick, step);
+  AcceptKind(result, mk, b);
 }
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
@@ -313,6 +374,7 @@ public:
   virtual uint Transform();
   double GetCoeff() const;
   virtual void Accept(const uint rejectState, const uint step);
+  virtual void PrintAcceptKind();
 private:
   //Note: This is only used for GEMC-NPT
   uint bPick[BOX_TOTAL], subPick, subPickT[BOX_TOTAL];
@@ -340,6 +402,15 @@ inline VolumeTransfer::VolumeTransfer(System &sys, StaticVals const& statV)  :
   newMolsPos.Init(sys.coordinates.Count());
   newCOMs.Init(statV.mol.count);
   isOrth = statV.isOrthogonal;
+}
+
+void VolumeTransfer::PrintAcceptKind() {
+  printf("%-37s", "% Accepted Volume-Transfer ");
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    uint index = mv::GetMoveSubIndex(mv::VOL_TRANSFER, b);
+    printf("%10.5f ", 100.0 * moveSetRef.GetAccept(index));
+  }
+  std::cout << std::endl;
 }
 
 inline uint VolumeTransfer::Prep(const double subDraw, const double movPerc)

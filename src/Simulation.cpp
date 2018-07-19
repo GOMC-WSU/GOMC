@@ -73,6 +73,7 @@ void Simulation::RunSimulation(void)
       RunningCheck(step);
 #endif
   }
+  system->PrintAcceptance();
   system->PrintTime();
 }
 

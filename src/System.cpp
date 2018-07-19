@@ -204,22 +204,44 @@ void System::Accept(const uint kind, const uint rejectState, const uint step)
   moves[kind]->Accept(rejectState, step);
 }
 
+void System::PrintAcceptance()
+{
+  std::cout << std::endl;
+  printf("%-24s %-15s", "Move Type", "Mol. Kind");
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    sstrm::Converter toStr;
+    std::string numStr = "";
+    toStr << b;
+    toStr >> numStr;
+    numStr = "BOX_" + numStr;
+    printf("%-11s", numStr.c_str());
+  }
+  std::cout << std::endl;
+
+  for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++) {
+    if(statV.movePerc[m] > 0.0)
+      moves[m]->PrintAcceptKind();
+  }
+  std::cout << std::endl;
+}
+
 void System::PrintTime()
 {
   //std::cout << "MC moves Execution time:\n";
-  printf("%-30s %10.4f sec.\n", "Displacement:", moveTime[mv::DISPLACE]);
-  printf("%-30s %10.4f sec.\n", "Rotation:", moveTime[mv::ROTATE]);
-  printf("%-30s %10.4f sec.\n", "Intra-Swap:", moveTime[mv::INTRA_SWAP]);
-  printf("%-30s %10.4f sec.\n", "Regrowth:", moveTime[mv::REGROWTH]);
-  printf("%-30s %10.4f sec.\n", "Intra-MEMC:", moveTime[mv::INTRA_MEMC]);
-  printf("%-30s %10.4f sec.\n", "Crank-Shaft:", moveTime[mv::CRANKSHAFT]);
+  printf("%-36s %10.4f    sec.\n", "Displacement:", moveTime[mv::DISPLACE]);
+  printf("%-36s %10.4f    sec.\n", "Rotation:", moveTime[mv::ROTATE]);
+  printf("%-36s %10.4f    sec.\n", "Intra-Swap:", moveTime[mv::INTRA_SWAP]);
+  printf("%-36s %10.4f    sec.\n", "Regrowth:", moveTime[mv::REGROWTH]);
+  printf("%-36s %10.4f    sec.\n", "Intra-MEMC:", moveTime[mv::INTRA_MEMC]);
+  printf("%-36s %10.4f    sec.\n", "Crank-Shaft:", moveTime[mv::CRANKSHAFT]);
 
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-  printf("%-30s %10.4f sec.\n", "Molecule-Transfer:",
+  printf("%-36s %10.4f    sec.\n", "Mol-Transfer:",
          moveTime[mv::MOL_TRANSFER]);
-  printf("%-30s %10.4f sec.\n", "Molecule-Exchange:", moveTime[mv::MEMC]);
+  printf("%-36s %10.4f    sec.\n", "MEMC:", moveTime[mv::MEMC]);
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
-  printf("%-30s %10.4f sec.\n", "Volume-Transfer:", moveTime[mv::VOL_TRANSFER]);
+  printf("%-36s %10.4f    sec.\n", "Vol-Transfer:", moveTime[mv::VOL_TRANSFER]);
 #endif
+  std::cout << std::endl;
 }

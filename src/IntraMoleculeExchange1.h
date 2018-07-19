@@ -49,13 +49,18 @@ class IntraMoleculeExchange1 : public MoveBase
         molInCavCount = 0;
         lastAccept = 0.0;
         exDiff = 1;
+        for(uint b = 0; b < BOX_TOTAL; b++) {
+          trial[b].resize(molRef.GetKindsCount() * molRef.GetKindsCount(), 0.0);
+          accepted[b].resize(molRef.GetKindsCount() * molRef.GetKindsCount(), 0.0);
         }
+      }
    }
 
    virtual uint Prep(const double subDraw, const double movPerc);
    virtual uint Transform();
    virtual void CalcEn();
    virtual void Accept(const uint earlyReject, const uint step);
+   virtual void PrintAcceptKind();
 
  protected:
 
@@ -91,6 +96,23 @@ class IntraMoleculeExchange1 : public MoveBase
    MoleculeLookup & molLookRef;
    Forcefield const& ffRef;
 };
+
+void IntraMoleculeExchange1::PrintAcceptKind() {
+  for(uint k = 0; k < kindLVec.size(); k++) {
+    uint ks = kindSVec[k];
+    uint kl = kindLVec[k];
+    uint index = ks * molRef.GetKindsCount() + kl;
+    printf("%-22s %5s - %-5s ", "% Accepted Intra-MEMC ", molRef.kinds[kl].name.c_str(),
+          molRef.kinds[ks].name.c_str());
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      if(trial[b][index] > 0)
+        printf("%10.5f ", (double)(100.0 * accepted[b][index]/trial[b][index]));
+      else  
+        printf("%10.5f ", 0.0);
+    }
+    std::cout << std::endl;
+  }  
+}
 
 inline void IntraMoleculeExchange1::SetMEMC(StaticVals const& statV) 
 {
@@ -539,6 +561,9 @@ inline void IntraMoleculeExchange1::Accept(const uint rejectState,
 
    subPick = mv::GetMoveSubIndex(mv::INTRA_MEMC, sourceBox);
    moveSetRef.Update(result, subPick, step);
+   //If we consider total aceeptance of S->L and L->S
+   AcceptKind(result, kindS * molRef.GetKindsCount() + kindL, sourceBox);
+   AcceptKind(result, kindL * molRef.GetKindsCount() + kindS, sourceBox);
 
 }
 
