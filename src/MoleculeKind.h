@@ -94,6 +94,13 @@ public:
     builder->Regrowth(oldMol, newMol, molIndex);
   }
 
+  //Crank Shaft move
+  void CrankShaft(cbmc::TrialMol& oldMol, cbmc::TrialMol& newMol,
+		  const uint molIndex)
+  {
+    builder->CrankShaft(oldMol, newMol, molIndex);
+  }
+
   //Used in MEMC move
   void BuildIDNew(cbmc::TrialMol& newMol, const uint molIndex)
   { 

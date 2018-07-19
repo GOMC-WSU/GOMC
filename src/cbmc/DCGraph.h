@@ -9,6 +9,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CBMC.h"
 #include "DCComponent.h"
 #include "DCData.h"
+#include "MolSetup.h"
+#include "Setup.h"
+#include "MoleculeKind.h"
 #include <vector>
 #include <utility>
 
@@ -30,6 +33,7 @@ public:
 
   void Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
   void Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
+  void CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
   void BuildEdges(TrialMol& oldMol, TrialMol& newMol, uint molIndex,
                   const uint current);
   void BuildIDNew(TrialMol& newMol, uint molIndex);
@@ -41,6 +45,8 @@ public:
   ~DCGraph();
 
 private:
+  //Find the two nodes that are forming dihedral or angle and initialize it.
+  void InitCrankShaft(const mol_setup::MolKind& kind);
   //Store edge's atom that are connected to node and has more than 1 bond
   //Each edge is a node as well
   struct Edge {
@@ -65,9 +71,11 @@ private:
 
   DCComponent *idExchange;
   DCData data;
+  bool hasCrankShaft;
   std::vector<Node> nodes;
   std::vector<Edge> fringe;
   std::vector<bool> visited;
+  std::vector<DCComponent*> shaftNodesDih, shaftNodesAng;
 };
 }
 

@@ -105,6 +105,8 @@ std::vector<Dihedral> DihsOnBond(const MolKind& molKind, uint atom, uint partner
 std::vector<Angle> AtomEndAngles(const MolKind& molKind, uint atom);
 //List of angles with atom in middle
 std::vector<Angle> AtomMidAngles(const MolKind& molKind, uint atom);
+//List of angles with atom at one end, and mid in middle, atom first
+std::vector<Angle> AtomMidEndAngles(const MolKind& molKind, uint mid, uint atom);
 //List of bonds with atom at one end, atom first
 std::vector<Bond> AtomBonds(const MolKind& molKind, uint atom);
 
