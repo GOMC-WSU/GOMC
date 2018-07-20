@@ -83,6 +83,7 @@ void FFParticle::Init(ff_setup::Particle const& mie,
   //Size LJ particle kind arrays
   mass = new double [count];
   vdwKind = sys.ff.VDW_KIND;
+  vdwGeometricSigma = sys.ff.vdwGeometricSigma;
 
   //Size LJ-LJ pair arrays
   uint size = num::Sq(count);
@@ -280,10 +281,20 @@ void FFParticle::Blend(ff_setup::Particle const& mie, const double rCut)
       n[idx] = num::MeanA(mie.n, mie.n, i, j);
       n_1_4[idx] = num::MeanA(mie.n_1_4, mie.n_1_4, i, j);
       double cn = n[idx] / (n[idx] - 6) * pow(n[idx] / 6, (6 / (n[idx] - 6)));
-      double sigma = num::MeanA(mie.sigma, mie.sigma, i, j);
       double cn_1_4 = n_1_4[idx] / (n_1_4[idx] - 6) *
                       pow(n_1_4[idx] / 6, (6 / (n_1_4[idx] - 6)));
-      double sigma_1_4 = num::MeanA(mie.sigma_1_4, mie.sigma_1_4, i, j);
+
+      double sigma, sigma_1_4;
+      sigma = sigma_1_4 = 0.0;
+      
+      if(vdwGeometricSigma) {
+        sigma = num::MeanG(mie.sigma, mie.sigma, i, j);
+        sigma_1_4 = num::MeanG(mie.sigma_1_4, mie.sigma_1_4, i, j);
+      } else {
+        sigma = num::MeanA(mie.sigma, mie.sigma, i, j);
+        sigma_1_4 = num::MeanA(mie.sigma_1_4, mie.sigma_1_4, i, j);
+      }
+
       double tc = 1.0;
       double rRat = sigma / rCut;
       // calculate sig^2 and tc*sig^3
