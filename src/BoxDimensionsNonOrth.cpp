@@ -94,8 +94,7 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     //axis.Set(b, unslant.x, unslant.y, unslant.z);
     axis.Set(b, cellLength[b]);
 
-    XYZ unslant = TransformUnSlant(cellLength.Get(b), b);
-    if(unslant.Min() < 2.0 * rCut) {
+    if(axis.Get(b).Min() < 2.0 * rCut) {
       printf("Error: Cutoff value is large than half of minimum BOX%d length!\n", b);
       exit(EXIT_FAILURE);
     }
