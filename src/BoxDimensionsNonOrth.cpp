@@ -45,7 +45,7 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
       confVolume.axis[b].CopyRange(cellBasis[b], 0, 0, 3);
     } else {
       fprintf(stderr,
-              "Error: Cell Basis not specified in PDB or in.dat files.\n");
+              "Error: Cell Basis not specified in PDB or in.conf files.\n");
       exit(EXIT_FAILURE);
     }
 
@@ -93,6 +93,12 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     //XYZ unslant = TransformUnSlant(cellLength.Get(b), b);
     //axis.Set(b, unslant.x, unslant.y, unslant.z);
     axis.Set(b, cellLength[b]);
+
+    XYZ unslant = TransformUnSlant(cellLength.Get(b), b);
+    if(unslant.Min() < 2.0 * rCut) {
+      printf("Error: Cutoff value is large than half of minimum BOX%d length!\n", b);
+      exit(EXIT_FAILURE);
+    }
   }
   //Set half axis
   axis.CopyRange(halfAx, 0, 0, BOX_TOTAL);

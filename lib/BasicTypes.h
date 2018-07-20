@@ -126,6 +126,16 @@ struct XYZ {
       m = z;
     return m;
   }
+
+  double Min() const
+  {
+    double m = x;
+    if(y < m)
+      m = y;
+    if(z < m)
+      m = z;
+    return m;
+  }
 };
 
 inline std::ostream& operator << (std::ostream & stream, const XYZ& p)
