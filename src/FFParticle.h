@@ -135,7 +135,7 @@ protected:
   double rCutLow, rCutLowSq;
 
   uint count, vdwKind;
-  bool isMartini, ewald;
+  bool isMartini, ewald, vdwGeometricSigma;
 #ifdef GOMC_CUDA
   VariablesCUDA *varCUDA;
 #endif

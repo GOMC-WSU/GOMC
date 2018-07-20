@@ -77,6 +77,7 @@ ConfigSetup::ConfigSetup(void)
   sys.ff.rswitch = DBL_MAX;
   sys.ff.cutoff = DBL_MAX;
   sys.ff.cutoffLow = DBL_MAX;
+  sys.ff.vdwGeometricSigma = false;
   sys.moves.displace = DBL_MAX;
   sys.moves.rotate = DBL_MAX;
   sys.moves.intraSwap = DBL_MAX;
@@ -349,6 +350,10 @@ void ConfigSetup::Init(const char *fileName)
         sys.memcVal.readLargeBB = true;
         sys.intraMemcVal.readLargeBB = true;
       }
+    } else if(line[0] == "VDWGeometricSigma") {
+      sys.ff.vdwGeometricSigma = checkBool(line[1]);
+      if(sys.ff.vdwGeometricSigma)
+        printf("%-40s %-s A\n", "Info: Geometric mean to combine LJ sigma", "Active");
     } else if(line[0] == "Rcut") {
       sys.ff.cutoff = stringtod(line[1]);
       printf("%-40s %-4.4f A\n", "Info: Cutoff", sys.ff.cutoff);
