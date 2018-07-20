@@ -45,7 +45,7 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
       confVolume.axis[b].CopyRange(cellBasis[b], 0, 0, 3);
     } else {
       fprintf(stderr,
-              "Error: Cell Basis not specified in PDB or in.dat files.\n");
+              "Error: Cell Basis not specified in PDB or in.conf files.\n");
       exit(EXIT_FAILURE);
     }
 
@@ -66,6 +66,11 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
 
     axis.Set(b, cellBasis[b].Length(0), cellBasis[b].Length(1),
              cellBasis[b].Length(2));
+
+    if(axis.Get(b).Min() < 2.0 * rCut) {
+      printf("Error: Cutoff value is large than half of minimum BOX%d length!\n", b);
+      exit(EXIT_FAILURE);
+    }
     //Find Cosine Angle of alpha, beta and gamma
     cosAngle[b][0] = Dot(cellBasis[b].Get(1), cellBasis[b].Get(2)) /
                      (axis.Get(b).y * axis.Get(b).z);
