@@ -527,13 +527,15 @@ void ConfigSetup::Init(const char *fileName)
     else if(line[0] == "CellBasisVector1") {
       uint box = stringtoi(line[1]);
       if(box < BOX_TOTAL) {
-        XYZ temp;
-        sys.volume.boxCoordRead++;
-        sys.volume.hasVolume = (sys.volume.boxCoordRead == 3 * BOX_TOTAL);
-        temp.x = stringtod(line[2]);
-        temp.y = stringtod(line[3]);
-        temp.z = stringtod(line[4]);
-        sys.volume.axis[box].Set(0, temp);
+        if(!sys.volume.readCellBasis[box][0]) {
+          XYZ temp;
+          temp.x = stringtod(line[2]);
+          temp.y = stringtod(line[3]);
+          temp.z = stringtod(line[4]);
+          sys.volume.axis[box].Set(0, temp);
+          sys.volume.readCellBasis[box][0] = true;
+          sys.volume.hasVolume = sys.volume.ReadCellBasis();
+        }
       } else {
         std::cout << "Error: This simulation requires only " << BOX_TOTAL <<
                   " sets of Cell Basis Vector!" << std::endl;
@@ -542,13 +544,15 @@ void ConfigSetup::Init(const char *fileName)
     } else if(line[0] == "CellBasisVector2") {
       uint box = stringtoi(line[1]);
       if(box < BOX_TOTAL) {
-        XYZ temp;
-        sys.volume.boxCoordRead++;
-        sys.volume.hasVolume = (sys.volume.boxCoordRead == 3 * BOX_TOTAL);
-        temp.x = stringtod(line[2]);
-        temp.y = stringtod(line[3]);
-        temp.z = stringtod(line[4]);
-        sys.volume.axis[box].Set(1, temp);
+        if(!sys.volume.readCellBasis[box][1]) {
+          XYZ temp;
+          temp.x = stringtod(line[2]);
+          temp.y = stringtod(line[3]);
+          temp.z = stringtod(line[4]);
+          sys.volume.axis[box].Set(1, temp);
+          sys.volume.readCellBasis[box][1] = true;
+          sys.volume.hasVolume = sys.volume.ReadCellBasis();
+        }
       } else {
         std::cout << "Error: This simulation requires only " << BOX_TOTAL <<
                   " sets of Cell Basis Vector!" << std::endl;
@@ -557,13 +561,15 @@ void ConfigSetup::Init(const char *fileName)
     } else if(line[0] == "CellBasisVector3") {
       uint box = stringtoi(line[1]);
       if(box < BOX_TOTAL) {
-        XYZ temp;
-        sys.volume.boxCoordRead++;
-        sys.volume.hasVolume = (sys.volume.boxCoordRead == 3 * BOX_TOTAL);
-        temp.x = stringtod(line[2]);
-        temp.y = stringtod(line[3]);
-        temp.z = stringtod(line[4]);
-        sys.volume.axis[box].Set(2, temp);
+        if(!sys.volume.readCellBasis[box][2]) {
+          XYZ temp;
+          temp.x = stringtod(line[2]);
+          temp.y = stringtod(line[3]);
+          temp.z = stringtod(line[4]);
+          sys.volume.axis[box].Set(2, temp);
+          sys.volume.readCellBasis[box][2] = true;
+          sys.volume.hasVolume = sys.volume.ReadCellBasis();
+        }
       } else {
         std::cout << "Error: This simulation requires only " << BOX_TOTAL <<
                   " sets of Cell Basis Vector!" << std::endl;
@@ -1051,7 +1057,15 @@ void ConfigSetup::verifyInputs(void)
   }
   if(!sys.volume.hasVolume && !in.restart.enable) {
     std::cout << "Error: This simulation requires to define " << 3 * BOX_TOTAL<<
-              " Cell Basis vectors!" << std::endl;
+                " Cell Basis vectors!" << std::endl;
+    for(uint b = 0; b < BOX_TOTAL; b++){
+      for(uint i = 0; i < 3; i++) {
+        if(!sys.volume.readCellBasis[b][i]) {
+          std::cout << "Error: CellBasisVector" << i+1 << " for Box " << b <<
+          " is missing!" << std::endl;
+        }
+      }
+    }
     exit(EXIT_FAILURE);
   }
   if(sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND && sys.ff.rswitch == DBL_MAX) {
