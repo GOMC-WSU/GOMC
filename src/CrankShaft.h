@@ -19,7 +19,13 @@ public:
 
   CrankShaft(System &sys, StaticVals const& statV) :
     ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
-    MoveBase(sys, statV) {}
+    MoveBase(sys, statV) 
+    {
+      for(uint b = 0; b < BOX_TOTAL; b++) {
+        trial[b].resize(molRef.GetKindsCount(), 0);
+        accepted[b].resize(molRef.GetKindsCount(), 0);
+      }
+    }
 
   virtual uint Prep(const double subDraw, const double movPerc);
   virtual uint Transform();
