@@ -11,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <time.h>
 #include "BasicTypes.h"             //uint, ulong
 #include <iostream> //for cout
+#include <cstdio>
 #if defined(__linux__) || defined(__APPLE__)
 #include <sys/time.h> //for timing
 #elif (_WIN32) || (__CYGWIN__)
@@ -66,7 +67,7 @@ inline void Clock::CheckTime(const ulong step)
     prevStep = step;
     lastTime = currTime;
     CompletionTime(day, hr, min);
-    printf("Steps/sec: %7.3f, Simulation ends in: %3d d: %3d h: %3d m \n",
+    printf("Steps/sec: %7.3f, Simulation ends in: %3d d: %3d h: %3d m \n\n",
           speed, day, hr, min);
 
   } else if (step == lastStep) {
