@@ -36,19 +36,16 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 // Welect = -1 * qi * qj * (dSwitchVal/rij^2 - (rij^2/rcut^2 - 1.0)^2/(rij^3))
 // dSwitchVa = 2.0 * (rij^2/rcut^2 - 1.0) * 2.0 * rij/rcut^2
 
-
 struct FF_SWITCH : public FFParticle {
 public:
 
-  FF_SWITCH() : FFParticle() 
+  FF_SWITCH(Forcefield &ff) : FFParticle(ff) 
   {
     rOnSq = rOn = factor1 = factor2 = 0.0;
   }
 
   virtual void Init(ff_setup::Particle const& mie,
-                    ff_setup::NBfix const& nbfix,
-                    config_setup::SystemVals const& sys,
-                    config_setup::FFKind const& ffKind);
+                    ff_setup::NBfix const& nbfix);
 
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2) const;
@@ -86,13 +83,11 @@ public:
 };
 
 inline void FF_SWITCH::Init(ff_setup::Particle const& mie,
-                            ff_setup::NBfix const& nbfix,
-                            config_setup::SystemVals const& sys,
-                            config_setup::FFKind const& ffKind)
+                            ff_setup::NBfix const& nbfix)
 {
   //Initializ sigma and epsilon
-  FFParticle::Init(mie, nbfix, sys, ffKind);
-  rOn = sys.ff.rswitch;
+  FFParticle::Init(mie, nbfix);
+  rOn = forcefield.rswitch;
   rOnSq = rOn * rOn;
   //calculate switch constant
   factor1 = rCutSq - 3 * rOnSq;

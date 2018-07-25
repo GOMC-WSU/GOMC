@@ -382,10 +382,6 @@ void ConfigSetup::Init(const char *fileName)
       sys.elect.readElect = true;
     } else if(line[0] == "Tolerance") {
       sys.elect.tolerance = stringtod(line[1]);
-      sys.elect.alpha = sqrt(-1 * log(sys.elect.tolerance)) /
-                        sys.ff.cutoff;
-      sys.elect.recip_rcut = 2 * (-log(sys.elect.tolerance)) /
-                             sys.ff.cutoff;
       printf("%-40s %-1.3E \n", "Info: Ewald Summation Tolerance",
              sys.elect.tolerance);
     } else if(line[0] == "CachedFourier") {

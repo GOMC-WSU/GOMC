@@ -38,7 +38,7 @@ public:
 
   virtual void Init(config_setup::RestartSettings const& restart,
                     config_setup::Volume const& confVolume,
-                    pdb_setup::Cryst1 const& cryst, double rc, double rcSq);
+                    pdb_setup::Cryst1 const& cryst, double rc);
 
   XYZ GetAxis(const uint b) const
   {

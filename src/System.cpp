@@ -6,7 +6,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "EnsemblePreprocessor.h"
 #include "System.h"
-
 #include "CalculateEnergy.h"
 #include "EwaldCached.h"
 #include "Ewald.h"
@@ -82,8 +81,7 @@ void System::Init(Setup const& set)
 #ifdef VARIABLE_VOLUME
   boxDimensions->Init(set.config.in.restart,
                       set.config.sys.volume, set.pdb.cryst,
-                      statV.forcefield.rCut,
-                      statV.forcefield.rCutSq);
+                      statV.forcefield.rCut);
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
   molLookup.Init(statV.mol, set.pdb.atoms);

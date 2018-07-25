@@ -9,6 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "EnsemblePreprocessor.h" //For "MIE_INT_ONLY" preprocessor.
 #include "FFConst.h" //constants related to particles.
+#include "Forcefield.h"
 #include "BasicTypes.h" //for uint
 #include "NumLib.h" //For Cb, Sq
 #include "Setup.h"
@@ -46,16 +47,16 @@ struct FFValues;
 struct FFKind;
 }
 
+class Forcefield;
+
 struct FFParticle {
 public:
 
-  FFParticle();
+  FFParticle(Forcefield &ff);
   virtual ~FFParticle(void);
 
   virtual void Init(ff_setup::Particle const& mie,
-                    ff_setup::NBfix const& nbfix,
-                    config_setup::SystemVals const& sys,
-                    config_setup::FFKind const& ffKind);
+                    ff_setup::NBfix const& nbfix);
  
   double GetEpsilon(const uint i, const uint j) const;
   double GetEpsilon_1_4(const uint i, const uint j) const;
@@ -105,6 +106,8 @@ protected:
   //Use NBFIX to adjust sigma, epsilon, and n value for different kind
   void AdjNBfix(ff_setup::Particle const& mie, ff_setup::NBfix const& nbfix,
                 const double rCut);
+  //To access rcut and other forcefield data
+  const Forcefield& forcefield;
 
   double* mass;
   std::string *nameFirst;

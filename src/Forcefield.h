@@ -9,9 +9,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 //Member classes
 #include "FFParticle.h"
-#include "FFShift.h"
-#include "FFSwitch.h"
-#include "FFSwitchMartini.h"
 #include "FFBonds.h"
 #include "FFAngles.h"
 #include "FFDihedrals.h"
@@ -27,6 +24,7 @@ struct SystemVals;
 class FFSetup;
 class Setup;
 class FFPrintout;
+class FFParticle;
 
 class Forcefield
 {
@@ -46,20 +44,19 @@ public:
   FFDihedrals dihedrals;     //!<For 4-atom torsional rotation energy
   bool useLRC;               //!<Use long-range tail corrections if true
   double T_in_K;             //!<System temp in Kelvin
-  double rCut;               //!<Cutoff radius for LJ/Mie potential (angstroms)
-  double rCutSq;             //!<Cutoff radius for LJ/Mie potential squared (a^2)
-  double rCutOver2;          //!<Cutoff radius for LJ/Mie potential over 2 (a)
+  double beta;               //!<Thermodynamic beta = 1/(T) K^-1)
+  double rCut, rCutSq;       //!<Cutoff radius for LJ/Mie potential (angstroms)
+  double rCutLow;            //!<Cutoff min for Electrostatic (angstroms)
+  double alpha, recip_rcut;  // ewald terms
+  double rswitch;            //Switch distance
+  double dielectric;         //dielectric for martini
 
-  double rOn;                // for switch tup of LJ (angstroms)
-  double ronSq;              // for switch tup of LJ (a^2)
-
-  //XXX 1-4 pairs are not yet implemented
   double scl_14;           //!<Scaling factor for 1-4 pairs' ewald interactions
-  double beta;             //!<Thermodynamic beta = 1/(T) K^-1)
 
   bool OneThree, OneFour, OneN;  // to include 1-3, 1-4 and more interaction
   bool electrostatic, ewald;     //to consider columb interaction
-  double alpha, recip_rcut;      // ewald terms
+  bool vdwGeometricSigma;        //For sigma combining rule
+  bool isMartini;
   uint vdwKind;      // to define VdW type, standard, shift or switch
   uint exckind;      // to define  exclude kind, 1-2, 1-3, 1-4
 #if ENSEMBLE == GCMC

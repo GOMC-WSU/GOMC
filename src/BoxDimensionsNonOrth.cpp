@@ -13,11 +13,10 @@ using namespace geom;
 
 void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
                                 config_setup::Volume const& confVolume,
-                                pdb_setup::Cryst1 const& cryst,
-                                double rc, double rcSq)
+                                pdb_setup::Cryst1 const& cryst, double rc)
 {
   rCut = rc;
-  rCutSq = rcSq;
+  rCutSq = rc * rc;
   minVol = 8.0 * rCutSq * rCut + 0.001;
   for (uint b = 0; b < BOX_TOTAL; b++) {
     if(restart.enable && cryst.hasVolume) {
