@@ -52,11 +52,11 @@ public:
   FFParticle();
   ~FFParticle(void);
 
-  double GetMass(const uint kind) const
-  {
-    return mass[kind];
-  }
-
+  virtual void Init(ff_setup::Particle const& mie,
+                    ff_setup::NBfix const& nbfix,
+                    config_setup::SystemVals const& sys,
+                    config_setup::FFKind const& ffKind);
+ 
   double GetEpsilon(const uint i, const uint j) const;
   double GetEpsilon_1_4(const uint i, const uint j) const;
   double GetSigma(const uint i, const uint j) const;
@@ -82,19 +82,13 @@ public:
                                   const double qi_qj_Fact,
                                   const bool NB) const;
 
-  void Init(ff_setup::Particle const& mie,
-            ff_setup::NBfix const& nbfix,
-            config_setup::SystemVals const& sys,
-            config_setup::FFKind const& ffKind);
   //!Returns Energy long-range correction term for a kind pair
   virtual double EnergyLRC(const uint kind1, const uint kind2) const;
   //!Returns Energy long-range correction term for a kind pair
   virtual double VirialLRC(const uint kind1, const uint kind2) const;
 
-  uint NumKinds() const
-  {
-    return count;
-  }
+  uint NumKinds() const { return count; }                
+  double GetMass(const uint kind) const { return mass[kind]; }
 
 #ifdef GOMC_CUDA
   VariablesCUDA *getCUDAVars()
@@ -104,16 +98,14 @@ public:
 #endif
 
 protected:
-
-  uint FlatIndex(const uint i, const uint j) const
-  {
-    return i + j * count;
-  }
+  //Find the index of the pair kind
+  uint FlatIndex(const uint i, const uint j) const { return i + j * count; }
+  //Combining sigma, epsilon, and n value for different kind
   void Blend(ff_setup::Particle const& mie, const double rCut);
+  //Use NBFIX to adjust sigma, epsilon, and n value for different kind
   void AdjNBfix(ff_setup::Particle const& mie, ff_setup::NBfix const& nbfix,
                 const double rCut);
 
-  //vars for lj particles.
   double* mass;
   std::string *nameFirst;
   std::string *nameSec;
@@ -127,11 +119,8 @@ protected:
   //For LJ eps_cn(en) --> 4eps, eps_cn_6 --> 24eps, eps_cn_n --> 48eps
   double * sigmaSq, * epsilon, * epsilon_1_4, * epsilon_cn, * epsilon_cn_6,
          * nOver6, * sigmaSq_1_4, * epsilon_cn_1_4, * epsilon_cn_6_1_4, * nOver6_1_4,
-         * enCorrection, * virCorrection, *shiftConst, *An, *Bn, *Cn, *sig6,
-         *sign, *shiftConst_1_4, *An_1_4, *Bn_1_4, *Cn_1_4, *sig6_1_4, *sign_1_4;
-
-  double rCut, rCutSq, rOn, rOnSq, rOnCoul, A1, B1, C1, A6, B6, C6,
-         factor1, factor2, scaling_14, alpha, diElectric_1;
+         * enCorrection, * virCorrection;
+  double rCut, rCutSq, scaling_14, alpha;
   double rCutLow, rCutLowSq;
 
   uint count, vdwKind;

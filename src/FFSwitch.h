@@ -40,6 +40,20 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 struct FF_SWITCH : public FFParticle {
 public:
 
+  FF_SWITCH() : FFParticle() 
+  {
+    rOnSq = rOn = factor1 = factor2 = 0.0;
+  }
+  ~FF_SWITCH()
+  {
+    FFParticle::~FFParticle();
+  }
+
+  virtual void Init(ff_setup::Particle const& mie,
+                    ff_setup::NBfix const& nbfix,
+                    config_setup::SystemVals const& sys,
+                    config_setup::FFKind const& ffKind);
+
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2) const;
   virtual double CalcVir(const double distSq,
@@ -69,8 +83,25 @@ public:
     return 0.0;
   }
 
+  protected:
+
+  double rOn, rOnSq, factor1, factor2;
+
 };
 
+inline void FF_SWITCH::Init(ff_setup::Particle const& mie,
+                            ff_setup::NBfix const& nbfix,
+                            config_setup::SystemVals const& sys,
+                            config_setup::FFKind const& ffKind)
+{
+  //Initializ sigma and epsilon
+  FFParticle::Init(mie, nbfix, sys, ffKind);
+  rOn = sys.ff.rswitch;
+  rOnSq = rOn * rOn;
+  //calculate switch constant
+  factor1 = rCutSq - 3 * rOnSq;
+  factor2 = pow((rCutSq - rOnSq), -3);
+}
 
 inline void FF_SWITCH::CalcAdd_1_4(double& en, const double distSq,
                                    const uint kind1, const uint kind2) const
