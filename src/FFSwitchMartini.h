@@ -54,19 +54,18 @@ public:
   {
     A1= B1 = C1 = A6 = B6 = C6 = 0.0;
   }
-  ~FF_SWITCH_MARTINI()
+  virtual ~FF_SWITCH_MARTINI()
   {
-    FFParticle::~FFParticle();
-      delete[] An;
-      delete[] Bn;
-      delete[] Cn;
-      delete[] An_1_4;
-      delete[] Bn_1_4;
-      delete[] Cn_1_4;
-      delete[] sig6;
-      delete[] sign;
-      delete[] sig6_1_4;
-      delete[] sign_1_4;
+    delete[] An;
+    delete[] Bn;
+    delete[] Cn;
+    delete[] An_1_4;
+    delete[] Bn_1_4;
+    delete[] Cn_1_4;
+    delete[] sig6;
+    delete[] sign;
+    delete[] sig6_1_4;
+    delete[] sign_1_4;
   }
 
   virtual void Init(ff_setup::Particle const& mie,

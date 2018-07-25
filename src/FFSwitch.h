@@ -44,10 +44,6 @@ public:
   {
     rOnSq = rOn = factor1 = factor2 = 0.0;
   }
-  ~FF_SWITCH()
-  {
-    FFParticle::~FFParticle();
-  }
 
   virtual void Init(ff_setup::Particle const& mie,
                     ff_setup::NBfix const& nbfix,
