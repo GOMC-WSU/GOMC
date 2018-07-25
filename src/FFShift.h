@@ -31,9 +31,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 struct FF_SHIFT : public FFParticle {
 public:
   FF_SHIFT() : FFParticle(), shiftConst(NULL), shiftConst_1_4(NULL) {}
-  ~FF_SHIFT()
+  virtual ~FF_SHIFT()
   {
-    FFParticle::~FFParticle();
     delete[] shiftConst;
     delete[] shiftConst_1_4;
   }

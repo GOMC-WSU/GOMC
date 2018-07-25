@@ -50,7 +50,7 @@ struct FFParticle {
 public:
 
   FFParticle();
-  ~FFParticle(void);
+  virtual ~FFParticle(void);
 
   virtual void Init(ff_setup::Particle const& mie,
                     ff_setup::NBfix const& nbfix,
