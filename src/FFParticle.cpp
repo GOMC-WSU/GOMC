@@ -111,6 +111,8 @@ void FFParticle::Init(ff_setup::Particle const& mie,
   AdjNBfix(mie, nbfix, rCut);
 
 #ifdef GOMC_CUDA
+  double diElectric_1 = 1.0 / sys.elect.dielectric;
+  double rOn = sys.ff.rswitch;
   InitGPUForceField(*varCUDA, sigmaSq, epsilon_cn, n, vdwKind, isMartini,
                     count, rCut, rCutLow, rOn, alpha, ewald, diElectric_1);
 #endif
