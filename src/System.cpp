@@ -18,6 +18,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Molecules.h"           //For indexing molecules.
 #include "MoveConst.h"           //For array of move objects.
 #include "MoveBase.h"            //For move bases....
+#include "Rotation.h"
+#include "Translate.h"
+#include "VolumeTransfer.h"
 #include "MoleculeTransfer.h"
 #include "IntraSwap.h"
 #include "Regrowth.h"

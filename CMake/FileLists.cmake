@@ -116,6 +116,7 @@ set(headers
    src/PSFOutput.h
    src/Reader.h
    src/Regrowth.h
+   src/Rotation.h
    src/SeedReader.h
    src/Setup.h
    src/SimEventFrequency.h
@@ -124,6 +125,8 @@ set(headers
    src/SubdividedArray.h
    src/System.h
    src/TransformMatrix.h
+   src/Translate.h
+   src/VolumeTransfer.h
    src/Writer.h
    src/XYZArray.h
    src/cbmc/DCComponent.h
