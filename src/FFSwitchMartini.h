@@ -48,6 +48,32 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 struct FF_SWITCH_MARTINI : public FFParticle {
 public:
 
+  FF_SWITCH_MARTINI() : FFParticle(), An(NULL),Bn(NULL), Cn(NULL),
+  An_1_4(NULL), Bn_1_4(NULL), Cn_1_4(NULL), sig6(NULL), sign(NULL),
+  sig6_1_4(NULL), sign_1_4(NULL)
+  {
+    A1= B1 = C1 = A6 = B6 = C6 = 0.0;
+  }
+  ~FF_SWITCH_MARTINI()
+  {
+    FFParticle::~FFParticle();
+      delete[] An;
+      delete[] Bn;
+      delete[] Cn;
+      delete[] An_1_4;
+      delete[] Bn_1_4;
+      delete[] Cn_1_4;
+      delete[] sig6;
+      delete[] sign;
+      delete[] sig6_1_4;
+      delete[] sign_1_4;
+  }
+
+  virtual void Init(ff_setup::Particle const& mie,
+                    ff_setup::NBfix const& nbfix,
+                    config_setup::SystemVals const& sys,
+                    config_setup::FFKind const& ffKind);
+
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2) const;
   virtual double CalcVir(const double distSq,
@@ -78,8 +104,83 @@ public:
     return 0.0;
   }
 
+  protected:
+
+  double *An, *Bn, *Cn, *An_1_4, *Bn_1_4, *Cn_1_4;
+  double *sig6, *sig6_1_4, *sign, *sign_1_4;
+
+  double diElectric_1, rOn, rOnSq, rOnCoul, A1, B1, C1, A6, B6, C6;
+
 };
 
+inline void FF_SWITCH_MARTINI::Init(ff_setup::Particle const& mie,
+                                    ff_setup::NBfix const& nbfix,
+                                    config_setup::SystemVals const& sys,
+                                    config_setup::FFKind const& ffKind)
+{
+  //Initializ sigma and epsilon
+  FFParticle::Init(mie, nbfix, sys, ffKind);
+  uint size = num::Sq(count);
+  //allocate memory 
+  An = new double [size];
+  Bn = new double [size];
+  Cn = new double [size];
+  sign = new double [size];
+  sig6 = new double [size];
+  An_1_4 = new double [size];
+  Bn_1_4 = new double [size];
+  Cn_1_4 = new double [size];
+  sign_1_4 = new double [size];
+  sig6_1_4 = new double [size];
+  //Set martini constant
+  diElectric_1 = 1.0 / sys.elect.dielectric;
+  rOn = sys.ff.rswitch;
+  rOnSq = rOn * rOn;
+  //in Martini, Coulomb switching distance is zero
+  rOnCoul = 0.0;
+  // Set LJ constants
+  A6 = 6.0 * ((6.0 + 1) * rOn - (6.0 + 4) * rCut) / (pow(rCut, 6.0 + 2) *
+       pow(rCut - rOn, 2));
+  B6 = -6.0 * ((6.0 + 1) * rOn - (6.0 + 3) * rCut) / (pow(rCut, 6.0 + 2) *
+       pow(rCut - rOn, 3));
+  C6 = 1.0 / pow(rCut, 6.0) - A6 / 3.0 * pow(rCut - rOn, 3) - B6 / 4.0 *
+       pow(rCut - rOn, 4);
+  // Set Coulomb constants
+  A1 = 1.0 * ((1.0 + 1) * rOnCoul - (1.0 + 4) * rCut) / (pow(rCut, 1.0 + 2) *
+       pow(rCut - rOnCoul, 2));
+  B1 = -1.0 * ((1.0 + 1) * rOnCoul - (1.0 + 3) * rCut) / (pow(rCut, 1.0 + 2) *
+       pow(rCut - rOnCoul, 3));
+  C1 = 1.0 / pow(rCut, 1.0) - A1 / 3.0 * pow(rCut - rOnCoul, 3) - B1 / 4.0 *
+       pow(rCut - rOnCoul, 4);
+
+  for(uint i = 0; i < count; ++i) {
+    for(uint j = 0; j < count; ++j) {
+      uint idx = FlatIndex(i, j);
+      double pn = n[idx];
+      An[idx] = pn * ((pn + 1) * rOn - (pn + 4) * rCut) / (pow(rCut, pn + 2) *
+                pow(rCut - rOn, 2));
+      Bn[idx] = -pn * ((pn + 1) * rOn - (pn + 3) * rCut) / (pow(rCut, pn + 2) *
+                pow(rCut - rOn, 3));
+      Cn[idx] = 1.0 / pow(rCut, pn) - An[idx] / 3.0 * pow(rCut - rOn, 3) -
+                Bn[idx] / 4.0 * pow(rCut - rOn, 4);
+      double sigma = sqrt(sigmaSq[idx]);
+      sig6[idx] = pow(sigma, 6);
+      sign[idx] = pow(sigma, pn);
+
+      // for 1-4 interaction
+      double pn_1_4 = n_1_4[idx];
+      An_1_4[idx] = pn_1_4 * ((pn_1_4 + 1) * rOn - (pn_1_4 + 4) * rCut) /
+                    (pow(rCut, pn_1_4 + 2) * pow(rCut - rOn, 2));
+      Bn_1_4[idx] = -pn_1_4 * ((pn_1_4 + 1) * rOn - (pn_1_4 + 3) * rCut) /
+                    (pow(rCut, pn_1_4 + 2) * pow(rCut - rOn, 3));
+      Cn_1_4[idx] = 1.0 / pow(rCut, pn_1_4) - An_1_4[idx] / 3.0 *
+                    pow(rCut - rOn, 3) - Bn_1_4[idx] / 4.0 * pow(rCut - rOn, 4);
+      double sigma_1_4 = sqrt(sigmaSq_1_4[idx]);
+      sig6_1_4[idx] = pow(sigma_1_4, 6);
+      sign_1_4[idx] = pow(sigma_1_4, pn_1_4);
+    }
+  }
+}
 
 inline void FF_SWITCH_MARTINI::CalcAdd_1_4(double& en, const double distSq,
     const uint kind1,

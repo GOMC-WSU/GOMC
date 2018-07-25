@@ -30,6 +30,18 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 struct FF_SHIFT : public FFParticle {
 public:
+  FF_SHIFT() : FFParticle(), shiftConst(NULL), shiftConst_1_4(NULL) {}
+  ~FF_SHIFT()
+  {
+    FFParticle::~FFParticle();
+    delete[] shiftConst;
+    delete[] shiftConst_1_4;
+  }
+
+  virtual void Init(ff_setup::Particle const& mie,
+                    ff_setup::NBfix const& nbfix,
+                    config_setup::SystemVals const& sys,
+                    config_setup::FFKind const& ffKind);
 
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2) const;
@@ -59,8 +71,46 @@ public:
   {
     return 0.0;
   }
+
+  protected:
+
+  double *shiftConst, *shiftConst_1_4;
+
 };
 
+inline void FF_SHIFT::Init(ff_setup::Particle const& mie,
+                          ff_setup::NBfix const& nbfix,
+                          config_setup::SystemVals const& sys,
+                          config_setup::FFKind const& ffKind)
+{
+  //Initializ sigma and epsilon
+  FFParticle::Init(mie, nbfix, sys, ffKind);
+  uint size = num::Sq(count);
+  //allocate memory 
+  shiftConst = new double [size];
+  shiftConst_1_4 = new double [size];
+  //calculate shift constant
+  for(uint i = 0; i < count; ++i) {
+    for(uint j = 0; j < count; ++j) {
+      uint idx = FlatIndex(i, j);
+      double rRat2 = sigmaSq[idx] / rCutSq;
+      double rRat4 = rRat2 * rRat2;
+      double attract = rRat4 * rRat2;
+      //for 1-4 interaction
+      double rRat2_1_4 = sigmaSq_1_4[idx] / rCutSq;
+      double rRat4_1_4 = rRat2_1_4 * rRat2_1_4;
+      double attract_1_4 = rRat4_1_4 * rRat2_1_4;
+      double repulse = pow(sqrt(rRat2), n[idx]);
+      double repulse_1_4 = pow(sqrt(rRat2_1_4), n_1_4[idx]);
+
+      shiftConst[idx] =  epsilon_cn[idx] * (repulse - attract);
+      shiftConst_1_4[idx] =  epsilon_cn_1_4[idx] *
+                            (repulse_1_4 - attract_1_4);
+    
+    }
+  }
+}
+                  
 
 inline void FF_SHIFT::CalcAdd_1_4(double& en, const double distSq,
                                   const uint kind1, const uint kind2) const
