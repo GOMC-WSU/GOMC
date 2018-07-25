@@ -19,7 +19,7 @@ void StaticVals::Init(Setup & set, System& sys)
   mol.Init(set, forcefield, sys);
 #ifndef VARIABLE_VOLUME
   boxDimensions->Init(set.config.in.restart, set.config.sys.volume,
-                      set.pdb.cryst, forcefield.rCut, forcefield.rCutSq);
+                      set.pdb.cryst, forcefield.rCut);
 #endif
 #ifndef VARIABLE_PARTICLE_NUMBER
   molLookup.Init(mol, set.pdb.atoms);

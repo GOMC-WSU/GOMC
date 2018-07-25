@@ -48,7 +48,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 struct FF_SWITCH_MARTINI : public FFParticle {
 public:
 
-  FF_SWITCH_MARTINI() : FFParticle(), An(NULL),Bn(NULL), Cn(NULL),
+  FF_SWITCH_MARTINI(Forcefield &ff) : FFParticle(ff), An(NULL),Bn(NULL), Cn(NULL),
   An_1_4(NULL), Bn_1_4(NULL), Cn_1_4(NULL), sig6(NULL), sign(NULL),
   sig6_1_4(NULL), sign_1_4(NULL)
   {
@@ -69,9 +69,7 @@ public:
   }
 
   virtual void Init(ff_setup::Particle const& mie,
-                    ff_setup::NBfix const& nbfix,
-                    config_setup::SystemVals const& sys,
-                    config_setup::FFKind const& ffKind);
+                    ff_setup::NBfix const& nbfix);
 
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2) const;
@@ -113,12 +111,10 @@ public:
 };
 
 inline void FF_SWITCH_MARTINI::Init(ff_setup::Particle const& mie,
-                                    ff_setup::NBfix const& nbfix,
-                                    config_setup::SystemVals const& sys,
-                                    config_setup::FFKind const& ffKind)
+                                    ff_setup::NBfix const& nbfix)
 {
   //Initializ sigma and epsilon
-  FFParticle::Init(mie, nbfix, sys, ffKind);
+  FFParticle::Init(mie, nbfix);
   uint size = num::Sq(count);
   //allocate memory 
   An = new double [size];
@@ -132,8 +128,8 @@ inline void FF_SWITCH_MARTINI::Init(ff_setup::Particle const& mie,
   sign_1_4 = new double [size];
   sig6_1_4 = new double [size];
   //Set martini constant
-  diElectric_1 = 1.0 / sys.elect.dielectric;
-  rOn = sys.ff.rswitch;
+  diElectric_1 = 1.0 / forcefield.dielectric;
+  rOn = forcefield.rswitch;
   rOnSq = rOn * rOn;
   //in Martini, Coulomb switching distance is zero
   rOnCoul = 0.0;

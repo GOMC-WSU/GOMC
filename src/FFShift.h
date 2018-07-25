@@ -28,9 +28,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 // Eelect = qi * qj * (1/r - 1/rcut)
 // Welect = qi * qj * 1/rij^3
 
+
 struct FF_SHIFT : public FFParticle {
 public:
-  FF_SHIFT() : FFParticle(), shiftConst(NULL), shiftConst_1_4(NULL) {}
+  FF_SHIFT(Forcefield &ff) : FFParticle(ff), shiftConst(NULL), shiftConst_1_4(NULL) {}
   virtual ~FF_SHIFT()
   {
     delete[] shiftConst;
@@ -38,9 +39,7 @@ public:
   }
 
   virtual void Init(ff_setup::Particle const& mie,
-                    ff_setup::NBfix const& nbfix,
-                    config_setup::SystemVals const& sys,
-                    config_setup::FFKind const& ffKind);
+                    ff_setup::NBfix const& nbfix);
 
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2) const;
@@ -78,12 +77,10 @@ public:
 };
 
 inline void FF_SHIFT::Init(ff_setup::Particle const& mie,
-                          ff_setup::NBfix const& nbfix,
-                          config_setup::SystemVals const& sys,
-                          config_setup::FFKind const& ffKind)
+                          ff_setup::NBfix const& nbfix)
 {
   //Initializ sigma and epsilon
-  FFParticle::Init(mie, nbfix, sys, ffKind);
+  FFParticle::Init(mie, nbfix);
   uint size = num::Sq(count);
   //allocate memory 
   shiftConst = new double [size];

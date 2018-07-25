@@ -11,7 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
 
-FFParticle::FFParticle() : mass(NULL), nameFirst(NULL), nameSec(NULL),
+FFParticle::FFParticle(Forcefield &ff) : forcefield(ff), mass(NULL), nameFirst(NULL), nameSec(NULL),
   n(NULL), n_1_4(NULL), sigmaSq(NULL), sigmaSq_1_4(NULL), epsilon_cn(NULL),
   epsilon(NULL), epsilon_1_4(NULL), epsilon_cn_1_4(NULL), epsilon_cn_6(NULL),
   epsilon_cn_6_1_4(NULL), nOver6(NULL), nOver6_1_4(NULL), enCorrection(NULL),
@@ -54,9 +54,7 @@ FFParticle::~FFParticle(void)
 }
 
 void FFParticle::Init(ff_setup::Particle const& mie,
-                      ff_setup::NBfix const& nbfix,
-                      config_setup::SystemVals const& sys,
-                      config_setup::FFKind const& ffKind)
+                      ff_setup::NBfix const& nbfix)
 {
 #ifdef GOMC_CUDA
   // Variables for GPU stored in here
@@ -65,14 +63,14 @@ void FFParticle::Init(ff_setup::Particle const& mie,
   count = mie.epsilon.size(); //Get # particles read
   //Size LJ particle kind arrays
   mass = new double [count];
-  vdwKind = sys.ff.VDW_KIND;
-  vdwGeometricSigma = sys.ff.vdwGeometricSigma;
+  vdwKind = forcefield.vdwKind;
+  vdwGeometricSigma = forcefield.vdwGeometricSigma;
 
   //Size LJ-LJ pair arrays
   uint size = num::Sq(count);
   nameFirst = new std::string [size];
   nameSec = new std::string [size];
-  isMartini = ffKind.isMARTINI;
+  isMartini = forcefield.isMartini;
 
 
 #ifdef MIE_INT_ONLY
@@ -97,13 +95,13 @@ void FFParticle::Init(ff_setup::Particle const& mie,
   enCorrection = new double [size];
   virCorrection = new double [size];
 
-  rCut =  sys.ff.cutoff;
+  rCut =  forcefield.rCut;
   rCutSq = rCut * rCut;
-  rCutLow = sys.ff.cutoffLow;
+  rCutLow = forcefield.rCutLow;
   rCutLowSq = rCutLow * rCutLow;
-  scaling_14 = sys.elect.oneFourScale;
-  ewald = sys.elect.ewald;
-  alpha = sys.elect.alpha;
+  scaling_14 = forcefield.scl_14;
+  ewald = forcefield.ewald;
+  alpha = forcefield.alpha;
 
   //Combining VDW parameter
   Blend(mie, rCut);
@@ -111,8 +109,8 @@ void FFParticle::Init(ff_setup::Particle const& mie,
   AdjNBfix(mie, nbfix, rCut);
 
 #ifdef GOMC_CUDA
-  double diElectric_1 = 1.0 / sys.elect.dielectric;
-  double rOn = sys.ff.rswitch;
+  double diElectric_1 = 1.0 / forcefield.dielectric;
+  double rOn = forcefield.rswitch;
   InitGPUForceField(*varCUDA, sigmaSq, epsilon_cn, n, vdwKind, isMartini,
                     count, rCut, rCutLow, rOn, alpha, ewald, diElectric_1);
 #endif

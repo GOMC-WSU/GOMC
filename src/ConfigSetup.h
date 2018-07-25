@@ -115,7 +115,6 @@ struct Exclude {
 struct PotentialConfig {
   uint kind;
   double cutoff;
-  double oneFourScale;
   uint VDW_KIND;
 };
 struct VDWPot : public PotentialConfig {
@@ -129,7 +128,7 @@ struct VDWSwitch : public PotentialConfig {
 //Items that effect the system interactions and/or identity, e.g. Temp.
 struct FFValues {
   uint VDW_KIND;
-  double cutoff, cutoffLow, rswitch, oneFourScale;
+  double cutoff, cutoffLow, rswitch;
   bool doTailCorr, vdwGeometricSigma;
   std::string kind;
 
@@ -171,9 +170,7 @@ struct ElectroStatic {
   bool enable;
   bool ewald;
   bool cache;
-  double alpha;
   double tolerance;
-  double recip_rcut;
   double oneFourScale;
   double dielectric;
 };
