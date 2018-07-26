@@ -5,7 +5,6 @@ A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "FFParticle.h"
-#include "ConfigSetup.h"
 #include "NumLib.h" //For Sq, Cb, and MeanA/G functions.
 #ifdef GOMC_CUDA
 #include "ConstantDefinitionsCUDAKernel.cuh"
