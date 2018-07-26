@@ -40,12 +40,6 @@ namespace ff_setup
 class Particle;
 class NBfix;
 }
-namespace config_setup
-{
-struct SystemVals;
-struct FFValues;
-struct FFKind;
-}
 
 class Forcefield;
 
