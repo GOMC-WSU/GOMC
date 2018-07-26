@@ -60,9 +60,9 @@ public:
   double GetN_1_4(const uint i, const uint j) const;
   // LJ interaction functions
   virtual double CalcEn(const double distSq,
-                        const uint kind1, const uint kind2, const uint b) const;
+                        const uint kind1, const uint kind2) const;
   virtual double CalcVir(const double distSq,
-                         const uint kind1, const uint kind2, const uint b) const;
+                         const uint kind1, const uint kind2) const;
   virtual void CalcAdd_1_4(double& en, const double distSq,
                            const uint kind1, const uint kind2) const;
 

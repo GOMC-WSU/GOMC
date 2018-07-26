@@ -265,8 +265,11 @@ inline void FFParticle::CalcCoulombAdd_1_4(double& en, const double distSq,
 
 //mie potential
 inline double FFParticle::CalcEn(const double distSq,
-                                 const uint kind1, const uint kind2, const uint b) const
+                                 const uint kind1, const uint kind2) const
 {
+  if(forcefield.rCutSq < distSq)
+    return 0.0;
+
   uint index = FlatIndex(kind1, kind2);
   double rRat2 = sigmaSq[index] / distSq;
   double rRat4 = rRat2 * rRat2;
@@ -285,6 +288,9 @@ inline double FFParticle::CalcEn(const double distSq,
 inline double FFParticle::CalcCoulomb(const double distSq,
                                       const double qi_qj_Fact, const uint b) const
 {
+  if(forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
     double val = forcefield.alpha[b] * dist;
@@ -299,8 +305,10 @@ inline double FFParticle::CalcCoulomb(const double distSq,
 inline double FFParticle::CalcCoulombEn(const double distSq,
                                         const double qi_qj_Fact, const uint b) const
 {
-  if(distSq <= forcefield.rCutLowSq)
+  if(forcefield.rCutLowSq > distSq)
     return num::BIGNUM;
+  else if(forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
 
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
@@ -314,8 +322,11 @@ inline double FFParticle::CalcCoulombEn(const double distSq,
 
 
 inline double FFParticle::CalcVir(const double distSq,
-                                  const uint kind1, const uint kind2, const uint b) const
+                                  const uint kind1, const uint kind2) const
 {
+  if(forcefield.rCutSq < distSq)
+    return 0.0;
+
   uint index = FlatIndex(kind1, kind2);
   double rNeg2 = 1.0 / distSq;
   double rRat2 = rNeg2 * sigmaSq[index];
@@ -336,6 +347,9 @@ inline double FFParticle::CalcVir(const double distSq,
 inline double FFParticle::CalcCoulombVir(const double distSq,
     const double qi_qj, const uint b) const
 {
+  if(forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
     double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);

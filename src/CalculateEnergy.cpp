@@ -227,7 +227,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
       }
 
       tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
-                  particleKind[pair2[i]], box);
+                  particleKind[pair2[i]]);
     }
   }
 #endif
@@ -343,7 +343,7 @@ Virial CalculateEnergy::ForceCalc(const uint box)
       }
 
       pVF = forcefield.particles->CalcVir(distSq, particleKind[pair1[i]],
-                                          particleKind[pair2[i]], box);
+                                          particleKind[pair2[i]]);
       //calculate the top diagonal of pressure tensor
       vT11 += pVF * (virC.x * comC.x);
       //vT12 += pVF * (0.5 * (virC.x * comC.y + virC.y * comC.x));
@@ -448,7 +448,7 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
           }
 
           tempLJEn -= forcefield.particles->CalcEn(distSq, particleKind[atom],
-                      particleKind[nIndex[i]], box);
+                      particleKind[nIndex[i]]);
         }
       }
 
@@ -478,7 +478,7 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 
           tempLJEn += forcefield.particles->CalcEn(distSq,
                       particleKind[atom],
-                      particleKind[nIndex[i]], box);
+                      particleKind[nIndex[i]]);
         }
       }
     }
@@ -513,7 +513,7 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
                                *partner, box)) {
           inter[t] += forcefield.particles->CalcEn(distSq,
                       kind.AtomKind(partIndex),
-                      kind.AtomKind(*partner), box);
+                      kind.AtomKind(*partner));
           if (electrostatic) {
             double qi_qj_Fact = kind.AtomCharge(partIndex) *
                                 kind.AtomCharge(*partner) * num::qqFact;
@@ -561,7 +561,7 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
 
       if(currentAxes.InRcut(distSq, trialPos, t, currentCoords, nIndex[i], box)) {
         tempLJ += forcefield.particles->CalcEn(distSq, kindI,
-                                               particleKind[nIndex[i]], box);
+                                               particleKind[nIndex[i]]);
         if(electrostatic) {
           qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
           tempReal += forcefield.particles->CalcCoulombEn(distSq, qi_qj_Fact, box);
@@ -732,12 +732,12 @@ void CalculateEnergy::MolNonbond(double & energy,
   for (uint i = 0; i < molKind.nonBonded.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded.part1[i];
     uint p2 = mols.start[molIndex] + molKind.nonBonded.part2[i];
-
-    if (currentAxes.InRcut(distSq, currentCoords, p1, p2, box)) {
+    currentAxes.InRcut(distSq, currentCoords, p1, p2, box);
+    if (forcefield.rCutSq > distSq) {
       energy += forcefield.particles->CalcEn(distSq, molKind.AtomKind
                                              (molKind.nonBonded.part1[i]),
                                              molKind.AtomKind
-                                             (molKind.nonBonded.part2[i]), box);
+                                             (molKind.nonBonded.part2[i]));
       if (electrostatic) {
         qi_qj_Fact = num::qqFact *
                      molKind.AtomCharge(molKind.nonBonded.part1[i]) *
@@ -765,12 +765,12 @@ void CalculateEnergy::MolNonbond(double & energy, XYZArray const& pos,
   for (uint i = 0; i < molKind.nonBonded.count; ++i) {
     uint p1 = molKind.nonBonded.part1[i];
     uint p2 = molKind.nonBonded.part2[i];
-
-    if (currentAxes.InRcut(distSq, pos, p1, p2, box)) {
+    currentAxes.InRcut(distSq, pos, p1, p2, box);
+    if (forcefield.rCutSq > distSq) {
       energy += forcefield.particles->CalcEn(distSq, molKind.AtomKind
                                              (molKind.nonBonded.part1[i]),
                                              molKind.AtomKind
-                                             (molKind.nonBonded.part2[i]), box);
+                                             (molKind.nonBonded.part2[i]));
       if (electrostatic) {
         qi_qj_Fact = num::qqFact *
                      molKind.AtomCharge(molKind.nonBonded.part1[i]) *
@@ -799,7 +799,8 @@ void CalculateEnergy::MolNonbond_1_4(double & energy,
   for (uint i = 0; i < molKind.nonBonded_1_4.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded_1_4.part1[i];
     uint p2 = mols.start[molIndex] + molKind.nonBonded_1_4.part2[i];
-    if (currentAxes.InRcut(distSq, currentCoords, p1, p2, box)) {
+    currentAxes.InRcut(distSq, currentCoords, p1, p2, box);
+    if (forcefield.rCutSq > distSq) {
       forcefield.particles->CalcAdd_1_4(energy, distSq,
                                         molKind.AtomKind
                                         (molKind.nonBonded_1_4.part1[i]),
@@ -831,7 +832,8 @@ void CalculateEnergy::MolNonbond_1_4(double & energy, XYZArray const& pos,
   for (uint i = 0; i < molKind.nonBonded_1_4.count; ++i) {
     uint p1 = molKind.nonBonded_1_4.part1[i];
     uint p2 = molKind.nonBonded_1_4.part2[i];
-    if (currentAxes.InRcut(distSq, pos, p1, p2, box)) {
+    currentAxes.InRcut(distSq, pos, p1, p2, box);
+    if (forcefield.rCutSq > distSq) {
       forcefield.particles->CalcAdd_1_4(energy, distSq,
                                         molKind.AtomKind
                                         (molKind.nonBonded_1_4.part1[i]),
@@ -864,7 +866,8 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
   for (uint i = 0; i < molKind.nonBonded_1_3.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded_1_3.part1[i];
     uint p2 = mols.start[molIndex] + molKind.nonBonded_1_3.part2[i];
-    if (currentAxes.InRcut(distSq, currentCoords, p1, p2, box)) {
+    currentAxes.InRcut(distSq, currentCoords, p1, p2, box);
+    if (forcefield.rCutSq > distSq) {
       forcefield.particles->CalcAdd_1_4(energy, distSq,
                                         molKind.AtomKind
                                         (molKind.nonBonded_1_3.part1[i]),
@@ -896,7 +899,8 @@ void CalculateEnergy::MolNonbond_1_3(double & energy, XYZArray const& pos,
   for (uint i = 0; i < molKind.nonBonded_1_3.count; ++i) {
     uint p1 = molKind.nonBonded_1_3.part1[i];
     uint p2 = molKind.nonBonded_1_3.part2[i];
-    if (currentAxes.InRcut(distSq, pos, p1, p2, box)) {
+    currentAxes.InRcut(distSq, pos, p1, p2, box);
+    if (forcefield.rCutSq > distSq) {
       forcefield.particles->CalcAdd_1_4(energy, distSq,
                                         molKind.AtomKind
                                         (molKind.nonBonded_1_3.part1[i]),
@@ -920,7 +924,7 @@ double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,
 {
   if(!forcefield.OneThree)
     return 0.0;
-  else if(forcefield.rCutSq <= distSq)
+  else if(forcefield.rCutSq < distSq)
     return 0.0;
 
   double eng = 0.0;
@@ -950,7 +954,7 @@ double CalculateEnergy::IntraEnergy_1_4(const double distSq, const uint atom1,
 {
   if(!forcefield.OneFour)
     return 0.0;
-  else if(forcefield.rCutSq <= distSq)
+  else if(forcefield.rCutSq < distSq)
     return 0.0;
 
   double eng = 0.0;

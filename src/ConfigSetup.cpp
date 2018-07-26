@@ -390,7 +390,7 @@ void ConfigSetup::Init(const char *fileName)
         if(b < BOX_TOTAL) {
           sys.elect.cutoffCoulomb[b] = stringtod(line[2]);
           sys.elect.cutoffCoulombRead[b] = true;
-          printf("%s %-d: %-28s %4.4f A\n", "Info: Box ", b, " CutoffCoulomb", sys.elect.cutoffCoulomb[b]);
+          printf("%s %-d %-27s %4.4f A\n", "Info: Box ", b, " CutoffCoulomb", sys.elect.cutoffCoulomb[b]);
         } else {
           std::cout << "Error: This simulation requires only " << BOX_TOTAL <<
                   " sets of Coulomb Cutoff!" << std::endl;
@@ -848,7 +848,7 @@ void ConfigSetup::fillDefaults(void)
       if(!sys.elect.cutoffCoulombRead[b]) {
         sys.elect.cutoffCoulomb[b] = sys.ff.cutoff;
         sys.elect.cutoffCoulombRead[b] = true;
-        printf("%s %-d: %-25s %4.4f A\n", "Default: Box ", b, " CutoffCoulomb", sys.elect.cutoffCoulomb[b]);
+        printf("%s %-d %-24s %4.4f A\n", "Default: Box ", b, " CutoffCoulomb", sys.elect.cutoffCoulomb[b]);
       }
     }
   }

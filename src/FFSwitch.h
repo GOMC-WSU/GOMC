@@ -48,9 +48,9 @@ public:
                     ff_setup::NBfix const& nbfix);
 
   virtual double CalcEn(const double distSq,
-                        const uint kind1, const uint kind2, const uint b) const;
+                        const uint kind1, const uint kind2) const;
   virtual double CalcVir(const double distSq,
-                         const uint kind1, const uint kind2, const uint b) const;
+                         const uint kind1, const uint kind2) const;
   virtual void CalcAdd_1_4(double& en, const double distSq,
                            const uint kind1, const uint kind2) const;
 
@@ -133,10 +133,12 @@ inline void FF_SWITCH::CalcCoulombAdd_1_4(double& en, const double distSq,
 
 //mie potential
 inline double FF_SWITCH::CalcEn(const double distSq,
-                                const uint kind1, const uint kind2, const uint b) const
+                                const uint kind1, const uint kind2) const
 {
-  uint index = FlatIndex(kind1, kind2);
+  if(forcefield.rCutSq < distSq)
+    return 0.0;
 
+  uint index = FlatIndex(kind1, kind2);
   double rCutSq_rijSq = forcefield.rCutSq - distSq;
   double rCutSq_rijSq_Sq = rCutSq_rijSq * rCutSq_rijSq;
 
@@ -161,6 +163,9 @@ inline double FF_SWITCH::CalcEn(const double distSq,
 inline double FF_SWITCH::CalcCoulomb(const double distSq,
                                      const double qi_qj_Fact, const uint b) const
 {
+  if(forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
     double val = forcefield.alpha[b] * dist;
@@ -177,8 +182,10 @@ inline double FF_SWITCH::CalcCoulomb(const double distSq,
 inline double FF_SWITCH::CalcCoulombEn(const double distSq,
                                        const double qi_qj_Fact, const uint b) const
 {
-  if(distSq <= forcefield.rCutLowSq)
+  if(forcefield.rCutLowSq > distSq)
     return num::BIGNUM;
+  else if(forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
 
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
@@ -194,10 +201,12 @@ inline double FF_SWITCH::CalcCoulombEn(const double distSq,
 
 //mie potential
 inline double FF_SWITCH::CalcVir(const double distSq,
-                                 const uint kind1, const uint kind2, const uint b) const
+                                 const uint kind1, const uint kind2) const
 {
-  uint index = FlatIndex(kind1, kind2);
+  if(forcefield.rCutSq < distSq)
+    return 0.0;
 
+  uint index = FlatIndex(kind1, kind2);
   double rCutSq_rijSq = forcefield.rCutSq - distSq;
   double rCutSq_rijSq_Sq = rCutSq_rijSq * rCutSq_rijSq;
 
@@ -228,6 +237,9 @@ inline double FF_SWITCH::CalcVir(const double distSq,
 inline double FF_SWITCH::CalcCoulombVir(const double distSq,
                                         const double qi_qj, const uint b) const
 {
+  if(forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
     double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
