@@ -24,8 +24,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <fstream>
 #include <iostream>
 #include <cstdlib>
-
 #include "BasicTypes.h"
+
 
 //Wrapper class for our random numbers
 class PRNG

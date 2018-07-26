@@ -5,7 +5,6 @@ A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "Ewald.h"
-#include "EwaldCached.h"
 #include "CalculateEnergy.h"
 #include "EnergyTypes.h"            //Energy structs
 #include "EnsemblePreprocessor.h"   //Flags
@@ -13,7 +12,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "System.h"                 //For init
 #include "StaticVals.h"             //For init
 #include "Forcefield.h"             //
-#include "MoleculeLookup.h"
 #include "MoleculeKind.h"
 #include "Coordinates.h"
 #include "BoxDimensions.h"
@@ -38,7 +36,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 using namespace geom;
 
 Ewald::Ewald(StaticVals & stat, System & sys) :
-  forcefield(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
+  ff(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
   currentCOM(sys.com), sysPotRef(sys.potential),
 #ifdef VARIABLE_PARTICLE_NUMBER
   molLookup(sys.molLookup),
@@ -51,17 +49,12 @@ Ewald::Ewald(StaticVals & stat, System & sys) :
   currentAxes(*stat.GetBoxDim())
 #endif
 {
-  ewald = false;
-  electrostatic = false;
   imageLarge = 0;
-  alpha = 0.0;
-  recip_rcut = 0.0;
-  recip_rcut_Sq = 0.0;
 }
 
 Ewald::~Ewald()
 {
-  if(ewald) {
+  if(ff.ewald) {
 #ifdef GOMC_CUDA
     DestroyEwaldCUDAVars(forcefield.particles->getCUDAVars());
 #endif
@@ -117,11 +110,6 @@ void Ewald::Init()
     }
   }
 
-  electrostatic = forcefield.electrostatic;
-  ewald = forcefield.ewald;
-  alpha = forcefield.alpha;
-  recip_rcut = forcefield.recip_rcut;
-  recip_rcut_Sq = recip_rcut * recip_rcut;
   AllocMem();
   //initialize K vectors and reciprocate terms
   UpdateVectorsAndRecipTerms();
@@ -569,15 +557,15 @@ void Ewald::RecipInitOrth(uint box, BoxDimensions const& boxAxes)
   uint counter = 0;
   int x, y, z, nkx_max, nky_max, nky_min, nkz_max, nkz_min;
   double ksqr, kX, kY, kZ;
-  double alpsqr4 = 1.0 / (4.0 * alpha * alpha);
+  double alpsqr4 = 1.0 / (4.0 * ff.alphaSq[box]);
   XYZ constValue = boxAxes.axis.Get(box);
   constValue.Inverse();
   constValue *= 2 * M_PI;
 
   double vol = boxAxes.volume[box] / (4 * M_PI);
-  nkx_max = int(recip_rcut * boxAxes.axis.Get(box).x / (2 * M_PI)) + 1;
-  nky_max = int(recip_rcut * boxAxes.axis.Get(box).y / (2 * M_PI)) + 1;
-  nkz_max = int(recip_rcut * boxAxes.axis.Get(box).z / (2 * M_PI)) + 1;
+  nkx_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).x / (2 * M_PI)) + 1;
+  nky_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).y / (2 * M_PI)) + 1;
+  nkz_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).z / (2 * M_PI)) + 1;
   kmax[box] = std::max(std::max(nkx_max, nky_max), std::max(nky_max, nkz_max));
 
   for(x = 0; x <= nkx_max; x++) {
@@ -598,7 +586,7 @@ void Ewald::RecipInitOrth(uint box, BoxDimensions const& boxAxes)
         kZ = constValue.z * z;
         ksqr = kX * kX + kY * kY + kZ * kZ;
 
-        if(ksqr < recip_rcut_Sq) {
+        if(ksqr < ff.recip_rcut_Sq[box]) {
           kx[box][counter] = kX;
           ky[box][counter] = kY;
           kz[box][counter] = kZ;
@@ -625,7 +613,7 @@ void Ewald::RecipInitNonOrth(uint box, BoxDimensions const& boxAxes)
   uint counter = 0;
   int x, y, z, nkx_max, nky_max, nky_min, nkz_max, nkz_min;
   double ksqr, kX, kY, kZ;
-  double alpsqr4 = 1.0 / (4.0 * alpha * alpha);
+  double alpsqr4 = 1.0 / (4.0 * ff.alphaSq[box]);
   XYZArray cellB(boxAxes.cellBasis[box]);
   cellB.Scale(0, boxAxes.axis.Get(box).x);
   cellB.Scale(1, boxAxes.axis.Get(box).y);
@@ -635,9 +623,9 @@ void Ewald::RecipInitNonOrth(uint box, BoxDimensions const& boxAxes)
   cellB_Inv.ScaleRange(0, 3, (2 * M_PI) / det);
 
   double vol = boxAxes.volume[box] / (4 * M_PI);
-  nkx_max = int(recip_rcut * boxAxes.axis.Get(box).x / (2 * M_PI)) + 1;
-  nky_max = int(recip_rcut * boxAxes.axis.Get(box).y / (2 * M_PI)) + 1;
-  nkz_max = int(recip_rcut * boxAxes.axis.Get(box).z / (2 * M_PI)) + 1;
+  nkx_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).x / (2 * M_PI)) + 1;
+  nky_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).y / (2 * M_PI)) + 1;
+  nkz_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).z / (2 * M_PI)) + 1;
   kmax[box] = std::max(std::max(nkx_max, nky_max), std::max(nky_max, nkz_max));
 
   for (x = 0; x <= nkx_max; x++) {
@@ -658,7 +646,7 @@ void Ewald::RecipInitNonOrth(uint box, BoxDimensions const& boxAxes)
         kZ = Dot(cellB_Inv.Get(2), XYZ(x, y, z));
         ksqr = kX * kX + kY * kY + kZ * kZ;
 
-        if(ksqr < recip_rcut_Sq) {
+        if(ksqr < ff.recip_rcut_Sq[box]) {
           kx[box][counter] = kX;
           ky[box][counter] = kY;
           kz[box][counter] = kZ;
@@ -703,9 +691,9 @@ void Ewald::RecipCountInit(uint box, BoxDimensions const& boxAxes)
   double det = cellB.AdjointMatrix(cellB_Inv);
   cellB_Inv.ScaleRange(0, 3, (2 * M_PI) / det);
 
-  nkx_max = int(recip_rcut * constValue.x / (2 * M_PI)) + 1;
-  nky_max = int(recip_rcut * constValue.y / (2 * M_PI)) + 1;
-  nkz_max = int(recip_rcut * constValue.z / (2 * M_PI)) + 1;
+  nkx_max = int(ff.recip_rcut[box] * constValue.x / (2 * M_PI)) + 1;
+  nky_max = int(ff.recip_rcut[box] * constValue.y / (2 * M_PI)) + 1;
+  nkz_max = int(ff.recip_rcut[box] * constValue.z / (2 * M_PI)) + 1;
 
   for(x = 0; x <= nkx_max; x++) {
     if(x == 0.0)
@@ -725,7 +713,7 @@ void Ewald::RecipCountInit(uint box, BoxDimensions const& boxAxes)
         kZ = Dot(cellB_Inv.Get(2), XYZ(x, y, z));
         ksqr = kX * kX + kY * kY + kZ * kZ;
 
-        if(ksqr < recip_rcut_Sq) {
+        if(ksqr < ff.recip_rcut_Sq[box]) {
           counter++;
         }
       }
@@ -778,7 +766,7 @@ double Ewald::MolCorrection(uint molIndex, uint box) const
                          start + i, start + j, box);
       dist = sqrt(distSq);
       correction += (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
-                     erf(alpha * dist) / dist);
+                     erf(ff.alpha[box] * dist) / dist);
     }
   }
 
@@ -805,7 +793,7 @@ double Ewald::BoxSelf(BoxDimensions const& boxAxes, uint box) const
     self += (molSelfEnergy * molLookup.NumKindInBox(i, box));
   }
 
-  self = -1.0 * self * alpha * num::qqFact / sqrt(M_PI);
+  self = -1.0 * self * ff.alpha[box] * num::qqFact / sqrt(M_PI);
 
   return self;
 }
@@ -823,7 +811,7 @@ Virial Ewald::ForceReciprocal(Virial& virial, uint box) const
   double wT22 = 0.0, wT23 = 0.0, wT33 = 0.0;
 
   double recipIntra = 0.0;
-  double constVal = 1.0 / (4.0 * alpha * alpha);
+  double constVal = 1.0 / (4.0 * ff.alphaSq[box]);
   double factor, arg, charge;
   uint p, length, start, atom;
   int i;
@@ -964,7 +952,8 @@ Virial Ewald::ForceReciprocal(Virial& virial, uint box) const
 //calculate correction term for linear molecule CBMC algorithm
 double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol) const
 {
-  if (trialMol.GetBox() >= BOXES_WITH_U_NB)
+  uint box = trialMol.GetBox();
+  if (box >= BOXES_WITH_U_NB)
     return 0.0;
 
   double dist, distSq;
@@ -976,11 +965,11 @@ double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol) const
   for (uint i = 0; i < atomSize; i++) {
     for (uint j = i + 1; j < atomSize; j++) {
       currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
-                         i, j, trialMol.GetBox());
+                         i, j, box);
 
       dist = sqrt(distSq);
       correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
-                     erf(alpha * dist) / dist);
+                     erf(ff.alpha[box] * dist) / dist);
     }
   }
   return num::qqFact * correction;
@@ -988,7 +977,8 @@ double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol) const
 
 double Ewald::SwapSelf(const cbmc::TrialMol& trialMol) const
 {
-  if (trialMol.GetBox() >= BOXES_WITH_U_NB)
+  uint box = trialMol.GetBox();
+  if (box >= BOXES_WITH_U_NB)
     return 0.0;
 
   MoleculeKind const& thisKind = trialMol.GetKind();
@@ -998,7 +988,7 @@ double Ewald::SwapSelf(const cbmc::TrialMol& trialMol) const
   for (uint i = 0; i < atomSize; i++) {
     en_self -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(i));
   }
-  return (en_self * alpha * num::qqFact / sqrt(M_PI));
+  return (en_self * ff.alpha[box] * num::qqFact / sqrt(M_PI));
 }
 
 //update reciprocate values

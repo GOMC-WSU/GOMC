@@ -12,6 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Molecules.h"
 #include "Forcefield.h"
 #include "TrialMol.h"
+#include "MoleculeLookup.h"
 #include <vector>
 #include <stdio.h>
 #include <cstring>
@@ -126,7 +127,7 @@ private:
   double currentEnergyRecip[BOXES_WITH_U_NB];
 
 protected:
-  const Forcefield& forcefield;
+  const Forcefield& ff;
   const Molecules& mols;
   const Coordinates& currentCoords;
   const MoleculeLookup& molLookup;
@@ -134,9 +135,6 @@ protected:
   const COM& currentCOM;
   const SystemPotential &sysPotRef;
 
-  bool electrostatic, ewald;
-  double alpha;
-  double recip_rcut, recip_rcut_Sq;
   uint *imageSize;
   uint *imageSizeRef;
   //const uint imageTotal = GetImageSize();

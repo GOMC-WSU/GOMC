@@ -49,7 +49,9 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
   T_in_K = val.T.inKelvin;
   rCut = val.ff.cutoff;
   rCutSq = rCut * rCut;
-  scl_14 = val.elect.oneFourScale;
+  rCutLow = val.ff.cutoffLow;
+  rCutLowSq = rCutLow * rCutLow;
+  scaling_14 = val.elect.oneFourScale;
   beta = 1 / T_in_K;
 
   vdwKind = val.ff.VDW_KIND;
@@ -57,10 +59,18 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
 
   electrostatic = val.elect.enable;
   ewald = val.elect.ewald;
-  alpha = sqrt(-1 * log(val.elect.tolerance)) / rCut;
-  recip_rcut = 2 * (-log(val.elect.tolerance)) /rCut;
+  tolerance = val.elect.tolerance;
   rswitch = val.ff.rswitch;
   dielectric = val.elect.dielectric;
+
+  for(uint b = 0 ; b < BOX_TOTAL; b++) {
+    rCutCoulomb[b] = val.elect.cutoffCoulomb[b];
+    rCutCoulombSq[b] = rCutCoulomb[b] * rCutCoulomb[b];
+    alpha[b] = sqrt(-log(tolerance)) / rCutCoulomb[b];
+    alphaSq[b] = alpha[b] * alpha[b];
+    recip_rcut[b] = -2.0 * log(tolerance) / rCutCoulomb[b];
+    recip_rcut_Sq[b] = recip_rcut[b] * recip_rcut[b];
+  }
 
   vdwGeometricSigma = val.ff.vdwGeometricSigma;
   isMartini = ffKind.isMARTINI;

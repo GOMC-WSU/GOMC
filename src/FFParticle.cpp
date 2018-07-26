@@ -18,9 +18,7 @@ FFParticle::FFParticle(Forcefield &ff) : forcefield(ff), mass(NULL), nameFirst(N
 #ifdef GOMC_CUDA
   , varCUDA(NULL)
 #endif 
-  {
-    rCut = rCutSq = 0.0;
-  }
+  {}
 
 FFParticle::~FFParticle(void)
 {
@@ -62,15 +60,10 @@ void FFParticle::Init(ff_setup::Particle const& mie,
   count = mie.epsilon.size(); //Get # particles read
   //Size LJ particle kind arrays
   mass = new double [count];
-  vdwKind = forcefield.vdwKind;
-  vdwGeometricSigma = forcefield.vdwGeometricSigma;
-
   //Size LJ-LJ pair arrays
   uint size = num::Sq(count);
   nameFirst = new std::string [size];
   nameSec = new std::string [size];
-  isMartini = forcefield.isMartini;
-
 
 #ifdef MIE_INT_ONLY
   n = new uint [size];
@@ -94,24 +87,17 @@ void FFParticle::Init(ff_setup::Particle const& mie,
   enCorrection = new double [size];
   virCorrection = new double [size];
 
-  rCut =  forcefield.rCut;
-  rCutSq = rCut * rCut;
-  rCutLow = forcefield.rCutLow;
-  rCutLowSq = rCutLow * rCutLow;
-  scaling_14 = forcefield.scl_14;
-  ewald = forcefield.ewald;
-  alpha = forcefield.alpha;
-
   //Combining VDW parameter
-  Blend(mie, rCut);
+  Blend(mie, forcefield.rCut);
   //Adjusting VDW parameter using NBFIX
-  AdjNBfix(mie, nbfix, rCut);
+  AdjNBfix(mie, nbfix, forcefield.rCut);
 
 #ifdef GOMC_CUDA
   double diElectric_1 = 1.0 / forcefield.dielectric;
-  double rOn = forcefield.rswitch;
-  InitGPUForceField(*varCUDA, sigmaSq, epsilon_cn, n, vdwKind, isMartini,
-                    count, rCut, rCutLow, rOn, alpha, ewald, diElectric_1);
+  InitGPUForceField(*varCUDA, sigmaSq, epsilon_cn, n, forcefield.vdwKind,
+                    forcefield.isMartini, count, forcefield.rCut,
+                    forcefield.rCutLow, forcefield.rswitch, forcefield.alpha,
+                    forcefield.ewald, diElectric_1);
 #endif
 }
 
@@ -145,7 +131,7 @@ void FFParticle::Blend(ff_setup::Particle const& mie, const double rCut)
       double sigma, sigma_1_4;
       sigma = sigma_1_4 = 0.0;
       
-      if(vdwGeometricSigma) {
+      if(forcefield.vdwGeometricSigma) {
         sigma = num::MeanG(mie.sigma, mie.sigma, i, j);
         sigma_1_4 = num::MeanG(mie.sigma_1_4, mie.sigma_1_4, i, j);
       } else {
@@ -242,4 +228,122 @@ double FFParticle::GetN_1_4(const uint i, const uint j) const
 {
   uint idx = FlatIndex(i, j);
   return n_1_4[idx];
+}
+
+// Defining the functions
+
+inline void FFParticle::CalcAdd_1_4(double& en, const double distSq,
+                                    const uint kind1, const uint kind2) const
+{
+  uint index = FlatIndex(kind1, kind2);
+  double rRat2 = sigmaSq_1_4[index] / distSq;
+  double rRat4 = rRat2 * rRat2;
+  double attract = rRat4 * rRat2;
+#ifdef MIE_INT_ONLY
+  uint n_ij = n_1_4[index];
+  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
+#else
+  double n_ij = n_1_4[index];
+  double repulse = pow(sqrt(rRat2), n_ij);
+#endif
+
+  en += epsilon_cn_1_4[index] * (repulse - attract);
+}
+
+inline void FFParticle::CalcCoulombAdd_1_4(double& en, const double distSq,
+    const double qi_qj_Fact,
+    const bool NB) const
+{
+  double dist = sqrt(distSq);
+  if(NB)
+    en += qi_qj_Fact / dist;
+  else
+    en += qi_qj_Fact * forcefield.scaling_14 / dist;
+}
+
+
+
+//mie potential
+inline double FFParticle::CalcEn(const double distSq,
+                                 const uint kind1, const uint kind2, const uint b) const
+{
+  uint index = FlatIndex(kind1, kind2);
+  double rRat2 = sigmaSq[index] / distSq;
+  double rRat4 = rRat2 * rRat2;
+  double attract = rRat4 * rRat2;
+#ifdef MIE_INT_ONLY
+  uint n_ij = n[index];
+  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
+#else
+  double n_ij = n[index];
+  double repulse = pow(sqrt(rRat2), n_ij);
+#endif
+
+  return epsilon_cn[index] * (repulse - attract);
+}
+
+inline double FFParticle::CalcCoulomb(const double distSq,
+                                      const double qi_qj_Fact, const uint b) const
+{
+  if(forcefield.ewald) {
+    double dist = sqrt(distSq);
+    double val = forcefield.alpha[b] * dist;
+    return  qi_qj_Fact * erfc(val) / dist;
+  } else {
+    double dist = sqrt(distSq);
+    return  qi_qj_Fact / dist;
+  }
+}
+
+//will be used in energy calculation after each move
+inline double FFParticle::CalcCoulombEn(const double distSq,
+                                        const double qi_qj_Fact, const uint b) const
+{
+  if(distSq <= forcefield.rCutLowSq)
+    return num::BIGNUM;
+
+  if(forcefield.ewald) {
+    double dist = sqrt(distSq);
+    double val = forcefield.alpha[b] * dist;
+    return  qi_qj_Fact * erfc(val) / dist;
+  } else {
+    double dist = sqrt(distSq);
+    return  qi_qj_Fact / dist;
+  }
+}
+
+
+inline double FFParticle::CalcVir(const double distSq,
+                                  const uint kind1, const uint kind2, const uint b) const
+{
+  uint index = FlatIndex(kind1, kind2);
+  double rNeg2 = 1.0 / distSq;
+  double rRat2 = rNeg2 * sigmaSq[index];
+  double rRat4 = rRat2 * rRat2;
+  double attract = rRat4 * rRat2;
+#ifdef MIE_INT_ONLY
+  uint n_ij = n[index];
+  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
+#else
+  double n_ij = n[index];
+  double repulse = pow(sqrt(rRat2), n_ij);
+#endif
+
+  //Virial is the derivative of the pressure... mu
+  return epsilon_cn_6[index] * (nOver6[index] * repulse - attract) * rNeg2;
+}
+
+inline double FFParticle::CalcCoulombVir(const double distSq,
+    const double qi_qj, const uint b) const
+{
+  if(forcefield.ewald) {
+    double dist = sqrt(distSq);
+    double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
+    double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
+    double temp = 1.0 - erf(forcefield.alpha[b] * dist);
+    return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+  } else {
+    double dist = sqrt(distSq);
+    return qi_qj / (distSq * dist);
+  }
 }

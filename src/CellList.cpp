@@ -20,6 +20,7 @@ CellList::CellList(const Molecules& mols,  BoxDimensions& dims)
   isBuilt = false;
   for(uint b = 0; b < BOX_TOTAL; b++) {
     edgeCells[b][0] = edgeCells[b][1] = edgeCells[b][2] = 0;
+    cutoff[b] = dims.rCut[b];
   }
 }
 
@@ -95,17 +96,17 @@ void CellList::ResizeGrid(const BoxDimensions& dims)
     bool rebuild = false;
     int* eCells = edgeCells[b];
     int oldCells = eCells[0];
-    eCells[0] = std::max((int)floor(sides.x / cutoff), 3);
+    eCells[0] = std::max((int)floor(sides.x / cutoff[b]), 3);
     cellSize[b].x = sides.x / eCells[0];
     rebuild |= (!isBuilt || (oldCells != eCells[0]));
 
     oldCells = eCells[1];
-    eCells[1] = std::max((int)floor(sides.y / cutoff), 3);
+    eCells[1] = std::max((int)floor(sides.y / cutoff[b]), 3);
     cellSize[b].y = sides.y / eCells[1];
     rebuild |= (!isBuilt || (oldCells != eCells[1]));
 
     oldCells = eCells[2];
-    eCells[2] = std::max((int)floor(sides.z / cutoff), 3);
+    eCells[2] = std::max((int)floor(sides.z / cutoff[b]), 3);
     cellSize[b].z = sides.z / eCells[2];
     rebuild |= (!isBuilt || (oldCells != eCells[2]));
 

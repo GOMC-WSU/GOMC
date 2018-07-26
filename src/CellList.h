@@ -24,11 +24,6 @@ class CellList
 public:
   explicit CellList(const Molecules& mols, BoxDimensions& dims);
 
-  void SetCutoff(double cut)
-  {
-    cutoff = cut;
-  }
-
   void RemoveMol(const int molIndex, const int box, const XYZArray& pos);
   void AddMol(const int molIndex, const int box, const XYZArray& pos);
   void GridAll(BoxDimensions& dims, const XYZArray& pos, const MoleculeLookup& lookup);
@@ -72,7 +67,7 @@ private:
   int edgeCells[BOX_TOTAL][3];
   const Molecules* mols;
   BoxDimensions *dimensions;
-  double cutoff;
+  double cutoff[BOX_TOTAL];
   bool isBuilt;
 };
 

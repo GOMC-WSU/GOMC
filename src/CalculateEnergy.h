@@ -247,8 +247,7 @@ private:
   const BoxDimensions& currentAxes;
   const COM& currentCOM;
   const Ewald  *calcEwald;
-  bool electrostatic, ewald;
-  double rCut;
+  bool electrostatic;
 
   std::vector<int> particleKind;
   std::vector<int> particleMol;

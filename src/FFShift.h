@@ -42,19 +42,19 @@ public:
                     ff_setup::NBfix const& nbfix);
 
   virtual double CalcEn(const double distSq,
-                        const uint kind1, const uint kind2) const;
+                        const uint kind1, const uint kind2, const uint b) const;
   virtual double CalcVir(const double distSq,
-                         const uint kind1, const uint kind2) const;
+                         const uint kind1, const uint kind2, const uint b) const;
   virtual void CalcAdd_1_4(double& en, const double distSq,
                            const uint kind1, const uint kind2) const;
 
   // coulomb interaction functions
   virtual double CalcCoulomb(const double distSq,
-                             const double qi_qj_Fact) const;
+                             const double qi_qj_Fact, const uint b) const;
   virtual double CalcCoulombEn(const double distSq,
-                               const double qi_qj_Fact) const;
+                               const double qi_qj_Fact, const uint b) const;
   virtual double CalcCoulombVir(const double distSq,
-                                const double qi_qj) const;
+                                const double qi_qj, const uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact,
                                   const bool NB) const;
@@ -89,11 +89,11 @@ inline void FF_SHIFT::Init(ff_setup::Particle const& mie,
   for(uint i = 0; i < count; ++i) {
     for(uint j = 0; j < count; ++j) {
       uint idx = FlatIndex(i, j);
-      double rRat2 = sigmaSq[idx] / rCutSq;
+      double rRat2 = sigmaSq[idx] / forcefield.rCutSq;
       double rRat4 = rRat2 * rRat2;
       double attract = rRat4 * rRat2;
       //for 1-4 interaction
-      double rRat2_1_4 = sigmaSq_1_4[idx] / rCutSq;
+      double rRat2_1_4 = sigmaSq_1_4[idx] / forcefield.rCutSq;
       double rRat4_1_4 = rRat2_1_4 * rRat2_1_4;
       double attract_1_4 = rRat4_1_4 * rRat2_1_4;
       double repulse = pow(sqrt(rRat2), n[idx]);
@@ -134,13 +134,13 @@ inline void FF_SHIFT::CalcCoulombAdd_1_4(double& en, const double distSq,
   if(NB)
     en += qi_qj_Fact / dist;
   else
-    en += qi_qj_Fact * scaling_14 / dist;
+    en += qi_qj_Fact * forcefield.scaling_14 / dist;
 }
 
 
 //mie potential
 inline double FF_SHIFT::CalcEn(const double distSq,
-                               const uint kind1, const uint kind2) const
+                               const uint kind1, const uint kind2, const uint b) const
 {
   uint index = FlatIndex(kind1, kind2);
   double rRat2 = sigmaSq[index] / distSq;
@@ -158,38 +158,38 @@ inline double FF_SHIFT::CalcEn(const double distSq,
 }
 
 inline double FF_SHIFT::CalcCoulomb(const double distSq,
-                                    const double qi_qj_Fact) const
+                                    const double qi_qj_Fact, const uint b) const
 {
-  if(ewald) {
+  if(forcefield.ewald) {
     double dist = sqrt(distSq);
-    double val = alpha * dist;
+    double val = forcefield.alpha[b] * dist;
     return  qi_qj_Fact * erfc(val) / dist;
   } else {
     double dist = sqrt(distSq);
-    return  qi_qj_Fact * (1.0 / dist - 1.0 / rCut);
+    return  qi_qj_Fact * (1.0 / dist - 1.0 / forcefield.rCut);
   }
 }
 
 //will be used in energy calculation after each move
 inline double FF_SHIFT::CalcCoulombEn(const double distSq,
-                                      const double qi_qj_Fact) const
+                                      const double qi_qj_Fact, const uint b) const
 {
-  if(distSq <= rCutLowSq)
+  if(distSq <= forcefield.rCutLowSq)
     return num::BIGNUM;
 
-  if(ewald) {
+  if(forcefield.ewald) {
     double dist = sqrt(distSq);
-    double val = alpha * dist;
+    double val = forcefield.alpha[b] * dist;
     return  qi_qj_Fact * erfc(val) / dist;
   } else {
     double dist = sqrt(distSq);
-    return  qi_qj_Fact * (1.0 / dist - 1.0 / rCut);
+    return  qi_qj_Fact * (1.0 / dist - 1.0 / forcefield.rCut);
   }
 }
 
 //mie potential
 inline double FF_SHIFT::CalcVir(const double distSq,
-                                const uint kind1, const uint kind2) const
+                                const uint kind1, const uint kind2, const uint b) const
 {
   uint index = FlatIndex(kind1, kind2);
   double rNeg2 = 1.0 / distSq;
@@ -209,13 +209,13 @@ inline double FF_SHIFT::CalcVir(const double distSq,
 }
 
 inline double FF_SHIFT::CalcCoulombVir(const double distSq,
-                                       const double qi_qj) const
+                                       const double qi_qj, const uint b) const
 {
-  if(ewald) {
+  if(forcefield.ewald) {
     double dist = sqrt(distSq);
-    double constValue = 2.0 * alpha / sqrt(M_PI);
-    double expConstValue = exp(-1.0 * alpha * alpha * distSq);
-    double temp = erfc(alpha * dist);
+    double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
+    double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
+    double temp = erfc(forcefield.alpha[b] * dist);
     return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
     double dist = sqrt(distSq);
