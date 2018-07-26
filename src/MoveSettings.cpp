@@ -131,7 +131,7 @@ void MoveSettings::Adjust(const uint majMoveKind,
 #if ENSEMBLE == NPT || ENSEMBLE == GEMC
   case mv::VOL_TRANSFER : {
     //Warning: This will lead to have acceptance > %50
-    double maxVolExchange = boxDimRef.MinVolume() - boxDimRef.minVol;
+    double maxVolExchange = boxDimRef.MinVolume() - boxDimRef.minVol[b];
     num::Bound<double>(scale[moveIndex], 0.001,  maxVolExchange - 0.001);
     break;
   }

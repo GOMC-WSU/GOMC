@@ -5,34 +5,6 @@ A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "EwaldCached.h"
-#include "CalculateEnergy.h"
-#include "EnergyTypes.h"            //Energy structs
-#include "EnsemblePreprocessor.h"   //Flags
-#include "BasicTypes.h"             //uint
-#include "System.h"                 //For init
-#include "StaticVals.h"             //For init
-#include "Forcefield.h"             //
-#include "MoleculeLookup.h"
-#include "MoleculeKind.h"
-#include "Coordinates.h"
-#include "BoxDimensions.h"
-#include "TrialMol.h"
-#include "GeomLib.h"
-#include "NumLib.h"
-#include <cassert>
-#ifdef GOMC_CUDA
-#include "ConstantDefinitionsCUDAKernel.cuh"
-#include "VariablesCUDA.cuh"
-#endif
-
-//
-//
-//    Energy Calculation functions for Ewald summation method
-//    Calculating self, correction and reciprocate part of ewald
-//
-//    Developed by Y. Li and Mohammad S. Barhaghi
-//
-//
 
 using namespace geom;
 
@@ -40,7 +12,7 @@ EwaldCached::EwaldCached(StaticVals & stat, System & sys) : Ewald(stat, sys) { }
 
 EwaldCached::~EwaldCached()
 {
-  if(ewald) {
+  if(ff.ewald) {
     for(int i = 0; i < mols.count; i++) {
       //when cached option is choosen
       if (cosMolRef[i] != NULL) {
@@ -79,11 +51,6 @@ void EwaldCached::Init()
     }
   }
 
-  electrostatic = forcefield.electrostatic;
-  ewald = forcefield.ewald;
-  alpha = forcefield.alpha;
-  recip_rcut = forcefield.recip_rcut;
-  recip_rcut_Sq = recip_rcut * recip_rcut;
   AllocMem();
   //initialize K vectors and reciprocate terms
   UpdateVectorsAndRecipTerms();

@@ -81,7 +81,7 @@ void System::Init(Setup const& set)
 #ifdef VARIABLE_VOLUME
   boxDimensions->Init(set.config.in.restart,
                       set.config.sys.volume, set.pdb.cryst,
-                      statV.forcefield.rCut);
+                      statV.forcefield);
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
   molLookup.Init(statV.mol, set.pdb.atoms);
@@ -92,7 +92,6 @@ void System::Init(Setup const& set)
   //particle/molecule ensemble, e.g. NVT
   coordinates.InitFromPDB(set.pdb.atoms);
   com.CalcCOM();
-  cellList.SetCutoff(statV.forcefield.rCut);
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 
   //check if we have to use cached version of ewlad or not.

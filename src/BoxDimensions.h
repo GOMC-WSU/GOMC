@@ -12,6 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBSetup.h" //Primary source of volume.
 #include "ConfigSetup.h" //Other potential source of volume (new sys only)
 #include "XYZArray.h" //For axes
+#include "Forcefield.h"
 #include "GeomLib.h"
 #include <cstdio>
 #include <cstdlib>
@@ -20,7 +21,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 //Use shortcuts when calculating Rcut
 //#define RCUT_SHORTCUT
-
 
 class BoxDimensions
 {
@@ -38,7 +38,8 @@ public:
 
   virtual void Init(config_setup::RestartSettings const& restart,
                     config_setup::Volume const& confVolume,
-                    pdb_setup::Cryst1 const& cryst, double rc);
+                    pdb_setup::Cryst1 const& cryst,
+                    Forcefield const &ff);
 
   XYZ GetAxis(const uint b) const
   {
@@ -108,11 +109,12 @@ public:
   bool InRcut(double & distSq, XYZArray const& arr1,
               const uint i, XYZArray const& arr2, const uint j,
               const uint b) const;
-
+/*
   bool InRcut(double distSq) const
   {
     return (distSq < rCutSq);
   }
+  */
 
   //Dist squared , two different coordinate arrays
   void GetDistSq(double & distSq, XYZArray const& arr1,
@@ -141,9 +143,9 @@ public:
   double volInv[BOX_TOTAL];       //inverse volume of each box in (a^-3)
   double cosAngle[BOX_TOTAL][3];  //alpha, beta, gamma for each box
 
-  double rCut;
-  double rCutSq;
-  double minVol;
+  double rCut[BOX_TOTAL];
+  double rCutSq[BOX_TOTAL];
+  double minVol[BOX_TOTAL];
 
   bool cubic[BOX_TOTAL], orthogonal[BOX_TOTAL], constArea;
 
@@ -214,7 +216,7 @@ inline bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
 {
   dist = MinImage(arr.Difference(i, j), b);
   distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
-  return (rCutSq > distSq);
+  return (rCutSq[b] > distSq);
 }
 
 
@@ -225,7 +227,7 @@ inline bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
 {
   dist = MinImage(arr1.Difference(i, arr2, j), b);
   distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
-  return (rCutSq > distSq);
+  return (rCutSq[b] > distSq);
 }
 
 inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr,
@@ -234,7 +236,7 @@ inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr,
 {
   XYZ dist = MinImage(arr.Difference(i, j), b);
   distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
-  return (rCutSq > distSq);
+  return (rCutSq[b] > distSq);
 }
 
 
@@ -244,7 +246,7 @@ inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr1,
 {
   XYZ dist = MinImage(arr1.Difference(i, arr2, j), b);
   distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
-  return (rCutSq > distSq);
+  return (rCutSq[b] > distSq);
 }
 
 

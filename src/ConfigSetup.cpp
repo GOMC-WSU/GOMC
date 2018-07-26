@@ -384,6 +384,19 @@ void ConfigSetup::Init(const char *fileName)
       sys.elect.tolerance = stringtod(line[1]);
       printf("%-40s %-1.3E \n", "Info: Ewald Summation Tolerance",
              sys.elect.tolerance);
+    } else if(line[0] == "RcutCoulomb") {
+      if(line.size() == 3) {
+        uint b = stringtoi(line[1]);
+        if(b < BOX_TOTAL) {
+          sys.elect.cutoffCoulomb[b] = stringtod(line[2]);
+          sys.elect.cutoffCoulombRead[b] = true;
+          printf("%s %-d: %-28s %4.4f A\n", "Info: Box ", b, " CutoffCoulomb", sys.elect.cutoffCoulomb[b]);
+        } else {
+          std::cout << "Error: This simulation requires only " << BOX_TOTAL <<
+                  " sets of Coulomb Cutoff!" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+      }
     } else if(line[0] == "CachedFourier") {
       sys.elect.cache = checkBool(line[1]);
       sys.elect.readCache = true;
@@ -821,12 +834,23 @@ void ConfigSetup::fillDefaults(void)
 
   if (sys.elect.ewald == true && sys.elect.readCache == false) {
     sys.elect.cache = true;
+    sys.elect.readCache = true;
     printf("%-40s %-s \n", "Default: Cache Ewald Fourier", "Active");
   }
 
   if(sys.elect.enable && sys.elect.dielectric == DBL_MAX && in.ffKind.isMARTINI) {
     sys.elect.dielectric = 15.0f;
     printf("%-40s %-4.4f \n", "Default: Dielectric", sys.elect.dielectric);
+  }
+
+  if(sys.elect.enable) {
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      if(!sys.elect.cutoffCoulombRead[b]) {
+        sys.elect.cutoffCoulomb[b] = sys.ff.cutoff;
+        sys.elect.cutoffCoulombRead[b] = true;
+        printf("%s %-d: %-25s %4.4f A\n", "Default: Box ", b, " CutoffCoulomb", sys.elect.cutoffCoulomb[b]);
+      }
+    }
   }
 
   if(sys.ff.cutoffLow == DBL_MAX) {

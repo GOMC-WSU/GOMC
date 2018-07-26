@@ -13,12 +13,13 @@ using namespace geom;
 
 void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
                                 config_setup::Volume const& confVolume,
-                                pdb_setup::Cryst1 const& cryst, double rc)
+                                pdb_setup::Cryst1 const& cryst,
+                                Forcefield const &ff)
 {
-  rCut = rc;
-  rCutSq = rc * rc;
-  minVol = 8.0 * rCutSq * rCut + 0.001;
   for (uint b = 0; b < BOX_TOTAL; b++) {
+    rCut[b] = std::max(ff.rCut, ff.rCutCoulomb[b]);
+    rCutSq[b] = rCut[b] * rCut[b];
+    minVol[b] = 8.0 * rCutSq[b] * rCut[b] + 0.001;
     if(restart.enable && cryst.hasVolume) {
       axis = cryst.axis;
       double alpha = cos(cryst.cellAngle[b][0] * M_PI / 180.0);
@@ -93,7 +94,7 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     //axis.Set(b, unslant.x, unslant.y, unslant.z);
     axis.Set(b, cellLength[b]);
 
-    if(axis.Get(b).Min() < 2.0 * rCut) {
+    if(axis.Get(b).Min() < 2.0 * rCut[b]) {
       printf("Error: Cutoff value is large than half of minimum BOX%d length!\n", b);
       exit(EXIT_FAILURE);
     }
@@ -133,6 +134,8 @@ BoxDimensionsNonOrth& BoxDimensionsNonOrth::operator=(BoxDimensionsNonOrth const
     other.cellBasis_Inv[b].CopyRange(cellBasis_Inv[b], 0, 0, 3);
     volume[b] = other.volume[b];
     volInv[b] = other.volInv[b];
+    rCut[b] = other.rCut[b];
+    rCutSq[b] = other.rCutSq[b];
     cubic[b] = other.cubic[b];
     orthogonal[b] = other.orthogonal[b];
     for(uint i = 0; i < 3; i++) {
@@ -142,8 +145,6 @@ BoxDimensionsNonOrth& BoxDimensionsNonOrth::operator=(BoxDimensionsNonOrth const
   other.axis.CopyRange(axis, 0, 0, BOX_TOTAL);
   other.halfAx.CopyRange(halfAx, 0, 0, BOX_TOTAL);
   other.cellLength.CopyRange(cellLength, 0, 0, BOX_TOTAL);
-  rCut = other.rCut;
-  rCutSq = other.rCutSq;
   constArea = other.constArea;
   return *this;
 }
@@ -160,8 +161,8 @@ uint BoxDimensionsNonOrth::ShiftVolume(BoxDimensionsNonOrth & newDim,
 
   //If move would shrink any box axis to be less than 2 * rcut, then
   //automatically reject to prevent errors.
-  if ((newDim.halfAx.x[b] < rCut || newDim.halfAx.y[b] < rCut ||
-       newDim.halfAx.z[b] < rCut || newVolume < minVol)) {
+  if ((newDim.halfAx.x[b] < rCut[b] || newDim.halfAx.y[b] < rCut[b] ||
+       newDim.halfAx.z[b] < rCut[b] || newVolume < minVol[b])) {
     std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!"
               << std::endl;
     std::cout << "AxisDimensions: " << newDim.GetAxis(b) << std::endl;
@@ -187,8 +188,8 @@ uint BoxDimensionsNonOrth::ExchangeVolume(BoxDimensionsNonOrth & newDim,
   //automatically reject to prevent errors.
   for (uint b = 0; b < BOX_TOTAL; b++) {
     scale[b] = newDim.axis.Get(b) / axis.Get(b);
-    if ((newDim.halfAx.x[b] < rCut || newDim.halfAx.y[b] < rCut ||
-         newDim.halfAx.z[b] < rCut || newDim.volume[b] < minVol)) {
+    if ((newDim.halfAx.x[b] < rCut[b] || newDim.halfAx.y[b] < rCut[b] ||
+         newDim.halfAx.z[b] < rCut[b] || newDim.volume[b] < minVol[b])) {
       std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!"
                 << std::endl;
       std::cout << "AxisDimensions: " << newDim.GetAxis(b) << std::endl;

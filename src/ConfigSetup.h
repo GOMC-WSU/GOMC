@@ -170,9 +170,15 @@ struct ElectroStatic {
   bool enable;
   bool ewald;
   bool cache;
+  bool cutoffCoulombRead[BOX_TOTAL];
   double tolerance;
   double oneFourScale;
   double dielectric;
+  double cutoffCoulomb[BOX_TOTAL];
+  ElectroStatic(void) 
+  {
+    std::fill_n(cutoffCoulombRead, BOX_TOTAL, false);
+  }
 };
 
 struct Volume {

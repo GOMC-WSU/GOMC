@@ -35,7 +35,8 @@ public:
 
   virtual void Init(config_setup::RestartSettings const& restart,
                     config_setup::Volume const& confVolume,
-                    pdb_setup::Cryst1 const& cryst, double rc);
+                    pdb_setup::Cryst1 const& cryst,
+                    Forcefield const &ff);
 
   virtual void SetVolume(const uint b, const double vol);
 

@@ -72,19 +72,19 @@ public:
                     ff_setup::NBfix const& nbfix);
 
   virtual double CalcEn(const double distSq,
-                        const uint kind1, const uint kind2) const;
+                        const uint kind1, const uint kind2, const uint b) const;
   virtual double CalcVir(const double distSq,
-                         const uint kind1, const uint kind2) const;
+                         const uint kind1, const uint kind2, const uint b) const;
   virtual void CalcAdd_1_4(double& en, const double distSq,
                            const uint kind1, const uint kind2) const;
 
   // coulomb interaction functions
   virtual double CalcCoulomb(const double distSq,
-                             const double qi_qj_Fact) const;
+                             const double qi_qj_Fact, const uint b) const;
   virtual double CalcCoulombEn(const double distSq,
-                               const double qi_qj_Fact) const;
+                               const double qi_qj_Fact, const uint b) const;
   virtual double CalcCoulombVir(const double distSq,
-                                const double qi_qj) const;
+                                const double qi_qj, const uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact,
                                   const bool NB) const;
@@ -133,6 +133,7 @@ inline void FF_SWITCH_MARTINI::Init(ff_setup::Particle const& mie,
   rOnSq = rOn * rOn;
   //in Martini, Coulomb switching distance is zero
   rOnCoul = 0.0;
+  double rCut = forcefield.rCut;
   // Set LJ constants
   A6 = 6.0 * ((6.0 + 1) * rOn - (6.0 + 4) * rCut) / (pow(rCut, 6.0 + 2) *
        pow(rCut - rOn, 2));
@@ -218,14 +219,14 @@ inline void FF_SWITCH_MARTINI::CalcCoulombAdd_1_4(double& en,
   if(NB)
     en += qi_qj_Fact / dist;
   else
-    en += qi_qj_Fact * scaling_14 / dist;
+    en += qi_qj_Fact * forcefield.scaling_14 / dist;
 }
 
 
 //mie potential
 inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
                                         const uint kind1,
-                                        const uint kind2) const
+                                        const uint kind2, const uint b) const
 {
   uint index = FlatIndex(kind1, kind2);
 
@@ -258,11 +259,11 @@ inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
 }
 
 inline double FF_SWITCH_MARTINI::CalcCoulomb(const double distSq,
-    const double qi_qj_Fact) const
+    const double qi_qj_Fact, const uint b) const
 {
-  if(ewald) {
+  if(forcefield.ewald) {
     double dist = sqrt(distSq);
-    double val = alpha * dist;
+    double val = forcefield.alpha[b] * dist;
     return  qi_qj_Fact * erfc(val) / dist;
   } else {
     // in Martini, the Coulomb switching distance is zero, so we will have
@@ -278,14 +279,14 @@ inline double FF_SWITCH_MARTINI::CalcCoulomb(const double distSq,
 
 //will be used in energy calculation after each move
 inline double FF_SWITCH_MARTINI::CalcCoulombEn(const double distSq,
-    const double qi_qj_Fact) const
+    const double qi_qj_Fact, const uint b) const
 {
-  if(distSq <= rCutLowSq)
+  if(distSq <= forcefield.rCutLowSq)
     return num::BIGNUM;
 
-  if(ewald) {
+  if(forcefield.ewald) {
     double dist = sqrt(distSq);
-    double val = alpha * dist;
+    double val = forcefield.alpha[b] * dist;
     return  qi_qj_Fact * erfc(val) / dist;
   } else {
     // in Martini, the Coulomb switching distance is zero, so we will have
@@ -302,7 +303,7 @@ inline double FF_SWITCH_MARTINI::CalcCoulombEn(const double distSq,
 //mie potential
 inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
     const uint kind1,
-    const uint kind2) const
+    const uint kind2, const uint b) const
 {
   uint index = FlatIndex(kind1, kind2);
   double n_ij = n[index];
@@ -330,13 +331,13 @@ inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
 }
 
 inline double FF_SWITCH_MARTINI::CalcCoulombVir(const double distSq,
-    const double qi_qj) const
+    const double qi_qj, const uint b) const
 {
-  if(ewald) {
+  if(forcefield.ewald) {
     double dist = sqrt(distSq);
-    double constValue = 2.0 * alpha / sqrt(M_PI);
-    double expConstValue = exp(-1.0 * alpha * alpha * distSq);
-    double temp = erfc(alpha * dist);
+    double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
+    double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
+    double temp = erfc(forcefield.alpha[b] * dist);
     return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
     // in Martini, the Coulomb switching distance is zero, so we will have
