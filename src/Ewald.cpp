@@ -21,6 +21,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <cassert>
 #ifdef GOMC_CUDA
 #include "CalculateEwaldCUDAKernel.cuh"
+#include "CalculateForceCUDAKernel.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
 
@@ -56,7 +57,7 @@ Ewald::~Ewald()
 {
   if(ff.ewald) {
 #ifdef GOMC_CUDA
-    DestroyEwaldCUDAVars(forcefield.particles->getCUDAVars());
+    DestroyEwaldCUDAVars(ff.particles->getCUDAVars());
 #endif
     for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
       if (kx[b] != NULL) {
@@ -173,7 +174,7 @@ void Ewald::AllocMem()
   }
 
 #ifdef GOMC_CUDA
-  InitEwaldVariablesCUDA(forcefield.particles->getCUDAVars(), imageTotal);
+  InitEwaldVariablesCUDA(ff.particles->getCUDAVars(), imageTotal);
 #endif
 }
 
@@ -211,7 +212,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
       }
       thisMol++;
     }
-    CallBoxReciprocalSetupGPU(forcefield.particles->getCUDAVars(),
+    CallBoxReciprocalSetupGPU(ff.particles->getCUDAVars(),
                               thisBoxCoords, kx[box], ky[box], kz[box],
                               chargeBox, imageSize[box], sumRnew[box],
                               sumInew[box], prefact[box], hsqr[box],
@@ -300,7 +301,7 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
       cCoords.Set(p, currentCoords[startAtom + p]);
       MolCharge.push_back(thisKind.AtomCharge(p));
     }
-    CallMolReciprocalGPU(forcefield.particles->getCUDAVars(),
+    CallMolReciprocalGPU(ff.particles->getCUDAVars(),
                          cCoords, molCoords, MolCharge, imageSizeRef[box],
                          sumRnew[box], sumInew[box], energyRecipNew, box);
 #else
@@ -367,7 +368,7 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
     for(p = 0; p < length; p++) {
       MolCharge.push_back(thisKind.AtomCharge(p));
     }
-    CallSwapReciprocalGPU(forcefield.particles->getCUDAVars(),
+    CallSwapReciprocalGPU(ff.particles->getCUDAVars(),
                           molCoords, MolCharge, imageSizeRef[box],
                           sumRnew[box], sumInew[box],
                           insert, energyRecipNew, box);
@@ -433,7 +434,7 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
     for(p = 0; p < length; p++) {
       MolCharge.push_back(thisKind.AtomCharge(p));
     }
-    CallSwapReciprocalGPU(forcefield.particles->getCUDAVars(),
+    CallSwapReciprocalGPU(ff.particles->getCUDAVars(),
                           molCoords, MolCharge, imageSizeRef[box],
                           sumRnew[box], sumInew[box],
                           insert, energyRecipNew, box);
@@ -738,7 +739,7 @@ void Ewald::SetRecipRef(uint box)
     std::memcpy(prefactRef[box], prefact[box], sizeof(double) *imageSize[box]);
   }
 #ifdef GOMC_CUDA
-  CopyCurrentToRefCUDA(forcefield.particles->getCUDAVars(),
+  CopyCurrentToRefCUDA(ff.particles->getCUDAVars(),
                        box, imageSize[box]);
 #endif
   for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
@@ -855,7 +856,7 @@ Virial Ewald::ForceReciprocal(Virial& virial, uint box) const
     thisMol++;
   }
 
-  CallForceReciprocalGPU(forcefield.particles->getCUDAVars(), thisBoxCoords,
+  CallForceReciprocalGPU(ff.particles->getCUDAVars(), thisBoxCoords,
                          thisBoxCOMDiff, chargeBox, wT11, wT12,
                          wT13, wT22, wT23, wT33, imageSizeRef[box], constVal,
                          box);
@@ -1002,7 +1003,7 @@ void Ewald::UpdateRecip(uint box)
   sumRnew[box] = tempR;
   sumInew[box] = tempI;
 #ifdef GOMC_CUDA
-  UpdateRecipCUDA(forcefield.particles->getCUDAVars(), box);
+  UpdateRecipCUDA(ff.particles->getCUDAVars(), box);
 #endif
 }
 
@@ -1027,7 +1028,7 @@ void Ewald::UpdateRecipVec(uint box)
   hsqr[box] = tempHsqr;
   prefact[box] = tempPrefact;
 #ifdef GOMC_CUDA
-  UpdateRecipVecCUDA(forcefield.particles->getCUDAVars(), box);
+  UpdateRecipVecCUDA(ff.particles->getCUDAVars(), box);
 #endif
 
   for(uint b = 0; b < BOXES_WITH_U_NB; b++) {

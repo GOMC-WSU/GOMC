@@ -395,7 +395,7 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
   gpu_vT12[threadID] = 0.0, gpu_vT13[threadID] = 0.0, gpu_vT23[threadID] = 0.0;
   gpu_rT12[threadID] = 0.0, gpu_rT13[threadID] = 0.0, gpu_rT23[threadID] = 0.0;
   double diff_comx, diff_comy, diff_comz;
-  double cutoff = fmax(gpu_rCut, gpu_rCutCoulomb);
+  double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb);
 
   if(InRcutGPU(distSq, virX, virY, virZ, gpu_x[gpu_pair1[threadID]],
                gpu_y[gpu_pair1[threadID]], gpu_z[gpu_pair1[threadID]],
@@ -539,10 +539,10 @@ __device__ double CalcCoulombForceGPU(double distSq, double qi_qj,
     return CalcCoulombVirShiftGPU(distSq, qi_qj, gpu_ewald, gpu_alpha);
   } else if(gpu_VDW_Kind == GPU_VDW_SWITCH_KIND && gpu_isMartini) {
     return CalcCoulombVirSwitchMartiniGPU(distSq, qi_qj, gpu_ewald, gpu_alpha,
-                                          gpu_rCut, gpu_diElectric_1);
+                                          gpu_rCutCoulomb, gpu_diElectric_1);
   } else
     return CalcCoulombVirSwitchGPU(distSq, qi_qj, gpu_ewald, gpu_alpha,
-                                   gpu_rCut);
+                                   gpu_rCutCoulomb);
 }
 
 __device__ double CalcEnForceGPU(double distSq, int kind1, int kind2,
