@@ -193,17 +193,6 @@ double BoxDimensions::GetTotVolume() const
   return sum;
 }
 
-double BoxDimensions::MinVolume() const
-{
-  double minV = volume[mv::BOX0];
-  for(uint b = 1; b < BOX_TOTAL; b++) {
-    if(volume[b] < minV) { 
-      minV = volume[b];
-    }
-  }
-  return minV;
-}
-
 void BoxDimensions::SetVolume(const uint b, const double vol)
 {
   if(constArea) {
