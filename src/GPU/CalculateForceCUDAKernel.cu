@@ -147,9 +147,10 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
       vars->gpu_isMartini,
       vars->gpu_count,
       vars->gpu_rCut,
+      vars->gpu_rCutCoulomb[box],
       vars->gpu_rCutLow,
       vars->gpu_rOn,
-      vars->gpu_alpha,
+      vars->gpu_alpha[box],
       vars->gpu_ewald,
       vars->gpu_diElectric_1,
       vars->gpu_cell_x[box],
@@ -366,9 +367,10 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                                  int *gpu_isMartini,
                                  int *gpu_count,
                                  double *gpu_rCut,
+                                 double gpu_rCutCoulomb,
                                  double *gpu_rCutLow,
                                  double *gpu_rOn,
-                                 double *gpu_alpha,
+                                 double gpu_alpha,
                                  int *gpu_ewald,
                                  double *gpu_diElectric_1,
                                  double *gpu_cell_x,
@@ -393,12 +395,13 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
   gpu_vT12[threadID] = 0.0, gpu_vT13[threadID] = 0.0, gpu_vT23[threadID] = 0.0;
   gpu_rT12[threadID] = 0.0, gpu_rT13[threadID] = 0.0, gpu_rT23[threadID] = 0.0;
   double diff_comx, diff_comy, diff_comz;
+  double cutoff = fmax(gpu_rCut, gpu_rCutCoulomb);
 
   if(InRcutGPU(distSq, virX, virY, virZ, gpu_x[gpu_pair1[threadID]],
                gpu_y[gpu_pair1[threadID]], gpu_z[gpu_pair1[threadID]],
                gpu_x[gpu_pair2[threadID]], gpu_y[gpu_pair2[threadID]],
                gpu_z[gpu_pair2[threadID]], xAxes, yAxes, zAxes, xAxes / 2.0,
-               yAxes / 2.0, zAxes / 2.0, gpu_rCut[0], gpu_nonOrth[0],
+               yAxes / 2.0, zAxes / 2.0, cutoff, gpu_nonOrth[0],
                gpu_cell_x, gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                gpu_Invcell_z)) {
     diff_comx = gpu_comx[gpu_particleMol[gpu_pair1[threadID]]] -
@@ -416,7 +419,7 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
       qi_qj = gpu_particleCharge[gpu_pair1[threadID]] *
               gpu_particleCharge[gpu_pair2[threadID]];
       pRF = CalcCoulombForceGPU(distSq, qi_qj, gpu_VDW_Kind[0], gpu_ewald[0],
-                                gpu_isMartini[0], gpu_alpha[0], gpu_rCut[0],
+                                gpu_isMartini[0], gpu_alpha, gpu_rCutCoulomb,
                                 gpu_diElectric_1[0]);
 
       gpu_rT11[threadID] = pRF * (virX * diff_comx);
@@ -524,8 +527,12 @@ __global__ void ForceReciprocalGPU(double *gpu_x,
 __device__ double CalcCoulombForceGPU(double distSq, double qi_qj,
                                       int gpu_VDW_Kind, int gpu_ewald,
                                       int gpu_isMartini, double gpu_alpha,
-                                      double gpu_rCut, double gpu_diElectric_1)
+                                      double gpu_rCutCoulomb, double gpu_diElectric_1)
 {
+  if((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
+    return 0.0;
+  }
+
   if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
     return CalcCoulombVirParticleGPU(distSq, qi_qj, gpu_alpha);
   } else if(gpu_VDW_Kind == GPU_VDW_SHIFT_KIND) {
@@ -544,6 +551,10 @@ __device__ double CalcEnForceGPU(double distSq, int kind1, int kind2,
                                  double gpu_rOn, int gpu_isMartini,
                                  int gpu_VDW_Kind, int gpu_count)
 {
+  if((gpu_rCut * gpu_rCut) < distSq) {
+    return 0.0;
+  }
+
   int index = FlatIndexGPU(kind1, kind2, gpu_count);
   if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
     return CalcVirParticleGPU(distSq, index, gpu_sigmaSq, gpu_n,
