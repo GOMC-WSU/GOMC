@@ -127,11 +127,11 @@ inline void MoleculeExchange1::SetMEMC(StaticVals const& statV)
 {
   for(uint t = 0; t < exchangeRatioVec.size(); t++) {
     kindS = kindL = largeBB[0] = largeBB[1] = -1;
-       for(uint k = 0; k < molLookRef.GetNumCanSwapKind(); k++) {
+       for(uint k = 0; k < molLookRef.GetNumKind(); k++) {
          if(molRef.kinds[k].name == statV.memcVal.largeKind[t]) {
-           kindL = molLookRef.GetCanSwapKind(k);
+           kindL = k;
          } else if(molRef.kinds[k].name == statV.memcVal.smallKind[t]) {
-	          kindS = molLookRef.GetCanSwapKind(k);
+	          kindS = k;
          }
        }
 
