@@ -87,9 +87,10 @@ void CallBoxInterGPU(VariablesCUDA *vars,
       vars->gpu_isMartini,
       vars->gpu_count,
       vars->gpu_rCut,
+      vars->gpu_rCutCoulomb[box],
       vars->gpu_rCutLow,
       vars->gpu_rOn,
-      vars->gpu_alpha,
+      vars->gpu_alpha[box],
       vars->gpu_ewald,
       vars->gpu_diElectric_1,
       vars->gpu_nonOrth,
@@ -158,9 +159,10 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             int *gpu_isMartini,
                             int *gpu_count,
                             double *gpu_rCut,
+                            double gpu_rCutCoulomb,
                             double *gpu_rCutLow,
                             double *gpu_rOn,
-                            double *gpu_alpha,
+                            double gpu_alpha,
                             int *gpu_ewald,
                             double *gpu_diElectric_1,
                             int *gpu_nonOrth,
@@ -179,18 +181,19 @@ __global__ void BoxInterGPU(int *gpu_pair1,
   double qqFact = 167000.0;
   gpu_REn[threadID] = 0.0;
   gpu_LJEn[threadID] = 0.0;
+  double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb);
   if(InRcutGPU(distSq, gpu_x[gpu_pair1[threadID]], gpu_y[gpu_pair1[threadID]],
                gpu_z[gpu_pair1[threadID]], gpu_x[gpu_pair2[threadID]],
                gpu_y[gpu_pair2[threadID]], gpu_z[gpu_pair2[threadID]],
                xAxes, yAxes, zAxes, xAxes / 2.0, yAxes / 2.0, zAxes / 2.0,
-               gpu_rCut[0], gpu_nonOrth[0], gpu_cell_x, gpu_cell_y,
+               cutoff, gpu_nonOrth[0], gpu_cell_x, gpu_cell_y,
                gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z)) {
     if(electrostatic) {
       qi_qj_fact = gpu_particleCharge[gpu_pair1[threadID]] *
                    gpu_particleCharge[gpu_pair2[threadID]] * qqFact;
       gpu_REn[threadID] = CalcCoulombGPU(distSq, qi_qj_fact, gpu_rCutLow[0],
                                          gpu_ewald[0], gpu_VDW_Kind[0],
-                                         gpu_alpha[0], gpu_rCut[0],
+                                         gpu_alpha, gpu_rCutCoulomb,
                                          gpu_isMartini[0],
                                          gpu_diElectric_1[0]);
     }
@@ -206,9 +209,13 @@ __global__ void BoxInterGPU(int *gpu_pair1,
 __device__ double CalcCoulombGPU(double distSq, double qi_qj_fact,
                                  double gpu_rCutLow, int gpu_ewald,
                                  int gpu_VDW_Kind, double gpu_alpha,
-                                 double gpu_rCut, int gpu_isMartini,
+                                 double gpu_rCutCoulomb, int gpu_isMartini,
                                  double gpu_diElectric_1)
 {
+  if((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
+    return 0.0;
+  }
+  
   if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
     return CalcCoulombParticleGPU(distSq, qi_qj_fact, gpu_alpha);
   } else if(gpu_VDW_Kind == GPU_VDW_SHIFT_KIND) {
@@ -229,6 +236,10 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
                             int gpu_isMartini, double gpu_rCut, double gpu_rOn,
                             int gpu_count)
 {
+  if((gpu_rCut * gpu_rCut) < distSq) {
+    return 0.0;
+  }
+
   int index = FlatIndexGPU(kind1, kind2, gpu_count);
   if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
     return CalcEnParticleGPU(distSq, index, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn);

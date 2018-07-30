@@ -23,6 +23,7 @@ public:
     gpu_rCutLow = NULL;
     gpu_rOn = NULL;
     gpu_alpha = NULL;
+    gpu_rCutCoulomb = NULL;
     gpu_ewald = NULL;
     gpu_diElectric_1 = NULL;
   }
@@ -33,6 +34,7 @@ public:
   int *gpu_isMartini;
   int *gpu_count;
   double *gpu_rCut;
+  double *gpu_rCutCoulomb;
   double *gpu_rCutLow;
   double *gpu_rOn;
   double *gpu_alpha;
