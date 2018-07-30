@@ -220,14 +220,14 @@ __device__ double CalcCoulombGPU(double distSq, double qi_qj_fact,
     return CalcCoulombParticleGPU(distSq, qi_qj_fact, gpu_alpha);
   } else if(gpu_VDW_Kind == GPU_VDW_SHIFT_KIND) {
     return CalcCoulombShiftGPU(distSq, qi_qj_fact, gpu_ewald, gpu_alpha,
-                               gpu_rCut);
+                               gpu_rCutCoulomb);
   } else if(gpu_VDW_Kind == GPU_VDW_SWITCH_KIND && gpu_isMartini) {
     return CalcCoulombSwitchMartiniGPU(distSq, qi_qj_fact, gpu_ewald,
-                                       gpu_alpha, gpu_rCut,
+                                       gpu_alpha, gpu_rCutCoulomb,
                                        gpu_diElectric_1);
   } else
     return CalcCoulombSwitchGPU(distSq, qi_qj_fact, gpu_alpha, gpu_ewald,
-                                gpu_rCut);
+                                gpu_rCutCoulomb);
 }
 
 __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
