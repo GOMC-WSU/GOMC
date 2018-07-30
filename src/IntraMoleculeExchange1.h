@@ -118,22 +118,23 @@ inline void IntraMoleculeExchange1::SetMEMC(StaticVals const& statV)
 {
   for(uint t = 0; t < exchangeRatioVec.size(); t++) {
     kindS = kindL = largeBB[0] = largeBB[1] = -1;
-       for(uint k = 0; k < molLookRef.GetNumKind(); k++) {
-         if(molRef.kinds[k].name == statV.intraMemcVal.largeKind[t]) {
-           kindL = k;
-         } else if(molRef.kinds[k].name == statV.intraMemcVal.smallKind[t]) {
-	          kindS = k;
+       for(uint k = 0; k < molLookRef.GetNumCanMoveKind(); k++) {
+         uint kind = molLookRef.GetCanMoveKind(k);
+         if(molRef.kinds[kind].name == statV.intraMemcVal.largeKind[t]) {
+           kindL = kind;
+         } else if(molRef.kinds[kind].name == statV.intraMemcVal.smallKind[t]) {
+	          kindS = kind;
          }
        }
 
        if(kindS == -1) {
-          printf("Error: Residue name %s was not found in PDB file as small molecule kind to be exchanged.\n",
+          printf("Error: Residue name %s was not found in PDB file as small molecule kind to be exchanged or it is fixed in its position.\n",
             statV.intraMemcVal.smallKind[t].c_str());
           exit(EXIT_FAILURE);
        }
 
        if(kindL == -1) {
-          printf("Error: Residue name %s was not found in PDB file as large molecule kind to be exchanged.\n",
+          printf("Error: Residue name %s was not found in PDB file as large molecule kind to be exchanged or it is fixed in its position.\n",
             statV.intraMemcVal.largeKind[t].c_str());
           exit(EXIT_FAILURE);
        }
