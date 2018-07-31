@@ -208,6 +208,7 @@ void System::PrintTime()
   printf("%-30s %10.4f sec.\n", "Rotation:", moveTime[mv::ROTATE]);
   printf("%-30s %10.4f sec.\n", "Intra-Swap:", moveTime[mv::INTRA_SWAP]);
   printf("%-30s %10.4f sec.\n", "Regrowth:", moveTime[mv::REGROWTH]);
+  printf("%-30s %10.4f sec.\n", "MultiParticle:", moveTime[mv::MULTIPARTICLE]);
 
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   printf("%-30s %10.4f sec.\n", "Molecule-Transfer:",
