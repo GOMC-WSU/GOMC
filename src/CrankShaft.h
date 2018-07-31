@@ -74,7 +74,7 @@ inline uint CrankShaft::GetBoxAndMol(const double subDraw, const double movPerc)
   //molecule will be removed and insert in same box
   destBox = sourceBox;
 
-  if (state != mv::fail_state::NO_MOL_OF_KIND_IN_BOX) {
+  if (state == mv::fail_state::NO_FAIL) {
     pStart = pLen = 0;
     molRef.GetRangeStartLength(pStart, pLen, molIndex);
   }
@@ -84,12 +84,14 @@ inline uint CrankShaft::GetBoxAndMol(const double subDraw, const double movPerc)
 inline uint CrankShaft::Prep(const double subDraw, const double movPerc)
 {
   uint state = GetBoxAndMol(subDraw, movPerc);
-  newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
-  oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
-  oldMol.SetCoords(coordCurrRef, pStart);
-  //Set the newMol coordinate same as oldMol. Later after Transform, coordinates
-  //will be updated.
-  newMol.SetCoords(coordCurrRef, pStart);
+  if (state == mv::fail_state::NO_FAIL) {
+    newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
+    oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
+    oldMol.SetCoords(coordCurrRef, pStart);
+    //Set the newMol coordinate same as oldMol. Later after Transform, coordinates
+    //will be updated.
+    newMol.SetCoords(coordCurrRef, pStart);
+  }
   return state;
 }
 
