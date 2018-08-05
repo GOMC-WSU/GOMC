@@ -285,7 +285,7 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
         }
       }
     } else {
-      UpdateCellBasisCUDA(forcefield.particles->getCUDAVars(), bPick[b],
+      UpdateCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
                           boxDimRef.cellBasis[box].x,
                           boxDimRef.cellBasis[box].y,
                           boxDimRef.cellBasis[box].z);
