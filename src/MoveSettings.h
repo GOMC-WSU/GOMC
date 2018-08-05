@@ -12,51 +12,76 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "OutputVars.h"
 #include "PDBSetup.h" //Primary source of volume.
 #include "MoveConst.h"           //For sizes of arrays.
+#include <vector>
 
 class StaticVals;                 //For various initialization constants.
 class BoxDimensions;              //For axis sizes
+
+using namespace std;
 
 class MoveSettings
 {
 public:
   friend class OutputVars;
-  MoveSettings(BoxDimensions & dim) : boxDimRef(dim) {}
+  MoveSettings(BoxDimensions & dim) : boxDimRef(dim) 
+  {
+    acceptPercent.resize(BOX_TOTAL);
+    scale.resize(BOX_TOTAL);
+    accepted.resize(BOX_TOTAL);
+    tries.resize(BOX_TOTAL);
+    tempAccepted.resize(BOX_TOTAL);
+    tempTries.resize(BOX_TOTAL);
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      acceptPercent[b].resize(mv::MOVE_KINDS_TOTAL);
+      scale[b].resize(mv::MOVE_KINDS_TOTAL);
+      accepted[b].resize(mv::MOVE_KINDS_TOTAL);
+      tries[b].resize(mv::MOVE_KINDS_TOTAL);
+      tempAccepted[b].resize(mv::MOVE_KINDS_TOTAL);
+      tempTries[b].resize(mv::MOVE_KINDS_TOTAL);
+    }
+  }
 
   MoveSettings& operator=(MoveSettings const& rhs)
   {
     return *this;
   }
 
-  void Init(StaticVals const& statV, pdb_setup::Remarks const& remarks);
+  void Init(StaticVals const& statV, pdb_setup::Remarks const& remarks,
+            const uint tkind);
 
-  void Update(const bool isAccepted, const uint moveIndex, const uint step);
+  void Update(const uint move, const bool isAccepted, const uint step,
+              const uint box, const uint kind = 0);
 
   void AdjustMoves(const uint step);
 
-  void Adjust(const uint majMoveKind, const uint moveIndex, const uint b);
+  void Adjust(const uint box, const uint move, const uint kind);
 
-  double Scale(const uint move) const
+  double Scale(const uint box, const uint move, const uint kind = 0) const
   {
-    return scale[move];
+    return scale[box][move][kind];
   }
 
-  double GetAccept(const uint move) const
+  double GetAccept(const uint box, const uint move, const uint kind = 0) const
   {
-    return acceptPercent[move];
+    return acceptPercent[box][move][kind];
   }
 
-  double GetTrial(const uint move) const
+  double GetTrial(const uint box, const uint move, const uint kind = 0) const
   {
-    return tries[move];
+    return tries[box][move][kind];
   }
+
+  uint GetAcceptTot(const uint box, const uint move) const;
+  uint GetTrialTot(const uint box, const uint move) const;
+  double GetScaleTot(const uint box, const uint move) const;
 
 private:
-  double scale[mv::SCALEABLE];
-  double acceptPercent[mv::COUNT];
-  uint accepted[mv::COUNT];
-  uint tries[mv::COUNT];
+
+  vector< vector< vector<double> > > scale, acceptPercent;
+  vector< vector< vector<uint> > > accepted, tries, tempAccepted, tempTries;
+  
   uint perAdjust;
-  uint tempAccepted[mv::SCALEABLE], tempTries[mv::SCALEABLE];
+  uint totKind;
 
 #if ENSEMBLE == GEMC
   uint GEMC_KIND;

@@ -174,19 +174,19 @@ uint BoxDimensionsNonOrth::ShiftVolume(BoxDimensionsNonOrth & newDim,
 }
 
 uint BoxDimensionsNonOrth::ExchangeVolume(BoxDimensionsNonOrth & newDim,
-    XYZ * scale,
-    const double transfer) const
+    XYZ * scale, const double transfer, const uint *box) const
 {
   uint state = mv::fail_state::NO_FAIL;
-  double vTot = GetTotVolume();
+  double vTot = GetTotVolume(box[0], box[1]);
   newDim = *this;
 
-  newDim.SetVolume(0, volume[0] + transfer);
-  newDim.SetVolume(1, vTot - newDim.volume[0]);
+  newDim.SetVolume(box[0], volume[box[0]] + transfer);
+  newDim.SetVolume(box[1], vTot - newDim.volume[box[0]]);
 
   //If move would shrink any box axis to be less than 2 * rcut, then
   //automatically reject to prevent errors.
-  for (uint b = 0; b < BOX_TOTAL; b++) {
+  for (uint i = 0; i < 2; i++) {
+    uint b = box[i];
     scale[b] = newDim.axis.Get(b) / axis.Get(b);
     if ((newDim.halfAx.x[b] < rCut[b] || newDim.halfAx.y[b] < rCut[b] ||
          newDim.halfAx.z[b] < rCut[b] || newDim.volume[b] < minVol[b])) {

@@ -116,10 +116,14 @@ public:
   //restore cosMol and sinMol
   virtual void RestoreMol(int molIndex);
 
+  //Find the largest kvector
   uint findLargeImage();
 
   //update sinMol and cosMol
   virtual void exgMolCache();
+
+  //backup the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
+  virtual void backupMolCache();
 
   virtual void UpdateVectorsAndRecipTerms();
 
@@ -139,7 +143,6 @@ protected:
   uint *imageSizeRef;
   //const uint imageTotal = GetImageSize();
   uint imageTotal;
-  uint imageLarge;
   uint *kmax;
   double **sumRnew; //cosine serries
   double **sumInew; //sine serries

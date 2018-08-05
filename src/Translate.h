@@ -16,13 +16,7 @@ class Translate : public MoveBase, public MolTransformBase
 {
 public:
 
-  Translate(System &sys, StaticVals const& statV) : MoveBase(sys, statV) 
-  {
-    for(uint b = 0; b < BOX_TOTAL; b++) {
-      trial[b].resize(molRef.GetKindsCount(), 0);
-      accepted[b].resize(molRef.GetKindsCount(), 0);
-    }
-  }
+  Translate(System &sys, StaticVals const& statV) : MoveBase(sys, statV) {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
   uint ReplaceRot(Rotate const& other);
@@ -39,8 +33,8 @@ void Translate::PrintAcceptKind() {
   for(uint k = 0; k < molRef.GetKindsCount(); k++) {
     printf("%-30s %-5s ", "% Accepted Displacement ", molRef.kinds[k].name.c_str());
     for(uint b = 0; b < BOX_TOTAL; b++) {
-      if(trial[b][k] > 0)
-        printf("%10.5f ", (double)(100.0 * accepted[b][k]/trial[b][k]));
+      if(moveSetRef.GetTrial(b, mv::DISPLACE, k) > 0)
+        printf("%10.5f ", (100.0 * moveSetRef.GetAccept(b, mv::DISPLACE, k)));
       else
         printf("%10.5f ", 0.0);
     }
@@ -61,9 +55,8 @@ inline uint Translate::Prep(const double subDraw, const double movPerc)
 
 inline uint Translate::Transform()
 {
-  subPick = mv::GetMoveSubIndex(mv::DISPLACE, b);
   coordCurrRef.TranslateRand(newMolPos, newCOM, pStart, pLen,
-                             m, b, moveSetRef.Scale(subPick));
+                             m, b, moveSetRef.Scale(b, mv::DISPLACE, mk));
   return mv::fail_state::NO_FAIL;
 }
 
@@ -114,9 +107,7 @@ inline void Translate::Accept(const uint rejectState, const uint step)
     molRemoved = false;
   }
 
-  subPick = mv::GetMoveSubIndex(mv::DISPLACE, b);
-  moveSetRef.Update(result, subPick, step);
-  AcceptKind(result, mk, b);
+  moveSetRef.Update(mv::DISPLACE, result, step, b, mk);
 }
 
 #endif /*TRANSLATE_H*/

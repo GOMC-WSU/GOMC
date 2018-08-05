@@ -45,7 +45,7 @@ public:
 
   //!Calculate and execute volume exchange based on transfer
   virtual uint ExchangeVolume(BoxDimensionsNonOrth & newDim, XYZ * scale,
-                              const double transfer) const;
+                              const double transfer, const uint *box) const;
 
   //Construct cell basis based on new axis dimension
   void CalcCellDimensions(const uint b);

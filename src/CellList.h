@@ -27,6 +27,8 @@ public:
   void RemoveMol(const int molIndex, const int box, const XYZArray& pos);
   void AddMol(const int molIndex, const int box, const XYZArray& pos);
   void GridAll(BoxDimensions& dims, const XYZArray& pos, const MoleculeLookup& lookup);
+  void GridBox(BoxDimensions& dims, const XYZArray& pos, const MoleculeLookup& lookup,
+               const uint b);
 
   // Index of cell containing position
   int PositionToCell(const XYZ& posRef, int box) const;
@@ -57,6 +59,8 @@ private:
 
   // Resize all boxes to match current axes
   void ResizeGrid(const BoxDimensions& dims);
+  // Resize one boxes to match current axes
+  void ResizeGridBox(const BoxDimensions& dims, const uint b);
   // Rebuild head/neighbor lists in box b to match current grid
   void RebuildNeighbors(int b);
 

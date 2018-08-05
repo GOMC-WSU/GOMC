@@ -49,6 +49,9 @@ public:
   //update sinMol and cosMol
   virtual void exgMolCache();
 
+  //backup the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
+  virtual void backupMolCache();
+
 private:
 
   double *cosMolRestore; //cos()*charge
@@ -57,6 +60,9 @@ private:
   double **sinMolRef;
   double **cosMolBoxRecip;
   double **sinMolBoxRecip;
+  #if ENSEMBLE == GEMC
+  const uint GEMC_KIND;
+  #endif
 };
 
 

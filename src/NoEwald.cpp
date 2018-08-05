@@ -139,6 +139,12 @@ void NoEwald::exgMolCache()
   return;
 }
 
+//backup the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
+void NoEwald::backupMolCache()
+{
+  return;
+}
+
 void NoEwald::UpdateVectorsAndRecipTerms()
 {
   return;

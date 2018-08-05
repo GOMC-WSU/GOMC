@@ -19,13 +19,7 @@ public:
 
   Regrowth(System &sys, StaticVals const& statV) :
     ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
-    MoveBase(sys, statV) 
-    {
-      for(uint b = 0; b < BOX_TOTAL; b++) {
-        trial[b].resize(molRef.GetKindsCount(), 0);
-        accepted[b].resize(molRef.GetKindsCount(), 0);
-      }
-    }
+    MoveBase(sys, statV) {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
   virtual uint Transform();
@@ -51,8 +45,8 @@ void Regrowth::PrintAcceptKind() {
   for(uint k = 0; k < molRef.GetKindsCount(); k++) {
     printf("%-30s %-5s ", "% Accepted Regrowth ", molRef.kinds[k].name.c_str());
     for(uint b = 0; b < BOX_TOTAL; b++) {
-      if(trial[b][k] > 0)
-        printf("%10.5f ", (double)(100.0 * accepted[b][k]/trial[b][k]));
+      if(moveSetRef.GetTrial(b, mv::REGROWTH, k) > 0)
+        printf("%10.5f ", (100.0 * moveSetRef.GetAccept(b, mv::REGROWTH, k)));
       else
         printf("%10.5f ", 0.0);
     }
@@ -91,7 +85,6 @@ inline uint Regrowth::Prep(const double subDraw, const double movPerc)
   }
   return state;
 }
-
 
 inline uint Regrowth::Transform()
 {
@@ -176,9 +169,7 @@ inline void Regrowth::Accept(const uint rejectState, const uint step)
   } else //else we didn't even try because we knew it would fail
     result = false;
 
-  subPick = mv::GetMoveSubIndex(mv::REGROWTH, sourceBox);
-  moveSetRef.Update(result, subPick, step);
-  AcceptKind(result, kindIndex, sourceBox);
+  moveSetRef.Update(mv::REGROWTH, result, step, sourceBox, kindIndex);
 }
 
 #endif

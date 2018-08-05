@@ -49,9 +49,7 @@ Ewald::Ewald(StaticVals & stat, System & sys) :
 #else
   currentAxes(*stat.GetBoxDim())
 #endif
-{
-  imageLarge = 0;
-}
+{}
 
 Ewald::~Ewald()
 {
@@ -545,12 +543,18 @@ void Ewald::exgMolCache()
 //compare number of images in different boxes and select the largest one
 uint Ewald::findLargeImage()
 {
-  imageLarge = 0;
+  uint maxImg = 0;
   for (int b = 0; b < BOXES_WITH_U_NB; b++) {
-    if (imageLarge < imageSize[b])
-      imageLarge = imageSize[b];
+    if (maxImg < imageSize[b])
+      maxImg = imageSize[b];
   }
-  return imageLarge;
+  return maxImg;
+}
+
+//backup the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
+void Ewald::backupMolCache()
+{
+  return;
 }
 
 void Ewald::RecipInitOrth(uint box, BoxDimensions const& boxAxes)

@@ -5,10 +5,15 @@ A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "EwaldCached.h"
+#include "StaticVals.h"
 
 using namespace geom;
 
-EwaldCached::EwaldCached(StaticVals & stat, System & sys) : Ewald(stat, sys) { }
+EwaldCached::EwaldCached(StaticVals & stat, System & sys) : Ewald(stat, sys)
+#if ENSEMBLE == GEMC
+  , GEMC_KIND(stat.kindOfGEMC)
+#endif
+  {}
 
 EwaldCached::~EwaldCached()
 {
@@ -88,7 +93,7 @@ void EwaldCached::AllocMem()
   }
 
   //25% larger than original box size, reserved for image size change
-  imageTotal = findLargeImage();
+  imageTotal = Ewald::findLargeImage();
 
   cosMolRestore = new double[imageTotal];
   sinMolRestore = new double[imageTotal];
@@ -254,8 +259,8 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
   #pragma omp parallel default(shared)
 #endif
   {
-    std::memcpy(cosMolRestore, cosMolRef[molIndex], sizeof(double)*imageLarge);
-    std::memcpy(sinMolRestore, sinMolRef[molIndex], sizeof(double)*imageLarge);
+    std::memcpy(cosMolRestore, cosMolRef[molIndex], sizeof(double)*imageTotal);
+    std::memcpy(sinMolRestore, sinMolRef[molIndex], sizeof(double)*imageTotal);
   }
 
   if (box < BOXES_WITH_U_NB) {
@@ -359,4 +364,36 @@ void EwaldCached::exgMolCache()
   sinMolRef = sinMolBoxRecip;
   cosMolBoxRecip = tempCos;
   sinMolBoxRecip = tempSin;
+}
+
+//backup the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
+void EwaldCached::backupMolCache()
+{
+  #if ENSEMBLE == NPT  
+  exgMolCache();
+  #elif ENSEMBLE == GEMC
+  if(GEMC_KIND == mv::GEMC_NVT) {
+    if(BOX_TOTAL == 2) {
+      exgMolCache();
+    } else {
+      uint m;
+      #ifdef _OPENMP
+      #pragma omp parallel for private(m)
+      #endif
+      for(m = 0; m < mols.count; m++) {
+        std::memcpy(cosMolBoxRecip[m], cosMolRef[m], sizeof(double)*imageTotal);
+        std::memcpy(sinMolBoxRecip[m], sinMolRef[m], sizeof(double)*imageTotal);
+      }
+    }
+  } else {
+    uint m;
+    #ifdef _OPENMP
+    #pragma omp parallel for private(m)
+    #endif
+    for(m = 0; m < mols.count; m++) {
+      std::memcpy(cosMolBoxRecip[m], cosMolRef[m], sizeof(double)*imageTotal);
+      std::memcpy(sinMolBoxRecip[m], sinMolRef[m], sizeof(double)*imageTotal);
+    }
+  }
+  #endif
 }

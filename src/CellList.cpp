@@ -117,6 +117,33 @@ void CellList::ResizeGrid(const BoxDimensions& dims)
   isBuilt = true;
 }
 
+// Resize one boxes to match current axes
+void CellList::ResizeGridBox(const BoxDimensions& dims, const uint b)
+{
+  XYZ sides = dims.axis[b];
+  bool rebuild = false;
+  int* eCells = edgeCells[b];
+  int oldCells = eCells[0];
+  eCells[0] = std::max((int)floor(sides.x / cutoff[b]), 3);
+  cellSize[b].x = sides.x / eCells[0];
+  rebuild |= (!isBuilt || (oldCells != eCells[0]));
+
+  oldCells = eCells[1];
+  eCells[1] = std::max((int)floor(sides.y / cutoff[b]), 3);
+  cellSize[b].y = sides.y / eCells[1];
+  rebuild |= (!isBuilt || (oldCells != eCells[1]));
+
+  oldCells = eCells[2];
+  eCells[2] = std::max((int)floor(sides.z / cutoff[b]), 3);
+  cellSize[b].z = sides.z / eCells[2];
+  rebuild |= (!isBuilt || (oldCells != eCells[2]));
+
+  if (rebuild) {
+    RebuildNeighbors(b);
+  }
+  isBuilt = true;
+}
+
 void CellList::RebuildNeighbors(int b)
 {
   int* eCells = edgeCells[b];
@@ -149,9 +176,8 @@ void CellList::RebuildNeighbors(int b)
   }
 }
 
-void CellList::GridAll( BoxDimensions& dims,
-                        const XYZArray& pos,
-                        const MoleculeLookup& lookup)
+void CellList::GridAll(BoxDimensions& dims, const XYZArray& pos,
+                       const MoleculeLookup& lookup)
 {
   dimensions = &dims;
   list.resize(pos.Count());
@@ -168,6 +194,24 @@ void CellList::GridAll( BoxDimensions& dims,
       AddMol(*it, b, pos);
       ++it;
     }
+  }
+}
+
+void CellList::GridBox(BoxDimensions& dims, const XYZArray& pos,
+                       const MoleculeLookup& lookup, const uint b)
+{
+  dimensions = &dims;
+  list.resize(pos.Count());
+  ResizeGridBox(dims, b);
+  head[b].assign(edgeCells[b][0] * edgeCells[b][1] *
+                 edgeCells[b][2], END_CELL);
+  MoleculeLookup::box_iterator it = lookup.BoxBegin(b),
+                                 end = lookup.BoxEnd(b);
+
+  // For each molecule per box
+  while (it != end) {
+    AddMol(*it, b, pos);
+    ++it;
   }
 }
 

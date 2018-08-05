@@ -66,8 +66,8 @@ inline void MoleculeExchange3::AdjustExRatio()
   { 
     uint exMax = ceil((float)molInCavCount / (float)perAdjust); 
     uint exMin = 1; 
-    subPick = mv::GetMoveSubIndex(mv::MEMC, sourceBox); 
-    double currAccept = moveSetRef.GetAccept(subPick); 
+    uint index = kindS + kindL * molRef.GetKindsCount();
+    double currAccept = (double)(accepted[sourceBox][index])/(double)(trial[sourceBox][index]);
     if(abs(currAccept - lastAccept) >= 0.05 * currAccept) { 
       if(currAccept >= lastAccept) { 
 	      exchangeRatio += exDiff; 

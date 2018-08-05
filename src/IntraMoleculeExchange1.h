@@ -26,6 +26,8 @@ class IntraMoleculeExchange1 : public MoveBase
    perAdjust(statV.GetPerAdjust()), cavB(3), invCavB(3) 
    {
      enableID = statV.intraMemcVal.enable;
+     trial.resize(BOX_TOTAL);
+     accepted.resize(BOX_TOTAL);
 
      if(enableID) {
         if(molLookRef.GetNumCanSwapKind() < 2) {
@@ -61,6 +63,9 @@ class IntraMoleculeExchange1 : public MoveBase
    virtual void CalcEn();
    virtual void Accept(const uint earlyReject, const uint step);
    virtual void PrintAcceptKind();
+   //This function carries out actions based on the internal acceptance state and
+   //molecule kind
+   void AcceptKind(const uint rejectState, const uint kind, const uint box);
 
  protected:
 
@@ -85,6 +90,8 @@ class IntraMoleculeExchange1 : public MoveBase
     //To store total sets of exchange pairs
    vector<uint> exchangeRatioVec, kindSVec, kindLVec;
    vector< vector<uint> > largeBBVec;
+   //For move acceptance of each molecule kind
+   std::vector< std::vector<uint> > trial, accepted;
 
    int exDiff, exchangeRatio;
    double volCav, lastAccept;
@@ -96,6 +103,14 @@ class IntraMoleculeExchange1 : public MoveBase
    MoleculeLookup & molLookRef;
    Forcefield const& ffRef;
 };
+
+inline void IntraMoleculeExchange1::AcceptKind(const uint rejectState, const uint kind,
+                                               const uint box)
+{
+  trial[box][kind]++;
+  if(rejectState)
+    accepted[box][kind]++;
+}
 
 void IntraMoleculeExchange1::PrintAcceptKind() {
   for(uint k = 0; k < kindLVec.size(); k++) {
@@ -181,8 +196,8 @@ inline void IntraMoleculeExchange1::AdjustExRatio()
     if(exMin == 0)
       exMin = 1;
 
-    subPick = mv::GetMoveSubIndex(mv::INTRA_MEMC, sourceBox);
-    double currAccept = moveSetRef.GetAccept(subPick);
+    uint index = kindS + kindL * molRef.GetKindsCount();
+    double currAccept = (double)(accepted[sourceBox][index])/(double)(trial[sourceBox][index]);
     if(abs(currAccept - lastAccept) >= 0.05 * currAccept) {
       if(currAccept > lastAccept) {
 	      exchangeRatio += exDiff;
@@ -560,8 +575,7 @@ inline void IntraMoleculeExchange1::Accept(const uint rejectState,
       result = false;
    }
 
-   subPick = mv::GetMoveSubIndex(mv::INTRA_MEMC, sourceBox);
-   moveSetRef.Update(result, subPick, step);
+   moveSetRef.Update(mv::INTRA_MEMC, result, step, sourceBox);
    //If we consider total aceeptance of S->L and L->S
    AcceptKind(result, kindS * molRef.GetKindsCount() + kindL, sourceBox);
    AcceptKind(result, kindL * molRef.GetKindsCount() + kindS, sourceBox);

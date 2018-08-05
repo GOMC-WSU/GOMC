@@ -93,47 +93,47 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
   if(box == mv::BOX0) {
 #endif
     if(var->Perfromed(mv::DISPLACE)) {
-      sub = mv::GetMoveSubIndex(mv::DISPLACE, box);
-      printElement(var->GetTries(sub), elementWidth);
-      printElement(var->GetAccepted(sub), elementWidth);
-      printElement(var->GetAcceptPercent(sub), elementWidth);
-      printElement(var->GetScale(sub), elementWidth);
+      sub = mv::DISPLACE;
+      printElement(var->GetTries(box, sub), elementWidth);
+      printElement(var->GetAccepted(box, sub), elementWidth);
+      printElement(var->GetAcceptPercent(box, sub), elementWidth);
+      printElement(var->GetScale(box, sub), elementWidth);
     }
 
     if(var->Perfromed(mv::ROTATE)) {
-      sub = mv::GetMoveSubIndex(mv::ROTATE, box);
-      printElement(var->GetTries(sub), elementWidth);
-      printElement(var->GetAccepted(sub), elementWidth);
-      printElement(var->GetAcceptPercent(sub), elementWidth);
-      printElement(var->GetScale(sub), elementWidth);
+      sub = mv::ROTATE;
+      printElement(var->GetTries(box, sub), elementWidth);
+      printElement(var->GetAccepted(box, sub), elementWidth);
+      printElement(var->GetAcceptPercent(box, sub), elementWidth);
+      printElement(var->GetScale(box, sub), elementWidth);
     }
 
     if(var->Perfromed(mv::INTRA_SWAP)) {
-      sub = mv::GetMoveSubIndex(mv::INTRA_SWAP, box);
-      printElement(var->GetTries(sub), elementWidth);
-      printElement(var->GetAccepted(sub), elementWidth);
-      printElement(var->GetAcceptPercent(sub), elementWidth);
+      sub = mv::INTRA_SWAP;
+      printElement(var->GetTries(box, sub), elementWidth);
+      printElement(var->GetAccepted(box, sub), elementWidth);
+      printElement(var->GetAcceptPercent(box, sub), elementWidth);
     }
 
     if(var->Perfromed(mv::REGROWTH)) {
-      sub = mv::GetMoveSubIndex(mv::REGROWTH, box);
-      printElement(var->GetTries(sub), elementWidth);
-      printElement(var->GetAccepted(sub), elementWidth);
-      printElement(var->GetAcceptPercent(sub), elementWidth);
+      sub = mv::REGROWTH;
+      printElement(var->GetTries(box, sub), elementWidth);
+      printElement(var->GetAccepted(box, sub), elementWidth);
+      printElement(var->GetAcceptPercent(box, sub), elementWidth);
     }
 
     if(var->Perfromed(mv::INTRA_MEMC)) {
-      sub = mv::GetMoveSubIndex(mv::INTRA_MEMC, box);
-      printElement(var->GetTries(sub), elementWidth);
-      printElement(var->GetAccepted(sub), elementWidth);
-      printElement(var->GetAcceptPercent(sub), elementWidth);
+      sub = mv::INTRA_MEMC;
+      printElement(var->GetTries(box, sub), elementWidth);
+      printElement(var->GetAccepted(box, sub), elementWidth);
+      printElement(var->GetAcceptPercent(box, sub), elementWidth);
     }
 
     if(var->Perfromed(mv::CRANKSHAFT)) {
-      sub = mv::GetMoveSubIndex(mv::CRANKSHAFT, box);
-      printElement(var->GetTries(sub), elementWidth);
-      printElement(var->GetAccepted(sub), elementWidth);
-      printElement(var->GetAcceptPercent(sub), elementWidth);
+      sub = mv::CRANKSHAFT;
+      printElement(var->GetTries(box, sub), elementWidth);
+      printElement(var->GetAccepted(box, sub), elementWidth);
+      printElement(var->GetAcceptPercent(box, sub), elementWidth);
     }
 
 #if ENSEMBLE == GCMC
@@ -142,27 +142,27 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
 
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   if(var->Perfromed(mv::MOL_TRANSFER)) {
-    sub = mv::GetMoveSubIndex(mv::MOL_TRANSFER, box);
-    printElement(var->GetTries(sub), elementWidth);
-    printElement(var->GetAccepted(sub), elementWidth);
-    printElement(var->GetAcceptPercent(sub), elementWidth);
+    sub = mv::MOL_TRANSFER;
+    printElement(var->GetTries(box, sub), elementWidth);
+    printElement(var->GetAccepted(box, sub), elementWidth);
+    printElement(var->GetAcceptPercent(box, sub), elementWidth);
   }
 
   if(var->Perfromed(mv::MEMC)) {
-    sub = mv::GetMoveSubIndex(mv::MEMC, box);
-    printElement(var->GetTries(sub), elementWidth);
-    printElement(var->GetAccepted(sub), elementWidth);
-    printElement(var->GetAcceptPercent(sub), elementWidth);
+    sub = mv::MEMC;
+    printElement(var->GetTries(box, sub), elementWidth);
+    printElement(var->GetAccepted(box, sub), elementWidth);
+    printElement(var->GetAcceptPercent(box, sub), elementWidth);
   }
 #endif
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   if(var->Perfromed(mv::VOL_TRANSFER)) {
-    sub = mv::GetMoveSubIndex(mv::VOL_TRANSFER, box);
-    printElement(var->GetTries(sub), elementWidth);
-    printElement(var->GetAccepted(sub), elementWidth);
-    printElement(var->GetAcceptPercent(sub), elementWidth);
-    printElement(var->GetScale(sub), elementWidth);
+    sub = mv::VOL_TRANSFER;
+    printElement(var->GetTries(box, sub), elementWidth);
+    printElement(var->GetAccepted(box, sub), elementWidth);
+    printElement(var->GetAcceptPercent(box, sub), elementWidth);
+    printElement(var->GetScale(box, sub), elementWidth);
   }
 #endif
 
@@ -175,7 +175,11 @@ void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const
   uint offset = box * var->numKinds;
 
   std::string title = "STAT_";
-  title += (box ? "1:" : "0:");
+  sstrm::Converter toStr;
+  std::string numStr = "";
+  toStr << box;
+  toStr >> numStr;
+  title += numStr + ":";
   printElementStep(title, step + 1, elementWidth);
 
   if(enableVolume)
@@ -206,7 +210,11 @@ void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const
 void ConsoleOutput::PrintPressureTensor(const uint box, const ulong step) const
 {
   std::string title = "PRES_";
-  title += (box ? "1:" : "0:");
+  sstrm::Converter toStr;
+  std::string numStr = "";
+  toStr << box;
+  toStr >> numStr;
+  title += numStr + ":";
   printElementStep(title, step + 1, elementWidth);
 
   for(uint i = 0; i < 3; i++) {
@@ -228,7 +236,11 @@ void ConsoleOutput::PrintEnergy(const uint box, Energy const& en,
                                 Virial const& vir, const ulong step) const
 {
   std::string title = "ENER_";
-  title += (box ? "1:" : "0:");
+  sstrm::Converter toStr;
+  std::string numStr = "";
+  toStr << box;
+  toStr >> numStr;
+  title += numStr + ":";
   printElementStep(title, step + 1, elementWidth);
 
   printElement(en.total, elementWidth);
