@@ -80,6 +80,9 @@ public:
   //update sinMol and cosMol
   virtual void exgMolCache();
 
+  //backup the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
+  virtual void backupMolCache();
+
   virtual void UpdateVectorsAndRecipTerms();
 
 };

@@ -39,11 +39,6 @@ public:
     cellList(sys.cellList), molRemoved(false)
   {
     calcEwald = sys.GetEwald();
-#if ENSEMBLE == GEMC || ENSEMBLE == NPT
-    fixBox0 = statV.fixVolBox0;
-#endif
-    trial.resize(BOX_TOTAL);
-    accepted.resize(BOX_TOTAL);
   }
 
   //Based on the random draw, determine the move kind, box, and
@@ -63,7 +58,6 @@ public:
 
   //This function carries out actions based on the internal acceptance state and
   //molecule kind
-  void AcceptKind(const uint rejectState, const uint kind, const uint box);
 
   //This function print the internal acceptance state for each molecule kind
   virtual void PrintAcceptKind() = 0;
@@ -87,17 +81,7 @@ protected:
   const bool ewald;
   CellList& cellList;
   bool molRemoved, fixBox0;
-  //For move acceptance of each molecule kind
-  std::vector< std::vector<uint> > trial, accepted;
 };
-
-inline void MoveBase::AcceptKind(const uint rejectState, const uint kind,
-                                const uint box)
-{
-  trial[box][kind]++;
-  if(rejectState)
-    accepted[box][kind]++;
-}
 
 //Data needed for transforming a molecule's position via inter or intrabox
 //moves.

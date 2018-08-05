@@ -86,7 +86,7 @@ void System::Init(Setup const& set)
 #ifdef VARIABLE_PARTICLE_NUMBER
   molLookup.Init(statV.mol, set.pdb.atoms);
 #endif
-  moveSettings.Init(statV, set.pdb.remarks);
+  moveSettings.Init(statV, set.pdb.remarks, molLookupRef.GetNumKind());
   //Note... the following calls use box iterators, so must come after
   //the molecule lookup initialization, in case we're in a constant
   //particle/molecule ensemble, e.g. NVT

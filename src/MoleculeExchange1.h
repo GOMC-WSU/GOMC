@@ -29,6 +29,8 @@ class MoleculeExchange1 : public MoveBase
    perAdjust(statV.GetPerAdjust())
    {
      enableID = statV.memcVal.enable;
+     trial.resize(BOX_TOTAL);
+     accepted.resize(BOX_TOTAL);
 
      if(enableID) {
         if(molLookRef.GetNumCanSwapKind() < 2) {
@@ -64,6 +66,9 @@ class MoleculeExchange1 : public MoveBase
    virtual void CalcEn();
    virtual void Accept(const uint earlyReject, const uint step);
    virtual void PrintAcceptKind();
+   //This function carries out actions based on the internal acceptance state and
+   //molecule kind
+   void AcceptKind(const uint rejectState, const uint kind, const uint box);
 
  protected:
 
@@ -91,6 +96,8 @@ class MoleculeExchange1 : public MoveBase
    //To store total sets of exchange pairs
    vector<uint> exchangeRatioVec, kindSVec, kindLVec;
    vector< vector<uint> > largeBBVec;
+   //For move acceptance of each molecule kind
+   std::vector< std::vector<uint> > trial, accepted;
 
    int exDiff, exchangeRatio;
    double volCav, lastAccept;
@@ -105,6 +112,14 @@ class MoleculeExchange1 : public MoveBase
    MoleculeLookup & molLookRef;
    Forcefield const& ffRef;
 };
+
+inline void MoleculeExchange1::AcceptKind(const uint rejectState, const uint kind,
+                                          const uint box)
+{
+  trial[box][kind]++;
+  if(rejectState)
+    accepted[box][kind]++;
+}
 
 void MoleculeExchange1::PrintAcceptKind() {
   for(uint k = 0; k < kindLVec.size(); k++) {
@@ -190,8 +205,8 @@ inline void MoleculeExchange1::AdjustExRatio()
     if(exMin == 0)
       exMin = 1;
 
-    subPick = mv::GetMoveSubIndex(mv::MEMC, sourceBox);
-    double currAccept = moveSetRef.GetAccept(subPick);
+    uint index = kindS + kindL * molRef.GetKindsCount();
+    double currAccept = (double)(accepted[sourceBox][index])/(double)(trial[sourceBox][index]);
     if(abs(currAccept - lastAccept) >= 0.05 * currAccept) {
       if(currAccept > lastAccept) {
 	      exchangeRatio += exDiff;
@@ -752,15 +767,9 @@ inline void MoleculeExchange1::Accept(const uint rejectState, const uint step)
       result = false;
    }
 
-#if ENSEMBLE == GEMC
-   subPick = mv::GetMoveSubIndex(mv::MEMC, sourceBox);
-   moveSetRef.Update(result, subPick, step);
-   subPick = mv::GetMoveSubIndex(mv::MEMC, destBox);
-   moveSetRef.Update(result, subPick, step);
-#elif ENSEMBLE == GCMC
-   subPick = mv::GetMoveSubIndex(mv::MEMC);
-   moveSetRef.Update(result, subPick, step);
-#endif
+   moveSetRef.Update(mv::MEMC, result, step, sourceBox);
+   moveSetRef.Update(mv::MEMC, result, step, destBox);
+
   //If we consider total aceeptance of S->L and L->S
   AcceptKind(result, kindS + kindL * molRef.GetKindsCount(), sourceBox);
   AcceptKind(result, kindS + kindL * molRef.GetKindsCount(), destBox);

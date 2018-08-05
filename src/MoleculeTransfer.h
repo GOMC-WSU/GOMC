@@ -20,13 +20,7 @@ public:
 
   MoleculeTransfer(System &sys, StaticVals const& statV) :
     ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
-    MoveBase(sys, statV) 
-    {
-      for(uint b = 0; b < BOX_TOTAL; b++) {
-        trial[b].resize(molRef.GetKindsCount(), 0);
-        accepted[b].resize(molRef.GetKindsCount(), 0);
-      }
-    }
+    MoveBase(sys, statV) {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
   virtual uint Transform();
@@ -55,8 +49,8 @@ void MoleculeTransfer::PrintAcceptKind() {
   for(uint k = 0; k < molRef.GetKindsCount(); k++) {
     printf("%-30s %-5s ", "% Accepted Mol-Transfer ", molRef.kinds[k].name.c_str());
     for(uint b = 0; b < BOX_TOTAL; b++) {
-      if(trial[b][k] > 0)
-        printf("%10.5f ", (double)(100.0 * accepted[b][k]/trial[b][k]));
+      if(moveSetRef.GetTrial(b, mv::MOL_TRANSFER, k) > 0)
+        printf("%10.5f ", (100.0 * moveSetRef.GetAccept(b, mv::MOL_TRANSFER, k)));
       else
         printf("%10.5f ", 0.0);
     }
@@ -100,7 +94,6 @@ inline uint MoleculeTransfer::Prep(const double subDraw, const double movPerc)
 inline uint MoleculeTransfer::Transform()
 {
   cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
-  subPick = mv::GetMoveSubIndex(mv::MOL_TRANSFER, sourceBox);
   molRef.kinds[kindIndex].Build(oldMol, newMol, molIndex);
   return mv::fail_state::NO_FAIL;
 }
@@ -241,9 +234,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
   } else //we didn't even try because we knew it would fail
     result = false;
 
-  subPick = mv::GetMoveSubIndex(mv::MOL_TRANSFER, sourceBox);
-  moveSetRef.Update(result, subPick, step);
-  AcceptKind(result, kindIndex, destBox);
+  moveSetRef.Update(mv::MOL_TRANSFER, result, step, destBox, kindIndex);
 }
 
 #endif

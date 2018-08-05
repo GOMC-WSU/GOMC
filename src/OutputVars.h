@@ -31,10 +31,10 @@ public:
 
   void CalcAndConvert(ulong step);
   bool Perfromed(uint moveKind);
-  uint GetTries(uint sub);
-  uint GetAccepted(uint sub);
-  double GetAcceptPercent(uint sub);
-  double GetScale(uint sub);
+  uint GetTries(uint box, uint sub);
+  uint GetAccepted(uint box, uint sub);
+  double GetAcceptPercent(uint box, uint sub);
+  double GetScale(uint box, uint sub);
 
 //private:
   //Intermediate vars.

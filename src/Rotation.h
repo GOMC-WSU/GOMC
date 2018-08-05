@@ -13,13 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class Rotate : public MoveBase, public MolTransformBase
 {
 public:
-  Rotate(System &sys, StaticVals const& statV) : MoveBase(sys, statV) 
-  {
-    for(uint b = 0; b < BOX_TOTAL; b++) {
-      trial[b].resize(molRef.GetKindsCount(), 0);
-      accepted[b].resize(molRef.GetKindsCount(), 0);
-    }
-  }
+  Rotate(System &sys, StaticVals const& statV) : MoveBase(sys, statV) {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
   virtual uint Transform();
@@ -34,8 +28,8 @@ void Rotate::PrintAcceptKind() {
   for(uint k = 0; k < molRef.GetKindsCount(); k++) {
     printf("%-30s %-5s ", "% Accepted Rotation ", molRef.kinds[k].name.c_str());
     for(uint b = 0; b < BOX_TOTAL; b++) {
-      if(trial[b][k] > 0)
-        printf("%10.5f ", (double)(100.0 * accepted[b][k]/trial[b][k]));
+      if(moveSetRef.GetTrial(b, mv::ROTATE, k) > 0)
+        printf("%10.5f ", (100.0 * moveSetRef.GetAccept(b, mv::ROTATE, k)));
       else
         printf("%10.5f ", 0.0);
     }
@@ -53,9 +47,8 @@ inline uint Rotate::Prep(const double subDraw, const double movPerc)
 
 inline uint Rotate::Transform()
 {
-  subPick = mv::GetMoveSubIndex(mv::ROTATE, b);
   coordCurrRef.RotateRand(newMolPos, pStart, pLen, m, b,
-                          moveSetRef.Scale(subPick));
+                          moveSetRef.Scale(b, mv::ROTATE, mk));
   return mv::fail_state::NO_FAIL;
 }
 
@@ -107,9 +100,7 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
     molRemoved = false;
   }
 
-  subPick = mv::GetMoveSubIndex(mv::ROTATE, b);
-  moveSetRef.Update(result, subPick, step);
-  AcceptKind(result, mk, b);
+  moveSetRef.Update(mv::ROTATE, result, step, b, mk);
 }
 
 #endif /*ROTATION_H*/

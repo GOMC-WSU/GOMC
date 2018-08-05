@@ -133,6 +133,7 @@ const uint IT_KINDS_TOTAL = 2;
 //      4. IntraSwap (box 0)    5. Regrowth (box 0)   6. IntraMEMC (box 0)
 //      7. CrankShaft (box 0)
 
+/*
 #if ENSEMBLE == NVT
 const uint COUNT = 6;
 const uint SCALEABLE = 2;
@@ -147,6 +148,7 @@ const uint COUNT = 7;
 const uint SCALEABLE = 3;
 #endif
 
+*/
 
 //AUTO REJECTION OR ACCEPTANCE FLAGS
 
@@ -165,7 +167,7 @@ const uint INNER_CUTOFF_NEW_TRIAL_POS = 4;
 const uint VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF = 5;
 }
 
-
+/*
 inline uint GetMoveSubIndex(const uint maj, const uint b = 0)
 {
 #if ENSEMBLE == GCMC
@@ -177,6 +179,7 @@ inline uint GetMoveSubIndex(const uint maj, const uint b = 0)
   return maj * BOX_TOTAL + b;
 #endif
 }
+*/
 
 
 }

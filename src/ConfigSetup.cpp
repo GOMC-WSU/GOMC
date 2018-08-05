@@ -118,6 +118,7 @@ ConfigSetup::ConfigSetup(void)
   sys.cbmcTrials.nonbonded.nth = UINT_MAX;
   out.statistics.vars.molNum.block = false;
   out.statistics.vars.molNum.fluct = false;
+  sys.volume.cstVolBox0 = false;
 #endif
 #ifdef VARIABLE_VOLUME
   sys.moves.volume = DBL_MAX;
@@ -912,6 +913,11 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Warning: Input pressure set, but will be ignored in NVT-GEMC"
               << std::endl;
   }
+
+  if(sys.volume.cstVolBox0 && sys.gemc.kind == mv::GEMC_NVT) {
+    std::cout << "Error: Fix volume of box 0 cannot be applied to NVT-GEMC!\n";
+    exit(EXIT_FAILURE);
+  }
 #endif
 #if ENSEMBLE == NPT
   if(sys.gemc.pressure == DBL_MAX) {
@@ -919,7 +925,7 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(sys.volume.cstVolBox0) {
-    std::cout << "Warning: Fix volume of box 0 set, but will be ignored.\n";
+    std::cout << "Error: Fix volume of box 0 cannot be applied fot NPT simulation!\n";
     exit(EXIT_FAILURE);
   }
 #endif

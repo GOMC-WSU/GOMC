@@ -46,7 +46,7 @@ public:
     return axis.Get(b);
   }
 
-  double GetTotVolume() const;
+  double GetTotVolume(const uint b1, const uint b2) const;
 
   virtual void SetVolume(const uint b, const double vol);
 
@@ -55,7 +55,7 @@ public:
 
   //!Calculate and execute volume exchange based on transfer
   virtual uint ExchangeVolume(BoxDimensions & newDim, XYZ * scale,
-                              const double transfer) const;
+                              const double transfer, const uint *box) const;
 
   //Vector btwn two points, accounting for PBC, on an individual axis
   virtual XYZ MinImage(XYZ rawVec, const uint b) const;
