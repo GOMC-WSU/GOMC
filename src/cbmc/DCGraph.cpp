@@ -486,9 +486,9 @@ void DCGraph::BuildGrowOld(TrialMol& oldMol, uint molIndex)
   }
 
   if(current == -1) {
-    std::cout << "In MEMC-3 move, atom index "<< oldMol.GetAtomBB(0)<<
-        " must be a node."
-        << "This atom must be bounded to two or more atoms! \n";
+    std::cout << "Error: In MEMC-3 move, atom " << oldMol.GetKind().atomNames[oldMol.GetAtomBB(0)]<<
+        " in " << oldMol.GetKind().name << " must be a node.\n";
+     std::cout << "       This atom must be bounded to two or more atoms! \n";
     exit(1);
   }
     
@@ -546,9 +546,9 @@ void DCGraph::BuildGrowNew(TrialMol& newMol, uint molIndex)
   }
     
   if(current == -1) {
-    std::cout << "In MEMC-3 move, atom index "<< newMol.GetAtomBB(0)<<
-        " must be a node."
-        << "This atom must be bounded to two or more atoms! \n";
+    std::cout << "Error: In MEMC-3 move, atom " << newMol.GetKind().atomNames[newMol.GetAtomBB(0)]<<
+        " in " << newMol.GetKind().name << " must be a node.\n";
+     std::cout << "       This atom must be bounded to two or more atoms! \n";
     exit(1);
   }
     
