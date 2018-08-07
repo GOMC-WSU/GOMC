@@ -133,6 +133,9 @@ public:
   }
 
   double GetMoleculeCharge();
+
+  bool MoleculeHasCharge();
+  
   SortedNonbond sortedNB, sortedNB_1_4, sortedNB_1_3, sortedEwaldNB;
 
 
