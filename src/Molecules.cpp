@@ -86,10 +86,10 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
       if(kinds[mk].MoleculeHasCharge()) {
         if(!forcefield.ewald && !forcefield.isMartini) {
           std::cout << "Warning: Charge detected in " << kinds[mk].name
-          << " but Ewald Summaion method is disabled.\n";
+          << " but Ewald Summaion method is disabled!\n\n";
         } else if(!forcefield.electrostatic && forcefield.isMartini) {
           std::cout << "Warning: Charge detected in " << kinds[mk].name
-          << " but Electrostatic energy calculation is disabled.\n";
+          << " but Electrostatic energy calculation is disabled!\n\n";
         }
       }
     }
