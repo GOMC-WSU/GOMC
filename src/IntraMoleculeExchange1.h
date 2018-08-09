@@ -423,7 +423,7 @@ inline uint IntraMoleculeExchange1::Transform()
     cellList.RemoveMol(molIndexA[n], sourceBox, coordCurrRef);
     molRef.kinds[kindIndexA[n]].BuildIDOld(oldMolA[n], molIndexA[n]);
     //Add bonded energy because we dont considered in DCRotate.cpp
-    calcEnRef.MoleculeIntra(oldMolA[n], molIndexA[n]);
+    oldMolA[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n], molIndexA[n]));
   }
 
   //Calc old energy before deleting
@@ -431,7 +431,7 @@ inline uint IntraMoleculeExchange1::Transform()
     cellList.RemoveMol(molIndexB[n], sourceBox, coordCurrRef);
     molRef.kinds[kindIndexB[n]].BuildIDOld(oldMolB[n], molIndexB[n]);
     //Add bonded energy because we dont considered in DCRotate.cpp
-    calcEnRef.MoleculeIntra(oldMolB[n], molIndexB[n]);
+    oldMolB[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolB[n], molIndexB[n]));
   }
 
   //Insert kindL to cavity of  center A
@@ -440,7 +440,7 @@ inline uint IntraMoleculeExchange1::Transform()
     ShiftMol(n, false);
     cellList.AddMol(molIndexB[n], sourceBox, coordCurrRef); 
     //Add bonded energy because we dont considered in DCRotate.cpp
-    calcEnRef.MoleculeIntra(newMolB[n], molIndexB[n]);    
+    newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n], molIndexB[n]));    
   } 
 
   //Insert kindS to cavity of center B
@@ -449,7 +449,7 @@ inline uint IntraMoleculeExchange1::Transform()
     ShiftMol(n, true);
     cellList.AddMol(molIndexA[n], sourceBox, coordCurrRef);
     //Add bonded energy because we dont considered in DCRotate.cpp
-    calcEnRef.MoleculeIntra(newMolA[n], molIndexA[n]);
+    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n], molIndexA[n]));
   }
 
   return mv::fail_state::NO_FAIL;

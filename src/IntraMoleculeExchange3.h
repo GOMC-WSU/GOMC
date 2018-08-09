@@ -254,7 +254,7 @@ inline uint IntraMoleculeExchange3::Transform()
     cellList.RemoveMol(molIndexA[n-1], sourceBox, coordCurrRef);
     molRef.kinds[kindIndexA[n-1]].BuildIDOld(oldMolA[n-1], molIndexA[n-1]);
     //Add bonded energy because we dont considered in DCRotate.cpp
-    calcEnRef.MoleculeIntra(oldMolA[n-1], molIndexA[n-1]);
+    oldMolA[n-1].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n-1], molIndexA[n-1]));
   }
 
   //Calc old energy before deleting
@@ -276,7 +276,7 @@ inline uint IntraMoleculeExchange3::Transform()
     ShiftMol(n, true);
     cellList.AddMol(molIndexA[n], sourceBox, coordCurrRef);
     //Add bonded energy because we dont considered in DCRotate.cpp
-    calcEnRef.MoleculeIntra(newMolA[n], molIndexA[n]);
+    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n], molIndexA[n]));
   }
   
   return mv::fail_state::NO_FAIL;

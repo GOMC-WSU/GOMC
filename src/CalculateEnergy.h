@@ -133,7 +133,7 @@ public:
   void MoleculeIntra(const uint molIndex, const uint box, double *bondEn) const;
 
   //used in molecule exchange for calculating bonded and intraNonbonded energy
-  void MoleculeIntra(cbmc::TrialMol &mol, const uint molIndex) const;
+  Energy MoleculeIntra(cbmc::TrialMol const &mol, const uint molIndex) const;
 
     
   //! Calculates Nonbonded 1_3 intramolecule energy of a full molecule
@@ -172,62 +172,55 @@ private:
                    const uint box) const;
              
   //! Calculates bond vectors using pos, stores them in vecs
-  void BondVectors(XYZArray & vecs, XYZArray const& pos,
-                   MoleculeKind const& molKind,
-                   const uint box) const;
+  void BondVectors(XYZArray & vecs, cbmc::TrialMol const &mol,
+                   std::vector<bool> & bondExist) const;
 
   //! Calculates bond stretch intramolecular energy of a full molecule
-  void MolBond(double & energy,
-               MoleculeKind const& molKind,
-               XYZArray const& vecs,
-               const uint box) const;
+  void MolBond(double & energy, MoleculeKind const& molKind,
+               XYZArray const& vecs, const uint box) const;
+
+  //! Calculates bond stretch intramolecular energy of a non-complete molecule
+  void MolBond(double & energy, cbmc::TrialMol const &mol, XYZArray const& vecs,
+               std::vector<bool> const & bondExist) const;
 
   //! Calculates angular bend intramolecular energy of a full molecule
-  void MolAngle(double & energy,
-                MoleculeKind const& molKind,
-                XYZArray const& vecs,
-                const uint box) const;
+  void MolAngle(double & energy, MoleculeKind const& molKind,
+                XYZArray const& vecs, const uint box) const;
+
+  //! Calculates angular bend intramolecular energy of a non-complete molecule
+  void MolAngle(double & energy, cbmc::TrialMol const &mol, XYZArray const& vecs,
+                std::vector<bool> const & bondExist) const;
 
   //! Calculates dihedral torsion intramolecular energy of a full molecule
-  void MolDihedral(double & energy,
-                   MoleculeKind const& molKind,
-                   XYZArray const& vecs,
-                   const uint box) const;
+  void MolDihedral(double & energy, MoleculeKind const& molKind,
+                   XYZArray const& vecs,  const uint box) const;
+
+  //! Calculates dihedral torsion intramolecular energy of a non-complete molecule
+  void MolDihedral(double & energy, cbmc::TrialMol const &mol, XYZArray const& vecs,
+                   std::vector<bool> const & bondExist) const;
 
   //! Calculates Nonbonded 1_N intramolecule energy of a full molecule
-  void MolNonbond(double & energy,
-                  MoleculeKind const& molKind,
-                  const uint molIndex,
-                  const uint box) const;
+  void MolNonbond(double & energy, MoleculeKind const& molKind,
+                  const uint molIndex, const uint box) const;
 
-  //! Calculates Nonbonded 1_N intramolecule energy of a full molecule using pos
-  void MolNonbond(double & energy, XYZArray const& pos,
-                  MoleculeKind const& molKind,
-                  const uint box) const;
+  //! Calculates Nonbonded 1_N intramolecule energy of a non-complete molecule
+  void MolNonbond(double & energy, cbmc::TrialMol const &mol) const;
 
   //! Calculates Nonbonded 1_4 intramolecule energy of a full molecule
-  void MolNonbond_1_4(double & energy,
-                      MoleculeKind const& molKind,
-                      const uint molIndex,
-                      const uint box) const;
+  void MolNonbond_1_4(double & energy, MoleculeKind const& molKind,
+                      const uint molIndex, const uint box) const;
 
-  //! Calculates Nonbonded 1_4 intramolecule energy of a full molecule using pos
-  void MolNonbond_1_4(double & energy, XYZArray const& pos,
-                      MoleculeKind const& molKind,
-                      const uint box) const;                    
+  //! Calculates Nonbonded 1_4 intramolecule energy of a non-complete molecule 
+  void MolNonbond_1_4(double & energy, cbmc::TrialMol const &mol) const;                    
 
   //! Calculates Nonbonded 1_3 intramolecule energy of a full molecule
   //for Martini forcefield
-  void MolNonbond_1_3(double & energy,
-                      MoleculeKind const& molKind,
-                      const uint molIndex,
-                      const uint box) const;
+  void MolNonbond_1_3(double & energy, MoleculeKind const& molKind,
+                      const uint molIndex, const uint box) const;
 
-  //! Calculates Nonbonded 1_3 intramolecule energy of a full molecule using pos
+  //! Calculates Nonbonded 1_3 intramolecule energy of a non-complete molecule
   //for Martini forcefield
-  void MolNonbond_1_3(double & energy, XYZArray const& pos,
-                      MoleculeKind const& molKind,
-                      const uint box) const;                    
+  void MolNonbond_1_3(double & energy, cbmc::TrialMol const &mol) const;                    
 
   //! For particles in main coordinates array determines if they belong
   //! to same molecule, using internal arrays.
