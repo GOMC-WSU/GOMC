@@ -149,7 +149,7 @@ void DCCrankShaftDih::BuildOld(TrialMol& oldMol, uint molIndex)
     oldMol.ConfirmOldAtom(a);
   }
   //Calculate bonded energy and weight
-  data->calc.MoleculeIntra(oldMol, molIndex); 
+  oldMol.AddEnergy(data->calc.MoleculeIntra(oldMol, molIndex)); 
   double W_bonded = exp(-1.0 * data->ff.beta * (oldMol.GetEnergy().intraBond +
 				                                        oldMol.GetEnergy().intraNonbond));
   oldMol.MultWeight(W_bonded);
@@ -214,7 +214,7 @@ void DCCrankShaftDih::BuildNew(TrialMol& newMol, uint molIndex)
      newMol.ConfirmOldAtom(a);
   }
   //Calculate bonded energy and weight
-  data->calc.MoleculeIntra(newMol, molIndex); 
+  newMol.AddEnergy(data->calc.MoleculeIntra(newMol, molIndex)); 
   double W_bonded = exp(-1.0 * data->ff.beta * (newMol.GetEnergy().intraBond +
 				                                        newMol.GetEnergy().intraNonbond));
   newMol.MultWeight(W_bonded);
