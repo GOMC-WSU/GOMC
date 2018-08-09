@@ -117,6 +117,11 @@ void TrialMol::ConfirmOldAtom(uint i)
   atomBuilt[i] = true;
 }
 
+void TrialMol::UnConfirmOldAtom(uint i)
+{
+  atomBuilt[i] = false;
+}
+
 //!Returns rectangular coordinates of an addition
 //!Determines coordinates with respect to current basis
 XYZ TrialMol::GetRectCoords(double bond, double theta, double phi) const
