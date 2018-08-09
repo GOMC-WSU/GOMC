@@ -38,10 +38,15 @@ public:
   }
 
 private:
+  void ChooseTorsion(TrialMol& mol, uint molIndex, RotationMatrix& cross,
+                    RotationMatrix& tensor);
+  void ChooseTorsionOld(TrialMol& mol, uint molIndex, RotationMatrix& cross,
+                        RotationMatrix& tensor);
   DCData* data;
   XYZArray *multiPosRotions;
   uint a0, a1, a2, numAtom, totAtoms;
   std::vector<uint> atoms;
+  Energy oldEnergy;
 };
 }
 #endif

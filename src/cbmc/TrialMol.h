@@ -52,6 +52,9 @@ public:
   //!Confirms that atom at index i has been built (used for oldMols)
   void ConfirmOldAtom(uint i);
 
+  //!UnConfirms that atom at index i has been built (used for oldMols)
+  void UnConfirmOldAtom(uint i);
+
   //!Sets an orthonormal basis for coordinate conversion.
   /*!\param p1 Index of particle new additions will be bonded to
    * \param p2 Index of particle that will be in angles with new additions
