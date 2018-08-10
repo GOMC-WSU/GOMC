@@ -71,8 +71,13 @@ DCCrankShaftDih::DCCrankShaftDih(DCData* data, const mol_setup::MolKind& kind,
 
 void DCCrankShaftDih::PrepareOld(TrialMol& oldMol, uint molIndex)
 {
+  for (uint a = 0; a < totAtoms; a++) {                        
+    oldMol.ConfirmOldAtom(a);
+  }
+  
   XYZ center = oldMol.AtomPosition(a0);
   for(uint i = 0; i < numAtom; i++) {
+    oldMol.UnConfirmOldAtom(atoms[i]);
     //Unwrap the coordinates with respect to a0.
     XYZ temp = oldMol.AtomPosition(atoms[i]);
     XYZ coord = data->axes.UnwrapPBC(temp, oldMol.GetBox(), center);
@@ -80,12 +85,19 @@ void DCCrankShaftDih::PrepareOld(TrialMol& oldMol, uint molIndex)
     coord -= center;
     multiPosRotions[i].Set(0, coord); 
   }
+  //Calculate ol bonded and intrabonded energy wihtout atoms
+  oldEnergy = data->calc.MoleculeIntra(oldMol, molIndex);
 }
 
 void DCCrankShaftDih::PrepareNew(TrialMol& newMol, uint molIndex)
 {
+  for (uint a = 0; a < totAtoms; a++) {                        
+    newMol.ConfirmOldAtom(a);
+  }
+
   XYZ center = newMol.AtomPosition(a0);
   for(uint i = 0; i < numAtom; i++) {
+    newMol.UnConfirmOldAtom(atoms[i]);
     //Unwrap the coordinates with respect to a0.
     XYZ temp = newMol.AtomPosition(atoms[i]);
     XYZ coord = data->axes.UnwrapPBC(temp, newMol.GetBox(), center);
@@ -93,6 +105,8 @@ void DCCrankShaftDih::PrepareNew(TrialMol& newMol, uint molIndex)
     coord -= center;
     multiPosRotions[i].Set(0, coord);  
   }
+  //Calculate ol bonded and intrabonded energy wihtout atoms
+  oldEnergy = data->calc.MoleculeIntra(newMol, molIndex);
 }
 
     
@@ -100,12 +114,21 @@ void DCCrankShaftDih::BuildOld(TrialMol& oldMol, uint molIndex)
 {
   PRNG& prng = data->prng;
   uint nLJTrials = data->nLJTrialsNth;
+  uint nDihTrials = data->nDihTrials;
+  double* torsion = data->angles;
+  double* torWeights = data->angleWeights;
+  double* torEnergy = data->angleEnergy;
+  double* bondedEn = data->bonded;
+  double* nonbonded = data->nonbonded;
+  double* intraNonbonded = data->nonbonded_1_4;
+  double* ljWeights = data->ljWeights;
   double* inter = data->inter;
   double* real = data->real;
   double stepWeight = 0;
 
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
+  std::fill_n(ljWeights, nLJTrials, 0.0);
 
   //Set up rotation matrix using a0-a3 axis.
   XYZ center = oldMol.AtomPosition(a0);
@@ -117,8 +140,15 @@ void DCCrankShaftDih::BuildOld(TrialMol& oldMol, uint molIndex)
 
   //Spin all nLJTrial except the original coordinates
   for (uint lj = nLJTrials; lj-- > 1;) {
-    double theta = data->prng.rand(M_PI * 2.0);
-    RotationMatrix spin = RotationMatrix::FromAxisAngle(theta, cross, tensor);
+    ChooseTorsion(oldMol, molIndex, cross, tensor);
+    ljWeights[lj] = std::accumulate(torWeights,
+                                    torWeights + nDihTrials, 0.0);
+    uint winner = prng.PickWeighted(torWeights, nDihTrials, ljWeights[lj]);
+    bondedEn[lj] = torEnergy[winner];
+    nonbonded[lj] = intraNonbonded[winner];
+    //convert chosen torsion to 3D positions
+    RotationMatrix spin = RotationMatrix::FromAxisAngle(torsion[winner],
+                          cross, tensor);
 
     for (uint a = 0; a < numAtom; a++) {
       //find positions
@@ -126,6 +156,11 @@ void DCCrankShaftDih::BuildOld(TrialMol& oldMol, uint molIndex)
       multiPosRotions[a].Add(lj, center);
     }
   }
+
+  ChooseTorsionOld(oldMol, molIndex, cross, tensor);
+  ljWeights[0] = std::accumulate(torWeights, torWeights + nDihTrials, 0.0);
+  bondedEn[0] = torEnergy[0];
+  nonbonded[0] = intraNonbonded[0];
 
   for (uint a = 0; a < numAtom; a++) {
     //Shift original coordinate back.
@@ -138,30 +173,31 @@ void DCCrankShaftDih::BuildOld(TrialMol& oldMol, uint molIndex)
   }
 
   for (uint trial = 0; trial < nLJTrials; ++trial) {
-    stepWeight += exp(-1 * data->ff.beta *
-                      (inter[trial] + real[trial]));
+    ljWeights[trial] *= exp(-1 * data->ff.beta *
+                           (inter[trial] + real[trial]));
+    stepWeight += ljWeights[trial];
   }
   oldMol.MultWeight(stepWeight / nLJTrials);
-  oldMol.AddEnergy(Energy(0.0, 0.0, inter[0], real[0],
+  oldMol.AddEnergy(Energy(oldEnergy.intraBond + bondedEn[0], 
+                          oldEnergy.intraNonbond + nonbonded[0],
+                          inter[0], real[0],
                           0.0, 0.0, 0.0));
-
-  for (uint a = 0; a < totAtoms; a++) {                        
-    oldMol.ConfirmOldAtom(a);
-  }
-  //Calculate bonded energy and weight
-  oldMol.AddEnergy(data->calc.MoleculeIntra(oldMol, molIndex)); 
-  double W_bonded = exp(-1.0 * data->ff.beta * (oldMol.GetEnergy().intraBond +
-				                                        oldMol.GetEnergy().intraNonbond));
-  oldMol.MultWeight(W_bonded);
 }
 
 void DCCrankShaftDih::BuildNew(TrialMol& newMol, uint molIndex)
 {
   PRNG& prng = data->prng;
   uint nLJTrials = data->nLJTrialsNth;
+  uint nDihTrials = data->nDihTrials;
+  double* torsion = data->angles;
+  double* torWeights = data->angleWeights;
+  double* torEnergy = data->angleEnergy;
+  double* bondedEn = data->bonded;
+  double* nonbonded = data->nonbonded;
+  double* intraNonbonded = data->nonbonded_1_4;
+  double* ljWeights = data->ljWeights;
   double* inter = data->inter;
   double* real = data->real;
-  double* ljWeights = data->ljWeights;
   double stepWeight = 0;
 
   std::fill_n(inter, nLJTrials, 0.0);
@@ -178,8 +214,15 @@ void DCCrankShaftDih::BuildNew(TrialMol& newMol, uint molIndex)
 
   //Go backward to to preserve prototype
   for (uint lj = nLJTrials; lj-- > 0;) {
-    double theta = data->prng.rand(M_PI * 2.0);
-    RotationMatrix spin = RotationMatrix::FromAxisAngle(theta, cross, tensor);
+    ChooseTorsion(newMol, molIndex, cross, tensor);
+    ljWeights[lj] = std::accumulate(torWeights,
+                                    torWeights + nDihTrials, 0.0);
+    uint winner = prng.PickWeighted(torWeights, nDihTrials, ljWeights[lj]);
+    bondedEn[lj] = torEnergy[winner];
+    nonbonded[lj] = intraNonbonded[winner];
+    //convert chosen torsion to 3D positions
+    RotationMatrix spin = RotationMatrix::FromAxisAngle(torsion[winner],
+                          cross, tensor);
 
     for (uint a = 0; a < numAtom; a++) {
       //find positions
@@ -197,26 +240,81 @@ void DCCrankShaftDih::BuildNew(TrialMol& newMol, uint molIndex)
   }
   
   for (uint trial = 0; trial < nLJTrials; trial++) {
-    ljWeights[trial] = exp(-1 * data->ff.beta *
+    ljWeights[trial] *= exp(-1 * data->ff.beta *
                            (inter[trial] + real[trial]));
     stepWeight += ljWeights[trial];
   }
   uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
   newMol.MultWeight(stepWeight / nLJTrials);
-  newMol.AddEnergy(Energy(0.0, 0.0, inter[winner], real[winner],
+  newMol.AddEnergy(Energy(oldEnergy.intraBond + bondedEn[winner],
+                          oldEnergy.intraNonbond + nonbonded[winner],
+                          inter[winner], real[winner],
                           0.0, 0.0, 0.0));
 
   for (uint a = 0; a < numAtom; a++) { 
     newMol.AddAtom(atoms[a], multiPosRotions[a][winner]);
   }
 
-  for (uint a = 0; a < totAtoms; a++) {                                                      
-     newMol.ConfirmOldAtom(a);
-  }
-  //Calculate bonded energy and weight
-  newMol.AddEnergy(data->calc.MoleculeIntra(newMol, molIndex)); 
-  double W_bonded = exp(-1.0 * data->ff.beta * (newMol.GetEnergy().intraBond +
-				                                        newMol.GetEnergy().intraNonbond));
-  newMol.MultWeight(W_bonded);
 }
+
+void DCCrankShaftDih::ChooseTorsion(TrialMol& mol, uint molIndex,
+                                    RotationMatrix& cross,
+                                    RotationMatrix& tensor)
+{ 
+  uint nDihTrials = data->nDihTrials;
+  double* torsion = data->angles;
+  double* torWeights = data->angleWeights;
+  double* torEnergy = data->angleEnergy;
+  double* intraNonbonded = data->nonbonded_1_4;
+
+  XYZ center = mol.AtomPosition(a0);
+  for (uint tor = 0; tor < nDihTrials; ++tor) {
+    torsion[tor] = data->prng.rand(M_PI * 2);
+    //convert chosen torsion to 3D positions
+    RotationMatrix spin = RotationMatrix::FromAxisAngle(torsion[tor],
+                          cross, tensor);
+    for (uint a = 0; a < numAtom; a++) {
+      XYZ coord = spin.Apply(multiPosRotions[a][0]);
+      mol.AddAtom(atoms[a], coord + center);
+    }
+    Energy en = data->calc.MoleculeIntra(mol, molIndex);
+    //Get bonded energy difference due to rotating of atoms
+    en -= oldEnergy;
+    torEnergy[tor] = en.intraBond;
+    intraNonbonded[tor] = en.intraNonbond;
+    torWeights[tor] = exp(-1 * data->ff.beta * (torEnergy[tor] + intraNonbonded[tor]));
+  }
+}
+
+void DCCrankShaftDih::ChooseTorsionOld(TrialMol& mol, uint molIndex,
+                                      RotationMatrix& cross,
+                                      RotationMatrix& tensor)
+{ 
+  uint nDihTrials = data->nDihTrials;
+  double* torsion = data->angles;
+  double* torWeights = data->angleWeights;
+  double* torEnergy = data->angleEnergy;
+  double* intraNonbonded = data->nonbonded_1_4;
+
+  XYZ center = mol.AtomPosition(a0);
+  for (uint tor = 0; tor < nDihTrials; ++tor) {
+    //Use actual coordinate fir first torsion trial
+    torsion[tor] = (tor == 0) ? 0.0 : data->prng.rand(M_PI * 2);
+    //convert chosen torsion to 3D positions
+    RotationMatrix spin = RotationMatrix::FromAxisAngle(torsion[tor],
+                          cross, tensor);
+    for (uint a = 0; a < numAtom; a++) {
+      XYZ coord = spin.Apply(multiPosRotions[a][0]);
+      mol.AddAtom(atoms[a], coord + center);
+    }
+    Energy en = data->calc.MoleculeIntra(mol, molIndex);
+    //Get bonded energy difference due to rotating of atoms
+    en -= oldEnergy;
+    torEnergy[tor] = en.intraBond;
+    intraNonbonded[tor] = en.intraNonbond;
+    torWeights[tor] = exp(-1 * data->ff.beta * (torEnergy[tor] + intraNonbonded[tor]));
+  }
+}
+
+
 }

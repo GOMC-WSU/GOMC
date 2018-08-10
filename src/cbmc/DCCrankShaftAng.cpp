@@ -128,9 +128,9 @@ void DCCrankShaftAng::BuildOld(TrialMol& oldMol, uint molIndex)
   double* bondedEn = data->bonded;
   double* nonbonded = data->nonbonded;
   double* intraNonbonded = data->nonbonded_1_4;
+  double* ljWeights = data->ljWeights;
   double* inter = data->inter;
   double* real = data->real;
-  double* ljWeights = data->ljWeights;
   double stepWeight = 0;
 
   std::fill_n(inter, nLJTrials, 0.0);
@@ -156,8 +156,6 @@ void DCCrankShaftAng::BuildOld(TrialMol& oldMol, uint molIndex)
     //convert chosen torsion to 3D positions
     RotationMatrix spin = RotationMatrix::FromAxisAngle(torsion[winner],
                           cross, tensor);
-    //double theta = data->prng.rand(M_PI * 2.0);
-    //RotationMatrix spin = RotationMatrix::FromAxisAngle(theta, cross, tensor);
 
     for (uint a = 0; a < numAtom; a++) {
       //find positions
@@ -204,9 +202,9 @@ void DCCrankShaftAng::BuildNew(TrialMol& newMol, uint molIndex)
   double* bondedEn = data->bonded;
   double* nonbonded = data->nonbonded;
   double* intraNonbonded = data->nonbonded_1_4;
+  double* ljWeights = data->ljWeights;
   double* inter = data->inter;
   double* real = data->real;
-  double* ljWeights = data->ljWeights;
   double stepWeight = 0;
 
   std::fill_n(inter, nLJTrials, 0.0);
@@ -232,8 +230,6 @@ void DCCrankShaftAng::BuildNew(TrialMol& newMol, uint molIndex)
     //convert chosen torsion to 3D positions
     RotationMatrix spin = RotationMatrix::FromAxisAngle(torsion[winner],
                           cross, tensor);
-    //double theta = data->prng.rand(M_PI * 2.0);
-    //RotationMatrix spin = RotationMatrix::FromAxisAngle(theta, cross, tensor);
 
     for (uint a = 0; a < numAtom; a++) {
       //find positions
@@ -289,6 +285,7 @@ void DCCrankShaftAng::ChooseTorsion(TrialMol& mol, uint molIndex,
       mol.AddAtom(atoms[a], coord + center);
     }
     Energy en = data->calc.MoleculeIntra(mol, molIndex);
+    //Get bonded energy difference due to rotating of atoms
     en -= oldEnergy;
     torEnergy[tor] = en.intraBond;
     intraNonbonded[tor] = en.intraNonbond;
@@ -308,6 +305,7 @@ void DCCrankShaftAng::ChooseTorsionOld(TrialMol& mol, uint molIndex,
 
   XYZ center = mol.AtomPosition(a0);
   for (uint tor = 0; tor < nDihTrials; ++tor) {
+    //Use actual coordinate fir first torsion trial
     torsion[tor] = (tor == 0) ? 0.0 : data->prng.rand(M_PI * 2);
     //convert chosen torsion to 3D positions
     RotationMatrix spin = RotationMatrix::FromAxisAngle(torsion[tor],
@@ -317,6 +315,7 @@ void DCCrankShaftAng::ChooseTorsionOld(TrialMol& mol, uint molIndex,
       mol.AddAtom(atoms[a], coord + center);
     }
     Energy en = data->calc.MoleculeIntra(mol, molIndex);
+    //Get bonded energy difference due to rotating of atoms
     en -= oldEnergy;
     torEnergy[tor] = en.intraBond;
     intraNonbonded[tor] = en.intraNonbond;
