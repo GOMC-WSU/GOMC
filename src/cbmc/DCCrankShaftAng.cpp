@@ -7,9 +7,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "DCCrankShaftAng.h"
 #include "TrialMol.h"
 #include "PRNG.h"
-#include "MolSetup.h"
 #include "Forcefield.h"
 #include "NumLib.h"
+#include "Geometry.h"
 #include "CalculateEnergy.h"
 #include "XYZArray.h"
 #include <numeric>
@@ -74,6 +74,23 @@ DCCrankShaftAng::DCCrankShaftAng(DCData* data, const mol_setup::MolKind& kind,
     std::cout << "Error: CBMC dihedral trials must be greater than 0.\n";
     exit(EXIT_FAILURE);
   }
+
+  //Find the angles affected by rotation
+  //First find the angle x-a0-a1
+  ang = AtomMidEndAngles(kind, a0, a1);
+  //Add angle with a1-a2-x
+  vector<Angle> tempAng = AtomMidEndAngles(kind, a2, a1);
+  ang.insert(ang.end(), tempAng.begin(), tempAng.end());
+
+  //Find the dihedral affected by rotation
+  //First find the dihedral with x-a0-a1-x in the middle
+  dih = DihsOnBond(kind, a0, a1);
+  //Add dihedral with x-a1-a2-x
+  vector<Dihedral> tempDih = DihsOnBond(kind, a1, a2);
+  dih.insert(dih.end(), tempDih.begin(), tempDih.end());
+  //Add dihedral with atom a1 in one end: x-x-x-a1
+  tempDih = AtomEndDihs(kind, a1);
+  dih.insert(dih.end(), tempDih.begin(), tempDih.end());
 }
 
 void DCCrankShaftAng::PrepareOld(TrialMol& oldMol, uint molIndex)
@@ -84,7 +101,6 @@ void DCCrankShaftAng::PrepareOld(TrialMol& oldMol, uint molIndex)
 
   XYZ center = oldMol.AtomPosition(a0);
   for(uint i = 0; i < numAtom; i++) {
-    oldMol.UnConfirmOldAtom(atoms[i]);
     //Unwrap the coordinates with respect to a0.
     XYZ temp = oldMol.AtomPosition(atoms[i]);
     XYZ coord = data->axes.UnwrapPBC(temp, oldMol.GetBox(), center);
@@ -92,8 +108,6 @@ void DCCrankShaftAng::PrepareOld(TrialMol& oldMol, uint molIndex)
     coord -= center;
     multiPosRotions[i].Set(0, coord); 
   }
-  //Calculate ol bonded and intrabonded energy wihtout atoms
-  oldEnergy = data->calc.MoleculeIntra(oldMol, molIndex);
 }
 
 void DCCrankShaftAng::PrepareNew(TrialMol& newMol, uint molIndex)
@@ -104,7 +118,6 @@ void DCCrankShaftAng::PrepareNew(TrialMol& newMol, uint molIndex)
 
   XYZ center = newMol.AtomPosition(a0);
   for(uint i = 0; i < numAtom; i++) {
-    newMol.UnConfirmOldAtom(atoms[i]);
     //Unwrap the coordinates with respect to a0.
     XYZ temp = newMol.AtomPosition(atoms[i]);
     XYZ coord = data->axes.UnwrapPBC(temp, newMol.GetBox(), center);
@@ -112,8 +125,6 @@ void DCCrankShaftAng::PrepareNew(TrialMol& newMol, uint molIndex)
     coord -= center;
     multiPosRotions[i].Set(0, coord);  
   }
-  //Calculate ol bonded and intrabonded energy wihtout atoms
-  oldEnergy = data->calc.MoleculeIntra(newMol, molIndex);
 }
 
     
@@ -127,7 +138,6 @@ void DCCrankShaftAng::BuildOld(TrialMol& oldMol, uint molIndex)
   double* torEnergy = data->angleEnergy;
   double* bondedEn = data->bonded;
   double* nonbonded = data->nonbonded;
-  double* intraNonbonded = data->nonbonded_1_4;
   double* ljWeights = data->ljWeights;
   double* inter = data->inter;
   double* real = data->real;
@@ -136,6 +146,7 @@ void DCCrankShaftAng::BuildOld(TrialMol& oldMol, uint molIndex)
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
   std::fill_n(ljWeights, nLJTrials, 0.0);
+  std::fill_n(nonbonded, nLJTrials, 0.0);
 
   //Set up rotation matrix using a0-a3 axis.
   XYZ center = oldMol.AtomPosition(a0);
@@ -152,7 +163,6 @@ void DCCrankShaftAng::BuildOld(TrialMol& oldMol, uint molIndex)
                                     torWeights + nDihTrials, 0.0);
     uint winner = prng.PickWeighted(torWeights, nDihTrials, ljWeights[lj]);
     bondedEn[lj] = torEnergy[winner];
-    nonbonded[lj] = intraNonbonded[winner];
     //convert chosen torsion to 3D positions
     RotationMatrix spin = RotationMatrix::FromAxisAngle(torsion[winner],
                           cross, tensor);
@@ -167,7 +177,6 @@ void DCCrankShaftAng::BuildOld(TrialMol& oldMol, uint molIndex)
   ChooseTorsionOld(oldMol, molIndex, cross, tensor);
   ljWeights[0] = std::accumulate(torWeights, torWeights + nDihTrials, 0.0);
   bondedEn[0] = torEnergy[0];
-  nonbonded[0] = intraNonbonded[0];
 
   for (uint a = 0; a < numAtom; a++) {
     //Shift original coordinate back.
@@ -177,16 +186,16 @@ void DCCrankShaftAng::BuildOld(TrialMol& oldMol, uint molIndex)
     //Calculate nonbonded energy
     data->calc.ParticleInter(inter, real, multiPosRotions[a], atoms[a], molIndex,
                              oldMol.GetBox(), nLJTrials);
+    ParticleNonbonded(oldMol, multiPosRotions[a], atoms[a], nLJTrials);
   }
 
   for (uint trial = 0; trial < nLJTrials; ++trial) {
     ljWeights[trial] *= exp(-1 * data->ff.beta *
-                           (inter[trial] + real[trial]));
+                           (inter[trial] + real[trial] + nonbonded[trial]));
     stepWeight += ljWeights[trial];
   }
   oldMol.MultWeight(stepWeight / nLJTrials);
-  oldMol.AddEnergy(Energy(oldEnergy.intraBond + bondedEn[0], 
-                          oldEnergy.intraNonbond + nonbonded[0],
+  oldMol.AddEnergy(Energy(bondedEn[0], nonbonded[0],
                           inter[0], real[0],
                           0.0, 0.0, 0.0));
 }
@@ -201,7 +210,6 @@ void DCCrankShaftAng::BuildNew(TrialMol& newMol, uint molIndex)
   double* torEnergy = data->angleEnergy;
   double* bondedEn = data->bonded;
   double* nonbonded = data->nonbonded;
-  double* intraNonbonded = data->nonbonded_1_4;
   double* ljWeights = data->ljWeights;
   double* inter = data->inter;
   double* real = data->real;
@@ -210,6 +218,7 @@ void DCCrankShaftAng::BuildNew(TrialMol& newMol, uint molIndex)
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
   std::fill_n(ljWeights, nLJTrials, 0.0);
+  std::fill_n(nonbonded, nLJTrials, 0.0);
 
   //Set up rotation matrix using a0-a3 axis.
   XYZ center = newMol.AtomPosition(a0);
@@ -226,7 +235,6 @@ void DCCrankShaftAng::BuildNew(TrialMol& newMol, uint molIndex)
                                     torWeights + nDihTrials, 0.0);
     uint winner = prng.PickWeighted(torWeights, nDihTrials, ljWeights[lj]);
     bondedEn[lj] = torEnergy[winner];
-    nonbonded[lj] = intraNonbonded[winner];
     //convert chosen torsion to 3D positions
     RotationMatrix spin = RotationMatrix::FromAxisAngle(torsion[winner],
                           cross, tensor);
@@ -244,17 +252,17 @@ void DCCrankShaftAng::BuildNew(TrialMol& newMol, uint molIndex)
     //Calculate nonbonded energy
     data->calc.ParticleInter(inter, real, multiPosRotions[a], atoms[a], molIndex,
                              newMol.GetBox(), nLJTrials);
+    ParticleNonbonded(newMol, multiPosRotions[a], atoms[a], nLJTrials);
   }
   
   for (uint trial = 0; trial < nLJTrials; trial++) {
     ljWeights[trial] *= exp(-1 * data->ff.beta *
-                           (inter[trial] + real[trial]));
+                           (inter[trial] + real[trial] + nonbonded[trial]));
     stepWeight += ljWeights[trial];
   }
   uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
   newMol.MultWeight(stepWeight / nLJTrials);
-  newMol.AddEnergy(Energy(oldEnergy.intraBond + bondedEn[winner],
-                          oldEnergy.intraNonbond + nonbonded[winner],
+  newMol.AddEnergy(Energy(bondedEn[winner], nonbonded[winner],
                           inter[winner], real[winner],
                           0.0, 0.0, 0.0));
 
@@ -272,7 +280,6 @@ void DCCrankShaftAng::ChooseTorsion(TrialMol& mol, uint molIndex,
   double* torsion = data->angles;
   double* torWeights = data->angleWeights;
   double* torEnergy = data->angleEnergy;
-  double* intraNonbonded = data->nonbonded_1_4;
 
   XYZ center = mol.AtomPosition(a0);
   for (uint tor = 0; tor < nDihTrials; ++tor) {
@@ -284,12 +291,9 @@ void DCCrankShaftAng::ChooseTorsion(TrialMol& mol, uint molIndex,
       XYZ coord = spin.Apply(multiPosRotions[a][0]);
       mol.AddAtom(atoms[a], coord + center);
     }
-    Energy en = data->calc.MoleculeIntra(mol, molIndex);
-    //Get bonded energy difference due to rotating of atoms
-    en -= oldEnergy;
-    torEnergy[tor] = en.intraBond;
-    intraNonbonded[tor] = en.intraNonbond;
-    torWeights[tor] = exp(-1 * data->ff.beta * (torEnergy[tor] + intraNonbonded[tor]));
+    double en = CalcIntraBonded(mol, molIndex);
+    torEnergy[tor] = en;
+    torWeights[tor] = exp(-1 * data->ff.beta * en);
   }
 }
 
@@ -301,7 +305,6 @@ void DCCrankShaftAng::ChooseTorsionOld(TrialMol& mol, uint molIndex,
   double* torsion = data->angles;
   double* torWeights = data->angleWeights;
   double* torEnergy = data->angleEnergy;
-  double* intraNonbonded = data->nonbonded_1_4;
 
   XYZ center = mol.AtomPosition(a0);
   for (uint tor = 0; tor < nDihTrials; ++tor) {
@@ -314,14 +317,153 @@ void DCCrankShaftAng::ChooseTorsionOld(TrialMol& mol, uint molIndex,
       XYZ coord = spin.Apply(multiPosRotions[a][0]);
       mol.AddAtom(atoms[a], coord + center);
     }
-    Energy en = data->calc.MoleculeIntra(mol, molIndex);
-    //Get bonded energy difference due to rotating of atoms
-    en -= oldEnergy;
-    torEnergy[tor] = en.intraBond;
-    intraNonbonded[tor] = en.intraNonbond;
-    torWeights[tor] = exp(-1 * data->ff.beta * (torEnergy[tor] + intraNonbonded[tor]));
+    double en = CalcIntraBonded(mol, molIndex);
+    torEnergy[tor] = en;
+    torWeights[tor] = exp(-1 * data->ff.beta * en);
   }
 }
 
+double DCCrankShaftAng::CalcIntraBonded(TrialMol& mol, uint molIndex)
+{
+
+  double bondedEn = 0.0;
+  uint box = mol.GetBox();
+  const MoleculeKind& molKind = mol.GetKind();
+  XYZ b1, b2, b3;
+  const XYZArray &coords = mol.GetCoords();
+  for(uint i = 0; i < ang.size(); i++) {
+    b1 = data->axes.MinImage(coords.Difference(ang[i].a0, ang[i].a1), box);
+    b2 = data->axes.MinImage(coords.Difference(ang[i].a2, ang[i].a1), box);
+    bondedEn += data->ff.angles->Calc(ang[i].kind, geom::Theta(b1, b2));
+    double theta = geom::Theta(b1, b2);
+  }
+
+  for(uint i = 0; i < dih.size(); i++) {
+    //No need to calcminImage since we unwrap it
+    b1 = data->axes.MinImage(coords.Difference(dih[i].a1, dih[i].a0), box);
+    b2 = data->axes.MinImage(coords.Difference(dih[i].a2, dih[i].a1), box);
+    b3 = data->axes.MinImage(coords.Difference(dih[i].a3, dih[i].a2), box);
+    bondedEn += data->ff.dihedrals.Calc(dih[i].kind, geom::Phi(b1, b2, b3));
+  }
+  return bondedEn;
+}
+
+void DCCrankShaftAng::ParticleNonbonded(cbmc::TrialMol const& mol,
+                                        XYZArray const& trialPos,
+                                        const uint partIndex,
+                                        const uint trials) 
+{
+  ParticleNonbonded1_N(mol, trialPos, partIndex, trials);
+  ParticleNonbonded1_4(mol, trialPos, partIndex, trials);
+  ParticleNonbonded1_3(mol, trialPos, partIndex, trials);
+}
+
+void DCCrankShaftAng::ParticleNonbonded1_N(cbmc::TrialMol const& mol,
+                                          XYZArray const& trialPos,
+                                          const uint partIndex,
+                                          const uint trials) 
+{
+  double* nonbonded = data->nonbonded;
+  uint box = mol.GetBox();
+  const MoleculeKind& kind = mol.GetKind();
+  //loop over all partners of the trial particle
+  const uint* partner = kind.sortedNB.Begin(partIndex);
+  const uint* end = kind.sortedNB.End(partIndex);
+  while (partner != end) {
+    if(mol.AtomExists(*partner) &&
+      (std::find(atoms.begin(), atoms.end(), *partner) == atoms.end())) {
+      for (uint t = 0; t < trials; ++t) {
+        double distSq;
+        if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(),
+                               *partner, box)) {
+          nonbonded[t] += data->ff.particles->CalcEn(distSq,
+                      kind.AtomKind(partIndex),
+                      kind.AtomKind(*partner));
+          if(data->ff.electrostatic) {
+            double qi_qj_Fact = kind.AtomCharge(partIndex) *
+                                kind.AtomCharge(*partner) * num::qqFact;
+            data->ff.particles->CalcCoulombAdd_1_4(nonbonded[t], distSq,
+                qi_qj_Fact, true);
+          }
+        }
+      }
+    }
+    ++partner;
+  }
+}
+
+void DCCrankShaftAng::ParticleNonbonded1_4(cbmc::TrialMol const& mol,
+                                          XYZArray const& trialPos,
+                                          const uint partIndex,
+                                          const uint trials) 
+{
+  if(!data->ff.OneFour)
+    return;
+
+  double* nonbonded = data->nonbonded;
+  uint box = mol.GetBox();
+  const MoleculeKind& kind = mol.GetKind();
+  //loop over all partners of the trial particle
+  const uint* partner = kind.sortedNB_1_4.Begin(partIndex);
+  const uint* end = kind.sortedNB_1_4.End(partIndex);
+  while (partner != end) {
+    if(mol.AtomExists(*partner) &&
+      (std::find(atoms.begin(), atoms.end(), *partner) == atoms.end())) {
+      for (uint t = 0; t < trials; ++t) {
+        double distSq;
+        if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(),
+                               *partner, box)) {
+          data->ff.particles->CalcAdd_1_4(nonbonded[t],distSq,
+                      kind.AtomKind(partIndex),
+                      kind.AtomKind(*partner));
+          if(data->ff.electrostatic) {
+            double qi_qj_Fact = kind.AtomCharge(partIndex) *
+                                kind.AtomCharge(*partner) * num::qqFact;
+            data->ff.particles->CalcCoulombAdd_1_4(nonbonded[t], distSq,
+                qi_qj_Fact, true);
+          }
+        }
+      }
+    }
+    ++partner;
+  }
+}
+
+void DCCrankShaftAng::ParticleNonbonded1_3(cbmc::TrialMol const& mol,
+                                          XYZArray const& trialPos,
+                                          const uint partIndex,
+                                          const uint trials) 
+{
+  if(!data->ff.OneThree)
+    return;
+
+  double* nonbonded = data->nonbonded;
+  uint box = mol.GetBox();
+  const MoleculeKind& kind = mol.GetKind();
+  //loop over all partners of the trial particle
+  const uint* partner = kind.sortedNB_1_3.Begin(partIndex);
+  const uint* end = kind.sortedNB_1_3.End(partIndex);
+  while (partner != end) {
+    if(mol.AtomExists(*partner) &&
+      (std::find(atoms.begin(), atoms.end(), *partner) == atoms.end())) {
+      for (uint t = 0; t < trials; ++t) {
+        double distSq;
+        if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(),
+                               *partner, box)) {
+          data->ff.particles->CalcAdd_1_4(nonbonded[t],distSq,
+                      kind.AtomKind(partIndex),
+                      kind.AtomKind(*partner));
+          if(data->ff.electrostatic) {
+            double qi_qj_Fact = kind.AtomCharge(partIndex) *
+                                kind.AtomCharge(*partner) * num::qqFact;
+            data->ff.particles->CalcCoulombAdd_1_4(nonbonded[t], distSq,
+                qi_qj_Fact, true);
+          }
+        }
+      }
+    }
+    ++partner;
+  }
+}
 
 }
