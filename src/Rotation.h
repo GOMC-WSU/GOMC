@@ -60,8 +60,10 @@ inline void Rotate::CalcEn()
   
   //calculate LJ interaction and real term of electrostatic interaction
   overlap = calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);
-  //calculate reciprocate term of electrostatic interaction
-  recip.energy = calcEwald->MolReciprocal(newMolPos, m, b);
+  if(!overlap) {
+    //calculate reciprocate term of electrostatic interaction
+    recip.energy = calcEwald->MolReciprocal(newMolPos, m, b);
+  }
 }
 
 inline void Rotate::Accept(const uint rejectState, const uint step)
@@ -93,7 +95,7 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
 
   if(molRemoved) {
     // It means that Recip energy is calculated and move not accepted
-    if(!result) {
+    if(!result && !overlap) {
       calcEwald->RestoreMol(m);
     }
 

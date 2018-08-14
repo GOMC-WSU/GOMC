@@ -751,9 +751,7 @@ inline void MoleculeExchange1::Accept(const uint rejectState, const uint step)
         for (uint b = 0; b < BOX_TOTAL; b++) {
             calcEwald->UpdateRecip(b);
         }
-
         //molA and molB already transfered to destBox and added to cellist
-
         //Retotal
         sysPotRef.Total();
       } else {
