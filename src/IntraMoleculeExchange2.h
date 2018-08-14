@@ -316,7 +316,8 @@ inline uint IntraMoleculeExchange2::Transform()
     ShiftMol(n, false);
     cellList.AddMol(molIndexB[n], sourceBox, coordCurrRef); 
     //Add bonded energy because we dont considered in DCRotate.cpp
-    newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n], molIndexB[n]));    
+    newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n], molIndexB[n]));   
+    overlap |= newMolB[n].HasOverlap();  
   }  
 
   //Insert kindS to cavity of center B
@@ -326,6 +327,7 @@ inline uint IntraMoleculeExchange2::Transform()
     cellList.AddMol(molIndexA[n], sourceBox, coordCurrRef);
     //Add bonded energy because we dont considered in DCRotate.cpp
     newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n], molIndexA[n]));
+    overlap |= newMolA[n].HasOverlap(); 
   }
   
   return mv::fail_state::NO_FAIL;

@@ -29,10 +29,12 @@ void DCSingle::BuildOld(TrialMol& oldMol, uint molIndex)
   uint nLJTrials = data->nLJTrialsFirst;
   double* inter = data->inter;
   double* real = data->real;
+  bool* overlap = data->overlap;
   double stepWeight = 0;
 
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
+  std::fill_n(overlap, nLJTrials, false);
 
   if(oldMol.COMFix()) {
     nLJTrials = 1;
@@ -40,13 +42,14 @@ void DCSingle::BuildOld(TrialMol& oldMol, uint molIndex)
     prng.FillWithRandom(positions, nLJTrials, data->axes, oldMol.GetBox());
   }
   positions.Set(0, data->axes.WrapPBC(oldMol.AtomPosition(atom), oldMol.GetBox()));
-  data->calc.ParticleInter(inter, real, positions, atom, molIndex,
+  data->calc.ParticleInter(inter, real, positions, overlap, atom, molIndex,
                            oldMol.GetBox(), nLJTrials);
 
   for (uint trial = 0; trial < nLJTrials; ++trial) {
     stepWeight += exp(-1 * data->ff.beta *
                       (inter[trial] + real[trial]));
   }
+  oldMol.UpdateOverlap(overlap[0]);
   oldMol.MultWeight(stepWeight / nLJTrials);
   oldMol.AddEnergy(Energy(0.0, 0.0, inter[0], real[0],
                           0.0, 0.0, 0.0));
@@ -61,10 +64,12 @@ void DCSingle::BuildNew(TrialMol& newMol, uint molIndex)
   double* inter = data->inter;
   double* real = data->real;
   double* ljWeights = data->ljWeights;
+  bool* overlap = data->overlap;
 
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
   std::fill_n(ljWeights, nLJTrials, 0.0);
+  std::fill_n(overlap, nLJTrials, false);
 
   if(newMol.COMFix()) {
     nLJTrials = 1;
@@ -72,7 +77,7 @@ void DCSingle::BuildNew(TrialMol& newMol, uint molIndex)
   } else {
     prng.FillWithRandom(positions, nLJTrials, data->axes, newMol.GetBox());
   }
-  data->calc.ParticleInter(inter, real, positions, atom, molIndex,
+  data->calc.ParticleInter(inter, real, positions, overlap, atom, molIndex,
                            newMol.GetBox(), nLJTrials);
 
   double stepWeight = 0;
@@ -82,6 +87,7 @@ void DCSingle::BuildNew(TrialMol& newMol, uint molIndex)
     stepWeight += ljWeights[trial];
   }
   uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
+  newMol.UpdateOverlap(overlap[winner]);
   newMol.MultWeight(stepWeight / nLJTrials);
   newMol.AddEnergy(Energy(0.0, 0.0, inter[winner], real[winner],
                           0.0, 0.0, 0.0));

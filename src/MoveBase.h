@@ -36,9 +36,11 @@ public:
     calcEnRef(sys.calcEnergy), comCurrRef(sys.com),
     coordCurrRef(sys.coordinates), prng(sys.prng), molRef(statV.mol),
     BETA(statV.forcefield.beta), ewald(statV.forcefield.ewald),
-    cellList(sys.cellList), molRemoved(false)
+    cellList(sys.cellList)
   {
     calcEwald = sys.GetEwald();
+    molRemoved = false;
+    overlap = false;
   }
 
   //Based on the random draw, determine the move kind, box, and
@@ -80,7 +82,7 @@ protected:
   const double BETA;
   const bool ewald;
   CellList& cellList;
-  bool molRemoved, fixBox0;
+  bool molRemoved, fixBox0, overlap;
 };
 
 //Data needed for transforming a molecule's position via inter or intrabox

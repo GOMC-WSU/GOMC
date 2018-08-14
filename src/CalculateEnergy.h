@@ -86,7 +86,7 @@ public:
   //! @param box Index of box molecule is in.
   //! @param newCOM (optional) If COM has changed for new coordinate,
   //!                          allows for that to be considered.
-  void MoleculeInter(Intermolecular &inter_LJ, Intermolecular &inter_coulomb,
+  bool MoleculeInter(Intermolecular &inter_LJ, Intermolecular &inter_coulomb,
                      XYZArray const& molCoords, const uint molIndex,
                      const uint box) const;
 
@@ -115,6 +115,7 @@ public:
   //! @param trials Number of trials ot loop over in position array. (cbmc)
   void ParticleInter(double* en, double *real,
                      XYZArray const& trialPos,
+                     bool* overlap,
                      const uint partIndex,
                      const uint molIndex,
                      const uint box,

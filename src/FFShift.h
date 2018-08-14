@@ -51,8 +51,6 @@ public:
   // coulomb interaction functions
   virtual double CalcCoulomb(const double distSq,
                              const double qi_qj_Fact, const uint b) const;
-  virtual double CalcCoulombEn(const double distSq,
-                               const double qi_qj_Fact, const uint b) const;
   virtual double CalcCoulombVir(const double distSq,
                                 const double qi_qj, const uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
@@ -164,25 +162,6 @@ inline double FF_SHIFT::CalcCoulomb(const double distSq,
                                     const double qi_qj_Fact, const uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
-    return 0.0;
-
-  if(forcefield.ewald) {
-    double dist = sqrt(distSq);
-    double val = forcefield.alpha[b] * dist;
-    return  qi_qj_Fact * erfc(val) / dist;
-  } else {
-    double dist = sqrt(distSq);
-    return  qi_qj_Fact * (1.0 / dist - 1.0 / forcefield.rCut);
-  }
-}
-
-//will be used in energy calculation after each move
-inline double FF_SHIFT::CalcCoulombEn(const double distSq,
-                                      const double qi_qj_Fact, const uint b) const
-{
-  if(forcefield.rCutLowSq > distSq)
-    return num::BIGNUM;
-  else if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
 
   if(forcefield.ewald) {

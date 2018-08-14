@@ -77,6 +77,7 @@ inline uint Regrowth::GetBoxAndMol(const double subDraw, const double movPerc)
 
 inline uint Regrowth::Prep(const double subDraw, const double movPerc)
 {
+  overlap = false;
   uint state = GetBoxAndMol(subDraw, movPerc);
   if (state == mv::fail_state::NO_FAIL) {
     newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
@@ -90,6 +91,7 @@ inline uint Regrowth::Transform()
 {
   cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
   molRef.kinds[kindIndex].Regrowth(oldMol, newMol, molIndex);
+  overlap = newMol.HasOverlap();
   return mv::fail_state::NO_FAIL;
 }
 
@@ -100,7 +102,7 @@ inline void Regrowth::CalcEn()
   correct_old = 0.0;
   correct_new = 0.0;
 
-  if (newMol.GetWeight() != 0.0) {
+  if (newMol.GetWeight() != 0.0 && !overlap) {
     correct_new = calcEwald->SwapCorrection(newMol);
     correct_old = calcEwald->SwapCorrection(oldMol);
     recipDiff.energy = calcEwald->MolReciprocal(newMol.GetCoords(), molIndex,
@@ -122,8 +124,7 @@ inline void Regrowth::Accept(const uint rejectState, const uint step)
     double Wrat = Wn / Wo * W_recip;
 
     //safety to make sure move will be rejected in overlap case
-    if((newMol.GetEnergy().real < 1.0e15) &&
-        (oldMol.GetEnergy().real < 1.0e15)) {
+    if(!overlap) {
       result = prng() < Wrat;
     } else
       result = false;

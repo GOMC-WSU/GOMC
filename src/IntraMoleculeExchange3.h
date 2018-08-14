@@ -267,7 +267,8 @@ inline uint IntraMoleculeExchange3::Transform()
   for(uint n = 0; n < numInCavB; n++) {
     molRef.kinds[kindIndexB[n]].BuildGrowNew(newMolB[n], molIndexB[n]);
     ShiftMol(n, false);
-    cellList.AddMol(molIndexB[n], sourceBox, coordCurrRef);  
+    cellList.AddMol(molIndexB[n], sourceBox, coordCurrRef); 
+    overlap |= newMolB[n].HasOverlap();  
   }  
 
   //Insert kindS to cavity of center B
@@ -277,6 +278,7 @@ inline uint IntraMoleculeExchange3::Transform()
     cellList.AddMol(molIndexA[n], sourceBox, coordCurrRef);
     //Add bonded energy because we dont considered in DCRotate.cpp
     newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n], molIndexA[n]));
+    overlap |= newMolA[n].HasOverlap(); 
   }
   
   return mv::fail_state::NO_FAIL;
@@ -284,20 +286,22 @@ inline uint IntraMoleculeExchange3::Transform()
 
 inline void IntraMoleculeExchange3::CalcEn()
 {   
-   W_recip = 1.0;
-   recipDiffA = 0.0, recipDiffB = 0.0;
-   correctDiff = 0.0;
-   //No need to calculate the correction term for kindS since it is
-   // inserted rigid body. We just need it for kindL
-   for(uint n = 0; n < numInCavB; n++) {
-     correctDiff += calcEwald->SwapCorrection(newMolB[n]);
-     correctDiff -= calcEwald->SwapCorrection(oldMolB[n]);
-   }
-   recipDiffA = calcEwald->SwapRecip(newMolA, oldMolA);
-   recipDiffB = calcEwald->SwapRecip(newMolB, oldMolB);
+  W_recip = 1.0;
+  recipDiffA = 0.0, recipDiffB = 0.0;
+  correctDiff = 0.0;
+  //No need to calculate the correction term for kindS since it is
+  // inserted rigid body. We just need it for kindL
+  if(!overlap) {
+    for(uint n = 0; n < numInCavB; n++) {
+      correctDiff += calcEwald->SwapCorrection(newMolB[n]);
+      correctDiff -= calcEwald->SwapCorrection(oldMolB[n]);
+    }
+    recipDiffA = calcEwald->SwapRecip(newMolA, oldMolA);
+    recipDiffB = calcEwald->SwapRecip(newMolB, oldMolB);
 
-   W_recip = exp(-1.0 * ffRef.beta * (recipDiffA + recipDiffB +
-                                      correctDiff));
+    W_recip = exp(-1.0 * ffRef.beta * (recipDiffA + recipDiffB +
+                                        correctDiff));
+  }
 }
 
 inline double IntraMoleculeExchange3::GetCoeff() const

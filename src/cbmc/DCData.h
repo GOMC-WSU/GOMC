@@ -60,6 +60,8 @@ public:
   double* interT;     //For DCRotateCOM, we have combined first and Nth trial
   double* realT;      //For DCRotateCOM, we have combined first and Nth trial
   double* ljWeightsT; //For DCRotateCOM, we have combined first and Nth trial
+  bool* overlap;      //For detecting overlap for each LJ trial
+  bool* overlapT;     //For detecting overlap for each LJ trial. Used in DCRotateCOM
 
   XYZArray multiPositions[MAX_BONDS];
 };
@@ -92,10 +94,12 @@ inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& se
   oneFour = new double[maxLJTrials];
   nonbonded = new double[maxLJTrials];
   ljWeights = new double[maxLJTrials];
+  overlap = new bool[maxLJTrials];
 
   interT = new double[totalTrials]; 
   realT = new double[totalTrials];  
   ljWeightsT = new double[totalTrials];
+  overlapT = new bool[totalTrials];
 
   uint trialMax = std::max(nAngleTrials, nDihTrials);
   angleEnergy = new double[trialMax];
@@ -121,6 +125,8 @@ inline DCData::~DCData()
   delete[] interT; 
   delete[] realT;
   delete[] ljWeightsT;
+  delete[] overlap;
+  delete[] overlapT;
 }
 
 }

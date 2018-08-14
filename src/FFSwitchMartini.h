@@ -81,8 +81,6 @@ public:
   // coulomb interaction functions
   virtual double CalcCoulomb(const double distSq,
                              const double qi_qj_Fact, const uint b) const;
-  virtual double CalcCoulombEn(const double distSq,
-                               const double qi_qj_Fact, const uint b) const;
   virtual double CalcCoulombVir(const double distSq,
                                 const double qi_qj, const uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
@@ -264,31 +262,6 @@ inline double FF_SWITCH_MARTINI::CalcCoulomb(const double distSq,
     const double qi_qj_Fact, const uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
-    return 0.0;
-
-  if(forcefield.ewald) {
-    double dist = sqrt(distSq);
-    double val = forcefield.alpha[b] * dist;
-    return  qi_qj_Fact * erfc(val) / dist;
-  } else {
-    // in Martini, the Coulomb switching distance is zero, so we will have
-    // sqrt(distSq) - rOnCoul =  sqrt(distSq)
-    double dist = sqrt(distSq);
-    double rij_ronCoul_3 = dist * distSq;
-    double rij_ronCoul_4 = distSq * distSq;
-
-    double coul = -(A1 / 3.0) * rij_ronCoul_3 - (B1 / 4.0) * rij_ronCoul_4 - C1;
-    return qi_qj_Fact  * diElectric_1 * (1.0 / dist + coul);
-  }
-}
-
-//will be used in energy calculation after each move
-inline double FF_SWITCH_MARTINI::CalcCoulombEn(const double distSq,
-    const double qi_qj_Fact, const uint b) const
-{
-  if(forcefield.rCutLowSq > distSq)
-    return num::BIGNUM;
-  else if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
 
   if(forcefield.ewald) {

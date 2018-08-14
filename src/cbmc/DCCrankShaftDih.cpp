@@ -163,12 +163,14 @@ void DCCrankShaftDih::BuildOld(TrialMol& oldMol, uint molIndex)
   double* ljWeights = data->ljWeights;
   double* inter = data->inter;
   double* real = data->real;
+  bool* overlap = data->overlap;
   double stepWeight = 0;
 
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
   std::fill_n(ljWeights, nLJTrials, 0.0);
   std::fill_n(nonbonded, nLJTrials, 0.0);
+  std::fill_n(overlap, nLJTrials, false);
 
   //Set up rotation matrix using a0-a3 axis.
   XYZ center = oldMol.AtomPosition(a0);
@@ -206,8 +208,8 @@ void DCCrankShaftDih::BuildOld(TrialMol& oldMol, uint molIndex)
     //Wrap the atom coordinates
     data->axes.WrapPBC(multiPosRotions[a], oldMol.GetBox());
     //Calculate nonbonded energy
-    data->calc.ParticleInter(inter, real, multiPosRotions[a], atoms[a], molIndex,
-                             oldMol.GetBox(), nLJTrials);
+    data->calc.ParticleInter(inter, real, multiPosRotions[a], overlap,
+                            atoms[a], molIndex, oldMol.GetBox(), nLJTrials);
     ParticleNonbonded(oldMol, multiPosRotions[a], atoms[a], nLJTrials);
   }
 
@@ -216,6 +218,7 @@ void DCCrankShaftDih::BuildOld(TrialMol& oldMol, uint molIndex)
                            (inter[trial] + real[trial] + nonbonded[trial]));
     stepWeight += ljWeights[trial];
   }
+  oldMol.UpdateOverlap(overlap[0]);
   oldMol.MultWeight(stepWeight / nLJTrials);
   oldMol.AddEnergy(Energy(bondedEn[0], nonbonded[0],
                           inter[0], real[0],
@@ -235,12 +238,14 @@ void DCCrankShaftDih::BuildNew(TrialMol& newMol, uint molIndex)
   double* ljWeights = data->ljWeights;
   double* inter = data->inter;
   double* real = data->real;
+  bool* overlap = data->overlap;
   double stepWeight = 0;
 
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
   std::fill_n(ljWeights, nLJTrials, 0.0);
   std::fill_n(nonbonded, nLJTrials, 0.0);
+  std::fill_n(overlap, nLJTrials, false);
 
   //Set up rotation matrix using a0-a3 axis.
   XYZ center = newMol.AtomPosition(a0);
@@ -272,8 +277,8 @@ void DCCrankShaftDih::BuildNew(TrialMol& newMol, uint molIndex)
     //Wrap the atom coordinates
     data->axes.WrapPBC(multiPosRotions[a], newMol.GetBox());
     //Calculate nonbonded energy
-    data->calc.ParticleInter(inter, real, multiPosRotions[a], atoms[a], molIndex,
-                             newMol.GetBox(), nLJTrials);
+    data->calc.ParticleInter(inter, real, multiPosRotions[a], overlap,
+                            atoms[a], molIndex, newMol.GetBox(), nLJTrials);
     ParticleNonbonded(newMol, multiPosRotions[a], atoms[a], nLJTrials);
   }
   
@@ -283,6 +288,7 @@ void DCCrankShaftDih::BuildNew(TrialMol& newMol, uint molIndex)
     stepWeight += ljWeights[trial];
   }
   uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
+  newMol.UpdateOverlap(overlap[winner]);
   newMol.MultWeight(stepWeight / nLJTrials);
   newMol.AddEnergy(Energy(bondedEn[winner], nonbonded[winner],
                           inter[winner], real[winner],
