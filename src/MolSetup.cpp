@@ -27,7 +27,14 @@ using namespace mol_setup;
 
 bool Dihedral::operator == (const Dihedral& o) const
 {
-  return (a0 == o.a0 && a1 == o.a1 && a2 == o.a2 && a3 == o.a3);
+  bool same = false;
+  if(a0 == o.a0 && a1 == o.a1 && a2 == o.a2 && a3 == o.a3)
+    same = true;
+
+  if(a0 == o.a3 && a1 == o.a2 && a2 == o.a1 && a3 == o.a0)
+    same = true;
+    
+  return same;
 }
 
 bool Dihedral::operator != (const Dihedral& other) const

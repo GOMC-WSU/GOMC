@@ -91,6 +91,10 @@ DCCrankShaftAng::DCCrankShaftAng(DCData* data, const mol_setup::MolKind& kind,
   //Add dihedral with atom a1 in one end: x-x-x-a1
   tempDih = AtomEndDihs(kind, a1);
   dih.insert(dih.end(), tempDih.begin(), tempDih.end());
+  /*
+  for(uint i = 0; i < dih.size(); i++) {
+    printf("Angle on %d-%d--%d: %d -> %d -> %d -> %d \n", a0, a1, a2, dih[i].a0, dih[i].a1, dih[i].a2, dih[i].a3);
+  } */
 }
 
 void DCCrankShaftAng::PrepareOld(TrialMol& oldMol, uint molIndex)
