@@ -11,12 +11,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "DCData.h"
 #include "BasicTypes.h"
 #include "TransformMatrix.h"
+#include "MolSetup.h"
 #include <vector>
 
-namespace mol_setup
-{
-  class MolKind;
-}
+using namespace mol_setup;
 
 namespace cbmc
 {
@@ -42,11 +40,22 @@ private:
                     RotationMatrix& tensor);
   void ChooseTorsionOld(TrialMol& mol, uint molIndex, RotationMatrix& cross,
                         RotationMatrix& tensor);
+  double CalcIntraBonded(TrialMol& mol, uint molIndex);
+  void ParticleNonbonded(cbmc::TrialMol const& mol,XYZArray const& trialPos,
+                        const uint partIndex, const uint trials);
+  void ParticleNonbonded1_N(cbmc::TrialMol const& mol,XYZArray const& trialPos,
+                            const uint partIndex, const uint trials);
+  void ParticleNonbonded1_4(cbmc::TrialMol const& mol,XYZArray const& trialPos,
+                            const uint partIndex, const uint trials);
+  void ParticleNonbonded1_3(cbmc::TrialMol const& mol,XYZArray const& trialPos,
+                            const uint partIndex, const uint trials);
+
   DCData* data;
   XYZArray *multiPosRotions;
   uint a0, a1, a2, a3, numAtom, totAtoms;
   std::vector<uint> atoms;
-  Energy oldEnergy;
+  std::vector<Angle> ang;
+  std::vector<Dihedral> dih;
 };
 }
 #endif
