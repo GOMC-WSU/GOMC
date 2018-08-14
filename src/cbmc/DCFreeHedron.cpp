@@ -107,10 +107,12 @@ void DCFreeHedron::BuildNew(TrialMol& newMol, uint molIndex)
   double* ljWeights = data->ljWeights;
   double* inter = data->inter;
   double* real = data->real;
+  bool* overlap = data->overlap;
 
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
   std::fill_n(ljWeights, nLJTrials, 0.0);
+  std::fill_n(overlap, nLJTrials, false);
 
   //get info about existing geometry
   newMol.ShiftBasis(hed.Focus());
@@ -141,10 +143,10 @@ void DCFreeHedron::BuildNew(TrialMol& newMol, uint molIndex)
   }
 
   for (uint b = 0; b < hed.NumBond(); ++b) {
-    calc.ParticleInter(inter, real, positions[b], hed.Bonded(b),
+    calc.ParticleInter(inter, real, positions[b], overlap, hed.Bonded(b),
                        molIndex, newMol.GetBox(), nLJTrials);
   }
-  calc.ParticleInter(inter, real, positions[hed.NumBond()], hed.Prev(),
+  calc.ParticleInter(inter, real, positions[hed.NumBond()], overlap, hed.Prev(),
                      molIndex, newMol.GetBox(), nLJTrials);
 
   double stepWeight = 0;
@@ -159,6 +161,7 @@ void DCFreeHedron::BuildNew(TrialMol& newMol, uint molIndex)
   }
 
   newMol.AddAtom(hed.Prev(), positions[hed.NumBond()][winner]);
+  newMol.UpdateOverlap(overlap[winner]);
   newMol.AddEnergy(Energy(hed.GetEnergy() + bondEnergy, hed.GetNonBondedEn(),
                           inter[winner], real[winner],
                           0.0, 0.0, 0.0));
@@ -177,10 +180,12 @@ void DCFreeHedron::BuildOld(TrialMol& oldMol, uint molIndex)
   double* ljWeights = data->ljWeights;
   double* inter = data->inter;
   double* real = data->real;
+  bool* overlap = data->overlap;
 
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
   std::fill_n(ljWeights, nLJTrials, 0.0);
+  std::fill_n(overlap, nLJTrials, false);
 
   //get info about existing geometry
   oldMol.SetBasis(hed.Focus(), hed.Prev());
@@ -220,11 +225,11 @@ void DCFreeHedron::BuildOld(TrialMol& oldMol, uint molIndex)
   }
 
   for (uint b = 0; b < hed.NumBond(); ++b) {
-    calc.ParticleInter(inter, real, positions[b], hed.Bonded(b),
+    calc.ParticleInter(inter, real, positions[b], overlap, hed.Bonded(b),
                        molIndex, oldMol.GetBox(), nLJTrials);
   }
   double stepWeight = 0;
-  calc.ParticleInter(inter, real, positions[hed.NumBond()], hed.Prev(),
+  calc.ParticleInter(inter, real, positions[hed.NumBond()], overlap, hed.Prev(),
                      molIndex, oldMol.GetBox(), nLJTrials);
 
   for (uint lj = 0; lj < nLJTrials; ++lj) {
@@ -236,6 +241,7 @@ void DCFreeHedron::BuildOld(TrialMol& oldMol, uint molIndex)
   }
 
   oldMol.ConfirmOldAtom(hed.Prev());
+  oldMol.UpdateOverlap(overlap[0]);
   oldMol.AddEnergy(Energy(hed.GetEnergy() + bondEnergy, hed.GetNonBondedEn(),
                           inter[0], real[0], 0.0, 0.0, 0.0));
   oldMol.MultWeight(hed.GetWeight());

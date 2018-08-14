@@ -141,11 +141,13 @@ namespace cbmc
     double* ljWeights = data->ljWeightsT; 
     double* inter = data->interT; 
     double* real = data->realT; 
+    bool* overlap = data->overlapT;
     RotationMatrix spin;
  
     std::fill_n(inter, totalTrials, 0.0); 
     std::fill_n(real, totalTrials, 0.0); 
     std::fill_n(ljWeights, totalTrials, 0.0);
+    std::fill_n(overlap, totalTrials, false);
 
     if(atomNumber == 1)
     {
@@ -160,20 +162,20 @@ namespace cbmc
       //if we rotate around backbone we need to calc the rotation matrix
       if(newMol.RotateBB())
       {
-	//find the inverse matrix of molecule that we insert
-	XYZ backBone;
-	if(atomNumber != 1)
-	{
-	  backBone = newMol.GetCoords().Difference(newMol.GetAtomBB(0),
-                                               newMol.GetAtomBB(1));
-	}
-	else
-	{
-	  backBone = prng.RandomUnitVect();
-	}
-	XYZArray T(3);
-	geom::SetBasis(T, backBone);
-	geom::TransposeMatrix(invMatrix, T);
+        //find the inverse matrix of molecule that we insert
+        XYZ backBone;
+        if(atomNumber != 1)
+        {
+          backBone = newMol.GetCoords().Difference(newMol.GetAtomBB(0),
+                                                    newMol.GetAtomBB(1));
+        }
+        else
+        {
+          backBone = prng.RandomUnitVect();
+        }
+        XYZArray T(3);
+        geom::SetBasis(T, backBone);
+        geom::TransposeMatrix(invMatrix, T);
       }
     }
  
@@ -189,53 +191,53 @@ namespace cbmc
 	
       for (uint a = 0; a < atomNumber; ++a) 
       { 
-	multiPosRotions[a].Set(index, newMol.AtomPosition(a)); 
-	multiPosRotions[a].Add(index, -center);
+        multiPosRotions[a].Set(index, newMol.AtomPosition(a)); 
+        multiPosRotions[a].Add(index, -center);
       } 
 	
       //Rotational trial the molecule around COM
       for (uint r = nLJTrials; r-- > 0;) 
       { 
-	if(newMol.RotateBB())
-	{
-	  //we only perform rotation around z axis
-	  RandRotateZ();
-	}
-	else
-	{
-	  //convert chosen torsion to 3D positions 
-	  spin = RotationMatrix::UniformRandom(prng(), prng(), prng()); 
-	}
+        if(newMol.RotateBB())
+        {
+          //we only perform rotation around z axis
+          RandRotateZ();
+        }
+        else
+        {
+          //convert chosen torsion to 3D positions 
+          spin = RotationMatrix::UniformRandom(prng(), prng(), prng()); 
+        }
 
-	for (uint a = 0; a < atomNumber; ++a) 
-	{ 
-	  if(newMol.RotateBB())
-	  {
-	    XYZ coord = multiPosRotions[a][index];
-	    //transform backbone to z axis
-	    coord = geom::Transform(invMatrix, coord);
-	    //rotate around z
-	    coord = geom::Transform(rotateMatrix, coord);
-	    //transfer backbone to cavity orientation
-	    coord = newMol.Transform(coord);
-	    multiPosRotions[a].Set(index + r, coord); 
-	  }
-	  else
-	  {
-	    //find positions 
-	    multiPosRotions[a].Set(index + r,
-				   spin.Apply(multiPosRotions[a][index])); 
-	  }
-	  multiPosRotions[a].Add(index + r, center); 
-	} 
+        for (uint a = 0; a < atomNumber; ++a) 
+        { 
+          if(newMol.RotateBB())
+          {
+            XYZ coord = multiPosRotions[a][index];
+            //transform backbone to z axis
+            coord = geom::Transform(invMatrix, coord);
+            //rotate around z
+            coord = geom::Transform(rotateMatrix, coord);
+            //transfer backbone to cavity orientation
+            coord = newMol.Transform(coord);
+            multiPosRotions[a].Set(index + r, coord); 
+          }
+          else
+          {
+            //find positions 
+            multiPosRotions[a].Set(index + r,
+                spin.Apply(multiPosRotions[a][index])); 
+          }
+          multiPosRotions[a].Add(index + r, center); 
+        } 
       }
     } 
 
     for (uint a = 0; a < atomNumber; ++a) 
     { 
       data->axes.WrapPBC(multiPosRotions[a], newMol.GetBox());  
-      calc.ParticleInter(inter, real, multiPosRotions[a], a,  
-			 molIndex, newMol.GetBox(), totalTrials); 
+      calc.ParticleInter(inter, real, multiPosRotions[a], overlap, a,  
+			                  molIndex, newMol.GetBox(), totalTrials); 
     }  
  
     double stepWeight = 0.0; 
@@ -250,7 +252,8 @@ namespace cbmc
     { 
       newMol.AddAtom(a, multiPosRotions[a][winner]); 
     } 
- 
+
+    newMol.UpdateOverlap(overlap[winner]);
     newMol.AddEnergy(Energy(0.0, 0.0, inter[winner], real[winner], 0.0, 0.0,
 			    0.0)); 
     newMol.MultWeight(stepWeight / totalTrials);
@@ -267,12 +270,14 @@ namespace cbmc
     uint totalTrials = data->totalTrials;
     double* ljWeights = data->ljWeightsT; 
     double* inter = data->interT; 
-    double* real = data->realT; 
+    double* real = data->realT;
+    bool* overlap = data->overlapT; 
     RotationMatrix spin;
 
     std::fill_n(inter, totalTrials, 0.0); 
     std::fill_n(real, totalTrials, 0.0);  
     std::fill_n(ljWeights, totalTrials, 0.0);
+    std::fill_n(overlap, totalTrials, false);
 
     if(atomNumber == 1)
     {
@@ -287,8 +292,8 @@ namespace cbmc
       //if we rotate around backbone of the molecule
       if(oldMol.RotateBB())
       {
-	//find the inverse matrix of cavity
-	oldMol.TransposeMatrix(invMatrix);
+        //find the inverse matrix of cavity
+        oldMol.TransposeMatrix(invMatrix);
       }
     }
 
@@ -304,49 +309,49 @@ namespace cbmc
  
       for (uint a = 0; a < atomNumber; ++a) 
       { 
-	//get position and shift to origin 
-	multiPosRotions[a].Set(index, oldMol.AtomPosition(a)); 
-	multiPosRotions[a].Add(index, -center); 
+        //get position and shift to origin 
+        multiPosRotions[a].Set(index, oldMol.AtomPosition(a)); 
+        multiPosRotions[a].Add(index, -center); 
       }  
 
       //Rotational trial the molecule around COM
       for (uint r = nLJTrials; r-- > 0;)
       { 
-	if((index + r) == 0)
-	  continue;
+        if((index + r) == 0)
+          continue;
 
-	if(oldMol.RotateBB())
-	{
-	  //we only perform rotation around z axis
-	  RandRotateZ();
-	}
-	else
-	{
-	  //convert chosen torsion to 3D positions 
-	  spin =  RotationMatrix::UniformRandom(prng(), prng(), prng()); 
-	}
+        if(oldMol.RotateBB())
+        {
+          //we only perform rotation around z axis
+          RandRotateZ();
+        }
+        else
+        {
+          //convert chosen torsion to 3D positions 
+          spin =  RotationMatrix::UniformRandom(prng(), prng(), prng()); 
+        }
 
-	for (uint a = 0; a < atomNumber; ++a) 
-	{ 
-	  if(oldMol.RotateBB())
-	  {
-	    XYZ coord = multiPosRotions[a][index];
-	    //transform backbone to z axis
-	    coord = geom::Transform(invMatrix, coord);
-	    //rotate around z
-	    coord = geom::Transform(rotateMatrix, coord);
-	    //transfer backbone to cavity orientation
-	    coord = oldMol.Transform(coord);
-	    multiPosRotions[a].Set(index + r, coord); 
-	  }
-	  else
-	  {
-	    //find positions 
-	    multiPosRotions[a].Set(index + r,
-				   spin.Apply(multiPosRotions[a][index])); 
-	  }
-	  multiPosRotions[a].Add(index + r, center); 
-	} 
+        for (uint a = 0; a < atomNumber; ++a) 
+        { 
+          if(oldMol.RotateBB())
+          {
+            XYZ coord = multiPosRotions[a][index];
+            //transform backbone to z axis
+            coord = geom::Transform(invMatrix, coord);
+            //rotate around z
+            coord = geom::Transform(rotateMatrix, coord);
+            //transfer backbone to cavity orientation
+            coord = oldMol.Transform(coord);
+            multiPosRotions[a].Set(index + r, coord); 
+          }
+          else
+          {
+            //find positions 
+            multiPosRotions[a].Set(index + r,
+                spin.Apply(multiPosRotions[a][index])); 
+          }
+          multiPosRotions[a].Add(index + r, center); 
+        } 
       }
  
       //Pick a new position for COM and transfer the molecule
@@ -357,8 +362,8 @@ namespace cbmc
     { 
       multiPosRotions[a].Add(0, orgCenter); 
       data->axes.WrapPBC(multiPosRotions[a], oldMol.GetBox()); 
-      calc.ParticleInter(inter, real, multiPosRotions[a], a, 
-			 molIndex, oldMol.GetBox(), totalTrials);
+      calc.ParticleInter(inter, real, multiPosRotions[a], overlap, a, 
+			                  molIndex, oldMol.GetBox(), totalTrials);
     } 
 
     double stepWeight = 0.0;  
@@ -371,7 +376,8 @@ namespace cbmc
     { 
       oldMol.AddAtom(a, multiPosRotions[a][0]); 
     } 
- 
+
+    oldMol.UpdateOverlap(overlap[0]);
     oldMol.AddEnergy(Energy(0.0, 0.0, inter[0], real[0], 0.0, 0.0, 0.0)); 
     oldMol.MultWeight(stepWeight / totalTrials); 
   }

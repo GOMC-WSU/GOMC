@@ -34,6 +34,7 @@ TrialMol::TrialMol(const MoleculeKind& k, const BoxDimensions& ax,
   comInCav = false;
   comFix = false;
   rotateBB = false;
+  overlap = false;
   cavMatrix.Set(0, 1.0, 0.0, 0.0);
   cavMatrix.Set(1, 0.0, 1.0, 0.0);
   cavMatrix.Set(2, 0.0, 0.0, 1.0);
@@ -41,7 +42,8 @@ TrialMol::TrialMol(const MoleculeKind& k, const BoxDimensions& ax,
 
 TrialMol::TrialMol()
   : kind(NULL), axes(NULL), box(0), tCoords(0), atomBuilt(NULL),
-    comInCav(false), comFix(false), rotateBB(false), cavMatrix(3)
+    comInCav(false), comFix(false), rotateBB(false), overlap(false),
+    cavMatrix(3)
 {
   cavMatrix.Set(0, 1.0, 0.0, 0.0);
   cavMatrix.Set(1, 0.0, 1.0, 0.0);
@@ -59,6 +61,7 @@ TrialMol::TrialMol(const TrialMol& other) :
   comInCav = false;
   comFix = false;
   rotateBB = false;
+  overlap = false;
   cavMatrix.Set(0, 1.0, 0.0, 0.0);
   cavMatrix.Set(1, 0.0, 1.0, 0.0);
   cavMatrix.Set(2, 0.0, 0.0, 1.0);
@@ -88,6 +91,8 @@ void swap(TrialMol& a, TrialMol& b)
   b.comFix = false;
   a.rotateBB = false;
   b.rotateBB = false;
+  a.overlap = false;
+  b.overlap = false;
   a.cavMatrix.Set(0, 1.0, 0.0, 0.0);
   a.cavMatrix.Set(1, 0.0, 1.0, 0.0);
   a.cavMatrix.Set(2, 0.0, 0.0, 1.0);
@@ -115,11 +120,6 @@ void TrialMol::SetAtomCoords(uint index, const XYZ& loc)
 void TrialMol::ConfirmOldAtom(uint i)
 {
   atomBuilt[i] = true;
-}
-
-void TrialMol::UnConfirmOldAtom(uint i)
-{
-  atomBuilt[i] = false;
 }
 
 //!Returns rectangular coordinates of an addition

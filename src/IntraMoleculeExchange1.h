@@ -294,6 +294,7 @@ inline uint IntraMoleculeExchange1::GetBoxPairAndMol(const double subDraw,
             const double movPerc)
 {
    uint state = mv::fail_state::NO_FAIL; 
+   overlap = false;
 
 #if ENSEMBLE == GCMC
    sourceBox = 0;
@@ -440,7 +441,8 @@ inline uint IntraMoleculeExchange1::Transform()
     ShiftMol(n, false);
     cellList.AddMol(molIndexB[n], sourceBox, coordCurrRef); 
     //Add bonded energy because we dont considered in DCRotate.cpp
-    newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n], molIndexB[n]));    
+    newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n], molIndexB[n]));  
+    overlap |= newMolB[n].HasOverlap();  
   } 
 
   //Insert kindS to cavity of center B
@@ -450,6 +452,7 @@ inline uint IntraMoleculeExchange1::Transform()
     cellList.AddMol(molIndexA[n], sourceBox, coordCurrRef);
     //Add bonded energy because we dont considered in DCRotate.cpp
     newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n], molIndexA[n]));
+    overlap |= newMolA[n].HasOverlap(); 
   }
 
   return mv::fail_state::NO_FAIL;
@@ -458,17 +461,18 @@ inline uint IntraMoleculeExchange1::Transform()
 
 inline void IntraMoleculeExchange1::CalcEn()
 {   
-   W_recip = 1.0;
-   recipDiffA = 0.0, recipDiffB = 0.0;
-   correctDiff = 0.0;
+  W_recip = 1.0;
+  recipDiffA = 0.0, recipDiffB = 0.0;
+  correctDiff = 0.0;
 
-   recipDiffA = calcEwald->SwapRecip(newMolA, oldMolA);
-   recipDiffB = calcEwald->SwapRecip(newMolB, oldMolB);
+  if(!overlap) {
+    recipDiffA = calcEwald->SwapRecip(newMolA, oldMolA);
+    recipDiffB = calcEwald->SwapRecip(newMolB, oldMolB);
 
-   //No need to contribute the self and correction energy since insertion
-   //and deletion are rigid body
-   W_recip = exp(-1.0 * ffRef.beta * (recipDiffA + recipDiffB));
-   
+    //No need to contribute the self and correction energy since insertion
+    //and deletion are rigid body
+    W_recip = exp(-1.0 * ffRef.beta * (recipDiffA + recipDiffB));
+  }
 }
 
 inline double IntraMoleculeExchange1::GetCoeff() const
@@ -529,7 +533,11 @@ inline void IntraMoleculeExchange1::Accept(const uint rejectState,
       	Wrat *= newMolB[n].GetWeight() / oldMolB[n].GetWeight();
       }
 
-      result = prng() < molTransCoeff * Wrat;
+      if(!overlap) {
+        result = prng() < molTransCoeff * Wrat;
+      } else {
+        result = false;
+      }
 
       if(result) {
          //Add rest of energy.

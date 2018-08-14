@@ -362,7 +362,8 @@ inline uint MoleculeExchange2::Transform()
     ShiftMol(true, n, sourceBox, destBox); 
     cellList.AddMol(molIndexA[n], destBox, coordCurrRef); 
     //Add bonded energy because we dont considered in DCRotate.cpp 
-    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n], molIndexA[n])); 
+    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n], molIndexA[n]));
+    overlap |= newMolA[n].HasOverlap();  
   } 
  
   //Insert B in sourceBox 
@@ -373,6 +374,7 @@ inline uint MoleculeExchange2::Transform()
     cellList.AddMol(molIndexB[n], sourceBox, coordCurrRef);    
     //Add bonded energy because we dont considered in DCRotate.cpp 
     newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n], molIndexB[n])); 
+    overlap |= newMolB[n].HasOverlap();  
   } 
    
   return mv::fail_state::NO_FAIL; 

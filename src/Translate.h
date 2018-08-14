@@ -64,9 +64,10 @@ inline void Translate::CalcEn()
 {
   cellList.RemoveMol(m, b, coordCurrRef);
   molRemoved = true;
+  overlap = false;
 
   //calculate LJ interaction and real term of electrostatic interaction
-  calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);
+  overlap = calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);
   //calculate reciprocate term of electrostatic interaction
   recip.energy = calcEwald->MolReciprocal(newMolPos, m, b);
 }
@@ -79,7 +80,7 @@ inline void Translate::Accept(const uint rejectState, const uint step)
     res = pr < exp(-BETA * (inter_LJ.energy + inter_Real.energy +
                             recip.energy));
   }
-  bool result = (rejectState == mv::fail_state::NO_FAIL) && res;
+  bool result = res && !overlap;
 
   if (result) {
     //Set new energy.

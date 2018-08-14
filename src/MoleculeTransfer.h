@@ -81,6 +81,7 @@ inline uint MoleculeTransfer::GetBoxPairAndMol(const double subDraw, const doubl
 
 inline uint MoleculeTransfer::Prep(const double subDraw, const double movPerc)
 {
+  overlap = false;
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if (state == mv::fail_state::NO_FAIL) {
     newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
@@ -95,6 +96,7 @@ inline uint MoleculeTransfer::Transform()
 {
   cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
   molRef.kinds[kindIndex].Build(oldMol, newMol, molIndex);
+  overlap = newMol.HasOverlap();
   return mv::fail_state::NO_FAIL;
 }
 
@@ -113,7 +115,7 @@ inline void MoleculeTransfer::CalcEn()
     W_tc = exp(-1.0 * ffRef.beta * (tcGain.energy + tcLose.energy));
   }
 
-  if (newMol.GetWeight() != 0.0) {
+  if (newMol.GetWeight() != 0.0 && !overlap) {
     correct_new = calcEwald->SwapCorrection(newMol);
     correct_old = calcEwald->SwapCorrection(oldMol);
     self_new = calcEwald->SwapSelf(newMol);
@@ -172,8 +174,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
     double Wrat = Wn / Wo * W_tc * W_recip;
 
     //safety to make sure move will be rejected in overlap case
-    if((newMol.GetEnergy().real < 1.0e15) &&
-        (oldMol.GetEnergy().real < 1.0e15)) {
+    if(!overlap) {
       result = prng() < molTransCoeff * Wrat;
     } else
       result = false;

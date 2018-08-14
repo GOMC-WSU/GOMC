@@ -52,9 +52,6 @@ public:
   //!Confirms that atom at index i has been built (used for oldMols)
   void ConfirmOldAtom(uint i);
 
-  //!UnConfirms that atom at index i has been built (used for oldMols)
-  void UnConfirmOldAtom(uint i);
-
   //!Sets an orthonormal basis for coordinate conversion.
   /*!\param p1 Index of particle new additions will be bonded to
    * \param p2 Index of particle that will be in angles with new additions
@@ -167,6 +164,16 @@ public:
     return atomBuilt[index];
   }
 
+  void UpdateOverlap(const bool state)
+  {
+    overlap |= state;
+  }
+
+  bool HasOverlap() const
+  {
+    return overlap;
+  }
+
   //Used in MEMC move
   void SetSeed(const XYZ& coords, const XYZ& cav, const bool inCav,
 	       const bool fixCOM, const bool rotBB);
@@ -202,6 +209,7 @@ private:
   XYZ cavityCenter, cavity; //The center and cavity dimensions
   uint backbone[2];
   bool comInCav, comFix, rotateBB;
+  bool overlap;
   bool* atomBuilt;
 
 };

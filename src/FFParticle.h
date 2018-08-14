@@ -69,8 +69,6 @@ public:
   // coulomb interaction functions
   virtual double CalcCoulomb(const double distSq,
                              const double qi_qj_Fact, const uint b) const;
-  virtual double CalcCoulombEn(const double distSq,
-                               const double qi_qj_Fact, const uint b) const;
   virtual double CalcCoulombVir(const double distSq,
                                 const double qi_qj, const uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,

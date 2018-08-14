@@ -347,7 +347,8 @@ inline uint MoleculeExchange1::ReplaceMolecule()
 inline uint MoleculeExchange1::GetBoxPairAndMol(const double subDraw,
 						const double movPerc)
 {
-   uint state = mv::fail_state::NO_FAIL; 
+   uint state = mv::fail_state::NO_FAIL;
+   overlap = false; 
    //deside to insert or remove the big molecule
    prng.PickBool(insertL, subDraw, movPerc);
    //Set the source and dest Box.
@@ -513,6 +514,7 @@ inline uint MoleculeExchange1::Transform()
     cellList.AddMol(molIndexA[n], destBox, coordCurrRef);
     //Add bonded energy because we dont considered in DCRotate.cpp
     newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n], molIndexA[n]));
+    overlap |= newMolA[n].HasOverlap(); 
   }
 
   //Insert B in sourceBox
@@ -521,7 +523,8 @@ inline uint MoleculeExchange1::Transform()
     ShiftMol(false, n, destBox, sourceBox);
     cellList.AddMol(molIndexB[n], sourceBox, coordCurrRef);      
     //Add bonded energy because we dont considered in DCRotate.cpp
-    newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n], molIndexB[n])); 
+    newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n], molIndexB[n]));
+    overlap |= newMolB[n].HasOverlap();  
   }
   
   return mv::fail_state::NO_FAIL;
@@ -554,36 +557,37 @@ inline void MoleculeExchange1::CalcTc()
 
 inline void MoleculeExchange1::CalcEn()
 {   
-   W_recip = 1.0;
-   correct_oldA = 0.0, correct_newA = 0.0;
-   self_oldA = 0.0, self_newA = 0.0;
-   correct_oldB = 0.0, correct_newB = 0.0;
-   self_oldB = 0.0, self_newB = 0.0;
-   recipDest = 0.0, recipSource = 0.0;
+  W_recip = 1.0;
+  correct_oldA = 0.0, correct_newA = 0.0;
+  self_oldA = 0.0, self_newA = 0.0;
+  correct_oldB = 0.0, correct_newB = 0.0;
+  self_oldB = 0.0, self_newB = 0.0;
+  recipDest = 0.0, recipSource = 0.0;
 
-   for(uint n = 0; n < numInCavA; n++) {
-      correct_newA += calcEwald->SwapCorrection(newMolA[n]);
-      correct_oldA += calcEwald->SwapCorrection(oldMolA[n]);
-      self_newA += calcEwald->SwapSelf(newMolA[n]);
-      self_oldA += calcEwald->SwapSelf(oldMolA[n]);
-   }
-   recipDest = calcEwald->SwapRecip(newMolA, oldMolB);
+  if(!overlap) {
+    for(uint n = 0; n < numInCavA; n++) {
+        correct_newA += calcEwald->SwapCorrection(newMolA[n]);
+        correct_oldA += calcEwald->SwapCorrection(oldMolA[n]);
+        self_newA += calcEwald->SwapSelf(newMolA[n]);
+        self_oldA += calcEwald->SwapSelf(oldMolA[n]);
+    }
+    recipDest = calcEwald->SwapRecip(newMolA, oldMolB);
 
-   for(uint n = 0; n < numInCavB; n++) {
-     correct_newB += calcEwald->SwapCorrection(newMolB[n]);
-     correct_oldB += calcEwald->SwapCorrection(oldMolB[n]);
-     self_newB += calcEwald->SwapSelf(newMolB[n]);
-     self_oldB += calcEwald->SwapSelf(oldMolB[n]);
-   }
-   recipSource = calcEwald->SwapRecip(newMolB, oldMolA);
+    for(uint n = 0; n < numInCavB; n++) {
+      correct_newB += calcEwald->SwapCorrection(newMolB[n]);
+      correct_oldB += calcEwald->SwapCorrection(oldMolB[n]);
+      self_newB += calcEwald->SwapSelf(newMolB[n]);
+      self_oldB += calcEwald->SwapSelf(oldMolB[n]);
+    }
+    recipSource = calcEwald->SwapRecip(newMolB, oldMolA);
 
-   //need to contribute the self and correction energy 
-   W_recip = exp(-1.0 * ffRef.beta * (recipSource + recipDest +
-				      correct_newA - correct_oldA +
-				      correct_newB - correct_oldB +
-				      self_newA - self_oldA +
-				      self_newB - self_oldB));
-   
+    //need to contribute the self and correction energy 
+    W_recip = exp(-1.0 * ffRef.beta * (recipSource + recipDest +
+                correct_newA - correct_oldA +
+                correct_newB - correct_oldB +
+                self_newA - self_oldA +
+                self_newB - self_oldB));
+  } 
 }
 
 inline double MoleculeExchange1::GetCoeff() const
@@ -707,7 +711,11 @@ inline void MoleculeExchange1::Accept(const uint rejectState, const uint step)
 	      Wrat *= newMolB[n].GetWeight() / oldMolB[n].GetWeight();
       }
 
-      result = prng() < molTransCoeff * Wrat;
+      if(!overlap) {
+        result = prng() < molTransCoeff * Wrat;
+      } else {
+        result = false;
+      }
 
       if(result) {
 	      //Add tail corrections

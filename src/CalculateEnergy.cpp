@@ -404,13 +404,14 @@ Virial CalculateEnergy::ForceCalc(const uint box)
 
 
 
-void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
+bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                                     Intermolecular &inter_coulomb,
                                     XYZArray const& molCoords,
                                     const uint molIndex,
                                     const uint box) const
 {
   double tempREn = 0.0, tempLJEn = 0.0;
+  bool overlap = false;
   if (box < BOXES_WITH_U_NB) {
     uint length = mols.GetKind(molIndex).NumAtoms();
     uint start = mols.MolStart(molIndex);
@@ -440,11 +441,12 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
         //Subtract old energy
         if (currentAxes.InRcut(distSq, virComponents,
                                currentCoords, atom, nIndex[i], box)) {
+
           if (electrostatic) {
             qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
                          num::qqFact;
 
-            tempREn -= forcefield.particles->CalcCoulombEn(distSq, qi_qj_fact, box);
+            tempREn -= forcefield.particles->CalcCoulomb(distSq, qi_qj_fact, box);
           }
 
           tempLJEn -= forcefield.particles->CalcEn(distSq, particleKind[atom],
@@ -468,11 +470,15 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
         distSq = 0.0;
         if (currentAxes.InRcut(distSq, virComponents,
                                molCoords, p, currentCoords, nIndex[i], box)) {
+          if(distSq < forcefield.rCutLowSq) {
+            overlap |= true;
+          }
+
           if (electrostatic) {
             qi_qj_fact = particleCharge[atom] *
                          particleCharge[nIndex[i]] * num::qqFact;
 
-            tempREn += forcefield.particles->CalcCoulombEn(distSq,
+            tempREn += forcefield.particles->CalcCoulomb(distSq,
                        qi_qj_fact, box);
           }
 
@@ -486,6 +492,7 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 
   inter_LJ.energy = tempLJEn;
   inter_coulomb.energy = tempREn;
+  return overlap;
 }
 
 // Calculate 1-N nonbonded intra energy
@@ -505,12 +512,11 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
   const uint* end = kind.sortedNB.End(partIndex);
   while (partner != end) {
     if (trialMol.AtomExists(*partner)) {
-
       for (uint t = 0; t < trials; ++t) {
         double distSq;
 
         if (currentAxes.InRcut(distSq, trialPos, t, trialMol.GetCoords(),
-                               *partner, box)) {
+                               *partner, box)) {                     
           inter[t] += forcefield.particles->CalcEn(distSq,
                       kind.AtomKind(partIndex),
                       kind.AtomKind(*partner));
@@ -529,6 +535,7 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
 
 void CalculateEnergy::ParticleInter(double* en, double *real,
                                     XYZArray const& trialPos,
+                                    bool* overlap,
                                     const uint partIndex,
                                     const uint molIndex,
                                     const uint box,
@@ -560,11 +567,14 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
       distSq = 0.0;
 
       if(currentAxes.InRcut(distSq, trialPos, t, currentCoords, nIndex[i], box)) {
+        if(distSq < forcefield.rCutLowSq) {
+          overlap[t] |= true;
+        } 
         tempLJ += forcefield.particles->CalcEn(distSq, kindI,
                                                particleKind[nIndex[i]]);
         if(electrostatic) {
           qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
-          tempReal += forcefield.particles->CalcCoulombEn(distSq, qi_qj_Fact, box);
+          tempReal += forcefield.particles->CalcCoulomb(distSq, qi_qj_Fact, box);
         }
       }
     }

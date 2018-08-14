@@ -302,26 +302,6 @@ inline double FFParticle::CalcCoulomb(const double distSq,
   }
 }
 
-//will be used in energy calculation after each move
-inline double FFParticle::CalcCoulombEn(const double distSq,
-                                        const double qi_qj_Fact, const uint b) const
-{
-  if(forcefield.rCutLowSq > distSq)
-    return num::BIGNUM;
-  else if(forcefield.rCutCoulombSq[b] < distSq)
-    return 0.0;
-
-  if(forcefield.ewald) {
-    double dist = sqrt(distSq);
-    double val = forcefield.alpha[b] * dist;
-    return  qi_qj_Fact * erfc(val) / dist;
-  } else {
-    double dist = sqrt(distSq);
-    return  qi_qj_Fact / dist;
-  }
-}
-
-
 inline double FFParticle::CalcVir(const double distSq,
                                   const uint kind1, const uint kind2) const
 {
