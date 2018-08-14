@@ -227,9 +227,9 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
       //when weight is 0, MolDestSwap() will not be executed, thus cos/sin
       //molRef will not be changed. Also since no memcpy, doing restore
       //results in memory overwrite
-      if (newMol.GetWeight() != 0.0)
+      if (newMol.GetWeight() != 0.0 && !overlap) {
         calcEwald->RestoreMol(molIndex);
-
+      }
     }
 
   } else //we didn't even try because we knew it would fail
