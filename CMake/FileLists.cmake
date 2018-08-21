@@ -151,7 +151,11 @@ set(libHeaders
    lib/NumLib.h
    lib/StrLib.h
    lib/StrStrmLib.h
-   lib/VectorLib.h)
+   lib/VectorLib.h
+   lib/FloydWarshallCycle.h)
+
+set(libSources
+    lib/FloydWarshallCycle.cpp)
 
 set(cudaHeaders
     src/GPU/ConstantDefinitionsCUDAKernel.cuh

@@ -179,7 +179,7 @@ private:
 
   //! Calculates bond stretch intramolecular energy of a full molecule
   void MolBond(double & energy, MoleculeKind const& molKind,
-               XYZArray const& vecs, const uint box) const;
+               XYZArray const& vecs, const uint molIndex, const uint box) const;
 
   //! Calculates bond stretch intramolecular energy of a non-complete molecule
   void MolBond(double & energy, cbmc::TrialMol const &mol, XYZArray const& vecs,
