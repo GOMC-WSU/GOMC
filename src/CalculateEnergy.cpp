@@ -621,7 +621,7 @@ void CalculateEnergy::MoleculeIntra(const uint molIndex,
   XYZArray bondVec(molKind.bondList.count * 2);
 
   BondVectors(bondVec, molKind, molIndex, box);
-  MolBond(bondEn[0], molKind, bondVec, box);
+  MolBond(bondEn[0], molKind, bondVec, molIndex, box);
   MolAngle(bondEn[0], molKind, bondVec, box);
   MolDihedral(bondEn[0], molKind, bondVec, box);
   MolNonbond(bondEn[1], molKind, molIndex, box);
@@ -693,14 +693,24 @@ void CalculateEnergy::BondVectors(XYZArray & vecs,
 void CalculateEnergy::MolBond(double & energy,
                               MoleculeKind const& molKind,
                               XYZArray const& vecs,
+                              const uint molIndex,
                               const uint box) const
 {
   if (box >= BOXES_WITH_U_B)
     return;
 
   for (uint b = 0; b < molKind.bondList.count; ++b) {
-    energy += forcefield.bonds.Calc(molKind.bondList.kinds[b],
-                                    vecs.Get(b).Length());
+    double molLength = vecs.Get(b).Length();
+    double eqLength = forcefield.bonds.Length(molKind.bondList.kinds[b]);
+    energy += forcefield.bonds.Calc(molKind.bondList.kinds[b], molLength);
+    if(abs(molLength - eqLength) > 0.02) {
+      uint p1 = molKind.bondList.part1[b];
+      uint p2 = molKind.bondList.part2[b];
+      printf("Warning: Box %d, %d %s ,", box, molIndex, molKind.name.c_str());
+      printf("Bond %s-%s: In Par. file ", molKind.atomNames[p1].c_str(),
+            molKind.atomNames[p2].c_str());
+      printf("%2.3f A, in PDB file %2.3f A!\n", eqLength, molLength);
+    }
   }
 }
 
