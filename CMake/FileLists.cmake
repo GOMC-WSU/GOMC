@@ -40,6 +40,7 @@ set(sources
    src/cbmc/DCCrankShaftAng.cpp
    src/cbmc/DCCrankShaftDih.cpp
    src/cbmc/DCGraph.cpp
+   src/cbmc/DCFreeCycle.cpp
    src/cbmc/DCFreeHedron.cpp
    src/cbmc/DCFreeHedronSeed.cpp
    src/cbmc/DCLinkedHedron.cpp
@@ -133,6 +134,7 @@ set(headers
    src/cbmc/DCCrankShaftAng.h
    src/cbmc/DCCrankShaftDih.h
    src/cbmc/DCData.h
+   src/cbmc/DCFreeCycle.h
    src/cbmc/DCFreeHedron.h
    src/cbmc/DCFreeHedronSeed.h
    src/cbmc/DCLinkedHedron.h

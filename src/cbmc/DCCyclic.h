@@ -52,11 +52,9 @@ private:
   //Each edge is a node as well
   struct Edge {
     uint destination; //destination is partner node index.
-    //When ring is not completed
+    //To build the next segment from prev-focus
     DCComponent* connect;
-    //Acting on last two nodes of the ring to close the ring
-    DCComponent* closure;
-    Edge(uint d, DCComponent* c) : destination(d), connect(c), closure(c) {}
+    Edge(uint d, DCComponent* c) : destination(d), connect(c) {}
   };
 
   //Store the branching atom and all Atoms that are connected to this
@@ -76,11 +74,13 @@ private:
   DCComponent *idExchange;
   DCData data;
   bool hasCrankShaft;
+  std::vector<bool> isRing;     //To check if atom is belong to a ring
+  std::vector<uint> ringIdx;    //index to the row of cyclicAtoms
   std::vector<Node> nodes;
   std::vector<Edge> fringe;
   std::vector<bool> visited;
-  std::vector<DCComponent*> shaftNodesDih, shaftNodesAng;
-  std::vector< std::vector<int> > cyclicAtom;
+  std::vector<DCComponent*> crankshaft;
+  std::vector< std::vector<int> > cyclicAtoms;
 };
 }
 
