@@ -144,7 +144,7 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
     //Find the angle that end with a0
     vector<Angle> angles = AtomEndAngles(kind, a0);
     while(!angles.empty()) {
-      //find the last atomindex in the dihedral
+      //find the last atomindex in the angle
       uint a1 = angles.back().a1;
       uint a2 = angles.back().a2;
 
@@ -162,7 +162,7 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
             fixAngle = true;
           }
         }
-        //If there was no fix angles, we create DCCrankShaftDih
+        //If there was no fix angles, we create DCCrankShaftAngle
         if(!fixAngle) {
           shaftNodesAng.push_back(new DCCrankShaftAng(&data, kind, a0, a1, a2));
         }
@@ -203,7 +203,6 @@ void DCGraph::CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
      shaftNodesDih : shaftNodesAng;
     //Pick a random node pair
     uint pick = data.prng.randIntExc(shaftNodes.size());
-    //Call DCCrankShaftDih and rotate a1 and a2 nodes around a0-a3 shaft
     shaftNodes[pick]->PrepareNew(newMol, molIndex);
     shaftNodes[pick]->BuildNew(newMol, molIndex);
     shaftNodes[pick]->PrepareOld(oldMol, molIndex);
@@ -595,6 +594,7 @@ void DCGraph::BuildGrowNew(TrialMol& newMol, uint molIndex)
 
 DCGraph::~DCGraph()
 {
+  delete idExchange;
   for(uint v = 0; v < nodes.size(); ++v) {
     Node& node = nodes[v];
     delete node.starting;
@@ -603,7 +603,14 @@ DCGraph::~DCGraph()
       delete node.edges[e].component;
     }
   }
-  delete idExchange;
+
+  for(uint i = 0; i < shaftNodesDih.size(); i++) {
+      delete shaftNodesDih[i];
+  }
+
+  for(uint i = 0; i < shaftNodesAng.size(); i++) {
+      delete shaftNodesAng[i];
+  }
 }
 
 
