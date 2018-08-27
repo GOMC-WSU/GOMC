@@ -6,7 +6,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #define _USE_MATH_DEFINES
 #include <math.h>
-#include "DCFreeCycle.h"
+#include "DCFreeCycleSeed.h"
 #include "DCData.h"
 #include "TrialMol.h"
 #include "MolSetup.h"
@@ -26,9 +26,9 @@ struct FindA1 {
   uint x;
 };
 
-DCFreeCycle::DCFreeCycle(DCData* data, const mol_setup::MolKind& kind,
-                        std::vector<int> cycAtoms, uint focus, uint prev)
-  : data(data), seed(data, focus), hed(data, kind, cycAtoms, focus, prev)
+DCFreeCycleSeed::DCFreeCycleSeed(DCData* data, const mol_setup::MolKind& kind,
+                                   std::vector<int> cycAtoms, uint focus, uint prev)
+  : data(data), hed(data, kind, cycAtoms, focus, prev)
 {
   using namespace mol_setup;
   using namespace std;
@@ -46,7 +46,7 @@ DCFreeCycle::DCFreeCycle(DCData* data, const mol_setup::MolKind& kind,
   for (uint i = 0; i < hed.NumBond(); ++i) {
     bondKinds[i] = onFocus[i].kind;
   }
-    
+
   if(data->nLJTrialsNth < 1) {
       std::cout << "Error: CBMC secondary atom trials must be greater than 0.\n";
     exit(EXIT_FAILURE);
@@ -54,7 +54,7 @@ DCFreeCycle::DCFreeCycle(DCData* data, const mol_setup::MolKind& kind,
 }
 
 
-void DCFreeCycle::PrepareNew(TrialMol& newMol, uint molIndex)
+void DCFreeCycleSeed::PrepareNew(TrialMol& newMol, uint molIndex)
 {
   //Get new bond information
   SetBondLengthNew(newMol);
@@ -67,7 +67,7 @@ void DCFreeCycle::PrepareNew(TrialMol& newMol, uint molIndex)
   bondEnergy +=  data->ff.bonds.Calc(anchorKind, anchorBond);
 }
 
-void DCFreeCycle::PrepareOld(TrialMol& oldMol, uint molIndex)
+void DCFreeCycleSeed::PrepareOld(TrialMol& oldMol, uint molIndex)
 {
   //Get old bond information
   SetBondLengthOld(oldMol);
@@ -80,7 +80,7 @@ void DCFreeCycle::PrepareOld(TrialMol& oldMol, uint molIndex)
   bondEnergy +=  data->ff.bonds.Calc(anchorKind, anchorBondOld);
 }
 
-void DCFreeCycle::SetBondLengthNew(TrialMol& newMol)
+void DCFreeCycleSeed::SetBondLengthNew(TrialMol& newMol)
 {
   for(uint i = 0; i < hed.NumBond(); ++i) {
     //We might need to use bondLength from bCoords
@@ -89,7 +89,7 @@ void DCFreeCycle::SetBondLengthNew(TrialMol& newMol)
   anchorBond = data->ff.bonds.Length(anchorKind);
 }
 
-void DCFreeCycle::SetBondLengthOld(TrialMol& oldMol)
+void DCFreeCycleSeed::SetBondLengthOld(TrialMol& oldMol)
 {
   for(uint i = 0; i < hed.NumBond(); ++i) {
     bondLengthOld[i] = sqrt(oldMol.OldDistSq(hed.Focus(), hed.Bonded(i)));
@@ -97,9 +97,8 @@ void DCFreeCycle::SetBondLengthOld(TrialMol& oldMol)
   anchorBondOld = sqrt(oldMol.OldDistSq(hed.Focus(), hed.Prev()));
 }
 
-void DCFreeCycle::BuildNew(TrialMol& newMol, uint molIndex)
+void DCFreeCycleSeed::BuildNew(TrialMol& newMol, uint molIndex)
 {
-  seed.BuildNew(newMol, molIndex);
   PRNG& prng = data->prng;
   const CalculateEnergy& calc = data->calc;
   const Ewald *calcEwald = data->calcEwald;
@@ -170,9 +169,8 @@ void DCFreeCycle::BuildNew(TrialMol& newMol, uint molIndex)
   newMol.MultWeight(stepWeight / nLJTrials);
 }
 
-void DCFreeCycle::BuildOld(TrialMol& oldMol, uint molIndex)
+void DCFreeCycleSeed::BuildOld(TrialMol& oldMol, uint molIndex)
 {
-  seed.BuildOld(oldMol, molIndex);
   PRNG& prng = data->prng;
   const CalculateEnergy& calc = data->calc;
   const Ewald * calcEwald = data->calcEwald;
@@ -202,6 +200,7 @@ void DCFreeCycle::BuildOld(TrialMol& oldMol, uint molIndex)
     data->axes.UnwrapPBC(positions[i], 0, 1, oldMol.GetBox(), center);
     positions[i].Add(0, -center);
   }
+
   //add anchor atom
   positions[hed.NumBond()].Set(0, oldMol.AtomPosition(hed.Prev()));
   data->axes.UnwrapPBC(positions[hed.NumBond()], 0, 1,

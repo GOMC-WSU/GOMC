@@ -4,10 +4,9 @@ Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
-#ifndef DCFREECYCLE_H
-#define DCFREECYCLE_H
+#ifndef DCFREECYCLESEED_H
+#define DCFREECYCLESEED_H
 #include "DCComponent.h"
-#include "DCSingle.h"
 #include "DCHedronCycle.h"
 #include "CBMC.h"
 
@@ -20,11 +19,11 @@ namespace cbmc
 {
 class DCData;
 
-class DCFreeCycle : public DCComponent
+class DCFreeCycleSeed : public DCComponent
 {
 public:
-  DCFreeCycle(DCData* data, const mol_setup::MolKind& kind,
-              std::vector<int> cycAtoms, uint focus, uint prev);
+  DCFreeCycleSeed(DCData* data, const mol_setup::MolKind& kind,
+                   std::vector<int> cycAtoms, uint focus, uint prev);
   void PrepareNew(TrialMol& newMol, uint molIndex);
   void PrepareOld(TrialMol& oldMol, uint molIndex);
   void BuildOld(TrialMol& oldMol, uint molIndex);
@@ -34,12 +33,11 @@ public:
 
   DCComponent* Clone()
   {
-    return new DCFreeCycle(*this);
+    return new DCFreeCycleSeed(*this);
   };
 
 private:
   DCData* data;
-  DCSingle seed;
   DCHedronCycle hed;
   //bond length of prev bonded to focus
   double anchorBond, anchorBondOld;
