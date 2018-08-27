@@ -345,7 +345,6 @@ double DCCrankShaftAng::CalcIntraBonded(TrialMol& mol, uint molIndex)
     b1 = data->axes.MinImage(coords.Difference(ang[i].a0, ang[i].a1), box);
     b2 = data->axes.MinImage(coords.Difference(ang[i].a2, ang[i].a1), box);
     bondedEn += data->ff.angles->Calc(ang[i].kind, geom::Theta(b1, b2));
-    double theta = geom::Theta(b1, b2);
   }
 
   for(uint i = 0; i < dih.size(); i++) {

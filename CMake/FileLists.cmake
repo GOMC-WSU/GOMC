@@ -43,8 +43,11 @@ set(sources
    src/cbmc/DCFreeCycle.cpp
    src/cbmc/DCFreeHedron.cpp
    src/cbmc/DCFreeHedronSeed.cpp
+    src/cbmc/DCFreeCycleSeed.cpp
    src/cbmc/DCLinkedHedron.cpp
+   src/cbmc/DCLinkedCycle.cpp
    src/cbmc/DCHedron.cpp
+   src/cbmc/DCHedronCycle.cpp
    src/cbmc/DCLinear.cpp
    src/cbmc/DCOnSphere.cpp
    src/cbmc/DCRotateCOM.cpp
@@ -137,9 +140,12 @@ set(headers
    src/cbmc/DCFreeCycle.h
    src/cbmc/DCFreeHedron.h
    src/cbmc/DCFreeHedronSeed.h
+   src/cbmc/DCFreeCycleSeed.h
    src/cbmc/DCLinkedHedron.h
+   src/cbmc/DCLinkedCycle.h
    src/cbmc/DCGraph.h
    src/cbmc/DCHedron.h
+   src/cbmc/DCHedronCycle.h
    src/cbmc/DCLinear.h
    src/cbmc/DCOnSphere.h
    src/cbmc/DCRotateCOM.h

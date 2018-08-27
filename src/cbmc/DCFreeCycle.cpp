@@ -28,9 +28,8 @@ struct FindA1 {
 
 DCFreeCycle::DCFreeCycle(DCData* data, const mol_setup::MolKind& kind,
                         std::vector<int> cycAtoms, uint focus, uint prev)
-  : data(data), seed(data, focus), hed(data, kind, focus, prev)
+  : data(data), seed(data, focus), hed(data, kind, cycAtoms, focus, prev)
 {
-  cyclicAtoms = cycAtoms;
   using namespace mol_setup;
   using namespace std;
   vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
