@@ -150,6 +150,12 @@ public:
     return tCoords;
   }
 
+  //!Returns reference to coordinates of the backup TrialMol.
+  const XYZArray& GetBCoords() const
+  {
+    return bCoords;
+  }
+
   //!Returns position of atom i (undefined if it doesn't exist yet)
   XYZ AtomPosition(const uint atom) const
   {
@@ -201,6 +207,7 @@ private:
   const BoxDimensions* axes;
   uint box;
   XYZArray tCoords, cavMatrix;
+  XYZArray bCoords; //used to find the angle and theta in rings molecule
   Energy en;
   double totalWeight;
   RotationMatrix growthToWorld;

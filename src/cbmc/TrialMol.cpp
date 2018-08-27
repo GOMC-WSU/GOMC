@@ -26,7 +26,7 @@ namespace cbmc
 TrialMol::TrialMol(const MoleculeKind& k, const BoxDimensions& ax,
                    uint box)
   : kind(&k), axes(&ax), box(box), tCoords(k.NumAtoms()), cavMatrix(3),
-    totalWeight(1.0)
+    totalWeight(1.0), bCoords(k.NumAtoms())
 {
   atomBuilt = new bool[k.NumAtoms()];
   std::fill_n(atomBuilt, k.NumAtoms(), false);
@@ -43,7 +43,7 @@ TrialMol::TrialMol(const MoleculeKind& k, const BoxDimensions& ax,
 TrialMol::TrialMol()
   : kind(NULL), axes(NULL), box(0), tCoords(0), atomBuilt(NULL),
     comInCav(false), comFix(false), rotateBB(false), overlap(false),
-    cavMatrix(3)
+    cavMatrix(3), bCoords(0)
 {
   cavMatrix.Set(0, 1.0, 0.0, 0.0);
   cavMatrix.Set(1, 0.0, 1.0, 0.0);
@@ -53,7 +53,7 @@ TrialMol::TrialMol()
 TrialMol::TrialMol(const TrialMol& other) :
   kind(other.kind), axes(other.axes), box(other.box),
   tCoords(other.tCoords), cavMatrix(other.cavMatrix), en(other.en),
-  totalWeight(other.totalWeight),
+  bCoords(other.bCoords), totalWeight(other.totalWeight),
   basisPoint(other.basisPoint)
 {
   atomBuilt = new bool[kind->NumAtoms()];
@@ -80,6 +80,7 @@ void swap(TrialMol& a, TrialMol& b)
   swap(a.axes, b.axes);
   swap(a.box, b.box);
   swap(a.tCoords, b.tCoords);
+  swap(a.bCoords, b.bCoords);
   swap(a.en, b.en);
   swap(a.totalWeight, b.totalWeight);
   swap(a.atomBuilt, b.atomBuilt);
