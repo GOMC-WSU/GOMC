@@ -199,6 +199,7 @@ void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
   uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
   for(uint b = 0; b < hed.NumBond(); ++b) {
     newMol.AddAtom(hed.Bonded(b), positions[b][winner]);
+    newMol.AddBonds(hed.Bonded(b), hed.Focus());
   }
   newMol.UpdateOverlap(overlap[winner]);
   newMol.AddEnergy(Energy(bondedEn[winner] + hed.GetEnergy() + bondEnergy,
@@ -319,6 +320,7 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
   double stepWeight = EvalLJ(oldMol, molIndex);
   for(uint b = 0; b < hed.NumBond(); ++b) {
     oldMol.ConfirmOldAtom(hed.Bonded(b));
+    oldMol.AddBonds(hed.Bonded(b), hed.Focus());
   }
   oldMol.UpdateOverlap(overlap[0]);
   oldMol.AddEnergy(Energy(bondedEn[0] + hed.GetEnergy() + bondEnergy,

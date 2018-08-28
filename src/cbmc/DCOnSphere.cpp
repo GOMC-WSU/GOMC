@@ -88,6 +88,7 @@ void DCOnSphere::BuildOld(TrialMol& oldMol, uint molIndex)
   oldMol.AddEnergy(Energy(bondEnergy, 0.0, inter[0], real[0], 0.0,
                           0.0, 0.0));
   oldMol.ConfirmOldAtom(atom);
+  oldMol.AddBonds(atom, focus);
 }
 
 void DCOnSphere::BuildNew(TrialMol& newMol, uint molIndex)
@@ -127,5 +128,6 @@ void DCOnSphere::BuildNew(TrialMol& newMol, uint molIndex)
   newMol.AddEnergy(Energy(bondEnergy, 0, inter[winner], real[winner], 0.0,
                           0.0, 0.0));
   newMol.AddAtom(atom, positions[winner]);
+  newMol.AddBonds(atom, focus);
 }
 }

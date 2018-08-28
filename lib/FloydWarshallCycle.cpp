@@ -66,34 +66,28 @@ std::vector< std::vector<int> > FloydWarshallCycle::GetAllUniqueCycles()
 	return getUniqueVectors(allCycles);
 }
 
-std::vector< std::vector<int> > FloydWarshallCycle::GetAllUniqueCyclesAndCommonCycles()
+std::vector< std::vector<int> > FloydWarshallCycle::GetAllCommonCycles()
 {
 	std::vector< std::vector<int> > uniqueCycles = GetAllUniqueCycles();
 	std::vector< std::vector<int> > commons;
 	int len = uniqueCycles.size();
-	bool *visited = new bool[len];
+	std::vector<bool> visited(len, false);
+
 	for (int i = 0; i < len; i++) {
-		visited[i] = false;
-	}
-	for (int i = 0; i < len-1; i++) {
-		std::vector<int> combined(uniqueCycles[i]);
-		bool didCombine = false;
 		if (!visited[i]) {
+			std::vector<int> combined(uniqueCycles[i]);
 			visited[i] = true;
-			for (int j = i; j < len; j++) {
+			for (int j = i+1; j < len; j++) {
 				if (haveCommonElements(combined, uniqueCycles[j])) {
 					combined = returnCombinedSet(combined, uniqueCycles[j]);
-					didCombine = true;
+					visited[j] = true;
 				}
 			}
-		}
-		if (didCombine)
 			commons.push_back(combined);
+		}
 	}
 
-	delete[] visited;
-	uniqueCycles.insert(uniqueCycles.end(), commons.begin(), commons.end());
-	return uniqueCycles;
+	return commons;
 }
 
 void FloydWarshallCycle::floydWarshall()

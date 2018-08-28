@@ -40,9 +40,10 @@ private:
   void ChooseTorsion(TrialMol& mol, uint molIndex, double prevPhi[],
                      RotationMatrix& cross, RotationMatrix& tensor);
   double EvalLJ(TrialMol& mol, uint molIndex);
-  void SetBasis(TrialMol& mol, uint p1, uint p2);
-  void OldThetaAndPhi(TrialMol& mol, const uint atom, const uint lastAtom,
-                      double& theta, double& phi) const;
+  //Calculate the dihedral using bCoords
+  double CalcDih(TrialMol& mol, uint a0, uint a1, uint a2, uint a3);
+  void CaclIntraEnergy(TrialMol& mol, const uint bIdx, const uint molIndex);
+
   DCData* data;
   DCHedronCycle hed;
   uint nPrevBonds;
@@ -61,10 +62,7 @@ private:
   double bondLengthOld[MAX_BONDS];
   //bondKind between bonded[i] and focus
   uint bondKinds[MAX_BONDS];
-  //To find the theta and phi in bCoords
-  RotationMatrix growthToWorld;
-  RotationMatrix worldToGrowth;
-  XYZ basisPoint;
+  std::vector< std::vector<mol_setup::Dihedral> > bondedFocusDih;
 };
 }
 #endif
