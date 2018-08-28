@@ -265,6 +265,11 @@ void TrialMol::SetCoords(const XYZArray& coords, uint start)
   coords.CopyRange(tCoords, start, 0, tCoords.Count());
 }
 
+void TrialMol::SetBCoords(const XYZArray& coords, uint start)
+{
+  coords.CopyRange(bCoords, start, 0, bCoords.Count());
+}
+
 double TrialMol::AngleDist(const double b1, const double b2, const double theta)
 {
   if(!kind->oneThree)

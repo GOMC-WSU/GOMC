@@ -31,6 +31,9 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
 
   idExchange = new DCRotateCOM(&data, setupKind);
 
+  //init the coordinate
+  coords.Init(setupKind.atoms.size());
+
   std::vector<uint> atomToNode(setupKind.atoms.size(), 0);
   std::vector<uint> bondCount(setupKind.atoms.size(), 0);
   isRing.resize(setupKind.atoms.size(), false);
@@ -44,6 +47,23 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
     fwc.AddEdge(bond.a0, bond.a1);
   }
   cyclicAtoms = fwc.GetAllCommonCycles();
+  //Find the ringindex that each atom belongs to
+  for (uint atom = 0; atom < setupKind.atoms.size(); ++atom) {
+    if (bondCount[atom] < 2) {
+      atomToNode[atom] = -1;
+      isRing[atom] = false;
+      ringIdx[atom] = -1;
+    } else {
+      for (uint i = 0; i < cyclicAtoms.size(); i++) {
+        if (std::find(cyclicAtoms[i].begin(), cyclicAtoms[i].end(), atom)
+            != cyclicAtoms[i].end()) {
+          isRing[atom] = true;
+          ringIdx[atom] = i;
+          break;
+        }
+      }
+    }
+  }
 
   //Find the node (number of bound > 1)
   //Construct the starting node (DCFreeHedron or DCFreeCycle)
@@ -51,8 +71,6 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
   for (uint atom = 0; atom < setupKind.atoms.size(); ++atom) {
     if (bondCount[atom] < 2) {
       atomToNode[atom] = -1;
-      isRing[atom] = false;
-      ringIdx[atom] = -1;
     } else {
       //Get the information of other Atoms that are bonded to the atom
       std::vector<Bond> bonds = AtomBonds(setupKind, atom);
@@ -61,14 +79,7 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
       // the first partner of the atom
       nodes.push_back(Node());
       Node& node = nodes.back();
-      for (uint i = 0; i < cyclicAtoms.size(); i++) {
-        if (std::find(cyclicAtoms[i].begin(), cyclicAtoms[i].end(), atom)
-            != cyclicAtoms[i].end()) {
-            isRing[atom] = true;
-            ringIdx[atom] = i;
-            break;
-        }
-      }
+
       //Check if the node belong to a ring or not
       if(isRing[atom]) {
         //Atoms bonded to atom will be build from focus (atom) in random loc.
@@ -96,25 +107,13 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
         if(bondCount[partner] == 1) {
           continue;
         }
-        
-        //Check to see if the partner belongs to a ring or not
-        bool ring = false;
-        uint ringIndex = -1;
-        for (uint i = 0; i < cyclicAtoms.size(); i++) {
-            if (std::find(cyclicAtoms[i].begin(), cyclicAtoms[i].end(), partner)
-                != cyclicAtoms[i].end()) {
-                ring = true;
-                ringIndex = i;
-                break;
-            }
-        }
 
-        if (ring) {
+        if(isRing[atom]) {
             //Add partner to the edge list of node and initialize it with partner
             //and the atom in DCLinkedHedron or DCLinkedCycle or DCCloseCycle
             //Atoms will be build from prev(atom) to focus(partner)
-            Edge e = Edge(partner, new DCLinkedCycle(&data, setupKind, cyclicAtoms[ringIndex],
-                                                    partner,atom)); 
+            Edge e = Edge(partner, new DCLinkedCycle(&data, setupKind, cyclicAtoms[ringIdx[atom]],
+                                                    partner, atom)); 
             node.edges.push_back(e);
         } else {
             //Add partner to the edge list of node and initialize it with partner
@@ -174,17 +173,17 @@ void DCCyclic::InitCrankShaft(const mol_setup::MolKind& kind)
         //Check to see if atoms that are bonded to a1 belongs to same ring or not
         bool sameRing = false;
         if(isRing[a1]) {
-            //FInd the atoms that are bonded to a1
-            vector<Bond> bonds = AtomBonds(kind, a1);
-            for(uint b = 0; b < bonds.size(); b++) {
-                uint partner = bonds[b].a1;
-                if((partner == a0) || (partner == a2)) {
-                    continue;
-                }
-                if(isRing[partner]) {
-                    sameRing |= (ringIdx[a1] == ringIdx[partner]);
-                }
+          //FInd the atoms that are bonded to a1
+          vector<Bond> bonds = AtomBonds(kind, a1);
+          for(uint b = 0; b < bonds.size(); b++) {
+            uint partner = bonds[b].a1;
+            if((partner == a0) || (partner == a2)) {
+              continue;
             }
+            if(isRing[partner]) {
+              sameRing |= (ringIdx[a1] == ringIdx[partner]);
+            }
+          }
         }
 
         //If there was no fix angles and atom a1 and any atom bonded to a1 are not
@@ -223,6 +222,12 @@ void DCCyclic::CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 
 void DCCyclic::Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 {
+  //Set bCoords to unwrap coordinate of actual molecule
+  oldMol.GetCoords().CopyRange(coords, 0, 0, coords.Count());
+  oldMol.GetAxes().UnwrapPBC(coords, oldMol.GetBox(), oldMol.AtomPosition(0));
+  oldMol.SetBCoords(coords, 0);
+  newMol.SetBCoords(coords, 0);
+
   //Randomely pick a node to call DCFreeHedron on it
   uint current = data.prng.randIntExc(nodes.size());
   visited.assign(nodes.size(), false);
@@ -273,6 +278,127 @@ void DCCyclic::BuildEdges(TrialMol& oldMol, TrialMol& newMol, uint molIndex,
   }
 }
 
+void DCCyclic::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
+{
+  //check if we want to grow all atoms from node's focus or not
+  bool growAll = data.prng() < 1.0 / nodes.size();
+
+  //Randomely pick a node to keep it fix and not grow it
+  uint current = data.prng.randIntExc(nodes.size());
+  visited.assign(nodes.size(), false);
+  //Visiting the node
+  visited[current] = true;
+  //Copy the current node's focus coordinate
+  uint seedInx = nodes[current].atomIndex;
+
+  if(isRing[seedInx] && !growAll) {
+    //if selected node was part of ring and we did not grow all, perform crankshaft
+    return CrankShaft(oldMol, newMol, molIndex);
+  }
+
+  //Set bCoords to unwrap coordinate of actual molecule
+  oldMol.GetCoords().CopyRange(coords, 0, 0, coords.Count());
+  oldMol.GetAxes().UnwrapPBC(coords, oldMol.GetBox(), oldMol.AtomPosition(0));
+  oldMol.SetBCoords(coords, 0);
+  newMol.SetBCoords(coords, 0);
+
+  newMol.AddAtom(seedInx, oldMol.AtomPosition(seedInx));
+  oldMol.ConfirmOldAtom(seedInx);
+  if(growAll) {
+    DCComponent* comp = nodes[current].restarting;
+    //Call DCFreeHedronSeed to build all Atoms connected to the node's focus
+    comp->PrepareNew(newMol, molIndex);
+    comp->BuildNew(newMol, molIndex);
+    comp->PrepareOld(oldMol, molIndex);
+    comp->BuildOld(oldMol, molIndex);
+    //Build all edges
+    BuildEdges(oldMol, newMol, molIndex, current);
+  } else {
+    //Copy the all atoms bonded to node's focus
+    for(uint b = 0; b < nodes[current].partnerIndex.size(); b++) {
+      uint partner = nodes[current].partnerIndex[b];
+      newMol.AddAtom(partner, oldMol.AtomPosition(partner));
+      oldMol.ConfirmOldAtom(partner);
+    }
+
+    if(nodes[current].edges.size() == 1) {
+      //If current is the terminal node, continue building all edges
+      BuildEdges(oldMol, newMol, molIndex, current);
+    } else {
+      //First we pick a edge and continue copying the coordinate
+      //Then continue to build the rest of the molecule from current
+      //Copy the edges of the node to fringe
+      fringe = nodes[current].edges;
+      //randomely pick one one of the edges connected to fixNode
+      uint pickFixEdg = data.prng.randIntExc(fringe.size());
+      //Travel to picked edges and make it as new fixNode
+      uint fixNode = fringe[pickFixEdg].destination;
+      visited[fixNode] = true;
+      //Copy the all atoms bonded to fixNode's focus
+      for(uint b = 0; b < nodes[fixNode].partnerIndex.size(); b++) {
+        uint partner = nodes[fixNode].partnerIndex[b];
+        newMol.AddAtom(partner, oldMol.AtomPosition(partner));
+        oldMol.ConfirmOldAtom(partner);
+      }
+      //Copy the edges of the new node to fringe
+      fringe = nodes[fixNode].edges;
+      //remove the edge that we travelled from
+      for( uint f = 0; f < fringe.size(); f++) {
+        if(fringe[f].destination == current)
+          fringe.erase(fringe.begin() + f);
+      }
+      //Continue along picked edges and copy the coordinates
+      while(!fringe.empty()) {
+        fixNode = fringe[0].destination;
+        //Copy the all atoms bonded to fixNode's focus
+        for(uint b = 0; b < nodes[fixNode].partnerIndex.size(); b++) {
+          uint partner = nodes[fixNode].partnerIndex[b];
+          newMol.AddAtom(partner, oldMol.AtomPosition(partner));
+          oldMol.ConfirmOldAtom(partner);
+        }
+        //Travel to new fixNode, remove traversed edge
+        fringe[0] = fringe.back();
+        fringe.pop_back();
+        visited[fixNode] = true;
+        //Add edges to unvisited nodes
+        for(uint i = 0; i < nodes[fixNode].edges.size(); ++i) {
+          Edge& e = nodes[fixNode].edges[i];
+          if(!visited[e.destination]) {
+            fringe.push_back(e);
+          }
+        }
+      }
+      //Now Start building the rest of the molecule from current
+      //Copy the edges of the current node to fringe
+      fringe = nodes[current].edges;
+      //Remove the fixed edge from fringe
+      fringe.erase(fringe.begin() + pickFixEdg);
+      //Advance along edges, building as we go
+      while(!fringe.empty()) {
+        //Randomely pick one of the edges connected to node
+        uint pick = data.prng.randIntExc(fringe.size());
+        DCComponent* comp = fringe[pick].connect;
+        //Call DCLinkedHedron and build all Atoms connected to selected edge
+        comp->PrepareNew(newMol, molIndex);
+        comp->BuildNew(newMol, molIndex);
+        comp->PrepareOld(oldMol, molIndex);
+        comp->BuildOld(oldMol, molIndex);
+        current = fringe[pick].destination;
+        //Remove the edge that we visited
+        fringe[pick] = fringe.back();
+        fringe.pop_back();
+        visited[current] = true;
+        for(uint i = 0; i < nodes[current].edges.size(); ++i) {
+          Edge& e = nodes[current].edges[i];
+          if(!visited[e.destination]) {
+            fringe.push_back(e);
+          }
+        }
+      }
+    }
+  }
+}
+
 void DCCyclic::BuildIDNew(TrialMol& newMol, uint molIndex)
 {
   idExchange->PrepareNew(newMol, molIndex);
@@ -283,6 +409,235 @@ void DCCyclic::BuildIDOld(TrialMol& oldMol, uint molIndex)
 {
   idExchange->PrepareOld(oldMol, molIndex);
   idExchange->BuildOld(oldMol, molIndex);
+}
+
+void DCCyclic::BuildOld(TrialMol& oldMol, uint molIndex)
+{
+  //Set bCoords to unwrap coordinate of actual molecule
+  oldMol.GetCoords().CopyRange(coords, 0, 0, coords.Count());
+  //No need to unwrap since the copied coordinates are unwraped
+  oldMol.SetBCoords(coords, 0);
+
+  //Randomely pick a node to call DCFreeHedron on it
+  uint current = data.prng.randIntExc(nodes.size());
+  visited.assign(nodes.size(), false);
+  //Visiting the node
+  visited[current] = true;
+  DCComponent* comp = nodes[current].starting;
+  //Call DCFreeHedron to build all Atoms connected to the node
+  comp->PrepareOld(oldMol, molIndex);
+  comp->BuildOld(oldMol, molIndex);
+  //Advance along edges, building as we go
+  //Copy the edges of the node to fringe
+  fringe = nodes[current].edges;
+  //Advance along edges, building as we go
+  while(!fringe.empty())
+  {
+    //Randomely pick one of the edges connected to node
+    uint pick = data.prng.randIntExc(fringe.size());
+    DCComponent* comp = fringe[pick].connect;
+    //Call DCLinkedHedron and build all Atoms connected to selected edge
+    comp->PrepareOld(oldMol, molIndex);
+    comp->BuildOld(oldMol, molIndex);
+
+    //Travel to new node, remove traversed edge
+    //Current node is the edge that we picked
+    current = fringe[pick].destination;
+    //Remove the edge that we visited
+    fringe[pick] = fringe.back();
+    fringe.pop_back();
+    //Visiting the node
+    visited[current] = true;
+
+    //Add edges to unvisited nodes
+    for(uint i = 0; i < nodes[current].edges.size(); ++i)
+    {
+      Edge& e = nodes[current].edges[i];
+      if(!visited[e.destination])
+      {
+        fringe.push_back(e);
+      }
+    }
+  }
+}
+
+void DCCyclic::BuildNew(TrialMol& newMol, uint molIndex)
+{
+  //Set bCoords to unwrap coordinate of actual molecule
+  newMol.GetCoords().CopyRange(coords, 0, 0, coords.Count());
+  //No need to unwrap since copied coordinates are unwraped
+  newMol.SetBCoords(coords, 0);
+
+  //Randomely pick a node to call DCFreeHedron on it
+  uint current = data.prng.randIntExc(nodes.size());
+  visited.assign(nodes.size(), false);
+  //Visiting the node
+  visited[current] = true;
+  DCComponent* comp = nodes[current].starting;
+  //Call DCFreeHedron to build all Atoms connected to the node
+  comp->PrepareNew(newMol, molIndex);
+  comp->BuildNew(newMol, molIndex);
+  //Advance along edges, building as we go
+  //Copy the edges of the node to fringe
+  fringe = nodes[current].edges;
+  //Advance along edges, building as we go
+  while(!fringe.empty())
+  {
+    //Randomely pick one of the edges connected to node
+    uint pick = data.prng.randIntExc(fringe.size());
+    DCComponent* comp = fringe[pick].connect;
+    //Call DCLinkedHedron and build all Atoms connected to selected edge
+    comp->PrepareNew(newMol, molIndex);
+    comp->BuildNew(newMol, molIndex);
+
+    //Travel to new node, remove traversed edge
+    //Current node is the edge that we picked
+    current = fringe[pick].destination;
+    //Remove the edge that we visited
+    fringe[pick] = fringe.back();
+    fringe.pop_back();
+    //Visiting the node
+    visited[current] = true;
+
+    //Add edges to unvisited nodes
+    for(uint i = 0; i < nodes[current].edges.size(); ++i)
+    {
+      Edge& e = nodes[current].edges[i];
+      if(!visited[e.destination])
+      {
+        fringe.push_back(e);
+      }
+    }
+  }
+}
+
+void DCCyclic::BuildGrowOld(TrialMol& oldMol, uint molIndex)
+{
+  //Set bCoords to unwrap coordinate of actual molecule
+  oldMol.GetCoords().CopyRange(coords, 0, 0, coords.Count());
+  //No need to unwrap since copied coordinate is unwraped
+  oldMol.SetBCoords(coords, 0);
+
+  visited.assign(nodes.size(), false);
+  //Use backbone atom to start the node
+  uint current = -1;
+  for(uint i = 0; i < nodes.size(); i++) {
+    if(nodes[i].atomIndex == oldMol.GetAtomBB(0)) {
+      current = i;
+      break;
+    }
+  }
+
+  if(current == -1) {
+    std::cout << "Error: In MEMC-3 move, atom " << oldMol.GetKind().atomNames[oldMol.GetAtomBB(0)]<<
+        " in " << oldMol.GetKind().name << " must be a node.\n";
+     std::cout << "       This atom must be bounded to two or more atoms! \n";
+    exit(1);
+  }
+    
+  //Visiting the node
+  visited[current] = true;
+  DCComponent* comp = nodes[current].starting;
+  //Call DCFreeHedron to build all Atoms connected to the node
+  comp->PrepareOld(oldMol, molIndex);
+  comp->BuildOld(oldMol, molIndex);
+  //Advance along edges, building as we go
+  //Copy the edges of the node to fringe
+  fringe = nodes[current].edges;
+  //Advance along edges, building as we go
+  while(!fringe.empty())
+  {
+    //Randomely pick one of the edges connected to node
+    uint pick = data.prng.randIntExc(fringe.size());
+    DCComponent* comp = fringe[pick].connect;
+    //Call DCLinkedHedron and build all Atoms connected to selected edge
+    comp->PrepareOld(oldMol, molIndex);
+    comp->BuildOld(oldMol, molIndex);
+
+    //Travel to new node, remove traversed edge
+    //Current node is the edge that we picked
+    current = fringe[pick].destination;
+    //Remove the edge that we visited
+    fringe[pick] = fringe.back();
+    fringe.pop_back();
+    //Visiting the node
+    visited[current] = true;
+
+    //Add edges to unvisited nodes
+    for(uint i = 0; i < nodes[current].edges.size(); ++i)
+    {
+      Edge& e = nodes[current].edges[i];
+      if(!visited[e.destination])
+      {
+        fringe.push_back(e);
+      }
+    }
+  }
+}
+
+
+void DCCyclic::BuildGrowNew(TrialMol& newMol, uint molIndex)
+{
+  //Set bCoords to unwrap coordinate of actual molecule
+  newMol.GetCoords().CopyRange(coords, 0, 0, coords.Count());
+  //No need to unwrap since copied coordinate is unwraped
+  newMol.SetBCoords(coords, 0);
+
+  visited.assign(nodes.size(), false);
+  //Use backbone atom to start the node
+  uint current = -1;
+  for(uint i = 0; i < nodes.size(); i++) {
+    if(nodes[i].atomIndex == newMol.GetAtomBB(0)) {
+      current = i;
+      break;
+    }
+  }
+    
+  if(current == -1) {
+    std::cout << "Error: In MEMC-3 move, atom " << newMol.GetKind().atomNames[newMol.GetAtomBB(0)]<<
+        " in " << newMol.GetKind().name << " must be a node.\n";
+     std::cout << "       This atom must be bounded to two or more atoms! \n";
+    exit(1);
+  }
+    
+  //Visiting the node
+  visited[current] = true;
+  DCComponent* comp = nodes[current].starting;
+  //Call DCFreeHedron to build all Atoms connected to the node
+  comp->PrepareNew(newMol, molIndex);
+  comp->BuildNew(newMol, molIndex);
+  //Advance along edges, building as we go
+  //Copy the edges of the node to fringe
+  fringe = nodes[current].edges;
+  //Advance along edges, building as we go
+  while(!fringe.empty())
+  {
+    //Randomely pick one of the edges connected to node
+    uint pick = data.prng.randIntExc(fringe.size());
+    DCComponent* comp = fringe[pick].connect;
+    //Call DCLinkedHedron and build all Atoms connected to selected edge
+    comp->PrepareNew(newMol, molIndex);
+    comp->BuildNew(newMol, molIndex);
+
+    //Travel to new node, remove traversed edge
+    //Current node is the edge that we picked
+    current = fringe[pick].destination;
+    //Remove the edge that we visited
+    fringe[pick] = fringe.back();
+    fringe.pop_back();
+    //Visiting the node
+    visited[current] = true;
+
+    //Add edges to unvisited nodes
+    for(uint i = 0; i < nodes[current].edges.size(); ++i)
+    {
+      Edge& e = nodes[current].edges[i];
+      if(!visited[e.destination])
+      {
+        fringe.push_back(e);
+      }
+    }
+  }
 }
 
 DCCyclic::~DCCyclic()
