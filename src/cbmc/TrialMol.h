@@ -227,8 +227,11 @@ public:
     return tCoords.Get(atom);
   }
 
-  //!Copies 1 molecule's worth of coordinates from coords[start] onwards
+  //!Copies 1 molecule's worth of coordinates from coords[start] onwards to tCoords
   void SetCoords(const XYZArray& coords, uint start);
+
+  //!Copies 1 molecule's worth of coordinates from coords[start] onwards to bCoords
+  void SetBCoords(const XYZArray& coords, uint start);
 
   bool AtomExists(uint index) const
   {

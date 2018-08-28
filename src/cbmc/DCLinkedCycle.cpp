@@ -333,8 +333,10 @@ void DCLinkedCycle::BuildOld(TrialMol& oldMol, uint molIndex)
       positions[b].Add(lj, center);
     }
   }
+  //for actual atom position, we perform nDihTrials - 1 dihedral trial
   ljWeights[0] = 0.0;
   for (uint tor = 0; tor < nDihTrials; ++tor) {
+    //No trial torsion if it is not free end
     if(prevBondedRing == -1) {
       torsion[tor] = (tor == 0) ? 0.0 : data->prng.rand(M_PI * 2);
     } else {
@@ -344,7 +346,6 @@ void DCLinkedCycle::BuildOld(TrialMol& oldMol, uint molIndex)
     nonbonded_1_4[tor] = 0.0;
     for (uint b = 0; b < hed.NumBond(); ++b) {
       double theta1 =  hed.Theta(b);
-      double trialPhi;
       double trialPhi = hed.Phi(b) + torsion[tor];
       XYZ bondedC;
       if(oldMol.OneFour()) {

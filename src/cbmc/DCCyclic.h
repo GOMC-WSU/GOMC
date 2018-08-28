@@ -37,6 +37,7 @@ public:
   void CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
   void BuildEdges(TrialMol& oldMol, TrialMol& newMol, uint molIndex,
                   const uint current);
+  //Used in MEMC moves
   void BuildIDNew(TrialMol& newMol, uint molIndex);
   void BuildIDOld(TrialMol& oldMol, uint molIndex);
   void BuildNew(TrialMol& newMol, uint molIndex);
@@ -81,6 +82,7 @@ private:
   std::vector<bool> visited;
   std::vector<DCComponent*> crankshaft;
   std::vector< std::vector<int> > cyclicAtoms;
+  XYZArray coords;
 };
 }
 
