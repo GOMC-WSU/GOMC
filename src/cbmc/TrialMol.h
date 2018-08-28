@@ -87,7 +87,7 @@ public:
   static double PhiBetweenAngles(double theta1, double theta2,
                                  double interior);
 
-  //!Return angle in radians between confirmed atoms a, b and c
+  //!Return angle in radians between confirmed atoms a-b-c
   double GetTheta(uint a, uint b, uint c) const;
 
   //!Calculates theta and phi coords for atom in the current basis

@@ -75,7 +75,7 @@ private:
   void FreeAnglesNew(TrialMol& newMol, uint molIndex, uint nTrials);
   void FreeAnglesOld(TrialMol& oldMol, uint molIndex, uint nTrials);
   void ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTrials);
-  //to calculate the angle in the ring from bCoords
+  //to calculate the angle in the ring from bCoords or tCoords a0-a1-a2
   double CalcTheta(TrialMol& mol, const uint a0, const uint a1, const uint a2);
 
   DCData* data;

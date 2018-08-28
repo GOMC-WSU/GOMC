@@ -127,14 +127,19 @@ double DCHedronCycle::GetWeight()
   return result;
 }
 
-double DCHedronCycle::CalcTheta(TrialMol& mol, const uint a0, const uint a1, const uint a2)
+double DCHedronCycle::CalcTheta(TrialMol& mol, const uint a0, const uint a1,
+                                const uint a2)
 {
-  XYZ b1, b2, b3;
-  const XYZArray &coords = mol.GetBCoords();
-  //Since data in bCoords in unwrap, no need to calc minImage
-  b1 = coords.Difference(a0, a1);
-  b2 = coords.Difference(a2, a1);
-  double theta = geom::Theta(b1, b2);
+  double theta = 0.0;
+  if(mol.AtomExists(a0) && mol.AtomExists(a2)) {
+    //Calculate theta using tCoords
+    theta = mol.GetTheta(a0, a1, a2);
+  } else {
+    //Calculate theta using bCoords
+    const XYZArray &coords = mol.GetBCoords();
+    //Since data in bCoords in unwrap, no need to calc minImage
+    theta = geom::Theta(coords.Difference(a0, a1), coords.Difference(a2, a1));
+  }
   return theta;
 }
 

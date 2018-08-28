@@ -10,7 +10,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "DCFreeHedronSeed.h"
 #include "DCFreeCycle.h"
 #include "DCLinkedCycle.h"
-#include "DCCloseCycle.h"
 #include "DCFreeCycleSeed.h"
 #include "DCRotateCOM.h"
 #include "DCCrankShaftDih.h"
@@ -115,14 +114,15 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
             //and the atom in DCLinkedHedron or DCLinkedCycle or DCCloseCycle
             //Atoms will be build from prev(atom) to focus(partner)
             Edge e = Edge(partner, new DCLinkedCycle(&data, setupKind, cyclicAtoms[ringIndex],
-                                                      partner,atom)); 
+                                                    partner,atom)); 
+            node.edges.push_back(e);
         } else {
             //Add partner to the edge list of node and initialize it with partner
             //and the atom in DCLinkedHedron or DCLinkedCycle or DCCloseCycle
             //Atoms will be build from prev(atom) to focus(partner)
             Edge e = Edge(partner, new DCLinkedHedron(&data, setupKind, partner,atom));  
+            node.edges.push_back(e);
         }
-        node.edges.push_back(e);
       }
     }
   }

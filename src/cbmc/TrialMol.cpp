@@ -169,12 +169,12 @@ double TrialMol::DistSq(const XYZ& a, const XYZ& b)
   return distSq;
 }
 
-//!Return angle in radians between confirmed atoms a, b and c:w
+//!Return angle in radians between confirmed atoms a-b-c
 double TrialMol::GetTheta(uint a, uint b, uint c) const
 {
   return geom::Theta(
-           axes->MinImage(tCoords.Difference(b, a), box),
-           axes->MinImage(tCoords.Difference(b, c), box));
+           axes->MinImage(tCoords.Difference(a, b), box),
+           axes->MinImage(tCoords.Difference(c, b), box));
 }
 
 void TrialMol::SetBasis(const uint p1, const uint p2, const uint p3)
