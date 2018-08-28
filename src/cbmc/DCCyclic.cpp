@@ -43,7 +43,7 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
     ++bondCount[bond.a1];
     fwc.AddEdge(bond.a0, bond.a1);
   }
-  cyclicAtoms = fwc.GetAllUniqueCyclesAndCommonCycles();
+  cyclicAtoms = fwc.GetAllCommonCycles();
 
   //Find the node (number of bound > 1)
   //Construct the starting node (DCFreeHedron or DCFreeCycle)

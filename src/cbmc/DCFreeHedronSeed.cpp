@@ -157,9 +157,11 @@ void DCFreeHedronSeed::BuildNew(TrialMol& newMol, uint molIndex)
   uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
   for(uint b = 0; b < hed.NumBond(); ++b) {
     newMol.AddAtom(hed.Bonded(b), positions[b][winner]);
+    newMol.AddBonds(hed.Bonded(b), hed.Focus());
   }
 
   newMol.AddAtom(hed.Prev(), positions[hed.NumBond()][winner]);
+  newMol.AddBonds(hed.Prev(), hed.Focus());
   newMol.UpdateOverlap(overlap[winner]);
   newMol.AddEnergy(Energy(hed.GetEnergy() + bondEnergy, hed.GetNonBondedEn(),
                           inter[winner], real[winner],
@@ -237,9 +239,11 @@ void DCFreeHedronSeed::BuildOld(TrialMol& oldMol, uint molIndex)
 
   for(uint b = 0; b < hed.NumBond(); ++b) {
     oldMol.ConfirmOldAtom(hed.Bonded(b));
+    oldMol.AddBonds(hed.Bonded(b), hed.Focus());
   }
 
   oldMol.ConfirmOldAtom(hed.Prev());
+  oldMol.AddBonds(hed.Prev(), hed.Focus());
   oldMol.UpdateOverlap(overlap[0]);
   oldMol.AddEnergy(Energy(hed.GetEnergy() + bondEnergy, hed.GetNonBondedEn(),
                           inter[0], real[0], 0.0, 0.0, 0.0));

@@ -19,7 +19,7 @@ public:
 
 	std::vector< std::vector<int> > GetAllUniqueCycles();
 
-	std::vector< std::vector<int> > GetAllUniqueCyclesAndCommonCycles();
+	std::vector< std::vector<int> > GetAllCommonCycles();
 
 private:
 	// Number of nodes

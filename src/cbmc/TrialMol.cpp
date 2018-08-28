@@ -26,7 +26,7 @@ namespace cbmc
 TrialMol::TrialMol(const MoleculeKind& k, const BoxDimensions& ax,
                    uint box)
   : kind(&k), axes(&ax), box(box), tCoords(k.NumAtoms()), cavMatrix(3),
-    totalWeight(1.0), bCoords(k.NumAtoms())
+    totalWeight(1.0), bCoords(k.NumAtoms()), bonds(k.bondList)
 {
   atomBuilt = new bool[k.NumAtoms()];
   std::fill_n(atomBuilt, k.NumAtoms(), false);
@@ -43,7 +43,7 @@ TrialMol::TrialMol(const MoleculeKind& k, const BoxDimensions& ax,
 TrialMol::TrialMol()
   : kind(NULL), axes(NULL), box(0), tCoords(0), atomBuilt(NULL),
     comInCav(false), comFix(false), rotateBB(false), overlap(false),
-    cavMatrix(3), bCoords(0)
+    cavMatrix(3), bCoords(0), bonds()
 {
   cavMatrix.Set(0, 1.0, 0.0, 0.0);
   cavMatrix.Set(1, 0.0, 1.0, 0.0);
@@ -54,10 +54,11 @@ TrialMol::TrialMol(const TrialMol& other) :
   kind(other.kind), axes(other.axes), box(other.box),
   tCoords(other.tCoords), cavMatrix(other.cavMatrix), en(other.en),
   bCoords(other.bCoords), totalWeight(other.totalWeight),
-  basisPoint(other.basisPoint)
+  basisPoint(other.basisPoint), bonds(other.bonds)
 {
   atomBuilt = new bool[kind->NumAtoms()];
   std::copy(other.atomBuilt, other.atomBuilt + kind->NumAtoms(), atomBuilt);
+  bonds.Unset();
   comInCav = false;
   comFix = false;
   rotateBB = false;
@@ -86,6 +87,9 @@ void swap(TrialMol& a, TrialMol& b)
   swap(a.atomBuilt, b.atomBuilt);
   swap(a.growthToWorld, b.growthToWorld);
   swap(a.worldToGrowth, b.worldToGrowth);
+  swap(a.bonds, b.bonds);
+  a.bonds.Unset();
+  b.bonds.Unset();
   a.comInCav = false;
   b.comInCav = false;
   a.comFix = false;
@@ -175,6 +179,15 @@ double TrialMol::GetTheta(uint a, uint b, uint c) const
   return geom::Theta(
            axes->MinImage(tCoords.Difference(a, b), box),
            axes->MinImage(tCoords.Difference(c, b), box));
+}
+
+//!Return dihedral in radians between confirmed atoms a-b-c-d
+double TrialMol::GetPhi(uint a, uint b, uint c, uint d) const
+{
+  return geom::Phi(
+           axes->MinImage(tCoords.Difference(b, a), box),
+           axes->MinImage(tCoords.Difference(c, b), box),
+           axes->MinImage(tCoords.Difference(d, c), box));
 }
 
 void TrialMol::SetBasis(const uint p1, const uint p2, const uint p3)

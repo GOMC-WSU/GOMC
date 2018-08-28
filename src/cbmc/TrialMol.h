@@ -21,6 +21,68 @@ class CalculateEnergy;
 //! Class for keeping track of part-built molecules during CBMC
 namespace cbmc
 {
+struct Bonds
+{
+  public:
+    Bonds(const BondList &bList)
+    {
+      for(uint b = 0; b < bList.count; b++) {
+        a0.push_back(bList.part1[b]);
+        a1.push_back(bList.part2[b]);
+        kind.push_back(bList.kinds[b]);
+        bondExist.push_back(false);
+        count = bList.count;
+      }
+    }
+
+    Bonds()
+    {
+      count = 0;
+    }
+
+    Bonds(const Bonds& other)
+    {
+      a0 = other.a0;
+      a1 = other.a1;
+      kind = other.kind;
+      bondExist = other.bondExist;
+      count = other.count;
+    }
+
+    void AddBond(const uint p0, const uint p1)
+    {
+      for(uint b = 0; b < count; b++) {
+        if(a0[b] == p0 && a1[b] == p1) {
+          bondExist[b] = true;
+        } else if(a0[b] == p1 && a1[b] == p0) {
+          bondExist[b] = true;
+        }
+      }
+    }
+
+    bool BondExist(const uint p0, const uint p1)
+    {
+      for(uint b = 0; b < count; b++) {
+        if(a0[b] == p0 && a1[b] == p1) {
+          return bondExist[b];
+        } else if(a0[b] == p1 && a1[b] == p0) {
+          return bondExist[b];
+        }
+      }
+      //We should not reach here
+      return false;
+    }
+
+    void Unset()
+    {
+      std::fill(bondExist.begin(), bondExist.end(), false);
+    }
+
+  private:
+    std::vector<uint> a0, a1, kind;
+    std::vector<bool> bondExist;
+    uint count;
+};
 
 class TrialMol
 {
@@ -89,6 +151,9 @@ public:
 
   //!Return angle in radians between confirmed atoms a-b-c
   double GetTheta(uint a, uint b, uint c) const;
+
+  //!Return dihedral in radians between confirmed atoms a-b-c-d
+  double GetPhi(uint a, uint b, uint c, uint d) const;
 
   //!Calculates theta and phi coords for atom in the current basis
   //!centered on lastAtom. theta in [0, pi], phi in (-pi, pi]
@@ -196,7 +261,11 @@ public:
   XYZ GetCavity() const {return cavity;}
   //return unwrap com of tcoords so tcoords must be set
   XYZ GetCOM();
-  uint GetAtomBB(const uint i) const { return backbone[i];}
+  uint GetAtomBB(const uint i) const {return backbone[i];}
+  //set built bond to true
+  void AddBonds(const uint p0, const uint p1) {bonds.AddBond(p0, p1);}
+  //check to see if bond exist or not
+  bool BondsExist(const uint p0, const uint p1) { return bonds.BondExist(p0, p1);}
 
   ~TrialMol();
 
@@ -218,7 +287,8 @@ private:
   bool comInCav, comFix, rotateBB;
   bool overlap;
   bool* atomBuilt;
-
+  //To check the status of built bonds
+  Bonds bonds;
 };
 }
 
