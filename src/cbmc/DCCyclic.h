@@ -53,9 +53,10 @@ private:
   //Each edge is a node as well
   struct Edge {
     uint destination; //destination is partner node index.
+    uint atomIndex; //atom index of the edge
     //To build the next segment from prev-focus
     DCComponent* connect;
-    Edge(uint d, DCComponent* c) : destination(d), connect(c) {}
+    Edge(uint d, DCComponent* c) : destination(d), atomIndex(d), connect(c) {}
   };
 
   //Store the branching atom and all Atoms that are connected to this
@@ -79,10 +80,11 @@ private:
   std::vector<uint> ringIdx;    //index to the row of cyclicAtoms
   std::vector<Node> nodes;
   std::vector<Edge> fringe;
-  std::vector<bool> visited;
+  std::vector<bool> visited, destVisited;
   std::vector<DCComponent*> crankshaft;
   std::vector< std::vector<int> > cyclicAtoms;
   XYZArray coords;
+  uint totAtom;
 };
 }
 
