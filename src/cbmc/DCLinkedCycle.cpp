@@ -427,6 +427,10 @@ double DCLinkedCycle::EvalLJ(TrialMol& mol, uint molIndex)
   std::fill_n(real, nLJTrials, 0.0);
 
   for (uint b = 0; b < hed.NumBond(); ++b) {
+    //Avoid double calculating energy for existed atom
+    if(mol.AtomExists(hed.Bonded(b))) {
+      continue;
+    }
     data->calc.ParticleInter(inter, real, positions[b], overlap, hed.Bonded(b),
                              molIndex, mol.GetBox(), nLJTrials);
 
