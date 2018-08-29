@@ -287,6 +287,7 @@ void DCCyclic::BuildEdges(TrialMol& oldMol, TrialMol& newMol, uint molIndex,
       Edge& e = nodes[current].edges[i];
       if(!visited[e.destination] && !destVisited[e.atomIndex]) {
         fringe.push_back(e);
+        destVisited[e.atomIndex] = true;
       }
     }
   }
@@ -300,10 +301,12 @@ void DCCyclic::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
   //Randomely pick a node to keep it fix and not grow it
   uint current = data.prng.randIntExc(nodes.size());
   visited.assign(nodes.size(), false);
+  destVisited.assign(totAtom, false);
   //Visiting the node
   visited[current] = true;
   //Copy the current node's focus coordinate
   uint seedInx = nodes[current].atomIndex;
+  destVisited[seedInx] = true;
 
   if(isRing[seedInx] && !growAll) {
     //if selected node was part of ring and we did not grow all, perform crankshaft
@@ -348,6 +351,7 @@ void DCCyclic::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
       //Travel to picked edges and make it as new fixNode
       uint fixNode = fringe[pickFixEdg].destination;
       visited[fixNode] = true;
+      destVisited[nodes[fixNode].atomIndex] = true;
       //Copy the all atoms bonded to fixNode's focus
       for(uint b = 0; b < nodes[fixNode].partnerIndex.size(); b++) {
         uint partner = nodes[fixNode].partnerIndex[b];
@@ -374,11 +378,13 @@ void DCCyclic::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
         fringe[0] = fringe.back();
         fringe.pop_back();
         visited[fixNode] = true;
+        destVisited[nodes[fixNode].atomIndex] = true;
         //Add edges to unvisited nodes
         for(uint i = 0; i < nodes[fixNode].edges.size(); ++i) {
           Edge& e = nodes[fixNode].edges[i];
-          if(!visited[e.destination]) {
+          if(!visited[e.destination] && !destVisited[e.atomIndex]) {
             fringe.push_back(e);
+            destVisited[e.atomIndex] = true;
           }
         }
       }
@@ -398,14 +404,16 @@ void DCCyclic::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
         comp->PrepareOld(oldMol, molIndex);
         comp->BuildOld(oldMol, molIndex);
         current = fringe[pick].destination;
+        destVisited[fringe[pick].atomIndex] = true;
         //Remove the edge that we visited
         fringe[pick] = fringe.back();
         fringe.pop_back();
         visited[current] = true;
         for(uint i = 0; i < nodes[current].edges.size(); ++i) {
           Edge& e = nodes[current].edges[i];
-          if(!visited[e.destination]) {
+          if(!visited[e.destination] && !destVisited[e.atomIndex]) {
             fringe.push_back(e);
+            destVisited[e.atomIndex] = true;
           }
         }
       }
@@ -435,8 +443,10 @@ void DCCyclic::BuildOld(TrialMol& oldMol, uint molIndex)
   //Randomely pick a node to call DCFreeHedron on it
   uint current = data.prng.randIntExc(nodes.size());
   visited.assign(nodes.size(), false);
+  destVisited.assign(totAtom, false);
   //Visiting the node
   visited[current] = true;
+  destVisited[nodes[current].atomIndex] = true;
   DCComponent* comp = nodes[current].starting;
   //Call DCFreeHedron to build all Atoms connected to the node
   comp->PrepareOld(oldMol, molIndex);
@@ -457,6 +467,7 @@ void DCCyclic::BuildOld(TrialMol& oldMol, uint molIndex)
     //Travel to new node, remove traversed edge
     //Current node is the edge that we picked
     current = fringe[pick].destination;
+    destVisited[fringe[pick].atomIndex] = true;
     //Remove the edge that we visited
     fringe[pick] = fringe.back();
     fringe.pop_back();
@@ -467,9 +478,10 @@ void DCCyclic::BuildOld(TrialMol& oldMol, uint molIndex)
     for(uint i = 0; i < nodes[current].edges.size(); ++i)
     {
       Edge& e = nodes[current].edges[i];
-      if(!visited[e.destination])
+      if(!visited[e.destination] && !destVisited[e.atomIndex])
       {
         fringe.push_back(e);
+        destVisited[e.atomIndex] = true;
       }
     }
   }
@@ -485,8 +497,10 @@ void DCCyclic::BuildNew(TrialMol& newMol, uint molIndex)
   //Randomely pick a node to call DCFreeHedron on it
   uint current = data.prng.randIntExc(nodes.size());
   visited.assign(nodes.size(), false);
+  destVisited.assign(totAtom, false);
   //Visiting the node
   visited[current] = true;
+  destVisited[nodes[current].atomIndex] = true;
   DCComponent* comp = nodes[current].starting;
   //Call DCFreeHedron to build all Atoms connected to the node
   comp->PrepareNew(newMol, molIndex);
@@ -507,6 +521,7 @@ void DCCyclic::BuildNew(TrialMol& newMol, uint molIndex)
     //Travel to new node, remove traversed edge
     //Current node is the edge that we picked
     current = fringe[pick].destination;
+    destVisited[fringe[pick].atomIndex] = true;
     //Remove the edge that we visited
     fringe[pick] = fringe.back();
     fringe.pop_back();
@@ -517,9 +532,10 @@ void DCCyclic::BuildNew(TrialMol& newMol, uint molIndex)
     for(uint i = 0; i < nodes[current].edges.size(); ++i)
     {
       Edge& e = nodes[current].edges[i];
-      if(!visited[e.destination])
+      if(!visited[e.destination] && !destVisited[e.atomIndex])
       {
         fringe.push_back(e);
+        destVisited[e.atomIndex] = true;
       }
     }
   }
@@ -533,6 +549,7 @@ void DCCyclic::BuildGrowOld(TrialMol& oldMol, uint molIndex)
   oldMol.SetBCoords(coords, 0);
 
   visited.assign(nodes.size(), false);
+  destVisited.assign(totAtom, false);
   //Use backbone atom to start the node
   uint current = -1;
   for(uint i = 0; i < nodes.size(); i++) {
@@ -551,6 +568,7 @@ void DCCyclic::BuildGrowOld(TrialMol& oldMol, uint molIndex)
     
   //Visiting the node
   visited[current] = true;
+  destVisited[nodes[current].atomIndex] = true;
   DCComponent* comp = nodes[current].starting;
   //Call DCFreeHedron to build all Atoms connected to the node
   comp->PrepareOld(oldMol, molIndex);
@@ -571,6 +589,7 @@ void DCCyclic::BuildGrowOld(TrialMol& oldMol, uint molIndex)
     //Travel to new node, remove traversed edge
     //Current node is the edge that we picked
     current = fringe[pick].destination;
+    destVisited[fringe[pick].atomIndex] = true;
     //Remove the edge that we visited
     fringe[pick] = fringe.back();
     fringe.pop_back();
@@ -581,9 +600,10 @@ void DCCyclic::BuildGrowOld(TrialMol& oldMol, uint molIndex)
     for(uint i = 0; i < nodes[current].edges.size(); ++i)
     {
       Edge& e = nodes[current].edges[i];
-      if(!visited[e.destination])
+      if(!visited[e.destination] && !destVisited[e.atomIndex])
       {
         fringe.push_back(e);
+        destVisited[e.atomIndex] = true;
       }
     }
   }
@@ -598,6 +618,7 @@ void DCCyclic::BuildGrowNew(TrialMol& newMol, uint molIndex)
   newMol.SetBCoords(coords, 0);
 
   visited.assign(nodes.size(), false);
+  destVisited.assign(totAtom, false);
   //Use backbone atom to start the node
   uint current = -1;
   for(uint i = 0; i < nodes.size(); i++) {
@@ -616,6 +637,7 @@ void DCCyclic::BuildGrowNew(TrialMol& newMol, uint molIndex)
     
   //Visiting the node
   visited[current] = true;
+  destVisited[nodes[current].atomIndex] = true;
   DCComponent* comp = nodes[current].starting;
   //Call DCFreeHedron to build all Atoms connected to the node
   comp->PrepareNew(newMol, molIndex);
@@ -636,6 +658,7 @@ void DCCyclic::BuildGrowNew(TrialMol& newMol, uint molIndex)
     //Travel to new node, remove traversed edge
     //Current node is the edge that we picked
     current = fringe[pick].destination;
+    destVisited[fringe[pick].atomIndex] = true;
     //Remove the edge that we visited
     fringe[pick] = fringe.back();
     fringe.pop_back();
@@ -646,9 +669,10 @@ void DCCyclic::BuildGrowNew(TrialMol& newMol, uint molIndex)
     for(uint i = 0; i < nodes[current].edges.size(); ++i)
     {
       Edge& e = nodes[current].edges[i];
-      if(!visited[e.destination])
+      if(!visited[e.destination] && !destVisited[e.atomIndex])
       {
         fringe.push_back(e);
+        destVisited[e.atomIndex] = true;
       }
     }
   }
