@@ -118,18 +118,31 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
         }
 
         if(isRing[atom]) {
+          //Check to see if we dont have any edges with same destination
+          bool exist = false;
+          for(uint i = 0; i < nodes.size(); i++) {
+            for(uint j = 0; j < nodes[i].edges.size(); j++) {
+              if(nodes[i].edges[j].destination == partner) {
+                exist = true;
+              }
+            }
+          }
+
+          if(!exist) {
             //Add partner to the edge list of node and initialize it with partner
             //and the atom in DCLinkedHedron or DCLinkedCycle or DCCloseCycle
             //Atoms will be build from prev(atom) to focus(partner)
             Edge e = Edge(partner, new DCLinkedCycle(&data, setupKind, cyclicAtoms[ringIdx[atom]],
-                                                    partner, atom)); 
+                                                    partner, atom));
             node.edges.push_back(e);
+          }
+
         } else {
-            //Add partner to the edge list of node and initialize it with partner
-            //and the atom in DCLinkedHedron or DCLinkedCycle or DCCloseCycle
-            //Atoms will be build from prev(atom) to focus(partner)
-            Edge e = Edge(partner, new DCLinkedHedron(&data, setupKind, partner,atom));  
-            node.edges.push_back(e);
+          //Add partner to the edge list of node and initialize it with partner
+          //and the atom in DCLinkedHedron or DCLinkedCycle or DCCloseCycle
+          //Atoms will be build from prev(atom) to focus(partner)
+          Edge e = Edge(partner, new DCLinkedHedron(&data, setupKind, partner,atom));  
+          node.edges.push_back(e);
         }
       }
     }
