@@ -82,12 +82,21 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
 
       //Check if the node belong to a ring or not
       if(isRing[atom]) {
+        uint prev = -1;
+        for(uint i = 0; i < bonds.size(); i++) {
+          //Use one of the atoms that is in the ring as prev
+          if(isRing[bonds[i].a1]) {
+            prev = bonds[i].a1;
+            break;
+          }
+        }
+        assert(prev != -1);
         //Atoms bonded to atom will be build from focus (atom) in random loc.
         node.starting = new DCFreeCycle(&data, setupKind, cyclicAtoms[ringIdx[atom]],
-                                        atom, bonds[0].a1);
+                                        atom, prev);
         //Atoms bonded to atom will be build from focus (atom) in specified loc.
         node.restarting = new DCFreeCycleSeed(&data, setupKind, cyclicAtoms[ringIdx[atom]],
-                                              atom, bonds[0].a1);
+                                              atom, prev);
       } else {
         //Atoms bonded to atom will be build from focus (atom) in random loc.
         node.starting = new DCFreeHedron(&data, setupKind, atom,
