@@ -471,7 +471,7 @@ void DCLinkedCycle::ChooseTorsion(TrialMol& mol, uint molIndex,
     double phi = CalcDih(mol, hed.Bonded(focBondedRing), hed.Focus(), hed.Prev(),
                         prevBonded[prevBondedRing]);
     // find the torsion that give the same dihedral in the ring
-    torDiff = phi - (hed.Phi(hed.Bonded(focBondedRing)) - prevPhi[prevBondedRing]);
+    torDiff = phi - (hed.Phi(focBondedRing) - prevPhi[prevBondedRing]);
   }
   //select torsion based on all dihedral angles
   for (uint tor = 0; tor < nDihTrials; ++tor) {
