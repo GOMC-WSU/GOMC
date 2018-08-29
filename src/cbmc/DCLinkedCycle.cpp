@@ -116,7 +116,9 @@ void DCLinkedCycle::PrepareNew(TrialMol& newMol, uint molIndex)
   hed.PrepareNew(newMol, molIndex);
   bondEnergy = 0.0;
   for(uint i = 0; i < hed.NumBond(); ++i) {
-    bondEnergy += data->ff.bonds.Calc(bondKinds[i], bondLength[i]);
+    if(!newMol.BondsExist(hed.Bonded(i), hed.Focus())) {
+      bondEnergy += data->ff.bonds.Calc(bondKinds[i], bondLength[i]);
+    }
   }
 }
 
@@ -128,7 +130,9 @@ void DCLinkedCycle::PrepareOld(TrialMol& oldMol, uint molIndex)
   hed.PrepareOld(oldMol, molIndex);
   bondEnergy = 0.0;
   for(uint i = 0; i < hed.NumBond(); ++i) {
-    bondEnergy += data->ff.bonds.Calc(bondKinds[i], bondLengthOld[i]);
+    if(!oldMol.BondsExist(hed.Bonded(i), hed.Focus())) {
+      bondEnergy += data->ff.bonds.Calc(bondKinds[i], bondLengthOld[i]);
+    }
   }
 }
 
