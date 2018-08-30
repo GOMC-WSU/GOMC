@@ -47,6 +47,7 @@ DCLinkedCycle::DCLinkedCycle
 {
   using namespace mol_setup;
   using namespace std;
+  std::fill_n(bondedInRing, MAX_BONDS, false);
   vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
   onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
                 onFocus.end());
@@ -58,6 +59,7 @@ DCLinkedCycle::DCLinkedCycle
     bondedFocusDih.push_back(DihsOnBond(kind, onFocus[i].a1, focus));
     if(std::find(cycAtoms.begin(), cycAtoms.end(), onFocus[i].a1) != cycAtoms.end()) {
       focBondedRing = i;
+      bondedInRing[i] = true;
     }
   }
   assert(focBondedRing != -1);
@@ -115,8 +117,10 @@ void DCLinkedCycle::PrepareNew(TrialMol& newMol, uint molIndex)
   hed.SetBondNew(bondLength, anchorBond);
   hed.PrepareNew(newMol, molIndex);
   bondEnergy = 0.0;
+  bExist.resize(hed.NumBond(), false);
   for(uint i = 0; i < hed.NumBond(); ++i) {
-    if(!newMol.BondsExist(hed.Bonded(i), hed.Focus())) {
+    bExist[i] = newMol.BondsExist(hed.Bonded(i), hed.Focus());
+    if(!bExist[i]) {
       bondEnergy += data->ff.bonds.Calc(bondKinds[i], bondLength[i]);
     }
   }
@@ -129,8 +133,10 @@ void DCLinkedCycle::PrepareOld(TrialMol& oldMol, uint molIndex)
   hed.SetBondOld(bondLengthOld, anchorBondOld);
   hed.PrepareOld(oldMol, molIndex);
   bondEnergy = 0.0;
+  bExist.resize(hed.NumBond(), false);
   for(uint i = 0; i < hed.NumBond(); ++i) {
-    if(!oldMol.BondsExist(hed.Bonded(i), hed.Focus())) {
+    bExist[i] = oldMol.BondsExist(hed.Bonded(i), hed.Focus());
+    if(!bExist[i]) {
       bondEnergy += data->ff.bonds.Calc(bondKinds[i], bondLengthOld[i]);
     }
   }
@@ -139,9 +145,9 @@ void DCLinkedCycle::PrepareOld(TrialMol& oldMol, uint molIndex)
 void DCLinkedCycle::SetBondLengthNew(TrialMol& newMol)
 {
   for(uint i = 0; i < hed.NumBond(); ++i) {
-    if(newMol.AtomExists(hed.Bonded(i))) {
-      //if bonded[i] exist, we calculate the bond length
-      bondLength[i] = sqrt(newMol.OldDistSq(hed.Focus(), hed.Bonded(i)));
+    //use bondLength from bCoords if it is in the ring body
+    if(bondedInRing[i]) {
+      bondLength[i] = newMol.GetBCoords().Difference(hed.Bonded(i), hed.Focus()).Length();
     } else {
       bondLength[i] = data->ff.bonds.Length(bondKinds[i]);
     }
@@ -235,13 +241,9 @@ void DCLinkedCycle::BuildNew(TrialMol& newMol, uint molIndex)
 
   double stepWeight = EvalLJ(newMol, molIndex);
   uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
-  std::vector<bool> bExist(hed.NumBond(), false);
 
   for(uint b = 0; b < hed.NumBond(); ++b) {
     newMol.AddAtom(hed.Bonded(b), positions[b][winner]);
-    if(newMol.BondsExist(hed.Bonded(b), hed.Focus())) {
-      bExist[b] = true;
-    }
     newMol.AddBonds(hed.Bonded(b), hed.Focus());
   }
 
@@ -383,13 +385,9 @@ void DCLinkedCycle::BuildOld(TrialMol& oldMol, uint molIndex)
     data->axes.WrapPBC(positions[b], oldMol.GetBox());
   }
   double stepWeight = EvalLJ(oldMol, molIndex);
-  std::vector<bool> bExist(hed.NumBond(), false);
 
   for(uint b = 0; b < hed.NumBond(); ++b) {
     oldMol.ConfirmOldAtom(hed.Bonded(b));
-    if(oldMol.BondsExist(hed.Bonded(b), hed.Focus())) {
-      bExist[b] = true;
-    }
     oldMol.AddBonds(hed.Bonded(b), hed.Focus());
   }
 

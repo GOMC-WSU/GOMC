@@ -30,6 +30,11 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
   const MolKind setupKind = it->second;
   totAtom = setupKind.atoms.size();
 
+  if(totAtom < 4) {
+    std::cout << "Error: GOMC does not support cyclic molecule with 3 atoms!\n\n";
+    exit(EXIT_FAILURE);
+  }
+
   idExchange = new DCRotateCOM(&data, setupKind);
 
   //init the coordinate
