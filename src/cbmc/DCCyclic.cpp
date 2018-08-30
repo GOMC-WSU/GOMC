@@ -226,6 +226,9 @@ void DCCyclic::CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
     //Instead we perform IntraSwap move
     Build(oldMol, newMol, molIndex);
   } else {
+  //Set tCoords to coordinate of actual molecule, it will be modified
+    oldMol.GetCoords().CopyRange(coords, 0, 0, coords.Count());
+    newMol.SetCoords(coords, 0);
     //Pick a random node pair
     uint pick = data.prng.randIntExc(crankshaft.size());
     //Call DCCrankShaftAng and rotate a1 node around a0-a2 shaft
