@@ -52,6 +52,7 @@ private:
   double bondLengthOld[MAX_BONDS];
   //bondKind between bonded[i] and focus
   uint bondKinds[MAX_BONDS];
+  bool bondedInRing[MAX_BONDS];
 };
 }
 

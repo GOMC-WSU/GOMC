@@ -32,10 +32,14 @@ DCFreeCycle::DCFreeCycle(DCData* data, const mol_setup::MolKind& kind,
 {
   using namespace mol_setup;
   using namespace std;
+  std::fill_n(bondedInRing, MAX_BONDS, false);
   vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
   for(uint i = 0; i < onFocus.size(); ++i) {
-    if (onFocus[i].a1 == prev) {
+    if(onFocus[i].a1 == prev) {
       anchorKind = onFocus[i].kind;
+      if(std::find(cycAtoms.begin(), cycAtoms.end(), onFocus[i].a1) != cycAtoms.end()) {
+        bondedInRing[hed.NumBond()] = true;
+      }
       break;
     }
   }
@@ -43,8 +47,11 @@ DCFreeCycle::DCFreeCycle(DCData* data, const mol_setup::MolKind& kind,
   onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
                 onFocus.end());
   //Find the atoms bonded to focus, except prev
-  for (uint i = 0; i < hed.NumBond(); ++i) {
+  for (uint i = 0; i < onFocus.size(); ++i) {
     bondKinds[i] = onFocus[i].kind;
+    if(std::find(cycAtoms.begin(), cycAtoms.end(), onFocus[i].a1) != cycAtoms.end()) {
+        bondedInRing[i] = true;
+    }
   }
     
   if(data->nLJTrialsNth < 1) {
@@ -83,10 +90,18 @@ void DCFreeCycle::PrepareOld(TrialMol& oldMol, uint molIndex)
 void DCFreeCycle::SetBondLengthNew(TrialMol& newMol)
 {
   for(uint i = 0; i < hed.NumBond(); ++i) {
-    //We might need to use bondLength from bCoords
-    bondLength[i] = data->ff.bonds.Length(bondKinds[i]);
+    //use bondLength from bCoords if it is in the ring body
+    if(bondedInRing[i]) {
+      bondLength[i] = newMol.GetBCoords().Difference(hed.Bonded(i), hed.Focus()).Length();
+    } else {
+      bondLength[i] = data->ff.bonds.Length(bondKinds[i]);
+    }
   }
-  anchorBond = data->ff.bonds.Length(anchorKind);
+  if(bondedInRing[hed.NumBond()]) {
+    anchorBond = newMol.GetBCoords().Difference(hed.Focus(), hed.Prev()).Length();
+  } else {
+    anchorBond = data->ff.bonds.Length(anchorKind);
+  }
 }
 
 void DCFreeCycle::SetBondLengthOld(TrialMol& oldMol)
