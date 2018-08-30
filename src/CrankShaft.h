@@ -83,9 +83,6 @@ inline uint CrankShaft::Prep(const double subDraw, const double movPerc)
     newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
     oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
     oldMol.SetCoords(coordCurrRef, pStart);
-    //Set the newMol coordinate same as oldMol. Later after Transform, coordinates
-    //will be updated.
-    newMol.SetCoords(coordCurrRef, pStart);
   }
   return state;
 }
