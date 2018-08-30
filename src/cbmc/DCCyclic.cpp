@@ -267,6 +267,9 @@ void DCCyclic::BuildEdges(TrialMol& oldMol, TrialMol& newMol, uint molIndex,
   uint current = cur;
   //Copy the edges of the node to fringe
   fringe = nodes[current].edges;
+  for(uint i = 0; i < fringe.size(); i++) {
+    destVisited[fringe[i].atomIndex] = true;
+  }
   //Advance along edges, building as we go
   while (!fringe.empty()) {
     uint pick = data.prng.randIntExc(fringe.size());
@@ -280,7 +283,6 @@ void DCCyclic::BuildEdges(TrialMol& oldMol, TrialMol& newMol, uint molIndex,
     //travel to new node, remove traversed edge
     //Current node is the edge that we picked
     current = fringe[pick].destination;
-    destVisited[fringe[pick].atomIndex] = true;
     //Remove the edge that we visited
     fringe[pick] = fringe.back();
     fringe.pop_back();
@@ -370,6 +372,10 @@ void DCCyclic::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
         if(fringe[f].destination == current)
           fringe.erase(fringe.begin() + f);
       }
+
+      for(uint i = 0; i < fringe.size(); i++) {
+        destVisited[fringe[i].atomIndex] = true;
+      }
       //Continue along picked edges and copy the coordinates
       while(!fringe.empty()) {
         fixNode = fringe[0].destination;
@@ -383,7 +389,6 @@ void DCCyclic::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
         fringe[0] = fringe.back();
         fringe.pop_back();
         visited[fixNode] = true;
-        destVisited[nodes[fixNode].atomIndex] = true;
         //Add edges to unvisited nodes
         for(uint i = 0; i < nodes[fixNode].edges.size(); ++i) {
           Edge& e = nodes[fixNode].edges[i];
@@ -398,6 +403,9 @@ void DCCyclic::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
       fringe = nodes[current].edges;
       //Remove the fixed edge from fringe
       fringe.erase(fringe.begin() + pickFixEdg);
+      for(uint i = 0; i < fringe.size(); i++) {
+        destVisited[fringe[i].atomIndex] = true;
+      }
       //Advance along edges, building as we go
       while(!fringe.empty()) {
         //Randomely pick one of the edges connected to node
@@ -409,7 +417,6 @@ void DCCyclic::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
         comp->PrepareOld(oldMol, molIndex);
         comp->BuildOld(oldMol, molIndex);
         current = fringe[pick].destination;
-        destVisited[fringe[pick].atomIndex] = true;
         //Remove the edge that we visited
         fringe[pick] = fringe.back();
         fringe.pop_back();
@@ -459,6 +466,9 @@ void DCCyclic::BuildOld(TrialMol& oldMol, uint molIndex)
   //Advance along edges, building as we go
   //Copy the edges of the node to fringe
   fringe = nodes[current].edges;
+  for(uint i = 0; i < fringe.size(); i++) {
+    destVisited[fringe[i].atomIndex] = true;
+  }
   //Advance along edges, building as we go
   while(!fringe.empty())
   {
@@ -472,7 +482,6 @@ void DCCyclic::BuildOld(TrialMol& oldMol, uint molIndex)
     //Travel to new node, remove traversed edge
     //Current node is the edge that we picked
     current = fringe[pick].destination;
-    destVisited[fringe[pick].atomIndex] = true;
     //Remove the edge that we visited
     fringe[pick] = fringe.back();
     fringe.pop_back();
@@ -513,6 +522,9 @@ void DCCyclic::BuildNew(TrialMol& newMol, uint molIndex)
   //Advance along edges, building as we go
   //Copy the edges of the node to fringe
   fringe = nodes[current].edges;
+  for(uint i = 0; i < fringe.size(); i++) {
+    destVisited[fringe[i].atomIndex] = true;
+  }
   //Advance along edges, building as we go
   while(!fringe.empty())
   {
@@ -526,7 +538,6 @@ void DCCyclic::BuildNew(TrialMol& newMol, uint molIndex)
     //Travel to new node, remove traversed edge
     //Current node is the edge that we picked
     current = fringe[pick].destination;
-    destVisited[fringe[pick].atomIndex] = true;
     //Remove the edge that we visited
     fringe[pick] = fringe.back();
     fringe.pop_back();
@@ -581,6 +592,9 @@ void DCCyclic::BuildGrowOld(TrialMol& oldMol, uint molIndex)
   //Advance along edges, building as we go
   //Copy the edges of the node to fringe
   fringe = nodes[current].edges;
+  for(uint i = 0; i < fringe.size(); i++) {
+    destVisited[fringe[i].atomIndex] = true;
+  }
   //Advance along edges, building as we go
   while(!fringe.empty())
   {
@@ -594,7 +608,6 @@ void DCCyclic::BuildGrowOld(TrialMol& oldMol, uint molIndex)
     //Travel to new node, remove traversed edge
     //Current node is the edge that we picked
     current = fringe[pick].destination;
-    destVisited[fringe[pick].atomIndex] = true;
     //Remove the edge that we visited
     fringe[pick] = fringe.back();
     fringe.pop_back();
@@ -650,6 +663,9 @@ void DCCyclic::BuildGrowNew(TrialMol& newMol, uint molIndex)
   //Advance along edges, building as we go
   //Copy the edges of the node to fringe
   fringe = nodes[current].edges;
+  for(uint i = 0; i < fringe.size(); i++) {
+    destVisited[fringe[i].atomIndex] = true;
+  }
   //Advance along edges, building as we go
   while(!fringe.empty())
   {
@@ -663,7 +679,6 @@ void DCCyclic::BuildGrowNew(TrialMol& newMol, uint molIndex)
     //Travel to new node, remove traversed edge
     //Current node is the edge that we picked
     current = fringe[pick].destination;
-    destVisited[fringe[pick].atomIndex] = true;
     //Remove the edge that we visited
     fringe[pick] = fringe.back();
     fringe.pop_back();
