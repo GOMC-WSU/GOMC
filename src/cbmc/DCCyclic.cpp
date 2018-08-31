@@ -123,11 +123,11 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
           continue;
         }
 
-        if(isRing[atom]) {
+        if(isRing[partner]) {
           //Add partner to the edge list of node and initialize it with partner
           //and the atom in DCLinkedHedron or DCLinkedCycle or DCCloseCycle
           //Atoms will be build from prev(atom) to focus(partner)
-          Edge e = Edge(partner, new DCLinkedCycle(&data, setupKind, cyclicAtoms[ringIdx[atom]],
+          Edge e = Edge(partner, new DCLinkedCycle(&data, setupKind, cyclicAtoms[ringIdx[partner]],
                                                   partner, atom));
           node.edges.push_back(e);
 
