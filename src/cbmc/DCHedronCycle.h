@@ -100,6 +100,7 @@ private:
   //except angleKinds[i][i] = kind between bonded[i] and prev
   uint angleKinds[MAX_BONDS][MAX_BONDS];
   bool angleInRing[MAX_BONDS][MAX_BONDS];
+  bool prevInRing;
   double theta[MAX_BONDS];
   double thetaWeight[MAX_BONDS];
   double phi[MAX_BONDS];
