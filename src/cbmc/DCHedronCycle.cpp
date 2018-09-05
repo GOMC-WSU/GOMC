@@ -69,6 +69,12 @@ DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
                 onFocus.end());
   nBonds = onFocus.size();
 
+  if(std::find(cycAtoms.begin(), cycAtoms.end(), prev) != cycAtoms.end()) {
+    prevInRing = true;
+  } else {
+    prevInRing = false;
+  }
+
   for (uint i = 0; i < nBonds; ++i) {
     bonded[i] = onFocus[i].a1;
   }
@@ -352,17 +358,29 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
       double sinTerm = sin(theta[b]) * sin(theta[c]);
 
       if(angleInRing[b][b] || angleInRing[b][c]) {
-        double ang = CalcOldPhi(newMol, bonded[b], focus);
         double bfcRing = CalcTheta(newMol, bonded[b], focus, bonded[c]);
-	double bfcTheta = acos(sinTerm * cos(ang - phi[c]) + cosTerm);
-        std::fill_n(angles, nTrials, ang);
-        if(angleInRing[b][c] && abs(bfcRing - bfcTheta) > 0.01) {
-          std::cout << "Error: Cannot Construct ring frame " <<
-            newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
-            newMol.GetKind().atomTypeNames[focus] << " " <<
-            newMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
-          exit(EXIT_FAILURE);
-        }
+	if(prevInRing) {
+	  double ang = CalcOldPhi(newMol, bonded[b], focus);
+	  double bfcTheta = acos(sinTerm * cos(ang - phi[c]) + cosTerm);
+	  std::fill_n(angles, nTrials, ang);
+	  if(angleInRing[b][c] && abs(bfcRing - bfcTheta) > 0.01) {
+	    std::cout << "Error: Cannot Construct ring frame " <<
+	      newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
+	      newMol.GetKind().atomTypeNames[focus] << " " <<
+	      newMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
+	    exit(EXIT_FAILURE);
+	  }
+	} else {
+	  double ang = acos((cos(bfcRing) - cosTerm) / sinTerm) + phi[c];
+	  std::fill_n(angles, nTrials, ang);
+	  if(abs(ang) > 2.0 * M_PI) {
+	    std::cout << "Error: Cannot Construct ring frame " <<
+	      newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
+	      newMol.GetKind().atomTypeNames[focus] << " " <<
+	      newMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
+	    exit(EXIT_FAILURE);
+	  }
+	}
         break;
       } else if (data->ff.angles->AngleFixed(angleKinds[b][c])) {
         double bfcTheta = data->ff.angles->Angle(angleKinds[b][c]);
@@ -434,8 +452,21 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
       double sinTerm = sin(theta[b]) * sin(theta[c]);
 
       if(angleInRing[b][b] || angleInRing[b][c]) {
-        double ang = phi[b];
-        std::fill_n(angles, nTrials, ang);
+        if(prevInRing) {
+          double ang = phi[b];
+          std::fill_n(angles, nTrials, ang);
+        } else {
+          double bfcRing = CalcTheta(oldMol, bonded[b], focus, bonded[c]);
+	  double ang = acos((cos(bfcRing) - cosTerm) / sinTerm) + phi[c];
+	  std::fill_n(angles, nTrials, ang);
+	  if(abs(ang) > 2.0 * M_PI) {
+	    std::cout << "Error: Cannot Construct ring frame " <<
+	      oldMol.GetKind().atomTypeNames[bonded[b]] << " " <<
+	      oldMol.GetKind().atomTypeNames[focus] << " " <<
+	      oldMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
+	    exit(EXIT_FAILURE);
+	  }
+        }
         break;
       } else if (data->ff.angles->AngleFixed(angleKinds[b][c])) {
         double bfcTheta = data->ff.angles->Angle(angleKinds[b][c]);
