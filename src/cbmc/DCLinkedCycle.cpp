@@ -210,6 +210,13 @@ void DCLinkedCycle::BuildNew(TrialMol& newMol, uint molIndex)
     //not using theta, so this is a wasted cos and sqrt
     newMol.OldThetaAndPhi(prevBonded[i], hed.Prev(), th, prevPhi[i]);
   }
+  if(prevBondedRing != -1) {
+    //calculate dihedral in ring using bCoords
+    double phi = CalcDih(newMol, hed.Bonded(focBondedRing), hed.Focus(),
+			 hed.Prev(), prevBonded[prevBondedRing]);
+    // find the torsion that give the same dihedral in the ring
+    torDiff = phi - (hed.Phi(focBondedRing) - prevPhi[prevBondedRing]);
+  }
   XYZ rotationAxis = newMol.AtomPosition(hed.Focus()) -
                      newMol.AtomPosition(hed.Prev());
   rotationAxis = data->axes.MinImage(rotationAxis, newMol.GetBox());
@@ -314,6 +321,13 @@ void DCLinkedCycle::BuildOld(TrialMol& oldMol, uint molIndex)
     double t;
     //not using theta, so this is a wasted cos and sqrt
     oldMol.OldThetaAndPhi(prevBonded[i], hed.Prev(), t, prevPhi[i]);
+  }
+  if(prevBondedRing != -1) {
+    //calculate dihedral in ring using bCoords
+    double phi = CalcDih(oldMol, hed.Bonded(focBondedRing), hed.Focus(),
+			 hed.Prev(), prevBonded[prevBondedRing]);
+    // find the torsion that give the same dihedral in the ring
+    torDiff = phi - (hed.Phi(focBondedRing) - prevPhi[prevBondedRing]);
   }
   XYZ rotationAxis = oldMol.AtomPosition(hed.Focus()) -
                      oldMol.AtomPosition(hed.Prev());
@@ -467,14 +481,6 @@ void DCLinkedCycle::ChooseTorsion(TrialMol& mol, uint molIndex,
   std::fill_n(nonbonded_1_4, data->nDihTrials, 0.0);
 
   const XYZ center = mol.AtomPosition(hed.Focus());
-  double torDiff = 0.0;
-  if(prevBondedRing != -1) {
-    //calculate dihedral in ring using bCoords
-    double phi = CalcDih(mol, hed.Bonded(focBondedRing), hed.Focus(), hed.Prev(),
-                        prevBonded[prevBondedRing]);
-    // find the torsion that give the same dihedral in the ring
-    torDiff = phi - (hed.Phi(focBondedRing) - prevPhi[prevBondedRing]);
-  }
   //select torsion based on all dihedral angles
   for (uint tor = 0; tor < nDihTrials; ++tor) {
     if(prevBondedRing != -1) {
@@ -505,15 +511,15 @@ void DCLinkedCycle::ChooseTorsion(TrialMol& mol, uint molIndex,
             nonbonded_1_4[tor] = num::BIGNUM;
         }
 
-        torEnergy[tor] += ff.dihedrals.Calc(dihKinds[b][p],
-                                            trialPhi - prevPhi[p]);
+        torEnergy[tor] += ff.dihedrals.Calc(dihKinds[b][p],trialPhi-prevPhi[p]);
       }
     }
     torWeights[tor] = exp(-ff.beta * (torEnergy[tor] + nonbonded_1_4[tor]));
   }
 }
 
-void DCLinkedCycle::CaclIntraEnergy(TrialMol& mol, const uint bIdx, const uint molIndex)
+void DCLinkedCycle::CaclIntraEnergy(TrialMol& mol, const uint bIdx,
+				    const uint molIndex)
 {
   double dihEnergy = 0.0;
   double nonBondedEn = 0.0;
@@ -525,8 +531,10 @@ void DCLinkedCycle::CaclIntraEnergy(TrialMol& mol, const uint bIdx, const uint m
       double phi = mol.GetPhi(dih[d].a0, dih[d].a1, dih[d].a2, dih[d].a3);
       dihEnergy += data->ff.dihedrals.Calc(dih[d].kind, phi);
       if(mol.OneFour()) {
-        double distSq = mol.DistSq(mol.AtomPosition(dih[d].a0), mol.AtomPosition(dih[d].a3));
-        nonBondedEn += data->calc.IntraEnergy_1_4(distSq, dih[d].a0, dih[d].a3, molIndex);
+        double distSq = mol.DistSq(mol.AtomPosition(dih[d].a0),
+				   mol.AtomPosition(dih[d].a3));
+        nonBondedEn += data->calc.IntraEnergy_1_4(distSq, dih[d].a0, dih[d].a3,
+						  molIndex);
       }
     }
   }

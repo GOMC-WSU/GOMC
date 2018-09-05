@@ -334,7 +334,9 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
   double* energies = data->angleEnergy;
   double* weights = data->angleWeights;
   double* nonbonded_1_3 =  data->nonbonded_1_3;
-  phi[0] = 0.0;
+
+  SetBasis(newMol, focus, prev);
+  phi[0] = CalcOldPhi(newMol, bonded[0], focus);
 
   for (uint b = 1; b < nBonds; ++b) {
     std::fill_n(energies, nTrials, 0.0);
@@ -349,12 +351,13 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
       double cosTerm = cos(theta[b]) * cos(theta[c]);
       double sinTerm = sin(theta[b]) * sin(theta[c]);
 
-      if(angleInRing[b][c]) {
-        double bfcTheta = CalcTheta(newMol, bonded[b], focus, bonded[c]);
-        double ang = acos((cos(bfcTheta) - cosTerm) / sinTerm) + phi[c];
+      if(angleInRing[b][b] || angleInRing[b][c]) {
+        double ang = CalcOldPhi(newMol, bonded[b], focus);
+        double bfcRing = CalcTheta(newMol, bonded[b], focus, bonded[c]);
+	double bfcTheta = acos(sinTerm * cos(ang - phi[c]) + cosTerm);
         std::fill_n(angles, nTrials, ang);
-        if(abs(ang) > 2.0 * M_PI) {
-          std::cout << "Error: Cannot Construct ring with flexible angle for " <<
+        if(abs(bfcRing - bfcTheta) > 0.01) {
+          std::cout << "Error: Cannot Construct ring frame " <<
             newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
             newMol.GetKind().atomTypeNames[focus] << " " <<
             newMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
@@ -398,8 +401,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
     #pragma omp parallel for default(shared) private(i) reduction(+:stepWeight)
 #endif
     for (i = 0; i < nTrials; ++i) {
-      weights[i] = exp(-1 * data->ff.beta * (energies[i] +
-                                             nonbonded_1_3[i]));
+      weights[i] = exp(-1 * data->ff.beta * (energies[i] + nonbonded_1_3[i]));
       stepWeight += weights[i];
     }
 
@@ -431,17 +433,9 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
       double cosTerm = cos(theta[b]) * cos(theta[c]);
       double sinTerm = sin(theta[b]) * sin(theta[c]);
 
-      if(angleInRing[b][c]) {
-        double bfcTheta = CalcTheta(oldMol, bonded[b], focus, bonded[c]);
-        double ang = acos((cos(bfcTheta) - cosTerm) / sinTerm) + phi[c];
+      if(angleInRing[b][b] || angleInRing[b][c]) {
+        double ang = phi[b];
         std::fill_n(angles, nTrials, ang);
-        if(abs(ang) > 2.0 * M_PI) {
-          std::cout << "Error: Cannot Construct ring with flexible angle for " <<
-            oldMol.GetKind().atomTypeNames[bonded[b]] << " " <<
-            oldMol.GetKind().atomTypeNames[focus] << " " <<
-            oldMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
-          exit(EXIT_FAILURE);
-        }
         break;
       } else if (data->ff.angles->AngleFixed(angleKinds[b][c])) {
         double bfcTheta = data->ff.angles->Angle(angleKinds[b][c]);
@@ -478,4 +472,38 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
     phiWeight[b] += stepWeight;
   }
 }
+
+void DCHedronCycle::SetBasis(TrialMol& mol, uint p1, uint p2)
+{
+  //Calculate the dihedral using bCoords
+  const XYZArray &coords = mol.GetBCoords();
+  //W is unit vec of p1->p2
+  XYZ wVec = coords.Difference(p2, p1);
+  wVec.Normalize();
+  XYZ uVec;
+  //check to make sure our W isn't in line with the standard X Axis
+  if (abs(wVec.x) < 0.8) {
+    //V will be W x the standard X unit vec
+    uVec = XYZ(1.0, 0.0, 0.0);
+  } else {
+    //V will be W x the standard Y unit vec
+    uVec = XYZ(0.0, 1.0, 0.0);
+  }
+  XYZ vVec = geom::Cross(wVec, uVec);
+  vVec.Normalize();
+  //U is unit vec perpendicular to both V and W
+  uVec = geom::Cross(vVec, wVec);
+  growthToWorld.BasisRotation(uVec, vVec, wVec);
+  worldToGrowth = growthToWorld.Inverse();
+}
+
+double DCHedronCycle::CalcOldPhi(TrialMol& mol, uint atom, uint lastAtom) const
+{
+  //Calculate the dihedral using bCoords
+  const XYZArray &coords = mol.GetBCoords();
+  XYZ diff = coords.Difference(atom, lastAtom);
+  XYZ growthCoords = worldToGrowth.Apply(diff);
+  return atan2(growthCoords.y, growthCoords.x);
+}
+
 }

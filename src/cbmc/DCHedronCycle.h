@@ -8,6 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define DCHEDRONCYCLE_H
 #include "DCComponent.h"
 #include "CBMC.h"
+#include "TransformMatrix.h"
 
 namespace mol_setup
 {
@@ -77,6 +78,14 @@ private:
   void ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTrials);
   //to calculate the angle in the ring from bCoords or tCoords a0-a1-a2
   double CalcTheta(TrialMol& mol, const uint a0, const uint a1, const uint a2);
+  //!Sets an orthonormal basis for coordinate conversion.
+  /*!\param p1 Index of focus
+   * \param p2 Index of prev
+   */
+  void SetBasis(TrialMol& mol, uint p1, uint p2);
+  //!Calculates theta and phi coords for atom in the current basis
+  //!centered on lastAtom. phi in (-pi, pi]
+  double CalcOldPhi(TrialMol& mol, uint atom, uint lastAtom) const;
 
   DCData* data;
   uint focus, prev;
@@ -96,7 +105,9 @@ private:
   double phi[MAX_BONDS];
   double phiWeight[MAX_BONDS];
   double bendEnergy, oneThree;
-  double anchorBond, anchorBondOld;
+  double anchorBond, anchorBondOld; 
+  RotationMatrix growthToWorld;
+  RotationMatrix worldToGrowth;
 };
 }
 
