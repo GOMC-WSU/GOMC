@@ -356,7 +356,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
         double bfcRing = CalcTheta(newMol, bonded[b], focus, bonded[c]);
 	double bfcTheta = acos(sinTerm * cos(ang - phi[c]) + cosTerm);
         std::fill_n(angles, nTrials, ang);
-        if(abs(bfcRing - bfcTheta) > 0.01) {
+        if(angleInRing[b][c] && abs(bfcRing - bfcTheta) > 0.01) {
           std::cout << "Error: Cannot Construct ring frame " <<
             newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
             newMol.GetKind().atomTypeNames[focus] << " " <<
