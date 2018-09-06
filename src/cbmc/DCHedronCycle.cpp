@@ -155,11 +155,11 @@ void DCHedronCycle::GenerateAnglesNew(TrialMol& newMol, uint molIndex,
 {
   double* nonbonded_1_3 =  data->nonbonded_1_3;
   int i;
-  double distSq, thetaFix;
-  bool angleFix = false;
+  double distSq;
+  bool angleFix = data->ff.angles->AngleFixed(kind);
   std::fill_n(nonbonded_1_3, nTrials, 0.0);
   //use backup coordinate to find theta and phi of the ring
-  if(angleInRing[bType][bType]) {
+  if(angleInRing[bType][bType] || angleFix) {
     double th = CalcTheta(newMol, bonded[bType], focus, prev);
     std::fill_n(data->angles, nTrials, th);
     double en = data->ff.angles->Calc(kind, th);
@@ -172,16 +172,8 @@ void DCHedronCycle::GenerateAnglesNew(TrialMol& newMol, uint molIndex,
     return;
   }
 
-  if(data->ff.angles->AngleFixed(kind)) {
-    angleFix = true;
-    thetaFix = data->ff.angles->Angle(kind);
-  }
-
   for (i = 0; i < nTrials; ++i) {
-    if(angleFix)
-      data->angles[i] = thetaFix;
-    else
-      data->angles[i] = data->prng.rand(M_PI);
+    data->angles[i] = data->prng.rand(M_PI);
   }
 
 #ifdef _OPENMP
@@ -203,11 +195,11 @@ void DCHedronCycle::GenerateAnglesOld(TrialMol& oldMol, uint molIndex,
 {
   double* nonbonded_1_3 =  data->nonbonded_1_3;
   int i;
-  double distSq, thetaFix;
-  bool angleFix = false;
+  double distSq;
+  bool angleFix = data->ff.angles->AngleFixed(kind);
   std::fill_n(nonbonded_1_3, nTrials, 0.0);
   //use backup coordinate to find theta and phi of the ring
-  if(angleInRing[bType][bType]) {
+  if(angleInRing[bType][bType] || angleFix) {
     double th = CalcTheta(oldMol, bonded[bType], focus, prev);
     std::fill_n(data->angles, nTrials, th);
     double en = data->ff.angles->Calc(kind, th);
@@ -220,16 +212,8 @@ void DCHedronCycle::GenerateAnglesOld(TrialMol& oldMol, uint molIndex,
     return;
   }
 
-  if(data->ff.angles->AngleFixed(kind)) {
-    angleFix = true;
-    thetaFix = data->ff.angles->Angle(kind);
-  }
-
   for (i = 0; i < nTrials; ++i) {
-    if(angleFix)
-      data->angles[i] = thetaFix;
-    else
-      data->angles[i] = data->prng.rand(M_PI);
+    data->angles[i] = data->prng.rand(M_PI);
   }
 
 #ifdef _OPENMP
@@ -356,8 +340,9 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
     for (uint c = 0; c < b; ++c) {
       double cosTerm = cos(theta[b]) * cos(theta[c]);
       double sinTerm = sin(theta[b]) * sin(theta[c]);
+      bool angleFix = data->ff.angles->AngleFixed(angleKinds[b][c]);
 
-      if(angleInRing[b][b] || angleInRing[b][c]) {
+      if(angleInRing[b][b] || angleInRing[b][c] || angleFix) {
         double bfcRing = CalcTheta(newMol, bonded[b], focus, bonded[c]);
 	if(prevInRing) {
 	  double ang = CalcOldPhi(newMol, bonded[b], focus);
@@ -373,28 +358,17 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
 	} else {
 	  double ang = acos((cos(bfcRing) - cosTerm) / sinTerm) + phi[c];
 	  std::fill_n(angles, nTrials, ang);
-	  if(abs(ang) > 2.0 * M_PI) {
-	    std::cout << "Error: Cannot Construct ring frame " <<
-	      newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
-	      newMol.GetKind().atomTypeNames[focus] << " " <<
-	      newMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
+	  if(abs(ang) > 2.0 * M_PI || isnan(ang)) {
+	    std::cout << "Error: Cannot Construct Angle " <<
+	      newMol.GetKind().atomNames[bonded[b]] << " " <<
+	      newMol.GetKind().atomNames[focus] << " " <<
+	      newMol.GetKind().atomNames[bonded[c]] << " !\n";
+	    std::cout << "Note: This issue might happened due to defining fix angle.\n";
 	    exit(EXIT_FAILURE);
 	  }
 	}
         break;
-      } else if (data->ff.angles->AngleFixed(angleKinds[b][c])) {
-        double bfcTheta = data->ff.angles->Angle(angleKinds[b][c]);
-        double ang = acos((cos(bfcTheta) - cosTerm) / sinTerm) + phi[c];
-        std::fill_n(angles, nTrials, ang);
-        if(abs(ang) > 2.0 * M_PI) {
-          std::cout << "Error: Cannot constrain fix angle for " <<
-            newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
-            newMol.GetKind().atomTypeNames[focus] << " " <<
-            newMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
-          exit(EXIT_FAILURE);
-        }
-        break;
-      }
+      } 
     }
 
 
@@ -434,7 +408,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
 //Calculate OldMol Bond Energy &
 //Calculate phi weight for nTrials using actual theta of OldMol
 void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
-                                    uint molIndex)
+                                         uint molIndex)
 {
   double* angles = data->angles;
   IncorporateOld(oldMol, molIndex);
@@ -450,8 +424,9 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
     for (uint c = 0; c < b; ++c) {
       double cosTerm = cos(theta[b]) * cos(theta[c]);
       double sinTerm = sin(theta[b]) * sin(theta[c]);
+      bool angleFix = data->ff.angles->AngleFixed(angleKinds[b][c]);
 
-      if(angleInRing[b][b] || angleInRing[b][c]) {
+      if(angleInRing[b][b] || angleInRing[b][c] || angleFix) {
         if(prevInRing) {
           double ang = phi[b];
           std::fill_n(angles, nTrials, ang);
@@ -459,28 +434,17 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
           double bfcRing = CalcTheta(oldMol, bonded[b], focus, bonded[c]);
 	  double ang = acos((cos(bfcRing) - cosTerm) / sinTerm) + phi[c];
 	  std::fill_n(angles, nTrials, ang);
-	  if(abs(ang) > 2.0 * M_PI) {
-	    std::cout << "Error: Cannot Construct ring frame " <<
-	      oldMol.GetKind().atomTypeNames[bonded[b]] << " " <<
-	      oldMol.GetKind().atomTypeNames[focus] << " " <<
-	      oldMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
+	  if(abs(ang) > 2.0 * M_PI || isnan(ang)) {
+	    std::cout << "Error: Cannot Construct Angle" <<
+	      oldMol.GetKind().atomNames[bonded[b]] << " " <<
+	      oldMol.GetKind().atomNames[focus] << " " <<
+	      oldMol.GetKind().atomNames[bonded[c]] << " !\n";
+	    std::cout << "Note: This issue might happened due to defining fix angle.\n";
 	    exit(EXIT_FAILURE);
 	  }
         }
         break;
-      } else if (data->ff.angles->AngleFixed(angleKinds[b][c])) {
-        double bfcTheta = data->ff.angles->Angle(angleKinds[b][c]);
-        double ang = acos((cos(bfcTheta) - cosTerm) / sinTerm) + phi[c];
-        std::fill_n(angles, nTrials, ang);
-        if(abs(ang) > 2.0 * M_PI) {
-          std::cout << "Error: Cannot constrain fix angle for " <<
-            oldMol.GetKind().atomTypeNames[bonded[b]] << " " <<
-            oldMol.GetKind().atomTypeNames[focus] << " " <<
-            oldMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
-          exit(EXIT_FAILURE);
-        }
-        break;
-      }
+      } 
     }
 
     for (uint i = 0; i < nTrials; ++i) {
