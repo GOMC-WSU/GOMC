@@ -327,37 +327,44 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
     std::fill_n(nonbonded_1_3, nTrials, 0.0);
     //pick "twist" angles
     for (uint i = 0; i < nTrials; ++i) {
-      angles[i] = data->prng.rand(M_PI * 2);
+      angles[i] = data->prng.rand(M_PI);
     }
 
     //modify the twist angle if it was fixed or was part of ring
     for (uint c = 0; c < b; ++c) {
+      bool flip = false;
       double cosTerm = cos(theta[b]) * cos(theta[c]);
       double sinTerm = sin(theta[b]) * sin(theta[c]);
       bool angleFix = data->ff.angles->AngleFixed(angleKinds[b][c]);
+      //tan2 output is [-pi, pi], acos output is [0, pi]
+      //Need to determine if we want to use ang or ang+2pi
+      double phiDiff = CalcOldPhi(newMol, bonded[b], focus) -
+                      CalcOldPhi(newMol, bonded[c], focus);
+      phiDiff += (phiDiff < 0.0 ? M_PI : -M_PI);
+      flip = (phiDiff > 0.0 ? true : false);
 
       if(angleInRing[b][b] || angleInRing[b][c] || angleFix) {
         double bfcRing = CalcTheta(newMol, bonded[b], focus, bonded[c]);
-	double ang = acos((cos(bfcRing) - cosTerm) / sinTerm);
-	//tan2 output is [-pi, pi], acos output is [0, pi]
-	//Need to determine if we want to use ang or -ang
-	double phiDiff = CalcOldPhi(newMol, bonded[b], focus) -
-	                 CalcOldPhi(newMol, bonded[c], focus);
-	phiDiff += (phiDiff < 0.0 ? M_PI : -M_PI);
-	ang *= (phiDiff > 0.0 ? -1.0 : 1.0);
-	ang += phi[c];
-	std::fill_n(angles, nTrials, ang);
-	if(isnan(ang)) {
-	  std::cout << "Error: Cannot Construct Angle " <<
-	    newMol.GetKind().atomNames[bonded[b]] << " " <<
-	    newMol.GetKind().atomNames[focus] << " " <<
-	    newMol.GetKind().atomNames[bonded[c]] << " !\n";
-	  if(angleFix)
-	    std::cout << "Note: This issue might happened due to defining " <<
-	      "fix angle.\n";
-	  exit(EXIT_FAILURE);
-	}
-	break;
+        double ang = acos((cos(bfcRing) - cosTerm) / sinTerm);
+        ang *= (flip ? -1.0 : 1.0);
+        ang += phi[c];
+        std::fill_n(angles, nTrials, ang);
+        if(isnan(ang)) {
+          std::cout << "NewMol: Error: Cannot Construct Angle " <<
+            newMol.GetKind().atomNames[bonded[b]] << " " <<
+            newMol.GetKind().atomNames[focus] << " " <<
+            newMol.GetKind().atomNames[bonded[c]] << " !\n";
+          if(angleFix) {
+            std::cout << "Note: This issue might happened due to defining " <<
+              "fix angle.\n";
+          }
+          exit(EXIT_FAILURE);
+        }
+        break;
+      } else if (flip) {
+        for (uint i = 0; i < nTrials; ++i) {
+          angles[i] *= -1.0;
+        }
       }
     }
 
@@ -407,36 +414,43 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
     double stepWeight = 0.0;
     //pick "twist" angles
     for (uint i = 0; i < nTrials; ++i) {
-      angles[i]  = data->prng.rand(M_PI * 2);
+      angles[i]  = data->prng.rand(M_PI);
     }
 
     //modify the twist angle if it was fixed or was part of ring
     for (uint c = 0; c < b; ++c) {
+      bool flip = false;
       double cosTerm = cos(theta[b]) * cos(theta[c]);
       double sinTerm = sin(theta[b]) * sin(theta[c]);
       bool angleFix = data->ff.angles->AngleFixed(angleKinds[b][c]);
+      double phiDiff = phi[b] - phi[c];
+      phiDiff += (phiDiff < 0.0 ? M_PI : -M_PI);
+      flip = (phiDiff > 0.0 ? true : false);
 
       if(angleInRing[b][b] || angleInRing[b][c] || angleFix) {
         double bfcRing = CalcTheta(oldMol, bonded[b], focus, bonded[c]);
-	//tan2 output is [-pi, pi], acos output is [0, pi]
-	//Need to determine if we want to use ang or -ang
-	double ang = acos((cos(bfcRing) - cosTerm) / sinTerm);
-	double phiDiff = phi[b] - phi[c];
-	phiDiff += (phiDiff < 0.0 ? M_PI : -M_PI);
-	ang *= (phiDiff > 0.0 ? -1.0 : 1.0);
-	ang += phi[c];
-	std::fill_n(angles, nTrials, ang);
-	if(isnan(ang)) {
-	  std::cout << "Error: Cannot Construct Angle" <<
-	    oldMol.GetKind().atomNames[bonded[b]] << " " <<
-	    oldMol.GetKind().atomNames[focus] << " " <<
-	    oldMol.GetKind().atomNames[bonded[c]] << " !\n";
-	  if(angleFix)
-	    std::cout << "Note: This issue might happened due to defining " <<
-	      "fix angle.\n";
-	  exit(EXIT_FAILURE);
+        //tan2 output is [-pi, pi], acos output is [0, pi]
+        //Need to determine if we want to use ang or ang+2pi
+        double ang = acos((cos(bfcRing) - cosTerm) / sinTerm);
+        ang *= (flip ? -1.0 : 1.0);
+        ang += phi[c];
+        std::fill_n(angles, nTrials, ang);
+        if(isnan(ang)) {
+          std::cout << "oldMol: Error: Cannot Construct Angle" <<
+            oldMol.GetKind().atomNames[bonded[b]] << " " <<
+            oldMol.GetKind().atomNames[focus] << " " <<
+            oldMol.GetKind().atomNames[bonded[c]] << " !\n";
+          if(angleFix) {
+            std::cout << "Note: This issue might happened due to defining " <<
+              "fix angle.\n";
+          }
+          exit(EXIT_FAILURE);
         }
-	break;
+        break;
+      } else if (flip) {
+        for (uint i = 0; i < nTrials; ++i) {
+          angles[i] *= -1.0;
+        }
       }
     }
        
