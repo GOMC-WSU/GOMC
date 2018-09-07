@@ -345,7 +345,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
     for (uint c = 0; c < b; ++c) {
       bool angleFix = data->ff.angles->AngleFixed(angleKinds[b][c]); 
 
-      if(angleInRing[b][b] || angleInRing[b][c] || angleFix) {
+      if(angleInRing[b][c] || angleFix) {
         double cosTerm = cos(theta[b]) * cos(theta[c]);
         double sinTerm = sin(theta[b]) * sin(theta[c]);
         double bfcRing = CalcTheta(newMol, bonded[b], focus, bonded[c]);
@@ -435,7 +435,7 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
     for (uint c = 0; c < b; ++c) {
       bool angleFix = data->ff.angles->AngleFixed(angleKinds[b][c]);
 
-      if(angleInRing[b][b] || angleInRing[b][c] || angleFix) {
+      if(angleInRing[b][c] || angleFix) {
         double cosTerm = cos(theta[b]) * cos(theta[c]);
         double sinTerm = sin(theta[b]) * sin(theta[c]);
         double bfcRing = CalcTheta(oldMol, bonded[b], focus, bonded[c]);
