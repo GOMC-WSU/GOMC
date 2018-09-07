@@ -321,6 +321,8 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
 
   SetBasis(newMol, focus, prev);
   phi[0] = 0.0;
+  //reference phi
+  double refPhi = CalcOldPhi(newMol, bonded[0], focus);
 
   for (uint b = 1; b < nBonds; ++b) {
     std::fill_n(energies, nTrials, 0.0);
@@ -330,21 +332,22 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
       angles[i] = data->prng.rand(M_PI);
     }
 
-    double refPhi = CalcOldPhi(newMol, bonded[0], focus);
+    //tan2 output is [-pi, pi], acos output is [0, pi]
+    //Need to determine if we want to use ang or -ang
+    //Use phi[0] to compare it
+    double phiDiff = CalcOldPhi(newMol, bonded[b], focus) - refPhi;
+    phiDiff += (phiDiff < 0.0 ? M_PI : -M_PI);
+    double flip = (phiDiff > 0.0 ? true : false);
+    //avoid flipping twice for each b
+    bool fliped = false;
+
     //modify the twist angle if it was fixed or was part of ring
     for (uint c = 0; c < b; ++c) {
-      bool flip = false;
-      double cosTerm = cos(theta[b]) * cos(theta[c]);
-      double sinTerm = sin(theta[b]) * sin(theta[c]);
-      bool angleFix = data->ff.angles->AngleFixed(angleKinds[b][c]);
-      //tan2 output is [-pi, pi], acos output is [0, pi]
-      //Need to determine if we want to use ang or -ang
-      //Use phi[0] to compare it
-      double phiDiff = CalcOldPhi(newMol, bonded[b], focus) - refPhi;
-      phiDiff += (phiDiff < 0.0 ? M_PI : -M_PI);
-      flip = (phiDiff > 0.0 ? true : false);
+      bool angleFix = data->ff.angles->AngleFixed(angleKinds[b][c]); 
 
       if(angleInRing[b][b] || angleInRing[b][c] || angleFix) {
+        double cosTerm = cos(theta[b]) * cos(theta[c]);
+        double sinTerm = sin(theta[b]) * sin(theta[c]);
         double bfcRing = CalcTheta(newMol, bonded[b], focus, bonded[c]);
         double ang = acos((cos(bfcRing) - cosTerm) / sinTerm);
         ang *= (flip ? -1.0 : 1.0);
@@ -362,10 +365,11 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
           exit(EXIT_FAILURE);
         }
         break;
-      } else if (flip) {
+      } else if (flip && !fliped) {
         for (uint i = 0; i < nTrials; ++i) {
           angles[i] *= -1.0;
         }
+        fliped = true;
       }
     }
 
@@ -418,21 +422,23 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
       angles[i]  = data->prng.rand(M_PI);
     }
 
+    //tan2 output is [-pi, pi], acos output is [0, pi]
+    //Need to determine if we want to use ang or -ang
+    //Use phi[0] to compare it
+    double phiDiff = phi[b] - phi[0];
+    phiDiff += (phiDiff < 0.0 ? M_PI : -M_PI);
+    bool flip = (phiDiff > 0.0 ? true : false);
+    //avoid flipping twice for each b
+    bool fliped = false;
+
     //modify the twist angle if it was fixed or was part of ring
     for (uint c = 0; c < b; ++c) {
-      bool flip = false;
-      double cosTerm = cos(theta[b]) * cos(theta[c]);
-      double sinTerm = sin(theta[b]) * sin(theta[c]);
       bool angleFix = data->ff.angles->AngleFixed(angleKinds[b][c]);
-      double phiDiff = phi[b] - phi[0];
-      phiDiff += (phiDiff < 0.0 ? M_PI : -M_PI);
-      flip = (phiDiff > 0.0 ? true : false);
 
       if(angleInRing[b][b] || angleInRing[b][c] || angleFix) {
+        double cosTerm = cos(theta[b]) * cos(theta[c]);
+        double sinTerm = sin(theta[b]) * sin(theta[c]);
         double bfcRing = CalcTheta(oldMol, bonded[b], focus, bonded[c]);
-        //tan2 output is [-pi, pi], acos output is [0, pi]
-        //Need to determine if we want to use ang or -ang
-        //Use phi[0] to compare it
         double ang = acos((cos(bfcRing) - cosTerm) / sinTerm);
         ang *= (flip ? -1.0 : 1.0);
         ang += phi[c];
@@ -449,10 +455,11 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
           exit(EXIT_FAILURE);
         }
         break;
-      } else if (flip) {
+      } else if (flip && !fliped) {
         for (uint i = 0; i < nTrials; ++i) {
           angles[i] *= -1.0;
         }
+        fliped = true;
       }
     }
        
