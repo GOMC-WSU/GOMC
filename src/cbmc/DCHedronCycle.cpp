@@ -330,6 +330,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
       angles[i] = data->prng.rand(M_PI);
     }
 
+    double refPhi = CalcOldPhi(newMol, bonded[0], focus);
     //modify the twist angle if it was fixed or was part of ring
     for (uint c = 0; c < b; ++c) {
       bool flip = false;
@@ -337,9 +338,9 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
       double sinTerm = sin(theta[b]) * sin(theta[c]);
       bool angleFix = data->ff.angles->AngleFixed(angleKinds[b][c]);
       //tan2 output is [-pi, pi], acos output is [0, pi]
-      //Need to determine if we want to use ang or ang+2pi
-      double phiDiff = CalcOldPhi(newMol, bonded[b], focus) -
-                      CalcOldPhi(newMol, bonded[c], focus);
+      //Need to determine if we want to use ang or -ang
+      //Use phi[0] to compare it
+      double phiDiff = CalcOldPhi(newMol, bonded[b], focus) - refPhi;
       phiDiff += (phiDiff < 0.0 ? M_PI : -M_PI);
       flip = (phiDiff > 0.0 ? true : false);
 
@@ -423,14 +424,15 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
       double cosTerm = cos(theta[b]) * cos(theta[c]);
       double sinTerm = sin(theta[b]) * sin(theta[c]);
       bool angleFix = data->ff.angles->AngleFixed(angleKinds[b][c]);
-      double phiDiff = phi[b] - phi[c];
+      double phiDiff = phi[b] - phi[0];
       phiDiff += (phiDiff < 0.0 ? M_PI : -M_PI);
       flip = (phiDiff > 0.0 ? true : false);
 
       if(angleInRing[b][b] || angleInRing[b][c] || angleFix) {
         double bfcRing = CalcTheta(oldMol, bonded[b], focus, bonded[c]);
         //tan2 output is [-pi, pi], acos output is [0, pi]
-        //Need to determine if we want to use ang or ang+2pi
+        //Need to determine if we want to use ang or -ang
+        //Use phi[0] to compare it
         double ang = acos((cos(bfcRing) - cosTerm) / sinTerm);
         ang *= (flip ? -1.0 : 1.0);
         ang += phi[c];
