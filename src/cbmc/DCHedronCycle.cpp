@@ -351,7 +351,8 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
         double bfcRing = CalcTheta(newMol, bonded[b], focus, bonded[c]);
         double var = (cos(bfcRing) - cosTerm) / sinTerm;
         //To fix the numerical problem for flat molecule
-        var = (var < -1.0 ? -1.0 : var);
+        var = (var > 1.0 && var < 1.1 ? 1.0 : var);
+        var = (var < -1.0 && var > -1.1 ? -1.0 : var);
         double ang = acos(var);
         ang *= (flip ? -1.0 : 1.0);
         ang += phi[c];
@@ -444,7 +445,8 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
         double bfcRing = CalcTheta(oldMol, bonded[b], focus, bonded[c]);
         double var = (cos(bfcRing) - cosTerm) / sinTerm;
         //To fix the numerical problem for flat molecule
-        var = (var < -1.0 ? -1.0 : var);
+        var = (var > 1.0 && var < 1.1 ? 1.0 : var);
+        var = (var < -1.0 && var > -1.1 ? -1.0 : var);
         double ang = acos(var);
         ang *= (flip ? -1.0 : 1.0);
         ang += phi[c];

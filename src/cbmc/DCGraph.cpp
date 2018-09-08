@@ -26,6 +26,8 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
   const MolKind setupKind = it->second;
 
   idExchange = new DCRotateCOM(&data, setupKind);
+  //init the coordinate
+  coords.Init(setupKind.atoms.size());
 
   std::vector<uint> atomToNode(setupKind.atoms.size(), 0);
   std::vector<uint> bondCount(setupKind.atoms.size(), 0);
@@ -93,102 +95,80 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
 {
   using namespace mol_setup;
   using namespace std;
-  vector<Node> tempNodes = nodes;
-  vector<bool> visited(kind.atoms.size(), false);
-  //Start with atoms that form dihedral
-  while(!tempNodes.empty()) {
-    //start from last node, find the atom index of the node
-    uint a0 = tempNodes.back().atomIndex;
-    //Find the dihedrals that end with a0
-    vector<Dihedral> dihs = AtomEndDihs(kind, a0);
-    while(!dihs.empty()) {
-      //find the last atomindex in the dihedral
-      uint a1 = dihs.back().a1;
-      uint a2 = dihs.back().a2;
-      uint a3 = dihs.back().a3;
+  std::vector<uint> bondCount(kind.atoms.size(), 0);
+  vector<Bond> allBonds = BondsAll(kind);
+  //Count the number of bonds for each atom
+  for (uint b = 0; b < allBonds.size(); ++b) {
+    ++bondCount[allBonds[b].a0];
+    ++bondCount[allBonds[b].a1];
+  }
 
-      if(!(visited[a0] && visited[a1] && visited[a2] && visited[a3])) {
-        bool fixAngle = false;
-        //Find all the angle that forms x-a0-a1
-        vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
-        //Find all the angle that forms a2-a3-x
-        vector<Angle> tempAng = AtomMidEndAngles(kind, a3, a2);
-        //merge all the angle
-        angle.insert(angle.end(), tempAng.begin(), tempAng.end());
-        //Check to see if any of these angles are fixed or not.
-        for(uint a = 0; a < angle.size(); a++) {
-          if(data.ff.angles->AngleFixed(angle[a].kind)) {
-            fixAngle = true;
-          }
-        }
-        //If there was no fix angles, we create DCCrankShaftDih
-        if(!fixAngle) {
-          shaftNodesDih.push_back(new DCCrankShaftDih(&data, kind, a0, a1, a2, a3));
-        }
-        visited[a0] = true;
-        visited[a1] = true;
-        visited[a2] = true;
-        visited[a3] = true;
-      }
-      dihs.pop_back();	
+  //Start with atoms that form dihedral
+  vector<Dihedral> dihs = DihsAll(kind);
+  for(uint d = 0; d < dihs.size(); d++) {
+    //find the last atomindex in the dihedral
+    uint a0 = dihs[d].a0;
+    uint a1 = dihs[d].a1;
+    uint a2 = dihs[d].a2;
+    uint a3 = dihs[d].a3;
+    //ignore single bonded atoms
+    if(bondCount[a0] == 1 && bondCount[a3] == 1) {
+      continue;
     }
-    tempNodes.pop_back();
+
+    bool fixAngle = false;
+    //Find all the angle that forms x-a0-a1
+    vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
+    //Find all the angle that forms a2-a3-x
+    vector<Angle> tempAng = AtomMidEndAngles(kind, a3, a2);
+    //merge all the angle
+    angle.insert(angle.end(), tempAng.begin(), tempAng.end());
+    //Check to see if any of these angles are fixed or not.
+    for(uint a = 0; a < angle.size(); a++) {
+      if(data.ff.angles->AngleFixed(angle[a].kind)) {
+        fixAngle = true;
+      }
+    }
+    
+    //If there was no fix angles, we create DCCrankShaftDih
+    if(!fixAngle) {
+      shaftNodes.push_back(new DCCrankShaftDih(&data, kind, a0, a1, a2, a3));
+    }
   }
 
   //Continue with the atoms that form angles.
-  tempNodes = nodes;
-  visited.assign(kind.atoms.size(), false);
-  while(!tempNodes.empty()) {
-    //start from last node, find the atom index of the node
-    uint a0 = tempNodes.back().atomIndex;
-    //Find the angle that end with a0
-    vector<Angle> angles = AtomEndAngles(kind, a0);
-    while(!angles.empty()) {
-      //find the last atomindex in the angle
-      uint a1 = angles.back().a1;
-      uint a2 = angles.back().a2;
+  vector<Angle> angles = AngsAll(kind);
+  for(uint a = 0; a < angles.size(); a++) {
+    //find the last atomindex in the angle
+    uint a0 = angles[a].a0;
+    uint a1 = angles[a].a1;
+    uint a2 = angles[a].a2;
+    //ignore single bonded atoms
+    if(bondCount[a0] == 1 && bondCount[a2] == 1) {
+      continue;
+    }
 
-      if(!(visited[a0] && visited[a1] && visited[a2])) {
-        bool fixAngle = false;
-        //Find all the angle that forms x-a0-a1
-        vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
-        //Find all the angle that forms a1-a2-x
-        vector<Angle> tempAng = AtomMidEndAngles(kind, a2, a1);
-        //merge all the angle
-        angle.insert(angle.end(), tempAng.begin(), tempAng.end());
-        //Check to see if any of these angles are fixed or not.
-        for(uint a = 0; a < angle.size(); a++) {
-          if(data.ff.angles->AngleFixed(angle[a].kind)) {
-            fixAngle = true;
-          }
-        }
-        //If there was no fix angles, we create DCCrankShaftAngle
-        if(!fixAngle) {
-          shaftNodesAng.push_back(new DCCrankShaftAng(&data, kind, a0, a1, a2));
-        }
-        visited[a0] = true;
-        visited[a1] = true;
-        visited[a2] = true;
+    bool fixAngle = false;
+    //Find all the angle that forms x-a0-a1
+    vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
+    //Find all the angle that forms a1-a2-x
+    vector<Angle> tempAng = AtomMidEndAngles(kind, a2, a1);
+    //merge all the angle
+    angle.insert(angle.end(), tempAng.begin(), tempAng.end());
+    //Check to see if any of these angles are fixed or not.
+    for(uint i = 0; i < angle.size(); i++) {
+      if(data.ff.angles->AngleFixed(angle[i].kind)) {
+        fixAngle = true;
       }
-      angles.pop_back();	
     }
-    tempNodes.pop_back();
-  }
 
-  hasCrankShaft = true;
-  if((shaftNodesAng.size() == 0) || (shaftNodesDih.size() == 0)) {
-    if(shaftNodesAng.size() == 0) {
-      shaftNodesAng = shaftNodesDih;
-    } else {
-      shaftNodesDih = shaftNodesAng;
+    //If there was no fix angles, we create DCCrankShaftAngle
+    if(!fixAngle) {
+      shaftNodes.push_back(new DCCrankShaftAng(&data, kind, a0, a1, a2));
     }
   }
 
-  if((shaftNodesAng.size() == 0) && (shaftNodesDih.size() == 0)) {
-    hasCrankShaft = false;
-  }
-
-
+  hasCrankShaft = (shaftNodes.size() != 0);
 }
 
 void DCGraph::CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
@@ -198,9 +178,9 @@ void DCGraph::CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
     //Instead we perform Regrowth move within the same box
     Regrowth(oldMol, newMol, molIndex);
   } else {
-    //Decide to perform rotation around two atoms that form angle or dihedral
-   std::vector<DCComponent*>& shaftNodes = data.prng.randInt(1) ?
-     shaftNodesDih : shaftNodesAng;
+    //Set tCoords to coordinate of actual molecule, it will be modified
+    oldMol.GetCoords().CopyRange(coords, 0, 0, coords.Count());
+    newMol.SetCoords(coords, 0);
     //Pick a random node pair
     uint pick = data.prng.randIntExc(shaftNodes.size());
     shaftNodes[pick]->PrepareNew(newMol, molIndex);
@@ -604,12 +584,8 @@ DCGraph::~DCGraph()
     }
   }
 
-  for(uint i = 0; i < shaftNodesDih.size(); i++) {
-      delete shaftNodesDih[i];
-  }
-
-  for(uint i = 0; i < shaftNodesAng.size(); i++) {
-      delete shaftNodesAng[i];
+  for(uint i = 0; i < shaftNodes.size(); i++) {
+    delete shaftNodes[i];
   }
 }
 
