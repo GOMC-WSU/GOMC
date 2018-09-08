@@ -118,6 +118,16 @@ std::vector<Dihedral> mol_setup::DihsOnBond(const MolKind& molKind, uint atom, u
   return result;
 }
 
+std::vector<Dihedral> mol_setup::DihsAll(const MolKind& molKind)
+{
+  std::vector<Dihedral> result;
+  typedef std::vector<Dihedral>::const_iterator Diter;
+  for (Diter it = molKind.dihedrals.begin(), end = molKind.dihedrals.end(); it < end; ++it) {
+    result.push_back(*it);
+  }
+  return result;
+}
+
 //List of angles with atom at one end, atom first
 std::vector<Angle> mol_setup::AtomEndAngles(const MolKind& molKind, uint atom)
 {
@@ -163,6 +173,16 @@ std::vector<Angle> mol_setup::AtomMidEndAngles(const MolKind& molKind, uint mid,
   return result;
 }
 
+std::vector<Angle> mol_setup::AngsAll(const MolKind& molKind)
+{
+  std::vector<Angle> result;
+  typedef std::vector<Angle>::const_iterator Aiter;
+  for (Aiter it = molKind.angles.begin(), end = molKind.angles.end(); it < end; ++it) {
+    result.push_back(*it);
+  }
+  return result;
+}
+
 //List of bonds with atom at one end, atom first
 std::vector<Bond> mol_setup::AtomBonds(const MolKind& molKind, uint atom)
 {
@@ -175,6 +195,16 @@ std::vector<Bond> mol_setup::AtomBonds(const MolKind& molKind, uint atom)
     if (it->a1 == atom) {
       std::swap(result.back().a0, result.back().a1);
     }
+  }
+  return result;
+}
+
+std::vector<Bond> mol_setup::BondsAll(const MolKind& molKind)
+{
+  std::vector<Bond> result;
+  typedef std::vector<Bond>::const_iterator Biter;
+  for (Biter it = molKind.bonds.begin(), end = molKind.bonds.end(); it < end; ++it) {
+    result.push_back(*it);
   }
   return result;
 }
