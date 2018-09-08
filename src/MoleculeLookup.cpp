@@ -78,34 +78,29 @@ void MoleculeLookup::TotalAndDensity
 (uint * numByBox, uint * numByKindBox, double * molFractionByKindBox,
  double * densityByKindBox, double const*const volInv) const
 {
-  double invBoxTotal = 0;
-  uint mkIdx1, mkIdx2, sum;
-  sum = mkIdx1 = mkIdx2 = 0;
   for (uint b = 0; b < BOX_TOTAL; ++b) {
-    sum = 0;
     for (uint k = 0; k < numKinds; ++k) {
       uint numMK = NumKindInBox(k, b);
-      numByKindBox[mkIdx1] = numMK;
-      densityByKindBox[mkIdx1] = numByKindBox[mkIdx1] * volInv[b];
-      sum += numMK;
-      ++mkIdx1;
+      uint mkIdx = k + numKinds * b;
+      numByKindBox[mkIdx] = numMK;
+      densityByKindBox[mkIdx] = numMK * volInv[b];
+      numByBox[b] += numMK;
     }
-    numByBox[b] = sum;
+
     //Calculate mol fractions
-    if (sum > 0)
-      invBoxTotal = 1.0 / sum;
     if (numKinds > 1) {
       for (uint k = 0; k < numKinds; ++k) {
-        if (sum > 0) {
-          molFractionByKindBox[mkIdx2] =
-            numByKindBox[mkIdx2] * invBoxTotal;
+        uint mkIdx = k + numKinds * b;
+        if (numByBox[b] > 0) {
+          molFractionByKindBox[mkIdx] = numByKindBox[mkIdx] /
+                                        numByBox[b];
         } else {
-          molFractionByKindBox[mkIdx2] = 0.0;
+          molFractionByKindBox[mkIdx] = 0.0;
         }
-        ++mkIdx2;
       }
     }
   }
+
 }
 
 #ifdef VARIABLE_PARTICLE_NUMBER
