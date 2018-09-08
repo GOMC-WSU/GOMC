@@ -292,16 +292,20 @@ void DCHedron::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTrials)
 
       if (data->ff.angles->AngleFixed(angleKinds[b][c])) {
         double bfcTheta = data->ff.angles->Angle(angleKinds[b][c]);
-        double ang = acos((cos(bfcTheta) - cosTerm) / sinTerm) + phi[c];
+        double var = (cos(bfcTheta) - cosTerm) / sinTerm;
+        //To fix the numerical problem for flat molecule
+        var = (var > 1.0 && var < 1.1 ? 1.0 : var);
+        var = (var < -1.0 && var > -1.1 ? -1.0 : var);
+        double ang = acos(var) + phi[c];
         std::fill_n(angles, nTrials, ang);
-        if(abs(ang) > 2.0 * M_PI) {
+        if(isnan(ang)) {
+          //printf("Val: %2.10f, angle: %2.5f \n", var, ang);
           std::cout << "Error: Cannot constrain fix angle for " <<
             newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
             newMol.GetKind().atomTypeNames[focus] << " " <<
             newMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
           exit(EXIT_FAILURE);
         }
-        break;
       }
     }
 
@@ -362,16 +366,20 @@ void DCHedron::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
 
       if (data->ff.angles->AngleFixed(angleKinds[b][c])) {
         double bfcTheta = data->ff.angles->Angle(angleKinds[b][c]);
-        double ang = acos((cos(bfcTheta) - cosTerm) / sinTerm) + phi[c];
+        double var = (cos(bfcTheta) - cosTerm) / sinTerm;
+        //To fix the numerical problem for flat molecule
+        var = (var > 1.0 && var < 1.1 ? 1.0 : var);
+        var = (var < -1.0 && var > -1.1 ? -1.0 : var);
+        double ang = acos(var) + phi[c];
         std::fill_n(angles, nTrials, ang);
-        if(abs(ang) > 2.0 * M_PI) {
+        if(isnan(ang)) {
+          //printf("Val: %2.10f, angle: %2.5f \n", var, ang);
           std::cout << "Error: Cannot constrain fix angle for " <<
             oldMol.GetKind().atomTypeNames[bonded[b]] << " " <<
             oldMol.GetKind().atomTypeNames[focus] << " " <<
             oldMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
           exit(EXIT_FAILURE);
         }
-        break;
       }
     }
 
