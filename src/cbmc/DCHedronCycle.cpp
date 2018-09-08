@@ -349,15 +349,18 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
         double cosTerm = cos(theta[b]) * cos(theta[c]);
         double sinTerm = sin(theta[b]) * sin(theta[c]);
         double bfcRing = CalcTheta(newMol, bonded[b], focus, bonded[c]);
-        double ang = acos((cos(bfcRing) - cosTerm) / sinTerm);
+        double var = (cos(bfcRing) - cosTerm) / sinTerm;
+        //To fix the numerical problem for flat molecule
+        var = (var < -1.0 ? -1.0 : var);
+        double ang = acos(var);
         ang *= (flip ? -1.0 : 1.0);
         ang += phi[c];
         std::fill_n(angles, nTrials, ang);
         if(isnan(ang)) {
-          std::cout << "NewMol: Error: Cannot Construct Angle " <<
-            newMol.GetKind().atomNames[bonded[b]] << " " <<
-            newMol.GetKind().atomNames[focus] << " " <<
-            newMol.GetKind().atomNames[bonded[c]] << " !\n";
+          std::cout << "Error: Cannot Construct Angle " <<
+            newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
+            newMol.GetKind().atomTypeNames[focus] << " " <<
+            newMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
           if(angleFix) {
             std::cout << "Note: This issue might happened due to defining " <<
               "fix angle.\n";
@@ -439,15 +442,18 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
         double cosTerm = cos(theta[b]) * cos(theta[c]);
         double sinTerm = sin(theta[b]) * sin(theta[c]);
         double bfcRing = CalcTheta(oldMol, bonded[b], focus, bonded[c]);
-        double ang = acos((cos(bfcRing) - cosTerm) / sinTerm);
+        double var = (cos(bfcRing) - cosTerm) / sinTerm;
+        //To fix the numerical problem for flat molecule
+        var = (var < -1.0 ? -1.0 : var);
+        double ang = acos(var);
         ang *= (flip ? -1.0 : 1.0);
         ang += phi[c];
         std::fill_n(angles, nTrials, ang);
         if(isnan(ang)) {
-          std::cout << "oldMol: Error: Cannot Construct Angle" <<
-            oldMol.GetKind().atomNames[bonded[b]] << " " <<
-            oldMol.GetKind().atomNames[focus] << " " <<
-            oldMol.GetKind().atomNames[bonded[c]] << " !\n";
+          std::cout << "Error: Cannot Construct Angle" <<
+            oldMol.GetKind().atomTypeNames[bonded[b]] << " " <<
+            oldMol.GetKind().atomTypeNames[focus] << " " <<
+            oldMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
           if(angleFix) {
             std::cout << "Note: This issue might happened due to defining " <<
               "fix angle.\n";
