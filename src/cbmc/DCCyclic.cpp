@@ -158,62 +158,59 @@ void DCCyclic::InitCrankShaft(const mol_setup::MolKind& kind)
 {
   using namespace mol_setup;
   using namespace std;
-  //Start with the atoms that form angles.
-  vector<Node> tempNodes = nodes;
-  vector<bool> visited(kind.atoms.size(), false);
+  vector<Angle> angles = AngsAll(kind);
+  std::vector<uint> bondCount(totAtom, 0);
+  vector<Bond> allBonds = BondsAll(kind);
+  //Count the number of bonds for each atom
+  for (uint b = 0; b < allBonds.size(); ++b) {
+    ++bondCount[allBonds[b].a0];
+    ++bondCount[allBonds[b].a1];
+  }
 
-  while(!tempNodes.empty()) {
-    //start from last node, find the atom index of the node
-    uint a0 = tempNodes.back().atomIndex;
-    //Find the angle that end with a0
-    vector<Angle> angles = AtomEndAngles(kind, a0);
-    while(!angles.empty()) {
-      //find the last atomindex in the angle
-      uint a1 = angles.back().a1;
-      uint a2 = angles.back().a2;
-
-      if(!(visited[a0] && visited[a1] && visited[a2])) {
-        bool fixAngle = false;
-        //Find all the angle that forms x-a0-a1
-        vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
-        //Find all the angle that forms a1-a2-x
-        vector<Angle> tempAng = AtomMidEndAngles(kind, a2, a1);
-        //merge all the angle
-        angle.insert(angle.end(), tempAng.begin(), tempAng.end());
-        //Check to see if any of these angles are fixed or not.
-        for(uint a = 0; a < angle.size(); a++) {
-          if(data.ff.angles->AngleFixed(angle[a].kind)) {
-            fixAngle = true;
-          }
-        }
-        //Check to see if atoms that are bonded to a1 belongs to same ring or not
-        bool sameRing = false;
-        if(isRing[a1]) {
-          //FInd the atoms that are bonded to a1
-          vector<Bond> bonds = AtomBonds(kind, a1);
-          for(uint b = 0; b < bonds.size(); b++) {
-            uint partner = bonds[b].a1;
-            if((partner == a0) || (partner == a2)) {
-              continue;
-            }
-            if(isRing[partner]) {
-              sameRing |= (ringIdx[a1] == ringIdx[partner]);
-            }
-          }
-        }
-
-        //If there was no fix angles and atom a1 and any atom bonded to a1 are not
-        // in the same ring, we create DCCrankShaftAngle
-        if(!fixAngle && !sameRing) {
-          crankshaft.push_back(new DCCrankShaftAng(&data, kind, a0, a1, a2));
-        }
-        visited[a0] = true;
-        visited[a1] = true;
-        visited[a2] = true;
-      }
-      angles.pop_back();	
+  for(uint a = 0; a < angles.size(); a++) {
+    //find the last atomindex in the angle
+    uint a0 = angles[a].a0;
+    uint a1 = angles[a].a1;
+    uint a2 = angles[a].a2;
+    //ignore single bonded atoms
+    if(bondCount[a0] == 1 && bondCount[a2] == 1) {
+      continue;
     }
-    tempNodes.pop_back();
+
+    bool fixAngle = false;
+    //Find all the angle that forms x-a0-a1
+    vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
+    //Find all the angle that forms a1-a2-x
+    vector<Angle> tempAng = AtomMidEndAngles(kind, a2, a1);
+    //merge all the angle
+    angle.insert(angle.end(), tempAng.begin(), tempAng.end());
+    //Check to see if any of these angles are fixed or not.
+    for(uint i = 0; i < angle.size(); i++) {
+      if(data.ff.angles->AngleFixed(angle[i].kind)) {
+        fixAngle = true;
+      }
+    }
+    //Check to see if atoms that are bonded to a1 belongs to same ring or not
+    bool sameRing = false;
+    if(isRing[a1]) {
+      //FInd the atoms that are bonded to a1
+      vector<Bond> bonds = AtomBonds(kind, a1);
+      for(uint b = 0; b < bonds.size(); b++) {
+        uint partner = bonds[b].a1;
+        if((partner == a0) || (partner == a2)) {
+          continue;
+        }
+        if(isRing[partner]) {
+          sameRing |= (ringIdx[a1] == ringIdx[partner]);
+        }
+      }
+    }
+
+    //If there was no fix angles and atom a1 and any atom bonded to a1 are not
+    // in the same ring, we create DCCrankShaftAngle
+    if(!fixAngle && !sameRing) {
+      crankshaft.push_back(new DCCrankShaftAng(&data, kind, a0, a1, a2));
+    }
   }
 
   hasCrankShaft = (crankshaft.size() != 0);
