@@ -250,7 +250,8 @@ void DCLinkedCycle::BuildNew(TrialMol& newMol, uint molIndex)
   uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
 
   for(uint b = 0; b < hed.NumBond(); ++b) {
-    newMol.AddAtom(hed.Bonded(b), positions[b][winner]);
+    if(!newMol.AtomExists(hed.Bonded(b)))
+      newMol.AddAtom(hed.Bonded(b), positions[b][winner]);
     newMol.AddBonds(hed.Bonded(b), hed.Focus());
   }
 
