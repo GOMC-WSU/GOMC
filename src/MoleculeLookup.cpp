@@ -79,6 +79,7 @@ void MoleculeLookup::TotalAndDensity
  double * densityByKindBox, double const*const volInv) const
 {
   for (uint b = 0; b < BOX_TOTAL; ++b) {
+    numByBox[b] = 0.0;
     for (uint k = 0; k < numKinds; ++k) {
       uint numMK = NumKindInBox(k, b);
       uint mkIdx = k + numKinds * b;
@@ -92,13 +93,14 @@ void MoleculeLookup::TotalAndDensity
       for (uint k = 0; k < numKinds; ++k) {
         uint mkIdx = k + numKinds * b;
         if (numByBox[b] > 0) {
-          molFractionByKindBox[mkIdx] = numByKindBox[mkIdx] /
-                                        numByBox[b];
+          molFractionByKindBox[mkIdx] = (double)numByKindBox[mkIdx] /
+                                        (double)numByBox[b];
         } else {
           molFractionByKindBox[mkIdx] = 0.0;
         }
       }
     }
+
   }
 
 }
