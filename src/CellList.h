@@ -23,6 +23,7 @@ class CellList
 {
 public:
   explicit CellList(const Molecules& mols, BoxDimensions& dims);
+  void SetCutoff();
 
   void RemoveMol(const int molIndex, const int box, const XYZArray& pos);
   void AddMol(const int molIndex, const int box, const XYZArray& pos);
