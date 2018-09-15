@@ -178,6 +178,7 @@ struct ElectroStatic {
   ElectroStatic(void) 
   {
     std::fill_n(cutoffCoulombRead, BOX_TOTAL, false);
+    std::fill_n(cutoffCoulomb, BOX_TOTAL, 0.0);
   }
 };
 
