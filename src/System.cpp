@@ -92,6 +92,7 @@ void System::Init(Setup const& set)
   //particle/molecule ensemble, e.g. NVT
   coordinates.InitFromPDB(set.pdb.atoms);
   com.CalcCOM();
+  cellList.SetCutoff();
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 
   //check if we have to use cached version of ewlad or not.
