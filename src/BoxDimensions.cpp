@@ -112,10 +112,10 @@ uint BoxDimensions::ShiftVolume(BoxDimensions & newDim, XYZ & scale,
   //automatically reject to prevent errors.
   if ((newDim.halfAx.x[b] < rCut[b] || newDim.halfAx.y[b] < rCut[b] ||
        newDim.halfAx.z[b] < rCut[b] || newVolume < minVol[b])) {
-    std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!"
-              << std::endl;
+    std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!\n";
     std::cout << "AxisDimensions: " << newDim.GetAxis(b) << std::endl;
-    rejectState = mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
+    std::cout << "Exiting!\n";
+    exit(EXIT_FAILURE);
   }
   scale = newDim.axis.Get(b) / axis.Get(b);
 
@@ -138,10 +138,10 @@ uint BoxDimensions::ExchangeVolume(BoxDimensions & newDim, XYZ * scale,
     scale[b] = newDim.axis.Get(b) / axis.Get(b);
     if ((newDim.halfAx.x[b] < rCut[b] || newDim.halfAx.y[b] < rCut[b] ||
          newDim.halfAx.z[b] < rCut[b] || newDim.volume[b] < minVol[b])) {
-      std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!"
-                << std::endl;
+      std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!\n";
       std::cout << "AxisDimensions: " << newDim.GetAxis(b) << std::endl;
-      return mv::fail_state::VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF;
+      std::cout << "Exiting!\n";
+      exit(EXIT_FAILURE);
     }
   }
   return state;
