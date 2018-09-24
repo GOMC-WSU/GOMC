@@ -145,6 +145,19 @@ bool ConfigSetup::checkBool(string str)
   exit(EXIT_FAILURE);
 }
 
+bool ConfigSetup::CheckString(string str1, string str2) #case insensitive
+{
+  for(int k = 0; k < str1.length(); k++) {
+    str1[k] = toupper(str1[k]);
+  }
+ 
+  for(int j = 0; j < str2.length(); j++) {
+    str2[j] = toupper(str2[j]);
+  }
+
+  return (str1 == str2);
+}
+
 void ConfigSetup::Init(const char *fileName)
 {
   std::vector<std::string> line;
@@ -155,18 +168,18 @@ void ConfigSetup::Init(const char *fileName)
     if(line.size() == 0)
       continue;
 
-    if(line[0] == "Restart") {
+    if(CheckString(line[0], "Restart")) {
       in.restart.enable = checkBool(line[1]);
       if(in.restart.enable) {
         printf("%-40s %-s \n", "Info: Restart simulation",  "Active");
       }
-    } else if(line[0] == "FirstStep") {
+    } else if(CheckString(line[0], "FirstStep")) {
       in.restart.step = stringtoi(line[1]);
     } else if(line[0] == "PRNG") {
       in.prng.kind = line[1];
       if("RANDOM" == line[1])
         printf("%-40s %-s \n", "Info: Random seed", "Active");
-    } else if(line[0] == "ParaTypeCHARMM") {
+    } else if(CheckString(line[0], "ParaTypeCHARMM")) {
       if(checkBool(line[1])) {
         in.ffKind.numOfKinds++;
         in.ffKind.isEXOTIC = false;
@@ -174,7 +187,7 @@ void ConfigSetup::Init(const char *fileName)
         in.ffKind.isCHARMM = true;
         printf("%-40s %-s \n", "Info: PARAMETER file", "CHARMM format!");
       }
-    } else if(line[0] == "ParaTypeEXOTIC") {
+    } else if(CheckString(line[0], "ParaTypeEXOTIC")) {
       if(checkBool(line[1])) {
         in.ffKind.numOfKinds++;
         in.ffKind.isCHARMM = false;
@@ -182,7 +195,7 @@ void ConfigSetup::Init(const char *fileName)
         in.ffKind.isEXOTIC = true;
         printf("%-40s %-s \n", "Info: PARAMETER file", "EXOTIC format!");
       }
-    } else if(line[0] == "ParaTypeMARTINI") {
+    } else if(CheckString(line[0], "ParaTypeMARTINI")) {
       if(checkBool(line[1])) {
         in.ffKind.numOfKinds ++;
         in.ffKind.isEXOTIC = false;
@@ -190,16 +203,16 @@ void ConfigSetup::Init(const char *fileName)
         in.ffKind.isCHARMM = true;
         printf("%-40s %-s \n", "Info: PARAMETER file", "MARTINI using CHARMM format!");
       }
-    } else if(line[0] == "Parameters") {
+    } else if(CheckString(line[0], "Parameters")) {
       in.files.param.name = line[1];
-    } else if(line[0] == "Coordinates") {
+    } else if(CheckString(line[0], "Coordinates")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {
         std::cout << "Error: Simulation requires " << BOX_TOTAL << " PDB file(s)!\n";
         exit(EXIT_FAILURE);
       }
       in.files.pdb.name[boxnum] = line[2];
-    } else if(line[0] == "Structure") {
+    } else if(CheckString(line[0], "Structure")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {
         std::cout << "Error: Simulation requires " << BOX_TOTAL << " PSF file(s)!\n";
@@ -208,15 +221,15 @@ void ConfigSetup::Init(const char *fileName)
       in.files.psf.name[boxnum] = line[2];
     }
 #if ENSEMBLE == GEMC
-    else if(line[0] == "GEMC") {
-      if(line[1] == "NVT") {
+    else if(CheckString(line[0], "GEMC")) {
+      if(CheckString(line[1], "NVT")) {
         sys.gemc.kind = mv::GEMC_NVT;
         printf("Info: Running NVT_GEMC\n");
-      } else if(line[1] == "NPT") {
+      } else if(CheckString(line[1], "NPT")) {
         sys.gemc.kind = mv::GEMC_NPT;
         printf("Info: Running NPT_GEMC\n");
       }
-    } else if(line[0] == "Pressure") {
+    } else if(CheckString(line[0], "Pressure")) {
       sys.gemc.pressure = stringtod(line[1]);
       printf("%-40s %-4.4f bar\n", "Info: Input Pressure", sys.gemc.pressure);
       sys.gemc.pressure *= unit::BAR_TO_K_MOLECULE_PER_A3;
