@@ -145,7 +145,7 @@ bool ConfigSetup::checkBool(string str)
   exit(EXIT_FAILURE);
 }
 
-bool ConfigSetup::CheckString(string str1, string str2) #case insensitive
+bool ConfigSetup::CheckString(string str1, string str2) 
 {
   for(int k = 0; k < str1.length(); k++) {
     str1[k] = toupper(str1[k]);
@@ -236,37 +236,37 @@ void ConfigSetup::Init(const char *fileName)
     }
 #endif
 #if ENSEMBLE == NPT
-    else if(line[0] == "Pressure") {
+    else if(CheckString(line[0], "Pressure")) {
       sys.gemc.kind = mv::GEMC_NPT;
       sys.gemc.pressure = stringtod(line[1]);
       printf("%-40s %-4.4f bar\n", "Info: Input Pressure", sys.gemc.pressure);
       sys.gemc.pressure *= unit::BAR_TO_K_MOLECULE_PER_A3;
     }
 #endif
-    else if(line[0] == "Temperature") {
+    else if(CheckString(line[0], "Temperature")) {
       sys.T.inKelvin = stringtod(line[1]);
       printf("%-40s %-4.4f K\n", "Info: Input Temperature", sys.T.inKelvin);
-    } else if(line[0] == "Potential") {
-      if(line[1] == "VDW") {
+    } else if(CheckString(line[0], "Potential")) {
+      if(CheckString(line[1],"VDW")) {
         sys.ff.VDW_KIND = sys.ff.VDW_STD_KIND;
         printf("%-40s %-s \n", "Info: Non-truncated potential", "Active");
-      } else if(line[1] == "SHIFT") {
+      } else if(CheckString(line[1],"SHIFT")) {
         sys.ff.VDW_KIND = sys.ff.VDW_SHIFT_KIND;
         printf("%-40s %-s \n", "Info: Shift truncated potential", "Active");
-      } else if(line[1] == "SWITCH") {
+      } else if(CheckString(line[1], "SWITCH")) {
         sys.ff.VDW_KIND = sys.ff.VDW_SWITCH_KIND;
         printf("%-40s %-s \n", "Info: Switch truncated potential", "Active");
       }
-    } else if(line[0] == "LRC") {
+    } else if(CheckString(line[0], "LRC")) {
       sys.ff.doTailCorr = checkBool(line[1]);
       if(sys.ff.doTailCorr)
         printf("%-40s %-s \n", "Info: Long Range Correction", "Active");
       else
         printf("%-40s %-s \n", "Info: Long Range Correction", "Inactive");
-    } else if(line[0] == "Rswitch") {
+    } else if(CheckString(line[0], "Rswitch")) {
       sys.ff.rswitch = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Switch distance", sys.ff.rswitch);
-    } else if(line[0] == "ExchangeVolumeDim") {
+    } else if(CheckString(line[0], "ExchangeVolumeDim")) {
       if(line.size() == 4) {
         XYZ temp;
         temp.x = stringtod(line[1]);
@@ -279,7 +279,7 @@ void ConfigSetup::Init(const char *fileName)
         sys.memcVal.readVol = true;
         sys.intraMemcVal.readVol = true;
       }
-    } else if(line[0] == "ExchangeRatio") {
+    } else if(CheckString(line[0],"ExchangeRatio")) {
       if(line.size() >= 2) {
         printf("%-41s", "Info: ExchangeRatio");
         for(uint i = 1; i < line.size(); i++) {
@@ -292,7 +292,7 @@ void ConfigSetup::Init(const char *fileName)
         sys.memcVal.readRatio = true;
         sys.intraMemcVal.readRatio = true;
       }
-    } else if(line[0] == "ExchangeLargeKind") {
+    } else if(CheckString(line[0], "ExchangeLargeKind")) {
       if(line.size() >= 2) {
         printf("%-41s", "Info: Exchange Large Kind");
         for(uint i = 1; i < line.size(); i++) {
@@ -305,7 +305,7 @@ void ConfigSetup::Init(const char *fileName)
         sys.memcVal.readLK = true;
         sys.intraMemcVal.readLK = true;
       }
-    } else if(line[0] == "ExchangeSmallKind") {
+    } else if(CheckString(line[0], "ExchangeSmallKind")) {
       if(line.size() >= 2) {
         printf("%-41s", "Info: Exchange Small Kind");
         for(uint i = 1; i < line.size(); i++) {
@@ -318,7 +318,7 @@ void ConfigSetup::Init(const char *fileName)
         sys.memcVal.readSK = true;
         sys.intraMemcVal.readSK = true;
       }
-    } else if(line[0] == "SmallKindBackBone") {
+    } else if(CheckString(line[0], "SmallKindBackBone")) {
       if((line.size() % 2) == 0) {
         std::cout <<"Error: Atom Names in Small Kind BackBone must be in pair!\n";
         exit(EXIT_FAILURE);
@@ -341,7 +341,7 @@ void ConfigSetup::Init(const char *fileName)
         sys.memcVal.readSmallBB = true;
         sys.intraMemcVal.readSmallBB = true;
       }
-    } else if(line[0] == "LargeKindBackBone") {
+    } else if(CheckString(line[0], "LargeKindBackBone")) {
       if((line.size() % 2) == 0) {
         std::cout <<"Error: Atom Names in Large Kind BackBone must be in pair!\n";
         exit(EXIT_FAILURE);
