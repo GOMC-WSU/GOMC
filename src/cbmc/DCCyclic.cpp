@@ -12,8 +12,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "DCLinkedCycle.h"
 #include "DCFreeCycleSeed.h"
 #include "DCRotateCOM.h"
-#include "DCCrankShaftDih.h"
 #include "DCCrankShaftAng.h"
+#include "DCRotateOnAtom.h"
 #include "FloydWarshallCycle.h"
 #include <cassert>
 #include <map>
@@ -168,7 +168,7 @@ void DCCyclic::InitCrankShaft(const mol_setup::MolKind& kind)
   }
 
   for(uint a = 0; a < angles.size(); a++) {
-    //find the last atomindex in the angle
+    //find the atomindex in the angle
     uint a0 = angles[a].a0;
     uint a1 = angles[a].a1;
     uint a2 = angles[a].a2;
@@ -212,6 +212,55 @@ void DCCyclic::InitCrankShaft(const mol_setup::MolKind& kind)
       crankshaft.push_back(new DCCrankShaftAng(&data, kind, a0, a1, a2));
     }
   }
+
+  //find the atoms that attached to the edge of the ring
+  for (uint atom = 0; atom < totAtom; ++atom) {
+    //If this atom is in the ring
+    if(isRing[atom]) {
+      //Find all the angle that forms x-atom-x
+      vector<Angle> angle = AtomMidAngles(kind, atom);
+      for(uint a = 0; a < angle.size(); a++) {
+        //find the atomindex in the angle
+        uint a0 = angle[a].a0;
+        uint a1 = angle[a].a1;
+        uint a2 = angle[a].a2;
+        //If number of bonds are less than 3, there is no atom attached
+        if(bondCount[a1] < 3) {
+          continue;
+        }
+        //To be on the edge, both a0 and a2 must be in the ring
+        if(isRing[a0] && isRing[a2]) {
+          bool fixAngle = false;
+          bool sameRing = false;
+          //Find the atoms that are bonded to a1
+          vector<Bond> bonds = AtomBonds(kind, a1);
+          for(uint b = 0; b < bonds.size(); b++) {
+            uint partner = bonds[b].a1;
+            if((partner == a0) || (partner == a2)) {
+              continue;
+            }
+            if(isRing[partner]) {
+              sameRing |= (ringIdx[a1] == ringIdx[partner]);
+            }
+            //Find all the angle that forms partner-a1-x (x is either a0 or a2)
+            vector<Angle> ang = AtomMidEndAngles(kind, a1, partner);
+            //Check to see if any of these angles are fixed or not.
+            for(uint i = 0; i < ang.size(); i++) {
+              fixAngle |= data.ff.angles->AngleFixed(ang[i].kind);
+            }
+          }
+
+          //If there was no fix angles and atom a1 and any atom bonded to a1 are not
+          // in the same ring, we create DCCrankShaftAngle
+          if(!fixAngle && !sameRing) {
+            crankshaft.push_back(new DCRotateOnAtom(&data, kind, a0, a1, a2));
+          }
+       
+        }
+      }
+    }
+  }
+
 
   hasCrankShaft = (crankshaft.size() != 0);
 }
