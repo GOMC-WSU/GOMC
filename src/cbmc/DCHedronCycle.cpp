@@ -128,20 +128,17 @@ double DCHedronCycle::GetWeight()
 }
 
 double DCHedronCycle::CalcTheta(TrialMol& mol, const uint a0, const uint a1,
-                                const uint a2, const bool isRing, const uint kind)
+                                const uint a2)
 {
   double theta = 0.0;
   if(mol.AtomExists(a0) && mol.AtomExists(a2)) {
     //Calculate theta using tCoords
     theta = mol.GetTheta(a0, a1, a2);
-  } else if(isRing){
+  } else {
     //Calculate theta using bCoords
     const XYZArray &coords = mol.GetBCoords();
     //Since data in bCoords in unwrap, no need to calc minImage
     theta = geom::Theta(coords.Difference(a0, a1), coords.Difference(a2, a1));
-  } else {
-    //Angle is fixed
-    theta = data->ff.angles->Angle(kind);
   }
   return theta;
 }
@@ -157,8 +154,7 @@ void DCHedronCycle::GenerateAnglesNew(TrialMol& newMol, uint molIndex,
   std::fill_n(nonbonded_1_3, nTrials, 0.0);
   //use backup coordinate to find theta and phi of the ring
   if(angleInRing[bType][bType] || angleFix) {
-    double th = CalcTheta(newMol, bonded[bType], focus, prev,
-                          angleInRing[bType][bType], kind);
+    double th = CalcTheta(newMol, bonded[bType], focus, prev);
     std::fill_n(data->angles, nTrials, th);
     double en = data->ff.angles->Calc(kind, th);
     std::fill_n(data->angleEnergy, nTrials, en);
@@ -198,8 +194,7 @@ void DCHedronCycle::GenerateAnglesOld(TrialMol& oldMol, uint molIndex,
   std::fill_n(nonbonded_1_3, nTrials, 0.0);
   //use backup coordinate to find theta and phi of the ring
   if(angleInRing[bType][bType] || angleFix) {
-    double th = CalcTheta(oldMol, bonded[bType], focus, prev,
-                          angleInRing[bType][bType], kind);
+    double th = CalcTheta(oldMol, bonded[bType], focus, prev);
     std::fill_n(data->angles, nTrials, th);
     double en = data->ff.angles->Calc(kind, th);
     std::fill_n(data->angleEnergy, nTrials, en);
@@ -353,8 +348,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
       if(angleInRing[b][c] || angleFix) {
         double cosTerm = cos(theta[b]) * cos(theta[c]);
         double sinTerm = sin(theta[b]) * sin(theta[c]);
-        double bfcRing = CalcTheta(newMol, bonded[b], focus, bonded[c],
-                                  angleInRing[b][c], angleKinds[b][c]);
+        double bfcRing = CalcTheta(newMol, bonded[b], focus, bonded[c]);
         double var = (cos(bfcRing) - cosTerm) / sinTerm;
         //To fix the numerical problem for flat molecule
         var = (var > 1.0 && var < 1.1 ? 1.0 : var);
@@ -448,8 +442,7 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
       if(angleInRing[b][c] || angleFix) {
         double cosTerm = cos(theta[b]) * cos(theta[c]);
         double sinTerm = sin(theta[b]) * sin(theta[c]);
-        double bfcRing = CalcTheta(oldMol, bonded[b], focus, bonded[c],
-                                  angleInRing[b][c], angleKinds[b][c]);
+        double bfcRing = CalcTheta(oldMol, bonded[b], focus, bonded[c]);
         double var = (cos(bfcRing) - cosTerm) / sinTerm;
         //To fix the numerical problem for flat molecule
         var = (var > 1.0 && var < 1.1 ? 1.0 : var);
