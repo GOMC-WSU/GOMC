@@ -77,7 +77,9 @@ private:
   void FreeAnglesOld(TrialMol& oldMol, uint molIndex, uint nTrials);
   void ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTrials);
   //to calculate the angle in the ring from bCoords or tCoords a0-a1-a2
-  double CalcTheta(TrialMol& mol, const uint a0, const uint a1, const uint a2);
+  //If it atom was not exist and it was not in the ring, it means it is fix
+  double CalcTheta(TrialMol& mol, const uint a0, const uint a1, const uint a2,
+                  const bool isRing, const uint kind);
   //!Sets an orthonormal basis for coordinate conversion.
   /*!\param p1 Index of focus
    * \param p2 Index of prev
