@@ -119,7 +119,12 @@ static const ConstField POS(35, 12);
 static const uint PRECISION = 3;
 static const char ALIGN = align::RIGHT;
 }
-
+namespace frameNum
+{
+static const ConstField POS(15, 10);
+static const uint PRECISION = 0;
+static const char ALIGN = align::RIGHT;
+}
 namespace stepsNum
 {
 static const ConstField POS(50, 15);
