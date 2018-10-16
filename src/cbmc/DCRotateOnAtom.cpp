@@ -4,7 +4,7 @@ Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
-#include "DCCrankShaftAng.h"
+#include "DCRotateOnAtom.h"
 #include "TrialMol.h"
 #include "PRNG.h"
 #include "Forcefield.h"
@@ -25,7 +25,16 @@ namespace cbmc
   uint x;
 };
 
-DCCrankShaftAng::DCCrankShaftAng(DCData* data, const mol_setup::MolKind& kind,
+struct FindAngle {
+  FindAngle(uint x, uint y) : x(x), y(y) {}
+  uint y, x;
+  bool operator()(const mol_setup::Angle& a)
+  {
+    return (a.a0 == x && a.a2 == y) || (a.a0 == y && a.a2 == x);
+  }
+};
+
+DCRotateOnAtom::DCRotateOnAtom(DCData* data, const mol_setup::MolKind& kind,
                                 uint a0, uint a1, uint a2) : 
                                 data(data), a0(a0), a1(a1), a2(a2)
 {
@@ -38,8 +47,6 @@ DCCrankShaftAng::DCCrankShaftAng(DCData* data, const mol_setup::MolKind& kind,
   //Remove the a0-a1 and a1-a2 bond
   bonds.erase(remove_if(bonds.begin(), bonds.end(), FindA1(a0)), bonds.end());
   bonds.erase(remove_if(bonds.begin(), bonds.end(), FindA1(a2)), bonds.end());
-  //Store the a1 index
-  atoms.push_back(a1);
   visited[a1] = true;
 
   //Loop through other atoms that are bonded to a1
@@ -76,23 +83,42 @@ DCCrankShaftAng::DCCrankShaftAng(DCData* data, const mol_setup::MolKind& kind,
   }
 
   //Find the angles affected by rotation
-  //First find the angle x-a0-a1
-  ang = AtomMidEndAngles(kind, a0, a1);
-  //Add angle with a1-a2-x
-  vector<Angle> tempAng = AtomMidEndAngles(kind, a2, a1);
-  ang.insert(ang.end(), tempAng.begin(), tempAng.end());
+  //First find the angle x-a1-x
+  ang = AtomMidAngles(kind, a1);
+  //Remove the a0-a1-a2 angle
+  ang.erase(remove_if(ang.begin(), ang.end(), FindAngle(a0, a2)), ang.end());
 
   //Find the dihedral affected by rotation
   //First find the dihedral with x-a0-a1-x in the middle
-  dih = DihsOnBond(kind, a0, a1);
-  //Add dihedral with x-a1-a2-x
-  vector<Dihedral> tempDih = DihsOnBond(kind, a1, a2);
-  dih.insert(dih.end(), tempDih.begin(), tempDih.end());
-  //Add dihedral with atom a1 in one end: x-x-x-a1
-  tempDih = AtomEndDihs(kind, a1);
+  vector<Dihedral>tempDih = DihsOnBond(kind, a1, a0);
   for(uint i = 0; i < tempDih.size(); i++){
-    //Make sure that the dihedral atoms are not in the list since they are constant.
-    if(std::find(atoms.begin(), atoms.end(), tempDih[i].a3) == atoms.end()) {
+    //Make sure that the dihedral atoms are in the list since they are constant.
+    if(std::find(atoms.begin(), atoms.end(), tempDih[i].a0) != atoms.end()) {
+      dih.push_back(tempDih[i]);
+    }
+  }
+  //Add dihedral with x-a1-a2-x
+  tempDih = DihsOnBond(kind, a1, a2);
+  for(uint i = 0; i < tempDih.size(); i++){
+    //Make sure that the dihedral atoms are in the list since they are constant.
+    if(std::find(atoms.begin(), atoms.end(), tempDih[i].a0) != atoms.end()) {
+      dih.push_back(tempDih[i]);
+    }
+  }
+  
+  //Add dihedral with atom a0 in one end: x-x-x-a0
+  tempDih = AtomEndDihs(kind, a0);
+  for(uint i = 0; i < tempDih.size(); i++){
+    //Make sure that the dihedral atoms are in the list since they are constant.
+    if(std::find(atoms.begin(), atoms.end(), tempDih[i].a3) != atoms.end()) {
+      dih.push_back(tempDih[i]);
+    }
+  }
+  //Add dihedral with atom a2 in one end: x-x-x-a2
+  tempDih = AtomEndDihs(kind, a2);
+  for(uint i = 0; i < tempDih.size(); i++){
+    //Make sure that the dihedral atoms are in the list since they are constant.
+    if(std::find(atoms.begin(), atoms.end(), tempDih[i].a3) != atoms.end()) {
       dih.push_back(tempDih[i]);
     }
   }
@@ -101,17 +127,17 @@ DCCrankShaftAng::DCCrankShaftAng(DCData* data, const mol_setup::MolKind& kind,
     printf("R:Angle on %d-%d-%d: %d -> %d -> %d \n", a0, a1, a2, ang[i].a0, ang[i].a1, ang[i].a2);
   }
   for(uint i = 0; i < dih.size(); i++) {
-    printf("Angle on %d-%d-%d: %d -> %d -> %d -> %d \n", a0, a1, a2, dih[i].a0, dih[i].a1, dih[i].a2, dih[i].a3);
+    printf("R:Angle on %d-%d-%d: %d -> %d -> %d -> %d \n", a0, a1, a2, dih[i].a0, dih[i].a1, dih[i].a2, dih[i].a3);
   } */
 }
 
-void DCCrankShaftAng::PrepareOld(TrialMol& oldMol, uint molIndex)
+void DCRotateOnAtom::PrepareOld(TrialMol& oldMol, uint molIndex)
 {
   for (uint a = 0; a < totAtoms; a++) {                        
     oldMol.ConfirmOldAtom(a);
   }
 
-  XYZ center = oldMol.AtomPosition(a0);
+  XYZ center = oldMol.AtomPosition(a1);
   for(uint i = 0; i < numAtom; i++) {
     //Unwrap the coordinates with respect to a0.
     XYZ temp = oldMol.AtomPosition(atoms[i]);
@@ -122,13 +148,13 @@ void DCCrankShaftAng::PrepareOld(TrialMol& oldMol, uint molIndex)
   }
 }
 
-void DCCrankShaftAng::PrepareNew(TrialMol& newMol, uint molIndex)
+void DCRotateOnAtom::PrepareNew(TrialMol& newMol, uint molIndex)
 {
   for (uint a = 0; a < totAtoms; a++) {                        
     newMol.ConfirmOldAtom(a);
   }
 
-  XYZ center = newMol.AtomPosition(a0);
+  XYZ center = newMol.AtomPosition(a1);
   for(uint i = 0; i < numAtom; i++) {
     //Unwrap the coordinates with respect to a0.
     XYZ temp = newMol.AtomPosition(atoms[i]);
@@ -140,7 +166,7 @@ void DCCrankShaftAng::PrepareNew(TrialMol& newMol, uint molIndex)
 }
 
     
-void DCCrankShaftAng::BuildOld(TrialMol& oldMol, uint molIndex)
+void DCRotateOnAtom::BuildOld(TrialMol& oldMol, uint molIndex)
 {
   PRNG& prng = data->prng;
   uint nLJTrials = data->nLJTrialsNth;
@@ -162,8 +188,9 @@ void DCCrankShaftAng::BuildOld(TrialMol& oldMol, uint molIndex)
   std::fill_n(nonbonded, nLJTrials, 0.0);
   std::fill_n(overlap, nLJTrials, false);
 
-  //Set up rotation matrix using a0-a3 axis.
-  XYZ center = oldMol.AtomPosition(a0);
+  //Set up rotation matrix using.
+  // rotaxis = (a0 - a2) 
+  XYZ center = oldMol.AtomPosition(a1);
   XYZ rotAxis = oldMol.AtomPosition(a0) - oldMol.AtomPosition(a2);
   rotAxis = data->axes.MinImage(rotAxis, oldMol.GetBox());
   rotAxis.Normalize();
@@ -215,7 +242,7 @@ void DCCrankShaftAng::BuildOld(TrialMol& oldMol, uint molIndex)
                           0.0, 0.0, 0.0));
 }
 
-void DCCrankShaftAng::BuildNew(TrialMol& newMol, uint molIndex)
+void DCRotateOnAtom::BuildNew(TrialMol& newMol, uint molIndex)
 {
   PRNG& prng = data->prng;
   uint nLJTrials = data->nLJTrialsNth;
@@ -237,8 +264,9 @@ void DCCrankShaftAng::BuildNew(TrialMol& newMol, uint molIndex)
   std::fill_n(nonbonded, nLJTrials, 0.0);
   std::fill_n(overlap, nLJTrials, false);
 
-  //Set up rotation matrix using a0-a3 axis.
-  XYZ center = newMol.AtomPosition(a0);
+  //Set up rotation matrix
+  // rotaxis = (a0 - a2) 
+  XYZ center = newMol.AtomPosition(a1);
   XYZ rotAxis = newMol.AtomPosition(a0) - newMol.AtomPosition(a2);
   rotAxis = data->axes.MinImage(rotAxis, newMol.GetBox());
   rotAxis.Normalize();
@@ -290,7 +318,7 @@ void DCCrankShaftAng::BuildNew(TrialMol& newMol, uint molIndex)
 
 }
 
-void DCCrankShaftAng::ChooseTorsion(TrialMol& mol, uint molIndex,
+void DCRotateOnAtom::ChooseTorsion(TrialMol& mol, uint molIndex,
                                     RotationMatrix& cross,
                                     RotationMatrix& tensor)
 { 
@@ -299,7 +327,7 @@ void DCCrankShaftAng::ChooseTorsion(TrialMol& mol, uint molIndex,
   double* torWeights = data->angleWeights;
   double* torEnergy = data->angleEnergy;
 
-  XYZ center = mol.AtomPosition(a0);
+  XYZ center = mol.AtomPosition(a1);
   for (uint tor = 0; tor < nDihTrials; ++tor) {
     torsion[tor] = data->prng.rand(M_PI * 2);
     //convert chosen torsion to 3D positions
@@ -315,7 +343,7 @@ void DCCrankShaftAng::ChooseTorsion(TrialMol& mol, uint molIndex,
   }
 }
 
-void DCCrankShaftAng::ChooseTorsionOld(TrialMol& mol, uint molIndex,
+void DCRotateOnAtom::ChooseTorsionOld(TrialMol& mol, uint molIndex,
                                       RotationMatrix& cross,
                                       RotationMatrix& tensor)
 { 
@@ -324,7 +352,7 @@ void DCCrankShaftAng::ChooseTorsionOld(TrialMol& mol, uint molIndex,
   double* torWeights = data->angleWeights;
   double* torEnergy = data->angleEnergy;
 
-  XYZ center = mol.AtomPosition(a0);
+  XYZ center = mol.AtomPosition(a1);
   for (uint tor = 0; tor < nDihTrials; ++tor) {
     //Use actual coordinate fir first torsion trial
     torsion[tor] = (tor == 0) ? 0.0 : data->prng.rand(M_PI * 2);
@@ -341,7 +369,7 @@ void DCCrankShaftAng::ChooseTorsionOld(TrialMol& mol, uint molIndex,
   }
 }
 
-double DCCrankShaftAng::CalcIntraBonded(TrialMol& mol, uint molIndex)
+double DCRotateOnAtom::CalcIntraBonded(TrialMol& mol, uint molIndex)
 {
 
   double bondedEn = 0.0;
@@ -365,7 +393,7 @@ double DCCrankShaftAng::CalcIntraBonded(TrialMol& mol, uint molIndex)
   return bondedEn;
 }
 
-void DCCrankShaftAng::ParticleNonbonded(cbmc::TrialMol const& mol,
+void DCRotateOnAtom::ParticleNonbonded(cbmc::TrialMol const& mol,
                                         XYZArray const& trialPos,
                                         const uint partIndex,
                                         const uint trials) 
@@ -375,7 +403,7 @@ void DCCrankShaftAng::ParticleNonbonded(cbmc::TrialMol const& mol,
   ParticleNonbonded1_3(mol, trialPos, partIndex, trials);
 }
 
-void DCCrankShaftAng::ParticleNonbonded1_N(cbmc::TrialMol const& mol,
+void DCRotateOnAtom::ParticleNonbonded1_N(cbmc::TrialMol const& mol,
                                           XYZArray const& trialPos,
                                           const uint partIndex,
                                           const uint trials) 
@@ -409,7 +437,7 @@ void DCCrankShaftAng::ParticleNonbonded1_N(cbmc::TrialMol const& mol,
   }
 }
 
-void DCCrankShaftAng::ParticleNonbonded1_4(cbmc::TrialMol const& mol,
+void DCRotateOnAtom::ParticleNonbonded1_4(cbmc::TrialMol const& mol,
                                           XYZArray const& trialPos,
                                           const uint partIndex,
                                           const uint trials) 
@@ -446,7 +474,7 @@ void DCCrankShaftAng::ParticleNonbonded1_4(cbmc::TrialMol const& mol,
   }
 }
 
-void DCCrankShaftAng::ParticleNonbonded1_3(cbmc::TrialMol const& mol,
+void DCRotateOnAtom::ParticleNonbonded1_3(cbmc::TrialMol const& mol,
                                           XYZArray const& trialPos,
                                           const uint partIndex,
                                           const uint trials) 

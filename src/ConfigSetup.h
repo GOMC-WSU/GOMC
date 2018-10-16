@@ -50,6 +50,7 @@ struct FileNames {
 struct RestartSettings {
   bool enable;
   ulong step;
+  bool recalcTrajectory;
   bool operator()(void)
   {
     return enable;
