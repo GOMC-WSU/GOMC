@@ -37,7 +37,9 @@ Simulation::Simulation(char const*const configFileName)
   std::cout << "Printed combined psf to file "
             << set.config.out.state.files.psf.name << '\n';
 
-  frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
+  if(totalSteps == 0) {
+    frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
+  }
 }
 
 Simulation::~Simulation()
