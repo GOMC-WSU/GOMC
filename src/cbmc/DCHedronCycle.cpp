@@ -329,7 +329,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
     std::fill_n(nonbonded_1_3, nTrials, 0.0);
     //pick "twist" angles
     for (uint i = 0; i < nTrials; ++i) {
-      angles[i] = data->prng.rand(M_PI);
+      angles[i] = data->prng.rand(2.0 * M_PI);
     }
 
     //tan2 output is [-pi, pi], acos output is [0, pi]
@@ -337,9 +337,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
     //Use phi[0] to compare it
     double phiDiff = CalcOldPhi(newMol, bonded[b], focus) - refPhi;
     phiDiff += (phiDiff < 0.0 ? M_PI : -M_PI);
-    double flip = (phiDiff > 0.0 ? true : false);
-    //avoid flipping twice for each b
-    bool fliped = false;
+    bool flip = (phiDiff > 0.0 ? true : false);
 
     //modify the twist angle if it was fixed or was part of ring
     for (uint c = 0; c < b; ++c) {
@@ -354,7 +352,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
         var = (var > 1.0 && var < 1.1 ? 1.0 : var);
         var = (var < -1.0 && var > -1.1 ? -1.0 : var);
         double ang = acos(var);
-        ang *= (flip ? -1.0 : 1.0);
+        ang = (flip ? 2.0 * M_PI - ang : ang);
         ang += phi[c];
         std::fill_n(angles, nTrials, ang);
         if(isnan(ang)) {
@@ -369,12 +367,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
           exit(EXIT_FAILURE);
         }
         break;
-      } else if (flip && !fliped) {
-        for (uint i = 0; i < nTrials; ++i) {
-          angles[i] *= -1.0;
-        }
-        fliped = true;
-      }
+      } 
     }
 
 
@@ -423,7 +416,7 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
     double stepWeight = 0.0;
     //pick "twist" angles
     for (uint i = 0; i < nTrials; ++i) {
-      angles[i]  = data->prng.rand(M_PI);
+      angles[i]  = data->prng.rand(2.0 * M_PI);
     }
 
     //tan2 output is [-pi, pi], acos output is [0, pi]
@@ -432,8 +425,6 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
     double phiDiff = phi[b] - phi[0];
     phiDiff += (phiDiff < 0.0 ? M_PI : -M_PI);
     bool flip = (phiDiff > 0.0 ? true : false);
-    //avoid flipping twice for each b
-    bool fliped = false;
 
     //modify the twist angle if it was fixed or was part of ring
     for (uint c = 0; c < b; ++c) {
@@ -448,7 +439,7 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
         var = (var > 1.0 && var < 1.1 ? 1.0 : var);
         var = (var < -1.0 && var > -1.1 ? -1.0 : var);
         double ang = acos(var);
-        ang *= (flip ? -1.0 : 1.0);
+        ang = (flip ? 2.0 * M_PI - ang : ang);
         ang += phi[c];
         std::fill_n(angles, nTrials, ang);
         if(isnan(ang)) {
@@ -463,11 +454,6 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
           exit(EXIT_FAILURE);
         }
         break;
-      } else if (flip && !fliped) {
-        for (uint i = 0; i < nTrials; ++i) {
-          angles[i] *= -1.0;
-        }
-        fliped = true;
       }
     }
        
