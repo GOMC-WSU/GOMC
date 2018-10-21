@@ -13,6 +13,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include <algorithm>
 
+const int CellList::END_CELL;
+
 CellList::CellList(const Molecules& mols,  BoxDimensions& dims)
   : mols(&mols)
 {
