@@ -267,11 +267,7 @@ void DCCyclic::InitCrankShaft(const mol_setup::MolKind& kind)
 
 void DCCyclic::CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 {
-  if(!hasCrankShaft) {
-    //No crank shaft move means all angles are fixed.
-    //Instead we perform IntraSwap move
-    Build(oldMol, newMol, molIndex);
-  } else {
+  if(hasCrankShaft) {
     //Set tCoords to coordinate of actual molecule, it will be modified
     oldMol.GetCoords().CopyRange(coords, 0, 0, coords.Count());
     newMol.SetCoords(coords, 0);
@@ -282,6 +278,10 @@ void DCCyclic::CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
     crankshaft[pick]->BuildNew(newMol, molIndex);
     crankshaft[pick]->PrepareOld(oldMol, molIndex);
     crankshaft[pick]->BuildOld(oldMol, molIndex);
+  } else {
+    //No crank shaft move means all angles are fixed.
+    //Instead we perform IntraSwap move
+    Build(oldMol, newMol, molIndex);
   }
 }
 
@@ -353,6 +353,9 @@ void DCCyclic::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 {
   //check if we want to grow all atoms from node's focus or not
   bool growAll = data.prng() < 1.0 / nodes.size();
+  //Avoid the case where we dont have any crankshaft move. Its better to regrowth
+  //the molecule rather than call IntraSwap move
+  growAll |= !hasCrankShaft;
 
   //Randomely pick a node to keep it fix and not grow it
   uint current = data.prng.randIntExc(nodes.size());
