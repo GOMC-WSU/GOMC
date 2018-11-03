@@ -74,6 +74,16 @@ DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
   }
 
   vector<Angle> angles = AtomMidAngles(kind, focus);
+  double sumAngle = 0.0;
+  for (uint a = 0; a < angles.size(); a++) {
+    sumAngle += data->ff.angles->Angle(angles[a].kind);
+  }
+  //If sum of angles = 2*pi = 6.283, it means they are in a plane
+  //To avoid geometric conflict for flexible angle, we consider it fix and
+  //let crankshaft to sample it. 0.044 ~= 5 degree
+  bool angleInPlane = (abs(2.0 * M_PI - sumAngle) < 0.044);
+  bool constrainAngInRing = false;
+
   for (uint i = 0; i < nBonds; ++i) {
     typedef vector<Angle>::const_iterator Aiter;
     Aiter free = find_if(angles.begin(), angles.end(),
@@ -89,6 +99,19 @@ DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
       angleKinds[j][i] = pair->kind;
       angleInRing[i][j] = IsInRing(cycAtoms, *pair);
       angleInRing[j][i] = angleInRing[i][j];
+      constrainAngInRing |= angleInRing[i][j];
+    }
+  }
+
+  //If one of the constrained angle is belong to ring and angle form a plane
+  // we fix the free and constrained angles
+  if(constrainAngInRing && angleInPlane) {
+    for (uint i = 0; i < nBonds; ++i) {
+      angleInRing[i][i] = true;
+      for (uint j = i + 1; j < nBonds; ++j) {
+        angleInRing[i][j] = true;
+        angleInRing[j][i] = true;
+      }
     }
   }
 
