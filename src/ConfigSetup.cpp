@@ -194,7 +194,15 @@ void ConfigSetup::Init(const char *fileName)
         in.ffKind.isCHARMM = false;
         in.ffKind.isMARTINI = false;
         in.ffKind.isEXOTIC = true;
-        printf("%-40s %-s \n", "Info: PARAMETER file", "EXOTIC format!");
+        printf("%-40s %-s \n", "Info: PARAMETER file", "MIE format!");
+      }
+    } else if(CheckString(line[0], "ParaTypeMIE")) {
+      if(checkBool(line[1])) {
+        in.ffKind.numOfKinds++;
+        in.ffKind.isCHARMM = false;
+        in.ffKind.isMARTINI = false;
+        in.ffKind.isEXOTIC = true;
+        printf("%-40s %-s \n", "Info: PARAMETER file", "MIE format!");
       }
     } else if(CheckString(line[0], "ParaTypeMARTINI")) {
       if(checkBool(line[1])) {
