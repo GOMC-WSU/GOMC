@@ -257,19 +257,19 @@ void MolSetup::AssignKinds(const pdb_setup::Atoms& pdbAtoms, const FFSetup& ffDa
 
   //Print bonded Information
   printf("Bonds parameter:\n");
-  printf("%s\t\t\t\t%s\t\t%s \n", "Atom Types", "Kb(K)", "b0(A)");
+  printf("%s %33s %15s \n", "Atom Types", "Kb(K)", "b0(A)");
   for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it) {
     BriefBondKinds(it->second, ffData);
   }
 
   printf("Angles parameter:\n");
-  printf("%s\t\t\t\t%s\t%s \n", "Atom Types", "Ktheta(K)", "theta0(degree)");
+  printf("%s %33s %22s \n", "Atom Types", "Ktheta(K)", "theta0(degree)");
   for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it) {
     BriefAngleKinds(it->second, ffData);
   }
 
   printf("Dihedrals parameter:\n");
-  printf("%s\t\t\t\t%s\t\t%s\t%s \n", "Atom Types", "Kchi(K)", "n",
+  printf("%s %33s %4s %16s \n", "Atom Types", "Kchi(K)", "n",
          "delta(degree)");
   for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it) {
     BriefDihKinds(it->second, ffData);
@@ -346,9 +346,9 @@ void BriefBondKinds(MolKind& kind, const FFSetup& ffData)
     if(find(printed.begin(), printed.end(), bondName) == printed.end()) {
       printf("%s", bondName.c_str());
       if(ffData.bond.GetKb(search) > 99999999)
-        printf("\t\t\t%s\t\t%5.4f \n", "FIX", ffData.bond.Getb0(search));
+        printf("%28s %16.4f \n", "FIX", ffData.bond.Getb0(search));
       else
-        printf("\t\t\t%5.4f\t%5.4f \n", ffData.bond.GetKb(search),
+        printf("%28.4f %16.4f \n", ffData.bond.GetKb(search),
                ffData.bond.Getb0(search));
 
       printed.push_back(bondName);
@@ -405,9 +405,9 @@ void BriefAngleKinds(MolKind& kind, const FFSetup& ffData)
     if(find(printed.begin(), printed.end(), angleName) == printed.end()) {
       printf("%s", angleName.c_str());
       if(ffData.angle.GetKtheta(search) > 99999999)
-        printf("\t\t%s\t\t%5.4f \n", "FIX", ffData.angle.Gettheta0(search) *coef);
+        printf("%20s %16.4f \n", "FIX", ffData.angle.Gettheta0(search) *coef);
       else
-        printf("\t\t%5.4f\t%5.4f \n", ffData.angle.GetKtheta(search),
+        printf("%20.4f %16.4f \n", ffData.angle.GetKtheta(search),
                ffData.angle.Gettheta0(search) * coef);
 
       printed.push_back(angleName);
@@ -467,7 +467,7 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData)
     if(find(printed.begin(), printed.end(), dihedralName) == printed.end()) {
       for(uint j = 0; j < dihsize; j++) {
         printf("%s", dihedralName.c_str());
-        printf("\t%5.4f\t%d\t%5.4f \n", ffData.dih.GetKchi(dName, j),
+        printf("%12.4f %4d %11.4f \n", ffData.dih.GetKchi(dName, j),
                ffData.dih.Getn(dName, j),
                ffData.dih.Getdelta(dName, j) * coef);
       }
