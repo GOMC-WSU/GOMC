@@ -28,10 +28,10 @@ set(ENSEMBLE_NVT ON CACHE BOOL "Build NVT version")
 set(ENSEMBLE_GEMC ON CACHE BOOL "Build GEMC version")
 set(ENSEMBLE_GCMC ON CACHE BOOL "Build GCMC version")
 set(ENSEMBLE_NPT ON CACHE BOOL "Build NPT version")
-set(ENSEMBLE_GPU_NVT ON CACHE BOOL "Build GPU NVT version")
-set(ENSEMBLE_GPU_GEMC ON CACHE BOOL "Build GPU GEMC version")
-set(ENSEMBLE_GPU_GCMC ON CACHE BOOL "Build GPU GCMC version")
-set(ENSEMBLE_GPU_NPT ON CACHE BOOL "Build GPU NPT version")
+set(ENSEMBLE_GPU_NVT OFF CACHE BOOL "Build GPU NVT version")
+set(ENSEMBLE_GPU_GEMC OFF CACHE BOOL "Build GPU GEMC version")
+set(ENSEMBLE_GPU_GCMC OFF CACHE BOOL "Build GPU GCMC version")
+set(ENSEMBLE_GPU_NPT OFF CACHE BOOL "Build GPU NPT version")
 
 #enable config header
 configure_file(
@@ -41,8 +41,8 @@ configure_file(
 include_directories("${PROJECT_BINARY_DIR}")
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -stdlib=libstdc++") 
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -stdlib=libstdc++")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -stdlib=libc++") 
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -stdlib=libc++")
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)

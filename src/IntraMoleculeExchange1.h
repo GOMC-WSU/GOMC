@@ -297,7 +297,7 @@ inline uint IntraMoleculeExchange1::GetBoxPairAndMol(const double subDraw,
    overlap = false;
 
 #if ENSEMBLE == GCMC
-   sourceBox = 0;
+   sourceBox = mv::BOX0;
 #else
    prng.PickBox(sourceBox, subDraw, movPerc);
 #endif

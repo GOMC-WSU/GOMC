@@ -58,6 +58,13 @@ class MoleculeExchange1 : public MoveBase
           trial[b].resize(molRef.GetKindsCount() * molRef.GetKindsCount(), 0.0);
           accepted[b].resize(molRef.GetKindsCount() * molRef.GetKindsCount(), 0.0);
         }
+        #if ENSEMBLE == GEMC
+          //start with box0 and modify it if Box0 was not the dense box
+          sourceBox = mv::BOX0;
+        #elif ENSEMBLE == GCMC
+          sourceBox = mv::BOX0;
+          destBox = mv::BOX1;
+        #endif
       }
    }
 
@@ -230,7 +237,7 @@ inline void MoleculeExchange1::AdjustExRatio()
 inline void MoleculeExchange1::SetBox()
 {
 #if ENSEMBLE == GEMC
-  uint densB = mv::BOX0;
+  uint densB = sourceBox;
   if(((counter + 1) % perAdjust) == 0) {
     double density;
     double maxDens = 0.0;
@@ -253,10 +260,6 @@ inline void MoleculeExchange1::SetBox()
   //Pick the destination box
   prng.SetOtherBox(destBox, sourceBox);
   //prng.PickBoxPair(sourceBox, destBox, subDraw, movPerc);
-
-#elif ENSEMBLE == GCMC
-   sourceBox = 0;
-   destBox = 1;
 #endif
 }
 

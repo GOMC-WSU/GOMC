@@ -17,7 +17,6 @@ Simulation::Simulation(char const*const configFileName)
   //NOTE:
   //IMPORTANT! Keep this order...
   //as system depends on staticValues, and cpu sometimes depends on both.
-  Setup set;
   set.Init(configFileName);
   totalSteps = set.config.sys.step.total;
   staticValues = new StaticVals(set);
@@ -38,6 +37,9 @@ Simulation::Simulation(char const*const configFileName)
   std::cout << "Printed combined psf to file "
             << set.config.out.state.files.psf.name << '\n';
 
+  if(totalSteps == 0) {
+    frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
+  }
 }
 
 Simulation::~Simulation()
@@ -52,6 +54,16 @@ Simulation::~Simulation()
 void Simulation::RunSimulation(void)
 {
   double startEnergy = system->potential.totalEnergy.total;
+  if(totalSteps == 0) {
+    for(int i=0; i<frameSteps.size(); i++) {
+      if(i==0) {
+        cpu->Output(frameSteps[0]-1);
+        continue;
+      }
+      system->RecalculateTrajectory(set, i+1);
+      cpu->Output(frameSteps[i]-1);
+    }
+  }
   for (ulong step = 0; step < totalSteps; step++) {
     system->moveSettings.AdjustMoves(step);
     system->ChooseAndRunMove(step);

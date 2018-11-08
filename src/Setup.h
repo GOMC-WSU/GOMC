@@ -32,7 +32,7 @@ public:
     config.Init(configFileName);
     //Read in FF data.
     ff.Init(config.in.files.param.name, config.in.ffKind.isCHARMM);
-    //Read PDB dat
+    //Read PDB data
     pdb.Init(config.in.restart, config.in.files.pdb.name);
     //Read molecule data from psf
     prng.Init(config.in.restart, config.in.prng, config.in.files.seed.name);

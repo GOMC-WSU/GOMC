@@ -50,6 +50,7 @@ struct FileNames {
 struct RestartSettings {
   bool enable;
   ulong step;
+  bool recalcTrajectory;
   bool operator()(void)
   {
     return enable;
@@ -340,6 +341,7 @@ public:
 private:
   void fillDefaults(void);
   bool checkBool(string str);
+  bool CheckString(string str1, string str2); 
   void verifyInputs(void);
   InputFileReader reader;
 

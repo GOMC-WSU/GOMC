@@ -44,7 +44,7 @@ set(sources
    src/cbmc/DCFreeCycle.cpp
    src/cbmc/DCFreeHedron.cpp
    src/cbmc/DCFreeHedronSeed.cpp
-    src/cbmc/DCFreeCycleSeed.cpp
+   src/cbmc/DCFreeCycleSeed.cpp
    src/cbmc/DCLinkedHedron.cpp
    src/cbmc/DCLinkedCycle.cpp
    src/cbmc/DCHedron.cpp
@@ -52,6 +52,7 @@ set(sources
    src/cbmc/DCLinear.cpp
    src/cbmc/DCOnSphere.cpp
    src/cbmc/DCRotateCOM.cpp
+   src/cbmc/DCRotateOnAtom.cpp
    src/cbmc/DCSingle.cpp
    src/cbmc/TrialMol.cpp)
 
@@ -151,6 +152,7 @@ set(headers
    src/cbmc/DCLinear.h
    src/cbmc/DCOnSphere.h
    src/cbmc/DCRotateCOM.h
+   src/cbmc/DCRotateOnAtom.h
    src/cbmc/DCSingle.h
    src/cbmc/TrialMol.h)
 
