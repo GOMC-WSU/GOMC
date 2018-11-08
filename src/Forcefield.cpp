@@ -10,6 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "FFShift.h"
 #include "FFSwitch.h"
 #include "FFSwitchMartini.h"
+#include "FFExp6.h"
 #ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
 #endif
@@ -81,12 +82,19 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
 
   if(vdwKind == val.ff.VDW_STD_KIND)
     particles = new FFParticle(*this);
+  else if(vdwKind == val.ff.VDW_EXP6_KIND)
+    particles = new FF_EXP6(*this);
   else if(vdwKind == val.ff.VDW_SHIFT_KIND)
     particles = new FF_SHIFT(*this);
   else if (vdwKind == val.ff.VDW_SWITCH_KIND && ffKind.isMARTINI)
     particles = new FF_SWITCH_MARTINI(*this);
-  else
+  else if (vdwKind == val.ff.VDW_SWITCH_KIND && !ffKind.isMARTINI)
     particles = new FF_SWITCH(*this);
+  else {
+    std::cout << "Undefined Potential Type detected!\n" << "Exiting!\n";
+    exit(EXIT_FAILURE);
+  }
+
 
   if(ffKind.isMARTINI)
     angles = new FFAngleMartini();
