@@ -102,10 +102,16 @@ DCLinkedCycle::DCLinkedCycle
 
 double DCLinkedCycle::CalcDih(TrialMol& mol, uint a0, uint a1, uint a2, uint a3)
 {
-  //Calculate the dihedral using bCoords
-  const XYZArray &coords = mol.GetBCoords();
-  double phi = geom::Phi(coords.Difference(a1, a0), coords.Difference(a2, a1),
-                        coords.Difference(a3, a2));
+  double phi = 0.0;
+  if(mol.AtomExists(a0)) {
+    //Calculate theta using tCoords
+    phi = mol.GetPhi(a0, a1, a2, a3);
+  } else {
+    //Calculate the dihedral using bCoords
+    const XYZArray &coords = mol.GetBCoords();
+    phi = geom::Phi(coords.Difference(a1, a0), coords.Difference(a2, a1),
+                    coords.Difference(a3, a2));
+  }
   return phi;
 }
 
