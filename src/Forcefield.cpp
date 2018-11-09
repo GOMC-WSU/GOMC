@@ -75,6 +75,7 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
 
   vdwGeometricSigma = val.ff.vdwGeometricSigma;
   isMartini = ffKind.isMARTINI;
+  exp6 = (vdwKind == val.ff.VDW_EXP6_KIND);
 
 #if ENSEMBLE == GCMC
   isFugacity = val.chemPot.isFugacity;

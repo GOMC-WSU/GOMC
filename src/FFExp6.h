@@ -14,16 +14,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "FFParticle.h"
 
 //////////////////////////////////////////////////////////////////////
-////////////////////////// LJ Shift Style ////////////////////////////
+//////////////////////////// Exp-6 Style /////////////////////////////
 //////////////////////////////////////////////////////////////////////
 // Virial and LJ potential calculation:
-// U(rij) = cn * eps_ij * ( (sig_ij/rij)^n - (sig_ij/rij)^6) + shiftConst
-// shiftConst = cn * eps_ij * ( (sig_ij/rcut)^n - (sig_ij/rcut)^6)
-// cn = n/(n-6) * ((n/6)^(6/(n-6)))
-//
-// Vir(r) = cn * eps_ij * 6 * ((n/6) * repulse - attract)/rij^2
-// U_lrc = 0
-// Vir_lrc = 0
+//U(rij)= expConst * ( (6/alpha) * exp( alpha * [1-(r/rmin)] )-(rmin/r)^6)
+//expConst=( eps-ij * alpha )/(alpha-6)
+//Vir(r)= 6 * expConst * [ (r/rmin) * exp( alpha *[1-(r/rmin)]-(rmin/r)^6]
 //
 // Eelect = qi * qj * (1/r - 1/rcut)
 // Welect = qi * qj * 1/rij^3
@@ -31,11 +27,16 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 struct FF_EXP6 : public FFParticle {
 public:
-  FF_EXP6(Forcefield &ff) : FFParticle(ff), shiftConst(NULL), shiftConst_1_4(NULL) {}
+  FF_EXP6(Forcefield &ff) : FFParticle(ff), expConst(NULL), rMin(NULL),
+    rMaxSq(NULL), expConst_1_4(NULL), rMin_1_4(NULL), rMaxSq_1_4(NULL) {}
   virtual ~FF_EXP6()
   {
-    delete[] shiftConst;
-    delete[] shiftConst_1_4;
+    delete[] expConst;
+    delete[] expConst_1_4;
+    delete[] rMin;
+    delete[] rMin_1_4;
+    delete[] rMaxSq;
+    delete[] rMaxSq_1_4;
   }
 
   virtual void Init(ff_setup::Particle const& mie,
@@ -57,20 +58,20 @@ public:
                                   const double qi_qj_Fact,
                                   const bool NB) const;
 
-  //!Returns Ezero, no energy correction
+  //!Returns energy correction
   virtual double EnergyLRC(const uint kind1, const uint kind2) const
   {
-    return 0.0;
+    return enCorrection[FlatIndex(kind1, kind2)];
   }
-  //!!Returns Ezero, no virial correction
+  //!!Returns virial correction
   virtual double VirialLRC(const uint kind1, const uint kind2) const
   {
-    return 0.0;
+    return virCorrection[FlatIndex(kind1, kind2)];
   }
 
   protected:
 
-  double *shiftConst, *shiftConst_1_4;
+  double *expConst, *expConst_1_4, *rMaxSq, *rMin, *rMaxSq_1_4, *rMin_1_4;
 
 };
 
@@ -81,26 +82,42 @@ inline void FF_EXP6::Init(ff_setup::Particle const& mie,
   FFParticle::Init(mie, nbfix);
   uint size = num::Sq(count);
   //allocate memory 
-  shiftConst = new double [size];
-  shiftConst_1_4 = new double [size];
-  //calculate shift constant
+  expConst = new double [size];
+  rMin = new double [size];
+  rMaxSq = new double [size];
+  expConst_1_4 = new double [size];
+  rMin_1_4 = new double [size];
+  rMaxSq_1_4 = new double [size];
+  //calculate exp-6 parameter
   for(uint i = 0; i < count; ++i) {
     for(uint j = 0; j < count; ++j) {
       uint idx = FlatIndex(i, j);
-      double rRat2 = sigmaSq[idx] / forcefield.rCutSq;
-      double rRat4 = rRat2 * rRat2;
-      double attract = rRat4 * rRat2;
-      //for 1-4 interaction
-      double rRat2_1_4 = sigmaSq_1_4[idx] / forcefield.rCutSq;
-      double rRat4_1_4 = rRat2_1_4 * rRat2_1_4;
-      double attract_1_4 = rRat4_1_4 * rRat2_1_4;
-      double repulse = pow(sqrt(rRat2), n[idx]);
-      double repulse_1_4 = pow(sqrt(rRat2_1_4), n_1_4[idx]);
+      //We use n as alpha for exp-6, with geometric combining
+      expConst[idx] = epsilon[idx] * n[idx] / (n[idx] - 6.0);
+      expConst_1_4[idx] = epsilon_1_4[idx] * n_1_4[idx] / (n_1_4[idx] - 6.0);
 
-      shiftConst[idx] =  epsilon_cn[idx] * (repulse - attract);
-      shiftConst_1_4[idx] =  epsilon_cn_1_4[idx] *
-                            (repulse_1_4 - attract_1_4);
-    
+      //Find the Rmin(well depth) 
+      double sigma = sqrt(sigmaSq[idx]);
+      num::Exp6Fun* fun1 = new num::RminFun(n[idx], sigma);
+      rMin[idx] = num::Zbrent(fun1, sigma, 3.0 * sigma, 1.0e-7);
+      //Find the Rmax(du/dr = 0) 
+      num::Exp6Fun* fun2 = new num::RmaxFun(n[idx], sigma, rMin[idx]);
+      double rmax = Zbrent(fun2, 0.0, sigma, 1.0e-7);
+      rMaxSq[idx] = rmax * rmax;
+
+      //Find the Rmin(well depth) 
+      double sigma_1_4 = sqrt(sigmaSq_1_4[idx]);
+      num::Exp6Fun* fun3 = new num::RminFun(n_1_4[idx], sigma_1_4);
+      rMin_1_4[idx] = num::Zbrent(fun3, sigma_1_4, 3.0 * sigma_1_4, 1.0e-7);
+      //Find the Rmax(du/dr = 0) 
+      num::Exp6Fun* fun4 = new num::RmaxFun(n_1_4[idx], sigma_1_4, rMin_1_4[idx]);
+      double rmax_1_4 = Zbrent(fun4, 0.0, sigma_1_4, 1.0e-7);
+      rMaxSq_1_4[idx] = rmax_1_4 * rmax_1_4;
+
+      delete fun1;
+      delete fun2;
+      delete fun3;
+      delete fun4; 
     }
   }
 }
@@ -109,19 +126,21 @@ inline void FF_EXP6::Init(ff_setup::Particle const& mie,
 inline void FF_EXP6::CalcAdd_1_4(double& en, const double distSq,
                                   const uint kind1, const uint kind2) const
 {
-  uint index = FlatIndex(kind1, kind2);
-  double rRat2 = sigmaSq_1_4[index] / distSq;
-  double rRat4 = rRat2 * rRat2;
-  double attract = rRat4 * rRat2;
-#ifdef MIE_INT_ONLY
-  uint n_ij = n_1_4[index];
-  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
-#else
-  double n_ij = n_1_4[index];
-  double repulse = pow(sqrt(rRat2), n_ij);
-#endif
+  uint idx = FlatIndex(kind1, kind2);
+  if(distSq < rMaxSq_1_4[idx]) {
+    en += num::BIGNUM;
+    return;
+  }
 
-  en += (epsilon_cn_1_4[index] * (repulse - attract) - shiftConst_1_4[index]);
+  double dist = sqrt(distSq);
+  double rRat = rMin_1_4[idx] / dist;
+  double rRat2 = rRat * rRat;
+  double attract = rRat2 * rRat2 * rRat2;
+  double alpha_ij = n_1_4[idx];
+  double repulse = (6.0 / alpha_ij) * exp(alpha_ij * 
+                  (1.0 - dist/rMin_1_4[idx]));
+
+  en += expConst_1_4[idx] * (repulse - attract);
 }
 
 inline void FF_EXP6::CalcCoulombAdd_1_4(double& en, const double distSq,
@@ -143,19 +162,20 @@ inline double FF_EXP6::CalcEn(const double distSq,
   if(forcefield.rCutSq < distSq)
     return 0.0;
 
-  uint index = FlatIndex(kind1, kind2);
-  double rRat2 = sigmaSq[index] / distSq;
-  double rRat4 = rRat2 * rRat2;
-  double attract = rRat4 * rRat2;
-#ifdef MIE_INT_ONLY
-  uint n_ij = n[index];
-  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
-#else
-  double n_ij = n[index];
-  double repulse = pow(sqrt(rRat2), n_ij);
-#endif
+  uint idx = FlatIndex(kind1, kind2);
+  if(distSq < rMaxSq[idx]) {
+    return num::BIGNUM;
+  }
 
-  return (epsilon_cn[index] * (repulse - attract) - shiftConst[index]);
+  double dist = sqrt(distSq);
+  double rRat = rMin[idx] / dist;
+  double rRat2 = rRat * rRat;
+  double attract = rRat2 * rRat2 * rRat2;
+  
+  uint alpha_ij = n[idx];
+  double repulse = (6.0 / alpha_ij) * exp(alpha_ij * 
+                   (1.0 - dist/rMin[idx]));
+  return expConst[idx] * (repulse - attract);
 }
 
 inline double FF_EXP6::CalcCoulomb(const double distSq,
@@ -181,21 +201,23 @@ inline double FF_EXP6::CalcVir(const double distSq,
   if(forcefield.rCutSq < distSq)
     return 0.0;
 
-  uint index = FlatIndex(kind1, kind2);
-  double rNeg2 = 1.0 / distSq;
-  double rRat2 = rNeg2 * sigmaSq[index];
-  double rRat4 = rRat2 * rRat2;
-  double attract = rRat4 * rRat2;
-#ifdef MIE_INT_ONLY
-  uint n_ij = n[index];
-  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
-#else
-  double n_ij = n[index];
-  double repulse = pow(sqrt(rRat2), n_ij);
-#endif
+  uint idx = FlatIndex(kind1, kind2);
 
-  //Virial is the derivative of the pressure... mu
-  return epsilon_cn_6[index] * (nOver6[index] * repulse - attract) * rNeg2;
+  if(distSq < rMaxSq[idx]) {
+    return num::BIGNUM;
+  }
+
+  double dist = sqrt(distSq);
+  double rRat = rMin[idx] / dist;
+  double rRat2 = rRat * rRat ;
+  double attract = rRat2 * rRat2 * rRat2;
+
+  uint alpha_ij = n[idx];
+  double repulse = (dist / rMin[idx]) * exp(alpha_ij * 
+                   (1.0 - dist / rMin[idx]));
+
+  //Virial = -r * du/dr
+  return 6.0 * expConst[idx] * (repulse - attract); 
 }
 
 inline double FF_EXP6::CalcCoulombVir(const double distSq,

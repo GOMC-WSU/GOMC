@@ -1007,7 +1007,7 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND) ||
-    (sys.ff.VDW_KIND == sys.ff.VDW_EXP6_KIND)) && (sys.ff.doTailCorr == false) {
+    (sys.ff.VDW_KIND == sys.ff.VDW_EXP6_KIND)) && (sys.ff.doTailCorr == false)) {
     std::cout << "Warning: Long Range Correction is Inactive for " <<
               "Non-truncated potential." << std::endl;
   }
