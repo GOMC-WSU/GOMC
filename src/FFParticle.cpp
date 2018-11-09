@@ -18,7 +18,9 @@ FFParticle::FFParticle(Forcefield &ff) : forcefield(ff), mass(NULL), nameFirst(N
 #ifdef GOMC_CUDA
   , varCUDA(NULL)
 #endif 
-  {}
+  {
+    exp6 = ff.exp6;
+  }
 
 FFParticle::~FFParticle(void)
 {
@@ -123,8 +125,13 @@ void FFParticle::Blend(ff_setup::Particle const& mie, const double rCut)
       nameSec[idx] = mie.getname(j);
       nameSec[idx] += mie.getname(i);
 
-      n[idx] = num::MeanA(mie.n, mie.n, i, j);
-      n_1_4[idx] = num::MeanA(mie.n_1_4, mie.n_1_4, i, j);
+      if(exp6) {
+        n[idx] = num::MeanG(mie.n, mie.n, i, j);
+        n_1_4[idx] = num::MeanG(mie.n_1_4, mie.n_1_4, i, j);
+      } else {
+        n[idx] = num::MeanA(mie.n, mie.n, i, j);
+        n_1_4[idx] = num::MeanA(mie.n_1_4, mie.n_1_4, i, j);
+      }
       double cn = n[idx] / (n[idx] - 6) * pow(n[idx] / 6, (6 / (n[idx] - 6)));
       double cn_1_4 = n_1_4[idx] / (n_1_4[idx] - 6) *
                       pow(n_1_4[idx] / 6, (6 / (n_1_4[idx] - 6)));

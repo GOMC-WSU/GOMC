@@ -116,6 +116,7 @@ protected:
          * enCorrection, * virCorrection;
 
   uint count;
+  bool exp6;
 #ifdef GOMC_CUDA
   VariablesCUDA *varCUDA;
 #endif
