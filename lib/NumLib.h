@@ -259,7 +259,7 @@ class RmaxFun : public  Exp6Fun
 //The root, returned as zbrent, will be refined until its accuracy is tol.
 //Brent, R.P. 1973, Algorithms for Minimization without Derivatives (Englewood Cliffs, NJ: PrenticeHall)
 //Forsythe, G.E., Malcolm, M.A., and Moler, C.B. 1977, Computer Methods for Mathematical Computations (Englewood Cliffs, NJ: Prentice-Hall)
-double Zbrent(Exp6Fun* func, float x1, float x2, float tol)
+inline double Zbrent(Exp6Fun* func, float x1, float x2, float tol)
 {
     const int ITMAX = 100; //Maximum allowed number of iterations.
     const float EPS = 3.0e-8; //Machine floating-point precision.
