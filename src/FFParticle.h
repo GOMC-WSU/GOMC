@@ -58,6 +58,11 @@ public:
   double GetSigma_1_4(const uint i, const uint j) const;
   double GetN(const uint i, const uint j) const;
   double GetN_1_4(const uint i, const uint j) const;
+  virtual double GetRmin(const uint i, const uint j) const;
+  virtual double GetRmax(const uint i, const uint j) const;
+  virtual double GetRmin_1_4(const uint i, const uint j) const;
+  virtual double GetRmax_1_4(const uint i, const uint j) const;
+
   // LJ interaction functions
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2) const;

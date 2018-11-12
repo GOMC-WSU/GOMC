@@ -42,6 +42,11 @@ public:
   virtual void Init(ff_setup::Particle const& mie,
                     ff_setup::NBfix const& nbfix);
 
+  virtual double GetRmin(const uint i, const uint j) const;
+  virtual double GetRmax(const uint i, const uint j) const;
+  virtual double GetRmin_1_4(const uint i, const uint j) const;
+  virtual double GetRmax_1_4(const uint i, const uint j) const;
+
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2) const;
   virtual double CalcVir(const double distSq,
@@ -250,6 +255,31 @@ inline double FF_EXP6::CalcCoulombVir(const double distSq,
     return qi_qj / (distSq * dist);
   }
 }
+
+inline double FF_EXP6::GetRmin(const uint i, const uint j) const
+{
+  uint idx = FlatIndex(i, j);
+  return rMin[idx];
+}
+
+inline double FF_EXP6::GetRmax(const uint i, const uint j) const
+{
+  uint idx = FlatIndex(i, j);
+  return sqrt(rMaxSq[idx]);
+}
+
+inline double FF_EXP6::GetRmin_1_4(const uint i, const uint j) const 
+{
+  uint idx = FlatIndex(i, j);
+  return rMin_1_4[idx];
+}
+
+inline double FF_EXP6::GetRmax_1_4(const uint i, const uint j) const
+{
+  uint idx = FlatIndex(i, j);
+  return sqrt(rMaxSq_1_4[idx]);
+}
+
 
 
 #endif /*FF_EXP6_H*/
