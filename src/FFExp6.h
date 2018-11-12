@@ -98,26 +98,39 @@ inline void FF_EXP6::Init(ff_setup::Particle const& mie,
 
       //Find the Rmin(well depth) 
       double sigma = sqrt(sigmaSq[idx]);
-      num::Exp6Fun* fun1 = new num::RminFun(n[idx], sigma);
-      rMin[idx] = num::Zbrent(fun1, sigma, 3.0 * sigma, 1.0e-7);
+      num::Exp6Fun* func1 = new num::RminFun(n[idx], sigma);
+      rMin[idx] = num::Zbrent(func1, sigma, 3.0 * sigma, 1.0e-7);
       //Find the Rmax(du/dr = 0) 
-      num::Exp6Fun* fun2 = new num::RmaxFun(n[idx], sigma, rMin[idx]);
-      double rmax = Zbrent(fun2, 0.0, sigma, 1.0e-7);
+      num::Exp6Fun* func2 = new num::RmaxFun(n[idx], sigma, rMin[idx]);
+      double rmax = Zbrent(func2, 0.0, sigma, 1.0e-7);
       rMaxSq[idx] = rmax * rmax;
 
       //Find the Rmin(well depth) 
       double sigma_1_4 = sqrt(sigmaSq_1_4[idx]);
-      num::Exp6Fun* fun3 = new num::RminFun(n_1_4[idx], sigma_1_4);
-      rMin_1_4[idx] = num::Zbrent(fun3, sigma_1_4, 3.0 * sigma_1_4, 1.0e-7);
+      num::Exp6Fun* func3 = new num::RminFun(n_1_4[idx], sigma_1_4);
+      rMin_1_4[idx] = num::Zbrent(func3, sigma_1_4, 3.0 * sigma_1_4, 1.0e-7);
       //Find the Rmax(du/dr = 0) 
-      num::Exp6Fun* fun4 = new num::RmaxFun(n_1_4[idx], sigma_1_4, rMin_1_4[idx]);
-      double rmax_1_4 = Zbrent(fun4, 0.0, sigma_1_4, 1.0e-7);
+      num::Exp6Fun* func4 = new num::RmaxFun(n_1_4[idx], sigma_1_4, rMin_1_4[idx]);
+      double rmax_1_4 = Zbrent(func4, 0.0, sigma_1_4, 1.0e-7);
       rMaxSq_1_4[idx] = rmax_1_4 * rmax_1_4;
+      //A,B and C for energy equation
+      double A = 6.0 * epsilon[idx] * exp(n[idx]) / ((double)n[idx] - 6.0);
+      double B = rMin[idx] / (double)n[idx];
+      double C = epsilon[idx] * (double)n[idx] *  pow(rMin[idx], 6) / 
+                  ((double)n[idx] - 6.0);
 
-      delete fun1;
-      delete fun2;
-      delete fun3;
-      delete fun4; 
+      enCorrection[idx] = 2.0 * M_PI * (A * B * exp(-rCut/B) *
+                          (2.0 * pow(B,2) + (2.0 * B * rCut) + pow(rCut,2)) -
+                          C / (3.0 * pow(rCut,3)));
+      virCorrection[idx] = 2.0 * M_PI * (A * exp(-rCut/B) *
+                           (6.0 * pow(B,3) + 6.0 * pow(B,2) * rCut + 
+                           3.0 * pow(rCut,2) * B + pow(rCut,3)) -
+                           2.0 * C / pow(rCut,3));
+
+      delete func1;
+      delete func2;
+      delete func3;
+      delete func4; 
     }
   }
 }
