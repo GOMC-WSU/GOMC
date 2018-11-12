@@ -353,9 +353,6 @@ void DCCyclic::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 {
   //check if we want to grow all atoms from node's focus or not
   bool growAll = data.prng() < 1.0 / nodes.size();
-  //Avoid the case where we dont have any crankshaft move. Its better to regrowth
-  //the molecule rather than call IntraSwap move
-  growAll |= !hasCrankShaft;
 
   //Randomely pick a node to keep it fix and not grow it
   uint current = data.prng.randIntExc(nodes.size());
@@ -369,7 +366,13 @@ void DCCyclic::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 
   if(isRing[seedInx] && !growAll) {
     //if selected node was part of ring and we did not grow all, perform crankshaft
-    return CrankShaft(oldMol, newMol, molIndex);
+    //Avoid the case where we dont have any crankshaft move. Its better to regrowth
+    //the whole molecule rather than call IntraSwap move
+    if(hasCrankShaft) {
+      return CrankShaft(oldMol, newMol, molIndex);
+    } else {
+      growAll = true;
+    }
   }
 
   //Set bCoords to unwrap coordinate of actual molecule
