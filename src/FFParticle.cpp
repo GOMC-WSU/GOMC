@@ -89,6 +89,7 @@ void FFParticle::Init(ff_setup::Particle const& mie,
   enCorrection = new double [size];
   virCorrection = new double [size];
 
+  rCut = forcefield.rCut;
   //Combining VDW parameter
   Blend(mie, forcefield.rCut);
   //Adjusting VDW parameter using NBFIX

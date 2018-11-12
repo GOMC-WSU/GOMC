@@ -114,6 +114,7 @@ protected:
   double * sigmaSq, * epsilon, * epsilon_1_4, * epsilon_cn, * epsilon_cn_6,
          * nOver6, * sigmaSq_1_4, * epsilon_cn_1_4, * epsilon_cn_6_1_4, * nOver6_1_4,
          * enCorrection, * virCorrection;
+  double rCut;
 
   uint count;
   bool exp6;
