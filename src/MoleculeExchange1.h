@@ -539,7 +539,7 @@ inline void MoleculeExchange1::CalcTc()
   if (ffRef.useLRC) {
     double delTC = 0.0;
     for (uint b = 0; b < BOX_TOTAL; ++b) {
-      uint kCount[molRef.kindsCount];
+      uint* kCount = new uint[molRef.kindsCount];
       for (uint k = 0; k < molRef.kindsCount; ++k) {
 	      kCount[k] = molLookRef.NumKindInBox(k, b);
       }
@@ -553,6 +553,7 @@ inline void MoleculeExchange1::CalcTc()
       }
       tcNew[b].energy = calcEnRef.EnergyCorrection(b, kCount);
       delTC += tcNew[b].energy - sysPotRef.boxEnergy[b].tc;
+      delete[] kCount;
     }
     W_tc = exp(-1.0 * ffRef.beta * delTC); 
   }
