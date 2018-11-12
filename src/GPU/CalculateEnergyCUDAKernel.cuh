@@ -48,10 +48,10 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             int *gpu_isMartini,
                             int *gpu_count,
                             double *gpu_rCut,
-                            double gpu_rCutCoulomb,
+                            double *gpu_rCutCoulomb,
                             double *gpu_rCutLow,
                             double *gpu_rOn,
-                            double gpu_alpha,
+                            double *gpu_alpha,
                             int *gpu_ewald,
                             double *gpu_diElectric_1,
                             int *gpu_nonOrth,
@@ -60,7 +60,8 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             double *gpu_cell_z,
                             double *gpu_Invcell_x,
                             double *gpu_Invcell_y,
-                            double *gpu_Invcell_z);
+                            double *gpu_Invcell_z,
+                            int box);
 
 
 __device__ double CalcCoulombGPU(double distSq, double qi_qj_fact,
