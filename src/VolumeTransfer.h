@@ -162,8 +162,8 @@ inline void VolumeTransfer::CalcEn()
         calcEwald->RecipInit(bPick[b], newDim);
         //setup reciprocate terms
         calcEwald->BoxReciprocalSetup(bPick[b], newMolsPos);
-        sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs, newDim,
-                                       bPick[b]);
+        sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs,
+                                      newDim, bPick[b]);
       } else {
         calcEwald->RecipInit(bPick[b], newDimNonOrth);
         //setup reciprocate terms
@@ -172,7 +172,7 @@ inline void VolumeTransfer::CalcEn()
                                        newDimNonOrth, bPick[b]);
       }
       //calculate reciprocate term of electrostatic interaction
-      sysPotNew.boxEnergy[bPick[b]].recip = calcEwald->BoxReciprocal(bPick[b]);
+      sysPotNew.boxEnergy[bPick[b]].recip=calcEwald->BoxReciprocal(bPick[b]);
     }
   } else {
     //calculate new K vectors
@@ -290,7 +290,7 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
                           boxDimRef.cellBasis[box].y,
                           boxDimRef.cellBasis[box].z);
       if(!isOrth) {
-        BoxDimensionsNonOrth newAxes = *((BoxDimensionsNonOrth*)(&boxDimRef));
+        BoxDimensionsNonOrth newAxes= *((BoxDimensionsNonOrth*)(&boxDimRef));
         UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
                               newAxes.cellBasis_Inv[box].x,
                               newAxes.cellBasis_Inv[box].y,
