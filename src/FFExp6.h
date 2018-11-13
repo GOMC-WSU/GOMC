@@ -17,12 +17,13 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 //////////////////////////// Exp-6 Style /////////////////////////////
 //////////////////////////////////////////////////////////////////////
 // Virial and LJ potential calculation:
-//U(rij)= expConst * ( (6/alpha) * exp( alpha * [1-(r/rmin)] )-(rmin/r)^6)
-//expConst=( eps-ij * alpha )/(alpha-6)
-//Vir(r)= 6 * expConst * [ (r/rmin) * exp( alpha *[1-(r/rmin)]-(rmin/r)^6]
+// U(rij)= expConst * ( (6/alpha) * exp( alpha * [1-(r/rmin)] )-(rmin/r)^6) )
+// expConst=( eps-ij * alpha )/(alpha-6)
 //
-// Eelect = qi * qj * (1/r - 1/rcut)
-// Welect = qi * qj * 1/rij^3
+// Vir(r)= -du/dr * r
+// Vir(r)= 6 * expConst * [(r/rmin) * exp(alpha * [1-(r/rmin)])-(rmin/r)^6]/ r^2
+//
+
 
 
 struct FF_EXP6 : public FFParticle {
@@ -235,7 +236,7 @@ inline double FF_EXP6::CalcVir(const double distSq,
                    (1.0 - dist / rMin[idx]));
 
   //Virial = -r * du/dr
-  return 6.0 * expConst[idx] * (repulse - attract); 
+  return 6.0 * expConst[idx] * (repulse - attract) / distSq; 
 }
 
 inline double FF_EXP6::CalcCoulombVir(const double distSq,
