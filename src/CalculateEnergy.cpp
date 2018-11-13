@@ -277,6 +277,19 @@ Virial CalculateEnergy::ForceCalc(const uint box)
 
 #ifdef GOMC_CUDA
   uint pairSize = pair1.size();
+  //update unitcell in GPU
+  UpdateCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
+                      currentAxes.cellBasis[box].x,
+                      currentAxes.cellBasis[box].y,
+                      currentAxes.cellBasis[box].z);
+
+  if(!currentAxes.orthogonal[box]) {
+    BoxDimensionsNonOrth newAxes = *((BoxDimensionsNonOrth*)(&currentAxes));
+    UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
+                           newAxes.cellBasis_Inv[box].x, newAxes.cellBasis_Inv[box].y,
+                           newAxes.cellBasis_Inv[box].z);
+  }
+
   uint currentIndex = 0;
   double vT11t = 0.0, vT12t = 0.0, vT13t = 0.0;
   double vT22t = 0.0, vT23t = 0.0, vT33t = 0.0;
