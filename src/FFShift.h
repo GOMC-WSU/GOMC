@@ -28,8 +28,18 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 // Eelect = qi * qj * (1/r - 1/rcut)
 // Welect = qi * qj * 1/rij^3
 
+
 struct FF_SHIFT : public FFParticle {
 public:
+  FF_SHIFT(Forcefield &ff) : FFParticle(ff), shiftConst(NULL), shiftConst_1_4(NULL) {}
+  virtual ~FF_SHIFT()
+  {
+    delete[] shiftConst;
+    delete[] shiftConst_1_4;
+  }
+
+  virtual void Init(ff_setup::Particle const& mie,
+                    ff_setup::NBfix const& nbfix);
 
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2) const;
@@ -40,11 +50,9 @@ public:
 
   // coulomb interaction functions
   virtual double CalcCoulomb(const double distSq,
-                             const double qi_qj_Fact) const;
-  virtual double CalcCoulombEn(const double distSq,
-                               const double qi_qj_Fact) const;
+                             const double qi_qj_Fact, const uint b) const;
   virtual double CalcCoulombVir(const double distSq,
-                                const double qi_qj) const;
+                                const double qi_qj, const uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact,
                                   const bool NB) const;
@@ -59,8 +67,44 @@ public:
   {
     return 0.0;
   }
+
+  protected:
+
+  double *shiftConst, *shiftConst_1_4;
+
 };
 
+inline void FF_SHIFT::Init(ff_setup::Particle const& mie,
+                          ff_setup::NBfix const& nbfix)
+{
+  //Initializ sigma and epsilon
+  FFParticle::Init(mie, nbfix);
+  uint size = num::Sq(count);
+  //allocate memory 
+  shiftConst = new double [size];
+  shiftConst_1_4 = new double [size];
+  //calculate shift constant
+  for(uint i = 0; i < count; ++i) {
+    for(uint j = 0; j < count; ++j) {
+      uint idx = FlatIndex(i, j);
+      double rRat2 = sigmaSq[idx] / forcefield.rCutSq;
+      double rRat4 = rRat2 * rRat2;
+      double attract = rRat4 * rRat2;
+      //for 1-4 interaction
+      double rRat2_1_4 = sigmaSq_1_4[idx] / forcefield.rCutSq;
+      double rRat4_1_4 = rRat2_1_4 * rRat2_1_4;
+      double attract_1_4 = rRat4_1_4 * rRat2_1_4;
+      double repulse = pow(sqrt(rRat2), n[idx]);
+      double repulse_1_4 = pow(sqrt(rRat2_1_4), n_1_4[idx]);
+
+      shiftConst[idx] =  epsilon_cn[idx] * (repulse - attract);
+      shiftConst_1_4[idx] =  epsilon_cn_1_4[idx] *
+                            (repulse_1_4 - attract_1_4);
+    
+    }
+  }
+}
+                  
 
 inline void FF_SHIFT::CalcAdd_1_4(double& en, const double distSq,
                                   const uint kind1, const uint kind2) const
@@ -88,7 +132,7 @@ inline void FF_SHIFT::CalcCoulombAdd_1_4(double& en, const double distSq,
   if(NB)
     en += qi_qj_Fact / dist;
   else
-    en += qi_qj_Fact * scaling_14 / dist;
+    en += qi_qj_Fact * forcefield.scaling_14 / dist;
 }
 
 
@@ -96,6 +140,9 @@ inline void FF_SHIFT::CalcCoulombAdd_1_4(double& en, const double distSq,
 inline double FF_SHIFT::CalcEn(const double distSq,
                                const uint kind1, const uint kind2) const
 {
+  if(forcefield.rCutSq < distSq)
+    return 0.0;
+
   uint index = FlatIndex(kind1, kind2);
   double rRat2 = sigmaSq[index] / distSq;
   double rRat4 = rRat2 * rRat2;
@@ -112,32 +159,18 @@ inline double FF_SHIFT::CalcEn(const double distSq,
 }
 
 inline double FF_SHIFT::CalcCoulomb(const double distSq,
-                                    const double qi_qj_Fact) const
+                                    const double qi_qj_Fact, const uint b) const
 {
-  if(ewald) {
+  if(forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
+  if(forcefield.ewald) {
     double dist = sqrt(distSq);
-    double val = alpha * dist;
+    double val = forcefield.alpha[b] * dist;
     return  qi_qj_Fact * erfc(val) / dist;
   } else {
     double dist = sqrt(distSq);
-    return  qi_qj_Fact * (1.0 / dist - 1.0 / rCut);
-  }
-}
-
-//will be used in energy calculation after each move
-inline double FF_SHIFT::CalcCoulombEn(const double distSq,
-                                      const double qi_qj_Fact) const
-{
-  if(distSq <= rCutLowSq)
-    return num::BIGNUM;
-
-  if(ewald) {
-    double dist = sqrt(distSq);
-    double val = alpha * dist;
-    return  qi_qj_Fact * erfc(val) / dist;
-  } else {
-    double dist = sqrt(distSq);
-    return  qi_qj_Fact * (1.0 / dist - 1.0 / rCut);
+    return  qi_qj_Fact * (1.0 / dist - 1.0 / forcefield.rCut);
   }
 }
 
@@ -145,6 +178,9 @@ inline double FF_SHIFT::CalcCoulombEn(const double distSq,
 inline double FF_SHIFT::CalcVir(const double distSq,
                                 const uint kind1, const uint kind2) const
 {
+  if(forcefield.rCutSq < distSq)
+    return 0.0;
+
   uint index = FlatIndex(kind1, kind2);
   double rNeg2 = 1.0 / distSq;
   double rRat2 = rNeg2 * sigmaSq[index];
@@ -163,13 +199,16 @@ inline double FF_SHIFT::CalcVir(const double distSq,
 }
 
 inline double FF_SHIFT::CalcCoulombVir(const double distSq,
-                                       const double qi_qj) const
+                                       const double qi_qj, const uint b) const
 {
-  if(ewald) {
+  if(forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
+  if(forcefield.ewald) {
     double dist = sqrt(distSq);
-    double constValue = 2.0 * alpha / sqrt(M_PI);
-    double expConstValue = exp(-1.0 * alpha * alpha * distSq);
-    double temp = erfc(alpha * dist);
+    double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
+    double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
+    double temp = erfc(forcefield.alpha[b] * dist);
     return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
     double dist = sqrt(distSq);

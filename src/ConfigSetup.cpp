@@ -48,6 +48,8 @@ ConfigSetup::ConfigSetup(void)
   sys.elect.tolerance = DBL_MAX;
   sys.elect.oneFourScale = DBL_MAX;
   sys.elect.dielectric = DBL_MAX;
+  sys.memcVal.enable = false;
+  sys.intraMemcVal.enable = false;
   sys.step.total = ULONG_MAX;
   sys.step.equil = ULONG_MAX;
   sys.step.adjustment = ULONG_MAX;
@@ -76,10 +78,14 @@ ConfigSetup::ConfigSetup(void)
   sys.ff.rswitch = DBL_MAX;
   sys.ff.cutoff = DBL_MAX;
   sys.ff.cutoffLow = DBL_MAX;
+  sys.ff.vdwGeometricSigma = false;
   sys.moves.displace = DBL_MAX;
   sys.moves.rotate = DBL_MAX;
   sys.moves.intraSwap = DBL_MAX;
   sys.moves.regrowth = DBL_MAX;
+  sys.moves.crankShaft = DBL_MAX;
+  sys.moves.memc = DBL_MAX;
+  sys.moves.intraMemc = DBL_MAX;
   out.state.settings.enable = true;
   out.restart.settings.enable = true;
   out.console.enable = true;
@@ -113,6 +119,7 @@ ConfigSetup::ConfigSetup(void)
   sys.cbmcTrials.nonbonded.nth = UINT_MAX;
   out.statistics.vars.molNum.block = false;
   out.statistics.vars.molNum.fluct = false;
+  sys.volume.cstVolBox0 = false;
 #endif
 #ifdef VARIABLE_VOLUME
   sys.moves.volume = DBL_MAX;
@@ -139,6 +146,19 @@ bool ConfigSetup::checkBool(string str)
   exit(EXIT_FAILURE);
 }
 
+bool ConfigSetup::CheckString(string str1, string str2) 
+{
+  for(int k = 0; k < str1.length(); k++) {
+    str1[k] = toupper(str1[k]);
+  }
+ 
+  for(int j = 0; j < str2.length(); j++) {
+    str2[j] = toupper(str2[j]);
+  }
+
+  return (str1 == str2);
+}
+
 void ConfigSetup::Init(const char *fileName)
 {
   std::vector<std::string> line;
@@ -149,51 +169,59 @@ void ConfigSetup::Init(const char *fileName)
     if(line.size() == 0)
       continue;
 
-    if(line[0] == "Restart") {
+    if(CheckString(line[0], "Restart")) {
       in.restart.enable = checkBool(line[1]);
       if(in.restart.enable) {
         printf("%-40s %-s \n", "Info: Restart simulation",  "Active");
       }
-    } else if(line[0] == "FirstStep") {
+    } else if(CheckString(line[0], "FirstStep")) {
       in.restart.step = stringtoi(line[1]);
-    } else if(line[0] == "PRNG") {
+    } else if(CheckString(line[0], "PRNG")) {
       in.prng.kind = line[1];
       if("RANDOM" == line[1])
         printf("%-40s %-s \n", "Info: Random seed", "Active");
-    } else if(line[0] == "ParaTypeCHARMM") {
+    } else if(CheckString(line[0], "ParaTypeCHARMM")) {
       if(checkBool(line[1])) {
         in.ffKind.numOfKinds++;
         in.ffKind.isEXOTIC = false;
         in.ffKind.isMARTINI = false;
         in.ffKind.isCHARMM = true;
-        printf("Info: PARAMETER file: CHARMM format!\n");
+        printf("%-40s %-s \n", "Info: PARAMETER file", "CHARMM format!");
       }
-    } else if(line[0] == "ParaTypeEXOTIC") {
+    } else if(CheckString(line[0], "ParaTypeEXOTIC")) {
       if(checkBool(line[1])) {
         in.ffKind.numOfKinds++;
         in.ffKind.isCHARMM = false;
         in.ffKind.isMARTINI = false;
         in.ffKind.isEXOTIC = true;
-        printf("Info: PARAMETER file: EXOTIC format!\n");
+        printf("%-40s %-s \n", "Info: PARAMETER file", "MIE format!");
       }
-    } else if(line[0] == "ParaTypeMARTINI") {
+    } else if(CheckString(line[0], "ParaTypeMIE")) {
+      if(checkBool(line[1])) {
+        in.ffKind.numOfKinds++;
+        in.ffKind.isCHARMM = false;
+        in.ffKind.isMARTINI = false;
+        in.ffKind.isEXOTIC = true;
+        printf("%-40s %-s \n", "Info: PARAMETER file", "MIE format!");
+      }
+    } else if(CheckString(line[0], "ParaTypeMARTINI")) {
       if(checkBool(line[1])) {
         in.ffKind.numOfKinds ++;
         in.ffKind.isEXOTIC = false;
         in.ffKind.isMARTINI = true;
         in.ffKind.isCHARMM = true;
-        printf("Info: PARAMETER file: MARTINI using CHARMM format!\n");
+        printf("%-40s %-s \n", "Info: PARAMETER file", "MARTINI using CHARMM format!");
       }
-    } else if(line[0] == "Parameters") {
+    } else if(CheckString(line[0], "Parameters")) {
       in.files.param.name = line[1];
-    } else if(line[0] == "Coordinates") {
+    } else if(CheckString(line[0], "Coordinates")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {
         std::cout << "Error: Simulation requires " << BOX_TOTAL << " PDB file(s)!\n";
         exit(EXIT_FAILURE);
       }
       in.files.pdb.name[boxnum] = line[2];
-    } else if(line[0] == "Structure") {
+    } else if(CheckString(line[0], "Structure")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {
         std::cout << "Error: Simulation requires " << BOX_TOTAL << " PSF file(s)!\n";
@@ -202,59 +230,160 @@ void ConfigSetup::Init(const char *fileName)
       in.files.psf.name[boxnum] = line[2];
     }
 #if ENSEMBLE == GEMC
-    else if(line[0] == "GEMC") {
-      if(line[1] == "NVT") {
+    else if(CheckString(line[0], "GEMC")) {
+      if(CheckString(line[1], "NVT")) {
         sys.gemc.kind = mv::GEMC_NVT;
         printf("Info: Running NVT_GEMC\n");
-      } else if(line[1] == "NPT") {
+      } else if(CheckString(line[1], "NPT")) {
         sys.gemc.kind = mv::GEMC_NPT;
         printf("Info: Running NPT_GEMC\n");
       }
-    } else if(line[0] == "Pressure") {
+    } else if(CheckString(line[0], "Pressure")) {
       sys.gemc.pressure = stringtod(line[1]);
       printf("%-40s %-4.4f bar\n", "Info: Input Pressure", sys.gemc.pressure);
       sys.gemc.pressure *= unit::BAR_TO_K_MOLECULE_PER_A3;
     }
 #endif
 #if ENSEMBLE == NPT
-    else if(line[0] == "Pressure") {
+    else if(CheckString(line[0], "Pressure")) {
       sys.gemc.kind = mv::GEMC_NPT;
       sys.gemc.pressure = stringtod(line[1]);
       printf("%-40s %-4.4f bar\n", "Info: Input Pressure", sys.gemc.pressure);
       sys.gemc.pressure *= unit::BAR_TO_K_MOLECULE_PER_A3;
     }
 #endif
-    else if(line[0] == "Temperature") {
+    else if(CheckString(line[0], "Temperature")) {
       sys.T.inKelvin = stringtod(line[1]);
       printf("%-40s %-4.4f K\n", "Info: Input Temperature", sys.T.inKelvin);
-    } else if(line[0] == "Potential") {
-      if(line[1] == "VDW") {
+    } else if(CheckString(line[0], "Potential")) {
+      if(CheckString(line[1],"VDW")) {
         sys.ff.VDW_KIND = sys.ff.VDW_STD_KIND;
         printf("%-40s %-s \n", "Info: Non-truncated potential", "Active");
-      } else if(line[1] == "SHIFT") {
+      } else if(CheckString(line[1],"SHIFT")) {
         sys.ff.VDW_KIND = sys.ff.VDW_SHIFT_KIND;
         printf("%-40s %-s \n", "Info: Shift truncated potential", "Active");
-      } else if(line[1] == "SWITCH") {
+      } else if(CheckString(line[1], "SWITCH")) {
         sys.ff.VDW_KIND = sys.ff.VDW_SWITCH_KIND;
         printf("%-40s %-s \n", "Info: Switch truncated potential", "Active");
       }
-    } else if(line[0] == "LRC") {
+    } else if(CheckString(line[0], "LRC")) {
       sys.ff.doTailCorr = checkBool(line[1]);
       if(sys.ff.doTailCorr)
         printf("%-40s %-s \n", "Info: Long Range Correction", "Active");
       else
         printf("%-40s %-s \n", "Info: Long Range Correction", "Inactive");
-    } else if(line[0] == "Rswitch") {
+    } else if(CheckString(line[0], "Rswitch")) {
       sys.ff.rswitch = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: Switch distance",
-             sys.ff.rswitch);
-    } else if(line[0] == "Rcut") {
+      printf("%-40s %-4.4f \n", "Info: Switch distance", sys.ff.rswitch);
+    } else if(CheckString(line[0], "ExchangeVolumeDim")) {
+      if(line.size() == 4) {
+        XYZ temp;
+        temp.x = stringtod(line[1]);
+        temp.y = stringtod(line[2]);
+        temp.z = stringtod(line[3]);
+        sys.memcVal.subVol = temp;
+        sys.intraMemcVal.subVol = temp;
+        printf("%-40s %-4.3f %-4.3f %-4.3f A\n",
+               "Info: Exchange Sub-Volume Dimensions", temp.x, temp.y, temp.z);
+        sys.memcVal.readVol = true;
+        sys.intraMemcVal.readVol = true;
+      }
+    } else if(CheckString(line[0],"ExchangeRatio")) {
+      if(line.size() >= 2) {
+        printf("%-41s", "Info: ExchangeRatio");
+        for(uint i = 1; i < line.size(); i++) {
+          uint val = stringtoi(line[i]);
+          sys.memcVal.exchangeRatio.push_back(val);
+          sys.intraMemcVal.exchangeRatio.push_back(val);
+          printf("%-5d", val);
+        }
+        std::cout << endl;        
+        sys.memcVal.readRatio = true;
+        sys.intraMemcVal.readRatio = true;
+      }
+    } else if(CheckString(line[0], "ExchangeLargeKind")) {
+      if(line.size() >= 2) {
+        printf("%-41s", "Info: Exchange Large Kind");
+        for(uint i = 1; i < line.size(); i++) {
+          std::string resName = line[i];
+          sys.memcVal.largeKind.push_back(resName);
+          sys.intraMemcVal.largeKind.push_back(resName);
+          printf("%-5s", resName.c_str());
+        }
+        std::cout << endl; 
+        sys.memcVal.readLK = true;
+        sys.intraMemcVal.readLK = true;
+      }
+    } else if(CheckString(line[0], "ExchangeSmallKind")) {
+      if(line.size() >= 2) {
+        printf("%-41s", "Info: Exchange Small Kind");
+        for(uint i = 1; i < line.size(); i++) {
+          std::string resName = line[i];
+          sys.memcVal.smallKind.push_back(resName);
+          sys.intraMemcVal.smallKind.push_back(resName);
+          printf("%-5s", resName.c_str());
+        }
+        std::cout << endl; 
+        sys.memcVal.readSK = true;
+        sys.intraMemcVal.readSK = true;
+      }
+    } else if(CheckString(line[0], "SmallKindBackBone")) {
+      if((line.size() % 2) == 0) {
+        std::cout <<"Error: Atom Names in Small Kind BackBone must be in pair!\n";
+        exit(EXIT_FAILURE);
+      }
+      if(line.size() >= 3) {
+        printf("%-41s", "Info: Atom Names in Small Kind BackBone");
+        for(uint i = 1; i < line.size() - 1; i += 2) {
+          if(i != 1) {
+            printf(" , ");
+          }
+          std::string atom1 = line[i];
+          std::string atom2 = line[i+1];
+          sys.memcVal.smallBBAtom1.push_back(atom1);
+          sys.memcVal.smallBBAtom2.push_back(atom2);      
+          sys.intraMemcVal.smallBBAtom1.push_back(atom1);
+          sys.intraMemcVal.smallBBAtom2.push_back(atom2);
+          printf("%-s - %-s", atom1.c_str(), atom2.c_str());
+        }
+        std::cout << endl;
+        sys.memcVal.readSmallBB = true;
+        sys.intraMemcVal.readSmallBB = true;
+      }
+    } else if(CheckString(line[0], "LargeKindBackBone")) {
+      if((line.size() % 2) == 0) {
+        std::cout <<"Error: Atom Names in Large Kind BackBone must be in pair!\n";
+        exit(EXIT_FAILURE);
+      }
+      if(line.size() >= 3) {
+        printf("%-41s", "Info: Atom Names in Large Kind BackBone");
+        for(uint i = 1; i < line.size() - 1; i += 2) {
+          if(i != 1) {
+            printf(" , ");
+          }
+          std::string atom1 = line[i];
+          std::string atom2 = line[i+1];
+          sys.memcVal.largeBBAtom1.push_back(atom1);
+          sys.memcVal.largeBBAtom2.push_back(atom2);
+          sys.intraMemcVal.largeBBAtom1.push_back(atom1);
+          sys.intraMemcVal.largeBBAtom2.push_back(atom2);
+          printf("%-s - %-s", atom1.c_str(), atom2.c_str());
+        }
+        std::cout << endl;
+        sys.memcVal.readLargeBB = true;
+        sys.intraMemcVal.readLargeBB = true;
+      }
+    } else if(CheckString(line[0], "VDWGeometricSigma")) {
+      sys.ff.vdwGeometricSigma = checkBool(line[1]);
+      if(sys.ff.vdwGeometricSigma)
+        printf("%-40s %-s A\n", "Info: Geometric mean to combine LJ sigma", "Active");
+    } else if(CheckString(line[0], "Rcut")) {
       sys.ff.cutoff = stringtod(line[1]);
       printf("%-40s %-4.4f A\n", "Info: Cutoff", sys.ff.cutoff);
-    } else if(line[0] == "RcutLow") {
+    } else if(CheckString(line[0], "RcutLow")) {
       sys.ff.cutoffLow = stringtod(line[1]);
       printf("%-40s %-4.4f A\n", "Info: Short Range Cutoff", sys.ff.cutoffLow);
-    } else if(line[0] == "Exclude") {
+    } else if(CheckString(line[0], "Exclude")) {
       if(line[1] == sys.exclude.EXC_ONETWO) {
         sys.exclude.EXCLUDE_KIND = sys.exclude.EXC_ONETWO_KIND;
         printf("%-40s %-s \n", "Info: Exclude", "ONE-TWO");
@@ -264,26 +393,34 @@ void ConfigSetup::Init(const char *fileName)
       } else if(line[1] == sys.exclude.EXC_ONEFOUR) {
         sys.exclude.EXCLUDE_KIND = sys.exclude.EXC_ONEFOUR_KIND;
         printf("%-40s %-s \n", "Info: Exclude", "ONE-FOUR");
-        printf("Warning: Modified 1-4 VDW parameters will be ignored!\n");
       }
-    } else if(line[0] == "Ewald") {
+    } else if(CheckString(line[0], "Ewald")) {
       sys.elect.ewald = checkBool(line[1]);
       sys.elect.readEwald = true;
       if(sys.elect.ewald) {
         printf("%-40s %-s \n", "Info: Ewald Summation", "Active");
       }
-    } else if(line[0] == "ElectroStatic") {
+    } else if(CheckString(line[0], "ElectroStatic")) {
       sys.elect.enable = checkBool(line[1]);
       sys.elect.readElect = true;
-    } else if(line[0] == "Tolerance") {
+    } else if(CheckString(line[0], "Tolerance")) {
       sys.elect.tolerance = stringtod(line[1]);
-      sys.elect.alpha = sqrt(-1 * log(sys.elect.tolerance)) /
-                        sys.ff.cutoff;
-      sys.elect.recip_rcut = 2 * (-log(sys.elect.tolerance)) /
-                             sys.ff.cutoff;
       printf("%-40s %-1.3E \n", "Info: Ewald Summation Tolerance",
              sys.elect.tolerance);
-    } else if(line[0] == "CachedFourier") {
+    } else if(CheckString(line[0], "RcutCoulomb")) {
+      if(line.size() == 3) {
+        uint b = stringtoi(line[1]);
+        if(b < BOX_TOTAL) {
+          sys.elect.cutoffCoulomb[b] = stringtod(line[2]);
+          sys.elect.cutoffCoulombRead[b] = true;
+          printf("%s %-d %-27s %4.4f A\n", "Info: Box ", b, " CutoffCoulomb", sys.elect.cutoffCoulomb[b]);
+        } else {
+          std::cout << "Error: This simulation requires only " << BOX_TOTAL <<
+                  " sets of Coulomb Cutoff!" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+      }
+    } else if(CheckString(line[0], "CachedFourier")) {
       sys.elect.cache = checkBool(line[1]);
       sys.elect.readCache = true;
       if(sys.elect.cache) {
@@ -291,33 +428,33 @@ void ConfigSetup::Init(const char *fileName)
       } else {
         printf("%-40s %-s \n", "Info: Cache Ewald Fourier", "Inactive");
       }
-    } else if(line[0] == "1-4scaling") {
+    } else if(CheckString(line[0], "1-4scaling")) {
       sys.elect.oneFourScale = stringtod(line[1]);
-    } else if(line[0] == "Dielectric") {
+    } else if(CheckString(line[0], "Dielectric")) {
       sys.elect.dielectric = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Dielectric", sys.elect.dielectric);
-    } else if(line[0] == "RunSteps") {
+    } else if(CheckString(line[0], "RunSteps")) {
       sys.step.total = stringtoi(line[1]);
       printf("%-40s %-lu \n", "Info: Total number of steps", sys.step.total);
       if(sys.step.total == 0) {
         in.restart.recalcTrajectory = true;
         printf("%-40s %-s \n", "Info: Recalculate Trajectory", "Active");
       }
-    } else if(line[0] == "EqSteps") {
+    } else if(CheckString(line[0], "EqSteps")) {
       sys.step.equil = stringtoi(line[1]);
       printf("%-40s %-lu \n", "Info: Number of equilibration steps",
              sys.step.equil);
-    } else if(line[0] == "AdjSteps") {
+    } else if(CheckString(line[0], "AdjSteps")) {
       sys.step.adjustment = stringtoi(line[1]);
       printf("%-40s %-lu \n", "Info: Move adjustment frequency",
              sys.step.adjustment);
-    } else if(line[0] == "PressureCalc") {
+    } else if(CheckString(line[0], "PressureCalc")) {
       sys.step.pressureCalc = checkBool(line[1]);
       if(line.size() == 3)
         sys.step.pressureCalcFreq = stringtoi(line[2]);
 
       if(sys.step.pressureCalc && (line.size() == 2)) {
-        std::cout << "Error: Pressure calculation frequency is not specified!\n";
+        std::cout <<"Error: Pressure calculation frequency is not specified!\n";
         exit(EXIT_FAILURE);
       }
       if(!sys.step.pressureCalc)
@@ -326,42 +463,70 @@ void ConfigSetup::Init(const char *fileName)
         printf("%-40s %-lu \n", "Info: Pressure calculation frequency",
                sys.step.pressureCalcFreq);
       }
-    } else if(line[0] == "DisFreq") {
+    } else if(CheckString(line[0], "DisFreq")) {
       sys.moves.displace = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Displacement move frequency",
              sys.moves.displace);
-    } else if(line[0] == "IntraSwapFreq") {
+    } else if(CheckString(line[0], "IntraSwapFreq")) {
       sys.moves.intraSwap = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Intra-Swap move frequency",
              sys.moves.intraSwap);
-    } else if(line[0] == "RegrowthFreq") {
+    } else if(CheckString(line[0], "RegrowthFreq")) {
       sys.moves.regrowth = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Regrowth move frequency",
              sys.moves.regrowth);
-    } else if(line[0] == "RotFreq") {
+    } else if(CheckString(line[0], "CrankShaftFreq")) {
+      sys.moves.crankShaft = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: Crank-Shaft move frequency",
+             sys.moves.crankShaft);
+    } else if(CheckString(line[0], "RotFreq")) {
       sys.moves.rotate = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Rotation move frequency",
              sys.moves.rotate);
+    } else if(CheckString(line[0], "IntraMEMC-1Freq")) {
+      sys.moves.intraMemc = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: IntraMEMC-1 move frequency",
+	     sys.moves.intraMemc);
+      if(sys.moves.intraMemc > 0.0) {
+	      sys.intraMemcVal.enable = true;
+        sys.intraMemcVal.MEMC1 = true;
+      }
+    } else if(CheckString(line[0], "IntraMEMC-2Freq")) {
+      sys.moves.intraMemc = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: IntraMEMC-2 move frequency",
+	     sys.moves.intraMemc);
+      if(sys.moves.intraMemc > 0.0) {
+        sys.intraMemcVal.enable = true;
+        sys.intraMemcVal.MEMC2 = true;
+      }
+    } else if(CheckString(line[0], "IntraMEMC-3Freq")) {
+      sys.moves.intraMemc = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: IntraMEMC-3 move frequency",
+	     sys.moves.intraMemc);
+      if(sys.moves.intraMemc > 0.0) {
+	      sys.intraMemcVal.enable = true;
+        sys.intraMemcVal.MEMC3 = true;
+      }
     }
 #ifdef VARIABLE_VOLUME
-    else if(line[0] == "VolFreq") {
+    else if(CheckString(line[0], "VolFreq")) {
       sys.moves.volume = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Volume move frequency",
              sys.moves.volume);
-    } else if(line[0] == "useConstantArea") {
+    } else if(CheckString(line[0], "useConstantArea")) {
       sys.volume.cstArea = checkBool(line[1]);
       if(sys.volume.cstArea)
         printf("Info: Volume change using constant X-Y area.\n");
       else
         printf("Info: Volume change using constant ratio.\n");
-    } else if(line[0] == "FixVolBox0") {
+    } else if(CheckString(line[0], "FixVolBox0")) {
       sys.volume.cstVolBox0 = checkBool(line[1]);
       if(sys.volume.cstVolBox0)
         printf("%-40s %-d \n", "Info: Fix volume box", 0);
     }
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
-    else if(line[0] == "SwapFreq") {
+    else if(CheckString(line[0], "SwapFreq")) {
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
       sys.moves.transfer = 0.000;
 #else
@@ -369,48 +534,78 @@ void ConfigSetup::Init(const char *fileName)
 #endif
       printf("%-40s %-4.4f \n", "Info: Molecule swap move frequency",
              sys.moves.transfer);
+    } else if(CheckString(line[0], "MEMC-1Freq")) {
+      sys.moves.memc = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: MEMC-1 move frequency",
+	     sys.moves.memc);
+      if(sys.moves.memc > 0.0) {
+	      sys.memcVal.enable = true;
+        sys.memcVal.MEMC1 = true;
+      }
+    } else if(CheckString(line[0], "MEMC-2Freq")) {
+      sys.moves.memc = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: MEMC-2 move frequency",
+	     sys.moves.memc);
+      if(sys.moves.memc > 0.0) {
+        sys.memcVal.enable = true;
+        sys.memcVal.MEMC2 = true;
+      }
+    } else if(CheckString(line[0], "MEMC-3Freq")) {
+      sys.moves.memc = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: MEMC-3 move frequency",
+	     sys.moves.memc);
+      if(sys.moves.memc > 0.0) {
+	      sys.memcVal.enable = true;
+        sys.memcVal.MEMC3 = true;
+      }
     }
 #endif
-    else if(line[0] == "CellBasisVector1") {
+    else if(CheckString(line[0], "CellBasisVector1")) {
       uint box = stringtoi(line[1]);
       if(box < BOX_TOTAL) {
-        XYZ temp;
-        sys.volume.boxCoordRead++;
-        sys.volume.hasVolume = (sys.volume.boxCoordRead == 3 * BOX_TOTAL);
-        temp.x = stringtod(line[2]);
-        temp.y = stringtod(line[3]);
-        temp.z = stringtod(line[4]);
-        sys.volume.axis[box].Set(0, temp);
+        if(!sys.volume.readCellBasis[box][0]) {
+          XYZ temp;
+          temp.x = stringtod(line[2]);
+          temp.y = stringtod(line[3]);
+          temp.z = stringtod(line[4]);
+          sys.volume.axis[box].Set(0, temp);
+          sys.volume.readCellBasis[box][0] = true;
+          sys.volume.hasVolume = sys.volume.ReadCellBasis();
+        }
       } else {
         std::cout << "Error: This simulation requires only " << BOX_TOTAL <<
                   " sets of Cell Basis Vector!" << std::endl;
         exit(EXIT_FAILURE);
       }
-    } else if(line[0] == "CellBasisVector2") {
+    } else if(CheckString(line[0], "CellBasisVector2")) {
       uint box = stringtoi(line[1]);
       if(box < BOX_TOTAL) {
-        XYZ temp;
-        sys.volume.boxCoordRead++;
-        sys.volume.hasVolume = (sys.volume.boxCoordRead == 3 * BOX_TOTAL);
-        temp.x = stringtod(line[2]);
-        temp.y = stringtod(line[3]);
-        temp.z = stringtod(line[4]);
-        sys.volume.axis[box].Set(1, temp);
+        if(!sys.volume.readCellBasis[box][1]) {
+          XYZ temp;
+          temp.x = stringtod(line[2]);
+          temp.y = stringtod(line[3]);
+          temp.z = stringtod(line[4]);
+          sys.volume.axis[box].Set(1, temp);
+          sys.volume.readCellBasis[box][1] = true;
+          sys.volume.hasVolume = sys.volume.ReadCellBasis();
+        }
       } else {
         std::cout << "Error: This simulation requires only " << BOX_TOTAL <<
                   " sets of Cell Basis Vector!" << std::endl;
         exit(EXIT_FAILURE);
       }
-    } else if(line[0] == "CellBasisVector3") {
+    } else if(CheckString(line[0], "CellBasisVector3")) {
       uint box = stringtoi(line[1]);
       if(box < BOX_TOTAL) {
-        XYZ temp;
-        sys.volume.boxCoordRead++;
-        sys.volume.hasVolume = (sys.volume.boxCoordRead == 3 * BOX_TOTAL);
-        temp.x = stringtod(line[2]);
-        temp.y = stringtod(line[3]);
-        temp.z = stringtod(line[4]);
-        sys.volume.axis[box].Set(2, temp);
+        if(!sys.volume.readCellBasis[box][2]) {
+          XYZ temp;
+          temp.x = stringtod(line[2]);
+          temp.y = stringtod(line[3]);
+          temp.z = stringtod(line[4]);
+          sys.volume.axis[box].Set(2, temp);
+          sys.volume.readCellBasis[box][2] = true;
+          sys.volume.hasVolume = sys.volume.ReadCellBasis();
+        }
       } else {
         std::cout << "Error: This simulation requires only " << BOX_TOTAL <<
                   " sets of Cell Basis Vector!" << std::endl;
@@ -418,26 +613,26 @@ void ConfigSetup::Init(const char *fileName)
       }
     }
 #ifdef VARIABLE_PARTICLE_NUMBER
-    else if(line[0] == "CBMC_First") {
+    else if(CheckString(line[0], "CBMC_First")) {
       sys.cbmcTrials.nonbonded.first = stringtoi(line[1]);
       printf("%-40s %-4d \n", "Info: CBMC First atom trials",
              sys.cbmcTrials.nonbonded.first);
-    } else if(line[0] == "CBMC_Nth") {
+    } else if(CheckString(line[0], "CBMC_Nth")) {
       sys.cbmcTrials.nonbonded.nth = stringtoi(line[1]);
       printf("%-40s %-4d \n", "Info: CBMC Secondary atom trials",
              sys.cbmcTrials.nonbonded.nth);
-    } else if(line[0] == "CBMC_Ang") {
+    } else if(CheckString(line[0], "CBMC_Ang")) {
       sys.cbmcTrials.bonded.ang = stringtoi(line[1]);
       printf("%-40s %-4d \n", "Info: CBMC Angle trials",
              sys.cbmcTrials.bonded.ang);
-    } else if(line[0] == "CBMC_Dih") {
+    } else if(CheckString(line[0], "CBMC_Dih")) {
       sys.cbmcTrials.bonded.dih = stringtoi(line[1]);
       printf("%-40s %-4d \n", "Info: CBMC Dihedral trials",
              sys.cbmcTrials.bonded.dih);
     }
 #endif
 #if ENSEMBLE == GCMC
-    else if(line[0] == "ChemPot") {
+    else if(CheckString(line[0], "ChemPot")) {
       if(line.size() != 3) {
         std::cout << "Error: Chemical potential parameters are not specified!\n";
         exit(EXIT_FAILURE);
@@ -447,7 +642,7 @@ void ConfigSetup::Init(const char *fileName)
       sys.chemPot.cp[resName] = val;
       printf("%-40s %-6s %-6.4f K\n", "Info: Chemical potential",
              resName.c_str(), val);
-    } else if(line[0] == "Fugacity") {
+    } else if(CheckString(line[0], "Fugacity")) {
       if(line.size() != 3) {
         std::cout << "Error: Fugacity parameters are not specified!\n";
         exit(EXIT_FAILURE);
@@ -460,10 +655,10 @@ void ConfigSetup::Init(const char *fileName)
              val);
     }
 #endif
-    else if(line[0] == "OutputName") {
+    else if(CheckString(line[0], "OutputName")) {
       out.statistics.settings.uniqueStr.val = line[1];
       printf("%-40s %-s \n", "Info: Output name", line[1].c_str());
-    } else if(line[0] == "CoordinatesFreq") {
+    } else if(CheckString(line[0], "CoordinatesFreq")) {
       out.state.settings.enable = checkBool(line[1]);
       if(line.size() == 3)
         out.state.settings.frequency = stringtoi(line[2]);
@@ -476,7 +671,7 @@ void ConfigSetup::Init(const char *fileName)
                out.state.settings.frequency);
       } else
         printf("%-40s %-s \n", "Info: Printing coordinate", "Inactive");
-    } else if(line[0] == "RestartFreq") {
+    } else if(CheckString(line[0], "RestartFreq")) {
       out.restart.settings.enable = checkBool(line[1]);
       if(line.size() == 3)
         out.restart.settings.frequency = stringtoi(line[2]);
@@ -489,7 +684,7 @@ void ConfigSetup::Init(const char *fileName)
                out.restart.settings.frequency);
       } else
         printf("%-40s %-s \n", "Info: Printing restart coordinate", "Inactive");
-    } else if(line[0] == "ConsoleFreq") {
+    } else if(CheckString(line[0], "ConsoleFreq")) {
       out.console.enable = checkBool(line[1]);
       if(line.size() == 3)
         out.console.frequency = stringtoi(line[2]);
@@ -506,7 +701,7 @@ void ConfigSetup::Init(const char *fileName)
                out.console.frequency);
       } else
         printf("%-40s %-s \n", "Info: Console output", "Inactive");
-    } else if(line[0] == "BlockAverageFreq") {
+    } else if(CheckString(line[0], "BlockAverageFreq")) {
       out.statistics.settings.block.enable = checkBool(line[1]);
       if(line.size() == 3)
         out.statistics.settings.block.frequency = stringtoi(line[2]);
@@ -521,7 +716,7 @@ void ConfigSetup::Init(const char *fileName)
         printf("%-40s %-s \n", "Info: Average output", "Inactive");
     }
 #if ENSEMBLE == GCMC
-    else if(line[0] == "HistogramFreq") {
+    else if(CheckString(line[0], "HistogramFreq")) {
       out.statistics.settings.hist.enable = checkBool(line[1]);
       if(line.size() == 3)
         out.statistics.settings.hist.frequency = stringtoi(line[2]);
@@ -539,47 +734,47 @@ void ConfigSetup::Init(const char *fileName)
                out.statistics.settings.hist.frequency);
       } else
         printf("%-40s %-s \n", "Info: Histogram output", "Inactive");
-    } else if(line[0] == "DistName") {
+    } else if(CheckString(line[0], "DistName")) {
       out.state.files.hist.histName = line[1];
-    } else if(line[0] == "HistName") {
+    } else if(CheckString(line[0], "HistName")) {
       out.state.files.hist.sampleName = line[1];
-    } else if(line[0] == "RunNumber") {
+    } else if(CheckString(line[0], "RunNumber")) {
       out.state.files.hist.number = line[1];
-    } else if(line[0] == "RunLetter") {
+    } else if(CheckString(line[0], "RunLetter")) {
       out.state.files.hist.letter = line[1];
-    } else if(line[0] == "SampleFreq") {
+    } else if(CheckString(line[0], "SampleFreq")) {
       out.state.files.hist.stepsPerHistSample = stringtoi(line[1]);
       printf("%-40s %-d \n", "Info: Histogram sample frequency",
              out.state.files.hist.stepsPerHistSample);
     }
 #endif
-    else if(line[0] == "OutEnergy") {
+    else if(CheckString(line[0], "OutEnergy")) {
       out.statistics.vars.energy.block = checkBool(line[1]);
       out.statistics.vars.energy.fluct = checkBool(line[2]);
-    } else if(line[0] == "OutPressure") {
+    } else if(CheckString(line[0], "OutPressure")) {
       out.statistics.vars.pressure.block = checkBool(line[1]);
       out.statistics.vars.pressure.fluct = checkBool(line[2]);
     }
 #ifdef VARIABLE_PARTICLE_NUMBER
-    else if(line[0] == "OutMolNum") {
+    else if(CheckString(line[0], "OutMolNum")) {
       out.statistics.vars.molNum.block = checkBool(line[1]);
       out.statistics.vars.molNum.fluct = checkBool(line[2]);
     }
 #endif
-    else if(line[0] == "OutDensity") {
+    else if(CheckString(line[0], "OutDensity")) {
       out.statistics.vars.density.block = checkBool(line[1]);
       out.statistics.vars.density.fluct = checkBool(line[2]);
-    } else if(line[0] == "OutSurfaceTension") {
+    } else if(CheckString(line[0], "OutSurfaceTension")) {
       out.statistics.vars.surfaceTension.block = checkBool(line[1]);
       out.statistics.vars.surfaceTension.fluct = checkBool(line[2]);
     }
 #ifdef VARIABLE_VOLUME
-    else if(line[0] == "OutVolume") {
+    else if(CheckString(line[0], "OutVolume")) {
       out.statistics.vars.volume.block = checkBool(line[1]);
       out.statistics.vars.volume.fluct = checkBool(line[2]);
     }
 #endif
-    else if(line[0] == "Random_Seed") {
+    else if(CheckString(line[0], "Random_Seed")) {
       in.prng.seed = stringtoi(line[1]);
       if("INTSEED" == in.prng.kind)
         printf("%-40s %-s \n", "Info: Constant seed", "Active");
@@ -612,11 +807,32 @@ void ConfigSetup::fillDefaults(void)
            sys.moves.intraSwap);
   }
 
+  if(sys.moves.intraMemc == DBL_MAX) {
+    sys.moves.intraMemc = 0.0;
+    printf("%-40s %-4.4f \n", "Default: Intra-MEMC move frequency",
+	     sys.moves.intraMemc);
+  }
+
   if(sys.moves.regrowth == DBL_MAX) {
     sys.moves.regrowth = 0.000;
     printf("%-40s %-4.4f \n", "Default: Regrowth move frequency",
            sys.moves.regrowth);
   }
+
+  if(sys.moves.crankShaft == DBL_MAX) {
+    sys.moves.crankShaft = 0.000;
+    printf("%-40s %-4.4f \n", "Default: Crank-Shaft move frequency",
+           sys.moves.crankShaft);
+  }
+
+  #ifdef VARIABLE_PARTICLE_NUMBER
+  if(sys.moves.memc == DBL_MAX)
+  {
+    sys.moves.memc = 0.0;
+    printf("%-40s %-4.4f \n", "Default: MEMC move frequency",
+	     sys.moves.memc);
+  }
+#endif
 
   if(sys.exclude.EXCLUDE_KIND == UINT_MAX) {
     sys.exclude.EXCLUDE_KIND = sys.exclude.EXC_ONEFOUR_KIND;
@@ -645,12 +861,23 @@ void ConfigSetup::fillDefaults(void)
 
   if (sys.elect.ewald == true && sys.elect.readCache == false) {
     sys.elect.cache = true;
+    sys.elect.readCache = true;
     printf("%-40s %-s \n", "Default: Cache Ewald Fourier", "Active");
   }
 
   if(sys.elect.enable && sys.elect.dielectric == DBL_MAX && in.ffKind.isMARTINI) {
     sys.elect.dielectric = 15.0f;
     printf("%-40s %-4.4f \n", "Default: Dielectric", sys.elect.dielectric);
+  }
+
+  if(sys.elect.enable) {
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      if(!sys.elect.cutoffCoulombRead[b]) {
+        sys.elect.cutoffCoulomb[b] = sys.ff.cutoff;
+        sys.elect.cutoffCoulombRead[b] = true;
+        printf("%s %-d %-24s %4.4f A\n", "Default: Box ", b, " CutoffCoulomb", sys.elect.cutoffCoulomb[b]);
+      }
+    }
   }
 
   if(sys.ff.cutoffLow == DBL_MAX) {
@@ -727,6 +954,11 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Warning: Input pressure set, but will be ignored in NVT-GEMC"
               << std::endl;
   }
+
+  if(sys.volume.cstVolBox0 && sys.gemc.kind == mv::GEMC_NVT) {
+    std::cout << "Error: Fix volume of box 0 cannot be applied to NVT-GEMC!\n";
+    exit(EXIT_FAILURE);
+  }
 #endif
 #if ENSEMBLE == NPT
   if(sys.gemc.pressure == DBL_MAX) {
@@ -734,7 +966,7 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(sys.volume.cstVolBox0) {
-    std::cout << "Warning: Fix volume of box 0 set, but will be ignored.\n";
+    std::cout << "Error: Fix volume of box 0 cannot be applied fot NPT simulation!\n";
     exit(EXIT_FAILURE);
   }
 #endif
@@ -840,8 +1072,8 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
-         sys.moves.intraSwap + sys.moves.volume +
-         sys.moves.regrowth - 1.0) > 0.01) {
+         sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
+	 sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(EXIT_FAILURE);
   }
@@ -851,7 +1083,8 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.volume + sys.moves.regrowth - 1.0) > 0.01) {
+         sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc + 
+         sys.moves.crankShaft - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(EXIT_FAILURE);
   }
@@ -862,13 +1095,15 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.transfer + sys.moves.regrowth - 1.0) > 0.01) {
+         sys.moves.transfer + sys.moves.regrowth + sys.moves.memc + 
+         sys.moves.intraMemc + sys.moves.crankShaft - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #else
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.regrowth - 1.0) > 0.01) {
+         sys.moves.regrowth + sys.moves.intraMemc + sys.moves.crankShaft - 
+         1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
@@ -889,8 +1124,16 @@ void ConfigSetup::verifyInputs(void)
     }
   }
   if(!sys.volume.hasVolume && !in.restart.enable) {
-    std::cout << "Error: This simulation requires to define " << 3 * BOX_TOTAL <<
-              " Cell Basis vectors!" << std::endl;
+    std::cout << "Error: This simulation requires to define " << 3 * BOX_TOTAL<<
+                " Cell Basis vectors!" << std::endl;
+    for(uint b = 0; b < BOX_TOTAL; b++){
+      for(uint i = 0; i < 3; i++) {
+        if(!sys.volume.readCellBasis[b][i]) {
+          std::cout << "Error: CellBasisVector" << i+1 << " for Box " << b <<
+          " is missing!" << std::endl;
+        }
+      }
+    }
     exit(EXIT_FAILURE);
   }
   if(sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND && sys.ff.rswitch == DBL_MAX) {
@@ -924,6 +1167,84 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: CBMC number of nth site trials is not specified!\n";
     exit(EXIT_FAILURE);
   }
+  if(sys.memcVal.enable || sys.intraMemcVal.enable) {
+    if((sys.memcVal.MEMC1 && sys.memcVal.MEMC2) ||
+       (sys.memcVal.MEMC1 && sys.memcVal.MEMC3) || 
+       (sys.memcVal.MEMC2 && sys.memcVal.MEMC3)) {
+      std::cout << "Error: Multiple MEMC methods are specified!\n";
+      exit(EXIT_FAILURE);
+    }
+    if((sys.intraMemcVal.MEMC1 && sys.intraMemcVal.MEMC2) ||
+       (sys.intraMemcVal.MEMC1 && sys.intraMemcVal.MEMC3) || 
+       (sys.intraMemcVal.MEMC2 && sys.intraMemcVal.MEMC3)) {
+      std::cout << "Error: Multiple Intra-MEMC methods are specified!\n";
+      exit(EXIT_FAILURE);
+    }
+    if(!sys.memcVal.readVol || !sys.intraMemcVal.readVol) {
+      std::cout << "Error: In MEMC method, Sub-Volume is not specified!\n";
+      exit(EXIT_FAILURE);
+    }
+    if(!sys.memcVal.readRatio || !sys.intraMemcVal.readRatio) {
+      std::cout << "Error: In MEMC method, Exchange Ratio is not specified!\n";
+      exit(EXIT_FAILURE);
+    }
+    if(sys.memcVal.largeKind.size() != sys.memcVal.exchangeRatio.size()) {
+      std::cout << "Error: In MEMC method, specified number of Large Kinds is " <<
+      sys.memcVal.largeKind.size() << ", but " << sys.memcVal.exchangeRatio.size()
+      << " exchange ratio is specified!\n";
+      exit(EXIT_FAILURE);
+    }
+    if(!sys.memcVal.readSK || !sys.intraMemcVal.readSK) {
+      std::cout << "Error: In MEMC method, Small Kind is not specified!\n";
+      exit(EXIT_FAILURE);
+    }
+    if(!sys.memcVal.readLK || !sys.intraMemcVal.readLK) {
+      std::cout << "Error: In MEMC method, Large Kind is not specified!\n";
+      exit(EXIT_FAILURE);
+    }
+    if((sys.memcVal.largeKind.size() != sys.memcVal.smallKind.size()) ||
+      (sys.intraMemcVal.largeKind.size() != sys.intraMemcVal.smallKind.size())) {
+      std::cout << "Error: In MEMC method, specified number of Large Kinds is not " <<
+      " equal as specified number of Small Kinds!\n";
+      exit(EXIT_FAILURE);
+    }
+    if(!sys.memcVal.readLargeBB || !sys.intraMemcVal.readLargeBB) {
+      std::cout << "Error: In MEMC method, Large Kind BackBone is not specified!\n";
+      exit(EXIT_FAILURE);
+    }
+    if(sys.memcVal.largeKind.size() != sys.memcVal.largeBBAtom1.size()) {
+      std::cout << "Error: In MEMC method, specified number of Large Kinds is " <<
+      sys.memcVal.largeKind.size() << ", but " << sys.memcVal.largeBBAtom1.size()
+      << " sets of Large Molecule BackBone is specified!\n";
+      exit(EXIT_FAILURE);
+    }
+    if(sys.memcVal.MEMC2 && !sys.memcVal.readSmallBB) {
+      std::cout << "Error: In MEMC-2 method, Small Kind BackBone is not specified!\n";
+      exit(EXIT_FAILURE);
+    }
+
+    if(sys.memcVal.MEMC2 && (sys.memcVal.smallKind.size() !=
+                            sys.memcVal.smallBBAtom1.size())) {
+      std::cout << "Error: In MEMC-2 method, specified number of Small Kinds is " <<
+      sys.memcVal.smallKind.size() << ", but " << sys.memcVal.smallBBAtom1.size()
+      << " sets of Small Molecule BackBone is specified!\n";
+      exit(EXIT_FAILURE);
+    }
+
+    if(sys.intraMemcVal.MEMC2 && !sys.intraMemcVal.readSmallBB) {
+      std::cout << "Error: In Intra-MEMC-2 method, Small Kind BackBone is not specified!\n";
+      exit(EXIT_FAILURE);
+    }
+    if(sys.memcVal.enable && sys.intraMemcVal.enable) {
+      if((sys.memcVal.MEMC1 && !sys.intraMemcVal.MEMC1) ||
+        (sys.memcVal.MEMC2 && !sys.intraMemcVal.MEMC2) || 
+        (sys.memcVal.MEMC3 && !sys.intraMemcVal.MEMC3)) {
+        std::cout << "Error: Intra-MEMC method is not same as MEMC method!\n";
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
+  
 #endif
   if(sys.T.inKelvin == DBL_MAX) {
     std::cout << "Error: Temperature is not specified!\n";

@@ -55,7 +55,7 @@ public:
   //scale all in each mol newCOM[m]/oldCOM[m]
   void VolumeTransferTranslate
   (uint & state, Coordinates &dest, COM & newCOM, BoxDimensions & newDim,
-   COM const& oldCOM, const double max) const;
+   COM const& oldCOM, const double max, const uint *box) const;
 
   //Helper for TranslateAll
   void TranslateOneBox(Coordinates & dest, COM & newCOM, COM const& oldCOM,

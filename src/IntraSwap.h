@@ -25,6 +25,7 @@ public:
   virtual uint Transform();
   virtual void CalcEn();
   virtual void Accept(const uint earlyReject, const uint step);
+  virtual void PrintAcceptKind();
 private:
   uint GetBoxAndMol(const double subDraw, const double movPerc);
   MolPick molPick;
@@ -40,8 +41,20 @@ private:
   Forcefield const& ffRef;
 };
 
-inline uint IntraSwap::GetBoxAndMol
-(const double subDraw, const double movPerc)
+void IntraSwap::PrintAcceptKind() {
+  for(uint k = 0; k < molRef.GetKindsCount(); k++) {
+    printf("%-30s %-5s ", "% Accepted Intra-Swap ", molRef.kinds[k].name.c_str());
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      if(moveSetRef.GetTrial(b, mv::INTRA_SWAP, k) > 0)
+        printf("%10.5f ", (100.0 * moveSetRef.GetAccept(b, mv::INTRA_SWAP, k)));
+      else
+        printf("%10.5f ", 0.0);
+    }
+    std::cout << std::endl;
+  }
+}
+
+inline uint IntraSwap::GetBoxAndMol(const double subDraw, const double movPerc)
 {
 
 #if ENSEMBLE == GCMC
@@ -55,7 +68,7 @@ inline uint IntraSwap::GetBoxAndMol
   //molecule will be removed and insert in same box
   destBox = sourceBox;
 
-  if (state != mv::fail_state::NO_MOL_OF_KIND_IN_BOX) {
+  if (state == mv::fail_state::NO_FAIL) {
     pStart = pLen = 0;
     molRef.GetRangeStartLength(pStart, pLen, molIndex);
   }
@@ -64,11 +77,14 @@ inline uint IntraSwap::GetBoxAndMol
 
 inline uint IntraSwap::Prep(const double subDraw, const double movPerc)
 {
+  overlap = false;
   uint state = GetBoxAndMol(subDraw, movPerc);
-  newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
-  oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
-  oldMol.SetCoords(coordCurrRef, pStart);
-  W_tc = 1.0;
+  if (state == mv::fail_state::NO_FAIL) {
+    newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
+    oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
+    oldMol.SetCoords(coordCurrRef, pStart);
+    W_tc = 1.0;
+  }
   return state;
 }
 
@@ -76,8 +92,8 @@ inline uint IntraSwap::Prep(const double subDraw, const double movPerc)
 inline uint IntraSwap::Transform()
 {
   cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
-  subPick = mv::GetMoveSubIndex(mv::INTRA_SWAP, sourceBox);
   molRef.kinds[kindIndex].Build(oldMol, newMol, molIndex);
+  overlap = newMol.HasOverlap();
   return mv::fail_state::NO_FAIL;
 }
 
@@ -90,7 +106,7 @@ inline void IntraSwap::CalcEn()
   correct_old = 0.0;
   correct_new = 0.0;
 
-  if (newMol.GetWeight() != 0.0) {
+  if (newMol.GetWeight() != 0.0 && !overlap) {
     correct_new = calcEwald->SwapCorrection(newMol);
     correct_old = calcEwald->SwapCorrection(oldMol);
     recipDiff.energy = calcEwald->MolReciprocal(newMol.GetCoords(), molIndex,
@@ -113,8 +129,7 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
     double Wrat = Wn / Wo * W_tc * W_recip;
 
     //safety to make sure move will be rejected in overlap case
-    if((newMol.GetEnergy().real < 1.0e15) &&
-        (oldMol.GetEnergy().real < 1.0e15)) {
+    if(!overlap) {
       result = prng() < molTransCoeff * Wrat;
     } else
       result = false;
@@ -153,13 +168,14 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
       //when weight is 0, MolDestSwap() will not be executed, thus cos/sin
       //molRef will not be changed. Also since no memcpy, doing restore
       //results in memory overwrite
-      if (newMol.GetWeight() != 0.0)
+      if (newMol.GetWeight() != 0.0 && !overlap) {
         calcEwald->RestoreMol(molIndex);
+      }
     }
   } else //else we didn't even try because we knew it would fail
     result = false;
-  subPick = mv::GetMoveSubIndex(mv::INTRA_SWAP, sourceBox);
-  moveSetRef.Update(result, subPick, step);
+  
+  moveSetRef.Update(mv::INTRA_SWAP, result, step, sourceBox, kindIndex);
 }
 
 #endif

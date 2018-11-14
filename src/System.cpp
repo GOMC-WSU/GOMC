@@ -6,7 +6,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "EnsemblePreprocessor.h"
 #include "System.h"
-
 #include "CalculateEnergy.h"
 #include "EwaldCached.h"
 #include "Ewald.h"
@@ -18,9 +17,19 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Molecules.h"           //For indexing molecules.
 #include "MoveConst.h"           //For array of move objects.
 #include "MoveBase.h"            //For move bases....
+#include "Rotation.h"
+#include "Translate.h"
+#include "VolumeTransfer.h"
 #include "MoleculeTransfer.h"
 #include "IntraSwap.h"
 #include "Regrowth.h"
+#include "MoleculeExchange1.h"
+#include "MoleculeExchange2.h"
+#include "MoleculeExchange3.h"
+#include "IntraMoleculeExchange1.h"
+#include "IntraMoleculeExchange2.h"
+#include "IntraMoleculeExchange3.h"
+#include "CrankShaft.h"
 
 System::System(StaticVals& statics) :
   statV(statics),
@@ -55,11 +64,14 @@ System::~System()
   delete moves[mv::ROTATE];
   delete moves[mv::INTRA_SWAP];
   delete moves[mv::REGROWTH];
+  delete moves[mv::INTRA_MEMC];
+  delete moves[mv::CRANKSHAFT];
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   delete moves[mv::VOL_TRANSFER];
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   delete moves[mv::MOL_TRANSFER];
+  delete moves[mv::MEMC];
 #endif
 }
 
@@ -69,19 +81,18 @@ void System::Init(Setup const& set)
 #ifdef VARIABLE_VOLUME
   boxDimensions->Init(set.config.in.restart,
                       set.config.sys.volume, set.pdb.cryst,
-                      statV.forcefield.rCut,
-                      statV.forcefield.rCutSq);
+                      statV.forcefield);
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
   molLookup.Init(statV.mol, set.pdb.atoms);
 #endif
-  moveSettings.Init(statV, set.pdb.remarks);
+  moveSettings.Init(statV, set.pdb.remarks, molLookupRef.GetNumKind());
   //Note... the following calls use box iterators, so must come after
   //the molecule lookup initialization, in case we're in a constant
   //particle/molecule ensemble, e.g. NVT
   coordinates.InitFromPDB(set.pdb.atoms);
   com.CalcCOM();
-  cellList.SetCutoff(statV.forcefield.rCut);
+  cellList.SetCutoff();
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 
   //check if we have to use cached version of ewlad or not.
@@ -105,22 +116,38 @@ void System::Init(Setup const& set)
   calcEnergy.Init(*this);
   calcEwald->Init();
   potential = calcEnergy.SystemTotal();
-  InitMoves();
+  InitMoves(set);
   for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++)
     moveTime[m] = 0.0;
 }
 
-void System::InitMoves()
+void System::InitMoves(Setup const& set)
 {
   moves[mv::DISPLACE] = new Translate(*this, statV);
   moves[mv::ROTATE] = new Rotate(*this, statV);
   moves[mv::INTRA_SWAP] = new IntraSwap(*this, statV);
   moves[mv::REGROWTH] = new Regrowth(*this, statV);
+  moves[mv::CRANKSHAFT] = new CrankShaft(*this, statV);
+  if(set.config.sys.intraMemcVal.MEMC1) {
+    moves[mv::INTRA_MEMC] = new IntraMoleculeExchange1(*this, statV);
+  } else if (set.config.sys.intraMemcVal.MEMC2) {
+    moves[mv::INTRA_MEMC] = new IntraMoleculeExchange2(*this, statV);
+  } else {
+    moves[mv::INTRA_MEMC] = new IntraMoleculeExchange3(*this, statV);
+  }
+
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   moves[mv::VOL_TRANSFER] = new VolumeTransfer(*this, statV);
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   moves[mv::MOL_TRANSFER] = new MoleculeTransfer(*this, statV);
+    if(set.config.sys.memcVal.MEMC1) {
+      moves[mv::MEMC] = new MoleculeExchange1(*this, statV);
+    } else if (set.config.sys.memcVal.MEMC2) {
+      moves[mv::MEMC] = new MoleculeExchange2(*this, statV);
+    } else {
+      moves[mv::MEMC] = new MoleculeExchange3(*this, statV);
+    }
 #endif
 }
 
@@ -193,19 +220,44 @@ void System::Accept(const uint kind, const uint rejectState, const uint step)
   moves[kind]->Accept(rejectState, step);
 }
 
+void System::PrintAcceptance()
+{
+  std::cout << std::endl;
+  printf("%-24s %-15s", "Move Type", "Mol. Kind");
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    sstrm::Converter toStr;
+    std::string numStr = "";
+    toStr << b;
+    toStr >> numStr;
+    numStr = "BOX_" + numStr;
+    printf("%-11s", numStr.c_str());
+  }
+  std::cout << std::endl;
+
+  for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++) {
+    if(statV.movePerc[m] > 0.0)
+      moves[m]->PrintAcceptKind();
+  }
+  std::cout << std::endl;
+}
+
 void System::PrintTime()
 {
   //std::cout << "MC moves Execution time:\n";
-  printf("%-30s %10.4f sec.\n", "Displacement:", moveTime[mv::DISPLACE]);
-  printf("%-30s %10.4f sec.\n", "Rotation:", moveTime[mv::ROTATE]);
-  printf("%-30s %10.4f sec.\n", "Intra-Swap:", moveTime[mv::INTRA_SWAP]);
-  printf("%-30s %10.4f sec.\n", "Regrowth:", moveTime[mv::REGROWTH]);
+  printf("%-36s %10.4f    sec.\n", "Displacement:", moveTime[mv::DISPLACE]);
+  printf("%-36s %10.4f    sec.\n", "Rotation:", moveTime[mv::ROTATE]);
+  printf("%-36s %10.4f    sec.\n", "Intra-Swap:", moveTime[mv::INTRA_SWAP]);
+  printf("%-36s %10.4f    sec.\n", "Regrowth:", moveTime[mv::REGROWTH]);
+  printf("%-36s %10.4f    sec.\n", "Intra-MEMC:", moveTime[mv::INTRA_MEMC]);
+  printf("%-36s %10.4f    sec.\n", "Crank-Shaft:", moveTime[mv::CRANKSHAFT]);
 
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-  printf("%-30s %10.4f sec.\n", "Molecule-Transfer:",
+  printf("%-36s %10.4f    sec.\n", "Mol-Transfer:",
          moveTime[mv::MOL_TRANSFER]);
+  printf("%-36s %10.4f    sec.\n", "MEMC:", moveTime[mv::MEMC]);
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
-  printf("%-30s %10.4f sec.\n", "Volume-Transfer:", moveTime[mv::VOL_TRANSFER]);
+  printf("%-36s %10.4f    sec.\n", "Vol-Transfer:", moveTime[mv::VOL_TRANSFER]);
 #endif
+  std::cout << std::endl;
 }

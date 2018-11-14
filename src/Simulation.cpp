@@ -37,7 +37,9 @@ Simulation::Simulation(char const*const configFileName)
   std::cout << "Printed combined psf to file "
             << set.config.out.state.files.psf.name << '\n';
 
-  frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
+  if(totalSteps == 0) {
+    frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
+  }
 }
 
 Simulation::~Simulation()
@@ -70,8 +72,9 @@ void Simulation::RunSimulation(void)
     if((step + 1) == cpu->equilSteps) {
       double currEnergy = system->potential.totalEnergy.total;
       if(abs(currEnergy - startEnergy) > 1.0e+10) {
-        printf("Info: Performing total energy calculation to preserve the"
-               " energy information.\n\n");
+        printf("Info: Recalculating the total energies to insure the accuracy"
+               " of the computed \n" 
+	       "      running energies.\n\n");
         system->calcEwald->Init();
         system->potential = system->calcEnergy.SystemTotal();
       }
@@ -82,6 +85,7 @@ void Simulation::RunSimulation(void)
       RunningCheck(step);
 #endif
   }
+  system->PrintAcceptance();
   system->PrintTime();
 }
 
@@ -96,7 +100,7 @@ void Simulation::RunningCheck(const uint step)
       << std::endl << "-------------------------" << std::endl
       << " STEP: " << step + 1
       << std::endl << "-------------------------" << std::endl
-      << "Energy       INTRA B |     INTRA NB |         INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
+      << "Energy       INTRA B |     INTRA NB |        INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
       << std::endl
       << "System: "
       << std::setw(12) << system->potential.totalEnergy.intraBond << " | "

@@ -10,6 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BasicTypes.h"
 #include <string.h> //for memset, memcpy, etc.
 #include <stdio.h> //for memset, memcpy, etc.
+#include <cmath>
 #include <utility>      //for swap (most modern compilers)
 #include <algorithm>      //for swap pre-c++11 compilers
 #ifdef _OPENMP
@@ -167,7 +168,7 @@ public:
 
   //calculate the adjoint and return the determinant
   double AdjointMatrix(XYZArray &Inv);
-
+    
   //return the difference of two rows in two XYZ arrays
   XYZ Difference(const uint i, XYZArray const& other,
                  const uint otherI) const
@@ -538,6 +539,5 @@ inline double XYZArray::AdjointMatrix(XYZArray &Inv)
   double det = x[0] * Inv.x[0] + x[1] * Inv.y[0] + x[2] * Inv.z[0];
   return det;
 }
-
 
 #endif /*XYZ_ARRAY_H*/
