@@ -101,12 +101,20 @@ public:
 std::vector<Dihedral> AtomEndDihs(const MolKind& molKind, uint atom);
 //List of dihedrals with atom and partner in middle, atom in a1
 std::vector<Dihedral> DihsOnBond(const MolKind& molKind, uint atom, uint partner);
+//List of all dihedrals in the molecule kind
+std::vector<Dihedral> DihsAll(const MolKind& molKind);
 //List of angles with atom at one end, atom first
 std::vector<Angle> AtomEndAngles(const MolKind& molKind, uint atom);
 //List of angles with atom in middle
 std::vector<Angle> AtomMidAngles(const MolKind& molKind, uint atom);
+//List of angles with atom at one end, and mid in middle, atom first
+std::vector<Angle> AtomMidEndAngles(const MolKind& molKind, uint mid, uint atom);
+//List of all angles in the molecule kind
+std::vector<Angle> AngsAll(const MolKind& molKind);
 //List of bonds with atom at one end, atom first
 std::vector<Bond> AtomBonds(const MolKind& molKind, uint atom);
+//List of all bonds in the molecule kind
+std::vector<Bond> BondsAll(const MolKind& molKind);
 
 //first element (string) is name of molecule type
 typedef std::map<std::string, MolKind> MolMap;

@@ -81,6 +81,26 @@ inline double MeanG(std::vector<double> const& v1,
   return sqrt(v1[ix1] * v2[ix2]);
 }
 
+//return n!
+inline double Factorial(const uint n)
+{
+  double result = 1.0;
+  for(uint i = 2; i <= n; i++) {
+    result *= i;
+  }
+  return result;
+}
+
+//return (n+count)!/n! 
+inline double Factorial(const uint n, const uint count)
+{
+  double result = 1.0;
+  for(uint i = 1; i <= count; i++) {
+    result *= n + i;
+  }
+  return result;
+}
+
 template <class Type>
 inline Type Sq(const Type v)
 {

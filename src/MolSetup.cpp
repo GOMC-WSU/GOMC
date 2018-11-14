@@ -27,7 +27,14 @@ using namespace mol_setup;
 
 bool Dihedral::operator == (const Dihedral& o) const
 {
-  return (a0 == o.a0 && a1 == o.a1 && a2 == o.a2 && a3 == o.a3);
+  bool same = false;
+  if(a0 == o.a0 && a1 == o.a1 && a2 == o.a2 && a3 == o.a3)
+    same = true;
+
+  if(a0 == o.a3 && a1 == o.a2 && a2 == o.a1 && a3 == o.a0)
+    same = true;
+    
+  return same;
 }
 
 bool Dihedral::operator != (const Dihedral& other) const
@@ -111,6 +118,16 @@ std::vector<Dihedral> mol_setup::DihsOnBond(const MolKind& molKind, uint atom, u
   return result;
 }
 
+std::vector<Dihedral> mol_setup::DihsAll(const MolKind& molKind)
+{
+  std::vector<Dihedral> result;
+  typedef std::vector<Dihedral>::const_iterator Diter;
+  for (Diter it = molKind.dihedrals.begin(), end = molKind.dihedrals.end(); it < end; ++it) {
+    result.push_back(*it);
+  }
+  return result;
+}
+
 //List of angles with atom at one end, atom first
 std::vector<Angle> mol_setup::AtomEndAngles(const MolKind& molKind, uint atom)
 {
@@ -127,7 +144,6 @@ std::vector<Angle> mol_setup::AtomEndAngles(const MolKind& molKind, uint atom)
   return result;
 }
 
-
 std::vector<Angle> mol_setup::AtomMidAngles(const MolKind& molKind, uint atom)
 {
   std::vector<Angle> result;
@@ -140,6 +156,32 @@ std::vector<Angle> mol_setup::AtomMidAngles(const MolKind& molKind, uint atom)
   return result;
 }
 
+//List of angles with atom at one end, and mid in middle, atom first
+std::vector<Angle> mol_setup::AtomMidEndAngles(const MolKind& molKind, uint mid, uint atom)
+{
+  std::vector<Angle> result;
+  typedef std::vector<Angle>::const_iterator Aiter;
+  for (Aiter it = molKind.angles.begin(), end = molKind.angles.end(); it < end; ++it) {
+    if ((it->a0 == atom || it->a2 == atom) && (it->a1 == mid)) {
+      result.push_back(*it);
+
+      if (it->a2 == atom) {
+        std::swap(result.back().a0, result.back().a2);
+      }
+    }
+  }
+  return result;
+}
+
+std::vector<Angle> mol_setup::AngsAll(const MolKind& molKind)
+{
+  std::vector<Angle> result;
+  typedef std::vector<Angle>::const_iterator Aiter;
+  for (Aiter it = molKind.angles.begin(), end = molKind.angles.end(); it < end; ++it) {
+    result.push_back(*it);
+  }
+  return result;
+}
 
 //List of bonds with atom at one end, atom first
 std::vector<Bond> mol_setup::AtomBonds(const MolKind& molKind, uint atom)
@@ -153,6 +195,16 @@ std::vector<Bond> mol_setup::AtomBonds(const MolKind& molKind, uint atom)
     if (it->a1 == atom) {
       std::swap(result.back().a0, result.back().a1);
     }
+  }
+  return result;
+}
+
+std::vector<Bond> mol_setup::BondsAll(const MolKind& molKind)
+{
+  std::vector<Bond> result;
+  typedef std::vector<Bond>::const_iterator Biter;
+  for (Biter it = molKind.bonds.begin(), end = molKind.bonds.end(); it < end; ++it) {
+    result.push_back(*it);
   }
   return result;
 }
@@ -205,19 +257,19 @@ void MolSetup::AssignKinds(const pdb_setup::Atoms& pdbAtoms, const FFSetup& ffDa
 
   //Print bonded Information
   printf("Bonds parameter:\n");
-  printf("%-19s %15s %20s \n", "Atom Types", "Kb(K)", "b0(A)");
+  printf("%s %33s %15s \n", "Atom Types", "Kb(K)", "b0(A)");
   for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it) {
     BriefBondKinds(it->second, ffData);
   }
 
   printf("Angles parameter:\n");
-  printf("%-19s %15s %20s \n", "Atom Types", "Ktheta(K)", "theta0(degree)");
+  printf("%s %33s %22s \n", "Atom Types", "Ktheta(K)", "theta0(degree)");
   for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it) {
     BriefAngleKinds(it->second, ffData);
   }
 
   printf("Dihedrals parameter:\n");
-  printf("%-19s %15s %4s %15s \n", "Atom Types", "Kchi(K)", "n",
+  printf("%s %33s %4s %16s \n", "Atom Types", "Kchi(K)", "n",
          "delta(degree)");
   for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it) {
     BriefDihKinds(it->second, ffData);
@@ -282,26 +334,24 @@ void BriefBondKinds(MolKind& kind, const FFSetup& ffData)
 
   for(uint i = 0; i < kind.bonds.size(); ++i) {
     uint search = kind.bonds[i].kind;
-    std::string bondName, bondNameReverse;
+    std::string bondName;
 
     elementNames[0] = kind.atoms[kind.bonds[i].a0].type;
     elementNames[1] = kind.atoms[kind.bonds[i].a1].type;
 
     for(uint m = 0; m < ATOMS_PER; ++m) {
-      bondName.append(elementNames[m]).append("  ");
-      bondNameReverse.append(elementNames[ATOMS_PER - m - 1]).append("  ");
+      bondName.append(elementNames[m]).append("\t");
     }
 
     if(find(printed.begin(), printed.end(), bondName) == printed.end()) {
-      printf("%-20s", bondName.c_str());
+      printf("%s", bondName.c_str());
       if(ffData.bond.GetKb(search) > 99999999)
-        printf("%15s %20.4f \n", "FIX", ffData.bond.Getb0(search));
+        printf("%28s %16.4f \n", "FIX", ffData.bond.Getb0(search));
       else
-        printf("%15.6f %20.4f \n", ffData.bond.GetKb(search),
+        printf("%28.4f %16.4f \n", ffData.bond.GetKb(search),
                ffData.bond.Getb0(search));
 
       printed.push_back(bondName);
-      printed.push_back(bondNameReverse);
     }
   }
   std::cout << std::endl;
@@ -342,27 +392,25 @@ void BriefAngleKinds(MolKind& kind, const FFSetup& ffData)
     return;
 
   for(uint i = 0; i < kind.angles.size(); ++i) {
-    std::string angleName, angleNameReverse;
+    std::string angleName;
     uint search = kind.angles[i].kind;
     elementNames[0] = kind.atoms[kind.angles[i].a0].type;
     elementNames[1] = kind.atoms[kind.angles[i].a1].type;
     elementNames[2] = kind.atoms[kind.angles[i].a2].type;
 
     for(uint m = 0; m < ATOMS_PER; ++m) {
-      angleName.append(elementNames[m]).append("  ");
-      angleNameReverse.append(elementNames[ATOMS_PER - m - 1]).append("  ");
+      angleName.append(elementNames[m]).append("\t");
     }
 
     if(find(printed.begin(), printed.end(), angleName) == printed.end()) {
-      printf("%-20s", angleName.c_str());
+      printf("%s", angleName.c_str());
       if(ffData.angle.GetKtheta(search) > 99999999)
-        printf("%15s %20.4f \n", "FIX", ffData.angle.Gettheta0(search) *coef);
+        printf("%20s %16.4f \n", "FIX", ffData.angle.Gettheta0(search) *coef);
       else
-        printf("%15.6f %20.4f \n", ffData.angle.GetKtheta(search),
+        printf("%20.4f %16.4f \n", ffData.angle.GetKtheta(search),
                ffData.angle.Gettheta0(search) * coef);
 
       printed.push_back(angleName);
-      printed.push_back(angleNameReverse);
     }
   }
   std::cout << std::endl;
@@ -404,7 +452,7 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData)
 
   for(uint i = 0; i < kind.dihedrals.size(); ++i) {
     std::string dName = ffData.dih.name[kind.dihedrals[i].kind];
-    std::string dihedralName, dihedralNameReverse;
+    std::string dihedralName;
     uint dihsize = ffData.dih.GetSizeDih(dName);
 
     elementNames[0] = kind.atoms[kind.dihedrals[i].a0].type;
@@ -413,20 +461,17 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData)
     elementNames[3] = kind.atoms[kind.dihedrals[i].a3].type;
 
     for(uint m = 0; m < ATOMS_PER; ++m) {
-      dihedralName.append(elementNames[m]).append("  ");
-      dihedralNameReverse.append(elementNames[ATOMS_PER - m - 1]).append("  ");
+      dihedralName.append(elementNames[m]).append("\t");
     }
 
     if(find(printed.begin(), printed.end(), dihedralName) == printed.end()) {
       for(uint j = 0; j < dihsize; j++) {
-        printf("%-20s", dihedralName.c_str());
-        printf("%15.6f %4d %15.4f \n", ffData.dih.GetKchi(dName, j),
+        printf("%s", dihedralName.c_str());
+        printf("%12.4f %4d %11.4f \n", ffData.dih.GetKchi(dName, j),
                ffData.dih.Getn(dName, j),
                ffData.dih.Getdelta(dName, j) * coef);
       }
       printed.push_back(dihedralName);
-      printed.push_back(dihedralNameReverse);
-      std::cout << endl;
     }
   }
 }
@@ -450,13 +495,13 @@ void mol_setup::PrintMolMapVerbose(const MolMap& kindMap)
     }
     std::cout << "\nBonds:";
     for (uint i = 0; i < it->second.bonds.size(); i++) {
-      if (i % 20 == 0)
+      if (i % 10 == 0)
         std::cout << std::endl;
       std::cout << "[" << it->second.bonds[i].a0 << ' ' << it->second.bonds[i].a1 << ']' << ' ';
     }
     std::cout << std::endl << "\nAngles:";
     for (uint i = 0; i < it->second.angles.size(); i++) {
-      if (i % 24 == 0)
+      if (i % 7 == 0)
         std::cout << std::endl;
       std::cout << "[" << it->second.angles[i].a0 << ' '
                 << it->second.angles[i].a1 << ' '
@@ -464,7 +509,7 @@ void mol_setup::PrintMolMapVerbose(const MolMap& kindMap)
     }
     std::cout << std::endl << "\nDihedrals:";
     for (uint i = 0; i < it->second.dihedrals.size(); i++) {
-      if (i % 24 == 0)
+      if (i % 5 == 0)
         std::cout << std::endl;
       std::cout << "[" << it->second.dihedrals[i].a0 << ' '
                 << it->second.dihedrals[i].a1 << ' '

@@ -5,42 +5,19 @@ A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "EwaldCached.h"
-#include "CalculateEnergy.h"
-#include "EnergyTypes.h"            //Energy structs
-#include "EnsemblePreprocessor.h"   //Flags
-#include "BasicTypes.h"             //uint
-#include "System.h"                 //For init
-#include "StaticVals.h"             //For init
-#include "Forcefield.h"             //
-#include "MoleculeLookup.h"
-#include "MoleculeKind.h"
-#include "Coordinates.h"
-#include "BoxDimensions.h"
-#include "TrialMol.h"
-#include "GeomLib.h"
-#include "NumLib.h"
-#include <cassert>
-#ifdef GOMC_CUDA
-#include "ConstantDefinitionsCUDAKernel.cuh"
-#include "VariablesCUDA.cuh"
-#endif
-
-//
-//
-//    Energy Calculation functions for Ewald summation method
-//    Calculating self, correction and reciprocate part of ewald
-//
-//    Developed by Y. Li and Mohammad S. Barhaghi
-//
-//
+#include "StaticVals.h"
 
 using namespace geom;
 
-EwaldCached::EwaldCached(StaticVals & stat, System & sys) : Ewald(stat, sys) { }
+EwaldCached::EwaldCached(StaticVals & stat, System & sys) : Ewald(stat, sys)
+#if ENSEMBLE == GEMC
+  , GEMC_KIND(stat.kindOfGEMC)
+#endif
+  {}
 
 EwaldCached::~EwaldCached()
 {
-  if(ewald) {
+  if(ff.ewald) {
     for(int i = 0; i < mols.count; i++) {
       //when cached option is choosen
       if (cosMolRef[i] != NULL) {
@@ -79,11 +56,6 @@ void EwaldCached::Init()
     }
   }
 
-  electrostatic = forcefield.electrostatic;
-  ewald = forcefield.ewald;
-  alpha = forcefield.alpha;
-  recip_rcut = forcefield.recip_rcut;
-  recip_rcut_Sq = recip_rcut * recip_rcut;
   AllocMem();
   //initialize K vectors and reciprocate terms
   UpdateVectorsAndRecipTerms();
@@ -121,7 +93,7 @@ void EwaldCached::AllocMem()
   }
 
   //25% larger than original box size, reserved for image size change
-  imageTotal = findLargeImage();
+  imageTotal = Ewald::findLargeImage();
 
   cosMolRestore = new double[imageTotal];
   sinMolRestore = new double[imageTotal];
@@ -287,8 +259,8 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
   #pragma omp parallel default(shared)
 #endif
   {
-    std::memcpy(cosMolRestore, cosMolRef[molIndex], sizeof(double)*imageLarge);
-    std::memcpy(sinMolRestore, sinMolRef[molIndex], sizeof(double)*imageLarge);
+    std::memcpy(cosMolRestore, cosMolRef[molIndex], sizeof(double)*imageTotal);
+    std::memcpy(sinMolRestore, sinMolRef[molIndex], sizeof(double)*imageTotal);
   }
 
   if (box < BOXES_WITH_U_NB) {
@@ -358,6 +330,18 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
   return energyRecipNew - energyRecipOld;
 }
 
+//calculate reciprocate term for inserting some molecules (kindA) in destination
+// box and removing a molecule (kindB) from destination box
+double EwaldCached::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
+                              const std::vector<cbmc::TrialMol> &oldMol)
+{
+  //This function should not be called in IDExchange move
+  std::cout << "Error: Cached Fourier method cannot be used while " <<
+    "performing Molecule Exchange move!" << std::endl;
+  exit(EXIT_FAILURE);
+  return 0.0;
+}
+
 //restore cosMol and sinMol
 void EwaldCached::RestoreMol(int molIndex)
 {
@@ -380,4 +364,36 @@ void EwaldCached::exgMolCache()
   sinMolRef = sinMolBoxRecip;
   cosMolBoxRecip = tempCos;
   sinMolBoxRecip = tempSin;
+}
+
+//backup the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
+void EwaldCached::backupMolCache()
+{
+  #if ENSEMBLE == NPT  
+  exgMolCache();
+  #elif ENSEMBLE == GEMC
+  if(GEMC_KIND == mv::GEMC_NVT) {
+    if(BOX_TOTAL == 2) {
+      exgMolCache();
+    } else {
+      uint m;
+      #ifdef _OPENMP
+      #pragma omp parallel for private(m)
+      #endif
+      for(m = 0; m < mols.count; m++) {
+        std::memcpy(cosMolBoxRecip[m], cosMolRef[m], sizeof(double)*imageTotal);
+        std::memcpy(sinMolBoxRecip[m], sinMolRef[m], sizeof(double)*imageTotal);
+      }
+    }
+  } else {
+    uint m;
+    #ifdef _OPENMP
+    #pragma omp parallel for private(m)
+    #endif
+    for(m = 0; m < mols.count; m++) {
+      std::memcpy(cosMolBoxRecip[m], cosMolRef[m], sizeof(double)*imageTotal);
+      std::memcpy(sinMolBoxRecip[m], sinMolRef[m], sizeof(double)*imageTotal);
+    }
+  }
+  #endif
 }

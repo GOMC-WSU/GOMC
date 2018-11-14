@@ -27,28 +27,38 @@ const uint GEMC_NPT = 1;
 
 //////////////////////////////////////////////////////////
 const uint DISPLACE = 0;
-const uint MULTIPARTICLE = 1;
-const uint ROTATE = 2;
+const uint ROTATE = 1;
+const uint MULTIPARTICLE = 2;
 #if ENSEMBLE == NVT
 const uint INTRA_SWAP = 3;
 const uint REGROWTH = 4;
-const uint MOVE_KINDS_TOTAL = 5;
+const uint INTRA_MEMC = 5;
+const uint CRANKSHAFT = 6;
+const uint MOVE_KINDS_TOTAL = 7;
 #elif ENSEMBLE == GCMC
 const uint INTRA_SWAP = 3;
 const uint REGROWTH = 4;
-const uint MOL_TRANSFER = 5;
-const uint MOVE_KINDS_TOTAL = 6;
+const uint INTRA_MEMC = 5;
+const uint CRANKSHAFT = 6;
+const uint MEMC = 7;
+const uint MOL_TRANSFER = 8;
+const uint MOVE_KINDS_TOTAL = 9;
 #elif ENSEMBLE == GEMC
 const uint VOL_TRANSFER = 3;
 const uint INTRA_SWAP = 4;
 const uint REGROWTH = 5;
-const uint MOL_TRANSFER = 6;
-const uint MOVE_KINDS_TOTAL = 7;
+const uint INTRA_MEMC = 6;
+const uint CRANKSHAFT = 7;
+const uint MEMC = 8;
+const uint MOL_TRANSFER = 9;
+const uint MOVE_KINDS_TOTAL = 10;
 #elif ENSEMBLE == NPT
 const uint VOL_TRANSFER = 3;
 const uint INTRA_SWAP = 4;
 const uint REGROWTH = 5;
-const uint MOVE_KINDS_TOTAL = 5;
+const uint INTRA_MEMC = 6;
+const uint CRANKSHAFT = 7;
+const uint MOVE_KINDS_TOTAL = 8;
 #endif
 
 const uint BOX0 = 0;
@@ -103,38 +113,29 @@ const uint IT_KINDS_TOTAL = 2;
 
 //////////////////////////////////////////////////////////
 
-//NVT : 1. Disp (box 0)         2. MultiParticle      3. Rotate (box 0)     
-//      4. IntraSwap (box 0)    5. Regrowth (box 0)
+//NVT : 1. Disp (box 0)         2. Rotate (box 0)     3. MultiParticle (box 0)
+//      4. IntraSwap (box 0)    5. Regrowth (box 0)   6. IntraMEMC (box 0) 
+//      7. CrankShaft (box 0)
 //
-//GCMC: 1. Disp (box 0)         2. MultiParticle      3. Rotate (box 0)     
-//      4. IntraSwap (box 0)    5. Regrowth (box 0)   6. Deletion (box 0)
-//      7. Insertion (box 0)
+//GCMC: 1. Disp (box 0)         2. Rotate (box 0)     3. MultiParticle (box 0)
+//      4. IntraSwap (box 0)    5. Regrowth (box 0)   6. IntraMEMC (box 0)
+//      7. CrankShaft (box 0)   8. MEMC (box 0)       9. Deletion (box 0)
+//      10. Insertion (box 0)
 //
-//GEMC: 1. Disp (box 0)         2. Disp (box 1)       3. MultiParticle (box 0)      
-//      4. MultiParticle (box 1)5. Rotate (box 0)     6. Rotate (box 1)
-//      7. Vol. (b0->b1)        8. Vol. (b1->b0)
-//      9. IntraSwap (box 0)   10. IntraSwap (box 1)
-//     11. Regrowth (box 0)    12. Regrowth (box 1)
-//     13. Mol Trans (b0->b1), 14. Mol Trans (b1->b0)
+//GEMC: 1. Disp (box 0)          2. Disp (box 1)
+//      3. MultiParticle (box 0) 4. MultiParticle (box 1)
+//      5. Rotate (box 0)        6. Rotate (box 1)
+//      7. Vol. (b0->b1)         8. Vol. (b1->b0)
+//      9. IntraSwap (box 0)    10. IntraSwap (box 1)
+//     11. Regrowth (box 0)     12. Regrowth (box 1)
+//     13. IntraMEMC (box 0)    14. IntraMEMC (box 1)
+//     15. CrankShaft (box 0)   16. CrankShaft (box 1)
+//     17. MEMC (box 0)         18. MEMC (box 1)
+//     19. Mol Trans (b0->b1),  20. Mol Trans (b1->b0)
 //
-//NPT : 1. Disp (box 0)         3. MultiParticle      3. Rotate (box 0)
+//NPT : 1. Disp (box 0)         2. Rotate (box 0)     3. MultiParticle (box 0)
 //      4. Vol. (box 0)         5. IntraSwap (box 0)  6. Regrowth (box 0)
-
-#if ENSEMBLE == NVT
-const uint COUNT = 5;
-const uint SCALEABLE = 3;
-#elif ENSEMBLE == GCMC
-const uint COUNT = 7;
-const uint SCALEABLE = 3;
-#elif ENSEMBLE == GEMC
-const uint COUNT = 14;
-const uint SCALEABLE = 8;
-#elif ENSEMBLE == NPT
-const uint COUNT = 6;
-const uint SCALEABLE = 4;
-#endif
-
-
+//      7. IntraMEMC (box 0)    8. CrankShaft (box 0)
 //AUTO REJECTION OR ACCEPTANCE FLAGS
 
 //early exit flags.
@@ -151,26 +152,6 @@ const uint NO_MOL_OF_KIND_IN_BOX = 3;
 const uint INNER_CUTOFF_NEW_TRIAL_POS = 4;
 const uint VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF = 5;
 }
-
-
-inline uint GetMoveSubIndex(const uint maj, const uint b = 0)
-{
-#if ENSEMBLE == GCMC
-  if(maj == mv::MOL_TRANSFER)
-    return maj + b;
-  else
-    return maj;
-#else
-  return maj * BOX_TOTAL + b;
-#endif
-}
-
-//Names of above moves as strings for output.
-std::vector<std::string> MoveNames();
-const std::vector<std::string> MOVE_NAME(MoveNames());
-std::vector<std::string> ScaleMoveNames();
-const std::vector<std::string> SCALE_MOVE_NAME(ScaleMoveNames());
-//Used enums -- immutable and take no space
 
 }
 

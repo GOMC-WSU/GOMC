@@ -7,58 +7,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef EWALDCACHED_H
 #define EWALDCACHED_H
 
-#include "BasicTypes.h"
-#include "EnergyTypes.h"
-#include <vector>
-#include <stdio.h>
-#include <cstring>
-#include <cassert>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
-#include "Molecules.h"
-#include "Forcefield.h"
 #include "Ewald.h"
-#include "Coordinates.h"
-#include "BoxDimensions.h"
-#include "BoxDimensionsNonOrth.h"
-#include "MoleculeKind.h"
-#include "TrialMol.h"
-#ifdef GOMC_CUDA
-#include "ConstantDefinitionsCUDAKernel.cuh"
-#include "CalculateForceCUDAKernel.cuh"
-#endif
-
-//
-//    Calculating Electrostatic calculation with caching Fourier terms.
-//    Energy Calculation functions for Ewald summation method
-//    Calculating self, correction and reciprocate part of ewald
-//
-//    Developed by Y. Li and Mohammad S. Barhaghi
-//
-//
-
-class StaticVals;
-class System;
-class Forcefield;
-class Molecules;
-class MoleculeLookup;
-class MoleculeKind;
-class Coordinates;
-class COM;
-class XYZArray;
-class BoxDimensions;
-class CalculateEnergy;
-
-namespace cbmc
-{
-class TrialMol;
-}
-namespace config_setup
-{
-class SystemVals;
-}
 
 class EwaldCached : public Ewald
 {
@@ -88,12 +37,20 @@ public:
   //calculate reciprocate term in source box for swap move
   virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                  const uint box, const int molIndex);
+    
+  //calculate reciprocate term for inserting some molecules (kindA) in
+  //destination box and removing a molecule (kindB) from destination box
+  virtual double SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
+                           const std::vector<cbmc::TrialMol> &oldMol);
 
   //restore cosMol and sinMol
   virtual void RestoreMol(int molIndex);
 
   //update sinMol and cosMol
   virtual void exgMolCache();
+
+  //backup the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
+  virtual void backupMolCache();
 
 private:
 
@@ -103,6 +60,9 @@ private:
   double **sinMolRef;
   double **cosMolBoxRecip;
   double **sinMolBoxRecip;
+  #if ENSEMBLE == GEMC
+  const uint GEMC_KIND;
+  #endif
 };
 
 

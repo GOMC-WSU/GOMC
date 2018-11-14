@@ -131,9 +131,9 @@ SystemPotential CalculateEnergy::SystemTotal()
   if(pot.totalEnergy.total > 1.0e12) {
     std::cout << "\nWarning: Large energy detected due to the overlap in "
               "initial configuration.\n"
-              "         Total energy calculation will be perform at EqStep to "
-              "preserve the\n"
-              "         energy information.\n";
+              "         The total energy will be recalculated at EqStep to "  
+              "ensure the accuracy \n"
+              "         of the computed running energies.\n";
   }
 
   return pot;
@@ -238,7 +238,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
         qi_qj = particleCharge[pair1[i]] * particleCharge[pair2[i]];
         qi_qj_fact = qi_qj * num::qqFact;
 
-        tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact);
+        tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact, box);
       }
       tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
                   particleKind[pair2[i]]);
@@ -246,7 +246,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
       // Calculating the force 
       if(multiParticleEnabled) {
         if(electrostatic) {
-          pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact);
+          pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact, box);
           forceReal = virComponents * pRF;
         }
         pVF = forcefield.particles->CalcVir(distSq, particleKind[pair1[i]],
@@ -307,6 +307,19 @@ Virial CalculateEnergy::ForceCalc(const uint box)
 
 #ifdef GOMC_CUDA
   uint pairSize = pair1.size();
+  //update unitcell in GPU
+  UpdateCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
+                      currentAxes.cellBasis[box].x,
+                      currentAxes.cellBasis[box].y,
+                      currentAxes.cellBasis[box].z);
+
+  if(!currentAxes.orthogonal[box]) {
+    BoxDimensionsNonOrth newAxes = *((BoxDimensionsNonOrth*)(&currentAxes));
+    UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
+                           newAxes.cellBasis_Inv[box].x, newAxes.cellBasis_Inv[box].y,
+                           newAxes.cellBasis_Inv[box].z);
+  }
+
   uint currentIndex = 0;
   double vT11t = 0.0, vT12t = 0.0, vT13t = 0.0;
   double vT22t = 0.0, vT23t = 0.0, vT33t = 0.0;
@@ -360,7 +373,7 @@ Virial CalculateEnergy::ForceCalc(const uint box)
       if (electrostatic) {
         qi_qj = particleCharge[pair1[i]] * particleCharge[pair2[i]];
 
-        pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj);
+        pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj, box);
         //calculate the top diagonal of pressure tensor
         rT11 += pRF * (virC.x * comC.x);
         //rT12 += pRF * (0.5 * (virC.x * comC.y + virC.y * comC.x));
@@ -421,7 +434,7 @@ Virial CalculateEnergy::ForceCalc(const uint box)
   tempVir.real = (rT11 + rT22 + rT33) * num::qqFact;
 
   if (forcefield.useLRC) {
-    VirialCorrection(tempVir, currentAxes, box);
+    ForceCorrection(tempVir, currentAxes, box);
   }
 
   //calculate reciprocate term of force
@@ -432,7 +445,7 @@ Virial CalculateEnergy::ForceCalc(const uint box)
   return tempVir;
 }
 
-void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
+bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                                     Intermolecular &inter_coulomb,
                                     XYZArray const& molCoords,
                                     XYZArray& atomForce,
@@ -441,6 +454,7 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                                     const uint box) const
 {
   double tempREn = 0.0, tempLJEn = 0.0;
+  bool overlap = false;
   if (box < BOXES_WITH_U_NB) {
     uint length = mols.GetKind(molIndex).NumAtoms();
     uint start = mols.MolStart(molIndex);
@@ -471,20 +485,21 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
         //Subtract old energy
         if (currentAxes.InRcut(distSq, virComponents,
                                currentCoords, atom, nIndex[i], box)) {
+
           if (electrostatic) {
             qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
                          num::qqFact;
 
-            tempREn -= forcefield.particles->CalcCoulomb(distSq, qi_qj_fact);
+            tempREn -= forcefield.particles->CalcCoulomb(distSq, qi_qj_fact, box);
           }
 
-          tempLJEn -= forcefield.particles->CalcEn(distSq,
-                      particleKind[atom],
+          tempLJEn -= forcefield.particles->CalcEn(distSq, particleKind[atom],
                       particleKind[nIndex[i]]);
 
           if(multiParticleEnabled) {
             if(electrostatic) {
-              pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact);
+              pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact,
+                                                         box);
               forceReal = virComponents * pRF;
             }
             pVF = forcefield.particles->CalcVir(distSq, particleKind[atom],
@@ -516,12 +531,16 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
         distSq = 0.0;
         if (currentAxes.InRcut(distSq, virComponents,
                                molCoords, p, currentCoords, nIndex[i], box)) {
+          if(distSq < forcefield.rCutLowSq) {
+            overlap |= true;
+          }
+
           if (electrostatic) {
             qi_qj_fact = particleCharge[atom] *
                          particleCharge[nIndex[i]] * num::qqFact;
 
-            tempREn += forcefield.particles->CalcCoulombEn(distSq,
-                       qi_qj_fact);
+            tempREn += forcefield.particles->CalcCoulomb(distSq,
+                       qi_qj_fact, box);
           }
 
           tempLJEn += forcefield.particles->CalcEn(distSq,
@@ -529,7 +548,8 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                       particleKind[nIndex[i]]);
           if(multiParticleEnabled) {
             if(electrostatic) {
-              pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact);
+              pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact,
+                                                         box);
               forceReal = virComponents * pRF;
             }
             pVF = forcefield.particles->CalcVir(distSq, particleKind[atom],
@@ -548,6 +568,7 @@ void CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 
   inter_LJ.energy = tempLJEn;
   inter_coulomb.energy = tempREn;
+  return overlap;
 }
 
 // Calculate 1-N nonbonded intra energy
@@ -567,12 +588,11 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
   const uint* end = kind.sortedNB.End(partIndex);
   while (partner != end) {
     if (trialMol.AtomExists(*partner)) {
-
       for (uint t = 0; t < trials; ++t) {
         double distSq;
 
         if (currentAxes.InRcut(distSq, trialPos, t, trialMol.GetCoords(),
-                               *partner, box)) {
+                               *partner, box)) {                     
           inter[t] += forcefield.particles->CalcEn(distSq,
                       kind.AtomKind(partIndex),
                       kind.AtomKind(*partner));
@@ -591,6 +611,7 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
 
 void CalculateEnergy::ParticleInter(double* en, double *real,
                                     XYZArray const& trialPos,
+                                    bool* overlap,
                                     const uint partIndex,
                                     const uint molIndex,
                                     const uint box,
@@ -622,11 +643,14 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
       distSq = 0.0;
 
       if(currentAxes.InRcut(distSq, trialPos, t, currentCoords, nIndex[i], box)) {
+        if(distSq < forcefield.rCutLowSq) {
+          overlap[t] |= true;
+        } 
         tempLJ += forcefield.particles->CalcEn(distSq, kindI,
                                                particleKind[nIndex[i]]);
         if(electrostatic) {
           qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
-          tempReal += forcefield.particles->CalcCoulombEn(distSq, qi_qj_Fact);
+          tempReal += forcefield.particles->CalcCoulomb(distSq, qi_qj_Fact, box);
         }
       }
     }
@@ -635,41 +659,11 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
   }
 }
 
-//! Calculates Nonbonded inter energy for candidate positions in trialPos
-void CalculateEnergy::ParticleInterRange(double* en, double *real,
-    XYZArray const& trialPos,
-    const uint partIndex,
-    const uint molIndex,
-    const uint box,
-    const uint start,
-    const uint end) const
-{
-  double distSq, qi_qj_Fact;
-  MoleculeKind const& thisKind = mols.GetKind(molIndex);
-  uint kindI = thisKind.AtomKind(partIndex);
-  double kindICharge = thisKind.AtomCharge(partIndex) * num::qqFact;
-
-  for(uint t = start; t < end; ++t) {
-    CellList::Neighbors n = cellList.EnumerateLocal(trialPos[t], box);
-    while (!n.Done()) {
-      distSq = 0.0;
-      if(currentAxes.InRcut(distSq, trialPos, t, currentCoords, *n, box)) {
-        en[t] += forcefield.particles->CalcEn(distSq, kindI, particleKind[*n]);
-        if(electrostatic) {
-          qi_qj_Fact = particleCharge[*n] * kindICharge ;
-          real[t] += forcefield.particles->CalcCoulombEn(distSq, qi_qj_Fact);
-        }
-      }
-      n.Next();
-    }
-  }
-}
-
 
 //Calculates the change in the TC from adding numChange atoms of a kind
 Intermolecular CalculateEnergy::MoleculeTailChange(const uint box,
-    const uint kind,
-    const bool add) const
+                                                   const uint kind,
+                                                   const bool add) const
 {
   Intermolecular delta;
 
@@ -703,18 +697,33 @@ void CalculateEnergy::MoleculeIntra(const uint molIndex,
   XYZArray bondVec(molKind.bondList.count * 2);
 
   BondVectors(bondVec, molKind, molIndex, box);
-
-  MolBond(bondEn[0], molKind, bondVec, box);
-
+  MolBond(bondEn[0], molKind, bondVec, molIndex, box);
   MolAngle(bondEn[0], molKind, bondVec, box);
-
   MolDihedral(bondEn[0], molKind, bondVec, box);
-
   MolNonbond(bondEn[1], molKind, molIndex, box);
-
   MolNonbond_1_4(bondEn[1], molKind, molIndex, box);
-
   MolNonbond_1_3(bondEn[1], molKind, molIndex, box);
+}
+
+//used in molecule exchange for calculating bonded and intraNonbonded energy
+Energy CalculateEnergy::MoleculeIntra(cbmc::TrialMol const &mol,
+                                      const uint molIndex) const
+{
+  double bondEn = 0.0, intraNonbondEn = 0.0;
+  // *2 because we'll be storing inverse bond vectors
+  const MoleculeKind& molKind = mol.GetKind();
+  uint count = molKind.bondList.count;
+  XYZArray bondVec(count * 2);
+  std::vector<bool> bondExist(count * 2, false);
+
+  BondVectors(bondVec, mol, bondExist, molKind);  
+  MolBond(bondEn, mol, bondVec, bondExist, molKind);
+  MolAngle(bondEn, mol, bondVec, bondExist, molKind);
+  MolDihedral(bondEn, mol, bondVec, bondExist, molKind);
+  MolNonbond(intraNonbondEn, mol, molKind);
+  MolNonbond_1_4(intraNonbondEn, mol, molKind);
+  MolNonbond_1_3(intraNonbondEn, mol, molKind);
+  return Energy(bondEn, intraNonbondEn, 0.0, 0.0, 0.0, 0.0, 0.0);
 }
 
 void CalculateEnergy::BondVectors(XYZArray & vecs,
@@ -734,18 +743,68 @@ void CalculateEnergy::BondVectors(XYZArray & vecs,
   }
 }
 
+void CalculateEnergy::BondVectors(XYZArray & vecs,
+                                  cbmc::TrialMol const &mol,
+                                  std::vector<bool> & bondExist,
+                                  MoleculeKind const& molKind) const
+{
+  uint box = mol.GetBox();
+  uint count = molKind.bondList.count;
+  for (uint i = 0; i < count; ++i) {
+    uint p1 = molKind.bondList.part1[i];
+    uint p2 = molKind.bondList.part2[i];
+    if(mol.AtomExists(p1) && mol.AtomExists(p2)) {
+      bondExist[i] = true;
+      bondExist[i + count] = true;
+      XYZ dist = mol.GetCoords().Difference(p2, p1);
+      dist = currentAxes.MinImage(dist, box);
+      //store inverse vectors at i+count
+      vecs.Set(i, dist);
+      vecs.Set(i + count, -dist.x, -dist.y, -dist.z);
+    }
+  }
+}
+
 
 void CalculateEnergy::MolBond(double & energy,
                               MoleculeKind const& molKind,
                               XYZArray const& vecs,
+                              const uint molIndex,
                               const uint box) const
 {
   if (box >= BOXES_WITH_U_B)
     return;
 
   for (uint b = 0; b < molKind.bondList.count; ++b) {
-    energy += forcefield.bonds.Calc(molKind.bondList.kinds[b],
-                                    vecs.Get(b).Length());
+    double molLength = vecs.Get(b).Length();
+    double eqLength = forcefield.bonds.Length(molKind.bondList.kinds[b]);
+    energy += forcefield.bonds.Calc(molKind.bondList.kinds[b], molLength);
+    if(abs(molLength - eqLength) > 0.02) {
+      uint p1 = molKind.bondList.part1[b];
+      uint p2 = molKind.bondList.part2[b];
+      printf("Warning: Box %d, %d %s ,", box, molIndex, molKind.name.c_str());
+      printf("Bond %s-%s: In Par. file ", molKind.atomNames[p1].c_str(),
+            molKind.atomNames[p2].c_str());
+      printf("%2.3f A, in PDB file %2.3f A!\n", eqLength, molLength);
+    }
+  }
+}
+
+void CalculateEnergy::MolBond(double & energy,
+                              cbmc::TrialMol const &mol,
+                              XYZArray const& vecs,
+                              std::vector<bool> const & bondExist,
+                              MoleculeKind const& molKind)const
+{
+  if (mol.GetBox() >= BOXES_WITH_U_B)
+    return;
+
+  uint count = molKind.bondList.count;
+  for (uint b = 0; b < count; ++b) {
+    if(bondExist[b]) {
+      energy += forcefield.bonds.Calc(molKind.bondList.kinds[b],
+                                      vecs.Get(b).Length());
+    }
   }
 }
 
@@ -764,6 +823,27 @@ void CalculateEnergy::MolAngle(double & energy,
   }
 }
 
+void CalculateEnergy::MolAngle(double & energy,
+                               cbmc::TrialMol const &mol,
+                               XYZArray const& vecs,
+                               std::vector<bool> const & bondExist,
+                               MoleculeKind const& molKind) const
+{
+  if (mol.GetBox() >= BOXES_WITH_U_B)
+    return;
+
+  uint count = molKind.angles.Count();
+  for (uint a = 0; a < count; ++a) {
+    if(bondExist[molKind.angles.GetBond(a, 0)] &&
+      bondExist[molKind.angles.GetBond(a, 1)]) {
+      //Note: need to reverse the second bond to get angle properly.
+      double theta = Theta(vecs.Get(molKind.angles.GetBond(a, 0)),
+                          -vecs.Get(molKind.angles.GetBond(a, 1)));
+      energy += forcefield.angles->Calc(molKind.angles.GetKind(a), theta);
+    }
+  }
+}
+
 void CalculateEnergy::MolDihedral(double & energy,
                                   MoleculeKind const& molKind,
                                   XYZArray const& vecs,
@@ -776,6 +856,28 @@ void CalculateEnergy::MolDihedral(double & energy,
                      vecs.Get(molKind.dihedrals.GetBond(d, 1)),
                      vecs.Get(molKind.dihedrals.GetBond(d, 2)));
     energy += forcefield.dihedrals.Calc(molKind.dihedrals.GetKind(d), phi);
+  }
+}
+
+void CalculateEnergy::MolDihedral(double & energy,
+                                  cbmc::TrialMol const &mol,
+                                  XYZArray const& vecs,
+                                  std::vector<bool> const & bondExist,
+                                  MoleculeKind const& molKind) const
+{
+  if (mol.GetBox() >= BOXES_WITH_U_B)
+    return;
+  
+  uint count =  molKind.dihedrals.Count();
+  for (uint d = 0; d < count; ++d) {
+    if(bondExist[molKind.dihedrals.GetBond(d, 0)] &&
+      bondExist[molKind.dihedrals.GetBond(d, 1)] &&
+      bondExist[molKind.dihedrals.GetBond(d, 2)]) {
+      double phi = Phi(vecs.Get(molKind.dihedrals.GetBond(d, 0)),
+                      vecs.Get(molKind.dihedrals.GetBond(d, 1)),
+                      vecs.Get(molKind.dihedrals.GetBond(d, 2)));
+      energy += forcefield.dihedrals.Calc(molKind.dihedrals.GetKind(d), phi);
+    }
   }
 }
 
@@ -794,8 +896,8 @@ void CalculateEnergy::MolNonbond(double & energy,
   for (uint i = 0; i < molKind.nonBonded.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded.part1[i];
     uint p2 = mols.start[molIndex] + molKind.nonBonded.part2[i];
-
-    if (currentAxes.InRcut(distSq, currentCoords, p1, p2, box)) {
+    currentAxes.InRcut(distSq, currentCoords, p1, p2, box);
+    if (forcefield.rCutSq > distSq) {
       energy += forcefield.particles->CalcEn(distSq, molKind.AtomKind
                                              (molKind.nonBonded.part1[i]),
                                              molKind.AtomKind
@@ -807,6 +909,38 @@ void CalculateEnergy::MolNonbond(double & energy,
 
         forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
             qi_qj_Fact, true);
+      }
+    }
+  }
+
+}
+
+// Calculate 1-N nonbonded intra energy uisng pos
+void CalculateEnergy::MolNonbond(double & energy, cbmc::TrialMol const &mol,
+                                 MoleculeKind const& molKind) const
+{
+  if (mol.GetBox() >= BOXES_WITH_U_B)
+    return;
+
+  double distSq;
+  double qi_qj_Fact;
+  uint count = molKind.nonBonded.count;
+
+  for (uint i = 0; i < count; ++i) {
+    uint p1 = molKind.nonBonded.part1[i];
+    uint p2 = molKind.nonBonded.part2[i];
+    if(mol.AtomExists(p1) && mol.AtomExists(p2)) {
+      currentAxes.InRcut(distSq, mol.GetCoords(), p1, p2, mol.GetBox());
+      if (forcefield.rCutSq > distSq) {
+        energy += forcefield.particles->CalcEn(distSq, molKind.AtomKind(p1),
+                                               molKind.AtomKind(p2));
+        if (electrostatic) {
+          qi_qj_Fact = num::qqFact * molKind.AtomCharge(1) *
+                      molKind.AtomCharge(p2);
+
+          forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
+              qi_qj_Fact, true);
+        }
       }
     }
   }
@@ -828,7 +962,8 @@ void CalculateEnergy::MolNonbond_1_4(double & energy,
   for (uint i = 0; i < molKind.nonBonded_1_4.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded_1_4.part1[i];
     uint p2 = mols.start[molIndex] + molKind.nonBonded_1_4.part2[i];
-    if (currentAxes.InRcut(distSq, currentCoords, p1, p2, box)) {
+    currentAxes.InRcut(distSq, currentCoords, p1, p2, box);
+    if (forcefield.rCutSq > distSq) {
       forcefield.particles->CalcAdd_1_4(energy, distSq,
                                         molKind.AtomKind
                                         (molKind.nonBonded_1_4.part1[i]),
@@ -841,6 +976,39 @@ void CalculateEnergy::MolNonbond_1_4(double & energy,
 
         forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
             qi_qj_Fact, false);
+      }
+    }
+  }
+}
+
+// Calculate 1-4 nonbonded intra energy using pos
+void CalculateEnergy::MolNonbond_1_4(double & energy,
+                                    cbmc::TrialMol const &mol,
+                                    MoleculeKind const& molKind) const
+{
+  if (mol.GetBox() >= BOXES_WITH_U_B)
+    return;
+
+  double distSq;
+  double qi_qj_Fact;
+  uint count = molKind.nonBonded_1_4.count;
+
+  for (uint i = 0; i < count; ++i) {
+    uint p1 = molKind.nonBonded_1_4.part1[i];
+    uint p2 = molKind.nonBonded_1_4.part2[i];
+    if(mol.AtomExists(p1) && mol.AtomExists(p2)) {
+      currentAxes.InRcut(distSq, mol.GetCoords(), p1, p2, mol.GetBox());
+      if (forcefield.rCutSq > distSq) {
+        forcefield.particles->CalcAdd_1_4(energy, distSq,
+                                          molKind.AtomKind(p1),
+                                          molKind.AtomKind(p2));
+        if (electrostatic) {
+          qi_qj_Fact = num::qqFact * molKind.AtomCharge(p1) *
+                      molKind.AtomCharge(p2);
+
+          forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
+              qi_qj_Fact, false);
+        }
       }
     }
   }
@@ -861,7 +1029,8 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
   for (uint i = 0; i < molKind.nonBonded_1_3.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded_1_3.part1[i];
     uint p2 = mols.start[molIndex] + molKind.nonBonded_1_3.part2[i];
-    if (currentAxes.InRcut(distSq, currentCoords, p1, p2, box)) {
+    currentAxes.InRcut(distSq, currentCoords, p1, p2, box);
+    if (forcefield.rCutSq > distSq) {
       forcefield.particles->CalcAdd_1_4(energy, distSq,
                                         molKind.AtomKind
                                         (molKind.nonBonded_1_3.part1[i]),
@@ -880,12 +1049,45 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
 }
 
 // Calculate 1-3 nonbonded intra energy
+void CalculateEnergy::MolNonbond_1_3(double & energy, 
+                                    cbmc::TrialMol const &mol,
+                                    MoleculeKind const& molKind) const
+{
+  if (mol.GetBox() >= BOXES_WITH_U_B)
+    return;
+
+  double distSq;
+  double qi_qj_Fact;
+  uint count = molKind.nonBonded_1_3.count;
+
+  for (uint i = 0; i < count; ++i) {
+    uint p1 = molKind.nonBonded_1_3.part1[i];
+    uint p2 = molKind.nonBonded_1_3.part2[i];
+    if(mol.AtomExists(p1) && mol.AtomExists(p2)) {
+      currentAxes.InRcut(distSq, mol.GetCoords(), p1, p2, mol.GetBox());
+      if (forcefield.rCutSq > distSq) {
+        forcefield.particles->CalcAdd_1_4(energy, distSq,
+                                          molKind.AtomKind(p1),
+                                          molKind.AtomKind(p2));
+        if (electrostatic) {
+          qi_qj_Fact = num::qqFact * molKind.AtomCharge(p1) *
+                      molKind.AtomCharge(p2);
+
+          forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
+              qi_qj_Fact, false);
+        }
+      }
+    }
+  }
+}
+
+// Calculate 1-3 nonbonded intra energy
 double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,
                                         const uint atom2, const uint molIndex) const
 {
   if(!forcefield.OneThree)
     return 0.0;
-  else if(forcefield.rCutSq <= distSq)
+  else if(forcefield.rCutSq < distSq)
     return 0.0;
 
   double eng = 0.0;
@@ -915,7 +1117,7 @@ double CalculateEnergy::IntraEnergy_1_4(const double distSq, const uint atom1,
 {
   if(!forcefield.OneFour)
     return 0.0;
-  else if(forcefield.rCutSq <= distSq)
+  else if(forcefield.rCutSq < distSq)
     return 0.0;
 
   double eng = 0.0;
@@ -960,9 +1162,27 @@ void CalculateEnergy::EnergyCorrection(SystemPotential& pot,
   }
 }
 
-void CalculateEnergy::VirialCorrection(Virial& virial,
-				       BoxDimensions const& boxAxes,
-				       const uint box) const
+//!Calculates energy corrections for the box
+double CalculateEnergy::EnergyCorrection(const uint box,
+					 const uint *kCount) const
+{
+  if (box >= BOXES_WITH_U_NB) {
+    return 0.0;
+  }
+
+  double tc = 0.0;
+  for (uint i = 0; i < mols.kindsCount; ++i) {
+    for (uint j = 0; j < mols.kindsCount; ++j) {
+      tc += mols.pairEnCorrections[i * mols.kindsCount + j] * 
+	kCount[i] * kCount[j] * currentAxes.volInv[box];
+    }
+  }
+  return tc;
+}
+
+void CalculateEnergy::ForceCorrection(Virial& virial,
+                                      BoxDimensions const& boxAxes,
+                                      const uint box) const
 {
   if (box < BOXES_WITH_U_NB) {
     double vir = 0.0;
@@ -1016,7 +1236,8 @@ void CalculateEnergy::MoleculeForceAdd(XYZArray const& molCoords,
             if(electrostatic) {
               qi_qj_fact = particleCharge[atom] *
                            particleCharge[nIndex[i]] * num::qqFact;
-              pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact);
+              pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact,
+                                                         box);
               forceReal = virComponents * pRF;
             }
             pVF = forcefield.particles->CalcVir(distSq, particleKind[atom],
@@ -1072,7 +1293,8 @@ void CalculateEnergy::MoleculeForceSub(XYZArray& atomForce,
             qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
                          num::qqFact;
             if(electrostatic) {
-              pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact);
+              pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact,
+                                                         box);
               forceReal = virComponents * pRF;
             }
             pVF = forcefield.particles->CalcVir(distSq, particleKind[atom],
@@ -1148,4 +1370,58 @@ void CalculateEnergy::ResetForce(XYZArray& atomForce, XYZArray& molForce, uint b
       thisMol++;
     }
   }
+}
+
+bool CalculateEnergy::FindMolInCavity(std::vector< std::vector<uint> > &mol,
+                                      const XYZ& center, const XYZ& cavDim,
+                                      const XYZArray& invCav, const uint box,
+                                      const uint kind, const uint exRatio)
+{
+  uint k;
+  mol.clear();
+  mol.resize(molLookup.GetNumKind());
+  double maxLength = cavDim.Max();
+    
+  if(maxLength <= currentAxes.rCut[box])
+  {
+    CellList::Neighbors n = cellList.EnumerateLocal(center, box);
+    while (!n.Done()) {
+      if(currentAxes.InCavity(currentCOM.Get(particleMol[*n]), center, cavDim,
+			      invCav, box)) {
+	uint molIndex = particleMol[*n];
+	//if molecule can be transfer between boxes
+	if(!molLookup.IsNoSwap(molIndex)) {
+	  k = mols.GetMolKind(molIndex);
+	  bool exist = std::find(mol[k].begin(), mol[k].end(), molIndex) !=
+	    mol[k].end();
+	  if(!exist)
+	    mol[k].push_back(molIndex);
+	}
+      }
+      n.Next();
+    }
+  } else {
+    MoleculeLookup::box_iterator n = molLookup.BoxBegin(box);
+    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+    while (n != end) {
+      if(currentAxes.InCavity(currentCOM.Get(*n), center, cavDim, invCav, box)){
+        uint molIndex = *n;
+        //if molecule can be transfer between boxes
+        if(!molLookup.IsNoSwap(molIndex)) {
+          k = mols.GetMolKind(molIndex);
+          bool exist = std::find(mol[k].begin(), mol[k].end(), molIndex) !=
+            mol[k].end();
+          if(!exist)
+            mol[k].push_back(molIndex);
+        }
+      }
+      n++;
+    }
+  }
+    
+  //If the is exRate and more molecule kind in cavity, return true.
+  if(mol[kind].size() >= exRatio)
+    return true;
+  else
+    return false;
 }

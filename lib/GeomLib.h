@@ -90,6 +90,55 @@ inline double Dot(const uint atom, const double kx, const double ky,
   return(Coords.x[atom] * kx + Coords.y[atom] * ky + Coords.z[atom] * kz);
 }
 
+
+//Find two vectors that are perpendicular to V
+inline void SetBasis(XYZArray &basis, XYZ const &V)
+{
+  XYZ v1 = V;
+  v1.Normalize();
+  XYZ v2;
+  if(fabs(v1.x) < 0.8) {
+      //v3 will be v1 x the standard X unit vec
+      v2 = XYZ(1.0, 0.0, 0.0);
+  } else {
+      //v3 will be v1 x the standard Y unit vec
+      v2 = XYZ(0.0, 1.0, 0.0);
+  }
+  XYZ v3 = Cross(v1, v2);
+  v3.Normalize();
+  //v2 is unit vec perpendicular to both v3 and v2
+  v2 = Cross(v3, v1);
+  //set v1 az z axis of cell basis
+  basis.Set(0, v3);
+  basis.Set(1, v2);
+  basis.Set(2, v1);
+}
+
+inline void TransposeMatrix(XYZArray &Inv, XYZArray const &matrix)
+{
+  Inv.x[0] = matrix.x[0];
+  Inv.x[1] = matrix.y[0];
+  Inv.x[2] = matrix.z[0];
+    
+  Inv.y[0] = matrix.x[1];
+  Inv.y[1] = matrix.y[1];
+  Inv.y[2] = matrix.z[1];
+    
+  Inv.z[0] = matrix.x[2];
+  Inv.z[1] = matrix.y[2];
+  Inv.z[2] = matrix.z[2];
+}
+
+//Calculate transform of A using dot product
+inline XYZ Transform(const XYZArray &basis, const XYZ &A) 
+{
+  XYZ temp;
+  temp.x = A.x * basis.x[0] + A.y * basis.x[1] + A.z * basis.x[2];
+  temp.y = A.x * basis.y[0] + A.y * basis.y[1] + A.z * basis.y[2];
+  temp.z = A.x * basis.z[0] + A.y * basis.z[1] + A.z * basis.z[2];
+  return temp;
+}
+
 //Generates angle between two vectors sharing a common vertex.
 //NOTE:
 //Vectors must be pre-shifted to the origin.

@@ -5,42 +5,12 @@ A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "NoEwald.h"
-#include "EwaldCached.h"
-#include "CalculateEnergy.h"
-#include "EnergyTypes.h"            //Energy structs
-#include "EnsemblePreprocessor.h"   //Flags
-#include "BasicTypes.h"             //uint
-#include "System.h"                 //For init
-#include "StaticVals.h"             //For init
-#include "Forcefield.h"             //
-#include "MoleculeLookup.h"
-#include "MoleculeKind.h"
-#include "Coordinates.h"
-#include "BoxDimensions.h"
-#include "TrialMol.h"
-#include "GeomLib.h"
-#include "NumLib.h"
-#include <cassert>
 
-//
-//
-//    Energy Calculation functions for Ewald summation method
-//    Calculating self, correction and reciprocate part of ewald
-//
-//    Developed by Y. Li and Mohammad S. Barhaghi
-//
-//
-
-using namespace geom;
 
 NoEwald::NoEwald(StaticVals & stat, System & sys) :
   Ewald(stat, sys) {}
 
-void NoEwald::Init()
-{
-  electrostatic = forcefield.electrostatic;
-  ewald = forcefield.ewald;
-}
+void NoEwald::Init() {}
 
 void NoEwald::AllocMem()
 {
@@ -131,6 +101,15 @@ double NoEwald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 }
 
 
+//calculate reciprocate term for inserting some molecules (kindA) in destination
+// box and removing a molecule (kindB) from destination box
+double NoEwald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
+                          const std::vector<cbmc::TrialMol> &oldMol)
+{
+  return 0.0;
+}
+
+
 //calculate self term after swap move
 double NoEwald::SwapSelf(const cbmc::TrialMol& trialMol) const
 {
@@ -169,6 +148,12 @@ void NoEwald::RestoreMol(int molIndex)
 
 //restore the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
 void NoEwald::exgMolCache()
+{
+  return;
+}
+
+//backup the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
+void NoEwald::backupMolCache()
 {
   return;
 }

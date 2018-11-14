@@ -30,10 +30,11 @@ public:
   void InitRef(System & sys, StaticVals const& statV);
 
   void CalcAndConvert(ulong step);
-  uint GetTries(uint sub);
-  uint GetAccepted(uint sub);
-  double GetAcceptPercent(uint sub);
-  double GetScale(uint sub);
+  bool Performed(uint moveKind);
+  uint GetTries(uint box, uint sub);
+  uint GetAccepted(uint box, uint sub);
+  double GetAcceptPercent(uint box, uint sub);
+  double GetScale(uint box, uint sub);
 
 //private:
   //Intermediate vars.
