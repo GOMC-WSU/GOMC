@@ -144,10 +144,12 @@ void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
   double* nonbonded_1_4 = data->nonbonded_1_4;
   double* real = data->real;
   double* oneFour = data->oneFour;
+  bool* overlap = data->overlap;
 
   std::fill_n(ljWeights, nLJTrials, 0.0);
   std::fill_n(bondedEn, nLJTrials, 0.0);
   std::fill_n(oneFour, nLJTrials, 0.0);
+  std::fill_n(overlap, nLJTrials, false);
 
   //get info about existing geometry
   newMol.SetBasis(hed.Focus(), hed.Prev());
@@ -197,13 +199,15 @@ void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
   uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
   for(uint b = 0; b < hed.NumBond(); ++b) {
     newMol.AddAtom(hed.Bonded(b), positions[b][winner]);
+    newMol.AddBonds(hed.Bonded(b), hed.Focus());
   }
+  newMol.UpdateOverlap(overlap[winner]);
   newMol.AddEnergy(Energy(bondedEn[winner] + hed.GetEnergy() + bondEnergy,
                           nonbonded[winner] + hed.GetNonBondedEn() +
                           oneFour[winner], inter[winner], real[winner],
                           0.0, 0.0, 0.0));
   newMol.MultWeight(hed.GetWeight());
-  newMol.MultWeight(stepWeight);
+  newMol.MultWeight(stepWeight / nLJTrials);
 }
 
 void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
@@ -223,11 +227,13 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
   double* nonbonded_1_4 = data->nonbonded_1_4;
   double* real = data->real;
   double* oneFour = data->oneFour;
+  bool* overlap = data->overlap;
 
   std::fill_n(ljWeights, nLJTrials, 0.0);
   std::fill_n(bondedEn, nLJTrials, 0.0);
   std::fill_n(oneFour, nLJTrials, 0.0);
   std::fill_n(oneFour, nLJTrials, 0.0);
+  std::fill_n(overlap, nLJTrials, false);
 
   //get info about existing geometry
   oldMol.SetBasis(hed.Focus(), hed.Prev());
@@ -314,13 +320,15 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
   double stepWeight = EvalLJ(oldMol, molIndex);
   for(uint b = 0; b < hed.NumBond(); ++b) {
     oldMol.ConfirmOldAtom(hed.Bonded(b));
+    oldMol.AddBonds(hed.Bonded(b), hed.Focus());
   }
+  oldMol.UpdateOverlap(overlap[0]);
   oldMol.AddEnergy(Energy(bondedEn[0] + hed.GetEnergy() + bondEnergy,
                           nonbonded[0] + hed.GetNonBondedEn() + oneFour[0],
                           inter[0], real[0], 0.0, 0.0, 0.0));
 
   oldMol.MultWeight(hed.GetWeight());
-  oldMol.MultWeight(stepWeight);
+  oldMol.MultWeight(stepWeight / nLJTrials);
 }
 
 double DCLinkedHedron::EvalLJ(TrialMol& mol, uint molIndex)
@@ -329,6 +337,7 @@ double DCLinkedHedron::EvalLJ(TrialMol& mol, uint molIndex)
   double* inter = data->inter;
   double* nonbonded = data->nonbonded;
   double* real = data->real;
+  bool* overlap = data->overlap;
   XYZArray* positions = data->multiPositions;
 
   std::fill_n(data->inter, nLJTrials, 0.0);
@@ -336,7 +345,7 @@ double DCLinkedHedron::EvalLJ(TrialMol& mol, uint molIndex)
   std::fill_n(real, nLJTrials, 0.0);
 
   for (uint b = 0; b < hed.NumBond(); ++b) {
-    data->calc.ParticleInter(inter, real, positions[b], hed.Bonded(b),
+    data->calc.ParticleInter(inter, real, positions[b], overlap, hed.Bonded(b),
                              molIndex, mol.GetBox(), nLJTrials);
 
     data->calc.ParticleNonbonded(nonbonded, mol, positions[b],

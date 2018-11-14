@@ -239,11 +239,11 @@ void PDBOutput::PrintCrystRest(const uint b, const uint step, Writer & out)
   using namespace pdb_entry::cryst1::field;
   using namespace pdb_entry;
   using namespace pdb_entry::remark::field;
-  double displace = moveSetRef.Scale(mv::GetMoveSubIndex(mv::DISPLACE, b));
-  double rotate = moveSetRef.Scale(mv::GetMoveSubIndex(mv::ROTATE, b));
+  double displace = moveSetRef.GetScaleTot(b, mv::DISPLACE);
+  double rotate = moveSetRef.GetScaleTot(b, mv::ROTATE);
   double volume = 0.0;
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
-  volume = moveSetRef.Scale(mv::GetMoveSubIndex(mv::VOL_TRANSFER, b));
+  volume = moveSetRef.GetScaleTot(b, mv::VOL_TRANSFER);
 #endif
   sstrm::Converter toStr;
   std::string outStr(pdb_entry::LINE_WIDTH, ' ');

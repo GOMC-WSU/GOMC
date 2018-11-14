@@ -24,6 +24,7 @@ public:
   virtual void CalcEn();
   virtual uint Transform();
   virtual void Accept(const uint rejectState, const uint step);
+  virtual void PrintAcceptKind();
 private:
   uint bPick;
   uint typePick;
@@ -80,6 +81,14 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
     t_max[b] = 0.05;
     r_max[b] = 0.01 * 2 * M_PI;
   }
+}
+
+void MultiParticle::PrintAcceptKind() {
+  printf("%-37s", "% Accepted MultiParticle ");
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    printf("%10.5f ", 100.0 * moveSetRef.GetAccept(b, mv::MULTIPARTICLE));
+  }
+  std::cout << std::endl;
 }
 
 inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
@@ -273,8 +282,7 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   UpdateMoveSetting(result);
   AdjustMoves(step);
 
-  subPick = mv::GetMoveSubIndex(mv::MULTIPARTICLE, bPick);
-  moveSetRef.Update(result, subPick, step);
+  moveSetRef.Update(mv::MULTIPARTICLE, result, step, bPick);
 }
 
 inline void MultiParticle::CalculateTrialDistRot()
