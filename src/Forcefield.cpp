@@ -7,12 +7,13 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Forcefield.h" //Header spec.
 //Setup partner classes
 #include "Setup.h"
+#include "FFShift.h"
+#include "FFSwitch.h"
+#include "FFSwitchMartini.h"
 #ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
 #endif
 #include <math.h>
-
-const double BOLTZMANN = 0.0019872041;
 
 Forcefield::Forcefield()
 {
@@ -35,8 +36,7 @@ Forcefield::~Forcefield()
 void Forcefield::Init(const Setup& set)
 {
   InitBasicVals(set.config.sys, set.config.in.ffKind);
-  particles->Init(set.ff.mie, set.ff.nbfix, set.config.sys,
-                  set.config.in.ffKind);
+  particles->Init(set.ff.mie, set.ff.nbfix);
   bonds.Init(set.ff.bond);
   angles->Init(set.ff.angle);
   dihedrals.Init(set.ff.dih);
@@ -49,8 +49,9 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
   T_in_K = val.T.inKelvin;
   rCut = val.ff.cutoff;
   rCutSq = rCut * rCut;
-  rCutOver2 = rCut / 2.0;
-  scl_14 = val.ff.oneFourScale;
+  rCutLow = val.ff.cutoffLow;
+  rCutLowSq = rCutLow * rCutLow;
+  scaling_14 = val.elect.oneFourScale;
   beta = 1 / T_in_K;
 
   vdwKind = val.ff.VDW_KIND;
@@ -58,20 +59,34 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
 
   electrostatic = val.elect.enable;
   ewald = val.elect.ewald;
-  alpha = val.elect.alpha;
-  recip_rcut = val.elect.recip_rcut;
+  tolerance = val.elect.tolerance;
+  rswitch = val.ff.rswitch;
+  dielectric = val.elect.dielectric;
+
+  for(uint b = 0 ; b < BOX_TOTAL; b++) {
+    rCutCoulomb[b] = val.elect.cutoffCoulomb[b];
+    rCutCoulombSq[b] = rCutCoulomb[b] * rCutCoulomb[b];
+    alpha[b] = sqrt(-log(tolerance)) / rCutCoulomb[b];
+    alphaSq[b] = alpha[b] * alpha[b];
+    recip_rcut[b] = -2.0 * log(tolerance) / rCutCoulomb[b];
+    recip_rcut_Sq[b] = recip_rcut[b] * recip_rcut[b];
+  }
+
+  vdwGeometricSigma = val.ff.vdwGeometricSigma;
+  isMartini = ffKind.isMARTINI;
+
 #if ENSEMBLE == GCMC
   isFugacity = val.chemPot.isFugacity;
 #endif
 
   if(vdwKind == val.ff.VDW_STD_KIND)
-    particles = new FFParticle();
+    particles = new FFParticle(*this);
   else if(vdwKind == val.ff.VDW_SHIFT_KIND)
-    particles = new FF_SHIFT();
+    particles = new FF_SHIFT(*this);
   else if (vdwKind == val.ff.VDW_SWITCH_KIND && ffKind.isMARTINI)
-    particles = new FF_SWITCH_MARTINI();
+    particles = new FF_SWITCH_MARTINI(*this);
   else
-    particles = new FF_SWITCH();
+    particles = new FF_SWITCH(*this);
 
   if(ffKind.isMARTINI)
     angles = new FFAngleMartini();

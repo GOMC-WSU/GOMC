@@ -116,7 +116,6 @@ struct Exclude {
 struct PotentialConfig {
   uint kind;
   double cutoff;
-  double oneFourScale;
   uint VDW_KIND;
 };
 struct VDWPot : public PotentialConfig {
@@ -130,8 +129,8 @@ struct VDWSwitch : public PotentialConfig {
 //Items that effect the system interactions and/or identity, e.g. Temp.
 struct FFValues {
   uint VDW_KIND;
-  double cutoff, cutoffLow, rswitch, oneFourScale;
-  bool doTailCorr;
+  double cutoff, cutoffLow, rswitch;
+  bool doTailCorr, vdwGeometricSigma;
   std::string kind;
 
   static const std::string VDW, VDW_SHIFT, VDW_SWITCH;
@@ -156,12 +155,12 @@ struct Step {
 
 //Holds the percentage of each kind of move for this ensemble.
 struct MovePercents {
-  double displace, rotate, intraSwap, regrowth;
+  double displace, rotate, intraSwap, intraMemc, regrowth, crankShaft;
 #ifdef VARIABLE_VOLUME
   double volume;
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
-  double transfer;
+  double transfer, memc;
 #endif
 };
 
@@ -172,23 +171,38 @@ struct ElectroStatic {
   bool enable;
   bool ewald;
   bool cache;
-  double alpha;
+  bool cutoffCoulombRead[BOX_TOTAL];
   double tolerance;
-  double recip_rcut;
   double oneFourScale;
   double dielectric;
+  double cutoffCoulomb[BOX_TOTAL];
+  ElectroStatic(void) 
+  {
+    std::fill_n(cutoffCoulombRead, BOX_TOTAL, false);
+    std::fill_n(cutoffCoulomb, BOX_TOTAL, 0.0);
+  }
 };
 
 struct Volume {
   bool hasVolume, cstArea, cstVolBox0;
-  uint boxCoordRead;
+  bool readCellBasis[BOX_TOTAL][3];
   XYZArray axis[BOX_TOTAL];
-  Volume(void) : hasVolume(false), cstArea(false), cstVolBox0(false),
-    boxCoordRead(0)
+  Volume(void) : hasVolume(false), cstArea(false), cstVolBox0(false)
   {
     for(uint b = 0; b < BOX_TOTAL; ++b) {
       axis[b] = XYZArray(3);
+      std::fill_n(readCellBasis[b], 3, false);
     }
+  }
+
+  bool ReadCellBasis() const {
+    for(uint b = 0; b < BOX_TOTAL; ++b) {
+      for(uint i = 0; i < 3; i++) {
+        if(!readCellBasis[b][i])
+          return false;
+      }
+    }
+    return true;
   }
 };
 
@@ -209,6 +223,22 @@ struct CBMC {
   GrowBond bonded;
 };
 
+struct MEMCVal {
+  bool enable, readVol, readRatio, readSmallBB, readLargeBB;
+  bool readSK, readLK;
+  bool MEMC1, MEMC2, MEMC3;
+  XYZ subVol;
+  std::vector<std::string> smallKind, largeKind;
+  std::vector<uint> exchangeRatio;
+  std::vector<std::string> smallBBAtom1, smallBBAtom2;
+  std::vector<std::string> largeBBAtom1, largeBBAtom2;
+  MEMCVal(void) {
+    MEMC1 = MEMC2 = MEMC3 = false;
+    readVol = readRatio = readSmallBB = false;
+    readLargeBB = readSK = readLK = false;
+  }
+};
+
 #if ENSEMBLE == GCMC
 struct ChemicalPotential {
   bool isFugacity;
@@ -224,6 +254,7 @@ struct SystemVals {
   MovePercents moves;
   Volume volume; //May go unused
   CBMC cbmcTrials;
+  MEMCVal memcVal, intraMemcVal;
 #if ENSEMBLE == GCMC
   ChemicalPotential chemPot;
 #elif ENSEMBLE == GEMC || ENSEMBLE == NPT
@@ -310,6 +341,7 @@ public:
 private:
   void fillDefaults(void);
   bool checkBool(string str);
+  bool CheckString(string str1, string str2); 
   void verifyInputs(void);
   InputFileReader reader;
 

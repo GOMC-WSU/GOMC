@@ -1,3 +1,4 @@
+
 /*******************************************************************************
 GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
@@ -23,8 +24,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <fstream>
 #include <iostream>
 #include <cstdlib>
-
 #include "BasicTypes.h"
+
 
 //Wrapper class for our random numbers
 class PRNG
@@ -94,6 +95,12 @@ public:
     return XYZ(gen->rand(bound2) - bound, gen->rand(bound2) - bound,
                gen->rand(bound2) - bound);
   }
+    
+  // return between [-bound, bound]
+  double SymExc(double bound)
+  {
+    return 2 * gen->rand(bound) - bound;
+  }
 
   //Used to pick first position of
   void FillWithRandom(XYZArray & loc, const uint len, BoxDimensions const& dims,
@@ -106,31 +113,36 @@ public:
     }
   }
 
+  void FillWithRandom(XYZ & loc, BoxDimensions const& dims,
+                      const uint b)
+  {
+    XYZ temp(randExc(dims.axis.x[b]), randExc(dims.axis.y[b]),
+	     randExc(dims.axis.z[b]));
+    loc = dims.TransformSlant(temp, b);
+  }
+
+  void FillWithRandomInCavity(XYZ &loc, XYZ const& cavDim)
+  {
+    XYZ temp(SymExc(cavDim.x/2.0), SymExc(cavDim.y/2.0), SymExc(cavDim.z/2.0));
+    loc = temp;
+  }
+
+  //using UniformRandom algorithm in TransformMatrix.h
+  XYZ RandomUnitVect()
+  {
+    double u2 = gen->rand();
+    double u3 = gen->rand();
+    u2 *= 2.0 * M_PI;
+    u3 *= 2.0;
+    double r = sqrt(u3);
+    double root = sqrt(2.0 - u3);
+    XYZ temp(sin(u2) * r * root, cos(u2) * r * root, 1.0 - u3);
+    return  temp;
+  }
+
   void FillWithRandomOnSphere(XYZArray & loc, const uint len,
                               const double rAttach, const XYZ& center)
   {
-    //Quaternion Method - this was 80% slower in my tests - BGJ
-    /*
-    XYZ point;
-    double x[4], sum;
-    for (uint i = 0; i < len; ++i)
-    {
-    do
-     {
-        sum = 0;
-        for (uint j = 0; j < 4; ++j)
-        {
-           x[j]=Sym(1.0);
-           sum += x[j]*x[j];
-        }
-     } while (sum>=1);
-
-     point.x = 2*(x[1]*x[3]+x[0]*x[2])/sum*rAttach;
-     point.y = 2*(x[2]*x[3]-x[0]*x[1])/sum*rAttach;
-     point.z = (x[0]*x[0]+x[3]*x[3]-x[1]*x[1]-x[2]*x[2])/sum*rAttach;
-     loc.Set(i, point + center);
-        }
-        */
     //Pick on cos(phi) - this was faster and always uses 2 rand calls
     for (uint i = 0; i < len; ++i) {
       loc.Set(i, PickOnUnitSphere() * rAttach + center);
@@ -196,8 +208,7 @@ public:
   }
 
 
-  void PickBox(uint &b,
-               const double subDraw, const double movPerc) const
+  void PickBox(uint &b, const double subDraw, const double movPerc) const
   {
     //Calculate "chunk" of move for each box.
     double boxDiv = movPerc / BOX_TOTAL;
@@ -206,6 +217,18 @@ public:
     //FIXME: Hack to prevent picking invalid boxes, may violate balance
     if (b != mv::BOX0)
       b = mv::BOX1;
+  }
+
+  void PickBool(bool &b, const double subDraw, const double movPerc) const
+  {
+    //Calculate "chunk" of move for each box.
+    double boxDiv = movPerc / 2;
+    //Which chunk was our draw in...
+    b = (uint)(subDraw/boxDiv);
+    //FIXME: Hack to prevent picking invalid boxes, may violate balance
+    if (b != mv::BOX0)
+      b = mv::BOX1;
+    b = (b > 0 ? true : false);
   }
 
   void PickBox(uint &b, double &subDraw, double &boxDiv,
@@ -279,7 +302,6 @@ public:
         //Lookup true index in table.
         m = molLookRef.GetMolNum(mOff, mk, b);
       } while(molLookRef.IsFix(m));
-
     }
 
     return rejectState;
@@ -313,12 +335,63 @@ public:
         //Lookup true index in table.
         m = molLookRef.GetMolNum(mOff, mk, b);
       } while(molLookRef.IsNoSwap(m));
-
     }
 
     return rejectState;
   }
 
+  // In MEMC move pick n molecules of kind mk
+  uint PickMol(const uint mk, uint &mk2, uint &m2, const uint b)
+  {
+    uint rejectState = mv::fail_state::NO_FAIL;
+    //Pick molecule with the help of molecule lookup table.
+    if ((molLookRef.NumKindInBox(mk, b) == 0)) {
+      rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+    } else {
+      uint mOff, m;
+      //Among the ones of that kind in that box, pick one @ random.
+      //Molecule with a tag (beta == 2 and beta == 1) cannot be selected.
+      do {
+	mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
+	//Lookup true index in table.
+	m = molLookRef.GetMolNum(mOff, mk, b);
+      } while(molLookRef.IsNoSwap(m));
+      m2 = m;
+      mk2 = mk;
+    }
+    
+    return rejectState;
+  }
+
+  // In MEMC move pick n molecules of kind mk
+  uint PickMol(const uint mk, std::vector<uint> &mk2,
+               std::vector<uint> &m2, const uint n, const uint b)
+  {
+    uint rejectState = mv::fail_state::NO_FAIL;
+    //Pick molecule with the help of molecule lookup table.
+    if ((molLookRef.NumKindInBox(mk, b) == 0)) {
+      rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+    } else if (molLookRef.NumKindInBox(mk, b) < n){
+      rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+    } else {
+      for(uint i = 0; i < n; i++) {
+        uint mOff, m;
+        //Among the ones of that kind in that box, pick one @ random.
+        //Molecule with a tag (beta == 2 and beta == 1) cannot be selected.
+        do {
+          mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
+          //Lookup true index in table.
+          m = molLookRef.GetMolNum(mOff, mk, b);
+        } while(molLookRef.IsNoSwap(m) || 
+		std::find(m2.begin(), m2.end(), m) != m2.end());
+        m2.push_back(m);
+        mk2.push_back(mk);
+      }
+    }
+      
+    return rejectState;
+  }
+    
   // pick a molecule that is not fixed (beta != 1)
   uint PickMolAndBoxPair(uint &m, uint &mk, uint & bSrc, uint & bDest,
                          double subDraw, const double movPerc)

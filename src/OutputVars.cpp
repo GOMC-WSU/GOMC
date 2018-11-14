@@ -40,30 +40,31 @@ void OutputVars::InitRef(System & sys, StaticVals const& statV)
   virial = new Virial[BOXES_WITH_U_NB];
 }
 
-uint OutputVars::GetTries(uint sub)
+bool OutputVars::Perfromed(uint moveKind)
 {
-  return (sub < mv::SCALEABLE ?
-          moveSetRef->tries[sub] + moveSetRef->tempTries[sub] :
-          moveSetRef->tries[sub]);
+  return (movePercRef[moveKind] > 0.0);
 }
 
-uint OutputVars::GetAccepted(uint sub)
+uint OutputVars::GetTries(uint box, uint sub)
 {
-  return (sub < mv::SCALEABLE ?
-          moveSetRef->accepted[sub] + moveSetRef->tempAccepted[sub] :
-          moveSetRef->accepted[sub]);
+  return moveSetRef->GetTrialTot(box, sub);
 }
 
-double OutputVars::GetScale(uint sub)
+uint OutputVars::GetAccepted(uint box, uint sub)
 {
-  return moveSetRef->scale[sub];
+  return moveSetRef->GetAcceptTot(box, sub);
 }
 
-double OutputVars::GetAcceptPercent(uint sub)
+double OutputVars::GetScale(uint box, uint sub)
 {
-  if(GetTries(sub) == 0)
+  return moveSetRef->GetScaleTot(box, sub);
+}
+
+double OutputVars::GetAcceptPercent(uint box, uint sub)
+{
+  if(GetTries(box, sub) == 0)
     return 0.0;
-  return (double)(GetAccepted(sub)) / (double)(GetTries(sub)) * 100.0;
+  return (double)(GetAccepted(box, sub)) / (double)(GetTries(box, sub)) * 100.0;
 }
 
 void OutputVars::Init(pdb_setup::Atoms const& atoms)

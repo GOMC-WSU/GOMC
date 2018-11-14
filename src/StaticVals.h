@@ -54,6 +54,7 @@ public:
 
   double movePerc[mv::MOVE_KINDS_TOTAL];
   double totalPerc;
+  config_setup::MEMCVal  intraMemcVal;
 
   //Only include these variables if they're static for this ensemble...
 #ifndef VARIABLE_VOLUME
@@ -62,6 +63,10 @@ public:
 #ifndef  VARIABLE_PARTICLE_NUMBER
   MoleculeLookup molLookup;
 #endif
+#ifdef  VARIABLE_PARTICLE_NUMBER
+  config_setup::MEMCVal  memcVal;
+#endif
+ 
   bool IsEquil(const uint step)
   {
     return step >= simEventFreq.tillEquil;
@@ -69,6 +74,10 @@ public:
   bool DoAdjust(const uint move)
   {
     return move % simEventFreq.perAdjust == 0;
+  }
+  uint GetPerAdjust() const 
+  { 
+    return simEventFreq.perAdjust; 
   }
   double AcceptPercent(const uint tempAccept)
   {

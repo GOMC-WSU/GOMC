@@ -7,36 +7,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef NOEWALD_H
 #define NOEWALD_H
 
-#include "BasicTypes.h"
-#include "EnergyTypes.h"
 #include "Ewald.h"
-#include <vector>
-#include <stdio.h>
-#include <cstring>
-#include <cassert>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-//
-//    Called when Ewlad method was not used.
-//    Energy Calculation functions for Ewald summation method
-//    Calculating self, correction and reciprocate part of ewald
-//
-//    Developed by Y. Li and Mohammad S. Barhaghi
-//
-//
-
-class StaticVals;
-class System;
-class Forcefield;
-class Molecules;
-class MoleculeLookup;
-class MoleculeKind;
-class Coordinates;
-class COM;
-class XYZArray;
-class BoxDimensions;
-class CalculateEnergy;
 
 
 class NoEwald : public Ewald
@@ -73,7 +44,7 @@ public:
 
   //calculate reciprocate term for displacement and rotation move
   virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
-                               const uint box, XYZ const*const newCOM = NULL);
+                               const uint box);
 
   //calculate self term after swap move
   virtual double SwapSelf(const cbmc::TrialMol& trialMo) const;
@@ -89,7 +60,11 @@ public:
   virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                  const uint box, const int molIndex);
 
-
+  //calculate reciprocate term for inserting some molecules (kindA) in
+  //destination box and removing a molecule (kindB) from destination box
+  virtual double SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
+                           const std::vector<cbmc::TrialMol> &oldMol);
+    
   //back up reciptocate value to Ref (will be called during initialization)
   virtual void SetRecipRef(uint box);
 
@@ -104,6 +79,9 @@ public:
 
   //update sinMol and cosMol
   virtual void exgMolCache();
+
+  //backup the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
+  virtual void backupMolCache();
 
   virtual void UpdateVectorsAndRecipTerms();
 

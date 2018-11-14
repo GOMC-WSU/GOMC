@@ -8,6 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "GOMC_Config.h"    //For version number
 #ifdef GOMC_CUDA
 #include "cuda.h"
+#include <cuda_runtime_api.h>
 #endif
 #include <iostream>
 #include <ctime>
