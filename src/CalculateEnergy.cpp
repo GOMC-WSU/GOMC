@@ -161,12 +161,12 @@ SystemPotential CalculateEnergy::SystemInter(SystemPotential potential,
 }
 
 SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
-    XYZArray const& coords,
-    XYZArray const& com,
-    XYZArray& atomForce,
-    XYZArray& molForce,
-    BoxDimensions const& boxAxes,
-    const uint box)
+                                          XYZArray const& coords,
+                                          XYZArray const& com,
+                                          XYZArray& atomForce,
+                                          XYZArray& molForce,
+                                          BoxDimensions const& boxAxes,
+                                          const uint box)
 {
   //Handles reservoir box case, returning zeroed structure if
   //interactions are off.
@@ -1308,40 +1308,39 @@ void CalculateEnergy::MoleculeForceSub(XYZArray& atomForce, XYZArray& molForce,
 }
 
 //! Calculate Torque
-void CalculateEnergy::CalculateTorque(XYZArray const& coordinates,
+void CalculateEnergy::CalculateTorque(vector<uint>& moleculeIndex,
+                                      XYZArray const& coordinates,
                                       XYZArray const& com,
                                       XYZArray const& atomForce,
 				                              XYZArray const& atomForceRec,
                                       XYZArray& molTorque,
-                                      vector<uint> moveType,
+                                      vector<uint>& moveType,
                                       const uint box)
 {
   if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
-    uint length, start;
+    uint m, p, length, start;
     XYZ tempTorque, distFromCOM;
 
-    // molecule iterator
-    MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
-    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+#ifdef _OPENMP
+    #pragma omp parallel for default(shared) private(m, p, length, start)
+#endif
+    for(m = 0; m < moleculeIndex.size(); m++) {
+      length = mols.GetKind(moleculeIndex[m]).NumAtoms();
+      start = mols.MolStart(moleculeIndex[m]);
 
-    while(thisMol != end) {
-      length = mols.GetKind(*thisMol).NumAtoms();
-      start = mols.MolStart(*thisMol);
-      molTorque.Set(*thisMol, 0.0, 0.0, 0.0);
-      if(!moveType[*thisMol]) {
-        thisMol++;
-        continue;
+      molTorque.Set(moleculeIndex[m], 0.0, 0.0, 0.0);
+      //Only if move is rotation
+      if(moveType[moleculeIndex[m]]) {
+        // atom iterator
+        for(p = start; p < start + length; p++) {
+          distFromCOM = coordinates.Difference(p, com, (moleculeIndex[m]));
+          distFromCOM = currentAxes.MinImage(distFromCOM, box);
+          tempTorque = Cross(distFromCOM, atomForce[p] + atomForceRec[p]);
+          molTorque.Add((moleculeIndex[m]), tempTorque);
+        }
       }
-
-      // atom iterator
-      for(uint p = start; p < start + length; p++) {
-        distFromCOM = coordinates.Difference(p, com, (*thisMol));
-        distFromCOM = currentAxes.MinImage(distFromCOM, box);
-        tempTorque = Cross(distFromCOM, atomForce[p] + atomForceRec[p]);
-        molTorque.Add((*thisMol), tempTorque);
-      }
-      thisMol++;
     }
+
   }
 }
 

@@ -167,12 +167,13 @@ public:
   double IntraEnergy_1_4(const double distSq, const uint atom1,
                          const uint atom2, const uint molIndex) const;
   //! Calculate Torque
-  void CalculateTorque(XYZArray const& coordinates,
+  void CalculateTorque(vector<uint>& moleculeIndex,
+                       XYZArray const& coordinates,
                        XYZArray const& com,
                        XYZArray const& atomForce,
                        XYZArray const& atomForceRec,
                        XYZArray& molTorque,
-                       vector<uint> moveType,
+                       vector<uint>& moveType,
                        const uint box);
     
   //Finding the molecule inside cavity and store the molecule Index.
