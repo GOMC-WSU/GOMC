@@ -43,7 +43,7 @@ private:
   XYZArray r_k;
   Coordinates newMolsPos;
   COM newCOMs;
-  vector<uint> moveType;
+  vector<uint> moveType, moleculeIndex;
   uint MultiParticleType;
   const MoleculeLookup& molLookup;
 
@@ -94,6 +94,7 @@ void MultiParticle::PrintAcceptKind() {
 inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
 {
   uint state = mv::fail_state::NO_FAIL;
+  moleculeIndex.clear();
 #if ENSEMBLE == GCMC
   bPick = mv::BOX0;
 #else
@@ -104,6 +105,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(bPick);
   MoleculeLookup::box_iterator end = molLookup.BoxEnd(bPick);
   while(thisMol != end) {
+    moleculeIndex.push_back(*thisMol);
     uint length = molRef.GetKind(*thisMol).NumAtoms();
     if(length == 1) {
       moveType[*thisMol] = mp::MPDISPLACE;
@@ -127,7 +129,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
     thisMol++;
   }
   //Calculate Torque for old positions
-  calcEnRef.CalculateTorque(coordCurrRef, comCurrRef, atomForceRef,
+  calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef, atomForceRef,
                             atomForceRecRef, molTorqueRef, moveType, bPick);
   CalculateTrialDistRot();
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
@@ -140,18 +142,18 @@ inline uint MultiParticle::Transform()
   // Based on the reference force decided whether to displace or rotate each
   // individual particle.
   uint state = mv::fail_state::NO_FAIL;
+  uint m;
 
   // move particles according to force and torque and store them in the new pos
-  MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(bPick);
-  MoleculeLookup::box_iterator end = molLookup.BoxEnd(bPick);
-  while(thisMol != end) {
-    double molIndex = (*thisMol);
-    if(moveType[molIndex]) { // rotate
-      RotateForceBiased(molIndex);
+#ifdef _OPENMP
+  #pragma omp parallel for default(shared) private(m)
+#endif
+  for(m = 0; m < moleculeIndex.size(); m++) {
+    if(moveType[moleculeIndex[m]]) { // rotate
+      RotateForceBiased(moleculeIndex[m]);
     } else { // displacement
-      TranslateForceBiased(molIndex);
+      TranslateForceBiased(moleculeIndex[m]);
     }
-    thisMol++;
   }
   return state;
 }
@@ -177,8 +179,8 @@ inline void MultiParticle::CalcEn()
   calcEwald->BoxForceReciprocal(newMolsPos, atomForceRecNew, molForceRecNew,
 				                        bPick);
   //Calculate Torque for new positions
-  calcEnRef.CalculateTorque(newMolsPos, newCOMs, atomForceNew, atomForceRecNew,
-			                      molTorqueNew, moveType, bPick);
+  calcEnRef.CalculateTorque(moleculeIndex, newMolsPos, newCOMs, atomForceNew,
+                            atomForceRecNew, molTorqueNew, moveType, bPick);
   sysPotNew.Total();
 }
 
@@ -287,11 +289,9 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
 
 inline void MultiParticle::CalculateTrialDistRot()
 {
-  MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(bPick);
-  MoleculeLookup::box_iterator end = molLookup.BoxEnd(bPick);
-
-  while(thisMol != end) {
-    uint molIndex = *thisMol;
+  uint m , molIndex;
+  for(m = 0; m < moleculeIndex.size(); m++) {
+    molIndex = moleculeIndex[m];
     XYZ lbf, lbfmax; // lambda * BETA * force
     XYZ lbt, lbtmax; // lambda * BETA * torque
     double rand;
@@ -325,7 +325,6 @@ inline void MultiParticle::CalculateTrialDistRot()
       }
       t_k.Set(molIndex, num);
     }
-    thisMol++;
   }
 }
 
