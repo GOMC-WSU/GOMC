@@ -49,7 +49,7 @@ private:
 
   double GetCoeff();
   void UpdateMoveSetting(bool isAccepted);
-  void AdjustMoves(const uint step);
+  void AdjustMoves();
   void CalculateTrialDistRot();
   void RotateForceBiased(uint molIndex);
   void TranslateForceBiased(uint molIndex);
@@ -80,6 +80,8 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   for(uint b = 0; b < BOX_TOTAL; b++) {
     t_max[b] = 0.05;
     r_max[b] = 0.01 * 2 * M_PI;
+    tries[0][b] = tries[1][b] = 0;
+    accepted[0][b] = accepted[1][b] = 0;
   }
 }
 
@@ -129,7 +131,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
     thisMol++;
   }
   //Calculate Torque for old positions
-  calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef, atomForceRef,
+  calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef,comCurrRef,atomForceRef,
                             atomForceRecRef, molTorqueRef, moveType, bPick);
   CalculateTrialDistRot();
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
@@ -282,7 +284,7 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   }
 
   UpdateMoveSetting(result);
-  AdjustMoves(step);
+  AdjustMoves();
 
   moveSetRef.Update(mv::MULTIPARTICLE, result, step, bPick);
 }
@@ -390,9 +392,11 @@ void MultiParticle::TranslateForceBiased(uint molIndex)
   newCOMs.Set(molIndex, newcom);
 }
 
-void MultiParticle::AdjustMoves(const uint step)
+void MultiParticle::AdjustMoves()
 {
-  if((step+1) % perAdjust == 0 ) {
+  uint totalTries= tries[mp::MPDISPLACE][bPick] +
+    tries[mp::MPROTATE][bPick];
+  if((totalTries+1) % perAdjust == 0 ) {
     double currentAccept = (double)accepted[mp::MPDISPLACE][bPick] /
                           (double)tries[mp::MPDISPLACE][bPick];
     double fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
