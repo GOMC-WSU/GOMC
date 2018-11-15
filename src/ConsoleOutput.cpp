@@ -341,6 +341,13 @@ void ConsoleOutput::PrintMoveTitle()
     printElement("ROTMAX", elementWidth);
   }
 
+  if(var->Performed(mv::MULTIPARTICLE)) {
+    printElement("MULTIPARTICLE", elementWidth);
+    printElement("MPACCEPT", elementWidth);
+    printElement("MPACCEPT%", elementWidth);
+    printElement("MPMAX", elementWidth);
+  }
+
   if(var->Performed(mv::INTRA_SWAP)) {
     printElement("INTRASWAP", elementWidth);
     printElement("INTACCEPT", elementWidth);
@@ -351,13 +358,6 @@ void ConsoleOutput::PrintMoveTitle()
     printElement("REGROWTH", elementWidth);
     printElement("REGROWACCEPT", elementWidth);
     printElement("REGROWACCEPT%", elementWidth);
-  }
-
-  if(var->Performed(mv::MULTIPARTICLE)) {
-    printElement("MULTIPARTICLE", elementWidth);
-    printElement("MPACCEPT", elementWidth);
-    printElement("MPACCEPT%", elementWidth);
-    printElement("MPMAX", elementWidth);
   }
 
   if(var->Performed(mv::INTRA_MEMC)) {
