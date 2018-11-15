@@ -40,7 +40,7 @@ void OutputVars::InitRef(System & sys, StaticVals const& statV)
   virial = new Virial[BOXES_WITH_U_NB];
 }
 
-bool OutputVars::Perfromed(uint moveKind)
+bool OutputVars::Performed(uint moveKind)
 {
   return (movePercRef[moveKind] > 0.0);
 }

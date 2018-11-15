@@ -82,7 +82,7 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
   //in the if condition  
   if (move == mv::INTRA_MEMC
   #if ENSEMBLE == GEMC || ENSEMBLE == GCMC 
-      || move == mv::INTRA_MEMC
+      || move == mv::MEMC
   #endif
   #if ENSEMBLE == NPT || ENSEMBLE == GEMC
       || move == mv::VOL_TRANSFER

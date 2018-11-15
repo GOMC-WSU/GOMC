@@ -30,7 +30,7 @@ public:
   void InitRef(System & sys, StaticVals const& statV);
 
   void CalcAndConvert(ulong step);
-  bool Perfromed(uint moveKind);
+  bool Performed(uint moveKind);
   uint GetTries(uint box, uint sub);
   uint GetAccepted(uint box, uint sub);
   double GetAcceptPercent(uint box, uint sub);
