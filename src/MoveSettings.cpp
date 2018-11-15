@@ -171,6 +171,17 @@ uint MoveSettings::GetAcceptTot(const uint box, const uint move) const
   for(uint k = 0; k < totKind; k++) {
     sum += accepted[box][move][k];
   }
+
+  if(move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE
+  #if ENSEMBLE == GEMC || ENSEMBLE == GCMC 
+      || move == mv::MEMC
+  #endif
+  #if ENSEMBLE == NPT || ENSEMBLE == GEMC
+      || move == mv::VOL_TRANSFER
+  #endif 
+    ) {
+    sum /= totKind;
+  }
   return sum;
 }
 
