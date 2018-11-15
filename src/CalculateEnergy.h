@@ -68,16 +68,18 @@ public:
   //! Calculate force and virial for the box
   Virial ForceCalc(const uint box);
 
-  //! Calculate change force of a molecule
+  //! Calculate change force of a molecule using molCoords
   void MoleculeForceAdd(XYZArray const& molCoords,
-                                         XYZArray& atomForce,
-                                         XYZArray& molForce,
-                                         const uint molIndex,
-                                         const uint box);
+                        XYZArray& atomForce,
+                        XYZArray& molForce,
+                        const uint molIndex,
+                        const uint box);
+
+ //! Calculate change force of a molecule using current coords
   void MoleculeForceSub(XYZArray& atomForce,
-                                         XYZArray& molForce,
-                                         const uint molIndex,
-                                         const uint box);
+                        XYZArray& molForce,
+                        const uint molIndex,
+                        const uint box);
 
   void ResetForce(XYZArray& atomForce, XYZArray& molForce, uint box);
 

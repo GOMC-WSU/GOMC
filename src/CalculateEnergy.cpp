@@ -1206,7 +1206,7 @@ void CalculateEnergy::MoleculeForceAdd(XYZArray const& molCoords,
                                        const uint molIndex,
                                        const uint box)
 {
-  if (box < BOXES_WITH_U_NB) {
+  if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
     uint length = mols.GetKind(molIndex).NumAtoms();
     uint start = mols.MolStart(molIndex);
 
@@ -1230,41 +1230,39 @@ void CalculateEnergy::MoleculeForceAdd(XYZArray const& molCoords,
 #endif
       for(i = 0; i < nIndex.size(); i++) {
         distSq = 0.0;
-        if (currentAxes.InRcut(distSq, virComponents,
-                               molCoords, p, currentCoords, nIndex[i], box)) {
-          if(multiParticleEnabled) {
-            if(electrostatic) {
-              qi_qj_fact = particleCharge[atom] *
-                           particleCharge[nIndex[i]] * num::qqFact;
-              pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact,
-                                                         box);
-              forceReal = virComponents * pRF;
-            }
-            pVF = forcefield.particles->CalcVir(distSq, particleKind[atom],
-                                                particleKind[nIndex[i]]);
-            forceLJ = virComponents * pVF;
-            // add new force
-            atomForce.Add(atom, forceLJ + forceReal);
-            atomForce.Sub(nIndex[i], forceLJ + forceReal);
-            molForce.Add(particleMol[atom], forceLJ + forceReal);
-            molForce.Sub(particleMol[nIndex[i]], forceLJ + forceReal);
+        if(currentAxes.InRcut(distSq, virComponents, molCoords, p,
+                              currentCoords, nIndex[i], box)) {
+          
+          if(electrostatic) {
+            qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
+                         num::qqFact;
+            pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact,
+                                                       box);
+            forceReal = virComponents * pRF;
           }
+          pVF = forcefield.particles->CalcVir(distSq, particleKind[atom],
+                                              particleKind[nIndex[i]]);
+          forceLJ = virComponents * pVF;
+          // add new force
+          atomForce.Add(atom, forceLJ + forceReal);
+          atomForce.Sub(nIndex[i], forceLJ + forceReal);
+          molForce.Add(particleMol[atom], forceLJ + forceReal);
+          molForce.Sub(particleMol[nIndex[i]], forceLJ + forceReal);
         }
       }
     }
   }
 }
 
-void CalculateEnergy::MoleculeForceSub(XYZArray& atomForce,
-                                       XYZArray& molForce,
-                                       const uint molIndex,
-                                       const uint box)
+
+void CalculateEnergy::MoleculeForceSub(XYZArray& atomForce, XYZArray& molForce,
+                                       const uint molIndex, const uint box)
 {
-  if (box < BOXES_WITH_U_NB) {
+  if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
     uint length = mols.GetKind(molIndex).NumAtoms();
     uint start = mols.MolStart(molIndex);
 
-    for (uint p = 0; p < length; ++p) {
+    for(uint p = 0; p < length; ++p) {
       uint atom = start + p;
       CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom], box);
 
@@ -1283,29 +1281,26 @@ void CalculateEnergy::MoleculeForceSub(XYZArray& atomForce,
 #ifdef _OPENMP
       #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents)
 #endif
-
       for(i = 0; i < nIndex.size(); i++) {
         distSq = 0.0;
         //Subtract old energy
-        if (currentAxes.InRcut(distSq, virComponents,
-                               currentCoords, atom, nIndex[i], box)) {
-          if(multiParticleEnabled) {
-            qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
-                         num::qqFact;
-            if(electrostatic) {
-              pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact,
-                                                         box);
-              forceReal = virComponents * pRF;
-            }
-            pVF = forcefield.particles->CalcVir(distSq, particleKind[atom],
-                                                particleKind[nIndex[i]]);
-            forceLJ = virComponents * pVF;
-            
-            atomForce.Sub(atom, forceLJ + forceReal);
-            atomForce.Add(nIndex[i], forceLJ + forceReal);
-            molForce.Sub(particleMol[atom], forceLJ + forceReal);
-            molForce.Add(particleMol[nIndex[i]], forceLJ + forceReal);
+        if(currentAxes.InRcut(distSq, virComponents, currentCoords, atom,
+                              nIndex[i], box)) {
+          qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
+                        num::qqFact;
+          if(electrostatic) {
+            pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact,
+                                                        box);
+            forceReal = virComponents * pRF;
           }
+          pVF = forcefield.particles->CalcVir(distSq, particleKind[atom],
+                                              particleKind[nIndex[i]]);
+          forceLJ = virComponents * pVF;
+          
+          atomForce.Sub(atom, forceLJ + forceReal);
+          atomForce.Add(nIndex[i], forceLJ + forceReal);
+          molForce.Sub(particleMol[atom], forceLJ + forceReal);
+          molForce.Add(particleMol[nIndex[i]], forceLJ + forceReal);
         }
       }
     }
