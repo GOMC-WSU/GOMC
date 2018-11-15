@@ -141,6 +141,11 @@ inline void CrankShaft::Accept(const uint rejectState, const uint step)
       sysPotRef.boxEnergy[sourceBox].correction -= correct_old;
       sysPotRef.boxEnergy[destBox].correction += correct_new;
 
+      //Calculate the change of force 
+      calcEnRef.MoleculeForceSub(atomForceRef, molForceRef, molIndex,sourceBox);
+      calcEnRef.MoleculeForceAdd(newMol.GetCoords(), atomForceRef, molForceRef,
+                                 molIndex, destBox);
+
       //Set coordinates, new COM; shift index to new box's list
       newMol.GetCoords().CopyRange(coordCurrRef, 0, pStart, pLen);
       comCurrRef.SetNew(molIndex, destBox);
@@ -157,6 +162,9 @@ inline void CrankShaft::Accept(const uint rejectState, const uint step)
       }
 
       calcEwald->UpdateRecip(sourceBox);
+      //Calculate the new reciprocate force! very expensive for single move
+      calcEwald->ForceReciprocal(atomForceRecRef, molForceRecRef, sourceBox);
+
       //Retotal
       sysPotRef.Total();
     } else {
