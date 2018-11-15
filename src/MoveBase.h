@@ -47,6 +47,7 @@ public:
     calcEwald = sys.GetEwald();
     molRemoved = false;
     overlap = false;
+    multiParticleEnabled = sys.statV.multiParticleEnabled;
   }
 
   //Based on the random draw, determine the move kind, box, and
@@ -95,6 +96,7 @@ protected:
   const bool ewald;
   CellList& cellList;
   bool molRemoved, fixBox0, overlap;
+  bool multiParticleEnabled;
 };
 
 //Data needed for transforming a molecule's position via inter or intrabox
