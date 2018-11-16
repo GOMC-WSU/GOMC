@@ -916,7 +916,8 @@ Virial Ewald::ForceReciprocal(Virial& virial, uint box) const
                   kzRef[box][i], currentCoords);
 
         factor = prefactRef[box][i] * 2.0 * (sumIref[box][i] * cos(arg) -
-                                             sumRref[box][i] * sin(arg)) * charge;
+                                             sumRref[box][i] * sin(arg)) *
+	                                     charge;
 
         wT11 += factor * (kxRef[box][i] * diffC.x);
 

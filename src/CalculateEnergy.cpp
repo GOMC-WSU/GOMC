@@ -205,7 +205,8 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   if(!boxAxes.orthogonal[box]) {
     BoxDimensionsNonOrth newAxes = *((BoxDimensionsNonOrth*)(&boxAxes));
     UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
-                           newAxes.cellBasis_Inv[box].x, newAxes.cellBasis_Inv[box].y,
+                           newAxes.cellBasis_Inv[box].x,
+			   newAxes.cellBasis_Inv[box].y,
                            newAxes.cellBasis_Inv[box].z);
   }
 
@@ -230,7 +231,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
 #else
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents) reduction(+:tempREn, tempLJEn)
+  //#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents) reduction(+:tempREn, tempLJEn)
 #endif
   for (i = 0; i < pair1.size(); i++) {
     if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)) {
@@ -478,7 +479,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
       }
 
 #ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents) reduction(+:tempREn, tempLJEn)
+      //#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents) reduction(+:tempREn, tempLJEn)
 #endif
       for(i = 0; i < nIndex.size(); i++) {
         distSq = 0.0;
@@ -490,7 +491,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
             qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
                          num::qqFact;
 
-            tempREn -= forcefield.particles->CalcCoulomb(distSq, qi_qj_fact, box);
+            tempREn -= forcefield.particles->CalcCoulomb(distSq,qi_qj_fact,box);
           }
 
           tempLJEn -= forcefield.particles->CalcEn(distSq, particleKind[atom],
@@ -1226,7 +1227,7 @@ void CalculateEnergy::MoleculeForceAdd(XYZArray const& molCoords,
       }
 
 #ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents)
+      //#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents)
 #endif
       for(i = 0; i < nIndex.size(); i++) {
         distSq = 0.0;
@@ -1279,7 +1280,7 @@ void CalculateEnergy::MoleculeForceSub(XYZArray& atomForce, XYZArray& molForce,
       }
 
 #ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents)
+      //#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents)
 #endif
       for(i = 0; i < nIndex.size(); i++) {
         distSq = 0.0;
@@ -1312,7 +1313,7 @@ void CalculateEnergy::CalculateTorque(vector<uint>& moleculeIndex,
                                       XYZArray const& coordinates,
                                       XYZArray const& com,
                                       XYZArray const& atomForce,
-				                              XYZArray const& atomForceRec,
+                                      XYZArray const& atomForceRec,
                                       XYZArray& molTorque,
                                       vector<uint>& moveType,
                                       const uint box)
@@ -1322,7 +1323,7 @@ void CalculateEnergy::CalculateTorque(vector<uint>& moleculeIndex,
     XYZ tempTorque, distFromCOM;
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(m, p, length, start)
+    //#pragma omp parallel for default(shared) private(m, p, length, start)
 #endif
     for(m = 0; m < moleculeIndex.size(); m++) {
       length = mols.GetKind(moleculeIndex[m]).NumAtoms();

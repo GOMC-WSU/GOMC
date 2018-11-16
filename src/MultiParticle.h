@@ -34,6 +34,7 @@ private:
   double lambda;
   uint tries[mp::MPMVCOUNT][BOX_TOTAL];
   uint accepted[mp::MPMVCOUNT][BOX_TOTAL];
+  bool initMol[BOX_TOTAL];
   SystemPotential sysPotNew;
   XYZArray molTorqueRef;
   XYZArray molTorqueNew;
@@ -47,12 +48,13 @@ private:
   uint MultiParticleType;
   const MoleculeLookup& molLookup;
 
-  double GetCoeff();
+  long double GetCoeff();
   void UpdateMoveSetting(bool isAccepted);
   void AdjustMoves();
   void CalculateTrialDistRot();
   void RotateForceBiased(uint molIndex);
   void TranslateForceBiased(uint molIndex);
+  void SetMolInBox(uint box);
 };
 
 inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
@@ -62,7 +64,6 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   molLookup(sys.molLookup)
 {
   perAdjust = statV.simEventFreq.perAdjust;
-
   molTorqueNew.Init(sys.com.Count());
   molTorqueRef.Init(sys.com.Count());
   atomForceRecNew.Init(sys.coordinates.Count());
@@ -79,9 +80,10 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   lambda = 0.5;
   for(uint b = 0; b < BOX_TOTAL; b++) {
     t_max[b] = 0.05;
-    r_max[b] = 0.01 * 2 * M_PI;
+    r_max[b] = 0.02* M_PI;
     tries[0][b] = tries[1][b] = 0;
     accepted[0][b] = accepted[1][b] = 0;
+    initMol[b] = false;
   }
 }
 
@@ -93,34 +95,58 @@ void MultiParticle::PrintAcceptKind() {
   std::cout << std::endl;
 }
 
+
+void MultiParticle::SetMolInBox(uint box)
+{
+#if ENSEMBLE == GCMC || ENSEMBLE == GEMC
+  moleculeIndex.clear();
+  MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
+  MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+  while(thisMol != end) {
+    moleculeIndex.push_back(*thisMol);
+    thisMol++;
+  }
+#else
+  if(!initMol[box]){  
+    moleculeIndex.clear();
+    MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
+    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+    while(thisMol != end) {
+      moleculeIndex.push_back(*thisMol);
+      thisMol++;
+    }
+  }
+#endif
+  initMol[box] = true;
+}
+
 inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
 {
-  uint state = mv::fail_state::NO_FAIL;
-  moleculeIndex.clear();
+  uint state = mv::fail_state::NO_FAIL;;
 #if ENSEMBLE == GCMC
   bPick = mv::BOX0;
 #else
   prng.PickBox(bPick, subDraw, movPerc);
 #endif
-  typePick = prng.randIntExc(mp::MPTOTALTYPES);
 
-  MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(bPick);
-  MoleculeLookup::box_iterator end = molLookup.BoxEnd(bPick);
-  while(thisMol != end) {
-    moleculeIndex.push_back(*thisMol);
-    uint length = molRef.GetKind(*thisMol).NumAtoms();
+  typePick = prng.randIntExc(mp::MPTOTALTYPES);
+  SetMolInBox(bPick);
+
+  for(uint m = 0; m < moleculeIndex.size(); m++) {
+    uint length = molRef.GetKind(moleculeIndex[m]).NumAtoms();
     if(length == 1) {
-      moveType[*thisMol] = mp::MPDISPLACE;
+      moveType[moleculeIndex[m]] = mp::MPDISPLACE;
     } else {
       switch(typePick) {
         case mp::MPALLDISPLACE:
-          moveType[*thisMol] = mp::MPDISPLACE;
+          moveType[moleculeIndex[m]] = mp::MPDISPLACE;
           break;
         case mp::MPALLROTATE:
-          moveType[*thisMol] = mp::MPROTATE;
+          moveType[moleculeIndex[m]] = mp::MPROTATE;
           break;
         case mp::MPALLRANDOM:
-          moveType[*thisMol] = (prng.randInt(1) ? mp::MPROTATE : mp::MPDISPLACE);
+          moveType[moleculeIndex[m]] = (prng.randInt(1) ?
+					mp::MPROTATE : mp::MPDISPLACE);
           break;
         default:
           std::cerr << "Error: Something went wrong preping MultiParticle!\n"
@@ -128,8 +154,8 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
           exit(EXIT_FAILURE);
       }
     }
-    thisMol++;
   }
+
   //Calculate Torque for old positions
   calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef,comCurrRef,atomForceRef,
                             atomForceRecRef, molTorqueRef, moveType, bPick);
@@ -151,9 +177,11 @@ inline uint MultiParticle::Transform()
   #pragma omp parallel for default(shared) private(m)
 #endif
   for(m = 0; m < moleculeIndex.size(); m++) {
-    if(moveType[moleculeIndex[m]]) { // rotate
+    if(moveType[moleculeIndex[m]]) {
+      // rotate
       RotateForceBiased(moleculeIndex[m]);
-    } else { // displacement
+    } else {
+      // displacement
       TranslateForceBiased(moleculeIndex[m]);
     }
   }
@@ -186,85 +214,89 @@ inline void MultiParticle::CalcEn()
   sysPotNew.Total();
 }
 
-inline double MultiParticle::GetCoeff()
+inline long double MultiParticle::GetCoeff()
 {
   // calculate (w_new->old/w_old->new) and return it.
   uint length, start;
   XYZ lbf_old, lbf_new; // lambda * BETA * force
   XYZ lbt_old, lbt_new; // lambda * BETA * torque
-  double w_ratio = 1.0;
-  uint molNumber;
-  MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(bPick);
-  MoleculeLookup::box_iterator end = molLookup.BoxEnd(bPick);
-
-  while(thisMol != end) {
-    molNumber = *thisMol;
-    if(moveType[molNumber]) { // == 1 -> rotate
-      lbt_old = molTorqueRef.Get(molNumber) * lambda * BETA;
-      if(!lbt_old.Length())
+  long double w_ratio_t = 1.0; 
+  long double w_ratio = 1.0;
+  double lBeta = lambda * BETA;
+  uint m, molNumber;
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(m, molNumber, lbt_old, lbt_new, lbf_old, lbf_new, w_ratio_t) reduction(*:w_ratio)
+#endif
+  for(m = 0; m < moleculeIndex.size(); m++) {
+    molNumber = moleculeIndex[m];
+    w_ratio_t = 1.0;
+    if(moveType[molNumber]) {
+      // rotate
+      lbt_old = molTorqueRef.Get(molNumber) * lBeta;
+      if(lbt_old.Length())
       {
-        thisMol++;
-        continue;
+        lbt_new = molTorqueNew.Get(molNumber) * lBeta;
+
+	w_ratio_t *= lbt_new.x * exp(lbt_new.x * -1.0 * r_k.Get(molNumber).x)/
+	  (2.0*sinh(lbt_new.x * r_max[bPick]));
+	w_ratio_t *= lbt_new.y * exp(lbt_new.y * -1.0 * r_k.Get(molNumber).y)/
+	  (2.0*sinh(lbt_new.y * r_max[bPick]));
+	w_ratio_t *= lbt_new.z * exp(lbt_new.z * -1.0 * r_k.Get(molNumber).z)/
+	  (2.0*sinh(lbt_new.z * r_max[bPick]));
+
+	w_ratio_t /= lbt_old.x * exp(lbt_old.x * r_k.Get(molNumber).x)/
+	  (2.0*sinh(lbt_old.x * r_max[bPick]));
+	w_ratio_t /= lbt_old.y * exp(lbt_old.y * r_k.Get(molNumber).y)/
+	  (2.0*sinh(lbt_old.y * r_max[bPick]));
+	w_ratio_t /= lbt_old.z * exp(lbt_old.z * r_k.Get(molNumber).z)/
+	  (2.0*sinh(lbt_old.z * r_max[bPick]));
+      
+	w_ratio *= w_ratio_t;
       }
-      lbt_new = molTorqueNew.Get(molNumber) * lambda * BETA;
-
-      w_ratio *= lbt_new.x * exp(lbt_new.x * -1 * r_k.Get(molNumber).x)/
-        (2.0*sinh(lbt_new.x * r_max[bPick]));
-      w_ratio *= lbt_new.y * exp(lbt_new.y * -1 * r_k.Get(molNumber).y)/
-        (2.0*sinh(lbt_new.y * r_max[bPick]));
-      w_ratio *= lbt_new.z * exp(lbt_new.z * -1 * r_k.Get(molNumber).z)/
-        (2.0*sinh(lbt_new.z * r_max[bPick]));
-
-      w_ratio /= lbt_old.x * exp(lbt_old.x * r_k.Get(molNumber).x)/
-        (2.0*sinh(lbt_old.x * r_max[bPick]));
-      w_ratio /= lbt_old.y * exp(lbt_old.y * r_k.Get(molNumber).y)/
-        (2.0*sinh(lbt_old.y * r_max[bPick]));
-      w_ratio /= lbt_old.z * exp(lbt_old.z * r_k.Get(molNumber).z)/
-        (2.0*sinh(lbt_old.z * r_max[bPick]));
-    }
-    else { // displace
+    } else {
+      // displace
       lbf_old = (molForceRef.Get(molNumber) + molForceRecRef.Get(molNumber)) *
-	      lambda * BETA;
-      if(!lbf_old.Length())
+	      lBeta;
+      if(lbf_old.Length())
       {
-        thisMol++;
-        continue;
+	lbf_new = (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber))*
+	  lBeta;
+
+	w_ratio_t *= lbf_new.x * exp(lbf_new.x * -1.0 * t_k.Get(molNumber).x)/
+	  (2.0*sinh(lbf_new.x * t_max[bPick]));
+	w_ratio_t *= lbf_new.y * exp(lbf_new.y * -1.0 * t_k.Get(molNumber).y)/
+	  (2.0*sinh(lbf_new.y * t_max[bPick]));
+	w_ratio_t *= lbf_new.z * exp(lbf_new.z * -1.0 * t_k.Get(molNumber).z)/
+	  (2.0*sinh(lbf_new.z * t_max[bPick]));
+
+	w_ratio_t /= lbf_old.x * exp(lbf_old.x * t_k.Get(molNumber).x)/
+	  (2.0*sinh(lbf_old.x * t_max[bPick]));
+	w_ratio_t /= lbf_old.y * exp(lbf_old.y * t_k.Get(molNumber).y)/
+	  (2.0*sinh(lbf_old.y * t_max[bPick]));
+	w_ratio_t /= lbf_old.z * exp(lbf_old.z * t_k.Get(molNumber).z)/
+	  (2.0*sinh(lbf_old.z * t_max[bPick]));
+      
+	w_ratio *= w_ratio_t;
       }
-      lbf_new = (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber)) *
-	      lambda * BETA;
-
-      w_ratio *= lbf_new.x * exp(lbf_new.x * -1 * t_k.Get(molNumber).x)/
-        (2.0*sinh(lbf_new.x * t_max[bPick]));
-      w_ratio *= lbf_new.y * exp(lbf_new.y * -1 * t_k.Get(molNumber).y)/
-        (2.0*sinh(lbf_new.y * t_max[bPick]));
-      w_ratio *= lbf_new.z * exp(lbf_new.z * -1 * t_k.Get(molNumber).z)/
-        (2.0*sinh(lbf_new.z * t_max[bPick]));
-
-      w_ratio /= lbf_old.x * exp(lbf_old.x * t_k.Get(molNumber).x)/
-        (2.0*sinh(lbf_old.x * t_max[bPick]));
-      w_ratio /= lbf_old.y * exp(lbf_old.y * t_k.Get(molNumber).y)/
-        (2.0*sinh(lbf_old.y * t_max[bPick]));
-      w_ratio /= lbf_old.z * exp(lbf_old.z * t_k.Get(molNumber).z)/
-        (2.0*sinh(lbf_old.z * t_max[bPick]));
     }
-    thisMol++;
-
-    // In case where force or torque is a large negative number (ex. -800)
-    // the exp value becomes inf. In these situations we have to return 0 to
-    // reject the move
-    if(isinf(w_ratio))
-      return 0.0;
   }
-  return w_ratio;
+
+  // In case where force or torque is a large negative number (ex. -800)
+  // the exp value becomes inf. In these situations we have to return 0 to
+  // reject the move
+  if(isinf(w_ratio))
+    return 0.0;
+  else
+    return w_ratio;
 }
 
 inline void MultiParticle::Accept(const uint rejectState, const uint step)
 {
   // Here we compare the values of reference and trial and decide whether to 
   // accept or reject the move
-  double MPCoeff = GetCoeff();
+  long double MPCoeff = GetCoeff();
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
-  double accept = MPCoeff * uBoltz;
+  long double accept = MPCoeff * uBoltz;
   bool result = (rejectState == mv::fail_state::NO_FAIL) && prng() < accept;
   if(result) {
     sysPotRef = sysPotNew;
@@ -303,11 +335,11 @@ inline void MultiParticle::CalculateTrialDistRot()
       lbtmax = lbt * r_max[bPick];
       if(lbt.Length()) {
         rand = prng();
-        num.x = log(exp(-1 * lbtmax.x ) + 2 * rand * sinh(lbtmax.x ));
+        num.x = log(exp(-1.0 * lbtmax.x ) + 2 * rand * sinh(lbtmax.x ));
         rand = prng();
-        num.y = log(exp(-1 * lbtmax.y ) + 2 * rand * sinh(lbtmax.y ));
+        num.y = log(exp(-1.0 * lbtmax.y ) + 2 * rand * sinh(lbtmax.y ));
         rand = prng();
-        num.z = log(exp(-1 * lbtmax.z ) + 2 * rand * sinh(lbtmax.z ));
+        num.z = log(exp(-1.0 * lbtmax.z ) + 2 * rand * sinh(lbtmax.z ));
         num /= lbt;
       }
       r_k.Set(molIndex, num);
@@ -318,11 +350,11 @@ inline void MultiParticle::CalculateTrialDistRot()
       lbfmax = lbf * t_max[bPick];
       if(lbf.Length()) {
         rand = prng();
-        num.x = log(exp(-1 * lbfmax.x ) + 2 * rand * sinh(lbfmax.x ));
+        num.x = log(exp(-1.0 * lbfmax.x ) + 2 * rand * sinh(lbfmax.x ));
         rand = prng();
-        num.y = log(exp(-1 * lbfmax.y ) + 2 * rand * sinh(lbfmax.y ));
+        num.y = log(exp(-1.0 * lbfmax.y ) + 2 * rand * sinh(lbfmax.y ));
         rand = prng();
-        num.z = log(exp(-1 * lbfmax.z ) + 2 * rand * sinh(lbfmax.z ));
+        num.z = log(exp(-1.0 * lbfmax.z ) + 2 * rand * sinh(lbfmax.z ));
         num /= lbf;
       }
       t_k.Set(molIndex, num);
