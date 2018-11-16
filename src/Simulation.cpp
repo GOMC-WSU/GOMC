@@ -132,7 +132,7 @@ void Simulation::RunningCheck(const uint step)
 double Simulation::TotalForce()
 {
   double total = 0.0;
-  for(uint i=0; i<system->molForceRef.Count(); i++)
+  for(uint i = 0; i < system->molForceRef.Count(); i++)
     total += system->molForceRef[i].Length() +
       system->molForceRecRef[i].Length();
   return total;
