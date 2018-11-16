@@ -207,7 +207,7 @@ inline void MultiParticle::CalcEn()
   sysPotNew.boxEnergy[bPick].recip = calcEwald->BoxReciprocal(bPick);
   //Calculate long range of new electrostatic force
   calcEwald->BoxForceReciprocal(newMolsPos, atomForceRecNew, molForceRecNew,
-				                        bPick);
+    bPick);
   //Calculate Torque for new positions
   calcEnRef.CalculateTorque(moleculeIndex, newMolsPos, newCOMs, atomForceNew,
                             atomForceRecNew, molTorqueNew, moveType, bPick);
