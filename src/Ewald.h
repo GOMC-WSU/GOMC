@@ -132,10 +132,6 @@ public:
                                   XYZArray& atomForceRec,
                                   XYZArray& molForceRec,
                                   uint box);
-  
-  //calculate reciprocate force term for a box with Reference value
-  virtual void ForceReciprocal(XYZArray& atomForceRec, XYZArray& molForceRec,
-				                       uint box);
 
 private:
   double currentEnergyRecip[BOXES_WITH_U_NB];
