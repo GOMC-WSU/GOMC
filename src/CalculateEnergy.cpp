@@ -123,7 +123,7 @@ SystemPotential CalculateEnergy::SystemTotal()
     pot.boxEnergy[b].correction = -1 * correction * num::qqFact;
 
     //Calculate Virial
-    pot.boxVirial[b] = ForceCalc(b);
+    pot.boxVirial[b] = VirialCalc(b);
   }
 
   pot.Total();
@@ -299,7 +299,7 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 // NOTE: The calculation of W12, W13, W23 is expensive and would not be
 // requied for pressure and surface tension calculation. So, they have been
 // commented out. In case you need to calculate them, uncomment them.
-Virial CalculateEnergy::ForceCalc(const uint box)
+Virial CalculateEnergy::VirialCalc(const uint box)
 {
   //store virial and energy of reference and modify the virial
   Virial tempVir;
@@ -453,7 +453,7 @@ Virial CalculateEnergy::ForceCalc(const uint box)
   tempVir.real = (rT11 + rT22 + rT33) * num::qqFact;
 
   if (forcefield.useLRC) {
-    ForceCorrection(tempVir, currentAxes, box);
+    VirialCorrection(tempVir, currentAxes, box);
   }
 
   //calculate reciprocate term of force
@@ -1231,7 +1231,7 @@ double CalculateEnergy::EnergyCorrection(const uint box,
   return tc;
 }
 
-void CalculateEnergy::ForceCorrection(Virial& virial,
+void CalculateEnergy::VirialCorrection(Virial& virial,
                                       BoxDimensions const& boxAxes,
                                       const uint box) const
 {
