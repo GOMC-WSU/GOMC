@@ -156,12 +156,14 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
     }
   }
 
-  //Calculate force for long range electrostatic using old position
-  calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef,
-                                bPick);
-  //Calculate Torque for old positions
-  calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef,comCurrRef,atomForceRef,
-                            atomForceRecRef, molTorqueRef, moveType, bPick);
+  if(moveSetRef.GetSingleMoveAccepted()){
+    //Calculate force for long range electrostatic using old position
+    calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef,
+                                  bPick);
+    //Calculate Torque for old positions
+    calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef,comCurrRef,atomForceRef,
+                              atomForceRecRef, molTorqueRef, moveType, bPick);
+  }
   CalculateTrialDistRot();
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());

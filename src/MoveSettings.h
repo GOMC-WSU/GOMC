@@ -74,6 +74,7 @@ public:
   uint GetAcceptTot(const uint box, const uint move) const;
   uint GetTrialTot(const uint box, const uint move) const;
   double GetScaleTot(const uint box, const uint move) const;
+  bool GetSingleMoveAccepted() { return isSingleMoveAccepted; }
 
 private:
 
@@ -82,6 +83,7 @@ private:
   
   uint perAdjust;
   uint totKind;
+  bool isSingleMoveAccepted;
 
 #if ENSEMBLE == GEMC
   uint GEMC_KIND;

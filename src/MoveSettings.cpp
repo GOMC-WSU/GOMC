@@ -19,7 +19,7 @@ void MoveSettings::Init(StaticVals const& statV,
                         pdb_setup::Remarks const& remarks,
                         const uint tkind)
 {
-
+  isSingleMoveAccepted = true;
   totKind = tkind;
   perAdjust = statV.simEventFreq.perAdjust;
   for(uint b = 0; b < BOX_TOTAL; b++) {
@@ -73,7 +73,13 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
   if(isAccepted) {
     tempAccepted[box][move][kind]++;
     accepted[box][move][kind]++;
+    
+    if(move != mv::MULTIPARTICLE)
+      isSingleMoveAccepted = true;
   }
+
+  if(move == mv::MULTIPARTICLE)
+    isSingleMoveAccepted = false;
 
   acceptPercent[box][move][kind] = (double)(accepted[box][move][kind]) /
                                   (double)(tries[box][move][kind]);
