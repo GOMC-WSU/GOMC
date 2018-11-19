@@ -50,11 +50,6 @@ void NoEwald::ForceReciprocal(XYZArray& atomForceRec, XYZArray& molForceRec,
   return;
 }
 
-Virial NoEwald::ForceReciprocal(Virial& virial, uint box) const
-{
-  return virial;
-}
-
 //calculate reciprocate force term for a box
 Virial NoEwald::VirialReciprocal(Virial& virial, uint box) const
 {

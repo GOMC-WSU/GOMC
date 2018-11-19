@@ -164,8 +164,6 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
       }
 
       calcEwald->UpdateRecip(destBox);
-      //Calculate the new reciprocate force! very expensive for single move
-      calcEwald->ForceReciprocal(atomForceRecRef, molForceRecRef, destBox);
       
       //Retotal
       sysPotRef.Total();

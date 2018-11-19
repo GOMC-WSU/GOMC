@@ -76,7 +76,7 @@ public:
   virtual double BoxSelf(BoxDimensions const& boxAxes, uint box) const;
 
   //calculate reciprocate force term for a box
-  virtual Virial ForceReciprocal(Virial& virial, uint box) const;
+  virtual Virial VirialReciprocal(Virial& virial, uint box) const;
 
   //calculate reciprocate term for displacement and rotation move
   virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,

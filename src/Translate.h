@@ -103,9 +103,6 @@ inline void Translate::Accept(const uint rejectState, const uint step)
     swap(molForceRef, molForceNew);
     calcEwald->UpdateRecip(b);
 
-    //Calculate the new reciprocate force! very expensive for single move
-    calcEwald->ForceReciprocal(atomForceRecRef, molForceRecRef, b);
-
     sysPotRef.Total();
   }
 
