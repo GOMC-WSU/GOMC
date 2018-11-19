@@ -66,7 +66,7 @@ public:
                            const uint box);
 
   //! Calculate force and virial for the box
-  Virial ForceCalc(const uint box);
+  Virial VirialCalc(const uint box);
 
   //! Calculate change force of a molecule using molCoords
   void MoleculeForceAdd(XYZArray const& molCoords,
@@ -191,7 +191,7 @@ private:
                         const uint box) const;
 
   //! Calculates full TC virial for one box in current system
-  void ForceCorrection(Virial& virial, BoxDimensions const& boxAxes,
+  void VirialCorrection(Virial& virial, BoxDimensions const& boxAxes,
                        const uint box) const;
 
 
