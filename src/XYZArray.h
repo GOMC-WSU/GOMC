@@ -115,7 +115,7 @@ public:
 
   void SetRange(const uint start, const uint stop, XYZ const& val);
 
-  void ResetRange(const uint start, const uint stop);
+  void ResetRange(const uint val, const uint stop);
 
   void Reset();
 
@@ -403,12 +403,16 @@ inline void XYZArray::SetRange(const uint start, const uint stop,
   }
 }
 
-inline void XYZArray::ResetRange(const uint start, const uint stop) 
+inline void XYZArray::ResetRange(const uint val, const uint stop) 
 {
-  const uint len = stop - start;
-  memset(this->x, start, len * sizeof(double));
-  memset(this->y, start, len * sizeof(double));
-  memset(this->z, start, len * sizeof(double));
+#ifdef _OPENMP
+  #pragma omp parallel default(shared)
+#endif
+  {
+    memset(this->x, val, stop * sizeof(double));
+    memset(this->y, val, stop * sizeof(double));
+    memset(this->z, val, stop * sizeof(double));
+  }
 }
 
 inline void XYZArray::Reset()

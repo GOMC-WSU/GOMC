@@ -39,7 +39,7 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
                           double &vT33,
                           uint const box);
 
-void CallForceReciprocalGPU(VariablesCUDA *vars,
+void CallVirialReciprocalGPU(VariablesCUDA *vars,
                             XYZArray const &currentCoords,
                             XYZArray const &currentCOMDiff,
                             vector<double> &particleCharge,
@@ -103,7 +103,7 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                                  int *gpu_nonOrth,
                                  int box);
 
-__global__ void ForceReciprocalGPU(double *gpu_x,
+__global__ void VirialReciprocalGPU(double *gpu_x,
                                    double *gpu_y,
                                    double *gpu_z,
                                    double *gpu_comDx,

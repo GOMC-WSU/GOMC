@@ -42,8 +42,6 @@ public:
   virtual void ForceReciprocal(XYZArray& atomForceRec, XYZArray& molForceRec,
 			       uint box);
 
-  virtual Virial ForceReciprocal(Virial& virial, uint box) const;
-
   //calculate reciprocate force term for a box
   virtual Virial VirialReciprocal(Virial& virial, uint box) const;
 

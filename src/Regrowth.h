@@ -161,8 +161,6 @@ inline void Regrowth::Accept(const uint rejectState, const uint step)
       }
 
       calcEwald->UpdateRecip(sourceBox);
-      //Calculate the new reciprocate force! very expensive for single move
-      calcEwald->ForceReciprocal(atomForceRecRef, molForceRecRef, sourceBox);
 
       //Retotal
       sysPotRef.Total();

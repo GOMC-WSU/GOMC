@@ -760,9 +760,7 @@ inline void MoleculeExchange1::Accept(const uint rejectState, const uint step)
 
         //Update LJ and Electrostatic forces
         UpdateForce();
-        //Calculate the new reciprocate force! very expensive for single move
-        calcEwald->ForceReciprocal(atomForceRecRef, molForceRecRef,
-                                   sourceBox);
+        
         //Retotal
         sysPotRef.Total();
       } else {

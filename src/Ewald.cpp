@@ -813,7 +813,7 @@ double Ewald::BoxSelf(BoxDimensions const& boxAxes, uint box) const
 // NOTE: The calculation of W12, W13, W23 is expensive and would not be
 // requied for pressure and surface tension calculation. So, they have been
 // commented out. In case you need to calculate them, uncomment them.
-Virial Ewald::ForceReciprocal(Virial& virial, uint box) const
+Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
 {
   Virial tempVir = virial;
   if (box >= BOXES_WITH_U_NB)
@@ -867,7 +867,7 @@ Virial Ewald::ForceReciprocal(Virial& virial, uint box) const
     thisMol++;
   }
 
-  CallForceReciprocalGPU(ff.particles->getCUDAVars(), thisBoxCoords,
+  CallVirialReciprocalGPU(ff.particles->getCUDAVars(), thisBoxCoords,
                          thisBoxCOMDiff, chargeBox, wT11, wT12,
                          wT13, wT22, wT23, wT33, imageSizeRef[box], constVal,
                          box);

@@ -223,8 +223,6 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 
       for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
         calcEwald->UpdateRecip(b);
-        //Calculate the new reciprocate force! very expensive for single move
-        calcEwald->ForceReciprocal(atomForceRecRef, molForceRecRef, b);
       }
 
       //Retotal

@@ -258,16 +258,10 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       for (uint b = 0; b < 2; b++) {
         calcEwald->UpdateRecip(bPick[b]);
         calcEwald->UpdateRecipVec(bPick[b]);
-
-        //Calculate the new reciprocate force
-        calcEwald->ForceReciprocal(atomForceRecRef, molForceRecRef, bPick[b]);
       }
     } else {
       calcEwald->UpdateRecip(box);
       calcEwald->UpdateRecipVec(box);
-
-      //Calculate the new reciprocate force
-      calcEwald->ForceReciprocal(atomForceRecRef, molForceRecRef, box);
     }
  
   } else if (rejectState == mv::fail_state::NO_FAIL && regrewGrid) {
