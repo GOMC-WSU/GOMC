@@ -117,7 +117,6 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
       printElement(var->GetTries(box, sub), elementWidth);
       printElement(var->GetAccepted(box, sub), elementWidth);
       printElement(var->GetAcceptPercent(box, sub), elementWidth);
-      printElement(var->GetScale(box, sub), elementWidth);
     }
 
     if(var->Performed(mv::INTRA_SWAP)) {
@@ -345,7 +344,6 @@ void ConsoleOutput::PrintMoveTitle()
     printElement("MULTIPARTICLE", elementWidth);
     printElement("MPACCEPT", elementWidth);
     printElement("MPACCEPT%", elementWidth);
-    printElement("MPMAX", elementWidth);
   }
 
   if(var->Performed(mv::INTRA_SWAP)) {
