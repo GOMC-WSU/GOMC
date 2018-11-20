@@ -58,6 +58,11 @@ public:
   double GetSigma_1_4(const uint i, const uint j) const;
   double GetN(const uint i, const uint j) const;
   double GetN_1_4(const uint i, const uint j) const;
+  virtual double GetRmin(const uint i, const uint j) const;
+  virtual double GetRmax(const uint i, const uint j) const;
+  virtual double GetRmin_1_4(const uint i, const uint j) const;
+  virtual double GetRmax_1_4(const uint i, const uint j) const;
+
   // LJ interaction functions
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2) const;
@@ -114,8 +119,10 @@ protected:
   double * sigmaSq, * epsilon, * epsilon_1_4, * epsilon_cn, * epsilon_cn_6,
          * nOver6, * sigmaSq_1_4, * epsilon_cn_1_4, * epsilon_cn_6_1_4, * nOver6_1_4,
          * enCorrection, * virCorrection;
+  double rCut;
 
   uint count;
+  bool exp6;
 #ifdef GOMC_CUDA
   VariablesCUDA *varCUDA;
 #endif
