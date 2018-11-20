@@ -46,6 +46,7 @@ CalculateEnergy::CalculateEnergy(StaticVals & stat, System & sys) :
   currentCOM(sys.com),
   atomForceRef(sys.atomForceRef),
   molForceRef(sys.molForceRef),
+  lambdaRef(sys.lambdaRef),
 #ifdef VARIABLE_PARTICLE_NUMBER
   molLookup(sys.molLookup),
 #else
@@ -68,6 +69,7 @@ void CalculateEnergy::Init(System & sys)
   electrostatic = forcefield.electrostatic;
   ewald = forcefield.ewald;
   multiParticleEnabled = sys.statV.multiParticleEnabled;
+  totalmolecule = currentCOM.Count();
   for(uint m = 0; m < mols.count; ++m) {
     const MoleculeKind& molKind = mols.GetKind(m);
     if(molKind.NumAtoms() > maxAtomInMol)
@@ -250,10 +252,10 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
       if (electrostatic) {
         qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] *
           num::qqFact;
-        tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact, box);
+        tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact, 1.0, box);
       }
       tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
-                  particleKind[pair2[i]]);
+                  particleKind[pair2[i]], 1.0);
 
       // Calculating the force 
       if(multiParticleEnabled) {
@@ -495,7 +497,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                               box);
       n = cellList.EnumerateLocal(currentCoords[atom], box);
 
-      double qi_qj_fact, distSq;
+      double qi_qj_fact, distSq, lambda;
       int i;
       XYZ virComponents, forceLJ, forceReal;
       std::vector<uint> nIndex;
@@ -507,13 +509,14 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
       }
 
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents, forceLJ, forceReal) \
+#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents, forceLJ, forceReal, lambda) \
 reduction(+:tempREn, tempLJEn, \
 aForcex[:atomCount], aForcey[:atomCount], aForcez[:atomCount], \
 mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 #endif
       for(i = 0; i < nIndex.size(); i++) {
         distSq = 0.0;
+        lambda = GetLambda(molIndex, particleMol[nIndex[i]], box);
         //Subtract old energy
         if (currentAxes.InRcut(distSq, virComponents,
                                currentCoords, atom, nIndex[i], box)) {
@@ -522,11 +525,12 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
             qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
                          num::qqFact;
 
-            tempREn -= forcefield.particles->CalcCoulomb(distSq,qi_qj_fact,box);
+            tempREn -= forcefield.particles->CalcCoulomb(distSq,qi_qj_fact,
+              lambda, box);
           }
 
           tempLJEn -= forcefield.particles->CalcEn(distSq, particleKind[atom],
-                      particleKind[nIndex[i]]);
+                      particleKind[nIndex[i]], lambda);
 
           if(multiParticleEnabled) {
             if(electrostatic) {
@@ -565,13 +569,14 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
       }
 
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents, forceReal, forceLJ) \
+#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents, forceReal, forceLJ, lambda) \
 reduction(+:tempREn, tempLJEn, \
 aForcex[:atomCount], aForcey[:atomCount], aForcez[:atomCount], \
 mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 #endif
       for(i = 0; i < nIndex.size(); i++) {
         distSq = 0.0;
+        lambda = GetLambda(molIndex, particleMol[nIndex[i]], box);
         if (currentAxes.InRcut(distSq, virComponents,
                                molCoords, p, currentCoords, nIndex[i], box)) {
           if(distSq < forcefield.rCutLowSq) {
@@ -583,12 +588,12 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
                          particleCharge[nIndex[i]] * num::qqFact;
 
             tempREn += forcefield.particles->CalcCoulomb(distSq,
-                       qi_qj_fact, box);
+                       qi_qj_fact, lambda, box);
           }
 
           tempLJEn += forcefield.particles->CalcEn(distSq,
                       particleKind[atom],
-                      particleKind[nIndex[i]]);
+                      particleKind[nIndex[i]], lambda);
           if(multiParticleEnabled) {
             if(electrostatic) {
               forceReal = virComponents *
@@ -646,7 +651,7 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
                                *partner, box)) {                     
           inter[t] += forcefield.particles->CalcEn(distSq,
                       kind.AtomKind(partIndex),
-                      kind.AtomKind(*partner));
+                      kind.AtomKind(*partner), 1.0);
           if (electrostatic) {
             double qi_qj_Fact = kind.AtomCharge(partIndex) *
                                 kind.AtomCharge(*partner) * num::qqFact;
@@ -670,7 +675,7 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
 {
   if(box >= BOXES_WITH_U_NB)
     return;
-  double distSq, qi_qj_Fact, tempLJ, tempReal;
+  double distSq, qi_qj_Fact, tempLJ, tempReal, lambda;
   int i;
   MoleculeKind const& thisKind = mols.GetKind(molIndex);
   uint kindI = thisKind.AtomKind(partIndex);
@@ -692,16 +697,17 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
 #endif
     for(i = 0; i < nIndex.size(); i++) {
       distSq = 0.0;
-
+      lambda = GetLambda(molIndex, particleMol[nIndex[i]], box);
       if(currentAxes.InRcut(distSq, trialPos, t, currentCoords,nIndex[i],box)) {
         if(distSq < forcefield.rCutLowSq) {
           overlap[t] |= true;
         } 
         tempLJ += forcefield.particles->CalcEn(distSq, kindI,
-                                               particleKind[nIndex[i]]);
+                                               particleKind[nIndex[i]], lambda);
         if(electrostatic) {
           qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
-          tempReal += forcefield.particles->CalcCoulomb(distSq, qi_qj_Fact,box);
+          tempReal += forcefield.particles->CalcCoulomb(distSq, qi_qj_Fact,
+            lambda, box);
         }
       }
     }
@@ -952,7 +958,7 @@ void CalculateEnergy::MolNonbond(double & energy,
       energy += forcefield.particles->CalcEn(distSq, molKind.AtomKind
                                              (molKind.nonBonded.part1[i]),
                                              molKind.AtomKind
-                                             (molKind.nonBonded.part2[i]));
+                                             (molKind.nonBonded.part2[i]), 1.0);
       if (electrostatic) {
         qi_qj_Fact = num::qqFact *
                      molKind.AtomCharge(molKind.nonBonded.part1[i]) *
@@ -984,7 +990,7 @@ void CalculateEnergy::MolNonbond(double & energy, cbmc::TrialMol const &mol,
       currentAxes.InRcut(distSq, mol.GetCoords(), p1, p2, mol.GetBox());
       if (forcefield.rCutSq > distSq) {
         energy += forcefield.particles->CalcEn(distSq, molKind.AtomKind(p1),
-                                               molKind.AtomKind(p2));
+                                               molKind.AtomKind(p2), 1.0);
         if (electrostatic) {
           qi_qj_Fact = num::qqFact * molKind.AtomCharge(1) *
                       molKind.AtomCharge(p2);
@@ -1483,15 +1489,15 @@ bool CalculateEnergy::FindMolInCavity(std::vector< std::vector<uint> > &mol,
     while (!n.Done()) {
       if(currentAxes.InCavity(currentCOM.Get(particleMol[*n]), center, cavDim,
 			      invCav, box)) {
-	uint molIndex = particleMol[*n];
-	//if molecule can be transfer between boxes
-	if(!molLookup.IsNoSwap(molIndex)) {
-	  k = mols.GetMolKind(molIndex);
-	  bool exist = std::find(mol[k].begin(), mol[k].end(), molIndex) !=
-	    mol[k].end();
-	  if(!exist)
-	    mol[k].push_back(molIndex);
-	}
+        uint molIndex = particleMol[*n];
+        //if molecule can be transfer between boxes
+        if(!molLookup.IsNoSwap(molIndex)) {
+          k = mols.GetMolKind(molIndex);
+          bool exist = std::find(mol[k].begin(), mol[k].end(), molIndex) !=
+            mol[k].end();
+          if(!exist)
+            mol[k].push_back(molIndex);
+        }
       }
       n.Next();
     }

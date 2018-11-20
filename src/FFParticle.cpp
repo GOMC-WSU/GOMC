@@ -290,7 +290,8 @@ inline void FFParticle::CalcCoulombAdd_1_4(double& en, const double distSq,
 
 //mie potential
 inline double FFParticle::CalcEn(const double distSq,
-                                 const uint kind1, const uint kind2) const
+                                 const uint kind1, const uint kind2,
+                                 const double lambda) const
 {
   if(forcefield.rCutSq < distSq)
     return 0.0;
@@ -311,7 +312,9 @@ inline double FFParticle::CalcEn(const double distSq,
 }
 
 inline double FFParticle::CalcCoulomb(const double distSq,
-                                      const double qi_qj_Fact, const uint b) const
+                                      const double qi_qj_Fact, 
+                                      const double lambda,
+                                      const uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;

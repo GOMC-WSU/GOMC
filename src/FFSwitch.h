@@ -48,7 +48,8 @@ public:
                     ff_setup::NBfix const& nbfix);
 
   virtual double CalcEn(const double distSq,
-                        const uint kind1, const uint kind2) const;
+                        const uint kind1, const uint kind2,
+                        const double lambda) const;
   virtual double CalcVir(const double distSq,
                          const uint kind1, const uint kind2) const;
   virtual void CalcAdd_1_4(double& en, const double distSq,
@@ -56,7 +57,9 @@ public:
 
   // coulomb interaction functions
   virtual double CalcCoulomb(const double distSq,
-                             const double qi_qj_Fact, const uint b) const;
+                             const double qi_qj_Fact, 
+                             const double lambda,
+                             const uint b) const;
   virtual double CalcCoulombVir(const double distSq,
                                 const double qi_qj, const uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
@@ -131,7 +134,8 @@ inline void FF_SWITCH::CalcCoulombAdd_1_4(double& en, const double distSq,
 
 //mie potential
 inline double FF_SWITCH::CalcEn(const double distSq,
-                                const uint kind1, const uint kind2) const
+                                const uint kind1, const uint kind2,
+                                const double lambda) const
 {
   if(forcefield.rCutSq < distSq)
     return 0.0;
@@ -159,7 +163,9 @@ inline double FF_SWITCH::CalcEn(const double distSq,
 }
 
 inline double FF_SWITCH::CalcCoulomb(const double distSq,
-                                     const double qi_qj_Fact, const uint b) const
+                                     const double qi_qj_Fact, 
+                                     const double lambda,
+                                     const uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;

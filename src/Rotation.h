@@ -8,7 +8,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define ROTATION_H
 
 #include "MoveBase.h"
+#include "CFCMC.h"
 
+class CFCMC;
 
 class Rotate : public MoveBase, public MolTransformBase
 {
@@ -22,6 +24,7 @@ public:
   virtual void PrintAcceptKind();
 private:
   Intermolecular inter_LJ, inter_Real, recip;
+  friend class CFCMC;
 };
 
 void Rotate::PrintAcceptKind() {

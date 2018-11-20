@@ -63,6 +63,7 @@ set(headers
    src/CalculateEnergy.h
    src/CBMC.h
    src/CellList.h
+   src/CFCMC.h
    src/Clock.h
    src/COM.h
    src/ConfigSetup.h

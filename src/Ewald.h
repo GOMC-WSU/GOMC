@@ -133,6 +133,14 @@ public:
                                   XYZArray& molForceRec,
                                   uint box);
 
+  double GetLambda(uint molA, uint molB, uint box) const
+  {
+    double lambda = 1.0;
+    lambda *= lambdaRef[totalmolecule * box + molA];
+    lambda *= lambdaRef[totalmolecule * box + molB];
+    return lambda;
+  }
+
 private:
   double currentEnergyRecip[BOXES_WITH_U_NB];
 
@@ -153,6 +161,7 @@ protected:
   //const uint imageTotal = GetImageSize();
   uint imageTotal;
   uint *kmax;
+  uint totalmolecule;
   double **sumRnew; //cosine serries
   double **sumInew; //sine serries
   double **sumRref;
@@ -163,6 +172,8 @@ protected:
   double **kz, **kzRef;
   double **hsqr, **hsqrRef;
   double **prefact, **prefactRef;
+
+  const double *lambdaRef;
 
   std::vector<int> particleKind;
   std::vector<int> particleMol;

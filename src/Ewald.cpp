@@ -38,7 +38,7 @@ using namespace geom;
 
 Ewald::Ewald(StaticVals & stat, System & sys) :
   ff(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
-  currentCOM(sys.com), sysPotRef(sys.potential),
+  currentCOM(sys.com), sysPotRef(sys.potential), lambdaRef(sys.lambdaRef),
 #ifdef VARIABLE_PARTICLE_NUMBER
   molLookup(sys.molLookup),
 #else
@@ -107,6 +107,7 @@ Ewald::~Ewald()
 
 void Ewald::Init()
 {
+  totalmolecule = currentCOM.Count();
   for(uint m = 0; m < mols.count; ++m) {
     const MoleculeKind& molKind = mols.GetKind(m);
     for(uint a = 0; a < molKind.NumAtoms(); ++a) {
