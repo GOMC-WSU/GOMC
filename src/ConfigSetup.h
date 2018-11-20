@@ -162,7 +162,7 @@ struct MovePercents {
   double volume;
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
-  double transfer, memc;
+  double transfer, memc, cfcmc;
 #endif
 };
 
