@@ -96,6 +96,7 @@ public:
   XYZArray molForceRef;
   XYZArray atomForceRecRef;
   XYZArray molForceRecRef;
+  double *lambdaRef;
   COM com;
 
   CalculateEnergy calcEnergy;

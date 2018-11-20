@@ -269,6 +269,14 @@ private:
     return (pair1 == pair2);
   }
 
+  double GetLambda(uint molA, uint molB, uint box) const
+  {
+    double lambda = 1.0;
+    lambda *= lambdaRef[totalmolecule * box + molA];
+    lambda *= lambdaRef[totalmolecule * box + molB];
+    return lambda;
+  }
+
 
   const Forcefield& forcefield;
   const Molecules& mols;
@@ -281,6 +289,8 @@ private:
   XYZArray& molForceRef;
   bool multiParticleEnabled;
   bool electrostatic, ewald;
+  const double *lambdaRef;
+  uint totalmolecule;
 
   std::vector<int> particleKind;
   std::vector<int> particleMol;

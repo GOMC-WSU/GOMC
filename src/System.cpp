@@ -74,6 +74,7 @@ System::~System()
   delete moves[mv::MOL_TRANSFER];
   delete moves[mv::MEMC];
 #endif
+  delete [] lambdaRef;
 }
 
 void System::Init(Setup const& set)
@@ -99,6 +100,8 @@ void System::Init(Setup const& set)
   // Allocate space for reciprocate force
   atomForceRecRef.Init(set.pdb.atoms.beta.size());
   molForceRecRef.Init(com.Count());
+  lambdaRef = new double(com.Count() * BOX_TOTAL);
+  std::memset(lambdaRef, 1.0, com.Count() * BOX_TOTAL);
   cellList.SetCutoff();
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 
