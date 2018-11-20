@@ -268,6 +268,9 @@ void ConfigSetup::Init(const char *fileName)
       } else if(CheckString(line[1], "SWITCH")) {
         sys.ff.VDW_KIND = sys.ff.VDW_SWITCH_KIND;
         printf("%-40s %-s \n", "Info: Switch truncated potential", "Active");
+      } else if(CheckString(line[1], "EXP6")) {
+        sys.ff.VDW_KIND = sys.ff.VDW_EXP6_KIND;
+        printf("%-40s %-s \n", "Info: Exp-6 Non-truncated potential", "Active");
       }
     } else if(CheckString(line[0], "LRC")) {
       sys.ff.doTailCorr = checkBool(line[1]);
@@ -1030,7 +1033,8 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Potential type is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
-  if(sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND && sys.ff.doTailCorr == false) {
+  if(((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND) ||
+    (sys.ff.VDW_KIND == sys.ff.VDW_EXP6_KIND)) && (sys.ff.doTailCorr == false)) {
     std::cout << "Warning: Long Range Correction is Inactive for " <<
               "Non-truncated potential." << std::endl;
   }
@@ -1176,7 +1180,8 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND) ||
-      (sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND)) && sys.ff.rswitch != DBL_MAX) {
+      (sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND) ||
+      (sys.ff.VDW_KIND == sys.ff.VDW_EXP6_KIND)) && sys.ff.rswitch != DBL_MAX) {
     std::cout << "Warning: Switch distance set, but will be ignored."
               << std::endl;
   }
@@ -1397,25 +1402,27 @@ void ConfigSetup::verifyInputs(void)
 #endif
 }
 
-const std::string config_setup::PRNGKind::KIND_RANDOM = "RANDOM",
-                                          config_setup::PRNGKind::KIND_SEED = "INTSEED",
-                                                                  config_setup::PRNGKind::KIND_RESTART = "RESTART",
-                                                                                          config_setup::FFKind::FF_CHARMM = "CHARMM",
-                                                                                                                config_setup::FFKind::FF_EXOTIC = "EXOTIC",
-                                                                                                                                      config_setup::FFKind::FF_MARTINI = "MARTINI",
-                                                                                                                                                            config_setup::FFValues::VDW = "VDW",
-                                                                                                                                                                                    config_setup::FFValues::VDW_SHIFT = "VDW_SHIFT",
-                                                                                                                                                                                                            config_setup::FFValues::VDW_SWITCH = "VDW_SWITCH",
-                                                                                                                                                                                                                                    config_setup::Exclude::EXC_ONETWO = "1-2",
-                                                                                                                                                                                                                                                           config_setup::Exclude::EXC_ONETHREE = "1-3",
-                                                                                                                                                                                                                                                                                  config_setup::Exclude::EXC_ONEFOUR = "1-4";
+const std::string config_setup::PRNGKind::KIND_RANDOM = "RANDOM";
+const std::string config_setup::PRNGKind::KIND_SEED = "INTSEED";
+const std::string config_setup::PRNGKind::KIND_RESTART = "RESTART";
+const std::string config_setup::FFKind::FF_CHARMM = "CHARMM";
+const std::string config_setup::FFKind::FF_EXOTIC = "EXOTIC";
+const std::string config_setup::FFKind::FF_MARTINI = "MARTINI";
+const std::string config_setup::FFValues::VDW = "VDW";
+const std::string config_setup::FFValues::VDW_SHIFT = "VDW_SHIFT";
+const std::string config_setup::FFValues::VDW_EXP6 = "VDW_EXP6";
+const std::string config_setup::FFValues::VDW_SWITCH = "VDW_SWITCH";
+const std::string config_setup::Exclude::EXC_ONETWO = "1-2";
+const std::string config_setup::Exclude::EXC_ONETHREE = "1-3";
+const std::string config_setup::Exclude::EXC_ONEFOUR = "1-4";
 
 const char ConfigSetup::defaultConfigFileName[] = "in.dat";
 const char ConfigSetup::configFileAlias[] = "GO-MC Configuration File";
 
-const uint config_setup::FFValues::VDW_STD_KIND = 0,
-                                   config_setup::FFValues::VDW_SHIFT_KIND = 1,
-                                                           config_setup::FFValues::VDW_SWITCH_KIND = 2,
-                                                                                   config_setup::Exclude::EXC_ONETWO_KIND = 0,
-                                                                                                          config_setup::Exclude::EXC_ONETHREE_KIND = 1,
-                                                                                                                                 config_setup::Exclude::EXC_ONEFOUR_KIND = 2;
+const uint config_setup::FFValues::VDW_STD_KIND = 0;
+const uint config_setup::FFValues::VDW_SHIFT_KIND = 1;
+const uint config_setup::FFValues::VDW_SWITCH_KIND = 2;
+const uint config_setup::FFValues::VDW_EXP6_KIND = 3;
+const uint config_setup::Exclude::EXC_ONETWO_KIND = 0;
+const uint config_setup::Exclude::EXC_ONETHREE_KIND = 1;
+const uint config_setup::Exclude::EXC_ONEFOUR_KIND = 2;

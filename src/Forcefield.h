@@ -61,6 +61,7 @@ public:
   bool electrostatic, ewald;      //To consider columb interaction
   bool vdwGeometricSigma;         //For sigma combining rule
   bool isMartini;
+  bool exp6;
   uint vdwKind;                   //To define VdW type, standard, shift or switch
   uint exckind;                   //To define  exclude kind, 1-2, 1-3, 1-4
 #if ENSEMBLE == GCMC

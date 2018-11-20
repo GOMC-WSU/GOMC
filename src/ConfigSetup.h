@@ -133,8 +133,8 @@ struct FFValues {
   bool doTailCorr, vdwGeometricSigma;
   std::string kind;
 
-  static const std::string VDW, VDW_SHIFT, VDW_SWITCH;
-  static const uint VDW_STD_KIND, VDW_SHIFT_KIND, VDW_SWITCH_KIND;
+  static const std::string VDW, VDW_SHIFT, VDW_SWITCH, VDW_EXP6;
+  static const uint VDW_STD_KIND, VDW_SHIFT_KIND, VDW_SWITCH_KIND, VDW_EXP6_KIND;
 };
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT

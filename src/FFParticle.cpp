@@ -18,7 +18,9 @@ FFParticle::FFParticle(Forcefield &ff) : forcefield(ff), mass(NULL), nameFirst(N
 #ifdef GOMC_CUDA
   , varCUDA(NULL)
 #endif 
-  {}
+  {
+    exp6 = ff.exp6;
+  }
 
 FFParticle::~FFParticle(void)
 {
@@ -87,6 +89,7 @@ void FFParticle::Init(ff_setup::Particle const& mie,
   enCorrection = new double [size];
   virCorrection = new double [size];
 
+  rCut = forcefield.rCut;
   //Combining VDW parameter
   Blend(mie, forcefield.rCut);
   //Adjusting VDW parameter using NBFIX
@@ -123,8 +126,13 @@ void FFParticle::Blend(ff_setup::Particle const& mie, const double rCut)
       nameSec[idx] = mie.getname(j);
       nameSec[idx] += mie.getname(i);
 
-      n[idx] = num::MeanA(mie.n, mie.n, i, j);
-      n_1_4[idx] = num::MeanA(mie.n_1_4, mie.n_1_4, i, j);
+      if(exp6) {
+        n[idx] = num::MeanG(mie.n, mie.n, i, j);
+        n_1_4[idx] = num::MeanG(mie.n_1_4, mie.n_1_4, i, j);
+      } else {
+        n[idx] = num::MeanA(mie.n, mie.n, i, j);
+        n_1_4[idx] = num::MeanA(mie.n_1_4, mie.n_1_4, i, j);
+      }
       double cn = n[idx] / (n[idx] - 6) * pow(n[idx] / 6, (6 / (n[idx] - 6)));
       double cn_1_4 = n_1_4[idx] / (n_1_4[idx] - 6) *
                       pow(n_1_4[idx] / 6, (6 / (n_1_4[idx] - 6)));
@@ -229,6 +237,22 @@ double FFParticle::GetN_1_4(const uint i, const uint j) const
 {
   uint idx = FlatIndex(i, j);
   return n_1_4[idx];
+}
+inline double FFParticle::GetRmin(const uint i, const uint j) const
+{
+  return 0.0;
+}
+inline double FFParticle::GetRmax(const uint i, const uint j) const
+{
+  return 0.0;
+}
+inline double FFParticle::GetRmin_1_4(const uint i, const uint j) const 
+{
+  return 0.0;
+}
+inline double FFParticle::GetRmax_1_4(const uint i, const uint j) const
+{
+  return 0.0;
 }
 
 // Defining the functions

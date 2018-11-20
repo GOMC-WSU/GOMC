@@ -81,6 +81,7 @@ set(headers
    src/FFBonds.h
    src/FFConst.h
    src/FFDihedrals.h
+   src/FFExp6.h
    src/FFParticle.h
    src/FFSetup.h
    src/FFShift.h
