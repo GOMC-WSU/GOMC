@@ -86,7 +86,6 @@ ConfigSetup::ConfigSetup(void)
   sys.moves.multiParticle = DBL_MAX;
   sys.moves.regrowth = DBL_MAX;
   sys.moves.crankShaft = DBL_MAX;
-  sys.moves.memc = DBL_MAX;
   sys.moves.intraMemc = DBL_MAX;
   out.state.settings.enable = true;
   out.restart.settings.enable = true;
@@ -115,6 +114,8 @@ ConfigSetup::ConfigSetup(void)
   out.statistics.vars.surfaceTension.fluct = false;
 #ifdef VARIABLE_PARTICLE_NUMBER
   sys.moves.transfer = DBL_MAX;
+  sys.moves.memc = DBL_MAX;
+  sys.moves.cfcmc = DBL_MAX;
   sys.cbmcTrials.bonded.ang = UINT_MAX;
   sys.cbmcTrials.bonded.dih = UINT_MAX;
   sys.cbmcTrials.nonbonded.first = UINT_MAX;
@@ -568,6 +569,10 @@ void ConfigSetup::Init(const char *fileName)
 	      sys.memcVal.enable = true;
         sys.memcVal.MEMC3 = true;
       }
+    } else if(CheckString(line[0], "CFCMCFreq")) {
+      sys.moves.cfcmc = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: CFCMC move frequency",
+	     sys.moves.cfcmc);
     }
 #endif
     else if(CheckString(line[0], "CellBasisVector1")) {
@@ -843,11 +848,16 @@ void ConfigSetup::fillDefaults(void)
   }
 
   #ifdef VARIABLE_PARTICLE_NUMBER
-  if(sys.moves.memc == DBL_MAX)
-  {
+  if(sys.moves.memc == DBL_MAX) {
     sys.moves.memc = 0.0;
     printf("%-40s %-4.4f \n", "Default: MEMC move frequency",
 	     sys.moves.memc);
+  }
+
+  if(sys.moves.cfcmc == DBL_MAX) {
+    sys.moves.cfcmc = 0.0;
+    printf("%-40s %-4.4f \n", "Default: CFCMC move frequency",
+	     sys.moves.cfcmc);
   }
 #endif
 
@@ -1096,7 +1106,7 @@ void ConfigSetup::verifyInputs(void)
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
          sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
          sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft +
-         sys.moves.multiParticle - 1.0) > 0.001) {
+         sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(EXIT_FAILURE);
   }
@@ -1121,7 +1131,7 @@ void ConfigSetup::verifyInputs(void)
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
          sys.moves.transfer + sys.moves.regrowth + sys.moves.memc + 
          sys.moves.intraMemc + sys.moves.crankShaft +
-         sys.moves.multiParticle - 1.0) > 0.001) {
+         sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
