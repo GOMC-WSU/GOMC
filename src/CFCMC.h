@@ -11,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "MoveBase.h"
 #include "TrialMol.h"
+#include <numeric>
 
 using std::vector;
 
@@ -23,21 +24,18 @@ public:
     lambdaRef(sys.lambdaRef), MoveBase(sys, statV) 
     {
       totalMolecule = comCurrRef.Count();
+      eqCycle = 1;
       lambdaWindow = 20;
       histFreq = 1000;
       lambdaMax = 1.0 / (double)(lambdaWindow);
-      nu = 0.01;
-      nuEq = 1e-6;
+      nuTolerance = 1e-6;
       uint totKind = molRef.GetKindsCount();
-      //use row for secondary boxes
-      hist.resize(totKind * BOX_TOTAL);
-      bias.resize(totKind * BOX_TOTAL);
-      for(uint k = 0; k < totKind * BOX_TOTAL; k++) {
+      nu.resize(totKind, 0.01);
+      hist.resize(totKind);
+      bias.resize(totKind);
+      for(uint k = 0; k < totKind; k++) {
         hist[k].resize(lambdaWindow, 0);
         bias[k].resize(lambdaWindow, 0.0);
-      }
-      for(uint b = 0; b < BOX_TOTAL; b++) {
-        lambdaCFCMC[b] = 0.0;
       }
     }
 
@@ -51,20 +49,26 @@ private:
 
   double GetCoeff() const;
   uint GetBoxPairAndMol(const double subDraw, const double movPerc);
+  void ShiftMolToSourceBox();
+  void ShiftMolToDestBox();
+  void UpdateBias();
+
   MolPick molPick;
   uint totalMolecule;
   uint sourceBox, destBox;
   uint pStartCFCMC, pLenCFCMC;
   uint molIndex, kindIndex;
   uint lambdaWindow, histFreq;
+  uint eqCycle;
   vector< vector<uint> > hist;
 
   double W_tc, W_recip;
   double correct_old, correct_new, self_old, self_new;
-  double lambdaMax, nu, nuEq;
-  double lambdaCFCMC[BOX_TOTAL];
+  double lambdaMax, nuTolerance;
+  double lambdaOld, lambdaNew;
   double *lambdaRef;
   vector< vector<double> > bias;
+  vector< double > nu;
 
 
   cbmc::TrialMol oldMol, newMol;
@@ -112,11 +116,11 @@ inline uint CFCMC::Prep(const double subDraw, const double movPerc)
   overlap = false;
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if (state == mv::fail_state::NO_FAIL) {
-    lambdaCFCMC[sourceBox] = 1.0;
-    lambdaCFCMC[destBox] = 0.0;
-    //set lambda
-    lambdaRef[sourceBox * totalMolecule + totalMolecule] = lambdaCFCMC[sourceBox];
-    lambdaRef[destBox * totalMolecule + totalMolecule] = lambdaCFCMC[destBox];
+    lambdaOld = 1.0;
+    lambdaNew = 1.0 - lambdaMax;
+    //Start with full interaction in sourceBox, zero interaction in destBox
+    lambdaRef[sourceBox * totalMolecule + totalMolecule] = lambdaOld;
+    lambdaRef[destBox * totalMolecule + totalMolecule] = 1.0 - lambdaOld;
     newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
     oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
     oldMol.SetCoords(coordCurrRef, pStartCFCMC);
@@ -129,7 +133,12 @@ inline uint CFCMC::Transform()
 {
   cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
   molRef.kinds[kindIndex].Build(oldMol, newMol, molIndex);
-  overlap = newMol.HasOverlap();
+  //Transfer the molecule to destBox
+  newMol.GetCoords().CopyRange(coordCurrRef, 0, pStartCFCMC, pLenCFCMC);
+  comCurrRef.SetNew(molIndex, destBox);
+  molLookRef.ShiftMolBox(molIndex, sourceBox, destBox, kindIndex);
+  cellList.AddMol(molIndex, destBox, coordCurrRef);
+  //overlap = newMol.HasOverlap();
   return mv::fail_state::NO_FAIL;
 }
 
@@ -142,7 +151,7 @@ inline void CFCMC::CalcEn()
   self_old = 0.0;
   self_new = 0.0;
 
-  if (ffRef.useLRC) {
+  if(ffRef.useLRC) {
     tcLose = calcEnRef.MoleculeTailChange(sourceBox, kindIndex, false);
     tcGain = calcEnRef.MoleculeTailChange(destBox, kindIndex, true);
     W_tc = exp(-1.0 * ffRef.beta * (tcGain.energy + tcLose.energy));
@@ -274,6 +283,60 @@ inline void CFCMC::Accept(const uint rejectState, const uint step)
     result = false;
 
   moveSetRef.Update(mv::CFCMC, result, step, destBox, kindIndex);
+}
+
+
+void CFCMC::ShiftMolToSourceBox()
+{
+  cellList.RemoveMol(molIndex, destBox, coordCurrRef);
+  //Set coordinates, new COM; shift index to new box's list
+  oldMol.GetCoords().CopyRange(coordCurrRef, 0, pStartCFCMC, pLenCFCMC);
+  comCurrRef.SetNew(molIndex, sourceBox);
+  molLookRef.ShiftMolBox(molIndex, destBox, sourceBox, kindIndex);
+  cellList.AddMol(molIndex, sourceBox, coordCurrRef);
+}
+
+void CFCMC::ShiftMolToDestBox()
+{ 
+  cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
+  //Set coordinates, new COM; shift index to new box's list
+  newMol.GetCoords().CopyRange(coordCurrRef, 0, pStartCFCMC, pLenCFCMC);
+  comCurrRef.SetNew(molIndex, destBox);
+  molLookRef.ShiftMolBox(molIndex, sourceBox, destBox, kindIndex);
+  cellList.AddMol(molIndex, destBox, coordCurrRef);
+}
+
+void CFCMC::UpdateBias()
+{
+  if(nu[kindIndex] <= nuTolerance)
+    return;
+
+  uint idx = 0;
+  //Find the index that lead to insert or delete in box0
+  if(sourceBox == mv::BOX0) {
+    idx = (uint)(lambdaOld * lambdaWindow);
+  } else {
+    idx = (uint)((1.0 - lambdaOld) * lambdaWindow);
+  }
+
+  hist[kindIndex][idx] += 1;
+  bias[kindIndex][idx] -= nu[kindIndex];
+
+  uint trial = std::accumulate(hist[kindIndex].begin(),
+                               hist[kindIndex].end(), 0);
+
+  if((trial + 1) % histFreq == 0) {
+    uint maxVisited = *max_element(hist[kindIndex].begin(),
+                                   hist[kindIndex].end());
+    uint minVisited = *min_element(hist[kindIndex].begin(),
+                                   hist[kindIndex].end());
+    //check to see if all the bin is visited atleast 30% of 
+    // the most visited bin.                               
+    if(minVisited > 0.3 * maxVisited) {
+      nu[kindIndex] = 0.5 * nu[kindIndex];
+      std::fill_n(hist[kindIndex].begin(), lambdaWindow, 0);
+    }                               
+  }
 }
 
 #endif

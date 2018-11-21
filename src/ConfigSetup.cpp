@@ -850,7 +850,7 @@ void ConfigSetup::fillDefaults(void)
            sys.moves.crankShaft);
   }
 
-  #ifdef VARIABLE_PARTICLE_NUMBER
+#ifdef VARIABLE_PARTICLE_NUMBER
   if(sys.moves.memc == DBL_MAX) {
     sys.moves.memc = 0.0;
     printf("%-40s %-4.4f \n", "Default: MEMC move frequency",
