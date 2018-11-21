@@ -249,7 +249,7 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
 
 //calculate reciprocate term in destination box for swap move
 double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
-                                  const uint box, const int sourceBox,
+                                  const uint box,
                                   const int molIndex)
 {
   double energyRecipNew = 0.0;

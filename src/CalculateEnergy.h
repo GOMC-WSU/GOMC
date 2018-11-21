@@ -184,6 +184,11 @@ public:
   //!Calculates energy corrections for the box
   double EnergyCorrection(const uint box, const uint *kCount) const;
 
+  //Calculate inter energy for single molecule inthe system.
+  bool SingleMoleculeInter(Energy &interEn, XYZArray& atomForce,
+                           XYZArray& molForce, const uint molIndex,
+                           const uint box) const;
+
 private:
 
   //! Calculates full TC energy for one box in current system
