@@ -1526,3 +1526,109 @@ bool CalculateEnergy::FindMolInCavity(std::vector< std::vector<uint> > &mol,
   else
     return false;
 }
+
+
+bool CalculateEnergy::SingleMoleculeInter(Energy &interEn,
+                                          XYZArray& atomForce,
+                                          XYZArray& molForce,
+                                          const uint molIndex,
+                                          const uint box) const
+{
+  double tempREn = 0.0, tempLJEn = 0.0;
+  bool overlap = false;
+
+  // make a pointer to atom force and mol force for openmp
+  double *aForcex = atomForce.x;
+  double *aForcey = atomForce.y;
+  double *aForcez = atomForce.z;
+  double *mForcex = molForce.x;
+  double *mForcey = molForce.y;
+  double *mForcez = molForce.z;
+  int atomCount = atomForce.Count();
+  int molCount = molForce.Count();
+
+  if (box < BOXES_WITH_U_NB) {
+    uint length = mols.GetKind(molIndex).NumAtoms();
+    uint start = mols.MolStart(molIndex);
+
+    for (uint p = 0; p < length; ++p) {
+      uint atom = start + p;
+      CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom],
+                              box);
+      n = cellList.EnumerateLocal(currentCoords[atom], box);
+
+      double qi_qj_fact, distSq, lambda;
+      int i;
+      XYZ virComponents, forceLJ, forceReal;
+      std::vector<uint> nIndex;
+
+      //store atom index in neighboring cell
+      while (!n.Done()) {
+        nIndex.push_back(*n);
+        n.Next();
+      }
+
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents, forceLJ, forceReal, lambda) \
+reduction(+:tempREn, tempLJEn, \
+aForcex[:atomCount], aForcey[:atomCount], aForcez[:atomCount], \
+mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
+#endif
+      for(i = 0; i < nIndex.size(); i++) {
+        distSq = 0.0;
+        lambda = GetLambda(molIndex, particleMol[nIndex[i]], box);
+        //Subtract old energy
+        if (currentAxes.InRcut(distSq, virComponents,
+                               currentCoords, atom, nIndex[i], box)) {
+
+          if (electrostatic) {
+            qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
+                         num::qqFact;
+
+            tempREn -= forcefield.particles->CalcCoulomb(distSq,qi_qj_fact,
+              lambda, box);
+          }
+
+          tempLJEn -= forcefield.particles->CalcEn(distSq, particleKind[atom],
+                      particleKind[nIndex[i]], lambda);
+
+          if(multiParticleEnabled) {
+            if(electrostatic) {
+              forceReal = virComponents *
+		          forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact, box);
+            }
+            forceLJ = virComponents *
+	            forcefield.particles->CalcVir(distSq, particleKind[atom],
+					    particleKind[nIndex[i]]);
+            
+            // substract old force
+            aForcex[atom] += -(forceLJ.x + forceReal.x);
+            aForcey[atom] += -(forceLJ.y + forceReal.y);
+            aForcez[atom] += -(forceLJ.z + forceReal.z);
+            aForcex[nIndex[i]] += (forceLJ.x + forceReal.x);
+            aForcey[nIndex[i]] += (forceLJ.y + forceReal.y);
+            aForcez[nIndex[i]] += (forceLJ.z + forceReal.z);
+            mForcex[particleMol[atom]] += -(forceLJ.x + forceReal.x);
+            mForcey[particleMol[atom]] += -(forceLJ.y + forceReal.y);
+            mForcez[particleMol[atom]] += -(forceLJ.z + forceReal.z);
+            mForcex[particleMol[nIndex[i]]] += (forceLJ.x + forceReal.x);
+            mForcey[particleMol[nIndex[i]]] += (forceLJ.y + forceReal.y);
+            mForcez[particleMol[nIndex[i]]] += (forceLJ.z + forceReal.z);
+          }
+        }
+
+      }
+    }
+  }
+
+  double bondEnergy[2] = {0};
+  //calculate nonbonded energy
+  MoleculeIntra(molIndex, box, bondEnergy);
+
+  interEn.inter = tempLJEn;
+  interEn.real = tempREn;
+  interEn.intraBond = bondEnergy[0];
+  interEn.intraNonbond = bondEnergy[1];
+
+  return overlap;
+}
