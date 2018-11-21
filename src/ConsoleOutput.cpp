@@ -165,6 +165,13 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
     printElement(var->GetAccepted(box, sub), elementWidth);
     printElement(var->GetAcceptPercent(box, sub), elementWidth);
   }
+
+  if(var->Performed(mv::CFCMC)) {
+    sub = mv::CFCMC;
+    printElement(var->GetTries(box, sub), elementWidth);
+    printElement(var->GetAccepted(box, sub), elementWidth);
+    printElement(var->GetAcceptPercent(box, sub), elementWidth);
+  }
 #endif
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
@@ -381,6 +388,12 @@ void ConsoleOutput::PrintMoveTitle()
     printElement("MOLEXCHANGE", elementWidth);
     printElement("MOLEXACCEPT", elementWidth);
     printElement("MOLEXACCEPT%", elementWidth);
+  }
+
+  if(var->Performed(mv::CFCMC)) {
+    printElement("CFCMCTRANSF", elementWidth);
+    printElement("CFCMCACCEPT", elementWidth);
+    printElement("CFCMCACCEPT%", elementWidth);
   }
 #endif
 

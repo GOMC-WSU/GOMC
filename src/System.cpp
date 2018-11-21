@@ -31,6 +31,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "IntraMoleculeExchange2.h"
 #include "IntraMoleculeExchange3.h"
 #include "CrankShaft.h"
+#include "CFCMC.h"
 
 System::System(StaticVals& statics) :
   statV(statics),
@@ -73,6 +74,7 @@ System::~System()
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   delete moves[mv::MOL_TRANSFER];
   delete moves[mv::MEMC];
+  delete moves[mv::CFCMC];
 #endif
   delete [] lambdaRef;
 }
@@ -159,6 +161,7 @@ void System::InitMoves(Setup const& set)
     } else {
       moves[mv::MEMC] = new MoleculeExchange3(*this, statV);
     }
+    moves[mv::CFCMC] = new CFCMC(*this, statV);
 #endif
 }
 
@@ -267,6 +270,7 @@ void System::PrintTime()
   printf("%-36s %10.4f    sec.\n", "Mol-Transfer:",
          moveTime[mv::MOL_TRANSFER]);
   printf("%-36s %10.4f    sec.\n", "MEMC:", moveTime[mv::MEMC]);
+  printf("%-36s %10.4f    sec.\n", "CFCMC:", moveTime[mv::CFCMC]);
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   printf("%-36s %10.4f    sec.\n", "Vol-Transfer:", moveTime[mv::VOL_TRANSFER]);
