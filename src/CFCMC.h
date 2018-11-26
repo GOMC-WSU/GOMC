@@ -36,8 +36,8 @@ public:
       hist.resize(totKind);
       bias.resize(totKind);
       for(uint k = 0; k < totKind; k++) {
-        hist[k].resize(lambdaWindow, 0);
-        bias[k].resize(lambdaWindow, 0.0);
+        hist[k].resize(lambdaWindow + 1, 0);
+        bias[k].resize(lambdaWindow + 1, 0.0);
       }
     }
 
@@ -59,6 +59,7 @@ private:
   bool AcceptInflating();
   void CalcEnCFCMC(bool calcNewEn);
   void RelaxingMolecules();
+  uint GetLambdaIdx(double lambda) const {return ((uint)(lambda * lambdaWindow));}
 
   MolPick molPick;
   uint totalMolecule;
@@ -78,8 +79,6 @@ private:
   double *lambdaRef;
   vector< vector<double> > bias;
   vector< double > nu;
-
-  bool accepted;
 
 
   cbmc::TrialMol oldMol, newMol;
@@ -128,11 +127,6 @@ inline uint CFCMC::Prep(const double subDraw, const double movPerc)
   overlap = false;
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if (state == mv::fail_state::NO_FAIL) {
-    lambdaOld = 1.0;
-    lambdaNew = 1.0 - lambdaMax;
-    //Start with full interaction in sourceBox, zero interaction in destBox
-    lambdaRef[sourceBox * totalMolecule + totalMolecule] = lambdaOld;
-    lambdaRef[destBox * totalMolecule + totalMolecule] = 1.0 - lambdaOld;
     newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
     oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
     oldMol.SetCoords(coordCurrRef, pStartCFCMC);
@@ -180,8 +174,9 @@ inline void CFCMC::CalcEnCFCMC(bool calcNewEn)
   tcGain.Zero();
 
 
-  uint idxNew = (uint)(lambdaNew * lambdaWindow);
-  if(idxNew == 0 || idxNew == 1) {
+  uint idxNew = GetLambdaIdx(lambdaNew);
+  //if lambda is zero, it means molecule successfully  transfered.
+  if(idxNew == 0) {
     if(ffRef.useLRC) {
       tcLose = calcEnRef.MoleculeTailChange(sourceBox, kindIndex, false);
       tcGain = calcEnRef.MoleculeTailChange(destBox, kindIndex, true);
@@ -211,11 +206,11 @@ inline void CFCMC::CalcEnCFCMC(bool calcNewEn)
 
 inline double CFCMC::GetCoeff() const
 {
-  uint idxNew = (uint)(lambdaNew * lambdaWindow);
-  uint idxOld = (uint)(lambdaOld * lambdaWindow);
+  uint idxNew = GetLambdaIdx(lambdaNew);
+  uint idxOld = GetLambdaIdx(lambdaOld);
   double biasCoef = exp(bias[kindIndex][idxNew] - bias[kindIndex][idxOld]);
 
-  if(lambdaNew < 1.0 and lambdaNew > 0.0) {
+  if(idxNew > 0) {
     return biasCoef;
   } else {
     #if ENSEMBLE == GEMC
@@ -250,17 +245,21 @@ inline double CFCMC::GetCoeff() const
 
 inline void CFCMC::Accept(const uint rejectState, const uint step)
 {
+  bool result = false;
   //If we didn't skip the move calculation
   if(rejectState == mv::fail_state::NO_FAIL) {
-    moveSetRef.Update(mv::CFCMC, accepted, step, destBox, kindIndex);
-    if(!accepted) {   
-      //Start with full interaction in sourceBox, zero interaction in destBox
-      lambdaRef[sourceBox * totalMolecule + totalMolecule] = 1.0;
-      lambdaRef[destBox * totalMolecule + totalMolecule] = 0.0;
+    uint idxNew = GetLambdaIdx(lambdaNew);
+    //If lambdaNew is zero, it means molecule transfered to dest.
+    result = (idxNew == 0);
+    if(!result) {   
+      //Set full interaction in sourceBox, zero interaction in destBox
+      lambdaRef[sourceBox * totalMolecule + molIndex] = 1.0;
+      lambdaRef[destBox * totalMolecule + molIndex] = 0.0;
+      //Shift the molecule back
+      ShiftMolToSourceBox();
     }
-  } else{
-    moveSetRef.Update(mv::CFCMC, false, step, destBox, kindIndex);
-  }
+  } 
+  moveSetRef.Update(mv::CFCMC, result, step, destBox, kindIndex);
 }
 
 
@@ -292,9 +291,9 @@ inline void CFCMC::UpdateBias()
   uint idx = 0;
   //Find the index that lead to insert or delete in box0
   if(sourceBox == mv::BOX0) {
-    idx = (uint)(lambdaOld * lambdaWindow);
+    idx = GetLambdaIdx(lambdaOld);
   } else {
-    idx = (uint)((1.0 - lambdaOld) * lambdaWindow);
+    idx = GetLambdaIdx(1.0 - lambdaOld);
   }
 
   hist[kindIndex][idx] += 1;
@@ -344,23 +343,33 @@ inline void CFCMC::FindRelaxingMolecules(uint box)
 
 inline void CFCMC::InflatingMolecule()
 {
-  do {
+  lambdaOld = 1.0;
+  //pick new lambda
+  lambdaNew = lambdaOld + (prng.randInt(1) ? lambdaMax : -lambdaMax);
+  while(lambdaNew >= 0.0 && lambdaNew <= 1.0) {
+    //Start with full interaction in sourceBox, zero interaction in destBox
+    lambdaRef[sourceBox * totalMolecule + molIndex] = lambdaOld;
+    lambdaRef[destBox * totalMolecule + molIndex] = 1.0 - lambdaOld;
     UpdateBias();
     //Calculate the old energy
     CalcEnCFCMC(false);
     //Update the interaction in sourceBox and destBox
-    lambdaRef[sourceBox * totalMolecule + totalMolecule] = lambdaNew;
-    lambdaRef[destBox * totalMolecule + totalMolecule] = 1.0 - lambdaNew;
+    lambdaRef[sourceBox * totalMolecule + molIndex] = lambdaNew;
+    lambdaRef[destBox * totalMolecule + molIndex] = 1.0 - lambdaNew;
     //Calculate the new energy
     CalcEnCFCMC(true);
-    accepted = AcceptInflating();
+    bool accepted = AcceptInflating();
     if(accepted) {
-      lambdaOld = lambdaNew;
+      lambdaOld = lambdaNew; 
       RelaxingMolecules();
     }
     //pick new lambda
     lambdaNew = lambdaOld + (prng.randInt(1) ? lambdaMax : -lambdaMax);
-  } while(lambdaOld > 0.0 && lambdaOld < 1.0);
+    uint idxOld = GetLambdaIdx(lambdaOld);
+    if(idxOld == 0 || idxOld == lambdaWindow) {
+      break;
+    }
+  }
 }
 
 inline bool CFCMC::AcceptInflating()
@@ -383,6 +392,8 @@ inline bool CFCMC::AcceptInflating()
     sysPotRef.boxEnergy[sourceBox] += newEnergy[sourceBox];
     sysPotRef.boxEnergy[destBox] -= oldEnergy[destBox];
     sysPotRef.boxEnergy[destBox] += newEnergy[destBox];
+    swap(atomForceRef, atomForceNew);
+    swap(molForceRef, molForceNew);
 
     //Retotal
     sysPotRef.Total();
