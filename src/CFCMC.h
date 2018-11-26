@@ -57,9 +57,14 @@ private:
   void FindRelaxingMolecules(uint box);
   void InflatingMolecule();
   bool AcceptInflating();
+  void AcceptRelaxing(uint box);
   void CalcEnCFCMC(bool calcNewEn);
+  void CalcEnRelaxing(uint box);
+  void TransformRelaxing(uint box);
   void RelaxingMolecules();
-  uint GetLambdaIdx(double lambda) const {return ((uint)(lambda * lambdaWindow));}
+  uint GetLambdaIdx(double lambda) const 
+    {return ((uint)(lambda * lambdaWindow));}
+  
 
   MolPick molPick;
   uint totalMolecule;
@@ -80,8 +85,14 @@ private:
   vector< vector<double> > bias;
   vector< double > nu;
 
+  //variable needs for relaxing
+  uint b, m, mk, pStart, pLen;
+  XYZ newCOM;
+  XYZArray newMolPos;
+  Intermolecular inter_LJ, inter_Real, recip;
 
-  cbmc::TrialMol oldMol, newMol;
+
+  cbmc::TrialMol oldMolCFCMC, newMolCFCMC;
   Intermolecular tcLose, tcGain, recipLose, recipGain;
   Energy oldEnergy[BOX_TOTAL], newEnergy[BOX_TOTAL];
   MoleculeLookup & molLookRef;
@@ -127,9 +138,9 @@ inline uint CFCMC::Prep(const double subDraw, const double movPerc)
   overlap = false;
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if (state == mv::fail_state::NO_FAIL) {
-    newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
-    oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
-    oldMol.SetCoords(coordCurrRef, pStartCFCMC);
+    newMolCFCMC = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
+    oldMolCFCMC = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
+    oldMolCFCMC.SetCoords(coordCurrRef, pStartCFCMC);
     //Transform the picked molecule to random location in dest box
     XYZ oldCOM = comCurrRef.Get(molIndex);
     XYZ pickCOM;
@@ -140,7 +151,7 @@ inline uint CFCMC::Prep(const double subDraw, const double movPerc)
     pickCOM -= oldCOM;
     temp.AddRange(0, pLenCFCMC, pickCOM);
     boxDimRef.WrapPBC(temp, destBox);
-    newMol.SetCoords(temp, 0);
+    newMolCFCMC.SetCoords(temp, 0);
   }
   return state;
 }
@@ -267,7 +278,7 @@ inline void CFCMC::ShiftMolToSourceBox()
 {
   cellList.RemoveMol(molIndex, destBox, coordCurrRef);
   //Set coordinates, new COM; shift index to new box's list
-  oldMol.GetCoords().CopyRange(coordCurrRef, 0, pStartCFCMC, pLenCFCMC);
+  oldMolCFCMC.GetCoords().CopyRange(coordCurrRef, 0, pStartCFCMC, pLenCFCMC);
   comCurrRef.SetNew(molIndex, sourceBox);
   molLookRef.ShiftMolBox(molIndex, destBox, sourceBox, kindIndex);
   cellList.AddMol(molIndex, sourceBox, coordCurrRef);
@@ -277,7 +288,7 @@ inline void CFCMC::ShiftMolToDestBox()
 { 
   cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
   //Set coordinates, new COM; shift index to new box's list
-  newMol.GetCoords().CopyRange(coordCurrRef, 0, pStartCFCMC, pLenCFCMC);
+  newMolCFCMC.GetCoords().CopyRange(coordCurrRef, 0, pStartCFCMC, pLenCFCMC);
   comCurrRef.SetNew(molIndex, destBox);
   molLookRef.ShiftMolBox(molIndex, sourceBox, destBox, kindIndex);
   cellList.AddMol(molIndex, destBox, coordCurrRef);
@@ -320,6 +331,10 @@ inline void CFCMC::FindRelaxingMolecules(uint box)
 {
   //Molecule has to be transfered before calling this function
   relaxMolecule[box].clear();
+  if(box >= BOXES_WITH_U_NB) {
+    return;
+  }
+
   XYZ center = comCurrRef.Get(molIndex);
   double minLengthSq;
   XYZ diff;
@@ -405,7 +420,94 @@ inline bool CFCMC::AcceptInflating()
 
 inline void CFCMC::RelaxingMolecules()
 {
-  return;
+  long sourceSteps = eqCycle * relaxMolecule[sourceBox].size();
+  long destSteps = eqCycle * relaxMolecule[destBox].size();
+  ShiftMolToSourceBox();
+  if(sourceBox < BOXES_WITH_U_NB) {
+    for(uint s = 0; s < sourceSteps; s++) {
+      TransformRelaxing(sourceBox);
+      CalcEnRelaxing(sourceBox);
+      AcceptRelaxing(sourceBox);
+    }
+  }
+  ShiftMolToDestBox();
+  if(destBox < BOXES_WITH_U_NB) {
+    for(uint s = 0; s < destSteps; s++) {
+      TransformRelaxing(destBox);
+      CalcEnRelaxing(destBox);
+      AcceptRelaxing(destBox);
+    }
+  }
+}
+
+inline void CFCMC::TransformRelaxing(uint b)
+{
+  uint pickedMol = prng.randIntExc(relaxMolecule[destBox].size());
+  m = relaxMolecule[destBox][pickedMol];
+  mk = molRef.GetMolKind(m);
+  pStart = 0, pLen = 0;
+  molRef.GetRangeStartLength(pStart, pLen, m);
+  newMolPos.Uninit();
+  newMolPos.Init(pLen);
+  newCOM = comCurrRef.Get(m);
+  bool trans = prng.randInt(1);
+  trans |= (pLen == 1); // single molecule, translation only
+
+  if(trans) {
+    coordCurrRef.TranslateRand(newMolPos, newCOM, pStart, pLen,
+                               m, b, moveSetRef.Scale(b, mv::DISPLACE, mk));
+  } else {
+    coordCurrRef.RotateRand(newMolPos, pStart, pLen, m, b,
+                            moveSetRef.Scale(b, mv::ROTATE, mk));
+  }
+}
+
+inline void CFCMC::CalcEnRelaxing(uint b)
+{
+  cellList.RemoveMol(m, b, coordCurrRef);
+  overlap = false;
+  //calculate LJ interaction and real term of electrostatic interaction
+  atomForceRef.CopyRange(atomForceNew, 0, 0, atomForceRef.Count());
+  molForceRef.CopyRange(molForceNew, 0, 0, molForceRef.Count());
+  overlap = calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, 
+                                    atomForceNew, molForceNew, m, b);
+  if(!overlap) {
+    //calculate reciprocate term of electrostatic interaction
+    recip.energy = calcEwald->MolReciprocal(newMolPos, m, b);
+  }
+}
+
+inline void CFCMC::AcceptRelaxing(uint b)
+{
+  bool res = false;
+  double pr = prng();
+  res = pr < exp(-BETA * (inter_LJ.energy + inter_Real.energy +
+                          recip.energy));
+  bool result = res && !overlap;
+
+  if (result) {
+    //Set new energy.
+    // setting energy and virial of LJ interaction
+    sysPotRef.boxEnergy[b].inter += inter_LJ.energy;
+    // setting energy and virial of coulomb interaction
+    sysPotRef.boxEnergy[b].real += inter_Real.energy;
+    // setting energy and virial of recip term
+    sysPotRef.boxEnergy[b].recip += recip.energy;;
+
+    //Copy coords
+    newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);
+    comCurrRef.Set(m, newCOM);
+    swap(atomForceRef, atomForceNew);
+    swap(molForceRef, molForceNew);
+    calcEwald->UpdateRecip(b);
+
+    sysPotRef.Total();
+  }
+  // It means that Recip energy is calculated and move not accepted
+  if(!result && !overlap) {
+    calcEwald->RestoreMol(m);
+  }
+  cellList.AddMol(m, b, coordCurrRef);
 }
 
 

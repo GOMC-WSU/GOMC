@@ -9,10 +9,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "MoveBase.h" 
 #include "Rotation.h"
-#include "CFCMC.h"
 
 class Rotate;
-class CFCMC;
 
 class Translate : public MoveBase, public MolTransformBase
 {
@@ -29,7 +27,6 @@ public:
 private:
   Intermolecular inter_LJ, inter_Real, recip;
   XYZ newCOM;
-  friend class CFCMC;
 };
 
 void Translate::PrintAcceptKind() {
