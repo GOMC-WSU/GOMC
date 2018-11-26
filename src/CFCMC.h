@@ -322,7 +322,7 @@ inline void CFCMC::UpdateBias()
     // the most visited bin.                               
     if(minVisited > 0.3 * maxVisited) {
       nu[kindIndex] = 0.5 * nu[kindIndex];
-      std::fill_n(hist[kindIndex].begin(), lambdaWindow, 0);
+      std::fill_n(hist[kindIndex].begin(), lambdaWindow + 1, 0);
     }                               
   }
 }
