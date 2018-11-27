@@ -1587,11 +1587,11 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
             qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
                          num::qqFact;
 
-            tempREn -= forcefield.particles->CalcCoulomb(distSq,qi_qj_fact,
+            tempREn += forcefield.particles->CalcCoulomb(distSq,qi_qj_fact,
               lambda, box);
           }
 
-          tempLJEn -= forcefield.particles->CalcEn(distSq, particleKind[atom],
+          tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[atom],
                       particleKind[nIndex[i]], lambda);
 
           if(multiParticleEnabled) {
