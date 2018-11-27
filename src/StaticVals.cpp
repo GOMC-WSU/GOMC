@@ -77,6 +77,9 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
     case mv::MEMC :
         movePerc[m] = perc.memc;
         break;
+    case mv::CFCMC :
+        movePerc[m] = perc.cfcmc;
+        break;
 #endif
 #endif
     default:

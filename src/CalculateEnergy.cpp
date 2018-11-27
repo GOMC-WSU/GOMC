@@ -46,7 +46,6 @@ CalculateEnergy::CalculateEnergy(StaticVals & stat, System & sys) :
   currentCOM(sys.com),
   atomForceRef(sys.atomForceRef),
   molForceRef(sys.molForceRef),
-  lambdaRef(sys.lambdaRef),
 #ifdef VARIABLE_PARTICLE_NUMBER
   molLookup(sys.molLookup),
 #else
@@ -68,6 +67,7 @@ void CalculateEnergy::Init(System & sys)
   calcEwald = sys.GetEwald();
   electrostatic = forcefield.electrostatic;
   ewald = forcefield.ewald;
+  lambdaRef = sys.lambdaRef;
   multiParticleEnabled = sys.statV.multiParticleEnabled;
   totalmolecule = currentCOM.Count();
   for(uint m = 0; m < mols.count; ++m) {
@@ -1564,7 +1564,9 @@ bool CalculateEnergy::SingleMoleculeInter(Energy &interEn,
 
       //store atom index in neighboring cell
       while (!n.Done()) {
-        nIndex.push_back(*n);
+	if(*n != molIndex) {
+	  nIndex.push_back(*n);
+	}
         n.Next();
       }
 

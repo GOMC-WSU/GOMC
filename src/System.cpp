@@ -52,6 +52,7 @@ System::System(StaticVals& statics) :
   calcEnergy(statics, *this)
 {
   calcEwald = NULL;
+  lambdaRef = NULL;
 }
 
 System::~System()
@@ -76,7 +77,8 @@ System::~System()
   delete moves[mv::MEMC];
   delete moves[mv::CFCMC];
 #endif
-  delete [] lambdaRef;
+  if (lambdaRef != NULL)
+    delete[] lambdaRef;
 }
 
 void System::Init(Setup const& set)
@@ -102,8 +104,8 @@ void System::Init(Setup const& set)
   // Allocate space for reciprocate force
   atomForceRecRef.Init(set.pdb.atoms.beta.size());
   molForceRecRef.Init(com.Count());
-  lambdaRef = new double(com.Count() * BOX_TOTAL);
-  std::memset(lambdaRef, 1.0, com.Count() * BOX_TOTAL);
+  lambdaRef = new double[com.Count() * BOX_TOTAL];
+  std::fill_n(lambdaRef, com.Count() * BOX_TOTAL, 1.0);
   cellList.SetCutoff();
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 
@@ -154,14 +156,14 @@ void System::InitMoves(Setup const& set)
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   moves[mv::MOL_TRANSFER] = new MoleculeTransfer(*this, statV);
-    if(set.config.sys.memcVal.MEMC1) {
-      moves[mv::MEMC] = new MoleculeExchange1(*this, statV);
-    } else if (set.config.sys.memcVal.MEMC2) {
-      moves[mv::MEMC] = new MoleculeExchange2(*this, statV);
-    } else {
-      moves[mv::MEMC] = new MoleculeExchange3(*this, statV);
-    }
-    moves[mv::CFCMC] = new CFCMC(*this, statV);
+  if(set.config.sys.memcVal.MEMC1) {
+    moves[mv::MEMC] = new MoleculeExchange1(*this, statV);
+  } else if (set.config.sys.memcVal.MEMC2) {
+    moves[mv::MEMC] = new MoleculeExchange2(*this, statV);
+  } else {
+    moves[mv::MEMC] = new MoleculeExchange3(*this, statV);
+  }
+  moves[mv::CFCMC] = new CFCMC(*this, statV);
 #endif
 }
 
