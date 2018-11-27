@@ -110,6 +110,21 @@ void CFCMC::PrintAcceptKind() {
     }
     std::cout << std::endl;
   }
+  for(uint k = 0; k < molRef.GetKindsCount(); k++) {
+    std::cout << "hist " << molRef.kinds[k].name.c_str() << ": ";
+    for(uint i = 0; i <= lambdaWindow; i++) {
+      std::cout <<  hist[k][i] << " ";
+    }
+    std::cout << std::endl;
+  }
+
+  for(uint k = 0; k < molRef.GetKindsCount(); k++) {
+    std::cout << "Bias " << molRef.kinds[k].name.c_str() << ": ";
+    for(uint i = 0; i <= lambdaWindow; i++) {
+      std::cout <<  bias[k][i] << " ";
+    }
+    std::cout << std::endl;
+  }
 }
 
 inline uint CFCMC::GetBoxPairAndMol(const double subDraw, const double movPerc)
@@ -306,13 +321,8 @@ inline void CFCMC::UpdateBias()
   if(nu[kindIndex] <= nuTolerance)
     return;
 
-  uint idx = 0;
-  //Find the index that lead to insert or delete in box0
-  if(sourceBox == mv::BOX0) {
-    idx = GetLambdaIdx(lambdaOld);
-  } else {
-    idx = GetLambdaIdx(1.0 - lambdaOld);
-  }
+  //Find the index
+  uint idx = GetLambdaIdx(lambdaOld);
 
   hist[kindIndex][idx] += 1;
   bias[kindIndex][idx] -= nu[kindIndex];
