@@ -358,14 +358,15 @@ inline void CFCMC::FindRelaxingMolecules(uint box)
 
 inline void CFCMC::InflatingMolecule()
 {
+  //Start with full interaction in sourceBox, zero interaction in destBox
   lambdaOld = 1.0;
   //pick new lambda
   lambdaNew = lambdaOld + (prng.randInt(1) ? lambdaMax : -lambdaMax);
+  UpdateBias();
   while(lambdaNew >= 0.0 && lambdaNew <= 1.0) {
-    //Start with full interaction in sourceBox, zero interaction in destBox
+    //Set the interaction in source and destBox 
     lambdaRef[sourceBox * totalMolecule + molIndex] = lambdaOld;
     lambdaRef[destBox * totalMolecule + molIndex] = 1.0 - lambdaOld;
-    UpdateBias();
     //Calculate the old energy
     CalcEnCFCMC(false);
     //Update the interaction in sourceBox and destBox
@@ -380,6 +381,7 @@ inline void CFCMC::InflatingMolecule()
     }
     //pick new lambda
     lambdaNew = lambdaOld + (prng.randInt(1) ? lambdaMax : -lambdaMax);
+    UpdateBias();
     uint idxOld = GetLambdaIdx(lambdaOld);
     if(idxOld == 0 || idxOld == lambdaWindow) {
       break;
@@ -442,8 +444,8 @@ inline void CFCMC::RelaxingMolecules()
 
 inline void CFCMC::TransformRelaxing(uint b)
 {
-  uint pickedMol = prng.randIntExc(relaxMolecule[destBox].size());
-  m = relaxMolecule[destBox][pickedMol];
+  uint pickedMol = prng.randIntExc(relaxMolecule[b].size());
+  m = relaxMolecule[b][pickedMol];
   mk = molRef.GetMolKind(m);
   pStart = 0, pLen = 0;
   molRef.GetRangeStartLength(pStart, pLen, m);

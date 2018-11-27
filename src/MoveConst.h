@@ -133,7 +133,7 @@ const uint IT_KINDS_TOTAL = 2;
 //     13. IntraMEMC (box 0)    14. IntraMEMC (box 1)
 //     15. CrankShaft (box 0)   16. CrankShaft (box 1)
 //     17. MEMC (box 0)         18. MEMC (box 1)
-//     19. Mol Trans (b0->b1)  20. Mol Trans (b1->b0)
+//     19. Mol Trans (b0->b1)   20. Mol Trans (b1->b0)
 //     21. CFCMC (b0->b1)       22. CFCMC (b1->b0) 
 //
 //NPT : 1. Disp (box 0)         2. Rotate (box 0)     3. MultiParticle (box 0)
