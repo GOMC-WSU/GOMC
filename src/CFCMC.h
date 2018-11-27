@@ -187,32 +187,39 @@ inline void CFCMC::CalcEnCFCMC(bool calcNewEn)
 
   uint idxNew = GetLambdaIdx(lambdaNew);
   //if lambda is zero, it means molecule successfully  transfered.
-  if(idxNew == 0) {
+  if(idxNew == 0 && calcNewEn) {
     if(ffRef.useLRC) {
+      ShiftMolToSourceBox();
       tcLose = calcEnRef.MoleculeTailChange(sourceBox, kindIndex, false);
       tcGain = calcEnRef.MoleculeTailChange(destBox, kindIndex, true);
       W_tc = exp(-1.0 * ffRef.beta * (tcGain.energy + tcLose.energy));
+      ShiftMolToDestBox();
     }
   }
 
-  if(!calcNewEn) {
+  ShiftMolToSourceBox();
+  if(calcNewEn) {
     //calculate inter and intra energy before changing lambda
-    ShiftMolToSourceBox();
-    calcEnRef.SingleMoleculeInter(oldEnergy[sourceBox], atomForceNew,
-                                  molForceNew, molIndex, sourceBox);
-    ShiftMolToDestBox();
-    calcEnRef.SingleMoleculeInter(oldEnergy[destBox], atomForceNew,
-                                  molForceNew, molIndex, destBox);
-
-  } else {
-    //calculate inter and intra energy after changing lambda
-    ShiftMolToSourceBox();
     calcEnRef.SingleMoleculeInter(newEnergy[sourceBox], atomForceNew,
                                   molForceNew, molIndex, sourceBox);
-    ShiftMolToDestBox();
+  } else {
+    //calculate inter and intra energy after changing lambda
+    calcEnRef.SingleMoleculeInter(oldEnergy[sourceBox], atomForceNew,
+                                  molForceNew, molIndex, sourceBox);
+  }
+
+
+  ShiftMolToDestBox();
+  if(calcNewEn) {
+    //calculate inter and intra energy before changing lambda
     calcEnRef.SingleMoleculeInter(newEnergy[destBox], atomForceNew,
                                   molForceNew, molIndex, destBox);
+  } else {
+    //calculate inter and intra energy after changing lambda
+    calcEnRef.SingleMoleculeInter(oldEnergy[destBox], atomForceNew,
+                                  molForceNew, molIndex, destBox);
   }
+
 }
 
 inline double CFCMC::GetCoeff() const
@@ -379,13 +386,13 @@ inline void CFCMC::InflatingMolecule()
       lambdaOld = lambdaNew; 
       RelaxingMolecules();
     }
-    //pick new lambda
-    lambdaNew = lambdaOld + (prng.randInt(1) ? lambdaMax : -lambdaMax);
     UpdateBias();
     uint idxOld = GetLambdaIdx(lambdaOld);
     if(idxOld == 0 || idxOld == lambdaWindow) {
       break;
     }
+    //pick new lambda
+    lambdaNew = lambdaOld + (prng.randInt(1) ? lambdaMax : -lambdaMax);
   }
 }
 
