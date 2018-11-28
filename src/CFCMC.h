@@ -33,11 +33,17 @@ public:
       nuTolerance = 1e-6;
       uint totKind = molRef.GetKindsCount();
       nu.resize(totKind, 0.01);
-      hist.resize(totKind);
-      bias.resize(totKind);
-      for(uint k = 0; k < totKind; k++) {
-        hist[k].resize(lambdaWindow + 1, 0);
-        bias[k].resize(lambdaWindow + 1, 0.0);
+      hist.resize(BOX_TOTAL);
+      bias.resize(BOX_TOTAL);
+      for(uint b = 0; b < BOX_TOTAL; b++) {
+	hist[b].resize(totKind);
+	bias[b].resize(totKind);
+      }
+      for(uint b = 0; b < BOX_TOTAL; b++) {
+	for(uint k = 0; k < totKind; k++) {
+	  hist[b][k].resize(lambdaWindow + 1, 0);
+	  bias[b][k].resize(lambdaWindow + 1, 0.0);
+	}
       }
     }
 
@@ -73,7 +79,7 @@ private:
   uint molIndex, kindIndex;
   uint lambdaWindow, histFreq;
   uint eqCycle;
-  vector< vector<uint> > hist;
+  vector< vector< vector<uint> > > hist;
   vector< vector<uint> > relaxMolecule;
 
   double W_tc, W_recip;
@@ -82,7 +88,7 @@ private:
   double lambdaOld, lambdaNew;
   double relaxRadiusSq;
   double *lambdaRef;
-  vector< vector<double> > bias;
+  vector< vector< vector<double> > > bias;
   vector< double > nu;
 
   //variable needs for relaxing
@@ -113,7 +119,7 @@ void CFCMC::PrintAcceptKind() {
   for(uint k = 0; k < molRef.GetKindsCount(); k++) {
     std::cout << "hist " << molRef.kinds[k].name.c_str() << ": ";
     for(uint i = 0; i <= lambdaWindow; i++) {
-      std::cout <<  hist[k][i] << " ";
+      std::cout <<  hist[0][k][i] << " ";
     }
     std::cout << std::endl;
   }
@@ -121,7 +127,7 @@ void CFCMC::PrintAcceptKind() {
   for(uint k = 0; k < molRef.GetKindsCount(); k++) {
     std::cout << "Bias " << molRef.kinds[k].name.c_str() << ": ";
     for(uint i = 0; i <= lambdaWindow; i++) {
-      std::cout <<  bias[k][i] << " ";
+      std::cout <<  bias[0][k][i] << " ";
     }
     std::cout << std::endl;
   }
@@ -239,11 +245,17 @@ inline void CFCMC::CalcEnCFCMC(bool calcNewEn)
 
 inline double CFCMC::GetCoeff() const
 {
-  uint idxNew = GetLambdaIdx(lambdaNew);
-  uint idxOld = GetLambdaIdx(lambdaOld);
-  double biasCoef = exp(bias[kindIndex][idxNew] - bias[kindIndex][idxOld]);
+  uint idxSNew = GetLambdaIdx(lambdaNew);
+  uint idxSOld = GetLambdaIdx(lambdaOld);
+  uint idxDNew = GetLambdaIdx(1.0 - lambdaNew);
+  uint idxDOld = GetLambdaIdx(1.0 - lambdaOld);
+  double biasCoef = exp(bias[sourceBox][kindIndex][idxSNew] -
+			bias[sourceBox][kindIndex][idxSOld]);
+  biasCoef *= exp(bias[destBox][kindIndex][idxDNew] -
+		  bias[destBox][kindIndex][idxDOld]);
 
-  if(idxNew > 0) {
+  //if lambda source is > 0, its not a full molecule
+  if(idxSNew > 0) {
     return biasCoef;
   } else {
     #if ENSEMBLE == GEMC
@@ -321,26 +333,42 @@ inline void CFCMC::UpdateBias()
   if(nu[kindIndex] <= nuTolerance)
     return;
 
-  //Find the index
-  uint idx = GetLambdaIdx(lambdaOld);
+  //Find the index for source and dest box
+  uint idxS = GetLambdaIdx(lambdaOld);
+  uint idxD = GetLambdaIdx(1.0 - lambdaOld);
+#if ENSEMBLE == GCMC
+  if(sourceBox == mv::BOX0) {
+    hist[sourceBox][kindIndex][idxS] += 1;
+    bias[sourceBox][kindIndex][idxS] -= nu[kindIndex];
+  } else {
+    hist[destBox][kindIndex][idxD] += 1;
+    bias[destBox][kindIndex][idxD] -= nu[kindIndex];
+  }
+#else
+  hist[sourceBox][kindIndex][idxS] += 1;
+  bias[sourceBox][kindIndex][idxS] -= nu[kindIndex];
+  hist[destBox][kindIndex][idxD] += 1;
+  bias[destBox][kindIndex][idxD] -= nu[kindIndex];
+#endif
+  uint box[2];
+  box[0] = sourceBox;
+  box[1] = destBox;
 
-  hist[kindIndex][idx] += 1;
-  bias[kindIndex][idx] -= nu[kindIndex];
-
-  uint trial = std::accumulate(hist[kindIndex].begin(),
-                               hist[kindIndex].end(), 0);
-
-  if((trial + 1) % histFreq == 0) {
-    uint maxVisited = *max_element(hist[kindIndex].begin(),
-                                   hist[kindIndex].end());
-    uint minVisited = *min_element(hist[kindIndex].begin(),
-                                   hist[kindIndex].end());
-    //check to see if all the bin is visited atleast 30% of 
-    // the most visited bin.                               
-    if(minVisited > 0.3 * maxVisited) {
-      nu[kindIndex] = 0.5 * nu[kindIndex];
-      std::fill_n(hist[kindIndex].begin(), lambdaWindow + 1, 0);
-    }                               
+  for(uint b = 0; b < 2; b++) {
+    uint trial = std::accumulate(hist[box[b]][kindIndex].begin(),
+				 hist[box[b]][kindIndex].end(), 0);
+    if((trial + 1) % histFreq == 0) {
+      uint maxVisited = *max_element(hist[box[b]][kindIndex].begin(),
+				     hist[box[b]][kindIndex].end());
+      uint minVisited = *min_element(hist[box[b]][kindIndex].begin(),
+				     hist[box[b]][kindIndex].end());
+      //check to see if all the bin is visited atleast 30% of 
+      // the most visited bin.                               
+      if(minVisited > 0.3 * maxVisited) {
+	nu[kindIndex] *= 0.5;
+	std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
+      }                               
+    }
   }
 }
 
