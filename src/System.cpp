@@ -254,7 +254,7 @@ void System::PrintTime()
   //std::cout << "MC moves Execution time:\n";
   printf("%-36s %10.4f    sec.\n", "Displacement:", moveTime[mv::DISPLACE]);
   printf("%-36s %10.4f    sec.\n", "Rotation:", moveTime[mv::ROTATE]);
-  printf("%-30s %10.4f    sec.\n", "MultiParticle:", moveTime[mv::MULTIPARTICLE]);
+  printf("%-36s %10.4f    sec.\n", "MultiParticle:", moveTime[mv::MULTIPARTICLE]);
   printf("%-36s %10.4f    sec.\n", "Intra-Swap:", moveTime[mv::INTRA_SWAP]);
   printf("%-36s %10.4f    sec.\n", "Regrowth:", moveTime[mv::REGROWTH]);
   printf("%-36s %10.4f    sec.\n", "Intra-MEMC:", moveTime[mv::INTRA_MEMC]);
