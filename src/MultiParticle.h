@@ -3,6 +3,7 @@
 #include "MoveBase.h"
 #include "System.h"
 #include "StaticVals.h"
+#include <cmath>
 
 namespace mp {
   const int MPDISPLACE = 0;
@@ -246,21 +247,21 @@ inline long double MultiParticle::GetCoeff()
       {
         lbt_new = molTorqueNew.Get(molNumber) * lBeta;
 
-	w_ratio_t *= lbt_new.x * exp(lbt_new.x * -1.0 * r_k.Get(molNumber).x)/
-	  (2.0*sinh(lbt_new.x * r_max[bPick]));
-	w_ratio_t *= lbt_new.y * exp(lbt_new.y * -1.0 * r_k.Get(molNumber).y)/
-	  (2.0*sinh(lbt_new.y * r_max[bPick]));
-	w_ratio_t *= lbt_new.z * exp(lbt_new.z * -1.0 * r_k.Get(molNumber).z)/
-	  (2.0*sinh(lbt_new.z * r_max[bPick]));
+        w_ratio_t *= lbt_new.x * exp(lbt_new.x * -1.0 * r_k.Get(molNumber).x)/
+          (2.0*sinh(lbt_new.x * r_max[bPick]));
+        w_ratio_t *= lbt_new.y * exp(lbt_new.y * -1.0 * r_k.Get(molNumber).y)/
+          (2.0*sinh(lbt_new.y * r_max[bPick]));
+        w_ratio_t *= lbt_new.z * exp(lbt_new.z * -1.0 * r_k.Get(molNumber).z)/
+          (2.0*sinh(lbt_new.z * r_max[bPick]));
 
-	w_ratio_t /= lbt_old.x * exp(lbt_old.x * r_k.Get(molNumber).x)/
-	  (2.0*sinh(lbt_old.x * r_max[bPick]));
-	w_ratio_t /= lbt_old.y * exp(lbt_old.y * r_k.Get(molNumber).y)/
-	  (2.0*sinh(lbt_old.y * r_max[bPick]));
-	w_ratio_t /= lbt_old.z * exp(lbt_old.z * r_k.Get(molNumber).z)/
-	  (2.0*sinh(lbt_old.z * r_max[bPick]));
+        w_ratio_t /= lbt_old.x * exp(lbt_old.x * r_k.Get(molNumber).x)/
+          (2.0*sinh(lbt_old.x * r_max[bPick]));
+        w_ratio_t /= lbt_old.y * exp(lbt_old.y * r_k.Get(molNumber).y)/
+          (2.0*sinh(lbt_old.y * r_max[bPick]));
+        w_ratio_t /= lbt_old.z * exp(lbt_old.z * r_k.Get(molNumber).z)/
+          (2.0*sinh(lbt_old.z * r_max[bPick]));
       
-	w_ratio *= w_ratio_t;
+	      w_ratio *= w_ratio_t;
       }
     } else {
       // displace
@@ -268,24 +269,24 @@ inline long double MultiParticle::GetCoeff()
 	      lBeta;
       if(lbf_old.Length())
       {
-	lbf_new = (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber))*
-	  lBeta;
+        lbf_new = (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber))*
+          lBeta;
 
-	w_ratio_t *= lbf_new.x * exp(lbf_new.x * -1.0 * t_k.Get(molNumber).x)/
-	  (2.0*sinh(lbf_new.x * t_max[bPick]));
-	w_ratio_t *= lbf_new.y * exp(lbf_new.y * -1.0 * t_k.Get(molNumber).y)/
-	  (2.0*sinh(lbf_new.y * t_max[bPick]));
-	w_ratio_t *= lbf_new.z * exp(lbf_new.z * -1.0 * t_k.Get(molNumber).z)/
-	  (2.0*sinh(lbf_new.z * t_max[bPick]));
+        w_ratio_t *= lbf_new.x * exp(lbf_new.x * -1.0 * t_k.Get(molNumber).x)/
+          (2.0*sinh(lbf_new.x * t_max[bPick]));
+        w_ratio_t *= lbf_new.y * exp(lbf_new.y * -1.0 * t_k.Get(molNumber).y)/
+          (2.0*sinh(lbf_new.y * t_max[bPick]));
+        w_ratio_t *= lbf_new.z * exp(lbf_new.z * -1.0 * t_k.Get(molNumber).z)/
+          (2.0*sinh(lbf_new.z * t_max[bPick]));
 
-	w_ratio_t /= lbf_old.x * exp(lbf_old.x * t_k.Get(molNumber).x)/
-	  (2.0*sinh(lbf_old.x * t_max[bPick]));
-	w_ratio_t /= lbf_old.y * exp(lbf_old.y * t_k.Get(molNumber).y)/
-	  (2.0*sinh(lbf_old.y * t_max[bPick]));
-	w_ratio_t /= lbf_old.z * exp(lbf_old.z * t_k.Get(molNumber).z)/
-	  (2.0*sinh(lbf_old.z * t_max[bPick]));
-      
-	w_ratio *= w_ratio_t;
+        w_ratio_t /= lbf_old.x * exp(lbf_old.x * t_k.Get(molNumber).x)/
+          (2.0*sinh(lbf_old.x * t_max[bPick]));
+        w_ratio_t /= lbf_old.y * exp(lbf_old.y * t_k.Get(molNumber).y)/
+          (2.0*sinh(lbf_old.y * t_max[bPick]));
+        w_ratio_t /= lbf_old.z * exp(lbf_old.z * t_k.Get(molNumber).z)/
+          (2.0*sinh(lbf_old.z * t_max[bPick]));
+            
+        w_ratio *= w_ratio_t;
       }
     }
   }
@@ -293,7 +294,7 @@ inline long double MultiParticle::GetCoeff()
   // In case where force or torque is a large negative number (ex. -800)
   // the exp value becomes inf. In these situations we have to return 0 to
   // reject the move
-  if(isinf(w_ratio))
+  if(!std::isfinite(w_ratio))
     return 0.0;
   else
     return w_ratio;
@@ -350,6 +351,13 @@ inline void MultiParticle::CalculateTrialDistRot()
         rand = prng();
         num.z = log(exp(-1.0 * lbtmax.z ) + 2 * rand * sinh(lbtmax.z ));
         num /= lbt;
+        if(!std::isfinite(num.x) || !std::isfinite(num.y) 
+          || !std::isfinite(num.z)) {
+          std::cerr << "Force is probably a really high value.\n";
+          std::cerr 
+            << "Please equilbriate your system and re-run the simulation.\n";
+          exit(EXIT_FAILURE);
+        }
       }
       r_k.Set(molIndex, num);
     }
@@ -365,6 +373,13 @@ inline void MultiParticle::CalculateTrialDistRot()
         rand = prng();
         num.z = log(exp(-1.0 * lbfmax.z ) + 2 * rand * sinh(lbfmax.z ));
         num /= lbf;
+        if(!std::isfinite(num.x) || !std::isfinite(num.y) 
+          || !std::isfinite(num.z)) {
+          std::cerr << "Force is probably a really high value.\n";
+          std::cerr 
+            << "Please equilbriate your system and re-run the simulation.\n";
+          exit(EXIT_FAILURE);
+        }
       }
       t_k.Set(molIndex, num);
     }
@@ -378,11 +393,8 @@ void MultiParticle::RotateForceBiased(uint molIndex)
   RotationMatrix matrix;
   if(rotLen) {
     matrix = RotationMatrix::FromAxisAngle(rotLen, rot * (1.0/rotLen));
-  } else { // if torque is zero we exit
+  } else { // if torque is zero we ignore the molecule
     return;
-    /*std::cerr << "Error: Zero torque detected!" << std::endl
-              << "Exiting!" << std::endl;
-    exit(EXIT_FAILURE);*/
   }
 
   XYZ center = newCOMs.Get(molIndex);
@@ -408,12 +420,9 @@ void MultiParticle::RotateForceBiased(uint molIndex)
 void MultiParticle::TranslateForceBiased(uint molIndex)
 {
   XYZ shift = t_k.Get(molIndex);
-  //If force was zero, exit the application
+  //If force was zero, ignore this molecule
   if(!shift.Length()) {
     return;
-    /*std::cerr << "Error: Zero force detected!" << std::endl
-              << "Exiting!" << std::endl;
-    exit(EXIT_FAILURE);*/
   }
 
   XYZ newcom = newCOMs.Get(molIndex);
