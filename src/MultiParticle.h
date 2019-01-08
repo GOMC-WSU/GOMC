@@ -294,10 +294,12 @@ inline long double MultiParticle::GetCoeff()
   // In case where force or torque is a large negative number (ex. -800)
   // the exp value becomes inf. In these situations we have to return 0 to
   // reject the move
-  if(!std::isfinite(w_ratio))
+  if(!std::isfinite(w_ratio)) {
+    // This error can be removed later on once we know this part actually works.
+    std::cout << "w_ratio is not a finite number. Auto-rejecting move.\n";
     return 0.0;
-  else
-    return w_ratio;
+  }
+  return w_ratio;
 }
 
 inline void MultiParticle::Accept(const uint rejectState, const uint step)
