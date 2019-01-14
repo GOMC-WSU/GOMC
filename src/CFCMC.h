@@ -21,12 +21,10 @@ public:
 
   CFCMC(System &sys, StaticVals const& statV) :
     ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
-    lambdaRef(sys.lambdaRef), MoveBase(sys, statV) 
+      lambdaRef(sys.lambdaRef), MoveBase(sys, statV)
     {
-      relaxMolecule.resize(BOX_TOTAL);
       totalMolecule = comCurrRef.Count();
-      eqCycle = 1;
-      relaxRadiusSq = 10 * 10;
+      eqSteps = 10;
       lambdaWindow = 10;
       histFreq = 1000;
       lambdaMax = 1.0 / (double)(lambdaWindow);
@@ -60,7 +58,6 @@ private:
   void ShiftMolToSourceBox();
   void ShiftMolToDestBox();
   void UpdateBias();
-  void FindRelaxingMolecules(uint box);
   void InflatingMolecule();
   bool AcceptInflating();
   void AcceptRelaxing(uint box);
@@ -68,26 +65,22 @@ private:
   void CalcEnRelaxing(uint box);
   void TransformRelaxing(uint box);
   void RelaxingMolecules();
-  uint GetLambdaIdx(double lambda) const 
-    {return ((uint)(lambda * lambdaWindow));}
   
-
-  MolPick molPick;
   uint totalMolecule;
   uint sourceBox, destBox;
   uint pStartCFCMC, pLenCFCMC;
   uint molIndex, kindIndex;
   uint lambdaWindow, histFreq;
-  uint eqCycle;
+  uint lambdaIdxOld, lambdaIdxNew;
+  uint eqSteps;
   vector< vector< vector<uint> > > hist;
   vector< vector<uint> > relaxMolecule;
 
   double W_tc, W_recip;
   double correct_old, correct_new, self_old, self_new;
   double lambdaMax, nuTolerance;
-  double lambdaOld, lambdaNew;
-  double relaxRadiusSq;
   double *lambdaRef;
+  double molInSourceBox, molInDestBox;
   vector< vector< vector<double> > > bias;
   vector< double > nu;
 
@@ -96,6 +89,7 @@ private:
   XYZ newCOM;
   XYZArray newMolPos;
   Intermolecular inter_LJ, inter_Real, recip;
+  double sDraw, mPerc;
 
 
   cbmc::TrialMol oldMolCFCMC, newMolCFCMC;
@@ -103,11 +97,13 @@ private:
   Energy oldEnergy[BOX_TOTAL], newEnergy[BOX_TOTAL];
   MoleculeLookup & molLookRef;
   Forcefield const& ffRef;
+  SystemPotential sysPotNew;
 };
 
 void CFCMC::PrintAcceptKind() {
   for(uint k = 0; k < molRef.GetKindsCount(); k++) {
-    printf("%-30s %-5s ", "% Accepted CFCMC-Transfer ", molRef.kinds[k].name.c_str());
+    printf("%-30s %-5s ", "% Accepted CFCMC-Transfer ",
+	   molRef.kinds[k].name.c_str());
     for(uint b = 0; b < BOX_TOTAL; b++) {
       if(moveSetRef.GetTrial(b, mv::CFCMC, k) > 0)
         printf("%10.5f ", (100.0 * moveSetRef.GetAccept(b, mv::CFCMC, k)));
@@ -157,6 +153,8 @@ inline uint CFCMC::GetBoxPairAndMol(const double subDraw, const double movPerc)
 inline uint CFCMC::Prep(const double subDraw, const double movPerc)
 {
   overlap = false;
+  sDraw = subDraw;
+  mPerc = movPerc;
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if (state == mv::fail_state::NO_FAIL) {
     newMolCFCMC = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
@@ -173,6 +171,9 @@ inline uint CFCMC::Prep(const double subDraw, const double movPerc)
     temp.AddRange(0, pLenCFCMC, pickCOM);
     boxDimRef.WrapPBC(temp, destBox);
     newMolCFCMC.SetCoords(temp, 0);
+    // store number of molecule in box before shifting molecule
+    molInSourceBox = (double)molLookRef.NumKindInBox(kindIndex, sourceBox);
+    molInDestBox = (double)molLookRef.NumKindInBox(kindIndex, destBox);
   }
   return state;
 }
@@ -180,12 +181,8 @@ inline uint CFCMC::Prep(const double subDraw, const double movPerc)
 
 inline uint CFCMC::Transform()
 {
-  //Find the relaxing molecules in source box before shifting the molecule
-  FindRelaxingMolecules(sourceBox);
   //Transfer the molecule to destBox
   ShiftMolToDestBox();
-  //Find the relaxing molecules in dest box after shifting the molecule
-  FindRelaxingMolecules(destBox);
   InflatingMolecule();
   return mv::fail_state::NO_FAIL;
 }
@@ -204,12 +201,16 @@ inline void CFCMC::CalcEnCFCMC(bool calcNewEn)
   self_new = 0.0;
   tcLose.Zero();
   tcGain.Zero();
+  bool calcLRC = false;
 
-
-  uint idxNew = GetLambdaIdx(lambdaNew);
-  //if lambda is zero, it means molecule successfully  transfered.
-  if(idxNew == 0 && calcNewEn) {
-    if(ffRef.useLRC) {
+  //if lambdaIdxNew is zero, it means molecule successfully  transfered.
+  if(ffRef.useLRC && calcNewEn) {
+    if(sourceBox == mv::BOX0) {
+      calcLRC = (lambdaIdxOld == lambdaWindow);
+    } else {
+      calcLRC = (lambdaIdxNew == 0);
+    }
+    if(calcLRC) {
       ShiftMolToSourceBox();
       tcLose = calcEnRef.MoleculeTailChange(sourceBox, kindIndex, false);
       tcGain = calcEnRef.MoleculeTailChange(destBox, kindIndex, true);
@@ -245,47 +246,50 @@ inline void CFCMC::CalcEnCFCMC(bool calcNewEn)
 
 inline double CFCMC::GetCoeff() const
 {
-  uint idxSNew = GetLambdaIdx(lambdaNew);
-  uint idxSOld = GetLambdaIdx(lambdaOld);
-  uint idxDNew = GetLambdaIdx(1.0 - lambdaNew);
-  uint idxDOld = GetLambdaIdx(1.0 - lambdaOld);
+  uint idxSNew = lambdaIdxNew;
+  uint idxSOld = lambdaIdxOld;
+  uint idxDNew = lambdaWindow - lambdaIdxNew;
+  uint idxDOld = lambdaWindow - lambdaIdxOld;;
   double biasCoef = exp(bias[sourceBox][kindIndex][idxSNew] -
 			bias[sourceBox][kindIndex][idxSOld]);
   biasCoef *= exp(bias[destBox][kindIndex][idxDNew] -
 		  bias[destBox][kindIndex][idxDOld]);
+  //biasCoef = 1.0;
 
   //if lambda source is > 0, its not a full molecule
-  if(idxSNew > 0) {
-    return biasCoef;
+#if ENSEMBLE == GCMC
+  double coef = 1.0;
+  if(sourceBox == mv::BOX0) {
+    //deletion 
+    if(idxSOld == lambdaWindow) {
+      coef *= molInSourceBox * boxDimRef.volInv[sourceBox];
+      coef *= exp(-BETA * molRef.kinds[kindIndex].chemPot);
+      coef *= 0.5;
+    } else if(idxSNew == lambdaWindow) {  
+      coef *= boxDimRef.volume[sourceBox] / molInSourceBox;
+      coef *= exp(BETA * molRef.kinds[kindIndex].chemPot);
+      coef *= 2.0;
+    } else if(idxSNew == 0) {
+      coef *= 2.0;
+    }
+    return coef * biasCoef;
+    
   } else {
-    #if ENSEMBLE == GEMC
-      return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) /
-            (double)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
-            boxDimRef.volume[destBox] * boxDimRef.volInv[sourceBox] * biasCoef;
-    #elif ENSEMBLE == GCMC
-      if (sourceBox == mv::BOX0) { //Delete case
-        if(ffRef.isFugacity) {
-          return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
-                boxDimRef.volInv[sourceBox] /
-                (BETA * molRef.kinds[kindIndex].chemPot) * biasCoef;
-        } else {
-          return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
-                boxDimRef.volInv[sourceBox] *
-                exp(-BETA * molRef.kinds[kindIndex].chemPot) * biasCoef;
-        }
-      } else { //Insertion case
-        if(ffRef.isFugacity) {
-          return boxDimRef.volume[destBox] /
-                (double)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
-                (BETA * molRef.kinds[kindIndex].chemPot) * biasCoef;
-        } else {
-          return boxDimRef.volume[destBox] /
-                (double)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
-                exp(BETA * molRef.kinds[kindIndex].chemPot) * biasCoef;
-        }
-      }
-    #endif
-  }
+    //insertion
+    if(idxDNew == lambdaWindow) {  
+      coef *= boxDimRef.volume[destBox] / (molInDestBox + 1.0);
+      coef *= exp(BETA * molRef.kinds[kindIndex].chemPot);
+      coef *= 2.0;
+    } else if(idxDNew == 0) {
+      coef *= 2.0;
+    } else if(idxDOld == 0) {
+      coef *= 0.5;
+    } 
+    return coef * biasCoef;
+    
+  } 
+#endif
+
 }
 
 inline void CFCMC::Accept(const uint rejectState, const uint step)
@@ -293,9 +297,8 @@ inline void CFCMC::Accept(const uint rejectState, const uint step)
   bool result = false;
   //If we didn't skip the move calculation
   if(rejectState == mv::fail_state::NO_FAIL) {
-    uint idxNew = GetLambdaIdx(lambdaNew);
-    //If lambdaNew is zero, it means molecule transfered to dest.
-    result = (idxNew == 0);
+    //If lambdaIdxOld is zero, it means molecule transfered to destBox.
+    result = (lambdaIdxOld == 0);
     if(!result) {   
       //Set full interaction in sourceBox, zero interaction in destBox
       lambdaRef[sourceBox * totalMolecule + molIndex] = 1.0;
@@ -334,15 +337,15 @@ inline void CFCMC::UpdateBias()
     return;
 
   //Find the index for source and dest box
-  uint idxS = GetLambdaIdx(lambdaOld);
-  uint idxD = GetLambdaIdx(1.0 - lambdaOld);
+  uint idxS = lambdaIdxOld;
+  uint idxD = lambdaWindow - lambdaIdxOld;
 #if ENSEMBLE == GCMC
   if(sourceBox == mv::BOX0) {
     hist[sourceBox][kindIndex][idxS] += 1;
-    bias[sourceBox][kindIndex][idxS] -= nu[kindIndex];
+    //bias[sourceBox][kindIndex][idxS] -= nu[kindIndex];
   } else {
     hist[destBox][kindIndex][idxD] += 1;
-    bias[destBox][kindIndex][idxD] -= nu[kindIndex];
+    //bias[destBox][kindIndex][idxD] -= nu[kindIndex];
   }
 #else
   hist[sourceBox][kindIndex][idxS] += 1;
@@ -362,9 +365,14 @@ inline void CFCMC::UpdateBias()
 				     hist[box[b]][kindIndex].end());
       uint minVisited = *min_element(hist[box[b]][kindIndex].begin(),
 				     hist[box[b]][kindIndex].end());
+
+      for(uint i = 0; i <= lambdaWindow; i++) {
+	bias[0][kindIndex][i] = log(1.0 / hist[0][kindIndex][i]);
+      }
+      
       //check to see if all the bin is visited atleast 30% of 
       // the most visited bin.                               
-      if(minVisited > 0.3 * maxVisited) {
+      if(minVisited > 0.95 * maxVisited) {
 	nu[kindIndex] *= 0.5;
 	std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
       }                               
@@ -372,43 +380,16 @@ inline void CFCMC::UpdateBias()
   }
 }
 
-inline void CFCMC::FindRelaxingMolecules(uint box)
-{
-  //Molecule has to be transfered before calling this function
-  relaxMolecule[box].clear();
-  if(box >= BOXES_WITH_U_NB) {
-    return;
-  }
-
-  XYZ center = comCurrRef.Get(molIndex);
-  double minLengthSq;
-  XYZ diff;
-
-  MoleculeLookup::box_iterator n = molLookRef.BoxBegin(box);
-  MoleculeLookup::box_iterator end = molLookRef.BoxEnd(box);
-  while (n != end) {
-    if(*n != molIndex) {
-      diff = comCurrRef.Get(*n) - center;
-      minLengthSq = boxDimRef.MinImage(diff, box).LengthSq();
-      if( minLengthSq < relaxRadiusSq){
-        //if molecule can move and its not the growing molecule
-        if(!molLookRef.IsFix(*n)) {
-          relaxMolecule[box].push_back(*n);
-        }
-      }
-    }
-    n++;
-  }
-}
 
 inline void CFCMC::InflatingMolecule()
 {
   //Start with full interaction in sourceBox, zero interaction in destBox
-  lambdaOld = 1.0;
-  //pick new lambda
-  lambdaNew = lambdaOld + (prng.randInt(1) ? lambdaMax : -lambdaMax);
+  lambdaIdxOld = lambdaWindow;
+  lambdaIdxNew = lambdaIdxOld - 1;
   UpdateBias();
-  while(lambdaNew >= 0.0 && lambdaNew <= 1.0) {
+  do {
+    double lambdaOld = (double)(lambdaIdxOld) * lambdaMax;
+    double lambdaNew = (double)(lambdaIdxNew) * lambdaMax;
     //Set the interaction in source and destBox 
     lambdaRef[sourceBox * totalMolecule + molIndex] = lambdaOld;
     lambdaRef[destBox * totalMolecule + molIndex] = 1.0 - lambdaOld;
@@ -419,19 +400,18 @@ inline void CFCMC::InflatingMolecule()
     lambdaRef[destBox * totalMolecule + molIndex] = 1.0 - lambdaNew;
     //Calculate the new energy
     CalcEnCFCMC(true);
-    bool accepted = AcceptInflating();
-    if(accepted) {
-      lambdaOld = lambdaNew; 
-      RelaxingMolecules();
+    bool acceptedInflate = AcceptInflating();
+    if(acceptedInflate) {
+      lambdaIdxOld = lambdaIdxNew; 
+    } else {
+      lambdaRef[sourceBox * totalMolecule + molIndex] = lambdaOld;
+      lambdaRef[destBox * totalMolecule + molIndex] = 1.0 - lambdaOld;
     }
+    RelaxingMolecules();
     UpdateBias();
-    uint idxOld = GetLambdaIdx(lambdaOld);
-    if(idxOld == 0 || idxOld == lambdaWindow) {
-      break;
-    }
-    //pick new lambda
-    lambdaNew = lambdaOld + (prng.randInt(1) ? lambdaMax : -lambdaMax);
-  }
+    //pick new lambda from [-lambdaMax, lambdaMax]
+    lambdaIdxNew = lambdaIdxOld + (prng.randInt(1) ? 1 : -1);
+  } while(lambdaIdxOld > 0 && lambdaIdxOld < lambdaWindow);
 }
 
 inline bool CFCMC::AcceptInflating()
@@ -466,32 +446,37 @@ inline bool CFCMC::AcceptInflating()
 
 
 inline void CFCMC::RelaxingMolecules()
-{
-  long sourceSteps = eqCycle * relaxMolecule[sourceBox].size();
-  long destSteps = eqCycle * relaxMolecule[destBox].size();
+{/*
+  if(lambdaIdxOld == 0 || lambdaIdxOld == lambdaWindow)
+    eqSteps = 10;
+  else
+    eqSteps = 10;
+ */
   ShiftMolToSourceBox();
   if(sourceBox < BOXES_WITH_U_NB) {
-    for(uint s = 0; s < sourceSteps; s++) {
+    for(uint s = 0; s < eqSteps; s++) {
       TransformRelaxing(sourceBox);
       CalcEnRelaxing(sourceBox);
       AcceptRelaxing(sourceBox);
     }
+    oldMolCFCMC.SetCoords(coordCurrRef, pStartCFCMC);
   }
+
   ShiftMolToDestBox();
   if(destBox < BOXES_WITH_U_NB) {
-    for(uint s = 0; s < destSteps; s++) {
+    for(uint s = 0; s < eqSteps; s++) {
       TransformRelaxing(destBox);
       CalcEnRelaxing(destBox);
       AcceptRelaxing(destBox);
     }
+    newMolCFCMC.SetCoords(coordCurrRef, pStartCFCMC);
   }
 }
 
 inline void CFCMC::TransformRelaxing(uint b)
 {
-  uint pickedMol = prng.randIntExc(relaxMolecule[b].size());
-  m = relaxMolecule[b][pickedMol];
-  mk = molRef.GetMolKind(m);
+  //Randomely pick a molecule in Box
+  prng.PickMol(m, mk, b, sDraw, mPerc);
   pStart = 0, pLen = 0;
   molRef.GetRangeStartLength(pStart, pLen, m);
   newMolPos.Uninit();
