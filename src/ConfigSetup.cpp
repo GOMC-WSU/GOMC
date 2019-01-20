@@ -12,8 +12,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "ConfigSetup.h"
 
-//#define UINT_MAX 0xffffffff
-//#define ULONG_MAX 0xffffffffUL
 #define DBL_MAX 1.7976931348623158e+308
 
 int stringtoi(const std::string& s)
@@ -658,6 +656,15 @@ void ConfigSetup::Init(const char *fileName)
     else if(CheckString(line[0], "OutputName")) {
       out.statistics.settings.uniqueStr.val = line[1];
       printf("%-40s %-s \n", "Info: Output name", line[1].c_str());
+    } else if(CheckString(line[0], "CheckpointFreq")) {
+      out.checkpoint.enable = checkBool(line[1]);
+      if(line.size() == 3)
+        out.checkpoint.frequency = stringtoi(line[2]);
+      if(out.checkpoint.enable)
+        printf("%-40s %-lu \n", "Info: Checkpoint frequency",
+               out.checkpoint.frequency);
+      else
+        printf("%-40s %-s \n", "Info: Saving checkpoint", "Inactive");
     } else if(CheckString(line[0], "CoordinatesFreq")) {
       out.state.settings.enable = checkBool(line[1]);
       if(line.size() == 3)
