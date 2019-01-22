@@ -8,6 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "OutputAbstracts.h"
 #include "MoveSettings.h"
+#include "Coordinates.h"
 #include <iostream>
 
 class CheckpointOutput : OutputableBase
@@ -24,11 +25,21 @@ public:
 private:
   MoveSettings & moveSetRef;
   MoleculeLookup & molLookupRef;
-  BoxDimensions& boxDimRef;
-  Molecules const& molRef;
+  BoxDimensions & boxDimRef;
+  Molecules const & molRef;
   Coordinates & coordCurrRef;
   COM & comCurrRef;
-  std::string filename;
+  PRNG & prngRef;
 
   bool enableOutCheckpoint;
+  std::string filename;
+  FILE* outputFile;
+
+  void openOutputFile();
+  void printStepNumber(const ulong step);
+  void printRandomNumbers();
+  void printCoordinates();
+  void printMoleculeLookupData();
+  void outputDoubleIn8Chars(double data);
+  void outputUintIn8Chars(uint32_t data);
 };

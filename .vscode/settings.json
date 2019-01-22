@@ -12,6 +12,12 @@
     "type_traits": "cpp",
     "typeinfo": "cpp",
     "algorithm": "cpp",
-    "iostream": "cpp"
+    "iostream": "cpp",
+    "cctype": "cpp",
+    "cmath": "cpp",
+    "cstdio": "cpp",
+    "cstdlib": "cpp",
+    "cstring": "cpp",
+    "ctime": "cpp"
   }
 }
