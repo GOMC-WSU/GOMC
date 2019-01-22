@@ -43,6 +43,7 @@ void CheckpointOutput::DoOutput(const ulong step)
   if(enableOutCheckpoint) {
     openOutputFile();
     printStepNumber(step);
+    printBoxDimensionsData();
     printRandomNumbers();
     printCoordinates();
     printMoleculeLookupData();
@@ -54,6 +55,22 @@ void CheckpointOutput::printStepNumber(const ulong step)
 {
   uint32_t s = step;
   outputUintIn8Chars(s);
+}
+
+void CheckpointOutput::printBoxDimensionsData()
+{
+  // print the number of boxes
+  uint32_t totalBoxes = BOX_TOTAL;
+  outputUintIn8Chars(totalBoxes);
+  for(int b=0; b<totalBoxes; b++) {
+    XYZ axis = boxDimRef.axis.Get(b);
+    outputDoubleIn8Chars(axis.x);
+    outputDoubleIn8Chars(axis.y);
+    outputDoubleIn8Chars(axis.z);
+    outputDoubleIn8Chars(boxDimRef.cosAngle[b][0]);
+    outputDoubleIn8Chars(boxDimRef.cosAngle[b][1]);
+    outputDoubleIn8Chars(boxDimRef.cosAngle[b][2]);
+  }
 }
 
 void CheckpointOutput::printRandomNumbers()
@@ -120,20 +137,6 @@ void CheckpointOutput::printMoleculeLookupData()
   //print the fixedAtom array itself
   for(int i=0; i<molLookupRef.fixedAtom.size(); i++) {
     outputUintIn8Chars(molLookupRef.fixedAtom[i]);
-  }
-
-  // print the canSwapKind array size
-  outputUintIn8Chars(molLookupRef.canSwapKind.size());
-  //print the canSwapKind array
-  for(int i=0; i<molLookupRef.canSwapKind.size(); i++) {
-    outputUintIn8Chars(molLookupRef.canSwapKind[i]);
-  }
-
-  // print the size of canMoveKind array
-  outputUintIn8Chars(molLookupRef.canMoveKind.size());
-  // print the canMoveKind array
-  for(int i=0; i<molLookupRef.canMoveKind.size(); i++) {
-    outputUintIn8Chars(molLookupRef.canMoveKind[i]);
   }
 }
 
