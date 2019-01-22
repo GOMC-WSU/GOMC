@@ -40,6 +40,8 @@ private:
   void printRandomNumbers();
   void printCoordinates();
   void printMoleculeLookupData();
+  void printMoveSettingsData();
+
   void outputDoubleIn8Chars(double data);
   void outputUintIn8Chars(uint32_t data);
 };

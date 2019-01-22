@@ -46,6 +46,7 @@ void CheckpointOutput::DoOutput(const ulong step)
     printRandomNumbers();
     printCoordinates();
     printMoleculeLookupData();
+    printMoveSettingsData();
   }
 }
 
@@ -99,7 +100,6 @@ void CheckpointOutput::printMoleculeLookupData()
 {
   // print the size of molLookup array
   outputUintIn8Chars(molLookupRef.molLookupCount);
-
   // print the molLookup array itself
   for(int i=0; i<molLookupRef.molLookupCount; i++) {
     outputUintIn8Chars(molLookupRef.molLookup[i]);
@@ -107,7 +107,6 @@ void CheckpointOutput::printMoleculeLookupData()
 
   // print the size of boxAndKindStart array
   outputUintIn8Chars(molLookupRef.boxAndKindStartCount);
-
   // print the BoxAndKindStart array
   for(int i=0; i<molLookupRef.boxAndKindStartCount; i++) {
     outputUintIn8Chars(molLookupRef.boxAndKindStart[i]);
@@ -118,7 +117,6 @@ void CheckpointOutput::printMoleculeLookupData()
 
   //print the size of fixedAtom array
   outputUintIn8Chars((uint)molLookupRef.fixedAtom.size());
-
   //print the fixedAtom array itself
   for(int i=0; i<molLookupRef.fixedAtom.size(); i++) {
     outputUintIn8Chars(molLookupRef.fixedAtom[i]);
@@ -126,7 +124,6 @@ void CheckpointOutput::printMoleculeLookupData()
 
   // print the canSwapKind array size
   outputUintIn8Chars(molLookupRef.canSwapKind.size());
-
   //print the canSwapKind array
   for(int i=0; i<molLookupRef.canSwapKind.size(); i++) {
     outputUintIn8Chars(molLookupRef.canSwapKind[i]);
@@ -134,10 +131,116 @@ void CheckpointOutput::printMoleculeLookupData()
 
   // print the size of canMoveKind array
   outputUintIn8Chars(molLookupRef.canMoveKind.size());
-
   // print the canMoveKind array
   for(int i=0; i<molLookupRef.canMoveKind.size(); i++) {
     outputUintIn8Chars(molLookupRef.canMoveKind[i]);
+  }
+}
+
+void CheckpointOutput::printMoveSettingsData()
+{
+  uint size_x, size_y, size_z;
+
+  // print size of scale
+  size_x = moveSetRef.scale.size();
+  size_y = moveSetRef.scale[0].size();
+  size_z = moveSetRef.scale[0][0].size();
+  outputUintIn8Chars(size_x);
+  outputUintIn8Chars(size_y);
+  outputUintIn8Chars(size_z);
+
+  // print scale array
+  for(int i=0; i<size_x; i++) {
+    for(int j=0; j<size_y; j++) {
+      for(int k=0; k<size_z; k++) {
+        outputDoubleIn8Chars(moveSetRef.scale[i][j][k]);
+      }
+    }
+  }
+
+  // print size of acceptPercent
+  size_x = moveSetRef.acceptPercent.size();
+  size_y = moveSetRef.acceptPercent[0].size();
+  size_z = moveSetRef.acceptPercent[0][0].size();
+  outputUintIn8Chars(size_x);
+  outputUintIn8Chars(size_y);
+  outputUintIn8Chars(size_z);
+
+  // print acceptPercent array
+  for(int i=0; i<size_x; i++) {
+    for(int j=0; j<size_y; j++) {
+      for(int k=0; k<size_z; k++) {
+        outputDoubleIn8Chars(moveSetRef.acceptPercent[i][j][k]);
+      }
+    }
+  }
+
+  // print size of accepted
+  size_x = moveSetRef.accepted.size();
+  size_y = moveSetRef.accepted[0].size();
+  size_z = moveSetRef.accepted[0][0].size();
+  outputUintIn8Chars(size_x);
+  outputUintIn8Chars(size_y);
+  outputUintIn8Chars(size_z);
+
+  // print accepted array
+  for(int i=0; i<size_x; i++) {
+    for(int j=0; j<size_y; j++) {
+      for(int k=0; k<size_z; k++) {
+        outputUintIn8Chars(moveSetRef.accepted[i][j][k]);
+      }
+    }
+  }
+
+  // print size of tries
+  size_x = moveSetRef.tries.size();
+  size_y = moveSetRef.tries[0].size();
+  size_z = moveSetRef.tries[0][0].size();
+  outputUintIn8Chars(size_x);
+  outputUintIn8Chars(size_y);
+  outputUintIn8Chars(size_z);
+
+  // print tries array
+  for(int i=0; i<size_x; i++) {
+    for(int j=0; j<size_y; j++) {
+      for(int k=0; k<size_z; k++) {
+        outputUintIn8Chars(moveSetRef.tries[i][j][k]);
+      }
+    }
+  }
+
+  // print size of tempAccepted
+  size_x = moveSetRef.tempAccepted.size();
+  size_y = moveSetRef.tempAccepted[0].size();
+  size_z = moveSetRef.tempAccepted[0][0].size();
+  outputUintIn8Chars(size_x);
+  outputUintIn8Chars(size_y);
+  outputUintIn8Chars(size_z);
+
+  // print tempAccepted array
+  for(int i=0; i<size_x; i++) {
+    for(int j=0; j<size_y; j++) {
+      for(int k=0; k<size_z; k++) {
+        outputUintIn8Chars(moveSetRef.tempAccepted[i][j][k]);
+      }
+    }
+  }
+
+  // print size of tempTries
+  size_x = moveSetRef.tempTries.size();
+  size_y = moveSetRef.tempTries[0].size();
+  size_z = moveSetRef.tempTries[0][0].size();
+  outputUintIn8Chars(size_x);
+  outputUintIn8Chars(size_y);
+  outputUintIn8Chars(size_z);
+
+  // print tempTries array
+  for(int i=0; i<size_x; i++) {
+    for(int j=0; j<size_y; j++) {
+      for(int k=0; k<size_z; k++) {
+        outputUintIn8Chars(moveSetRef.tempTries[i][j][k]);
+      }
+    }
   }
 }
 
