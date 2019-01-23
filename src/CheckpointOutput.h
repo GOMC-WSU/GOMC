@@ -11,16 +11,28 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Coordinates.h"
 #include <iostream>
 
-class CheckpointOutput : OutputableBase
-{
+class CheckpointOutput : public OutputableBase {
 public:
   CheckpointOutput(System & sys, StaticVals const& statV);
 
-  ~CheckpointOutput();
+  ~CheckpointOutput() {
+    if(outputFile)
+      fclose(outputFile);
+  }
 
   virtual void DoOutput(const ulong step);
   virtual void Init(pdb_setup::Atoms const& atoms,
                     config_setup::Output const& output);
+  virtual void Sample(const ulong step) {}
+  virtual void Output(const ulong step) {
+    if(!enableOutCheckpoint) {
+      return;
+    }
+
+    if((step+1) % stepsPerCheckpoint == 0) {
+      DoOutput(step);
+    }
+  }
 
 private:
   MoveSettings & moveSetRef;
@@ -28,12 +40,12 @@ private:
   BoxDimensions & boxDimRef;
   Molecules const & molRef;
   Coordinates & coordCurrRef;
-  COM & comCurrRef;
   PRNG & prngRef;
 
   bool enableOutCheckpoint;
   std::string filename;
   FILE* outputFile;
+  uint stepsPerCheckpoint;
 
   void openOutputFile();
   void printStepNumber(const ulong step);

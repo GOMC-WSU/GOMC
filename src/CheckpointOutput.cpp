@@ -26,8 +26,7 @@ namespace
 CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
-  coordCurrRef(sys.coordinates), comCurrRef(sys.com),
-  filename("checkpoint.dat")
+  coordCurrRef(sys.coordinates), filename("checkpoint.dat")
 {
 
 }
@@ -36,6 +35,7 @@ void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
                             config_setup::Output const& output)
 {
   enableOutCheckpoint = output.checkpoint.enable;
+  stepsPerCheckpoint = output.checkpoint.frequency;
 }
 
 void CheckpointOutput::DoOutput(const ulong step)

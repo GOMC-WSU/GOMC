@@ -15,6 +15,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "HistOutput.h"
 #include "ConfigSetup.h"
 #include "OutputVars.h"
+#include "CheckpointOutput.h"
 #include "EnPartCntSampleOutput.h"
 
 #include <vector>
@@ -37,6 +38,7 @@ private:
   PDBOutput pdb;
   BlockAverages block;
   Histogram hist;
+  CheckpointOutput checkpoint;
 #if ENSEMBLE == GCMC
   EnPartCntSample sample_N_E;
 #endif
