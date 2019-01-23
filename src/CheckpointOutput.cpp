@@ -264,8 +264,8 @@ void CheckpointOutput::outputDoubleIn8Chars(double data)
             filename.c_str());
     exit(EXIT_FAILURE);
   }
-  uint32_output_union temp;
-  temp.uint_value = data;
+  dbl_output_union temp;
+  temp.dbl_value = data;
   fprintf(outputFile, "%c%c%c%c%c%c%c%c",
           temp.bin_value[0],
           temp.bin_value[1],
@@ -284,8 +284,8 @@ void CheckpointOutput::outputUintIn8Chars(uint32_t data)
             filename.c_str());
     exit(EXIT_FAILURE);
   }
-  dbl_output_union temp;
-  temp.dbl_value = data;
+  uint32_output_union temp;
+  temp.uint_value = data;
   fprintf(outputFile, "%c%c%c%c%c%c%c%c",
           temp.bin_value[0],
           temp.bin_value[1],
