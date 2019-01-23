@@ -37,6 +37,7 @@ ConfigSetup::ConfigSetup(void)
   in.restart.enable = false;
   in.restart.step = ULONG_MAX;
   in.restart.recalcTrajectory = false;
+  in.restart.restartFromCheckpoint = false;
   in.prng.seed = UINT_MAX;
   sys.elect.readEwald = false;
   sys.elect.readElect = false;
@@ -98,6 +99,8 @@ ConfigSetup::ConfigSetup(void)
   out.state.files.hist.sampleName = "";
   out.state.files.hist.stepsPerHistSample = UINT_MAX;
 #endif
+  out.checkpoint.enable = false;
+  out.checkpoint.frequency = ULONG_MAX;
   out.statistics.settings.uniqueStr.val = "";
   out.state.settings.frequency = ULONG_MAX;
   out.restart.settings.frequency = ULONG_MAX;
@@ -171,6 +174,11 @@ void ConfigSetup::Init(const char *fileName)
       in.restart.enable = checkBool(line[1]);
       if(in.restart.enable) {
         printf("%-40s %-s \n", "Info: Restart simulation",  "Active");
+      }
+    } else if(CheckString(line[0], "RestartCheckpoint")) {
+      in.restart.restartFromCheckpoint = checkBool(line[1]);
+      if(in.restart.restartFromCheckpoint) {
+        printf("%-40s %-s \n", "Info: Restart checkpoint", "Active");
       }
     } else if(CheckString(line[0], "FirstStep")) {
       in.restart.step = stringtoi(line[1]);
