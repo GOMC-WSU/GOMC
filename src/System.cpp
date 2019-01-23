@@ -91,6 +91,11 @@ void System::Init(Setup const& set)
   //the molecule lookup initialization, in case we're in a constant
   //particle/molecule ensemble, e.g. NVT
   coordinates.InitFromPDB(set.pdb.atoms);
+
+  // At this point see if checkpoint is enabled. if so re-initialize
+  // coordinates, prng, mollookup, step, boxdim, and movesettings
+  checkpointSet.ReadAll();
+
   com.CalcCOM();
   cellList.SetCutoff();
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
