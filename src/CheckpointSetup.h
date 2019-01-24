@@ -41,16 +41,16 @@ private:
   // and will be passed to the rest of the code via Get functions
   ulong stepNumber;
   uint32_t totalBoxes;
-  vector<vector<double>> axis;
-  vector<vector<double>> cosAngle;
+  vector<vector<double> > axis;
+  vector<vector<double> > cosAngle;
   uint32_t* saveArray;
   uint32_t seedLocation, seedLeft, seedValue;
   uint32_t coordLength;
   XYZArray coords;
   vector<uint32_t> molLookupVec, boxAndKindStartVec, fixedAtomVec;
   uint32_t numKinds;
-  vector<vector<vector<double>>> scaleVec, acceptPercentVec;
-  vector<vector<vector<uint32_t>>> acceptedVec, triesVec, tempAcceptedVec,
+  vector<vector<vector<double> > > scaleVec, acceptPercentVec;
+  vector<vector<vector<uint32_t> > > acceptedVec, triesVec, tempAcceptedVec,
                                    tempTriesVec;
 
   // private functions used by ReadAll and Get functions

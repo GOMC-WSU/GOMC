@@ -47,7 +47,7 @@ System::System(StaticVals& statics) :
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
   moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
-  calcEnergy(statics, *this)
+  calcEnergy(statics, *this), checkpointSet(*this, statics)
 {
   calcEwald = NULL;
 }
@@ -94,7 +94,8 @@ void System::Init(Setup const& set)
 
   // At this point see if checkpoint is enabled. if so re-initialize
   // coordinates, prng, mollookup, step, boxdim, and movesettings
-  checkpointSet.ReadAll();
+  if(set.config.in.restart.restartFromCheckpoint)
+    checkpointSet.ReadAll();
 
   com.CalcCOM();
   cellList.SetCutoff();
