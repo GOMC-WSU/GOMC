@@ -33,3 +33,5 @@
 
 bin
 lib/cub
+.idea
+cmake-build-debug
