@@ -129,6 +129,7 @@ public:
   friend std::ostream& operator<<( std::ostream& os, const MTRand& mtrand );
   friend std::istream& operator>>( std::istream& is, MTRand& mtrand );
   friend class CheckpointOutput;
+  friend class CheckpointSetup;
   MTRand& operator=( const MTRand& o );
 protected:
   void initialize( const uint32 oneSeed );
