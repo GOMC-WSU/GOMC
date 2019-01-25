@@ -35,7 +35,7 @@ class System
 public:
   explicit System(StaticVals& statics);
 
-  void Init(Setup const& setupData);
+  void Init(Setup const& setupData, ulong & startStep);
 
   //Runs move, picked at random
   void ChooseAndRunMove(const uint step);

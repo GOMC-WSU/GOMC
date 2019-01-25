@@ -104,6 +104,7 @@ public:
   //iterator to traverse all the molecules in a particular box
   class box_iterator;
   friend class MoleculeLookup::box_iterator;
+  friend class CheckpointSetup;
   box_iterator BoxBegin(const uint box) const;
   box_iterator BoxEnd(const uint box) const;
 

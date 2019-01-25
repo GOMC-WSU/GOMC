@@ -75,7 +75,7 @@ System::~System()
 #endif
 }
 
-void System::Init(Setup const& set)
+void System::Init(Setup const& set, ulong & startStep)
 {
   prng.Init(set.prng.prngMaker.prng);
 #ifdef VARIABLE_VOLUME
@@ -96,7 +96,12 @@ void System::Init(Setup const& set)
   // coordinates, prng, mollookup, step, boxdim, and movesettings
   if(set.config.in.restart.restartFromCheckpoint) {
     checkpointSet.ReadAll();
-    
+    checkpointSet.SetStepNumber(startStep);
+    checkpointSet.SetBoxDimensions(boxDimRef);
+    checkpointSet.SetPRNGVariables(prng);
+    checkpointSet.SetCoordinates(coordinates);
+    checkpointSet.SetMoleculeLookup(molLookupRef);
+    checkpointSet.SetMoveSettings(moveSettings);
   }
 
   com.CalcCOM();
