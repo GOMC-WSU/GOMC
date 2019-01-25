@@ -49,8 +49,6 @@ Simulation::~Simulation()
   delete staticValues;
 }
 
-
-
 void Simulation::RunSimulation(void)
 {
   double startEnergy = system->potential.totalEnergy.total;
