@@ -94,8 +94,10 @@ void System::Init(Setup const& set)
 
   // At this point see if checkpoint is enabled. if so re-initialize
   // coordinates, prng, mollookup, step, boxdim, and movesettings
-  if(set.config.in.restart.restartFromCheckpoint)
+  if(set.config.in.restart.restartFromCheckpoint) {
     checkpointSet.ReadAll();
+    
+  }
 
   com.CalcCOM();
   cellList.SetCutoff();
