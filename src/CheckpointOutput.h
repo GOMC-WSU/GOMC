@@ -45,7 +45,7 @@ private:
   bool enableOutCheckpoint;
   std::string filename;
   FILE* outputFile;
-  uint stepsPerCheckpoint;
+  ulong stepsPerCheckpoint;
 
   void openOutputFile();
   void printStepNumber(const ulong step);
