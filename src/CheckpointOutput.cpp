@@ -53,7 +53,7 @@ void CheckpointOutput::DoOutput(const ulong step)
 
 void CheckpointOutput::printStepNumber(const ulong step)
 {
-  uint32_t s = step;
+  uint32_t s = (uint32_t) step;
   outputUintIn8Chars(s);
 }
 
@@ -71,6 +71,7 @@ void CheckpointOutput::printBoxDimensionsData()
     outputDoubleIn8Chars(boxDimRef.cosAngle[b][1]);
     outputDoubleIn8Chars(boxDimRef.cosAngle[b][2]);
   }
+  std::cout << "Checkpoint saved to " << filename << std::endl;
 }
 
 void CheckpointOutput::printRandomNumbers()
@@ -275,6 +276,7 @@ void CheckpointOutput::outputDoubleIn8Chars(double data)
           temp.bin_value[5],
           temp.bin_value[6],
           temp.bin_value[7]);
+  fflush(outputFile);
 }
 
 void CheckpointOutput::outputUintIn8Chars(uint32_t data)
@@ -295,4 +297,5 @@ void CheckpointOutput::outputUintIn8Chars(uint32_t data)
           temp.bin_value[5],
           temp.bin_value[6],
           temp.bin_value[7]);
+  fflush(outputFile);
 }

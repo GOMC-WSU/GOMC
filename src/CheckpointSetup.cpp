@@ -40,6 +40,7 @@ void CheckpointSetup::ReadAll()
   readMoleculeLookupData();
   readMoveSettingsData();
   closeInputFile();
+  std::cout << "Checkpoint loaded from " << filename << std::endl;
 }
 
 void CheckpointSetup::readStepNumber()
@@ -97,9 +98,11 @@ void CheckpointSetup::readCoordinates()
   // now let's read the coordinates one by one
   coords.Init(coordLength);
   for(int i=0; i<coordLength; i++) {
-    coords[i].x = readDoubleIn8Chars();
-    coords[i].y = readDoubleIn8Chars();
-    coords[i].z = readDoubleIn8Chars();
+    XYZ temp;
+    temp.x = readDoubleIn8Chars();
+    temp.y = readDoubleIn8Chars();
+    temp.z = readDoubleIn8Chars();
+    coords.Set(i, temp);
   }
 }
 
@@ -107,6 +110,7 @@ void CheckpointSetup::readMoleculeLookupData()
 {
   // read the size of molLookup array
   molLookupVec.resize(readUintIn8Chars());
+
   // read the molLookup array itself
   for(int i=0; i<molLookupVec.size(); i++) {
     molLookupVec[i] = readUintIn8Chars();
