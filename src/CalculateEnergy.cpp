@@ -1536,6 +1536,7 @@ bool CalculateEnergy::SingleMoleculeInter(Energy &interEn,
 {
   double tempREn = 0.0, tempLJEn = 0.0;
   bool overlap = false;
+  interEn.Zero();
 
   // make a pointer to atom force and mol force for openmp
   double *aForcex = atomForce.x;
@@ -1564,7 +1565,7 @@ bool CalculateEnergy::SingleMoleculeInter(Energy &interEn,
 
       //store atom index in neighboring cell
       while (!n.Done()) {
-	if(*n != molIndex) {
+	if(particleMol[*n] != molIndex) {
 	  nIndex.push_back(*n);
 	}
         n.Next();
@@ -1623,14 +1624,14 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
     }
   }
 
-  double bondEnergy[2] = {0};
+  //double bondEnergy[2] = {0};
   //calculate nonbonded energy
-  MoleculeIntra(molIndex, box, bondEnergy);
+  //MoleculeIntra(molIndex, box, bondEnergy);
 
   interEn.inter = tempLJEn;
   interEn.real = tempREn;
-  interEn.intraBond = bondEnergy[0];
-  interEn.intraNonbond = bondEnergy[1];
+  //interEn.intraBond = bondEnergy[0];
+  //interEn.intraNonbond = bondEnergy[1];
 
   return overlap;
 }
