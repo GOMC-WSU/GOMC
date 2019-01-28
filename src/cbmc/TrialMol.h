@@ -111,6 +111,17 @@ public:
     en += energy;
   }
 
+  //Keep the tcoords and reset everythings
+  void Reset()
+  {
+    totalWeight = 1.0;
+    std::fill_n(atomBuilt, kind->NumAtoms(), false);
+    growthToWorld.LoadIdentity();
+    en.Zero();
+    bonds.Unset();
+    overlap = false;
+  }
+
   //!Confirms that atom at index i has been built (used for oldMols)
   void ConfirmOldAtom(uint i);
 
