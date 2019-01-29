@@ -24,8 +24,8 @@ public:
       lambdaRef(sys.lambdaRef), MoveBase(sys, statV)
     {
       totalMolecule = comCurrRef.Count();
-      eqSteps = 0;
-      lambdaWindow = 2;
+      eqSteps = 5;
+      lambdaWindow = 5;
       histFreq = 1000;
       lambdaMax = 1.0 / (double)(lambdaWindow);
       nuTolerance = 1e-6;
@@ -60,7 +60,7 @@ private:
   void UpdateBias();
   bool AcceptInflating();
   void AcceptRelaxing(uint box);
-  void CalcEnCFCMC(bool calcNewEn);
+  void CalcEnCFCMC(double lambdaOldS, double lambdaNewS);
   void CalcEnRelaxing(uint box);
   void TransformRelaxing(uint box);
   void RelaxingMolecules();
@@ -194,23 +194,18 @@ inline uint CFCMC::Transform()
       molRef.kinds[kindIndex].BuildOld(newMolCFCMC, molIndex);
       cellList.AddMol(molIndex, destBox, coordCurrRef);
     }
-    //Calculate the old energy
-    CalcEnCFCMC(false);
-    //Update the interaction in sourceBox and destBox
-    lambdaRef[sourceBox * totalMolecule + molIndex] = lambdaNew;
-    lambdaRef[destBox * totalMolecule + molIndex] = 1.0 - lambdaNew;
-    //Calculate the new energy
-    CalcEnCFCMC(true);
+    //Calculate the old and new energy in source and destBox(if we dont do CBMC)
+    CalcEnCFCMC(lambdaOld, lambdaNew);
     bool acceptedInflate = AcceptInflating();
     if(acceptedInflate) {
       lambdaIdxOld = lambdaIdxNew; 
-    } else {
-      lambdaRef[sourceBox * totalMolecule + molIndex] = lambdaOld;
-      lambdaRef[destBox * totalMolecule + molIndex] = 1.0 - lambdaOld;
+      //Update the interaction in sourceBox and destBox
+      lambdaRef[sourceBox * totalMolecule + molIndex] = lambdaNew;
+      lambdaRef[destBox * totalMolecule + molIndex] = 1.0 - lambdaNew;
     }
     RelaxingMolecules();
     UpdateBias();
-    //pick new lambda from [-lambdaMax, lambdaMax]
+    //pick new lambda in the neighborhood
     lambdaIdxNew = lambdaIdxOld + (prng.randInt(1) ? 1 : -1);
     lambdaOld = (double)(lambdaIdxOld) * lambdaMax;
     lambdaNew = (double)(lambdaIdxNew) * lambdaMax;
@@ -223,7 +218,7 @@ inline void CFCMC::CalcEn() {
   return;
 }
 
-inline void CFCMC::CalcEnCFCMC(bool calcNewEn)
+inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
 {
   W_tc = 1.0;
   W_recip = 1.0;
@@ -235,7 +230,7 @@ inline void CFCMC::CalcEnCFCMC(bool calcNewEn)
   tcGain.Zero();
 
   //Calculating long range correction
-  if(ffRef.useLRC && calcNewEn) { 
+  if(ffRef.useLRC) { 
     if(sourceBox == mv::BOX0) {
       //Deletion move
       if(lambdaIdxOld == lambdaWindow) {
@@ -267,29 +262,19 @@ inline void CFCMC::CalcEnCFCMC(bool calcNewEn)
   //No need to calculate energy when performing CBMC
   ShiftMolToSourceBox();
   if(lambdaIdxNew != 0) {
-    if(calcNewEn) {
-      //calculate inter and intra energy before changing lambda
-      calcEnRef.SingleMoleculeInter(newEnergy[sourceBox], atomForceNew,
-				    molForceNew, molIndex, sourceBox);
-    } else{
-      //calculate inter and intra energy after changing lambda
-      calcEnRef.SingleMoleculeInter(oldEnergy[sourceBox], atomForceNew,
-				    molForceNew, molIndex, sourceBox);
-    }
+    //calculate inter energy for lambda new and old in source Box
+    calcEnRef.SingleMoleculeInter(oldEnergy[sourceBox], newEnergy[sourceBox],
+				  atomForceNew, molForceNew, lambdaOldS,
+				  lambdaNewS, molIndex, sourceBox);
   }
 
 
   ShiftMolToDestBox();
   if(lambdaIdxOld != lambdaWindow && lambdaIdxNew != lambdaWindow) {
-    if(calcNewEn) {
-      //calculate inter and intra energy before changing lambda
-      calcEnRef.SingleMoleculeInter(newEnergy[destBox], atomForceNew,
-				    molForceNew, molIndex, destBox);
-    } else{
-      //calculate inter and intra energy after changing lambda
-      calcEnRef.SingleMoleculeInter(oldEnergy[destBox], atomForceNew,
-				    molForceNew, molIndex, destBox);
-    }
+    //calculate inter energy for lambda new and old in dest Box
+    calcEnRef.SingleMoleculeInter(oldEnergy[destBox], newEnergy[destBox],
+				  atomForceNew, molForceNew, 1.0 - lambdaOldS,
+				  1.0 - lambdaNewS, molIndex, destBox);
   }
 
 }
@@ -422,7 +407,7 @@ inline void CFCMC::UpdateBias()
 	if(hist[0][kindIndex][i] == 0) {
 	  bias[0][kindIndex][i] = 1.0;
 	} else {
-	  bias[0][kindIndex][i] = log(1.0 / hist[0][kindIndex][i]);
+	  bias[0][kindIndex][i] = log(1.0 / (double)(hist[0][kindIndex][i]));
 	}
       }
       
@@ -465,6 +450,7 @@ inline bool CFCMC::AcceptInflating()
   double Wrat = W1 * W2 * W_tc * W_recip;
 
   bool result = prng() < molTransCoeff * Wrat;
+  printf("DestBox: %d, Result: %d, lambdaIDOld: %d, lambdaIDNew: %d, W1: %f, W2: %f,Wtot: %f \n", destBox, result,lambdaIdxOld, lambdaIdxNew, W1, W2, Wrat);
 
   if(result) {
     //Add tail corrections
