@@ -418,6 +418,8 @@ public:
     return PickMol(m, mk, b, subDraw, boxDiv);
   }
 
+  MTRand * GetGenerator() { return gen; }
+
 private:
   MTRand * gen;
   MoleculeLookup & molLookRef;

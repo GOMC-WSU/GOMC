@@ -18,9 +18,11 @@ void MoleculeLookup::Init(const Molecules& mols,
 {
   numKinds = mols.GetKindsCount();
   molLookup = new uint[mols.count];
+  molLookupCount = mols.count;
 
   //+1 to store end value
   boxAndKindStart = new uint[numKinds * BOX_TOTAL + 1];
+  boxAndKindStartCount = numKinds * BOX_TOTAL + 1;
 
   // vector[box][kind] = list of mol indices for kind in box
   std::vector<std::vector<std::vector<uint> > > indexVector;
