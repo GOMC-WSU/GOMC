@@ -48,12 +48,13 @@ void CheckpointOutput::DoOutput(const ulong step)
     printCoordinates();
     printMoleculeLookupData();
     printMoveSettingsData();
+    std::cout << "Checkpoint saved to " << filename << std::endl;
   }
 }
 
 void CheckpointOutput::printStepNumber(const ulong step)
 {
-  uint32_t s = (uint32_t) step;
+  uint32_t s = (uint32_t) step + 1;
   outputUintIn8Chars(s);
 }
 
@@ -71,7 +72,6 @@ void CheckpointOutput::printBoxDimensionsData()
     outputDoubleIn8Chars(boxDimRef.cosAngle[b][1]);
     outputDoubleIn8Chars(boxDimRef.cosAngle[b][2]);
   }
-  std::cout << "Checkpoint saved to " << filename << std::endl;
 }
 
 void CheckpointOutput::printRandomNumbers()

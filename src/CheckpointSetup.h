@@ -24,13 +24,12 @@ public:
   }
   
   void ReadAll();
-  void SetStepNumber(ulong &startStep);
-  void SetPRNGVariables(PRNG &prng);
-  void SetBoxDimensions(BoxDimensions &boxDimRef);
-  void SetCoordinates(Coordinates coordinates);
-  void SetMoleculeLookup(MoleculeLookup &molLookupRef);
-
-  void SetMoveSettings(MoveSettings moveSettings);
+  void SetStepNumber(ulong & startStep);
+  void SetPRNGVariables(PRNG & prng);
+  void SetBoxDimensions(BoxDimensions & boxDimRef);
+  void SetCoordinates(Coordinates & coordinates);
+  void SetMoleculeLookup(MoleculeLookup & molLookupRef);
+  void SetMoveSettings(MoveSettings & moveSettings);
 
 private:
   MoveSettings & moveSetRef;

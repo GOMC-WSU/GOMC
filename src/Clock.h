@@ -20,9 +20,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 struct Clock {
   Clock(): stepsPerOut(0), prevStep(0), lastStep(0), lastTime(0.0) {}
-  void Init(const ulong steps, const ulong totSt)
+  void Init(const ulong steps, const ulong totSt, const ulong startStep)
   {
     stepsPerOut = steps;
+    prevStep = startStep;
 #if defined(__linux__) || defined(__APPLE__)
     gettimeofday(&tv, &tz);
     strt = (double)tv.tv_sec + (double)tv.tv_usec / 1000000;

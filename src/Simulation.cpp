@@ -29,7 +29,7 @@ Simulation::Simulation(char const*const configFileName)
   staticValues->InitOver(set, *system);
   cpu = new CPUSide(*system, *staticValues);
   cpu->Init(set.pdb, set.config.out, set.config.sys.step.equil,
-            totalSteps);
+            totalSteps, startStep);
 
   //Dump combined PSF
   PSFOutput psfOut(staticValues->mol, *system, set.mol.kindMap,
