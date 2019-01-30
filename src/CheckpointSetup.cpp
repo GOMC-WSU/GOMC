@@ -298,31 +298,35 @@ uint32_t CheckpointSetup::readUintIn8Chars()
   return temp.uint_value;
 }
 
-void CheckpointSetup::SetStepNumber(ulong &startStep) {
+void CheckpointSetup::SetStepNumber(ulong & startStep) {
   startStep = stepNumber;
 }
 
-void CheckpointSetup::SetBoxDimensions(BoxDimensions &boxDimRef) {
+void CheckpointSetup::SetBoxDimensions(BoxDimensions & boxDimRef) {
   for(int b=0; b<totalBoxes; b++) {
     boxDimRef.axis.Set(b, axis[b][0], axis[b][1], axis[b][2]);
     boxDimRef.cosAngle[b][0] = this->cosAngle[b][0];
     boxDimRef.cosAngle[b][1] = this->cosAngle[b][1];
     boxDimRef.cosAngle[b][2] = this->cosAngle[b][2];
+    boxDimRef.volume[b] = axis[b][0] * axis[b][1] * axis[b][2];
+    boxDimRef.volInv[b] = 1.0 / boxDimRef.volume[b];
   }
+  boxDimRef.axis.CopyRange(boxDimRef.halfAx, 0, 0, BOX_TOTAL);
+  boxDimRef.halfAx.ScaleRange(0, BOX_TOTAL, 0.5);
 }
 
-void CheckpointSetup::SetPRNGVariables(PRNG &prng) {
+void CheckpointSetup::SetPRNGVariables(PRNG & prng) {
   prng.GetGenerator()->load(saveArray);
   prng.GetGenerator()->pNext = prng.GetGenerator()->state + seedLocation;
   prng.GetGenerator()->left = seedLeft;
   prng.GetGenerator()->seedValue = seedValue;
 }
 
-void CheckpointSetup::SetCoordinates(Coordinates coordinates) {
+void CheckpointSetup::SetCoordinates(Coordinates & coordinates) {
   coords.CopyRange(coordinates, 0, 0, coordLength);
 }
 
-void CheckpointSetup::SetMoleculeLookup(MoleculeLookup &molLookupRef) {
+void CheckpointSetup::SetMoleculeLookup(MoleculeLookup & molLookupRef) {
   if(molLookupRef.molLookupCount != this->molLookupVec.size()) {
     std::cerr << "ERROR: Restarting from checkpoint...\n"
       << "molLookup size does not match with restart file\n";
@@ -337,7 +341,7 @@ void CheckpointSetup::SetMoleculeLookup(MoleculeLookup &molLookupRef) {
   molLookupRef.numKinds = this->numKinds;
 }
 
-void CheckpointSetup::SetMoveSettings(MoveSettings moveSettings) {
+void CheckpointSetup::SetMoveSettings(MoveSettings & moveSettings) {
   moveSettings.scale = this->scaleVec;
   moveSettings.acceptPercent = this->acceptPercentVec;
   moveSettings.accepted = this->acceptedVec;

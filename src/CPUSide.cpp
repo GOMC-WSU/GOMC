@@ -17,13 +17,13 @@ CPUSide::CPUSide(System & sys, StaticVals & statV) :
 {}
 
 void CPUSide::Init(PDBSetup const& pdbSet, config_setup::Output const& out,
-                   const ulong tillEquil, const ulong totSteps)
+                   const ulong tillEquil, const ulong totSteps, ulong startStep)
 {
   equilSteps = tillEquil;
   //Initialize arrays in object that collects references and calc'ed vals.
   varRef.Init(pdbSet.atoms);
   //Initialize output components.
-  timer.Init(out.console.frequency, totSteps);
+  timer.Init(out.console.frequency, totSteps, startStep);
   outObj.push_back(&console);
   outObj.push_back(&pdb);
   if (out.statistics.settings.block.enable)
