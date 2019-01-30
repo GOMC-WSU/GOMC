@@ -23,6 +23,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveSettings.h"
 #include "CellList.h"
 #include "Clock.h"
+#include "CheckpointSetup.h"
 
 //Initialization variables
 class Setup;
@@ -34,7 +35,7 @@ class System
 public:
   explicit System(StaticVals& statics);
 
-  void Init(Setup const& setupData);
+  void Init(Setup const& setupData, ulong & startStep);
 
   //Runs move, picked at random
   void ChooseAndRunMove(const uint step);
@@ -98,6 +99,8 @@ public:
   Ewald *calcEwald;
   CellList cellList;
   PRNG prng;
+
+  CheckpointSetup checkpointSet;
 
   //Procedure to run once move is picked... can also be called directly for
   //debugging...

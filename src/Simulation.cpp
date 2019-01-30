@@ -14,6 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 Simulation::Simulation(char const*const configFileName)
 {
+  startStep = 0;
   //NOTE:
   //IMPORTANT! Keep this order...
   //as system depends on staticValues, and cpu sometimes depends on both.
@@ -22,13 +23,13 @@ Simulation::Simulation(char const*const configFileName)
   staticValues = new StaticVals(set);
   system = new System(*staticValues);
   staticValues->Init(set, *system);
-  system->Init(set);
+  system->Init(set, startStep);
   //recal Init for static value for initializing ewald since ewald is
   //initialized in system
   staticValues->InitOver(set, *system);
   cpu = new CPUSide(*system, *staticValues);
   cpu->Init(set.pdb, set.config.out, set.config.sys.step.equil,
-            totalSteps);
+            totalSteps, startStep);
 
   //Dump combined PSF
   PSFOutput psfOut(staticValues->mol, *system, set.mol.kindMap,
@@ -49,8 +50,6 @@ Simulation::~Simulation()
   delete staticValues;
 }
 
-
-
 void Simulation::RunSimulation(void)
 {
   double startEnergy = system->potential.totalEnergy.total;
@@ -64,7 +63,7 @@ void Simulation::RunSimulation(void)
       cpu->Output(frameSteps[i]-1);
     }
   }
-  for (ulong step = 0; step < totalSteps; step++) {
+  for (ulong step = startStep; step < totalSteps; step++) {
     system->moveSettings.AdjustMoves(step);
     system->ChooseAndRunMove(step);
     cpu->Output(step);

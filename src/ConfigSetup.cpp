@@ -12,8 +12,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "ConfigSetup.h"
 
-//#define UINT_MAX 0xffffffff
-//#define ULONG_MAX 0xffffffffUL
 #define DBL_MAX 1.7976931348623158e+308
 
 int stringtoi(const std::string& s)
@@ -39,6 +37,7 @@ ConfigSetup::ConfigSetup(void)
   in.restart.enable = false;
   in.restart.step = ULONG_MAX;
   in.restart.recalcTrajectory = false;
+  in.restart.restartFromCheckpoint = false;
   in.prng.seed = UINT_MAX;
   sys.elect.readEwald = false;
   sys.elect.readElect = false;
@@ -100,6 +99,8 @@ ConfigSetup::ConfigSetup(void)
   out.state.files.hist.sampleName = "";
   out.state.files.hist.stepsPerHistSample = UINT_MAX;
 #endif
+  out.checkpoint.enable = false;
+  out.checkpoint.frequency = ULONG_MAX;
   out.statistics.settings.uniqueStr.val = "";
   out.state.settings.frequency = ULONG_MAX;
   out.restart.settings.frequency = ULONG_MAX;
@@ -173,6 +174,11 @@ void ConfigSetup::Init(const char *fileName)
       in.restart.enable = checkBool(line[1]);
       if(in.restart.enable) {
         printf("%-40s %-s \n", "Info: Restart simulation",  "Active");
+      }
+    } else if(CheckString(line[0], "RestartCheckpoint")) {
+      in.restart.restartFromCheckpoint = checkBool(line[1]);
+      if(in.restart.restartFromCheckpoint) {
+        printf("%-40s %-s \n", "Info: Restart checkpoint", "Active");
       }
     } else if(CheckString(line[0], "FirstStep")) {
       in.restart.step = stringtoi(line[1]);
@@ -658,6 +664,15 @@ void ConfigSetup::Init(const char *fileName)
     else if(CheckString(line[0], "OutputName")) {
       out.statistics.settings.uniqueStr.val = line[1];
       printf("%-40s %-s \n", "Info: Output name", line[1].c_str());
+    } else if(CheckString(line[0], "CheckpointFreq")) {
+      out.checkpoint.enable = checkBool(line[1]);
+      if(line.size() == 3)
+        out.checkpoint.frequency = stringtoi(line[2]);
+      if(out.checkpoint.enable)
+        printf("%-40s %-lu \n", "Info: Checkpoint frequency",
+               out.checkpoint.frequency);
+      else
+        printf("%-40s %-s \n", "Info: Saving checkpoint", "Inactive");
     } else if(CheckString(line[0], "CoordinatesFreq")) {
       out.state.settings.enable = checkBool(line[1]);
       if(line.size() == 3)
