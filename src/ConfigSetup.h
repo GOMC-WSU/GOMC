@@ -51,6 +51,7 @@ struct RestartSettings {
   bool enable;
   ulong step;
   bool recalcTrajectory;
+  bool restartFromCheckpoint;
   bool operator()(void)
   {
     return enable;
@@ -276,8 +277,6 @@ struct EventSettings { /* : ReadableStepDependentBase*/
   }
 };
 
-
-
 struct UniqueStr { /* : ReadableBase*/
   std::string val;
 };
@@ -326,7 +325,7 @@ struct Statistics {
 struct Output {
   SysState state, restart;
   Statistics statistics;
-  EventSettings console;
+  EventSettings console, checkpoint;
 };
 
 }

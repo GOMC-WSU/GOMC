@@ -328,7 +328,7 @@ XYZ TrialMol::GetCOM()
 {
   XYZ tcom;
   XYZArray temp(tCoords);
-  //axes->UnwrapPBC(temp, box, tCoords.Get(0));
+  axes->UnwrapPBC(temp, box, tCoords.Get(0));
   tCoords = temp;
 
   for(uint p = 0; p < tCoords.Count(); p++) {

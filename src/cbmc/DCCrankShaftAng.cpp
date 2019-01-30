@@ -213,6 +213,10 @@ void DCCrankShaftAng::BuildOld(TrialMol& oldMol, uint molIndex)
   oldMol.AddEnergy(Energy(bondedEn[0], nonbonded[0],
                           inter[0], real[0],
                           0.0, 0.0, 0.0));
+
+  for (uint a = 0; a < numAtom; a++) { 
+    oldMol.AddAtom(atoms[a], multiPosRotions[a][0]);
+  }
 }
 
 void DCCrankShaftAng::BuildNew(TrialMol& newMol, uint molIndex)
@@ -437,7 +441,7 @@ void DCCrankShaftAng::ParticleNonbonded1_4(cbmc::TrialMol const& mol,
             double qi_qj_Fact = kind.AtomCharge(partIndex) *
                                 kind.AtomCharge(*partner) * num::qqFact;
             data->ff.particles->CalcCoulombAdd_1_4(nonbonded[t], distSq,
-                qi_qj_Fact, true);
+                qi_qj_Fact, false);
           }
         }
       }
@@ -474,7 +478,7 @@ void DCCrankShaftAng::ParticleNonbonded1_3(cbmc::TrialMol const& mol,
             double qi_qj_Fact = kind.AtomCharge(partIndex) *
                                 kind.AtomCharge(*partner) * num::qqFact;
             data->ff.particles->CalcCoulombAdd_1_4(nonbonded[t], distSq,
-                qi_qj_Fact, true);
+                qi_qj_Fact, false);
           }
         }
       }
