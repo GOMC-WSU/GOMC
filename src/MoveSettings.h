@@ -93,6 +93,11 @@ private:
 
   static const double TARGET_ACCEPT_FRACT;
   static const double TINY_AMOUNT;
+
+  // make checkopintoutput and checkpointsetup a friend class to have access to
+  // private data
+  friend class CheckpointOutput;
+  friend class CheckpointSetup;
 };
 
 

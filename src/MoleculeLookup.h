@@ -11,6 +11,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BasicTypes.h" //For uint
 #include <vector>
 
+class CheckpointOutput;
+
 namespace pdb_setup
 {
 class Atoms;
@@ -102,6 +104,7 @@ public:
   //iterator to traverse all the molecules in a particular box
   class box_iterator;
   friend class MoleculeLookup::box_iterator;
+  friend class CheckpointSetup;
   box_iterator BoxBegin(const uint box) const;
   box_iterator BoxEnd(const uint box) const;
 
@@ -116,15 +119,20 @@ private:
   //array of indices for type Molecule, sorted by box and kind for
   //move selection
   uint* molLookup;
+  uint molLookupCount;
   //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
   //molLookup
   //index [BOX_TOTAL * kind + box + 1] is the element after the end
   //of that kind/box
   uint* boxAndKindStart;
+  uint boxAndKindStartCount;
   uint numKinds;
   std::vector <uint> fixedAtom;
   std::vector <uint> canSwapKind; //Kinds that can move intra and inter box
   std::vector <uint> canMoveKind; //Kinds that can move intra box only
+
+  // make CheckpointOutput class a friend so it can print all the private data
+  friend class CheckpointOutput;
 };
 
 inline uint MoleculeLookup::NumKindInBox(const uint kind, const uint box) const

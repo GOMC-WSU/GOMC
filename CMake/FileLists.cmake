@@ -9,6 +9,8 @@ set(sources
    src/Coordinates.cpp
    src/CPUSide.cpp
    src/CalculateEnergy.cpp
+   src/CheckpointOutput.cpp
+   src/CheckpointSetup.cpp
    src/EnPartCntSampleOutput.cpp
    src/Ewald.cpp
    src/EwaldCached.cpp
@@ -63,6 +65,8 @@ set(headers
    src/CalculateEnergy.h
    src/CBMC.h
    src/CellList.h
+   src/CheckpointOutput.h
+   src/CheckpointSetup.h
    src/Clock.h
    src/COM.h
    src/ConfigSetup.h

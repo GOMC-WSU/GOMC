@@ -208,15 +208,13 @@ uint MoveSettings::GetTrialTot(const uint box, const uint move) const
   }
 
   if(move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE
+
+  if(move == mv::INTRA_MEMC
   #if ENSEMBLE == GEMC || ENSEMBLE == GCMC 
-      || move == mv::MEMC
-  #endif
-  #if ENSEMBLE == NPT || ENSEMBLE == GEMC
       || move == mv::VOL_TRANSFER
   #endif 
     ) {
     sum /= totKind;
   }
-
   return sum;
 }
