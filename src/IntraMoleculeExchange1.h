@@ -367,29 +367,23 @@ inline uint IntraMoleculeExchange1::Prep(const double subDraw,
 					sourceBox));
      }
 
-     //set the old coordinate after unwrap them
+     //set the old coordinate and new coordinate
      for(uint n = 0; n < numInCavA; n++) {
-       XYZArray molA(pLenA[n]);
-       coordCurrRef.CopyRange(molA, pStartA[n], 0, pLenA[n]);
-       boxDimRef.UnwrapPBC(molA, sourceBox, comCurrRef.Get(molIndexA[n]));
-       oldMolA[n].SetCoords(molA, 0);
+       oldMolA[n].SetCoords(coordCurrRef, pStartA[n]);
        //copy cavA matrix to slant the old trial of molA
        oldMolA[n].SetCavMatrix(cavA);
-       //set coordinate of moleA to newMolA, later it will shift to centerB
-       newMolA[n].SetCoords(molA, 0);
+       //Later it will shift to centerB
+       newMolA[n].SetCoords(coordCurrRef, pStartA[n]);
        //copy cavB matrix to slant the new trial of molA
        newMolA[n].SetCavMatrix(cavB);
      }
 
      for(uint n = 0; n < numInCavB; n++) {
-       XYZArray molB(pLenB[n]);     
-       coordCurrRef.CopyRange(molB, pStartB[n], 0, pLenB[n]);
-       boxDimRef.UnwrapPBC(molB, sourceBox, comCurrRef.Get(molIndexB[n]));
-       oldMolB[n].SetCoords(molB, 0);
+       oldMolB[n].SetCoords(coordCurrRef, pStartB[n]);
        //copy cavB matrix to slant the old trial of molB
        oldMolB[n].SetCavMatrix(cavB);
-       //set coordinate of moleB to newMolB, later it will shift to centerA
-       newMolB[n].SetCoords(molB, 0);
+       //Later it will shift to centerA
+       newMolB[n].SetCoords(coordCurrRef, pStartB[n]);
        //copy cavA matrix to slant the new trial of molB
        newMolB[n].SetCavMatrix(cavA);
      }

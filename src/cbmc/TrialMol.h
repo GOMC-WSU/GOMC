@@ -273,7 +273,7 @@ public:
   void SetCavMatrix(const XYZArray& matrix);
   XYZ GetCavityCenter() const {return cavityCenter;}
   XYZ GetCavity() const {return cavity;}
-  //return unwrap com of tcoords so tcoords must be set
+  //return unwrap COM of tCoords. Unwrap the tCoords as well
   XYZ GetCOM();
   uint GetAtomBB(const uint i) const {return backbone[i];}
   //set built bond to true
