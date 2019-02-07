@@ -327,9 +327,11 @@ void TrialMol::SetBackBone(const uint bb[2])
 XYZ TrialMol::GetCOM()
 {
   XYZ tcom;
-  XYZArray temp(tCoords);
+  //It is already unwraped when it is called from DCRotateCOM
+
+  //XYZArray temp(tCoords);
   //axes->UnwrapPBC(temp, box, tCoords.Get(0));
-  tCoords = temp;
+  //tCoords = temp;
 
   for(uint p = 0; p < tCoords.Count(); p++) {
     tcom += tCoords.Get(p);
