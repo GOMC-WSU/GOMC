@@ -72,6 +72,7 @@ private:
   uint lambdaWindow, histFreq;
   uint lambdaIdxOld, lambdaIdxNew;
   uint eqSteps;
+  bool overlapCFCMC;
   vector< vector< vector<uint> > > hist;
   vector< vector<uint> > relaxMolecule;
 
@@ -151,14 +152,20 @@ inline uint CFCMC::GetBoxPairAndMol(const double subDraw, const double movPerc)
 
 inline uint CFCMC::Prep(const double subDraw, const double movPerc)
 {
-  overlap = false;
+  overlapCFCMC = false;
   sDraw = subDraw;
   mPerc = movPerc;
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
     newMolCFCMC = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
     oldMolCFCMC = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
-    oldMolCFCMC.SetCoords(coordCurrRef, pStartCFCMC);
+    //set the old coordinate after unwrap them 
+    XYZArray mol(pLenCFCMC); 
+    coordCurrRef.CopyRange(mol, pStartCFCMC, 0, pLenCFCMC); 
+    boxDimRef.UnwrapPBC(mol, sourceBox, comCurrRef.Get(molIndex)); 
+    oldMolCFCMC.SetCoords(mol, 0); 
+    //set coordinate of mol to newMol, later it will shift to random center 
+    newMolCFCMC.SetCoords(mol, 0);
     // store number of molecule in box before shifting molecule
     molInSourceBox = (double)molLookRef.NumKindInBox(kindIndex, sourceBox);
     molInDestBox = (double)molLookRef.NumKindInBox(kindIndex, destBox);
@@ -177,7 +184,10 @@ inline uint CFCMC::Transform()
   //Update the interaction in destBox
   lambdaRef[destBox * totalMolecule + molIndex] = 1.0 - lambdaNew;
   //Start growing the fractional molecule in destBox
-  molRef.kinds[kindIndex].BuildNew(newMolCFCMC, molIndex);
+  molRef.kinds[kindIndex].BuildIDNew(newMolCFCMC, molIndex);
+  overlapCFCMC = newMolCFCMC.HasOverlap();
+  //Add bonded energy because we dont considered in DCRotate.cpp 
+  newMolCFCMC.AddEnergy(calcEnRef.MoleculeIntra(newMolCFCMC, molIndex));
   ShiftMolToDestBox();
   UpdateBias();
 
@@ -187,15 +197,25 @@ inline uint CFCMC::Transform()
     lambdaRef[destBox * totalMolecule + molIndex] = 1.0 - lambdaOld;
     if(lambdaIdxNew == 0) {
       //removing the fractional molecule in last steps using CBMC in sourceBox
-      molRef.kinds[kindIndex].BuildOld(oldMolCFCMC, molIndex);
+      molRef.kinds[kindIndex].BuildIDOld(oldMolCFCMC, molIndex);
+      //Add bonded energy because we dont considered in DCRotate.cpp 
+      oldMolCFCMC.AddEnergy(calcEnRef.MoleculeIntra(oldMolCFCMC, molIndex));
     } else if(lambdaIdxNew == lambdaWindow) {
       //removing the inserted fractional molecule using CBMC in destBox
       cellList.RemoveMol(molIndex, destBox, coordCurrRef);
-      molRef.kinds[kindIndex].BuildOld(newMolCFCMC, molIndex);
+      //Unwrap coordinate before calling buildIDOld 
+      XYZArray mol(pLenCFCMC); 
+      coordCurrRef.CopyRange(mol, pStartCFCMC, 0, pLenCFCMC); 
+      boxDimRef.UnwrapPBC(mol, destBox, comCurrRef.Get(molIndex)); 
+      newMolCFCMC.SetCoords(mol, 0);
+      molRef.kinds[kindIndex].BuildIDOld(newMolCFCMC, molIndex);
+      //Add bonded energy because we dont considered in DCRotate.cpp 
+      newMolCFCMC.AddEnergy(calcEnRef.MoleculeIntra(newMolCFCMC, molIndex));
       cellList.AddMol(molIndex, destBox, coordCurrRef);
     }
     //Calculate the old and new energy in source and destBox(if we dont do CBMC)
     CalcEnCFCMC(lambdaOld, lambdaNew);
+    //Accept or reject the inflation
     bool acceptedInflate = AcceptInflating();
     if(acceptedInflate) {
       lambdaIdxOld = lambdaIdxNew; 
@@ -229,6 +249,11 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
   tcLose.Zero();
   tcGain.Zero();
 
+  if(overlapCFCMC) {
+    //Do not calculate the energy difference if we have overlap
+    return;
+  }
+
   //Calculating long range correction
   if(ffRef.useLRC) { 
     if(sourceBox == mv::BOX0) {
@@ -261,6 +286,8 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
 
   //No need to calculate energy when performing CBMC
   ShiftMolToSourceBox();
+  oldEnergy[sourceBox].Zero();
+  newEnergy[sourceBox].Zero();
   if(lambdaIdxNew != 0) {
     //calculate inter energy for lambda new and old in source Box
     calcEnRef.SingleMoleculeInter(oldEnergy[sourceBox], newEnergy[sourceBox],
@@ -270,6 +297,8 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
 
 
   ShiftMolToDestBox();
+  oldEnergy[destBox].Zero();
+  newEnergy[destBox].Zero();
   if(lambdaIdxOld != lambdaWindow && lambdaIdxNew != lambdaWindow) {
     //calculate inter energy for lambda new and old in dest Box
     calcEnRef.SingleMoleculeInter(oldEnergy[destBox], newEnergy[destBox],
@@ -433,24 +462,24 @@ inline bool CFCMC::AcceptInflating()
   if(lambdaIdxNew == 0) {
     W1 = 1.0 / oldMolCFCMC.GetWeight();
     oldEnergy[sourceBox] = oldMolCFCMC.GetEnergy();
-    newEnergy[sourceBox].Zero();
     oldMolCFCMC.Reset();
   } else if(lambdaIdxNew == lambdaWindow) {
     W2 = 1.0 / newMolCFCMC.GetWeight();
     oldEnergy[destBox] = newMolCFCMC.GetEnergy();
-    newEnergy[destBox].Zero();
     newMolCFCMC.Reset();
   }
   if(lambdaIdxOld == lambdaWindow) {
     W2 = newMolCFCMC.GetWeight();
     newEnergy[destBox] = newMolCFCMC.GetEnergy();
-    oldEnergy[destBox].Zero();
     newMolCFCMC.Reset();
   }
   double Wrat = W1 * W2 * W_tc * W_recip;
 
   bool result = prng() < molTransCoeff * Wrat;
-  printf("DestBox: %d, Result: %d, lambdaIDOld: %d, lambdaIDNew: %d, W1: %f, W2: %f,Wtot: %f \n", destBox, result,lambdaIdxOld, lambdaIdxNew, W1, W2, Wrat);
+  //Reject the move if we had overlaped
+  result = result && !overlapCFCMC;
+
+  //printf("DestBox: %d, Result: %d, lambdaIDOld: %d, lambdaIDNew: %d, W1: %f, W2: %f,Wtot: %f \n", destBox, result,lambdaIdxOld, lambdaIdxNew, W1, W2, Wrat);
 
   if(result) {
     //Add tail corrections

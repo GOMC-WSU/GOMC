@@ -1540,8 +1540,6 @@ bool CalculateEnergy::SingleMoleculeInter(Energy &interEnOld,
   double tempREnOld = 0.0, tempLJEnOld = 0.0;
   double tempREnNew = 0.0, tempLJEnNew = 0.0;
   bool overlap = false;
-  interEnNew.Zero();
-  interEnOld.Zero();
 
   // make a pointer to atom force and mol force for openmp
   double *aForcex = atomForce.x;
