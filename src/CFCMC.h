@@ -159,12 +159,13 @@ inline uint CFCMC::Prep(const double subDraw, const double movPerc)
   if(state == mv::fail_state::NO_FAIL) {
     newMolCFCMC = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
     oldMolCFCMC = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
-    //set the old coordinate after unwrap them 
+    oldMolCFCMC.SetCoords(coordCurrRef, pStartCFCMC);
+   //Unwrap the old coordinate for using in new coordinate after wraping
     XYZArray mol(pLenCFCMC); 
     coordCurrRef.CopyRange(mol, pStartCFCMC, 0, pLenCFCMC); 
-    boxDimRef.UnwrapPBC(mol, sourceBox, comCurrRef.Get(molIndex)); 
-    oldMolCFCMC.SetCoords(mol, 0); 
-    //set coordinate of mol to newMol, later it will shift to random center 
+    boxDimRef.UnwrapPBC(mol, sourceBox, comCurrRef.Get(molIndex));
+    boxDimRef.WrapPBC(mol, destBox); 
+    //Later it will shift to random COM
     newMolCFCMC.SetCoords(mol, 0);
     // store number of molecule in box before shifting molecule
     molInSourceBox = (double)molLookRef.NumKindInBox(kindIndex, sourceBox);
@@ -203,11 +204,6 @@ inline uint CFCMC::Transform()
     } else if(lambdaIdxNew == lambdaWindow) {
       //removing the inserted fractional molecule using CBMC in destBox
       cellList.RemoveMol(molIndex, destBox, coordCurrRef);
-      //Unwrap coordinate before calling buildIDOld 
-      XYZArray mol(pLenCFCMC); 
-      coordCurrRef.CopyRange(mol, pStartCFCMC, 0, pLenCFCMC); 
-      boxDimRef.UnwrapPBC(mol, destBox, comCurrRef.Get(molIndex)); 
-      newMolCFCMC.SetCoords(mol, 0);
       molRef.kinds[kindIndex].BuildIDOld(newMolCFCMC, molIndex);
       //Add bonded energy because we dont considered in DCRotate.cpp 
       newMolCFCMC.AddEnergy(calcEnRef.MoleculeIntra(newMolCFCMC, molIndex));

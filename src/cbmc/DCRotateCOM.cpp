@@ -60,7 +60,7 @@ namespace cbmc
   void DCRotateCOM::PrepareNew(TrialMol& newMol, uint molIndex) 
   { 
     newMol.SetWeight(1.0);
-    //old center of mass
+    //Get the old center of mass and unwrap the tCoords
     oldCOM = newMol.GetCOM();
   } 
 
@@ -98,7 +98,7 @@ namespace cbmc
   void DCRotateCOM::PrepareOld(TrialMol& oldMol, uint molIndex) 
   { 
     oldMol.SetWeight(1.0);
-    //old center of mass
+    //Get the old center of mass and unwrap the tCoords
     oldCOM = oldMol.GetCOM();
     COM = oldCOM;
   } 
