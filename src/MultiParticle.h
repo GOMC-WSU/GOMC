@@ -1,20 +1,16 @@
-#pragma once
+/*******************************************************************************
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+Copyright (C) 2018  GOMC Group
+A copy of the GNU General Public License can be found in the COPYRIGHT.txt
+along with this program, also can be found at <http://www.gnu.org/licenses/>.
+********************************************************************************/
+#ifndef MULTIPARTICLE_H
+#define MULTIPARTICLE_H
 
 #include "MoveBase.h"
 #include "System.h"
 #include "StaticVals.h"
 #include <cmath>
-
-namespace mp {
-  const int MPDISPLACE = 0;
-  const int MPROTATE = 1;
-  const int MPMVCOUNT = 2;
-  const int MPALLDISPLACE = 0;
-  const int MPALLROTATE = 1;
-  const int MPALLRANDOM = 2;
-  const int MPTOTALTYPES = 3;
-  const double TARGET_ACCEPT_FRACT = 0.3;
-}
 
 class MultiParticle : public MoveBase
 {
@@ -26,14 +22,10 @@ public:
   virtual uint Transform();
   virtual void Accept(const uint rejectState, const uint step);
   virtual void PrintAcceptKind();
-  double t_max[BOX_TOTAL], r_max[BOX_TOTAL];
-  uint tries[mp::MPMVCOUNT][BOX_TOTAL];
-  uint accepted[mp::MPMVCOUNT][BOX_TOTAL];
 
 private:
   uint bPick;
   uint typePick;
-  uint perAdjust;
   double lambda;
   bool initMol[BOX_TOTAL];
   SystemPotential sysPotNew;
@@ -49,8 +41,6 @@ private:
   const MoleculeLookup& molLookup;
 
   long double GetCoeff();
-  void UpdateMoveSetting(bool isAccepted);
-  void AdjustMoves();
   void CalculateTrialDistRot();
   void RotateForceBiased(uint molIndex);
   void TranslateForceBiased(uint molIndex);
@@ -63,7 +53,6 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef,statV.mol),
   molLookup(sys.molLookup)
 {
-  perAdjust = statV.simEventFreq.perAdjust;
   molTorqueNew.Init(sys.com.Count());
   molTorqueRef.Init(sys.com.Count());
   atomForceRecNew.Init(sys.coordinates.Count());
@@ -79,15 +68,11 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   // the value of lambda is based on the paper
   lambda = 0.5;
   for(uint b = 0; b < BOX_TOTAL; b++) {
-    t_max[b] = 0.05;
-    r_max[b] = 0.02* M_PI;
-    tries[0][b] = tries[1][b] = 0;
-    accepted[0][b] = accepted[1][b] = 0;
     initMol[b] = false;
   }
 }
 
-void MultiParticle::PrintAcceptKind() {
+inline void MultiParticle::PrintAcceptKind() {
   printf("%-37s", "% Accepted MultiParticle ");
   for(uint b = 0; b < BOX_TOTAL; b++) {
     printf("%10.5f ", 100.0 * moveSetRef.GetAccept(b, mv::MULTIPARTICLE));
@@ -96,7 +81,7 @@ void MultiParticle::PrintAcceptKind() {
 }
 
 
-void MultiParticle::SetMolInBox(uint box)
+inline void MultiParticle::SetMolInBox(uint box)
 {
 #if ENSEMBLE == GCMC || ENSEMBLE == GEMC
   moleculeIndex.clear();
@@ -232,6 +217,8 @@ inline long double MultiParticle::GetCoeff()
   long double w_ratio = 1.0;
   double lBeta = lambda * BETA;
   uint m, molNumber;
+  double r_max = moveSetRef.GetRMAX(bPick);
+  double t_max = moveSetRef.GetTMAX(bPick);
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(m, molNumber, lbt_old, lbt_new, lbf_old, lbf_new, w_ratio_t) reduction(*:w_ratio)
 #endif
@@ -246,18 +233,18 @@ inline long double MultiParticle::GetCoeff()
         lbt_new = molTorqueNew.Get(molNumber) * lBeta;
 
         w_ratio_t *= lbt_new.x * exp(lbt_new.x * -1.0 * r_k.Get(molNumber).x)/
-          (2.0*sinh(lbt_new.x * r_max[bPick]));
+          (2.0*sinh(lbt_new.x * r_max));
         w_ratio_t *= lbt_new.y * exp(lbt_new.y * -1.0 * r_k.Get(molNumber).y)/
-          (2.0*sinh(lbt_new.y * r_max[bPick]));
+          (2.0*sinh(lbt_new.y * r_max));
         w_ratio_t *= lbt_new.z * exp(lbt_new.z * -1.0 * r_k.Get(molNumber).z)/
-          (2.0*sinh(lbt_new.z * r_max[bPick]));
+          (2.0*sinh(lbt_new.z * r_max));
 
         w_ratio_t /= lbt_old.x * exp(lbt_old.x * r_k.Get(molNumber).x)/
-          (2.0*sinh(lbt_old.x * r_max[bPick]));
+          (2.0*sinh(lbt_old.x * r_max));
         w_ratio_t /= lbt_old.y * exp(lbt_old.y * r_k.Get(molNumber).y)/
-          (2.0*sinh(lbt_old.y * r_max[bPick]));
+          (2.0*sinh(lbt_old.y * r_max));
         w_ratio_t /= lbt_old.z * exp(lbt_old.z * r_k.Get(molNumber).z)/
-          (2.0*sinh(lbt_old.z * r_max[bPick]));
+          (2.0*sinh(lbt_old.z * r_max));
       
 	      w_ratio *= w_ratio_t;
       }
@@ -271,18 +258,18 @@ inline long double MultiParticle::GetCoeff()
           lBeta;
 
         w_ratio_t *= lbf_new.x * exp(lbf_new.x * -1.0 * t_k.Get(molNumber).x)/
-          (2.0*sinh(lbf_new.x * t_max[bPick]));
+          (2.0*sinh(lbf_new.x * t_max));
         w_ratio_t *= lbf_new.y * exp(lbf_new.y * -1.0 * t_k.Get(molNumber).y)/
-          (2.0*sinh(lbf_new.y * t_max[bPick]));
+          (2.0*sinh(lbf_new.y * t_max));
         w_ratio_t *= lbf_new.z * exp(lbf_new.z * -1.0 * t_k.Get(molNumber).z)/
-          (2.0*sinh(lbf_new.z * t_max[bPick]));
+          (2.0*sinh(lbf_new.z * t_max));
 
         w_ratio_t /= lbf_old.x * exp(lbf_old.x * t_k.Get(molNumber).x)/
-          (2.0*sinh(lbf_old.x * t_max[bPick]));
+          (2.0*sinh(lbf_old.x * t_max));
         w_ratio_t /= lbf_old.y * exp(lbf_old.y * t_k.Get(molNumber).y)/
-          (2.0*sinh(lbf_old.y * t_max[bPick]));
+          (2.0*sinh(lbf_old.y * t_max));
         w_ratio_t /= lbf_old.z * exp(lbf_old.z * t_k.Get(molNumber).z)/
-          (2.0*sinh(lbf_old.z * t_max[bPick]));
+          (2.0*sinh(lbf_old.z * t_max));
             
         w_ratio *= w_ratio_t;
       }
@@ -325,8 +312,8 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
     calcEwald->exgMolCache();
   }
 
-  UpdateMoveSetting(result);
-  AdjustMoves();
+  moveSetRef.UpdateMoveSettingMultiParticle(bPick, result, typePick);
+  moveSetRef.AdjustMultiParticle(bPick, typePick);
 
   moveSetRef.Update(mv::MULTIPARTICLE, result, step, bPick);
 }
@@ -339,10 +326,12 @@ inline void MultiParticle::CalculateTrialDistRot()
     XYZ lbf, lbfmax; // lambda * BETA * force
     XYZ lbt, lbtmax; // lambda * BETA * torque
     double rand;
+    double r_max = moveSetRef.GetRMAX(bPick);
+    double t_max = moveSetRef.GetTMAX(bPick);
     XYZ num;
     if(moveType[molIndex]) { // rotate
       lbt = molTorqueRef.Get(molIndex) * lambda * BETA;
-      lbtmax = lbt * r_max[bPick];
+      lbtmax = lbt * r_max;
       if(lbt.Length()) {
         rand = prng();
         num.x = log(exp(-1.0 * lbtmax.x ) + 2 * rand * sinh(lbtmax.x ));
@@ -364,7 +353,7 @@ inline void MultiParticle::CalculateTrialDistRot()
     else { // displace
       lbf = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) *
         lambda * BETA;
-      lbfmax = lbf * t_max[bPick];
+      lbfmax = lbf * t_max;
       if(lbf.Length()) {
         rand = prng();
         num.x = log(exp(-1.0 * lbfmax.x ) + 2 * rand * sinh(lbfmax.x ));
@@ -386,7 +375,7 @@ inline void MultiParticle::CalculateTrialDistRot()
   }
 }
 
-void MultiParticle::RotateForceBiased(uint molIndex)
+inline void MultiParticle::RotateForceBiased(uint molIndex)
 {
   XYZ rot = r_k.Get(molIndex);
   double rotLen = rot.Length();
@@ -417,7 +406,7 @@ void MultiParticle::RotateForceBiased(uint molIndex)
   temp.CopyRange(newMolsPos, 0, start, len);
 }
 
-void MultiParticle::TranslateForceBiased(uint molIndex)
+inline void MultiParticle::TranslateForceBiased(uint molIndex)
 {
   XYZ shift = t_k.Get(molIndex);
   //If force was zero, ignore this molecule
@@ -442,32 +431,4 @@ void MultiParticle::TranslateForceBiased(uint molIndex)
   newCOMs.Set(molIndex, newcom);
 }
 
-void MultiParticle::AdjustMoves()
-{
-  uint totalTries= tries[mp::MPDISPLACE][bPick] +
-    tries[mp::MPROTATE][bPick];
-  if((totalTries+1) % perAdjust == 0 ) {
-    double currentAccept = (double)accepted[mp::MPDISPLACE][bPick] /
-                          (double)tries[mp::MPDISPLACE][bPick];
-    double fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
-    t_max[bPick] *= fractOfTargetAccept;
-    num::Bound<double>(t_max[bPick], 0.001,
-                       (boxDimRef.axis.Min(bPick) / 2) - 0.001);
-
-    currentAccept = (double)accepted[mp::MPROTATE][bPick] /
-                    (double)tries[mp::MPROTATE][bPick];
-    fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
-    r_max[bPick] *= fractOfTargetAccept;
-    num::Bound<double>(r_max[bPick], 0.001, M_PI - 0.001);
-  }
-}
-
-void MultiParticle::UpdateMoveSetting(bool isAccepted)
-{
-  if(typePick != mp::MPALLRANDOM) {
-    tries[typePick][bPick]++;
-    if(isAccepted) {
-      accepted[typePick][bPick]++;
-    }
-  }
-}
+#endif

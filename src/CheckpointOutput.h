@@ -42,7 +42,6 @@ private:
   Molecules const & molRef;
   Coordinates & coordCurrRef;
   PRNG & prngRef;
-  MoveBase & multiParticleRef;
 
   bool enableOutCheckpoint;
   std::string filename;
@@ -50,14 +49,17 @@ private:
   ulong stepsPerCheckpoint;
 
   void openOutputFile();
-  void printStepNumber(const ulong step);
+  void printStepNumber(ulong step);
   void printRandomNumbers();
   void printCoordinates();
   void printMoleculeLookupData();
   void printMoveSettingsData();
   void printBoxDimensionsData();
-  void printMultiParticleData();
 
+  void printVector3DDouble(vector< vector< vector <double> > > data);
+  void printVector3DUint(vector< vector< vector <uint> > > data);
+  void printVector2DUint(vector< vector< uint > > data);
+  void printVector1DDouble(vector< double > data);
   void outputDoubleIn8Chars(double data);
   void outputUintIn8Chars(uint32_t data);
 
