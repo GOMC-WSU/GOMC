@@ -112,7 +112,6 @@ public:
 
   ~System();
 
-  MoveBase * moves[mv::MOVE_KINDS_TOTAL];
 
 private:
   void InitMoves(Setup const& set);
@@ -123,6 +122,7 @@ private:
   void Accept(const uint kind, const uint rejectState, const uint step);
 
   double moveTime[mv::MOVE_KINDS_TOTAL];
+  MoveBase * moves[mv::MOVE_KINDS_TOTAL];
   Clock time;
 };
 

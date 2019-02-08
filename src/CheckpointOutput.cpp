@@ -26,8 +26,7 @@ namespace
 CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
-  coordCurrRef(sys.coordinates),multiParticleRef(*sys.moves[mv::MULTIPARTICLE]),
-  filename("checkpoint.dat")
+  coordCurrRef(sys.coordinates), filename("checkpoint.dat")
 {
 
 }
@@ -49,7 +48,6 @@ void CheckpointOutput::DoOutput(const ulong step)
     printCoordinates();
     printMoleculeLookupData();
     printMoveSettingsData();
-    printMultiParticleData();
     std::cout << "Checkpoint saved to " << filename << std::endl;
   }
 }
@@ -145,97 +143,24 @@ void CheckpointOutput::printMoleculeLookupData()
 
 void CheckpointOutput::printMoveSettingsData()
 {
-  ulong size_x, size_y, size_z;
+  printVector3DDouble(moveSetRef.scale);
+  printVector3DDouble(moveSetRef.acceptPercent);
+  printVector3DUint(moveSetRef.accepted);
+  printVector3DUint(moveSetRef.tries);
+  printVector3DUint(moveSetRef.tempAccepted);
+  printVector3DUint(moveSetRef.tempTries);
+  printVector2DUint(moveSetRef.mp_tries);
+  printVector2DUint(moveSetRef.mp_accepted);
+  printVector1DDouble(moveSetRef.mp_t_max);
+  printVector1DDouble(moveSetRef.mp_r_max);
+}
 
-  // print size of scale
-  size_x = moveSetRef.scale.size();
-  size_y = moveSetRef.scale[0].size();
-  size_z = moveSetRef.scale[0][0].size();
-  outputUintIn8Chars(size_x);
-  outputUintIn8Chars(size_y);
-  outputUintIn8Chars(size_z);
-
-  // print scale array
-  for(int i=0; i<size_x; i++) {
-    for(int j=0; j<size_y; j++) {
-      for(int k=0; k<size_z; k++) {
-        outputDoubleIn8Chars(moveSetRef.scale[i][j][k]);
-      }
-    }
-  }
-
-  // print size of acceptPercent
-  size_x = moveSetRef.acceptPercent.size();
-  size_y = moveSetRef.acceptPercent[0].size();
-  size_z = moveSetRef.acceptPercent[0][0].size();
-  outputUintIn8Chars(size_x);
-  outputUintIn8Chars(size_y);
-  outputUintIn8Chars(size_z);
-
-  // print acceptPercent array
-  for(int i=0; i<size_x; i++) {
-    for(int j=0; j<size_y; j++) {
-      for(int k=0; k<size_z; k++) {
-        outputDoubleIn8Chars(moveSetRef.acceptPercent[i][j][k]);
-      }
-    }
-  }
-
-  // print size of accepted
-  size_x = moveSetRef.accepted.size();
-  size_y = moveSetRef.accepted[0].size();
-  size_z = moveSetRef.accepted[0][0].size();
-  outputUintIn8Chars(size_x);
-  outputUintIn8Chars(size_y);
-  outputUintIn8Chars(size_z);
-
-  // print accepted array
-  for(int i=0; i<size_x; i++) {
-    for(int j=0; j<size_y; j++) {
-      for(int k=0; k<size_z; k++) {
-        outputUintIn8Chars(moveSetRef.accepted[i][j][k]);
-      }
-    }
-  }
-
-  // print size of tries
-  size_x = moveSetRef.tries.size();
-  size_y = moveSetRef.tries[0].size();
-  size_z = moveSetRef.tries[0][0].size();
-  outputUintIn8Chars(size_x);
-  outputUintIn8Chars(size_y);
-  outputUintIn8Chars(size_z);
-
-  // print tries array
-  for(int i=0; i<size_x; i++) {
-    for(int j=0; j<size_y; j++) {
-      for(int k=0; k<size_z; k++) {
-        outputUintIn8Chars(moveSetRef.tries[i][j][k]);
-      }
-    }
-  }
-
-  // print size of tempAccepted
-  size_x = moveSetRef.tempAccepted.size();
-  size_y = moveSetRef.tempAccepted[0].size();
-  size_z = moveSetRef.tempAccepted[0][0].size();
-  outputUintIn8Chars(size_x);
-  outputUintIn8Chars(size_y);
-  outputUintIn8Chars(size_z);
-
-  // print tempAccepted array
-  for(int i=0; i<size_x; i++) {
-    for(int j=0; j<size_y; j++) {
-      for(int k=0; k<size_z; k++) {
-        outputUintIn8Chars(moveSetRef.tempAccepted[i][j][k]);
-      }
-    }
-  }
-
+void CheckpointOutput::printVector3DDouble(vector< vector< vector <double> > > data)
+{
   // print size of tempTries
-  size_x = moveSetRef.tempTries.size();
-  size_y = moveSetRef.tempTries[0].size();
-  size_z = moveSetRef.tempTries[0][0].size();
+  ulong size_x = data.size();
+  ulong size_y = data[0].size();
+  ulong size_z = data[0][0].size();
   outputUintIn8Chars(size_x);
   outputUintIn8Chars(size_y);
   outputUintIn8Chars(size_z);
@@ -244,16 +169,64 @@ void CheckpointOutput::printMoveSettingsData()
   for(int i=0; i<size_x; i++) {
     for(int j=0; j<size_y; j++) {
       for(int k=0; k<size_z; k++) {
-        outputUintIn8Chars(moveSetRef.tempTries[i][j][k]);
+        outputDoubleIn8Chars(data[i][j][k]);
       }
     }
+  }
+}
+
+void CheckpointOutput::printVector3DUint(vector< vector< vector <uint> > > data)
+{
+  // print size of tempTries
+  ulong size_x = data.size();
+  ulong size_y = data[0].size();
+  ulong size_z = data[0][0].size();
+  outputUintIn8Chars(size_x);
+  outputUintIn8Chars(size_y);
+  outputUintIn8Chars(size_z);
+
+  // print tempTries array
+  for(int i=0; i<size_x; i++) {
+    for(int j=0; j<size_y; j++) {
+      for(int k=0; k<size_z; k++) {
+        outputUintIn8Chars(data[i][j][k]);
+      }
+    }
+  }
+}
+
+void CheckpointOutput::printVector2DUint(vector< vector< uint > > data)
+{
+  // print size of array
+  ulong size_x = data.size();
+  ulong size_y = data[0].size();
+  outputUintIn8Chars(size_x);
+  outputUintIn8Chars(size_y);
+
+  // print array iteself
+  for(int i=0; i<size_x; i++) {
+    for(int j=0; j<size_y; j++) {
+      outputUintIn8Chars(data[i][j]);
+    }
+  }
+}
+
+void CheckpointOutput::printVector1DDouble(vector< double > data)
+{
+  // print size of array
+  ulong size_x = data.size();
+  outputUintIn8Chars(size_x);
+
+  // print array iteself
+  for(int i=0; i<size_x; i++) {
+    outputUintIn8Chars(data[i]);
   }
 }
 
 void CheckpointOutput::openOutputFile()
 {
   outputFile = fopen(filename.c_str(), "wb");
-  if(outputFile == NULL) {
+  if(outputFile == nullptr) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",
             filename.c_str());
     exit(EXIT_FAILURE);
@@ -262,7 +235,7 @@ void CheckpointOutput::openOutputFile()
 
 void CheckpointOutput::outputDoubleIn8Chars(double data)
 {
-  if(outputFile == NULL) {
+  if(outputFile == nullptr) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",
             filename.c_str());
     exit(EXIT_FAILURE);
@@ -283,7 +256,7 @@ void CheckpointOutput::outputDoubleIn8Chars(double data)
 
 void CheckpointOutput::outputUintIn8Chars(uint32_t data)
 {
-  if(outputFile == NULL) {
+  if(outputFile == nullptr) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",
             filename.c_str());
     exit(EXIT_FAILURE);
@@ -300,8 +273,4 @@ void CheckpointOutput::outputUintIn8Chars(uint32_t data)
           temp.bin_value[6],
           temp.bin_value[7]);
   fflush(outputFile);
-}
-
-void CheckpointOutput::printMultiParticleData() {
-
 }
