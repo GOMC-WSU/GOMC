@@ -26,7 +26,8 @@ namespace
 CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
-  coordCurrRef(sys.coordinates), filename("checkpoint.dat")
+  coordCurrRef(sys.coordinates),multiParticleRef(*sys.moves[mv::MULTIPARTICLE]),
+  filename("checkpoint.dat")
 {
 
 }
@@ -48,6 +49,7 @@ void CheckpointOutput::DoOutput(const ulong step)
     printCoordinates();
     printMoleculeLookupData();
     printMoveSettingsData();
+    printMultiParticleData();
     std::cout << "Checkpoint saved to " << filename << std::endl;
   }
 }
@@ -143,7 +145,7 @@ void CheckpointOutput::printMoleculeLookupData()
 
 void CheckpointOutput::printMoveSettingsData()
 {
-  uint size_x, size_y, size_z;
+  ulong size_x, size_y, size_z;
 
   // print size of scale
   size_x = moveSetRef.scale.size();
@@ -298,4 +300,8 @@ void CheckpointOutput::outputUintIn8Chars(uint32_t data)
           temp.bin_value[6],
           temp.bin_value[7]);
   fflush(outputFile);
+}
+
+void CheckpointOutput::printMultiParticleData() {
+
 }

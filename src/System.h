@@ -112,6 +112,8 @@ public:
 
   ~System();
 
+  MoveBase * moves[mv::MOVE_KINDS_TOTAL];
+
 private:
   void InitMoves(Setup const& set);
   void PickMove(uint & kind, double & draw);
@@ -120,7 +122,6 @@ private:
   void CalcEn(const uint kind);
   void Accept(const uint kind, const uint rejectState, const uint step);
 
-  MoveBase * moves[mv::MOVE_KINDS_TOTAL];
   double moveTime[mv::MOVE_KINDS_TOTAL];
   Clock time;
 };

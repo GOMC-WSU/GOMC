@@ -26,15 +26,15 @@ public:
   virtual uint Transform();
   virtual void Accept(const uint rejectState, const uint step);
   virtual void PrintAcceptKind();
+  double t_max[BOX_TOTAL], r_max[BOX_TOTAL];
+  uint tries[mp::MPMVCOUNT][BOX_TOTAL];
+  uint accepted[mp::MPMVCOUNT][BOX_TOTAL];
+
 private:
   uint bPick;
   uint typePick;
   uint perAdjust;
-  double w_new, w_old;
-  double t_max[BOX_TOTAL], r_max[BOX_TOTAL];
   double lambda;
-  uint tries[mp::MPMVCOUNT][BOX_TOTAL];
-  uint accepted[mp::MPMVCOUNT][BOX_TOTAL];
   bool initMol[BOX_TOTAL];
   SystemPotential sysPotNew;
   XYZArray molTorqueRef;
@@ -46,7 +46,6 @@ private:
   Coordinates newMolsPos;
   COM newCOMs;
   vector<uint> moveType, moleculeIndex;
-  uint MultiParticleType;
   const MoleculeLookup& molLookup;
 
   long double GetCoeff();
@@ -198,7 +197,7 @@ inline uint MultiParticle::Transform()
   return state;
 }
 
-inline void MultiParticle::CalcEn() 
+inline void MultiParticle::CalcEn()
 {
   // Calculate the new force and energy and we will compare that to the
   // reference values in Accept() function
@@ -227,10 +226,9 @@ inline void MultiParticle::CalcEn()
 inline long double MultiParticle::GetCoeff()
 {
   // calculate (w_new->old/w_old->new) and return it.
-  uint length, start;
   XYZ lbf_old, lbf_new; // lambda * BETA * force
   XYZ lbt_old, lbt_new; // lambda * BETA * torque
-  long double w_ratio_t = 1.0; 
+  long double w_ratio_t = 1.0;
   long double w_ratio = 1.0;
   double lBeta = lambda * BETA;
   uint m, molNumber;

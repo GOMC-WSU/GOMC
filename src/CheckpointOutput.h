@@ -9,6 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "OutputAbstracts.h"
 #include "MoveSettings.h"
 #include "Coordinates.h"
+#include "MoveBase.h"
 #include <iostream>
 
 class CheckpointOutput : public OutputableBase {
@@ -41,6 +42,7 @@ private:
   Molecules const & molRef;
   Coordinates & coordCurrRef;
   PRNG & prngRef;
+  MoveBase & multiParticleRef;
 
   bool enableOutCheckpoint;
   std::string filename;
@@ -54,7 +56,9 @@ private:
   void printMoleculeLookupData();
   void printMoveSettingsData();
   void printBoxDimensionsData();
+  void printMultiParticleData();
 
   void outputDoubleIn8Chars(double data);
   void outputUintIn8Chars(uint32_t data);
+
 };
