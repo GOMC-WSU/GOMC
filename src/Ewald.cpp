@@ -300,6 +300,7 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
     int i;
     double sumRealNew, sumImaginaryNew, dotProductNew, dotProductOld,
            sumRealOld, sumImaginaryOld;
+    double lambdaCoef = GetLambdaCoef(molIndex, box);
 #ifdef GOMC_CUDA
     XYZArray cCoords(length);
     std::vector<double> MolCharge;
@@ -339,8 +340,10 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
         sumImaginaryOld += (thisKind.AtomCharge(p) * sin(dotProductOld));
       }
 
-      sumRnew[box][i] = sumRref[box][i] - sumRealOld + sumRealNew;
-      sumInew[box][i] = sumIref[box][i] - sumImaginaryOld + sumImaginaryNew;
+      sumRnew[box][i] = sumRref[box][i] + lambdaCoef *
+	(sumRealNew - sumRealOld);
+      sumInew[box][i] = sumIref[box][i] + lambdaCoef *
+	(sumImaginaryNew - sumImaginaryOld);
 
       energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
                          * sumInew[box][i]) * prefactRef[box][i];
@@ -410,6 +413,54 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
 
   return energyRecipNew - energyRecipOld;
 }
+
+//calculate reciprocate term for lambdaNew and Old with same coordinates
+double Ewald::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
+			 const double lambdaNew, const uint molIndex,
+			 const uint box)
+{
+  double energyRecipNew = 0.0;
+  double energyRecipOld = 0.0;
+
+  //Need to implement GPU
+  if (box < BOXES_WITH_U_NB) {
+    uint p, i;
+    MoleculeKind const& thisKind = mols.GetKind(molIndex); 
+    uint length = thisKind.NumAtoms();
+    double dotProductNew, sumRealNew, sumImaginaryNew;
+    double lambdaCoef = pow(lambdaNew, 2.5) - pow(lambdaOld, 2.5);
+
+#ifdef _OPENMP
+    #pragma omp parallel for default(shared) private(i, p, dotProductNew, sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
+#endif
+    for (i = 0; i < imageSizeRef[box]; i++) {
+      sumRealNew = 0.0;
+      sumImaginaryNew = 0.0;
+      dotProductNew = 0.0;
+
+      for (p = 0; p < length; ++p) {
+        dotProductNew = Dot(p, kxRef[box][i],
+                            kyRef[box][i], kzRef[box][i],
+                            molCoords);
+
+        sumRealNew += thisKind.AtomCharge(p) * cos(dotProductNew);
+        sumImaginaryNew += thisKind.AtomCharge(p) * sin(dotProductNew);
+      }
+
+      //sumRealNew;
+      sumRnew[box][i] = sumRref[box][i] + lambdaCoef * sumRealNew;
+      //sumImaginaryNew;
+      sumInew[box][i] = sumIref[box][i] + lambdaCoef * sumImaginaryNew;
+
+      energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
+                         * sumInew[box][i]) * prefactRef[box][i];
+    }
+    energyRecipOld = sysPotRef.boxEnergy[box].recip;
+  }
+
+  return energyRecipNew - energyRecipOld;
+}
+
 
 void Ewald::RecipInit(uint box, BoxDimensions const& boxAxes)
 {

@@ -58,6 +58,15 @@ double NoEwald::MolReciprocal(XYZArray const& molCoords,
 }
 
 
+//calculate reciprocate term for lambdaNew and Old with same coordinates
+double NoEwald::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
+			   const double lambdaNew, const uint molIndex,
+			   const uint box)
+{
+  return 0.0;
+}
+
+
 //calculate self term for a box
 double NoEwald::BoxSelf(BoxDimensions const& boxAxes, uint box) const
 {

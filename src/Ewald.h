@@ -82,6 +82,11 @@ public:
   virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
                                const uint box);
 
+  //calculate reciprocate term for lambdaNew and Old with same coordinates
+  virtual double CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
+			    const double lambdaNew, const uint molIndex,
+			    const uint box);
+
   //calculate correction term for a molecule
   virtual double MolCorrection(uint molIndex, uint box)const;
     
@@ -133,12 +138,11 @@ public:
                                   XYZArray& molForceRec,
                                   uint box);
 
-  double GetLambda(uint molA, uint molB, uint box) const
+  double GetLambdaCoef(uint molA, uint box) const
   {
-    double lambda = 1.0;
-    lambda *= lambdaRef[totalmolecule * box + molA];
-    lambda *= lambdaRef[totalmolecule * box + molB];
-    return lambda;
+    double lambda = lambdaRef[totalmolecule * box + molA];
+    double lambdaCoef = pow(lambda, 2.5);
+    return lambdaCoef;
   }
 
 private:
