@@ -342,6 +342,18 @@ double EwaldCached::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
   return 0.0;
 }
 
+//calculate reciprocate term for lambdaNew and Old with same coordinates
+double EwaldCached::CFCMCRecip(XYZArray const& molCoords,const double lambdaOld,
+                               const double lambdaNew, const uint molIndex,
+                               const uint box)
+{
+  //This function should not be called in CFCMC move
+  std::cout << "Error: Cached Fourier method cannot be used while " <<
+    "performing CFCMC move!" << std::endl;
+  exit(EXIT_FAILURE);
+  return 0.0;
+}
+
 //restore cosMol and sinMol
 void EwaldCached::RestoreMol(int molIndex)
 {

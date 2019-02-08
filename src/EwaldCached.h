@@ -30,6 +30,11 @@ public:
   virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
                                const uint box);
 
+  //calculate reciprocate term for lambdaNew and Old with same coordinates
+  virtual double CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
+			    const double lambdaNew, const uint molIndex,
+			    const uint box);
+
   //calculate reciprocate term in destination box for swap move
   virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
                                const int molIndex);

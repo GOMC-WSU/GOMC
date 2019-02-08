@@ -77,7 +77,8 @@ private:
   vector< vector<uint> > relaxMolecule;
 
   double W_tc, W_recip;
-  double correct_old, correct_new, self_old, self_new;
+  double correctDiffSource, correctDiffDest, selfDiffSource, selfDiffDest;
+  double recipDiffSource, recipDiffDest;
   double lambdaMax, nuTolerance;
   double *lambdaRef;
   double molInSourceBox, molInDestBox;
@@ -93,7 +94,7 @@ private:
 
 
   cbmc::TrialMol oldMolCFCMC, newMolCFCMC;
-  Intermolecular tcLose, tcGain, recipLose, recipGain;
+  Intermolecular tcLose, tcGain;
   Energy oldEnergy[BOX_TOTAL], newEnergy[BOX_TOTAL];
   MoleculeLookup & molLookRef;
   Forcefield const& ffRef;
@@ -238,10 +239,10 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
 {
   W_tc = 1.0;
   W_recip = 1.0;
-  correct_old = 0.0;
-  correct_new = 0.0;
-  self_old = 0.0;
-  self_new = 0.0;
+  correctDiffSource = 0.0;
+  correctDiffDest = 0.0;
+  selfDiffSource = 0.0;
+  selfDiffDest = 0.0;
   tcLose.Zero();
   tcGain.Zero();
 
@@ -302,6 +303,24 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
 				  1.0 - lambdaNewS, molIndex, destBox);
   }
 
+  //Calculate self and correction difference for lambdaNew and lambdaOld
+  //For electrostatic we use lamda**5 
+  double coefDiffS = pow(lambdaNewS, 5) - pow(lambdaOldS, 5);
+  double coefDiffD = pow(1.0 - lambdaNewS, 5) - pow(1.0 - lambdaOldS, 5);
+  correctDiffSource = coefDiffS * calcEwald->SwapCorrection(oldMolCFCMC);
+  correctDiffDest = coefDiffD * calcEwald->SwapCorrection(newMolCFCMC);
+  selfDiffSource = coefDiffS * calcEwald->SwapSelf(oldMolCFCMC);
+  selfDiffDest = coefDiffD * calcEwald->SwapSelf(newMolCFCMC);
+  //calculate Recprocal Difference in source and dest box
+  recipDiffSource = calcEwald->CFCMCRecip(oldMolCFCMC.GetCoords(), lambdaOldS,
+					  lambdaNewS, molIndex, sourceBox);
+  recipDiffDest = calcEwald->CFCMCRecip(newMolCFCMC.GetCoords(), 1.0-lambdaOldS,
+					1.0 - lambdaNewS, molIndex, destBox);
+
+  //need to contribute the self and correction energy
+  W_recip = exp(-1.0 * ffRef.beta * (recipDiffSource + recipDiffDest +
+				     correctDiffSource + correctDiffDest +
+				     selfDiffSource + selfDiffDest));
 }
 
 inline double CFCMC::GetCoeff() const
@@ -486,8 +505,22 @@ inline bool CFCMC::AcceptInflating()
     sysPotRef.boxEnergy[sourceBox] += newEnergy[sourceBox];
     sysPotRef.boxEnergy[destBox] -= oldEnergy[destBox];
     sysPotRef.boxEnergy[destBox] += newEnergy[destBox];
+    //Add correction energy
+    sysPotRef.boxEnergy[sourceBox].correction += correctDiffSource;
+    sysPotRef.boxEnergy[destBox].correction += correctDiffDest;
+    //Add self energy
+    sysPotRef.boxEnergy[sourceBox].self += selfDiffSource;
+    sysPotRef.boxEnergy[destBox].self += selfDiffDest;
+    //Add Reciprocal energy
+    sysPotRef.boxEnergy[sourceBox].recip += recipDiffSource;
+    sysPotRef.boxEnergy[destBox].recip += recipDiffDest;
+
+
     swap(atomForceRef, atomForceNew);
     swap(molForceRef, molForceNew);
+
+    calcEwald->UpdateRecip(sourceBox);
+    calcEwald->UpdateRecip(destBox);
 
     //Retotal
     sysPotRef.Total();

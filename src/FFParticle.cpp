@@ -307,8 +307,7 @@ inline double FFParticle::CalcEn(const double distSq,
   double n_ij = n[index] / 2.0;
   double repulse = pow(sqrt(rRat2), n_ij);
 #endif
-double lambdaSq = lambda * lambda;
-double lambdaCoef = 0.5 * (1.0 - lambdaSq) * (1.0 - lambdaSq);
+double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
 double reverseAtt = lambdaCoef + attract;
 double reverseRep = (lambdaCoef + repulse) * (lambdaCoef + repulse);
 
