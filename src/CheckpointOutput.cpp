@@ -219,7 +219,7 @@ void CheckpointOutput::printVector1DDouble(vector< double > data)
 
   // print array iteself
   for(int i=0; i<size_x; i++) {
-    outputUintIn8Chars(data[i]);
+    outputDoubleIn8Chars(data[i]);
   }
 }
 
