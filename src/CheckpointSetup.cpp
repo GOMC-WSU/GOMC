@@ -28,7 +28,7 @@ CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV) :
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
   coordCurrRef(sys.coordinates), filename("checkpoint.dat")
 {
-  saveArray = nullptr;
+  saveArray = NULL;
 }
 
 void CheckpointSetup::ReadAll()

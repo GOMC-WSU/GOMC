@@ -226,7 +226,7 @@ void CheckpointOutput::printVector1DDouble(vector< double > data)
 void CheckpointOutput::openOutputFile()
 {
   outputFile = fopen(filename.c_str(), "wb");
-  if(outputFile == nullptr) {
+  if(outputFile == NULL) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",
             filename.c_str());
     exit(EXIT_FAILURE);
@@ -235,7 +235,7 @@ void CheckpointOutput::openOutputFile()
 
 void CheckpointOutput::outputDoubleIn8Chars(double data)
 {
-  if(outputFile == nullptr) {
+  if(outputFile == NULL) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",
             filename.c_str());
     exit(EXIT_FAILURE);
@@ -256,7 +256,7 @@ void CheckpointOutput::outputDoubleIn8Chars(double data)
 
 void CheckpointOutput::outputUintIn8Chars(uint32_t data)
 {
-  if(outputFile == nullptr) {
+  if(outputFile == NULL) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",
             filename.c_str());
     exit(EXIT_FAILURE);
