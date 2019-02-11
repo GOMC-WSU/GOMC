@@ -241,6 +241,16 @@ struct MEMCVal {
   }
 };
 
+struct CFCMCVal {
+  bool enable, readWindow, readRelaxSteps, readForwardBias;
+  long window, relaxSteps;
+  double forwardBias;
+  CFCMCVal(void) {
+    readWindow = readRelaxSteps = readForwardBias = false;
+  }
+};
+
+
 #if ENSEMBLE == GCMC
 struct ChemicalPotential {
   bool isFugacity;
@@ -257,6 +267,7 @@ struct SystemVals {
   Volume volume; //May go unused
   CBMC cbmcTrials;
   MEMCVal memcVal, intraMemcVal;
+  CFCMCVal cfcmcVal;
 #if ENSEMBLE == GCMC
   ChemicalPotential chemPot;
 #elif ENSEMBLE == GEMC || ENSEMBLE == NPT

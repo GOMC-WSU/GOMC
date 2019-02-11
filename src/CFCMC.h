@@ -24,8 +24,10 @@ public:
       lambdaRef(sys.lambdaRef), MoveBase(sys, statV)
     {
       totalMolecule = comCurrRef.Count();
-      eqSteps = 5;
-      lambdaWindow = 5;
+      relaxSteps = statV.cfcmcVal.relaxSteps;
+      lambdaWindow = statV.cfcmcVal.window;
+      forwardBias = statV.cfcmcVal.forwardBias;
+      backwardBias = 1.0 - forwardBias;
       histFreq = 1000;
       lambdaMax = 1.0 / (double)(lambdaWindow);
       nuTolerance = 1e-6;
@@ -71,7 +73,7 @@ private:
   uint molIndex, kindIndex;
   uint lambdaWindow, histFreq;
   uint lambdaIdxOld, lambdaIdxNew;
-  uint eqSteps;
+  uint relaxSteps;
   bool overlapCFCMC;
   vector< vector< vector<uint> > > hist;
   vector< vector<uint> > relaxMolecule;
@@ -82,6 +84,7 @@ private:
   double lambdaMax, nuTolerance;
   double *lambdaRef;
   double molInSourceBox, molInDestBox;
+  double forwardBias, backwardBias;
   vector< vector< vector<double> > > bias;
   vector< double > nu;
 
@@ -223,7 +226,14 @@ inline uint CFCMC::Transform()
     RelaxingMolecules();
     UpdateBias();
     //pick new lambda in the neighborhood
-    lambdaIdxNew = lambdaIdxOld + (prng.randInt(1) ? 1 : -1);
+    //lambdaIdxNew = lambdaIdxOld + (prng.randInt(1) ? 1 : -1);
+    if(prng() < forwardBias) {
+      //decreasing lambda in source box, increasing lambda in dest box
+      lambdaIdxNew = lambdaIdxOld - 1;
+    } else {
+      //increasing lambda in source box, decreasing lambda in dest box
+      lambdaIdxNew = lambdaIdxOld + 1;
+    }
     lambdaOld = (double)(lambdaIdxOld) * lambdaMax;
     lambdaNew = (double)(lambdaIdxNew) * lambdaMax;
   } while(lambdaIdxOld > 0 && lambdaIdxOld < lambdaWindow);
@@ -343,29 +353,49 @@ inline double CFCMC::GetCoeff() const
     if(idxSOld == lambdaWindow) {
       coef *= molInSourceBox * boxDimRef.volInv[sourceBox];
       coef *= exp(-BETA * molRef.kinds[kindIndex].chemPot);
-      coef *= 0.5;
+      //coef *= 0.5;
+      coef *= backwardBias;
     }
     if(idxSNew == lambdaWindow) {  
       coef *= boxDimRef.volume[sourceBox] / molInSourceBox;
       coef *= exp(BETA * molRef.kinds[kindIndex].chemPot);
-      coef *= 2.0;
+      //coef *= 2.0;
+      coef *= 1.0 / backwardBias;
     } else if(idxSNew == 0) {
-      coef *= 2.0;
+      //coef *= 2.0;
+      coef *= 1.0 / forwardBias;
+    } else if(idxSOld != lambdaWindow) {
+      //When lambda change will not lead to move termination
+      if(idxSNew < idxSOld)
+	coef *= backwardBias / forwardBias;
+      else
+	coef *= forwardBias / backwardBias;
     }
+
     return coef * biasCoef;
     
   } else {
     //insertion
-    if(idxDNew == lambdaWindow) {  
+    if(idxDOld == 0) {
+      //coef *= 0.5;
+      coef *= backwardBias;
+    } 
+    if(idxDNew == 0) {
+      //coef *= 2.0;
+      coef *= 1.0 / backwardBias;
+    } else if(idxDNew == lambdaWindow) {  
       coef *= boxDimRef.volume[destBox] / (molInDestBox + 1.0);
       coef *= exp(BETA * molRef.kinds[kindIndex].chemPot);
-      coef *= 2.0;
-    } else if(idxDNew == 0) {
-      coef *= 2.0;
-    } 
-    if(idxDOld == 0) {
-      coef *= 0.5;
-    } 
+      //coef *= 2.0;
+      coef *= 1.0 / forwardBias;
+    } else if(idxDOld != 0) {
+      //When lambda change will not lead to move termination
+      if(idxDNew > idxDOld)
+	coef *= backwardBias / forwardBias;
+      else
+	coef *= forwardBias / backwardBias;
+    }
+
     return coef * biasCoef;
     
   } 
@@ -534,7 +564,7 @@ inline void CFCMC::RelaxingMolecules()
 {
   ShiftMolToSourceBox();
   if(sourceBox < BOXES_WITH_U_NB) {
-    for(uint s = 0; s < eqSteps; s++) {
+    for(uint s = 0; s < relaxSteps; s++) {
       TransformRelaxing(sourceBox);
       CalcEnRelaxing(sourceBox);
       AcceptRelaxing(sourceBox);
@@ -544,7 +574,7 @@ inline void CFCMC::RelaxingMolecules()
 
   ShiftMolToDestBox();
   if(destBox < BOXES_WITH_U_NB) {
-    for(uint s = 0; s < eqSteps; s++) {
+    for(uint s = 0; s < relaxSteps; s++) {
       TransformRelaxing(destBox);
       CalcEnRelaxing(destBox);
       AcceptRelaxing(destBox);

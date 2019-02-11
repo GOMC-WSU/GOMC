@@ -120,7 +120,8 @@ void StaticVals::IsBoxOrthogonal(config_setup::Volume const& vol)
 
 
 StaticVals::StaticVals(Setup & set) : memcVal(set.config.sys.memcVal),
-  intraMemcVal(set.config.sys.intraMemcVal)
+				      intraMemcVal(set.config.sys.intraMemcVal),
+				      cfcmcVal(set.config.sys.cfcmcVal)
 {
   isOrthogonal = true;
   IsBoxOrthogonal(set.config.sys.volume);
