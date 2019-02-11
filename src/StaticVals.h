@@ -65,7 +65,8 @@ public:
   MoleculeLookup molLookup;
 #endif
 #ifdef  VARIABLE_PARTICLE_NUMBER
-  config_setup::MEMCVal  memcVal;
+  config_setup::MEMCVal   memcVal;
+  config_setup::CFCMCVal  cfcmcVal;
 #endif
  
   bool IsEquil(const uint step)

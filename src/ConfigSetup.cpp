@@ -49,6 +49,7 @@ ConfigSetup::ConfigSetup(void)
   sys.elect.oneFourScale = DBL_MAX;
   sys.elect.dielectric = DBL_MAX;
   sys.memcVal.enable = false;
+  sys.cfcmcVal.enable = false;
   sys.intraMemcVal.enable = false;
   sys.step.total = ULONG_MAX;
   sys.step.equil = ULONG_MAX;
@@ -576,6 +577,30 @@ void ConfigSetup::Init(const char *fileName)
       sys.moves.cfcmc = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: CFCMC move frequency",
 	     sys.moves.cfcmc);
+      if(sys.moves.cfcmc > 0.0) {
+	sys.cfcmcVal.enable = true;
+      }
+    } else if(CheckString(line[0], "LambdaWindow")) {
+      if(line.size() > 1) {
+	sys.cfcmcVal.readWindow = true;
+	sys.cfcmcVal.window = stringtoi(line[1]);
+	printf("%-40s %-4d \n", "Info: Lambda Windows",
+	       sys.cfcmcVal.window);
+      }
+    } else if(CheckString(line[0], "RelaxingSteps")) {
+      if(line.size() > 1) {
+	sys.cfcmcVal.readRelaxSteps = true;
+	sys.cfcmcVal.relaxSteps = stringtoi(line[1]);
+	printf("%-40s %-4d \n", "Info: CFCMC Relaxing Steps",
+	       sys.cfcmcVal.relaxSteps);
+      }
+    } else if(CheckString(line[0], "ForwardBias")) {
+      if(line.size() > 1) {
+	sys.cfcmcVal.readForwardBias = true;
+	sys.cfcmcVal.forwardBias = stringtod(line[1]);
+	printf("%-40s %-4.4f \n", "Info: CFCMC Forward Bias",
+	       sys.cfcmcVal.forwardBias);
+      }
     }
 #endif
     else if(CheckString(line[0], "CellBasisVector1")) {
@@ -1282,6 +1307,41 @@ void ConfigSetup::verifyInputs(void)
         std::cout << "Error: Intra-MEMC method is not same as MEMC method!\n";
         exit(EXIT_FAILURE);
       }
+    }
+  }
+
+  if(sys.cfcmcVal.enable) {
+    if(!sys.cfcmcVal.readWindow) {
+      std::cout << "Error: Number of Lambda Windows was not defined for " <<
+	"CFCMC move! \n";
+      exit(EXIT_FAILURE);
+    } else if (sys.cfcmcVal.window == 0) {
+      std::cout << "Error: Number of Lambda Windows should be greater " <<
+	"than 0 for CFCMC move! \n";
+      exit(EXIT_FAILURE);
+    }
+
+    if(!sys.cfcmcVal.readRelaxSteps) {
+      std::cout << "Error: Relaxing steps was not defined for CFCMC move! \n";
+      exit(EXIT_FAILURE);
+    } else if (sys.cfcmcVal.relaxSteps == 0) {
+      std::cout << "Warning: No thermal relaxing will be performed in " <<
+	"CFCMC move! \n";
+    }
+
+    if(!sys.cfcmcVal.readForwardBias) {
+      std::cout << "Error: Forward Bias was not defined for CFCMC move! \n";
+      exit(EXIT_FAILURE);
+    } else if (sys.cfcmcVal.forwardBias > 1.0 ||
+	       sys.cfcmcVal.forwardBias < 0.0) {
+      std::cout<<"Error: Forward Bias must be positive and less than 1.0!\n";
+      exit(EXIT_FAILURE);
+    } else if (sys.cfcmcVal.forwardBias > 0.999) {
+      std::cout << "Error: Forward Bias is too big for CFCMC move! \n";
+      exit(EXIT_FAILURE);
+    } else if (sys.cfcmcVal.forwardBias < 0.001) {
+      std::cout << "Error: Forward Bias is too small for CFCMC move! \n";
+      exit(EXIT_FAILURE);
     }
   }
   
