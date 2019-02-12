@@ -584,7 +584,7 @@ void ConfigSetup::Init(const char *fileName)
       if(line.size() > 1) {
 	sys.cfcmcVal.readWindow = true;
 	sys.cfcmcVal.window = stringtoi(line[1]);
-	printf("%-40s %-4d \n", "Info: Lambda Windows",
+	printf("%-40s %-4d \n", "Info: CFCMC Lambda Windows",
 	       sys.cfcmcVal.window);
       }
     } else if(CheckString(line[0], "RelaxingSteps")) {
@@ -594,12 +594,12 @@ void ConfigSetup::Init(const char *fileName)
 	printf("%-40s %-4d \n", "Info: CFCMC Relaxing Steps",
 	       sys.cfcmcVal.relaxSteps);
       }
-    } else if(CheckString(line[0], "ForwardBias")) {
+    } else if(CheckString(line[0], "UpdateBiasFreq")) {
       if(line.size() > 1) {
-	sys.cfcmcVal.readForwardBias = true;
-	sys.cfcmcVal.forwardBias = stringtod(line[1]);
-	printf("%-40s %-4.4f \n", "Info: CFCMC Forward Bias",
-	       sys.cfcmcVal.forwardBias);
+	sys.cfcmcVal.readUpdateBiasFreq = true;
+	sys.cfcmcVal.updateBiasFreq = stringtoi(line[1]);
+	printf("%-40s %-4d \n", "Info: CFCMC Update Bias frequency",
+	       sys.cfcmcVal.updateBiasFreq);
       }
     }
 #endif
@@ -887,6 +887,14 @@ void ConfigSetup::fillDefaults(void)
     printf("%-40s %-4.4f \n", "Default: CFCMC move frequency",
 	     sys.moves.cfcmc);
   }
+
+  
+    if(sys.cfcmcVal.enable && !sys.cfcmcVal.readUpdateBiasFreq) {
+      sys.cfcmcVal.updateBiasFreq = 1000;
+      printf("%-40s %-4.4f \n", "Default: CFCMC Update Bias frequency",
+	     sys.cfcmcVal.updateBiasFreq);
+    }
+
 #endif
 
   if(sys.exclude.EXCLUDE_KIND == UINT_MAX) {
@@ -1327,21 +1335,6 @@ void ConfigSetup::verifyInputs(void)
     } else if (sys.cfcmcVal.relaxSteps == 0) {
       std::cout << "Warning: No thermal relaxing will be performed in " <<
 	"CFCMC move! \n";
-    }
-
-    if(!sys.cfcmcVal.readForwardBias) {
-      std::cout << "Error: Forward Bias was not defined for CFCMC move! \n";
-      exit(EXIT_FAILURE);
-    } else if (sys.cfcmcVal.forwardBias > 1.0 ||
-	       sys.cfcmcVal.forwardBias < 0.0) {
-      std::cout<<"Error: Forward Bias must be positive and less than 1.0!\n";
-      exit(EXIT_FAILURE);
-    } else if (sys.cfcmcVal.forwardBias > 0.999) {
-      std::cout << "Error: Forward Bias is too big for CFCMC move! \n";
-      exit(EXIT_FAILURE);
-    } else if (sys.cfcmcVal.forwardBias < 0.001) {
-      std::cout << "Error: Forward Bias is too small for CFCMC move! \n";
-      exit(EXIT_FAILURE);
     }
   }
   

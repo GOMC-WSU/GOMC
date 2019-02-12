@@ -81,7 +81,8 @@ inline uint VolumeTransfer::Prep(const double subDraw, const double movePerc)
     if(fixBox0) {
       //For NPT-GEMC and when box0 is fixed, we cannot pick box 0
       while(box == 0) {
-        prng.PickBox(box, subDraw, movePerc);
+        //prng.PickBox(box, subDraw, movePerc);
+	box = prng.randIntExc(BOX_TOTAL);
       }
     }
   }
