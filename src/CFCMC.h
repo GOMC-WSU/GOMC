@@ -26,9 +26,7 @@ public:
       totalMolecule = comCurrRef.Count();
       relaxSteps = statV.cfcmcVal.relaxSteps;
       lambdaWindow = statV.cfcmcVal.window;
-      forwardBias = statV.cfcmcVal.forwardBias;
-      backwardBias = 1.0 - forwardBias;
-      histFreq = 1000;
+      histFreq = statV.cfcmcVal.updateBiasFreq;
       lambdaMax = 1.0 / (double)(lambdaWindow);
       nuTolerance = 1e-6;
       uint totKind = molRef.GetKindsCount();
@@ -75,16 +73,14 @@ private:
   uint lambdaIdxOld, lambdaIdxNew;
   uint relaxSteps;
   bool overlapCFCMC;
-  vector< vector< vector<uint> > > hist;
-  vector< vector<uint> > relaxMolecule;
+  vector< vector< vector<long int> > > hist;
 
   double W_tc, W_recip;
   double correctDiffSource, correctDiffDest, selfDiffSource, selfDiffDest;
   double recipDiffSource, recipDiffDest;
   double lambdaMax, nuTolerance;
   double *lambdaRef;
-  double molInSourceBox, molInDestBox;
-  double forwardBias, backwardBias;
+  double molInSourceBox, molInDestBox;  
   vector< vector< vector<double> > > bias;
   vector< double > nu;
 
@@ -226,14 +222,7 @@ inline uint CFCMC::Transform()
     RelaxingMolecules();
     UpdateBias();
     //pick new lambda in the neighborhood
-    //lambdaIdxNew = lambdaIdxOld + (prng.randInt(1) ? 1 : -1);
-    if(prng() < forwardBias) {
-      //decreasing lambda in source box, increasing lambda in dest box
-      lambdaIdxNew = lambdaIdxOld - 1;
-    } else {
-      //increasing lambda in source box, decreasing lambda in dest box
-      lambdaIdxNew = lambdaIdxOld + 1;
-    }
+    lambdaIdxNew = lambdaIdxOld + (prng.randInt(1) ? 1 : -1);
     lambdaOld = (double)(lambdaIdxOld) * lambdaMax;
     lambdaNew = (double)(lambdaIdxNew) * lambdaMax;
   } while(lambdaIdxOld > 0 && lambdaIdxOld < lambdaWindow);
@@ -335,6 +324,7 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
 
 inline double CFCMC::GetCoeff() const
 {
+  double coef = 1.0;
   uint idxSNew = lambdaIdxNew;
   uint idxSOld = lambdaIdxOld;
   uint idxDNew = lambdaWindow - lambdaIdxNew;
@@ -346,58 +336,51 @@ inline double CFCMC::GetCoeff() const
   //biasCoef = 1.0;
 
   //if lambda source is > 0, its not a full molecule
-#if ENSEMBLE == GCMC
-  double coef = 1.0;
+#if ENSEMBLE == GEMC
+  if(idxSOld == lambdaWindow) {
+    coef *= molInSourceBox / (molInDestBox + 1.0);
+    coef *= boxDimRef.volume[destBox] * boxDimRef.volInv[sourceBox];
+    coef *= 0.5;
+  }
+  if(idxSNew == lambdaWindow) {  
+    coef *= (molInDestBox + 1.0) / molInSourceBox;
+    coef *= boxDimRef.volInv[destBox] * boxDimRef.volume[sourceBox];
+    coef *= 2.0;
+  } else if(idxSNew == 0) {
+    coef *= 2.0;
+  }
+
+  return coef * biasCoef;
+  
+#elif ENSEMBLE == GCMC
   if(sourceBox == mv::BOX0) {
     //deletion 
     if(idxSOld == lambdaWindow) {
       coef *= molInSourceBox * boxDimRef.volInv[sourceBox];
       coef *= exp(-BETA * molRef.kinds[kindIndex].chemPot);
-      //coef *= 0.5;
-      coef *= backwardBias;
+      coef *= 0.5;
     }
     if(idxSNew == lambdaWindow) {  
       coef *= boxDimRef.volume[sourceBox] / molInSourceBox;
       coef *= exp(BETA * molRef.kinds[kindIndex].chemPot);
-      //coef *= 2.0;
-      coef *= 1.0 / backwardBias;
+      coef *= 2.0;
     } else if(idxSNew == 0) {
-      //coef *= 2.0;
-      coef *= 1.0 / forwardBias;
-    } else if(idxSOld != lambdaWindow) {
-      //When lambda change will not lead to move termination
-      if(idxSNew < idxSOld)
-	coef *= backwardBias / forwardBias;
-      else
-	coef *= forwardBias / backwardBias;
+      coef *= 2.0;
     }
-
-    return coef * biasCoef;
-    
+    return coef * biasCoef;   
   } else {
     //insertion
     if(idxDOld == 0) {
-      //coef *= 0.5;
-      coef *= backwardBias;
+      coef *= 0.5;
     } 
     if(idxDNew == 0) {
-      //coef *= 2.0;
-      coef *= 1.0 / backwardBias;
+      coef *= 2.0;
     } else if(idxDNew == lambdaWindow) {  
       coef *= boxDimRef.volume[destBox] / (molInDestBox + 1.0);
       coef *= exp(BETA * molRef.kinds[kindIndex].chemPot);
-      //coef *= 2.0;
-      coef *= 1.0 / forwardBias;
-    } else if(idxDOld != 0) {
-      //When lambda change will not lead to move termination
-      if(idxDNew > idxDOld)
-	coef *= backwardBias / forwardBias;
-      else
-	coef *= forwardBias / backwardBias;
+      coef *= 2.0;
     }
-
-    return coef * biasCoef;
-    
+    return coef * biasCoef; 
   } 
 #endif
 
@@ -460,17 +443,19 @@ inline void CFCMC::UpdateBias()
   }
 #else
   hist[sourceBox][kindIndex][idxS] += 1;
-  bias[sourceBox][kindIndex][idxS] -= nu[kindIndex];
+  //bias[sourceBox][kindIndex][idxS] -= nu[kindIndex];
   hist[destBox][kindIndex][idxD] += 1;
-  bias[destBox][kindIndex][idxD] -= nu[kindIndex];
+  //bias[destBox][kindIndex][idxD] -= nu[kindIndex];
 #endif
   uint box[2];
   box[0] = sourceBox;
   box[1] = destBox;
 
+  printf("lambdaIdxOld: %d, lambdaIdxNew: %d\n", lambdaIdxOld, lambdaIdxNew);
+
   for(uint b = 0; b < 2; b++) {
-    uint trial = std::accumulate(hist[box[b]][kindIndex].begin(),
-				 hist[box[b]][kindIndex].end(), 0);
+    //uint trial = std::accumulate(hist[box[b]][kindIndex].begin(), hist[box[b]][kindIndex].end(), 0);
+    uint trial = moveSetRef.GetTrial(box[b], mv::CFCMC, kindIndex);
     if((trial + 1) % histFreq == 0) {
       uint maxVisited = *max_element(hist[box[b]][kindIndex].begin(),
 				     hist[box[b]][kindIndex].end());
@@ -478,14 +463,15 @@ inline void CFCMC::UpdateBias()
 				     hist[box[b]][kindIndex].end());
 
       for(uint i = 0; i <= lambdaWindow; i++) {
-	if(hist[0][kindIndex][i] == 0) {
-	  bias[0][kindIndex][i] = 1.0;
+	if(hist[box[b]][kindIndex][i] == 0) {
+	  bias[box[b]][kindIndex][i] = 1.0;
 	} else {
-	  bias[0][kindIndex][i] = log(1.0 / (double)(hist[0][kindIndex][i]));
+	  bias[box[b]][kindIndex][i] =
+	    log(1.0 / (double)(hist[box[b]][kindIndex][i]));
 	}
       }
       
-      //check to see if all the bin is visited atleast 30% of 
+      //check to see if all the bin is visited atleast 95% of 
       // the most visited bin.                               
       if(minVisited > 0.95 * maxVisited) {
 	nu[kindIndex] *= 0.5;
