@@ -101,8 +101,8 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
         tempAccepted[box][move][k]++;
         accepted[box][move][k]++;
       }
-      acceptPercent[box][move][kind] = (double)(accepted[box][move][kind]) /
-                                      (double)(tries[box][move][kind]);
+      acceptPercent[box][move][k] = (double)(accepted[box][move][k]) /
+                                      (double)(tries[box][move][k]);
     }
   }
 }
