@@ -238,12 +238,15 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
 {
   W_tc = 1.0;
   W_recip = 1.0;
-  correctDiffSource = 0.0;
-  correctDiffDest = 0.0;
-  selfDiffSource = 0.0;
-  selfDiffDest = 0.0;
+  correctDiffDest = correctDiffSource = 0.0;
+  selfDiffDest = selfDiffSource = 0.0;
+  recipDiffDest = recipDiffSource = 0.0;
   tcLose.Zero();
   tcGain.Zero();
+  oldEnergy[sourceBox].Zero();
+  newEnergy[sourceBox].Zero();
+  oldEnergy[destBox].Zero();
+  newEnergy[destBox].Zero();
 
   if(overlapCFCMC) {
     //Do not calculate the energy difference if we have overlap
@@ -282,8 +285,6 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
 
   //No need to calculate energy when performing CBMC
   ShiftMolToSourceBox();
-  oldEnergy[sourceBox].Zero();
-  newEnergy[sourceBox].Zero();
   if(lambdaIdxNew != 0) {
     //calculate inter energy for lambda new and old in source Box
     calcEnRef.SingleMoleculeInter(oldEnergy[sourceBox], newEnergy[sourceBox],
@@ -293,8 +294,6 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
 
 
   ShiftMolToDestBox();
-  oldEnergy[destBox].Zero();
-  newEnergy[destBox].Zero();
   if(lambdaIdxOld != lambdaWindow && lambdaIdxNew != lambdaWindow) {
     //calculate inter energy for lambda new and old in dest Box
     calcEnRef.SingleMoleculeInter(oldEnergy[destBox], newEnergy[destBox],
@@ -454,8 +453,8 @@ inline void CFCMC::UpdateBias()
   printf("lambdaIdxOld: %d, lambdaIdxNew: %d\n", lambdaIdxOld, lambdaIdxNew);
 
   for(uint b = 0; b < 2; b++) {
-    //uint trial = std::accumulate(hist[box[b]][kindIndex].begin(), hist[box[b]][kindIndex].end(), 0);
-    uint trial = moveSetRef.GetTrial(box[b], mv::CFCMC, kindIndex);
+    uint trial = std::accumulate(hist[box[b]][kindIndex].begin(), hist[box[b]][kindIndex].end(), 0);
+    //uint trial = moveSetRef.GetTrial(box[b], mv::CFCMC, kindIndex);
     if((trial + 1) % histFreq == 0) {
       uint maxVisited = *max_element(hist[box[b]][kindIndex].begin(),
 				     hist[box[b]][kindIndex].end());
@@ -541,6 +540,7 @@ inline bool CFCMC::AcceptInflating()
     //Retotal
     sysPotRef.Total();
   }
+  overlapCFCMC = false;
 
   return result;
 }
