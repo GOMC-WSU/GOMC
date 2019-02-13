@@ -107,7 +107,6 @@ Ewald::~Ewald()
 
 void Ewald::Init()
 {
-  totalmolecule = currentCOM.Count();
   for(uint m = 0; m < mols.count; ++m) {
     const MoleculeKind& molKind = mols.GetKind(m);
     for(uint a = 0; a < molKind.NumAtoms(); ++a) {
@@ -1130,6 +1129,13 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       thisMol++;
     }
   }
+}
+
+double Ewald::GetLambdaCoef(uint molA, uint box) const
+{
+  double lambda = lambdaRef.GetLambda(molA, mols.GetMolKind(molA), box);
+  double lambdaCoef = pow(lambda, 2.5);
+  return lambdaCoef;
 }
 
 

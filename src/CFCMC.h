@@ -23,7 +23,6 @@ public:
     ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
       lambdaRef(sys.lambdaRef), MoveBase(sys, statV)
     {
-      totalMolecule = comCurrRef.Count();
       relaxSteps = statV.cfcmcVal.relaxSteps;
       lambdaWindow = statV.cfcmcVal.window;
       histFreq = statV.cfcmcVal.updateBiasFreq;
@@ -62,10 +61,10 @@ private:
   void AcceptRelaxing(uint box);
   void CalcEnCFCMC(double lambdaOldS, double lambdaNewS);
   void CalcEnRelaxing(uint box);
-  void TransformRelaxing(uint box);
+  uint TransformRelaxing(uint box);
   void RelaxingMolecules();
   
-  uint totalMolecule;
+  Lambda & lambdaRef;
   uint sourceBox, destBox;
   uint pStartCFCMC, pLenCFCMC;
   uint molIndex, kindIndex;
@@ -79,7 +78,6 @@ private:
   double correctDiffSource, correctDiffDest, selfDiffSource, selfDiffDest;
   double recipDiffSource, recipDiffDest;
   double lambdaMax, nuTolerance;
-  double *lambdaRef;
   double molInSourceBox, molInDestBox;  
   vector< vector< vector<double> > > bias;
   vector< double > nu;
@@ -183,10 +181,10 @@ inline uint CFCMC::Transform()
   double lambdaOld = (double)(lambdaIdxOld) * lambdaMax;
   double lambdaNew = (double)(lambdaIdxNew) * lambdaMax;
   //Update the interaction in destBox
-  lambdaRef[destBox * totalMolecule + molIndex] = 1.0 - lambdaNew;
+  lambdaRef.Set(1.0 - lambdaNew, molIndex, kindIndex, destBox);
   //Start growing the fractional molecule in destBox
   molRef.kinds[kindIndex].BuildIDNew(newMolCFCMC, molIndex);
-  overlapCFCMC = newMolCFCMC.HasOverlap();
+  //overlapCFCMC = newMolCFCMC.HasOverlap();
   //Add bonded energy because we dont considered in DCRotate.cpp 
   newMolCFCMC.AddEnergy(calcEnRef.MoleculeIntra(newMolCFCMC, molIndex));
   ShiftMolToDestBox();
@@ -194,8 +192,8 @@ inline uint CFCMC::Transform()
 
   do{
     //Set the interaction in source and destBox 
-    lambdaRef[sourceBox * totalMolecule + molIndex] = lambdaOld;
-    lambdaRef[destBox * totalMolecule + molIndex] = 1.0 - lambdaOld;
+    lambdaRef.Set(lambdaOld, molIndex, kindIndex, sourceBox);
+    lambdaRef.Set(1.0 - lambdaOld, molIndex, kindIndex, destBox);
     if(lambdaIdxNew == 0) {
       //removing the fractional molecule in last steps using CBMC in sourceBox
       molRef.kinds[kindIndex].BuildIDOld(oldMolCFCMC, molIndex);
@@ -216,8 +214,8 @@ inline uint CFCMC::Transform()
     if(acceptedInflate) {
       lambdaIdxOld = lambdaIdxNew; 
       //Update the interaction in sourceBox and destBox
-      lambdaRef[sourceBox * totalMolecule + molIndex] = lambdaNew;
-      lambdaRef[destBox * totalMolecule + molIndex] = 1.0 - lambdaNew;
+      lambdaRef.Set(lambdaNew, molIndex, kindIndex, sourceBox);
+      lambdaRef.Set(1.0 - lambdaNew, molIndex, kindIndex, destBox);
     }
     RelaxingMolecules();
     UpdateBias();
@@ -394,8 +392,7 @@ inline void CFCMC::Accept(const uint rejectState, const uint step)
     result = (lambdaIdxOld == 0);
     if(!result) {   
       //Set full interaction in sourceBox, zero interaction in destBox
-      lambdaRef[sourceBox * totalMolecule + molIndex] = 1.0;
-      lambdaRef[destBox * totalMolecule + molIndex] = 0.0;
+      lambdaRef.UnSet(sourceBox, destBox);
       //Shift the molecule back
       ShiftMolToSourceBox();
     }
@@ -435,23 +432,18 @@ inline void CFCMC::UpdateBias()
 #if ENSEMBLE == GCMC
   if(sourceBox == mv::BOX0) {
     hist[sourceBox][kindIndex][idxS] += 1;
-    //bias[sourceBox][kindIndex][idxS] -= nu[kindIndex];
   } else {
     hist[destBox][kindIndex][idxD] += 1;
-    //bias[destBox][kindIndex][idxD] -= nu[kindIndex];
   }
 #else
   hist[sourceBox][kindIndex][idxS] += 1;
-  //bias[sourceBox][kindIndex][idxS] -= nu[kindIndex];
   hist[destBox][kindIndex][idxD] += 1;
-  //bias[destBox][kindIndex][idxD] -= nu[kindIndex];
 #endif
   uint box[2];
   box[0] = sourceBox;
   box[1] = destBox;
 
-  printf("lambdaIdxOld: %d, lambdaIdxNew: %d\n", lambdaIdxOld, lambdaIdxNew);
-
+  
   for(uint b = 0; b < 2; b++) {
     uint trial = std::accumulate(hist[box[b]][kindIndex].begin(), hist[box[b]][kindIndex].end(), 0);
     //uint trial = moveSetRef.GetTrial(box[b], mv::CFCMC, kindIndex);
@@ -509,6 +501,7 @@ inline bool CFCMC::AcceptInflating()
   //Reject the move if we had overlaped
   result = result && !overlapCFCMC;
 
+  printf("lambda: %d -> %d : Weight: %4.10f : Coef: %4.5f : OverLap: %d \n", lambdaIdxOld, lambdaIdxNew, Wrat, molTransCoeff, overlapCFCMC);
   //printf("DestBox: %d, Result: %d, lambdaIDOld: %d, lambdaIDNew: %d, W1: %f, W2: %f,Wtot: %f \n", destBox, result,lambdaIdxOld, lambdaIdxNew, W1, W2, Wrat);
 
   if(result) {
@@ -551,9 +544,11 @@ inline void CFCMC::RelaxingMolecules()
   ShiftMolToSourceBox();
   if(sourceBox < BOXES_WITH_U_NB) {
     for(uint s = 0; s < relaxSteps; s++) {
-      TransformRelaxing(sourceBox);
-      CalcEnRelaxing(sourceBox);
-      AcceptRelaxing(sourceBox);
+      uint state = TransformRelaxing(sourceBox);
+      if(state == mv::fail_state::NO_FAIL) {
+	CalcEnRelaxing(sourceBox);
+	AcceptRelaxing(sourceBox);
+      }
     }
     oldMolCFCMC.SetCoords(coordCurrRef, pStartCFCMC);
   }
@@ -561,33 +556,38 @@ inline void CFCMC::RelaxingMolecules()
   ShiftMolToDestBox();
   if(destBox < BOXES_WITH_U_NB) {
     for(uint s = 0; s < relaxSteps; s++) {
-      TransformRelaxing(destBox);
-      CalcEnRelaxing(destBox);
-      AcceptRelaxing(destBox);
+      uint state = TransformRelaxing(destBox);
+      if(state == mv::fail_state::NO_FAIL) {
+	CalcEnRelaxing(destBox);
+	AcceptRelaxing(destBox);
+      }
     }
     newMolCFCMC.SetCoords(coordCurrRef, pStartCFCMC);
   }
 }
 
-inline void CFCMC::TransformRelaxing(uint b)
+inline uint CFCMC::TransformRelaxing(uint b)
 {
   //Randomely pick a molecule in Box
-  prng.PickMol(m, mk, b, sDraw, mPerc);
-  pStart = 0, pLen = 0;
-  molRef.GetRangeStartLength(pStart, pLen, m);
-  newMolPos.Uninit();
-  newMolPos.Init(pLen);
-  newCOM = comCurrRef.Get(m);
-  bool trans = prng.randInt(1);
-  trans |= (pLen == 1); // single molecule, translation only
+  uint state = prng.PickMol(m, mk, b);
+  if(state == mv::fail_state::NO_FAIL) {
+    pStart = 0, pLen = 0;
+    molRef.GetRangeStartLength(pStart, pLen, m);
+    newMolPos.Uninit();
+    newMolPos.Init(pLen);
+    newCOM = comCurrRef.Get(m);
+    bool trans = prng.randInt(1);
+    trans |= (pLen == 1); // single molecule, translation only
 
-  if(trans) {
-    coordCurrRef.TranslateRand(newMolPos, newCOM, pStart, pLen,
-                               m, b, moveSetRef.Scale(b, mv::DISPLACE, mk));
-  } else {
-    coordCurrRef.RotateRand(newMolPos, pStart, pLen, m, b,
-                            moveSetRef.Scale(b, mv::ROTATE, mk));
+    if(trans) {
+      coordCurrRef.TranslateRand(newMolPos, newCOM, pStart, pLen,
+				 m, b, moveSetRef.Scale(b, mv::DISPLACE, mk));
+    } else {
+      coordCurrRef.RotateRand(newMolPos, pStart, pLen, m, b,
+			      moveSetRef.Scale(b, mv::ROTATE, mk));
+    }
   }
+  return state;
 }
 
 inline void CFCMC::CalcEnRelaxing(uint b)

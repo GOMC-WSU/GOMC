@@ -40,6 +40,7 @@ class Coordinates;
 class COM;
 class XYZArray;
 class BoxDimensions;
+class Lambda;
 
 namespace cbmc
 {
@@ -275,13 +276,7 @@ private:
     return (pair1 == pair2);
   }
 
-  double GetLambda(uint molA, uint molB, uint box) const
-  {
-    double lambda = 1.0;
-    lambda *= lambdaRef[totalmolecule * box + molA];
-    lambda *= lambdaRef[totalmolecule * box + molB];
-    return lambda;
-  }
+  double GetLambda(uint molA, uint molB, uint box) const;
 
 
   const Forcefield& forcefield;
@@ -291,12 +286,11 @@ private:
   const BoxDimensions& currentAxes;
   const COM& currentCOM;
   const Ewald *calcEwald;
+  const Lambda& lambdaRef;
   XYZArray& atomForceRef;
   XYZArray& molForceRef;
   bool multiParticleEnabled;
   bool electrostatic, ewald;
-  const double *lambdaRef;
-  uint totalmolecule;
 
   std::vector<int> particleKind;
   std::vector<int> particleMol;

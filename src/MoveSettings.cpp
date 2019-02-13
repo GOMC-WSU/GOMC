@@ -95,11 +95,11 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
   #endif 
     ) {
     for (uint k = 1; k < totKind; k++) {
-      tries[box][move][kind]++;
-      tempTries[box][move][kind]++;
+      tries[box][move][k]++;
+      tempTries[box][move][k]++;
       if(isAccepted) {
-        tempAccepted[box][move][kind]++;
-        accepted[box][move][kind]++;
+        tempAccepted[box][move][k]++;
+        accepted[box][move][k]++;
       }
       acceptPercent[box][move][kind] = (double)(accepted[box][move][kind]) /
                                       (double)(tries[box][move][kind]);

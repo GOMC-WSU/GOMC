@@ -40,6 +40,7 @@ class COM;
 class XYZArray;
 class BoxDimensions;
 class CalculateEnergy;
+class Lambda;
 
 
 class Ewald
@@ -138,12 +139,7 @@ public:
                                   XYZArray& molForceRec,
                                   uint box);
 
-  double GetLambdaCoef(uint molA, uint box) const
-  {
-    double lambda = lambdaRef[totalmolecule * box + molA];
-    double lambdaCoef = pow(lambda, 2.5);
-    return lambdaCoef;
-  }
+  double GetLambdaCoef(uint molA, uint box) const;
 
 private:
   double currentEnergyRecip[BOXES_WITH_U_NB];
@@ -156,6 +152,7 @@ protected:
   const BoxDimensions& currentAxes;
   const COM& currentCOM;
   const SystemPotential &sysPotRef;
+  const Lambda& lambdaRef;
 
   bool electrostatic, ewald, multiParticleEnabled;
   double alpha;
@@ -165,7 +162,6 @@ protected:
   //const uint imageTotal = GetImageSize();
   uint imageTotal;
   uint *kmax;
-  uint totalmolecule;
   double **sumRnew; //cosine serries
   double **sumInew; //sine serries
   double **sumRref;
@@ -177,7 +173,6 @@ protected:
   double **hsqr, **hsqrRef;
   double **prefact, **prefactRef;
 
-  const double *lambdaRef;
 
   std::vector<int> particleKind;
   std::vector<int> particleMol;

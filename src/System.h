@@ -29,6 +29,46 @@ class Setup;
 class StaticVals;
 class MoveBase;
 
+//Defining lambda class to handle fractional molecule
+class Lambda
+{
+public:
+  Lambda() {
+    std::fill_n(isFraction, BOX_TOTAL, false);
+  }
+
+  void Set(const double lambda, const uint mol, const uint kind, const uint box)
+  {
+    molIndex[box] = mol;
+    kindIndex[box] = kind;
+    lambdaVal[box] = lambda;
+    isFraction[box] = true;
+  }
+
+  void UnSet(const uint box1, const uint box2) 
+  {
+    isFraction[box1] = isFraction[box2] = false;
+  }
+
+  double GetLambda(const uint mol, const uint kind, const uint box) const
+  {
+    double val = 1.0;
+    if(isFraction[box]) {
+      if((molIndex[box] == mol) && (kindIndex[box] == kind)) {
+	val = lambdaVal[box];
+      }
+    }
+    return val;
+  }
+
+protected:
+  uint molIndex[BOX_TOTAL];
+  uint kindIndex[BOX_TOTAL];
+  double lambdaVal[BOX_TOTAL];
+  bool isFraction[BOX_TOTAL];
+};
+
+
 class System
 {
 public:
@@ -96,7 +136,7 @@ public:
   XYZArray molForceRef;
   XYZArray atomForceRecRef;
   XYZArray molForceRecRef;
-  double *lambdaRef;
+  Lambda lambdaRef;
   COM com;
 
   CalculateEnergy calcEnergy;
