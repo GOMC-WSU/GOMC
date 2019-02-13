@@ -78,7 +78,7 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
   acceptPercent[box][move][kind] = (double)(accepted[box][move][kind]) /
                                   (double)(tries[box][move][kind]);
 
-  // for any move that we dont care about kind of molecule, it should be included
+  //for any move that we dont care about kind of molecule, it should be included
   //in the if condition  
   if (move == mv::INTRA_MEMC
   #if ENSEMBLE == GEMC || ENSEMBLE == GCMC 
@@ -89,14 +89,14 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
   #endif 
     ) {
     for (uint k = 1; k < totKind; k++) {
-      tries[box][move][kind]++;
-      tempTries[box][move][kind]++;
+      tries[box][move][k]++;
+      tempTries[box][move][k]++;
       if(isAccepted) {
-        tempAccepted[box][move][kind]++;
-        accepted[box][move][kind]++;
+        tempAccepted[box][move][k]++;
+        accepted[box][move][k]++;
       }
-      acceptPercent[box][move][kind] = (double)(accepted[box][move][kind]) /
-                                      (double)(tries[box][move][kind]);
+      acceptPercent[box][move][k] = (double)(accepted[box][move][k]) /
+	                           (double)(tries[box][move][k]);
     }
   }
 }
