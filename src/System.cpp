@@ -52,7 +52,6 @@ System::System(StaticVals& statics) :
   calcEnergy(statics, *this)
 {
   calcEwald = NULL;
-  lambdaRef = NULL;
 }
 
 System::~System()
@@ -77,8 +76,6 @@ System::~System()
   delete moves[mv::MEMC];
   delete moves[mv::CFCMC];
 #endif
-  if (lambdaRef != NULL)
-    delete[] lambdaRef;
 }
 
 void System::Init(Setup const& set)
@@ -104,8 +101,6 @@ void System::Init(Setup const& set)
   // Allocate space for reciprocate force
   atomForceRecRef.Init(set.pdb.atoms.beta.size());
   molForceRecRef.Init(com.Count());
-  lambdaRef = new double[com.Count() * BOX_TOTAL];
-  std::fill_n(lambdaRef, com.Count() * BOX_TOTAL, 1.0);
   cellList.SetCutoff();
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 

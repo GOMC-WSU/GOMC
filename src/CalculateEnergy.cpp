@@ -46,6 +46,7 @@ CalculateEnergy::CalculateEnergy(StaticVals & stat, System & sys) :
   currentCOM(sys.com),
   atomForceRef(sys.atomForceRef),
   molForceRef(sys.molForceRef),
+  lambdaRef(sys.lambdaRef),
 #ifdef VARIABLE_PARTICLE_NUMBER
   molLookup(sys.molLookup),
 #else
@@ -67,9 +68,7 @@ void CalculateEnergy::Init(System & sys)
   calcEwald = sys.GetEwald();
   electrostatic = forcefield.electrostatic;
   ewald = forcefield.ewald;
-  lambdaRef = sys.lambdaRef;
   multiParticleEnabled = sys.statV.multiParticleEnabled;
-  totalmolecule = currentCOM.Count();
   for(uint m = 0; m < mols.count; ++m) {
     const MoleculeKind& molKind = mols.GetKind(m);
     if(molKind.NumAtoms() > maxAtomInMol)
@@ -1636,4 +1635,12 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
   interEnOld.real = tempREnOld;
 
   return overlap;
+}
+
+double CalculateEnergy::GetLambda(uint molA, uint molB, uint box) const
+{
+  double lambda = 1.0;
+  lambda *= lambdaRef.GetLambda(molA, mols.GetMolKind(molA), box);
+  lambda *= lambdaRef.GetLambda(molB, mols.GetMolKind(molB), box);
+  return lambda;
 }
