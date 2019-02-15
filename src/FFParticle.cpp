@@ -374,3 +374,26 @@ inline double FFParticle::CalcCoulombVir(const double distSq,
     return qi_qj / (distSq * dist);
   }
 }
+
+inline double FFParticle::EnergyLRCFraction(const uint kind1, const uint kind2,
+					    const double lambda) const
+{
+  uint index = FlatIndex(kind1, kind2);
+  if(n[index] > 12.01 || n[index] < 11.99) {
+    std::cout << "Error: GOMC does not support LRC for fractional molecule" <<
+      " in Mie potential! \n";
+    exit(EXIT_FAILURE);
+  }
+  double sigma_6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+  double sigma_3 = sqrt(sigma_6);
+  double rcut_3 = rCut * rCut * rCut;
+  double rcut_6 = rcut_3 * rcut_3;
+  double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
+  double coef =  2.0 * M_PI * epsilon_cn[index] * lambda;
+  double part1 = (2.0 * lambdaCoef - 1.0) * sigma_3;
+  part1 /= 6.0 * pow(lambdaCoef, 1.5);
+  part1 *= atan(rcut_3 / (sigma_3 * sqrt(lambdaCoef))) - 0.5 * M_PI;
+  double part2 = rcut_3 * sigma_6;
+  part2 /= 6.0 * lambdaCoef * (lambdaCoef * sigma_6 + rcut_6);
+  return coef * (part1 - part2);
+}

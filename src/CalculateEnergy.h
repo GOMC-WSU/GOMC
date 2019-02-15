@@ -151,6 +151,15 @@ public:
                                     const uint kind,
                                     const bool add) const;
 
+
+  //! Calculates the change in the TC from chaning the lambdaOld -> lambdaNew
+  //! @param box Index of box under consideration
+  //! @param kind Kind of particle being transfrom in lambda
+  double MoleculeTailChange(const uint box, const uint kind,
+			    const std::vector <uint> &kCount,
+			    const double lambdaOld,
+			    const double lambdaNew) const;
+
   //! Calculates voidintramolecular energy of a full molecule
   void MoleculeIntra(const uint molIndex, const uint box, double *bondEn) const;
 
