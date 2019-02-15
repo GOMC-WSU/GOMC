@@ -213,6 +213,10 @@ void DCCrankShaftAng::BuildOld(TrialMol& oldMol, uint molIndex)
   oldMol.AddEnergy(Energy(bondedEn[0], nonbonded[0],
                           inter[0], real[0],
                           0.0, 0.0, 0.0));
+
+  for (uint a = 0; a < numAtom; a++) { 
+    oldMol.AddAtom(atoms[a], multiPosRotions[a][0]);
+  }
 }
 
 void DCCrankShaftAng::BuildNew(TrialMol& newMol, uint molIndex)
