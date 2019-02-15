@@ -76,6 +76,12 @@ public:
   {
     return 0.0;
   }
+  //Calculate Energy LRC for fractional molecule
+  virtual double EnergyLRCFraction(const uint kind1, const uint kind2,
+				   const double lambda) const
+  {
+    return 0.0;
+  }
 
   protected:
 

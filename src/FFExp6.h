@@ -77,6 +77,9 @@ public:
   {
     return virCorrection[FlatIndex(kind1, kind2)];
   }
+  //Calculate Energy LRC for fractional molecule
+  virtual double EnergyLRCFraction(const uint kind1, const uint kind2,
+				   const double lambda) const;
 
   protected:
 
@@ -287,6 +290,12 @@ inline double FF_EXP6::GetRmax_1_4(const uint i, const uint j) const
   return sqrt(rMaxSq_1_4[idx]);
 }
 
-
+inline double FF_EXP6::EnergyLRCFraction(const uint kind1, const uint kind2,
+					 const double lambda) const
+{
+  std::cout << "Error: GOMC does not support LRC for fractional molecule in" <<
+    "Exp-6 potential! \n";
+  exit(EXIT_FAILURE);
+}
 
 #endif /*FF_EXP6_H*/

@@ -86,6 +86,9 @@ public:
   virtual double EnergyLRC(const uint kind1, const uint kind2) const;
   //!Returns Energy long-range correction term for a kind pair
   virtual double VirialLRC(const uint kind1, const uint kind2) const;
+ //Calculate Energy LRC for fractional molecule
+  virtual double EnergyLRCFraction(const uint kind1, const uint kind2,
+				   const double lambda) const;
 
   uint NumKinds() const { return count; }                
   double GetMass(const uint kind) const { return mass[kind]; }
@@ -120,8 +123,8 @@ protected:
 #endif
   //For LJ eps_cn(en) --> 4eps, eps_cn_6 --> 24eps, eps_cn_n --> 48eps
   double * sigmaSq, * epsilon, * epsilon_1_4, * epsilon_cn, * epsilon_cn_6,
-         * nOver6, * sigmaSq_1_4, * epsilon_cn_1_4, * epsilon_cn_6_1_4, * nOver6_1_4,
-         * enCorrection, * virCorrection;
+         * nOver6, * sigmaSq_1_4, * epsilon_cn_1_4, * epsilon_cn_6_1_4,
+    * nOver6_1_4, * enCorrection, * virCorrection;
   double rCut;
 
   uint count;

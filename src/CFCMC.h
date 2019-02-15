@@ -32,9 +32,11 @@ public:
       nu.resize(totKind, 0.01);
       hist.resize(BOX_TOTAL);
       bias.resize(BOX_TOTAL);
+      kCount.resize(BOX_TOTAL);
       for(uint b = 0; b < BOX_TOTAL; b++) {
 	hist[b].resize(totKind);
 	bias[b].resize(totKind);
+	kCount[b].resize(totKind);
       }
       for(uint b = 0; b < BOX_TOTAL; b++) {
 	for(uint k = 0; k < totKind; k++) {
@@ -73,10 +75,11 @@ private:
   uint relaxSteps;
   bool overlapCFCMC;
   vector< vector< vector<long int> > > hist;
+  vector< vector< uint > > kCount;
 
   double W_tc, W_recip;
   double correctDiffSource, correctDiffDest, selfDiffSource, selfDiffDest;
-  double recipDiffSource, recipDiffDest;
+  double recipDiffSource, recipDiffDest, tcDiffSource, tcDiffDest;
   double lambdaMax, nuTolerance;
   double molInSourceBox, molInDestBox;  
   vector< vector< vector<double> > > bias;
@@ -87,11 +90,9 @@ private:
   XYZ newCOM;
   XYZArray newMolPos;
   Intermolecular inter_LJ, inter_Real, recip;
-  double sDraw, mPerc;
 
 
   cbmc::TrialMol oldMolCFCMC, newMolCFCMC;
-  Intermolecular tcLose, tcGain;
   Energy oldEnergy[BOX_TOTAL], newEnergy[BOX_TOTAL];
   MoleculeLookup & molLookRef;
   Forcefield const& ffRef;
@@ -151,8 +152,6 @@ inline uint CFCMC::GetBoxPairAndMol(const double subDraw, const double movPerc)
 inline uint CFCMC::Prep(const double subDraw, const double movPerc)
 {
   overlapCFCMC = false;
-  sDraw = subDraw;
-  mPerc = movPerc;
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
     newMolCFCMC = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
@@ -168,6 +167,15 @@ inline uint CFCMC::Prep(const double subDraw, const double movPerc)
     // store number of molecule in box before shifting molecule
     molInSourceBox = (double)molLookRef.NumKindInBox(kindIndex, sourceBox);
     molInDestBox = (double)molLookRef.NumKindInBox(kindIndex, destBox);
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      for (uint k = 0; k < molRef.GetKindsCount(); ++k) {
+	kCount[b][k] = molLookRef.NumKindInBox(k, b);
+	if(b == sourceBox && k == kindIndex) {
+	  //consider the fraction molecule as different molecule kind
+	  --kCount[b][k];
+	} 
+      }
+    }
   }
   return state;
 }
@@ -239,8 +247,7 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
   correctDiffDest = correctDiffSource = 0.0;
   selfDiffDest = selfDiffSource = 0.0;
   recipDiffDest = recipDiffSource = 0.0;
-  tcLose.Zero();
-  tcGain.Zero();
+  tcDiffDest = tcDiffSource = 0.0;
   oldEnergy[sourceBox].Zero();
   newEnergy[sourceBox].Zero();
   oldEnergy[destBox].Zero();
@@ -253,32 +260,14 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
 
   //Calculating long range correction
   if(ffRef.useLRC) { 
-    if(sourceBox == mv::BOX0) {
-      //Deletion move
-      if(lambdaIdxOld == lambdaWindow) {
-	//tansition from lambda 1.0 to lower value	
-	ShiftMolToSourceBox();
-	tcLose = calcEnRef.MoleculeTailChange(sourceBox, kindIndex, false);
-	tcGain = calcEnRef.MoleculeTailChange(destBox, kindIndex, true);
-	W_tc = exp(-1.0 * ffRef.beta * (tcGain.energy + tcLose.energy));
-	ShiftMolToDestBox();
-      } else if(lambdaIdxNew == lambdaWindow) {
-	//tansition from lambda lower value ro 1.0	
-	tcLose = calcEnRef.MoleculeTailChange(destBox, kindIndex, false);
-	tcGain = calcEnRef.MoleculeTailChange(sourceBox, kindIndex, true);
-	W_tc = exp(-1.0 * ffRef.beta * (tcGain.energy + tcLose.energy));
-      }
-    } else {
-      //Insertion move
-      if(lambdaIdxNew == 0) {
-	//transition from lambda lower to 1.0 in destBox
-	ShiftMolToSourceBox();
-	tcLose = calcEnRef.MoleculeTailChange(sourceBox, kindIndex, false);
-	tcGain = calcEnRef.MoleculeTailChange(destBox, kindIndex, true);
-	W_tc = exp(-1.0 * ffRef.beta * (tcGain.energy + tcLose.energy));
-	ShiftMolToDestBox();
-      }
-    }
+    //Calculate LRC difference for lambdaNew and lambdaOld
+    tcDiffSource = calcEnRef.MoleculeTailChange(sourceBox, kindIndex,
+						kCount[sourceBox],
+                                                lambdaOldS, lambdaNewS);
+    tcDiffDest = calcEnRef.MoleculeTailChange(destBox, kindIndex,
+					      kCount[destBox],
+                                              1.0-lambdaOldS, 1.0-lambdaNewS);
+    W_tc = exp(-1.0 * ffRef.beta * (tcDiffSource + tcDiffDest));
   }
 
   //No need to calculate energy when performing CBMC
@@ -286,8 +275,8 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
   if(lambdaIdxNew != 0) {
     //calculate inter energy for lambda new and old in source Box
     calcEnRef.SingleMoleculeInter(oldEnergy[sourceBox], newEnergy[sourceBox],
-				  atomForceNew, molForceNew, lambdaOldS,
-				  lambdaNewS, molIndex, sourceBox);
+                                  atomForceNew, molForceNew, lambdaOldS,
+                                  lambdaNewS, molIndex, sourceBox);
   }
 
 
@@ -298,6 +287,7 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
 				  atomForceNew, molForceNew, 1.0 - lambdaOldS,
 				  1.0 - lambdaNewS, molIndex, destBox);
   }
+
 
   //Calculate self and correction difference for lambdaNew and lambdaOld
   //For electrostatic we use lamda**5 
@@ -464,10 +454,10 @@ inline void CFCMC::UpdateBias()
       
       //check to see if all the bin is visited atleast 95% of 
       // the most visited bin.                               
-      if(minVisited > 0.95 * maxVisited) {
-	nu[kindIndex] *= 0.5;
-	std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
-      }                               
+      //if(minVisited > 0.95 * maxVisited) {
+	//nu[kindIndex] *= 0.5;
+	//std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
+	//}                               
     }
   }
 }
@@ -501,13 +491,13 @@ inline bool CFCMC::AcceptInflating()
   //Reject the move if we had overlaped
   result = result && !overlapCFCMC;
 
-  printf("lambda: %d -> %d : Weight: %4.10f : Coef: %4.5f : OverLap: %d \n", lambdaIdxOld, lambdaIdxNew, Wrat, molTransCoeff, overlapCFCMC);
+  printf("lambda: %-2d -> %-2d : Weight: %18.10f : Coef: %13.5f : OverLap: %d \n", lambdaIdxOld, lambdaIdxNew, Wrat, molTransCoeff, overlapCFCMC);
   //printf("DestBox: %d, Result: %d, lambdaIDOld: %d, lambdaIDNew: %d, W1: %f, W2: %f,Wtot: %f \n", destBox, result,lambdaIdxOld, lambdaIdxNew, W1, W2, Wrat);
 
   if(result) {
     //Add tail corrections
-    sysPotRef.boxEnergy[sourceBox].tc += tcLose.energy;
-    sysPotRef.boxEnergy[destBox].tc += tcGain.energy;
+    sysPotRef.boxEnergy[sourceBox].tc += tcDiffSource;
+    sysPotRef.boxEnergy[destBox].tc += tcDiffDest;
     //Add rest of energy.
     sysPotRef.boxEnergy[sourceBox] -= oldEnergy[sourceBox];
     sysPotRef.boxEnergy[sourceBox] += newEnergy[sourceBox];

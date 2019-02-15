@@ -93,6 +93,10 @@ public:
                    std::vector<std::string> &names,
                    Forcefield & forcefield);
 
+  //Calculate the LRC for fractional molecule between two molecule kind
+  double GetEnCorrections(const Forcefield & forcefield, const uint k1,
+			  const uint k2, const double lambda) const;
+
   //private:
   //Kind index of each molecule and start in master particle array
   //Plus counts
