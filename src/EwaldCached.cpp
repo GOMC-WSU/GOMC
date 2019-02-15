@@ -17,32 +17,57 @@ EwaldCached::EwaldCached(StaticVals & stat, System & sys) : Ewald(stat, sys)
 
 EwaldCached::~EwaldCached()
 {
-  if(ff.ewald) {
-    for(int i = 0; i < mols.count; i++) {
-      //when cached option is choosen
-      if (cosMolRef[i] != NULL) {
-        delete[] cosMolRef[i];
-        delete[] sinMolRef[i];
-        delete[] cosMolBoxRecip[i];
-        delete[] sinMolBoxRecip[i];
-      }
-    }
-
-    if (kx != NULL) {
-      //when cached option is choosen
-      if (cosMolRestore != NULL) {
-        delete[] cosMolRestore;
-        delete[] sinMolRestore;
-      }
-      //when cached option is choosen
-      if (cosMolRef != NULL) {
-        delete[] cosMolRef;
-        delete[] sinMolRef;
-        delete[] cosMolBoxRecip;
-        delete[] sinMolBoxRecip;
-      }
-    }
+  delete [] kmax;
+  delete [] imageSize;
+  delete [] imageSizeRef;
+  for(uint b=0; b < BOXES_WITH_U_NB; b++) {
+    delete [] kx[b];
+    delete [] ky[b];
+    delete [] kz[b];
+    delete [] hsqr[b];
+    delete [] prefact[b];
+    delete [] kxRef[b];
+    delete [] kyRef[b];
+    delete [] kzRef[b];
+    delete [] hsqrRef[b];
+    delete [] prefactRef[b];
+    delete [] sumRnew[b];
+    delete [] sumInew[b];
+    delete [] sumRref[b];
+    delete [] sumIref[b];
   }
+  delete [] kx;
+  delete [] ky;
+  delete [] kz;
+  delete [] hsqr;
+  delete [] prefact;
+  delete [] kxRef;
+  delete [] kyRef;
+  delete [] kzRef;
+  delete [] hsqrRef;
+  delete [] prefactRef;
+  delete [] sumRnew;
+  delete [] sumInew;
+  delete [] sumRref;
+  delete [] sumIref;
+
+  int i;
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(i)
+#endif
+  for (i = 0; i < mols.count; i++) {
+    delete [] cosMolRef[i];
+    delete [] sinMolRef[i];
+    delete [] cosMolBoxRecip[i];
+    delete [] sinMolBoxRecip[i];
+  }
+  delete [] cosMolRef;
+  delete [] sinMolRef;
+  delete [] cosMolBoxRecip;
+  delete [] sinMolBoxRecip;
+
+  delete [] cosMolRestore;
+  delete [] sinMolRestore;
 }
 
 void EwaldCached::Init()
@@ -85,8 +110,6 @@ void EwaldCached::AllocMem()
   sinMolRef = new double*[mols.count];
   cosMolBoxRecip = new double*[mols.count];
   sinMolBoxRecip = new double*[mols.count];
-  imageSize = new uint[BOXES_WITH_U_NB];
-  imageSizeRef = new uint[BOXES_WITH_U_NB];
 
   for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
     RecipCountInit(b, currentAxes);
