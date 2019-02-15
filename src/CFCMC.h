@@ -41,7 +41,7 @@ public:
       for(uint b = 0; b < BOX_TOTAL; b++) {
 	for(uint k = 0; k < totKind; k++) {
 	  hist[b][k].resize(lambdaWindow + 1, 0);
-	  bias[b][k].resize(lambdaWindow + 1, 0.0);
+	  bias[b][k].resize(lambdaWindow + 1, 1.0);
 	}
       }
     }
