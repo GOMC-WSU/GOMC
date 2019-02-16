@@ -39,7 +39,6 @@ void CheckpointSetup::ReadAll()
   readCoordinates();
   readMoleculeLookupData();
   readMoveSettingsData();
-  closeInputFile();
   std::cout << "Checkpoint loaded from " << filename << std::endl;
 }
 
@@ -249,12 +248,6 @@ void CheckpointSetup::openInputFile()
             filename.c_str());
     exit(EXIT_FAILURE);
   }
-}
-
-void CheckpointSetup::closeInputFile()
-{
-  if(inputFile)
-    fclose(inputFile);
 }
 
 double CheckpointSetup::readDoubleIn8Chars()
