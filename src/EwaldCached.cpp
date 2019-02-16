@@ -9,23 +9,19 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 using namespace geom;
 
-EwaldCached::EwaldCached(StaticVals & stat, System & sys) : Ewald(stat, sys)
-#if ENSEMBLE == GEMC
-  , GEMC_KIND(stat.kindOfGEMC)
-#endif
-  {}
-
-template< class T > void SafeDelete( T*& pVal )
-{
-  delete pVal;
-  pVal = NULL;
-}
 
 template< class T > void SafeDeleteArray( T*& pVal )
 {
   delete[] pVal;
   pVal = NULL;
 }
+
+EwaldCached::EwaldCached(StaticVals & stat, System & sys) : Ewald(stat, sys)
+#if ENSEMBLE == GEMC
+  , GEMC_KIND(stat.kindOfGEMC)
+#endif
+  {}
+
 
 EwaldCached::~EwaldCached()
 {
@@ -241,14 +237,13 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
   if (box < BOXES_WITH_U_NB) {
     MoleculeKind const& thisKind = mols.GetKind(molIndex);
     uint length = thisKind.NumAtoms();
-    uint startAtom = mols.MolStart(molIndex);
-    uint p, atom;
+    uint p;
     int i;
     double sumRealNew, sumImaginaryNew, dotProductNew, sumRealOld,
            sumImaginaryOld;
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i, p, atom, sumRealNew, sumImaginaryNew, sumRealOld, sumImaginaryOld, dotProductNew) reduction(+:energyRecipNew)
+    #pragma omp parallel for default(shared) private(i, p, sumRealNew, sumImaginaryNew, sumRealOld, sumImaginaryOld, dotProductNew) reduction(+:energyRecipNew)
 #endif
     for (i = 0; i < imageSizeRef[box]; i++) {
       sumRealNew = 0.0;
@@ -260,7 +255,6 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
       sinMolRestore[i] = sinMolRef[molIndex][i];
 
       for (p = 0; p < length; ++p) {
-        atom = startAtom + p;
         dotProductNew = Dot(p, kxRef[box][i],
                             kyRef[box][i], kzRef[box][i],
                             molCoords);
@@ -284,7 +278,7 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
 
 //calculate reciprocate term in destination box for swap move
 double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
-                                  const uint box, const int sourceBox,
+                                  const uint box,
                                   const int molIndex)
 {
   double energyRecipNew = 0.0;
