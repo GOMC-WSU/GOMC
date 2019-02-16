@@ -18,6 +18,7 @@ public:
   ~CheckpointSetup() {
     if(inputFile) {
       fclose(inputFile);
+      inputFile = NULL;
     }
     if(saveArray)
       delete [] saveArray;
