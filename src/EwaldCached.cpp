@@ -15,59 +15,71 @@ EwaldCached::EwaldCached(StaticVals & stat, System & sys) : Ewald(stat, sys)
 #endif
   {}
 
+template< class T > void SafeDelete( T*& pVal )
+{
+  delete pVal;
+  pVal = NULL;
+}
+
+template< class T > void SafeDeleteArray( T*& pVal )
+{
+  delete[] pVal;
+  pVal = NULL;
+}
+
 EwaldCached::~EwaldCached()
 {
-  delete [] kmax;
-  delete [] imageSize;
-  delete [] imageSizeRef;
+  SafeDeleteArray(kmax);
+  SafeDeleteArray(imageSize);
+  SafeDeleteArray(imageSizeRef);
   for(uint b=0; b < BOXES_WITH_U_NB; b++) {
-    delete [] kx[b];
-    delete [] ky[b];
-    delete [] kz[b];
-    delete [] hsqr[b];
-    delete [] prefact[b];
-    delete [] kxRef[b];
-    delete [] kyRef[b];
-    delete [] kzRef[b];
-    delete [] hsqrRef[b];
-    delete [] prefactRef[b];
-    delete [] sumRnew[b];
-    delete [] sumInew[b];
-    delete [] sumRref[b];
-    delete [] sumIref[b];
+    SafeDeleteArray(kx[b]);
+    SafeDeleteArray(ky[b]);
+    SafeDeleteArray(kz[b]);
+    SafeDeleteArray(hsqr[b]);
+    SafeDeleteArray(prefact[b]);
+    SafeDeleteArray(kxRef[b]);
+    SafeDeleteArray(kyRef[b]);
+    SafeDeleteArray(kzRef[b]);
+    SafeDeleteArray(hsqrRef[b]);
+    SafeDeleteArray(prefactRef[b]);
+    SafeDeleteArray(sumRnew[b]);
+    SafeDeleteArray(sumInew[b]);
+    SafeDeleteArray(sumRref[b]);
+    SafeDeleteArray(sumIref[b]);
   }
-  delete [] kx;
-  delete [] ky;
-  delete [] kz;
-  delete [] hsqr;
-  delete [] prefact;
-  delete [] kxRef;
-  delete [] kyRef;
-  delete [] kzRef;
-  delete [] hsqrRef;
-  delete [] prefactRef;
-  delete [] sumRnew;
-  delete [] sumInew;
-  delete [] sumRref;
-  delete [] sumIref;
+  SafeDeleteArray(kx);
+  SafeDeleteArray(ky);
+  SafeDeleteArray(kz);
+  SafeDeleteArray(hsqr);
+  SafeDeleteArray(prefact);
+  SafeDeleteArray(kxRef);
+  SafeDeleteArray(kyRef);
+  SafeDeleteArray(kzRef);
+  SafeDeleteArray(hsqrRef);
+  SafeDeleteArray(prefactRef);
+  SafeDeleteArray(sumRnew);
+  SafeDeleteArray(sumInew);
+  SafeDeleteArray(sumRref);
+  SafeDeleteArray(sumIref);
 
   int i;
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i)
 #endif
   for (i = 0; i < mols.count; i++) {
-    delete [] cosMolRef[i];
-    delete [] sinMolRef[i];
-    delete [] cosMolBoxRecip[i];
-    delete [] sinMolBoxRecip[i];
+    SafeDeleteArray(cosMolRef[i]);
+    SafeDeleteArray(sinMolRef[i]);
+    SafeDeleteArray(cosMolBoxRecip[i]);
+    SafeDeleteArray(sinMolBoxRecip[i]);
   }
-  delete [] cosMolRef;
-  delete [] sinMolRef;
-  delete [] cosMolBoxRecip;
-  delete [] sinMolBoxRecip;
+  SafeDeleteArray(cosMolRef);
+  SafeDeleteArray(sinMolRef);
+  SafeDeleteArray(cosMolBoxRecip);
+  SafeDeleteArray(sinMolBoxRecip);
 
-  delete [] cosMolRestore;
-  delete [] sinMolRestore;
+  SafeDeleteArray(cosMolRestore);
+  SafeDeleteArray(sinMolRestore);
 }
 
 void EwaldCached::Init()
