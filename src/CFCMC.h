@@ -329,18 +329,19 @@ inline double CFCMC::GetCoeff() const
   biasCoef *= exp(bias[destBox][kindIndex][idxDNew] -
 		  bias[destBox][kindIndex][idxDOld]);
 
-  //if lambda source is > 0, its not a full molecule
+  //transition from lambda = 1 to any value means deletion
+  //transition to lambda = 1 from any value means insertion
 #if ENSEMBLE == GEMC
   if(idxSOld == lambdaWindow) {
-    coef *= molInSourceBox / (molInDestBox + 1.0);
-    coef *= boxDimRef.volume[destBox] * boxDimRef.volInv[sourceBox];
+    coef *= molInSourceBox * boxDimRef.volInv[sourceBox];
     coef *= 0.5;
   }
-  if(idxSNew == lambdaWindow) {  
-    coef *= (molInDestBox + 1.0) / molInSourceBox;
-    coef *= boxDimRef.volInv[destBox] * boxDimRef.volume[sourceBox];
+  if(idxSNew == lambdaWindow) { 
+    coef *= boxDimRef.volume[sourceBox] / molInSourceBox;
     coef *= 2.0;
   } else if(idxSNew == 0) {
+    //same as (idxDNew == lambdaWindow)
+    coef *= boxDimRef.volume[destBox] / (molInDestBox + 1.0);
     coef *= 2.0;
   }
 
