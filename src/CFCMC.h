@@ -23,25 +23,28 @@ public:
     ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
       lambdaRef(sys.lambdaRef), MoveBase(sys, statV)
     {
-      relaxSteps = statV.cfcmcVal.relaxSteps;
-      lambdaWindow = statV.cfcmcVal.window;
-      histFreq = statV.cfcmcVal.updateBiasFreq;
-      lambdaMax = 1.0 / (double)(lambdaWindow);
-      nuTolerance = 1e-6;
-      uint totKind = molRef.GetKindsCount();
-      nu.resize(totKind, 0.01);
-      hist.resize(BOX_TOTAL);
-      bias.resize(BOX_TOTAL);
-      kCount.resize(BOX_TOTAL);
-      for(uint b = 0; b < BOX_TOTAL; b++) {
-	hist[b].resize(totKind);
-	bias[b].resize(totKind);
-	kCount[b].resize(totKind);
-      }
-      for(uint b = 0; b < BOX_TOTAL; b++) {
-	for(uint k = 0; k < totKind; k++) {
-	  hist[b][k].resize(lambdaWindow + 1, 0);
-	  bias[b][k].resize(lambdaWindow + 1, 1.0);
+      if(statV.cfcmcVal.enable) {
+	firstPrint = true;
+	relaxSteps = statV.cfcmcVal.relaxSteps;
+	lambdaWindow = statV.cfcmcVal.window;
+	flatness = statV.cfcmcVal.histFlatness;
+	lambdaMax = 1.0 / (double)(lambdaWindow);
+	nuTolerance = 1e-6;
+	uint totKind = molRef.GetKindsCount();
+	nu.resize(totKind, 0.01);
+	hist.resize(BOX_TOTAL);
+	bias.resize(BOX_TOTAL);
+	kCount.resize(BOX_TOTAL);
+	for(uint b = 0; b < BOX_TOTAL; b++) {
+	  hist[b].resize(totKind);
+	  bias[b].resize(totKind);
+	  kCount[b].resize(totKind);
+	}
+	for(uint b = 0; b < BOX_TOTAL; b++) {
+	  for(uint k = 0; k < totKind; k++) {
+	    hist[b][k].resize(lambdaWindow + 1, 0);
+	    bias[b][k].resize(lambdaWindow + 1, 0.0);
+	  }
 	}
       }
     }
@@ -70,18 +73,19 @@ private:
   uint sourceBox, destBox;
   uint pStartCFCMC, pLenCFCMC;
   uint molIndex, kindIndex;
-  uint lambdaWindow, histFreq;
+  uint lambdaWindow;
   uint lambdaIdxOld, lambdaIdxNew;
   uint relaxSteps;
-  bool overlapCFCMC;
+  uint box[2];
+  bool overlapCFCMC, firstPrint;
   vector< vector< vector<long int> > > hist;
   vector< vector< uint > > kCount;
 
   double W_tc, W_recip;
   double correctDiffSource, correctDiffDest, selfDiffSource, selfDiffDest;
   double recipDiffSource, recipDiffDest, tcDiffSource, tcDiffDest;
-  double lambdaMax, nuTolerance;
-  double molInSourceBox, molInDestBox;  
+  double lambdaMax, nuTolerance, flatness;
+  double molInSourceBox, molInDestBox; 
   vector< vector< vector<double> > > bias;
   vector< double > nu;
 
@@ -142,9 +146,11 @@ inline uint CFCMC::GetBoxPairAndMol(const double subDraw, const double movPerc)
   }
 #endif
 
-  if (state == mv::fail_state::NO_FAIL) {
+  if(state == mv::fail_state::NO_FAIL) {
     pStartCFCMC = pLenCFCMC = 0;
     molRef.GetRangeStartLength(pStartCFCMC, pLenCFCMC, molIndex);
+    box[0] = sourceBox;
+    box[1] = destBox;
   }
   return state;
 }
@@ -192,11 +198,10 @@ inline uint CFCMC::Transform()
   lambdaRef.Set(1.0 - lambdaNew, molIndex, kindIndex, destBox);
   //Start growing the fractional molecule in destBox
   molRef.kinds[kindIndex].BuildIDNew(newMolCFCMC, molIndex);
-  //overlapCFCMC = newMolCFCMC.HasOverlap();
+  overlapCFCMC = newMolCFCMC.HasOverlap();
   //Add bonded energy because we dont considered in DCRotate.cpp 
   newMolCFCMC.AddEnergy(calcEnRef.MoleculeIntra(newMolCFCMC, molIndex));
   ShiftMolToDestBox();
-  UpdateBias();
 
   do{
     //Set the interaction in source and destBox 
@@ -226,7 +231,9 @@ inline uint CFCMC::Transform()
       lambdaRef.Set(1.0 - lambdaNew, molIndex, kindIndex, destBox);
     }
     RelaxingMolecules();
-    UpdateBias();
+    //Dont update Bias if move resulted in overLap
+    if(!overlapCFCMC)
+      UpdateBias();
     //pick new lambda in the neighborhood
     lambdaIdxNew = lambdaIdxOld + (prng.randInt(1) ? 1 : -1);
     lambdaOld = (double)(lambdaIdxOld) * lambdaMax;
@@ -316,11 +323,11 @@ inline double CFCMC::GetCoeff() const
   uint idxSOld = lambdaIdxOld;
   uint idxDNew = lambdaWindow - lambdaIdxNew;
   uint idxDOld = lambdaWindow - lambdaIdxOld;;
-  double biasCoef = exp(bias[sourceBox][kindIndex][idxSNew] -
-			bias[sourceBox][kindIndex][idxSOld]);
+  double biasCoef = 1.0;
+  biasCoef *= exp(bias[sourceBox][kindIndex][idxSNew] - 
+		  bias[sourceBox][kindIndex][idxSOld]);
   biasCoef *= exp(bias[destBox][kindIndex][idxDNew] -
 		  bias[destBox][kindIndex][idxDOld]);
-  //biasCoef = 1.0;
 
   //if lambda source is > 0, its not a full molecule
 #if ENSEMBLE == GEMC
@@ -413,52 +420,54 @@ inline void CFCMC::ShiftMolToDestBox()
 
 inline void CFCMC::UpdateBias()
 {
-  if(nu[kindIndex] <= nuTolerance)
-    return;
-
   //Find the index for source and dest box
   uint idxS = lambdaIdxOld;
   uint idxD = lambdaWindow - lambdaIdxOld;
-#if ENSEMBLE == GCMC
-  if(sourceBox == mv::BOX0) {
-    hist[sourceBox][kindIndex][idxS] += 1;
-  } else {
-    hist[destBox][kindIndex][idxD] += 1;
-  }
-#else
+
   hist[sourceBox][kindIndex][idxS] += 1;
   hist[destBox][kindIndex][idxD] += 1;
+
+  //In Bias, if lambda is 1.0, it is also 0.0 for continueity
+  if((idxS == lambdaWindow) || (idxS == 0)) {
+    hist[sourceBox][kindIndex][idxD] += 1;
+    hist[destBox][kindIndex][idxS] += 1;
+  }
+
+  //Stop the modifying bias if we converged
+  if(nu[kindIndex] <= nuTolerance) {
+    if(firstPrint)
+      printf("STOPED MODIFYING BIAS. \n");
+    firstPrint = false;
+    return;
+  }
+
+  //Update the bias for both box
+  bias[sourceBox][kindIndex][idxS] -= nu[kindIndex];
+  bias[destBox][kindIndex][idxD] -= nu[kindIndex];
+
+  //In Bias, if lambda is 1.0, it is also 0.0 for continueity
+  if((idxS == lambdaWindow) || (idxS == 0)) {
+    bias[sourceBox][kindIndex][idxD] -= nu[kindIndex];
+    bias[destBox][kindIndex][idxS] -= nu[kindIndex];
+  }
+
+#if ENSEMBLE == GCMC
+  //We dont consider biasing in reservoir
+  bias[1][kindIndex][idxD] = bias[1][kindIndex][idxS] = 0.0;
+  hist[1][kindIndex][idxD] = hist[1][kindIndex][idxS] = 0;
 #endif
-  uint box[2];
-  box[0] = sourceBox;
-  box[1] = destBox;
-
-  
-  for(uint b = 0; b < 2; b++) {
-    uint trial = std::accumulate(hist[box[b]][kindIndex].begin(), hist[box[b]][kindIndex].end(), 0);
-    //uint trial = moveSetRef.GetTrial(box[b], mv::CFCMC, kindIndex);
-    if((trial + 1) % histFreq == 0) {
-      uint maxVisited = *max_element(hist[box[b]][kindIndex].begin(),
-				     hist[box[b]][kindIndex].end());
-      uint minVisited = *min_element(hist[box[b]][kindIndex].begin(),
-				     hist[box[b]][kindIndex].end());
-
-      for(uint i = 0; i <= lambdaWindow; i++) {
-	if(hist[box[b]][kindIndex][i] == 0) {
-	  bias[box[b]][kindIndex][i] = 1.0;
-	} else {
-	  bias[box[b]][kindIndex][i] =
-	    log(1.0 / (double)(hist[box[b]][kindIndex][i]));
-	}
-      }
-      
-      //check to see if all the bin is visited atleast 95% of 
-      // the most visited bin.                               
-      //if(minVisited > 0.95 * maxVisited) {
-	//nu[kindIndex] *= 0.5;
-	//std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
-	//}                               
-    }
+    
+  for(uint b = 0; b < 2; b++) { 
+    uint maxVisited = *max_element(hist[box[b]][kindIndex].begin(),
+				   hist[box[b]][kindIndex].end());
+    uint minVisited = *min_element(hist[box[b]][kindIndex].begin(),
+				   hist[box[b]][kindIndex].end());    
+    //check to see if all the bin visited atleast 30% of the most visited bin
+    if(minVisited > flatness * maxVisited) {
+      nu[kindIndex] *= 0.5;
+      std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
+      printf("Controler: %4.10f \n", nu[kindIndex]);
+    }                               
   }
 }
 
@@ -491,7 +500,7 @@ inline bool CFCMC::AcceptInflating()
   //Reject the move if we had overlaped
   result = result && !overlapCFCMC;
 
-  printf("lambda: %-2d -> %-2d : Weight: %18.10f : Coef: %13.5f : OverLap: %d \n", lambdaIdxOld, lambdaIdxNew, Wrat, molTransCoeff, overlapCFCMC);
+  //printf("lambda: %-2d -> %-2d : WS: %5.1e : WD: %5.1e : Wtot: %5.1e : Coef: %5.1e : SourceBox: %d : Overlap: %d \n", lambdaIdxOld, lambdaIdxNew, W1, W2, Wrat, molTransCoeff, sourceBox, overlapCFCMC);
   //printf("DestBox: %d, Result: %d, lambdaIDOld: %d, lambdaIDNew: %d, W1: %f, W2: %f,Wtot: %f \n", destBox, result,lambdaIdxOld, lambdaIdxNew, W1, W2, Wrat);
 
   if(result) {

@@ -594,12 +594,12 @@ void ConfigSetup::Init(const char *fileName)
 	printf("%-40s %-4d \n", "Info: CFCMC Relaxing Steps",
 	       sys.cfcmcVal.relaxSteps);
       }
-    } else if(CheckString(line[0], "UpdateBiasFreq")) {
+    } else if(CheckString(line[0], "HistFlatness")) {
       if(line.size() > 1) {
-	sys.cfcmcVal.readUpdateBiasFreq = true;
-	sys.cfcmcVal.updateBiasFreq = stringtoi(line[1]);
-	printf("%-40s %-4d \n", "Info: CFCMC Update Bias frequency",
-	       sys.cfcmcVal.updateBiasFreq);
+	sys.cfcmcVal.readHistFlatness = true;
+	sys.cfcmcVal.histFlatness = stringtod(line[1]);
+	printf("%-40s %-4.4f \n", "Info: CFCMC Histogram Flatness",
+	       sys.cfcmcVal.histFlatness);
       }
     }
 #endif
@@ -889,10 +889,10 @@ void ConfigSetup::fillDefaults(void)
   }
 
   
-    if(sys.cfcmcVal.enable && !sys.cfcmcVal.readUpdateBiasFreq) {
-      sys.cfcmcVal.updateBiasFreq = 1000;
-      printf("%-40s %-4.4f \n", "Default: CFCMC Update Bias frequency",
-	     sys.cfcmcVal.updateBiasFreq);
+    if(sys.cfcmcVal.enable && !sys.cfcmcVal.readHistFlatness) {
+      sys.cfcmcVal.histFlatness = 0.3;
+      printf("%-40s %-4.4f \n", "Default: CFCMC Histogram Flatness",
+	     sys.cfcmcVal.histFlatness);
     }
 
 #endif
@@ -1335,6 +1335,12 @@ void ConfigSetup::verifyInputs(void)
     } else if (sys.cfcmcVal.relaxSteps == 0) {
       std::cout << "Warning: No thermal relaxing will be performed in " <<
 	"CFCMC move! \n";
+    }
+
+    if(sys.cfcmcVal.histFlatness > 0.999 || sys.cfcmcVal.histFlatness < 0.001){
+      std::cout << "Error: Unacceptable Value for Histogram Flatness in " <<
+	"CFCMC move! \n";
+      exit(EXIT_FAILURE);
     }
   }
   
