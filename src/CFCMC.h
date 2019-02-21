@@ -24,7 +24,6 @@ public:
       lambdaRef(sys.lambdaRef), MoveBase(sys, statV)
     {
       if(statV.cfcmcVal.enable) {
-	firstPrint = true;
 	relaxSteps = statV.cfcmcVal.relaxSteps;
 	lambdaWindow = statV.cfcmcVal.window;
 	flatness = statV.cfcmcVal.histFlatness;
@@ -35,6 +34,7 @@ public:
 	hist.resize(BOX_TOTAL);
 	bias.resize(BOX_TOTAL);
 	kCount.resize(BOX_TOTAL);
+	firstPrint.resize(totKind, true);
 	for(uint b = 0; b < BOX_TOTAL; b++) {
 	  hist[b].resize(totKind);
 	  bias[b].resize(totKind);
@@ -77,7 +77,8 @@ private:
   uint lambdaIdxOld, lambdaIdxNew;
   uint relaxSteps;
   uint box[2];
-  bool overlapCFCMC, firstPrint;
+  bool overlapCFCMC;
+  vector< bool > firstPrint;
   vector< vector< vector<long int> > > hist;
   vector< vector< uint > > kCount;
 
@@ -436,9 +437,11 @@ inline void CFCMC::UpdateBias()
 
   //Stop the modifying bias if we converged
   if(nu[kindIndex] <= nuTolerance) {
-    if(firstPrint)
-      printf("STOPED MODIFYING BIAS. \n");
-    firstPrint = false;
+    if(firstPrint[kindIndex]) {
+      printf("STOPED MODIFYING BIAS FOR %s. \n",
+	     molRef.kinds[kindIndex].name.c_str());
+    }
+    firstPrint[kindIndex] = false;
     return;
   }
 
@@ -467,7 +470,8 @@ inline void CFCMC::UpdateBias()
     if(minVisited > flatness * maxVisited) {
       nu[kindIndex] *= 0.5;
       std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
-      printf("Controler: %4.10f \n", nu[kindIndex]);
+      printf("Controler[%s]: %4.10f \n", molRef.kinds[kindIndex].name.c_str(),
+	     nu[kindIndex]);
     }                               
   }
 }
@@ -501,8 +505,9 @@ inline bool CFCMC::AcceptInflating()
   //Reject the move if we had overlaped
   result = result && !overlapCFCMC;
 
-  //printf("lambda: %-2d -> %-2d : WS: %5.1e : WD: %5.1e : Wtot: %5.1e : Coef: %5.1e : SourceBox: %d : Overlap: %d \n", lambdaIdxOld, lambdaIdxNew, W1, W2, Wrat, molTransCoeff, sourceBox, overlapCFCMC);
-  //printf("DestBox: %d, Result: %d, lambdaIDOld: %d, lambdaIDNew: %d, W1: %f, W2: %f,Wtot: %f \n", destBox, result,lambdaIdxOld, lambdaIdxNew, W1, W2, Wrat);
+  if(!overlapCFCMC) {
+    printf("lambda[%s]: %-2d -> %-2d : WS: %5.1e : WD: %5.1e : Wtot: %5.1e : Coef: %5.1e : SourceBox: %d \n", molRef.kinds[kindIndex].name.c_str(), lambdaIdxOld, lambdaIdxNew, W1, W2, Wrat, molTransCoeff, sourceBox);
+  }
 
   if(result) {
     //Add tail corrections
