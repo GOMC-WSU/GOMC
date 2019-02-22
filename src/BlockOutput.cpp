@@ -56,12 +56,12 @@ void BlockAverage::DoWrite(const ulong step, uint precision)
 {
   if (tot >= 1) {
     if (outBlock0->is_open()) {
-      if(abs(block[0]) > 9999999999.9999) {
-        (*outBlock0) << left << std::fixed  << std::setprecision(0) <<
+      if(abs(block[0]) > 1e10) {
+        (*outBlock0) << left << std::scientific  << std::setprecision(precision) <<
                      std::setw(OUTPUTWIDTH);
-        (*outBlock0) << 9999999999;
+        (*outBlock0) << 1e10;
       } else {
-        (*outBlock0) << left << std::fixed  << std::setprecision(precision) <<
+        (*outBlock0) << left << std::scientific  << std::setprecision(precision) <<
                      std::setw(OUTPUTWIDTH);
         (*outBlock0) << block[0];
       }
@@ -70,12 +70,12 @@ void BlockAverage::DoWrite(const ulong step, uint precision)
   }
   if (tot >= 2) {
     if (outBlock1->is_open()) {
-      if(abs(block[0]) > 9999999999.9999) {
-        (*outBlock1) << left << std::fixed  << std::setprecision(0) <<
+      if(abs(block[0]) > 1e10) {
+        (*outBlock1) << left << std::scientific  << std::setprecision(precision) <<
                      std::setw(OUTPUTWIDTH);
-        (*outBlock1) << 9999999999;
+        (*outBlock1) << 1e10;
       } else {
-        (*outBlock1) << left << std::fixed  << std::setprecision(precision) <<
+        (*outBlock1) << left << std::scientific  << std::setprecision(precision) <<
                      std::setw(OUTPUTWIDTH);
         (*outBlock1) << block[1];
       }
@@ -107,9 +107,9 @@ void BlockAverages::AllocBlocks(void)
 {
   numKindBlocks = out::TOTAL_K * var->numKinds;
 #if ENSEMBLE == GCMC || ENSEMBLE == GEMC
-  //we don't have mole fraction with only one kind
+  //we don't have mole fraction and mol density with only one kind
   if (var->numKinds == 1)
-    numKindBlocks--;
+    numKindBlocks = 0;
 #endif
   totalBlocks = out::TOTAL_SINGLE + numKindBlocks;
   blocks = new BlockAverage[totalBlocks];
@@ -128,7 +128,7 @@ void BlockAverages::DoOutput(const ulong step)
   outBlock1 << left << std::fixed << std::setw(OUTPUTWIDTH) << nextStep;
   for (uint v = 0; v < totalBlocks; ++v) {
     if(v < out::TOTAL_SINGLE)
-      blocks[v].Write(nextStep, firstPrint);
+      blocks[v].Write(nextStep, firstPrint, 8);
     else
       blocks[v].Write(nextStep, firstPrint, 8);
   }
@@ -209,9 +209,31 @@ void BlockAverages::InitWatchMulti(config_setup::TrackedVars const& tracked)
     }
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       uint kArrIdx = b * var->numKinds + k;
-      if (var->numKinds > 1)
+      if (var->numKinds > 1) {
         blocks[bkStart + out::MOL_FRACTION_IDX * var->numKinds].SetRef
         (&var->molFractionByKindBox[kArrIdx], b);
+      }
+    }
+  }
+  //I cannot put this in previous loop because the Title will be printed
+  // as soon as it is initialized.
+  for (uint k = 0; k < var->numKinds; ++k) {
+    uint bkStart = start + k;
+    //Copy each char of the name string.
+    std::string trimKindName = var->kindsRef[k].name;
+    //If more than one kind, output mol fractions.
+    if (var->numKinds > 1) {
+      //Init mol density
+      name = out::MOL_DENSITY + "_" + trimKindName;
+      blocks[bkStart + out::MOL_DENSITY_IDX * var->numKinds].Init
+      (&outBlock0, &outBlock1, tracked.molNum.block, invSteps, name, BOXES_WITH_U_NB);
+    }
+    for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+      uint kArrIdx = b * var->numKinds + k;
+      if (var->numKinds > 1) {
+        blocks[bkStart + out::MOL_DENSITY_IDX * var->numKinds].SetRef
+        (&var->densityByKindBox[kArrIdx], b);
+      }
     }
   }
 #endif
