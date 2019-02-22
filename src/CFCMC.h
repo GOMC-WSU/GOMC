@@ -504,11 +504,11 @@ inline bool CFCMC::AcceptInflating()
   bool result = prng() < molTransCoeff * Wrat;
   //Reject the move if we had overlaped
   result = result && !overlapCFCMC;
-
+/*
   if(!overlapCFCMC) {
-    printf("lambda[%s]: %-2d -> %-2d : WS: %5.1e : WD: %5.1e : Wtot: %5.1e : Coef: %5.1e : SourceBox: %d \n", molRef.kinds[kindIndex].name.c_str(), lambdaIdxOld, lambdaIdxNew, W1, W2, Wrat, molTransCoeff, sourceBox);
+    printf("lambda[%5s]: %-2d -> %-2d : WS: %5.1e : WD: %5.1e : Wtot: %5.1e : Coef: %5.1e : SourceBox: %d \n", molRef.kinds[kindIndex].name.c_str(), lambdaIdxOld, lambdaIdxNew, W1, W2, Wrat, molTransCoeff, sourceBox);
   }
-
+*/
   if(result) {
     //Add tail corrections
     sysPotRef.boxEnergy[sourceBox].tc += tcDiffSource;

@@ -153,14 +153,14 @@ void OutputVars::CalcAndConvert(ulong step)
     rawPressure[b] = 0.0;
     densityTot[b] = 0.0;
     for (uint k = 0; k < numKinds; k++) {
-      double * density = &densityByKindBox[k + numKinds * b];
+      double density = densityByKindBox[k + numKinds * b];
 
       // Instead of converting to mass first
       // (an alternate route to calculate the ideal gas pressure)
       // the form of the Boltzmann constant that kcal/mol/K is used
       // such that a single conversion factor can be applied to both
       // the ideal and virial components of the pressure.
-      rawPressure[b] += *density;
+      rawPressure[b] += density;
     }
     // Finish ideal component
     rawPressure[b] *= T_in_K;
@@ -175,13 +175,13 @@ void OutputVars::CalcAndConvert(ulong step)
   for (uint b = 0; b < BOX_TOTAL; b++) {
     densityTot[b] = 0.0;
     for (uint k = 0; k < numKinds; k++) {
-      double * density = &densityByKindBox[k + numKinds * b];
+      double density = densityByKindBox[k + numKinds * b];
 
       // Convert density to g/ml (which is equivalent to g/cm3)
       // To get kg/m3, multiply output densities by 1000.
-      *density *= unit::MOLECULES_PER_A3_TO_MOL_PER_CM3 *
-                  kindsRef[k].molMass;
-      densityTot[b] += densityByKindBox[k + numKinds * b];
+      density *= unit::MOLECULES_PER_A3_TO_MOL_PER_CM3 *
+	        kindsRef[k].molMass;
+      densityTot[b] += density;
     }
     densityTot[b] *= 1000;
   }

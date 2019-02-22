@@ -60,7 +60,7 @@ struct BlockAverage {
     dblSrc[b] = NULL;
   }
   void Sum(void);
-  void Write(const ulong step, const bool firstPrint, uint precision = 4)
+  void Write(const ulong step, const bool firstPrint, uint precision)
   {
     first = firstPrint;
     if (enable)
