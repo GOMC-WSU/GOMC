@@ -16,12 +16,14 @@ public:
   CheckpointSetup(System & sys, StaticVals const& statV);
 
   ~CheckpointSetup() {
-    if(inputFile) {
+    if(inputFile != NULL) {
       fclose(inputFile);
       inputFile = NULL;
     }
-    if(saveArray)
+    if(saveArray != NULL) {
       delete [] saveArray;
+      saveArray = NULL;
+    }
   }
   
   void ReadAll();
