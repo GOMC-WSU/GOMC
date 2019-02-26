@@ -29,6 +29,7 @@ CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV) :
   coordCurrRef(sys.coordinates), filename("checkpoint.dat")
 {
   inputFile = NULL;
+  saveArray = NULL;
 }
 
 void CheckpointSetup::ReadAll()
@@ -72,8 +73,10 @@ void CheckpointSetup::readRandomNumbers()
   // First let's read the state array
   // the length of the array is 624
   const int N = 624;
-  if(saveArray)
-    delete [] saveArray;
+  if(saveArray != NULL) {
+    delete[] saveArray;
+    saveArray = NULL;
+  }
   saveArray = new uint32_t[N];
   for(int i=0; i<N; i++) {
     saveArray[i] = readUintIn8Chars();
