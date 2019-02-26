@@ -719,10 +719,10 @@ void CalculateEnergy::MolBond(double & energy,
     if(abs(molLength - eqLength) > 0.02) {
       uint p1 = molKind.bondList.part1[b];
       uint p2 = molKind.bondList.part2[b];
-      printf("Warning: Box %d, %d %s ,", box, molIndex, molKind.name.c_str());
-      printf("Bond %s-%s: In Par. file ", molKind.atomNames[p1].c_str(),
+      printf("Warning: Box%d, %6d %4s,", box, molIndex, molKind.name.c_str());
+      printf("%3s-%-3s bond: Par-file ", molKind.atomNames[p1].c_str(),
             molKind.atomNames[p2].c_str());
-      printf("%2.3f A, in PDB file %2.3f A!\n", eqLength, molLength);
+      printf("%2.3f A, PDB file %2.3f A!\n", eqLength, molLength);
     }
   }
 }
