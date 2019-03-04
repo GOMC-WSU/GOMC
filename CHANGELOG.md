@@ -1,6 +1,20 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.40] - 3/15/2018
++ Added support for Cyclic molecules.
++ Added Inter Molecular Exchange Monte Carlo move in GCMC and GEMC simulation.
++ Added Intra Molecular Exchange Monte Carlo move.
++ Added Crankshaft move.
++ Added separate cutoff for short range electrostatic, for each simulation box.
++ Added reporting the molecule density value for each species.
++ Added support to process the configuration file's keyword with case-insensitive.
++ Changed printing format to scientific mode.
++ Fixed the overlap detection with hard cutoff value.
++ Fixed a bug where, cutoff value was greater than half of the box length and no error was generated.
++ Fixed to the bug in the updating adjustable value in MoveSetting, when we have more than one component.
++ Fixed to the bug in GPU pressure calculation for NPT simulation.
+
 ## [2.31] - 5/21/2018
 + Compiling problem fixed on CYGWIN
 + Fix to the error checking of volume exchange if simulation volume became negative
