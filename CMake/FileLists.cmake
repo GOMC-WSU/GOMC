@@ -74,7 +74,6 @@ set(headers
    src/ConstField.h
    src/Coordinates.h
    src/CoordinateSetup.h
-   src/CrankShaft.h
    src/CPUSide.h
    src/EnergyTypes.h
    src/EnPartCntSampleOutput.h
@@ -97,21 +96,12 @@ set(headers
    src/HistOutput.h
    src/InputAbstracts.h
    src/InputFileReader.h
-   src/IntraMoleculeExchange1.h
-   src/IntraMoleculeExchange2.h
-   src/IntraMoleculeExchange3.h
-   src/IntraSwap.h
    src/MersenneTwister.h
-   src/MoleculeExchange1.h
-   src/MoleculeExchange2.h
-   src/MoleculeExchange3.h
    src/MoleculeKind.h
    src/MoleculeLookup.h
-   src/MoleculeTransfer.h
    src/Molecules.h
    src/MolPick.h
    src/MolSetup.h
-   src/MoveBase.h
    src/MoveConst.h
    src/MoveSettings.h
    src/NoEwald.h
@@ -125,8 +115,6 @@ set(headers
    src/PRNGSetup.h
    src/PSFOutput.h
    src/Reader.h
-   src/Regrowth.h
-   src/Rotation.h
    src/SeedReader.h
    src/Setup.h
    src/SimEventFrequency.h
@@ -135,8 +123,6 @@ set(headers
    src/SubdividedArray.h
    src/System.h
    src/TransformMatrix.h
-   src/Translate.h
-   src/VolumeTransfer.h
    src/Writer.h
    src/XYZArray.h
    src/cbmc/DCComponent.h
@@ -158,7 +144,21 @@ set(headers
    src/cbmc/DCRotateCOM.h
    src/cbmc/DCRotateOnAtom.h
    src/cbmc/DCSingle.h
-   src/cbmc/TrialMol.h)
+   src/cbmc/TrialMol.h
+   src/moves/CrankShaft.h
+   src/moves/IntraMoleculeExchange1.h
+   src/moves/IntraMoleculeExchange2.h
+   src/moves/IntraMoleculeExchange3.h
+   src/moves/IntraSwap.h
+   src/moves/MoleculeExchange1.h
+   src/moves/MoleculeExchange2.h
+   src/moves/MoleculeExchange3.h
+   src/moves/MoleculeTransfer.h
+   src/moves/MoveBase.h
+   src/moves/Regrowth.h
+   src/moves/Rotation.h
+   src/moves/Translate.h
+   src/moves/VolumeTransfer.h)
 
 set(libHeaders
    lib/BasicTypes.h

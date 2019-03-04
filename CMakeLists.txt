@@ -5,6 +5,7 @@ project(GOMC)
 include_directories(lib)
 include_directories(src)
 include_directories(src/cbmc)
+include_directories(src/moves)
 
 #fix new policy of cmake about FindOpenMP.cmake (will have to check later if they fixed this issue)
 if(POLICY CMP0012)
@@ -16,7 +17,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 #Versioning
 set (GOMC_VERSION_MAJOR 2)
-set (GOMC_VERSION_MINOR 31)
+set (GOMC_VERSION_MINOR 40)
 
 IF(NOT CMAKE_BUILD_TYPE)
    SET(CMAKE_BUILD_TYPE Release CACHE STRING
