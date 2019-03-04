@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## [2.40] - 3/15/2018
+## [2.40] - 3/15/2019
 + Added support for Cyclic molecules.
 + Added Inter Molecular Exchange Monte Carlo move in GCMC and GEMC simulation.
 + Added Intra Molecular Exchange Monte Carlo move.
