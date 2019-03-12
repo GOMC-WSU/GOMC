@@ -28,7 +28,7 @@ CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
   coordCurrRef(sys.coordinates), filename("checkpoint.dat")
 {
-
+  outputFile = NULL;
 }
 
 void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,

@@ -204,9 +204,13 @@ void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const
 
     for(uint k = 0; k < var->numKinds; k++) {
       uint kb = k + offset;
-
       if(var->numKinds > 1)
-        printElement(var->molFractionByKindBox[kb], elementWidth, 6);
+        printElement(var->molFractionByKindBox[kb], elementWidth, 8);
+    }
+    for(uint k = 0; k < var->numKinds; k++) {
+      uint kb = k + offset;
+      if(var->numKinds > 1)
+        printElement(var->densityByKindBox[kb], elementWidth, 8);
     }
   }
 
@@ -310,6 +314,12 @@ void ConsoleOutput::PrintStatisticTitle()
         printElement(molName, elementWidth);
       }
     }
+    for(uint k = 0; k < var->numKinds; k++) {
+      if(var->numKinds > 1) {
+        std::string molName = "MOLDENS_" + var->resKindNames[k];
+        printElement(molName, elementWidth);
+      }
+    }
   }
 
   if(enableDens)
@@ -400,11 +410,11 @@ void ConsoleOutput::printElement(const double t, const int width,
                                  uint percision) const
 {
   const char separator = ' ';
-  if(abs(t) > 9999999999.9999) {
-    std::cout << right << std::fixed << std::setprecision(0) <<
-              setw(width) << setfill(separator) << 9999999999;
+  if(abs(t) > 1e99) {
+    std::cout << right << std::scientific << std::setprecision(percision-1) <<
+              setw(width) << setfill(separator) << t;
   } else {
-    std::cout << right << std::fixed << std::setprecision(percision) <<
+    std::cout << right << std::scientific << std::setprecision(percision) <<
               setw(width) << setfill(separator) << t;
   }
 
@@ -413,14 +423,14 @@ void ConsoleOutput::printElement(const double t, const int width,
 void ConsoleOutput::printElement(const uint t, const int width) const
 {
   const char separator = ' ';
-  std::cout << right << std::fixed  << setw(width) <<
+  std::cout << right << std::scientific  << setw(width) <<
             setfill(separator) << t;
 }
 
 void ConsoleOutput::printElement(const std::string t, const int width) const
 {
   const char separator = ' ';
-  std::cout << right << std::fixed << setw(width) <<
+  std::cout << right << std::scientific << setw(width) <<
             setfill(separator) << t;
 }
 

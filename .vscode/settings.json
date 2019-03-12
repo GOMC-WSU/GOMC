@@ -18,6 +18,7 @@
     "cstdio": "cpp",
     "cstdlib": "cpp",
     "cstring": "cpp",
-    "ctime": "cpp"
+    "ctime": "cpp",
+    "iomanip": "cpp"
   }
 }

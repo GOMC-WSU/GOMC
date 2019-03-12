@@ -121,7 +121,7 @@ inline void MoleculeTransfer::CalcEn()
     self_new = calcEwald->SwapSelf(newMol);
     self_old = calcEwald->SwapSelf(oldMol);
     recipGain.energy =
-      calcEwald->SwapDestRecip(newMol, destBox, sourceBox, molIndex);
+      calcEwald->SwapDestRecip(newMol, destBox, molIndex);
     recipLose.energy =
       calcEwald->SwapSourceRecip(oldMol, sourceBox, molIndex);
     //need to contribute the self and correction energy

@@ -40,8 +40,8 @@ private:
   MoleculeLookup & molLookupRef;
   BoxDimensions & boxDimRef;
   Molecules const & molRef;
-  Coordinates & coordCurrRef;
   PRNG & prngRef;
+  Coordinates & coordCurrRef;
 
   bool enableOutCheckpoint;
   std::string filename;

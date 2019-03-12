@@ -28,6 +28,7 @@ CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV) :
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
   coordCurrRef(sys.coordinates), filename("checkpoint.dat")
 {
+  inputFile = NULL;
   saveArray = NULL;
 }
 
@@ -40,7 +41,6 @@ void CheckpointSetup::ReadAll()
   readCoordinates();
   readMoleculeLookupData();
   readMoveSettingsData();
-  closeInputFile();
   std::cout << "Checkpoint loaded from " << filename << std::endl;
 }
 
@@ -73,8 +73,10 @@ void CheckpointSetup::readRandomNumbers()
   // First let's read the state array
   // the length of the array is 624
   const int N = 624;
-  if(saveArray)
-    delete [] saveArray;
+  if(saveArray != NULL) {
+    delete[] saveArray;
+    saveArray = NULL;
+  }
   saveArray = new uint32_t[N];
   for(int i=0; i<N; i++) {
     saveArray[i] = readUintIn8Chars();
@@ -157,12 +159,6 @@ void CheckpointSetup::openInputFile()
             filename.c_str());
     exit(EXIT_FAILURE);
   }
-}
-
-void CheckpointSetup::closeInputFile()
-{
-  if(inputFile)
-    fclose(inputFile);
 }
 
 double CheckpointSetup::readDoubleIn8Chars()

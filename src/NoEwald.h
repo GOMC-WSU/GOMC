@@ -56,7 +56,7 @@ public:
 
   //calculate reciprocate term in destination box for swap move
   virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
-                               const int sourceBox, const int molIndex);
+                               const int molIndex);
 
   //calculate reciprocate term in source box for swap move
   virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
