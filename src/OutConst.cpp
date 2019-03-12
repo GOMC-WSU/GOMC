@@ -28,5 +28,6 @@ const std::string VOLUME = "VOLUME";
 const std::string DENSITY = "TOT_DENS";
 const std::string MOL_NUM = "TOT_MOL";
 const std::string MOL_FRACTION = "MOLFRACT";
+const std::string MOL_DENSITY = "MOLDENS";
 const std::string SURF_TENSION = "SURF_TENSION";
 }

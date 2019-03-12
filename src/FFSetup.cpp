@@ -273,6 +273,11 @@ void Dihedral::Read(Reader & param, std::string const& firstVar)
   uint index;
   std::string merged = ReadKind(param, firstVar);
   param.file >> coeff >> index >> def;
+  if(index == 0) {
+    //set phase shif for n=0 to 90 degree 
+    // We will have C0 = Kchi (1 + cos(0 * phi + 90)) = Kchi
+    def = 90.00;
+  }
   Add(merged, coeff, index, def);
   last = merged;
 }

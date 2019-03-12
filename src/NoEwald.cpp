@@ -74,7 +74,7 @@ double NoEwald::MolCorrection(uint molIndex, uint box) const
 
 //calculate reciprocate term in destination box for swap move
 double NoEwald::SwapDestRecip(const cbmc::TrialMol &newMol,
-                              const uint box, const int sourceBox,
+                              const uint box,
                               const int molIndex)
 {
   return 0.0;
