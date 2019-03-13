@@ -104,7 +104,6 @@ set(headers
    src/MolSetup.h
    src/MoveConst.h
    src/MoveSettings.h
-   src/MultiParticle.h
    src/NoEwald.h
    src/OutConst.h
    src/OutputAbstracts.h
@@ -156,6 +155,7 @@ set(headers
    src/moves/MoleculeExchange3.h
    src/moves/MoleculeTransfer.h
    src/moves/MoveBase.h
+   src/moves/MultiParticle.h
    src/moves/Regrowth.h
    src/moves/Rotation.h
    src/moves/Translate.h
