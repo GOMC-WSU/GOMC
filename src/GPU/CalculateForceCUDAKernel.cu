@@ -502,7 +502,8 @@ __global__ void VirialReciprocalGPU(double *gpu_x,
 __device__ double CalcCoulombForceGPU(double distSq, double qi_qj,
                                       int gpu_VDW_Kind, int gpu_ewald,
                                       int gpu_isMartini, double gpu_alpha,
-                                      double gpu_rCutCoulomb, double gpu_diElectric_1)
+                                      double gpu_rCutCoulomb,
+                                      double gpu_diElectric_1)
 {
   if((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
     return 0.0;
@@ -600,8 +601,8 @@ __device__ double CalcCoulombVirSwitchMartiniGPU(double distSq, double qi_qj,
 }
 
 __device__ double CalcCoulombVirSwitchGPU(double distSq, double qi_qj,
-    int gpu_ewald, double gpu_alpha,
-    double gpu_rCut)
+                                          int gpu_ewald, double gpu_alpha,
+                                          double gpu_rCut)
 {
   if(gpu_ewald) {
     double dist = sqrt(distSq);
