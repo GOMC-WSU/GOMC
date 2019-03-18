@@ -472,6 +472,12 @@ inline void CFCMC::UpdateBias()
       std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
       printf("Controler[%s]: %4.10f \n", molRef.kinds[kindIndex].name.c_str(),
 	     nu[kindIndex]);
+    } else {
+      long trial = moveSetRef.GetTrial(box[b], mv::CFCMC, kindIndex);
+      if((trial + 1) % 1000 == 0) {
+	//Reset the histogram to reevaluate it
+	std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
+      }
     }                               
   }
 }
