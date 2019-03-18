@@ -20,6 +20,7 @@ public:
   ~Simulation();
 
   void RunSimulation(void);
+  void RunNSteps(ulong);
 
 #ifndef NDEBUG
   void RunningCheck(const uint step);
@@ -34,6 +35,7 @@ private:
   std::vector<ulong> frameSteps;
   uint remarksCount;
   ulong startStep;
+  double startEnergy;
 };
 
 #endif /*SIMULATION_H*/

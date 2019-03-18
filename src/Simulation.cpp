@@ -52,7 +52,9 @@ Simulation::~Simulation()
 
 void Simulation::RunSimulation(void)
 {
-  double startEnergy = system->potential.totalEnergy.total;
+  if (startStep == 0)
+    startEnergy = system->potential.totalEnergy.total;
+  
   if(totalSteps == 0) {
     for(int i=0; i<frameSteps.size(); i++) {
       if(i==0) {
@@ -86,6 +88,15 @@ void Simulation::RunSimulation(void)
   }
   system->PrintAcceptance();
   system->PrintTime();
+}
+
+void Simulation::RunNSteps(ulong NSteps)
+{
+  ulong temporaryStorageOfTotalSteps = totalSteps;
+  totalSteps = NSteps;
+  RunSimulation();
+  startStep += NSteps;
+  totalSteps = temporaryStorageOfTotalSteps;
 }
 
 #ifndef NDEBUG

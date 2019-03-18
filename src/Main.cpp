@@ -106,6 +106,7 @@ int main(int argc, char *argv[])
     //ONCE FILE FOUND PASS STRING TO SIMULATION CLASS TO READ AND
     //HANDLE PDB|PSF FILE
     Simulation sim(inputFileString.c_str());
+    sim.RunNSteps(ulong(100));
     sim.RunSimulation();
     PrintSimulationFooter();
   }
