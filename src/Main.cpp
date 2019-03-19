@@ -123,11 +123,13 @@ int main(int argc, char *argv[])
       ulong exchangeRate = 100;
       //  rounded Up Divison For Number Of Required N Step Bursts to complete simulation
       ulong roundedUpDivison = (sims[0]->getTotalSteps() + exchangeRate - 1) / exchangeRate;
-      double swapper_for_T_in_K;
-      double swapper_for_beta;
+      double swapperForT_in_K;
+      double swapperForBeta;
+      CPUSide * swapperForCPUSide;
+
       //  To alternate between swapping even replicas and repl_id+1 {0,1} {2,3} ... on even parity and 
       //  odd replicas and repl_id+1 {1,2} ... on odd parity
-      int parity_of_swaps;
+      int parityOfSwaps;
 
       double checkerForIncreasingMontonicityOfTemp = 0;
       for (int i = 0; i < sims.size(); i++){
@@ -145,16 +147,21 @@ int main(int argc, char *argv[])
         for (int j = 0; j < sims.size(); j++){
           // Note that RunNSteps overwrites startStep before returning to the step it left off on
           sims[j]->RunNSteps(ulong(exchangeRate));
+        }
+        for (int j = 0; j < sims.size(); j++){
           if (sims[j]->getEquilSteps() < (sims[j]->getStartStep() + exchangeRate)) {
-            parity_of_swaps = (sims[j]->getStartStep() / exchangeRate) % 2;
-            if (j % 2 == parity_of_swaps){
+            parityOfSwaps = (sims[j]->getStartStep() / exchangeRate) % 2;
+            if (j % 2 == parityOfSwaps){
               if (j + 1 < sims.size()){
-                swapper_for_T_in_K = sims[j]->getT_in_K(); 
-                swapper_for_beta = sims[j]->getBeta();
+                swapperForT_in_K = sims[j]->getT_in_K(); 
+                swapperForBeta = sims[j]->getBeta();
+                swapperForCPUSide = sims[j]->getCPUSide();
                 sims[j]->setT_in_K(sims[j+1]->getT_in_K());
                 sims[j]->setBeta(sims[j+1]->getBeta());
-                sims[j+1]->setT_in_K(swapper_for_T_in_K);
-                sims[j+1]->setBeta(swapper_for_beta);
+                sims[j]->setCPUSide(sims[j+1]->getCPUSide());
+                sims[j+1]->setT_in_K(swapperForT_in_K);
+                sims[j+1]->setBeta(swapperForBeta);
+                sims[j+1]->setCPUSide(swapperForCPUSide);
               }
             }
           }

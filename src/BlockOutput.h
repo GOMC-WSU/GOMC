@@ -76,6 +76,7 @@ private:
   }
   void DoWrite(const ulong step, uint precision);
   void printTitle(std::string output, uint boxes);
+ 
 
   std::ofstream* outBlock0;
   std::ofstream* outBlock1;

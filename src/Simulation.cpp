@@ -122,12 +122,20 @@ double Simulation::getBeta(){
   return staticValues->forcefield.beta;
 }
 
+CPUSide* Simulation::getCPUSide(){
+  return cpu;
+}
+
 void Simulation::setT_in_K(double T_in_K){
   staticValues->forcefield.T_in_K = T_in_K;
 }
 
 void Simulation::setBeta(double beta){
   staticValues->forcefield.beta = beta;
+}
+
+void Simulation::setCPUSide(CPUSide* cpuToSet){
+  cpu = cpuToSet;
 }
 
 #ifndef NDEBUG

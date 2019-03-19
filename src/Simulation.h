@@ -26,8 +26,11 @@ public:
   ulong getEquilSteps();
   double getT_in_K();
   double getBeta();
+  CPUSide* getCPUSide();
   void setT_in_K(double T_in_K);
   void setBeta(double beta);
+  void setCPUSide(CPUSide * cpu);
+
 #ifndef NDEBUG
   void RunningCheck(const uint step);
 #endif
