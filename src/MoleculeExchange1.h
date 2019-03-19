@@ -90,6 +90,8 @@ class MoleculeExchange1 : public MoveBase
    virtual uint ReplaceMolecule();
    void CalcTc();
    virtual double GetCoeff() const;
+   void UpdateBias(const uint rejectState, bool result);
+   double GetBias();
    uint GetBoxPairAndMol(const double subDraw, const double movPerc);
 
    bool insertL, enableID;
@@ -106,6 +108,12 @@ class MoleculeExchange1 : public MoveBase
    vector< vector<uint> > largeBBVec;
    //For move acceptance of each molecule kind
    std::vector< std::vector<uint> > trial, accepted;
+   
+   //Bias info
+   vector<long int> hist, keyIndex;
+   vector<double> bias;
+   double nu, nuTolerance;
+
 
    int exDiff, exchangeRatio;
    double volCav, lastAccept;
@@ -203,6 +211,76 @@ inline void MoleculeExchange1::SetMEMC(StaticVals const& statV)
     vector<uint> temp(largeBB, largeBB + 2);
     largeBBVec.push_back(temp);
   }
+
+  uint cidx = 0;
+  keyIndex.resize(molRef.GetKindsCount(), -1);
+  for(uint i = 0; i < molRef.GetKindsCount(); i++) {
+    for(uint j = 0; j < exchangeRatioVec.size(); j++) {
+      if(i == kindSVec[j]) {
+        keyIndex[i] = cidx;
+        cidx++;
+        break;
+      } else if(i == kindLVec[j]) {
+        keyIndex[i] = cidx;
+        cidx++;
+        break;
+      } 
+    }
+  }
+  
+  nu = 0.01;
+  nuTolerance = 1e-6;
+  hist.resize(cidx, 0);
+  bias.resize(cidx, 0.0);
+}
+
+void MoleculeExchange1::UpdateBias(const uint rejectState, bool result)
+{
+  if(nu <= nuTolerance) {
+    return;
+  } else if((rejectState != mv::fail_state::NO_FAIL) || overlap) {
+    return;
+  }
+  uint indexS = keyIndex[kindS];
+  uint indexL = keyIndex[kindL];
+  if(result) {
+    if(insertL) {
+      hist[indexL] += 1;
+      bias[indexL] -= nu;
+    } else {
+      hist[indexS] += 1;
+      bias[indexS] -= nu;
+    }
+  } else {
+    if(insertL) {
+      hist[indexS] += 1;
+      bias[indexS] -= nu;
+    } else {
+      hist[indexL] += 1;
+      bias[indexL] -= nu;
+    }
+  }
+
+  uint maxVisited = *max_element(hist.begin(), hist.end());
+  uint minVisited = *min_element(hist.begin(), hist.end());
+  if(minVisited > 0.5 * maxVisited) {
+    nu *= 0.5;
+    std::fill_n(hist.begin(), hist.size(), 0);
+    printf("Controler: %4.10f \n", nu);
+  }
+}
+
+double MoleculeExchange1::GetBias()
+{
+  uint indexS = keyIndex[kindS];
+  uint indexL = keyIndex[kindL];
+  double biasVal = 1.0;
+  if(insertL) {
+    biasVal *= exp(bias[indexL] - bias[indexS]);
+  } else {
+    biasVal *= exp(bias[indexS] - bias[indexL]);
+  }
+  return biasVal;
 }
 
 inline void MoleculeExchange1::AdjustExRatio()
@@ -719,7 +797,7 @@ inline void MoleculeExchange1::Accept(const uint rejectState, const uint step)
       }
 
       if(!overlap) {
-        result = prng() < molTransCoeff * Wrat;
+        result = prng() < molTransCoeff * Wrat * GetBias();
       } else {
         result = false;
       }
@@ -783,7 +861,8 @@ inline void MoleculeExchange1::Accept(const uint rejectState, const uint step)
       //else we didn't even try because we knew it would fail
       result = false;
    }
-
+   
+   UpdateBias(rejectState, result);
    moveSetRef.Update(mv::MEMC, result, step, sourceBox);
    moveSetRef.Update(mv::MEMC, result, step, destBox);
 
