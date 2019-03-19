@@ -96,7 +96,7 @@ void Simulation::RunSimulation(void)
 void Simulation::RunNSteps(ulong NSteps)
 {
   ulong temporaryStorageOfTotalSteps = totalSteps;
-  totalSteps = NSteps;
+  totalSteps = NSteps + startStep;
   RunSimulation();
   startStep += NSteps;
   totalSteps = temporaryStorageOfTotalSteps;

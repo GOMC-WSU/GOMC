@@ -117,30 +117,30 @@ int main(int argc, char *argv[])
       }
     }
 
-    //  For now, exchangeRate == BurstOfSteps; which removes the necessity to check if this step is an exchange step
-    //  We simply exchange after each burst
-    ulong exchangeRate = 100;
-    //  rounded Up Divison For Number Of Required N Step Bursts to complete simulation
-    ulong roundedUpDivison = (sims[0]->getTotalSteps() + exchangeRate - 1) / exchangeRate;
-    double swapper_for_T_in_K;
-    double swapper_for_beta;
-    //  To alternate between swapping even replicas and repl_id+1 {0,1} {2,3} ... on even parity and 
-    //  odd replicas and repl_id+1 {1,2} ... on odd parity
-    int parity_of_swaps;
-
-    double checkerForIncreasingMontonicityOfTemp = 0;
-    for (int i = 0; i < sims.size(); i++){
-      checkerForIncreasingMontonicityOfTemp = 0;
-      if ( sims[i]->getT_in_K() > checkerForIncreasingMontonicityOfTemp ){
-        checkerForIncreasingMontonicityOfTemp = sims[i]->getT_in_K();
-      } else {
-          std::cout << "Error: List the conf files in " << inputFileString <<
-          " in order of least to greatest for temperature!\n";
-          exit(EXIT_FAILURE);
-      }
-    }
-
     if(sims.size()>0){
+      //  For now, exchangeRate == BurstOfSteps; which removes the necessity to check if this step is an exchange step
+      //  We simply exchange after each burst
+      ulong exchangeRate = 100;
+      //  rounded Up Divison For Number Of Required N Step Bursts to complete simulation
+      ulong roundedUpDivison = (sims[0]->getTotalSteps() + exchangeRate - 1) / exchangeRate;
+      double swapper_for_T_in_K;
+      double swapper_for_beta;
+      //  To alternate between swapping even replicas and repl_id+1 {0,1} {2,3} ... on even parity and 
+      //  odd replicas and repl_id+1 {1,2} ... on odd parity
+      int parity_of_swaps;
+
+      double checkerForIncreasingMontonicityOfTemp = 0;
+      for (int i = 0; i < sims.size(); i++){
+        checkerForIncreasingMontonicityOfTemp = 0;
+        if ( sims[i]->getT_in_K() > checkerForIncreasingMontonicityOfTemp ){
+          checkerForIncreasingMontonicityOfTemp = sims[i]->getT_in_K();
+        } else {
+            std::cout << "Error: List the conf files in " << inputFileString <<
+            " in order of least to greatest for temperature!\n";
+            exit(EXIT_FAILURE);
+        }
+      }
+
       for (ulong i = 0; i < roundedUpDivison; i++){
         for (int j = 0; j < sims.size(); j++){
           // Note that RunNSteps overwrites startStep before returning to the step it left off on
