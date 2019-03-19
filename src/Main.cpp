@@ -117,14 +117,53 @@ int main(int argc, char *argv[])
       }
     }
 
+    //  For now, exchangeRate == BurstOfSteps; which removes the necessity to check if this step is an exchange step
+    //  We simply exchange after each burst
+    ulong exchangeRate = 100;
+    //  rounded Up Divison For Number Of Required N Step Bursts to complete simulation
+    ulong roundedUpDivison = (sims[0]->getTotalSteps() + exchangeRate - 1) / exchangeRate;
+    double swapper_for_T_in_K;
+    double swapper_for_beta;
+    //  To alternate between swapping even replicas and repl_id+1 {0,1} {2,3} ... on even parity and 
+    //  odd replicas and repl_id+1 {1,2} ... on odd parity
+    int parity_of_swaps;
+
+    double checkerForIncreasingMontonicityOfTemp = 0;
+    for (int i = 0; i < sims.size(); i++){
+      checkerForIncreasingMontonicityOfTemp = 0;
+      if ( sims[i]->getT_in_K() > checkerForIncreasingMontonicityOfTemp ){
+        checkerForIncreasingMontonicityOfTemp = sims[i]->getT_in_K();
+      } else {
+          std::cout << "Error: List the conf files in " << inputFileString <<
+          " in order of least to greatest for temperature!\n";
+          exit(EXIT_FAILURE);
+      }
+    }
+
     if(sims.size()>0){
-      for (int i = 0; i < sims.size(); i++)
-        sims[i]->RunNSteps(ulong(100));
+      for (ulong i = 0; i < roundedUpDivison; i++){
+        for (int j = 0; j < sims.size(); j++){
+          // Note that RunNSteps overwrites startStep before returning to the step it left off on
+          sims[j]->RunNSteps(ulong(exchangeRate));
+          if (sims[j]->getEquilSteps() < (sims[j]->getStartStep() + exchangeRate)) {
+            parity_of_swaps = (sims[j]->getStartStep() / exchangeRate) % 2;
+            if (j % 2 == parity_of_swaps){
+              if (j + 1 < sims.size()){
+                swapper_for_T_in_K = sims[j]->getT_in_K(); 
+                swapper_for_beta = sims[j]->getBeta();
+                sims[j]->setT_in_K(sims[j+1]->getT_in_K());
+                sims[j]->setBeta(sims[j+1]->getBeta());
+                sims[j+1]->setT_in_K(swapper_for_T_in_K);
+                sims[j+1]->setBeta(swapper_for_beta);
+              }
+            }
+          }
+        }
+      }
     } else {
     //ONCE FILE FOUND PASS STRING TO SIMULATION CLASS TO READ AND
     //HANDLE PDB|PSF FILE
       Simulation sim(inputFileString.c_str());
-      sim.RunNSteps(ulong(100));
       sim.RunSimulation();
     }
     PrintSimulationFooter();

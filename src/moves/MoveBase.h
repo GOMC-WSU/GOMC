@@ -79,7 +79,7 @@ protected:
   PRNG & prng;
   BoxDimensions & boxDimRef;
   Molecules const& molRef;
-  const double BETA;
+  const double& BETA;
   const bool ewald;
   CellList& cellList;
   bool molRemoved, fixBox0, overlap;

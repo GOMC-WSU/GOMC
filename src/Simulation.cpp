@@ -20,6 +20,7 @@ Simulation::Simulation(char const*const configFileName)
   //as system depends on staticValues, and cpu sometimes depends on both.
   set.Init(configFileName);
   totalSteps = set.config.sys.step.total;
+  absoluteTotalSteps = set.config.sys.step.total;
   staticValues = new StaticVals(set);
   system = new System(*staticValues);
   staticValues->Init(set, *system);
@@ -86,8 +87,10 @@ void Simulation::RunSimulation(void)
       RunningCheck(step);
 #endif
   }
-  system->PrintAcceptance();
-  system->PrintTime();
+  if(totalSteps == absoluteTotalSteps){
+    system->PrintAcceptance();
+    system->PrintTime();
+  }
 }
 
 void Simulation::RunNSteps(ulong NSteps)
@@ -97,6 +100,34 @@ void Simulation::RunNSteps(ulong NSteps)
   RunSimulation();
   startStep += NSteps;
   totalSteps = temporaryStorageOfTotalSteps;
+}
+
+ulong Simulation::getTotalSteps(){
+  return totalSteps;
+}
+
+ulong Simulation::getStartStep(){
+  return startStep;
+}
+
+ulong Simulation::getEquilSteps(){
+  return cpu->equilSteps;
+}
+
+double Simulation::getT_in_K(){
+  return staticValues->forcefield.T_in_K;
+}
+
+double Simulation::getBeta(){
+  return staticValues->forcefield.beta;
+}
+
+void Simulation::setT_in_K(double T_in_K){
+  staticValues->forcefield.T_in_K = T_in_K;
+}
+
+void Simulation::setBeta(double beta){
+  staticValues->forcefield.beta = beta;
 }
 
 #ifndef NDEBUG

@@ -21,7 +21,13 @@ public:
 
   void RunSimulation(void);
   void RunNSteps(ulong);
-
+  ulong getTotalSteps();
+  ulong getStartStep();
+  ulong getEquilSteps();
+  double getT_in_K();
+  double getBeta();
+  void setT_in_K(double T_in_K);
+  void setBeta(double beta);
 #ifndef NDEBUG
   void RunningCheck(const uint step);
 #endif
@@ -36,6 +42,7 @@ private:
   uint remarksCount;
   ulong startStep;
   double startEnergy;
+  ulong absoluteTotalSteps;
 };
 
 #endif /*SIMULATION_H*/
