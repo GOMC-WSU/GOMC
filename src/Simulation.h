@@ -29,6 +29,7 @@ public:
   double getBeta();
   CPUSide* getCPUSide();
   double getExchangeInterval();
+  std::string getConfigFileName();
   void setT_in_K(double T_in_K);
   void setBeta(double beta);
   void setCPUSide(CPUSide * cpu);
@@ -50,6 +51,7 @@ private:
   double startEnergy;
   ulong absoluteTotalSteps;
   ReplicaExchangeParameters replExParams;
+  std::string configFileName;
 };
 
 #endif /*SIMULATION_H*/

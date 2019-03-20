@@ -26,14 +26,4 @@ struct ReplicaExchangeParameters
     std::string multiSimTitle;
 };
 
-class ReplicaExchange
-{
-public:
-   // explicit ReplicaExchange(std::vector<Simulation*>*);
-    //~ReplicaExchange();
-
-private:
-
-};
-
 #endif

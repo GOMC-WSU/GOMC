@@ -15,6 +15,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 Simulation::Simulation(char const*const configFileName)
 {
   startStep = 0;
+  this->configFileName = configFileName;
   //NOTE:
   //IMPORTANT! Keep this order...
   //as system depends on staticValues, and cpu sometimes depends on both.
@@ -129,6 +130,10 @@ double Simulation::getExchangeInterval(){
 
 CPUSide* Simulation::getCPUSide(){
   return cpu;
+}
+
+std::string Simulation::getConfigFileName(){
+  return configFileName;
 }
 
 void Simulation::setT_in_K(double T_in_K){

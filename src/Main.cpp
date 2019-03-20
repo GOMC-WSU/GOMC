@@ -14,8 +14,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include <ctime>
 
-#include "ReplicaExchange.h"
-
+#include "ReplicaExchangeController.h"
+//#include "ReplicaExchangeController.h"
 //find and include appropriate files for getHostname
 #ifdef _WIN32
 #include <Winsock2.h>
@@ -121,56 +121,9 @@ int main(int argc, char *argv[])
 
     if(sims.size()>0 && sims[0]->getExchangeInterval() > 0){
 
-      //ReplicaExchange replicaEx(sims);
-      //  For now, exchangeRate == BurstOfSteps; which removes the necessity to check if this step is an exchange step
-      //  We simply exchange after each burst
-      ulong exchangeRate = sims[0]->getExchangeInterval(); 
-      //  rounded Up Divison For Number Of Required N Step Bursts to complete simulation
-      ulong roundedUpDivison = (sims[0]->getTotalSteps() + exchangeRate - 1) / exchangeRate;
-      double swapperForT_in_K;
-      double swapperForBeta;
-      CPUSide * swapperForCPUSide;
+      ReplicaExchangeController replicaEx(&sims);
+      replicaEx.runMultiSim();
 
-      //  To alternate between swapping even replicas and repl_id+1 {0,1} {2,3} ... on even parity and 
-      //  odd replicas and repl_id+1 {1,2} ... on odd parity
-      int parityOfSwaps;
-
-      double checkerForIncreasingMontonicityOfTemp = 0;
-      for (int i = 0; i < sims.size(); i++){
-        checkerForIncreasingMontonicityOfTemp = 0;
-        if ( sims[i]->getT_in_K() > checkerForIncreasingMontonicityOfTemp ){
-          checkerForIncreasingMontonicityOfTemp = sims[i]->getT_in_K();
-        } else {
-            std::cout << "Error: List the conf files in " << inputFileString <<
-            " in order of least to greatest for temperature!\n";
-            exit(EXIT_FAILURE);
-        }
-      }
-
-      for (ulong i = 0; i < roundedUpDivison; i++){
-        for (int j = 0; j < sims.size(); j++){
-          // Note that RunNSteps overwrites startStep before returning to the step it left off on
-          sims[j]->RunNSteps(ulong(exchangeRate));
-        }
-        for (int j = 0; j < sims.size(); j++){
-          if (sims[j]->getEquilSteps() < (sims[j]->getStartStep() + exchangeRate)) {
-            parityOfSwaps = (sims[j]->getStartStep() / exchangeRate) % 2;
-            if (j % 2 == parityOfSwaps){
-              if (j + 1 < sims.size()){
-                swapperForT_in_K = sims[j]->getT_in_K(); 
-                swapperForBeta = sims[j]->getBeta();
-                swapperForCPUSide = sims[j]->getCPUSide();
-                sims[j]->setT_in_K(sims[j+1]->getT_in_K());
-                sims[j]->setBeta(sims[j+1]->getBeta());
-                sims[j]->setCPUSide(sims[j+1]->getCPUSide());
-                sims[j+1]->setT_in_K(swapperForT_in_K);
-                sims[j+1]->setBeta(swapperForBeta);
-                sims[j+1]->setCPUSide(swapperForCPUSide);
-              }
-            }
-          }
-        }
-      }
     } else {
     //ONCE FILE FOUND PASS STRING TO SIMULATION CLASS TO READ AND
     //HANDLE PDB|PSF FILE
