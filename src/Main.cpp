@@ -119,8 +119,8 @@ int main(int argc, char *argv[])
       }
     }
 
-    if(sims.size()>0 && sims[0]->getExchangeInterval() > 0){
-
+    if(sims.size()>0){
+      
       ReplicaExchangeController replicaEx(&sims);
       replicaEx.runMultiSim();
 

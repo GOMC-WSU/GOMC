@@ -96,11 +96,11 @@ struct ReplicaExchangeValuesFromConf{
     exchangeInterval(0),
     numExchanges(0),
     randomSeed(-1),
-    multiSimTitle()
+    multiSimTitle("Replica_Exchange_Simulation")
   {
   };
 
-  int exchangeInterval; /* Interval in steps at which to attempt exchanges, 0 means no replica exchange */
+  ulong exchangeInterval; /* Interval in steps at which to attempt exchanges, 0 means no replica exchange */
   int numExchanges;     /* The number of exchanges to attempt at an exchange step */
   int randomSeed;       /* The random seed, -1 means generate a seed */
   std::string multiSimTitle;
@@ -338,6 +338,17 @@ struct Statistics {
   TrackedVars vars;
 };
 struct Output {
+
+  Output() :
+
+    useMultidir(false),
+    replica_path("")
+
+    {
+    };
+
+  bool  useMultidir;
+  std::string replica_path;
   SysState state, restart;
   Statistics statistics;
   EventSettings console, checkpoint;

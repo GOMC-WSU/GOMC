@@ -28,8 +28,9 @@ public:
   double getT_in_K();
   double getBeta();
   CPUSide* getCPUSide();
-  double getExchangeInterval();
+  ulong getExchangeInterval();
   std::string getConfigFileName();
+  std::string getMultiSimTitle();
   void setT_in_K(double T_in_K);
   void setBeta(double beta);
   void setCPUSide(CPUSide * cpu);

@@ -11,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PSFOutput.h"
 #include <iostream>
 #include <iomanip>
+#include "ReplDirSetup.h"
 
 Simulation::Simulation(char const*const configFileName)
 {
@@ -30,6 +31,25 @@ Simulation::Simulation(char const*const configFileName)
   //recal Init for static value for initializing ewald since ewald is
   //initialized in system
   staticValues->InitOver(set, *system);
+
+  if (replExParams.multiSimTitle.compare("Replica_Exchange_Simulation") || replExParams.exchangeInterval > 0){
+    ReplDirSetup rd(staticValues->forcefield.T_in_K, replExParams);
+    set.config.out.replica_path =  rd.path_to_replica_directory;
+    set.config.out.useMultidir =  true;
+    std::stringstream replica_stream;
+    replica_stream << set.config.out.replica_path << set.config.out.state.files.psf.name;
+    set.config.out.state.files.psf.name = replica_stream.str();
+
+    for(int i = 0; i < BOX_TOTAL; i++) {
+      std::stringstream replica_stream;
+      replica_stream << set.config.out.replica_path << set.config.out.state.files.pdb.name[i];
+      set.config.out.state.files.pdb.name[i] = replica_stream.str();
+    }
+    std::stringstream replica_stream1;
+    replica_stream << set.config.out.replica_path << set.config.out.state.files.seed.name;
+    set.config.out.state.files.seed.name = replica_stream1.str();
+  }
+
   cpu = new CPUSide(*system, *staticValues);
   cpu->Init(set.pdb, set.config.out, set.config.sys.step.equil,
             totalSteps, startStep);
@@ -124,7 +144,7 @@ double Simulation::getBeta(){
   return staticValues->forcefield.beta;
 }
 
-double Simulation::getExchangeInterval(){
+ulong Simulation::getExchangeInterval(){
   return replExParams.exchangeInterval;
 }
 
@@ -134,6 +154,10 @@ CPUSide* Simulation::getCPUSide(){
 
 std::string Simulation::getConfigFileName(){
   return configFileName;
+}
+
+std::string Simulation::getMultiSimTitle(){
+  return replExParams.multiSimTitle;
 }
 
 void Simulation::setT_in_K(double T_in_K){
