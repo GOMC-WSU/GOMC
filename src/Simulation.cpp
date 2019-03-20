@@ -25,6 +25,7 @@ Simulation::Simulation(char const*const configFileName)
   system = new System(*staticValues);
   staticValues->Init(set, *system);
   system->Init(set, startStep);
+  initReplExParams(&set.config.in.replValues);
   //recal Init for static value for initializing ewald since ewald is
   //initialized in system
   staticValues->InitOver(set, *system);
@@ -122,6 +123,10 @@ double Simulation::getBeta(){
   return staticValues->forcefield.beta;
 }
 
+double Simulation::getExchangeInterval(){
+  return replExParams.exchangeInterval;
+}
+
 CPUSide* Simulation::getCPUSide(){
   return cpu;
 }
@@ -136,6 +141,13 @@ void Simulation::setBeta(double beta){
 
 void Simulation::setCPUSide(CPUSide* cpuToSet){
   cpu = cpuToSet;
+}
+
+void Simulation::initReplExParams(struct config_setup::ReplicaExchangeValuesFromConf* replExValuesFromConfFile){
+  replExParams.exchangeInterval = replExValuesFromConfFile->exchangeInterval;
+  replExParams.numExchanges = replExValuesFromConfFile->numExchanges;
+  replExParams.randomSeed = replExValuesFromConfFile->randomSeed;
+  replExParams.multiSimTitle = replExValuesFromConfFile->multiSimTitle;
 }
 
 #ifndef NDEBUG

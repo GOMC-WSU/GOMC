@@ -795,6 +795,24 @@ void ConfigSetup::Init(const char *fileName)
         printf("%-40s %-s \n", "Info: Constant seed", "Active");
       else
         printf("Warning: Constant seed set, but will be ignored.\n");
+    } else if(line[0] == "Exchange_Interval") {
+        in.replValues.exchangeInterval = stringtoi(line[1]);
+    } else if(line[0] == "Exchange_Per_Cycle") {
+        in.replValues.numExchanges = stringtoi(line[1]);
+    } else if(line[0] == "Replica_Exchange_Seed") {
+        in.replValues.randomSeed = stringtoi(line[1]);
+    } else if(line[0] == "Multisim_Title"){
+        std::stringstream ss;
+        for (int i = 1; i < line.size(); i++){
+            if (line[i] == " ") {
+                ss << '_';
+            } else {    
+                ss << line[i];
+                if (i+1 != line.size())
+                    ss << "_";
+            }
+        }
+        in.replValues.multiSimTitle = ss.str();
     } else {
       cout << "Warning: Unknown input " << line[0] << "!" << endl;
     }

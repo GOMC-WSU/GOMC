@@ -90,12 +90,29 @@ struct InFiles {
   FileName seed;
 };
 
+struct ReplicaExchangeValuesFromConf{
+    
+  ReplicaExchangeValuesFromConf() :
+    exchangeInterval(0),
+    numExchanges(0),
+    randomSeed(-1),
+    multiSimTitle()
+  {
+  };
+
+  int exchangeInterval; /* Interval in steps at which to attempt exchanges, 0 means no replica exchange */
+  int numExchanges;     /* The number of exchanges to attempt at an exchange step */
+  int randomSeed;       /* The random seed, -1 means generate a seed */
+  std::string multiSimTitle;
+};
+
 //Input section of config file data.
 struct Input {
   RestartSettings restart;
   PRNGKind prng;
   FFKind ffKind;
   InFiles files;
+  ReplicaExchangeValuesFromConf replValues;
 };
 
 

@@ -12,6 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "System.h"
 #include "StaticVals.h"
 #include "BasicTypes.h"
+#include "ReplicaExchange.h"
 
 class Simulation
 {
@@ -27,9 +28,11 @@ public:
   double getT_in_K();
   double getBeta();
   CPUSide* getCPUSide();
+  double getExchangeInterval();
   void setT_in_K(double T_in_K);
   void setBeta(double beta);
   void setCPUSide(CPUSide * cpu);
+  void initReplExParams(struct config_setup::ReplicaExchangeValuesFromConf*);
 
 #ifndef NDEBUG
   void RunningCheck(const uint step);
@@ -46,6 +49,7 @@ private:
   ulong startStep;
   double startEnergy;
   ulong absoluteTotalSteps;
+  ReplicaExchangeParameters replExParams;
 };
 
 #endif /*SIMULATION_H*/

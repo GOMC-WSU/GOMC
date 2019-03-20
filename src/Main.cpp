@@ -14,6 +14,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include <ctime>
 
+#include "ReplicaExchange.h"
+
 //find and include appropriate files for getHostname
 #ifdef _WIN32
 #include <Winsock2.h>
@@ -117,10 +119,12 @@ int main(int argc, char *argv[])
       }
     }
 
-    if(sims.size()>0){
+    if(sims.size()>0 && sims[0]->getExchangeInterval() > 0){
+
+      //ReplicaExchange replicaEx(sims);
       //  For now, exchangeRate == BurstOfSteps; which removes the necessity to check if this step is an exchange step
       //  We simply exchange after each burst
-      ulong exchangeRate = 100;
+      ulong exchangeRate = sims[0]->getExchangeInterval(); 
       //  rounded Up Divison For Number Of Required N Step Bursts to complete simulation
       ulong roundedUpDivison = (sims[0]->getTotalSteps() + exchangeRate - 1) / exchangeRate;
       double swapperForT_in_K;
