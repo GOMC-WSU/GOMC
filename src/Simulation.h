@@ -27,14 +27,17 @@ public:
   ulong getEquilSteps();
   double getT_in_K();
   double getBeta();
+  double getEpot();
   CPUSide* getCPUSide();
   ulong getExchangeInterval();
+  int getReplExSeed();
   std::string getConfigFileName();
   std::string getMultiSimTitle();
   void setT_in_K(double T_in_K);
   void setBeta(double beta);
   void setCPUSide(CPUSide * cpu);
   void initReplExParams(struct config_setup::ReplicaExchangeValuesFromConf*);
+  void setupHierarchicalDirectoryStructure();
 
 #ifndef NDEBUG
   void RunningCheck(const uint step);

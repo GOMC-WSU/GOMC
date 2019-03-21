@@ -9,6 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include <stdlib.h>
 #include "Simulation.h"
+#include "MersenneTwister.h"
 
 using namespace std; 
 
@@ -18,6 +19,8 @@ public:
     explicit ReplicaExchangeController(vector<Simulation*>*);
     //~ReplicaExchange();
     void runMultiSim();
+    double calcDelta(int j);
+    void exchange(int j);
 
 private:
     vector<Simulation*>* simsRef;
@@ -29,6 +32,7 @@ private:
     CPUSide * swapperForCPUSide;
     int parityOfSwaps;
     double checkerForIncreasingMontonicityOfTemp;
+    MTRand rand;
 };
 
 #endif

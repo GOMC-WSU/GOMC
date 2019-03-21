@@ -32,22 +32,13 @@ Simulation::Simulation(char const*const configFileName)
   //initialized in system
   staticValues->InitOver(set, *system);
 
+  /* "Replica_Exchange_Simulation" is the default value, so if compare returns a value !=0 it means the user
+      provided a title for the multisimulation.  Or, the user provided an exchange interval > 0 which implies
+      a multisimulation.  The title rule allows for multisimulations to be run without exchanging, which will be
+      useful for testing the same system with/without exchanging.
+  */
   if (replExParams.multiSimTitle.compare("Replica_Exchange_Simulation") || replExParams.exchangeInterval > 0){
-    ReplDirSetup rd(staticValues->forcefield.T_in_K, replExParams);
-    set.config.out.replica_path =  rd.path_to_replica_directory;
-    set.config.out.useMultidir =  true;
-    std::stringstream replica_stream;
-    replica_stream << set.config.out.replica_path << set.config.out.state.files.psf.name;
-    set.config.out.state.files.psf.name = replica_stream.str();
-
-    for(int i = 0; i < BOX_TOTAL; i++) {
-      std::stringstream replica_stream;
-      replica_stream << set.config.out.replica_path << set.config.out.state.files.pdb.name[i];
-      set.config.out.state.files.pdb.name[i] = replica_stream.str();
-    }
-    std::stringstream replica_stream1;
-    replica_stream << set.config.out.replica_path << set.config.out.state.files.seed.name;
-    set.config.out.state.files.seed.name = replica_stream1.str();
+    setupHierarchicalDirectoryStructure();
   }
 
   cpu = new CPUSide(*system, *staticValues);
@@ -148,6 +139,10 @@ ulong Simulation::getExchangeInterval(){
   return replExParams.exchangeInterval;
 }
 
+double Simulation::getEpot(){
+  return system->potential.totalEnergy.total;
+}
+
 CPUSide* Simulation::getCPUSide(){
   return cpu;
 }
@@ -159,6 +154,11 @@ std::string Simulation::getConfigFileName(){
 std::string Simulation::getMultiSimTitle(){
   return replExParams.multiSimTitle;
 }
+
+int Simulation::getReplExSeed(){
+  return replExParams.randomSeed;
+}
+
 
 void Simulation::setT_in_K(double T_in_K){
   staticValues->forcefield.T_in_K = T_in_K;
@@ -177,6 +177,24 @@ void Simulation::initReplExParams(struct config_setup::ReplicaExchangeValuesFrom
   replExParams.numExchanges = replExValuesFromConfFile->numExchanges;
   replExParams.randomSeed = replExValuesFromConfFile->randomSeed;
   replExParams.multiSimTitle = replExValuesFromConfFile->multiSimTitle;
+}
+
+void Simulation::setupHierarchicalDirectoryStructure(){
+  ReplDirSetup rd(staticValues->forcefield.T_in_K, replExParams);    
+  set.config.out.replica_path =  rd.path_to_replica_directory;    
+  set.config.out.useMultidir =  true;    
+  std::stringstream replica_stream;    
+  replica_stream << set.config.out.replica_path << set.config.out.state.files.psf.name;    
+  set.config.out.state.files.psf.name = replica_stream.str();    
+
+  for(int i = 0; i < BOX_TOTAL; i++) {    
+    std::stringstream replica_stream;    
+    replica_stream << set.config.out.replica_path << set.config.out.state.files.pdb.name[i];    
+    set.config.out.state.files.pdb.name[i] = replica_stream.str();    
+  }    
+  std::stringstream replica_stream1;    
+  replica_stream << set.config.out.replica_path << set.config.out.state.files.seed.name;    
+  set.config.out.state.files.seed.name = replica_stream1.str();    
 }
 
 #ifndef NDEBUG
