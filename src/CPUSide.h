@@ -17,6 +17,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "OutputVars.h"
 #include "CheckpointOutput.h"
 #include "EnPartCntSampleOutput.h"
+#include "ReplicaOutput.h"
 
 #include <vector>
 
@@ -40,6 +41,7 @@ private:
   BlockAverages block;
   Histogram hist;
   CheckpointOutput checkpoint;
+  ReplicaOutput replOut;
 #if ENSEMBLE == GCMC
   EnPartCntSample sample_N_E;
 #endif

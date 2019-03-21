@@ -17,7 +17,7 @@ class ReplicaExchangeController
 {
 public:
     explicit ReplicaExchangeController(vector<Simulation*>*);
-    //~ReplicaExchange();
+    ~ReplicaExchangeController();
     void runMultiSim();
     double calcDelta(int j);
     void exchange(int j);
