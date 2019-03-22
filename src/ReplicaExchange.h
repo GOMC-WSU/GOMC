@@ -25,5 +25,15 @@ struct ReplicaExchangeParameters
     int randomSeed;       /* The random seed, -1 means generate a seed */
     std::string multiSimTitle;
 };
+struct RecordKeeper
+{
+    int       nattempt[2]; /* number of even and odd replica change attempts */
+    double   *prob;    /* probabilities */
+    double   *prob_sum;    /* sum of probabilities */
+    int     **nmoves;      /* number of moves between replicas i and j */
+    int      *nexchange;   /* i-th element of the array is the number of exchanges between replica i-1 and i */
+    int     *indices;       /* An array of indices illustrating where our temps 0..N are orderwise */
+    int     *p_indices;       /* A Permuttable Map of indices illustrating where our temps 0..N are orderwise */
+};
 
 #endif

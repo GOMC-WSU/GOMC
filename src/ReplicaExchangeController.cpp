@@ -67,8 +67,19 @@ ReplicaExchangeController::ReplicaExchangeController(vector<Simulation*>* sims){
       exchangeRate = totalSteps;
       roundedUpDivison = 1;
     }
+  
+    std::stringstream replica_log_stream;
+    replica_log_stream << (*simsRef)[0]->getMultiSimTitle() <<
+    "/replica_log.txt";
+    std::string const fileName = replica_log_stream.str();
+    std::string const alias = "Replica Log File";
+    replicaLog.Init(fileName, alias, true, true);
+    replicaLog.open();
+
 }
-//~ReplicaExchange();
+ReplicaExchangeController::~ReplicaExchangeController(){
+  replicaLog.close();
+}
 
 void ReplicaExchangeController::runMultiSim(){
 
@@ -76,12 +87,21 @@ void ReplicaExchangeController::runMultiSim(){
     double ediff;
     double probability;
 
+    replicaLog.file << "\nInitializing Replica Exchange\n" << std::endl;
+    replicaLog.file << "Repl  There are" << (*simsRef).size() << " replicas:\n" << std::endl;
+    replicaLog.file << "\nReplica exchange interval: " <<  (*simsRef)[0]->getExchangeInterval() << "\n"<< std::endl;
+    replicaLog.file << "\nReplica random seed: " <<  (*simsRef)[0]->getReplExSeed() << "\n"<< std::endl;
+    replicaLog.file << "Replica exchange information below: ex and x = exchange, pr = probability\n" << std::endl;
+
+    ulong step = 0;
     for (ulong i = 0; i < roundedUpDivison; i++){
         for (int j = 0; j < (*simsRef).size(); j++){
           // Note that RunNSteps overwrites startStep before returning to the step it left off on
-          (*simsRef)[j]->RunNSteps(ulong(exchangeRate));
+          (*simsRef)[j]->RunNSteps(exchangeRate);
         }
-        if (exchangeRate!=totalSteps)
+        step += exchangeRate;        
+        if (exchangeRate!=totalSteps  && (*simsRef)[0]->getEquilSteps() <= step){
+          replicaLog.file << "Replica exchange at step " << step << " \n" << std::endl;
           for (int j = 0; j < (*simsRef).size(); j++){
             if ((*simsRef)[j]->getEquilSteps() < ((*simsRef)[j]->getStartStep() + exchangeRate)) {
               //  To alternate between swapping even replicas and repl_id+1 {0,1} {2,3} ... on even parity and 
@@ -106,6 +126,7 @@ void ReplicaExchangeController::runMultiSim(){
               }
             }
           }
+        }
       }
 }
 
@@ -130,6 +151,25 @@ double ReplicaExchangeController::calcDelta(int j){
   double ediff = epot_b - epot_a;
   double delta = -(beta_b - beta_a)*ediff;
   return delta;
+}
+
+void ReplicaExchangeController::InitRecordKeeper(){
+  recKeep.nattempt[0] = 0;
+  recKeep.nattempt[1] = 0;
+  recKeep.prob = (double*)malloc((*simsRef).size() * sizeof(double));
+  recKeep.prob_sum = (double*)malloc((*simsRef).size() * sizeof(double));
+  recKeep.nexchange = (int*)malloc((*simsRef).size()*sizeof(int));
+  recKeep.nmoves = (int**)malloc((*simsRef).size()*sizeof(int*));
+  for (int i = 0; i < (*simsRef).size(); i++) {
+    recKeep.nmoves[i] = (int*)malloc((*simsRef).size()*sizeof(int));
+  }
+  recKeep.indices = (int*)malloc((*simsRef).size() * sizeof(int));
+  recKeep.p_indices = (int*)malloc((*simsRef).size() * sizeof(int));
+
+  for (int i = 0; i < (*simsRef).size(); i++){
+    recKeep.indices[i] = i;
+    recKeep.p_indices[i] = i;
+  }
 }
 
 

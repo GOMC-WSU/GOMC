@@ -10,6 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include "Simulation.h"
 #include "MersenneTwister.h"
+#include "Writer.h"
 
 using namespace std; 
 
@@ -17,10 +18,11 @@ class ReplicaExchangeController
 {
 public:
     explicit ReplicaExchangeController(vector<Simulation*>*);
-    //~ReplicaExchange();
+    ~ReplicaExchangeController();
     void runMultiSim();
     double calcDelta(int j);
     void exchange(int j);
+    void InitRecordKeeper();
 
 private:
     vector<Simulation*>* simsRef;
@@ -33,6 +35,8 @@ private:
     int parityOfSwaps;
     double checkerForIncreasingMontonicityOfTemp;
     MTRand rand;
+    RecordKeeper recKeep;
+    Writer replicaLog;
 };
 
 #endif
