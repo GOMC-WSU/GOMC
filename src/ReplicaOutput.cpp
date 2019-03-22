@@ -8,7 +8,4 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "ReplicaOutput.h"
 
 ReplicaOutput::ReplicaOutput(){}
-ReplicaOutput::~ReplicaOutput(){
-    outF.close();
-}
-//void ReplicaOutput::Init(){}
+ReplicaOutput::~ReplicaOutput(){}

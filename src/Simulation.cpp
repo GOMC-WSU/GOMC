@@ -159,10 +159,6 @@ int Simulation::getReplExSeed(){
   return replExParams.randomSeed;
 }
 
-int Simulation::getNumberOfReplicas(){
-  return replExParams.numberOfReplicas;
-}
-
 
 void Simulation::setT_in_K(double T_in_K){
   staticValues->forcefield.T_in_K = T_in_K;
@@ -181,12 +177,12 @@ void Simulation::initReplExParams(struct config_setup::ReplicaExchangeValuesFrom
   replExParams.numExchanges = replExValuesFromConfFile->numExchanges;
   replExParams.randomSeed = replExValuesFromConfFile->randomSeed;
   replExParams.multiSimTitle = replExValuesFromConfFile->multiSimTitle;
-  replExParams.numberOfReplicas = replExValuesFromConfFile->numberOfReplicas;  
 }
 
 void Simulation::setupHierarchicalDirectoryStructure(){
   ReplDirSetup rd(staticValues->forcefield.T_in_K, replExParams);    
   set.config.out.replica_path =  rd.path_to_replica_directory;    
+  set.config.out.useMultidir =  true;    
   std::stringstream replica_stream;    
   replica_stream << set.config.out.replica_path << set.config.out.state.files.psf.name;    
   set.config.out.state.files.psf.name = replica_stream.str();    
@@ -197,12 +193,8 @@ void Simulation::setupHierarchicalDirectoryStructure(){
     set.config.out.state.files.pdb.name[i] = replica_stream.str();    
   }    
   std::stringstream replica_stream1;    
-  replica_stream1 << set.config.out.replica_path << set.config.out.state.files.seed.name;    
-  set.config.out.state.files.seed.name = replica_stream1.str();
-  
-  std::stringstream replica_stream2;    
-  replica_stream2 << set.config.out.replica_path << set.config.out.state.files.replicaLog.name;    
-  set.config.out.state.files.replicaLog.name = replica_stream2.str();
+  replica_stream << set.config.out.replica_path << set.config.out.state.files.seed.name;    
+  set.config.out.state.files.seed.name = replica_stream1.str();    
 }
 
 #ifndef NDEBUG

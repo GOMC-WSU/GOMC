@@ -797,10 +797,6 @@ void ConfigSetup::Init(const char *fileName)
         printf("Warning: Constant seed set, but will be ignored.\n");
     } else if(line[0] == "Exchange_Interval") {
         in.replValues.exchangeInterval = stringtoi(line[1]);
-        if (in.replValues.exchangeInterval > 0){
-          out.useReplicaExchange = true;
-          out.useMultidir = true;
-        }
     } else if(line[0] == "Exchange_Per_Cycle") {
         in.replValues.numExchanges = stringtoi(line[1]);
     } else if(line[0] == "Replica_Exchange_Seed") {
@@ -817,14 +813,11 @@ void ConfigSetup::Init(const char *fileName)
             }
         }
         in.replValues.multiSimTitle = ss.str();
-    } else if(line[0] == "Number_Of_Replicas") {
-        in.replValues.numberOfReplicas = stringtoi(line[1]);
-        out.numberOfReplicas = in.replValues.numberOfReplicas;
     } else {
       cout << "Warning: Unknown input " << line[0] << "!" << endl;
     }
     // Clear and get ready for the next line
-     line.clear();
+    line.clear();
   }
 
   //*********** Fill in the default values if not specified ***********//
@@ -951,8 +944,6 @@ void ConfigSetup::fillDefaults(void)
                                   "_BOX_" + numStr + ".pdb";
   }
   out.state.files.seed.name = out.statistics.settings.uniqueStr.val + ".dat";
-
-  out.state.files.replicaLog.name = "replica_log.txt";
 }
 
 void ConfigSetup::verifyInputs(void)
