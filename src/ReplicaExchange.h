@@ -16,7 +16,8 @@ struct ReplicaExchangeParameters
         exchangeInterval(0),
         numExchanges(0),
         randomSeed(-1),
-        multiSimTitle("Replica_Exchange_Simulation")
+        multiSimTitle("Replica_Exchange_Simulation"),
+        numberOfReplicas(1)
     {
     };
 
@@ -24,6 +25,7 @@ struct ReplicaExchangeParameters
     int numExchanges;     /* The number of exchanges to attempt at an exchange step */
     int randomSeed;       /* The random seed, -1 means generate a seed */
     std::string multiSimTitle;
+    int numberOfReplicas;
 };
 
 struct RecordKeeper
@@ -32,6 +34,7 @@ struct RecordKeeper
     double   *prob_sum;    /* sum of probabilities */
     int     **nmoves;      /* number of moves between replicas i and j */
     int      *nexchange;   /* i-th element of the array is the number of exchanges between replica i-1 and i */
+
 };
 
 #endif

@@ -60,6 +60,16 @@ ReplicaExchangeController::ReplicaExchangeController(vector<Simulation*>* sims){
             " is not in order of least to greatest for temperature!\n";
             exit(EXIT_FAILURE);
         }
+        if ((*simsRef)[i]->getNumberOfReplicas() == 1){
+            std::cout << "Error: List the number of replicas. " << (*simsRef)[i]->getConfigFileName() <<
+            " doesn't have a value for Number_Of_Replicas!\n";
+            exit(EXIT_FAILURE);
+        } else if ((*simsRef)[i]->getNumberOfReplicas() != (*simsRef).size()) {
+            std::cout << "Error: The value : (" << (*simsRef)[i]->getNumberOfReplicas() << 
+            ") provided in " << (*simsRef)[i]->getConfigFileName() <<
+            " doesn't match the actual number : (" << (*simsRef).size() << ") of replicas!\n";
+            exit(EXIT_FAILURE);
+        }
     }
     if (exchangeRate > 0) {
       roundedUpDivison = ((*simsRef)[0]->getTotalSteps() + exchangeRate - 1) / exchangeRate;
@@ -72,47 +82,47 @@ ReplicaExchangeController::~ReplicaExchangeController(){};
 
 void ReplicaExchangeController::runMultiSim(){
 
-    double delta;
-    double ediff;
-    double probability;
+  double delta;
+  double ediff;
+  double probability;
 
-    int nattempt[(*simsRef).size()][2] = {0};
-    int nmoves[(*simsRef).size()][(*simsRef).size()] = {0};
-    double prob_sum[(*simsRef).size()];
-    int ind[(*simsRef).size()];
+  int nattempt[(*simsRef).size()][2] = {0};
+  int nmoves[(*simsRef).size()][(*simsRef).size()] = {0};
+  double prob_sum[(*simsRef).size()];
+  int ind[(*simsRef).size()];
 
-    for (ulong i = 0; i < roundedUpDivison; i++){
+  for (ulong i = 0; i < roundedUpDivison; i++){
+    for (int j = 0; j < (*simsRef).size(); j++){
+      // Note that RunNSteps overwrites startStep before returning to the step it left off on
+      (*simsRef)[j]->RunNSteps(ulong(exchangeRate));
+    }
+    if (exchangeRate!=totalSteps){
       for (int j = 0; j < (*simsRef).size(); j++){
-        // Note that RunNSteps overwrites startStep before returning to the step it left off on
-        (*simsRef)[j]->RunNSteps(ulong(exchangeRate));
-      }
-      if (exchangeRate!=totalSteps){
-        for (int j = 0; j < (*simsRef).size(); j++){
-          if ((*simsRef)[j]->getEquilSteps() < ((*simsRef)[j]->getStartStep() + exchangeRate)) {
-            //  To alternate between swapping even replicas and repl_id+1 {0,1} {2,3} ... on even parity and 
-            //  odd replicas and repl_id+1 {1,2} ... on odd parity
-            parityOfSwaps = ((*simsRef)[j]->getStartStep() / exchangeRate) % 2;
-            if (j % 2 == parityOfSwaps){
-              if (j + 1 < (*simsRef).size()){
-                delta = calcDelta(j);
-                if (delta <= 0) {
-                  exchange(j);
-                } else {
-                   if (delta > PROBABILITYCUTOFF){
-                    probability = 0;
-                  }
-                  else {
-                    probability = exp(-delta);
-                  }
-                  if (rand.rand() < probability)
-                    exchange(j);
+        if ((*simsRef)[j]->getEquilSteps() < ((*simsRef)[j]->getStartStep() + exchangeRate)) {
+          //  To alternate between swapping even replicas and repl_id+1 {0,1} {2,3} ... on even parity and 
+          //  odd replicas and repl_id+1 {1,2} ... on odd parity
+          parityOfSwaps = ((*simsRef)[j]->getStartStep() / exchangeRate) % 2;
+          if (j % 2 == parityOfSwaps){
+            if (j + 1 < (*simsRef).size()){
+              delta = calcDelta(j);
+              if (delta <= 0) {
+                exchange(j);
+              } else {
+                if (delta > PROBABILITYCUTOFF){
+                  probability = 0;
                 }
+                else {
+                  probability = exp(-delta);
+                }
+                if (rand.rand() < probability)
+                  exchange(j);
               }
             }
           }
         }
       }
     }
+  }
 }
 
 void ReplicaExchangeController::exchange(int j){

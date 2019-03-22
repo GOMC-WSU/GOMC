@@ -10,7 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 CPUSide::CPUSide(System & sys, StaticVals & statV) :
   varRef(sys, statV), pdb(sys, statV), console(varRef), block(varRef),
-  hist(varRef), checkpoint(sys, statV)
+  hist(varRef), checkpoint(sys, statV), replicaLog()
 #if ENSEMBLE == GCMC
   , sample_N_E(varRef)
 #endif
@@ -30,7 +30,8 @@ void CPUSide::Init(PDBSetup const& pdbSet, config_setup::Output const& out,
     outObj.push_back(&block);
   if (out.checkpoint.enable)
     outObj.push_back(&checkpoint);
-
+  if (out.useReplicaExchange)
+    outObj.push_back(&replicaLog);
 #if ENSEMBLE == GCMC
   outObj.push_back(&hist);
   outObj.push_back(&sample_N_E);

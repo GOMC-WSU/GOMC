@@ -96,7 +96,8 @@ struct ReplicaExchangeValuesFromConf{
     exchangeInterval(0),
     numExchanges(0),
     randomSeed(-1),
-    multiSimTitle("Replica_Exchange_Simulation")
+    multiSimTitle("Replica_Exchange_Simulation"),
+    numberOfReplicas(1)
   {
   };
 
@@ -104,6 +105,7 @@ struct ReplicaExchangeValuesFromConf{
   int numExchanges;     /* The number of exchanges to attempt at an exchange step */
   int randomSeed;       /* The random seed, -1 means generate a seed */
   std::string multiSimTitle;
+  int numberOfReplicas;
 };
 
 //Input section of config file data.
@@ -304,7 +306,7 @@ struct HistFiles { /* : ReadableBase*/
 //Files for output.
 struct OutFiles {
   FileNames<BOX_TOTAL> pdb;
-  FileName psf, seed;
+  FileName psf, seed, replicaLog;
   HistFiles hist;
 };
 struct Settings {
@@ -342,12 +344,16 @@ struct Output {
   Output() :
 
     useMultidir(false),
-    replica_path("")
+    useReplicaExchange(false),
+    replica_path(""),
+    numberOfReplicas(1)
 
     {
     };
 
   bool  useMultidir;
+  bool  useReplicaExchange;
+  int   numberOfReplicas;
   std::string replica_path;
   SysState state, restart;
   Statistics statistics;

@@ -41,7 +41,7 @@ private:
   BlockAverages block;
   Histogram hist;
   CheckpointOutput checkpoint;
-  ReplicaOutput replOut;
+  ReplicaOutput replicaLog;
 #if ENSEMBLE == GCMC
   EnPartCntSample sample_N_E;
 #endif

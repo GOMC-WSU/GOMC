@@ -33,6 +33,7 @@ public:
   int getReplExSeed();
   std::string getConfigFileName();
   std::string getMultiSimTitle();
+  int getNumberOfReplicas();
   void setT_in_K(double T_in_K);
   void setBeta(double beta);
   void setCPUSide(CPUSide * cpu);
