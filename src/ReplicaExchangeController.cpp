@@ -76,11 +76,6 @@ void ReplicaExchangeController::runMultiSim(){
     double ediff;
     double probability;
 
-    int nattempt[(*simsRef).size()][2] = {0};
-    int nmoves[(*simsRef).size()][(*simsRef).size()] = {0};
-    double prob_sum[(*simsRef).size()];
-    int ind[(*simsRef).size()];
-
     for (ulong i = 0; i < roundedUpDivison; i++){
         for (int j = 0; j < (*simsRef).size(); j++){
           // Note that RunNSteps overwrites startStep before returning to the step it left off on
