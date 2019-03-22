@@ -31,10 +31,6 @@ struct CPUSide {
             const ulong tillEquil, const ulong totSteps, ulong startStep);
   void Output(const ulong step);
 
-  ReplicaOutput* getReplicaOutputObject();
-
-  void swapIndices(int j);
-
   ulong equilSteps;
 
 private:

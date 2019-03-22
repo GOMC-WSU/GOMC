@@ -105,7 +105,6 @@ ConfigSetup::ConfigSetup(void)
   out.state.settings.frequency = ULONG_MAX;
   out.restart.settings.frequency = ULONG_MAX;
   out.console.frequency = ULONG_MAX;
-  out.replicaExchange.frequency = ULONG_MAX;
   out.statistics.settings.block.frequency = ULONG_MAX;
   out.statistics.vars.energy.block = false;
   out.statistics.vars.energy.fluct = false;
@@ -449,7 +448,6 @@ void ConfigSetup::Init(const char *fileName)
       }
     } else if(CheckString(line[0], "EqSteps")) {
       sys.step.equil = stringtoi(line[1]);
-      out.equilSteps = sys.step.equil;
       printf("%-40s %-lu \n", "Info: Number of equilibration steps",
              sys.step.equil);
     } else if(CheckString(line[0], "AdjSteps")) {
@@ -802,8 +800,6 @@ void ConfigSetup::Init(const char *fileName)
         if (in.replValues.exchangeInterval > 0){
           out.useReplicaExchange = true;
           out.useMultidir = true;
-          out.stepsPerReplicaExchange =  in.replValues.exchangeInterval;
-          out.replicaExchange.enable = true;
         }
     } else if(line[0] == "Exchange_Per_Cycle") {
         in.replValues.numExchanges = stringtoi(line[1]);

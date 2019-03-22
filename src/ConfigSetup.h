@@ -354,12 +354,10 @@ struct Output {
   bool  useMultidir;
   bool  useReplicaExchange;
   int   numberOfReplicas;
-  ulong equilSteps; // For RE
   std::string replica_path;
-  ulong stepsPerReplicaExchange;
   SysState state, restart;
   Statistics statistics;
-  EventSettings console, checkpoint, replicaExchange;
+  EventSettings console, checkpoint;
 };
 
 }
