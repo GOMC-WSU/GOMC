@@ -37,7 +37,6 @@ set(sources
    src/PSFOutput.cpp
    src/Reader.cpp
    src/ReplicaExchangeController.cpp
-   src/ReplicaOutput.cpp
    src/Simulation.cpp
    src/StaticVals.cpp
    src/System.cpp
@@ -117,10 +116,6 @@ set(headers
    src/PRNGSetup.h
    src/PSFOutput.h
    src/Reader.h
-   src/ReplDirSetup.h
-   src/ReplicaExchange.h
-   src/ReplicaExchangeController.h
-   src/ReplicaOutput.h
    src/SeedReader.h
    src/Setup.h
    src/SimEventFrequency.h

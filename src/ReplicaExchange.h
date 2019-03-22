@@ -26,12 +26,4 @@ struct ReplicaExchangeParameters
     std::string multiSimTitle;
 };
 
-struct RecordKeeper
-{
-    int       nattempt[2]; /* number of even and odd replica change attempts */
-    double   *prob_sum;    /* sum of probabilities */
-    int     **nmoves;      /* number of moves between replicas i and j */
-    int      *nexchange;   /* i-th element of the array is the number of exchanges between replica i-1 and i */
-};
-
 #endif
