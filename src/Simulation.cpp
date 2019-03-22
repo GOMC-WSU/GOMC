@@ -205,6 +205,10 @@ void Simulation::setupHierarchicalDirectoryStructure(){
   set.config.out.state.files.replicaLog.name = replica_stream2.str();
 }
 
+void Simulation::swapIndices(int j){
+  cpu->getReplicaOutputObject();
+}
+
 #ifndef NDEBUG
 void Simulation::RunningCheck(const uint step)
 {

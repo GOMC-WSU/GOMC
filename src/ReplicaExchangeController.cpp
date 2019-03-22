@@ -106,6 +106,7 @@ void ReplicaExchangeController::runMultiSim(){
             if (j + 1 < (*simsRef).size()){
               delta = calcDelta(j);
               if (delta <= 0) {
+                probability = 1;
                 exchange(j);
               } else {
                 if (delta > PROBABILITYCUTOFF){
@@ -113,10 +114,12 @@ void ReplicaExchangeController::runMultiSim(){
                 }
                 else {
                   probability = exp(-delta);
+                  
                 }
                 if (rand.rand() < probability)
                   exchange(j);
               }
+
             }
           }
         }
@@ -131,10 +134,13 @@ void ReplicaExchangeController::exchange(int j){
   CPUSide * swapperForCPUSide = (*simsRef)[j]->getCPUSide();
   (*simsRef)[j]->setT_in_K((*simsRef)[j+1]->getT_in_K());
   (*simsRef)[j]->setBeta((*simsRef)[j+1]->getBeta());
-  (*simsRef)[j]->setCPUSide((*simsRef)[j+1]->getCPUSide());
   (*simsRef)[j+1]->setT_in_K(swapperForT_in_K);
   (*simsRef)[j+1]->setBeta(swapperForBeta);
+  (*simsRef)[j]->swapIndices(j);
+  (*simsRef)[j]->setCPUSide((*simsRef)[j+1]->getCPUSide());
   (*simsRef)[j+1]->setCPUSide(swapperForCPUSide);
+
+
 }
 
 double ReplicaExchangeController::calcDelta(int j){

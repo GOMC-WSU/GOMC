@@ -51,3 +51,11 @@ void CPUSide::Output(const ulong step)
     outObj[o]->Output(step);
   timer.CheckTime(step);
 }
+
+ReplicaOutput* CPUSide::getReplicaOutputObject(){
+  return &replicaLog;
+}
+
+void CPUSide::swapIndices(int j){
+  replicaLog.swapIndices(j);
+}

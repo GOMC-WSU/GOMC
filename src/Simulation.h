@@ -39,6 +39,7 @@ public:
   void setCPUSide(CPUSide * cpu);
   void initReplExParams(struct config_setup::ReplicaExchangeValuesFromConf*);
   void setupHierarchicalDirectoryStructure();
+  void swapIndices(int j);
 
 #ifndef NDEBUG
   void RunningCheck(const uint step);
