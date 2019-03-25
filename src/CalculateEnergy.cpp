@@ -254,6 +254,10 @@ aForcex[:atomCount], aForcey[:atomCount], aForcez[:atomCount], \
 mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 #endif
   for (i = 0; i < pair1.size(); i++) {
+    if (i==0) {
+      printf("%lf, %lf, %lf - %lf, %lf, %lf\n", coords[pair1[i]].x, coords[pair1[i]].y, coords[pair1[i]].z,
+             coords[pair2[i]].x, coords[pair2[i]].y, coords[pair2[i]].z);
+    }
     if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)) {
       if (electrostatic) {
         qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] *
@@ -263,7 +267,7 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
       tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
                   particleKind[pair2[i]]);
 
-      // Calculating the force 
+      // Calculating the force
       if(multiParticleEnabled) {
         if(electrostatic) {
           forceReal = virComponents *
@@ -271,7 +275,7 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
         }
         forceLJ = virComponents *
 	        forcefield.particles->CalcVir(distSq, particleKind[pair1[i]],
-					                              particleKind[pair2[i]]);
+					      particleKind[pair2[i]]);
         aForcex[pair1[i]] += forceLJ.x + forceReal.x;
         aForcey[pair1[i]] += forceLJ.y + forceReal.y;
         aForcez[pair1[i]] += forceLJ.z + forceReal.z;
@@ -288,7 +292,6 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
     }
   }
 #endif
-
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction

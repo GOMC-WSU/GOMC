@@ -107,7 +107,7 @@ inline void MultiParticle::SetMolInBox(uint box)
 
 inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
 {
-  uint state = mv::fail_state::NO_FAIL;;
+  uint state = mv::fail_state::NO_FAIL;
 #if ENSEMBLE == GCMC
   bPick = mv::BOX0;
 #else
