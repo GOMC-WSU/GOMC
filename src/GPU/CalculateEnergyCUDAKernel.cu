@@ -5,13 +5,13 @@ A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #ifdef GOMC_CUDA
-#include "CalculateEnergyCUDAKernel.cuh"
-#include "CalculateForceCUDAKernel.cuh"
 #include <cuda.h>
-#include "ConstantDefinitionsCUDAKernel.cuh"
-#include "CalculateMinImageCUDAKernel.cuh"
 #include "cub/cub.cuh"
 #include <stdio.h>
+#include "ConstantDefinitionsCUDAKernel.cuh"
+#include "CalculateMinImageCUDAKernel.cuh"
+#include "CalculateForceCUDAKernel.cuh"
+#include "CalculateEnergyCUDAKernel.cuh"
 
 using namespace cub;
 

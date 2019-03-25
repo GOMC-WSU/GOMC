@@ -12,7 +12,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "ConfigSetup.h"
 
+#ifndef DBL_MAX
 #define DBL_MAX 1.7976931348623158e+308
+#endif
 
 int stringtoi(const std::string& s)
 {
