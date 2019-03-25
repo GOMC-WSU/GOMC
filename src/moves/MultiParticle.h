@@ -12,6 +12,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "StaticVals.h"
 #include <cmath>
 
+#define MIN_FORCE 1E-6
+#define MAX_FORCE 30
+
 class MultiParticle : public MoveBase
 {
 public:
@@ -45,6 +48,7 @@ private:
   void RotateForceBiased(uint molIndex);
   void TranslateForceBiased(uint molIndex);
   void SetMolInBox(uint box);
+  XYZ CalcRandomTransform(XYZ const &lb, double const max);
 };
 
 inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
@@ -318,59 +322,60 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   moveSetRef.Update(mv::MULTIPARTICLE, result, step, bPick);
 }
 
+inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max)
+{
+  XYZ lbmax = lb * max;
+  XYZ num;
+  if(abs(lbmax.x) > MIN_FORCE && abs(lbmax.x) < MAX_FORCE) {
+    num.x = log(exp(-1.0 * lbmax.x ) + 2 * prng() * sinh(lbmax.x )) / lb.x;
+  } else {
+    num.x = max * prng();
+  }
+  
+  if(abs(lbmax.y) > MIN_FORCE && abs(lbmax.y) < MAX_FORCE){
+    num.y = log(exp(-1.0 * lbmax.y ) + 2 * prng() * sinh(lbmax.y )) / lb.y;
+  } else {
+    num.y = max * prng();
+  }
+
+  if(abs(lbmax.z) > MIN_FORCE && abs(lbmax.z) < MAX_FORCE){
+    num.z = log(exp(-1.0 * lbmax.z ) + 2 * prng() * sinh(lbmax.z )) / lb.z;
+  } else {
+    num.z = max * prng();
+  }
+
+  if(num.Length() >= boxDimRef.axis.Min(bPick)) {
+    std::cout << "Trial Displacement exceed half of the box length in Multiparticle move.\n";
+    std::cout << "Trial transform: " << num;
+    exit(EXIT_FAILURE);
+  } else if (!isfinite(num.Length())) {
+    std::cout << "Trial Displacement is not a finite number in Multiparticle move.\n";
+    std::cout << "Trial transform: " << num;
+    exit(EXIT_FAILURE);
+  }
+
+  // We can possible bound them
+
+  return num;
+}
+
 inline void MultiParticle::CalculateTrialDistRot()
 {
   uint m , molIndex;
+  double r_max = moveSetRef.GetRMAX(bPick);
+  double t_max = moveSetRef.GetTMAX(bPick);
+  XYZ lbfmax; // lambda * BETA * force * maxTranslate
+  XYZ lbtmax; // lambda * BETA * torque * maxRotation
   for(m = 0; m < moleculeIndex.size(); m++) {
     molIndex = moleculeIndex[m];
-    XYZ lbf, lbfmax; // lambda * BETA * force
-    XYZ lbt, lbtmax; // lambda * BETA * torque
-    double rand;
-    double r_max = moveSetRef.GetRMAX(bPick);
-    double t_max = moveSetRef.GetTMAX(bPick);
-    XYZ num;
+
     if(moveType[molIndex]) { // rotate
-      lbt = molTorqueRef.Get(molIndex) * lambda * BETA;
-      lbtmax = lbt * r_max;
-      if(lbt.Length()) {
-        rand = prng();
-        num.x = log(exp(-1.0 * lbtmax.x ) + 2 * rand * sinh(lbtmax.x ));
-        rand = prng();
-        num.y = log(exp(-1.0 * lbtmax.y ) + 2 * rand * sinh(lbtmax.y ));
-        rand = prng();
-        num.z = log(exp(-1.0 * lbtmax.z ) + 2 * rand * sinh(lbtmax.z ));
-        num /= lbt;
-        if(!std::isfinite(num.x) || !std::isfinite(num.y) 
-          || !std::isfinite(num.z)) {
-          std::cerr << "Force is probably a really high value.\n";
-          std::cerr 
-            << "Please equilbriate your system and re-run the simulation.\n";
-          exit(EXIT_FAILURE);
-        }
-      }
-      r_k.Set(molIndex, num);
-    }
-    else { // displace
-      lbf = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) *
-        lambda * BETA;
-      lbfmax = lbf * t_max;
-      if(lbf.Length()) {
-        rand = prng();
-        num.x = log(exp(-1.0 * lbfmax.x ) + 2 * rand * sinh(lbfmax.x ));
-        rand = prng();
-        num.y = log(exp(-1.0 * lbfmax.y ) + 2 * rand * sinh(lbfmax.y ));
-        rand = prng();
-        num.z = log(exp(-1.0 * lbfmax.z ) + 2 * rand * sinh(lbfmax.z ));
-        num /= lbf;
-        if(!std::isfinite(num.x) || !std::isfinite(num.y) 
-          || !std::isfinite(num.z)) {
-          std::cerr << "Force is probably a really high value.\n";
-          std::cerr 
-            << "Please equilbriate your system and re-run the simulation.\n";
-          exit(EXIT_FAILURE);
-        }
-      }
-      t_k.Set(molIndex, num);
+      lbtmax = molTorqueRef.Get(molIndex) * lambda * BETA * r_max;
+      r_k.Set(molIndex, CalcRandomTransform(lbtmax, r_max));
+    } else { // displace
+      lbfmax = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) *
+        lambda * BETA * t_max;
+      t_k.Set(molIndex, CalcRandomTransform(lbfmax, t_max));
     }
   }
 }
@@ -380,12 +385,9 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
   XYZ rot = r_k.Get(molIndex);
   double rotLen = rot.Length();
   RotationMatrix matrix;
-  if(rotLen) {
-    matrix = RotationMatrix::FromAxisAngle(rotLen, rot * (1.0/rotLen));
-  } else { // if torque is zero we ignore the molecule
-    return;
-  }
-
+  
+  matrix = RotationMatrix::FromAxisAngle(rotLen, rot * (1.0/rotLen));
+ 
   XYZ center = newCOMs.Get(molIndex);
   uint start, stop, len;
   molRef.GetRange(start, stop, len, molIndex);
@@ -409,10 +411,6 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
 inline void MultiParticle::TranslateForceBiased(uint molIndex)
 {
   XYZ shift = t_k.Get(molIndex);
-  //If force was zero, ignore this molecule
-  if(!shift.Length()) {
-    return;
-  }
 
   XYZ newcom = newCOMs.Get(molIndex);
   uint stop, start, len;
