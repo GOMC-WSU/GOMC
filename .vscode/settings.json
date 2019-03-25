@@ -20,5 +20,6 @@
     "cstring": "cpp",
     "ctime": "cpp",
     "iomanip": "cpp"
-  }
+  },
+  "cmake.configureOnOpen": false
 }
