@@ -944,6 +944,7 @@ void ConfigSetup::fillDefaults(void)
                                   "_BOX_" + numStr + ".pdb";
   }
   out.state.files.seed.name = out.statistics.settings.uniqueStr.val + ".dat";
+  out.state.files.console.name = out.statistics.settings.uniqueStr.val + ".console";
 }
 
 void ConfigSetup::verifyInputs(void)

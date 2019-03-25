@@ -304,7 +304,7 @@ struct HistFiles { /* : ReadableBase*/
 //Files for output.
 struct OutFiles {
   FileNames<BOX_TOTAL> pdb;
-  FileName psf, seed;
+  FileName psf, seed, console;
   HistFiles hist;
 };
 struct Settings {

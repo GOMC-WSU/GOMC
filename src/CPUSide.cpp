@@ -50,3 +50,7 @@ void CPUSide::Output(const ulong step)
     outObj[o]->Output(step);
   timer.CheckTime(step);
 }
+
+Clock* CPUSide::getClock(){
+  return &timer;
+}

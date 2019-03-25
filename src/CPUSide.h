@@ -32,6 +32,8 @@ struct CPUSide {
 
   ulong equilSteps;
 
+  Clock* getClock();
+
 private:
   Clock timer;
   std::vector<OutputableBase *> outObj;

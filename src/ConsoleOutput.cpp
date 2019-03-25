@@ -19,70 +19,110 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 void ConsoleOutput::DoOutput(const ulong step)
 {
-  if (step == 0) {
-    std::cout << std::endl << "################################################################################" << std::endl;
-    std::cout << "########################## INITIAL SIMULATION ENERGY ###########################" << std::endl << std::endl;
-
-    PrintEnergyTitle();
-    std::cout << std::endl;
-
-    for (uint b = 0; b < BOX_TOTAL; b++) {
-      PrintEnergy(b, var->energyRef[b], var->virialRef[b], -1);
-      std::cout <<  std::endl;
-    }
-
-    if(enableStat) {
-      PrintStatisticTitle();
-      std::cout << std::endl;
-
-      for (uint b = 0; b < BOX_TOTAL; b++) {
-        PrintStatistic(b, -1);
-        std::cout << std::endl;
-      }
-    }
-
-    std::cout << "################################################################################" << std::endl;
-
-    std::cout << "############################# STARTING SIMULATION ##############################" << std::endl << std::endl;
-
-    if(!forceOutput) {
-      PrintMoveTitle();
-      std::cout << std::endl;
-    }
-
-    if(enableEnergy) {
+  if (enableConsoleToFile){
+    if (step == 0) {
+      *consoleToFile << std::endl << "################################################################################" << std::endl;
+      *consoleToFile << "########################## INITIAL SIMULATION ENERGY ###########################" << std::endl << std::endl;
       PrintEnergyTitle();
-      std::cout << std::endl;
-    }
-
-    if(enableStat) {
-      PrintStatisticTitle();
-      std::cout << std::endl;
+      *consoleToFile << std::endl;
+      for (uint b = 0; b < BOX_TOTAL; b++) {
+        PrintEnergy(b, var->energyRef[b], var->virialRef[b], -1);
+        *consoleToFile <<  std::endl;
+      }
+      if(enableStat) {
+        PrintStatisticTitle();
+        *consoleToFile << std::endl;
+        for (uint b = 0; b < BOX_TOTAL; b++) {
+          PrintStatistic(b, -1);
+          *consoleToFile << std::endl;
+        }
+      }
+      *consoleToFile << "################################################################################" << std::endl;
+      *consoleToFile << "############################# STARTING SIMULATION ##############################" << std::endl << std::endl;
+      if(!forceOutput) {
+        PrintMoveTitle();
+        *consoleToFile << std::endl;
+      }
+      if(enableEnergy) {
+        PrintEnergyTitle();
+        *consoleToFile << std::endl;
+      }
+      if(enableStat) {
+        PrintStatisticTitle();
+        *consoleToFile << std::endl;
+      }
+    } else {
+      for(uint b = 0; b < BOX_TOTAL; b++) {
+        if(!forceOutput) {
+          PrintMove(b, step);
+          *consoleToFile << std::endl;
+        }
+        if(enableEnergy) {
+          PrintEnergy(b, var->energyRef[b], var->virialRef[b], step);
+          *consoleToFile << std::endl;
+        }
+        if(enableStat) {
+          PrintStatistic(b, step);
+          *consoleToFile << std::endl;
+        }
+        if(enablePressure) {
+          PrintPressureTensor(b, step);
+          *consoleToFile << std::endl;
+        }
+      }
     }
   } else {
-    for(uint b = 0; b < BOX_TOTAL; b++) {
-      if(!forceOutput) {
-        PrintMove(b, step);
-        std::cout << std::endl;
+        if (step == 0) {
+      std::cout << std::endl << "################################################################################" << std::endl;
+      std::cout << "########################## INITIAL SIMULATION ENERGY ###########################" << std::endl << std::endl;
+      PrintEnergyTitle();
+      std::cout << std::endl;
+      for (uint b = 0; b < BOX_TOTAL; b++) {
+        PrintEnergy(b, var->energyRef[b], var->virialRef[b], -1);
+        std::cout <<  std::endl;
       }
-
-      if(enableEnergy) {
-        PrintEnergy(b, var->energyRef[b], var->virialRef[b], step);
-        std::cout << std::endl;
-      }
-
       if(enableStat) {
-        PrintStatistic(b, step);
+        PrintStatisticTitle();
+        std::cout << std::endl;
+        for (uint b = 0; b < BOX_TOTAL; b++) {
+          PrintStatistic(b, -1);
+          std::cout << std::endl;
+        }
+      }
+      std::cout << "################################################################################" << std::endl;
+      std::cout << "############################# STARTING SIMULATION ##############################" << std::endl << std::endl;
+      if(!forceOutput) {
+        PrintMoveTitle();
         std::cout << std::endl;
       }
-
-      if(enablePressure) {
-        PrintPressureTensor(b, step);
+      if(enableEnergy) {
+        PrintEnergyTitle();
         std::cout << std::endl;
       }
-
+      if(enableStat) {
+        PrintStatisticTitle();
+        std::cout << std::endl;
+      }
+    } else {
+      for(uint b = 0; b < BOX_TOTAL; b++) {
+        if(!forceOutput) {
+          PrintMove(b, step);
+          std::cout << std::endl;
+        }
+        if(enableEnergy) {
+          PrintEnergy(b, var->energyRef[b], var->virialRef[b], step);
+          std::cout << std::endl;
+        }
+        if(enableStat) {
+          PrintStatistic(b, step);
+          std::cout << std::endl;
+        }
+        if(enablePressure) {
+          PrintPressureTensor(b, step);
+          std::cout << std::endl;
+        }
+      }
     }
-
   }
 }
 
@@ -169,8 +209,11 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
     printElement(var->GetScale(box, sub), elementWidth);
   }
 #endif
-
-  std::cout << std::endl;
+  if(enableConsoleToFile){
+    *consoleToFile << std::endl;
+  } else {
+    std::cout << std::endl;
+  }
 }
 
 void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const
@@ -212,7 +255,11 @@ void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const
   if(enableSurfTension)
     printElement(var->surfaceTens[box], elementWidth);
 
-  std::cout << std::endl;
+  if(enableConsoleToFile){
+    *consoleToFile << std::endl;
+  } else {
+    std::cout << std::endl;
+  }
 }
 
 void ConsoleOutput::PrintPressureTensor(const uint box, const ulong step) const
@@ -236,7 +283,11 @@ void ConsoleOutput::PrintPressureTensor(const uint box, const ulong step) const
     // Else, just print the diameter of the pressure Tensor, W11, W22, W33
     printElement(var->pressureTens[box][i][i], elementWidth);
   }
-  std::cout << std::endl;
+  if(enableConsoleToFile){
+    *consoleToFile << std::endl;
+  } else {
+    std::cout << std::endl;
+  }
 }
 
 
@@ -261,7 +312,11 @@ void ConsoleOutput::PrintEnergy(const uint box, Energy const& en,
   printElement(en.recip, elementWidth);
   printElement(en.self, elementWidth);
   printElement(en.correction, elementWidth);
-  std::cout << std::endl;
+  if(enableConsoleToFile){
+    *consoleToFile << std::endl;
+  } else {
+    std::cout << std::endl;
+  }
 }
 
 void ConsoleOutput::PrintEnergyTitle()
@@ -280,7 +335,11 @@ void ConsoleOutput::PrintEnergyTitle()
   printElement("RECIP", elementWidth);
   printElement("SELF", elementWidth);
   printElement("CORR", elementWidth);
-  std::cout << std::endl;
+  if(enableConsoleToFile){
+    *consoleToFile << std::endl;
+  } else {
+    std::cout << std::endl;
+  }
 }
 
 void ConsoleOutput::PrintStatisticTitle()
@@ -320,7 +379,11 @@ void ConsoleOutput::PrintStatisticTitle()
   if(enableSurfTension)
     printElement("SURF_TENSION", elementWidth);
 
-  std::cout << std::endl;
+  if(enableConsoleToFile){
+    *consoleToFile << std::endl;
+  } else {
+    std::cout << std::endl;
+  }
 }
 
 
@@ -390,40 +453,71 @@ void ConsoleOutput::PrintMoveTitle()
   }
 #endif
 
-  std::cout << std::endl;
+  if(enableConsoleToFile){
+    *consoleToFile << std::endl;
+  } else {
+    std::cout << std::endl;
+  }
 }
 
 void ConsoleOutput::printElement(const double t, const int width,
                                  uint percision) const
 {
-  const char separator = ' ';
-  if(abs(t) > 1e99) {
-    std::cout << right << std::scientific << std::setprecision(percision-1) <<
-              setw(width) << setfill(separator) << t;
+  if(enableConsoleToFile){
+    const char separator = ' ';
+    if(abs(t) > 1e99) {
+      *consoleToFile << right << std::scientific << std::setprecision(percision-1) <<
+                setw(width) << setfill(separator) << t;
+    } else {
+      *consoleToFile << right << std::scientific << std::setprecision(percision) <<
+               setw(width) << setfill(separator) << t;
+    }
   } else {
-    std::cout << right << std::scientific << std::setprecision(percision) <<
-              setw(width) << setfill(separator) << t;
+    const char separator = ' ';
+    if(abs(t) > 1e99) {
+      std::cout << right << std::scientific << std::setprecision(percision-1) <<
+               setw(width) << setfill(separator) << t;
+    } else {
+      std::cout << right << std::scientific << std::setprecision(percision) <<
+                setw(width) << setfill(separator) << t;
+    }
   }
-
 }
 
 void ConsoleOutput::printElement(const uint t, const int width) const
 {
-  const char separator = ' ';
-  std::cout << right << std::scientific  << setw(width) <<
+  if(enableConsoleToFile){
+    const char separator = ' ';
+    *consoleToFile << right << std::scientific  << setw(width) <<
             setfill(separator) << t;
+  } else {
+    const char separator = ' ';
+    std::cout << right << std::scientific  << setw(width) <<
+            setfill(separator) << t;
+  }
 }
 
 void ConsoleOutput::printElement(const std::string t, const int width) const
 {
-  const char separator = ' ';
-  std::cout << right << std::scientific << setw(width) <<
-            setfill(separator) << t;
+  if(enableConsoleToFile){
+    const char separator = ' ';
+    *consoleToFile << right << std::scientific << setw(width) <<
+              setfill(separator) << t;
+  } else {
+    const char separator = ' ';
+    std::cout << right << std::scientific << setw(width) <<
+              setfill(separator) << t;   
+  }
 }
 
 template <typename T>
 void ConsoleOutput::printElementStep( const T t, const ulong step,
                                       const int width) const
 {
-  std::cout << t << right << setw(width - 7) << step;
+  if (enableConsoleToFile){
+    *consoleToFile << t << right << setw(width - 7) << step;
+
+  } else {
+    std::cout << t << right << setw(width - 7) << step;
+  }
 }

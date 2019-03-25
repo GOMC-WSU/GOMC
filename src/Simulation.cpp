@@ -147,6 +147,10 @@ CPUSide* Simulation::getCPUSide(){
   return cpu;
 }
 
+Clock* Simulation::getClock(){
+  return cpu->getClock();
+}
+
 std::string Simulation::getConfigFileName(){
   return configFileName;
 }
@@ -193,8 +197,13 @@ void Simulation::setupHierarchicalDirectoryStructure(){
     set.config.out.state.files.pdb.name[i] = replica_stream.str();    
   }    
   std::stringstream replica_stream1;    
-  replica_stream << set.config.out.replica_path << set.config.out.state.files.seed.name;    
-  set.config.out.state.files.seed.name = replica_stream1.str();    
+  replica_stream1 << set.config.out.replica_path << set.config.out.state.files.seed.name;    
+  set.config.out.state.files.seed.name = replica_stream1.str();
+
+  std::stringstream replica_stream2;
+  replica_stream2 << set.config.out.replica_path << set.config.out.state.files.console.name;
+  set.config.out.state.files.console.name = replica_stream2.str();
+
 }
 
 #ifndef NDEBUG

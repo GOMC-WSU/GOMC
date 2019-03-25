@@ -36,6 +36,7 @@ public:
   void setT_in_K(double T_in_K);
   void setBeta(double beta);
   void setCPUSide(CPUSide * cpu);
+  Clock* getClock();
   void initReplExParams(struct config_setup::ReplicaExchangeValuesFromConf*);
   void setupHierarchicalDirectoryStructure();
 

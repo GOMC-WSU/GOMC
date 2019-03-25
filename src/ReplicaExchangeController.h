@@ -11,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Simulation.h"
 #include "MersenneTwister.h"
 #include "Writer.h"
+#include "Clock.h"
 
 using namespace std; 
 
@@ -20,9 +21,14 @@ public:
     explicit ReplicaExchangeController(vector<Simulation*>*);
     ~ReplicaExchangeController();
     void runMultiSim();
-    double calcDelta(int j);
-    void exchange(int j);
+    double calc_delta(FILE * fplog, int a, int b, int ap, int bp);
+    void exchange(int a, int b);
     void InitRecordKeeper();
+    void print_ind(FILE * fplog, const char *leg, int n, int *ind, bool *bEx);
+    void print_prob(FILE * fplog, const char *leg, int n, double *prob);
+    void print_transition_matrix(FILE * fplog, int n, int **nmoves, int *nattempt);
+    void print_replica_exchange_statistics(FILE * fplog, RecordKeeper * re);
+    void print_count(FILE *fplog, const char *leg, int n, int *count);
 
 private:
     vector<Simulation*>* simsRef;
@@ -35,8 +41,9 @@ private:
     int parityOfSwaps;
     double checkerForIncreasingMontonicityOfTemp;
     MTRand rand;
-    RecordKeeper recKeep;
-    Writer replicaLog;
+    RecordKeeper re;
+    FILE * fplog;
+    Clock * timer;
 };
 
 #endif
