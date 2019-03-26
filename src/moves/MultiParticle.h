@@ -49,6 +49,8 @@ private:
   void TranslateForceBiased(uint molIndex);
   void SetMolInBox(uint box);
   XYZ CalcRandomTransform(XYZ const &lb, double const max);
+  double CalculateWRatio(XYZ const &lb, XYZ const &k, double max,
+                            double sign);
 };
 
 inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
@@ -212,82 +214,82 @@ inline void MultiParticle::CalcEn()
   sysPotNew.Total();
 }
 
+inline double MultiParticle::CalculateWRatio(XYZ const &lb, XYZ const &k,
+                                                double max, double sign)
+{
+  double w_ratio = 1.0;
+
+  if(abs(lb.x) < MIN_FORCE) {
+    w_ratio *= 1.0 / (2.0 * max);
+  } else if (abs(lb.x) > MAX_FORCE) {
+    w_ratio *= 0.0;
+  }  
+  else {
+    w_ratio *= lb.x * exp(lb.x * sign * k.x) / (2.0*sinh(lb.x * max));
+  }
+  
+  if(abs(lb.y) < MIN_FORCE) {
+    w_ratio *= 1.0 / (2.0 * max);
+  } else if (abs(lb.y) > MAX_FORCE) {
+    w_ratio *= 0.0;
+  }  
+  else {
+    w_ratio *= lb.y * exp(lb.y * sign * k.y) / (2.0*sinh(lb.y * max));
+  }
+
+  if(abs(lb.z) < MIN_FORCE) {
+    w_ratio *= 1.0 / (2.0 * max);
+  } else if (abs(lb.z) > MAX_FORCE) {
+    w_ratio *= 0.0;
+  }  
+  else {
+    w_ratio *= lb.z * exp(lb.z * sign * k.z) / (2.0*sinh(lb.z * max));
+  }
+
+  return w_ratio;
+}
+
 inline long double MultiParticle::GetCoeff()
 {
   // calculate (w_new->old/w_old->new) and return it.
   XYZ lbf_old, lbf_new; // lambda * BETA * force
   XYZ lbt_old, lbt_new; // lambda * BETA * torque
-  long double w_ratio_t = 1.0;
   long double w_ratio = 1.0;
   double lBeta = lambda * BETA;
   uint m, molNumber;
   double r_max = moveSetRef.GetRMAX(bPick);
   double t_max = moveSetRef.GetTMAX(bPick);
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(m, molNumber, lbt_old, lbt_new, lbf_old, lbf_new, w_ratio_t) reduction(*:w_ratio)
+#pragma omp parallel for default(shared) private(m, molNumber, lbt_old, lbt_new, lbf_old, lbf_new) reduction(*:w_ratio)
 #endif
   for(m = 0; m < moleculeIndex.size(); m++) {
     molNumber = moleculeIndex[m];
-    w_ratio_t = 1.0;
     if(moveType[molNumber]) {
       // rotate
       lbt_old = molTorqueRef.Get(molNumber) * lBeta;
-      if(lbt_old.Length())
-      {
-        lbt_new = molTorqueNew.Get(molNumber) * lBeta;
+      lbt_new = molTorqueNew.Get(molNumber) * lBeta;
 
-        w_ratio_t *= lbt_new.x * exp(lbt_new.x * -1.0 * r_k.Get(molNumber).x)/
-          (2.0*sinh(lbt_new.x * r_max));
-        w_ratio_t *= lbt_new.y * exp(lbt_new.y * -1.0 * r_k.Get(molNumber).y)/
-          (2.0*sinh(lbt_new.y * r_max));
-        w_ratio_t *= lbt_new.z * exp(lbt_new.z * -1.0 * r_k.Get(molNumber).z)/
-          (2.0*sinh(lbt_new.z * r_max));
-
-        w_ratio_t /= lbt_old.x * exp(lbt_old.x * r_k.Get(molNumber).x)/
-          (2.0*sinh(lbt_old.x * r_max));
-        w_ratio_t /= lbt_old.y * exp(lbt_old.y * r_k.Get(molNumber).y)/
-          (2.0*sinh(lbt_old.y * r_max));
-        w_ratio_t /= lbt_old.z * exp(lbt_old.z * r_k.Get(molNumber).z)/
-          (2.0*sinh(lbt_old.z * r_max));
-      
-	      w_ratio *= w_ratio_t;
-      }
+      w_ratio *= CalculateWRatio(lbt_new, r_k.Get(molNumber), r_max, -1);
+      w_ratio /= CalculateWRatio(lbt_old, r_k.Get(molNumber), r_max, 1);
     } else {
       // displace
       lbf_old = (molForceRef.Get(molNumber) + molForceRecRef.Get(molNumber)) *
 	      lBeta;
-      if(lbf_old.Length())
-      {
-        lbf_new = (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber))*
-          lBeta;
-
-        w_ratio_t *= lbf_new.x * exp(lbf_new.x * -1.0 * t_k.Get(molNumber).x)/
-          (2.0*sinh(lbf_new.x * t_max));
-        w_ratio_t *= lbf_new.y * exp(lbf_new.y * -1.0 * t_k.Get(molNumber).y)/
-          (2.0*sinh(lbf_new.y * t_max));
-        w_ratio_t *= lbf_new.z * exp(lbf_new.z * -1.0 * t_k.Get(molNumber).z)/
-          (2.0*sinh(lbf_new.z * t_max));
-
-        w_ratio_t /= lbf_old.x * exp(lbf_old.x * t_k.Get(molNumber).x)/
-          (2.0*sinh(lbf_old.x * t_max));
-        w_ratio_t /= lbf_old.y * exp(lbf_old.y * t_k.Get(molNumber).y)/
-          (2.0*sinh(lbf_old.y * t_max));
-        w_ratio_t /= lbf_old.z * exp(lbf_old.z * t_k.Get(molNumber).z)/
-          (2.0*sinh(lbf_old.z * t_max));
-            
-        w_ratio *= w_ratio_t;
-      }
+      lbf_new = (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber)) *
+        lBeta;
+      w_ratio *= CalculateWRatio(lbf_new, t_k.Get(molNumber), t_max, -1);
+      w_ratio /= CalculateWRatio(lbf_old, t_k.Get(molNumber), t_max, 1);
     }
   }
 
   // In case where force or torque is a large negative number (ex. -800)
   // the exp value becomes inf. In these situations we have to return 0 to
   // reject the move
-  if(!std::isfinite(w_ratio)) {
-    // This error can be removed later on once we know this part actually works.
-    std::cout << "w_ratio is not a finite number. Auto-rejecting move.\n";
-    return 0.0;
-  }
+  // if(!std::isfinite(w_ratio)) {
+  //   // This error can be removed later on once we know this part actually works.
+  //   std::cout << "w_ratio is not a finite number. Auto-rejecting move.\n";
+  //   return 0.0;
+  // }
   return w_ratio;
 }
 
@@ -364,18 +366,18 @@ inline void MultiParticle::CalculateTrialDistRot()
   uint m , molIndex;
   double r_max = moveSetRef.GetRMAX(bPick);
   double t_max = moveSetRef.GetTMAX(bPick);
-  XYZ lbfmax; // lambda * BETA * force * maxTranslate
-  XYZ lbtmax; // lambda * BETA * torque * maxRotation
+  XYZ lbf; // lambda * BETA * force * maxTranslate
+  XYZ lbt; // lambda * BETA * torque * maxRotation
   for(m = 0; m < moleculeIndex.size(); m++) {
     molIndex = moleculeIndex[m];
 
     if(moveType[molIndex]) { // rotate
-      lbtmax = molTorqueRef.Get(molIndex) * lambda * BETA * r_max;
-      r_k.Set(molIndex, CalcRandomTransform(lbtmax, r_max));
+      lbt = molTorqueRef.Get(molIndex) * lambda * BETA;
+      r_k.Set(molIndex, CalcRandomTransform(lbt, r_max));
     } else { // displace
-      lbfmax = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) *
-        lambda * BETA * t_max;
-      t_k.Set(molIndex, CalcRandomTransform(lbfmax, t_max));
+      lbf = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) *
+        lambda * BETA;
+      t_k.Set(molIndex, CalcRandomTransform(lbf, t_max));
     }
   }
 }

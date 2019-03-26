@@ -251,12 +251,6 @@ __global__ void BoxInterGPU(int *gpu_pair1,
   gpu_REn[threadID] = 0.0;
   gpu_LJEn[threadID] = 0.0;
   double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
-  if(threadID == 0) {
-    printf("%lf, %lf, %lf - %lf, %lf, %lf\n", gpu_x[gpu_pair1[threadID]],
-           gpu_y[gpu_pair1[threadID]], gpu_z[gpu_pair1[threadID]],
-           gpu_x[gpu_pair2[threadID]], gpu_y[gpu_pair2[threadID]],
-           gpu_z[gpu_pair2[threadID]]);
-  }
   if(InRcutGPU(distSq, virX, virY, virZ, gpu_x[gpu_pair1[threadID]],
                gpu_y[gpu_pair1[threadID]], gpu_z[gpu_pair1[threadID]],
                gpu_x[gpu_pair2[threadID]], gpu_y[gpu_pair2[threadID]],

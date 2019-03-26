@@ -254,10 +254,6 @@ aForcex[:atomCount], aForcey[:atomCount], aForcez[:atomCount], \
 mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 #endif
   for (i = 0; i < pair1.size(); i++) {
-    if (i==0) {
-      printf("%lf, %lf, %lf - %lf, %lf, %lf\n", coords[pair1[i]].x, coords[pair1[i]].y, coords[pair1[i]].z,
-             coords[pair2[i]].x, coords[pair2[i]].y, coords[pair2[i]].z);
-    }
     if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)) {
       if (electrostatic) {
         qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] *
