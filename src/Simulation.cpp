@@ -27,7 +27,7 @@ Simulation::Simulation(char const*const configFileName)
   system = new System(*staticValues);
   staticValues->Init(set, *system);
   system->Init(set, startStep);
-  initReplExParams(&set.config.in.replValues);
+  initReplExParams(set.config.in.replValues);
   //recal Init for static value for initializing ewald since ewald is
   //initialized in system
   staticValues->InitOver(set, *system);
@@ -176,17 +176,18 @@ void Simulation::setCPUSide(CPUSide* cpuToSet){
   cpu = cpuToSet;
 }
 
-void Simulation::initReplExParams(struct config_setup::ReplicaExchangeValuesFromConf* replExValuesFromConfFile){
-  replExParams.exchangeInterval = replExValuesFromConfFile->exchangeInterval;
-  replExParams.numExchanges = replExValuesFromConfFile->numExchanges;
-  replExParams.randomSeed = replExValuesFromConfFile->randomSeed;
-  replExParams.multiSimTitle = replExValuesFromConfFile->multiSimTitle;
+void Simulation::initReplExParams(struct config_setup::ReplicaExchangeValuesFromConf replExValuesFromConfFile){
+  replExParams.exchangeInterval = replExValuesFromConfFile.exchangeInterval;
+  replExParams.numExchanges = replExValuesFromConfFile.numExchanges;
+  replExParams.randomSeed = replExValuesFromConfFile.randomSeed;
+  replExParams.multiSimTitle = replExValuesFromConfFile.multiSimTitle;
 }
 
 void Simulation::setupHierarchicalDirectoryStructure(){
   ReplDirSetup rd(staticValues->forcefield.T_in_K, replExParams);    
   set.config.out.replica_path =  rd.path_to_replica_directory;    
-  set.config.out.useMultidir =  true;    
+  set.config.out.useMultidir =  true;
+      
   std::stringstream replica_stream;    
   replica_stream << set.config.out.replica_path << set.config.out.state.files.psf.name;    
   set.config.out.state.files.psf.name = replica_stream.str();    

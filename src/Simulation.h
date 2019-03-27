@@ -37,7 +37,7 @@ public:
   void setBeta(double beta);
   void setCPUSide(CPUSide * cpu);
   Clock* getClock();
-  void initReplExParams(struct config_setup::ReplicaExchangeValuesFromConf*);
+  void initReplExParams(struct config_setup::ReplicaExchangeValuesFromConf);
   void setupHierarchicalDirectoryStructure();
 
 #ifndef NDEBUG

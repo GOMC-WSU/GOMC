@@ -210,6 +210,7 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap,
   double ediff = epot_b - epot_a;
   double delta = -(beta_b - beta_a)*ediff;
   fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (kT)\n", a, b, delta);
+  // Epot 
 
   return delta;
 }

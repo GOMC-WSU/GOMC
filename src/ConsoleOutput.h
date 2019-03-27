@@ -61,7 +61,7 @@ public:
         enableSurfTension) {
       enableStat = true;
     }
-
+    enableConsoleToFile = output.useMultidir;
     if(enableConsoleToFile){
       this->consoleToFile = new ofstream(output.state.files.console.name.c_str(), std::ofstream::out);
     }
