@@ -1654,31 +1654,25 @@ double CalculateEnergy::GetLambda(uint molA, uint molB, uint box) const
 
 //Calculates the change in the TC from adding numChange atoms of a kind
 double CalculateEnergy::MoleculeTailChange(const uint box, const uint kind,
-					   const std::vector <uint> &kCount,
-					   const double lambdaOld,
-					   const double lambdaNew) const
+                                          const std::vector <uint> &kCount,
+                                          const double lambdaOld,
+                                          const double lambdaNew) const
 {
   if (box >= BOXES_WITH_U_NB) {
     return 0.0;
   }
-
-  double tcNew = 0.0;
-  double tcOld = 0.0;  
+ 
+  double tcDiff = 0.0;
   uint ktot = mols.GetKindsCount();
   for (uint i = 0; i < ktot; ++i) {
     //We should have only one molecule of fractional kind
     double rhoDeltaIJ_2 = 2.0 * (double)(kCount[i]) * currentAxes.volInv[box];
-    tcNew += mols.GetEnCorrections(forcefield, kind, i, lambdaNew) *
-      rhoDeltaIJ_2;
-    tcOld += mols.GetEnCorrections(forcefield, kind, i, lambdaOld) *
-      rhoDeltaIJ_2;
+    uint index = kind * ktot + i;
+    tcDiff += (lambdaNew - lambdaOld) * mols.pairEnCorrections[index] *                   rhoDeltaIJ_2; 
   }
+  uint index = kind * ktot + kind;
+  tcDiff += (lambdaNew - lambdaOld) * mols.pairEnCorrections[index] *
+            currentAxes.volInv[box];
   
-  tcNew += mols.GetEnCorrections(forcefield, kind, kind, lambdaNew) *
-    currentAxes.volInv[box];
-  tcOld += mols.GetEnCorrections(forcefield, kind, kind, lambdaOld) *
-    currentAxes.volInv[box];
-  
-  return tcNew - tcOld;
-
+  return tcDiff;
 }
