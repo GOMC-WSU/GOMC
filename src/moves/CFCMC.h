@@ -269,12 +269,12 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
   //Calculating long range correction
   if(ffRef.useLRC) { 
     //Calculate LRC difference for lambdaNew and lambdaOld
-    tcDiffSource = calcEnRef.MoleculeTailChange(sourceBox, kindIndex,
-						kCount[sourceBox],
-                                                lambdaOldS, lambdaNewS);
+    tcDiffSource = calcEnRef.MoleculeTailChange(sourceBox, kindIndex, 
+                                                kCount[sourceBox], lambdaOldS, 
+                                                lambdaNewS);
     tcDiffDest = calcEnRef.MoleculeTailChange(destBox, kindIndex,
-					      kCount[destBox],
-                                              1.0-lambdaOldS, 1.0-lambdaNewS);
+					                                    kCount[destBox], 1.0-lambdaOldS,
+                                              1.0-lambdaNewS);
     W_tc = exp(-1.0 * ffRef.beta * (tcDiffSource + tcDiffDest));
   }
 

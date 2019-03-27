@@ -226,24 +226,3 @@ void Molecules::PrintLJInfo(std::vector<uint> &totAtomKind,
     std::cout << std::endl;
   }
 }
-
-
-double Molecules::GetEnCorrections(const Forcefield &forcefield, const uint k1,
-				   const uint k2,const double lambda) const
-{
-  //We should cache this value to save execution time.
-  double tcEn = 0.0;
-  if(lambda > 0.9999) {
-    //avoid numerical instability
-    tcEn = pairEnCorrections[k1 * kindsCount + k2];
-  } else {
-    for(uint pI = 0; pI < kinds[k1].NumAtoms(); ++pI) {
-      for(uint pJ = 0; pJ < kinds[k2].NumAtoms(); ++pJ) {
-	tcEn += forcefield.particles->EnergyLRCFraction(kinds[k1].AtomKind(pI),
-							kinds[k2].AtomKind(pJ),
-							lambda);
-      }
-    }
-  }
-  return tcEn;
-} 
