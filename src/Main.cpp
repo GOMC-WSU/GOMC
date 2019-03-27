@@ -48,6 +48,14 @@ void PrintGPUHardwareInfo();
 
 int main(int argc, char *argv[])
 {
+
+FILE *stream;
+char *buf;
+size_t len;
+off_t eob;
+stream = open_memstream (&buf, &len);
+
+
 #ifndef NDEBUG
   PrintDebugMode();
 #endif
