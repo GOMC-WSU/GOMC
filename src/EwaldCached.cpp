@@ -9,40 +9,73 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 using namespace geom;
 
+
+template< class T > void SafeDeleteArray( T*& pVal )
+{
+  delete[] pVal;
+  pVal = NULL;
+}
+
 EwaldCached::EwaldCached(StaticVals & stat, System & sys) : Ewald(stat, sys)
 #if ENSEMBLE == GEMC
   , GEMC_KIND(stat.kindOfGEMC)
 #endif
   {}
 
+
 EwaldCached::~EwaldCached()
 {
-  if(ff.ewald) {
-    for(int i = 0; i < mols.count; i++) {
-      //when cached option is choosen
-      if (cosMolRef[i] != NULL) {
-        delete[] cosMolRef[i];
-        delete[] sinMolRef[i];
-        delete[] cosMolBoxRecip[i];
-        delete[] sinMolBoxRecip[i];
-      }
-    }
-
-    if (kx != NULL) {
-      //when cached option is choosen
-      if (cosMolRestore != NULL) {
-        delete[] cosMolRestore;
-        delete[] sinMolRestore;
-      }
-      //when cached option is choosen
-      if (cosMolRef != NULL) {
-        delete[] cosMolRef;
-        delete[] sinMolRef;
-        delete[] cosMolBoxRecip;
-        delete[] sinMolBoxRecip;
-      }
-    }
+  SafeDeleteArray(kmax);
+  SafeDeleteArray(imageSize);
+  SafeDeleteArray(imageSizeRef);
+  for(uint b=0; b < BOXES_WITH_U_NB; b++) {
+    SafeDeleteArray(kx[b]);
+    SafeDeleteArray(ky[b]);
+    SafeDeleteArray(kz[b]);
+    SafeDeleteArray(hsqr[b]);
+    SafeDeleteArray(prefact[b]);
+    SafeDeleteArray(kxRef[b]);
+    SafeDeleteArray(kyRef[b]);
+    SafeDeleteArray(kzRef[b]);
+    SafeDeleteArray(hsqrRef[b]);
+    SafeDeleteArray(prefactRef[b]);
+    SafeDeleteArray(sumRnew[b]);
+    SafeDeleteArray(sumInew[b]);
+    SafeDeleteArray(sumRref[b]);
+    SafeDeleteArray(sumIref[b]);
   }
+  SafeDeleteArray(kx);
+  SafeDeleteArray(ky);
+  SafeDeleteArray(kz);
+  SafeDeleteArray(hsqr);
+  SafeDeleteArray(prefact);
+  SafeDeleteArray(kxRef);
+  SafeDeleteArray(kyRef);
+  SafeDeleteArray(kzRef);
+  SafeDeleteArray(hsqrRef);
+  SafeDeleteArray(prefactRef);
+  SafeDeleteArray(sumRnew);
+  SafeDeleteArray(sumInew);
+  SafeDeleteArray(sumRref);
+  SafeDeleteArray(sumIref);
+
+  int i;
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(i)
+#endif
+  for (i = 0; i < mols.count; i++) {
+    SafeDeleteArray(cosMolRef[i]);
+    SafeDeleteArray(sinMolRef[i]);
+    SafeDeleteArray(cosMolBoxRecip[i]);
+    SafeDeleteArray(sinMolBoxRecip[i]);
+  }
+  SafeDeleteArray(cosMolRef);
+  SafeDeleteArray(sinMolRef);
+  SafeDeleteArray(cosMolBoxRecip);
+  SafeDeleteArray(sinMolBoxRecip);
+
+  SafeDeleteArray(cosMolRestore);
+  SafeDeleteArray(sinMolRestore);
 }
 
 void EwaldCached::Init()
@@ -85,8 +118,6 @@ void EwaldCached::AllocMem()
   sinMolRef = new double*[mols.count];
   cosMolBoxRecip = new double*[mols.count];
   sinMolBoxRecip = new double*[mols.count];
-  imageSize = new uint[BOXES_WITH_U_NB];
-  imageSizeRef = new uint[BOXES_WITH_U_NB];
 
   for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
     RecipCountInit(b, currentAxes);
@@ -206,8 +237,7 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
   if (box < BOXES_WITH_U_NB) {
     MoleculeKind const& thisKind = mols.GetKind(molIndex);
     uint length = thisKind.NumAtoms();
-    uint startAtom = mols.MolStart(molIndex);
-    uint p, atom;
+    uint p;
     int i;
     double sumRealNew, sumImaginaryNew, dotProductNew, sumRealOld,
            sumImaginaryOld;
@@ -225,7 +255,6 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
       sinMolRestore[i] = sinMolRef[molIndex][i];
 
       for (p = 0; p < length; ++p) {
-        atom = startAtom + p;
         dotProductNew = Dot(p, kxRef[box][i],
                             kyRef[box][i], kzRef[box][i],
                             molCoords);

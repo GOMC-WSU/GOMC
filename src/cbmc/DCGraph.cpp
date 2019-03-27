@@ -178,7 +178,8 @@ void DCGraph::CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
     //Instead we perform Regrowth move within the same box
     Regrowth(oldMol, newMol, molIndex);
   } else {
-    //Set tCoords to coordinate of actual molecule, it will be modified
+    //Set coords to coordinate of actual molecule, it will be modified
+    //No need to unwrap because box is same.
     oldMol.GetCoords().CopyRange(coords, 0, 0, coords.Count());
     newMol.SetCoords(coords, 0);
     //Pick a random node pair

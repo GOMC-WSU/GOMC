@@ -216,7 +216,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
     BoxDimensionsNonOrth newAxes = *((BoxDimensionsNonOrth*)(&boxAxes));
     UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
                            newAxes.cellBasis_Inv[box].x,
-			   newAxes.cellBasis_Inv[box].y,
+                           newAxes.cellBasis_Inv[box].y,
                            newAxes.cellBasis_Inv[box].z);
   }
 
@@ -231,9 +231,17 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
     std::vector<uint> subPair1(first1, last1);
     std::vector<uint> subPair2(first2, last2);
 
+    // Reset forces on GPU for the first iteration
+    bool reset_force = currentIndex == 0;
+
+    // Copy back the result if it is the last iteration
+    bool copy_back = max == pairSize;
+
     CallBoxInterGPU(forcefield.particles->getCUDAVars(), subPair1, subPair2,
                     coords, boxAxes, electrostatic, particleCharge,
-                    particleKind, REn, LJEn, box);
+                    particleKind, particleMol, REn, LJEn, multiParticleEnabled,
+                    aForcex, aForcey, aForcez, mForcex, mForcey, mForcez,
+                    atomCount, molCount, reset_force, copy_back, box);
     tempREn += REn;
     tempLJEn += LJEn;
     currentIndex += MAX_PAIR_SIZE;
@@ -256,15 +264,15 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
       tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
                   particleKind[pair2[i]], 1.0);
 
-      // Calculating the force 
+      // Calculating the force
       if(multiParticleEnabled) {
         if(electrostatic) {
           forceReal = virComponents *
-	        forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact, box);;
+	        forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact, box);
         }
         forceLJ = virComponents *
 	        forcefield.particles->CalcVir(distSq, particleKind[pair1[i]],
-					                              particleKind[pair2[i]]);
+					      particleKind[pair2[i]]);
         aForcex[pair1[i]] += forceLJ.x + forceReal.x;
         aForcey[pair1[i]] += forceLJ.y + forceReal.y;
         aForcez[pair1[i]] += forceLJ.z + forceReal.z;
@@ -281,7 +289,6 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
     }
   }
 #endif
-
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction
@@ -838,10 +845,10 @@ void CalculateEnergy::MolBond(double & energy,
     if(abs(molLength - eqLength) > 0.02) {
       uint p1 = molKind.bondList.part1[b];
       uint p2 = molKind.bondList.part2[b];
-      printf("Warning: Box %d, %d %s ,", box, molIndex, molKind.name.c_str());
-      printf("Bond %s-%s: In Par. file ", molKind.atomNames[p1].c_str(),
+      printf("Warning: Box%d, %6d %4s,", box, molIndex, molKind.name.c_str());
+      printf("%3s-%-3s bond: Par-file ", molKind.atomNames[p1].c_str(),
             molKind.atomNames[p2].c_str());
-      printf("%2.3f A, in PDB file %2.3f A!\n", eqLength, molLength);
+      printf("%2.3f A, PDB file %2.3f A!\n", eqLength, molLength);
     }
   }
 }

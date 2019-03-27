@@ -330,6 +330,7 @@ XYZ TrialMol::GetCOM()
   uint atomNumber = tCoords.Count();
   XYZArray temp(tCoords);
   axes->UnwrapPBC(temp, box, tCoords.Get(0));
+  tCoords = temp;
 
   for(uint p = 0; p < atomNumber; p++) {
     tcom += temp.Get(p);

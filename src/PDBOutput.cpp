@@ -8,14 +8,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "EnsemblePreprocessor.h"   //For BOX_TOTAL, ensemble
 #include "System.h"                 //for init
 #include "StaticVals.h"             //for init
-#include "MoleculeLookup.h"  //for lookup array (to get kind cnts, etc.)
+#include "MoleculeLookup.h"         //for lookup array (to get kind cnts, etc.)
 #include "MoleculeKind.h"           //For kind names
 #include "MoveSettings.h"           //For move settings/state
 #include "PDBConst.h"               //For field locations/lengths
-
-#include "StrStrmLib.h"      //For conversion from uint to string
-
-#include <iostream>                 // for cout;
+#include "StrStrmLib.h"             //For conversion from uint to string
+#include <iostream>                 //for cout;
 
 PDBOutput::PDBOutput(System  & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),

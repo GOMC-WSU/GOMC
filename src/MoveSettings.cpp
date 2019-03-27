@@ -62,6 +62,16 @@ void MoveSettings::Init(StaticVals const& statV,
       }
     }
   }
+
+  // Initialize MultiParticle settings
+  for(int b=0; b<BOX_TOTAL; b++) {
+    mp_r_max[b] = 0.02 * M_PI;
+    mp_t_max[b] = 0.05;
+    for(int m=0; m<mp::MPMVCOUNT; m++) {
+      mp_tries[b][m] = 0;
+      mp_accepted[b][m] = 0;
+    }
+  }
 }
 
 //Process results of move we just did in terms of acceptance counters
@@ -102,7 +112,7 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
         accepted[box][move][k]++;
       }
       acceptPercent[box][move][k] = (double)(accepted[box][move][k]) /
-                                      (double)(tries[box][move][k]);
+	                           (double)(tries[box][move][k]);
     }
   }
 }
@@ -117,6 +127,37 @@ void MoveSettings::AdjustMoves(const uint step)
           Adjust(b, m, k);
         }
       }
+    }
+  }
+}
+
+void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
+{
+  uint totalTries= mp_tries[box][mp::MPDISPLACE] +
+                   mp_tries[box][mp::MPROTATE];
+  if((totalTries+1) % perAdjust == 0 ) {
+    double currentAccept = (double)mp_accepted[box][mp::MPDISPLACE] /
+                           (double)mp_tries[box][mp::MPDISPLACE];
+    double fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
+    mp_t_max[box] *= fractOfTargetAccept;
+    num::Bound<double>(mp_t_max[box], 0.001,
+                       (boxDimRef.axis.Min(box) / 2) - 0.001);
+
+    currentAccept = (double)mp_accepted[box][mp::MPROTATE] /
+                    (double)mp_tries[box][mp::MPROTATE];
+    fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
+    mp_r_max[box] *= fractOfTargetAccept;
+    num::Bound<double>(mp_r_max[box], 0.001, M_PI - 0.001);
+  }
+}
+
+void MoveSettings::UpdateMoveSettingMultiParticle(const uint box, bool isAccept,
+        const uint typePick)
+{
+  if(typePick != mp::MPALLRANDOM) {
+    mp_tries[box][typePick]++;
+    if(isAccept) {
+      mp_accepted[box][typePick]++;
     }
   }
 }
@@ -202,19 +243,19 @@ double MoveSettings::GetScaleTot(const uint box, const uint move) const
 
 uint MoveSettings::GetTrialTot(const uint box, const uint move) const
 {
-  uint sum = 0.0;
+  uint sum = 0;
   for(uint k = 0; k < totKind; k++) {
     sum += tries[box][move][k];
   }
 
   if(move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE
-  #if ENSEMBLE == GEMC || ENSEMBLE == GCMC 
-      || move == mv::MEMC
-  #endif
-  #if ENSEMBLE == NPT || ENSEMBLE == GEMC
-      || move == mv::VOL_TRANSFER
-  #endif 
-    ) {
+ #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
+     || move == mv::MEMC
+ #endif
+ #if ENSEMBLE == NPT || ENSEMBLE == GEMC
+     || move == mv::VOL_TRANSFER
+#endif
+  ) {
     sum /= totKind;
   }
 

@@ -24,28 +24,28 @@ public:
       lambdaRef(sys.lambdaRef), MoveBase(sys, statV)
     {
       if(statV.cfcmcVal.enable) {
-	relaxSteps = statV.cfcmcVal.relaxSteps;
-	lambdaWindow = statV.cfcmcVal.window;
-	flatness = statV.cfcmcVal.histFlatness;
-	lambdaMax = 1.0 / (double)(lambdaWindow);
-	nuTolerance = 1e-6;
-	uint totKind = molRef.GetKindsCount();
-	nu.resize(totKind, 0.01);
-	hist.resize(BOX_TOTAL);
-	bias.resize(BOX_TOTAL);
-	kCount.resize(BOX_TOTAL);
-	firstPrint.resize(totKind, true);
-	for(uint b = 0; b < BOX_TOTAL; b++) {
-	  hist[b].resize(totKind);
-	  bias[b].resize(totKind);
-	  kCount[b].resize(totKind);
-	}
-	for(uint b = 0; b < BOX_TOTAL; b++) {
-	  for(uint k = 0; k < totKind; k++) {
-	    hist[b][k].resize(lambdaWindow + 1, 0);
-	    bias[b][k].resize(lambdaWindow + 1, 0.0);
-	  }
-	}
+        relaxSteps = statV.cfcmcVal.relaxSteps;
+        lambdaWindow = statV.cfcmcVal.window;
+        flatness = statV.cfcmcVal.histFlatness;
+        lambdaMax = 1.0 / (double)(lambdaWindow);
+        nuTolerance = 1e-6;
+        uint totKind = molRef.GetKindsCount();
+        nu.resize(totKind, 0.01);
+        hist.resize(BOX_TOTAL);
+        bias.resize(BOX_TOTAL);
+        kCount.resize(BOX_TOTAL);
+        firstPrint.resize(totKind, true);
+        for(uint b = 0; b < BOX_TOTAL; b++) {
+          hist[b].resize(totKind);
+          bias[b].resize(totKind);
+          kCount[b].resize(totKind);
+        }
+        for(uint b = 0; b < BOX_TOTAL; b++) {
+          for(uint k = 0; k < totKind; k++) {
+            hist[b][k].resize(lambdaWindow + 1, 0);
+            bias[b][k].resize(lambdaWindow + 1, 0.0);
+          }
+        }
       }
     }
 
@@ -73,10 +73,9 @@ private:
   uint sourceBox, destBox;
   uint pStartCFCMC, pLenCFCMC;
   uint molIndex, kindIndex;
-  uint lambdaWindow;
   uint lambdaIdxOld, lambdaIdxNew;
-  uint relaxSteps;
   uint box[2];
+  long relaxSteps, lambdaWindow;
   bool overlapCFCMC;
   vector< bool > firstPrint;
   vector< vector< vector<long int> > > hist;
@@ -176,11 +175,11 @@ inline uint CFCMC::Prep(const double subDraw, const double movPerc)
     molInDestBox = (double)molLookRef.NumKindInBox(kindIndex, destBox);
     for(uint b = 0; b < BOX_TOTAL; b++) {
       for (uint k = 0; k < molRef.GetKindsCount(); ++k) {
-	kCount[b][k] = molLookRef.NumKindInBox(k, b);
-	if(b == sourceBox && k == kindIndex) {
-	  //consider the fraction molecule as different molecule kind
-	  --kCount[b][k];
-	} 
+        kCount[b][k] = molLookRef.NumKindInBox(k, b);
+        if(b == sourceBox && k == kindIndex) {
+          //consider the fraction molecule as different molecule kind
+          --kCount[b][k];
+        } 
       }
     }
   }
@@ -233,8 +232,9 @@ inline uint CFCMC::Transform()
     }
     RelaxingMolecules();
     //Dont update Bias if move resulted in overLap
-    if(!overlapCFCMC)
+    if(!overlapCFCMC) {
       UpdateBias();
+    }
     //pick new lambda in the neighborhood
     lambdaIdxNew = lambdaIdxOld + (prng.randInt(1) ? 1 : -1);
     lambdaOld = (double)(lambdaIdxOld) * lambdaMax;

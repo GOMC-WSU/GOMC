@@ -23,6 +23,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveSettings.h"
 #include "CellList.h"
 #include "Clock.h"
+#include "CheckpointSetup.h"
 
 //Initialization variables
 class Setup;
@@ -74,7 +75,7 @@ class System
 public:
   explicit System(StaticVals& statics);
 
-  void Init(Setup const& setupData);
+  void Init(Setup const& setupData, ulong & startStep);
 
   //Runs move, picked at random
   void ChooseAndRunMove(const uint step);
@@ -144,11 +145,14 @@ public:
   CellList cellList;
   PRNG prng;
 
+  CheckpointSetup checkpointSet;
+
   //Procedure to run once move is picked... can also be called directly for
   //debugging...
   void RunMove(uint majKind, double draw, const uint step);
 
   ~System();
+
 
 private:
   void InitMoves(Setup const& set);
@@ -158,8 +162,8 @@ private:
   void CalcEn(const uint kind);
   void Accept(const uint kind, const uint rejectState, const uint step);
 
-  MoveBase * moves[mv::MOVE_KINDS_TOTAL];
   double moveTime[mv::MOVE_KINDS_TOTAL];
+  MoveBase * moves[mv::MOVE_KINDS_TOTAL];
   Clock time;
 };
 
