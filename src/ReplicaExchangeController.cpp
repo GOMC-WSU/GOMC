@@ -119,6 +119,10 @@ void ReplicaExchangeController::runMultiSim(){
           // Note that RunNSteps overwrites startStep before returning to the step it left off on
           (*simsRef)[j]->RunNSteps(exchangeRate);
         }
+        
+        for (int i = 0; i < (*simsRef).size(); i++){
+          re.pind[i] = re.ind[i];
+        }
         step += exchangeRate;        
         if (exchangeRate!=totalSteps  && (*simsRef)[0]->getEquilSteps() <= step){
          // replicaLog.file << "Replica exchange at step " << step << std::endl;
@@ -192,6 +196,9 @@ void ReplicaExchangeController::exchange(int a, int b){
   (*simsRef)[b]->setT_in_K(swapperForT_in_K);
   (*simsRef)[b]->setBeta(swapperForBeta);
   (*simsRef)[b]->setCPUSide(swapperForCPUSide);
+  Simulation * swapperForReplica = (*simsRef)[a];
+  (*simsRef)[a] = (*simsRef)[b];
+  (*simsRef)[b] = swapperForReplica;
 }
 
 double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap, int bp){
