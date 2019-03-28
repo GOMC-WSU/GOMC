@@ -23,7 +23,6 @@ public:
 
 #ifndef NDEBUG
   void RunningCheck(const uint step);
-  double TotalForce();
 #endif
 
 private:

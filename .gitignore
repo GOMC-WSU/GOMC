@@ -33,7 +33,6 @@
 
 bin
 lib/cub
-.vscode/c_cpp_properties.json
-.vscode/launch.json
+.vscode
 .idea
 cmake-build-debug

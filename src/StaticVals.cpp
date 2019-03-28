@@ -91,7 +91,6 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
   for (uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++)
     movePerc[m] /= totalPerc;
   totalPerc = 1.0;
-  //this->multiParticleEnabled = perc.multiParticleEnabled;
 }
 
 void StaticVals::IsBoxOrthogonal(config_setup::Volume const& vol)

@@ -12,7 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "StaticVals.h"
 #include <cmath>
 
-#define MIN_FORCE 1E-6
+#define MIN_FORCE 1E-12
 #define MAX_FORCE 30
 
 class MultiParticle : public MoveBase
@@ -151,10 +151,14 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
     //Calculate force for long range electrostatic using old position
     calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef,
                                   bPick);
+    
+    //calculate short range energy and force for old positions
+    calcEnRef.BoxInter(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
+                      boxDimRef, bPick);    
 
     if(typePick != mp::MPALLDISPLACE) {
       //Calculate Torque for old positions
-      calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef,comCurrRef,
+      calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef,
                                 atomForceRef, atomForceRecRef, molTorqueRef,
                                 moveType, bPick);
     }
@@ -201,7 +205,7 @@ inline void MultiParticle::CalcEn()
 
   sysPotNew = sysPotRef;
   //calculate short range energy and force
-  sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs, atomForceNew,
+  sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, atomForceNew,
                                  molForceNew, boxDimRef, bPick);
   //calculate long range of new electrostatic energy
   sysPotNew.boxEnergy[bPick].recip = calcEwald->BoxReciprocal(bPick);
@@ -218,34 +222,29 @@ inline double MultiParticle::CalculateWRatio(XYZ const &lb, XYZ const &k,
                                                 double max, double sign)
 {
   double w_ratio = 1.0;
+  XYZ lbmax = lb * max;
 
-  if(abs(lb.x) < MIN_FORCE) {
-    w_ratio *= 1.0 / (2.0 * max);
-  } else if (abs(lb.x) > MAX_FORCE) {
-    w_ratio *= 0.0;
-  }  
-  else {
+  if(abs(lbmax.x) > MIN_FORCE && abs(lbmax.x) < MAX_FORCE) {
     w_ratio *= lb.x * exp(lb.x * sign * k.x) / (2.0*sinh(lb.x * max));
+  }  else {
+    w_ratio *= 1.0 / (2.0 * max);
   }
   
-  if(abs(lb.y) < MIN_FORCE) {
-    w_ratio *= 1.0 / (2.0 * max);
-  } else if (abs(lb.y) > MAX_FORCE) {
-    w_ratio *= 0.0;
-  }  
-  else {
+  if(abs(lbmax.y) > MIN_FORCE && abs(lbmax.y) < MAX_FORCE){
     w_ratio *= lb.y * exp(lb.y * sign * k.y) / (2.0*sinh(lb.y * max));
-  }
-
-  if(abs(lb.z) < MIN_FORCE) {
+  } else {
     w_ratio *= 1.0 / (2.0 * max);
-  } else if (abs(lb.z) > MAX_FORCE) {
-    w_ratio *= 0.0;
-  }  
-  else {
-    w_ratio *= lb.z * exp(lb.z * sign * k.z) / (2.0*sinh(lb.z * max));
   }
 
+  if(abs(lbmax.z) > MIN_FORCE && abs(lbmax.z) < MAX_FORCE){
+    w_ratio *= lb.z * exp(lb.z * sign * k.z) / (2.0*sinh(lb.z * max));
+  } else {
+    w_ratio *= 1.0 / (2.0 * max);
+  }
+
+  // if(sign == -1) {
+  //   cout << "w_ratio: " << w_ratio << endl;
+  // }
   return w_ratio;
 }
 
@@ -300,6 +299,8 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   long double MPCoeff = GetCoeff();
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   long double accept = MPCoeff * uBoltz;
+  // cout << "MPCoeff: " << MPCoeff << ", sysPotNew: " << sysPotNew.Total()
+  //      << ", sysPotRef: " << sysPotRef.Total() << ", accept: " << accept <<endl;
   bool result = (rejectState == mv::fail_state::NO_FAIL) && prng() < accept;
   if(result) {
     sysPotRef = sysPotNew;
@@ -331,19 +332,19 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max)
   if(abs(lbmax.x) > MIN_FORCE && abs(lbmax.x) < MAX_FORCE) {
     num.x = log(exp(-1.0 * lbmax.x ) + 2 * prng() * sinh(lbmax.x )) / lb.x;
   } else {
-    num.x = max * prng();
+    num.x = max * prng.Sym(1);
   }
   
   if(abs(lbmax.y) > MIN_FORCE && abs(lbmax.y) < MAX_FORCE){
     num.y = log(exp(-1.0 * lbmax.y ) + 2 * prng() * sinh(lbmax.y )) / lb.y;
   } else {
-    num.y = max * prng();
+    num.y = max * prng.Sym(1);
   }
 
   if(abs(lbmax.z) > MIN_FORCE && abs(lbmax.z) < MAX_FORCE){
     num.z = log(exp(-1.0 * lbmax.z ) + 2 * prng() * sinh(lbmax.z )) / lb.z;
   } else {
-    num.z = max * prng();
+    num.z = max * prng.Sym(1);
   }
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
