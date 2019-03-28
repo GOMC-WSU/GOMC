@@ -75,7 +75,7 @@ private:
   uint molIndex, kindIndex;
   uint lambdaIdxOld, lambdaIdxNew;
   uint box[2];
-  long relaxSteps, lambdaWindow;
+  uint relaxSteps, lambdaWindow;
   bool overlapCFCMC;
   vector< bool > firstPrint;
   vector< vector< vector<long int> > > hist;
@@ -265,9 +265,6 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
     //Do not calculate the energy difference if we have overlap
     return;
   }
-  // copy the atom and molForc
-  atomForceRef.CopyRange(atomForceNew, 0, 0, atomForceRef.Count());
-  molForceRef.CopyRange(molForceNew, 0, 0, molForceRef.Count());
 
   //Calculating long range correction
   if(ffRef.useLRC) { 
@@ -476,8 +473,8 @@ inline void CFCMC::UpdateBias()
     } else {
       long trial = moveSetRef.GetTrial(box[b], mv::CFCMC, kindIndex);
       if((trial + 1) % 1000 == 0) {
-	//Reset the histogram to reevaluate it
-	std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
+        //Reset the histogram to reevaluate it
+        std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
       }
     }                               
   }
@@ -534,19 +531,6 @@ inline bool CFCMC::AcceptInflating()
     //Add Reciprocal energy
     sysPotRef.boxEnergy[sourceBox].recip += recipDiffSource;
     sysPotRef.boxEnergy[destBox].recip += recipDiffDest;
-
-    
-    double lambdaOldS = (double)(lambdaIdxOld) * lambdaMax;
-    double lambdaNewS = (double)(lambdaIdxNew) * lambdaMax;
-    ShiftMolToSourceBox();    
-    calcEnRef.SingleMoleculeForce(atomForceNew, molForceNew, lambdaOldS,
-                                  lambdaNewS, molIndex, sourceBox);
-    ShiftMolToDestBox();
-    calcEnRef.SingleMoleculeForce(atomForceNew, molForceNew, 
-    1.0 - lambdaOldS, 1.0 - lambdaNewS, molIndex, destBox);
-
-    swap(atomForceRef, atomForceNew);
-    swap(molForceRef, molForceNew);
 
     calcEwald->UpdateRecip(sourceBox);
     calcEwald->UpdateRecip(destBox);
@@ -616,10 +600,7 @@ inline void CFCMC::CalcEnRelaxing(uint b)
   cellList.RemoveMol(m, b, coordCurrRef);
   overlap = false;
   //calculate LJ interaction and real term of electrostatic interaction
-  atomForceRef.CopyRange(atomForceNew, 0, 0, atomForceRef.Count());
-  molForceRef.CopyRange(molForceNew, 0, 0, molForceRef.Count());
-  overlap = calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, 
-                                    atomForceNew, molForceNew, m, b);
+  overlap = calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);
   if(!overlap) {
     //calculate reciprocate term of electrostatic interaction
     recip.energy = calcEwald->MolReciprocal(newMolPos, m, b);
@@ -646,8 +627,6 @@ inline void CFCMC::AcceptRelaxing(uint b)
     //Copy coords
     newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);
     comCurrRef.Set(m, newCOM);
-    swap(atomForceRef, atomForceNew);
-    swap(molForceRef, molForceNew);
     calcEwald->UpdateRecip(b);
 
     sysPotRef.Total();

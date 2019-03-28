@@ -244,7 +244,7 @@ struct MEMCVal {
 
 struct CFCMCVal {
   bool enable, readWindow, readRelaxSteps, readHistFlatness;
-  long window, relaxSteps;
+  uint window, relaxSteps;
   double histFlatness;
   CFCMCVal(void) {
     readWindow = readRelaxSteps = readHistFlatness = false;

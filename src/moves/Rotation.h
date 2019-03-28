@@ -58,10 +58,7 @@ inline void Rotate::CalcEn()
   overlap = false;
   
   //calculate LJ interaction and real term of electrostatic interaction
-  atomForceRef.CopyRange(atomForceNew, 0, 0, atomForceRef.Count());
-  molForceRef.CopyRange(molForceNew, 0, 0, molForceRef.Count());
-  overlap = calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, atomForceNew,
-                                    molForceNew, m, b);
+  overlap = calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);
   if(!overlap) {
     //calculate reciprocate term of electrostatic interaction
     recip.energy = calcEwald->MolReciprocal(newMolPos, m, b);
@@ -90,8 +87,6 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
 
     //Copy coords
     newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);
-    swap(atomForceRef, atomForceNew);
-    swap(molForceRef, molForceNew);
     calcEwald->UpdateRecip(b);
 
     sysPotRef.Total();
