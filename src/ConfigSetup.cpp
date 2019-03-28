@@ -609,6 +609,17 @@ void ConfigSetup::Init(const char *fileName)
         printf("%-40s %-4.4f \n", "Info: CFCMC Histogram Flatness",
 	      sys.cfcmcVal.histFlatness);
       }
+    } else if(CheckString(line[0], "MultiParticleRelaxing")) {
+      if(line.size() > 1) {
+        sys.cfcmcVal.MPEnable = checkBool(line[1]);
+      }
+      if(sys.cfcmcVal.MPEnable) {
+          printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
+          "Active");
+      } else {
+        printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
+          "Inactive");
+      }
     }
 #endif
     else if(CheckString(line[0], "CellBasisVector1")) {

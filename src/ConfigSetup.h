@@ -243,11 +243,11 @@ struct MEMCVal {
 };
 
 struct CFCMCVal {
-  bool enable, readWindow, readRelaxSteps, readHistFlatness;
+  bool enable, readWindow, readRelaxSteps, readHistFlatness, MPEnable;
   uint window, relaxSteps;
   double histFlatness;
   CFCMCVal(void) {
-    readWindow = readRelaxSteps = readHistFlatness = false;
+    readWindow = readRelaxSteps = readHistFlatness = MPEnable = false;
   }
 };
 

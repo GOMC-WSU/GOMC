@@ -25,6 +25,7 @@ public:
   virtual uint Transform();
   virtual void Accept(const uint rejectState, const uint step);
   virtual void PrintAcceptKind();
+  void PrepCFCMC(const uint box);
 
 private:
   uint bPick;
@@ -167,6 +168,57 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
   return state;
+}
+
+inline void MultiParticle::PrepCFCMC(const uint box)
+{
+  bPick = box;
+  typePick = prng.randIntExc(mp::MPTOTALTYPES);
+  SetMolInBox(bPick);
+
+  for(uint m = 0; m < moleculeIndex.size(); m++) {
+    uint length = molRef.GetKind(moleculeIndex[m]).NumAtoms();
+    if(length == 1) {
+      moveType[moleculeIndex[m]] = mp::MPDISPLACE;
+    } else {
+      switch(typePick) {
+        case mp::MPALLDISPLACE:
+          moveType[moleculeIndex[m]] = mp::MPDISPLACE;
+          break;
+        case mp::MPALLROTATE:
+          moveType[moleculeIndex[m]] = mp::MPROTATE;
+          break;
+        case mp::MPALLRANDOM:
+          moveType[moleculeIndex[m]] = (prng.randInt(1) ?
+					mp::MPROTATE : mp::MPDISPLACE);
+          break;
+        default:
+          std::cerr << "Error: Something went wrong preping MultiParticle!\n"
+                    << "Type Pick value is not valid!\n";
+          exit(EXIT_FAILURE);
+      }
+    }
+  }
+
+  if(moveSetRef.GetSingleMoveAccepted()){
+    //Calculate force for long range electrostatic using old position
+    calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef,
+                                  bPick);
+    
+    //calculate short range energy and force for old positions
+    calcEnRef.BoxInter(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
+                      boxDimRef, bPick);    
+
+    if(typePick != mp::MPALLDISPLACE) {
+      //Calculate Torque for old positions
+      calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef,
+                                atomForceRef, atomForceRecRef, molTorqueRef,
+                                moveType, bPick);
+    }
+  }
+  CalculateTrialDistRot();
+  coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
+  comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
 }
 
 inline uint MultiParticle::Transform()
