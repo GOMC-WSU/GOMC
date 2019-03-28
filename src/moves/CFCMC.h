@@ -464,18 +464,20 @@ inline void CFCMC::UpdateBias()
 				   hist[box[b]][kindIndex].end());
     uint minVisited = *min_element(hist[box[b]][kindIndex].begin(),
 				   hist[box[b]][kindIndex].end());    
-    //check to see if all the bin visited atleast 30% of the most visited bin
-    if(minVisited > flatness * maxVisited) {
-      nu[kindIndex] *= 0.5;
-      std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
-      printf("Controler[%s]: %4.10f \n", molRef.kinds[kindIndex].name.c_str(),
-	     nu[kindIndex]);
-    } else {
-      long trial = moveSetRef.GetTrial(box[b], mv::CFCMC, kindIndex);
-      if((trial + 1) % 1000 == 0) {
+
+    //long trial = moveSetRef.GetTrial(box[b], mv::CFCMC, kindIndex);
+    long trial = std::accumulate(hist[box[b]][kindIndex].begin(), hist[box[b]][kindIndex].end(), 0);
+    if((trial + 1) % 2000 == 0) {
+      //check to see if all the bin visited atleast X% of the most visited bin
+      if(minVisited > flatness * maxVisited) {
+        nu[kindIndex] *= 0.5;
+        std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
+        printf("Controler[%s]: %4.10f \n", molRef.kinds[kindIndex].name.c_str(),
+        nu[kindIndex]);
+      } else {
         //Reset the histogram to reevaluate it
         std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
-      }
+      } 
     }                               
   }
 }
