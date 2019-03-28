@@ -67,8 +67,8 @@ public:
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2,
                         const double lambda) const;
-  virtual double CalcVir(const double distSq,
-                         const uint kind1, const uint kind2) const;
+  virtual double CalcVir(const double distSq, const uint kind1, 
+                          const uint kind2, const double lambda) const;
   virtual void CalcAdd_1_4(double& en, const double distSq,
                            const uint kind1, const uint kind2) const;
 
@@ -77,8 +77,7 @@ public:
                              const double qi_qj_Fact, 
                              const double lambda,
                              const uint b) const;
-  virtual double CalcCoulombVir(const double distSq,
-                                const double qi_qj, const uint b) const;
+  virtual double CalcCoulombVir(const double distSq, const double qi_qj,                                      const double lambda, uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact, const bool NB) const;
 
@@ -87,8 +86,7 @@ public:
   //!Returns Energy long-range correction term for a kind pair
   virtual double VirialLRC(const uint kind1, const uint kind2) const;
  //Calculate Energy LRC for fractional molecule
-  virtual double EnergyLRCFraction(const uint kind1, const uint kind2,
-				   const double lambda) const;
+  //virtual double EnergyLRCFraction(const uint kind1, const uint kind2,const double lambda) const;
 
   uint NumKinds() const { return count; }                
   double GetMass(const uint kind) const { return mass[kind]; }

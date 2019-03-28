@@ -1105,6 +1105,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       molForceRec.Set(molIndex, 0.0, 0.0, 0.0);
       length = mols.GetKind(molIndex).NumAtoms();
       start = mols.MolStart(molIndex);
+      double lambdaCoef = GetLambdaCoef(molIndex, box);
 
       for(p = start; p < start + length; p++) {
         double X = 0.0, Y = 0.0, Z = 0.0;
@@ -1115,7 +1116,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
         for(i = 0; i < imageSize[box]; i++) {
           dot = Dot(p, kx[box][i], ky[box][i], kz[box][i], molCoords);
   
-          factor = 2.0 * particleCharge[p] * prefact[box][i] *
+          factor = 2.0 * particleCharge[p] * prefact[box][i] * lambdaCoef *
                   (cos(dot) * sumInew[box][i] - sin(dot) * sumRnew[box][i]);
 
           X += factor * kx[box][i];

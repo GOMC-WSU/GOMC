@@ -484,7 +484,7 @@ void ConfigSetup::Init(const char *fileName)
              sys.moves.displace);
     } else if(CheckString(line[0],"MultiParticleFreq")) {
       sys.moves.multiParticle = stringtod(line[1]);
-      if(sys.moves.multiParticle != 0.00) {
+      if(sys.moves.multiParticle > 0.00) {
         sys.moves.multiParticleEnabled = true;
       }
       printf("%-40s %-4.4f \n",
@@ -586,28 +586,28 @@ void ConfigSetup::Init(const char *fileName)
       printf("%-40s %-4.4f \n", "Info: CFCMC move frequency",
 	     sys.moves.cfcmc);
       if(sys.moves.cfcmc > 0.0) {
-	sys.cfcmcVal.enable = true;
+	      sys.cfcmcVal.enable = true;
       }
     } else if(CheckString(line[0], "LambdaWindow")) {
       if(line.size() > 1) {
-	sys.cfcmcVal.readWindow = true;
-	sys.cfcmcVal.window = stringtoi(line[1]);
-	printf("%-40s %-4d \n", "Info: CFCMC Lambda Windows",
-	       sys.cfcmcVal.window);
+        sys.cfcmcVal.readWindow = true;
+        sys.cfcmcVal.window = stringtoi(line[1]);
+        printf("%-40s %-4d \n", "Info: CFCMC Lambda Windows",
+        sys.cfcmcVal.window);
       }
     } else if(CheckString(line[0], "RelaxingSteps")) {
       if(line.size() > 1) {
-	sys.cfcmcVal.readRelaxSteps = true;
-	sys.cfcmcVal.relaxSteps = stringtoi(line[1]);
-	printf("%-40s %-4d \n", "Info: CFCMC Relaxing Steps",
-	       sys.cfcmcVal.relaxSteps);
+        sys.cfcmcVal.readRelaxSteps = true;
+        sys.cfcmcVal.relaxSteps = stringtoi(line[1]);
+        printf("%-40s %-4d \n", "Info: CFCMC Relaxing Steps",
+	      sys.cfcmcVal.relaxSteps);
       }
     } else if(CheckString(line[0], "HistFlatness")) {
       if(line.size() > 1) {
-	sys.cfcmcVal.readHistFlatness = true;
-	sys.cfcmcVal.histFlatness = stringtod(line[1]);
-	printf("%-40s %-4.4f \n", "Info: CFCMC Histogram Flatness",
-	       sys.cfcmcVal.histFlatness);
+        sys.cfcmcVal.readHistFlatness = true;
+        sys.cfcmcVal.histFlatness = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: CFCMC Histogram Flatness",
+	      sys.cfcmcVal.histFlatness);
       }
     }
 #endif
