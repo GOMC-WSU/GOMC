@@ -194,9 +194,13 @@ public:
   //!Calculates energy corrections for the box
   double EnergyCorrection(const uint box, const uint *kCount) const;
 
-  //Calculate inter energy for single molecule inthe system.
-  bool SingleMoleculeInter(Energy &interEnOld, Energy &interEnNew,
-			   XYZArray& atomForce, XYZArray& molForce,
+  //Calculate inter energy for single molecule in the system.
+  void SingleMoleculeInter(Energy &interEnOld, Energy &interEnNew,
+			   const double lambdaOld, const double lambdaNew,
+			   const uint molIndex, const uint box) const;
+
+  //Calculate force for single molecule in the system.
+  void SingleMoleculeForce(XYZArray& atomForce, XYZArray& molForce,
 			   const double lambdaOld, const double lambdaNew,
 			   const uint molIndex, const uint box) const;
 

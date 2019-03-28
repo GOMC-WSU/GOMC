@@ -265,6 +265,9 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
     //Do not calculate the energy difference if we have overlap
     return;
   }
+  // copy the atom and molForc
+  atomForceRef.CopyRange(atomForceNew, 0, 0, atomForceRef.Count());
+  molForceRef.CopyRange(molForceNew, 0, 0, molForceRef.Count());
 
   //Calculating long range correction
   if(ffRef.useLRC) { 
@@ -283,8 +286,7 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
   if(lambdaIdxNew != 0) {
     //calculate inter energy for lambda new and old in source Box
     calcEnRef.SingleMoleculeInter(oldEnergy[sourceBox], newEnergy[sourceBox],
-                                  atomForceNew, molForceNew, lambdaOldS,
-                                  lambdaNewS, molIndex, sourceBox);
+    lambdaOldS,lambdaNewS, molIndex, sourceBox);
   }
 
 
@@ -292,8 +294,7 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
   if(lambdaIdxOld != lambdaWindow && lambdaIdxNew != lambdaWindow) {
     //calculate inter energy for lambda new and old in dest Box
     calcEnRef.SingleMoleculeInter(oldEnergy[destBox], newEnergy[destBox],
-				  atomForceNew, molForceNew, 1.0 - lambdaOldS,
-				  1.0 - lambdaNewS, molIndex, destBox);
+    1.0 - lambdaOldS, 1.0 - lambdaNewS, molIndex, destBox);
   }
 
 
@@ -534,6 +535,15 @@ inline bool CFCMC::AcceptInflating()
     sysPotRef.boxEnergy[sourceBox].recip += recipDiffSource;
     sysPotRef.boxEnergy[destBox].recip += recipDiffDest;
 
+    
+    double lambdaOldS = (double)(lambdaIdxOld) * lambdaMax;
+    double lambdaNewS = (double)(lambdaIdxNew) * lambdaMax;
+    ShiftMolToSourceBox();    
+    calcEnRef.SingleMoleculeForce(atomForceNew, molForceNew, lambdaOldS,
+                                  lambdaNewS, molIndex, sourceBox);
+    ShiftMolToDestBox();
+    calcEnRef.SingleMoleculeForce(atomForceNew, molForceNew, 
+    1.0 - lambdaOldS, 1.0 - lambdaNewS, molIndex, destBox);
 
     swap(atomForceRef, atomForceNew);
     swap(molForceRef, molForceNew);
@@ -557,8 +567,8 @@ inline void CFCMC::RelaxingMolecules()
     for(uint s = 0; s < relaxSteps; s++) {
       uint state = TransformRelaxing(sourceBox);
       if(state == mv::fail_state::NO_FAIL) {
-	CalcEnRelaxing(sourceBox);
-	AcceptRelaxing(sourceBox);
+        CalcEnRelaxing(sourceBox);
+        AcceptRelaxing(sourceBox);
       }
     }
     oldMolCFCMC.SetCoords(coordCurrRef, pStartCFCMC);
@@ -569,8 +579,8 @@ inline void CFCMC::RelaxingMolecules()
     for(uint s = 0; s < relaxSteps; s++) {
       uint state = TransformRelaxing(destBox);
       if(state == mv::fail_state::NO_FAIL) {
-	CalcEnRelaxing(destBox);
-	AcceptRelaxing(destBox);
+        CalcEnRelaxing(destBox);
+        AcceptRelaxing(destBox);
       }
     }
     newMolCFCMC.SetCoords(coordCurrRef, pStartCFCMC);

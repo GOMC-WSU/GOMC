@@ -334,47 +334,58 @@ inline double FFParticle::CalcCoulomb(const double distSq,
   }
 }
 
-inline double FFParticle::CalcVir(const double distSq,
-                                  const uint kind1, const uint kind2) const
+inline double FFParticle::CalcVir(const double distSq, const uint kind1, 
+                                  const uint kind2, const double lambda) const
 {
   if(forcefield.rCutSq < distSq)
     return 0.0;
 
   uint index = FlatIndex(kind1, kind2);
-  double rNeg2 = 1.0 / distSq;
-  double rRat2 = rNeg2 * sigmaSq[index];
+  double rRat2 = distSq / sigmaSq[index];
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
-#ifdef MIE_INT_ONLY
-  uint n_ij = n[index];
-  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
-#else
-  double n_ij = n[index];
+  double n_ij = n[index] / 2.0;
   double repulse = pow(sqrt(rRat2), n_ij);
-#endif
+  double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
 
-  //Virial is the derivative of the pressure... mu
-  return epsilon_cn_6[index] * (nOver6[index] * repulse - attract) * rNeg2;
+  double reverseAtt = (lambdaCoef + attract);
+  double reverseAtt2 = reverseAtt * reverseAtt;
+  double reverseRep = (lambdaCoef + repulse);
+  double reverseRep3 = reverseRep * reverseRep * reverseRep;
+
+  double coef = epsilon_cn_6[index] * lambda / distSq;
+  double repTerm = nOver6[index] * repulse / reverseRep3;
+  double attTerm = attract /reverseAtt2;
+
+  double result = coef * (repTerm - attTerm);
+  /*if(!isfinite(result)){
+    std::cout << "Coef: " << coef << ", repTerm: " << repTerm << ", attTerm: "
+    << attTerm << ", lambda: " << lambda << std::endl;
+  }*/
+  return result;
 }
 
 inline double FFParticle::CalcCoulombVir(const double distSq,
-    const double qi_qj, const uint b) const
+                                        const double qi_qj, const double lambda,const uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
 
+  double lambda5 = pow(lambda, 5);
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
     double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
     double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
     double temp = 1.0 - erf(forcefield.alpha[b] * dist);
-    return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+    return lambda5 * qi_qj * (temp / dist + constValue * expConstValue)/ distSq;
   } else {
     double dist = sqrt(distSq);
-    return qi_qj / (distSq * dist);
+    double result = lambda5 * qi_qj / (distSq * dist);
+    return result;
   }
 }
 
+/*
 inline double FFParticle::EnergyLRCFraction(const uint kind1, const uint kind2,
 					    const double lambda) const
 {
@@ -397,3 +408,4 @@ inline double FFParticle::EnergyLRCFraction(const uint kind1, const uint kind2,
   part2 /= 6.0 * lambdaCoef * (lambdaCoef * sigma_6 + rcut_6);
   return coef * (part1 - part2);
 }
+*/

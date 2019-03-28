@@ -50,8 +50,8 @@ public:
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2,
                         const double lambda) const;
-  virtual double CalcVir(const double distSq,
-                         const uint kind1, const uint kind2) const;
+  virtual double CalcVir(const double distSq, const uint kind1, 
+                         const uint kind2, const double lambda) const;
   virtual void CalcAdd_1_4(double& en, const double distSq,
                            const uint kind1, const uint kind2) const;
 
@@ -60,8 +60,8 @@ public:
                              const double qi_qj_Fact, 
                              const double lambda,
                              const uint b) const;
-  virtual double CalcCoulombVir(const double distSq,
-                                const double qi_qj, const uint b) const;
+  virtual double CalcCoulombVir(const double distSq, const double qi_qj, 
+                                const double lambda, const uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact,
                                   const bool NB) const;
@@ -73,12 +73,6 @@ public:
   }
   //!!Returns Ezero, no virial correction
   virtual double VirialLRC(const uint kind1, const uint kind2) const
-  {
-    return 0.0;
-  }
-  //Calculate Energy LRC for fractional molecule
-  virtual double EnergyLRCFraction(const uint kind1, const uint kind2,
-				   const double lambda) const
   {
     return 0.0;
   }
@@ -189,8 +183,8 @@ inline double FF_SWITCH::CalcCoulomb(const double distSq,
 }
 
 //mie potential
-inline double FF_SWITCH::CalcVir(const double distSq,
-                                 const uint kind1, const uint kind2) const
+inline double FF_SWITCH::CalcVir(const double distSq, const uint kind1, 
+                                const uint kind2, const double lambda) const
 {
   if(forcefield.rCutSq < distSq)
     return 0.0;
@@ -223,8 +217,8 @@ inline double FF_SWITCH::CalcVir(const double distSq,
   return (Wij * factE - Eij * factW);
 }
 
-inline double FF_SWITCH::CalcCoulombVir(const double distSq,
-                                        const double qi_qj, const uint b) const
+inline double FF_SWITCH::CalcCoulombVir(const double distSq, const double qi_qj,
+                                       const double lambda, const uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;

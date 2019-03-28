@@ -51,8 +51,8 @@ public:
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2,
                         const double lambda) const;
-  virtual double CalcVir(const double distSq,
-                         const uint kind1, const uint kind2) const;
+  virtual double CalcVir(const double distSq, const uint kind1, 
+                        const uint kind2, const double lambda) const;
   virtual void CalcAdd_1_4(double& en, const double distSq,
                            const uint kind1, const uint kind2) const;
 
@@ -61,8 +61,8 @@ public:
                              const double qi_qj_Fact, 
                              const double lambda,
                              const uint b) const;
-  virtual double CalcCoulombVir(const double distSq,
-                                const double qi_qj, const uint b) const;
+  virtual double CalcCoulombVir(const double distSq, const double qi_qj,
+                                const double lambda, const uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact,
                                   const bool NB) const;
@@ -77,9 +77,6 @@ public:
   {
     return virCorrection[FlatIndex(kind1, kind2)];
   }
-  //Calculate Energy LRC for fractional molecule
-  virtual double EnergyLRCFraction(const uint kind1, const uint kind2,
-				   const double lambda) const;
 
   protected:
 
@@ -223,8 +220,7 @@ inline double FF_EXP6::CalcCoulomb(const double distSq,
 }
 
 //mie potential
-inline double FF_EXP6::CalcVir(const double distSq,
-                                const uint kind1, const uint kind2) const
+inline double FF_EXP6::CalcVir(const double distSq, const uint kind1, const                                    uint kind2, const double lambda) const
 {
   if(forcefield.rCutSq < distSq)
     return 0.0;
@@ -248,8 +244,8 @@ inline double FF_EXP6::CalcVir(const double distSq,
   return 6.0 * expConst[idx] * (repulse - attract) / distSq; 
 }
 
-inline double FF_EXP6::CalcCoulombVir(const double distSq,
-                                       const double qi_qj, const uint b) const
+inline double FF_EXP6::CalcCoulombVir(const double distSq, const double qi_qj,
+                                      const double lambda, const uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
@@ -288,14 +284,6 @@ inline double FF_EXP6::GetRmax_1_4(const uint i, const uint j) const
 {
   uint idx = FlatIndex(i, j);
   return sqrt(rMaxSq_1_4[idx]);
-}
-
-inline double FF_EXP6::EnergyLRCFraction(const uint kind1, const uint kind2,
-					 const double lambda) const
-{
-  std::cout << "Error: GOMC does not support LRC for fractional molecule in" <<
-    "Exp-6 potential! \n";
-  exit(EXIT_FAILURE);
 }
 
 #endif /*FF_EXP6_H*/

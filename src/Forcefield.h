@@ -23,7 +23,7 @@ struct SystemVals;
 class FFSetup;
 class Setup;
 class FFPrintout;
-class FFParticle;
+struct FFParticle;
 
 class Forcefield
 {
