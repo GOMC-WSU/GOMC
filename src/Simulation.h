@@ -29,6 +29,10 @@ public:
   double getPressure();
   double getVolume();
   #endif
+  #if ENSEMBLE == GCMC
+  int getNumOfParticles();
+  double getChemicalPotential();
+  #endif
   double getT_in_K();
   double getBeta();
   double getEpot();

@@ -54,3 +54,9 @@ void CPUSide::Output(const ulong step)
 Clock* CPUSide::getClock(){
   return &timer;
 }
+
+  #if ENSEMBLE == GCMC
+    double CPUSide::getChemPot(){
+      return *varRef.chemPot;
+    }
+  #endif

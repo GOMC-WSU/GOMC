@@ -173,7 +173,19 @@ double Simulation::getVolume(){
 }
 #endif
 
+#if ENSEMBLE == GCMC
+int Simulation::getNumOfParticles(){
+  uint numMolecules;
+  for (uint i = 0; i < BOX_TOTAL; i++){
+    numMolecules += system->molLookupRef.NumInBox(i);
+  }
+  return (int)numMolecules;
+}
 
+double Simulation::getChemicalPotential(){
+  return cpu->getChemPot();
+}
+#endif
 
 
 void Simulation::setT_in_K(double T_in_K){

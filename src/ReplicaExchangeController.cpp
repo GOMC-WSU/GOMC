@@ -202,23 +202,49 @@ void ReplicaExchangeController::exchange(int a, int b){
 }
 
 double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap, int bp){
+  
+  
+  
   double epot_a = (*simsRef)[a]->getEpot();
   double epot_b = (*simsRef)[b]->getEpot();
   double beta_a = (*simsRef)[a]->getBeta();
   double beta_b = (*simsRef)[b]->getBeta(); 
 
   double ediff = epot_b - epot_a;
-  double delta = -(beta_b - beta_a)*ediff;
-  fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (kT)\n", a, b, delta);
+  double delta;
+
+  /* GROMACS Abraham, et al. (2015) SoftwareX 1-2 19-25 */
+  #if ENSEMBLE == NPT || ENSEMBLE == NVT
+    delta = -(beta_b - beta_a)*ediff;
+  #endif
+
+  /* GROMACS Abraham, et al. (2015) SoftwareX 1-2 19-25 */
   #if ENSEMBLE == NPT
     double pres_a = (*simsRef)[a]->getPressure();
     double vol_a = (*simsRef)[a]->getVolume();
     double pres_b = (*simsRef)[b]->getPressure();
     double vol_b = (*simsRef)[b]->getVolume();
-    double dpV = (beta_a*pres_a-beta_b*pres_b)*(vol_b-vol_a)/PRESFAC;
+    double dpV = (beta_a * pres_a - beta_b * pres_b) * (vol_b - vol_a) / PRESFAC;
     fprintf(fplog, "  dpV = %10.3e  d = %10.3e\n", dpV, delta + dpV);
     delta += dpV;
   #endif
+
+  /* http://www.cchem.berkeley.edu/chem195/grand_canonical___parallel_tempering_8m.html */
+  #if ENSEMBLE == GCMC
+    int numParticles_a    = (*simsRef)[a]->getNumOfParticles();
+    int numParticles_b    = (*simsRef)[b]->getNumOfParticles();
+    int deltaN            = numParticles_b - numParticles_a;
+    double chemPot_a      = (*simsRef)[a]->getChemicalPotential();
+    double chemPot_b      = (*simsRef)[b]->getChemicalPotential();
+    double deltaBeta      = beta_b - beta_a;
+    double deltaBetaMu    = chemPot_b * beta_b - chemPot_a * beta_a;
+    delta                 = deltaBeta * ediff - deltaBetaMu * deltaN;
+  #endif
+
+
+  fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (kT)\n", a, b, delta);
+
+
   // Epot 
 
   return delta;
