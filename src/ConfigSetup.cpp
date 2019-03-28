@@ -612,6 +612,7 @@ void ConfigSetup::Init(const char *fileName)
     } else if(CheckString(line[0], "MultiParticleRelaxing")) {
       if(line.size() > 1) {
         sys.cfcmcVal.MPEnable = checkBool(line[1]);
+        sys.moves.multiParticleEnabled = sys.cfcmcVal.MPEnable;
       }
       if(sys.cfcmcVal.MPEnable) {
           printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
