@@ -76,7 +76,6 @@ class MoleculeExchange1 : public MoveBase
    //This function carries out actions based on the internal acceptance state and
    //molecule kind
    void AcceptKind(const uint rejectState, const uint kind, const uint box);
-   void UpdateForce();
 
  protected:
 
@@ -757,10 +756,6 @@ inline void MoleculeExchange1::Accept(const uint rejectState, const uint step)
             calcEwald->UpdateRecip(b);
         }
         //molA and molB already transfered to destBox and added to cellist
-
-        //Update LJ and Electrostatic forces
-        UpdateForce();
-        
         //Retotal
         sysPotRef.Total();
       } else {
@@ -788,59 +783,6 @@ inline void MoleculeExchange1::Accept(const uint rejectState, const uint step)
   //If we consider total aceeptance of S->L and L->S
   AcceptKind(result, kindS + kindL * molRef.GetKindsCount(), sourceBox);
   AcceptKind(result, kindS + kindL * molRef.GetKindsCount(), destBox);
-
-}
-
-void MoleculeExchange1::UpdateForce()
-{
-  if(!multiParticleEnabled)
-    return;
-
-  //Add Force for new configuration.
-  for(uint n = 0; n < numInCavB; n++) {
-    calcEnRef.MoleculeForceAdd(newMolB[n].GetCoords(), atomForceRef,
-                               molForceRef, molIndexB[n], sourceBox);
-  }
-  for(uint n = 0; n < numInCavA; n++) {
-    calcEnRef.MoleculeForceAdd(newMolA[n].GetCoords(), atomForceRef,
-                               molForceRef, molIndexA[n], sourceBox);
-  }
-
-  //Need to calculate force before shifting the molecule
-  //We recover the oldcoordinate and shift the molecule
-  for(uint n = 0; n < numInCavA; n++) {
-    cellList.RemoveMol(molIndexA[n], destBox, coordCurrRef);
-    RecoverMol(true, n, destBox, sourceBox);
-    cellList.AddMol(molIndexA[n], sourceBox, coordCurrRef);
-  }
-  //transfer molB from sourceBox to dest
-  for(uint n = 0; n < numInCavB; n++) {
-    cellList.RemoveMol(molIndexB[n], sourceBox, coordCurrRef);
-    RecoverMol(false, n, sourceBox, destBox);
-    cellList.AddMol(molIndexB[n], destBox, coordCurrRef);
-  }
-
-  //Subtract Force for old configuration.
-  for(uint n = 0; n < numInCavB; n++) {
-    calcEnRef.MoleculeForceSub(atomForceRef, molForceRef, molIndexB[n],
-                               sourceBox);
-  }
-  for(uint n = 0; n < numInCavA; n++) {
-    calcEnRef.MoleculeForceSub(atomForceRef, molForceRef, molIndexA[n], 
-                               sourceBox);
-  }
-
-  //Since the move is accepted, We recover the new coordinate
-  for(uint n = 0; n < numInCavA; n++) {
-    cellList.RemoveMol(molIndexA[n], sourceBox, coordCurrRef);
-    ShiftMol(true, n, sourceBox, destBox);
-    cellList.AddMol(molIndexA[n], sourceBox, coordCurrRef);
-  }
-  for(uint n = 0; n < numInCavB; n++) {
-    cellList.RemoveMol(molIndexB[n], sourceBox, coordCurrRef);
-    ShiftMol(false, n, destBox, sourceBox);
-    cellList.AddMol(molIndexB[n], sourceBox, coordCurrRef);
-  }
 
 }
 

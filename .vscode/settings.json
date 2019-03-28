@@ -19,7 +19,8 @@
     "cstdlib": "cpp",
     "cstring": "cpp",
     "ctime": "cpp",
-    "iomanip": "cpp"
+    "iomanip": "cpp",
+    "locale": "cpp"
   },
   "cmake.configureOnOpen": false
 }
