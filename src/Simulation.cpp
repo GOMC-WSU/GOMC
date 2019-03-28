@@ -175,15 +175,21 @@ double Simulation::getVolume(){
 
 #if ENSEMBLE == GCMC
 int Simulation::getNumOfParticles(){
-  uint numMolecules;
-  for (uint i = 0; i < BOX_TOTAL; i++){
-    numMolecules += system->molLookupRef.NumInBox(i);
+  uint numMolecules = 0;
+  uint box = 0;
+  for (uint i = 0; i < system->molLookup.GetNumKind(); i++){    
+    numMolecules += system->molLookup.NumKindInBox(i, box);
   }
   return (int)numMolecules;
 }
 
 double Simulation::getChemicalPotential(){
-  return cpu->getChemPot();
+  double chemPot = 0.0;
+  uint box = 0;
+  for (uint i = 0; i < system->molLookup.GetNumKind(); i++){
+    chemPot += system->molLookup.NumKindInBox(i, box) * staticValues->mol.kinds[i].chemPot;    
+  }
+  return chemPot;
 }
 #endif
 
