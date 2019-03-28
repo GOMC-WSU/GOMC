@@ -7,6 +7,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef REPLICAEXCHANGE_H
 #define REPLICAEXCHANGE_H
 
+#include "units.h"
 //Member vars
 /* Courtest of GROMACS */
 /* The parameters for the replica exchange algorithm */
@@ -29,7 +30,8 @@ struct RecordKeeper
 {
     int         nrepl;
     int       nattempt[2]; /* number of even and odd replica change attempts */
-    bool        *bEx;   
+    bool        *bEx;   /* successful exchange booleans */  
+    bool       bNPT;        /* use constant pressure and temperature */
     double   *prob;    /* probabilities */
     double   *prob_sum;    /* sum of probabilities */
     int     **nmoves;      /* number of moves between replicas i and j */

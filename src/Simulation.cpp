@@ -163,6 +163,18 @@ int Simulation::getReplExSeed(){
   return replExParams.randomSeed;
 }
 
+#if ENSEMBLE == NPT
+double Simulation::getPressure(){
+  return staticValues->pressure;
+}
+
+double Simulation::getVolume(){
+  return *system->boxDimRef.volume; 
+}
+#endif
+
+
+
 
 void Simulation::setT_in_K(double T_in_K){
   staticValues->forcefield.T_in_K = T_in_K;

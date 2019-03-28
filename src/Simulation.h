@@ -25,6 +25,10 @@ public:
   ulong getTotalSteps();
   ulong getStartStep();
   ulong getEquilSteps();
+  #if ENSEMBLE == NPT
+  double getPressure();
+  double getVolume();
+  #endif
   double getT_in_K();
   double getBeta();
   double getEpot();
@@ -46,7 +50,7 @@ public:
 
 private:
   StaticVals * staticValues;
-  System * system;
+  System *  system;
   CPUSide * cpu;
   ulong totalSteps;
   Setup set;

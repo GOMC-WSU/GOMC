@@ -210,6 +210,15 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap,
   double ediff = epot_b - epot_a;
   double delta = -(beta_b - beta_a)*ediff;
   fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (kT)\n", a, b, delta);
+  #if ENSEMBLE == NPT
+    double pres_a = (*simsRef)[a]->getPressure();
+    double vol_a = (*simsRef)[a]->getVolume();
+    double pres_b = (*simsRef)[b]->getPressure();
+    double vol_b = (*simsRef)[b]->getVolume();
+    double dpV = (beta_a*pres_a-beta_b*pres_b)*(vol_b-vol_a)/PRESFAC;
+    fprintf(fplog, "  dpV = %10.3e  d = %10.3e\n", dpV, delta + dpV);
+    delta += dpV;
+  #endif
   // Epot 
 
   return delta;
@@ -241,6 +250,12 @@ void ReplicaExchangeController::InitRecordKeeper(){
     re.prob_sum[i] = 0;
     re.nexchange[i] = 0;
   }
+
+  #if ENSEMBLE == NPT
+    re.bNPT = true;
+  #else
+    re.bNPT = false;
+  #endif
 }
 
 void ReplicaExchangeController::print_ind(FILE * fplog, const char *leg, int n, int *ind, bool *bEx){
