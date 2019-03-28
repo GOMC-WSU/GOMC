@@ -59,7 +59,6 @@ public:
   //! Calculates total energy/virial of a single box in the system
   SystemPotential BoxInter(SystemPotential potential,
                            XYZArray const& coords,
-                           XYZArray const& com,
                            XYZArray& atomForce,
                            XYZArray& molForce,
                            BoxDimensions const& boxAxes,
@@ -68,19 +67,7 @@ public:
   //! Calculate force and virial for the box
   Virial VirialCalc(const uint box);
 
-  //! Calculate change force of a molecule using molCoords
-  void MoleculeForceAdd(XYZArray const& molCoords,
-                        XYZArray& atomForce,
-                        XYZArray& molForce,
-                        const uint molIndex,
-                        const uint box);
-
- //! Calculate change force of a molecule using current coords
-  void MoleculeForceSub(XYZArray& atomForce,
-                        XYZArray& molForce,
-                        const uint molIndex,
-                        const uint box);
-
+  //! Set the force for atom and mol to zero for box
   void ResetForce(XYZArray& atomForce, XYZArray& molForce, uint box);
 
 
@@ -106,8 +93,7 @@ public:
   //! @param newCOM (optional) If COM has changed for new coordinate,
   //!                          allows for that to be considered.
   bool MoleculeInter(Intermolecular &inter_LJ, Intermolecular &inter_coulomb,
-                     XYZArray const& molCoords, XYZArray& atomForce,
-                     XYZArray& molForce, const uint molIndex,
+                     XYZArray const& molCoords, const uint molIndex,
                      const uint box) const;
 
   //! Calculates Nonbonded intra energy (LJ and coulomb )for

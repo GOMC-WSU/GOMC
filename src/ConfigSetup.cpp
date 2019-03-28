@@ -479,7 +479,7 @@ void ConfigSetup::Init(const char *fileName)
              sys.moves.displace);
     } else if(CheckString(line[0],"MultiParticleFreq")) {
       sys.moves.multiParticle = stringtod(line[1]);
-      if(sys.moves.multiParticle != 0.00) {
+      if(sys.moves.multiParticle > 0.00) {
         sys.moves.multiParticleEnabled = true;
       }
       printf("%-40s %-4.4f \n",
