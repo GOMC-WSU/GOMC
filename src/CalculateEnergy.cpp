@@ -905,7 +905,7 @@ void CalculateEnergy::MolNonbond(double & energy,
                      molKind.AtomCharge(molKind.nonBonded.part2[i]);
 
         forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
-            qi_qj_Fact, true);
+						 qi_qj_Fact, true);
       }
     }
   }
@@ -933,10 +933,10 @@ void CalculateEnergy::MolNonbond(double & energy, cbmc::TrialMol const &mol,
                                                molKind.AtomKind(p2), 1.0);
         if (electrostatic) {
           qi_qj_Fact = num::qqFact * molKind.AtomCharge(1) *
-                      molKind.AtomCharge(p2);
+	    molKind.AtomCharge(p2);
 
           forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
-              qi_qj_Fact, true);
+						   qi_qj_Fact, true);
         }
       }
     }
@@ -972,7 +972,7 @@ void CalculateEnergy::MolNonbond_1_4(double & energy,
                      molKind.AtomCharge(molKind.nonBonded_1_4.part2[i]);
 
         forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
-            qi_qj_Fact, false);
+						 qi_qj_Fact, false);
       }
     }
   }
@@ -1001,10 +1001,10 @@ void CalculateEnergy::MolNonbond_1_4(double & energy,
                                           molKind.AtomKind(p2));
         if (electrostatic) {
           qi_qj_Fact = num::qqFact * molKind.AtomCharge(p1) *
-                      molKind.AtomCharge(p2);
+	    molKind.AtomCharge(p2);
 
           forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
-              qi_qj_Fact, false);
+						   qi_qj_Fact, false);
         }
       }
     }
@@ -1039,7 +1039,7 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
                      molKind.AtomCharge(molKind.nonBonded_1_3.part2[i]);
 
         forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
-            qi_qj_Fact, false);
+						 qi_qj_Fact, false);
       }
     }
   }
@@ -1219,8 +1219,7 @@ void CalculateEnergy::CalculateTorque(vector<uint>& moleculeIndex,
     molTorque.Reset();
 
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(m, p, length, start, distFromCOM, tempTorque) \
-reduction(+: torquex[:torqueCount], torquey[:torqueCount], torquez[:torqueCount])
+#pragma omp parallel for default(shared) private(m, p, length, start, distFromCOM, tempTorque) reduction(+: torquex[:torqueCount], torquey[:torqueCount], torquez[:torqueCount])
 #endif
     for(m = 0; m < moleculeIndex.size(); m++) {
       length = mols.GetKind(moleculeIndex[m]).NumAtoms();
@@ -1323,7 +1322,7 @@ bool CalculateEnergy::FindMolInCavity(std::vector< std::vector<uint> > &mol,
 
 
 void CalculateEnergy::SingleMoleculeInter(Energy &interEnOld,
-					                                Energy &interEnNew,
+					  Energy &interEnNew,
                                           const double lambdaOld,
                                           const double lambdaNew,
                                           const uint molIndex,
@@ -1355,25 +1354,25 @@ void CalculateEnergy::SingleMoleculeInter(Energy &interEnOld,
       }
 
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents, forceReal, lambda) \
-reduction(+:tempREnOld, tempLJEnOld, tempREnNew, tempLJEnNew)
+#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents, lambda) reduction(+:tempREnOld, tempLJEnOld, tempREnNew, tempLJEnNew)
 #endif
       for(i = 0; i < nIndex.size(); i++) {
         distSq = 0.0;
-        if (currentAxes.InRcut(distSq, virComponents, currentCoords, atom, nIndex[i], box)) {
+        if (currentAxes.InRcut(distSq, virComponents, currentCoords, atom,
+			       nIndex[i], box)) {
 
           if (electrostatic) {
             qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
                          num::qqFact;
             tempREnNew += forcefield.particles->CalcCoulomb(distSq,qi_qj_fact,
 							    lambdaNew, box);
-	          tempREnOld += forcefield.particles->CalcCoulomb(distSq,qi_qj_fact,
+	    tempREnOld += forcefield.particles->CalcCoulomb(distSq,qi_qj_fact,
 							    lambdaOld, box);
           }
 
           tempLJEnNew += forcefield.particles->CalcEn(distSq,particleKind[atom],
                       particleKind[nIndex[i]], lambdaNew);
-	        tempLJEnOld += forcefield.particles->CalcEn(distSq,particleKind[atom],
+	  tempLJEnOld += forcefield.particles->CalcEn(distSq,particleKind[atom],
                       particleKind[nIndex[i]], lambdaOld);
         }
       }
@@ -1410,11 +1409,12 @@ double CalculateEnergy::MoleculeTailChange(const uint box, const uint kind,
     //We should have only one molecule of fractional kind
     double rhoDeltaIJ_2 = 2.0 * (double)(kCount[i]) * currentAxes.volInv[box];
     uint index = kind * ktot + i;
-    tcDiff += (lambdaNew - lambdaOld) * mols.pairEnCorrections[index] *                   rhoDeltaIJ_2; 
+    tcDiff += (lambdaNew - lambdaOld) * mols.pairEnCorrections[index] *
+      rhoDeltaIJ_2; 
   }
   uint index = kind * ktot + kind;
   tcDiff += (lambdaNew - lambdaOld) * mols.pairEnCorrections[index] *
-            currentAxes.volInv[box];
+    currentAxes.volInv[box];
   
   return tcDiff;
 }
