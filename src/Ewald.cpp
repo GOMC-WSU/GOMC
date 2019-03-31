@@ -1134,7 +1134,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
 
 double Ewald::GetLambdaCoef(uint molA, uint box) const
 {
-  double lambda = lambdaRef.GetLambda(molA, mols.GetMolKind(molA), box);
+  double lambda = lambdaRef.GetLambdaCoulomb(molA, mols.GetMolKind(molA), box);
   double lambdaCoef = pow(lambda, 2.5);
   return lambdaCoef;
 }

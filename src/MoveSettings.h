@@ -106,6 +106,7 @@ public:
   uint GetTrialTot(const uint box, const uint move) const;
   double GetScaleTot(const uint box, const uint move) const;
   bool GetSingleMoveAccepted() { return isSingleMoveAccepted; }
+  void SetSingleMoveAccepted() { isSingleMoveAccepted = true; }
 
 private:
 

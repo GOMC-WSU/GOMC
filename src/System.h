@@ -38,34 +38,70 @@ public:
     std::fill_n(isFraction, BOX_TOTAL, false);
   }
 
-  void Set(const double lambda, const uint mol, const uint kind, const uint box)
+  void Set(const double vdw, const double coulomb, const uint mol,
+          const uint kind, const uint box)
   {
     molIndex[box] = mol;
     kindIndex[box] = kind;
-    lambdaVal[box] = lambda;
+    lambdaVDW[box] = vdw;
+    lambdaCoulomb[box] = coulomb;
     isFraction[box] = true;
   }
 
-  void UnSet(const uint box1, const uint box2) 
+  void UnSet(const uint sourceBox, const uint destBox) 
   {
-    isFraction[box1] = isFraction[box2] = false;
+    isFraction[sourceBox] = isFraction[destBox] = false;
+    lambdaVDW[sourceBox] = lambdaCoulomb[sourceBox] = 1.0;
+    lambdaVDW[destBox] = lambdaCoulomb[destBox] = 0.0;
   }
 
-  double GetLambda(const uint mol, const uint kind, const uint box) const
+  double GetLambdaVDW(const uint mol, const uint kind, const uint box) const
   {
     double val = 1.0;
     if(isFraction[box]) {
       if((molIndex[box] == mol) && (kindIndex[box] == kind)) {
-	val = lambdaVal[box];
+	      val = lambdaVDW[box];
       }
     }
     return val;
   }
 
+  double GetLambdaVDW(const uint kind, const uint box) const
+  {
+    double val = 1.0;
+    if(isFraction[box]) {
+      if(kindIndex[box] == kind) {
+	      val = lambdaVDW[box];
+      }
+    }
+    return val;
+  }
+
+  double GetLambdaCoulomb(const uint mol, const uint kind, const uint box) const
+  {
+    double val = 1.0;
+    if(isFraction[box]) {
+      if((molIndex[box] == mol) && (kindIndex[box] == kind)) {
+	      val = lambdaCoulomb[box];
+      }
+    }
+    return val;
+  }
+
+  bool KindIsFractional(const uint kind, const uint box) const {
+    bool result = false;
+    if(isFraction[box]) {
+      if(kindIndex[box] == kind) {
+	      result = true;
+      }
+    }
+    return result;
+  }
+
 protected:
   uint molIndex[BOX_TOTAL];
   uint kindIndex[BOX_TOTAL];
-  double lambdaVal[BOX_TOTAL];
+  double lambdaVDW[BOX_TOTAL], lambdaCoulomb[BOX_TOTAL];
   bool isFraction[BOX_TOTAL];
 };
 
