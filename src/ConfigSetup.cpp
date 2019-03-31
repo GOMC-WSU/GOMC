@@ -588,12 +588,27 @@ void ConfigSetup::Init(const char *fileName)
       if(sys.moves.cfcmc > 0.0) {
 	      sys.cfcmcVal.enable = true;
       }
-    } else if(CheckString(line[0], "LambdaWindow")) {
+    } else if(CheckString(line[0], "LambdaCoulomb")) {
       if(line.size() > 1) {
-        sys.cfcmcVal.readWindow = true;
-        sys.cfcmcVal.window = stringtoi(line[1]);
-        printf("%-40s %-4d \n", "Info: CFCMC Lambda Windows",
-        sys.cfcmcVal.window);
+        sys.cfcmcVal.readLambdaCoulomb = true;
+        printf("%-41s", "Info: Lambda Coulomb");
+        for(uint i = 1; i < line.size(); i++) {
+          double val = stringtod(line[i]);
+          sys.cfcmcVal.lambdaCoulomb.push_back(val);
+          printf("%-6.3f", val);
+        }
+        std::cout << endl; 
+      }
+    } else if(CheckString(line[0], "LambdaVDW")) {
+      if(line.size() > 1) {
+        sys.cfcmcVal.readLambdaVDW = true;
+        printf("%-41s", "Info: Lambda VDW");
+        for(uint i = 1; i < line.size(); i++) {
+          double val = stringtod(line[i]);
+          sys.cfcmcVal.lambdaVDW.push_back(val);
+          printf("%-6.3f", val);
+        }
+        std::cout << endl; 
       }
     } else if(CheckString(line[0], "RelaxingSteps")) {
       if(line.size() > 1) {
@@ -612,14 +627,15 @@ void ConfigSetup::Init(const char *fileName)
     } else if(CheckString(line[0], "MultiParticleRelaxing")) {
       if(line.size() > 1) {
         sys.cfcmcVal.MPEnable = checkBool(line[1]);
-        sys.moves.multiParticleEnabled = sys.cfcmcVal.MPEnable;
-      }
-      if(sys.cfcmcVal.MPEnable) {
+        sys.cfcmcVal.readMPEnable = true;
+        if(sys.cfcmcVal.MPEnable) {
+          sys.moves.multiParticleEnabled = sys.cfcmcVal.MPEnable;
           printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
           "Active");
-      } else {
-        printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
-          "Inactive");
+        } else {
+          printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
+            "Inactive");
+        }
       }
     }
 #endif
@@ -918,11 +934,31 @@ void ConfigSetup::fillDefaults(void)
   }
 
   
-    if(sys.cfcmcVal.enable && !sys.cfcmcVal.readHistFlatness) {
-      sys.cfcmcVal.histFlatness = 0.3;
-      printf("%-40s %-4.4f \n", "Default: CFCMC Histogram Flatness",
-	     sys.cfcmcVal.histFlatness);
+  if(sys.cfcmcVal.enable && !sys.cfcmcVal.readHistFlatness) {
+    sys.cfcmcVal.histFlatness = 0.3;
+    printf("%-40s %-4.4f \n", "Default: CFCMC Histogram Flatness",
+      sys.cfcmcVal.histFlatness);
+  }
+
+  if(sys.cfcmcVal.enable && sys.cfcmcVal.readLambdaVDW ) {
+    if(!sys.elect.enable && !sys.cfcmcVal.readLambdaCoulomb) {
+      sys.cfcmcVal.lambdaCoulomb.resize(sys.cfcmcVal.lambdaVDW.size(), 0.0);
+      sys.cfcmcVal.readLambdaCoulomb = true;
+      printf("%-41s", "Default: Lambda Coulomb");
+      for(uint i = 0; i < sys.cfcmcVal.lambdaCoulomb.size(); i++) {
+        double val = sys.cfcmcVal.lambdaCoulomb[i];
+        printf("%-6.3f", val);
+      }
+      std::cout << endl; 
     }
+  }
+
+  if(sys.cfcmcVal.enable && !sys.cfcmcVal.readMPEnable) {
+    sys.cfcmcVal.readMPEnable = true;
+    sys.cfcmcVal.MPEnable = false;
+    printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
+      "Inactive");
+  }
 
 #endif
 
@@ -1348,14 +1384,51 @@ void ConfigSetup::verifyInputs(void)
   }
 
   if(sys.cfcmcVal.enable) {
-    if(!sys.cfcmcVal.readWindow) {
-      std::cout << "Error: Number of Lambda Windows was not defined for " <<
-	"CFCMC move! \n";
+    
+    if(!sys.cfcmcVal.readLambdaCoulomb) {
+      std::cout << "Error: Lambda Coulomb states were not defined for " <<
+	    "CFCMC move! \n";
       exit(EXIT_FAILURE);
-    } else if (sys.cfcmcVal.window == 0) {
-      std::cout << "Error: Number of Lambda Windows should be greater " <<
-	"than 0 for CFCMC move! \n";
+    }  
+    
+    if (!sys.cfcmcVal.readLambdaVDW) {
+      std::cout << "Error: Lambda VDW states were not defined for " <<
+	    "CFCMC move! \n";
       exit(EXIT_FAILURE);
+    }
+
+    if(sys.cfcmcVal.lambdaCoulomb.size() != sys.cfcmcVal.lambdaVDW.size()) {
+      std::cout << "Error: Number of Lambda states for VDW and Coulomb " <<
+	    "are not same in CFCMC move! \n";
+      exit(EXIT_FAILURE);
+    }
+
+    for(uint i = 0; i < sys.cfcmcVal.lambdaVDW.size(); i++) {
+      bool decreasing = false;
+      for(uint j = i; j < sys.cfcmcVal.lambdaVDW.size(); j++) {
+        if(sys.cfcmcVal.lambdaVDW[i] > sys.cfcmcVal.lambdaVDW[j]) {
+          decreasing = true;
+        }
+      }
+      if(decreasing) {
+        std::cout << "Error: Lambda VDW values are not in increasing order " <<
+        "in CFCMC move! \n";
+        exit(EXIT_FAILURE);
+      }
+    }
+
+    for(uint i = 0; i < sys.cfcmcVal.lambdaCoulomb.size(); i++) {
+      bool decreasing = false;
+      for(uint j = i; j < sys.cfcmcVal.lambdaCoulomb.size(); j++) {
+        if(sys.cfcmcVal.lambdaCoulomb[i] > sys.cfcmcVal.lambdaCoulomb[j]) {
+          decreasing = true;
+        }
+      }
+      if(decreasing) {
+        std::cout << "Error: Lambda Coulomb values are not in increasing " <<
+        "order in CFCMC move! \n";
+        exit(EXIT_FAILURE);
+      }
     }
 
     if(!sys.cfcmcVal.readRelaxSteps) {

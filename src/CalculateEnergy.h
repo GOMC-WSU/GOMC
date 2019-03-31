@@ -182,8 +182,11 @@ public:
 
   //Calculate inter energy for single molecule in the system.
   void SingleMoleculeInter(Energy &interEnOld, Energy &interEnNew,
-			   const double lambdaOld, const double lambdaNew,
-			   const uint molIndex, const uint box) const;
+                          const double lambdaOldVDW,
+                          const double lambdaNewVDW,
+                          const double lambdaOldCoulomb,
+                          const double lambdaNewCoulomb,
+                          const uint molIndex, const uint box) const;
 
 private:
 
@@ -270,7 +273,8 @@ private:
     return (pair1 == pair2);
   }
 
-  double GetLambda(uint molA, uint molB, uint box) const;
+  double GetLambdaVDW(uint molA, uint molB, uint box) const;
+  double GetLambdaCoulomb(uint molA, uint molB, uint box) const;
 
 
   const Forcefield& forcefield;

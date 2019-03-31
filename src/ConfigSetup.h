@@ -243,11 +243,14 @@ struct MEMCVal {
 };
 
 struct CFCMCVal {
-  bool enable, readWindow, readRelaxSteps, readHistFlatness, MPEnable;
-  uint window, relaxSteps;
+  bool enable, readLambdaCoulomb, readLambdaVDW, readRelaxSteps; 
+  bool readHistFlatness, MPEnable, readMPEnable;
+  uint relaxSteps;
   double histFlatness;
+  std::vector<double> lambdaCoulomb, lambdaVDW;
   CFCMCVal(void) {
-    readWindow = readRelaxSteps = readHistFlatness = MPEnable = false;
+    readLambdaCoulomb = readRelaxSteps = readHistFlatness = false;
+    readMPEnable = MPEnable = readLambdaVDW = enable = false;
   }
 };
 

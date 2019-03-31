@@ -27,9 +27,10 @@ public:
         MPEnable = statV.cfcmcVal.MPEnable;
         steps = 0; 
         relaxSteps = statV.cfcmcVal.relaxSteps;
-        lambdaWindow = statV.cfcmcVal.window;
+        lambdaWindow = statV.cfcmcVal.lambdaVDW.size() - 1;
+        lambdaCoulomb = statV.cfcmcVal.lambdaCoulomb;
+        lambdaVDW = statV.cfcmcVal.lambdaVDW; 
         flatness = statV.cfcmcVal.histFlatness;
-        lambdaMax = 1.0 / (double)(lambdaWindow);
         nuTolerance = 1e-6;
         uint totKind = molRef.GetKindsCount();
         nu.resize(totKind, 0.01);
@@ -66,7 +67,7 @@ private:
   void UpdateBias();
   bool AcceptInflating();
   void AcceptRelaxing(uint box);
-  void CalcEnCFCMC(double lambdaOldS, double lambdaNewS);
+  void CalcEnCFCMC(uint lambdaIdxOldS, uint lambdaIdxNewS);
   void CalcEnRelaxing(uint box);
   uint TransformRelaxing(uint box);
   void RelaxingMolecules();
@@ -86,10 +87,9 @@ private:
   double W_tc, W_recip;
   double correctDiffSource, correctDiffDest, selfDiffSource, selfDiffDest;
   double recipDiffSource, recipDiffDest, tcDiffSource, tcDiffDest;
-  double lambdaMax, nuTolerance, flatness;
-  double molInSourceBox, molInDestBox; 
+  double nuTolerance, flatness, molInSourceBox, molInDestBox; 
   vector< vector< vector<double> > > bias;
-  vector< double > nu;
+  vector< double > nu, lambdaCoulomb, lambdaVDW;
 
   //variable needs for relaxing
   MultiParticle MP;
@@ -195,12 +195,14 @@ inline uint CFCMC::Prep(const double subDraw, const double movPerc)
 inline uint CFCMC::Transform()
 {
   //Start with full interaction in sourceBox, zero interaction in destBox
+  //SInce we have the lambda for growing molecule, in sourceBox, lambdaWindow
+  // correspond to full interaction and (lambdaWindow - X) is for destBox
   lambdaIdxOld = lambdaWindow;
   lambdaIdxNew = lambdaIdxOld - 1;
-  double lambdaOld = (double)(lambdaIdxOld) * lambdaMax;
-  double lambdaNew = (double)(lambdaIdxNew) * lambdaMax;
   //Update the interaction in destBox
-  lambdaRef.Set(1.0 - lambdaNew, molIndex, kindIndex, destBox);
+  lambdaRef.Set(lambdaVDW[lambdaWindow - lambdaIdxNew],
+                lambdaCoulomb[lambdaWindow - lambdaIdxNew], molIndex,
+                kindIndex, destBox);
   //Start growing the fractional molecule in destBox
   molRef.kinds[kindIndex].BuildIDNew(newMolCFCMC, molIndex);
   overlapCFCMC = newMolCFCMC.HasOverlap();
@@ -209,9 +211,12 @@ inline uint CFCMC::Transform()
   ShiftMolToDestBox();
 
   do{
-    //Set the interaction in source and destBox 
-    lambdaRef.Set(lambdaOld, molIndex, kindIndex, sourceBox);
-    lambdaRef.Set(1.0 - lambdaOld, molIndex, kindIndex, destBox);
+    //Set the interaction in source and destBox
+    lambdaRef.Set(lambdaVDW[lambdaIdxOld], lambdaCoulomb[lambdaIdxOld],
+                  molIndex, kindIndex, sourceBox);
+    lambdaRef.Set(lambdaVDW[lambdaWindow - lambdaIdxOld],
+                 lambdaCoulomb[lambdaWindow - lambdaIdxOld], molIndex,
+                 kindIndex, destBox);
     if(lambdaIdxNew == 0) {
       //removing the fractional molecule in last steps using CBMC in sourceBox
       molRef.kinds[kindIndex].BuildIDOld(oldMolCFCMC, molIndex);
@@ -226,14 +231,17 @@ inline uint CFCMC::Transform()
       cellList.AddMol(molIndex, destBox, coordCurrRef);
     }
     //Calculate the old and new energy in source and destBox(if we dont do CBMC)
-    CalcEnCFCMC(lambdaOld, lambdaNew);
+    CalcEnCFCMC(lambdaIdxOld, lambdaIdxNew);
     //Accept or reject the inflation
     bool acceptedInflate = AcceptInflating();
     if(acceptedInflate) {
       lambdaIdxOld = lambdaIdxNew; 
       //Update the interaction in sourceBox and destBox
-      lambdaRef.Set(lambdaNew, molIndex, kindIndex, sourceBox);
-      lambdaRef.Set(1.0 - lambdaNew, molIndex, kindIndex, destBox);
+      lambdaRef.Set(lambdaVDW[lambdaIdxNew], lambdaCoulomb[lambdaIdxNew],
+                    molIndex, kindIndex, sourceBox);
+      lambdaRef.Set(lambdaVDW[lambdaWindow - lambdaIdxNew],
+                  lambdaCoulomb[lambdaWindow - lambdaIdxNew], molIndex,
+                  kindIndex, destBox);
     }
     RelaxingMolecules();
     //Dont update Bias if move resulted in overLap
@@ -242,8 +250,6 @@ inline uint CFCMC::Transform()
     }
     //pick new lambda in the neighborhood
     lambdaIdxNew = lambdaIdxOld + (prng.randInt(1) ? 1 : -1);
-    lambdaOld = (double)(lambdaIdxOld) * lambdaMax;
-    lambdaNew = (double)(lambdaIdxNew) * lambdaMax;
   } while(lambdaIdxOld > 0 && lambdaIdxOld < lambdaWindow);
 
   return mv::fail_state::NO_FAIL;
@@ -253,7 +259,7 @@ inline void CFCMC::CalcEn() {
   return;
 }
 
-inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
+inline void CFCMC::CalcEnCFCMC(uint lambdaIdxOldS, uint lambdaIdxNewS)
 {
   W_tc = 1.0;
   W_recip = 1.0;
@@ -270,16 +276,24 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
     //Do not calculate the energy difference if we have overlap
     return;
   }
+    double lambdaOld_VDW_S = lambdaVDW[lambdaIdxOldS];
+    double lambdaNew_VDW_S = lambdaVDW[lambdaIdxNewS];
+    double lambdaOld_VDW_D = lambdaVDW[lambdaWindow - lambdaIdxOldS];
+    double lambdaNew_VDW_D = lambdaVDW[lambdaWindow - lambdaIdxNewS];
+    double lambdaOld_Coulomb_S = lambdaCoulomb[lambdaIdxOldS];
+    double lambdaNew_Coulomb_S = lambdaCoulomb[lambdaIdxNewS];
+    double lambdaOld_Coulomb_D = lambdaCoulomb[lambdaWindow - lambdaIdxOldS];
+    double lambdaNew_Coulomb_D = lambdaCoulomb[lambdaWindow - lambdaIdxNewS];
 
   //Calculating long range correction
   if(ffRef.useLRC) { 
     //Calculate LRC difference for lambdaNew and lambdaOld
     tcDiffSource = calcEnRef.MoleculeTailChange(sourceBox, kindIndex, 
-                                                kCount[sourceBox], lambdaOldS, 
-                                                lambdaNewS);
+                                                kCount[sourceBox], lambdaOld_VDW_S, 
+                                                lambdaNew_VDW_S);
     tcDiffDest = calcEnRef.MoleculeTailChange(destBox, kindIndex,
-					                                    kCount[destBox], 1.0-lambdaOldS,
-                                              1.0-lambdaNewS);
+					                                    kCount[destBox], lambdaOld_VDW_D,
+                                              lambdaNew_VDW_D);
     W_tc = exp(-1.0 * ffRef.beta * (tcDiffSource + tcDiffDest));
   }
 
@@ -288,7 +302,9 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
   if(lambdaIdxNew != 0) {
     //calculate inter energy for lambda new and old in source Box
     calcEnRef.SingleMoleculeInter(oldEnergy[sourceBox], newEnergy[sourceBox],
-    lambdaOldS,lambdaNewS, molIndex, sourceBox);
+                                  lambdaOld_VDW_S,lambdaNew_VDW_S,
+                                  lambdaOld_Coulomb_S, lambdaNew_Coulomb_S,
+                                  molIndex, sourceBox);
   }
 
 
@@ -296,23 +312,29 @@ inline void CFCMC::CalcEnCFCMC(double lambdaOldS, double lambdaNewS)
   if(lambdaIdxOld != lambdaWindow && lambdaIdxNew != lambdaWindow) {
     //calculate inter energy for lambda new and old in dest Box
     calcEnRef.SingleMoleculeInter(oldEnergy[destBox], newEnergy[destBox],
-    1.0 - lambdaOldS, 1.0 - lambdaNewS, molIndex, destBox);
+                                  lambdaOld_VDW_D, lambdaNew_VDW_D,
+                                  lambdaOld_Coulomb_D, lambdaNew_Coulomb_D, 
+                                  molIndex, destBox);
   }
 
 
   //Calculate self and correction difference for lambdaNew and lambdaOld
   //For electrostatic we use lamda**5 
-  double coefDiffS = pow(lambdaNewS, 5) - pow(lambdaOldS, 5);
-  double coefDiffD = pow(1.0 - lambdaNewS, 5) - pow(1.0 - lambdaOldS, 5);
+  double coefDiffS = pow(lambdaNew_Coulomb_S, 5) - pow(lambdaOld_Coulomb_S, 5);
+  double coefDiffD = pow(lambdaNew_Coulomb_D, 5) - pow(lambdaOld_Coulomb_D, 5);
   correctDiffSource = coefDiffS * calcEwald->SwapCorrection(oldMolCFCMC);
   correctDiffDest = coefDiffD * calcEwald->SwapCorrection(newMolCFCMC);
   selfDiffSource = coefDiffS * calcEwald->SwapSelf(oldMolCFCMC);
   selfDiffDest = coefDiffD * calcEwald->SwapSelf(newMolCFCMC);
   //calculate Recprocal Difference in source and dest box
-  recipDiffSource = calcEwald->CFCMCRecip(oldMolCFCMC.GetCoords(), lambdaOldS,
-					  lambdaNewS, molIndex, sourceBox);
-  recipDiffDest = calcEwald->CFCMCRecip(newMolCFCMC.GetCoords(), 1.0-lambdaOldS,
-					1.0 - lambdaNewS, molIndex, destBox);
+  recipDiffSource = calcEwald->CFCMCRecip(oldMolCFCMC.GetCoords(),
+                                          lambdaOld_Coulomb_S,
+                                          lambdaNew_Coulomb_S, 
+                                          molIndex, sourceBox);
+  recipDiffDest = calcEwald->CFCMCRecip(newMolCFCMC.GetCoords(), 
+                                        lambdaOld_Coulomb_D, 
+                                        lambdaNew_Coulomb_D, 
+                                        molIndex, destBox);
 
   //need to contribute the self and correction energy
   W_recip = exp(-1.0 * ffRef.beta * (recipDiffSource + recipDiffDest +
@@ -481,6 +503,13 @@ inline void CFCMC::UpdateBias()
         printf("Controller[%s]: %4.10f \n",molRef.kinds[kindIndex].name.c_str(),
         nu[kindIndex]);
       } else {
+        for(uint k = 0; k < molRef.GetKindsCount(); k++) {
+          std::cout << "hist " << molRef.kinds[k].name.c_str() << ": ";
+          for(uint i = 0; i <= lambdaWindow; i++) {
+            std::cout <<  hist[box[b]][k][i] << " ";
+          }
+          std::cout << std::endl;
+        }
         //Reset the histogram to reevaluate it
         std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
       } 
@@ -545,6 +574,8 @@ inline bool CFCMC::AcceptInflating()
 
     //Retotal
     sysPotRef.Total();
+    //set single move accept to true for multiparticle
+    moveSetRef.SetSingleMoveAccepted();
   }
   overlapCFCMC = false;
 
