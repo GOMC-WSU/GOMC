@@ -60,6 +60,12 @@ public:
   //! Calculates total energy/virial of a single box in the system
   SystemPotential BoxInter(SystemPotential potential,
                            XYZArray const& coords,
+                           BoxDimensions const& boxAxes,
+                           const uint box);
+
+  //! Calculates force of a single box in the system
+  SystemPotential BoxForce(SystemPotential potential,
+                           XYZArray const& coords,
                            XYZArray& atomForce,
                            XYZArray& molForce,
                            BoxDimensions const& boxAxes,
@@ -81,8 +87,6 @@ public:
   SystemPotential SystemInter(SystemPotential potential,
                               XYZArray const& coords,
                               XYZArray const& com,
-                              XYZArray& atomForce,
-                              XYZArray& molForce,
                               BoxDimensions const& boxAxes) ;
 
   //! Calculates intermolecular energy (LJ and coulomb) of a molecule
