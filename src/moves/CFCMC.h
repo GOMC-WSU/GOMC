@@ -501,16 +501,15 @@ inline void CFCMC::UpdateBias()
       if(minVisited > flatness * maxVisited) {
         nu[kindIndex] *= 0.5;
         std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
-        printf("Bias-Adjustment[%s]: %4.10f \n",
+        printf("Bias-Adj[%4s]: %4.10f \n",
                molRef.kinds[kindIndex].name.c_str(), nu[kindIndex]);
       } else {
-        for(uint k = 0; k < molRef.GetKindsCount(); k++) {
-          std::cout << "hist[" << molRef.kinds[k].name.c_str() << "]: [ ";
-          for(uint i = 0; i <= lambdaWindow; i++) {
-            std::cout <<  hist[box[b]][k][i] << " ";
-          }
-          std::cout << "] \n";
+        printf("Hist[%4s]: [", molRef.kinds[kindIndex].name.c_str());
+        for(uint i = 0; i <= lambdaWindow; i++) {
+          printf("%7ld", hist[box[b]][kindIndex][i]);
         }
+        std::cout << "] \n";
+        
         //Reset the histogram to reevaluate it
         std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
       } 
