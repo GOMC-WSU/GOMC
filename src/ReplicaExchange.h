@@ -30,15 +30,14 @@ struct RecordKeeper
 {
     int         nrepl;
     int       nattempt[2]; /* number of even and odd replica change attempts */
-    bool        *bEx;   /* successful exchange booleans */  
     bool       bNPT;        /* use constant pressure and temperature */
+    bool        *bEx;   /* successful exchange booleans */  
     double   *prob;    /* probabilities */
     double   *prob_sum;    /* sum of probabilities */
     int     **nmoves;      /* number of moves between replicas i and j */
     int      *nexchange;   /* i-th element of the array is the number of exchanges between replica i-1 and i */
     int     *ind;       /* An array of indices illustrating where our temps 0..N are orderwise */
     int     *pind;       /* A Permuttable Map of indices illustrating where our temps 0..N are orderwise */
-    map<int, int> temperatureToIndex;
 };
 
 #endif

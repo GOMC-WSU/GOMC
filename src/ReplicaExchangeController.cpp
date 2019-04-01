@@ -80,7 +80,12 @@ ReplicaExchangeController::ReplicaExchangeController(vector<Simulation*>* sims){
 
 }
 ReplicaExchangeController::~ReplicaExchangeController(){
+  DestroyRecordKeeper();
   fclose(fplog);
+  int i = (*simsRef).size();
+  for (int j = 0; j < i; j++){
+    delete (*simsRef)[j];
+  }
 }
 
 void ReplicaExchangeController::runMultiSim(){
@@ -254,19 +259,19 @@ void ReplicaExchangeController::InitRecordKeeper(){
   re.nrepl = (*simsRef).size();
   re.nattempt[0] = 0;
   re.nattempt[1] = 0;
-  re.prob = (double*)malloc((*simsRef).size() * sizeof(double));
-  re.bEx = (bool*)malloc((*simsRef).size() * sizeof(bool));
-  re.prob_sum = (double*)malloc((*simsRef).size() * sizeof(double));
-  re.nexchange = (int*)malloc((*simsRef).size()*sizeof(int));
-  re.nmoves = (int**)malloc((*simsRef).size()*sizeof(int*));
+  re.prob = new double[re.nrepl];
+  re.bEx =  new bool[re.nrepl];
+  re.prob_sum = new double[re.nrepl];
+  re.nexchange = new int[re.nrepl];
+  re.nmoves = new int*[re.nrepl];
   for (int i = 0; i < (*simsRef).size(); i++) {
-    re.nmoves[i] = (int*)malloc((*simsRef).size()*sizeof(int));
+    re.nmoves[i] = new int[re.nrepl];
     for (int j = 0; j < (*simsRef).size(); j++){
       re.nmoves[i][j] = 0;
     }
   }
-  re.ind = (int*)malloc((*simsRef).size() * sizeof(int));
-  re.pind = (int*)malloc((*simsRef).size() * sizeof(int));
+  re.ind = new int[re.nrepl];
+  re.pind = new int[re.nrepl];
 
   for (int i = 0; i < (*simsRef).size(); i++){
     re.ind[i] = i;
@@ -282,6 +287,19 @@ void ReplicaExchangeController::InitRecordKeeper(){
   #else
     re.bNPT = false;
   #endif
+}
+
+void ReplicaExchangeController::DestroyRecordKeeper(){
+  for (int i = 0; i < re.nrepl; i++) {
+    delete[] re.nmoves[i];
+  }
+  delete[] re.nmoves;
+  delete[] re.prob;
+  delete[] re.bEx;
+  delete[] re.prob_sum;
+  delete[] re.nexchange;
+  delete[] re.ind;
+  delete[] re.pind;  
 }
 
 void ReplicaExchangeController::print_ind(FILE * fplog, const char *leg, int n, int *ind, bool *bEx){
