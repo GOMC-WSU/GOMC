@@ -88,8 +88,7 @@ void CalculateEnergy::Init(System & sys)
 SystemPotential CalculateEnergy::SystemTotal()
 {
   SystemPotential pot =
-    SystemInter(SystemPotential(), currentCoords, currentCOM, atomForceRef,
-                molForceRef, currentAxes);
+    SystemInter(SystemPotential(), currentCoords, currentCOM, currentAxes);
 
   //system intra
   for (uint b = 0; b < BOX_TOTAL; ++b) {
@@ -144,14 +143,11 @@ SystemPotential CalculateEnergy::SystemTotal()
 SystemPotential CalculateEnergy::SystemInter(SystemPotential potential,
   XYZArray const& coords,
   XYZArray const& com,
-  XYZArray& atomForce,
-  XYZArray& molForce,
   BoxDimensions const& boxAxes)
 {
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
     //calculate LJ interaction and real term of electrostatic interaction
-    potential = BoxInter(potential, coords, atomForce, molForce,
-                         boxAxes, b);
+    potential = BoxInter(potential, coords, boxAxes, b);
     //calculate reciprocate term of electrostatic interaction
     potential.boxEnergy[b].recip = calcEwald->BoxReciprocal(b);
   }
@@ -161,7 +157,122 @@ SystemPotential CalculateEnergy::SystemInter(SystemPotential potential,
   return potential;
 }
 
+
+// Calculate the inter energy for Box. Fractional molecule are not allowed in
+// this function. Need to implement the GPU function
 SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
+                                          XYZArray const& coords,
+                                          BoxDimensions const& boxAxes,
+                                          const uint box)
+{
+  //Handles reservoir box case, returning zeroed structure if
+  //interactions are off.
+  if (box >= BOXES_WITH_U_NB)
+    return potential;
+
+  double tempREn = 0.0, tempLJEn = 0.0;
+  double distSq, qi_qj_fact;
+  int i;
+  XYZ virComponents, forceLJ, forceReal;
+  std::vector<uint> pair1, pair2;
+  CellList::Pairs pair = cellList.EnumeratePairs(box);
+
+  //store atom pair index
+  while (!pair.Done()) {
+    if(!SameMolecule(pair.First(), pair.Second())) {
+      pair1.push_back(pair.First());
+      pair2.push_back(pair.Second());
+    }
+    pair.Next();
+  }
+
+#ifdef GOMC_CUDA
+  // make a pointer to atom force and mol force for GPU
+  double *aForcex = atomForceRef.x;
+  double *aForcey = atomForceRef.y;
+  double *aForcez = atomForceRef.z;
+  double *mForcex = molForceRef.x;
+  double *mForcey = molForceRef.y;
+  double *mForcez = molForceRef.z;
+  int atomCount = atomForce.Count();
+  int molCount = molForce.Count();
+
+  uint pairSize = pair1.size();
+  uint currentIndex = 0;
+  double REn = 0.0, LJEn = 0.0;
+  //update unitcell in GPU
+  UpdateCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
+                      boxAxes.cellBasis[box].x, boxAxes.cellBasis[box].y,
+                      boxAxes.cellBasis[box].z);
+
+  if(!boxAxes.orthogonal[box]) {
+    BoxDimensionsNonOrth newAxes = *((BoxDimensionsNonOrth*)(&boxAxes));
+    UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
+                           newAxes.cellBasis_Inv[box].x,
+                           newAxes.cellBasis_Inv[box].y,
+                           newAxes.cellBasis_Inv[box].z);
+  }
+
+  while(currentIndex < pairSize) {
+    uint max = currentIndex + MAX_PAIR_SIZE;
+    max = (max < pairSize ? max : pairSize);
+
+    std::vector<uint>::const_iterator first1 = pair1.begin() + currentIndex;
+    std::vector<uint>::const_iterator last1 = pair1.begin() + max;
+    std::vector<uint>::const_iterator first2 = pair2.begin() + currentIndex;
+    std::vector<uint>::const_iterator last2 = pair2.begin() + max;
+    std::vector<uint> subPair1(first1, last1);
+    std::vector<uint> subPair2(first2, last2);
+
+    // Reset forces on GPU for the first iteration
+    bool reset_force = currentIndex == 0;
+
+    // Copy back the result if it is the last iteration
+    bool copy_back = max == pairSize;
+
+    CallBoxInterGPU(forcefield.particles->getCUDAVars(), subPair1, subPair2,
+                    coords, boxAxes, electrostatic, particleCharge,
+                    particleKind, particleMol, REn, LJEn, false,
+                    aForcex, aForcey, aForcez, mForcex, mForcey, mForcez,
+                    atomCount, molCount, reset_force, copy_back, box);
+    tempREn += REn;
+    tempLJEn += LJEn;
+    currentIndex += MAX_PAIR_SIZE;
+  }
+
+#else
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents, forceReal, forceLJ) reduction(+:tempREn, tempLJEn)
+#endif
+  for (i = 0; i < pair1.size(); i++) {
+    if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)) {
+
+      if (electrostatic) {
+        qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] *
+          num::qqFact;
+        tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact, 1.0, box);
+      }
+      tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
+                  particleKind[pair2[i]], 1.0);
+    }
+  }
+#endif
+  // setting energy and virial of LJ interaction
+  potential.boxEnergy[box].inter = tempLJEn;
+  // setting energy and virial of coulomb interaction
+  potential.boxEnergy[box].real = tempREn;
+
+  // set correction energy and virial
+  if (forcefield.useLRC) {
+    EnergyCorrection(potential, boxAxes, box);
+  }
+
+  potential.Total();
+
+  return potential;
+}
+
+SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
                                           XYZArray const& coords,
                                           XYZArray& atomForce,
                                           XYZArray& molForce,
@@ -296,11 +407,6 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction
   potential.boxEnergy[box].real = tempREn;
-
-  // set correction energy and virial
-  if (forcefield.useLRC) {
-    EnergyCorrection(potential, boxAxes, box);
-  }
 
   potential.Total();
 
@@ -1153,27 +1259,14 @@ void CalculateEnergy::EnergyCorrection(SystemPotential& pot,
   if (box < BOXES_WITH_U_NB) {
     double en = 0.0;
 
-    std::vector <uint> kCount;
-    double lambdaNew = 0.0;
-    uint kind = 0;
-    for (uint k = 0; k < mols.GetKindsCount(); ++k) {
-      kCount.push_back(molLookup.NumKindInBox(k, box));
-      if(lambdaRef.KindIsFractional(k, box)) {
-        --kCount[k];
-        lambdaNew = lambdaRef.GetLambdaVDW(k, box);
-        kind = k;
-      }
-    }
-
-    for (uint i = 0; i < kCount.size(); ++i) {
-      uint numI = kCount[i];
-      for (uint j = 0; j < kCount.size(); ++j) {
-        uint numJ = kCount[j];
+    for (uint i = 0; i < mols.GetKindsCount(); ++i) {
+      uint numI = molLookup.NumKindInBox(i, box);
+      for (uint j = 0; j < mols.GetKindsCount(); ++j) {
+        uint numJ = molLookup.NumKindInBox(j, box);
         en += mols.pairEnCorrections[i * mols.GetKindsCount() + j] * numI * numJ
               * boxAxes.volInv[box];
       }
     }
-    en += MoleculeTailChange(box, kind, kCount, 0.0, lambdaNew);
     pot.boxEnergy[box].tc = en;
   }
 }

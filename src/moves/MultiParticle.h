@@ -90,6 +90,7 @@ inline void MultiParticle::PrintAcceptKind() {
 
 inline void MultiParticle::SetMolInBox(uint box)
 {
+  // NEED to check if atom is not fixed!
 #if ENSEMBLE == GCMC || ENSEMBLE == GEMC
   moleculeIndex.clear();
   MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
@@ -154,8 +155,8 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
                                   bPick);
     
     //calculate short range energy and force for old positions
-    calcEnRef.BoxInter(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
-                      boxDimRef, bPick);    
+    calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
+                       boxDimRef, bPick);    
 
     if(typePick != mp::MPALLDISPLACE) {
       //Calculate Torque for old positions
@@ -206,8 +207,8 @@ inline void MultiParticle::PrepCFCMC(const uint box)
                                   bPick);
     
     //calculate short range energy and force for old positions
-    calcEnRef.BoxInter(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
-                      boxDimRef, bPick);    
+    calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
+                       boxDimRef, bPick);    
 
     if(typePick != mp::MPALLDISPLACE) {
       //Calculate Torque for old positions
@@ -257,16 +258,19 @@ inline void MultiParticle::CalcEn()
 
   sysPotNew = sysPotRef;
   //calculate short range energy and force
-  sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, atomForceNew,
+  sysPotNew = calcEnRef.BoxForce(sysPotNew, newMolsPos, atomForceNew,
                                  molForceNew, boxDimRef, bPick);
   //calculate long range of new electrostatic energy
   sysPotNew.boxEnergy[bPick].recip = calcEwald->BoxReciprocal(bPick);
   //Calculate long range of new electrostatic force
   calcEwald->BoxForceReciprocal(newMolsPos, atomForceRecNew, molForceRecNew,
     bPick);
-  //Calculate Torque for new positions
-  calcEnRef.CalculateTorque(moleculeIndex, newMolsPos, newCOMs, atomForceNew,
-                            atomForceRecNew, molTorqueNew, moveType, bPick);
+
+  if(typePick != mp::MPALLDISPLACE) {
+    //Calculate Torque for new positions
+    calcEnRef.CalculateTorque(moleculeIndex, newMolsPos, newCOMs, atomForceNew,
+                              atomForceRecNew, molTorqueNew, moveType, bPick);
+  }
   sysPotNew.Total();
 }
 

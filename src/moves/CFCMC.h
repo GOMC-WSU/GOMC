@@ -25,7 +25,8 @@ public:
     {
       if(statV.cfcmcVal.enable) {
         MPEnable = statV.cfcmcVal.MPEnable;
-        steps = 0; 
+        steps = 0;
+        histFreq = statV.GetPerAdjust(); 
         relaxSteps = statV.cfcmcVal.relaxSteps;
         lambdaWindow = statV.cfcmcVal.lambdaVDW.size() - 1;
         lambdaCoulomb = statV.cfcmcVal.lambdaCoulomb;
@@ -78,7 +79,7 @@ private:
   uint molIndex, kindIndex;
   uint lambdaIdxOld, lambdaIdxNew;
   uint box[2];
-  uint relaxSteps, lambdaWindow;
+  uint relaxSteps, lambdaWindow, histFreq;
   bool overlapCFCMC;
   vector< bool > firstPrint;
   vector< vector< vector<long int> > > hist;
@@ -495,20 +496,20 @@ inline void CFCMC::UpdateBias()
 
     //long trial = moveSetRef.GetTrial(box[b], mv::CFCMC, kindIndex);
     long trial = std::accumulate(hist[box[b]][kindIndex].begin(), hist[box[b]][kindIndex].end(), 0);
-    if((trial + 1) % 2000 == 0) {
+    if((trial + 1) % histFreq == 0) {
       //check to see if all the bin visited atleast X% of the most visited bin
       if(minVisited > flatness * maxVisited) {
         nu[kindIndex] *= 0.5;
         std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
-        printf("Controller[%s]: %4.10f \n",molRef.kinds[kindIndex].name.c_str(),
-        nu[kindIndex]);
+        printf("Bias-Adjustment[%s]: %4.10f \n",
+               molRef.kinds[kindIndex].name.c_str(), nu[kindIndex]);
       } else {
         for(uint k = 0; k < molRef.GetKindsCount(); k++) {
-          std::cout << "hist " << molRef.kinds[k].name.c_str() << ": ";
+          std::cout << "hist[" << molRef.kinds[k].name.c_str() << "]: [ ";
           for(uint i = 0; i <= lambdaWindow; i++) {
             std::cout <<  hist[box[b]][k][i] << " ";
           }
-          std::cout << std::endl;
+          std::cout << "] \n";
         }
         //Reset the histogram to reevaluate it
         std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
