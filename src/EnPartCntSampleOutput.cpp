@@ -42,6 +42,11 @@ void EnPartCntSample::Init(pdb_setup::Atoms const& atoms,
                          output.state.files.hist.number,
                          output.state.files.hist.letter,
                          b);
+      if (output.useMultidir){
+        std::stringstream replica_stream;
+        replica_stream << output.replica_path << name[b];
+        name[b] = replica_stream.str();
+      }
       samplesE[b] = new double [samplesPerFrame];
       samplesN[b] = new uint * [var->numKinds];
       for (uint k = 0; k < var->numKinds; ++k) {

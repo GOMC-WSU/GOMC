@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*******************************************************************************  
 GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
@@ -44,6 +44,11 @@ void Histogram::Init(pdb_setup::Atoms const& atoms,
                               output.state.files.hist.number,
                               output.state.files.hist.letter,
                               b, k);
+        if (output.useMultidir){
+          std::stringstream replica_stream;
+          replica_stream << output.replica_path << name[b][k];
+          name[b][k] = replica_stream.str();
+        }
       }
     }
     //Figure out total of each kind of molecule in ALL boxes, including
@@ -118,7 +123,7 @@ void Histogram::PrintKindHist(const uint b, const uint k)
 {
   for (uint n = 0; n < total[k]; ++n) {
     if ( molCount[b][k][n] != 0 )
-      outF[b][k] << n << " " << molCount[b][k][n] << std::endl;;
+      outF[b][k] << n << " " << molCount[b][k][n] << std::endl;
   }
 }
 

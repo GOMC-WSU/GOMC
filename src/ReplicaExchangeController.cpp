@@ -234,16 +234,14 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap,
     delta += dpV;
   #endif
 
-  /* http://www.cchem.berkeley.edu/chem195/grand_canonical___parallel_tempering_8m.html */
   #if ENSEMBLE == GCMC
-    int numParticles_a    = (*simsRef)[a]->getNumOfParticles();
-    int numParticles_b    = (*simsRef)[b]->getNumOfParticles();
-    int deltaN            = numParticles_b - numParticles_a;
+
     double chemPot_a      = (*simsRef)[a]->getChemicalPotential();
     double chemPot_b      = (*simsRef)[b]->getChemicalPotential();
     double deltaBeta      = beta_b - beta_a;
-    double deltaBetaMu    = chemPot_b * beta_b - chemPot_a * beta_a;
-    delta                 = deltaBeta * ediff - deltaBetaMu * deltaN;
+    double deltaBetaMuN   = deltaBeta*(chemPot_b - chemPot_a);
+    delta                 = deltaBeta * ediff - deltaBetaMuN; 
+    
   #endif
 
 
