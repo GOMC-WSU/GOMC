@@ -34,15 +34,17 @@ public:
         flatness = statV.cfcmcVal.histFlatness;
         nuTolerance = 1e-6;
         uint totKind = molRef.GetKindsCount();
-        nu.resize(totKind, 0.01);
+        nu.resize(BOX_TOTAL);
         hist.resize(BOX_TOTAL);
         bias.resize(BOX_TOTAL);
         kCount.resize(BOX_TOTAL);
-        firstPrint.resize(totKind, true);
+        firstPrint.resize(BOX_TOTAL);
         for(uint b = 0; b < BOX_TOTAL; b++) {
+          nu[b].resize(totKind, 0.01);
           hist[b].resize(totKind);
           bias[b].resize(totKind);
           kCount[b].resize(totKind);
+          firstPrint[b].resize(totKind, true);
         }
         for(uint b = 0; b < BOX_TOTAL; b++) {
           for(uint k = 0; k < totKind; k++) {
@@ -81,7 +83,7 @@ private:
   uint box[2];
   uint relaxSteps, lambdaWindow, histFreq;
   bool overlapCFCMC;
-  vector< bool > firstPrint;
+  vector< vector < bool > > firstPrint;
   vector< vector< vector<long int> > > hist;
   vector< vector< uint > > kCount;
 
@@ -90,7 +92,8 @@ private:
   double recipDiffSource, recipDiffDest, tcDiffSource, tcDiffDest;
   double nuTolerance, flatness, molInSourceBox, molInDestBox; 
   vector< vector< vector<double> > > bias;
-  vector< double > nu, lambdaCoulomb, lambdaVDW;
+  vector< double > lambdaCoulomb, lambdaVDW;
+  vector< vector<double> > nu;
 
   //variable needs for relaxing
   MultiParticle MP;
@@ -452,66 +455,82 @@ inline void CFCMC::UpdateBias()
   //Find the index for source and dest box
   uint idxS = lambdaIdxOld;
   uint idxD = lambdaWindow - lambdaIdxOld;
+  vector < uint > idx;
+  idx.push_back(idxS);
+  idx.push_back(idxD);
 
-  hist[sourceBox][kindIndex][idxS] += 1;
-  hist[destBox][kindIndex][idxD] += 1;
+  for(uint b = 0; b < 2; b++) { 
+    hist[box[b]][kindIndex][idx[b]] += 1;
 
-  //In Bias, if lambda is 1.0, it is also 0.0 for continueity
-  if((idxS == lambdaWindow) || (idxS == 0)) {
-    hist[sourceBox][kindIndex][idxD] += 1;
-    hist[destBox][kindIndex][idxS] += 1;
-  }
-
-  //Stop the modifying bias if we converged
-  if(nu[kindIndex] <= nuTolerance) {
-    if(firstPrint[kindIndex]) {
-      printf("STOPED MODIFYING BIAS FOR %s. \n",
-	     molRef.kinds[kindIndex].name.c_str());
+    //In Bias, if lambda is 1.0, it is also 0.0 for continueity
+    if((idxS == lambdaWindow) || (idxS == 0)) {   
+      hist[box[b]][kindIndex][idx[1 - b]] += 1;
     }
-    firstPrint[kindIndex] = false;
-    return;
-  }
 
-  //Update the bias for both box
-  bias[sourceBox][kindIndex][idxS] -= nu[kindIndex];
-  bias[destBox][kindIndex][idxD] -= nu[kindIndex];
+    //Stop the modifying bias if we converged
+    if(nu[box[b]][kindIndex] <= nuTolerance) {
+      if(firstPrint[box[b]][kindIndex]) {
+        printf("STOPED MODIFYING BIAS FOR %s. \n",
+        molRef.kinds[kindIndex].name.c_str());
+        firstPrint[box[b]][kindIndex] = false;
+      }
+      //Check after equilibration if all the bin visited atleast X% of 
+      // the most visited bin
+      long trial = std::accumulate(hist[box[b]][kindIndex].begin(), hist[box[b]][kindIndex].end(), 0);
+      if((trial + 1) % (histFreq * 10) == 0) {
+        long int maxVisited = *max_element(hist[box[b]][kindIndex].begin(),
+				   hist[box[b]][kindIndex].end());
+        long int minVisited = *min_element(hist[box[b]][kindIndex].begin(),
+              hist[box[b]][kindIndex].end()); 
+        //check to see if all the bin visited atleast X% of the most visited bin
+        if(minVisited < flatness * maxVisited) {
+          //nu[box[b]][kindIndex] = 0.01;
+          //std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
+          printf("Warning [%d][%4s]: Minimum visited lambda state (%ld) is not %4.2f of Maximum visited lambda state (%ld)! \n",
+                box[b], molRef.kinds[kindIndex].name.c_str(), minVisited,
+                flatness, maxVisited);
+        } 
+      }
+      continue;
+    } 
 
-  //In Bias, if lambda is 1.0, it is also 0.0 for continueity
-  if((idxS == lambdaWindow) || (idxS == 0)) {
-    bias[sourceBox][kindIndex][idxD] -= nu[kindIndex];
-    bias[destBox][kindIndex][idxS] -= nu[kindIndex];
-  }
+    //Update the bias for both box
+    bias[box[b]][kindIndex][idx[b]] -= nu[box[b]][kindIndex];
+    //In Bias, if lambda is 1.0, it is also 0.0 for continueity
+    if((idxS == lambdaWindow) || (idxS == 0)) {
+      bias[box[b]][kindIndex][idx[1 - b]] -= nu[box[b]][kindIndex];
+    }
 
 #if ENSEMBLE == GCMC
-  //We dont consider biasing in reservoir
-  bias[1][kindIndex][idxD] = bias[1][kindIndex][idxS] = 0.0;
-  hist[1][kindIndex][idxD] = hist[1][kindIndex][idxS] = 0;
+    //We dont consider biasing in reservoir
+    bias[1][kindIndex][idxD] = bias[1][kindIndex][idxS] = 0.0;
+    hist[1][kindIndex][idxD] = hist[1][kindIndex][idxS] = 0;
 #endif
-    
-  for(uint b = 0; b < 2; b++) { 
-    uint maxVisited = *max_element(hist[box[b]][kindIndex].begin(),
-				   hist[box[b]][kindIndex].end());
-    uint minVisited = *min_element(hist[box[b]][kindIndex].begin(),
-				   hist[box[b]][kindIndex].end());    
 
     //long trial = moveSetRef.GetTrial(box[b], mv::CFCMC, kindIndex);
     long trial = std::accumulate(hist[box[b]][kindIndex].begin(), hist[box[b]][kindIndex].end(), 0);
+    //Check flatness 
     if((trial + 1) % histFreq == 0) {
+      uint maxVisited = *max_element(hist[box[b]][kindIndex].begin(),
+				   hist[box[b]][kindIndex].end());
+      uint minVisited = *min_element(hist[box[b]][kindIndex].begin(),
+            hist[box[b]][kindIndex].end()); 
       //check to see if all the bin visited atleast X% of the most visited bin
       if(minVisited > flatness * maxVisited) {
-        nu[kindIndex] *= 0.5;
+        nu[box[b]][kindIndex] *= 0.5;
         std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
-        printf("Bias-Adj[%4s]: %4.10f \n",
-               molRef.kinds[kindIndex].name.c_str(), nu[kindIndex]);
+        printf("Bias-Adj [%d][%4s]: %4.10f \n",
+               box[b], molRef.kinds[kindIndex].name.c_str(),
+               nu[box[b]][kindIndex]);
       } else {
-        printf("Hist[%4s]: [", molRef.kinds[kindIndex].name.c_str());
+        printf("Hist     [%d][%4s]: [", box[b],
+              molRef.kinds[kindIndex].name.c_str());
         for(uint i = 0; i <= lambdaWindow; i++) {
-          printf("%7ld", hist[box[b]][kindIndex][i]);
+          printf("%8ld", hist[box[b]][kindIndex][i]);
         }
         std::cout << "] \n";
-        
         //Reset the histogram to reevaluate it
-        std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
+        //std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
       } 
     }                               
   }
