@@ -209,8 +209,9 @@ void ReplicaExchangeController::exchange(int a, int b){
 double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap, int bp){
   
   double delta;
-  
+
   #if ENSEMBLE == NPT || ENSEMBLE == NVT || ENSEMBLE == GCMC
+
   double epot_a = (*simsRef)[a]->getEpot();
   double epot_b = (*simsRef)[b]->getEpot();
   double beta_a = (*simsRef)[a]->getBeta();
@@ -258,8 +259,14 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap,
       Eq (8) */
   #if ENSEMBLE == GEMC
 
-  for (uint b = 0; b < BOX_TOTAL; ++b) {
-    
+  delta = 0;
+  for (uint i = 0; i < BOX_TOTAL; ++i) {
+      delta += -(((*simsRef)[b]->getBeta() - (*simsRef)[a]->getBeta())*((*simsRef)[b]->getEpotBox(i) - (*simsRef)[a]->getEpotBox(i)));
+
+      if ((*simsRef)[b]->getKindOfGEMC())
+        delta += ((*simsRef)[a]->getBeta() * (*simsRef)[a]->getPressure() - 
+          (*simsRef)[b]->getBeta() * (*simsRef)[b]->getPressure()) * 
+          ((*simsRef)[b]->getVolume(i) - (*simsRef)[a]->getVolume(i));
   }
 
   #endif

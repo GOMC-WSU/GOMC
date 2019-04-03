@@ -12,7 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-#ifdef GOMC_CUDA
+#ifdef GOMC_CUDA  
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
 

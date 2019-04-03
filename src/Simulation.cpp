@@ -143,6 +143,10 @@ double Simulation::getEpot(){
   return system->potential.totalEnergy.total;
 }
 
+double Simulation::getEpotBox(uint i){
+  return system->potential.boxEnergy[i].total;
+}
+
 CPUSide* Simulation::getCPUSide(){
   return cpu;
 }
@@ -167,7 +171,12 @@ int Simulation::getReplExSeed(){
   return replExParams.randomSeed;
 }
 
-#if ENSEMBLE == NPT
+#if ENSEMBLE == NPT || ENSEMBLE == GEMC
+
+uint Simulation::getKindOfGEMC(){
+  return staticValues->kindOfGEMC;
+}
+
 double Simulation::getPressure(){
   return staticValues->pressure;
 }
@@ -175,7 +184,13 @@ double Simulation::getPressure(){
 double Simulation::getVolume(){
   return *system->boxDimRef.volume; 
 }
+
+double Simulation::getVolume(uint i){
+  return system->boxDimRef.volume[i];
+}
 #endif
+
+
 
 #if ENSEMBLE == GCMC
 int Simulation::getNumOfParticles(uint i){
