@@ -7,7 +7,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef REPLICAEXCHANGE_H
 #define REPLICAEXCHANGE_H
 
-#include "units.h"
 //Member vars
 /* Courtest of GROMACS */
 /* The parameters for the replica exchange algorithm */

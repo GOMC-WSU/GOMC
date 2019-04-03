@@ -40,7 +40,6 @@ set(sources
    src/Simulation.cpp
    src/StaticVals.cpp
    src/System.cpp
-   src/units.h
    src/cbmc/DCCrankShaftAng.cpp
    src/cbmc/DCCrankShaftDih.cpp
    src/cbmc/DCCyclic.cpp
