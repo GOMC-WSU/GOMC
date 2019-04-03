@@ -28,7 +28,7 @@ void Histogram::Init(pdb_setup::Atoms const& atoms,
   stepsPerSample = output.state.files.hist.stepsPerHistSample;
   stepsPerOut = output.statistics.settings.hist.frequency;
   enableOut = output.statistics.settings.hist.enable;
-  if (enableOut) {
+  if (enableOut) {  
     total = new uint[var->numKinds];
     //Set each kind's initial count to 0
     for (uint k = 0; k < var->numKinds; ++k) {

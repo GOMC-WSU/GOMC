@@ -147,6 +147,10 @@ CPUSide* Simulation::getCPUSide(){
   return cpu;
 }
 
+System* Simulation::getSystem(){
+  return system;
+}
+
 Clock* Simulation::getClock(){
   return cpu->getClock();
 }
@@ -174,21 +178,17 @@ double Simulation::getVolume(){
 #endif
 
 #if ENSEMBLE == GCMC
-int Simulation::getNumOfParticles(){
+int Simulation::getNumOfParticles(uint i){
   uint numMolecules = 0;
   uint box = 0;
-  for (uint i = 0; i < system->molLookup.GetNumKind(); i++){    
-    numMolecules += system->molLookup.NumKindInBox(i, box);
-  }
+  numMolecules = system->molLookup.NumKindInBox(i, box);
   return (int)numMolecules;
 }
 
-double Simulation::getChemicalPotential(){
+double Simulation::getChemicalPotential(uint kind){
   double chemPot = 0.0;
   uint box = 0;
-  for (uint i = 0; i < system->molLookup.GetNumKind(); i++){
-    chemPot += system->molLookup.NumKindInBox(i, box) * staticValues->mol.kinds[i].chemPot;    
-  }
+  chemPot = system->molLookup.NumKindInBox(kind, box) * staticValues->mol.kinds[kind].chemPot;    
   return chemPot;
 }
 #endif

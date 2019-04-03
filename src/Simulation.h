@@ -30,13 +30,14 @@ public:
   double getVolume();
   #endif
   #if ENSEMBLE == GCMC
-  int getNumOfParticles();
-  double getChemicalPotential();
+  int getNumOfParticles(uint i);
+  double getChemicalPotential(uint i);
   #endif
   double getT_in_K();
   double getBeta();
   double getEpot();
   CPUSide* getCPUSide();
+  System* getSystem();
   ulong getExchangeInterval();
   int getReplExSeed();
   std::string getConfigFileName();

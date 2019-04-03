@@ -236,11 +236,14 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap,
 
   #if ENSEMBLE == GCMC
 
-    double chemPot_a      = (*simsRef)[a]->getChemicalPotential();
-    double chemPot_b      = (*simsRef)[b]->getChemicalPotential();
     double deltaBeta      = beta_b - beta_a;
-    double deltaBetaMuN   = deltaBeta*(chemPot_b - chemPot_a);
-    delta                 = deltaBeta * ediff - deltaBetaMuN; 
+    delta                 = deltaBeta * ediff;
+
+    for (uint i = 0; i < ((*simsRef)[a]->getSystem())->molLookup.GetNumKind(); i++){
+      delta -= ((beta_a * (*simsRef)[a]->getChemicalPotential(i) -
+        beta_b * (*simsRef)[b]->getChemicalPotential(i) ) * (
+         (*simsRef)[a]->getNumOfParticles(i) - (*simsRef)[b]->getNumOfParticles(i)));
+    }
     
   #endif
 
