@@ -260,14 +260,21 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap,
   #if ENSEMBLE == GEMC
 
   delta = 0;
+  double dpV = 0;
   for (uint i = 0; i < BOX_TOTAL; ++i) {
       delta += -(((*simsRef)[b]->getBeta() - (*simsRef)[a]->getBeta())*((*simsRef)[b]->getEpotBox(i) - (*simsRef)[a]->getEpotBox(i)));
 
-      if ((*simsRef)[b]->getKindOfGEMC())
-        delta += ((*simsRef)[a]->getBeta() * (*simsRef)[a]->getPressure() - 
+      if ((*simsRef)[b]->getKindOfGEMC()){
+        dpV += ((*simsRef)[a]->getBeta() * (*simsRef)[a]->getPressure() - 
           (*simsRef)[b]->getBeta() * (*simsRef)[b]->getPressure()) * 
           ((*simsRef)[b]->getVolume(i) - (*simsRef)[a]->getVolume(i));
+      }
   }
+  fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (kT)\n", a, b, delta);
+  if ((*simsRef)[b]->getKindOfGEMC())
+        fprintf(fplog, "  dpV = %10.3e  d = %10.3e\n", dpV, delta + dpV);
+
+  delta += dpV; 
 
   #endif
 
