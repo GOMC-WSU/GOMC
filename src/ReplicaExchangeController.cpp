@@ -221,6 +221,7 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap,
   /* GROMACS Abraham, et al. (2015) SoftwareX 1-2 19-25 */
   #if ENSEMBLE == NPT || ENSEMBLE == NVT
     delta = -(beta_b - beta_a)*ediff;
+    fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (kT)\n", a, b, delta);
   #endif
 
   /* GROMACS Abraham, et al. (2015) SoftwareX 1-2 19-25 */
@@ -230,28 +231,26 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap,
     double pres_b = (*simsRef)[b]->getPressure();
     double vol_b = (*simsRef)[b]->getVolume();
     double dpV = (beta_a * pres_a - beta_b * pres_b) * (vol_b - vol_a) / PRESFAC;
+    fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (kT)\n", a, b, delta);
     fprintf(fplog, "  dpV = %10.3e  d = %10.3e\n", dpV, delta + dpV);
     delta += dpV;
   #endif
 
+  /*https://www.academia.edu/15742478/Multicanonical_parallel_tempering*/
   #if ENSEMBLE == GCMC
 
-    double deltaBeta      = beta_b - beta_a;
-    delta                 = deltaBeta * ediff;
+    double deltaBetaMuN   = 0;
+    delta                 = (beta_b - beta_a)*ediff;
 
     for (uint i = 0; i < ((*simsRef)[a]->getSystem())->molLookup.GetNumKind(); i++){
-      delta -= ((beta_a * (*simsRef)[a]->getChemicalPotential(i) -
-        beta_b * (*simsRef)[b]->getChemicalPotential(i) ) * (
-         (*simsRef)[a]->getNumOfParticles(i) - (*simsRef)[b]->getNumOfParticles(i)));
+      deltaBetaMuN += ((beta_b * (*simsRef)[b]->getChemicalPotential(i) -
+        beta_a * (*simsRef)[a]->getChemicalPotential(i) ) * (
+         (*simsRef)[b]->getNumOfParticles(i) - (*simsRef)[a]->getNumOfParticles(i)));
     }
-    
+    fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (kT)\n", a, b, delta);
+    fprintf(fplog, "  dMuN = %10.3e  d = %10.3e\n", deltaBetaMuN, delta - deltaBetaMuN);
+    delta = delta - deltaBetaMuN;
   #endif
-
-
-  fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (kT)\n", a, b, delta);
-
-
-  // Epot 
 
   return delta;
 }
