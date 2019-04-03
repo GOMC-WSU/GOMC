@@ -208,48 +208,60 @@ void ReplicaExchangeController::exchange(int a, int b){
 
 double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap, int bp){
   
+  double delta;
   
-  
+  #if ENSEMBLE == NPT || ENSEMBLE == NVT || ENSEMBLE == GCMC
   double epot_a = (*simsRef)[a]->getEpot();
   double epot_b = (*simsRef)[b]->getEpot();
   double beta_a = (*simsRef)[a]->getBeta();
   double beta_b = (*simsRef)[b]->getBeta(); 
 
   double ediff = epot_b - epot_a;
-  double delta;
+  delta = -(beta_b - beta_a)*ediff;
+
+  #endif
+
+
 
   /* GROMACS Abraham, et al. (2015) SoftwareX 1-2 19-25 */
   #if ENSEMBLE == NPT || ENSEMBLE == NVT
-    delta = -(beta_b - beta_a)*ediff;
     fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (kT)\n", a, b, delta);
   #endif
 
-  /* GROMACS Abraham, et al. (2015) SoftwareX 1-2 19-25 */
+  /*  GROMACS Abraham, et al. (2015) SoftwareX 1-2 19-25 */
   #if ENSEMBLE == NPT
     double pres_a = (*simsRef)[a]->getPressure();
     double vol_a = (*simsRef)[a]->getVolume();
     double pres_b = (*simsRef)[b]->getPressure();
     double vol_b = (*simsRef)[b]->getVolume();
-    double dpV = (beta_a * pres_a - beta_b * pres_b) * (vol_b - vol_a) / PRESFAC;
-    fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (kT)\n", a, b, delta);
+    double dpV = (beta_a * pres_a - beta_b * pres_b) * (vol_b - vol_a);
     fprintf(fplog, "  dpV = %10.3e  d = %10.3e\n", dpV, delta + dpV);
     delta += dpV;
   #endif
 
-  /*https://www.academia.edu/15742478/Multicanonical_parallel_tempering*/
+  /*  Faller, Roland, Qiliang Yan, and Juan J. de Pablo. "Multicanonical parallel tempering." The Journal of chemical physics 116.13 (2002): 5419-5423.
+      Eq (3)*/
   #if ENSEMBLE == GCMC
 
     double deltaBetaMuN   = 0;
-    delta                 = (beta_b - beta_a)*ediff;
 
     for (uint i = 0; i < ((*simsRef)[a]->getSystem())->molLookup.GetNumKind(); i++){
-      deltaBetaMuN += ((beta_b * (*simsRef)[b]->getChemicalPotential(i) -
-        beta_a * (*simsRef)[a]->getChemicalPotential(i) ) * (
+      deltaBetaMuN += ((beta_a * (*simsRef)[a]->getChemicalPotential(i) -
+        beta_b * (*simsRef)[b]->getChemicalPotential(i) ) * (
          (*simsRef)[b]->getNumOfParticles(i) - (*simsRef)[a]->getNumOfParticles(i)));
     }
-    fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (kT)\n", a, b, delta);
     fprintf(fplog, "  dMuN = %10.3e  d = %10.3e\n", deltaBetaMuN, delta - deltaBetaMuN);
-    delta = delta - deltaBetaMuN;
+    delta -= deltaBetaMuN;
+  #endif
+
+  /*  Ortiz et al Chemical physics letters 368.3-4 (2003): 452-457.
+      Eq (8) */
+  #if ENSEMBLE == GEMC
+
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    
+  }
+
   #endif
 
   return delta;
