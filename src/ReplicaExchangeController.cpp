@@ -111,23 +111,20 @@ void ReplicaExchangeController::runMultiSim(){
     fprintf(fplog, "\nReplica random seed: %d\n", (*simsRef)[0]->getReplExSeed());
     fprintf(fplog, "\nReplica exchange information below: ex and x = exchange, pr = probability\n\n");
 
-/*
-    replicaLog.file << "\nInitializing Replica Exchange\n" << std::endl;
-    replicaLog.file << "Repl  There are" << (*simsRef).size() << " replicas:\n" << std::endl;
-    replicaLog.file << "\nReplica exchange interval: " <<  (*simsRef)[0]->getExchangeInterval() << "\n"<< std::endl;
-    replicaLog.file << "\nReplica random seed: " <<  (*simsRef)[0]->getReplExSeed() << "\n"<< std::endl;
-    replicaLog.file << "Replica exchange information below: ex and x = exchange, pr = probability\n" << std::endl;
-*/
     ulong step = 0;
+    int j;
     for (ulong i = 0; i < roundedUpDivison; i++){
-        for (int j = 0; j < (*simsRef).size(); j++){
+
+        #pragma omp parallel for private(j)
+        for (j = 0; j < (*simsRef).size(); j++){
           // Note that RunNSteps overwrites startStep before returning to the step it left off on
           (*simsRef)[j]->RunNSteps(exchangeRate);
         }
         
-        for (int i = 0; i < (*simsRef).size(); i++){
+        for (int i = 0; i < (*simsRef).size(); i++)
           re.pind[i] = re.ind[i];
-        }
+
+
         step += exchangeRate;        
         if (exchangeRate!=totalSteps  && (*simsRef)[0]->getEquilSteps() <= step){
          // replicaLog.file << "Replica exchange at step " << step << std::endl;
@@ -261,7 +258,7 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap,
 
   delta = 0;
   double dpV = 0;
-  for (uint i = 0; i < BOX_TOTAL; ++i) {
+  for (uint i = 0; i < BOX_TOTAL; ++i) { 
       delta += -(((*simsRef)[b]->getBeta() - (*simsRef)[a]->getBeta())*((*simsRef)[b]->getEpotBox(i) - (*simsRef)[a]->getEpotBox(i)));
 
       if ((*simsRef)[b]->getKindOfGEMC()){
