@@ -22,7 +22,8 @@ public:
     ~ReplicaExchangeController();
     void runMultiSim();
     double calc_delta(FILE * fplog, int a, int b, int ap, int bp);
-    void exchange(int a, int b);
+    void exchangeStates(int a, int b);
+    void exchangeConfigurations(int a, int b);
     void InitRecordKeeper();
     void print_ind(FILE * fplog, const char *leg, int n, int *ind, bool *bEx);
     void print_prob(FILE * fplog, const char *leg, int n, double *prob);

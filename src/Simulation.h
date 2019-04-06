@@ -40,6 +40,7 @@ public:
   double getEpotBox(uint i);
   CPUSide* getCPUSide();
   System* getSystem();
+  StaticVals* getStaticValues();
   ulong getExchangeInterval();
   int getReplExSeed();
   std::string getConfigFileName();

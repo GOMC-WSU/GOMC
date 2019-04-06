@@ -143,7 +143,8 @@ void ReplicaExchangeController::runMultiSim(){
               if (i % 2 == parityOfSwaps){
                   delta = calc_delta(fplog, a, b, a, b);
                   if (delta <= 0) {
-                    exchange(a, b);
+                    //exchangeStates(a, b);
+                    exchangeConfigurations(a, b);
                     re.prob[i] = 1;
                     re.bEx[i] = true;
                   } else {
@@ -155,7 +156,8 @@ void ReplicaExchangeController::runMultiSim(){
                       re.prob[i] = exp(-delta);
                     }
                     if (rand.rand() < re.prob[i]){
-                      exchange(a, b);
+                      //exchangeStates(a, b);
+                      exchangeConfigurations(a, b);
                       re.bEx[i] = true;
                     } else {
                       re.bEx[i] = false;
@@ -188,7 +190,7 @@ void ReplicaExchangeController::runMultiSim(){
       print_replica_exchange_statistics(fplog, &re);  
 }
 
-void ReplicaExchangeController::exchange(int a, int b){
+void ReplicaExchangeController::exchangeStates(int a, int b){
   double swapperForT_in_K = (*simsRef)[a]->getT_in_K(); 
   double swapperForBeta = (*simsRef)[a]->getBeta();
   CPUSide * swapperForCPUSide = (*simsRef)[a]->getCPUSide();
@@ -201,6 +203,38 @@ void ReplicaExchangeController::exchange(int a, int b){
   Simulation * swapperForReplica = (*simsRef)[a];
   (*simsRef)[a] = (*simsRef)[b];
   (*simsRef)[b] = swapperForReplica;
+}
+
+void ReplicaExchangeController::exchangeConfigurations(int a, int b){
+
+  Coordinates * swapperForCoordinates = new Coordinates(  (*simsRef)[a]->getSystem()->boxDimRef, 
+                                      (*simsRef)[a]->getSystem()->com,
+                                      (*simsRef)[a]->getSystem()->molLookupRef,
+                                      (*simsRef)[a]->getSystem()->prng,
+                                      (*simsRef)[a]->getStaticValues()->mol);
+
+  swapperForCoordinates->operator=((*simsRef)[a]->getSystem()->coordinates);
+  (*simsRef)[a]->getSystem()->coordinates.operator=((*simsRef)[b]->getSystem()->coordinates);
+  (*simsRef)[b]->getSystem()->coordinates.operator=(*swapperForCoordinates);
+  delete swapperForCoordinates;
+
+  COM * swapperForCOM = new COM(  (*simsRef)[a]->getSystem()->boxDimRef,
+                                  (*simsRef)[a]->getSystem()->coordinates,
+                                  (*simsRef)[a]->getSystem()->molLookupRef,
+                                  (*simsRef)[a]->getStaticValues()->mol);
+  swapperForCOM->operator=((*simsRef)[a]->getSystem()->com);                     
+  (*simsRef)[a]->getSystem()->com.operator=((*simsRef)[b]->getSystem()->com);
+  (*simsRef)[b]->getSystem()->com.operator=(*swapperForCOM);
+  delete swapperForCOM;
+
+  SystemPotential * swapperForSystemPotential = new SystemPotential();
+  swapperForSystemPotential->operator=((*simsRef)[a]->getSystem()->potential); 
+  (*simsRef)[a]->getSystem()->potential.operator=((*simsRef)[b]->getSystem()->potential);
+  (*simsRef)[b]->getSystem()->potential=(*swapperForSystemPotential);
+  delete swapperForSystemPotential;
+
+  (*simsRef)[a]->getSystem()->cellList.RebuildNeighbors(0);
+  (*simsRef)[b]->getSystem()->cellList.RebuildNeighbors(0);
 }
 
 double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap, int bp){

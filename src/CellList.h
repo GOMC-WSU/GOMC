@@ -54,7 +54,10 @@ public:
 
   // true if every particle is a member of exactly one cell
   bool IsExhaustive() const;
-
+  
+  // Rebuild head/neighbor lists in box b to match current grid
+  void RebuildNeighbors(int b);
+  
 private:
   static const int END_CELL = -1;
 
@@ -63,7 +66,7 @@ private:
   // Resize one boxes to match current axes
   void ResizeGridBox(const BoxDimensions& dims, const uint b);
   // Rebuild head/neighbor lists in box b to match current grid
-  void RebuildNeighbors(int b);
+  //void RebuildNeighbors(int b);
 
   std::vector<int> list;
   std::vector<std::vector<int> > neighbors[BOX_TOTAL];
