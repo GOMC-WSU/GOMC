@@ -13,8 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 FFParticle::FFParticle(Forcefield &ff) : forcefield(ff), mass(NULL), nameFirst(NULL), nameSec(NULL),
   n(NULL), n_1_4(NULL), sigmaSq(NULL), sigmaSq_1_4(NULL), epsilon_cn(NULL),
   epsilon(NULL), epsilon_1_4(NULL), epsilon_cn_1_4(NULL), epsilon_cn_6(NULL),
-  epsilon_cn_6_1_4(NULL), nOver6(NULL), nOver6_1_4(NULL), enCorrection(NULL),
-  virCorrection(NULL) 
+  epsilon_cn_6_1_4(NULL), nOver6(NULL), nOver6_1_4(NULL)
 #ifdef GOMC_CUDA
   , varCUDA(NULL)
 #endif 
@@ -42,9 +41,6 @@ FFParticle::~FFParticle(void)
   delete[] epsilon_cn_1_4;
   delete[] epsilon_cn_6_1_4;
   delete[] nOver6_1_4;
-
-  delete[] enCorrection;
-  delete[] virCorrection;
 
 #ifdef GOMC_CUDA
   DestroyCUDAVars(varCUDA);
@@ -86,14 +82,10 @@ void FFParticle::Init(ff_setup::Particle const& mie,
   nOver6_1_4 = new double [size];
   sigmaSq_1_4 = new double [size];
 
-  enCorrection = new double [size];
-  virCorrection = new double [size];
-
-  rCut = forcefield.rCut;
   //Combining VDW parameter
-  Blend(mie, forcefield.rCut);
+  Blend(mie);
   //Adjusting VDW parameter using NBFIX
-  AdjNBfix(mie, nbfix, forcefield.rCut);
+  AdjNBfix(mie, nbfix);
 
 #ifdef GOMC_CUDA
   double diElectric_1 = 1.0 / forcefield.dielectric;
@@ -107,15 +99,32 @@ void FFParticle::Init(ff_setup::Particle const& mie,
 
 double FFParticle::EnergyLRC(const uint kind1, const uint kind2) const
 {
-  return enCorrection[FlatIndex(kind1, kind2)];
+  uint idx = FlatIndex(kind1, kind2);
+  double tc = 1.0;
+  double sigma = sqrt(sigmaSq[idx]);
+  double rRat = sigma / forcefield.rCut;
+  double N = (double)(n[idx]);
+  tc *= sigma * sigmaSq[idx];
+  tc *= 2.0 * M_PI * epsilon_cn[idx] / (N - 3.0);
+  tc *= (pow(rRat, n[idx] - 3) - ((N - 3.0) / 3.0) * pow(rRat, 3));
+
+  return tc;
 }
 
 double FFParticle::VirialLRC(const uint kind1, const uint kind2) const
 {
-  return virCorrection[FlatIndex(kind1, kind2)];
+  uint idx = FlatIndex(kind1, kind2);
+  double tc = 1.0;
+  double sigma = sqrt(sigmaSq[idx]);
+  double rRat = sigma / forcefield.rCut;
+  double N = (double)(n[idx]);
+  tc *= sigma * sigmaSq[idx];
+  tc *= 2.0 * M_PI * epsilon_cn[idx] / (N - 3.0);
+  tc *= (N * pow(rRat, n[idx] - 3) - (N - 3.0) * 2.0 * pow(rRat, 3));
+  return tc;
 }
 
-void FFParticle::Blend(ff_setup::Particle const& mie, const double rCut)
+void FFParticle::Blend(ff_setup::Particle const& mie)
 {
   for(uint i = 0; i < count; ++i) {
     for(uint j = 0; j < count; ++j) {
@@ -148,12 +157,8 @@ void FFParticle::Blend(ff_setup::Particle const& mie, const double rCut)
         sigma_1_4 = num::MeanA(mie.sigma_1_4, mie.sigma_1_4, i, j);
       }
 
-      double tc = 1.0;
-      double rRat = sigma / rCut;
-      // calculate sig^2 and tc*sig^3
-      num::Cb(sigmaSq[idx], tc, sigma);
       sigmaSq_1_4[idx] = sigma_1_4 * sigma_1_4;
-      tc *= 0.5 * 4.0 * M_PI;
+      sigmaSq[idx] = sigma * sigma;
       epsilon[idx] = num::MeanG(mie.epsilon, mie.epsilon, i, j);
       epsilon_cn[idx] = cn * epsilon[idx];
       epsilon_1_4[idx] = num::MeanG(mie.epsilon_1_4, mie.epsilon_1_4, i, j);
@@ -162,18 +167,12 @@ void FFParticle::Blend(ff_setup::Particle const& mie, const double rCut)
       epsilon_cn_6_1_4[idx] = epsilon_cn_1_4[idx] * 6;
       nOver6[idx] = n[idx] / 6;
       nOver6_1_4[idx] = n_1_4[idx] / 6;
-      enCorrection[idx] = tc / (n[idx] - 3) * epsilon_cn[idx] *
-                          ( pow(rRat, n[idx] - 3) -
-                            (double)(n[idx] - 3.0) / 3.0 * pow(rRat, 3) );
-      virCorrection[idx] = tc / (n[idx] - 3) * epsilon_cn_6[idx] *
-                           ( (double)(n[idx]) / 6.0 * pow(rRat, n[idx] - 3) -
-                             (double)(n[idx] - 3.0) / 3.0 * pow(rRat, 3) );
     }
   }
 }
 
 void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
-                          ff_setup::NBfix const& nbfix, const double rCut)
+                          ff_setup::NBfix const& nbfix)
 {
   uint size = num::Sq(count);
   for(uint i = 0; i < nbfix.epsilon.size(); i++) {
@@ -181,14 +180,12 @@ void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
       if(nbfix.getname(i) == nameFirst[j] || nbfix.getname(i) ==  nameSec[j]) {
         n[j] = nbfix.n[i];
         n_1_4[j] = nbfix.n_1_4[i];
-        double rRat = nbfix.sigma[i] / rCut, tc = 1.0;
-        //calculating sig^2 and tc*sig^3
-        num::Cb(sigmaSq[j], tc, nbfix.sigma[i]);
+        sigmaSq[j] = nbfix.sigma[i] * nbfix.sigma[i];
         sigmaSq_1_4[j] = nbfix.sigma_1_4[i] * nbfix.sigma_1_4[i];
-        tc *= 0.5 * 4.0 * M_PI;
         double cn = n[j] / (n[j] - 6) * pow(n[j] / 6, (6 / (n[j] - 6)));
         double cn_1_4 = n_1_4[j] / (n_1_4[j] - 6) *
                         pow(n_1_4[j] / 6, (6 / (n_1_4[j] - 6)));
+        
         epsilon[j] = nbfix.epsilon[i];
         epsilon_cn[j] = cn * nbfix.epsilon[i];
         epsilon_1_4[j] = nbfix.epsilon_1_4[i];
@@ -197,12 +194,6 @@ void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
         epsilon_cn_6_1_4[j] = epsilon_cn_1_4[j] * 6;
         nOver6[j] = n[j] / 6;
         nOver6_1_4[j] = n_1_4[j] / 6;
-        enCorrection[j] = tc / (n[j] - 3) * epsilon_cn[j] *
-                          ( pow(rRat, n[j] - 3) -
-                            (double)(n[j] - 3.0) / 3.0 * pow(rRat, 3) );
-        virCorrection[j] = tc / (n[j] - 3) * epsilon_cn_6[j] *
-                           ( (double)(n[j]) / 6.0 * pow(rRat, n[j] - 3) -
-                             (double)(n[j] - 3.0) / 3.0 * pow(rRat, 3) );
       }
     }
   }
@@ -300,17 +291,12 @@ inline double FFParticle::CalcEn(const double distSq,
   double rRat2 = distSq / sigmaSq[index];
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
-#ifdef MIE_INT_ONLY
-  uint n_ij = n[index] / 2.0;
-  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
-#else
-  double n_ij = n[index] / 2.0;
-  double repulse = pow(sqrt(rRat2), n_ij);
-#endif
-double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
-double reverseAtt = lambdaCoef + attract;
-double reverseRep = (lambdaCoef + repulse) * (lambdaCoef + repulse);
 
+  double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
+  double reverseAtt = lambdaCoef + attract;
+  double n_ij = n[index] / 6.0;
+  double reverseRep = pow(reverseAtt, n_ij);
+  
   return lambda * epsilon_cn[index] * (1.0 / reverseRep - 1.0 / reverseAtt);
 }
 
@@ -344,20 +330,15 @@ inline double FFParticle::CalcVir(const double distSq, const uint kind1,
   double rRat2 = distSq / sigmaSq[index];
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
-  double n_ij = n[index] / 2.0;
-  double repulse = pow(sqrt(rRat2), n_ij);
-  double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
 
+  double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
   double reverseAtt = (lambdaCoef + attract);
   double reverseAtt2 = reverseAtt * reverseAtt;
-  double reverseRep = (lambdaCoef + repulse);
-  double reverseRep3 = reverseRep * reverseRep * reverseRep;
+  double n_ij = (n[index] / 6.0) + 1.0;
+  double reverseRep = pow(reverseAtt, n_ij);
 
-  double coef = epsilon_cn_6[index] * lambda / distSq;
-  double repTerm = nOver6[index] * repulse / reverseRep3;
-  double attTerm = attract /reverseAtt2;
-
-  double result = coef * (repTerm - attTerm);
+  double coef = epsilon_cn_6[index] * lambda * attract / distSq;
+  double result = coef * (nOver6[index] / reverseRep - 1.0 / reverseAtt2);
   /*if(!isfinite(result)){
     std::cout << "Coef: " << coef << ", repTerm: " << repTerm << ", attTerm: "
     << attTerm << ", lambda: " << lambda << std::endl;

@@ -70,12 +70,36 @@ public:
   //!Returns energy correction
   virtual double EnergyLRC(const uint kind1, const uint kind2) const
   {
-    return enCorrection[FlatIndex(kind1, kind2)];
+    uint idx = FlatIndex(kind1, kind2);
+    double rCut = forcefield.rCut;
+    //A,B and C for energy equation
+    double A = 6.0 * epsilon[idx] * exp(n[idx]) / ((double)n[idx] - 6.0);
+    double B = rMin[idx] / (double)n[idx];
+    double C = epsilon[idx] * (double)n[idx] *  pow(rMin[idx], 6) / 
+                ((double)n[idx] - 6.0);
+
+    double tc = 2.0 * M_PI * (A * B * exp(-rCut/B) *
+                (2.0 * pow(B,2) + (2.0 * B * rCut) + pow(rCut,2)) -
+                C / (3.0 * pow(rCut,3)));
+
+    return tc;
   }
   //!!Returns virial correction
   virtual double VirialLRC(const uint kind1, const uint kind2) const
   {
-    return virCorrection[FlatIndex(kind1, kind2)];
+    uint idx = FlatIndex(kind1, kind2);
+    double rCut = forcefield.rCut;
+    //A,B and C for virial equation
+    double A = 6.0 * epsilon[idx] * exp(n[idx]) / ((double)n[idx] - 6.0);
+    double B = rMin[idx] / (double)n[idx];
+    double C = epsilon[idx] * (double)n[idx] *  pow(rMin[idx], 6) / 
+                ((double)n[idx] - 6.0);
+    double tc = 2.0 * M_PI * (A * exp(-rCut/B) *
+                          (6.0 * pow(B,3) + 6.0 * pow(B,2) * rCut + 
+                          3.0 * pow(rCut,2) * B + pow(rCut,3)) -
+                          2.0 * C / pow(rCut,3));
+
+    return tc;
   }
 
   protected:
@@ -122,19 +146,6 @@ inline void FF_EXP6::Init(ff_setup::Particle const& mie,
       num::Exp6Fun* func4 = new num::RmaxFun(n_1_4[idx], sigma_1_4, rMin_1_4[idx]);
       double rmax_1_4 = Zbrent(func4, 0.0, sigma_1_4, 1.0e-7);
       rMaxSq_1_4[idx] = rmax_1_4 * rmax_1_4;
-      //A,B and C for energy equation
-      double A = 6.0 * epsilon[idx] * exp(n[idx]) / ((double)n[idx] - 6.0);
-      double B = rMin[idx] / (double)n[idx];
-      double C = epsilon[idx] * (double)n[idx] *  pow(rMin[idx], 6) / 
-                  ((double)n[idx] - 6.0);
-
-      enCorrection[idx] = 2.0 * M_PI * (A * B * exp(-rCut/B) *
-                          (2.0 * pow(B,2) + (2.0 * B * rCut) + pow(rCut,2)) -
-                          C / (3.0 * pow(rCut,3)));
-      virCorrection[idx] = 2.0 * M_PI * (A * exp(-rCut/B) *
-                           (6.0 * pow(B,3) + 6.0 * pow(B,2) * rCut + 
-                           3.0 * pow(rCut,2) * B + pow(rCut,3)) -
-                           2.0 * C / pow(rCut,3));
 
       delete func1;
       delete func2;
