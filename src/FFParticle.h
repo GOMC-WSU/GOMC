@@ -102,10 +102,9 @@ protected:
   //Find the index of the pair kind
   uint FlatIndex(const uint i, const uint j) const { return i + j * count; }
   //Combining sigma, epsilon, and n value for different kind
-  void Blend(ff_setup::Particle const& mie, const double rCut);
+  void Blend(ff_setup::Particle const& mie);
   //Use NBFIX to adjust sigma, epsilon, and n value for different kind
-  void AdjNBfix(ff_setup::Particle const& mie, ff_setup::NBfix const& nbfix,
-                const double rCut);
+  void AdjNBfix(ff_setup::Particle const& mie, ff_setup::NBfix const& nbfix);
   //To access rcut and other forcefield data
   const Forcefield& forcefield;
 
@@ -122,8 +121,7 @@ protected:
   //For LJ eps_cn(en) --> 4eps, eps_cn_6 --> 24eps, eps_cn_n --> 48eps
   double * sigmaSq, * epsilon, * epsilon_1_4, * epsilon_cn, * epsilon_cn_6,
          * nOver6, * sigmaSq_1_4, * epsilon_cn_1_4, * epsilon_cn_6_1_4,
-    * nOver6_1_4, * enCorrection, * virCorrection;
-  double rCut;
+    * nOver6_1_4;
 
   uint count;
   bool exp6;

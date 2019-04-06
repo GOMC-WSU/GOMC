@@ -167,6 +167,7 @@ set(libHeaders
    lib/BasicTypes.h
    lib/BitLib.h
    lib/GeomLib.h
+   lib/Lambda.h
    lib/NumLib.h
    lib/StrLib.h
    lib/StrStrmLib.h
