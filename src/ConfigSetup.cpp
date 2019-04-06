@@ -734,6 +734,57 @@ void ConfigSetup::Init(const char *fileName)
              val);
     }
 #endif
+#if ENSEMBLE == NVT ||  ENSEMBLE == NPT
+    else if(CheckString(line[0], "LambdaCoulomb")) {
+      if(line.size() > 1) {
+        sys.freeEn.readLambdaCoulomb = true;
+        printf("%-41s", "Info: Lambda Coulomb");
+        for(uint i = 1; i < line.size(); i++) {
+          double val = stringtod(line[i]);
+          sys.freeEn.lambdaCoulomb.push_back(val);
+          printf("%-6.3f", val);
+        }
+        std::cout << endl; 
+      }
+    } else if(CheckString(line[0], "LambdaVDW")) {
+      if(line.size() > 1) {
+        sys.freeEn.readLambdaVDW = true;
+        printf("%-41s", "Info: Lambda VDW");
+        for(uint i = 1; i < line.size(); i++) {
+          double val = stringtod(line[i]);
+          sys.freeEn.lambdaVDW.push_back(val);
+          printf("%-6.3f", val);
+        }
+        std::cout << endl; 
+      }
+    } else if(CheckString(line[0], "FreeEnergyCalc")) {
+      if(line.size() > 1) {
+        sys.freeEn.enable = checkBool(line[1]);
+        if(sys.freeEn.enable){
+          printf("%-40s %-s \n", "Info: Free Energy Calculation", "Active");
+          if(line.size() > 2) {
+            sys.freeEn.frequency = stringtoi(line[2]);
+            sys.freeEn.freqRead = true;
+            printf("%-40s %-4d \n", "Info: Free Energy Frequency",
+                  sys.freeEn.frequency);
+          }
+        } else {
+          printf("%-40s %-s \n", "Info: Free Energy Calculation", "Inactive");
+        }
+      }
+    } else if (CheckString(line[0], "MoleculeType")) {
+      if(line.size() > 1) {
+        sys.freeEn.molType = line[1];
+        sys.freeEn.molTypeRead = true;
+        if(line.size() > 2) {
+          sys.freeEn.molIndex = stringtoi(line[2]);
+          sys.freeEn.molIndexRead = true;
+          printf("%-40s %-d in %-s \n", "Info: Free Energy Calc for Molecule",
+                sys.freeEn.molIndex, sys.freeEn.molType.c_str());
+        }    
+      }
+    }
+#endif
     else if(CheckString(line[0], "OutputName")) {
       out.statistics.settings.uniqueStr.val = line[1];
       printf("%-40s %-s \n", "Info: Output name", line[1].c_str());
@@ -950,6 +1001,13 @@ void ConfigSetup::fillDefaults(void)
         printf("%-6.3f", val);
       }
       std::cout << endl; 
+    } else if (sys.elect.enable && sys.cfcmcVal.readLambdaCoulomb) {
+      uint last = sys.cfcmcVal.lambdaCoulomb.size() - 1;
+      if(sys.cfcmcVal.lambdaCoulomb[last] < 0.9999) {
+        std::cout << "Error: Last Lambda value for Coulomb is not 1.0 " <<
+          "in CFCMC move! \n";
+          exit(EXIT_FAILURE);
+      }
     }
   }
 
@@ -960,6 +1018,28 @@ void ConfigSetup::fillDefaults(void)
       "Inactive");
   }
 
+#endif
+
+#if ENSEMBLE == NVT || ENSEMBLE == NPT 
+if(sys.freeEn.enable && sys.freeEn.readLambdaVDW ) {
+    if(!sys.elect.enable && !sys.freeEn.readLambdaCoulomb) {
+      sys.freeEn.lambdaCoulomb.resize(sys.freeEn.lambdaVDW.size(), 0.0);
+      sys.freeEn.readLambdaCoulomb = true;
+      printf("%-41s", "Default: Lambda Coulomb");
+      for(uint i = 0; i < sys.freeEn.lambdaCoulomb.size(); i++) {
+        double val = sys.freeEn.lambdaCoulomb[i];
+        printf("%-6.3f", val);
+      }
+      std::cout << endl; 
+    } else if (sys.elect.enable && sys.freeEn.readLambdaCoulomb) {
+      uint last = sys.freeEn.lambdaCoulomb.size() - 1;
+      if(sys.freeEn.lambdaCoulomb[last] < 0.9999) {
+        std::cout << "Error: Last Lambda value for Coulomb is not 1.0 " <<
+          "in Free Energy Calculation! \n";
+          exit(EXIT_FAILURE);
+      }
+    }
+  }
 #endif
 
   if(sys.exclude.EXCLUDE_KIND == UINT_MAX) {
@@ -1431,21 +1511,99 @@ void ConfigSetup::verifyInputs(void)
       }
     }
 
+    uint last = sys.cfcmcVal.lambdaVDW.size() - 1;
+    if(sys.cfcmcVal.lambdaVDW[last] < 0.9999) {
+      std::cout << "Error: Last Lambda value for VDW is not 1.0 " <<
+        "in CFCMC move! \n";
+        exit(EXIT_FAILURE);
+    }
+
     if(!sys.cfcmcVal.readRelaxSteps) {
       std::cout << "Error: Relaxing steps was not defined for CFCMC move! \n";
       exit(EXIT_FAILURE);
     } else if (sys.cfcmcVal.relaxSteps == 0) {
       std::cout << "Warning: No thermal relaxing will be performed in " <<
-	"CFCMC move! \n";
+	    "CFCMC move! \n";
     }
 
     if(sys.cfcmcVal.histFlatness > 0.999 || sys.cfcmcVal.histFlatness < 0.001){
       std::cout << "Error: Unacceptable Value for Histogram Flatness in " <<
-	"CFCMC move! \n";
+	    "CFCMC move! \n";
       exit(EXIT_FAILURE);
     }
   }
-  
+#endif
+#if ENSEMBLE == NVT || ENSEMBLE == NPT
+  if(sys.freeEn.enable) {
+    if(!sys.freeEn.readLambdaCoulomb) {
+      std::cout << "Error: Lambda Coulomb states were not defined for " <<
+	    "Free Energy Calculation! \n";
+      exit(EXIT_FAILURE);
+    }  
+    
+    if (!sys.freeEn.readLambdaVDW) {
+      std::cout << "Error: Lambda VDW states were not defined for " <<
+	    "Free Energy Calculation! \n";
+      exit(EXIT_FAILURE);
+    }
+
+    if(sys.freeEn.lambdaCoulomb.size() != sys.freeEn.lambdaVDW.size()) {
+      std::cout << "Error: Number of Lambda states for VDW and Coulomb " <<
+	    "are not same in Free Energy Calculation! \n";
+      exit(EXIT_FAILURE);
+    }
+
+    for(uint i = 0; i < sys.freeEn.lambdaVDW.size(); i++) {
+      bool decreasing = false;
+      for(uint j = i; j < sys.freeEn.lambdaVDW.size(); j++) {
+        if(sys.freeEn.lambdaVDW[i] > sys.freeEn.lambdaVDW[j]) {
+          decreasing = true;
+        }
+      }
+      if(decreasing) {
+        std::cout << "Error: Lambda VDW values are not in increasing order " <<
+        "in Free Energy Calculation! \n";
+        exit(EXIT_FAILURE);
+      }
+    }
+
+    for(uint i = 0; i < sys.freeEn.lambdaCoulomb.size(); i++) {
+      bool decreasing = false;
+      for(uint j = i; j < sys.freeEn.lambdaCoulomb.size(); j++) {
+        if(sys.freeEn.lambdaCoulomb[i] > sys.freeEn.lambdaCoulomb[j]) {
+          decreasing = true;
+        }
+      }
+      if(decreasing) {
+        std::cout << "Error: Lambda Coulomb values are not in increasing " <<
+        "order in Free Energy Calculation! \n";
+        exit(EXIT_FAILURE);
+      }
+    }
+
+    uint last = sys.freeEn.lambdaVDW.size() - 1;
+    if(sys.freeEn.lambdaVDW[last] < 0.9999) {
+      std::cout << "Error: Last Lambda value for VDW is not 1.0 " <<
+        "in Free Energy Calculation! \n";
+        exit(EXIT_FAILURE);
+    }
+
+    if(!sys.freeEn.freqRead) {
+      std::cout << "Error: Frequency of Free Energy Calculation was " <<
+      "not defined! \n";
+      exit(EXIT_FAILURE);
+    }
+    if(!sys.freeEn.molTypeRead) {
+      std::cout << "Error: Molecule Type for Free Energy Calculation was " <<
+      "not defined! \n";
+      exit(EXIT_FAILURE);
+    }
+    if(!sys.freeEn.molIndexRead) {
+      std::cout << "Error: Molecule Index for Free Energy Calculation was " <<
+      "not defined! \n";
+      exit(EXIT_FAILURE);
+    }
+  }
 #endif
   if(sys.T.inKelvin == DBL_MAX) {
     std::cout << "Error: Temperature is not specified!\n";

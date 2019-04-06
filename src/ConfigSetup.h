@@ -254,6 +254,18 @@ struct CFCMCVal {
   }
 };
 
+struct FreeEnergy {
+  bool enable, readLambdaCoulomb, readLambdaVDW, freqRead; 
+  bool molTypeRead, molIndexRead;
+  uint frequency, molIndex;
+  std::string molType;
+  std::vector<double> lambdaCoulomb, lambdaVDW;
+  FreeEnergy(void) {
+    readLambdaCoulomb = readLambdaVDW = enable = freqRead = false;
+    molTypeRead = molIndexRead = false;
+  }
+};
+
 
 #if ENSEMBLE == GCMC
 struct ChemicalPotential {
@@ -272,6 +284,7 @@ struct SystemVals {
   CBMC cbmcTrials;
   MEMCVal memcVal, intraMemcVal;
   CFCMCVal cfcmcVal;
+  FreeEnergy freeEn;
 #if ENSEMBLE == GCMC
   ChemicalPotential chemPot;
 #elif ENSEMBLE == GEMC || ENSEMBLE == NPT

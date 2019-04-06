@@ -56,6 +56,7 @@ public:
   double movePerc[mv::MOVE_KINDS_TOTAL];
   double totalPerc;
   config_setup::MEMCVal  intraMemcVal;
+  config_setup::FreeEnergy  freeEnVal;
 
   //Only include these variables if they're static for this ensemble...
 #ifndef VARIABLE_VOLUME
