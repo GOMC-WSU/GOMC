@@ -813,7 +813,10 @@ void ConfigSetup::Init(const char *fileName)
             }
         }
         in.replValues.multiSimTitle = ss.str();
-    } else {
+    } else if(line[0] == "Exchange_States") {
+        in.replValues.exchangeStates = checkBool(line[1]);
+    } 
+    else {
       cout << "Warning: Unknown input " << line[0] << "!" << endl;
     }
     // Clear and get ready for the next line

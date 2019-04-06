@@ -113,6 +113,8 @@ void ReplicaExchangeController::runMultiSim(){
 
     ulong step = 0;
     int j;
+    bool swapStates = true;
+    swapStates = (*simsRef)[0]->getReplExParams()->exchangeStates;
     for (ulong i = 0; i < roundedUpDivison; i++){
 
         #pragma omp parallel for private(j)
@@ -143,8 +145,11 @@ void ReplicaExchangeController::runMultiSim(){
               if (i % 2 == parityOfSwaps){
                   delta = calc_delta(fplog, a, b, a, b);
                   if (delta <= 0) {
-                    //exchangeStates(a, b);
-                    exchangeConfigurations(a, b);
+                    if(swapStates){
+                      exchangeStates(a, b);
+                    } else {
+                      exchangeConfigurations(a, b);
+                    }
                     re.prob[i] = 1;
                     re.bEx[i] = true;
                   } else {
@@ -156,8 +161,11 @@ void ReplicaExchangeController::runMultiSim(){
                       re.prob[i] = exp(-delta);
                     }
                     if (rand.rand() < re.prob[i]){
-                      //exchangeStates(a, b);
+                    if(swapStates){
+                      exchangeStates(a, b);
+                    } else {
                       exchangeConfigurations(a, b);
+                    }
                       re.bEx[i] = true;
                     } else {
                       re.bEx[i] = false;

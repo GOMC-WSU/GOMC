@@ -163,6 +163,11 @@ Clock* Simulation::getClock(){
   return cpu->getClock();
 }
 
+ReplicaExchangeParameters* Simulation::getReplExParams(){
+  return &replExParams;
+}
+
+
 std::string Simulation::getConfigFileName(){
   return configFileName;
 }
@@ -230,6 +235,7 @@ void Simulation::initReplExParams(struct config_setup::ReplicaExchangeValuesFrom
   replExParams.numExchanges = replExValuesFromConfFile.numExchanges;
   replExParams.randomSeed = replExValuesFromConfFile.randomSeed;
   replExParams.multiSimTitle = replExValuesFromConfFile.multiSimTitle;
+  replExParams.exchangeStates = replExValuesFromConfFile.exchangeStates;
 }
 
 void Simulation::setupHierarchicalDirectoryStructure(){

@@ -50,6 +50,7 @@ public:
   void setBeta(double beta);
   void setCPUSide(CPUSide * cpu);
   Clock* getClock();
+  ReplicaExchangeParameters* getReplExParams();
   void initReplExParams(struct config_setup::ReplicaExchangeValuesFromConf);
   void setupHierarchicalDirectoryStructure();
 
