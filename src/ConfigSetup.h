@@ -351,6 +351,7 @@ struct Output {
 
   bool  useMultidir;
   std::string replica_path;
+  int originalReplicaIndex;
   SysState state, restart;
   Statistics statistics;
   EventSettings console, checkpoint;

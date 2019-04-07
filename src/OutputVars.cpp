@@ -14,14 +14,16 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveConst.h" //For box constants, if we're calculating Hv
 #endif
 
-OutputVars::OutputVars(System & sys, StaticVals const& statV) :
+OutputVars::OutputVars(System & sys, StaticVals & statV) :
   calc(sys.calcEnergy)
 {
   InitRef(sys, statV);
 }
 
-void OutputVars::InitRef(System & sys, StaticVals const& statV)
+void OutputVars::InitRef(System & sys, StaticVals & statV)
 {
+  replSys = &sys;
+  replStatV = &statV;
   T_in_K = statV.forcefield.T_in_K;
   volumeRef = sys.boxDimRef.volume;
   axisRef = &sys.boxDimRef.axis;

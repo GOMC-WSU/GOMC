@@ -63,7 +63,7 @@ ReplicaExchangeController::ReplicaExchangeController(vector<Simulation*>* sims){
         }
     }
     if (exchangeRate > 0) {
-      roundedUpDivison = ((*simsRef)[0]->getTotalSteps() + exchangeRate - 1) / exchangeRate;
+      roundedUpDivison = ((*simsRef)[0]->getTotalSteps()-(*simsRef)[0]->getCPUSide()->equilSteps + exchangeRate - 1) / exchangeRate;
     } else {
       exchangeRate = totalSteps;
       roundedUpDivison = 1;
@@ -110,17 +110,24 @@ void ReplicaExchangeController::runMultiSim(){
     fprintf(fplog, "\nReplica exchange interval: %lu\n", (*simsRef)[0]->getExchangeInterval());
     fprintf(fplog, "\nReplica random seed: %d\n", (*simsRef)[0]->getReplExSeed());
     fprintf(fplog, "\nReplica exchange information below: ex and x = exchange, pr = probability\n\n");
-
+    fflush(fplog);
     ulong step = 0;
-    int j;
+    int j, k;
     bool swapStates = true;
     swapStates = (*simsRef)[0]->getReplExParams()->exchangeStates;
+
+    #pragma omp parallel for private(j)
+    for (j = 0; j < (*simsRef).size(); j++){
+      // Note that RunNSteps overwrites startStep before returning to the step it left off on
+      (*simsRef)[j]->RunNSteps((*simsRef)[0]->getCPUSide()->equilSteps);
+    }
+
     for (ulong i = 0; i < roundedUpDivison; i++){
 
-        #pragma omp parallel for private(j)
-        for (j = 0; j < (*simsRef).size(); j++){
+        //#pragma omp parallel for private(j)
+        for (k = 0; k < (*simsRef).size(); k++){
           // Note that RunNSteps overwrites startStep before returning to the step it left off on
-          (*simsRef)[j]->RunNSteps(exchangeRate);
+          (*simsRef)[k]->RunNSteps(exchangeRate);
         }
         
         if (roundedUpDivison != 1){
@@ -129,15 +136,13 @@ void ReplicaExchangeController::runMultiSim(){
 
 
         step += exchangeRate;        
-        if (exchangeRate!=totalSteps  && (*simsRef)[0]->getEquilSteps() <= step){
+        if (exchangeRate!=totalSteps){
          // replicaLog.file << "Replica exchange at step " << step << std::endl;
           timer->SetStop();
           fprintf(fplog, "\nReplica exchange at step %lu time %.5f\n", step, timer->GetTimDiff());
           parityOfSwaps = ((*simsRef)[0]->getStartStep() / exchangeRate) % 2;
 
           for (int i = 1; i < (*simsRef).size(); i++){
-            if ((*simsRef)[i]->getEquilSteps() < ((*simsRef)[i]->getStartStep() + exchangeRate)) {
-
               a = re.pind[i-1];
               b = re.pind[i];
 
@@ -184,7 +189,6 @@ void ReplicaExchangeController::runMultiSim(){
                   re.prob[i] = -1;
                   re.bEx[i]  = false;
                 }
-              }
             }
             print_ind(fplog, "ex", (*simsRef).size(), re.ind, re.bEx);
             print_prob(fplog, "pr", (*simsRef).size(), re.prob);
@@ -195,9 +199,9 @@ void ReplicaExchangeController::runMultiSim(){
                 re.nmoves[re.pind[i]][re.ind[i]] += 1;
             }
         }
-        print_replica_exchange_statistics(fplog, &re);
       }
-    }  
+    }
+    print_replica_exchange_statistics(fplog, &re); 
 }
 
 void ReplicaExchangeController::exchangeStates(int a, int b){
@@ -210,11 +214,22 @@ void ReplicaExchangeController::exchangeStates(int a, int b){
   (*simsRef)[b]->setT_in_K(swapperForT_in_K);
   (*simsRef)[b]->setBeta(swapperForBeta);
   (*simsRef)[b]->setCPUSide(swapperForCPUSide);
+  
   Simulation * swapperForReplica = (*simsRef)[a];
   (*simsRef)[a] = (*simsRef)[b];
   (*simsRef)[b] = swapperForReplica;
   (*simsRef)[a]->getSystem()->cellList.RebuildNeighbors(0);
   (*simsRef)[b]->getSystem()->cellList.RebuildNeighbors(0);
+
+  System * swapperForReplSys = (*simsRef)[a]->getCPUSide()->getReplSys();
+  StaticVals * swapperForReplStatV = (*simsRef)[a]->getCPUSide()->getReplStatV();
+  (*simsRef)[a]->getCPUSide()->setReplSys((*simsRef)[b]->getCPUSide()->getReplSys());
+  (*simsRef)[a]->getCPUSide()->setReplStatV((*simsRef)[b]->getCPUSide()->getReplStatV());
+  (*simsRef)[b]->getCPUSide()->setReplSys(swapperForReplSys);
+  (*simsRef)[b]->getCPUSide()->setReplStatV(swapperForReplStatV);
+
+  (*simsRef)[a]->getCPUSide()->reInitVarRef();
+  (*simsRef)[b]->getCPUSide()->reInitVarRef();
 }
 
 void ReplicaExchangeController::exchangeConfigurations(int a, int b){
@@ -247,6 +262,8 @@ void ReplicaExchangeController::exchangeConfigurations(int a, int b){
 
   (*simsRef)[a]->getSystem()->cellList.RebuildNeighbors(0);
   (*simsRef)[b]->getSystem()->cellList.RebuildNeighbors(0);
+ // (*simsRef)[a]->getSystem()->potential.operator=((*simsRef)[a]->getSystem()->calcEnergy.SystemTotal());
+ // (*simsRef)[b]->getSystem()->potential.operator=((*simsRef)[b]->getSystem()->calcEnergy.SystemTotal());
 }
 
 double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap, int bp){
