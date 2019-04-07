@@ -106,7 +106,12 @@ double FFParticle::EnergyLRC(const uint kind1, const uint kind2) const
   double N = (double)(n[idx]);
   tc *= sigma * sigmaSq[idx];
   tc *= 2.0 * M_PI * epsilon_cn[idx] / (N - 3.0);
-  tc *= (pow(rRat, n[idx] - 3) - ((N - 3.0) / 3.0) * pow(rRat, 3));
+  if(forcefield.freeEnergy) {
+    //For free energy calc, we only consider attraction part
+    tc *= (-((N - 3.0) / 3.0) * pow(rRat, 3));
+  } else {
+    tc *= (pow(rRat, n[idx] - 3) - ((N - 3.0) / 3.0) * pow(rRat, 3));
+  }
 
   return tc;
 }
@@ -120,7 +125,13 @@ double FFParticle::VirialLRC(const uint kind1, const uint kind2) const
   double N = (double)(n[idx]);
   tc *= sigma * sigmaSq[idx];
   tc *= 2.0 * M_PI * epsilon_cn[idx] / (N - 3.0);
-  tc *= (N * pow(rRat, n[idx] - 3) - (N - 3.0) * 2.0 * pow(rRat, 3));
+  if(forcefield.freeEnergy) {
+    //For free energy calc, we only consider attraction part
+    tc *= (- (N - 3.0) * 2.0 * pow(rRat, 3));
+  } else {
+    tc *= (N * pow(rRat, n[idx] - 3) - (N - 3.0) * 2.0 * pow(rRat, 3));
+  }
+
   return tc;
 }
 

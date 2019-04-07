@@ -171,7 +171,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
     return potential;
 
   double tempREn = 0.0, tempLJEn = 0.0;
-  double distSq, qi_qj_fact;
+  double distSq, qi_qj_fact, lambdaVDW, lambdaCoulomb;
   int i;
   XYZ virComponents, forceLJ, forceReal;
   std::vector<uint> pair1, pair2;
@@ -242,18 +242,23 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
 #else
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents, forceReal, forceLJ) reduction(+:tempREn, tempLJEn)
+#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents, forceReal, forceLJ, lambdaVDW, lambdaCoulomb) reduction(+:tempREn, tempLJEn)
 #endif
   for (i = 0; i < pair1.size(); i++) {
-    if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)) {
+    if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)){
+      lambdaVDW = GetLambdaVDW(particleMol[pair1[i]],
+                              particleMol[pair2[i]],box);
+      lambdaCoulomb = GetLambdaCoulomb(particleMol[pair1[i]],
+                                      particleMol[pair2[i]], box);
 
       if (electrostatic) {
         qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] *
           num::qqFact;
-        tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact, 1.0, box);
+        tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact,
+                                                    lambdaCoulomb, box);
       }
       tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
-                  particleKind[pair2[i]], 1.0);
+                  particleKind[pair2[i]], lambdaVDW);
     }
   }
 #endif

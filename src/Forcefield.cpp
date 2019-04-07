@@ -57,6 +57,7 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
 
   vdwKind = val.ff.VDW_KIND;
   exckind = val.exclude.EXCLUDE_KIND;
+  freeEnergy = val.freeEn.enable;
 
   electrostatic = val.elect.enable;
   ewald = val.elect.ewald;
