@@ -66,13 +66,7 @@ ReplicaExchangeController::ReplicaExchangeController(vector<Simulation*>* sims){
       roundedUpDivison = ((*simsRef)[0]->getTotalSteps() + exchangeRate - 1) / exchangeRate;
     } else {
       exchangeRate = totalSteps;
-      int j;
-      #pragma omp parallel for private(j)
-      for (j = 0; j < (*simsRef).size(); j++){
-        // Note that RunNSteps overwrites startStep before returning to the step it left off on
-        (*simsRef)[j]->RunNSteps(exchangeRate);
-      }
-      return;
+      roundedUpDivison = 1;
     }
 
     InitRecordKeeper();
@@ -129,6 +123,7 @@ void ReplicaExchangeController::runMultiSim(){
           (*simsRef)[j]->RunNSteps(exchangeRate);
         }
         
+        if (roundedUpDivison != 1){
         for (int i = 0; i < (*simsRef).size(); i++)
           re.pind[i] = re.ind[i];
 
@@ -200,8 +195,9 @@ void ReplicaExchangeController::runMultiSim(){
                 re.nmoves[re.pind[i]][re.ind[i]] += 1;
             }
         }
+        print_replica_exchange_statistics(fplog, &re);
       }
-      print_replica_exchange_statistics(fplog, &re);  
+    }  
 }
 
 void ReplicaExchangeController::exchangeStates(int a, int b){
