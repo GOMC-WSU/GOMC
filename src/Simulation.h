@@ -53,6 +53,7 @@ public:
   ReplicaExchangeParameters* getReplExParams();
   void initReplExParams(struct config_setup::ReplicaExchangeValuesFromConf);
   void setupHierarchicalDirectoryStructure();
+  bool operator ==(Simulation const& ) const;
 
 #ifndef NDEBUG
   void RunningCheck(const uint step);

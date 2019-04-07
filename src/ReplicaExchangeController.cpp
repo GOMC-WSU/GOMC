@@ -213,6 +213,8 @@ void ReplicaExchangeController::exchangeStates(int a, int b){
   Simulation * swapperForReplica = (*simsRef)[a];
   (*simsRef)[a] = (*simsRef)[b];
   (*simsRef)[b] = swapperForReplica;
+  (*simsRef)[a]->getSystem()->cellList.RebuildNeighbors(0);
+  (*simsRef)[b]->getSystem()->cellList.RebuildNeighbors(0);
 }
 
 void ReplicaExchangeController::exchangeConfigurations(int a, int b){

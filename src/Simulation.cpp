@@ -262,6 +262,20 @@ void Simulation::setupHierarchicalDirectoryStructure(){
 
 }
 
+bool Simulation::operator ==(Simulation const& sim) const{
+  this->staticValues        ==  sim.staticValues;
+  this->system              ==  sim.system;
+  this->cpu                 ==  sim.cpu;
+  this->totalSteps          ==  sim.totalSteps;
+  this->frameSteps          ==  sim.frameSteps;
+  this->remarksCount        ==  sim.remarksCount;
+  this->startStep           ==  sim.startStep;
+  this->startEnergy         ==  sim.startEnergy;
+  this->absoluteTotalSteps  ==  sim.absoluteTotalSteps;
+  this->replExParams        ==  sim.replExParams;
+  this->configFileName      ==  sim.configFileName;
+}
+
 #ifndef NDEBUG
 void Simulation::RunningCheck(const uint step)
 {
