@@ -118,6 +118,7 @@ public:
 
 
 private:
+  void InitLambda();
   void InitMoves(Setup const& set);
   void PickMove(uint & kind, double & draw);
   uint SetParams(const uint kind, const double draw);

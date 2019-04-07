@@ -256,13 +256,13 @@ struct CFCMCVal {
 
 struct FreeEnergy {
   bool enable, readLambdaCoulomb, readLambdaVDW, freqRead; 
-  bool molTypeRead, molIndexRead;
-  uint frequency, molIndex;
+  bool molTypeRead, molIndexRead, iStateRead;
+  uint frequency, molIndex, iState;
   std::string molType;
   std::vector<double> lambdaCoulomb, lambdaVDW;
   FreeEnergy(void) {
     readLambdaCoulomb = readLambdaVDW = enable = freqRead = false;
-    molTypeRead = molIndexRead = false;
+    molTypeRead = molIndexRead = iStateRead = false;
   }
 };
 

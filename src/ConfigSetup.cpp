@@ -783,6 +783,13 @@ void ConfigSetup::Init(const char *fileName)
                 sys.freeEn.molIndex, sys.freeEn.molType.c_str());
         }    
       }
+    } else if (CheckString(line[0], "InitialState")) {
+      if(line.size() > 1) {
+        sys.freeEn.iState = stringtoi(line[1]);
+        sys.freeEn.iStateRead = true;
+        printf("%-40s %-d \n", "Info: Free Energy Calc Lambda state",
+              sys.freeEn.iState);
+      }
     }
 #endif
     else if(CheckString(line[0], "OutputName")) {
@@ -1584,6 +1591,12 @@ void ConfigSetup::verifyInputs(void)
     uint last = sys.freeEn.lambdaVDW.size() - 1;
     if(sys.freeEn.lambdaVDW[last] < 0.9999) {
       std::cout << "Error: Last Lambda value for VDW is not 1.0 " <<
+        "in Free Energy Calculation! \n";
+        exit(EXIT_FAILURE);
+    }
+
+    if(sys.freeEn.lambdaVDW.size() <= sys.freeEn.iState) {
+      std::cout << "Error: Initial Lambda state is not valid " <<
         "in Free Energy Calculation! \n";
         exit(EXIT_FAILURE);
     }
