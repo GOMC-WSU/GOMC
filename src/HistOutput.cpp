@@ -17,7 +17,7 @@ Histogram::Histogram(OutputVars & v)
   total = NULL;
   for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
     molCount[b] = NULL;
-    outF[b] = NULL;
+    outF[b] = new ofstream();
     name[b] = NULL;
   }
 }

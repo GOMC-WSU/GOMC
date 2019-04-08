@@ -126,10 +126,10 @@ void ReplicaExchangeController::runMultiSim(){
 
 
         step += exchangeRate;        
-        if (exchangeRate!=totalSteps  && (*simsRef)[0]->getEquilSteps() <= step){
+        if (exchangeRate!=totalSteps  && (*simsRef)[0]->getEquilSteps() <= step+1){
          // replicaLog.file << "Replica exchange at step " << step << std::endl;
           timer->SetStop();
-          fprintf(fplog, "\nReplica exchange at step %lu time %.5f\n", step, timer->GetTimDiff());
+          fprintf(fplog, "\nReplica exchange at step %lu time %.5f\n", step+1, timer->GetTimDiff());
           parityOfSwaps = ((*simsRef)[0]->getStartStep() / exchangeRate) % 2;
 
           for (int i = 1; i < (*simsRef).size(); i++){
@@ -202,7 +202,6 @@ void ReplicaExchangeController::exchange(int a, int b){
   Simulation * swapperForReplica = (*simsRef)[a];
   (*simsRef)[a] = (*simsRef)[b];
   (*simsRef)[b] = swapperForReplica;
-
 }
 
 double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap, int bp){
