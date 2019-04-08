@@ -460,8 +460,8 @@ inline void IntraMoleculeExchange1::CalcEn()
   correctDiff = 0.0;
 
   if(!overlap) {
-    recipDiffA = calcEwald->SwapRecip(newMolA, oldMolA);
-    recipDiffB = calcEwald->SwapRecip(newMolB, oldMolB);
+    recipDiffA = calcEwald->SwapRecip(newMolA, oldMolA, molIndexA, molIndexA);
+    recipDiffB = calcEwald->SwapRecip(newMolB, oldMolB, molIndexB, molIndexB);
 
     //No need to contribute the self and correction energy since insertion
     //and deletion are rigid body

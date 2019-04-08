@@ -1616,6 +1616,18 @@ void ConfigSetup::verifyInputs(void)
       "not defined! \n";
       exit(EXIT_FAILURE);
     }
+
+    if(!sys.step.pressureCalc) {
+      std::cout << "Error: Pressure calculation must be active in " <<
+      "Free Energy calculation! \n";
+      exit(EXIT_FAILURE);
+    }
+
+    if((sys.freeEn.frequency % sys.step.pressureCalcFreq) != 0) {
+      std::cout << "Error: Free Energy calculation Freq must be common " <<
+      "number of Pressure calculation freq! \n";
+      exit(EXIT_FAILURE);
+    }
   }
 #endif
   if(sys.T.inKelvin == DBL_MAX) {

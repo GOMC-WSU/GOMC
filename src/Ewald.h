@@ -102,10 +102,16 @@ public:
   //calculate reciprocate term for inserting some molecules (kindA) in
   //destination box and removing a molecule (kindB) from destination box
   virtual double SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
-                           const std::vector<cbmc::TrialMol> &oldMol);
+                           const std::vector<cbmc::TrialMol> &oldMol,
+                           const std::vector<uint> molIndexNew,
+                            const std::vector<uint> molIndexOld);
 
-  //calculate correction term after swap move
+  //calculate correction term after swap move, with lambda = 1
   virtual double SwapCorrection(const cbmc::TrialMol& trialMol) const;
+
+  //calculate correction term after swap move, with system lambda 
+  virtual double SwapCorrection(const cbmc::TrialMol& trialMol,
+                                const uint molIndex) const;
     
   //back up reciptocate value to Ref (will be called during initialization)
   virtual void SetRecipRef(uint box);

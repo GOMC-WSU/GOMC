@@ -46,7 +46,9 @@ public:
   //calculate reciprocate term for inserting some molecules (kindA) in
   //destination box and removing a molecule (kindB) from destination box
   virtual double SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
-                           const std::vector<cbmc::TrialMol> &oldMol);
+                           const std::vector<cbmc::TrialMol> &oldMol,
+                           const std::vector<uint> molIndexNew,
+                           const std::vector<uint> molIndexOld);
 
   //restore cosMol and sinMol
   virtual void RestoreMol(int molIndex);

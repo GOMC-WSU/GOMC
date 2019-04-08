@@ -287,11 +287,11 @@ inline void IntraMoleculeExchange3::CalcEn()
   // inserted rigid body. We just need it for kindL
   if(!overlap) {
     for(uint n = 0; n < numInCavB; n++) {
-      correctDiff += calcEwald->SwapCorrection(newMolB[n]);
-      correctDiff -= calcEwald->SwapCorrection(oldMolB[n]);
+      correctDiff += calcEwald->SwapCorrection(newMolB[n], molIndexB[n]);
+      correctDiff -= calcEwald->SwapCorrection(oldMolB[n], molIndexB[n]);
     }
-    recipDiffA = calcEwald->SwapRecip(newMolA, oldMolA);
-    recipDiffB = calcEwald->SwapRecip(newMolB, oldMolB);
+    recipDiffA = calcEwald->SwapRecip(newMolA, oldMolA, molIndexA, molIndexA);
+    recipDiffB = calcEwald->SwapRecip(newMolB, oldMolB, molIndexB, molIndexB);
 
     W_recip = exp(-1.0 * ffRef.beta * (recipDiffA + recipDiffB +
                                         correctDiff));

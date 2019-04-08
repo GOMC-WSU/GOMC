@@ -595,6 +595,12 @@ inline bool CFCMC::AcceptInflating()
     sysPotRef.Total();
     //set single move accept to true for multiparticle
     moveSetRef.SetSingleMoveAccepted();
+  } else {
+    //We dont need to update sinMol and cosMol because we dont change it
+    //I will do it for consistency 
+    if (!overlapCFCMC) {
+        calcEwald->RestoreMol(molIndex);
+    }
   }
   overlapCFCMC = false;
 

@@ -180,6 +180,7 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 
     while (thisMol != end) {
       MoleculeKind const& thisKind = mols.GetKind(*thisMol);
+      double lambdaCoef = GetLambdaCoef(*thisMol, box);
 
 #ifdef _OPENMP
       #pragma omp parallel for default(shared) private(i, j, dotProduct)
@@ -192,14 +193,15 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
           dotProduct = Dot(mols.MolStart(*thisMol) + j,
                            kx[box][i], ky[box][i],
                            kz[box][i], molCoords);
-
+          //cache the Cos and sin term with lambda = 1
           cosMolRef[*thisMol][i] += (thisKind.AtomCharge(j) *
                                      cos(dotProduct));
           sinMolRef[*thisMol][i] += (thisKind.AtomCharge(j) *
                                      sin(dotProduct));
         }
-        sumRnew[box][i] += cosMolRef[*thisMol][i];
-        sumInew[box][i] += sinMolRef[*thisMol][i];
+        //store the summation with system lambda
+        sumRnew[box][i] += (lambdaCoef * cosMolRef[*thisMol][i]);
+        sumInew[box][i] += (lambdaCoef * sinMolRef[*thisMol][i]);
       }
       thisMol++;
     }
@@ -241,6 +243,7 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
     int i;
     double sumRealNew, sumImaginaryNew, dotProductNew, sumRealOld,
            sumImaginaryOld;
+    double lambdaCoef = GetLambdaCoef(molIndex, box);
 
 #ifdef _OPENMP
     #pragma omp parallel for default(shared) private(i, p, sumRealNew, sumImaginaryNew, sumRealOld, sumImaginaryOld, dotProductNew) reduction(+:energyRecipNew)
@@ -263,8 +266,10 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
         sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
       }
 
-      sumRnew[box][i] = sumRref[box][i] - sumRealOld + sumRealNew;
-      sumInew[box][i] = sumIref[box][i] - sumImaginaryOld + sumImaginaryNew;
+      sumRnew[box][i] = sumRref[box][i] + lambdaCoef *
+                        (sumRealNew - sumRealOld);
+      sumInew[box][i] = sumIref[box][i] + lambdaCoef *
+                        (sumImaginaryNew - sumImaginaryOld);
       cosMolRef[molIndex][i] = sumRealNew;
       sinMolRef[molIndex][i] = sumImaginaryNew;
 
@@ -277,6 +282,8 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
 }
 
 //calculate reciprocate term in destination box for swap move
+//It never been caled in Free Energy calculatio, becaue we are in 
+// NVT and NPT ensemble
 double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
                                   const uint box,
                                   const int molIndex)
@@ -335,6 +342,8 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
 
 
 //calculate reciprocate term in source box for swap move
+//It never been caled in Free Energy calculatio, becaue we are in 
+// NVT and NPT ensemble
 double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                     const uint box, const int molIndex)
 {
@@ -362,7 +371,9 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 //calculate reciprocate term for inserting some molecules (kindA) in destination
 // box and removing a molecule (kindB) from destination box
 double EwaldCached::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
-                              const std::vector<cbmc::TrialMol> &oldMol)
+                              const std::vector<cbmc::TrialMol> &oldMol,
+                              const std::vector<uint> molIndexNew,
+                              const std::vector<uint> molIndexOld)
 {
   //This function should not be called in IDExchange move
   std::cout << "Error: Cached Fourier method cannot be used while " <<
@@ -376,11 +387,35 @@ double EwaldCached::CFCMCRecip(XYZArray const& molCoords,const double lambdaOld,
                                const double lambdaNew, const uint molIndex,
                                const uint box)
 {
-  //This function should not be called in CFCMC move
-  std::cout << "Error: Cached Fourier method cannot be used while " <<
-    "performing CFCMC move!" << std::endl;
-  exit(EXIT_FAILURE);
-  return 0.0;
+  double energyRecipNew = 0.0;
+
+  if (box < BOXES_WITH_U_NB) {
+    MoleculeKind const& thisKind = mols.GetKind(molIndex);
+    uint length = thisKind.NumAtoms();
+    uint p;
+    int i;
+    double sumRealNew, sumImaginaryNew;
+    double lambdaCoef = pow(lambdaNew, 2.5) - pow(lambdaOld, 2.5);
+
+#ifdef _OPENMP
+    #pragma omp parallel for default(shared) private(i, p, sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
+#endif
+    for (i = 0; i < imageSizeRef[box]; i++) {
+      sumRealNew = cosMolRef[molIndex][i];
+      sumImaginaryNew = sinMolRef[molIndex][i];
+      cosMolRestore[i] = cosMolRef[molIndex][i];
+      sinMolRestore[i] = sinMolRef[molIndex][i];
+      //Coordinates are same, no need to recalculate the sin and cos term
+      //We use the store sinMol and cosMol
+      sumRnew[box][i] = sumRref[box][i] + lambdaCoef * sumRealNew;
+      sumInew[box][i] = sumIref[box][i] + lambdaCoef * sumImaginaryNew;
+
+      energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
+                         * sumInew[box][i]) * prefactRef[box][i];
+    }
+  }
+
+  return energyRecipNew - sysPotRef.boxEnergy[box].recip;
 }
 
 //restore cosMol and sinMol

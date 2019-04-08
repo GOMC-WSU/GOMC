@@ -13,6 +13,8 @@ class Lambda
 public:
   Lambda() {
     std::fill_n(isFraction, BOX_TOTAL, false);
+    std::fill_n(lambdaVDW, BOX_TOTAL, 1.0);
+    std::fill_n(lambdaCoulomb, BOX_TOTAL, 1.0);
   }
 
   void Set(const double vdw, const double coulomb, const uint mol,
@@ -25,6 +27,8 @@ public:
   double GetLambdaVDW(const uint kind, const uint box) const;
 
   double GetLambdaCoulomb(const uint mol,const uint kind, const uint box) const;
+
+  double GetLambdaCoulomb(const uint kind, const uint box) const;
 
   bool KindIsFractional(const uint kind, const uint box) const;
 
@@ -81,6 +85,17 @@ inline double Lambda::GetLambdaCoulomb(const uint mol, const uint kind,
     double val = 1.0;
     if(isFraction[box]) {
         if((molIndex[box] == mol) && (kindIndex[box] == kind)) {
+            val = lambdaCoulomb[box];
+        }
+    }
+    return val;
+}
+
+inline double Lambda::GetLambdaCoulomb(const uint kind, const uint box) const
+{
+    double val = 1.0;
+    if(isFraction[box]) {
+        if(kindIndex[box] == kind) {
             val = lambdaCoulomb[box];
         }
     }

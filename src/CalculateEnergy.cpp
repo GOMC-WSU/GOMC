@@ -246,12 +246,11 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 #endif
   for (i = 0; i < pair1.size(); i++) {
     if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)){
-      lambdaVDW = GetLambdaVDW(particleMol[pair1[i]],
-                              particleMol[pair2[i]],box);
-      lambdaCoulomb = GetLambdaCoulomb(particleMol[pair1[i]],
-                                      particleMol[pair2[i]], box);
-
+      lambdaVDW = GetLambdaVDW(particleMol[pair1[i]],particleMol[pair2[i]],box);
+      
       if (electrostatic) {
+        lambdaCoulomb = GetLambdaCoulomb(particleMol[pair1[i]],
+                                        particleMol[pair2[i]], box);
         qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] *
           num::qqFact;
         tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact,
@@ -371,11 +370,11 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 #endif
   for (i = 0; i < pair1.size(); i++) {
     if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)) {
-      lambdaVDW = GetLambdaVDW(particleMol[pair1[i]], particleMol[pair2[i]],
-                               box);
-      lambdaCoulomb = GetLambdaCoulomb(particleMol[pair1[i]],
-                                      particleMol[pair2[i]], box);
+      lambdaVDW = GetLambdaVDW(particleMol[pair1[i]],particleMol[pair2[i]],box);
+
       if (electrostatic) {
+        lambdaCoulomb = GetLambdaCoulomb(particleMol[pair1[i]],
+                                        particleMol[pair2[i]], box);
         qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] *
           num::qqFact;
         tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact, lambdaCoulomb, box);
@@ -432,7 +431,7 @@ Virial CalculateEnergy::VirialCalc(const uint box)
   double rT11 = 0.0, rT12 = 0.0, rT13 = 0.0;
   double rT22 = 0.0, rT23 = 0.0, rT33 = 0.0;
 
-  double distSq, pVF, pRF, qi_qj;
+  double distSq, pVF, pRF, qi_qj, lambdaVDW, lambdaCoulomb;
   int i;
   XYZ virC, comC;
   std::vector<uint> pair1, pair2;
@@ -497,7 +496,7 @@ Virial CalculateEnergy::VirialCalc(const uint box)
   }
 #else
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(i, distSq, pVF, pRF, qi_qj, virC, comC) reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33)
+  #pragma omp parallel for default(shared) private(i, distSq, pVF, pRF, qi_qj, virC, comC, lambdaVDW, lambdaCoulomb) reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33)
 #endif
   for (i = 0; i < pair1.size(); i++) {
     if (currentAxes.InRcut(distSq, virC, currentCoords, pair1[i],
@@ -510,11 +509,15 @@ Virial CalculateEnergy::VirialCalc(const uint box)
                                    particleMol[pair2[i]]);
       //calculate the minimum image between com of two molecules
       comC = currentAxes.MinImage(comC, box);
+      lambdaVDW = GetLambdaVDW(particleMol[pair1[i]],particleMol[pair2[i]],box);
 
       if (electrostatic) {
+        lambdaCoulomb = GetLambdaCoulomb(particleMol[pair1[i]],
+                                        particleMol[pair2[i]], box);
         qi_qj = particleCharge[pair1[i]] * particleCharge[pair2[i]];
 
-        pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj, 1.0, box);
+        pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj,
+                                                  lambdaCoulomb, box);
         //calculate the top diagonal of pressure tensor
         rT11 += pRF * (virC.x * comC.x);
         //rT12 += pRF * (0.5 * (virC.x * comC.y + virC.y * comC.x));
@@ -527,7 +530,7 @@ Virial CalculateEnergy::VirialCalc(const uint box)
       }
 
       pVF = forcefield.particles->CalcVir(distSq, particleKind[pair1[i]],
-                                          particleKind[pair2[i]], 1.0);
+                                          particleKind[pair2[i]], lambdaVDW);
       //calculate the top diagonal of pressure tensor
       vT11 += pVF * (virC.x * comC.x);
       //vT12 += pVF * (0.5 * (virC.x * comC.y + virC.y * comC.x));
@@ -621,13 +624,14 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 #endif
       for(i = 0; i < nIndex.size(); i++) {
         distSq = 0.0;
-        lambdaVDW = GetLambdaVDW(molIndex, particleMol[nIndex[i]], box);
-        lambdaCoulomb = GetLambdaCoulomb(molIndex, particleMol[nIndex[i]], box);
         //Subtract old energy
-        if (currentAxes.InRcut(distSq, virComponents,
-                               currentCoords, atom, nIndex[i], box)) {
+        if (currentAxes.InRcut(distSq, virComponents, currentCoords, atom,
+                              nIndex[i], box)) {
+          lambdaVDW = GetLambdaVDW(molIndex, particleMol[nIndex[i]], box);
 
           if (electrostatic) {
+            lambdaCoulomb = GetLambdaCoulomb(molIndex, particleMol[nIndex[i]], 
+                                            box);
             qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
                          num::qqFact;
 
@@ -654,15 +658,17 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 #endif
       for(i = 0; i < nIndex.size(); i++) {
         distSq = 0.0;
-        lambdaVDW = GetLambdaVDW(molIndex, particleMol[nIndex[i]], box);
-        lambdaCoulomb = GetLambdaCoulomb(molIndex, particleMol[nIndex[i]], box);
-        if (currentAxes.InRcut(distSq, virComponents,
-                               molCoords, p, currentCoords, nIndex[i], box)) {
+        if (currentAxes.InRcut(distSq, virComponents, molCoords, p,
+                              currentCoords, nIndex[i], box)) {
+          lambdaVDW = GetLambdaVDW(molIndex, particleMol[nIndex[i]], box);
+
           if(distSq < forcefield.rCutLowSq) {
             overlap |= true;
           }
 
           if (electrostatic) {
+            lambdaCoulomb = GetLambdaCoulomb(molIndex, particleMol[nIndex[i]], 
+                                            box);
             qi_qj_fact = particleCharge[atom] *
                          particleCharge[nIndex[i]] * num::qqFact;
 
@@ -753,9 +759,9 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
 #endif
     for(i = 0; i < nIndex.size(); i++) {
       distSq = 0.0;
-      lambdaVDW = GetLambdaVDW(molIndex, particleMol[nIndex[i]], box);
-      lambdaCoulomb = GetLambdaCoulomb(molIndex, particleMol[nIndex[i]], box);
-      if(currentAxes.InRcut(distSq, trialPos, t, currentCoords,nIndex[i],box)) {
+      if(currentAxes.InRcut(distSq, trialPos, t, currentCoords,nIndex[i],box)){
+        lambdaVDW = GetLambdaVDW(molIndex, particleMol[nIndex[i]], box);
+
         if(distSq < forcefield.rCutLowSq) {
           overlap[t] |= true;
         } 
@@ -763,6 +769,8 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
                                                particleKind[nIndex[i]],
                                                lambdaVDW);
         if(electrostatic) {
+          lambdaCoulomb = GetLambdaCoulomb(molIndex, particleMol[nIndex[i]], 
+                                          box);
           qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
           tempReal += forcefield.particles->CalcCoulomb(distSq, qi_qj_Fact,                                                   lambdaCoulomb, box);
         }
