@@ -35,6 +35,7 @@ struct CPUSide {
   Clock* getClock();
 
   void reInitVarRef();
+  void reInitVarRef(System * sys, StaticVals * sv);
   System * getReplSys();
   StaticVals * getReplStatV();
   void setReplSys(System * sys);

@@ -55,6 +55,10 @@ Clock* CPUSide::getClock(){
   return &timer;
 }
 
+void CPUSide::reInitVarRef(System * sys, StaticVals * sv){
+  varRef.InitRef(*sys, *sv);
+}
+
 void CPUSide::reInitVarRef(){
   varRef.InitRef(*varRef.replSys, *varRef.replStatV);
 }

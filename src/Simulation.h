@@ -54,6 +54,7 @@ public:
   void initReplExParams(struct config_setup::ReplicaExchangeValuesFromConf);
   void setupHierarchicalDirectoryStructure();
   bool operator ==(Simulation const& ) const;
+  void seeNewSysAndStatV();
 
 #ifndef NDEBUG
   void RunningCheck(const uint step);

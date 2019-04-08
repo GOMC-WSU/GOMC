@@ -64,7 +64,6 @@ public:
     enableConsoleToFile = output.useMultidir;
     if(enableConsoleToFile){
       this->consoleToFile = new ofstream(output.state.files.console.name.c_str(), std::ofstream::out);
-      repl_ID = output.originalReplicaIndex;
     }
 
     DoOutput(0);
@@ -73,7 +72,6 @@ public:
 
 private:
   ofstream* consoleToFile;
-  int repl_ID;
   const static int elementWidth = 16;
   bool enableEnergy, enablePressure, enableDens, enableVolume, enableMol, enableConsoleToFile;
   bool enableSurfTension, enableStat;

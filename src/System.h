@@ -102,6 +102,8 @@ public:
 
   CheckpointSetup checkpointSet;
 
+  int repl_ID; // The configuration id
+
   //Procedure to run once move is picked... can also be called directly for
   //debugging...
   void RunMove(uint majKind, double draw, const uint step);

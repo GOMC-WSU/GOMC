@@ -221,7 +221,7 @@ void ReplicaExchangeController::exchangeStates(int a, int b){
   (*simsRef)[a]->getSystem()->cellList.RebuildNeighbors(0);
   (*simsRef)[b]->getSystem()->cellList.RebuildNeighbors(0);
 
-  System * swapperForReplSys = (*simsRef)[a]->getCPUSide()->getReplSys();
+  /*System * swapperForReplSys = (*simsRef)[a]->getCPUSide()->getReplSys();
   StaticVals * swapperForReplStatV = (*simsRef)[a]->getCPUSide()->getReplStatV();
   (*simsRef)[a]->getCPUSide()->setReplSys((*simsRef)[b]->getCPUSide()->getReplSys());
   (*simsRef)[a]->getCPUSide()->setReplStatV((*simsRef)[b]->getCPUSide()->getReplStatV());
@@ -229,7 +229,10 @@ void ReplicaExchangeController::exchangeStates(int a, int b){
   (*simsRef)[b]->getCPUSide()->setReplStatV(swapperForReplStatV);
 
   (*simsRef)[a]->getCPUSide()->reInitVarRef();
-  (*simsRef)[b]->getCPUSide()->reInitVarRef();
+  (*simsRef)[b]->getCPUSide()->reInitVarRef();*/
+  (*simsRef)[a]->seeNewSysAndStatV();
+  (*simsRef)[b]->seeNewSysAndStatV();
+
 }
 
 void ReplicaExchangeController::exchangeConfigurations(int a, int b){

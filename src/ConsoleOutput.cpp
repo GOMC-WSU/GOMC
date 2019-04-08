@@ -53,7 +53,7 @@ void ConsoleOutput::DoOutput(const ulong step)
       }
     } else {
       for(uint b = 0; b < BOX_TOTAL; b++) {
-        *consoleToFile << "\nOn step "<< step+1 << " I am config " << repl_ID << " and temperature "<< var->T_in_K << std::endl;
+        *consoleToFile << "\nOn step "<< step+1 << " I am config " << var->replSys->repl_ID << " and temperature "<< var->T_in_K << std::endl;
 
         if(!forceOutput) {
           PrintMove(b, step);

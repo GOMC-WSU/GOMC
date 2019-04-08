@@ -39,6 +39,7 @@ Simulation::Simulation(char const*const configFileName)
   */
   if (replExParams.multiSimTitle.compare("Replica_Exchange_Simulation") || replExParams.exchangeInterval > 0){
     setupHierarchicalDirectoryStructure();
+    system->repl_ID = set.config.out.originalReplicaIndex;
   }
 
   cpu = new CPUSide(*system, *staticValues);
@@ -275,6 +276,11 @@ bool Simulation::operator ==(Simulation const& sim) const{
   this->replExParams        ==  sim.replExParams;
   this->configFileName      ==  sim.configFileName;
 }
+
+void Simulation::seeNewSysAndStatV(){
+  cpu->reInitVarRef(system, staticValues);
+}
+
 
 #ifndef NDEBUG
 void Simulation::RunningCheck(const uint step)
