@@ -41,8 +41,8 @@ struct BlockAverage {
     }
   }
   //Initializes name, and enable
-  void Init(std::ofstream *file0,
-            std::ofstream *file1,
+  void Init(std::ofstream **file0,
+            std::ofstream **file1,
             const bool en,
             const double scl,
             std::string const& var,
@@ -78,8 +78,8 @@ private:
   void printTitle(std::string output, uint boxes);
  
 
-  std::ofstream* outBlock0;
-  std::ofstream* outBlock1;
+  std::ofstream** outBlock0;
+  std::ofstream** outBlock1;
   bool first;
   std::string name, varName;
   uint ** uintSrc, tot;
@@ -100,11 +100,11 @@ struct BlockAverages : OutputableBase {
 
   ~BlockAverages(void)
   {
-    if (outBlock0.is_open()) {
-      outBlock0.close();
+    if (outBlock0->is_open()) {
+      outBlock0->close();
     }
-    if (outBlock1.is_open()) {
-      outBlock1.close();
+    if (outBlock1->is_open()) {
+      outBlock1->close();
     }
     if ( blocks != NULL ) {
       delete[] blocks;
@@ -128,8 +128,8 @@ private:
   void InitWatchSingle(config_setup::TrackedVars const& tracked);
   void InitWatchMulti(config_setup::TrackedVars const& tracked);
 
-  std::ofstream outBlock0;
-  std::ofstream outBlock1;
+  std::ofstream * outBlock0;
+  std::ofstream * outBlock1;
   //Block vars
   BlockAverage * blocks;
   uint numKindBlocks, totalBlocks;
