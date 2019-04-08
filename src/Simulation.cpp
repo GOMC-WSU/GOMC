@@ -39,7 +39,6 @@ Simulation::Simulation(char const*const configFileName)
   */
   if (replExParams.multiSimTitle.compare("Replica_Exchange_Simulation") || replExParams.exchangeInterval > 0){
     setupHierarchicalDirectoryStructure();
-    system->repl_ID = set.config.out.originalReplicaIndex;
   }
 
   cpu = new CPUSide(*system, *staticValues);
@@ -156,18 +155,9 @@ System* Simulation::getSystem(){
   return system;
 }
 
-StaticVals* Simulation::getStaticValues(){
-  return staticValues;
-}
-
 Clock* Simulation::getClock(){
   return cpu->getClock();
 }
-
-ReplicaExchangeParameters* Simulation::getReplExParams(){
-  return &replExParams;
-}
-
 
 std::string Simulation::getConfigFileName(){
   return configFileName;
@@ -236,7 +226,6 @@ void Simulation::initReplExParams(struct config_setup::ReplicaExchangeValuesFrom
   replExParams.numExchanges = replExValuesFromConfFile.numExchanges;
   replExParams.randomSeed = replExValuesFromConfFile.randomSeed;
   replExParams.multiSimTitle = replExValuesFromConfFile.multiSimTitle;
-  replExParams.exchangeStates = replExValuesFromConfFile.exchangeStates;
 }
 
 void Simulation::setupHierarchicalDirectoryStructure(){
@@ -262,25 +251,6 @@ void Simulation::setupHierarchicalDirectoryStructure(){
   set.config.out.state.files.console.name = replica_stream2.str();
 
 }
-
-bool Simulation::operator ==(Simulation const& sim) const{
-  this->staticValues        ==  sim.staticValues;
-  this->system              ==  sim.system;
-  this->cpu                 ==  sim.cpu;
-  this->totalSteps          ==  sim.totalSteps;
-  this->frameSteps          ==  sim.frameSteps;
-  this->remarksCount        ==  sim.remarksCount;
-  this->startStep           ==  sim.startStep;
-  this->startEnergy         ==  sim.startEnergy;
-  this->absoluteTotalSteps  ==  sim.absoluteTotalSteps;
-  this->replExParams        ==  sim.replExParams;
-  this->configFileName      ==  sim.configFileName;
-}
-
-void Simulation::seeNewSysAndStatV(){
-  cpu->reInitVarRef(system, staticValues);
-}
-
 
 #ifndef NDEBUG
 void Simulation::RunningCheck(const uint step)

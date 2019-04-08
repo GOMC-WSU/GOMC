@@ -813,12 +813,7 @@ void ConfigSetup::Init(const char *fileName)
             }
         }
         in.replValues.multiSimTitle = ss.str();
-    } else if(line[0] == "Exchange_States") {
-        in.replValues.exchangeStates = checkBool(line[1]);
-    } else if(line[0] == "Repl_ID") {
-        out.originalReplicaIndex = stringtoi(line[1]);
-    }
-    else {
+    } else {
       cout << "Warning: Unknown input " << line[0] << "!" << endl;
     }
     // Clear and get ready for the next line

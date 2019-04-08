@@ -33,15 +33,7 @@ struct CPUSide {
   ulong equilSteps;
 
   Clock* getClock();
-
-  void reInitVarRef();
-  void reInitVarRef(System * sys, StaticVals * sv);
-  System * getReplSys();
-  StaticVals * getReplStatV();
-  void setReplSys(System * sys);
-  void setReplStatV(StaticVals * sv);
-
-
+  
   #if ENSEMBLE == GCMC
     double getChemPot();
   #endif

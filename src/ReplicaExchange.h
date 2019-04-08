@@ -16,8 +16,7 @@ struct ReplicaExchangeParameters
         exchangeInterval(0),
         numExchanges(0),
         randomSeed(-1),
-        multiSimTitle("Replica_Exchange_Simulation"),
-        exchangeStates(true)
+        multiSimTitle("Replica_Exchange_Simulation")
     {
     };
 
@@ -25,27 +24,6 @@ struct ReplicaExchangeParameters
     int numExchanges;     /* The number of exchanges to attempt at an exchange step */
     int randomSeed;       /* The random seed, -1 means generate a seed */
     std::string multiSimTitle;
-    bool exchangeStates;
-
-    bool operator ==(ReplicaExchangeParameters const& sim) const{
-        if(sim.exchangeInterval != this->exchangeInterval)
-            return false;
-        
-        if(sim.numExchanges != this->numExchanges)
-            return false;
-        
-        if(sim.randomSeed != this->randomSeed)
-            return false;
-        
-        if(sim.multiSimTitle != this->multiSimTitle)
-            return false;
-
-        if(sim.exchangeStates != this->exchangeStates)
-            return false;
-        
-        return true;                
-    }
-
 };
 struct RecordKeeper
 {

@@ -40,7 +40,6 @@ public:
   double getEpotBox(uint i);
   CPUSide* getCPUSide();
   System* getSystem();
-  StaticVals* getStaticValues();
   ulong getExchangeInterval();
   int getReplExSeed();
   std::string getConfigFileName();
@@ -50,11 +49,8 @@ public:
   void setBeta(double beta);
   void setCPUSide(CPUSide * cpu);
   Clock* getClock();
-  ReplicaExchangeParameters* getReplExParams();
   void initReplExParams(struct config_setup::ReplicaExchangeValuesFromConf);
   void setupHierarchicalDirectoryStructure();
-  bool operator ==(Simulation const& ) const;
-  void seeNewSysAndStatV();
 
 #ifndef NDEBUG
   void RunningCheck(const uint step);

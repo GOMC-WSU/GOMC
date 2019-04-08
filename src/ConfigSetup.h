@@ -96,8 +96,7 @@ struct ReplicaExchangeValuesFromConf{
     exchangeInterval(0),
     numExchanges(0),
     randomSeed(-1),
-    multiSimTitle("Replica_Exchange_Simulation"),
-    exchangeStates(true)
+    multiSimTitle("Replica_Exchange_Simulation")
   {
   };
 
@@ -105,7 +104,6 @@ struct ReplicaExchangeValuesFromConf{
   int numExchanges;     /* The number of exchanges to attempt at an exchange step */
   int randomSeed;       /* The random seed, -1 means generate a seed */
   std::string multiSimTitle;
-  bool exchangeStates;
 };
 
 //Input section of config file data.
@@ -351,7 +349,6 @@ struct Output {
 
   bool  useMultidir;
   std::string replica_path;
-  int originalReplicaIndex;
   SysState state, restart;
   Statistics statistics;
   EventSettings console, checkpoint;

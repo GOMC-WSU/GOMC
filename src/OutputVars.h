@@ -22,12 +22,12 @@ class MoleculeLookup;
 class OutputVars
 {
 public:
-  OutputVars(System & sys, StaticVals & statV);
+  OutputVars(System & sys, StaticVals const& statV);
 
   ~OutputVars(void);
 
   void Init(pdb_setup::Atoms const& atoms);
-  void InitRef(System & sys, StaticVals & statV);
+  void InitRef(System & sys, StaticVals const& statV);
 
   void CalcAndConvert(ulong step);
   bool Performed(uint moveKind);
@@ -59,9 +59,6 @@ public:
   MoleculeKind * kindsRef;
   MoleculeLookup * molLookupRef;
   CalculateEnergy& calc;
-  
-  System * replSys;
-  StaticVals * replStatV;
 
   //Local copy of res names.
   std::vector<std::string> resKindNames;

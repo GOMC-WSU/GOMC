@@ -55,31 +55,6 @@ Clock* CPUSide::getClock(){
   return &timer;
 }
 
-void CPUSide::reInitVarRef(System * sys, StaticVals * sv){
-  varRef.InitRef(*sys, *sv);
-}
-
-void CPUSide::reInitVarRef(){
-  varRef.InitRef(*varRef.replSys, *varRef.replStatV);
-}
-
-System * CPUSide::getReplSys(){
-  return varRef.replSys;
-}
-
-StaticVals * CPUSide::getReplStatV(){
-  return varRef.replStatV;
-}
-
-void CPUSide::setReplSys(System * sys){
-  varRef.replSys = sys;
-}
-
-void CPUSide::setReplStatV(StaticVals * sv){
-  varRef.replStatV = sv;
-}
-
-
   #if ENSEMBLE == GCMC
     double CPUSide::getChemPot(){
       return *varRef.chemPot;
