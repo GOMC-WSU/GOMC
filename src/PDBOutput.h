@@ -36,6 +36,8 @@ public:
   {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       outF[b].close();
+      // Where do I delete the new'ed outF[b].file(s) (and possibly outFRestart[b].file(s))
+      //  delete outF[b].file;
     }
   }
 
@@ -46,6 +48,14 @@ public:
                     config_setup::Output const& output);
 
   virtual void DoOutput(const ulong step);
+
+  ofstream * getPDBToFile(uint box);
+  void setPDBToFile(uint box, ofstream * c2f);
+  ofstream * getPDBRestartToFile(uint box);
+  void setPDBRestartToFile(uint box, ofstream * c2f);
+  bool getEnableRestOut();
+  bool getEnableOutState();
+
 private:
   std::string GetDefaultAtomStr();
 
@@ -73,7 +83,7 @@ private:
 
   void PrintEnd(const uint b, Writer & out)
   {
-    out.file << "END" << std::endl;
+    *out.file << "END" << std::endl;
   }
 
   double ConvAng(const double t)

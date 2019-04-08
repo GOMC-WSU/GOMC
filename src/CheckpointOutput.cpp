@@ -28,7 +28,7 @@ CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
   coordCurrRef(sys.coordinates), filename("checkpoint.dat")
 {
-  outputFile = NULL;
+  outputFile = new ofstream();
 }
 
 void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
@@ -250,7 +250,7 @@ void CheckpointOutput::printMoveSettingsData()
 
 void CheckpointOutput::openOutputFile()
 {
-  outputFile = fopen(filename.c_str(), "wb");
+  outputFile->open(filename.c_str(), std::ofstream::out);
   if(outputFile == NULL) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",
             filename.c_str());
@@ -267,16 +267,16 @@ void CheckpointOutput::outputDoubleIn8Chars(double data)
   }
   dbl_output_union temp;
   temp.dbl_value = data;
-  fprintf(outputFile, "%c%c%c%c%c%c%c%c",
-          temp.bin_value[0],
-          temp.bin_value[1],
-          temp.bin_value[2],
-          temp.bin_value[3],
-          temp.bin_value[4],
-          temp.bin_value[5],
-          temp.bin_value[6],
-          temp.bin_value[7]);
-  fflush(outputFile);
+  *outputFile << 
+          temp.bin_value[0] <<
+          temp.bin_value[1] <<
+          temp.bin_value[2] <<
+          temp.bin_value[3] <<
+          temp.bin_value[4] <<
+          temp.bin_value[5] <<
+          temp.bin_value[6] <<
+          temp.bin_value[7];
+  outputFile->flush();
 }
 
 void CheckpointOutput::outputUintIn8Chars(uint32_t data)
@@ -288,14 +288,14 @@ void CheckpointOutput::outputUintIn8Chars(uint32_t data)
   }
   uint32_output_union temp;
   temp.uint_value = data;
-  fprintf(outputFile, "%c%c%c%c%c%c%c%c",
-          temp.bin_value[0],
-          temp.bin_value[1],
-          temp.bin_value[2],
-          temp.bin_value[3],
-          temp.bin_value[4],
-          temp.bin_value[5],
-          temp.bin_value[6],
-          temp.bin_value[7]);
-  fflush(outputFile);
+  *outputFile << 
+          temp.bin_value[0] <<
+          temp.bin_value[1] <<
+          temp.bin_value[2] <<
+          temp.bin_value[3] <<
+          temp.bin_value[4] <<
+          temp.bin_value[5] <<
+          temp.bin_value[6] <<
+          temp.bin_value[7];
+  outputFile->flush();
 }

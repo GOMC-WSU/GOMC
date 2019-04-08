@@ -55,8 +55,33 @@ Clock* CPUSide::getClock(){
   return &timer;
 }
 
-  #if ENSEMBLE == GCMC
-    double CPUSide::getChemPot(){
-      return *varRef.chemPot;
+void CPUSide::exchangeOfstreamPointers(CPUSide * otherCPUSide){
+  ofstream * swapperForConsole = console.getConsoleToFile(); 
+  console.setConsoleToFile(otherCPUSide->console.getConsoleToFile());
+  otherCPUSide->console.setConsoleToFile(swapperForConsole);
+
+  for (uint box = 0; box < BOX_TOTAL; box++){
+    if (pdb.getEnableOutState()){
+      ofstream * swapperForPDB = pdb.getPDBToFile(box);
+      pdb.setPDBToFile(box, otherCPUSide->pdb.getPDBToFile(box));
+      otherCPUSide->pdb.setPDBToFile(box, swapperForPDB);
+
+      if (pdb.getEnableRestOut()){
+        ofstream * swapperForPDBRest = pdb.getPDBRestartToFile(box);
+        pdb.setPDBRestartToFile(box, otherCPUSide->pdb.getPDBRestartToFile(box));
+        otherCPUSide->pdb.setPDBRestartToFile(box, swapperForPDBRest);
+      }
     }
-  #endif
+#if ENSEMBLE == GCMC
+
+    ofstream * swapperForHist = hist.getHistToFile(box);
+    hist.setHistToFile(box, otherCPUSide->hist.getHistToFile(box));
+    otherCPUSide->hist.setHistToFile(box, swapperForHist);
+
+    ofstream * swapperForSample_N_E = sample_N_E.getSample_N_EToFile(box);
+    sample_N_E.setSample_N_EToFile(box, otherCPUSide->sample_N_E.getSample_N_EToFile(box));
+    otherCPUSide->sample_N_E.setSample_N_EToFile(box, swapperForSample_N_E);  
+
+#endif 
+  }
+}

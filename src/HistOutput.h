@@ -31,6 +31,9 @@ struct Histogram : OutputableBase {
 
   virtual void DoOutput(const ulong step);
 
+  ofstream * getHistToFile(uint box);
+  void setHistToFile(uint box, ofstream * c2f);
+
 private:
   void PrintKindHist(const uint b, const uint k);
 

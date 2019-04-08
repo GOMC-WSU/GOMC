@@ -149,3 +149,11 @@ std::string Histogram::GetFName(std::string const& histName,
   fName += ".dat";
   return fName;
 }
+
+ofstream * Histogram::getHistToFile(uint box){
+  return outF[box];
+}
+
+void Histogram::setHistToFile(uint box, ofstream * p2f){
+  outF[box] = p2f;
+}

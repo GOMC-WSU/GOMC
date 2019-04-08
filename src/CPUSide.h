@@ -33,10 +33,9 @@ struct CPUSide {
   ulong equilSteps;
 
   Clock* getClock();
-  
-  #if ENSEMBLE == GCMC
-    double getChemPot();
-  #endif
+
+  void exchangeOfstreamPointers(CPUSide * otherCPUSide);
+
 
 private:
   Clock timer;

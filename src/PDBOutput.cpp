@@ -35,6 +35,30 @@ std::string PDBOutput::GetDefaultAtomStr()
   return defaultAtomStr;
 }
 
+ofstream * PDBOutput::getPDBToFile(uint box){
+  return outF[box].file;
+}
+
+void PDBOutput::setPDBToFile(uint box, ofstream * p2f){
+  outF[box].file = p2f;
+}
+
+ofstream * PDBOutput::getPDBRestartToFile(uint box){
+  return outRebuildRestart[box].file;
+}
+
+void PDBOutput::setPDBRestartToFile(uint box, ofstream * p2f){
+  outRebuildRestart[box].file = p2f;
+}
+
+bool PDBOutput::getEnableRestOut(){
+  return enableRestOut;
+}
+
+bool PDBOutput::getEnableOutState(){
+  return enableOutState;
+}
+
 void PDBOutput::Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output)
 {
@@ -229,7 +253,7 @@ void PDBOutput::PrintCryst1(const uint b, Writer & out)
   outStr.replace(space::POS.START, space::POS.LENGTH, space::DEFAULT);
   outStr.replace(zvalue::POS.START, zvalue::POS.LENGTH, zvalue::DEFAULT);
   //Write cell line
-  out.file << outStr << std::endl;
+  *out.file << outStr << std::endl;
 }
 
 void PDBOutput::PrintCrystRest(const uint b, const uint step, Writer & out)
@@ -261,7 +285,7 @@ void PDBOutput::PrintCrystRest(const uint b, const uint step, Writer & out)
   toStr.Fixed().Align(stepsNum::ALIGN).Precision(stepsNum::PRECISION);
   toStr.Replace(outStr, step, stepsNum::POS);
   //Write cell line
-  out.file << outStr << std::endl;
+  *out.file << outStr << std::endl;
 }
 
 
@@ -306,7 +330,7 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
       }
       InsertAtomInLine(pStr[p], coor, occupancy::BOX[mBox[m]], beta::FIX[beta]);
       //Write finished string out.
-      outF[b].file << pStr[p] << std::endl;
+      *outF[b].file << pStr[p] << std::endl;
     }
   }
 }
@@ -335,7 +359,7 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
         //Fill in particle's stock string with new x, y, z, and occupancy
         InsertAtomInLine(line, coor, occupancy::BOX[0], beta::FIX[beta]);
         //Write finished string out.
-        outRebuildRestart[b].file << line << std::endl;
+        *outRebuildRestart[b].file << line << std::endl;
         ++atom;
       }
       ++molecule;
@@ -371,5 +395,5 @@ void PDBOutput::PrintRemark(const uint b, const uint step, Writer & out)
   toStr.Replace(outStr, step+1, stepsNum::POS);
 
   //Write cell line
-  out.file << outStr << std::endl;
+  *out.file << outStr << std::endl;
 }

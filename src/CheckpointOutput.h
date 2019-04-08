@@ -16,8 +16,9 @@ public:
   CheckpointOutput(System & sys, StaticVals const& statV);
 
   ~CheckpointOutput() {
-    if(outputFile)
-      fclose(outputFile);
+    if(outputFile->is_open())
+      outputFile->close();
+    delete outputFile;
   }
 
   virtual void DoOutput(const ulong step);
@@ -44,7 +45,7 @@ private:
 
   bool enableOutCheckpoint;
   std::string filename;
-  FILE* outputFile;
+  std::ofstream * outputFile;
   ulong stepsPerCheckpoint;
 
   void openOutputFile();

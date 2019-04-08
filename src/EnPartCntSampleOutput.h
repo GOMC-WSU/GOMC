@@ -47,6 +47,10 @@ struct EnPartCntSample : OutputableBase {
 
   virtual void DoOutput(const ulong step);
 
+ofstream * getSample_N_EToFile(uint box);
+
+void setSample_N_EToFile(uint box, ofstream * p2f);
+
 private:
   void WriteHeader(void);
 
@@ -64,7 +68,7 @@ private:
   //samplesE --> per box; samplesN --> per kind, per box
   double * samplesE [BOXES_WITH_U_NB];
   uint ** samplesN [BOXES_WITH_U_NB], stepsPerSample, samplesCollectedInFrame;
-  std::ofstream outF[BOXES_WITH_U_NB];
+  std::ofstream *outF[BOXES_WITH_U_NB];
   std::string name [BOXES_WITH_U_NB];
 };
 
