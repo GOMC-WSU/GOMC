@@ -577,7 +577,7 @@ inline void MoleculeExchange1::CalcEn()
         self_newA += calcEwald->SwapSelf(newMolA[n]);
         self_oldA += calcEwald->SwapSelf(oldMolA[n]);
     }
-    recipDest = calcEwald->SwapRecip(newMolA, oldMolB);
+    recipDest = calcEwald->SwapRecip(newMolA, oldMolB, molIndexA, molIndexB);
 
     for(uint n = 0; n < numInCavB; n++) {
       correct_newB += calcEwald->SwapCorrection(newMolB[n]);
@@ -585,7 +585,7 @@ inline void MoleculeExchange1::CalcEn()
       self_newB += calcEwald->SwapSelf(newMolB[n]);
       self_oldB += calcEwald->SwapSelf(oldMolB[n]);
     }
-    recipSource = calcEwald->SwapRecip(newMolB, oldMolA);
+    recipSource = calcEwald->SwapRecip(newMolB, oldMolA, molIndexB, molIndexA);
 
     //need to contribute the self and correction energy 
     W_recip = exp(-1.0 * ffRef.beta * (recipSource + recipDest +
@@ -754,9 +754,8 @@ inline void MoleculeExchange1::Accept(const uint rejectState, const uint step)
         sysPotRef.boxEnergy[destBox].self += self_newA;
         sysPotRef.boxEnergy[destBox].self -= self_oldB;
         
-        for (uint b = 0; b < BOX_TOTAL; b++) {
-            calcEwald->UpdateRecip(b);
-        }
+        calcEwald->UpdateRecip(sourceBox);
+        calcEwald->UpdateRecip(destBox);
         //molA and molB already transfered to destBox and added to cellist
         //Retotal
         sysPotRef.Total();

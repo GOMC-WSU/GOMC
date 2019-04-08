@@ -103,8 +103,8 @@ inline void Regrowth::CalcEn()
   correct_new = 0.0;
 
   if (newMol.GetWeight() != 0.0 && !overlap) {
-    correct_new = calcEwald->SwapCorrection(newMol);
-    correct_old = calcEwald->SwapCorrection(oldMol);
+    correct_new = calcEwald->SwapCorrection(newMol, molIndex);
+    correct_old = calcEwald->SwapCorrection(oldMol, molIndex);
     recipDiff.energy = calcEwald->MolReciprocal(newMol.GetCoords(), molIndex,
                        sourceBox);
     //self energy is same
