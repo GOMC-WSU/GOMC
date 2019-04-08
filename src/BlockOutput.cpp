@@ -85,6 +85,20 @@ void BlockAverage::DoWrite(const ulong step, uint precision)
   Zero();
 }
 
+ofstream * BlockAverages::getBlockToFile(uint box){
+  if (box == 0)
+    return outBlock0;
+  if (box == 1)
+    return outBlock1;
+}
+
+void BlockAverages::setBlockToFile(uint box, ofstream * b2f){
+  if (box == 0)
+    outBlock0 = b2f;
+  if (box == 1)
+    outBlock1 = b2f;
+}
+
 void BlockAverages::Init(pdb_setup::Atoms const& atoms,
                          config_setup::Output const& output)
 {

@@ -72,6 +72,12 @@ void CPUSide::exchangeOfstreamPointers(CPUSide * otherCPUSide){
         otherCPUSide->pdb.setPDBRestartToFile(box, swapperForPDBRest);
       }
     }
+
+    if (block.enableOut){
+      ofstream * swapperForBlock = block.getBlockToFile(box);
+      block.setBlockToFile(box, otherCPUSide->block.getBlockToFile(box));
+      otherCPUSide->block.setBlockToFile(box, swapperForBlock);
+    }
 #if ENSEMBLE == GCMC
 
     ofstream * swapperForHist = hist.getHistToFile(box);

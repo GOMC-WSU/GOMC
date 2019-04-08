@@ -110,6 +110,11 @@ struct BlockAverages : OutputableBase {
       delete[] blocks;
     }
   }
+
+  ofstream * getBlockToFile(uint box);
+
+  void setBlockToFile(uint box, ofstream * b2f);
+
   //No additional init.
   virtual void Init(pdb_setup::Atoms const& atoms,
                     config_setup::Output const& output);
