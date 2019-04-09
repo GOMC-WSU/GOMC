@@ -123,7 +123,7 @@ public:
   virtual void UpdateRecipVec(uint box);
 
   //calculate self term after swap move
-  virtual double SwapSelf(const cbmc::TrialMol& trialMo) const;
+  virtual double SwapSelf(const cbmc::TrialMol& trialMol) const;
 
   //restore cosMol and sinMol
   virtual void RestoreMol(int molIndex);
@@ -146,6 +146,27 @@ public:
                                   uint box);
 
   double GetLambdaCoef(uint molA, uint box) const;
+
+  //It's called in free energy calculation to calculate the change in
+  // self energy in all lambda states
+  virtual void ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
+                          const std::vector<double> &lambda_Coul,
+                          const uint iState, const uint molIndex,
+                          const uint box) const;
+
+  //It's called in free energy calculation to calculate the change in
+  // correction energy in all lambda states
+  virtual void ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
+                                const std::vector<double> &lambda_Coul,
+                                const uint iState, const uint molIndex,
+                                const uint box) const;
+                                
+  //It's called in free energy calculation to calculate the change in
+  // reciprocal energy in all lambda states
+  virtual void ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
+                          const std::vector<double> &lambda_Coul,
+                          const uint iState, const uint molIndex,
+                          const uint box) const;
 
 private:
   double currentEnergyRecip[BOXES_WITH_U_NB];

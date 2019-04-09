@@ -127,6 +127,37 @@ double NoEwald::SwapCorrection(const cbmc::TrialMol& trialMol,
   return 0.0;
 }
 
+  //It's called in free energy calculation to calculate the change in
+  // self energy in all lambda states
+  void NoEwald::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
+                            const std::vector<double> &lambda_Coul,
+                            const uint iState, const uint molIndex,
+                            const uint box) const
+  {
+    return;
+  }
+
+  //It's called in free energy calculation to calculate the change in
+  // correction energy in all lambda states
+  void NoEwald::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
+                                const std::vector<double> &lambda_Coul,
+                                const uint iState, const uint molIndex,
+                                const uint box) const
+  {
+    return;
+  }
+                                
+  //It's called in free energy calculation to calculate the change in
+  // reciprocal energy in all lambda states
+  void NoEwald::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
+                          const std::vector<double> &lambda_Coul,
+                          const uint iState, const uint molIndex,
+                          const uint box) const
+  {
+    return;
+  }
+
+
 //back up reciptocate value to Ref (will be called during initialization)
 void NoEwald::SetRecipRef(uint box)
 {

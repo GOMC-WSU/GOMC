@@ -7,6 +7,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef LAMBDA_H
 #define LAMBDA_H
 
+#include "BasicTypes.h" //For ulong, uint
+
 //Defining lambda class to handle fractional molecule
 class Lambda
 {
@@ -31,6 +33,11 @@ public:
   double GetLambdaCoulomb(const uint kind, const uint box) const;
 
   bool KindIsFractional(const uint kind, const uint box) const;
+
+  uint GetKind(const uint box) const;
+
+  uint GetMolIndex(const uint box) const;
+
 
 protected:
   uint molIndex[BOX_TOTAL];
@@ -111,6 +118,26 @@ inline bool Lambda::KindIsFractional(const uint kind, const uint box) const
         }
     }
     return result;
+}
+
+inline uint Lambda::GetKind(const uint box) const
+{
+    if(isFraction[box]) {
+        return kindIndex[box];
+    } else {
+        std::cout << "Error: Lambda.h, calling GetKind\n";
+        exit(EXIT_FAILURE);
+    }
+}
+
+inline uint Lambda::GetMolIndex(const uint box) const
+{
+    if(isFraction[box]) {
+        return molIndex[box];
+    } else {
+        std::cout << "Error: Lambda.h, calling GetKind\n";
+        exit(EXIT_FAILURE);
+    }
 }
 
 #endif

@@ -548,13 +548,9 @@ void ConfigSetup::Init(const char *fileName)
         printf("%-40s %-d \n", "Info: Fix volume box", 0);
     }
 #endif
-#ifdef VARIABLE_PARTICLE_NUMBER
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
     else if(CheckString(line[0], "SwapFreq")) {
-#if ENSEMBLE == NVT || ENSEMBLE == NPT
-      sys.moves.transfer = 0.000;
-#else
       sys.moves.transfer = stringtod(line[1]);
-#endif
       printf("%-40s %-4.4f \n", "Info: Molecule swap move frequency",
              sys.moves.transfer);
     } else if(CheckString(line[0], "MEMC-1Freq")) {
@@ -978,7 +974,7 @@ void ConfigSetup::fillDefaults(void)
            sys.moves.crankShaft);
   }
 
-#ifdef VARIABLE_PARTICLE_NUMBER
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC 
   if(sys.moves.memc == DBL_MAX) {
     sys.moves.memc = 0.0;
     printf("%-40s %-4.4f \n", "Default: MEMC move frequency",

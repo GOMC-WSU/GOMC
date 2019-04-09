@@ -192,6 +192,12 @@ public:
                           const double lambdaNewCoulomb,
                           const uint molIndex, const uint box) const;
 
+  //Calculate the change in energy due to lambda
+  void EnergyChange(Energy *energyDiff, Energy &dUdL_VDW, Energy &dUdL_Coul,
+                    const std::vector<double> &lambda_VDW, 
+                    const std::vector<double> &lambda_Coul,
+                    const uint iState, const uint molIndex,
+                    const uint box) const;
 private:
 
   //! Calculates full TC energy for one box in current system

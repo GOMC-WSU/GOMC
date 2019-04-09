@@ -418,6 +418,47 @@ double EwaldCached::CFCMCRecip(XYZArray const& molCoords,const double lambdaOld,
   return energyRecipNew - sysPotRef.boxEnergy[box].recip;
 }
 
+//calculate reciprocate term for lambdaNew and Old with same coordinates
+void EwaldCached::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
+                              const std::vector<double> &lambda_Coul,
+                              const uint iState, const uint molIndex,
+                              const uint box) const
+{
+  if (box >= BOXES_WITH_U_NB) {
+    return;
+  }
+
+  //Need to implement GPU
+  uint p, i, s;
+  uint length = mols.GetKind(molIndex).NumAtoms();
+  uint start = mols.MolStart(molIndex);
+  uint lambdaSize = lambda_Coul.size();
+  double coefDiff;
+  double *energyRecip = new double [lambdaSize];
+  std::fill_n(energyRecip, lambdaSize, 0.0);
+
+#ifdef _OPENMP
+  #pragma omp parallel for default(shared) private(i, p, s, coefDiff) reduction(+:energyRecip[:lambdaSize])
+#endif
+  for (i = 0; i < imageSizeRef[box]; i++) {
+    for(s = 0; s < lambdaSize; s++) {
+      //Calculate the energy of other state
+      coefDiff = pow(lambda_Coul[s], 2.5) - pow(lambda_Coul[iState], 2.5);
+      energyRecip[s] += prefactRef[box][i] *
+                        ((sumRref[box][i] + coefDiff*cosMolRef[molIndex][i]) * 
+                         (sumRref[box][i] + coefDiff*cosMolRef[molIndex][i]) + 
+                         (sumIref[box][i] + coefDiff*sinMolRef[molIndex][i]) * 
+                         (sumIref[box][i] + coefDiff*sinMolRef[molIndex][i]));
+    }
+  }
+
+  double energyRecipOld = sysPotRef.boxEnergy[box].recip;
+  for(s = 0; s < lambdaSize; s++) {
+    energyDiff[s].recip = energyRecip[s] - energyRecipOld;
+  }
+  delete [] energyRecip;
+}
+
 //restore cosMol and sinMol
 void EwaldCached::RestoreMol(int molIndex)
 {
