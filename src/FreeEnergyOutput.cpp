@@ -47,6 +47,16 @@ void FreeEnergyOutput::Init(pdb_setup::Atoms const& atoms,
   }
 }
 
+std::string FreeEnergyOutput::GetString(double a, uint p)
+{
+  std::stringstream sstrm;  
+  std::string tempStr;
+  sstrm << (a);
+  sstrm.precision(p);
+  sstrm >> tempStr;
+  return tempStr;
+}
+
 FreeEnergyOutput::~FreeEnergyOutput()
 {
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
@@ -89,11 +99,11 @@ void FreeEnergyOutput::PrintData(const uint b, const uint step)
 {
   outF[b] << std::setw(11) << std::left << step << " ";
   outF[b] << std::setw(25) << std::right << std::fixed << Etotal << " ";
-  outF[b] << std::setw(25) << dUdL_Coulomb[b].Total();
-  outF[b] << std::setw(25) << dUdL_VDW[b].Total() ;
+  outF[b] << std::setw(25) << dUdL_Coulomb[b].Total() << " ";
+  outF[b] << std::setw(25) << dUdL_VDW[b].Total() << " ";
 
   for(uint i = 0; i < lambdaSize; i++) {
-    outF[b] << std::setw(25) << energyDiff[b][i].Total();
+    outF[b] << std::setw(25) << energyDiff[b][i].Total() << " ";
   }
   outF[b] << std::setw(25) << PV << std::endl;
 }
@@ -102,25 +112,38 @@ void FreeEnergyOutput::WriteHeader(void)
 {
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
     if (outF[b].is_open()) {
-      outF[b] << "#T = " << std::setprecision(4) <<  std::fixed << 
-                var->T_in_K << "(K), " << "Lambda State " <<
-                iState << ": (lambda Coulomb, lambda VDW) = (" << 
-                freeEnVal.lambdaCoulomb[iState] << "," << 
-                freeEnVal.lambdaVDW[iState] << ")\n";
+      std::string toPrint = "";
+      toPrint += "#T = ";
+      toPrint += GetString(var->T_in_K, 4);
+      toPrint += "(K), Lambda State ";
+      toPrint += GetString(iState, 0);
+      toPrint += ": (lambda Coulomb, lambda VDW) = (";
+      toPrint += GetString(freeEnVal.lambdaCoulomb[iState], 4);
+      toPrint += ",";
+      toPrint += GetString(freeEnVal.lambdaVDW[iState], 4);
+      toPrint += ")\n";
+      outF[b] << toPrint;
 
       //We care about format
       outF[b] << std::setw(11) << std::left << "#Steps" << " ";
       outF[b] << std::setw(25) << std::right << "Total_En(kJ/mol)" << " ";
-      outF[b] << std::setw(25) << std::right << 
-                "dU/dL(Coulomb = " << std::setprecision(4) <<
-                freeEnVal.lambdaCoulomb[iState] << ") " ;
-      outF[b] << std::setw(25) << "dU/dL(VDW=" << std::setprecision(4) <<
-                freeEnVal.lambdaVDW[iState] << ") ";
-      std::string fixStr = "DeltaE (L to (";
+      toPrint = "dU/dL(Coulomb=";
+      toPrint += GetString(freeEnVal.lambdaCoulomb[iState], 4);
+      toPrint += ")";
+      outF[b] << std::setw(25) << std::right << toPrint << " ";
+      toPrint = "dU/dL(VDW=";
+      toPrint += GetString(freeEnVal.lambdaVDW[iState], 4);
+      toPrint += ")";
+      outF[b] << std::setw(25) << std::right << toPrint << " ";
+
+      std::string fixStr = "DeltaE(L-(";
       for(uint i = 0; i < lambdaSize; i++) {
-        outF[b] << std::setw(25) << fixStr << std::setprecision(4) <<
-                  freeEnVal.lambdaCoulomb[i] << "," << std::setprecision(4) <<
-                  freeEnVal.lambdaVDW[i] << ") ";
+        toPrint = fixStr;
+        toPrint += GetString(freeEnVal.lambdaCoulomb[i], 4);
+        toPrint += ",";
+        toPrint += GetString(freeEnVal.lambdaVDW[i], 4);
+        toPrint += "))";
+        outF[b] << std::setw(25) << std::right << toPrint << " ";
       }
       outF[b] << std::setw(25) << std::right << "PV(kJ/mol)\n";
 
