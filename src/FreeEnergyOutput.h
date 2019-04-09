@@ -39,6 +39,7 @@ private:
   void PrintData(const uint b, const uint step);
   void CalculateFreeEnergy(const uint b);
   void WriteHeader(void);
+  std::string GetString(double a, uint p);
 
   uint stepsPerSample;
   const CalculateEnergy& calcEn;
