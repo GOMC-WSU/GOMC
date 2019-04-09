@@ -463,6 +463,57 @@ double Ewald::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
   return energyRecipNew - energyRecipOld;
 }
 
+//calculate reciprocate term for lambdaNew and Old with same coordinates
+void Ewald::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
+                        const std::vector<double> &lambda_Coul,
+                        const uint iState, const uint molIndex,
+                        const uint box) const
+{
+  if (box >= BOXES_WITH_U_NB) {
+    return;
+  }
+
+  //Need to implement GPU
+  uint p, i, s;
+  uint length = mols.GetKind(molIndex).NumAtoms();
+  uint start = mols.MolStart(molIndex);
+  uint lambdaSize = lambda_Coul.size();
+  double *energyRecip = new double [lambdaSize];
+  std::fill_n(energyRecip, lambdaSize, 0.0);
+
+  double dotProduct, sumReal, sumImaginary, coefDiff;
+
+#ifdef _OPENMP
+  #pragma omp parallel for default(shared) private(i, p, s, dotProduct, sumReal, sumImaginary, coefDiff) reduction(+:energyRecip[:lambdaSize])
+#endif
+  for (i = 0; i < imageSizeRef[box]; i++) {
+    sumReal = 0.0;
+    sumImaginary = 0.0;
+    dotProduct = 0.0;
+
+    for (p = 0; p < length; ++p) {
+      dotProduct = Dot(p + start, kxRef[box][i], kyRef[box][i], kzRef[box][i],
+                       currentCoords);
+      sumReal += particleCharge[p + start] * cos(dotProduct);
+      sumImaginary += particleCharge[p + start] * sin(dotProduct);
+    }
+    for(s = 0; s < lambdaSize; s++) {
+      //Calculate the energy of other state
+      coefDiff = pow(lambda_Coul[s], 2.5) - pow(lambda_Coul[iState], 2.5);
+      energyRecip[s] += prefactRef[box][i] *
+                        ((sumRref[box][i] + coefDiff * sumReal) * 
+                         (sumRref[box][i] + coefDiff * sumReal) + 
+                         (sumIref[box][i] + coefDiff * sumImaginary) * 
+                         (sumIref[box][i] + coefDiff * sumImaginary));
+    }
+  }
+
+  double energyRecipOld = sysPotRef.boxEnergy[box].recip;
+  for(s = 0; s < lambdaSize; s++) {
+    energyDiff[s].recip = energyRecip[s] - energyRecipOld;
+  }
+  delete [] energyRecip;
+}
 
 void Ewald::RecipInit(uint box, BoxDimensions const& boxAxes)
 {
@@ -848,7 +899,44 @@ double Ewald::MolCorrection(uint molIndex, uint box) const
     }
   }
 
-  return correction * lambdaCoef * lambdaCoef;
+  return -1.0 * num::qqFact * correction * lambdaCoef * lambdaCoef;
+}
+
+//It's called in free energy calculation to calculate the change in
+// correction energy in all lambda states
+void Ewald::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
+                            const std::vector<double> &lambda_Coul,
+                            const uint iState, const uint molIndex,
+                            const uint box) const
+{
+  if (box >= BOXES_WITH_U_NB)
+    return;
+
+  uint atomSize = mols.GetKind(molIndex).NumAtoms();
+  uint start = mols.MolStart(molIndex);
+  uint lambdaSize = lambda_Coul.size();
+  double coefDiff, dcoefDiff, distSq, dist, correction = 0.0;
+  XYZ virComponents;
+  
+  //Calculate the correction energy with lambda = 1
+  for (uint i = 0; i < atomSize; i++) {
+    for (uint j = i + 1; j < atomSize; j++) {
+      distSq = 0.0;
+      currentAxes.InRcut(distSq, virComponents, currentCoords,
+                         start + i, start + j, box);
+      dist = sqrt(distSq);
+      correction += (particleCharge[i + start] * particleCharge[j + start] *
+                     erf(ff.alpha[box] * dist) / dist);
+    }
+  }
+  correction *= -1.0 * num::qqFact;
+  //Calculate the energy difference for each lambda state
+  for (uint s = 0; s < lambdaSize; s++) {
+    coefDiff = pow(lambda_Coul[s], 5) - pow(lambda_Coul[iState], 5);
+    dcoefDiff = 5.0 * (pow(lambda_Coul[s], 4) - pow(lambda_Coul[iState], 4));
+    energyDiff[s].correction += coefDiff * correction;
+    dUdL_Coul.correction += dcoefDiff * correction;
+  }
 }
 
 //calculate self term for a box, using system lambda
@@ -871,7 +959,7 @@ double Ewald::BoxSelf(BoxDimensions const& boxAxes, uint box) const
       //If a molecule is fractional, we subtract the fractional molecule and
       // add it later
       --molNum; 
-      lambdaCoef = lambdaRef.GetLambdaCoulomb(i, box);
+      lambdaCoef = pow(lambdaRef.GetLambdaCoulomb(i, box), 5);
     }
 
     for (j = 0; j < length; j++) {
@@ -1104,6 +1192,35 @@ double Ewald::SwapSelf(const cbmc::TrialMol& trialMol) const
     en_self -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(i));
   }
   return (en_self * ff.alpha[box] * num::qqFact / sqrt(M_PI));
+}
+
+//It's called in free energy calculation to calculate the change in
+// self energy in all lambda states
+void Ewald::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
+                    const std::vector<double> &lambda_Coul,
+                    const uint iState, const uint molIndex,
+                    const uint box) const
+{
+  if (box >= BOXES_WITH_U_NB)
+    return;
+
+  uint atomSize = mols.GetKind(molIndex).NumAtoms();
+  uint start = mols.MolStart(molIndex);
+  uint lambdaSize = lambda_Coul.size();
+  double coefDiff, dcoefDiff, en_self = 0.0;
+  //Calculate the self energy with lambda = 1
+  for (uint i = 0; i < atomSize; i++) {
+    en_self += (particleCharge[i + start] * particleCharge[i + start]); 
+  }
+  en_self *= -1.0 * ff.alpha[box] * num::qqFact / sqrt(M_PI);
+
+  //Calculate the energy difference for each lambda state
+  for (uint s = 0; s < lambdaSize; s++) {
+    coefDiff = pow(lambda_Coul[s], 5) - pow(lambda_Coul[iState], 5);
+    dcoefDiff = 5.0 * (pow(lambda_Coul[s], 4) - pow(lambda_Coul[iState], 4));
+    energyDiff[s].self += coefDiff * en_self;
+    dUdL_Coul.self += dcoefDiff * en_self;
+  }
 }
 
 //update reciprocate values

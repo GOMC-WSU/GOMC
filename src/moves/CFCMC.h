@@ -419,7 +419,10 @@ inline void CFCMC::Accept(const uint rejectState, const uint step)
   if(rejectState == mv::fail_state::NO_FAIL) {
     //If lambdaIdxOld is zero, it means molecule transfered to destBox.
     result = (lambdaIdxOld == 0);
-    if(!result) {   
+    if(result) {
+      //Set full interaction in destBox, zero interaction in sourceBox
+      lambdaRef.UnSet(destBox, sourceBox);
+    } else {   
       //Set full interaction in sourceBox, zero interaction in destBox
       lambdaRef.UnSet(sourceBox, destBox);
       //Shift the molecule back

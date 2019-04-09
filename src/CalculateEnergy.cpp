@@ -120,7 +120,7 @@ SystemPotential CalculateEnergy::SystemTotal()
     pot.boxEnergy[b].intraNonbond = nonbondEn;
     //calculate self term of electrostatic interaction
     pot.boxEnergy[b].self = calcEwald->BoxSelf(currentAxes, b);
-    pot.boxEnergy[b].correction = -1 * correction * num::qqFact;
+    pot.boxEnergy[b].correction = correction;
 
     //Calculate Virial
     pot.boxVirial[b] = VirialCalc(b);
@@ -1552,4 +1552,97 @@ double CalculateEnergy::MoleculeTailChange(const uint box, const uint kind,
     currentAxes.volInv[box];
   
   return tcDiff;
+}
+
+//Calculate the change in energy due to lambda
+void CalculateEnergy::EnergyChange(Energy *energyDiff, Energy &dUdL_VDW,
+                                   Energy &dUdL_Coul,
+                                   const std::vector<double> &lambda_VDW, 
+                                   const std::vector<double> &lambda_Coul,
+                                   const uint iState, const uint molIndex,
+                                   const uint box) const
+{
+  if (box >= BOXES_WITH_U_NB) {
+    return;
+  }
+
+  uint length = mols.GetKind(molIndex).NumAtoms();
+  uint start = mols.MolStart(molIndex);
+  uint lambdaSize = lambda_VDW.size();
+  int i, s;
+  double energyOldVDW = 0.0, energyOldCoul = 0.0;
+  double *tempLJEnDiff = new double [lambdaSize];
+  double *tempREnDiff = new double [lambdaSize];
+  std::fill_n(tempLJEnDiff, lambdaSize, 0.0);
+  std::fill_n(tempREnDiff, lambdaSize, 0.0);
+
+  // Calculate the vdw, short range electrostatic energy
+  for (uint p = 0; p < length; ++p) {
+    uint atom = start + p;
+    CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom], box);
+    n = cellList.EnumerateLocal(currentCoords[atom], box);
+
+    double qi_qj_fact, distSq;
+    XYZ virComponents;
+    std::vector<uint> nIndex;
+
+    //store atom index in neighboring cell
+    while (!n.Done()) {
+      if(particleMol[*n] != molIndex) {
+        nIndex.push_back(*n);
+      }
+      n.Next();
+    }
+
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(i, s, distSq, qi_qj_fact, virComponents, energyOldVDW, energyOldVDW) reduction(+:tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
+#endif
+    for(i = 0; i < nIndex.size(); i++) {
+      distSq = 0.0;
+      if(currentAxes.InRcut(distSq, virComponents, currentCoords, atom,
+                            nIndex[i], box)) {
+        
+        //Calculate the energy of current state
+        energyOldVDW = forcefield.particles->CalcEn(distSq,particleKind[atom],
+                                                    particleKind[nIndex[i]], 
+                                                    lambda_VDW[iState]);
+        if(electrostatic) {
+          qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
+                      num::qqFact;
+          energyOldCoul = forcefield.particles->CalcCoulomb(distSq, qi_qj_fact,
+                                                           lambda_Coul[iState],
+                                                           box);
+        }
+
+        for(s = 0; s < lambdaSize; s++) {
+          //Calculate the energy of other state
+          tempLJEnDiff[s] += forcefield.particles->CalcEn(distSq,particleKind[atom], particleKind[nIndex[i]], lambda_VDW[s]);
+          tempLJEnDiff[s] += (-energyOldVDW);
+
+          if(electrostatic) {
+            tempREnDiff[s] += forcefield.particles->CalcCoulomb(distSq,qi_qj_fact, lambda_Coul[s], box);
+            tempREnDiff[s] += (-energyOldCoul);
+          }
+        }
+      }
+    }
+  }
+  for(s = 0; s < lambdaSize; s++) {
+    energyDiff[s].inter += tempLJEnDiff[s];
+    energyDiff[s].real += tempREnDiff[s];
+  }
+  delete [] tempLJEnDiff;
+  delete [] tempREnDiff;
+
+  //Need to calculate change in LRC
+  //Need to calculate change in self
+  calcEwald->ChangeSelf(energyDiff, dUdL_Coul, lambda_Coul, iState, molIndex,
+                        box);
+  //Need to calculate change in correction
+  calcEwald->ChangeCorrection(energyDiff, dUdL_Coul, lambda_Coul, iState,
+                              molIndex, box);
+  //Need to calculate change in Reciprocal
+  calcEwald->ChangeRecip(energyDiff, dUdL_Coul, lambda_Coul, iState, molIndex,
+                         box);
+
 }

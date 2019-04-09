@@ -50,6 +50,12 @@ public:
                            const std::vector<uint> molIndexNew,
                            const std::vector<uint> molIndexOld);
 
+  //It's called in free energy calculation to calculate the change in
+  // reciprocal energy in all lambda states
+  virtual void ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
+                          const std::vector<double> &lambda_Coul,
+                          const uint iState, const uint molIndex,
+                          const uint box) const;
   //restore cosMol and sinMol
   virtual void RestoreMol(int molIndex);
 

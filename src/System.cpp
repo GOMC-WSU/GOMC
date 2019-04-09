@@ -135,11 +135,12 @@ void System::Init(Setup const& set, ulong & startStep)
     calcEwald = new NoEwald(statV, *this);
 #endif
 
+  //Initial the lambda before calling SystemTotal
+  InitLambda();
   calcEnergy.Init(*this);
   calcEwald->Init();
   potential = calcEnergy.SystemTotal();
   InitMoves(set);
-  InitLambda();
   for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++)
     moveTime[m] = 0.0;
 }
