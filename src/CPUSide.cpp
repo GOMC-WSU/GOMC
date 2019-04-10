@@ -81,10 +81,16 @@ void CPUSide::exchangeOfstreamPointers(CPUSide * otherCPUSide){
 #if ENSEMBLE == GCMC
 
     typedef std::ofstream* arr_t[BOXES_WITH_U_NB];
+    typedef uint** mol_t[BOXES_WITH_U_NB];
 
     arr_t * swapperForHist = hist.getHistToFile();
     hist.setHistToFile(otherCPUSide->hist.getHistToFile());
     otherCPUSide->hist.setHistToFile(swapperForHist);
+
+    mol_t * swapperForMolCount = hist.getMolCount();
+    hist.setMolCount(otherCPUSide->hist.getMolCount());
+    otherCPUSide->hist.setMolCount(swapperForMolCount);
+
 
     ofstream * swapperForSample_N_E = sample_N_E.getSample_N_EToFile(box);
     sample_N_E.setSample_N_EToFile(box, otherCPUSide->sample_N_E.getSample_N_EToFile(box));

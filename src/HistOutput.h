@@ -32,9 +32,13 @@ struct Histogram : OutputableBase {
   virtual void DoOutput(const ulong step);
 
   typedef std::ofstream* arr_t[BOXES_WITH_U_NB];
+  typedef uint** mol_t[BOXES_WITH_U_NB];
 
   arr_t * getHistToFile();
   void setHistToFile(arr_t * p2f);
+  mol_t * getMolCount();
+
+  void setMolCount(mol_t * mc);
 
 private:
   void PrintKindHist(const uint b, const uint k);
@@ -51,6 +55,7 @@ private:
 
   std::ofstream * outF[BOXES_WITH_U_NB];
   arr_t * pointerToOutF;
+  mol_t * pointerToMolCount;
   std::string * name [BOXES_WITH_U_NB];
 };
 
