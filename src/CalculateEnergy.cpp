@@ -1269,24 +1269,50 @@ void CalculateEnergy::EnergyCorrection(SystemPotential& pot,
                                        BoxDimensions const& boxAxes,
                                        const uint box) const
 {
-  if (box < BOXES_WITH_U_NB) {
-    double en = 0.0;
+  if(box >= BOXES_WITH_U_NB) {
+    return;
+  }
 
-    for (uint i = 0; i < mols.GetKindsCount(); ++i) {
-      uint numI = molLookup.NumKindInBox(i, box);
-      for (uint j = 0; j < mols.GetKindsCount(); ++j) {
-        uint numJ = molLookup.NumKindInBox(j, box);
-        en += mols.pairEnCorrections[i * mols.GetKindsCount() + j] * numI * numJ
-              * boxAxes.volInv[box];
-      }
+  double en = 0.0;
+  for (uint i = 0; i < mols.GetKindsCount(); ++i) {
+    uint numI = molLookup.NumKindInBox(i, box);
+    for (uint j = 0; j < mols.GetKindsCount(); ++j) {
+      uint numJ = molLookup.NumKindInBox(j, box);
+      en += mols.pairEnCorrections[i * mols.GetKindsCount() + j] * numI * numJ
+            * boxAxes.volInv[box];
     }
+  }
+
+  if(!forcefield.freeEnergy) {
     pot.boxEnergy[box].tc = en;
   }
+#if ENSEMBLE == NVT || ENSEMBLE == NPT
+  else {
+    //Get the kind and lambda value
+    uint fk = lambdaRef.GetKind(box);
+    double lambdaVDW = lambdaRef.GetLambdaVDW(fk, box);
+    //remove the LRC for one molecule with lambda = 1
+    en += MoleculeTailChange(box, fk, false).energy;
+
+    //Add the LRC for fractional molecule
+    for (uint i = 0; i < mols.GetKindsCount(); ++i) {
+      uint molNum = molLookup.NumKindInBox(i, box);
+      if(i == fk) {
+        --molNum; // We have one less molecule (it is fractional molecule)
+      }
+      double rhoDeltaIJ_2 = 2.0 * (double)(molNum) * currentAxes.volInv[box];
+      en += mols.GetFractionEnLRC(fk, i, lambdaVDW) * rhoDeltaIJ_2;
+    }
+    //We already calculated part of the change for this type in the loop
+    en += mols.GetFractionEnLRC(fk, fk, lambdaVDW) * currentAxes.volInv[box];
+    pot.boxEnergy[box].tc = en;
+  }
+#endif
 }
 
 //!Calculates energy corrections for the box
 double CalculateEnergy::EnergyCorrection(const uint box,
-					 const uint *kCount) const
+                                         const uint *kCount) const
 {
   if (box >= BOXES_WITH_U_NB) {
     return 0.0;
