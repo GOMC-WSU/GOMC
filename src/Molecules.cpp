@@ -13,13 +13,15 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "VectorLib.h" //for transfer.
 #include <algorithm> //For count.
 #include <string>
+#include "System.h"
 
 class System;
 
 
 Molecules::Molecules() : start(NULL), kIndex(NULL), countByKind(NULL),
   chain(NULL), kinds(NULL), pairEnCorrections(NULL),
-  pairVirCorrections(NULL), printFlag(true) {}
+  pairVirCorrections(NULL), fractionalEnCorrections(NULL),
+  fractionalVirCorrections(NULL), printFlag(true) {}
 
 Molecules::~Molecules(void)
 {
@@ -30,6 +32,8 @@ Molecules::~Molecules(void)
   delete[] kinds;
   delete[] pairEnCorrections;
   delete[] pairVirCorrections;
+  delete[] fractionalEnCorrections;
+  delete[] fractionalVirCorrections;
 }
 
 void Molecules::Init(Setup & setup, Forcefield & forcefield,
@@ -143,6 +147,42 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
         pairEnCorrections[i * kindsCount + j];
       pairVirCorrections[j * kindsCount + i] =
         pairVirCorrections[i * kindsCount + j];
+    }
+  }
+
+  if(forcefield.freeEnergy) {
+    lambdaVDW = sys.statV.freeEnVal.lambdaVDW;
+    lambdaSize = lambdaVDW.size();
+    fractionalEnCorrections = new double[kindsCount * lambdaSize];
+    fractionalVirCorrections = new double[kindsCount * lambdaSize];
+    //molecules will be initialized after System, so in first call, it does 
+    // nothing. In InitOver, this will be initialized.
+    for(uint k = 0; k < kindsCount; ++k) {
+      std::string kindName = kinds[k].name;
+      if(kindName == sys.statV.freeEnVal.molType) {
+        uint fk = k;
+        fractionKind = k;
+        for(uint i = 0; i < kindsCount; ++i) {
+          for(uint l = 0; l < lambdaSize; ++l) {
+            uint idx = i * lambdaSize + l;
+            double lambda = sys.statV.freeEnVal.lambdaVDW[l];
+            fractionalEnCorrections[idx] = 0.0;
+            fractionalVirCorrections[idx] = 0.0;
+
+            for(uint pI = 0; pI < kinds[fk].NumAtoms(); ++pI) {
+              for(uint pJ = 0; pJ < kinds[i].NumAtoms(); ++pJ) {
+                fractionalEnCorrections[idx] +=
+                  forcefield.particles->EnergyLRCFraction(kinds[fk].AtomKind(pI), kinds[i].AtomKind(pJ),lambda);
+                fractionalVirCorrections[idx] +=
+                  forcefield.particles->VirialLRCFraction(kinds[fk].AtomKind(pI), kinds[i].AtomKind(pJ), lambda);
+              }
+            }
+
+          }
+        }
+        //We can only have one fractional molecule
+        break;
+      }
     }
   }
 

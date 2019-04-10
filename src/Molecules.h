@@ -89,6 +89,41 @@ public:
     return kindsCount;
   }
 
+  double GetFractionEnLRC(uint kind1, uint kind2, double lambda) const
+  {
+    for(uint i = 0; i < lambdaSize; i++) {
+      if(abs(lambda - lambdaVDW[i]) < 0.00001) {
+        if(kind1 == fractionKind) {
+          uint idx = kind2 * lambdaSize + i;
+          return fractionalEnCorrections[idx];
+        } else {
+          uint idx = kind1 * lambdaSize + i;
+          return fractionalEnCorrections[idx];
+        }
+      }
+    }
+    //We returne the lambda == 1
+    return pairEnCorrections[kind1 * kindsCount + kind2];
+  }
+
+  double GetFractionVirLRC(uint kind1, uint kind2, double lambda) const
+  {
+    for(uint i = 0; i < lambdaSize; i++) {
+      if(abs(lambda - lambdaVDW[i]) < 0.00001) {
+        if(kind1 == fractionKind) {
+          uint idx = kind2 * lambdaSize + i;
+          return fractionalVirCorrections[idx];
+        } else {
+          uint idx = kind1 * lambdaSize + i;
+          return fractionalVirCorrections[idx];
+        }
+      }
+    }
+    //We returne the lambda == 1
+    return pairVirCorrections[kind1 * kindsCount + kind2];
+  }
+
+
   void PrintLJInfo(std::vector<uint> &totAtomKind,
                    std::vector<std::string> &names,
                    Forcefield & forcefield);
@@ -104,8 +139,10 @@ public:
 
   MoleculeKind * kinds;
   uint kindsCount;
-  double* pairEnCorrections;
-  double* pairVirCorrections;
+  uint fractionKind, lambdaSize;
+  std::vector< double > lambdaVDW;
+  double* pairEnCorrections, *fractionalEnCorrections;
+  double* pairVirCorrections, *fractionalVirCorrections;
 
   bool printFlag;
 };

@@ -86,7 +86,11 @@ public:
   //!Returns Energy long-range correction term for a kind pair
   virtual double VirialLRC(const uint kind1, const uint kind2) const;
  //Calculate Energy LRC for fractional molecule
-  //virtual double EnergyLRCFraction(const uint kind1, const uint kind2,const double lambda) const;
+  virtual double EnergyLRCFraction(const uint kind1, const uint kind2,const 
+                                  double lambda) const;
+  //Calculate Virial LRC for fractional molecule
+  virtual double VirialLRCFraction(const uint kind1, const uint kind2,const 
+                                  double lambda) const;
 
   uint NumKinds() const { return count; }                
   double GetMass(const uint kind) const { return mass[kind]; }

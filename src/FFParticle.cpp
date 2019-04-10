@@ -377,27 +377,50 @@ inline double FFParticle::CalcCoulombVir(const double distSq,
   }
 }
 
-/*
 inline double FFParticle::EnergyLRCFraction(const uint kind1, const uint kind2,
-					    const double lambda) const
+					                                  const double lambda) const
 {
-  uint index = FlatIndex(kind1, kind2);
-  if(n[index] > 12.01 || n[index] < 11.99) {
-    std::cout << "Error: GOMC does not support LRC for fractional molecule" <<
-      " in Mie potential! \n";
-    exit(EXIT_FAILURE);
+  if(lambda > 0.9999) {
+    //Numerically unstable for lambda == 1
+    return EnergyLRC(kind1, kind2);
+  } else if (lambda < 0.00001) {
+    return 0.0;
   }
-  double sigma_6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
-  double sigma_3 = sqrt(sigma_6);
-  double rcut_3 = rCut * rCut * rCut;
-  double rcut_6 = rcut_3 * rcut_3;
-  double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
-  double coef =  2.0 * M_PI * epsilon_cn[index] * lambda;
-  double part1 = (2.0 * lambdaCoef - 1.0) * sigma_3;
-  part1 /= 6.0 * pow(lambdaCoef, 1.5);
-  part1 *= atan(rcut_3 / (sigma_3 * sqrt(lambdaCoef))) - 0.5 * M_PI;
-  double part2 = rcut_3 * sigma_6;
-  part2 /= 6.0 * lambdaCoef * (lambdaCoef * sigma_6 + rcut_6);
-  return coef * (part1 - part2);
+  uint index = FlatIndex(kind1, kind2);
+  double sigma = sqrt(sigmaSq[index]);
+  double rRat = forcefield.rCut / sigma;
+  double sigma_3 = sigmaSq[index] * sigma;
+  double rRat_3 = rRat * rRat * rRat;
+  double lambdaCoef = sqrt(0.5 * (1.0 - lambda) * (1.0 - lambda));
+  double coef =  -2.0 * M_PI * epsilon_cn[index] * sigma_3 / 3.0;
+  coef *= (lambda / lambdaCoef);
+  double tc = coef * (M_PI_2 - atan(rRat_3 / lambdaCoef));
+
+  return tc;
 }
-*/
+
+inline double FFParticle::VirialLRCFraction(const uint kind1, const uint kind2,
+					                                  const double lambda) const
+{
+  if(lambda > 0.9999) {
+    //Numerically unstable for lambda == 1
+    return VirialLRC(kind1, kind2);
+  } else if (lambda < 0.00001) {
+    return 0.0;
+  }
+  uint index = FlatIndex(kind1, kind2);
+  double sigma = sqrt(sigmaSq[index]);
+  double rRat = forcefield.rCut / sigma;
+  double sigma_3 = sigmaSq[index] * sigma;
+  double rRat_3 = rRat * rRat * rRat;
+  double rRat_6 = rRat_3 * rRat_3;
+  double lambdaCoefSq = 0.5 * (1.0 - lambda) * (1.0 - lambda);
+  double lambdaCoef = sqrt(lambdaCoefSq);
+
+  double coef =  -2.0 * M_PI * epsilon_cn[index] * sigma_3;
+  coef *= (lambda / lambdaCoef);
+  double term = rRat_3 * lambdaCoef / (lambdaCoefSq + rRat_6);
+  double tc = coef * (M_PI_2 - atan(rRat_3 / lambdaCoef) + term);
+
+  return tc;
+}

@@ -185,7 +185,7 @@ void System::InitLambda()
       std::string kindName = statV.mol.kinds[k].name;
       if(statV.freeEnVal.molType == kindName) {
         found = true;
-        uint totalMol = molLookupRef.NumKindInBox(k, 0);
+        uint totalMol = molLookupRef.NumKindInBox(k, mv::BOX0);
         //In PDB file, molIndex start from 1.
         uint FEmolIndex = statV.freeEnVal.molIndex - 1;
         if(totalMol == 0) {
@@ -195,11 +195,11 @@ void System::InitLambda()
           " of kind " << kindName << " does not exist in the simulation box!\n";
           exit(EXIT_FAILURE);
         } else {
-          uint m = molLookupRef.GetMolNum(FEmolIndex, k, 0);
+          uint m = molLookupRef.GetMolNum(FEmolIndex, k, mv::BOX0);
           uint state = statV.freeEnVal.iState;
           double lambdaCoulomb = statV.freeEnVal.lambdaCoulomb[state];
           double lambdaVDW = statV.freeEnVal.lambdaVDW[state];
-          lambdaRef.Set(lambdaVDW, lambdaCoulomb, m, k, 0);
+          lambdaRef.Set(lambdaVDW, lambdaCoulomb, m, k, mv::BOX0);
         }
         break;
       }

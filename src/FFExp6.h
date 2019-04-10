@@ -68,38 +68,22 @@ public:
                                   const bool NB) const;
 
   //!Returns energy correction
-  virtual double EnergyLRC(const uint kind1, const uint kind2) const
-  {
-    uint idx = FlatIndex(kind1, kind2);
-    double rCut = forcefield.rCut;
-    //A,B and C for energy equation
-    double A = 6.0 * epsilon[idx] * exp(n[idx]) / ((double)n[idx] - 6.0);
-    double B = rMin[idx] / (double)n[idx];
-    double C = epsilon[idx] * (double)n[idx] *  pow(rMin[idx], 6) / 
-                ((double)n[idx] - 6.0);
+  virtual double EnergyLRC(const uint kind1, const uint kind2) const;
 
-    double tc = 2.0 * M_PI * (A * B * exp(-rCut/B) *
-                (2.0 * pow(B,2) + (2.0 * B * rCut) + pow(rCut,2)) -
-                C / (3.0 * pow(rCut,3)));
-
-    return tc;
-  }
   //!!Returns virial correction
-  virtual double VirialLRC(const uint kind1, const uint kind2) const
-  {
-    uint idx = FlatIndex(kind1, kind2);
-    double rCut = forcefield.rCut;
-    //A,B and C for virial equation
-    double A = 6.0 * epsilon[idx] * exp(n[idx]) / ((double)n[idx] - 6.0);
-    double B = rMin[idx] / (double)n[idx];
-    double C = epsilon[idx] * (double)n[idx] *  pow(rMin[idx], 6) / 
-                ((double)n[idx] - 6.0);
-    double tc = 2.0 * M_PI * (A * exp(-rCut/B) *
-                          (6.0 * pow(B,3) + 6.0 * pow(B,2) * rCut + 
-                          3.0 * pow(rCut,2) * B + pow(rCut,3)) -
-                          2.0 * C / pow(rCut,3));
+  virtual double VirialLRC(const uint kind1, const uint kind2) const;
 
-    return tc;
+   //Calculate Energy LRC for fractional molecule
+  virtual double EnergyLRCFraction(const uint kind1, const uint kind2,const 
+                                  double lambda) const
+  {
+    return 0.0;
+  }
+  //Calculate Virial LRC for fractional molecule
+  virtual double VirialLRCFraction(const uint kind1, const uint kind2,const 
+                                  double lambda) const
+  {
+    return 0.0;
   }
 
   protected:
@@ -296,5 +280,39 @@ inline double FF_EXP6::GetRmax_1_4(const uint i, const uint j) const
   uint idx = FlatIndex(i, j);
   return sqrt(rMaxSq_1_4[idx]);
 }
+
+//!Returns energy correction
+inline double FF_EXP6::EnergyLRC(const uint kind1, const uint kind2) const
+{
+  uint idx = FlatIndex(kind1, kind2);
+  double rCut = forcefield.rCut;
+  //A,B and C for energy equation
+  double A = 6.0 * epsilon[idx] * exp(n[idx]) / ((double)n[idx] - 6.0);
+  double B = rMin[idx] / (double)n[idx];
+  double C = epsilon[idx] * (double)n[idx] *  pow(rMin[idx], 6) / 
+              ((double)n[idx] - 6.0);
+
+  double tc = 2.0 * M_PI * (A * B * exp(-rCut/B) *
+              (2.0 * pow(B,2) + (2.0 * B * rCut) + pow(rCut,2)) -
+              C / (3.0 * pow(rCut,3)));
+  return tc;
+}
+//!!Returns virial correction
+inline double FF_EXP6::VirialLRC(const uint kind1, const uint kind2) const
+{
+  uint idx = FlatIndex(kind1, kind2);
+  double rCut = forcefield.rCut;
+  //A,B and C for virial equation
+  double A = 6.0 * epsilon[idx] * exp(n[idx]) / ((double)n[idx] - 6.0);
+  double B = rMin[idx] / (double)n[idx];
+  double C = epsilon[idx] * (double)n[idx] *  pow(rMin[idx], 6) / 
+              ((double)n[idx] - 6.0);
+  double tc = 2.0 * M_PI * (A * exp(-rCut/B) *
+                        (6.0 * pow(B,3) + 6.0 * pow(B,2) * rCut + 
+                        3.0 * pow(rCut,2) * B + pow(rCut,3)) -
+                        2.0 * C / pow(rCut,3));
+  return tc;
+}
+
 
 #endif /*FF_EXP6_H*/
