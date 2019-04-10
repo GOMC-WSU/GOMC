@@ -196,13 +196,13 @@ void ReplicaExchangeController::runMultiSim(){
 void ReplicaExchangeController::exchange(int a, int b){
   double swapperForT_in_K = (*simsRef)[a]->getT_in_K(); 
   double swapperForBeta = (*simsRef)[a]->getBeta();
-  CPUSide * swapperForCPUSide = (*simsRef)[a]->getCPUSide();
+  //CPUSide * swapperForCPUSide = (*simsRef)[a]->getCPUSide();
   (*simsRef)[a]->setT_in_K((*simsRef)[b]->getT_in_K());
   (*simsRef)[a]->setBeta((*simsRef)[b]->getBeta());
-  (*simsRef)[a]->setCPUSide((*simsRef)[b]->getCPUSide());
+ // (*simsRef)[a]->setCPUSide((*simsRef)[b]->getCPUSide());
   (*simsRef)[b]->setT_in_K(swapperForT_in_K);
   (*simsRef)[b]->setBeta(swapperForBeta);
-  (*simsRef)[b]->setCPUSide(swapperForCPUSide);
+  //(*simsRef)[b]->setCPUSide(swapperForCPUSide);
   (*simsRef)[a]->getCPUSide()->exchangeOfstreamPointers((*simsRef)[b]->getCPUSide());
   Simulation * swapperForReplica = (*simsRef)[a];
   (*simsRef)[a] = (*simsRef)[b];
