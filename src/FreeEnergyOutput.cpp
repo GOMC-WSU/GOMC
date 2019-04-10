@@ -159,8 +159,8 @@ void FreeEnergyOutput::WriteHeader(void)
 
 void FreeEnergyOutput::CalculateFreeEnergy(const uint b)
 {
-  PV = var->pressure[b] * var->volumeRef[b] / var->numByBox[b];
-  PV *= unit::K_TO_KJ_PER_MOL * unit::BAR_TO_K_MOLECULE_PER_A3;
+  PV = var->pressure[b] * var->volumeRef[b] * unit::BAR_TO_K_MOLECULE_PER_A3;
+  PV *= unit::K_TO_KJ_PER_MOL;
   Etotal = var->energyRef[b].Total() * unit::K_TO_KJ_PER_MOL;
   uint molIndex = lambdaRef.GetMolIndex(b);
   //Reset the energy value
