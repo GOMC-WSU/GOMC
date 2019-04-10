@@ -126,8 +126,8 @@ void ReplicaExchangeController::runMultiSim(){
           (*simsRef)[j]->RunNSteps(exchangeRate);
         }
         
-        for (int i = 0; i < (*simsRef).size(); i++)
-          re.pind[i] = re.ind[i];
+        //for (int i = 0; i < (*simsRef).size(); i++)
+          //re.pind[i] = re.ind[i];
 
 
         step += exchangeRate;        
@@ -140,13 +140,15 @@ void ReplicaExchangeController::runMultiSim(){
           for (int i = 1; i < (*simsRef).size(); i++){
             if ((*simsRef)[i]->getEquilSteps() < ((*simsRef)[i]->getStartStep() + exchangeRate)) {
 
-              a = re.pind[i-1];
-              b = re.pind[i];
+              a = re.ind[i-1];
+              b = re.ind[i];
+              ap = re.pind[i-1];
+              bp = re.pind[i];
 
               //  To alternate between swapping even replicas and repl_id+1 {0,1} {2,3} ... on even parity and 
               //  odd replicas and repl_id+1 {1,2} ... on odd parity
               if (i % 2 == parityOfSwaps){
-                  delta = calc_delta(fplog, a, b, a, b);
+                  delta = calc_delta(fplog, a, b, ap, bp);
                   if (delta <= 0) {
                     exchange(a, b);
                     re.prob[i] = 1;
@@ -196,19 +198,19 @@ void ReplicaExchangeController::runMultiSim(){
 void ReplicaExchangeController::exchange(int a, int b){
   double swapperForT_in_K = (*simsRef)[a]->getT_in_K(); 
   double swapperForBeta = (*simsRef)[a]->getBeta();
-  //CPUSide * swapperForCPUSide = (*simsRef)[a]->getCPUSide();
+  CPUSide * swapperForCPUSide = (*simsRef)[a]->getCPUSide();
   (*simsRef)[a]->setT_in_K((*simsRef)[b]->getT_in_K());
   (*simsRef)[a]->setBeta((*simsRef)[b]->getBeta());
- // (*simsRef)[a]->setCPUSide((*simsRef)[b]->getCPUSide());
+  (*simsRef)[a]->setCPUSide((*simsRef)[b]->getCPUSide());
   (*simsRef)[b]->setT_in_K(swapperForT_in_K);
   (*simsRef)[b]->setBeta(swapperForBeta);
-  //(*simsRef)[b]->setCPUSide(swapperForCPUSide);
+  (*simsRef)[b]->setCPUSide(swapperForCPUSide);
   (*simsRef)[a]->getCPUSide()->exchangeOfstreamPointers((*simsRef)[b]->getCPUSide());
   Simulation * swapperForReplica = (*simsRef)[a];
   (*simsRef)[a] = (*simsRef)[b];
   (*simsRef)[b] = swapperForReplica;
- // (*simsRef)[a]->attachNewCPUSideToLocalSysAndStatV();
- // (*simsRef)[b]->attachNewCPUSideToLocalSysAndStatV();
+  (*simsRef)[a]->attachNewCPUSideToLocalSysAndStatV();
+  (*simsRef)[b]->attachNewCPUSideToLocalSysAndStatV();
 
 //  (*simsRef)[a]->getCPUSide()->reInitVarRef((*simsRef)[a]->getSystem(), (*simsRef)[a]->getStaticValues());
  // (*simsRef)[b]->getCPUSide()->reInitVarRef((*simsRef)[b]->getSystem(), (*simsRef)[b]->getStaticValues());
@@ -223,8 +225,8 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap,
 
   double epot_a = (*simsRef)[a]->getEpot();
   double epot_b = (*simsRef)[b]->getEpot();
-  double beta_a = (*simsRef)[a]->getBeta();
-  double beta_b = (*simsRef)[b]->getBeta(); 
+  double beta_a = (*simsRef)[ap]->getBeta();
+  double beta_b = (*simsRef)[bp]->getBeta(); 
 
   double ediff = epot_b - epot_a;
   delta = -(beta_b - beta_a)*ediff;
@@ -240,9 +242,9 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap,
 
   /*  GROMACS Abraham, et al. (2015) SoftwareX 1-2 19-25 */
   #if ENSEMBLE == NPT
-    double pres_a = (*simsRef)[a]->getPressure();
+    double pres_a = (*simsRef)[ap]->getPressure();
     double vol_a = (*simsRef)[a]->getVolume();
-    double pres_b = (*simsRef)[b]->getPressure();
+    double pres_b = (*simsRef)[bp]->getPressure();
     double vol_b = (*simsRef)[b]->getVolume();
     double dpV = (beta_a * pres_a - beta_b * pres_b) * (vol_b - vol_a);
     fprintf(fplog, "  dpV = %10.3e  d = %10.3e\n", dpV, delta + dpV);
@@ -256,8 +258,8 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap,
     double deltaBetaMuN   = 0;
 
     for (uint i = 0; i < ((*simsRef)[a]->getSystem())->molLookup.GetNumKind(); i++){
-      deltaBetaMuN += ((beta_a * (*simsRef)[a]->getChemicalPotential(i) -
-        beta_b * (*simsRef)[b]->getChemicalPotential(i) ) * (
+      deltaBetaMuN += ((beta_a * (*simsRef)[ap]->getChemicalPotential(i) -
+        beta_b * (*simsRef)[bp]->getChemicalPotential(i) ) * (
          (*simsRef)[b]->getNumOfParticles(i) - (*simsRef)[a]->getNumOfParticles(i)));
     }
     fprintf(fplog, "  dMuN = %10.3e  d = %10.3e\n", deltaBetaMuN, delta - deltaBetaMuN);
@@ -271,12 +273,12 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap,
   delta = 0;
   double dpV = 0;
   for (uint i = 0; i < BOX_TOTAL; ++i) { 
-      delta += -(((*simsRef)[b]->getBeta() - (*simsRef)[a]->getBeta())*
+      delta += -(((*simsRef)[bp]->getBeta() - (*simsRef)[ap]->getBeta())*
         ((*simsRef)[b]->getEpotBox(i) - (*simsRef)[a]->getEpotBox(i)));
 
       if ((*simsRef)[b]->getKindOfGEMC()){
-        dpV += ((*simsRef)[a]->getBeta() * (*simsRef)[a]->getPressure() - 
-          (*simsRef)[b]->getBeta() * (*simsRef)[b]->getPressure()) * 
+        dpV += ((*simsRef)[ap]->getBeta() * (*simsRef)[ap]->getPressure() - 
+          (*simsRef)[bp]->getBeta() * (*simsRef)[bp]->getPressure()) * 
           ((*simsRef)[b]->getVolume(i) - (*simsRef)[a]->getVolume(i));
       }
   }
