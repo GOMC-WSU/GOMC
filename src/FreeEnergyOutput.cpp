@@ -8,6 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBConst.h"
 #include "OutConst.h"
 #include "ConfigSetup.h"
+#include <iomanip>
 
 #include <sstream>
 
@@ -51,9 +52,10 @@ std::string FreeEnergyOutput::GetString(double a, uint p)
 {
   std::stringstream sstrm;  
   std::string tempStr;
-  sstrm << (a);
-  sstrm.precision(p);
-  sstrm >> tempStr;
+  sstrm << std::fixed << std::setprecision(p) << (a);
+  //sstrm.precision(p);
+  //sstrm >> tempStr;
+  tempStr = sstrm.str();
   return tempStr;
 }
 
@@ -136,7 +138,7 @@ void FreeEnergyOutput::WriteHeader(void)
       toPrint += ")";
       outF[b] << std::setw(25) << std::right << toPrint << " ";
 
-      std::string fixStr = "DeltaE(L-(";
+      std::string fixStr = "DelE(L->(";
       for(uint i = 0; i < lambdaSize; i++) {
         toPrint = fixStr;
         toPrint += GetString(freeEnVal.lambdaCoulomb[i], 4);
@@ -145,7 +147,7 @@ void FreeEnergyOutput::WriteHeader(void)
         toPrint += "))";
         outF[b] << std::setw(25) << std::right << toPrint << " ";
       }
-      outF[b] << std::setw(25) << std::right << "PV(kJ/mol)\n";
+      outF[b] << std::setw(25) << std::right << "PV(kJ/mol)" << std::endl;
 
       outF[b] << std::setprecision(std::numeric_limits<double>::digits10);
       outF[b].setf(std::ios_base::right, std::ios_base::adjustfield);
@@ -159,8 +161,7 @@ void FreeEnergyOutput::CalculateFreeEnergy(const uint b)
 {
   PV = var->pressure[b] * var->volumeRef[b] / var->numByBox[b];
   PV *= unit::K_TO_KJ_PER_MOL * unit::BAR_TO_K_MOLECULE_PER_A3;
-  Etotal = var->energyRef[b].Total() / var->numByBox[b];
-  Etotal *= unit::K_TO_KJ_PER_MOL;
+  Etotal = var->energyRef[b].Total() * unit::K_TO_KJ_PER_MOL;
   uint molIndex = lambdaRef.GetMolIndex(b);
   //Reset the energy value
   dUdL_VDW[b].Zero();
