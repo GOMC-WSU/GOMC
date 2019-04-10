@@ -80,9 +80,11 @@ void CPUSide::exchangeOfstreamPointers(CPUSide * otherCPUSide){
     }
 #if ENSEMBLE == GCMC
 
-    ofstream * swapperForHist = hist.getHistToFile(box);
-    hist.setHistToFile(box, otherCPUSide->hist.getHistToFile(box));
-    otherCPUSide->hist.setHistToFile(box, swapperForHist);
+    typedef std::ofstream* arr_t[BOXES_WITH_U_NB];
+
+    arr_t * swapperForHist = hist.getHistToFile();
+    hist.setHistToFile(otherCPUSide->hist.getHistToFile());
+    otherCPUSide->hist.setHistToFile(swapperForHist);
 
     ofstream * swapperForSample_N_E = sample_N_E.getSample_N_EToFile(box);
     sample_N_E.setSample_N_EToFile(box, otherCPUSide->sample_N_E.getSample_N_EToFile(box));
@@ -90,4 +92,8 @@ void CPUSide::exchangeOfstreamPointers(CPUSide * otherCPUSide){
 
 #endif 
   }
+}
+
+void CPUSide::reInitVarRef(System * sys, StaticVals * sv){
+  varRef.InitRef(*sys, *sv);
 }

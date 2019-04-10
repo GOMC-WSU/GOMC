@@ -40,6 +40,7 @@ public:
   double getEpotBox(uint i);
   CPUSide* getCPUSide();
   System* getSystem();
+  StaticVals* getStaticValues();
   ulong getExchangeInterval();
   int getReplExSeed();
   std::string getConfigFileName();
@@ -51,6 +52,8 @@ public:
   Clock* getClock();
   void initReplExParams(struct config_setup::ReplicaExchangeValuesFromConf);
   void setupHierarchicalDirectoryStructure();
+  void attachNewCPUSideToLocalSysAndStatV();
+
 
 #ifndef NDEBUG
   void RunningCheck(const uint step);

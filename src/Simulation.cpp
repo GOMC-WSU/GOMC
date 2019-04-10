@@ -155,6 +155,11 @@ System* Simulation::getSystem(){
   return system;
 }
 
+StaticVals* Simulation::getStaticValues(){
+  return staticValues;
+}
+
+
 Clock* Simulation::getClock(){
   return cpu->getClock();
 }
@@ -250,6 +255,10 @@ void Simulation::setupHierarchicalDirectoryStructure(){
   replica_stream2 << set.config.out.replica_path << set.config.out.state.files.console.name;
   set.config.out.state.files.console.name = replica_stream2.str();
 
+}
+
+void Simulation::attachNewCPUSideToLocalSysAndStatV(){
+  cpu->reInitVarRef(system, staticValues);
 }
 
 #ifndef NDEBUG

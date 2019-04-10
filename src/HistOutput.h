@@ -31,8 +31,10 @@ struct Histogram : OutputableBase {
 
   virtual void DoOutput(const ulong step);
 
-  ofstream * getHistToFile(uint box);
-  void setHistToFile(uint box, ofstream * c2f);
+  typedef std::ofstream* arr_t[BOXES_WITH_U_NB];
+
+  arr_t * getHistToFile();
+  void setHistToFile(arr_t * p2f);
 
 private:
   void PrintKindHist(const uint b, const uint k);
@@ -47,7 +49,8 @@ private:
   uint * total;
   uint stepsPerSample;
 
-  std::ofstream * outF [BOXES_WITH_U_NB];
+  std::ofstream * outF[BOXES_WITH_U_NB];
+  arr_t * pointerToOutF;
   std::string * name [BOXES_WITH_U_NB];
 };
 

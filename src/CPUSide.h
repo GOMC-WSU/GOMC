@@ -35,6 +35,7 @@ struct CPUSide {
   Clock* getClock();
 
   void exchangeOfstreamPointers(CPUSide * otherCPUSide);
+  void reInitVarRef(System * sys, StaticVals * sv);
 
 
 private:
