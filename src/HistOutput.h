@@ -37,7 +37,6 @@ struct Histogram : OutputableBase {
   arr_t * getHistToFile();
   void setHistToFile(arr_t * p2f);
   mol_t * getMolCount();
-
   void setMolCount(mol_t * mc);
 
 private:

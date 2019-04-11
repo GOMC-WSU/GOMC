@@ -45,6 +45,7 @@ private:
     RecordKeeper re;
     FILE * fplog;
     Clock * timer;
+    bool REMC;
 };
 
 #endif

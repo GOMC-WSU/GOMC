@@ -6,7 +6,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "ReplicaExchangeController.h"
 #include <time.h>
-
+#include <cmath>
 using namespace std; 
 
 #define PROBABILITYCUTOFF 100
@@ -39,21 +39,25 @@ ReplicaExchangeController::ReplicaExchangeController(vector<Simulation*>* sims){
           " differs from the others!\n";
           exit(EXIT_FAILURE);
         }
-        if (exchangeRate != (*simsRef)[i]->getExchangeInterval()){
-          std::cout << "Error: Each replica must have equal exchange rate. " << (*simsRef)[i]->getConfigFileName() <<
+
+        if ((*simsRef)[0]->getEquilSteps() != (*simsRef)[i]->getEquilSteps()){
+          std::cout << "Error: Each replica must have the same number of equilibration steps. " << (*simsRef)[i]->getEquilSteps() <<
           " differs from the others!\n";
           exit(EXIT_FAILURE);
         }
+        
         if (multiSimTitle.compare((*simsRef)[i]->getMultiSimTitle())){
           std::cout << "Error: Each replica must have the same multiSimTitle. " << (*simsRef)[i]->getConfigFileName() <<
           " differs from the others!\n";
           exit(EXIT_FAILURE);
         }
+        
         if (totalSteps != (*simsRef)[i]->getTotalSteps()){
-          std::cout << "Error: Each replica must have number of total steps. " << (*simsRef)[i]->getConfigFileName() <<
+          std::cout << "Error: Each replica must have the same number of total steps. " << (*simsRef)[i]->getConfigFileName() <<
           " differs from the others!\n";
           exit(EXIT_FAILURE);
         }
+        
         if ( (*simsRef)[i]->getT_in_K() > checkerForIncreasingMontonicityOfTemp ){
           checkerForIncreasingMontonicityOfTemp = (*simsRef)[i]->getT_in_K();
         } else {
@@ -62,16 +66,21 @@ ReplicaExchangeController::ReplicaExchangeController(vector<Simulation*>* sims){
             exit(EXIT_FAILURE);
         }
     }
-    if (exchangeRate > 0) {
-      if (exchangeRate >= (*simsRef)[0]->getTotalSteps()){
-        exchangeRate = totalSteps;
-        roundedUpDivison = 1;
-      } else {
-        roundedUpDivison = ((*simsRef)[0]->getTotalSteps() + exchangeRate - 1) / exchangeRate;
-      }
+
+    if (exchangeRate > 0 && exchangeRate < ( (*simsRef)[0]->getTotalSteps() - (*simsRef)[0]->getEquilSteps()))
+      REMC = true;
+    else {
+      REMC = false;
+    }
+
+    // REMC Simulation
+    if (REMC) {
+      roundedUpDivison = ((*simsRef)[0]->getTotalSteps()-(*simsRef)[0]->getEquilSteps() + exchangeRate - 1) / exchangeRate;
+
+    // Multisimulation - NonRE
     } else {
-      exchangeRate = totalSteps;
       roundedUpDivison = 1;
+      exchangeRate = (*simsRef)[0]->getTotalSteps();
     }
 
     InitRecordKeeper();
@@ -84,6 +93,7 @@ ReplicaExchangeController::ReplicaExchangeController(vector<Simulation*>* sims){
     fplog = fopen(fileName.c_str(), "w");
 
 }
+
 ReplicaExchangeController::~ReplicaExchangeController(){
   DestroyRecordKeeper();
   fclose(fplog);
@@ -107,16 +117,30 @@ void ReplicaExchangeController::runMultiSim(){
     fprintf(fplog, "\nInitializing Replica Exchange\n");
     fprintf(fplog, "Repl  There are %lu replicas\n", (*simsRef).size());
     fprintf(fplog, "\nReplica exchange in temperature\n");
-            for (int i = 0; i < (*simsRef).size(); i++)
-            {
-                fprintf(fplog, " %5.1f", (*simsRef)[i]->getT_in_K());
-            }
-            fprintf(fplog, "\n");
+    for (int i = 0; i < (*simsRef).size(); i++)
+    {
+        fprintf(fplog, " %5.1f", (*simsRef)[i]->getT_in_K());
+    }
+    fprintf(fplog, "\n");
     fprintf(fplog, "\nReplica exchange interval: %lu\n", (*simsRef)[0]->getExchangeInterval());
     fprintf(fplog, "\nReplica random seed: %d\n", (*simsRef)[0]->getReplExSeed());
     fprintf(fplog, "\nReplica exchange information below: ex and x = exchange, pr = probability\n\n");
 
     ulong step = 0;
+
+    if (REMC){
+      // Run all simulations to equilibrium.
+      // Recall we calculated the number of exchangeIntervals required to
+      // bring simulations from equilibration to completion and set this value 
+      // to roundedUpDivision.
+      int a;
+      #pragma omp parallel for private(a)
+      for (a = 0; a < (*simsRef).size(); a++){
+        // Note that RunNSteps overwrites startStep before returning to the step it left off on
+        (*simsRef)[a]->RunNSteps((*simsRef)[a]->getEquilSteps());
+      }
+    }
+
     int j;
     for (ulong i = 0; i < roundedUpDivison; i++){
 
@@ -126,13 +150,14 @@ void ReplicaExchangeController::runMultiSim(){
           (*simsRef)[j]->RunNSteps(exchangeRate);
         }
         
-        for (int i = 0; i < (*simsRef).size(); i++)
-          re.pind[i] = re.ind[i];
+        if (REMC){
 
-
-        step += exchangeRate;        
-        if (exchangeRate!=totalSteps  && (*simsRef)[0]->getEquilSteps() <= step+1){
-         // replicaLog.file << "Replica exchange at step " << step << std::endl;
+          // Step here is only used for printing purposes
+          step += exchangeRate;        
+          
+          for (int i = 0; i < (*simsRef).size(); i++)
+            re.pind[i] = re.ind[i];
+         
           timer->SetStop();
           fprintf(fplog, "\nReplica exchange at step %lu time %.5f\n", step+1, timer->GetTimDiff());
           parityOfSwaps = ((*simsRef)[0]->getStartStep() / exchangeRate) % 2;
@@ -147,7 +172,9 @@ void ReplicaExchangeController::runMultiSim(){
               //  odd replicas and repl_id+1 {1,2} ... on odd parity
               if (i % 2 == parityOfSwaps){
                   delta = calc_delta(fplog, a, b, a, b);
-                  if (delta <= 0) {
+                  re.prob[i] = min(1.0, delta);
+/*
+                  if (delta == 1) {
                     exchange(a, b);
                     re.prob[i] = 1;
                     re.bEx[i] = true;
@@ -158,14 +185,14 @@ void ReplicaExchangeController::runMultiSim(){
                     }
                     else {
                       re.prob[i] = exp(-delta);
-                    }
+                    }*/
                     if (rand.rand() < re.prob[i]){
                       exchange(a, b);
                       re.bEx[i] = true;
                     } else {
                       re.bEx[i] = false;
                     }
-                  }
+                  //}
                   re.prob_sum[i] += re.prob[i];
                   if (re.bEx[i]) {
                     /* swap these two */
@@ -196,38 +223,44 @@ void ReplicaExchangeController::runMultiSim(){
 void ReplicaExchangeController::exchange(int a, int b){
   double swapperForT_in_K = (*simsRef)[a]->getT_in_K(); 
   double swapperForBeta = (*simsRef)[a]->getBeta();
- // CPUSide * swapperForCPUSide = (*simsRef)[a]->getCPUSide();
   (*simsRef)[a]->setT_in_K((*simsRef)[b]->getT_in_K());
   (*simsRef)[a]->setBeta((*simsRef)[b]->getBeta());
- // (*simsRef)[a]->setCPUSide((*simsRef)[b]->getCPUSide());
   (*simsRef)[b]->setT_in_K(swapperForT_in_K);
   (*simsRef)[b]->setBeta(swapperForBeta);
- // (*simsRef)[b]->setCPUSide(swapperForCPUSide);
+
   (*simsRef)[a]->getCPUSide()->exchangeOfstreamPointers((*simsRef)[b]->getCPUSide());
+
+/*
+  CPUSide * swapperForCPUSide = (*simsRef)[a]->getCPUSide();
+  (*simsRef)[a]->setCPUSide((*simsRef)[b]->getCPUSide());
+  (*simsRef)[b]->setCPUSide(swapperForCPUSide);
+
+  (*simsRef)[a]->attachNewCPUSideToLocalSysAndStatV();
+  (*simsRef)[b]->attachNewCPUSideToLocalSysAndStatV();
+*/
+
   Simulation * swapperForReplica = (*simsRef)[a];
   (*simsRef)[a] = (*simsRef)[b];
   (*simsRef)[b] = swapperForReplica;
- // (*simsRef)[a]->attachNewCPUSideToLocalSysAndStatV();
-  //(*simsRef)[b]->attachNewCPUSideToLocalSysAndStatV();
 
-//  (*simsRef)[a]->getCPUSide()->reInitVarRef((*simsRef)[a]->getSystem(), (*simsRef)[a]->getStaticValues());
+  //  (*simsRef)[a]->getCPUSide()->reInitVarRef((*simsRef)[a]->getSystem(), (*simsRef)[a]->getStaticValues());
  // (*simsRef)[b]->getCPUSide()->reInitVarRef((*simsRef)[b]->getSystem(), (*simsRef)[b]->getStaticValues());
 
 }
 
-double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap, int bp){
+double ReplicaExchangeController::calc_delta(FILE * fplog, int i, int j, int ip, int jp){
   
   double delta;
 
   #if ENSEMBLE == NPT || ENSEMBLE == NVT || ENSEMBLE == GCMC
 
-  double epot_a = (*simsRef)[a]->getEpot();
-  double epot_b = (*simsRef)[b]->getEpot();
-  double beta_a = (*simsRef)[ap]->getBeta();
-  double beta_b = (*simsRef)[bp]->getBeta(); 
+  double U_i = (*simsRef)[i]->getEpot();
+  double U_j = (*simsRef)[j]->getEpot();
+  double beta_i = (*simsRef)[ip]->getBeta();
+  double beta_j = (*simsRef)[jp]->getBeta(); 
 
-  double ediff = epot_b - epot_a;
-  delta = -(beta_b - beta_a)*ediff;
+  double ediff = U_j - U_i;
+  delta = (beta_j - beta_i)*ediff;
 
   #endif
 
@@ -235,16 +268,16 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap,
 
   /* GROMACS Abraham, et al. (2015) SoftwareX 1-2 19-25 */
   #if ENSEMBLE == NPT || ENSEMBLE == NVT
-    fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (units?)\n", a, b, delta);
+    fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (units?)\n", i, j, delta);
   #endif
 
   /*  GROMACS Abraham, et al. (2015) SoftwareX 1-2 19-25 */
   #if ENSEMBLE == NPT
-    double pres_a = (*simsRef)[ap]->getPressure();
-    double vol_a = (*simsRef)[a]->getVolume();
-    double pres_b = (*simsRef)[bp]->getPressure();
-    double vol_b = (*simsRef)[b]->getVolume();
-    double dpV = (beta_a * pres_a - beta_b * pres_b) * (vol_b - vol_a);
+    double pres_i = (*simsRef)[ip]->getPressure();
+    double vol_i = (*simsRef)[i]->getVolume();
+    double pres_j = (*simsRef)[jp]->getPressure();
+    double vol_j = (*simsRef)[j]->getVolume();
+    double dpV = (beta_i * pres_i - beta_j * pres_j) * (vol_i - vol_j);
     fprintf(fplog, "  dpV = %10.3e  d = %10.3e\n", dpV, delta + dpV);
     delta += dpV;
   #endif
@@ -254,14 +287,21 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap,
   #if ENSEMBLE == GCMC
 
     double deltaBetaMuN   = 0;
-
-    for (uint i = 0; i < ((*simsRef)[a]->getSystem())->molLookup.GetNumKind(); i++){
-      deltaBetaMuN += ((beta_a * (*simsRef)[ap]->getChemicalPotential(i) -
-        beta_b * (*simsRef)[bp]->getChemicalPotential(i) ) * (
-         (*simsRef)[b]->getNumOfParticles(i) - (*simsRef)[a]->getNumOfParticles(i)));
+/*
+    for (uint index = 0; index < ((*simsRef)[i]->getSystem())->molLookup.GetNumKind(); index++){
+      deltaBetaMuN -= ((beta_i * (*simsRef)[ip]->getChemicalPotential(index) -
+        beta_j * (*simsRef)[jp]->getChemicalPotential(index) ) * (
+         (*simsRef)[j]->getNumOfParticles(index) - (*simsRef)[i]->getNumOfParticles(index)));
     }
-    fprintf(fplog, "  dMuN = %10.3e  d = %10.3e\n", deltaBetaMuN, delta - deltaBetaMuN);
-    delta -= deltaBetaMuN;
+    fprintf(fplog, "  dMuN = %10.3e  d = %10.3e\n", deltaBetaMuN, delta + deltaBetaMuN);
+    delta += deltaBetaMuN;
+*/
+  double deltaN = 0;
+  for (uint index = 0; index < ((*simsRef)[i]->getSystem())->molLookup.GetNumKind(); index++){
+    deltaN += (*simsRef)[j]->getNumOfParticles(index) - (*simsRef)[i]->getNumOfParticles(index);
+  }
+  delta = exp(delta);
+  delta *= pow(((*simsRef)[i]->getStaticValues()->forcefield.T_in_K / (*simsRef)[j]->getStaticValues()->forcefield.T_in_K), deltaN);
   #endif
 
   /*  Ortiz et al Chemical physics letters 368.3-4 (2003): 452-457.
@@ -270,18 +310,18 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int a, int b, int ap,
 
   delta = 0;
   double dpV = 0;
-  for (uint i = 0; i < BOX_TOTAL; ++i) { 
-      delta += -(((*simsRef)[bp]->getBeta() - (*simsRef)[ap]->getBeta())*
-        ((*simsRef)[b]->getEpotBox(i) - (*simsRef)[a]->getEpotBox(i)));
+  for (uint box_index = 0; i < BOX_TOTAL; ++i) { 
+      delta += -(((*simsRef)[jp]->getBeta() - (*simsRef)[ip]->getBeta())*
+        ((*simsRef)[j]->getEpotBox(box_index) - (*simsRef)[i]->getEpotBox(box_index)));
 
-      if ((*simsRef)[b]->getKindOfGEMC()){
-        dpV += ((*simsRef)[a]->getBeta() * (*simsRef)[ap]->getPressure() - 
-          (*simsRef)[b]->getBeta() * (*simsRef)[bp]->getPressure()) * 
-          ((*simsRef)[b]->getVolume(i) - (*simsRef)[a]->getVolume(i));
+      if ((*simsRef)[j]->getKindOfGEMC()){
+        dpV += ((*simsRef)[i]->getBeta() * (*simsRef)[ip]->getPressure() - 
+          (*simsRef)[j]->getBeta() * (*simsRef)[jp]->getPressure()) * 
+          ((*simsRef)[j]->getVolume(box_index) - (*simsRef)[i]->getVolume(box_index));
       }
   }
-  fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (kT)\n", a, b, delta);
-  if ((*simsRef)[b]->getKindOfGEMC())
+  fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (kT)\n", i, j, delta);
+  if ((*simsRef)[j]->getKindOfGEMC())
         fprintf(fplog, "  dpV = %10.3e  d = %10.3e\n", dpV, delta + dpV);
 
   delta += dpV; 

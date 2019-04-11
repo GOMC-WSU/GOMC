@@ -208,7 +208,9 @@ int Simulation::getNumOfParticles(uint i){
 double Simulation::getChemicalPotential(uint kind){
   double chemPot = 0.0;
   uint box = 0;
-  chemPot = system->molLookup.NumKindInBox(kind, box) * staticValues->mol.kinds[kind].chemPot;    
+  chemPot = staticValues->mol.kinds[kind].chemPot;    
+  //chemPot = system->molLookup.NumKindInBox(kind, box) * staticValues->mol.kinds[kind].chemPot;    
+
   return chemPot;
 }
 #endif
