@@ -56,7 +56,7 @@ Clock* CPUSide::getClock(){
 }
 
 void CPUSide::exchangeOfstreamPointers(CPUSide * otherCPUSide){
- /* ofstream * swapperForConsole = console.getConsoleToFile(); 
+  ofstream * swapperForConsole = console.getConsoleToFile(); 
   console.setConsoleToFile(otherCPUSide->console.getConsoleToFile());
   otherCPUSide->console.setConsoleToFile(swapperForConsole);
 
@@ -77,7 +77,7 @@ void CPUSide::exchangeOfstreamPointers(CPUSide * otherCPUSide){
       ofstream * swapperForBlock = block.getBlockToFile(box);
       block.setBlockToFile(box, otherCPUSide->block.getBlockToFile(box));
       otherCPUSide->block.setBlockToFile(box, swapperForBlock);
-    }*/
+    }
 #if ENSEMBLE == GCMC
 
     typedef std::ofstream* arr_t[BOXES_WITH_U_NB];
@@ -87,19 +87,18 @@ void CPUSide::exchangeOfstreamPointers(CPUSide * otherCPUSide){
     hist.setHistToFile(otherCPUSide->hist.getHistToFile());
     otherCPUSide->hist.setHistToFile(swapperForHist);
 
-   mol_t * swapperForMolCount = hist.getMolCount();
-   hist.setMolCount(otherCPUSide->hist.getMolCount());
-   otherCPUSide->hist.setMolCount(swapperForMolCount);
+    mol_t * swapperForMolCount = hist.getMolCount();
+    hist.setMolCount(otherCPUSide->hist.getMolCount());
+    otherCPUSide->hist.setMolCount(swapperForMolCount);
 
-/*
+
     ofstream * swapperForSample_N_E = sample_N_E.getSample_N_EToFile(box);
     sample_N_E.setSample_N_EToFile(box, otherCPUSide->sample_N_E.getSample_N_EToFile(box));
     otherCPUSide->sample_N_E.setSample_N_EToFile(box, swapperForSample_N_E);  
-*/
+
 #endif 
   }
-//}
-
+}
 
 void CPUSide::reInitVarRef(System * sys, StaticVals * sv){
   varRef.InitRef(*sys, *sv);

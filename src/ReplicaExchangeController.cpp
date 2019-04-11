@@ -6,7 +6,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "ReplicaExchangeController.h"
 #include <time.h>
-#include <cmath>
+
 using namespace std; 
 
 #define PROBABILITYCUTOFF 100
@@ -172,9 +172,7 @@ void ReplicaExchangeController::runMultiSim(){
               //  odd replicas and repl_id+1 {1,2} ... on odd parity
               if (i % 2 == parityOfSwaps){
                   delta = calc_delta(fplog, a, b, a, b);
-                  re.prob[i] = min(1.0, delta);
-/*
-                  if (delta == 1) {
+                  if (delta <= 0) {
                     exchange(a, b);
                     re.prob[i] = 1;
                     re.bEx[i] = true;
@@ -185,14 +183,14 @@ void ReplicaExchangeController::runMultiSim(){
                     }
                     else {
                       re.prob[i] = exp(-delta);
-                    }*/
+                    }
                     if (rand.rand() < re.prob[i]){
                       exchange(a, b);
                       re.bEx[i] = true;
                     } else {
                       re.bEx[i] = false;
                     }
-                  //}
+                  }
                   re.prob_sum[i] += re.prob[i];
                   if (re.bEx[i]) {
                     /* swap these two */
@@ -223,26 +221,21 @@ void ReplicaExchangeController::runMultiSim(){
 void ReplicaExchangeController::exchange(int a, int b){
   double swapperForT_in_K = (*simsRef)[a]->getT_in_K(); 
   double swapperForBeta = (*simsRef)[a]->getBeta();
+  CPUSide * swapperForCPUSide = (*simsRef)[a]->getCPUSide();
   (*simsRef)[a]->setT_in_K((*simsRef)[b]->getT_in_K());
   (*simsRef)[a]->setBeta((*simsRef)[b]->getBeta());
+  (*simsRef)[a]->setCPUSide((*simsRef)[b]->getCPUSide());
   (*simsRef)[b]->setT_in_K(swapperForT_in_K);
   (*simsRef)[b]->setBeta(swapperForBeta);
-
-  (*simsRef)[a]->getCPUSide()->exchangeOfstreamPointers((*simsRef)[b]->getCPUSide());
-
-/*
-  CPUSide * swapperForCPUSide = (*simsRef)[a]->getCPUSide();
-  (*simsRef)[a]->setCPUSide((*simsRef)[b]->getCPUSide());
   (*simsRef)[b]->setCPUSide(swapperForCPUSide);
-
-  (*simsRef)[a]->attachNewCPUSideToLocalSysAndStatV();
-  (*simsRef)[b]->attachNewCPUSideToLocalSysAndStatV();
-*/
-
+  //(*simsRef)[a]->getCPUSide()->exchangeOfstreamPointers((*simsRef)[b]->getCPUSide());
+  
   Simulation * swapperForReplica = (*simsRef)[a];
   (*simsRef)[a] = (*simsRef)[b];
   (*simsRef)[b] = swapperForReplica;
 
+  (*simsRef)[a]->attachNewCPUSideToLocalSysAndStatV();
+  (*simsRef)[b]->attachNewCPUSideToLocalSysAndStatV();
   //  (*simsRef)[a]->getCPUSide()->reInitVarRef((*simsRef)[a]->getSystem(), (*simsRef)[a]->getStaticValues());
  // (*simsRef)[b]->getCPUSide()->reInitVarRef((*simsRef)[b]->getSystem(), (*simsRef)[b]->getStaticValues());
 
@@ -260,7 +253,7 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int i, int j, int ip,
   double beta_j = (*simsRef)[jp]->getBeta(); 
 
   double ediff = U_j - U_i;
-  delta = (beta_j - beta_i)*ediff;
+  delta = -(beta_j - beta_i)*ediff;
 
   #endif
 
@@ -287,7 +280,7 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int i, int j, int ip,
   #if ENSEMBLE == GCMC
 
     double deltaBetaMuN   = 0;
-/*
+
     for (uint index = 0; index < ((*simsRef)[i]->getSystem())->molLookup.GetNumKind(); index++){
       deltaBetaMuN -= ((beta_i * (*simsRef)[ip]->getChemicalPotential(index) -
         beta_j * (*simsRef)[jp]->getChemicalPotential(index) ) * (
@@ -295,13 +288,6 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int i, int j, int ip,
     }
     fprintf(fplog, "  dMuN = %10.3e  d = %10.3e\n", deltaBetaMuN, delta + deltaBetaMuN);
     delta += deltaBetaMuN;
-*/
-  double deltaN = 0;
-  for (uint index = 0; index < ((*simsRef)[i]->getSystem())->molLookup.GetNumKind(); index++){
-    deltaN += (*simsRef)[j]->getNumOfParticles(index) - (*simsRef)[i]->getNumOfParticles(index);
-  }
-  delta = exp(delta);
-  delta *= pow(((*simsRef)[i]->getStaticValues()->forcefield.T_in_K / (*simsRef)[j]->getStaticValues()->forcefield.T_in_K), deltaN);
   #endif
 
   /*  Ortiz et al Chemical physics letters 368.3-4 (2003): 452-457.
