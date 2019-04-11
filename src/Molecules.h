@@ -140,9 +140,9 @@ public:
   MoleculeKind * kinds;
   uint kindsCount;
   uint fractionKind, lambdaSize;
-  std::vector< double > lambdaVDW;
   double* pairEnCorrections, *fractionalEnCorrections;
   double* pairVirCorrections, *fractionalVirCorrections;
+  double* lambdaVDW;
 
   bool printFlag;
 };

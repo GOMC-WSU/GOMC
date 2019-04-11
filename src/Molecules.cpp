@@ -21,7 +21,7 @@ class System;
 Molecules::Molecules() : start(NULL), kIndex(NULL), countByKind(NULL),
   chain(NULL), kinds(NULL), pairEnCorrections(NULL),
   pairVirCorrections(NULL), fractionalEnCorrections(NULL),
-  fractionalVirCorrections(NULL), printFlag(true) {}
+  fractionalVirCorrections(NULL), lambdaVDW(NULL), printFlag(true) {}
 
 Molecules::~Molecules(void)
 {
@@ -34,6 +34,7 @@ Molecules::~Molecules(void)
   delete[] pairVirCorrections;
   delete[] fractionalEnCorrections;
   delete[] fractionalVirCorrections;
+  delete[] lambdaVDW;
 }
 
 void Molecules::Init(Setup & setup, Forcefield & forcefield,
@@ -151,8 +152,11 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   }
 
   if(forcefield.freeEnergy) {
-    lambdaVDW = sys.statV.freeEnVal.lambdaVDW;
-    lambdaSize = lambdaVDW.size();
+    lambdaSize = sys.statV.freeEnVal.lambdaVDW.size();
+    lambdaVDW = new double[lambdaSize];
+    for(uint s = 0; s < lambdaSize; ++s) {
+      lambdaVDW[s] = sys.statV.freeEnVal.lambdaVDW[s];
+    }
     fractionalEnCorrections = new double[kindsCount * lambdaSize];
     fractionalVirCorrections = new double[kindsCount * lambdaSize];
     //molecules will be initialized after System, so in first call, it does 
