@@ -807,6 +807,31 @@ Intermolecular CalculateEnergy::MoleculeTailChange(const uint box,
   return delta;
 }
 
+//Calculates the change in the Virial TC from adding numChange atoms of a kind
+Intermolecular CalculateEnergy::MoleculeTailVirChange(const uint box,
+                                                      const uint kind,
+                                                      const bool add) const
+{
+  Intermolecular delta;
+
+  if (box < BOXES_WITH_U_NB) {
+
+    double sign = (add ? 1.0 : -1.0);
+    uint mkIdxII = kind * mols.GetKindsCount() + kind;
+    for (uint j = 0; j < mols.GetKindsCount(); ++j) {
+      uint mkIdxIJ = j * mols.GetKindsCount() + kind;
+      double rhoDeltaIJ_2 = sign *2.0*(double)(molLookup.NumKindInBox(j, box))*
+	                    currentAxes.volInv[box];
+      delta.virial += mols.pairVirCorrections[mkIdxIJ] * rhoDeltaIJ_2;
+    }
+
+    //We already calculated part of the change for this type in the loop
+    delta.virial += mols.pairVirCorrections[mkIdxII] *
+                    currentAxes.volInv[box];
+  }
+  return delta;
+}
+
 
 //Calculates intramolecular energy of a full molecule
 void CalculateEnergy::MoleculeIntra(const uint molIndex,
@@ -1264,7 +1289,7 @@ double CalculateEnergy::IntraEnergy_1_4(const double distSq, const uint atom1,
 
 }
 
-//!Calculates energy and virial tail corrections for the box
+//!Calculates energy tail corrections for the box
 void CalculateEnergy::EnergyCorrection(SystemPotential& pot,
                                        BoxDimensions const& boxAxes,
                                        const uint box) const
@@ -1332,19 +1357,45 @@ void CalculateEnergy::VirialCorrection(Virial& virial,
                                       BoxDimensions const& boxAxes,
                                       const uint box) const
 {
-  if (box < BOXES_WITH_U_NB) {
-    double vir = 0.0;
+  if(box >= BOXES_WITH_U_NB) {
+    return;
+  }
+  double vir = 0.0;
 
-    for (uint i = 0; i < mols.GetKindsCount(); ++i) {
-      uint numI = molLookup.NumKindInBox(i, box);
-      for (uint j = 0; j < mols.GetKindsCount(); ++j) {
-        uint numJ = molLookup.NumKindInBox(j, box);
-        vir += mols.pairVirCorrections[i * mols.GetKindsCount() + j] *
-               numI * numJ * boxAxes.volInv[box];
-      }
+  for (uint i = 0; i < mols.GetKindsCount(); ++i) {
+    uint numI = molLookup.NumKindInBox(i, box);
+    for (uint j = 0; j < mols.GetKindsCount(); ++j) {
+      uint numJ = molLookup.NumKindInBox(j, box);
+      vir += mols.pairVirCorrections[i * mols.GetKindsCount() + j] *
+              numI * numJ * boxAxes.volInv[box];
     }
+  }
+
+  if(!forcefield.freeEnergy) {
     virial.tc = vir;
   }
+#if ENSEMBLE == NVT || ENSEMBLE == NPT
+  else {
+    //Get the kind and lambda value
+    uint fk = lambdaRef.GetKind(box);
+    double lambdaVDW = lambdaRef.GetLambdaVDW(fk, box);
+    //remove the LRC for one molecule with lambda = 1
+    vir += MoleculeTailVirChange(box, fk, false).virial;
+
+    //Add the LRC for fractional molecule
+    for (uint i = 0; i < mols.GetKindsCount(); ++i) {
+      uint molNum = molLookup.NumKindInBox(i, box);
+      if(i == fk) {
+        --molNum; // We have one less molecule (it is fractional molecule)
+      }
+      double rhoDeltaIJ_2 = 2.0 * (double)(molNum) * currentAxes.volInv[box];
+      vir += mols.GetFractionVirLRC(fk, i, lambdaVDW) * rhoDeltaIJ_2;
+    }
+    //We already calculated part of the change for this type in the loop
+    vir += mols.GetFractionVirLRC(fk, fk, lambdaVDW) * currentAxes.volInv[box];
+    virial.tc = vir;
+  }
+#endif
 }
 
 //! Calculate Torque
@@ -1661,6 +1712,7 @@ void CalculateEnergy::EnergyChange(Energy *energyDiff, Energy &dUdL_VDW,
   delete [] tempREnDiff;
 
   //Need to calculate change in LRC
+  ChangeLRC(energyDiff, dUdL_VDW, lambda_VDW, iState, molIndex, box);
   //Need to calculate change in self
   calcEwald->ChangeSelf(energyDiff, dUdL_Coul, lambda_Coul, iState, molIndex,
                         box);
@@ -1671,4 +1723,40 @@ void CalculateEnergy::EnergyChange(Energy *energyDiff, Energy &dUdL_VDW,
   calcEwald->ChangeRecip(energyDiff, dUdL_Coul, lambda_Coul, iState, molIndex,
                          box);
 
+}
+
+//Calculate the change in LRC for each state
+void CalculateEnergy::ChangeLRC(Energy *energyDiff, Energy &dUdL_VDW,
+                                const std::vector<double> &lambda_VDW,
+                                const uint iState, const uint molIndex,
+                                const uint box) const
+{
+  if(box >= BOXES_WITH_U_NB) {
+    return;
+  }
+  
+  //Get the kind and lambda value
+  uint fk = mols.GetMolKind(molIndex);
+  double lambda_istate = lambda_VDW[iState];
+
+  //Add the LRC for fractional molecule
+  for(uint s = 0; s < lambda_VDW.size(); s++){
+    double lambdaVDW = lambda_VDW[s];
+    for (uint i = 0; i < mols.GetKindsCount(); ++i) {
+      uint molNum = molLookup.NumKindInBox(i, box);
+      if(i == fk) {
+        --molNum; // We have one less molecule (it is fractional molecule)
+      }
+      double rhoDeltaIJ_2 = 2.0 * (double)(molNum) * currentAxes.volInv[box];
+      energyDiff[s].tc += mols.GetFractionVirLRC(fk, i, lambdaVDW) *
+                          rhoDeltaIJ_2;
+      energyDiff[s].tc -= mols.GetFractionVirLRC(fk, i, lambda_istate) *
+                          rhoDeltaIJ_2;
+    }
+    //We already calculated part of the change for this type in the loop
+    energyDiff[s].tc += mols.GetFractionVirLRC(fk, fk, lambdaVDW) *
+                        currentAxes.volInv[box];
+    energyDiff[s].tc -= mols.GetFractionVirLRC(fk, fk, lambda_istate) *
+                        currentAxes.volInv[box];
+  }
 }

@@ -133,7 +133,7 @@ public:
                      const uint trials) const;
 
 
-  //! Calculates the change in the TC from adding numChange atoms of a kind
+  //! Calculates change in the ENergyTC from adding numChange atoms of a kind
   //! @param box Index of box under consideration
   //! @param kind Kind of particle being added or removed
   //! @param add If removed: false (sign=-1); if added: true (sign=+1)
@@ -141,7 +141,14 @@ public:
                                     const uint kind,
                                     const bool add) const;
 
-
+  //! Calculates change in the Virial TC from adding numChange atoms of a kind
+  //! @param box Index of box under consideration
+  //! @param kind Kind of particle being added or removed
+  //! @param add If removed: false (sign=-1); if added: true (sign=+1)
+  Intermolecular MoleculeTailVirChange(const uint box,
+                                       const uint kind,
+                                       const bool add) const;
+                                       
   //! Calculates the change in the TC from chaning the lambdaOld -> lambdaNew
   //! @param box Index of box under consideration
   //! @param kind Kind of particle being transfrom in lambda
@@ -272,6 +279,12 @@ private:
   //for Martini forcefield
   void MolNonbond_1_3(double & energy, cbmc::TrialMol const &mol,
                       MoleculeKind const& molKind) const;                    
+
+  //Calculate the change in LRC for each state
+  void ChangeLRC(Energy *energyDiff, Energy &dUdL_VDW,
+                 const std::vector<double> &lambda_VDW,
+                 const uint iState, const uint molIndex,
+                 const uint box) const;
 
   //! For particles in main coordinates array determines if they belong
   //! to same molecule, using internal arrays.
