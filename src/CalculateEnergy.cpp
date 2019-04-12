@@ -1672,7 +1672,7 @@ void CalculateEnergy::EnergyChange(Energy *energyDiff, Energy &dUdL_VDW,
     }
 
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, s, distSq, qi_qj_fact, virComponents, energyOldVDW, energyOldVDW) reduction(+:tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
+#pragma omp parallel for default(shared) private(i, s, distSq, qi_qj_fact, virComponents, energyOldVDW, energyOldCoul) reduction(+:tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
 #endif
     for(i = 0; i < nIndex.size(); i++) {
       distSq = 0.0;
