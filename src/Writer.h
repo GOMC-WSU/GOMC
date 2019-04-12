@@ -29,7 +29,6 @@ public:
   ~Writer(void)
   {
     if (isOpen) close();
-    //delete this->file;
   }
 
   //Set main class vars.
@@ -43,16 +42,14 @@ public:
     isOpen = false;
     firstWrite = true;
     nameWAlias = fileAlias + " file: ./"  + fileName;
-    this->file = new ofstream();
   }
 
   //Open or close a file, with basic protections
   void open(void)
   {
     if (isOpen) return;
-    this->file->open(fileName.c_str(),
+    file.open(fileName.c_str(),
               (firstWrite ? std::ios::out : std::ios::app));
-
     CheckFileState(true, "...could not be opened.", "Writing to ");
   }
 
@@ -61,7 +58,7 @@ public:
   void openOverwrite(void)
   {
     if (isOpen) return;
-    file->open(fileName.c_str(), std::ios::out);
+    file.open(fileName.c_str(), std::ios::out);
     CheckFileState(true, "...could not be opened.", "Writing to ");
   }
 
@@ -69,7 +66,7 @@ public:
   void close(void)
   {
     if (!isOpen) return;
-    file->close();
+    file.close();
     CheckFileState(false, "...could not be closed.", "Finished writing ");
     //If first write is complete, unset firstWrite flag.
     if (firstWrite)
@@ -77,12 +74,12 @@ public:
   }
 
   //Make public to expose object.
-  std::ofstream * file;
+  std::ofstream file;
 protected:
 
   bool GoodFileWData(void)
   {
-    return file->is_open() && file->good();
+    return file.is_open() && file.good();
   }
 
   void HandleError(std::string const& msg)

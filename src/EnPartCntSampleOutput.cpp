@@ -18,7 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 EnPartCntSample::~EnPartCntSample()
 {
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-    if (outF[b]->is_open()) outF[b]->close();
+    if (outF[b].is_open()) outF[b].close();
     if (samplesE[b] != NULL) delete[] samplesE[b];
     if(samplesN[b] != NULL) {
       for (uint k = 0; k < var->numKinds; ++k)
@@ -52,7 +52,7 @@ void EnPartCntSample::Init(pdb_setup::Atoms const& atoms,
       for (uint k = 0; k < var->numKinds; ++k) {
         samplesN[b][k] = new uint [samplesPerFrame];
       }
-      outF[b]->open(name[b].c_str(), std::ofstream::out);
+      outF[b].open(name[b].c_str(), std::ofstream::out);
     }
     WriteHeader();
   }
@@ -81,17 +81,17 @@ void EnPartCntSample::Sample(const ulong step)
 void EnPartCntSample::WriteHeader(void)
 {
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-    if (outF[b]->is_open()) {
-      *outF[b] << var->T_in_K << " " << var->numKinds << " ";
+    if (outF[b].is_open()) {
+      outF[b] << var->T_in_K << " " << var->numKinds << " ";
 #if ENSEMBLE == GCMC
       for (uint k = 0; k < var->numKinds; k++) {
-        *outF[b] << var->kindsRef[k].chemPot << " ";
+        outF[b] << var->kindsRef[k].chemPot << " ";
       }
 #endif
       XYZ bAx = var->axisRef->Get(0);
-      *outF[b] << bAx.x << " " << bAx.y << " " << bAx.z << std::endl;
-      *outF[b] << std::setprecision(std::numeric_limits<double>::digits10 + 2);
-      outF[b]->setf(std::ios_base::left, std::ios_base::adjustfield);
+      outF[b] << bAx.x << " " << bAx.y << " " << bAx.z << std::endl;
+      outF[b] << std::setprecision(std::numeric_limits<double>::digits10 + 2);
+      outF[b].setf(std::ios_base::left, std::ios_base::adjustfield);
     } else
       std::cerr << "Unable to write to file \"" <<  name[b] << "\" "
                 << "(energy and part. num samples file)" << std::endl;
@@ -106,12 +106,12 @@ void EnPartCntSample::DoOutput(const ulong step)
   //Only sample on specified interval.
   if ((step + 1) % stepsPerOut == 0) {
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-      if (outF[b]->is_open()) {
+      if (outF[b].is_open()) {
         for (uint n = 0; n < samplesCollectedInFrame; ++n) {
           for (uint k = 0; k < var->numKinds; k++) {
-            *outF[b] << std::setw(11) << samplesN[b][k][n] << " ";
+            outF[b] << std::setw(11) << samplesN[b][k][n] << " ";
           }
-          *outF[b] << std::setw(25) << samplesE[b][n] << std::endl;
+          outF[b] << std::setw(25) << samplesE[b][n] << std::endl;
         }
       } else
         std::cerr << "Unable to write to file \"" <<  name[b] << "\" "
@@ -139,14 +139,6 @@ std::string EnPartCntSample::GetFName(std::string const& sampleName,
   }
   fName += ".dat";
   return fName;
-}
-
-ofstream * EnPartCntSample::getSample_N_EToFile(uint box){
-  return outF[box];
-}
-
-void EnPartCntSample::setSample_N_EToFile(uint box, ofstream * p2f){
-  outF[box] = p2f;
 }
 
 #endif /*ENSEMBLE==GCMC*/

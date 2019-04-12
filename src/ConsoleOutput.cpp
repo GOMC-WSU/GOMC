@@ -53,6 +53,8 @@ void ConsoleOutput::DoOutput(const ulong step)
       }
     } else {
       for(uint b = 0; b < BOX_TOTAL; b++) {
+        *consoleToFile << "\nOn step "<< step+1 << " I am config " << var->replSys->repl_ID << " and temperature "<< var->T_in_K << std::endl;
+
         if(!forceOutput) {
           PrintMove(b, step);
           *consoleToFile << std::endl;
@@ -69,6 +71,7 @@ void ConsoleOutput::DoOutput(const ulong step)
           PrintPressureTensor(b, step);
           *consoleToFile << std::endl;
         }
+
       }
     }
   } else {
@@ -520,12 +523,4 @@ void ConsoleOutput::printElementStep( const T t, const ulong step,
   } else {
     std::cout << t << right << setw(width - 7) << step;
   }
-}
-
-ofstream * ConsoleOutput::getConsoleToFile(){
-  return consoleToFile;
-}
-
-void ConsoleOutput::setConsoleToFile(ofstream * c2f){
-  consoleToFile = c2f;
 }
