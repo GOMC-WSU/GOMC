@@ -67,9 +67,9 @@ ReplicaExchangeController::ReplicaExchangeController(vector<Simulation*>* sims){
         }
     }
 
-    if (exchangeRate > 0 && exchangeRate < ( (*simsRef)[0]->getTotalSteps() - (*simsRef)[0]->getEquilSteps()))
+    if (exchangeRate > 0 && exchangeRate < ( (*simsRef)[0]->getTotalSteps() - (*simsRef)[0]->getEquilSteps())){
       REMC = true;
-    else {
+    } else {
       REMC = false;
     }
 

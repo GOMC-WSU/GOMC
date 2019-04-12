@@ -159,7 +159,6 @@ StaticVals* Simulation::getStaticValues(){
   return staticValues;
 }
 
-
 Clock* Simulation::getClock(){
   return cpu->getClock();
 }
