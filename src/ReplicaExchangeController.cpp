@@ -270,7 +270,7 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int i, int j, int ip,
     double vol_i = (*simsRef)[i]->getVolume();
     double pres_j = (*simsRef)[jp]->getPressure();
     double vol_j = (*simsRef)[j]->getVolume();
-    double dpV = (beta_i * pres_i - beta_j * pres_j) * (vol_i - vol_j);
+    double dpV = (beta_i * pres_i - beta_j * pres_j) * (vol_j - vol_i);
     fprintf(fplog, "  dpV = %10.3e  d = %10.3e\n", dpV, delta + dpV);
     delta += dpV;
   #endif
