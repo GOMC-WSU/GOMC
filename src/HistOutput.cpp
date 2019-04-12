@@ -15,7 +15,6 @@ Histogram::Histogram(OutputVars & v)
 {
   this->var = &v;
   total = NULL;
-  pointerToOutF = NULL;
   for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
     molCount[b] = NULL;
     outF[b] = NULL;
@@ -68,8 +67,6 @@ void Histogram::Init(pdb_setup::Atoms const& atoms,
         }
       }
     }
-    pointerToOutF = &outF;
-    pointerToMolCount = &molCount;
   }
 }
 
@@ -97,7 +94,7 @@ void Histogram::Sample(const ulong step)
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       for (uint k = 0; k < var->numKinds; ++k) {
         uint count = var->numByKindBox[k + var->numKinds * b];
-        ++outF[b][k][count];
+        ++molCount[b][k][count];
       }
     }
   }
@@ -125,8 +122,8 @@ void Histogram::DoOutput(const ulong step)
 void Histogram::PrintKindHist(const uint b, const uint k)
 {
   for (uint n = 0; n < total[k]; ++n) {
-    if ( outF[b][k][n] != 0 )
-      outF[b][k] << n << " " << outF[b][k][n] << std::endl;
+    if ( molCount[b][k][n] != 0 )
+      outF[b][k] << n << " " << molCount[b][k][n] << std::endl;
   }
   outF[b][k].flush();
 }
