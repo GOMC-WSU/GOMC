@@ -97,7 +97,7 @@ void Histogram::Sample(const ulong step)
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       for (uint k = 0; k < var->numKinds; ++k) {
         uint count = var->numByKindBox[k + var->numKinds * b];
-        ++(*pointerToMolCount)[b][k][count];
+        ++outF[b][k][count];
       }
     }
   }
@@ -111,13 +111,13 @@ void Histogram::DoOutput(const ulong step)
   if ((step + 1) % stepsPerOut == 0) {
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       for (uint k = 0; k < var->numKinds; ++k) {
-        (* pointerToOutF)[b][k].open(name[b][k].c_str(), std::ofstream::out);
-        if ((* pointerToOutF)[b][k].is_open())
+        outF[b][k].open(name[b][k].c_str(), std::ofstream::out);
+        if (outF[b][k].is_open())
           PrintKindHist(b, k);
         else
           std::cerr << "Unable to write to file \"" <<  name[b][k] << "\" "
                     << "(histogram file)" << std::endl;
-        (* pointerToOutF)[b][k].close();
+        outF[b][k].close();
       }
     }
   }
@@ -125,10 +125,10 @@ void Histogram::DoOutput(const ulong step)
 void Histogram::PrintKindHist(const uint b, const uint k)
 {
   for (uint n = 0; n < total[k]; ++n) {
-    if ( (*pointerToMolCount)[b][k][n] != 0 )
-      (* pointerToOutF)[b][k] << n << " " << (*pointerToMolCount)[b][k][n] << std::endl;
+    if ( outF[b][k][n] != 0 )
+      outF[b][k] << n << " " << outF[b][k][n] << std::endl;
   }
-  (* pointerToOutF)[b][k].flush();
+  outF[b][k].flush();
 }
 
 std::string Histogram::GetFName(std::string const& histName,
@@ -153,24 +153,3 @@ std::string Histogram::GetFName(std::string const& histName,
   fName += ".dat";
   return fName;
 }
-
-typedef std::ofstream* arr_t[BOXES_WITH_U_NB];
-typedef uint** mol_t[BOXES_WITH_U_NB];
-
-
-arr_t * Histogram::getHistToFile(){
-  return pointerToOutF;
-}
-
-void Histogram::setHistToFile(arr_t * p2f){
-  pointerToOutF = p2f;
-}
-
-mol_t * Histogram::getMolCount(){
-  return pointerToMolCount;
-}
-
-void Histogram::setMolCount(mol_t * mc){
-  pointerToMolCount = mc;
-}
-
