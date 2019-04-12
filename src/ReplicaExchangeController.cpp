@@ -220,25 +220,23 @@ void ReplicaExchangeController::runMultiSim(){
 
 void ReplicaExchangeController::exchange(int a, int b){
   double swapperForT_in_K = (*simsRef)[a]->getT_in_K(); 
-  double swapperForBeta = (*simsRef)[a]->getBeta();
-  CPUSide * swapperForCPUSide = (*simsRef)[a]->getCPUSide();
   (*simsRef)[a]->setT_in_K((*simsRef)[b]->getT_in_K());
-  (*simsRef)[a]->setBeta((*simsRef)[b]->getBeta());
-  (*simsRef)[a]->setCPUSide((*simsRef)[b]->getCPUSide());
   (*simsRef)[b]->setT_in_K(swapperForT_in_K);
+
+  double swapperForBeta = (*simsRef)[a]->getBeta();
+  (*simsRef)[a]->setBeta((*simsRef)[b]->getBeta());
   (*simsRef)[b]->setBeta(swapperForBeta);
+
+  CPUSide * swapperForCPUSide = (*simsRef)[a]->getCPUSide();
+  (*simsRef)[a]->setCPUSide((*simsRef)[b]->getCPUSide());
   (*simsRef)[b]->setCPUSide(swapperForCPUSide);
-  //(*simsRef)[a]->getCPUSide()->exchangeOfstreamPointers((*simsRef)[b]->getCPUSide());
-  
-  Simulation * swapperForReplica = (*simsRef)[a];
-  (*simsRef)[a] = (*simsRef)[b];
-  (*simsRef)[b] = swapperForReplica;
 
   (*simsRef)[a]->attachNewCPUSideToLocalSysAndStatV();
   (*simsRef)[b]->attachNewCPUSideToLocalSysAndStatV();
-  //  (*simsRef)[a]->getCPUSide()->reInitVarRef((*simsRef)[a]->getSystem(), (*simsRef)[a]->getStaticValues());
- // (*simsRef)[b]->getCPUSide()->reInitVarRef((*simsRef)[b]->getSystem(), (*simsRef)[b]->getStaticValues());
 
+  Simulation * swapperForReplica = (*simsRef)[a];
+  (*simsRef)[a] = (*simsRef)[b];
+  (*simsRef)[b] = swapperForReplica;
 }
 
 double ReplicaExchangeController::calc_delta(FILE * fplog, int i, int j, int ip, int jp){
