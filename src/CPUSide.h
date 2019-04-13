@@ -36,7 +36,7 @@ struct CPUSide {
 
   void reInitVarRef(System * sys, StaticVals * sv);
 
-
+  ConsoleOutput * getConsoleOutput();
 private:
   Clock timer;
   std::vector<OutputableBase *> outObj;

@@ -523,3 +523,7 @@ void ConsoleOutput::printElementStep( const T t, const ulong step,
     std::cout << t << right << setw(width - 7) << step;
   }
 }
+
+std::ofstream * ConsoleOutput::getConsoleToFile(){
+  return consoleToFile;
+}

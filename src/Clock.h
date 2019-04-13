@@ -34,6 +34,7 @@ struct Clock {
     lastStep = totSt - 1;
   }
   void CheckTime(const ulong step);
+  void CheckTime(const ulong step, std::ofstream * consoleOut);
   void SetStart();
   void SetStop();
   double GetTimDiff();
@@ -52,6 +53,42 @@ private:
 };
 
 inline void Clock::CheckTime(const ulong step)
+{
+  ulong stepDelta = step - prevStep;
+  double speed = 0.0;
+  if (stepDelta == stepsPerOut && step != lastStep) {
+#if defined(__linux__) || defined(__APPLE__)
+    gettimeofday(&tv, &tz);
+    double currTime = (double)tv.tv_sec + (double)tv.tv_usec / 1000000;
+    speed = stepDelta / (currTime - lastTime);
+#elif (_WIN32) || (__CYGWIN__)
+    clock_t currTime = clock();
+    speed = stepDelta / (((double)currTime - lastTime) / CLOCKS_PER_SEC);
+#endif
+    uint day, hr, min;
+    prevStep = step;
+    lastTime = currTime;
+    CompletionTime(day, hr, min);
+    printf("Steps/sec: %7.3f, Simulation ends in: %3d d: %3d h: %3d m \n\n",
+          speed, day, hr, min);
+
+  } else if (step == lastStep) {
+#if defined(__linux__) || defined(__APPLE__)
+    gettimeofday(&tv, &tz);
+    stop = (double)tv.tv_sec + (double)tv.tv_usec / 1000000;
+    std::cout << "Simulation Time (total): " << (stop - strt)
+              << " sec." << std::endl;
+#elif (_WIN32) || (__CYGWIN__)
+    stop = clock();
+    std::cout << "Simulation Time (total): "
+              << (((double)stop - strt) / CLOCKS_PER_SEC)
+              << " sec." << std::endl;
+#endif
+
+  }
+}
+
+inline void Clock::CheckTime(const ulong step, std::ofstream * consoleOut)
 {
   ulong stepDelta = step - prevStep;
   double speed = 0.0;

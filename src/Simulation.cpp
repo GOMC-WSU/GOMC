@@ -101,8 +101,13 @@ void Simulation::RunSimulation(void)
 #endif
   }
   if(totalSteps == absoluteTotalSteps){
-    system->PrintAcceptance();
-    system->PrintTime();
+    if (cpu->getConsoleOutput()->getConsoleToFile() != NULL){
+      system->PrintAcceptance(cpu->getConsoleOutput()->getConsoleToFile());
+      system->PrintTime(cpu->getConsoleOutput()->getConsoleToFile());
+    } //else {
+      system->PrintAcceptance();
+      system->PrintTime();   
+   // }
   }
 }
 

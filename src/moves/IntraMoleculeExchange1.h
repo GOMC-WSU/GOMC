@@ -63,6 +63,7 @@ class IntraMoleculeExchange1 : public MoveBase
    virtual void CalcEn();
    virtual void Accept(const uint earlyReject, const uint step);
    virtual void PrintAcceptKind();
+   virtual void PrintAcceptKind(std::ofstream * consoleOut);
    //This function carries out actions based on the internal acceptance state and
    //molecule kind
    void AcceptKind(const uint rejectState, const uint kind, const uint box);
@@ -124,6 +125,41 @@ void IntraMoleculeExchange1::PrintAcceptKind() {
         printf("%10.5f ", (double)(100.0 * accepted[b][index]/trial[b][index]));
       else  
         printf("%10.5f ", 0.0);
+    }
+    std::cout << std::endl;
+  }  
+}
+
+void IntraMoleculeExchange1::PrintAcceptKind(std::ofstream * consoleOut) {
+  std::ostringstream default_format;
+
+  for(uint k = 0; k < kindLVec.size(); k++) {
+    uint ks = kindSVec[k];
+    uint kl = kindLVec[k];
+    uint index = ks * molRef.GetKindsCount() + kl;
+    *consoleOut << left << setw(22) << "% Accepted Intra-MEMC ";
+    consoleOut->copyfmt(default_format);
+    *consoleOut << ' ';
+    *consoleOut << setw(5) << molRef.kinds[kl].name.c_str();
+    consoleOut->copyfmt(default_format);
+    *consoleOut << " - ";
+    *consoleOut << left << setw(5) << molRef.kinds[ks].name.c_str();
+    consoleOut->copyfmt(default_format);
+    *consoleOut << ' ';
+  //  printf("%-22s %5s - %-5s ", "% Accepted Intra-MEMC ", molRef.kinds[kl].name.c_str(),
+          //molRef.kinds[ks].name.c_str());
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      if(trial[b][index] > 0){
+        //printf("%10.5f ", (double)(100.0 * accepted[b][index]/trial[b][index]));
+        *consoleOut << std::fixed << setw(10) << std::setprecision(5) << (double)(100.0 * accepted[b][index]/trial[b][index]);
+        consoleOut->copyfmt(default_format);
+        *consoleOut << ' ';
+      } else { 
+        //printf("%10.5f ", 0.0);
+        *consoleOut << std::fixed << setw(10) << std::setprecision(5) << 0.0;
+        consoleOut->copyfmt(default_format);
+        *consoleOut << ' ';
+      }
     }
     std::cout << std::endl;
   }  

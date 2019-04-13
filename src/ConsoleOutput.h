@@ -69,6 +69,7 @@ public:
     DoOutput(0);
   }
   virtual void DoOutput(const ulong step);
+  std::ofstream * getConsoleToFile();
 
 private:
   ofstream* consoleToFile;

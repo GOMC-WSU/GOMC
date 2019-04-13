@@ -24,6 +24,8 @@ public:
   virtual void CalcEn();
   virtual void Accept(const uint rejectState, const uint step);
   virtual void PrintAcceptKind();
+  virtual void PrintAcceptKind(std::ofstream * consoleOut);
+
 private:
   Intermolecular inter_LJ, inter_Real, recip;
   XYZ newCOM;
@@ -39,6 +41,32 @@ void Translate::PrintAcceptKind() {
         printf("%10.5f ", 0.0);
     }
     std::cout << std::endl;
+  }
+}
+
+void Translate::PrintAcceptKind(std::ofstream * consoleOut) {
+  std::ostringstream default_format;
+
+  for(uint k = 0; k < molRef.GetKindsCount(); k++) {
+    *consoleOut << left << setw(30) << "% Accepted Displacement ";
+    consoleOut->copyfmt(default_format);
+    *consoleOut << ' ';
+    *consoleOut << left << setw(5) << molRef.kinds[k].name.c_str();
+    consoleOut->copyfmt(default_format);
+    *consoleOut << ' ';
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      if(moveSetRef.GetTrial(b, mv::DISPLACE, k) > 0){
+        *consoleOut << std::fixed << setw(10) << std::setprecision(5) << (100.0 * moveSetRef.GetAccept(b, mv::DISPLACE, k));
+        consoleOut->copyfmt(default_format);  
+        *consoleOut << ' ';
+      } else{
+        *consoleOut << std::fixed << setw(10) << std::setprecision(5) << 0.0;
+        consoleOut->copyfmt(default_format);
+        *consoleOut << ' ';    
+      }
+    }
+    *consoleOut << std::endl;
+    consoleOut->copyfmt(default_format);
   }
 }
 

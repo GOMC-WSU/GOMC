@@ -254,7 +254,54 @@ void System::PrintAcceptance()
   std::cout << std::endl;
 }
 
+void System::PrintAcceptance(std::ofstream * consoleOut)
+{
+  std::ostringstream default_format;
+  *consoleOut << std::endl;
+  *consoleOut << left << setw(24) << "Move Type" << ' ';
+    *consoleOut << left << setw(15) << "Mol. Kind";
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    sstrm::Converter toStr;
+    std::string numStr = "";
+    toStr << b;
+    toStr >> numStr;
+    numStr = "BOX_" + numStr;
+    *consoleOut << left << setw(11) << numStr;
+    //printf("%-11s", numStr.c_str());
+  }
+  consoleOut->copyfmt(default_format);
+
+  *consoleOut << std::endl;
+
+  for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++) {
+    if(statV.movePerc[m] > 0.0)
+      moves[m]->PrintAcceptKind(consoleOut);
+  }
+  *consoleOut << std::endl;
+}
+
 void System::PrintTime()
+{
+  //std::cout << "MC moves Execution time:\n";
+  printf("%-36s %10.4f    sec.\n", "Displacement:", moveTime[mv::DISPLACE]);
+  printf("%-36s %10.4f    sec.\n", "Rotation:", moveTime[mv::ROTATE]);
+  printf("%-36s %10.4f    sec.\n", "Intra-Swap:", moveTime[mv::INTRA_SWAP]);
+  printf("%-36s %10.4f    sec.\n", "Regrowth:", moveTime[mv::REGROWTH]);
+  printf("%-36s %10.4f    sec.\n", "Intra-MEMC:", moveTime[mv::INTRA_MEMC]);
+  printf("%-36s %10.4f    sec.\n", "Crank-Shaft:", moveTime[mv::CRANKSHAFT]);
+
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
+  printf("%-36s %10.4f    sec.\n", "Mol-Transfer:",
+         moveTime[mv::MOL_TRANSFER]);
+  printf("%-36s %10.4f    sec.\n", "MEMC:", moveTime[mv::MEMC]);
+#endif
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
+  printf("%-36s %10.4f    sec.\n", "Vol-Transfer:", moveTime[mv::VOL_TRANSFER]);
+#endif
+  std::cout << std::endl;
+}
+
+void System::PrintTime(std::ofstream * consoleOut)
 {
   //std::cout << "MC moves Execution time:\n";
   printf("%-36s %10.4f    sec.\n", "Displacement:", moveTime[mv::DISPLACE]);
