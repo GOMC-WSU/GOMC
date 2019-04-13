@@ -255,8 +255,6 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int i, int j, int ip,
 
   #endif
 
-
-
   /* GROMACS Abraham, et al. (2015) SoftwareX 1-2 19-25 */
   #if ENSEMBLE == NPT || ENSEMBLE == NVT
     fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (units?)\n", i, j, delta);
