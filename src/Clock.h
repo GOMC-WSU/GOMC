@@ -8,6 +8,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define CLOCK_H
 
 //clock() function; CLOCKS_PER_SEC constant
+#include <iomanip> //
+#include <sstream>      // std::ostringstream
+#include <fstream>
 #include <time.h>
 #include "BasicTypes.h"             //uint, ulong
 #include <iostream> //for cout
@@ -90,6 +93,8 @@ inline void Clock::CheckTime(const ulong step)
 
 inline void Clock::CheckTime(const ulong step, std::ofstream * consoleOut)
 {
+  std::ostringstream default_format;
+
   ulong stepDelta = step - prevStep;
   double speed = 0.0;
   if (stepDelta == stepsPerOut && step != lastStep) {
@@ -105,18 +110,33 @@ inline void Clock::CheckTime(const ulong step, std::ofstream * consoleOut)
     prevStep = step;
     lastTime = currTime;
     CompletionTime(day, hr, min);
-    printf("Steps/sec: %7.3f, Simulation ends in: %3d d: %3d h: %3d m \n\n",
-          speed, day, hr, min);
+    std::cout << "\r";
+    printf("Steps/sec: %7.3f, Simulation ends in: %3d d: %3d h: %3d m ",
+         speed, day, hr, min);
+
+    *consoleOut << "Steps/sec: ";
+    *consoleOut << std::fixed << std::setw(7) << std::setprecision(3) << speed;
+    consoleOut->copyfmt(default_format);
+    *consoleOut << ", Simulation ends in: ";
+    *consoleOut << std::setw(3) << day;
+    consoleOut->copyfmt(default_format);
+    *consoleOut << " d: ";
+    *consoleOut << std::setw(3) << hr;
+    consoleOut->copyfmt(default_format);
+    *consoleOut << " h: ";  
+    *consoleOut << std::setw(3) << min;
+    consoleOut->copyfmt(default_format);
+    *consoleOut << " m \n" << std::endl;      
 
   } else if (step == lastStep) {
 #if defined(__linux__) || defined(__APPLE__)
     gettimeofday(&tv, &tz);
     stop = (double)tv.tv_sec + (double)tv.tv_usec / 1000000;
-    std::cout << "Simulation Time (total): " << (stop - strt)
+    *consoleOut << "Simulation Time (total): " << (stop - strt)
               << " sec." << std::endl;
 #elif (_WIN32) || (__CYGWIN__)
     stop = clock();
-    std::cout << "Simulation Time (total): "
+    *consoleOut << "Simulation Time (total): "
               << (((double)stop - strt) / CLOCKS_PER_SEC)
               << " sec." << std::endl;
 #endif

@@ -224,7 +224,7 @@ inline void MTRand::reload()
 inline void MTRand::seed( const uint32 oneSeed )
 {
 
-  std::cout << "Random number seed: " << oneSeed << std::endl;
+  std::cout << "Random number seed: " << oneSeed << std::endl << std::endl;
   // Seed the generator with a simple uint32
   initialize(oneSeed);
   reload();

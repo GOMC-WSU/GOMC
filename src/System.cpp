@@ -280,28 +280,88 @@ void System::PrintAcceptance(std::ofstream * consoleOut)
   *consoleOut << std::endl;
 }
 
-void System::PrintTime()
+void System::PrintTime(std::ofstream * consoleOut)
 {
   //std::cout << "MC moves Execution time:\n";
-  printf("%-36s %10.4f    sec.\n", "Displacement:", moveTime[mv::DISPLACE]);
-  printf("%-36s %10.4f    sec.\n", "Rotation:", moveTime[mv::ROTATE]);
-  printf("%-36s %10.4f    sec.\n", "Intra-Swap:", moveTime[mv::INTRA_SWAP]);
-  printf("%-36s %10.4f    sec.\n", "Regrowth:", moveTime[mv::REGROWTH]);
-  printf("%-36s %10.4f    sec.\n", "Intra-MEMC:", moveTime[mv::INTRA_MEMC]);
-  printf("%-36s %10.4f    sec.\n", "Crank-Shaft:", moveTime[mv::CRANKSHAFT]);
+  std::ostringstream default_format;
+
+  *consoleOut << left << setw(36) << "Displacement:";
+  consoleOut->copyfmt(default_format);
+  *consoleOut << ' ';
+  *consoleOut << std::fixed << setw(10) << std::setprecision(4) << moveTime[mv::DISPLACE];
+  consoleOut->copyfmt(default_format);
+  *consoleOut << "    sec.\n";
+
+  *consoleOut << left << setw(36) << "Rotation:";
+  consoleOut->copyfmt(default_format);
+  *consoleOut << ' ';
+  *consoleOut << std::fixed << setw(10) << std::setprecision(4) << moveTime[mv::ROTATE];
+  consoleOut->copyfmt(default_format);
+  *consoleOut << "    sec.\n";
+
+  *consoleOut << left << setw(36) << "Intra-Swap:";
+  consoleOut->copyfmt(default_format);
+  *consoleOut << ' ';
+  *consoleOut << std::fixed << setw(10) << std::setprecision(4) << moveTime[mv::INTRA_SWAP];
+  consoleOut->copyfmt(default_format);
+  *consoleOut << "    sec.\n";
+
+  *consoleOut << left << setw(36) << "Regrowth:";
+  consoleOut->copyfmt(default_format);
+  *consoleOut << ' ';
+  *consoleOut << std::fixed << setw(10) << std::setprecision(4) << moveTime[mv::REGROWTH];
+  consoleOut->copyfmt(default_format);
+  *consoleOut << "    sec.\n";
+
+  *consoleOut << left << setw(36) << "Intra-MEMC:";
+  consoleOut->copyfmt(default_format);
+  *consoleOut << ' ';
+  *consoleOut << std::fixed << setw(10) << std::setprecision(4) << moveTime[mv::INTRA_MEMC];
+  consoleOut->copyfmt(default_format);
+  *consoleOut << "    sec.\n";
+
+  *consoleOut << left << setw(36) << "Crank-Shaft:";
+  consoleOut->copyfmt(default_format);
+  *consoleOut << ' ';
+  *consoleOut << std::fixed << setw(10) << std::setprecision(4) << moveTime[mv::CRANKSHAFT];
+  consoleOut->copyfmt(default_format);
+  *consoleOut << "    sec.\n";
 
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-  printf("%-36s %10.4f    sec.\n", "Mol-Transfer:",
-         moveTime[mv::MOL_TRANSFER]);
-  printf("%-36s %10.4f    sec.\n", "MEMC:", moveTime[mv::MEMC]);
+
+  *consoleOut << left << setw(36) << "Mol-Transfer:";
+  consoleOut->copyfmt(default_format);
+  *consoleOut << ' ';
+  *consoleOut << std::fixed << setw(10) << std::setprecision(4) << moveTime[mv::MOL_TRANSFER];
+  consoleOut->copyfmt(default_format);
+  *consoleOut << "    sec.\n";
+
+  *consoleOut << left << setw(36) << "MEMC:";
+  consoleOut->copyfmt(default_format);
+  *consoleOut << ' ';
+  *consoleOut << std::fixed << setw(10) << std::setprecision(4) << moveTime[mv::MEMC];
+  consoleOut->copyfmt(default_format);
+  *consoleOut << "    sec.\n";
+
+  //printf("%-36s %10.4f    sec.\n", "Mol-Transfer:",
+   //      moveTime[mv::MOL_TRANSFER]);
+  //printf("%-36s %10.4f    sec.\n", "MEMC:", moveTime[mv::MEMC]);
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
-  printf("%-36s %10.4f    sec.\n", "Vol-Transfer:", moveTime[mv::VOL_TRANSFER]);
+  //printf("%-36s %10.4f    sec.\n", "Vol-Transfer:", moveTime[mv::VOL_TRANSFER]);
+
+  *consoleOut << left << setw(36) << "Vol-Transfer:";
+  consoleOut->copyfmt(default_format);
+  *consoleOut << ' ';
+  *consoleOut << std::fixed << setw(10) << std::setprecision(4) << moveTime[mv::VOL_TRANSFER];
+  consoleOut->copyfmt(default_format);
+  *consoleOut << "    sec.\n";
+
 #endif
-  std::cout << std::endl;
+  *consoleOut << std::endl;
 }
 
-void System::PrintTime(std::ofstream * consoleOut)
+void System::PrintTime()
 {
   //std::cout << "MC moves Execution time:\n";
   printf("%-36s %10.4f    sec.\n", "Displacement:", moveTime[mv::DISPLACE]);

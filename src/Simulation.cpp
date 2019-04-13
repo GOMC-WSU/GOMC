@@ -104,10 +104,10 @@ void Simulation::RunSimulation(void)
     if (cpu->getConsoleOutput()->getConsoleToFile() != NULL){
       system->PrintAcceptance(cpu->getConsoleOutput()->getConsoleToFile());
       system->PrintTime(cpu->getConsoleOutput()->getConsoleToFile());
-    } //else {
+    } else {
       system->PrintAcceptance();
       system->PrintTime();   
-   // }
+    }
   }
 }
 
