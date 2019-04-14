@@ -30,6 +30,7 @@ public:
     void print_replica_exchange_statistics(FILE * fplog, RecordKeeper * re);
     void print_count(FILE *fplog, const char *leg, int n, int *count);
     void DestroyRecordKeeper();
+    bool repl_quantity(vector<Simulation*>* simsRef, RecordKeeper *re);
 
 private:
     vector<Simulation*>* simsRef;
