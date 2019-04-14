@@ -1612,7 +1612,7 @@ void ConfigSetup::verifyInputs(void)
       "not defined! \n";
       exit(EXIT_FAILURE);
     }
-
+#if ENSEMBLE == NVT
     if(!sys.step.pressureCalc) {
       std::cout << "Error: Pressure calculation must be active in " <<
       "Free Energy calculation! \n";
@@ -1624,6 +1624,7 @@ void ConfigSetup::verifyInputs(void)
       "number of Pressure calculation freq! \n";
       exit(EXIT_FAILURE);
     }
+#endif
   }
 #endif
   if(sys.T.inKelvin == DBL_MAX) {
