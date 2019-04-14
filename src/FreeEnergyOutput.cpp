@@ -147,8 +147,11 @@ void FreeEnergyOutput::WriteHeader(void)
         toPrint += "))";
         outF[b] << std::setw(25) << std::right << toPrint << " ";
       }
+#if ENSEMBLE == NVT
       outF[b] << std::setw(25) << std::right << "PV(kJ/mol)" << std::endl;
-
+#else 
+      outF[b] << std::setw(25) << std::right << "V(nm^3)" << std::endl;
+#endif
       outF[b] << std::setprecision(std::numeric_limits<double>::digits10);
       outF[b].setf(std::ios_base::right, std::ios_base::adjustfield);
     } else
@@ -159,8 +162,12 @@ void FreeEnergyOutput::WriteHeader(void)
 
 void FreeEnergyOutput::CalculateFreeEnergy(const uint b)
 {
+#if ENSEMBLE == NVT
   PV = var->pressure[b] * var->volumeRef[b] * unit::BAR_TO_K_MOLECULE_PER_A3;
   PV *= unit::K_TO_KJ_PER_MOL;
+#else
+  PV = var->volumeRef[b] * 1E-3;
+#endif
   Etotal = var->energyRef[b].Total() * unit::K_TO_KJ_PER_MOL;
   uint molIndex = lambdaRef.GetMolIndex(b);
   //Reset the energy value

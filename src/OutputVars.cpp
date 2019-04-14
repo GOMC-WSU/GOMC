@@ -121,9 +121,11 @@ void OutputVars::CalcAndConvert(ulong step)
     //in)
 
     if (pressureCalc) {
-      if((step + 1) % pCalcFreq == 0) {
-        virialRef[b] = calc.VirialCalc(b);
-        *virialTotRef += virialRef[b];
+      if((step + 1) % pCalcFreq == 0 || step == 0) {
+        if(step != 0){
+          virialRef[b] = calc.VirialCalc(b);
+          *virialTotRef += virialRef[b];
+        }
         //calculate surface tension in mN/M
         surfaceTens[b] = (virialRef[b].totalTens[2][2] - 0.5 *
                           (virialRef[b].totalTens[0][0] +
