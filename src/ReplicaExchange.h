@@ -37,7 +37,9 @@ struct RecordKeeper
     int      *nexchange;   /* i-th element of the array is the number of exchanges between replica i-1 and i */
     int     *ind;       /* An array of indices illustrating where our temps 0..N are orderwise */
     int     *pind;       /* A Permuttable Map of indices illustrating where our temps 0..N are orderwise */
-    double    **q;           /* quantity, e.g. temperature or mu; first index is ere, second index is replica ID */   
+    double    **q;           /* quantity, e.g. temperature or mu; first index is ere, second index is replica ID */
+    int       type;        /* replica exchange type from ere enum */
+   
 };
 
 #endif

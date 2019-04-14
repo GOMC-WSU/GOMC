@@ -6,6 +6,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "ReplicaExchangeController.h"
 #include <time.h>
+#include <map>
 
 using namespace std; 
 
@@ -17,7 +18,7 @@ using namespace std;
   typedef int32_t int32;
 
 enum {
-    ereTEMP, ereMU, ereENDSINGLE, ereTM, ereNR
+    ereTEMP, ereMU, ereENDSINGLE, ereTEMP_MU, ereNR
 };
 
 const char *erename[ereNR] = { "temperature", "mu", "end_single_marker", "temperature and mu"};
@@ -104,7 +105,7 @@ ReplicaExchangeController::ReplicaExchangeController(vector<Simulation*>* sims){
     fplog = fopen(fileName.c_str(), "w");
 
     bool isValid = repl_quantity(simsRef, &re);
-    std:: cout << isValid << std::endl;
+    std:: cout << erename[re.type] << std::endl;
 
 }
 
@@ -534,7 +535,7 @@ bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, Reco
             isValid = false;
           }
         }
-
+        re->type = ereTEMP;
         return isValid;
 
 
@@ -584,6 +585,8 @@ bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, Reco
           }
         }
 
+        re->type = ereTEMP;
+
         return isValid;
 
     #endif
@@ -604,7 +607,7 @@ bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, Reco
         }
 
         if (isValid){
-          return isValid;
+          re->type = ereTEMP;
         } else {
           for (int i = 1; i < numRepl; i++){
             for (uint j = 0; j < numKinds; j++){
@@ -624,7 +627,7 @@ bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, Reco
         std::map< std::vector<double>, std::vector<int> > mu_map;
 
         if (isValid){
-          return isValid;
+          re->type = ereMU;
         } else {
           temp_map.insert(std::pair<double,std::vector<int> >(temps[0], std::vector<int>(0)));
           for (int i = 1; i < numRepl; i++){
@@ -639,7 +642,7 @@ bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, Reco
 
           for (int i = 1; i < numRepl; i++){
             std::vector<double> replChemPots;
-            for (uint j = 0; numKinds; ){
+            for (uint j = 0; j < numKinds; j++){
               replChemPots.push_back(chemPots[i][j]);
             }
             mu_map[replChemPots].push_back(i);
@@ -649,10 +652,9 @@ bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, Reco
 
           for (std::map< double, std::vector<int> >::iterator it=temp_map.begin(); it!=temp_map.end(); ++it){
           //  it->first : key ; it->second : value (an int array of indices)
-            int ind0 = it->second[0];
             for (vector<int>::iterator it_indices = it->second.begin(); it_indices != it->second.end(); ++it_indices){
               for (int x = 0; x < numKinds; x++){
-                if (chemPots[ind0][x] != chemPots[*it_indices][x])
+                if (chemPots[(*it->second.begin())][x] != chemPots[*it_indices][x])
                   isValid = false;
               }
             }
@@ -660,32 +662,20 @@ bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, Reco
 
           for (std::map< std::vector<double>, std::vector<int> >::iterator it=mu_map.begin(); it!=mu_map.end(); ++it){
           //  it->first : key ; it->second : value (an int array of indices)
-            int ind0 = it->second[0];
             for (vector<int>::iterator it_indices = it->second.begin(); it_indices != it->second.end(); ++it_indices){
-                if (temps[ind0] != temps[*it_indices])
+                if (temps[(*it->second.begin())] != temps[*it_indices])
                   isValid = false;
             }
           }
 
-          return isValid; 
+          if (isValid)
+            re->type = ereTEMP_MU;
 
+          return isValid; 
         } 
         
 
     #endif
-
-
-    isValid = false;
-
-    for (s = 1; s < numRepl; s++)
-    {
-        if (temps[s] != temps[0])
-        {
-            isValid = true;
-        }
-    }
-
-    return isValid;
 }
 
 
