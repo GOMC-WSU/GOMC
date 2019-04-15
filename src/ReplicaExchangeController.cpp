@@ -21,7 +21,7 @@ enum {
     ereTEMP, ereMU, ereENDSINGLE, ereTEMP_MU, ereNR
 };
 
-const char *erename[ereNR] = { "temperature", "mu", "end_single_marker", "temperature and mu"};
+const char *erename[ereNR] = { "temperature", "chemical potential", "end_single_marker", "temperature and chemical potential"};
 /* end_single_marker merely notes the end of single variable replica exchange. All types higher than
    it are multiple replica exchange methods */
 /* Eventually, should add 'pressure', 'temperature and pressure', 'mu_and_pressure', 'temperature_mu_pressure'?;
@@ -47,7 +47,7 @@ ReplicaExchangeController::ReplicaExchangeController(vector<Simulation*>* sims){
 
     for ( int i = 0; i < (*simsRef).size(); i++){
         if (exchangeRate != (*simsRef)[i]->getExchangeInterval()){
-          std::cout << "Error: Each replica must have equal exchange rate. " << (*simsRef)[i]->getConfigFileName() <<
+          std::cout << "Error: Each replica must have equal exchange frequency. " << (*simsRef)[i]->getConfigFileName() <<
           " differs from the others!\n";
           exit(EXIT_FAILURE);
         }
@@ -69,7 +69,7 @@ ReplicaExchangeController::ReplicaExchangeController(vector<Simulation*>* sims){
           " differs from the others!\n";
           exit(EXIT_FAILURE);
         }
-        
+        /*
         if ( (*simsRef)[i]->getT_in_K() > checkerForIncreasingMontonicityOfTemp ){
           checkerForIncreasingMontonicityOfTemp = (*simsRef)[i]->getT_in_K();
         } else {
@@ -77,6 +77,7 @@ ReplicaExchangeController::ReplicaExchangeController(vector<Simulation*>* sims){
             " is not in order of least to greatest for temperature!\n";
             exit(EXIT_FAILURE);
         }
+        */
     }
 
     if (exchangeRate > 0 && exchangeRate < ( (*simsRef)[0]->getTotalSteps() - (*simsRef)[0]->getEquilSteps())){
@@ -131,7 +132,7 @@ void ReplicaExchangeController::runMultiSim(){
 
     fprintf(fplog, "\nInitializing Replica Exchange\n");
     fprintf(fplog, "Repl  There are %lu replicas\n", (*simsRef).size());
-    fprintf(fplog, "\nReplica exchange in temperature\n");
+    fprintf(fplog, "\nReplica exchange in %s\n", erename[re.type]);
     for (int i = 0; i < (*simsRef).size(); i++)
     {
         fprintf(fplog, " %5.1f", (*simsRef)[i]->getT_in_K());
@@ -249,6 +250,10 @@ void ReplicaExchangeController::exchange(int a, int b){
   (*simsRef)[a]->attachNewCPUSideToLocalSysAndStatV();
   (*simsRef)[b]->attachNewCPUSideToLocalSysAndStatV();
 
+  swapSimulations(a, b);
+}
+
+void ReplicaExchangeController::swapSimulations(int a, int b){
   Simulation * swapperForReplica = (*simsRef)[a];
   (*simsRef)[a] = (*simsRef)[b];
   (*simsRef)[b] = swapperForReplica;
@@ -510,11 +515,17 @@ bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, Reco
     double    *temps;
     bool      isValid;
     int           s;
+    int *ind;
+    int *pind;
 
     numRepl = re->nrepl;
     temps = new double[numRepl];
-    for (int i = 0; i < numRepl; i++)
-    temps[i] = (*simsRef)[i]->getT_in_K();
+    ind = new int[numRepl];
+    for (int i = 0; i < numRepl; i++){
+      temps[i] = (*simsRef)[i]->getT_in_K();
+      ind[i]  = i;
+      pind[i] = i;
+    }
 
     #if ENSEMBLE == NVT
 
@@ -535,7 +546,50 @@ bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, Reco
             isValid = false;
           }
         }
-        re->type = ereTEMP;
+
+        if (isValid){
+          re->type = ereTEMP;
+      
+        double comparison;
+        int swapperInd;
+        double swapperTemp;
+        int j;
+        int i;
+        int least;
+
+        for (i = 0; i < numRepl; i++){
+          for (j = i; j < numRepl; j++){
+            comparison = temps[j];
+            least = j;
+            if (temps[j] < comparison){
+              comparison = temps[j];
+              least = j;
+            }
+          }
+          swapperInd = pind[i];
+          pind[i] = pind[least];
+          pind[least] = swapperInd;
+          temps[i] = comparison;
+        }
+
+        bool monotonic; 
+        for (int i = 0; i < numRepl; i++){
+          if (pind[i] != ind[i])
+            monotonic = false;
+        }
+
+        if (!monotonic){
+          for (int i = 0; i < numRepl; i++){
+            if (pind[i] != ind[i]){
+              swapSimulations(pind[i], ind[i]);
+              swapperInd = pind[i];
+              pind[i] = ind[i];
+              pind[swapperInd] = ind[swapperInd];
+            }
+          }// ind  0 1 2
+        } //  pind 1 0 2
+        // swapperInd = 1
+        } else 
         return isValid;
 
 
