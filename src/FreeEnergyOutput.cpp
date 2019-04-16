@@ -12,12 +12,18 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include <sstream>
 
-FreeEnergyOutput::FreeEnergyOutput(OutputVars & v, System & sys) : calcEn(sys.calcEnergy), freeEnVal(sys.statV.freeEnVal), lambdaRef(sys.lambdaRef)
+FreeEnergyOutput::FreeEnergyOutput(OutputVars & v, System & sys) : 
+  calcEn(sys.calcEnergy), freeEnVal(sys.statV.freeEnVal),
+  lambdaRef(sys.lambdaRef)
 {
   this->var = &v;
   for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
     energyDiff[b] = NULL;
   }
+#if ENSEMBLE == NPT
+  //unit is K * molecule / A3
+  imposedP = sys.statV.pressure;
+#endif
 }
 
 void FreeEnergyOutput::Init(pdb_setup::Atoms const& atoms,
@@ -35,10 +41,10 @@ void FreeEnergyOutput::Init(pdb_setup::Atoms const& atoms,
       std::string strKind, fileName;
       sstrm << (b);
       sstrm >> strKind;
-      fileName = "Free_Energy_";
-      fileName += uniqueName;
-      fileName += "_";
+      fileName = "Free_Energy_BOX_";
       fileName += strKind;
+      fileName += "_";
+      fileName += uniqueName;
       fileName += ".dat";
       name[b] = fileName;
       outF[b].open(name[b].c_str(), std::ofstream::out);
@@ -147,11 +153,8 @@ void FreeEnergyOutput::WriteHeader(void)
         toPrint += "))";
         outF[b] << std::setw(25) << std::right << toPrint << " ";
       }
-#if ENSEMBLE == NVT
+
       outF[b] << std::setw(25) << std::right << "PV(kJ/mol)" << std::endl;
-#else 
-      outF[b] << std::setw(25) << std::right << "V(nm^3)" << std::endl;
-#endif
       outF[b] << std::setprecision(std::numeric_limits<double>::digits10);
       outF[b].setf(std::ios_base::right, std::ios_base::adjustfield);
     } else
@@ -165,8 +168,9 @@ void FreeEnergyOutput::CalculateFreeEnergy(const uint b)
 #if ENSEMBLE == NVT
   PV = var->pressure[b] * var->volumeRef[b] * unit::BAR_TO_K_MOLECULE_PER_A3;
   PV *= unit::K_TO_KJ_PER_MOL;
-#else
-  PV = var->volumeRef[b] * 1E-3;
+#elif ENSEMBLE == NPT
+  // no need to convert pressure (bar) to K * molecule /A3
+  PV = imposedP * var->volumeRef[b] * unit::K_TO_KJ_PER_MOL;
 #endif
   Etotal = var->energyRef[b].Total() * unit::K_TO_KJ_PER_MOL;
   uint molIndex = lambdaRef.GetMolIndex(b);
