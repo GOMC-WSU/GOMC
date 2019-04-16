@@ -318,16 +318,14 @@ inline double FFParticle::CalcCoulomb(const double distSq,
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
-  
-  double lambda5 = pow(lambda, 5);
 
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
     double val = forcefield.alpha[b] * dist;
-    return  lambda5 * qi_qj_Fact * erfc(val) / dist;
+    return  lambda * qi_qj_Fact * erfc(val) / dist;
   } else {
     double dist = sqrt(distSq);
-    return  lambda5 * qi_qj_Fact / dist;
+    return  lambda * qi_qj_Fact / dist;
   }
 }
 
@@ -358,21 +356,21 @@ inline double FFParticle::CalcVir(const double distSq, const uint kind1,
 }
 
 inline double FFParticle::CalcCoulombVir(const double distSq,
-                                        const double qi_qj, const double lambda,const uint b) const
+                                        const double qi_qj, 
+                                        const double lambda,const uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
 
-  double lambda5 = pow(lambda, 5);
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
     double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
     double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
     double temp = 1.0 - erf(forcefield.alpha[b] * dist);
-    return lambda5 * qi_qj * (temp / dist + constValue * expConstValue)/ distSq;
+    return lambda * qi_qj * (temp / dist + constValue * expConstValue)/ distSq;
   } else {
     double dist = sqrt(distSq);
-    double result = lambda5 * qi_qj / (distSq * dist);
+    double result = lambda * qi_qj / (distSq * dist);
     return result;
   }
 }

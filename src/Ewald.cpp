@@ -430,7 +430,7 @@ double Ewald::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
     MoleculeKind const& thisKind = mols.GetKind(molIndex); 
     uint length = thisKind.NumAtoms();
     double dotProductNew, sumRealNew, sumImaginaryNew;
-    double lambdaCoef = pow(lambdaNew, 2.5) - pow(lambdaOld, 2.5);
+    double lambdaCoef = lambdaNew - lambdaOld;
 
 #ifdef _OPENMP
     #pragma omp parallel for default(shared) private(i, p, dotProductNew, sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
@@ -499,7 +499,7 @@ void Ewald::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
     }
     for(s = 0; s < lambdaSize; s++) {
       //Calculate the energy of other state
-      coefDiff = pow(lambda_Coul[s], 2.5) - pow(lambda_Coul[iState], 2.5);
+      coefDiff = lambda_Coul[s] - lambda_Coul[iState];
       energyRecip[s] += prefactRef[box][i] *
                         ((sumRref[box][i] + coefDiff * sumReal) * 
                          (sumRref[box][i] + coefDiff * sumReal) + 
@@ -932,8 +932,8 @@ void Ewald::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
   correction *= -1.0 * num::qqFact;
   //Calculate the energy difference for each lambda state
   for (uint s = 0; s < lambdaSize; s++) {
-    coefDiff = pow(lambda_Coul[s], 5) - pow(lambda_Coul[iState], 5);
-    dcoefDiff = 5.0 * (pow(lambda_Coul[s], 4) - pow(lambda_Coul[iState], 4));
+    coefDiff = lambda_Coul[s] - lambda_Coul[iState];
+    dcoefDiff = 1.0;
     energyDiff[s].correction += coefDiff * correction;
     dUdL_Coul.correction += dcoefDiff * correction;
   }
@@ -959,7 +959,7 @@ double Ewald::BoxSelf(BoxDimensions const& boxAxes, uint box) const
       //If a molecule is fractional, we subtract the fractional molecule and
       // add it later
       --molNum; 
-      lambdaCoef = pow(lambdaRef.GetLambdaCoulomb(i, box), 5);
+      lambdaCoef = lambdaRef.GetLambdaCoulomb(i, box);
     }
 
     for (j = 0; j < length; j++) {
@@ -1216,8 +1216,8 @@ void Ewald::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
 
   //Calculate the energy difference for each lambda state
   for (uint s = 0; s < lambdaSize; s++) {
-    coefDiff = pow(lambda_Coul[s], 5) - pow(lambda_Coul[iState], 5);
-    dcoefDiff = 5.0 * (pow(lambda_Coul[s], 4) - pow(lambda_Coul[iState], 4));
+    coefDiff = lambda_Coul[s] - lambda_Coul[iState];
+    dcoefDiff = 1.0;
     energyDiff[s].self += coefDiff * en_self;
     dUdL_Coul.self += dcoefDiff * en_self;
   }
@@ -1316,8 +1316,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
 double Ewald::GetLambdaCoef(uint molA, uint box) const
 {
   double lambda = lambdaRef.GetLambdaCoulomb(molA, mols.GetMolKind(molA), box);
-  double lambdaCoef = pow(lambda, 2.5);
-  return lambdaCoef;
+  return lambda;
 }
 
 
