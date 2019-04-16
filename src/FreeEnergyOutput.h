@@ -53,7 +53,9 @@ private:
 
   std::ofstream outF[BOXES_WITH_U_NB];
   std::string name[BOXES_WITH_U_NB];
-
+#if ENSEMBLE == NPT
+  double imposedP; //imposed pressure in NPT
+#endif
 };
 
 #endif /*HIST_OUTPUT_H*/
