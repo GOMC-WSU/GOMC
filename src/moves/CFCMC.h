@@ -324,8 +324,8 @@ inline void CFCMC::CalcEnCFCMC(uint lambdaIdxOldS, uint lambdaIdxNewS)
 
   //Calculate self and correction difference for lambdaNew and lambdaOld
   //For electrostatic we use lamda**5 
-  double coefDiffS = pow(lambdaNew_Coulomb_S, 5) - pow(lambdaOld_Coulomb_S, 5);
-  double coefDiffD = pow(lambdaNew_Coulomb_D, 5) - pow(lambdaOld_Coulomb_D, 5);
+  double coefDiffS = lambdaNew_Coulomb_S - lambdaOld_Coulomb_S;
+  double coefDiffD = lambdaNew_Coulomb_D - lambdaOld_Coulomb_D;
   correctDiffSource = coefDiffS * calcEwald->SwapCorrection(oldMolCFCMC);
   correctDiffDest = coefDiffD * calcEwald->SwapCorrection(newMolCFCMC);
   selfDiffSource = coefDiffS * calcEwald->SwapSelf(oldMolCFCMC);

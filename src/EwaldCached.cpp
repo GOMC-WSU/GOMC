@@ -395,7 +395,7 @@ double EwaldCached::CFCMCRecip(XYZArray const& molCoords,const double lambdaOld,
     uint p;
     int i;
     double sumRealNew, sumImaginaryNew;
-    double lambdaCoef = pow(lambdaNew, 2.5) - pow(lambdaOld, 2.5);
+    double lambdaCoef = lambdaNew - lambdaOld;
 
 #ifdef _OPENMP
     #pragma omp parallel for default(shared) private(i, p, sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
@@ -443,7 +443,7 @@ void EwaldCached::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
   for (i = 0; i < imageSizeRef[box]; i++) {
     for(s = 0; s < lambdaSize; s++) {
       //Calculate the energy of other state
-      coefDiff = pow(lambda_Coul[s], 2.5) - pow(lambda_Coul[iState], 2.5);
+      coefDiff = lambda_Coul[s] - lambda_Coul[iState];
       energyRecip[s] += prefactRef[box][i] *
                         ((sumRref[box][i] + coefDiff*cosMolRef[molIndex][i]) * 
                          (sumRref[box][i] + coefDiff*cosMolRef[molIndex][i]) + 
