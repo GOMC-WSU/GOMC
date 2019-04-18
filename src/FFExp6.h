@@ -85,8 +85,14 @@ public:
   {
     return 0.0;
   }
+  //Calculate the dE/dlambda for vdw energy
+  virtual double CalcdEndL(const double distSq, const uint kind1,
+                           const uint kind2, const 
+                           double lambda) const;
 
   protected:
+  virtual double CalcEn(const double distSq, const uint index) const;
+  virtual double CalcVir(const double distSq, const uint index) const;
 
   double *expConst, *expConst_1_4, *rMaxSq, *rMin, *rMaxSq_1_4, *rMin_1_4;
 
@@ -171,8 +177,6 @@ inline void FF_EXP6::CalcCoulombAdd_1_4(double& en, const double distSq,
     en += qi_qj_Fact * forcefield.scaling_14 / dist;
 }
 
-
-//mie potential
 inline double FF_EXP6::CalcEn(const double distSq,
                                const uint kind1, const uint kind2,
                                const double lambda) const
@@ -180,11 +184,23 @@ inline double FF_EXP6::CalcEn(const double distSq,
   if(forcefield.rCutSq < distSq)
     return 0.0;
 
-  uint idx = FlatIndex(kind1, kind2);
-  if(distSq < rMaxSq[idx]) {
+  uint index = FlatIndex(kind1, kind2);
+  if(distSq < rMaxSq[index]) {
     return num::BIGNUM;
   }
+  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+  double dist6 = distSq * distSq * distSq;
+  double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
+  double softDist6 = lambdaCoef * sigma6 + dist6;
+  double softRsq = std::cbrt(softDist6);
 
+  double en = lambda * CalcEn(softRsq, index);
+  return en;
+}
+
+
+inline double FF_EXP6::CalcEn(const double distSq, const uint idx) const
+{
   double dist = sqrt(distSq);
   double rRat = rMin[idx] / dist;
   double rRat2 = rRat * rRat;
@@ -207,25 +223,37 @@ inline double FF_EXP6::CalcCoulomb(const double distSq,
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
     double val = forcefield.alpha[b] * dist;
-    return  qi_qj_Fact * erfc(val) / dist;
+    return lambda * qi_qj_Fact * erfc(val) / dist;
   } else {
     double dist = sqrt(distSq);
-    return  qi_qj_Fact / dist;
+    return lambda * qi_qj_Fact / dist;
   }
 }
 
-//mie potential
-inline double FF_EXP6::CalcVir(const double distSq, const uint kind1, const                                    uint kind2, const double lambda) const
+inline double FF_EXP6::CalcVir(const double distSq, const uint kind1,
+                              const uint kind2, const double lambda) const
 {
   if(forcefield.rCutSq < distSq)
     return 0.0;
 
-  uint idx = FlatIndex(kind1, kind2);
-
-  if(distSq < rMaxSq[idx]) {
+  uint index = FlatIndex(kind1, kind2);
+  if(distSq < rMaxSq[index]) {
     return num::BIGNUM;
   }
+  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+  double dist6 = distSq * distSq * distSq;
+  double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
+  double softDist6 = lambdaCoef * sigma6 + dist6;
+  double softRsq = std::cbrt(softDist6);
+  double correction = distSq / softRsq;
+  //We need to fix the return value from calcVir
+  double vir = lambda * correction * correction * CalcVir(softRsq, index);
+  return vir;
+}
 
+
+inline double FF_EXP6::CalcVir(const double distSq, const uint idx) const
+{
   double dist = sqrt(distSq);
   double rRat = rMin[idx] / dist;
   double rRat2 = rRat * rRat ;
@@ -234,8 +262,7 @@ inline double FF_EXP6::CalcVir(const double distSq, const uint kind1, const     
   uint alpha_ij = n[idx];
   double repulse = (dist / rMin[idx]) * exp(alpha_ij * 
                    (1.0 - dist / rMin[idx]));
-
-  //Virial = -r * du/dr
+  //Virial = F.r = -du/dr * 1/r
   return 6.0 * expConst[idx] * (repulse - attract) / distSq; 
 }
 
@@ -250,10 +277,10 @@ inline double FF_EXP6::CalcCoulombVir(const double distSq, const double qi_qj,
     double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
     double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
     double temp = erfc(forcefield.alpha[b] * dist);
-    return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+    return lambda * qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
     double dist = sqrt(distSq);
-    return qi_qj / (distSq * dist);
+    return lambda * qi_qj / (distSq * dist);
   }
 }
 
@@ -314,5 +341,21 @@ inline double FF_EXP6::VirialLRC(const uint kind1, const uint kind2) const
   return tc;
 }
 
+inline double FF_EXP6::CalcdEndL(const double distSq, const uint kind1,
+                                 const uint kind2, const double lambda) const
+{
+  if(forcefield.rCutSq < distSq)
+    return 0.0;
+
+  uint index = FlatIndex(kind1, kind2);
+  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+  double dist6 = distSq * distSq * distSq;
+  double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
+  double softDist6 = lambdaCoef * sigma6 + dist6;
+  double softRsq = std::cbrt(softDist6);
+  double fCoef = lambda * (1.0 - lambda) * sigma6 / (6.0 * softRsq * softRsq);
+  double dhdl = CalcEn(softRsq, index) + fCoef * CalcVir(softRsq, index);
+  return dhdl;
+}
 
 #endif /*FF_EXP6_H*/

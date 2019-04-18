@@ -313,7 +313,9 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
                          sumRnew[box], sumInew[box], energyRecipNew, box);
 #else
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i, p, atom, sumRealNew, sumImaginaryNew, sumRealOld, sumImaginaryOld, dotProductNew, dotProductOld) reduction(+:energyRecipNew, energyRecipOld)
+    #pragma omp parallel for default(shared) private(i, p, atom, sumRealNew, \
+    sumImaginaryNew, sumRealOld, sumImaginaryOld, dotProductNew, dotProductOld) \
+    reduction(+:energyRecipNew, energyRecipOld)
 #endif
     for (i = 0; i < imageSizeRef[box]; i++) {
       sumRealNew = 0.0;
@@ -385,7 +387,8 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
                           insert, energyRecipNew, box);
 #else
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i, p, dotProductNew, sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
+    #pragma omp parallel for default(shared) private(i, p, dotProductNew, \
+    sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
 #endif
     for (i = 0; i < imageSizeRef[box]; i++) {
       sumRealNew = 0.0;
@@ -433,7 +436,8 @@ double Ewald::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
     double lambdaCoef = lambdaNew - lambdaOld;
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i, p, dotProductNew, sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
+    #pragma omp parallel for default(shared) private(i, p, dotProductNew, \
+    sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
 #endif
     for (i = 0; i < imageSizeRef[box]; i++) {
       sumRealNew = 0.0;
@@ -484,7 +488,8 @@ void Ewald::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
   double dotProduct, sumReal, sumImaginary, coefDiff;
 
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(i, p, s, dotProduct, sumReal, sumImaginary, coefDiff) reduction(+:energyRecip[:lambdaSize])
+  #pragma omp parallel for default(shared) private(i, p, s, dotProduct, \
+  sumReal, sumImaginary, coefDiff) reduction(+:energyRecip[:lambdaSize])
 #endif
   for (i = 0; i < imageSizeRef[box]; i++) {
     sumReal = 0.0;
@@ -511,6 +516,8 @@ void Ewald::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
   double energyRecipOld = sysPotRef.boxEnergy[box].recip;
   for(s = 0; s < lambdaSize; s++) {
     energyDiff[s].recip = energyRecip[s] - energyRecipOld;
+    //energy difference E(lambda =1) - E(lambda = 0)
+    dUdL_Coul.recip += energyRecip[lambdaSize - 1] - energyRecip[0];
   }
   delete [] energyRecip;
 }
@@ -553,7 +560,8 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 
 #else
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i, p, dotProductNew, sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
+    #pragma omp parallel for default(shared) private(i, p, dotProductNew, \
+    sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
 #endif
     for (i = 0; i < imageSizeRef[box]; i++) {
       sumRealNew = 0.0;
@@ -603,7 +611,8 @@ double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
         lengthOld = thisKindOld.NumAtoms();
         
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, p, dotProductNew, lambdaCoef) reduction(+:energyRecipNew, sumRealNew, sumImaginaryNew)
+#pragma omp parallel for default(shared) private(i, p, dotProductNew, \
+lambdaCoef) reduction(+:energyRecipNew, sumRealNew, sumImaginaryNew)
 #endif
         for (i = 0; i < imageSizeRef[box]; i++) {
             sumRealNew = 0.0;
