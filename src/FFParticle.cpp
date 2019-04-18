@@ -106,13 +106,15 @@ double FFParticle::EnergyLRC(const uint kind1, const uint kind2) const
   double N = (double)(n[idx]);
   tc *= sigma * sigmaSq[idx];
   tc *= 2.0 * M_PI * epsilon_cn[idx] / (N - 3.0);
+  tc *= (pow(rRat, n[idx] - 3) - ((N - 3.0) / 3.0) * pow(rRat, 3));
+/*
   if(forcefield.freeEnergy) {
     //For free energy calc, we only consider attraction part
     tc *= (-((N - 3.0) / 3.0) * pow(rRat, 3));
   } else {
     tc *= (pow(rRat, n[idx] - 3) - ((N - 3.0) / 3.0) * pow(rRat, 3));
   }
-
+*/
   return tc;
 }
 
@@ -125,13 +127,15 @@ double FFParticle::VirialLRC(const uint kind1, const uint kind2) const
   double N = (double)(n[idx]);
   tc *= sigma * sigmaSq[idx];
   tc *= 2.0 * M_PI * epsilon_cn[idx] / (N - 3.0);
+  tc *= (N * pow(rRat, n[idx] - 3) - (N - 3.0) * 2.0 * pow(rRat, 3));
+/*
   if(forcefield.freeEnergy) {
     //For free energy calc, we only consider attraction part
     tc *= (- (N - 3.0) * 2.0 * pow(rRat, 3));
   } else {
     tc *= (N * pow(rRat, n[idx] - 3) - (N - 3.0) * 2.0 * pow(rRat, 3));
   }
-
+*/
   return tc;
 }
 
@@ -289,6 +293,16 @@ inline void FFParticle::CalcCoulombAdd_1_4(double& en, const double distSq,
 }
 
 
+inline double FFParticle::CalcEn(const double distSq, const uint index) const
+{
+  double rRat2 = sigmaSq[index] / distSq;
+  double rRat4 = rRat2 * rRat2;
+  double attract = rRat4 * rRat2;
+  double n_ij = n[index];
+  double repulse = pow(rRat2, (n_ij * 0.5));
+
+  return (epsilon_cn[index] * (repulse - attract));
+}
 
 //mie potential
 inline double FFParticle::CalcEn(const double distSq,
@@ -299,16 +313,62 @@ inline double FFParticle::CalcEn(const double distSq,
     return 0.0;
 
   uint index = FlatIndex(kind1, kind2);
-  double rRat2 = distSq / sigmaSq[index];
+  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+  double dist6 = distSq * distSq * distSq;
+  double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
+  double softDist6 = lambdaCoef * sigma6 + dist6;
+  double softRsq = std::cbrt(softDist6);
+
+  double en = lambda * CalcEn(softRsq, index);
+  return en;
+}
+
+inline double FFParticle::CalcdEndL(const double distSq, const uint kind1,
+                                    const uint kind2,
+                                    const double lambda) const
+{
+  if(forcefield.rCutSq < distSq)
+    return 0.0;
+
+  uint index = FlatIndex(kind1, kind2);
+  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+  double dist6 = distSq * distSq * distSq;
+  double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
+  double softDist6 = lambdaCoef * sigma6 + dist6;
+  double softRsq = std::cbrt(softDist6);
+  double fCoef = lambda * (1.0 - lambda) * sigma6 / (6.0 * softRsq * softRsq);
+  double dhdl = CalcEn(softRsq, index) + fCoef * CalcVir(softRsq, index);
+  return dhdl;
+}
+
+inline double FFParticle::CalcVir(const double distSq, const uint index) const
+{
+  double rNeg2 = 1.0 / distSq;
+  double rRat2 = rNeg2 * sigmaSq[index];
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
+  double n_ij = n[index];
+  double repulse = pow(rRat2, (n_ij * 0.5));
+  //Virial is F.r = -dE/dr * 1/r
+  return epsilon_cn_6[index] * (nOver6[index] * repulse - attract) * rNeg2;
+}
 
+inline double FFParticle::CalcVir(const double distSq, const uint kind1, 
+                                  const uint kind2, const double lambda) const
+{
+  if(forcefield.rCutSq < distSq)
+    return 0.0;
+
+  uint index = FlatIndex(kind1, kind2);
+  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+  double dist6 = distSq * distSq * distSq;
   double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
-  double reverseAtt = lambdaCoef + attract;
-  double n_ij = n[index] / 6.0;
-  double reverseRep = pow(reverseAtt, n_ij);
-  
-  return lambda * epsilon_cn[index] * (1.0 / reverseRep - 1.0 / reverseAtt);
+  double softDist6 = lambdaCoef * sigma6 + dist6;
+  double softRsq = std::cbrt(softDist6);
+  double correction = distSq / softRsq;
+  //We need to fix the return value from calcVir
+  double vir = lambda * correction * correction * CalcVir(softRsq, index);
+  return vir;
 }
 
 inline double FFParticle::CalcCoulomb(const double distSq,
@@ -327,32 +387,6 @@ inline double FFParticle::CalcCoulomb(const double distSq,
     double dist = sqrt(distSq);
     return  lambda * qi_qj_Fact / dist;
   }
-}
-
-inline double FFParticle::CalcVir(const double distSq, const uint kind1, 
-                                  const uint kind2, const double lambda) const
-{
-  if(forcefield.rCutSq < distSq)
-    return 0.0;
-
-  uint index = FlatIndex(kind1, kind2);
-  double rRat2 = distSq / sigmaSq[index];
-  double rRat4 = rRat2 * rRat2;
-  double attract = rRat4 * rRat2;
-
-  double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
-  double reverseAtt = (lambdaCoef + attract);
-  double reverseAtt2 = reverseAtt * reverseAtt;
-  double n_ij = (n[index] / 6.0) + 1.0;
-  double reverseRep = pow(reverseAtt, n_ij);
-
-  double coef = epsilon_cn_6[index] * lambda * attract / distSq;
-  double result = coef * (nOver6[index] / reverseRep - 1.0 / reverseAtt2);
-  /*if(!isfinite(result)){
-    std::cout << "Coef: " << coef << ", repTerm: " << repTerm << ", attTerm: "
-    << attTerm << ", lambda: " << lambda << std::endl;
-  }*/
-  return result;
 }
 
 inline double FFParticle::CalcCoulombVir(const double distSq,
@@ -378,7 +412,7 @@ inline double FFParticle::CalcCoulombVir(const double distSq,
 inline double FFParticle::EnergyLRCFraction(const uint kind1, const uint kind2,
 					                                  const double lambda) const
 {
-  if(lambda > 0.9999) {
+  if(lambda > 0.99999) {
     //Numerically unstable for lambda == 1
     return EnergyLRC(kind1, kind2);
   } else if (lambda < 0.00001) {
@@ -386,6 +420,10 @@ inline double FFParticle::EnergyLRCFraction(const uint kind1, const uint kind2,
   }
   uint index = FlatIndex(kind1, kind2);
   double sigma = sqrt(sigmaSq[index]);
+  if(sigma < 1E-8) {
+    //avoid devide by zero
+    return 0.0;
+  }
   double rRat = forcefield.rCut / sigma;
   double sigma_3 = sigmaSq[index] * sigma;
   double rRat_3 = rRat * rRat * rRat;
@@ -400,7 +438,7 @@ inline double FFParticle::EnergyLRCFraction(const uint kind1, const uint kind2,
 inline double FFParticle::VirialLRCFraction(const uint kind1, const uint kind2,
 					                                  const double lambda) const
 {
-  if(lambda > 0.9999) {
+  if(lambda > 0.99999) {
     //Numerically unstable for lambda == 1
     return VirialLRC(kind1, kind2);
   } else if (lambda < 0.00001) {
@@ -408,6 +446,10 @@ inline double FFParticle::VirialLRCFraction(const uint kind1, const uint kind2,
   }
   uint index = FlatIndex(kind1, kind2);
   double sigma = sqrt(sigmaSq[index]);
+  if(sigma < 1E-8) {
+    //avoid devide by zero
+    return 0.0;
+  }
   double rRat = forcefield.rCut / sigma;
   double sigma_3 = sigmaSq[index] * sigma;
   double rRat_3 = rRat * rRat * rRat;

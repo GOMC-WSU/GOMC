@@ -455,6 +455,8 @@ void EwaldCached::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
   double energyRecipOld = sysPotRef.boxEnergy[box].recip;
   for(s = 0; s < lambdaSize; s++) {
     energyDiff[s].recip = energyRecip[s] - energyRecipOld;
+    //energy difference E(lambda =1) - E(lambda = 0)
+    dUdL_Coul.recip += energyRecip[lambdaSize - 1] - energyRecip[0];
   }
   delete [] energyRecip;
 }

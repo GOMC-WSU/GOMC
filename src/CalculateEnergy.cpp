@@ -105,7 +105,8 @@ SystemPotential CalculateEnergy::SystemTotal()
     }
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i, bondEnergy) reduction(+:bondEn, nonbondEn, correction)
+    #pragma omp parallel for default(shared) private(i, bondEnergy) \
+    reduction(+:bondEn, nonbondEn, correction)
 #endif
     for (i = 0; i < molID.size(); i++) {
       //calculate nonbonded energy
@@ -242,7 +243,9 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
 #else
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents, forceReal, forceLJ, lambdaVDW, lambdaCoulomb) reduction(+:tempREn, tempLJEn)
+#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, \
+virComponents, forceReal, forceLJ, lambdaVDW, lambdaCoulomb) \
+reduction(+:tempREn, tempLJEn)
 #endif
   for (i = 0; i < pair1.size(); i++) {
     if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)){
@@ -363,10 +366,10 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
 
 #else
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents, forceReal, forceLJ, lambdaVDW, lambdaCoulomb) \
-reduction(+:tempREn, tempLJEn, \
-aForcex[:atomCount], aForcey[:atomCount], aForcez[:atomCount], \
-mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
+#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, \
+virComponents, forceReal, forceLJ, lambdaVDW, lambdaCoulomb) \
+reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
+aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 #endif
   for (i = 0; i < pair1.size(); i++) {
     if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)) {
@@ -496,7 +499,9 @@ Virial CalculateEnergy::VirialCalc(const uint box)
   }
 #else
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(i, distSq, pVF, pRF, qi_qj, virC, comC, lambdaVDW, lambdaCoulomb) reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33)
+  #pragma omp parallel for default(shared) private(i, distSq, pVF, pRF, qi_qj, \
+  virC, comC, lambdaVDW, lambdaCoulomb) reduction(+:vT11, vT12, vT13, vT22, \
+  vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33)
 #endif
   for (i = 0; i < pair1.size(); i++) {
     if (currentAxes.InRcut(distSq, virC, currentCoords, pair1[i],
@@ -620,7 +625,9 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
       }
 
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents, forceLJ, forceReal, lambdaVDW, lambdaCoulomb) reduction(+:tempREn, tempLJEn)
+#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, \
+virComponents, forceLJ, forceReal, lambdaVDW, lambdaCoulomb) \
+reduction(+:tempREn, tempLJEn)
 #endif
       for(i = 0; i < nIndex.size(); i++) {
         distSq = 0.0;
@@ -654,7 +661,9 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
       }
 
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents, forceReal, forceLJ, lambdaVDW, lambdaCoulomb) reduction(+:tempREn, tempLJEn)
+#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, \
+virComponents, forceReal, forceLJ, lambdaVDW, lambdaCoulomb) \
+reduction(+:tempREn, tempLJEn)
 #endif
       for(i = 0; i < nIndex.size(); i++) {
         distSq = 0.0;
@@ -755,7 +764,8 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
     }
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i, distSq, qi_qj_Fact, lambdaVDW, lambdaCoulomb) reduction(+:tempLJ, tempReal)
+    #pragma omp parallel for default(shared) private(i, distSq, qi_qj_Fact, \
+    lambdaVDW, lambdaCoulomb) reduction(+:tempLJ, tempReal)
 #endif
     for(i = 0; i < nIndex.size(); i++) {
       distSq = 0.0;
@@ -1326,10 +1336,14 @@ void CalculateEnergy::EnergyCorrection(SystemPotential& pot,
         --molNum; // We have one less molecule (it is fractional molecule)
       }
       double rhoDeltaIJ_2 = 2.0 * (double)(molNum) * currentAxes.volInv[box];
-      en += mols.GetFractionEnLRC(fk, i, lambdaVDW) * rhoDeltaIJ_2;
+      //en += mols.GetFractionEnLRC(fk, i, lambdaVDW) * rhoDeltaIJ_2;
+      en += lambdaVDW * mols.pairEnCorrections[fk * mols.GetKindsCount() + i] *
+            rhoDeltaIJ_2;
     }
     //We already calculated part of the change for this type in the loop
-    en += mols.GetFractionEnLRC(fk, fk, lambdaVDW) * currentAxes.volInv[box];
+    //en += mols.GetFractionEnLRC(fk, fk, lambdaVDW) * currentAxes.volInv[box];
+    en += lambdaVDW * mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
+          currentAxes.volInv[box];
     pot.boxEnergy[box].tc = en;
   }
 #endif
@@ -1389,10 +1403,13 @@ void CalculateEnergy::VirialCorrection(Virial& virial,
         --molNum; // We have one less molecule (it is fractional molecule)
       }
       double rhoDeltaIJ_2 = 2.0 * (double)(molNum) * currentAxes.volInv[box];
-      vir += mols.GetFractionVirLRC(fk, i, lambdaVDW) * rhoDeltaIJ_2;
+      //vir += mols.GetFractionVirLRC(fk, i, lambdaVDW) * rhoDeltaIJ_2;
+      vir += mols.pairVirCorrections[fk * mols.GetKindsCount() + i] * rhoDeltaIJ_2;
     }
     //We already calculated part of the change for this type in the loop
-    vir += mols.GetFractionVirLRC(fk, fk, lambdaVDW) * currentAxes.volInv[box];
+    //vir += mols.GetFractionVirLRC(fk, fk, lambdaVDW) * currentAxes.volInv[box];
+    vir += mols.pairVirCorrections[fk * mols.GetKindsCount() + fk] *
+           currentAxes.volInv[box];
     virial.tc = vir;
   }
 #endif
@@ -1421,7 +1438,9 @@ void CalculateEnergy::CalculateTorque(vector<uint>& moleculeIndex,
     molTorque.Reset();
 
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(m, p, length, start, distFromCOM, tempTorque) reduction(+: torquex[:torqueCount], torquey[:torqueCount], torquez[:torqueCount])
+#pragma omp parallel for default(shared) private(m, p, length, start, \
+distFromCOM, tempTorque) reduction(+: torquex[:torqueCount], \
+torquey[:torqueCount], torquez[:torqueCount])
 #endif
     for(m = 0; m < moleculeIndex.size(); m++) {
       length = mols.GetKind(moleculeIndex[m]).NumAtoms();
@@ -1558,7 +1577,8 @@ void CalculateEnergy::SingleMoleculeInter(Energy &interEnOld,
       }
 
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents) reduction(+:tempREnOld, tempLJEnOld, tempREnNew, tempLJEnNew)
+#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, \
+virComponents) reduction(+:tempREnOld, tempLJEnOld, tempREnNew, tempLJEnNew)
 #endif
       for(i = 0; i < nIndex.size(); i++) {
         distSq = 0.0;
@@ -1650,6 +1670,7 @@ void CalculateEnergy::EnergyChange(Energy *energyDiff, Energy &dUdL_VDW,
   double energyOldVDW = 0.0, energyOldCoul = 0.0;
   double *tempLJEnDiff = new double [lambdaSize];
   double *tempREnDiff = new double [lambdaSize];
+  double dudl_VDW = 0.0, dudl_Coul = 0.0;
   std::fill_n(tempLJEnDiff, lambdaSize, 0.0);
   std::fill_n(tempREnDiff, lambdaSize, 0.0);
 
@@ -1672,7 +1693,9 @@ void CalculateEnergy::EnergyChange(Energy *energyDiff, Energy &dUdL_VDW,
     }
 
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, s, distSq, qi_qj_fact, virComponents, energyOldVDW, energyOldCoul) reduction(+:tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
+#pragma omp parallel for default(shared) private(i, s, distSq, qi_qj_fact, \
+virComponents, energyOldVDW, energyOldCoul) reduction(+:dudl_VDW, dudl_Coul, \
+tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
 #endif
     for(i = 0; i < nIndex.size(); i++) {
       distSq = 0.0;
@@ -1693,17 +1716,29 @@ void CalculateEnergy::EnergyChange(Energy *energyDiff, Energy &dUdL_VDW,
 
         for(s = 0; s < lambdaSize; s++) {
           //Calculate the energy of other state
-          tempLJEnDiff[s] += forcefield.particles->CalcEn(distSq,particleKind[atom], particleKind[nIndex[i]], lambda_VDW[s]);
+          tempLJEnDiff[s] += forcefield.particles->CalcEn(distSq,particleKind[atom], 
+                             particleKind[nIndex[i]], lambda_VDW[s]);
           tempLJEnDiff[s] += (-energyOldVDW);
+          //Calculate du/dl in VDW for all states
+          dudl_VDW += forcefield.particles->CalcdEndL(distSq, particleKind[atom],
+                      particleKind[nIndex[i]], lambda_VDW[s]);
 
           if(electrostatic) {
-            tempREnDiff[s] += forcefield.particles->CalcCoulomb(distSq,qi_qj_fact, lambda_Coul[s], box);
+            tempREnDiff[s] += forcefield.particles->CalcCoulomb(distSq,qi_qj_fact,
+                              lambda_Coul[s], box);
             tempREnDiff[s] += (-energyOldCoul);
+            //Calculate du/dl in Coulomb for all states. derivative is same as
+            // using lambda = 1.0
+            dudl_Coul += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact,
+                         1.0, box);
           }
         }
       }
     }
   }
+
+  dUdL_VDW.inter = dudl_VDW;
+  dUdL_Coul.real = dudl_Coul;
   for(s = 0; s < lambdaSize; s++) {
     energyDiff[s].inter += tempLJEnDiff[s];
     energyDiff[s].real += tempREnDiff[s];
@@ -1748,15 +1783,25 @@ void CalculateEnergy::ChangeLRC(Energy *energyDiff, Energy &dUdL_VDW,
         --molNum; // We have one less molecule (it is fractional molecule)
       }
       double rhoDeltaIJ_2 = 2.0 * (double)(molNum) * currentAxes.volInv[box];
+      /*
       energyDiff[s].tc += mols.GetFractionVirLRC(fk, i, lambdaVDW) *
                           rhoDeltaIJ_2;
       energyDiff[s].tc -= mols.GetFractionVirLRC(fk, i, lambda_istate) *
-                          rhoDeltaIJ_2;
+                          rhoDeltaIJ_2; */
+      energyDiff[s].tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + i]*
+                          rhoDeltaIJ_2 * (lambdaVDW - lambda_istate);
+      dUdL_VDW.tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + i] *
+                     rhoDeltaIJ_2;
     }
     //We already calculated part of the change for this type in the loop
+    /*
     energyDiff[s].tc += mols.GetFractionVirLRC(fk, fk, lambdaVDW) *
                         currentAxes.volInv[box];
     energyDiff[s].tc -= mols.GetFractionVirLRC(fk, fk, lambda_istate) *
-                        currentAxes.volInv[box];
+                        currentAxes.volInv[box]; */
+    energyDiff[s].tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + fk]*
+                        currentAxes.volInv[box] * (lambdaVDW - lambda_istate);
+    dUdL_VDW.tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
+                   currentAxes.volInv[box];
   }
 }

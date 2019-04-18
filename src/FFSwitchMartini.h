@@ -113,8 +113,14 @@ public:
   {
     return 0.0;
   }
+  //Calculate the dE/dlambda for vdw energy
+  virtual double CalcdEndL(const double distSq, const uint kind1,
+                           const uint kind2, const 
+                           double lambda) const;
 
   protected:
+  virtual double CalcEn(const double distSq, const uint index) const;
+  virtual double CalcVir(const double distSq, const uint index) const;
 
   double *An, *Bn, *Cn, *An_1_4, *Bn_1_4, *Cn_1_4;
   double *sig6, *sig6_1_4, *sign, *sign_1_4;
@@ -236,7 +242,6 @@ inline void FF_SWITCH_MARTINI::CalcCoulombAdd_1_4(double& en,
 }
 
 
-//mie potential
 inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
                                         const uint kind1,
                                         const uint kind2,
@@ -246,16 +251,24 @@ inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
     return 0.0;
 
   uint index = FlatIndex(kind1, kind2);
+  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+  double dist6 = distSq * distSq * distSq;
+  double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
+  double softDist6 = lambdaCoef * sigma6 + dist6;
+  double softRsq = std::cbrt(softDist6);
+
+  double en = lambda * CalcEn(softRsq, index);
+  return en;
+}
+
+inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
+                                        const uint index) const
+{
   double r_2 = 1.0 / distSq;
   double r_4 = r_2 * r_2;
   double r_6 = r_4 * r_2;
-#ifdef MIE_INT_ONLY
-  uint n_ij = n[index];
-  double r_n = num::POW(r_2, r_4, attract, n_ij);
-#else
   double n_ij = n[index];
-  double r_n = pow(sqrt(r_2), n_ij);
-#endif
+  double r_n = pow(r_2, (n_ij * 0.5));
 
   double rij_ron = sqrt(distSq) - rOn;
   double rij_ron_2 = rij_ron * rij_ron;
@@ -285,7 +298,7 @@ inline double FF_SWITCH_MARTINI::CalcCoulomb(const double distSq,
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
     double val = forcefield.alpha[b] * dist;
-    return  qi_qj_Fact * erfc(val) / dist;
+    return lambda * qi_qj_Fact * erfc(val) / dist;
   } else {
     // in Martini, the Coulomb switching distance is zero, so we will have
     // sqrt(distSq) - rOnCoul =  sqrt(distSq)
@@ -294,11 +307,10 @@ inline double FF_SWITCH_MARTINI::CalcCoulomb(const double distSq,
     double rij_ronCoul_4 = distSq * distSq;
 
     double coul = -(A1 / 3.0) * rij_ronCoul_3 - (B1 / 4.0) * rij_ronCoul_4 - C1;
-    return qi_qj_Fact  * diElectric_1 * (1.0 / dist + coul);
+    return lambda * qi_qj_Fact  * diElectric_1 * (1.0 / dist + coul);
   }
 }
 
-//mie potential
 inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
                                         const uint kind1,
                                         const uint kind2, 
@@ -308,6 +320,20 @@ inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
     return 0.0;
 
   uint index = FlatIndex(kind1, kind2);
+  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+  double dist6 = distSq * distSq * distSq;
+  double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
+  double softDist6 = lambdaCoef * sigma6 + dist6;
+  double softRsq = std::cbrt(softDist6);
+  double correction = distSq / softRsq;
+  //We need to fix the return value from calcVir
+  double vir = lambda * correction * correction * CalcVir(softRsq, index);
+  return vir;
+}
+
+inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
+                                         const uint index) const
+{
   double n_ij = n[index];
   double r_1 = 1.0 / sqrt(distSq);
   double r_8 = pow(r_1, 8);
@@ -316,7 +342,6 @@ inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
   double rij_ron = sqrt(distSq) - rOn;
   double rij_ron_2 = rij_ron * rij_ron;
   double rij_ron_3 = rij_ron_2 * rij_ron;
-
 
   double dshifttempRep = An[index] * rij_ron_2 + Bn[index] * rij_ron_3;
   double dshifttempAtt = A6 * rij_ron_2 + B6 * rij_ron_3;
@@ -332,7 +357,9 @@ inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
 }
 
 inline double FF_SWITCH_MARTINI::CalcCoulombVir(const double distSq,
-    const double qi_qj, const double lambda, const uint b) const
+                                                const double qi_qj,
+                                                const double lambda,
+                                                const uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
@@ -342,7 +369,7 @@ inline double FF_SWITCH_MARTINI::CalcCoulombVir(const double distSq,
     double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
     double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
     double temp = erfc(forcefield.alpha[b] * dist);
-    return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+    return lambda * qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
     // in Martini, the Coulomb switching distance is zero, so we will have
     // sqrt(distSq) - rOnCoul =  sqrt(distSq)
@@ -351,9 +378,27 @@ inline double FF_SWITCH_MARTINI::CalcCoulombVir(const double distSq,
     double rij_ronCoul_3 = dist * distSq;
 
     double virCoul = A1 / rij_ronCoul_2 + B1 / rij_ronCoul_3;
-    return qi_qj * diElectric_1 * ( 1.0 / (dist * distSq) + virCoul / dist);
+    return lambda * qi_qj * diElectric_1 * ( 1.0 / (dist * distSq) + virCoul / dist);
   }
 }
 
+inline double FF_SWITCH_MARTINI::CalcdEndL(const double distSq,
+                                          const uint kind1,
+                                          const uint kind2,
+                                          const double lambda) const
+{
+  if(forcefield.rCutSq < distSq)
+    return 0.0;
+
+  uint index = FlatIndex(kind1, kind2);
+  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+  double dist6 = distSq * distSq * distSq;
+  double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
+  double softDist6 = lambdaCoef * sigma6 + dist6;
+  double softRsq = std::cbrt(softDist6);
+  double fCoef = lambda * (1.0 - lambda) * sigma6 / (6.0 * softRsq * softRsq);
+  double dhdl = CalcEn(softRsq, index) + fCoef * CalcVir(softRsq, index);
+  return dhdl;
+}
 
 #endif /*FF_SWITCH_MARTINI_H*/

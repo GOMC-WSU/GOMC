@@ -77,6 +77,7 @@ public:
   {
     return 0.0;
   }
+  
   //Calculate Virial LRC for fractional molecule
   virtual double VirialLRCFraction(const uint kind1, const uint kind2,const 
                                   double lambda) const
@@ -84,7 +85,14 @@ public:
     return 0.0;
   }
 
+  //Calculate the dE/dlambda for vdw energy
+  virtual double CalcdEndL(const double distSq, const uint kind1,
+                           const uint kind2, const 
+                           double lambda) const;
+
   protected:
+  virtual double CalcEn(const double distSq, const uint index) const;
+  virtual double CalcVir(const double distSq, const uint index) const;
 
   double *shiftConst, *shiftConst_1_4;
 
@@ -151,26 +159,31 @@ inline void FF_SHIFT::CalcCoulombAdd_1_4(double& en, const double distSq,
     en += qi_qj_Fact * forcefield.scaling_14 / dist;
 }
 
-
-//mie potential
-inline double FF_SHIFT::CalcEn(const double distSq,
-                               const uint kind1, const uint kind2,
+inline double FF_SHIFT::CalcEn(const double distSq, const uint kind1,
+                               const uint kind2,
                                const double lambda) const
 {
   if(forcefield.rCutSq < distSq)
     return 0.0;
-
+  
   uint index = FlatIndex(kind1, kind2);
+  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+  double dist6 = distSq * distSq * distSq;
+  double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
+  double softDist6 = lambdaCoef * sigma6 + dist6;
+  double softRsq = std::cbrt(softDist6);
+
+  double en = lambda * CalcEn(softRsq, index);
+  return en;
+}
+
+inline double FF_SHIFT::CalcEn(const double distSq, const uint index) const
+{
   double rRat2 = sigmaSq[index] / distSq;
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
-#ifdef MIE_INT_ONLY
-  uint n_ij = n[index];
-  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
-#else
   double n_ij = n[index];
-  double repulse = pow(sqrt(rRat2), n_ij);
-#endif
+  double repulse = pow(rRat2, (n_ij * 0.5));
 
   return (epsilon_cn[index] * (repulse - attract) - shiftConst[index]);
 }
@@ -186,32 +199,39 @@ inline double FF_SHIFT::CalcCoulomb(const double distSq,
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
     double val = forcefield.alpha[b] * dist;
-    return  qi_qj_Fact * erfc(val) / dist;
+    return lambda * qi_qj_Fact * erfc(val) / dist;
   } else {
     double dist = sqrt(distSq);
-    return  qi_qj_Fact * (1.0 / dist - 1.0 / forcefield.rCut);
+    return lambda * qi_qj_Fact * (1.0 / dist - 1.0 / forcefield.rCut);
   }
 }
 
-//mie potential
 inline double FF_SHIFT::CalcVir(const double distSq, const uint kind1, 
                                 const uint kind2, const double lambda) const
 {
   if(forcefield.rCutSq < distSq)
     return 0.0;
-
+  
   uint index = FlatIndex(kind1, kind2);
+  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+  double dist6 = distSq * distSq * distSq;
+  double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
+  double softDist6 = lambdaCoef * sigma6 + dist6;
+  double softRsq = std::cbrt(softDist6);
+  double correction = distSq / softRsq;
+  //We need to fix the return value from calcVir
+  double vir = lambda * correction * correction * CalcVir(softRsq, index);
+  return vir;
+}
+
+inline double FF_SHIFT::CalcVir(const double distSq, const uint index) const
+{
   double rNeg2 = 1.0 / distSq;
   double rRat2 = rNeg2 * sigmaSq[index];
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
-#ifdef MIE_INT_ONLY
-  uint n_ij = n[index];
-  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
-#else
   double n_ij = n[index];
-  double repulse = pow(sqrt(rRat2), n_ij);
-#endif
+  double repulse = pow(rRat2, (n_ij * 0.5));
 
   //Virial is the derivative of the pressure... mu
   return epsilon_cn_6[index] * (nOver6[index] * repulse - attract) * rNeg2;
@@ -228,12 +248,28 @@ inline double FF_SHIFT::CalcCoulombVir(const double distSq, const double qi_qj,
     double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
     double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
     double temp = erfc(forcefield.alpha[b] * dist);
-    return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+    return lambda * qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
     double dist = sqrt(distSq);
-    return qi_qj / (distSq * dist);
+    return lambda * qi_qj / (distSq * dist);
   }
 }
 
+inline double FF_SHIFT::CalcdEndL(const double distSq, const uint kind1,
+                                  const uint kind2, const double lambda) const
+{
+  if(forcefield.rCutSq < distSq)
+    return 0.0;
+
+  uint index = FlatIndex(kind1, kind2);
+  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+  double dist6 = distSq * distSq * distSq;
+  double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
+  double softDist6 = lambdaCoef * sigma6 + dist6;
+  double softRsq = std::cbrt(softDist6);
+  double fCoef = lambda * (1.0 - lambda) * sigma6 / (6.0 * softRsq * softRsq);
+  double dhdl = CalcEn(softRsq, index) + fCoef * CalcVir(softRsq, index);
+  return dhdl;
+}
 
 #endif /*FF_SHIFT_H*/

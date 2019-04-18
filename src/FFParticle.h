@@ -91,6 +91,10 @@ public:
   //Calculate Virial LRC for fractional molecule
   virtual double VirialLRCFraction(const uint kind1, const uint kind2,const 
                                   double lambda) const;
+  //Calculate the dE/dlambda for vdw energy
+  virtual double CalcdEndL(const double distSq, const uint kind1,
+                           const uint kind2, const 
+                           double lambda) const;
 
   uint NumKinds() const { return count; }                
   double GetMass(const uint kind) const { return mass[kind]; }
@@ -103,6 +107,8 @@ public:
 #endif
 
 protected:
+  virtual double CalcEn(const double distSq, const uint index) const;
+  virtual double CalcVir(const double distSq, const uint index) const;
   //Find the index of the pair kind
   uint FlatIndex(const uint i, const uint j) const { return i + j * count; }
   //Combining sigma, epsilon, and n value for different kind
