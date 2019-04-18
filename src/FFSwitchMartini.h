@@ -255,7 +255,7 @@ inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
   double dist6 = distSq * distSq * distSq;
   double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
   double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = std::cbrt(softDist6);
+  double softRsq = pow(softDist6, 1.0/3.0);
 
   double en = lambda * CalcEn(softRsq, index);
   return en;
@@ -324,7 +324,7 @@ inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
   double dist6 = distSq * distSq * distSq;
   double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
   double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = std::cbrt(softDist6);
+  double softRsq = pow(softDist6, 1.0/3.0);
   double correction = distSq / softRsq;
   //We need to fix the return value from calcVir
   double vir = lambda * correction * correction * CalcVir(softRsq, index);
@@ -395,7 +395,7 @@ inline double FF_SWITCH_MARTINI::CalcdEndL(const double distSq,
   double dist6 = distSq * distSq * distSq;
   double lambdaCoef = 0.5 * (1.0 - lambda) * (1.0 - lambda);
   double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = std::cbrt(softDist6);
+  double softRsq = pow(softDist6, 1.0/3.0);
   double fCoef = lambda * (1.0 - lambda) * sigma6 / (6.0 * softRsq * softRsq);
   double dhdl = CalcEn(softRsq, index) + fCoef * CalcVir(softRsq, index);
   return dhdl;
