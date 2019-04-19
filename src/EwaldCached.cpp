@@ -424,10 +424,6 @@ void EwaldCached::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
                               const uint iState, const uint molIndex,
                               const uint box) const
 {
-  if (box >= BOXES_WITH_U_NB) {
-    return;
-  }
-
   //Need to implement GPU
   uint p, i, s;
   uint length = mols.GetKind(molIndex).NumAtoms();
