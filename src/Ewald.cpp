@@ -512,9 +512,10 @@ void Ewald::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
   double energyRecipOld = sysPotRef.boxEnergy[box].recip;
   for(s = 0; s < lambdaSize; s++) {
     energyDiff[s].recip = energyRecip[s] - energyRecipOld;
-    //energy difference E(lambda =1) - E(lambda = 0)
-    dUdL_Coul.recip += energyRecip[lambdaSize - 1] - energyRecip[0];
   }
+  //Calculate du/dl of Reciprocal for current state 
+  //energy difference E(lambda =1) - E(lambda = 0)
+  dUdL_Coul.recip += energyDiff[lambdaSize - 1].recip - energyDiff[0].recip;
   delete [] energyRecip;
 }
 
@@ -935,10 +936,11 @@ void Ewald::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
   //Calculate the energy difference for each lambda state
   for (uint s = 0; s < lambdaSize; s++) {
     coefDiff = lambda_Coul[s] - lambda_Coul[iState];
-    dcoefDiff = 1.0;
     energyDiff[s].correction += coefDiff * correction;
-    dUdL_Coul.correction += dcoefDiff * correction;
   }
+  //Calculate du/dl of correction for current state 
+  dcoefDiff = 1.0;
+  dUdL_Coul.correction += dcoefDiff * correction;
 }
 
 //calculate self term for a box, using system lambda
@@ -1216,10 +1218,11 @@ void Ewald::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
   //Calculate the energy difference for each lambda state
   for (uint s = 0; s < lambdaSize; s++) {
     coefDiff = lambda_Coul[s] - lambda_Coul[iState];
-    dcoefDiff = 1.0;
     energyDiff[s].self += coefDiff * en_self;
-    dUdL_Coul.self += dcoefDiff * en_self;
   }
+  //Calculate du/dl of self for current state 
+  dcoefDiff = 1.0;
+  dUdL_Coul.self += dcoefDiff * en_self;
 }
 
 //update reciprocate values

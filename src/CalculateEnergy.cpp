@@ -1336,12 +1336,10 @@ void CalculateEnergy::EnergyCorrection(SystemPotential& pot,
         --molNum; // We have one less molecule (it is fractional molecule)
       }
       double rhoDeltaIJ_2 = 2.0 * (double)(molNum) * currentAxes.volInv[box];
-      //en += mols.GetFractionEnLRC(fk, i, lambdaVDW) * rhoDeltaIJ_2;
       en += lambdaVDW * mols.pairEnCorrections[fk * mols.GetKindsCount() + i] *
             rhoDeltaIJ_2;
     }
     //We already calculated part of the change for this type in the loop
-    //en += mols.GetFractionEnLRC(fk, fk, lambdaVDW) * currentAxes.volInv[box];
     en += lambdaVDW * mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
           currentAxes.volInv[box];
     pot.boxEnergy[box].tc = en;
@@ -1403,11 +1401,9 @@ void CalculateEnergy::VirialCorrection(Virial& virial,
         --molNum; // We have one less molecule (it is fractional molecule)
       }
       double rhoDeltaIJ_2 = 2.0 * (double)(molNum) * currentAxes.volInv[box];
-      //vir += mols.GetFractionVirLRC(fk, i, lambdaVDW) * rhoDeltaIJ_2;
       vir += mols.pairVirCorrections[fk * mols.GetKindsCount() + i] * rhoDeltaIJ_2;
     }
     //We already calculated part of the change for this type in the loop
-    //vir += mols.GetFractionVirLRC(fk, fk, lambdaVDW) * currentAxes.volInv[box];
     vir += mols.pairVirCorrections[fk * mols.GetKindsCount() + fk] *
            currentAxes.volInv[box];
     virial.tc = vir;
@@ -1706,12 +1702,20 @@ tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
         energyOldVDW = forcefield.particles->CalcEn(distSq,particleKind[atom],
                                                     particleKind[nIndex[i]], 
                                                     lambda_VDW[iState]);
+        //Calculate du/dl in VDW for current state
+        dudl_VDW += forcefield.particles->CalcdEndL(distSq, particleKind[atom],
+                    particleKind[nIndex[i]], lambda_VDW[iState]);
+
         if(electrostatic) {
           qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
                       num::qqFact;
           energyOldCoul = forcefield.particles->CalcCoulomb(distSq, qi_qj_fact,
                                                            lambda_Coul[iState],
                                                            box);
+          //Calculate du/dl in Coulomb for current state. derivative is same as
+          // using lambda = 1.0
+          dudl_Coul += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact,
+                        1.0, box);
         }
 
         for(s = 0; s < lambdaSize; s++) {
@@ -1719,18 +1723,10 @@ tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
           tempLJEnDiff[s] += forcefield.particles->CalcEn(distSq,particleKind[atom], 
                              particleKind[nIndex[i]], lambda_VDW[s]);
           tempLJEnDiff[s] += (-energyOldVDW);
-          //Calculate du/dl in VDW for all states
-          dudl_VDW += forcefield.particles->CalcdEndL(distSq, particleKind[atom],
-                      particleKind[nIndex[i]], lambda_VDW[s]);
-
           if(electrostatic) {
             tempREnDiff[s] += forcefield.particles->CalcCoulomb(distSq,qi_qj_fact,
                               lambda_Coul[s], box);
             tempREnDiff[s] += (-energyOldCoul);
-            //Calculate du/dl in Coulomb for all states. derivative is same as
-            // using lambda = 1.0
-            dudl_Coul += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact,
-                         1.0, box);
           }
         }
       }
@@ -1780,25 +1776,20 @@ void CalculateEnergy::ChangeLRC(Energy *energyDiff, Energy &dUdL_VDW,
         --molNum; // We have one less molecule (it is fractional molecule)
       }
       double rhoDeltaIJ_2 = 2.0 * (double)(molNum) * currentAxes.volInv[box];
-      /*
-      energyDiff[s].tc += mols.GetFractionEnLRC(fk, i, lambdaVDW) *
-                          rhoDeltaIJ_2;
-      energyDiff[s].tc -= mols.GetFractionEnLRC(fk, i, lambda_istate) *
-                          rhoDeltaIJ_2; */
       energyDiff[s].tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + i]*
                           rhoDeltaIJ_2 * (lambdaVDW - lambda_istate);
-      dUdL_VDW.tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + i] *
-                     rhoDeltaIJ_2;
+      if(s == iState) {
+        //Calculate du/dl in VDW LRC for current state
+        dUdL_VDW.tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + i] *
+                       rhoDeltaIJ_2;
+      }
     }
-    //We already calculated part of the change for this type in the loop
-    /*
-    energyDiff[s].tc += mols.GetFractionEnLRC(fk, fk, lambdaVDW) *
-                        currentAxes.volInv[box];
-    energyDiff[s].tc -= mols.GetFractionEnLRC(fk, fk, lambda_istate) *
-                        currentAxes.volInv[box]; */
     energyDiff[s].tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + fk]*
                         currentAxes.volInv[box] * (lambdaVDW - lambda_istate);
-    dUdL_VDW.tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
-                   currentAxes.volInv[box];
+    if(s == iState) {
+      //Calculate du/dl in VDW LRC for current state               
+      dUdL_VDW.tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
+                     currentAxes.volInv[box];
+    }
   }
 }
