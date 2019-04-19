@@ -195,6 +195,8 @@ void ReplicaExchangeController::runMultiSim(){
           fprintf(fplog, "\nReplica exchange at step %lu time %.5f\n", step+1, timer->GetTimDiff());
           parityOfSwaps = ((*simsRef)[0]->getStartStep() / exchangeRate) % 2;
 
+
+
           for (int i = 1; i < (*simsRef).size(); i++){
             if ((*simsRef)[i]->getEquilSteps() < ((*simsRef)[i]->getStartStep() + exchangeRate)) {
 
@@ -702,34 +704,26 @@ bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, Reco
 
           isValid = true;
 
-
-          // Check for any duplicate simulation conditions; false if duplicate found
-          for (std::map< double, std::vector<int> >::iterator it=temp_map.begin(); it!=temp_map.end(); ++it){
-          //  it->first : key ; it->second : value (an int array of indices)
-            for (vector<int>::iterator it_indices = it->second.begin(); it_indices != it->second.end(); ++it_indices){
-              for (uint x = 0; x < numKinds; x++){
-                  if (chemPots[(*it->second.begin())][x] != chemPots[*it_indices][x]){
-                    isValid = false;
-                    std::cout << "Error: Each replica must have different conditions. " << (*simsRef)[*it_indices]->getConfigFileName() <<
-                    " and " << (*simsRef)[(*it->second.begin())]->getConfigFileName() << " have equal chemical potentials and temperatures!\n";
-                    exit(EXIT_FAILURE);
-                  }
-
-    
-              }
-            }
-          } 
+          // Reinitialize temps for checking for unwanted replica equality
+          for (int i = 0; i < numRepl; i++){
+            temps[i]= (*simsRef)[i]->getT_in_K();
+          }
 
           // Check for any duplicate simulation conditions; false if duplicate found
           for (std::map< std::vector<double>, std::vector<int> >::iterator it=mu_map.begin(); it!=mu_map.end(); ++it){
           //  it->first : key ; it->second : value (an int array of indices)
             for (vector<int>::iterator it_indices = it->second.begin(); it_indices != it->second.end(); ++it_indices){
-                if (temps[(*it->second.begin())] != temps[*it_indices]){
+              // Skip first iteration
+              if (it->second.begin() != it_indices){
+                // Check if the first temperature in a chempot
+                // subarray is equal to any value in the subarray
+                if (temps[(*it->second.begin())] == temps[*it_indices]){
                     isValid = false;
                     std::cout << "Error: Each replica must have different conditions. " << (*simsRef)[*it_indices]->getConfigFileName() <<
                     " and " << (*simsRef)[(*it->second.begin())]->getConfigFileName() << " have equal chemical potentials and temperatures!\n";
                     exit(EXIT_FAILURE);
                 }
+              }
             }
           }
 
@@ -737,11 +731,12 @@ bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, Reco
           if (isValid)
             re->type = ereTEMP_MU;
 
-          return isValid; 
         } 
         
 
     #endif
+    return isValid; 
+
 }
 
 void ReplicaExchangeController::rearrangeByTemperature( int* ind, 
@@ -932,7 +927,7 @@ void ReplicaExchangeController::rearrangeByChemPots(  std::vector<int> & ind,
   // 1 1  
   // 2 0
 
-  for (uint mu = numKinds-1; mu >= 0; mu--){
+  for (uint mu = numKinds-1; mu > 0; mu--){
     for (i = 0; i < numRepl; i++){
       for (j = i; j < numRepl; j++){
         comparison = chemPots[j];
