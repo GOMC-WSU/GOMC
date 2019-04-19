@@ -473,10 +473,6 @@ void Ewald::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
                         const uint iState, const uint molIndex,
                         const uint box) const
 {
-  if (box >= BOXES_WITH_U_NB) {
-    return;
-  }
-
   //Need to implement GPU
   uint p, i, s;
   uint length = mols.GetKind(molIndex).NumAtoms();
@@ -918,9 +914,6 @@ void Ewald::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
                             const uint iState, const uint molIndex,
                             const uint box) const
 {
-  if (box >= BOXES_WITH_U_NB)
-    return;
-
   uint atomSize = mols.GetKind(molIndex).NumAtoms();
   uint start = mols.MolStart(molIndex);
   uint lambdaSize = lambda_Coul.size();
@@ -1210,9 +1203,6 @@ void Ewald::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
                     const uint iState, const uint molIndex,
                     const uint box) const
 {
-  if (box >= BOXES_WITH_U_NB)
-    return;
-
   uint atomSize = mols.GetKind(molIndex).NumAtoms();
   uint start = mols.MolStart(molIndex);
   uint lambdaSize = lambda_Coul.size();

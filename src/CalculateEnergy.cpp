@@ -1746,8 +1746,10 @@ tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
   delete [] tempLJEnDiff;
   delete [] tempREnDiff;
 
-  //Need to calculate change in LRC
-  ChangeLRC(energyDiff, dUdL_VDW, lambda_VDW, iState, molIndex, box);
+  if (forcefield.useLRC) {
+    //Need to calculate change in LRC
+    ChangeLRC(energyDiff, dUdL_VDW, lambda_VDW, iState, molIndex, box);
+  }
   //Need to calculate change in self
   calcEwald->ChangeSelf(energyDiff, dUdL_Coul, lambda_Coul, iState, molIndex,
                         box);
@@ -1757,7 +1759,6 @@ tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
   //Need to calculate change in Reciprocal
   calcEwald->ChangeRecip(energyDiff, dUdL_Coul, lambda_Coul, iState, molIndex,
                          box);
-
 }
 
 //Calculate the change in LRC for each state
@@ -1766,10 +1767,6 @@ void CalculateEnergy::ChangeLRC(Energy *energyDiff, Energy &dUdL_VDW,
                                 const uint iState, const uint molIndex,
                                 const uint box) const
 {
-  if(box >= BOXES_WITH_U_NB) {
-    return;
-  }
-  
   //Get the kind and lambda value
   uint fk = mols.GetMolKind(molIndex);
   double lambda_istate = lambda_VDW[iState];
@@ -1784,9 +1781,9 @@ void CalculateEnergy::ChangeLRC(Energy *energyDiff, Energy &dUdL_VDW,
       }
       double rhoDeltaIJ_2 = 2.0 * (double)(molNum) * currentAxes.volInv[box];
       /*
-      energyDiff[s].tc += mols.GetFractionVirLRC(fk, i, lambdaVDW) *
+      energyDiff[s].tc += mols.GetFractionEnLRC(fk, i, lambdaVDW) *
                           rhoDeltaIJ_2;
-      energyDiff[s].tc -= mols.GetFractionVirLRC(fk, i, lambda_istate) *
+      energyDiff[s].tc -= mols.GetFractionEnLRC(fk, i, lambda_istate) *
                           rhoDeltaIJ_2; */
       energyDiff[s].tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + i]*
                           rhoDeltaIJ_2 * (lambdaVDW - lambda_istate);
@@ -1795,9 +1792,9 @@ void CalculateEnergy::ChangeLRC(Energy *energyDiff, Energy &dUdL_VDW,
     }
     //We already calculated part of the change for this type in the loop
     /*
-    energyDiff[s].tc += mols.GetFractionVirLRC(fk, fk, lambdaVDW) *
+    energyDiff[s].tc += mols.GetFractionEnLRC(fk, fk, lambdaVDW) *
                         currentAxes.volInv[box];
-    energyDiff[s].tc -= mols.GetFractionVirLRC(fk, fk, lambda_istate) *
+    energyDiff[s].tc -= mols.GetFractionEnLRC(fk, fk, lambda_istate) *
                         currentAxes.volInv[box]; */
     energyDiff[s].tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + fk]*
                         currentAxes.volInv[box] * (lambdaVDW - lambda_istate);
