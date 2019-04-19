@@ -32,6 +32,14 @@ public:
     void print_count(FILE *fplog, const char *leg, int n, int *count);
     void DestroyRecordKeeper();
     bool repl_quantity(vector<Simulation*>* simsRef, RecordKeeper *re);
+    void rearrangeByTemperature(int* ind, int* pind, double* temps, int numRepl);
+    void rearrangeByTemperature( std::vector<int> & ind, 
+                                                        std::vector<int> & pind, 
+                                                        double* temps,
+                                                        int numRepl);
+    void rearrangeByChemPots(int* ind, int* pind, double** chemPots, int numRepl, uint numKinds);
+    void rearrangeByChemPots(std::vector<int> & ind, std::vector<int> & pind, double** chemPots, int numRepl, uint numKinds);
+
 
 private:
     vector<Simulation*>* simsRef;
@@ -48,6 +56,11 @@ private:
     FILE * fplog;
     Clock * timer;
     bool REMC;
+
+    #if ENSEMBLE == GCMC
+    std::map< double, std::vector<int> > temp_map;
+    std::map< std::vector<double>, std::vector<int> > mu_map;
+    #endif
 };
 
 #endif

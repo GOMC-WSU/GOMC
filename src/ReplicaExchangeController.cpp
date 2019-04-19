@@ -133,10 +133,27 @@ void ReplicaExchangeController::runMultiSim(){
     fprintf(fplog, "\nInitializing Replica Exchange\n");
     fprintf(fplog, "Repl  There are %lu replicas\n", (*simsRef).size());
     fprintf(fplog, "\nReplica exchange in %s\n", erename[re.type]);
+    if (re.type == ereTEMP || re.type == ereTEMP_MU)
     for (int i = 0; i < (*simsRef).size(); i++)
     {
         fprintf(fplog, " %5.1f", (*simsRef)[i]->getT_in_K());
     }
+
+    #if ENSEMBLE == GCMC
+    if (re.type == ereMU || re.type == ereTEMP_MU){
+    fprintf(fplog, "\nReplica exchange in %s\n", erename[re.type]);
+      for (int i = 0; i < (*simsRef).size(); i++) {
+        for (uint index = 0; index < ((*simsRef)[i]->getSystem())->molLookup.GetNumKind(); index++){
+          if (index + 1 != (*simsRef)[i]->getSystem()->molLookup.GetNumKind()){
+            fprintf(fplog, " %5.1f,", (*simsRef)[i]->getChemicalPotential(index));
+          } else {
+            fprintf(fplog, " %5.1f;", (*simsRef)[i]->getChemicalPotential(index));
+          }
+        }
+      }
+    }
+    #endif
+
     fprintf(fplog, "\n");
     fprintf(fplog, "\nReplica exchange interval: %lu\n", (*simsRef)[0]->getExchangeInterval());
     fprintf(fplog, "\nReplica random seed: %d\n", (*simsRef)[0]->getReplExSeed());
@@ -515,16 +532,17 @@ bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, Reco
     double    *temps;
     bool      isValid;
     int           s;
-    int *ind;
-    int *pind;
+
+    std::vector<int> ind;
+    std::vector<int> pind;
 
     numRepl = re->nrepl;
     temps = new double[numRepl];
-    ind = new int[numRepl];
+
     for (int i = 0; i < numRepl; i++){
-      temps[i] = (*simsRef)[i]->getT_in_K();
-      ind[i]  = i;
-      pind[i] = i;
+      temps[i]= (*simsRef)[i]->getT_in_K();
+      ind.push_back(i);
+      pind.push_back(i);
     }
 
     #if ENSEMBLE == NVT
@@ -549,47 +567,8 @@ bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, Reco
 
         if (isValid){
           re->type = ereTEMP;
-      
-        double comparison;
-        int swapperInd;
-        double swapperTemp;
-        int j;
-        int i;
-        int least;
-
-        for (i = 0; i < numRepl; i++){
-          for (j = i; j < numRepl; j++){
-            comparison = temps[j];
-            least = j;
-            if (temps[j] < comparison){
-              comparison = temps[j];
-              least = j;
-            }
-          }
-          swapperInd = pind[i];
-          pind[i] = pind[least];
-          pind[least] = swapperInd;
-          temps[i] = comparison;
+          rearrangeByTemperature(ind, pind, temps, numRepl);
         }
-
-        bool monotonic; 
-        for (int i = 0; i < numRepl; i++){
-          if (pind[i] != ind[i])
-            monotonic = false;
-        }
-
-        if (!monotonic){
-          for (int i = 0; i < numRepl; i++){
-            if (pind[i] != ind[i]){
-              swapSimulations(pind[i], ind[i]);
-              swapperInd = pind[i];
-              pind[i] = ind[i];
-              pind[swapperInd] = ind[swapperInd];
-            }
-          }// ind  0 1 2
-        } //  pind 1 0 2
-        // swapperInd = 1
-        } else 
         return isValid;
 
 
@@ -597,7 +576,7 @@ bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, Reco
 
     #if ENSEMBLE == GCMC
         double    **chemPots;
-        int numKinds;
+        uint numKinds;
 
         numKinds = (*simsRef)[0]->getSystem()->molLookup.GetNumKind();
         for (int i = 1; i < numRepl; i++){
@@ -640,7 +619,7 @@ bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, Reco
         }
 
         re->type = ereTEMP;
-
+        rearrangeByTemperature(ind, pind, temps, numRepl);
         return isValid;
 
     #endif
@@ -662,6 +641,7 @@ bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, Reco
 
         if (isValid){
           re->type = ereTEMP;
+          rearrangeByTemperature(ind, pind, temps, numRepl);
         } else {
           for (int i = 1; i < numRepl; i++){
             for (uint j = 0; j < numKinds; j++){
@@ -677,24 +657,42 @@ bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, Reco
           }
         }
 
-        std::map< double, std::vector<int> > temp_map;
-        std::map< std::vector<double>, std::vector<int> > mu_map;
-
         if (isValid){
           re->type = ereMU;
+          rearrangeByChemPots(ind, pind, chemPots, numRepl, numKinds);
+        // We have neither const temp & differing mu's or vice versa
+        // We are in multicanonical mu and temp exchange
         } else {
-          temp_map.insert(std::pair<double,std::vector<int> >(temps[0], std::vector<int>(0)));
+
+          // Using ind and pind sorts the entire set of simulations by temperature
+          rearrangeByTemperature(ind, pind, temps, numRepl);
+                    
           for (int i = 1; i < numRepl; i++){
               temp_map[temps[i]].push_back(i);
           } 
 
-          std::vector<double> replChemPots;
-          for (uint z = 0; z < numKinds; z++)
-            replChemPots.push_back(chemPots[0][z]);
-          
-          mu_map.insert(std::pair<std::vector<double>, std::vector<int> >(replChemPots, std::vector<int>(0)));
+          // Chempots is reinitialized to reflect the reordered sims by temperature
+          for (int i = 0; i < numRepl; i++){
+            for (uint j = 0; j < numKinds; j++){
+              chemPots[i][j] = (*simsRef)[i]->getChemicalPotential(j);
+            }
+          }
 
-          for (int i = 1; i < numRepl; i++){
+          // Within a given temperature, simulations are sorted by chempot;
+          // This rearranges both the map indices and the actual simulations in SimsRef[]
+          for (std::map< double, std::vector<int> >::iterator it=temp_map.begin(); it!=temp_map.end(); ++it){
+            rearrangeByChemPots(it->second, it->second, chemPots, it->second.size(), numKinds);
+          }
+
+          // Chempots is reinitialized to reflect the reordered sims by chempot, within temp-space
+          for (int i = 0; i < numRepl; i++){
+            for (uint j = 0; j < numKinds; j++){
+              chemPots[i][j] = (*simsRef)[i]->getChemicalPotential(j);
+            }
+          }
+
+          // Build the chemPot map, which is sorted by temperature also since the 
+          for (int i = 0; i < numRepl; i++){
             std::vector<double> replChemPots;
             for (uint j = 0; j < numKinds; j++){
               replChemPots.push_back(chemPots[i][j]);
@@ -704,23 +702,37 @@ bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, Reco
 
           isValid = true;
 
+
+          // Check for any duplicate simulation conditions; false if duplicate found
           for (std::map< double, std::vector<int> >::iterator it=temp_map.begin(); it!=temp_map.end(); ++it){
           //  it->first : key ; it->second : value (an int array of indices)
             for (vector<int>::iterator it_indices = it->second.begin(); it_indices != it->second.end(); ++it_indices){
-              for (int x = 0; x < numKinds; x++){
-                if (chemPots[(*it->second.begin())][x] != chemPots[*it_indices][x])
-                  isValid = false;
+              for (uint x = 0; x < numKinds; x++){
+                  if (chemPots[(*it->second.begin())][x] != chemPots[*it_indices][x]){
+                    isValid = false;
+                    std::cout << "Error: Each replica must have different conditions. " << (*simsRef)[*it_indices]->getConfigFileName() <<
+                    " and " << (*simsRef)[(*it->second.begin())]->getConfigFileName() << " have equal chemical potentials and temperatures!\n";
+                    exit(EXIT_FAILURE);
+                  }
+
+    
               }
             }
           } 
 
+          // Check for any duplicate simulation conditions; false if duplicate found
           for (std::map< std::vector<double>, std::vector<int> >::iterator it=mu_map.begin(); it!=mu_map.end(); ++it){
           //  it->first : key ; it->second : value (an int array of indices)
             for (vector<int>::iterator it_indices = it->second.begin(); it_indices != it->second.end(); ++it_indices){
-                if (temps[(*it->second.begin())] != temps[*it_indices])
-                  isValid = false;
+                if (temps[(*it->second.begin())] != temps[*it_indices]){
+                    isValid = false;
+                    std::cout << "Error: Each replica must have different conditions. " << (*simsRef)[*it_indices]->getConfigFileName() <<
+                    " and " << (*simsRef)[(*it->second.begin())]->getConfigFileName() << " have equal chemical potentials and temperatures!\n";
+                    exit(EXIT_FAILURE);
+                }
             }
           }
+
 
           if (isValid)
             re->type = ereTEMP_MU;
@@ -732,6 +744,228 @@ bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, Reco
     #endif
 }
 
+void ReplicaExchangeController::rearrangeByTemperature( int* ind, 
+                                                        int* pind, 
+                                                        double* temps,
+                                                        int numRepl){
+  double comparison;
+  int swapperInd;
+  int j;
+  int i;
+  int least;
 
+  for (i = 0; i < numRepl; i++){
+    for (j = i; j < numRepl; j++){
+      comparison = temps[j];
+      least = j;
+      if (temps[j] < comparison){
+        comparison = temps[j];
+        least = j;
+      }
+    }
+    swapperInd = pind[i];
+    pind[i] = pind[least];
+    pind[least] = swapperInd;
+    temps[i] = comparison;
+  }
 
+  bool monotonic; 
+  for (int i = 0; i < numRepl; i++){
+    if (pind[i] != ind[i])
+      monotonic = false;
+  }
 
+  if (!monotonic){
+    for (int i = 0; i < numRepl; i++){
+      if (pind[i] != ind[i]){
+        swapSimulations(pind[i], ind[i]);
+        swapperInd = pind[i];
+        pind[i] = ind[i];
+        pind[swapperInd] = ind[swapperInd];
+      }
+    }// ind  0 1 2
+  } //  pind 1 0 2
+  // swapperInd = 1
+}
+
+void ReplicaExchangeController::rearrangeByTemperature( std::vector<int> & ind, 
+                                                        std::vector<int>  & pind, 
+                                                        double* temps,
+                                                        int numRepl){
+  double comparison;
+  int swapperInd;
+  int j;
+  int i;
+  int least;
+
+  for (i = 0; i < numRepl; i++){
+    for (j = i; j < numRepl; j++){
+      comparison = temps[j];
+      least = j;
+      if (temps[j] < comparison){
+        comparison = temps[j];
+        least = j;
+      }
+    }
+    swapperInd = pind[i];
+    pind[i] = pind[least];
+    pind[least] = swapperInd;
+    temps[i] = comparison;
+  }
+
+  bool monotonic; 
+  for (int i = 0; i < numRepl; i++){
+    if (pind[i] != ind[i])
+      monotonic = false;
+  }
+
+  if (!monotonic){
+    for (int i = 0; i < numRepl; i++){
+      if (pind[i] != ind[i]){
+        swapSimulations(pind[i], ind[i]);
+        swapperInd = pind[i];
+        pind[i] = ind[i];
+        pind[swapperInd] = ind[swapperInd];
+      }
+    }// ind  0 1 2
+  } //  pind 1 0 2
+  // swapperInd = 1
+}
+
+void ReplicaExchangeController::rearrangeByChemPots(  int* ind, 
+                                                      int* pind, 
+                                                      double** chemPots,
+                                                      int numRepl,
+                                                      uint numKinds){
+  double* comparison;
+  double comparison_mu;
+  int swapperInd;
+  int j;
+  int i;
+  int least;
+  int least_mu;
+
+  // 2 0
+  // 1 0
+  // 0 1
+  // 0 2  
+  // 1 1
+
+  // 2 0
+  // 1 0
+  // 0 1
+  // 1 1  
+  // 0 2
+  
+  // 0 1
+  // 0 2
+  // 1 0
+  // 1 1  
+  // 2 0
+
+  for (uint mu = numKinds-1; mu >= 0; mu--){
+    for (i = 0; i < numRepl; i++){
+      for (j = i; j < numRepl; j++){
+        comparison = chemPots[j];
+        least = j;
+        comparison_mu = chemPots[j][mu];
+        if (chemPots[j][mu] < comparison[mu]){
+          comparison_mu = comparison[mu];
+          least = j;
+        }
+      }
+      
+      swapperInd = pind[i];
+      pind[i] = pind[least];
+      pind[least] = swapperInd;
+      chemPots[i] = comparison;    
+    }
+  }
+
+  bool monotonic; 
+  for (int i = 0; i < numRepl; i++){
+    if (pind[i] != ind[i])
+      monotonic = false;
+  }
+
+  if (!monotonic){
+    for (int i = 0; i < numRepl; i++){
+      if (pind[i] != ind[i]){
+        swapSimulations(pind[i], ind[i]);
+        swapperInd = pind[i];
+        pind[i] = ind[i];
+        pind[swapperInd] = ind[swapperInd];
+      }
+    }// ind  0 1 2
+  } //  pind 1 0 2
+  // swapperInd = 1
+}
+
+void ReplicaExchangeController::rearrangeByChemPots(  std::vector<int> & ind, 
+                                                      std::vector<int> & pind, 
+                                                      double** chemPots,
+                                                      int numRepl,
+                                                      uint numKinds){
+  double* comparison;
+  double comparison_mu;
+  int swapperInd;
+  int j;
+  int i;
+  int least;
+  int least_mu;
+
+  // 2 0
+  // 1 0
+  // 0 1
+  // 0 2  
+  // 1 1
+
+  // 2 0
+  // 1 0
+  // 0 1
+  // 1 1  
+  // 0 2
+  
+  // 0 1
+  // 0 2
+  // 1 0
+  // 1 1  
+  // 2 0
+
+  for (uint mu = numKinds-1; mu >= 0; mu--){
+    for (i = 0; i < numRepl; i++){
+      for (j = i; j < numRepl; j++){
+        comparison = chemPots[j];
+        least = j;
+        comparison_mu = chemPots[j][mu];
+        if (chemPots[j][mu] < comparison[mu]){
+          comparison_mu = comparison[mu];
+          least = j;
+        }
+      }
+      
+      swapperInd = pind[i];
+      pind[i] = pind[least];
+      pind[least] = swapperInd;
+      chemPots[i] = comparison;    
+    }
+  }
+
+  bool monotonic; 
+  for (int i = 0; i < numRepl; i++){
+    if (pind[i] != ind[i])
+      monotonic = false;
+  }
+
+  if (!monotonic){
+    for (int i = 0; i < numRepl; i++){
+      if (pind[i] != ind[i]){
+        swapSimulations(pind[i], ind[i]);
+        swapperInd = pind[i];
+        pind[i] = ind[i];
+        pind[swapperInd] = ind[swapperInd];
+      }
+    }// ind  0 1 2
+  } //  pind 1 0 2
+  // swapperInd = 1
+}
