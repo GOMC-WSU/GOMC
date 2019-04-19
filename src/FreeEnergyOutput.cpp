@@ -105,13 +105,10 @@ void FreeEnergyOutput::DoOutput(const ulong step)
 
 void FreeEnergyOutput::PrintData(const uint b, const uint step)
 {
-  double Lsize = (double)(lambdaSize);
   outF[b] << std::setw(11) << std::left << step << " ";
   outF[b] << std::setw(25) << std::right << std::fixed << Etotal << " ";
-  //outF[b] << std::setw(25) << 0.000 << " ";
-  //outF[b] << std::setw(25) << 0.000 << " ";
-  outF[b] << std::setw(25) << dUdL_Coulomb[b].Total() / Lsize << " ";
-  outF[b] << std::setw(25) << dUdL_VDW[b].Total() / Lsize << " ";
+  outF[b] << std::setw(25) << dUdL_Coulomb[b].Total() << " ";
+  outF[b] << std::setw(25) << dUdL_VDW[b].Total() << " ";
 
   for(uint i = 0; i < lambdaSize; i++) {
     outF[b] << std::setw(25) << energyDiff[b][i].Total() << " ";
