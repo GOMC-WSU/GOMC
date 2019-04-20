@@ -113,7 +113,13 @@ void FreeEnergyOutput::PrintData(const uint b, const uint step)
   for(uint i = 0; i < lambdaSize; i++) {
     outF[b] << std::setw(25) << energyDiff[b][i].Total() << " ";
   }
+#if ENSEMBLE == NVT
+  if(var->pressureCalc) {
+    outF[b] << std::setw(25) << PV << std::endl;
+  }
+#elif ENSEMBLE == NPT
   outF[b] << std::setw(25) << PV << std::endl;
+#endif
 }
 
 void FreeEnergyOutput::WriteHeader(void)
@@ -153,8 +159,13 @@ void FreeEnergyOutput::WriteHeader(void)
         toPrint += "))";
         outF[b] << std::setw(25) << std::right << toPrint << " ";
       }
-
-      outF[b] << std::setw(25) << std::right << "PV(kJ/mol)" << std::endl;
+#if ENSEMBLE == NVT
+      if(var->pressureCalc) {
+        outF[b] << std::setw(25) << std::right << "PV(kJ/mol)" << std::endl;
+      }
+#elif ENSEMBLE == NPT
+        outF[b] << std::setw(25) << std::right << "PV(kJ/mol)" << std::endl;
+#endif
       outF[b] << std::setprecision(std::numeric_limits<double>::digits10);
       outF[b].setf(std::ios_base::right, std::ios_base::adjustfield);
     } else
@@ -166,8 +177,10 @@ void FreeEnergyOutput::WriteHeader(void)
 void FreeEnergyOutput::CalculateFreeEnergy(const uint b)
 {
 #if ENSEMBLE == NVT
-  PV = var->pressure[b] * var->volumeRef[b] * unit::BAR_TO_K_MOLECULE_PER_A3;
-  PV *= unit::K_TO_KJ_PER_MOL;
+  if(var->pressureCalc) {
+    PV = var->pressure[b] * var->volumeRef[b] * unit::BAR_TO_K_MOLECULE_PER_A3;
+    PV *= unit::K_TO_KJ_PER_MOL;
+  }
 #elif ENSEMBLE == NPT
   // no need to convert pressure (bar) to K * molecule /A3
   PV = imposedP * var->volumeRef[b] * unit::K_TO_KJ_PER_MOL;

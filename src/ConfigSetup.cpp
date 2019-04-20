@@ -1004,13 +1004,15 @@ void ConfigSetup::fillDefaults(void)
         printf("%-6.3f", val);
       }
       std::cout << endl; 
-    } else if (sys.elect.enable && sys.cfcmcVal.readLambdaCoulomb) {
-      uint last = sys.cfcmcVal.lambdaCoulomb.size() - 1;
-      if(sys.cfcmcVal.lambdaCoulomb[last] < 0.9999) {
-        std::cout << "Error: Last Lambda value for Coulomb is not 1.0 " <<
-          "in CFCMC move! \n";
-          exit(EXIT_FAILURE);
+    } else if(sys.elect.enable && !sys.cfcmcVal.readLambdaCoulomb) {
+      sys.cfcmcVal.lambdaCoulomb.resize(sys.cfcmcVal.lambdaVDW.size(), 1.0);
+      sys.cfcmcVal.readLambdaCoulomb = true;
+      printf("%-41s", "Default: Lambda Coulomb");
+      for(uint i = 0; i < sys.cfcmcVal.lambdaCoulomb.size(); i++) {
+        double val = sys.cfcmcVal.lambdaCoulomb[i];
+        printf("%-6.3f", val);
       }
+      std::cout << endl; 
     }
   }
 
@@ -1034,13 +1036,15 @@ if(sys.freeEn.enable && sys.freeEn.readLambdaVDW ) {
         printf("%-6.3f", val);
       }
       std::cout << endl; 
-    } else if (sys.elect.enable && sys.freeEn.readLambdaCoulomb) {
-      uint last = sys.freeEn.lambdaCoulomb.size() - 1;
-      if(sys.freeEn.lambdaCoulomb[last] < 0.9999) {
-        std::cout << "Error: Last Lambda value for Coulomb is not 1.0 " <<
-          "in Free Energy Calculation! \n";
-          exit(EXIT_FAILURE);
+    } else if(sys.elect.enable && !sys.freeEn.readLambdaCoulomb) {
+      sys.freeEn.lambdaCoulomb.resize(sys.freeEn.lambdaVDW.size(), 1.0);
+      sys.freeEn.readLambdaCoulomb = true;
+      printf("%-41s", "Default: Lambda Coulomb");
+      for(uint i = 0; i < sys.freeEn.lambdaCoulomb.size(); i++) {
+        double val = sys.freeEn.lambdaCoulomb[i];
+        printf("%-6.3f", val);
       }
+      std::cout << endl; 
     }
   }
 #endif
@@ -1519,13 +1523,20 @@ void ConfigSetup::verifyInputs(void)
       std::cout << "Error: Last Lambda value for VDW is not 1.0 " <<
         "in CFCMC move! \n";
         exit(EXIT_FAILURE);
+    } 
+    
+    last = sys.cfcmcVal.lambdaCoulomb.size() - 1;
+    if(sys.cfcmcVal.lambdaCoulomb[last] < 0.9999) {
+      std::cout << "Error: Last Lambda value for Coulomb is not 1.0 " <<
+        "in CFCMC move! \n";
+        exit(EXIT_FAILURE);
     }
-
+    
     if(!sys.cfcmcVal.readRelaxSteps) {
       std::cout << "Error: Relaxing steps was not defined for CFCMC move! \n";
       exit(EXIT_FAILURE);
     } else if (sys.cfcmcVal.relaxSteps == 0) {
-      std::cout << "Warning: No thermal relaxing will be performed in " <<
+      std::cout << "Warning: No thermal relaxing move will be performed in " <<
 	    "CFCMC move! \n";
     }
 
@@ -1591,6 +1602,13 @@ void ConfigSetup::verifyInputs(void)
         exit(EXIT_FAILURE);
     }
 
+    last = sys.freeEn.lambdaCoulomb.size() - 1;
+    if(sys.freeEn.lambdaCoulomb[last] < 0.9999) {
+      std::cout << "Error: Last Lambda value for Coulomb is not 1.0 " <<
+        "in Free Energy Calculation! \n";
+        exit(EXIT_FAILURE);
+    }
+
     if(sys.freeEn.lambdaVDW.size() <= sys.freeEn.iState) {
       std::cout << "Error: Initial Lambda state is not valid " <<
         "in Free Energy Calculation! \n";
@@ -1613,16 +1631,12 @@ void ConfigSetup::verifyInputs(void)
       exit(EXIT_FAILURE);
     }
 #if ENSEMBLE == NVT
-    if(!sys.step.pressureCalc) {
-      std::cout << "Error: Pressure calculation must be active in " <<
-      "Free Energy calculation! \n";
-      exit(EXIT_FAILURE);
-    }
-
-    if((sys.freeEn.frequency % sys.step.pressureCalcFreq) != 0) {
-      std::cout << "Error: Free Energy calculation Freq must be common " <<
-      "number of Pressure calculation freq! \n";
-      exit(EXIT_FAILURE);
+    if(sys.step.pressureCalc) {
+      if((sys.freeEn.frequency % sys.step.pressureCalcFreq) != 0) {
+        std::cout << "Error: Free Energy calculation Freq must be common " <<
+        "number of Pressure calculation freq! \n";
+        exit(EXIT_FAILURE);
+      }
     }
 #endif
   }
