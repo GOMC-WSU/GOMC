@@ -199,11 +199,6 @@ double Simulation::getVolume(uint i){
 }
 #endif
 
-#if ENSEMBLE == NVT
-double Simulation::getVolume(){
-  return *(staticValues->boxDimensions->volume);
-}
-#endif
 
 
 #if ENSEMBLE == GCMC

@@ -30,9 +30,6 @@ public:
   double getVolume();
   double getVolume(uint i);
   #endif
-  #if ENSEMBLE == NVT
-  double getVolume();
-  #endif
   #if ENSEMBLE == GCMC
   int getNumOfParticles(uint i);
   double getChemicalPotential(uint i);

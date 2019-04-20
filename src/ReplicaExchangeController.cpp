@@ -10,22 +10,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 using namespace std; 
 
 #define PROBABILITYCUTOFF 100
-/* we don't bother evaluating if events are more rare than exp(-100) = 3.7x10^-44 */
-
 //NOTE: requires C99 support...
   typedef uint32_t uint32;  // unsigned integer type, at least 32 bits
   typedef int32_t int32;
 
-enum {
-    ereTEMP, ereMU, ereENDSINGLE, ereTM, ereNR
-};
-
-const char *erename[ereNR] = { "temperature", "mu", "end_single_marker", "temperature and mu"};
-/* end_single_marker merely notes the end of single variable replica exchange. All types higher than
-   it are multiple replica exchange methods */
-/* Eventually, should add 'pressure', 'temperature and pressure', 'mu_and_pressure', 'temperature_mu_pressure'?;
-   Let's wait until we feel better about the pressure control methods giving exact ensembles.  Right now, we assume constant pressure  */
-
+/* we don't bother evaluating if events are more rare than exp(-100) = 3.7x10^-44 */
 
 ReplicaExchangeController::ReplicaExchangeController(vector<Simulation*>* sims){
 
@@ -102,9 +91,6 @@ ReplicaExchangeController::ReplicaExchangeController(vector<Simulation*>* sims){
     std::string const fileName = replica_log_stream.str();
     std::string const alias = "Replica Log File";
     fplog = fopen(fileName.c_str(), "w");
-
-    bool isValid = repl_quantity(simsRef, &re);
-    std:: cout << isValid << std::endl;
 
 }
 
@@ -501,191 +487,6 @@ void ReplicaExchangeController::print_count(FILE *fplog, const char *leg, int n,
         fprintf(fplog, " %4d", count[i]);
     }
     fprintf(fplog, "\n");
-}
-
-bool ReplicaExchangeController::repl_quantity(vector<Simulation*>* simsRef, RecordKeeper *re)
-{
-    int        numRepl;
-    double    *temps;
-    bool      isValid;
-    int           s;
-
-    numRepl = re->nrepl;
-    temps = new double[numRepl];
-    for (int i = 0; i < numRepl; i++)
-    temps[i] = (*simsRef)[i]->getT_in_K();
-
-    #if ENSEMBLE == NVT
-
-        double    *vols;
-        vols = new double[numRepl];
-        for (int i = 0; i < numRepl; i++){
-          vols[i] = (*simsRef)[i]->getVolume();
-        }
-
-        for (s = 1; s < numRepl; s++){
-          if (temps[s] != temps[0]){
-            isValid = true;
-          }
-        }
-
-        for (s = 1; s < numRepl; s++){
-          if (vols[s] != vols[0]){
-            isValid = false;
-          }
-        }
-
-        return isValid;
-
-
-    #endif
-
-    #if ENSEMBLE == GCMC
-        double    **chemPots;
-        int numKinds;
-
-        numKinds = (*simsRef)[0]->getSystem()->molLookup.GetNumKind();
-        for (int i = 1; i < numRepl; i++){
-          if(numKinds != (*simsRef)[i]->getSystem()->molLookup.GetNumKind()){
-            std::cout << "Error: Each replica must have equal number of kinds. " << (*simsRef)[i]->getConfigFileName() <<
-            " differs from the others!\n";
-            exit(EXIT_FAILURE);
-          }
-        }
-
-        chemPots = new double*[numRepl];
-        for (int i = 0; i < numRepl; i++){
-          chemPots[i] = new double[numKinds];
-          for (uint j = 0; j < numKinds; j++){
-            chemPots[i][j] = (*simsRef)[i]->getChemicalPotential(j);
-          }
-        }
-
-    #endif
-
-    #if ENSEMBLE == NPT
-
-        double    *pressures;
-
-        pressures = new double[numRepl];
-        for (int i = 0; i < numRepl; i++){
-          pressures[i] = (*simsRef)[i]->getPressure();
-        }
-
-        for (s = 1; s < numRepl; s++){
-          if (temps[s] != temps[0]){
-            isValid = true;
-          }
-        }
-
-        for (s = 1; s < numRepl; s++){
-          if (pressures[s] != pressures[0]){
-            isValid = false;
-          }
-        }
-
-        return isValid;
-
-    #endif
-
-    #if ENSEMBLE == GCMC
-
-        for (s = 1; s < numRepl; s++){
-          if (temps[s] != temps[0]){
-            isValid = true;
-          }
-        }
-
-        for (int i = 1; i < numRepl; i++){
-          for (uint j = 0; j < numKinds; j++){
-            if (chemPots[0][j] != chemPots[i][j])
-              isValid = false;
-          }
-        }
-
-        if (isValid){
-          return isValid;
-        } else {
-          for (int i = 1; i < numRepl; i++){
-            for (uint j = 0; j < numKinds; j++){
-              if (chemPots[0][j] != chemPots[i][j])
-                isValid = true;
-            }
-          }
-
-          for (s = 1; s < numRepl; s++){
-            if (temps[s] != temps[0]){
-              isValid = false;
-            }
-          }
-        }
-
-        std::map< double, std::vector<int> > temp_map;
-        std::map< std::vector<double>, std::vector<int> > mu_map;
-
-        if (isValid){
-          return isValid;
-        } else {
-          temp_map.insert(std::pair<double,std::vector<int> >(temps[0], std::vector<int>(0)));
-          for (int i = 1; i < numRepl; i++){
-              temp_map[temps[i]].push_back(i);
-          } 
-
-          std::vector<double> replChemPots;
-          for (uint z = 0; z < numKinds; z++)
-            replChemPots.push_back(chemPots[0][z]);
-          
-          mu_map.insert(std::pair<std::vector<double>, std::vector<int> >(replChemPots, std::vector<int>(0)));
-
-          for (int i = 1; i < numRepl; i++){
-            std::vector<double> replChemPots;
-            for (uint j = 0; numKinds; ){
-              replChemPots.push_back(chemPots[i][j]);
-            }
-            mu_map[replChemPots].push_back(i);
-          }
-
-          isValid = true;
-
-          for (std::map< double, std::vector<int> >::iterator it=temp_map.begin(); it!=temp_map.end(); ++it){
-          //  it->first : key ; it->second : value (an int array of indices)
-            int ind0 = it->second[0];
-            for (vector<int>::iterator it_indices = it->second.begin(); it_indices != it->second.end(); ++it_indices){
-              for (int x = 0; x < numKinds; x++){
-                if (chemPots[ind0][x] != chemPots[*it_indices][x])
-                  isValid = false;
-              }
-            }
-          } 
-
-          for (std::map< std::vector<double>, std::vector<int> >::iterator it=mu_map.begin(); it!=mu_map.end(); ++it){
-          //  it->first : key ; it->second : value (an int array of indices)
-            int ind0 = it->second[0];
-            for (vector<int>::iterator it_indices = it->second.begin(); it_indices != it->second.end(); ++it_indices){
-                if (temps[ind0] != temps[*it_indices])
-                  isValid = false;
-            }
-          }
-
-          return isValid; 
-
-        } 
-        
-
-    #endif
-
-
-    isValid = false;
-
-    for (s = 1; s < numRepl; s++)
-    {
-        if (temps[s] != temps[0])
-        {
-            isValid = true;
-        }
-    }
-
-    return isValid;
 }
 
 
