@@ -245,7 +245,7 @@ void Simulation::initReplExParams(struct config_setup::ReplicaExchangeValuesFrom
 }
 
 void Simulation::setupHierarchicalDirectoryStructure(){
-  ReplDirSetup rd(staticValues, system, staticValues->forcefield.T_in_K, replExParams);    
+  ReplDirSetup rd(staticValues->forcefield.T_in_K, replExParams);    
   set.config.out.replica_path =  rd.path_to_replica_directory;    
   set.config.out.useMultidir =  true;
       

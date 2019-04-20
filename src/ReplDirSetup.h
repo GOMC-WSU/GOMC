@@ -12,37 +12,23 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <sys/types.h> 
 #include <sys/stat.h>
-#include "StaticVals.h"
-#include "System.h"
-
 
 class ReplDirSetup{
 public:
     
-StaticVals * statV;
-System * sys;
 string path_to_replica_log_file;
 string path_to_replica_directory;
 std::stringstream replica_temp;
 std::stringstream replica_stream;
 
-ReplDirSetup(StaticVals * staticVals, System * system, int temperature, ReplicaExchangeParameters replExParams){
-   statV = staticVals;
-   sys = system;
-   ReplDirSetup::setupReplicaDirectories(temperature, replExParams);
+
+ReplDirSetup(int temperature, ReplicaExchangeParameters replExParams){
+    ReplDirSetup::setupReplicaDirectories(temperature, replExParams);
 }
 
-  void setupReplicaDirectories(int temperature, ReplicaExchangeParameters replExParams){   
+ void setupReplicaDirectories(int temperature, ReplicaExchangeParameters replExParams){   
      
-   #if ENSEMBLE == GCMC
-      replica_temp << "temp_" << temperature;
-      for (uint kind = 0; kind < sys->molLookup.GetNumKind(); kind++){
-         replica_temp  << "_" << statV->mol.kinds[kind].name << "_" << statV->mol.kinds[kind].chemPot;
-      }   
-   #else
     replica_temp << "temp_" << temperature;
-   #endif
-    
     std::string replica_directory = replica_temp.str();
     mkdirWrapper(replExParams.multiSimTitle, replica_directory);
  }
