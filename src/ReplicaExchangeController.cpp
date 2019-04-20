@@ -175,18 +175,7 @@ void ReplicaExchangeController::runMultiSim(){
     }
 
     int j;
-
-    #if ENSEMBLE == GCMC
-      bool tempSpace = true;
-      vector<int> temp_indices;
-      vector<int> mu_indices;
-      if (re.type == ereTEMP_MU){
-        MapToVec(temp_map, temp_indices);
-        MapToVec(mu_map, mu_indices);
-      }
-    #endif
-
-    for (ulong bursts = 0; bursts < roundedUpDivison; bursts++){
+    for (ulong i = 0; i < roundedUpDivison; i++){
 
         #pragma omp parallel for private(j)
         for (j = 0; j < (*simsRef).size(); j++){
@@ -207,29 +196,12 @@ void ReplicaExchangeController::runMultiSim(){
           parityOfSwaps = ((*simsRef)[0]->getStartStep() / exchangeRate) % 2;
 
 
-          
-          #if ENSEMBLE == GCMC
-            if (bursts % 2 == 0)
-              tempSpace != tempSpace;    
-          #endif
 
           for (int i = 1; i < (*simsRef).size(); i++){
             if ((*simsRef)[i]->getEquilSteps() < ((*simsRef)[i]->getStartStep() + exchangeRate)) {
 
-              if (re.type == ereTEMP_MU){
-                #if ENSEMBLE == GCMC
-                if (tempSpace){
-                  a = temp_indices[i-1];
-                  b = temp_indices[i];
-                } else { 
-                  a = mu_indices[i-1];
-                  b = mu_indices[i];
-                }
-                #endif
-              } else {
-                a = re.pind[i-1];
-                b = re.pind[i];
-              }
+              a = re.pind[i-1];
+              b = re.pind[i];
 
               //  To alternate between swapping even replicas and repl_id+1 {0,1} {2,3} ... on even parity and 
               //  odd replicas and repl_id+1 {1,2} ... on odd parity
@@ -992,21 +964,3 @@ void ReplicaExchangeController::rearrangeByChemPots(  std::vector<int> & ind,
   } //  pind 1 0 2
   // swapperInd = 1
 }
-
-//#if ENSEMBLE == GCMC
-void ReplicaExchangeController::MapToVec( std::map< double, std::vector<int> > temp_map, std::vector<int> & v ) {
-  for( std::map< double, std::vector<int> >::iterator it=temp_map.begin(); it!=temp_map.end(); ++it){
-      for (vector<int>::iterator it_indices = it->second.begin(); it_indices != it->second.end(); ++it_indices){
-        v.push_back( it->second[*it_indices] );
-      }
-    }
-}
-
-void ReplicaExchangeController::MapToVec( std::map< std::vector<double>, std::vector<int> > mu_map, std::vector<int> & v ) {
-    for( std::map< std::vector<double>, std::vector<int> >::iterator it=mu_map.begin(); it != mu_map.end(); ++it ) {
-      for (vector<int>::iterator it_indices = it->second.begin(); it_indices != it->second.end(); ++it_indices){
-        v.push_back( it->second[*it_indices] );
-      }
-    }
-}
-//#endif

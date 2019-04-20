@@ -39,10 +39,8 @@ public:
                                                         int numRepl);
     void rearrangeByChemPots(int* ind, int* pind, double** chemPots, int numRepl, uint numKinds);
     void rearrangeByChemPots(std::vector<int> & ind, std::vector<int> & pind, double** chemPots, int numRepl, uint numKinds);
-    //#if EMSEMBLE == GCMC
-    void MapToVec( std::map< double, std::vector<int> > temp_map, std::vector<int> & v );
-    void MapToVec( std::map< std::vector<double>, std::vector<int> > mu_map, std::vector<int> & v );
-    //#endif
+
+
 private:
     vector<Simulation*>* simsRef;
     ulong exchangeRate;
