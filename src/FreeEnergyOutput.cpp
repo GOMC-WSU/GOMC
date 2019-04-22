@@ -115,11 +115,12 @@ void FreeEnergyOutput::PrintData(const uint b, const uint step)
   }
 #if ENSEMBLE == NVT
   if(var->pressureCalc) {
-    outF[b] << std::setw(25) << PV << std::endl;
+    outF[b] << std::setw(25) << PV;
   }
 #elif ENSEMBLE == NPT
-  outF[b] << std::setw(25) << PV << std::endl;
+  outF[b] << std::setw(25) << PV;
 #endif
+  outF[b] << std::endl;
 }
 
 void FreeEnergyOutput::WriteHeader(void)
@@ -161,11 +162,12 @@ void FreeEnergyOutput::WriteHeader(void)
       }
 #if ENSEMBLE == NVT
       if(var->pressureCalc) {
-        outF[b] << std::setw(25) << std::right << "PV(kJ/mol)" << std::endl;
+        outF[b] << std::setw(25) << std::right << "PV(kJ/mol)";
       }
 #elif ENSEMBLE == NPT
-        outF[b] << std::setw(25) << std::right << "PV(kJ/mol)" << std::endl;
+      outF[b] << std::setw(25) << std::right << "PV(kJ/mol)";
 #endif
+      outF[b] << std::endl;
       outF[b] << std::setprecision(std::numeric_limits<double>::digits10);
       outF[b].setf(std::ios_base::right, std::ios_base::adjustfield);
     } else
