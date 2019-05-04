@@ -76,26 +76,23 @@ public:
   {
     return 0.0;
   }
-  //Calculate Energy LRC for fractional molecule
-  virtual double EnergyLRCFraction(const uint kind1, const uint kind2,const 
-                                  double lambda) const
-  {
-    return 0.0;
-  }
-  //Calculate Virial LRC for fractional molecule
-  virtual double VirialLRCFraction(const uint kind1, const uint kind2,const 
-                                  double lambda) const
-  {
-    return 0.0;
-  }
+
   //Calculate the dE/dlambda for vdw energy
   virtual double CalcdEndL(const double distSq, const uint kind1,
                            const uint kind2, const 
                            double lambda) const;
 
+  //Calculate the dE/dlambda for Coulomb energy
+  virtual double CalcCoulombdEndL(const double distSq, const double qi_qj_Fact,
+                                  const double lambda, uint b) const;
+
   protected:
   virtual double CalcEn(const double distSq, const uint index) const;
   virtual double CalcVir(const double distSq, const uint index) const;
+  virtual double CalcCoulomb(const double distSq, const double qi_qj_Fact, 
+                             const uint b) const;
+  virtual double CalcCoulombVir(const double distSq, const double qi_qj,
+                                uint b) const;
 
   double rOn, rOnSq, factor1, factor2;
 
@@ -183,26 +180,6 @@ inline double FF_SWITCH::CalcEn(const double distSq, const uint index) const
   return (epsilon_cn[index] * (repulse - attract)) * factE;
 }
 
-inline double FF_SWITCH::CalcCoulomb(const double distSq,
-                                     const double qi_qj_Fact, 
-                                     const double lambda,
-                                     const uint b) const
-{
-  if(forcefield.rCutCoulombSq[b] < distSq)
-    return 0.0;
-
-  if(forcefield.ewald) {
-    double dist = sqrt(distSq);
-    double val = forcefield.alpha[b] * dist;
-    return lambda * qi_qj_Fact * erfc(val) / dist;
-  } else {
-    double dist = sqrt(distSq);
-    double switchVal = distSq / forcefield.rCutSq - 1.0;
-    switchVal *= switchVal;
-    return lambda * qi_qj_Fact * switchVal / dist;
-  }
-}
-
 inline double FF_SWITCH::CalcVir(const double distSq, const uint kind1, 
                                  const uint kind2, const double lambda) const
 {
@@ -244,25 +221,76 @@ inline double FF_SWITCH::CalcVir(const double distSq, const uint index) const
   return (Wij * factE - Eij * factW);
 }
 
-inline double FF_SWITCH::CalcCoulombVir(const double distSq, const double qi_qj,
-                                       const double lambda, const uint b) const
+inline double FF_SWITCH::CalcCoulomb(const double distSq,
+                                    const double qi_qj_Fact, 
+                                    const double lambda,
+                                    const uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
 
+  //Use amber scheme for soft core potential in Coulomb interaction
+  // 12 is default value for Beta according to amber tutorial (Eq. 21.7)
+  // http://ambermd.org/doc12/Amber18.pdf
+
+  double lambdaCoef = 12.00 * (1.0 - lambda);
+  double softRsq = lambdaCoef + distSq;
+
+  double en = lambda * CalcCoulomb(softRsq, qi_qj_Fact, b);
+  return en;
+}
+
+inline double FF_SWITCH::CalcCoulomb(const double distSq,
+                                     const double qi_qj_Fact, 
+                                     const uint b) const
+{
+  if(forcefield.ewald) {
+    double dist = sqrt(distSq);
+    double val = forcefield.alpha[b] * dist;
+    return qi_qj_Fact * erfc(val) / dist;
+  } else {
+    double dist = sqrt(distSq);
+    double switchVal = distSq / forcefield.rCutSq - 1.0;
+    switchVal *= switchVal;
+    return qi_qj_Fact * switchVal / dist;
+  }
+}
+
+inline double FF_SWITCH::CalcCoulombVir(const double distSq,
+                                        const double qi_qj, 
+                                        const double lambda,
+                                        const uint b) const
+{
+  if(forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
+  //Use amber scheme for soft core potential in Coulomb interaction
+  // 12 is default value for Beta according to amber tutorial (Eq. 21.7)
+  // http://ambermd.org/doc12/Amber18.pdf
+
+  double lambdaCoef = 12.00 * (1.0 - lambda);
+  double softRsq = lambdaCoef + distSq;
+  //The only correction is to multiply by lambda
+  double vir = lambda * CalcCoulombVir(softRsq, qi_qj, b);
+  return vir;
+}
+
+inline double FF_SWITCH::CalcCoulombVir(const double distSq, const double qi_qj,
+                                        const uint b) const
+{
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
     double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
     double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
     double temp = erfc(forcefield.alpha[b] * dist);
-    return lambda * qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+    return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
     double dist = sqrt(distSq);
     double switchVal = distSq / forcefield.rCutSq - 1.0;
     switchVal *= switchVal;
     double dSwitchVal = 2.0 * (distSq / forcefield.rCutSq - 1.0) * 2.0 *
                         dist / forcefield.rCutSq;
-    return -lambda * qi_qj * (dSwitchVal / distSq - switchVal / (distSq * dist));
+    return -qi_qj * (dSwitchVal / distSq - switchVal / (distSq * dist));
   }
 }
 
@@ -281,6 +309,26 @@ inline double FF_SWITCH::CalcdEndL(const double distSq, const uint kind1,
   double fCoef = lambda * (1.0 - lambda) * sigma6 / (6.0 * softRsq * softRsq);
   double dhdl = CalcEn(softRsq, index) + fCoef * CalcVir(softRsq, index);
   return dhdl;
+}
+
+//Calculate the dE/dlambda for Coulomb energy
+inline double FF_SWITCH::CalcCoulombdEndL(const double distSq,
+                                          const double qi_qj_Fact,
+                                          const double lambda, uint b) const
+{
+  if(forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
+  //Use amber scheme for soft core potential in Coulomb interaction
+  // 12 is default value for Beta according to amber tutorial (Eq. 21.7)
+  // http://ambermd.org/doc12/Amber18.pdf
+
+  double lambdaCoef = 12.00 * (1.0 - lambda);
+  double softRsq = lambdaCoef + distSq;
+  //dE/dlambda = E + 6.0 * lambda + vir
+  double dhdl = CalcCoulomb(softRsq, qi_qj_Fact, b) + 
+                6.0 * lambda * CalcCoulombVir(softRsq, qi_qj_Fact, b);
+  return dhdl; 
 }
 
 #endif /*FF_SWITCH_H*/

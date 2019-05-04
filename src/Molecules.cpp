@@ -20,8 +20,7 @@ class System;
 
 Molecules::Molecules() : start(NULL), kIndex(NULL), countByKind(NULL),
   chain(NULL), kinds(NULL), pairEnCorrections(NULL),
-  pairVirCorrections(NULL), fractionalEnCorrections(NULL),
-  fractionalVirCorrections(NULL), lambdaVDW(NULL), printFlag(true) {}
+  pairVirCorrections(NULL), printFlag(true) {}
 
 Molecules::~Molecules(void)
 {
@@ -32,9 +31,6 @@ Molecules::~Molecules(void)
   delete[] kinds;
   delete[] pairEnCorrections;
   delete[] pairVirCorrections;
-  delete[] fractionalEnCorrections;
-  delete[] fractionalVirCorrections;
-  delete[] lambdaVDW;
 }
 
 void Molecules::Init(Setup & setup, Forcefield & forcefield,
@@ -150,46 +146,6 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
         pairVirCorrections[i * kindsCount + j];
     }
   }
-
-  if(forcefield.freeEnergy) {
-    lambdaSize = sys.statV.freeEnVal.lambdaVDW.size();
-    lambdaVDW = new double[lambdaSize];
-    for(uint s = 0; s < lambdaSize; ++s) {
-      lambdaVDW[s] = sys.statV.freeEnVal.lambdaVDW[s];
-    }
-    fractionalEnCorrections = new double[kindsCount * lambdaSize];
-    fractionalVirCorrections = new double[kindsCount * lambdaSize];
-    //molecules will be initialized after System, so in first call, it does 
-    // nothing. In InitOver, this will be initialized.
-    for(uint k = 0; k < kindsCount; ++k) {
-      std::string kindName = kinds[k].name;
-      if(kindName == sys.statV.freeEnVal.molType) {
-        uint fk = k;
-        fractionKind = k;
-        for(uint i = 0; i < kindsCount; ++i) {
-          for(uint l = 0; l < lambdaSize; ++l) {
-            uint idx = i * lambdaSize + l;
-            double lambda = sys.statV.freeEnVal.lambdaVDW[l];
-            fractionalEnCorrections[idx] = 0.0;
-            fractionalVirCorrections[idx] = 0.0;
-
-            for(uint pI = 0; pI < kinds[fk].NumAtoms(); ++pI) {
-              for(uint pJ = 0; pJ < kinds[i].NumAtoms(); ++pJ) {
-                fractionalEnCorrections[idx] +=
-                  forcefield.particles->EnergyLRCFraction(kinds[fk].AtomKind(pI), kinds[i].AtomKind(pJ),lambda);
-                fractionalVirCorrections[idx] +=
-                  forcefield.particles->VirialLRCFraction(kinds[fk].AtomKind(pI), kinds[i].AtomKind(pJ), lambda);
-              }
-            }
-
-          }
-        }
-        //We can only have one fractional molecule
-        break;
-      }
-    }
-  }
-
 }
 
 void Molecules::PrintLJInfo(std::vector<uint> &totAtomKind,
