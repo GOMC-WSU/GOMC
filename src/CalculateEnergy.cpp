@@ -1712,10 +1712,9 @@ tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
           energyOldCoul = forcefield.particles->CalcCoulomb(distSq, qi_qj_fact,
                                                            lambda_Coul[iState],
                                                            box);
-          //Calculate du/dl in Coulomb for current state. derivative is same as
-          // using lambda = 1.0
-          dudl_Coul += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact,
-                        1.0, box);
+          //Calculate du/dl in Coulomb for current state. 
+          dudl_Coul += forcefield.particles->CalcCoulombdEndL(distSq, qi_qj_fact,
+                       lambda_Coul[iState], box);
         }
 
         for(s = 0; s < lambdaSize; s++) {

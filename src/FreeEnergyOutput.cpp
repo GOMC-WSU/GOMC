@@ -168,7 +168,7 @@ void FreeEnergyOutput::WriteHeader(void)
       outF[b] << std::setw(25) << std::right << "PV(kJ/mol)";
 #endif
       outF[b] << std::endl;
-      outF[b] << std::setprecision(std::numeric_limits<double>::digits10);
+      outF[b] << std::setprecision(10);
       outF[b].setf(std::ios_base::right, std::ios_base::adjustfield);
     } else
       std::cerr << "Unable to write to file \"" <<  name[b] << "\" "
