@@ -215,20 +215,8 @@ public:
     //Which chunk was our draw in...
     b = (uint)(subDraw / boxDiv);
     //FIXME: Hack to prevent picking invalid boxes, may violate balance
-    if (b != mv::BOX0)
-      b = mv::BOX1;
-  }
-
-  void PickBool(bool &b, const double subDraw, const double movPerc) const
-  {
-    //Calculate "chunk" of move for each box.
-    double boxDiv = movPerc / 2;
-    //Which chunk was our draw in...
-    b = (uint)(subDraw/boxDiv);
-    //FIXME: Hack to prevent picking invalid boxes, may violate balance
-    if (b != mv::BOX0)
-      b = mv::BOX1;
-    b = (b > 0 ? true : false);
+    if (b >= BOX_TOTAL)
+      b--;
   }
 
   void PickBox(uint &b, double &subDraw, double &boxDiv,
@@ -240,11 +228,24 @@ public:
     b = (uint)(subDraw / boxDiv);
     //clamp if some rand err.
     //FIXME: Hack to prevent picking invalid boxes, may violate balance
-    if (b != mv::BOX0)
-      b = mv::BOX1;
+    if (b >= BOX_TOTAL)
+      b--;
     //Get draw down to box we picked, then calculate the size of
     //each molecule kind's chunk.
     subDraw -= b * boxDiv;
+  }
+
+
+  void PickBool(bool &b, const double subDraw, const double movPerc) const
+  {
+    //Calculate "chunk" of move for each box.
+    double boxDiv = movPerc / 2;
+    //Which chunk was our draw in...
+    uint bpick = (uint)(subDraw/boxDiv);
+    //FIXME: Hack to prevent picking invalid boxes, may violate balance
+    if (bpick >= BOX_TOTAL)
+      bpick--;
+    b = (bpick > 0 ? true : false);
   }
 
   void SetOtherBox(uint & bDest, const uint bSrc) const
