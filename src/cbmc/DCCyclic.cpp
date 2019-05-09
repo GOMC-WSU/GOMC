@@ -111,7 +111,7 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
         node.restarting = new DCFreeHedronSeed(&data, setupKind, atom,
                                                bonds[0].a1);
       }
-      
+
       //set the atom index of the node
       node.atomIndex = atom;
       //Loop through all the bonds
@@ -128,14 +128,14 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
           //and the atom in DCLinkedHedron or DCLinkedCycle or DCCloseCycle
           //Atoms will be build from prev(atom) to focus(partner)
           Edge e = Edge(partner, new DCLinkedCycle(&data, setupKind, cyclicAtoms[ringIdx[partner]],
-                                                  partner, atom));
+                        partner, atom));
           node.edges.push_back(e);
 
         } else {
           //Add partner to the edge list of node and initialize it with partner
           //and the atom in DCLinkedHedron or DCLinkedCycle or DCCloseCycle
           //Atoms will be build from prev(atom) to focus(partner)
-          Edge e = Edge(partner, new DCLinkedHedron(&data, setupKind, partner,atom));  
+          Edge e = Edge(partner, new DCLinkedHedron(&data, setupKind, partner, atom));
           node.edges.push_back(e);
         }
       }
@@ -255,7 +255,7 @@ void DCCyclic::InitCrankShaft(const mol_setup::MolKind& kind)
           if(!fixAngle && !sameRing) {
             crankshaft.push_back(new DCRotateOnAtom(&data, kind, a0, a1, a2));
           }
-       
+
         }
       }
     }
@@ -311,7 +311,7 @@ void DCCyclic::Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 }
 
 void DCCyclic::BuildEdges(TrialMol& oldMol, TrialMol& newMol, uint molIndex,
-                         const uint cur)
+                          const uint cur)
 {
   uint current = cur;
   //Copy the edges of the node to fringe
@@ -525,8 +525,7 @@ void DCCyclic::BuildOld(TrialMol& oldMol, uint molIndex)
     destVisited[fringe[i].atomIndex] = true;
   }
   //Advance along edges, building as we go
-  while(!fringe.empty())
-  {
+  while(!fringe.empty()) {
     //Randomely pick one of the edges connected to node
     uint pick = data.prng.randIntExc(fringe.size());
     DCComponent* comp = fringe[pick].connect;
@@ -544,11 +543,9 @@ void DCCyclic::BuildOld(TrialMol& oldMol, uint molIndex)
     visited[current] = true;
 
     //Add edges to unvisited nodes
-    for(uint i = 0; i < nodes[current].edges.size(); ++i)
-    {
+    for(uint i = 0; i < nodes[current].edges.size(); ++i) {
       Edge& e = nodes[current].edges[i];
-      if(!visited[e.destination] && !destVisited[e.atomIndex])
-      {
+      if(!visited[e.destination] && !destVisited[e.atomIndex]) {
         fringe.push_back(e);
         destVisited[e.atomIndex] = true;
       }
@@ -581,8 +578,7 @@ void DCCyclic::BuildNew(TrialMol& newMol, uint molIndex)
     destVisited[fringe[i].atomIndex] = true;
   }
   //Advance along edges, building as we go
-  while(!fringe.empty())
-  {
+  while(!fringe.empty()) {
     //Randomely pick one of the edges connected to node
     uint pick = data.prng.randIntExc(fringe.size());
     DCComponent* comp = fringe[pick].connect;
@@ -600,11 +596,9 @@ void DCCyclic::BuildNew(TrialMol& newMol, uint molIndex)
     visited[current] = true;
 
     //Add edges to unvisited nodes
-    for(uint i = 0; i < nodes[current].edges.size(); ++i)
-    {
+    for(uint i = 0; i < nodes[current].edges.size(); ++i) {
       Edge& e = nodes[current].edges[i];
-      if(!visited[e.destination] && !destVisited[e.atomIndex])
-      {
+      if(!visited[e.destination] && !destVisited[e.atomIndex]) {
         fringe.push_back(e);
         destVisited[e.atomIndex] = true;
       }
@@ -631,12 +625,12 @@ void DCCyclic::BuildGrowOld(TrialMol& oldMol, uint molIndex)
   }
 
   if(current == -1) {
-    std::cout << "Error: In MEMC-3 move, atom " << oldMol.GetKind().atomNames[oldMol.GetAtomBB(0)]<<
-        " in " << oldMol.GetKind().name << " must be a node.\n";
-     std::cout << "       This atom must be bounded to two or more atoms! \n";
+    std::cout << "Error: In MEMC-3 move, atom " << oldMol.GetKind().atomNames[oldMol.GetAtomBB(0)] <<
+              " in " << oldMol.GetKind().name << " must be a node.\n";
+    std::cout << "       This atom must be bounded to two or more atoms! \n";
     exit(1);
   }
-    
+
   //Visiting the node
   visited[current] = true;
   destVisited[nodes[current].atomIndex] = true;
@@ -651,8 +645,7 @@ void DCCyclic::BuildGrowOld(TrialMol& oldMol, uint molIndex)
     destVisited[fringe[i].atomIndex] = true;
   }
   //Advance along edges, building as we go
-  while(!fringe.empty())
-  {
+  while(!fringe.empty()) {
     //Randomely pick one of the edges connected to node
     uint pick = data.prng.randIntExc(fringe.size());
     DCComponent* comp = fringe[pick].connect;
@@ -670,11 +663,9 @@ void DCCyclic::BuildGrowOld(TrialMol& oldMol, uint molIndex)
     visited[current] = true;
 
     //Add edges to unvisited nodes
-    for(uint i = 0; i < nodes[current].edges.size(); ++i)
-    {
+    for(uint i = 0; i < nodes[current].edges.size(); ++i) {
       Edge& e = nodes[current].edges[i];
-      if(!visited[e.destination] && !destVisited[e.atomIndex])
-      {
+      if(!visited[e.destination] && !destVisited[e.atomIndex]) {
         fringe.push_back(e);
         destVisited[e.atomIndex] = true;
       }
@@ -700,14 +691,14 @@ void DCCyclic::BuildGrowNew(TrialMol& newMol, uint molIndex)
       break;
     }
   }
-    
+
   if(current == -1) {
-    std::cout << "Error: In MEMC-3 move, atom " << newMol.GetKind().atomNames[newMol.GetAtomBB(0)]<<
-        " in " << newMol.GetKind().name << " must be a node.\n";
-     std::cout << "       This atom must be bounded to two or more atoms! \n";
+    std::cout << "Error: In MEMC-3 move, atom " << newMol.GetKind().atomNames[newMol.GetAtomBB(0)] <<
+              " in " << newMol.GetKind().name << " must be a node.\n";
+    std::cout << "       This atom must be bounded to two or more atoms! \n";
     exit(1);
   }
-    
+
   //Visiting the node
   visited[current] = true;
   destVisited[nodes[current].atomIndex] = true;
@@ -722,8 +713,7 @@ void DCCyclic::BuildGrowNew(TrialMol& newMol, uint molIndex)
     destVisited[fringe[i].atomIndex] = true;
   }
   //Advance along edges, building as we go
-  while(!fringe.empty())
-  {
+  while(!fringe.empty()) {
     //Randomely pick one of the edges connected to node
     uint pick = data.prng.randIntExc(fringe.size());
     DCComponent* comp = fringe[pick].connect;
@@ -741,11 +731,9 @@ void DCCyclic::BuildGrowNew(TrialMol& newMol, uint molIndex)
     visited[current] = true;
 
     //Add edges to unvisited nodes
-    for(uint i = 0; i < nodes[current].edges.size(); ++i)
-    {
+    for(uint i = 0; i < nodes[current].edges.size(); ++i) {
       Edge& e = nodes[current].edges[i];
-      if(!visited[e.destination] && !destVisited[e.atomIndex])
-      {
+      if(!visited[e.destination] && !destVisited[e.atomIndex]) {
         fringe.push_back(e);
         destVisited[e.atomIndex] = true;
       }
@@ -766,7 +754,7 @@ DCCyclic::~DCCyclic()
   }
 
   for(uint i = 0; i < crankshaft.size(); i++) {
-      delete crankshaft[i];
+    delete crankshaft[i];
   }
 }
 

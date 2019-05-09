@@ -54,13 +54,13 @@ void Simulation::RunSimulation(void)
 {
   double startEnergy = system->potential.totalEnergy.total;
   if(totalSteps == 0) {
-    for(int i=0; i<frameSteps.size(); i++) {
-      if(i==0) {
-        cpu->Output(frameSteps[0]-1);
+    for(int i = 0; i < frameSteps.size(); i++) {
+      if(i == 0) {
+        cpu->Output(frameSteps[0] - 1);
         continue;
       }
-      system->RecalculateTrajectory(set, i+1);
-      cpu->Output(frameSteps[i]-1);
+      system->RecalculateTrajectory(set, i + 1);
+      cpu->Output(frameSteps[i] - 1);
     }
   }
   for (ulong step = startStep; step < totalSteps; step++) {
@@ -72,8 +72,8 @@ void Simulation::RunSimulation(void)
       double currEnergy = system->potential.totalEnergy.total;
       if(abs(currEnergy - startEnergy) > 1.0e+10) {
         printf("Info: Recalculating the total energies to insure the accuracy"
-               " of the computed \n" 
-	       "      running energies.\n\n");
+               " of the computed \n"
+               "      running energies.\n\n");
         system->calcEwald->Init();
         system->potential = system->calcEnergy.SystemTotal();
       }

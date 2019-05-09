@@ -91,7 +91,7 @@ inline double Factorial(const uint n)
   return result;
 }
 
-//return (n+count)!/n! 
+//return (n+count)!/n!
 inline double Factorial(const uint n, const uint count)
 {
   double result = 1.0;

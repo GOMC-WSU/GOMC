@@ -39,7 +39,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 struct FF_SWITCH : public FFParticle {
 public:
 
-  FF_SWITCH(Forcefield &ff) : FFParticle(ff) 
+  FF_SWITCH(Forcefield &ff) : FFParticle(ff)
   {
     rOnSq = rOn = factor1 = factor2 = 0.0;
   }
@@ -74,7 +74,7 @@ public:
     return 0.0;
   }
 
-  protected:
+protected:
 
   double rOn, rOnSq, factor1, factor2;
 
@@ -118,8 +118,8 @@ inline void FF_SWITCH::CalcAdd_1_4(double& en, const double distSq,
 }
 
 inline void FF_SWITCH::CalcCoulombAdd_1_4(double& en, const double distSq,
-                                          const double qi_qj_Fact,
-                                          const bool NB) const
+    const double qi_qj_Fact,
+    const bool NB) const
 {
   double dist = sqrt(distSq);
   if(NB)

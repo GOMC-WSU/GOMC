@@ -21,7 +21,7 @@ DCSingle::DCSingle(DCData* data, uint atom) : data(data), atom(atom)
     exit(EXIT_FAILURE);
   }
 }
-    
+
 void DCSingle::BuildOld(TrialMol& oldMol, uint molIndex)
 {
   PRNG& prng = data->prng;

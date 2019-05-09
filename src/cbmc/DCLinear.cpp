@@ -21,7 +21,7 @@ DCLinear::DCLinear(System& sys, const Forcefield& ff,
   const mol_setup::MolKind setupKind = it->second;
   uint size = kind.NumAtoms();
   atomSize = size;
-  
+
   idExchange = new DCRotateCOM(&data, setupKind);
   //First atom of the molecule
   forward.push_back(new DCSingle(&data, 0));
@@ -101,9 +101,8 @@ void DCLinear::BuildIDOld(TrialMol& oldMol, uint molIndex)
 
 void DCLinear::BuildOld(TrialMol& oldMol, uint molIndex)
 {
-  std::vector<DCComponent*>& comps =data.prng.randInt(1) ? forward : backward;
-  for(uint i = 0; i < comps.size(); ++i)
-  {
+  std::vector<DCComponent*>& comps = data.prng.randInt(1) ? forward : backward;
+  for(uint i = 0; i < comps.size(); ++i) {
     comps[i]->PrepareOld(oldMol, molIndex);
     comps[i]->BuildOld(oldMol, molIndex);
   }
@@ -111,9 +110,8 @@ void DCLinear::BuildOld(TrialMol& oldMol, uint molIndex)
 
 void DCLinear::BuildNew(TrialMol& newMol, uint molIndex)
 {
-  std::vector<DCComponent*>& comps =data.prng.randInt(1) ? forward : backward;
-  for(uint i = 0; i < comps.size(); ++i)
-  {
+  std::vector<DCComponent*>& comps = data.prng.randInt(1) ? forward : backward;
+  for(uint i = 0; i < comps.size(); ++i) {
     comps[i]->PrepareNew(newMol, molIndex);
     comps[i]->BuildNew(newMol, molIndex);
   }
@@ -123,8 +121,7 @@ void DCLinear::BuildGrowOld(TrialMol& oldMol, uint molIndex)
 {
   //If backbone is atom 0, we use forward, otherwise backward
   std::vector<DCComponent*>& comps = oldMol.GetAtomBB(0) ? backward : forward;
-  for(uint i = 0; i < comps.size(); ++i)
-  {
+  for(uint i = 0; i < comps.size(); ++i) {
     comps[i]->PrepareOld(oldMol, molIndex);
     comps[i]->BuildOld(oldMol, molIndex);
   }
@@ -134,8 +131,7 @@ void DCLinear::BuildGrowNew(TrialMol& newMol, uint molIndex)
 {
   //If backbone is atom 0, we use forward, otherwise backward
   std::vector<DCComponent*>& comps = newMol.GetAtomBB(0) ? backward : forward;
-  for(uint i = 0; i < comps.size(); ++i)
-  {
+  for(uint i = 0; i < comps.size(); ++i) {
     comps[i]->PrepareNew(newMol, molIndex);
     comps[i]->BuildNew(newMol, molIndex);
   }

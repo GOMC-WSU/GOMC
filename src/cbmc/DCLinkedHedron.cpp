@@ -73,17 +73,17 @@ DCLinkedHedron::DCLinkedHedron
       dihKinds[i][j] = match->kind;
     }
   }
-    
+
   if(data->nLJTrialsNth < 1) {
     std::cout << "Error: CBMC secondary atom trials must be greater than 0.\n";
     exit(EXIT_FAILURE);
   }
-    
+
   if(data->nDihTrials < 1) {
     std::cout << "Error: CBMC dihedral trials must be greater than 0.\n";
     exit(EXIT_FAILURE);
   }
-    
+
 }
 
 void DCLinkedHedron::PrepareNew(TrialMol& newMol, uint molIndex)

@@ -46,7 +46,7 @@ public:
   //print move time
   void PrintTime();
 
-   //print move time
+  //print move time
   void PrintAcceptance();
 
   // return ewald

@@ -41,13 +41,14 @@ private:
   Forcefield const& ffRef;
 };
 
-void CrankShaft::PrintAcceptKind() {
+void CrankShaft::PrintAcceptKind()
+{
   for(uint k = 0; k < molRef.GetKindsCount(); k++) {
     printf("%-30s %-5s ", "% Accepted Crank-Shaft ", molRef.kinds[k].name.c_str());
     for(uint b = 0; b < BOX_TOTAL; b++) {
       if(moveSetRef.GetTrial(b, mv::CRANKSHAFT, k) > 0)
         printf("%10.5f ", (100.0 * moveSetRef.GetAccept(b, mv::CRANKSHAFT, k)));
-      else  
+      else
         printf("%10.5f ", 0.0);
     }
     std::cout << std::endl;

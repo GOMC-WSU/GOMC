@@ -36,7 +36,7 @@ public:
   void CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
   void BuildEdges(TrialMol& oldMol, TrialMol& newMol, uint molIndex,
                   const uint current);
-  //used in MEMC moves                
+  //used in MEMC moves
   void BuildIDNew(TrialMol& newMol, uint molIndex);
   void BuildIDOld(TrialMol& oldMol, uint molIndex);
   void BuildNew(TrialMol& newMol, uint molIndex);

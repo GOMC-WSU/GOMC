@@ -129,7 +129,7 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
         fixAngle = true;
       }
     }
-    
+
     //If there was no fix angles, we create DCCrankShaftDih
     if(!fixAngle) {
       shaftNodes.push_back(new DCCrankShaftDih(&data, kind, a0, a1, a2, a3));
@@ -378,8 +378,7 @@ void DCGraph::BuildOld(TrialMol& oldMol, uint molIndex)
   //Copy the edges of the node to fringe
   fringe = nodes[current].edges;
   //Advance along edges, building as we go
-  while(!fringe.empty())
-  {
+  while(!fringe.empty()) {
     //Randomely pick one of the edges connected to node
     uint pick = data.prng.randIntExc(fringe.size());
     DCComponent* comp = fringe[pick].component;
@@ -397,11 +396,9 @@ void DCGraph::BuildOld(TrialMol& oldMol, uint molIndex)
     visited[current] = true;
 
     //Add edges to unvisited nodes
-    for(uint i = 0; i < nodes[current].edges.size(); ++i)
-    {
+    for(uint i = 0; i < nodes[current].edges.size(); ++i) {
       Edge& e = nodes[current].edges[i];
-      if(!visited[e.destination])
-      {
+      if(!visited[e.destination]) {
         fringe.push_back(e);
       }
     }
@@ -423,8 +420,7 @@ void DCGraph::BuildNew(TrialMol& newMol, uint molIndex)
   //Copy the edges of the node to fringe
   fringe = nodes[current].edges;
   //Advance along edges, building as we go
-  while(!fringe.empty())
-  {
+  while(!fringe.empty()) {
     //Randomely pick one of the edges connected to node
     uint pick = data.prng.randIntExc(fringe.size());
     DCComponent* comp = fringe[pick].component;
@@ -442,11 +438,9 @@ void DCGraph::BuildNew(TrialMol& newMol, uint molIndex)
     visited[current] = true;
 
     //Add edges to unvisited nodes
-    for(uint i = 0; i < nodes[current].edges.size(); ++i)
-    {
+    for(uint i = 0; i < nodes[current].edges.size(); ++i) {
       Edge& e = nodes[current].edges[i];
-      if(!visited[e.destination])
-      {
+      if(!visited[e.destination]) {
         fringe.push_back(e);
       }
     }
@@ -466,12 +460,12 @@ void DCGraph::BuildGrowOld(TrialMol& oldMol, uint molIndex)
   }
 
   if(current == -1) {
-    std::cout << "Error: In MEMC-3 move, atom " << oldMol.GetKind().atomNames[oldMol.GetAtomBB(0)]<<
-        " in " << oldMol.GetKind().name << " must be a node.\n";
-     std::cout << "       This atom must be bounded to two or more atoms! \n";
+    std::cout << "Error: In MEMC-3 move, atom " << oldMol.GetKind().atomNames[oldMol.GetAtomBB(0)] <<
+              " in " << oldMol.GetKind().name << " must be a node.\n";
+    std::cout << "       This atom must be bounded to two or more atoms! \n";
     exit(1);
   }
-    
+
   //Visiting the node
   visited[current] = true;
   DCComponent* comp = nodes[current].starting;
@@ -482,8 +476,7 @@ void DCGraph::BuildGrowOld(TrialMol& oldMol, uint molIndex)
   //Copy the edges of the node to fringe
   fringe = nodes[current].edges;
   //Advance along edges, building as we go
-  while(!fringe.empty())
-  {
+  while(!fringe.empty()) {
     //Randomely pick one of the edges connected to node
     uint pick = data.prng.randIntExc(fringe.size());
     DCComponent* comp = fringe[pick].component;
@@ -501,11 +494,9 @@ void DCGraph::BuildGrowOld(TrialMol& oldMol, uint molIndex)
     visited[current] = true;
 
     //Add edges to unvisited nodes
-    for(uint i = 0; i < nodes[current].edges.size(); ++i)
-    {
+    for(uint i = 0; i < nodes[current].edges.size(); ++i) {
       Edge& e = nodes[current].edges[i];
-      if(!visited[e.destination])
-      {
+      if(!visited[e.destination]) {
         fringe.push_back(e);
       }
     }
@@ -524,14 +515,14 @@ void DCGraph::BuildGrowNew(TrialMol& newMol, uint molIndex)
       break;
     }
   }
-    
+
   if(current == -1) {
-    std::cout << "Error: In MEMC-3 move, atom " << newMol.GetKind().atomNames[newMol.GetAtomBB(0)]<<
-        " in " << newMol.GetKind().name << " must be a node.\n";
-     std::cout << "       This atom must be bounded to two or more atoms! \n";
+    std::cout << "Error: In MEMC-3 move, atom " << newMol.GetKind().atomNames[newMol.GetAtomBB(0)] <<
+              " in " << newMol.GetKind().name << " must be a node.\n";
+    std::cout << "       This atom must be bounded to two or more atoms! \n";
     exit(1);
   }
-    
+
   //Visiting the node
   visited[current] = true;
   DCComponent* comp = nodes[current].starting;
@@ -542,8 +533,7 @@ void DCGraph::BuildGrowNew(TrialMol& newMol, uint molIndex)
   //Copy the edges of the node to fringe
   fringe = nodes[current].edges;
   //Advance along edges, building as we go
-  while(!fringe.empty())
-  {
+  while(!fringe.empty()) {
     //Randomely pick one of the edges connected to node
     uint pick = data.prng.randIntExc(fringe.size());
     DCComponent* comp = fringe[pick].component;
@@ -561,11 +551,9 @@ void DCGraph::BuildGrowNew(TrialMol& newMol, uint molIndex)
     visited[current] = true;
 
     //Add edges to unvisited nodes
-    for(uint i = 0; i < nodes[current].edges.size(); ++i)
-    {
+    for(uint i = 0; i < nodes[current].edges.size(); ++i) {
       Edge& e = nodes[current].edges[i];
-      if(!visited[e.destination])
-      {
+      if(!visited[e.destination]) {
         fringe.push_back(e);
       }
     }

@@ -48,11 +48,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 struct FF_SWITCH_MARTINI : public FFParticle {
 public:
 
-  FF_SWITCH_MARTINI(Forcefield &ff) : FFParticle(ff), An(NULL),Bn(NULL), Cn(NULL),
-  An_1_4(NULL), Bn_1_4(NULL), Cn_1_4(NULL), sig6(NULL), sign(NULL),
-  sig6_1_4(NULL), sign_1_4(NULL)
+  FF_SWITCH_MARTINI(Forcefield &ff) : FFParticle(ff), An(NULL), Bn(NULL), Cn(NULL),
+    An_1_4(NULL), Bn_1_4(NULL), Cn_1_4(NULL), sig6(NULL), sign(NULL),
+    sig6_1_4(NULL), sign_1_4(NULL)
   {
-    A1= B1 = C1 = A6 = B6 = C6 = 0.0;
+    A1 = B1 = C1 = A6 = B6 = C6 = 0.0;
   }
   virtual ~FF_SWITCH_MARTINI()
   {
@@ -99,7 +99,7 @@ public:
     return 0.0;
   }
 
-  protected:
+protected:
 
   double *An, *Bn, *Cn, *An_1_4, *Bn_1_4, *Cn_1_4;
   double *sig6, *sig6_1_4, *sign, *sign_1_4;
@@ -114,7 +114,7 @@ inline void FF_SWITCH_MARTINI::Init(ff_setup::Particle const& mie,
   //Initializ sigma and epsilon
   FFParticle::Init(mie, nbfix);
   uint size = num::Sq(count);
-  //allocate memory 
+  //allocate memory
   An = new double [size];
   Bn = new double [size];
   Cn = new double [size];

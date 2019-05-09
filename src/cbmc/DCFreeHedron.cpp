@@ -46,9 +46,9 @@ DCFreeHedron::DCFreeHedron(DCData* data, const mol_setup::MolKind& kind,
   for (uint i = 0; i < hed.NumBond(); ++i) {
     bondKinds[i] = onFocus[i].kind;
   }
-    
+
   if(data->nLJTrialsNth < 1) {
-      std::cout << "Error: CBMC secondary atom trials must be greater than 0.\n";
+    std::cout << "Error: CBMC secondary atom trials must be greater than 0.\n";
     exit(EXIT_FAILURE);
   }
 }

@@ -51,7 +51,7 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_rOn, &Ron, sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_alpha, alpha, BOX_TOTAL * sizeof(double),
-            cudaMemcpyHostToDevice);
+             cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_ewald, &ewald, sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_diElectric_1, &diElectric_1, sizeof(double),
              cudaMemcpyHostToDevice);

@@ -42,7 +42,7 @@ namespace cbmc
 {
 DCLinkedCycle::DCLinkedCycle
 (DCData* data, const mol_setup::MolKind& kind, std::vector<int> cycAtoms,
-  uint focus, uint prev)
+ uint focus, uint prev)
   : data(data), hed(data, kind, cycAtoms, focus, prev)
 {
   using namespace mol_setup;
@@ -86,17 +86,17 @@ DCLinkedCycle::DCLinkedCycle
       dihKinds[i][j] = match->kind;
     }
   }
-    
+
   if(data->nLJTrialsNth < 1) {
     std::cout << "Error: CBMC secondary atom trials must be greater than 0.\n";
     exit(EXIT_FAILURE);
   }
-    
+
   if(data->nDihTrials < 1) {
     std::cout << "Error: CBMC dihedral trials must be greater than 0.\n";
     exit(EXIT_FAILURE);
   }
-    
+
 }
 
 
@@ -219,7 +219,7 @@ void DCLinkedCycle::BuildNew(TrialMol& newMol, uint molIndex)
   if(prevBondedRing != -1) {
     //calculate dihedral in ring using bCoords
     double phi = CalcDih(newMol, hed.Bonded(focBondedRing), hed.Focus(),
-			 hed.Prev(), prevBonded[prevBondedRing]);
+                         hed.Prev(), prevBonded[prevBondedRing]);
     // find the torsion that give the same dihedral in the ring
     torDiff = phi - (hed.Phi(focBondedRing) - prevPhi[prevBondedRing]);
   }
@@ -332,7 +332,7 @@ void DCLinkedCycle::BuildOld(TrialMol& oldMol, uint molIndex)
   if(prevBondedRing != -1) {
     //calculate dihedral in ring using bCoords
     double phi = CalcDih(oldMol, hed.Bonded(focBondedRing), hed.Focus(),
-			 hed.Prev(), prevBonded[prevBondedRing]);
+                         hed.Prev(), prevBonded[prevBondedRing]);
     // find the torsion that give the same dihedral in the ring
     torDiff = phi - (hed.Phi(focBondedRing) - prevPhi[prevBondedRing]);
   }
@@ -470,8 +470,8 @@ double DCLinkedCycle::EvalLJ(TrialMol& mol, uint molIndex)
 }
 
 void DCLinkedCycle::ChooseTorsion(TrialMol& mol, uint molIndex,
-                                   double prevPhi[], RotationMatrix& cross,
-                                   RotationMatrix& tensor)
+                                  double prevPhi[], RotationMatrix& cross,
+                                  RotationMatrix& tensor)
 {
   double* torsion = data->angles;
   double* torEnergy = data->angleEnergy;
@@ -518,7 +518,7 @@ void DCLinkedCycle::ChooseTorsion(TrialMol& mol, uint molIndex,
             nonbonded_1_4[tor] = num::BIGNUM;
         }
 
-        torEnergy[tor] += ff.dihedrals.Calc(dihKinds[b][p],trialPhi-prevPhi[p]);
+        torEnergy[tor] += ff.dihedrals.Calc(dihKinds[b][p], trialPhi - prevPhi[p]);
       }
     }
     torWeights[tor] = exp(-ff.beta * (torEnergy[tor] + nonbonded_1_4[tor]));
@@ -526,7 +526,7 @@ void DCLinkedCycle::ChooseTorsion(TrialMol& mol, uint molIndex,
 }
 
 void DCLinkedCycle::CaclIntraEnergy(TrialMol& mol, const uint bIdx,
-				    const uint molIndex)
+                                    const uint molIndex)
 {
   double dihEnergy = 0.0;
   double nonBondedEn = 0.0;
@@ -539,9 +539,9 @@ void DCLinkedCycle::CaclIntraEnergy(TrialMol& mol, const uint bIdx,
       dihEnergy += data->ff.dihedrals.Calc(dih[d].kind, phi);
       if(mol.OneFour()) {
         double distSq = mol.DistSq(mol.AtomPosition(dih[d].a0),
-				   mol.AtomPosition(dih[d].a3));
+                                   mol.AtomPosition(dih[d].a3));
         nonBondedEn += data->calc.IntraEnergy_1_4(distSq, dih[d].a0, dih[d].a3,
-						  molIndex);
+                       molIndex);
       }
     }
   }

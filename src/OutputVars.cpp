@@ -180,7 +180,7 @@ void OutputVars::CalcAndConvert(ulong step)
       // Convert density to g/ml (which is equivalent to g/cm3)
       // To get kg/m3, multiply output densities by 1000.
       density *= unit::MOLECULES_PER_A3_TO_MOL_PER_CM3 *
-                  kindsRef[k].molMass;
+                 kindsRef[k].molMass;
       densityTot[b] += density;
     }
     densityTot[b] *= 1000;

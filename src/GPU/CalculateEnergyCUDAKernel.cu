@@ -219,7 +219,7 @@ __device__ double CalcCoulombGPU(double distSq, double qi_qj_fact,
   if((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
     return 0.0;
   }
-  
+
   if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
     return CalcCoulombParticleGPU(distSq, qi_qj_fact, gpu_alpha);
   } else if(gpu_VDW_Kind == GPU_VDW_SHIFT_KIND) {

@@ -154,13 +154,13 @@ void System::InitMoves(Setup const& set)
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   moves[mv::MOL_TRANSFER] = new MoleculeTransfer(*this, statV);
-    if(set.config.sys.memcVal.MEMC1) {
-      moves[mv::MEMC] = new MoleculeExchange1(*this, statV);
-    } else if (set.config.sys.memcVal.MEMC2) {
-      moves[mv::MEMC] = new MoleculeExchange2(*this, statV);
-    } else {
-      moves[mv::MEMC] = new MoleculeExchange3(*this, statV);
-    }
+  if(set.config.sys.memcVal.MEMC1) {
+    moves[mv::MEMC] = new MoleculeExchange1(*this, statV);
+  } else if (set.config.sys.memcVal.MEMC2) {
+    moves[mv::MEMC] = new MoleculeExchange2(*this, statV);
+  } else {
+    moves[mv::MEMC] = new MoleculeExchange3(*this, statV);
+  }
 #endif
 }
 

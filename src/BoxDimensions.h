@@ -106,12 +106,12 @@ public:
   bool InRcut(double & distSq, XYZArray const& arr1,
               const uint i, XYZArray const& arr2, const uint j,
               const uint b) const;
-/*
-  bool InRcut(double distSq) const
-  {
-    return (distSq < rCutSq);
-  }
-  */
+  /*
+    bool InRcut(double distSq) const
+    {
+      return (distSq < rCutSq);
+    }
+    */
 
   //Dist squared , two different coordinate arrays
   void GetDistSq(double & distSq, XYZArray const& arr1,
@@ -121,7 +121,7 @@ public:
   //Dist squared with same coordinate array
   void GetDistSq(double & distSq, XYZArray const& arr, const uint i,
                  const uint j, const uint b) const;
-  
+
   //True if arr is inside cavDim with geometric center of center.
   bool InCavity(XYZ const& arr, XYZ const& center, XYZ const& cavDim,
                 XYZArray const& invCav, const uint b) const;

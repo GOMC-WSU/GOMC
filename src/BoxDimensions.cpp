@@ -50,17 +50,17 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
 
     //Print Box dimensio info
     printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n",
-	   "Info: Box ", b, " Periodic Cell Basis 1",
-	   cellBasis[b].Get(0).x, cellBasis[b].Get(0).y,
-	   cellBasis[b].Get(0).z);
+           "Info: Box ", b, " Periodic Cell Basis 1",
+           cellBasis[b].Get(0).x, cellBasis[b].Get(0).y,
+           cellBasis[b].Get(0).z);
     printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n",
-	   "Info: Box ", b, " Periodic Cell Basis 2",
-	   cellBasis[b].Get(1).x, cellBasis[b].Get(1).y,
-	   cellBasis[b].Get(1).z);
+           "Info: Box ", b, " Periodic Cell Basis 2",
+           cellBasis[b].Get(1).x, cellBasis[b].Get(1).y,
+           cellBasis[b].Get(1).z);
     printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n\n",
-	   "Info: Box ", b, " Periodic Cell Basis 3",
-	   cellBasis[b].Get(2).x, cellBasis[b].Get(2).y,
-	   cellBasis[b].Get(2).z);
+           "Info: Box ", b, " Periodic Cell Basis 3",
+           cellBasis[b].Get(2).x, cellBasis[b].Get(2).y,
+           cellBasis[b].Get(2).z);
 
 
     axis.Set(b, cellBasis[b].Length(0), cellBasis[b].Length(1),
@@ -123,7 +123,7 @@ uint BoxDimensions::ShiftVolume(BoxDimensions & newDim, XYZ & scale,
 }
 
 uint BoxDimensions::ExchangeVolume(BoxDimensions & newDim, XYZ * scale,
-                                  const double transfer, const uint *box) const
+                                   const double transfer, const uint *box) const
 {
   uint state = mv::fail_state::NO_FAIL;
   double vTot = GetTotVolume(box[0], box[1]);

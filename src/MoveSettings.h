@@ -23,7 +23,7 @@ class MoveSettings
 {
 public:
   friend class OutputVars;
-  MoveSettings(BoxDimensions & dim) : boxDimRef(dim) 
+  MoveSettings(BoxDimensions & dim) : boxDimRef(dim)
   {
     acceptPercent.resize(BOX_TOTAL);
     scale.resize(BOX_TOTAL);
@@ -79,7 +79,7 @@ private:
 
   vector< vector< vector<double> > > scale, acceptPercent;
   vector< vector< vector<uint> > > accepted, tries, tempAccepted, tempTries;
-  
+
   uint perAdjust;
   uint totKind;
 

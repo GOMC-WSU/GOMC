@@ -29,7 +29,7 @@ void Remarks::SetRestart(config_setup::RestartSettings const& r )
 {
   restart = r.enable;
   recalcTrajectory = r.recalcTrajectory;
-  for(uint b=0; b<BOX_TOTAL; b++) {
+  for(uint b = 0; b < BOX_TOTAL; b++) {
     if(recalcTrajectory)
       reached[b] = false;
     else
@@ -185,7 +185,7 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
                     std::string const*const name, uint frameNum)
 {
   using namespace std;
-  // Clear the vectors for both atoms and remarks in case Init was called 
+  // Clear the vectors for both atoms and remarks in case Init was called
   // more than once
   atoms.Clear();
   remarks.Clear();

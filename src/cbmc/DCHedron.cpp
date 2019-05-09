@@ -301,9 +301,9 @@ void DCHedron::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTrials)
         if(isnan(ang)) {
           //printf("Val: %2.10f, angle: %2.5f \n", var, ang);
           std::cout << "Error: Cannot constrain fix angle for " <<
-            newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
-            newMol.GetKind().atomTypeNames[focus] << " " <<
-            newMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
+                    newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
+                    newMol.GetKind().atomTypeNames[focus] << " " <<
+                    newMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
           exit(EXIT_FAILURE);
         }
       }
@@ -319,7 +319,7 @@ void DCHedron::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTrials)
         double distSq = newMol.AngleDist(bondLength[b], bondLength[c], bfcTheta);
         double tempEn = data->calc.IntraEnergy_1_3(distSq, bonded[b], bonded[c], molIndex);
         nonbonded_1_3[i] += tempEn;
-        energies[i] += data->ff.angles->Calc(angleKinds[b][c], bfcTheta);   
+        energies[i] += data->ff.angles->Calc(angleKinds[b][c], bfcTheta);
       }
     }
 
@@ -353,13 +353,13 @@ void DCHedron::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
 
   for (uint b = 1; b < nBonds; ++b) {
     double stepWeight = 0.0;
-  
+
     //pick "twist" angles
     for (uint i = 0; i < nTrials; ++i) {
       angles[i]  = data->prng.rand(M_PI * 2);
     }
 
-       //modify the twist angle if it was fixed
+    //modify the twist angle if it was fixed
     for (uint c = 0; c < b; ++c) {
       double cosTerm = cos(theta[b]) * cos(theta[c]);
       double sinTerm = sin(theta[b]) * sin(theta[c]);
@@ -375,9 +375,9 @@ void DCHedron::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
         if(isnan(ang)) {
           //printf("Val: %2.10f, angle: %2.5f \n", var, ang);
           std::cout << "Error: Cannot constrain fix angle for " <<
-            oldMol.GetKind().atomTypeNames[bonded[b]] << " " <<
-            oldMol.GetKind().atomTypeNames[focus] << " " <<
-            oldMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
+                    oldMol.GetKind().atomTypeNames[bonded[b]] << " " <<
+                    oldMol.GetKind().atomTypeNames[focus] << " " <<
+                    oldMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
           exit(EXIT_FAILURE);
         }
       }
@@ -394,7 +394,7 @@ void DCHedron::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
         double bfcTheta = acos(sinTerm * cos(angles[i] - phi[c]) + cosTerm);
         double distSq = oldMol.AngleDist(bondLengthOld[b], bondLengthOld[c], bfcTheta);
         nonbondedEng += data->calc.IntraEnergy_1_3(distSq, bonded[b], bonded[c], molIndex);
-        energies += data->ff.angles->Calc(angleKinds[b][c], bfcTheta); 
+        energies += data->ff.angles->Calc(angleKinds[b][c], bfcTheta);
       }
 
       //calculate weights from combined energy

@@ -41,7 +41,8 @@ private:
   Forcefield const& ffRef;
 };
 
-void IntraSwap::PrintAcceptKind() {
+void IntraSwap::PrintAcceptKind()
+{
   for(uint k = 0; k < molRef.GetKindsCount(); k++) {
     printf("%-30s %-5s ", "% Accepted Intra-Swap ", molRef.kinds[k].name.c_str());
     for(uint b = 0; b < BOX_TOTAL; b++) {
@@ -174,7 +175,7 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
     }
   } else //else we didn't even try because we knew it would fail
     result = false;
-  
+
   moveSetRef.Update(mv::INTRA_SWAP, result, step, sourceBox, kindIndex);
 }
 
