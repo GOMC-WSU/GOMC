@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 + Fixed a bug where, cutoff value was greater than half of the box length and no error was generated.
 + Fixed to the bug in the updating adjustable value in MoveSetting, when we have more than one component.
 + Fixed to the bug in GPU pressure calculation for NPT simulation.
++ Fixed a bug where we were selecting invalid box. This was caused by double precision error.
 
 ## [2.31] - 5/21/2018
 + Compiling problem fixed on CYGWIN
