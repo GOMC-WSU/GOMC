@@ -11,35 +11,45 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CBMC.h"
 #include "GeomLib.h"
 
-namespace mol_setup { class MolKind; }
+namespace mol_setup
+{
+class MolKind;
+}
 
-namespace cbmc {
-   class DCData;
+namespace cbmc
+{
+class DCData;
 
-   class DCRotateCOM : public DCComponent
-   {  
-   public:
-      DCRotateCOM(DCData* data, const mol_setup::MolKind kind);
-      ~DCRotateCOM() {delete[] multiPosRotions;}
-      void PrepareNew(TrialMol& newMol, uint molIndex);
-      void PrepareOld(TrialMol& oldMol, uint molIndex);
-      void PickTransferCOMNew(TrialMol& newMol, uint molIndex);
-      void PickTransferCOMOld(TrialMol& oldMol, uint molIndex);
-      void BuildOld(TrialMol& oldMol, uint molIndex);
-      void BuildNew(TrialMol& newMol, uint molIndex);
-      void RandRotateZ();
-      DCComponent* Clone() { return new DCRotateCOM(*this); };
+class DCRotateCOM : public DCComponent
+{
+public:
+  DCRotateCOM(DCData* data, const mol_setup::MolKind kind);
+  ~DCRotateCOM()
+  {
+    delete[] multiPosRotions;
+  }
+  void PrepareNew(TrialMol& newMol, uint molIndex);
+  void PrepareOld(TrialMol& oldMol, uint molIndex);
+  void PickTransferCOMNew(TrialMol& newMol, uint molIndex);
+  void PickTransferCOMOld(TrialMol& oldMol, uint molIndex);
+  void BuildOld(TrialMol& oldMol, uint molIndex);
+  void BuildNew(TrialMol& newMol, uint molIndex);
+  void RandRotateZ();
+  DCComponent* Clone()
+  {
+    return new DCRotateCOM(*this);
+  };
 
-   private:
-      DCData* data;
-      XYZ COM, oldCOM;
-      //rotation matrix around z axis
-      XYZArray rotateMatrix;
-      //inverse of matrix
-      XYZArray invMatrix;
-      XYZArray *multiPosRotions;
-      uint atomNumber;
-   };
+private:
+  DCData* data;
+  XYZ COM, oldCOM;
+  //rotation matrix around z axis
+  XYZArray rotateMatrix;
+  //inverse of matrix
+  XYZArray invMatrix;
+  XYZArray *multiPosRotions;
+  uint atomNumber;
+};
 }
 
 #endif

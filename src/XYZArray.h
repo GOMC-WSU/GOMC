@@ -168,7 +168,7 @@ public:
 
   //calculate the adjoint and return the determinant
   double AdjointMatrix(XYZArray &Inv);
-    
+
   //return the difference of two rows in two XYZ arrays
   XYZ Difference(const uint i, XYZArray const& other,
                  const uint otherI) const

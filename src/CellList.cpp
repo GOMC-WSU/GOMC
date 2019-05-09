@@ -214,7 +214,7 @@ void CellList::GridBox(BoxDimensions& dims, const XYZArray& pos,
   head[b].assign(edgeCells[b][0] * edgeCells[b][1] *
                  edgeCells[b][2], END_CELL);
   MoleculeLookup::box_iterator it = lookup.BoxBegin(b),
-                                 end = lookup.BoxEnd(b);
+                               end = lookup.BoxEnd(b);
 
   // For each molecule per box
   while (it != end) {

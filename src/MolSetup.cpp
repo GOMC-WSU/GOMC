@@ -33,7 +33,7 @@ bool Dihedral::operator == (const Dihedral& o) const
 
   if(a0 == o.a3 && a1 == o.a2 && a2 == o.a1 && a3 == o.a0)
     same = true;
-    
+
   return same;
 }
 

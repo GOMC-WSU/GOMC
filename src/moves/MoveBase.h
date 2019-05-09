@@ -102,7 +102,7 @@ protected:
 };
 
 inline uint MolTransformBase::GetBoxAndMol(PRNG & prng, Molecules const& molRef,
-                                          const double subDraw, const double movPerc)
+    const double subDraw, const double movPerc)
 {
 #if ENSEMBLE == GCMC
   b = mv::BOX0;

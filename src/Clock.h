@@ -69,7 +69,7 @@ inline void Clock::CheckTime(const ulong step)
     lastTime = currTime;
     CompletionTime(day, hr, min);
     printf("Steps/sec: %7.3f, Simulation ends in: %3d d: %3d h: %3d m \n\n",
-          speed, day, hr, min);
+           speed, day, hr, min);
 
   } else if (step == lastStep) {
 #if defined(__linux__) || defined(__APPLE__)

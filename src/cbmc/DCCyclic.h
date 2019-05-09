@@ -30,7 +30,7 @@ class DCCyclic : public CBMC
 {
 public:
   DCCyclic(System& sys, const Forcefield& ff,
-          const MoleculeKind& kind, const Setup& set);
+           const MoleculeKind& kind, const Setup& set);
 
   void Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
   void Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex);

@@ -36,9 +36,9 @@ public:
   //Regrowing the molecule using a CBMC algorithm, oldMol and newMol
   virtual void Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex) = 0;
 
-  //Rotate the atoms between two nodes arounde  the vector that connects two 
+  //Rotate the atoms between two nodes arounde  the vector that connects two
   //nodes using crank shaft algorithm, oldMol and newMol
-  virtual void CrankShaft(TrialMol& oldMol, TrialMol& newMol,uint molIndex) = 0;
+  virtual void CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex) = 0;
 
   //Rigid insertion of molecule and perform position and rotational trial
   virtual void BuildIDNew(TrialMol& newMol, uint molIndex) = 0;

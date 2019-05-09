@@ -105,7 +105,7 @@ private:
   double phi[MAX_BONDS];
   double phiWeight[MAX_BONDS];
   double bendEnergy, oneThree;
-  double anchorBond, anchorBondOld; 
+  double anchorBond, anchorBondOld;
   RotationMatrix growthToWorld;
   RotationMatrix worldToGrowth;
 };

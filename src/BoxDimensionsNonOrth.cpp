@@ -51,17 +51,17 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
 
     //Print Box dimensio info
     printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n",
-	   "Info: Box ", b, " Periodic Cell Basis 1",
-	   cellBasis[b].Get(0).x, cellBasis[b].Get(0).y,
-	   cellBasis[b].Get(0).z);
+           "Info: Box ", b, " Periodic Cell Basis 1",
+           cellBasis[b].Get(0).x, cellBasis[b].Get(0).y,
+           cellBasis[b].Get(0).z);
     printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n",
-	   "Info: Box ", b, " Periodic Cell Basis 2",
-	   cellBasis[b].Get(1).x, cellBasis[b].Get(1).y,
-	   cellBasis[b].Get(1).z);
+           "Info: Box ", b, " Periodic Cell Basis 2",
+           cellBasis[b].Get(1).x, cellBasis[b].Get(1).y,
+           cellBasis[b].Get(1).z);
     printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n\n",
-	   "Info: Box ", b, " Periodic Cell Basis 3",
-	   cellBasis[b].Get(2).x, cellBasis[b].Get(2).y,
-	   cellBasis[b].Get(2).z);
+           "Info: Box ", b, " Periodic Cell Basis 3",
+           cellBasis[b].Get(2).x, cellBasis[b].Get(2).y,
+           cellBasis[b].Get(2).z);
 
 
     //Find the length of a, b, c

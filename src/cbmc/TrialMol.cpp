@@ -116,7 +116,7 @@ void TrialMol::AddAtom(const uint index, const XYZ& loc)
   tCoords.Set(index, loc);
   atomBuilt[index] = true;
 }
-    
+
 void TrialMol::SetAtomCoords(uint index, const XYZ& loc)
 {
   tCoords.Set(index, loc);
@@ -302,7 +302,7 @@ void TrialMol::SetCavMatrix(const XYZArray& matrix)
 }
 
 void TrialMol::SetSeed(const XYZ& coords, const XYZ& cav, const bool inCav,
-		       const bool fixCOM, const bool rotBB)
+                       const bool fixCOM, const bool rotBB)
 {
   cavityCenter = coords;
   cavity = cav;
@@ -317,7 +317,7 @@ void TrialMol::SetSeed(const bool inCav, const bool fixCOM, const bool rotBB)
   comFix = fixCOM;
   rotateBB = rotBB;
 }
-    
+
 void TrialMol::SetBackBone(const uint bb[2])
 {
   backbone[0] = bb[0];
@@ -335,7 +335,7 @@ XYZ TrialMol::GetCOM()
     tcom += tCoords.Get(p);
   }
   tcom *= (1.0 / tCoords.Count());
- 
+
   return tcom;
 }
 

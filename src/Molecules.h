@@ -38,7 +38,7 @@ public:
   {
     return kIndex[molIndex];
   }
-    
+
   void Init(Setup& setup, Forcefield& forcefield,
             System& sys);
 

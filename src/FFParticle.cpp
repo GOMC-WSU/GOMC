@@ -14,11 +14,11 @@ FFParticle::FFParticle(Forcefield &ff) : forcefield(ff), mass(NULL), nameFirst(N
   n(NULL), n_1_4(NULL), sigmaSq(NULL), sigmaSq_1_4(NULL), epsilon_cn(NULL),
   epsilon(NULL), epsilon_1_4(NULL), epsilon_cn_1_4(NULL), epsilon_cn_6(NULL),
   epsilon_cn_6_1_4(NULL), nOver6(NULL), nOver6_1_4(NULL), enCorrection(NULL),
-  virCorrection(NULL) 
+  virCorrection(NULL)
 #ifdef GOMC_CUDA
   , varCUDA(NULL)
-#endif 
-  {}
+#endif
+{}
 
 FFParticle::~FFParticle(void)
 {
@@ -32,7 +32,7 @@ FFParticle::~FFParticle(void)
   delete[] epsilon_cn;
   delete[] epsilon_cn_6;
   delete[] nOver6;
-  // parameter for 1-4 interaction, 
+  // parameter for 1-4 interaction,
   // same one will be used for 1-3 interaction
   delete[] sigmaSq_1_4;
   delete[] n_1_4;
@@ -96,9 +96,9 @@ void FFParticle::Init(ff_setup::Particle const& mie,
   double diElectric_1 = 1.0 / forcefield.dielectric;
   InitGPUForceField(*varCUDA, sigmaSq, epsilon_cn, n, forcefield.vdwKind,
                     forcefield.isMartini, count, forcefield.rCut,
-		                forcefield.rCutCoulomb,forcefield.rCutLow,
-		                forcefield.rswitch, forcefield.alpha, forcefield.ewald,
-		                diElectric_1);
+                    forcefield.rCutCoulomb, forcefield.rCutLow,
+                    forcefield.rswitch, forcefield.alpha, forcefield.ewald,
+                    diElectric_1);
 #endif
 }
 
@@ -131,7 +131,7 @@ void FFParticle::Blend(ff_setup::Particle const& mie, const double rCut)
 
       double sigma, sigma_1_4;
       sigma = sigma_1_4 = 0.0;
-      
+
       if(forcefield.vdwGeometricSigma) {
         sigma = num::MeanG(mie.sigma, mie.sigma, i, j);
         sigma_1_4 = num::MeanG(mie.sigma_1_4, mie.sigma_1_4, i, j);

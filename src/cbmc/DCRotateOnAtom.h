@@ -24,8 +24,11 @@ class DCRotateOnAtom : public DCComponent
 {
 public:
   DCRotateOnAtom(DCData* data, const mol_setup::MolKind& kind,
-                  uint a0, uint a1, uint a2);
-  ~DCRotateOnAtom() {delete[] multiPosRotions;}
+                 uint a0, uint a1, uint a2);
+  ~DCRotateOnAtom()
+  {
+    delete[] multiPosRotions;
+  }
   void PrepareNew(TrialMol& newMol, uint molIndex);
   void PrepareOld(TrialMol& oldMol, uint molIndex);
   void BuildOld(TrialMol& oldMol, uint molIndex);
@@ -37,17 +40,17 @@ public:
 
 private:
   void ChooseTorsion(TrialMol& mol, uint molIndex, RotationMatrix& cross,
-                    RotationMatrix& tensor);
+                     RotationMatrix& tensor);
   void ChooseTorsionOld(TrialMol& mol, uint molIndex, RotationMatrix& cross,
                         RotationMatrix& tensor);
   double CalcIntraBonded(TrialMol& mol, uint molIndex);
-  void ParticleNonbonded(cbmc::TrialMol const& mol,XYZArray const& trialPos,
-                        const uint partIndex, const uint trials);
-  void ParticleNonbonded1_N(cbmc::TrialMol const& mol,XYZArray const& trialPos,
+  void ParticleNonbonded(cbmc::TrialMol const& mol, XYZArray const& trialPos,
+                         const uint partIndex, const uint trials);
+  void ParticleNonbonded1_N(cbmc::TrialMol const& mol, XYZArray const& trialPos,
                             const uint partIndex, const uint trials);
-  void ParticleNonbonded1_4(cbmc::TrialMol const& mol,XYZArray const& trialPos,
+  void ParticleNonbonded1_4(cbmc::TrialMol const& mol, XYZArray const& trialPos,
                             const uint partIndex, const uint trials);
-  void ParticleNonbonded1_3(cbmc::TrialMol const& mol,XYZArray const& trialPos,
+  void ParticleNonbonded1_3(cbmc::TrialMol const& mol, XYZArray const& trialPos,
                             const uint partIndex, const uint trials);
 
   DCData* data;
