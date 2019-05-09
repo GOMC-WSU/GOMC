@@ -1,6 +1,6 @@
 # GOMC - GPU Optimized Monte Carlo
 
-Current Release: 2.40 (3/15/2019)
+Current Release: 2.40 (5/9/2019)
 
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/GOMC_WSU/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
 [![Build Status](https://travis-ci.org/GOMC-WSU/GOMC.svg?branch=master)](https://travis-ci.org/GOMC-WSU/GOMC)
