@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -8,9 +8,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "DCFreeHedron.h"
 #include "DCLinkedHedron.h"
 #include "DCFreeHedronSeed.h"
-#include "MolSetup.h"
-#include "Setup.h"
-#include "MoleculeKind.h"
+#include "DCRotateCOM.h"
+#include "DCCrankShaftDih.h"
+#include "DCCrankShaftAng.h"
 #include <cassert>
 #include <map>
 
@@ -24,6 +24,10 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
   MolMap::const_iterator it = set.mol.kindMap.find(kind.name);
   assert(it != set.mol.kindMap.end());
   const MolKind setupKind = it->second;
+
+  idExchange = new DCRotateCOM(&data, setupKind);
+  //init the coordinate
+  coords.Init(setupKind.atoms.size());
 
   std::vector<uint> atomToNode(setupKind.atoms.size(), 0);
   std::vector<uint> bondCount(setupKind.atoms.size(), 0);
@@ -81,6 +85,109 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
       dest = atomToNode[dest];
       assert(dest != -1);
     }
+  }
+
+  InitCrankShaft(setupKind);
+}
+
+
+void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
+{
+  using namespace mol_setup;
+  using namespace std;
+  std::vector<uint> bondCount(kind.atoms.size(), 0);
+  vector<Bond> allBonds = BondsAll(kind);
+  //Count the number of bonds for each atom
+  for (uint b = 0; b < allBonds.size(); ++b) {
+    ++bondCount[allBonds[b].a0];
+    ++bondCount[allBonds[b].a1];
+  }
+
+  //Start with atoms that form dihedral
+  vector<Dihedral> dihs = DihsAll(kind);
+  for(uint d = 0; d < dihs.size(); d++) {
+    //find the last atomindex in the dihedral
+    uint a0 = dihs[d].a0;
+    uint a1 = dihs[d].a1;
+    uint a2 = dihs[d].a2;
+    uint a3 = dihs[d].a3;
+    //ignore single bonded atoms
+    if(bondCount[a0] == 1 && bondCount[a3] == 1) {
+      continue;
+    }
+
+    bool fixAngle = false;
+    //Find all the angle that forms x-a0-a1
+    vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
+    //Find all the angle that forms a2-a3-x
+    vector<Angle> tempAng = AtomMidEndAngles(kind, a3, a2);
+    //merge all the angle
+    angle.insert(angle.end(), tempAng.begin(), tempAng.end());
+    //Check to see if any of these angles are fixed or not.
+    for(uint a = 0; a < angle.size(); a++) {
+      if(data.ff.angles->AngleFixed(angle[a].kind)) {
+        fixAngle = true;
+      }
+    }
+
+    //If there was no fix angles, we create DCCrankShaftDih
+    if(!fixAngle) {
+      shaftNodes.push_back(new DCCrankShaftDih(&data, kind, a0, a1, a2, a3));
+    }
+  }
+
+  //Continue with the atoms that form angles.
+  vector<Angle> angles = AngsAll(kind);
+  for(uint a = 0; a < angles.size(); a++) {
+    //find the last atomindex in the angle
+    uint a0 = angles[a].a0;
+    uint a1 = angles[a].a1;
+    uint a2 = angles[a].a2;
+    //ignore single bonded atoms
+    if(bondCount[a0] == 1 && bondCount[a2] == 1) {
+      continue;
+    }
+
+    bool fixAngle = false;
+    //Find all the angle that forms x-a0-a1
+    vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
+    //Find all the angle that forms a1-a2-x
+    vector<Angle> tempAng = AtomMidEndAngles(kind, a2, a1);
+    //merge all the angle
+    angle.insert(angle.end(), tempAng.begin(), tempAng.end());
+    //Check to see if any of these angles are fixed or not.
+    for(uint i = 0; i < angle.size(); i++) {
+      if(data.ff.angles->AngleFixed(angle[i].kind)) {
+        fixAngle = true;
+      }
+    }
+
+    //If there was no fix angles, we create DCCrankShaftAngle
+    if(!fixAngle) {
+      shaftNodes.push_back(new DCCrankShaftAng(&data, kind, a0, a1, a2));
+    }
+  }
+
+  hasCrankShaft = (shaftNodes.size() != 0);
+}
+
+void DCGraph::CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
+{
+  if(!hasCrankShaft) {
+    //No crank shaft move for molecule with less than 4 nodes.
+    //Instead we perform Regrowth move within the same box
+    Regrowth(oldMol, newMol, molIndex);
+  } else {
+    //Set coords to coordinate of actual molecule, it will be modified
+    //No need to unwrap because box is same.
+    oldMol.GetCoords().CopyRange(coords, 0, 0, coords.Count());
+    newMol.SetCoords(coords, 0);
+    //Pick a random node pair
+    uint pick = data.prng.randIntExc(shaftNodes.size());
+    shaftNodes[pick]->PrepareNew(newMol, molIndex);
+    shaftNodes[pick]->BuildNew(newMol, molIndex);
+    shaftNodes[pick]->PrepareOld(oldMol, molIndex);
+    shaftNodes[pick]->BuildOld(oldMol, molIndex);
   }
 }
 
@@ -244,8 +351,219 @@ void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
   }
 }
 
+void DCGraph::BuildIDNew(TrialMol& newMol, uint molIndex)
+{
+  idExchange->PrepareNew(newMol, molIndex);
+  idExchange->BuildNew(newMol, molIndex);
+}
+
+void DCGraph::BuildIDOld(TrialMol& oldMol, uint molIndex)
+{
+  idExchange->PrepareOld(oldMol, molIndex);
+  idExchange->BuildOld(oldMol, molIndex);
+}
+
+void DCGraph::BuildOld(TrialMol& oldMol, uint molIndex)
+{
+  //Randomely pick a node to call DCFreeHedron on it
+  uint current = data.prng.randIntExc(nodes.size());
+  visited.assign(nodes.size(), false);
+  //Visiting the node
+  visited[current] = true;
+  DCComponent* comp = nodes[current].starting;
+  //Call DCFreeHedron to build all Atoms connected to the node
+  comp->PrepareOld(oldMol, molIndex);
+  comp->BuildOld(oldMol, molIndex);
+  //Advance along edges, building as we go
+  //Copy the edges of the node to fringe
+  fringe = nodes[current].edges;
+  //Advance along edges, building as we go
+  while(!fringe.empty()) {
+    //Randomely pick one of the edges connected to node
+    uint pick = data.prng.randIntExc(fringe.size());
+    DCComponent* comp = fringe[pick].component;
+    //Call DCLinkedHedron and build all Atoms connected to selected edge
+    comp->PrepareOld(oldMol, molIndex);
+    comp->BuildOld(oldMol, molIndex);
+
+    //Travel to new node, remove traversed edge
+    //Current node is the edge that we picked
+    current = fringe[pick].destination;
+    //Remove the edge that we visited
+    fringe[pick] = fringe.back();
+    fringe.pop_back();
+    //Visiting the node
+    visited[current] = true;
+
+    //Add edges to unvisited nodes
+    for(uint i = 0; i < nodes[current].edges.size(); ++i) {
+      Edge& e = nodes[current].edges[i];
+      if(!visited[e.destination]) {
+        fringe.push_back(e);
+      }
+    }
+  }
+}
+
+void DCGraph::BuildNew(TrialMol& newMol, uint molIndex)
+{
+  //Randomely pick a node to call DCFreeHedron on it
+  uint current = data.prng.randIntExc(nodes.size());
+  visited.assign(nodes.size(), false);
+  //Visiting the node
+  visited[current] = true;
+  DCComponent* comp = nodes[current].starting;
+  //Call DCFreeHedron to build all Atoms connected to the node
+  comp->PrepareNew(newMol, molIndex);
+  comp->BuildNew(newMol, molIndex);
+  //Advance along edges, building as we go
+  //Copy the edges of the node to fringe
+  fringe = nodes[current].edges;
+  //Advance along edges, building as we go
+  while(!fringe.empty()) {
+    //Randomely pick one of the edges connected to node
+    uint pick = data.prng.randIntExc(fringe.size());
+    DCComponent* comp = fringe[pick].component;
+    //Call DCLinkedHedron and build all Atoms connected to selected edge
+    comp->PrepareNew(newMol, molIndex);
+    comp->BuildNew(newMol, molIndex);
+
+    //Travel to new node, remove traversed edge
+    //Current node is the edge that we picked
+    current = fringe[pick].destination;
+    //Remove the edge that we visited
+    fringe[pick] = fringe.back();
+    fringe.pop_back();
+    //Visiting the node
+    visited[current] = true;
+
+    //Add edges to unvisited nodes
+    for(uint i = 0; i < nodes[current].edges.size(); ++i) {
+      Edge& e = nodes[current].edges[i];
+      if(!visited[e.destination]) {
+        fringe.push_back(e);
+      }
+    }
+  }
+}
+
+void DCGraph::BuildGrowOld(TrialMol& oldMol, uint molIndex)
+{
+  visited.assign(nodes.size(), false);
+  //Use backbone atom to start the node
+  uint current = -1;
+  for(uint i = 0; i < nodes.size(); i++) {
+    if(nodes[i].atomIndex == oldMol.GetAtomBB(0)) {
+      current = i;
+      break;
+    }
+  }
+
+  if(current == -1) {
+    std::cout << "Error: In MEMC-3 move, atom " << oldMol.GetKind().atomNames[oldMol.GetAtomBB(0)] <<
+              " in " << oldMol.GetKind().name << " must be a node.\n";
+    std::cout << "       This atom must be bounded to two or more atoms! \n";
+    exit(1);
+  }
+
+  //Visiting the node
+  visited[current] = true;
+  DCComponent* comp = nodes[current].starting;
+  //Call DCFreeHedron to build all Atoms connected to the node
+  comp->PrepareOld(oldMol, molIndex);
+  comp->BuildOld(oldMol, molIndex);
+  //Advance along edges, building as we go
+  //Copy the edges of the node to fringe
+  fringe = nodes[current].edges;
+  //Advance along edges, building as we go
+  while(!fringe.empty()) {
+    //Randomely pick one of the edges connected to node
+    uint pick = data.prng.randIntExc(fringe.size());
+    DCComponent* comp = fringe[pick].component;
+    //Call DCLinkedHedron and build all Atoms connected to selected edge
+    comp->PrepareOld(oldMol, molIndex);
+    comp->BuildOld(oldMol, molIndex);
+
+    //Travel to new node, remove traversed edge
+    //Current node is the edge that we picked
+    current = fringe[pick].destination;
+    //Remove the edge that we visited
+    fringe[pick] = fringe.back();
+    fringe.pop_back();
+    //Visiting the node
+    visited[current] = true;
+
+    //Add edges to unvisited nodes
+    for(uint i = 0; i < nodes[current].edges.size(); ++i) {
+      Edge& e = nodes[current].edges[i];
+      if(!visited[e.destination]) {
+        fringe.push_back(e);
+      }
+    }
+  }
+}
+
+
+void DCGraph::BuildGrowNew(TrialMol& newMol, uint molIndex)
+{
+  visited.assign(nodes.size(), false);
+  //Use backbone atom to start the node
+  uint current = -1;
+  for(uint i = 0; i < nodes.size(); i++) {
+    if(nodes[i].atomIndex == newMol.GetAtomBB(0)) {
+      current = i;
+      break;
+    }
+  }
+
+  if(current == -1) {
+    std::cout << "Error: In MEMC-3 move, atom " << newMol.GetKind().atomNames[newMol.GetAtomBB(0)] <<
+              " in " << newMol.GetKind().name << " must be a node.\n";
+    std::cout << "       This atom must be bounded to two or more atoms! \n";
+    exit(1);
+  }
+
+  //Visiting the node
+  visited[current] = true;
+  DCComponent* comp = nodes[current].starting;
+  //Call DCFreeHedron to build all Atoms connected to the node
+  comp->PrepareNew(newMol, molIndex);
+  comp->BuildNew(newMol, molIndex);
+  //Advance along edges, building as we go
+  //Copy the edges of the node to fringe
+  fringe = nodes[current].edges;
+  //Advance along edges, building as we go
+  while(!fringe.empty()) {
+    //Randomely pick one of the edges connected to node
+    uint pick = data.prng.randIntExc(fringe.size());
+    DCComponent* comp = fringe[pick].component;
+    //Call DCLinkedHedron and build all Atoms connected to selected edge
+    comp->PrepareNew(newMol, molIndex);
+    comp->BuildNew(newMol, molIndex);
+
+    //Travel to new node, remove traversed edge
+    //Current node is the edge that we picked
+    current = fringe[pick].destination;
+    //Remove the edge that we visited
+    fringe[pick] = fringe.back();
+    fringe.pop_back();
+    //Visiting the node
+    visited[current] = true;
+
+    //Add edges to unvisited nodes
+    for(uint i = 0; i < nodes[current].edges.size(); ++i) {
+      Edge& e = nodes[current].edges[i];
+      if(!visited[e.destination]) {
+        fringe.push_back(e);
+      }
+    }
+  }
+}
+
+
 DCGraph::~DCGraph()
 {
+  delete idExchange;
   for(uint v = 0; v < nodes.size(); ++v) {
     Node& node = nodes[v];
     delete node.starting;
@@ -253,6 +571,10 @@ DCGraph::~DCGraph()
     for(uint e = 0; e < node.edges.size(); ++ e) {
       delete node.edges[e].component;
     }
+  }
+
+  for(uint i = 0; i < shaftNodes.size(); i++) {
+    delete shaftNodes[i];
   }
 }
 

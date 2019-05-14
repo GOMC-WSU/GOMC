@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -135,16 +135,16 @@ void Coordinates::RotateRand
 //scale all in each mol newCOM[m]/oldCOM[m]
 void Coordinates::VolumeTransferTranslate
 (uint & state, Coordinates & dest, COM & newCOM, BoxDimensions & newDim,
- COM const& oldCOM, const double max) const
+ COM const& oldCOM, const double max, const uint *box) const
 {
-  XYZ scale[BOX_TOTAL];
+  XYZ scale[2];
   double transfer = prngRef.Sym(max);
 
   //Scale cell
-  state = boxDimRef.ExchangeVolume(newDim, scale, transfer);
+  state = boxDimRef.ExchangeVolume(newDim, scale, transfer, box);
   //If scaling succeeded (if it wouldn't take the box to below 2*rcut, cont.
   if(state == mv::fail_state::NO_FAIL) {
-    for (uint b = 0; b < BOX_TOTAL; ++b) {
+    for (uint b = 0; b < 2; ++b) {
       TranslateOneBox(dest, newCOM, oldCOM, newDim, b, scale[b]);
     }
   }

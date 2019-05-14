@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -36,9 +36,16 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 // Welect = -1 * qi * qj * (dSwitchVal/rij^2 - (rij^2/rcut^2 - 1.0)^2/(rij^3))
 // dSwitchVa = 2.0 * (rij^2/rcut^2 - 1.0) * 2.0 * rij/rcut^2
 
-
 struct FF_SWITCH : public FFParticle {
 public:
+
+  FF_SWITCH(Forcefield &ff) : FFParticle(ff)
+  {
+    rOnSq = rOn = factor1 = factor2 = 0.0;
+  }
+
+  virtual void Init(ff_setup::Particle const& mie,
+                    ff_setup::NBfix const& nbfix);
 
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2) const;
@@ -49,11 +56,9 @@ public:
 
   // coulomb interaction functions
   virtual double CalcCoulomb(const double distSq,
-                             const double qi_qj_Fact) const;
-  virtual double CalcCoulombEn(const double distSq,
-                               const double qi_qj_Fact) const;
+                             const double qi_qj_Fact, const uint b) const;
   virtual double CalcCoulombVir(const double distSq,
-                                const double qi_qj) const;
+                                const double qi_qj, const uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact,
                                   const bool NB) const;
@@ -69,14 +74,29 @@ public:
     return 0.0;
   }
 
+protected:
+
+  double rOn, rOnSq, factor1, factor2;
+
 };
 
+inline void FF_SWITCH::Init(ff_setup::Particle const& mie,
+                            ff_setup::NBfix const& nbfix)
+{
+  //Initializ sigma and epsilon
+  FFParticle::Init(mie, nbfix);
+  rOn = forcefield.rswitch;
+  rOnSq = rOn * rOn;
+  //calculate switch constant
+  factor1 = forcefield.rCutSq - 3 * rOnSq;
+  factor2 = pow((forcefield.rCutSq - rOnSq), -3);
+}
 
 inline void FF_SWITCH::CalcAdd_1_4(double& en, const double distSq,
                                    const uint kind1, const uint kind2) const
 {
   uint index = FlatIndex(kind1, kind2);
-  double rCutSq_rijSq = rCutSq - distSq;
+  double rCutSq_rijSq = forcefield.rCutSq - distSq;
   double rCutSq_rijSq_Sq = rCutSq_rijSq * rCutSq_rijSq;
 
   double rRat2 = sigmaSq_1_4[index] / distSq;
@@ -105,7 +125,7 @@ inline void FF_SWITCH::CalcCoulombAdd_1_4(double& en, const double distSq,
   if(NB)
     en += qi_qj_Fact / dist;
   else
-    en += qi_qj_Fact * scaling_14 / dist;
+    en += qi_qj_Fact * forcefield.scaling_14 / dist;
 }
 
 
@@ -113,9 +133,11 @@ inline void FF_SWITCH::CalcCoulombAdd_1_4(double& en, const double distSq,
 inline double FF_SWITCH::CalcEn(const double distSq,
                                 const uint kind1, const uint kind2) const
 {
-  uint index = FlatIndex(kind1, kind2);
+  if(forcefield.rCutSq < distSq)
+    return 0.0;
 
-  double rCutSq_rijSq = rCutSq - distSq;
+  uint index = FlatIndex(kind1, kind2);
+  double rCutSq_rijSq = forcefield.rCutSq - distSq;
   double rCutSq_rijSq_Sq = rCutSq_rijSq * rCutSq_rijSq;
 
   double rRat2 = sigmaSq[index] / distSq;
@@ -137,34 +159,18 @@ inline double FF_SWITCH::CalcEn(const double distSq,
 }
 
 inline double FF_SWITCH::CalcCoulomb(const double distSq,
-                                     const double qi_qj_Fact) const
+                                     const double qi_qj_Fact, const uint b) const
 {
-  if(ewald) {
+  if(forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
+  if(forcefield.ewald) {
     double dist = sqrt(distSq);
-    double val = alpha * dist;
+    double val = forcefield.alpha[b] * dist;
     return  qi_qj_Fact * erfc(val) / dist;
   } else {
     double dist = sqrt(distSq);
-    double switchVal = distSq / rCutSq - 1.0;
-    switchVal *= switchVal;
-    return  qi_qj_Fact * switchVal / dist;
-  }
-}
-
-//will be used in energy calculation after each move
-inline double FF_SWITCH::CalcCoulombEn(const double distSq,
-                                       const double qi_qj_Fact) const
-{
-  if(distSq <= rCutLowSq)
-    return num::BIGNUM;
-
-  if(ewald) {
-    double dist = sqrt(distSq);
-    double val = alpha * dist;
-    return  qi_qj_Fact * erfc(val) / dist;
-  } else {
-    double dist = sqrt(distSq);
-    double switchVal = distSq / rCutSq - 1.0;
+    double switchVal = distSq / forcefield.rCutSq - 1.0;
     switchVal *= switchVal;
     return  qi_qj_Fact * switchVal / dist;
   }
@@ -174,9 +180,11 @@ inline double FF_SWITCH::CalcCoulombEn(const double distSq,
 inline double FF_SWITCH::CalcVir(const double distSq,
                                  const uint kind1, const uint kind2) const
 {
-  uint index = FlatIndex(kind1, kind2);
+  if(forcefield.rCutSq < distSq)
+    return 0.0;
 
-  double rCutSq_rijSq = rCutSq - distSq;
+  uint index = FlatIndex(kind1, kind2);
+  double rCutSq_rijSq = forcefield.rCutSq - distSq;
   double rCutSq_rijSq_Sq = rCutSq_rijSq * rCutSq_rijSq;
 
   double rNeg2 = 1.0 / distSq;
@@ -204,19 +212,23 @@ inline double FF_SWITCH::CalcVir(const double distSq,
 }
 
 inline double FF_SWITCH::CalcCoulombVir(const double distSq,
-                                        const double qi_qj) const
+                                        const double qi_qj, const uint b) const
 {
-  if(ewald) {
+  if(forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
+  if(forcefield.ewald) {
     double dist = sqrt(distSq);
-    double constValue = 2.0 * alpha / sqrt(M_PI);
-    double expConstValue = exp(-1.0 * alpha * alpha * distSq);
-    double temp = erfc(alpha * dist);
+    double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
+    double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
+    double temp = erfc(forcefield.alpha[b] * dist);
     return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
     double dist = sqrt(distSq);
-    double switchVal = distSq / rCutSq - 1.0;
+    double switchVal = distSq / forcefield.rCutSq - 1.0;
     switchVal *= switchVal;
-    double dSwitchVal = 2.0 * (distSq / rCutSq - 1.0) * 2.0 * dist / rCutSq;
+    double dSwitchVal = 2.0 * (distSq / forcefield.rCutSq - 1.0) * 2.0 *
+                        dist / forcefield.rCutSq;
     return -1.0 * qi_qj * (dSwitchVal / distSq - switchVal / (distSq * dist));
   }
 }

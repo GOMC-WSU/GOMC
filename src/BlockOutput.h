@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -60,7 +60,7 @@ struct BlockAverage {
     dblSrc[b] = NULL;
   }
   void Sum(void);
-  void Write(const ulong step, const bool firstPrint, uint precision = 4)
+  void Write(const ulong step, const bool firstPrint, uint precision)
   {
     first = firstPrint;
     if (enable)

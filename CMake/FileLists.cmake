@@ -9,6 +9,8 @@ set(sources
    src/Coordinates.cpp
    src/CPUSide.cpp
    src/CalculateEnergy.cpp
+   src/CheckpointOutput.cpp
+   src/CheckpointSetup.cpp
    src/EnPartCntSampleOutput.cpp
    src/Ewald.cpp
    src/EwaldCached.cpp
@@ -25,7 +27,6 @@ set(sources
    src/MoleculeLookup.cpp
    src/Molecules.cpp
    src/MolSetup.cpp
-   src/MoveConst.cpp
    src/MoveSettings.cpp
    src/NoEwald.cpp
    src/OutConst.cpp
@@ -38,13 +39,22 @@ set(sources
    src/Simulation.cpp
    src/StaticVals.cpp
    src/System.cpp
+   src/cbmc/DCCrankShaftAng.cpp
+   src/cbmc/DCCrankShaftDih.cpp
+   src/cbmc/DCCyclic.cpp
    src/cbmc/DCGraph.cpp
+   src/cbmc/DCFreeCycle.cpp
    src/cbmc/DCFreeHedron.cpp
    src/cbmc/DCFreeHedronSeed.cpp
+   src/cbmc/DCFreeCycleSeed.cpp
    src/cbmc/DCLinkedHedron.cpp
+   src/cbmc/DCLinkedCycle.cpp
    src/cbmc/DCHedron.cpp
+   src/cbmc/DCHedronCycle.cpp
    src/cbmc/DCLinear.cpp
    src/cbmc/DCOnSphere.cpp
+   src/cbmc/DCRotateCOM.cpp
+   src/cbmc/DCRotateOnAtom.cpp
    src/cbmc/DCSingle.cpp
    src/cbmc/TrialMol.cpp)
 
@@ -55,6 +65,8 @@ set(headers
    src/CalculateEnergy.h
    src/CBMC.h
    src/CellList.h
+   src/CheckpointOutput.h
+   src/CheckpointSetup.h
    src/Clock.h
    src/COM.h
    src/ConfigSetup.h
@@ -84,15 +96,12 @@ set(headers
    src/HistOutput.h
    src/InputAbstracts.h
    src/InputFileReader.h
-   src/IntraSwap.h
    src/MersenneTwister.h
    src/MoleculeKind.h
    src/MoleculeLookup.h
-   src/MoleculeTransfer.h
    src/Molecules.h
    src/MolPick.h
    src/MolSetup.h
-   src/MoveBase.h
    src/MoveConst.h
    src/MoveSettings.h
    src/NoEwald.h
@@ -106,7 +115,6 @@ set(headers
    src/PRNGSetup.h
    src/PSFOutput.h
    src/Reader.h
-   src/Regrowth.h
    src/SeedReader.h
    src/Setup.h
    src/SimEventFrequency.h
@@ -118,16 +126,39 @@ set(headers
    src/Writer.h
    src/XYZArray.h
    src/cbmc/DCComponent.h
+   src/cbmc/DCCrankShaftAng.h
+   src/cbmc/DCCrankShaftDih.h
+   src/cbmc/DCCyclic.h
    src/cbmc/DCData.h
+   src/cbmc/DCFreeCycle.h
    src/cbmc/DCFreeHedron.h
    src/cbmc/DCFreeHedronSeed.h
+   src/cbmc/DCFreeCycleSeed.h
    src/cbmc/DCLinkedHedron.h
+   src/cbmc/DCLinkedCycle.h
    src/cbmc/DCGraph.h
    src/cbmc/DCHedron.h
+   src/cbmc/DCHedronCycle.h
    src/cbmc/DCLinear.h
    src/cbmc/DCOnSphere.h
+   src/cbmc/DCRotateCOM.h
+   src/cbmc/DCRotateOnAtom.h
    src/cbmc/DCSingle.h
-   src/cbmc/TrialMol.h)
+   src/cbmc/TrialMol.h
+   src/moves/CrankShaft.h
+   src/moves/IntraMoleculeExchange1.h
+   src/moves/IntraMoleculeExchange2.h
+   src/moves/IntraMoleculeExchange3.h
+   src/moves/IntraSwap.h
+   src/moves/MoleculeExchange1.h
+   src/moves/MoleculeExchange2.h
+   src/moves/MoleculeExchange3.h
+   src/moves/MoleculeTransfer.h
+   src/moves/MoveBase.h
+   src/moves/Regrowth.h
+   src/moves/Rotation.h
+   src/moves/Translate.h
+   src/moves/VolumeTransfer.h)
 
 set(libHeaders
    lib/BasicTypes.h
@@ -136,7 +167,11 @@ set(libHeaders
    lib/NumLib.h
    lib/StrLib.h
    lib/StrStrmLib.h
-   lib/VectorLib.h)
+   lib/VectorLib.h
+   lib/FloydWarshallCycle.h)
+
+set(libSources
+    lib/FloydWarshallCycle.cpp)
 
 set(cudaHeaders
     src/GPU/ConstantDefinitionsCUDAKernel.cuh

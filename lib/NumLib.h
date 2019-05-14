@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -79,6 +79,26 @@ inline double MeanG(std::vector<double> const& v1,
                     const uint ix1, const uint ix2)
 {
   return sqrt(v1[ix1] * v2[ix2]);
+}
+
+//return n!
+inline double Factorial(const uint n)
+{
+  double result = 1.0;
+  for(uint i = 2; i <= n; i++) {
+    result *= i;
+  }
+  return result;
+}
+
+//return (n+count)!/n!
+inline double Factorial(const uint n, const uint count)
+{
+  double result = 1.0;
+  for(uint i = 1; i <= count; i++) {
+    result *= n + i;
+  }
+  return result;
 }
 
 template <class Type>

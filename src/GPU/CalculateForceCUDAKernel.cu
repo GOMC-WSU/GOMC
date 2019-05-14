@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -14,33 +14,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 
 using namespace cub;
-
-#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true)
-{
-  if (code != cudaSuccess) {
-    fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-    if (abort) exit(code);
-  }
-}
-
-void printFreeMemory()
-{
-  size_t free_byte ;
-  size_t total_byte ;
-  cudaError_t cuda_status = cudaMemGetInfo( &free_byte, &total_byte ) ;
-
-  if ( cudaSuccess != cuda_status ) {
-    printf("Error: cudaMemGetInfo fails, %s \n",
-           cudaGetErrorString(cuda_status) );
-    exit(1);
-  }
-  double free_db = (double)free_byte ;
-  double total_db = (double)total_byte ;
-  double used_db = total_db - free_db ;
-  printf("GPU memory usage: used = %f, free = %f MB, total = %f MB\n",
-         used_db / 1024.0 / 1024.0, free_db / 1024.0 / 1024.0, total_db / 1024.0 / 1024.0);
-}
 
 void CallBoxInterForceGPU(VariablesCUDA *vars,
                           vector<uint> &pair1,
@@ -147,6 +120,7 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
       vars->gpu_isMartini,
       vars->gpu_count,
       vars->gpu_rCut,
+      vars->gpu_rCutCoulomb,
       vars->gpu_rCutLow,
       vars->gpu_rOn,
       vars->gpu_alpha,
@@ -158,7 +132,8 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
       vars->gpu_Invcell_x[box],
       vars->gpu_Invcell_y[box],
       vars->gpu_Invcell_z[box],
-      vars->gpu_nonOrth);
+      vars->gpu_nonOrth,
+      box);
   cudaDeviceSynchronize();
   // ReduceSum // Virial of LJ
   void *d_temp_storage = NULL;
@@ -366,6 +341,7 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                                  int *gpu_isMartini,
                                  int *gpu_count,
                                  double *gpu_rCut,
+                                 double *gpu_rCutCoulomb,
                                  double *gpu_rCutLow,
                                  double *gpu_rOn,
                                  double *gpu_alpha,
@@ -377,7 +353,8 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                                  double *gpu_Invcell_x,
                                  double *gpu_Invcell_y,
                                  double *gpu_Invcell_z,
-                                 int *gpu_nonOrth)
+                                 int *gpu_nonOrth,
+                                 int box)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   if(threadID >= pairSize)
@@ -393,12 +370,13 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
   gpu_vT12[threadID] = 0.0, gpu_vT13[threadID] = 0.0, gpu_vT23[threadID] = 0.0;
   gpu_rT12[threadID] = 0.0, gpu_rT13[threadID] = 0.0, gpu_rT23[threadID] = 0.0;
   double diff_comx, diff_comy, diff_comz;
+  double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
 
   if(InRcutGPU(distSq, virX, virY, virZ, gpu_x[gpu_pair1[threadID]],
                gpu_y[gpu_pair1[threadID]], gpu_z[gpu_pair1[threadID]],
                gpu_x[gpu_pair2[threadID]], gpu_y[gpu_pair2[threadID]],
                gpu_z[gpu_pair2[threadID]], xAxes, yAxes, zAxes, xAxes / 2.0,
-               yAxes / 2.0, zAxes / 2.0, gpu_rCut[0], gpu_nonOrth[0],
+               yAxes / 2.0, zAxes / 2.0, cutoff, gpu_nonOrth[0],
                gpu_cell_x, gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                gpu_Invcell_z)) {
     diff_comx = gpu_comx[gpu_particleMol[gpu_pair1[threadID]]] -
@@ -416,7 +394,7 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
       qi_qj = gpu_particleCharge[gpu_pair1[threadID]] *
               gpu_particleCharge[gpu_pair2[threadID]];
       pRF = CalcCoulombForceGPU(distSq, qi_qj, gpu_VDW_Kind[0], gpu_ewald[0],
-                                gpu_isMartini[0], gpu_alpha[0], gpu_rCut[0],
+                                gpu_isMartini[0], gpu_alpha[box], gpu_rCutCoulomb[box],
                                 gpu_diElectric_1[0]);
 
       gpu_rT11[threadID] = pRF * (virX * diff_comx);
@@ -524,18 +502,22 @@ __global__ void ForceReciprocalGPU(double *gpu_x,
 __device__ double CalcCoulombForceGPU(double distSq, double qi_qj,
                                       int gpu_VDW_Kind, int gpu_ewald,
                                       int gpu_isMartini, double gpu_alpha,
-                                      double gpu_rCut, double gpu_diElectric_1)
+                                      double gpu_rCutCoulomb, double gpu_diElectric_1)
 {
+  if((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
+    return 0.0;
+  }
+
   if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
     return CalcCoulombVirParticleGPU(distSq, qi_qj, gpu_alpha);
   } else if(gpu_VDW_Kind == GPU_VDW_SHIFT_KIND) {
     return CalcCoulombVirShiftGPU(distSq, qi_qj, gpu_ewald, gpu_alpha);
   } else if(gpu_VDW_Kind == GPU_VDW_SWITCH_KIND && gpu_isMartini) {
     return CalcCoulombVirSwitchMartiniGPU(distSq, qi_qj, gpu_ewald, gpu_alpha,
-                                          gpu_rCut, gpu_diElectric_1);
+                                          gpu_rCutCoulomb, gpu_diElectric_1);
   } else
     return CalcCoulombVirSwitchGPU(distSq, qi_qj, gpu_ewald, gpu_alpha,
-                                   gpu_rCut);
+                                   gpu_rCutCoulomb);
 }
 
 __device__ double CalcEnForceGPU(double distSq, int kind1, int kind2,
@@ -544,6 +526,10 @@ __device__ double CalcEnForceGPU(double distSq, int kind1, int kind2,
                                  double gpu_rOn, int gpu_isMartini,
                                  int gpu_VDW_Kind, int gpu_count)
 {
+  if((gpu_rCut * gpu_rCut) < distSq) {
+    return 0.0;
+  }
+
   int index = FlatIndexGPU(kind1, kind2, gpu_count);
   if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
     return CalcVirParticleGPU(distSq, index, gpu_sigmaSq, gpu_n,

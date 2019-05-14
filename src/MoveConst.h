@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -31,23 +31,33 @@ const uint ROTATE = 1;
 #if ENSEMBLE == NVT
 const uint INTRA_SWAP = 2;
 const uint REGROWTH = 3;
-const uint MOVE_KINDS_TOTAL = 4;
+const uint INTRA_MEMC = 4;
+const uint CRANKSHAFT = 5;
+const uint MOVE_KINDS_TOTAL = 6;
 #elif ENSEMBLE == GCMC
 const uint INTRA_SWAP = 2;
 const uint REGROWTH = 3;
-const uint MOL_TRANSFER = 4;
-const uint MOVE_KINDS_TOTAL = 5;
+const uint INTRA_MEMC = 4;
+const uint CRANKSHAFT = 5;
+const uint MEMC = 6;
+const uint MOL_TRANSFER = 7;
+const uint MOVE_KINDS_TOTAL = 8;
 #elif ENSEMBLE == GEMC
 const uint VOL_TRANSFER = 2;
 const uint INTRA_SWAP = 3;
 const uint REGROWTH = 4;
-const uint MOL_TRANSFER = 5;
-const uint MOVE_KINDS_TOTAL = 6;
+const uint INTRA_MEMC = 5;
+const uint CRANKSHAFT = 6;
+const uint MEMC = 7;
+const uint MOL_TRANSFER = 8;
+const uint MOVE_KINDS_TOTAL = 9;
 #elif ENSEMBLE == NPT
 const uint VOL_TRANSFER = 2;
 const uint INTRA_SWAP = 3;
 const uint REGROWTH = 4;
-const uint MOVE_KINDS_TOTAL = 5;
+const uint INTRA_MEMC = 5;
+const uint CRANKSHAFT = 6;
+const uint MOVE_KINDS_TOTAL = 7;
 #endif
 
 const uint BOX0 = 0;
@@ -103,35 +113,42 @@ const uint IT_KINDS_TOTAL = 2;
 //////////////////////////////////////////////////////////
 
 //NVT : 1. Disp (box 0)         2. Rotate (box 0)     3. IntraSwap (box 0)
-//      4. Regrowth (box 0)
+//      4. Regrowth (box 0)     5. IntraMEMC (box 0)  6. CrankShaft (box 0)
 //
 //GCMC: 1. Disp (box 0)         2. Rotate (box 0)     3. IntraSwap (box 0)
-//      4. Regrowth (box 0)     5. Deletion (box 0)   6. Insertion (box 0)
+//      4. Regrowth (box 0)     5. IntraMEMC (box 0)  6. CrankShaft (box 0)
+//      7. MEMC (box 0)         8. Deletion (box 0)   9. Insertion (box 0)
 //
 //GEMC: 1. Disp (box 0)         2. Disp (box 1)
 //      3. Rotate (box 0)       4. Rotate (box 1)
 //      5. Vol. (b0->b1)        6. Vol. (b1->b0)
 //      7. IntraSwap (box 0)    8. IntraSwap (box 1)
 //      9. Regrowth (box 0)    10. Regrowth (box 1)
-//     11. Mol Trans (b0->b1), 12. Mol Trans (b1->b0)
+//     11. IntraMEMC (box 0)   12. IntraMEMC (box 1)
+//     13. CrankShaft (box 0)  14. CrankShaft (box 1)
+//     15. MEMC (box 0)        16. MEMC (box 1)
+//     17. Mol Trans (b0->b1), 18. Mol Trans (b1->b0)
 //
 //NPT : 1. Disp (box 0)         2. Rotate (box 0)     3. Vol. (box 0)
-//      4. IntraSwap (box 0)    5. Regrowth (box 0)
+//      4. IntraSwap (box 0)    5. Regrowth (box 0)   6. IntraMEMC (box 0)
+//      7. CrankShaft (box 0)
 
+/*
 #if ENSEMBLE == NVT
-const uint COUNT = 4;
-const uint SCALEABLE = 2;
-#elif ENSEMBLE == GCMC
 const uint COUNT = 6;
 const uint SCALEABLE = 2;
+#elif ENSEMBLE == GCMC
+const uint COUNT = 9;
+const uint SCALEABLE = 2;
 #elif ENSEMBLE == GEMC
-const uint COUNT = 12;
+const uint COUNT = 18;
 const uint SCALEABLE = 6;
 #elif ENSEMBLE == NPT
-const uint COUNT = 5;
+const uint COUNT = 7;
 const uint SCALEABLE = 3;
 #endif
 
+*/
 
 //AUTO REJECTION OR ACCEPTANCE FLAGS
 
@@ -150,7 +167,7 @@ const uint INNER_CUTOFF_NEW_TRIAL_POS = 4;
 const uint VOL_TRANS_WOULD_SHRINK_BOX_BELOW_CUTOFF = 5;
 }
 
-
+/*
 inline uint GetMoveSubIndex(const uint maj, const uint b = 0)
 {
 #if ENSEMBLE == GCMC
@@ -162,13 +179,8 @@ inline uint GetMoveSubIndex(const uint maj, const uint b = 0)
   return maj * BOX_TOTAL + b;
 #endif
 }
+*/
 
-//Names of above moves as strings for output.
-std::vector<std::string> MoveNames();
-const std::vector<std::string> MOVE_NAME(MoveNames());
-std::vector<std::string> ScaleMoveNames();
-const std::vector<std::string> SCALE_MOVE_NAME(ScaleMoveNames());
-//Used enums -- immutable and take no space
 
 }
 

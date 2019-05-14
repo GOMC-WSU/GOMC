@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -150,4 +150,13 @@ double MoleculeKind::GetMoleculeCharge()
   }
 
   return netCharge;
+}
+
+bool MoleculeKind::MoleculeHasCharge()
+{
+  for(uint i = 0; i < numAtoms; ++i) {
+    if(abs(atomCharge[i]) > 0.0)
+      return true;
+  }
+  return false;
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -15,8 +15,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
                        double const *epsilon_Cn,
                        double const *n, int VDW_Kind, int isMartini,
-                       int count, double Rcut, double RcutLow,
-                       double Ron, double alpha,
+                       int count, double Rcut, double const *rCutCoulomb,
+                       double RcutLow, double Ron, double const *alpha,
                        int ewald, double diElectric_1)
 {
   int countSq = count * count;
@@ -27,9 +27,10 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
   cudaMalloc(&vars.gpu_isMartini, sizeof(int));
   cudaMalloc(&vars.gpu_count, sizeof(int));
   cudaMalloc(&vars.gpu_rCut, sizeof(double));
+  cudaMalloc(&vars.gpu_rCutCoulomb, BOX_TOTAL * sizeof(double));
   cudaMalloc(&vars.gpu_rCutLow, sizeof(double));
   cudaMalloc(&vars.gpu_rOn, sizeof(double));
-  cudaMalloc(&vars.gpu_alpha, sizeof(double));
+  cudaMalloc(&vars.gpu_alpha, BOX_TOTAL * sizeof(double));
   cudaMalloc(&vars.gpu_ewald, sizeof(int));
   cudaMalloc(&vars.gpu_diElectric_1, sizeof(double));
 
@@ -44,10 +45,13 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_count, &count, sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_rCut, &Rcut, sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars.gpu_rCutCoulomb, rCutCoulomb, BOX_TOTAL * sizeof(double),
+             cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_rCutLow, &RcutLow, sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_rOn, &Ron, sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars.gpu_alpha, &alpha, sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars.gpu_alpha, alpha, BOX_TOTAL * sizeof(double),
+             cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_ewald, &ewald, sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_diElectric_1, &diElectric_1, sizeof(double),
              cudaMemcpyHostToDevice);
@@ -259,6 +263,7 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   cudaFree(vars->gpu_isMartini);
   cudaFree(vars->gpu_count);
   cudaFree(vars->gpu_rCut);
+  cudaFree(vars->gpu_rCutCoulomb);
   cudaFree(vars->gpu_rCutLow);
   cudaFree(vars->gpu_rOn);
   cudaFree(vars->gpu_alpha);

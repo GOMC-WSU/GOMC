@@ -1,5 +1,6 @@
 # Prerequisites
 *.d
+.vscode
 
 # Compiled Object files
 *.slo
@@ -33,3 +34,5 @@
 
 bin
 lib/cub
+.idea
+cmake-build-debug

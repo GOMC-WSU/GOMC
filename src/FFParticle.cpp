@@ -1,32 +1,24 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "FFParticle.h"
-#include "ConfigSetup.h"
 #include "NumLib.h" //For Sq, Cb, and MeanA/G functions.
 #ifdef GOMC_CUDA
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
 
-FFParticle::FFParticle() : mass(NULL), nameFirst(NULL), nameSec(NULL),
-  n(NULL), n_1_4(NULL), sigmaSq(NULL),
-  sigmaSq_1_4(NULL), epsilon_cn(NULL), epsilon(NULL),
-  epsilon_1_4(NULL), epsilon_cn_1_4(NULL), epsilon_cn_6(NULL),
-  epsilon_cn_6_1_4(NULL), nOver6(NULL),
-  nOver6_1_4(NULL), enCorrection(NULL),
-  virCorrection(NULL), shiftConst(NULL),
-  shiftConst_1_4(NULL), An(NULL),
-  Bn(NULL), Cn(NULL), An_1_4(NULL), Bn_1_4(NULL),
-  Cn_1_4(NULL), sig6(NULL), sign(NULL),
+FFParticle::FFParticle(Forcefield &ff) : forcefield(ff), mass(NULL), nameFirst(NULL), nameSec(NULL),
+  n(NULL), n_1_4(NULL), sigmaSq(NULL), sigmaSq_1_4(NULL), epsilon_cn(NULL),
+  epsilon(NULL), epsilon_1_4(NULL), epsilon_cn_1_4(NULL), epsilon_cn_6(NULL),
+  epsilon_cn_6_1_4(NULL), nOver6(NULL), nOver6_1_4(NULL), enCorrection(NULL),
+  virCorrection(NULL)
 #ifdef GOMC_CUDA
-  varCUDA(NULL),
+  , varCUDA(NULL)
 #endif
-  sig6_1_4(NULL), sign_1_4(NULL), rCut(0), rCutSq(0),
-  rOnSq(0), rOn(0), A6(0), B6(0), C6(0), factor1(0),
-  factor2(0) {}
+{}
 
 FFParticle::~FFParticle(void)
 {
@@ -40,7 +32,8 @@ FFParticle::~FFParticle(void)
   delete[] epsilon_cn;
   delete[] epsilon_cn_6;
   delete[] nOver6;
-  // parameter for 1-4 interaction, same one will be used for 1-3 interaction
+  // parameter for 1-4 interaction,
+  // same one will be used for 1-3 interaction
   delete[] sigmaSq_1_4;
   delete[] n_1_4;
   delete[] epsilon_1_4;
@@ -51,19 +44,6 @@ FFParticle::~FFParticle(void)
   delete[] enCorrection;
   delete[] virCorrection;
 
-  delete[] shiftConst;
-  delete[] An;
-  delete[] Bn;
-  delete[] Cn;
-  delete[] sig6;
-  delete[] sign;
-  // parameter for 1-4 interaction, same one will be used for 1-3 interaction
-  delete[] shiftConst_1_4;
-  delete[] An_1_4;
-  delete[] Bn_1_4;
-  delete[] Cn_1_4;
-  delete[] sig6_1_4;
-  delete[] sign_1_4;
 #ifdef GOMC_CUDA
   DestroyCUDAVars(varCUDA);
   delete varCUDA;
@@ -71,9 +51,7 @@ FFParticle::~FFParticle(void)
 }
 
 void FFParticle::Init(ff_setup::Particle const& mie,
-                      ff_setup::NBfix const& nbfix,
-                      config_setup::SystemVals const& sys,
-                      config_setup::FFKind const& ffKind)
+                      ff_setup::NBfix const& nbfix)
 {
 #ifdef GOMC_CUDA
   // Variables for GPU stored in here
@@ -82,14 +60,10 @@ void FFParticle::Init(ff_setup::Particle const& mie,
   count = mie.epsilon.size(); //Get # particles read
   //Size LJ particle kind arrays
   mass = new double [count];
-  vdwKind = sys.ff.VDW_KIND;
-
   //Size LJ-LJ pair arrays
   uint size = num::Sq(count);
   nameFirst = new std::string [size];
   nameSec = new std::string [size];
-  isMartini = ffKind.isMARTINI;
-
 
 #ifdef MIE_INT_ONLY
   n = new uint [size];
@@ -113,64 +87,18 @@ void FFParticle::Init(ff_setup::Particle const& mie,
   enCorrection = new double [size];
   virCorrection = new double [size];
 
-  if(vdwKind == sys.ff.VDW_SHIFT_KIND) {
-    shiftConst = new double [size];
-    shiftConst_1_4 = new double [size];
-  }
-
-  rCut =  sys.ff.cutoff;
-  rCutSq = rCut * rCut;
-  rCutLow = sys.ff.cutoffLow;
-  rCutLowSq = rCutLow * rCutLow;
-  scaling_14 = sys.elect.oneFourScale;
-  ewald = sys.elect.ewald;
-  alpha = sys.elect.alpha;
-  diElectric_1 = 1.0 / sys.elect.dielectric;
-
-  if(vdwKind == sys.ff.VDW_SWITCH_KIND && isMartini) {
-    An = new double [size];
-    Bn = new double [size];
-    Cn = new double [size];
-    An_1_4 = new double [size];
-    Bn_1_4 = new double [size];
-    Cn_1_4 = new double [size];
-    sign = new double [size];
-    sig6 = new double [size];
-    sign_1_4 = new double [size];
-    sig6_1_4 = new double [size];
-
-    rOn = sys.ff.rswitch;
-    //in Martini, Coulomb switching distance is zero
-    rOnCoul = 0.0;
-    rOnSq = rOn * rOn;
-    // LJ constants
-    A6 = 6.0 * ((6.0 + 1) * rOn - (6.0 + 4) * rCut) / (pow(rCut, 6.0 + 2) *
-         pow(rCut - rOn, 2));
-    B6 = -6.0 * ((6.0 + 1) * rOn - (6.0 + 3) * rCut) / (pow(rCut, 6.0 + 2) *
-         pow(rCut - rOn, 3));
-    C6 = 1.0 / pow(rCut, 6.0) - A6 / 3.0 * pow(rCut - rOn, 3) - B6 / 4.0 *
-         pow(rCut - rOn, 4);
-    // Coulomb constants
-    A1 = 1.0 * ((1.0 + 1) * rOnCoul - (1.0 + 4) * rCut) / (pow(rCut, 1.0 + 2) *
-         pow(rCut - rOnCoul, 2));
-    B1 = -1.0 * ((1.0 + 1) * rOnCoul - (1.0 + 3) * rCut) / (pow(rCut, 1.0 + 2) *
-         pow(rCut - rOnCoul, 3));
-    C1 = 1.0 / pow(rCut, 1.0) - A1 / 3.0 * pow(rCut - rOnCoul, 3) - B1 / 4.0 *
-         pow(rCut - rOnCoul, 4);
-  } else if(vdwKind == sys.ff.VDW_SWITCH_KIND && !isMartini) {
-    rOn = sys.ff.rswitch;
-    rOnSq = rOn * rOn;
-
-    factor1 = rCutSq - 3 * rOnSq;
-    factor2 = pow((rCutSq - rOnSq), -3);
-  }
-
-  Blend(mie, rCut);
-  AdjNBfix(mie, nbfix, rCut);
+  //Combining VDW parameter
+  Blend(mie, forcefield.rCut);
+  //Adjusting VDW parameter using NBFIX
+  AdjNBfix(mie, nbfix, forcefield.rCut);
 
 #ifdef GOMC_CUDA
-  InitGPUForceField(*varCUDA, sigmaSq, epsilon_cn, n, vdwKind, isMartini,
-                    count, rCut, rCutLow, rOn, alpha, ewald, diElectric_1);
+  double diElectric_1 = 1.0 / forcefield.dielectric;
+  InitGPUForceField(*varCUDA, sigmaSq, epsilon_cn, n, forcefield.vdwKind,
+                    forcefield.isMartini, count, forcefield.rCut,
+                    forcefield.rCutCoulomb, forcefield.rCutLow,
+                    forcefield.rswitch, forcefield.alpha, forcefield.ewald,
+                    diElectric_1);
 #endif
 }
 
@@ -179,10 +107,61 @@ double FFParticle::EnergyLRC(const uint kind1, const uint kind2) const
   return enCorrection[FlatIndex(kind1, kind2)];
 }
 
-
 double FFParticle::VirialLRC(const uint kind1, const uint kind2) const
 {
   return virCorrection[FlatIndex(kind1, kind2)];
+}
+
+void FFParticle::Blend(ff_setup::Particle const& mie, const double rCut)
+{
+  for(uint i = 0; i < count; ++i) {
+    for(uint j = 0; j < count; ++j) {
+      uint idx = FlatIndex(i, j);
+      //get all name combination for using in nbfix
+      nameFirst[idx] = mie.getname(i);
+      nameFirst[idx] += mie.getname(j);
+      nameSec[idx] = mie.getname(j);
+      nameSec[idx] += mie.getname(i);
+
+      n[idx] = num::MeanA(mie.n, mie.n, i, j);
+      n_1_4[idx] = num::MeanA(mie.n_1_4, mie.n_1_4, i, j);
+      double cn = n[idx] / (n[idx] - 6) * pow(n[idx] / 6, (6 / (n[idx] - 6)));
+      double cn_1_4 = n_1_4[idx] / (n_1_4[idx] - 6) *
+                      pow(n_1_4[idx] / 6, (6 / (n_1_4[idx] - 6)));
+
+      double sigma, sigma_1_4;
+      sigma = sigma_1_4 = 0.0;
+
+      if(forcefield.vdwGeometricSigma) {
+        sigma = num::MeanG(mie.sigma, mie.sigma, i, j);
+        sigma_1_4 = num::MeanG(mie.sigma_1_4, mie.sigma_1_4, i, j);
+      } else {
+        sigma = num::MeanA(mie.sigma, mie.sigma, i, j);
+        sigma_1_4 = num::MeanA(mie.sigma_1_4, mie.sigma_1_4, i, j);
+      }
+
+      double tc = 1.0;
+      double rRat = sigma / rCut;
+      // calculate sig^2 and tc*sig^3
+      num::Cb(sigmaSq[idx], tc, sigma);
+      sigmaSq_1_4[idx] = sigma_1_4 * sigma_1_4;
+      tc *= 0.5 * 4.0 * M_PI;
+      epsilon[idx] = num::MeanG(mie.epsilon, mie.epsilon, i, j);
+      epsilon_cn[idx] = cn * epsilon[idx];
+      epsilon_1_4[idx] = num::MeanG(mie.epsilon_1_4, mie.epsilon_1_4, i, j);
+      epsilon_cn_1_4[idx] = cn * epsilon_1_4[idx];
+      epsilon_cn_6[idx] = epsilon_cn[idx] * 6;
+      epsilon_cn_6_1_4[idx] = epsilon_cn_1_4[idx] * 6;
+      nOver6[idx] = n[idx] / 6;
+      nOver6_1_4[idx] = n_1_4[idx] / 6;
+      enCorrection[idx] = tc / (n[idx] - 3) * epsilon_cn[idx] *
+                          ( pow(rRat, n[idx] - 3) -
+                            (double)(n[idx] - 3.0) / 3.0 * pow(rRat, 3) );
+      virCorrection[idx] = tc / (n[idx] - 3) * epsilon_cn_6[idx] *
+                           ( (double)(n[idx]) / 6.0 * pow(rRat, n[idx] - 3) -
+                             (double)(n[idx] - 3.0) / 3.0 * pow(rRat, 3) );
+    }
+  }
 }
 
 void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
@@ -216,138 +195,6 @@ void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
         virCorrection[j] = tc / (n[j] - 3) * epsilon_cn_6[j] *
                            ( (double)(n[j]) / 6.0 * pow(rRat, n[j] - 3) -
                              (double)(n[j] - 3.0) / 3.0 * pow(rRat, 3) );
-
-
-        if(vdwKind == num::VDW_SHIFT_KIND) {
-          double rRat2 = sigmaSq[j] / rCutSq;
-          double rRat4 = rRat2 * rRat2;
-          double attract = rRat4 * rRat2;
-          //for 1-4 interaction
-          double rRat2_1_4 = sigmaSq_1_4[j] / rCutSq;
-          double rRat4_1_4 = rRat2_1_4 * rRat2_1_4;
-          double attract_1_4 = rRat4_1_4 * rRat2_1_4;
-#ifdef MIE_INT_ONLY
-          double repulse = num::POW(rRat2, rRat4, attract, n[j]);
-          double repulse_1_4 =
-            num::POW(rRat2_1_4, rRat4_1_4, attract_1_4, n_1_4[j]);
-#else
-          double repulse = pow(sqrt(rRat2), n[j]);
-          double repulse_1_4 = pow(sqrt(rRat2_1_4), n_1_4[j]);
-#endif
-          shiftConst[j] =  epsilon_cn[j] * (repulse - attract);
-          shiftConst_1_4[j] =  epsilon_cn_1_4[j] *
-                               (repulse_1_4 - attract_1_4);
-        }
-
-        if(vdwKind == num::VDW_SWITCH_KIND && isMartini) {
-          double pn = n[j];
-          An[j] = pn * ((pn + 1) * rOn - (pn + 4) * rCut) / (pow(rCut, pn + 2) *
-                  pow(rCut - rOn, 2));
-          Bn[j] = -pn * ((pn + 1) * rOn - (pn + 3) * rCut) / (pow(rCut, pn + 2) *
-                  pow(rCut - rOn, 3));
-          Cn[j] = 1.0 / pow(rCut, pn) - An[j] / 3.0 * pow(rCut - rOn, 3) -
-                  Bn[j] / 4.0 * pow(rCut - rOn, 4);
-          sig6[j] = pow(nbfix.sigma[i], 6);
-          sign[j] = pow(nbfix.sigma[i], pn);
-
-          // for 1-4 interaction
-          double pn_1_4 = n_1_4[j];
-          An_1_4[j] = pn_1_4 * ((pn_1_4 + 1) * rOn - (pn_1_4 + 4) * rCut) /
-                      (pow(rCut, pn_1_4 + 2) * pow(rCut - rOn, 2));
-          Bn_1_4[j] = -pn_1_4 * ((pn_1_4 + 1) * rOn - (pn_1_4 + 3) * rCut) /
-                      (pow(rCut, pn_1_4 + 2) * pow(rCut - rOn, 3));
-          Cn_1_4[j] = 1.0 / pow(rCut, pn_1_4) - An_1_4[j] / 3.0 *
-                      pow(rCut - rOn, 3) - Bn_1_4[j] / 4.0 * pow(rCut - rOn, 4);
-          sig6_1_4[j] = pow(nbfix.sigma_1_4[i], 6);
-          sign_1_4[j] = pow(nbfix.sigma_1_4[i], pn_1_4);
-        }
-      }
-    }
-  }
-}
-
-void FFParticle::Blend(ff_setup::Particle const& mie, const double rCut)
-{
-  for(uint i = 0; i < count; ++i) {
-    for(uint j = 0; j < count; ++j) {
-      uint idx = FlatIndex(i, j);
-      //get all name combination for using in nbfix
-      nameFirst[idx] = mie.getname(i);
-      nameFirst[idx] += mie.getname(j);
-      nameSec[idx] = mie.getname(j);
-      nameSec[idx] += mie.getname(i);
-
-      n[idx] = num::MeanA(mie.n, mie.n, i, j);
-      n_1_4[idx] = num::MeanA(mie.n_1_4, mie.n_1_4, i, j);
-      double cn = n[idx] / (n[idx] - 6) * pow(n[idx] / 6, (6 / (n[idx] - 6)));
-      double sigma = num::MeanA(mie.sigma, mie.sigma, i, j);
-      double cn_1_4 = n_1_4[idx] / (n_1_4[idx] - 6) *
-                      pow(n_1_4[idx] / 6, (6 / (n_1_4[idx] - 6)));
-      double sigma_1_4 = num::MeanA(mie.sigma_1_4, mie.sigma_1_4, i, j);
-      double tc = 1.0;
-      double rRat = sigma / rCut;
-      // calculate sig^2 and tc*sig^3
-      num::Cb(sigmaSq[idx], tc, sigma);
-      sigmaSq_1_4[idx] = sigma_1_4 * sigma_1_4;
-      tc *= 0.5 * 4.0 * M_PI;
-      epsilon[idx] = num::MeanG(mie.epsilon, mie.epsilon, i, j);
-      epsilon_cn[idx] = cn * epsilon[idx];
-      epsilon_1_4[idx] = num::MeanG(mie.epsilon_1_4, mie.epsilon_1_4, i, j);
-      epsilon_cn_1_4[idx] = cn * epsilon_1_4[idx];
-      epsilon_cn_6[idx] = epsilon_cn[idx] * 6;
-      epsilon_cn_6_1_4[idx] = epsilon_cn_1_4[idx] * 6;
-      nOver6[idx] = n[idx] / 6;
-      nOver6_1_4[idx] = n_1_4[idx] / 6;
-      enCorrection[idx] = tc / (n[idx] - 3) * epsilon_cn[idx] *
-                          ( pow(rRat, n[idx] - 3) -
-                            (double)(n[idx] - 3.0) / 3.0 * pow(rRat, 3) );
-      virCorrection[idx] = tc / (n[idx] - 3) * epsilon_cn_6[idx] *
-                           ( (double)(n[idx]) / 6.0 * pow(rRat, n[idx] - 3) -
-                             (double)(n[idx] - 3.0) / 3.0 * pow(rRat, 3) );
-
-      if(vdwKind == num::VDW_SHIFT_KIND) {
-        double rRat2 = sigmaSq[idx] / rCutSq;
-        double rRat4 = rRat2 * rRat2;
-        double attract = rRat4 * rRat2;
-        //for 1-4 interaction
-        double rRat2_1_4 = sigmaSq_1_4[idx] / rCutSq;
-        double rRat4_1_4 = rRat2_1_4 * rRat2_1_4;
-        double attract_1_4 = rRat4_1_4 * rRat2_1_4;
-
-#ifdef MIE_INT_ONLY
-        double repulse = num::POW(rRat2, rRat4, attract, n[idx]);
-        double repulse_1_4 =
-          num::POW(rRat2_1_4, rRat4_1_4, attract_1_4, n_1_4[idx]);
-#else
-        double repulse = pow(sqrt(rRat2), n[idx]);
-        double repulse_1_4 = pow(sqrt(rRat2_1_4), n_1_4[idx]);
-#endif
-        shiftConst[idx] =  epsilon_cn[idx] * (repulse - attract);
-        shiftConst_1_4[idx] =  epsilon_cn_1_4[idx] *
-                               (repulse_1_4 - attract_1_4);
-      }
-
-      if(vdwKind == num::VDW_SWITCH_KIND && isMartini) {
-        double pn = n[idx];
-        An[idx] = pn * ((pn + 1) * rOn - (pn + 4) * rCut) / (pow(rCut, pn + 2) *
-                  pow(rCut - rOn, 2));
-        Bn[idx] = -pn * ((pn + 1) * rOn - (pn + 3) * rCut) / (pow(rCut, pn + 2) *
-                  pow(rCut - rOn, 3));
-        Cn[idx] = 1.0 / pow(rCut, pn) - An[idx] / 3.0 * pow(rCut - rOn, 3) -
-                  Bn[idx] / 4.0 * pow(rCut - rOn, 4);
-        sig6[idx] = pow(sigma, 6);
-        sign[idx] = pow(sigma, pn);
-
-        // for 1-4 interaction
-        double pn_1_4 = n_1_4[idx];
-        An_1_4[idx] = pn_1_4 * ((pn_1_4 + 1) * rOn - (pn_1_4 + 4) * rCut) /
-                      (pow(rCut, pn_1_4 + 2) * pow(rCut - rOn, 2));
-        Bn_1_4[idx] = -pn_1_4 * ((pn_1_4 + 1) * rOn - (pn_1_4 + 3) * rCut) /
-                      (pow(rCut, pn_1_4 + 2) * pow(rCut - rOn, 3));
-        Cn_1_4[idx] = 1.0 / pow(rCut, pn_1_4) - An_1_4[idx] / 3.0 *
-                      pow(rCut - rOn, 3) - Bn_1_4[idx] / 4.0 * pow(rCut - rOn, 4);
-        sig6_1_4[idx] = pow(sigma_1_4, 6);
-        sign_1_4[idx] = pow(sigma_1_4, pn_1_4);
       }
     }
   }
@@ -382,4 +229,116 @@ double FFParticle::GetN_1_4(const uint i, const uint j) const
 {
   uint idx = FlatIndex(i, j);
   return n_1_4[idx];
+}
+
+// Defining the functions
+
+inline void FFParticle::CalcAdd_1_4(double& en, const double distSq,
+                                    const uint kind1, const uint kind2) const
+{
+  uint index = FlatIndex(kind1, kind2);
+  double rRat2 = sigmaSq_1_4[index] / distSq;
+  double rRat4 = rRat2 * rRat2;
+  double attract = rRat4 * rRat2;
+#ifdef MIE_INT_ONLY
+  uint n_ij = n_1_4[index];
+  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
+#else
+  double n_ij = n_1_4[index];
+  double repulse = pow(sqrt(rRat2), n_ij);
+#endif
+
+  en += epsilon_cn_1_4[index] * (repulse - attract);
+}
+
+inline void FFParticle::CalcCoulombAdd_1_4(double& en, const double distSq,
+    const double qi_qj_Fact,
+    const bool NB) const
+{
+  double dist = sqrt(distSq);
+  if(NB)
+    en += qi_qj_Fact / dist;
+  else
+    en += qi_qj_Fact * forcefield.scaling_14 / dist;
+}
+
+
+
+//mie potential
+inline double FFParticle::CalcEn(const double distSq,
+                                 const uint kind1, const uint kind2) const
+{
+  if(forcefield.rCutSq < distSq)
+    return 0.0;
+
+  uint index = FlatIndex(kind1, kind2);
+  double rRat2 = sigmaSq[index] / distSq;
+  double rRat4 = rRat2 * rRat2;
+  double attract = rRat4 * rRat2;
+#ifdef MIE_INT_ONLY
+  uint n_ij = n[index];
+  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
+#else
+  double n_ij = n[index];
+  double repulse = pow(sqrt(rRat2), n_ij);
+#endif
+
+  return epsilon_cn[index] * (repulse - attract);
+}
+
+inline double FFParticle::CalcCoulomb(const double distSq,
+                                      const double qi_qj_Fact, const uint b) const
+{
+  if(forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
+  if(forcefield.ewald) {
+    double dist = sqrt(distSq);
+    double val = forcefield.alpha[b] * dist;
+    return  qi_qj_Fact * erfc(val) / dist;
+  } else {
+    double dist = sqrt(distSq);
+    return  qi_qj_Fact / dist;
+  }
+}
+
+inline double FFParticle::CalcVir(const double distSq,
+                                  const uint kind1, const uint kind2) const
+{
+  if(forcefield.rCutSq < distSq)
+    return 0.0;
+
+  uint index = FlatIndex(kind1, kind2);
+  double rNeg2 = 1.0 / distSq;
+  double rRat2 = rNeg2 * sigmaSq[index];
+  double rRat4 = rRat2 * rRat2;
+  double attract = rRat4 * rRat2;
+#ifdef MIE_INT_ONLY
+  uint n_ij = n[index];
+  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
+#else
+  double n_ij = n[index];
+  double repulse = pow(sqrt(rRat2), n_ij);
+#endif
+
+  //Virial is the derivative of the pressure... mu
+  return epsilon_cn_6[index] * (nOver6[index] * repulse - attract) * rNeg2;
+}
+
+inline double FFParticle::CalcCoulombVir(const double distSq,
+    const double qi_qj, const uint b) const
+{
+  if(forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
+  if(forcefield.ewald) {
+    double dist = sqrt(distSq);
+    double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
+    double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
+    double temp = 1.0 - erf(forcefield.alpha[b] * dist);
+    return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+  } else {
+    double dist = sqrt(distSq);
+    return qi_qj / (distSq * dist);
+  }
 }
