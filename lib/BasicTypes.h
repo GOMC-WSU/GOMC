@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -117,6 +117,25 @@ struct XYZ {
     return *this;
   }
 
+  double Max() const
+  {
+    double m = x;
+    if(y > m)
+      m = y;
+    if(z > m)
+      m = z;
+    return m;
+  }
+
+  double Min() const
+  {
+    double m = x;
+    if(y < m)
+      m = y;
+    if(z < m)
+      m = z;
+    return m;
+  }
 };
 
 inline std::ostream& operator << (std::ostream & stream, const XYZ& p)

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -23,15 +23,13 @@ class CellList
 {
 public:
   explicit CellList(const Molecules& mols, BoxDimensions& dims);
-
-  void SetCutoff(double cut)
-  {
-    cutoff = cut;
-  }
+  void SetCutoff();
 
   void RemoveMol(const int molIndex, const int box, const XYZArray& pos);
   void AddMol(const int molIndex, const int box, const XYZArray& pos);
   void GridAll(BoxDimensions& dims, const XYZArray& pos, const MoleculeLookup& lookup);
+  void GridBox(BoxDimensions& dims, const XYZArray& pos, const MoleculeLookup& lookup,
+               const uint b);
 
   // Index of cell containing position
   int PositionToCell(const XYZ& posRef, int box) const;
@@ -62,6 +60,8 @@ private:
 
   // Resize all boxes to match current axes
   void ResizeGrid(const BoxDimensions& dims);
+  // Resize one boxes to match current axes
+  void ResizeGridBox(const BoxDimensions& dims, const uint b);
   // Rebuild head/neighbor lists in box b to match current grid
   void RebuildNeighbors(int b);
 
@@ -72,7 +72,7 @@ private:
   int edgeCells[BOX_TOTAL][3];
   const Molecules* mols;
   BoxDimensions *dimensions;
-  double cutoff;
+  double cutoff[BOX_TOTAL];
   bool isBuilt;
 };
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -12,6 +12,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBSetup.h" //Primary source of volume.
 #include "ConfigSetup.h" //Other potential source of volume (new sys only)
 #include "XYZArray.h" //For axes
+#include "Forcefield.h"
+#include "GeomLib.h"
 #include <cstdio>
 #include <cstdlib>
 
@@ -19,7 +21,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 //Use shortcuts when calculating Rcut
 //#define RCUT_SHORTCUT
-
 
 class BoxDimensions
 {
@@ -37,14 +38,15 @@ public:
 
   virtual void Init(config_setup::RestartSettings const& restart,
                     config_setup::Volume const& confVolume,
-                    pdb_setup::Cryst1 const& cryst, double rc, double rcSq);
+                    pdb_setup::Cryst1 const& cryst,
+                    Forcefield const &ff);
 
   XYZ GetAxis(const uint b) const
   {
     return axis.Get(b);
   }
 
-  double GetTotVolume() const;
+  double GetTotVolume(const uint b1, const uint b2) const;
 
   virtual void SetVolume(const uint b, const double vol);
 
@@ -53,7 +55,7 @@ public:
 
   //!Calculate and execute volume exchange based on transfer
   virtual uint ExchangeVolume(BoxDimensions & newDim, XYZ * scale,
-                              const double transfer) const;
+                              const double transfer, const uint *box) const;
 
   //Vector btwn two points, accounting for PBC, on an individual axis
   virtual XYZ MinImage(XYZ rawVec, const uint b) const;
@@ -104,11 +106,12 @@ public:
   bool InRcut(double & distSq, XYZArray const& arr1,
               const uint i, XYZArray const& arr2, const uint j,
               const uint b) const;
-
-  bool InRcut(double distSq) const
-  {
-    return (distSq < rCutSq);
-  }
+  /*
+    bool InRcut(double distSq) const
+    {
+      return (distSq < rCutSq);
+    }
+    */
 
   //Dist squared , two different coordinate arrays
   void GetDistSq(double & distSq, XYZArray const& arr1,
@@ -118,6 +121,10 @@ public:
   //Dist squared with same coordinate array
   void GetDistSq(double & distSq, XYZArray const& arr, const uint i,
                  const uint j, const uint b) const;
+
+  //True if arr is inside cavDim with geometric center of center.
+  bool InCavity(XYZ const& arr, XYZ const& center, XYZ const& cavDim,
+                XYZArray const& invCav, const uint b) const;
 
   //Transform A to unslant coordinate
   virtual XYZ TransformUnSlant(const XYZ &A, const uint b) const;
@@ -133,9 +140,9 @@ public:
   double volInv[BOX_TOTAL];       //inverse volume of each box in (a^-3)
   double cosAngle[BOX_TOTAL][3];  //alpha, beta, gamma for each box
 
-  double rCut;
-  double rCutSq;
-  double minVol;
+  double rCut[BOX_TOTAL];
+  double rCutSq[BOX_TOTAL];
+  double minVol[BOX_TOTAL];
 
   bool cubic[BOX_TOTAL], orthogonal[BOX_TOTAL], constArea;
 
@@ -206,7 +213,7 @@ inline bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
 {
   dist = MinImage(arr.Difference(i, j), b);
   distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
-  return (rCutSq > distSq);
+  return (rCutSq[b] > distSq);
 }
 
 
@@ -217,7 +224,7 @@ inline bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
 {
   dist = MinImage(arr1.Difference(i, arr2, j), b);
   distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
-  return (rCutSq > distSq);
+  return (rCutSq[b] > distSq);
 }
 
 inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr,
@@ -226,7 +233,7 @@ inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr,
 {
   XYZ dist = MinImage(arr.Difference(i, j), b);
   distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
-  return (rCutSq > distSq);
+  return (rCutSq[b] > distSq);
 }
 
 
@@ -236,7 +243,7 @@ inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr1,
 {
   XYZ dist = MinImage(arr1.Difference(i, arr2, j), b);
   distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
-  return (rCutSq > distSq);
+  return (rCutSq[b] > distSq);
 }
 
 
@@ -254,6 +261,21 @@ inline void BoxDimensions::GetDistSq(double & distSq, XYZArray const& arr,
 {
   XYZ dist = MinImage(arr.Difference(i, j), b);
   distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
+}
+
+inline bool BoxDimensions::InCavity(XYZ const& arr, XYZ const& center,
+                                    XYZ const& cavDim, XYZArray const& invCav,
+                                    const uint b) const
+{
+  XYZ halfDim = cavDim * 0.5;
+  halfDim *= halfDim;
+  XYZ diff = MinImage(arr - center, b);
+  diff = geom::Transform(invCav, diff);
+  diff *= diff;
+  if(diff.x > halfDim.x || diff.y > halfDim.y || diff.z > halfDim.z)
+    return false;
+  else
+    return true;
 }
 
 //Calculate transform

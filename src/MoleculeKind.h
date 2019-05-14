@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -94,7 +94,48 @@ public:
     builder->Regrowth(oldMol, newMol, molIndex);
   }
 
+  //Crank Shaft move
+  void CrankShaft(cbmc::TrialMol& oldMol, cbmc::TrialMol& newMol,
+                  const uint molIndex)
+  {
+    builder->CrankShaft(oldMol, newMol, molIndex);
+  }
+
+  //Used in MEMC move
+  void BuildIDNew(cbmc::TrialMol& newMol, const uint molIndex)
+  {
+    builder->BuildIDNew(newMol, molIndex);
+  }
+
+  void BuildIDOld(cbmc::TrialMol& oldMol, const uint molIndex)
+  {
+    builder->BuildIDOld(oldMol, molIndex);
+  }
+
+  void BuildNew(cbmc::TrialMol& newMol, const uint molIndex)
+  {
+    builder->BuildNew(newMol, molIndex);
+  }
+
+  void BuildOld(cbmc::TrialMol& oldMol, const uint molIndex)
+  {
+    builder->BuildOld(oldMol, molIndex);
+  }
+
+  void BuildGrowNew(cbmc::TrialMol& newMol, const uint molIndex)
+  {
+    builder->BuildGrowNew(newMol, molIndex);
+  }
+
+  void BuildGrowOld(cbmc::TrialMol& oldMol, const uint molIndex)
+  {
+    builder->BuildGrowOld(oldMol, molIndex);
+  }
+
   double GetMoleculeCharge();
+
+  bool MoleculeHasCharge();
+
   SortedNonbond sortedNB, sortedNB_1_4, sortedNB_1_3, sortedEwaldNB;
 
 

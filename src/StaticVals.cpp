@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -19,7 +19,7 @@ void StaticVals::Init(Setup & set, System& sys)
   mol.Init(set, forcefield, sys);
 #ifndef VARIABLE_VOLUME
   boxDimensions->Init(set.config.in.restart, set.config.sys.volume,
-                      set.pdb.cryst, forcefield.rCut, forcefield.rCutSq);
+                      set.pdb.cryst, forcefield);
 #endif
 #ifndef VARIABLE_PARTICLE_NUMBER
   molLookup.Init(mol, set.pdb.atoms);
@@ -55,6 +55,12 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
     case mv::REGROWTH:
       movePerc[m] = perc.regrowth;
       break;
+    case mv::INTRA_MEMC:
+      movePerc[m] = perc.intraMemc;
+      break;
+    case mv::CRANKSHAFT:
+      movePerc[m] = perc.crankShaft;
+      break;
 #ifdef VARIABLE_VOLUME
     case mv::VOL_TRANSFER :
       movePerc[m] = perc.volume;
@@ -64,6 +70,9 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
     case mv::MOL_TRANSFER :
       movePerc[m] = perc.transfer;
+      break;
+    case mv::MEMC :
+      movePerc[m] = perc.memc;
       break;
 #endif
 #endif
@@ -103,7 +112,8 @@ void StaticVals::IsBoxOrthogonal(config_setup::Volume const& vol)
 }
 
 
-StaticVals::StaticVals(Setup & set)
+StaticVals::StaticVals(Setup & set) : memcVal(set.config.sys.memcVal),
+  intraMemcVal(set.config.sys.intraMemcVal)
 {
   isOrthogonal = true;
   IsBoxOrthogonal(set.config.sys.volume);

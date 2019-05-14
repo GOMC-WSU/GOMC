@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -35,7 +35,8 @@ public:
 
   virtual void Init(config_setup::RestartSettings const& restart,
                     config_setup::Volume const& confVolume,
-                    pdb_setup::Cryst1 const& cryst, double rc, double rcSq);
+                    pdb_setup::Cryst1 const& cryst,
+                    Forcefield const &ff);
 
   virtual void SetVolume(const uint b, const double vol);
 
@@ -44,7 +45,7 @@ public:
 
   //!Calculate and execute volume exchange based on transfer
   virtual uint ExchangeVolume(BoxDimensionsNonOrth & newDim, XYZ * scale,
-                              const double transfer) const;
+                              const double transfer, const uint *box) const;
 
   //Construct cell basis based on new axis dimension
   void CalcCellDimensions(const uint b);

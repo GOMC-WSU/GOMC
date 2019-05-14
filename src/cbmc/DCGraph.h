@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -9,6 +9,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CBMC.h"
 #include "DCComponent.h"
 #include "DCData.h"
+#include "MolSetup.h"
+#include "Setup.h"
+#include "MoleculeKind.h"
 #include <vector>
 #include <utility>
 
@@ -30,11 +33,21 @@ public:
 
   void Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
   void Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
+  void CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
   void BuildEdges(TrialMol& oldMol, TrialMol& newMol, uint molIndex,
                   const uint current);
+  //used in MEMC moves
+  void BuildIDNew(TrialMol& newMol, uint molIndex);
+  void BuildIDOld(TrialMol& oldMol, uint molIndex);
+  void BuildNew(TrialMol& newMol, uint molIndex);
+  void BuildOld(TrialMol& oldMol, uint molIndex);
+  void BuildGrowNew(TrialMol& newMol, uint molIndex);
+  void BuildGrowOld(TrialMol& oldMol, uint molIndex);
   ~DCGraph();
 
 private:
+  //Find the two nodes that are forming dihedral or angle and initialize it.
+  void InitCrankShaft(const mol_setup::MolKind& kind);
   //Store edge's atom that are connected to node and has more than 1 bond
   //Each edge is a node as well
   struct Edge {
@@ -57,10 +70,14 @@ private:
     std::vector<uint> partnerIndex;
   };
 
+  DCComponent *idExchange;
   DCData data;
+  bool hasCrankShaft;
   std::vector<Node> nodes;
   std::vector<Edge> fringe;
   std::vector<bool> visited;
+  std::vector<DCComponent*> shaftNodes;
+  XYZArray coords;
 };
 }
 

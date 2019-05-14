@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -55,7 +55,7 @@ public:
   //scale all in each mol newCOM[m]/oldCOM[m]
   void VolumeTransferTranslate
   (uint & state, Coordinates &dest, COM & newCOM, BoxDimensions & newDim,
-   COM const& oldCOM, const double max) const;
+   COM const& oldCOM, const double max, const uint *box) const;
 
   //Helper for TranslateAll
   void TranslateOneBox(Coordinates & dest, COM & newCOM, COM const& oldCOM,

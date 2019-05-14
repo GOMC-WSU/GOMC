@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -10,6 +10,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "EnsemblePreprocessor.h" //for BOX_TOTAL
 #include "BasicTypes.h" //For uint
 #include <vector>
+
+class CheckpointOutput;
 
 namespace pdb_setup
 {
@@ -77,7 +79,7 @@ public:
     return (fixedAtom[m] == 1);
   }
 
-  bool IsNoSwap(const uint m)
+  bool IsNoSwap(const uint m) const
   {
     return (fixedAtom[m] >= 1);
   }
@@ -102,6 +104,7 @@ public:
   //iterator to traverse all the molecules in a particular box
   class box_iterator;
   friend class MoleculeLookup::box_iterator;
+  friend class CheckpointSetup;
   box_iterator BoxBegin(const uint box) const;
   box_iterator BoxEnd(const uint box) const;
 
@@ -116,15 +119,20 @@ private:
   //array of indices for type Molecule, sorted by box and kind for
   //move selection
   uint* molLookup;
+  uint molLookupCount;
   //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
   //molLookup
   //index [BOX_TOTAL * kind + box + 1] is the element after the end
   //of that kind/box
   uint* boxAndKindStart;
+  uint boxAndKindStartCount;
   uint numKinds;
   std::vector <uint> fixedAtom;
   std::vector <uint> canSwapKind; //Kinds that can move intra and inter box
   std::vector <uint> canMoveKind; //Kinds that can move intra box only
+
+  // make CheckpointOutput class a friend so it can print all the private data
+  friend class CheckpointOutput;
 };
 
 inline uint MoleculeLookup::NumKindInBox(const uint kind, const uint box) const

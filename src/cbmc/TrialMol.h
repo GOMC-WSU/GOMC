@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -12,6 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "TransformMatrix.h"
 #include "BasicTypes.h"
 #include "MoleculeKind.h"
+#include "GeomLib.h"
 
 class MoleculeKind;
 class BoxDimensions;
@@ -20,6 +21,67 @@ class CalculateEnergy;
 //! Class for keeping track of part-built molecules during CBMC
 namespace cbmc
 {
+struct Bonds {
+public:
+  Bonds(const BondList &bList)
+  {
+    for(uint b = 0; b < bList.count; b++) {
+      a0.push_back(bList.part1[b]);
+      a1.push_back(bList.part2[b]);
+      kind.push_back(bList.kinds[b]);
+      bondExist.push_back(false);
+      count = bList.count;
+    }
+  }
+
+  Bonds()
+  {
+    count = 0;
+  }
+
+  Bonds(const Bonds& other)
+  {
+    a0 = other.a0;
+    a1 = other.a1;
+    kind = other.kind;
+    bondExist = other.bondExist;
+    count = other.count;
+  }
+
+  void AddBond(const uint p0, const uint p1)
+  {
+    for(uint b = 0; b < count; b++) {
+      if(a0[b] == p0 && a1[b] == p1) {
+        bondExist[b] = true;
+      } else if(a0[b] == p1 && a1[b] == p0) {
+        bondExist[b] = true;
+      }
+    }
+  }
+
+  bool BondExist(const uint p0, const uint p1)
+  {
+    for(uint b = 0; b < count; b++) {
+      if(a0[b] == p0 && a1[b] == p1) {
+        return bondExist[b];
+      } else if(a0[b] == p1 && a1[b] == p0) {
+        return bondExist[b];
+      }
+    }
+    //We should not reach here
+    return false;
+  }
+
+  void Unset()
+  {
+    std::fill(bondExist.begin(), bondExist.end(), false);
+  }
+
+private:
+  std::vector<uint> a0, a1, kind;
+  std::vector<bool> bondExist;
+  uint count;
+};
 
 class TrialMol
 {
@@ -41,6 +103,7 @@ public:
   }
 
   void AddAtom(uint index, const XYZ& position);
+  void SetAtomCoords(uint index, const XYZ& loc);
 
   void AddEnergy(const Energy& energy)
   {
@@ -66,6 +129,9 @@ public:
   //!Shifts the current basis to the position of p1, but does not rotate it.
   void ShiftBasis(uint p1);
 
+  //!Shifts the current basis to the XYZ coordinate.
+  void ShiftBasis(XYZ cent);
+
   //!Resets basis to box coordinate system
   void ResetBasis();
 
@@ -82,8 +148,11 @@ public:
   static double PhiBetweenAngles(double theta1, double theta2,
                                  double interior);
 
-  //!Return angle in radians between confirmed atoms a, b and c
+  //!Return angle in radians between confirmed atoms a-b-c
   double GetTheta(uint a, uint b, uint c) const;
+
+  //!Return dihedral in radians between confirmed atoms a-b-c-d
+  double GetPhi(uint a, uint b, uint c, uint d) const;
 
   //!Calculates theta and phi coords for atom in the current basis
   //!centered on lastAtom. theta in [0, pi], phi in (-pi, pi]
@@ -145,18 +214,88 @@ public:
     return tCoords;
   }
 
+  //!Returns reference to coordinates of the backup TrialMol.
+  const XYZArray& GetBCoords() const
+  {
+    return bCoords;
+  }
+
   //!Returns position of atom i (undefined if it doesn't exist yet)
   XYZ AtomPosition(const uint atom) const
   {
     return tCoords.Get(atom);
   }
 
-  //!Copies 1 molecule's worth of coordinates from coords[start] onwards
+  //!Copies 1 molecule's worth of coordinates from coords[start] onwards to tCoords
   void SetCoords(const XYZArray& coords, uint start);
+
+  //!Copies 1 molecule's worth of coordinates from coords[start] onwards to bCoords
+  void SetBCoords(const XYZArray& coords, uint start);
 
   bool AtomExists(uint index) const
   {
     return atomBuilt[index];
+  }
+
+  void UpdateOverlap(const bool state)
+  {
+    overlap |= state;
+  }
+
+  bool HasOverlap() const
+  {
+    return overlap;
+  }
+
+  //Used in MEMC move
+  void SetSeed(const XYZ& coords, const XYZ& cav, const bool inCav,
+               const bool fixCOM, const bool rotBB);
+  void SetSeed(const bool inCav, const bool fixCOM, const bool rotBB);
+  void SetBackBone(const uint bb[2]);
+  XYZ Transform(const XYZ& a)
+  {
+    return geom::Transform(cavMatrix, a);
+  }
+  void TransposeMatrix(XYZArray &invMatrix)
+  {
+    return geom::TransposeMatrix(invMatrix, cavMatrix);
+  }
+  bool HasCav() const
+  {
+    return comInCav;
+  }
+  bool COMFix() const
+  {
+    return comFix;
+  }
+  bool RotateBB() const
+  {
+    return rotateBB;
+  }
+  void SetCavMatrix(const XYZArray& matrix);
+  XYZ GetCavityCenter() const
+  {
+    return cavityCenter;
+  }
+  XYZ GetCavity() const
+  {
+    return cavity;
+  }
+  //return unwrap com of tcoords so tcoords must be set
+  XYZ GetCOM();
+  uint GetAtomBB(const uint i) const
+  {
+    return backbone[i];
+  }
+  //set built bond to true
+  void AddBonds(const uint p0, const uint p1)
+  {
+    bonds.AddBond(p0, p1);
+  }
+  //check to see if bond exist or not
+  bool BondsExist(const uint p0, const uint p1)
+  {
+    return bonds.BondExist(p0, p1);
   }
 
   ~TrialMol();
@@ -167,14 +306,20 @@ private:
   const MoleculeKind* kind;
   const BoxDimensions* axes;
   uint box;
-  XYZArray tCoords;
+  XYZArray tCoords, cavMatrix;
+  XYZArray bCoords; //used to find the angle and theta in rings molecule
   Energy en;
   double totalWeight;
-  bool* atomBuilt;
   RotationMatrix growthToWorld;
   RotationMatrix worldToGrowth;
   XYZ basisPoint;
-  //bool oneThree, oneFour;
+  XYZ cavityCenter, cavity; //The center and cavity dimensions
+  uint backbone[2];
+  bool comInCav, comFix, rotateBB;
+  bool overlap;
+  bool* atomBuilt;
+  //To check the status of built bonds
+  Bonds bonds;
 };
 }
 

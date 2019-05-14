@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -40,30 +40,31 @@ void OutputVars::InitRef(System & sys, StaticVals const& statV)
   virial = new Virial[BOXES_WITH_U_NB];
 }
 
-uint OutputVars::GetTries(uint sub)
+bool OutputVars::Performed(uint moveKind)
 {
-  return (sub < mv::SCALEABLE ?
-          moveSetRef->tries[sub] + moveSetRef->tempTries[sub] :
-          moveSetRef->tries[sub]);
+  return (movePercRef[moveKind] > 0.0);
 }
 
-uint OutputVars::GetAccepted(uint sub)
+uint OutputVars::GetTries(uint box, uint sub)
 {
-  return (sub < mv::SCALEABLE ?
-          moveSetRef->accepted[sub] + moveSetRef->tempAccepted[sub] :
-          moveSetRef->accepted[sub]);
+  return moveSetRef->GetTrialTot(box, sub);
 }
 
-double OutputVars::GetScale(uint sub)
+uint OutputVars::GetAccepted(uint box, uint sub)
 {
-  return moveSetRef->scale[sub];
+  return moveSetRef->GetAcceptTot(box, sub);
 }
 
-double OutputVars::GetAcceptPercent(uint sub)
+double OutputVars::GetScale(uint box, uint sub)
 {
-  if(GetTries(sub) == 0)
+  return moveSetRef->GetScaleTot(box, sub);
+}
+
+double OutputVars::GetAcceptPercent(uint box, uint sub)
+{
+  if(GetTries(box, sub) == 0)
     return 0.0;
-  return (double)(GetAccepted(sub)) / (double)(GetTries(sub)) * 100.0;
+  return (double)(GetAccepted(box, sub)) / (double)(GetTries(box, sub)) * 100.0;
 }
 
 void OutputVars::Init(pdb_setup::Atoms const& atoms)
@@ -152,14 +153,14 @@ void OutputVars::CalcAndConvert(ulong step)
     rawPressure[b] = 0.0;
     densityTot[b] = 0.0;
     for (uint k = 0; k < numKinds; k++) {
-      double * density = &densityByKindBox[k + numKinds * b];
+      double density = densityByKindBox[k + numKinds * b];
 
       // Instead of converting to mass first
       // (an alternate route to calculate the ideal gas pressure)
       // the form of the Boltzmann constant that kcal/mol/K is used
       // such that a single conversion factor can be applied to both
       // the ideal and virial components of the pressure.
-      rawPressure[b] += *density;
+      rawPressure[b] += density;
     }
     // Finish ideal component
     rawPressure[b] *= T_in_K;
@@ -174,13 +175,13 @@ void OutputVars::CalcAndConvert(ulong step)
   for (uint b = 0; b < BOX_TOTAL; b++) {
     densityTot[b] = 0.0;
     for (uint k = 0; k < numKinds; k++) {
-      double * density = &densityByKindBox[k + numKinds * b];
+      double density = densityByKindBox[k + numKinds * b];
 
       // Convert density to g/ml (which is equivalent to g/cm3)
       // To get kg/m3, multiply output densities by 1000.
-      *density *= unit::MOLECULES_PER_A3_TO_MOL_PER_CM3 *
-                  kindsRef[k].molMass;
-      densityTot[b] += densityByKindBox[k + numKinds * b];
+      density *= unit::MOLECULES_PER_A3_TO_MOL_PER_CM3 *
+                 kindsRef[k].molMass;
+      densityTot[b] += density;
     }
     densityTot[b] *= 1000;
   }

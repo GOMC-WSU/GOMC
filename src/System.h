@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -23,6 +23,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveSettings.h"
 #include "CellList.h"
 #include "Clock.h"
+#include "CheckpointSetup.h"
 
 //Initialization variables
 class Setup;
@@ -34,13 +35,19 @@ class System
 public:
   explicit System(StaticVals& statics);
 
-  void Init(Setup const& setupData);
+  void Init(Setup const& setupData, ulong & startStep);
 
   //Runs move, picked at random
   void ChooseAndRunMove(const uint step);
 
+  // Recalculate Trajectory
+  void RecalculateTrajectory(Setup & set, uint frameNum);
+
   //print move time
   void PrintTime();
+
+  //print move time
+  void PrintAcceptance();
 
   // return ewald
   Ewald * GetEwald()
@@ -93,6 +100,8 @@ public:
   CellList cellList;
   PRNG prng;
 
+  CheckpointSetup checkpointSet;
+
   //Procedure to run once move is picked... can also be called directly for
   //debugging...
   void RunMove(uint majKind, double draw, const uint step);
@@ -100,7 +109,7 @@ public:
   ~System();
 
 private:
-  void InitMoves();
+  void InitMoves(Setup const& set);
   void PickMove(uint & kind, double & draw);
   uint SetParams(const uint kind, const double draw);
   uint Transform(const uint kind);

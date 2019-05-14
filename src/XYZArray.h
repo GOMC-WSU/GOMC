@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -10,6 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BasicTypes.h"
 #include <string.h> //for memset, memcpy, etc.
 #include <stdio.h> //for memset, memcpy, etc.
+#include <cmath>
 #include <utility>      //for swap (most modern compilers)
 #include <algorithm>      //for swap pre-c++11 compilers
 #ifdef _OPENMP
@@ -538,6 +539,5 @@ inline double XYZArray::AdjointMatrix(XYZArray &Inv)
   double det = x[0] * Inv.x[0] + x[1] * Inv.y[0] + x[2] * Inv.z[0];
   return det;
 }
-
 
 #endif /*XYZ_ARRAY_H*/

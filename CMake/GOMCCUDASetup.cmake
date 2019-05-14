@@ -21,7 +21,7 @@ set(GPU_NVT_name "GOMC_GPU_NVT")
 #####################################
 if(ENSEMBLE_GPU_NVT)
     cuda_add_executable(GPU_NVT ${cudaSources} ${cudaHeaders}
-    ${sources} ${headers} ${libHeaders})
+    ${sources} ${headers} ${libHeaders} ${libSources})
     set_target_properties(GPU_NVT PROPERTIES
         OUTPUT_NAME ${GPU_NVT_name}
         COMPILE_FLAGS "${GPU_NVT_flags}")
@@ -33,7 +33,7 @@ endif()
 
 if(ENSEMBLE_GPU_GEMC)
     cuda_add_executable(GPU_GEMC ${cudaSources} ${cudaHeaders} ${sources}
-    ${headers} ${libHeaders})
+    ${headers} ${libHeaders} ${libSources})
     set_target_properties(GPU_GEMC PROPERTIES
         OUTPUT_NAME ${GPU_GE_name}
         COMPILE_FLAGS "${GPU_GE_flags}")
@@ -45,7 +45,7 @@ endif()
 
 if(ENSEMBLE_GPU_GCMC)
     cuda_add_executable(GPU_GCMC ${cudaSources} ${cudaHeaders} ${sources}
-    ${headers} ${libHeaders})
+    ${headers} ${libHeaders} ${libSources})
     set_target_properties(GPU_GCMC PROPERTIES
         OUTPUT_NAME ${GPU_GC_name}
         COMPILE_FLAGS "${GPU_GC_flags}")
@@ -57,7 +57,7 @@ endif()
 
 if(ENSEMBLE_GPU_NPT)
     cuda_add_executable(GPU_NPT ${cudaSources} ${cudaHeaders} ${sources}
-    ${headers} ${libHeaders})
+    ${headers} ${libHeaders} ${libSources})
     set_target_properties(GPU_NPT PROPERTIES
         OUTPUT_NAME ${GPU_NPT_name}
         COMPILE_FLAGS "${GPU_NPT_flags}")

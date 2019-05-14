@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -28,13 +28,21 @@ namespace pdb_setup
 struct Remarks : FWReadableBase {
   uint currBox;
   double  disp[BOX_TOTAL], rotate[BOX_TOTAL], vol[BOX_TOTAL];
-  bool restart, reached;
+  ulong step[BOX_TOTAL];
+  uint frameNumber[BOX_TOTAL], targetFrame[BOX_TOTAL];
+  std::vector<ulong> frameSteps;
+  bool restart, reached[BOX_TOTAL], recalcTrajectory;
   void SetRestart(config_setup::RestartSettings const& r);
   void Read(FixedWidthReader & pdb);
   void SetBox(const uint b)
   {
     currBox = b;
   }
+  void SetFrameNumber(const uint b, const uint frameNum)
+  {
+    targetFrame[b] = frameNum;
+  }
+  void Clear();
 
 private:
   void CheckGOMC(std::string const& varName);
@@ -77,6 +85,7 @@ public:
               const double l_beta);
 
   void Read(FixedWidthReader & file);
+  void Clear();
 
   //private:
   //member data
@@ -87,7 +96,7 @@ public:
   std::vector<std::string> atomAliases, resNamesFull, resNames,
       resKindNames;
   std::vector<uint> startIdxRes, resKinds, molBeta;
-  bool restart, firstResInFile;
+  bool restart, firstResInFile, recalcTrajectory;
   //CurrRes is used to store res vals, currBox is used to
   //determine box either via the file (new) or the occupancy
   //(restart), count allows overwriting of coordinates during
@@ -104,7 +113,8 @@ struct PDBSetup {
   pdb_setup::Remarks remarks;
   PDBSetup(void) : dataKinds(SetReadFunctions()) {}
   void Init(config_setup::RestartSettings const& restart,
-            std::string const*const name);
+            std::string const*const name, uint frameNumber = 1);
+  std::vector<ulong> GetFrameSteps(std::string const*const name);
 private:
   //Map variable names to functions
   std::map<std::string, FWReadableBase *>  SetReadFunctions(void)

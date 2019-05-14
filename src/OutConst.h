@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -56,8 +56,10 @@ static const uint TOTAL_SINGLE = 15;
 
 //MULTI
 extern const std::string MOL_FRACTION;
+extern const std::string MOL_DENSITY;
 static const uint MOL_FRACTION_IDX = 0;
-static const uint TOTAL_K = 1;
+static const uint MOL_DENSITY_IDX = 1;
+static const uint TOTAL_K = 2;
 }
 
 #endif /*OUT_CONST_H*/

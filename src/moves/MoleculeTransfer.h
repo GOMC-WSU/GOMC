@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -26,6 +26,7 @@ public:
   virtual uint Transform();
   virtual void CalcEn();
   virtual void Accept(const uint earlyReject, const uint step);
+  virtual void PrintAcceptKind();
 
 private:
 
@@ -44,8 +45,21 @@ private:
   Forcefield const& ffRef;
 };
 
-inline uint MoleculeTransfer::GetBoxPairAndMol
-(const double subDraw, const double movPerc)
+void MoleculeTransfer::PrintAcceptKind()
+{
+  for(uint k = 0; k < molRef.GetKindsCount(); k++) {
+    printf("%-30s %-5s ", "% Accepted Mol-Transfer ", molRef.kinds[k].name.c_str());
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      if(moveSetRef.GetTrial(b, mv::MOL_TRANSFER, k) > 0)
+        printf("%10.5f ", (100.0 * moveSetRef.GetAccept(b, mv::MOL_TRANSFER, k)));
+      else
+        printf("%10.5f ", 0.0);
+    }
+    std::cout << std::endl;
+  }
+}
+
+inline uint MoleculeTransfer::GetBoxPairAndMol(const double subDraw, const double movPerc)
 {
   // Need to call a function to pick a molecule that is not fixed but cannot be
   // swap between boxes. (beta != 1, beta !=2)
@@ -59,7 +73,7 @@ inline uint MoleculeTransfer::GetBoxPairAndMol
   }
 #endif
 
-  if (state != mv::fail_state::NO_MOL_OF_KIND_IN_BOX) {
+  if (state == mv::fail_state::NO_FAIL) {
     pStart = pLen = 0;
     molRef.GetRangeStartLength(pStart, pLen, molIndex);
   }
@@ -68,10 +82,13 @@ inline uint MoleculeTransfer::GetBoxPairAndMol
 
 inline uint MoleculeTransfer::Prep(const double subDraw, const double movPerc)
 {
+  overlap = false;
   uint state = GetBoxPairAndMol(subDraw, movPerc);
-  newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
-  oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
-  oldMol.SetCoords(coordCurrRef, pStart);
+  if (state == mv::fail_state::NO_FAIL) {
+    newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
+    oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
+    oldMol.SetCoords(coordCurrRef, pStart);
+  }
   return state;
 }
 
@@ -79,8 +96,8 @@ inline uint MoleculeTransfer::Prep(const double subDraw, const double movPerc)
 inline uint MoleculeTransfer::Transform()
 {
   cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
-  subPick = mv::GetMoveSubIndex(mv::MOL_TRANSFER, sourceBox);
   molRef.kinds[kindIndex].Build(oldMol, newMol, molIndex);
+  overlap = newMol.HasOverlap();
   return mv::fail_state::NO_FAIL;
 }
 
@@ -99,13 +116,13 @@ inline void MoleculeTransfer::CalcEn()
     W_tc = exp(-1.0 * ffRef.beta * (tcGain.energy + tcLose.energy));
   }
 
-  if (newMol.GetWeight() != 0.0) {
+  if (newMol.GetWeight() != 0.0 && !overlap) {
     correct_new = calcEwald->SwapCorrection(newMol);
     correct_old = calcEwald->SwapCorrection(oldMol);
     self_new = calcEwald->SwapSelf(newMol);
     self_old = calcEwald->SwapSelf(oldMol);
     recipGain.energy =
-      calcEwald->SwapDestRecip(newMol, destBox, sourceBox, molIndex);
+      calcEwald->SwapDestRecip(newMol, destBox, molIndex);
     recipLose.energy =
       calcEwald->SwapSourceRecip(oldMol, sourceBox, molIndex);
     //need to contribute the self and correction energy
@@ -158,8 +175,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
     double Wrat = Wn / Wo * W_tc * W_recip;
 
     //safety to make sure move will be rejected in overlap case
-    if((newMol.GetEnergy().real < 1.0e15) &&
-        (oldMol.GetEnergy().real < 1.0e15)) {
+    if(newMol.GetWeight() != 0.0 && !overlap) {
       result = prng() < molTransCoeff * Wrat;
     } else
       result = false;
@@ -212,16 +228,15 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
       //when weight is 0, MolDestSwap() will not be executed, thus cos/sin
       //molRef will not be changed. Also since no memcpy, doing restore
       //results in memory overwrite
-      if (newMol.GetWeight() != 0.0)
+      if (newMol.GetWeight() != 0.0 && !overlap) {
         calcEwald->RestoreMol(molIndex);
-
+      }
     }
 
   } else //we didn't even try because we knew it would fail
     result = false;
 
-  subPick = mv::GetMoveSubIndex(mv::MOL_TRANSFER, sourceBox);
-  moveSetRef.Update(result, subPick, step);
+  moveSetRef.Update(mv::MOL_TRANSFER, result, step, destBox, kindIndex);
 }
 
 #endif

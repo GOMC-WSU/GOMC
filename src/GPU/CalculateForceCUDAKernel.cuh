@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -88,6 +88,7 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                                  int *gpu_isMartini,
                                  int *gpu_count,
                                  double *gpu_rCut,
+                                 double *gpu_rCutCoulomb,
                                  double *gpu_rCutLow,
                                  double *gpu_rOn,
                                  double *gpu_alpha,
@@ -99,7 +100,8 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                                  double *gpu_Invcell_x,
                                  double *gpu_Invcell_y,
                                  double *gpu_Invcell_z,
-                                 int *gpu_nonOrth);
+                                 int *gpu_nonOrth,
+                                 int box);
 
 __global__ void ForceReciprocalGPU(double *gpu_x,
                                    double *gpu_y,
@@ -130,7 +132,7 @@ __device__ double CalcCoulombForceGPU(double distSq, double qi_qj,
                                       int gpu_ewald,
                                       int gpu_isMartini,
                                       double gpu_alpha,
-                                      double gpu_rCut,
+                                      double gpu_rCutCoulomb,
                                       double gpu_diElectric_1);
 __device__ double CalcEnForceGPU(double distSq, int kind1, int kind2,
                                  double *gpu_sigmaSq,
