@@ -365,8 +365,9 @@ inline double FFParticle::CalcCoulomb(const double distSq,
   // 12 is default value for Beta according to amber tutorial (Eq. 21.7)
   // http://ambermd.org/doc12/Amber18.pdf
 
-  double lambdaCoef = 12.00 * (1.0 - lambda);
-  double softRsq = lambdaCoef + distSq;
+  //double lambdaCoef = 12.00 * (1.0 - lambda);
+  //double softRsq = lambdaCoef + distSq;
+  double softRsq = distSq;
 
   double en = lambda * CalcCoulomb(softRsq, qi_qj_Fact, b);
   return en;
@@ -398,8 +399,9 @@ inline double FFParticle::CalcCoulombVir(const double distSq,
   // 12 is default value for Beta according to amber tutorial (Eq. 21.7)
   // http://ambermd.org/doc12/Amber18.pdf
 
-  double lambdaCoef = 12.00 * (1.0 - lambda);
-  double softRsq = lambdaCoef + distSq;
+  //double lambdaCoef = 12.00 * (1.0 - lambda);
+  //double softRsq = lambdaCoef + distSq;
+  double softRsq = distSq;
   //The only correction is to multiply by lambda
   double vir = lambda * CalcCoulombVir(softRsq, qi_qj, b);
   return vir;
@@ -452,10 +454,12 @@ inline double FFParticle::CalcCoulombdEndL(const double distSq,
   // 12 is default value for Beta according to amber tutorial (Eq. 21.7)
   // http://ambermd.org/doc12/Amber18.pdf
 
-  double lambdaCoef = 12.00 * (1.0 - lambda);
-  double softRsq = lambdaCoef + distSq;
+  //double lambdaCoef = 12.00 * (1.0 - lambda);
+  //double softRsq = lambdaCoef + distSq;
+  double softRsq = distSq;
   //dE/dlambda = E + 6.0 * lambda + vir
-  double dhdl = CalcCoulomb(softRsq, qi_qj_Fact, b) + 
-                6.0 * lambda * CalcCoulombVir(softRsq, qi_qj_Fact, b);
+  //double dhdl = CalcCoulomb(softRsq, qi_qj_Fact, b) + 
+  //              6.0 * lambda * CalcCoulombVir(softRsq, qi_qj_Fact, b);
+  double dhdl = CalcCoulomb(softRsq, qi_qj_Fact, b);
   return dhdl; 
 }
