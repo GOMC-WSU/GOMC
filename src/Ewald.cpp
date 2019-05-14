@@ -918,7 +918,7 @@ void Ewald::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
   uint atomSize = mols.GetKind(molIndex).NumAtoms();
   uint start = mols.MolStart(molIndex);
   uint lambdaSize = lambda_Coul.size();
-  double coefDiff, dcoefDiff, distSq, dist, qqFact;
+  double coefDiff, dcoefDiff, distSq, dist, correction = 0.0;
   XYZ virComponents;
   
   //Calculate the correction energy with lambda = 1
@@ -927,22 +927,20 @@ void Ewald::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
       distSq = 0.0;
       currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box);
-      qqFact = -1.0 * particleCharge[i + start] * particleCharge[j + start] *
-              num::qqFact;
-      for (uint s = 0; s < lambdaSize; s++) {
-        energyDiff[s].correction += ff.particles->CalcCoulomb(distSq, qqFact,
-                                                 lambda_Coul[s], box);
-      }
-      //Calculate du/dl of correction for current state   
-      dUdL_Coul.correction += ff.particles->CalcCoulombdEndL(distSq, qqFact,
-                                                 lambda_Coul[iState], box);
+      dist = sqrt(distSq);
+      correction += (particleCharge[i + start] * particleCharge[j + start] *
+                     erf(ff.alpha[box] * dist) / dist);
     }
   }
-
+  correction *= -1.0 * num::qqFact;
   //Calculate the energy difference for each lambda state
   for (uint s = 0; s < lambdaSize; s++) {
-    energyDiff[s].correction -= energyDiff[iState].correction;
+    coefDiff = lambda_Coul[s] - lambda_Coul[iState];
+    energyDiff[s].correction += coefDiff * correction;
   }
+  //Calculate du/dl of correction for current state 
+  dcoefDiff = 1.0;
+  dUdL_Coul.correction += dcoefDiff * correction;
 }
 
 //calculate self term for a box, using system lambda
