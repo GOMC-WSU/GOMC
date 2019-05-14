@@ -1005,7 +1005,7 @@ void ConfigSetup::fillDefaults(void)
       }
       std::cout << endl; 
     } else if(sys.elect.enable && !sys.cfcmcVal.readLambdaCoulomb) {
-      sys.cfcmcVal.lambdaCoulomb = sys.cfcmcVal.lambdaVDW;
+      sys.cfcmcVal.lambdaCoulomb.resize(sys.cfcmcVal.lambdaVDW.size(), 1.0);
       sys.cfcmcVal.readLambdaCoulomb = true;
       printf("%-41s", "Default: Lambda Coulomb");
       for(uint i = 0; i < sys.cfcmcVal.lambdaCoulomb.size(); i++) {
@@ -1037,7 +1037,7 @@ if(sys.freeEn.enable && sys.freeEn.readLambdaVDW ) {
       }
       std::cout << endl; 
     } else if(sys.elect.enable && !sys.freeEn.readLambdaCoulomb) {
-      sys.freeEn.lambdaCoulomb = sys.freeEn.lambdaVDW;
+      sys.freeEn.lambdaCoulomb.resize(sys.freeEn.lambdaVDW.size(), 1.0);
       sys.freeEn.readLambdaCoulomb = true;
       printf("%-41s", "Default: Lambda Coulomb");
       for(uint i = 0; i < sys.freeEn.lambdaCoulomb.size(); i++) {
@@ -1525,13 +1525,11 @@ void ConfigSetup::verifyInputs(void)
         exit(EXIT_FAILURE);
     } 
     
-    if(sys.elect.enable) {
-      last = sys.cfcmcVal.lambdaCoulomb.size() - 1;
-      if(sys.cfcmcVal.lambdaCoulomb[last] < 0.9999) {
-        std::cout << "Error: Last Lambda value for Coulomb is not 1.0 " <<
-          "in CFCMC move! \n";
-          exit(EXIT_FAILURE);
-      }
+    last = sys.cfcmcVal.lambdaCoulomb.size() - 1;
+    if(sys.cfcmcVal.lambdaCoulomb[last] < 0.9999) {
+      std::cout << "Error: Last Lambda value for Coulomb is not 1.0 " <<
+        "in CFCMC move! \n";
+        exit(EXIT_FAILURE);
     }
     
     if(!sys.cfcmcVal.readRelaxSteps) {
@@ -1604,13 +1602,11 @@ void ConfigSetup::verifyInputs(void)
         exit(EXIT_FAILURE);
     }
 
-    if(sys.elect.enable) {
-      last = sys.freeEn.lambdaCoulomb.size() - 1;
-      if(sys.freeEn.lambdaCoulomb[last] < 0.9999) {
-        std::cout << "Error: Last Lambda value for Coulomb is not 1.0 " <<
-          "in Free Energy Calculation! \n";
-          exit(EXIT_FAILURE);
-      }
+    last = sys.freeEn.lambdaCoulomb.size() - 1;
+    if(sys.freeEn.lambdaCoulomb[last] < 0.9999) {
+      std::cout << "Error: Last Lambda value for Coulomb is not 1.0 " <<
+        "in Free Energy Calculation! \n";
+        exit(EXIT_FAILURE);
     }
 
     if(sys.freeEn.lambdaVDW.size() <= sys.freeEn.iState) {
