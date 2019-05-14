@@ -905,7 +905,7 @@ double Ewald::MolCorrection(uint molIndex, uint box) const
     }
   }
 
-  return -1.0 * num::qqFact * correction * lambdaCoef * lambdaCoef;
+  return -1.0 * num::qqFact * correction * lambdaCoef;
 }
 
 //It's called in free energy calculation to calculate the change in
@@ -1176,7 +1176,7 @@ double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol,
                      erf(ff.alpha[box] * dist) / dist);
     }
   }
-  return num::qqFact * correction * lambdaCoef * lambdaCoef;
+  return num::qqFact * correction * lambdaCoef;
 }
 
 //It's called if we transfer one molecule from one box to another
