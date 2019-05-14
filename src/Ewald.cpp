@@ -899,13 +899,13 @@ double Ewald::MolCorrection(uint molIndex, uint box) const
     for (uint j = i + 1; j < atomSize; j++) {
       currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box);
-      dist = sqrt(12.0 * (1.0 - lambdaCoef) + distSq);
+      dist = sqrt(distSq);
       correction += (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
                      erf(ff.alpha[box] * dist) / dist);
     }
   }
 
-  return -1.0 * num::qqFact * correction * lambdaCoef;
+  return -1.0 * num::qqFact * correction * lambdaCoef * lambdaCoef;
 }
 
 //It's called in free energy calculation to calculate the change in
@@ -915,37 +915,27 @@ void Ewald::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
                             const uint iState, const uint molIndex,
                             const uint box) const
 {
-  MoleculeKind& thisKind = mols.kinds[mols.kIndex[molIndex]];
   uint atomSize = mols.GetKind(molIndex).NumAtoms();
   uint start = mols.MolStart(molIndex);
   uint lambdaSize = lambda_Coul.size();
-  double distSq, distSqSoft, dist, qqFact, expTerm, eTerm;
+  double coefDiff, dcoefDiff, distSq, dist, qqFact;
   XYZ virComponents;
-  double constValue = 12.0 * ff.alpha[box] / sqrt(M_PI);
-
+  
   //Calculate the correction energy with lambda = 1
   for (uint i = 0; i < atomSize; i++) {
     for (uint j = i + 1; j < atomSize; j++) {
       distSq = 0.0;
-      currentAxes.InRcut(distSq, virComponents, currentCoords, start + i,
-                         start + j, box);
-
-      qqFact = thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * num::qqFact;
-
+      currentAxes.InRcut(distSq, virComponents, currentCoords,
+                         start + i, start + j, box);
+      qqFact = -1.0 * particleCharge[i + start] * particleCharge[j + start] *
+              num::qqFact;
       for (uint s = 0; s < lambdaSize; s++) {
-        distSqSoft = 12.0 * (1.0 - lambda_Coul[s]) + distSq;
-        dist = sqrt(distSqSoft);
-        energyDiff[s].correction += -1.0 * qqFact * erf(ff.alpha[box] * dist) *
-                                     lambda_Coul[s] / dist;
+        energyDiff[s].correction += ff.particles->CalcCoulomb(distSq, qqFact,
+                                                 lambda_Coul[s], box);
       }
-      //Calculate du/dl of correction for current state
-      distSqSoft = 12.0 * (1.0 - lambda_Coul[iState]) + distSq;
-      dist = sqrt(distSqSoft);
-      eTerm = -1.0 * qqFact * erf(ff.alpha[box] * dist) / dist;
-      expTerm = exp(-1.0 * ff.alphaSq[box] * distSqSoft) * constValue;  
-      dUdL_Coul.correction += eTerm + lambda_Coul[iState] * qqFact * 
-                              (expTerm - 6.0 * erf(ff.alpha[box] * dist) / dist) /
-                              distSqSoft;
+      //Calculate du/dl of correction for current state   
+      dUdL_Coul.correction += ff.particles->CalcCoulombdEndL(distSq, qqFact,
+                                                 lambda_Coul[iState], box);
     }
   }
 
@@ -1183,12 +1173,12 @@ double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol,
       currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
                          i, j, box);
 
-      dist = sqrt(12.0 * (1.0 - lambdaCoef) + distSq);
+      dist = sqrt(distSq);
       correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
                      erf(ff.alpha[box] * dist) / dist);
     }
   }
-  return num::qqFact * correction * lambdaCoef;
+  return num::qqFact * correction * lambdaCoef * lambdaCoef;
 }
 
 //It's called if we transfer one molecule from one box to another
