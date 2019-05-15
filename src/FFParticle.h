@@ -73,9 +73,11 @@ public:
                            const uint kind1, const uint kind2) const;
 
   // coulomb interaction functions
-  virtual double CalcCoulomb(const double distSq, const double qi_qj_Fact, 
+  virtual double CalcCoulomb(const double distSq, const uint kind1,
+                             const uint kind2,const double qi_qj_Fact, 
                              const double lambda, const uint b) const;
-  virtual double CalcCoulombVir(const double distSq, const double qi_qj,
+  virtual double CalcCoulombVir(const double distSq, const uint kind1,
+                                const uint kind2,const double qi_qj,
                                 const double lambda, uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact, const bool NB) const;
@@ -89,7 +91,8 @@ public:
   virtual double CalcdEndL(const double distSq, const uint kind1,
                            const uint kind2, const double lambda) const;
   //Calculate the dE/dlambda for Coulomb energy
-  virtual double CalcCoulombdEndL(const double distSq, const double qi_qj_Fact,
+  virtual double CalcCoulombdEndL(const double distSq, const uint kind1,
+                                  const uint kind2,const double qi_qj_Fact,
                                   const double lambda, uint b) const;
 
   uint NumKinds() const { return count; }                
