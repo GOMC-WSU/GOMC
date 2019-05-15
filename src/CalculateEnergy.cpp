@@ -256,8 +256,9 @@ reduction(+:tempREn, tempLJEn)
                                         particleMol[pair2[i]], box);
         qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] *
           num::qqFact;
-        tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact,
-                                                    lambdaCoulomb, box);
+        tempREn += forcefield.particles->CalcCoulomb(distSq, particleKind[pair1[i]],
+                   particleKind[pair2[i]], qi_qj_fact,
+                   lambdaCoulomb, box);
       }
       tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
                   particleKind[pair2[i]], lambdaVDW);
@@ -380,7 +381,8 @@ aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
                                         particleMol[pair2[i]], box);
         qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] *
           num::qqFact;
-        tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact, lambdaCoulomb, box);
+        tempREn += forcefield.particles->CalcCoulomb(distSq, particleKind[pair1[i]],
+                   particleKind[pair2[i]], qi_qj_fact, lambdaCoulomb, box);
       }
       tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
                   particleKind[pair2[i]], lambdaVDW);
@@ -389,7 +391,8 @@ aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
       if(multiParticleEnabled) {
         if(electrostatic) {
           forceReal = virComponents *
-	        forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact, lambdaCoulomb, box);
+	        forcefield.particles->CalcCoulombVir(distSq, particleKind[pair1[i]],
+          particleKind[pair2[i]], qi_qj_fact, lambdaCoulomb, box);
         }
         forceLJ = virComponents *
 	        forcefield.particles->CalcVir(distSq, particleKind[pair1[i]],
@@ -521,7 +524,8 @@ Virial CalculateEnergy::VirialCalc(const uint box)
                                         particleMol[pair2[i]], box);
         qi_qj = particleCharge[pair1[i]] * particleCharge[pair2[i]];
 
-        pRF = forcefield.particles->CalcCoulombVir(distSq, qi_qj,
+        pRF = forcefield.particles->CalcCoulombVir(distSq, particleKind[pair1[i]],
+                                                  particleKind[pair2[i]],qi_qj,
                                                   lambdaCoulomb, box);
         //calculate the top diagonal of pressure tensor
         rT11 += pRF * (virC.x * comC.x);
@@ -642,8 +646,8 @@ reduction(+:tempREn, tempLJEn)
             qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
                          num::qqFact;
 
-            tempREn -= forcefield.particles->CalcCoulomb(distSq,qi_qj_fact,
-              lambdaCoulomb, box);
+            tempREn -= forcefield.particles->CalcCoulomb(distSq, particleKind[atom],
+                      particleKind[nIndex[i]], qi_qj_fact, lambdaCoulomb, box);
           }
 
           tempLJEn -= forcefield.particles->CalcEn(distSq, particleKind[atom],
@@ -682,6 +686,7 @@ reduction(+:tempREn, tempLJEn)
                          particleCharge[nIndex[i]] * num::qqFact;
 
             tempREn += forcefield.particles->CalcCoulomb(distSq,
+                       particleKind[atom], particleKind[nIndex[i]],
                        qi_qj_fact, lambdaCoulomb, box);
           }
 
@@ -782,7 +787,8 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
           lambdaCoulomb = GetLambdaCoulomb(molIndex, particleMol[nIndex[i]], 
                                           box);
           qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
-          tempReal += forcefield.particles->CalcCoulomb(distSq, qi_qj_Fact,                                                   lambdaCoulomb, box);
+          tempReal += forcefield.particles->CalcCoulomb(distSq, kindI,
+                      particleKind[nIndex[i]], qi_qj_Fact, lambdaCoulomb, box);
         }
       }
     }
@@ -1584,10 +1590,10 @@ virComponents) reduction(+:tempREnOld, tempLJEnOld, tempREnNew, tempLJEnNew)
           if (electrostatic) {
             qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
                          num::qqFact;
-            tempREnNew += forcefield.particles->CalcCoulomb(distSq,qi_qj_fact,
-							    lambdaNewCoulomb, box);
-            tempREnOld += forcefield.particles->CalcCoulomb(distSq,qi_qj_fact,
-                        lambdaOldCoulomb, box);
+            tempREnNew += forcefield.particles->CalcCoulomb(distSq,particleKind[atom],
+                      particleKind[nIndex[i]],qi_qj_fact,lambdaNewCoulomb, box);
+            tempREnOld += forcefield.particles->CalcCoulomb(distSq,particleKind[atom],
+                      particleKind[nIndex[i]],qi_qj_fact,lambdaOldCoulomb, box);
           }
 
           tempLJEnNew += forcefield.particles->CalcEn(distSq,particleKind[atom],
@@ -1709,11 +1715,12 @@ tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
         if(electrostatic) {
           qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
                       num::qqFact;
-          energyOldCoul = forcefield.particles->CalcCoulomb(distSq, qi_qj_fact,
-                                                           lambda_Coul[iState],
-                                                           box);
+          energyOldCoul = forcefield.particles->CalcCoulomb(distSq, particleKind[atom], 
+                          particleKind[nIndex[i]],qi_qj_fact,
+                          lambda_Coul[iState], box);
           //Calculate du/dl in Coulomb for current state. 
-          dudl_Coul += forcefield.particles->CalcCoulombdEndL(distSq, qi_qj_fact,
+          dudl_Coul += forcefield.particles->CalcCoulombdEndL(distSq, particleKind[atom], 
+                       particleKind[nIndex[i]],qi_qj_fact,
                        lambda_Coul[iState], box);
         }
 
@@ -1723,7 +1730,8 @@ tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
                              particleKind[nIndex[i]], lambda_VDW[s]);
           tempLJEnDiff[s] += (-energyOldVDW);
           if(electrostatic) {
-            tempREnDiff[s] += forcefield.particles->CalcCoulomb(distSq,qi_qj_fact,
+            tempREnDiff[s] += forcefield.particles->CalcCoulomb(distSq,particleKind[atom], 
+                              particleKind[nIndex[i]], qi_qj_fact,
                               lambda_Coul[s], box);
             tempREnDiff[s] += (-energyOldCoul);
           }
