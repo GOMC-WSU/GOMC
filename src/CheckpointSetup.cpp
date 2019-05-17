@@ -262,15 +262,15 @@ double CheckpointSetup::readDoubleIn8Chars()
     exit(EXIT_FAILURE);
   }
   dbl_input_union temp;
-  fscanf(inputFile, "%c%c%c%c%c%c%c%c",
-         &temp.bin_value[0],
-         &temp.bin_value[1],
-         &temp.bin_value[2],
-         &temp.bin_value[3],
-         &temp.bin_value[4],
-         &temp.bin_value[5],
-         &temp.bin_value[6],
-         &temp.bin_value[7]);
+  (void)fscanf(inputFile, "%c%c%c%c%c%c%c%c",
+               &temp.bin_value[0],
+               &temp.bin_value[1],
+               &temp.bin_value[2],
+               &temp.bin_value[3],
+               &temp.bin_value[4],
+               &temp.bin_value[5],
+               &temp.bin_value[6],
+               &temp.bin_value[7]);
   return temp.dbl_value;
 }
 
@@ -283,15 +283,15 @@ uint32_t CheckpointSetup::readUintIn8Chars()
     exit(EXIT_FAILURE);
   }
   uint32_input_union temp;
-  fscanf(inputFile, "%c%c%c%c%c%c%c%c",
-         &temp.bin_value[0],
-         &temp.bin_value[1],
-         &temp.bin_value[2],
-         &temp.bin_value[3],
-         &temp.bin_value[4],
-         &temp.bin_value[5],
-         &temp.bin_value[6],
-         &temp.bin_value[7]);
+  (void)fscanf(inputFile, "%c%c%c%c%c%c%c%c",
+               &temp.bin_value[0],
+               &temp.bin_value[1],
+               &temp.bin_value[2],
+               &temp.bin_value[3],
+               &temp.bin_value[4],
+               &temp.bin_value[5],
+               &temp.bin_value[6],
+               &temp.bin_value[7]);
   return temp.uint_value;
 }
 
