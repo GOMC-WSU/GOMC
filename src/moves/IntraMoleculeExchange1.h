@@ -56,6 +56,7 @@ public:
         accepted[b].resize(molRef.GetKindsCount() * molRef.GetKindsCount(), 0.0);
       }
    }
+  }
 
    virtual uint Prep(const double subDraw, const double movPerc);
    virtual uint Transform();
