@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -23,7 +23,7 @@ class MoveSettings
 {
 public:
   friend class OutputVars;
-  MoveSettings(BoxDimensions & dim) : boxDimRef(dim) 
+  MoveSettings(BoxDimensions & dim) : boxDimRef(dim)
   {
     acceptPercent.resize(BOX_TOTAL);
     scale.resize(BOX_TOTAL);
@@ -79,7 +79,7 @@ private:
 
   vector< vector< vector<double> > > scale, acceptPercent;
   vector< vector< vector<uint> > > accepted, tries, tempAccepted, tempTries;
-  
+
   uint perAdjust;
   uint totKind;
 
@@ -91,6 +91,11 @@ private:
 
   static const double TARGET_ACCEPT_FRACT;
   static const double TINY_AMOUNT;
+
+  // make checkopintoutput and checkpointsetup a friend class to have access to
+  // private data
+  friend class CheckpointOutput;
+  friend class CheckpointSetup;
 };
 
 

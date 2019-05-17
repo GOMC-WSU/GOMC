@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -51,6 +51,7 @@ struct RestartSettings {
   bool enable;
   ulong step;
   bool recalcTrajectory;
+  bool restartFromCheckpoint;
   bool operator()(void)
   {
     return enable;
@@ -176,7 +177,7 @@ struct ElectroStatic {
   double oneFourScale;
   double dielectric;
   double cutoffCoulomb[BOX_TOTAL];
-  ElectroStatic(void) 
+  ElectroStatic(void)
   {
     std::fill_n(cutoffCoulombRead, BOX_TOTAL, false);
     std::fill_n(cutoffCoulomb, BOX_TOTAL, 0.0);
@@ -195,7 +196,8 @@ struct Volume {
     }
   }
 
-  bool ReadCellBasis() const {
+  bool ReadCellBasis() const
+  {
     for(uint b = 0; b < BOX_TOTAL; ++b) {
       for(uint i = 0; i < 3; i++) {
         if(!readCellBasis[b][i])
@@ -232,7 +234,8 @@ struct MEMCVal {
   std::vector<uint> exchangeRatio;
   std::vector<std::string> smallBBAtom1, smallBBAtom2;
   std::vector<std::string> largeBBAtom1, largeBBAtom2;
-  MEMCVal(void) {
+  MEMCVal(void)
+  {
     MEMC1 = MEMC2 = MEMC3 = false;
     readVol = readRatio = readSmallBB = false;
     readLargeBB = readSK = readLK = false;
@@ -273,8 +276,6 @@ struct EventSettings { /* : ReadableStepDependentBase*/
     return enable;
   }
 };
-
-
 
 struct UniqueStr { /* : ReadableBase*/
   std::string val;
@@ -324,7 +325,7 @@ struct Statistics {
 struct Output {
   SysState state, restart;
   Statistics statistics;
-  EventSettings console;
+  EventSettings console, checkpoint;
 };
 
 }
@@ -341,7 +342,7 @@ public:
 private:
   void fillDefaults(void);
   bool checkBool(string str);
-  bool CheckString(string str1, string str2); 
+  bool CheckString(string str1, string str2);
   void verifyInputs(void);
   InputFileReader reader;
 

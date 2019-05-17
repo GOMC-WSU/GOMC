@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -96,7 +96,7 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
 #if ENSEMBLE == GCMC
   if(box == mv::BOX0) {
 #endif
-    if(var->Perfromed(mv::DISPLACE)) {
+    if(var->Performed(mv::DISPLACE)) {
       sub = mv::DISPLACE;
       printElement(var->GetTries(box, sub), elementWidth);
       printElement(var->GetAccepted(box, sub), elementWidth);
@@ -104,7 +104,7 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
       printElement(var->GetScale(box, sub), elementWidth);
     }
 
-    if(var->Perfromed(mv::ROTATE)) {
+    if(var->Performed(mv::ROTATE)) {
       sub = mv::ROTATE;
       printElement(var->GetTries(box, sub), elementWidth);
       printElement(var->GetAccepted(box, sub), elementWidth);
@@ -112,28 +112,28 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
       printElement(var->GetScale(box, sub), elementWidth);
     }
 
-    if(var->Perfromed(mv::INTRA_SWAP)) {
+    if(var->Performed(mv::INTRA_SWAP)) {
       sub = mv::INTRA_SWAP;
       printElement(var->GetTries(box, sub), elementWidth);
       printElement(var->GetAccepted(box, sub), elementWidth);
       printElement(var->GetAcceptPercent(box, sub), elementWidth);
     }
 
-    if(var->Perfromed(mv::REGROWTH)) {
+    if(var->Performed(mv::REGROWTH)) {
       sub = mv::REGROWTH;
       printElement(var->GetTries(box, sub), elementWidth);
       printElement(var->GetAccepted(box, sub), elementWidth);
       printElement(var->GetAcceptPercent(box, sub), elementWidth);
     }
 
-    if(var->Perfromed(mv::INTRA_MEMC)) {
+    if(var->Performed(mv::INTRA_MEMC)) {
       sub = mv::INTRA_MEMC;
       printElement(var->GetTries(box, sub), elementWidth);
       printElement(var->GetAccepted(box, sub), elementWidth);
       printElement(var->GetAcceptPercent(box, sub), elementWidth);
     }
 
-    if(var->Perfromed(mv::CRANKSHAFT)) {
+    if(var->Performed(mv::CRANKSHAFT)) {
       sub = mv::CRANKSHAFT;
       printElement(var->GetTries(box, sub), elementWidth);
       printElement(var->GetAccepted(box, sub), elementWidth);
@@ -145,14 +145,14 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
 #endif
 
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-  if(var->Perfromed(mv::MOL_TRANSFER)) {
+  if(var->Performed(mv::MOL_TRANSFER)) {
     sub = mv::MOL_TRANSFER;
     printElement(var->GetTries(box, sub), elementWidth);
     printElement(var->GetAccepted(box, sub), elementWidth);
     printElement(var->GetAcceptPercent(box, sub), elementWidth);
   }
 
-  if(var->Perfromed(mv::MEMC)) {
+  if(var->Performed(mv::MEMC)) {
     sub = mv::MEMC;
     printElement(var->GetTries(box, sub), elementWidth);
     printElement(var->GetAccepted(box, sub), elementWidth);
@@ -161,7 +161,7 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
 #endif
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
-  if(var->Perfromed(mv::VOL_TRANSFER)) {
+  if(var->Performed(mv::VOL_TRANSFER)) {
     sub = mv::VOL_TRANSFER;
     printElement(var->GetTries(box, sub), elementWidth);
     printElement(var->GetAccepted(box, sub), elementWidth);
@@ -197,9 +197,13 @@ void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const
 
     for(uint k = 0; k < var->numKinds; k++) {
       uint kb = k + offset;
-
       if(var->numKinds > 1)
-        printElement(var->molFractionByKindBox[kb], elementWidth, 6);
+        printElement(var->molFractionByKindBox[kb], elementWidth, 8);
+    }
+    for(uint k = 0; k < var->numKinds; k++) {
+      uint kb = k + offset;
+      if(var->numKinds > 1)
+        printElement(var->densityByKindBox[kb], elementWidth, 8);
     }
   }
 
@@ -303,6 +307,12 @@ void ConsoleOutput::PrintStatisticTitle()
         printElement(molName, elementWidth);
       }
     }
+    for(uint k = 0; k < var->numKinds; k++) {
+      if(var->numKinds > 1) {
+        std::string molName = "MOLDENS_" + var->resKindNames[k];
+        printElement(molName, elementWidth);
+      }
+    }
   }
 
   if(enableDens)
@@ -319,52 +329,52 @@ void ConsoleOutput::PrintMoveTitle()
   std::string title = "MTITLE:";
   title += "     STEP";
   printElement(title, elementWidth);
-  if(var->Perfromed(mv::DISPLACE)) {
+  if(var->Performed(mv::DISPLACE)) {
     printElement("DISTRY", elementWidth);
     printElement("DISACCEPT", elementWidth);
     printElement("DISACCEPT%", elementWidth);
     printElement("DISMAX", elementWidth);
   }
 
-  if(var->Perfromed(mv::ROTATE)) {
+  if(var->Performed(mv::ROTATE)) {
     printElement("ROTATE", elementWidth);
     printElement("ROTACCEPT", elementWidth);
     printElement("ROTACCEPT%", elementWidth);
     printElement("ROTMAX", elementWidth);
   }
 
-  if(var->Perfromed(mv::INTRA_SWAP)) {
+  if(var->Performed(mv::INTRA_SWAP)) {
     printElement("INTRASWAP", elementWidth);
     printElement("INTACCEPT", elementWidth);
     printElement("INTACCEPT%", elementWidth);
   }
 
-  if(var->Perfromed(mv::REGROWTH)) {
+  if(var->Performed(mv::REGROWTH)) {
     printElement("REGROWTH", elementWidth);
     printElement("REGROWACCEPT", elementWidth);
     printElement("REGROWACCEPT%", elementWidth);
   }
 
-  if(var->Perfromed(mv::INTRA_MEMC)) {
+  if(var->Performed(mv::INTRA_MEMC)) {
     printElement("INTRAMOLEXCHANGE", elementWidth);
     printElement("INTMOLEXCACCEPT", elementWidth);
     printElement("INTMOLEXACCEPT%", elementWidth);
   }
 
-  if(var->Perfromed(mv::CRANKSHAFT)) {
+  if(var->Performed(mv::CRANKSHAFT)) {
     printElement("CRANKSHAFT", elementWidth);
     printElement("CRKSHAFTACCEPT", elementWidth);
     printElement("CRKSHAFTACCEPT%", elementWidth);
   }
 
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-  if(var->Perfromed(mv::MOL_TRANSFER)) {
+  if(var->Performed(mv::MOL_TRANSFER)) {
     printElement("TRANSFER", elementWidth);
     printElement("TRANACCEPT", elementWidth);
     printElement("TRANACCEPT%", elementWidth);
   }
-    
-  if(var->Perfromed(mv::MEMC)) {
+
+  if(var->Performed(mv::MEMC)) {
     printElement("MOLEXCHANGE", elementWidth);
     printElement("MOLEXACCEPT", elementWidth);
     printElement("MOLEXACCEPT%", elementWidth);
@@ -372,7 +382,7 @@ void ConsoleOutput::PrintMoveTitle()
 #endif
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
-  if(var->Perfromed(mv::VOL_TRANSFER)) {
+  if(var->Performed(mv::VOL_TRANSFER)) {
     printElement("VOLUME", elementWidth);
     printElement("VOLACCEPT", elementWidth);
     printElement("VOLACCEPT%", elementWidth);
@@ -387,11 +397,11 @@ void ConsoleOutput::printElement(const double t, const int width,
                                  uint percision) const
 {
   const char separator = ' ';
-  if(abs(t) > 9999999999.9999) {
-    std::cout << right << std::fixed << std::setprecision(0) <<
-              setw(width) << setfill(separator) << 9999999999;
+  if(abs(t) > 1e99) {
+    std::cout << right << std::scientific << std::setprecision(percision - 1) <<
+              setw(width) << setfill(separator) << t;
   } else {
-    std::cout << right << std::fixed << std::setprecision(percision) <<
+    std::cout << right << std::scientific << std::setprecision(percision) <<
               setw(width) << setfill(separator) << t;
   }
 
@@ -400,14 +410,14 @@ void ConsoleOutput::printElement(const double t, const int width,
 void ConsoleOutput::printElement(const uint t, const int width) const
 {
   const char separator = ' ';
-  std::cout << right << std::fixed  << setw(width) <<
+  std::cout << right << std::scientific  << setw(width) <<
             setfill(separator) << t;
 }
 
 void ConsoleOutput::printElement(const std::string t, const int width) const
 {
   const char separator = ' ';
-  std::cout << right << std::fixed << setw(width) <<
+  std::cout << right << std::scientific << setw(width) <<
             setfill(separator) << t;
 }
 

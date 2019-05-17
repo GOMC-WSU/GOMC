@@ -1,11 +1,13 @@
 # GOMC - GPU Optimized Monte Carlo
 
-Current Release: 2.31 (5/21/2018)
+Current Release: 2.40 (5/9/2019)
 
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/GOMC_WSU/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
 [![Build Status](https://travis-ci.org/GOMC-WSU/GOMC.svg?branch=master)](https://travis-ci.org/GOMC-WSU/GOMC)
 
-We recommend the [GOMC Project Website](http://gomc.eng.wayne.edu/ "GOMC Website") and the [user manual](http://gomc.eng.wayne.edu/GOMC_files/GOMC_Manual.pdf "User Manual") for further information and examples.
+We recommend the [GOMC Project Website](http://gomc.eng.wayne.edu/ "GOMC Website") and the [user manual](https://gomc-wsu.github.io/Manual/ "User Manual") for further information and examples.
+
+To cite GOMC project, please use [GOMC SoftwareX paper](https://www.sciencedirect.com/science/article/pii/S2352711018301171?via%3Dihub "SoftwareX").
 
 ## Building GOMC on GNU/Linux, macOS, or Cygwin:
 
@@ -46,8 +48,10 @@ We recommend the [GOMC Project Website](http://gomc.eng.wayne.edu/ "GOMC Website
   4. Click configure, select your compiler/environment
   5. Wait for CMake to finish the configuration.
   6. Click configure again and click generate.
-  7. Open the CMake-generated project/solution etc. to the desired IDE (e.g Visual Studio).
-  8. Using the solution in the IDE of choice build GOMC per the IDE's standard release compilation/executable generation methods.
+  7. Download [CUB library](https://nvlabs.github.io/cub/download_cub.html)
+  8. Extract CUB library and copy the "cub" folder from CUB library into "lib" folder inside GOMC directory.
+  9. Open the CMake-generated project/solution etc. to the desired IDE (e.g Visual Studio).
+  10. Using the solution in the IDE of choice build GOMC per the IDE's standard release compilation/executable generation methods.
 
    NOTES:
       You can also use CMake from the Windows command line if its directory is

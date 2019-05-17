@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -18,9 +18,11 @@ void MoleculeLookup::Init(const Molecules& mols,
 {
   numKinds = mols.GetKindsCount();
   molLookup = new uint[mols.count];
+  molLookupCount = mols.count;
 
   //+1 to store end value
   boxAndKindStart = new uint[numKinds * BOX_TOTAL + 1];
+  boxAndKindStartCount = numKinds * BOX_TOTAL + 1;
 
   // vector[box][kind] = list of mol indices for kind in box
   std::vector<std::vector<std::vector<uint> > > indexVector;

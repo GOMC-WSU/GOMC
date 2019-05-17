@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -36,9 +36,9 @@ public:
   //Regrowing the molecule using a CBMC algorithm, oldMol and newMol
   virtual void Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex) = 0;
 
-  //Rotate the atoms between two nodes arounde  the vector that connects two 
+  //Rotate the atoms between two nodes arounde  the vector that connects two
   //nodes using crank shaft algorithm, oldMol and newMol
-  virtual void CrankShaft(TrialMol& oldMol, TrialMol& newMol,uint molIndex) = 0;
+  virtual void CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex) = 0;
 
   //Rigid insertion of molecule and perform position and rotational trial
   virtual void BuildIDNew(TrialMol& newMol, uint molIndex) = 0;

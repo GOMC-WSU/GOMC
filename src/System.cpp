@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -47,7 +47,7 @@ System::System(StaticVals& statics) :
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
   moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
-  calcEnergy(statics, *this)
+  calcEnergy(statics, *this), checkpointSet(*this, statics)
 {
   calcEwald = NULL;
 }
@@ -75,7 +75,7 @@ System::~System()
 #endif
 }
 
-void System::Init(Setup const& set)
+void System::Init(Setup const& set, ulong & startStep)
 {
   prng.Init(set.prng.prngMaker.prng);
 #ifdef VARIABLE_VOLUME
@@ -91,6 +91,19 @@ void System::Init(Setup const& set)
   //the molecule lookup initialization, in case we're in a constant
   //particle/molecule ensemble, e.g. NVT
   coordinates.InitFromPDB(set.pdb.atoms);
+
+  // At this point see if checkpoint is enabled. if so re-initialize
+  // coordinates, prng, mollookup, step, boxdim, and movesettings
+  if(set.config.in.restart.restartFromCheckpoint) {
+    checkpointSet.ReadAll();
+    checkpointSet.SetStepNumber(startStep);
+    checkpointSet.SetBoxDimensions(boxDimRef);
+    checkpointSet.SetPRNGVariables(prng);
+    checkpointSet.SetCoordinates(coordinates);
+    checkpointSet.SetMoleculeLookup(molLookupRef);
+    checkpointSet.SetMoveSettings(moveSettings);
+  }
+
   com.CalcCOM();
   cellList.SetCutoff();
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
@@ -141,13 +154,13 @@ void System::InitMoves(Setup const& set)
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   moves[mv::MOL_TRANSFER] = new MoleculeTransfer(*this, statV);
-    if(set.config.sys.memcVal.MEMC1) {
-      moves[mv::MEMC] = new MoleculeExchange1(*this, statV);
-    } else if (set.config.sys.memcVal.MEMC2) {
-      moves[mv::MEMC] = new MoleculeExchange2(*this, statV);
-    } else {
-      moves[mv::MEMC] = new MoleculeExchange3(*this, statV);
-    }
+  if(set.config.sys.memcVal.MEMC1) {
+    moves[mv::MEMC] = new MoleculeExchange1(*this, statV);
+  } else if (set.config.sys.memcVal.MEMC2) {
+    moves[mv::MEMC] = new MoleculeExchange2(*this, statV);
+  } else {
+    moves[mv::MEMC] = new MoleculeExchange3(*this, statV);
+  }
 #endif
 }
 

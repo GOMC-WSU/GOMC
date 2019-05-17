@@ -1,35 +1,41 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
-#ifndef ROTATION_H
-#define ROTATION_H
+#ifndef TRANSLATE_H
+#define TRANSLATE_H
 
 #include "MoveBase.h"
+#include "Rotation.h"
 
+class Rotate;
 
-class Rotate : public MoveBase, public MolTransformBase
+class Translate : public MoveBase, public MolTransformBase
 {
 public:
-  Rotate(System &sys, StaticVals const& statV) : MoveBase(sys, statV) {}
+
+  Translate(System &sys, StaticVals const& statV) : MoveBase(sys, statV) {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
+  uint ReplaceRot(Rotate const& other);
   virtual uint Transform();
   virtual void CalcEn();
-  virtual void Accept(const uint earlyReject, const uint step);
+  virtual void Accept(const uint rejectState, const uint step);
   virtual void PrintAcceptKind();
 private:
   Intermolecular inter_LJ, inter_Real, recip;
+  XYZ newCOM;
 };
 
-void Rotate::PrintAcceptKind() {
+void Translate::PrintAcceptKind()
+{
   for(uint k = 0; k < molRef.GetKindsCount(); k++) {
-    printf("%-30s %-5s ", "% Accepted Rotation ", molRef.kinds[k].name.c_str());
+    printf("%-30s %-5s ", "% Accepted Displacement ", molRef.kinds[k].name.c_str());
     for(uint b = 0; b < BOX_TOTAL; b++) {
-      if(moveSetRef.GetTrial(b, mv::ROTATE, k) > 0)
-        printf("%10.5f ", (100.0 * moveSetRef.GetAccept(b, mv::ROTATE, k)));
+      if(moveSetRef.GetTrial(b, mv::DISPLACE, k) > 0)
+        printf("%10.5f ", (100.0 * moveSetRef.GetAccept(b, mv::DISPLACE, k)));
       else
         printf("%10.5f ", 0.0);
     }
@@ -37,27 +43,30 @@ void Rotate::PrintAcceptKind() {
   }
 }
 
-inline uint Rotate::Prep(const double subDraw, const double movPerc)
+inline uint Translate::ReplaceRot(Rotate const& other)
 {
-  uint state = GetBoxAndMol(prng, molRef, subDraw, movPerc);
-  if (state == mv::fail_state::NO_FAIL && molRef.NumAtoms(mk)  <= 1)
-    state = mv::fail_state::ROTATE_ON_SINGLE_ATOM;
-  return state;
-}
-
-inline uint Rotate::Transform()
-{
-  coordCurrRef.RotateRand(newMolPos, pStart, pLen, m, b,
-                          moveSetRef.Scale(b, mv::ROTATE, mk));
+  ReplaceWith(other);
   return mv::fail_state::NO_FAIL;
 }
 
-inline void Rotate::CalcEn()
+inline uint Translate::Prep(const double subDraw, const double movPerc)
+{
+  return GetBoxAndMol(prng, molRef, subDraw, movPerc);
+}
+
+inline uint Translate::Transform()
+{
+  coordCurrRef.TranslateRand(newMolPos, newCOM, pStart, pLen,
+                             m, b, moveSetRef.Scale(b, mv::DISPLACE, mk));
+  return mv::fail_state::NO_FAIL;
+}
+
+inline void Translate::CalcEn()
 {
   cellList.RemoveMol(m, b, coordCurrRef);
   molRemoved = true;
   overlap = false;
-  
+
   //calculate LJ interaction and real term of electrostatic interaction
   overlap = calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);
   if(!overlap) {
@@ -66,11 +75,10 @@ inline void Rotate::CalcEn()
   }
 }
 
-inline void Rotate::Accept(const uint rejectState, const uint step)
+inline void Translate::Accept(const uint rejectState, const uint step)
 {
   bool res = false;
-
-  if(rejectState == mv::fail_state::NO_FAIL) {
+  if (rejectState == mv::fail_state::NO_FAIL) {
     double pr = prng();
     res = pr < exp(-BETA * (inter_LJ.energy + inter_Real.energy +
                             recip.energy));
@@ -84,10 +92,11 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
     // setting energy and virial of coulomb interaction
     sysPotRef.boxEnergy[b].real += inter_Real.energy;
     // setting energy and virial of recip term
-    sysPotRef.boxEnergy[b].recip += recip.energy;
+    sysPotRef.boxEnergy[b].recip += recip.energy;;
 
     //Copy coords
     newMolPos.CopyRange(coordCurrRef, 0, pStart, pLen);
+    comCurrRef.Set(m, newCOM);
     calcEwald->UpdateRecip(b);
 
     sysPotRef.Total();
@@ -98,12 +107,11 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
     if(!result && !overlap) {
       calcEwald->RestoreMol(m);
     }
-
     cellList.AddMol(m, b, coordCurrRef);
     molRemoved = false;
   }
 
-  moveSetRef.Update(mv::ROTATE, result, step, b, mk);
+  moveSetRef.Update(mv::DISPLACE, result, step, b, mk);
 }
 
-#endif /*ROTATION_H*/
+#endif /*TRANSLATE_H*/

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -28,5 +28,6 @@ const std::string VOLUME = "VOLUME";
 const std::string DENSITY = "TOT_DENS";
 const std::string MOL_NUM = "TOT_MOL";
 const std::string MOL_FRACTION = "MOLFRACT";
+const std::string MOL_DENSITY = "MOLDENS";
 const std::string SURF_TENSION = "SURF_TENSION";
 }

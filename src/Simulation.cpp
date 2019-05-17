@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -14,6 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 Simulation::Simulation(char const*const configFileName)
 {
+  startStep = 0;
   //NOTE:
   //IMPORTANT! Keep this order...
   //as system depends on staticValues, and cpu sometimes depends on both.
@@ -22,13 +23,13 @@ Simulation::Simulation(char const*const configFileName)
   staticValues = new StaticVals(set);
   system = new System(*staticValues);
   staticValues->Init(set, *system);
-  system->Init(set);
+  system->Init(set, startStep);
   //recal Init for static value for initializing ewald since ewald is
   //initialized in system
   staticValues->InitOver(set, *system);
   cpu = new CPUSide(*system, *staticValues);
   cpu->Init(set.pdb, set.config.out, set.config.sys.step.equil,
-            totalSteps);
+            totalSteps, startStep);
 
   //Dump combined PSF
   PSFOutput psfOut(staticValues->mol, *system, set.mol.kindMap,
@@ -49,22 +50,20 @@ Simulation::~Simulation()
   delete staticValues;
 }
 
-
-
 void Simulation::RunSimulation(void)
 {
   double startEnergy = system->potential.totalEnergy.total;
   if(totalSteps == 0) {
-    for(int i=0; i<frameSteps.size(); i++) {
-      if(i==0) {
-        cpu->Output(frameSteps[0]-1);
+    for(int i = 0; i < frameSteps.size(); i++) {
+      if(i == 0) {
+        cpu->Output(frameSteps[0] - 1);
         continue;
       }
-      system->RecalculateTrajectory(set, i+1);
-      cpu->Output(frameSteps[i]-1);
+      system->RecalculateTrajectory(set, i + 1);
+      cpu->Output(frameSteps[i] - 1);
     }
   }
-  for (ulong step = 0; step < totalSteps; step++) {
+  for (ulong step = startStep; step < totalSteps; step++) {
     system->moveSettings.AdjustMoves(step);
     system->ChooseAndRunMove(step);
     cpu->Output(step);
@@ -73,8 +72,8 @@ void Simulation::RunSimulation(void)
       double currEnergy = system->potential.totalEnergy.total;
       if(abs(currEnergy - startEnergy) > 1.0e+10) {
         printf("Info: Recalculating the total energies to insure the accuracy"
-               " of the computed \n" 
-	       "      running energies.\n\n");
+               " of the computed \n"
+               "      running energies.\n\n");
         system->calcEwald->Init();
         system->potential = system->calcEnergy.SystemTotal();
       }

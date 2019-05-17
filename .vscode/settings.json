@@ -11,6 +11,14 @@
     "stdexcept": "cpp",
     "type_traits": "cpp",
     "typeinfo": "cpp",
-    "algorithm": "cpp"
+    "algorithm": "cpp",
+    "iostream": "cpp",
+    "cctype": "cpp",
+    "cmath": "cpp",
+    "cstdio": "cpp",
+    "cstdlib": "cpp",
+    "cstring": "cpp",
+    "ctime": "cpp",
+    "iomanip": "cpp"
   }
 }

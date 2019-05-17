@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -45,7 +45,8 @@ private:
   Forcefield const& ffRef;
 };
 
-void MoleculeTransfer::PrintAcceptKind() {
+void MoleculeTransfer::PrintAcceptKind()
+{
   for(uint k = 0; k < molRef.GetKindsCount(); k++) {
     printf("%-30s %-5s ", "% Accepted Mol-Transfer ", molRef.kinds[k].name.c_str());
     for(uint b = 0; b < BOX_TOTAL; b++) {
@@ -121,7 +122,7 @@ inline void MoleculeTransfer::CalcEn()
     self_new = calcEwald->SwapSelf(newMol);
     self_old = calcEwald->SwapSelf(oldMol);
     recipGain.energy =
-      calcEwald->SwapDestRecip(newMol, destBox, sourceBox, molIndex);
+      calcEwald->SwapDestRecip(newMol, destBox, molIndex);
     recipLose.energy =
       calcEwald->SwapSourceRecip(oldMol, sourceBox, molIndex);
     //need to contribute the self and correction energy
@@ -174,7 +175,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
     double Wrat = Wn / Wo * W_tc * W_recip;
 
     //safety to make sure move will be rejected in overlap case
-    if(!overlap) {
+    if(newMol.GetWeight() != 0.0 && !overlap) {
       result = prng() < molTransCoeff * Wrat;
     } else
       result = false;

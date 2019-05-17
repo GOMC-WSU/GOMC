@@ -1,11 +1,11 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
-#ifndef CRANKSHAFT_H
-#define CRANKSHAFT_H
+#ifndef IREGROWTH_H
+#define IREGROWTH_H
 
 
 #include "MoveBase.h"
@@ -13,11 +13,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 //#define DEBUG_MOVES
 
-class CrankShaft : public MoveBase
+class Regrowth : public MoveBase
 {
 public:
 
-  CrankShaft(System &sys, StaticVals const& statV) :
+  Regrowth(System &sys, StaticVals const& statV) :
     ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
     MoveBase(sys, statV) {}
 
@@ -41,20 +41,21 @@ private:
   Forcefield const& ffRef;
 };
 
-void CrankShaft::PrintAcceptKind() {
+void Regrowth::PrintAcceptKind()
+{
   for(uint k = 0; k < molRef.GetKindsCount(); k++) {
-    printf("%-30s %-5s ", "% Accepted Crank-Shaft ", molRef.kinds[k].name.c_str());
+    printf("%-30s %-5s ", "% Accepted Regrowth ", molRef.kinds[k].name.c_str());
     for(uint b = 0; b < BOX_TOTAL; b++) {
-      if(moveSetRef.GetTrial(b, mv::CRANKSHAFT, k) > 0)
-        printf("%10.5f ", (100.0 * moveSetRef.GetAccept(b, mv::CRANKSHAFT, k)));
-      else  
+      if(moveSetRef.GetTrial(b, mv::REGROWTH, k) > 0)
+        printf("%10.5f ", (100.0 * moveSetRef.GetAccept(b, mv::REGROWTH, k)));
+      else
         printf("%10.5f ", 0.0);
     }
     std::cout << std::endl;
   }
 }
 
-inline uint CrankShaft::GetBoxAndMol(const double subDraw, const double movPerc)
+inline uint Regrowth::GetBoxAndMol(const double subDraw, const double movPerc)
 {
 
 #if ENSEMBLE == GCMC
@@ -75,7 +76,7 @@ inline uint CrankShaft::GetBoxAndMol(const double subDraw, const double movPerc)
   return state;
 }
 
-inline uint CrankShaft::Prep(const double subDraw, const double movPerc)
+inline uint Regrowth::Prep(const double subDraw, const double movPerc)
 {
   overlap = false;
   uint state = GetBoxAndMol(subDraw, movPerc);
@@ -87,16 +88,15 @@ inline uint CrankShaft::Prep(const double subDraw, const double movPerc)
   return state;
 }
 
-
-inline uint CrankShaft::Transform()
+inline uint Regrowth::Transform()
 {
   cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
-  molRef.kinds[kindIndex].CrankShaft(oldMol, newMol, molIndex);
+  molRef.kinds[kindIndex].Regrowth(oldMol, newMol, molIndex);
   overlap = newMol.HasOverlap();
   return mv::fail_state::NO_FAIL;
 }
 
-inline void CrankShaft::CalcEn()
+inline void Regrowth::CalcEn()
 {
   // since number of molecules would not change in the box,
   W_recip = 1.0;
@@ -115,7 +115,7 @@ inline void CrankShaft::CalcEn()
 }
 
 
-inline void CrankShaft::Accept(const uint rejectState, const uint step)
+inline void Regrowth::Accept(const uint rejectState, const uint step)
 {
   bool result;
   //If we didn't skip the move calculation
@@ -125,7 +125,7 @@ inline void CrankShaft::Accept(const uint rejectState, const uint step)
     double Wrat = Wn / Wo * W_recip;
 
     //safety to make sure move will be rejected in overlap case
-    if(!overlap) {
+    if(newMol.GetWeight() != 0.0 && !overlap) {
       result = prng() < Wrat;
     } else
       result = false;
@@ -165,14 +165,13 @@ inline void CrankShaft::Accept(const uint rejectState, const uint step)
       //when weight is 0, MolDestSwap() will not be executed, thus cos/sin
       //molRef will not be changed. Also since no memcpy, doing restore
       //results in memory overwrite
-      if (newMol.GetWeight() != 0.0 && !overlap) {
+      if(newMol.GetWeight() != 0.0 && !overlap)
         calcEwald->RestoreMol(molIndex);
-      }
     }
   } else //else we didn't even try because we knew it would fail
     result = false;
 
-  moveSetRef.Update(mv::CRANKSHAFT, result, step, sourceBox, kindIndex);
+  moveSetRef.Update(mv::REGROWTH, result, step, sourceBox, kindIndex);
 }
 
 #endif

@@ -1,11 +1,11 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
-#ifndef INTRASWAP_H
-#define INTRASWAP_H
+#ifndef CRANKSHAFT_H
+#define CRANKSHAFT_H
 
 
 #include "MoveBase.h"
@@ -13,11 +13,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 //#define DEBUG_MOVES
 
-class IntraSwap : public MoveBase
+class CrankShaft : public MoveBase
 {
 public:
 
-  IntraSwap(System &sys, StaticVals const& statV) :
+  CrankShaft(System &sys, StaticVals const& statV) :
     ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
     MoveBase(sys, statV) {}
 
@@ -33,20 +33,21 @@ private:
   uint pStart, pLen;
   uint molIndex, kindIndex;
 
-  double W_tc, W_recip;
+  double W_recip;
   double correct_old, correct_new;
   cbmc::TrialMol oldMol, newMol;
-  Intermolecular tcLose, tcGain, recipDiff;
+  Intermolecular recipDiff;
   MoleculeLookup & molLookRef;
   Forcefield const& ffRef;
 };
 
-void IntraSwap::PrintAcceptKind() {
+void CrankShaft::PrintAcceptKind()
+{
   for(uint k = 0; k < molRef.GetKindsCount(); k++) {
-    printf("%-30s %-5s ", "% Accepted Intra-Swap ", molRef.kinds[k].name.c_str());
+    printf("%-30s %-5s ", "% Accepted Crank-Shaft ", molRef.kinds[k].name.c_str());
     for(uint b = 0; b < BOX_TOTAL; b++) {
-      if(moveSetRef.GetTrial(b, mv::INTRA_SWAP, k) > 0)
-        printf("%10.5f ", (100.0 * moveSetRef.GetAccept(b, mv::INTRA_SWAP, k)));
+      if(moveSetRef.GetTrial(b, mv::CRANKSHAFT, k) > 0)
+        printf("%10.5f ", (100.0 * moveSetRef.GetAccept(b, mv::CRANKSHAFT, k)));
       else
         printf("%10.5f ", 0.0);
     }
@@ -54,7 +55,7 @@ void IntraSwap::PrintAcceptKind() {
   }
 }
 
-inline uint IntraSwap::GetBoxAndMol(const double subDraw, const double movPerc)
+inline uint CrankShaft::GetBoxAndMol(const double subDraw, const double movPerc)
 {
 
 #if ENSEMBLE == GCMC
@@ -75,7 +76,7 @@ inline uint IntraSwap::GetBoxAndMol(const double subDraw, const double movPerc)
   return state;
 }
 
-inline uint IntraSwap::Prep(const double subDraw, const double movPerc)
+inline uint CrankShaft::Prep(const double subDraw, const double movPerc)
 {
   overlap = false;
   uint state = GetBoxAndMol(subDraw, movPerc);
@@ -83,25 +84,22 @@ inline uint IntraSwap::Prep(const double subDraw, const double movPerc)
     newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
     oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
     oldMol.SetCoords(coordCurrRef, pStart);
-    W_tc = 1.0;
   }
   return state;
 }
 
 
-inline uint IntraSwap::Transform()
+inline uint CrankShaft::Transform()
 {
   cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
-  molRef.kinds[kindIndex].Build(oldMol, newMol, molIndex);
+  molRef.kinds[kindIndex].CrankShaft(oldMol, newMol, molIndex);
   overlap = newMol.HasOverlap();
   return mv::fail_state::NO_FAIL;
 }
 
-inline void IntraSwap::CalcEn()
+inline void CrankShaft::CalcEn()
 {
   // since number of molecules would not change in the box,
-  //there is no change in Tc
-  W_tc = 1.0;
   W_recip = 1.0;
   correct_old = 0.0;
   correct_new = 0.0;
@@ -118,21 +116,21 @@ inline void IntraSwap::CalcEn()
 }
 
 
-inline void IntraSwap::Accept(const uint rejectState, const uint step)
+inline void CrankShaft::Accept(const uint rejectState, const uint step)
 {
   bool result;
   //If we didn't skip the move calculation
   if(rejectState == mv::fail_state::NO_FAIL) {
-    double molTransCoeff = 1.0;
     double Wo = oldMol.GetWeight();
     double Wn = newMol.GetWeight();
-    double Wrat = Wn / Wo * W_tc * W_recip;
+    double Wrat = Wn / Wo * W_recip;
 
     //safety to make sure move will be rejected in overlap case
-    if(!overlap) {
-      result = prng() < molTransCoeff * Wrat;
+    if(newMol.GetWeight() != 0.0 && !overlap) {
+      result = prng() < Wrat;
     } else
       result = false;
+
 
     if(result) {
       //Add rest of energy.
@@ -174,8 +172,8 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
     }
   } else //else we didn't even try because we knew it would fail
     result = false;
-  
-  moveSetRef.Update(mv::INTRA_SWAP, result, step, sourceBox, kindIndex);
+
+  moveSetRef.Update(mv::CRANKSHAFT, result, step, sourceBox, kindIndex);
 }
 
 #endif

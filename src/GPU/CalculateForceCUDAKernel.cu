@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -14,33 +14,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 
 using namespace cub;
-
-#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true)
-{
-  if (code != cudaSuccess) {
-    fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-    if (abort) exit(code);
-  }
-}
-
-void printFreeMemory()
-{
-  size_t free_byte ;
-  size_t total_byte ;
-  cudaError_t cuda_status = cudaMemGetInfo( &free_byte, &total_byte ) ;
-
-  if ( cudaSuccess != cuda_status ) {
-    printf("Error: cudaMemGetInfo fails, %s \n",
-           cudaGetErrorString(cuda_status) );
-    exit(1);
-  }
-  double free_db = (double)free_byte ;
-  double total_db = (double)total_byte ;
-  double used_db = total_db - free_db ;
-  printf("GPU memory usage: used = %f, free = %f MB, total = %f MB\n",
-         used_db / 1024.0 / 1024.0, free_db / 1024.0 / 1024.0, total_db / 1024.0 / 1024.0);
-}
 
 void CallBoxInterForceGPU(VariablesCUDA *vars,
                           vector<uint> &pair1,
@@ -147,10 +120,10 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
       vars->gpu_isMartini,
       vars->gpu_count,
       vars->gpu_rCut,
-      vars->gpu_rCutCoulomb[box],
+      vars->gpu_rCutCoulomb,
       vars->gpu_rCutLow,
       vars->gpu_rOn,
-      vars->gpu_alpha[box],
+      vars->gpu_alpha,
       vars->gpu_ewald,
       vars->gpu_diElectric_1,
       vars->gpu_cell_x[box],
@@ -159,7 +132,8 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
       vars->gpu_Invcell_x[box],
       vars->gpu_Invcell_y[box],
       vars->gpu_Invcell_z[box],
-      vars->gpu_nonOrth);
+      vars->gpu_nonOrth,
+      box);
   cudaDeviceSynchronize();
   // ReduceSum // Virial of LJ
   void *d_temp_storage = NULL;
@@ -367,10 +341,10 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                                  int *gpu_isMartini,
                                  int *gpu_count,
                                  double *gpu_rCut,
-                                 double gpu_rCutCoulomb,
+                                 double *gpu_rCutCoulomb,
                                  double *gpu_rCutLow,
                                  double *gpu_rOn,
-                                 double gpu_alpha,
+                                 double *gpu_alpha,
                                  int *gpu_ewald,
                                  double *gpu_diElectric_1,
                                  double *gpu_cell_x,
@@ -379,7 +353,8 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                                  double *gpu_Invcell_x,
                                  double *gpu_Invcell_y,
                                  double *gpu_Invcell_z,
-                                 int *gpu_nonOrth)
+                                 int *gpu_nonOrth,
+                                 int box)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   if(threadID >= pairSize)
@@ -395,7 +370,7 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
   gpu_vT12[threadID] = 0.0, gpu_vT13[threadID] = 0.0, gpu_vT23[threadID] = 0.0;
   gpu_rT12[threadID] = 0.0, gpu_rT13[threadID] = 0.0, gpu_rT23[threadID] = 0.0;
   double diff_comx, diff_comy, diff_comz;
-  double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb);
+  double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
 
   if(InRcutGPU(distSq, virX, virY, virZ, gpu_x[gpu_pair1[threadID]],
                gpu_y[gpu_pair1[threadID]], gpu_z[gpu_pair1[threadID]],
@@ -419,7 +394,7 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
       qi_qj = gpu_particleCharge[gpu_pair1[threadID]] *
               gpu_particleCharge[gpu_pair2[threadID]];
       pRF = CalcCoulombForceGPU(distSq, qi_qj, gpu_VDW_Kind[0], gpu_ewald[0],
-                                gpu_isMartini[0], gpu_alpha, gpu_rCutCoulomb,
+                                gpu_isMartini[0], gpu_alpha[box], gpu_rCutCoulomb[box],
                                 gpu_diElectric_1[0]);
 
       gpu_rT11[threadID] = pRF * (virX * diff_comx);

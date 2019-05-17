@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -80,11 +80,11 @@ inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& se
   uint maxLJTrials = nLJTrialsFirst;
   if ( nLJTrialsNth > nLJTrialsFirst )
     maxLJTrials = nLJTrialsNth;
-   
+
   totalTrials = nLJTrialsFirst * nLJTrialsNth;
   if(totalTrials == 0)
     totalTrials = maxLJTrials;
-    
+
   for(uint i = 0; i < MAX_BONDS; ++i) {
     multiPositions[i] = XYZArray(maxLJTrials);
   }
@@ -96,8 +96,8 @@ inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& se
   ljWeights = new double[maxLJTrials];
   overlap = new bool[maxLJTrials];
 
-  interT = new double[totalTrials]; 
-  realT = new double[totalTrials];  
+  interT = new double[totalTrials];
+  realT = new double[totalTrials];
   ljWeightsT = new double[totalTrials];
   overlapT = new bool[totalTrials];
 
@@ -122,7 +122,7 @@ inline DCData::~DCData()
   delete[] angles;
   delete[] angleWeights;
   delete[] angleEnergy;
-  delete[] interT; 
+  delete[] interT;
   delete[] realT;
   delete[] ljWeightsT;
   delete[] overlap;

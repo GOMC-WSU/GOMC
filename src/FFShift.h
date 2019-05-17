@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -68,19 +68,19 @@ public:
     return 0.0;
   }
 
-  protected:
+protected:
 
   double *shiftConst, *shiftConst_1_4;
 
 };
 
 inline void FF_SHIFT::Init(ff_setup::Particle const& mie,
-                          ff_setup::NBfix const& nbfix)
+                           ff_setup::NBfix const& nbfix)
 {
   //Initializ sigma and epsilon
   FFParticle::Init(mie, nbfix);
   uint size = num::Sq(count);
-  //allocate memory 
+  //allocate memory
   shiftConst = new double [size];
   shiftConst_1_4 = new double [size];
   //calculate shift constant
@@ -99,12 +99,12 @@ inline void FF_SHIFT::Init(ff_setup::Particle const& mie,
 
       shiftConst[idx] =  epsilon_cn[idx] * (repulse - attract);
       shiftConst_1_4[idx] =  epsilon_cn_1_4[idx] *
-                            (repulse_1_4 - attract_1_4);
-    
+                             (repulse_1_4 - attract_1_4);
+
     }
   }
 }
-                  
+
 
 inline void FF_SHIFT::CalcAdd_1_4(double& en, const double distSq,
                                   const uint kind1, const uint kind2) const

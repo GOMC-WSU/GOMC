@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -10,6 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #include "CalculateMinImageCUDAKernel.cuh"
 #include "cub/cub.cuh"
+#include <stdio.h>
 
 using namespace cub;
 
@@ -87,10 +88,10 @@ void CallBoxInterGPU(VariablesCUDA *vars,
       vars->gpu_isMartini,
       vars->gpu_count,
       vars->gpu_rCut,
-      vars->gpu_rCutCoulomb[box],
+      vars->gpu_rCutCoulomb,
       vars->gpu_rCutLow,
       vars->gpu_rOn,
-      vars->gpu_alpha[box],
+      vars->gpu_alpha,
       vars->gpu_ewald,
       vars->gpu_diElectric_1,
       vars->gpu_nonOrth,
@@ -99,7 +100,8 @@ void CallBoxInterGPU(VariablesCUDA *vars,
       vars->gpu_cell_z[box],
       vars->gpu_Invcell_x[box],
       vars->gpu_Invcell_y[box],
-      vars->gpu_Invcell_z[box]);
+      vars->gpu_Invcell_z[box],
+      box);
 
   // ReduceSum
   void * d_temp_storage = NULL;
@@ -159,10 +161,10 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             int *gpu_isMartini,
                             int *gpu_count,
                             double *gpu_rCut,
-                            double gpu_rCutCoulomb,
+                            double *gpu_rCutCoulomb,
                             double *gpu_rCutLow,
                             double *gpu_rOn,
-                            double gpu_alpha,
+                            double *gpu_alpha,
                             int *gpu_ewald,
                             double *gpu_diElectric_1,
                             int *gpu_nonOrth,
@@ -171,7 +173,8 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             double *gpu_cell_z,
                             double *gpu_Invcell_x,
                             double *gpu_Invcell_y,
-                            double *gpu_Invcell_z)
+                            double *gpu_Invcell_z,
+                            int box)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   if(threadID >= pairSize)
@@ -181,7 +184,7 @@ __global__ void BoxInterGPU(int *gpu_pair1,
   double qqFact = 167000.0;
   gpu_REn[threadID] = 0.0;
   gpu_LJEn[threadID] = 0.0;
-  double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb);
+  double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
   if(InRcutGPU(distSq, gpu_x[gpu_pair1[threadID]], gpu_y[gpu_pair1[threadID]],
                gpu_z[gpu_pair1[threadID]], gpu_x[gpu_pair2[threadID]],
                gpu_y[gpu_pair2[threadID]], gpu_z[gpu_pair2[threadID]],
@@ -193,7 +196,8 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                    gpu_particleCharge[gpu_pair2[threadID]] * qqFact;
       gpu_REn[threadID] = CalcCoulombGPU(distSq, qi_qj_fact, gpu_rCutLow[0],
                                          gpu_ewald[0], gpu_VDW_Kind[0],
-                                         gpu_alpha, gpu_rCutCoulomb,
+                                         gpu_alpha[box],
+                                         gpu_rCutCoulomb[box],
                                          gpu_isMartini[0],
                                          gpu_diElectric_1[0]);
     }
@@ -215,7 +219,7 @@ __device__ double CalcCoulombGPU(double distSq, double qi_qj_fact,
   if((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
     return 0.0;
   }
-  
+
   if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
     return CalcCoulombParticleGPU(distSq, qi_qj_fact, gpu_alpha);
   } else if(gpu_VDW_Kind == GPU_VDW_SHIFT_KIND) {

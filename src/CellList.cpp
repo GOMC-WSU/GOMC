@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -214,7 +214,7 @@ void CellList::GridBox(BoxDimensions& dims, const XYZArray& pos,
   head[b].assign(edgeCells[b][0] * edgeCells[b][1] *
                  edgeCells[b][2], END_CELL);
   MoleculeLookup::box_iterator it = lookup.BoxBegin(b),
-                                 end = lookup.BoxEnd(b);
+                               end = lookup.BoxEnd(b);
 
   // For each molecule per box
   while (it != end) {

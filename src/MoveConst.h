@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -116,7 +116,7 @@ const uint IT_KINDS_TOTAL = 2;
 //      4. Regrowth (box 0)     5. IntraMEMC (box 0)  6. CrankShaft (box 0)
 //
 //GCMC: 1. Disp (box 0)         2. Rotate (box 0)     3. IntraSwap (box 0)
-//      4. Regrowth (box 0)     5. IntraMEMC (box 0)  6. CrankShaft (box 0)    
+//      4. Regrowth (box 0)     5. IntraMEMC (box 0)  6. CrankShaft (box 0)
 //      7. MEMC (box 0)         8. Deletion (box 0)   9. Insertion (box 0)
 //
 //GEMC: 1. Disp (box 0)         2. Disp (box 1)

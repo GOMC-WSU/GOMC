@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -62,7 +62,8 @@ inline VolumeTransfer::VolumeTransfer(System &sys, StaticVals const& statV)  :
   fixBox0 = statV.fixVolBox0;
 }
 
-void VolumeTransfer::PrintAcceptKind() {
+void VolumeTransfer::PrintAcceptKind()
+{
   printf("%-37s", "% Accepted Volume-Transfer ");
   for(uint b = 0; b < BOX_TOTAL; b++) {
     printf("%10.5f ", 100.0 * moveSetRef.GetAccept(b, mv::VOL_TRANSFER));
@@ -81,7 +82,8 @@ inline uint VolumeTransfer::Prep(const double subDraw, const double movePerc)
     if(fixBox0) {
       //For NPT-GEMC and when box0 is fixed, we cannot pick box 0
       while(box == 0) {
-        prng.PickBox(box, subDraw, movePerc);
+        //To avoid infinit loop, we dont use sunDraw
+        box = prng.randIntExc(BOX_TOTAL);
       }
     }
   }
@@ -120,11 +122,11 @@ inline uint VolumeTransfer::Transform()
     } else {
       state = boxDimRef.ShiftVolume(newDimNonOrth, scale, box, delta);
     }
-      
+
     if (state == mv::fail_state::NO_FAIL) {
       if(isOrth) {
-          coordCurrRef.TranslateOneBox(newMolsPos, newCOMs, comCurrRef,
-                                       newDim, box, scale);
+        coordCurrRef.TranslateOneBox(newMolsPos, newCOMs, comCurrRef,
+                                     newDim, box, scale);
       } else {
         coordCurrRef.TranslateOneBox(newMolsPos, newCOMs, comCurrRef,
                                      newDimNonOrth, box, scale);
@@ -162,8 +164,8 @@ inline void VolumeTransfer::CalcEn()
         calcEwald->RecipInit(bPick[b], newDim);
         //setup reciprocate terms
         calcEwald->BoxReciprocalSetup(bPick[b], newMolsPos);
-        sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs, newDim,
-                                       bPick[b]);
+        sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs,
+                                       newDim, bPick[b]);
       } else {
         calcEwald->RecipInit(bPick[b], newDimNonOrth);
         //setup reciprocate terms
@@ -192,7 +194,7 @@ inline void VolumeTransfer::CalcEn()
     //calculate reciprocate term of electrostatic interaction
     sysPotNew.boxEnergy[box].recip = calcEwald->BoxReciprocal(box);
   }
-  
+
   sysPotNew.Total();
 }
 
@@ -218,13 +220,13 @@ inline double VolumeTransfer::GetCoeff() const
     }
   } else {
     if(isOrth) {
-        coeff = pow(newDim.volume[box] / boxDimRef.volume[box],
-                     (double)molLookRef.NumInBox(box)) *
-                 exp(-BETA * PRESSURE * (newDim.volume[box] - boxDimRef.volume[box]));
+      coeff = pow(newDim.volume[box] / boxDimRef.volume[box],
+                  (double)molLookRef.NumInBox(box)) *
+              exp(-BETA * PRESSURE * (newDim.volume[box] - boxDimRef.volume[box]));
     } else {
-        coeff = pow(newDimNonOrth.volume[box] / boxDimRef.volume[box],
-                     (double)molLookRef.NumInBox(box)) *
-                 exp(-BETA * PRESSURE * (newDimNonOrth.volume[box] - boxDimRef.volume[box]));
+      coeff = pow(newDimNonOrth.volume[box] / boxDimRef.volume[box],
+                  (double)molLookRef.NumInBox(box)) *
+              exp(-BETA * PRESSURE * (newDimNonOrth.volume[box] - boxDimRef.volume[box]));
     }
   }
   return coeff;
@@ -249,7 +251,7 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
     else
       *((BoxDimensionsNonOrth*)(&boxDimRef)) = newDimNonOrth;
 
-    if (GEMC_KIND == mv::GEMC_NVT) {   
+    if (GEMC_KIND == mv::GEMC_NVT) {
       for (uint b = 0; b < 2; b++) {
         calcEwald->UpdateRecip(bPick[b]);
         calcEwald->UpdateRecipVec(bPick[b]);
@@ -258,9 +260,9 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       calcEwald->UpdateRecip(box);
       calcEwald->UpdateRecipVec(box);
     }
- 
+
   } else if (rejectState == mv::fail_state::NO_FAIL && regrewGrid) {
-    if (GEMC_KIND == mv::GEMC_NVT) { 
+    if (GEMC_KIND == mv::GEMC_NVT) {
       cellList.GridAll(boxDimRef, coordCurrRef, molLookRef);
     } else {
       cellList.GridBox(boxDimRef, coordCurrRef, molLookRef, box);
@@ -269,7 +271,7 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
     regrewGrid = false;
     calcEwald->exgMolCache();
 #ifdef GOMC_CUDA
-    if (GEMC_KIND == mv::GEMC_NVT) { 
+    if (GEMC_KIND == mv::GEMC_NVT) {
       //update unitcell to the original in GPU
       for (uint b = 0; b < 2; b++) {
         UpdateCellBasisCUDA(forcefield.particles->getCUDAVars(), bPick[b],
@@ -279,9 +281,9 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
         if(!isOrth) {
           BoxDimensionsNonOrth newAxes = *((BoxDimensionsNonOrth*)(&boxDimRef));
           UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), bPick[b],
-                                newAxes.cellBasis_Inv[bPick[b]].x,
-                                newAxes.cellBasis_Inv[bPick[b]].y,
-                                newAxes.cellBasis_Inv[bPick[b]].z);
+                                 newAxes.cellBasis_Inv[bPick[b]].x,
+                                 newAxes.cellBasis_Inv[bPick[b]].y,
+                                 newAxes.cellBasis_Inv[bPick[b]].z);
         }
       }
     } else {
@@ -292,9 +294,9 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       if(!isOrth) {
         BoxDimensionsNonOrth newAxes = *((BoxDimensionsNonOrth*)(&boxDimRef));
         UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
-                              newAxes.cellBasis_Inv[box].x,
-                              newAxes.cellBasis_Inv[box].y,
-                              newAxes.cellBasis_Inv[box].z);
+                               newAxes.cellBasis_Inv[box].x,
+                               newAxes.cellBasis_Inv[box].y,
+                               newAxes.cellBasis_Inv[box].z);
       }
     }
 #endif

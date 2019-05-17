@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -30,7 +30,7 @@ public:
   void InitRef(System & sys, StaticVals const& statV);
 
   void CalcAndConvert(ulong step);
-  bool Perfromed(uint moveKind);
+  bool Performed(uint moveKind);
   uint GetTries(uint box, uint sub);
   uint GetAccepted(uint box, uint sub);
   double GetAcceptPercent(uint box, uint sub);
