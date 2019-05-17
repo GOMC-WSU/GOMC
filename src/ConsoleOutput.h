@@ -61,13 +61,20 @@ public:
         enableSurfTension) {
       enableStat = true;
     }
+    enableConsoleToFile = output.useMultidir;
+    if(enableConsoleToFile){
+      this->consoleToFile = new ofstream(output.state.files.console.name.c_str(), std::ofstream::out);
+    }
+
     DoOutput(0);
   }
   virtual void DoOutput(const ulong step);
+  std::ofstream * getConsoleToFile();
 
 private:
+  ofstream* consoleToFile;
   const static int elementWidth = 16;
-  bool enableEnergy, enablePressure, enableDens, enableVolume, enableMol;
+  bool enableEnergy, enablePressure, enableDens, enableVolume, enableMol, enableConsoleToFile;
   bool enableSurfTension, enableStat;
   void PrintMove(const uint box, const ulong step) const;
   void PrintMoveStat(const uint box, const ulong step) const;

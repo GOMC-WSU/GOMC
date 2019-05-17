@@ -12,7 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-#ifdef GOMC_CUDA
+#ifdef GOMC_CUDA  
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
 
@@ -29,6 +29,8 @@ public:
   double GetCoeff() const;
   virtual void Accept(const uint rejectState, const uint step);
   virtual void PrintAcceptKind();
+  virtual void PrintAcceptKind(std::ofstream * consoleOut);
+
 private:
   //Note: This is only used for GEMC-NVT
   uint bPick[2];
@@ -69,6 +71,32 @@ void VolumeTransfer::PrintAcceptKind()
     printf("%10.5f ", 100.0 * moveSetRef.GetAccept(b, mv::VOL_TRANSFER));
   }
   std::cout << std::endl;
+}
+
+void VolumeTransfer::PrintAcceptKind(std::ofstream * consoleOut) {
+  std::ostringstream default_format;
+
+  for(uint k = 0; k < molRef.GetKindsCount(); k++) {
+    *consoleOut << left << setw(30) << "% Accepted Volume-Transfer ";
+    consoleOut->copyfmt(default_format);
+    *consoleOut << ' ';
+    *consoleOut << left << setw(5) << molRef.kinds[k].name.c_str();
+    consoleOut->copyfmt(default_format);
+    *consoleOut << ' ';
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      if(moveSetRef.GetTrial(b, mv::VOL_TRANSFER, k) > 0){
+        *consoleOut << std::fixed << setw(10) << std::setprecision(5) << (100.0 * moveSetRef.GetAccept(b, mv::VOL_TRANSFER, k));
+        consoleOut->copyfmt(default_format);  
+        *consoleOut << ' ';
+      } else{
+        *consoleOut << std::fixed << setw(10) << std::setprecision(5) << 0.0;
+        consoleOut->copyfmt(default_format);
+        *consoleOut << ' ';    
+      }
+    }
+    *consoleOut << std::endl;
+    consoleOut->copyfmt(default_format);
+  }
 }
 
 inline uint VolumeTransfer::Prep(const double subDraw, const double movePerc)

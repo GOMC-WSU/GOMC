@@ -28,7 +28,7 @@ void Histogram::Init(pdb_setup::Atoms const& atoms,
   stepsPerSample = output.state.files.hist.stepsPerHistSample;
   stepsPerOut = output.statistics.settings.hist.frequency;
   enableOut = output.statistics.settings.hist.enable;
-  if (enableOut) {
+  if (enableOut) {  
     total = new uint[var->numKinds];
     //Set each kind's initial count to 0
     for (uint k = 0; k < var->numKinds; ++k) {
@@ -44,6 +44,11 @@ void Histogram::Init(pdb_setup::Atoms const& atoms,
                               output.state.files.hist.number,
                               output.state.files.hist.letter,
                               b, k);
+        if (output.useMultidir){
+          std::stringstream replica_stream;
+          replica_stream << output.replica_path << name[b][k];
+          name[b][k] = replica_stream.str();
+        }
       }
     }
     //Figure out total of each kind of molecule in ALL boxes, including
@@ -118,8 +123,9 @@ void Histogram::PrintKindHist(const uint b, const uint k)
 {
   for (uint n = 0; n < total[k]; ++n) {
     if ( molCount[b][k][n] != 0 )
-      outF[b][k] << n << " " << molCount[b][k][n] << std::endl;;
+      outF[b][k] << n << " " << molCount[b][k][n] << std::endl;
   }
+  outF[b][k].flush();
 }
 
 std::string Histogram::GetFName(std::string const& histName,

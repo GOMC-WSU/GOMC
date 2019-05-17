@@ -44,7 +44,7 @@ private:
   uint * total;
   uint stepsPerSample;
 
-  std::ofstream * outF [BOXES_WITH_U_NB];
+  std::ofstream * outF[BOXES_WITH_U_NB];
   std::string * name [BOXES_WITH_U_NB];
 };
 

@@ -49,6 +49,12 @@ public:
   //print move time
   void PrintAcceptance();
 
+  //print move time
+  void PrintTime(std::ofstream * consoleOut);
+
+   //print move time
+  void PrintAcceptance(std::ofstream * consoleOut);
+
   // return ewald
   Ewald * GetEwald()
   {

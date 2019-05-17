@@ -14,17 +14,20 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveConst.h" //For box constants, if we're calculating Hv
 #endif
 
-OutputVars::OutputVars(System & sys, StaticVals const& statV) :
-  calc(sys.calcEnergy)
+OutputVars::OutputVars(System & sys, StaticVals & statV)
 {
+  
   InitRef(sys, statV);
+  virial = new Virial[BOXES_WITH_U_NB];
 }
 
-void OutputVars::InitRef(System & sys, StaticVals const& statV)
+void OutputVars::InitRef(System & sys, StaticVals & statV)
 {
+  calc = & sys.calcEnergy;
+
   T_in_K = statV.forcefield.T_in_K;
   volumeRef = sys.boxDimRef.volume;
-  axisRef = &sys.boxDimRef.axis;
+  axisRef = &sys.boxDimRef.axis; 
   volInvRef = sys.boxDimRef.volInv;
   energyTotRef = & sys.potential.totalEnergy;
   virialTotRef = & sys.potential.totalVirial;
@@ -36,8 +39,6 @@ void OutputVars::InitRef(System & sys, StaticVals const& statV)
   movePercRef = statV.movePerc;
   pCalcFreq = statV.simEventFreq.pCalcFreq;
   pressureCalc = statV.simEventFreq.pressureCalc;
-
-  virial = new Virial[BOXES_WITH_U_NB];
 }
 
 bool OutputVars::Performed(uint moveKind)
@@ -123,7 +124,7 @@ void OutputVars::CalcAndConvert(ulong step)
 
     if (pressureCalc) {
       if((step + 1) % pCalcFreq == 0) {
-        virialRef[b] = calc.ForceCalc(b);
+        virialRef[b] = calc->ForceCalc(b);
         *virialTotRef += virialRef[b];
       }
     }

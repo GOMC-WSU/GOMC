@@ -11,8 +11,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <cuda_runtime_api.h>
 #endif
 #include <iostream>
+
 #include <ctime>
 
+#include "ReplicaExchangeController.h"
+//#include "ReplicaExchangeController.h"
 //find and include appropriate files for getHostname
 #ifdef _WIN32
 #include <Winsock2.h>
@@ -34,6 +37,8 @@ void PrintSimulationFooter();
 void PrintDebugMode();
 bool CheckAndPrintEnsemble();
 uint ReadNum(char *argv);
+std::string tail(std::string const& source, size_t const length);
+void checkIfValidFile(std::string inputFileString);
 }
 
 void PrintHardwareInfo();
@@ -103,10 +108,28 @@ int main(int argc, char *argv[])
     //CLOSE FILE TO NOW PASS TO SIMULATION
     inputFileReader.close();
 
+    std::vector<Simulation*> sims; 
+    if(!(tail(inputFileString, 4).compare("conf") == 0 || tail(inputFileString, 3).compare("dat") == 0)){
+      // We have a file containing .confs or .dats on each line
+      std::string line;
+      std::ifstream infile(inputFileString.c_str());
+      while(getline(infile, line)){
+        checkIfValidFile(line);
+        sims.push_back(new Simulation(line.c_str()));
+      }
+    }
+
+    if(sims.size()>0){
+      
+      ReplicaExchangeController replicaEx(&sims);
+      replicaEx.runMultiSim();
+
+    } else {
     //ONCE FILE FOUND PASS STRING TO SIMULATION CLASS TO READ AND
     //HANDLE PDB|PSF FILE
-    Simulation sim(inputFileString.c_str());
-    sim.RunSimulation();
+      Simulation sim(inputFileString.c_str());
+      sim.RunSimulation();
+    }
     PrintSimulationFooter();
   }
   return 0;
@@ -213,6 +236,27 @@ uint ReadNum(char *argv)
   }
 
   return thread;
+}
+
+std::string tail(std::string const& source, size_t const length) {
+  if (length >= source.size()) { return source; }
+  return source.substr(source.size() - length);
+} // tail
+
+void checkIfValidFile(std::string inputFileString){
+  fstream inputFileReader;
+  //OPEN FILE
+    inputFileReader.open(inputFileString.c_str(), ios::in | ios::out);
+
+    //CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
+    if (!inputFileReader.is_open()) {
+      std::cout << "Error: Cannot open/find " << inputFileString <<
+                " in the directory provided!\n";
+      exit(EXIT_FAILURE);
+    }
+
+    //CLOSE FILE TO NOW PASS TO SIMULATION
+    inputFileReader.close();
 }
 }
 

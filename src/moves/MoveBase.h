@@ -63,6 +63,7 @@ public:
 
   //This function print the internal acceptance state for each molecule kind
   virtual void PrintAcceptKind() = 0;
+  virtual void PrintAcceptKind(std::ofstream * consoleOut) = 0;
 
   virtual ~MoveBase() {}
 
@@ -79,7 +80,7 @@ protected:
   PRNG & prng;
   BoxDimensions & boxDimRef;
   Molecules const& molRef;
-  const double BETA;
+  const double& BETA;
   const bool ewald;
   CellList& cellList;
   bool molRemoved, fixBox0, overlap;

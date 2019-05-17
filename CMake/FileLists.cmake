@@ -36,6 +36,7 @@ set(sources
    src/PRNGSetup.cpp
    src/PSFOutput.cpp
    src/Reader.cpp
+   src/ReplicaExchangeController.cpp
    src/Simulation.cpp
    src/StaticVals.cpp
    src/System.cpp

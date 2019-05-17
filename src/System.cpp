@@ -254,6 +254,113 @@ void System::PrintAcceptance()
   std::cout << std::endl;
 }
 
+void System::PrintAcceptance(std::ofstream * consoleOut)
+{
+  std::ostringstream default_format;
+  *consoleOut << std::endl;
+  *consoleOut << left << setw(24) << "Move Type" << ' ';
+    *consoleOut << left << setw(15) << "Mol. Kind";
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    sstrm::Converter toStr;
+    std::string numStr = "";
+    toStr << b;
+    toStr >> numStr;
+    numStr = "BOX_" + numStr;
+    *consoleOut << left << setw(11) << numStr;
+    //printf("%-11s", numStr.c_str());
+  }
+  consoleOut->copyfmt(default_format);
+
+  *consoleOut << std::endl;
+
+  for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++) {
+    if(statV.movePerc[m] > 0.0)
+      moves[m]->PrintAcceptKind(consoleOut);
+  }
+  *consoleOut << std::endl;
+}
+
+void System::PrintTime(std::ofstream * consoleOut)
+{
+  //std::cout << "MC moves Execution time:\n";
+  std::ostringstream default_format;
+
+  *consoleOut << left << setw(36) << "Displacement:";
+  consoleOut->copyfmt(default_format);
+  *consoleOut << ' ';
+  *consoleOut << std::fixed << setw(10) << std::setprecision(4) << moveTime[mv::DISPLACE];
+  consoleOut->copyfmt(default_format);
+  *consoleOut << "    sec.\n";
+
+  *consoleOut << left << setw(36) << "Rotation:";
+  consoleOut->copyfmt(default_format);
+  *consoleOut << ' ';
+  *consoleOut << std::fixed << setw(10) << std::setprecision(4) << moveTime[mv::ROTATE];
+  consoleOut->copyfmt(default_format);
+  *consoleOut << "    sec.\n";
+
+  *consoleOut << left << setw(36) << "Intra-Swap:";
+  consoleOut->copyfmt(default_format);
+  *consoleOut << ' ';
+  *consoleOut << std::fixed << setw(10) << std::setprecision(4) << moveTime[mv::INTRA_SWAP];
+  consoleOut->copyfmt(default_format);
+  *consoleOut << "    sec.\n";
+
+  *consoleOut << left << setw(36) << "Regrowth:";
+  consoleOut->copyfmt(default_format);
+  *consoleOut << ' ';
+  *consoleOut << std::fixed << setw(10) << std::setprecision(4) << moveTime[mv::REGROWTH];
+  consoleOut->copyfmt(default_format);
+  *consoleOut << "    sec.\n";
+
+  *consoleOut << left << setw(36) << "Intra-MEMC:";
+  consoleOut->copyfmt(default_format);
+  *consoleOut << ' ';
+  *consoleOut << std::fixed << setw(10) << std::setprecision(4) << moveTime[mv::INTRA_MEMC];
+  consoleOut->copyfmt(default_format);
+  *consoleOut << "    sec.\n";
+
+  *consoleOut << left << setw(36) << "Crank-Shaft:";
+  consoleOut->copyfmt(default_format);
+  *consoleOut << ' ';
+  *consoleOut << std::fixed << setw(10) << std::setprecision(4) << moveTime[mv::CRANKSHAFT];
+  consoleOut->copyfmt(default_format);
+  *consoleOut << "    sec.\n";
+
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
+
+  *consoleOut << left << setw(36) << "Mol-Transfer:";
+  consoleOut->copyfmt(default_format);
+  *consoleOut << ' ';
+  *consoleOut << std::fixed << setw(10) << std::setprecision(4) << moveTime[mv::MOL_TRANSFER];
+  consoleOut->copyfmt(default_format);
+  *consoleOut << "    sec.\n";
+
+  *consoleOut << left << setw(36) << "MEMC:";
+  consoleOut->copyfmt(default_format);
+  *consoleOut << ' ';
+  *consoleOut << std::fixed << setw(10) << std::setprecision(4) << moveTime[mv::MEMC];
+  consoleOut->copyfmt(default_format);
+  *consoleOut << "    sec.\n";
+
+  //printf("%-36s %10.4f    sec.\n", "Mol-Transfer:",
+   //      moveTime[mv::MOL_TRANSFER]);
+  //printf("%-36s %10.4f    sec.\n", "MEMC:", moveTime[mv::MEMC]);
+#endif
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
+  //printf("%-36s %10.4f    sec.\n", "Vol-Transfer:", moveTime[mv::VOL_TRANSFER]);
+
+  *consoleOut << left << setw(36) << "Vol-Transfer:";
+  consoleOut->copyfmt(default_format);
+  *consoleOut << ' ';
+  *consoleOut << std::fixed << setw(10) << std::setprecision(4) << moveTime[mv::VOL_TRANSFER];
+  consoleOut->copyfmt(default_format);
+  *consoleOut << "    sec.\n";
+
+#endif
+  *consoleOut << std::endl;
+}
+
 void System::PrintTime()
 {
   //std::cout << "MC moves Execution time:\n";

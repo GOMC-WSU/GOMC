@@ -58,7 +58,8 @@ public:
         trial[b].resize(molRef.GetKindsCount() * molRef.GetKindsCount(), 0.0);
         accepted[b].resize(molRef.GetKindsCount() * molRef.GetKindsCount(), 0.0);
       }
-#if ENSEMBLE == GEMC
+      
+   #if ENSEMBLE == GEMC
       //start with box0 and modify it if Box0 was not the dense box
       sourceBox = mv::BOX0;
 #elif ENSEMBLE == GCMC
@@ -67,57 +68,58 @@ public:
 #endif
     }
   }
+  
+   virtual uint Prep(const double subDraw, const double movPerc);
+   virtual uint Transform();
+   virtual void CalcEn();
+   virtual void Accept(const uint earlyReject, const uint step);
+   virtual void PrintAcceptKind();
+   virtual void PrintAcceptKind(std::ofstream * consoleOut);
+   //This function carries out actions based on the internal acceptance state and
+   //molecule kind
+   void AcceptKind(const uint rejectState, const uint kind, const uint box);
 
-  virtual uint Prep(const double subDraw, const double movPerc);
-  virtual uint Transform();
-  virtual void CalcEn();
-  virtual void Accept(const uint earlyReject, const uint step);
-  virtual void PrintAcceptKind();
-  //This function carries out actions based on the internal acceptance state and
-  //molecule kind
-  void AcceptKind(const uint rejectState, const uint kind, const uint box);
+ protected:
 
-protected:
+   virtual void AdjustExRatio();
+   virtual void SetMEMC(StaticVals const& statV);
+   virtual void SetExchangeData();
+   void SetBox();
+   void ShiftMol(const bool A, const uint n, const uint from, const uint to);
+   void RecoverMol(const bool A, const uint n, const uint from, const uint to);
+   virtual uint PickMolInCav();
+   virtual uint ReplaceMolecule();
+   void CalcTc();
+   virtual double GetCoeff() const;
+   uint GetBoxPairAndMol(const double subDraw, const double movPerc);
 
-  virtual void AdjustExRatio();
-  virtual void SetMEMC(StaticVals const& statV);
-  virtual void SetExchangeData();
-  void SetBox();
-  void ShiftMol(const bool A, const uint n, const uint from, const uint to);
-  void RecoverMol(const bool A, const uint n, const uint from, const uint to);
-  virtual uint PickMolInCav();
-  virtual uint ReplaceMolecule();
-  void CalcTc();
-  virtual double GetCoeff() const;
-  uint GetBoxPairAndMol(const double subDraw, const double movPerc);
+   bool insertL, enableID;
+   uint largeBB[2];
+   uint sourceBox, destBox;
+   uint perAdjust, molInCavCount, counter;
+   uint numInCavA, numInCavB, kindS, kindL, totMolInCav;
+   vector<uint> pStartA, pLenA, pStartB, pLenB;
+   vector<uint> molIndexA, kindIndexA, molIndexB, kindIndexB;
+   vector< vector<uint> > molInCav;
+   vector<cbmc::TrialMol> oldMolA, newMolA, oldMolB, newMolB;
+   //To store total sets of exchange pairs
+   vector<uint> exchangeRatioVec, kindSVec, kindLVec;
+   vector< vector<uint> > largeBBVec;
+   //For move acceptance of each molecule kind
+   std::vector< std::vector<uint> > trial, accepted;
 
-  bool insertL, enableID;
-  uint largeBB[2];
-  uint sourceBox, destBox;
-  uint perAdjust, molInCavCount, counter;
-  uint numInCavA, numInCavB, kindS, kindL, totMolInCav;
-  vector<uint> pStartA, pLenA, pStartB, pLenB;
-  vector<uint> molIndexA, kindIndexA, molIndexB, kindIndexB;
-  vector< vector<uint> > molInCav;
-  vector<cbmc::TrialMol> oldMolA, newMolA, oldMolB, newMolB;
-  //To store total sets of exchange pairs
-  vector<uint> exchangeRatioVec, kindSVec, kindLVec;
-  vector< vector<uint> > largeBBVec;
-  //For move acceptance of each molecule kind
-  std::vector< std::vector<uint> > trial, accepted;
-
-  int exDiff, exchangeRatio;
-  double volCav, lastAccept;
-  double numTypeASource, numTypeBSource, numTypeADest, numTypeBDest;
-  XYZ center, cavity;
-  XYZArray cavA, invCavA;
-  double W_tc, W_recip;
-  double correct_oldA, correct_newA, self_oldA, self_newA;
-  double correct_oldB, correct_newB, self_oldB, self_newB;
-  double recipDest, recipSource;
-  Intermolecular tcNew[BOX_TOTAL];
-  MoleculeLookup & molLookRef;
-  Forcefield const& ffRef;
+   int exDiff, exchangeRatio;
+   double volCav, lastAccept;
+   double numTypeASource, numTypeBSource, numTypeADest, numTypeBDest;
+   XYZ center, cavity;
+   XYZArray cavA, invCavA;
+   double W_tc, W_recip;
+   double correct_oldA, correct_newA, self_oldA, self_newA;
+   double correct_oldB, correct_newB, self_oldB, self_newB;
+   double recipDest, recipSource;
+   Intermolecular tcNew[BOX_TOTAL];
+   MoleculeLookup & molLookRef;
+   Forcefield const& ffRef;
 };
 
 inline void MoleculeExchange1::AcceptKind(const uint rejectState, const uint kind,
@@ -146,7 +148,42 @@ void MoleculeExchange1::PrintAcceptKind()
   }
 }
 
-inline void MoleculeExchange1::SetMEMC(StaticVals const& statV)
+void MoleculeExchange1::PrintAcceptKind(std::ofstream * consoleOut) {
+std::ostringstream default_format;
+
+  for(uint k = 0; k < kindLVec.size(); k++) {
+    uint ks = kindSVec[k];
+    uint kl = kindLVec[k];
+    uint index = ks + kl * molRef.GetKindsCount();
+    *consoleOut << left << setw(22) << "% Accepted MEMC ";
+    consoleOut->copyfmt(default_format);
+    *consoleOut << ' ';
+    *consoleOut << setw(5) << molRef.kinds[kl].name.c_str();
+    consoleOut->copyfmt(default_format);
+    *consoleOut << " - ";
+    *consoleOut << left << setw(5) << molRef.kinds[ks].name.c_str();
+    consoleOut->copyfmt(default_format);
+    *consoleOut << ' ';
+  //  printf("%-22s %5s - %-5s ", "% Accepted Intra-MEMC ", molRef.kinds[kl].name.c_str(),
+          //molRef.kinds[ks].name.c_str());
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      if(trial[b][index] > 0){
+        //printf("%10.5f ", (double)(100.0 * accepted[b][index]/trial[b][index]));
+        *consoleOut << std::fixed << setw(10) << std::setprecision(5) << (double)(100.0 * accepted[b][index]/trial[b][index]);
+        consoleOut->copyfmt(default_format);
+        *consoleOut << ' ';
+      } else { 
+        //printf("%10.5f ", 0.0);
+        *consoleOut << std::fixed << setw(10) << std::setprecision(5) << 0.0;
+        consoleOut->copyfmt(default_format);
+        *consoleOut << ' ';
+      }
+    }
+    std::cout << std::endl;
+  }  
+}
+
+inline void MoleculeExchange1::SetMEMC(StaticVals const& statV) 
 {
   for(uint t = 0; t < exchangeRatioVec.size(); t++) {
     kindS = kindL = largeBB[0] = largeBB[1] = -1;

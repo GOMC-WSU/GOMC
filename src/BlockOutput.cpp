@@ -88,10 +88,24 @@ void BlockAverage::DoWrite(const ulong step, uint precision)
 void BlockAverages::Init(pdb_setup::Atoms const& atoms,
                          config_setup::Output const& output)
 {
-  std::string name = "Blk_" + uniqueName + "_BOX_0.dat";
+  std::string name;
+  if (output.useMultidir){
+    std::stringstream replica_stream;
+    replica_stream << output.replica_path << "Blk_" << uniqueName << "_BOX_0.dat";
+    name = replica_stream.str();
+    
+  } else {  
+    name = "Blk_" + uniqueName + "_BOX_0.dat";
+  }
   outBlock0.open(name.c_str(), std::ofstream::out);
   if(BOXES_WITH_U_NB >= 2) {
-    name = "Blk_" + uniqueName + "_BOX_1.dat";
+    if (output.useMultidir){
+      std::stringstream replica_stream;
+      replica_stream << output.replica_path << "Blk_" << uniqueName << "_BOX_0.dat";
+      name = replica_stream.str();
+    } else {  
+      name = "Blk_" + uniqueName + "_BOX_1.dat";
+    }
     outBlock1.open(name.c_str(), std::ofstream::out);
   }
   InitVals(output.statistics.settings.block);

@@ -46,7 +46,24 @@ void CPUSide::Output(const ulong step)
   //Calculate pressure, heat of vap. (if applicable), etc.
   varRef.CalcAndConvert(step);
   //Do standard output events.
-  for (uint o = 0; o < outObj.size(); o++)
+  for (uint o = 0; o < outObj.size(); o++){
     outObj[o]->Output(step);
-  timer.CheckTime(step);
+  }
+  if (console.getConsoleToFile() != NULL){
+    timer.CheckTime(step, console.getConsoleToFile());
+  } else {
+    timer.CheckTime(step);
+  }
+}
+
+Clock* CPUSide::getClock(){
+  return &timer;
+}
+
+void CPUSide::reInitVarRef(System * sys, StaticVals * sv){
+  varRef.InitRef(*sys, *sv);
+}
+
+ConsoleOutput * CPUSide::getConsoleOutput(){
+  return & console;
 }

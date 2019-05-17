@@ -31,6 +31,12 @@ struct CPUSide {
   void Output(const ulong step);
 
   ulong equilSteps;
+
+  Clock* getClock();
+
+  void reInitVarRef(System * sys, StaticVals * sv);
+
+  ConsoleOutput * getConsoleOutput();
 private:
   Clock timer;
   std::vector<OutputableBase *> outObj;
