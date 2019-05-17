@@ -405,7 +405,7 @@ void EwaldCached::backupMolCache()
     if(BOX_TOTAL == 2) {
       exgMolCache();
     } else {
-      uint m;
+      int m;
 #ifdef _OPENMP
       #pragma omp parallel for private(m)
 #endif
@@ -415,7 +415,7 @@ void EwaldCached::backupMolCache()
       }
     }
   } else {
-    uint m;
+    int m;
 #ifdef _OPENMP
     #pragma omp parallel for private(m)
 #endif
