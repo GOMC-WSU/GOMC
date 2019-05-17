@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -73,7 +73,7 @@ inline void Clock::CheckTime(const ulong step)
     lastTime = currTime;
     CompletionTime(day, hr, min);
     printf("Steps/sec: %7.3f, Simulation ends in: %3d d: %3d h: %3d m \n\n",
-          speed, day, hr, min);
+           speed, day, hr, min);
 
   } else if (step == lastStep) {
 #if defined(__linux__) || defined(__APPLE__)

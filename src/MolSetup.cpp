@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -33,7 +33,7 @@ bool Dihedral::operator == (const Dihedral& o) const
 
   if(a0 == o.a3 && a1 == o.a2 && a2 == o.a1 && a3 == o.a0)
     same = true;
-    
+
   return same;
 }
 

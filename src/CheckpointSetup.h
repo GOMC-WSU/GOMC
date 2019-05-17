@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -11,11 +11,13 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Coordinates.h"
 #include <iostream>
 
-class CheckpointSetup{
+class CheckpointSetup
+{
 public:
   CheckpointSetup(System & sys, StaticVals const& statV);
 
-  ~CheckpointSetup() {
+  ~CheckpointSetup()
+  {
     if(inputFile != NULL) {
       fclose(inputFile);
       inputFile = NULL;
@@ -25,7 +27,7 @@ public:
       saveArray = NULL;
     }
   }
-  
+
   void ReadAll();
   void SetStepNumber(ulong & startStep);
   void SetPRNGVariables(PRNG & prng);
@@ -59,7 +61,7 @@ private:
   uint32_t numKinds;
   vector<vector<vector<double> > > scaleVec, acceptPercentVec;
   vector<vector<vector<uint32_t> > > acceptedVec, triesVec, tempAcceptedVec,
-                                   tempTriesVec;
+         tempTriesVec;
 
   // private functions used by ReadAll and Get functions
   void openInputFile();

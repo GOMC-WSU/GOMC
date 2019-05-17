@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -51,7 +51,7 @@ public:
 
   virtual void Init(ff_setup::Particle const& mie,
                     ff_setup::NBfix const& nbfix);
- 
+
   double GetEpsilon(const uint i, const uint j) const;
   double GetEpsilon_1_4(const uint i, const uint j) const;
   double GetSigma(const uint i, const uint j) const;
@@ -79,8 +79,14 @@ public:
   //!Returns Energy long-range correction term for a kind pair
   virtual double VirialLRC(const uint kind1, const uint kind2) const;
 
-  uint NumKinds() const { return count; }                
-  double GetMass(const uint kind) const { return mass[kind]; }
+  uint NumKinds() const
+  {
+    return count;
+  }
+  double GetMass(const uint kind) const
+  {
+    return mass[kind];
+  }
 
 #ifdef GOMC_CUDA
   VariablesCUDA *getCUDAVars()
@@ -91,7 +97,10 @@ public:
 
 protected:
   //Find the index of the pair kind
-  uint FlatIndex(const uint i, const uint j) const { return i + j * count; }
+  uint FlatIndex(const uint i, const uint j) const
+  {
+    return i + j * count;
+  }
   //Combining sigma, epsilon, and n value for different kind
   void Blend(ff_setup::Particle const& mie, const double rCut);
   //Use NBFIX to adjust sigma, epsilon, and n value for different kind

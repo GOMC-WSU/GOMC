@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -36,7 +36,7 @@ public:
   void CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
   void BuildEdges(TrialMol& oldMol, TrialMol& newMol, uint molIndex,
                   const uint current);
-  //used in MEMC moves                
+  //used in MEMC moves
   void BuildIDNew(TrialMol& newMol, uint molIndex);
   void BuildIDOld(TrialMol& oldMol, uint molIndex);
   void BuildNew(TrialMol& newMol, uint molIndex);

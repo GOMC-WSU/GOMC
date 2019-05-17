@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -274,7 +274,7 @@ void Dihedral::Read(Reader & param, std::string const& firstVar)
   std::string merged = ReadKind(param, firstVar);
   param.file >> coeff >> index >> def;
   if(index == 0) {
-    //set phase shif for n=0 to 90 degree 
+    //set phase shif for n=0 to 90 degree
     // We will have C0 = Kchi (1 + cos(0 * phi + 90)) = Kchi
     def = 90.00;
   }

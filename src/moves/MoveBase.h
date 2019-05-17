@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -103,7 +103,7 @@ protected:
 };
 
 inline uint MolTransformBase::GetBoxAndMol(PRNG & prng, Molecules const& molRef,
-                                          const double subDraw, const double movPerc)
+    const double subDraw, const double movPerc)
 {
 #if ENSEMBLE == GCMC
   b = mv::BOX0;

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -181,7 +181,7 @@ void OutputVars::CalcAndConvert(ulong step)
       // Convert density to g/ml (which is equivalent to g/cm3)
       // To get kg/m3, multiply output densities by 1000.
       density *= unit::MOLECULES_PER_A3_TO_MOL_PER_CM3 *
-                  kindsRef[k].molMass;
+                 kindsRef[k].molMass;
       densityTot[b] += density;
     }
     densityTot[b] *= 1000;

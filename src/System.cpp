@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -154,13 +154,13 @@ void System::InitMoves(Setup const& set)
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   moves[mv::MOL_TRANSFER] = new MoleculeTransfer(*this, statV);
-    if(set.config.sys.memcVal.MEMC1) {
-      moves[mv::MEMC] = new MoleculeExchange1(*this, statV);
-    } else if (set.config.sys.memcVal.MEMC2) {
-      moves[mv::MEMC] = new MoleculeExchange2(*this, statV);
-    } else {
-      moves[mv::MEMC] = new MoleculeExchange3(*this, statV);
-    }
+  if(set.config.sys.memcVal.MEMC1) {
+    moves[mv::MEMC] = new MoleculeExchange1(*this, statV);
+  } else if (set.config.sys.memcVal.MEMC2) {
+    moves[mv::MEMC] = new MoleculeExchange2(*this, statV);
+  } else {
+    moves[mv::MEMC] = new MoleculeExchange3(*this, statV);
+  }
 #endif
 }
 

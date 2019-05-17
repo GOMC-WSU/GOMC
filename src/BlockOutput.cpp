@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -57,7 +57,7 @@ void BlockAverage::DoWrite(const ulong step, uint precision)
   if (tot >= 1) {
     if (outBlock0->is_open()) {
       if(abs(block[0]) > 1e99) {
-        (*outBlock0) << right << std::scientific  << std::setprecision(precision-1) <<
+        (*outBlock0) << right << std::scientific  << std::setprecision(precision - 1) <<
                      std::setw(OUTPUTWIDTH);
         (*outBlock0) << block[0];
       } else {
@@ -71,7 +71,7 @@ void BlockAverage::DoWrite(const ulong step, uint precision)
   if (tot >= 2) {
     if (outBlock1->is_open()) {
       if(abs(block[0]) > 1e99) {
-        (*outBlock1) << right << std::scientific  << std::setprecision(precision-1) <<
+        (*outBlock1) << right << std::scientific  << std::setprecision(precision - 1) <<
                      std::setw(OUTPUTWIDTH);
         (*outBlock1) << block[1];
       } else {

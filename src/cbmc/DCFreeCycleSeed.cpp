@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -27,7 +27,7 @@ struct FindA1 {
 };
 
 DCFreeCycleSeed::DCFreeCycleSeed(DCData* data, const mol_setup::MolKind& kind,
-                                   std::vector<int> cycAtoms, uint focus, uint prev)
+                                 std::vector<int> cycAtoms, uint focus, uint prev)
   : data(data), hed(data, kind, cycAtoms, focus, prev)
 {
   using namespace mol_setup;
@@ -50,12 +50,12 @@ DCFreeCycleSeed::DCFreeCycleSeed(DCData* data, const mol_setup::MolKind& kind,
   for (uint i = 0; i < onFocus.size(); ++i) {
     bondKinds[i] = onFocus[i].kind;
     if(std::find(cycAtoms.begin(), cycAtoms.end(), onFocus[i].a1) != cycAtoms.end()) {
-        bondedInRing[i] = true;
+      bondedInRing[i] = true;
     }
   }
 
   if(data->nLJTrialsNth < 1) {
-      std::cout << "Error: CBMC secondary atom trials must be greater than 0.\n";
+    std::cout << "Error: CBMC secondary atom trials must be greater than 0.\n";
     exit(EXIT_FAILURE);
   }
 }

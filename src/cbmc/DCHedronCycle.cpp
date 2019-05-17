@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -59,7 +59,7 @@ namespace cbmc
 
 
 DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
-                              std::vector<int> cycAtoms, uint focus, uint prev)
+                             std::vector<int> cycAtoms, uint focus, uint prev)
   : data(data), focus(focus), prev(prev)
 {
   using namespace mol_setup;
@@ -168,7 +168,7 @@ double DCHedronCycle::CalcTheta(TrialMol& mol, const uint a0, const uint a1,
 
 //Randomly generate nTrials angles and save energy and weight
 void DCHedronCycle::GenerateAnglesNew(TrialMol& newMol, uint molIndex,
-                                 uint kind, uint nTrials, uint bType)
+                                      uint kind, uint nTrials, uint bType)
 {
   double* nonbonded_1_3 =  data->nonbonded_1_3;
   int i;
@@ -208,7 +208,7 @@ void DCHedronCycle::GenerateAnglesNew(TrialMol& newMol, uint molIndex,
 }
 
 void DCHedronCycle::GenerateAnglesOld(TrialMol& oldMol, uint molIndex,
-                                 uint kind, uint nTrials, uint bType)
+                                      uint kind, uint nTrials, uint bType)
 {
   double* nonbonded_1_3 =  data->nonbonded_1_3;
   int i;
@@ -364,7 +364,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
 
     //modify the twist angle if it was fixed or was part of ring
     for (uint c = 0; c < b; ++c) {
-      bool angleFix = data->ff.angles->AngleFixed(angleKinds[b][c]); 
+      bool angleFix = data->ff.angles->AngleFixed(angleKinds[b][c]);
 
       if(angleInRing[b][c] || angleFix) {
         double cosTerm = cos(theta[b]) * cos(theta[c]);
@@ -380,17 +380,17 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
         std::fill_n(angles, nTrials, ang);
         if(isnan(ang)) {
           std::cout << "Error: Cannot Construct Angle " <<
-            newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
-            newMol.GetKind().atomTypeNames[focus] << " " <<
-            newMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
+                    newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
+                    newMol.GetKind().atomTypeNames[focus] << " " <<
+                    newMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
           if(angleFix) {
             std::cout << "Note: This issue might happened due to defining " <<
-              "fix angle.\n";
+                      "fix angle.\n";
           }
           exit(EXIT_FAILURE);
         }
         break;
-      } 
+      }
     }
 
 
@@ -404,7 +404,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
         double distSq = newMol.AngleDist(bondLength[b], bondLength[c], bfcTheta);
         double tempEn = data->calc.IntraEnergy_1_3(distSq, bonded[b], bonded[c], molIndex);
         nonbonded_1_3[i] += tempEn;
-        energies[i] += data->ff.angles->Calc(angleKinds[b][c], bfcTheta); 
+        energies[i] += data->ff.angles->Calc(angleKinds[b][c], bfcTheta);
       }
     }
 
@@ -430,7 +430,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
 //Calculate OldMol Bond Energy &
 //Calculate phi weight for nTrials using actual theta of OldMol
 void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
-                                         uint molIndex)
+    uint molIndex)
 {
   double* angles = data->angles;
   IncorporateOld(oldMol, molIndex);
@@ -467,19 +467,19 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
         std::fill_n(angles, nTrials, ang);
         if(isnan(ang)) {
           std::cout << "Error: Cannot Construct Angle" <<
-            oldMol.GetKind().atomTypeNames[bonded[b]] << " " <<
-            oldMol.GetKind().atomTypeNames[focus] << " " <<
-            oldMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
+                    oldMol.GetKind().atomTypeNames[bonded[b]] << " " <<
+                    oldMol.GetKind().atomTypeNames[focus] << " " <<
+                    oldMol.GetKind().atomTypeNames[bonded[c]] << " !\n";
           if(angleFix) {
             std::cout << "Note: This issue might happened due to defining " <<
-              "fix angle.\n";
+                      "fix angle.\n";
           }
           exit(EXIT_FAILURE);
         }
         break;
       }
     }
-       
+
 
     for (uint i = 0; i < nTrials; ++i) {
       double energies = 0.0;

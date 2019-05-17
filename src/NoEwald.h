@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -64,7 +64,7 @@ public:
   //destination box and removing a molecule (kindB) from destination box
   virtual double SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
                            const std::vector<cbmc::TrialMol> &oldMol);
-    
+
   //back up reciptocate value to Ref (will be called during initialization)
   virtual void SetRecipRef(uint box);
 
