@@ -204,6 +204,8 @@ protected:
   std::vector<int> particleKind;
   std::vector<int> particleMol;
   std::vector<double> particleCharge;
+  std::vector<bool> particleHasNoCharge;
+
 };
 
 

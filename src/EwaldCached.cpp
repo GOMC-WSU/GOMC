@@ -181,6 +181,7 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
     while (thisMol != end) {
       MoleculeKind const& thisKind = mols.GetKind(*thisMol);
       double lambdaCoef = GetLambdaCoef(*thisMol, box);
+      uint start = mols.MolStart(*thisMol);
 
 #ifdef _OPENMP
       #pragma omp parallel for default(shared) private(i, j, dotProduct)
@@ -190,6 +191,9 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
         sinMolRef[*thisMol][i] = 0.0;
 
         for (j = 0; j < thisKind.NumAtoms(); j++) {
+          if(particleHasNoCharge[start + j]) {
+            continue;
+          }
           dotProduct = Dot(mols.MolStart(*thisMol) + j,
                            kx[box][i], ky[box][i],
                            kz[box][i], molCoords);
@@ -239,6 +243,7 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
   if (box < BOXES_WITH_U_NB) {
     MoleculeKind const& thisKind = mols.GetKind(molIndex);
     uint length = thisKind.NumAtoms();
+    uint start = mols.MolStart(molIndex);
     uint p;
     int i;
     double sumRealNew, sumImaginaryNew, dotProductNew, sumRealOld,
@@ -258,6 +263,9 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
       sinMolRestore[i] = sinMolRef[molIndex][i];
 
       for (p = 0; p < length; ++p) {
+        if(particleHasNoCharge[start + p]) {
+          continue;
+        }
         dotProductNew = Dot(p, kxRef[box][i],
                             kyRef[box][i], kzRef[box][i],
                             molCoords);
@@ -300,12 +308,13 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
   }
 
   if (box < BOXES_WITH_U_NB) {
-    uint p, length;
+    uint p, length, start;
     int i;
     MoleculeKind const& thisKind = newMol.GetKind();
     XYZArray molCoords = newMol.GetCoords();
     double dotProductNew;
     length = thisKind.NumAtoms();
+    start = mols.MolStart(molIndex);
 
 #ifdef _OPENMP
     #pragma omp parallel for default(shared) private(i, p, dotProductNew) reduction(+:energyRecipNew)
@@ -316,6 +325,9 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
       dotProductNew = 0.0;
 
       for (p = 0; p < length; ++p) {
+        if(particleHasNoCharge[start + p]) {
+          continue;
+        }
         dotProductNew = Dot(p, kxRef[box][i],
                             kyRef[box][i], kzRef[box][i],
                             molCoords);
@@ -390,9 +402,6 @@ double EwaldCached::CFCMCRecip(XYZArray const& molCoords,const double lambdaOld,
   double energyRecipNew = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
-    MoleculeKind const& thisKind = mols.GetKind(molIndex);
-    uint length = thisKind.NumAtoms();
-    uint p;
     int i;
     double sumRealNew, sumImaginaryNew;
     double lambdaCoef = lambdaNew - lambdaOld;
@@ -425,9 +434,7 @@ void EwaldCached::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
                               const uint box) const
 {
   //Need to implement GPU
-  uint p, i, s;
-  uint length = mols.GetKind(molIndex).NumAtoms();
-  uint start = mols.MolStart(molIndex);
+  uint i, s;
   uint lambdaSize = lambda_Coul.size();
   double coefDiff;
   double *energyRecip = new double [lambdaSize];
