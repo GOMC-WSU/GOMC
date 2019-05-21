@@ -407,7 +407,7 @@ double EwaldCached::CFCMCRecip(XYZArray const& molCoords,const double lambdaOld,
     double lambdaCoef = lambdaNew - lambdaOld;
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i, p, sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
+    #pragma omp parallel for default(shared) private(i, sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
 #endif
     for (i = 0; i < imageSizeRef[box]; i++) {
       sumRealNew = cosMolRef[molIndex][i];
@@ -441,7 +441,7 @@ void EwaldCached::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
   std::fill_n(energyRecip, lambdaSize, 0.0);
 
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(i, p, s, coefDiff) reduction(+:energyRecip[:lambdaSize])
+  #pragma omp parallel for default(shared) private(i, s, coefDiff) reduction(+:energyRecip[:lambdaSize])
 #endif
   for (i = 0; i < imageSizeRef[box]; i++) {
     for(s = 0; s < lambdaSize; s++) {
