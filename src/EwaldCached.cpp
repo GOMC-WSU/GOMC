@@ -86,6 +86,11 @@ void EwaldCached::Init()
       particleKind.push_back(molKind.AtomKind(a));
       particleMol.push_back(m);
       particleCharge.push_back(molKind.AtomCharge(a));
+      if(abs(molKind.AtomCharge(a)) < 0.000000001) {
+        particleHasNoCharge.push_back(true);
+      } else {
+        particleHasNoCharge.push_back(false);
+      }
     }
   }
 
