@@ -65,6 +65,11 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
   rswitch = val.ff.rswitch;
   dielectric = val.elect.dielectric;
 
+  sc_alpha = 0.5;
+  sc_sigma = 3.0;
+  sc_sigma_6 = pow(sc_sigma, 6);
+  sc_power = 2;
+
   for(uint b = 0 ; b < BOX_TOTAL; b++) {
     rCutCoulomb[b] = val.elect.cutoffCoulomb[b];
     rCutCoulombSq[b] = rCutCoulomb[b] * rCutCoulomb[b];
