@@ -69,6 +69,7 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
   sc_sigma = 3.0;
   sc_sigma_6 = pow(sc_sigma, 6);
   sc_power = 2;
+  sc_coul = false;
 
   for(uint b = 0 ; b < BOX_TOTAL; b++) {
     rCutCoulomb[b] = val.elect.cutoffCoulomb[b];
