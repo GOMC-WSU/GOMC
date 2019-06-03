@@ -356,15 +356,19 @@ inline double FF_SWITCH_MARTINI::CalcCoulomb(const double distSq,
     //save computation time
     return CalcCoulomb(distSq, qi_qj_Fact, b);
   }
-  uint index = FlatIndex(kind1, kind2);
-  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
-  sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
-  double dist6 = distSq * distSq * distSq;
-  double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
-  double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, 1.0/3.0);
-
-  double en = lambda * CalcCoulomb(softRsq, qi_qj_Fact, b);
+  double en = 0.0;
+  if(forcefield.sc_coul) {
+    uint index = FlatIndex(kind1, kind2);
+    double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+    sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
+    double dist6 = distSq * distSq * distSq;
+    double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
+    double softDist6 = lambdaCoef * sigma6 + dist6;
+    double softRsq = pow(softDist6, 1.0/3.0);
+    en = lambda * CalcCoulomb(softRsq, qi_qj_Fact, b);
+  } else {
+    en = lambda * CalcCoulomb(distSq, qi_qj_Fact, b);
+  }
   return en;
 }
 
@@ -402,17 +406,21 @@ inline double FF_SWITCH_MARTINI::CalcCoulombVir(const double distSq,
     //save computation time
     return CalcCoulombVir(distSq, qi_qj, b);
   }
-  uint index = FlatIndex(kind1, kind2);
-  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
-  sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
-  double dist6 = distSq * distSq * distSq;
-  double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
-  double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, 1.0/3.0);
-  double correction = distSq / softRsq;
-  //We need to fix the return value from calcVir
-  double vir = lambda * correction * correction * 
-               CalcCoulombVir(softRsq, qi_qj, b);
+  double vir = 0.0;
+  if(forcefield.sc_coul) {
+    uint index = FlatIndex(kind1, kind2);
+    double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+    sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
+    double dist6 = distSq * distSq * distSq;
+    double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
+    double softDist6 = lambdaCoef * sigma6 + dist6;
+    double softRsq = pow(softDist6, 1.0/3.0);
+    double correction = distSq / softRsq;
+    //We need to fix the return value from calcVir
+    vir = lambda * correction * correction * CalcCoulombVir(softRsq, qi_qj, b);
+  } else {
+    vir = lambda * CalcCoulombVir(distSq, qi_qj, b);
+  }
   return vir;
 }
 
@@ -469,19 +477,23 @@ inline double FF_SWITCH_MARTINI::CalcCoulombdEndL(const double distSq,
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
-
-  uint index = FlatIndex(kind1, kind2);
-  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
-  sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
-  double dist6 = distSq * distSq * distSq;
-  double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
-  double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, 1.0/3.0);
-  double fCoef = lambda * forcefield.sc_alpha * forcefield.sc_power / 6.0;
-  fCoef *= pow(1.0 - lambda, forcefield.sc_power - 1) * sigma6 / (softRsq * softRsq);
-
-  double dhdl = CalcCoulomb(softRsq, qi_qj_Fact, b) + 
-                fCoef * CalcCoulombVir(softRsq, qi_qj_Fact, b);
+    
+  double dhdl = 0.0;
+  if(forcefield.sc_coul) {
+    uint index = FlatIndex(kind1, kind2);
+    double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+    sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
+    double dist6 = distSq * distSq * distSq;
+    double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
+    double softDist6 = lambdaCoef * sigma6 + dist6;
+    double softRsq = pow(softDist6, 1.0/3.0);
+    double fCoef = lambda * forcefield.sc_alpha * forcefield.sc_power / 6.0;
+    fCoef *= pow(1.0 - lambda, forcefield.sc_power - 1) * sigma6 / (softRsq * softRsq);
+    dhdl = CalcCoulomb(softRsq, qi_qj_Fact, b) + 
+          fCoef * CalcCoulombVir(softRsq, qi_qj_Fact, b);
+  } else {
+    dhdl = CalcCoulomb(distSq, qi_qj_Fact, b);
+  }
   return dhdl; 
 }
 
