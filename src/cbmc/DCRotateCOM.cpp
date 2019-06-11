@@ -135,12 +135,12 @@ void DCRotateCOM::BuildNew(TrialMol& newMol, uint molIndex)
   uint totalTrials = data->totalTrials;
   real* ljWeights = data->ljWeightsT;
   real* inter = data->interT;
-  real* real = data->realT;
+  real* real_en = data->realT;
   bool* overlap = data->overlapT;
   RotationMatrix spin;
 
   std::fill_n(inter, totalTrials, 0.0);
-  std::fill_n(real, totalTrials, 0.0);
+  std::fill_n(real_en, totalTrials, 0.0);
   std::fill_n(ljWeights, totalTrials, 0.0);
   std::fill_n(overlap, totalTrials, false);
 
@@ -214,13 +214,13 @@ void DCRotateCOM::BuildNew(TrialMol& newMol, uint molIndex)
 
   for (uint a = 0; a < atomNumber; ++a) {
     data->axes.WrapPBC(multiPosRotions[a], newMol.GetBox());
-    calc.ParticleInter(inter, real, multiPosRotions[a], overlap, a,
+    calc.ParticleInter(inter, real_en, multiPosRotions[a], overlap, a,
                        molIndex, newMol.GetBox(), totalTrials);
   }
 
   real stepWeight = 0.0;
   for (uint lj = 0; lj < totalTrials; ++lj) {
-    ljWeights[lj] = exp(-ff.beta * (inter[lj] + real[lj]));
+    ljWeights[lj] = exp(-ff.beta * (inter[lj] + real_en[lj]));
     stepWeight += ljWeights[lj];
   }
   uint winner = prng.PickWeighted(ljWeights, totalTrials, stepWeight);
@@ -230,7 +230,7 @@ void DCRotateCOM::BuildNew(TrialMol& newMol, uint molIndex)
   }
 
   newMol.UpdateOverlap(overlap[winner]);
-  newMol.AddEnergy(Energy(0.0, 0.0, inter[winner], real[winner], 0.0, 0.0,
+  newMol.AddEnergy(Energy(0.0, 0.0, inter[winner], real_en[winner], 0.0, 0.0,
                           0.0));
   newMol.MultWeight(stepWeight / totalTrials);
 }
@@ -246,12 +246,12 @@ void DCRotateCOM::BuildOld(TrialMol& oldMol, uint molIndex)
   uint totalTrials = data->totalTrials;
   real* ljWeights = data->ljWeightsT;
   real* inter = data->interT;
-  real* real = data->realT;
+  real* real_en = data->realT;
   bool* overlap = data->overlapT;
   RotationMatrix spin;
 
   std::fill_n(inter, totalTrials, 0.0);
-  std::fill_n(real, totalTrials, 0.0);
+  std::fill_n(real_en, totalTrials, 0.0);
   std::fill_n(ljWeights, totalTrials, 0.0);
   std::fill_n(overlap, totalTrials, false);
 
@@ -324,13 +324,13 @@ void DCRotateCOM::BuildOld(TrialMol& oldMol, uint molIndex)
   for (uint a = 0; a < atomNumber; ++a) {
     multiPosRotions[a].Add(0, orgCenter);
     data->axes.WrapPBC(multiPosRotions[a], oldMol.GetBox());
-    calc.ParticleInter(inter, real, multiPosRotions[a], overlap, a,
+    calc.ParticleInter(inter, real_en, multiPosRotions[a], overlap, a,
                        molIndex, oldMol.GetBox(), totalTrials);
   }
 
   real stepWeight = 0.0;
   for (uint lj = 0; lj < totalTrials; ++lj) {
-    stepWeight += exp(-ff.beta * (inter[lj] + real[lj]));
+    stepWeight += exp(-ff.beta * (inter[lj] + real_en[lj]));
   }
 
   for (uint a = 0; a < atomNumber; ++a) {
@@ -338,7 +338,7 @@ void DCRotateCOM::BuildOld(TrialMol& oldMol, uint molIndex)
   }
 
   oldMol.UpdateOverlap(overlap[0]);
-  oldMol.AddEnergy(Energy(0.0, 0.0, inter[0], real[0], 0.0, 0.0, 0.0));
+  oldMol.AddEnergy(Energy(0.0, 0.0, inter[0], real_en[0], 0.0, 0.0, 0.0));
   oldMol.MultWeight(stepWeight / totalTrials);
 }
 
