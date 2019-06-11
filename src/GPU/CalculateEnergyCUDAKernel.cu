@@ -422,6 +422,8 @@ __device__ real CalcEnSwitchGPU(real distSq, int index, real *gpu_sigmaSq,
                                   real *gpu_n, real *gpu_epsilon_Cn,
                                   real gpu_rCut, real gpu_rOn)
 {
+  real power2 = 2.0;
+
   real rCutSq = gpu_rCut * gpu_rCut;
   real rOnSq = gpu_rOn * gpu_rOn;
 
@@ -432,7 +434,7 @@ __device__ real CalcEnSwitchGPU(real distSq, int index, real *gpu_sigmaSq,
   real rRat4 = rRat2 * rRat2;
   real attract = rRat4 * rRat2;
 
-  real repulse = pow(rRat2, gpu_n[index] / 2.0);
+  real repulse = pow(rRat2, gpu_n[index] / power2);
 
   real factor1 = rCutSq - 3 * rOnSq;
   real factor2 = pow((rCutSq - rOnSq), -3);
