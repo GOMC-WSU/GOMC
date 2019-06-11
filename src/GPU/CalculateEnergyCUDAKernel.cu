@@ -338,10 +338,12 @@ __device__ real CalcEnParticleGPU(real distSq, int index,
                                     real *gpu_sigmaSq, real *gpu_n,
                                     real *gpu_epsilon_Cn)
 {
+  real power2 = 2.0;
+
   real rRat2 = gpu_sigmaSq[index] / distSq;
   real rRat4 = rRat2 * rRat2;
   real attract = rRat4 * rRat2;
-  real repulse = pow(rRat2, gpu_n[index] / 2.0);
+  real repulse = pow(rRat2, gpu_n[index] / power2);
   return gpu_epsilon_Cn[index] * (repulse - attract);
 }
 
@@ -349,15 +351,17 @@ __device__ real CalcEnShiftGPU(real distSq, int index, real *gpu_sigmaSq,
                                  real *gpu_n, real *gpu_epsilon_Cn,
                                  real gpu_rCut)
 {
+  real power2 = 2.0;
+
   real rRat2 = gpu_sigmaSq[index] / distSq;
   real rRat4 = rRat2 * rRat2;
   real attract = rRat4 * rRat2;
-  real repulse = pow(rRat2, gpu_n[index] / 2.0);
+  real repulse = pow(rRat2, gpu_n[index] / power2);
 
   real shiftRRat2 = gpu_sigmaSq[index] / (gpu_rCut * gpu_rCut);
   real shiftRRat4 = shiftRRat2 * shiftRRat2;
   real shiftAttract = shiftRRat4 * shiftRRat2;
-  real shiftRepulse = pow(shiftRRat2, gpu_n[index] / 2.0);
+  real shiftRepulse = pow(shiftRRat2, gpu_n[index] / power2);
   real shiftConst = gpu_epsilon_Cn[index] * (shiftRepulse - shiftAttract);
 
   return (gpu_epsilon_Cn[index] * (repulse - attract) - shiftConst);
@@ -368,10 +372,16 @@ __device__ real CalcEnSwitchMartiniGPU(real distSq, int index,
     real *gpu_epsilon_Cn,
     real gpu_rCut, real gpu_rOn)
 {
+  real power2 = 2.0;
+  real power3 = 3.0;
+  real power4 = 4.0;
+  real power6 = 6.0;
+  real power8 = 8.0;
+
   real r_2 = 1.0 / distSq;
   real r_4 = r_2 * r_2;
   real r_6 = r_4 * r_2;
-  real r_n = pow(r_2, gpu_n[index] / 2.0);
+  real r_n = pow(r_2, gpu_n[index] / power2);
 
   real rij_ron = sqrt(distSq) - gpu_rOn;
   real rij_ron_2 = rij_ron * rij_ron;
@@ -380,18 +390,18 @@ __device__ real CalcEnSwitchMartiniGPU(real distSq, int index,
 
   real pn = gpu_n[index];
   real An = pn * ((pn + 1) * gpu_rOn - (pn + 4) * gpu_rCut) /
-              (pow(gpu_rCut, pn + 2) * pow(gpu_rCut - gpu_rOn, 2));
+              (pow(gpu_rCut, pn + 2) * pow(gpu_rCut - gpu_rOn, power2));
   real Bn = -pn * ((pn + 1) * gpu_rOn - (pn + 3) * gpu_rCut) /
-              (pow(gpu_rCut, pn + 2) * pow(gpu_rCut - gpu_rOn, 3));
-  real Cn = 1.0 / pow(gpu_rCut, pn) - An / 3.0 * pow(gpu_rCut - gpu_rOn, 3) -
-              Bn / 4.0 * pow(gpu_rCut - gpu_rOn, 4);
+              (pow(gpu_rCut, pn + 2) * pow(gpu_rCut - gpu_rOn, power3));
+  real Cn = 1.0 / pow(gpu_rCut, pn) - An / 3.0 * pow(gpu_rCut - gpu_rOn, power3) -
+              Bn / 4.0 * pow(gpu_rCut - gpu_rOn, power4);
 
   real A6 = 6.0 * ((6.0 + 1) * gpu_rOn - (6.0 + 4) * gpu_rCut) /
-              (pow(gpu_rCut, 6.0 + 2) * pow(gpu_rCut - gpu_rOn, 2));
+              (pow(gpu_rCut, power8) * pow(gpu_rCut - gpu_rOn, power2));
   real B6 = -6.0 * ((6.0 + 1) * gpu_rOn - (6.0 + 3) * gpu_rCut) /
-              (pow(gpu_rCut, 6.0 + 2) * pow(gpu_rCut - gpu_rOn, 3));
-  real C6 = 1.0 / pow(gpu_rCut, 6.0) - A6 / 3.0 * pow(gpu_rCut - gpu_rOn, 3) -
-              B6 / 4.0 * pow(gpu_rCut - gpu_rOn, 4);
+              (pow(gpu_rCut, power8) * pow(gpu_rCut - gpu_rOn, power3));
+  real C6 = 1.0 / pow(gpu_rCut, power6) - A6 / 3.0 * pow(gpu_rCut - gpu_rOn, power3) -
+              B6 / 4.0 * pow(gpu_rCut - gpu_rOn, power4);
 
   real shifttempRep = -(An / 3.0) * rij_ron_3 -
                         (Bn / 4.0) * rij_ron_4 - Cn;
@@ -400,7 +410,7 @@ __device__ real CalcEnSwitchMartiniGPU(real distSq, int index,
   const real shiftRep = ( distSq > gpu_rOn * gpu_rOn ? shifttempRep : -Cn);
   const real shiftAtt = ( distSq > gpu_rOn * gpu_rOn ? shifttempAtt : -C6);
 
-  real sig6 = pow(gpu_sigmaSq[index], 3);
+  real sig6 = pow(gpu_sigmaSq[index], power3);
   real sign = pow(gpu_sigmaSq[index], pn / 2);
   real Eij = gpu_epsilon_Cn[index] * (sign * (r_n + shiftRep) -
                                         sig6 * (r_6 + shiftAtt));
