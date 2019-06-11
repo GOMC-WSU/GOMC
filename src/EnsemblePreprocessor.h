@@ -43,9 +43,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #endif
 
 #if defined(GOMC_DOUBLE)
-typedef double real
+typedef double real;
 #else
-typedef float real
+typedef float real;
 #endif
 
 #endif /*ENSEMBLE_PREPROCESSOR_H*/
