@@ -8,7 +8,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define DCDATA_H
 #include "BasicTypes.h"
 #include "XYZArray.h"
-#include "EnsemblePreprocessor.h"
 #include "Setup.h"
 #include "System.h"
 #include "CBMC.h"
@@ -50,7 +49,7 @@ public:
 
   XYZArray& positions;     //candidate positions for inclusion (alias for multiPositions[0])
   real* inter;          //intermolecule energies, reused for new and old
-  real* real;           //short range coulomb interaction
+  real* real_en;           //short range coulomb interaction
   real* ljWeights;
   real* bonded;
   real* oneFour;
@@ -90,7 +89,7 @@ inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& se
     multiPositions[i] = XYZArray(maxLJTrials);
   }
   inter = new real[maxLJTrials];
-  real = new real[maxLJTrials];
+  real_en = new real[maxLJTrials];
   bonded = new real[maxLJTrials];
   oneFour = new real[maxLJTrials];
   nonbonded = new real[maxLJTrials];
@@ -113,7 +112,7 @@ inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& se
 inline DCData::~DCData()
 {
   delete[] inter;
-  delete[] real;
+  delete[] real_en;
   delete[] bonded;
   delete[] oneFour;
   delete[] nonbonded;
