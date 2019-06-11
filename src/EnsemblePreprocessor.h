@@ -42,7 +42,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define BOX_TOTAL 1
 #endif
 
-#ifdef GOMC_DOUBLE
+#if defined(GOMC_DOUBLE)
 typedef double real
 #else
 typedef float real
