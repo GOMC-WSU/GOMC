@@ -178,14 +178,6 @@ struct Converter {
     *this >> temp;
     str.replace(field.START, field.LENGTH, temp);
   }
-  void Replace(std::string & str, const float f, ConstField const& field)
-  {
-    std::string temp;
-    Width(field.LENGTH);
-    *this << f;
-    *this >> temp;
-    str.replace(field.START, field.LENGTH, temp);
-  }
   void Replace(std::string & str, const long l, ConstField const& field)
   {
     std::string temp;
