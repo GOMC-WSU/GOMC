@@ -72,7 +72,7 @@ private:
   int edgeCells[BOX_TOTAL][3];
   const Molecules* mols;
   BoxDimensions *dimensions;
-  double cutoff[BOX_TOTAL];
+  real cutoff[BOX_TOTAL];
   bool isBuilt;
 };
 

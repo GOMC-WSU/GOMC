@@ -27,10 +27,10 @@ void DCSingle::BuildOld(TrialMol& oldMol, uint molIndex)
   PRNG& prng = data->prng;
   XYZArray& positions = data->positions;
   uint nLJTrials = data->nLJTrialsFirst;
-  double* inter = data->inter;
-  double* real = data->real;
+  real* inter = data->inter;
+  real* real = data->real;
   bool* overlap = data->overlap;
-  double stepWeight = 0;
+  real stepWeight = 0;
 
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
@@ -61,9 +61,9 @@ void DCSingle::BuildNew(TrialMol& newMol, uint molIndex)
   PRNG& prng = data->prng;
   XYZArray& positions = data->positions;
   uint nLJTrials = data->nLJTrialsFirst;
-  double* inter = data->inter;
-  double* real = data->real;
-  double* ljWeights = data->ljWeights;
+  real* inter = data->inter;
+  real* real = data->real;
+  real* ljWeights = data->ljWeights;
   bool* overlap = data->overlap;
 
   std::fill_n(inter, nLJTrials, 0.0);
@@ -80,7 +80,7 @@ void DCSingle::BuildNew(TrialMol& newMol, uint molIndex)
   data->calc.ParticleInter(inter, real, positions, overlap, atom, molIndex,
                            newMol.GetBox(), nLJTrials);
 
-  double stepWeight = 0;
+  real stepWeight = 0;
   for (uint trial = 0; trial < nLJTrials; ++trial) {
     ljWeights[trial] = exp(-1 * data->ff.beta *
                            (inter[trial] + real[trial]));

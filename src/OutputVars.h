@@ -33,27 +33,27 @@ public:
   bool Performed(uint moveKind);
   uint GetTries(uint box, uint sub);
   uint GetAccepted(uint box, uint sub);
-  double GetAcceptPercent(uint box, uint sub);
-  double GetScale(uint box, uint sub);
+  real GetAcceptPercent(uint box, uint sub);
+  real GetScale(uint box, uint sub);
 
 //private:
   //Intermediate vars.
   uint * numByBox, * numByKindBox;
-  double * molFractionByKindBox, * densityByKindBox,
+  real * molFractionByKindBox, * densityByKindBox,
          pressure[BOXES_WITH_U_NB], densityTot[BOX_TOTAL];
-  double pressureTens[BOXES_WITH_U_NB][3][3];
-  double surfaceTens[BOXES_WITH_U_NB];
+  real pressureTens[BOXES_WITH_U_NB][3][3];
+  real surfaceTens[BOXES_WITH_U_NB];
   ulong pCalcFreq;
   bool pressureCalc;
 
   uint numKinds;
   //Constants
-  double T_in_K;
+  real T_in_K;
 
   //References
-  double * volumeRef;
+  real * volumeRef;
   XYZArray * axisRef;
-  double * volInvRef;
+  real * volInvRef;
   Energy * energyRef, * energyTotRef;
   Virial * virialRef, * virial,  * virialTotRef;
   MoleculeKind * kindsRef;
@@ -62,13 +62,13 @@ public:
 
   //Local copy of res names.
   std::vector<std::string> resKindNames;
-  double const* movePercRef;
+  real const* movePercRef;
   MoveSettings * moveSetRef;
 
 #if ENSEMBLE == GCMC
-  double * chemPot;
+  real * chemPot;
 #elif ENSEMBLE == GEMC
-  double heatOfVap;
+  real heatOfVap;
 #endif
 };
 

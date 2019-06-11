@@ -76,7 +76,7 @@ private:
     out.file << "END" << std::endl;
   }
 
-  double ConvAng(const double t)
+  real ConvAng(const real t)
   {
     return acos(t) * 180.0 / M_PI;
   }

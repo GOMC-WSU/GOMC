@@ -18,10 +18,10 @@ typedef unsigned long int ulong;
 
 //single XYZ for use as a temporary and return type
 struct XYZ {
-  double x, y, z;
+  real x, y, z;
 
   XYZ() : x(0.0), y(0.0), z(0.0) {}
-  XYZ(double xVal, double yVal, double zVal) : x(xVal), y(yVal), z(zVal) {}
+  XYZ(real xVal, real yVal, real zVal) : x(xVal), y(yVal), z(zVal) {}
 
   XYZ& operator=(XYZ const& rhs)
   {
@@ -59,7 +59,7 @@ struct XYZ {
     return *this;
   }
 
-  XYZ& operator*=(const double a)
+  XYZ& operator*=(const real a)
   {
     x *= a;
     y *= a;
@@ -85,7 +85,7 @@ struct XYZ {
   }
 
 
-  XYZ operator*(const double a) const
+  XYZ operator*(const real a) const
   {
     return XYZ(*this) *= a;
   }
@@ -102,11 +102,11 @@ struct XYZ {
     z = 1.0 / z;
   }
 
-  double Length() const
+  real Length() const
   {
     return sqrt(LengthSq());
   }
-  double LengthSq() const
+  real LengthSq() const
   {
     return x * x + y * y + z * z;
   }
@@ -117,9 +117,9 @@ struct XYZ {
     return *this;
   }
 
-  double Max() const
+  real Max() const
   {
-    double m = x;
+    real m = x;
     if(y > m)
       m = y;
     if(z > m)
@@ -127,9 +127,9 @@ struct XYZ {
     return m;
   }
 
-  double Min() const
+  real Min() const
   {
-    double m = x;
+    real m = x;
     if(y < m)
       m = y;
     if(z < m)

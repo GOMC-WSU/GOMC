@@ -43,7 +43,7 @@ inline uint CountWords(std::string & str)
                        std::istream_iterator<std::string>());
 }
 
-inline double FromStr(double & d, std::string const& str)
+inline real FromStr(real & d, std::string const& str)
 {
   std::stringstream strm(str);
   strm >> d;
@@ -137,7 +137,7 @@ struct Converter {
     return *this;
   }
 
-  Converter & operator<<(const double d)
+  Converter & operator<<(const real d)
   {
     strm << d;
     return *this;
@@ -181,7 +181,7 @@ struct Converter {
     return *this;
   }
 
-  void Replace(std::string & str, const double d, ConstField const& field)
+  void Replace(std::string & str, const real d, ConstField const& field)
   {
     std::string temp;
     Width(field.LENGTH);

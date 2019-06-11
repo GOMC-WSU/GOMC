@@ -181,7 +181,7 @@ void System::RecalculateTrajectory(Setup &set, uint frameNum)
 
 void System::ChooseAndRunMove(const uint step)
 {
-  double draw = 0;
+  real draw = 0;
   uint majKind = 0;
   PickMove(majKind, draw);
   time.SetStart();
@@ -189,13 +189,13 @@ void System::ChooseAndRunMove(const uint step)
   time.SetStop();
   moveTime[majKind] += time.GetTimDiff();
 }
-void System::PickMove(uint & kind, double & draw)
+void System::PickMove(uint & kind, real & draw)
 {
   prng.PickArbDist(kind, draw, statV.movePerc, statV.totalPerc,
                    mv::MOVE_KINDS_TOTAL);
 }
 
-void System::RunMove(uint majKind, double draw, const uint step)
+void System::RunMove(uint majKind, real draw, const uint step)
 {
   //return now if move targets molecule and there's none in that box.
   uint rejectState = SetParams(majKind, draw);
@@ -213,7 +213,7 @@ void System::RunMove(uint majKind, double draw, const uint step)
   Accept(majKind, rejectState, step);
 }
 
-uint System::SetParams(const uint kind, const double draw)
+uint System::SetParams(const uint kind, const real draw)
 {
   return moves[kind]->Prep(draw, statV.movePerc[kind]);
 }

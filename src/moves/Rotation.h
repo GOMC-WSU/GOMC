@@ -15,7 +15,7 @@ class Rotate : public MoveBase, public MolTransformBase
 public:
   Rotate(System &sys, StaticVals const& statV) : MoveBase(sys, statV) {}
 
-  virtual uint Prep(const double subDraw, const double movPerc);
+  virtual uint Prep(const real subDraw, const real movPerc);
   virtual uint Transform();
   virtual void CalcEn();
   virtual void Accept(const uint earlyReject, const uint step);
@@ -38,7 +38,7 @@ void Rotate::PrintAcceptKind()
   }
 }
 
-inline uint Rotate::Prep(const double subDraw, const double movPerc)
+inline uint Rotate::Prep(const real subDraw, const real movPerc)
 {
   uint state = GetBoxAndMol(prng, molRef, subDraw, movPerc);
   if (state == mv::fail_state::NO_FAIL && molRef.NumAtoms(mk)  <= 1)
@@ -72,7 +72,7 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
   bool res = false;
 
   if(rejectState == mv::fail_state::NO_FAIL) {
-    double pr = prng();
+    real pr = prng();
     res = pr < exp(-BETA * (inter_LJ.energy + inter_Real.energy +
                             recip.energy));
   }

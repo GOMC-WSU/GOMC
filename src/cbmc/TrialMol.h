@@ -136,56 +136,56 @@ public:
   void ResetBasis();
 
   //!Returns wrapped rectangular coordinates of a candidate position;
-  XYZ GetRectCoords(double bond, double theta, double phi) const;
+  XYZ GetRectCoords(real bond, real theta, real phi) const;
 
-  XYZ RawRectCoords(double bond, double theta, double phi) const;
+  XYZ RawRectCoords(real bond, real theta, real phi) const;
 
   // Returns the dihedral angle between two positions
   /* \param theta1 Theta spherical coordinate of first position
    * \param theta2 Theta spherical coordinate of second position
    * \param interior The interor angle between the positions
    */
-  static double PhiBetweenAngles(double theta1, double theta2,
-                                 double interior);
+  static real PhiBetweenAngles(real theta1, real theta2,
+                                 real interior);
 
   //!Return angle in radians between confirmed atoms a-b-c
-  double GetTheta(uint a, uint b, uint c) const;
+  real GetTheta(uint a, uint b, uint c) const;
 
   //!Return dihedral in radians between confirmed atoms a-b-c-d
-  double GetPhi(uint a, uint b, uint c, uint d) const;
+  real GetPhi(uint a, uint b, uint c, uint d) const;
 
   //!Calculates theta and phi coords for atom in the current basis
   //!centered on lastAtom. theta in [0, pi], phi in (-pi, pi]
   void OldThetaAndPhi(uint atom, uint lastAtom,
-                      double& theta, double& phi) const;
+                      real& theta, real& phi) const;
 
   //!calculate distance between atoms belong to specified angle
-  double AngleDist(const double b1, const double b2, const double theta);
+  real AngleDist(const real b1, const real b2, const real theta);
 
   //!calculate distance between atoms belong to specified dihedral
-  double DihedDist(const double b1, const double b2, const double b3,
-                   const double theta1, const double theta2,
-                   const double phi);
+  real DihedDist(const real b1, const real b2, const real b3,
+                   const real theta1, const real theta2,
+                   const real phi);
 
   //!calculate distance between two atom in oldMol
-  double OldDistSq(const uint atom, const uint lastAtom);
+  real OldDistSq(const uint atom, const uint lastAtom);
 
   //calculate min image distance between a and b
-  double DistSq(const XYZ& a, const XYZ& b);
+  real DistSq(const XYZ& a, const XYZ& b);
 
   const Energy& GetEnergy() const
   {
     return en;
   }
-  double GetWeight() const
+  real GetWeight() const
   {
     return totalWeight;
   }
-  void SetWeight(double w)
+  void SetWeight(real w)
   {
     totalWeight = w;
   }
-  void MultWeight(double w)
+  void MultWeight(real w)
   {
     totalWeight *= w;
   }
@@ -309,7 +309,7 @@ private:
   XYZArray tCoords, cavMatrix;
   XYZArray bCoords; //used to find the angle and theta in rings molecule
   Energy en;
-  double totalWeight;
+  real totalWeight;
   RotationMatrix growthToWorld;
   RotationMatrix worldToGrowth;
   XYZ basisPoint;

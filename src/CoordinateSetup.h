@@ -11,9 +11,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <string>
 
 struct CoordinateSetup {
-  std::vector<double> partX;
-  std::vector<double> partY;
-  std::vector<double> partZ;
+  std::vector<real> partX;
+  std::vector<real> partY;
+  std::vector<real> partZ;
   std::vector<unsigned int> partBox;
 
   void Init(const std::string& pdbFilename);

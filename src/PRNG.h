@@ -49,20 +49,20 @@ public:
   // BASIC GENERATION
   ////
 
-  //Standard double generation on [0,1.0]
-  double operator()()
+  //Standard real generation on [0,1.0]
+  real operator()()
   {
     return (*gen)();
   }
 
-  //Generate a double on a [0,b]
-  double rand(double const bound)
+  //Generate a real on a [0,b]
+  real rand(real const bound)
   {
     return gen->rand(bound);
   }
 
-  //Generate a double on a [0,b)
-  double randExc(double const bound)
+  //Generate a real on a [0,b)
+  real randExc(real const bound)
   {
     return gen->randExc(bound);
   }
@@ -80,7 +80,7 @@ public:
   }
 
   //Generates number on (-bound,bound)
-  double Sym(double bound)
+  real Sym(real bound)
   {
     return 2 * bound * gen->rand() - bound;
   }
@@ -89,15 +89,15 @@ public:
   //   GENERATION FUNCTIONS  //
   /////////////////////////////
 
-  XYZ SymXYZ(double bound)
+  XYZ SymXYZ(real bound)
   {
-    double bound2 = 2 * bound;
+    real bound2 = 2 * bound;
     return XYZ(gen->rand(bound2) - bound, gen->rand(bound2) - bound,
                gen->rand(bound2) - bound);
   }
 
   // return between [-bound, bound]
-  double SymExc(double bound)
+  real SymExc(real bound)
   {
     return 2 * gen->rand(bound) - bound;
   }
@@ -130,18 +130,18 @@ public:
   //using UniformRandom algorithm in TransformMatrix.h
   XYZ RandomUnitVect()
   {
-    double u2 = gen->rand();
-    double u3 = gen->rand();
+    real u2 = gen->rand();
+    real u3 = gen->rand();
     u2 *= 2.0 * M_PI;
     u3 *= 2.0;
-    double r = sqrt(u3);
-    double root = sqrt(2.0 - u3);
+    real r = sqrt(u3);
+    real root = sqrt(2.0 - u3);
     XYZ temp(sin(u2) * r * root, cos(u2) * r * root, 1.0 - u3);
     return  temp;
   }
 
   void FillWithRandomOnSphere(XYZArray & loc, const uint len,
-                              const double rAttach, const XYZ& center)
+                              const real rAttach, const XYZ& center)
   {
     //Pick on cos(phi) - this was faster and always uses 2 rand calls
     for (uint i = 0; i < len; ++i) {
@@ -154,19 +154,19 @@ public:
   {
     //picking phi uniformly will cluster points at poles
     //pick u = cos(phi) uniformly instead
-    double u = gen->rand(2.0);
+    real u = gen->rand(2.0);
     u -= 1.0;
-    double theta = gen->randExc(2 * M_PI);
-    double rootTerm = sqrt(1 - u * u);
+    real theta = gen->randExc(2 * M_PI);
+    real rootTerm = sqrt(1 - u * u);
     return XYZ(rootTerm * cos(theta), rootTerm * sin(theta), u);
   }
 
 
   //Pick using array of prob. -- used to pick move, weighted selection, etc.
-  void PickArbDist(uint & pick, double & subDraw,
-                   double const*const w, const double Wt, const uint len)
+  void PickArbDist(uint & pick, real & subDraw,
+                   real const*const w, const real Wt, const uint len)
   {
-    double sum = 0.0, prevSum = 0.0, draw = rand(Wt);
+    real sum = 0.0, prevSum = 0.0, draw = rand(Wt);
     pick = 0;
     for (; pick < len && sum < draw; ++pick) {
       prevSum = sum;
@@ -178,10 +178,10 @@ public:
   }
 
   //Pick an integer in range 0, n given a list of weights, and their sum totalWeight
-  uint PickWeighted(const double *weights, const uint n, double totalWeight)
+  uint PickWeighted(const real *weights, const uint n, real totalWeight)
   {
-    double draw = rand(totalWeight);
-    double sum = 0.0;
+    real draw = rand(totalWeight);
+    real sum = 0.0;
     for(uint i = 0; i < n; ++i) {
       sum += weights[i];
       if(sum >= draw) {
@@ -208,10 +208,10 @@ public:
   }
 
 
-  void PickBox(uint &b, const double subDraw, const double movPerc) const
+  void PickBox(uint &b, const real subDraw, const real movPerc) const
   {
     //Calculate "chunk" of move for each box.
-    double boxDiv = movPerc / BOX_TOTAL;
+    real boxDiv = movPerc / BOX_TOTAL;
     //Which chunk was our draw in...
     b = (uint)(subDraw / boxDiv);
     //FIXME: Hack to prevent picking invalid boxes, may violate balance
@@ -219,8 +219,8 @@ public:
       b--;
   }
 
-  void PickBox(uint &b, double &subDraw, double &boxDiv,
-               const double movPerc) const
+  void PickBox(uint &b, real &subDraw, real &boxDiv,
+               const real movPerc) const
   {
     //Calculate "chunk" of move for each box.
     boxDiv = movPerc / BOX_TOTAL;
@@ -236,10 +236,10 @@ public:
   }
 
 
-  void PickBool(bool &b, const double subDraw, const double movPerc) const
+  void PickBool(bool &b, const real subDraw, const real movPerc) const
   {
     //Calculate "chunk" of move for each box.
-    double boxDiv = movPerc / 2;
+    real boxDiv = movPerc / 2;
     //Which chunk was our draw in...
     uint bpick = (uint)(subDraw / boxDiv);
     //FIXME: Hack to prevent picking invalid boxes, may violate balance
@@ -260,7 +260,7 @@ public:
   //Function override (1 of 2)
   //Pick just a box pair.
   void PickBoxPair(uint & bSrc, uint & bDest,
-                   const double subDraw, const double movPerc)
+                   const real subDraw, const real movPerc)
   {
     PickBox(bSrc, subDraw, movPerc);
     SetOtherBox(bDest, bSrc);
@@ -268,8 +268,8 @@ public:
 
   //Function override (2 of 2)
   //Pick a box pair, plus save leftovers to calculate mol. kind
-  void PickBoxPair(uint & bSrc, uint & bDest, double & boxDiv,
-                   double & subDraw, const double movPerc)
+  void PickBoxPair(uint & bSrc, uint & bDest, real & boxDiv,
+                   real & subDraw, const real movPerc)
   {
     PickBox(bSrc, subDraw, boxDiv, movPerc);
     SetOtherBox(bDest, bSrc);
@@ -278,11 +278,11 @@ public:
   //Returns false if none of that kind of molecule in selected box or molecule
   //is fixed using tag (beta == 1).
   uint PickMol(uint & m, uint & mk, const uint b,
-               const double subDraw, const double subPerc)
+               const real subDraw, const real subPerc)
   {
     uint rejectState = mv::fail_state::NO_FAIL;
     uint mkTot = molLookRef.GetNumCanMoveKind();
-    double molDiv = subPerc / mkTot;
+    real molDiv = subPerc / mkTot;
     //Which molecule kind chunk are we in?
     uint k = (uint)(subDraw / molDiv);
 
@@ -311,11 +311,11 @@ public:
   //Returns false if none of that kind of molecule in selected box or molecule
   //is fixed using tag (beta >= 1).
   uint PickMol2(uint & m, uint & mk, const uint b,
-                const double subDraw, const double subPerc)
+                const real subDraw, const real subPerc)
   {
     uint rejectState = mv::fail_state::NO_FAIL;
     uint mkTot = molLookRef.GetNumCanSwapKind();
-    double molDiv = subPerc / mkTot;
+    real molDiv = subPerc / mkTot;
     //Which molecule kind chunk are we in?
     uint k = (uint)(subDraw / molDiv);
 
@@ -395,26 +395,26 @@ public:
 
   // pick a molecule that is not fixed (beta != 1)
   uint PickMolAndBoxPair(uint &m, uint &mk, uint & bSrc, uint & bDest,
-                         double subDraw, const double movPerc)
+                         real subDraw, const real movPerc)
   {
-    double boxDiv = 0;
+    real boxDiv = 0;
     PickBoxPair(bSrc, bDest, boxDiv, subDraw, movPerc);
     return PickMol(m, mk, bSrc, subDraw, boxDiv);
   }
 
   // pick a molecule that can be transfer to other box (beta == 0)
   uint PickMolAndBoxPair2(uint &m, uint &mk, uint & bSrc, uint & bDest,
-                          double subDraw, const double movPerc)
+                          real subDraw, const real movPerc)
   {
-    double boxDiv = 0;
+    real boxDiv = 0;
     PickBoxPair(bSrc, bDest, boxDiv, subDraw, movPerc);
     return PickMol2(m, mk, bSrc, subDraw, boxDiv);
   }
 
   uint PickMolAndBox(uint & m, uint &mk, uint &b,
-                     double subDraw, const double movPerc)
+                     real subDraw, const real movPerc)
   {
-    double boxDiv = 0;
+    real boxDiv = 0;
     PickBox(b, subDraw, boxDiv, movPerc);
     return PickMol(m, mk, b, subDraw, boxDiv);
   }

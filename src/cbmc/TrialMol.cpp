@@ -129,17 +129,17 @@ void TrialMol::ConfirmOldAtom(uint i)
 
 //!Returns rectangular coordinates of an addition
 //!Determines coordinates with respect to current basis
-XYZ TrialMol::GetRectCoords(double bond, double theta, double phi) const
+XYZ TrialMol::GetRectCoords(real bond, real theta, real phi) const
 {
   //rotation/translation from growth to sim coordinates
   return axes->WrapPBC(RawRectCoords(bond, theta, phi) + basisPoint, box);
 }
 
 //conversion from polar coordinates to rectangular growth coordinates
-XYZ TrialMol::RawRectCoords(double bond, double theta, double phi) const
+XYZ TrialMol::RawRectCoords(real bond, real theta, real phi) const
 {
   XYZ result(bond, bond, bond);
-  double sinTh = sin(theta);
+  real sinTh = sin(theta);
   result.x *= sinTh * cos(phi);
   result.y *= sinTh * sin(phi);
   result.z *= cos(theta);
@@ -147,7 +147,7 @@ XYZ TrialMol::RawRectCoords(double bond, double theta, double phi) const
 }
 
 void TrialMol::OldThetaAndPhi(const uint atom, const uint lastAtom,
-                              double& theta, double& phi) const
+                              real& theta, real& phi) const
 {
   XYZ diff = tCoords.Difference(atom, lastAtom);
   diff = axes->MinImage(diff, box);
@@ -157,24 +157,24 @@ void TrialMol::OldThetaAndPhi(const uint atom, const uint lastAtom,
   return;
 }
 
-double TrialMol::OldDistSq(const uint lastAtom, const uint atom)
+real TrialMol::OldDistSq(const uint lastAtom, const uint atom)
 {
   XYZ diff = tCoords.Difference(atom, lastAtom);
   diff = axes->MinImage(diff, box);
-  double distSq = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
+  real distSq = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
   return distSq;
 }
 
-double TrialMol::DistSq(const XYZ& a, const XYZ& b)
+real TrialMol::DistSq(const XYZ& a, const XYZ& b)
 {
   XYZ diff = a - b;
   diff = axes->MinImage(diff, box);
-  double distSq = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
+  real distSq = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
   return distSq;
 }
 
 //!Return angle in radians between confirmed atoms a-b-c
-double TrialMol::GetTheta(uint a, uint b, uint c) const
+real TrialMol::GetTheta(uint a, uint b, uint c) const
 {
   return geom::Theta(
            axes->MinImage(tCoords.Difference(a, b), box),
@@ -182,7 +182,7 @@ double TrialMol::GetTheta(uint a, uint b, uint c) const
 }
 
 //!Return dihedral in radians between confirmed atoms a-b-c-d
-double TrialMol::GetPhi(uint a, uint b, uint c, uint d) const
+real TrialMol::GetPhi(uint a, uint b, uint c, uint d) const
 {
   return geom::Phi(
            axes->MinImage(tCoords.Difference(b, a), box),
@@ -251,10 +251,10 @@ void TrialMol::ResetBasis()
   basisPoint = XYZ(0, 0, 0);
 }
 
-double TrialMol::PhiBetweenAngles(double theta1, double theta2,
-                                  double interior)
+real TrialMol::PhiBetweenAngles(real theta1, real theta2,
+                                  real interior)
 {
-  double y = (cos(interior) - cos(theta1) * cos(theta2))
+  real y = (cos(interior) - cos(theta1) * cos(theta2))
              / (sin(theta1) * sin(theta2));
   return M_PI_2 - atan2(y, sqrt(1 - y * y));
 }
@@ -270,27 +270,27 @@ void TrialMol::SetBCoords(const XYZArray& coords, uint start)
   coords.CopyRange(bCoords, start, 0, bCoords.Count());
 }
 
-double TrialMol::AngleDist(const double b1, const double b2, const double theta)
+real TrialMol::AngleDist(const real b1, const real b2, const real theta)
 {
   if(!kind->oneThree)
     return 0.0;
   else {
-    double v = b1 * b1 - 2 * b1 * b2 * cos(theta) + b2 * b2;
+    real v = b1 * b1 - 2 * b1 * b2 * cos(theta) + b2 * b2;
     return v;
   }
 
 }
 
-double TrialMol::DihedDist(const double b1, const double b2, const double b3,
-                           const double theta1, const double theta2,
-                           const double phi)
+real TrialMol::DihedDist(const real b1, const real b2, const real b3,
+                           const real theta1, const real theta2,
+                           const real phi)
 {
   if(!kind->oneFour)
     return 0.0;
   else {
-    double i = b1 * cos(theta1) - b2 + b3 * cos(theta2);
-    double j = b3 * sin(theta2) * sin(phi);
-    double k = -b1 * sin(theta1) + b3 * sin(theta2) * cos(phi);
+    real i = b1 * cos(theta1) - b2 + b3 * cos(theta2);
+    real j = b3 * sin(theta2) * sin(phi);
+    real k = -b1 * sin(theta1) + b3 * sin(theta2) * cos(phi);
     return (i * i + j * j + k * k);
   }
 

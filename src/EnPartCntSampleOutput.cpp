@@ -42,7 +42,7 @@ void EnPartCntSample::Init(pdb_setup::Atoms const& atoms,
                          output.state.files.hist.number,
                          output.state.files.hist.letter,
                          b);
-      samplesE[b] = new double [samplesPerFrame];
+      samplesE[b] = new real [samplesPerFrame];
       samplesN[b] = new uint * [var->numKinds];
       for (uint k = 0; k < var->numKinds; ++k) {
         samplesN[b][k] = new uint [samplesPerFrame];
@@ -85,7 +85,7 @@ void EnPartCntSample::WriteHeader(void)
 #endif
       XYZ bAx = var->axisRef->Get(0);
       outF[b] << bAx.x << " " << bAx.y << " " << bAx.z << std::endl;
-      outF[b] << std::setprecision(std::numeric_limits<double>::digits10 + 2);
+      outF[b] << std::setprecision(std::numeric_limits<real>::digits10 + 2);
       outF[b].setf(std::ios_base::left, std::ios_base::adjustfield);
     } else
       std::cerr << "Unable to write to file \"" <<  name[b] << "\" "

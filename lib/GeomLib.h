@@ -49,11 +49,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 namespace geom
 {
-inline double RadToDeg(const double ang)
+inline real RadToDeg(const real ang)
 {
   return ang * RAD_TO_DEG;
 }
-inline double DegToRad(const double ang)
+inline real DegToRad(const real ang)
 {
   return ang * DEG_TO_RAD;
 }
@@ -65,8 +65,8 @@ inline double DegToRad(const double ang)
 //NOTE:
 //To use this on three topologically connected points, we must
 //shift all three points such that the shared vertex is at the origin.
-inline XYZ Cross(const double x1, const double y1, const double z1,
-                 const double x2, const double y2, const double z2)
+inline XYZ Cross(const real x1, const real y1, const real z1,
+                 const real x2, const real y2, const real z2)
 {
   return XYZ(y1 * z2 - z1 * y2, z1 * x2 - x1 * z2, x1 * y2 - y1 * x2);
 }
@@ -78,14 +78,14 @@ inline XYZ Cross(XYZ const& v1, XYZ const& v2)
 }
 
 //Geometric dot product
-inline double Dot(XYZ const& v1, XYZ const& v2)
+inline real Dot(XYZ const& v1, XYZ const& v2)
 {
   return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
 //Geometric dot product for atomcoordinates.K
-inline double Dot(const uint atom, const double kx, const double ky,
-                  const double kz, const XYZArray &Coords)
+inline real Dot(const uint atom, const real kx, const real ky,
+                  const real kz, const XYZArray &Coords)
 {
   return(Coords.x[atom] * kx + Coords.y[atom] * ky + Coords.z[atom] * kz);
 }
@@ -142,9 +142,9 @@ inline XYZ Transform(const XYZArray &basis, const XYZ &A)
 //Generates angle between two vectors sharing a common vertex.
 //NOTE:
 //Vectors must be pre-shifted to the origin.
-inline double Theta(XYZ const& v1, XYZ const& v2)
+inline real Theta(XYZ const& v1, XYZ const& v2)
 {
-  double value = Dot(v1, v2) / sqrt(v1.LengthSq() * v2.LengthSq());
+  real value = Dot(v1, v2) / sqrt(v1.LengthSq() * v2.LengthSq());
   if(value < -1.00)
     return M_PI;
   else
@@ -170,7 +170,7 @@ inline double Theta(XYZ const& v1, XYZ const& v2)
 //
 // NOTE:
 // cos-1 route avoided as it's inaccurate near 0 or pi.
-inline double Phi(XYZ const& b1, XYZ const& b2, XYZ const& b3)
+inline real Phi(XYZ const& b1, XYZ const& b2, XYZ const& b3)
 {
   XYZ n1 = Cross(b1, b2).Normalize(), n2 = Cross(b2, b3).Normalize(),
       m1 = Cross(n1, XYZ(b2).Normalize()).Normalize();

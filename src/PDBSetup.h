@@ -27,7 +27,7 @@ namespace pdb_setup
 {
 struct Remarks : FWReadableBase {
   uint currBox;
-  double  disp[BOX_TOTAL], rotate[BOX_TOTAL], vol[BOX_TOTAL];
+  real  disp[BOX_TOTAL], rotate[BOX_TOTAL], vol[BOX_TOTAL];
   ulong step[BOX_TOTAL];
   uint frameNumber[BOX_TOTAL], targetFrame[BOX_TOTAL];
   std::vector<ulong> frameSteps;
@@ -53,7 +53,7 @@ struct Cryst1 : FWReadableBase {
   uint currBox;
   bool hasVolume;
   XYZArray axis;
-  double cellAngle[BOX_TOTAL][3];
+  real cellAngle[BOX_TOTAL][3];
   Cryst1(void) : currBox(0), hasVolume(false), axis(BOX_TOTAL) {}
   void SetBox(const uint b)
   {
@@ -78,11 +78,11 @@ public:
               std::string const& resName,
               const uint resNum,
               const char l_chain,
-              const double l_x,
-              const double l_y,
-              const double l_z,
-              const double l_occ,
-              const double l_beta);
+              const real l_x,
+              const real l_y,
+              const real l_z,
+              const real l_occ,
+              const real l_beta);
 
   void Read(FixedWidthReader & file);
   void Clear();
@@ -90,8 +90,8 @@ public:
   //private:
   //member data
   std::vector<char> chainLetter; //chain ids of each molecule
-  std::vector<double> x, y, z; //coordinates of each particle
-  std::vector<double> beta;  //beta value of each molecule
+  std::vector<real> x, y, z; //coordinates of each particle
+  std::vector<real> beta;  //beta value of each molecule
   std::vector<uint> box;
   std::vector<std::string> atomAliases, resNamesFull, resNames,
       resKindNames;

@@ -17,7 +17,7 @@ namespace unit
 //
 // const 1e24/6.02...e23 A3/molecules * mol/cm3
 //
-static const double MOLECULES_PER_A3_TO_MOL_PER_CM3 = 1.660539277;
+static const real MOLECULES_PER_A3_TO_MOL_PER_CM3 = 1.660539277;
 
 //
 // K * molecule / A3 --> bar
@@ -28,10 +28,10 @@ static const double MOLECULES_PER_A3_TO_MOL_PER_CM3 = 1.660539277;
 //   1 bar / 1e5 Pa
 //   = 1e30*1.987204*4.184/6.0221413e23/1e5
 //
-static const double K_MOLECULE_PER_A3_TO_BAR = 138.0649;
+static const real K_MOLECULE_PER_A3_TO_BAR = 138.0649;
 
 // convert K to mN/m (dyne)
-static const double K_TO_MN_PER_M = 1.380649;
+static const real K_TO_MN_PER_M = 1.380649;
 
 //
 // bar --> A3 / (K * molecule)
@@ -41,7 +41,7 @@ static const double K_TO_MN_PER_M = 1.380649;
 //   6.02...e23 molecule / 1 mol * 1m3 / 1e30 A3 -->
 //   A3 / (K * molecule)
 //
-static const double BAR_TO_K_MOLECULE_PER_A3 = 0.007242971;
+static const real BAR_TO_K_MOLECULE_PER_A3 = 0.007242971;
 
 //
 // K --> kJ/mol
@@ -50,7 +50,7 @@ static const double BAR_TO_K_MOLECULE_PER_A3 = 0.007242971;
 //     4.184 J/1 cal * 1 kJ/1000 J
 //  = 0.001987204*4.184
 //
-static const double K_TO_KJ_PER_MOL = 0.008314462;
+static const real K_TO_KJ_PER_MOL = 0.008314462;
 
 //
 // dimensionality of the virial (3D = 3)

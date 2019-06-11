@@ -70,36 +70,36 @@ public:
   virtual void BoxReciprocalSetup(uint box, XYZArray const& molCoords);
 
   //calculate reciprocate energy term for a box
-  virtual double BoxReciprocal(uint box) const;
+  virtual real BoxReciprocal(uint box) const;
 
   //calculate self term for a box
-  virtual double BoxSelf(BoxDimensions const& boxAxes, uint box) const;
+  virtual real BoxSelf(BoxDimensions const& boxAxes, uint box) const;
 
   //calculate reciprocate force term for a box
   virtual Virial ForceReciprocal(Virial& virial, uint box) const;
 
   //calculate reciprocate term for displacement and rotation move
-  virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
+  virtual real MolReciprocal(XYZArray const& molCoords, const uint molIndex,
                                const uint box);
 
   //calculate correction term for a molecule
-  virtual double MolCorrection(uint molIndex, uint box)const;
+  virtual real MolCorrection(uint molIndex, uint box)const;
 
   //calculate reciprocate term in destination box for swap move
-  virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
+  virtual real SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
                                const int molIndex);
 
   //calculate reciprocate term in source box for swap move
-  virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
+  virtual real SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                  const uint box, const int molIndex);
 
   //calculate reciprocate term for inserting some molecules (kindA) in
   //destination box and removing a molecule (kindB) from destination box
-  virtual double SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
+  virtual real SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
                            const std::vector<cbmc::TrialMol> &oldMol);
 
   //calculate correction term after swap move
-  virtual double SwapCorrection(const cbmc::TrialMol& trialMol) const;
+  virtual real SwapCorrection(const cbmc::TrialMol& trialMol) const;
 
   //back up reciptocate value to Ref (will be called during initialization)
   virtual void SetRecipRef(uint box);
@@ -111,7 +111,7 @@ public:
   virtual void UpdateRecipVec(uint box);
 
   //calculate self term after swap move
-  virtual double SwapSelf(const cbmc::TrialMol& trialMo) const;
+  virtual real SwapSelf(const cbmc::TrialMol& trialMo) const;
 
   //restore cosMol and sinMol
   virtual void RestoreMol(int molIndex);
@@ -128,7 +128,7 @@ public:
   virtual void UpdateVectorsAndRecipTerms();
 
 private:
-  double currentEnergyRecip[BOXES_WITH_U_NB];
+  real currentEnergyRecip[BOXES_WITH_U_NB];
 
 protected:
   const Forcefield& ff;
@@ -144,20 +144,20 @@ protected:
   //const uint imageTotal = GetImageSize();
   uint imageTotal;
   uint *kmax;
-  double **sumRnew; //cosine serries
-  double **sumInew; //sine serries
-  double **sumRref;
-  double **sumIref;
+  real **sumRnew; //cosine serries
+  real **sumInew; //sine serries
+  real **sumRref;
+  real **sumIref;
 
-  double **kx, **kxRef;
-  double **ky, **kyRef;
-  double **kz, **kzRef;
-  double **hsqr, **hsqrRef;
-  double **prefact, **prefactRef;
+  real **kx, **kxRef;
+  real **ky, **kyRef;
+  real **kz, **kzRef;
+  real **hsqr, **hsqrRef;
+  real **prefact, **prefactRef;
 
   std::vector<int> particleKind;
   std::vector<int> particleMol;
-  std::vector<double> particleCharge;
+  std::vector<real> particleCharge;
 };
 
 

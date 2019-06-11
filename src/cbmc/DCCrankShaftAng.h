@@ -43,7 +43,7 @@ private:
                      RotationMatrix& tensor);
   void ChooseTorsionOld(TrialMol& mol, uint molIndex, RotationMatrix& cross,
                         RotationMatrix& tensor);
-  double CalcIntraBonded(TrialMol& mol, uint molIndex);
+  real CalcIntraBonded(TrialMol& mol, uint molIndex);
   void ParticleNonbonded(cbmc::TrialMol const& mol, XYZArray const& trialPos,
                          const uint partIndex, const uint trials);
   void ParticleNonbonded1_N(cbmc::TrialMol const& mol, XYZArray const& trialPos,

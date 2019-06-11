@@ -58,6 +58,6 @@ private:
   void printMoveSettingsData();
   void printBoxDimensionsData();
 
-  void outputDoubleIn8Chars(double data);
+  void outputRealIn8Chars(real data);
   void outputUintIn8Chars(uint32_t data);
 };

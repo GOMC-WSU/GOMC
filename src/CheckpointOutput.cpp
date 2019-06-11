@@ -14,7 +14,7 @@ namespace
 {
 union dbl_output_union {
   char bin_value[8];
-  double dbl_value;
+  real dbl_value;
 };
 
 union uint32_output_union {
@@ -65,12 +65,12 @@ void CheckpointOutput::printBoxDimensionsData()
   outputUintIn8Chars(totalBoxes);
   for(int b = 0; b < totalBoxes; b++) {
     XYZ axis = boxDimRef.axis.Get(b);
-    outputDoubleIn8Chars(axis.x);
-    outputDoubleIn8Chars(axis.y);
-    outputDoubleIn8Chars(axis.z);
-    outputDoubleIn8Chars(boxDimRef.cosAngle[b][0]);
-    outputDoubleIn8Chars(boxDimRef.cosAngle[b][1]);
-    outputDoubleIn8Chars(boxDimRef.cosAngle[b][2]);
+    outputRealIn8Chars(axis.x);
+    outputRealIn8Chars(axis.y);
+    outputRealIn8Chars(axis.z);
+    outputRealIn8Chars(boxDimRef.cosAngle[b][0]);
+    outputRealIn8Chars(boxDimRef.cosAngle[b][1]);
+    outputRealIn8Chars(boxDimRef.cosAngle[b][2]);
   }
 }
 
@@ -108,9 +108,9 @@ void CheckpointOutput::printCoordinates()
 
   // now let's print the coordinates one by one
   for(int i = 0; i < count; i++) {
-    outputDoubleIn8Chars(coordCurrRef[i].x);
-    outputDoubleIn8Chars(coordCurrRef[i].y);
-    outputDoubleIn8Chars(coordCurrRef[i].z);
+    outputRealIn8Chars(coordCurrRef[i].x);
+    outputRealIn8Chars(coordCurrRef[i].y);
+    outputRealIn8Chars(coordCurrRef[i].z);
   }
 }
 
@@ -157,7 +157,7 @@ void CheckpointOutput::printMoveSettingsData()
   for(int i = 0; i < size_x; i++) {
     for(int j = 0; j < size_y; j++) {
       for(int k = 0; k < size_z; k++) {
-        outputDoubleIn8Chars(moveSetRef.scale[i][j][k]);
+        outputRealIn8Chars(moveSetRef.scale[i][j][k]);
       }
     }
   }
@@ -174,7 +174,7 @@ void CheckpointOutput::printMoveSettingsData()
   for(int i = 0; i < size_x; i++) {
     for(int j = 0; j < size_y; j++) {
       for(int k = 0; k < size_z; k++) {
-        outputDoubleIn8Chars(moveSetRef.acceptPercent[i][j][k]);
+        outputRealIn8Chars(moveSetRef.acceptPercent[i][j][k]);
       }
     }
   }
@@ -258,7 +258,7 @@ void CheckpointOutput::openOutputFile()
   }
 }
 
-void CheckpointOutput::outputDoubleIn8Chars(double data)
+void CheckpointOutput::outputRealIn8Chars(real data)
 {
   if(outputFile == NULL) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",

@@ -104,8 +104,8 @@ public:
 
   MoleculeKind * kinds;
   uint kindsCount;
-  double* pairEnCorrections;
-  double* pairVirCorrections;
+  real* pairEnCorrections;
+  real* pairVirCorrections;
 
   bool printFlag;
 };

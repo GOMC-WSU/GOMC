@@ -11,29 +11,29 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <cuda_runtime.h>
 #include "ConstantDefinitionsCUDAKernel.cuh"
 
-__device__ inline void TransformSlantGPU(double &tx, double &ty, double &tz,
-    double x, double y, double z,
-    double *gpu_cell_x,
-    double *gpu_cell_y,
-    double *gpu_cell_z)
+__device__ inline void TransformSlantGPU(real &tx, real &ty, real &tz,
+    real x, real y, real z,
+    real *gpu_cell_x,
+    real *gpu_cell_y,
+    real *gpu_cell_z)
 {
   tx = x * gpu_cell_x[0] + y * gpu_cell_x[1] + z * gpu_cell_x[2];
   ty = x * gpu_cell_y[0] + y * gpu_cell_y[1] + z * gpu_cell_y[2];
   tz = x * gpu_cell_z[0] + y * gpu_cell_z[1] + z * gpu_cell_z[2];
 }
 
-__device__ inline void TransformUnSlantGPU(double &tx, double &ty, double &tz,
-    double x, double y, double z,
-    double *gpu_Invcell_x,
-    double *gpu_Invcell_y,
-    double *gpu_Invcell_z)
+__device__ inline void TransformUnSlantGPU(real &tx, real &ty, real &tz,
+    real x, real y, real z,
+    real *gpu_Invcell_x,
+    real *gpu_Invcell_y,
+    real *gpu_Invcell_z)
 {
   tx = x * gpu_Invcell_x[0] + y * gpu_Invcell_x[1] + z * gpu_Invcell_x[2];
   ty = x * gpu_Invcell_y[0] + y * gpu_Invcell_y[1] + z * gpu_Invcell_y[2];
   tz = x * gpu_Invcell_z[0] + y * gpu_Invcell_z[1] + z * gpu_Invcell_z[2];
 }
 
-__device__ inline double MinImageSignedGPU(double raw, double ax, double halfAx)
+__device__ inline real MinImageSignedGPU(real raw, real ax, real halfAx)
 {
   if (raw > halfAx)
     raw -= ax;
@@ -43,21 +43,21 @@ __device__ inline double MinImageSignedGPU(double raw, double ax, double halfAx)
 }
 
 // Call by calculate energy whether it is in rCut
-__device__ inline bool InRcutGPU(double &distSq, double gpu_x1, double gpu_y1,
-                                 double gpu_z1, double gpu_x2, double gpu_y2,
-                                 double gpu_z2, double xAxes, double yAxes,
-                                 double zAxes, double xHalfAxes,
-                                 double yHalfAxes, double zHalfAxes,
-                                 double gpu_rCut, int gpu_nonOrth,
-                                 double *gpu_cell_x, double *gpu_cell_y,
-                                 double *gpu_cell_z, double *gpu_Invcell_x,
-                                 double *gpu_Invcell_y, double *gpu_Invcell_z)
+__device__ inline bool InRcutGPU(real &distSq, real gpu_x1, real gpu_y1,
+                                 real gpu_z1, real gpu_x2, real gpu_y2,
+                                 real gpu_z2, real xAxes, real yAxes,
+                                 real zAxes, real xHalfAxes,
+                                 real yHalfAxes, real zHalfAxes,
+                                 real gpu_rCut, int gpu_nonOrth,
+                                 real *gpu_cell_x, real *gpu_cell_y,
+                                 real *gpu_cell_z, real *gpu_Invcell_x,
+                                 real *gpu_Invcell_y, real *gpu_Invcell_z)
 {
   distSq = 0;
-  double tx, ty, tz;
-  double dx = gpu_x1 - gpu_x2;
-  double dy = gpu_y1 - gpu_y2;
-  double dz = gpu_z1 - gpu_z2;
+  real tx, ty, tz;
+  real dx = gpu_x1 - gpu_x2;
+  real dy = gpu_y1 - gpu_y2;
+  real dz = gpu_z1 - gpu_z2;
 
   if(gpu_nonOrth) {
     TransformUnSlantGPU(tx, ty, tz, dx, dy, dz, gpu_Invcell_x, gpu_Invcell_y,
@@ -78,19 +78,19 @@ __device__ inline bool InRcutGPU(double &distSq, double gpu_x1, double gpu_y1,
 }
 
 // Call by force calculate to return the distance and virial component
-__device__ inline bool InRcutGPU(double &distSq, double &virX, double &virY,
-                                 double &virZ, double gpu_x1, double gpu_y1,
-                                 double gpu_z1, double gpu_x2, double gpu_y2,
-                                 double gpu_z2, double xAxes, double yAxes,
-                                 double zAxes, double xHalfAxes,
-                                 double yHalfAxes, double zHalfAxes,
-                                 double gpu_rCut, int gpu_nonOrth,
-                                 double *gpu_cell_x, double *gpu_cell_y,
-                                 double *gpu_cell_z, double *gpu_Invcell_x,
-                                 double *gpu_Invcell_y, double *gpu_Invcell_z)
+__device__ inline bool InRcutGPU(real &distSq, real &virX, real &virY,
+                                 real &virZ, real gpu_x1, real gpu_y1,
+                                 real gpu_z1, real gpu_x2, real gpu_y2,
+                                 real gpu_z2, real xAxes, real yAxes,
+                                 real zAxes, real xHalfAxes,
+                                 real yHalfAxes, real zHalfAxes,
+                                 real gpu_rCut, int gpu_nonOrth,
+                                 real *gpu_cell_x, real *gpu_cell_y,
+                                 real *gpu_cell_z, real *gpu_Invcell_x,
+                                 real *gpu_Invcell_y, real *gpu_Invcell_z)
 {
   distSq = 0;
-  double tx, ty, tz;
+  real tx, ty, tz;
   virX = gpu_x1 - gpu_x2;
   virY = gpu_y1 - gpu_y2;
   virZ = gpu_z1 - gpu_z2;
@@ -117,8 +117,8 @@ __device__ inline int FlatIndexGPU(int i, int j, int gpu_count)
   return i + j * gpu_count;
 }
 
-__device__ inline double DotProductGPU(double kx, double ky, double kz,
-                                       double x, double y, double z)
+__device__ inline real DotProductGPU(real kx, real ky, real kz,
+                                       real x, real y, real z)
 {
   return (kx * x + ky * y + kz * z);
 }

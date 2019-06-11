@@ -51,15 +51,15 @@ private:
   // and will be passed to the rest of the code via Get functions
   ulong stepNumber;
   uint32_t totalBoxes;
-  vector<vector<double> > axis;
-  vector<vector<double> > cosAngle;
+  vector<vector<real> > axis;
+  vector<vector<real> > cosAngle;
   uint32_t* saveArray;
   uint32_t seedLocation, seedLeft, seedValue;
   uint32_t coordLength;
   XYZArray coords;
   vector<uint32_t> molLookupVec, boxAndKindStartVec, fixedAtomVec;
   uint32_t numKinds;
-  vector<vector<vector<double> > > scaleVec, acceptPercentVec;
+  vector<vector<vector<real> > > scaleVec, acceptPercentVec;
   vector<vector<vector<uint32_t> > > acceptedVec, triesVec, tempAcceptedVec,
          tempTriesVec;
 
@@ -73,6 +73,6 @@ private:
   void readBoxDimensionsData();
   void closeInputFile();
 
-  double readDoubleIn8Chars();
+  real readRealIn8Chars();
   uint32_t readUintIn8Chars();
 };

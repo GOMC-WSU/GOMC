@@ -56,28 +56,28 @@ public:
 
   void Adjust(const uint box, const uint move, const uint kind);
 
-  double Scale(const uint box, const uint move, const uint kind = 0) const
+  real Scale(const uint box, const uint move, const uint kind = 0) const
   {
     return scale[box][move][kind];
   }
 
-  double GetAccept(const uint box, const uint move, const uint kind = 0) const
+  real GetAccept(const uint box, const uint move, const uint kind = 0) const
   {
     return acceptPercent[box][move][kind];
   }
 
-  double GetTrial(const uint box, const uint move, const uint kind = 0) const
+  real GetTrial(const uint box, const uint move, const uint kind = 0) const
   {
     return tries[box][move][kind];
   }
 
   uint GetAcceptTot(const uint box, const uint move) const;
   uint GetTrialTot(const uint box, const uint move) const;
-  double GetScaleTot(const uint box, const uint move) const;
+  real GetScaleTot(const uint box, const uint move) const;
 
 private:
 
-  vector< vector< vector<double> > > scale, acceptPercent;
+  vector< vector< vector<real> > > scale, acceptPercent;
   vector< vector< vector<uint> > > accepted, tries, tempAccepted, tempTries;
 
   uint perAdjust;
@@ -89,8 +89,8 @@ private:
 
   BoxDimensions & boxDimRef;
 
-  static const double TARGET_ACCEPT_FRACT;
-  static const double TINY_AMOUNT;
+  static const real TARGET_ACCEPT_FRACT;
+  static const real TINY_AMOUNT;
 
   // make checkopintoutput and checkpointsetup a friend class to have access to
   // private data

@@ -87,7 +87,7 @@ void Coordinates::CheckCoordinate()
 //Translate by a random amount
 void Coordinates::TranslateRand
 (XYZArray & dest, XYZ & newCOM,  uint & pStart, uint & pLen,
- const uint m, const uint b, const double max)
+ const uint m, const uint b, const real max)
 {
   XYZ shift = prngRef.SymXYZ(max);
   uint stop = 0;
@@ -108,7 +108,7 @@ void Coordinates::TranslateRand
 //Rotate by a random amount.
 void Coordinates::RotateRand
 (XYZArray & dest, uint & pStart, uint & pLen,
- const uint m, const uint b, const double max)
+ const uint m, const uint b, const real max)
 {
   //Rotate (-max, max) radians about a uniformly random vector
   //Not uniformly random, but symmetrical wrt detailed balance
@@ -135,10 +135,10 @@ void Coordinates::RotateRand
 //scale all in each mol newCOM[m]/oldCOM[m]
 void Coordinates::VolumeTransferTranslate
 (uint & state, Coordinates & dest, COM & newCOM, BoxDimensions & newDim,
- COM const& oldCOM, const double max, const uint *box) const
+ COM const& oldCOM, const real max, const uint *box) const
 {
   XYZ scale[2];
-  double transfer = prngRef.Sym(max);
+  real transfer = prngRef.Sym(max);
 
   //Scale cell
   state = boxDimRef.ExchangeVolume(newDim, scale, transfer, box);

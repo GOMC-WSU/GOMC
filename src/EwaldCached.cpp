@@ -99,25 +99,25 @@ void EwaldCached::AllocMem()
   kmax = new uint[BOXES_WITH_U_NB];
   imageSize = new uint[BOXES_WITH_U_NB];
   imageSizeRef = new uint[BOXES_WITH_U_NB];
-  sumRnew = new double*[BOXES_WITH_U_NB];
-  sumInew = new double*[BOXES_WITH_U_NB];
-  sumRref = new double*[BOXES_WITH_U_NB];
-  sumIref = new double*[BOXES_WITH_U_NB];
-  kx = new double*[BOXES_WITH_U_NB];
-  ky = new double*[BOXES_WITH_U_NB];
-  kz = new double*[BOXES_WITH_U_NB];
-  hsqr = new double*[BOXES_WITH_U_NB];
-  prefact = new double*[BOXES_WITH_U_NB];
-  kxRef = new double*[BOXES_WITH_U_NB];
-  kyRef = new double*[BOXES_WITH_U_NB];
-  kzRef = new double*[BOXES_WITH_U_NB];
-  hsqrRef = new double*[BOXES_WITH_U_NB];
-  prefactRef = new double*[BOXES_WITH_U_NB];
+  sumRnew = new real*[BOXES_WITH_U_NB];
+  sumInew = new real*[BOXES_WITH_U_NB];
+  sumRref = new real*[BOXES_WITH_U_NB];
+  sumIref = new real*[BOXES_WITH_U_NB];
+  kx = new real*[BOXES_WITH_U_NB];
+  ky = new real*[BOXES_WITH_U_NB];
+  kz = new real*[BOXES_WITH_U_NB];
+  hsqr = new real*[BOXES_WITH_U_NB];
+  prefact = new real*[BOXES_WITH_U_NB];
+  kxRef = new real*[BOXES_WITH_U_NB];
+  kyRef = new real*[BOXES_WITH_U_NB];
+  kzRef = new real*[BOXES_WITH_U_NB];
+  hsqrRef = new real*[BOXES_WITH_U_NB];
+  prefactRef = new real*[BOXES_WITH_U_NB];
 
-  cosMolRef = new double*[mols.count];
-  sinMolRef = new double*[mols.count];
-  cosMolBoxRecip = new double*[mols.count];
-  sinMolBoxRecip = new double*[mols.count];
+  cosMolRef = new real*[mols.count];
+  sinMolRef = new real*[mols.count];
+  cosMolBoxRecip = new real*[mols.count];
+  sinMolBoxRecip = new real*[mols.count];
 
   for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
     RecipCountInit(b, currentAxes);
@@ -126,24 +126,24 @@ void EwaldCached::AllocMem()
   //25% larger than original box size, reserved for image size change
   imageTotal = Ewald::findLargeImage();
 
-  cosMolRestore = new double[imageTotal];
-  sinMolRestore = new double[imageTotal];
+  cosMolRestore = new real[imageTotal];
+  sinMolRestore = new real[imageTotal];
 
   for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
-    kx[b] = new double[imageTotal];
-    ky[b] = new double[imageTotal];
-    kz[b] = new double[imageTotal];
-    hsqr[b] = new double[imageTotal];
-    prefact[b] = new double[imageTotal];
-    kxRef[b] = new double[imageTotal];
-    kyRef[b] = new double[imageTotal];
-    kzRef[b] = new double[imageTotal];
-    hsqrRef[b] = new double[imageTotal];
-    prefactRef[b] = new double[imageTotal];
-    sumRnew[b] = new double[imageTotal];
-    sumInew[b] = new double[imageTotal];
-    sumRref[b] = new double[imageTotal];
-    sumIref[b] = new double[imageTotal];
+    kx[b] = new real[imageTotal];
+    ky[b] = new real[imageTotal];
+    kz[b] = new real[imageTotal];
+    hsqr[b] = new real[imageTotal];
+    prefact[b] = new real[imageTotal];
+    kxRef[b] = new real[imageTotal];
+    kyRef[b] = new real[imageTotal];
+    kzRef[b] = new real[imageTotal];
+    hsqrRef[b] = new real[imageTotal];
+    prefactRef[b] = new real[imageTotal];
+    sumRnew[b] = new real[imageTotal];
+    sumInew[b] = new real[imageTotal];
+    sumRref[b] = new real[imageTotal];
+    sumIref[b] = new real[imageTotal];
   }
 
   int i;
@@ -151,10 +151,10 @@ void EwaldCached::AllocMem()
   #pragma omp parallel for default(shared) private(i)
 #endif
   for (i = 0; i < mols.count; i++) {
-    cosMolRef[i] = new double[imageTotal];
-    sinMolRef[i] = new double[imageTotal];
-    cosMolBoxRecip[i] = new double[imageTotal];
-    sinMolBoxRecip[i] = new double[imageTotal];
+    cosMolRef[i] = new real[imageTotal];
+    sinMolRef[i] = new real[imageTotal];
+    cosMolBoxRecip[i] = new real[imageTotal];
+    sinMolBoxRecip[i] = new real[imageTotal];
   }
 
 }
@@ -164,7 +164,7 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 {
   uint j, m;
   int i;
-  double dotProduct = 0.0;
+  real dotProduct = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
@@ -174,8 +174,8 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
     #pragma omp parallel default(shared)
 #endif
     {
-      std::memset(sumRnew[box], 0.0, sizeof(double) * imageSize[box]);
-      std::memset(sumInew[box], 0.0, sizeof(double) * imageSize[box]);
+      std::memset(sumRnew[box], 0.0, sizeof(real) * imageSize[box]);
+      std::memset(sumInew[box], 0.0, sizeof(real) * imageSize[box]);
     }
 
     while (thisMol != end) {
@@ -208,10 +208,10 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 
 
 //calculate reciprocate term for a box
-double EwaldCached::BoxReciprocal(uint box) const
+real EwaldCached::BoxReciprocal(uint box) const
 {
   int i;
-  double energyRecip = 0.0;
+  real energyRecip = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
 #ifdef _OPENMP
@@ -228,18 +228,18 @@ double EwaldCached::BoxReciprocal(uint box) const
 }
 
 //calculate reciprocate term for displacement and rotation move
-double EwaldCached::MolReciprocal(XYZArray const& molCoords,
+real EwaldCached::MolReciprocal(XYZArray const& molCoords,
                                   const uint molIndex,
                                   const uint box)
 {
-  double energyRecipNew = 0.0;
+  real energyRecipNew = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
     MoleculeKind const& thisKind = mols.GetKind(molIndex);
     uint length = thisKind.NumAtoms();
     uint p;
     int i;
-    double sumRealNew, sumImaginaryNew, dotProductNew, sumRealOld,
+    real sumRealNew, sumImaginaryNew, dotProductNew, sumRealOld,
            sumImaginaryOld;
 
 #ifdef _OPENMP
@@ -277,19 +277,19 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
 }
 
 //calculate reciprocate term in destination box for swap move
-double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
+real EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
                                   const uint box,
                                   const int molIndex)
 {
-  double energyRecipNew = 0.0;
-  double energyRecipOld = 0.0;
+  real energyRecipNew = 0.0;
+  real energyRecipOld = 0.0;
 
 #ifdef _OPENMP
   #pragma omp parallel default(shared)
 #endif
   {
-    std::memcpy(cosMolRestore, cosMolRef[molIndex], sizeof(double)*imageTotal);
-    std::memcpy(sinMolRestore, sinMolRef[molIndex], sizeof(double)*imageTotal);
+    std::memcpy(cosMolRestore, cosMolRef[molIndex], sizeof(real)*imageTotal);
+    std::memcpy(sinMolRestore, sinMolRef[molIndex], sizeof(real)*imageTotal);
   }
 
   if (box < BOXES_WITH_U_NB) {
@@ -297,7 +297,7 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
     int i;
     MoleculeKind const& thisKind = newMol.GetKind();
     XYZArray molCoords = newMol.GetCoords();
-    double dotProductNew;
+    real dotProductNew;
     length = thisKind.NumAtoms();
 
 #ifdef _OPENMP
@@ -335,11 +335,11 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
 
 
 //calculate reciprocate term in source box for swap move
-double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
+real EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                     const uint box, const int molIndex)
 {
-  double energyRecipNew = 0.0;
-  double energyRecipOld = 0.0;
+  real energyRecipNew = 0.0;
+  real energyRecipOld = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
     int i;
@@ -361,7 +361,7 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 
 //calculate reciprocate term for inserting some molecules (kindA) in destination
 // box and removing a molecule (kindB) from destination box
-double EwaldCached::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
+real EwaldCached::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
                               const std::vector<cbmc::TrialMol> &oldMol)
 {
   //This function should not be called in IDExchange move
@@ -374,7 +374,7 @@ double EwaldCached::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
 //restore cosMol and sinMol
 void EwaldCached::RestoreMol(int molIndex)
 {
-  double *tempCos, *tempSin;
+  real *tempCos, *tempSin;
   tempCos = cosMolRef[molIndex];
   tempSin = sinMolRef[molIndex];
   cosMolRef[molIndex] = cosMolRestore;
@@ -386,7 +386,7 @@ void EwaldCached::RestoreMol(int molIndex)
 //restore the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
 void EwaldCached::exgMolCache()
 {
-  double **tempCos, **tempSin;
+  real **tempCos, **tempSin;
   tempCos = cosMolRef;
   tempSin = sinMolRef;
   cosMolRef = cosMolBoxRecip;
@@ -410,8 +410,8 @@ void EwaldCached::backupMolCache()
       #pragma omp parallel for private(m)
 #endif
       for(m = 0; m < mols.count; m++) {
-        std::memcpy(cosMolBoxRecip[m], cosMolRef[m], sizeof(double)*imageTotal);
-        std::memcpy(sinMolBoxRecip[m], sinMolRef[m], sizeof(double)*imageTotal);
+        std::memcpy(cosMolBoxRecip[m], cosMolRef[m], sizeof(real)*imageTotal);
+        std::memcpy(sinMolBoxRecip[m], sinMolRef[m], sizeof(real)*imageTotal);
       }
     }
   } else {
@@ -420,8 +420,8 @@ void EwaldCached::backupMolCache()
     #pragma omp parallel for private(m)
 #endif
     for(m = 0; m < mols.count; m++) {
-      std::memcpy(cosMolBoxRecip[m], cosMolRef[m], sizeof(double)*imageTotal);
-      std::memcpy(sinMolBoxRecip[m], sinMolRef[m], sizeof(double)*imageTotal);
+      std::memcpy(cosMolBoxRecip[m], cosMolRef[m], sizeof(real)*imageTotal);
+      std::memcpy(sinMolBoxRecip[m], sinMolRef[m], sizeof(real)*imageTotal);
     }
   }
 #endif

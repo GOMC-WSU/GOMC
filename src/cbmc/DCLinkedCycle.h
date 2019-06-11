@@ -37,11 +37,11 @@ public:
   };
 
 private:
-  void ChooseTorsion(TrialMol& mol, uint molIndex, double prevPhi[],
+  void ChooseTorsion(TrialMol& mol, uint molIndex, real prevPhi[],
                      RotationMatrix& cross, RotationMatrix& tensor);
-  double EvalLJ(TrialMol& mol, uint molIndex);
+  real EvalLJ(TrialMol& mol, uint molIndex);
   //Calculate the dihedral using bCoords
-  double CalcDih(TrialMol& mol, uint a0, uint a1, uint a2, uint a3);
+  real CalcDih(TrialMol& mol, uint a0, uint a1, uint a2, uint a3);
   void CaclIntraEnergy(TrialMol& mol, const uint bIdx, const uint molIndex);
 
   DCData* data;
@@ -53,15 +53,15 @@ private:
   //Used in finding the atom bonded to prev and focus and bith are in the ring
   uint prevBondedRing, focBondedRing;
   //Calculate torsion difference to match ring dihedral
-  double torDiff;
+  real torDiff;
 
   //bond energy of built branch
-  double bondEnergy;
+  real bondEnergy;
   //bond length of prev bonded to focus
-  double anchorBond, anchorBondOld;
+  real anchorBond, anchorBondOld;
   //bond length of atom bonded to focus
-  double bondLength[MAX_BONDS];
-  double bondLengthOld[MAX_BONDS];
+  real bondLength[MAX_BONDS];
+  real bondLengthOld[MAX_BONDS];
   //bondKind between bonded[i] and focus
   uint bondKinds[MAX_BONDS];
   bool bondedInRing[MAX_BONDS];

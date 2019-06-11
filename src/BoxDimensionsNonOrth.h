@@ -38,14 +38,14 @@ public:
                     pdb_setup::Cryst1 const& cryst,
                     Forcefield const &ff);
 
-  virtual void SetVolume(const uint b, const double vol);
+  virtual void SetVolume(const uint b, const real vol);
 
   virtual uint ShiftVolume(BoxDimensionsNonOrth & newDim, XYZ & scale,
-                           const uint b, const double delta) const;
+                           const uint b, const real delta) const;
 
   //!Calculate and execute volume exchange based on transfer
   virtual uint ExchangeVolume(BoxDimensionsNonOrth & newDim, XYZ * scale,
-                              const double transfer, const uint *box) const;
+                              const real transfer, const uint *box) const;
 
   //Construct cell basis based on new axis dimension
   void CalcCellDimensions(const uint b);
@@ -54,10 +54,10 @@ public:
   virtual XYZ MinImage(XYZ rawVecRef, const uint b) const;
 
   //Unwrap one coordinate.
-  virtual void WrapPBC(double &x, double &y, double &z, const uint b) const;
+  virtual void WrapPBC(real &x, real &y, real &z, const uint b) const;
 
   //Unwrap one coordinate.
-  virtual void UnwrapPBC(double & x, double & y, double & z,
+  virtual void UnwrapPBC(real & x, real & y, real & z,
                          const uint b, XYZ const& ref) const;
 
   //Transform A to unslant coordinate

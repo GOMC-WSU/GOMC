@@ -19,9 +19,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 namespace ff_setup
 {
-extern const double KCAL_PER_MOL_TO_K; //503.21959899;
-extern const double RIJ_OVER_2_TO_SIG; //1.7817974362807;
-extern const double RIJ_TO_SIG; //0.890898718
+extern const real KCAL_PER_MOL_TO_K; //503.21959899;
+extern const real RIJ_OVER_2_TO_SIG; //1.7817974362807;
+extern const real RIJ_TO_SIG; //0.890898718
 
 class FFBase : public SearchableBase
 {
@@ -63,7 +63,7 @@ public:
     name.erase(newEnd, name.end());
   }
 
-  double EnConvIfCHARMM(double val) const
+  real EnConvIfCHARMM(real val) const
   {
     if (CHARMM) {
       val *= KCAL_PER_MOL_TO_K;
@@ -87,13 +87,13 @@ public:
   Particle(void) : FFBase(1) {}
 
   virtual void Read(Reader & param, std::string const& firstVar);
-  void Add(double e, double s, const uint expN,
-           double e_1_4, double s_1_4, const uint expN_1_4);
+  void Add(real e, real s, const uint expN,
+           real e_1_4, real s_1_4, const uint expN_1_4);
 #ifndef NDEBUG
   void PrintBrief();
 #endif
 //	private:
-  std::vector<double> sigma, epsilon, sigma_1_4, epsilon_1_4;
+  std::vector<real> sigma, epsilon, sigma_1_4, epsilon_1_4;
   std::vector<uint> n, n_1_4;
 
 };
@@ -104,25 +104,25 @@ public:
   NBfix() : FFBase(2) {}
 
   virtual void Read(Reader & param, std::string const& firstVar);
-  void Add(double e, double s,
+  void Add(real e, real s,
 #ifdef MIE_INT_ONLY
            const uint expN,
 #else
-           const double expN,
+           const real expN,
 #endif
-           double e_1_4, double s_1_4,
+           real e_1_4, real s_1_4,
 #ifdef MIE_INT_ONLY
            const uint expN_1_4
 #else
-           const double expN_1_4
+           const real expN_1_4
 #endif
           );
 //	private:
-  std::vector<double> sigma, epsilon, sigma_1_4, epsilon_1_4;
+  std::vector<real> sigma, epsilon, sigma_1_4, epsilon_1_4;
 #ifdef MIE_INT_ONLY
   std::vector<uint> n, n_1_4;
 #else
-  std::vector<double> n, n_1_4;
+  std::vector<real> n, n_1_4;
 #endif
 };
 
@@ -132,12 +132,12 @@ class Bond : public ReadableBaseWithFirst, public FFBase
 public:
   Bond() : FFBase(2) {}
   virtual void Read(Reader & param, std::string const& firstVar);
-  void Add(const double coeff, const double def);
-  double *CopyKb() const
+  void Add(const real coeff, const real def);
+  real *CopyKb() const
   {
     return vect::transfer(Kb);
   }
-  double *Copyb0() const
+  real *Copyb0() const
   {
     return vect::transfer(b0);
   }
@@ -149,11 +149,11 @@ public:
   {
     return Kb.size();
   }
-  double GetKb(uint i) const
+  real GetKb(uint i) const
   {
     return Kb[i];
   }
-  double Getb0(uint i) const
+  real Getb0(uint i) const
   {
     return b0[i];
   }
@@ -161,8 +161,8 @@ public:
   void PrintBrief();
 #endif
 private:
-  static const double FIXED;
-  std::vector<double> Kb, b0;
+  static const real FIXED;
+  std::vector<real> Kb, b0;
   //XXX This is not a real vector
   //XXX Do not use with std algorithms, they are not required to work
   std::vector<bool> fixed;
@@ -173,9 +173,9 @@ class Angle : public ReadableBaseWithFirst, public FFBase
 public:
   Angle() : FFBase(3) {}
   virtual void Read(Reader & param, std::string const& firstVar);
-  void Add(const double coeff, const double def, const bool hsUB,
-           const double coeffUB, const double defUB);
-  double *CopyKtheta() const
+  void Add(const real coeff, const real def, const bool hsUB,
+           const real coeffUB, const real defUB);
+  real *CopyKtheta() const
   {
     return vect::transfer(Ktheta);
   }
@@ -183,7 +183,7 @@ public:
   {
     return vect::transfer(fixed);
   }
-  double *Copytheta0() const
+  real *Copytheta0() const
   {
     return vect::transfer(theta0);
   }
@@ -191,11 +191,11 @@ public:
   {
     return Ktheta.size();
   }
-  double GetKtheta(uint i) const
+  real GetKtheta(uint i) const
   {
     return Ktheta[i];
   }
-  double Gettheta0(uint i) const
+  real Gettheta0(uint i) const
   {
     return theta0[i];
   }
@@ -203,8 +203,8 @@ public:
   void PrintBrief();
 #endif
 private:
-  static const double FIXED;
-  std::vector<double> Ktheta, theta0, Kub, bUB0;
+  static const real FIXED;
+  std::vector<real> Ktheta, theta0, Kub, bUB0;
   //XXX This is not a real vector
   //XXX Do not use with std algorithms, they are not required to work
   std::vector<bool> hasUB;
@@ -217,16 +217,16 @@ public:
   Dihedral(void) : FFBase(4, true), last(""), countTerms(0) {}
   virtual void Read(Reader & param, std::string const& firstVar);
   void Add(std::string const& merged,
-           const double coeff, const uint index, const double def);
+           const real coeff, const uint index, const real def);
   uint getTerms() const
   {
     return countTerms;
   }
-  uint append(std::string & s, double * Kchi_in, double * delta_in, uint * n_in, uint count) const
+  uint append(std::string & s, real * Kchi_in, real * delta_in, uint * n_in, uint count) const
   {
     std::map<std::string, std::vector<uint> >::const_iterator itUInt = n.find(s);
     std::copy(itUInt->second.begin(), itUInt->second.end(), n_in + count);
-    std::map<std::string, std::vector<double> >::const_iterator itDbl = Kchi.find(s);
+    std::map<std::string, std::vector<real> >::const_iterator itDbl = Kchi.find(s);
     std::copy(itDbl->second.begin(), itDbl->second.end(), Kchi_in + count);
     itDbl = delta.find(s);
     std::copy(itDbl->second.begin(), itDbl->second.end(), delta_in + count);
@@ -235,19 +235,19 @@ public:
 
   uint GetSizeDih(std::string s) const
   {
-    std::map< std::string, std::vector<double> >::const_iterator it = Kchi.find(s);
+    std::map< std::string, std::vector<real> >::const_iterator it = Kchi.find(s);
     return it->second.size();
   }
 
-  double GetKchi(std::string s, uint pos) const
+  real GetKchi(std::string s, uint pos) const
   {
-    std::map< std::string, std::vector<double> >::const_iterator it = Kchi.find(s);
+    std::map< std::string, std::vector<real> >::const_iterator it = Kchi.find(s);
     return it->second[pos];
   }
 
-  double Getdelta(std::string s, uint pos) const
+  real Getdelta(std::string s, uint pos) const
   {
-    std::map< std::string, std::vector<double> >::const_iterator it = delta.find(s);
+    std::map< std::string, std::vector<real> >::const_iterator it = delta.find(s);
     return it->second[pos];
   }
 
@@ -261,7 +261,7 @@ public:
   void PrintBrief();
 #endif
 private:
-  std::map< std::string, std::vector<double> > Kchi, delta;
+  std::map< std::string, std::vector<real> > Kchi, delta;
   std::map< std::string, std::vector<uint> > n;
   std::string last;
   uint countTerms;
@@ -272,12 +272,12 @@ class Improper : public ReadableBaseWithFirst, public FFBase
 public:
   Improper() : FFBase(4) {}
   virtual void Read(Reader & param, std::string const& firstVar);
-  void Add(const double coeff, const double def);
+  void Add(const real coeff, const real def);
 #ifndef NDEBUG
   void PrintBrief();
 #endif
 private:
-  std::vector<double> Komega, omega0;
+  std::vector<real> Komega, omega0;
 };
 }
 

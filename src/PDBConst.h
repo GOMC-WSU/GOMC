@@ -73,21 +73,21 @@ static const char ALIGN = align::RIGHT;
 namespace ang_alpha
 {
 static const ConstField POS(33, 7);
-static const double DEFAULT = 90.0;
+static const real DEFAULT = 90.0;
 static const uint PRECISION = 2;
 static const char ALIGN = align::RIGHT;
 }
 namespace ang_beta
 {
 static const ConstField POS(40, 7);
-static const double DEFAULT = 90.0;
+static const real DEFAULT = 90.0;
 static const uint PRECISION = 2;
 static const char ALIGN = align::RIGHT;
 }
 namespace ang_gamma
 {
 static const ConstField POS(47, 7);
-static const double DEFAULT = 90.0;
+static const real DEFAULT = 90.0;
 static const uint PRECISION = 2;
 static const char ALIGN = align::RIGHT;
 }
@@ -194,7 +194,7 @@ static const char ALIGN = align::RIGHT;
 namespace beta
 {
 static const ConstField POS(60, 6);
-static const double DEFAULT = 0.00;
+static const real DEFAULT = 0.00;
 static const std::string FIX[] = {"0.00", "1.00", "2.00"};
 static const uint PRECISION = 2;
 static const char ALIGN = align::RIGHT;

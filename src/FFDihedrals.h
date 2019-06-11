@@ -30,7 +30,7 @@ class FFDihedrals
 {
 public:
   //calculate the energy of dih kind at angle phi
-  double Calc(const uint kind, const double phi) const;
+  real Calc(const uint kind, const real phi) const;
   //Initialize with data from parameter files
   void Init(ff_setup::Dihedral const& dih);
 
@@ -41,13 +41,13 @@ private:
 
   //dih kind params
   SubdividedArray subdiv;
-  double * Kchi, * delta;
+  real * Kchi, * delta;
   uint *n;
 };
 
-inline double FFDihedrals::Calc(const uint kind, const double phi) const
+inline real FFDihedrals::Calc(const uint kind, const real phi) const
 {
-  double sum = 0.0;
+  real sum = 0.0;
   for(uint i = subdiv.Begin(kind); i != subdiv.End(kind); ++i) {
     sum += Kchi[i] * (1 + cos(n[i] * phi - delta[i]));
   }

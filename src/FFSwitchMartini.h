@@ -71,40 +71,40 @@ public:
   virtual void Init(ff_setup::Particle const& mie,
                     ff_setup::NBfix const& nbfix);
 
-  virtual double CalcEn(const double distSq,
+  virtual real CalcEn(const real distSq,
                         const uint kind1, const uint kind2) const;
-  virtual double CalcVir(const double distSq,
+  virtual real CalcVir(const real distSq,
                          const uint kind1, const uint kind2) const;
-  virtual void CalcAdd_1_4(double& en, const double distSq,
+  virtual void CalcAdd_1_4(real& en, const real distSq,
                            const uint kind1, const uint kind2) const;
 
   // coulomb interaction functions
-  virtual double CalcCoulomb(const double distSq,
-                             const double qi_qj_Fact, const uint b) const;
-  virtual double CalcCoulombVir(const double distSq,
-                                const double qi_qj, const uint b) const;
-  virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
-                                  const double qi_qj_Fact,
+  virtual real CalcCoulomb(const real distSq,
+                             const real qi_qj_Fact, const uint b) const;
+  virtual real CalcCoulombVir(const real distSq,
+                                const real qi_qj, const uint b) const;
+  virtual void CalcCoulombAdd_1_4(real& en, const real distSq,
+                                  const real qi_qj_Fact,
                                   const bool NB) const;
 
 
   //!Returns Ezero, no energy correction
-  virtual double EnergyLRC(const uint kind1, const uint kind2) const
+  virtual real EnergyLRC(const uint kind1, const uint kind2) const
   {
     return 0.0;
   }
   //!!Returns Ezero, no virial correction
-  virtual double VirialLRC(const uint kind1, const uint kind2) const
+  virtual real VirialLRC(const uint kind1, const uint kind2) const
   {
     return 0.0;
   }
 
 protected:
 
-  double *An, *Bn, *Cn, *An_1_4, *Bn_1_4, *Cn_1_4;
-  double *sig6, *sig6_1_4, *sign, *sign_1_4;
+  real *An, *Bn, *Cn, *An_1_4, *Bn_1_4, *Cn_1_4;
+  real *sig6, *sig6_1_4, *sign, *sign_1_4;
 
-  double diElectric_1, rOn, rOnSq, rOnCoul, A1, B1, C1, A6, B6, C6;
+  real diElectric_1, rOn, rOnSq, rOnCoul, A1, B1, C1, A6, B6, C6;
 
 };
 
@@ -115,23 +115,23 @@ inline void FF_SWITCH_MARTINI::Init(ff_setup::Particle const& mie,
   FFParticle::Init(mie, nbfix);
   uint size = num::Sq(count);
   //allocate memory
-  An = new double [size];
-  Bn = new double [size];
-  Cn = new double [size];
-  sign = new double [size];
-  sig6 = new double [size];
-  An_1_4 = new double [size];
-  Bn_1_4 = new double [size];
-  Cn_1_4 = new double [size];
-  sign_1_4 = new double [size];
-  sig6_1_4 = new double [size];
+  An = new real [size];
+  Bn = new real [size];
+  Cn = new real [size];
+  sign = new real [size];
+  sig6 = new real [size];
+  An_1_4 = new real [size];
+  Bn_1_4 = new real [size];
+  Cn_1_4 = new real [size];
+  sign_1_4 = new real [size];
+  sig6_1_4 = new real [size];
   //Set martini constant
   diElectric_1 = 1.0 / forcefield.dielectric;
   rOn = forcefield.rswitch;
   rOnSq = rOn * rOn;
   //in Martini, Coulomb switching distance is zero
   rOnCoul = 0.0;
-  double rCut = forcefield.rCut;
+  real rCut = forcefield.rCut;
   // Set LJ constants
   A6 = 6.0 * ((6.0 + 1) * rOn - (6.0 + 4) * rCut) / (pow(rCut, 6.0 + 2) *
        pow(rCut - rOn, 2));
@@ -150,70 +150,70 @@ inline void FF_SWITCH_MARTINI::Init(ff_setup::Particle const& mie,
   for(uint i = 0; i < count; ++i) {
     for(uint j = 0; j < count; ++j) {
       uint idx = FlatIndex(i, j);
-      double pn = n[idx];
+      real pn = n[idx];
       An[idx] = pn * ((pn + 1) * rOn - (pn + 4) * rCut) / (pow(rCut, pn + 2) *
                 pow(rCut - rOn, 2));
       Bn[idx] = -pn * ((pn + 1) * rOn - (pn + 3) * rCut) / (pow(rCut, pn + 2) *
                 pow(rCut - rOn, 3));
       Cn[idx] = 1.0 / pow(rCut, pn) - An[idx] / 3.0 * pow(rCut - rOn, 3) -
                 Bn[idx] / 4.0 * pow(rCut - rOn, 4);
-      double sigma = sqrt(sigmaSq[idx]);
+      real sigma = sqrt(sigmaSq[idx]);
       sig6[idx] = pow(sigma, 6);
       sign[idx] = pow(sigma, pn);
 
       // for 1-4 interaction
-      double pn_1_4 = n_1_4[idx];
+      real pn_1_4 = n_1_4[idx];
       An_1_4[idx] = pn_1_4 * ((pn_1_4 + 1) * rOn - (pn_1_4 + 4) * rCut) /
                     (pow(rCut, pn_1_4 + 2) * pow(rCut - rOn, 2));
       Bn_1_4[idx] = -pn_1_4 * ((pn_1_4 + 1) * rOn - (pn_1_4 + 3) * rCut) /
                     (pow(rCut, pn_1_4 + 2) * pow(rCut - rOn, 3));
       Cn_1_4[idx] = 1.0 / pow(rCut, pn_1_4) - An_1_4[idx] / 3.0 *
                     pow(rCut - rOn, 3) - Bn_1_4[idx] / 4.0 * pow(rCut - rOn, 4);
-      double sigma_1_4 = sqrt(sigmaSq_1_4[idx]);
+      real sigma_1_4 = sqrt(sigmaSq_1_4[idx]);
       sig6_1_4[idx] = pow(sigma_1_4, 6);
       sign_1_4[idx] = pow(sigma_1_4, pn_1_4);
     }
   }
 }
 
-inline void FF_SWITCH_MARTINI::CalcAdd_1_4(double& en, const double distSq,
+inline void FF_SWITCH_MARTINI::CalcAdd_1_4(real& en, const real distSq,
     const uint kind1,
     const uint kind2) const
 {
   uint index = FlatIndex(kind1, kind2);
-  double r_2 = 1.0 / distSq;
-  double r_4 = r_2 * r_2;
-  double r_6 = r_4 * r_2;
+  real r_2 = 1.0 / distSq;
+  real r_4 = r_2 * r_2;
+  real r_6 = r_4 * r_2;
 #ifdef MIE_INT_ONLY
   uint n_ij = n_1_4[index];
-  double r_n = num::POW(r_2, r_4, attract, n_ij);
+  real r_n = num::POW(r_2, r_4, attract, n_ij);
 #else
-  double n_ij = n_1_4[index];
-  double r_n = pow(sqrt(r_2), n_ij);
+  real n_ij = n_1_4[index];
+  real r_n = pow(sqrt(r_2), n_ij);
 #endif
 
-  double rij_ron = sqrt(distSq) - rOn;
-  double rij_ron_2 = rij_ron * rij_ron;
-  double rij_ron_3 = rij_ron_2 * rij_ron;
-  double rij_ron_4 = rij_ron_2 * rij_ron_2;
+  real rij_ron = sqrt(distSq) - rOn;
+  real rij_ron_2 = rij_ron * rij_ron;
+  real rij_ron_3 = rij_ron_2 * rij_ron;
+  real rij_ron_4 = rij_ron_2 * rij_ron_2;
 
-  double shifttempRep = -(An_1_4[index] / 3.0) * rij_ron_3 -
+  real shifttempRep = -(An_1_4[index] / 3.0) * rij_ron_3 -
                         (Bn_1_4[index] / 4.0) * rij_ron_4 - Cn_1_4[index];
-  double shifttempAtt = -(A6 / 3.0) * rij_ron_3 - (B6 / 4.0) * rij_ron_4 - C6;
+  real shifttempAtt = -(A6 / 3.0) * rij_ron_3 - (B6 / 4.0) * rij_ron_4 - C6;
 
-  const double shiftRep = ( distSq > rOnSq ? shifttempRep : -Cn_1_4[index]);
-  const double shiftAtt = ( distSq > rOnSq ? shifttempAtt : -C6);
+  const real shiftRep = ( distSq > rOnSq ? shifttempRep : -Cn_1_4[index]);
+  const real shiftAtt = ( distSq > rOnSq ? shifttempAtt : -C6);
 
   en += epsilon_cn_1_4[index] * (sign_1_4[index] * (r_n + shiftRep) -
                                  sig6_1_4[index] * (r_6 + shiftAtt));
 }
 
-inline void FF_SWITCH_MARTINI::CalcCoulombAdd_1_4(double& en,
-    const double distSq,
-    const double qi_qj_Fact,
+inline void FF_SWITCH_MARTINI::CalcCoulombAdd_1_4(real& en,
+    const real distSq,
+    const real qi_qj_Fact,
     const bool NB) const
 {
-  double dist = sqrt(distSq);
+  real dist = sqrt(distSq);
   if(NB)
     en += qi_qj_Fact / dist;
   else
@@ -222,7 +222,7 @@ inline void FF_SWITCH_MARTINI::CalcCoulombAdd_1_4(double& en,
 
 
 //mie potential
-inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
+inline real FF_SWITCH_MARTINI::CalcEn(const real distSq,
                                         const uint kind1,
                                         const uint kind2) const
 {
@@ -230,58 +230,58 @@ inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
     return 0.0;
 
   uint index = FlatIndex(kind1, kind2);
-  double r_2 = 1.0 / distSq;
-  double r_4 = r_2 * r_2;
-  double r_6 = r_4 * r_2;
+  real r_2 = 1.0 / distSq;
+  real r_4 = r_2 * r_2;
+  real r_6 = r_4 * r_2;
 #ifdef MIE_INT_ONLY
   uint n_ij = n[index];
-  double r_n = num::POW(r_2, r_4, attract, n_ij);
+  real r_n = num::POW(r_2, r_4, attract, n_ij);
 #else
-  double n_ij = n[index];
-  double r_n = pow(sqrt(r_2), n_ij);
+  real n_ij = n[index];
+  real r_n = pow(sqrt(r_2), n_ij);
 #endif
 
-  double rij_ron = sqrt(distSq) - rOn;
-  double rij_ron_2 = rij_ron * rij_ron;
-  double rij_ron_3 = rij_ron_2 * rij_ron;
-  double rij_ron_4 = rij_ron_2 * rij_ron_2;
+  real rij_ron = sqrt(distSq) - rOn;
+  real rij_ron_2 = rij_ron * rij_ron;
+  real rij_ron_3 = rij_ron_2 * rij_ron;
+  real rij_ron_4 = rij_ron_2 * rij_ron_2;
 
-  double shifttempRep = -(An[index] / 3.0) * rij_ron_3 -
+  real shifttempRep = -(An[index] / 3.0) * rij_ron_3 -
                         (Bn[index] / 4.0) * rij_ron_4 - Cn[index];
-  double shifttempAtt = -(A6 / 3.0) * rij_ron_3 - (B6 / 4.0) * rij_ron_4 - C6;
+  real shifttempAtt = -(A6 / 3.0) * rij_ron_3 - (B6 / 4.0) * rij_ron_4 - C6;
 
-  const double shiftRep = ( distSq > rOnSq ? shifttempRep : -Cn[index]);
-  const double shiftAtt = ( distSq > rOnSq ? shifttempAtt : -C6);
+  const real shiftRep = ( distSq > rOnSq ? shifttempRep : -Cn[index]);
+  const real shiftAtt = ( distSq > rOnSq ? shifttempAtt : -C6);
 
-  double Eij = epsilon_cn[index] * (sign[index] * (r_n + shiftRep) -
+  real Eij = epsilon_cn[index] * (sign[index] * (r_n + shiftRep) -
                                     sig6[index] * (r_6 + shiftAtt));
   return Eij;
 }
 
-inline double FF_SWITCH_MARTINI::CalcCoulomb(const double distSq,
-    const double qi_qj_Fact, const uint b) const
+inline real FF_SWITCH_MARTINI::CalcCoulomb(const real distSq,
+    const real qi_qj_Fact, const uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
 
   if(forcefield.ewald) {
-    double dist = sqrt(distSq);
-    double val = forcefield.alpha[b] * dist;
+    real dist = sqrt(distSq);
+    real val = forcefield.alpha[b] * dist;
     return  qi_qj_Fact * erfc(val) / dist;
   } else {
     // in Martini, the Coulomb switching distance is zero, so we will have
     // sqrt(distSq) - rOnCoul =  sqrt(distSq)
-    double dist = sqrt(distSq);
-    double rij_ronCoul_3 = dist * distSq;
-    double rij_ronCoul_4 = distSq * distSq;
+    real dist = sqrt(distSq);
+    real rij_ronCoul_3 = dist * distSq;
+    real rij_ronCoul_4 = distSq * distSq;
 
-    double coul = -(A1 / 3.0) * rij_ronCoul_3 - (B1 / 4.0) * rij_ronCoul_4 - C1;
+    real coul = -(A1 / 3.0) * rij_ronCoul_3 - (B1 / 4.0) * rij_ronCoul_4 - C1;
     return qi_qj_Fact  * diElectric_1 * (1.0 / dist + coul);
   }
 }
 
 //mie potential
-inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
+inline real FF_SWITCH_MARTINI::CalcVir(const real distSq,
     const uint kind1,
     const uint kind2) const
 {
@@ -289,50 +289,50 @@ inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
     return 0.0;
 
   uint index = FlatIndex(kind1, kind2);
-  double n_ij = n[index];
-  double r_1 = 1.0 / sqrt(distSq);
-  double r_8 = pow(r_1, 8);
-  double r_n2 = pow(r_1, n_ij + 2);
+  real n_ij = n[index];
+  real r_1 = 1.0 / sqrt(distSq);
+  real r_8 = pow(r_1, 8);
+  real r_n2 = pow(r_1, n_ij + 2);
 
-  double rij_ron = sqrt(distSq) - rOn;
-  double rij_ron_2 = rij_ron * rij_ron;
-  double rij_ron_3 = rij_ron_2 * rij_ron;
+  real rij_ron = sqrt(distSq) - rOn;
+  real rij_ron_2 = rij_ron * rij_ron;
+  real rij_ron_3 = rij_ron_2 * rij_ron;
 
 
-  double dshifttempRep = An[index] * rij_ron_2 + Bn[index] * rij_ron_3;
-  double dshifttempAtt = A6 * rij_ron_2 + B6 * rij_ron_3;
+  real dshifttempRep = An[index] * rij_ron_2 + Bn[index] * rij_ron_3;
+  real dshifttempAtt = A6 * rij_ron_2 + B6 * rij_ron_3;
 
-  const double dshiftRep = ( distSq > rOnSq ? dshifttempRep * r_1 : 0);
-  const double dshiftAtt = ( distSq > rOnSq ? dshifttempAtt * r_1 : 0);
+  const real dshiftRep = ( distSq > rOnSq ? dshifttempRep * r_1 : 0);
+  const real dshiftAtt = ( distSq > rOnSq ? dshifttempAtt * r_1 : 0);
 
-  double Wij = epsilon_cn[index] * (sign[index] *
+  real Wij = epsilon_cn[index] * (sign[index] *
                                     (n_ij * r_n2 + dshiftRep) -
                                     sig6[index] * (6.0 * r_8 + dshiftAtt));
   return Wij;
 
 }
 
-inline double FF_SWITCH_MARTINI::CalcCoulombVir(const double distSq,
-    const double qi_qj, const uint b) const
+inline real FF_SWITCH_MARTINI::CalcCoulombVir(const real distSq,
+    const real qi_qj, const uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
 
   if(forcefield.ewald) {
-    double dist = sqrt(distSq);
-    double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
-    double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
-    double temp = erfc(forcefield.alpha[b] * dist);
+    real dist = sqrt(distSq);
+    real constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
+    real expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
+    real temp = erfc(forcefield.alpha[b] * dist);
     return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
     // in Martini, the Coulomb switching distance is zero, so we will have
     // sqrt(distSq) - rOnCoul =  sqrt(distSq)
-    double dist = sqrt(distSq);
-    double rij_ronCoul_2 = distSq;
-    double rij_ronCoul_3 = dist * distSq;
-    double rij_ronCoul_4 = distSq * distSq;
+    real dist = sqrt(distSq);
+    real rij_ronCoul_2 = distSq;
+    real rij_ronCoul_3 = dist * distSq;
+    real rij_ronCoul_4 = distSq * distSq;
 
-    double virCoul = A1 / rij_ronCoul_2 + B1 / rij_ronCoul_3;
+    real virCoul = A1 / rij_ronCoul_2 + B1 / rij_ronCoul_3;
     return qi_qj * diElectric_1 * ( 1.0 / (dist * distSq) + virCoul / dist);
   }
 }

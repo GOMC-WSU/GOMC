@@ -52,38 +52,38 @@ public:
   virtual void Init(ff_setup::Particle const& mie,
                     ff_setup::NBfix const& nbfix);
 
-  double GetEpsilon(const uint i, const uint j) const;
-  double GetEpsilon_1_4(const uint i, const uint j) const;
-  double GetSigma(const uint i, const uint j) const;
-  double GetSigma_1_4(const uint i, const uint j) const;
-  double GetN(const uint i, const uint j) const;
-  double GetN_1_4(const uint i, const uint j) const;
+  real GetEpsilon(const uint i, const uint j) const;
+  real GetEpsilon_1_4(const uint i, const uint j) const;
+  real GetSigma(const uint i, const uint j) const;
+  real GetSigma_1_4(const uint i, const uint j) const;
+  real GetN(const uint i, const uint j) const;
+  real GetN_1_4(const uint i, const uint j) const;
   // LJ interaction functions
-  virtual double CalcEn(const double distSq,
+  virtual real CalcEn(const real distSq,
                         const uint kind1, const uint kind2) const;
-  virtual double CalcVir(const double distSq,
+  virtual real CalcVir(const real distSq,
                          const uint kind1, const uint kind2) const;
-  virtual void CalcAdd_1_4(double& en, const double distSq,
+  virtual void CalcAdd_1_4(real& en, const real distSq,
                            const uint kind1, const uint kind2) const;
 
   // coulomb interaction functions
-  virtual double CalcCoulomb(const double distSq,
-                             const double qi_qj_Fact, const uint b) const;
-  virtual double CalcCoulombVir(const double distSq,
-                                const double qi_qj, const uint b) const;
-  virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
-                                  const double qi_qj_Fact, const bool NB) const;
+  virtual real CalcCoulomb(const real distSq,
+                             const real qi_qj_Fact, const uint b) const;
+  virtual real CalcCoulombVir(const real distSq,
+                                const real qi_qj, const uint b) const;
+  virtual void CalcCoulombAdd_1_4(real& en, const real distSq,
+                                  const real qi_qj_Fact, const bool NB) const;
 
   //!Returns Energy long-range correction term for a kind pair
-  virtual double EnergyLRC(const uint kind1, const uint kind2) const;
+  virtual real EnergyLRC(const uint kind1, const uint kind2) const;
   //!Returns Energy long-range correction term for a kind pair
-  virtual double VirialLRC(const uint kind1, const uint kind2) const;
+  virtual real VirialLRC(const uint kind1, const uint kind2) const;
 
   uint NumKinds() const
   {
     return count;
   }
-  double GetMass(const uint kind) const
+  real GetMass(const uint kind) const
   {
     return mass[kind];
   }
@@ -102,14 +102,14 @@ protected:
     return i + j * count;
   }
   //Combining sigma, epsilon, and n value for different kind
-  void Blend(ff_setup::Particle const& mie, const double rCut);
+  void Blend(ff_setup::Particle const& mie, const real rCut);
   //Use NBFIX to adjust sigma, epsilon, and n value for different kind
   void AdjNBfix(ff_setup::Particle const& mie, ff_setup::NBfix const& nbfix,
-                const double rCut);
+                const real rCut);
   //To access rcut and other forcefield data
   const Forcefield& forcefield;
 
-  double* mass;
+  real* mass;
   std::string *nameFirst;
   std::string *nameSec;
 
@@ -117,10 +117,10 @@ protected:
 #ifdef MIE_INT_ONLY
   uint* n, *n_1_4;
 #else
-  double *n, *n_1_4;
+  real *n, *n_1_4;
 #endif
   //For LJ eps_cn(en) --> 4eps, eps_cn_6 --> 24eps, eps_cn_n --> 48eps
-  double * sigmaSq, * epsilon, * epsilon_1_4, * epsilon_cn, * epsilon_cn_6,
+  real * sigmaSq, * epsilon, * epsilon_1_4, * epsilon_cn, * epsilon_cn_6,
          * nOver6, * sigmaSq_1_4, * epsilon_cn_1_4, * epsilon_cn_6_1_4, * nOver6_1_4,
          * enCorrection, * virCorrection;
 

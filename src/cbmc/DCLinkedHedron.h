@@ -37,9 +37,9 @@ public:
   };
 
 private:
-  void ChooseTorsion(TrialMol& mol, uint molIndex, double prevPhi[],
+  void ChooseTorsion(TrialMol& mol, uint molIndex, real prevPhi[],
                      RotationMatrix& cross, RotationMatrix& tensor);
-  double EvalLJ(TrialMol& mol, uint molIndex);
+  real EvalLJ(TrialMol& mol, uint molIndex);
   DCData* data;
   DCHedron hed;
   uint nPrevBonds;
@@ -48,12 +48,12 @@ private:
   uint dihKinds[MAX_BONDS][MAX_BONDS];
 
   //bond energy of built branch
-  double bondEnergy;
+  real bondEnergy;
   //bond length of prev bonded to focus
-  double anchorBond, anchorBondOld;
+  real anchorBond, anchorBondOld;
   //bond length of atom bonded to focus
-  double bondLength[MAX_BONDS];
-  double bondLengthOld[MAX_BONDS];
+  real bondLength[MAX_BONDS];
+  real bondLengthOld[MAX_BONDS];
   //bondKind between bonded[i] and focus
   uint bondKinds[MAX_BONDS];
 };

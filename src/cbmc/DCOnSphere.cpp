@@ -44,12 +44,12 @@ void DCOnSphere::SetBondLengthOld(TrialMol& oldMol)
   bondLengthOld = sqrt(oldMol.OldDistSq(focus, atom));
 }
 
-double DCOnSphere::BondEnergyNew(TrialMol& newMol)
+real DCOnSphere::BondEnergyNew(TrialMol& newMol)
 {
   return data->ff.bonds.Calc(bondKind, bondLength);
 }
 
-double DCOnSphere::BondEnergyOld(TrialMol& oldMol)
+real DCOnSphere::BondEnergyOld(TrialMol& oldMol)
 {
   return  data->ff.bonds.Calc(bondKind, bondLengthOld);
 }
@@ -58,10 +58,10 @@ void DCOnSphere::BuildOld(TrialMol& oldMol, uint molIndex)
 {
   XYZArray& positions = data->positions;
   uint nLJTrials = data->nLJTrialsNth;
-  double* inter = data->inter;
-  double* real = data->real;
+  real* inter = data->inter;
+  real* real = data->real;
   bool* overlap = data->overlap;
-  double stepWeight = 0;
+  real stepWeight = 0;
 
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
@@ -95,11 +95,11 @@ void DCOnSphere::BuildNew(TrialMol& newMol, uint molIndex)
 {
   XYZArray& positions = data->positions;
   uint nLJTrials = data->nLJTrialsNth;
-  double* inter = data->inter;
-  double* real = data->real;
-  double* ljWeights = data->ljWeights;
+  real* inter = data->inter;
+  real* real = data->real;
+  real* ljWeights = data->ljWeights;
   bool* overlap = data->overlap;
-  double stepWeight = 0;
+  real stepWeight = 0;
 
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);

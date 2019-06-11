@@ -28,26 +28,26 @@ public:
   void PrepareOld(TrialMol& oldMol, uint molIndex);
   void IncorporateOld(TrialMol& oldMol, uint molIndex);
   void ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol, uint molIndex);
-  void SetBondNew(double const *bondLen, double const &anchBond);
-  void SetBondOld(double const *bondLen, double const &anchBond);
+  void SetBondNew(real const *bondLen, real const &anchBond);
+  void SetBondOld(real const *bondLen, real const &anchBond);
   uint Bonded(uint i) const
   {
     return bonded[i];
   }
-  double Theta(uint i) const
+  real Theta(uint i) const
   {
     return theta[i];
   }
-  double Phi(uint i) const
+  real Phi(uint i) const
   {
     return phi[i];
   }
-  double GetWeight();
-  double GetEnergy()
+  real GetWeight();
+  real GetEnergy()
   {
     return bendEnergy;
   }
-  double GetNonBondedEn()
+  real GetNonBondedEn()
   {
     return oneThree;
   }
@@ -77,7 +77,7 @@ private:
   void FreeAnglesOld(TrialMol& oldMol, uint molIndex, uint nTrials);
   void ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTrials);
   //to calculate the angle in the ring from bCoords or tCoords a0-a1-a2
-  double CalcTheta(TrialMol& mol, const uint a0, const uint a1, const uint a2);
+  real CalcTheta(TrialMol& mol, const uint a0, const uint a1, const uint a2);
   //!Sets an orthonormal basis for coordinate conversion.
   /*!\param p1 Index of focus
    * \param p2 Index of prev
@@ -85,7 +85,7 @@ private:
   void SetBasis(TrialMol& mol, uint p1, uint p2);
   //!Calculates theta and phi coords for atom in the current basis
   //!centered on lastAtom. phi in (-pi, pi]
-  double CalcOldPhi(TrialMol& mol, uint atom, uint lastAtom) const;
+  real CalcOldPhi(TrialMol& mol, uint atom, uint lastAtom) const;
 
   DCData* data;
   uint focus, prev;
@@ -93,19 +93,19 @@ private:
   //atoms bonded to focus, being build
 
   //bond length of atom bonded to focus
-  double bondLength[MAX_BONDS];
-  double bondLengthOld[MAX_BONDS];
+  real bondLength[MAX_BONDS];
+  real bondLengthOld[MAX_BONDS];
 
   //angleKinds[i][j] = kind between bonded[i] and bonded[j]
   //except angleKinds[i][i] = kind between bonded[i] and prev
   uint angleKinds[MAX_BONDS][MAX_BONDS];
   bool angleInRing[MAX_BONDS][MAX_BONDS];
-  double theta[MAX_BONDS];
-  double thetaWeight[MAX_BONDS];
-  double phi[MAX_BONDS];
-  double phiWeight[MAX_BONDS];
-  double bendEnergy, oneThree;
-  double anchorBond, anchorBondOld;
+  real theta[MAX_BONDS];
+  real thetaWeight[MAX_BONDS];
+  real phi[MAX_BONDS];
+  real phiWeight[MAX_BONDS];
+  real bendEnergy, oneThree;
+  real anchorBond, anchorBondOld;
   RotationMatrix growthToWorld;
   RotationMatrix worldToGrowth;
 };

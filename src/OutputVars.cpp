@@ -55,16 +55,16 @@ uint OutputVars::GetAccepted(uint box, uint sub)
   return moveSetRef->GetAcceptTot(box, sub);
 }
 
-double OutputVars::GetScale(uint box, uint sub)
+real OutputVars::GetScale(uint box, uint sub)
 {
   return moveSetRef->GetScaleTot(box, sub);
 }
 
-double OutputVars::GetAcceptPercent(uint box, uint sub)
+real OutputVars::GetAcceptPercent(uint box, uint sub)
 {
   if(GetTries(box, sub) == 0)
     return 0.0;
-  return (double)(GetAccepted(box, sub)) / (double)(GetTries(box, sub)) * 100.0;
+  return (real)(GetAccepted(box, sub)) / (real)(GetTries(box, sub)) * 100.0;
 }
 
 void OutputVars::Init(pdb_setup::Atoms const& atoms)
@@ -77,9 +77,9 @@ void OutputVars::Init(pdb_setup::Atoms const& atoms)
   uint kTot = BOX_TOTAL * numKinds;
   numByBox = new uint [BOX_TOTAL];
   numByKindBox = new uint [kTot];
-  densityByKindBox = new double [kTot];
+  densityByKindBox = new real [kTot];
   if (numKinds > 1)
-    molFractionByKindBox = new double [kTot];
+    molFractionByKindBox = new real [kTot];
 }
 
 OutputVars::~OutputVars(void)
@@ -98,7 +98,7 @@ OutputVars::~OutputVars(void)
 
 void OutputVars::CalcAndConvert(ulong step)
 {
-  double rawPressure[BOXES_WITH_U_NB];
+  real rawPressure[BOXES_WITH_U_NB];
 
 #if ENSEMBLE == GEMC
   //Which box is the liquid in gibbs ensemble
@@ -153,7 +153,7 @@ void OutputVars::CalcAndConvert(ulong step)
     rawPressure[b] = 0.0;
     densityTot[b] = 0.0;
     for (uint k = 0; k < numKinds; k++) {
-      double density = densityByKindBox[k + numKinds * b];
+      real density = densityByKindBox[k + numKinds * b];
 
       // Instead of converting to mass first
       // (an alternate route to calculate the ideal gas pressure)
@@ -175,7 +175,7 @@ void OutputVars::CalcAndConvert(ulong step)
   for (uint b = 0; b < BOX_TOTAL; b++) {
     densityTot[b] = 0.0;
     for (uint k = 0; k < numKinds; k++) {
-      double density = densityByKindBox[k + numKinds * b];
+      real density = densityByKindBox[k + numKinds * b];
 
       // Convert density to g/ml (which is equivalent to g/cm3)
       // To get kg/m3, multiply output densities by 1000.

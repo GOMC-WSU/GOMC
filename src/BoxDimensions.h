@@ -46,16 +46,16 @@ public:
     return axis.Get(b);
   }
 
-  double GetTotVolume(const uint b1, const uint b2) const;
+  real GetTotVolume(const uint b1, const uint b2) const;
 
-  virtual void SetVolume(const uint b, const double vol);
+  virtual void SetVolume(const uint b, const real vol);
 
   virtual uint ShiftVolume(BoxDimensions & newDim, XYZ & scale,
-                           const uint b, const double delta) const;
+                           const uint b, const real delta) const;
 
   //!Calculate and execute volume exchange based on transfer
   virtual uint ExchangeVolume(BoxDimensions & newDim, XYZ * scale,
-                              const double transfer, const uint *box) const;
+                              const real transfer, const uint *box) const;
 
   //Vector btwn two points, accounting for PBC, on an individual axis
   virtual XYZ MinImage(XYZ rawVec, const uint b) const;
@@ -81,45 +81,45 @@ public:
   XYZ UnwrapPBC(XYZ& rawPos, const uint b, XYZ const& ref) const;
 
   //Unwrap one coordinate.
-  virtual void WrapPBC(double &x, double &y, double &z, const uint b) const;
+  virtual void WrapPBC(real &x, real &y, real &z, const uint b) const;
 
   //Unwrap one coordinate.
-  virtual void UnwrapPBC(double & x, double & y, double & z,
+  virtual void UnwrapPBC(real & x, real & y, real & z,
                          const uint b, XYZ const& ref) const;
 
   //Returns if within cutoff, if it is, gets distance --
   //with shortcut, same coordinate array
-  bool InRcut(double & distSq, XYZ & dist, XYZArray const& arr,
+  bool InRcut(real & distSq, XYZ & dist, XYZArray const& arr,
               const uint i, const uint j, const uint b) const;
 
   //Dist squared -- with shortcut, two different coordinate arrays
-  bool InRcut(double & distSq, XYZ & dist, XYZArray const& arr1,
+  bool InRcut(real & distSq, XYZ & dist, XYZArray const& arr1,
               const uint i, XYZArray const& arr2, const uint j,
               const uint b) const;
 
   //Returns if within cutoff, if it is, gets distance --
   //with shortcut, same coordinate array
-  bool InRcut(double & distSq, XYZArray const& arr,
+  bool InRcut(real & distSq, XYZArray const& arr,
               const uint i, const uint j, const uint b) const;
 
   //Dist squared -- with shortcut, two different coordinate arrays
-  bool InRcut(double & distSq, XYZArray const& arr1,
+  bool InRcut(real & distSq, XYZArray const& arr1,
               const uint i, XYZArray const& arr2, const uint j,
               const uint b) const;
   /*
-    bool InRcut(double distSq) const
+    bool InRcut(real distSq) const
     {
       return (distSq < rCutSq);
     }
     */
 
   //Dist squared , two different coordinate arrays
-  void GetDistSq(double & distSq, XYZArray const& arr1,
+  void GetDistSq(real & distSq, XYZArray const& arr1,
                  const uint i, XYZArray const& arr2, const uint j,
                  const uint b) const;
 
   //Dist squared with same coordinate array
-  void GetDistSq(double & distSq, XYZArray const& arr, const uint i,
+  void GetDistSq(real & distSq, XYZArray const& arr, const uint i,
                  const uint j, const uint b) const;
 
   //True if arr is inside cavDim with geometric center of center.
@@ -136,24 +136,24 @@ public:
   XYZArray axis;                  //x, y, z dimensions of each box (a)
   XYZArray halfAx;                //x, y, z dimensions / 2 of each box (a)
   XYZArray cellBasis[BOX_TOTAL];  //x, y, z vector, 3 for each box
-  double volume[BOX_TOTAL];       //volume of each box in (a^3)
-  double volInv[BOX_TOTAL];       //inverse volume of each box in (a^-3)
-  double cosAngle[BOX_TOTAL][3];  //alpha, beta, gamma for each box
+  real volume[BOX_TOTAL];       //volume of each box in (a^3)
+  real volInv[BOX_TOTAL];       //inverse volume of each box in (a^-3)
+  real cosAngle[BOX_TOTAL][3];  //alpha, beta, gamma for each box
 
-  double rCut[BOX_TOTAL];
-  double rCutSq[BOX_TOTAL];
-  double minVol[BOX_TOTAL];
+  real rCut[BOX_TOTAL];
+  real rCutSq[BOX_TOTAL];
+  real minVol[BOX_TOTAL];
 
   bool cubic[BOX_TOTAL], orthogonal[BOX_TOTAL], constArea;
 
   //Dist. btwn two points, accounting for PBC, on an individual axis
-  double MinImage(double& raw, const double ax, const double halfAx) const;
-  double MinImageSigned(double raw, double ax, double halfAx) const;
+  real MinImage(real& raw, const real ax, const real halfAx) const;
+  real MinImageSigned(real raw, real ax, real halfAx) const;
 
-  double WrapPBC(double& v, const double ax) const;
+  real WrapPBC(real& v, const real ax) const;
 
-  double UnwrapPBC(double& v, const double ref,
-                   const double ax, const double halfAx) const;
+  real UnwrapPBC(real& v, const real ref,
+                   const real ax, const real halfAx) const;
 };
 
 
@@ -207,7 +207,7 @@ inline void BoxDimensions::UnwrapPBC(XYZArray & arr, const uint start,
 }
 
 
-inline bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
+inline bool BoxDimensions::InRcut(real & distSq, XYZ & dist,
                                   XYZArray const& arr, const uint i,
                                   const uint j, const uint b) const
 {
@@ -217,7 +217,7 @@ inline bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
 }
 
 
-inline bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
+inline bool BoxDimensions::InRcut(real & distSq, XYZ & dist,
                                   XYZArray const& arr1, const uint i,
                                   XYZArray const& arr2, const uint j,
                                   const uint b) const
@@ -227,7 +227,7 @@ inline bool BoxDimensions::InRcut(double & distSq, XYZ & dist,
   return (rCutSq[b] > distSq);
 }
 
-inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr,
+inline bool BoxDimensions::InRcut(real & distSq, XYZArray const& arr,
                                   const uint i, const uint j,
                                   const uint b) const
 {
@@ -237,7 +237,7 @@ inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr,
 }
 
 
-inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr1,
+inline bool BoxDimensions::InRcut(real & distSq, XYZArray const& arr1,
                                   const uint i, XYZArray const& arr2,
                                   const uint j, const uint b) const
 {
@@ -247,7 +247,7 @@ inline bool BoxDimensions::InRcut(double & distSq, XYZArray const& arr1,
 }
 
 
-inline void BoxDimensions::GetDistSq(double & distSq, XYZArray const& arr1,
+inline void BoxDimensions::GetDistSq(real & distSq, XYZArray const& arr1,
                                      const uint i, XYZArray const& arr2,
                                      const uint j, const uint b) const
 {
@@ -255,7 +255,7 @@ inline void BoxDimensions::GetDistSq(double & distSq, XYZArray const& arr1,
   distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
 }
 
-inline void BoxDimensions::GetDistSq(double & distSq, XYZArray const& arr,
+inline void BoxDimensions::GetDistSq(real & distSq, XYZArray const& arr,
                                      const uint i, const uint j,
                                      const uint b) const
 {

@@ -23,7 +23,7 @@ public:
   {
     LoadIdentity();
   }
-  explicit TransformMatrix(double d)
+  explicit TransformMatrix(real d)
   {
     SetDiagonal(d);
   }
@@ -32,16 +32,16 @@ public:
   {
     SetDiagonal(1.0);
   }
-  void SetDiagonal(double d);
+  void SetDiagonal(real d);
 
 
 
   //returns matrix for rotation of theta radians about axis
-  static TransformMatrix FromAxisAngle(double theta, const XYZ& axis);
+  static TransformMatrix FromAxisAngle(real theta, const XYZ& axis);
 
   //returns matrix for rotation of theta radians about vector described by
   //matrices cross and tensor (more efficient if reusing an axis)
-  static TransformMatrix FromAxisAngle(double theta,
+  static TransformMatrix FromAxisAngle(real theta,
                                        const TransformMatrix& cross, const TransformMatrix& tensor);
 
   //returns matrix such that (vector x vec2) = matrix * vec2
@@ -55,14 +55,14 @@ public:
   //returns a uniformly random rotation on SO3 if arguments are uniformly
   //random on [0,1]. u1 and u3 can be uniformly random on [0,k] (0 < k < 1)
   //for a smaller but still uniformly random rotation
-  static TransformMatrix UniformRandom(double u1, double u2, double u3);
+  static TransformMatrix UniformRandom(real u1, real u2, real u3);
 
 
   /*!Add a rotation transform to the matrix.
    */
-  void AddRotationX(double angle);
-  void AddRotationY(double angle);
-  void AddRotationZ(double angle);
+  void AddRotationX(real angle);
+  void AddRotationY(real angle);
+  void AddRotationZ(real angle);
   //z-x-z euler angles - beware ye gimbal lock
   void AddRotation(const XYZ& rotateBy);
 
@@ -82,11 +82,11 @@ public:
 
 private:
   static const uint N = 3;
-  double matrix[N][N];
+  real matrix[N][N];
 
 };
 
-inline void TransformMatrix::SetDiagonal(double d)
+inline void TransformMatrix::SetDiagonal(real d)
 {
   for(uint i = 0; i < N; ++i) {
     for(uint j = 0; j < N; ++j) {
@@ -103,11 +103,11 @@ inline void TransformMatrix::AddRotation(const XYZ& rotateBy)
   AddRotationZ(rotateBy.z);
 }
 
-inline void TransformMatrix::AddRotationX(double angle)
+inline void TransformMatrix::AddRotationX(real angle)
 {
   TransformMatrix rot;
-  double cosine = cos(angle);
-  double sine = sin(angle);
+  real cosine = cos(angle);
+  real sine = sin(angle);
   rot.matrix[1][1] = cosine;
   rot.matrix[1][2] = -sine;
   rot.matrix[2][1] = sine;
@@ -115,11 +115,11 @@ inline void TransformMatrix::AddRotationX(double angle)
   *this = rot * *this;
 }
 
-inline void TransformMatrix::AddRotationY(double angle)
+inline void TransformMatrix::AddRotationY(real angle)
 {
   TransformMatrix rot;
-  double cosine = cos(angle);
-  double sine = sin(angle);
+  real cosine = cos(angle);
+  real sine = sin(angle);
   rot.matrix[0][0] = cosine;
   rot.matrix[0][2] = sine;
   rot.matrix[2][0] = -sine;
@@ -127,11 +127,11 @@ inline void TransformMatrix::AddRotationY(double angle)
   *this = rot * *this;
 }
 
-inline void TransformMatrix::AddRotationZ(double angle)
+inline void TransformMatrix::AddRotationZ(real angle)
 {
   TransformMatrix rot;
-  double cosine = cos(angle);
-  double sine = sin(angle);
+  real cosine = cos(angle);
+  real sine = sin(angle);
   rot.matrix[0][0] = cosine;
   rot.matrix[0][1] = -sine;
   rot.matrix[1][0] = sine;
@@ -173,7 +173,7 @@ inline TransformMatrix TransformMatrix::operator*(const TransformMatrix& o) cons
   TransformMatrix result(0.0);
   for(uint i = 0; i < N; ++i) {
     for(uint j = 0; j < N; ++j) {
-      double entry = 0.0;
+      real entry = 0.0;
       for(uint k = 0; k < N; ++k) {
         result.matrix[i][j] += matrix[i][k] * o.matrix[k][j];
       }
@@ -231,12 +231,12 @@ inline TransformMatrix TransformMatrix::TensorProduct(const XYZ& u)
 }
 
 
-inline TransformMatrix TransformMatrix::FromAxisAngle(double theta,
+inline TransformMatrix TransformMatrix::FromAxisAngle(real theta,
     const TransformMatrix& cross, const TransformMatrix& tensor)
 {
-  double c = cos(theta);
+  real c = cos(theta);
   TransformMatrix r(c);
-  double s = sin(theta);
+  real s = sin(theta);
   for (uint i = 0; i < N; ++i) {
     for (uint j = 0; j < N; ++j) {
       r.matrix[i][j] += s * cross.matrix[i][j] +
@@ -247,7 +247,7 @@ inline TransformMatrix TransformMatrix::FromAxisAngle(double theta,
 }
 
 
-inline TransformMatrix TransformMatrix::FromAxisAngle(double theta, const XYZ& axis)
+inline TransformMatrix TransformMatrix::FromAxisAngle(real theta, const XYZ& axis)
 {
   return FromAxisAngle(theta, CrossProduct(axis), TensorProduct(axis));
 }
@@ -255,9 +255,9 @@ inline TransformMatrix TransformMatrix::FromAxisAngle(double theta, const XYZ& a
 
 //Returns a rotation matrix that is uniformly random in S2 if u1/2/3 are uniformly random
 //on [0, 1)
-inline TransformMatrix TransformMatrix::UniformRandom(double u1, double u2, double u3)
+inline TransformMatrix TransformMatrix::UniformRandom(real u1, real u2, real u3)
 {
-  //6 transcendentals, 17 double multiplies, 9 double adds
+  //6 transcendentals, 17 real multiplies, 9 real adds
 
   //method from Arvo (1992)
   //rotate around the pole (0,0,1), then move the pole to a random
@@ -267,19 +267,19 @@ inline TransformMatrix TransformMatrix::UniformRandom(double u1, double u2, doub
   u2 *= 2 * M_PI;   //phi   - direction of pole shift
   u3 *= 2.0;        //z     - magnitude of pole shift
 
-  double r = sqrt(u3);
+  real r = sqrt(u3);
   //Vector used for reflection
   //The reflection matrix is I - V * Transpose(V)
   XYZ V(sin(u2) * r,
         cos(u2) * r,
         sqrt(2.0 - u3));
 
-  double sinTh = sin(u1);
-  double cosTh = cos(u1);
+  real sinTh = sin(u1);
+  real cosTh = cos(u1);
   //Vector S = Transpose(V) * R
   //R = rotation of theta degrees about z axis
-  double Sx = V.x * cosTh - V.y * sinTh;
-  double Sy = V.x * sinTh + V.y * cosTh;
+  real Sx = V.x * cosTh - V.y * sinTh;
+  real Sy = V.x * sinTh + V.y * cosTh;
   //     Sz = V.z
 
 

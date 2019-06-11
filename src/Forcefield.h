@@ -42,20 +42,20 @@ public:
   FFAngles * angles;              //!<For 3-atom bending energy
   FFDihedrals dihedrals;          //!<For 4-atom torsional rotation energy
   bool useLRC;                    //!<Use long-range tail corrections if true
-  double T_in_K;                  //!<System temp in Kelvin
-  double beta;                    //!<Thermodynamic beta = 1/(T) K^-1)
-  double rCut, rCutSq;            //!<Cutoff radius for LJ/Mie potential (angstroms)
-  double rCutLow, rCutLowSq;      //!<Cutoff min for Electrostatic (angstroms)
-  double rCutCoulomb[BOX_TOTAL];  //!<Cutoff Coulomb interaction(angstroms)
-  double rCutCoulombSq[BOX_TOTAL]; //!<Cutoff Coulomb interaction(angstroms)
-  double alpha[BOX_TOTAL];        //Ewald sum terms
-  double alphaSq[BOX_TOTAL];      //Ewald sum terms
-  double recip_rcut[BOX_TOTAL];   //Ewald sum terms
-  double recip_rcut_Sq[BOX_TOTAL]; //Ewald sum terms
-  double tolerance;               //Ewald sum terms
-  double rswitch;                 //Switch distance
-  double dielectric;              //dielectric for martini
-  double scaling_14;              //!<Scaling factor for 1-4 pairs' ewald interactions
+  real T_in_K;                  //!<System temp in Kelvin
+  real beta;                    //!<Thermodynamic beta = 1/(T) K^-1)
+  real rCut, rCutSq;            //!<Cutoff radius for LJ/Mie potential (angstroms)
+  real rCutLow, rCutLowSq;      //!<Cutoff min for Electrostatic (angstroms)
+  real rCutCoulomb[BOX_TOTAL];  //!<Cutoff Coulomb interaction(angstroms)
+  real rCutCoulombSq[BOX_TOTAL]; //!<Cutoff Coulomb interaction(angstroms)
+  real alpha[BOX_TOTAL];        //Ewald sum terms
+  real alphaSq[BOX_TOTAL];      //Ewald sum terms
+  real recip_rcut[BOX_TOTAL];   //Ewald sum terms
+  real recip_rcut_Sq[BOX_TOTAL]; //Ewald sum terms
+  real tolerance;               //Ewald sum terms
+  real rswitch;                 //Switch distance
+  real dielectric;              //dielectric for martini
+  real scaling_14;              //!<Scaling factor for 1-4 pairs' ewald interactions
 
   bool OneThree, OneFour, OneN;   //To include 1-3, 1-4 and more interaction
   bool electrostatic, ewald;      //To consider columb interaction

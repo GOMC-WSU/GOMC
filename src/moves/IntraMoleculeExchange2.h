@@ -28,7 +28,7 @@ public:
     }
   }
 
-  virtual uint Prep(const double subDraw, const double movPerc);
+  virtual uint Prep(const real subDraw, const real movPerc);
   virtual uint Transform();
   virtual void CalcEn();
   virtual void Accept(const uint earlyReject, const uint step);
@@ -39,7 +39,7 @@ protected:
   virtual void SetMEMC(StaticVals const& statV);
   virtual void SetExchangeData();
   virtual uint PickMolInCav();
-  virtual double GetCoeff() const;
+  virtual real GetCoeff() const;
 
   uint smallBB[2];
   //To store total sets of exchange pairs
@@ -87,7 +87,7 @@ inline void IntraMoleculeExchange2::AdjustExRatio()
     uint exMin = 1;
 
     uint index = kindS + kindL * molRef.GetKindsCount();
-    double currAccept = (double)(accepted[sourceBox][index]) / (double)(trial[sourceBox][index]);
+    real currAccept = (real)(accepted[sourceBox][index]) / (real)(trial[sourceBox][index]);
     if(abs(currAccept - lastAccept) >= 0.05 * currAccept) {
       if(currAccept > lastAccept) {
         exchangeRatio += exDiff;
@@ -206,8 +206,8 @@ inline uint IntraMoleculeExchange2::PickMolInCav()
 }
 
 
-inline uint IntraMoleculeExchange2::Prep(const double subDraw,
-    const double movPerc)
+inline uint IntraMoleculeExchange2::Prep(const real subDraw,
+    const real movPerc)
 {
   //AdjustExRatio();
   uint state = GetBoxPairAndMol(subDraw, movPerc);
@@ -338,9 +338,9 @@ inline void IntraMoleculeExchange2::CalcEn()
   IntraMoleculeExchange1::CalcEn();
 }
 
-inline double IntraMoleculeExchange2::GetCoeff() const
+inline real IntraMoleculeExchange2::GetCoeff() const
 {
-  double ratioF =  num::Factorial(numSCavA - 1) * num::Factorial(numSCavB) /
+  real ratioF =  num::Factorial(numSCavA - 1) * num::Factorial(numSCavB) /
                    (num::Factorial(numSCavA - exchangeRatio) *
                     num::Factorial(numSCavB + exchangeRatio - 1));
 

@@ -172,16 +172,16 @@ void DCRotateOnAtom::BuildOld(TrialMol& oldMol, uint molIndex)
   PRNG& prng = data->prng;
   uint nLJTrials = data->nLJTrialsNth;
   uint nDihTrials = data->nDihTrials;
-  double* torsion = data->angles;
-  double* torWeights = data->angleWeights;
-  double* torEnergy = data->angleEnergy;
-  double* bondedEn = data->bonded;
-  double* nonbonded = data->nonbonded;
-  double* ljWeights = data->ljWeights;
-  double* inter = data->inter;
-  double* real = data->real;
+  real* torsion = data->angles;
+  real* torWeights = data->angleWeights;
+  real* torEnergy = data->angleEnergy;
+  real* bondedEn = data->bonded;
+  real* nonbonded = data->nonbonded;
+  real* ljWeights = data->ljWeights;
+  real* inter = data->inter;
+  real* real = data->real;
   bool* overlap = data->overlap;
-  double stepWeight = 0;
+  real stepWeight = 0;
 
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
@@ -252,16 +252,16 @@ void DCRotateOnAtom::BuildNew(TrialMol& newMol, uint molIndex)
   PRNG& prng = data->prng;
   uint nLJTrials = data->nLJTrialsNth;
   uint nDihTrials = data->nDihTrials;
-  double* torsion = data->angles;
-  double* torWeights = data->angleWeights;
-  double* torEnergy = data->angleEnergy;
-  double* bondedEn = data->bonded;
-  double* nonbonded = data->nonbonded;
-  double* ljWeights = data->ljWeights;
-  double* inter = data->inter;
-  double* real = data->real;
+  real* torsion = data->angles;
+  real* torWeights = data->angleWeights;
+  real* torEnergy = data->angleEnergy;
+  real* bondedEn = data->bonded;
+  real* nonbonded = data->nonbonded;
+  real* ljWeights = data->ljWeights;
+  real* inter = data->inter;
+  real* real = data->real;
   bool* overlap = data->overlap;
-  double stepWeight = 0;
+  real stepWeight = 0;
 
   std::fill_n(inter, nLJTrials, 0.0);
   std::fill_n(real, nLJTrials, 0.0);
@@ -328,9 +328,9 @@ void DCRotateOnAtom::ChooseTorsion(TrialMol& mol, uint molIndex,
                                    RotationMatrix& tensor)
 {
   uint nDihTrials = data->nDihTrials;
-  double* torsion = data->angles;
-  double* torWeights = data->angleWeights;
-  double* torEnergy = data->angleEnergy;
+  real* torsion = data->angles;
+  real* torWeights = data->angleWeights;
+  real* torEnergy = data->angleEnergy;
 
   XYZ center = mol.AtomPosition(a1);
   for (uint tor = 0; tor < nDihTrials; ++tor) {
@@ -342,7 +342,7 @@ void DCRotateOnAtom::ChooseTorsion(TrialMol& mol, uint molIndex,
       XYZ coord = spin.Apply(multiPosRotions[a][0]);
       mol.AddAtom(atoms[a], coord + center);
     }
-    double en = CalcIntraBonded(mol, molIndex);
+    real en = CalcIntraBonded(mol, molIndex);
     torEnergy[tor] = en;
     torWeights[tor] = exp(-1 * data->ff.beta * en);
   }
@@ -353,9 +353,9 @@ void DCRotateOnAtom::ChooseTorsionOld(TrialMol& mol, uint molIndex,
                                       RotationMatrix& tensor)
 {
   uint nDihTrials = data->nDihTrials;
-  double* torsion = data->angles;
-  double* torWeights = data->angleWeights;
-  double* torEnergy = data->angleEnergy;
+  real* torsion = data->angles;
+  real* torWeights = data->angleWeights;
+  real* torEnergy = data->angleEnergy;
 
   XYZ center = mol.AtomPosition(a1);
   for (uint tor = 0; tor < nDihTrials; ++tor) {
@@ -368,16 +368,16 @@ void DCRotateOnAtom::ChooseTorsionOld(TrialMol& mol, uint molIndex,
       XYZ coord = spin.Apply(multiPosRotions[a][0]);
       mol.AddAtom(atoms[a], coord + center);
     }
-    double en = CalcIntraBonded(mol, molIndex);
+    real en = CalcIntraBonded(mol, molIndex);
     torEnergy[tor] = en;
     torWeights[tor] = exp(-1 * data->ff.beta * en);
   }
 }
 
-double DCRotateOnAtom::CalcIntraBonded(TrialMol& mol, uint molIndex)
+real DCRotateOnAtom::CalcIntraBonded(TrialMol& mol, uint molIndex)
 {
 
-  double bondedEn = 0.0;
+  real bondedEn = 0.0;
   uint box = mol.GetBox();
   const MoleculeKind& molKind = mol.GetKind();
   XYZ b1, b2, b3;
@@ -413,7 +413,7 @@ void DCRotateOnAtom::ParticleNonbonded1_N(cbmc::TrialMol const& mol,
     const uint partIndex,
     const uint trials)
 {
-  double* nonbonded = data->nonbonded;
+  real* nonbonded = data->nonbonded;
   uint box = mol.GetBox();
   const MoleculeKind& kind = mol.GetKind();
   //loop over all partners of the trial particle
@@ -423,14 +423,14 @@ void DCRotateOnAtom::ParticleNonbonded1_N(cbmc::TrialMol const& mol,
     if(mol.AtomExists(*partner) &&
         (std::find(atoms.begin(), atoms.end(), *partner) == atoms.end())) {
       for (uint t = 0; t < trials; ++t) {
-        double distSq;
+        real distSq;
         if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(),
                              *partner, box)) {
           nonbonded[t] += data->ff.particles->CalcEn(distSq,
                           kind.AtomKind(partIndex),
                           kind.AtomKind(*partner));
           if(data->ff.electrostatic) {
-            double qi_qj_Fact = kind.AtomCharge(partIndex) *
+            real qi_qj_Fact = kind.AtomCharge(partIndex) *
                                 kind.AtomCharge(*partner) * num::qqFact;
             data->ff.particles->CalcCoulombAdd_1_4(nonbonded[t], distSq,
                                                    qi_qj_Fact, true);
@@ -450,7 +450,7 @@ void DCRotateOnAtom::ParticleNonbonded1_4(cbmc::TrialMol const& mol,
   if(!data->ff.OneFour)
     return;
 
-  double* nonbonded = data->nonbonded;
+  real* nonbonded = data->nonbonded;
   uint box = mol.GetBox();
   const MoleculeKind& kind = mol.GetKind();
   //loop over all partners of the trial particle
@@ -460,14 +460,14 @@ void DCRotateOnAtom::ParticleNonbonded1_4(cbmc::TrialMol const& mol,
     if(mol.AtomExists(*partner) &&
         (std::find(atoms.begin(), atoms.end(), *partner) == atoms.end())) {
       for (uint t = 0; t < trials; ++t) {
-        double distSq;
+        real distSq;
         if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(),
                              *partner, box)) {
           data->ff.particles->CalcAdd_1_4(nonbonded[t], distSq,
                                           kind.AtomKind(partIndex),
                                           kind.AtomKind(*partner));
           if(data->ff.electrostatic) {
-            double qi_qj_Fact = kind.AtomCharge(partIndex) *
+            real qi_qj_Fact = kind.AtomCharge(partIndex) *
                                 kind.AtomCharge(*partner) * num::qqFact;
             data->ff.particles->CalcCoulombAdd_1_4(nonbonded[t], distSq,
                                                    qi_qj_Fact, false);
@@ -487,7 +487,7 @@ void DCRotateOnAtom::ParticleNonbonded1_3(cbmc::TrialMol const& mol,
   if(!data->ff.OneThree)
     return;
 
-  double* nonbonded = data->nonbonded;
+  real* nonbonded = data->nonbonded;
   uint box = mol.GetBox();
   const MoleculeKind& kind = mol.GetKind();
   //loop over all partners of the trial particle
@@ -497,14 +497,14 @@ void DCRotateOnAtom::ParticleNonbonded1_3(cbmc::TrialMol const& mol,
     if(mol.AtomExists(*partner) &&
         (std::find(atoms.begin(), atoms.end(), *partner) == atoms.end())) {
       for (uint t = 0; t < trials; ++t) {
-        double distSq;
+        real distSq;
         if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(),
                              *partner, box)) {
           data->ff.particles->CalcAdd_1_4(nonbonded[t], distSq,
                                           kind.AtomKind(partIndex),
                                           kind.AtomKind(*partner));
           if(data->ff.electrostatic) {
-            double qi_qj_Fact = kind.AtomCharge(partIndex) *
+            real qi_qj_Fact = kind.AtomCharge(partIndex) *
                                 kind.AtomCharge(*partner) * num::qqFact;
             data->ff.particles->CalcCoulombAdd_1_4(nonbonded[t], distSq,
                                                    qi_qj_Fact, false);

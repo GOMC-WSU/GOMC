@@ -41,7 +41,7 @@ public:
 #endif
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
-  double pressure;
+  real pressure;
   uint kindOfGEMC;
   bool fixVolBox0;
 #endif
@@ -52,8 +52,8 @@ public:
   //All the static molecule info --  kind, start index
   Molecules mol;
 
-  double movePerc[mv::MOVE_KINDS_TOTAL];
-  double totalPerc;
+  real movePerc[mv::MOVE_KINDS_TOTAL];
+  real totalPerc;
   config_setup::MEMCVal  intraMemcVal;
 
   //Only include these variables if they're static for this ensemble...
@@ -79,9 +79,9 @@ public:
   {
     return simEventFreq.perAdjust;
   }
-  double AcceptPercent(const uint tempAccept)
+  real AcceptPercent(const uint tempAccept)
   {
-    return (double)(tempAccept) / (double)(simEventFreq.perAdjust);
+    return (real)(tempAccept) / (real)(simEventFreq.perAdjust);
   }
 
   void InitMovePercents(config_setup::MovePercents const& percent);

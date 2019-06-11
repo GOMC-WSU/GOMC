@@ -87,8 +87,8 @@ SystemPotential CalculateEnergy::SystemTotal()
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     pot.boxVirial[b] = ForceCalc(b);
     int i;
-    double bondEnergy[2] = {0};
-    double bondEn = 0.0, nonbondEn = 0.0, self = 0.0, correction = 0.0;
+    real bondEnergy[2] = {0};
+    real bondEn = 0.0, nonbondEn = 0.0, self = 0.0, correction = 0.0;
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(b);
     std::vector<uint> molID;
@@ -162,8 +162,8 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   if (box >= BOXES_WITH_U_NB)
     return potential;
 
-  double tempREn = 0.0, tempLJEn = 0.0;
-  double distSq, qi_qj_fact;
+  real tempREn = 0.0, tempLJEn = 0.0;
+  real distSq, qi_qj_fact;
   int i;
   XYZ virComponents;
   std::vector<uint> pair1, pair2;
@@ -181,7 +181,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 #ifdef GOMC_CUDA
   uint pairSize = pair1.size();
   uint currentIndex = 0;
-  double REn = 0.0, LJEn = 0.0;
+  real REn = 0.0, LJEn = 0.0;
   //update unitcell in GPU
   UpdateCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
                       boxAxes.cellBasis[box].x, boxAxes.cellBasis[box].y,
@@ -256,12 +256,12 @@ Virial CalculateEnergy::ForceCalc(const uint box)
   Virial tempVir;
 
   //tensors for VDW and real part of electrostatic
-  double vT11 = 0.0, vT12 = 0.0, vT13 = 0.0;
-  double vT22 = 0.0, vT23 = 0.0, vT33 = 0.0;
-  double rT11 = 0.0, rT12 = 0.0, rT13 = 0.0;
-  double rT22 = 0.0, rT23 = 0.0, rT33 = 0.0;
+  real vT11 = 0.0, vT12 = 0.0, vT13 = 0.0;
+  real vT22 = 0.0, vT23 = 0.0, vT33 = 0.0;
+  real rT11 = 0.0, rT12 = 0.0, rT13 = 0.0;
+  real rT22 = 0.0, rT23 = 0.0, rT33 = 0.0;
 
-  double distSq, pVF, pRF, qi_qj;
+  real distSq, pVF, pRF, qi_qj;
   int i;
   XYZ virC, comC;
   std::vector<uint> pair1, pair2;
@@ -291,10 +291,10 @@ Virial CalculateEnergy::ForceCalc(const uint box)
   }
 
   uint currentIndex = 0;
-  double vT11t = 0.0, vT12t = 0.0, vT13t = 0.0;
-  double vT22t = 0.0, vT23t = 0.0, vT33t = 0.0;
-  double rT11t = 0.0, rT12t = 0.0, rT13t = 0.0;
-  double rT22t = 0.0, rT23t = 0.0, rT33t = 0.0;
+  real vT11t = 0.0, vT12t = 0.0, vT13t = 0.0;
+  real vT22t = 0.0, vT23t = 0.0, vT33t = 0.0;
+  real rT11t = 0.0, rT12t = 0.0, rT13t = 0.0;
+  real rT22t = 0.0, rT23t = 0.0, rT33t = 0.0;
   while(currentIndex < pairSize) {
     uint max = currentIndex + MAX_PAIR_SIZE;
     max = (max < pairSize ? max : pairSize);
@@ -423,7 +423,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                                     const uint molIndex,
                                     const uint box) const
 {
-  double tempREn = 0.0, tempLJEn = 0.0;
+  real tempREn = 0.0, tempLJEn = 0.0;
   bool overlap = false;
   if (box < BOXES_WITH_U_NB) {
     uint length = mols.GetKind(molIndex).NumAtoms();
@@ -435,7 +435,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
                               box);
       n = cellList.EnumerateLocal(currentCoords[atom], box);
 
-      double qi_qj_fact, distSq;
+      real qi_qj_fact, distSq;
       int i;
       XYZ virComponents;
       std::vector<uint> nIndex;
@@ -509,7 +509,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 }
 
 // Calculate 1-N nonbonded intra energy
-void CalculateEnergy::ParticleNonbonded(double* inter,
+void CalculateEnergy::ParticleNonbonded(real* inter,
                                         cbmc::TrialMol const& trialMol,
                                         XYZArray const& trialPos,
                                         const uint partIndex,
@@ -526,7 +526,7 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
   while (partner != end) {
     if (trialMol.AtomExists(*partner)) {
       for (uint t = 0; t < trials; ++t) {
-        double distSq;
+        real distSq;
 
         if (currentAxes.InRcut(distSq, trialPos, t, trialMol.GetCoords(),
                                *partner, box)) {
@@ -534,7 +534,7 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
                       kind.AtomKind(partIndex),
                       kind.AtomKind(*partner));
           if (electrostatic) {
-            double qi_qj_Fact = kind.AtomCharge(partIndex) *
+            real qi_qj_Fact = kind.AtomCharge(partIndex) *
                                 kind.AtomCharge(*partner) * num::qqFact;
             forcefield.particles->CalcCoulombAdd_1_4(inter[t], distSq,
                 qi_qj_Fact, true);
@@ -546,7 +546,7 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
   }
 }
 
-void CalculateEnergy::ParticleInter(double* en, double *real,
+void CalculateEnergy::ParticleInter(real* en, real *real,
                                     XYZArray const& trialPos,
                                     bool* overlap,
                                     const uint partIndex,
@@ -556,11 +556,11 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
 {
   if(box >= BOXES_WITH_U_NB)
     return;
-  double distSq, qi_qj_Fact, tempLJ, tempReal;
+  real distSq, qi_qj_Fact, tempLJ, tempReal;
   int i;
   MoleculeKind const& thisKind = mols.GetKind(molIndex);
   uint kindI = thisKind.AtomKind(partIndex);
-  double kindICharge = thisKind.AtomCharge(partIndex);
+  real kindICharge = thisKind.AtomCharge(partIndex);
   std::vector<uint> nIndex;
 
   for(uint t = 0; t < trials; ++t) {
@@ -606,12 +606,12 @@ Intermolecular CalculateEnergy::MoleculeTailChange(const uint box,
 
   if (box < BOXES_WITH_U_NB) {
 
-    double sign = (add ? 1.0 : -1.0);
+    real sign = (add ? 1.0 : -1.0);
     uint mkIdxII = kind * mols.GetKindsCount() + kind;
     for (uint j = 0; j < mols.GetKindsCount(); ++j) {
       uint mkIdxIJ = j * mols.GetKindsCount() + kind;
-      double rhoDeltaIJ_2 = sign * 2.0 *
-                            (double)(molLookup.NumKindInBox(j, box)) * currentAxes.volInv[box];
+      real rhoDeltaIJ_2 = sign * 2.0 *
+                            (real)(molLookup.NumKindInBox(j, box)) * currentAxes.volInv[box];
       delta.energy += mols.pairEnCorrections[mkIdxIJ] * rhoDeltaIJ_2;
     }
 
@@ -625,7 +625,7 @@ Intermolecular CalculateEnergy::MoleculeTailChange(const uint box,
 
 //Calculates intramolecular energy of a full molecule
 void CalculateEnergy::MoleculeIntra(const uint molIndex,
-                                    const uint box, double *bondEn) const
+                                    const uint box, real *bondEn) const
 {
   bondEn[0] = 0.0, bondEn[1] = 0.0;
 
@@ -646,7 +646,7 @@ void CalculateEnergy::MoleculeIntra(const uint molIndex,
 Energy CalculateEnergy::MoleculeIntra(cbmc::TrialMol const &mol,
                                       const uint molIndex) const
 {
-  double bondEn = 0.0, intraNonbondEn = 0.0;
+  real bondEn = 0.0, intraNonbondEn = 0.0;
   // *2 because we'll be storing inverse bond vectors
   const MoleculeKind& molKind = mol.GetKind();
   uint count = molKind.bondList.count;
@@ -703,7 +703,7 @@ void CalculateEnergy::BondVectors(XYZArray & vecs,
 }
 
 
-void CalculateEnergy::MolBond(double & energy,
+void CalculateEnergy::MolBond(real & energy,
                               MoleculeKind const& molKind,
                               XYZArray const& vecs,
                               const uint molIndex,
@@ -713,8 +713,8 @@ void CalculateEnergy::MolBond(double & energy,
     return;
 
   for (uint b = 0; b < molKind.bondList.count; ++b) {
-    double molLength = vecs.Get(b).Length();
-    double eqLength = forcefield.bonds.Length(molKind.bondList.kinds[b]);
+    real molLength = vecs.Get(b).Length();
+    real eqLength = forcefield.bonds.Length(molKind.bondList.kinds[b]);
     energy += forcefield.bonds.Calc(molKind.bondList.kinds[b], molLength);
     if(abs(molLength - eqLength) > 0.02) {
       uint p1 = molKind.bondList.part1[b];
@@ -727,7 +727,7 @@ void CalculateEnergy::MolBond(double & energy,
   }
 }
 
-void CalculateEnergy::MolBond(double & energy,
+void CalculateEnergy::MolBond(real & energy,
                               cbmc::TrialMol const &mol,
                               XYZArray const& vecs,
                               std::vector<bool> const & bondExist,
@@ -745,7 +745,7 @@ void CalculateEnergy::MolBond(double & energy,
   }
 }
 
-void CalculateEnergy::MolAngle(double & energy,
+void CalculateEnergy::MolAngle(real & energy,
                                MoleculeKind const& molKind,
                                XYZArray const& vecs,
                                const uint box) const
@@ -754,13 +754,13 @@ void CalculateEnergy::MolAngle(double & energy,
     return;
   for (uint a = 0; a < molKind.angles.Count(); ++a) {
     //Note: need to reverse the second bond to get angle properly.
-    double theta = Theta(vecs.Get(molKind.angles.GetBond(a, 0)),
+    real theta = Theta(vecs.Get(molKind.angles.GetBond(a, 0)),
                          -vecs.Get(molKind.angles.GetBond(a, 1)));
     energy += forcefield.angles->Calc(molKind.angles.GetKind(a), theta);
   }
 }
 
-void CalculateEnergy::MolAngle(double & energy,
+void CalculateEnergy::MolAngle(real & energy,
                                cbmc::TrialMol const &mol,
                                XYZArray const& vecs,
                                std::vector<bool> const & bondExist,
@@ -774,14 +774,14 @@ void CalculateEnergy::MolAngle(double & energy,
     if(bondExist[molKind.angles.GetBond(a, 0)] &&
         bondExist[molKind.angles.GetBond(a, 1)]) {
       //Note: need to reverse the second bond to get angle properly.
-      double theta = Theta(vecs.Get(molKind.angles.GetBond(a, 0)),
+      real theta = Theta(vecs.Get(molKind.angles.GetBond(a, 0)),
                            -vecs.Get(molKind.angles.GetBond(a, 1)));
       energy += forcefield.angles->Calc(molKind.angles.GetKind(a), theta);
     }
   }
 }
 
-void CalculateEnergy::MolDihedral(double & energy,
+void CalculateEnergy::MolDihedral(real & energy,
                                   MoleculeKind const& molKind,
                                   XYZArray const& vecs,
                                   const uint box) const
@@ -789,14 +789,14 @@ void CalculateEnergy::MolDihedral(double & energy,
   if (box >= BOXES_WITH_U_B)
     return;
   for (uint d = 0; d < molKind.dihedrals.Count(); ++d) {
-    double phi = Phi(vecs.Get(molKind.dihedrals.GetBond(d, 0)),
+    real phi = Phi(vecs.Get(molKind.dihedrals.GetBond(d, 0)),
                      vecs.Get(molKind.dihedrals.GetBond(d, 1)),
                      vecs.Get(molKind.dihedrals.GetBond(d, 2)));
     energy += forcefield.dihedrals.Calc(molKind.dihedrals.GetKind(d), phi);
   }
 }
 
-void CalculateEnergy::MolDihedral(double & energy,
+void CalculateEnergy::MolDihedral(real & energy,
                                   cbmc::TrialMol const &mol,
                                   XYZArray const& vecs,
                                   std::vector<bool> const & bondExist,
@@ -810,7 +810,7 @@ void CalculateEnergy::MolDihedral(double & energy,
     if(bondExist[molKind.dihedrals.GetBond(d, 0)] &&
         bondExist[molKind.dihedrals.GetBond(d, 1)] &&
         bondExist[molKind.dihedrals.GetBond(d, 2)]) {
-      double phi = Phi(vecs.Get(molKind.dihedrals.GetBond(d, 0)),
+      real phi = Phi(vecs.Get(molKind.dihedrals.GetBond(d, 0)),
                        vecs.Get(molKind.dihedrals.GetBond(d, 1)),
                        vecs.Get(molKind.dihedrals.GetBond(d, 2)));
       energy += forcefield.dihedrals.Calc(molKind.dihedrals.GetKind(d), phi);
@@ -819,7 +819,7 @@ void CalculateEnergy::MolDihedral(double & energy,
 }
 
 // Calculate 1-N nonbonded intra energy
-void CalculateEnergy::MolNonbond(double & energy,
+void CalculateEnergy::MolNonbond(real & energy,
                                  MoleculeKind const& molKind,
                                  const uint molIndex,
                                  const uint box) const
@@ -827,8 +827,8 @@ void CalculateEnergy::MolNonbond(double & energy,
   if (box >= BOXES_WITH_U_B)
     return;
 
-  double distSq;
-  double qi_qj_Fact;
+  real distSq;
+  real qi_qj_Fact;
 
   for (uint i = 0; i < molKind.nonBonded.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded.part1[i];
@@ -853,14 +853,14 @@ void CalculateEnergy::MolNonbond(double & energy,
 }
 
 // Calculate 1-N nonbonded intra energy uisng pos
-void CalculateEnergy::MolNonbond(double & energy, cbmc::TrialMol const &mol,
+void CalculateEnergy::MolNonbond(real & energy, cbmc::TrialMol const &mol,
                                  MoleculeKind const& molKind) const
 {
   if (mol.GetBox() >= BOXES_WITH_U_B)
     return;
 
-  double distSq;
-  double qi_qj_Fact;
+  real distSq;
+  real qi_qj_Fact;
   uint count = molKind.nonBonded.count;
 
   for (uint i = 0; i < count; ++i) {
@@ -885,7 +885,7 @@ void CalculateEnergy::MolNonbond(double & energy, cbmc::TrialMol const &mol,
 }
 
 // Calculate 1-4 nonbonded intra energy
-void CalculateEnergy::MolNonbond_1_4(double & energy,
+void CalculateEnergy::MolNonbond_1_4(real & energy,
                                      MoleculeKind const& molKind,
                                      const uint molIndex,
                                      const uint box) const
@@ -893,8 +893,8 @@ void CalculateEnergy::MolNonbond_1_4(double & energy,
   if (box >= BOXES_WITH_U_B)
     return;
 
-  double distSq;
-  double qi_qj_Fact;
+  real distSq;
+  real qi_qj_Fact;
 
   for (uint i = 0; i < molKind.nonBonded_1_4.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded_1_4.part1[i];
@@ -919,15 +919,15 @@ void CalculateEnergy::MolNonbond_1_4(double & energy,
 }
 
 // Calculate 1-4 nonbonded intra energy using pos
-void CalculateEnergy::MolNonbond_1_4(double & energy,
+void CalculateEnergy::MolNonbond_1_4(real & energy,
                                      cbmc::TrialMol const &mol,
                                      MoleculeKind const& molKind) const
 {
   if (mol.GetBox() >= BOXES_WITH_U_B)
     return;
 
-  double distSq;
-  double qi_qj_Fact;
+  real distSq;
+  real qi_qj_Fact;
   uint count = molKind.nonBonded_1_4.count;
 
   for (uint i = 0; i < count; ++i) {
@@ -952,7 +952,7 @@ void CalculateEnergy::MolNonbond_1_4(double & energy,
 }
 
 // Calculate 1-3 nonbonded intra energy
-void CalculateEnergy::MolNonbond_1_3(double & energy,
+void CalculateEnergy::MolNonbond_1_3(real & energy,
                                      MoleculeKind const& molKind,
                                      const uint molIndex,
                                      const uint box) const
@@ -960,8 +960,8 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
   if (box >= BOXES_WITH_U_B)
     return;
 
-  double distSq;
-  double qi_qj_Fact;
+  real distSq;
+  real qi_qj_Fact;
 
   for (uint i = 0; i < molKind.nonBonded_1_3.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded_1_3.part1[i];
@@ -986,15 +986,15 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
 }
 
 // Calculate 1-3 nonbonded intra energy
-void CalculateEnergy::MolNonbond_1_3(double & energy,
+void CalculateEnergy::MolNonbond_1_3(real & energy,
                                      cbmc::TrialMol const &mol,
                                      MoleculeKind const& molKind) const
 {
   if (mol.GetBox() >= BOXES_WITH_U_B)
     return;
 
-  double distSq;
-  double qi_qj_Fact;
+  real distSq;
+  real qi_qj_Fact;
   uint count = molKind.nonBonded_1_3.count;
 
   for (uint i = 0; i < count; ++i) {
@@ -1019,7 +1019,7 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
 }
 
 // Calculate 1-3 nonbonded intra energy
-double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,
+real CalculateEnergy::IntraEnergy_1_3(const real distSq, const uint atom1,
                                         const uint atom2, const uint molIndex) const
 {
   if(!forcefield.OneThree)
@@ -1027,14 +1027,14 @@ double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,
   else if(forcefield.rCutSq < distSq)
     return 0.0;
 
-  double eng = 0.0;
+  real eng = 0.0;
 
   MoleculeKind const& thisKind = mols.GetKind(molIndex);
   uint kind1 = thisKind.AtomKind(atom1);
   uint kind2 = thisKind.AtomKind(atom2);
 
   if (electrostatic) {
-    double qi_qj_Fact =  num::qqFact * thisKind.AtomCharge(atom1) *
+    real qi_qj_Fact =  num::qqFact * thisKind.AtomCharge(atom1) *
                          thisKind.AtomCharge(atom2);
 
     forcefield.particles->CalcCoulombAdd_1_4(eng, distSq, qi_qj_Fact, false);
@@ -1049,7 +1049,7 @@ double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,
 }
 
 // Calculate 1-4 nonbonded intra energy
-double CalculateEnergy::IntraEnergy_1_4(const double distSq, const uint atom1,
+real CalculateEnergy::IntraEnergy_1_4(const real distSq, const uint atom1,
                                         const uint atom2, const uint molIndex) const
 {
   if(!forcefield.OneFour)
@@ -1057,7 +1057,7 @@ double CalculateEnergy::IntraEnergy_1_4(const double distSq, const uint atom1,
   else if(forcefield.rCutSq < distSq)
     return 0.0;
 
-  double eng = 0.0;
+  real eng = 0.0;
 
 
   MoleculeKind const& thisKind = mols.GetKind(molIndex);
@@ -1065,7 +1065,7 @@ double CalculateEnergy::IntraEnergy_1_4(const double distSq, const uint atom1,
   uint kind2 = thisKind.AtomKind(atom2);
 
   if (electrostatic) {
-    double qi_qj_Fact =  num::qqFact * thisKind.AtomCharge(atom1) *
+    real qi_qj_Fact =  num::qqFact * thisKind.AtomCharge(atom1) *
                          thisKind.AtomCharge(atom2);
 
     forcefield.particles->CalcCoulombAdd_1_4(eng, distSq, qi_qj_Fact, false);
@@ -1085,7 +1085,7 @@ void CalculateEnergy::EnergyCorrection(SystemPotential& pot,
                                        const uint box) const
 {
   if (box < BOXES_WITH_U_NB) {
-    double en = 0.0;
+    real en = 0.0;
 
     for (uint i = 0; i < mols.GetKindsCount(); ++i) {
       uint numI = molLookup.NumKindInBox(i, box);
@@ -1100,14 +1100,14 @@ void CalculateEnergy::EnergyCorrection(SystemPotential& pot,
 }
 
 //!Calculates energy corrections for the box
-double CalculateEnergy::EnergyCorrection(const uint box,
+real CalculateEnergy::EnergyCorrection(const uint box,
     const uint *kCount) const
 {
   if (box >= BOXES_WITH_U_NB) {
     return 0.0;
   }
 
-  double tc = 0.0;
+  real tc = 0.0;
   for (uint i = 0; i < mols.kindsCount; ++i) {
     for (uint j = 0; j < mols.kindsCount; ++j) {
       tc += mols.pairEnCorrections[i * mols.kindsCount + j] *
@@ -1122,7 +1122,7 @@ void CalculateEnergy::ForceCorrection(Virial& virial,
                                       const uint box) const
 {
   if (box < BOXES_WITH_U_NB) {
-    double vir = 0.0;
+    real vir = 0.0;
 
     for (uint i = 0; i < mols.GetKindsCount(); ++i) {
       uint numI = molLookup.NumKindInBox(i, box);
@@ -1144,7 +1144,7 @@ bool CalculateEnergy::FindMolInCavity(std::vector< std::vector<uint> > &mol,
   uint k;
   mol.clear();
   mol.resize(molLookup.GetNumKind());
-  double maxLength = cavDim.Max();
+  real maxLength = cavDim.Max();
 
   if(maxLength <= currentAxes.rCut[box]) {
     CellList::Neighbors n = cellList.EnumerateLocal(center, box);

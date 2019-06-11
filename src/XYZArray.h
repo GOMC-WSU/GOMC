@@ -74,9 +74,9 @@ public:
   }
 
   //Returns smallest of x/y/z values in row i
-  double Min(const uint i) const
+  real Min(const uint i) const
   {
-    double result = x[i];
+    real result = x[i];
     if (result > y[i])
       result = y[i];
     if (result > z[i])
@@ -85,9 +85,9 @@ public:
   }
 
   //Returns biggest of x/y/z values in row i
-  double Max(const uint i) const
+  real Max(const uint i) const
   {
-    double result = x[i];
+    real result = x[i];
     if (y[i] > result)
       result = y[i];
     if (z[i] > result)
@@ -97,7 +97,7 @@ public:
 
 
   //Set a specific coordinate to a value.
-  void Set(const uint i, const double a, const double b, const double c)
+  void Set(const uint i, const real a, const real b, const real c)
   {
     x[i] = a;
     y[i] = b;
@@ -105,7 +105,7 @@ public:
   }
 
   void SetRange(const uint start, const uint stop,
-                const double a, const double b, const double c);
+                const real a, const real b, const real c);
 
   //Set a specific coordinate to a value.
   void Set(const uint i, XYZ const& val)
@@ -146,28 +146,28 @@ public:
     return XYZ(x[i] - x[j], y[i] - y[j], z[i] - z[j]);
   }
 
-  double DifferenceX(const uint i, const uint j) const
+  real DifferenceX(const uint i, const uint j) const
   {
     return x[i] - x[j];
   }
 
-  double DifferenceY(const uint i, const uint j) const
+  real DifferenceY(const uint i, const uint j) const
   {
     return y[i] - y[j];
   }
 
-  double DifferenceZ(const uint i, const uint j) const
+  real DifferenceZ(const uint i, const uint j) const
   {
     return z[i] - z[j];
   }
 
-  double Length(const uint i) const
+  real Length(const uint i) const
   {
     return sqrt(x[i] * x[i] + y[i] * y[i] + z[i] * z[i]);
   }
 
   //calculate the adjoint and return the determinant
-  double AdjointMatrix(XYZArray &Inv);
+  real AdjointMatrix(XYZArray &Inv);
 
   //return the difference of two rows in two XYZ arrays
   XYZ Difference(const uint i, XYZArray const& other,
@@ -177,19 +177,19 @@ public:
                 z[i] - other.z[otherI]);
   }
 
-  double DifferenceX(const uint i, XYZArray const& other,
+  real DifferenceX(const uint i, XYZArray const& other,
                      const uint otherI) const
   {
     return x[i] - other.x[otherI];
   }
 
-  double DifferenceY(const uint i, XYZArray const& other,
+  real DifferenceY(const uint i, XYZArray const& other,
                      const uint otherI) const
   {
     return y[i] - other.y[otherI];
   }
 
-  double DifferenceZ(const uint i, XYZArray const& other,
+  real DifferenceZ(const uint i, XYZArray const& other,
                      const uint otherI) const
   {
     return z[i] - other.z[otherI];
@@ -214,7 +214,7 @@ public:
   }
 
   //Add values to a single element of the array's values.
-  void Add(const uint i, const double a, const double b, const double c)
+  void Add(const uint i, const real a, const real b, const real c)
   {
     x[i] += a;
     y[i] += b;
@@ -230,7 +230,7 @@ public:
   }
 
   //Sub values from a single element of the array's values.
-  void Sub(const uint i, const double a, const double b, const double c)
+  void Sub(const uint i, const real a, const real b, const real c)
   {
     x[i] -= a;
     y[i] -= b;
@@ -238,7 +238,7 @@ public:
   }
 
   //Scale values of a single element of the array's values.
-  void Scale(const uint i, const double a, const double b, const double c)
+  void Scale(const uint i, const real a, const real b, const real c)
   {
     x[i] *= a;
     y[i] *= b;
@@ -246,7 +246,7 @@ public:
   }
 
   //Add values to a single array.
-  void Add(const uint i, const double val)
+  void Add(const uint i, const real val)
   {
     x[i] += val;
     y[i] += val;
@@ -254,7 +254,7 @@ public:
   }
 
   //Sub to values within an array.
-  void Sub(const uint i, const double val)
+  void Sub(const uint i, const real val)
   {
     x[i] -= val;
     y[i] -= val;
@@ -262,7 +262,7 @@ public:
   }
 
   //Multiply values within an array
-  void Scale(const uint i, const double val)
+  void Scale(const uint i, const real val)
   {
     x[i] *= val;
     y[i] *= val;
@@ -287,13 +287,13 @@ public:
   void ScaleRange(const uint start, const uint stop, XYZ const& val);
 
   //Add a constant transform x+val, z+val,... to range of values.
-  void AddRange(const uint start, const uint stop, const double val);
+  void AddRange(const uint start, const uint stop, const real val);
 
   //Subtract a constant transform x-val,y-val... from a range of values.
-  void SubRange(const uint start, const uint stop, const double val);
+  void SubRange(const uint start, const uint stop, const real val);
 
   //Multiply a constant transform x*val,y*val... from a range of values.
-  void ScaleRange(const uint start, const uint stop, const double val);
+  void ScaleRange(const uint start, const uint stop, const real val);
 
   //Copy one point
   void Set(XYZArray & dest, const uint srcIndex, const uint destIndex) const
@@ -313,13 +313,13 @@ public:
   void ScaleAll(XYZ const& val);
 
   //Add a constant transform x+val, y+val... to all values.
-  void AddAll(const double val);
+  void AddAll(const real val);
 
   //Subtract a constant transform x-val, y-val,... to all values.
-  void SubAll(const double val);
+  void SubAll(const real val);
 
   //Multiply a constant transform x*val, y*val, ... to all values.
-  void ScaleAll(const double val);
+  void ScaleAll(const real val);
 
   ////////////////////////////////////////////////////////////////////
 
@@ -327,7 +327,7 @@ public:
   void CopyRange(XYZArray & dest, const uint srcIndex, const uint destIndex,
                  const uint len) const;
 
-  double * x, * y, * z;
+  real * x, * y, * z;
 
 protected:
   uint count;
@@ -338,13 +338,13 @@ protected:
 inline XYZArray::XYZArray(XYZArray const& other)
 {
   count = other.count;
-  x = new double[count];
-  y = new double[count];
-  z = new double[count];
+  x = new real[count];
+  y = new real[count];
+  z = new real[count];
   allocDone = true;
-  memcpy(x, other.x, sizeof(double) * count);
-  memcpy(y, other.y, sizeof(double) * count);
-  memcpy(z, other.z, sizeof(double) * count);
+  memcpy(x, other.x, sizeof(real) * count);
+  memcpy(y, other.y, sizeof(real) * count);
+  memcpy(z, other.z, sizeof(real) * count);
 }
 
 //copy and swap assignment
@@ -376,7 +376,7 @@ inline void XYZArray::Uninit()
 }
 
 inline void XYZArray::SetRange(const uint start, const uint stop,
-                               const double a, const double b, const double c)
+                               const real a, const real b, const real c)
 {
   SetRange(start, stop, XYZ(a, b, c));
 }
@@ -405,9 +405,9 @@ inline void XYZArray::Init(const uint n)
       delete[] z;
   }
 
-  x = new double[n];
-  y = new double[n];
-  z = new double[n];
+  x = new real[n];
+  y = new real[n];
+  z = new real[n];
 
   allocDone = true;
 }
@@ -443,7 +443,7 @@ inline void XYZArray::ScaleRange(const uint start, const uint stop,
 }
 
 inline void XYZArray::AddRange(const uint start, const uint stop,
-                               const double val)
+                               const real val)
 {
   for(uint i = start; i < stop ; ++i) {
     x[i] += val;
@@ -453,7 +453,7 @@ inline void XYZArray::AddRange(const uint start, const uint stop,
 }
 
 inline void XYZArray::SubRange(const uint start, const uint stop,
-                               const double val)
+                               const real val)
 {
   for(uint i = start; i < stop ; ++i) {
     x[i] -= val;
@@ -463,7 +463,7 @@ inline void XYZArray::SubRange(const uint start, const uint stop,
 }
 
 inline void XYZArray::ScaleRange(const uint start, const uint stop,
-                                 const double val)
+                                 const real val)
 {
   for(uint i = start; i < stop ; ++i) {
     x[i] *= val;
@@ -491,19 +491,19 @@ inline void XYZArray::ScaleAll(XYZ const& val)
 }
 
 //Add a constant transform x+val, y+val... to all values.
-inline void XYZArray::AddAll(const double val)
+inline void XYZArray::AddAll(const real val)
 {
   AddRange(0, count, val);
 }
 
 //Subtract a constant transform x-val, y-val,... to all values.
-inline void XYZArray::SubAll(const double val)
+inline void XYZArray::SubAll(const real val)
 {
   SubRange(0, count, val);
 }
 
 //Multiply a constant transform x*val, y*val, ... to all values.
-inline void XYZArray::ScaleAll(const double val)
+inline void XYZArray::ScaleAll(const real val)
 {
   ScaleRange(0, count, val);
 }
@@ -516,13 +516,13 @@ inline void XYZArray::CopyRange(XYZArray & dest, const uint srcIndex,
   #pragma omp parallel default(shared)
 #endif
   {
-    memcpy(dest.x + destIndex, x + srcIndex, len * sizeof(double));
-    memcpy(dest.y + destIndex, y + srcIndex, len * sizeof(double));
-    memcpy(dest.z + destIndex, z + srcIndex, len * sizeof(double));
+    memcpy(dest.x + destIndex, x + srcIndex, len * sizeof(real));
+    memcpy(dest.y + destIndex, y + srcIndex, len * sizeof(real));
+    memcpy(dest.z + destIndex, z + srcIndex, len * sizeof(real));
   }
 }
 
-inline double XYZArray::AdjointMatrix(XYZArray &Inv)
+inline real XYZArray::AdjointMatrix(XYZArray &Inv)
 {
   Inv.x[0] = y[1] * z[2] - y[2] * z[1];
   Inv.y[0] = y[2] * z[0] - y[0] * z[2];
@@ -536,7 +536,7 @@ inline double XYZArray::AdjointMatrix(XYZArray &Inv)
   Inv.y[2] = x[2] * y[0] - x[0] * y[2];
   Inv.z[2] = x[0] * y[1] - x[1] * y[0];
 
-  double det = x[0] * Inv.x[0] + x[1] * Inv.y[0] + x[2] * Inv.z[0];
+  real det = x[0] * Inv.x[0] + x[1] * Inv.y[0] + x[2] * Inv.z[0];
   return det;
 }
 

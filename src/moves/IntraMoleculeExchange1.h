@@ -58,7 +58,7 @@ public:
     }
   }
 
-  virtual uint Prep(const double subDraw, const double movPerc);
+  virtual uint Prep(const real subDraw, const real movPerc);
   virtual uint Transform();
   virtual void CalcEn();
   virtual void Accept(const uint earlyReject, const uint step);
@@ -75,8 +75,8 @@ protected:
   void ShiftMol(const uint n, const bool kindA);
   void RecoverMol(const uint n, const bool kindA);
   virtual uint PickMolInCav();
-  virtual double GetCoeff() const;
-  uint GetBoxPairAndMol(const double subDraw, const double movPerc);
+  virtual real GetCoeff() const;
+  uint GetBoxPairAndMol(const real subDraw, const real movPerc);
 
   bool enableID;
   uint sourceBox;
@@ -94,8 +94,8 @@ protected:
   std::vector< std::vector<uint> > trial, accepted;
 
   int exDiff, exchangeRatio;
-  double volCav, lastAccept;
-  double W_recip, recipDiffA, recipDiffB, correctDiff;
+  real volCav, lastAccept;
+  real W_recip, recipDiffA, recipDiffB, correctDiff;
 
   XYZ centerA, centerB, cavity;
   XYZArray cavA, invCavA, cavB, invCavB;
@@ -122,7 +122,7 @@ void IntraMoleculeExchange1::PrintAcceptKind()
            molRef.kinds[ks].name.c_str());
     for(uint b = 0; b < BOX_TOTAL; b++) {
       if(trial[b][index] > 0)
-        printf("%10.5f ", (double)(100.0 * accepted[b][index] / trial[b][index]));
+        printf("%10.5f ", (real)(100.0 * accepted[b][index] / trial[b][index]));
       else
         printf("%10.5f ", 0.0);
     }
@@ -198,7 +198,7 @@ inline void IntraMoleculeExchange1::AdjustExRatio()
       exMin = 1;
 
     uint index = kindS + kindL * molRef.GetKindsCount();
-    double currAccept = (double)(accepted[sourceBox][index]) / (double)(trial[sourceBox][index]);
+    real currAccept = (real)(accepted[sourceBox][index]) / (real)(trial[sourceBox][index]);
     if(abs(currAccept - lastAccept) >= 0.05 * currAccept) {
       if(currAccept > lastAccept) {
         exchangeRatio += exDiff;
@@ -291,8 +291,8 @@ inline uint IntraMoleculeExchange1::PickMolInCav()
 }
 
 
-inline uint IntraMoleculeExchange1::GetBoxPairAndMol(const double subDraw,
-    const double movPerc)
+inline uint IntraMoleculeExchange1::GetBoxPairAndMol(const real subDraw,
+    const real movPerc)
 {
   uint state = mv::fail_state::NO_FAIL;
   overlap = false;
@@ -344,8 +344,8 @@ inline uint IntraMoleculeExchange1::GetBoxPairAndMol(const double subDraw,
 }
 
 
-inline uint IntraMoleculeExchange1::Prep(const double subDraw,
-    const double movPerc)
+inline uint IntraMoleculeExchange1::Prep(const real subDraw,
+    const real movPerc)
 {
   //AdjustExRatio();
   uint state = GetBoxPairAndMol(subDraw, movPerc);
@@ -475,9 +475,9 @@ inline void IntraMoleculeExchange1::CalcEn()
   }
 }
 
-inline double IntraMoleculeExchange1::GetCoeff() const
+inline real IntraMoleculeExchange1::GetCoeff() const
 {
-  double ratioF =  num::Factorial(numSCavA) * num::Factorial(numSCavB) /
+  real ratioF =  num::Factorial(numSCavA) * num::Factorial(numSCavB) /
                    (num::Factorial(numSCavA - exchangeRatio) *
                     num::Factorial(numSCavB + exchangeRatio));
 
@@ -522,8 +522,8 @@ inline void IntraMoleculeExchange1::Accept(const uint rejectState,
   bool result;
   //If we didn't skip the move calculation
   if(rejectState == mv::fail_state::NO_FAIL) {
-    double molTransCoeff = GetCoeff();
-    double Wrat = W_recip;
+    real molTransCoeff = GetCoeff();
+    real Wrat = W_recip;
 
     for(uint n = 0; n < numInCavA; n++) {
       Wrat *= newMolA[n].GetWeight() / oldMolA[n].GetWeight();

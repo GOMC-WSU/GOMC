@@ -43,23 +43,23 @@ public:
   uint totalTrials;
 
   //used for both angles and dihedrals
-  double* angles;
-  double* angleWeights;
-  double* angleEnergy;
+  real* angles;
+  real* angleWeights;
+  real* angleEnergy;
 
   XYZArray& positions;     //candidate positions for inclusion (alias for multiPositions[0])
-  double* inter;          //intermolecule energies, reused for new and old
-  double* real;           //short range coulomb interaction
-  double* ljWeights;
-  double* bonded;
-  double* oneFour;
-  double* nonbonded;      //calculated nonbonded 1_N LJ and coulomb energie
-  double* nonbonded_1_4;  //calculated nonbonded 1_4 LJ and coulomb energie
-  double* nonbonded_1_3;  //calculated nonbonded 1_3 LJ and coulomb energie
+  real* inter;          //intermolecule energies, reused for new and old
+  real* real;           //short range coulomb interaction
+  real* ljWeights;
+  real* bonded;
+  real* oneFour;
+  real* nonbonded;      //calculated nonbonded 1_N LJ and coulomb energie
+  real* nonbonded_1_4;  //calculated nonbonded 1_4 LJ and coulomb energie
+  real* nonbonded_1_3;  //calculated nonbonded 1_3 LJ and coulomb energie
 
-  double* interT;     //For DCRotateCOM, we have combined first and Nth trial
-  double* realT;      //For DCRotateCOM, we have combined first and Nth trial
-  double* ljWeightsT; //For DCRotateCOM, we have combined first and Nth trial
+  real* interT;     //For DCRotateCOM, we have combined first and Nth trial
+  real* realT;      //For DCRotateCOM, we have combined first and Nth trial
+  real* ljWeightsT; //For DCRotateCOM, we have combined first and Nth trial
   bool* overlap;      //For detecting overlap for each LJ trial
   bool* overlapT;     //For detecting overlap for each LJ trial. Used in DCRotateCOM
 
@@ -88,25 +88,25 @@ inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& se
   for(uint i = 0; i < MAX_BONDS; ++i) {
     multiPositions[i] = XYZArray(maxLJTrials);
   }
-  inter = new double[maxLJTrials];
-  real = new double[maxLJTrials];
-  bonded = new double[maxLJTrials];
-  oneFour = new double[maxLJTrials];
-  nonbonded = new double[maxLJTrials];
-  ljWeights = new double[maxLJTrials];
+  inter = new real[maxLJTrials];
+  real = new real[maxLJTrials];
+  bonded = new real[maxLJTrials];
+  oneFour = new real[maxLJTrials];
+  nonbonded = new real[maxLJTrials];
+  ljWeights = new real[maxLJTrials];
   overlap = new bool[maxLJTrials];
 
-  interT = new double[totalTrials];
-  realT = new double[totalTrials];
-  ljWeightsT = new double[totalTrials];
+  interT = new real[totalTrials];
+  realT = new real[totalTrials];
+  ljWeightsT = new real[totalTrials];
   overlapT = new bool[totalTrials];
 
   uint trialMax = std::max(nAngleTrials, nDihTrials);
-  angleEnergy = new double[trialMax];
-  angleWeights = new double[trialMax];
-  angles = new double[trialMax];
-  nonbonded_1_3 = new double[trialMax];
-  nonbonded_1_4 = new double[trialMax];
+  angleEnergy = new real[trialMax];
+  angleWeights = new real[trialMax];
+  angles = new real[trialMax];
+  nonbonded_1_3 = new real[trialMax];
+  nonbonded_1_4 = new real[trialMax];
 }
 
 inline DCData::~DCData()

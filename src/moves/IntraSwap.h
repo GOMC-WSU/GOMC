@@ -21,20 +21,20 @@ public:
     ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
     MoveBase(sys, statV) {}
 
-  virtual uint Prep(const double subDraw, const double movPerc);
+  virtual uint Prep(const real subDraw, const real movPerc);
   virtual uint Transform();
   virtual void CalcEn();
   virtual void Accept(const uint earlyReject, const uint step);
   virtual void PrintAcceptKind();
 private:
-  uint GetBoxAndMol(const double subDraw, const double movPerc);
+  uint GetBoxAndMol(const real subDraw, const real movPerc);
   MolPick molPick;
   uint sourceBox, destBox;
   uint pStart, pLen;
   uint molIndex, kindIndex;
 
-  double W_tc, W_recip;
-  double correct_old, correct_new;
+  real W_tc, W_recip;
+  real correct_old, correct_new;
   cbmc::TrialMol oldMol, newMol;
   Intermolecular tcLose, tcGain, recipDiff;
   MoleculeLookup & molLookRef;
@@ -55,7 +55,7 @@ void IntraSwap::PrintAcceptKind()
   }
 }
 
-inline uint IntraSwap::GetBoxAndMol(const double subDraw, const double movPerc)
+inline uint IntraSwap::GetBoxAndMol(const real subDraw, const real movPerc)
 {
 
 #if ENSEMBLE == GCMC
@@ -76,7 +76,7 @@ inline uint IntraSwap::GetBoxAndMol(const double subDraw, const double movPerc)
   return state;
 }
 
-inline uint IntraSwap::Prep(const double subDraw, const double movPerc)
+inline uint IntraSwap::Prep(const real subDraw, const real movPerc)
 {
   overlap = false;
   uint state = GetBoxAndMol(subDraw, movPerc);
@@ -124,10 +124,10 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
   bool result;
   //If we didn't skip the move calculation
   if(rejectState == mv::fail_state::NO_FAIL) {
-    double molTransCoeff = 1.0;
-    double Wo = oldMol.GetWeight();
-    double Wn = newMol.GetWeight();
-    double Wrat = Wn / Wo * W_tc * W_recip;
+    real molTransCoeff = 1.0;
+    real Wo = oldMol.GetWeight();
+    real Wn = newMol.GetWeight();
+    real Wrat = Wn / Wo * W_tc * W_recip;
 
     //safety to make sure move will be rejected in overlap case
     if(!overlap) {

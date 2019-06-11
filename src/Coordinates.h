@@ -46,16 +46,16 @@ public:
   //Translate by a random amount
   void TranslateRand(XYZArray & dest, XYZ & newCOM, uint & pStart,
                      uint & pLen, const uint m, const uint b,
-                     double max);
+                     real max);
 
   //Rotate by a random amount.
   void RotateRand(XYZArray & dest,  uint & pStart, uint & pLen, const uint m,
-                  const uint b, const double max);
+                  const uint b, const real max);
 
   //scale all in each mol newCOM[m]/oldCOM[m]
   void VolumeTransferTranslate
   (uint & state, Coordinates &dest, COM & newCOM, BoxDimensions & newDim,
-   COM const& oldCOM, const double max, const uint *box) const;
+   COM const& oldCOM, const real max, const uint *box) const;
 
   //Helper for TranslateAll
   void TranslateOneBox(Coordinates & dest, COM & newCOM, COM const& oldCOM,

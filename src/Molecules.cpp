@@ -57,7 +57,7 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
 
 #if ENSEMBLE == GCMC
   //check to have all the molecules in psf file that defined in config file
-  std::map<std::string, double>::const_iterator kindCPIt =
+  std::map<std::string, real>::const_iterator kindCPIt =
     setup.config.sys.chemPot.cp.begin(),
     lastOne = setup.config.sys.chemPot.cp.end();
 
@@ -79,7 +79,7 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
 
   if(printFlag) {
     //calculating netcharge of all molecule kind
-    double netCharge = 0.0;
+    real netCharge = 0.0;
     bool hasCharge;
     for (uint mk = 0 ; mk < kindsCount; mk++) {
       netCharge += (countByKind[mk] * kinds[mk].GetMoleculeCharge());
@@ -122,8 +122,8 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   printFlag = false;
 
   //Pair Correction matrixes
-  pairEnCorrections = new double[kindsCount * kindsCount];
-  pairVirCorrections = new double[kindsCount * kindsCount];
+  pairEnCorrections = new real[kindsCount * kindsCount];
+  pairVirCorrections = new real[kindsCount * kindsCount];
   for(uint i = 0; i < kindsCount; ++i) {
     for(uint j = i; j < kindsCount; ++j) {
       pairEnCorrections[i * kindsCount + j] = 0.0;

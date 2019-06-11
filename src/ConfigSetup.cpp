@@ -22,10 +22,10 @@ int stringtoi(const std::string& s)
   return i;
 }
 
-double stringtod(const std::string& s)
+real stringtod(const std::string& s)
 {
   std::istringstream str(s);
-  double i;
+  real i;
   str >> i;
   return i;
 }
@@ -644,7 +644,7 @@ void ConfigSetup::Init(const char *fileName)
         exit(EXIT_FAILURE);
       }
       std::string resName = line[1];
-      double val = stringtod(line[2]);
+      real val = stringtod(line[2]);
       sys.chemPot.cp[resName] = val;
       printf("%-40s %-6s %-6.4f K\n", "Info: Chemical potential",
              resName.c_str(), val);
@@ -655,7 +655,7 @@ void ConfigSetup::Init(const char *fileName)
       }
       sys.chemPot.isFugacity = true;
       std::string resName = line[1];
-      double val = stringtod(line[2]);
+      real val = stringtod(line[2]);
       sys.chemPot.cp[resName] = val * unit::BAR_TO_K_MOLECULE_PER_A3;
       printf("%-40s %-6s %-6.4f bar\n", "Info: Fugacity", resName.c_str(),
              val);

@@ -48,11 +48,11 @@ DCRotateCOM::DCRotateCOM(DCData* data, const mol_setup::MolKind kind)
 void DCRotateCOM::RandRotateZ()
 {
   PRNG& prng = data->prng;
-  double theta = prng();
+  real theta = prng();
   theta *= 2.0 * M_PI;
   theta -= M_PI;
-  double cosTheta = cos(theta);
-  double sinTheta = sin(theta);
+  real cosTheta = cos(theta);
+  real sinTheta = sin(theta);
   rotateMatrix.Set(0, cosTheta, -sinTheta, 0.0);
   rotateMatrix.Set(1, sinTheta, cosTheta, 0.0);
 }
@@ -133,9 +133,9 @@ void DCRotateCOM::BuildNew(TrialMol& newMol, uint molIndex)
   uint nLJTrials = data->nLJTrialsNth;
   uint fLJTrials = data->nLJTrialsFirst;
   uint totalTrials = data->totalTrials;
-  double* ljWeights = data->ljWeightsT;
-  double* inter = data->interT;
-  double* real = data->realT;
+  real* ljWeights = data->ljWeightsT;
+  real* inter = data->interT;
+  real* real = data->realT;
   bool* overlap = data->overlapT;
   RotationMatrix spin;
 
@@ -218,7 +218,7 @@ void DCRotateCOM::BuildNew(TrialMol& newMol, uint molIndex)
                        molIndex, newMol.GetBox(), totalTrials);
   }
 
-  double stepWeight = 0.0;
+  real stepWeight = 0.0;
   for (uint lj = 0; lj < totalTrials; ++lj) {
     ljWeights[lj] = exp(-ff.beta * (inter[lj] + real[lj]));
     stepWeight += ljWeights[lj];
@@ -244,9 +244,9 @@ void DCRotateCOM::BuildOld(TrialMol& oldMol, uint molIndex)
   uint nLJTrials = data->nLJTrialsNth;
   uint fLJTrials = data->nLJTrialsFirst;
   uint totalTrials = data->totalTrials;
-  double* ljWeights = data->ljWeightsT;
-  double* inter = data->interT;
-  double* real = data->realT;
+  real* ljWeights = data->ljWeightsT;
+  real* inter = data->interT;
+  real* real = data->realT;
   bool* overlap = data->overlapT;
   RotationMatrix spin;
 
@@ -328,7 +328,7 @@ void DCRotateCOM::BuildOld(TrialMol& oldMol, uint molIndex)
                        molIndex, oldMol.GetBox(), totalTrials);
   }
 
-  double stepWeight = 0.0;
+  real stepWeight = 0.0;
   for (uint lj = 0; lj < totalTrials; ++lj) {
     stepWeight += exp(-ff.beta * (inter[lj] + real[lj]));
   }

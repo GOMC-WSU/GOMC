@@ -100,9 +100,9 @@ DCLinkedCycle::DCLinkedCycle
 }
 
 
-double DCLinkedCycle::CalcDih(TrialMol& mol, uint a0, uint a1, uint a2, uint a3)
+real DCLinkedCycle::CalcDih(TrialMol& mol, uint a0, uint a1, uint a2, uint a3)
 {
-  double phi = 0.0;
+  real phi = 0.0;
   if(mol.AtomExists(a0)) {
     //Calculate theta using tCoords
     phi = mol.GetPhi(a0, a1, a2, a3);
@@ -175,16 +175,16 @@ void DCLinkedCycle::BuildNew(TrialMol& newMol, uint molIndex)
   PRNG& prng = data->prng;
   const CalculateEnergy& calc = data->calc;
   const Forcefield& ff = data->ff;
-  double* torsion = data->angles;
-  double* torWeights = data->angleWeights;
-  double* torEnergy = data->angleEnergy;
-  double* ljWeights = data->ljWeights;
-  double* bondedEn = data->bonded;
-  double* inter = data->inter;
-  double* nonbonded = data->nonbonded;
-  double* nonbonded_1_4 = data->nonbonded_1_4;
-  double* real = data->real;
-  double* oneFour = data->oneFour;
+  real* torsion = data->angles;
+  real* torWeights = data->angleWeights;
+  real* torEnergy = data->angleEnergy;
+  real* ljWeights = data->ljWeights;
+  real* bondedEn = data->bonded;
+  real* inter = data->inter;
+  real* nonbonded = data->nonbonded;
+  real* nonbonded_1_4 = data->nonbonded_1_4;
+  real* real = data->real;
+  real* oneFour = data->oneFour;
   bool* overlap = data->overlap;
   uint nDihTrials = data->nDihTrials;
   uint nLJTrials;
@@ -205,20 +205,20 @@ void DCLinkedCycle::BuildNew(TrialMol& newMol, uint molIndex)
   newMol.SetBasis(hed.Focus(), hed.Prev());
   const XYZ center = newMol.AtomPosition(hed.Focus());
   XYZArray* positions = data->multiPositions;
-  double prevPhi[MAX_BONDS];
+  real prevPhi[MAX_BONDS];
   for (uint i = 0; i < hed.NumBond(); ++i) {
     //get position and shift to origin
     positions[i].Set(0, newMol.RawRectCoords(bondLength[i],
                      hed.Theta(i), hed.Phi(i)));
   }
   for (uint i = 0; i < nPrevBonds; ++i) {
-    double th;
+    real th;
     //not using theta, so this is a wasted cos and sqrt
     newMol.OldThetaAndPhi(prevBonded[i], hed.Prev(), th, prevPhi[i]);
   }
   if(prevBondedRing != -1) {
     //calculate dihedral in ring using bCoords
-    double phi = CalcDih(newMol, hed.Bonded(focBondedRing), hed.Focus(),
+    real phi = CalcDih(newMol, hed.Bonded(focBondedRing), hed.Focus(),
                          hed.Prev(), prevBonded[prevBondedRing]);
     // find the torsion that give the same dihedral in the ring
     torDiff = phi - (hed.Phi(focBondedRing) - prevPhi[prevBondedRing]);
@@ -252,7 +252,7 @@ void DCLinkedCycle::BuildNew(TrialMol& newMol, uint molIndex)
     data->axes.WrapPBC(positions[b], newMol.GetBox());
   }
 
-  double stepWeight = EvalLJ(newMol, molIndex);
+  real stepWeight = EvalLJ(newMol, molIndex);
   uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
 
   for(uint b = 0; b < hed.NumBond(); ++b) {
@@ -283,16 +283,16 @@ void DCLinkedCycle::BuildOld(TrialMol& oldMol, uint molIndex)
   PRNG& prng = data->prng;
   const CalculateEnergy& calc = data->calc;
   const Forcefield& ff = data->ff;
-  double* torsion = data->angles;
-  double* torWeights = data->angleWeights;
-  double* torEnergy = data->angleEnergy;
-  double* ljWeights = data->ljWeights;
-  double* bondedEn = data->bonded;
-  double* inter = data->inter;
-  double* nonbonded = data->nonbonded;
-  double* nonbonded_1_4 = data->nonbonded_1_4;
-  double* real = data->real;
-  double* oneFour = data->oneFour;
+  real* torsion = data->angles;
+  real* torWeights = data->angleWeights;
+  real* torEnergy = data->angleEnergy;
+  real* ljWeights = data->ljWeights;
+  real* bondedEn = data->bonded;
+  real* inter = data->inter;
+  real* nonbonded = data->nonbonded;
+  real* nonbonded_1_4 = data->nonbonded_1_4;
+  real* real = data->real;
+  real* oneFour = data->oneFour;
   bool* overlap = data->overlap;
   uint nDihTrials = data->nDihTrials;
   uint nLJTrials;
@@ -317,7 +317,7 @@ void DCLinkedCycle::BuildOld(TrialMol& oldMol, uint molIndex)
   hed.ConstrainedAnglesOld(data->nAngleTrials - 1, oldMol, molIndex);
   const XYZ center = oldMol.AtomPosition(hed.Focus());
   XYZArray* positions = data->multiPositions;
-  double prevPhi[MAX_BONDS];
+  real prevPhi[MAX_BONDS];
   for (uint i = 0; i < hed.NumBond(); ++i) {
     //get position and shift to origin
     positions[i].Set(0, oldMol.AtomPosition(hed.Bonded(i)));
@@ -325,13 +325,13 @@ void DCLinkedCycle::BuildOld(TrialMol& oldMol, uint molIndex)
     positions[i].Add(0, -center);
   }
   for (uint i = 0; i < nPrevBonds; ++i) {
-    double t;
+    real t;
     //not using theta, so this is a wasted cos and sqrt
     oldMol.OldThetaAndPhi(prevBonded[i], hed.Prev(), t, prevPhi[i]);
   }
   if(prevBondedRing != -1) {
     //calculate dihedral in ring using bCoords
-    double phi = CalcDih(oldMol, hed.Bonded(focBondedRing), hed.Focus(),
+    real phi = CalcDih(oldMol, hed.Bonded(focBondedRing), hed.Focus(),
                          hed.Prev(), prevBonded[prevBondedRing]);
     // find the torsion that give the same dihedral in the ring
     torDiff = phi - (hed.Phi(focBondedRing) - prevPhi[prevBondedRing]);
@@ -372,8 +372,8 @@ void DCLinkedCycle::BuildOld(TrialMol& oldMol, uint molIndex)
     torEnergy[tor] = 0.0;
     nonbonded_1_4[tor] = 0.0;
     for (uint b = 0; b < hed.NumBond(); ++b) {
-      double theta1 =  hed.Theta(b);
-      double trialPhi = hed.Phi(b) + torsion[tor];
+      real theta1 =  hed.Theta(b);
+      real trialPhi = hed.Phi(b) + torsion[tor];
       XYZ bondedC;
       if(oldMol.OneFour()) {
         //convert chosen torsion to 3D positions for bonded atoms to focus
@@ -384,7 +384,7 @@ void DCLinkedCycle::BuildOld(TrialMol& oldMol, uint molIndex)
 
       for (uint p = 0; p < nPrevBonds; ++p) {
         if(oldMol.OneFour()) {
-          double distSq = oldMol.DistSq(bondedC,
+          real distSq = oldMol.DistSq(bondedC,
                                         oldMol.AtomPosition(prevBonded[p]));
           nonbonded_1_4[tor] +=
             data->calc.IntraEnergy_1_4(distSq, prevBonded[p],
@@ -405,7 +405,7 @@ void DCLinkedCycle::BuildOld(TrialMol& oldMol, uint molIndex)
     positions[b].Add(0, center);
     data->axes.WrapPBC(positions[b], oldMol.GetBox());
   }
-  double stepWeight = EvalLJ(oldMol, molIndex);
+  real stepWeight = EvalLJ(oldMol, molIndex);
 
   for(uint b = 0; b < hed.NumBond(); ++b) {
     oldMol.ConfirmOldAtom(hed.Bonded(b));
@@ -429,11 +429,11 @@ void DCLinkedCycle::BuildOld(TrialMol& oldMol, uint molIndex)
   oldMol.MultWeight(stepWeight / nLJTrials);
 }
 
-double DCLinkedCycle::EvalLJ(TrialMol& mol, uint molIndex)
+real DCLinkedCycle::EvalLJ(TrialMol& mol, uint molIndex)
 {
-  double* inter = data->inter;
-  double* nonbonded = data->nonbonded;
-  double* real = data->real;
+  real* inter = data->inter;
+  real* nonbonded = data->nonbonded;
+  real* real = data->real;
   bool* overlap = data->overlap;
   XYZArray* positions = data->multiPositions;
   uint nLJTrials;
@@ -460,7 +460,7 @@ double DCLinkedCycle::EvalLJ(TrialMol& mol, uint molIndex)
     data->calc.ParticleNonbonded(nonbonded, mol, positions[b],
                                  hed.Bonded(b), mol.GetBox(), nLJTrials);
   }
-  double stepWeight = 0;
+  real stepWeight = 0;
   for (uint lj = 0; lj < nLJTrials; ++lj) {
     data->ljWeights[lj] *= exp(-data->ff.beta *
                                (inter[lj] + nonbonded[lj] + real[lj]));
@@ -470,13 +470,13 @@ double DCLinkedCycle::EvalLJ(TrialMol& mol, uint molIndex)
 }
 
 void DCLinkedCycle::ChooseTorsion(TrialMol& mol, uint molIndex,
-                                  double prevPhi[], RotationMatrix& cross,
+                                  real prevPhi[], RotationMatrix& cross,
                                   RotationMatrix& tensor)
 {
-  double* torsion = data->angles;
-  double* torEnergy = data->angleEnergy;
-  double* torWeights = data->angleWeights;
-  double* nonbonded_1_4 = data->nonbonded_1_4;
+  real* torsion = data->angles;
+  real* torEnergy = data->angleEnergy;
+  real* torWeights = data->angleWeights;
+  real* nonbonded_1_4 = data->nonbonded_1_4;
   uint nDihTrials = data->nDihTrials;
   const Forcefield& ff = data->ff;
   //To get the information if initial posotion before applying torsion
@@ -498,8 +498,8 @@ void DCLinkedCycle::ChooseTorsion(TrialMol& mol, uint molIndex,
     torEnergy[tor] = 0.0;
     nonbonded_1_4[tor] = 0.0;
     for (uint b = 0; b < hed.NumBond(); ++b) {
-      double theta1 =  hed.Theta(b);
-      double trialPhi = hed.Phi(b) + torsion[tor];
+      real theta1 =  hed.Theta(b);
+      real trialPhi = hed.Phi(b) + torsion[tor];
       XYZ bondedC;
       if(mol.OneFour()) {
         //convert chosen torsion to 3D positions for bonded atoms to focus
@@ -510,7 +510,7 @@ void DCLinkedCycle::ChooseTorsion(TrialMol& mol, uint molIndex,
 
       for (uint p = 0; p < nPrevBonds; ++p) {
         if(mol.OneFour()) {
-          double distSq = mol.DistSq(bondedC, mol.AtomPosition(prevBonded[p]));
+          real distSq = mol.DistSq(bondedC, mol.AtomPosition(prevBonded[p]));
           nonbonded_1_4[tor] +=
             data->calc.IntraEnergy_1_4(distSq, prevBonded[p],
                                        hed.Bonded(b), molIndex);
@@ -528,24 +528,24 @@ void DCLinkedCycle::ChooseTorsion(TrialMol& mol, uint molIndex,
 void DCLinkedCycle::CaclIntraEnergy(TrialMol& mol, const uint bIdx,
                                     const uint molIndex)
 {
-  double dihEnergy = 0.0;
-  double nonBondedEn = 0.0;
+  real dihEnergy = 0.0;
+  real nonBondedEn = 0.0;
   uint size = bondedFocusDih[bIdx].size();
   const std::vector<mol_setup::Dihedral> &dih = bondedFocusDih[bIdx];
   for(uint d = 0; d < size; d++) {
     //We know that a1(bonded[i]) and a2(focus) already exist
     if(mol.AtomExists(dih[d].a0) && mol.AtomExists(dih[d].a3)) {
-      double phi = mol.GetPhi(dih[d].a0, dih[d].a1, dih[d].a2, dih[d].a3);
+      real phi = mol.GetPhi(dih[d].a0, dih[d].a1, dih[d].a2, dih[d].a3);
       dihEnergy += data->ff.dihedrals.Calc(dih[d].kind, phi);
       if(mol.OneFour()) {
-        double distSq = mol.DistSq(mol.AtomPosition(dih[d].a0),
+        real distSq = mol.DistSq(mol.AtomPosition(dih[d].a0),
                                    mol.AtomPosition(dih[d].a3));
         nonBondedEn += data->calc.IntraEnergy_1_4(distSq, dih[d].a0, dih[d].a3,
                        molIndex);
       }
     }
   }
-  double weight = exp(-1.0 * data->ff.beta * (dihEnergy + nonBondedEn));
+  real weight = exp(-1.0 * data->ff.beta * (dihEnergy + nonBondedEn));
   mol.MultWeight(weight);
   mol.AddEnergy(Energy(dihEnergy, nonBondedEn, 0.0, 0.0, 0.0, 0.0, 0.0));
 }

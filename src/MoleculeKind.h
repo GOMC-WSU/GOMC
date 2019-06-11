@@ -68,7 +68,7 @@ public:
   {
     return atomKind[a];
   }
-  double AtomCharge(const uint a) const
+  real AtomCharge(const uint a) const
   {
     return atomCharge[a];
   }
@@ -132,7 +132,7 @@ public:
     builder->BuildGrowOld(oldMol, molIndex);
   }
 
-  double GetMoleculeCharge();
+  real GetMoleculeCharge();
 
   bool MoleculeHasCharge();
 
@@ -152,13 +152,13 @@ public:
 
   std::string name;
   std::vector<std::string> atomNames, atomTypeNames;
-  double molMass;
+  real molMass;
 
-  double * atomMass;
+  real * atomMass;
 
 
 #if ENSEMBLE == GCMC
-  double chemPot;
+  real chemPot;
 #endif
 
 private:
@@ -174,7 +174,7 @@ private:
 
   uint numAtoms;
   uint * atomKind;
-  double * atomCharge;
+  real * atomCharge;
 };
 
 

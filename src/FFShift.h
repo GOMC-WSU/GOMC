@@ -41,36 +41,36 @@ public:
   virtual void Init(ff_setup::Particle const& mie,
                     ff_setup::NBfix const& nbfix);
 
-  virtual double CalcEn(const double distSq,
+  virtual real CalcEn(const real distSq,
                         const uint kind1, const uint kind2) const;
-  virtual double CalcVir(const double distSq,
+  virtual real CalcVir(const real distSq,
                          const uint kind1, const uint kind2) const;
-  virtual void CalcAdd_1_4(double& en, const double distSq,
+  virtual void CalcAdd_1_4(real& en, const real distSq,
                            const uint kind1, const uint kind2) const;
 
   // coulomb interaction functions
-  virtual double CalcCoulomb(const double distSq,
-                             const double qi_qj_Fact, const uint b) const;
-  virtual double CalcCoulombVir(const double distSq,
-                                const double qi_qj, const uint b) const;
-  virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
-                                  const double qi_qj_Fact,
+  virtual real CalcCoulomb(const real distSq,
+                             const real qi_qj_Fact, const uint b) const;
+  virtual real CalcCoulombVir(const real distSq,
+                                const real qi_qj, const uint b) const;
+  virtual void CalcCoulombAdd_1_4(real& en, const real distSq,
+                                  const real qi_qj_Fact,
                                   const bool NB) const;
 
   //!Returns Ezero, no energy correction
-  virtual double EnergyLRC(const uint kind1, const uint kind2) const
+  virtual real EnergyLRC(const uint kind1, const uint kind2) const
   {
     return 0.0;
   }
   //!!Returns Ezero, no virial correction
-  virtual double VirialLRC(const uint kind1, const uint kind2) const
+  virtual real VirialLRC(const uint kind1, const uint kind2) const
   {
     return 0.0;
   }
 
 protected:
 
-  double *shiftConst, *shiftConst_1_4;
+  real *shiftConst, *shiftConst_1_4;
 
 };
 
@@ -81,21 +81,21 @@ inline void FF_SHIFT::Init(ff_setup::Particle const& mie,
   FFParticle::Init(mie, nbfix);
   uint size = num::Sq(count);
   //allocate memory
-  shiftConst = new double [size];
-  shiftConst_1_4 = new double [size];
+  shiftConst = new real [size];
+  shiftConst_1_4 = new real [size];
   //calculate shift constant
   for(uint i = 0; i < count; ++i) {
     for(uint j = 0; j < count; ++j) {
       uint idx = FlatIndex(i, j);
-      double rRat2 = sigmaSq[idx] / forcefield.rCutSq;
-      double rRat4 = rRat2 * rRat2;
-      double attract = rRat4 * rRat2;
+      real rRat2 = sigmaSq[idx] / forcefield.rCutSq;
+      real rRat4 = rRat2 * rRat2;
+      real attract = rRat4 * rRat2;
       //for 1-4 interaction
-      double rRat2_1_4 = sigmaSq_1_4[idx] / forcefield.rCutSq;
-      double rRat4_1_4 = rRat2_1_4 * rRat2_1_4;
-      double attract_1_4 = rRat4_1_4 * rRat2_1_4;
-      double repulse = pow(sqrt(rRat2), n[idx]);
-      double repulse_1_4 = pow(sqrt(rRat2_1_4), n_1_4[idx]);
+      real rRat2_1_4 = sigmaSq_1_4[idx] / forcefield.rCutSq;
+      real rRat4_1_4 = rRat2_1_4 * rRat2_1_4;
+      real attract_1_4 = rRat4_1_4 * rRat2_1_4;
+      real repulse = pow(sqrt(rRat2), n[idx]);
+      real repulse_1_4 = pow(sqrt(rRat2_1_4), n_1_4[idx]);
 
       shiftConst[idx] =  epsilon_cn[idx] * (repulse - attract);
       shiftConst_1_4[idx] =  epsilon_cn_1_4[idx] *
@@ -106,29 +106,29 @@ inline void FF_SHIFT::Init(ff_setup::Particle const& mie,
 }
 
 
-inline void FF_SHIFT::CalcAdd_1_4(double& en, const double distSq,
+inline void FF_SHIFT::CalcAdd_1_4(real& en, const real distSq,
                                   const uint kind1, const uint kind2) const
 {
   uint index = FlatIndex(kind1, kind2);
-  double rRat2 = sigmaSq_1_4[index] / distSq;
-  double rRat4 = rRat2 * rRat2;
-  double attract = rRat4 * rRat2;
+  real rRat2 = sigmaSq_1_4[index] / distSq;
+  real rRat4 = rRat2 * rRat2;
+  real attract = rRat4 * rRat2;
 #ifdef MIE_INT_ONLY
   uint n_ij = n_1_4[index];
-  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
+  real repulse = num::POW(rRat2, rRat4, attract, n_ij);
 #else
-  double n_ij = n_1_4[index];
-  double repulse = pow(sqrt(rRat2), n_ij);
+  real n_ij = n_1_4[index];
+  real repulse = pow(sqrt(rRat2), n_ij);
 #endif
 
   en += (epsilon_cn_1_4[index] * (repulse - attract) - shiftConst_1_4[index]);
 }
 
-inline void FF_SHIFT::CalcCoulombAdd_1_4(double& en, const double distSq,
-    const double qi_qj_Fact,
+inline void FF_SHIFT::CalcCoulombAdd_1_4(real& en, const real distSq,
+    const real qi_qj_Fact,
     const bool NB) const
 {
-  double dist = sqrt(distSq);
+  real dist = sqrt(distSq);
   if(NB)
     en += qi_qj_Fact / dist;
   else
@@ -137,81 +137,81 @@ inline void FF_SHIFT::CalcCoulombAdd_1_4(double& en, const double distSq,
 
 
 //mie potential
-inline double FF_SHIFT::CalcEn(const double distSq,
+inline real FF_SHIFT::CalcEn(const real distSq,
                                const uint kind1, const uint kind2) const
 {
   if(forcefield.rCutSq < distSq)
     return 0.0;
 
   uint index = FlatIndex(kind1, kind2);
-  double rRat2 = sigmaSq[index] / distSq;
-  double rRat4 = rRat2 * rRat2;
-  double attract = rRat4 * rRat2;
+  real rRat2 = sigmaSq[index] / distSq;
+  real rRat4 = rRat2 * rRat2;
+  real attract = rRat4 * rRat2;
 #ifdef MIE_INT_ONLY
   uint n_ij = n[index];
-  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
+  real repulse = num::POW(rRat2, rRat4, attract, n_ij);
 #else
-  double n_ij = n[index];
-  double repulse = pow(sqrt(rRat2), n_ij);
+  real n_ij = n[index];
+  real repulse = pow(sqrt(rRat2), n_ij);
 #endif
 
   return (epsilon_cn[index] * (repulse - attract) - shiftConst[index]);
 }
 
-inline double FF_SHIFT::CalcCoulomb(const double distSq,
-                                    const double qi_qj_Fact, const uint b) const
+inline real FF_SHIFT::CalcCoulomb(const real distSq,
+                                    const real qi_qj_Fact, const uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
 
   if(forcefield.ewald) {
-    double dist = sqrt(distSq);
-    double val = forcefield.alpha[b] * dist;
+    real dist = sqrt(distSq);
+    real val = forcefield.alpha[b] * dist;
     return  qi_qj_Fact * erfc(val) / dist;
   } else {
-    double dist = sqrt(distSq);
+    real dist = sqrt(distSq);
     return  qi_qj_Fact * (1.0 / dist - 1.0 / forcefield.rCut);
   }
 }
 
 //mie potential
-inline double FF_SHIFT::CalcVir(const double distSq,
+inline real FF_SHIFT::CalcVir(const real distSq,
                                 const uint kind1, const uint kind2) const
 {
   if(forcefield.rCutSq < distSq)
     return 0.0;
 
   uint index = FlatIndex(kind1, kind2);
-  double rNeg2 = 1.0 / distSq;
-  double rRat2 = rNeg2 * sigmaSq[index];
-  double rRat4 = rRat2 * rRat2;
-  double attract = rRat4 * rRat2;
+  real rNeg2 = 1.0 / distSq;
+  real rRat2 = rNeg2 * sigmaSq[index];
+  real rRat4 = rRat2 * rRat2;
+  real attract = rRat4 * rRat2;
 #ifdef MIE_INT_ONLY
   uint n_ij = n[index];
-  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
+  real repulse = num::POW(rRat2, rRat4, attract, n_ij);
 #else
-  double n_ij = n[index];
-  double repulse = pow(sqrt(rRat2), n_ij);
+  real n_ij = n[index];
+  real repulse = pow(sqrt(rRat2), n_ij);
 #endif
 
   //Virial is the derivative of the pressure... mu
   return epsilon_cn_6[index] * (nOver6[index] * repulse - attract) * rNeg2;
 }
 
-inline double FF_SHIFT::CalcCoulombVir(const double distSq,
-                                       const double qi_qj, const uint b) const
+inline real FF_SHIFT::CalcCoulombVir(const real distSq,
+                                       const real qi_qj, const uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
 
   if(forcefield.ewald) {
-    double dist = sqrt(distSq);
-    double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
-    double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
-    double temp = erfc(forcefield.alpha[b] * dist);
+    real dist = sqrt(distSq);
+    real constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
+    real expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
+    real temp = erfc(forcefield.alpha[b] * dist);
     return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
-    double dist = sqrt(distSq);
+    real dist = sqrt(distSq);
     return qi_qj / (distSq * dist);
   }
 }

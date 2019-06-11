@@ -175,7 +175,7 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
 
 void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const
 {
-  double density = 0.0;
+  real density = 0.0;
   uint offset = box * var->numKinds;
 
   std::string title = "STAT_";
@@ -393,7 +393,7 @@ void ConsoleOutput::PrintMoveTitle()
   std::cout << std::endl;
 }
 
-void ConsoleOutput::printElement(const double t, const int width,
+void ConsoleOutput::printElement(const real t, const int width,
                                  uint percision) const
 {
   const char separator = ' ';

@@ -104,7 +104,7 @@ struct Input {
 // System-specific structures
 
 struct Temperature {
-  double inKelvin;
+  real inKelvin;
 };
 
 struct Exclude {
@@ -116,7 +116,7 @@ struct Exclude {
 
 struct PotentialConfig {
   uint kind;
-  double cutoff;
+  real cutoff;
   uint VDW_KIND;
 };
 struct VDWPot : public PotentialConfig {
@@ -124,13 +124,13 @@ struct VDWPot : public PotentialConfig {
 };
 typedef PotentialConfig VDWShift;
 struct VDWSwitch : public PotentialConfig {
-  double cuton;
+  real cuton;
 };
 
 //Items that effect the system interactions and/or identity, e.g. Temp.
 struct FFValues {
   uint VDW_KIND;
-  double cutoff, cutoffLow, rswitch;
+  real cutoff, cutoffLow, rswitch;
   bool doTailCorr, vdwGeometricSigma;
   std::string kind;
 
@@ -143,7 +143,7 @@ struct FFValues {
 //Items that effect the system interactions and/or identity, e.g. Temp.
 struct GEMCKind {
   uint kind;
-  double pressure;
+  real pressure;
 };
 
 #endif
@@ -156,12 +156,12 @@ struct Step {
 
 //Holds the percentage of each kind of move for this ensemble.
 struct MovePercents {
-  double displace, rotate, intraSwap, intraMemc, regrowth, crankShaft;
+  real displace, rotate, intraSwap, intraMemc, regrowth, crankShaft;
 #ifdef VARIABLE_VOLUME
-  double volume;
+  real volume;
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
-  double transfer, memc;
+  real transfer, memc;
 #endif
 };
 
@@ -173,10 +173,10 @@ struct ElectroStatic {
   bool ewald;
   bool cache;
   bool cutoffCoulombRead[BOX_TOTAL];
-  double tolerance;
-  double oneFourScale;
-  double dielectric;
-  double cutoffCoulomb[BOX_TOTAL];
+  real tolerance;
+  real oneFourScale;
+  real dielectric;
+  real cutoffCoulomb[BOX_TOTAL];
   ElectroStatic(void)
   {
     std::fill_n(cutoffCoulombRead, BOX_TOTAL, false);
@@ -245,7 +245,7 @@ struct MEMCVal {
 #if ENSEMBLE == GCMC
 struct ChemicalPotential {
   bool isFugacity;
-  std::map<std::string, double> cp;
+  std::map<std::string, real> cp;
 };
 #endif
 struct SystemVals {

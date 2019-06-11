@@ -32,9 +32,9 @@ inline void printFreeMemory()
            cudaGetErrorString(cuda_status) );
     exit(1);
   }
-  double free_db = (double)free_byte ;
-  double total_db = (double)total_byte ;
-  double used_db = total_db - free_db ;
+  real free_db = (real)free_byte ;
+  real total_db = (real)total_byte ;
+  real used_db = total_db - free_db ;
   printf("GPU memory usage: used = %f, free = %f MB, total = %f MB\n",
          used_db / 1024.0 / 1024.0, free_db / 1024.0 / 1024.0, total_db / 1024.0 / 1024.0);
 }
@@ -58,34 +58,34 @@ public:
     gpu_ewald = NULL;
     gpu_diElectric_1 = NULL;
   }
-  double *gpu_sigmaSq;
-  double *gpu_epsilon_Cn;
-  double *gpu_n;
+  real *gpu_sigmaSq;
+  real *gpu_epsilon_Cn;
+  real *gpu_n;
   int *gpu_VDW_Kind;
   int *gpu_isMartini;
   int *gpu_count;
-  double *gpu_rCut;
-  double *gpu_rCutCoulomb;
-  double *gpu_rCutLow;
-  double *gpu_rOn;
-  double *gpu_alpha;
+  real *gpu_rCut;
+  real *gpu_rCutCoulomb;
+  real *gpu_rCutLow;
+  real *gpu_rOn;
+  real *gpu_alpha;
   int *gpu_ewald;
-  double *gpu_diElectric_1;
-  double *gpu_x, *gpu_y, *gpu_z;
-  double *gpu_nx, *gpu_ny, *gpu_nz;
-  double *gpu_dx, *gpu_dy, *gpu_dz;
-  double **gpu_kx, **gpu_ky, **gpu_kz;
-  double **gpu_kxRef, **gpu_kyRef, **gpu_kzRef;
-  double **gpu_sumRnew, **gpu_sumInew, **gpu_sumRref, **gpu_sumIref;
-  double **gpu_prefact, **gpu_prefactRef;
-  double **gpu_hsqr, **gpu_hsqrRef;
-  double *gpu_comx, *gpu_comy, *gpu_comz;
-  double *gpu_rT11, *gpu_rT12, *gpu_rT13;
-  double *gpu_rT22, *gpu_rT23, *gpu_rT33;
-  double *gpu_vT11, *gpu_vT12, *gpu_vT13;
-  double *gpu_vT22, *gpu_vT23, *gpu_vT33;
-  double **gpu_cell_x, **gpu_cell_y, **gpu_cell_z;
-  double **gpu_Invcell_x, **gpu_Invcell_y, **gpu_Invcell_z;
+  real *gpu_diElectric_1;
+  real *gpu_x, *gpu_y, *gpu_z;
+  real *gpu_nx, *gpu_ny, *gpu_nz;
+  real *gpu_dx, *gpu_dy, *gpu_dz;
+  real **gpu_kx, **gpu_ky, **gpu_kz;
+  real **gpu_kxRef, **gpu_kyRef, **gpu_kzRef;
+  real **gpu_sumRnew, **gpu_sumInew, **gpu_sumRref, **gpu_sumIref;
+  real **gpu_prefact, **gpu_prefactRef;
+  real **gpu_hsqr, **gpu_hsqrRef;
+  real *gpu_comx, *gpu_comy, *gpu_comz;
+  real *gpu_rT11, *gpu_rT12, *gpu_rT13;
+  real *gpu_rT22, *gpu_rT23, *gpu_rT33;
+  real *gpu_vT11, *gpu_vT12, *gpu_vT13;
+  real *gpu_vT22, *gpu_vT23, *gpu_vT33;
+  real **gpu_cell_x, **gpu_cell_y, **gpu_cell_z;
+  real **gpu_Invcell_x, **gpu_Invcell_y, **gpu_Invcell_z;
   int *gpu_nonOrth;
 };
 #endif

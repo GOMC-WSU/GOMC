@@ -12,8 +12,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "NumLib.h" //For bounding functions.
 #include "GeomLib.h"    //For M_PI
 
-const double MoveSettings::TARGET_ACCEPT_FRACT = 0.50;
-const double MoveSettings::TINY_AMOUNT = 0.0000001;
+const real MoveSettings::TARGET_ACCEPT_FRACT = 0.50;
+const real MoveSettings::TINY_AMOUNT = 0.0000001;
 
 void MoveSettings::Init(StaticVals const& statV,
                         pdb_setup::Remarks const& remarks,
@@ -75,8 +75,8 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
     accepted[box][move][kind]++;
   }
 
-  acceptPercent[box][move][kind] = (double)(accepted[box][move][kind]) /
-                                   (double)(tries[box][move][kind]);
+  acceptPercent[box][move][kind] = (real)(accepted[box][move][kind]) /
+                                   (real)(tries[box][move][kind]);
 
   //for any move that we dont care about kind of molecule, it should be included
   //in the if condition
@@ -95,8 +95,8 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
         tempAccepted[box][move][k]++;
         accepted[box][move][k]++;
       }
-      acceptPercent[box][move][k] = (double)(accepted[box][move][k]) /
-                                    (double)(tries[box][move][k]);
+      acceptPercent[box][move][k] = (real)(accepted[box][move][k]) /
+                                    (real)(tries[box][move][k]);
     }
   }
 }
@@ -120,36 +120,36 @@ void MoveSettings::Adjust(const uint box, const uint move, const uint kind)
 {
   if(move == mv::DISPLACE) {
     if(tempTries[box][move][kind] > 0) {
-      double currentAccept = (double)(tempAccepted[box][move][kind]) /
-                             (double)(tempTries[box][move][kind]);
-      double fractOfTargetAccept = currentAccept / TARGET_ACCEPT_FRACT;
+      real currentAccept = (real)(tempAccepted[box][move][kind]) /
+                             (real)(tempTries[box][move][kind]);
+      real fractOfTargetAccept = currentAccept / TARGET_ACCEPT_FRACT;
       if (fractOfTargetAccept > 0.0) {
         scale[box][move][kind] *= fractOfTargetAccept;
       } else {
         scale[box][move][kind] *= 0.5;
       }
     }
-    num::Bound<double>(scale[box][move][kind], 0.0000000001,
+    num::Bound<real>(scale[box][move][kind], 0.0000000001,
                        (boxDimRef.axis.Min(box) / 2) - TINY_AMOUNT);
   } else if(move == mv::ROTATE) {
     if(tempTries[box][move][kind] > 0) {
-      double currentAccept = (double)(tempAccepted[box][move][kind]) /
-                             (double)(tempTries[box][move][kind]);
-      double fractOfTargetAccept = currentAccept / TARGET_ACCEPT_FRACT;
+      real currentAccept = (real)(tempAccepted[box][move][kind]) /
+                             (real)(tempTries[box][move][kind]);
+      real fractOfTargetAccept = currentAccept / TARGET_ACCEPT_FRACT;
       if (fractOfTargetAccept > 0.0) {
         scale[box][move][kind] *= fractOfTargetAccept;
       } else {
         scale[box][move][kind] *= 0.5;
       }
     }
-    num::Bound<double>(scale[box][move][kind], 0.000001, M_PI - TINY_AMOUNT);
+    num::Bound<real>(scale[box][move][kind], 0.000001, M_PI - TINY_AMOUNT);
   }
 #if ENSEMBLE == NPT || ENSEMBLE == GEMC
   else if(move == mv::VOL_TRANSFER) {
     if(tempTries[box][move][kind] > 0) {
-      double currentAccept = (double)(tempAccepted[box][move][kind]) /
-                             (double)(tempTries[box][move][kind]);
-      double fractOfTargetAccept = currentAccept / TARGET_ACCEPT_FRACT;
+      real currentAccept = (real)(tempAccepted[box][move][kind]) /
+                             (real)(tempTries[box][move][kind]);
+      real fractOfTargetAccept = currentAccept / TARGET_ACCEPT_FRACT;
       if (fractOfTargetAccept > 0.0) {
         scale[box][move][kind] *= fractOfTargetAccept;
       } else {
@@ -157,8 +157,8 @@ void MoveSettings::Adjust(const uint box, const uint move, const uint kind)
       }
     }
     //Warning: This will lead to have acceptance > %50
-    double maxVolExchange = boxDimRef.volume[box] - boxDimRef.minVol[box];
-    num::Bound<double>(scale[box][move][kind], 0.001,  maxVolExchange - 0.001);
+    real maxVolExchange = boxDimRef.volume[box] - boxDimRef.minVol[box];
+    num::Bound<real>(scale[box][move][kind], 0.001,  maxVolExchange - 0.001);
   }
 #endif
   tempAccepted[box][move][kind] = 0;
@@ -186,13 +186,13 @@ uint MoveSettings::GetAcceptTot(const uint box, const uint move) const
   return sum;
 }
 
-double MoveSettings::GetScaleTot(const uint box, const uint move) const
+real MoveSettings::GetScaleTot(const uint box, const uint move) const
 {
-  double sum = 0.0;
+  real sum = 0.0;
   for(uint k = 0; k < totKind; k++) {
     sum += scale[box][move][k];
   }
-  return sum / (double)(totKind);
+  return sum / (real)(totKind);
 }
 
 uint MoveSettings::GetTrialTot(const uint box, const uint move) const

@@ -40,11 +40,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 struct Intermolecular {
   //MEMBERS
-  double virial, energy;
+  real virial, energy;
 
   //CONSTRUCTORS
   Intermolecular() : virial(0.0), energy(0.0) {}
-  Intermolecular(const double vir, const double en) :
+  Intermolecular(const real vir, const real en) :
     virial(vir), energy(en) {}
 
   //VALUE SETTER
@@ -88,21 +88,21 @@ public:
   Energy() : intraBond(0.0), intraNonbond(0.0), inter(0.0),
     tc(0.0), total(0.0), real(0.0), recip(0.0), self(0.0),
     correction(0.0), totalElect(0.0) {}
-  Energy(double bond, double nonbond, double inter, double real,
-         double recip, double self, double correc) :
+  Energy(real bond, real nonbond, real inter, real real,
+         real recip, real self, real correc) :
     intraBond(bond), intraNonbond(nonbond), inter(inter),
     tc(0.0), real(real), recip(recip), self(self), correction(correc),
     totalElect(0.0), total(0.0) {}
 
   //VALUE SETTERS
-  double Total()
+  real Total()
   {
     total = intraBond + intraNonbond + inter + tc + real + recip + self +
             correction;
     return total;
   }
 
-  double TotalElect()
+  real TotalElect()
   {
     totalElect = real + recip + self + correction;
     return totalElect;
@@ -138,7 +138,7 @@ public:
 
 //private:
   //MEMBERS
-  double intraBond, intraNonbond, inter, tc, total, real, recip, self,
+  real intraBond, intraNonbond, inter, tc, total, real, recip, self,
          correction, totalElect;
 };
 
@@ -183,7 +183,7 @@ public:
   }
 
   //VALUE SETTERS
-  double Total()
+  real Total()
   {
     TotalElect();
     total = inter + tc + real + recip + self + correction;
@@ -196,7 +196,7 @@ public:
     return total;
   }
 
-  double TotalElect()
+  real TotalElect()
   {
     totalElect = real + recip + self + correction;
     return totalElect;
@@ -308,7 +308,7 @@ public:
     return *this;
   }
 
-  Virial& operator/=(const double rhs)
+  Virial& operator/=(const real rhs)
   {
     inter /= rhs;
     tc /= rhs;
@@ -334,9 +334,9 @@ public:
 
 //private:
   //MEMBERS
-  double inter, tc, real, recip, self, correction, totalElect, total;
+  real inter, tc, real, recip, self, correction, totalElect, total;
   //Store the pressure tensor
-  double interTens[3][3], realTens[3][3], recipTens[3][3], totalTens[3][3],
+  real interTens[3][3], realTens[3][3], recipTens[3][3], totalTens[3][3],
          corrTens[3][3];
 };
 
@@ -345,7 +345,7 @@ class SystemPotential
 {
 public:
   void Zero();
-  double Total();
+  real Total();
   void Add(const uint b, Intermolecular const& rhs)
   {
     boxVirial[b] += rhs;
@@ -402,7 +402,7 @@ inline void SystemPotential::Zero()
   totalVirial.Zero();
 }
 
-inline double SystemPotential::Total()
+inline real SystemPotential::Total()
 {
   totalEnergy.Zero();
   totalVirial.Zero();

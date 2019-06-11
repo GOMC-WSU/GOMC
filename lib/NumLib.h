@@ -15,19 +15,19 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 namespace num
 {
-static const double dbl_margin = 0.00001;
-static const double qqFact = 167000.00;
-static const double BIGNUM = DBL_MAX;
+static const real dbl_margin = 0.00001;
+static const real qqFact = 167000.00;
+static const real BIGNUM = DBL_MAX;
 static const uint VDW_STD_KIND = 0, VDW_SHIFT_KIND = 1, VDW_SWITCH_KIND = 2;
 
 template <typename T>
-inline void BoundGt(double & val, const double bound)
+inline void BoundGt(real & val, const real bound)
 {
   if (val > bound) val = bound;
 }
 
 template <typename T>
-inline void BoundLt(double & val, const double bound)
+inline void BoundLt(real & val, const real bound)
 {
   if (val < bound) val = bound;
 }
@@ -39,52 +39,52 @@ inline void BoundNZDecimal(T & val, const int mult)
 }
 
 template <typename T>
-inline void Bound(T & val, const double lower, const double upper)
+inline void Bound(T & val, const real lower, const real upper)
 {
   BoundLt<T>(val, lower);
   BoundGt<T>(val, upper);
 }
 
 //Arithmetic mean.
-inline double MeanA(const uint v1, const uint v2)
+inline real MeanA(const uint v1, const uint v2)
 {
   return (v1 + v2) / 2.0;
 }
 //Geometric mean.
-inline double MeanG(const double v1, const double v2)
+inline real MeanG(const real v1, const real v2)
 {
   return sqrt(v1 * v2);
 }
 //Arithmetic mean.
-inline double MeanA(std::vector<double> const& v1,
-                    std::vector<double> const& v2,
+inline real MeanA(std::vector<real> const& v1,
+                    std::vector<real> const& v2,
                     const uint ix1, const uint ix2)
 {
   return (v1[ix1] + v2[ix2]) * 0.5;
 }
 //Arithmetic mean.
-inline double MeanA(std::vector<uint> const& v1,
+inline real MeanA(std::vector<uint> const& v1,
                     std::vector<uint> const& v2,
                     const uint ix1, const uint ix2)
 {
 #ifdef MIE_INT_ONLY
   return (v1[ix1] + v2[ix2]) / 2;
 #else
-  return ((double)(v1[ix1] + v2[ix2])) / 2.0;
+  return ((real)(v1[ix1] + v2[ix2])) / 2.0;
 #endif
 }
 //Geometric mean.
-inline double MeanG(std::vector<double> const& v1,
-                    std::vector<double> const& v2,
+inline real MeanG(std::vector<real> const& v1,
+                    std::vector<real> const& v2,
                     const uint ix1, const uint ix2)
 {
   return sqrt(v1[ix1] * v2[ix2]);
 }
 
 //return n!
-inline double Factorial(const uint n)
+inline real Factorial(const uint n)
 {
-  double result = 1.0;
+  real result = 1.0;
   for(uint i = 2; i <= n; i++) {
     result *= i;
   }
@@ -92,9 +92,9 @@ inline double Factorial(const uint n)
 }
 
 //return (n+count)!/n!
-inline double Factorial(const uint n, const uint count)
+inline real Factorial(const uint n, const uint count)
 {
-  double result = 1.0;
+  real result = 1.0;
   for(uint i = 1; i <= count; i++) {
     result *= n + i;
   }
@@ -118,10 +118,10 @@ inline void Cb(Type & s, Type & c, const Type v)
   c = s * v;
 }
 
-inline double POW(const double d2, const double d4, const double d6,
+inline real POW(const real d2, const real d4, const real d6,
                   uint e)
 {
-  double result = (e & 0x1 ? sqrt(d2) : 1.0);
+  real result = (e & 0x1 ? sqrt(d2) : 1.0);
   e >>= 1;
   switch (e) {
   case 0:

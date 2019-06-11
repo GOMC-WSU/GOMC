@@ -30,7 +30,7 @@ public:
     }
   }
 
-  virtual uint Prep(const double subDraw, const double movPerc);
+  virtual uint Prep(const real subDraw, const real movPerc);
   virtual uint Transform();
   virtual void CalcEn();
   virtual void Accept(const uint earlyReject, const uint step);
@@ -42,7 +42,7 @@ protected:
   virtual void SetExchangeData();
   virtual uint PickMolInCav();
   virtual uint ReplaceMolecule();
-  virtual double GetCoeff() const;
+  virtual real GetCoeff() const;
 
   uint smallBB[2];
   //To store total sets of exchange pairs
@@ -89,7 +89,7 @@ inline void MoleculeExchange2::AdjustExRatio()
     uint exMax = ceil((float)molInCavCount / (float)perAdjust);
     uint exMin = 1;
     uint index = kindS + kindL * molRef.GetKindsCount();
-    double currAccept = (double)(accepted[sourceBox][index]) / (double)(trial[sourceBox][index]);
+    real currAccept = (real)(accepted[sourceBox][index]) / (real)(trial[sourceBox][index]);
     if(abs(currAccept - lastAccept) >= 0.05 * currAccept) {
       if(currAccept >= lastAccept) {
         exchangeRatio += exDiff;
@@ -219,14 +219,14 @@ inline uint MoleculeExchange2::ReplaceMolecule()
 }
 
 
-inline uint MoleculeExchange2::Prep(const double subDraw, const double movPerc)
+inline uint MoleculeExchange2::Prep(const real subDraw, const real movPerc)
 {
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
-    numTypeASource = (double)(molLookRef.NumKindInBox(kindIndexA[0], sourceBox));
-    numTypeADest = (double)(molLookRef.NumKindInBox(kindIndexA[0], destBox));
-    numTypeBSource = (double)(molLookRef.NumKindInBox(kindIndexB[0], sourceBox));
-    numTypeBDest = (double)(molLookRef.NumKindInBox(kindIndexB[0], destBox));
+    numTypeASource = (real)(molLookRef.NumKindInBox(kindIndexA[0], sourceBox));
+    numTypeADest = (real)(molLookRef.NumKindInBox(kindIndexA[0], destBox));
+    numTypeBSource = (real)(molLookRef.NumKindInBox(kindIndexB[0], sourceBox));
+    numTypeBDest = (real)(molLookRef.NumKindInBox(kindIndexB[0], destBox));
     //transfering type A from source to dest
     for(uint n = 0; n < numInCavA; n++) {
       newMolA.push_back(cbmc::TrialMol(molRef.kinds[kindIndexA[n]], boxDimRef,
@@ -377,60 +377,60 @@ inline void MoleculeExchange2::CalcEn()
   MoleculeExchange1::CalcEn();
 }
 
-inline double MoleculeExchange2::GetCoeff() const
+inline real MoleculeExchange2::GetCoeff() const
 {
-  double volSource = boxDimRef.volume[sourceBox];
-  double volDest = boxDimRef.volume[destBox];
+  real volSource = boxDimRef.volume[sourceBox];
+  real volDest = boxDimRef.volume[destBox];
 #if ENSEMBLE == GEMC
   if(insertL) {
     //kindA is the small molecule
-    double ratioF = num::Factorial(totMolInCav - 1) /
+    real ratioF = num::Factorial(totMolInCav - 1) /
                     (num::Factorial(totMolInCav - exchangeRatio) *
                      num::Factorial(numTypeADest, exchangeRatio));
-    double ratioV = pow(volDest / volCav, exchangeRatio - 1);
-    double ratioM = numTypeASource * numTypeBDest / (numTypeBSource + 1.0);
+    real ratioV = pow(volDest / volCav, exchangeRatio - 1);
+    real ratioM = numTypeASource * numTypeBDest / (numTypeBSource + 1.0);
     return ratioF * ratioV * ratioM;
   } else {
     //kindA is the big molecule
-    double ratioF = num::Factorial(totMolInCav) *
+    real ratioF = num::Factorial(totMolInCav) *
                     num::Factorial(numTypeBDest - exchangeRatio, exchangeRatio) /
                     num::Factorial(totMolInCav + exchangeRatio - 1);
-    double ratioV = pow(volCav / volDest, exchangeRatio - 1);
-    double ratioM = numTypeASource /
+    real ratioV = pow(volCav / volDest, exchangeRatio - 1);
+    real ratioM = numTypeASource /
                     ((numTypeADest + 1.0) * (numTypeBSource + exchangeRatio));
     return ratioF * ratioV * ratioM;
   }
 #elif ENSEMBLE == GCMC
   if(ffRef.isFugacity) {
-    double delA = molRef.kinds[kindIndexA[0]].chemPot * numInCavA;
-    double insB = molRef.kinds[kindIndexB[0]].chemPot * numInCavB;
+    real delA = molRef.kinds[kindIndexA[0]].chemPot * numInCavA;
+    real insB = molRef.kinds[kindIndexB[0]].chemPot * numInCavB;
     if(insertL) {
       //Insert Large molecule
-      double ratioF = num::Factorial(totMolInCav - 1) /
+      real ratioF = num::Factorial(totMolInCav - 1) /
                       num::Factorial(totMolInCav - exchangeRatio);
-      double ratioM = numTypeASource / (numTypeBSource + 1.0);
+      real ratioM = numTypeASource / (numTypeBSource + 1.0);
       return (insB / delA) * ratioF * ratioM / pow(volCav, exchangeRatio - 1);
     } else {
       //Delete Large Molecule
-      double ratioF = num::Factorial(totMolInCav) /
+      real ratioF = num::Factorial(totMolInCav) /
                       num::Factorial(totMolInCav + exchangeRatio - 1);
-      double ratioM =  numTypeASource / (numTypeBSource + exchangeRatio);
+      real ratioM =  numTypeASource / (numTypeBSource + exchangeRatio);
       return (insB / delA) * ratioF * ratioM * pow(volCav, exchangeRatio - 1);
     }
   } else {
-    double delA = (-BETA * molRef.kinds[kindIndexA[0]].chemPot * numInCavA);
-    double insB = (BETA * molRef.kinds[kindIndexB[0]].chemPot * numInCavB);
+    real delA = (-BETA * molRef.kinds[kindIndexA[0]].chemPot * numInCavA);
+    real insB = (BETA * molRef.kinds[kindIndexB[0]].chemPot * numInCavB);
     if(insertL) {
       //Insert Large molecule
-      double ratioF = num::Factorial(totMolInCav - 1) /
+      real ratioF = num::Factorial(totMolInCav - 1) /
                       num::Factorial(totMolInCav - exchangeRatio);
-      double ratioM =  numTypeASource / (numTypeBSource + 1.0);
+      real ratioM =  numTypeASource / (numTypeBSource + 1.0);
       return exp(delA + insB) * ratioF * ratioM / pow(volCav, exchangeRatio - 1);
     } else {
       //Delete Large Molecule
-      double ratioF = num::Factorial(totMolInCav) /
+      real ratioF = num::Factorial(totMolInCav) /
                       num::Factorial(totMolInCav + exchangeRatio - 1);
-      double ratioM = numTypeASource / (numTypeBSource + exchangeRatio);
+      real ratioM = numTypeASource / (numTypeBSource + exchangeRatio);
       return exp(delA + insB) * ratioF * ratioM * pow(volCav, exchangeRatio - 1);
     }
   }

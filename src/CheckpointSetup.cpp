@@ -14,7 +14,7 @@ namespace
 {
 union dbl_input_union {
   char bin_value[8];
-  double dbl_value;
+  real dbl_value;
 };
 
 union uint32_input_union {
@@ -59,12 +59,12 @@ void CheckpointSetup::readBoxDimensionsData()
   for(int b = 0; b < totalBoxes; b++) {
     axis[b].resize(3);
     cosAngle[b].resize(3);
-    axis[b][0] = readDoubleIn8Chars();
-    axis[b][1] = readDoubleIn8Chars();
-    axis[b][2] = readDoubleIn8Chars();
-    cosAngle[b][0] = readDoubleIn8Chars();
-    cosAngle[b][1] = readDoubleIn8Chars();
-    cosAngle[b][2] = readDoubleIn8Chars();
+    axis[b][0] = readRealIn8Chars();
+    axis[b][1] = readRealIn8Chars();
+    axis[b][2] = readRealIn8Chars();
+    cosAngle[b][0] = readRealIn8Chars();
+    cosAngle[b][1] = readRealIn8Chars();
+    cosAngle[b][2] = readRealIn8Chars();
   }
 }
 
@@ -102,9 +102,9 @@ void CheckpointSetup::readCoordinates()
   coords.Init(coordLength);
   for(int i = 0; i < coordLength; i++) {
     XYZ temp;
-    temp.x = readDoubleIn8Chars();
-    temp.y = readDoubleIn8Chars();
-    temp.z = readDoubleIn8Chars();
+    temp.x = readRealIn8Chars();
+    temp.y = readRealIn8Chars();
+    temp.z = readRealIn8Chars();
     coords.Set(i, temp);
   }
 }
@@ -153,7 +153,7 @@ void CheckpointSetup::readMoveSettingsData()
     for(int j = 0; j < size_y; j++) {
       scaleVec[i][j].resize(size_z);
       for(int k = 0; k < size_z; k++) {
-        scaleVec[i][j][k] = readDoubleIn8Chars();
+        scaleVec[i][j][k] = readRealIn8Chars();
       }
     }
   }
@@ -170,7 +170,7 @@ void CheckpointSetup::readMoveSettingsData()
     for(int j = 0; j < size_y; j++) {
       acceptPercentVec[i][j].resize(size_z);
       for(int k = 0; k < size_z; k++) {
-        acceptPercentVec[i][j][k] = readDoubleIn8Chars();
+        acceptPercentVec[i][j][k] = readRealIn8Chars();
       }
     }
   }
@@ -254,7 +254,7 @@ void CheckpointSetup::openInputFile()
   }
 }
 
-double CheckpointSetup::readDoubleIn8Chars()
+real CheckpointSetup::readRealIn8Chars()
 {
   if(inputFile == NULL) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",

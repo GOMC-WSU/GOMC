@@ -31,12 +31,12 @@ class Atom
 {
 public:
   Atom(std::string const& l_name, std::string const& l_type,
-       const double l_charge, const double l_mass) :
+       const real l_charge, const real l_mass) :
     name(l_name), type(l_type), charge(l_charge), mass(l_mass) {}
   //private:
   //name (within a molecule) and type (for forcefield params)
   std::string name, type;
-  double charge, mass;
+  real charge, mass;
   //kind index
   uint kind;
 };

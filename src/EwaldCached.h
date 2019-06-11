@@ -24,23 +24,23 @@ public:
   virtual void BoxReciprocalSetup(uint box, XYZArray const& molCoords);
 
   //calculate reciprocate energy term for a box
-  virtual double BoxReciprocal(uint box) const;
+  virtual real BoxReciprocal(uint box) const;
 
   //calculate reciprocate term for displacement and rotation move
-  virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
+  virtual real MolReciprocal(XYZArray const& molCoords, const uint molIndex,
                                const uint box);
 
   //calculate reciprocate term in destination box for swap move
-  virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
+  virtual real SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
                                const int molIndex);
 
   //calculate reciprocate term in source box for swap move
-  virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
+  virtual real SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                  const uint box, const int molIndex);
 
   //calculate reciprocate term for inserting some molecules (kindA) in
   //destination box and removing a molecule (kindB) from destination box
-  virtual double SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
+  virtual real SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
                            const std::vector<cbmc::TrialMol> &oldMol);
 
   //restore cosMol and sinMol
@@ -54,12 +54,12 @@ public:
 
 private:
 
-  double *cosMolRestore; //cos()*charge
-  double *sinMolRestore; //sin()*charge
-  double **cosMolRef;
-  double **sinMolRef;
-  double **cosMolBoxRecip;
-  double **sinMolBoxRecip;
+  real *cosMolRestore; //cos()*charge
+  real *sinMolRestore; //sin()*charge
+  real **cosMolRef;
+  real **sinMolRef;
+  real **cosMolBoxRecip;
+  real **sinMolBoxRecip;
 #if ENSEMBLE == GEMC
   const uint GEMC_KIND;
 #endif

@@ -39,13 +39,13 @@ public:
   };
 
 private:
-  double BondEnergyNew(TrialMol& newMol);
-  double BondEnergyOld(TrialMol& oldMol);
+  real BondEnergyNew(TrialMol& newMol);
+  real BondEnergyOld(TrialMol& oldMol);
   DCData* data;
   uint atom, focus;
   uint bondKind;
-  double bondLength, bondLengthOld;
-  double bondEnergy;
+  real bondLength, bondLengthOld;
+  real bondEnergy;
 };
 
 

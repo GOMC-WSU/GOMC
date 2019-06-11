@@ -22,7 +22,7 @@ public:
     ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
     MoveBase(sys, statV) {}
 
-  virtual uint Prep(const double subDraw, const double movPerc);
+  virtual uint Prep(const real subDraw, const real movPerc);
   virtual uint Transform();
   virtual void CalcEn();
   virtual void Accept(const uint earlyReject, const uint step);
@@ -30,15 +30,15 @@ public:
 
 private:
 
-  double GetCoeff() const;
-  uint GetBoxPairAndMol(const double subDraw, const double movPerc);
+  real GetCoeff() const;
+  uint GetBoxPairAndMol(const real subDraw, const real movPerc);
   MolPick molPick;
   uint sourceBox, destBox;
   uint pStart, pLen;
   uint molIndex, kindIndex;
 
-  double W_tc, W_recip;
-  double correct_old, correct_new, self_old, self_new;
+  real W_tc, W_recip;
+  real correct_old, correct_new, self_old, self_new;
   cbmc::TrialMol oldMol, newMol;
   Intermolecular tcLose, tcGain, recipLose, recipGain;
   MoleculeLookup & molLookRef;
@@ -59,7 +59,7 @@ void MoleculeTransfer::PrintAcceptKind()
   }
 }
 
-inline uint MoleculeTransfer::GetBoxPairAndMol(const double subDraw, const double movPerc)
+inline uint MoleculeTransfer::GetBoxPairAndMol(const real subDraw, const real movPerc)
 {
   // Need to call a function to pick a molecule that is not fixed but cannot be
   // swap between boxes. (beta != 1, beta !=2)
@@ -80,7 +80,7 @@ inline uint MoleculeTransfer::GetBoxPairAndMol(const double subDraw, const doubl
   return state;
 }
 
-inline uint MoleculeTransfer::Prep(const double subDraw, const double movPerc)
+inline uint MoleculeTransfer::Prep(const real subDraw, const real movPerc)
 {
   overlap = false;
   uint state = GetBoxPairAndMol(subDraw, movPerc);
@@ -133,31 +133,31 @@ inline void MoleculeTransfer::CalcEn()
 
 }
 
-inline double MoleculeTransfer::GetCoeff() const
+inline real MoleculeTransfer::GetCoeff() const
 {
 #if ENSEMBLE == GEMC
-  return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) /
-         (double)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
+  return (real)(molLookRef.NumKindInBox(kindIndex, sourceBox)) /
+         (real)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
          boxDimRef.volume[destBox] * boxDimRef.volInv[sourceBox];
 #elif ENSEMBLE == GCMC
   if (sourceBox == mv::BOX0) { //Delete case
     if(ffRef.isFugacity) {
-      return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
+      return (real)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
              boxDimRef.volInv[sourceBox] /
              (BETA * molRef.kinds[kindIndex].chemPot);
     } else {
-      return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
+      return (real)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
              boxDimRef.volInv[sourceBox] *
              exp(-BETA * molRef.kinds[kindIndex].chemPot);
     }
   } else { //Insertion case
     if(ffRef.isFugacity) {
       return boxDimRef.volume[destBox] /
-             (double)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
+             (real)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
              (BETA * molRef.kinds[kindIndex].chemPot);
     } else {
       return boxDimRef.volume[destBox] /
-             (double)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
+             (real)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
              exp(BETA * molRef.kinds[kindIndex].chemPot);
     }
   }
@@ -169,10 +169,10 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
   bool result;
   //If we didn't skip the move calculation
   if(rejectState == mv::fail_state::NO_FAIL) {
-    double molTransCoeff = GetCoeff();
-    double Wo = oldMol.GetWeight();
-    double Wn = newMol.GetWeight();
-    double Wrat = Wn / Wo * W_tc * W_recip;
+    real molTransCoeff = GetCoeff();
+    real Wo = oldMol.GetWeight();
+    real Wn = newMol.GetWeight();
+    real Wrat = Wn / Wo * W_tc * W_recip;
 
     //safety to make sure move will be rejected in overlap case
     if(newMol.GetWeight() != 0.0 && !overlap) {
@@ -206,7 +206,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 
 
       //Zero out box energies to prevent small number
-      //errors in double.
+      //errors in real.
       if (molLookRef.NumInBox(sourceBox) == 0) {
         sysPotRef.boxEnergy[sourceBox].Zero();
         sysPotRef.boxVirial[sourceBox].Zero();

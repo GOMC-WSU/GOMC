@@ -19,12 +19,12 @@ const uint FFSetup::CHARMM_ALIAS_IDX = 0;
 const uint FFSetup::EXOTIC_ALIAS_IDX = 1;
 const std::string FFSetup::paramFileAlias[] =
 {"CHARMM-Style parameter file", "EXOTIC-Style parameter file"};
-const double ff_setup::KCAL_PER_MOL_TO_K = 503.21959899;
-const double ff_setup::RIJ_OVER_2_TO_SIG = 1.7817974362807;
-const double ff_setup::RIJ_TO_SIG = 0.890898718;
+const real ff_setup::KCAL_PER_MOL_TO_K = 503.21959899;
+const real ff_setup::RIJ_OVER_2_TO_SIG = 1.7817974362807;
+const real ff_setup::RIJ_TO_SIG = 0.890898718;
 
-const double ff_setup::Bond::FIXED = 99999999;
-const double ff_setup::Angle::FIXED = 99999999;
+const real ff_setup::Bond::FIXED = 99999999;
+const real ff_setup::Angle::FIXED = 99999999;
 
 //Map variable names to functions
 std::map<std::string, ReadableBaseWithFirst *>
@@ -122,7 +122,7 @@ std::string FFBase::LoadLine(Reader & param, std::string const& firstVar)
 
 void Particle::Read(Reader & param, std::string const& firstVar)
 {
-  double e, s, e_1_4, s_1_4, dummy1, dummy2;
+  real e, s, e_1_4, s_1_4, dummy1, dummy2;
   uint expN, expN_1_4;
   std::stringstream values(LoadLine(param, firstVar));
   if (isCHARMM()) { //if lj
@@ -151,8 +151,8 @@ void Particle::Read(Reader & param, std::string const& firstVar)
   Add(e, s, expN, e_1_4, s_1_4, expN_1_4);
 }
 
-void Particle::Add(double e, double s, const uint expN,
-                   double e_1_4, double s_1_4, const uint expN_1_4)
+void Particle::Add(real e, real s, const uint expN,
+                   real e_1_4, real s_1_4, const uint expN_1_4)
 {
   if (isCHARMM()) {
     e *= -1.0;
@@ -170,11 +170,11 @@ void Particle::Add(double e, double s, const uint expN,
 
 void NBfix::Read(Reader & param, std::string const& firstVar)
 {
-  double e, s, e_1_4, s_1_4;
+  real e, s, e_1_4, s_1_4;
 #ifdef MIE_INT_ONLY
   uint expN, expN_1_4;
 #else
-  double expN, expN_1_4;
+  real expN, expN_1_4;
 #endif
 
   std::stringstream values(LoadLine(param, firstVar));
@@ -197,17 +197,17 @@ void NBfix::Read(Reader & param, std::string const& firstVar)
   Add(e, s, expN, e_1_4, s_1_4, expN_1_4);
 }
 
-void NBfix::Add(double e, double s,
+void NBfix::Add(real e, real s,
 #ifdef MIE_INT_ONLY
                 const uint expN,
 #else
-                const double expN,
+                const real expN,
 #endif
-                double e_1_4, double s_1_4,
+                real e_1_4, real s_1_4,
 #ifdef MIE_INT_ONLY
                 const uint expN_1_4
 #else
-                const double expN_1_4
+                const real expN_1_4
 #endif
                )
 {
@@ -228,12 +228,12 @@ void NBfix::Add(double e, double s,
 
 void Bond::Read(Reader & param, std::string const& firstVar)
 {
-  double coeff, def;
+  real coeff, def;
   ReadKind(param, firstVar);
   param.file >> coeff >> def;
   Add(coeff, def);
 }
-void Bond::Add(const double coeff, const double def)
+void Bond::Add(const real coeff, const real def)
 {
   fixed.push_back(coeff > FIXED);
   Kb.push_back(EnConvIfCHARMM(coeff));
@@ -242,7 +242,7 @@ void Bond::Add(const double coeff, const double def)
 
 void Angle::Read(Reader & param, std::string const& firstVar)
 {
-  double coeff, def, coeffUB, defUB;
+  real coeff, def, coeffUB, defUB;
   bool hsUB;
   std::stringstream values(LoadLine(param, firstVar));
   values >> coeff >> def;
@@ -251,8 +251,8 @@ void Angle::Read(Reader & param, std::string const& firstVar)
   hsUB = !values.fail();
   Add(coeff, def, hsUB, coeffUB, defUB);
 }
-void Angle::Add(const double coeff, const double def, const bool hsUB,
-                const double coeffUB, const double defUB)
+void Angle::Add(const real coeff, const real def, const bool hsUB,
+                const real coeffUB, const real defUB)
 {
   fixed.push_back(coeff > FIXED);
   Ktheta.push_back(EnConvIfCHARMM(coeff));
@@ -269,7 +269,7 @@ void Angle::Add(const double coeff, const double def, const bool hsUB,
 
 void Dihedral::Read(Reader & param, std::string const& firstVar)
 {
-  double coeff, def;
+  real coeff, def;
   uint index;
   std::string merged = ReadKind(param, firstVar);
   param.file >> coeff >> index >> def;
@@ -282,7 +282,7 @@ void Dihedral::Read(Reader & param, std::string const& firstVar)
   last = merged;
 }
 void Dihedral::Add(std::string const& merged,
-                   const double coeff, const uint index, const double def)
+                   const real coeff, const uint index, const real def)
 {
   ++countTerms;
   Kchi[merged].push_back(EnConvIfCHARMM(coeff));
@@ -292,7 +292,7 @@ void Dihedral::Add(std::string const& merged,
 
 void Improper::Read(Reader & param, std::string const& firstVar)
 {
-  double coeff, def;
+  real coeff, def;
   std::string merged = ReadKind(param, firstVar);
   //If new value
   if (validname(merged) == false) {
@@ -300,7 +300,7 @@ void Improper::Read(Reader & param, std::string const& firstVar)
     Add(coeff, def);
   }
 }
-void Improper::Add(const double coeff, const double def)
+void Improper::Add(const real coeff, const real def)
 {
   Komega.push_back(EnConvIfCHARMM(coeff));
   omega0.push_back(def);

@@ -386,7 +386,7 @@ void BriefAngleKinds(MolKind& kind, const FFSetup& ffData)
   const uint ATOMS_PER = 3;
   std::string elementNames[ATOMS_PER];
   std::vector<std::string> printed;
-  double coef = 180.00 / M_PI;
+  real coef = 180.00 / M_PI;
 
   if(kind.angles.size() == 0)
     return;
@@ -444,7 +444,7 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData)
 {
   const uint ATOMS_PER = 4;
   std::string elementNames[ATOMS_PER];
-  double coef = 180.00 / M_PI;
+  real coef = 180.00 / M_PI;
   std::vector<std::string> printed;
 
   if(kind.dihedrals.size() == 0)
@@ -639,7 +639,7 @@ int ReadPSFAtoms(FILE* psf, MolMap& kindMap, unsigned int nAtoms)
   unsigned int atomID = 0;
   unsigned int molID;
   char segment[11], moleculeName[11], atomName[11], atomType[11];
-  double charge, mass;
+  real charge, mass;
 
   while (atomID < nAtoms) {
     char* check = fgets(input, 511, psf);

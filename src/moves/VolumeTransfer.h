@@ -23,10 +23,10 @@ class VolumeTransfer : public MoveBase
 public:
   VolumeTransfer(System &sys, StaticVals const& statV);
 
-  virtual uint Prep(const double subDraw, const double movePerc);
+  virtual uint Prep(const real subDraw, const real movePerc);
   virtual void CalcEn();
   virtual uint Transform();
-  double GetCoeff() const;
+  real GetCoeff() const;
   virtual void Accept(const uint rejectState, const uint step);
   virtual void PrintAcceptKind();
 private:
@@ -42,7 +42,7 @@ private:
   COM newCOMs;
   MoleculeLookup & molLookRef;
   const uint GEMC_KIND;
-  const double PRESSURE;
+  const real PRESSURE;
   bool regrewGrid, isOrth;
   bool fixBox0;
 };
@@ -71,7 +71,7 @@ void VolumeTransfer::PrintAcceptKind()
   std::cout << std::endl;
 }
 
-inline uint VolumeTransfer::Prep(const double subDraw, const double movePerc)
+inline uint VolumeTransfer::Prep(const real subDraw, const real movePerc)
 {
   uint state = mv::fail_state::NO_FAIL;
 
@@ -103,7 +103,7 @@ inline uint VolumeTransfer::Transform()
   uint state = mv::fail_state::NO_FAIL;
   //Reinit, if necessary.
   if (GEMC_KIND == mv::GEMC_NVT) {
-    double max = std::min(moveSetRef.Scale(bPick[0], mv::VOL_TRANSFER),
+    real max = std::min(moveSetRef.Scale(bPick[0], mv::VOL_TRANSFER),
                           moveSetRef.Scale(bPick[1], mv::VOL_TRANSFER));
     if(isOrth) {
       coordCurrRef.VolumeTransferTranslate(state, newMolsPos, newCOMs, newDim,
@@ -115,8 +115,8 @@ inline uint VolumeTransfer::Transform()
   } else {
     //NPT ot GEMC-NPT we change volume of one box
     XYZ scale;
-    double max = moveSetRef.Scale(box, mv::VOL_TRANSFER);
-    double delta = prng.Sym(max);
+    real max = moveSetRef.Scale(box, mv::VOL_TRANSFER);
+    real delta = prng.Sym(max);
     if(isOrth) {
       state =  boxDimRef.ShiftVolume(newDim, scale, box, delta);
     } else {
@@ -200,32 +200,32 @@ inline void VolumeTransfer::CalcEn()
 
 
 
-inline double VolumeTransfer::GetCoeff() const
+inline real VolumeTransfer::GetCoeff() const
 {
   ////Log-volume style shift -- is turned off, at present.
   //
   //return pow(newDim.volume[b_i]/boxDimRef.volume[b_i],
-  //	      (double)molLookRef.NumInBox(b_i)+1) *
+  //	      (real)molLookRef.NumInBox(b_i)+1) *
   //  pow(newDim.volume[b_ii]/boxDimRef.volume[b_ii],
-  //	 (double)molLookRef.NumInBox(b_ii)+1);
-  double coeff = 1.0;
+  //	 (real)molLookRef.NumInBox(b_ii)+1);
+  real coeff = 1.0;
   if (GEMC_KIND == mv::GEMC_NVT) {
     for (uint b = 0; b < 2; ++b) {
       if(isOrth)
         coeff *= pow(newDim.volume[bPick[b]] / boxDimRef.volume[bPick[b]],
-                     (double)molLookRef.NumInBox(bPick[b]));
+                     (real)molLookRef.NumInBox(bPick[b]));
       else
         coeff *= pow(newDimNonOrth.volume[bPick[b]] / boxDimRef.volume[bPick[b]],
-                     (double)molLookRef.NumInBox(bPick[b]));
+                     (real)molLookRef.NumInBox(bPick[b]));
     }
   } else {
     if(isOrth) {
       coeff = pow(newDim.volume[box] / boxDimRef.volume[box],
-                  (double)molLookRef.NumInBox(box)) *
+                  (real)molLookRef.NumInBox(box)) *
               exp(-BETA * PRESSURE * (newDim.volume[box] - boxDimRef.volume[box]));
     } else {
       coeff = pow(newDimNonOrth.volume[box] / boxDimRef.volume[box],
-                  (double)molLookRef.NumInBox(box)) *
+                  (real)molLookRef.NumInBox(box)) *
               exp(-BETA * PRESSURE * (newDimNonOrth.volume[box] - boxDimRef.volume[box]));
     }
   }
@@ -234,9 +234,9 @@ inline double VolumeTransfer::GetCoeff() const
 
 inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
 {
-  double volTransCoeff = GetCoeff();
-  double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
-  double accept = volTransCoeff * uBoltz;
+  real volTransCoeff = GetCoeff();
+  real uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
+  real accept = volTransCoeff * uBoltz;
   bool result = (rejectState == mv::fail_state::NO_FAIL) && prng() < accept;
   if (result) {
     //Set new energy.

@@ -24,12 +24,12 @@ public:
     delete[] fixed;
   }
 
-  double Angle(const uint kind) const
+  real Angle(const uint kind) const
   {
     return theta0[kind];
   }
 
-  double AngleEnergy(const uint kind) const
+  real AngleEnergy(const uint kind) const
   {
     return Ktheta[kind];
   }
@@ -39,7 +39,7 @@ public:
     return fixed[kind];
   }
 
-  virtual double Calc(const uint kind, const double ang) const
+  virtual real Calc(const uint kind, const real ang) const
   {
     return (fixed[kind] ? 0.0 : Ktheta[kind] * num::Sq(ang - theta0[kind]));
   }
@@ -54,14 +54,14 @@ public:
   }
 
 protected:
-  double * Ktheta, * theta0;
+  real * Ktheta, * theta0;
   bool * fixed;
   uint count;
 };
 
 class FFAngleMartini : public FFAngles
 {
-  virtual double Calc(const uint kind, const double ang) const
+  virtual real Calc(const uint kind, const real ang) const
   {
     return (fixed[kind] ? 0.0 : Ktheta[kind] *
             num::Sq(cos(ang) - cos(theta0[kind])));

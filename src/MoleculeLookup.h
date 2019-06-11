@@ -90,9 +90,9 @@ public:
   }
 
   void TotalAndDensity(uint * numByBox, uint * numByKindBox,
-                       double * molFractionByBoxKind,
-                       double * densityByKindBox,
-                       double const * const volInv) const;
+                       real * molFractionByBoxKind,
+                       real * densityByKindBox,
+                       real const * const volInv) const;
 
 #ifdef VARIABLE_PARTICLE_NUMBER
   //Registers shift of mol into intoBox

@@ -12,9 +12,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 void FFDihedrals::Init(ff_setup::Dihedral const& dih)
 {
   uint size = dih.getTerms(), numSubDiv = dih.getnamecnt(), count = 0;
-  Kchi = new double[size];
+  Kchi = new real[size];
   n = new uint[size];
-  delta = new double[size];
+  delta = new real[size];
   subdiv.Init(numSubDiv);
   for (uint s = 0; s < numSubDiv; s++) {
     std::string div = dih.getname(s);

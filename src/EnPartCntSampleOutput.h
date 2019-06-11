@@ -62,7 +62,7 @@ private:
                        const uint b);
 
   //samplesE --> per box; samplesN --> per kind, per box
-  double * samplesE [BOXES_WITH_U_NB];
+  real * samplesE [BOXES_WITH_U_NB];
   uint ** samplesN [BOXES_WITH_U_NB], stepsPerSample, samplesCollectedInFrame;
   std::ofstream outF[BOXES_WITH_U_NB];
   std::string name [BOXES_WITH_U_NB];

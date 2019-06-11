@@ -18,7 +18,7 @@ public:
 
   Translate(System &sys, StaticVals const& statV) : MoveBase(sys, statV) {}
 
-  virtual uint Prep(const double subDraw, const double movPerc);
+  virtual uint Prep(const real subDraw, const real movPerc);
   uint ReplaceRot(Rotate const& other);
   virtual uint Transform();
   virtual void CalcEn();
@@ -49,7 +49,7 @@ inline uint Translate::ReplaceRot(Rotate const& other)
   return mv::fail_state::NO_FAIL;
 }
 
-inline uint Translate::Prep(const double subDraw, const double movPerc)
+inline uint Translate::Prep(const real subDraw, const real movPerc)
 {
   return GetBoxAndMol(prng, molRef, subDraw, movPerc);
 }
@@ -79,7 +79,7 @@ inline void Translate::Accept(const uint rejectState, const uint step)
 {
   bool res = false;
   if (rejectState == mv::fail_state::NO_FAIL) {
-    double pr = prng();
+    real pr = prng();
     res = pr < exp(-BETA * (inter_LJ.energy + inter_Real.energy +
                             recip.energy));
   }

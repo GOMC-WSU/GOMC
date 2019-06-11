@@ -20,16 +20,16 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 void BlockAverage::Init(std::ofstream* file0,
                         std::ofstream* file1,
                         const bool en,
-                        const double scale,
+                        const real scale,
                         std::string const& var,
                         const uint bTot)
 {
   outBlock0 = file0;
   outBlock1 = file1;
   tot = bTot;
-  block = new double[tot];
+  block = new real[tot];
   uintSrc = new uint *[tot];
-  dblSrc = new double *[tot];
+  dblSrc = new real *[tot];
   enable = en;
   scl = scale;
   if (enable) {
@@ -46,7 +46,7 @@ void BlockAverage::Sum(void)
 {
   if (enable && uintSrc[0] != NULL)
     for (uint b = 0; b < tot; ++b)
-      block[b] += (double)(*uintSrc[b]) * scl;
+      block[b] += (real)(*uintSrc[b]) * scl;
   else if (enable)
     for (uint b = 0; b < tot; ++b)
       block[b] += *dblSrc[b] * scl;

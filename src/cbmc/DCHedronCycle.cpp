@@ -74,7 +74,7 @@ DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
   }
 
   vector<Angle> angles = AtomMidAngles(kind, focus);
-  double sumAngle = 0.0;
+  real sumAngle = 0.0;
   for (uint a = 0; a < angles.size(); a++) {
     sumAngle += data->ff.angles->Angle(angles[a].kind);
   }
@@ -124,7 +124,7 @@ DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
   }
 }
 
-void DCHedronCycle::SetBondNew(double const *bondLen, double const &anchBond)
+void DCHedronCycle::SetBondNew(real const *bondLen, real const &anchBond)
 {
   for(uint i = 0; i < nBonds; ++i) {
     bondLength[i] = bondLen[i];
@@ -132,7 +132,7 @@ void DCHedronCycle::SetBondNew(double const *bondLen, double const &anchBond)
   anchorBond = anchBond;
 }
 
-void DCHedronCycle::SetBondOld(double const *bondLen, double const &anchBond)
+void DCHedronCycle::SetBondOld(real const *bondLen, real const &anchBond)
 {
   for(uint i = 0; i < nBonds; ++i) {
     bondLengthOld[i] = bondLen[i];
@@ -140,9 +140,9 @@ void DCHedronCycle::SetBondOld(double const *bondLen, double const &anchBond)
   anchorBondOld = anchBond;
 }
 
-double DCHedronCycle::GetWeight()
+real DCHedronCycle::GetWeight()
 {
-  double result = 1;
+  real result = 1;
   for(uint i = 0; i < nBonds; ++i) {
     result *= thetaWeight[i];
     result *= phiWeight[i];
@@ -150,10 +150,10 @@ double DCHedronCycle::GetWeight()
   return result;
 }
 
-double DCHedronCycle::CalcTheta(TrialMol& mol, const uint a0, const uint a1,
+real DCHedronCycle::CalcTheta(TrialMol& mol, const uint a0, const uint a1,
                                 const uint a2)
 {
-  double theta = 0.0;
+  real theta = 0.0;
   if(mol.AtomExists(a0) && mol.AtomExists(a2)) {
     //Calculate theta using tCoords
     theta = mol.GetTheta(a0, a1, a2);
@@ -170,21 +170,21 @@ double DCHedronCycle::CalcTheta(TrialMol& mol, const uint a0, const uint a1,
 void DCHedronCycle::GenerateAnglesNew(TrialMol& newMol, uint molIndex,
                                       uint kind, uint nTrials, uint bType)
 {
-  double* nonbonded_1_3 =  data->nonbonded_1_3;
+  real* nonbonded_1_3 =  data->nonbonded_1_3;
   int i;
-  double distSq;
+  real distSq;
   bool angleFix = data->ff.angles->AngleFixed(kind);
   std::fill_n(nonbonded_1_3, nTrials, 0.0);
   //use backup coordinate to find theta and phi of the ring
   if(angleInRing[bType][bType] || angleFix) {
-    double th = CalcTheta(newMol, bonded[bType], focus, prev);
+    real th = CalcTheta(newMol, bonded[bType], focus, prev);
     std::fill_n(data->angles, nTrials, th);
-    double en = data->ff.angles->Calc(kind, th);
+    real en = data->ff.angles->Calc(kind, th);
     std::fill_n(data->angleEnergy, nTrials, en);
-    double distSq = newMol.AngleDist(anchorBond, bondLength[bType], th);
-    double enNB = data->calc.IntraEnergy_1_3(distSq, prev, bonded[bType], molIndex);
+    real distSq = newMol.AngleDist(anchorBond, bondLength[bType], th);
+    real enNB = data->calc.IntraEnergy_1_3(distSq, prev, bonded[bType], molIndex);
     std::fill_n(nonbonded_1_3, nTrials, enNB);
-    double w = exp((en + enNB) * -data->ff.beta);
+    real w = exp((en + enNB) * -data->ff.beta);
     std::fill_n(data->angleWeights, nTrials, w);
     return;
   }
@@ -210,21 +210,21 @@ void DCHedronCycle::GenerateAnglesNew(TrialMol& newMol, uint molIndex,
 void DCHedronCycle::GenerateAnglesOld(TrialMol& oldMol, uint molIndex,
                                       uint kind, uint nTrials, uint bType)
 {
-  double* nonbonded_1_3 =  data->nonbonded_1_3;
+  real* nonbonded_1_3 =  data->nonbonded_1_3;
   int i;
-  double distSq;
+  real distSq;
   bool angleFix = data->ff.angles->AngleFixed(kind);
   std::fill_n(nonbonded_1_3, nTrials, 0.0);
   //use backup coordinate to find theta and phi of the ring
   if(angleInRing[bType][bType] || angleFix) {
-    double th = CalcTheta(oldMol, bonded[bType], focus, prev);
+    real th = CalcTheta(oldMol, bonded[bType], focus, prev);
     std::fill_n(data->angles, nTrials, th);
-    double en = data->ff.angles->Calc(kind, th);
+    real en = data->ff.angles->Calc(kind, th);
     std::fill_n(data->angleEnergy, nTrials, en);
-    double distSq = oldMol.AngleDist(anchorBondOld, bondLengthOld[bType], th);
-    double enNB = data->calc.IntraEnergy_1_3(distSq, prev, bonded[bType], molIndex);
+    real distSq = oldMol.AngleDist(anchorBondOld, bondLengthOld[bType], th);
+    real enNB = data->calc.IntraEnergy_1_3(distSq, prev, bonded[bType], molIndex);
     std::fill_n(nonbonded_1_3, nTrials, enNB);
-    double w = exp((en + enNB) * -data->ff.beta);
+    real w = exp((en + enNB) * -data->ff.beta);
     std::fill_n(data->angleWeights, nTrials, w);
     return;
   }
@@ -253,7 +253,7 @@ void DCHedronCycle::FreeAnglesNew(TrialMol& newMol, uint molIndex, uint nTrials)
 {
   for (uint i = 0; i < nBonds; ++i) {
     GenerateAnglesNew(newMol, molIndex, angleKinds[i][i], nTrials, i);
-    double stepWeight = std::accumulate(data->angleWeights,
+    real stepWeight = std::accumulate(data->angleWeights,
                                         data->angleWeights + nTrials,
                                         0.0);
     uint winner = data->prng.PickWeighted(data->angleWeights,
@@ -269,7 +269,7 @@ void DCHedronCycle::FreeAnglesOld(TrialMol& oldMol, uint molIndex, uint nTrials)
 {
   for (uint i = 0; i < nBonds; ++i) {
     GenerateAnglesOld(oldMol, molIndex, angleKinds[i][i], nTrials, i);
-    double stepWeight = std::accumulate(data->angleWeights,
+    real stepWeight = std::accumulate(data->angleWeights,
                                         data->angleWeights + nTrials,
                                         0.0);
     thetaWeight[i] = stepWeight;
@@ -301,9 +301,9 @@ void DCHedronCycle::IncorporateOld(TrialMol& oldMol, uint molIndex)
   for (uint b = 0; b < nBonds; ++b) {
 
     oldMol.OldThetaAndPhi(bonded[b], focus, theta[b], phi[b]);
-    double thetaEnergy = data->ff.angles->Calc(angleKinds[b][b], theta[b]);
-    double distSq = oldMol.OldDistSq(prev, bonded[b]);
-    double nonbondedEn =
+    real thetaEnergy = data->ff.angles->Calc(angleKinds[b][b], theta[b]);
+    real distSq = oldMol.OldDistSq(prev, bonded[b]);
+    real nonbondedEn =
       data->calc.IntraEnergy_1_3(distSq, prev, bonded[b], molIndex);
 
     thetaWeight[b] += exp(-1 * data->ff.beta * (thetaEnergy + nonbondedEn));
@@ -311,16 +311,16 @@ void DCHedronCycle::IncorporateOld(TrialMol& oldMol, uint molIndex)
     oneThree += nonbondedEn;
 
     if (b != 0) {
-      double phiEnergy = 0.0;
+      real phiEnergy = 0.0;
       nonbondedEn = 0.0;
       phiWeight[b] = 0.0;
       for (uint c = 0; c < b; ++c) {
-        double cosTerm = cos(theta[b]) * cos(theta[c]);
-        double sinTerm = sin(theta[b]) * sin(theta[c]);
-        double bfcTheta = acos(sinTerm * cos(phi[b] - phi[c]) +
+        real cosTerm = cos(theta[b]) * cos(theta[c]);
+        real sinTerm = sin(theta[b]) * sin(theta[c]);
+        real bfcTheta = acos(sinTerm * cos(phi[b] - phi[c]) +
                                cosTerm);
 
-        double distSq = oldMol.OldDistSq(bonded[c], bonded[b]);
+        real distSq = oldMol.OldDistSq(bonded[c], bonded[b]);
         nonbondedEn +=  data->calc.IntraEnergy_1_3(distSq, bonded[c],
                         bonded[b], molIndex);
 
@@ -337,15 +337,15 @@ void DCHedronCycle::IncorporateOld(TrialMol& oldMol, uint molIndex)
 
 void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTrials)
 {
-  double* angles = data->angles;
-  double* energies = data->angleEnergy;
-  double* weights = data->angleWeights;
-  double* nonbonded_1_3 =  data->nonbonded_1_3;
+  real* angles = data->angles;
+  real* energies = data->angleEnergy;
+  real* weights = data->angleWeights;
+  real* nonbonded_1_3 =  data->nonbonded_1_3;
 
   SetBasis(newMol, focus, prev);
   phi[0] = 0.0;
   //reference phi
-  double refPhi = CalcOldPhi(newMol, bonded[0], focus);
+  real refPhi = CalcOldPhi(newMol, bonded[0], focus);
 
   for (uint b = 1; b < nBonds; ++b) {
     std::fill_n(energies, nTrials, 0.0);
@@ -358,7 +358,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
     //tan2 output is [-pi, pi], acos output is [0, pi]
     //Need to determine if we want to use ang or -ang
     //Use phi[0] to compare it
-    double phiDiff = CalcOldPhi(newMol, bonded[b], focus) - refPhi;
+    real phiDiff = CalcOldPhi(newMol, bonded[b], focus) - refPhi;
     phiDiff += (phiDiff < 0.0 ? M_PI : -M_PI);
     bool flip = (phiDiff > 0.0 ? true : false);
 
@@ -367,14 +367,14 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
       bool angleFix = data->ff.angles->AngleFixed(angleKinds[b][c]);
 
       if(angleInRing[b][c] || angleFix) {
-        double cosTerm = cos(theta[b]) * cos(theta[c]);
-        double sinTerm = sin(theta[b]) * sin(theta[c]);
-        double bfcRing = CalcTheta(newMol, bonded[b], focus, bonded[c]);
-        double var = (cos(bfcRing) - cosTerm) / sinTerm;
+        real cosTerm = cos(theta[b]) * cos(theta[c]);
+        real sinTerm = sin(theta[b]) * sin(theta[c]);
+        real bfcRing = CalcTheta(newMol, bonded[b], focus, bonded[c]);
+        real var = (cos(bfcRing) - cosTerm) / sinTerm;
         //To fix the numerical problem for flat molecule
         var = (var > 1.0 && var < 1.1 ? 1.0 : var);
         var = (var < -1.0 && var > -1.1 ? -1.0 : var);
-        double ang = acos(var);
+        real ang = acos(var);
         ang = (flip ? 2.0 * M_PI - ang : ang);
         ang += phi[c];
         std::fill_n(angles, nTrials, ang);
@@ -396,20 +396,20 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
 
     //compare to angles determined in previous iterations
     for (uint c = 0; c < b; ++c) {
-      double cosTerm = cos(theta[b]) * cos(theta[c]);
-      double sinTerm = sin(theta[b]) * sin(theta[c]);
+      real cosTerm = cos(theta[b]) * cos(theta[c]);
+      real sinTerm = sin(theta[b]) * sin(theta[c]);
 
       for (uint i = 0; i < nTrials; ++i) {
-        double bfcTheta = acos(sinTerm * cos(angles[i] - phi[c]) + cosTerm);
-        double distSq = newMol.AngleDist(bondLength[b], bondLength[c], bfcTheta);
-        double tempEn = data->calc.IntraEnergy_1_3(distSq, bonded[b], bonded[c], molIndex);
+        real bfcTheta = acos(sinTerm * cos(angles[i] - phi[c]) + cosTerm);
+        real distSq = newMol.AngleDist(bondLength[b], bondLength[c], bfcTheta);
+        real tempEn = data->calc.IntraEnergy_1_3(distSq, bonded[b], bonded[c], molIndex);
         nonbonded_1_3[i] += tempEn;
         energies[i] += data->ff.angles->Calc(angleKinds[b][c], bfcTheta);
       }
     }
 
     //calculate weights from combined energy
-    double stepWeight = 0.0;
+    real stepWeight = 0.0;
     int i;
 #ifdef _OPENMP
     #pragma omp parallel for default(shared) private(i) reduction(+:stepWeight)
@@ -432,11 +432,11 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
 void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
     uint molIndex)
 {
-  double* angles = data->angles;
+  real* angles = data->angles;
   IncorporateOld(oldMol, molIndex);
 
   for (uint b = 1; b < nBonds; ++b) {
-    double stepWeight = 0.0;
+    real stepWeight = 0.0;
     //pick "twist" angles
     for (uint i = 0; i < nTrials; ++i) {
       angles[i]  = data->prng.rand(2.0 * M_PI);
@@ -445,7 +445,7 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
     //tan2 output is [-pi, pi], acos output is [0, pi]
     //Need to determine if we want to use ang or -ang
     //Use phi[0] to compare it
-    double phiDiff = phi[b] - phi[0];
+    real phiDiff = phi[b] - phi[0];
     phiDiff += (phiDiff < 0.0 ? M_PI : -M_PI);
     bool flip = (phiDiff > 0.0 ? true : false);
 
@@ -454,14 +454,14 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
       bool angleFix = data->ff.angles->AngleFixed(angleKinds[b][c]);
 
       if(angleInRing[b][c] || angleFix) {
-        double cosTerm = cos(theta[b]) * cos(theta[c]);
-        double sinTerm = sin(theta[b]) * sin(theta[c]);
-        double bfcRing = CalcTheta(oldMol, bonded[b], focus, bonded[c]);
-        double var = (cos(bfcRing) - cosTerm) / sinTerm;
+        real cosTerm = cos(theta[b]) * cos(theta[c]);
+        real sinTerm = sin(theta[b]) * sin(theta[c]);
+        real bfcRing = CalcTheta(oldMol, bonded[b], focus, bonded[c]);
+        real var = (cos(bfcRing) - cosTerm) / sinTerm;
         //To fix the numerical problem for flat molecule
         var = (var > 1.0 && var < 1.1 ? 1.0 : var);
         var = (var < -1.0 && var > -1.1 ? -1.0 : var);
-        double ang = acos(var);
+        real ang = acos(var);
         ang = (flip ? 2.0 * M_PI - ang : ang);
         ang += phi[c];
         std::fill_n(angles, nTrials, ang);
@@ -482,20 +482,20 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
 
 
     for (uint i = 0; i < nTrials; ++i) {
-      double energies = 0.0;
-      double nonbondedEng = 0.0;
+      real energies = 0.0;
+      real nonbondedEng = 0.0;
       //compare to angles determined in previous iterations
       for (uint c = 0; c < b; ++c) {
-        double cosTerm = cos(theta[b]) * cos(theta[c]);
-        double sinTerm = sin(theta[b]) * sin(theta[c]);
+        real cosTerm = cos(theta[b]) * cos(theta[c]);
+        real sinTerm = sin(theta[b]) * sin(theta[c]);
 
-        double bfcTheta = acos(sinTerm * cos(angles[i] - phi[c]) + cosTerm);
-        double distSq = oldMol.AngleDist(bondLengthOld[b], bondLengthOld[c], bfcTheta);
+        real bfcTheta = acos(sinTerm * cos(angles[i] - phi[c]) + cosTerm);
+        real distSq = oldMol.AngleDist(bondLengthOld[b], bondLengthOld[c], bfcTheta);
         nonbondedEng += data->calc.IntraEnergy_1_3(distSq, bonded[b], bonded[c], molIndex);
         energies += data->ff.angles->Calc(angleKinds[b][c], bfcTheta);
       }
       //calculate weights from combined energy
-      double weights = exp(-1 * data->ff.beta * (energies + nonbondedEng));
+      real weights = exp(-1 * data->ff.beta * (energies + nonbondedEng));
       stepWeight += weights;
     }
     phiWeight[b] += stepWeight;
@@ -526,7 +526,7 @@ void DCHedronCycle::SetBasis(TrialMol& mol, uint p1, uint p2)
   worldToGrowth = growthToWorld.Inverse();
 }
 
-double DCHedronCycle::CalcOldPhi(TrialMol& mol, uint atom, uint lastAtom) const
+real DCHedronCycle::CalcOldPhi(TrialMol& mol, uint atom, uint lastAtom) const
 {
   //Calculate the dihedral using bCoords
   const XYZArray &coords = mol.GetBCoords();

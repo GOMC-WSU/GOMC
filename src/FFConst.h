@@ -14,7 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 namespace ff
 {
-static const double DENSITY_N_PER_V_TO_G_ML = 1.660538921;
+static const real DENSITY_N_PER_V_TO_G_ML = 1.660538921;
 
 namespace part
 {
@@ -38,9 +38,9 @@ namespace rot
 {
 const uint cis = 0;
 const uint trans = 1;
-inline uint GetRotKind(const double phi)
+inline uint GetRotKind(const real phi)
 {
-  double ang = geom::RadToDeg(phi);
+  real ang = geom::RadToDeg(phi);
   return ((ang > 90 || ang < -90) ? ff::dih::rot::trans : ff::dih::rot::cis);
 }
 }

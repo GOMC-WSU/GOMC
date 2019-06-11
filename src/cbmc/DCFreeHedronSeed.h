@@ -40,14 +40,14 @@ private:
   DCData* data;
   DCHedron hed;
   //bond length of prev bonded to focus
-  double anchorBond, anchorBondOld;
+  real anchorBond, anchorBondOld;
   //bond energy of built branch
-  double bondEnergy;
+  real bondEnergy;
   uint anchorKind;
 
   //bond length of atom bonded to focus
-  double bondLength[MAX_BONDS];
-  double bondLengthOld[MAX_BONDS];
+  real bondLength[MAX_BONDS];
+  real bondLengthOld[MAX_BONDS];
   //bondKind between bonded[i] and focus
   uint bondKinds[MAX_BONDS];
 };

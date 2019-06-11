@@ -22,7 +22,7 @@ public:
     Reader(name, alias, false, NULL, false, NULL, crit, note), line("") {}
 
   //Functions to get values from file, using fields.
-  FixedWidthReader & Get(double & d, ConstField const& field)
+  FixedWidthReader & Get(real & d, ConstField const& field)
   {
     sstrm::FromStr(d, Str(field));
     return *this;

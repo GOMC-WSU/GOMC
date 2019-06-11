@@ -104,10 +104,10 @@ void Atoms::SetRestart(config_setup::RestartSettings const& r )
 void Atoms::Assign(std::string const& atomName,
                    std::string const& resName,
                    const uint resNum,
-                   const char l_chain, const double l_x,
-                   const double l_y, const double l_z,
-                   const double l_occ,
-                   const double l_beta)
+                   const char l_chain, const real l_x,
+                   const real l_y, const real l_z,
+                   const real l_occ,
+                   const real l_beta)
 {
   //box.push_back((bool)(restart?(uint)(l_occ):currBox));
   beta.push_back(l_beta);
@@ -146,7 +146,7 @@ void Atoms::Read(FixedWidthReader & file)
   char l_chain;
   uint resNum;
   std::string resName, atomName;
-  double l_x, l_y, l_z, l_occ, l_beta;
+  real l_x, l_y, l_z, l_occ, l_beta;
   file.Get(atomName, field::alias::POS)
   .Get(resName, field::res_name::POS)
   .Get(resNum, field::res_num::POS)

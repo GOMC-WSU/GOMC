@@ -120,9 +120,9 @@ void DCFreeCycle::BuildNew(TrialMol& newMol, uint molIndex)
   const Ewald *calcEwald = data->calcEwald;
   const Forcefield& ff = data->ff;
   uint nLJTrials = data->nLJTrialsNth;
-  double* ljWeights = data->ljWeights;
-  double* inter = data->inter;
-  double* real = data->real;
+  real* ljWeights = data->ljWeights;
+  real* inter = data->inter;
+  real* real = data->real;
   bool* overlap = data->overlap;
 
   std::fill_n(inter, nLJTrials, 0.0);
@@ -165,7 +165,7 @@ void DCFreeCycle::BuildNew(TrialMol& newMol, uint molIndex)
   calc.ParticleInter(inter, real, positions[hed.NumBond()], overlap, hed.Prev(),
                      molIndex, newMol.GetBox(), nLJTrials);
 
-  double stepWeight = 0;
+  real stepWeight = 0;
   for (uint lj = 0; lj < nLJTrials; ++lj) {
     ljWeights[lj] = exp(-ff.beta * (inter[lj] + real[lj]));
     stepWeight += ljWeights[lj];
@@ -195,9 +195,9 @@ void DCFreeCycle::BuildOld(TrialMol& oldMol, uint molIndex)
   const Ewald * calcEwald = data->calcEwald;
   const Forcefield& ff = data->ff;
   uint nLJTrials = data->nLJTrialsNth;
-  double* ljWeights = data->ljWeights;
-  double* inter = data->inter;
-  double* real = data->real;
+  real* ljWeights = data->ljWeights;
+  real* inter = data->inter;
+  real* real = data->real;
   bool* overlap = data->overlap;
 
   std::fill_n(inter, nLJTrials, 0.0);
@@ -212,7 +212,7 @@ void DCFreeCycle::BuildOld(TrialMol& oldMol, uint molIndex)
   hed.ConstrainedAnglesOld(data->nAngleTrials - 1, oldMol, molIndex);
   const XYZ center = oldMol.AtomPosition(hed.Focus());
   XYZArray* positions = data->multiPositions;
-  double prevPhi[MAX_BONDS];
+  real prevPhi[MAX_BONDS];
   for (uint i = 0; i < hed.NumBond(); ++i) {
     //get position and shift to origin
     positions[i].Set(0, oldMol.AtomPosition(hed.Bonded(i)));
@@ -246,7 +246,7 @@ void DCFreeCycle::BuildOld(TrialMol& oldMol, uint molIndex)
     calc.ParticleInter(inter, real, positions[b], overlap, hed.Bonded(b),
                        molIndex, oldMol.GetBox(), nLJTrials);
   }
-  double stepWeight = 0;
+  real stepWeight = 0;
   calc.ParticleInter(inter, real, positions[hed.NumBond()], overlap, hed.Prev(),
                      molIndex, oldMol.GetBox(), nLJTrials);
 

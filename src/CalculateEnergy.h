@@ -98,7 +98,7 @@ public:
   //! @param partIndex Index of particle within the molecule
   //! @param box Index of box molecule is in
   //! @param trials Number of trials ot loop over in position array. (cbmc)
-  void ParticleNonbonded(double* inter, const cbmc::TrialMol& trialMol,
+  void ParticleNonbonded(real* inter, const cbmc::TrialMol& trialMol,
                          XYZArray const& trialPos,
                          const uint partIndex,
                          const uint box,
@@ -113,7 +113,7 @@ public:
   //! @param molIndex Index of molecule
   //! @param box Index of box molecule is in
   //! @param trials Number of trials ot loop over in position array. (cbmc)
-  void ParticleInter(double* en, double *real,
+  void ParticleInter(real* en, real *real,
                      XYZArray const& trialPos,
                      bool* overlap,
                      const uint partIndex,
@@ -131,7 +131,7 @@ public:
                                     const bool add) const;
 
   //! Calculates intramolecular energy of a full molecule
-  void MoleculeIntra(const uint molIndex, const uint box, double *bondEn) const;
+  void MoleculeIntra(const uint molIndex, const uint box, real *bondEn) const;
 
   //used in molecule exchange for calculating bonded and intraNonbonded energy
   Energy MoleculeIntra(cbmc::TrialMol const &mol, const uint molIndex) const;
@@ -139,12 +139,12 @@ public:
 
   //! Calculates Nonbonded 1_3 intramolecule energy of a full molecule
   //for Martini forcefield
-  double IntraEnergy_1_3(const double distSq, const uint atom1,
+  real IntraEnergy_1_3(const real distSq, const uint atom1,
                          const uint atom2, const uint molIndex) const;
 
   //! Calculates Nonbonded 1_4 intramolecule energy of a full molecule
   //for Martini forcefield
-  double IntraEnergy_1_4(const double distSq, const uint atom1,
+  real IntraEnergy_1_4(const real distSq, const uint atom1,
                          const uint atom2, const uint molIndex) const;
 
   //Finding the molecule inside cavity and store the molecule Index.
@@ -153,7 +153,7 @@ public:
                        const uint box, const uint kind, const uint exRatio);
 
   //!Calculates energy corrections for the box
-  double EnergyCorrection(const uint box, const uint *kCount) const;
+  real EnergyCorrection(const uint box, const uint *kCount) const;
 
 private:
 
@@ -178,56 +178,56 @@ private:
                    MoleculeKind const& molKind) const;
 
   //! Calculates bond stretch intramolecular energy of a full molecule
-  void MolBond(double & energy, MoleculeKind const& molKind,
+  void MolBond(real & energy, MoleculeKind const& molKind,
                XYZArray const& vecs, const uint molIndex, const uint box) const;
 
   //! Calculates bond stretch intramolecular energy of a non-complete molecule
-  void MolBond(double & energy, cbmc::TrialMol const &mol, XYZArray const& vecs,
+  void MolBond(real & energy, cbmc::TrialMol const &mol, XYZArray const& vecs,
                std::vector<bool> const & bondExist,
                MoleculeKind const& molKind) const;
 
   //! Calculates angular bend intramolecular energy of a full molecule
-  void MolAngle(double & energy, MoleculeKind const& molKind,
+  void MolAngle(real & energy, MoleculeKind const& molKind,
                 XYZArray const& vecs, const uint box) const;
 
   //! Calculates angular bend intramolecular energy of a non-complete molecule
-  void MolAngle(double & energy, cbmc::TrialMol const &mol, XYZArray const& vecs,
+  void MolAngle(real & energy, cbmc::TrialMol const &mol, XYZArray const& vecs,
                 std::vector<bool> const & bondExist,
                 MoleculeKind const& molKind) const;
 
   //! Calculates dihedral torsion intramolecular energy of a full molecule
-  void MolDihedral(double & energy, MoleculeKind const& molKind,
+  void MolDihedral(real & energy, MoleculeKind const& molKind,
                    XYZArray const& vecs,  const uint box) const;
 
   //! Calculates dihedral torsion intramolecular energy of a non-complete molecule
-  void MolDihedral(double & energy, cbmc::TrialMol const &mol, XYZArray const& vecs,
+  void MolDihedral(real & energy, cbmc::TrialMol const &mol, XYZArray const& vecs,
                    std::vector<bool> const & bondExist,
                    MoleculeKind const& molKind) const;
 
   //! Calculates Nonbonded 1_N intramolecule energy of a full molecule
-  void MolNonbond(double & energy, MoleculeKind const& molKind,
+  void MolNonbond(real & energy, MoleculeKind const& molKind,
                   const uint molIndex, const uint box) const;
 
   //! Calculates Nonbonded 1_N intramolecule energy of a non-complete molecule
-  void MolNonbond(double & energy, cbmc::TrialMol const &mol,
+  void MolNonbond(real & energy, cbmc::TrialMol const &mol,
                   MoleculeKind const& molKind) const;
 
   //! Calculates Nonbonded 1_4 intramolecule energy of a full molecule
-  void MolNonbond_1_4(double & energy, MoleculeKind const& molKind,
+  void MolNonbond_1_4(real & energy, MoleculeKind const& molKind,
                       const uint molIndex, const uint box) const;
 
   //! Calculates Nonbonded 1_4 intramolecule energy of a non-complete molecule
-  void MolNonbond_1_4(double & energy, cbmc::TrialMol const &mol,
+  void MolNonbond_1_4(real & energy, cbmc::TrialMol const &mol,
                       MoleculeKind const& molKind) const;
 
   //! Calculates Nonbonded 1_3 intramolecule energy of a full molecule
   //for Martini forcefield
-  void MolNonbond_1_3(double & energy, MoleculeKind const& molKind,
+  void MolNonbond_1_3(real & energy, MoleculeKind const& molKind,
                       const uint molIndex, const uint box) const;
 
   //! Calculates Nonbonded 1_3 intramolecule energy of a non-complete molecule
   //for Martini forcefield
-  void MolNonbond_1_3(double & energy, cbmc::TrialMol const &mol,
+  void MolNonbond_1_3(real & energy, cbmc::TrialMol const &mol,
                       MoleculeKind const& molKind) const;
 
   //! For particles in main coordinates array determines if they belong
@@ -252,7 +252,7 @@ private:
 
   std::vector<int> particleKind;
   std::vector<int> particleMol;
-  std::vector<double> particleCharge;
+  std::vector<real> particleCharge;
   const CellList& cellList;
 };
 

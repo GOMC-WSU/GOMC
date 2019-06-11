@@ -22,19 +22,19 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     minVol[b] = 8.0 * rCutSq[b] * rCut[b] + 0.001;
     if(restart.enable && cryst.hasVolume) {
       axis = cryst.axis;
-      double alpha = cos(cryst.cellAngle[b][0] * M_PI / 180.0);
-      double beta  = cos(cryst.cellAngle[b][1] * M_PI / 180.0);
-      double gamma = cos(cryst.cellAngle[b][2] * M_PI / 180.0);
+      real alpha = cos(cryst.cellAngle[b][0] * M_PI / 180.0);
+      real beta  = cos(cryst.cellAngle[b][1] * M_PI / 180.0);
+      real gamma = cos(cryst.cellAngle[b][2] * M_PI / 180.0);
       if(float(cryst.cellAngle[b][0]) == 90.0)
         alpha = 0.0;
       if(float(cryst.cellAngle[b][1]) == 90.0)
         beta = 0.0;
       if(float(cryst.cellAngle[b][2]) == 90.0)
         gamma = 0.0;
-      double cosASq = alpha * alpha;
-      double cosBSq = beta * beta;
-      double cosGSq = gamma * gamma;
-      double temp = (alpha - beta * gamma) / (sqrt(1.0 - cosGSq));
+      real cosASq = alpha * alpha;
+      real cosBSq = beta * beta;
+      real cosGSq = gamma * gamma;
+      real temp = (alpha - beta * gamma) / (sqrt(1.0 - cosGSq));
       cellBasis[b].Set(0, 1.0, 0.0, 0.0);
       cellBasis[b].Set(1, gamma, sqrt(1.0 - cosGSq), 0.0);
       cellBasis[b].Set(2, beta, temp, sqrt(1.0 - cosBSq - temp * temp));
@@ -86,7 +86,7 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
       cellBasis[b].Set(i, cellBasis[b].Get(i).Normalize());
     }
     //Calculate the adjoint and determinant
-    double det = cellBasis[b].AdjointMatrix(cellBasis_Inv[b]);
+    real det = cellBasis[b].AdjointMatrix(cellBasis_Inv[b]);
     //Calculate the inverse matrix of cell basis
     cellBasis_Inv[b].ScaleRange(0, 3, 1.0 / det);
     //Set the axis with unslant cell box
@@ -121,7 +121,7 @@ void BoxDimensionsNonOrth::CalcCellDimensions(const uint b)
     cellBasis[b].Set(i, cellBasis[b].Get(i).Normalize());
   }
   //Calculate the adjoint and determinant
-  double det = cellBasis[b].AdjointMatrix(cellBasis_Inv[b]);
+  real det = cellBasis[b].AdjointMatrix(cellBasis_Inv[b]);
   //Calculate the inverse matrix of cell basis
   cellBasis_Inv[b].ScaleRange(0, 3, 1.0 / det);
 }
@@ -152,10 +152,10 @@ BoxDimensionsNonOrth& BoxDimensionsNonOrth::operator=(BoxDimensionsNonOrth const
 
 uint BoxDimensionsNonOrth::ShiftVolume(BoxDimensionsNonOrth & newDim,
                                        XYZ & scale, const uint b,
-                                       const double delta) const
+                                       const real delta) const
 {
   uint rejectState = mv::fail_state::NO_FAIL;
-  double newVolume = volume[b] + delta;
+  real newVolume = volume[b] + delta;
   newDim = *this;
   newDim.SetVolume(b, newVolume);
 
@@ -174,10 +174,10 @@ uint BoxDimensionsNonOrth::ShiftVolume(BoxDimensionsNonOrth & newDim,
 }
 
 uint BoxDimensionsNonOrth::ExchangeVolume(BoxDimensionsNonOrth & newDim,
-    XYZ * scale, const double transfer, const uint *box) const
+    XYZ * scale, const real transfer, const uint *box) const
 {
   uint state = mv::fail_state::NO_FAIL;
-  double vTot = GetTotVolume(box[0], box[1]);
+  real vTot = GetTotVolume(box[0], box[1]);
   newDim = *this;
 
   newDim.SetVolume(box[0], volume[box[0]] + transfer);
@@ -200,15 +200,15 @@ uint BoxDimensionsNonOrth::ExchangeVolume(BoxDimensionsNonOrth & newDim,
 }
 
 
-void BoxDimensionsNonOrth::SetVolume(const uint b, const double vol)
+void BoxDimensionsNonOrth::SetVolume(const uint b, const real vol)
 {
   if(constArea) {
-    double ratio = vol / volume[b];
+    real ratio = vol / volume[b];
     axis.Scale(b, 1.0, 1.0, ratio);
     halfAx.Scale(b, 1.0, 1.0, ratio);
     cellLength.Scale(b, 1.0, 1.0, ratio);
   } else {
-    double ratio = pow(vol / volume[b], (1.0 / 3.0));
+    real ratio = pow(vol / volume[b], (1.0 / 3.0));
     axis.Scale(b, ratio);
     halfAx.Scale(b, ratio);
     cellLength.Scale(b, ratio);
@@ -227,7 +227,7 @@ XYZ BoxDimensionsNonOrth::MinImage(XYZ rawVecRef, const uint b) const
   return rawVecRef;
 }
 
-void BoxDimensionsNonOrth::WrapPBC(double &x, double &y, double &z,
+void BoxDimensionsNonOrth::WrapPBC(real &x, real &y, real &z,
                                    const uint b) const
 {
   //convert XYZ to unslant
@@ -243,7 +243,7 @@ void BoxDimensionsNonOrth::WrapPBC(double &x, double &y, double &z,
   z = slant.z;
 }
 
-void BoxDimensionsNonOrth::UnwrapPBC(double & x, double & y, double & z,
+void BoxDimensionsNonOrth::UnwrapPBC(real & x, real & y, real & z,
                                      const uint b, XYZ const& ref) const
 {
   //convert XYZ to unslant

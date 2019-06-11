@@ -89,13 +89,13 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
 
 void StaticVals::IsBoxOrthogonal(config_setup::Volume const& vol)
 {
-  double cosAngle[BOX_TOTAL][3];
-  double orthogonal[BOX_TOTAL];
+  real cosAngle[BOX_TOTAL][3];
+  real orthogonal[BOX_TOTAL];
 
   for (uint b = 0; b < BOX_TOTAL; b++) {
-    double cellLengthX = vol.axis[b].Length(0);
-    double cellLengthY = vol.axis[b].Length(1);
-    double cellLengthZ = vol.axis[b].Length(2);
+    real cellLengthX = vol.axis[b].Length(0);
+    real cellLengthY = vol.axis[b].Length(1);
+    real cellLengthZ = vol.axis[b].Length(2);
     //Find Cosine Angle of alpha, beta and gamma
     cosAngle[b][0] = Dot(vol.axis[b].Get(1), vol.axis[b].Get(2)) /
                      (cellLengthY * cellLengthZ);

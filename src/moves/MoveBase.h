@@ -45,7 +45,7 @@ public:
 
   //Based on the random draw, determine the move kind, box, and
   //(if necessary) molecule kind.
-  virtual uint Prep(const double subDraw, const double movPerc) = 0;
+  virtual uint Prep(const real subDraw, const real movPerc) = 0;
 
   //Note, in general this function is responsible for generating the new
   //configuration to test.
@@ -79,7 +79,7 @@ protected:
   PRNG & prng;
   BoxDimensions & boxDimRef;
   Molecules const& molRef;
-  const double BETA;
+  const real BETA;
   const bool ewald;
   CellList& cellList;
   bool molRemoved, fixBox0, overlap;
@@ -91,7 +91,7 @@ class MolTransformBase
 {
 protected:
   uint GetBoxAndMol(PRNG & prng, Molecules const& molRef,
-                    const double subDraw, const double movPerc);
+                    const real subDraw, const real movPerc);
   void ReplaceWith(MolTransformBase const& other);
 
   //Box, molecule, and molecule kind
@@ -102,7 +102,7 @@ protected:
 };
 
 inline uint MolTransformBase::GetBoxAndMol(PRNG & prng, Molecules const& molRef,
-    const double subDraw, const double movPerc)
+    const real subDraw, const real movPerc)
 {
 #if ENSEMBLE == GCMC
   b = mv::BOX0;

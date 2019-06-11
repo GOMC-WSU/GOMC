@@ -52,7 +52,7 @@ Simulation::~Simulation()
 
 void Simulation::RunSimulation(void)
 {
-  double startEnergy = system->potential.totalEnergy.total;
+  real startEnergy = system->potential.totalEnergy.total;
   if(totalSteps == 0) {
     for(int i = 0; i < frameSteps.size(); i++) {
       if(i == 0) {
@@ -69,7 +69,7 @@ void Simulation::RunSimulation(void)
     cpu->Output(step);
 
     if((step + 1) == cpu->equilSteps) {
-      double currEnergy = system->potential.totalEnergy.total;
+      real currEnergy = system->potential.totalEnergy.total;
       if(abs(currEnergy - startEnergy) > 1.0e+10) {
         printf("Info: Recalculating the total energies to insure the accuracy"
                " of the computed \n"

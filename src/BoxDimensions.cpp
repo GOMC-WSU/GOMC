@@ -21,19 +21,19 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
     minVol[b] = 8.0 * rCutSq[b] * rCut[b] + 0.001;
     if(restart.enable && cryst.hasVolume) {
       axis = cryst.axis;
-      double alpha = cos(cryst.cellAngle[b][0] * M_PI / 180.0);
-      double beta  = cos(cryst.cellAngle[b][1] * M_PI / 180.0);
-      double gamma = cos(cryst.cellAngle[b][2] * M_PI / 180.0);
+      real alpha = cos(cryst.cellAngle[b][0] * M_PI / 180.0);
+      real beta  = cos(cryst.cellAngle[b][1] * M_PI / 180.0);
+      real gamma = cos(cryst.cellAngle[b][2] * M_PI / 180.0);
       if(float(cryst.cellAngle[b][0]) == 90.0)
         alpha = 0.0;
       if(float(cryst.cellAngle[b][1]) == 90.0)
         beta = 0.0;
       if(float(cryst.cellAngle[b][2]) == 90.0)
         gamma = 0.0;
-      double cosASq = alpha * alpha;
-      double cosBSq = beta * beta;
-      double cosGSq = gamma * gamma;
-      double temp = (alpha - beta * gamma) / (sqrt(1.0 - cosGSq));
+      real cosASq = alpha * alpha;
+      real cosBSq = beta * beta;
+      real cosGSq = gamma * gamma;
+      real temp = (alpha - beta * gamma) / (sqrt(1.0 - cosGSq));
       cellBasis[b].Set(0, 1.0, 0.0, 0.0);
       cellBasis[b].Set(1, gamma, sqrt(1.0 - cosGSq), 0.0);
       cellBasis[b].Set(2, beta, temp, sqrt(1.0 - cosBSq - temp * temp));
@@ -102,10 +102,10 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
 }
 
 uint BoxDimensions::ShiftVolume(BoxDimensions & newDim, XYZ & scale,
-                                const uint b, const double delta) const
+                                const uint b, const real delta) const
 {
   uint rejectState = mv::fail_state::NO_FAIL;
-  double newVolume = volume[b] + delta;
+  real newVolume = volume[b] + delta;
   newDim.SetVolume(b, newVolume);
 
   //If move would shrink any box axis to be less than 2 * rCut[b], then
@@ -123,10 +123,10 @@ uint BoxDimensions::ShiftVolume(BoxDimensions & newDim, XYZ & scale,
 }
 
 uint BoxDimensions::ExchangeVolume(BoxDimensions & newDim, XYZ * scale,
-                                   const double transfer, const uint *box) const
+                                   const real transfer, const uint *box) const
 {
   uint state = mv::fail_state::NO_FAIL;
-  double vTot = GetTotVolume(box[0], box[1]);
+  real vTot = GetTotVolume(box[0], box[1]);
 
   newDim.SetVolume(box[0], volume[box[0]] + transfer);
   newDim.SetVolume(box[1], vTot - newDim.volume[box[0]]);
@@ -186,19 +186,19 @@ BoxDimensions& BoxDimensions::operator=(BoxDimensions const& other)
   return *this;
 }
 
-double BoxDimensions::GetTotVolume(const uint b1, const uint b2) const
+real BoxDimensions::GetTotVolume(const uint b1, const uint b2) const
 {
   return (volume[b1] + volume[b2]);
 }
 
-void BoxDimensions::SetVolume(const uint b, const double vol)
+void BoxDimensions::SetVolume(const uint b, const real vol)
 {
   if(constArea) {
-    double ratio = vol / volume[b];
+    real ratio = vol / volume[b];
     axis.Scale(b, 1.0, 1.0, ratio);
     halfAx.Scale(b, 1.0, 1.0, ratio);
   } else {
-    double ratio = pow(vol / volume[b], (1.0 / 3.0));
+    real ratio = pow(vol / volume[b], (1.0 / 3.0));
     axis.Scale(b, ratio);
     halfAx.Scale(b, ratio);
   }
@@ -208,14 +208,14 @@ void BoxDimensions::SetVolume(const uint b, const double vol)
 }
 
 
-void BoxDimensions::WrapPBC(double &x, double &y, double &z, const uint b) const
+void BoxDimensions::WrapPBC(real &x, real &y, real &z, const uint b) const
 {
   WrapPBC(x, axis.x[b]);
   WrapPBC(y, axis.y[b]);
   WrapPBC(z, axis.z[b]);
 }
 
-void BoxDimensions::UnwrapPBC(double & x, double & y, double & z,
+void BoxDimensions::UnwrapPBC(real & x, real & y, real & z,
                               const uint b, XYZ const& ref) const
 {
   UnwrapPBC(x, ref.x, axis.x[b], halfAx.x[b]);
@@ -228,7 +228,7 @@ void BoxDimensions::UnwrapPBC(double & x, double & y, double & z,
 // Note, here we can't do the fabs trick as we need to know which end
 // to wrap on.
 //
-double BoxDimensions::WrapPBC(double& v, const double ax) const
+real BoxDimensions::WrapPBC(real& v, const real ax) const
 {
   //assert(v < 2*ax);
 
@@ -251,7 +251,7 @@ double BoxDimensions::WrapPBC(double& v, const double ax) const
   // Sometimes a couple of extra ops or a couple of extra compares.
   if (
     bool negate = (v > ax);
-    double vNeg = v + (ax ^ -negate) + negate;
+    real vNeg = v + (ax ^ -negate) + negate;
     return (fabs(v - halfAx) > halfAx) ? v : vNeg;
 #else
   //Note: testing shows that it's most efficient to negate if true.
@@ -265,8 +265,8 @@ double BoxDimensions::WrapPBC(double& v, const double ax) const
 #endif
 }
 
-double BoxDimensions::UnwrapPBC(double& v, const double ref, const double ax,
-                                const double halfAx) const
+real BoxDimensions::UnwrapPBC(real& v, const real ref, const real ax,
+                                const real halfAx) const
 {
   //If absolute value of X dist btwn pt and ref is > 0.5 * box_axis
   //If ref > 0.5 * box_axis, add box_axis to pt (to wrap out + side)
@@ -274,7 +274,7 @@ double BoxDimensions::UnwrapPBC(double& v, const double ref, const double ax,
   // uses bit hack to avoid branching for conditional
 #ifdef NO_BRANCHING_UNWRAP
   bool negate = ( ref > halfAx );
-  double vDiff = v + (ax ^ -negate) + negate;
+  real vDiff = v + (ax ^ -negate) + negate;
   return (fabs(ref - v) > halfAx ) ? v : vDiff;
 #else
   if (fabs(ref - v) > halfAx ) {
@@ -303,8 +303,8 @@ XYZ BoxDimensions::MinImage(XYZ rawVec, const uint b) const
 //Throws out sign (as per Brock's suggestion) as we don't care about it
 //and thus can eliminate a branch and (potentially) one compare.
 //
-double BoxDimensions::MinImage
-(double& raw, const double ax, const double halfAx) const
+real BoxDimensions::MinImage
+(real& raw, const real ax, const real halfAx) const
 {
   raw = fabs(raw);
   //If shorter over periodic boundary, get that dist.
@@ -318,7 +318,7 @@ double BoxDimensions::MinImage
 #endif
 }
 
-double BoxDimensions::MinImageSigned(double raw, double ax, double halfAx) const
+real BoxDimensions::MinImageSigned(real raw, real ax, real halfAx) const
 {
   if (raw > halfAx)
     raw -= ax;

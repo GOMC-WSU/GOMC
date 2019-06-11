@@ -104,20 +104,20 @@ public:
 
   //Procedure to run once move is picked... can also be called directly for
   //debugging...
-  void RunMove(uint majKind, double draw, const uint step);
+  void RunMove(uint majKind, real draw, const uint step);
 
   ~System();
 
 private:
   void InitMoves(Setup const& set);
-  void PickMove(uint & kind, double & draw);
-  uint SetParams(const uint kind, const double draw);
+  void PickMove(uint & kind, real & draw);
+  uint SetParams(const uint kind, const real draw);
   uint Transform(const uint kind);
   void CalcEn(const uint kind);
   void Accept(const uint kind, const uint rejectState, const uint step);
 
   MoveBase * moves[mv::MOVE_KINDS_TOTAL];
-  double moveTime[mv::MOVE_KINDS_TOTAL];
+  real moveTime[mv::MOVE_KINDS_TOTAL];
   Clock time;
 };
 

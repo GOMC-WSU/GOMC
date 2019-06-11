@@ -220,7 +220,7 @@ void PrintHardwareInfo()
 {
 #ifdef __linux__
   struct sysinfo mem;
-  const double megabyte = 1024 * 1024;
+  const real megabyte = 1024 * 1024;
   struct utsname name;
   uname(&name);
   printf("CPU information:\n");

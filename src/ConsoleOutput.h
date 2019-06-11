@@ -78,7 +78,7 @@ private:
   void PrintEnergyTitle();
   void PrintStatisticTitle();
   void PrintMoveTitle();
-  void printElement (const double t, const int width, uint percision = 4) const;
+  void printElement (const real t, const int width, uint percision = 4) const;
   void printElement (const uint t, const int width) const;
   void printElement (const std::string t, const int width) const;
 

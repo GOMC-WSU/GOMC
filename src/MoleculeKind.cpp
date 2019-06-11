@@ -41,7 +41,7 @@ void MoleculeKind::Init
   name = l_name;
 
 #if ENSEMBLE == GCMC
-  std::map<std::string, double>::const_iterator kindCPIt =
+  std::map<std::string, real>::const_iterator kindCPIt =
     setup.config.sys.chemPot.cp.find(name),
     lastOne = setup.config.sys.chemPot.cp.end();
 
@@ -123,8 +123,8 @@ void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
 {
   numAtoms = molData.atoms.size();
   atomKind = new uint[numAtoms];
-  atomMass = new double[numAtoms];
-  atomCharge = new double[numAtoms];
+  atomMass = new real[numAtoms];
+  atomCharge = new real[numAtoms];
   molMass = 0;
   atomNames.clear();
 
@@ -140,9 +140,9 @@ void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
   }
 }
 
-double MoleculeKind::GetMoleculeCharge()
+real MoleculeKind::GetMoleculeCharge()
 {
-  double netCharge = 0.0;
+  real netCharge = 0.0;
 
   for(uint i = 0; i < numAtoms; ++i) {
     //to calculate net charge

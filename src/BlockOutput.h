@@ -44,12 +44,12 @@ struct BlockAverage {
   void Init(std::ofstream *file0,
             std::ofstream *file1,
             const bool en,
-            const double scl,
+            const real scl,
             std::string const& var,
             const uint bTot = BOX_TOTAL);
 
   //Set one of the pointers to the block values we're tracking
-  void SetRef(double * loc, const uint b)
+  void SetRef(real * loc, const uint b)
   {
     dblSrc[b] = loc;
     uintSrc[b] = NULL;
@@ -82,8 +82,8 @@ private:
   bool first;
   std::string name, varName;
   uint ** uintSrc, tot;
-  double ** dblSrc;
-  double * block, scl;
+  real ** dblSrc;
+  real * block, scl;
   uint samples;
   bool enable;
 };
@@ -135,7 +135,7 @@ private:
   //Intermediate vars.
   uint samplesWrites;
   //Constants
-  double invSteps;
+  real invSteps;
 };
 
 #endif /*BLOCK_OUTPUT_H*/

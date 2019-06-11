@@ -61,7 +61,7 @@ inline void COM::CalcCOM()
       for (uint p = pStart; p < pStop; p++)
         Add(coordRef, *current, p);
       boxDimRef.WrapPBC(coordRef, pStart, pStop, b);
-      Scale(*current, 1.0 / (double)(pLen));
+      Scale(*current, 1.0 / (real)(pLen));
       boxDimRef.WrapPBC(x[*current], y[*current], z[*current], b);
       ++current;
     }
@@ -78,7 +78,7 @@ inline void COM::SetNew(const uint m, const uint b)
   for (uint p = pStart; p < pStop; p++)
     Add(coordRef, m, p);
   boxDimRef.WrapPBC(coordRef, pStart, pStop, b);
-  Scale(m, 1.0 / (double)(pLen));
+  Scale(m, 1.0 / (real)(pLen));
   boxDimRef.WrapPBC(x[m], y[m], z[m], b);
 }
 

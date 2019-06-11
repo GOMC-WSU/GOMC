@@ -23,12 +23,12 @@ public:
     delete[] fixed;
   }
 
-  double Calc(const uint kind, const double dist) const
+  real Calc(const uint kind, const real dist) const
   {
     return (fixed[kind] ? 0.0 : Kb[kind] * num::Sq(dist - b0[kind]));
   }
 
-  double Length(const uint kind) const
+  real Length(const uint kind) const
   {
     return b0[kind];
   }
@@ -41,7 +41,7 @@ public:
     fixed = bond.Copyfixed();
   }
 private:
-  double * Kb, * b0;
+  real * Kb, * b0;
   bool * fixed;
   uint count;
 };

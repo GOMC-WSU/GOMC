@@ -134,16 +134,16 @@ void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
   const Forcefield& ff = data->ff;
   uint nLJTrials = data->nLJTrialsNth;
   uint nDihTrials = data->nDihTrials;
-  double* torsion = data->angles;
-  double* torWeights = data->angleWeights;
-  double* torEnergy = data->angleEnergy;
-  double* ljWeights = data->ljWeights;
-  double* bondedEn = data->bonded;
-  double* inter = data->inter;
-  double* nonbonded = data->nonbonded;
-  double* nonbonded_1_4 = data->nonbonded_1_4;
-  double* real = data->real;
-  double* oneFour = data->oneFour;
+  real* torsion = data->angles;
+  real* torWeights = data->angleWeights;
+  real* torEnergy = data->angleEnergy;
+  real* ljWeights = data->ljWeights;
+  real* bondedEn = data->bonded;
+  real* inter = data->inter;
+  real* nonbonded = data->nonbonded;
+  real* nonbonded_1_4 = data->nonbonded_1_4;
+  real* real = data->real;
+  real* oneFour = data->oneFour;
   bool* overlap = data->overlap;
 
   std::fill_n(ljWeights, nLJTrials, 0.0);
@@ -155,14 +155,14 @@ void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
   newMol.SetBasis(hed.Focus(), hed.Prev());
   const XYZ center = newMol.AtomPosition(hed.Focus());
   XYZArray* positions = data->multiPositions;
-  double prevPhi[MAX_BONDS];
+  real prevPhi[MAX_BONDS];
   for (uint i = 0; i < hed.NumBond(); ++i) {
     //get position and shift to origin
     positions[i].Set(0, newMol.RawRectCoords(bondLength[i],
                      hed.Theta(i), hed.Phi(i)));
   }
   for (uint i = 0; i < nPrevBonds; ++i) {
-    double th;
+    real th;
     //not using theta, so this is a wasted cos and sqrt
     newMol.OldThetaAndPhi(prevBonded[i], hed.Prev(), th, prevPhi[i]);
   }
@@ -195,7 +195,7 @@ void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
     data->axes.WrapPBC(positions[b], newMol.GetBox());
   }
 
-  double stepWeight = EvalLJ(newMol, molIndex);
+  real stepWeight = EvalLJ(newMol, molIndex);
   uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
   for(uint b = 0; b < hed.NumBond(); ++b) {
     newMol.AddAtom(hed.Bonded(b), positions[b][winner]);
@@ -217,16 +217,16 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
   const Forcefield& ff = data->ff;
   uint nLJTrials = data->nLJTrialsNth;
   uint nDihTrials = data->nDihTrials;
-  double* torsion = data->angles;
-  double* torWeights = data->angleWeights;
-  double* torEnergy = data->angleEnergy;
-  double* ljWeights = data->ljWeights;
-  double* bondedEn = data->bonded;
-  double* inter = data->inter;
-  double* nonbonded = data->nonbonded;
-  double* nonbonded_1_4 = data->nonbonded_1_4;
-  double* real = data->real;
-  double* oneFour = data->oneFour;
+  real* torsion = data->angles;
+  real* torWeights = data->angleWeights;
+  real* torEnergy = data->angleEnergy;
+  real* ljWeights = data->ljWeights;
+  real* bondedEn = data->bonded;
+  real* inter = data->inter;
+  real* nonbonded = data->nonbonded;
+  real* nonbonded_1_4 = data->nonbonded_1_4;
+  real* real = data->real;
+  real* oneFour = data->oneFour;
   bool* overlap = data->overlap;
 
   std::fill_n(ljWeights, nLJTrials, 0.0);
@@ -242,7 +242,7 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
   hed.ConstrainedAnglesOld(data->nAngleTrials - 1, oldMol, molIndex);
   const XYZ center = oldMol.AtomPosition(hed.Focus());
   XYZArray* positions = data->multiPositions;
-  double prevPhi[MAX_BONDS];
+  real prevPhi[MAX_BONDS];
   for (uint i = 0; i < hed.NumBond(); ++i) {
     //get position and shift to origin
     positions[i].Set(0, oldMol.AtomPosition(hed.Bonded(i)));
@@ -250,7 +250,7 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
     positions[i].Add(0, -center);
   }
   for (uint i = 0; i < nPrevBonds; ++i) {
-    double t;
+    real t;
     //not using theta, so this is a wasted cos and sqrt
     oldMol.OldThetaAndPhi(prevBonded[i], hed.Prev(), t, prevPhi[i]);
   }
@@ -284,8 +284,8 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
     torEnergy[tor] = 0.0;
     nonbonded_1_4[tor] = 0.0;
     for (uint b = 0; b < hed.NumBond(); ++b) {
-      double theta1 =  hed.Theta(b);
-      double trialPhi = hed.Phi(b) + torsion[tor];
+      real theta1 =  hed.Theta(b);
+      real trialPhi = hed.Phi(b) + torsion[tor];
       XYZ bondedC;
       if(oldMol.OneFour()) {
         //convert chosen torsion to 3D positions for bonded atoms to focus
@@ -296,7 +296,7 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
 
       for (uint p = 0; p < nPrevBonds; ++p) {
         if(oldMol.OneFour()) {
-          double distSq = oldMol.DistSq(bondedC,
+          real distSq = oldMol.DistSq(bondedC,
                                         oldMol.AtomPosition(prevBonded[p]));
           nonbonded_1_4[tor] +=
             data->calc.IntraEnergy_1_4(distSq, prevBonded[p],
@@ -317,7 +317,7 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
     positions[b].Add(0, center);
     data->axes.WrapPBC(positions[b], oldMol.GetBox());
   }
-  double stepWeight = EvalLJ(oldMol, molIndex);
+  real stepWeight = EvalLJ(oldMol, molIndex);
   for(uint b = 0; b < hed.NumBond(); ++b) {
     oldMol.ConfirmOldAtom(hed.Bonded(b));
     oldMol.AddBonds(hed.Bonded(b), hed.Focus());
@@ -331,12 +331,12 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
   oldMol.MultWeight(stepWeight / nLJTrials);
 }
 
-double DCLinkedHedron::EvalLJ(TrialMol& mol, uint molIndex)
+real DCLinkedHedron::EvalLJ(TrialMol& mol, uint molIndex)
 {
   uint nLJTrials = data->nLJTrialsNth;
-  double* inter = data->inter;
-  double* nonbonded = data->nonbonded;
-  double* real = data->real;
+  real* inter = data->inter;
+  real* nonbonded = data->nonbonded;
+  real* real = data->real;
   bool* overlap = data->overlap;
   XYZArray* positions = data->multiPositions;
 
@@ -351,7 +351,7 @@ double DCLinkedHedron::EvalLJ(TrialMol& mol, uint molIndex)
     data->calc.ParticleNonbonded(nonbonded, mol, positions[b],
                                  hed.Bonded(b), mol.GetBox(), nLJTrials);
   }
-  double stepWeight = 0;
+  real stepWeight = 0;
   for (uint lj = 0; lj < nLJTrials; ++lj) {
     data->ljWeights[lj] *= exp(-data->ff.beta *
                                (inter[lj] + nonbonded[lj] + real[lj]));
@@ -361,13 +361,13 @@ double DCLinkedHedron::EvalLJ(TrialMol& mol, uint molIndex)
 }
 
 void DCLinkedHedron::ChooseTorsion(TrialMol& mol, uint molIndex,
-                                   double prevPhi[], RotationMatrix& cross,
+                                   real prevPhi[], RotationMatrix& cross,
                                    RotationMatrix& tensor)
 {
-  double* torsion = data->angles;
-  double* torEnergy = data->angleEnergy;
-  double* torWeights = data->angleWeights;
-  double* nonbonded_1_4 = data->nonbonded_1_4;
+  real* torsion = data->angles;
+  real* torEnergy = data->angleEnergy;
+  real* torWeights = data->angleWeights;
+  real* nonbonded_1_4 = data->nonbonded_1_4;
   uint nDihTrials = data->nDihTrials;
   const Forcefield& ff = data->ff;
   //To get the information if initial posotion before applying torsion
@@ -385,8 +385,8 @@ void DCLinkedHedron::ChooseTorsion(TrialMol& mol, uint molIndex,
     torEnergy[tor] = 0.0;
     nonbonded_1_4[tor] = 0.0;
     for (uint b = 0; b < hed.NumBond(); ++b) {
-      double theta1 =  hed.Theta(b);
-      double trialPhi = hed.Phi(b) + torsion[tor];
+      real theta1 =  hed.Theta(b);
+      real trialPhi = hed.Phi(b) + torsion[tor];
       XYZ bondedC;
       if(mol.OneFour()) {
         //convert chosen torsion to 3D positions for bonded atoms to focus
@@ -397,7 +397,7 @@ void DCLinkedHedron::ChooseTorsion(TrialMol& mol, uint molIndex,
 
       for (uint p = 0; p < nPrevBonds; ++p) {
         if(mol.OneFour()) {
-          double distSq = mol.DistSq(bondedC, mol.AtomPosition(prevBonded[p]));
+          real distSq = mol.DistSq(bondedC, mol.AtomPosition(prevBonded[p]));
           nonbonded_1_4[tor] +=
             data->calc.IntraEnergy_1_4(distSq, prevBonded[p],
                                        hed.Bonded(b), molIndex);

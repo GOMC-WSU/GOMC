@@ -20,30 +20,30 @@ void CallBoxInterGPU(VariablesCUDA *vars,
                      XYZArray const &coords,
                      BoxDimensions const &boxAxes,
                      bool electrostatic,
-                     vector<double> particleCharge,
+                     vector<real> particleCharge,
                      vector<int> particleKind,
-                     double &REn,
-                     double &LJEn,
+                     real &REn,
+                     real &LJEn,
                      uint const box)
 {
   int atomNumber = coords.Count();
   int *gpu_pair1, *gpu_pair2, *gpu_particleKind;
   int blocksPerGrid, threadsPerBlock;
-  double *gpu_particleCharge;
-  double *gpu_REn, *gpu_LJEn;
-  double *gpu_final_REn, *gpu_final_LJEn;
-  double cpu_final_REn, cpu_final_LJEn;
+  real *gpu_particleCharge;
+  real *gpu_REn, *gpu_LJEn;
+  real *gpu_final_REn, *gpu_final_LJEn;
+  real cpu_final_REn, cpu_final_LJEn;
 
   cudaMalloc((void**) &gpu_pair1, pair1.size() * sizeof(int));
   cudaMalloc((void**) &gpu_pair2, pair2.size() * sizeof(int));
   cudaMalloc((void**) &gpu_particleCharge,
-             particleCharge.size() * sizeof(double));
+             particleCharge.size() * sizeof(real));
   cudaMalloc((void**) &gpu_particleKind,
              particleKind.size() * sizeof(int));
-  cudaMalloc((void**) &gpu_REn, pair1.size() * sizeof(double));
-  cudaMalloc((void**) &gpu_LJEn, pair1.size() * sizeof(double));
-  cudaMalloc((void**) &gpu_final_REn, sizeof(double));
-  cudaMalloc((void**) &gpu_final_LJEn, sizeof(double));
+  cudaMalloc((void**) &gpu_REn, pair1.size() * sizeof(real));
+  cudaMalloc((void**) &gpu_LJEn, pair1.size() * sizeof(real));
+  cudaMalloc((void**) &gpu_final_REn, sizeof(real));
+  cudaMalloc((void**) &gpu_final_LJEn, sizeof(real));
 
 
   // Copy necessary data to GPU
@@ -52,16 +52,16 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   cudaMemcpy(gpu_pair2, &pair2[0], pair2.size() * sizeof(int),
              cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleCharge, &particleCharge[0],
-             particleCharge.size() * sizeof(double),
+             particleCharge.size() * sizeof(real),
              cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleKind, &particleKind[0],
              particleKind.size() * sizeof(int),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_x, coords.x, atomNumber * sizeof(double),
+  cudaMemcpy(vars->gpu_x, coords.x, atomNumber * sizeof(real),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_y, coords.y, atomNumber * sizeof(double),
+  cudaMemcpy(vars->gpu_y, coords.y, atomNumber * sizeof(real),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double),
+  cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(real),
              cudaMemcpyHostToDevice);
 
   // Run the kernel...
@@ -123,9 +123,9 @@ void CallBoxInterGPU(VariablesCUDA *vars,
                     gpu_final_LJEn, pair1.size());
   cudaFree(d_temp_storage);
   // Copy back the result to CPU ! :)
-  CubDebugExit(cudaMemcpy(&cpu_final_REn, gpu_final_REn, sizeof(double),
+  CubDebugExit(cudaMemcpy(&cpu_final_REn, gpu_final_REn, sizeof(real),
                           cudaMemcpyDeviceToHost));
-  CubDebugExit(cudaMemcpy(&cpu_final_LJEn, gpu_final_LJEn, sizeof(double),
+  CubDebugExit(cudaMemcpy(&cpu_final_LJEn, gpu_final_LJEn, sizeof(real),
                           cudaMemcpyDeviceToHost));
   REn = cpu_final_REn;
   LJEn = cpu_final_LJEn;
@@ -142,49 +142,49 @@ void CallBoxInterGPU(VariablesCUDA *vars,
 
 __global__ void BoxInterGPU(int *gpu_pair1,
                             int *gpu_pair2,
-                            double *gpu_x,
-                            double *gpu_y,
-                            double *gpu_z,
-                            double xAxes,
-                            double yAxes,
-                            double zAxes,
+                            real *gpu_x,
+                            real *gpu_y,
+                            real *gpu_z,
+                            real xAxes,
+                            real yAxes,
+                            real zAxes,
                             bool electrostatic,
-                            double *gpu_particleCharge,
+                            real *gpu_particleCharge,
                             int *gpu_particleKind,
-                            double *gpu_REn,
-                            double *gpu_LJEn,
+                            real *gpu_REn,
+                            real *gpu_LJEn,
                             int pairSize,
-                            double *gpu_sigmaSq,
-                            double *gpu_epsilon_Cn,
-                            double *gpu_n,
+                            real *gpu_sigmaSq,
+                            real *gpu_epsilon_Cn,
+                            real *gpu_n,
                             int *gpu_VDW_Kind,
                             int *gpu_isMartini,
                             int *gpu_count,
-                            double *gpu_rCut,
-                            double *gpu_rCutCoulomb,
-                            double *gpu_rCutLow,
-                            double *gpu_rOn,
-                            double *gpu_alpha,
+                            real *gpu_rCut,
+                            real *gpu_rCutCoulomb,
+                            real *gpu_rCutLow,
+                            real *gpu_rOn,
+                            real *gpu_alpha,
                             int *gpu_ewald,
-                            double *gpu_diElectric_1,
+                            real *gpu_diElectric_1,
                             int *gpu_nonOrth,
-                            double *gpu_cell_x,
-                            double *gpu_cell_y,
-                            double *gpu_cell_z,
-                            double *gpu_Invcell_x,
-                            double *gpu_Invcell_y,
-                            double *gpu_Invcell_z,
+                            real *gpu_cell_x,
+                            real *gpu_cell_y,
+                            real *gpu_cell_z,
+                            real *gpu_Invcell_x,
+                            real *gpu_Invcell_y,
+                            real *gpu_Invcell_z,
                             int box)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   if(threadID >= pairSize)
     return;
-  double distSq;
-  double qi_qj_fact;
-  double qqFact = 167000.0;
+  real distSq;
+  real qi_qj_fact;
+  real qqFact = 167000.0;
   gpu_REn[threadID] = 0.0;
   gpu_LJEn[threadID] = 0.0;
-  double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
+  real cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
   if(InRcutGPU(distSq, gpu_x[gpu_pair1[threadID]], gpu_y[gpu_pair1[threadID]],
                gpu_z[gpu_pair1[threadID]], gpu_x[gpu_pair2[threadID]],
                gpu_y[gpu_pair2[threadID]], gpu_z[gpu_pair2[threadID]],
@@ -210,11 +210,11 @@ __global__ void BoxInterGPU(int *gpu_pair1,
   }
 }
 
-__device__ double CalcCoulombGPU(double distSq, double qi_qj_fact,
-                                 double gpu_rCutLow, int gpu_ewald,
-                                 int gpu_VDW_Kind, double gpu_alpha,
-                                 double gpu_rCutCoulomb, int gpu_isMartini,
-                                 double gpu_diElectric_1)
+__device__ real CalcCoulombGPU(real distSq, real qi_qj_fact,
+                                 real gpu_rCutLow, int gpu_ewald,
+                                 int gpu_VDW_Kind, real gpu_alpha,
+                                 real gpu_rCutCoulomb, int gpu_isMartini,
+                                 real gpu_diElectric_1)
 {
   if((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
     return 0.0;
@@ -234,10 +234,10 @@ __device__ double CalcCoulombGPU(double distSq, double qi_qj_fact,
                                 gpu_rCutCoulomb);
 }
 
-__device__ double CalcEnGPU(double distSq, int kind1, int kind2,
-                            double *gpu_sigmaSq, double *gpu_n,
-                            double *gpu_epsilon_Cn, int gpu_VDW_Kind,
-                            int gpu_isMartini, double gpu_rCut, double gpu_rOn,
+__device__ real CalcEnGPU(real distSq, int kind1, int kind2,
+                            real *gpu_sigmaSq, real *gpu_n,
+                            real *gpu_epsilon_Cn, int gpu_VDW_Kind,
+                            int gpu_isMartini, real gpu_rCut, real gpu_rOn,
                             int gpu_count)
 {
   if((gpu_rCut * gpu_rCut) < distSq) {
@@ -260,69 +260,69 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
 
 //ElectroStatic Calculation
 //**************************************************************//
-__device__ double CalcCoulombParticleGPU(double distSq, double qi_qj_fact,
-    double gpu_alpha)
+__device__ real CalcCoulombParticleGPU(real distSq, real qi_qj_fact,
+    real gpu_alpha)
 {
-  double dist = sqrt(distSq);
-  double value = gpu_alpha * dist;
+  real dist = sqrt(distSq);
+  real value = gpu_alpha * dist;
   return qi_qj_fact * (1 - erf(value)) / dist;
 }
 
-__device__ double CalcCoulombShiftGPU(double distSq, double qi_qj_fact,
-                                      int gpu_ewald, double gpu_alpha,
-                                      double gpu_rCut)
+__device__ real CalcCoulombShiftGPU(real distSq, real qi_qj_fact,
+                                      int gpu_ewald, real gpu_alpha,
+                                      real gpu_rCut)
 {
   if(gpu_ewald) {
-    double dist = sqrt(distSq);
-    double value = gpu_alpha * dist;
+    real dist = sqrt(distSq);
+    real value = gpu_alpha * dist;
     return qi_qj_fact * (1 - erf(value)) / dist;
   } else {
-    double dist = sqrt(distSq);
+    real dist = sqrt(distSq);
     return qi_qj_fact * (1.0 / dist - 1.0 / gpu_rCut);
   }
 }
 
-__device__ double CalcCoulombSwitchMartiniGPU(double distSq, double qi_qj_fact,
-    int gpu_ewald, double gpu_alpha,
-    double gpu_rCut,
-    double gpu_diElectric_1)
+__device__ real CalcCoulombSwitchMartiniGPU(real distSq, real qi_qj_fact,
+    int gpu_ewald, real gpu_alpha,
+    real gpu_rCut,
+    real gpu_diElectric_1)
 {
   if(gpu_ewald) {
-    double dist = sqrt(distSq);
-    double value = gpu_alpha * dist;
+    real dist = sqrt(distSq);
+    real value = gpu_alpha * dist;
     return qi_qj_fact * (1 - erf(value)) / dist;
   } else {
     // in Martini, the Coulomb switching distance is zero, so we will have
     // sqrt(distSq) - rOnCoul =  sqrt(distSq)
-    double dist = sqrt(distSq);
-    double rij_ronCoul_3 = dist * distSq;
-    double rij_ronCoul_4 = distSq * distSq;
+    real dist = sqrt(distSq);
+    real rij_ronCoul_3 = dist * distSq;
+    real rij_ronCoul_4 = distSq * distSq;
 
-    double A1 = 1.0 * (-(1.0 + 4) * gpu_rCut) / (pow(gpu_rCut, 1.0 + 2) *
+    real A1 = 1.0 * (-(1.0 + 4) * gpu_rCut) / (pow(gpu_rCut, 1.0 + 2) *
                 pow(gpu_rCut, 2));
-    double B1 = -1.0 * (-(1.0 + 3) * gpu_rCut) / (pow(gpu_rCut, 1.0 + 2) *
+    real B1 = -1.0 * (-(1.0 + 3) * gpu_rCut) / (pow(gpu_rCut, 1.0 + 2) *
                 pow(gpu_rCut, 3));
-    double C1 = 1.0 / pow(gpu_rCut, 1.0) - A1 / 3.0 * pow(gpu_rCut, 3) -
+    real C1 = 1.0 / pow(gpu_rCut, 1.0) - A1 / 3.0 * pow(gpu_rCut, 3) -
                 B1 / 4.0 * pow(gpu_rCut, 4);
 
-    double coul = -(A1 / 3.0) * rij_ronCoul_3 - (B1 / 4.0) * rij_ronCoul_4 - C1;
+    real coul = -(A1 / 3.0) * rij_ronCoul_3 - (B1 / 4.0) * rij_ronCoul_4 - C1;
     return qi_qj_fact * gpu_diElectric_1 * (1.0 / dist + coul);
   }
 }
 
 
-__device__ double CalcCoulombSwitchGPU(double distSq, double qi_qj_fact,
-                                       double gpu_alpha, int gpu_ewald,
-                                       double gpu_rCut)
+__device__ real CalcCoulombSwitchGPU(real distSq, real qi_qj_fact,
+                                       real gpu_alpha, int gpu_ewald,
+                                       real gpu_rCut)
 {
   if(gpu_ewald) {
-    double dist = sqrt(distSq);
-    double value = gpu_alpha * dist;
+    real dist = sqrt(distSq);
+    real value = gpu_alpha * dist;
     return qi_qj_fact * (1 - erf(value)) / dist;
   } else {
-    double rCutSq = gpu_rCut * gpu_rCut;
-    double dist = sqrt(distSq);
-    double switchVal = distSq / rCutSq - 1.0;
+    real rCutSq = gpu_rCut * gpu_rCut;
+    real dist = sqrt(distSq);
+    real switchVal = distSq / rCutSq - 1.0;
     switchVal *= switchVal;
     return qi_qj_fact * switchVal / dist;
   }
@@ -330,101 +330,101 @@ __device__ double CalcCoulombSwitchGPU(double distSq, double qi_qj_fact,
 
 //VDW Calculation
 //**************************************************************//
-__device__ double CalcEnParticleGPU(double distSq, int index,
-                                    double *gpu_sigmaSq, double *gpu_n,
-                                    double *gpu_epsilon_Cn)
+__device__ real CalcEnParticleGPU(real distSq, int index,
+                                    real *gpu_sigmaSq, real *gpu_n,
+                                    real *gpu_epsilon_Cn)
 {
-  double rRat2 = gpu_sigmaSq[index] / distSq;
-  double rRat4 = rRat2 * rRat2;
-  double attract = rRat4 * rRat2;
-  double repulse = pow(rRat2, gpu_n[index] / 2.0);
+  real rRat2 = gpu_sigmaSq[index] / distSq;
+  real rRat4 = rRat2 * rRat2;
+  real attract = rRat4 * rRat2;
+  real repulse = pow(rRat2, gpu_n[index] / 2.0);
   return gpu_epsilon_Cn[index] * (repulse - attract);
 }
 
-__device__ double CalcEnShiftGPU(double distSq, int index, double *gpu_sigmaSq,
-                                 double *gpu_n, double *gpu_epsilon_Cn,
-                                 double gpu_rCut)
+__device__ real CalcEnShiftGPU(real distSq, int index, real *gpu_sigmaSq,
+                                 real *gpu_n, real *gpu_epsilon_Cn,
+                                 real gpu_rCut)
 {
-  double rRat2 = gpu_sigmaSq[index] / distSq;
-  double rRat4 = rRat2 * rRat2;
-  double attract = rRat4 * rRat2;
-  double repulse = pow(rRat2, gpu_n[index] / 2.0);
+  real rRat2 = gpu_sigmaSq[index] / distSq;
+  real rRat4 = rRat2 * rRat2;
+  real attract = rRat4 * rRat2;
+  real repulse = pow(rRat2, gpu_n[index] / 2.0);
 
-  double shiftRRat2 = gpu_sigmaSq[index] / (gpu_rCut * gpu_rCut);
-  double shiftRRat4 = shiftRRat2 * shiftRRat2;
-  double shiftAttract = shiftRRat4 * shiftRRat2;
-  double shiftRepulse = pow(shiftRRat2, gpu_n[index] / 2.0);
-  double shiftConst = gpu_epsilon_Cn[index] * (shiftRepulse - shiftAttract);
+  real shiftRRat2 = gpu_sigmaSq[index] / (gpu_rCut * gpu_rCut);
+  real shiftRRat4 = shiftRRat2 * shiftRRat2;
+  real shiftAttract = shiftRRat4 * shiftRRat2;
+  real shiftRepulse = pow(shiftRRat2, gpu_n[index] / 2.0);
+  real shiftConst = gpu_epsilon_Cn[index] * (shiftRepulse - shiftAttract);
 
   return (gpu_epsilon_Cn[index] * (repulse - attract) - shiftConst);
 }
 
-__device__ double CalcEnSwitchMartiniGPU(double distSq, int index,
-    double *gpu_sigmaSq, double *gpu_n,
-    double *gpu_epsilon_Cn,
-    double gpu_rCut, double gpu_rOn)
+__device__ real CalcEnSwitchMartiniGPU(real distSq, int index,
+    real *gpu_sigmaSq, real *gpu_n,
+    real *gpu_epsilon_Cn,
+    real gpu_rCut, real gpu_rOn)
 {
-  double r_2 = 1.0 / distSq;
-  double r_4 = r_2 * r_2;
-  double r_6 = r_4 * r_2;
-  double r_n = pow(r_2, gpu_n[index] / 2.0);
+  real r_2 = 1.0 / distSq;
+  real r_4 = r_2 * r_2;
+  real r_6 = r_4 * r_2;
+  real r_n = pow(r_2, gpu_n[index] / 2.0);
 
-  double rij_ron = sqrt(distSq) - gpu_rOn;
-  double rij_ron_2 = rij_ron * rij_ron;
-  double rij_ron_3 = rij_ron_2 * rij_ron;
-  double rij_ron_4 = rij_ron_2 * rij_ron_2;
+  real rij_ron = sqrt(distSq) - gpu_rOn;
+  real rij_ron_2 = rij_ron * rij_ron;
+  real rij_ron_3 = rij_ron_2 * rij_ron;
+  real rij_ron_4 = rij_ron_2 * rij_ron_2;
 
-  double pn = gpu_n[index];
-  double An = pn * ((pn + 1) * gpu_rOn - (pn + 4) * gpu_rCut) /
+  real pn = gpu_n[index];
+  real An = pn * ((pn + 1) * gpu_rOn - (pn + 4) * gpu_rCut) /
               (pow(gpu_rCut, pn + 2) * pow(gpu_rCut - gpu_rOn, 2));
-  double Bn = -pn * ((pn + 1) * gpu_rOn - (pn + 3) * gpu_rCut) /
+  real Bn = -pn * ((pn + 1) * gpu_rOn - (pn + 3) * gpu_rCut) /
               (pow(gpu_rCut, pn + 2) * pow(gpu_rCut - gpu_rOn, 3));
-  double Cn = 1.0 / pow(gpu_rCut, pn) - An / 3.0 * pow(gpu_rCut - gpu_rOn, 3) -
+  real Cn = 1.0 / pow(gpu_rCut, pn) - An / 3.0 * pow(gpu_rCut - gpu_rOn, 3) -
               Bn / 4.0 * pow(gpu_rCut - gpu_rOn, 4);
 
-  double A6 = 6.0 * ((6.0 + 1) * gpu_rOn - (6.0 + 4) * gpu_rCut) /
+  real A6 = 6.0 * ((6.0 + 1) * gpu_rOn - (6.0 + 4) * gpu_rCut) /
               (pow(gpu_rCut, 6.0 + 2) * pow(gpu_rCut - gpu_rOn, 2));
-  double B6 = -6.0 * ((6.0 + 1) * gpu_rOn - (6.0 + 3) * gpu_rCut) /
+  real B6 = -6.0 * ((6.0 + 1) * gpu_rOn - (6.0 + 3) * gpu_rCut) /
               (pow(gpu_rCut, 6.0 + 2) * pow(gpu_rCut - gpu_rOn, 3));
-  double C6 = 1.0 / pow(gpu_rCut, 6.0) - A6 / 3.0 * pow(gpu_rCut - gpu_rOn, 3) -
+  real C6 = 1.0 / pow(gpu_rCut, 6.0) - A6 / 3.0 * pow(gpu_rCut - gpu_rOn, 3) -
               B6 / 4.0 * pow(gpu_rCut - gpu_rOn, 4);
 
-  double shifttempRep = -(An / 3.0) * rij_ron_3 -
+  real shifttempRep = -(An / 3.0) * rij_ron_3 -
                         (Bn / 4.0) * rij_ron_4 - Cn;
-  double shifttempAtt = -(A6 / 3.0) * rij_ron_3 - (B6 / 4.0) * rij_ron_4 - C6;
+  real shifttempAtt = -(A6 / 3.0) * rij_ron_3 - (B6 / 4.0) * rij_ron_4 - C6;
 
-  const double shiftRep = ( distSq > gpu_rOn * gpu_rOn ? shifttempRep : -Cn);
-  const double shiftAtt = ( distSq > gpu_rOn * gpu_rOn ? shifttempAtt : -C6);
+  const real shiftRep = ( distSq > gpu_rOn * gpu_rOn ? shifttempRep : -Cn);
+  const real shiftAtt = ( distSq > gpu_rOn * gpu_rOn ? shifttempAtt : -C6);
 
-  double sig6 = pow(gpu_sigmaSq[index], 3);
-  double sign = pow(gpu_sigmaSq[index], pn / 2);
-  double Eij = gpu_epsilon_Cn[index] * (sign * (r_n + shiftRep) -
+  real sig6 = pow(gpu_sigmaSq[index], 3);
+  real sign = pow(gpu_sigmaSq[index], pn / 2);
+  real Eij = gpu_epsilon_Cn[index] * (sign * (r_n + shiftRep) -
                                         sig6 * (r_6 + shiftAtt));
   return Eij;
 }
 
 
-__device__ double CalcEnSwitchGPU(double distSq, int index, double *gpu_sigmaSq,
-                                  double *gpu_n, double *gpu_epsilon_Cn,
-                                  double gpu_rCut, double gpu_rOn)
+__device__ real CalcEnSwitchGPU(real distSq, int index, real *gpu_sigmaSq,
+                                  real *gpu_n, real *gpu_epsilon_Cn,
+                                  real gpu_rCut, real gpu_rOn)
 {
-  double rCutSq = gpu_rCut * gpu_rCut;
-  double rOnSq = gpu_rOn * gpu_rOn;
+  real rCutSq = gpu_rCut * gpu_rCut;
+  real rOnSq = gpu_rOn * gpu_rOn;
 
-  double rCutSq_rijSq = rCutSq  - distSq;
-  double rCutSq_rijSq_Sq = rCutSq_rijSq * rCutSq_rijSq;
+  real rCutSq_rijSq = rCutSq  - distSq;
+  real rCutSq_rijSq_Sq = rCutSq_rijSq * rCutSq_rijSq;
 
-  double rRat2 = gpu_sigmaSq[index] / distSq;
-  double rRat4 = rRat2 * rRat2;
-  double attract = rRat4 * rRat2;
+  real rRat2 = gpu_sigmaSq[index] / distSq;
+  real rRat4 = rRat2 * rRat2;
+  real attract = rRat4 * rRat2;
 
-  double repulse = pow(rRat2, gpu_n[index] / 2.0);
+  real repulse = pow(rRat2, gpu_n[index] / 2.0);
 
-  double factor1 = rCutSq - 3 * rOnSq;
-  double factor2 = pow((rCutSq - rOnSq), -3);
-  double fE = rCutSq_rijSq_Sq * factor2 * (factor1 + 2 * distSq);
+  real factor1 = rCutSq - 3 * rOnSq;
+  real factor2 = pow((rCutSq - rOnSq), -3);
+  real fE = rCutSq_rijSq_Sq * factor2 * (factor1 + 2 * distSq);
 
-  const double factE = ( distSq > rOnSq ? fE : 1.0);
+  const real factE = ( distSq > rOnSq ? fE : 1.0);
 
   return (gpu_epsilon_Cn[index] * (repulse - attract)) * factE;
 }
