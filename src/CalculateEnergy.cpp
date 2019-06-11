@@ -235,7 +235,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction
-  potential.boxEnergy[box].real = tempREn;
+  potential.boxEnergy[box].real_en = tempREn;
 
   // set correction energy and virial
   if (forcefield.useLRC) {
@@ -401,7 +401,7 @@ Virial CalculateEnergy::ForceCalc(const uint box)
   // setting virial of LJ
   tempVir.inter = vT11 + vT22 + vT33;
   // setting virial of coulomb
-  tempVir.real = (rT11 + rT22 + rT33) * num::qqFact;
+  tempVir.real_en = (rT11 + rT22 + rT33) * num::qqFact;
 
   if (forcefield.useLRC) {
     ForceCorrection(tempVir, currentAxes, box);
@@ -546,7 +546,7 @@ void CalculateEnergy::ParticleNonbonded(real* inter,
   }
 }
 
-void CalculateEnergy::ParticleInter(real* en, real *real,
+void CalculateEnergy::ParticleInter(real* en, real *real_en,
                                     XYZArray const& trialPos,
                                     bool* overlap,
                                     const uint partIndex,
@@ -592,7 +592,7 @@ void CalculateEnergy::ParticleInter(real* en, real *real,
       }
     }
     en[t] += tempLJ;
-    real[t] += tempReal;
+    real_en[t] += tempReal;
   }
 }
 
