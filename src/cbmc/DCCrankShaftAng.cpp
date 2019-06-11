@@ -199,14 +199,14 @@ void DCCrankShaftAng::BuildOld(TrialMol& oldMol, uint molIndex)
     //Wrap the atom coordinates
     data->axes.WrapPBC(multiPosRotions[a], oldMol.GetBox());
     //Calculate nonbonded energy
-    data->calc.ParticleInter(inter, real, multiPosRotions[a], overlap,
+    data->calc.ParticleInter(inter, real_en, multiPosRotions[a], overlap,
                              atoms[a], molIndex, oldMol.GetBox(), nLJTrials);
     ParticleNonbonded(oldMol, multiPosRotions[a], atoms[a], nLJTrials);
   }
 
   for (uint trial = 0; trial < nLJTrials; ++trial) {
     ljWeights[trial] *= exp(-1 * data->ff.beta *
-                            (inter[trial] + real[trial] + nonbonded[trial]));
+                            (inter[trial] + real_en[trial] + nonbonded[trial]));
     stepWeight += ljWeights[trial];
   }
   oldMol.UpdateOverlap(overlap[0]);
