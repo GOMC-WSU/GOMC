@@ -11,7 +11,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <vector> //for vector average
 #include "BasicTypes.h" //For uint, XYZ
 
+#ifndef DBL_MAX
 #define DBL_MAX 1.7976931348623158e+308
+#endif
+#ifndef FLT_MAX
+#define FLT_MAX 3.402823e+38
+#endif
 
 namespace num
 {
