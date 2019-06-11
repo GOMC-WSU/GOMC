@@ -7,10 +7,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef BASIC_TYPES_H
 #define BASIC_TYPES_H
 
+#include "EnsemblePreprocessor.h"
 #include <cstddef>
 #include <math.h>
 #include <ostream>
-#include "EnsemblePreprocessor.h"
 
 typedef unsigned int uint;
 typedef unsigned long int ulong;
