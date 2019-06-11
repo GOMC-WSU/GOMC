@@ -153,12 +153,12 @@ void DCCrankShaftAng::BuildOld(TrialMol& oldMol, uint molIndex)
   real* nonbonded = data->nonbonded;
   real* ljWeights = data->ljWeights;
   real* inter = data->inter;
-  real* real = data->real;
+  real* real_en = data->real_en;
   bool* overlap = data->overlap;
   real stepWeight = 0;
 
   std::fill_n(inter, nLJTrials, 0.0);
-  std::fill_n(real, nLJTrials, 0.0);
+  std::fill_n(real_en, nLJTrials, 0.0);
   std::fill_n(ljWeights, nLJTrials, 0.0);
   std::fill_n(nonbonded, nLJTrials, 0.0);
   std::fill_n(overlap, nLJTrials, false);
@@ -212,7 +212,7 @@ void DCCrankShaftAng::BuildOld(TrialMol& oldMol, uint molIndex)
   oldMol.UpdateOverlap(overlap[0]);
   oldMol.MultWeight(stepWeight / nLJTrials);
   oldMol.AddEnergy(Energy(bondedEn[0], nonbonded[0],
-                          inter[0], real[0],
+                          inter[0], real_en[0],
                           0.0, 0.0, 0.0));
 
   for (uint a = 0; a < numAtom; a++) {
@@ -232,12 +232,12 @@ void DCCrankShaftAng::BuildNew(TrialMol& newMol, uint molIndex)
   real* nonbonded = data->nonbonded;
   real* ljWeights = data->ljWeights;
   real* inter = data->inter;
-  real* real = data->real;
+  real* real_en = data->real_en;
   bool* overlap = data->overlap;
   real stepWeight = 0;
 
   std::fill_n(inter, nLJTrials, 0.0);
-  std::fill_n(real, nLJTrials, 0.0);
+  std::fill_n(real_en, nLJTrials, 0.0);
   std::fill_n(ljWeights, nLJTrials, 0.0);
   std::fill_n(nonbonded, nLJTrials, 0.0);
   std::fill_n(overlap, nLJTrials, false);
@@ -272,21 +272,21 @@ void DCCrankShaftAng::BuildNew(TrialMol& newMol, uint molIndex)
     //Wrap the atom coordinates
     data->axes.WrapPBC(multiPosRotions[a], newMol.GetBox());
     //Calculate nonbonded energy
-    data->calc.ParticleInter(inter, real, multiPosRotions[a], overlap,
+    data->calc.ParticleInter(inter, real_en, multiPosRotions[a], overlap,
                              atoms[a], molIndex, newMol.GetBox(), nLJTrials);
     ParticleNonbonded(newMol, multiPosRotions[a], atoms[a], nLJTrials);
   }
 
   for (uint trial = 0; trial < nLJTrials; trial++) {
     ljWeights[trial] *= exp(-1 * data->ff.beta *
-                            (inter[trial] + real[trial] + nonbonded[trial]));
+                            (inter[trial] + real_en[trial] + nonbonded[trial]));
     stepWeight += ljWeights[trial];
   }
   uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
   newMol.UpdateOverlap(overlap[winner]);
   newMol.MultWeight(stepWeight / nLJTrials);
   newMol.AddEnergy(Energy(bondedEn[winner], nonbonded[winner],
-                          inter[winner], real[winner],
+                          inter[winner], real_en[winner],
                           0.0, 0.0, 0.0));
 
   for (uint a = 0; a < numAtom; a++) {
