@@ -86,25 +86,25 @@ class Energy
 {
 public:
   Energy() : intraBond(0.0), intraNonbond(0.0), inter(0.0),
-    tc(0.0), total(0.0), real(0.0), recip(0.0), self(0.0),
+    tc(0.0), total(0.0), real_en(0.0), recip(0.0), self(0.0),
     correction(0.0), totalElect(0.0) {}
-  Energy(real bond, real nonbond, real inter, real real,
+  Energy(real bond, real nonbond, real inter, real real_en,
          real recip, real self, real correc) :
     intraBond(bond), intraNonbond(nonbond), inter(inter),
-    tc(0.0), real(real), recip(recip), self(self), correction(correc),
+    tc(0.0), real_en(real_en), recip(recip), self(self), correction(correc),
     totalElect(0.0), total(0.0) {}
 
   //VALUE SETTERS
   real Total()
   {
-    total = intraBond + intraNonbond + inter + tc + real + recip + self +
+    total = intraBond + intraNonbond + inter + tc + real_en + recip + self +
             correction;
     return total;
   }
 
   real TotalElect()
   {
-    totalElect = real + recip + self + correction;
+    totalElect = real_en + recip + self + correction;
     return totalElect;
   }
 
@@ -114,7 +114,7 @@ public:
     intraNonbond = 0.0;
     inter = 0.0;
     tc = 0.0;
-    real = 0.0;
+    real_en = 0.0;
     recip = 0.0;
     self = 0.0;
     correction = 0.0;
@@ -138,7 +138,7 @@ public:
 
 //private:
   //MEMBERS
-  real intraBond, intraNonbond, inter, tc, total, real, recip, self,
+  real intraBond, intraNonbond, inter, tc, total, real_en, recip, self,
          correction, totalElect;
 };
 
@@ -148,7 +148,7 @@ inline Energy& Energy::operator-=(Energy const& rhs)
   intraBond -= rhs.intraBond;
   intraNonbond -= rhs.intraNonbond;
   tc -= rhs.tc;
-  real -= rhs.real;
+  real_en -= rhs.real_en;
   recip -= rhs.recip;
   self -= rhs.self;
   correction -= rhs.correction;
@@ -164,7 +164,7 @@ inline Energy& Energy::operator+=(Energy const& rhs)
   intraBond += rhs.intraBond;
   intraNonbond += rhs.intraNonbond;
   tc += rhs.tc;
-  real += rhs.real;
+  real_en += rhs.real_en;
   recip += rhs.recip;
   self += rhs.self;
   correction += rhs.correction;
@@ -186,7 +186,7 @@ public:
   real Total()
   {
     TotalElect();
-    total = inter + tc + real + recip + self + correction;
+    total = inter + tc + real_en + recip + self + correction;
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
         totalTens[i][j] = interTens[i][j] + realTens[i][j] + recipTens[i][j] +
@@ -198,7 +198,7 @@ public:
 
   real TotalElect()
   {
-    totalElect = real + recip + self + correction;
+    totalElect = real_en + recip + self + correction;
     return totalElect;
   }
 
@@ -206,7 +206,7 @@ public:
   {
     inter = 0.0;
     tc = 0.0;
-    real = 0.0;
+    real_en = 0.0;
     recip = 0.0;
     self = 0.0;
     correction = 0.0;
@@ -228,7 +228,7 @@ public:
   {
     inter -= rhs.inter;
     tc -= rhs.tc;
-    real -= rhs.real;
+    real_en -= rhs.real_en;
     recip -= rhs.recip;
     self -= rhs.self;
     correction -= rhs.correction;
@@ -253,7 +253,7 @@ public:
   {
     inter += rhs.inter;
     tc += rhs.tc;
-    real += rhs.real;
+    real_en += rhs.real_en;
     recip += rhs.recip;
     self += rhs.self;
     correction += rhs.correction;
@@ -288,7 +288,7 @@ public:
   {
     inter = rhs.inter;
     tc = rhs.tc;
-    real = rhs.real;
+    real_en = rhs.real_en;
     recip = rhs.recip;
     self = rhs.self;
     correction = rhs.correction;
@@ -312,7 +312,7 @@ public:
   {
     inter /= rhs;
     tc /= rhs;
-    real /= rhs;
+    real_en /= rhs;
     recip /= rhs;
     self /= rhs;
     correction /= rhs;
@@ -334,7 +334,7 @@ public:
 
 //private:
   //MEMBERS
-  real inter, tc, real, recip, self, correction, totalElect, total;
+  real inter, tc, real_en, recip, self, correction, totalElect, total;
   //Store the pressure tensor
   real interTens[3][3], realTens[3][3], recipTens[3][3], totalTens[3][3],
          corrTens[3][3];
