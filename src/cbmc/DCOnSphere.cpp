@@ -85,7 +85,7 @@ void DCOnSphere::BuildOld(TrialMol& oldMol, uint molIndex)
   }
   oldMol.UpdateOverlap(overlap[0]);
   oldMol.MultWeight(stepWeight / nLJTrials);
-  oldMol.AddEnergy(Energy(bondEnergy, 0.0, inter[0], real[0], 0.0,
+  oldMol.AddEnergy(Energy(bondEnergy, 0.0, inter[0], real_en[0], 0.0,
                           0.0, 0.0));
   oldMol.ConfirmOldAtom(atom);
   oldMol.AddBonds(atom, focus);
