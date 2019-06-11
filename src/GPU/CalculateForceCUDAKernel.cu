@@ -702,6 +702,7 @@ __device__ real CalcVirSwitchGPU(real distSq, int index,
                                    real *gpu_n, real gpu_rCut,
                                    real gpu_rOn)
 {
+  real power2 = 2.0;
   real powerneg3 = -3.0;
 
   real rCutSq = gpu_rCut * gpu_rCut;
@@ -713,7 +714,7 @@ __device__ real CalcVirSwitchGPU(real distSq, int index,
   real rRat2 = rNeg2 * gpu_sigmaSq[index];
   real rRat4 = rRat2 * rRat2;
   real attract = rRat4 * rRat2;
-  real repulse = pow(rRat2, gpu_n[index] / 2.0);
+  real repulse = pow(rRat2, gpu_n[index] / power2);
   real factor1 = rCutSq - 3 * rOnSq;
   real factor2 = pow((rCutSq - rOnSq), powerneg3);
 
