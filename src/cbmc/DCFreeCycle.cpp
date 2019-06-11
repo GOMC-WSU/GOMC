@@ -197,7 +197,7 @@ void DCFreeCycle::BuildOld(TrialMol& oldMol, uint molIndex)
   uint nLJTrials = data->nLJTrialsNth;
   real* ljWeights = data->ljWeights;
   real* inter = data->inter;
-  real* real_en = data->real_en
+  real* real_en = data->real_en;
   bool* overlap = data->overlap;
 
   std::fill_n(inter, nLJTrials, 0.0);
