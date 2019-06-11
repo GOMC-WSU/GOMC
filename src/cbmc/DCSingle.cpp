@@ -28,12 +28,12 @@ void DCSingle::BuildOld(TrialMol& oldMol, uint molIndex)
   XYZArray& positions = data->positions;
   uint nLJTrials = data->nLJTrialsFirst;
   real* inter = data->inter;
-  real* real = data->real;
+  real* real_en = data->real_en;
   bool* overlap = data->overlap;
   real stepWeight = 0;
 
   std::fill_n(inter, nLJTrials, 0.0);
-  std::fill_n(real, nLJTrials, 0.0);
+  std::fill_n(real_en, nLJTrials, 0.0);
   std::fill_n(overlap, nLJTrials, false);
 
   if(oldMol.COMFix()) {
@@ -42,16 +42,16 @@ void DCSingle::BuildOld(TrialMol& oldMol, uint molIndex)
     prng.FillWithRandom(positions, nLJTrials, data->axes, oldMol.GetBox());
   }
   positions.Set(0, data->axes.WrapPBC(oldMol.AtomPosition(atom), oldMol.GetBox()));
-  data->calc.ParticleInter(inter, real, positions, overlap, atom, molIndex,
+  data->calc.ParticleInter(inter, real_en, positions, overlap, atom, molIndex,
                            oldMol.GetBox(), nLJTrials);
 
   for (uint trial = 0; trial < nLJTrials; ++trial) {
     stepWeight += exp(-1 * data->ff.beta *
-                      (inter[trial] + real[trial]));
+                      (inter[trial] + real_en[trial]));
   }
   oldMol.UpdateOverlap(overlap[0]);
   oldMol.MultWeight(stepWeight / nLJTrials);
-  oldMol.AddEnergy(Energy(0.0, 0.0, inter[0], real[0],
+  oldMol.AddEnergy(Energy(0.0, 0.0, inter[0], real_en[0],
                           0.0, 0.0, 0.0));
   oldMol.ConfirmOldAtom(atom);
 }
@@ -62,12 +62,12 @@ void DCSingle::BuildNew(TrialMol& newMol, uint molIndex)
   XYZArray& positions = data->positions;
   uint nLJTrials = data->nLJTrialsFirst;
   real* inter = data->inter;
-  real* real = data->real;
+  real* real_en = data->real_en;
   real* ljWeights = data->ljWeights;
   bool* overlap = data->overlap;
 
   std::fill_n(inter, nLJTrials, 0.0);
-  std::fill_n(real, nLJTrials, 0.0);
+  std::fill_n(real_en, nLJTrials, 0.0);
   std::fill_n(ljWeights, nLJTrials, 0.0);
   std::fill_n(overlap, nLJTrials, false);
 
@@ -77,19 +77,19 @@ void DCSingle::BuildNew(TrialMol& newMol, uint molIndex)
   } else {
     prng.FillWithRandom(positions, nLJTrials, data->axes, newMol.GetBox());
   }
-  data->calc.ParticleInter(inter, real, positions, overlap, atom, molIndex,
+  data->calc.ParticleInter(inter, real_en, positions, overlap, atom, molIndex,
                            newMol.GetBox(), nLJTrials);
 
   real stepWeight = 0;
   for (uint trial = 0; trial < nLJTrials; ++trial) {
     ljWeights[trial] = exp(-1 * data->ff.beta *
-                           (inter[trial] + real[trial]));
+                           (inter[trial] + real_en[trial]));
     stepWeight += ljWeights[trial];
   }
   uint winner = prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
   newMol.UpdateOverlap(overlap[winner]);
   newMol.MultWeight(stepWeight / nLJTrials);
-  newMol.AddEnergy(Energy(0.0, 0.0, inter[winner], real[winner],
+  newMol.AddEnergy(Energy(0.0, 0.0, inter[winner], real_en[winner],
                           0.0, 0.0, 0.0));
   newMol.AddAtom(atom, positions[winner]);
 }
