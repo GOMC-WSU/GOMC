@@ -12,7 +12,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "ConfigSetup.h"
 
-#define DBL_MAX 1.7976931348623158e+308
+#if defined(GOMC_DOUBLE)
+#define REAL_MAX 1.7976931348623158e+308
+#else
+#define REAL_MAX 3.402823e+38
+#endif
 
 int stringtoi(const std::string& s)
 {
@@ -44,9 +48,9 @@ ConfigSetup::ConfigSetup(void)
   sys.elect.readCache = false;
   sys.elect.ewald = false;
   sys.elect.enable = false;
-  sys.elect.tolerance = DBL_MAX;
-  sys.elect.oneFourScale = DBL_MAX;
-  sys.elect.dielectric = DBL_MAX;
+  sys.elect.tolerance = REAL_MAX;
+  sys.elect.oneFourScale = REAL_MAX;
+  sys.elect.dielectric = REAL_MAX;
   sys.memcVal.enable = false;
   sys.intraMemcVal.enable = false;
   sys.step.total = ULONG_MAX;
@@ -64,27 +68,27 @@ ConfigSetup::ConfigSetup(void)
   }
 #if ENSEMBLE == GEMC
   sys.gemc.kind = UINT_MAX;
-  sys.gemc.pressure = DBL_MAX;
+  sys.gemc.pressure = REAL_MAX;
 #endif
 #if ENSEMBLE == NPT
   sys.gemc.kind = mv::GEMC_NPT;
-  sys.gemc.pressure = DBL_MAX;
+  sys.gemc.pressure = REAL_MAX;
 #endif
 
-  sys.T.inKelvin = DBL_MAX;
+  sys.T.inKelvin = REAL_MAX;
   sys.ff.VDW_KIND = UINT_MAX;
   sys.ff.doTailCorr = true;
-  sys.ff.rswitch = DBL_MAX;
-  sys.ff.cutoff = DBL_MAX;
-  sys.ff.cutoffLow = DBL_MAX;
+  sys.ff.rswitch = REAL_MAX;
+  sys.ff.cutoff = REAL_MAX;
+  sys.ff.cutoffLow = REAL_MAX;
   sys.ff.vdwGeometricSigma = false;
-  sys.moves.displace = DBL_MAX;
-  sys.moves.rotate = DBL_MAX;
-  sys.moves.intraSwap = DBL_MAX;
-  sys.moves.regrowth = DBL_MAX;
-  sys.moves.crankShaft = DBL_MAX;
-  sys.moves.memc = DBL_MAX;
-  sys.moves.intraMemc = DBL_MAX;
+  sys.moves.displace = REAL_MAX;
+  sys.moves.rotate = REAL_MAX;
+  sys.moves.intraSwap = REAL_MAX;
+  sys.moves.regrowth = REAL_MAX;
+  sys.moves.crankShaft = REAL_MAX;
+  sys.moves.memc = REAL_MAX;
+  sys.moves.intraMemc = REAL_MAX;
   out.state.settings.enable = true;
   out.restart.settings.enable = true;
   out.console.enable = true;
@@ -113,7 +117,7 @@ ConfigSetup::ConfigSetup(void)
   out.statistics.vars.surfaceTension.block = false;
   out.statistics.vars.surfaceTension.fluct = false;
 #ifdef VARIABLE_PARTICLE_NUMBER
-  sys.moves.transfer = DBL_MAX;
+  sys.moves.transfer = REAL_MAX;
   sys.cbmcTrials.bonded.ang = UINT_MAX;
   sys.cbmcTrials.bonded.dih = UINT_MAX;
   sys.cbmcTrials.nonbonded.first = UINT_MAX;
@@ -123,7 +127,7 @@ ConfigSetup::ConfigSetup(void)
   sys.volume.cstVolBox0 = false;
 #endif
 #ifdef VARIABLE_VOLUME
-  sys.moves.volume = DBL_MAX;
+  sys.moves.volume = REAL_MAX;
   out.statistics.vars.volume.block = false;
   out.statistics.vars.volume.fluct = false;
 #endif
@@ -816,32 +820,32 @@ void ConfigSetup::fillDefaults(void)
     sys.elect.enable = true;
   }
 
-  if(sys.moves.intraSwap == DBL_MAX) {
+  if(sys.moves.intraSwap == REAL_MAX) {
     sys.moves.intraSwap = 0.000;
     printf("%-40s %-4.4f \n", "Default: Intra-Swap move frequency",
            sys.moves.intraSwap);
   }
 
-  if(sys.moves.intraMemc == DBL_MAX) {
+  if(sys.moves.intraMemc == REAL_MAX) {
     sys.moves.intraMemc = 0.0;
     printf("%-40s %-4.4f \n", "Default: Intra-MEMC move frequency",
            sys.moves.intraMemc);
   }
 
-  if(sys.moves.regrowth == DBL_MAX) {
+  if(sys.moves.regrowth == REAL_MAX) {
     sys.moves.regrowth = 0.000;
     printf("%-40s %-4.4f \n", "Default: Regrowth move frequency",
            sys.moves.regrowth);
   }
 
-  if(sys.moves.crankShaft == DBL_MAX) {
+  if(sys.moves.crankShaft == REAL_MAX) {
     sys.moves.crankShaft = 0.000;
     printf("%-40s %-4.4f \n", "Default: Crank-Shaft move frequency",
            sys.moves.crankShaft);
   }
 
 #ifdef VARIABLE_PARTICLE_NUMBER
-  if(sys.moves.memc == DBL_MAX) {
+  if(sys.moves.memc == REAL_MAX) {
     sys.moves.memc = 0.0;
     printf("%-40s %-4.4f \n", "Default: MEMC move frequency",
            sys.moves.memc);
@@ -853,7 +857,7 @@ void ConfigSetup::fillDefaults(void)
     printf("%-40s %-s \n", "Default: Exclude", "ONE-FOUR");
   }
 
-  if(sys.elect.enable && sys.elect.oneFourScale == DBL_MAX) {
+  if(sys.elect.enable && sys.elect.oneFourScale == REAL_MAX) {
     sys.elect.oneFourScale = 0.0f;
     if(sys.exclude.EXCLUDE_KIND != sys.exclude.EXC_ONEFOUR_KIND) {
       printf("%-40s %-lf \n", "Default: Modified 1-4 Electrostatic scaling",
@@ -879,7 +883,7 @@ void ConfigSetup::fillDefaults(void)
     printf("%-40s %-s \n", "Default: Cache Ewald Fourier", "Active");
   }
 
-  if(sys.elect.enable && sys.elect.dielectric == DBL_MAX && in.ffKind.isMARTINI) {
+  if(sys.elect.enable && sys.elect.dielectric == REAL_MAX && in.ffKind.isMARTINI) {
     sys.elect.dielectric = 15.0f;
     printf("%-40s %-4.4f \n", "Default: Dielectric", sys.elect.dielectric);
   }
@@ -894,7 +898,7 @@ void ConfigSetup::fillDefaults(void)
     }
   }
 
-  if(sys.ff.cutoffLow == DBL_MAX) {
+  if(sys.ff.cutoffLow == REAL_MAX) {
     sys.ff.cutoffLow = 0.00;
     printf("%-40s %-4.4f \n", "Default: Short Range Cutoff", sys.ff.cutoffLow);
   }
@@ -930,7 +934,7 @@ void ConfigSetup::fillDefaults(void)
 void ConfigSetup::verifyInputs(void)
 {
   int i;
-  if(!sys.elect.enable && sys.elect.oneFourScale != DBL_MAX) {
+  if(!sys.elect.enable && sys.elect.oneFourScale != REAL_MAX) {
     printf("Warning: 1-4 Electrostatic scaling set, but will be ignored.\n");
   }
 
@@ -960,11 +964,11 @@ void ConfigSetup::verifyInputs(void)
   }
 
 #if ENSEMBLE == GEMC
-  if(sys.gemc.kind == mv::GEMC_NPT && sys.gemc.pressure == DBL_MAX) {
+  if(sys.gemc.kind == mv::GEMC_NPT && sys.gemc.pressure == REAL_MAX) {
     std::cout << "Error: Pressure is not specified for NPT-GEMC!" << std::endl;
     exit(EXIT_FAILURE);
   }
-  if(sys.gemc.kind == mv::GEMC_NVT && sys.gemc.pressure != DBL_MAX) {
+  if(sys.gemc.kind == mv::GEMC_NVT && sys.gemc.pressure != REAL_MAX) {
     std::cout << "Warning: Input pressure set, but will be ignored in NVT-GEMC"
               << std::endl;
   }
@@ -975,7 +979,7 @@ void ConfigSetup::verifyInputs(void)
   }
 #endif
 #if ENSEMBLE == NPT
-  if(sys.gemc.pressure == DBL_MAX) {
+  if(sys.gemc.pressure == REAL_MAX) {
     std::cout << "Error: Pressure is not specified for NPT!" << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -1026,12 +1030,12 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Warning: Long Range Correction is Active for " <<
               "truncated potential." << std::endl;
   }
-  if(sys.ff.cutoff == DBL_MAX) {
+  if(sys.ff.cutoff == REAL_MAX) {
     std::cout << "Error: Cutoff is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
 
-  if(sys.elect.ewald && (sys.elect.tolerance == DBL_MAX)) {
+  if(sys.elect.ewald && (sys.elect.tolerance == REAL_MAX)) {
     std::cout << "Error: Tolerance is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -1058,30 +1062,30 @@ void ConfigSetup::verifyInputs(void)
               "Total run steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
-  if(sys.moves.displace == DBL_MAX) {
+  if(sys.moves.displace == REAL_MAX) {
     std::cout << "Error: Displacement move frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
-  if(sys.moves.rotate == DBL_MAX) {
+  if(sys.moves.rotate == REAL_MAX) {
     std::cout << "Error: Rotation move frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
-  if(sys.moves.intraSwap == DBL_MAX) {
+  if(sys.moves.intraSwap == REAL_MAX) {
     std::cout << "Error: Intra-Swap move frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
 #if ENSEMBLE == NPT
-  if(sys.moves.volume == DBL_MAX) {
+  if(sys.moves.volume == REAL_MAX) {
     std::cout << "Error: Volume move frequency is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
 #endif
 #if ENSEMBLE == GEMC
-  if(sys.moves.volume == DBL_MAX) {
+  if(sys.moves.volume == REAL_MAX) {
     std::cout << "Error: Volume move frequency is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
-  if(sys.moves.transfer == DBL_MAX) {
+  if(sys.moves.transfer == REAL_MAX) {
     std::cout << "Error: Molecule swap move frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
@@ -1092,7 +1096,7 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
 #elif ENSEMBLE == NPT
-  if(sys.moves.volume == DBL_MAX) {
+  if(sys.moves.volume == REAL_MAX) {
     std::cout << "Error: Volume move frequency is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -1104,7 +1108,7 @@ void ConfigSetup::verifyInputs(void)
   }
 
 #elif ENSEMBLE == GCMC
-  if(sys.moves.transfer == DBL_MAX) {
+  if(sys.moves.transfer == REAL_MAX) {
     std::cout << "Error: Molecule swap move frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
@@ -1150,12 +1154,12 @@ void ConfigSetup::verifyInputs(void)
     }
     exit(EXIT_FAILURE);
   }
-  if(sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND && sys.ff.rswitch == DBL_MAX) {
+  if(sys.ff.VDW_KIND == sys.ff.VDW_SWITCH_KIND && sys.ff.rswitch == REAL_MAX) {
     std::cout << "Error: Switch distance is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if(((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND) ||
-      (sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND)) && sys.ff.rswitch != DBL_MAX) {
+      (sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND)) && sys.ff.rswitch != REAL_MAX) {
     std::cout << "Warning: Switch distance set, but will be ignored."
               << std::endl;
   }
@@ -1260,7 +1264,7 @@ void ConfigSetup::verifyInputs(void)
   }
 
 #endif
-  if(sys.T.inKelvin == DBL_MAX) {
+  if(sys.T.inKelvin == REAL_MAX) {
     std::cout << "Error: Temperature is not specified!\n";
     exit(EXIT_FAILURE);
   }
