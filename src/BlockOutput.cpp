@@ -172,7 +172,7 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
     blocks[out::ENERGY_TC_IDX].SetRef(&var->energyRef[b].tc, b);
     blocks[out::ENERGY_INTRA_NB_IDX].SetRef(&var->energyRef[b].intraNonbond, b);
     blocks[out::ENERGY_ELECT_IDX].SetRef(&var->energyRef[b].totalElect, b);
-    blocks[out::ENERGY_REAL_IDX].SetRef(&var->energyRef[b].real, b);
+    blocks[out::ENERGY_REAL_IDX].SetRef(&var->energyRef[b].real_en, b);
     blocks[out::ENERGY_RECIP_IDX].SetRef(&var->energyRef[b].recip, b);
     blocks[out::VIRIAL_TOTAL_IDX].SetRef(&var->virialRef[b].total, b);
     blocks[out::PRESSURE_IDX].SetRef(&var->pressure[b], b);
