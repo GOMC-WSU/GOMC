@@ -49,12 +49,6 @@ inline real FromStr(real & d, std::string const& str)
   strm >> d;
   return d;
 }
-inline float FromStr(float & f, std::string const& str)
-{
-  std::stringstream strm(str);
-  strm >> f;
-  return f;
-}
 inline ulong FromStr(ulong & ul, std::string const& str)
 {
   std::stringstream strm(str);
@@ -140,11 +134,6 @@ struct Converter {
   Converter & operator<<(const real d)
   {
     strm << d;
-    return *this;
-  }
-  Converter & operator<<(const float f)
-  {
-    strm << f;
     return *this;
   }
   Converter & operator<<(const long l)

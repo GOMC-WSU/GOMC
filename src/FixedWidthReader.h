@@ -27,11 +27,6 @@ public:
     sstrm::FromStr(d, Str(field));
     return *this;
   }
-  FixedWidthReader & Get(float & f, ConstField const& field)
-  {
-    sstrm::FromStr(f, Str(field));
-    return *this;
-  }
   FixedWidthReader & Get(uint & ui, ConstField const& field)
   {
     sstrm::FromStr(ui, Str(field));
