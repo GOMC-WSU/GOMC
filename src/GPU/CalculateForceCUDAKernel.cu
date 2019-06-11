@@ -576,6 +576,9 @@ __device__ real CalcCoulombVirSwitchMartiniGPU(real distSq, real qi_qj,
     real gpu_rCut,
     real gpu_diElectric_1)
 {
+  real power2 = 2.0;
+  real power3 = 3.0;
+
   if(gpu_ewald) {
     real dist = sqrt(distSq);
     real constValue = 2.0 * gpu_alpha / sqrt(M_PI);
@@ -589,10 +592,10 @@ __device__ real CalcCoulombVirSwitchMartiniGPU(real distSq, real qi_qj,
     real rij_ronCoul_2 = distSq;
     real rij_ronCoul_3 = dist * distSq;
 
-    real A1 = 1.0 * (-(1.0 + 4) * gpu_rCut) / (pow(gpu_rCut, 1.0 + 2) *
-                pow(gpu_rCut, 2));
-    real B1 = -1.0 * (-(1.0 + 3) * gpu_rCut) / (pow(gpu_rCut, 1.0 + 2) *
-                pow(gpu_rCut, 3));
+    real A1 = 1.0 * (-(1.0 + 4) * gpu_rCut) / (pow(gpu_rCut, power3) *
+                pow(gpu_rCut, power2));
+    real B1 = -1.0 * (-(1.0 + 3) * gpu_rCut) / (pow(gpu_rCut, power3) *
+                pow(gpu_rCut, power3));
 
     real virCoul = A1 / rij_ronCoul_2 + B1 / rij_ronCoul_3;
     return qi_qj * gpu_diElectric_1 * ( 1.0 / (dist * distSq) + virCoul / dist);
@@ -652,8 +655,12 @@ __device__ real CalcVirSwitchMartiniGPU(real distSq, int index,
     real *gpu_epsilon_Cn,
     real gpu_rCut, real gpu_rOn)
 {
+  real power2 = 2.0;
+  real power3 = 3.0;
+  real power8 = 8.0;
+
   real r_1 = 1.0 / sqrt(distSq);
-  real r_8 = pow(r_1, 8);
+  real r_8 = pow(r_1, power8);
   real r_n2 = pow(r_1, gpu_n[index] + 2);
 
   real rij_ron = sqrt(distSq) - gpu_rOn;
@@ -662,17 +669,17 @@ __device__ real CalcVirSwitchMartiniGPU(real distSq, int index,
 
   real pn = gpu_n[index];
   real An = pn * ((pn + 1) * gpu_rOn - (pn + 4) * gpu_rCut) /
-              (pow(gpu_rCut, pn + 2) * pow(gpu_rCut - gpu_rOn, 2));
+              (pow(gpu_rCut, pn + 2) * pow(gpu_rCut - gpu_rOn, power2));
   real Bn = -pn * ((pn + 1) * gpu_rOn - (pn + 3) * gpu_rCut) /
-              (pow(gpu_rCut, pn + 2) * pow(gpu_rCut - gpu_rOn, 3));
+              (pow(gpu_rCut, pn + 2) * pow(gpu_rCut - gpu_rOn, power3));
 
-  real sig6 = pow(gpu_sigmaSq[index], 3);
+  real sig6 = pow(gpu_sigmaSq[index], power3);
   real sign = pow(gpu_sigmaSq[index], pn / 2);
 
   real A6 = 6.0 * ((6.0 + 1) * gpu_rOn - (6.0 + 4) * gpu_rCut) /
-              (pow(gpu_rCut, 6.0 + 2) * pow(gpu_rCut - gpu_rOn, 2));
+              (pow(gpu_rCut, power8) * pow(gpu_rCut - gpu_rOn, power2));
   real B6 = -6.0 * ((6.0 + 1) * gpu_rOn - (6.0 + 3) * gpu_rCut) /
-              (pow(gpu_rCut, 6.0 + 2) * pow(gpu_rCut - gpu_rOn, 3));
+              (pow(gpu_rCut, power8) * pow(gpu_rCut - gpu_rOn, power3));
 
   real dshifttempRep = An * rij_ron_2 + Bn * rij_ron_3;
   real dshifttempAtt = A6 * rij_ron_2 + B6 * rij_ron_3;
@@ -691,6 +698,8 @@ __device__ real CalcVirSwitchGPU(real distSq, int index,
                                    real *gpu_n, real gpu_rCut,
                                    real gpu_rOn)
 {
+  real powerneg3 = -3.0;
+
   real rCutSq = gpu_rCut * gpu_rCut;
   real rCutSq_rijSq = rCutSq - distSq;
   real rCutSq_rijSq_Sq = rCutSq_rijSq * rCutSq_rijSq;
@@ -702,7 +711,7 @@ __device__ real CalcVirSwitchGPU(real distSq, int index,
   real attract = rRat4 * rRat2;
   real repulse = pow(rRat2, gpu_n[index] / 2.0);
   real factor1 = rCutSq - 3 * rOnSq;
-  real factor2 = pow((rCutSq - rOnSq), -3);
+  real factor2 = pow((rCutSq - rOnSq), powerneg3);
 
   real fE = rCutSq_rijSq_Sq * factor2 * (factor1 + 2 * distSq);
   real fW = 12.0 * factor2 * rCutSq_rijSq * (rOnSq - distSq);
