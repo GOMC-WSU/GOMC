@@ -17,7 +17,11 @@ namespace num
 {
 static const real dbl_margin = 0.00001;
 static const real qqFact = 167000.00;
-static const real BIGNUM = DBL_MAX;
+#if defined(GOMC_DOUBLE)
+static const double BIGNUM = DBL_MAX;
+#else
+static const float BIGNUM = FLT_MAX;
+#endif
 static const uint VDW_STD_KIND = 0, VDW_SHIFT_KIND = 1, VDW_SWITCH_KIND = 2;
 
 template <typename T>
