@@ -213,8 +213,8 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
       } else if (molLookRef.NumInBox(sourceBox) == 1) {
         sysPotRef.boxEnergy[sourceBox].inter = 0;
         sysPotRef.boxVirial[sourceBox].inter = 0;
-        sysPotRef.boxEnergy[sourceBox].real = 0;
-        sysPotRef.boxVirial[sourceBox].real = 0;
+        sysPotRef.boxEnergy[sourceBox].real_en = 0;
+        sysPotRef.boxVirial[sourceBox].real_en = 0;
       }
 
       for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
