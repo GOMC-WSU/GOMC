@@ -643,11 +643,13 @@ __device__ real CalcVirParticleGPU(real distSq, int index,
 __device__ real CalcVirShiftGPU(real distSq, int index, real *gpu_sigmaSq,
                                   real *gpu_n, real *gpu_epsilon_Cn)
 {
+  real power2 = 2.0;
+
   real rNeg2 = 1.0 / distSq;
   real rRat2 = gpu_sigmaSq[index] * rNeg2;
   real rRat4 = rRat2 * rRat2;
   real attract = rRat4 * rRat2;
-  real repulse = pow(rRat2, gpu_n[index] / 2.0);
+  real repulse = pow(rRat2, gpu_n[index] / power2);
   return gpu_epsilon_Cn[index] * 6.0 *
          ((gpu_n[index] / 6.0) * repulse - attract) * rNeg2;
 }
