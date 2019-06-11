@@ -287,6 +287,9 @@ __device__ real CalcCoulombSwitchMartiniGPU(real distSq, real qi_qj_fact,
     real gpu_rCut,
     real gpu_diElectric_1)
 {
+  real power3 = 3.0;
+  real power4 = 4.0;
+
   if(gpu_ewald) {
     real dist = sqrt(distSq);
     real value = gpu_alpha * dist;
@@ -298,12 +301,12 @@ __device__ real CalcCoulombSwitchMartiniGPU(real distSq, real qi_qj_fact,
     real rij_ronCoul_3 = dist * distSq;
     real rij_ronCoul_4 = distSq * distSq;
 
-    real A1 = 1.0 * (-(1.0 + 4) * gpu_rCut) / (pow(gpu_rCut, 1.0 + 2) *
+    real A1 = 1.0 * (-(1.0 + 4) * gpu_rCut) / (pow(gpu_rCut, power3) *
                 pow(gpu_rCut, 2));
-    real B1 = -1.0 * (-(1.0 + 3) * gpu_rCut) / (pow(gpu_rCut, 1.0 + 2) *
+    real B1 = -1.0 * (-(1.0 + 3) * gpu_rCut) / (pow(gpu_rCut, power3) *
                 pow(gpu_rCut, 3));
-    real C1 = 1.0 / pow(gpu_rCut, 1.0) - A1 / 3.0 * pow(gpu_rCut, 3) -
-                B1 / 4.0 * pow(gpu_rCut, 4);
+    real C1 = 1.0 / pow(gpu_rCut, 1.0) - A1 / 3.0 * pow(gpu_rCut, power3) -
+                B1 / 4.0 * pow(gpu_rCut, power4);
 
     real coul = -(A1 / 3.0) * rij_ronCoul_3 - (B1 / 4.0) * rij_ronCoul_4 - C1;
     return qi_qj_fact * gpu_diElectric_1 * (1.0 / dist + coul);
