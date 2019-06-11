@@ -83,7 +83,7 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
     // setting energy and virial of LJ interaction
     sysPotRef.boxEnergy[b].inter += inter_LJ.energy;
     // setting energy and virial of coulomb interaction
-    sysPotRef.boxEnergy[b].real += inter_Real.energy;
+    sysPotRef.boxEnergy[b].real_en += inter_Real.energy;
     // setting energy and virial of recip term
     sysPotRef.boxEnergy[b].recip += recip.energy;
 
