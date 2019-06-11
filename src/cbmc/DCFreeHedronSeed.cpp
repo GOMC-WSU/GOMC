@@ -105,11 +105,11 @@ void DCFreeHedronSeed::BuildNew(TrialMol& newMol, uint molIndex)
   uint nLJTrials = data->nLJTrialsNth;
   real* ljWeights = data->ljWeights;
   real* inter = data->inter;
-  real* real = data->real;
+  real* real_en = data->real_en;
   bool* overlap = data->overlap;
 
   std::fill_n(inter, nLJTrials, 0.0);
-  std::fill_n(real, nLJTrials, 0.0);
+  std::fill_n(real_en, nLJTrials, 0.0);
   std::fill_n(ljWeights, nLJTrials, 0.0);
   std::fill_n(overlap, nLJTrials, false);
 
@@ -142,15 +142,15 @@ void DCFreeHedronSeed::BuildNew(TrialMol& newMol, uint molIndex)
   }
 
   for (uint b = 0; b < hed.NumBond(); ++b) {
-    calc.ParticleInter(inter, real, positions[b], overlap, hed.Bonded(b),
+    calc.ParticleInter(inter, real_en, positions[b], overlap, hed.Bonded(b),
                        molIndex, newMol.GetBox(), nLJTrials);
   }
-  calc.ParticleInter(inter, real, positions[hed.NumBond()], overlap, hed.Prev(),
+  calc.ParticleInter(inter, real_en, positions[hed.NumBond()], overlap, hed.Prev(),
                      molIndex, newMol.GetBox(), nLJTrials);
 
   real stepWeight = 0;
   for (uint lj = 0; lj < nLJTrials; ++lj) {
-    ljWeights[lj] = exp(-ff.beta * (inter[lj] + real[lj]));
+    ljWeights[lj] = exp(-ff.beta * (inter[lj] + real_en[lj]));
     stepWeight += ljWeights[lj];
   }
 
@@ -164,7 +164,7 @@ void DCFreeHedronSeed::BuildNew(TrialMol& newMol, uint molIndex)
   newMol.AddBonds(hed.Prev(), hed.Focus());
   newMol.UpdateOverlap(overlap[winner]);
   newMol.AddEnergy(Energy(hed.GetEnergy() + bondEnergy, hed.GetNonBondedEn(),
-                          inter[winner], real[winner],
+                          inter[winner], real_en[winner],
                           0.0, 0.0, 0.0));
   newMol.MultWeight(hed.GetWeight());
   newMol.MultWeight(stepWeight / nLJTrials);
@@ -179,11 +179,11 @@ void DCFreeHedronSeed::BuildOld(TrialMol& oldMol, uint molIndex)
   uint nLJTrials = data->nLJTrialsNth;
   real* ljWeights = data->ljWeights;
   real* inter = data->inter;
-  real* real = data->real;
+  real* real_en = data->real_en;
   bool* overlap = data->overlap;
 
   std::fill_n(inter, nLJTrials, 0.0);
-  std::fill_n(real, nLJTrials, 0.0);
+  std::fill_n(real_en, nLJTrials, 0.0);
   std::fill_n(ljWeights, nLJTrials, 0.0);
   std::fill_n(overlap, nLJTrials, false);
 
@@ -226,15 +226,15 @@ void DCFreeHedronSeed::BuildOld(TrialMol& oldMol, uint molIndex)
   }
 
   for (uint b = 0; b < hed.NumBond(); ++b) {
-    calc.ParticleInter(inter, real, positions[b], overlap, hed.Bonded(b),
+    calc.ParticleInter(inter, real_en, positions[b], overlap, hed.Bonded(b),
                        molIndex, oldMol.GetBox(), nLJTrials);
   }
   real stepWeight = 0;
-  calc.ParticleInter(inter, real, positions[hed.NumBond()], overlap, hed.Prev(),
+  calc.ParticleInter(inter, real_en, positions[hed.NumBond()], overlap, hed.Prev(),
                      molIndex, oldMol.GetBox(), nLJTrials);
 
   for (uint lj = 0; lj < nLJTrials; ++lj) {
-    stepWeight += exp(-ff.beta * (inter[lj] + real[lj]));
+    stepWeight += exp(-ff.beta * (inter[lj] + real_en[lj]));
   }
 
   for(uint b = 0; b < hed.NumBond(); ++b) {
@@ -246,7 +246,7 @@ void DCFreeHedronSeed::BuildOld(TrialMol& oldMol, uint molIndex)
   oldMol.AddBonds(hed.Prev(), hed.Focus());
   oldMol.UpdateOverlap(overlap[0]);
   oldMol.AddEnergy(Energy(hed.GetEnergy() + bondEnergy, hed.GetNonBondedEn(),
-                          inter[0], real[0], 0.0, 0.0, 0.0));
+                          inter[0], real_en[0], 0.0, 0.0, 0.0));
   oldMol.MultWeight(hed.GetWeight());
   oldMol.MultWeight(stepWeight / nLJTrials);
 }
