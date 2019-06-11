@@ -59,12 +59,12 @@ void DCOnSphere::BuildOld(TrialMol& oldMol, uint molIndex)
   XYZArray& positions = data->positions;
   uint nLJTrials = data->nLJTrialsNth;
   real* inter = data->inter;
-  real* real = data->real;
+  real* real_en = data->real_en;
   bool* overlap = data->overlap;
   real stepWeight = 0;
 
   std::fill_n(inter, nLJTrials, 0.0);
-  std::fill_n(real, nLJTrials, 0.0);
+  std::fill_n(real_en, nLJTrials, 0.0);
   std::fill_n(overlap, nLJTrials, false);
   //calculate bond energy for old molecule.
   SetBondLengthOld(oldMol);
@@ -75,13 +75,13 @@ void DCOnSphere::BuildOld(TrialMol& oldMol, uint molIndex)
   positions.Set(0, oldMol.AtomPosition(atom));
   data->axes.WrapPBC(positions, oldMol.GetBox());
 
-  data->calc.ParticleInter(inter, real, positions, overlap, atom, molIndex,
+  data->calc.ParticleInter(inter, real_en, positions, overlap, atom, molIndex,
                            oldMol.GetBox(), nLJTrials);
 
 
   for (uint trial = 0; trial < nLJTrials; trial++) {
     stepWeight += exp(-1 * data->ff.beta *
-                      (inter[trial] + real[trial]));
+                      (inter[trial] + real_en[trial]));
   }
   oldMol.UpdateOverlap(overlap[0]);
   oldMol.MultWeight(stepWeight / nLJTrials);
@@ -96,13 +96,13 @@ void DCOnSphere::BuildNew(TrialMol& newMol, uint molIndex)
   XYZArray& positions = data->positions;
   uint nLJTrials = data->nLJTrialsNth;
   real* inter = data->inter;
-  real* real = data->real;
+  real* real_en = data->real_en;
   real* ljWeights = data->ljWeights;
   bool* overlap = data->overlap;
   real stepWeight = 0;
 
   std::fill_n(inter, nLJTrials, 0.0);
-  std::fill_n(real, nLJTrials, 0.0);
+  std::fill_n(real_en, nLJTrials, 0.0);
   std::fill_n(ljWeights, nLJTrials, 0.0);
   std::fill_n(overlap, nLJTrials, false);
   //calculate bond energy for old molecule.
@@ -113,19 +113,19 @@ void DCOnSphere::BuildNew(TrialMol& newMol, uint molIndex)
                                     newMol.AtomPosition(focus));
   data->axes.WrapPBC(positions, newMol.GetBox());
 
-  data->calc.ParticleInter(inter, real, positions, overlap, atom, molIndex,
+  data->calc.ParticleInter(inter, real_en, positions, overlap, atom, molIndex,
                            newMol.GetBox(), nLJTrials);
 
 
   for (uint trial = 0; trial < nLJTrials; trial++) {
     ljWeights[trial] = exp(-1 * data->ff.beta *
-                           (inter[trial] + real[trial]));
+                           (inter[trial] + real_en[trial]));
     stepWeight += ljWeights[trial];
   }
   uint winner = data->prng.PickWeighted(ljWeights, nLJTrials, stepWeight);
   newMol.UpdateOverlap(overlap[winner]);
   newMol.MultWeight(stepWeight / nLJTrials);
-  newMol.AddEnergy(Energy(bondEnergy, 0, inter[winner], real[winner], 0.0,
+  newMol.AddEnergy(Energy(bondEnergy, 0, inter[winner], real_en[winner], 0.0,
                           0.0, 0.0));
   newMol.AddAtom(atom, positions[winner]);
   newMol.AddBonds(atom, focus);
