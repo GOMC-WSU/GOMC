@@ -867,7 +867,7 @@ Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
     thisMol++;
   }
 
-  CallVirialReciprocalGPU(ff.particles->getCUDAVars(), thisBoxCoords,
+  CallForceReciprocalGPU(ff.particles->getCUDAVars(), thisBoxCoords,
                          thisBoxCOMDiff, chargeBox, wT11, wT12,
                          wT13, wT22, wT23, wT33, imageSizeRef[box], constVal,
                          box);
