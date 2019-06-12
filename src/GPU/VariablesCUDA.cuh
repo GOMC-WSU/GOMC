@@ -57,6 +57,12 @@ public:
     gpu_rCutCoulomb = NULL;
     gpu_ewald = NULL;
     gpu_diElectric_1 = NULL;
+    gpu_aForcex = NULL;
+    gpu_aForcey = NULL;
+    gpu_aForcez = NULL;
+    gpu_mForcex = NULL;
+    gpu_mForcey = NULL;
+    gpu_mForcez = NULL;
   }
   real *gpu_sigmaSq;
   real *gpu_epsilon_Cn;
@@ -87,5 +93,7 @@ public:
   real **gpu_cell_x, **gpu_cell_y, **gpu_cell_z;
   real **gpu_Invcell_x, **gpu_Invcell_y, **gpu_Invcell_z;
   int *gpu_nonOrth;
+  double *gpu_aForcex, *gpu_aForcey, *gpu_aForcez;
+  double *gpu_mForcex, *gpu_mForcey, *gpu_mForcez;
 };
 #endif

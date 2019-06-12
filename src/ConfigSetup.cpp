@@ -85,6 +85,8 @@ ConfigSetup::ConfigSetup(void)
   sys.moves.displace = REAL_MAX;
   sys.moves.rotate = REAL_MAX;
   sys.moves.intraSwap = REAL_MAX;
+  sys.moves.multiParticleEnabled = false;
+  sys.moves.multiParticle = REAL_MAX;
   sys.moves.regrowth = REAL_MAX;
   sys.moves.crankShaft = REAL_MAX;
   sys.moves.memc = REAL_MAX;
@@ -477,7 +479,15 @@ void ConfigSetup::Init(const char *fileName)
       sys.moves.displace = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Displacement move frequency",
              sys.moves.displace);
-    } else if(CheckString(line[0], "IntraSwapFreq")) {
+    } else if(CheckString(line[0],"MultiParticleFreq")) {
+      sys.moves.multiParticle = stringtod(line[1]);
+      if(sys.moves.multiParticle > 0.00) {
+        sys.moves.multiParticleEnabled = true;
+      }
+      printf("%-40s %-4.4f \n",
+             "Info: Multi-Particle move frequency",
+             sys.moves.multiParticle);
+    } else if(CheckString(line[0],"IntraSwapFreq")) {
       sys.moves.intraSwap = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Intra-Swap move frequency",
              sys.moves.intraSwap);
@@ -826,6 +836,13 @@ void ConfigSetup::fillDefaults(void)
            sys.moves.intraSwap);
   }
 
+  if(sys.moves.multiParticle == REAL_MAX) {
+    sys.moves.multiParticle = 0.000;
+    printf("%-40s %-4.4f \n",
+           "Default: Multi-Particle move frequency",
+           sys.moves.multiParticle);
+  }
+  
   if(sys.moves.intraMemc == REAL_MAX) {
     sys.moves.intraMemc = 0.0;
     printf("%-40s %-4.4f \n", "Default: Intra-MEMC move frequency",
@@ -1066,6 +1083,11 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Displacement move frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
+  if(sys.moves.multiParticle == REAL_MAX) {
+    std::cout <<
+      "Error: Multi-Particle move frequency is not specified!\n";
+    exit(EXIT_FAILURE);
+  }
   if(sys.moves.rotate == REAL_MAX) {
     std::cout << "Error: Rotation move frequency is not specified!\n";
     exit(EXIT_FAILURE);
@@ -1091,7 +1113,8 @@ void ConfigSetup::verifyInputs(void)
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
          sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
-         sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft - 1.0) > 0.001) {
+         sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft +
+         sys.moves.multiParticle - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(EXIT_FAILURE);
   }
@@ -1100,9 +1123,10 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Volume move frequency is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
+
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc +
-         sys.moves.crankShaft - 1.0) > 0.001) {
+         sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc + 
+         sys.moves.crankShaft + sys.moves.multiParticle - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(EXIT_FAILURE);
   }
@@ -1113,15 +1137,16 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.transfer + sys.moves.regrowth + sys.moves.memc +
-         sys.moves.intraMemc + sys.moves.crankShaft - 1.0) > 0.001) {
+         sys.moves.transfer + sys.moves.regrowth + sys.moves.memc + 
+         sys.moves.intraMemc + sys.moves.crankShaft +
+         sys.moves.multiParticle - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #else
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.regrowth + sys.moves.intraMemc + sys.moves.crankShaft -
-         1.0) > 0.001) {
+         sys.moves.regrowth + sys.moves.intraMemc + sys.moves.crankShaft +
+         sys.moves.multiParticle - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }

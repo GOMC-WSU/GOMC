@@ -143,108 +143,83 @@ void CheckpointOutput::printMoleculeLookupData()
 
 void CheckpointOutput::printMoveSettingsData()
 {
-  uint size_x, size_y, size_z;
+  printVector3DReal(moveSetRef.scale);
+  printVector3DReal(moveSetRef.acceptPercent);
+  printVector3DUint(moveSetRef.accepted);
+  printVector3DUint(moveSetRef.tries);
+  printVector3DUint(moveSetRef.tempAccepted);
+  printVector3DUint(moveSetRef.tempTries);
+  printVector2DUint(moveSetRef.mp_tries);
+  printVector2DUint(moveSetRef.mp_accepted);
+  printVector1DReal(moveSetRef.mp_t_max);
+  printVector1DReal(moveSetRef.mp_r_max);
+}
 
-  // print size of scale
-  size_x = moveSetRef.scale.size();
-  size_y = moveSetRef.scale[0].size();
-  size_z = moveSetRef.scale[0][0].size();
-  outputUintIn8Chars(size_x);
-  outputUintIn8Chars(size_y);
-  outputUintIn8Chars(size_z);
-
-  // print scale array
-  for(int i = 0; i < size_x; i++) {
-    for(int j = 0; j < size_y; j++) {
-      for(int k = 0; k < size_z; k++) {
-        outputRealIn8Chars(moveSetRef.scale[i][j][k]);
-      }
-    }
-  }
-
-  // print size of acceptPercent
-  size_x = moveSetRef.acceptPercent.size();
-  size_y = moveSetRef.acceptPercent[0].size();
-  size_z = moveSetRef.acceptPercent[0][0].size();
-  outputUintIn8Chars(size_x);
-  outputUintIn8Chars(size_y);
-  outputUintIn8Chars(size_z);
-
-  // print acceptPercent array
-  for(int i = 0; i < size_x; i++) {
-    for(int j = 0; j < size_y; j++) {
-      for(int k = 0; k < size_z; k++) {
-        outputRealIn8Chars(moveSetRef.acceptPercent[i][j][k]);
-      }
-    }
-  }
-
-  // print size of accepted
-  size_x = moveSetRef.accepted.size();
-  size_y = moveSetRef.accepted[0].size();
-  size_z = moveSetRef.accepted[0][0].size();
-  outputUintIn8Chars(size_x);
-  outputUintIn8Chars(size_y);
-  outputUintIn8Chars(size_z);
-
-  // print accepted array
-  for(int i = 0; i < size_x; i++) {
-    for(int j = 0; j < size_y; j++) {
-      for(int k = 0; k < size_z; k++) {
-        outputUintIn8Chars(moveSetRef.accepted[i][j][k]);
-      }
-    }
-  }
-
-  // print size of tries
-  size_x = moveSetRef.tries.size();
-  size_y = moveSetRef.tries[0].size();
-  size_z = moveSetRef.tries[0][0].size();
-  outputUintIn8Chars(size_x);
-  outputUintIn8Chars(size_y);
-  outputUintIn8Chars(size_z);
-
-  // print tries array
-  for(int i = 0; i < size_x; i++) {
-    for(int j = 0; j < size_y; j++) {
-      for(int k = 0; k < size_z; k++) {
-        outputUintIn8Chars(moveSetRef.tries[i][j][k]);
-      }
-    }
-  }
-
-  // print size of tempAccepted
-  size_x = moveSetRef.tempAccepted.size();
-  size_y = moveSetRef.tempAccepted[0].size();
-  size_z = moveSetRef.tempAccepted[0][0].size();
-  outputUintIn8Chars(size_x);
-  outputUintIn8Chars(size_y);
-  outputUintIn8Chars(size_z);
-
-  // print tempAccepted array
-  for(int i = 0; i < size_x; i++) {
-    for(int j = 0; j < size_y; j++) {
-      for(int k = 0; k < size_z; k++) {
-        outputUintIn8Chars(moveSetRef.tempAccepted[i][j][k]);
-      }
-    }
-  }
-
+void CheckpointOutput::printVector3DReal(vector< vector< vector <real> > > data)
+{
   // print size of tempTries
-  size_x = moveSetRef.tempTries.size();
-  size_y = moveSetRef.tempTries[0].size();
-  size_z = moveSetRef.tempTries[0][0].size();
+  ulong size_x = data.size();
+  ulong size_y = data[0].size();
+  ulong size_z = data[0][0].size();
   outputUintIn8Chars(size_x);
   outputUintIn8Chars(size_y);
   outputUintIn8Chars(size_z);
 
   // print tempTries array
-  for(int i = 0; i < size_x; i++) {
-    for(int j = 0; j < size_y; j++) {
-      for(int k = 0; k < size_z; k++) {
-        outputUintIn8Chars(moveSetRef.tempTries[i][j][k]);
+  for(int i=0; i<size_x; i++) {
+    for(int j=0; j<size_y; j++) {
+      for(int k=0; k<size_z; k++) {
+        outputRealIn8Chars(data[i][j][k]);
       }
     }
+  }
+}
+
+void CheckpointOutput::printVector3DUint(vector< vector< vector <uint> > > data)
+{
+  // print size of tempTries
+  ulong size_x = data.size();
+  ulong size_y = data[0].size();
+  ulong size_z = data[0][0].size();
+  outputUintIn8Chars(size_x);
+  outputUintIn8Chars(size_y);
+  outputUintIn8Chars(size_z);
+
+  // print tempTries array
+  for(int i=0; i<size_x; i++) {
+    for(int j=0; j<size_y; j++) {
+      for(int k=0; k<size_z; k++) {
+        outputUintIn8Chars(data[i][j][k]);
+      }
+    }
+  }
+}
+
+void CheckpointOutput::printVector2DUint(vector< vector< uint > > data)
+{
+  // print size of array
+  ulong size_x = data.size();
+  ulong size_y = data[0].size();
+  outputUintIn8Chars(size_x);
+  outputUintIn8Chars(size_y);
+
+  // print array iteself
+  for(int i=0; i<size_x; i++) {
+    for(int j=0; j<size_y; j++) {
+      outputUintIn8Chars(data[i][j]);
+    }
+  }
+}
+
+void CheckpointOutput::printVector1DReal(vector< real > data)
+{
+  // print size of array
+  ulong size_x = data.size();
+  outputUintIn8Chars(size_x);
+
+  // print array iteself
+  for(int i=0; i<size_x; i++) {
+    outputRealIn8Chars(data[i]);
   }
 }
 

@@ -12,6 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "XYZArray.h"
 #include "BoxDimensions.h"
 #include "VariablesCUDA.cuh"
+#include "ConstantDefinitionsCUDAKernel.cuh"
 
 using namespace std;
 
@@ -39,7 +40,7 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
                           real &vT33,
                           uint const box);
 
-void CallForceReciprocalGPU(VariablesCUDA *vars,
+void CallVirialReciprocalGPU(VariablesCUDA *vars,
                             XYZArray const &currentCoords,
                             XYZArray const &currentCOMDiff,
                             vector<real> &particleCharge,
@@ -175,6 +176,34 @@ __device__ real CalcVirSwitchGPU(real distSq, int index,
                                    real *gpu_sigmaSq, real *gpu_epsilon_Cn,
                                    real *gpu_n, real gpu_rCut,
                                    real gpu_rOn);
+
+
+// Have to move the implementation for some functions here 
+// since CUDA doesn't allow __global__ to call __device__
+// from different files
+// Wanted to call CalcCoulombForceGPU() from CalculateEnergyCUDAKernel.cu file
+__device__ inline real CalcCoulombForceGPU(real distSq, real qi_qj,
+  int gpu_VDW_Kind, int gpu_ewald,
+  int gpu_isMartini, real gpu_alpha,
+  real gpu_rCutCoulomb,
+  real gpu_diElectric_1)
+{
+  if((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
+    return 0.0;
+  }
+
+  if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
+    return CalcCoulombVirParticleGPU(distSq, qi_qj, gpu_alpha);
+  } else if(gpu_VDW_Kind == GPU_VDW_SHIFT_KIND) {
+    return CalcCoulombVirShiftGPU(distSq, qi_qj, gpu_ewald, gpu_alpha);
+  } else if(gpu_VDW_Kind == GPU_VDW_SWITCH_KIND && gpu_isMartini) {
+    return CalcCoulombVirSwitchMartiniGPU(distSq, qi_qj, gpu_ewald, gpu_alpha,
+                                          gpu_rCutCoulomb, gpu_diElectric_1);
+  } else
+    return CalcCoulombVirSwitchGPU(distSq, qi_qj, gpu_ewald, gpu_alpha,
+                                   gpu_rCutCoulomb);
+}
+
 
 #endif /*GOMC_CUDA*/
 #endif /*CALCULATE_FORCE_CUDA_KERNEL*/

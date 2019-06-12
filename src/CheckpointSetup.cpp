@@ -139,109 +139,16 @@ void CheckpointSetup::readMoleculeLookupData()
 
 void CheckpointSetup::readMoveSettingsData()
 {
-  uint size_x, size_y, size_z;
-
-  // read size of scale
-  size_x = readUintIn8Chars();
-  size_y = readUintIn8Chars();
-  size_z = readUintIn8Chars();
-
-  // read scale array
-  scaleVec.resize(size_x);
-  for(int i = 0; i < size_x; i++) {
-    scaleVec[i].resize(size_y);
-    for(int j = 0; j < size_y; j++) {
-      scaleVec[i][j].resize(size_z);
-      for(int k = 0; k < size_z; k++) {
-        scaleVec[i][j][k] = readRealIn8Chars();
-      }
-    }
-  }
-
-  // read size of acceptPercent
-  size_x = readUintIn8Chars();
-  size_y = readUintIn8Chars();
-  size_z = readUintIn8Chars();
-
-  // read acceptPercent array
-  acceptPercentVec.resize(size_x);
-  for(int i = 0; i < size_x; i++) {
-    acceptPercentVec[i].resize(size_y);
-    for(int j = 0; j < size_y; j++) {
-      acceptPercentVec[i][j].resize(size_z);
-      for(int k = 0; k < size_z; k++) {
-        acceptPercentVec[i][j][k] = readRealIn8Chars();
-      }
-    }
-  }
-
-  // read size of accepted
-  size_x = readUintIn8Chars();
-  size_y = readUintIn8Chars();
-  size_z = readUintIn8Chars();
-
-  // read accepted array
-  acceptedVec.resize(size_x);
-  for(int i = 0; i < size_x; i++) {
-    acceptedVec[i].resize(size_y);
-    for(int j = 0; j < size_y; j++) {
-      acceptedVec[i][j].resize(size_z);
-      for(int k = 0; k < size_z; k++) {
-        acceptedVec[i][j][k] = readUintIn8Chars();
-      }
-    }
-  }
-
-  // print size of tries
-  size_x = readUintIn8Chars();
-  size_y = readUintIn8Chars();
-  size_z = readUintIn8Chars();
-
-  // print tries array
-  triesVec.resize(size_x);
-  for(int i = 0; i < size_x; i++) {
-    triesVec[i].resize(size_y);
-    for(int j = 0; j < size_y; j++) {
-      triesVec[i][j].resize(size_z);
-      for(int k = 0; k < size_z; k++) {
-        triesVec[i][j][k] = readUintIn8Chars();
-      }
-    }
-  }
-
-  // print size of tempAccepted
-  size_x = readUintIn8Chars();
-  size_y = readUintIn8Chars();
-  size_z = readUintIn8Chars();
-
-  // print tempAccepted array
-  tempAcceptedVec.resize(size_x);
-  for(int i = 0; i < size_x; i++) {
-    tempAcceptedVec[i].resize(size_y);
-    for(int j = 0; j < size_y; j++) {
-      tempAcceptedVec[i][j].resize(size_z);
-      for(int k = 0; k < size_z; k++) {
-        tempAcceptedVec[i][j][k] = readUintIn8Chars();
-      }
-    }
-  }
-
-  // print size of tempTries
-  size_x = readUintIn8Chars();
-  size_y = readUintIn8Chars();
-  size_z = readUintIn8Chars();
-
-  // print tempTries array
-  tempTriesVec.resize(size_x);
-  for(int i = 0; i < size_x; i++) {
-    tempTriesVec[i].resize(size_y);
-    for(int j = 0; j < size_y; j++) {
-      tempTriesVec[i][j].resize(size_z);
-      for(int k = 0; k < size_z; k++) {
-        tempTriesVec[i][j][k] = readUintIn8Chars();
-      }
-    }
-  }
+  readVector3DReal(scaleVec);
+  readVector3DReal(acceptPercentVec);
+  readVector3DUint(acceptedVec);
+  readVector3DUint(triesVec);
+  readVector3DUint(tempAcceptedVec);
+  readVector3DUint(tempTriesVec);
+  readVector2DUint(mp_triesVec);
+  readVector2DUint(mp_acceptedVec);
+  readVector1DReal(mp_t_maxVec);
+  readVector1DReal(mp_r_maxVec);
 }
 
 void CheckpointSetup::openInputFile()
@@ -351,4 +258,73 @@ void CheckpointSetup::SetMoveSettings(MoveSettings & moveSettings)
   moveSettings.tries = this->triesVec;
   moveSettings.tempAccepted = this->tempAcceptedVec;
   moveSettings.tempTries = this->tempTriesVec;
+  moveSettings.mp_tries = this->mp_triesVec;
+  moveSettings.mp_accepted = this->mp_acceptedVec;
+  moveSettings.mp_t_max = this->mp_t_maxVec;
+  moveSettings.mp_r_max = this->mp_r_maxVec;
+}
+
+void
+CheckpointSetup::readVector3DReal(vector<vector<vector<real> > > &data) {
+  // read size of data
+  ulong size_x = readUintIn8Chars();
+  ulong size_y = readUintIn8Chars();
+  ulong size_z = readUintIn8Chars();
+
+  // read array
+  data.resize(size_x);
+  for(int i=0; i<size_x; i++) {
+    data[i].resize(size_y);
+    for(int j=0; j<size_y; j++) {
+      data[i][j].resize(size_z);
+      for(int k=0; k<size_z; k++) {
+        data[i][j][k] = readRealIn8Chars();
+      }
+    }
+  }
+}
+
+void CheckpointSetup::readVector3DUint(vector<vector<vector<uint> > > &data) {
+  // read size of data
+  ulong size_x = readUintIn8Chars();
+  ulong size_y = readUintIn8Chars();
+  ulong size_z = readUintIn8Chars();
+
+  // read array
+  data.resize(size_x);
+  for(int i=0; i<size_x; i++) {
+    data[i].resize(size_y);
+    for(int j=0; j<size_y; j++) {
+      data[i][j].resize(size_z);
+      for(int k=0; k<size_z; k++) {
+        data[i][j][k] = readUintIn8Chars();
+      }
+    }
+  }
+}
+
+void CheckpointSetup::readVector2DUint(vector<vector<uint> > &data) {
+  // read size of data
+  ulong size_x = readUintIn8Chars();
+  ulong size_y = readUintIn8Chars();
+
+  // read array
+  data.resize(size_x);
+  for(int i=0; i<size_x; i++) {
+    data[i].resize(size_y);
+    for(int j=0; j<size_y; j++) {
+      data[i][j] = readUintIn8Chars();
+    }
+  }
+}
+
+void CheckpointSetup::readVector1DReal(vector<real> &data) {
+// read size of data
+  ulong size_x = readUintIn8Chars();
+
+  // read array
+  data.resize(size_x);
+  for(int i=0; i<size_x; i++) {
+    data[i] = readRealIn8Chars();
+  }
 }

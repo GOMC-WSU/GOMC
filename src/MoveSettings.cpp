@@ -19,7 +19,7 @@ void MoveSettings::Init(StaticVals const& statV,
                         pdb_setup::Remarks const& remarks,
                         const uint tkind)
 {
-
+  isSingleMoveAccepted = true;
   totKind = tkind;
   perAdjust = statV.simEventFreq.perAdjust;
   for(uint b = 0; b < BOX_TOTAL; b++) {
@@ -62,6 +62,16 @@ void MoveSettings::Init(StaticVals const& statV,
       }
     }
   }
+
+  // Initialize MultiParticle settings
+  for(int b=0; b<BOX_TOTAL; b++) {
+    mp_r_max[b] = 0.02 * M_PI;
+    mp_t_max[b] = 0.05;
+    for(int m=0; m<mp::MPMVCOUNT; m++) {
+      mp_tries[b][m] = 0;
+      mp_accepted[b][m] = 0;
+    }
+  }
 }
 
 //Process results of move we just did in terms of acceptance counters
@@ -73,15 +83,21 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
   if(isAccepted) {
     tempAccepted[box][move][kind]++;
     accepted[box][move][kind]++;
+    
+    if(move != mv::MULTIPARTICLE)
+      isSingleMoveAccepted = true;
   }
 
+  if(move == mv::MULTIPARTICLE)
+    isSingleMoveAccepted = false;
+
   acceptPercent[box][move][kind] = (real)(accepted[box][move][kind]) /
-                                   (real)(tries[box][move][kind]);
+                                  (real)(tries[box][move][kind]);
 
   //for any move that we dont care about kind of molecule, it should be included
-  //in the if condition
-  if (move == mv::INTRA_MEMC
-#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
+  //in the if condition  
+  if (move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE
+  #if ENSEMBLE == GEMC || ENSEMBLE == GCMC 
       || move == mv::MEMC
 #endif
 #if ENSEMBLE == NPT || ENSEMBLE == GEMC
@@ -111,6 +127,37 @@ void MoveSettings::AdjustMoves(const uint step)
           Adjust(b, m, k);
         }
       }
+    }
+  }
+}
+
+void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
+{
+  uint totalTries= mp_tries[box][mp::MPDISPLACE] +
+                   mp_tries[box][mp::MPROTATE];
+  if((totalTries+1) % perAdjust == 0 ) {
+    real currentAccept = (real)mp_accepted[box][mp::MPDISPLACE] /
+                           (real)mp_tries[box][mp::MPDISPLACE];
+    real fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
+    mp_t_max[box] *= fractOfTargetAccept;
+    num::Bound<real>(mp_t_max[box], 0.001,
+                       (boxDimRef.axis.Min(box) / 2) - 0.001);
+
+    currentAccept = (real)mp_accepted[box][mp::MPROTATE] /
+                    (real)mp_tries[box][mp::MPROTATE];
+    fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
+    mp_r_max[box] *= fractOfTargetAccept;
+    num::Bound<real>(mp_r_max[box], 0.001, M_PI - 0.001);
+  }
+}
+
+void MoveSettings::UpdateMoveSettingMultiParticle(const uint box, bool isAccept,
+        const uint typePick)
+{
+  if(typePick != mp::MPALLRANDOM) {
+    mp_tries[box][typePick]++;
+    if(isAccept) {
+      mp_accepted[box][typePick]++;
     }
   }
 }
@@ -172,8 +219,8 @@ uint MoveSettings::GetAcceptTot(const uint box, const uint move) const
     sum += accepted[box][move][k];
   }
 
-  if(move == mv::INTRA_MEMC
-#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
+  if(move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE
+  #if ENSEMBLE == GEMC || ENSEMBLE == GCMC 
       || move == mv::MEMC
 #endif
 #if ENSEMBLE == NPT || ENSEMBLE == GEMC
@@ -182,7 +229,6 @@ uint MoveSettings::GetAcceptTot(const uint box, const uint move) const
     ) {
     sum /= totKind;
   }
-
   return sum;
 }
 
@@ -197,19 +243,19 @@ real MoveSettings::GetScaleTot(const uint box, const uint move) const
 
 uint MoveSettings::GetTrialTot(const uint box, const uint move) const
 {
-  uint sum = 0.0;
+  uint sum = 0;
   for(uint k = 0; k < totKind; k++) {
     sum += tries[box][move][k];
   }
 
-  if(move == mv::INTRA_MEMC
-#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-      || move == mv::MEMC
+  if(move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE
+ #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
+     || move == mv::MEMC
+ #endif
+ #if ENSEMBLE == NPT || ENSEMBLE == GEMC
+     || move == mv::VOL_TRANSFER
 #endif
-#if ENSEMBLE == NPT || ENSEMBLE == GEMC
-      || move == mv::VOL_TRANSFER
-#endif
-    ) {
+  ) {
     sum /= totKind;
   }
 

@@ -157,6 +157,7 @@ inline void Regrowth::Accept(const uint rejectState, const uint step)
       }
 
       calcEwald->UpdateRecip(sourceBox);
+
       //Retotal
       sysPotRef.Total();
     } else {

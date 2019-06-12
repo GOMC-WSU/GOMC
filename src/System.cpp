@@ -22,6 +22,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "VolumeTransfer.h"
 #include "MoleculeTransfer.h"
 #include "IntraSwap.h"
+#include "MultiParticle.h"
 #include "Regrowth.h"
 #include "MoleculeExchange1.h"
 #include "MoleculeExchange2.h"
@@ -105,6 +106,12 @@ void System::Init(Setup const& set, ulong & startStep)
   }
 
   com.CalcCOM();
+  // Allocate space for atom forces
+  atomForceRef.Init(set.pdb.atoms.beta.size());
+  molForceRef.Init(com.Count());
+  // Allocate space for reciprocate force
+  atomForceRecRef.Init(set.pdb.atoms.beta.size());
+  molForceRecRef.Init(com.Count());
   cellList.SetCutoff();
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 
@@ -137,6 +144,7 @@ void System::Init(Setup const& set, ulong & startStep)
 void System::InitMoves(Setup const& set)
 {
   moves[mv::DISPLACE] = new Translate(*this, statV);
+  moves[mv::MULTIPARTICLE] = new MultiParticle(*this, statV);
   moves[mv::ROTATE] = new Rotate(*this, statV);
   moves[mv::INTRA_SWAP] = new IntraSwap(*this, statV);
   moves[mv::REGROWTH] = new Regrowth(*this, statV);
@@ -259,6 +267,7 @@ void System::PrintTime()
   //std::cout << "MC moves Execution time:\n";
   printf("%-36s %10.4f    sec.\n", "Displacement:", moveTime[mv::DISPLACE]);
   printf("%-36s %10.4f    sec.\n", "Rotation:", moveTime[mv::ROTATE]);
+  printf("%-36s %10.4f    sec.\n", "MultiParticle:", moveTime[mv::MULTIPARTICLE]);
   printf("%-36s %10.4f    sec.\n", "Intra-Swap:", moveTime[mv::INTRA_SWAP]);
   printf("%-36s %10.4f    sec.\n", "Regrowth:", moveTime[mv::REGROWTH]);
   printf("%-36s %10.4f    sec.\n", "Intra-MEMC:", moveTime[mv::INTRA_MEMC]);

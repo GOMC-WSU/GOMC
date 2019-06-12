@@ -59,12 +59,16 @@ public:
   //! Calculates total energy/virial of a single box in the system
   SystemPotential BoxInter(SystemPotential potential,
                            XYZArray const& coords,
-                           XYZArray const& com,
+                           XYZArray& atomForce,
+                           XYZArray& molForce,
                            BoxDimensions const& boxAxes,
-                           const uint box) ;
+                           const uint box);
 
   //! Calculate force and virial for the box
-  Virial ForceCalc(const uint box);
+  Virial VirialCalc(const uint box);
+
+  //! Set the force for atom and mol to zero for box
+  void ResetForce(XYZArray& atomForce, XYZArray& molForce, uint box);
 
 
   //! Calculates intermolecule energy of all boxes in the system
@@ -76,6 +80,8 @@ public:
   SystemPotential SystemInter(SystemPotential potential,
                               XYZArray const& coords,
                               XYZArray const& com,
+                              XYZArray& atomForce,
+                              XYZArray& molForce,
                               BoxDimensions const& boxAxes) ;
 
   //! Calculates intermolecular energy (LJ and coulomb) of a molecule
@@ -146,7 +152,16 @@ public:
   //for Martini forcefield
   real IntraEnergy_1_4(const real distSq, const uint atom1,
                          const uint atom2, const uint molIndex) const;
-
+  //! Calculate Torque
+  void CalculateTorque(vector<uint>& moleculeIndex,
+                       XYZArray const& coordinates,
+                       XYZArray const& com,
+                       XYZArray const& atomForce,
+                       XYZArray const& atomForceRec,
+                       XYZArray& molTorque,
+                       vector<uint>& moveType,
+                       const uint box);
+    
   //Finding the molecule inside cavity and store the molecule Index.
   bool FindMolInCavity(std::vector< std::vector<uint> > &mol, const XYZ& center,
                        const XYZ& cavDim, const XYZArray& invCav,
@@ -162,7 +177,7 @@ private:
                         const uint box) const;
 
   //! Calculates full TC virial for one box in current system
-  void ForceCorrection(Virial& virial, BoxDimensions const& boxAxes,
+  void VirialCorrection(Virial& virial, BoxDimensions const& boxAxes,
                        const uint box) const;
 
 
@@ -247,8 +262,11 @@ private:
   const MoleculeLookup& molLookup;
   const BoxDimensions& currentAxes;
   const COM& currentCOM;
-  const Ewald  *calcEwald;
-  bool electrostatic;
+  const Ewald *calcEwald;
+  XYZArray& atomForceRef;
+  XYZArray& molForceRef;
+  bool multiParticleEnabled;
+  bool electrostatic, ewald;
 
   std::vector<int> particleKind;
   std::vector<int> particleMol;

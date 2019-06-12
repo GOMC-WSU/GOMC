@@ -203,7 +203,7 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   cudaFree(gpu_final_value);
 }
 
-void CallForceReciprocalGPU(VariablesCUDA *vars,
+void CallVirialReciprocalGPU(VariablesCUDA *vars,
                             XYZArray const &currentCoords,
                             XYZArray const &currentCOMDiff,
                             vector<real> &particleCharge,
@@ -245,7 +245,7 @@ void CallForceReciprocalGPU(VariablesCUDA *vars,
   // Run the kernel...
   threadsPerBlock = 256;
   blocksPerGrid = (int)(imageSize / threadsPerBlock) + 1;
-  ForceReciprocalGPU <<< blocksPerGrid,
+  VirialReciprocalGPU <<< blocksPerGrid,
                      threadsPerBlock>>>(vars->gpu_x,
                                         vars->gpu_y,
                                         vars->gpu_z,
@@ -500,9 +500,9 @@ __global__ void ForceReciprocalGPU(real *gpu_x,
 }
 
 __device__ real CalcCoulombForceGPU(real distSq, real qi_qj,
-                                      int gpu_VDW_Kind, int gpu_ewald,
-                                      int gpu_isMartini, real gpu_alpha,
-                                      real gpu_rCutCoulomb, real gpu_diElectric_1)
+                                    int gpu_VDW_Kind, int gpu_ewald,
+                                    int gpu_isMartini, real gpu_alpha,
+                                    real gpu_rCutCoulomb, real gpu_diElectric_1)
 {
   if((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
     return 0.0;
@@ -521,10 +521,10 @@ __device__ real CalcCoulombForceGPU(real distSq, real qi_qj,
 }
 
 __device__ real CalcEnForceGPU(real distSq, int kind1, int kind2,
-                                 real *gpu_sigmaSq, real *gpu_n,
-                                 real *gpu_epsilon_Cn, real gpu_rCut,
-                                 real gpu_rOn, int gpu_isMartini,
-                                 int gpu_VDW_Kind, int gpu_count)
+                               real *gpu_sigmaSq, real *gpu_n,
+                               real *gpu_epsilon_Cn, real gpu_rCut,
+                               real gpu_rOn, int gpu_isMartini,
+                               int gpu_VDW_Kind, int gpu_count)
 {
   if((gpu_rCut * gpu_rCut) < distSq) {
     return 0.0;

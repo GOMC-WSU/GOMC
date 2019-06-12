@@ -164,14 +164,14 @@ inline void VolumeTransfer::CalcEn()
         calcEwald->RecipInit(bPick[b], newDim);
         //setup reciprocate terms
         calcEwald->BoxReciprocalSetup(bPick[b], newMolsPos);
-        sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs,
-                                       newDim, bPick[b]);
+        sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, atomForceNew, molForceNew, newDim, bPick[b]);
       } else {
         calcEwald->RecipInit(bPick[b], newDimNonOrth);
         //setup reciprocate terms
         calcEwald->BoxReciprocalSetup(bPick[b], newMolsPos);
-        sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs,
-                                       newDimNonOrth, bPick[b]);
+        sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos,
+                                       atomForceNew, molForceNew, newDimNonOrth,
+                                        bPick[b]);
       }
       //calculate reciprocate term of electrostatic interaction
       sysPotNew.boxEnergy[bPick[b]].recip = calcEwald->BoxReciprocal(bPick[b]);
@@ -182,14 +182,12 @@ inline void VolumeTransfer::CalcEn()
       calcEwald->RecipInit(box, newDim);
       //setup reciprocate terms
       calcEwald->BoxReciprocalSetup(box, newMolsPos);
-      sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs, newDim,
-                                     box);
+      sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, atomForceNew, molForceNew, newDim, box);
     } else {
       calcEwald->RecipInit(box, newDimNonOrth);
       //setup reciprocate terms
       calcEwald->BoxReciprocalSetup(box, newMolsPos);
-      sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newCOMs,
-                                     newDimNonOrth, box);
+      sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, atomForceNew, molForceNew, newDimNonOrth, box);
     }
     //calculate reciprocate term of electrostatic interaction
     sysPotNew.boxEnergy[box].recip = calcEwald->BoxReciprocal(box);
@@ -246,6 +244,8 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
     //This will be less efficient for NPT, but necessary evil.
     swap(coordCurrRef, newMolsPos);
     swap(comCurrRef, newCOMs);
+    swap(atomForceRef, atomForceNew);
+    swap(molForceRef, molForceNew);
     if(isOrth)
       boxDimRef = newDim;
     else

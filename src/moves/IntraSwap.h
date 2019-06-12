@@ -150,7 +150,6 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
       comCurrRef.SetNew(molIndex, destBox);
       cellList.AddMol(molIndex, destBox, coordCurrRef);
 
-
       //Zero out box energies to prevent small number
       //errors in double.
       if (molLookRef.NumInBox(sourceBox) == 1) {
@@ -160,7 +159,8 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
         sysPotRef.boxVirial[sourceBox].real_en = 0;
       }
 
-      calcEwald->UpdateRecip(sourceBox);
+      calcEwald->UpdateRecip(destBox);
+      
       //Retotal
       sysPotRef.Total();
     } else {

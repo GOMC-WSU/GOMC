@@ -229,8 +229,8 @@ real EwaldCached::BoxReciprocal(uint box) const
 
 //calculate reciprocate term for displacement and rotation move
 real EwaldCached::MolReciprocal(XYZArray const& molCoords,
-                                  const uint molIndex,
-                                  const uint box)
+				                        const uint molIndex,
+                                const uint box)
 {
   real energyRecipNew = 0.0;
 

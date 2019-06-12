@@ -93,6 +93,10 @@ public:
   MoveSettings moveSettings;
   SystemPotential potential;
   Coordinates coordinates;
+  XYZArray atomForceRef;
+  XYZArray molForceRef;
+  XYZArray atomForceRecRef;
+  XYZArray molForceRecRef;
   COM com;
 
   CalculateEnergy calcEnergy;
@@ -108,6 +112,7 @@ public:
 
   ~System();
 
+
 private:
   void InitMoves(Setup const& set);
   void PickMove(uint & kind, real & draw);
@@ -116,8 +121,8 @@ private:
   void CalcEn(const uint kind);
   void Accept(const uint kind, const uint rejectState, const uint step);
 
-  MoveBase * moves[mv::MOVE_KINDS_TOTAL];
   real moveTime[mv::MOVE_KINDS_TOTAL];
+  MoveBase * moves[mv::MOVE_KINDS_TOTAL];
   Clock time;
 };
 

@@ -84,7 +84,6 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
       gpu_energyRecip,
       imageSize);
 
-#ifndef NDEBUG
   // In the future maybe we could remove this for Nondebug?
   cudaMemcpy(sumRnew, vars->gpu_sumRnew[box],
              imageSize * sizeof(real),
@@ -92,7 +91,6 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
   cudaMemcpy(sumInew, vars->gpu_sumInew[box],
              imageSize * sizeof(real),
              cudaMemcpyDeviceToHost);
-#endif
 
   // ReduceSum
   void *d_temp_storage = NULL;
@@ -172,7 +170,6 @@ void CallMolReciprocalGPU(VariablesCUDA *vars,
              cudaMemcpyDeviceToHost);
   cudaMemcpy(sumInew, vars->gpu_sumInew[box], imageSize * sizeof(real),
              cudaMemcpyDeviceToHost);
-#endif
 
   // ReduceSum
   void *d_temp_storage = NULL;

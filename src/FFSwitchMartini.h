@@ -330,7 +330,6 @@ inline real FF_SWITCH_MARTINI::CalcCoulombVir(const real distSq,
     real dist = sqrt(distSq);
     real rij_ronCoul_2 = distSq;
     real rij_ronCoul_3 = dist * distSq;
-    real rij_ronCoul_4 = distSq * distSq;
 
     real virCoul = A1 / rij_ronCoul_2 + B1 / rij_ronCoul_3;
     return qi_qj * diElectric_1 * ( 1.0 / (dist * distSq) + virCoul / dist);

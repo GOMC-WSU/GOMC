@@ -76,7 +76,7 @@ public:
   virtual real BoxSelf(BoxDimensions const& boxAxes, uint box) const;
 
   //calculate reciprocate force term for a box
-  virtual Virial ForceReciprocal(Virial& virial, uint box) const;
+  virtual Virial VirialReciprocal(Virial& virial, uint box) const;
 
   //calculate reciprocate term for displacement and rotation move
   virtual real MolReciprocal(XYZArray const& molCoords, const uint molIndex,
@@ -127,6 +127,12 @@ public:
 
   virtual void UpdateVectorsAndRecipTerms();
 
+  //calculate reciprocate force term for a box with molCoords
+  virtual void BoxForceReciprocal(XYZArray const& molCoords,
+                                  XYZArray& atomForceRec,
+                                  XYZArray& molForceRec,
+                                  uint box);
+
 private:
   real currentEnergyRecip[BOXES_WITH_U_NB];
 
@@ -139,6 +145,9 @@ protected:
   const COM& currentCOM;
   const SystemPotential &sysPotRef;
 
+  bool electrostatic, ewald, multiParticleEnabled;
+  double alpha;
+  double recip_rcut, recip_rcut_Sq;
   uint *imageSize;
   uint *imageSizeRef;
   //const uint imageTotal = GetImageSize();

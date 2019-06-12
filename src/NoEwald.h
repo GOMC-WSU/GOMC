@@ -33,11 +33,13 @@ public:
   //calculate reciprocate energy term for a box
   virtual real BoxReciprocal(uint box) const;
 
-  //calculate reciprocate force term for a box
-  virtual Virial ForceReciprocal(Virial& virial, uint box) const;
+  //calculate reciprocate force term for a box with molCoords
+  virtual void BoxForceReciprocal(XYZArray const& molCoords,
+				                          XYZArray& atomForceRec, XYZArray& molForceRec,
+				                          uint box);
 
-  //calculate correction force term for a box
-  virtual Virial ForceCorrection(Virial& virial, uint box) const;
+  //calculate reciprocate force term for a box
+  virtual Virial VirialReciprocal(Virial& virial, uint box) const;
 
   //calculate correction term for a molecule
   virtual real MolCorrection(uint molIndex, uint box)const;

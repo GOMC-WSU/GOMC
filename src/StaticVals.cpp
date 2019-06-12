@@ -46,6 +46,9 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
     case mv::DISPLACE:
       movePerc[m] = perc.displace;
       break;
+    case mv::MULTIPARTICLE:
+      movePerc[m] = perc.multiParticle;
+      break;
     case mv::ROTATE:
       movePerc[m] = perc.rotate;
       break;
@@ -115,6 +118,8 @@ void StaticVals::IsBoxOrthogonal(config_setup::Volume const& vol)
 StaticVals::StaticVals(Setup & set) : memcVal(set.config.sys.memcVal),
   intraMemcVal(set.config.sys.intraMemcVal)
 {
+
+  multiParticleEnabled = set.config.sys.moves.multiParticleEnabled;
   isOrthogonal = true;
   IsBoxOrthogonal(set.config.sys.volume);
 #ifndef VARIABLE_VOLUME

@@ -61,7 +61,10 @@ private:
   uint32_t numKinds;
   vector<vector<vector<real> > > scaleVec, acceptPercentVec;
   vector<vector<vector<uint32_t> > > acceptedVec, triesVec, tempAcceptedVec,
-         tempTriesVec;
+                                   tempTriesVec;
+  vector< vector< uint > > mp_acceptedVec, mp_triesVec;
+  vector< real > mp_r_maxVec;
+  vector< real > mp_t_maxVec;
 
   // private functions used by ReadAll and Get functions
   void openInputFile();
@@ -73,6 +76,11 @@ private:
   void readBoxDimensionsData();
   void closeInputFile();
 
+  void readVector3DReal(vector< vector< vector <real> > > & data);
+  void readVector3DUint(vector< vector< vector <uint> > > & data);
+  void readVector2DUint(vector< vector< uint > > & data);
+  void readVector1DReal(vector< real > & data);
   real readRealIn8Chars();
   uint32_t readUintIn8Chars();
+
 };

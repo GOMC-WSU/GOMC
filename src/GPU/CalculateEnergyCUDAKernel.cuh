@@ -23,8 +23,20 @@ void CallBoxInterGPU(VariablesCUDA *vars,
                      bool electrostatic,
                      vector<real> particleCharge,
                      vector<int> particleKind,
+                     vector<int> particleMol,
                      real &REn,
-                     real &RLJEn,
+                     real &LJEn,
+                     bool multiParticleEnabled,
+                     real *aForcex,
+                     real *aForcey,
+                     real *aForcez,
+                     real *mForcex,
+                     real *mForcey,
+                     real *mForcez,
+                     int atomCount,
+                     int molCount,
+                     bool reset_force,
+                     bool copy_back,
                      uint const box);
 
 __global__ void BoxInterGPU(int *gpu_pair1,
@@ -38,6 +50,7 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             bool electrostatic,
                             real *gpu_particleCharge,
                             int *gpu_particleKind,
+                            int *gpu_particleMol,
                             real *gpu_REn,
                             real *gpu_LJEn,
                             int pairSize,
@@ -61,6 +74,13 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             real *gpu_Invcell_x,
                             real *gpu_Invcell_y,
                             real *gpu_Invcell_z,
+                            bool multiParticleEnabled,
+                            real *gpu_aForcex,
+                            real *gpu_aForcey,
+                            real *gpu_aForcez,
+                            real *gpu_mForcex,
+                            real *gpu_mForcey,
+                            real *gpu_mForcez,
                             int box);
 
 
@@ -69,6 +89,10 @@ __device__ real CalcCoulombGPU(real distSq, real qi_qj_fact,
                                  int gpu_VDW_Kind, real gpu_alpha,
                                  real gpu_rCutCoulomb, int gpu_isMartini,
                                  real gpu_diElectric_1);
+__device__ real CalcCoulombVirGPU(real distSq, real qi_qj,
+                                    real gpu_rCutCoulomb, real gpu_alpha,
+                                    int gpu_VDW_Kind, int gpu_ewald,
+                                    real gpu_diElectric_1, int gpu_isMartini);
 __device__ real CalcEnGPU(real distSq, int kind1, int kind2,
                             real *gpu_sigmaSq, real *gpu_n,
                             real *gpu_epsilon_Cn, int gpu_VDW_Kind,
@@ -78,17 +102,29 @@ __device__ real CalcEnGPU(real distSq, int kind1, int kind2,
 //ElectroStatic Calculation
 //**************************************************************//
 __device__ real CalcCoulombParticleGPU(real distSq, real qi_qj_fact,
-    real gpu_alpha);
+                                         real gpu_ewald, real gpu_alpha);
 __device__ real CalcCoulombShiftGPU(real distSq, real qi_qj_fact,
                                       int gpu_ewald, real gpu_alpha,
                                       real gpu_rCut);
 __device__ real CalcCoulombSwitchMartiniGPU(real distSq, real qi_qj_fact,
-    int gpu_ewald, real gpu_alpha,
-    real gpu_rCut,
-    real gpu_diElectric_1);
+                                              int gpu_ewald, real gpu_alpha,
+                                              real gpu_rCut,
+                                              real gpu_diElectric_1);
 __device__ real CalcCoulombSwitchGPU(real distSq, real qi_qj_fact,
                                        real gpu_alpha, int gpu_ewald,
                                        real gpu_rCut);
+__device__ real CalcCoulombVirParticleGPU(real distSq, real qi_qj,
+                                            real gpu_ewald, real gpu_alpha);
+__device__ real CalcCoulombVirShiftGPU(real distSq, real qi_qj,
+                                         real gpu_ewald, real gpu_alpha);
+__device__ real CalcCoulombVirSwitchMartiniGPU(real distSq, real qi_qj,
+                                                real gpu_ewald,
+                                                real gpu_alpha,
+                                                real gpu_rCut,
+                                                real gpu_diElectric_1);
+__device__ real CalcCoulombVirSwitchGPU(real distSq, real qi_qj,
+                                          real gpu_ewald, real gpu_alpha,
+                                          real gpu_rCut);
 
 //VDW Calculation
 //*****************************************************************//
