@@ -165,7 +165,6 @@ void CallMolReciprocalGPU(VariablesCUDA *vars,
                                       vars->gpu_prefactRef[box],
                                       gpu_energyRecipNew,
                                       imageSize);
-#ifndef NDEBUG
   cudaMemcpy(sumRnew, vars->gpu_sumRnew[box], imageSize * sizeof(real),
              cudaMemcpyDeviceToHost);
   cudaMemcpy(sumInew, vars->gpu_sumInew[box], imageSize * sizeof(real),
@@ -239,13 +238,11 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars,
                                        gpu_energyRecipNew,
                                        imageSize);
 
-#ifndef NDEBUG
   // In the future maybe we could remove this for Nondebug?
   cudaMemcpy(sumRnew, vars->gpu_sumRnew[box], imageSize * sizeof(real),
              cudaMemcpyDeviceToHost);
   cudaMemcpy(sumInew, vars->gpu_sumInew[box], imageSize * sizeof(real),
              cudaMemcpyDeviceToHost);
-#endif
 
   // ReduceSum
   void *d_temp_storage = NULL;

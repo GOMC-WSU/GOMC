@@ -96,4 +96,5 @@ public:
   real *gpu_aForcex, *gpu_aForcey, *gpu_aForcez;
   real *gpu_mForcex, *gpu_mForcey, *gpu_mForcez;
 };
+
 #endif
