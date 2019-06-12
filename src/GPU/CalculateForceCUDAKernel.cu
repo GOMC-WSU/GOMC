@@ -203,7 +203,7 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   cudaFree(gpu_final_value);
 }
 
-void CallVirialReciprocalGPU(VariablesCUDA *vars,
+void CallForceReciprocalGPU(VariablesCUDA *vars,
                             XYZArray const &currentCoords,
                             XYZArray const &currentCOMDiff,
                             vector<real> &particleCharge,
@@ -245,7 +245,7 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars,
   // Run the kernel...
   threadsPerBlock = 256;
   blocksPerGrid = (int)(imageSize / threadsPerBlock) + 1;
-  VirialReciprocalGPU <<< blocksPerGrid,
+  ForceReciprocalGPU <<< blocksPerGrid,
                      threadsPerBlock>>>(vars->gpu_x,
                                         vars->gpu_y,
                                         vars->gpu_z,

@@ -40,7 +40,7 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
                           real &vT33,
                           uint const box);
 
-void CallVirialReciprocalGPU(VariablesCUDA *vars,
+void CallForceReciprocalGPU(VariablesCUDA *vars,
                             XYZArray const &currentCoords,
                             XYZArray const &currentCOMDiff,
                             vector<real> &particleCharge,
