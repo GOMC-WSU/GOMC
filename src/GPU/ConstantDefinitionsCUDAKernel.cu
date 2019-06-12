@@ -105,12 +105,12 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
     cudaMalloc(&vars->gpu_Invcell_z[b], 3 * sizeof(real));
   }
 
-  cudaMalloc(&vars->gpu_aForcex, atomNumber * sizeof(double));
-  cudaMalloc(&vars->gpu_aForcey, atomNumber * sizeof(double));
-  cudaMalloc(&vars->gpu_aForcez, atomNumber * sizeof(double));
-  cudaMalloc(&vars->gpu_mForcex, maxMolNumber * sizeof(double));
-  cudaMalloc(&vars->gpu_mForcey, maxMolNumber * sizeof(double));
-  cudaMalloc(&vars->gpu_mForcez, maxMolNumber * sizeof(double));
+  cudaMalloc(&vars->gpu_aForcex, atomNumber * sizeof(real));
+  cudaMalloc(&vars->gpu_aForcey, atomNumber * sizeof(real));
+  cudaMalloc(&vars->gpu_aForcez, atomNumber * sizeof(real));
+  cudaMalloc(&vars->gpu_mForcex, maxMolNumber * sizeof(real));
+  cudaMalloc(&vars->gpu_mForcey, maxMolNumber * sizeof(real));
+  cudaMalloc(&vars->gpu_mForcez, maxMolNumber * sizeof(real));
 }
 
 void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal)

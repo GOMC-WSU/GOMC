@@ -409,9 +409,9 @@ inline void XYZArray::ResetRange(const uint val, const uint stop)
   #pragma omp parallel default(shared)
 #endif
   {
-    memset(this->x, val, stop * sizeof(double));
-    memset(this->y, val, stop * sizeof(double));
-    memset(this->z, val, stop * sizeof(double));
+    memset(this->x, val, stop * sizeof(real));
+    memset(this->y, val, stop * sizeof(real));
+    memset(this->z, val, stop * sizeof(real));
   }
 }
 

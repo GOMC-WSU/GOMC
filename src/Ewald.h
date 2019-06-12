@@ -146,8 +146,8 @@ protected:
   const SystemPotential &sysPotRef;
 
   bool electrostatic, ewald, multiParticleEnabled;
-  double alpha;
-  double recip_rcut, recip_rcut_Sq;
+  real alpha;
+  real recip_rcut, recip_rcut_Sq;
   uint *imageSize;
   uint *imageSizeRef;
   //const uint imageTotal = GetImageSize();

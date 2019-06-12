@@ -1050,13 +1050,13 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
     while(thisMol != end) {
       uint molIndex = *thisMol;
       uint length, start, p, i;
-      double dot, factor;
+      real dot, factor;
       molForceRec.Set(molIndex, 0.0, 0.0, 0.0);
       length = mols.GetKind(molIndex).NumAtoms();
       start = mols.MolStart(molIndex);
 
       for(p = start; p < start + length; p++) {
-        double X = 0.0, Y = 0.0, Z = 0.0;
+        real X = 0.0, Y = 0.0, Z = 0.0;
 #ifdef _OPENMP
         #pragma omp parallel for default(shared) private(i, dot, factor) \
         reduction(+:X, Y, Z)

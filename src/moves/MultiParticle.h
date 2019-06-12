@@ -20,7 +20,7 @@ class MultiParticle : public MoveBase
 public:
   MultiParticle(System &sys, StaticVals const& statV);
 
-  virtual uint Prep(const double subDraw, const double movPerc);
+  virtual uint Prep(const real subDraw, const real movPerc);
   virtual void CalcEn();
   virtual uint Transform();
   virtual void Accept(const uint rejectState, const uint step);
@@ -29,7 +29,7 @@ public:
 private:
   uint bPick;
   uint typePick;
-  double lambda;
+  real lambda;
   bool initMol[BOX_TOTAL];
   SystemPotential sysPotNew;
   XYZArray molTorqueRef;
@@ -43,14 +43,14 @@ private:
   vector<uint> moveType, moleculeIndex;
   const MoleculeLookup& molLookup;
 
-  long double GetCoeff();
+  long real GetCoeff();
   void CalculateTrialDistRot();
   void RotateForceBiased(uint molIndex);
   void TranslateForceBiased(uint molIndex);
   void SetMolInBox(uint box);
-  XYZ CalcRandomTransform(XYZ const &lb, double const max);
-  double CalculateWRatio(XYZ const &lb, XYZ const &k, double max,
-                            double sign);
+  XYZ CalcRandomTransform(XYZ const &lb, real const max);
+  real CalculateWRatio(XYZ const &lb, XYZ const &k, real max,
+                            real sign);
 };
 
 inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
@@ -111,7 +111,7 @@ inline void MultiParticle::SetMolInBox(uint box)
   initMol[box] = true;
 }
 
-inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
+inline uint MultiParticle::Prep(const real subDraw, const real movPerc)
 {
   uint state = mv::fail_state::NO_FAIL;
 #if ENSEMBLE == GCMC
@@ -218,10 +218,10 @@ inline void MultiParticle::CalcEn()
   sysPotNew.Total();
 }
 
-inline double MultiParticle::CalculateWRatio(XYZ const &lb, XYZ const &k,
-                                                double max, double sign)
+inline real MultiParticle::CalculateWRatio(XYZ const &lb, XYZ const &k,
+                                                real max, real sign)
 {
-  double w_ratio = 1.0;
+  real w_ratio = 1.0;
   XYZ lbmax = lb * max;
 
   if(abs(lbmax.x) > MIN_FORCE && abs(lbmax.x) < MAX_FORCE) {
@@ -248,16 +248,16 @@ inline double MultiParticle::CalculateWRatio(XYZ const &lb, XYZ const &k,
   return w_ratio;
 }
 
-inline long double MultiParticle::GetCoeff()
+inline long real MultiParticle::GetCoeff()
 {
   // calculate (w_new->old/w_old->new) and return it.
   XYZ lbf_old, lbf_new; // lambda * BETA * force
   XYZ lbt_old, lbt_new; // lambda * BETA * torque
-  long double w_ratio = 1.0;
-  double lBeta = lambda * BETA;
+  long real w_ratio = 1.0;
+  real lBeta = lambda * BETA;
   uint m, molNumber;
-  double r_max = moveSetRef.GetRMAX(bPick);
-  double t_max = moveSetRef.GetTMAX(bPick);
+  real r_max = moveSetRef.GetRMAX(bPick);
+  real t_max = moveSetRef.GetTMAX(bPick);
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(m, molNumber, lbt_old, lbt_new, lbf_old, lbf_new) reduction(*:w_ratio)
 #endif
@@ -296,9 +296,9 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
 {
   // Here we compare the values of reference and trial and decide whether to 
   // accept or reject the move
-  long double MPCoeff = GetCoeff();
-  double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
-  long double accept = MPCoeff * uBoltz;
+  long real MPCoeff = GetCoeff();
+  real uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
+  long real accept = MPCoeff * uBoltz;
   // cout << "MPCoeff: " << MPCoeff << ", sysPotNew: " << sysPotNew.Total()
   //      << ", sysPotRef: " << sysPotRef.Total() << ", accept: " << accept <<endl;
   bool result = (rejectState == mv::fail_state::NO_FAIL) && prng() < accept;
@@ -325,7 +325,7 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   moveSetRef.Update(mv::MULTIPARTICLE, result, step, bPick);
 }
 
-inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max)
+inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, real const max)
 {
   XYZ lbmax = lb * max;
   XYZ num;
@@ -365,8 +365,8 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max)
 inline void MultiParticle::CalculateTrialDistRot()
 {
   uint m , molIndex;
-  double r_max = moveSetRef.GetRMAX(bPick);
-  double t_max = moveSetRef.GetTMAX(bPick);
+  real r_max = moveSetRef.GetRMAX(bPick);
+  real t_max = moveSetRef.GetTMAX(bPick);
   XYZ lbf; // lambda * BETA * force * maxTranslate
   XYZ lbt; // lambda * BETA * torque * maxRotation
   for(m = 0; m < moleculeIndex.size(); m++) {
@@ -386,7 +386,7 @@ inline void MultiParticle::CalculateTrialDistRot()
 inline void MultiParticle::RotateForceBiased(uint molIndex)
 {
   XYZ rot = r_k.Get(molIndex);
-  double rotLen = rot.Length();
+  real rotLen = rot.Length();
   RotationMatrix matrix;
   
   matrix = RotationMatrix::FromAxisAngle(rotLen, rot * (1.0/rotLen));

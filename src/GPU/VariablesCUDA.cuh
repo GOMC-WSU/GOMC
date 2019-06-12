@@ -93,7 +93,7 @@ public:
   real **gpu_cell_x, **gpu_cell_y, **gpu_cell_z;
   real **gpu_Invcell_x, **gpu_Invcell_y, **gpu_Invcell_z;
   int *gpu_nonOrth;
-  double *gpu_aForcex, *gpu_aForcey, *gpu_aForcez;
-  double *gpu_mForcex, *gpu_mForcey, *gpu_mForcez;
+  real *gpu_aForcex, *gpu_aForcey, *gpu_aForcez;
+  real *gpu_mForcex, *gpu_mForcey, *gpu_mForcez;
 };
 #endif
