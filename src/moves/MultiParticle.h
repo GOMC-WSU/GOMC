@@ -44,7 +44,7 @@ private:
   vector<uint> moveType, moleculeIndex;
   const MoleculeLookup& molLookup;
 
-  long real GetCoeff();
+  real GetCoeff();
   void CalculateTrialDistRot();
   void RotateForceBiased(uint molIndex);
   void TranslateForceBiased(uint molIndex);
@@ -249,12 +249,12 @@ inline real MultiParticle::CalculateWRatio(XYZ const &lb, XYZ const &k,
   return w_ratio;
 }
 
-inline long real MultiParticle::GetCoeff()
+inline real MultiParticle::GetCoeff()
 {
   // calculate (w_new->old/w_old->new) and return it.
   XYZ lbf_old, lbf_new; // lambda * BETA * force
   XYZ lbt_old, lbt_new; // lambda * BETA * torque
-  long real w_ratio = 1.0;
+  real w_ratio = 1.0;
   real lBeta = lambda * BETA;
   uint m, molNumber;
   real r_max = moveSetRef.GetRMAX(bPick);
@@ -297,9 +297,9 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
 {
   // Here we compare the values of reference and trial and decide whether to 
   // accept or reject the move
-  long real MPCoeff = GetCoeff();
+  real MPCoeff = GetCoeff();
   real uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
-  long real accept = MPCoeff * uBoltz;
+  real accept = MPCoeff * uBoltz;
   // cout << "MPCoeff: " << MPCoeff << ", sysPotNew: " << sysPotNew.Total()
   //      << ", sysPotRef: " << sysPotRef.Total() << ", accept: " << accept <<endl;
   bool result = (rejectState == mv::fail_state::NO_FAIL) && prng() < accept;
