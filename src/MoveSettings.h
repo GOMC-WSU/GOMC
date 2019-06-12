@@ -112,6 +112,8 @@ private:
   vector< vector< vector<real> > > scale, acceptPercent;
   vector< vector< vector<uint> > > accepted, tries, tempAccepted, tempTries;
   vector< vector< uint > > mp_accepted, mp_tries;
+  vector< real > mp_r_max;
+  vector< real > mp_t_max;
   uint perAdjust;
   uint totKind;
   bool isSingleMoveAccepted;
