@@ -1115,7 +1115,7 @@ void ConfigSetup::verifyInputs(void)
          sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
          sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft +
          sys.moves.multiParticle - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequncies are not equal to one!\n";
+    std::cout << "Error: Sum of move frequencies are not equal to one!\n";
     exit(EXIT_FAILURE);
   }
 #elif ENSEMBLE == NPT
@@ -1127,7 +1127,7 @@ void ConfigSetup::verifyInputs(void)
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
          sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc + 
          sys.moves.crankShaft + sys.moves.multiParticle - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequncies are not equal to one!\n";
+    std::cout << "Error: Sum of move frequencies are not equal to one!\n";
     exit(EXIT_FAILURE);
   }
 
@@ -1140,14 +1140,14 @@ void ConfigSetup::verifyInputs(void)
          sys.moves.transfer + sys.moves.regrowth + sys.moves.memc + 
          sys.moves.intraMemc + sys.moves.crankShaft +
          sys.moves.multiParticle - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
+    std::cout << "Error: Sum of move frequencies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #else
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
          sys.moves.regrowth + sys.moves.intraMemc + sys.moves.crankShaft +
          sys.moves.multiParticle - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
+    std::cout << "Error: Sum of move frequencies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #endif
