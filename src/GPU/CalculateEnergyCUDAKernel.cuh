@@ -113,18 +113,6 @@ __device__ double CalcCoulombSwitchMartiniGPU(double distSq, double qi_qj_fact,
 __device__ double CalcCoulombSwitchGPU(double distSq, double qi_qj_fact,
                                        double gpu_alpha, int gpu_ewald,
                                        double gpu_rCut);
-__device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
-                                            double gpu_ewald, double gpu_alpha);
-__device__ double CalcCoulombVirShiftGPU(double distSq, double qi_qj,
-                                         double gpu_ewald, double gpu_alpha);
-__device__ double CalcCoulombVirSwitchMartiniGPU(double distSq, double qi_qj,
-                                                double gpu_ewald,
-                                                double gpu_alpha,
-                                                double gpu_rCut,
-                                                double gpu_diElectric_1);
-__device__ double CalcCoulombVirSwitchGPU(double distSq, double qi_qj,
-                                          double gpu_ewald, double gpu_alpha,
-                                          double gpu_rCut);
 
 //VDW Calculation
 //*****************************************************************//
