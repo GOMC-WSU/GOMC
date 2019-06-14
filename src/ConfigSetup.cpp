@@ -15,7 +15,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #if defined(GOMC_DOUBLE)
 #define REAL_MAX 1.7976931348623158e+308
 #else
-#define REAL_MAX 3.402823e+38
+#define REAL_MAX 3.40282306e+38
 #endif
 
 int stringtoi(const std::string& s)
