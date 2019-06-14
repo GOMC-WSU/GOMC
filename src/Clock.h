@@ -26,7 +26,7 @@ struct Clock {
     prevStep = startStep;
 #if defined(__linux__) || defined(__APPLE__)
     gettimeofday(&tv, &tz);
-    strt = (real)tv.tv_sec + (real)tv.tv_usec / 1000000;
+    strt = (double)tv.tv_sec + (double)tv.tv_usec / 1000000;
 #elif (_WIN32) || (__CYGWIN__)
     strt = clock();
 #endif
@@ -36,7 +36,7 @@ struct Clock {
   void CheckTime(const ulong step);
   void SetStart();
   void SetStop();
-  real GetTimDiff();
+  double GetTimDiff();
   void CompletionTime(uint &day, uint &hr, uint &min);
 
 private:
@@ -44,7 +44,7 @@ private:
 #if defined(__linux__) || defined(__APPLE__)
   struct timeval tv;
   struct timezone tz;
-  real strt, stop, lastTime;
+  double strt, stop, lastTime;
 #elif (_WIN32) || (__CYGWIN__)
   clock_t strt, stop, lastTime;
 #endif
@@ -54,15 +54,15 @@ private:
 inline void Clock::CheckTime(const ulong step)
 {
   ulong stepDelta = step - prevStep;
-  real speed = 0.0;
+  double speed = 0.0;
   if (stepDelta == stepsPerOut && step != lastStep) {
 #if defined(__linux__) || defined(__APPLE__)
     gettimeofday(&tv, &tz);
-    real currTime = (real)tv.tv_sec + (real)tv.tv_usec / 1000000;
+    double currTime = (double)tv.tv_sec + (double)tv.tv_usec / 1000000;
     speed = stepDelta / (currTime - lastTime);
 #elif (_WIN32) || (__CYGWIN__)
     clock_t currTime = clock();
-    speed = stepDelta / (((real)currTime - lastTime) / CLOCKS_PER_SEC);
+    speed = stepDelta / (((double)currTime - lastTime) / CLOCKS_PER_SEC);
 #endif
     uint day, hr, min;
     prevStep = step;
@@ -74,13 +74,13 @@ inline void Clock::CheckTime(const ulong step)
   } else if (step == lastStep) {
 #if defined(__linux__) || defined(__APPLE__)
     gettimeofday(&tv, &tz);
-    stop = (real)tv.tv_sec + (real)tv.tv_usec / 1000000;
+    stop = (double)tv.tv_sec + (double)tv.tv_usec / 1000000;
     std::cout << "Simulation Time (total): " << (stop - strt)
               << " sec." << std::endl;
 #elif (_WIN32) || (__CYGWIN__)
     stop = clock();
     std::cout << "Simulation Time (total): "
-              << (((real)stop - strt) / CLOCKS_PER_SEC)
+              << (((double)stop - strt) / CLOCKS_PER_SEC)
               << " sec." << std::endl;
 #endif
 
@@ -91,7 +91,7 @@ inline void Clock::SetStart()
 {
 #if defined(__linux__) || defined(__APPLE__)
   gettimeofday(&tv, &tz);
-  strt = (real)tv.tv_sec + (real)tv.tv_usec / 1000000;
+  strt = (double)tv.tv_sec + (double)tv.tv_usec / 1000000;
 #elif (_WIN32) || (__CYGWIN__)
   strt = clock();
 #endif
@@ -101,28 +101,28 @@ inline void Clock::SetStop()
 {
 #if defined(__linux__) || defined(__APPLE__)
   gettimeofday(&tv, &tz);
-  stop = (real)tv.tv_sec + (real)tv.tv_usec / 1000000;
+  stop = (double)tv.tv_sec + (double)tv.tv_usec / 1000000;
 #elif (_WIN32) || (__CYGWIN__)
   stop = clock();
 #endif
 }
 
-inline real Clock::GetTimDiff()
+inline double Clock::GetTimDiff()
 {
 #if defined(__linux__) || defined(__APPLE__)
   return (stop - strt);
 #elif (_WIN32) || (__CYGWIN__)
-  return (real)(stop - strt) / CLOCKS_PER_SEC;
+  return (double)(stop - strt) / CLOCKS_PER_SEC;
 #endif
 }
 
 inline void Clock::CompletionTime(uint &day, uint &hr, uint &min)
 {
-  real speed = 0.0;
+  double speed = 0.0;
 #if defined(__linux__) || defined(__APPLE__)
-  speed = (real)(prevStep) / (lastTime - strt);
+  speed = (double)(prevStep) / (lastTime - strt);
 #elif (_WIN32) || (__CYGWIN__)
-  speed = (real)(prevStep) / ((real)(lastTime - strt) / CLOCKS_PER_SEC);
+  speed = (double)(prevStep) / ((double)(lastTime - strt) / CLOCKS_PER_SEC);
 #endif
   ulong rem = lastStep - prevStep;
   ulong sec = rem / speed;
