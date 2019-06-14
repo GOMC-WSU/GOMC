@@ -106,7 +106,7 @@ void Simulation::RunningCheck(const uint step)
       << std::setw(12) << system->potential.totalEnergy.intraNonbond << " | "
       << std::setw(12) << system->potential.totalEnergy.inter << " | "
       << std::setw(12) << system->potential.totalEnergy.tc << " | "
-      << std::setw(12) << system->potential.totalEnergy.real << " | "
+      << std::setw(12) << system->potential.totalEnergy.real_en << " | "
       << std::setw(12) << system->potential.totalEnergy.self << " | "
       << std::setw(12) << system->potential.totalEnergy.correction << " | "
       << std::setw(12) << system->potential.totalEnergy.recip << std::endl
@@ -115,7 +115,7 @@ void Simulation::RunningCheck(const uint step)
       << std::setw(12) << pot.totalEnergy.intraNonbond << " | "
       << std::setw(12) << pot.totalEnergy.inter << " | "
       << std::setw(12) << pot.totalEnergy.tc << " | "
-      << std::setw(12) << pot.totalEnergy.real << " | "
+      << std::setw(12) << pot.totalEnergy.real_en << " | "
       << std::setw(12) << pot.totalEnergy.self << " | "
       << std::setw(12) << pot.totalEnergy.correction << " | "
       << std::setw(12) << pot.totalEnergy.recip << std::endl
