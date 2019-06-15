@@ -651,9 +651,15 @@ int ReadPSFAtoms(FILE* psf, MolMap& kindMap, unsigned int nAtoms)
     if (input[0] == '!' || str::AllWS(input))
       continue;
     //parse line
+#if defined(GOMC_DOUBLE)
     sscanf(input, " %u %s %u %s %s %s %lf %lf ",
            &atomID, segment, &molID,
            moleculeName, atomName, atomType, &charge, &mass);
+#else
+    sscanf(input, " %u %s %u %s %s %s %f %f ",
+           &atomID, segment, &molID,
+           moleculeName, atomName, atomType, &charge, &mass);
+#endif
     MolMap::iterator it = kindMap.find(moleculeName);
     //found new molecule kind...
     if (it == kindMap.end()) {
