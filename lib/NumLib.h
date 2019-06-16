@@ -30,13 +30,13 @@ static const float BIGNUM = FLT_MAX;
 static const uint VDW_STD_KIND = 0, VDW_SHIFT_KIND = 1, VDW_SWITCH_KIND = 2;
 
 template <typename T>
-inline void BoundGt(real & val, const T bound)
+inline void BoundGt(T & val, const T bound)
 {
   if (val > bound) val = bound;
 }
 
 template <typename T>
-inline void BoundLt(real & val, const T bound)
+inline void BoundLt(T & val, const T bound)
 {
   if (val < bound) val = bound;
 }
