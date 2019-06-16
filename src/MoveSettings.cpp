@@ -141,7 +141,7 @@ void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
     double fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
     mp_t_max[box] *= fractOfTargetAccept;
     num::Bound<double>(mp_t_max[box], 0.001,
-                       (boxDimRef.axis.Min(box) / 2) - 0.001);
+                       ((double)boxDimRef.axis.Min(box) / 2) - 0.001);
 
     currentAccept = (double)mp_accepted[box][mp::MPROTATE] /
                     (double)mp_tries[box][mp::MPROTATE];
