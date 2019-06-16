@@ -80,6 +80,8 @@ private:
   void readVector3DUint(vector< vector< vector <uint> > > & data);
   void readVector2DUint(vector< vector< uint > > & data);
   void readVector1DReal(vector< real > & data);
+  void readVector1DDouble(vector< double > & data);
+  double readDoubleIn8Chars();
   real readRealIn8Chars();
   uint32_t readUintIn8Chars();
 

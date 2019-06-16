@@ -12,9 +12,14 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 namespace
 {
+union real_input_union {
+  char bin_value[8];
+  real real_value;
+};
+
 union dbl_input_union {
   char bin_value[8];
-  real dbl_value;
+  double dbl_value;
 };
 
 union uint32_input_union {
@@ -147,8 +152,8 @@ void CheckpointSetup::readMoveSettingsData()
   readVector3DUint(tempTriesVec);
   readVector2DUint(mp_triesVec);
   readVector2DUint(mp_acceptedVec);
-  readVector1DReal(mp_t_maxVec);
-  readVector1DReal(mp_r_maxVec);
+  readVector1DDouble(mp_t_maxVec);
+  readVector1DDouble(mp_r_maxVec);
 }
 
 void CheckpointSetup::openInputFile()
@@ -162,6 +167,26 @@ void CheckpointSetup::openInputFile()
 }
 
 real CheckpointSetup::readRealIn8Chars()
+{
+  if(inputFile == NULL) {
+    fprintf(stderr, "Error opening checkpoint output file %s\n",
+            filename.c_str());
+    exit(EXIT_FAILURE);
+  }
+  real_input_union temp;
+  fscanf(inputFile, "%c%c%c%c%c%c%c%c",
+         &temp.bin_value[0],
+         &temp.bin_value[1],
+         &temp.bin_value[2],
+         &temp.bin_value[3],
+         &temp.bin_value[4],
+         &temp.bin_value[5],
+         &temp.bin_value[6],
+         &temp.bin_value[7]);
+  return temp.real_value;
+}
+
+double CheckpointSetup::readDoubleIn8Chars()
 {
   if(inputFile == NULL) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",
@@ -326,5 +351,16 @@ void CheckpointSetup::readVector1DReal(vector<real> &data) {
   data.resize(size_x);
   for(int i=0; i<size_x; i++) {
     data[i] = readRealIn8Chars();
+  }
+}
+
+void CheckpointSetup::readVector1DDouble(vector<double> &data) {
+// read size of data
+  ulong size_x = readUintIn8Chars();
+
+  // read array
+  data.resize(size_x);
+  for(int i=0; i<size_x; i++) {
+    data[i] = readDoubleIn8Chars();
   }
 }
