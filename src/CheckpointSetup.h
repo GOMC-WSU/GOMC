@@ -63,8 +63,8 @@ private:
   vector<vector<vector<uint32_t> > > acceptedVec, triesVec, tempAcceptedVec,
                                    tempTriesVec;
   vector< vector< uint > > mp_acceptedVec, mp_triesVec;
-  vector< real > mp_r_maxVec;
-  vector< real > mp_t_maxVec;
+  vector< double > mp_r_maxVec;
+  vector< double > mp_t_maxVec;
 
   // private functions used by ReadAll and Get functions
   void openInputFile();
