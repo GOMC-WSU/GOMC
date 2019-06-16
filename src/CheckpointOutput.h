@@ -63,7 +63,9 @@ private:
   void printVector3DUint(vector< vector< vector <uint> > > data);
   void printVector2DUint(vector< vector< uint > > data);
   void printVector1DReal(vector< real > data);
+  void printVector1DDouble(vector< double > data);
   void outputRealIn8Chars(real data);
+  void outputDoubleIn8Chars(double data);
   void outputUintIn8Chars(uint32_t data);
 
 };
