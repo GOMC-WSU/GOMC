@@ -14,6 +14,11 @@ namespace
 {
 union dbl_output_union {
   char bin_value[8];
+  double dbl_value;
+};
+
+union real_output_union {
+  char bin_value[8];
   real dbl_value;
 };
 
@@ -151,8 +156,8 @@ void CheckpointOutput::printMoveSettingsData()
   printVector3DUint(moveSetRef.tempTries);
   printVector2DUint(moveSetRef.mp_tries);
   printVector2DUint(moveSetRef.mp_accepted);
-  printVector1DReal(moveSetRef.mp_t_max);
-  printVector1DReal(moveSetRef.mp_r_max);
+  printVector1DDouble(moveSetRef.mp_t_max);
+  printVector1DDouble(moveSetRef.mp_r_max);
 }
 
 void CheckpointOutput::printVector3DReal(vector< vector< vector <real> > > data)
@@ -223,6 +228,18 @@ void CheckpointOutput::printVector1DReal(vector< real > data)
   }
 }
 
+void CheckpointOutput::printVector1DDouble(vector< double > data)
+{
+  // print size of array
+  ulong size_x = data.size();
+  outputUintIn8Chars(size_x);
+
+  // print array iteself
+  for(int i=0; i<size_x; i++) {
+    outputDoubleIn8Chars(data[i]);
+  }
+}
+
 void CheckpointOutput::openOutputFile()
 {
   outputFile = fopen(filename.c_str(), "wb");
@@ -234,6 +251,27 @@ void CheckpointOutput::openOutputFile()
 }
 
 void CheckpointOutput::outputRealIn8Chars(real data)
+{
+  if(outputFile == NULL) {
+    fprintf(stderr, "Error opening checkpoint output file %s\n",
+            filename.c_str());
+    exit(EXIT_FAILURE);
+  }
+  real_output_union temp;
+  temp.dbl_value = data;
+  fprintf(outputFile, "%c%c%c%c%c%c%c%c",
+          temp.bin_value[0],
+          temp.bin_value[1],
+          temp.bin_value[2],
+          temp.bin_value[3],
+          temp.bin_value[4],
+          temp.bin_value[5],
+          temp.bin_value[6],
+          temp.bin_value[7]);
+  fflush(outputFile);
+}
+
+void CheckpointOutput::outputDoubleIn8Chars(double data)
 {
   if(outputFile == NULL) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",
