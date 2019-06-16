@@ -30,13 +30,13 @@ static const float BIGNUM = FLT_MAX;
 static const uint VDW_STD_KIND = 0, VDW_SHIFT_KIND = 1, VDW_SWITCH_KIND = 2;
 
 template <typename T>
-inline void BoundGt(real & val, const real bound)
+inline void BoundGt(real & val, const T bound)
 {
   if (val > bound) val = bound;
 }
 
 template <typename T>
-inline void BoundLt(real & val, const real bound)
+inline void BoundLt(real & val, const T bound)
 {
   if (val < bound) val = bound;
 }
@@ -48,7 +48,7 @@ inline void BoundNZDecimal(T & val, const int mult)
 }
 
 template <typename T>
-inline void Bound(T & val, const real lower, const real upper)
+inline void Bound(T & val, const T lower, const T upper)
 {
   BoundLt<T>(val, lower);
   BoundGt<T>(val, upper);
