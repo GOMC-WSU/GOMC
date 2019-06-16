@@ -44,14 +44,14 @@ private:
   vector<uint> moveType, moleculeIndex;
   const MoleculeLookup& molLookup;
 
-  real GetCoeff();
+  double GetCoeff();
   void CalculateTrialDistRot();
   void RotateForceBiased(uint molIndex);
   void TranslateForceBiased(uint molIndex);
   void SetMolInBox(uint box);
   XYZ CalcRandomTransform(XYZ const &lb, real const max);
-  real CalculateWRatio(XYZ const &lb, XYZ const &k, real max,
-                            real sign);
+  double CalculateWRatio(XYZ const &lb, XYZ const &k, double max,
+                         double sign);
 };
 
 inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
@@ -219,10 +219,10 @@ inline void MultiParticle::CalcEn()
   sysPotNew.Total();
 }
 
-inline real MultiParticle::CalculateWRatio(XYZ const &lb, XYZ const &k,
-                                                real max, real sign)
+inline double MultiParticle::CalculateWRatio(XYZ const &lb, XYZ const &k,
+                                             double max, double sign)
 {
-  real w_ratio = 1.0;
+  double w_ratio = 1.0;
   XYZ lbmax = lb * max;
 
   if(abs(lbmax.x) > MIN_FORCE && abs(lbmax.x) < MAX_FORCE) {
@@ -249,16 +249,16 @@ inline real MultiParticle::CalculateWRatio(XYZ const &lb, XYZ const &k,
   return w_ratio;
 }
 
-inline real MultiParticle::GetCoeff()
+inline double MultiParticle::GetCoeff()
 {
   // calculate (w_new->old/w_old->new) and return it.
   XYZ lbf_old, lbf_new; // lambda * BETA * force
   XYZ lbt_old, lbt_new; // lambda * BETA * torque
-  real w_ratio = 1.0;
-  real lBeta = lambda * BETA;
+  double w_ratio = 1.0;
+  double lBeta = lambda * BETA;
   uint m, molNumber;
-  real r_max = moveSetRef.GetRMAX(bPick);
-  real t_max = moveSetRef.GetTMAX(bPick);
+  double r_max = moveSetRef.GetRMAX(bPick);
+  double t_max = moveSetRef.GetTMAX(bPick);
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(m, molNumber, lbt_old, lbt_new, lbf_old, lbf_new) reduction(*:w_ratio)
 #endif
