@@ -60,6 +60,7 @@ public:
   bool OneThree, OneFour, OneN;   //To include 1-3, 1-4 and more interaction
   bool electrostatic, ewald;      //To consider columb interaction
   bool vdwGeometricSigma;         //For sigma combining rule
+  bool energyTable;               //For energy table
   bool isMartini;
   uint vdwKind;                   //To define VdW type, standard, shift or switch
   uint exckind;                   //To define  exclude kind, 1-2, 1-3, 1-4

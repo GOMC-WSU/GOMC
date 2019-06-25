@@ -131,7 +131,7 @@ struct VDWSwitch : public PotentialConfig {
 struct FFValues {
   uint VDW_KIND;
   double cutoff, cutoffLow, rswitch;
-  bool doTailCorr, vdwGeometricSigma;
+  bool doTailCorr, vdwGeometricSigma, energyTable;
   std::string kind;
 
   static const std::string VDW, VDW_SHIFT, VDW_SWITCH;

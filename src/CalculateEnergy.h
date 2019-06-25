@@ -13,6 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Ewald.h"
 #include "NoEwald.h"
 #include "CellList.h"
+#include "Spline.h"
 
 #include <vector>
 
@@ -255,6 +256,9 @@ private:
     return (pair1 == pair2);
   }
 
+  tk::spline **energyTableCS;
+  tk::spline **forceTableCS;
+  bool energyTableEnabled;
 
   const Forcefield& forcefield;
   const Molecules& mols;

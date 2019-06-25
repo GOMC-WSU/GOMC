@@ -78,6 +78,49 @@ void CalculateEnergy::Init(System & sys)
       particleCharge.push_back(molKind.AtomCharge(a));
     }
   }
+  // initialize the energy table with pre-calculated energies
+  if(sys.statV.forcefield.energyTable) {
+    energyTableEnabled = true;
+    double step = 0.005;
+
+    energyTableCS = new tk::spline *[BOXES_WITH_U_NB];
+    forceTableCS = new tk::spline *[BOXES_WITH_U_NB];
+    for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
+      int tableLength = ((currentAxes.rCutSq[b] + 1) / step) + 1;
+      std::vector<double> X, Y;
+      X.resize(tableLength);
+      Y.resize(tableLength);
+      for(int i=0; i<tableLength; i++) {
+        X[i] = i * step;
+      }
+
+      uint kindTotal = particleKind.size();
+      uint kindTotalSq = kindTotal * kindTotal;
+      energyTableCS[b] = new tk::spline[kindTotalSq];
+      for(uint k1=0; k1<kindTotal; k1++) {
+        for(uint k2=0; k2<kindTotal; k2++) {
+          for(int i=0; i<tableLength; i++) {
+            double distSq = X[i] * X[i];
+            Y[i] = forcefield.particles->CalcEn(distSq, k1, k2);
+          }
+          energyTableCS[b][k1+k2*kindTotal].set_points(X, Y);
+        }
+      }
+
+      forceTableCS[b] = new tk::spline[kindTotalSq];
+      for(uint k1=0; k1<kindTotal; k1++) {
+        for(uint k2=0; k2<kindTotal; k2++) {
+          for(int i=0; i<tableLength; i++) {
+            double distSq = X[i] * X[i];
+            Y[i] = forcefield.particles->CalcVir(distSq, k1, k2);
+          }
+          forceTableCS[b][k1+k2*kindTotal].set_points(X, Y);
+        }
+      }
+    }
+  } else {
+    energyTableEnabled = false;
+  }
 #ifdef GOMC_CUDA
   InitCoordinatesCUDA(forcefield.particles->getCUDAVars(),
                       currentCoords.Count(), maxAtomInMol, currentCOM.Count());
@@ -175,6 +218,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   double tempREn = 0.0, tempLJEn = 0.0;
   double distSq, qi_qj_fact;
   int i;
+  uint k1, k2, kindTotal = particleKind.size();
   XYZ virComponents, forceLJ, forceReal;
   std::vector<uint> pair1, pair2;
   CellList::Pairs pair = cellList.EnumeratePairs(box);
@@ -259,8 +303,13 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
           num::qqFact;
         tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact, box);
       }
-      tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
-                  particleKind[pair2[i]]);
+      k1 = particleKind[pair1[i]];
+      k2 = particleKind[pair2[i]];
+      if(energyTableEnabled) {
+        tempLJEn += energyTableCS[box][k1 + k2 * kindTotal](distSq);
+      } else {
+        tempLJEn += forcefield.particles->CalcEn(distSq, k1, k2);
+      }
 
       // Calculating the force
       if(multiParticleEnabled) {
@@ -268,9 +317,14 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
           forceReal = virComponents *
 	        forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact, box);
         }
-        forceLJ = virComponents *
-	        forcefield.particles->CalcVir(distSq, particleKind[pair1[i]],
-					      particleKind[pair2[i]]);
+        if(energyTableEnabled) {
+          forceLJ = virComponents * forceTableCS[box][k1+k2*kindTotal](distSq);
+        }
+        else {
+          forceLJ = virComponents *
+            forcefield.particles->CalcVir(distSq, particleKind[pair1[i]],
+                                          particleKind[pair2[i]]);
+        }
         aForcex[pair1[i]] += forceLJ.x + forceReal.x;
         aForcey[pair1[i]] += forceLJ.y + forceReal.y;
         aForcez[pair1[i]] += forceLJ.z + forceReal.z;

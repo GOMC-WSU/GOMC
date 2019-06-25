@@ -169,7 +169,8 @@ set(libHeaders
    lib/StrLib.h
    lib/StrStrmLib.h
    lib/VectorLib.h
-   lib/FloydWarshallCycle.h)
+   lib/FloydWarshallCycle.h
+   lib/Spline.h)
 
 set(libSources
     lib/FloydWarshallCycle.cpp)

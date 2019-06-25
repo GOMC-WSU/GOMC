@@ -80,6 +80,7 @@ ConfigSetup::ConfigSetup(void)
   sys.ff.cutoff = DBL_MAX;
   sys.ff.cutoffLow = DBL_MAX;
   sys.ff.vdwGeometricSigma = false;
+  sys.ff.energyTable = false;
   sys.moves.displace = DBL_MAX;
   sys.moves.rotate = DBL_MAX;
   sys.moves.intraSwap = DBL_MAX;
@@ -282,7 +283,13 @@ void ConfigSetup::Init(const char *fileName)
         printf("%-40s %-s \n", "Info: Long Range Correction", "Active");
       else
         printf("%-40s %-s \n", "Info: Long Range Correction", "Inactive");
-    } else if(CheckString(line[0], "Rswitch")) {
+    } else if(CheckString(line[0], "EnergyTable")) {
+      sys.ff.energyTable = checkBool(line[1]);
+      if(sys.ff.energyTable)
+        printf("%-40s %-s \n", "Info: Energy Table", "Active");
+      else
+        printf("%-40s %-s \n", "Info: Energy Table", "Inactive");
+    }else if(CheckString(line[0], "Rswitch")) {
       sys.ff.rswitch = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Switch distance", sys.ff.rswitch);
     } else if(CheckString(line[0], "ExchangeVolumeDim")) {
@@ -1405,24 +1412,24 @@ void ConfigSetup::verifyInputs(void)
 }
 
 const std::string config_setup::PRNGKind::KIND_RANDOM = "RANDOM",
-                                          config_setup::PRNGKind::KIND_SEED = "INTSEED",
-                                                                  config_setup::PRNGKind::KIND_RESTART = "RESTART",
-                                                                                          config_setup::FFKind::FF_CHARMM = "CHARMM",
-                                                                                                                config_setup::FFKind::FF_EXOTIC = "EXOTIC",
-                                                                                                                                      config_setup::FFKind::FF_MARTINI = "MARTINI",
-                                                                                                                                                            config_setup::FFValues::VDW = "VDW",
-                                                                                                                                                                                    config_setup::FFValues::VDW_SHIFT = "VDW_SHIFT",
-                                                                                                                                                                                                            config_setup::FFValues::VDW_SWITCH = "VDW_SWITCH",
-                                                                                                                                                                                                                                    config_setup::Exclude::EXC_ONETWO = "1-2",
-                                                                                                                                                                                                                                                           config_setup::Exclude::EXC_ONETHREE = "1-3",
-                                                                                                                                                                                                                                                                                  config_setup::Exclude::EXC_ONEFOUR = "1-4";
+                  config_setup::PRNGKind::KIND_SEED = "INTSEED",
+                  config_setup::PRNGKind::KIND_RESTART = "RESTART",
+                  config_setup::FFKind::FF_CHARMM = "CHARMM",
+                  config_setup::FFKind::FF_EXOTIC = "EXOTIC",
+                  config_setup::FFKind::FF_MARTINI = "MARTINI",
+                  config_setup::FFValues::VDW = "VDW",
+                  config_setup::FFValues::VDW_SHIFT = "VDW_SHIFT",
+                  config_setup::FFValues::VDW_SWITCH = "VDW_SWITCH",
+                  config_setup::Exclude::EXC_ONETWO = "1-2",
+                  config_setup::Exclude::EXC_ONETHREE = "1-3",
+                  config_setup::Exclude::EXC_ONEFOUR = "1-4";
 
 const char ConfigSetup::defaultConfigFileName[] = "in.dat";
 const char ConfigSetup::configFileAlias[] = "GO-MC Configuration File";
 
 const uint config_setup::FFValues::VDW_STD_KIND = 0,
-                                   config_setup::FFValues::VDW_SHIFT_KIND = 1,
-                                                           config_setup::FFValues::VDW_SWITCH_KIND = 2,
-                                                                                   config_setup::Exclude::EXC_ONETWO_KIND = 0,
-                                                                                                          config_setup::Exclude::EXC_ONETHREE_KIND = 1,
-                                                                                                                                 config_setup::Exclude::EXC_ONEFOUR_KIND = 2;
+              config_setup::FFValues::VDW_SHIFT_KIND = 1,
+              config_setup::FFValues::VDW_SWITCH_KIND = 2,
+              config_setup::Exclude::EXC_ONETWO_KIND = 0,
+              config_setup::Exclude::EXC_ONETHREE_KIND = 1,
+              config_setup::Exclude::EXC_ONEFOUR_KIND = 2;
