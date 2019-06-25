@@ -80,13 +80,18 @@ void CalculateEnergy::Init(System & sys)
   }
   // initialize the energy table with pre-calculated energies
   if(sys.statV.forcefield.energyTable) {
+    std::cout << "Info: Generating energy and force tables!\n";
+    std::cout << "Info: Kind Total Square: " << particleKind.size() * particleKind.size() << "\n";
+    std::cout << "Info: BOXES_WITH_U_NB: " << BOXES_WITH_U_NB << "\n";
+    //std::cout << "Info: BOXES_WITH_U_NB: " << BOXES_WITH_U_NB << "\n";
+
     energyTableEnabled = true;
     double step = 0.005;
 
     energyTableCS = new tk::spline *[BOXES_WITH_U_NB];
     forceTableCS = new tk::spline *[BOXES_WITH_U_NB];
     for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
-      int tableLength = ((currentAxes.rCutSq[b] + 1) / step) + 1;
+      int tableLength = ((currentAxes.rCut[b] + 1) / step) + 1;
       std::vector<double> X, Y;
       X.resize(tableLength);
       Y.resize(tableLength);
@@ -100,8 +105,7 @@ void CalculateEnergy::Init(System & sys)
       for(uint k1=0; k1<kindTotal; k1++) {
         for(uint k2=0; k2<kindTotal; k2++) {
           for(int i=0; i<tableLength; i++) {
-            double distSq = X[i] * X[i];
-            Y[i] = forcefield.particles->CalcEn(distSq, k1, k2);
+            Y[i] = forcefield.particles->CalcEn(X[i]*X[i], k1, k2);
           }
           energyTableCS[b][k1+k2*kindTotal].set_points(X, Y);
         }
@@ -111,13 +115,13 @@ void CalculateEnergy::Init(System & sys)
       for(uint k1=0; k1<kindTotal; k1++) {
         for(uint k2=0; k2<kindTotal; k2++) {
           for(int i=0; i<tableLength; i++) {
-            double distSq = X[i] * X[i];
-            Y[i] = forcefield.particles->CalcVir(distSq, k1, k2);
+            Y[i] = forcefield.particles->CalcVir(X[i]*X[i], k1, k2);
           }
           forceTableCS[b][k1+k2*kindTotal].set_points(X, Y);
         }
       }
     }
+    std::cout << "Info: Done generating tables!\n";
   } else {
     energyTableEnabled = false;
   }
@@ -306,7 +310,7 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
       k1 = particleKind[pair1[i]];
       k2 = particleKind[pair2[i]];
       if(energyTableEnabled) {
-        tempLJEn += energyTableCS[box][k1 + k2 * kindTotal](distSq);
+        tempLJEn += energyTableCS[box][k1 + k2 * kindTotal](sqrt(distSq));
       } else {
         tempLJEn += forcefield.particles->CalcEn(distSq, k1, k2);
       }
@@ -318,7 +322,7 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 	        forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact, box);
         }
         if(energyTableEnabled) {
-          forceLJ = virComponents * forceTableCS[box][k1+k2*kindTotal](distSq);
+          forceLJ = virComponents * forceTableCS[box][k1+k2*kindTotal](sqrt(distSq));
         }
         else {
           forceLJ = virComponents *
