@@ -259,6 +259,7 @@ private:
   tk::spline **energyTableCS;
   tk::spline **forceTableCS;
   bool energyTableEnabled;
+  uint energyTableMaxSize;
 
   const Forcefield& forcefield;
   const Molecules& mols;

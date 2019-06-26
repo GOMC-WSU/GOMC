@@ -23,6 +23,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "GeomLib.h"
 #include "NumLib.h"
 #include <cassert>
+#include <algorithm>
 #ifdef GOMC_CUDA
 #include "CalculateEnergyCUDAKernel.cuh"
 #include "CalculateForceCUDAKernel.cuh"
@@ -81,17 +82,14 @@ void CalculateEnergy::Init(System & sys)
   // initialize the energy table with pre-calculated energies
   if(sys.statV.forcefield.energyTable) {
     std::cout << "Info: Generating energy and force tables!\n";
-    std::cout << "Info: Kind Total Square: " << particleKind.size() * particleKind.size() << "\n";
-    std::cout << "Info: BOXES_WITH_U_NB: " << BOXES_WITH_U_NB << "\n";
-    //std::cout << "Info: BOXES_WITH_U_NB: " << BOXES_WITH_U_NB << "\n";
 
     energyTableEnabled = true;
-    double step = 0.005;
+    double step = 0.001;
 
     energyTableCS = new tk::spline *[BOXES_WITH_U_NB];
     forceTableCS = new tk::spline *[BOXES_WITH_U_NB];
     for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
-      int tableLength = ((currentAxes.rCut[b] + 1) / step) + 1;
+      int tableLength = ((currentAxes.rCut[b] + 1) / step);
       std::vector<double> X, Y;
       X.resize(tableLength);
       Y.resize(tableLength);
@@ -99,13 +97,19 @@ void CalculateEnergy::Init(System & sys)
         X[i] = i * step;
       }
 
-      uint kindTotal = particleKind.size();
+      uint kindTotal = *(std::max_element(particleKind.begin(), particleKind.end()));
+      kindTotal++;
+      this->energyTableMaxSize = kindTotal;
+      std::cout << "Kind Total: " << kindTotal << "\n";
       uint kindTotalSq = kindTotal * kindTotal;
       energyTableCS[b] = new tk::spline[kindTotalSq];
       for(uint k1=0; k1<kindTotal; k1++) {
         for(uint k2=0; k2<kindTotal; k2++) {
           for(int i=0; i<tableLength; i++) {
-            Y[i] = forcefield.particles->CalcEn(X[i]*X[i], k1, k2);
+            if(i==0)
+              Y[i] = 0;
+            else
+              Y[i] = forcefield.particles->CalcEn(X[i]*X[i], k1, k2);
           }
           energyTableCS[b][k1+k2*kindTotal].set_points(X, Y);
         }
@@ -115,7 +119,10 @@ void CalculateEnergy::Init(System & sys)
       for(uint k1=0; k1<kindTotal; k1++) {
         for(uint k2=0; k2<kindTotal; k2++) {
           for(int i=0; i<tableLength; i++) {
-            Y[i] = forcefield.particles->CalcVir(X[i]*X[i], k1, k2);
+            if(i==0)
+              Y[i] = 0;
+            else
+              Y[i] = forcefield.particles->CalcVir(X[i]*X[i], k1, k2);
           }
           forceTableCS[b][k1+k2*kindTotal].set_points(X, Y);
         }
@@ -222,7 +229,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   double tempREn = 0.0, tempLJEn = 0.0;
   double distSq, qi_qj_fact;
   int i;
-  uint k1, k2, kindTotal = particleKind.size();
+  uint k1, k2, kindTotal = this->energyTableMaxSize;
   XYZ virComponents, forceLJ, forceReal;
   std::vector<uint> pair1, pair2;
   CellList::Pairs pair = cellList.EnumeratePairs(box);

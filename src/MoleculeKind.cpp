@@ -116,9 +116,6 @@ MoleculeKind::~MoleculeKind()
   delete builder;
 }
 
-
-
-
 void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
 {
   numAtoms = molData.atoms.size();
