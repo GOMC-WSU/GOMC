@@ -160,13 +160,13 @@ inline void MoleculeExchange1::SetMEMC(StaticVals const& statV)
     }
 
     if(kindS == -1) {
-      printf("Error: Residue name %s was not found in PDB file as small molecule kind to be exchanged or not allowed to be transferred.\n",
+      printf("Error:  In MEMC move, residue name %s was not found in PDB file as small molecule kind to be exchanged or not allowed to be transferred.\n",
              statV.memcVal.smallKind[t].c_str());
       exit(EXIT_FAILURE);
     }
 
     if(kindL == -1) {
-      printf("Error: Residue name %s was not found in PDB file as large molecule kind to be exchanged or not allowed to be transferred.\n",
+      printf("Error:  In MEMC move, residue name %s was not found in PDB file as large molecule kind to be exchanged or not allowed to be transferred.\n",
              statV.memcVal.largeKind[t].c_str());
       exit(EXIT_FAILURE);
     }
@@ -182,7 +182,7 @@ inline void MoleculeExchange1::SetMEMC(StaticVals const& statV)
 
     for(uint i = 0; i < 2; i++) {
       if(largeBB[i] == -1) {
-        printf("Error: Atom name %s or %s was not found in %s residue.\n",
+        printf("Error:  In MEMC move, atom name %s or %s was not found in %s residue.\n",
                statV.memcVal.largeBBAtom1[t].c_str(),
                statV.memcVal.largeBBAtom2[t].c_str(),
                statV.memcVal.largeKind[t].c_str());
@@ -193,7 +193,7 @@ inline void MoleculeExchange1::SetMEMC(StaticVals const& statV)
     if(statV.memcVal.MEMC1 || statV.memcVal.MEMC2) {
       if(molRef.kinds[kindL].NumAtoms() > 1) {
         if(largeBB[0] == largeBB[1]) {
-          printf("Error: Atom names in large molecule backbone cannot be same!\n");
+          printf("Error:  In MEMC move, atom names in large molecule backbone cannot be same!\n");
           exit(EXIT_FAILURE);
         }
       }

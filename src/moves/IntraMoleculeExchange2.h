@@ -61,7 +61,7 @@ inline void IntraMoleculeExchange2::SetMEMC(StaticVals const& statV)
 
     for(uint i = 0; i < 2; i++) {
       if(smallBB[i] == -1) {
-        printf("Error: Atom name %s or %s was not found in %s residue.\n",
+        printf("Error: In Intra-ME-2 move, atom name %s or %s was not found in %s residue.\n",
                statV.intraMemcVal.smallBBAtom1[t].c_str(),
                statV.intraMemcVal.smallBBAtom2[t].c_str(),
                statV.intraMemcVal.smallKind[t].c_str());
@@ -71,7 +71,7 @@ inline void IntraMoleculeExchange2::SetMEMC(StaticVals const& statV)
 
     if(molRef.kinds[kindSVec[t]].NumAtoms() > 1) {
       if(smallBB[0] == smallBB[1]) {
-        printf("Error: Atom names in small molecule backbone cannot be same!\n");
+        printf("Error: In Intra-ME-2 move, atom names in small molecule backbone cannot be same!\n");
         exit(EXIT_FAILURE);
       }
     }
