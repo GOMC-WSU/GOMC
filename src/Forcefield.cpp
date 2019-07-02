@@ -65,11 +65,23 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
   rswitch = val.ff.rswitch;
   dielectric = val.elect.dielectric;
 
-  sc_alpha = 0.5;
-  sc_sigma = 3.0;
+  if(val.freeEn.enable) {
+    sc_alpha = val.freeEn.scaleAlpha;
+    sc_sigma = val.freeEn.scaleSigma;
+    sc_power = val.freeEn.scalePower;
+    sc_coul = val.freeEn.scaleCoulomb;
+  } else if (val.cfcmcVal.enable) {
+    sc_alpha = val.cfcmcVal.scaleAlpha;
+    sc_sigma = val.cfcmcVal.scaleSigma;
+    sc_power = val.cfcmcVal.scalePower;
+    sc_coul = val.cfcmcVal.scaleCoulomb;  
+  } else {
+    sc_alpha = 0.0;
+    sc_sigma = 0.0;
+    sc_power = 0;
+    sc_coul = false;
+  }
   sc_sigma_6 = pow(sc_sigma, 6);
-  sc_power = 2;
-  sc_coul = false;
 
   for(uint b = 0 ; b < BOX_TOTAL; b++) {
     rCutCoulomb[b] = val.elect.cutoffCoulomb[b];

@@ -247,10 +247,16 @@ struct CFCMCVal {
   bool readHistFlatness, MPEnable, readMPEnable;
   uint relaxSteps;
   double histFlatness;
+  //scaling parameter
+  uint scalePower;
+  double scaleAlpha, scaleSigma; 
+  bool scaleCoulomb;
+  bool scalePowerRead, scaleAlphaRead, scaleSigmaRead, scaleCoulombRead;
   std::vector<double> lambdaCoulomb, lambdaVDW;
   CFCMCVal(void) {
     readLambdaCoulomb = readRelaxSteps = readHistFlatness = false;
     readMPEnable = MPEnable = readLambdaVDW = enable = false;
+    scalePowerRead = scaleAlphaRead = scaleSigmaRead = scaleCoulombRead = false;
   }
 };
 
@@ -258,11 +264,17 @@ struct FreeEnergy {
   bool enable, readLambdaCoulomb, readLambdaVDW, freqRead; 
   bool molTypeRead, molIndexRead, iStateRead;
   uint frequency, molIndex, iState;
+  //scaling parameter
+  uint scalePower;
+  double scaleAlpha, scaleSigma; 
+  bool scaleCoulomb;
+  bool scalePowerRead, scaleAlphaRead, scaleSigmaRead, scaleCoulombRead;
   std::string molType;
   std::vector<double> lambdaCoulomb, lambdaVDW;
   FreeEnergy(void) {
     readLambdaCoulomb = readLambdaVDW = enable = freqRead = false;
     molTypeRead = molIndexRead = iStateRead = false;
+    scalePowerRead = scaleAlphaRead = scaleSigmaRead = scaleCoulombRead = false;
   }
 };
 
