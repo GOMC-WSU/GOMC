@@ -47,7 +47,7 @@ inline void IntraMoleculeExchange3::SetMEMC(StaticVals const& statV)
 {
   for(uint t = 0; t < exchangeRatioVec.size(); t++) {
     if(largeBBVec[t][0] != largeBBVec[t][1]) {
-      printf("Error: In ME-3 move, atom name of backbone should be same.\n");
+      printf("Error: In Intra-ME-3 move, two atoms with same name should be used as backbone.\n");
       printf("Atom names in backbone was set to %s or %s in %s residue.\n",
              statV.intraMemcVal.largeBBAtom1[t].c_str(),
              statV.intraMemcVal.largeBBAtom2[t].c_str(),
