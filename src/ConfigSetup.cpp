@@ -659,10 +659,10 @@ void ConfigSetup::Init(const char *fileName)
         sys.cfcmcVal.scaleCoulomb = checkBool(line[1]);
         sys.cfcmcVal.scaleCoulombRead = true;
         if(sys.cfcmcVal.scaleCoulomb) {
-          printf("%-40s %s \n", "Info: Using Soft-core for Coulombic interaction",
+          printf("%-40s %s \n", "Info: Soft-core for Coulombic interaction",
           "Active");
         } else {
-          printf("%-40s %s \n", "Info: Using Soft-core for Coulombic interaction",
+          printf("%-40s %s \n", "Info: Soft-core for Coulombic interaction",
           "Inactive");
         }
       }
@@ -845,10 +845,10 @@ void ConfigSetup::Init(const char *fileName)
         sys.freeEn.scaleCoulomb = checkBool(line[1]);
         sys.freeEn.scaleCoulombRead = true;
         if(sys.freeEn.scaleCoulomb) {
-          printf("%-40s %s \n", "Info: Using Soft-core for Coulombic interaction",
+          printf("%-40s %s \n", "Info: Soft-core for Coulombic interaction",
           "Active");
         } else {
-          printf("%-40s %s \n", "Info: Using Soft-core for Coulombic interaction",
+          printf("%-40s %s \n", "Info: Soft-core for Coulombic interaction",
           "Inactive");
         }
       }
@@ -1108,7 +1108,7 @@ void ConfigSetup::fillDefaults(void)
     }
     if(!sys.cfcmcVal.scaleCoulombRead) {
       sys.cfcmcVal.scaleCoulomb = false;
-      printf("%-40s %s A \n", "Default: Using Soft-core for Coulombic interaction",
+      printf("%-40s %s A \n", "Default: Soft-core for Coulombic interaction",
             "Inactive");
     }
   }
@@ -1158,7 +1158,7 @@ void ConfigSetup::fillDefaults(void)
     }
     if(!sys.freeEn.scaleCoulombRead) {
       sys.freeEn.scaleCoulomb = false;
-      printf("%-40s %s A \n", "Default: Using Soft-core for Coulombic interaction",
+      printf("%-40s %s A \n", "Default: Soft-core for Coulombic interaction",
             "Inactive");
     }    
   }
