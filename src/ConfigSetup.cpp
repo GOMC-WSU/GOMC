@@ -335,11 +335,11 @@ void ConfigSetup::Init(const char *fileName)
       }
     } else if(CheckString(line[0], "SmallKindBackBone")) {
       if((line.size() % 2) == 0) {
-        std::cout << "Error: Atom Names in Small Kind BackBone must be in pair!\n";
+        std::cout << "Error: Two atom names must be defined for the backbone of each small molecule kind!\n";
         exit(EXIT_FAILURE);
       }
       if(line.size() >= 3) {
-        printf("%-41s", "Info: Atom Names in Small Kind BackBone");
+        printf("%-41s", "Info: Atom Names in BackBone of Small Molecule Kind");
         for(uint i = 1; i < line.size() - 1; i += 2) {
           if(i != 1) {
             printf(" , ");
@@ -358,11 +358,11 @@ void ConfigSetup::Init(const char *fileName)
       }
     } else if(CheckString(line[0], "LargeKindBackBone")) {
       if((line.size() % 2) == 0) {
-        std::cout << "Error: Atom Names in Large Kind BackBone must be in pair!\n";
+        std::cout << "Error: Two atom names must be defined for the backbone of each large molecule kind!\n";
         exit(EXIT_FAILURE);
       }
       if(line.size() >= 3) {
-        printf("%-41s", "Info: Atom Names in Large Kind BackBone");
+        printf("%-41s", "Info: Atom Names in BackBone of Large Molecule Kind");
         for(uint i = 1; i < line.size() - 1; i += 2) {
           if(i != 1) {
             printf(" , ");
