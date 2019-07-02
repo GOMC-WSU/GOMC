@@ -633,6 +633,39 @@ void ConfigSetup::Init(const char *fileName)
             "Inactive");
         }
       }
+    } else if(CheckString(line[0], "ScalePower")) {
+      if(line.size() > 1) {
+        sys.cfcmcVal.scalePower = stringtoi(line[1]);
+        sys.cfcmcVal.scalePowerRead = true;
+        printf("%-40s %-4d \n", "Info: Soft-core scaling power(p)",
+	      sys.cfcmcVal.scalePower);
+      }
+    } else if(CheckString(line[0], "ScaleAlpha")) {
+      if(line.size() > 1) {
+        sys.cfcmcVal.scaleAlpha = stringtod(line[1]);
+        sys.cfcmcVal.scaleAlphaRead = true;
+        printf("%-40s %-4.4f \n", "Info: Soft-core softness(alpha)",
+	      sys.cfcmcVal.scaleAlpha);
+      }
+    } else if(CheckString(line[0], "MinSigma")) {
+      if(line.size() > 1) {
+        sys.cfcmcVal.scaleSigma = stringtod(line[1]);
+        sys.cfcmcVal.scaleSigmaRead = true;
+        printf("%-40s %-4.4f A \n", "Info: Soft-core minimum sigma",
+	      sys.cfcmcVal.scaleSigma);
+      }
+    } else if(CheckString(line[0], "ScaleCoulomb")) {
+      if(line.size() > 1) {
+        sys.cfcmcVal.scaleCoulomb = checkBool(line[1]);
+        sys.cfcmcVal.scaleCoulombRead = true;
+        if(sys.cfcmcVal.scaleCoulomb) {
+          printf("%-40s %s \n", "Info: Using Soft-core for Coulombic interaction",
+          "Active");
+        } else {
+          printf("%-40s %s \n", "Info: Using Soft-core for Coulombic interaction",
+          "Inactive");
+        }
+      }
     }
 #endif
     else if(CheckString(line[0], "CellBasisVector1")) {
@@ -785,6 +818,39 @@ void ConfigSetup::Init(const char *fileName)
         sys.freeEn.iStateRead = true;
         printf("%-40s %-d \n", "Info: Free Energy Calc Lambda state",
               sys.freeEn.iState);
+      }
+    } else if(CheckString(line[0], "ScalePower")) {
+      if(line.size() > 1) {
+        sys.freeEn.scalePower = stringtoi(line[1]);
+        sys.freeEn.scalePowerRead = true;
+        printf("%-40s %-4d \n", "Info: Soft-core scaling power(p)",
+	      sys.freeEn.scalePower);
+      }
+    } else if(CheckString(line[0], "ScaleAlpha")) {
+      if(line.size() > 1) {
+        sys.freeEn.scaleAlpha = stringtod(line[1]);
+        sys.freeEn.scaleAlphaRead = true;
+        printf("%-40s %-4.4f \n", "Info: Soft-core softness(alpha)",
+	      sys.freeEn.scaleAlpha);
+      }
+    } else if(CheckString(line[0], "MinSigma")) {
+      if(line.size() > 1) {
+        sys.freeEn.scaleSigma = stringtod(line[1]);
+        sys.freeEn.scaleSigmaRead = true;
+        printf("%-40s %-4.4f \n", "Info: Soft-core minimum sigma",
+	      sys.freeEn.scaleSigma);
+      }
+    } else if(CheckString(line[0], "ScaleCoulomb")) {
+      if(line.size() > 1) {
+        sys.freeEn.scaleCoulomb = checkBool(line[1]);
+        sys.freeEn.scaleCoulombRead = true;
+        if(sys.freeEn.scaleCoulomb) {
+          printf("%-40s %s \n", "Info: Using Soft-core for Coulombic interaction",
+          "Active");
+        } else {
+          printf("%-40s %s \n", "Info: Using Soft-core for Coulombic interaction",
+          "Inactive");
+        }
       }
     }
 #endif
@@ -987,14 +1053,13 @@ void ConfigSetup::fillDefaults(void)
 	     sys.moves.cfcmc);
   }
 
-  
-  if(sys.cfcmcVal.enable && !sys.cfcmcVal.readHistFlatness) {
-    sys.cfcmcVal.histFlatness = 0.3;
-    printf("%-40s %-4.4f \n", "Default: CFCMC Histogram Flatness",
-      sys.cfcmcVal.histFlatness);
-  }
+  if(sys.cfcmcVal.enable) {
+    if(!sys.cfcmcVal.readHistFlatness) {
+      sys.cfcmcVal.histFlatness = 0.3;
+      printf("%-40s %-4.4f \n", "Default: CFCMC Histogram Flatness",
+        sys.cfcmcVal.histFlatness);
+    }
 
-  if(sys.cfcmcVal.enable && sys.cfcmcVal.readLambdaVDW ) {
     if(!sys.elect.enable && !sys.cfcmcVal.readLambdaCoulomb) {
       sys.cfcmcVal.lambdaCoulomb.resize(sys.cfcmcVal.lambdaVDW.size(), 0.0);
       sys.cfcmcVal.readLambdaCoulomb = true;
@@ -1004,29 +1069,54 @@ void ConfigSetup::fillDefaults(void)
         printf("%-6.3f", val);
       }
       std::cout << endl; 
-    } else if(sys.elect.enable && !sys.cfcmcVal.readLambdaCoulomb) {
-      sys.cfcmcVal.lambdaCoulomb = sys.cfcmcVal.lambdaVDW;
-      sys.cfcmcVal.readLambdaCoulomb = true;
-      printf("%-41s", "Default: Lambda Coulomb");
-      for(uint i = 0; i < sys.cfcmcVal.lambdaCoulomb.size(); i++) {
-        double val = sys.cfcmcVal.lambdaCoulomb[i];
-        printf("%-6.3f", val);
-      }
-      std::cout << endl; 
     }
-  }
 
-  if(sys.cfcmcVal.enable && !sys.cfcmcVal.readMPEnable) {
-    sys.cfcmcVal.readMPEnable = true;
-    sys.cfcmcVal.MPEnable = false;
-    printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
-      "Inactive");
+    if(sys.cfcmcVal.readLambdaVDW ) {
+      if(sys.elect.enable && !sys.cfcmcVal.readLambdaCoulomb) {
+        sys.cfcmcVal.lambdaCoulomb = sys.cfcmcVal.lambdaVDW;
+        sys.cfcmcVal.readLambdaCoulomb = true;
+        printf("%-41s", "Default: Lambda Coulomb");
+        for(uint i = 0; i < sys.cfcmcVal.lambdaCoulomb.size(); i++) {
+          double val = sys.cfcmcVal.lambdaCoulomb[i];
+          printf("%-6.3f", val);
+        }
+        std::cout << endl; 
+      }
+    }
+      
+    if(!sys.cfcmcVal.readMPEnable) {
+      sys.cfcmcVal.readMPEnable = true;
+      sys.cfcmcVal.MPEnable = false;
+      printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
+        "Inactive");
+    }
+
+    if(!sys.cfcmcVal.scalePowerRead) {
+      sys.cfcmcVal.scalePower = 2;
+      printf("%-40s %-4d \n", "Default: Soft-core scale power(p)",
+        sys.cfcmcVal.scalePower);
+    }
+    if(!sys.cfcmcVal.scaleAlphaRead) {
+      sys.cfcmcVal.scaleAlpha = 0.5;
+      printf("%-40s %-4.4f \n", "Default: Soft-core softness(alpha)",
+        sys.cfcmcVal.scaleAlpha);
+    }
+    if(!sys.cfcmcVal.scaleSigmaRead) {
+      sys.cfcmcVal.scaleSigma = 3.0;
+      printf("%-40s %-4.4f A \n", "Default: Soft-core minimum sigma",
+        sys.cfcmcVal.scaleSigma);
+    }
+    if(!sys.cfcmcVal.scaleCoulombRead) {
+      sys.cfcmcVal.scaleCoulomb = false;
+      printf("%-40s %s A \n", "Default: Using Soft-core for Coulombic interaction",
+            "Inactive");
+    }
   }
 
 #endif
 
 #if ENSEMBLE == NVT || ENSEMBLE == NPT 
-if(sys.freeEn.enable && sys.freeEn.readLambdaVDW ) {
+  if(sys.freeEn.enable) {
     if(!sys.elect.enable && !sys.freeEn.readLambdaCoulomb) {
       sys.freeEn.lambdaCoulomb.resize(sys.freeEn.lambdaVDW.size(), 0.0);
       sys.freeEn.readLambdaCoulomb = true;
@@ -1036,16 +1126,41 @@ if(sys.freeEn.enable && sys.freeEn.readLambdaVDW ) {
         printf("%-6.3f", val);
       }
       std::cout << endl; 
-    } else if(sys.elect.enable && !sys.freeEn.readLambdaCoulomb) {
-      sys.freeEn.lambdaCoulomb = sys.freeEn.lambdaVDW;
-      sys.freeEn.readLambdaCoulomb = true;
-      printf("%-41s", "Default: Lambda Coulomb");
-      for(uint i = 0; i < sys.freeEn.lambdaCoulomb.size(); i++) {
-        double val = sys.freeEn.lambdaCoulomb[i];
-        printf("%-6.3f", val);
-      }
-      std::cout << endl; 
     }
+
+    if(sys.freeEn.readLambdaVDW) {
+      if(sys.elect.enable && !sys.freeEn.readLambdaCoulomb) {
+        sys.freeEn.lambdaCoulomb = sys.freeEn.lambdaVDW;
+        sys.freeEn.readLambdaCoulomb = true;
+        printf("%-41s", "Default: Lambda Coulomb");
+        for(uint i = 0; i < sys.freeEn.lambdaCoulomb.size(); i++) {
+          double val = sys.freeEn.lambdaCoulomb[i];
+          printf("%-6.3f", val);
+        }
+        std::cout << endl; 
+      }
+    }
+
+    if(!sys.freeEn.scalePowerRead) {
+      sys.freeEn.scalePower = 2;
+      printf("%-40s %-4d \n", "Default: Soft-core scale power(p)",
+        sys.freeEn.scalePower);
+    }
+    if(!sys.freeEn.scaleAlphaRead) {
+      sys.freeEn.scaleAlpha = 0.5;
+      printf("%-40s %-4.4f \n", "Default: Soft-core softness(alpha)",
+        sys.freeEn.scaleAlpha);
+    }
+    if(!sys.freeEn.scaleSigmaRead) {
+      sys.freeEn.scaleSigma = 3.0;
+      printf("%-40s %-4.4f A \n", "Default: Soft-core minimum sigma",
+        sys.freeEn.scaleSigma);
+    }
+    if(!sys.freeEn.scaleCoulombRead) {
+      sys.freeEn.scaleCoulomb = false;
+      printf("%-40s %s A \n", "Default: Using Soft-core for Coulombic interaction",
+            "Inactive");
+    }    
   }
 #endif
 
