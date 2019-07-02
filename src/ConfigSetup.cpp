@@ -816,6 +816,12 @@ void ConfigSetup::fillDefaults(void)
     sys.elect.enable = true;
   }
 
+  if(sys.moves.rotate == DBL_MAX) {
+    sys.moves.rotate = 0.000;
+    printf("%-40s %-4.4f \n", "Default: Rotation move frequency",
+           sys.moves.rotate);
+  }
+
   if(sys.moves.intraSwap == DBL_MAX) {
     sys.moves.intraSwap = 0.000;
     printf("%-40s %-4.4f \n", "Default: Intra-Swap move frequency",
@@ -853,9 +859,9 @@ void ConfigSetup::fillDefaults(void)
     printf("%-40s %-s \n", "Default: Exclude", "ONE-FOUR");
   }
 
-  if(sys.elect.enable && sys.elect.oneFourScale == DBL_MAX) {
-    sys.elect.oneFourScale = 0.0f;
-    if(sys.exclude.EXCLUDE_KIND != sys.exclude.EXC_ONEFOUR_KIND) {
+  if(sys.elect.oneFourScale == DBL_MAX) {
+    if(sys.elect.enable) {
+      sys.elect.oneFourScale = 0.0;
       printf("%-40s %-lf \n", "Default: Modified 1-4 Electrostatic scaling",
              sys.elect.oneFourScale);
     }
@@ -932,12 +938,7 @@ void ConfigSetup::verifyInputs(void)
   int i;
   if(!sys.elect.enable && sys.elect.oneFourScale != DBL_MAX) {
     printf("Warning: 1-4 Electrostatic scaling set, but will be ignored.\n");
-  }
-
-  if((sys.elect.oneFourScale != 0.0) &&
-      (sys.exclude.EXCLUDE_KIND == sys.exclude.EXC_ONEFOUR_KIND)) {
-    printf("Warning: 1-4 Electrostatic scaling set, but will be ignored.\n");
-    sys.elect.oneFourScale = 0.0f;
+    sys.elect.oneFourScale = 0.0;
   }
 
   if(sys.elect.ewald == false && sys.elect.enable == true) {
@@ -1060,14 +1061,6 @@ void ConfigSetup::verifyInputs(void)
   }
   if(sys.moves.displace == DBL_MAX) {
     std::cout << "Error: Displacement move frequency is not specified!\n";
-    exit(EXIT_FAILURE);
-  }
-  if(sys.moves.rotate == DBL_MAX) {
-    std::cout << "Error: Rotation move frequency is not specified!\n";
-    exit(EXIT_FAILURE);
-  }
-  if(sys.moves.intraSwap == DBL_MAX) {
-    std::cout << "Error: Intra-Swap move frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
 #if ENSEMBLE == NPT
