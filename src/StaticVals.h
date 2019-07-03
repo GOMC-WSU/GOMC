@@ -33,6 +33,7 @@ public:
   void Init(Setup & set, System& sys);
   void InitOver(Setup & set, System& sys);
   void IsBoxOrthogonal(config_setup::Volume const& vol);
+  void IsBoxOrthogonal(const double cellAngle[][3]);
 #ifndef VARIABLE_VOLUME
   BoxDimensions * GetBoxDim()
   {
