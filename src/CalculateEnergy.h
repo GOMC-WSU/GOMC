@@ -13,7 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Ewald.h"
 #include "NoEwald.h"
 #include "CellList.h"
-#include "Spline.h"
+#include <boost/math/interpolators/cubic_b_spline.hpp>
 
 #include <vector>
 
@@ -256,8 +256,13 @@ private:
     return (pair1 == pair2);
   }
 
-  tk::spline **energyTableCS;
-  tk::spline **forceTableCS;
+  void initializeTables();
+
+  boost::math::cubic_b_spline<double>** energyTableCS;
+  boost::math::cubic_b_spline<double>** forceTableCS;
+  boost::math::cubic_b_spline<double>* realEnergyTableCS;
+  boost::math::cubic_b_spline<double>* realForceTableCS;
+
   bool energyTableEnabled;
   uint energyTableMaxSize;
 

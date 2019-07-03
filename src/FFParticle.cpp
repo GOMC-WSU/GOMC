@@ -302,6 +302,22 @@ inline double FFParticle::CalcCoulomb(const double distSq,
   }
 }
 
+inline double FFParticle::CalcCoulombNoFact(const double distSq, const uint b) const
+{
+  if (forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
+  if (forcefield.ewald) {
+    double dist = sqrt(distSq);
+    double val = forcefield.alpha[b] * dist;
+    return  erfc(val) / dist;
+  }
+  else {
+    double dist = sqrt(distSq);
+    return  1.0 / dist;
+  }
+}
+
 inline double FFParticle::CalcVir(const double distSq,
                                   const uint kind1, const uint kind2) const
 {
@@ -340,5 +356,23 @@ inline double FFParticle::CalcCoulombVir(const double distSq,
   } else {
     double dist = sqrt(distSq);
     return qi_qj / (distSq * dist);
+  }
+}
+
+inline double FFParticle::CalcCoulombVirNoFact(const double distSq, const uint b) const
+{
+  if (forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
+  if (forcefield.ewald) {
+    double dist = sqrt(distSq);
+    double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
+    double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
+    double temp = 1.0 - erf(forcefield.alpha[b] * dist);
+    return (temp / dist + constValue * expConstValue) / distSq;
+  }
+  else {
+    double dist = sqrt(distSq);
+    return 1.0 / (distSq * dist);
   }
 }
