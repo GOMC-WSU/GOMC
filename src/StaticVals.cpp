@@ -90,7 +90,7 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
 void StaticVals::IsBoxOrthogonal(config_setup::Volume const& vol)
 {
   double cosAngle[BOX_TOTAL][3];
-  double orthogonal[BOX_TOTAL];
+  bool orthogonal[BOX_TOTAL];
 
   for (uint b = 0; b < BOX_TOTAL; b++) {
     double cellLengthX = vol.axis[b].Length(0);
@@ -112,11 +112,28 @@ void StaticVals::IsBoxOrthogonal(config_setup::Volume const& vol)
 }
 
 
+void StaticVals::IsBoxOrthogonal(const double cellAngle[][3])
+{
+  for (uint b = 0; b < BOX_TOTAL; b++) {
+    double cosAlpha = cos(cellAngle[b][0]);
+    double cosBeta = cos(cellAngle[b][1]);
+    double cosGamma = cos(cellAngle[b][2]);
+    bool orthogonal = ((cosAlpha == 0.0) && (cosBeta == 0.0) &&
+                      (cosGamma == 0.0));
+    isOrthogonal = (isOrthogonal && orthogonal);
+  }
+}
+
+
 StaticVals::StaticVals(Setup & set) : memcVal(set.config.sys.memcVal),
   intraMemcVal(set.config.sys.intraMemcVal)
 {
   isOrthogonal = true;
-  IsBoxOrthogonal(set.config.sys.volume);
+  if(set.config.in.restart.enable) {
+    IsBoxOrthogonal(set.pdb.cryst.cellAngle);
+  } else {
+    IsBoxOrthogonal(set.config.sys.volume);
+  }
 #ifndef VARIABLE_VOLUME
   boxDimensions = NULL;
   if(isOrthogonal) {
