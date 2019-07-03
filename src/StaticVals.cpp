@@ -107,7 +107,7 @@ void StaticVals::IsBoxOrthogonal(config_setup::Volume const& vol)
     orthogonal[b] = ((cosAngle[b][0] == 0.0) &&
                      (cosAngle[b][1] == 0.0) &&
                      (cosAngle[b][2] == 0.0));
-    isOrthogonal = (isOrthogonal && orthogonal[b]);
+    isOrthogonal &=  orthogonal[b];
   }
 }
 
@@ -115,12 +115,9 @@ void StaticVals::IsBoxOrthogonal(config_setup::Volume const& vol)
 void StaticVals::IsBoxOrthogonal(const double cellAngle[][3])
 {
   for (uint b = 0; b < BOX_TOTAL; b++) {
-    double cosAlpha = cos(cellAngle[b][0]);
-    double cosBeta = cos(cellAngle[b][1]);
-    double cosGamma = cos(cellAngle[b][2]);
-    bool orthogonal = ((cosAlpha == 0.0) && (cosBeta == 0.0) &&
-                      (cosGamma == 0.0));
-    isOrthogonal = (isOrthogonal && orthogonal);
+    bool orthogonal = ((cellAngle[b][0] == 90.0) && (cellAngle[b][1] == 90.0) &&
+                      (cellAngle[b][2] == 90.0));
+    isOrthogonal &= orthogonal;
   }
 }
 
