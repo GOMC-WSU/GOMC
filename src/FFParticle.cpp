@@ -286,6 +286,37 @@ inline double FFParticle::CalcEn(const double distSq,
   return epsilon_cn[index] * (repulse - attract);
 }
 
+double FFParticle::CalcEnAttract(const double distSq, const uint kind1, const uint kind2) const
+{
+  if (forcefield.rCutSq < distSq)
+    return 0.0;
+
+  uint index = FlatIndex(kind1, kind2);
+  double rRat2 = sigmaSq[index] / distSq;
+  double rRat4 = rRat2 * rRat2;
+  double attract = rRat4 * rRat2;
+
+  return -1 * epsilon_cn[index] * attract;
+}
+
+double FFParticle::CalcEnRepulse(const double distSq, const uint kind1, const uint kind2) const
+{
+  if (forcefield.rCutSq < distSq)
+    return 0.0;
+
+  uint index = FlatIndex(kind1, kind2);
+  double rRat2 = sigmaSq[index] / distSq;
+#ifdef MIE_INT_ONLY
+  uint n_ij = n[index];
+  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
+#else
+  double n_ij = n[index];
+  double repulse = pow(sqrt(rRat2), n_ij);
+#endif
+
+  return epsilon_cn[index] * repulse;
+}
+
 inline double FFParticle::CalcCoulomb(const double distSq,
                                       const double qi_qj_Fact, const uint b) const
 {
@@ -302,7 +333,7 @@ inline double FFParticle::CalcCoulomb(const double distSq,
   }
 }
 
-inline double FFParticle::CalcCoulombNoFact(const double distSq, const uint b) const
+double FFParticle::CalcCoulombNoFact(const double distSq, const uint b) const
 {
   if (forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
@@ -313,8 +344,7 @@ inline double FFParticle::CalcCoulombNoFact(const double distSq, const uint b) c
     return  erfc(val) / dist;
   }
   else {
-    double dist = sqrt(distSq);
-    return  1.0 / dist;
+    return  sqrt(distSq);
   }
 }
 
@@ -359,7 +389,8 @@ inline double FFParticle::CalcCoulombVir(const double distSq,
   }
 }
 
-inline double FFParticle::CalcCoulombVirNoFact(const double distSq, const uint b) const
+inline double FFParticle::CalcCoulombVirNoFact(const double distSq,
+  const uint b) const
 {
   if (forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;

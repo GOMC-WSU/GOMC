@@ -30,16 +30,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
 
-//
-//    CalculateEnergy.cpp
-//    Energy Calculation functions for Monte Carlo simulation
-//    Calculates using const references to a particular Simulation's members
-//    Brock Jackman Sep. 2013
-//
-//    Updated to use radial-based intermolecular pressure
-//    Jason Mick    Feb. 2014
-//
-
 using namespace geom;
 
 CalculateEnergy::CalculateEnergy(StaticVals & stat, System & sys) :
@@ -181,9 +171,12 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
     return potential;
 
   double tempREn = 0.0, tempLJEn = 0.0;
-  double distSq, qi_qj_fact;
+  double distSq, dist, qi_qj_fact;
+  double rtab, eps, eps2, Y, F, Geps, Heps2, Fp, VVc,FFc, VVa, FFa, VVr, FFr, velec, vvdw, fscal;
+  double rtabM = 1 / TABLE_STEP;
+  int ntab;
   int i;
-  uint k1, k2, kindTotal = this->energyTableMaxSize;
+  uint k1, k2, currentKind, kindTotal = this->energyTableMaxSize;
   XYZ virComponents, forceLJ, forceReal;
   std::vector<uint> pair1, pair2;
   CellList::Pairs pair = cellList.EnumeratePairs(box);
@@ -263,42 +256,90 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 #endif
   for (i = 0; i < pair1.size(); i++) {
     if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)) {
-      if (electrostatic) {
-        qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] * num::qqFact;
-        if (energyTableEnabled) {
-          tempREn += qi_qj_fact * realEnergyTableCS[box](distSq);
-        }
-        else {
-          tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact, box);
-        }
-      }
+      dist = sqrt(distSq);
+      double distinv = 1.0 / dist;
       k1 = particleKind[pair1[i]];
       k2 = particleKind[pair2[i]];
-      if(energyTableEnabled) {
-        tempLJEn += energyTableCS[box][k1 + k2 * kindTotal](distSq);
-      } else {
-        tempLJEn += forcefield.particles->CalcEn(distSq, k1, k2);
+      currentKind = k1 + k2 * kindTotal;
+
+      if (energyTableEnabled) {
+        rtab = dist * rtabM;
+        ntab = static_cast<int>(rtab);
+        eps = rtab - ntab;
+        eps2 = eps * eps;
+        ntab = currentKind * energyTableMaxSize + ntab * TABLE_STRIDE;
+
+        // Attraction
+        Y           = energyTable[box][ntab];
+        F           = energyTable[box][ntab + 1];
+        Geps        = eps * energyTable[box][ntab + 2];
+        Heps2       = eps2 * energyTable[box][ntab + 3];
+        Fp          = F + Geps + Heps2;
+        VVa         = Y + eps * Fp;
+        FFa         = Fp + Geps + 2.0 * Heps2;
+
+        // Repulsion
+        Y           = energyTable[box][ntab + 4];
+        F           = energyTable[box][ntab + 5];
+        Geps        = eps * energyTable[box][ntab + 6];
+        Heps2       = eps2 * energyTable[box][ntab + 7];
+        Fp          = F + Geps + Heps2;
+        VVr         = Y + eps * Fp;
+        FFr         = Fp + Geps + 2.0 * Heps2;
+
+        // Coulomb
+        Y           = energyTable[box][ntab + 8];
+        F           = energyTable[box][ntab + 9];
+        Geps        = eps * energyTable[box][ntab + 10];
+        Heps2       = eps2 * energyTable[box][ntab + 11];
+        Fp          = F + Geps + Heps2;
+        VVc         = Y + eps * Fp;
+        FFc         = Fp + Geps + 2.0 * Heps2;
+
+        velec       = qi_qj_fact * VVc;
+        vvdw        = VVa + VVr;
+
+        fscal       = -(qi_qj_fact * FFc + FFr + FFa) * distinv;
+
+        /*if (electrostatic) {
+          tempREn += velec;
+        }
+        tempLJEn += vvdw;
+
+        if (multiParticleEnabled) {
+          XYZ force = virComponents * fscal;
+          aForcex[pair1[i]] += force.x;
+          aForcey[pair1[i]] += force.y;
+          aForcez[pair1[i]] += force.z;
+          aForcex[pair2[i]] += -force.x;
+          aForcey[pair2[i]] += -force.y;
+          aForcez[pair2[i]] += -force.z;
+          mForcex[particleMol[pair1[i]]] += force.x;
+          mForcey[particleMol[pair1[i]]] += force.y;
+          mForcez[particleMol[pair1[i]]] += force.z;
+          mForcex[particleMol[pair2[i]]] += -force.x;
+          mForcey[particleMol[pair2[i]]] += -force.y;
+          mForcez[particleMol[pair2[i]]] += -force.z;
+        }
+        continue;*/
       }
+      if (electrostatic) {
+        qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] * num::qqFact;
+        tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact, box);
+      }
+      double xz = forcefield.particles->CalcEn(distSq, k1, k2);
+      tempLJEn += xz;
+      cout << "Regular: " << xz << ", energyTable: " << vvdw << ", div: " << (xz / vvdw) << "\n";
 
       // Calculating the force
       if(multiParticleEnabled) {
         if(electrostatic) {
-          if (energyTableEnabled) {
-            forceReal = virComponents * qi_qj_fact * realForceTableCS[box](distSq);
-          }
-          else {
-            forceReal = virComponents *
-              forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact, box);
-          }
+          forceReal = virComponents *
+            forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact, box);
         }
-        if(energyTableEnabled) {
-          forceLJ = virComponents * forceTableCS[box][k1+k2*kindTotal](distSq);
-        }
-        else {
-          forceLJ = virComponents *
-            forcefield.particles->CalcVir(distSq, particleKind[pair1[i]],
-                                          particleKind[pair2[i]]);
-        }
+        forceLJ = virComponents *
+          forcefield.particles->CalcVir(distSq, particleKind[pair1[i]],
+                                        particleKind[pair2[i]]);
         aForcex[pair1[i]] += forceLJ.x + forceReal.x;
         aForcey[pair1[i]] += forceLJ.y + forceReal.y;
         aForcez[pair1[i]] += forceLJ.z + forceReal.z;
@@ -1102,26 +1143,25 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
 
 void CalculateEnergy::initializeTables()
 {
-  double step = 0.005;
-
-  energyTableCS = new boost::math::cubic_b_spline<double> * [BOXES_WITH_U_NB];
-  forceTableCS = new boost::math::cubic_b_spline<double> * [BOXES_WITH_U_NB];
-  realEnergyTableCS = new boost::math::cubic_b_spline<double>[BOXES_WITH_U_NB];
-  realForceTableCS = new boost::math::cubic_b_spline<double>[BOXES_WITH_U_NB];
+  double r;
+  energyTable.resize(BOXES_WITH_U_NB);
+  forceTable.resize(BOXES_WITH_U_NB);
 
   for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
-    int tableLength = ((currentAxes.rCutSq[b] + 1) / step);
-    std::vector<double> X, Y;
-    X.resize(tableLength);
-    Y.resize(tableLength);
-    for (int i = 0; i < tableLength; i++) {
-      X[i] = i * step;
-    }
+    // Initialize loca variables
+    int tableLength           = ((currentAxes.rCutSq[b] + 1) / TABLE_STEP);
+    uint kindTotal            = *(std::max_element(particleKind.begin(), particleKind.end()));
+    kindTotal                += 1;
+    this->energyTableMaxSize  = kindTotal;
+    uint kindTotalSq          = kindTotal * kindTotal;
 
-    uint kindTotal = *(std::max_element(particleKind.begin(), particleKind.end()));
-    kindTotal++;
-    this->energyTableMaxSize = kindTotal;
-    uint kindTotalSq = kindTotal * kindTotal;
+    // Allocate space for temporary arrays
+    LJAttractV.resize(tableLength);
+    LJAttractF.resize(tableLength);
+    LJRepulseV.resize(tableLength);
+    LJRepulseF.resize(tableLength);
+    CoulombV.resize(tableLength);
+    CoulombF.resize(tableLength);
 
     // Let's make sure we are not allocating too much data for energy table.
     if (tableLength * kindTotalSq > 10000000) {
@@ -1130,47 +1170,72 @@ void CalculateEnergy::initializeTables()
       exit(EXIT_FAILURE);
     }
 
-    // Generate LJ energy table
-    energyTableCS[b] = new boost::math::cubic_b_spline<double>[kindTotalSq];
+    // Allocate tables for energy and force    
+    energyTable[b].resize(kindTotalSq * tableLength * TABLE_STRIDE);
+    forceTable[b].resize(kindTotalSq * tableLength * TABLE_STRIDE);
+    
     for (uint k1 = 0; k1 < kindTotal; k1++) {
       for (uint k2 = 0; k2 < kindTotal; k2++) {
+        uint k = k1 * kindTotal + k2;
         for (int i = 0; i < tableLength; i++) {
-          if (X[i] < 0.4)
-            Y[i] = 0;
-          else
-            Y[i] = forcefield.particles->CalcEn(X[i], k1, k2);
+          r = i * TABLE_STEP;
+
+          // Firt 4 indeces are for Attraction of LJ
+          LJAttractV[i] = forcefield.particles->CalcEnAttract(r * r, k1, k2);
+          LJAttractF[i] = LJAttractV[i] * 6.0 / r;
+          LJRepulseV[i] = forcefield.particles->CalcEnRepulse(r * r, k1, k2);
+          LJRepulseF[i] = LJRepulseV[i] * 12.0 / r;
+          CoulombV[i] = forcefield.particles->CalcCoulombNoFact(r * r, b);
+          CoulombF[i] = forcefield.particles->CalcCoulombNoFact(r * r, b);
         }
-        energyTableCS[b][k1 + k2 * kindTotal] = boost::math::cubic_b_spline<double>(Y.data(), Y.size(), 0, step);
+
+        for (int i = 0; i < tableLength; i++) {
+          int index = k * tableLength + i * TABLE_STRIDE;
+          r = i * TABLE_STEP;
+
+          if (i < tableLength - 1) {
+            energyTable[b][index]      = TABLE_STEP;
+            energyTable[b][index + 1]  = -1.0 * LJAttractF[i] * TABLE_STEP;
+            energyTable[b][index + 2]  = 3 * (LJAttractV[i + 1] - LJAttractV[i]) +
+                                         (LJAttractF[i + 1] - 2 * LJAttractF[i]) *
+                                         TABLE_STEP;
+            energyTable[b][index + 3]  = -2 * (LJAttractV[i + 1] - LJAttractV[i]) -
+                                         (LJAttractF[i + 1] + LJAttractF[i]) *
+                                         TABLE_STEP;
+            energyTable[b][index + 4]  = TABLE_STEP;
+            energyTable[b][index + 5]  = -1.0 * LJRepulseF[i] * TABLE_STEP;
+            energyTable[b][index + 6]  = 3 * (LJRepulseV[i + 1] - LJRepulseV[i]) +
+                                         (LJRepulseF[i + 1] - 2 * LJRepulseF[i]) *
+                                         TABLE_STEP;
+            energyTable[b][index + 7]  = -2 * (LJRepulseV[i + 1] - LJRepulseV[i]) -
+                                         (LJRepulseF[i + 1] + LJRepulseF[i]) *
+                                         TABLE_STEP;
+            energyTable[b][index + 8]  = TABLE_STEP;
+            energyTable[b][index + 9]  = -1.0 * CoulombF[i] * TABLE_STEP;
+            energyTable[b][index + 10] = 3 * (CoulombV[i + 1] - CoulombV[i]) +
+                                         (CoulombF[i + 1] - 2 * CoulombF[i]) *
+                                         TABLE_STEP;
+            energyTable[b][index + 11] = -2 * (CoulombV[i + 1] - CoulombV[i]) -
+                                         (CoulombF[i + 1] + CoulombF[i]) *
+                                         TABLE_STEP;
+          }
+          else {
+            energyTable[b][index]      = TABLE_STEP;
+            energyTable[b][index + 1]  = -1.0 * LJAttractF[i] * TABLE_STEP;
+            energyTable[b][index + 2]  = 0.0;
+            energyTable[b][index + 3]  = 0.0;
+            energyTable[b][index + 4]  = TABLE_STEP;
+            energyTable[b][index + 5]  = -1.0 * LJRepulseF[i] * TABLE_STEP;
+            energyTable[b][index + 6]  = 0.0;
+            energyTable[b][index + 7]  = 0.0;
+            energyTable[b][index + 8]  = TABLE_STEP;
+            energyTable[b][index + 9]  = -1.0 * CoulombF[i] * TABLE_STEP;
+            energyTable[b][index + 10] = 0.0;
+            energyTable[b][index + 11] = 0.0;
+          }
+        }
       }
     }
-
-    // Generate LJ force table
-    forceTableCS[b] = new boost::math::cubic_b_spline<double>[kindTotalSq];
-    for (uint k1 = 0; k1 < kindTotal; k1++) {
-      for (uint k2 = 0; k2 < kindTotal; k2++) {
-        for (int i = 0; i < tableLength; i++) {
-          if (X[i] < 0.4)
-            Y[i] = 0;
-          else
-            Y[i] = forcefield.particles->CalcVir(X[i], k1, k2);
-        }
-        forceTableCS[b][k1 + k2 * kindTotal] = boost::math::cubic_b_spline<double>(Y.data(), Y.size(), 0, step);
-      }
-    }
-
-    // Generate real energy table
-    for (uint i = 0; i < tableLength; i++) {
-      Y[i] = forcefield.particles->CalcCoulombNoFact(X[i], b);
-    }
-    Y[0] = 0;
-    realEnergyTableCS[b] = boost::math::cubic_b_spline<double>(Y.data(), Y.size(), 0, step);
-
-    // Generate real force table
-    for (uint i = 0; i < tableLength; i++) {
-      Y[i] = forcefield.particles->CalcCoulombVirNoFact(X[i], b);
-    }
-    Y[0] = 0;
-    realForceTableCS[b] = boost::math::cubic_b_spline<double>(Y.data(), Y.size(), 0, step);
   }
 }
 

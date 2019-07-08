@@ -13,23 +13,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Ewald.h"
 #include "NoEwald.h"
 #include "CellList.h"
-#include <boost/math/interpolators/cubic_b_spline.hpp>
 
 #include <vector>
 
-//
-//    CalculateEnergy.h
-//    Energy Calculation functions for Monte Carlo simulation
-//    Calculates using const references to a particular Simulation's members
-//    Brock Jackman Sep. 2013
-//
-//    Updated to use radial-based intermolecular pressure
-//    Jason Mick    Feb. 2014
-//
-//    Updated with Mohammad B. to use neighbor list.  Fixed various
-//    preexisting flaws in neighbor list codebase to make production ready.
-//    Jason Mick    Feb. 2015
-//
+#define TABLE_STRIDE 12       // for energy table, 3 parameters, each require 4 variables
+#define TABLE_STEP 0.005
 
 class StaticVals;
 class System;
@@ -258,10 +246,14 @@ private:
 
   void initializeTables();
 
-  boost::math::cubic_b_spline<double>** energyTableCS;
-  boost::math::cubic_b_spline<double>** forceTableCS;
-  boost::math::cubic_b_spline<double>* realEnergyTableCS;
-  boost::math::cubic_b_spline<double>* realForceTableCS;
+  std::vector< std::vector <double> > energyTable;
+  std::vector< std::vector <double> > forceTable;
+  std::vector<double> LJAttractV;
+  std::vector<double> LJAttractF;
+  std::vector<double> LJRepulseV;
+  std::vector<double> LJRepulseF;
+  std::vector<double> CoulombV;
+  std::vector<double> CoulombF;
 
   bool energyTableEnabled;
   uint energyTableMaxSize;
