@@ -18,7 +18,8 @@ FFParticle::FFParticle(Forcefield &ff) : forcefield(ff), mass(NULL), nameFirst(N
 #ifdef GOMC_CUDA
   , varCUDA(NULL)
 #endif 
-  {}
+  {
+  }
 
 FFParticle::~FFParticle(void)
 {
@@ -405,5 +406,99 @@ inline double FFParticle::CalcCoulombVirNoFact(const double distSq,
   else {
     double dist = sqrt(distSq);
     return 1.0 / (distSq * dist);
+  }
+}
+
+void FFParticle::InitializeTables()
+{
+  double r;
+  energyTable.resize(BOXES_WITH_U_NB);
+
+  for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
+    // Initialize loca variables
+    int tableLength           = ((forcefield.rCutSq + 1) / TABLE_STEP);
+    uint kindTotal            = count;
+    uint kindTotalSq          = kindTotal * kindTotal;
+
+    // Allocate space for temporary ar23rays
+    LJAttractV.resize(tableLength);
+    LJAttractF.resize(tableLength);
+    LJRepulseV.resize(tableLength);
+    LJRepulseF.resize(tableLength);
+    CoulombV.resize(tableLength);
+    CoulombF.resize(tableLength);
+
+    // Let's make sure we are not allocating too much data for energy table.
+    if (tableLength * kindTotalSq > 10000000) {
+      std::cerr << "Error: There is more than 1 million entries in tabulated potential.\n";
+      std::cerr << "       Please turn off energy tables.\n";
+      exit(EXIT_FAILURE);
+    }
+
+    // Allocate tables for energy and force    
+    energyTable[b].resize(kindTotalSq * tableLength * TABLE_STRIDE);
+    
+    for (uint k1 = 0; k1 < kindTotal; k1++) {
+      for (uint k2 = 0; k2 < kindTotal; k2++) {
+        uint k = k1 * kindTotal + k2;
+        for (int i = 0; i < tableLength; i++) {
+          r = i * TABLE_STEP;
+
+          // Firt 4 indeces are for Attraction of LJ
+          LJAttractV[i] = CalcEnAttract(r * r, k1, k2);
+          LJAttractF[i] = LJAttractV[i] * 6.0 / r;
+          LJRepulseV[i] = CalcEnRepulse(r * r, k1, k2);
+          LJRepulseF[i] = LJRepulseV[i] * 12.0 / r;
+          CoulombV[i] = CalcCoulombNoFact(r * r, b);
+          CoulombF[i] = -1 * CalcCoulombNoFact(r * r, b) / r;
+        }
+
+        for (int i = 0; i < tableLength; i++) {
+          int index = k * tableLength + i * TABLE_STRIDE;
+          r = i * TABLE_STEP;
+
+          if (i < tableLength - 1) {
+            energyTable[b][index]      = TABLE_STEP;
+            energyTable[b][index + 1]  = -1.0 * LJAttractF[i] * TABLE_STEP;
+            energyTable[b][index + 2]  = 3 * (LJAttractV[i + 1] - LJAttractV[i]) +
+                                         (LJAttractF[i + 1] - 2 * LJAttractF[i]) *
+                                         TABLE_STEP;
+            energyTable[b][index + 3]  = -2 * (LJAttractV[i + 1] - LJAttractV[i]) -
+                                         (LJAttractF[i + 1] + LJAttractF[i]) *
+                                         TABLE_STEP;
+            energyTable[b][index + 4]  = TABLE_STEP;
+            energyTable[b][index + 5]  = -1.0 * LJRepulseF[i] * TABLE_STEP;
+            energyTable[b][index + 6]  = 3 * (LJRepulseV[i + 1] - LJRepulseV[i]) +
+                                         (LJRepulseF[i + 1] - 2 * LJRepulseF[i]) *
+                                         TABLE_STEP;
+            energyTable[b][index + 7]  = -2 * (LJRepulseV[i + 1] - LJRepulseV[i]) -
+                                         (LJRepulseF[i + 1] + LJRepulseF[i]) *
+                                         TABLE_STEP;
+            energyTable[b][index + 8]  = TABLE_STEP;
+            energyTable[b][index + 9]  = -1.0 * CoulombF[i] * TABLE_STEP;
+            energyTable[b][index + 10] = 3 * (CoulombV[i + 1] - CoulombV[i]) +
+                                         (CoulombF[i + 1] - 2 * CoulombF[i]) *
+                                         TABLE_STEP;
+            energyTable[b][index + 11] = -2 * (CoulombV[i + 1] - CoulombV[i]) -
+                                         (CoulombF[i + 1] + CoulombF[i]) *
+                                         TABLE_STEP;
+          }
+          else {
+            energyTable[b][index]      = TABLE_STEP;
+            energyTable[b][index + 1]  = -1.0 * LJAttractF[i] * TABLE_STEP;
+            energyTable[b][index + 2]  = 0.0;
+            energyTable[b][index + 3]  = 0.0;
+            energyTable[b][index + 4]  = TABLE_STEP;
+            energyTable[b][index + 5]  = -1.0 * LJRepulseF[i] * TABLE_STEP;
+            energyTable[b][index + 6]  = 0.0;
+            energyTable[b][index + 7]  = 0.0;
+            energyTable[b][index + 8]  = TABLE_STEP;
+            energyTable[b][index + 9]  = -1.0 * CoulombF[i] * TABLE_STEP;
+            energyTable[b][index + 10] = 0.0;
+            energyTable[b][index + 11] = 0.0;
+          }
+        }
+      }
+    }
   }
 }

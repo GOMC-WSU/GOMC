@@ -13,9 +13,13 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BasicTypes.h" //for uint
 #include "NumLib.h" //For Cb, Sq
 #include "Setup.h"
+#include "EnergyTypes.h" // for BOXES_WITH_U_NB
 #ifdef GOMC_CUDA
 #include "VariablesCUDA.cuh"
 #endif
+
+#define TABLE_STRIDE 12       // for energy table, 3 parameters, each require 4 variables
+#define TABLE_STEP 0.005
 
 // Virial and LJ potential calculation:
 // U(rij) = cn * eps_ij * ( (sig_ij/rij)^n - (sig_ij/rij)^6)
@@ -51,6 +55,7 @@ public:
 
   virtual void Init(ff_setup::Particle const& mie,
                     ff_setup::NBfix const& nbfix);
+  virtual void InitializeTables();
  
   double GetEpsilon(const uint i, const uint j) const;
   double GetEpsilon_1_4(const uint i, const uint j) const;
@@ -126,6 +131,17 @@ protected:
 #ifdef GOMC_CUDA
   VariablesCUDA *varCUDA;
 #endif
+
+  // Variables used by energy table
+  std::vector< std::vector <double> > energyTable;
+  std::vector<double> LJAttractV;
+  std::vector<double> LJAttractF;
+  std::vector<double> LJRepulseV;
+  std::vector<double> LJRepulseF;
+  std::vector<double> CoulombV;
+  std::vector<double> CoulombF;
+  bool energyTableEnabled;
+  uint energyTableMaxSize;
 };
 
 

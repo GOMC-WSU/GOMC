@@ -16,9 +16,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include <vector>
 
-#define TABLE_STRIDE 12       // for energy table, 3 parameters, each require 4 variables
-#define TABLE_STEP 0.005
-
 class StaticVals;
 class System;
 class Forcefield;
@@ -244,20 +241,6 @@ private:
     return (pair1 == pair2);
   }
 
-  void initializeTables();
-
-  std::vector< std::vector <double> > energyTable;
-  std::vector< std::vector <double> > forceTable;
-  std::vector<double> LJAttractV;
-  std::vector<double> LJAttractF;
-  std::vector<double> LJRepulseV;
-  std::vector<double> LJRepulseF;
-  std::vector<double> CoulombV;
-  std::vector<double> CoulombF;
-
-  bool energyTableEnabled;
-  uint energyTableMaxSize;
-
   const Forcefield& forcefield;
   const Molecules& mols;
   const Coordinates& currentCoords;
@@ -268,6 +251,7 @@ private:
   XYZArray& atomForceRef;
   XYZArray& molForceRef;
   bool multiParticleEnabled;
+  bool energyTableEnabled;
   bool electrostatic, ewald;
 
   std::vector<int> particleKind;
