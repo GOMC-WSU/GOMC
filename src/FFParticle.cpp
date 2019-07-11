@@ -287,35 +287,19 @@ inline double FFParticle::CalcEn(const double distSq,
   return epsilon_cn[index] * (repulse - attract);
 }
 
-double FFParticle::CalcEnAttract(const double distSq, const uint kind1, const uint kind2) const
+double FFParticle::CalcEnAttract(const double distSq) const
 {
   if (forcefield.rCutSq < distSq)
     return 0.0;
-
-  uint index = FlatIndex(kind1, kind2);
-  double rRat2 = sigmaSq[index] / distSq;
-  double rRat4 = rRat2 * rRat2;
-  double attract = rRat4 * rRat2;
-
-  return -1 * epsilon_cn[index] * attract;
+  return 1.0 / (distSq * distSq * distSq);
 }
 
-double FFParticle::CalcEnRepulse(const double distSq, const uint kind1, const uint kind2) const
+double FFParticle::CalcEnRepulse(const double distSq) const
 {
   if (forcefield.rCutSq < distSq)
     return 0.0;
-
-  uint index = FlatIndex(kind1, kind2);
-  double rRat2 = sigmaSq[index] / distSq;
-#ifdef MIE_INT_ONLY
-  uint n_ij = n[index];
-  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
-#else
-  double n_ij = n[index];
-  double repulse = pow(sqrt(rRat2), n_ij);
-#endif
-
-  return epsilon_cn[index] * repulse;
+  double r6 = 1.0 / (distSq * distSq * distSq);
+  return r6 * r6;
 }
 
 inline double FFParticle::CalcCoulomb(const double distSq,
@@ -345,7 +329,7 @@ double FFParticle::CalcCoulombNoFact(const double distSq, const uint b) const
     return  erfc(val) / dist;
   }
   else {
-    return  sqrt(distSq);
+    return sqrt(distSq);
   }
 }
 
@@ -440,15 +424,15 @@ void FFParticle::InitializeTables()
     
     for (uint k1 = 0; k1 < kindTotal; k1++) {
       for (uint k2 = 0; k2 < kindTotal; k2++) {
-        uint k = k1 * kindTotal + k2;
+        uint k = FlatIndex(k1, k2);
         for (int i = 0; i < tableLength; i++) {
           r = i * TABLE_STEP;
 
           // Firt 4 indeces are for Attraction of LJ
-          LJAttractV[i] = CalcEnAttract(r * r, k1, k2);
+          LJAttractV[i] = CalcEnAttract(r * r);
           LJAttractF[i] = LJAttractV[i] * 6.0 / r;
-          LJRepulseV[i] = CalcEnRepulse(r * r, k1, k2);
-          LJRepulseF[i] = LJRepulseV[i] * 12.0 / r;
+          LJRepulseV[i] = CalcEnRepulse(r * r);
+          LJRepulseF[i] = LJRepulseV[i] * n[k] / r;
           CoulombV[i] = CalcCoulombNoFact(r * r, b);
           CoulombF[i] = -1 * CalcCoulombNoFact(r * r, b) / r;
         }
@@ -501,4 +485,10 @@ void FFParticle::InitializeTables()
       }
     }
   }
+}
+
+double FFParticle::CalcEnEnergyTable(const double distSq,
+                                     const uint kind1, const uint kind2) const
+{
+
 }

@@ -244,45 +244,86 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   }
 
 #else
+  if(energyTableEnabled) {
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents, forceReal, forceLJ) \
 reduction(+:tempREn, tempLJEn, \
 aForcex[:atomCount], aForcey[:atomCount], aForcez[:atomCount], \
 mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 #endif
-  for (i = 0; i < pair1.size(); i++) {
-    if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)) {
-      if (electrostatic) {
-        qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] * num::qqFact;
-        tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact, box);
-      }
-      tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]], particleKind[pair2[i]]);
-
-      // Calculating the force
-      if(multiParticleEnabled) {
-        if(electrostatic) {
-          forceReal = virComponents *
-            forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact, box);
+    for (i = 0; i < pair1.size(); i++) {
+      if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)) {
+        if (electrostatic) {
+          qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] * num::qqFact;
+          tempREn += forcefield.particles->CalcCoulombEnergyTable(distSq, qi_qj_fact, box);
         }
-        forceLJ = virComponents *
-          forcefield.particles->CalcVir(distSq, particleKind[pair1[i]],
-                                        particleKind[pair2[i]]);
-        aForcex[pair1[i]] += forceLJ.x + forceReal.x;
-        aForcey[pair1[i]] += forceLJ.y + forceReal.y;
-        aForcez[pair1[i]] += forceLJ.z + forceReal.z;
-        aForcex[pair2[i]] += -(forceLJ.x + forceReal.x);
-        aForcey[pair2[i]] += -(forceLJ.y + forceReal.y);
-        aForcez[pair2[i]] += -(forceLJ.z + forceReal.z);
-        mForcex[particleMol[pair1[i]]] += (forceLJ.x + forceReal.x);
-        mForcey[particleMol[pair1[i]]] += (forceLJ.y + forceReal.y);
-        mForcez[particleMol[pair1[i]]] += (forceLJ.z + forceReal.z);
-        mForcex[particleMol[pair2[i]]] += -(forceLJ.x + forceReal.x);
-        mForcey[particleMol[pair2[i]]] += -(forceLJ.y + forceReal.y);
-        mForcez[particleMol[pair2[i]]] += -(forceLJ.z + forceReal.z);
+        tempLJEn += forcefield.particles->CalcEnEnergyTable(distSq, particleKind[pair1[i]], particleKind[pair2[i]]);
+
+        // In case of multiparticle we also need to calculate force
+        if(multiParticleEnabled) {
+          if(electrostatic) {
+            forceReal = virComponents *
+              forcefield.particles->CalcCoulombVirEnergyTable(distSq, qi_qj_fact, box);
+          }
+          forceLJ = virComponents *
+            forcefield.particles->CalcVirEnergyTable(distSq, particleKind[pair1[i]], particleKind[pair2[i]]);
+          aForcex[pair1[i]] += forceLJ.x + forceReal.x;
+          aForcey[pair1[i]] += forceLJ.y + forceReal.y;
+          aForcez[pair1[i]] += forceLJ.z + forceReal.z;
+          aForcex[pair2[i]] += -(forceLJ.x + forceReal.x);
+          aForcey[pair2[i]] += -(forceLJ.y + forceReal.y);
+          aForcez[pair2[i]] += -(forceLJ.z + forceReal.z);
+          mForcex[particleMol[pair1[i]]] += (forceLJ.x + forceReal.x);
+          mForcey[particleMol[pair1[i]]] += (forceLJ.y + forceReal.y);
+          mForcez[particleMol[pair1[i]]] += (forceLJ.z + forceReal.z);
+          mForcex[particleMol[pair2[i]]] += -(forceLJ.x + forceReal.x);
+          mForcey[particleMol[pair2[i]]] += -(forceLJ.y + forceReal.y);
+          mForcez[particleMol[pair2[i]]] += -(forceLJ.z + forceReal.z);
+        }
       }
     }
   }
+  else {
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents, forceReal, forceLJ) \
+reduction(+:tempREn, tempLJEn, \
+aForcex[:atomCount], aForcey[:atomCount], aForcez[:atomCount], \
+mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 #endif
+    for (i = 0; i < pair1.size(); i++) {
+      if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)) {
+        if (electrostatic) {
+          qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] * num::qqFact;
+          tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact, box);
+        }
+        tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]], particleKind[pair2[i]]);
+
+        // In case of multiparticle we also need to calculate force
+        if(multiParticleEnabled) {
+          if(electrostatic) {
+            forceReal = virComponents *
+              forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact, box);
+          }
+          forceLJ = virComponents *
+            forcefield.particles->CalcVir(distSq, particleKind[pair1[i]],
+                                          particleKind[pair2[i]]);
+          aForcex[pair1[i]] += forceLJ.x + forceReal.x;
+          aForcey[pair1[i]] += forceLJ.y + forceReal.y;
+          aForcez[pair1[i]] += forceLJ.z + forceReal.z;
+          aForcex[pair2[i]] += -(forceLJ.x + forceReal.x);
+          aForcey[pair2[i]] += -(forceLJ.y + forceReal.y);
+          aForcez[pair2[i]] += -(forceLJ.z + forceReal.z);
+          mForcex[particleMol[pair1[i]]] += (forceLJ.x + forceReal.x);
+          mForcey[particleMol[pair1[i]]] += (forceLJ.y + forceReal.y);
+          mForcez[particleMol[pair1[i]]] += (forceLJ.z + forceReal.z);
+          mForcex[particleMol[pair2[i]]] += -(forceLJ.x + forceReal.x);
+          mForcey[particleMol[pair2[i]]] += -(forceLJ.y + forceReal.y);
+          mForcez[particleMol[pair2[i]]] += -(forceLJ.z + forceReal.z);
+        }
+      }
+    }
+#endif
+  }
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction

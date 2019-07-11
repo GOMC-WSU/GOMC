@@ -66,9 +66,10 @@ public:
   // LJ interaction functions
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2) const;
-  double CalcEnAttract(const double distSq, const uint kind1,
-                       const uint kind2) const;
-  double CalcEnRepulse(const double distSq, const uint kind1, const uint kind2) const;
+  virtual double CalcEnEnergyTable(const double distSq,
+                                   const uint kind1, const uint kind2) const;
+  double CalcEnAttract(const double distSq) const;
+  double CalcEnRepulse(const double distSq) const;
 
   virtual double CalcVir(const double distSq,
                          const uint kind1, const uint kind2) const;
