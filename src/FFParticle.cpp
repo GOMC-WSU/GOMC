@@ -287,19 +287,35 @@ inline double FFParticle::CalcEn(const double distSq,
   return epsilon_cn[index] * (repulse - attract);
 }
 
-double FFParticle::CalcEnAttract(const double distSq) const
+double FFParticle::CalcEnAttract(const double distSq, const uint kind1,
+                                 const uint kind2) const
 {
   if (forcefield.rCutSq < distSq)
     return 0.0;
-  return 1.0 / (distSq * distSq * distSq);
+
+  uint index = FlatIndex(kind1, kind2);
+  double rRat2 = sigmaSq[index] / distSq;
+  double rRat4 = rRat2 * rRat2;
+  double attract = rRat4 * rRat2;
+  return -1 * epsilon_cn[index] * attract;
 }
 
-double FFParticle::CalcEnRepulse(const double distSq) const
+double FFParticle::CalcEnRepulse(const double distSq, const uint kind1,
+                                 const uint kind2) const
 {
   if (forcefield.rCutSq < distSq)
     return 0.0;
-  double r6 = 1.0 / (distSq * distSq * distSq);
-  return r6 * r6;
+
+  uint index = FlatIndex(kind1, kind2);
+  double rRat2 = sigmaSq[index] / distSq;
+#ifdef MIE_INT_ONLY
+  uint n_ij = n[index];
+  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
+#else
+  double n_ij = n[index];
+  double repulse = pow(sqrt(rRat2), n_ij);
+#endif
+  return epsilon_cn[index] * repulse;
 }
 
 inline double FFParticle::CalcCoulomb(const double distSq,
@@ -329,7 +345,8 @@ double FFParticle::CalcCoulombNoFact(const double distSq, const uint b) const
     return  erfc(val) / dist;
   }
   else {
-    return sqrt(distSq);
+    double dist = sqrt(distSq);
+    return 1.0 / dist;
   }
 }
 
@@ -401,6 +418,7 @@ void FFParticle::InitializeTables()
   for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
     // Initialize loca variables
     int tableLength           = ((forcefield.rCutSq + 1) / TABLE_STEP);
+    scaleRtoTable[b]          = 1 / TABLE_STEP;
     uint kindTotal            = count;
     uint kindTotalSq          = kindTotal * kindTotal;
 
@@ -429,16 +447,16 @@ void FFParticle::InitializeTables()
           r = i * TABLE_STEP;
 
           // Firt 4 indeces are for Attraction of LJ
-          LJAttractV[i] = CalcEnAttract(r * r);
-          LJAttractF[i] = LJAttractV[i] * 6.0 / r;
-          LJRepulseV[i] = CalcEnRepulse(r * r);
-          LJRepulseF[i] = LJRepulseV[i] * n[k] / r;
+          LJAttractV[i] = CalcEnAttract(r * r, k1, k2);
+          LJAttractF[i] = -1.0 * LJAttractV[i] * 6.0 / r;
+          LJRepulseV[i] = CalcEnRepulse(r * r, k1, k2);
+          LJRepulseF[i] = -1.0 * LJRepulseV[i] * n[k] / r;
           CoulombV[i] = CalcCoulombNoFact(r * r, b);
           CoulombF[i] = -1 * CalcCoulombNoFact(r * r, b) / r;
         }
 
         for (int i = 0; i < tableLength; i++) {
-          int index = k * tableLength + i * TABLE_STRIDE;
+          int index = k * tableLength * TABLE_STRIDE + i * TABLE_STRIDE;
           r = i * TABLE_STEP;
 
           if (i < tableLength - 1) {
@@ -487,8 +505,52 @@ void FFParticle::InitializeTables()
   }
 }
 
-double FFParticle::CalcEnEnergyTable(const double distSq,
-                                     const uint kind1, const uint kind2) const
+double FFParticle::ReturnEnergyTableData(const double distSq, double qq,
+                                         const uint kind1, const uint kind2,
+                                         double & REn, double &LJEn,
+                                         uint box) const
 {
+  double Y, F, Geps, Heps2, Fp, VVe, FFe, VVa, FFa, VVr, FFr, fscal;
 
+  int tableLength           = ((forcefield.rCutSq + 1) / TABLE_STEP);
+  double r                  = sqrt(distSq);
+  double rtab               = distSq * scaleRtoTable[box];
+  uint ntab                 = static_cast<int>(rtab);
+  double eps                = rtab - ntab;
+  double eps2               = eps * eps;
+  ntab                      = ntab * TABLE_STRIDE;
+
+  /* Attraction */
+  Y                         = energyTable[box][ntab];
+  F                         = energyTable[box][ntab+1];
+  Geps                      = eps*energyTable[box][ntab+2];
+  Heps2                     = eps2*energyTable[box][ntab+3];
+  Fp                        = F+Geps+Heps2;
+  VVa                       = Y+eps*Fp;
+  FFa                       = Fp+Geps+2.0*Heps2;
+
+  /* Electrostatic */
+  Y                         = energyTable[box][ntab+4];
+  F                         = energyTable[box][ntab+5];
+  Geps                      = eps*energyTable[box][ntab+6];
+  Heps2                     = eps2*energyTable[box][ntab+7];
+  Fp                        = F+Geps+Heps2;
+  VVe                       = Y+eps*Fp;
+  FFe                       = Fp+Geps+2.0*Heps2;
+
+  /* Repulsion */
+  Y                         = energyTable[box][ntab+8];
+  F                         = energyTable[box][ntab+9];
+  Geps                      = eps*energyTable[box][ntab+10];
+  Heps2                     = eps2*energyTable[box][ntab+11];
+  Fp                        = F+Geps+Heps2;
+  VVr                       = Y+eps*Fp;
+  FFr                       = Fp+Geps+2.0*Heps2;
+
+  REn                       = qq*VVe;
+  LJEn                      = VVa + VVr;
+
+  fscal                     = -(qq*FFe+FFa+FFr)/r;
+
+  return fscal;
 }

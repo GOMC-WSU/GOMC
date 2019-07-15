@@ -176,6 +176,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   XYZ virComponents, forceLJ, forceReal;
   std::vector<uint> pair1, pair2;
   CellList::Pairs pair = cellList.EnumeratePairs(box);
+  double rREn, rLJEn, rCoulomb, rForce;
 
   // make a pointer to atom force and mol force for openmp
   double *aForcex = atomForce.x;
@@ -253,20 +254,27 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 #endif
     for (i = 0; i < pair1.size(); i++) {
       if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)) {
-        if (electrostatic) {
+        if(electrostatic) {
           qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] * num::qqFact;
-          tempREn += forcefield.particles->CalcCoulombEnergyTable(distSq, qi_qj_fact, box);
         }
-        tempLJEn += forcefield.particles->CalcEnEnergyTable(distSq, particleKind[pair1[i]], particleKind[pair2[i]]);
+        forcefield.particles->ReturnEnergyTableData(distSq, qi_qj_fact,
+                                                    particleKind[pair1[i]],
+                                                    particleKind[pair2[i]],
+                                                    rREn, rLJEn, box);
+        if (electrostatic) {
+          tempREn += rREn;
+        }
+        tempLJEn += rLJEn;
 
         // In case of multiparticle we also need to calculate force
         if(multiParticleEnabled) {
           if(electrostatic) {
             forceReal = virComponents *
-              forcefield.particles->CalcCoulombVirEnergyTable(distSq, qi_qj_fact, box);
+              forcefield.particles->CalcCoulombVir(distSq, qi_qj_fact, box);
           }
           forceLJ = virComponents *
-            forcefield.particles->CalcVirEnergyTable(distSq, particleKind[pair1[i]], particleKind[pair2[i]]);
+            forcefield.particles->CalcVir(distSq, particleKind[pair1[i]],
+                                          particleKind[pair2[i]]);
           aForcex[pair1[i]] += forceLJ.x + forceReal.x;
           aForcey[pair1[i]] += forceLJ.y + forceReal.y;
           aForcez[pair1[i]] += forceLJ.z + forceReal.z;
