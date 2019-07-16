@@ -147,7 +147,6 @@ protected:
   std::vector<double> CoulombF;
   bool energyTableEnabled;
   uint energyTableMaxSize;
-  uint scaleRtoTable[BOXES_WITH_U_NB];
 };
 
 
