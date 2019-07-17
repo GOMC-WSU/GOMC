@@ -11,6 +11,7 @@ set(sources
    src/CalculateEnergy.cpp
    src/CheckpointOutput.cpp
    src/CheckpointSetup.cpp
+   src/CubicSpline.cpp
    src/EnPartCntSampleOutput.cpp
    src/Ewald.cpp
    src/EwaldCached.cpp
@@ -75,6 +76,7 @@ set(headers
    src/Coordinates.h
    src/CoordinateSetup.h
    src/CPUSide.h
+   src/CubicSpline.h
    src/EnergyTypes.h
    src/EnPartCntSampleOutput.h
    src/EnsemblePreprocessor.h
@@ -169,8 +171,7 @@ set(libHeaders
    lib/StrLib.h
    lib/StrStrmLib.h
    lib/VectorLib.h
-   lib/FloydWarshallCycle.h
-   lib/Spline.h)
+   lib/FloydWarshallCycle.h)
 
 set(libSources
     lib/FloydWarshallCycle.cpp)

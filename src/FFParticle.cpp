@@ -273,6 +273,12 @@ inline double FFParticle::CalcEn(const double distSq,
     return 0.0;
 
   uint index = FlatIndex(kind1, kind2);
+  
+  if(energyTableEnabled) {
+    return CSTable_CalcEnAttract[mv::BOX0][index](distSq) + 
+      CSTable_CalcEnRepulse[mv::BOX0][index](distSq);
+  }
+
   double rRat2 = sigmaSq[index] / distSq;
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
@@ -327,6 +333,10 @@ inline double FFParticle::CalcCoulomb(const double distSq,
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
+  
+  if(energyTableEnabled) {
+    return qi_qj_Fact * CSTable_CalcCoulomb[b][0](distSq);
+  }
 
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
@@ -383,6 +393,12 @@ inline double FFParticle::CalcVir(const double distSq,
     return 0.0;
 
   uint index = FlatIndex(kind1, kind2);
+
+  if(energyTableEnabled) {
+    return CSTable_CalcEnAttract[mv::BOX0][index].GetDerivativeValue(distSq) +
+      CSTable_CalcEnRepulse[mv::BOX0][index].GetDerivativeValue(distSq);
+  }
+
   double rNeg2 = 1.0 / distSq;
   double rRat2 = rNeg2 * sigmaSq[index];
   double rRat4 = rRat2 * rRat2;
@@ -404,6 +420,10 @@ inline double FFParticle::CalcCoulombVir(const double distSq,
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
+
+  if(energyTableEnabled) {
+    return qi_qj * CSTable_CalcCoulomb[b][0].GetDerivativeValue(distSq);
+  }
 
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
