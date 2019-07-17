@@ -254,17 +254,11 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 #endif
     for (i = 0; i < pair1.size(); i++) {
       if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)) {
-        if(electrostatic) {
-          qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] * num::qqFact;
-        }
-        rForce = forcefield.particles->ReturnEnergyTableData(distSq, qi_qj_fact,
-                                                             particleKind[pair1[i]],
-                                                             particleKind[pair2[i]],
-                                                             rREn, rLJEn, box);
         if (electrostatic) {
-          tempREn += rREn;
+          qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] * num::qqFact;
+          tempREn += forcefield.particles->CalcCoulomb(distSq, qi_qj_fact, box);
         }
-        tempLJEn += rLJEn;
+        tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]], particleKind[pair2[i]]);
 
         // In case of multiparticle we also need to calculate force
         if(multiParticleEnabled) {
@@ -275,20 +269,18 @@ mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
           forceLJ = virComponents *
             forcefield.particles->CalcVir(distSq, particleKind[pair1[i]],
                                           particleKind[pair2[i]]);
-          force = virComponents * rForce;
-          printf("%lf\t%lf\t%lf\n", forceLJ.x + forceReal.x, force.x, (forceLJ.x + forceReal.x) / force.x);
-          aForcex[pair1[i]] += force.x;
-          aForcey[pair1[i]] += force.y;
-          aForcez[pair1[i]] += force.z;
-          aForcex[pair2[i]] += -force.x;
-          aForcey[pair2[i]] += -force.y;
-          aForcez[pair2[i]] += -force.z;
-          mForcex[particleMol[pair1[i]]] += force.x;
-          mForcey[particleMol[pair1[i]]] += force.y;
-          mForcez[particleMol[pair1[i]]] += force.z;
-          mForcex[particleMol[pair2[i]]] += -force.x;
-          mForcey[particleMol[pair2[i]]] += -force.y;
-          mForcez[particleMol[pair2[i]]] += -force.z;
+          aForcex[pair1[i]] += forceLJ.x + forceReal.x;
+          aForcey[pair1[i]] += forceLJ.y + forceReal.y;
+          aForcez[pair1[i]] += forceLJ.z + forceReal.z;
+          aForcex[pair2[i]] += -(forceLJ.x + forceReal.x);
+          aForcey[pair2[i]] += -(forceLJ.y + forceReal.y);
+          aForcez[pair2[i]] += -(forceLJ.z + forceReal.z);
+          mForcex[particleMol[pair1[i]]] += (forceLJ.x + forceReal.x);
+          mForcey[particleMol[pair1[i]]] += (forceLJ.y + forceReal.y);
+          mForcez[particleMol[pair1[i]]] += (forceLJ.z + forceReal.z);
+          mForcex[particleMol[pair2[i]]] += -(forceLJ.x + forceReal.x);
+          mForcey[particleMol[pair2[i]]] += -(forceLJ.y + forceReal.y);
+          mForcez[particleMol[pair2[i]]] += -(forceLJ.z + forceReal.z);
         }
       }
     }

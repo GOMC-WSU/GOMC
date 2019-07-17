@@ -14,6 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "NumLib.h" //For Cb, Sq
 #include "Setup.h"
 #include "EnergyTypes.h" // for BOXES_WITH_U_NB
+#include "CubicSpline.h" // Cubic Spline implementation
 #ifdef GOMC_CUDA
 #include "VariablesCUDA.cuh"
 #endif
@@ -66,15 +67,10 @@ public:
   // LJ interaction functions
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2) const;
-  virtual double ReturnEnergyTableData(const double distSq, double qq,
-                                       const uint kind1, const uint kind2,
-                                       double & REn, double &LJEn, uint box)
-                                       const;
-  double CalcEnAttract(const double distSq,
-                       const uint kind1, const uint kind2) const;
-  double CalcEnRepulse(const double distSq,
-                       const uint kind1, const uint kind2) const;
-
+  virtual double CalcEnAttract(const double distSq,
+                               const uint kind1, const uint kind2) const;
+  virtual double CalcEnRepulse(const double distSq,
+                               const uint kind1, const uint kind2) const;
   virtual double CalcVir(const double distSq,
                          const uint kind1, const uint kind2) const;
 
@@ -84,10 +80,12 @@ public:
   // coulomb interaction functions
   virtual double CalcCoulomb(const double distSq,
                              const double qi_qj_Fact, const uint b) const;
-  double CalcCoulombNoFact(const double distSq, const uint b) const;
+  virtual double CalcCoulombNoFact(const double distSq, const uint b) const;
+  virtual double CalcCoulombNoFactDerivative(const double distSq, const uint b) const;
   virtual double CalcCoulombVir(const double distSq,
                                 const double qi_qj, const uint b) const;
   virtual double CalcCoulombVirNoFact(const double distSq, const uint b) const;
+  virtual double CalcCoulombVirNoFactDerivative(const double distSq, const uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact, const bool NB) const;
 
@@ -138,13 +136,11 @@ protected:
 #endif
 
   // Variables used by energy table
-  std::vector< std::vector <double> > energyTable;
-  std::vector<double> LJAttractV;
-  std::vector<double> LJAttractF;
-  std::vector<double> LJRepulseV;
-  std::vector<double> LJRepulseF;
-  std::vector<double> CoulombV;
-  std::vector<double> CoulombF;
+  CubicSpline **CSTable_CalcCoulomb;
+  CubicSpline **CSTable_CalcEnAttract;
+  CubicSpline **CSTable_CalcEnRepulse;
+  //CubicSpline **CSTable_CalcCoulombVir;
+  //CubicSpline **CSTable_CalcVir;
   bool energyTableEnabled;
   uint energyTableMaxSize;
 };

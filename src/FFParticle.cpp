@@ -287,34 +287,38 @@ inline double FFParticle::CalcEn(const double distSq,
   return epsilon_cn[index] * (repulse - attract);
 }
 
-double FFParticle::CalcEnAttract(const double distSq, const uint kind1,
-                                 const uint kind2) const
+inline double FFParticle::CalcEnAttract(const double distSq,
+                                           const uint kind1, const uint kind2) const
 {
-  if (forcefield.rCutSq < distSq)
+  if(forcefield.rCutSq < distSq)
     return 0.0;
 
   uint index = FlatIndex(kind1, kind2);
   double rRat2 = sigmaSq[index] / distSq;
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
-  return -1 * epsilon_cn[index] * attract;
+
+  return epsilon_cn[index] * -attract;
 }
 
-double FFParticle::CalcEnRepulse(const double distSq, const uint kind1,
-                                 const uint kind2) const
+inline double FFParticle::CalcEnRepulse(const double distSq,
+                                 const uint kind1, const uint kind2) const
 {
-  if (forcefield.rCutSq < distSq)
+  if(forcefield.rCutSq < distSq)
     return 0.0;
 
   uint index = FlatIndex(kind1, kind2);
   double rRat2 = sigmaSq[index] / distSq;
 #ifdef MIE_INT_ONLY
+  double rRat4 = rRat2 * rRat2;
+  double attract = rRat4 * rRat2;
   uint n_ij = n[index];
   double repulse = num::POW(rRat2, rRat4, attract, n_ij);
 #else
   double n_ij = n[index];
   double repulse = pow(sqrt(rRat2), n_ij);
 #endif
+
   return epsilon_cn[index] * repulse;
 }
 
@@ -347,6 +351,28 @@ double FFParticle::CalcCoulombNoFact(const double distSq, const uint b) const
   else {
     double dist = sqrt(distSq);
     return 1.0 / dist;
+  }
+}
+
+// derivative of CalcCoulomb without qqfact 
+// ewald: -erfc(a*x)/x^2-(2*a*e^(-a^2*x^2))/(sqrt(pi)*x)
+// noewa: -1/x^2
+double FFParticle::CalcCoulombNoFactDerivative(const double distSq, const uint b) const
+{
+  if (forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
+  double a = forcefield.alpha[b];
+  if (forcefield.ewald) {
+    double x = sqrt(distSq);
+    double first = erfc(a * x) / distSq;
+    double second_top = 2 * a * exp(-1.0 * pow(a, 2.0) * pow(x, 2.0));
+    double second_bot = sqrt(M_PI) * x;
+    double second = second_top / second_bot;
+    return -(first+second);
+  }
+  else {
+    return -1.0 / distSq;
   }
 }
 
@@ -401,19 +427,51 @@ inline double FFParticle::CalcCoulombVirNoFact(const double distSq,
     double dist = sqrt(distSq);
     double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
     double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
-    double temp = 1.0 - erf(forcefield.alpha[b] * dist);
+    double temp = erfc(forcefield.alpha[b] * dist);
     return (temp / dist + constValue * expConstValue) / distSq;
+    // y = (erfc(a*x)/x+e^(-a*x^2)+(2*a)/sqrt(pi))/x^2
   }
   else {
     double dist = sqrt(distSq);
     return 1.0 / (distSq * dist);
+    // y = 1.0 / x^3
+  }
+}
+
+// derivative of above expression. A little complicated!
+// ewald: (-((2 x (2 a+a E^(-a^2 x^2)+E^(-a x^2) Sqrt[\[Pi]] (1+a x^2)))/Sqrt[\[Pi]])-3 Erfc[a x])/x^4
+// noewa: -3/x^4
+inline double FFParticle::CalcCoulombVirNoFactDerivative(const double distSq,
+  const uint b) const
+{
+  if (forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
+  double dist = sqrt(distSq);
+  double a = forcefield.alpha[b];
+  double a2 = a * a;
+  double sp = sqrt(M_PI);
+  if (forcefield.ewald) {
+    double temp1 = a * exp(-1.0 * a2 * distSq);
+    double temp2 = sp * exp(-1.0 * a * distSq);
+    double temp3 = a * distSq + 1;
+    double temp4 = 2 * dist * (temp1 + temp2 * temp3 + 2.0 * a);
+    double top   = -(temp4 / sp) - 3.0 * erfc(a * dist);
+    double ans   = top / (distSq * distSq);
+  }
+  else {
+    return -3.0 / (distSq * distSq);
   }
 }
 
 void FFParticle::InitializeTables()
 {
   double r2, r1;
-  energyTable.resize(BOXES_WITH_U_NB);
+  CSTable_CalcCoulomb      = new CubicSpline*[BOXES_WITH_U_NB];
+  CSTable_CalcEnAttract    = new CubicSpline*[BOXES_WITH_U_NB];
+  CSTable_CalcEnRepulse    = new CubicSpline*[BOXES_WITH_U_NB];
+  //CSTable_CalcCoulombVir   = new CubicSpline*[BOXES_WITH_U_NB];
+  //CSTable_CalcVir          = new CubicSpline*[BOXES_WITH_U_NB];
 
   for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
     // Initialize loca variables
@@ -421,13 +479,12 @@ void FFParticle::InitializeTables()
     uint kindTotal            = count;
     uint kindTotalSq          = kindTotal * kindTotal;
 
-    // Allocate space for temporary ar23rays
-    LJAttractV.resize(tableLength);
-    LJAttractF.resize(tableLength);
-    LJRepulseV.resize(tableLength);
-    LJRepulseF.resize(tableLength);
-    CoulombV.resize(tableLength);
-    CoulombF.resize(tableLength);
+    // Allocate space for tables
+    CSTable_CalcCoulomb[b]     = new CubicSpline[kindTotalSq];
+    CSTable_CalcEnAttract[b]   = new CubicSpline[kindTotalSq];
+    CSTable_CalcEnRepulse[b]   = new CubicSpline[kindTotalSq];
+    //CSTable_CalcCoulombVir[b]  = new CubicSpline[kindTotalSq];
+    //CSTable_CalcVir[b]         = new CubicSpline[kindTotalSq];
 
     // Let's make sure we are not allocating too much data for energy table.
     if (tableLength * kindTotalSq > 10000000) {
@@ -435,122 +492,51 @@ void FFParticle::InitializeTables()
       std::cerr << "       Please turn off energy tables.\n";
       exit(EXIT_FAILURE);
     }
-
-    // Allocate tables for energy and force    
-    energyTable[b].resize(kindTotalSq * tableLength * TABLE_STRIDE);
     
     for (uint k1 = 0; k1 < kindTotal; k1++) {
       for (uint k2 = 0; k2 < kindTotal; k2++) {
+        // initialize variables
         uint k = FlatIndex(k1, k2);
+        CSTable_CalcCoulomb[b][k].Reconstruct(tableLength, TABLE_STEP, 0.0);
+        CSTable_CalcEnAttract[b][k].Reconstruct(tableLength, TABLE_STEP, 0.0);
+        CSTable_CalcEnRepulse[b][k].Reconstruct(tableLength, TABLE_STEP, 0.0);
+
+        std::vector<double> v_coulomb, v_d_coulomb, v_attract, v_d_attract, v_repulse, v_d_repulse;
+        v_coulomb.resize(tableLength);
+        v_d_coulomb.resize(tableLength);
+        v_attract.resize(tableLength);
+        v_d_attract.resize(tableLength);
+        v_repulse.resize(tableLength);
+        v_d_repulse.resize(tableLength);
+
         for (int i = 0; i < tableLength; i++) {
           r2 = i * TABLE_STEP;
           r1 = sqrt(r2);
 
           // Firt 4 indeces are for Attraction of LJ
-          LJAttractV[i] = CalcEnAttract(r2, k1, k2);
-          LJAttractF[i] = -1.0 * LJAttractV[i] * 6.0 / r1;
-          LJRepulseV[i] = CalcEnRepulse(r2, k1, k2);
-          LJRepulseF[i] = -1.0 * LJRepulseV[i] * n[k] / r1;
-          CoulombV[i] = CalcCoulombNoFact(r2, b);
-          CoulombF[i] = -1 * CalcCoulombNoFact(r2, b) / r1;
+          v_coulomb[i]         = CalcCoulombNoFact(r2, b);
+          v_d_coulomb[i]       = CalcCoulombNoFactDerivative(r2, b);
+          v_attract[i]         = CalcEnAttract(r2, k1, k2);
+          v_d_attract[i]       = -6.0 * v_attract[i] / r1;
+          v_repulse[i]         = CalcEnRepulse(r2, k1, k2);
+          v_d_repulse[i]       = -n[k] * v_repulse[i] / r1;
+          //coulombvir           = CalcCoulombVirNoFact(r2, b);
+          //d_coulombvir         = CalcCoulombVirNoFactDerivative(r2, b);
         }
 
         for (int i = 0; i < tableLength; i++) {
-          int index = k * tableLength * TABLE_STRIDE + i * TABLE_STRIDE;
-
           if (i < tableLength - 1) {
-            energyTable[b][index]      = LJAttractV[i];
-            energyTable[b][index + 1]  = -1.0 * LJAttractF[i] * TABLE_STEP;
-            energyTable[b][index + 2]  = 3 * (LJAttractV[i + 1] - LJAttractV[i]) +
-                                         (LJAttractF[i + 1] - 2 * LJAttractF[i]) *
-                                         TABLE_STEP;
-            energyTable[b][index + 3]  = -2 * (LJAttractV[i + 1] - LJAttractV[i]) -
-                                         (LJAttractF[i + 1] + LJAttractF[i]) *
-                                         TABLE_STEP;
-            energyTable[b][index + 4]  = LJRepulseV[i];
-            energyTable[b][index + 5]  = -1.0 * LJRepulseF[i] * TABLE_STEP;
-            energyTable[b][index + 6]  = 3 * (LJRepulseV[i + 1] - LJRepulseV[i]) +
-                                         (LJRepulseF[i + 1] - 2 * LJRepulseF[i]) *
-                                         TABLE_STEP;
-            energyTable[b][index + 7]  = -2 * (LJRepulseV[i + 1] - LJRepulseV[i]) -
-                                         (LJRepulseF[i + 1] + LJRepulseF[i]) *
-                                         TABLE_STEP;
-            energyTable[b][index + 8]  = CoulombV[i];
-            energyTable[b][index + 9]  = -1.0 * CoulombF[i] * TABLE_STEP;
-            energyTable[b][index + 10] = 3 * (CoulombV[i + 1] - CoulombV[i]) +
-                                         (CoulombF[i + 1] - 2 * CoulombF[i]) *
-                                         TABLE_STEP;
-            energyTable[b][index + 11] = -2 * (CoulombV[i + 1] - CoulombV[i]) -
-                                         (CoulombF[i + 1] + CoulombF[i]) *
-                                         TABLE_STEP;
+            CSTable_CalcCoulomb[b][k].InitializeSpecificPoint(v_coulomb[i], v_coulomb[i+1], v_d_coulomb[i], v_d_coulomb[i+1], i);
+            CSTable_CalcEnAttract[b][k].InitializeSpecificPoint(v_attract[i], v_attract[i+1], v_d_attract[i], v_d_attract[i+1], i);
+            CSTable_CalcEnRepulse[b][k].InitializeSpecificPoint(v_repulse[i], v_repulse[i+1], v_d_repulse[i], v_d_repulse[i+1], i);
           }
           else {
-            energyTable[b][index]      = TABLE_STEP;
-            energyTable[b][index + 1]  = -1.0 * LJAttractF[i] * TABLE_STEP;
-            energyTable[b][index + 2]  = 0.0;
-            energyTable[b][index + 3]  = 0.0;
-            energyTable[b][index + 4]  = TABLE_STEP;
-            energyTable[b][index + 5]  = -1.0 * LJRepulseF[i] * TABLE_STEP;
-            energyTable[b][index + 6]  = 0.0;
-            energyTable[b][index + 7]  = 0.0;
-            energyTable[b][index + 8]  = TABLE_STEP;
-            energyTable[b][index + 9]  = -1.0 * CoulombF[i] * TABLE_STEP;
-            energyTable[b][index + 10] = 0.0;
-            energyTable[b][index + 11] = 0.0;
+            CSTable_CalcCoulomb[b][k].InitializeSpecificPoint(v_coulomb[i], v_coulomb[i], v_d_coulomb[i], v_d_coulomb[i], i);
+            CSTable_CalcEnAttract[b][k].InitializeSpecificPoint(v_attract[i], v_attract[i], v_d_attract[i], v_d_attract[i], i);
+            CSTable_CalcEnRepulse[b][k].InitializeSpecificPoint(v_repulse[i], v_repulse[i], v_d_repulse[i], v_d_repulse[i], i);
           }
         }
       }
     }
   }
-}
-
-double FFParticle::ReturnEnergyTableData(const double distSq, double qq,
-                                         const uint kind1, const uint kind2,
-                                         double & REn, double &LJEn,
-                                         uint box) const
-{
-  double Y, F, Geps, Heps2, Fp, VVe, FFe, VVa, FFa, VVr, FFr, fscal;
-
-  int tableLength           = ((forcefield.rCutSq + 1) / TABLE_STEP);
-  double r                  = sqrt(distSq);
-  double rtab               = distSq / TABLE_STEP;
-  uint ntab                 = static_cast<int>(rtab);
-  double eps                = rtab - ntab;
-  double eps2               = eps * eps;
-  ntab                      = ntab * TABLE_STRIDE;
-  
-  /* Attraction */
-  Y                         = energyTable[box][ntab];
-  F                         = energyTable[box][ntab+1];
-  Geps                      = eps*energyTable[box][ntab+2];
-  Heps2                     = eps2*energyTable[box][ntab+3];
-  Fp                        = F+Geps+Heps2;
-  VVa                       = Y+eps*Fp;
-  FFa                       = Fp+Geps+2.0*Heps2;
-
-  /* Repulsion */
-  Y                         = energyTable[box][ntab+4];
-  F                         = energyTable[box][ntab+5];
-  Geps                      = eps*energyTable[box][ntab+6];
-  Heps2                     = eps2*energyTable[box][ntab+7];
-  Fp                        = F+Geps+Heps2;
-  VVr                       = Y+eps*Fp;
-  FFr                       = Fp+Geps+2.0*Heps2;
-  
-  /* Electrostatic */
-  Y                         = energyTable[box][ntab+8];
-  F                         = energyTable[box][ntab+9];
-  Geps                      = eps*energyTable[box][ntab+10];
-  Heps2                     = eps2*energyTable[box][ntab+11];
-  Fp                        = F+Geps+Heps2;
-  VVe                       = Y+eps*Fp;
-  FFe                       = Fp+Geps+2.0*Heps2;
-
-  REn                       = qq*VVe;
-  LJEn                      = VVa + VVr;
-
-  fscal                     = (qq*FFe+FFa+FFr) / r;
-  //printf("%lf\t%lf\t%lf\t%lf\n", FFa, FFr, r, fscal);
-
-  return fscal;
 }
