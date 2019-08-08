@@ -292,7 +292,7 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int i, int j, int ip,
 
   delta = 0;
   double dpV = 0;
-  for (uint box_index = 0; i < BOX_TOTAL; ++i) { 
+  for (uint box_index = 0; box_index < BOX_TOTAL; ++box_index) { 
       delta += -(((*simsRef)[jp]->getBeta() - (*simsRef)[ip]->getBeta())*
         ((*simsRef)[j]->getEpotBox(box_index) - (*simsRef)[i]->getEpotBox(box_index)));
 
