@@ -210,15 +210,9 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
     } else {
       alias = pdbAlias[b];
     }
-    pdb[b].SetData(name[b], alias);
-
-    // Open PDB only once and stay there
-    // instead of re-opening it for every frame
-    // refer to issue #131
-    if(frameNum == 1)
-      pdb[b].open();
-    
-    while (pdb[b].Read(varName, pdb_entry::label::POS)) {
+    FixedWidthReader pdb(name[b], alias);
+    pdb.open();
+    while (pdb.Read(varName, pdb_entry::label::POS)) {
       //If end of frame, and this is the frame we wanted,
       //end read on this file
       if (remarks.reached[b] && str::compare(varName, pdb_entry::end::STR)) {
@@ -231,7 +225,7 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
       if (dataKind != dataKinds.end() &&
           (remarks.reached[b] ||
            str::compare(dataKind->first, pdb_entry::label::REMARK))) {
-        dataKind->second->Read(pdb[b]);
+        dataKind->second->Read(pdb);
       }
     }
     // If the recalcTrajectory is true and reached was still false
@@ -241,6 +235,7 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
                 << ".. and couldn't find remark in PDB file!" << std::endl;
       exit(EXIT_FAILURE);
     }
+    pdb.close();
   }
 }
 

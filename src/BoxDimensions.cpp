@@ -204,6 +204,7 @@ void BoxDimensions::SetVolume(const uint b, const double vol)
   }
   volume[b] = vol;
   volInv[b] = 1.0 / vol;
+
 }
 
 

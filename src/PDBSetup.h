@@ -111,7 +111,6 @@ struct PDBSetup {
   pdb_setup::Atoms atoms;
   pdb_setup::Cryst1 cryst;
   pdb_setup::Remarks remarks;
-  FixedWidthReader pdb[BOX_TOTAL];
   PDBSetup(void) : dataKinds(SetReadFunctions()) {}
   void Init(config_setup::RestartSettings const& restart,
             std::string const*const name, uint frameNumber = 1);

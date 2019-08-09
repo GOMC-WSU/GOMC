@@ -40,7 +40,6 @@ class COM;
 class XYZArray;
 class BoxDimensions;
 class CalculateEnergy;
-class Lambda;
 
 
 class Ewald
@@ -77,16 +76,11 @@ public:
   virtual double BoxSelf(BoxDimensions const& boxAxes, uint box) const;
 
   //calculate reciprocate force term for a box
-  virtual Virial VirialReciprocal(Virial& virial, uint box) const;
+  virtual Virial ForceReciprocal(Virial& virial, uint box) const;
 
   //calculate reciprocate term for displacement and rotation move
   virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
                                const uint box);
-
-  //calculate reciprocate term for lambdaNew and Old with same coordinates
-  virtual double CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
-			    const double lambdaNew, const uint molIndex,
-			    const uint box);
 
   //calculate correction term for a molecule
   virtual double MolCorrection(uint molIndex, uint box)const;
@@ -102,17 +96,11 @@ public:
   //calculate reciprocate term for inserting some molecules (kindA) in
   //destination box and removing a molecule (kindB) from destination box
   virtual double SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
-                           const std::vector<cbmc::TrialMol> &oldMol,
-                           const std::vector<uint> molIndexNew,
-                            const std::vector<uint> molIndexOld);
+                           const std::vector<cbmc::TrialMol> &oldMol);
 
-  //calculate correction term after swap move, with lambda = 1
+  //calculate correction term after swap move
   virtual double SwapCorrection(const cbmc::TrialMol& trialMol) const;
 
-  //calculate correction term after swap move, with system lambda 
-  virtual double SwapCorrection(const cbmc::TrialMol& trialMol,
-                                const uint molIndex) const;
-    
   //back up reciptocate value to Ref (will be called during initialization)
   virtual void SetRecipRef(uint box);
 
@@ -123,7 +111,7 @@ public:
   virtual void UpdateRecipVec(uint box);
 
   //calculate self term after swap move
-  virtual double SwapSelf(const cbmc::TrialMol& trialMol) const;
+  virtual double SwapSelf(const cbmc::TrialMol& trialMo) const;
 
   //restore cosMol and sinMol
   virtual void RestoreMol(int molIndex);
@@ -139,35 +127,6 @@ public:
 
   virtual void UpdateVectorsAndRecipTerms();
 
-  //calculate reciprocate force term for a box with molCoords
-  virtual void BoxForceReciprocal(XYZArray const& molCoords,
-                                  XYZArray& atomForceRec,
-                                  XYZArray& molForceRec,
-                                  uint box);
-
-  double GetLambdaCoef(uint molA, uint box) const;
-
-  //It's called in free energy calculation to calculate the change in
-  // self energy in all lambda states
-  virtual void ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
-                          const std::vector<double> &lambda_Coul,
-                          const uint iState, const uint molIndex,
-                          const uint box) const;
-
-  //It's called in free energy calculation to calculate the change in
-  // correction energy in all lambda states
-  virtual void ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
-                                const std::vector<double> &lambda_Coul,
-                                const uint iState, const uint molIndex,
-                                const uint box) const;
-                                
-  //It's called in free energy calculation to calculate the change in
-  // reciprocal energy in all lambda states
-  virtual void ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
-                          const std::vector<double> &lambda_Coul,
-                          const uint iState, const uint molIndex,
-                          const uint box) const;
-
 private:
   double currentEnergyRecip[BOXES_WITH_U_NB];
 
@@ -179,11 +138,7 @@ protected:
   const BoxDimensions& currentAxes;
   const COM& currentCOM;
   const SystemPotential &sysPotRef;
-  const Lambda& lambdaRef;
 
-  bool electrostatic, ewald, multiParticleEnabled;
-  double alpha;
-  double recip_rcut, recip_rcut_Sq;
   uint *imageSize;
   uint *imageSizeRef;
   //const uint imageTotal = GetImageSize();
@@ -200,12 +155,9 @@ protected:
   double **hsqr, **hsqrRef;
   double **prefact, **prefactRef;
 
-
   std::vector<int> particleKind;
   std::vector<int> particleMol;
   std::vector<double> particleCharge;
-  std::vector<bool> particleHasNoCharge;
-
 };
 
 

@@ -32,8 +32,7 @@ void Coordinates::CheckCoordinate()
   for (uint b = 0; b < BOX_TOTAL; b++) {
     sawZeroCoordinate =  false;
     MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b),
-                                 end = molLookRef.BoxEnd(b),
-      endc = molLookRef.BoxEnd(b);
+                                 end = molLookRef.BoxEnd(b), endc = molLookRef.BoxEnd(b);
     //find the min and max coordinate
     stRange = molRef.MolStart(*thisMol);
     --endc;
@@ -150,6 +149,8 @@ void Coordinates::VolumeTransferTranslate
     }
   }
 }
+
+
 
 //Assumes dest is already initialized
 void Coordinates::TranslateOneBox

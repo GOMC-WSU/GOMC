@@ -9,7 +9,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "OutputAbstracts.h"
 #include "MoveSettings.h"
 #include "Coordinates.h"
-#include "MoveBase.h"
 #include <iostream>
 
 class CheckpointOutput : public OutputableBase
@@ -52,18 +51,13 @@ private:
   ulong stepsPerCheckpoint;
 
   void openOutputFile();
-  void printStepNumber(ulong step);
+  void printStepNumber(const ulong step);
   void printRandomNumbers();
   void printCoordinates();
   void printMoleculeLookupData();
   void printMoveSettingsData();
   void printBoxDimensionsData();
 
-  void printVector3DDouble(vector< vector< vector <double> > > data);
-  void printVector3DUint(vector< vector< vector <uint> > > data);
-  void printVector2DUint(vector< vector< uint > > data);
-  void printVector1DDouble(vector< double > data);
   void outputDoubleIn8Chars(double data);
   void outputUintIn8Chars(uint32_t data);
-
 };

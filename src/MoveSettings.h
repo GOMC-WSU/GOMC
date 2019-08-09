@@ -14,17 +14,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveConst.h"           //For sizes of arrays.
 #include <vector>
 
-namespace mp {
-  const int MPDISPLACE = 0;
-  const int MPROTATE = 1;
-  const int MPMVCOUNT = 2;
-  const int MPALLDISPLACE = 0;
-  const int MPALLROTATE = 1;
-  const int MPALLRANDOM = 2;
-  const int MPTOTALTYPES = 3;
-  const double TARGET_ACCEPT_FRACT = 0.3;
-}
-
 class StaticVals;                 //For various initialization constants.
 class BoxDimensions;              //For axis sizes
 
@@ -42,10 +31,6 @@ public:
     tries.resize(BOX_TOTAL);
     tempAccepted.resize(BOX_TOTAL);
     tempTries.resize(BOX_TOTAL);
-    mp_r_max.resize(BOX_TOTAL);
-    mp_t_max.resize(BOX_TOTAL);
-    mp_accepted.resize(BOX_TOTAL);
-    mp_tries.resize(BOX_TOTAL);
     for(uint b = 0; b < BOX_TOTAL; b++) {
       acceptPercent[b].resize(mv::MOVE_KINDS_TOTAL);
       scale[b].resize(mv::MOVE_KINDS_TOTAL);
@@ -53,8 +38,6 @@ public:
       tries[b].resize(mv::MOVE_KINDS_TOTAL);
       tempAccepted[b].resize(mv::MOVE_KINDS_TOTAL);
       tempTries[b].resize(mv::MOVE_KINDS_TOTAL);
-      mp_accepted[b].resize(mp::MPMVCOUNT);
-      mp_tries[b].resize(mp::MPMVCOUNT);
     }
   }
 
@@ -73,10 +56,6 @@ public:
 
   void Adjust(const uint box, const uint move, const uint kind);
 
-  void AdjustMultiParticle(const uint box, const uint typePick);
-
-  void UpdateMoveSettingMultiParticle(uint box, bool isAccept, uint typePick);
-
   double Scale(const uint box, const uint move, const uint kind = 0) const
   {
     return scale[box][move][kind];
@@ -92,33 +71,17 @@ public:
     return tries[box][move][kind];
   }
 
-  double GetRMAX(const uint box) const
-  {
-    return mp_r_max[box];
-  }
-
-  double GetTMAX(const uint box) const
-  {
-    return mp_t_max[box];
-  }
-
   uint GetAcceptTot(const uint box, const uint move) const;
   uint GetTrialTot(const uint box, const uint move) const;
   double GetScaleTot(const uint box, const uint move) const;
-  bool GetSingleMoveAccepted() { return isSingleMoveAccepted; }
-  void SetSingleMoveAccepted() { isSingleMoveAccepted = true; }
 
 private:
 
   vector< vector< vector<double> > > scale, acceptPercent;
   vector< vector< vector<uint> > > accepted, tries, tempAccepted, tempTries;
-  vector< vector< uint > > mp_accepted, mp_tries;
-  vector< double > mp_r_max;
-  vector< double > mp_t_max;
-  
+
   uint perAdjust;
   uint totKind;
-  bool isSingleMoveAccepted;
 
 #if ENSEMBLE == GEMC
   uint GEMC_KIND;

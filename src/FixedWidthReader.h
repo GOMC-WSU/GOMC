@@ -21,11 +21,6 @@ public:
                    const bool crit = true, const bool note = true):
     Reader(name, alias, false, NULL, false, NULL, crit, note), line("") {}
 
-  // this default constructor was defined for PDBSetup class to be able to 
-  // create objects without initializing right away.
-  FixedWidthReader():
-    Reader("", "", false, NULL, false, NULL, true, true), line("") {}
-
   //Functions to get values from file, using fields.
   FixedWidthReader & Get(double & d, ConstField const& field)
   {
@@ -69,15 +64,12 @@ public:
     if (GoodFileWData()) {
       std::getline(file, line);
       str = Str(field);
+#ifndef NDEBUG
+      //big ol' waste of lines
+      //std::cout << line << std::endl;
+#endif
     }
     return GoodFileWData();
-  }
-
-  void SetData(std::string const& name, std::string const& alias)
-  {
-    fileName = name;
-    fileAlias = alias;
-    nameWAlias = fileAlias + ":  \t" + fileName;
   }
 
 protected:

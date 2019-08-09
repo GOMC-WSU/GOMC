@@ -400,7 +400,7 @@ void DCCrankShaftAng::ParticleNonbonded1_N(cbmc::TrialMol const& mol,
                              *partner, box)) {
           nonbonded[t] += data->ff.particles->CalcEn(distSq,
                           kind.AtomKind(partIndex),
-                          kind.AtomKind(*partner), 1.0);
+                          kind.AtomKind(*partner));
           if(data->ff.electrostatic) {
             double qi_qj_Fact = kind.AtomCharge(partIndex) *
                                 kind.AtomCharge(*partner) * num::qqFact;

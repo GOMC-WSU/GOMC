@@ -22,7 +22,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "VolumeTransfer.h"
 #include "MoleculeTransfer.h"
 #include "IntraSwap.h"
-#include "MultiParticle.h"
 #include "Regrowth.h"
 #include "MoleculeExchange1.h"
 #include "MoleculeExchange2.h"
@@ -31,7 +30,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "IntraMoleculeExchange2.h"
 #include "IntraMoleculeExchange3.h"
 #include "CrankShaft.h"
-#include "CFCMC.h"
 
 System::System(StaticVals& statics) :
   statV(statics),
@@ -74,7 +72,6 @@ System::~System()
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   delete moves[mv::MOL_TRANSFER];
   delete moves[mv::MEMC];
-  delete moves[mv::CFCMC];
 #endif
 }
 
@@ -108,12 +105,6 @@ void System::Init(Setup const& set, ulong & startStep)
   }
 
   com.CalcCOM();
-  // Allocate space for atom forces
-  atomForceRef.Init(set.pdb.atoms.beta.size());
-  molForceRef.Init(com.Count());
-  // Allocate space for reciprocate force
-  atomForceRecRef.Init(set.pdb.atoms.beta.size());
-  molForceRecRef.Init(com.Count());
   cellList.SetCutoff();
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 
@@ -135,8 +126,6 @@ void System::Init(Setup const& set, ulong & startStep)
     calcEwald = new NoEwald(statV, *this);
 #endif
 
-  //Initial the lambda before calling SystemTotal
-  InitLambda();
   calcEnergy.Init(*this);
   calcEwald->Init();
   potential = calcEnergy.SystemTotal();
@@ -148,7 +137,6 @@ void System::Init(Setup const& set, ulong & startStep)
 void System::InitMoves(Setup const& set)
 {
   moves[mv::DISPLACE] = new Translate(*this, statV);
-  moves[mv::MULTIPARTICLE] = new MultiParticle(*this, statV);
   moves[mv::ROTATE] = new Rotate(*this, statV);
   moves[mv::INTRA_SWAP] = new IntraSwap(*this, statV);
   moves[mv::REGROWTH] = new Regrowth(*this, statV);
@@ -173,44 +161,7 @@ void System::InitMoves(Setup const& set)
   } else {
     moves[mv::MEMC] = new MoleculeExchange3(*this, statV);
   }
-  moves[mv::CFCMC] = new CFCMC(*this, statV);
 #endif
-}
-
-void System::InitLambda()
-{
-  if(statV.freeEnVal.enable) {
-    bool found = false;
-    for(uint k = 0; k < statV.mol.GetKindsCount(); k++) {
-      std::string kindName = statV.mol.kinds[k].name;
-      if(statV.freeEnVal.molType == kindName) {
-        found = true;
-        uint totalMol = molLookupRef.NumKindInBox(k, mv::BOX0);
-        //In PDB file, molIndex start from 1.
-        uint FEmolIndex = statV.freeEnVal.molIndex - 1;
-        if(totalMol == 0) {
-          found = false;
-        } else if(totalMol <= FEmolIndex) {
-          std::cout << "Error: Molecule index " << statV.freeEnVal.molIndex <<
-          " of kind " << kindName << " does not exist in the simulation box!\n";
-          exit(EXIT_FAILURE);
-        } else {
-          uint m = molLookupRef.GetMolNum(FEmolIndex, k, mv::BOX0);
-          uint state = statV.freeEnVal.iState;
-          double lambdaCoulomb = statV.freeEnVal.lambdaCoulomb[state];
-          double lambdaVDW = statV.freeEnVal.lambdaVDW[state];
-          lambdaRef.Set(lambdaVDW, lambdaCoulomb, m, k, mv::BOX0);
-        }
-        break;
-      }
-    }
-
-    if(!found) {
-      std::cout << "Error: No molecule of kind " << statV.freeEnVal.molType <<
-      " in the simulation box! \n";
-      exit(EXIT_FAILURE);
-    }
-  }
 }
 
 void System::RecalculateTrajectory(Setup &set, uint frameNum)
@@ -415,7 +366,6 @@ void System::PrintTime()
   //std::cout << "MC moves Execution time:\n";
   printf("%-36s %10.4f    sec.\n", "Displacement:", moveTime[mv::DISPLACE]);
   printf("%-36s %10.4f    sec.\n", "Rotation:", moveTime[mv::ROTATE]);
-  printf("%-36s %10.4f    sec.\n", "MultiParticle:", moveTime[mv::MULTIPARTICLE]);
   printf("%-36s %10.4f    sec.\n", "Intra-Swap:", moveTime[mv::INTRA_SWAP]);
   printf("%-36s %10.4f    sec.\n", "Regrowth:", moveTime[mv::REGROWTH]);
   printf("%-36s %10.4f    sec.\n", "Intra-MEMC:", moveTime[mv::INTRA_MEMC]);
@@ -425,7 +375,6 @@ void System::PrintTime()
   printf("%-36s %10.4f    sec.\n", "Mol-Transfer:",
          moveTime[mv::MOL_TRANSFER]);
   printf("%-36s %10.4f    sec.\n", "MEMC:", moveTime[mv::MEMC]);
-  printf("%-36s %10.4f    sec.\n", "CFCMC:", moveTime[mv::CFCMC]);
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   printf("%-36s %10.4f    sec.\n", "Vol-Transfer:", moveTime[mv::VOL_TRANSFER]);

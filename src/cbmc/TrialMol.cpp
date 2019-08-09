@@ -327,18 +327,15 @@ void TrialMol::SetBackBone(const uint bb[2])
 XYZ TrialMol::GetCOM()
 {
   XYZ tcom;
-  uint atomNumber = tCoords.Count();
   XYZArray temp(tCoords);
   axes->UnwrapPBC(temp, box, tCoords.Get(0));
   tCoords = temp;
 
-  for(uint p = 0; p < atomNumber; p++) {
-    tcom += temp.Get(p);
+  for(uint p = 0; p < tCoords.Count(); p++) {
+    tcom += tCoords.Get(p);
   }
-  tcom *= (1.0 / (double)(atomNumber));
-  //Unwrap with respect to COM
-  axes->UnwrapPBC(tCoords, box, tcom);
- 
+  tcom *= (1.0 / tCoords.Count());
+
   return tcom;
 }
 

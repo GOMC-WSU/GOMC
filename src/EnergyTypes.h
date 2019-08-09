@@ -135,7 +135,6 @@ public:
   }
   Energy& operator-=(Energy const& rhs);
   Energy& operator+=(Energy const& rhs);
-  Energy& operator*=(double const& rhs);
 
 //private:
   //MEMBERS
@@ -171,22 +170,6 @@ inline Energy& Energy::operator+=(Energy const& rhs)
   correction += rhs.correction;
   totalElect += rhs.totalElect;
   total += rhs.total;
-
-  return *this;
-}
-
-inline Energy& Energy::operator*=(double const& rhs)
-{
-  inter *= rhs;
-  intraBond *= rhs;
-  intraNonbond *= rhs;
-  tc *= rhs;
-  real *= rhs;
-  recip *= rhs;
-  self *= rhs;
-  correction *= rhs;
-  totalElect *= rhs;
-  total *= rhs;
 
   return *this;
 }

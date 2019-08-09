@@ -36,18 +36,11 @@ public:
     calcEnRef(sys.calcEnergy), comCurrRef(sys.com),
     coordCurrRef(sys.coordinates), prng(sys.prng), molRef(statV.mol),
     BETA(statV.forcefield.beta), ewald(statV.forcefield.ewald),
-    cellList(sys.cellList), molRemoved(false),
-    atomForceRef(sys.atomForceRef),
-    molForceRef(sys.molForceRef),
-    atomForceRecRef(sys.atomForceRecRef),
-    molForceRecRef(sys.molForceRecRef)
+    cellList(sys.cellList)
   {
-    atomForceNew.Init(sys.atomForceRef.Count());
-    molForceNew.Init(sys.molForceRef.Count());
     calcEwald = sys.GetEwald();
     molRemoved = false;
     overlap = false;
-    multiParticleEnabled = sys.statV.multiParticleEnabled;
   }
 
   //Based on the random draw, determine the move kind, box, and
@@ -83,12 +76,6 @@ protected:
   COM & comCurrRef;
   CalculateEnergy & calcEnRef;
   Ewald * calcEwald;
-  XYZArray& atomForceRef;
-  XYZArray atomForceNew;
-  XYZArray& molForceRef;
-  XYZArray molForceNew;
-  XYZArray& atomForceRecRef;
-  XYZArray& molForceRecRef;
 
   PRNG & prng;
   BoxDimensions & boxDimRef;
@@ -97,7 +84,6 @@ protected:
   const bool ewald;
   CellList& cellList;
   bool molRemoved, fixBox0, overlap;
-  bool multiParticleEnabled;
 };
 
 //Data needed for transforming a molecule's position via inter or intrabox

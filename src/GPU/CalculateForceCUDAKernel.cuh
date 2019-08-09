@@ -12,7 +12,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "XYZArray.h"
 #include "BoxDimensions.h"
 #include "VariablesCUDA.cuh"
-#include "ConstantDefinitionsCUDAKernel.cuh"
 
 using namespace std;
 
@@ -40,7 +39,7 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
                           double &vT33,
                           uint const box);
 
-void CallVirialReciprocalGPU(VariablesCUDA *vars,
+void CallForceReciprocalGPU(VariablesCUDA *vars,
                             XYZArray const &currentCoords,
                             XYZArray const &currentCOMDiff,
                             vector<double> &particleCharge,
@@ -104,7 +103,7 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                                  int *gpu_nonOrth,
                                  int box);
 
-__global__ void VirialReciprocalGPU(double *gpu_x,
+__global__ void ForceReciprocalGPU(double *gpu_x,
                                    double *gpu_y,
                                    double *gpu_z,
                                    double *gpu_comDx,
@@ -128,6 +127,13 @@ __global__ void VirialReciprocalGPU(double *gpu_x,
                                    uint imageSize,
                                    uint atomNumber);
 
+__device__ double CalcCoulombForceGPU(double distSq, double qi_qj,
+                                      int gpu_VDW_Kind,
+                                      int gpu_ewald,
+                                      int gpu_isMartini,
+                                      double gpu_alpha,
+                                      double gpu_rCutCoulomb,
+                                      double gpu_diElectric_1);
 __device__ double CalcEnForceGPU(double distSq, int kind1, int kind2,
                                  double *gpu_sigmaSq,
                                  double *gpu_n,
@@ -141,17 +147,17 @@ __device__ double CalcEnForceGPU(double distSq, int kind1, int kind2,
 //ElectroStatic Calculation
 //**************************************************************//
 __device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
-                                            double gpu_alpha);
+    double gpu_alpha);
 __device__ double CalcCoulombVirShiftGPU(double distSq, double qi_qj,
-                                         int gpu_ewald, double gpu_alpha);
+    int gpu_ewald, double gpu_alpha);
 __device__ double CalcCoulombVirSwitchMartiniGPU(double distSq, double qi_qj,
-                                                 int gpu_ewald,
-                                                 double gpu_alpha,
-                                                 double gpu_rCut,
-                                                 double gpu_diElectric_1);
+    int gpu_ewald,
+    double gpu_alpha,
+    double gpu_rCut,
+    double gpu_diElectric_1);
 __device__ double CalcCoulombVirSwitchGPU(double distSq, double qi_qj,
-                                          int gpu_ewald, double gpu_alpha,
-                                          double gpu_rCut);
+    int gpu_ewald, double gpu_alpha,
+    double gpu_rCut);
 
 //VDW Calculation
 //*****************************************************************//
@@ -162,41 +168,13 @@ __device__ double CalcVirShiftGPU(double distSq, int index,
                                   double *gpu_sigmaSq, double *gpu_n,
                                   double *gpu_epsilon_Cn);
 __device__ double CalcVirSwitchMartiniGPU(double distSq, int index,
-                                          double *gpu_sigmaSq, double *gpu_n,
-                                          double *gpu_epsilon_Cn,
-                                          double gpu_rCut, double rOn);
+    double *gpu_sigmaSq, double *gpu_n,
+    double *gpu_epsilon_Cn,
+    double gpu_rCut, double rOn);
 __device__ double CalcVirSwitchGPU(double distSq, int index,
                                    double *gpu_sigmaSq, double *gpu_epsilon_Cn,
                                    double *gpu_n, double gpu_rCut,
                                    double gpu_rOn);
-
-
-// Have to move the implementation for some functions here 
-// since CUDA doesn't allow __global__ to call __device__
-// from different files
-// Wanted to call CalcCoulombForceGPU() from CalculateEnergyCUDAKernel.cu file
-__device__ inline double CalcCoulombForceGPU(double distSq, double qi_qj,
-  int gpu_VDW_Kind, int gpu_ewald,
-  int gpu_isMartini, double gpu_alpha,
-  double gpu_rCutCoulomb,
-  double gpu_diElectric_1)
-{
-  if((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
-    return 0.0;
-  }
-
-  if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
-    return CalcCoulombVirParticleGPU(distSq, qi_qj, gpu_alpha);
-  } else if(gpu_VDW_Kind == GPU_VDW_SHIFT_KIND) {
-    return CalcCoulombVirShiftGPU(distSq, qi_qj, gpu_ewald, gpu_alpha);
-  } else if(gpu_VDW_Kind == GPU_VDW_SWITCH_KIND && gpu_isMartini) {
-    return CalcCoulombVirSwitchMartiniGPU(distSq, qi_qj, gpu_ewald, gpu_alpha,
-                                          gpu_rCutCoulomb, gpu_diElectric_1);
-  } else
-    return CalcCoulombVirSwitchGPU(distSq, qi_qj, gpu_ewald, gpu_alpha,
-                                   gpu_rCutCoulomb);
-}
-
 
 #endif /*GOMC_CUDA*/
 #endif /*CALCULATE_FORCE_CUDA_KERNEL*/

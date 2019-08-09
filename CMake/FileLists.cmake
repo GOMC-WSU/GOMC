@@ -19,7 +19,6 @@ set(sources
    src/FFParticle.cpp
    src/FFSetup.cpp
    src/Forcefield.cpp
-   src/FreeEnergyOutput.cpp
    src/Geometry.cpp
    src/HistOutput.cpp
    src/InputFileReader.cpp
@@ -86,7 +85,6 @@ set(headers
    src/FFBonds.h
    src/FFConst.h
    src/FFDihedrals.h
-   src/FFExp6.h
    src/FFParticle.h
    src/FFSetup.h
    src/FFShift.h
@@ -94,7 +92,6 @@ set(headers
    src/FFSwitchMartini.h
    src/FixedWidthReader.h
    src/Forcefield.h
-   src/FreeEnergyOutput.h
    src/FxdWidthWrtr.h
    src/Geometry.h
    src/HistOutput.h
@@ -149,7 +146,6 @@ set(headers
    src/cbmc/DCRotateOnAtom.h
    src/cbmc/DCSingle.h
    src/cbmc/TrialMol.h
-   src/moves/CFCMC.h
    src/moves/CrankShaft.h
    src/moves/IntraMoleculeExchange1.h
    src/moves/IntraMoleculeExchange2.h
@@ -160,7 +156,6 @@ set(headers
    src/moves/MoleculeExchange3.h
    src/moves/MoleculeTransfer.h
    src/moves/MoveBase.h
-   src/moves/MultiParticle.h
    src/moves/Regrowth.h
    src/moves/Rotation.h
    src/moves/Translate.h
@@ -170,7 +165,6 @@ set(libHeaders
    lib/BasicTypes.h
    lib/BitLib.h
    lib/GeomLib.h
-   lib/Lambda.h
    lib/NumLib.h
    lib/StrLib.h
    lib/StrStrmLib.h

@@ -38,7 +38,7 @@ using namespace geom;
 
 Ewald::Ewald(StaticVals & stat, System & sys) :
   ff(stat.forcefield), mols(stat.mol), currentCoords(sys.coordinates),
-  currentCOM(sys.com), sysPotRef(sys.potential), lambdaRef(sys.lambdaRef),
+  currentCOM(sys.com), sysPotRef(sys.potential),
 #ifdef VARIABLE_PARTICLE_NUMBER
   molLookup(sys.molLookup),
 #else
@@ -49,14 +49,7 @@ Ewald::Ewald(StaticVals & stat, System & sys) :
 #else
   currentAxes(*stat.GetBoxDim())
 #endif
-{
-  ewald = false;
-  electrostatic = false;
-  alpha = 0.0;
-  recip_rcut = 0.0;
-  recip_rcut_Sq = 0.0;
-  multiParticleEnabled = stat.multiParticleEnabled;
-}
+{}
 
 Ewald::~Ewald()
 {
@@ -113,11 +106,6 @@ void Ewald::Init()
       particleKind.push_back(molKind.AtomKind(a));
       particleMol.push_back(m);
       particleCharge.push_back(molKind.AtomCharge(a));
-      if(abs(molKind.AtomCharge(a)) < 0.000000001) {
-        particleHasNoCharge.push_back(true);
-      } else {
-        particleHasNoCharge.push_back(false);
-      }
     }
   }
 
@@ -238,8 +226,6 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 
     while (thisMol != end) {
       MoleculeKind const& thisKind = mols.GetKind(*thisMol);
-      double lambdaCoef = GetLambdaCoef(*thisMol, box);
-      uint start = mols.MolStart(*thisMol);
 
 #ifdef _OPENMP
       #pragma omp parallel for default(shared) private(i, j, dotProduct, sumReal, sumImaginary)
@@ -249,17 +235,15 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
         sumImaginary = 0.0;
 
         for (j = 0; j < thisKind.NumAtoms(); j++) {
-          if(particleHasNoCharge[start + j]) {
-            continue;
-          }
-          dotProduct = Dot(start + j, kx[box][i], ky[box][i],
+          dotProduct = Dot(mols.MolStart(*thisMol) + j,
+                           kx[box][i], ky[box][i],
                            kz[box][i], molCoords);
 
           sumReal += (thisKind.AtomCharge(j) * cos(dotProduct));
           sumImaginary += (thisKind.AtomCharge(j) * sin(dotProduct));
         }
-        sumRnew[box][i] += (lambdaCoef * sumReal);
-        sumInew[box][i] += (lambdaCoef * sumImaginary);
+        sumRnew[box][i] += sumReal;
+        sumInew[box][i] += sumImaginary;
       }
       thisMol++;
     }
@@ -308,7 +292,6 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
     int i;
     double sumRealNew, sumImaginaryNew, dotProductNew, dotProductOld,
            sumRealOld, sumImaginaryOld;
-    double lambdaCoef = GetLambdaCoef(molIndex, box);
 #ifdef GOMC_CUDA
     XYZArray cCoords(length);
     std::vector<double> MolCharge;
@@ -321,9 +304,7 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
                          sumRnew[box], sumInew[box], energyRecipNew, box);
 #else
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i, p, atom, sumRealNew, \
-    sumImaginaryNew, sumRealOld, sumImaginaryOld, dotProductNew, dotProductOld) \
-    reduction(+:energyRecipNew, energyRecipOld)
+    #pragma omp parallel for default(shared) private(i, p, atom, sumRealNew, sumImaginaryNew, sumRealOld, sumImaginaryOld, dotProductNew, dotProductOld) reduction(+:energyRecipNew, energyRecipOld)
 #endif
     for (i = 0; i < imageSizeRef[box]; i++) {
       sumRealNew = 0.0;
@@ -335,9 +316,6 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
 
       for (p = 0; p < length; ++p) {
         atom = startAtom + p;
-        if(particleHasNoCharge[atom]) {
-          continue;
-        }
         dotProductNew = Dot(p, kxRef[box][i],
                             kyRef[box][i], kzRef[box][i],
                             molCoords);
@@ -353,10 +331,8 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
         sumImaginaryOld += (thisKind.AtomCharge(p) * sin(dotProductOld));
       }
 
-      sumRnew[box][i] = sumRref[box][i] + lambdaCoef *
-	                      (sumRealNew - sumRealOld);
-      sumInew[box][i] = sumIref[box][i] + lambdaCoef *
-	                      (sumImaginaryNew - sumImaginaryOld);
+      sumRnew[box][i] = sumRref[box][i] - sumRealOld + sumRealNew;
+      sumInew[box][i] = sumIref[box][i] - sumImaginaryOld + sumImaginaryNew;
 
       energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
                          * sumInew[box][i]) * prefactRef[box][i];
@@ -369,8 +345,6 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
 
 
 //calculate reciprocate term in destination box for swap move
-//It never been caled in Free Energy calculatio, becaue we are in 
-// NVT and NPT ensemble
 double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
                             const uint box,
                             const int molIndex)
@@ -380,13 +354,12 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
 
 
   if (box < BOXES_WITH_U_NB) {
-    uint p, length, start;
+    uint p, length;
     int i;
     MoleculeKind const& thisKind = newMol.GetKind();
     XYZArray molCoords = newMol.GetCoords();
     double dotProductNew, sumRealNew, sumImaginaryNew;
     length = thisKind.NumAtoms();
-    start = mols.MolStart(molIndex);
 #ifdef GOMC_CUDA
     bool insert = true;
     std::vector<double> MolCharge;
@@ -399,8 +372,7 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
                           insert, energyRecipNew, box);
 #else
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i, p, dotProductNew, \
-    sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
+    #pragma omp parallel for default(shared) private(i, p, dotProductNew, sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
 #endif
     for (i = 0; i < imageSizeRef[box]; i++) {
       sumRealNew = 0.0;
@@ -408,9 +380,6 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
       dotProductNew = 0.0;
 
       for (p = 0; p < length; ++p) {
-        if(particleHasNoCharge[start + p]) {
-          continue;
-        }
         dotProductNew = Dot(p, kxRef[box][i],
                             kyRef[box][i], kzRef[box][i],
                             molCoords);
@@ -434,113 +403,6 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
   return energyRecipNew - energyRecipOld;
 }
 
-//calculate reciprocate term for lambdaNew and Old with same coordinates
-double Ewald::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
-			 const double lambdaNew, const uint molIndex,
-			 const uint box)
-{
-  double energyRecipNew = 0.0;
-  double energyRecipOld = 0.0;
-
-  //Need to implement GPU
-  if (box < BOXES_WITH_U_NB) {
-    uint p, i, start;
-    MoleculeKind const& thisKind = mols.GetKind(molIndex); 
-    uint length = thisKind.NumAtoms();
-    start = mols.MolStart(molIndex);
-    double dotProductNew, sumRealNew, sumImaginaryNew;
-    double lambdaCoef = lambdaNew - lambdaOld;
-
-#ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i, p, dotProductNew, \
-    sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
-#endif
-    for (i = 0; i < imageSizeRef[box]; i++) {
-      sumRealNew = 0.0;
-      sumImaginaryNew = 0.0;
-      dotProductNew = 0.0;
-
-      for (p = 0; p < length; ++p) {
-        if(particleHasNoCharge[start + p]) {
-          continue;
-        }
-        dotProductNew = Dot(p, kxRef[box][i],
-                            kyRef[box][i], kzRef[box][i],
-                            molCoords);
-
-        sumRealNew += thisKind.AtomCharge(p) * cos(dotProductNew);
-        sumImaginaryNew += thisKind.AtomCharge(p) * sin(dotProductNew);
-      }
-
-      //sumRealNew;
-      sumRnew[box][i] = sumRref[box][i] + lambdaCoef * sumRealNew;
-      //sumImaginaryNew;
-      sumInew[box][i] = sumIref[box][i] + lambdaCoef * sumImaginaryNew;
-
-      energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
-                         * sumInew[box][i]) * prefactRef[box][i];
-    }
-    energyRecipOld = sysPotRef.boxEnergy[box].recip;
-  }
-
-  return energyRecipNew - energyRecipOld;
-}
-
-//calculate reciprocate term for lambdaNew and Old with same coordinates
-void Ewald::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
-                        const std::vector<double> &lambda_Coul,
-                        const uint iState, const uint molIndex,
-                        const uint box) const
-{
-  //Need to implement GPU
-  uint p, i, s;
-  uint length = mols.GetKind(molIndex).NumAtoms();
-  uint start = mols.MolStart(molIndex);
-  uint lambdaSize = lambda_Coul.size();
-  double *energyRecip = new double [lambdaSize];
-  std::fill_n(energyRecip, lambdaSize, 0.0);
-
-  double dotProduct, sumReal, sumImaginary, coefDiff;
-
-#ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(i, p, s, dotProduct, \
-  sumReal, sumImaginary, coefDiff) reduction(+:energyRecip[:lambdaSize])
-#endif
-  for (i = 0; i < imageSizeRef[box]; i++) {
-    sumReal = 0.0;
-    sumImaginary = 0.0;
-    dotProduct = 0.0;
-
-    for (p = 0; p < length; ++p) {
-      if(particleHasNoCharge[start + p]) {
-        continue;
-      }
-      dotProduct = Dot(p + start, kxRef[box][i], kyRef[box][i], kzRef[box][i],
-                       currentCoords);
-      sumReal += particleCharge[p + start] * cos(dotProduct);
-      sumImaginary += particleCharge[p + start] * sin(dotProduct);
-    }
-    for(s = 0; s < lambdaSize; s++) {
-      //Calculate the energy of other state
-      coefDiff = lambda_Coul[s] - lambda_Coul[iState];
-      energyRecip[s] += prefactRef[box][i] *
-                        ((sumRref[box][i] + coefDiff * sumReal) * 
-                         (sumRref[box][i] + coefDiff * sumReal) + 
-                         (sumIref[box][i] + coefDiff * sumImaginary) * 
-                         (sumIref[box][i] + coefDiff * sumImaginary));
-    }
-  }
-
-  double energyRecipOld = sysPotRef.boxEnergy[box].recip;
-  for(s = 0; s < lambdaSize; s++) {
-    energyDiff[s].recip = energyRecip[s] - energyRecipOld;
-  }
-  //Calculate du/dl of Reciprocal for current state 
-  //energy difference E(lambda =1) - E(lambda = 0)
-  dUdL_Coul.recip += energyDiff[lambdaSize - 1].recip - energyDiff[0].recip;
-  delete [] energyRecip;
-}
-
 void Ewald::RecipInit(uint box, BoxDimensions const& boxAxes)
 {
   if(boxAxes.orthogonal[box])
@@ -551,8 +413,6 @@ void Ewald::RecipInit(uint box, BoxDimensions const& boxAxes)
 
 
 //calculate reciprocate term in source box for swap move
-//It never been caled in Free Energy calculatio, becaue we are in 
-// NVT and NPT ensemble
 double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
                               const uint box, const int molIndex)
 {
@@ -560,13 +420,12 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
   double energyRecipOld = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
-    uint p, start;
+    uint p;
     int i;
     double sumRealNew, sumImaginaryNew, dotProductNew;
     MoleculeKind const& thisKind = oldMol.GetKind();
     XYZArray molCoords = oldMol.GetCoords();
     uint length = thisKind.NumAtoms();
-    start = mols.MolStart(molIndex);
 #ifdef GOMC_CUDA
     bool insert = false;
     std::vector<double> MolCharge;
@@ -580,8 +439,7 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 
 #else
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i, p, dotProductNew, \
-    sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
+    #pragma omp parallel for default(shared) private(i, p, dotProductNew, sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
 #endif
     for (i = 0; i < imageSizeRef[box]; i++) {
       sumRealNew = 0.0;
@@ -589,9 +447,6 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
       dotProductNew = 0.0;
 
       for (p = 0; p < length; ++p) {
-        if(particleHasNoCharge[start + p]) {
-          continue;
-        }
         dotProductNew = Dot(p, kxRef[box][i],
                             kyRef[box][i], kzRef[box][i],
                             molCoords);
@@ -616,76 +471,60 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 //calculate reciprocate term for inserting some molecules (kindA) in destination
 // box and removing molecule (kindB) from destination box
 double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
-                        const std::vector<cbmc::TrialMol> &oldMol,
-                        const std::vector<uint> molIndexNew,
-                        const std::vector<uint> molIndexOld)
+                        const std::vector<cbmc::TrialMol> &oldMol)
 {
   double energyRecipNew = 0.0;
   double energyRecipOld = 0.0;
-  //Change in reciprocal happens in the same box.
   uint box = newMol[0].GetBox();
-  
+
   if (box < BOXES_WITH_U_NB) {
     int p, i, m, lengthNew, lengthOld;
     MoleculeKind const& thisKindNew = newMol[0].GetKind();
     MoleculeKind const& thisKindOld = oldMol[0].GetKind();
-    double dotProductNew, sumRealNew, sumImaginaryNew, lambdaCoef;
+    double dotProductNew, sumRealNew, sumImaginaryNew;
     lengthNew = thisKindNew.NumAtoms();
     lengthOld = thisKindOld.NumAtoms();
-        
+
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, p, dotProductNew, \
-lambdaCoef) reduction(+:energyRecipNew, sumRealNew, sumImaginaryNew)
+    #pragma omp parallel for default(shared) private(i, p, dotProductNew, sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
 #endif
     for (i = 0; i < imageSizeRef[box]; i++) {
       sumRealNew = 0.0;
       sumImaginaryNew = 0.0;
       dotProductNew = 0.0;
-      
+
       for (m = 0; m < newMol.size(); m++) {
-        lambdaCoef = GetLambdaCoef(molIndexNew[m], box);
         for (p = 0; p < lengthNew; ++p) {
-          if(particleHasNoCharge[mols.MolStart(molIndexNew[m]) + p]) {
-            continue;
-          }
-          dotProductNew = Dot(p, kxRef[box][i], kyRef[box][i],
-                              kzRef[box][i], newMol[m].GetCoords());
-          
-          sumRealNew += (thisKindNew.AtomCharge(p) * lambdaCoef *
-                        cos(dotProductNew));
-          sumImaginaryNew += (thisKindNew.AtomCharge(p) * lambdaCoef *
-                              sin(dotProductNew));
+          dotProductNew = Dot(p, kxRef[box][i], kyRef[box][i], kzRef[box][i],
+                              newMol[m].GetCoords());
+
+          sumRealNew += (thisKindNew.AtomCharge(p) * cos(dotProductNew));
+          sumImaginaryNew += (thisKindNew.AtomCharge(p) * sin(dotProductNew));
         }
       }
-      
+
       for (m = 0; m < oldMol.size(); m++) {
-        lambdaCoef = GetLambdaCoef(molIndexOld[m], box);
         for (p = 0; p < lengthOld; ++p) {
-          if(particleHasNoCharge[mols.MolStart(molIndexOld[m]) + p]) {
-            continue;
-          }
-          dotProductNew = Dot(p, kxRef[box][i], kyRef[box][i],
-                          kzRef[box][i], oldMol[m].GetCoords());
-          
-          sumRealNew += -(thisKindOld.AtomCharge(p) * lambdaCoef * 
-                        cos(dotProductNew));
-          sumImaginaryNew += -(thisKindOld.AtomCharge(p) *lambdaCoef *
-                              sin(dotProductNew));
+          dotProductNew = Dot(p, kxRef[box][i], kyRef[box][i], kzRef[box][i],
+                              oldMol[m].GetCoords());
+
+          sumRealNew -= (thisKindOld.AtomCharge(p) * cos(dotProductNew));
+          sumImaginaryNew -= (thisKindOld.AtomCharge(p) * sin(dotProductNew));
         }
       }
-      
+
       //sumRealNew;
       sumRnew[box][i] = sumRref[box][i] + sumRealNew;
       //sumImaginaryNew;
       sumInew[box][i] = sumIref[box][i] + sumImaginaryNew;
-      
+
       energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
-                          * sumInew[box][i]) * prefactRef[box][i];
+                         * sumInew[box][i]) * prefactRef[box][i];
     }
-    
+
     energyRecipOld = sysPotRef.boxEnergy[box].recip;
   }
-  
+
   return energyRecipNew - energyRecipOld;
 }
 
@@ -912,7 +751,7 @@ void Ewald::SetRecipRef(uint box)
   }
 }
 
-//calculate correction term for a molecule, with system lambda
+//calculate correction term for a molecule
 double Ewald::MolCorrection(uint molIndex, uint box) const
 {
   if (box >= BOXES_WITH_U_NB)
@@ -925,12 +764,8 @@ double Ewald::MolCorrection(uint molIndex, uint box) const
   MoleculeKind& thisKind = mols.kinds[mols.kIndex[molIndex]];
   uint atomSize = thisKind.NumAtoms();
   uint start = mols.MolStart(molIndex);
-  double lambdaCoef = GetLambdaCoef(molIndex, box);
 
   for (uint i = 0; i < atomSize; i++) {
-    if(particleHasNoCharge[start + i]) {
-      continue;
-    }
     for (uint j = i + 1; j < atomSize; j++) {
       currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box);
@@ -940,49 +775,10 @@ double Ewald::MolCorrection(uint molIndex, uint box) const
     }
   }
 
-  return -1.0 * num::qqFact * correction * lambdaCoef;
+  return correction;
 }
 
-//It's called in free energy calculation to calculate the change in
-// correction energy in all lambda states
-void Ewald::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
-                            const std::vector<double> &lambda_Coul,
-                            const uint iState, const uint molIndex,
-                            const uint box) const
-{
-  uint atomSize = mols.GetKind(molIndex).NumAtoms();
-  uint start = mols.MolStart(molIndex);
-  uint lambdaSize = lambda_Coul.size();
-  double coefDiff, dcoefDiff, distSq, dist, correction = 0.0;
-  XYZ virComponents;
-  
-  //Calculate the correction energy with lambda = 1
-  for (uint i = 0; i < atomSize; i++) {
-    if(particleHasNoCharge[start + i]) {
-      continue;
-    }
-
-    for (uint j = i + 1; j < atomSize; j++) {
-      distSq = 0.0;
-      currentAxes.InRcut(distSq, virComponents, currentCoords,
-                         start + i, start + j, box);
-      dist = sqrt(distSq);
-      correction += (particleCharge[i + start] * particleCharge[j + start] *
-                     erf(ff.alpha[box] * dist) / dist);
-    }
-  }
-  correction *= -1.0 * num::qqFact;
-  //Calculate the energy difference for each lambda state
-  for (uint s = 0; s < lambdaSize; s++) {
-    coefDiff = lambda_Coul[s] - lambda_Coul[iState];
-    energyDiff[s].correction += coefDiff * correction;
-  }
-  //Calculate du/dl of correction for current state 
-  dcoefDiff = 1.0;
-  dUdL_Coul.correction += dcoefDiff * correction;
-}
-
-//calculate self term for a box, using system lambda
+//calculate self term for a box
 double Ewald::BoxSelf(BoxDimensions const& boxAxes, uint box) const
 {
   if (box >= BOXES_WITH_U_NB)
@@ -990,29 +786,16 @@ double Ewald::BoxSelf(BoxDimensions const& boxAxes, uint box) const
 
   double self = 0.0;
   double molSelfEnergy;
-  uint i, j, length, molNum;
-  double lambdaCoef = 1.0;
-
+  uint i, j, length;
   for (i = 0; i < mols.GetKindsCount(); i++) {
     MoleculeKind const& thisKind = mols.kinds[i];
     length = thisKind.NumAtoms();
-    molNum = molLookup.NumKindInBox(i, box);
     molSelfEnergy = 0.0;
-    if(lambdaRef.KindIsFractional(i, box)) {
-      //If a molecule is fractional, we subtract the fractional molecule and
-      // add it later
-      --molNum; 
-      lambdaCoef = lambdaRef.GetLambdaCoulomb(i, box);
-    }
 
     for (j = 0; j < length; j++) {
       molSelfEnergy += (thisKind.AtomCharge(j) * thisKind.AtomCharge(j));
     }
-    self += (molSelfEnergy * molNum);
-    if(lambdaRef.KindIsFractional(i, box)) {
-      //Add the fractional nolecule part
-      self += (molSelfEnergy * lambdaCoef);
-    }
+    self += (molSelfEnergy * molLookup.NumKindInBox(i, box));
   }
 
   self = -1.0 * self * ff.alpha[box] * num::qqFact / sqrt(M_PI);
@@ -1023,7 +806,7 @@ double Ewald::BoxSelf(BoxDimensions const& boxAxes, uint box) const
 // NOTE: The calculation of W12, W13, W23 is expensive and would not be
 // requied for pressure and surface tension calculation. So, they have been
 // commented out. In case you need to calculate them, uncomment them.
-Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
+Virial Ewald::ForceReciprocal(Virial& virial, uint box) const
 {
   Virial tempVir = virial;
   if (box >= BOXES_WITH_U_NB)
@@ -1034,7 +817,7 @@ Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
 
   double recipIntra = 0.0;
   double constVal = 1.0 / (4.0 * ff.alphaSq[box]);
-  double factor, arg, charge, lambdaCoef;
+  double factor, arg, charge;
   uint p, length, start, atom;
   int i;
 
@@ -1077,13 +860,13 @@ Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
     thisMol++;
   }
 
-  CallVirialReciprocalGPU(ff.particles->getCUDAVars(), thisBoxCoords,
+  CallForceReciprocalGPU(ff.particles->getCUDAVars(), thisBoxCoords,
                          thisBoxCOMDiff, chargeBox, wT11, wT12,
                          wT13, wT22, wT23, wT33, imageSizeRef[box], constVal,
                          box);
 #else
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(i, factor) reduction(+:wT11, wT22, wT33)
+  #pragma omp parallel for default(shared) private(i, factor) reduction(+:wT11, wT12, wT13, wT22, wT23, wT33)
 #endif
   for (i = 0; i < imageSizeRef[box]; i++) {
     factor = prefactRef[box][i] * (sumRref[box][i] * sumRref[box][i] +
@@ -1097,6 +880,13 @@ Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
 
     wT33 += factor * (1.0 - 2.0 * (constVal + 1.0 / hsqrRef[box][i]) *
                       kzRef[box][i] * kzRef[box][i]);
+    /*
+    wT12 += factor * (-2.0 * (constVal + 1.0 / hsqrRef[box][i]) * kxRef[box][i] * kyRef[box][i]);
+
+    wT13 += factor * (-2.0 * (constVal + 1.0 / hsqrRef[box][i]) * kxRef[box][i] * kzRef[box][i]);
+
+    wT23 += factor * (-2.0 * (constVal + 1.0 / hsqrRef[box][i]) * kyRef[box][i] * kzRef[box][i]);
+          */
   }
 
   //Intramolecular part
@@ -1104,13 +894,9 @@ Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
     length = mols.GetKind(*thisMol).NumAtoms();
     start = mols.MolStart(*thisMol);
     comC = currentCOM.Get(*thisMol);
-    lambdaCoef = GetLambdaCoef(*thisMol, box);
 
     for (p = 0; p < length; p++) {
       atom = start + p;
-      if(particleHasNoCharge[atom]) {
-        continue;
-      }
       //compute the vector of the bead to the COM (p)
       // need to unwrap the atom coordinate
       atomC = currentCoords.Get(atom);
@@ -1119,10 +905,10 @@ Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
       diffC = atomC - comC;
 
       // charge = particleCharge[atom];
-      charge = mols.GetKind(*thisMol).AtomCharge(p) * lambdaCoef;
+      charge = mols.GetKind(*thisMol).AtomCharge(p);
 
 #ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(i, arg, factor) reduction(+:wT11, wT22, wT33)
+      #pragma omp parallel for default(shared) private(i, arg, factor) reduction(+:wT11, wT12, wT13, wT22, wT23, wT33)
 #endif
       for (i = 0; i < imageSizeRef[box]; i++) {
         //compute the dot product of k and r
@@ -1130,14 +916,19 @@ Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
                   kzRef[box][i], currentCoords);
 
         factor = prefactRef[box][i] * 2.0 * (sumIref[box][i] * cos(arg) -
-                                             sumRref[box][i] * sin(arg)) *
-	                                          charge;
+                                             sumRref[box][i] * sin(arg)) * charge;
 
         wT11 += factor * (kxRef[box][i] * diffC.x);
 
         wT22 += factor * (kyRef[box][i] * diffC.y);
 
         wT33 += factor * (kzRef[box][i] * diffC.z);
+
+        /*
+          wT12 += factor * 0.5 *(kxRef[box][i] * diffC.y + kyRef[box][i] * diffC.x);
+          wT13 += factor * 0.5 *(kxRef[box][i] * diffC.z + kzRef[box][i] * diffC.x);
+          wT23 += factor * 0.5 *(kyRef[box][i] * diffC.z + kzRef[box][i] * diffC.y);
+        */
       }
     }
     ++thisMol;
@@ -1163,10 +954,7 @@ Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
   return tempVir;
 }
 
-//calculate correction term for a molecule with lambda = 1
-//It's called when the molecule configuration changes, moleculeTransfer, MEMC
-//It never been caled in Free Energy calculatio, becaue we are in 
-// NVT and NPT ensemble
+//calculate correction term for linear molecule CBMC algorithm
 double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol) const
 {
   uint box = trialMol.GetBox();
@@ -1192,42 +980,6 @@ double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol) const
   return num::qqFact * correction;
 }
 
-//calculate correction term for a molecule with system lambda
-//It's called when the molecule configuration changes, regrowth, crankshaft, IntraSwap, IntraMEMC ...
-double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol,
-                             const uint molIndex) const
-{
-  uint box = trialMol.GetBox();
-  if (box >= BOXES_WITH_U_NB)
-    return 0.0;
-
-  double dist, distSq;
-  double correction = 0.0;
-  XYZ virComponents;
-  const MoleculeKind& thisKind = trialMol.GetKind();
-  uint atomSize = thisKind.NumAtoms();
-  uint start = mols.MolStart(molIndex);
-  double lambdaCoef = GetLambdaCoef(molIndex, box);
-
-  for (uint i = 0; i < atomSize; i++) {
-    if(particleHasNoCharge[start + i]) {
-      continue;
-    }
-    for (uint j = i + 1; j < atomSize; j++) {
-      currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
-                         i, j, box);
-
-      dist = sqrt(distSq);
-      correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
-                     erf(ff.alpha[box] * dist) / dist);
-    }
-  }
-  return num::qqFact * correction * lambdaCoef;
-}
-
-//It's called if we transfer one molecule from one box to another
-//It never been caled in Free Energy calculatio, becaue we are in 
-// NVT and NPT ensemble
 double Ewald::SwapSelf(const cbmc::TrialMol& trialMol) const
 {
   uint box = trialMol.GetBox();
@@ -1242,33 +994,6 @@ double Ewald::SwapSelf(const cbmc::TrialMol& trialMol) const
     en_self -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(i));
   }
   return (en_self * ff.alpha[box] * num::qqFact / sqrt(M_PI));
-}
-
-//It's called in free energy calculation to calculate the change in
-// self energy in all lambda states
-void Ewald::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
-                    const std::vector<double> &lambda_Coul,
-                    const uint iState, const uint molIndex,
-                    const uint box) const
-{
-  uint atomSize = mols.GetKind(molIndex).NumAtoms();
-  uint start = mols.MolStart(molIndex);
-  uint lambdaSize = lambda_Coul.size();
-  double coefDiff, dcoefDiff, en_self = 0.0;
-  //Calculate the self energy with lambda = 1
-  for (uint i = 0; i < atomSize; i++) {
-    en_self += (particleCharge[i + start] * particleCharge[i + start]); 
-  }
-  en_self *= -1.0 * ff.alpha[box] * num::qqFact / sqrt(M_PI);
-
-  //Calculate the energy difference for each lambda state
-  for (uint s = 0; s < lambdaSize; s++) {
-    coefDiff = lambda_Coul[s] - lambda_Coul[iState];
-    energyDiff[s].self += coefDiff * en_self;
-  }
-  //Calculate du/dl of self for current state 
-  dcoefDiff = 1.0;
-  dUdL_Coul.self += dcoefDiff * en_self;
 }
 
 //update reciprocate values
@@ -1314,61 +1039,3 @@ void Ewald::UpdateRecipVec(uint box)
     imageSizeRef[b] = imageSize[b];
   }
 }
-
-
-//calculate reciprocate force term for a box with molCoords
-void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
-                               XYZArray& atomForceRec,
-                               XYZArray& molForceRec,
-                               uint box)
-{
-  if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
-    // molecule iterator
-    MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
-    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
-
-    while(thisMol != end) {
-      uint molIndex = *thisMol;
-      uint length, start, p, i;
-      double dot, factor;
-      molForceRec.Set(molIndex, 0.0, 0.0, 0.0);
-      length = mols.GetKind(molIndex).NumAtoms();
-      start = mols.MolStart(molIndex);
-      double lambdaCoef = GetLambdaCoef(molIndex, box);
-
-      for(p = start; p < start + length; p++) {
-        double X = 0.0, Y = 0.0, Z = 0.0;
-
-        if(!particleHasNoCharge[p]) {
-#ifdef _OPENMP
-          #pragma omp parallel for default(shared) private(i, dot, factor) \
-          reduction(+:X, Y, Z)
-#endif
-          for(i = 0; i < imageSize[box]; i++) {
-            dot = Dot(p, kx[box][i], ky[box][i], kz[box][i], molCoords);
-    
-            factor = 2.0 * particleCharge[p] * prefact[box][i] * lambdaCoef *
-                    (cos(dot) * sumInew[box][i] - sin(dot) * sumRnew[box][i]);
-
-            X += factor * kx[box][i];
-            Y += factor * ky[box][i];
-            Z += factor * kz[box][i];
-          }
-        }
-        //printf("Atomforce: %lf, %lf, %lf\n", X, Y, Z);
-        atomForceRec.Set(p, X, Y, Z);
-        molForceRec.Add(molIndex, X, Y, Z);
-      }
-      thisMol++;
-    }
-  }
-}
-
-double Ewald::GetLambdaCoef(uint molA, uint box) const
-{
-  double lambda = lambdaRef.GetLambdaCoulomb(molA, mols.GetMolKind(molA), box);
-  return lambda;
-}
-
-
-

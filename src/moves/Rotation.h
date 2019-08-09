@@ -10,6 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveBase.h"
 #include <iostream>
 
+
 class Rotate : public MoveBase, public MolTransformBase
 {
 public:

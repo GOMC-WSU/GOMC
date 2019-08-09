@@ -72,23 +72,17 @@ public:
                     ff_setup::NBfix const& nbfix);
 
   virtual double CalcEn(const double distSq,
-                        const uint kind1, const uint kind2,
-                        const double lambda) const;
-  virtual double CalcVir(const double distSq, const uint kind1, 
-                        const uint kind2, const double lambda) const;
+                        const uint kind1, const uint kind2) const;
+  virtual double CalcVir(const double distSq,
+                         const uint kind1, const uint kind2) const;
   virtual void CalcAdd_1_4(double& en, const double distSq,
                            const uint kind1, const uint kind2) const;
 
   // coulomb interaction functions
   virtual double CalcCoulomb(const double distSq,
-                              const uint kind1,
-                              const uint kind2,
-                             const double qi_qj_Fact,
-                             const double lambda,
-                             const uint b) const;
-  virtual double CalcCoulombVir(const double distSq, const uint kind1,
-                                const uint kind2, const double qi_qj, 
-                                const double lambda, const uint b) const;
+                             const double qi_qj_Fact, const uint b) const;
+  virtual double CalcCoulombVir(const double distSq,
+                                const double qi_qj, const uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact,
                                   const bool NB) const;
@@ -105,22 +99,7 @@ public:
     return 0.0;
   }
 
-  //Calculate the dE/dlambda for vdw energy
-  virtual double CalcdEndL(const double distSq, const uint kind1,
-                           const uint kind2, const 
-                           double lambda) const;
-  //Calculate the dE/dlambda for Coulomb energy
-  virtual double CalcCoulombdEndL(const double distSq, const uint kind1,
-                                  const uint kind2,const double qi_qj_Fact,
-                                  const double lambda, uint b) const;
-
-  protected:
-  virtual double CalcEn(const double distSq, const uint index) const;
-  virtual double CalcVir(const double distSq, const uint index) const;
-  virtual double CalcCoulomb(const double distSq, const double qi_qj_Fact, 
-                             const uint b) const;
-  virtual double CalcCoulombVir(const double distSq, const double qi_qj,
-                                uint b) const;
+protected:
 
   double *An, *Bn, *Cn, *An_1_4, *Bn_1_4, *Cn_1_4;
   double *sig6, *sig6_1_4, *sign, *sign_1_4;
@@ -242,38 +221,25 @@ inline void FF_SWITCH_MARTINI::CalcCoulombAdd_1_4(double& en,
 }
 
 
+//mie potential
 inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
                                         const uint kind1,
-                                        const uint kind2,
-                                        const double lambda) const
+                                        const uint kind2) const
 {
   if(forcefield.rCutSq < distSq)
     return 0.0;
 
   uint index = FlatIndex(kind1, kind2);
-  if(lambda >= 0.999999) {
-    //save computation time
-    return CalcEn(distSq, index);
-  }
-  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
-  sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
-  double dist6 = distSq * distSq * distSq;
-  double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
-  double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, 1.0/3.0);
-
-  double en = lambda * CalcEn(softRsq, index);
-  return en;
-}
-
-inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
-                                        const uint index) const
-{
   double r_2 = 1.0 / distSq;
   double r_4 = r_2 * r_2;
   double r_6 = r_4 * r_2;
+#ifdef MIE_INT_ONLY
+  uint n_ij = n[index];
+  double r_n = num::POW(r_2, r_4, attract, n_ij);
+#else
   double n_ij = n[index];
-  double r_n = pow(r_2, (n_ij * 0.5));
+  double r_n = pow(sqrt(r_2), n_ij);
+#endif
 
   double rij_ron = sqrt(distSq) - rOn;
   double rij_ron_2 = rij_ron * rij_ron;
@@ -292,34 +258,37 @@ inline double FF_SWITCH_MARTINI::CalcEn(const double distSq,
   return Eij;
 }
 
+inline double FF_SWITCH_MARTINI::CalcCoulomb(const double distSq,
+    const double qi_qj_Fact, const uint b) const
+{
+  if(forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
+  if(forcefield.ewald) {
+    double dist = sqrt(distSq);
+    double val = forcefield.alpha[b] * dist;
+    return  qi_qj_Fact * erfc(val) / dist;
+  } else {
+    // in Martini, the Coulomb switching distance is zero, so we will have
+    // sqrt(distSq) - rOnCoul =  sqrt(distSq)
+    double dist = sqrt(distSq);
+    double rij_ronCoul_3 = dist * distSq;
+    double rij_ronCoul_4 = distSq * distSq;
+
+    double coul = -(A1 / 3.0) * rij_ronCoul_3 - (B1 / 4.0) * rij_ronCoul_4 - C1;
+    return qi_qj_Fact  * diElectric_1 * (1.0 / dist + coul);
+  }
+}
+
+//mie potential
 inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
-                                        const uint kind1,
-                                        const uint kind2, 
-                                        const double lambda) const
+    const uint kind1,
+    const uint kind2) const
 {
   if(forcefield.rCutSq < distSq)
     return 0.0;
 
   uint index = FlatIndex(kind1, kind2);
-  if(lambda >= 0.999999) {
-    //save computation time
-    return CalcVir(distSq, index);
-  }
-  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
-  sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
-  double dist6 = distSq * distSq * distSq;
-  double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
-  double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, 1.0/3.0);
-  double correction = distSq / softRsq;
-  //We need to fix the return value from calcVir
-  double vir = lambda * correction * correction * CalcVir(softRsq, index);
-  return vir;
-}
-
-inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
-                                         const uint index) const
-{
   double n_ij = n[index];
   double r_1 = 1.0 / sqrt(distSq);
   double r_8 = pow(r_1, 8);
@@ -328,6 +297,7 @@ inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
   double rij_ron = sqrt(distSq) - rOn;
   double rij_ron_2 = rij_ron * rij_ron;
   double rij_ron_3 = rij_ron_2 * rij_ron;
+
 
   double dshifttempRep = An[index] * rij_ron_2 + Bn[index] * rij_ron_3;
   double dshifttempAtt = A6 * rij_ron_2 + B6 * rij_ron_3;
@@ -342,159 +312,30 @@ inline double FF_SWITCH_MARTINI::CalcVir(const double distSq,
 
 }
 
-inline double FF_SWITCH_MARTINI::CalcCoulomb(const double distSq,
-                                            const uint kind1,
-                                            const uint kind2,
-                                            const double qi_qj_Fact, 
-                                            const double lambda,
-                                            const uint b) const
+inline double FF_SWITCH_MARTINI::CalcCoulombVir(const double distSq,
+    const double qi_qj, const uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
 
-  if(lambda >= 0.999999) {
-    //save computation time
-    return CalcCoulomb(distSq, qi_qj_Fact, b);
-  }
-  double en = 0.0;
-  if(forcefield.sc_coul) {
-    uint index = FlatIndex(kind1, kind2);
-    double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
-    sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
-    double dist6 = distSq * distSq * distSq;
-    double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
-    double softDist6 = lambdaCoef * sigma6 + dist6;
-    double softRsq = pow(softDist6, 1.0/3.0);
-    en = lambda * CalcCoulomb(softRsq, qi_qj_Fact, b);
-  } else {
-    en = lambda * CalcCoulomb(distSq, qi_qj_Fact, b);
-  }
-  return en;
-}
-
-inline double FF_SWITCH_MARTINI::CalcCoulomb(const double distSq,
-                                             const double qi_qj_Fact,
-                                             const uint b) const
-{
-  if(forcefield.ewald) {
-    double dist = sqrt(distSq);
-    double val = forcefield.alpha[b] * dist;
-    return qi_qj_Fact * erfc(val) / dist;
-  } else {
-    // in Martini, the Coulomb switching distance is zero, so we will have
-    // sqrt(distSq) - rOnCoul =  sqrt(distSq)
-    double dist = sqrt(distSq);
-    double rij_ronCoul_3 = dist * distSq;
-    double rij_ronCoul_4 = distSq * distSq;
-
-    double coul = -(A1 / 3.0) * rij_ronCoul_3 - (B1 / 4.0) * rij_ronCoul_4 - C1;
-    return qi_qj_Fact  * diElectric_1 * (1.0 / dist + coul);
-  }
-}
-
-inline double FF_SWITCH_MARTINI::CalcCoulombVir(const double distSq,
-                                                const uint kind1,
-                                                const uint kind2,
-                                                const double qi_qj, 
-                                                const double lambda,
-                                                const uint b) const
-{
-  if(forcefield.rCutCoulombSq[b] < distSq)
-    return 0.0;
-
-  if(lambda >= 0.999999) {
-    //save computation time
-    return CalcCoulombVir(distSq, qi_qj, b);
-  }
-  double vir = 0.0;
-  if(forcefield.sc_coul) {
-    uint index = FlatIndex(kind1, kind2);
-    double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
-    sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
-    double dist6 = distSq * distSq * distSq;
-    double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
-    double softDist6 = lambdaCoef * sigma6 + dist6;
-    double softRsq = pow(softDist6, 1.0/3.0);
-    double correction = distSq / softRsq;
-    //We need to fix the return value from calcVir
-    vir = lambda * correction * correction * CalcCoulombVir(softRsq, qi_qj, b);
-  } else {
-    vir = lambda * CalcCoulombVir(distSq, qi_qj, b);
-  }
-  return vir;
-}
-
-inline double FF_SWITCH_MARTINI::CalcCoulombVir(const double distSq,
-                                                const double qi_qj,
-                                                const uint b) const
-{
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
     double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
     double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
     double temp = erfc(forcefield.alpha[b] * dist);
-    return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+    return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
   } else {
     // in Martini, the Coulomb switching distance is zero, so we will have
     // sqrt(distSq) - rOnCoul =  sqrt(distSq)
     double dist = sqrt(distSq);
     double rij_ronCoul_2 = distSq;
     double rij_ronCoul_3 = dist * distSq;
+    double rij_ronCoul_4 = distSq * distSq;
 
     double virCoul = A1 / rij_ronCoul_2 + B1 / rij_ronCoul_3;
     return qi_qj * diElectric_1 * ( 1.0 / (dist * distSq) + virCoul / dist);
   }
 }
 
-inline double FF_SWITCH_MARTINI::CalcdEndL(const double distSq,
-                                          const uint kind1,
-                                          const uint kind2,
-                                          const double lambda) const
-{
-  if(forcefield.rCutSq < distSq)
-    return 0.0;
-
-  uint index = FlatIndex(kind1, kind2);
-  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
-  sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
-  double dist6 = distSq * distSq * distSq;
-  double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
-  double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, 1.0/3.0);
-  double fCoef = lambda * forcefield.sc_alpha * forcefield.sc_power / 6.0;
-  fCoef *= pow(1.0 - lambda, forcefield.sc_power - 1) * sigma6 / (softRsq * softRsq);
-  double dhdl = CalcEn(softRsq, index) + fCoef * CalcVir(softRsq, index);
-  return dhdl;
-}
-
-//Calculate the dE/dlambda for Coulomb energy
-inline double FF_SWITCH_MARTINI::CalcCoulombdEndL(const double distSq,
-                                                  const uint kind1,
-                                                  const uint kind2,
-                                                  const double qi_qj_Fact,
-                                                  const double lambda,
-                                                  uint b) const
-{
-  if(forcefield.rCutCoulombSq[b] < distSq)
-    return 0.0;
-    
-  double dhdl = 0.0;
-  if(forcefield.sc_coul) {
-    uint index = FlatIndex(kind1, kind2);
-    double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
-    sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
-    double dist6 = distSq * distSq * distSq;
-    double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
-    double softDist6 = lambdaCoef * sigma6 + dist6;
-    double softRsq = pow(softDist6, 1.0/3.0);
-    double fCoef = lambda * forcefield.sc_alpha * forcefield.sc_power / 6.0;
-    fCoef *= pow(1.0 - lambda, forcefield.sc_power - 1) * sigma6 / (softRsq * softRsq);
-    dhdl = CalcCoulomb(softRsq, qi_qj_Fact, b) + 
-          fCoef * CalcCoulombVir(softRsq, qi_qj_Fact, b);
-  } else {
-    dhdl = CalcCoulomb(distSq, qi_qj_Fact, b);
-  }
-  return dhdl; 
-}
 
 #endif /*FF_SWITCH_MARTINI_H*/
