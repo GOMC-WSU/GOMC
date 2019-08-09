@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -20,7 +20,7 @@ EwaldCached::EwaldCached(StaticVals & stat, System & sys) : Ewald(stat, sys)
 #if ENSEMBLE == GEMC
   , GEMC_KIND(stat.kindOfGEMC)
 #endif
-  {}
+{}
 
 
 EwaldCached::~EwaldCached()
@@ -28,7 +28,7 @@ EwaldCached::~EwaldCached()
   SafeDeleteArray(kmax);
   SafeDeleteArray(imageSize);
   SafeDeleteArray(imageSizeRef);
-  for(uint b=0; b < BOXES_WITH_U_NB; b++) {
+  for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
     SafeDeleteArray(kx[b]);
     SafeDeleteArray(ky[b]);
     SafeDeleteArray(kz[b]);
@@ -61,7 +61,7 @@ EwaldCached::~EwaldCached()
 
   int i;
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i)
+  #pragma omp parallel for default(shared) private(i)
 #endif
   for (i = 0; i < mols.count; i++) {
     SafeDeleteArray(cosMolRef[i]);
@@ -394,7 +394,7 @@ double EwaldCached::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
 {
   //This function should not be called in IDExchange move
   std::cout << "Error: Cached Fourier method cannot be used while " <<
-    "performing Molecule Exchange move!" << std::endl;
+            "performing Molecule Exchange move!" << std::endl;
   exit(EXIT_FAILURE);
   return 0.0;
 }
@@ -497,17 +497,17 @@ void EwaldCached::exgMolCache()
 //backup the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
 void EwaldCached::backupMolCache()
 {
-  #if ENSEMBLE == NPT  
+#if ENSEMBLE == NPT
   exgMolCache();
-  #elif ENSEMBLE == GEMC
+#elif ENSEMBLE == GEMC
   if(GEMC_KIND == mv::GEMC_NVT) {
     if(BOX_TOTAL == 2) {
       exgMolCache();
     } else {
       uint m;
-      #ifdef _OPENMP
+#ifdef _OPENMP
       #pragma omp parallel for private(m)
-      #endif
+#endif
       for(m = 0; m < mols.count; m++) {
         std::memcpy(cosMolBoxRecip[m], cosMolRef[m], sizeof(double)*imageTotal);
         std::memcpy(sinMolBoxRecip[m], sinMolRef[m], sizeof(double)*imageTotal);
@@ -515,13 +515,13 @@ void EwaldCached::backupMolCache()
     }
   } else {
     uint m;
-    #ifdef _OPENMP
+#ifdef _OPENMP
     #pragma omp parallel for private(m)
-    #endif
+#endif
     for(m = 0; m < mols.count; m++) {
       std::memcpy(cosMolBoxRecip[m], cosMolRef[m], sizeof(double)*imageTotal);
       std::memcpy(sinMolBoxRecip[m], sinMolRef[m], sizeof(double)*imageTotal);
     }
   }
-  #endif
+#endif
 }

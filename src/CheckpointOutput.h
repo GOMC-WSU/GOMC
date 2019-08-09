@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -12,11 +12,13 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveBase.h"
 #include <iostream>
 
-class CheckpointOutput : public OutputableBase {
+class CheckpointOutput : public OutputableBase
+{
 public:
   CheckpointOutput(System & sys, StaticVals const& statV);
 
-  ~CheckpointOutput() {
+  ~CheckpointOutput()
+  {
     if(outputFile)
       fclose(outputFile);
   }
@@ -25,12 +27,13 @@ public:
   virtual void Init(pdb_setup::Atoms const& atoms,
                     config_setup::Output const& output);
   virtual void Sample(const ulong step) {}
-  virtual void Output(const ulong step) {
+  virtual void Output(const ulong step)
+  {
     if(!enableOutCheckpoint) {
       return;
     }
 
-    if((step+1) % stepsPerCheckpoint == 0) {
+    if((step + 1) % stepsPerCheckpoint == 0) {
       DoOutput(step);
     }
   }

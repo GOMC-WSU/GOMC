@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -116,7 +116,7 @@ void TrialMol::AddAtom(const uint index, const XYZ& loc)
   tCoords.Set(index, loc);
   atomBuilt[index] = true;
 }
-    
+
 void TrialMol::SetAtomCoords(uint index, const XYZ& loc)
 {
   tCoords.Set(index, loc);
@@ -302,7 +302,7 @@ void TrialMol::SetCavMatrix(const XYZArray& matrix)
 }
 
 void TrialMol::SetSeed(const XYZ& coords, const XYZ& cav, const bool inCav,
-		       const bool fixCOM, const bool rotBB)
+                       const bool fixCOM, const bool rotBB)
 {
   cavityCenter = coords;
   cavity = cav;
@@ -317,7 +317,7 @@ void TrialMol::SetSeed(const bool inCav, const bool fixCOM, const bool rotBB)
   comFix = fixCOM;
   rotateBB = rotBB;
 }
-    
+
 void TrialMol::SetBackBone(const uint bb[2])
 {
   backbone[0] = bb[0];

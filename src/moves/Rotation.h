@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -23,7 +23,8 @@ private:
   Intermolecular inter_LJ, inter_Real, recip;
 };
 
-void Rotate::PrintAcceptKind() {
+void Rotate::PrintAcceptKind()
+{
   for(uint k = 0; k < molRef.GetKindsCount(); k++) {
     printf("%-30s %-5s ", "% Accepted Rotation ", molRef.kinds[k].name.c_str());
     for(uint b = 0; b < BOX_TOTAL; b++) {
@@ -56,7 +57,7 @@ inline void Rotate::CalcEn()
   cellList.RemoveMol(m, b, coordCurrRef);
   molRemoved = true;
   overlap = false;
-  
+
   //calculate LJ interaction and real term of electrostatic interaction
   overlap = calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);
   if(!overlap) {

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -87,10 +87,10 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
       if(kinds[mk].MoleculeHasCharge()) {
         if(!forcefield.ewald && !forcefield.isMartini) {
           std::cout << "Warning: Charge detected in " << kinds[mk].name
-          << " but Ewald Summaion method is disabled!\n\n";
+                    << " but Ewald Summaion method is disabled!\n\n";
         } else if(!forcefield.electrostatic && forcefield.isMartini) {
           std::cout << "Warning: Charge detected in " << kinds[mk].name
-          << " but Electrostatic energy calculation is disabled!\n\n";
+                    << " but Electrostatic energy calculation is disabled!\n\n";
         }
       }
     }

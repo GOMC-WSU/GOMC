@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -27,7 +27,7 @@ DCOnSphere::DCOnSphere(DCData* data, const mol_setup::MolKind kind,
       break;
     }
   }
-    
+
   if(data->nLJTrialsNth < 1) {
     std::cout << "Error: CBMC secondary atom trials must be greater than 0.\n";
     exit(EXIT_FAILURE);
