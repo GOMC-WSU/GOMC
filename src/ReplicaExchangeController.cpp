@@ -172,18 +172,14 @@ void ReplicaExchangeController::runMultiSim(){
               //  odd replicas and repl_id+1 {1,2} ... on odd parity
               if (i % 2 == parityOfSwaps){
                   delta = calc_delta(fplog, a, b, a, b);
-                  if (delta <= 0) {
+                  double prob = min(1.0, exp(-delta));
+                  bool accept = (rand.rand() < prob);
+                  re.prob[i] = prob;
+                  if (accept) {
                     exchange(a, b);
-                    re.prob[i] = 1;
                     re.bEx[i] = true;
                   } else {
-                    re.prob[i] = exp(-delta);
-                    if (rand.rand() < re.prob[i]){
-                      exchange(a, b);
-                      re.bEx[i] = true;
-                    } else {
-                      re.bEx[i] = false;
-                    }
+                    re.bEx[i] = false;
                   }
                   re.prob_sum[i] += re.prob[i];
                   if (re.bEx[i]) {
