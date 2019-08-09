@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -21,7 +21,7 @@ PDBOutput::PDBOutput(System  & sys, StaticVals const& statV) :
   pStr(coordCurrRef.Count(), GetDefaultAtomStr()),
   boxDimRef(sys.boxDimRef), molRef(statV.mol)
 {
-  for(int i=0; i<BOX_TOTAL; i++)
+  for(int i = 0; i < BOX_TOTAL; i++)
     frameNumber[i] = 0;
 }
 
@@ -360,7 +360,7 @@ void PDBOutput::PrintRemark(const uint b, const uint step, Writer & out)
   outStr.replace(label::POS.START, label::POS.LENGTH, label::REMARK);
   //Tag GOMC
   outStr.replace(name::POS.START, name::POS.LENGTH, name::STR_GOMC);
-  
+
   // Print Frame number
   frameNumber[b]++;
   toStr.Fixed().Align(frameNum::ALIGN).Precision(frameNum::PRECISION);
@@ -368,7 +368,7 @@ void PDBOutput::PrintRemark(const uint b, const uint step, Writer & out)
 
   // Print step number
   toStr.Fixed().Align(stepsNum::ALIGN).Precision(stepsNum::PRECISION);
-  toStr.Replace(outStr, step+1, stepsNum::POS);
+  toStr.Replace(outStr, step + 1, stepsNum::POS);
 
   //Write cell line
   out.file << outStr << std::endl;

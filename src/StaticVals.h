@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -70,7 +70,7 @@ public:
   config_setup::MEMCVal   memcVal;
   config_setup::CFCMCVal  cfcmcVal;
 #endif
- 
+
   bool IsEquil(const uint step)
   {
     return step >= simEventFreq.tillEquil;
@@ -79,9 +79,9 @@ public:
   {
     return move % simEventFreq.perAdjust == 0;
   }
-  uint GetPerAdjust() const 
-  { 
-    return simEventFreq.perAdjust; 
+  uint GetPerAdjust() const
+  {
+    return simEventFreq.perAdjust;
   }
   double AcceptPercent(const uint tempAccept)
   {

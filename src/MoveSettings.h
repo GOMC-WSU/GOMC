@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -34,7 +34,7 @@ class MoveSettings
 {
 public:
   friend class OutputVars;
-  MoveSettings(BoxDimensions & dim) : boxDimRef(dim) 
+  MoveSettings(BoxDimensions & dim) : boxDimRef(dim)
   {
     acceptPercent.resize(BOX_TOTAL);
     scale.resize(BOX_TOTAL);

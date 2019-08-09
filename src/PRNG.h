@@ -1,6 +1,6 @@
 
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -95,7 +95,7 @@ public:
     return XYZ(gen->rand(bound2) - bound, gen->rand(bound2) - bound,
                gen->rand(bound2) - bound);
   }
-    
+
   // return between [-bound, bound]
   double SymExc(double bound)
   {
@@ -117,13 +117,13 @@ public:
                       const uint b)
   {
     XYZ temp(randExc(dims.axis.x[b]), randExc(dims.axis.y[b]),
-	     randExc(dims.axis.z[b]));
+             randExc(dims.axis.z[b]));
     loc = dims.TransformSlant(temp, b);
   }
 
   void FillWithRandomInCavity(XYZ &loc, XYZ const& cavDim)
   {
-    XYZ temp(SymExc(cavDim.x/2.0), SymExc(cavDim.y/2.0), SymExc(cavDim.z/2.0));
+    XYZ temp(SymExc(cavDim.x / 2.0), SymExc(cavDim.y / 2.0), SymExc(cavDim.z / 2.0));
     loc = temp;
   }
 
@@ -240,11 +240,11 @@ public:
     //Calculate "chunk" of move for each box.
     double boxDiv = movPerc / 2;
     //Which chunk was our draw in...
-    uint bpick = (uint)(subDraw/boxDiv);
+    uint bpick = (uint)(subDraw / boxDiv);
     //FIXME: Hack to prevent picking invalid boxes, may violate balance
     if (bpick >= BOX_TOTAL)
       bpick--;
-    b = (b > 0 ? true : false);
+    b = (bpick > 0 ? true : false);
   }
 
   void SetOtherBox(uint & bDest, const uint bSrc) const
@@ -383,14 +383,14 @@ public:
       //Among the ones of that kind in that box, pick one @ random.
       //Molecule with a tag (beta == 2 and beta == 1) cannot be selected.
       do {
-	mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
-	//Lookup true index in table.
-	m = molLookRef.GetMolNum(mOff, mk, b);
+        mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
+        //Lookup true index in table.
+        m = molLookRef.GetMolNum(mOff, mk, b);
       } while(molLookRef.IsNoSwap(m));
       m2 = m;
       mk2 = mk;
     }
-    
+
     return rejectState;
   }
 
@@ -402,7 +402,7 @@ public:
     //Pick molecule with the help of molecule lookup table.
     if ((molLookRef.NumKindInBox(mk, b) == 0)) {
       rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
-    } else if (molLookRef.NumKindInBox(mk, b) < n){
+    } else if (molLookRef.NumKindInBox(mk, b) < n) {
       rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
     } else {
       for(uint i = 0; i < n; i++) {
@@ -413,16 +413,16 @@ public:
           mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
           //Lookup true index in table.
           m = molLookRef.GetMolNum(mOff, mk, b);
-        } while(molLookRef.IsNoSwap(m) || 
-		std::find(m2.begin(), m2.end(), m) != m2.end());
+        } while(molLookRef.IsNoSwap(m) ||
+                std::find(m2.begin(), m2.end(), m) != m2.end());
         m2.push_back(m);
         mk2.push_back(mk);
       }
     }
-      
+
     return rejectState;
   }
-    
+
   // pick a molecule that is not fixed (beta != 1)
   uint PickMolAndBoxPair(uint &m, uint &mk, uint & bSrc, uint & bDest,
                          double subDraw, const double movPerc)
@@ -449,7 +449,10 @@ public:
     return PickMol(m, mk, b, subDraw, boxDiv);
   }
 
-  MTRand * GetGenerator() { return gen; }
+  MTRand * GetGenerator()
+  {
+    return gen;
+  }
 
 private:
   MTRand * gen;

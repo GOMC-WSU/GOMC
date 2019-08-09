@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -90,7 +90,7 @@ public:
 
   //calculate correction term for a molecule
   virtual double MolCorrection(uint molIndex, uint box)const;
-    
+
   //calculate reciprocate term in destination box for swap move
   virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
                                const int molIndex);
@@ -98,7 +98,7 @@ public:
   //calculate reciprocate term in source box for swap move
   virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                  const uint box, const int molIndex);
-    
+
   //calculate reciprocate term for inserting some molecules (kindA) in
   //destination box and removing a molecule (kindB) from destination box
   virtual double SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
@@ -115,7 +115,7 @@ public:
     
   //back up reciptocate value to Ref (will be called during initialization)
   virtual void SetRecipRef(uint box);
-    
+
   //update reciprocate values
   virtual void UpdateRecip(uint box);
 

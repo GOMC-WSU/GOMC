@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -393,7 +393,7 @@ void ConsoleOutput::PrintMoveTitle()
     printElement("TRANACCEPT", elementWidth);
     printElement("TRANACCEPT%", elementWidth);
   }
-    
+
   if(var->Performed(mv::MEMC)) {
     printElement("MOLEXCHANGE", elementWidth);
     printElement("MOLEXACCEPT", elementWidth);
@@ -424,7 +424,7 @@ void ConsoleOutput::printElement(const double t, const int width,
 {
   const char separator = ' ';
   if(abs(t) > 1e99) {
-    std::cout << right << std::scientific << std::setprecision(percision-1) <<
+    std::cout << right << std::scientific << std::setprecision(percision - 1) <<
               setw(width) << setfill(separator) << t;
   } else {
     std::cout << right << std::scientific << std::setprecision(percision) <<

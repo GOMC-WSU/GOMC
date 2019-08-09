@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -102,7 +102,7 @@ inline double Factorial(const uint n)
   return result;
 }
 
-//return (n+count)!/n! 
+//return (n+count)!/n!
 inline double Factorial(const uint n, const uint count)
 {
   double result = 1.0;

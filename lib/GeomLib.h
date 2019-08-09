@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -98,11 +98,11 @@ inline void SetBasis(XYZArray &basis, XYZ const &V)
   v1.Normalize();
   XYZ v2;
   if(fabs(v1.x) < 0.8) {
-      //v3 will be v1 x the standard X unit vec
-      v2 = XYZ(1.0, 0.0, 0.0);
+    //v3 will be v1 x the standard X unit vec
+    v2 = XYZ(1.0, 0.0, 0.0);
   } else {
-      //v3 will be v1 x the standard Y unit vec
-      v2 = XYZ(0.0, 1.0, 0.0);
+    //v3 will be v1 x the standard Y unit vec
+    v2 = XYZ(0.0, 1.0, 0.0);
   }
   XYZ v3 = Cross(v1, v2);
   v3.Normalize();
@@ -119,18 +119,18 @@ inline void TransposeMatrix(XYZArray &Inv, XYZArray const &matrix)
   Inv.x[0] = matrix.x[0];
   Inv.x[1] = matrix.y[0];
   Inv.x[2] = matrix.z[0];
-    
+
   Inv.y[0] = matrix.x[1];
   Inv.y[1] = matrix.y[1];
   Inv.y[2] = matrix.z[1];
-    
+
   Inv.z[0] = matrix.x[2];
   Inv.z[1] = matrix.y[2];
   Inv.z[2] = matrix.z[2];
 }
 
 //Calculate transform of A using dot product
-inline XYZ Transform(const XYZArray &basis, const XYZ &A) 
+inline XYZ Transform(const XYZArray &basis, const XYZ &A)
 {
   XYZ temp;
   temp.x = A.x * basis.x[0] + A.y * basis.x[1] + A.z * basis.x[2];

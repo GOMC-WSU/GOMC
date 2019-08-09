@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -69,7 +69,7 @@ public:
     // We will use forceOutput for recalculate trajectory
     // If we are not running any simulation then the step will stay 0
     // But we still need to output console for each frame
-    // So by setting this value to true we will force all the outputs to 
+    // So by setting this value to true we will force all the outputs to
     // output even though the step is zero
     if(totSteps == 0)
       forceOutput = true;

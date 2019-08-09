@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -36,7 +36,7 @@ void MoveSettings::Init(StaticVals const& statV,
 
   for(uint b = 0; b < BOX_TOTAL; b++) {
     for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++) {
-      for(uint k = 0; k < totKind; k++){
+      for(uint k = 0; k < totKind; k++) {
         if(m == mv::DISPLACE) {
           if(remarks.restart && remarks.disp[b] > 0.0) {
             scale[b][m][k] = remarks.disp[b];
@@ -92,18 +92,18 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
     isSingleMoveAccepted = false;
 
   acceptPercent[box][move][kind] = (double)(accepted[box][move][kind]) /
-                                  (double)(tries[box][move][kind]);
+                                   (double)(tries[box][move][kind]);
 
   //for any move that we dont care about kind of molecule, it should be included
   //in the if condition  
   if (move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE
   #if ENSEMBLE == GEMC || ENSEMBLE == GCMC 
       || move == mv::MEMC
-  #endif
-  #if ENSEMBLE == NPT || ENSEMBLE == GEMC
+#endif
+#if ENSEMBLE == NPT || ENSEMBLE == GEMC
       || move == mv::VOL_TRANSFER
-  #endif 
-    ) {
+#endif
+     ) {
     for (uint k = 1; k < totKind; k++) {
       tries[box][move][k]++;
       tempTries[box][move][k]++;
@@ -112,7 +112,7 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
         accepted[box][move][k]++;
       }
       acceptPercent[box][move][k] = (double)(accepted[box][move][k]) /
-	                           (double)(tries[box][move][k]);
+                                    (double)(tries[box][move][k]);
     }
   }
 }
@@ -168,7 +168,7 @@ void MoveSettings::Adjust(const uint box, const uint move, const uint kind)
   if(move == mv::DISPLACE) {
     if(tempTries[box][move][kind] > 0) {
       double currentAccept = (double)(tempAccepted[box][move][kind]) /
-                           (double)(tempTries[box][move][kind]);
+                             (double)(tempTries[box][move][kind]);
       double fractOfTargetAccept = currentAccept / TARGET_ACCEPT_FRACT;
       if (fractOfTargetAccept > 0.0) {
         scale[box][move][kind] *= fractOfTargetAccept;
@@ -181,7 +181,7 @@ void MoveSettings::Adjust(const uint box, const uint move, const uint kind)
   } else if(move == mv::ROTATE) {
     if(tempTries[box][move][kind] > 0) {
       double currentAccept = (double)(tempAccepted[box][move][kind]) /
-                           (double)(tempTries[box][move][kind]);
+                             (double)(tempTries[box][move][kind]);
       double fractOfTargetAccept = currentAccept / TARGET_ACCEPT_FRACT;
       if (fractOfTargetAccept > 0.0) {
         scale[box][move][kind] *= fractOfTargetAccept;
@@ -195,7 +195,7 @@ void MoveSettings::Adjust(const uint box, const uint move, const uint kind)
   else if(move == mv::VOL_TRANSFER) {
     if(tempTries[box][move][kind] > 0) {
       double currentAccept = (double)(tempAccepted[box][move][kind]) /
-                           (double)(tempTries[box][move][kind]);
+                             (double)(tempTries[box][move][kind]);
       double fractOfTargetAccept = currentAccept / TARGET_ACCEPT_FRACT;
       if (fractOfTargetAccept > 0.0) {
         scale[box][move][kind] *= fractOfTargetAccept;
@@ -214,7 +214,7 @@ void MoveSettings::Adjust(const uint box, const uint move, const uint kind)
 
 uint MoveSettings::GetAcceptTot(const uint box, const uint move) const
 {
-  uint sum= 0;
+  uint sum = 0;
   for(uint k = 0; k < totKind; k++) {
     sum += accepted[box][move][k];
   }
@@ -222,10 +222,10 @@ uint MoveSettings::GetAcceptTot(const uint box, const uint move) const
   if(move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE
   #if ENSEMBLE == GEMC || ENSEMBLE == GCMC 
       || move == mv::MEMC
-  #endif
-  #if ENSEMBLE == NPT || ENSEMBLE == GEMC
+#endif
+#if ENSEMBLE == NPT || ENSEMBLE == GEMC
       || move == mv::VOL_TRANSFER
-  #endif 
+#endif
     ) {
     sum /= totKind;
   }
