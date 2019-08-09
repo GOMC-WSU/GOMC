@@ -202,7 +202,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
     double Wrat = Wn / Wo * W_tc * W_recip;
 
     //safety to make sure move will be rejected in overlap case
-    if(newMol.GetWeight() != 0.0 && !overlap) {
+    if(!overlap) {
       result = prng() < molTransCoeff * Wrat;
     } else
       result = false;
@@ -244,9 +244,8 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
         sysPotRef.boxVirial[sourceBox].real = 0;
       }
 
-      for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
-        calcEwald->UpdateRecip(b);
-      }
+      calcEwald->UpdateRecip(sourceBox);
+      calcEwald->UpdateRecip(destBox);
 
       //Retotal
       sysPotRef.Total();

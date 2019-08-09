@@ -61,7 +61,7 @@ inline void IntraMoleculeExchange2::SetMEMC(StaticVals const& statV)
 
     for(uint i = 0; i < 2; i++) {
       if(smallBB[i] == -1) {
-        printf("Error: Atom name %s or %s was not found in %s residue.\n",
+        printf("Error: In Intra-ME-2 move, atom name %s or %s was not found in %s residue.\n",
                statV.intraMemcVal.smallBBAtom1[t].c_str(),
                statV.intraMemcVal.smallBBAtom2[t].c_str(),
                statV.intraMemcVal.smallKind[t].c_str());
@@ -71,7 +71,7 @@ inline void IntraMoleculeExchange2::SetMEMC(StaticVals const& statV)
 
     if(molRef.kinds[kindSVec[t]].NumAtoms() > 1) {
       if(smallBB[0] == smallBB[1]) {
-        printf("Error: Atom names in small molecule backbone cannot be same!\n");
+        printf("Error: In Intra-ME-2 move, atom names in small molecule backbone cannot be same!\n");
         exit(EXIT_FAILURE);
       }
     }
@@ -212,57 +212,51 @@ inline uint IntraMoleculeExchange2::Prep(const double subDraw,
   //AdjustExRatio();
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
-    //transfering type A from source
+    //transfering type A from source 
     for(uint n = 0; n < numInCavA; n++) {
       newMolA.push_back(cbmc::TrialMol(molRef.kinds[kindIndexA[n]], boxDimRef,
-                                       sourceBox));
+        sourceBox));
       oldMolA.push_back(cbmc::TrialMol(molRef.kinds[kindIndexA[n]], boxDimRef,
-                                       sourceBox));
+        sourceBox));
     }
 
     for(uint n = 0; n < numInCavB; n++) {
       //transfering type B from source
       newMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
-                                       sourceBox));
+        sourceBox));
       oldMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
-                                       sourceBox));
+        sourceBox));
     }
 
     //set the old coordinate after unwrap them
     for(uint n = 0; n < numInCavA; n++) {
-      XYZArray molA(pLenA[n]);
-      coordCurrRef.CopyRange(molA, pStartA[n], 0, pLenA[n]);
-      boxDimRef.UnwrapPBC(molA, sourceBox, comCurrRef.Get(molIndexA[n]));
-      oldMolA[n].SetCoords(molA, 0);
+      oldMolA[n].SetCoords(coordCurrRef, pStartA[n]);
       //copy cavA matrix to slant the old trial of molA
       oldMolA[n].SetCavMatrix(cavA);
       //set coordinate of moleA to newMolA, later it will shift to centerB
-      newMolA[n].SetCoords(molA, 0);
+      newMolA[n].SetCoords(coordCurrRef, pStartA[n]);
       //copy cavB matrix to slant the new trial of molA
       newMolA[n].SetCavMatrix(cavB);
     }
 
     for(uint n = 0; n < numInCavB; n++) {
-      XYZArray molB(pLenB[n]);
-      coordCurrRef.CopyRange(molB, pStartB[n], 0, pLenB[n]);
-      boxDimRef.UnwrapPBC(molB, sourceBox, comCurrRef.Get(molIndexB[n]));
-      oldMolB[n].SetCoords(molB, 0);
+      oldMolB[n].SetCoords(coordCurrRef, pStartB[n]);
       //copy cavB matrix to slant the old trial of molB
       oldMolB[n].SetCavMatrix(cavB);
       //set coordinate of moleB to newMolB, later it will shift to centerA
-      newMolB[n].SetCoords(molB, 0);
+      newMolB[n].SetCoords(coordCurrRef, pStartB[n]);
       //copy cavA matrix to slant the new trial of molB
       newMolB[n].SetCavMatrix(cavA);
     }
 
     //SetSeed(has cavity, COM is fixed, rotate around Backbone)
     for(uint n = 0; n < numInCavB; n++) {
-      //Inserting molB from centerB to the centerA
-      newMolB[n].SetSeed(centerA, cavity, true, true, true);
+      //Inserting molB from centerB to the centerA 
+      newMolB[n].SetSeed(centerA, cavity, true, true, true); 
       // Set the Backbone of large molecule to be inserted
       newMolB[n].SetBackBone(largeBB);
       //perform rotational trial move for oldMolB
-      oldMolB[n].SetSeed(centerB, cavity, true, true, true);
+      oldMolB[n].SetSeed(centerB, cavity, true, true, true); 
       // Set the Backbone of large molecule to be deleted
       oldMolB[n].SetBackBone(largeBB);
     }
@@ -283,7 +277,7 @@ inline uint IntraMoleculeExchange2::Prep(const double subDraw,
         //Inserting molA from cavity(centerA) to the cavityB(centerB)
         newMolA[n].SetSeed(centerB, cavity, true, false, false);
         //perform trial move in cavity in sourceBox for oldMolA
-        oldMolA[n].SetSeed(centerA, cavity, true, false, false);
+        oldMolA[n].SetSeed(centerA, cavity, true, false, false); 
       }
     }
   }

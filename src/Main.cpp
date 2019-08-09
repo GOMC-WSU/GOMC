@@ -295,6 +295,12 @@ void PrintGPUHardwareInfo()
   int fastIndex = 0;
 
   cudaGetDeviceCount(&nDevices);
+
+  if(nDevices == 0) {
+    printf("There are no available device(s) that support CUDA\n");
+    exit(EXIT_FAILURE);
+  }
+
   if(nDevices <= 4) {
     printf("GPU information:\n");
     for (int i = 0; i < nDevices; i++) {

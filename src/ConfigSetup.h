@@ -151,8 +151,8 @@ struct FFValues {
   bool doTailCorr, vdwGeometricSigma;
   std::string kind;
 
-  static const std::string VDW, VDW_SHIFT, VDW_SWITCH;
-  static const uint VDW_STD_KIND, VDW_SHIFT_KIND, VDW_SWITCH_KIND;
+  static const std::string VDW, VDW_SHIFT, VDW_SWITCH, VDW_EXP6;
+  static const uint VDW_STD_KIND, VDW_SHIFT_KIND, VDW_SWITCH_KIND, VDW_EXP6_KIND;
 };
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
@@ -173,12 +173,14 @@ struct Step {
 
 //Holds the percentage of each kind of move for this ensemble.
 struct MovePercents {
-  double displace, rotate, intraSwap, intraMemc, regrowth, crankShaft;
+  double displace, rotate, intraSwap, intraMemc, regrowth, crankShaft,
+    multiParticle;
+  bool multiParticleEnabled;
 #ifdef VARIABLE_VOLUME
   double volume;
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
-  double transfer, memc;
+  double transfer, memc, cfcmc;
 #endif
 };
 
@@ -259,6 +261,43 @@ struct MEMCVal {
   }
 };
 
+struct CFCMCVal {
+  bool enable, readLambdaCoulomb, readLambdaVDW, readRelaxSteps; 
+  bool readHistFlatness, MPEnable, readMPEnable;
+  uint relaxSteps;
+  double histFlatness;
+  //scaling parameter
+  uint scalePower;
+  double scaleAlpha, scaleSigma; 
+  bool scaleCoulomb;
+  bool scalePowerRead, scaleAlphaRead, scaleSigmaRead, scaleCoulombRead;
+  std::vector<double> lambdaCoulomb, lambdaVDW;
+  CFCMCVal(void) {
+    readLambdaCoulomb = readRelaxSteps = readHistFlatness = false;
+    readMPEnable = MPEnable = readLambdaVDW = enable = false;
+    scalePowerRead = scaleAlphaRead = scaleSigmaRead = scaleCoulombRead = false;
+  }
+};
+
+struct FreeEnergy {
+  bool enable, readLambdaCoulomb, readLambdaVDW, freqRead; 
+  bool molTypeRead, molIndexRead, iStateRead;
+  uint frequency, molIndex, iState;
+  //scaling parameter
+  uint scalePower;
+  double scaleAlpha, scaleSigma; 
+  bool scaleCoulomb;
+  bool scalePowerRead, scaleAlphaRead, scaleSigmaRead, scaleCoulombRead;
+  std::string molType;
+  std::vector<double> lambdaCoulomb, lambdaVDW;
+  FreeEnergy(void) {
+    readLambdaCoulomb = readLambdaVDW = enable = freqRead = false;
+    molTypeRead = molIndexRead = iStateRead = false;
+    scalePowerRead = scaleAlphaRead = scaleSigmaRead = scaleCoulombRead = false;
+  }
+};
+
+
 #if ENSEMBLE == GCMC
 struct ChemicalPotential {
   bool isFugacity;
@@ -275,6 +314,8 @@ struct SystemVals {
   Volume volume; //May go unused
   CBMC cbmcTrials;
   MEMCVal memcVal, intraMemcVal;
+  CFCMCVal cfcmcVal;
+  FreeEnergy freeEn;
 #if ENSEMBLE == GCMC
   ChemicalPotential chemPot;
 #elif ENSEMBLE == GEMC || ENSEMBLE == NPT

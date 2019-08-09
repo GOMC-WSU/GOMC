@@ -13,12 +13,13 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 FFParticle::FFParticle(Forcefield &ff) : forcefield(ff), mass(NULL), nameFirst(NULL), nameSec(NULL),
   n(NULL), n_1_4(NULL), sigmaSq(NULL), sigmaSq_1_4(NULL), epsilon_cn(NULL),
   epsilon(NULL), epsilon_1_4(NULL), epsilon_cn_1_4(NULL), epsilon_cn_6(NULL),
-  epsilon_cn_6_1_4(NULL), nOver6(NULL), nOver6_1_4(NULL), enCorrection(NULL),
-  virCorrection(NULL)
+  epsilon_cn_6_1_4(NULL), nOver6(NULL), nOver6_1_4(NULL)
 #ifdef GOMC_CUDA
   , varCUDA(NULL)
-#endif
-{}
+#endif 
+  {
+    exp6 = ff.exp6;
+  }
 
 FFParticle::~FFParticle(void)
 {
@@ -40,9 +41,6 @@ FFParticle::~FFParticle(void)
   delete[] epsilon_cn_1_4;
   delete[] epsilon_cn_6_1_4;
   delete[] nOver6_1_4;
-
-  delete[] enCorrection;
-  delete[] virCorrection;
 
 #ifdef GOMC_CUDA
   DestroyCUDAVars(varCUDA);
@@ -84,13 +82,10 @@ void FFParticle::Init(ff_setup::Particle const& mie,
   nOver6_1_4 = new double [size];
   sigmaSq_1_4 = new double [size];
 
-  enCorrection = new double [size];
-  virCorrection = new double [size];
-
   //Combining VDW parameter
-  Blend(mie, forcefield.rCut);
+  Blend(mie);
   //Adjusting VDW parameter using NBFIX
-  AdjNBfix(mie, nbfix, forcefield.rCut);
+  AdjNBfix(mie, nbfix);
 
 #ifdef GOMC_CUDA
   double diElectric_1 = 1.0 / forcefield.dielectric;
@@ -104,15 +99,47 @@ void FFParticle::Init(ff_setup::Particle const& mie,
 
 double FFParticle::EnergyLRC(const uint kind1, const uint kind2) const
 {
-  return enCorrection[FlatIndex(kind1, kind2)];
+  uint idx = FlatIndex(kind1, kind2);
+  double tc = 1.0;
+  double sigma = sqrt(sigmaSq[idx]);
+  double rRat = sigma / forcefield.rCut;
+  double N = (double)(n[idx]);
+  tc *= sigma * sigmaSq[idx];
+  tc *= 2.0 * M_PI * epsilon_cn[idx] / (N - 3.0);
+  tc *= (pow(rRat, n[idx] - 3) - ((N - 3.0) / 3.0) * pow(rRat, 3));
+/*
+  if(forcefield.freeEnergy) {
+    //For free energy calc, we only consider attraction part
+    tc *= (-((N - 3.0) / 3.0) * pow(rRat, 3));
+  } else {
+    tc *= (pow(rRat, n[idx] - 3) - ((N - 3.0) / 3.0) * pow(rRat, 3));
+  }
+*/
+  return tc;
 }
 
 double FFParticle::VirialLRC(const uint kind1, const uint kind2) const
 {
-  return virCorrection[FlatIndex(kind1, kind2)];
+  uint idx = FlatIndex(kind1, kind2);
+  double tc = 1.0;
+  double sigma = sqrt(sigmaSq[idx]);
+  double rRat = sigma / forcefield.rCut;
+  double N = (double)(n[idx]);
+  tc *= sigma * sigmaSq[idx];
+  tc *= 2.0 * M_PI * epsilon_cn[idx] / (N - 3.0);
+  tc *= (N * pow(rRat, n[idx] - 3) - (N - 3.0) * 2.0 * pow(rRat, 3));
+/*
+  if(forcefield.freeEnergy) {
+    //For free energy calc, we only consider attraction part
+    tc *= (- (N - 3.0) * 2.0 * pow(rRat, 3));
+  } else {
+    tc *= (N * pow(rRat, n[idx] - 3) - (N - 3.0) * 2.0 * pow(rRat, 3));
+  }
+*/
+  return tc;
 }
 
-void FFParticle::Blend(ff_setup::Particle const& mie, const double rCut)
+void FFParticle::Blend(ff_setup::Particle const& mie)
 {
   for(uint i = 0; i < count; ++i) {
     for(uint j = 0; j < count; ++j) {
@@ -123,8 +150,13 @@ void FFParticle::Blend(ff_setup::Particle const& mie, const double rCut)
       nameSec[idx] = mie.getname(j);
       nameSec[idx] += mie.getname(i);
 
-      n[idx] = num::MeanA(mie.n, mie.n, i, j);
-      n_1_4[idx] = num::MeanA(mie.n_1_4, mie.n_1_4, i, j);
+      if(exp6) {
+        n[idx] = num::MeanG(mie.n, mie.n, i, j);
+        n_1_4[idx] = num::MeanG(mie.n_1_4, mie.n_1_4, i, j);
+      } else {
+        n[idx] = num::MeanA(mie.n, mie.n, i, j);
+        n_1_4[idx] = num::MeanA(mie.n_1_4, mie.n_1_4, i, j);
+      }
       double cn = n[idx] / (n[idx] - 6) * pow(n[idx] / 6, (6 / (n[idx] - 6)));
       double cn_1_4 = n_1_4[idx] / (n_1_4[idx] - 6) *
                       pow(n_1_4[idx] / 6, (6 / (n_1_4[idx] - 6)));
@@ -140,12 +172,8 @@ void FFParticle::Blend(ff_setup::Particle const& mie, const double rCut)
         sigma_1_4 = num::MeanA(mie.sigma_1_4, mie.sigma_1_4, i, j);
       }
 
-      double tc = 1.0;
-      double rRat = sigma / rCut;
-      // calculate sig^2 and tc*sig^3
-      num::Cb(sigmaSq[idx], tc, sigma);
       sigmaSq_1_4[idx] = sigma_1_4 * sigma_1_4;
-      tc *= 0.5 * 4.0 * M_PI;
+      sigmaSq[idx] = sigma * sigma;
       epsilon[idx] = num::MeanG(mie.epsilon, mie.epsilon, i, j);
       epsilon_cn[idx] = cn * epsilon[idx];
       epsilon_1_4[idx] = num::MeanG(mie.epsilon_1_4, mie.epsilon_1_4, i, j);
@@ -154,18 +182,12 @@ void FFParticle::Blend(ff_setup::Particle const& mie, const double rCut)
       epsilon_cn_6_1_4[idx] = epsilon_cn_1_4[idx] * 6;
       nOver6[idx] = n[idx] / 6;
       nOver6_1_4[idx] = n_1_4[idx] / 6;
-      enCorrection[idx] = tc / (n[idx] - 3) * epsilon_cn[idx] *
-                          ( pow(rRat, n[idx] - 3) -
-                            (double)(n[idx] - 3.0) / 3.0 * pow(rRat, 3) );
-      virCorrection[idx] = tc / (n[idx] - 3) * epsilon_cn_6[idx] *
-                           ( (double)(n[idx]) / 6.0 * pow(rRat, n[idx] - 3) -
-                             (double)(n[idx] - 3.0) / 3.0 * pow(rRat, 3) );
     }
   }
 }
 
 void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
-                          ff_setup::NBfix const& nbfix, const double rCut)
+                          ff_setup::NBfix const& nbfix)
 {
   uint size = num::Sq(count);
   for(uint i = 0; i < nbfix.epsilon.size(); i++) {
@@ -173,14 +195,12 @@ void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
       if(nbfix.getname(i) == nameFirst[j] || nbfix.getname(i) ==  nameSec[j]) {
         n[j] = nbfix.n[i];
         n_1_4[j] = nbfix.n_1_4[i];
-        double rRat = nbfix.sigma[i] / rCut, tc = 1.0;
-        //calculating sig^2 and tc*sig^3
-        num::Cb(sigmaSq[j], tc, nbfix.sigma[i]);
+        sigmaSq[j] = nbfix.sigma[i] * nbfix.sigma[i];
         sigmaSq_1_4[j] = nbfix.sigma_1_4[i] * nbfix.sigma_1_4[i];
-        tc *= 0.5 * 4.0 * M_PI;
         double cn = n[j] / (n[j] - 6) * pow(n[j] / 6, (6 / (n[j] - 6)));
         double cn_1_4 = n_1_4[j] / (n_1_4[j] - 6) *
                         pow(n_1_4[j] / 6, (6 / (n_1_4[j] - 6)));
+        
         epsilon[j] = nbfix.epsilon[i];
         epsilon_cn[j] = cn * nbfix.epsilon[i];
         epsilon_1_4[j] = nbfix.epsilon_1_4[i];
@@ -189,12 +209,6 @@ void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
         epsilon_cn_6_1_4[j] = epsilon_cn_1_4[j] * 6;
         nOver6[j] = n[j] / 6;
         nOver6_1_4[j] = n_1_4[j] / 6;
-        enCorrection[j] = tc / (n[j] - 3) * epsilon_cn[j] *
-                          ( pow(rRat, n[j] - 3) -
-                            (double)(n[j] - 3.0) / 3.0 * pow(rRat, 3) );
-        virCorrection[j] = tc / (n[j] - 3) * epsilon_cn_6[j] *
-                           ( (double)(n[j]) / 6.0 * pow(rRat, n[j] - 3) -
-                             (double)(n[j] - 3.0) / 3.0 * pow(rRat, 3) );
       }
     }
   }
@@ -230,6 +244,22 @@ double FFParticle::GetN_1_4(const uint i, const uint j) const
   uint idx = FlatIndex(i, j);
   return n_1_4[idx];
 }
+inline double FFParticle::GetRmin(const uint i, const uint j) const
+{
+  return 0.0;
+}
+inline double FFParticle::GetRmax(const uint i, const uint j) const
+{
+  return 0.0;
+}
+inline double FFParticle::GetRmin_1_4(const uint i, const uint j) const 
+{
+  return 0.0;
+}
+inline double FFParticle::GetRmax_1_4(const uint i, const uint j) const
+{
+  return 0.0;
+}
 
 // Defining the functions
 
@@ -262,83 +292,213 @@ inline void FFParticle::CalcCoulombAdd_1_4(double& en, const double distSq,
     en += qi_qj_Fact * forcefield.scaling_14 / dist;
 }
 
-
-
 //mie potential
-inline double FFParticle::CalcEn(const double distSq,
-                                 const uint kind1, const uint kind2) const
+inline double FFParticle::CalcEn(const double distSq,const uint kind1,
+                                 const uint kind2, const double lambda) const
 {
   if(forcefield.rCutSq < distSq)
     return 0.0;
 
   uint index = FlatIndex(kind1, kind2);
+  if(lambda >= 0.999999) {
+    //save computation time
+    return CalcEn(distSq, index);
+  }
+  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+  sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
+  double dist6 = distSq * distSq * distSq;
+  double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
+  double softDist6 = lambdaCoef * sigma6 + dist6;
+  double softRsq = pow(softDist6, 1.0/3.0);
+
+  double en = lambda * CalcEn(softRsq, index);
+  return en;
+}
+
+inline double FFParticle::CalcEn(const double distSq, const uint index) const
+{
   double rRat2 = sigmaSq[index] / distSq;
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
-#ifdef MIE_INT_ONLY
-  uint n_ij = n[index];
-  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
-#else
   double n_ij = n[index];
-  double repulse = pow(sqrt(rRat2), n_ij);
-#endif
+  double repulse = pow(rRat2, (n_ij * 0.5));
 
-  return epsilon_cn[index] * (repulse - attract);
+  return (epsilon_cn[index] * (repulse - attract));
 }
 
-inline double FFParticle::CalcCoulomb(const double distSq,
-                                      const double qi_qj_Fact, const uint b) const
-{
-  if(forcefield.rCutCoulombSq[b] < distSq)
-    return 0.0;
-
-  if(forcefield.ewald) {
-    double dist = sqrt(distSq);
-    double val = forcefield.alpha[b] * dist;
-    return  qi_qj_Fact * erfc(val) / dist;
-  } else {
-    double dist = sqrt(distSq);
-    return  qi_qj_Fact / dist;
-  }
-}
-
-inline double FFParticle::CalcVir(const double distSq,
-                                  const uint kind1, const uint kind2) const
+inline double FFParticle::CalcVir(const double distSq, const uint kind1, 
+                                  const uint kind2, const double lambda) const
 {
   if(forcefield.rCutSq < distSq)
     return 0.0;
 
   uint index = FlatIndex(kind1, kind2);
+  if(lambda >= 0.999999) {
+    //save computation time
+    return CalcVir(distSq, index);
+  }
+  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+  sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
+  double dist6 = distSq * distSq * distSq;
+  double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
+  double softDist6 = lambdaCoef * sigma6 + dist6;
+  double softRsq = pow(softDist6, 1.0/3.0);
+  double correction = distSq / softRsq;
+  //We need to fix the return value from calcVir
+  double vir = lambda * correction * correction * CalcVir(softRsq, index);
+  return vir;
+}
+
+inline double FFParticle::CalcVir(const double distSq, const uint index) const
+{
   double rNeg2 = 1.0 / distSq;
   double rRat2 = rNeg2 * sigmaSq[index];
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
-#ifdef MIE_INT_ONLY
-  uint n_ij = n[index];
-  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
-#else
   double n_ij = n[index];
-  double repulse = pow(sqrt(rRat2), n_ij);
-#endif
-
-  //Virial is the derivative of the pressure... mu
+  double repulse = pow(rRat2, (n_ij * 0.5));
+  //Virial is F.r = -dE/dr * 1/r
   return epsilon_cn_6[index] * (nOver6[index] * repulse - attract) * rNeg2;
 }
 
-inline double FFParticle::CalcCoulombVir(const double distSq,
-    const double qi_qj, const uint b) const
+inline double FFParticle::CalcCoulomb(const double distSq,
+                                      const uint kind1,
+                                      const uint kind2,
+                                      const double qi_qj_Fact, 
+                                      const double lambda,
+                                      const uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
 
+  if(lambda >= 0.999999) {
+    //save computation time
+    return CalcCoulomb(distSq, qi_qj_Fact, b);
+  }
+  double en = 0.0;
+  if(forcefield.sc_coul) {
+    uint index = FlatIndex(kind1, kind2);
+    double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+    sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
+    double dist6 = distSq * distSq * distSq;
+    double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
+    double softDist6 = lambdaCoef * sigma6 + dist6;
+    double softRsq = pow(softDist6, 1.0/3.0);
+    en = lambda * CalcCoulomb(softRsq, qi_qj_Fact, b);
+  } else {
+    en = lambda * CalcCoulomb(distSq, qi_qj_Fact, b);
+  }
+  return en;
+}
+
+inline double FFParticle::CalcCoulomb(const double distSq,
+                                      const double qi_qj_Fact, 
+                                      const uint b) const
+{
+  if(forcefield.ewald) {
+    double dist = sqrt(distSq);
+    double val = forcefield.alpha[b] * dist;
+    return qi_qj_Fact * erfc(val) / dist;
+  } else {
+    double dist = sqrt(distSq);
+    return qi_qj_Fact / dist;
+  }
+}
+
+inline double FFParticle::CalcCoulombVir(const double distSq,
+                                        const uint kind1,
+                                        const uint kind2,
+                                        const double qi_qj, 
+                                        const double lambda,
+                                        const uint b) const
+{
+  if(forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
+  if(lambda >= 0.999999) {
+    //save computation time
+    return CalcCoulombVir(distSq, qi_qj, b);
+  }
+  double vir = 0.0;
+  if(forcefield.sc_coul) {
+    uint index = FlatIndex(kind1, kind2);
+    double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+    sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
+    double dist6 = distSq * distSq * distSq;
+    double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
+    double softDist6 = lambdaCoef * sigma6 + dist6;
+    double softRsq = pow(softDist6, 1.0/3.0);
+    double correction = distSq / softRsq;
+    //We need to fix the return value from calcVir
+    vir = lambda * correction * correction * CalcCoulombVir(softRsq, qi_qj, b);
+  } else {
+    vir = lambda * CalcCoulombVir(distSq, qi_qj, b);
+  }
+  return vir;
+}
+
+inline double FFParticle::CalcCoulombVir(const double distSq,
+                                         const double qi_qj, const uint b) const
+{
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
     double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
     double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
     double temp = 1.0 - erf(forcefield.alpha[b] * dist);
-    return  qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+    return qi_qj * (temp / dist + constValue * expConstValue)/ distSq;
   } else {
     double dist = sqrt(distSq);
-    return qi_qj / (distSq * dist);
+    double result = qi_qj / (distSq * dist);
+    return result;
   }
+}
+
+ //Calculate the dE/dlambda for vdw energy
+inline double FFParticle::CalcdEndL(const double distSq, const uint kind1,
+                                    const uint kind2,
+                                    const double lambda) const
+{
+  if(forcefield.rCutSq < distSq)
+    return 0.0;
+
+  uint index = FlatIndex(kind1, kind2);
+  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+  sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
+  double dist6 = distSq * distSq * distSq;
+  double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
+  double softDist6 = lambdaCoef * sigma6 + dist6;
+  double softRsq = pow(softDist6, 1.0/3.0);
+  double fCoef = lambda * forcefield.sc_alpha * forcefield.sc_power / 6.0;
+  fCoef *= pow(1.0 - lambda, forcefield.sc_power - 1) * sigma6 / (softRsq * softRsq);
+  double dhdl = CalcEn(softRsq, index) + fCoef * CalcVir(softRsq, index);
+  return dhdl;
+}
+
+//Calculate the dE/dlambda for Coulomb energy
+inline double FFParticle::CalcCoulombdEndL(const double distSq,
+                                          const uint kind1,
+                                          const uint kind2,
+                                          const double qi_qj_Fact,
+                                          const double lambda, uint b) const
+{
+  if(forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+    
+  double dhdl = 0.0;
+  if(forcefield.sc_coul) {
+    uint index = FlatIndex(kind1, kind2);
+    double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
+    sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
+    double dist6 = distSq * distSq * distSq;
+    double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
+    double softDist6 = lambdaCoef * sigma6 + dist6;
+    double softRsq = pow(softDist6, 1.0/3.0);
+    double fCoef = lambda * forcefield.sc_alpha * forcefield.sc_power / 6.0;
+    fCoef *= pow(1.0 - lambda, forcefield.sc_power - 1) * sigma6 / (softRsq * softRsq);
+    dhdl = CalcCoulomb(softRsq, qi_qj_Fact, b) + 
+          fCoef * CalcCoulombVir(softRsq, qi_qj_Fact, b);
+  } else {
+    dhdl = CalcCoulomb(distSq, qi_qj_Fact, b);
+  }
+  return dhdl; 
 }
