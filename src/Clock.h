@@ -111,8 +111,23 @@ inline void Clock::CheckTime(const ulong step, std::ofstream * consoleOut)
     lastTime = currTime;
     CompletionTime(day, hr, min);
     std::cout << "\r";
-    printf("Steps/sec: %7.3f, Simulation ends in: %3d d: %3d h: %3d m ",
-         speed, day, hr, min);
+   // printf("Steps/sec: %7.3f, Simulation ends in: %3d d: %3d h: %3d m ",
+       //  speed, day, hr, min);
+
+    std::cout << "Steps/sec: ";
+    std::cout << std::fixed << std::setw(7) << std::setprecision(3) << speed;
+    std::cout.copyfmt(default_format);
+    std::cout << ", Simulation ends in: ";
+    std::cout << std::setw(3) << day;
+    std::cout.copyfmt(default_format);
+    std::cout << " d: ";
+    std::cout << std::setw(3) << hr;
+    std::cout.copyfmt(default_format);
+    std::cout << " h: ";  
+    std::cout << std::setw(3) << min;
+    std::cout.copyfmt(default_format);
+    std::cout << " m \n" << std::endl; 
+
 
     *consoleOut << "Steps/sec: ";
     *consoleOut << std::fixed << std::setw(7) << std::setprecision(3) << speed;

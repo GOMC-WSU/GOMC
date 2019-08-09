@@ -177,13 +177,7 @@ void ReplicaExchangeController::runMultiSim(){
                     re.prob[i] = 1;
                     re.bEx[i] = true;
                   } else {
-                     if (delta > PROBABILITYCUTOFF){
-                      re.prob[i] = 0;
-                      re.bEx[i] = false;
-                    }
-                    else {
-                      re.prob[i] = exp(-delta);
-                    }
+                    re.prob[i] = exp(-delta);
                     if (rand.rand() < re.prob[i]){
                       exchange(a, b);
                       re.bEx[i] = true;
@@ -257,7 +251,7 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int i, int j, int ip,
 
   /* GROMACS Abraham, et al. (2015) SoftwareX 1-2 19-25 */
   #if ENSEMBLE == NPT || ENSEMBLE == NVT
-    fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (units?)\n", i, j, delta);
+    fprintf(fplog, "Repl %d <-> %d  dE = %10.3e, dBeta = %10.3e, dBeta_dE = %10.3e \n", i, j, ediff, beta_j - beta_i, delta);
   #endif
 
   /*  GROMACS Abraham, et al. (2015) SoftwareX 1-2 19-25 */
@@ -267,7 +261,7 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int i, int j, int ip,
     double pres_j = (*simsRef)[jp]->getPressure();
     double vol_j = (*simsRef)[j]->getVolume();
     double dpV = (beta_i * pres_i - beta_j * pres_j) * (vol_j - vol_i);
-    fprintf(fplog, "  dpV = %10.3e  d = %10.3e\n", dpV, delta + dpV);
+    fprintf(fplog, "  dpV = %10.3e  dBeta_dE + dpV = %10.3e\n", dpV, delta + dpV);
     delta += dpV;
   #endif
 
@@ -282,12 +276,10 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int i, int j, int ip,
         beta_j * (*simsRef)[jp]->getChemicalPotential(index) ) * (
          (*simsRef)[j]->getNumOfParticles(index) - (*simsRef)[i]->getNumOfParticles(index)));
     }
-    fprintf(fplog, "  dMuN = %10.3e  d = %10.3e\n", deltaBetaMuN, delta + deltaBetaMuN);
+    fprintf(fplog, "  dMuN = %10.3e  dBeta_dE + dMuN = %10.3e\n", deltaBetaMuN, delta + deltaBetaMuN);
     delta += deltaBetaMuN;
   #endif
 
-  /*  Ortiz et al Chemical physics letters 368.3-4 (2003): 452-457.
-      Eq (8) */
   #if ENSEMBLE == GEMC
 
   delta = 0;
@@ -296,18 +288,19 @@ double ReplicaExchangeController::calc_delta(FILE * fplog, int i, int j, int ip,
       delta += -(((*simsRef)[jp]->getBeta() - (*simsRef)[ip]->getBeta())*
         ((*simsRef)[j]->getEpotBox(box_index) - (*simsRef)[i]->getEpotBox(box_index)));
 
-      if ((*simsRef)[j]->getKindOfGEMC()){
+      if ((*simsRef)[i]->getKindOfGEMC() == mv::GEMC_NPT) {
         dpV += ((*simsRef)[i]->getBeta() * (*simsRef)[ip]->getPressure() - 
           (*simsRef)[j]->getBeta() * (*simsRef)[jp]->getPressure()) * 
           ((*simsRef)[j]->getVolume(box_index) - (*simsRef)[i]->getVolume(box_index));
+          
       }
   }
-  fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (kT)\n", i, j, delta);
-  if ((*simsRef)[j]->getKindOfGEMC())
-        fprintf(fplog, "  dpV = %10.3e  d = %10.3e\n", dpV, delta + dpV);
-
+  fprintf(fplog, "Repl %d <-> %d  BOX_TOTAL : dBeta_dE = %10.3e \n", i, j, delta);
+  if ((*simsRef)[i]->getKindOfGEMC() == mv::GEMC_NPT) {
+    fprintf(fplog, "BOX_TOTAL  dpV = %10.3e  dBeta_dE + dpV = %10.3e\n", dpV, delta + dpV);
+  }
   delta += dpV; 
-
+  
   #endif
 
   return delta;

@@ -101,7 +101,7 @@ void BlockAverages::Init(pdb_setup::Atoms const& atoms,
   if(BOXES_WITH_U_NB >= 2) {
     if (output.useMultidir){
       std::stringstream replica_stream;
-      replica_stream << output.replica_path << "Blk_" << uniqueName << "_BOX_0.dat";
+      replica_stream << output.replica_path << "Blk_" << uniqueName << "_BOX_1.dat";
       name = replica_stream.str();
     } else {  
       name = "Blk_" + uniqueName + "_BOX_1.dat";

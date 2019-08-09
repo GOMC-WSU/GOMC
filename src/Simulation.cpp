@@ -197,6 +197,7 @@ double Simulation::getVolume(){
 double Simulation::getVolume(uint i){
   return system->boxDimRef.volume[i];
 }
+
 #endif
 
 

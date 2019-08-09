@@ -29,6 +29,7 @@ public:
   double getPressure();
   double getVolume();
   double getVolume(uint i);
+  uint getKindOfGEMC();
   #endif
   #if ENSEMBLE == GCMC
   int getNumOfParticles(uint i);
@@ -45,7 +46,6 @@ public:
   int getReplExSeed();
   std::string getConfigFileName();
   std::string getMultiSimTitle();
-  uint getKindOfGEMC();
   void setT_in_K(double T_in_K);
   void setBeta(double beta);
   void setCPUSide(CPUSide * cpu);
