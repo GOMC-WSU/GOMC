@@ -94,7 +94,7 @@ public:
   //!Returns Energy long-range correction term for a kind pair
   virtual double VirialLRC(const uint kind1, const uint kind2) const;
 
-  uint NumKinds() const { return count; }                
+  uint NumKinds() const { return count; }
   double GetMass(const uint kind) const { return mass[kind]; }
 
 #ifdef GOMC_CUDA
@@ -139,8 +139,6 @@ protected:
   CubicSpline **CSTable_CalcCoulomb;
   CubicSpline **CSTable_CalcEnAttract;
   CubicSpline **CSTable_CalcEnRepulse;
-  //CubicSpline **CSTable_CalcCoulombVir;
-  //CubicSpline **CSTable_CalcVir;
   bool energyTableEnabled;
   uint energyTableMaxSize;
 };

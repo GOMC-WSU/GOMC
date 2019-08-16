@@ -1,4 +1,5 @@
 #include "CubicSpline.h"
+#include <stdlib.h>
 #include <iostream>
 
 CubicSpline::CubicSpline(int tableLength, double tableSpacing, double start)

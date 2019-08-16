@@ -422,7 +422,7 @@ inline double FFParticle::CalcCoulombVir(const double distSq,
     return 0.0;
 
   if(energyTableEnabled) {
-    return qi_qj * CSTable_CalcCoulomb[b][0].GetDerivativeValue(distSq);
+    return qi_qj * CSTable_CalcCoulomb[mv::BOX0][0].GetDerivativeValue(distSq);
   }
 
   if(forcefield.ewald) {
@@ -478,6 +478,7 @@ inline double FFParticle::CalcCoulombVirNoFactDerivative(const double distSq,
     double temp4 = 2 * dist * (temp1 + temp2 * temp3 + 2.0 * a);
     double top   = -(temp4 / sp) - 3.0 * erfc(a * dist);
     double ans   = top / (distSq * distSq);
+    return ans;
   }
   else {
     return -3.0 / (distSq * distSq);
@@ -486,12 +487,12 @@ inline double FFParticle::CalcCoulombVirNoFactDerivative(const double distSq,
 
 void FFParticle::InitializeTables()
 {
+  energyTableEnabled = true;
+
   double r2, r1;
   CSTable_CalcCoulomb      = new CubicSpline*[BOXES_WITH_U_NB];
   CSTable_CalcEnAttract    = new CubicSpline*[BOXES_WITH_U_NB];
   CSTable_CalcEnRepulse    = new CubicSpline*[BOXES_WITH_U_NB];
-  //CSTable_CalcCoulombVir   = new CubicSpline*[BOXES_WITH_U_NB];
-  //CSTable_CalcVir          = new CubicSpline*[BOXES_WITH_U_NB];
 
   for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
     // Initialize loca variables
@@ -503,8 +504,6 @@ void FFParticle::InitializeTables()
     CSTable_CalcCoulomb[b]     = new CubicSpline[kindTotalSq];
     CSTable_CalcEnAttract[b]   = new CubicSpline[kindTotalSq];
     CSTable_CalcEnRepulse[b]   = new CubicSpline[kindTotalSq];
-    //CSTable_CalcCoulombVir[b]  = new CubicSpline[kindTotalSq];
-    //CSTable_CalcVir[b]         = new CubicSpline[kindTotalSq];
 
     // Let's make sure we are not allocating too much data for energy table.
     if (tableLength * kindTotalSq > 10000000) {
@@ -540,8 +539,6 @@ void FFParticle::InitializeTables()
           v_d_attract[i]       = -6.0 * v_attract[i] / r1;
           v_repulse[i]         = CalcEnRepulse(r2, k1, k2);
           v_d_repulse[i]       = -n[k] * v_repulse[i] / r1;
-          //coulombvir           = CalcCoulombVirNoFact(r2, b);
-          //d_coulombvir         = CalcCoulombVirNoFactDerivative(r2, b);
         }
 
         for (int i = 0; i < tableLength; i++) {
