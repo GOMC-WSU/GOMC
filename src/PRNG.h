@@ -180,10 +180,6 @@ public:
   //Pick an integer in range 0, n given a list of weights, and their sum totalWeight
   uint PickWeighted(const double *weights, const uint n, double totalWeight)
   {
-    if(isnan(totalWeight)) {
-      std::cerr << "Error: In PRNG::PickWeighted() the value of totalWeight is nan!\n";
-      exit(EXIT_FAILURE);
-    }
     double draw = rand(totalWeight);
     double sum = 0.0;
     for(uint i = 0; i < n; ++i) {

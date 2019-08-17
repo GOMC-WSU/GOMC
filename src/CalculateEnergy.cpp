@@ -636,7 +636,7 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
       if(currentAxes.InRcut(distSq, trialPos, t, currentCoords, nIndex[i],box)) {
         if(distSq < forcefield.rCutLowSq) {
           overlap[t] |= true;
-        } 
+        }
         double tt = forcefield.particles->CalcEn(distSq, kindI,
                                                particleKind[nIndex[i]]);
         if(energyTableEnabled && isnan(tt)) {

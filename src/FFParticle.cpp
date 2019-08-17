@@ -422,7 +422,7 @@ inline double FFParticle::CalcCoulombVir(const double distSq,
     return 0.0;
 
   if(energyTableEnabled) {
-    return qi_qj * CSTable_CalcCoulomb[mv::BOX0][0].GetDerivativeValue(distSq);
+    return qi_qj * CSTable_CalcCoulomb[b][0].GetDerivativeValue(distSq);
   }
 
   if(forcefield.ewald) {

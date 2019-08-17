@@ -1,17 +1,14 @@
 #include "CubicSpline.h"
 #include <stdlib.h>
 #include <iostream>
+#include <cmath>
 
-CubicSpline::CubicSpline(int tableLength, double tableSpacing, double start)
+CubicSpline::~CubicSpline()
 {
-  this->tableLength = tableLength;
-  this->tableSpacing = tableSpacing;
-  this->tableStart = start;
-
-  Y.resize(tableLength);
-  F.resize(tableLength);
-  G.resize(tableLength);
-  H.resize(tableLength);
+  delete [] Y;
+  delete [] F;
+  delete [] G;
+  delete [] H;
 }
 
 void CubicSpline::Reconstruct(int tableLength, double tableSpacing, double start)
@@ -20,10 +17,10 @@ void CubicSpline::Reconstruct(int tableLength, double tableSpacing, double start
   this->tableSpacing = tableSpacing;
   this->tableStart = start;
 
-  Y.resize(tableLength);
-  F.resize(tableLength);
-  G.resize(tableLength);
-  H.resize(tableLength);
+  Y = new double[tableLength];
+  F = new double[tableLength];
+  G = new double[tableLength];
+  H = new double[tableLength];
 }
 
 void CubicSpline::InitializeSpecificPoint(double functionValue0, double functionValue1, double derivativeValue0, double derivativeValue1, int index)
@@ -37,16 +34,10 @@ void CubicSpline::InitializeSpecificPoint(double functionValue0, double function
 double CubicSpline::operator()(double value)
 {
   int index = static_cast<int>((value - tableStart) / tableSpacing);
-  if(index >= tableLength) {
-    std::cerr << "Accessing outside CS table range!" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-  double eps = value - (tableSpacing * index + tableStart);
+  assert(index >= tableLength);
+  double eps = value - fma(tableSpacing, index, tableStart);
 
-  double temp1 = H[index] * eps + G[index];
-  double temp2 = temp1 * eps + F[index];
-  double temp3 = temp2 * eps + Y[index];
-  return temp3;
+  return fma(fma(fma(H[index], eps, G[index]), eps, F[index]), eps, Y[index]);
 }
 
 double CubicSpline::GetDerivativeValue(double value)
@@ -60,7 +51,6 @@ double CubicSpline::GetDerivativeValue(double value)
 
   double temp1 = 3.0 * H[index];
   double temp2 = 2.0 * G[index];
-  double temp3 = temp1 * eps + temp2;
-  double temp4 = temp3 * eps + F[index];
-  return (temp4 / tableSpacing);
+  double temp3 = fma(fma(temp1, eps, temp2), eps, F[index]);
+  return (temp3 / tableSpacing);
 }
