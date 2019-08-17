@@ -30,6 +30,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
 
+#define HALF_DOUBLE_MAX 8.988466e+307
+
 using namespace geom;
 
 CalculateEnergy::CalculateEnergy(StaticVals & stat, System & sys) :
@@ -631,15 +633,22 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
     for(i = 0; i < nIndex.size(); i++) {
       distSq = 0.0;
 
-      if(currentAxes.InRcut(distSq, trialPos, t, currentCoords,nIndex[i],box)) {
+      if(currentAxes.InRcut(distSq, trialPos, t, currentCoords, nIndex[i],box)) {
         if(distSq < forcefield.rCutLowSq) {
           overlap[t] |= true;
         } 
-        tempLJ += forcefield.particles->CalcEn(distSq, kindI,
+        double tt = forcefield.particles->CalcEn(distSq, kindI,
                                                particleKind[nIndex[i]]);
+        if(energyTableEnabled && isnan(tt)) {
+          // In energy table we lose some accuracy, so some energies for very
+          // small distSq can be nan. In those cases we set them to a very large
+          // number so the program continues as normal
+          tt = HALF_DOUBLE_MAX;
+        }
+        tempLJ += tt;
         if(electrostatic) {
           qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
-          tempReal += forcefield.particles->CalcCoulomb(distSq, qi_qj_Fact,box);
+          tempReal += forcefield.particles->CalcCoulomb(distSq, qi_qj_Fact, box);
         }
       }
     }

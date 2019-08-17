@@ -11,8 +11,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #endif
 
 FFParticle::FFParticle(Forcefield &ff) : forcefield(ff), mass(NULL), nameFirst(NULL), nameSec(NULL),
-  n(NULL), n_1_4(NULL), sigmaSq(NULL), sigmaSq_1_4(NULL), epsilon_cn(NULL),
-  epsilon(NULL), epsilon_1_4(NULL), epsilon_cn_1_4(NULL), epsilon_cn_6(NULL),
+  n(NULL), n_1_4(NULL), sigmaSq(NULL), epsilon(NULL), epsilon_cn(NULL), epsilon_1_4(NULL),
+  sigmaSq_1_4(NULL), epsilon_cn_1_4(NULL), epsilon_cn_6(NULL),
   epsilon_cn_6_1_4(NULL), nOver6(NULL), nOver6_1_4(NULL), enCorrection(NULL),
   virCorrection(NULL) 
 #ifdef GOMC_CUDA
@@ -531,6 +531,15 @@ void FFParticle::InitializeTables()
         for (int i = 0; i < tableLength; i++) {
           r2 = i * TABLE_STEP;
           r1 = sqrt(r2);
+
+          if(r1 < 0.4) {
+            v_coulomb[i]         = 0.0;
+            v_d_coulomb[i]       = 0.0;
+            v_attract[i]         = 0.0;
+            v_d_attract[i]       = 0.0;
+            v_repulse[i]         = 0.0;
+            v_d_repulse[i]       = 0.0;
+          }
 
           // Firt 4 indeces are for Attraction of LJ
           v_coulomb[i]         = CalcCoulombNoFact(r2, b);
