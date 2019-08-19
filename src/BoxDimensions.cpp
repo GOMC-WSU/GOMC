@@ -20,7 +20,9 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
     rCutSq[b] = rCut[b] * rCut[b];
     minVol[b] = 8.0 * rCutSq[b] * rCut[b] + 0.001;
     if(restart.enable && cryst.hasVolume) {
-      axis = cryst.axis;
+      axis[b][0] = cryst.axis.x[b];
+      axis[b][1] = cryst.axis.y[b];
+      axis[b][2] = cryst.axis.z[b];
       double alpha = cos(cryst.cellAngle[b][0] * M_PI / 180.0);
       double beta  = cos(cryst.cellAngle[b][1] * M_PI / 180.0);
       double gamma = cos(cryst.cellAngle[b][2] * M_PI / 180.0);
@@ -37,9 +39,9 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
       cellBasis[b].Set(0, 1.0, 0.0, 0.0);
       cellBasis[b].Set(1, gamma, sqrt(1.0 - cosGSq), 0.0);
       cellBasis[b].Set(2, beta, temp, sqrt(1.0 - cosBSq - temp * temp));
-      cellBasis[b].Scale(0, axis.Get(b).x);
-      cellBasis[b].Scale(1, axis.Get(b).y);
-      cellBasis[b].Scale(2, axis.Get(b).z);
+      cellBasis[b].Scale(0, axis[b][0]);
+      cellBasis[b].Scale(1, axis[b][1]);
+      cellBasis[b].Scale(2, axis[b][2]);
     } else if(confVolume.hasVolume) {
       confVolume.axis[b].CopyRange(cellBasis[b], 0, 0, 3);
     } else {
@@ -63,22 +65,23 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
 	   cellBasis[b].Get(2).z);
 
 
-    axis.Set(b, cellBasis[b].Length(0), cellBasis[b].Length(1),
-             cellBasis[b].Length(2));
+    axis[b][0] = cellBasis[b].Length(0);
+    axis[b][1] = cellBasis[b].Length(1);
+    axis[b][2] = cellBasis[b].Length(2);
 
-    if(axis.Get(b).Min() < 2.0 * rCut[b]) {
+    if(std::min(std::min(axis[b][0], axis[b][1]), axis[b][2]) < 2.0 * rCut[b]) {
       printf("Error: Cutoff value is large than half of minimum BOX%d length!\n", b);
       exit(EXIT_FAILURE);
     }
     //Find Cosine Angle of alpha, beta and gamma
     cosAngle[b][0] = Dot(cellBasis[b].Get(1), cellBasis[b].Get(2)) /
-                     (axis.Get(b).y * axis.Get(b).z);
+                     (axis[b][1] * axis[b][2]);
     cosAngle[b][1] = Dot(cellBasis[b].Get(0), cellBasis[b].Get(2)) /
-                     (axis.Get(b).x * axis.Get(b).z);
+                     (axis[b][0] * axis[b][2]);
     cosAngle[b][2] = Dot(cellBasis[b].Get(0), cellBasis[b].Get(1)) /
-                     (axis.Get(b).x * axis.Get(b).y);
+                     (axis[b][0] * axis[b][1]);
 
-    volume[b] = axis.x[b] * axis.y[b] * axis.z[b];
+    volume[b] = axis[b][0] * axis[b][1] * axis[b][2];
     volInv[b] = 1.0 / volume[b];
 
     //normalizing unitcell
@@ -87,12 +90,15 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
     }
   }
 
-  axis.CopyRange(halfAx, 0, 0, BOX_TOTAL);
-  halfAx.ScaleRange(0, BOX_TOTAL, 0.5);
+  for (uint b = 0; b < BOX_TOTAL; b++) {
+    halfAx[b][0] = axis[b][0] * 0.5;
+    halfAx[b][1] = axis[b][1] * 0.5;
+    halfAx[b][2] = axis[b][2] * 0.5;
+  }
 
   for (uint b = 0; b < BOX_TOTAL; b++) {
     //check to see if initial box size is cubic or not
-    cubic[b] = ((axis.x[b] == axis.y[b]) && (axis.y[b] == axis.z[b]));
+    cubic[b] = ((axis[b][0] == axis[b][1]) && (axis[b][1] == axis[b][2]));
     //check to see if box is orthogonal or not
     orthogonal[b] = ((cosAngle[b][0] == 0.0) &&
                      (cosAngle[b][1] == 0.0) &&
@@ -110,14 +116,16 @@ uint BoxDimensions::ShiftVolume(BoxDimensions & newDim, XYZ & scale,
 
   //If move would shrink any box axis to be less than 2 * rCut[b], then
   //automatically reject to prevent errors.
-  if ((newDim.halfAx.x[b] < rCut[b] || newDim.halfAx.y[b] < rCut[b] ||
-       newDim.halfAx.z[b] < rCut[b] || newVolume < minVol[b])) {
+  if ((newDim.halfAx[b][0] < rCut[b] || newDim.halfAx[b][1] < rCut[b] ||
+       newDim.halfAx[b][2] < rCut[b] || newVolume < minVol[b])) {
     std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!\n";
     std::cout << "AxisDimensions: " << newDim.GetAxis(b) << std::endl;
     std::cout << "Exiting!\n";
     exit(EXIT_FAILURE);
   }
-  scale = newDim.axis.Get(b) / axis.Get(b);
+  scale.x = newDim.axis[b][0] / axis[b][0];
+  scale.y = newDim.axis[b][1] / axis[b][1];
+  scale.z = newDim.axis[b][2] / axis[b][2];
 
   return rejectState;
 }
@@ -135,9 +143,11 @@ uint BoxDimensions::ExchangeVolume(BoxDimensions & newDim, XYZ * scale,
   //automatically reject to prevent errors.
   for (uint i = 0; i < 2; i++) {
     uint b = box[i];
-    scale[b] = newDim.axis.Get(b) / axis.Get(b);
-    if ((newDim.halfAx.x[b] < rCut[b] || newDim.halfAx.y[b] < rCut[b] ||
-         newDim.halfAx.z[b] < rCut[b] || newDim.volume[b] < minVol[b])) {
+    scale[b].x = newDim.axis[b][0] / axis[b][0];
+    scale[b].y = newDim.axis[b][1] / axis[b][1];
+    scale[b].z = newDim.axis[b][2] / axis[b][2];
+    if ((newDim.halfAx[b][0] < rCut[b] || newDim.halfAx[b][1] < rCut[b] ||
+         newDim.halfAx[b][2] < rCut[b] || newDim.volume[b] < minVol[b])) {
       std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!\n";
       std::cout << "AxisDimensions: " << newDim.GetAxis(b) << std::endl;
       std::cout << "Exiting!\n";
@@ -147,9 +157,11 @@ uint BoxDimensions::ExchangeVolume(BoxDimensions & newDim, XYZ * scale,
   return state;
 }
 
-BoxDimensions::BoxDimensions(BoxDimensions const& other) :
-  axis(other.axis), halfAx(other.halfAx)
+BoxDimensions::BoxDimensions(BoxDimensions const& other)
 {
+  memcpy(axis, other.axis, BOX_TOTAL * 3 * sizeof(double));
+  memcpy(halfAx, other.halfAx, BOX_TOTAL * 3 * sizeof(double));
+
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     cellBasis[b] = XYZArray(3);
     other.cellBasis[b].CopyRange(cellBasis[b], 0, 0, 3);
@@ -180,8 +192,8 @@ BoxDimensions& BoxDimensions::operator=(BoxDimensions const& other)
       cosAngle[b][i] = other.cosAngle[b][i];
     }
   }
-  other.axis.CopyRange(axis, 0, 0, BOX_TOTAL);
-  other.halfAx.CopyRange(halfAx, 0, 0, BOX_TOTAL);
+  memcpy(axis, other.axis, BOX_TOTAL * 3 * sizeof(double));
+  memcpy(halfAx, other.halfAx, BOX_TOTAL * 3 * sizeof(double));
   constArea = other.constArea;
   return *this;
 }
@@ -195,12 +207,16 @@ void BoxDimensions::SetVolume(const uint b, const double vol)
 {
   if(constArea) {
     double ratio = vol / volume[b];
-    axis.Scale(b, 1.0, 1.0, ratio);
-    halfAx.Scale(b, 1.0, 1.0, ratio);
+    axis[b][2] *= ratio;
+    halfAx[b][2] *= ratio;
   } else {
     double ratio = pow(vol / volume[b], (1.0 / 3.0));
-    axis.Scale(b, ratio);
-    halfAx.Scale(b, ratio);
+    axis[b][0] *= ratio;
+    axis[b][1] *= ratio;
+    axis[b][2] *= ratio;
+    halfAx[b][0] *= ratio;
+    halfAx[b][1] *= ratio;
+    halfAx[b][2] *= ratio;
   }
   volume[b] = vol;
   volInv[b] = 1.0 / vol;
@@ -209,17 +225,17 @@ void BoxDimensions::SetVolume(const uint b, const double vol)
 
 void BoxDimensions::WrapPBC(double &x, double &y, double &z, const uint b) const
 {
-  WrapPBC(x, axis.x[b]);
-  WrapPBC(y, axis.y[b]);
-  WrapPBC(z, axis.z[b]);
+  WrapPBC(x, axis[b][0]);
+  WrapPBC(y, axis[b][1]);
+  WrapPBC(z, axis[b][2]);
 }
 
 void BoxDimensions::UnwrapPBC(double & x, double & y, double & z,
                               const uint b, XYZ const& ref) const
 {
-  UnwrapPBC(x, ref.x, axis.x[b], halfAx.x[b]);
-  UnwrapPBC(y, ref.y, axis.y[b], halfAx.y[b]);
-  UnwrapPBC(z, ref.z, axis.z[b], halfAx.z[b]);
+  UnwrapPBC(x, ref.x, axis[b][0], halfAx[b][0]);
+  UnwrapPBC(y, ref.y, axis[b][1], halfAx[b][1]);
+  UnwrapPBC(z, ref.z, axis[b][2], halfAx[b][2]);
 }
 
 
@@ -292,18 +308,18 @@ double BoxDimensions::UnwrapPBC(double& v, const double ref, const double ax,
 XYZ BoxDimensions::MinImage(XYZ rawVec, const uint b) const
 {
   // It is way faster to do it here than to call MinImageSigned 3 times
-  if (rawVec.x > halfAx.x[b])
-    rawVec.x = rawVec.x - halfAx.x[b];
-  else if (rawVec.x < -halfAx.x[b])
-    rawVec.x = rawVec.x + halfAx.x[b];
-  if (rawVec.y > halfAx.y[b])
-    rawVec.y = rawVec.y - halfAx.y[b];
-  else if (rawVec.y < -halfAx.y[b])
-    rawVec.y = rawVec.y + halfAx.y[b];
-  if (rawVec.z > halfAx.z[b])
-    rawVec.z = rawVec.z - halfAx.z[b];
-  else if (rawVec.z < -halfAx.z[b])
-    rawVec.z = rawVec.z + halfAx.z[b];
+  if (rawVec.x > halfAx[b][0])
+    rawVec.x = rawVec.x - axis[b][0];
+  else if (rawVec.x < -halfAx[b][0])
+    rawVec.x = rawVec.x + axis[b][0];
+  if (rawVec.y > halfAx[b][1])
+    rawVec.y = rawVec.y - axis[b][1];
+  else if (rawVec.y < -halfAx[b][1])
+    rawVec.y = rawVec.y + axis[b][1];
+  if (rawVec.z > halfAx[b][2])
+    rawVec.z = rawVec.z - axis[b][2];
+  else if (rawVec.z < -halfAx[b][2])
+    rawVec.z = rawVec.z + axis[b][2];
   return rawVec;
 }
 

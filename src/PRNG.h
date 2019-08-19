@@ -107,8 +107,8 @@ public:
                       const uint b)
   {
     for (uint i = 0; i < len; ++i) {
-      loc.Set(i, randExc(dims.axis.x[b]), randExc(dims.axis.y[b]),
-              randExc(dims.axis.z[b]));
+      loc.Set(i, randExc(dims.axis[b][0]), randExc(dims.axis[b][1]),
+              randExc(dims.axis[b][2]));
       loc.Set(i, dims.TransformSlant(loc.Get(i), b));
     }
   }
@@ -116,8 +116,8 @@ public:
   void FillWithRandom(XYZ & loc, BoxDimensions const& dims,
                       const uint b)
   {
-    XYZ temp(randExc(dims.axis.x[b]), randExc(dims.axis.y[b]),
-	     randExc(dims.axis.z[b]));
+    XYZ temp(randExc(dims.axis[b][0]), randExc(dims.axis[b][1]),
+	     randExc(dims.axis[b][2]));
     loc = dims.TransformSlant(temp, b);
   }
 

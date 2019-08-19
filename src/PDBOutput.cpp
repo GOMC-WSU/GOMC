@@ -208,7 +208,10 @@ void PDBOutput::PrintCryst1(const uint b, Writer & out)
   using namespace pdb_entry;
   sstrm::Converter toStr;
   std::string outStr(pdb_entry::LINE_WIDTH, ' ');
-  XYZ axis = boxDimRef.axis.Get(b);
+  XYZ axis;
+  axis.x = boxDimRef.axis[b][0];
+  axis.y = boxDimRef.axis[b][1];
+  axis.z = boxDimRef.axis[b][2];
   //Tag for crystallography -- cell dimensions.
   outStr.replace(label::POS.START, label::POS.LENGTH, label::CRYST1);
   //Add box dimensions
@@ -245,7 +248,10 @@ void PDBOutput::PrintCrystRest(const uint b, const uint step, Writer & out)
 #endif
   sstrm::Converter toStr;
   std::string outStr(pdb_entry::LINE_WIDTH, ' ');
-  XYZ axis = boxDimRef.axis.Get(b);
+  XYZ axis;
+  axis.x = boxDimRef.axis[b][0];
+  axis.y = boxDimRef.axis[b][1];
+  axis.z = boxDimRef.axis[b][2];
   //Tag for remark
   outStr.replace(label::POS.START, label::POS.LENGTH, label::REMARK);
   //Tag GOMC

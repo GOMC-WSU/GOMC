@@ -21,7 +21,9 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     rCutSq[b] = rCut[b] * rCut[b];
     minVol[b] = 8.0 * rCutSq[b] * rCut[b] + 0.001;
     if(restart.enable && cryst.hasVolume) {
-      axis = cryst.axis;
+      axis[b][0] = cryst.axis.x[b];
+      axis[b][1] = cryst.axis.y[b];
+      axis[b][2] = cryst.axis.z[b];
       double alpha = cos(cryst.cellAngle[b][0] * M_PI / 180.0);
       double beta  = cos(cryst.cellAngle[b][1] * M_PI / 180.0);
       double gamma = cos(cryst.cellAngle[b][2] * M_PI / 180.0);
@@ -38,9 +40,9 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
       cellBasis[b].Set(0, 1.0, 0.0, 0.0);
       cellBasis[b].Set(1, gamma, sqrt(1.0 - cosGSq), 0.0);
       cellBasis[b].Set(2, beta, temp, sqrt(1.0 - cosBSq - temp * temp));
-      cellBasis[b].Scale(0, axis.Get(b).x);
-      cellBasis[b].Scale(1, axis.Get(b).y);
-      cellBasis[b].Scale(2, axis.Get(b).z);
+      cellBasis[b].Scale(0, axis[b][0]);
+      cellBasis[b].Scale(1, axis[b][1]);
+      cellBasis[b].Scale(2, axis[b][2]);
     } else if(confVolume.hasVolume) {
       confVolume.axis[b].CopyRange(cellBasis[b], 0, 0, 3);
     } else {
@@ -92,20 +94,25 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     //Set the axis with unslant cell box
     //XYZ unslant = TransformUnSlant(cellLength.Get(b), b);
     //axis.Set(b, unslant.x, unslant.y, unslant.z);
-    axis.Set(b, cellLength[b]);
+    axis[b][0] = cellLength.x[b];
+    axis[b][1] = cellLength.y[b];
+    axis[b][2] = cellLength.z[b];
 
-    if(axis.Get(b).Min() < 2.0 * rCut[b]) {
+    if(std::min(std::min(axis[b][0], axis[b][1]), axis[b][2]) < 2.0 * rCut[b]) {
       printf("Error: Cutoff value is large than half of minimum BOX%d length!\n", b);
       exit(EXIT_FAILURE);
     }
   }
   //Set half axis
-  axis.CopyRange(halfAx, 0, 0, BOX_TOTAL);
-  halfAx.ScaleRange(0, BOX_TOTAL, 0.5);
+  for (uint b = 0; b < BOX_TOTAL; b++) {
+    halfAx[b][0] = axis[b][0] * 0.5;
+    halfAx[b][1] = axis[b][1] * 0.5;
+    halfAx[b][2] = axis[b][2] * 0.5;
+  }
 
   for (uint b = 0; b < BOX_TOTAL; b++) {
     //check to see if initial box size is cubic or not
-    cubic[b] = ((axis.x[b] == axis.y[b]) && (axis.y[b] == axis.z[b]));
+    cubic[b] = ((axis[b][0] == axis[b][1]) && (axis[b][1] == axis[b][2]));
     //check to see if box is orthogonal or not
     orthogonal[b] = ((cosAngle[b][0] == 0.0) &&
                      (cosAngle[b][1] == 0.0) &&
@@ -142,8 +149,8 @@ BoxDimensionsNonOrth& BoxDimensionsNonOrth::operator=(BoxDimensionsNonOrth const
       cosAngle[b][i] = other.cosAngle[b][i];
     }
   }
-  other.axis.CopyRange(axis, 0, 0, BOX_TOTAL);
-  other.halfAx.CopyRange(halfAx, 0, 0, BOX_TOTAL);
+  memcpy(axis, other.axis, BOX_TOTAL * 3 * sizeof(double));
+  memcpy(halfAx, other.halfAx, BOX_TOTAL * 3 * sizeof(double));
   other.cellLength.CopyRange(cellLength, 0, 0, BOX_TOTAL);
   constArea = other.constArea;
   return *this;
@@ -161,14 +168,16 @@ uint BoxDimensionsNonOrth::ShiftVolume(BoxDimensionsNonOrth & newDim,
 
   //If move would shrink any box axis to be less than 2 * rcut, then
   //automatically reject to prevent errors.
-  if ((newDim.halfAx.x[b] < rCut[b] || newDim.halfAx.y[b] < rCut[b] ||
-       newDim.halfAx.z[b] < rCut[b] || newVolume < minVol[b])) {
+  if ((newDim.halfAx[b][0] < rCut[b] || newDim.halfAx[b][1] < rCut[b] ||
+    newDim.halfAx[b][2] < rCut[b] || newVolume < minVol[b])) {
     std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!\n";
     std::cout << "AxisDimensions: " << newDim.GetAxis(b) << std::endl;
     std::cout << "Exiting!\n";
     exit(EXIT_FAILURE);
   }
-  scale = newDim.axis.Get(b) / axis.Get(b);
+  scale.x = newDim.axis[b][0] / axis[b][0];
+  scale.y = newDim.axis[b][1] / axis[b][1];
+  scale.z = newDim.axis[b][2] / axis[b][2];
 
   return rejectState;
 }
@@ -187,9 +196,11 @@ uint BoxDimensionsNonOrth::ExchangeVolume(BoxDimensionsNonOrth & newDim,
   //automatically reject to prevent errors.
   for (uint i = 0; i < 2; i++) {
     uint b = box[i];
-    scale[b] = newDim.axis.Get(b) / axis.Get(b);
-    if ((newDim.halfAx.x[b] < rCut[b] || newDim.halfAx.y[b] < rCut[b] ||
-         newDim.halfAx.z[b] < rCut[b] || newDim.volume[b] < minVol[b])) {
+    scale[b].x = newDim.axis[b][0] / axis[b][0];
+    scale[b].y = newDim.axis[b][1] / axis[b][1];
+    scale[b].z = newDim.axis[b][2] / axis[b][2];
+    if ((newDim.halfAx[b][0] < rCut[b] || newDim.halfAx[b][1] < rCut[b] ||
+      newDim.halfAx[b][2] < rCut[b] || newDim.volume[b] < minVol[b])) {
       std::cout << "WARNING!!! box shrunk below 2*Rcut! Auto-rejecting!\n";
       std::cout << "AxisDimensions: " << newDim.GetAxis(b) << std::endl;
       std::cout << "Exiting!\n";
@@ -204,13 +215,17 @@ void BoxDimensionsNonOrth::SetVolume(const uint b, const double vol)
 {
   if(constArea) {
     double ratio = vol / volume[b];
-    axis.Scale(b, 1.0, 1.0, ratio);
-    halfAx.Scale(b, 1.0, 1.0, ratio);
+    axis[b][2] *= ratio;
+    halfAx[b][2] *= ratio;
     cellLength.Scale(b, 1.0, 1.0, ratio);
   } else {
     double ratio = pow(vol / volume[b], (1.0 / 3.0));
-    axis.Scale(b, ratio);
-    halfAx.Scale(b, ratio);
+    axis[b][0] *= ratio;
+    axis[b][1] *= ratio;
+    axis[b][2] *= ratio;
+    halfAx[b][0] *= ratio;
+    halfAx[b][1] *= ratio;
+    halfAx[b][2] *= ratio;
     cellLength.Scale(b, ratio);
   }
   volume[b] = vol;
@@ -241,9 +256,9 @@ void BoxDimensionsNonOrth::WrapPBC(double &x, double &y, double &z,
   //convert XYZ to unslant
   XYZ unwrap(x, y, z);
   XYZ unslant = TransformUnSlant(unwrap, b);
-  BoxDimensions::WrapPBC(unslant.x, axis.x[b]);
-  BoxDimensions::WrapPBC(unslant.y, axis.y[b]);
-  BoxDimensions::WrapPBC(unslant.z, axis.z[b]);
+  BoxDimensions::WrapPBC(unslant.x, axis[b][0]);
+  BoxDimensions::WrapPBC(unslant.y, axis[b][1]);
+  BoxDimensions::WrapPBC(unslant.z, axis[b][2]);
   //convert XYZ to slant
   XYZ slant = TransformSlant(unslant, b);
   x = slant.x;
@@ -258,9 +273,9 @@ void BoxDimensionsNonOrth::UnwrapPBC(double & x, double & y, double & z,
   XYZ wrap(x, y, z);
   XYZ unslant = TransformUnSlant(wrap, b);
   XYZ unslantRef = TransformUnSlant(ref, b);
-  BoxDimensions::UnwrapPBC(unslant.x, unslantRef.x, axis.x[b], halfAx.x[b]);
-  BoxDimensions::UnwrapPBC(unslant.y, unslantRef.y, axis.y[b], halfAx.y[b]);
-  BoxDimensions::UnwrapPBC(unslant.z, unslantRef.z, axis.z[b], halfAx.z[b]);
+  BoxDimensions::UnwrapPBC(unslant.x, unslantRef.x, axis[b][0], halfAx[b][0]);
+  BoxDimensions::UnwrapPBC(unslant.y, unslantRef.y, axis[b][1], halfAx[b][1]);
+  BoxDimensions::UnwrapPBC(unslant.z, unslantRef.z, axis[b][2], halfAx[b][2]);
   XYZ unwrap(x, y, z);
   //convert XYZ to slant
   XYZ slant = TransformSlant(unslant, b);

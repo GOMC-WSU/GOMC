@@ -27,8 +27,6 @@ class BoxDimensions
 public:
   BoxDimensions()
   {
-    axis.Init(BOX_TOTAL);
-    halfAx.Init(BOX_TOTAL);
     for (uint b = 0; b < BOX_TOTAL; b++) {
       cellBasis[b] = XYZArray(3);
     }
@@ -43,7 +41,11 @@ public:
 
   XYZ GetAxis(const uint b) const
   {
-    return axis.Get(b);
+    XYZ temp;
+    temp.x = axis[b][0];
+    temp.y = axis[b][1];
+    temp.z = axis[b][2];
+    return temp;
   }
 
   double GetTotVolume(const uint b1, const uint b2) const;
@@ -133,8 +135,10 @@ public:
   virtual XYZ TransformSlant(const XYZ &A, const uint b) const;
 
 //private:
-  XYZArray axis;                  //x, y, z dimensions of each box (a)
-  XYZArray halfAx;                //x, y, z dimensions / 2 of each box (a)
+  //XYZArray axis;                  //x, y, z dimensions of each box (a)
+  double axis[BOX_TOTAL][3];
+  //XYZArray halfAx;                //x, y, z dimensions / 2 of each box (a)
+  double halfAx[BOX_TOTAL][3];
   XYZArray cellBasis[BOX_TOTAL];  //x, y, z vector, 3 for each box
   double volume[BOX_TOTAL];       //volume of each box in (a^3)
   double volInv[BOX_TOTAL];       //inverse volume of each box in (a^-3)

@@ -100,7 +100,10 @@ void CellList::AddMol(const int molIndex, const int box, const XYZArray& pos)
 void CellList::ResizeGrid(const BoxDimensions& dims)
 {
   for(uint b = 0; b < BOX_TOTAL; ++b) {
-    XYZ sides = dims.axis[b];
+    XYZ sides;
+    sides.x = dims.axis[b][0];
+    sides.y = dims.axis[b][1];
+    sides.z = dims.axis[b][2];
     bool rebuild = false;
     int* eCells = edgeCells[b];
     int oldCells = eCells[0];
@@ -128,7 +131,10 @@ void CellList::ResizeGrid(const BoxDimensions& dims)
 // Resize one boxes to match current axes
 void CellList::ResizeGridBox(const BoxDimensions& dims, const uint b)
 {
-  XYZ sides = dims.axis[b];
+  XYZ sides;
+  sides.x = dims.axis[b][0];
+  sides.y = dims.axis[b][1];
+  sides.z = dims.axis[b][2];
   bool rebuild = false;
   int* eCells = edgeCells[b];
   int oldCells = eCells[0];

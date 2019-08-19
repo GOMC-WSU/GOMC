@@ -71,9 +71,9 @@ void Coordinates::CheckCoordinate()
         XYZ unSlant(x[atom], y[atom], z[atom]);
         unSlant = boxDimRef.TransformUnSlant(unSlant, b);
 
-        if(unSlant.x > boxDimRef.axis.Get(b).x ||
-            unSlant.y > boxDimRef.axis.Get(b).y ||
-            unSlant.z > boxDimRef.axis.Get(b).z ||
+        if(unSlant.x > boxDimRef.axis[b][0] ||
+            unSlant.y > boxDimRef.axis[b][1] ||
+            unSlant.z > boxDimRef.axis[b][2] ||
             unSlant.x < 0 || unSlant.y < 0 || unSlant.z < 0) {
           printf("Molecules %d is packed outside of the defined box dimension.\n", *thisMol);
           exit(EXIT_FAILURE);

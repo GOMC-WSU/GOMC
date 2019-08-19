@@ -24,7 +24,10 @@ void OutputVars::InitRef(System & sys, StaticVals const& statV)
 {
   T_in_K = statV.forcefield.T_in_K;
   volumeRef = sys.boxDimRef.volume;
-  axisRef = &sys.boxDimRef.axis;
+  axisRef.Init(BOX_TOTAL);
+  for (uint b = 0; b < BOX_TOTAL; b++) {
+    axisRef.Set(b, sys.boxDimRef.axis[b][0], sys.boxDimRef.axis[b][1], sys.boxDimRef.axis[b][2]);
+  }
   volInvRef = sys.boxDimRef.volInv;
   energyTotRef = & sys.potential.totalEnergy;
   virialTotRef = & sys.potential.totalVirial;
@@ -133,7 +136,7 @@ void OutputVars::CalcAndConvert(ulong step)
                       (virialRef[b].totalTens[0][0] +
                        virialRef[b].totalTens[1][1]));
     surfaceTens[b] *= unit::K_TO_MN_PER_M /
-                      (2.0 * axisRef->Get(b).x * axisRef->Get(b).y);
+                      (2.0 * axisRef.Get(b).x * axisRef.Get(b).y);
 
     //save the pressure tensor for print
     for (int i = 0; i < 3; i++) {

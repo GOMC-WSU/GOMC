@@ -64,7 +64,10 @@ void CheckpointOutput::printBoxDimensionsData()
   uint32_t totalBoxes = BOX_TOTAL;
   outputUintIn8Chars(totalBoxes);
   for(int b=0; b<totalBoxes; b++) {
-    XYZ axis = boxDimRef.axis.Get(b);
+    XYZ axis;
+    axis.x = boxDimRef.axis[b][0];
+    axis.y = boxDimRef.axis[b][1];
+    axis.z = boxDimRef.axis[b][2];
     outputDoubleIn8Chars(axis.x);
     outputDoubleIn8Chars(axis.y);
     outputDoubleIn8Chars(axis.z);

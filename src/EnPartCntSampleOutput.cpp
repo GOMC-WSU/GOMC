@@ -83,7 +83,7 @@ void EnPartCntSample::WriteHeader(void)
         outF[b] << var->kindsRef[k].chemPot << " ";
       }
 #endif
-      XYZ bAx = var->axisRef->Get(0);
+      XYZ bAx = var->axisRef.Get(0);
       outF[b] << bAx.x << " " << bAx.y << " " << bAx.z << std::endl;
       outF[b] << std::setprecision(std::numeric_limits<double>::digits10 + 2);
       outF[b].setf(std::ios_base::left, std::ios_base::adjustfield);

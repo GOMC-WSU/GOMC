@@ -347,7 +347,7 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max)
     num.z = max * prng.Sym(1);
   }
 
-  if(num.Length() >= boxDimRef.axis.Min(bPick)) {
+  if(num.Length() >= std::min(std::min(boxDimRef.axis[bPick][0], boxDimRef.axis[bPick][1]), boxDimRef.axis[bPick][2])) {
     std::cout << "Trial Displacement exceed half of the box length in Multiparticle move.\n";
     std::cout << "Trial transform: " << num;
     exit(EXIT_FAILURE);

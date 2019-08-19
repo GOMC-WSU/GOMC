@@ -208,15 +208,21 @@ void CheckpointSetup::SetStepNumber(ulong & startStep) {
 
 void CheckpointSetup::SetBoxDimensions(BoxDimensions & boxDimRef) {
   for(int b=0; b<totalBoxes; b++) {
-    boxDimRef.axis.Set(b, axis[b][0], axis[b][1], axis[b][2]);
+    boxDimRef.axis[b][0] = axis[b][0];
+    boxDimRef.axis[b][1] = axis[b][1];
+    boxDimRef.axis[b][2] = axis[b][2];
     boxDimRef.cosAngle[b][0] = this->cosAngle[b][0];
     boxDimRef.cosAngle[b][1] = this->cosAngle[b][1];
     boxDimRef.cosAngle[b][2] = this->cosAngle[b][2];
     boxDimRef.volume[b] = axis[b][0] * axis[b][1] * axis[b][2];
     boxDimRef.volInv[b] = 1.0 / boxDimRef.volume[b];
   }
-  boxDimRef.axis.CopyRange(boxDimRef.halfAx, 0, 0, BOX_TOTAL);
-  boxDimRef.halfAx.ScaleRange(0, BOX_TOTAL, 0.5);
+
+  for (uint b = 0; b < BOX_TOTAL; b++) {
+    boxDimRef.halfAx[b][0] = boxDimRef.axis[b][0] * 0.5;
+    boxDimRef.halfAx[b][1] = boxDimRef.axis[b][1] * 0.5;
+    boxDimRef.halfAx[b][2] = boxDimRef.axis[b][2] * 0.5;
+  }
 }
 
 void CheckpointSetup::SetPRNGVariables(PRNG & prng) {

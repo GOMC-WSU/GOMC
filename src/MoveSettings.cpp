@@ -41,7 +41,7 @@ void MoveSettings::Init(StaticVals const& statV,
           if(remarks.restart && remarks.disp[b] > 0.0) {
             scale[b][m][k] = remarks.disp[b];
           } else {
-            scale[b][m][k] = boxDimRef.axis.Min(b) / 4;
+            scale[b][m][k] = std::min(std::min(boxDimRef.axis[b][0], boxDimRef.axis[b][1]), boxDimRef.axis[b][2]) / 4;
           }
         } else if (m == mv::ROTATE) {
           if(remarks.restart && remarks.rotate[b] > 0.0) {
@@ -141,7 +141,7 @@ void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
     double fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
     mp_t_max[box] *= fractOfTargetAccept;
     num::Bound<double>(mp_t_max[box], 0.001,
-                       (boxDimRef.axis.Min(box) / 2) - 0.001);
+                       (std::min(std::min(boxDimRef.axis[box][0], boxDimRef.axis[box][1]), boxDimRef.axis[box][2]) / 2) - 0.001);
 
     currentAccept = (double)mp_accepted[box][mp::MPROTATE] /
                     (double)mp_tries[box][mp::MPROTATE];
@@ -177,7 +177,7 @@ void MoveSettings::Adjust(const uint box, const uint move, const uint kind)
       }
     }
     num::Bound<double>(scale[box][move][kind], 0.0000000001,
-                       (boxDimRef.axis.Min(box) / 2) - TINY_AMOUNT);
+                       (std::min(std::min(boxDimRef.axis[box][0], boxDimRef.axis[box][1]), boxDimRef.axis[box][2]) / 2) - TINY_AMOUNT);
   } else if(move == mv::ROTATE) {
     if(tempTries[box][move][kind] > 0) {
       double currentAccept = (double)(tempAccepted[box][move][kind]) /

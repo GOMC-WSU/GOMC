@@ -570,14 +570,17 @@ void Ewald::RecipInitOrth(uint box, BoxDimensions const& boxAxes)
   int x, y, z, nkx_max, nky_max, nky_min, nkz_max, nkz_min;
   double ksqr, kX, kY, kZ;
   double alpsqr4 = 1.0 / (4.0 * ff.alphaSq[box]);
-  XYZ constValue = boxAxes.axis.Get(box);
+  XYZ constValue;
+  constValue.x = boxAxes.axis[box][0];
+  constValue.y = boxAxes.axis[box][1];
+  constValue.z = boxAxes.axis[box][2];
   constValue.Inverse();
   constValue *= 2 * M_PI;
 
   double vol = boxAxes.volume[box] / (4 * M_PI);
-  nkx_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).x / (2 * M_PI)) + 1;
-  nky_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).y / (2 * M_PI)) + 1;
-  nkz_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).z / (2 * M_PI)) + 1;
+  nkx_max = int(ff.recip_rcut[box] * boxAxes.axis[box][0] / (2 * M_PI)) + 1;
+  nky_max = int(ff.recip_rcut[box] * boxAxes.axis[box][1] / (2 * M_PI)) + 1;
+  nkz_max = int(ff.recip_rcut[box] * boxAxes.axis[box][2] / (2 * M_PI)) + 1;
   kmax[box] = std::max(std::max(nkx_max, nky_max), std::max(nky_max, nkz_max));
 
   for(x = 0; x <= nkx_max; x++) {
@@ -627,17 +630,17 @@ void Ewald::RecipInitNonOrth(uint box, BoxDimensions const& boxAxes)
   double ksqr, kX, kY, kZ;
   double alpsqr4 = 1.0 / (4.0 * ff.alphaSq[box]);
   XYZArray cellB(boxAxes.cellBasis[box]);
-  cellB.Scale(0, boxAxes.axis.Get(box).x);
-  cellB.Scale(1, boxAxes.axis.Get(box).y);
-  cellB.Scale(2, boxAxes.axis.Get(box).z);
+  cellB.Scale(0, boxAxes.axis[box][0]);
+  cellB.Scale(1, boxAxes.axis[box][1]);
+  cellB.Scale(2, boxAxes.axis[box][2]);
   XYZArray cellB_Inv(3);
   double det = cellB.AdjointMatrix(cellB_Inv);
   cellB_Inv.ScaleRange(0, 3, (2 * M_PI) / det);
 
   double vol = boxAxes.volume[box] / (4 * M_PI);
-  nkx_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).x / (2 * M_PI)) + 1;
-  nky_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).y / (2 * M_PI)) + 1;
-  nkz_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).z / (2 * M_PI)) + 1;
+  nkx_max = int(ff.recip_rcut[box] * boxAxes.axis[box][0] / (2 * M_PI)) + 1;
+  nky_max = int(ff.recip_rcut[box] * boxAxes.axis[box][1] / (2 * M_PI)) + 1;
+  nkz_max = int(ff.recip_rcut[box] * boxAxes.axis[box][2] / (2 * M_PI)) + 1;
   kmax[box] = std::max(std::max(nkx_max, nky_max), std::max(nky_max, nkz_max));
 
   for (x = 0; x <= nkx_max; x++) {
@@ -687,7 +690,10 @@ void Ewald::RecipCountInit(uint box, BoxDimensions const& boxAxes)
   int x, y, z, nkx_max, nky_max, nky_min, nkz_max, nkz_min;
   double ksqr, excess, kX, kY, kZ;
   XYZArray cellB(boxAxes.cellBasis[box]);
-  XYZ constValue = boxAxes.axis.Get(box);
+  XYZ constValue;
+  constValue.x = boxAxes.axis[box][0];
+  constValue.y = boxAxes.axis[box][1];
+  constValue.z = boxAxes.axis[box][2];
 #if ENSEMBLE == GEMC
   excess = 1.25;
 #elif ENSEMBLE == NPT

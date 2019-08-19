@@ -52,7 +52,7 @@ public:
 
   //References
   double * volumeRef;
-  XYZArray * axisRef;
+  XYZArray axisRef;
   double * volInvRef;
   Energy * energyRef, * energyTotRef;
   Virial * virialRef, * virial,  * virialTotRef;
