@@ -80,7 +80,7 @@ ConfigSetup::ConfigSetup(void)
   sys.ff.cutoff = DBL_MAX;
   sys.ff.cutoffLow = DBL_MAX;
   sys.ff.vdwGeometricSigma = false;
-  sys.ff.energyTable = false;
+  sys.ff.energyTable = true;
   sys.moves.displace = DBL_MAX;
   sys.moves.rotate = DBL_MAX;
   sys.moves.intraSwap = DBL_MAX;
