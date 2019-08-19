@@ -31,6 +31,7 @@ void Histogram::Init(pdb_setup::Atoms const& atoms,
   if (enableOut) {
     total = new uint[var->numKinds];
     //Set each kind's initial count to 0
+#pragma ivdep
     for (uint k = 0; k < var->numKinds; ++k) {
       total[k] = 0;
     }

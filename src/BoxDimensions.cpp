@@ -291,9 +291,19 @@ double BoxDimensions::UnwrapPBC(double& v, const double ref, const double ax,
 
 XYZ BoxDimensions::MinImage(XYZ rawVec, const uint b) const
 {
-  rawVec.x = MinImageSigned(rawVec.x, axis.x[b], halfAx.x[b]);
-  rawVec.y = MinImageSigned(rawVec.y, axis.y[b], halfAx.y[b]);
-  rawVec.z = MinImageSigned(rawVec.z, axis.z[b], halfAx.z[b]);
+  // It is way faster to do it here than to call MinImageSigned 3 times
+  if (rawVec.x > halfAx.x[b])
+    rawVec.x = rawVec.x - halfAx.x[b];
+  else if (rawVec.x < -halfAx.x[b])
+    rawVec.x = rawVec.x + halfAx.x[b];
+  if (rawVec.y > halfAx.y[b])
+    rawVec.y = rawVec.y - halfAx.y[b];
+  else if (rawVec.y < -halfAx.y[b])
+    rawVec.y = rawVec.y + halfAx.y[b];
+  if (rawVec.z > halfAx.z[b])
+    rawVec.z = rawVec.z - halfAx.z[b];
+  else if (rawVec.z < -halfAx.z[b])
+    rawVec.z = rawVec.z + halfAx.z[b];
   return rawVec;
 }
 

@@ -139,6 +139,7 @@ std::vector<int> FloydWarshallCycle::getPath(int connectionIndex)
 void FloydWarshallCycle::setDefaults()
 {
 	for (int i = 0; i < numberOfNodes; i++)
+#pragma ivdep
 		for (int j = 0; j < numberOfNodes; j++) {
 			graph[i][j] = 10000;
 			next[i][j] = -1;

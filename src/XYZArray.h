@@ -444,6 +444,7 @@ inline void XYZArray::Init(const uint n)
 inline void XYZArray::AddRange(const uint start, const uint stop,
                                XYZ const& val)
 {
+#pragma ivdep
   for(uint i = start; i < stop ; ++i) {
     x[i] += val.x;
     y[i] += val.y;

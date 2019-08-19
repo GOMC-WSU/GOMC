@@ -401,6 +401,7 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
   boxDimRef.UnwrapPBC(temp, bPick, center);
   
   // Do Rotation
+#pragma ivdep
   for(uint p=0; p<len; p++) {
     temp.Add(p, -center);
     temp.Set(p, matrix.Apply(temp[p]));

@@ -112,7 +112,8 @@ void DCLinkedHedron::PrepareOld(TrialMol& oldMol, uint molIndex)
 
 void DCLinkedHedron::SetBondLengthNew(TrialMol& newMol)
 {
-  for(uint i = 0; i < hed.NumBond(); ++i) {
+  uint upper = hed.NumBond();
+  for(uint i = 0; i < upper; ++i) {
     bondLength[i] = data->ff.bonds.Length(bondKinds[i]);
   }
   //anchorBond is built, we need the actual length

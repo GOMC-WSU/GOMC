@@ -221,8 +221,16 @@ void BoxDimensionsNonOrth::SetVolume(const uint b, const double vol)
 
 XYZ BoxDimensionsNonOrth::MinImage(XYZ rawVecRef, const uint b) const
 {
-  XYZ rawVec = TransformUnSlant(rawVecRef, b);
-  rawVecRef = BoxDimensions:: MinImage(rawVec, b);
+  XYZ rawVec;
+
+  rawVec.x = rawVecRef.x * cellBasis_Inv[b].Get(0).x + rawVecRef.y * cellBasis_Inv[b].Get(1).x +
+    rawVecRef.z * cellBasis_Inv[b].Get(2).x;
+  rawVec.y = rawVecRef.x * cellBasis_Inv[b].Get(0).y + rawVecRef.y * cellBasis_Inv[b].Get(1).y +
+    rawVecRef.z * cellBasis_Inv[b].Get(2).y;
+  rawVec.z = rawVecRef.x * cellBasis_Inv[b].Get(0).z + rawVecRef.y * cellBasis_Inv[b].Get(1).z +
+    rawVecRef.z * cellBasis_Inv[b].Get(2).z;
+
+  rawVecRef = BoxDimensions::MinImage(rawVec, b); 
   rawVecRef = TransformSlant(rawVecRef, b);
   return rawVecRef;
 }

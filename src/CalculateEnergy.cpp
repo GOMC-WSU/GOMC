@@ -30,8 +30,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
 
-#define HALF_DOUBLE_MAX 8.988466e+307
-
 using namespace geom;
 
 CalculateEnergy::CalculateEnergy(StaticVals & stat, System & sys) :
@@ -247,12 +245,6 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   }
 
 #else
-#ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, virComponents, forceReal, forceLJ) \
-reduction(+:tempREn, tempLJEn, \
-aForcex[:atomCount], aForcey[:atomCount], aForcez[:atomCount], \
-mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
-#endif
   for (i = 0; i < pair1.size(); i++) {
     if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)) {
       if (electrostatic) {
@@ -627,33 +619,61 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
       n.Next();
     }
 
+    if (energyTableEnabled) {
+      std::vector<double> distSqs;
+      std::vector<int> particleKinds;
+      distSqs.resize(nIndex.size());
+      particleKinds.resize(nIndex.size());
+      int vecIndex = 0;
 #ifdef _OPENMP
     #pragma omp parallel for default(shared) private(i, distSq, qi_qj_Fact) reduction(+:tempLJ, tempReal)
 #endif
-    for(i = 0; i < nIndex.size(); i++) {
-      distSq = 0.0;
+      for(i = 0; i < nIndex.size(); i++) {
+        distSq = 0.0;
 
-      if(currentAxes.InRcut(distSq, trialPos, t, currentCoords, nIndex[i],box)) {
-        if(distSq < forcefield.rCutLowSq) {
-          overlap[t] |= true;
-        }
-        double tt = forcefield.particles->CalcEn(distSq, kindI,
-                                               particleKind[nIndex[i]]);
-        if(energyTableEnabled && isnan(tt)) {
-          // In energy table we lose some accuracy, so some energies for very
-          // small distSq can be nan. In those cases we set them to a very large
-          // number so the program continues as normal
-          tt = HALF_DOUBLE_MAX;
-        }
-        tempLJ += tt;
-        if(electrostatic) {
-          qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
-          tempReal += forcefield.particles->CalcCoulomb(distSq, qi_qj_Fact, box);
+        if(currentAxes.InRcut(distSq, trialPos, t, currentCoords, nIndex[i],box)) {
+          if(distSq < forcefield.rCutLowSq) {
+            overlap[t] |= true;
+          }
+          distSqs[vecIndex] = distSq;
+          particleKinds[vecIndex] = particleKind[nIndex[i]];
+          vecIndex++;
+
+          if(electrostatic) {
+            qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
+            tempReal += forcefield.particles->CalcCoulomb(distSq, qi_qj_Fact, box);
+          }
         }
       }
+      // en[t] += forcefield.particles->CalcEnArray(distSqs, kindI, particleKinds, vecIndex);
+      double tt = forcefield.particles->CalcEnArray(distSqs, kindI, particleKinds, vecIndex);
+      //printf("t: %d, tt: %lf\n", t, tt);
+      en[t] += tt;
+      real[t] += tempReal;
     }
-    en[t] += tempLJ;
-    real[t] += tempReal;
+    else {
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(i, distSq, qi_qj_Fact) reduction(+:tempLJ, tempReal)
+#endif
+      for (i = 0; i < nIndex.size(); i++) {
+        distSq = 0.0;
+
+        if (currentAxes.InRcut(distSq, trialPos, t, currentCoords, nIndex[i], box)) {
+          if (distSq < forcefield.rCutLowSq) {
+            overlap[t] |= true;
+          }
+          tempLJ += forcefield.particles->CalcEn(distSq, kindI,
+                                                 particleKind[nIndex[i]]);
+          if (electrostatic) {
+            qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
+            tempReal += forcefield.particles->CalcCoulomb(distSq, qi_qj_Fact, box);
+          }
+        }
+      }
+      //printf("t: %d, tt: %lf\n", t, tempLJ);
+      en[t] += tempLJ;
+      real[t] += tempReal;
+    }
   }
 }
 
@@ -1219,10 +1239,6 @@ void CalculateEnergy::CalculateTorque(vector<uint>& moleculeIndex,
 
     molTorque.Reset();
 
-#ifdef _OPENMP
-#pragma omp parallel for default(shared) private(m, p, length, start, distFromCOM, tempTorque) \
-reduction(+: torquex[:torqueCount], torquey[:torqueCount], torquez[:torqueCount])
-#endif
     for(m = 0; m < moleculeIndex.size(); m++) {
       length = mols.GetKind(moleculeIndex[m]).NumAtoms();
       start = mols.MolStart(moleculeIndex[m]);
@@ -1260,6 +1276,7 @@ void CalculateEnergy::ResetForce(XYZArray& atomForce, XYZArray& molForce,
       start = mols.MolStart(*thisMol);
 
       molForce.Set(*thisMol, 0.0, 0.0, 0.0);
+#pragma ivdep
       for(uint p = start; p < start + length; p++) {
         atomForce.Set(p, 0.0, 0.0, 0.0);
       }
