@@ -265,28 +265,16 @@ inline void FFParticle::CalcCoulombAdd_1_4(double& en, const double distSq,
     en += qi_qj_Fact * forcefield.scaling_14 / dist;
 }
 
-double FFParticle::CalcEnArray(std::vector<double>& distSqs, const uint kind1, std::vector<int>& kind2, int vecSize)
-{
-  double add = kind1 * count;
-  std::transform(kind2.begin(), kind2.end(), kind2.begin(),
-    bind2nd(std::plus<double>(), add));
-
-  return CSTable_CalcEnAttract[mv::BOX0].ReturnArray(distSqs, vecSize, kind2, forcefield.rCutSq) +
-    CSTable_CalcEnRepulse[mv::BOX0].ReturnArray(distSqs, vecSize, kind2, forcefield.rCutSq);
-}
-
 //mie potential
 inline double FFParticle::CalcEn(const double distSq,
                                  const uint kind1, const uint kind2) const
 {
   if(forcefield.rCutSq < distSq)
     return 0.0;
-
   uint index = FlatIndex(kind1, kind2);
-  
   if(energyTableEnabled) {
-    return CSTable_CalcEnAttract[mv::BOX0](distSq, index) +
-      CSTable_CalcEnRepulse[mv::BOX0](distSq, index);
+    return CSTable_CalcEnAttract[mv::BOX0][index](distSq) +
+      CSTable_CalcEnRepulse[mv::BOX0][index](distSq);
   }
 
   double rRat2 = sigmaSq[index] / distSq;
@@ -338,11 +326,6 @@ inline double FFParticle::CalcEnRepulse(const double distSq,
   return epsilon_cn[index] * repulse;
 }
 
-double FFParticle::CalcCoulombArray(std::vector<double>& distSqs, std::vector<double>& qi_qj_Facts, const uint b)
-{
-
-}
-
 inline double FFParticle::CalcCoulomb(const double distSq,
                                       const double qi_qj_Fact, const uint b) const
 {
@@ -350,7 +333,7 @@ inline double FFParticle::CalcCoulomb(const double distSq,
     return 0.0;
   
   if(energyTableEnabled) {
-    return qi_qj_Fact * CSTable_CalcCoulomb[b](distSq, 0);
+    return qi_qj_Fact * CSTable_CalcCoulomb[b][0](distSq);
   }
 
   if(forcefield.ewald) {
@@ -410,8 +393,8 @@ inline double FFParticle::CalcVir(const double distSq,
   uint index = FlatIndex(kind1, kind2);
 
   if(energyTableEnabled) {
-    return CSTable_CalcEnAttract[mv::BOX0].GetDerivativeValue(distSq, index) +
-      CSTable_CalcEnRepulse[mv::BOX0].GetDerivativeValue(distSq, index);
+    return CSTable_CalcEnAttract[mv::BOX0][index].GetDerivativeValue(distSq) +
+      CSTable_CalcEnRepulse[mv::BOX0][index].GetDerivativeValue(distSq);
   }
 
   double rNeg2 = 1.0 / distSq;
@@ -437,7 +420,7 @@ inline double FFParticle::CalcCoulombVir(const double distSq,
     return 0.0;
 
   if(energyTableEnabled) {
-    return qi_qj * CSTable_CalcCoulomb[b].GetDerivativeValue(distSq, 0);
+    return qi_qj * CSTable_CalcCoulomb[b][0].GetDerivativeValue(distSq);
   }
 
   if(forcefield.ewald) {
@@ -505,15 +488,18 @@ void FFParticle::InitializeTables()
   energyTableEnabled = true;
 
   double r2, r1;
-  CSTable_CalcCoulomb      = new CubicSpline[BOXES_WITH_U_B];
-  CSTable_CalcEnAttract    = new CubicSpline[BOXES_WITH_U_B];
-  CSTable_CalcEnRepulse    = new CubicSpline[BOXES_WITH_U_B];
+  CSTable_CalcCoulomb      = new CubicSpline*[BOXES_WITH_U_B];
+  CSTable_CalcEnAttract    = new CubicSpline*[BOXES_WITH_U_B];
+  CSTable_CalcEnRepulse    = new CubicSpline*[BOXES_WITH_U_B];
 
   for (uint b = 0; b < BOXES_WITH_U_B; b++) {
     // Initialize loca variables
     int tableLength           = ((forcefield.rCutSq + 1) / TABLE_STEP);
     uint kindTotal            = count;
     uint kindTotalSq          = kindTotal * kindTotal;
+    CSTable_CalcCoulomb[b]    = new CubicSpline[kindTotalSq];
+    CSTable_CalcEnAttract[b]  = new CubicSpline[kindTotalSq];
+    CSTable_CalcEnRepulse[b]  = new CubicSpline[kindTotalSq];
 
     // Let's make sure we are not allocating too much data for energy table.
     if (tableLength * kindTotalSq > 10000000) {
@@ -521,14 +507,15 @@ void FFParticle::InitializeTables()
       std::cerr << "       Please turn off energy tables.\n";
       exit(EXIT_FAILURE);
     }
-    CSTable_CalcCoulomb[b].Reconstruct(tableLength, kindTotalSq, TABLE_STEP, 0.0);
-    CSTable_CalcEnAttract[b].Reconstruct(tableLength, kindTotalSq, TABLE_STEP, 0.0);
-    CSTable_CalcEnRepulse[b].Reconstruct(tableLength, kindTotalSq, TABLE_STEP, 0.0);
     
     for (uint k1 = 0; k1 < kindTotal; k1++) {
       for (uint k2 = 0; k2 < kindTotal; k2++) {
         // initialize variables
         uint k = FlatIndex(k1, k2);
+
+        CSTable_CalcCoulomb[b][k].Reconstruct(tableLength, TABLE_STEP, 0.0);
+        CSTable_CalcEnAttract[b][k].Reconstruct(tableLength, TABLE_STEP, 0.0);
+        CSTable_CalcEnRepulse[b][k].Reconstruct(tableLength, TABLE_STEP, 0.0);
 
         std::vector<double> v_coulomb, v_d_coulomb, v_attract, v_d_attract, v_repulse, v_d_repulse;
         v_coulomb.resize(tableLength);
@@ -562,14 +549,14 @@ void FFParticle::InitializeTables()
 
         for (int i = 0; i < tableLength; i++) {
           if (i < tableLength - 1) {
-            CSTable_CalcCoulomb[b].InitializeSpecificPoint(v_coulomb[i], v_coulomb[i+1], v_d_coulomb[i], v_d_coulomb[i+1], i, k);
-            CSTable_CalcEnAttract[b].InitializeSpecificPoint(v_attract[i], v_attract[i+1], v_d_attract[i], v_d_attract[i+1], i, k);
-            CSTable_CalcEnRepulse[b].InitializeSpecificPoint(v_repulse[i], v_repulse[i+1], v_d_repulse[i], v_d_repulse[i+1], i, k);
+            CSTable_CalcCoulomb[b][k].InitializeSpecificPoint(v_coulomb[i], v_coulomb[i+1], v_d_coulomb[i], v_d_coulomb[i+1], i);
+            CSTable_CalcEnAttract[b][k].InitializeSpecificPoint(v_attract[i], v_attract[i+1], v_d_attract[i], v_d_attract[i+1], i);
+            CSTable_CalcEnRepulse[b][k].InitializeSpecificPoint(v_repulse[i], v_repulse[i+1], v_d_repulse[i], v_d_repulse[i+1], i);
           }
           else {
-            CSTable_CalcCoulomb[b].InitializeSpecificPoint(v_coulomb[i], v_coulomb[i], v_d_coulomb[i], v_d_coulomb[i], i, k);
-            CSTable_CalcEnAttract[b].InitializeSpecificPoint(v_attract[i], v_attract[i], v_d_attract[i], v_d_attract[i], i, k);
-            CSTable_CalcEnRepulse[b].InitializeSpecificPoint(v_repulse[i], v_repulse[i], v_d_repulse[i], v_d_repulse[i], i, k);
+            CSTable_CalcCoulomb[b][k].InitializeSpecificPoint(v_coulomb[i], v_coulomb[i], v_d_coulomb[i], v_d_coulomb[i], i);
+            CSTable_CalcEnAttract[b][k].InitializeSpecificPoint(v_attract[i], v_attract[i], v_d_attract[i], v_d_attract[i], i);
+            CSTable_CalcEnRepulse[b][k].InitializeSpecificPoint(v_repulse[i], v_repulse[i], v_d_repulse[i], v_d_repulse[i], i);
           }
         }
       }

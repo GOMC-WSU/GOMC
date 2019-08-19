@@ -619,61 +619,26 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
       n.Next();
     }
 
-    if (energyTableEnabled) {
-      std::vector<double> distSqs;
-      std::vector<int> particleKinds;
-      distSqs.resize(nIndex.size());
-      particleKinds.resize(nIndex.size());
-      int vecIndex = 0;
-#ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i, distSq, qi_qj_Fact) reduction(+:tempLJ, tempReal)
-#endif
-      for(i = 0; i < nIndex.size(); i++) {
-        distSq = 0.0;
-
-        if(currentAxes.InRcut(distSq, trialPos, t, currentCoords, nIndex[i],box)) {
-          if(distSq < forcefield.rCutLowSq) {
-            overlap[t] |= true;
-          }
-          distSqs[vecIndex] = distSq;
-          particleKinds[vecIndex] = particleKind[nIndex[i]];
-          vecIndex++;
-
-          if(electrostatic) {
-            qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
-            tempReal += forcefield.particles->CalcCoulomb(distSq, qi_qj_Fact, box);
-          }
-        }
-      }
-      // en[t] += forcefield.particles->CalcEnArray(distSqs, kindI, particleKinds, vecIndex);
-      double tt = forcefield.particles->CalcEnArray(distSqs, kindI, particleKinds, vecIndex);
-      //printf("t: %d, tt: %lf\n", t, tt);
-      en[t] += tt;
-      real[t] += tempReal;
-    }
-    else {
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, distSq, qi_qj_Fact) reduction(+:tempLJ, tempReal)
 #endif
-      for (i = 0; i < nIndex.size(); i++) {
-        distSq = 0.0;
+    for (i = 0; i < nIndex.size(); i++) {
+      distSq = 0.0;
 
-        if (currentAxes.InRcut(distSq, trialPos, t, currentCoords, nIndex[i], box)) {
-          if (distSq < forcefield.rCutLowSq) {
-            overlap[t] |= true;
-          }
-          tempLJ += forcefield.particles->CalcEn(distSq, kindI,
-                                                 particleKind[nIndex[i]]);
-          if (electrostatic) {
-            qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
-            tempReal += forcefield.particles->CalcCoulomb(distSq, qi_qj_Fact, box);
-          }
+      if (currentAxes.InRcut(distSq, trialPos, t, currentCoords, nIndex[i], box)) {
+        if (distSq < forcefield.rCutLowSq) {
+          overlap[t] |= true;
+        }
+        tempLJ += forcefield.particles->CalcEn(distSq, kindI,
+                                                particleKind[nIndex[i]]);
+        if (electrostatic) {
+          qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
+          tempReal += forcefield.particles->CalcCoulomb(distSq, qi_qj_Fact, box);
         }
       }
-      //printf("t: %d, tt: %lf\n", t, tempLJ);
-      en[t] += tempLJ;
-      real[t] += tempReal;
     }
+    en[t] += tempLJ;
+    real[t] += tempReal;
   }
 }
 

@@ -14,30 +14,29 @@ CubicSpline::~CubicSpline()
   delete [] H;
 }
 
-void CubicSpline::Reconstruct(int tableLength, uint kindTotalSq, double tableSpacing, double start)
+void CubicSpline::Reconstruct(int tableLength, double tableSpacing, double start)
 {
   this->tableLength = tableLength;
   this->tableSpacing = tableSpacing;
   this->tableStart = start;
 
-  Y = new double[tableLength * kindTotalSq];
-  F = new double[tableLength * kindTotalSq];
-  G = new double[tableLength * kindTotalSq];
-  H = new double[tableLength * kindTotalSq];
+  Y = new double[tableLength];
+  F = new double[tableLength];
+  G = new double[tableLength];
+  H = new double[tableLength];
 }
 
-void CubicSpline::InitializeSpecificPoint(double functionValue0, double functionValue1, double derivativeValue0, double derivativeValue1, int index, uint kind)
+void CubicSpline::InitializeSpecificPoint(double functionValue0, double functionValue1, double derivativeValue0, double derivativeValue1, int index)
 {
-  Y[kind * tableLength + index] =  functionValue0;
-  F[kind * tableLength + index] =  tableSpacing * derivativeValue0;
-  G[kind * tableLength + index] =  3.0*( functionValue1 - functionValue0) - tableSpacing * (derivativeValue1 + 2.0 * derivativeValue0);
-  H[kind * tableLength + index] = -2.0*( functionValue1 - functionValue0) + tableSpacing * (derivativeValue1 + derivativeValue0);
+  Y[index] =  functionValue0;
+  F[index] =  tableSpacing * derivativeValue0;
+  G[index] =  3.0*( functionValue1 - functionValue0) - tableSpacing * (derivativeValue1 + 2.0 * derivativeValue0);
+  H[index] = -2.0*( functionValue1 - functionValue0) + tableSpacing * (derivativeValue1 + derivativeValue0);
 }
 
-double CubicSpline::operator()(double value, uint kind)
+double CubicSpline::operator()(double value)
 {
   int index = static_cast<int>((value - tableStart) / tableSpacing);
-  index = kind * tableLength + index;
   double x = tableSpacing * index + tableStart;
   double eps = value - x;
 
@@ -47,34 +46,9 @@ double CubicSpline::operator()(double value, uint kind)
   return (isnan(temp3)) ? HALF_DOUBLE_MAX : temp3;
 }
 
-double CubicSpline::ReturnArray(std::vector<double> &values, int size, std::vector<int> &kinds, double threshold)
-{
-  double sum = 0.0;
-  for (int i = 0; i < size; i++) {
-    if (values[i] > threshold)
-      continue;
-
-    int kind = kinds[i];
-    int index = static_cast<int>((values[i] - tableStart) / tableSpacing);
-    index = kind * tableLength + index;
-    double x = tableSpacing * index + tableStart;
-    double eps = values[i] - x;
-
-    double temp1 = H[index] * eps + G[index];
-    double temp2 = temp1 * eps + F[index];
-    double temp3 = temp2 * eps + Y[index];
-    if (isnan(temp3)) {
-      return HALF_DOUBLE_MAX;
-    }
-    sum = sum + temp3;
-  }
-  return sum;
-}
-
-double CubicSpline::GetDerivativeValue(double value, uint kind)
+double CubicSpline::GetDerivativeValue(double value)
 {
   int index = static_cast<int>((value - tableStart) / tableSpacing);
-  index = kind * tableLength + index;
   double eps = value - (tableSpacing * index + tableStart);
 
   double temp1 = 3.0 * H[index];

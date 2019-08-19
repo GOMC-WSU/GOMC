@@ -67,7 +67,6 @@ public:
   // LJ interaction functions
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2) const;
-  double CalcEnArray(std::vector<double>& distSqs, const uint kind1, std::vector<int>& kind2, int vecSize);
   virtual double CalcEnAttract(const double distSq,
                                const uint kind1, const uint kind2) const;
   virtual double CalcEnRepulse(const double distSq,
@@ -79,7 +78,6 @@ public:
                            const uint kind1, const uint kind2) const;
 
   // coulomb interaction functions
-  double CalcCoulombArray(std::vector<double>& distSqs, std::vector<double>& qi_qj_Facts, const uint b);
   virtual double CalcCoulomb(const double distSq,
                              const double qi_qj_Fact, const uint b) const;
   virtual double CalcCoulombNoFact(const double distSq, const uint b) const;
@@ -138,9 +136,9 @@ protected:
 #endif
 
   // Variables used by energy table
-  CubicSpline *CSTable_CalcCoulomb;
-  CubicSpline *CSTable_CalcEnAttract;
-  CubicSpline *CSTable_CalcEnRepulse;
+  CubicSpline **CSTable_CalcCoulomb;
+  CubicSpline **CSTable_CalcEnAttract;
+  CubicSpline **CSTable_CalcEnRepulse;
   bool energyTableEnabled;
   uint energyTableMaxSize;
 };
