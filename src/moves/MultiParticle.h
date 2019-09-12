@@ -325,7 +325,7 @@ inline long double MultiParticle::GetCoeff()
       lbt_new = molTorqueNew.Get(molNumber) * lBeta;
 
       w_ratio *= CalculateWRatio(lbt_new, r_k.Get(molNumber), r_max, -1);
-      w_ratio /= CalculateWRatio(lbt_old, r_k.Get(molNumber), r_max, 1);
+      w_ratio *= 1.0 / CalculateWRatio(lbt_old, r_k.Get(molNumber), r_max, 1);
     } else {
       // displace
       lbf_old = (molForceRef.Get(molNumber) + molForceRecRef.Get(molNumber)) *
@@ -333,7 +333,7 @@ inline long double MultiParticle::GetCoeff()
       lbf_new = (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber)) *
         lBeta;
       w_ratio *= CalculateWRatio(lbf_new, t_k.Get(molNumber), t_max, -1);
-      w_ratio /= CalculateWRatio(lbf_old, t_k.Get(molNumber), t_max, 1);
+      w_ratio *= 1.0 / CalculateWRatio(lbf_old, t_k.Get(molNumber), t_max, 1);
     }
   }
 
