@@ -96,7 +96,10 @@ inline void MultiParticle::SetMolInBox(uint box)
   MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
   MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
   while(thisMol != end) {
-    moleculeIndex.push_back(*thisMol);
+    //Make sure this molecule is not fixed in its position
+    if(!molLookup.IsFix(*thisMol)) {
+      moleculeIndex.push_back(*thisMol);
+    }
     thisMol++;
   }
 #else
@@ -105,7 +108,10 @@ inline void MultiParticle::SetMolInBox(uint box)
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
     while(thisMol != end) {
-      moleculeIndex.push_back(*thisMol);
+      //Make sure this molecule is not fixed in its position
+      if(!molLookup.IsFix(*thisMol)) {
+        moleculeIndex.push_back(*thisMol);
+      }
       thisMol++;
     }
   }
