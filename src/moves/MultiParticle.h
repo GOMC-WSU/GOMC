@@ -50,8 +50,8 @@ private:
   void TranslateForceBiased(uint molIndex);
   void SetMolInBox(uint box);
   XYZ CalcRandomTransform(XYZ const &lb, double const max);
-  double CalculateWRatio(XYZ const &lb, XYZ const &k, double max,
-                            double sign);
+  double CalculateWRatio(XYZ const &lb_new, XYZ const &lb_old, XYZ const &k,
+                        double max);
 };
 
 inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
@@ -274,33 +274,27 @@ inline void MultiParticle::CalcEn()
   sysPotNew.Total();
 }
 
-inline double MultiParticle::CalculateWRatio(XYZ const &lb, XYZ const &k,
-                                                double max, double sign)
+inline double MultiParticle::CalculateWRatio(XYZ const &lb_new, XYZ const &lb_old,
+                                            XYZ const &k, double max)
 {
   double w_ratio = 1.0;
-  XYZ lbmax = lb * max;
-
+  XYZ lbmax = lb_old * max;
+  //If we used force to bias the displacement or rotation, we include it
   if(abs(lbmax.x) > MIN_FORCE && abs(lbmax.x) < MAX_FORCE) {
-    w_ratio *= lb.x * exp(lb.x * sign * k.x) / (2.0*sinh(lb.x * max));
-  }  else {
-    w_ratio *= 1.0 / (2.0 * max);
+    w_ratio *= lb_new.x * exp(-lb_new.x * k.x) / (2.0*sinh(lb_new.x * max));
+    w_ratio /= lb_old.x * exp(lb_old.x * k.x) / (2.0*sinh(lb_old.x * max));
   }
   
   if(abs(lbmax.y) > MIN_FORCE && abs(lbmax.y) < MAX_FORCE){
-    w_ratio *= lb.y * exp(lb.y * sign * k.y) / (2.0*sinh(lb.y * max));
-  } else {
-    w_ratio *= 1.0 / (2.0 * max);
-  }
+    w_ratio *= lb_new.y * exp(-lb_new.y * k.y) / (2.0*sinh(lb_new.y * max));
+    w_ratio /= lb_old.y * exp(lb_old.y * k.y) / (2.0*sinh(lb_old.y * max));
+  } 
 
   if(abs(lbmax.z) > MIN_FORCE && abs(lbmax.z) < MAX_FORCE){
-    w_ratio *= lb.z * exp(lb.z * sign * k.z) / (2.0*sinh(lb.z * max));
-  } else {
-    w_ratio *= 1.0 / (2.0 * max);
+    w_ratio *= lb_new.z * exp(-lb_new.z * k.z) / (2.0*sinh(lb_new.z * max));
+    w_ratio /= lb_old.z * exp(lb_old.z * k.z) / (2.0*sinh(lb_old.z * max));
   }
 
-  // if(sign == -1) {
-  //   cout << "w_ratio: " << w_ratio << endl;
-  // }
   return w_ratio;
 }
 
@@ -323,17 +317,14 @@ inline long double MultiParticle::GetCoeff()
       // rotate
       lbt_old = molTorqueRef.Get(molNumber) * lBeta;
       lbt_new = molTorqueNew.Get(molNumber) * lBeta;
-
-      w_ratio *= CalculateWRatio(lbt_new, r_k.Get(molNumber), r_max, -1);
-      w_ratio *= 1.0 / CalculateWRatio(lbt_old, r_k.Get(molNumber), r_max, 1);
+      w_ratio *= CalculateWRatio(lbt_new, lbt_old, r_k.Get(molNumber), r_max);
     } else {
       // displace
       lbf_old = (molForceRef.Get(molNumber) + molForceRecRef.Get(molNumber)) *
 	      lBeta;
       lbf_new = (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber)) *
         lBeta;
-      w_ratio *= CalculateWRatio(lbf_new, t_k.Get(molNumber), t_max, -1);
-      w_ratio *= 1.0 / CalculateWRatio(lbf_old, t_k.Get(molNumber), t_max, 1);
+      w_ratio *= CalculateWRatio(lbf_new, lbf_old, t_k.Get(molNumber), t_max);
     }
   }
 
@@ -386,21 +377,21 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max)
   XYZ lbmax = lb * max;
   XYZ num;
   if(abs(lbmax.x) > MIN_FORCE && abs(lbmax.x) < MAX_FORCE) {
-    num.x = log(exp(-1.0 * lbmax.x ) + 2 * prng() * sinh(lbmax.x )) / lb.x;
+    num.x = log(exp(-1.0 * lbmax.x) + 2 * prng() * sinh(lbmax.x)) / lb.x;
   } else {
-    num.x = max * prng.Sym(1);
+    num.x = prng.Sym(max);
   }
   
   if(abs(lbmax.y) > MIN_FORCE && abs(lbmax.y) < MAX_FORCE){
-    num.y = log(exp(-1.0 * lbmax.y ) + 2 * prng() * sinh(lbmax.y )) / lb.y;
+    num.y = log(exp(-1.0 * lbmax.y) + 2 * prng() * sinh(lbmax.y)) / lb.y;
   } else {
-    num.y = max * prng.Sym(1);
+    num.y = prng.Sym(max);
   }
 
   if(abs(lbmax.z) > MIN_FORCE && abs(lbmax.z) < MAX_FORCE){
-    num.z = log(exp(-1.0 * lbmax.z ) + 2 * prng() * sinh(lbmax.z )) / lb.z;
+    num.z = log(exp(-1.0 * lbmax.z) + 2 * prng() * sinh(lbmax.z)) / lb.z;
   } else {
-    num.z = max * prng.Sym(1);
+    num.z = prng.Sym(max);
   }
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
