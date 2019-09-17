@@ -1347,7 +1347,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
           for(i = 0; i < imageSize[box]; i++) {
             dot = Dot(p, kx[box][i], ky[box][i], kz[box][i], molCoords);
     
-            factor = particleCharge[p] * prefact[box][i] * lambdaCoef *
+            factor = 2.0 * particleCharge[p] * prefact[box][i] * lambdaCoef *
                     (sin(dot) * sumRnew[box][i] - cos(dot) * sumInew[box][i]);
 
             X += factor * kx[box][i];
