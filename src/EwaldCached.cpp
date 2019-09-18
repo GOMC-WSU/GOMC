@@ -295,22 +295,14 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
 }
 
 //calculate reciprocate term in destination box for swap move
-//It never been caled in Free Energy calculatio, becaue we are in 
-// NVT and NPT ensemble
+//No need to scale the charge with lambda, since this function will not be 
+// called in free energy of CFCMC
 double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
                                   const uint box,
                                   const int molIndex)
 {
   double energyRecipNew = 0.0;
   double energyRecipOld = 0.0;
-
-#ifdef _OPENMP
-  #pragma omp parallel default(shared)
-#endif
-  {
-    std::memcpy(cosMolRestore, cosMolRef[molIndex], sizeof(double)*imageTotal);
-    std::memcpy(sinMolRestore, sinMolRef[molIndex], sizeof(double)*imageTotal);
-  }
 
   if (box < BOXES_WITH_U_NB) {
     uint p, length, start;
@@ -325,6 +317,8 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
     #pragma omp parallel for default(shared) private(i, p, dotProductNew) reduction(+:energyRecipNew)
 #endif
     for (i = 0; i < imageSizeRef[box]; i++) {
+      cosMolRestore[i] = cosMolRef[molIndex][i];
+      sinMolRestore[i] = sinMolRef[molIndex][i];
       cosMolRef[molIndex][i] = 0.0;
       sinMolRef[molIndex][i] = 0.0;
       dotProductNew = 0.0;
@@ -359,8 +353,8 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
 
 
 //calculate reciprocate term in source box for swap move
-//It never been caled in Free Energy calculatio, becaue we are in 
-// NVT and NPT ensemble
+//No need to scale the charge with lambda, since this function will not be 
+// called in free energy of CFCMC
 double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                     const uint box, const int molIndex)
 {
@@ -404,32 +398,11 @@ double EwaldCached::CFCMCRecip(XYZArray const& molCoords,const double lambdaOld,
                                const double lambdaNew, const uint molIndex,
                                const uint box)
 {
-  double energyRecipNew = 0.0;
-
-  if (box < BOXES_WITH_U_NB) {
-    int i;
-    double sumRealNew, sumImaginaryNew;
-    double lambdaCoef = lambdaNew - lambdaOld;
-
-#ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i, sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
-#endif
-    for (i = 0; i < imageSizeRef[box]; i++) {
-      sumRealNew = cosMolRef[molIndex][i];
-      sumImaginaryNew = sinMolRef[molIndex][i];
-      cosMolRestore[i] = cosMolRef[molIndex][i];
-      sinMolRestore[i] = sinMolRef[molIndex][i];
-      //Coordinates are same, no need to recalculate the sin and cos term
-      //We use the store sinMol and cosMol
-      sumRnew[box][i] = sumRref[box][i] + lambdaCoef * sumRealNew;
-      sumInew[box][i] = sumIref[box][i] + lambdaCoef * sumImaginaryNew;
-
-      energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
-                         * sumInew[box][i]) * prefactRef[box][i];
-    }
-  }
-
-  return energyRecipNew - sysPotRef.boxEnergy[box].recip;
+  //This function should not be called in CFCMC move
+  std::cout << "Error: Cached Fourier method cannot be used while " <<
+            "performing CFCMC move!" << std::endl;
+  exit(EXIT_FAILURE);
+  return 0.0;
 }
 
 //calculate reciprocate term for lambdaNew and Old with same coordinates
@@ -451,7 +424,7 @@ void EwaldCached::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
   for (i = 0; i < imageSizeRef[box]; i++) {
     for(s = 0; s < lambdaSize; s++) {
       //Calculate the energy of other state
-      coefDiff = lambda_Coul[s] - lambda_Coul[iState];
+      coefDiff = sqrt(lambda_Coul[s]) - sqrt(lambda_Coul[iState]);
       energyRecip[s] += prefactRef[box][i] *
                         ((sumRref[box][i] + coefDiff*cosMolRef[molIndex][i]) * 
                          (sumRref[box][i] + coefDiff*cosMolRef[molIndex][i]) + 
@@ -497,31 +470,17 @@ void EwaldCached::exgMolCache()
 //backup the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
 void EwaldCached::backupMolCache()
 {
-#if ENSEMBLE == NPT
+#if ENSEMBLE == NPT || ENSEMBLE == NVT
   exgMolCache();
-#elif ENSEMBLE == GEMC
-  if(GEMC_KIND == mv::GEMC_NVT) {
-    if(BOX_TOTAL == 2) {
-      exgMolCache();
-    } else {
-      uint m;
+#else
+  uint m;
+
 #ifdef _OPENMP
-      #pragma omp parallel for private(m)
+  #pragma omp parallel for private(m)
 #endif
-      for(m = 0; m < mols.count; m++) {
-        std::memcpy(cosMolBoxRecip[m], cosMolRef[m], sizeof(double)*imageTotal);
-        std::memcpy(sinMolBoxRecip[m], sinMolRef[m], sizeof(double)*imageTotal);
-      }
-    }
-  } else {
-    uint m;
-#ifdef _OPENMP
-    #pragma omp parallel for private(m)
-#endif
-    for(m = 0; m < mols.count; m++) {
-      std::memcpy(cosMolBoxRecip[m], cosMolRef[m], sizeof(double)*imageTotal);
-      std::memcpy(sinMolBoxRecip[m], sinMolRef[m], sizeof(double)*imageTotal);
-    }
+  for(m = 0; m < mols.count; m++) {
+    std::memcpy(cosMolBoxRecip[m], cosMolRef[m], sizeof(double) * imageTotal);
+    std::memcpy(sinMolBoxRecip[m], sinMolRef[m], sizeof(double) * imageTotal);
   }
 #endif
 }

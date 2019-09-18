@@ -323,7 +323,7 @@ inline void CFCMC::CalcEnCFCMC(uint lambdaIdxOldS, uint lambdaIdxNewS)
 
 
   //Calculate self and correction difference for lambdaNew and lambdaOld
-  //For electrostatic we use lamda**5 
+  //For electrostatic we use linear scaling
   double coefDiffS = lambdaNew_Coulomb_S - lambdaOld_Coulomb_S;
   double coefDiffD = lambdaNew_Coulomb_D - lambdaOld_Coulomb_D;
   correctDiffSource = coefDiffS * calcEwald->SwapCorrection(oldMolCFCMC);
@@ -598,13 +598,7 @@ inline bool CFCMC::AcceptInflating()
     sysPotRef.Total();
     //set single move accept to true for multiparticle
     moveSetRef.SetSingleMoveAccepted();
-  } else {
-    //We dont need to update sinMol and cosMol because we dont change it
-    //I will do it for consistency 
-    if (!overlapCFCMC) {
-        calcEwald->RestoreMol(molIndex);
-    }
-  }
+  } 
   overlapCFCMC = false;
 
   return result;
@@ -710,10 +704,6 @@ inline void CFCMC::AcceptRelaxing(uint b)
       calcEwald->UpdateRecip(b);
 
       sysPotRef.Total();
-    }
-    // It means that Recip energy is calculated and move not accepted
-    if(!result && !overlap) {
-      calcEwald->RestoreMol(m);
     }
     cellList.AddMol(m, b, coordCurrRef);
   }

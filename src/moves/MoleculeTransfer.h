@@ -121,6 +121,7 @@ inline void MoleculeTransfer::CalcEn()
     correct_old = calcEwald->SwapCorrection(oldMol);
     self_new = calcEwald->SwapSelf(newMol);
     self_old = calcEwald->SwapSelf(oldMol);
+    //SwapDestRecip must be called first to backup the cosMol and sinMol
     recipGain.energy =
       calcEwald->SwapDestRecip(newMol, destBox, molIndex);
     recipLose.energy =
