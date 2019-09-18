@@ -21,7 +21,10 @@ namespace mp {
   const int MPALLDISPLACE = 0;
   const int MPALLROTATE = 1;
   const int MPALLRANDOM = 2;
-  const int MPTOTALTYPES = 3;
+  // MPTOTALTYPES = 2, we perform either: All displacement, All rotation move.
+  // MPTOTALTYPES = 3, we perform either: All displacement, All rotation move, 
+  //                                      or combined displacement+rotation 
+  const int MPTOTALTYPES = 2;
   const double TARGET_ACCEPT_FRACT = 0.3;
 }
 
