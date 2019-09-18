@@ -1623,6 +1623,8 @@ double CalculateEnergy::GetLambdaCoulomb(uint molA, uint molB, uint box) const
   double lambda = 1.0;
   lambda *= lambdaRef.GetLambdaCoulomb(molA, mols.GetMolKind(molA), box);
   lambda *= lambdaRef.GetLambdaCoulomb(molB, mols.GetMolKind(molB), box);
+  //no need for sq root for inter energy. Alwayse one of the molecule has 
+  // lambda 1
   return lambda;
 }
 
