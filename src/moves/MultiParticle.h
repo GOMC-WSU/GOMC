@@ -264,7 +264,7 @@ inline void MultiParticle::CalcEn()
   cellList.GridAll(boxDimRef, newMolsPos, molLookup);
 
   //back up cached fourier term
-  calcEwald->exgMolCache();
+  calcEwald->backupMolCache();
   //setup reciprocate vectors for new positions
   calcEwald->BoxReciprocalSetup(bPick, newMolsPos);
 
