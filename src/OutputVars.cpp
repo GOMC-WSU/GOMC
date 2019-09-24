@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -15,14 +15,13 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #endif
 
 OutputVars::OutputVars(System & sys, StaticVals const& statV) :
-  calc(sys.calcEnergy)
+  calc(sys.calcEnergy), T_in_K(statV.forcefield.T_in_K)
 {
   InitRef(sys, statV);
 }
 
 void OutputVars::InitRef(System & sys, StaticVals const& statV)
 {
-  T_in_K = statV.forcefield.T_in_K;
   volumeRef = sys.boxDimRef.volume;
   axisRef = &sys.boxDimRef.axis;
   volInvRef = sys.boxDimRef.volInv;
@@ -122,56 +121,65 @@ void OutputVars::CalcAndConvert(ulong step)
     //in)
 
     if (pressureCalc) {
-      if((step + 1) % pCalcFreq == 0) {
-        virialRef[b] = calc.VirialCalc(b);
-        *virialTotRef += virialRef[b];
+      if((step + 1) % pCalcFreq == 0 || step == 0) {
+        if(step != 0){
+          virialRef[b] = calc.VirialCalc(b);
+          *virialTotRef += virialRef[b];
+        }
+        //calculate surface tension in mN/M
+        surfaceTens[b] = (virialRef[b].totalTens[2][2] - 0.5 *
+                          (virialRef[b].totalTens[0][0] +
+                          virialRef[b].totalTens[1][1]));
+        surfaceTens[b] *= unit::K_TO_MN_PER_M /
+                          (2.0 * axisRef->Get(b).x * axisRef->Get(b).y);
+
+        //save the pressure tensor for print
+        for (int i = 0; i < 3; i++) {
+          for (int j = 0; j < 3; j++) {
+            //convert K to bar
+            pressureTens[b][i][j] = virialRef[b].totalTens[i][j] *
+                                    unit::K_MOLECULE_PER_A3_TO_BAR / volumeRef[b];
+          }
+        }
+
+        virial[b] = virialRef[b];
+        virial[b] /= unit::DIMENSIONALITY;
+        virial[b] /= volumeRef[b];
+        virial[b].Total();
+        //Calculate the pressure
+        rawPressure[b] = 0.0;
+        for (uint k = 0; k < numKinds; k++) {
+          // Instead of converting to mass first
+          // (an alternate route to calculate the ideal gas pressure)
+          // the form of the Boltzmann constant that kcal/mol/K is used
+          // such that a single conversion factor can be applied to both
+          // the ideal and virial components of the pressure.
+          rawPressure[b] += densityByKindBox[k + numKinds * b];
+        }
+        // Finish ideal component
+        rawPressure[b] *= T_in_K;
+        // Add the virial component
+        rawPressure[b] += virial[b].total;
+
+        // Convert to desired units
+        // ( starting: K * molecule / Angstrom^3 )
+        pressure[b] = rawPressure[b];
+        pressure[b] *= unit::K_MOLECULE_PER_A3_TO_BAR;
+
+
+#if ENSEMBLE == GEMC
+        // delta Hv = (Uv-Ul) + P(Vv-Vl)
+        heatOfVap = energyRef[vapBox].total / numByBox[vapBox] -
+                    energyRef[liqBox].total / numByBox[liqBox];
+        heatOfVap += rawPressure[vapBox] * 
+                    (volumeRef[vapBox] / numByBox[vapBox] -
+                    volumeRef[liqBox] / numByBox[liqBox]);
+        heatOfVap *= unit::K_TO_KJ_PER_MOL;
+#endif
       }
     }
-
-    //calculate surface tension in mN/M
-    surfaceTens[b] = (virialRef[b].totalTens[2][2] - 0.5 *
-                      (virialRef[b].totalTens[0][0] +
-                       virialRef[b].totalTens[1][1]));
-    surfaceTens[b] *= unit::K_TO_MN_PER_M /
-                      (2.0 * axisRef->Get(b).x * axisRef->Get(b).y);
-
-    //save the pressure tensor for print
-    for (int i = 0; i < 3; i++) {
-      for (int j = 0; j < 3; j++) {
-        //convert K to bar
-        pressureTens[b][i][j] = virialRef[b].totalTens[i][j] *
-                                unit::K_MOLECULE_PER_A3_TO_BAR / volumeRef[b];
-      }
-    }
-
-    virial[b] = virialRef[b];
-    virial[b] /= unit::DIMENSIONALITY;
-    virial[b] /= volumeRef[b];
-    virial[b].Total();
-
-
-    rawPressure[b] = 0.0;
-    densityTot[b] = 0.0;
-    for (uint k = 0; k < numKinds; k++) {
-      double density = densityByKindBox[k + numKinds * b];
-
-      // Instead of converting to mass first
-      // (an alternate route to calculate the ideal gas pressure)
-      // the form of the Boltzmann constant that kcal/mol/K is used
-      // such that a single conversion factor can be applied to both
-      // the ideal and virial components of the pressure.
-      rawPressure[b] += density;
-    }
-    // Finish ideal component
-    rawPressure[b] *= T_in_K;
-    // Add the virial component
-    rawPressure[b] += virial[b].total;
-
-    // Convert to desired units
-    // ( starting: K * molecule / Angstrom^3 )
-    pressure[b] = rawPressure[b];
-    pressure[b] *= unit::K_MOLECULE_PER_A3_TO_BAR;
   }
+
   for (uint b = 0; b < BOX_TOTAL; b++) {
     densityTot[b] = 0.0;
     for (uint k = 0; k < numKinds; k++) {
@@ -180,18 +188,9 @@ void OutputVars::CalcAndConvert(ulong step)
       // Convert density to g/ml (which is equivalent to g/cm3)
       // To get kg/m3, multiply output densities by 1000.
       density *= unit::MOLECULES_PER_A3_TO_MOL_PER_CM3 *
-                  kindsRef[k].molMass;
+                 kindsRef[k].molMass;
       densityTot[b] += density;
     }
     densityTot[b] *= 1000;
   }
-#if ENSEMBLE == GEMC
-  // delta Hv = (Uv-Ul) + P(Vv-Vl)
-  heatOfVap = energyRef[vapBox].total / numByBox[vapBox] -
-              energyRef[liqBox].total / numByBox[liqBox] +
-              rawPressure[vapBox] * (volumeRef[vapBox] / numByBox[vapBox] -
-                                     volumeRef[liqBox] / numByBox[liqBox]);
-  heatOfVap *= unit::K_TO_KJ_PER_MOL;
-#endif
-
 }

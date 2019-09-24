@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -12,15 +12,15 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 namespace
 {
-  union dbl_output_union {
-    char bin_value[8];
-    double dbl_value;
-  };
+union dbl_output_union {
+  char bin_value[8];
+  double dbl_value;
+};
 
-  union uint32_output_union {
-    char bin_value[8];
-    uint32_t uint_value;
-  };
+union uint32_output_union {
+  char bin_value[8];
+  uint32_t uint_value;
+};
 }
 
 CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
@@ -63,7 +63,7 @@ void CheckpointOutput::printBoxDimensionsData()
   // print the number of boxes
   uint32_t totalBoxes = BOX_TOTAL;
   outputUintIn8Chars(totalBoxes);
-  for(int b=0; b<totalBoxes; b++) {
+  for(int b = 0; b < totalBoxes; b++) {
     XYZ axis = boxDimRef.axis.Get(b);
     outputDoubleIn8Chars(axis.x);
     outputDoubleIn8Chars(axis.y);
@@ -78,12 +78,12 @@ void CheckpointOutput::printRandomNumbers()
 {
   // First let's save the state array inside prng
   // the length of the array is 624
-  // there is a save function inside MersenneTwister.h file 
+  // there is a save function inside MersenneTwister.h file
   // to read back we can use the load function
   const int N = 624;
   uint32_t* saveArray = new uint32_t[N];
   prngRef.GetGenerator()->save(saveArray);
-  for(int i=0; i<N; i++) {
+  for(int i = 0; i < N; i++) {
     outputUintIn8Chars(saveArray[i]);
   }
 
@@ -107,7 +107,7 @@ void CheckpointOutput::printCoordinates()
   outputUintIn8Chars(count);
 
   // now let's print the coordinates one by one
-  for(int i=0; i<count; i++) {
+  for(int i = 0; i < count; i++) {
     outputDoubleIn8Chars(coordCurrRef[i].x);
     outputDoubleIn8Chars(coordCurrRef[i].y);
     outputDoubleIn8Chars(coordCurrRef[i].z);
@@ -119,14 +119,14 @@ void CheckpointOutput::printMoleculeLookupData()
   // print the size of molLookup array
   outputUintIn8Chars(molLookupRef.molLookupCount);
   // print the molLookup array itself
-  for(int i=0; i<molLookupRef.molLookupCount; i++) {
+  for(int i = 0; i < molLookupRef.molLookupCount; i++) {
     outputUintIn8Chars(molLookupRef.molLookup[i]);
   }
 
   // print the size of boxAndKindStart array
   outputUintIn8Chars(molLookupRef.boxAndKindStartCount);
   // print the BoxAndKindStart array
-  for(int i=0; i<molLookupRef.boxAndKindStartCount; i++) {
+  for(int i = 0; i < molLookupRef.boxAndKindStartCount; i++) {
     outputUintIn8Chars(molLookupRef.boxAndKindStart[i]);
   }
 
@@ -136,7 +136,7 @@ void CheckpointOutput::printMoleculeLookupData()
   //print the size of fixedAtom array
   outputUintIn8Chars((uint)molLookupRef.fixedAtom.size());
   //print the fixedAtom array itself
-  for(int i=0; i<molLookupRef.fixedAtom.size(); i++) {
+  for(int i = 0; i < molLookupRef.fixedAtom.size(); i++) {
     outputUintIn8Chars(molLookupRef.fixedAtom[i]);
   }
 }

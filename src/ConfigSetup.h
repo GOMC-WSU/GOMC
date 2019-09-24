@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -134,8 +134,8 @@ struct FFValues {
   bool doTailCorr, vdwGeometricSigma;
   std::string kind;
 
-  static const std::string VDW, VDW_SHIFT, VDW_SWITCH;
-  static const uint VDW_STD_KIND, VDW_SHIFT_KIND, VDW_SWITCH_KIND;
+  static const std::string VDW, VDW_SHIFT, VDW_SWITCH, VDW_EXP6;
+  static const uint VDW_STD_KIND, VDW_SHIFT_KIND, VDW_SWITCH_KIND, VDW_EXP6_KIND;
 };
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
@@ -163,7 +163,7 @@ struct MovePercents {
   double volume;
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
-  double transfer, memc;
+  double transfer, memc, cfcmc;
 #endif
 };
 
@@ -179,7 +179,7 @@ struct ElectroStatic {
   double oneFourScale;
   double dielectric;
   double cutoffCoulomb[BOX_TOTAL];
-  ElectroStatic(void) 
+  ElectroStatic(void)
   {
     std::fill_n(cutoffCoulombRead, BOX_TOTAL, false);
     std::fill_n(cutoffCoulomb, BOX_TOTAL, 0.0);
@@ -198,7 +198,8 @@ struct Volume {
     }
   }
 
-  bool ReadCellBasis() const {
+  bool ReadCellBasis() const
+  {
     for(uint b = 0; b < BOX_TOTAL; ++b) {
       for(uint i = 0; i < 3; i++) {
         if(!readCellBasis[b][i])
@@ -235,12 +236,50 @@ struct MEMCVal {
   std::vector<uint> exchangeRatio;
   std::vector<std::string> smallBBAtom1, smallBBAtom2;
   std::vector<std::string> largeBBAtom1, largeBBAtom2;
-  MEMCVal(void) {
+  MEMCVal(void)
+  {
     MEMC1 = MEMC2 = MEMC3 = false;
     readVol = readRatio = readSmallBB = false;
     readLargeBB = readSK = readLK = false;
   }
 };
+
+struct CFCMCVal {
+  bool enable, readLambdaCoulomb, readLambdaVDW, readRelaxSteps; 
+  bool readHistFlatness, MPEnable, readMPEnable;
+  uint relaxSteps;
+  double histFlatness;
+  //scaling parameter
+  uint scalePower;
+  double scaleAlpha, scaleSigma; 
+  bool scaleCoulomb;
+  bool scalePowerRead, scaleAlphaRead, scaleSigmaRead, scaleCoulombRead;
+  std::vector<double> lambdaCoulomb, lambdaVDW;
+  CFCMCVal(void) {
+    readLambdaCoulomb = readRelaxSteps = readHistFlatness = false;
+    readMPEnable = MPEnable = readLambdaVDW = enable = false;
+    scalePowerRead = scaleAlphaRead = scaleSigmaRead = scaleCoulombRead = false;
+  }
+};
+
+struct FreeEnergy {
+  bool enable, readLambdaCoulomb, readLambdaVDW, freqRead; 
+  bool molTypeRead, molIndexRead, iStateRead;
+  uint frequency, molIndex, iState;
+  //scaling parameter
+  uint scalePower;
+  double scaleAlpha, scaleSigma; 
+  bool scaleCoulomb;
+  bool scalePowerRead, scaleAlphaRead, scaleSigmaRead, scaleCoulombRead;
+  std::string molType;
+  std::vector<double> lambdaCoulomb, lambdaVDW;
+  FreeEnergy(void) {
+    readLambdaCoulomb = readLambdaVDW = enable = freqRead = false;
+    molTypeRead = molIndexRead = iStateRead = false;
+    scalePowerRead = scaleAlphaRead = scaleSigmaRead = scaleCoulombRead = false;
+  }
+};
+
 
 #if ENSEMBLE == GCMC
 struct ChemicalPotential {
@@ -258,6 +297,8 @@ struct SystemVals {
   Volume volume; //May go unused
   CBMC cbmcTrials;
   MEMCVal memcVal, intraMemcVal;
+  CFCMCVal cfcmcVal;
+  FreeEnergy freeEn;
 #if ENSEMBLE == GCMC
   ChemicalPotential chemPot;
 #elif ENSEMBLE == GEMC || ENSEMBLE == NPT
@@ -342,7 +383,7 @@ public:
 private:
   void fillDefaults(void);
   bool checkBool(string str);
-  bool CheckString(string str1, string str2); 
+  bool CheckString(string str1, string str2);
   void verifyInputs(void);
   InputFileReader reader;
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -135,6 +135,7 @@ public:
   }
   Energy& operator-=(Energy const& rhs);
   Energy& operator+=(Energy const& rhs);
+  Energy& operator*=(double const& rhs);
 
 //private:
   //MEMBERS
@@ -170,6 +171,22 @@ inline Energy& Energy::operator+=(Energy const& rhs)
   correction += rhs.correction;
   totalElect += rhs.totalElect;
   total += rhs.total;
+
+  return *this;
+}
+
+inline Energy& Energy::operator*=(double const& rhs)
+{
+  inter *= rhs;
+  intraBond *= rhs;
+  intraNonbond *= rhs;
+  tc *= rhs;
+  real *= rhs;
+  recip *= rhs;
+  self *= rhs;
+  correction *= rhs;
+  totalElect *= rhs;
+  total *= rhs;
 
   return *this;
 }

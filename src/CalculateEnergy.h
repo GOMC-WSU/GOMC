@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -40,6 +40,7 @@ class Coordinates;
 class COM;
 class XYZArray;
 class BoxDimensions;
+class Lambda;
 
 namespace cbmc
 {
@@ -58,6 +59,12 @@ public:
 
   //! Calculates total energy/virial of a single box in the system
   SystemPotential BoxInter(SystemPotential potential,
+                           XYZArray const& coords,
+                           BoxDimensions const& boxAxes,
+                           const uint box);
+
+  //! Calculates force of a single box in the system
+  SystemPotential BoxForce(SystemPotential potential,
                            XYZArray const& coords,
                            XYZArray& atomForce,
                            XYZArray& molForce,
@@ -80,8 +87,6 @@ public:
   SystemPotential SystemInter(SystemPotential potential,
                               XYZArray const& coords,
                               XYZArray const& com,
-                              XYZArray& atomForce,
-                              XYZArray& molForce,
                               BoxDimensions const& boxAxes) ;
 
   //! Calculates intermolecular energy (LJ and coulomb) of a molecule
@@ -128,7 +133,7 @@ public:
                      const uint trials) const;
 
 
-  //! Calculates the change in the TC from adding numChange atoms of a kind
+  //! Calculates change in the ENergyTC from adding numChange atoms of a kind
   //! @param box Index of box under consideration
   //! @param kind Kind of particle being added or removed
   //! @param add If removed: false (sign=-1); if added: true (sign=+1)
@@ -136,13 +141,29 @@ public:
                                     const uint kind,
                                     const bool add) const;
 
+  //! Calculates change in the Virial TC from adding numChange atoms of a kind
+  //! @param box Index of box under consideration
+  //! @param kind Kind of particle being added or removed
+  //! @param add If removed: false (sign=-1); if added: true (sign=+1)
+  Intermolecular MoleculeTailVirChange(const uint box,
+                                       const uint kind,
+                                       const bool add) const;
+                                       
+  //! Calculates the change in the TC from chaning the lambdaOld -> lambdaNew
+  //! @param box Index of box under consideration
+  //! @param kind Kind of particle being transfrom in lambda
+  double MoleculeTailChange(const uint box, const uint kind,
+			    const std::vector <uint> &kCount,
+			    const double lambdaOld,
+			    const double lambdaNew) const;
+
   //! Calculates voidintramolecular energy of a full molecule
   void MoleculeIntra(const uint molIndex, const uint box, double *bondEn) const;
 
   //used in molecule exchange for calculating bonded and intraNonbonded energy
   Energy MoleculeIntra(cbmc::TrialMol const &mol, const uint molIndex) const;
 
-    
+
   //! Calculates Nonbonded 1_3 intramolecule energy of a full molecule
   //for Martini forcefield
   double IntraEnergy_1_3(const double distSq, const uint atom1,
@@ -170,6 +191,20 @@ public:
   //!Calculates energy corrections for the box
   double EnergyCorrection(const uint box, const uint *kCount) const;
 
+  //Calculate inter energy for single molecule in the system.
+  void SingleMoleculeInter(Energy &interEnOld, Energy &interEnNew,
+                          const double lambdaOldVDW,
+                          const double lambdaNewVDW,
+                          const double lambdaOldCoulomb,
+                          const double lambdaNewCoulomb,
+                          const uint molIndex, const uint box) const;
+
+  //Calculate the change in energy due to lambda
+  void EnergyChange(Energy *energyDiff, Energy &dUdL_VDW, Energy &dUdL_Coul,
+                    const std::vector<double> &lambda_VDW, 
+                    const std::vector<double> &lambda_Coul,
+                    const uint iState, const uint molIndex,
+                    const uint box) const;
 private:
 
   //! Calculates full TC energy for one box in current system
@@ -186,11 +221,11 @@ private:
                    MoleculeKind const& molKind,
                    const uint molIndex,
                    const uint box) const;
-             
+
   //! Calculates bond vectors using pos, stores them in vecs
   void BondVectors(XYZArray & vecs, cbmc::TrialMol const &mol,
-                  std::vector<bool> & bondExist,
-                  MoleculeKind const& molKind) const;
+                   std::vector<bool> & bondExist,
+                   MoleculeKind const& molKind) const;
 
   //! Calculates bond stretch intramolecular energy of a full molecule
   void MolBond(double & energy, MoleculeKind const& molKind,
@@ -216,8 +251,8 @@ private:
 
   //! Calculates dihedral torsion intramolecular energy of a non-complete molecule
   void MolDihedral(double & energy, cbmc::TrialMol const &mol, XYZArray const& vecs,
-                  std::vector<bool> const & bondExist,
-                  MoleculeKind const& molKind) const;
+                   std::vector<bool> const & bondExist,
+                   MoleculeKind const& molKind) const;
 
   //! Calculates Nonbonded 1_N intramolecule energy of a full molecule
   void MolNonbond(double & energy, MoleculeKind const& molKind,
@@ -231,9 +266,9 @@ private:
   void MolNonbond_1_4(double & energy, MoleculeKind const& molKind,
                       const uint molIndex, const uint box) const;
 
-  //! Calculates Nonbonded 1_4 intramolecule energy of a non-complete molecule 
+  //! Calculates Nonbonded 1_4 intramolecule energy of a non-complete molecule
   void MolNonbond_1_4(double & energy, cbmc::TrialMol const &mol,
-                      MoleculeKind const& molKind) const;                    
+                      MoleculeKind const& molKind) const;
 
   //! Calculates Nonbonded 1_3 intramolecule energy of a full molecule
   //for Martini forcefield
@@ -243,7 +278,13 @@ private:
   //! Calculates Nonbonded 1_3 intramolecule energy of a non-complete molecule
   //for Martini forcefield
   void MolNonbond_1_3(double & energy, cbmc::TrialMol const &mol,
-                      MoleculeKind const& molKind) const;                    
+                      MoleculeKind const& molKind) const;
+
+  //Calculate the change in LRC for each state
+  void ChangeLRC(Energy *energyDiff, Energy &dUdL_VDW,
+                 const std::vector<double> &lambda_VDW,
+                 const uint iState, const uint molIndex,
+                 const uint box) const;
 
   //! For particles in main coordinates array determines if they belong
   //! to same molecule, using internal arrays.
@@ -255,6 +296,9 @@ private:
     return (pair1 == pair2);
   }
 
+  double GetLambdaVDW(uint molA, uint molB, uint box) const;
+  double GetLambdaCoulomb(uint molA, uint molB, uint box) const;
+
 
   const Forcefield& forcefield;
   const Molecules& mols;
@@ -263,6 +307,7 @@ private:
   const BoxDimensions& currentAxes;
   const COM& currentCOM;
   const Ewald *calcEwald;
+  const Lambda& lambdaRef;
   XYZArray& atomForceRef;
   XYZArray& molForceRef;
   bool multiParticleEnabled;

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -23,7 +23,7 @@ struct SystemVals;
 class FFSetup;
 class Setup;
 class FFPrintout;
-class FFParticle;
+struct FFParticle;
 
 class Forcefield
 {
@@ -56,13 +56,18 @@ public:
   double rswitch;                 //Switch distance
   double dielectric;              //dielectric for martini
   double scaling_14;              //!<Scaling factor for 1-4 pairs' ewald interactions
+  double sc_alpha;                // Free energy parameter
+  double sc_sigma, sc_sigma_6;    // Free energy parameter
 
   bool OneThree, OneFour, OneN;   //To include 1-3, 1-4 and more interaction
   bool electrostatic, ewald;      //To consider columb interaction
   bool vdwGeometricSigma;         //For sigma combining rule
   bool isMartini;
+  bool exp6;
+  bool freeEnergy, sc_coul;       // Free energy parameter
   uint vdwKind;                   //To define VdW type, standard, shift or switch
   uint exckind;                   //To define  exclude kind, 1-2, 1-3, 1-4
+  uint sc_power;                  // Free energy parameter
 #if ENSEMBLE == GCMC
   bool isFugacity;                //To check if we are using fugacity instead of chemical potential
 #endif

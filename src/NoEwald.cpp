@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -58,6 +58,15 @@ double NoEwald::MolReciprocal(XYZArray const& molCoords,
 }
 
 
+//calculate reciprocate term for lambdaNew and Old with same coordinates
+double NoEwald::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
+			   const double lambdaNew, const uint molIndex,
+			   const uint box)
+{
+  return 0.0;
+}
+
+
 //calculate self term for a box
 double NoEwald::BoxSelf(BoxDimensions const& boxAxes, uint box) const
 {
@@ -92,7 +101,9 @@ double NoEwald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 //calculate reciprocate term for inserting some molecules (kindA) in destination
 // box and removing a molecule (kindB) from destination box
 double NoEwald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
-                          const std::vector<cbmc::TrialMol> &oldMol)
+                          const std::vector<cbmc::TrialMol> &oldMol,
+                          const std::vector<uint> molIndexNew,
+                          const std::vector<uint> molIndexold)
 {
   return 0.0;
 }
@@ -109,6 +120,43 @@ double NoEwald::SwapCorrection(const cbmc::TrialMol& trialMol) const
 {
   return 0.0;
 }
+//calculate correction term after swap move
+double NoEwald::SwapCorrection(const cbmc::TrialMol& trialMol,
+                               const uint molIndex) const
+{
+  return 0.0;
+}
+
+  //It's called in free energy calculation to calculate the change in
+  // self energy in all lambda states
+  void NoEwald::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
+                            const std::vector<double> &lambda_Coul,
+                            const uint iState, const uint molIndex,
+                            const uint box) const
+  {
+    return;
+  }
+
+  //It's called in free energy calculation to calculate the change in
+  // correction energy in all lambda states
+  void NoEwald::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
+                                const std::vector<double> &lambda_Coul,
+                                const uint iState, const uint molIndex,
+                                const uint box) const
+  {
+    return;
+  }
+                                
+  //It's called in free energy calculation to calculate the change in
+  // reciprocal energy in all lambda states
+  void NoEwald::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
+                          const std::vector<double> &lambda_Coul,
+                          const uint iState, const uint molIndex,
+                          const uint box) const
+  {
+    return;
+  }
+
 
 //back up reciptocate value to Ref (will be called during initialization)
 void NoEwald::SetRecipRef(uint box)

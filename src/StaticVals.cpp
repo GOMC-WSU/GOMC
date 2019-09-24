@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -77,6 +77,9 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
     case mv::MEMC :
         movePerc[m] = perc.memc;
         break;
+    case mv::CFCMC :
+        movePerc[m] = perc.cfcmc;
+        break;
 #endif
 #endif
     default:
@@ -93,7 +96,7 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
 void StaticVals::IsBoxOrthogonal(config_setup::Volume const& vol)
 {
   double cosAngle[BOX_TOTAL][3];
-  double orthogonal[BOX_TOTAL];
+  bool orthogonal[BOX_TOTAL];
 
   for (uint b = 0; b < BOX_TOTAL; b++) {
     double cellLengthX = vol.axis[b].Length(0);
@@ -110,18 +113,33 @@ void StaticVals::IsBoxOrthogonal(config_setup::Volume const& vol)
     orthogonal[b] = ((cosAngle[b][0] == 0.0) &&
                      (cosAngle[b][1] == 0.0) &&
                      (cosAngle[b][2] == 0.0));
-    isOrthogonal = (isOrthogonal && orthogonal[b]);
+    isOrthogonal &= orthogonal[b];
+  }
+}
+
+
+void StaticVals::IsBoxOrthogonal(const double cellAngle[][3])
+{
+  for (uint b = 0; b < BOX_TOTAL; b++) {
+    bool orthogonal = ((cellAngle[b][0] == 90.0) && (cellAngle[b][1] == 90.0) &&
+                      (cellAngle[b][2] == 90.0));
+    isOrthogonal &= orthogonal;
   }
 }
 
 
 StaticVals::StaticVals(Setup & set) : memcVal(set.config.sys.memcVal),
-  intraMemcVal(set.config.sys.intraMemcVal)
+				      intraMemcVal(set.config.sys.intraMemcVal),
+				      cfcmcVal(set.config.sys.cfcmcVal),
+              freeEnVal(set.config.sys.freeEn)
 {
-
   multiParticleEnabled = set.config.sys.moves.multiParticleEnabled;
   isOrthogonal = true;
-  IsBoxOrthogonal(set.config.sys.volume);
+  if(set.config.in.restart.enable) {
+    IsBoxOrthogonal(set.pdb.cryst.cellAngle);
+  } else {
+    IsBoxOrthogonal(set.config.sys.volume);
+  }
 #ifndef VARIABLE_VOLUME
   boxDimensions = NULL;
   if(isOrthogonal) {

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -29,7 +29,7 @@ void Remarks::SetRestart(config_setup::RestartSettings const& r )
 {
   restart = r.enable;
   recalcTrajectory = r.recalcTrajectory;
-  for(uint b=0; b<BOX_TOTAL; b++) {
+  for(uint b = 0; b < BOX_TOTAL; b++) {
     if(recalcTrajectory)
       reached[b] = false;
     else
@@ -185,7 +185,7 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
                     std::string const*const name, uint frameNum)
 {
   using namespace std;
-  // Clear the vectors for both atoms and remarks in case Init was called 
+  // Clear the vectors for both atoms and remarks in case Init was called
   // more than once
   atoms.Clear();
   remarks.Clear();
@@ -210,9 +210,15 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
     } else {
       alias = pdbAlias[b];
     }
-    FixedWidthReader pdb(name[b], alias);
-    pdb.open();
-    while (pdb.Read(varName, pdb_entry::label::POS)) {
+    pdb[b].SetData(name[b], alias);
+
+    // Open PDB only once and stay there
+    // instead of re-opening it for every frame
+    // refer to issue #131
+    if(frameNum == 1)
+      pdb[b].open();
+    
+    while (pdb[b].Read(varName, pdb_entry::label::POS)) {
       //If end of frame, and this is the frame we wanted,
       //end read on this file
       if (remarks.reached[b] && str::compare(varName, pdb_entry::end::STR)) {
@@ -225,7 +231,7 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
       if (dataKind != dataKinds.end() &&
           (remarks.reached[b] ||
            str::compare(dataKind->first, pdb_entry::label::REMARK))) {
-        dataKind->second->Read(pdb);
+        dataKind->second->Read(pdb[b]);
       }
     }
     // If the recalcTrajectory is true and reached was still false
@@ -235,7 +241,6 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
                 << ".. and couldn't find remark in PDB file!" << std::endl;
       exit(EXIT_FAILURE);
     }
-    pdb.close();
   }
 }
 

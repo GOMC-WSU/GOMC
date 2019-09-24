@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -13,6 +13,9 @@ CPUSide::CPUSide(System & sys, StaticVals & statV) :
   hist(varRef), checkpoint(sys, statV)
 #if ENSEMBLE == GCMC
   , sample_N_E(varRef)
+#endif
+#if ENSEMBLE == NVT || ENSEMBLE == NPT
+  , freeEnergy(varRef, sys)
 #endif
 {}
 
@@ -34,6 +37,9 @@ void CPUSide::Init(PDBSetup const& pdbSet, config_setup::Output const& out,
 #if ENSEMBLE == GCMC
   outObj.push_back(&hist);
   outObj.push_back(&sample_N_E);
+#endif
+#if ENSEMBLE == NVT || ENSEMBLE == NPT
+  outObj.push_back(&freeEnergy);
 #endif
   //Calculate pressure, heat of vap. (if applicable), etc.
   varRef.CalcAndConvert(0);

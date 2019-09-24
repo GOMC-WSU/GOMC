@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -50,6 +50,7 @@ ConfigSetup::ConfigSetup(void)
   sys.elect.oneFourScale = DBL_MAX;
   sys.elect.dielectric = DBL_MAX;
   sys.memcVal.enable = false;
+  sys.cfcmcVal.enable = false;
   sys.intraMemcVal.enable = false;
   sys.step.total = ULONG_MAX;
   sys.step.equil = ULONG_MAX;
@@ -87,7 +88,6 @@ ConfigSetup::ConfigSetup(void)
   sys.moves.multiParticle = DBL_MAX;
   sys.moves.regrowth = DBL_MAX;
   sys.moves.crankShaft = DBL_MAX;
-  sys.moves.memc = DBL_MAX;
   sys.moves.intraMemc = DBL_MAX;
   out.state.settings.enable = true;
   out.restart.settings.enable = true;
@@ -118,6 +118,8 @@ ConfigSetup::ConfigSetup(void)
   out.statistics.vars.surfaceTension.fluct = false;
 #ifdef VARIABLE_PARTICLE_NUMBER
   sys.moves.transfer = DBL_MAX;
+  sys.moves.memc = DBL_MAX;
+  sys.moves.cfcmc = DBL_MAX;
   sys.cbmcTrials.bonded.ang = UINT_MAX;
   sys.cbmcTrials.bonded.dih = UINT_MAX;
   sys.cbmcTrials.nonbonded.first = UINT_MAX;
@@ -151,12 +153,12 @@ bool ConfigSetup::checkBool(string str)
   exit(EXIT_FAILURE);
 }
 
-bool ConfigSetup::CheckString(string str1, string str2) 
+bool ConfigSetup::CheckString(string str1, string str2)
 {
   for(int k = 0; k < str1.length(); k++) {
     str1[k] = toupper(str1[k]);
   }
- 
+
   for(int j = 0; j < str2.length(); j++) {
     str2[j] = toupper(str2[j]);
   }
@@ -266,15 +268,18 @@ void ConfigSetup::Init(const char *fileName)
       sys.T.inKelvin = stringtod(line[1]);
       printf("%-40s %-4.4f K\n", "Info: Input Temperature", sys.T.inKelvin);
     } else if(CheckString(line[0], "Potential")) {
-      if(CheckString(line[1],"VDW")) {
+      if(CheckString(line[1], "VDW")) {
         sys.ff.VDW_KIND = sys.ff.VDW_STD_KIND;
         printf("%-40s %-s \n", "Info: Non-truncated potential", "Active");
-      } else if(CheckString(line[1],"SHIFT")) {
+      } else if(CheckString(line[1], "SHIFT")) {
         sys.ff.VDW_KIND = sys.ff.VDW_SHIFT_KIND;
         printf("%-40s %-s \n", "Info: Shift truncated potential", "Active");
       } else if(CheckString(line[1], "SWITCH")) {
         sys.ff.VDW_KIND = sys.ff.VDW_SWITCH_KIND;
         printf("%-40s %-s \n", "Info: Switch truncated potential", "Active");
+      } else if(CheckString(line[1], "EXP6")) {
+        sys.ff.VDW_KIND = sys.ff.VDW_EXP6_KIND;
+        printf("%-40s %-s \n", "Info: Exp-6 Non-truncated potential", "Active");
       }
     } else if(CheckString(line[0], "LRC")) {
       sys.ff.doTailCorr = checkBool(line[1]);
@@ -298,7 +303,7 @@ void ConfigSetup::Init(const char *fileName)
         sys.memcVal.readVol = true;
         sys.intraMemcVal.readVol = true;
       }
-    } else if(CheckString(line[0],"ExchangeRatio")) {
+    } else if(CheckString(line[0], "ExchangeRatio")) {
       if(line.size() >= 2) {
         printf("%-41s", "Info: ExchangeRatio");
         for(uint i = 1; i < line.size(); i++) {
@@ -307,7 +312,7 @@ void ConfigSetup::Init(const char *fileName)
           sys.intraMemcVal.exchangeRatio.push_back(val);
           printf("%-5d", val);
         }
-        std::cout << endl;        
+        std::cout << endl;
         sys.memcVal.readRatio = true;
         sys.intraMemcVal.readRatio = true;
       }
@@ -320,7 +325,7 @@ void ConfigSetup::Init(const char *fileName)
           sys.intraMemcVal.largeKind.push_back(resName);
           printf("%-5s", resName.c_str());
         }
-        std::cout << endl; 
+        std::cout << endl;
         sys.memcVal.readLK = true;
         sys.intraMemcVal.readLK = true;
       }
@@ -333,25 +338,25 @@ void ConfigSetup::Init(const char *fileName)
           sys.intraMemcVal.smallKind.push_back(resName);
           printf("%-5s", resName.c_str());
         }
-        std::cout << endl; 
+        std::cout << endl;
         sys.memcVal.readSK = true;
         sys.intraMemcVal.readSK = true;
       }
     } else if(CheckString(line[0], "SmallKindBackBone")) {
       if((line.size() % 2) == 0) {
-        std::cout <<"Error: Atom Names in Small Kind BackBone must be in pair!\n";
+        std::cout << "Error: Two atom names must be defined for the backbone of each small molecule kind!\n";
         exit(EXIT_FAILURE);
       }
       if(line.size() >= 3) {
-        printf("%-41s", "Info: Atom Names in Small Kind BackBone");
+        printf("%-41s", "Info: Atom Names in BackBone of Small Molecule Kind");
         for(uint i = 1; i < line.size() - 1; i += 2) {
           if(i != 1) {
             printf(" , ");
           }
           std::string atom1 = line[i];
-          std::string atom2 = line[i+1];
+          std::string atom2 = line[i + 1];
           sys.memcVal.smallBBAtom1.push_back(atom1);
-          sys.memcVal.smallBBAtom2.push_back(atom2);      
+          sys.memcVal.smallBBAtom2.push_back(atom2);
           sys.intraMemcVal.smallBBAtom1.push_back(atom1);
           sys.intraMemcVal.smallBBAtom2.push_back(atom2);
           printf("%-s - %-s", atom1.c_str(), atom2.c_str());
@@ -362,17 +367,17 @@ void ConfigSetup::Init(const char *fileName)
       }
     } else if(CheckString(line[0], "LargeKindBackBone")) {
       if((line.size() % 2) == 0) {
-        std::cout <<"Error: Atom Names in Large Kind BackBone must be in pair!\n";
+        std::cout << "Error: Two atom names must be defined for the backbone of each large molecule kind!\n";
         exit(EXIT_FAILURE);
       }
       if(line.size() >= 3) {
-        printf("%-41s", "Info: Atom Names in Large Kind BackBone");
+        printf("%-41s", "Info: Atom Names in BackBone of Large Molecule Kind");
         for(uint i = 1; i < line.size() - 1; i += 2) {
           if(i != 1) {
             printf(" , ");
           }
           std::string atom1 = line[i];
-          std::string atom2 = line[i+1];
+          std::string atom2 = line[i + 1];
           sys.memcVal.largeBBAtom1.push_back(atom1);
           sys.memcVal.largeBBAtom2.push_back(atom2);
           sys.intraMemcVal.largeBBAtom1.push_back(atom1);
@@ -426,7 +431,7 @@ void ConfigSetup::Init(const char *fileName)
           printf("%s %-d %-27s %4.4f A\n", "Info: Box ", b, " CutoffCoulomb", sys.elect.cutoffCoulomb[b]);
         } else {
           std::cout << "Error: This simulation requires only " << BOX_TOTAL <<
-                  " sets of Coulomb Cutoff!" << std::endl;
+                    " sets of Coulomb Cutoff!" << std::endl;
           exit(EXIT_FAILURE);
         }
       }
@@ -464,7 +469,7 @@ void ConfigSetup::Init(const char *fileName)
         sys.step.pressureCalcFreq = stringtoi(line[2]);
 
       if(sys.step.pressureCalc && (line.size() == 2)) {
-        std::cout <<"Error: Pressure calculation frequency is not specified!\n";
+        std::cout << "Error: Pressure calculation frequency is not specified!\n";
         exit(EXIT_FAILURE);
       }
       if(!sys.step.pressureCalc)
@@ -504,15 +509,15 @@ void ConfigSetup::Init(const char *fileName)
     } else if(CheckString(line[0], "IntraMEMC-1Freq")) {
       sys.moves.intraMemc = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: IntraMEMC-1 move frequency",
-	     sys.moves.intraMemc);
+             sys.moves.intraMemc);
       if(sys.moves.intraMemc > 0.0) {
-	      sys.intraMemcVal.enable = true;
+        sys.intraMemcVal.enable = true;
         sys.intraMemcVal.MEMC1 = true;
       }
     } else if(CheckString(line[0], "IntraMEMC-2Freq")) {
       sys.moves.intraMemc = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: IntraMEMC-2 move frequency",
-	     sys.moves.intraMemc);
+             sys.moves.intraMemc);
       if(sys.moves.intraMemc > 0.0) {
         sys.intraMemcVal.enable = true;
         sys.intraMemcVal.MEMC2 = true;
@@ -520,9 +525,9 @@ void ConfigSetup::Init(const char *fileName)
     } else if(CheckString(line[0], "IntraMEMC-3Freq")) {
       sys.moves.intraMemc = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: IntraMEMC-3 move frequency",
-	     sys.moves.intraMemc);
+             sys.moves.intraMemc);
       if(sys.moves.intraMemc > 0.0) {
-	      sys.intraMemcVal.enable = true;
+        sys.intraMemcVal.enable = true;
         sys.intraMemcVal.MEMC3 = true;
       }
     }
@@ -543,27 +548,23 @@ void ConfigSetup::Init(const char *fileName)
         printf("%-40s %-d \n", "Info: Fix volume box", 0);
     }
 #endif
-#ifdef VARIABLE_PARTICLE_NUMBER
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
     else if(CheckString(line[0], "SwapFreq")) {
-#if ENSEMBLE == NVT || ENSEMBLE == NPT
-      sys.moves.transfer = 0.000;
-#else
       sys.moves.transfer = stringtod(line[1]);
-#endif
       printf("%-40s %-4.4f \n", "Info: Molecule swap move frequency",
              sys.moves.transfer);
     } else if(CheckString(line[0], "MEMC-1Freq")) {
       sys.moves.memc = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: MEMC-1 move frequency",
-	     sys.moves.memc);
+             sys.moves.memc);
       if(sys.moves.memc > 0.0) {
-	      sys.memcVal.enable = true;
+        sys.memcVal.enable = true;
         sys.memcVal.MEMC1 = true;
       }
     } else if(CheckString(line[0], "MEMC-2Freq")) {
       sys.moves.memc = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: MEMC-2 move frequency",
-	     sys.moves.memc);
+             sys.moves.memc);
       if(sys.moves.memc > 0.0) {
         sys.memcVal.enable = true;
         sys.memcVal.MEMC2 = true;
@@ -571,10 +572,99 @@ void ConfigSetup::Init(const char *fileName)
     } else if(CheckString(line[0], "MEMC-3Freq")) {
       sys.moves.memc = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: MEMC-3 move frequency",
-	     sys.moves.memc);
+             sys.moves.memc);
       if(sys.moves.memc > 0.0) {
-	      sys.memcVal.enable = true;
+        sys.memcVal.enable = true;
         sys.memcVal.MEMC3 = true;
+      }
+    } else if(CheckString(line[0], "CFCMCFreq")) {
+      sys.moves.cfcmc = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: CFCMC move frequency",
+	     sys.moves.cfcmc);
+      if(sys.moves.cfcmc > 0.0) {
+	      sys.cfcmcVal.enable = true;
+      }
+    } else if(CheckString(line[0], "LambdaCoulomb")) {
+      if(line.size() > 1) {
+        sys.cfcmcVal.readLambdaCoulomb = true;
+        printf("%-41s", "Info: Lambda Coulomb");
+        for(uint i = 1; i < line.size(); i++) {
+          double val = stringtod(line[i]);
+          sys.cfcmcVal.lambdaCoulomb.push_back(val);
+          printf("%-6.3f", val);
+        }
+        std::cout << endl; 
+      }
+    } else if(CheckString(line[0], "LambdaVDW")) {
+      if(line.size() > 1) {
+        sys.cfcmcVal.readLambdaVDW = true;
+        printf("%-41s", "Info: Lambda VDW");
+        for(uint i = 1; i < line.size(); i++) {
+          double val = stringtod(line[i]);
+          sys.cfcmcVal.lambdaVDW.push_back(val);
+          printf("%-6.3f", val);
+        }
+        std::cout << endl; 
+      }
+    } else if(CheckString(line[0], "RelaxingSteps")) {
+      if(line.size() > 1) {
+        sys.cfcmcVal.readRelaxSteps = true;
+        sys.cfcmcVal.relaxSteps = stringtoi(line[1]);
+        printf("%-40s %-4d \n", "Info: CFCMC Relaxing Steps",
+	      sys.cfcmcVal.relaxSteps);
+      }
+    } else if(CheckString(line[0], "HistFlatness")) {
+      if(line.size() > 1) {
+        sys.cfcmcVal.readHistFlatness = true;
+        sys.cfcmcVal.histFlatness = stringtod(line[1]);
+        printf("%-40s %-4.4f \n", "Info: CFCMC Histogram Flatness",
+	      sys.cfcmcVal.histFlatness);
+      }
+    } else if(CheckString(line[0], "MultiParticleRelaxing")) {
+      if(line.size() > 1) {
+        sys.cfcmcVal.MPEnable = checkBool(line[1]);
+        sys.cfcmcVal.readMPEnable = true;
+        if(sys.cfcmcVal.MPEnable) {
+          sys.moves.multiParticleEnabled = sys.cfcmcVal.MPEnable;
+          printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
+          "Active");
+        } else {
+          printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
+            "Inactive");
+        }
+      }
+    } else if(CheckString(line[0], "ScalePower")) {
+      if(line.size() > 1) {
+        sys.cfcmcVal.scalePower = stringtoi(line[1]);
+        sys.cfcmcVal.scalePowerRead = true;
+        printf("%-40s %-4d \n", "Info: Soft-core scaling power(p)",
+	      sys.cfcmcVal.scalePower);
+      }
+    } else if(CheckString(line[0], "ScaleAlpha")) {
+      if(line.size() > 1) {
+        sys.cfcmcVal.scaleAlpha = stringtod(line[1]);
+        sys.cfcmcVal.scaleAlphaRead = true;
+        printf("%-40s %-4.4f \n", "Info: Soft-core softness(alpha)",
+	      sys.cfcmcVal.scaleAlpha);
+      }
+    } else if(CheckString(line[0], "MinSigma")) {
+      if(line.size() > 1) {
+        sys.cfcmcVal.scaleSigma = stringtod(line[1]);
+        sys.cfcmcVal.scaleSigmaRead = true;
+        printf("%-40s %-4.4f A \n", "Info: Soft-core minimum sigma",
+	      sys.cfcmcVal.scaleSigma);
+      }
+    } else if(CheckString(line[0], "ScaleCoulomb")) {
+      if(line.size() > 1) {
+        sys.cfcmcVal.scaleCoulomb = checkBool(line[1]);
+        sys.cfcmcVal.scaleCoulombRead = true;
+        if(sys.cfcmcVal.scaleCoulomb) {
+          printf("%-40s %s \n", "Info: Soft-core for Coulombic interaction",
+          "Active");
+        } else {
+          printf("%-40s %s \n", "Info: Soft-core for Coulombic interaction",
+          "Inactive");
+        }
       }
     }
 #endif
@@ -671,6 +761,97 @@ void ConfigSetup::Init(const char *fileName)
       sys.chemPot.cp[resName] = val * unit::BAR_TO_K_MOLECULE_PER_A3;
       printf("%-40s %-6s %-6.4f bar\n", "Info: Fugacity", resName.c_str(),
              val);
+    }
+#endif
+#if ENSEMBLE == NVT ||  ENSEMBLE == NPT
+    else if(CheckString(line[0], "LambdaCoulomb")) {
+      if(line.size() > 1) {
+        sys.freeEn.readLambdaCoulomb = true;
+        printf("%-41s", "Info: Lambda Coulomb");
+        for(uint i = 1; i < line.size(); i++) {
+          double val = stringtod(line[i]);
+          sys.freeEn.lambdaCoulomb.push_back(val);
+          printf("%-6.3f", val);
+        }
+        std::cout << endl; 
+      }
+    } else if(CheckString(line[0], "LambdaVDW")) {
+      if(line.size() > 1) {
+        sys.freeEn.readLambdaVDW = true;
+        printf("%-41s", "Info: Lambda VDW");
+        for(uint i = 1; i < line.size(); i++) {
+          double val = stringtod(line[i]);
+          sys.freeEn.lambdaVDW.push_back(val);
+          printf("%-6.3f", val);
+        }
+        std::cout << endl; 
+      }
+    } else if(CheckString(line[0], "FreeEnergyCalc")) {
+      if(line.size() > 1) {
+        sys.freeEn.enable = checkBool(line[1]);
+        if(sys.freeEn.enable){
+          printf("%-40s %-s \n", "Info: Free Energy Calculation", "Active");
+          if(line.size() > 2) {
+            sys.freeEn.frequency = stringtoi(line[2]);
+            sys.freeEn.freqRead = true;
+            printf("%-40s %-4d \n", "Info: Free Energy Frequency",
+                  sys.freeEn.frequency);
+          }
+        } else {
+          printf("%-40s %-s \n", "Info: Free Energy Calculation", "Inactive");
+        }
+      }
+    } else if (CheckString(line[0], "MoleculeType")) {
+      if(line.size() > 1) {
+        sys.freeEn.molType = line[1];
+        sys.freeEn.molTypeRead = true;
+        if(line.size() > 2) {
+          sys.freeEn.molIndex = stringtoi(line[2]);
+          sys.freeEn.molIndexRead = true;
+          printf("%-40s %-d in %-s \n", "Info: Free Energy Calc for Molecule",
+                sys.freeEn.molIndex, sys.freeEn.molType.c_str());
+        }    
+      }
+    } else if (CheckString(line[0], "InitialState")) {
+      if(line.size() > 1) {
+        sys.freeEn.iState = stringtoi(line[1]);
+        sys.freeEn.iStateRead = true;
+        printf("%-40s %-d \n", "Info: Free Energy Calc Lambda state",
+              sys.freeEn.iState);
+      }
+    } else if(CheckString(line[0], "ScalePower")) {
+      if(line.size() > 1) {
+        sys.freeEn.scalePower = stringtoi(line[1]);
+        sys.freeEn.scalePowerRead = true;
+        printf("%-40s %-4d \n", "Info: Soft-core scaling power(p)",
+	      sys.freeEn.scalePower);
+      }
+    } else if(CheckString(line[0], "ScaleAlpha")) {
+      if(line.size() > 1) {
+        sys.freeEn.scaleAlpha = stringtod(line[1]);
+        sys.freeEn.scaleAlphaRead = true;
+        printf("%-40s %-4.4f \n", "Info: Soft-core softness(alpha)",
+	      sys.freeEn.scaleAlpha);
+      }
+    } else if(CheckString(line[0], "MinSigma")) {
+      if(line.size() > 1) {
+        sys.freeEn.scaleSigma = stringtod(line[1]);
+        sys.freeEn.scaleSigmaRead = true;
+        printf("%-40s %-4.4f \n", "Info: Soft-core minimum sigma",
+	      sys.freeEn.scaleSigma);
+      }
+    } else if(CheckString(line[0], "ScaleCoulomb")) {
+      if(line.size() > 1) {
+        sys.freeEn.scaleCoulomb = checkBool(line[1]);
+        sys.freeEn.scaleCoulombRead = true;
+        if(sys.freeEn.scaleCoulomb) {
+          printf("%-40s %s \n", "Info: Soft-core for Coulombic interaction",
+          "Active");
+        } else {
+          printf("%-40s %s \n", "Info: Soft-core for Coulombic interaction",
+          "Inactive");
+        }
+      }
     }
 #endif
     else if(CheckString(line[0], "OutputName")) {
@@ -828,6 +1009,12 @@ void ConfigSetup::fillDefaults(void)
     sys.elect.enable = true;
   }
 
+  if(sys.moves.rotate == DBL_MAX) {
+    sys.moves.rotate = 0.000;
+    printf("%-40s %-4.4f \n", "Default: Rotation move frequency",
+           sys.moves.rotate);
+  }
+
   if(sys.moves.intraSwap == DBL_MAX) {
     sys.moves.intraSwap = 0.000;
     printf("%-40s %-4.4f \n", "Default: Intra-Swap move frequency",
@@ -844,7 +1031,7 @@ void ConfigSetup::fillDefaults(void)
   if(sys.moves.intraMemc == DBL_MAX) {
     sys.moves.intraMemc = 0.0;
     printf("%-40s %-4.4f \n", "Default: Intra-MEMC move frequency",
-	     sys.moves.intraMemc);
+           sys.moves.intraMemc);
   }
 
   if(sys.moves.regrowth == DBL_MAX) {
@@ -859,12 +1046,127 @@ void ConfigSetup::fillDefaults(void)
            sys.moves.crankShaft);
   }
 
-  #ifdef VARIABLE_PARTICLE_NUMBER
-  if(sys.moves.memc == DBL_MAX)
-  {
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC 
+  if(sys.moves.memc == DBL_MAX) {
     sys.moves.memc = 0.0;
     printf("%-40s %-4.4f \n", "Default: MEMC move frequency",
-	     sys.moves.memc);
+           sys.moves.memc);
+  }
+
+  if(sys.moves.cfcmc == DBL_MAX) {
+    sys.moves.cfcmc = 0.0;
+    printf("%-40s %-4.4f \n", "Default: CFCMC move frequency",
+	     sys.moves.cfcmc);
+  }
+
+  if(sys.cfcmcVal.enable) {
+    if(!sys.cfcmcVal.readHistFlatness) {
+      sys.cfcmcVal.histFlatness = 0.3;
+      printf("%-40s %-4.4f \n", "Default: CFCMC Histogram Flatness",
+        sys.cfcmcVal.histFlatness);
+    }
+
+    if(!sys.elect.enable && !sys.cfcmcVal.readLambdaCoulomb) {
+      sys.cfcmcVal.lambdaCoulomb.resize(sys.cfcmcVal.lambdaVDW.size(), 0.0);
+      sys.cfcmcVal.readLambdaCoulomb = true;
+      printf("%-41s", "Default: Lambda Coulomb");
+      for(uint i = 0; i < sys.cfcmcVal.lambdaCoulomb.size(); i++) {
+        double val = sys.cfcmcVal.lambdaCoulomb[i];
+        printf("%-6.3f", val);
+      }
+      std::cout << endl; 
+    }
+
+    if(sys.cfcmcVal.readLambdaVDW ) {
+      if(sys.elect.enable && !sys.cfcmcVal.readLambdaCoulomb) {
+        sys.cfcmcVal.lambdaCoulomb = sys.cfcmcVal.lambdaVDW;
+        sys.cfcmcVal.readLambdaCoulomb = true;
+        printf("%-41s", "Default: Lambda Coulomb");
+        for(uint i = 0; i < sys.cfcmcVal.lambdaCoulomb.size(); i++) {
+          double val = sys.cfcmcVal.lambdaCoulomb[i];
+          printf("%-6.3f", val);
+        }
+        std::cout << endl; 
+      }
+    }
+      
+    if(!sys.cfcmcVal.readMPEnable) {
+      sys.cfcmcVal.readMPEnable = true;
+      sys.cfcmcVal.MPEnable = false;
+      printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
+        "Inactive");
+    }
+
+    if(!sys.cfcmcVal.scalePowerRead) {
+      sys.cfcmcVal.scalePower = 2;
+      printf("%-40s %-4d \n", "Default: Soft-core scale power(p)",
+        sys.cfcmcVal.scalePower);
+    }
+    if(!sys.cfcmcVal.scaleAlphaRead) {
+      sys.cfcmcVal.scaleAlpha = 0.5;
+      printf("%-40s %-4.4f \n", "Default: Soft-core softness(alpha)",
+        sys.cfcmcVal.scaleAlpha);
+    }
+    if(!sys.cfcmcVal.scaleSigmaRead) {
+      sys.cfcmcVal.scaleSigma = 3.0;
+      printf("%-40s %-4.4f A \n", "Default: Soft-core minimum sigma",
+        sys.cfcmcVal.scaleSigma);
+    }
+    if(!sys.cfcmcVal.scaleCoulombRead) {
+      sys.cfcmcVal.scaleCoulomb = false;
+      printf("%-40s %s A \n", "Default: Soft-core for Coulombic interaction",
+            "Inactive");
+    }
+  }
+
+#endif
+
+#if ENSEMBLE == NVT || ENSEMBLE == NPT 
+  if(sys.freeEn.enable) {
+    if(!sys.elect.enable && !sys.freeEn.readLambdaCoulomb) {
+      sys.freeEn.lambdaCoulomb.resize(sys.freeEn.lambdaVDW.size(), 0.0);
+      sys.freeEn.readLambdaCoulomb = true;
+      printf("%-41s", "Default: Lambda Coulomb");
+      for(uint i = 0; i < sys.freeEn.lambdaCoulomb.size(); i++) {
+        double val = sys.freeEn.lambdaCoulomb[i];
+        printf("%-6.3f", val);
+      }
+      std::cout << endl; 
+    }
+
+    if(sys.freeEn.readLambdaVDW) {
+      if(sys.elect.enable && !sys.freeEn.readLambdaCoulomb) {
+        sys.freeEn.lambdaCoulomb = sys.freeEn.lambdaVDW;
+        sys.freeEn.readLambdaCoulomb = true;
+        printf("%-41s", "Default: Lambda Coulomb");
+        for(uint i = 0; i < sys.freeEn.lambdaCoulomb.size(); i++) {
+          double val = sys.freeEn.lambdaCoulomb[i];
+          printf("%-6.3f", val);
+        }
+        std::cout << endl; 
+      }
+    }
+
+    if(!sys.freeEn.scalePowerRead) {
+      sys.freeEn.scalePower = 2;
+      printf("%-40s %-4d \n", "Default: Soft-core scale power(p)",
+        sys.freeEn.scalePower);
+    }
+    if(!sys.freeEn.scaleAlphaRead) {
+      sys.freeEn.scaleAlpha = 0.5;
+      printf("%-40s %-4.4f \n", "Default: Soft-core softness(alpha)",
+        sys.freeEn.scaleAlpha);
+    }
+    if(!sys.freeEn.scaleSigmaRead) {
+      sys.freeEn.scaleSigma = 3.0;
+      printf("%-40s %-4.4f A \n", "Default: Soft-core minimum sigma",
+        sys.freeEn.scaleSigma);
+    }
+    if(!sys.freeEn.scaleCoulombRead) {
+      sys.freeEn.scaleCoulomb = false;
+      printf("%-40s %s A \n", "Default: Soft-core for Coulombic interaction",
+            "Inactive");
+    }    
   }
 #endif
 
@@ -873,9 +1175,9 @@ void ConfigSetup::fillDefaults(void)
     printf("%-40s %-s \n", "Default: Exclude", "ONE-FOUR");
   }
 
-  if(sys.elect.enable && sys.elect.oneFourScale == DBL_MAX) {
-    sys.elect.oneFourScale = 0.0f;
-    if(sys.exclude.EXCLUDE_KIND != sys.exclude.EXC_ONEFOUR_KIND) {
+  if(sys.elect.oneFourScale == DBL_MAX) {
+    if(sys.elect.enable) {
+      sys.elect.oneFourScale = 0.0;
       printf("%-40s %-lf \n", "Default: Modified 1-4 Electrostatic scaling",
              sys.elect.oneFourScale);
     }
@@ -952,12 +1254,7 @@ void ConfigSetup::verifyInputs(void)
   int i;
   if(!sys.elect.enable && sys.elect.oneFourScale != DBL_MAX) {
     printf("Warning: 1-4 Electrostatic scaling set, but will be ignored.\n");
-  }
-
-  if((sys.elect.oneFourScale != 0.0) &&
-      (sys.exclude.EXCLUDE_KIND == sys.exclude.EXC_ONEFOUR_KIND)) {
-    printf("Warning: 1-4 Electrostatic scaling set, but will be ignored.\n");
-    sys.elect.oneFourScale = 0.0f;
+    sys.elect.oneFourScale = 0.0;
   }
 
   if(sys.elect.ewald == false && sys.elect.enable == true) {
@@ -1037,7 +1334,8 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Potential type is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
-  if(sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND && sys.ff.doTailCorr == false) {
+  if(((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND) ||
+    (sys.ff.VDW_KIND == sys.ff.VDW_EXP6_KIND)) && (sys.ff.doTailCorr == false)) {
     std::cout << "Warning: Long Range Correction is Inactive for " <<
               "Non-truncated potential." << std::endl;
   }
@@ -1068,7 +1366,7 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(sys.step.adjustment > sys.step.equil && !in.restart.enable &&
-     !in.restart.recalcTrajectory) {
+      !in.restart.recalcTrajectory) {
     std::cout << "Error: Move adjustment frequency should be smaller " <<
               "than Equilibration steps!" << std::endl;
     exit(EXIT_FAILURE);
@@ -1080,19 +1378,6 @@ void ConfigSetup::verifyInputs(void)
   }
   if(sys.moves.displace == DBL_MAX) {
     std::cout << "Error: Displacement move frequency is not specified!\n";
-    exit(EXIT_FAILURE);
-  }
-  if(sys.moves.multiParticle == DBL_MAX) {
-    std::cout <<
-      "Error: Multi-Particle move frequency is not specified!\n";
-    exit(EXIT_FAILURE);
-  }
-  if(sys.moves.rotate == DBL_MAX) {
-    std::cout << "Error: Rotation move frequency is not specified!\n";
-    exit(EXIT_FAILURE);
-  }
-  if(sys.moves.intraSwap == DBL_MAX) {
-    std::cout << "Error: Intra-Swap move frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
 #if ENSEMBLE == NPT
@@ -1113,7 +1398,7 @@ void ConfigSetup::verifyInputs(void)
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
          sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
          sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft +
-         sys.moves.multiParticle - 1.0) > 0.001) {
+         sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(EXIT_FAILURE);
   }
@@ -1138,7 +1423,7 @@ void ConfigSetup::verifyInputs(void)
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
          sys.moves.transfer + sys.moves.regrowth + sys.moves.memc + 
          sys.moves.intraMemc + sys.moves.crankShaft +
-         sys.moves.multiParticle - 1.0) > 0.001) {
+         sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
@@ -1166,13 +1451,13 @@ void ConfigSetup::verifyInputs(void)
     }
   }
   if(!sys.volume.hasVolume && !in.restart.enable) {
-    std::cout << "Error: This simulation requires to define " << 3 * BOX_TOTAL<<
-                " Cell Basis vectors!" << std::endl;
-    for(uint b = 0; b < BOX_TOTAL; b++){
+    std::cout << "Error: This simulation requires to define " << 3 * BOX_TOTAL <<
+              " Cell Basis vectors!" << std::endl;
+    for(uint b = 0; b < BOX_TOTAL; b++) {
       for(uint i = 0; i < 3; i++) {
         if(!sys.volume.readCellBasis[b][i]) {
-          std::cout << "Error: CellBasisVector" << i+1 << " for Box " << b <<
-          " is missing!" << std::endl;
+          std::cout << "Error: CellBasisVector" << i + 1 << " for Box " << b <<
+                    " is missing!" << std::endl;
         }
       }
     }
@@ -1183,7 +1468,8 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND) ||
-      (sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND)) && sys.ff.rswitch != DBL_MAX) {
+      (sys.ff.VDW_KIND == sys.ff.VDW_SHIFT_KIND) ||
+      (sys.ff.VDW_KIND == sys.ff.VDW_EXP6_KIND)) && sys.ff.rswitch != DBL_MAX) {
     std::cout << "Warning: Switch distance set, but will be ignored."
               << std::endl;
   }
@@ -1211,14 +1497,14 @@ void ConfigSetup::verifyInputs(void)
   }
   if(sys.memcVal.enable || sys.intraMemcVal.enable) {
     if((sys.memcVal.MEMC1 && sys.memcVal.MEMC2) ||
-       (sys.memcVal.MEMC1 && sys.memcVal.MEMC3) || 
-       (sys.memcVal.MEMC2 && sys.memcVal.MEMC3)) {
+        (sys.memcVal.MEMC1 && sys.memcVal.MEMC3) ||
+        (sys.memcVal.MEMC2 && sys.memcVal.MEMC3)) {
       std::cout << "Error: Multiple MEMC methods are specified!\n";
       exit(EXIT_FAILURE);
     }
     if((sys.intraMemcVal.MEMC1 && sys.intraMemcVal.MEMC2) ||
-       (sys.intraMemcVal.MEMC1 && sys.intraMemcVal.MEMC3) || 
-       (sys.intraMemcVal.MEMC2 && sys.intraMemcVal.MEMC3)) {
+        (sys.intraMemcVal.MEMC1 && sys.intraMemcVal.MEMC3) ||
+        (sys.intraMemcVal.MEMC2 && sys.intraMemcVal.MEMC3)) {
       std::cout << "Error: Multiple Intra-MEMC methods are specified!\n";
       exit(EXIT_FAILURE);
     }
@@ -1232,8 +1518,8 @@ void ConfigSetup::verifyInputs(void)
     }
     if(sys.memcVal.largeKind.size() != sys.memcVal.exchangeRatio.size()) {
       std::cout << "Error: In MEMC method, specified number of Large Kinds is " <<
-      sys.memcVal.largeKind.size() << ", but " << sys.memcVal.exchangeRatio.size()
-      << " exchange ratio is specified!\n";
+                sys.memcVal.largeKind.size() << ", but " << sys.memcVal.exchangeRatio.size()
+                << " exchange ratio is specified!\n";
       exit(EXIT_FAILURE);
     }
     if(!sys.memcVal.readSK || !sys.intraMemcVal.readSK) {
@@ -1245,9 +1531,9 @@ void ConfigSetup::verifyInputs(void)
       exit(EXIT_FAILURE);
     }
     if((sys.memcVal.largeKind.size() != sys.memcVal.smallKind.size()) ||
-      (sys.intraMemcVal.largeKind.size() != sys.intraMemcVal.smallKind.size())) {
+        (sys.intraMemcVal.largeKind.size() != sys.intraMemcVal.smallKind.size())) {
       std::cout << "Error: In MEMC method, specified number of Large Kinds is not " <<
-      " equal as specified number of Small Kinds!\n";
+                " equal as specified number of Small Kinds!\n";
       exit(EXIT_FAILURE);
     }
     if(!sys.memcVal.readLargeBB || !sys.intraMemcVal.readLargeBB) {
@@ -1256,8 +1542,8 @@ void ConfigSetup::verifyInputs(void)
     }
     if(sys.memcVal.largeKind.size() != sys.memcVal.largeBBAtom1.size()) {
       std::cout << "Error: In MEMC method, specified number of Large Kinds is " <<
-      sys.memcVal.largeKind.size() << ", but " << sys.memcVal.largeBBAtom1.size()
-      << " sets of Large Molecule BackBone is specified!\n";
+                sys.memcVal.largeKind.size() << ", but " << sys.memcVal.largeBBAtom1.size()
+                << " sets of Large Molecule BackBone is specified!\n";
       exit(EXIT_FAILURE);
     }
     if(sys.memcVal.MEMC2 && !sys.memcVal.readSmallBB) {
@@ -1266,10 +1552,10 @@ void ConfigSetup::verifyInputs(void)
     }
 
     if(sys.memcVal.MEMC2 && (sys.memcVal.smallKind.size() !=
-                            sys.memcVal.smallBBAtom1.size())) {
+                             sys.memcVal.smallBBAtom1.size())) {
       std::cout << "Error: In MEMC-2 method, specified number of Small Kinds is " <<
-      sys.memcVal.smallKind.size() << ", but " << sys.memcVal.smallBBAtom1.size()
-      << " sets of Small Molecule BackBone is specified!\n";
+                sys.memcVal.smallKind.size() << ", but " << sys.memcVal.smallBBAtom1.size()
+                << " sets of Small Molecule BackBone is specified!\n";
       exit(EXIT_FAILURE);
     }
 
@@ -1279,14 +1565,188 @@ void ConfigSetup::verifyInputs(void)
     }
     if(sys.memcVal.enable && sys.intraMemcVal.enable) {
       if((sys.memcVal.MEMC1 && !sys.intraMemcVal.MEMC1) ||
-        (sys.memcVal.MEMC2 && !sys.intraMemcVal.MEMC2) || 
-        (sys.memcVal.MEMC3 && !sys.intraMemcVal.MEMC3)) {
+          (sys.memcVal.MEMC2 && !sys.intraMemcVal.MEMC2) ||
+          (sys.memcVal.MEMC3 && !sys.intraMemcVal.MEMC3)) {
         std::cout << "Error: Intra-MEMC method is not same as MEMC method!\n";
         exit(EXIT_FAILURE);
       }
     }
   }
-  
+
+  if(sys.cfcmcVal.enable) {
+    
+    if(!sys.cfcmcVal.readLambdaCoulomb) {
+      std::cout << "Error: Lambda Coulomb states were not defined for " <<
+	    "CFCMC move! \n";
+      exit(EXIT_FAILURE);
+    }  
+    
+    if (!sys.cfcmcVal.readLambdaVDW) {
+      std::cout << "Error: Lambda VDW states were not defined for " <<
+	    "CFCMC move! \n";
+      exit(EXIT_FAILURE);
+    }
+
+    if(sys.cfcmcVal.lambdaCoulomb.size() != sys.cfcmcVal.lambdaVDW.size()) {
+      std::cout << "Error: Number of Lambda states for VDW and Coulomb " <<
+	    "are not same in CFCMC move! \n";
+      exit(EXIT_FAILURE);
+    }
+
+    for(uint i = 0; i < sys.cfcmcVal.lambdaVDW.size(); i++) {
+      bool decreasing = false;
+      for(uint j = i; j < sys.cfcmcVal.lambdaVDW.size(); j++) {
+        if(sys.cfcmcVal.lambdaVDW[i] > sys.cfcmcVal.lambdaVDW[j]) {
+          decreasing = true;
+        }
+      }
+      if(decreasing) {
+        std::cout << "Error: Lambda VDW values are not in increasing order " <<
+        "in CFCMC move! \n";
+        exit(EXIT_FAILURE);
+      }
+    }
+
+    for(uint i = 0; i < sys.cfcmcVal.lambdaCoulomb.size(); i++) {
+      bool decreasing = false;
+      for(uint j = i; j < sys.cfcmcVal.lambdaCoulomb.size(); j++) {
+        if(sys.cfcmcVal.lambdaCoulomb[i] > sys.cfcmcVal.lambdaCoulomb[j]) {
+          decreasing = true;
+        }
+      }
+      if(decreasing) {
+        std::cout << "Error: Lambda Coulomb values are not in increasing " <<
+        "order in CFCMC move! \n";
+        exit(EXIT_FAILURE);
+      }
+    }
+
+    uint last = sys.cfcmcVal.lambdaVDW.size() - 1;
+    if(sys.cfcmcVal.lambdaVDW[last] < 0.9999) {
+      std::cout << "Error: Last Lambda value for VDW is not 1.0 " <<
+        "in CFCMC move! \n";
+        exit(EXIT_FAILURE);
+    } 
+    
+    if(sys.elect.enable) {
+      last = sys.cfcmcVal.lambdaCoulomb.size() - 1;
+      if(sys.cfcmcVal.lambdaCoulomb[last] < 0.9999) {
+        std::cout << "Error: Last Lambda value for Coulomb is not 1.0 " <<
+          "in CFCMC move! \n";
+          exit(EXIT_FAILURE);
+      }
+    }
+    
+    if(!sys.cfcmcVal.readRelaxSteps) {
+      std::cout << "Error: Relaxing steps was not defined for CFCMC move! \n";
+      exit(EXIT_FAILURE);
+    } else if (sys.cfcmcVal.relaxSteps == 0) {
+      std::cout << "Warning: No thermal relaxing move will be performed in " <<
+	    "CFCMC move! \n";
+    }
+
+    if(sys.cfcmcVal.histFlatness > 0.999 || sys.cfcmcVal.histFlatness < 0.001){
+      std::cout << "Error: Unacceptable Value for Histogram Flatness in " <<
+	    "CFCMC move! \n";
+      exit(EXIT_FAILURE);
+    }
+  }
+#endif
+#if ENSEMBLE == NVT || ENSEMBLE == NPT
+  if(sys.freeEn.enable) {
+    if(!sys.freeEn.readLambdaCoulomb) {
+      std::cout << "Error: Lambda Coulomb states were not defined for " <<
+	    "Free Energy Calculation! \n";
+      exit(EXIT_FAILURE);
+    }  
+    
+    if (!sys.freeEn.readLambdaVDW) {
+      std::cout << "Error: Lambda VDW states were not defined for " <<
+	    "Free Energy Calculation! \n";
+      exit(EXIT_FAILURE);
+    }
+
+    if(sys.freeEn.lambdaCoulomb.size() != sys.freeEn.lambdaVDW.size()) {
+      std::cout << "Error: Number of Lambda states for VDW and Coulomb " <<
+	    "are not same in Free Energy Calculation! \n";
+      exit(EXIT_FAILURE);
+    }
+
+    for(uint i = 0; i < sys.freeEn.lambdaVDW.size(); i++) {
+      bool decreasing = false;
+      for(uint j = i; j < sys.freeEn.lambdaVDW.size(); j++) {
+        if(sys.freeEn.lambdaVDW[i] > sys.freeEn.lambdaVDW[j]) {
+          decreasing = true;
+        }
+      }
+      if(decreasing) {
+        std::cout << "Error: Lambda VDW values are not in increasing order " <<
+        "in Free Energy Calculation! \n";
+        exit(EXIT_FAILURE);
+      }
+    }
+
+    for(uint i = 0; i < sys.freeEn.lambdaCoulomb.size(); i++) {
+      bool decreasing = false;
+      for(uint j = i; j < sys.freeEn.lambdaCoulomb.size(); j++) {
+        if(sys.freeEn.lambdaCoulomb[i] > sys.freeEn.lambdaCoulomb[j]) {
+          decreasing = true;
+        }
+      }
+      if(decreasing) {
+        std::cout << "Error: Lambda Coulomb values are not in increasing " <<
+        "order in Free Energy Calculation! \n";
+        exit(EXIT_FAILURE);
+      }
+    }
+
+    uint last = sys.freeEn.lambdaVDW.size() - 1;
+    if(sys.freeEn.lambdaVDW[last] < 0.9999) {
+      std::cout << "Error: Last Lambda value for VDW is not 1.0 " <<
+        "in Free Energy Calculation! \n";
+        exit(EXIT_FAILURE);
+    }
+
+    if(sys.elect.enable) {
+      last = sys.freeEn.lambdaCoulomb.size() - 1;
+      if(sys.freeEn.lambdaCoulomb[last] < 0.9999) {
+        std::cout << "Error: Last Lambda value for Coulomb is not 1.0 " <<
+          "in Free Energy Calculation! \n";
+          exit(EXIT_FAILURE);
+      }
+    }
+
+    if(sys.freeEn.lambdaVDW.size() <= sys.freeEn.iState) {
+      std::cout << "Error: Initial Lambda state is not valid " <<
+        "in Free Energy Calculation! \n";
+        exit(EXIT_FAILURE);
+    }
+
+    if(!sys.freeEn.freqRead) {
+      std::cout << "Error: Frequency of Free Energy Calculation was " <<
+      "not defined! \n";
+      exit(EXIT_FAILURE);
+    }
+    if(!sys.freeEn.molTypeRead) {
+      std::cout << "Error: Molecule Type for Free Energy Calculation was " <<
+      "not defined! \n";
+      exit(EXIT_FAILURE);
+    }
+    if(!sys.freeEn.molIndexRead) {
+      std::cout << "Error: Molecule Index for Free Energy Calculation was " <<
+      "not defined! \n";
+      exit(EXIT_FAILURE);
+    }
+#if ENSEMBLE == NVT
+    if(sys.step.pressureCalc) {
+      if((sys.freeEn.frequency % sys.step.pressureCalcFreq) != 0) {
+        std::cout << "Error: Free Energy calculation Freq must be common " <<
+        "number of Pressure calculation freq! \n";
+        exit(EXIT_FAILURE);
+      }
+    }
+#endif
+  }
 #endif
   if(sys.T.inKelvin == DBL_MAX) {
     std::cout << "Error: Temperature is not specified!\n";
@@ -1404,25 +1864,27 @@ void ConfigSetup::verifyInputs(void)
 #endif
 }
 
-const std::string config_setup::PRNGKind::KIND_RANDOM = "RANDOM",
-                                          config_setup::PRNGKind::KIND_SEED = "INTSEED",
-                                                                  config_setup::PRNGKind::KIND_RESTART = "RESTART",
-                                                                                          config_setup::FFKind::FF_CHARMM = "CHARMM",
-                                                                                                                config_setup::FFKind::FF_EXOTIC = "EXOTIC",
-                                                                                                                                      config_setup::FFKind::FF_MARTINI = "MARTINI",
-                                                                                                                                                            config_setup::FFValues::VDW = "VDW",
-                                                                                                                                                                                    config_setup::FFValues::VDW_SHIFT = "VDW_SHIFT",
-                                                                                                                                                                                                            config_setup::FFValues::VDW_SWITCH = "VDW_SWITCH",
-                                                                                                                                                                                                                                    config_setup::Exclude::EXC_ONETWO = "1-2",
-                                                                                                                                                                                                                                                           config_setup::Exclude::EXC_ONETHREE = "1-3",
-                                                                                                                                                                                                                                                                                  config_setup::Exclude::EXC_ONEFOUR = "1-4";
+const std::string config_setup::PRNGKind::KIND_RANDOM = "RANDOM";
+const std::string config_setup::PRNGKind::KIND_SEED = "INTSEED";
+const std::string config_setup::PRNGKind::KIND_RESTART = "RESTART";
+const std::string config_setup::FFKind::FF_CHARMM = "CHARMM";
+const std::string config_setup::FFKind::FF_EXOTIC = "EXOTIC";
+const std::string config_setup::FFKind::FF_MARTINI = "MARTINI";
+const std::string config_setup::FFValues::VDW = "VDW";
+const std::string config_setup::FFValues::VDW_SHIFT = "VDW_SHIFT";
+const std::string config_setup::FFValues::VDW_EXP6 = "VDW_EXP6";
+const std::string config_setup::FFValues::VDW_SWITCH = "VDW_SWITCH";
+const std::string config_setup::Exclude::EXC_ONETWO = "1-2";
+const std::string config_setup::Exclude::EXC_ONETHREE = "1-3";
+const std::string config_setup::Exclude::EXC_ONEFOUR = "1-4";
 
 const char ConfigSetup::defaultConfigFileName[] = "in.dat";
 const char ConfigSetup::configFileAlias[] = "GO-MC Configuration File";
 
-const uint config_setup::FFValues::VDW_STD_KIND = 0,
-                                   config_setup::FFValues::VDW_SHIFT_KIND = 1,
-                                                           config_setup::FFValues::VDW_SWITCH_KIND = 2,
-                                                                                   config_setup::Exclude::EXC_ONETWO_KIND = 0,
-                                                                                                          config_setup::Exclude::EXC_ONETHREE_KIND = 1,
-                                                                                                                                 config_setup::Exclude::EXC_ONEFOUR_KIND = 2;
+const uint config_setup::FFValues::VDW_STD_KIND = 0;
+const uint config_setup::FFValues::VDW_SHIFT_KIND = 1;
+const uint config_setup::FFValues::VDW_SWITCH_KIND = 2;
+const uint config_setup::FFValues::VDW_EXP6_KIND = 3;
+const uint config_setup::Exclude::EXC_ONETWO_KIND = 0;
+const uint config_setup::Exclude::EXC_ONETHREE_KIND = 1;
+const uint config_setup::Exclude::EXC_ONEFOUR_KIND = 2;

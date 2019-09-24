@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -111,6 +111,7 @@ struct PDBSetup {
   pdb_setup::Atoms atoms;
   pdb_setup::Cryst1 cryst;
   pdb_setup::Remarks remarks;
+  FixedWidthReader pdb[BOX_TOTAL];
   PDBSetup(void) : dataKinds(SetReadFunctions()) {}
   void Init(config_setup::RestartSettings const& restart,
             std::string const*const name, uint frameNumber = 1);

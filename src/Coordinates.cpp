@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -32,7 +32,8 @@ void Coordinates::CheckCoordinate()
   for (uint b = 0; b < BOX_TOTAL; b++) {
     sawZeroCoordinate =  false;
     MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b),
-                                 end = molLookRef.BoxEnd(b), endc = molLookRef.BoxEnd(b);
+                                 end = molLookRef.BoxEnd(b),
+      endc = molLookRef.BoxEnd(b);
     //find the min and max coordinate
     stRange = molRef.MolStart(*thisMol);
     --endc;

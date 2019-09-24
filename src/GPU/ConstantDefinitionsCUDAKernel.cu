@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -51,7 +51,7 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_rOn, &Ron, sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_alpha, alpha, BOX_TOTAL * sizeof(double),
-            cudaMemcpyHostToDevice);
+             cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_ewald, &ewald, sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_diElectric_1, &diElectric_1, sizeof(double),
              cudaMemcpyHostToDevice);

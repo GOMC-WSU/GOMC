@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -21,7 +21,10 @@ namespace mp {
   const int MPALLDISPLACE = 0;
   const int MPALLROTATE = 1;
   const int MPALLRANDOM = 2;
-  const int MPTOTALTYPES = 3;
+  // MPTOTALTYPES = 2, we perform either: All displacement, All rotation move.
+  // MPTOTALTYPES = 3, we perform either: All displacement, All rotation move, 
+  //                                      or combined displacement+rotation 
+  const int MPTOTALTYPES = 2;
   const double TARGET_ACCEPT_FRACT = 0.3;
 }
 
@@ -34,7 +37,7 @@ class MoveSettings
 {
 public:
   friend class OutputVars;
-  MoveSettings(BoxDimensions & dim) : boxDimRef(dim) 
+  MoveSettings(BoxDimensions & dim) : boxDimRef(dim)
   {
     acceptPercent.resize(BOX_TOTAL);
     scale.resize(BOX_TOTAL);
@@ -106,6 +109,7 @@ public:
   uint GetTrialTot(const uint box, const uint move) const;
   double GetScaleTot(const uint box, const uint move) const;
   bool GetSingleMoveAccepted() { return isSingleMoveAccepted; }
+  void SetSingleMoveAccepted() { isSingleMoveAccepted = true; }
 
 private:
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -12,15 +12,15 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 namespace
 {
-  union dbl_input_union {
-    char bin_value[8];
-    double dbl_value;
-  };
+union dbl_input_union {
+  char bin_value[8];
+  double dbl_value;
+};
 
-  union uint32_input_union {
-    char bin_value[8];
-    uint32_t uint_value;
-  };
+union uint32_input_union {
+  char bin_value[8];
+  uint32_t uint_value;
+};
 }
 
 CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV) :
@@ -56,7 +56,7 @@ void CheckpointSetup::readBoxDimensionsData()
   axis.resize(totalBoxes);
   cosAngle.resize(totalBoxes);
 
-  for(int b=0; b<totalBoxes; b++) {
+  for(int b = 0; b < totalBoxes; b++) {
     axis[b].resize(3);
     cosAngle[b].resize(3);
     axis[b][0] = readDoubleIn8Chars();
@@ -78,7 +78,7 @@ void CheckpointSetup::readRandomNumbers()
     saveArray = NULL;
   }
   saveArray = new uint32_t[N];
-  for(int i=0; i<N; i++) {
+  for(int i = 0; i < N; i++) {
     saveArray[i] = readUintIn8Chars();
   }
 
@@ -100,7 +100,7 @@ void CheckpointSetup::readCoordinates()
 
   // now let's read the coordinates one by one
   coords.Init(coordLength);
-  for(int i=0; i<coordLength; i++) {
+  for(int i = 0; i < coordLength; i++) {
     XYZ temp;
     temp.x = readDoubleIn8Chars();
     temp.y = readDoubleIn8Chars();
@@ -115,14 +115,14 @@ void CheckpointSetup::readMoleculeLookupData()
   molLookupVec.resize(readUintIn8Chars());
 
   // read the molLookup array itself
-  for(int i=0; i<molLookupVec.size(); i++) {
+  for(int i = 0; i < molLookupVec.size(); i++) {
     molLookupVec[i] = readUintIn8Chars();
   }
 
   // read the size of boxAndKindStart array
   boxAndKindStartVec.resize(readUintIn8Chars());
   // read the BoxAndKindStart array
-  for(int i=0; i<boxAndKindStartVec.size(); i++) {
+  for(int i = 0; i < boxAndKindStartVec.size(); i++) {
     boxAndKindStartVec[i] = readUintIn8Chars();
   }
 
@@ -132,7 +132,7 @@ void CheckpointSetup::readMoleculeLookupData()
   //read the size of fixedAtom array
   fixedAtomVec.resize(readUintIn8Chars());
   //read the fixedAtom array itself
-  for(int i=0; i<fixedAtomVec.size(); i++) {
+  for(int i = 0; i < fixedAtomVec.size(); i++) {
     fixedAtomVec[i] = readUintIn8Chars();
   }
 }
@@ -202,12 +202,14 @@ uint32_t CheckpointSetup::readUintIn8Chars()
   return temp.uint_value;
 }
 
-void CheckpointSetup::SetStepNumber(ulong & startStep) {
+void CheckpointSetup::SetStepNumber(ulong & startStep)
+{
   startStep = stepNumber;
 }
 
-void CheckpointSetup::SetBoxDimensions(BoxDimensions & boxDimRef) {
-  for(int b=0; b<totalBoxes; b++) {
+void CheckpointSetup::SetBoxDimensions(BoxDimensions & boxDimRef)
+{
+  for(int b = 0; b < totalBoxes; b++) {
     boxDimRef.axis.Set(b, axis[b][0], axis[b][1], axis[b][2]);
     boxDimRef.cosAngle[b][0] = this->cosAngle[b][0];
     boxDimRef.cosAngle[b][1] = this->cosAngle[b][1];
@@ -219,33 +221,37 @@ void CheckpointSetup::SetBoxDimensions(BoxDimensions & boxDimRef) {
   boxDimRef.halfAx.ScaleRange(0, BOX_TOTAL, 0.5);
 }
 
-void CheckpointSetup::SetPRNGVariables(PRNG & prng) {
+void CheckpointSetup::SetPRNGVariables(PRNG & prng)
+{
   prng.GetGenerator()->load(saveArray);
   prng.GetGenerator()->pNext = prng.GetGenerator()->state + seedLocation;
   prng.GetGenerator()->left = seedLeft;
   prng.GetGenerator()->seedValue = seedValue;
 }
 
-void CheckpointSetup::SetCoordinates(Coordinates & coordinates) {
+void CheckpointSetup::SetCoordinates(Coordinates & coordinates)
+{
   coords.CopyRange(coordinates, 0, 0, coordLength);
 }
 
-void CheckpointSetup::SetMoleculeLookup(MoleculeLookup & molLookupRef) {
+void CheckpointSetup::SetMoleculeLookup(MoleculeLookup & molLookupRef)
+{
   if(molLookupRef.molLookupCount != this->molLookupVec.size()) {
     std::cerr << "ERROR: Restarting from checkpoint...\n"
-      << "molLookup size does not match with restart file\n";
+              << "molLookup size does not match with restart file\n";
     exit(EXIT_FAILURE);
   }
-  for(int i=0; i<this->molLookupVec.size(); i++) {
+  for(int i = 0; i < this->molLookupVec.size(); i++) {
     molLookupRef.molLookup[i] = this->molLookupVec[i];
   }
-  for(int i=0; i<this->boxAndKindStartVec.size(); i++) {
+  for(int i = 0; i < this->boxAndKindStartVec.size(); i++) {
     molLookupRef.boxAndKindStart[i] = this->boxAndKindStartVec[i];
   }
   molLookupRef.numKinds = this->numKinds;
 }
 
-void CheckpointSetup::SetMoveSettings(MoveSettings & moveSettings) {
+void CheckpointSetup::SetMoveSettings(MoveSettings & moveSettings)
+{
   moveSettings.scale = this->scaleVec;
   moveSettings.acceptPercent = this->acceptPercentVec;
   moveSettings.accepted = this->acceptedVec;

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.31
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -13,6 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "VectorLib.h" //for transfer.
 #include <algorithm> //For count.
 #include <string>
+#include "System.h"
 
 class System;
 
@@ -86,10 +87,10 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
       if(kinds[mk].MoleculeHasCharge()) {
         if(!forcefield.ewald && !forcefield.isMartini) {
           std::cout << "Warning: Charge detected in " << kinds[mk].name
-          << " but Ewald Summaion method is disabled!\n\n";
+                    << " but Ewald Summaion method is disabled!\n\n";
         } else if(!forcefield.electrostatic && forcefield.isMartini) {
           std::cout << "Warning: Charge detected in " << kinds[mk].name
-          << " but Electrostatic energy calculation is disabled!\n\n";
+                    << " but Electrostatic energy calculation is disabled!\n\n";
         }
       }
     }
@@ -145,7 +146,6 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
         pairVirCorrections[i * kindsCount + j];
     }
   }
-
 }
 
 void Molecules::PrintLJInfo(std::vector<uint> &totAtomKind,
@@ -155,32 +155,72 @@ void Molecules::PrintLJInfo(std::vector<uint> &totAtomKind,
   if(printFlag) {
     uint size =  totAtomKind.size();
     printf("NonBonded 1-4 parameters:\n");
-    printf("%-6s %-10s %17s %11s %7s \n", "Type1", "Type2", "Epsilon(K)",
-           "Sigma(A)", "N");
+    if(forcefield.exp6) {
+      printf("%-6s %-10s %17s %11s %11s %11s %7s \n", "Type1", "Type2",
+            "Epsilon(K)", "Sigma(A)", "Rmax(A)", "Rmin(A)", "alpha");
+    } else {
+      printf("%-6s %-10s %17s %11s %7s \n", "Type1", "Type2", "Epsilon(K)",
+            "Sigma(A)", "N");
+    }
     for(uint i = 0; i < size; i++) {
       for(uint j = i; j < size; j++) {
-        printf("%-6s %-10s %17.4f %11.4f %7.2f \n", names[i].c_str(),
-               names[j].c_str(),
-               forcefield.particles->GetEpsilon_1_4(totAtomKind[i],
-                   totAtomKind[j]),
-               forcefield.particles->GetSigma_1_4(totAtomKind[i],
-                   totAtomKind[j]),
-               forcefield.particles->GetN_1_4(totAtomKind[i],
-                                              totAtomKind[j]));
+        if(forcefield.exp6) {
+          printf("%-6s %-10s %17.4f %11.4f %11.4f %11.4f %7.2f \n",
+                names[i].c_str(), names[j].c_str(),
+                forcefield.particles->GetEpsilon_1_4(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetSigma_1_4(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetRmax_1_4(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetRmin_1_4(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetN_1_4(totAtomKind[i],
+                                                totAtomKind[j]));
+        } else {
+          printf("%-6s %-10s %17.4f %11.4f %7.2f \n", names[i].c_str(),
+                names[j].c_str(),
+                forcefield.particles->GetEpsilon_1_4(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetSigma_1_4(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetN_1_4(totAtomKind[i],
+                                                totAtomKind[j]));
+        }
       }
     }
 
     std::cout << std::endl;
     printf("NonBonded parameters:\n");
-    printf("%-6s %-10s %17s %11s %7s \n", "Type1", "Type2", "Epsilon(K)",
-           "Sigma(A)", "N");
+    if(forcefield.exp6) {
+      printf("%-6s %-10s %17s %11s %11s %11s %7s \n", "Type1", "Type2",
+            "Epsilon(K)", "Sigma(A)", "Rmax(A)", "Rmin(A)", "alpha");
+    } else {
+      printf("%-6s %-10s %17s %11s %7s \n", "Type1", "Type2", "Epsilon(K)",
+            "Sigma(A)", "N");
+    }
     for(uint i = 0; i < size; i++) {
       for(uint j = i; j < size; j++) {
-        printf("%-6s %-10s %17.4f %11.4f %7.2f \n", names[i].c_str(),
-               names[j].c_str(),
-               forcefield.particles->GetEpsilon(totAtomKind[i], totAtomKind[j]),
-               forcefield.particles->GetSigma(totAtomKind[i], totAtomKind[j]),
-               forcefield.particles->GetN(totAtomKind[i], totAtomKind[j]));
+        if(forcefield.exp6) {
+          printf("%-6s %-10s %17.4f %11.4f %11.4f %11.4f %7.2f \n",
+                names[i].c_str(), names[j].c_str(),
+                forcefield.particles->GetEpsilon(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetSigma(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetRmax(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetRmin(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetN(totAtomKind[i],
+                                                totAtomKind[j]));
+        } else {
+          printf("%-6s %-10s %17.4f %11.4f %7.2f \n", names[i].c_str(),
+                names[j].c_str(),
+                forcefield.particles->GetEpsilon(totAtomKind[i], totAtomKind[j]),
+                forcefield.particles->GetSigma(totAtomKind[i], totAtomKind[j]),
+                forcefield.particles->GetN(totAtomKind[i], totAtomKind[j]));
+        }
       }
     }
     std::cout << std::endl;
