@@ -70,17 +70,20 @@ int ReadPSFAtoms(FILE* psf,
 //pre: stream is before !BONDS   post: stream is in bond section just after
 //the first appearance of the last molecule
 int ReadPSFBonds(FILE* psf, MolMap& kindMap,
-                 std::vector<std::pair<uint, std::string> >& firstAtom);
+                 std::vector<std::pair<uint, std::string> >& firstAtom,
+		 const uint nbonds);
 //adds angles in psf to kindMap
 //pre: stream is before !NTHETA   post: stream is in angle section just
 //after the first appearance of the last molecule
 int ReadPSFAngles(FILE* psf, MolMap& kindMap,
-                  std::vector<std::pair<uint, std::string> >& firstAtom);
+                  std::vector<std::pair<uint, std::string> >& firstAtom,
+		  const uint nangles);
 //adds dihedrals in psf to kindMap
 //pre: stream is before !NPHI   post: stream is in dihedral section just
 //after the first appearance of the last molecule
 int ReadPSFDihedrals(FILE* psf, MolMap& kindMap,
-                     std::vector<std::pair<uint, std::string> >& firstAtom);
+                     std::vector<std::pair<uint, std::string> >& firstAtom,
+		     const uint ndihedrals);
 
 }
 
@@ -567,65 +570,61 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap)
   //build list of start particles for each type, so we can find it and skip
   //everything else
   std::vector<std::pair<unsigned int, std::string> > firstAtomLookup;
-  for (MolMap::iterator it = kindMap.begin();
-       it != kindMap.end(); ++it) {
-    firstAtomLookup.push_back(std::make_pair(it->second.firstAtomID, it->first));
+  for (MolMap::iterator it = kindMap.begin(); it != kindMap.end(); ++it) {
+    firstAtomLookup.push_back(std::make_pair(it->second.firstAtomID,it->first));
   }
   std::sort(firstAtomLookup.begin(), firstAtomLookup.end());
   //find bond header+count
   while (strstr(input, "!NBOND") == NULL) {
     check = fgets(input, 511, psf);
     if (check == NULL) {
-      fprintf(stderr, "ERROR: Unable to read bonds from PSF file %s", psfFilename);
+      fprintf(stderr, "ERROR: Unable to read bonds from PSF file %s",
+	      psfFilename);
       fclose(psf);
       return  READERROR;
     }
   }
   //make sure molecule has bonds, appears before !NBOND
   count = atoi(input);
-  if (count != 0) {
-    if (ReadPSFBonds(psf, kindMap, firstAtomLookup) == READERROR) {
-      fclose(psf);
-      return READERROR;
-    }
+  if (ReadPSFBonds(psf, kindMap, firstAtomLookup, count) == READERROR) {
+    fclose(psf);
+    return READERROR;
   }
   //find angle header+count
   fseek(psf, 0, SEEK_SET);
   while (strstr(input, "!NTHETA") == NULL) {
     check = fgets(input, 511, psf);
     if (check == NULL) {
-      fprintf(stderr, "ERROR: Unable to read angles from PSF file %s", psfFilename);
+      fprintf(stderr, "ERROR: Unable to read angles from PSF file %s",
+	      psfFilename);
       fclose(psf);
       return READERROR;
     }
   }
   //make sure molecule has angles, count appears before !NTHETA
   count = atoi(input);
-  if (count != 0) {
-    if (ReadPSFAngles(psf, kindMap, firstAtomLookup) == READERROR) {
-      fclose(psf);
-      return READERROR;
-    }
+  if (ReadPSFAngles(psf, kindMap, firstAtomLookup, count) == READERROR) {
+    fclose(psf);
+    return READERROR;
   }
   //find dihedrals header+count
   fseek(psf, 0, SEEK_SET);
   while (strstr(input, "!NPHI") == NULL) {
     check = fgets(input, 511, psf);
     if (check == NULL) {
-      fprintf(stderr, "ERROR: Unable to read dihedrals from PSF file %s", psfFilename);
+      fprintf(stderr, "ERROR: Unable to read dihedrals from PSF file %s",
+	      psfFilename);
       fclose(psf);
       return READERROR;
     }
   }
   //make sure molecule has dihs, count appears before !NPHI
   count = atoi(input);
-  if (count != 0) {
-    if (ReadPSFDihedrals(psf, kindMap, firstAtomLookup) == READERROR) {
-      fclose(psf);
-      return READERROR;
-    }
+  if (ReadPSFDihedrals(psf, kindMap, firstAtomLookup, count) == READERROR) {
+    fclose(psf);
+    return READERROR;
   }
-
+ 
   fclose(psf);
 
   return nAtoms;
@@ -682,33 +681,34 @@ int ReadPSFAtoms(FILE* psf, MolMap& kindMap, unsigned int nAtoms)
 //pre: stream is before !BONDS   post: stream is in bond section just after
 //the first appearance of the last molecule
 int ReadPSFBonds(FILE* psf, MolMap& kindMap,
-                 std::vector<std::pair<unsigned int, std::string> >& firstAtom)
+                 std::vector<std::pair<unsigned int, std::string> >& firstAtom,
+		 const uint nbonds)
 {
   unsigned int atom0, atom1;
-  int dummy = fscanf(psf, "%u %u", &atom0, &atom1);
-  UNUSED(dummy);
-  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
-    MolKind& currentMol = kindMap[firstAtom[i].second];
-    //continue if atom has no bonds
-    if (currentMol.atoms.size() < 2)
-      continue;
-    //index of first atom in moleule
-    unsigned int molBegin = firstAtom[i].first;
-    //index AFTER last atom in molecule
-    unsigned int molEnd = molBegin + currentMol.atoms.size();
-    while (atom0 < molBegin || atom0 >= molEnd) {
-      dummy = fscanf(psf, "%u %u", &atom0, &atom1);
-      if (feof(psf) || ferror(psf)) {
-        fprintf(stderr, "ERROR: Could not find all bonds in PSF file ");
-        return READERROR;
-      }
+  int dummy; 
+  for (uint n = 0; n < nbonds; n++) {
+    dummy = fscanf(psf, "%u %u", &atom0, &atom1);
+    if(dummy != 2) {
+      fprintf(stderr, "ERROR: Incorrect Number of bonds in PSF file ");
+      return READERROR;
+    } else if (feof(psf) || ferror(psf)) {
+      fprintf(stderr, "ERROR: Could not find all bonds in PSF file ");
+      return READERROR;
     }
-    //read in bonds
-    while (atom0 >= molBegin && atom0 < molEnd) {
-      currentMol.bonds.push_back(Bond(atom0 - molBegin, atom1 - molBegin));
-      dummy = fscanf(psf, "%u %u", &atom0, &atom1);
-      if(dummy != 2)
-        break;
+
+    //loop to find the molecule kind with this bond 
+    for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+      MolKind& currentMol = kindMap[firstAtom[i].second];
+      //index of first atom in molecule
+      unsigned int molBegin = firstAtom[i].first;
+      //index AFTER last atom in molecule
+      unsigned int molEnd = molBegin + currentMol.atoms.size();
+      //assign the bond
+      if (atom0 >= molBegin && atom0 < molEnd) {
+	currentMol.bonds.push_back(Bond(atom0 - molBegin, atom1 - molBegin));
+	//once we found the molecule kind, break from the loop
+	break;
+      }
     }
   }
   return 0;
@@ -718,34 +718,35 @@ int ReadPSFBonds(FILE* psf, MolMap& kindMap,
 //pre: stream is before !NTHETA   post: stream is in angle section just after
 //the first appearance of the last molecule
 int ReadPSFAngles(FILE* psf, MolMap& kindMap,
-                  std::vector<std::pair<unsigned int, std::string> >& firstAtom)
+                  std::vector<std::pair<unsigned int, std::string> >& firstAtom,
+		  const uint nangles)
 {
   unsigned int atom0, atom1, atom2;
-  int dummy = fscanf(psf, "%u %u %u", &atom0, &atom1, &atom2);
-  UNUSED(dummy);
-  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
-    MolKind& currentMol = kindMap[firstAtom[i].second];
-    //continue if atom has no angles
-    if (currentMol.atoms.size() < 3)
-      continue;
-    //index of first atom in moleule
-    unsigned int molBegin = firstAtom[i].first;
-    //index AFTER last atom in molecule
-    unsigned int molEnd = molBegin + currentMol.atoms.size();
-    while (atom0 < molBegin || atom0 >= molEnd) {
-      dummy = fscanf(psf, "%u %u %u", &atom0, &atom1, &atom2);
-      if (feof(psf) || ferror(psf)) {
-        fprintf(stderr, "ERROR: Could not find all angles in PSF file ");
-        return READERROR;
-      }
+  int dummy;
+  for (uint n = 0; n < nangles; n++) { 
+    dummy = fscanf(psf, "%u %u %u", &atom0, &atom1, &atom2);
+    if(dummy != 3) {
+      fprintf(stderr, "ERROR: Incorrect Number of angles in PSF file ");
+      return READERROR;
+    } else if (feof(psf) || ferror(psf)) {
+      fprintf(stderr, "ERROR: Could not find all angles in PSF file ");
+      return READERROR;
     }
-    //read in angles
-    while (atom0 >= molBegin && atom0 < molEnd) {
-      currentMol.angles.push_back(Angle(atom0 - molBegin, atom1 - molBegin,
-                                        atom2 - molBegin));
-      dummy = fscanf(psf, "%u %u %u", &atom0, &atom1, &atom2);
-      if(dummy != 3)
-        break;
+
+    //loop to find the molecule kind with this angles 
+    for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+      MolKind& currentMol = kindMap[firstAtom[i].second];
+      //index of first atom in moleule
+      unsigned int molBegin = firstAtom[i].first;
+      //index AFTER last atom in molecule
+      unsigned int molEnd = molBegin + currentMol.atoms.size();
+      //assign the angle
+      if (atom0 >= molBegin && atom0 < molEnd) {
+	currentMol.angles.push_back(Angle(atom0 - molBegin, atom1 - molBegin,
+					  atom2 - molBegin));
+        //once we found the molecule kind, break from the loop
+	break;
+      }
     }
   }
   return 0;
@@ -772,60 +773,44 @@ bool ContainsDihedral(const std::vector<uint>& vec, const int dih[])
 //the first appearance of the last molecule
 //
 int ReadPSFDihedrals(FILE* psf, MolMap& kindMap,
-                     std::vector<std::pair<unsigned int, std::string> >& firstAtom)
+                     std::vector<std::pair<unsigned int, std::string> >& firstAtom, const uint ndihedrals)
 {
   Dihedral dih(0, 0, 0, 0);
+  int dummy;
+  for (uint n = 0; n < ndihedrals; n++) {
+    dummy = fscanf(psf, "%u %u %u %u", &dih.a0, &dih.a1, &dih.a2, &dih.a3);
+    if(dummy != 4) {
+      fprintf(stderr, "ERROR: Incorrect Number of dihedrals in PSF file ");
+      return READERROR;
+    } else if (feof(psf) || ferror(psf)) {
+      fprintf(stderr, "ERROR: Could not find all dihedrals in PSF file ");
+      return READERROR;
+    }
 
-  int dummy = fscanf(psf, "%u %u %u %u", &dih.a0, &dih.a1, &dih.a2, &dih.a3);
-  UNUSED(dummy);
-  //for all atoms
-  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
-    MolKind& currentMol = kindMap[firstAtom[i].second];
-    //continue if molecule has no dihedrals
-    if (currentMol.atoms.size() < 4)
-      continue;
-    //index of first atom in moleule
-    unsigned int molBegin = firstAtom[i].first;
-    //index AFTER last atom in molecule
-    unsigned int molEnd = molBegin + currentMol.atoms.size();
-    //continue if molecule has more that 3 atoms but has no dihedrals
-    if(i == 0) {
-      // if it is the first molecule and index of dihedral is greater than
-      // molBegin, it means it does not have any dihedral. It works when
-      // we have only two molecule kinds.
-      if(dih.a0 > molBegin && dih.a0 > molEnd) {
-        continue;
-      }
-    }
-    //scan to to first appearance of molecule
-    while (dih.a0 < molBegin || dih.a0 >= molEnd) {
-      dummy = fscanf(psf, "%u %u %u %u", &dih.a0, &dih.a1, &dih.a2, &dih.a3);
-      if (feof(psf) || ferror(psf)) {
-        fprintf(stderr, "ERROR: Could not find all dihedrals in PSF file ");
-        return READERROR;
-      }
-      //for case that molecule has more thatn 3 atoms and represend as
-      //second molecule but it has no dihedral. It works when
-      // we have only two molecule kinds and no improper
-      if (dih.a0 == 0)
+    //loop to find the molecule kind with this dihedral 
+    for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+      MolKind& currentMol = kindMap[firstAtom[i].second];
+      //index of first atom in moleule
+      unsigned int molBegin = firstAtom[i].first;
+      //index AFTER last atom in molecule
+      unsigned int molEnd = molBegin + currentMol.atoms.size();
+      //assign dihedral
+      if (dih.a0 >= molBegin && dih.a0 < molEnd) {
+	dih.a0 -= molBegin;
+	dih.a1 -= molBegin;
+	dih.a2 -= molBegin;
+	dih.a3 -= molBegin;
+	//some xplor PSF files have duplicate dihedrals, we need to ignore these
+	if (std::find(currentMol.dihedrals.begin(), currentMol.dihedrals.end(),
+		      dih) == currentMol.dihedrals.end()) {
+	  currentMol.dihedrals.push_back(dih);
+	}
+	//once we found the molecule kind, break from the loop
         break;
-    }
-    //read in dihedrals
-    while (dih.a0 >= molBegin && dih.a0 < molEnd) {
-      dih.a0 -= molBegin;
-      dih.a1 -= molBegin;
-      dih.a2 -= molBegin;
-      dih.a3 -= molBegin;
-      //some xplor PSF files have duplicate dihedrals, we need to ignore these
-      if (std::find(currentMol.dihedrals.begin(), currentMol.dihedrals.end(),
-                    dih) == currentMol.dihedrals.end()) {
-        currentMol.dihedrals.push_back(dih);
       }
-      dummy = fscanf(psf, "%u %u %u %u", &dih.a0, &dih.a1, &dih.a2, &dih.a3);
-      if(dummy != 4)
-        break;
     }
   }
   return 0;
 }
+
 }
