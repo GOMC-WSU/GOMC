@@ -685,7 +685,8 @@ int ReadPSFBonds(FILE* psf, MolMap& kindMap,
 		 const uint nbonds)
 {
   unsigned int atom0, atom1;
-  int dummy; 
+  int dummy;
+  std::vector<bool> defined(firstAtom.size(), false);
   for (uint n = 0; n < nbonds; n++) {
     dummy = fscanf(psf, "%u %u", &atom0, &atom1);
     if(dummy != 2) {
@@ -707,8 +708,17 @@ int ReadPSFBonds(FILE* psf, MolMap& kindMap,
       if (atom0 >= molBegin && atom0 < molEnd) {
 	currentMol.bonds.push_back(Bond(atom0 - molBegin, atom1 - molBegin));
 	//once we found the molecule kind, break from the loop
+	defined[i] = true;
 	break;
       }
+    }
+  }
+  //Check if we defined all bonds
+  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+    MolKind& currentMol = kindMap[firstAtom[i].second];
+    if(currentMol.atoms.size() > 1 && !defined[i]) {
+      std::cout << "Warning: Bond is missing for " << firstAtom[i].second
+		<< " !\n";
     }
   }
   return 0;
@@ -723,6 +733,7 @@ int ReadPSFAngles(FILE* psf, MolMap& kindMap,
 {
   unsigned int atom0, atom1, atom2;
   int dummy;
+  std::vector<bool> defined(firstAtom.size(), false);
   for (uint n = 0; n < nangles; n++) { 
     dummy = fscanf(psf, "%u %u %u", &atom0, &atom1, &atom2);
     if(dummy != 3) {
@@ -745,8 +756,17 @@ int ReadPSFAngles(FILE* psf, MolMap& kindMap,
 	currentMol.angles.push_back(Angle(atom0 - molBegin, atom1 - molBegin,
 					  atom2 - molBegin));
         //once we found the molecule kind, break from the loop
+	defined[i] = true;
 	break;
       }
+    }
+  }
+  //Check if we defined all angles
+  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+    MolKind& currentMol = kindMap[firstAtom[i].second];
+    if(currentMol.atoms.size() > 2 && !defined[i]) {
+      std::cout << "Warning: Angle is missing for " << firstAtom[i].second
+		<< " !\n";
     }
   }
   return 0;
@@ -777,6 +797,7 @@ int ReadPSFDihedrals(FILE* psf, MolMap& kindMap,
 {
   Dihedral dih(0, 0, 0, 0);
   int dummy;
+  std::vector<bool> defined(firstAtom.size(), false);
   for (uint n = 0; n < ndihedrals; n++) {
     dummy = fscanf(psf, "%u %u %u %u", &dih.a0, &dih.a1, &dih.a2, &dih.a3);
     if(dummy != 4) {
@@ -806,8 +827,17 @@ int ReadPSFDihedrals(FILE* psf, MolMap& kindMap,
 	  currentMol.dihedrals.push_back(dih);
 	}
 	//once we found the molecule kind, break from the loop
+	defined[i] = true;
         break;
       }
+    }
+  }
+  //Check if we defined all dihedrals
+  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+    MolKind& currentMol = kindMap[firstAtom[i].second];
+    if(currentMol.atoms.size() > 3 && !defined[i]) {
+      std::cout << "Warning: Dihedral is missing for " << firstAtom[i].second
+		<< " !\n";
     }
   }
   return 0;
