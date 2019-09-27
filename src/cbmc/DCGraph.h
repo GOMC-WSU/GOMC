@@ -74,7 +74,7 @@ private:
   DCData data;
   bool hasCrankShaft;
   std::vector<Node> nodes;
-  std::vector<Edge> fringe;
+  std::vector<Edge> fringe, currFringe;
   std::vector<bool> visited;
   std::vector<DCComponent*> shaftNodes;
   XYZArray coords;
