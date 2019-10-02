@@ -42,6 +42,7 @@ class COM;
 class XYZArray;
 class BoxDimensions;
 class Lambda;
+class VerletList;
 
 namespace cbmc
 {
@@ -206,6 +207,16 @@ public:
                     const std::vector<double> &lambda_Coul,
                     const uint iState, const uint molIndex,
                     const uint box) const;
+
+  //! For particles in main coordinates array determines if they belong
+  //! to same molecule, using internal arrays.
+  bool SameMolecule(const uint p1, const uint p2) const
+  {
+    //We dont calculate the energy between two atom of same molecule or
+    uint pair1 = particleMol[p1];
+    uint pair2 = particleMol[p2];
+    return (pair1 == pair2);
+  }
 private:
 
   //! Calculates full TC energy for one box in current system
@@ -286,16 +297,6 @@ private:
                  const std::vector<double> &lambda_VDW,
                  const uint iState, const uint molIndex,
                  const uint box) const;
-
-  //! For particles in main coordinates array determines if they belong
-  //! to same molecule, using internal arrays.
-  bool SameMolecule(const uint p1, const uint p2) const
-  {
-    //We dont calculate the energy between two atom of same molecule or
-    uint pair1 = particleMol[p1];
-    uint pair2 = particleMol[p2];
-    return (pair1 == pair2);
-  }
 
   double GetLambdaVDW(uint molA, uint molB, uint box) const;
   double GetLambdaCoulomb(uint molA, uint molB, uint box) const;

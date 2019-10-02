@@ -259,10 +259,6 @@ inline uint MultiParticle::Transform()
 
 inline void MultiParticle::CalcEn()
 {
-  // Calculate the new force and energy and we will compare that to the
-  // reference values in Accept() function
-  cellList.GridAll(boxDimRef, newMolsPos, molLookup);
-
   //back up cached fourier term
   calcEwald->backupMolCache();
   //setup reciprocate vectors for new positions
@@ -374,7 +370,6 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
     calcEwald->UpdateRecip(bPick);
   }
   else {
-    cellList.GridAll(boxDimRef, coordCurrRef, molLookup);
     calcEwald->exgMolCache();
   }
 

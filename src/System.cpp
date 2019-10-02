@@ -33,7 +33,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CrankShaft.h"
 #include "CFCMC.h"
 
-// Make sure verletList init comes after cellList
 System::System(StaticVals& statics) :
   statV(statics),
 #ifdef VARIABLE_VOLUME
@@ -50,7 +49,7 @@ System::System(StaticVals& statics) :
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
   moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
-  verletList(cellList, coordinates), calcEnergy(statics, *this),
+  calcEnergy(statics, *this), verletList(cellList, coordinates, calcEnergy),
   checkpointSet(*this, statics)
 {
   calcEwald = NULL;
@@ -141,6 +140,7 @@ void System::Init(Setup const& set, ulong & startStep)
   //Initial the lambda before calling SystemTotal
   InitLambda();
   calcEnergy.Init(*this);
+  verletList.UpdateNeighborList();
   calcEwald->Init();
   potential = calcEnergy.SystemTotal();
   InitMoves(set);
@@ -234,7 +234,10 @@ void System::RecalculateTrajectory(Setup &set, uint frameNum)
 void System::ChooseAndRunMove(const uint step)
 {
   if(step % 20 == 0)
+  {
+    cellList.GridAll(boxDimRef, coordinates, molLookupRef);
     verletList.UpdateNeighborList();
+  }
   double draw = 0;
   uint majKind = 0;
   PickMove(majKind, draw);
