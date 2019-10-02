@@ -14,7 +14,7 @@ public:
 
   void Init(const pdb_setup::Atoms& atomData);
   void UpdateNeighborList();
-  std::vector<uint> GetNeighborList(uint box) const;
+  std::vector<uint>& GetNeighborList(uint box);
 
 private:
   const CellList& cellList;

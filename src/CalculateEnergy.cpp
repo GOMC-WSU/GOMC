@@ -238,7 +238,7 @@ reduction(+:tempREn, tempLJEn)
 #endif
   for(iIndex=0; iIndex<coords.Count(); iIndex++)
   {
-    std::vector<uint> neighbors = verletList.GetNeighborList(iIndex);
+    std::vector<uint>& neighbors = verletList.GetNeighborList(iIndex);
     for(j=0; j<neighbors.size(); j++)
     {
       jIndex = neighbors[j];
@@ -381,7 +381,7 @@ aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 #endif
   for(iIndex=0; iIndex<coords.Count(); iIndex++)
   {
-    std::vector<uint> neighbors = verletList.GetNeighborList(iIndex);
+    std::vector<uint>& neighbors = verletList.GetNeighborList(iIndex);
     for(j=0; j<neighbors.size(); j++)
     {
       jIndex = neighbors[j];

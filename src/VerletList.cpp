@@ -47,7 +47,7 @@ void VerletList::UpdateNeighborList()
   }
 }
 
-std::vector<uint> VerletList::GetNeighborList(uint atom) const
+std::vector<uint> & VerletList::GetNeighborList(uint atom)
 {
   return neighbors[atom];
 }

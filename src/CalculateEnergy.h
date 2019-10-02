@@ -319,7 +319,7 @@ private:
   std::vector<int> particleMol;
   std::vector<double> particleCharge;
   const CellList& cellList;
-  const VerletList& verletList;
+  VerletList& verletList;
 };
 
 #endif /*ENERGY_H*/
