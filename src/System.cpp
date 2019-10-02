@@ -33,6 +33,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CrankShaft.h"
 #include "CFCMC.h"
 
+// Make sure verletList init comes after cellList
 System::System(StaticVals& statics) :
   statV(statics),
 #ifdef VARIABLE_VOLUME
@@ -49,7 +50,8 @@ System::System(StaticVals& statics) :
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
   moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
-  calcEnergy(statics, *this), checkpointSet(*this, statics)
+  verletList(cellList, coordinates), calcEnergy(statics, *this),
+  checkpointSet(*this, statics)
 {
   calcEwald = NULL;
 }
@@ -116,6 +118,7 @@ void System::Init(Setup const& set, ulong & startStep)
   molForceRecRef.Init(com.Count());
   cellList.SetCutoff();
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
+  verletList.Init(set.pdb.atoms);
 
   //check if we have to use cached version of ewlad or not.
   bool ewald = set.config.sys.elect.ewald;
@@ -230,6 +233,8 @@ void System::RecalculateTrajectory(Setup &set, uint frameNum)
 
 void System::ChooseAndRunMove(const uint step)
 {
+  if(step % 20 == 0)
+    verletList.UpdateNeighborList();
   double draw = 0;
   uint majKind = 0;
   PickMove(majKind, draw);

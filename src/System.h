@@ -22,6 +22,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeLookup.h"
 #include "MoveSettings.h"
 #include "CellList.h"
+#include "VerletList.h"
 #include "Clock.h"
 #include "CheckpointSetup.h"
 #include "../lib/Lambda.h"
@@ -106,6 +107,7 @@ public:
   CalculateEnergy calcEnergy;
   Ewald *calcEwald;
   CellList cellList;
+  VerletList verletList;
   PRNG prng;
 
   CheckpointSetup checkpointSet;

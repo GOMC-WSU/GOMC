@@ -40,6 +40,7 @@ set(sources
    src/Simulation.cpp
    src/StaticVals.cpp
    src/System.cpp
+   src/VerletList.cpp
    src/cbmc/DCCrankShaftAng.cpp
    src/cbmc/DCCrankShaftDih.cpp
    src/cbmc/DCCyclic.cpp
@@ -126,6 +127,7 @@ set(headers
    src/SubdividedArray.h
    src/System.h
    src/TransformMatrix.h
+   src/VerletList.h
    src/Writer.h
    src/XYZArray.h
    src/cbmc/DCComponent.h

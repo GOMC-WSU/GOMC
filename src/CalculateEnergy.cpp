@@ -57,7 +57,7 @@ CalculateEnergy::CalculateEnergy(StaticVals & stat, System & sys) :
 #else
   currentAxes(*stat.GetBoxDim())
 #endif
-  , cellList(sys.cellList)
+  , cellList(sys.cellList), verletList(sys.verletList)
 {
 }
 
@@ -173,19 +173,9 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
   double tempREn = 0.0, tempLJEn = 0.0;
   double distSq, qi_qj_fact, lambdaVDW, lambdaCoulomb;
-  int i;
+  int i, j, iIndex=-1, jIndex, jNumbers;
   XYZ virComponents, forceLJ, forceReal;
-  std::vector<uint> pair1, pair2;
-  CellList::Pairs pair = cellList.EnumeratePairs(box);
-
-  //store atom pair index
-  while (!pair.Done()) {
-    if(!SameMolecule(pair.First(), pair.Second())) {
-      pair1.push_back(pair.First());
-      pair2.push_back(pair.Second());
-    }
-    pair.Next();
-  }
+  std::vector<uint> neighbors = verletList.GetNeighborList(box);
 
 #ifdef GOMC_CUDA
   // make a pointer to atom force and mol force for GPU
@@ -242,7 +232,36 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   }
 
 #else
-#ifdef _OPENMP
+  i=0;
+  while(i<neighbors.size())
+  {
+    iIndex++;
+    jNumbers = neighbors[i];
+    j=0;
+    while(i<neighbors.size() && j < jNumbers)
+    {
+      i++;
+      j++;
+      jIndex = neighbors[i];
+      if(boxAxes.InRcut(distSq, virComponents, coords, iIndex, jIndex, box)){
+        lambdaVDW = GetLambdaVDW(particleMol[iIndex],particleMol[jIndex],box);
+        
+        if (electrostatic) {
+          lambdaCoulomb = GetLambdaCoulomb(particleMol[iIndex],
+                                          particleMol[jIndex], box);
+          qi_qj_fact = particleCharge[iIndex] * particleCharge[jIndex] *
+            num::qqFact;
+          tempREn += forcefield.particles->CalcCoulomb(distSq,
+                     particleKind[iIndex],
+                     particleKind[jIndex], qi_qj_fact,
+                     lambdaCoulomb, box);
+        }
+        tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[iIndex],
+                    particleKind[jIndex], lambdaVDW);
+      }
+    }
+  }
+/*#ifdef _OPENMP
 #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, \
 virComponents, forceReal, forceLJ, lambdaVDW, lambdaCoulomb) \
 reduction(+:tempREn, tempLJEn)
@@ -263,7 +282,7 @@ reduction(+:tempREn, tempLJEn)
       tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
                   particleKind[pair2[i]], lambdaVDW);
     }
-  }
+  }*/
 #endif
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;

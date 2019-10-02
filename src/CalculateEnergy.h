@@ -13,6 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Ewald.h"
 #include "NoEwald.h"
 #include "CellList.h"
+#include "VerletList.h"
 
 #include <vector>
 
@@ -317,6 +318,7 @@ private:
   std::vector<int> particleMol;
   std::vector<double> particleCharge;
   const CellList& cellList;
+  const VerletList& verletList;
 };
 
 #endif /*ENERGY_H*/

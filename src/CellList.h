@@ -14,6 +14,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <cassert>
 #include <iostream>
 
+#define SKIN_RATIO 1.25
+
 class Molecules;
 class XYZArray;
 class BoxDimensions;
