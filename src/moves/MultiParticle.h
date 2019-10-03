@@ -239,7 +239,7 @@ inline uint MultiParticle::Transform()
   // Based on the reference force decided whether to displace or rotate each
   // individual particle.
   uint state = mv::fail_state::NO_FAIL;
-  uint m;
+  int m;
 
   // move particles according to force and torque and store them in the new pos
 #ifdef _OPENMP
@@ -313,7 +313,7 @@ inline long double MultiParticle::GetCoeff()
   XYZ lbt_old, lbt_new; // lambda * BETA * torque
   long double w_ratio = 1.0;
   double lBeta = lambda * BETA;
-  uint m, molNumber;
+  int m, molNumber;
   double r_max = moveSetRef.GetRMAX(bPick);
   double t_max = moveSetRef.GetTMAX(bPick);
 #ifdef _OPENMP

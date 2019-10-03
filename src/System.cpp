@@ -65,6 +65,7 @@ System::~System()
     delete calcEwald;
   delete moves[mv::DISPLACE];
   delete moves[mv::ROTATE];
+  delete moves[mv::MULTIPARTICLE];
   delete moves[mv::INTRA_SWAP];
   delete moves[mv::REGROWTH];
   delete moves[mv::INTRA_MEMC];

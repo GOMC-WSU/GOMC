@@ -173,7 +173,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
   double tempREn = 0.0, tempLJEn = 0.0;
   double distSq, qi_qj_fact, lambdaVDW, lambdaCoulomb;
-  int i, j, iIndex, jIndex;
+  int i, j, iIndex, jIndex, iLength, jLength;
   XYZ virComponents, forceLJ, forceReal;
 
 #ifdef GOMC_CUDA
@@ -231,15 +231,17 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   }
 
 #else
+  iLength = coords.Count();
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(iIndex, j, jIndex, \
 distSq, virComponents, forceReal, forceLJ, lambdaVDW, lambdaCoulomb) \
 reduction(+:tempREn, tempLJEn)
 #endif
-  for(iIndex=0; iIndex<coords.Count(); iIndex++)
+  for(iIndex=0; iIndex<iLength; iIndex++)
   {
     std::vector<uint>& neighbors = verletList.GetNeighborList(iIndex);
-    for(j=0; j<neighbors.size(); j++)
+    jLength = neighbors.size();
+    for(j=0; j<jLength; j++)
     {
       jIndex = neighbors[j];
       if(boxAxes.InRcut(distSq, virComponents, coords, iIndex, jIndex, box)){
@@ -260,28 +262,6 @@ reduction(+:tempREn, tempLJEn)
       }
     }
   }
-/*#ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, \
-virComponents, forceReal, forceLJ, lambdaVDW, lambdaCoulomb) \
-reduction(+:tempREn, tempLJEn)
-#endif
-  for (i = 0; i < pair1.size(); i++) {
-    if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)){
-      lambdaVDW = GetLambdaVDW(particleMol[pair1[i]],particleMol[pair2[i]],box);
-      
-      if (electrostatic) {
-        lambdaCoulomb = GetLambdaCoulomb(particleMol[pair1[i]],
-                                        particleMol[pair2[i]], box);
-        qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] *
-          num::qqFact;
-        tempREn += forcefield.particles->CalcCoulomb(distSq, particleKind[pair1[i]],
-                   particleKind[pair2[i]], qi_qj_fact,
-                   lambdaCoulomb, box);
-      }
-      tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
-                  particleKind[pair2[i]], lambdaVDW);
-    }
-  }*/
 #endif
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
