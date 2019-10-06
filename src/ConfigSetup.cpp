@@ -339,7 +339,7 @@ void ConfigSetup::Init(const char *fileName)
         exit(EXIT_FAILURE);
       }
       if(line.size() >= 3) {
-        printf("%-41s", "Info: Atom Names in BackBone of Small Molecule Kind");
+        printf("%-41s", "Info: Atom Names in BackBone of Small Molecule Kind ");
         for(uint i = 1; i < line.size() - 1; i += 2) {
           if(i != 1) {
             printf(" , ");
@@ -362,7 +362,7 @@ void ConfigSetup::Init(const char *fileName)
         exit(EXIT_FAILURE);
       }
       if(line.size() >= 3) {
-        printf("%-41s", "Info: Atom Names in BackBone of Large Molecule Kind");
+        printf("%-41s", "Info: Atom Names in BackBone of Large Molecule Kind ");
         for(uint i = 1; i < line.size() - 1; i += 2) {
           if(i != 1) {
             printf(" , ");
