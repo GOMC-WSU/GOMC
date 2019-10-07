@@ -19,19 +19,7 @@ void VerletList::UpdateNeighborList()
   assert(box.size() != 0);
   int i, b;
 
-  // Clear neighbors list first
-  for(i=0; i<lengthOfCoordinates; i++)
-    neighbors[i].clear();
-
   // For each atom find the neigbors and then add them to the neighbors list
-  // If atom 0 has 4 neighbors then the following will be pushed to list:
-  // 4 1 2 9 14
-  // First number '4' is the number of neighbors and the following 4 numbers
-  // are the indeces of those neighbors
-  // Atom 1 follows right after atom 0
-  // e.g. 4 1 2 9 14 4 2 3 4 0  ...
-  //      ========== =========
-  //        Atom 0     Atom 1   ...
   for(i=0; i<lengthOfCoordinates; i++) {
     neighbors[i].clear();
     b = box[i];

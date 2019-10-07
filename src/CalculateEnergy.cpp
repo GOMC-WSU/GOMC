@@ -296,6 +296,8 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   XYZ virComponents, forceLJ, forceReal;
   double axisX, axisY, axisZ, halfX, halfY, halfZ;
   double diffX, diffY, diffZ;
+  double lambda, val;
+  double en;
   axisX = boxAxes.GetAxis(box).x;
   axisY = boxAxes.GetAxis(box).y;
   axisZ = boxAxes.GetAxis(box).z;
@@ -400,29 +402,241 @@ aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
       if(distSq > boxAxes.rCutSq[box])
         continue;
 
-      lambdaVDW = GetLambdaVDW(particleMol[iIndex],particleMol[jIndex],box);
+      lambda = 1.0;
+      val = 1.0;
+      if(lambdaRef.isFraction[box]) {
+        if(lambdaRef.kindIndex[box] == mols.kIndex[particleMol[iIndex]]) {
+            val = lambdaRef.lambdaVDW[box];
+        }
+      }
+      lambda *= val;
+      val = 1.0;
+      if(lambdaRef.isFraction[box]) {
+        if(lambdaRef.kindIndex[box] == mols.kIndex[particleMol[jIndex]]) {
+            val = lambdaRef.lambdaVDW[box];
+        }
+      }
+      lambda *= val;
 
       if (electrostatic) {
-        lambdaCoulomb = GetLambdaCoulomb(particleMol[iIndex],
-                                        particleMol[jIndex], box);
+        lambdaCoulomb = 1.0;
+        val = 1.0;
+        if(lambdaRef.isFraction[box]) {
+            if(lambdaRef.kindIndex[box] == mols.kIndex[particleMol[iIndex]]) {
+                val = lambdaRef.lambdaCoulomb[box];
+            }
+        }
+        lambdaCoulomb *= val;
+        val = 1.0;
+        if(lambdaRef.isFraction[box]) {
+            if(lambdaRef.kindIndex[box] == mols.kIndex[particleMol[jIndex]]) {
+                val = lambdaRef.lambdaCoulomb[box];
+            }
+        }
+        lambdaCoulomb *= val;
+
         qi_qj_fact = particleCharge[iIndex] * particleCharge[jIndex] *
           num::qqFact;
-        tempREn += forcefield.particles->CalcCoulomb(distSq, particleKind[iIndex],
-                  particleKind[jIndex], qi_qj_fact, lambdaCoulomb, box);
+        if(forcefield.rCutCoulombSq[box] >= distSq) {
+          if(lambdaCoulomb >= 0.999999) {
+            double calcCoulombNoLambda;
+            if(forcefield.ewald) {
+              double dist = sqrt(distSq);
+              double val = forcefield.alpha[box] * dist;
+              calcCoulombNoLambda = qi_qj_fact * erfc(val) / dist;
+            } else {
+              double dist = sqrt(distSq);
+              calcCoulombNoLambda = qi_qj_fact / dist;
+            }
+            tempREn += calcCoulombNoLambda;
+          }
+          else {
+            en = 0.0;
+            if(forcefield.sc_coul) {
+              double calcCoulombNoLambda;
+              int kind1 = particleKind[iIndex];
+              int kind2 = particleKind[jIndex];
+              int index = kind1 + kind2 * forcefield.particles->count;
+              double sigma6 = forcefield.particles->sigmaSq[index] *
+                              forcefield.particles->sigmaSq[index] * 
+                              forcefield.particles->sigmaSq[index];
+              sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
+              double dist6 = distSq * distSq * distSq;
+              double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
+              double softDist6 = lambdaCoef * sigma6 + dist6;
+              double softRsq = pow(softDist6, 1.0/3.0);
+              if(forcefield.ewald) {
+                double dist = sqrt(softRsq);
+                double val = forcefield.alpha[box] * dist;
+                calcCoulombNoLambda = qi_qj_fact * erfc(val) / dist;
+              } else {
+                double dist = sqrt(softRsq);
+                calcCoulombNoLambda = qi_qj_fact / dist;
+              }
+              en = lambda * calcCoulombNoLambda;
+            } else {
+              double calcCoulombNoLambda;
+              if(forcefield.ewald) {
+                double dist = sqrt(distSq);
+                double val = forcefield.alpha[box] * dist;
+                calcCoulombNoLambda = qi_qj_fact * erfc(val) / dist;
+              } else {
+                double dist = sqrt(distSq);
+                calcCoulombNoLambda = qi_qj_fact / dist;
+              }
+              en = lambda * calcCoulombNoLambda;
+            }
+            tempREn += en;
+          }
+        }
       }
-      tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[iIndex],
-                  particleKind[jIndex], lambdaVDW);
+      if(forcefield.rCutSq >= distSq) {
+        int kind1 = particleKind[iIndex];
+        int kind2 = particleKind[jIndex];
+        int index = kind1 + kind2 * forcefield.particles->count;
+
+        if(lambda >= 0.999999) {
+          double calcEnNoLambda;
+          double rRat2 = forcefield.particles->sigmaSq[index] / distSq;
+          double rRat4 = rRat2 * rRat2;
+          double attract = rRat4 * rRat2;
+          double n_ij = forcefield.particles->n[index];
+          double repulse = pow(rRat2, (n_ij * 0.5));
+
+          calcEnNoLambda = (forcefield.particles->epsilon_cn[index] * (repulse - attract));
+          tempLJEn += calcEnNoLambda;
+        } else {
+          double sigma6 = forcefield.particles->sigmaSq[index] * 
+                          forcefield.particles->sigmaSq[index] *
+                          forcefield.particles->sigmaSq[index];
+          sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
+          double dist6 = distSq * distSq * distSq;
+          double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
+          double softDist6 = lambdaCoef * sigma6 + dist6;
+          double softRsq = pow(softDist6, 1.0/3.0);
+
+          double calcEnNoLambda;
+          double rRat2 = forcefield.particles->sigmaSq[index] / softRsq;
+          double rRat4 = rRat2 * rRat2;
+          double attract = rRat4 * rRat2;
+          double n_ij = forcefield.particles->n[index];
+          double repulse = pow(rRat2, (n_ij * 0.5));
+
+          calcEnNoLambda = (forcefield.particles->epsilon_cn[index] * (repulse - attract));
+
+          double en = lambda * calcEnNoLambda;
+          tempLJEn += en;
+        }
+      }
 
       // Calculating the force
       if(multiParticleEnabled) {
         if(electrostatic) {
-          forceReal = virComponents *
-          forcefield.particles->CalcCoulombVir(distSq, particleKind[iIndex],
-          particleKind[jIndex], qi_qj_fact, lambdaCoulomb, box);
+          // Calculating CalcCoulombVir
+          double calcCoulombVir, calcCoulombVirNoLambda;
+          if(lambda >= 0.999999) {
+            if(forcefield.ewald) {
+              double dist = sqrt(distSq);
+              double constValue = 2.0 * forcefield.alpha[box] / sqrt(M_PI);
+              double expConstValue = exp(-1.0 * forcefield.alphaSq[box] * distSq);
+              double temp = 1.0 - erf(forcefield.alpha[box] * dist);
+              calcCoulombVir = qi_qj_fact * (temp / dist + constValue * expConstValue)/ distSq;
+            } else {
+              double dist = sqrt(distSq);
+              double result = qi_qj_fact / (distSq * dist);
+              calcCoulombVir = result;
+            }
+          } else {
+            double vir = 0.0;
+            if(forcefield.sc_coul) {
+              int kind1 = particleKind[iIndex];
+              int kind2 = particleKind[jIndex];
+              int index = kind1 + kind2 * forcefield.particles->count;
+              double sigma6 = forcefield.particles->sigmaSq[index] *
+                              forcefield.particles->sigmaSq[index] *
+                              forcefield.particles->sigmaSq[index];
+              sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
+              double dist6 = distSq * distSq * distSq;
+              double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
+              double softDist6 = lambdaCoef * sigma6 + dist6;
+              double softRsq = pow(softDist6, 1.0/3.0);
+              double correction = distSq / softRsq;
+              //We need to fix the return value from calcVir
+
+              if(forcefield.ewald) {
+                double dist = sqrt(softRsq);
+                double constValue = 2.0 * forcefield.alpha[box] / sqrt(M_PI);
+                double expConstValue = exp(-1.0 * forcefield.alphaSq[box] * softRsq);
+                double temp = 1.0 - erf(forcefield.alpha[box] * dist);
+                calcCoulombVirNoLambda = qi_qj_fact * (temp / dist + constValue * expConstValue)/ softRsq;
+              } else {
+                double dist = sqrt(softRsq);
+                double result = qi_qj_fact / (softRsq * dist);
+                calcCoulombVirNoLambda = result;
+              }
+
+              calcCoulombVir = lambda * correction * correction * calcCoulombVirNoLambda;
+            } else {
+              if(forcefield.ewald) {
+                double dist = sqrt(distSq);
+                double constValue = 2.0 * forcefield.alpha[box] / sqrt(M_PI);
+                double expConstValue = exp(-1.0 * forcefield.alphaSq[box] * distSq);
+                double temp = 1.0 - erf(forcefield.alpha[box] * dist);
+                calcCoulombVirNoLambda = qi_qj_fact * (temp / dist + constValue * expConstValue)/ distSq;
+              } else {
+                double dist = sqrt(distSq);
+                double result = qi_qj_fact / (distSq * dist);
+                calcCoulombVirNoLambda = result;
+              }
+              calcCoulombVir = lambda * calcCoulombVirNoLambda;
+            }
+          }
+          forceReal = virComponents * calcCoulombVir;
         }
-        forceLJ = virComponents *
-          forcefield.particles->CalcVir(distSq, particleKind[iIndex],
-                particleKind[jIndex], lambdaVDW);
+        // CalcVir
+        double calcVir, calcVirNoLambda;
+        if(forcefield.rCutSq >= distSq) {
+          int kind1 = particleKind[iIndex];
+          int kind2 = particleKind[jIndex];
+          int index = kind1 + kind2 * forcefield.particles->count;
+          if(lambda >= 0.999999) {
+              double rNeg2 = 1.0 / distSq;
+              double rRat2 = rNeg2 * forcefield.particles->sigmaSq[index];
+              double rRat4 = rRat2 * rRat2;
+              double attract = rRat4 * rRat2;
+              double n_ij = forcefield.particles->n[index];
+              double repulse = pow(rRat2, (n_ij * 0.5));
+              //Virial is F.r = -dE/dr * 1/r
+              calcVir = forcefield.particles->epsilon_cn_6[index] *
+                        (forcefield.particles->nOver6[index] *
+                         repulse - attract) * rNeg2;
+          }
+          else {
+            double sigma6 = forcefield.particles->sigmaSq[index] *
+                            forcefield.particles->sigmaSq[index] *
+                            forcefield.particles->sigmaSq[index];
+            sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
+            double dist6 = distSq * distSq * distSq;
+            double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
+            double softDist6 = lambdaCoef * sigma6 + dist6;
+            double softRsq = pow(softDist6, 1.0/3.0);
+            double correction = distSq / softRsq;
+            //We need to fix the return value from calcVir
+            double rNeg2 = 1.0 / softRsq;
+            double rRat2 = rNeg2 * forcefield.particles->sigmaSq[index];
+            double rRat4 = rRat2 * rRat2;
+            double attract = rRat4 * rRat2;
+            double n_ij = forcefield.particles->n[index];
+            double repulse = pow(rRat2, (n_ij * 0.5));
+            //Virial is F.r = -dE/dr * 1/r
+            calcVirNoLambda = forcefield.particles->epsilon_cn_6[index] *
+                      (forcefield.particles->nOver6[index] *
+                        repulse - attract) * rNeg2;
+            calcVir = lambda * correction * correction * calcVirNoLambda;
+          }
+        }
+
+        forceLJ = virComponents * calcVir;
         aForcex[iIndex] += forceLJ.x + forceReal.x;
         aForcey[iIndex] += forceLJ.y + forceReal.y;
         aForcez[iIndex] += forceLJ.z + forceReal.z;

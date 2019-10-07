@@ -105,7 +105,7 @@ public:
   }
 #endif
 
-protected:
+//protected:
   virtual double CalcEn(const double distSq, const uint index) const;
   virtual double CalcVir(const double distSq, const uint index) const;
   virtual double CalcCoulomb(const double distSq, const double qi_qj_Fact, 

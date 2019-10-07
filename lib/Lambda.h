@@ -38,8 +38,6 @@ public:
 
   uint GetMolIndex(const uint box) const;
 
-
-protected:
   uint molIndex[BOX_TOTAL];
   uint kindIndex[BOX_TOTAL];
   double lambdaVDW[BOX_TOTAL], lambdaCoulomb[BOX_TOTAL];
