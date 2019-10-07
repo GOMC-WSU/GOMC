@@ -62,6 +62,7 @@ public:
   bool OneThree, OneFour, OneN;   //To include 1-3, 1-4 and more interaction
   bool electrostatic, ewald;      //To consider columb interaction
   bool vdwGeometricSigma;         //For sigma combining rule
+  bool energyTable;               //For energy table
   bool isMartini;
   bool exp6;
   bool freeEnergy, sc_coul;       // Free energy parameter

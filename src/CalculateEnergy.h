@@ -14,8 +14,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "NoEwald.h"
 #include "CellList.h"
 #include "VerletList.h"
+#include "CubicSpline.h"
 
 #include <vector>
+
+#define TABLE_STRIDE 12       // for energy table, 3 parameters, each require 4 variables
+#define TABLE_STEP 0.005
 
 //
 //    CalculateEnergy.h
@@ -300,6 +304,7 @@ private:
 
   double GetLambdaVDW(uint molA, uint molB, uint box) const;
   double GetLambdaCoulomb(uint molA, uint molB, uint box) const;
+  void InitializeTables();
 
 
   const Forcefield& forcefield;
@@ -320,6 +325,11 @@ private:
   std::vector<double> particleCharge;
   const CellList& cellList;
   VerletList& verletList;
+
+  bool energyTableEnabled;
+  CubicSpline **CSTable_CalcCoulomb;
+  CubicSpline **CSTable_CalcEnAttract;
+  CubicSpline **CSTable_CalcEnRepulse;
 };
 
 #endif /*ENERGY_H*/

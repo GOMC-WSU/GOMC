@@ -326,6 +326,41 @@ inline double FFParticle::CalcEn(const double distSq, const uint index) const
   return (epsilon_cn[index] * (repulse - attract));
 }
 
+inline double FFParticle::CalcEnAttract(const double distSq,
+                                           const uint kind1, const uint kind2) const
+{
+  if(forcefield.rCutSq < distSq)
+    return 0.0;
+
+  uint index = FlatIndex(kind1, kind2);
+  double rRat2 = sigmaSq[index] / distSq;
+  double rRat4 = rRat2 * rRat2;
+  double attract = rRat4 * rRat2;
+
+  return epsilon_cn[index] * -attract;
+}
+
+inline double FFParticle::CalcEnRepulse(const double distSq,
+                                 const uint kind1, const uint kind2) const
+{
+  if(forcefield.rCutSq < distSq)
+    return 0.0;
+
+  uint index = FlatIndex(kind1, kind2);
+  double rRat2 = sigmaSq[index] / distSq;
+#ifdef MIE_INT_ONLY
+  double rRat4 = rRat2 * rRat2;
+  double attract = rRat4 * rRat2;
+  uint n_ij = n[index];
+  double repulse = num::POW(rRat2, rRat4, attract, n_ij);
+#else
+  double n_ij = n[index];
+  double repulse = pow(sqrt(rRat2), n_ij);
+#endif
+
+  return epsilon_cn[index] * repulse;
+}
+
 inline double FFParticle::CalcVir(const double distSq, const uint kind1, 
                                   const uint kind2, const double lambda) const
 {
@@ -402,6 +437,44 @@ inline double FFParticle::CalcCoulomb(const double distSq,
   } else {
     double dist = sqrt(distSq);
     return qi_qj_Fact / dist;
+  }
+}
+
+double FFParticle::CalcCoulombNoFact(const double distSq, const uint b) const
+{
+  if (forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
+  if (forcefield.ewald) {
+    double dist = sqrt(distSq);
+    double val = forcefield.alpha[b] * dist;
+    return  erfc(val) / dist;
+  }
+  else {
+    double dist = sqrt(distSq);
+    return 1.0 / dist;
+  }
+}
+
+// derivative of CalcCoulomb without qqfact 
+// ewald: -erfc(a*x)/x^2-(2*a*e^(-a^2*x^2))/(sqrt(pi)*x)
+// noewa: -1/x^2
+double FFParticle::CalcCoulombNoFactDerivative(const double distSq, const uint b) const
+{
+  if (forcefield.rCutCoulombSq[b] < distSq)
+    return 0.0;
+
+  double a = forcefield.alpha[b];
+  if (forcefield.ewald) {
+    double x = sqrt(distSq);
+    double first = erfc(a * x) / distSq;
+    double second_top = 2 * a * exp(-1.0 * pow(a, 2.0) * pow(x, 2.0));
+    double second_bot = sqrt(M_PI) * x;
+    double second = second_top / second_bot;
+    return -(first+second);
+  }
+  else {
+    return -1.0 / distSq;
   }
 }
 

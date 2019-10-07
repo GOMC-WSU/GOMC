@@ -59,6 +59,7 @@ CalculateEnergy::CalculateEnergy(StaticVals & stat, System & sys) :
 #endif
   , cellList(sys.cellList), verletList(sys.verletList)
 {
+  energyTableEnabled = false;
 }
 
 
@@ -79,6 +80,14 @@ void CalculateEnergy::Init(System & sys)
       particleCharge.push_back(molKind.AtomCharge(a));
     }
   }
+
+  if(sys.statV.forcefield.energyTable) {
+    energyTableEnabled = true;
+    InitializeTables();
+  } else {
+    energyTableEnabled = false;
+  }
+
 #ifdef GOMC_CUDA
   InitCoordinatesCUDA(forcefield.particles->getCUDAVars(),
                       currentCoords.Count(), maxAtomInMol, currentCOM.Count());
@@ -402,241 +411,32 @@ aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
       if(distSq > boxAxes.rCutSq[box])
         continue;
 
-      lambda = 1.0;
-      val = 1.0;
-      if(lambdaRef.isFraction[box]) {
-        if(lambdaRef.kindIndex[box] == mols.kIndex[particleMol[iIndex]]) {
-            val = lambdaRef.lambdaVDW[box];
-        }
-      }
-      lambda *= val;
-      val = 1.0;
-      if(lambdaRef.isFraction[box]) {
-        if(lambdaRef.kindIndex[box] == mols.kIndex[particleMol[jIndex]]) {
-            val = lambdaRef.lambdaVDW[box];
-        }
-      }
-      lambda *= val;
-
       if (electrostatic) {
-        lambdaCoulomb = 1.0;
-        val = 1.0;
-        if(lambdaRef.isFraction[box]) {
-            if(lambdaRef.kindIndex[box] == mols.kIndex[particleMol[iIndex]]) {
-                val = lambdaRef.lambdaCoulomb[box];
-            }
-        }
-        lambdaCoulomb *= val;
-        val = 1.0;
-        if(lambdaRef.isFraction[box]) {
-            if(lambdaRef.kindIndex[box] == mols.kIndex[particleMol[jIndex]]) {
-                val = lambdaRef.lambdaCoulomb[box];
-            }
-        }
-        lambdaCoulomb *= val;
-
         qi_qj_fact = particleCharge[iIndex] * particleCharge[jIndex] *
           num::qqFact;
-        if(forcefield.rCutCoulombSq[box] >= distSq) {
-          if(lambdaCoulomb >= 0.999999) {
-            double calcCoulombNoLambda;
-            if(forcefield.ewald) {
-              double dist = sqrt(distSq);
-              double val = forcefield.alpha[box] * dist;
-              calcCoulombNoLambda = qi_qj_fact * erfc(val) / dist;
-            } else {
-              double dist = sqrt(distSq);
-              calcCoulombNoLambda = qi_qj_fact / dist;
-            }
-            tempREn += calcCoulombNoLambda;
-          }
-          else {
-            en = 0.0;
-            if(forcefield.sc_coul) {
-              double calcCoulombNoLambda;
-              int kind1 = particleKind[iIndex];
-              int kind2 = particleKind[jIndex];
-              int index = kind1 + kind2 * forcefield.particles->count;
-              double sigma6 = forcefield.particles->sigmaSq[index] *
-                              forcefield.particles->sigmaSq[index] * 
-                              forcefield.particles->sigmaSq[index];
-              sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
-              double dist6 = distSq * distSq * distSq;
-              double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
-              double softDist6 = lambdaCoef * sigma6 + dist6;
-              double softRsq = pow(softDist6, 1.0/3.0);
-              if(forcefield.ewald) {
-                double dist = sqrt(softRsq);
-                double val = forcefield.alpha[box] * dist;
-                calcCoulombNoLambda = qi_qj_fact * erfc(val) / dist;
-              } else {
-                double dist = sqrt(softRsq);
-                calcCoulombNoLambda = qi_qj_fact / dist;
-              }
-              en = lambda * calcCoulombNoLambda;
-            } else {
-              double calcCoulombNoLambda;
-              if(forcefield.ewald) {
-                double dist = sqrt(distSq);
-                double val = forcefield.alpha[box] * dist;
-                calcCoulombNoLambda = qi_qj_fact * erfc(val) / dist;
-              } else {
-                double dist = sqrt(distSq);
-                calcCoulombNoLambda = qi_qj_fact / dist;
-              }
-              en = lambda * calcCoulombNoLambda;
-            }
-            tempREn += en;
-          }
-        }
+        tempREn += qi_qj_fact * CSTable_CalcCoulomb[box][0](distSq);
+
       }
-      if(forcefield.rCutSq >= distSq) {
-        int kind1 = particleKind[iIndex];
-        int kind2 = particleKind[jIndex];
-        int index = kind1 + kind2 * forcefield.particles->count;
-
-        if(lambda >= 0.999999) {
-          double calcEnNoLambda;
-          double rRat2 = forcefield.particles->sigmaSq[index] / distSq;
-          double rRat4 = rRat2 * rRat2;
-          double attract = rRat4 * rRat2;
-          double n_ij = forcefield.particles->n[index];
-          double repulse = pow(rRat2, (n_ij * 0.5));
-
-          calcEnNoLambda = (forcefield.particles->epsilon_cn[index] * (repulse - attract));
-          tempLJEn += calcEnNoLambda;
-        } else {
-          double sigma6 = forcefield.particles->sigmaSq[index] * 
-                          forcefield.particles->sigmaSq[index] *
-                          forcefield.particles->sigmaSq[index];
-          sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
-          double dist6 = distSq * distSq * distSq;
-          double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
-          double softDist6 = lambdaCoef * sigma6 + dist6;
-          double softRsq = pow(softDist6, 1.0/3.0);
-
-          double calcEnNoLambda;
-          double rRat2 = forcefield.particles->sigmaSq[index] / softRsq;
-          double rRat4 = rRat2 * rRat2;
-          double attract = rRat4 * rRat2;
-          double n_ij = forcefield.particles->n[index];
-          double repulse = pow(rRat2, (n_ij * 0.5));
-
-          calcEnNoLambda = (forcefield.particles->epsilon_cn[index] * (repulse - attract));
-
-          double en = lambda * calcEnNoLambda;
-          tempLJEn += en;
-        }
-      }
+      int kind1 = particleKind[iIndex];
+      int kind2 = particleKind[jIndex];
+      int index = kind1 + kind2 * forcefield.particles->count;
+      tempLJEn += CSTable_CalcEnAttract[mv::BOX0][index](distSq) +
+        CSTable_CalcEnRepulse[mv::BOX0][index](distSq);
 
       // Calculating the force
       if(multiParticleEnabled) {
         if(electrostatic) {
           // Calculating CalcCoulombVir
-          double calcCoulombVir, calcCoulombVirNoLambda;
-          if(lambda >= 0.999999) {
-            if(forcefield.ewald) {
-              double dist = sqrt(distSq);
-              double constValue = 2.0 * forcefield.alpha[box] / sqrt(M_PI);
-              double expConstValue = exp(-1.0 * forcefield.alphaSq[box] * distSq);
-              double temp = 1.0 - erf(forcefield.alpha[box] * dist);
-              calcCoulombVir = qi_qj_fact * (temp / dist + constValue * expConstValue)/ distSq;
-            } else {
-              double dist = sqrt(distSq);
-              double result = qi_qj_fact / (distSq * dist);
-              calcCoulombVir = result;
-            }
-          } else {
-            double vir = 0.0;
-            if(forcefield.sc_coul) {
-              int kind1 = particleKind[iIndex];
-              int kind2 = particleKind[jIndex];
-              int index = kind1 + kind2 * forcefield.particles->count;
-              double sigma6 = forcefield.particles->sigmaSq[index] *
-                              forcefield.particles->sigmaSq[index] *
-                              forcefield.particles->sigmaSq[index];
-              sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
-              double dist6 = distSq * distSq * distSq;
-              double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
-              double softDist6 = lambdaCoef * sigma6 + dist6;
-              double softRsq = pow(softDist6, 1.0/3.0);
-              double correction = distSq / softRsq;
-              //We need to fix the return value from calcVir
-
-              if(forcefield.ewald) {
-                double dist = sqrt(softRsq);
-                double constValue = 2.0 * forcefield.alpha[box] / sqrt(M_PI);
-                double expConstValue = exp(-1.0 * forcefield.alphaSq[box] * softRsq);
-                double temp = 1.0 - erf(forcefield.alpha[box] * dist);
-                calcCoulombVirNoLambda = qi_qj_fact * (temp / dist + constValue * expConstValue)/ softRsq;
-              } else {
-                double dist = sqrt(softRsq);
-                double result = qi_qj_fact / (softRsq * dist);
-                calcCoulombVirNoLambda = result;
-              }
-
-              calcCoulombVir = lambda * correction * correction * calcCoulombVirNoLambda;
-            } else {
-              if(forcefield.ewald) {
-                double dist = sqrt(distSq);
-                double constValue = 2.0 * forcefield.alpha[box] / sqrt(M_PI);
-                double expConstValue = exp(-1.0 * forcefield.alphaSq[box] * distSq);
-                double temp = 1.0 - erf(forcefield.alpha[box] * dist);
-                calcCoulombVirNoLambda = qi_qj_fact * (temp / dist + constValue * expConstValue)/ distSq;
-              } else {
-                double dist = sqrt(distSq);
-                double result = qi_qj_fact / (distSq * dist);
-                calcCoulombVirNoLambda = result;
-              }
-              calcCoulombVir = lambda * calcCoulombVirNoLambda;
-            }
-          }
-          forceReal = virComponents * calcCoulombVir;
+          double calcCoulombVirValue = qi_qj_fact *
+            CSTable_CalcCoulomb[box][0].GetDerivativeValue(distSq);
+          forceReal = virComponents * calcCoulombVirValue;
         }
         // CalcVir
-        double calcVir, calcVirNoLambda;
-        if(forcefield.rCutSq >= distSq) {
-          int kind1 = particleKind[iIndex];
-          int kind2 = particleKind[jIndex];
-          int index = kind1 + kind2 * forcefield.particles->count;
-          if(lambda >= 0.999999) {
-              double rNeg2 = 1.0 / distSq;
-              double rRat2 = rNeg2 * forcefield.particles->sigmaSq[index];
-              double rRat4 = rRat2 * rRat2;
-              double attract = rRat4 * rRat2;
-              double n_ij = forcefield.particles->n[index];
-              double repulse = pow(rRat2, (n_ij * 0.5));
-              //Virial is F.r = -dE/dr * 1/r
-              calcVir = forcefield.particles->epsilon_cn_6[index] *
-                        (forcefield.particles->nOver6[index] *
-                         repulse - attract) * rNeg2;
-          }
-          else {
-            double sigma6 = forcefield.particles->sigmaSq[index] *
-                            forcefield.particles->sigmaSq[index] *
-                            forcefield.particles->sigmaSq[index];
-            sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
-            double dist6 = distSq * distSq * distSq;
-            double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
-            double softDist6 = lambdaCoef * sigma6 + dist6;
-            double softRsq = pow(softDist6, 1.0/3.0);
-            double correction = distSq / softRsq;
-            //We need to fix the return value from calcVir
-            double rNeg2 = 1.0 / softRsq;
-            double rRat2 = rNeg2 * forcefield.particles->sigmaSq[index];
-            double rRat4 = rRat2 * rRat2;
-            double attract = rRat4 * rRat2;
-            double n_ij = forcefield.particles->n[index];
-            double repulse = pow(rRat2, (n_ij * 0.5));
-            //Virial is F.r = -dE/dr * 1/r
-            calcVirNoLambda = forcefield.particles->epsilon_cn_6[index] *
-                      (forcefield.particles->nOver6[index] *
-                        repulse - attract) * rNeg2;
-            calcVir = lambda * correction * correction * calcVirNoLambda;
-          }
-        }
-
+        double calcVir =
+          CSTable_CalcEnAttract[mv::BOX0][index].GetDerivativeValue(distSq) +
+          CSTable_CalcEnRepulse[mv::BOX0][index].GetDerivativeValue(distSq);
         forceLJ = virComponents * calcVir;
+        
         aForcex[iIndex] += forceLJ.x + forceReal.x;
         aForcey[iIndex] += forceLJ.y + forceReal.y;
         aForcez[iIndex] += forceLJ.z + forceReal.z;
@@ -2085,6 +1885,87 @@ void CalculateEnergy::ChangeLRC(Energy *energyDiff, Energy &dUdL_VDW,
       //Calculate du/dl in VDW LRC for current state               
       dUdL_VDW.tc += mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
                      currentAxes.volInv[box];
+    }
+  }
+}
+
+void CalculateEnergy::InitializeTables()
+{
+  energyTableEnabled = true;
+
+  double r2, r1;
+  CSTable_CalcCoulomb      = new CubicSpline*[BOXES_WITH_U_B];
+  CSTable_CalcEnAttract    = new CubicSpline*[BOXES_WITH_U_B];
+  CSTable_CalcEnRepulse    = new CubicSpline*[BOXES_WITH_U_B];
+
+  for (uint b = 0; b < BOXES_WITH_U_B; b++) {
+    // Initialize loca variables
+    int tableLength           = ((forcefield.rCutSq + 1) / TABLE_STEP);
+    uint kindTotal            = forcefield.particles->count;
+    uint kindTotalSq          = kindTotal * kindTotal;
+    CSTable_CalcCoulomb[b]    = new CubicSpline[kindTotalSq];
+    CSTable_CalcEnAttract[b]  = new CubicSpline[kindTotalSq];
+    CSTable_CalcEnRepulse[b]  = new CubicSpline[kindTotalSq];
+
+    // Let's make sure we are not allocating too much data for energy table.
+    if (tableLength * kindTotalSq > 10000000) {
+      std::cerr << "Error: There is more than 1 million entries in tabulated potential.\n";
+      std::cerr << "       Please turn off energy tables.\n";
+      exit(EXIT_FAILURE);
+    }
+    
+    for (uint k1 = 0; k1 < kindTotal; k1++) {
+      for (uint k2 = 0; k2 < kindTotal; k2++) {
+        // initialize variables
+        uint k = k1 + k2 * forcefield.particles->count;
+
+        CSTable_CalcCoulomb[b][k].Reconstruct(tableLength, TABLE_STEP, 0.0);
+        CSTable_CalcEnAttract[b][k].Reconstruct(tableLength, TABLE_STEP, 0.0);
+        CSTable_CalcEnRepulse[b][k].Reconstruct(tableLength, TABLE_STEP, 0.0);
+
+        std::vector<double> v_coulomb, v_d_coulomb, v_attract, v_d_attract, v_repulse, v_d_repulse;
+        v_coulomb.resize(tableLength);
+        v_d_coulomb.resize(tableLength);
+        v_attract.resize(tableLength);
+        v_d_attract.resize(tableLength);
+        v_repulse.resize(tableLength);
+        v_d_repulse.resize(tableLength);
+
+        for (int i = 0; i < tableLength; i++) {
+          r2 = i * TABLE_STEP;
+          r1 = sqrt(r2);
+
+          if(r1 < 0.4) {
+            v_coulomb[i]         = 0.0;
+            v_d_coulomb[i]       = 0.0;
+            v_attract[i]         = 0.0;
+            v_d_attract[i]       = 0.0;
+            v_repulse[i]         = 0.0;
+            v_d_repulse[i]       = 0.0;
+          }
+
+          // Firt 4 indeces are for Attraction of LJ
+          v_coulomb[i]         = forcefield.particles->CalcCoulombNoFact(r2, b);
+          v_d_coulomb[i]       = forcefield.particles->CalcCoulombNoFactDerivative(r2, b);
+          v_attract[i]         = forcefield.particles->CalcEnAttract(r2, k1, k2);
+          v_d_attract[i]       = -6.0 * v_attract[i] / r1;
+          v_repulse[i]         = forcefield.particles->CalcEnRepulse(r2, k1, k2);
+          v_d_repulse[i]       = -forcefield.particles->n[k] * v_repulse[i] / r1;
+        }
+
+        for (int i = 0; i < tableLength; i++) {
+          if (i < tableLength - 1) {
+            CSTable_CalcCoulomb[b][k].InitializeSpecificPoint(v_coulomb[i], v_coulomb[i+1], v_d_coulomb[i], v_d_coulomb[i+1], i);
+            CSTable_CalcEnAttract[b][k].InitializeSpecificPoint(v_attract[i], v_attract[i+1], v_d_attract[i], v_d_attract[i+1], i);
+            CSTable_CalcEnRepulse[b][k].InitializeSpecificPoint(v_repulse[i], v_repulse[i+1], v_d_repulse[i], v_d_repulse[i+1], i);
+          }
+          else {
+            CSTable_CalcCoulomb[b][k].InitializeSpecificPoint(v_coulomb[i], v_coulomb[i], v_d_coulomb[i], v_d_coulomb[i], i);
+            CSTable_CalcEnAttract[b][k].InitializeSpecificPoint(v_attract[i], v_attract[i], v_d_attract[i], v_d_attract[i], i);
+            CSTable_CalcEnRepulse[b][k].InitializeSpecificPoint(v_repulse[i], v_repulse[i], v_d_repulse[i], v_d_repulse[i], i);
+          }
+        }
+      }
     }
   }
 }
