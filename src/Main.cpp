@@ -12,7 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #endif
 #include <iostream>
 #include <ctime>
-
+#include <mpi.h>
 //find and include appropriate files for getHostname
 #ifdef _WIN32
 #include <Winsock2.h>
@@ -43,9 +43,18 @@ void PrintGPUHardwareInfo();
 
 int main(int argc, char *argv[])
 {
-if(GOMC_LIB_MPI)
-  std::cout << "Recognized MPI!\n";
+if(GOMC_LIB_MPI){
+      // Initialize the MPI environment
+      MPI_Init(NULL, NULL);
 
+      // Get the number of processes
+      int world_size;
+      MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+      // Get the rank of the process
+      int world_rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+}
 #ifndef NDEBUG
   PrintDebugMode();
 #endif

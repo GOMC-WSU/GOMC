@@ -29,6 +29,9 @@ if(ENSEMBLE_GPU_NVT)
         #needed for hostname
         target_link_libraries(GPU_NVT ws2_32)
     endif()
+    if(MPI_FOUND)
+      target_link_libraries(NVT ${MPI_LIBRARIES})
+   endif()
 endif()
 
 if(ENSEMBLE_GPU_GEMC)
@@ -41,6 +44,9 @@ if(ENSEMBLE_GPU_GEMC)
         #needed for hostname
         target_link_libraries(GPU_GEMC ws2_32)
     endif()
+    if(MPI_FOUND)
+      target_link_libraries(GEMC ${MPI_LIBRARIES})
+   endif()
 endif()
 
 if(ENSEMBLE_GPU_GCMC)
@@ -53,6 +59,9 @@ if(ENSEMBLE_GPU_GCMC)
         #needed for hostname
         target_link_libraries(GPU_GCMC ws2_32)
     endif()
+    if(MPI_FOUND)
+      target_link_libraries(GCMC ${MPI_LIBRARIES})
+   endif()
 endif()
 
 if(ENSEMBLE_GPU_NPT)
@@ -65,4 +74,7 @@ if(ENSEMBLE_GPU_NPT)
         #needed for hostname
         target_link_libraries(GPU_NPT ws2_32)
     endif()
+    if(MPI_FOUND)
+      target_link_libraries(NPT ${MPI_LIBRARIES})
+   endif()
 endif()
