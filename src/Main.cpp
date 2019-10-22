@@ -43,6 +43,9 @@ void PrintGPUHardwareInfo();
 
 int main(int argc, char *argv[])
 {
+if(GOMC_LIB_MPI)
+  std::cout << "Recognized MPI!\n";
+
 #ifndef NDEBUG
   PrintDebugMode();
 #endif

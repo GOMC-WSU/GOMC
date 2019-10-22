@@ -54,5 +54,6 @@ ICC_PATH="$(which icc)"
 ICPC_PATH="$(which icpc)"
 export CC=${ICC_PATH}
 export CXX=${ICPC_PATH}
-cmake ..
+#cmake ..
+cmake .. -DGOMC_MPI=on
 make
