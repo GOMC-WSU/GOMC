@@ -5,7 +5,10 @@ A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 
-bool checkIfParallelTempering(std::string inputFileString){
+#include "ParallelTemperingPreprocessor.h"
+ParallelTemperingPreprocessor::ParallelTemperingPreprocessor(){}
+
+bool ParallelTemperingPreprocessor::checkIfParallelTempering(std::string inputFileString){
   InputFileReader reader;
   std::vector<std::string> line;
   reader.Open(inputFileString);
@@ -17,16 +20,16 @@ bool checkIfParallelTempering(std::string inputFileString){
   while(reader.readNextLine(line)) {
     if(line.size() == 0)
       continue;
-    if(ConfigSetup::CheckString(line[0], "Temperature")) {
+    if(CheckString(line[0], "Temperature")) {
       if (line.size() > 2)
         isParallelTemperingInTemperature = true;
-    } else if (ConfigSetup::CheckString(line[0], "ChemPot")) {
+    } else if (CheckString(line[0], "ChemPot")) {
       if (line.size() > 3)
         isParallelTemperingInChemicalPotential = true;
-    } else if (ConfigSetup::CheckString(line[0], "LambdaCoulomb")) {
+    } else if (CheckString(line[0], "LambdaCoulomb")) {
       if (line.size() > 2)
         isParallelTemperingInFreeEnergyCoulomb = true;
-    }  else if (ConfigSetup::CheckString(line[0], "LambdaVDW")) {
+    }  else if (CheckString(line[0], "LambdaVDW")) {
       if (line.size() > 2)
         isParallelTemperingInFreeEnergyVDW = true;
     }
@@ -37,7 +40,7 @@ bool checkIfParallelTempering(std::string inputFileString){
           isParallelTemperingInFreeEnergyCoulomb || isParallelTemperingInFreeEnergyVDW;
 }
 
-void checkIfValid(std::string inputFileString){
+void ParallelTemperingPreprocessor::checkIfValid(std::string inputFileString){
   InputFileReader reader;
   std::vector<std::string> line;
   reader.Open(inputFileString);
@@ -49,13 +52,13 @@ void checkIfValid(std::string inputFileString){
   while(reader.readNextLine(line)) {
     if(line.size() == 0)
       continue;
-    if(ConfigSetup::CheckString(line[0], "Temperature")) {
+    if(CheckString(line[0], "Temperature")) {
       numberOfTemperatures = line.size() - 1;
-    } else if (ConfigSetup::CheckString(line[0], "ChemPot")) {
+    } else if (CheckString(line[0], "ChemPot")) {
       numberOfChemPots.push_back(line.size() - 2);
-    } else if (ConfigSetup::CheckString(line[0], "LambdaCoulomb")) {
+    } else if (CheckString(line[0], "LambdaCoulomb")) {
       numberOfLambdaCoulombs = line.size() - 1;
-    }  else if (ConfigSetup::CheckString(line[0], "LambdaVDW")) {
+    }  else if (CheckString(line[0], "LambdaVDW")) {
       numberOfLambdaVDWs = line.size() - 1;
     }
     // Clear and get ready for the next line
@@ -81,7 +84,7 @@ void checkIfValid(std::string inputFileString){
   }
 }
 
-int getNumberOfReplicas(std::string inputFileString){
+int ParallelTemperingPreprocessor::getNumberOfReplicas(std::string inputFileString){
   InputFileReader reader;
   std::vector<std::string> line;
   reader.Open(inputFileString);
@@ -95,13 +98,13 @@ int getNumberOfReplicas(std::string inputFileString){
   while(reader.readNextLine(line)) {
     if(line.size() == 0)
       continue;
-    if(ConfigSetup::CheckString(line[0], "Temperature")) {
+    if(CheckString(line[0], "Temperature")) {
       numberOfTemperatures = line.size() - 1;
-    } else if (ConfigSetup::CheckString(line[0], "ChemPot")) {
+    } else if (CheckString(line[0], "ChemPot")) {
       numberOfChemPots.push_back(line.size() - 2);
-    } else if (ConfigSetup::CheckString(line[0], "LambdaCoulomb")) {
+    } else if (CheckString(line[0], "LambdaCoulomb")) {
       numberOfLambdaCoulombs = line.size() - 1;
-    }  else if (ConfigSetup::CheckString(line[0], "LambdaVDW")) {
+    }  else if (CheckString(line[0], "LambdaVDW")) {
       numberOfLambdaVDWs = line.size() - 1;
     }
     // Clear and get ready for the next line
@@ -116,4 +119,17 @@ int getNumberOfReplicas(std::string inputFileString){
   numberOfReplicas = std::max(numberOfReplicas, numberOfLambdaVDWs);
 
   return numberOfReplicas;
+}
+
+bool ParallelTemperingPreprocessor::CheckString(string str1, string str2)
+{
+  for(int k = 0; k < str1.length(); k++) {
+    str1[k] = toupper(str1[k]);
+  }
+
+  for(int j = 0; j < str2.length(); j++) {
+    str2[j] = toupper(str2[j]);
+  }
+
+  return (str1 == str2);
 }

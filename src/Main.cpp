@@ -6,6 +6,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "Simulation.h"
 #include "GOMC_Config.h"    //For version number
+#if GOMC_LIB_MPI
+#include <mpi.h>
+#include "ParallelTemperingPreprocessor.h"
+#endif
 #ifdef GOMC_CUDA
 #include "cuda.h"
 #include <cuda_runtime_api.h>
@@ -24,9 +28,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define HOSTNAME
 #endif
 
-#if GOMC_LIB_MPI
-#include ParallelTemperingPreprocessor.h
-#endif
 
 
 namespace
@@ -48,18 +49,7 @@ void PrintGPUHardwareInfo();
 
 int main(int argc, char *argv[])
 {
-if(GOMC_LIB_MPI){
-  // Initialize the MPI environment
-  MPI_Init(NULL, NULL);
-
-  // Get the number of processes
-  int world_size;
-  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-
-  // Get the rank of the process
-  int world_rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-
+#if GOMC_LIB_MPI
   string inputFileStringMPI;
   //CHECK IF ARGS/FILE PROVIDED IN CMD LINE
   if (argc < 2) {
@@ -69,23 +59,33 @@ if(GOMC_LIB_MPI){
     if(argc == 2) {
       //FIRST PARAMETER WILL BE FILE NAME
       inputFileStringMPI = argv[1];
-      numThreads = 1;
     } else {
       //SECOND PARAMETER WILL BE FILE NAME
       inputFileStringMPI = argv[2];
 
       if(argv[1][0] == '+' && argv[1][1] == 'p') {
-        numThreads = ReadNum(argv[1]);
+      // placeholder
       } else {
         std::cout << "Error: Undefined command to set number of threads!\n";
         std::cout << "Use +p# command to set number of threads.\n";
         exit(EXIT_FAILURE);
       }
-    }
-    checkIfParallelTempering(inputFileStringMPI);
+    }    
+    ParallelTemperingPreprocessor pt;
+    pt.checkIfParallelTempering(inputFileStringMPI); 
 
+    // Initialize the MPI environment
+    MPI_Init(NULL, NULL);
+
+    // Get the number of processes
+    int world_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    // Get the rank of the process
+    int world_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
   }
-} 
+#endif
 #ifndef NDEBUG
   PrintDebugMode();
 #endif
