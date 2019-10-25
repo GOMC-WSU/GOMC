@@ -2,3 +2,16 @@
 
 #define GOMC_VERSION_MAJOR @GOMC_VERSION_MAJOR@
 #define GOMC_VERSION_MINOR @GOMC_VERSION_MINOR@
+
+/* Use MPI (with mpicc) for parallelization */
+#cmakedefine01 GOMC_LIB_MPI
+
+/* Use threads_mpi for parallelization */
+#cmakedefine01 GOMC_THREAD_MPI
+
+/* Make a parallel version of GOMC using message passing
+   (MPI or thread_mpi) */
+#define GOMC_MPI (GOMC_LIB_MPI || GOMC_THREAD_MPI)
+
+/* MPI_IN_PLACE exists for collective operations */
+#cmakedefine01 MPI_IN_PLACE_EXISTS
