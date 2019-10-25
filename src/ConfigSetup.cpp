@@ -81,7 +81,6 @@ ConfigSetup::ConfigSetup(void)
   sys.ff.cutoff = DBL_MAX;
   sys.ff.cutoffLow = DBL_MAX;
   sys.ff.vdwGeometricSigma = false;
-  sys.ff.energyTable = true;
   sys.moves.displace = DBL_MAX;
   sys.moves.rotate = DBL_MAX;
   sys.moves.intraSwap = DBL_MAX;
@@ -288,12 +287,6 @@ void ConfigSetup::Init(const char *fileName)
         printf("%-40s %-s \n", "Info: Long Range Correction", "Active");
       else
         printf("%-40s %-s \n", "Info: Long Range Correction", "Inactive");
-    } else if(CheckString(line[0], "EnergyTable")) {
-      sys.ff.energyTable = checkBool(line[1]);
-      if(sys.ff.energyTable)
-        printf("%-40s %-s \n", "Info: Energy Table", "Active");
-      else
-        printf("%-40s %-s \n", "Info: Energy Table", "Inactive");
     } else if(CheckString(line[0], "Rswitch")) {
       sys.ff.rswitch = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Switch distance", sys.ff.rswitch);

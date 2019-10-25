@@ -47,7 +47,6 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
                                config_setup::FFKind const& ffKind)
 {
   useLRC = val.ff.doTailCorr;
-  energyTable = val.ff.energyTable;
   T_in_K = val.T.inKelvin;
   rCut = val.ff.cutoff;
   rCutSq = rCut * rCut;
