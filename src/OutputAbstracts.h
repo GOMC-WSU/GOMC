@@ -16,6 +16,13 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "ConfigSetup.h" //For enables, etc.
 #include "PDBSetup.h" //For atoms class
 
+#include "GOMC_Config.h"    //For MPI 
+#ifdef WIN32
+#define OS_SEP '\\'
+#else
+#define OS_SEP '/'
+#endif
+
 class OutputVars;
 class System;
 
@@ -61,7 +68,21 @@ public:
   void Init(const ulong tillEquil, const ulong totSteps,
             std::string const& uniqueForFileIO)
   {
+    #if GOMC_LIB_MPI
+      #ifdef WIN32
+        std::vector<std::string> tokens = split(uniqueForFileIO, std::string(2, OS_SEP));
+      #else
+        std::vector<std::string> tokens = split(uniqueForFileIO, std::string(1, OS_SEP));
+      #endif
+    std::stringstream replicaDirectory;
+    for(int i = 0; i < tokens.size()-1; ++i){
+      replicaDirectory << tokens[i] << OS_SEP;
+    }
+    pathToReplicaDirectory = replicaDirectory.str();
+    uniqueName = tokens.back();
+    #else
     uniqueName = uniqueForFileIO;
+    #endif
     stepsTillEquil = tillEquil;
     totSimSteps = totSteps;
     firstPrint = true;
@@ -77,8 +98,25 @@ public:
       forceOutput = false;
   }
 
+ #if GOMC_LIB_MPI
+  std::vector<std::string> split(std::string str,std::string sep){
+      char* cstr=const_cast<char*>(str.c_str());
+      char* current;
+      std::vector<std::string> arr;
+      current=strtok(cstr,sep.c_str());
+      while(current!=NULL){
+          arr.push_back(current);
+          current=strtok(NULL,sep.c_str());
+      }
+      return arr;
+  }
+#endif
+
 //private:
   std::string uniqueName;
+  #if GOMC_LIB_MPI
+  std::string pathToReplicaDirectory;
+  #endif
   ulong stepsPerOut, stepsTillEquil, totSimSteps;
   bool enableOut, firstPrint;
   bool forceOutput;

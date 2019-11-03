@@ -51,6 +51,9 @@ int main(int argc, char *argv[])
 {
 #if GOMC_LIB_MPI
   string inputFileStringMPI;
+  std::unique_ptr<MultiSim> multisim;
+
+  //std::streambuf * savedCOUT;
   //CHECK IF ARGS/FILE PROVIDED IN CMD LINE
   if (argc < 2) {
     std::cout << "Error: Input parameter file (*.dat or *.conf) not specified on command line!\n";
@@ -71,19 +74,33 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
       }
     }    
-    ParallelTemperingPreprocessor pt;
-    pt.checkIfParallelTempering(inputFileStringMPI); 
-
     // Initialize the MPI environment
     MPI_Init(NULL, NULL);
 
     // Get the number of processes
-    int world_size;
-    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+    int worldSize;
+    MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
 
     // Get the rank of the process
-    int world_rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    int worldRank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
+
+    ParallelTemperingPreprocessor pt;
+    std::string pathToReplicaDirectory;
+    if(pt.checkIfParallelTempering(inputFileStringMPI)){
+        pt.checkIfValid(inputFileStringMPI);
+        #if ENSEMBLE == GCMC
+          pathToReplicaDirectory = pt.setupReplicaDirectoriesAndRedirectSTDOUTToFile  ( pt.getMultiSimFolderName(inputFileStringMPI).c_str(),
+                                                                                        pt.getTemperature(inputFileStringMPI.c_str(), worldRank).c_str(),
+                                                                                        pt.getChemicalPotential(inputFileStringMPI.c_str(), worldRank).c_str()
+                                                                                      );
+        #else
+          pathToReplicaDirectory = pt.setupReplicaDirectoriesAndRedirectSTDOUTToFile  ( pt.getMultiSimFolderName(inputFileStringMPI).c_str(),
+                                                                                        pt.getTemperature(inputFileStringMPI.c_str(), worldRank).c_str()
+                                                                                      );
+        #endif
+    }
+    multisim.reset(new MultiSim(worldSize, worldRank, pathToReplicaDirectory));
   }
 #endif
 #ifndef NDEBUG
@@ -148,10 +165,18 @@ int main(int argc, char *argv[])
 
     //ONCE FILE FOUND PASS STRING TO SIMULATION CLASS TO READ AND
     //HANDLE PDB|PSF FILE
+#if GOMC_LIB_MPI
+    Simulation sim(inputFileString.c_str(), multisim);
+#else
     Simulation sim(inputFileString.c_str());
+#endif
     sim.RunSimulation();
     PrintSimulationFooter();
   }
+  #if GOMC_LIB_MPI
+    MPI_Finalize();
+    //std::cout.rdbuf(savedCOUT); //reset to standard output again
+  #endif
   return 0;
 }
 

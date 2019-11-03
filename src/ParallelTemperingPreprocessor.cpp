@@ -121,6 +121,129 @@ int ParallelTemperingPreprocessor::getNumberOfReplicas(std::string inputFileStri
   return numberOfReplicas;
 }
 
+std::string ParallelTemperingPreprocessor::getMultiSimFolderName(std::string inputFileString){
+  InputFileReader reader;
+  std::vector<std::string> line;
+  reader.Open(inputFileString);
+  string folderName;
+
+  while(reader.readNextLine(line)) {
+    if(line.size() == 0){
+      continue;
+    } else if(line[0] == "MultiSimFolderName"){
+        std::stringstream ss;
+        for (int i = 1; i < line.size(); i++){
+            if (line[i] == " ") {
+                ss << '_';
+            } else {    
+                ss << line[i];
+                if (i+1 != line.size())
+                    ss << "_";
+            }
+        }
+        folderName = ss.str();
+    } 
+    // Clear and get ready for the next line
+    line.clear();
+  }
+  if (folderName.empty()){
+    folderName = "MultiSimFolderName";
+  }
+  return folderName;
+}
+
+std::string ParallelTemperingPreprocessor::getTemperature(std::string inputFileString, int world_rank){
+  InputFileReader reader;
+  std::vector<std::string> line;
+  reader.Open(inputFileString);
+  string temperature;
+
+
+  while(reader.readNextLine(line)) {
+    if(line.size() == 0){
+      continue;
+    } else if(line[0] == "Temperature"){
+        if (line.size() > 2){
+          temperature = line[world_rank+1];
+        } else {
+          temperature = line[1];
+        }
+    } 
+    // Clear and get ready for the next line
+    line.clear();
+  }
+  return temperature;
+}
+
+
+
+std::string ParallelTemperingPreprocessor::getChemicalPotential(std::string inputFileString, int world_rank){
+  InputFileReader reader;
+  std::vector<std::string> line;
+  reader.Open(inputFileString);
+  std::stringstream chemPotStream;
+  std::string resName;
+  std::string val;
+
+  while(reader.readNextLine(line)) {
+    if(line.size() == 0){
+      continue;
+    } else if(CheckString(line[0], "ChemPot")) {
+      if (line.size() > 3){
+        resName = line[1];
+        val = line[2 + world_rank];
+        chemPotStream << "_" << resName << "_" << val;
+      } else if(line.size() != 3) {
+        std::cout << "Error: Chemical potential parameters are not specified!\n";
+        exit(EXIT_FAILURE);
+      } else {
+        resName = line[1];
+        val = line[2];
+        chemPotStream << "_" << resName << "_" << val;
+      }
+    } 
+    // Clear and get ready for the next line
+    line.clear();
+  }
+  return chemPotStream.str();
+}
+
+std::string ParallelTemperingPreprocessor::setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature){   
+    std::stringstream replicaTemp;
+    replicaTemp << "temp_" << temperature;  
+    std::string replicaDirectory = replicaTemp.str();
+    return mkdirWrapper(multiSimTitle, replicaDirectory);
+ }
+
+ std::string ParallelTemperingPreprocessor::setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature, std::string chemPot){   
+    std::stringstream replicaTemp;
+    replicaTemp << "temp_" << temperature << chemPot;
+    std::string replicaDirectory = replicaTemp.str();
+    return mkdirWrapper(multiSimTitle, replicaDirectory);
+ }
+ 
+std::string ParallelTemperingPreprocessor::mkdirWrapper(std::string multisimDirectoryName, string replicaDirectoryName){
+    std::stringstream replicaStream;
+
+    replicaStream << "." << OS_SEP << multisimDirectoryName << OS_SEP 
+                << replicaDirectoryName << OS_SEP;
+    std::string replicaDirectoryPath = replicaStream.str();
+     
+    printf("Creating directory : %s\n", multisimDirectoryName.c_str());
+    mkdir(multisimDirectoryName.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    mkdir(replicaDirectoryPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    
+    std::string pathToReplicaDirectory = replicaStream.str();
+    replicaStream << "ConsoleOut.dat";
+    std::string pathToReplicaLogFile = replicaStream.str();    
+    //std::ofstream out(pathToReplicaLogFile);
+    //std::streambuf * coutbuf;
+    //auto coutbuf = std::cout.rdbuf(out.rdbuf()); //save and redirect
+    freopen(pathToReplicaLogFile.c_str(),"w",stdout);
+    return pathToReplicaDirectory;
+    
+ }
+
 bool ParallelTemperingPreprocessor::CheckString(string str1, string str2)
 {
   for(int k = 0; k < str1.length(); k++) {
@@ -133,3 +256,7 @@ bool ParallelTemperingPreprocessor::CheckString(string str1, string str2)
 
   return (str1 == str2);
 }
+
+MultiSim::MultiSim(int worldSize, int worldRank, std::string pathToReplicaDirectory) : 
+  worldSize(worldSize), worldRank(worldRank), pathToReplicaDirectory(pathToReplicaDirectory)
+{}

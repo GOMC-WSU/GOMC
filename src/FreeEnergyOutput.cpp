@@ -46,7 +46,11 @@ void FreeEnergyOutput::Init(pdb_setup::Atoms const& atoms,
       fileName += "_";
       fileName += uniqueName;
       fileName += ".dat";
-      name[b] = fileName;
+      #if GOMC_LIB_MPI
+        name[b] = pathToReplicaDirectory + fileName;
+      #else
+        name[b] = fileName;
+      #endif
       outF[b].open(name[b].c_str(), std::ofstream::out);
       energyDiff[b] = new Energy[lambdaSize];
     }

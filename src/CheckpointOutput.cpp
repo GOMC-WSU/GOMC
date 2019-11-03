@@ -26,7 +26,11 @@ union uint32_output_union {
 CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
+  #if GOMC_LIB_MPI
   coordCurrRef(sys.coordinates), filename("checkpoint.dat")
+  #else
+  coordCurrRef(sys.coordinates), filename(pathToReplicaDirectory + "checkpoint.dat")
+  #endif
 {
   outputFile = NULL;
 }
