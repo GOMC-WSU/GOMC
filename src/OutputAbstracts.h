@@ -79,7 +79,7 @@ public:
       replicaDirectory << tokens[i] << OS_SEP;
     }
     pathToReplicaDirectory = replicaDirectory.str();
-    uniqueName = tokens.back();
+    uniqueName = tokens[tokens.size()];
     printf("This is what Blk sees as uniqueName: %s\n", uniqueName);
     printf("This is what Blk sees as replicaDirectory: %s\n", pathToReplicaDirectory);
     printf("This is what Blk sees as uniqueForFileIO: %s\n", uniqueForFileIO);
