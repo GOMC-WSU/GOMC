@@ -9,7 +9,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #if GOMC_LIB_MPI
 #include <mpi.h>
 #include "ParallelTemperingPreprocessor.h"
-#include <memory> //for unique_ptr
 #endif
 #ifdef GOMC_CUDA
 #include "cuda.h"

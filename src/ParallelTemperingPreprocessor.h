@@ -13,6 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <sys/types.h> 
 #include <sys/stat.h>
 #include <sstream>
+#include <cstdlib>
 
 #ifdef WIN32
 #define OS_SEP '\\'
