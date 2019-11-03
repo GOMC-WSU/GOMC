@@ -80,6 +80,7 @@ public:
     }
     pathToReplicaDirectory = replicaDirectory.str();
     uniqueName = tokens.front();
+    printf("This is what Blk sees as uniqueName: %s\n", uniqueName);
     #else
     uniqueName = uniqueForFileIO;
     #endif
