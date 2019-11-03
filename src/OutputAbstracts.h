@@ -71,9 +71,9 @@ public:
     printf("This is what Blk sees as uniqueForFileIO before call to split: %s\n", uniqueForFileIO);
     #if GOMC_LIB_MPI
       #ifdef WIN32
-        std::vector<std::string> tokens = split(uniqueForFileIO, std::string(2, OS_SEP));
+        std::vector<std::string> tokens = OutputableBase::split(uniqueForFileIO, std::string(2, OS_SEP));
       #else
-        std::vector<std::string> tokens = split(uniqueForFileIO, std::string(1, OS_SEP));
+        std::vector<std::string> tokens = OutputableBase::split(uniqueForFileIO, std::string(1, OS_SEP));
       #endif
     std::stringstream replicaDirectory;
     for(int i = 0; i < tokens.size()-1; ++i){
