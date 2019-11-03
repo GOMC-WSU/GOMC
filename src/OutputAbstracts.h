@@ -81,6 +81,13 @@ public:
     pathToReplicaDirectory = replicaDirectory.str();
     uniqueName = tokens.front();
     printf("This is what Blk sees as uniqueName: %s\n", uniqueName);
+    printf("This is what Blk sees as replicaDirectory: %s\n", pathToReplicaDirectory);
+    printf("This is what Blk sees as uniqueForFileIO: %s\n", uniqueForFileIO);
+    for(int i = 0; i < tokens.size(); ++i){
+      printf("This is what Blk sees as tokens[%d]: %s\n", i, tokens[i]);
+    }
+
+
     #else
     uniqueName = uniqueForFileIO;
     #endif
