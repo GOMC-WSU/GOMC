@@ -30,6 +30,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #if GOMC_LIB_MPI
 #include "ParallelTemperingPreprocessor.h"
 #include <sstream>  //for prefixing uniqueVal with the pathToReplicaDirectory
+#include <memory> //for unique_ptr
 #endif
 #ifdef WIN32
 #define OS_SEP '\\'
