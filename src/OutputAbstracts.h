@@ -68,9 +68,10 @@ public:
   void Init(const ulong tillEquil, const ulong totSteps,
             std::string const& uniqueForFileIO)
   {
-    printf("This is what Blk sees as uniqueForFileIO before call to split: %s\n", uniqueForFileIO);
+    printf("This is what Blk sees as uniqueForFileIO before call to split: %s\n", uniqueForFileIO.c_str());
     #if GOMC_LIB_MPI
-    std::string copyOfUniqueForFileIO(uniqueForFileIO);
+    std::string copyOfUniqueForFileIO = uniqueForFileIO.c_str();
+    //strcpy(copyOfUniqueForFileIO.c_str(), uniqueForFileIO.c_str());
       #ifdef WIN32
         std::vector<std::string> tokens = OutputableBase::split(copyOfUniqueForFileIO, std::string(2, OS_SEP));
       #else
@@ -82,13 +83,13 @@ public:
     }
     pathToReplicaDirectory = replicaDirectory.str();
     uniqueName = tokens[tokens.size()-1];
-    printf("This is what Blk sees as uniqueName: %s\n", uniqueName);
-    printf("This is what Blk sees as replicaDirectory: %s\n", pathToReplicaDirectory);
-    printf("This is what Blk sees as uniqueForFileIO after call to split: %s\n", uniqueForFileIO);
-    printf("This is what Blk sees as copyOfUniqueForFileIO after call to split: %s\n", copyOfUniqueForFileIO);
+    printf("This is what Blk sees as uniqueName: %s\n", uniqueName.c_str());
+    printf("This is what Blk sees as replicaDirectory: %s\n", pathToReplicaDirectory.c_str());
+    printf("This is what Blk sees as uniqueForFileIO after call to split: %s\n", uniqueForFileIO.c_str());
+    printf("This is what Blk sees as copyOfUniqueForFileIO after call to split: %s\n", copyOfUniqueForFileIO.c_str());
 
     for(int i = 0; i < tokens.size(); ++i){
-      printf("This is what Blk sees as tokens[%d]: %s\n", i, tokens[i]);
+    //  printf("This is what Blk sees as tokens[%d]: %s\n", i, tokens[i]);
     }
 
 
