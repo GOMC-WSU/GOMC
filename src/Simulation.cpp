@@ -44,7 +44,7 @@ Simulation::Simulation(char const*const configFileName)
 }
 
 #if GOMC_LIB_MPI
-Simulation::Simulation(char const*const configFileName, std::unique_ptr<MultiSim> & multisim)
+Simulation::Simulation(char const*const configFileName, MultiSim *& multisim)
 {
   startStep = 0;
   //NOTE:

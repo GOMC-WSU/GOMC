@@ -1004,7 +1004,7 @@ void ConfigSetup::Init(const char *fileName)
 }
 
 #if GOMC_LIB_MPI
-void ConfigSetup::Init(const char *fileName, std::unique_ptr<MultiSim> & multisim)
+void ConfigSetup::Init(const char *fileName, MultiSim *& multisim)
 {
   std::vector<std::string> line;
 
