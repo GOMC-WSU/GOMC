@@ -70,10 +70,11 @@ public:
   {
     printf("This is what Blk sees as uniqueForFileIO before call to split: %s\n", uniqueForFileIO);
     #if GOMC_LIB_MPI
+    std::string copyOfUniqueForFileIO(uniqueForFileIO);
       #ifdef WIN32
-        std::vector<std::string> tokens = OutputableBase::split(uniqueForFileIO, std::string(2, OS_SEP));
+        std::vector<std::string> tokens = OutputableBase::split(copyOfUniqueForFileIO, std::string(2, OS_SEP));
       #else
-        std::vector<std::string> tokens = OutputableBase::split(uniqueForFileIO, std::string(1, OS_SEP));
+        std::vector<std::string> tokens = OutputableBase::split(copyOfUniqueForFileIO, std::string(1, OS_SEP));
       #endif
     std::stringstream replicaDirectory;
     for(int i = 0; i < tokens.size()-1; ++i){
@@ -84,6 +85,8 @@ public:
     printf("This is what Blk sees as uniqueName: %s\n", uniqueName);
     printf("This is what Blk sees as replicaDirectory: %s\n", pathToReplicaDirectory);
     printf("This is what Blk sees as uniqueForFileIO after call to split: %s\n", uniqueForFileIO);
+    printf("This is what Blk sees as copyOfUniqueForFileIO after call to split: %s\n", copyOfUniqueForFileIO);
+
     for(int i = 0; i < tokens.size(); ++i){
       printf("This is what Blk sees as tokens[%d]: %s\n", i, tokens[i]);
     }
