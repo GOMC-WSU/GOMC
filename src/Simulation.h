@@ -21,7 +21,7 @@ class Simulation
 public:
   explicit Simulation(char const*const configFileName);
   #if GOMC_LIB_MPI
-  explicit Simulation(char const*const configFileName, std::unique_ptr<MultiSim> & multisim);
+  explicit Simulation(char const*const configFileName, MultiSim *& multisim);
   #endif
   ~Simulation();
 

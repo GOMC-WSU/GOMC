@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 {
 #if GOMC_LIB_MPI
   string inputFileStringMPI;
-  std::unique_ptr<MultiSim> multisim;
+  MultiSim * multisim;
 
   //std::streambuf * savedCOUT;
   //CHECK IF ARGS/FILE PROVIDED IN CMD LINE
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
                                                                                       );
         #endif
     }
-    multisim.reset(new MultiSim(worldSize, worldRank, pathToReplicaDirectory));
+    multisim = new MultiSim(worldSize, worldRank, pathToReplicaDirectory);
   }
 #endif
 #ifndef NDEBUG

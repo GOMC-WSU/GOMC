@@ -49,7 +49,7 @@ public:
   }
 
   #if GOMC_LIB_MPI
-  void Init(char const*const configFileName, std::unique_ptr<MultiSim> & multisim)
+  void Init(char const*const configFileName, MultiSim *& multisim)
   {
     //Read in all config data
     config.Init(configFileName, multisim);

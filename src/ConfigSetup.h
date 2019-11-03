@@ -30,7 +30,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #if GOMC_LIB_MPI
 #include "ParallelTemperingPreprocessor.h"
 #include <sstream>  //for prefixing uniqueVal with the pathToReplicaDirectory
-#include <memory> //for unique_ptr
 #endif
 #ifdef WIN32
 #define OS_SEP '\\'
@@ -392,7 +391,7 @@ public:
   ConfigSetup(void);
   void Init(const char *fileName);
   #if GOMC_LIB_MPI
-  void Init(const char *fileName, std::unique_ptr<MultiSim> & multisim);
+  void Init(const char *fileName, MultiSim *& multisim);
   #endif
 private:
   void fillDefaults(void);
