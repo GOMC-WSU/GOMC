@@ -21,7 +21,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "ParallelTemperingMPIMethods.h"
 
 //! Helps cut off probability values.
-#define c_probabilityCutoff 100;
+#define c_probabilityCutoff 100
 
 class ParallelTempering : public MoveBase
 {
