@@ -50,6 +50,8 @@ private:
   void compute_exchange_order(int **cyclic, int **order, const int nrepl, const int maxswap);
   void prepare_to_do_exchange(const int replica_id, int *maxswap, bool *bThisReplicaExchanged);
   void exchange_state(int b);
+  void exchange_doubles(int b, double *v, int n);
+
 
   // This will require a custom mpi sender
   SystemPotential sysPotNew;
@@ -261,6 +263,7 @@ inline void ParallelTempering::Accept(const uint rejectState, const uint step)
   /* Where each replica ends up after the exchange attempt(s). */
   /* The order in which multiple exchanges will occur. */
   bool bThisReplicaExchanged = false;
+  replica_id  = repl;
   prepare_to_do_exchange(replica_id, &maxswap, &bThisReplicaExchanged);
 
   if (bThisReplicaExchanged)
@@ -275,15 +278,23 @@ inline void ParallelTempering::Accept(const uint rejectState, const uint step)
 
       if (exchange_partner != replica_id)
       {
-#ifndef NDEBUG
           fprintf(fplog, "Exchanging %d with %d\n", replica_id, exchange_partner);
-#endif
+          fprintf(fplog, "B4 Exch, My first coords x:%f, y:%f, z:%f\n", coordCurrRef.x[0], coordCurrRef.y[0], coordCurrRef.z[0]);
+          fflush(fplog);
           exchange_state(exchange_partner);
+          fprintf(fplog, "AF Exch, My first coords x:%f, y:%f, z:%f\n", coordCurrRef.x[0], coordCurrRef.y[0], coordCurrRef.z[0]);
+          fflush(fplog);
       }
     }
   }
 
   bool result = bThisReplicaExchanged;
+
+  if(result){
+    cellList.GridAll(boxDimRef, coordCurrRef, molLookupRef);
+
+  }
+
   uint mkTot = molLookupRef.GetNumCanMoveKind();
 
   for(uint b = 0; b < BOX_TOTAL; b++) {
@@ -759,10 +770,60 @@ ParallelTempering::prepare_to_do_exchange(const int           replica_id,
 void ParallelTempering::exchange_state(int b)
 {
 
-  sysPotRef = sysPotNew;
-  swap(coordCurrRef, newMolsPos);
-  swap(comCurrRef, newCOMs);
+  //sysPotRef = sysPotNew;
+  //swap(coordCurrRef, newMolsPos);
+  //swap(comCurrRef, newCOMs);
   //update reciprocate value
   //calcEwald->UpdateRecip(bPick);
+  exchange_doubles(b, &sysPotRef.totalEnergy.correction, 1);
+  exchange_doubles(b, &sysPotRef.totalEnergy.inter, 1);
+  exchange_doubles(b, &sysPotRef.totalEnergy.intraBond, 1);
+  exchange_doubles(b, &sysPotRef.totalEnergy.intraNonbond, 1);
+  exchange_doubles(b, &sysPotRef.totalEnergy.real, 1);
+  exchange_doubles(b, &sysPotRef.totalEnergy.recip, 1);
+  exchange_doubles(b, &sysPotRef.totalEnergy.self, 1);
+  exchange_doubles(b, &sysPotRef.totalEnergy.tc, 1);
+  exchange_doubles(b, &sysPotRef.totalEnergy.total, 1);
+  exchange_doubles(b, &sysPotRef.totalEnergy.totalElect, 1);
+  
+  exchange_doubles(b, coordCurrRef.x, coordCurrRef.Count());
+  exchange_doubles(b, coordCurrRef.y, coordCurrRef.Count());
+  exchange_doubles(b, coordCurrRef.z, coordCurrRef.Count());
+  
+  exchange_doubles(b, comCurrRef.x, comCurrRef.Count());
+  exchange_doubles(b, comCurrRef.y, comCurrRef.Count());
+  exchange_doubles(b, comCurrRef.z, comCurrRef.Count());
+}
+
+void ParallelTempering::exchange_doubles(int b, double *v, int n)
+{
+    double *buf;
+    int   i;
+
+    if (v)
+    {
+      buf =  new double[n];
+        /*
+           MPI_Sendrecv(v,  n*sizeof(double),MPI_BYTE,MSRANK(ms,b),0,
+           buf,n*sizeof(double),MPI_BYTE,MSRANK(ms,b),0,
+           ms->mpi_comm_masters,MPI_STATUS_IGNORE);
+         */
+        {
+            MPI_Request mpi_req;
+
+            MPI_Isend(v, n*sizeof(double), MPI_BYTE, b, 0,
+                      MPI_COMM_WORLD, &mpi_req);
+            MPI_Recv(buf, n*sizeof(double), MPI_BYTE, b, 0,
+                     MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Wait(&mpi_req, MPI_STATUS_IGNORE);
+        }
+        for (i = 0; i < n; i++)
+        {
+            //fprintf(fplog, "%f\n", buf[i]);
+            //fflush(fplog);
+            v[i] = buf[i];
+        }
+        delete[] buf;
+    }
 }
 #endif
