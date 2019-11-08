@@ -82,13 +82,24 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
         break;
 #endif
 #endif
+#if GOMC_LIB_MPI
+    case mv::PARALLEL_TEMPERING :
+      // Double check this isn't an off by 1 error.  Simple test, check value when sPPT == 1; should
+      // be 100%
+      movePerc[m] = (double)(((totalSteps - equilSteps) / stepsPerParallelTempering) / (totalSteps - equilSteps));
+      continue;
+#endif
     default:
       movePerc[m] = 0.0;
       break;
     }
     totalPerc += movePerc[m];
   }
+  #if GOMC_MPI_LIB
+  for (uint m = 0; m < mv::MOVE_KINDS_TOTAL_EXCLUDING_PARALLEL_TEMPERING; m++)
+  #else
   for (uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++)
+  #endif
     movePerc[m] /= totalPerc;
   totalPerc = 1.0;
 }
@@ -132,6 +143,12 @@ StaticVals::StaticVals(Setup & set) : memcVal(set.config.sys.memcVal),
 				      intraMemcVal(set.config.sys.intraMemcVal),
 				      cfcmcVal(set.config.sys.cfcmcVal),
               freeEnVal(set.config.sys.freeEn)
+             #if GOMC_LIB_MPI
+              , stepsPerParallelTempering(set.config.out.parallelTempering.frequency),
+              enableParallelTempering(set.config.out.parallelTempering.enable),
+              equilSteps(set.config.sys.step.equil),
+              totalSteps(set.config.sys.step.total)
+              #endif
 {
   multiParticleEnabled = set.config.sys.moves.multiParticleEnabled;
   isOrthogonal = true;

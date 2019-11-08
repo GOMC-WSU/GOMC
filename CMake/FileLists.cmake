@@ -32,6 +32,7 @@ set(sources
    src/NoEwald.cpp
    src/OutConst.cpp
    src/OutputVars.cpp
+   src/ParallelTemperingMPIMethods.cpp
    src/ParallelTemperingPreprocessor.cpp
    src/PDBSetup.cpp
    src/PDBOutput.cpp
@@ -112,6 +113,7 @@ set(headers
    src/OutConst.h
    src/OutputAbstracts.h
    src/OutputVars.h
+   src/ParallelTemperingMPIMethods.h
    src/ParallelTemperingPreprocessor.h
    src/PDBConst.h
    src/PDBOutput.h
@@ -162,6 +164,7 @@ set(headers
    src/moves/MoleculeTransfer.h
    src/moves/MoveBase.h
    src/moves/MultiParticle.h
+   src/moves/ParallelTempering.h
    src/moves/Regrowth.h
    src/moves/Rotation.h
    src/moves/Translate.h

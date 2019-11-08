@@ -21,6 +21,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BoxDimensionsNonOrth.h"
 #include "MoleculeLookup.h"
 #include "Molecules.h"
+#include "GOMC_Config.h"
 
 class Setup;
 class System;
@@ -58,6 +59,13 @@ public:
   double totalPerc;
   config_setup::MEMCVal  intraMemcVal;
   config_setup::FreeEnergy  freeEnVal;
+  // This is assigned a value from set, and then used to assign value to system's copy of stepsPerParallelTempering
+  #if GOMC_LIB_MPI
+  ulong & stepsPerParallelTempering;
+  bool & enableParallelTempering;
+  ulong & equilSteps;
+  ulong & totalSteps;
+  #endif
 
   //Only include these variables if they're static for this ensemble...
 #ifndef VARIABLE_VOLUME
