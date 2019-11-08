@@ -26,5 +26,5 @@ void ParallelTemperingMPIMethods::gomc_sumd_comm(int nr, double r[], MPI_Comm mp
     }
     delete[] buf;
 #endif
-#endif
 }
+#endif
