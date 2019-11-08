@@ -13,6 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBSetup.h" //Primary source of volume.
 #include "MoveConst.h"           //For sizes of arrays.
 #include <vector>
+#include "GOMC_Config.h"
 
 namespace mp {
   const int MPDISPLACE = 0;
@@ -79,6 +80,9 @@ public:
   void AdjustMultiParticle(const uint box, const uint typePick);
 
   void UpdateMoveSettingMultiParticle(uint box, bool isAccept, uint typePick);
+
+  void UpdateMoveSettingParallelTempering(bool isAccept, const uint typePick);
+  
 
   double Scale(const uint box, const uint move, const uint kind = 0) const
   {

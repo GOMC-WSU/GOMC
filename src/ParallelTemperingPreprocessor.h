@@ -41,8 +41,8 @@ class MultiSim {
 public:
 explicit MultiSim(int worldSize, int worldRank, std::string pathToReplicaDirectory);
 int worldSize, worldRank; 
+ulong nst;
 std::string pathToReplicaDirectory;
-
 
 private:
 };
