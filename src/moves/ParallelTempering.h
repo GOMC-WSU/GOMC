@@ -20,8 +20,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <mpi.h>
 #include "ParallelTemperingMPIMethods.h"
 
-//! Helps cut off probability values.
-constexpr int c_probabilityCutoff = 100;
+
 
 class ParallelTempering : public MoveBase
 {
@@ -60,6 +59,9 @@ private:
   FILE * fplog;
 
   ulong & step;
+
+  //! Helps cut off probability values.
+  const int c_probabilityCutoff = 100;
 
   const MoleculeLookup& molLookupRef;
 
@@ -380,7 +382,7 @@ void ParallelTempering::print_ind(FILE *fplog, const char *leg, int n, int *ind,
     fprintf(fplog, "Repl %2s %2d", leg, ind[0]);
     for (i = 1; i < n; i++)
     {
-        fprintf(fplog, " %c %2d", (bEx != nullptr && bEx[i]) ? 'x' : ' ', ind[i]);
+        fprintf(fplog, " %c %2d", (bEx != NULL && bEx[i]) ? 'x' : ' ', ind[i]);
     }
     fprintf(fplog, "\n");
 }
