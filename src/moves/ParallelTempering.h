@@ -292,7 +292,7 @@ inline void ParallelTempering::Accept(const uint rejectState, const uint step)
 
   if(result){
     cellList.GridAll(boxDimRef, coordCurrRef, molLookupRef);
-    sysPotRef = calcEnRef.SystemTotal();
+    //sysPotRef = calcEnRef.SystemTotal();
   }
 
   uint mkTot = molLookupRef.GetNumCanMoveKind();
