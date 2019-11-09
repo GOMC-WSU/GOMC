@@ -133,6 +133,9 @@ inline ParallelTempering::ParallelTempering(System &sys, StaticVals const &statV
 
   beta[repl] = statV.forcefield.beta;
   ParallelTemperingMPIMethods::gomc_sumd_comm(nrepl, beta, MPI_COMM_WORLD);
+
+  newMolsPos.Init(sys.coordinates.Count());
+  newCOMs.Init(sys.com.Count());
 }
 
 inline void ParallelTempering::PrintAcceptKind() {
@@ -151,6 +154,9 @@ inline uint ParallelTempering::Prep(const double subDraw, const double movPerc)
   }
   Epot[repl] = sysPotRef.Total();
   ParallelTemperingMPIMethods::gomc_sumd_comm(nrepl, Epot, MPI_COMM_WORLD);
+
+  coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
+  comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
 
   return state;
 }
@@ -781,7 +787,7 @@ void ParallelTempering::exchange_state(int b)
   //swap(comCurrRef, newCOMs);
   //update reciprocate value
   //calcEwald->UpdateRecip(bPick);
-  
+
   exchange_doubles(b, &sysPotNew.totalEnergy.correction, 1);
   exchange_doubles(b, &sysPotNew.totalEnergy.inter, 1);
   exchange_doubles(b, &sysPotNew.totalEnergy.intraBond, 1);
@@ -793,6 +799,7 @@ void ParallelTempering::exchange_state(int b)
   exchange_doubles(b, &sysPotNew.totalEnergy.total, 1);
   exchange_doubles(b, &sysPotNew.totalEnergy.totalElect, 1);
 
+  
   for(uint b = 0; b < BOX_TOTAL; b++) {
 
   exchange_doubles(b, &sysPotNew.boxEnergy[b].correction, 1);
@@ -807,6 +814,18 @@ void ParallelTempering::exchange_state(int b)
   exchange_doubles(b, &sysPotNew.boxEnergy[b].totalElect, 1);
   }
   
+/*  
+  double x[newMolsPos.Count()];
+  double y[newMolsPos.Count()];
+  double z[newMolsPos.Count()];
+
+
+
+  double xc[newCOMs.Count()];
+  double yc[newCOMs.Count()];
+  double zc[newCOMs.Count()];
+*/
+
   exchange_doubles(b, newMolsPos.x, newMolsPos.Count());
   exchange_doubles(b, newMolsPos.y, newMolsPos.Count());
   exchange_doubles(b, newMolsPos.z, newMolsPos.Count());
