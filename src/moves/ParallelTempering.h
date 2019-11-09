@@ -785,6 +785,20 @@ void ParallelTempering::exchange_state(int b)
   exchange_doubles(b, &sysPotRef.totalEnergy.tc, 1);
   exchange_doubles(b, &sysPotRef.totalEnergy.total, 1);
   exchange_doubles(b, &sysPotRef.totalEnergy.totalElect, 1);
+
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+
+  exchange_doubles(b, &sysPotRef.boxEnergy[b].correction, 1);
+  exchange_doubles(b, &sysPotRef.boxEnergy[b].inter, 1);
+  exchange_doubles(b, &sysPotRef.boxEnergy[b].intraBond, 1);
+  exchange_doubles(b, &sysPotRef.boxEnergy[b].intraNonbond, 1);
+  exchange_doubles(b, &sysPotRef.boxEnergy[b].real, 1);
+  exchange_doubles(b, &sysPotRef.boxEnergy[b].recip, 1);
+  exchange_doubles(b, &sysPotRef.boxEnergy[b].self, 1);
+  exchange_doubles(b, &sysPotRef.boxEnergy[b].tc, 1);
+  exchange_doubles(b, &sysPotRef.boxEnergy[b].total, 1);
+  exchange_doubles(b, &sysPotRef.boxEnergy[b].totalElect, 1);
+  }
   
   exchange_doubles(b, coordCurrRef.x, coordCurrRef.Count());
   exchange_doubles(b, coordCurrRef.y, coordCurrRef.Count());
