@@ -5,7 +5,6 @@ A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "ParallelTemperingMPIMethods.h"
-#if GOMC_LIB_MPI
 
 void ParallelTemperingMPIMethods::gomc_sumd_comm(int nr, double r[], MPI_Comm mpi_comm)
 {
@@ -27,4 +26,4 @@ void ParallelTemperingMPIMethods::gomc_sumd_comm(int nr, double r[], MPI_Comm mp
     delete[] buf;
 #endif
 }
-#endif
+
