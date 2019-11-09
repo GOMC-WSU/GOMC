@@ -800,18 +800,18 @@ void ParallelTempering::exchange_state(int b)
   exchange_doubles(b, &sysPotNew.totalEnergy.totalElect, 1);
 
   
-  for(uint b = 0; b < BOX_TOTAL; b++) {
+  for(uint box = 0; box < BOX_TOTAL; box++) {
 
-  exchange_doubles(b, &sysPotNew.boxEnergy[b].correction, 1);
-  exchange_doubles(b, &sysPotNew.boxEnergy[b].inter, 1);
-  exchange_doubles(b, &sysPotNew.boxEnergy[b].intraBond, 1);
-  exchange_doubles(b, &sysPotNew.boxEnergy[b].intraNonbond, 1);
-  exchange_doubles(b, &sysPotNew.boxEnergy[b].real, 1);
-  exchange_doubles(b, &sysPotNew.boxEnergy[b].recip, 1);
-  exchange_doubles(b, &sysPotNew.boxEnergy[b].self, 1);
-  exchange_doubles(b, &sysPotNew.boxEnergy[b].tc, 1);
-  exchange_doubles(b, &sysPotNew.boxEnergy[b].total, 1);
-  exchange_doubles(b, &sysPotNew.boxEnergy[b].totalElect, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[box].correction, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[box].inter, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[box].intraBond, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[box].intraNonbond, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[box].real, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[box].recip, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[box].self, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[box].tc, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[box].total, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[box].totalElect, 1);
   }
   
 /*  
@@ -848,7 +848,7 @@ void ParallelTempering::exchange_doubles(int b, double *v, int n)
            buf,n*sizeof(double),MPI_BYTE,MSRANK(ms,b),0,
            ms->mpi_comm_masters,MPI_STATUS_IGNORE);
          */
-        {
+        
             MPI_Request mpi_req;
 
             MPI_Isend(v, n*sizeof(double), MPI_BYTE, b, 0,
@@ -856,7 +856,7 @@ void ParallelTempering::exchange_doubles(int b, double *v, int n)
             MPI_Recv(buf, n*sizeof(double), MPI_BYTE, b, 0,
                      MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             MPI_Wait(&mpi_req, MPI_STATUS_IGNORE);
-        }
+        
         for (i = 0; i < n; i++)
         {
             //fprintf(fplog, "%f\n", buf[i]);
