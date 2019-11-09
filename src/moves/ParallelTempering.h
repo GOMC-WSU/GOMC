@@ -165,6 +165,9 @@ inline uint ParallelTempering::Transform()
 
 inline void ParallelTempering::CalcEn()
 {
+  sysPotNew = sysPotRef;
+
+
   double delta = 0.0;
   double ediff;
   double probability;
@@ -291,6 +294,9 @@ inline void ParallelTempering::Accept(const uint rejectState, const uint step)
   bool result = bThisReplicaExchanged;
 
   if(result){
+    sysPotRef = sysPotNew;
+    swap(coordCurrRef, newMolsPos);
+    swap(comCurrRef, newCOMs);
     cellList.GridAll(boxDimRef, coordCurrRef, molLookupRef);
     //sysPotRef = calcEnRef.SystemTotal();
   }
@@ -776,38 +782,38 @@ void ParallelTempering::exchange_state(int b)
   //update reciprocate value
   //calcEwald->UpdateRecip(bPick);
   
-  exchange_doubles(b, &sysPotRef.totalEnergy.correction, 1);
-  exchange_doubles(b, &sysPotRef.totalEnergy.inter, 1);
-  exchange_doubles(b, &sysPotRef.totalEnergy.intraBond, 1);
-  exchange_doubles(b, &sysPotRef.totalEnergy.intraNonbond, 1);
-  exchange_doubles(b, &sysPotRef.totalEnergy.real, 1);
-  exchange_doubles(b, &sysPotRef.totalEnergy.recip, 1);
-  exchange_doubles(b, &sysPotRef.totalEnergy.self, 1);
-  exchange_doubles(b, &sysPotRef.totalEnergy.tc, 1);
-  exchange_doubles(b, &sysPotRef.totalEnergy.total, 1);
-  exchange_doubles(b, &sysPotRef.totalEnergy.totalElect, 1);
+  exchange_doubles(b, &sysPotNew.totalEnergy.correction, 1);
+  exchange_doubles(b, &sysPotNew.totalEnergy.inter, 1);
+  exchange_doubles(b, &sysPotNew.totalEnergy.intraBond, 1);
+  exchange_doubles(b, &sysPotNew.totalEnergy.intraNonbond, 1);
+  exchange_doubles(b, &sysPotNew.totalEnergy.real, 1);
+  exchange_doubles(b, &sysPotNew.totalEnergy.recip, 1);
+  exchange_doubles(b, &sysPotNew.totalEnergy.self, 1);
+  exchange_doubles(b, &sysPotNew.totalEnergy.tc, 1);
+  exchange_doubles(b, &sysPotNew.totalEnergy.total, 1);
+  exchange_doubles(b, &sysPotNew.totalEnergy.totalElect, 1);
 
   for(uint b = 0; b < BOX_TOTAL; b++) {
 
-  exchange_doubles(b, &sysPotRef.boxEnergy[b].correction, 1);
-  exchange_doubles(b, &sysPotRef.boxEnergy[b].inter, 1);
-  exchange_doubles(b, &sysPotRef.boxEnergy[b].intraBond, 1);
-  exchange_doubles(b, &sysPotRef.boxEnergy[b].intraNonbond, 1);
-  exchange_doubles(b, &sysPotRef.boxEnergy[b].real, 1);
-  exchange_doubles(b, &sysPotRef.boxEnergy[b].recip, 1);
-  exchange_doubles(b, &sysPotRef.boxEnergy[b].self, 1);
-  exchange_doubles(b, &sysPotRef.boxEnergy[b].tc, 1);
-  exchange_doubles(b, &sysPotRef.boxEnergy[b].total, 1);
-  exchange_doubles(b, &sysPotRef.boxEnergy[b].totalElect, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[b].correction, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[b].inter, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[b].intraBond, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[b].intraNonbond, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[b].real, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[b].recip, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[b].self, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[b].tc, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[b].total, 1);
+  exchange_doubles(b, &sysPotNew.boxEnergy[b].totalElect, 1);
   }
   
-  exchange_doubles(b, coordCurrRef.x, coordCurrRef.Count());
-  exchange_doubles(b, coordCurrRef.y, coordCurrRef.Count());
-  exchange_doubles(b, coordCurrRef.z, coordCurrRef.Count());
+  exchange_doubles(b, newMolsPos.x, newMolsPos.Count());
+  exchange_doubles(b, newMolsPos.y, newMolsPos.Count());
+  exchange_doubles(b, newMolsPos.z, newMolsPos.Count());
   
-  exchange_doubles(b, comCurrRef.x, comCurrRef.Count());
-  exchange_doubles(b, comCurrRef.y, comCurrRef.Count());
-  exchange_doubles(b, comCurrRef.z, comCurrRef.Count());
+  exchange_doubles(b, newCOMs.x, newCOMs.Count());
+  exchange_doubles(b, newCOMs.y, newCOMs.Count());
+  exchange_doubles(b, newCOMs.z, newCOMs.Count());
 }
 
 void ParallelTempering::exchange_doubles(int b, double *v, int n)
