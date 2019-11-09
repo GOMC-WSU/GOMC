@@ -138,6 +138,11 @@ inline ParallelTempering::ParallelTempering(System &sys, StaticVals const &statV
   newCOMs.Init(sys.com.Count());
 }
 
+inline ParallelTempering::~ParallelTempering(){
+  print_replica_exchange_statistics(fplog);
+  DestroyRecordKeeper();
+}
+
 inline void ParallelTempering::PrintAcceptKind() {
   printf("%-37s", "% Accepted Parallel Tempering ");
   for(uint b = 0; b < BOX_TOTAL; b++) {
