@@ -315,9 +315,9 @@ inline void ParallelTempering::Accept(const uint rejectState, const uint step)
   uint mkTot = molLookupRef.GetNumCanMoveKind();
 
   for(uint b = 0; b < BOX_TOTAL; b++) {
-    for (uint mk = 0; mk < mkTot; ++mk){
-      moveSetRef.Update(mv::PARALLEL_TEMPERING, result, step, b, mk);
-    }
+    //for (uint mk = 0; mk < mkTot; ++mk){
+      moveSetRef.Update(mv::PARALLEL_TEMPERING, result, step, b);
+    //}
   }
 }
 
