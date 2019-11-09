@@ -288,10 +288,15 @@ inline void ParallelTempering::Accept(const uint rejectState, const uint step)
       if (exchange_partner != replica_id)
       {
           fprintf(fplog, "Exchanging %d with %d\n", replica_id, exchange_partner);
-          fprintf(fplog, "B4 Exch, My first coords x:%f, y:%f, z:%f\n", coordCurrRef.x[0], coordCurrRef.y[0], coordCurrRef.z[0]);
+          fprintf(fplog, "B4 Exch, My first coords x:%f, y:%f, z:%f\n", newMolsPos.x[0], newMolsPos.y[0], newMolsPos.z[0]);
+          fprintf(fplog, "B4 Exch, My first coords x:%f, y:%f, z:%f\n", newMolsPos.x[1], newMolsPos.y[1], newMolsPos.z[1]);
+          fprintf(fplog, "B4 Exch, My first coords x:%f, y:%f, z:%f\n", newMolsPos.x[2], newMolsPos.y[2], newMolsPos.z[2]);
+
           fflush(fplog);
           exchange_state(exchange_partner);
-          fprintf(fplog, "AF Exch, My first coords x:%f, y:%f, z:%f\n", coordCurrRef.x[0], coordCurrRef.y[0], coordCurrRef.z[0]);
+          fprintf(fplog, "AF Exch, My first coords x:%f, y:%f, z:%f\n", newMolsPos.x[0], newMolsPos.y[0], newMolsPos.z[0]);
+          fprintf(fplog, "AF Exch, My first coords x:%f, y:%f, z:%f\n", newMolsPos.x[1], newMolsPos.y[1], newMolsPos.z[1]);
+          fprintf(fplog, "AF Exch, My first coords x:%f, y:%f, z:%f\n", newMolsPos.x[2], newMolsPos.y[2], newMolsPos.z[2]);
           fflush(fplog);
       }
     }
