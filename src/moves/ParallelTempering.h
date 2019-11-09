@@ -292,7 +292,7 @@ inline void ParallelTempering::Accept(const uint rejectState, const uint step)
 
   if(result){
     cellList.GridAll(boxDimRef, coordCurrRef, molLookupRef);
-
+    sysPotRef = calcEnRef.SystemTotal();
   }
 
   uint mkTot = molLookupRef.GetNumCanMoveKind();
@@ -775,6 +775,7 @@ void ParallelTempering::exchange_state(int b)
   //swap(comCurrRef, newCOMs);
   //update reciprocate value
   //calcEwald->UpdateRecip(bPick);
+  /*
   exchange_doubles(b, &sysPotRef.totalEnergy.correction, 1);
   exchange_doubles(b, &sysPotRef.totalEnergy.inter, 1);
   exchange_doubles(b, &sysPotRef.totalEnergy.intraBond, 1);
@@ -798,7 +799,7 @@ void ParallelTempering::exchange_state(int b)
   exchange_doubles(b, &sysPotRef.boxEnergy[b].tc, 1);
   exchange_doubles(b, &sysPotRef.boxEnergy[b].total, 1);
   exchange_doubles(b, &sysPotRef.boxEnergy[b].totalElect, 1);
-  }
+  }*/
   
   exchange_doubles(b, coordCurrRef.x, coordCurrRef.Count());
   exchange_doubles(b, coordCurrRef.y, coordCurrRef.Count());
