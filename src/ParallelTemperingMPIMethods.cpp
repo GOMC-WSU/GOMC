@@ -6,8 +6,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "ParallelTemperingMPIMethods.h"
 
+#if GOMC_LIB_MPI
+
 void ParallelTemperingMPIMethods::gomc_sumd_comm(int nr, double r[], MPI_Comm mpi_comm)
 {
+
 #if MPI_IN_PLACE_EXISTS
     MPI_Allreduce(MPI_IN_PLACE, r, nr, MPI_DOUBLE, MPI_SUM, mpi_comm);
 #else
@@ -17,8 +20,8 @@ void ParallelTemperingMPIMethods::gomc_sumd_comm(int nr, double r[], MPI_Comm mp
     double *buf;
     int     i;
 
-    buf = new double[nr];
-    MPI_Allreduce(r, buf, nr, MPI_DOUBLE, MPI_SUM, mpi_comm);
+    buf = new double[nr]();
+    MPI_Allreduce(r, buf, nr, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     for (i = 0; i < nr; i++)
     {
         r[i] = buf[i];
@@ -26,4 +29,5 @@ void ParallelTemperingMPIMethods::gomc_sumd_comm(int nr, double r[], MPI_Comm mp
     delete[] buf;
 #endif
 }
+#endif
 

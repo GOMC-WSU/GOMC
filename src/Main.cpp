@@ -174,6 +174,7 @@ int main(int argc, char *argv[])
     PrintSimulationFooter();
   }
   #if GOMC_LIB_MPI
+    delete multisim;
     MPI_Finalize();
     //std::cout.rdbuf(savedCOUT); //reset to standard output again
   #endif

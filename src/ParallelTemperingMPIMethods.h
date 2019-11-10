@@ -6,15 +6,22 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #ifndef PARALLELTEMPERINGMPIMETHODS_H
 #define PARALLELTEMPERINGMPIMETHODS_H
-#include <mpi.h>
+
 #include "GOMC_Config.h"
+
+#if GOMC_LIB_MPI
+#include <mpi.h>
+#endif
 
 
 
 class ParallelTemperingMPIMethods{
-//    ParallelTemperingMPIMethods();
 public:
+
+#if GOMC_LIB_MPI
 static void gomc_sumd_comm(int nr, double r[], MPI_Comm mpi_comm);
+#endif
+
 };
 
 #endif

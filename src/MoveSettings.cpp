@@ -166,17 +166,6 @@ void MoveSettings::UpdateMoveSettingMultiParticle(const uint box, bool isAccept,
   }
 }
 
-void MoveSettings::UpdateMoveSettingParallelTempering(bool isAccept, const uint typePick)
-{
-  for(uint box = 0; box < BOX_TOTAL; box++) {
-    mp_tries[box][typePick]++;
-    if(isAccept) {
-      mp_accepted[box][typePick]++;
-    }
-  }
-}
-#
-
 //Adjust responsibly
 void MoveSettings::Adjust(const uint box, const uint move, const uint kind)
 {
