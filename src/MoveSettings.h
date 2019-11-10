@@ -79,10 +79,7 @@ public:
 
   void AdjustMultiParticle(const uint box, const uint typePick);
 
-  void UpdateMoveSettingMultiParticle(uint box, bool isAccept, uint typePick);
-
-  void UpdateMoveSettingParallelTempering(bool isAccept, const uint typePick);
-  
+  void UpdateMoveSettingMultiParticle(uint box, bool isAccept, uint typePick);  
 
   double Scale(const uint box, const uint move, const uint kind = 0) const
   {

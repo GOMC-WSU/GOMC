@@ -27,6 +27,7 @@ class ParallelTempering : public MoveBase
 {
 public:
   ParallelTempering(System &sys, StaticVals const& statV, MultiSim *& multisim, ulong & stepRef);
+  ~ParallelTempering();
 
   virtual uint Prep(const double subDraw, const double movPerc);
   virtual void CalcEn();
@@ -52,6 +53,8 @@ private:
   void exchange_state(int b);
   void exchange_doubles(int b, double *v, int n);
 
+
+  MultiSim * ms;
 
   // This will require a custom mpi sender
   SystemPotential sysPotNew;
@@ -120,7 +123,7 @@ private:
 
 inline ParallelTempering::ParallelTempering(System &sys, StaticVals const &statV, MultiSim *& multisim, ulong & stepRef) :
   MoveBase(sys, statV), molLookupRef(sys.molLookup), step(stepRef), nst(multisim->nst), newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
-  newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef,statV.mol)
+  newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef,statV.mol), ms(multisim)
 {
   repl = multisim->worldRank;
   nrepl = multisim->worldSize;
@@ -159,7 +162,6 @@ inline uint ParallelTempering::Prep(const double subDraw, const double movPerc)
   }
   Epot[repl] = sysPotRef.Total();
   ParallelTemperingMPIMethods::gomc_sumd_comm(nrepl, Epot, MPI_COMM_WORLD);
-
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
 
@@ -293,15 +295,7 @@ inline void ParallelTempering::Accept(const uint rejectState, const uint step)
       if (exchange_partner != replica_id)
       {
           fprintf(fplog, "Exchanging %d with %d\n", replica_id, exchange_partner);
-          fprintf(fplog, "B4 Exch, My first coords x:%f, y:%f, z:%f\n", newMolsPos.x[0], newMolsPos.y[0], newMolsPos.z[0]);
-          fprintf(fplog, "B4 Exch, My first coords x:%f, y:%f, z:%f\n", newMolsPos.x[1], newMolsPos.y[1], newMolsPos.z[1]);
-          fprintf(fplog, "B4 Exch, My first coords x:%f, y:%f, z:%f\n", newMolsPos.x[2], newMolsPos.y[2], newMolsPos.z[2]);
-
-          fflush(fplog);
           exchange_state(exchange_partner);
-          fprintf(fplog, "AF Exch, My first coords x:%f, y:%f, z:%f\n", newMolsPos.x[0], newMolsPos.y[0], newMolsPos.z[0]);
-          fprintf(fplog, "AF Exch, My first coords x:%f, y:%f, z:%f\n", newMolsPos.x[1], newMolsPos.y[1], newMolsPos.z[1]);
-          fprintf(fplog, "AF Exch, My first coords x:%f, y:%f, z:%f\n", newMolsPos.x[2], newMolsPos.y[2], newMolsPos.z[2]);
           fflush(fplog);
       }
     }
@@ -314,15 +308,14 @@ inline void ParallelTempering::Accept(const uint rejectState, const uint step)
     swap(coordCurrRef, newMolsPos);
     swap(comCurrRef, newCOMs);
     cellList.GridAll(boxDimRef, coordCurrRef, molLookupRef);
-    //sysPotRef = calcEnRef.SystemTotal();
   }
 
   uint mkTot = molLookupRef.GetNumCanMoveKind();
 
   for(uint b = 0; b < BOX_TOTAL; b++) {
-    //for (uint mk = 0; mk < mkTot; ++mk){
-      moveSetRef.Update(mv::PARALLEL_TEMPERING, result, step, b);
-    //}
+    for (uint mk = 0; mk < mkTot; ++mk){
+      moveSetRef.Update(mv::PARALLEL_TEMPERING, result, step, b, mk);
+    }
   }
 }
 
@@ -792,12 +785,6 @@ ParallelTempering::prepare_to_do_exchange(const int           replica_id,
 void ParallelTempering::exchange_state(int b)
 {
 
-  //sysPotRef = sysPotNew;
-  //swap(coordCurrRef, newMolsPos);
-  //swap(comCurrRef, newCOMs);
-  //update reciprocate value
-  //calcEwald->UpdateRecip(bPick);
-
   exchange_doubles(b, &sysPotNew.totalEnergy.correction, 1);
   exchange_doubles(b, &sysPotNew.totalEnergy.inter, 1);
   exchange_doubles(b, &sysPotNew.totalEnergy.intraBond, 1);
@@ -824,18 +811,6 @@ void ParallelTempering::exchange_state(int b)
   exchange_doubles(b, &sysPotNew.boxEnergy[box].totalElect, 1);
   }
   
-/*  
-  double x[newMolsPos.Count()];
-  double y[newMolsPos.Count()];
-  double z[newMolsPos.Count()];
-
-
-
-  double xc[newCOMs.Count()];
-  double yc[newCOMs.Count()];
-  double zc[newCOMs.Count()];
-*/
-
   exchange_doubles(b, newMolsPos.x, newMolsPos.Count());
   exchange_doubles(b, newMolsPos.y, newMolsPos.Count());
   exchange_doubles(b, newMolsPos.z, newMolsPos.Count());
@@ -869,8 +844,6 @@ void ParallelTempering::exchange_doubles(int b, double *v, int n)
         
         for (i = 0; i < n; i++)
         {
-            //fprintf(fplog, "%f\n", buf[i]);
-            //fflush(fplog);
             v[i] = buf[i];
         }
         delete[] buf;
