@@ -43,6 +43,11 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
 
   //Molecule instance arrays/data
   count = atoms.startIdxRes.size();
+  if (count == 0) {
+    std::cerr << "Error: No Molecule was found in the PDB file(s)!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
   start = new uint [count + 1];
   start = vect::TransferInto<uint>(start, atoms.startIdxRes);
   start[count] = atoms.x.size();
