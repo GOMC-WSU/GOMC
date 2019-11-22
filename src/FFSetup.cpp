@@ -60,7 +60,7 @@ void FFSetup::Init(std::string const& name, const bool isCHARMM)
   sectKind = SetReadFunctions(isCHARMM);
   string currSectName = "", varName = "";
   string commentChar = "*!";
-  string commentStr = "REMARK set AEXP REXP HAEX AAEX NBOND "
+  string commentStr = "REMARK ATOM ATOMS MASS set AEXP REXP HAEX AAEX NBOND "
                       "CUTNB END CTONN EPS VSWI NBXM INHI";
   map<string, ReadableBaseWithFirst *>::const_iterator sect, currSect;
 
@@ -139,6 +139,11 @@ void Particle::Read(Reader & param, std::string const& firstVar)
     values >> expN;
   }
 
+  if(values.fail()) {
+    std::cout << "Error: Incomplete Nonbonded parameters were found in parameter file!\n";
+    exit(EXIT_FAILURE);
+  }
+
   if (isCHARMM()) { //if lj
     values >> dummy2;
   }
@@ -189,6 +194,11 @@ void NBfix::Read(Reader & param, std::string const& firstVar)
     values >> expN;
   }
 
+  if(values.fail()) {
+    std::cout << "Error: Incomplete NBfix parameters were found in parameter file!\n";
+    exit(EXIT_FAILURE);
+  }
+
   values >> e_1_4 >> s_1_4;
   if (values.fail()) {
     e_1_4 = e;
@@ -235,6 +245,10 @@ void Bond::Read(Reader & param, std::string const& firstVar)
   double coeff, def;
   ReadKind(param, firstVar);
   param.file >> coeff >> def;
+  if(!param.file.good()) {
+    std::cout << "Error: Incomplete Bond parameters were found in parameter file!\n";
+    exit(EXIT_FAILURE);
+  }
   Add(coeff, def);
 }
 void Bond::Add(const double coeff, const double def)
@@ -250,6 +264,10 @@ void Angle::Read(Reader & param, std::string const& firstVar)
   bool hsUB;
   std::stringstream values(LoadLine(param, firstVar));
   values >> coeff >> def;
+  if(values.fail()) {
+    std::cout << "Error: Incomplete Angle parameters were found in parameter file!\n";
+    exit(EXIT_FAILURE);
+  }
   values >> coeffUB >> defUB;
 
   hsUB = !values.fail();
@@ -277,6 +295,10 @@ void Dihedral::Read(Reader & param, std::string const& firstVar)
   uint index;
   std::string merged = ReadKind(param, firstVar);
   param.file >> coeff >> index >> def;
+  if(!param.file.good()) {
+    std::cout << "Error: Incomplete Dihedral parameters were found in parameter file!\n";
+    exit(EXIT_FAILURE);
+  }
   if(index == 0) {
     //set phase shif for n=0 to 90 degree
     // We will have C0 = Kchi (1 + cos(0 * phi + 90)) = Kchi
@@ -299,8 +321,13 @@ void Improper::Read(Reader & param, std::string const& firstVar)
   double coeff, def;
   std::string merged = ReadKind(param, firstVar);
   //If new value
-  if (validname(merged) == false) {
+  if (validname(merged) == true) {
+    std::cout << "Warning: GOMC does not support IMPROPER!\n";
     param.file >> coeff >> def;
+    if(!param.file.good()) {
+      std::cout << "Error: Incomplete Improper parameters was found in parameter file!\n";
+      exit(EXIT_FAILURE);
+    }
     Add(coeff, def);
   }
 }
