@@ -32,10 +32,14 @@ FFSetup::SetReadFunctions(const bool isCHARMM)
 {
   std::map<std::string, ReadableBaseWithFirst *> funct;
   //From CHARMM style file.
+  funct["BOND"] = &bond;
   funct["BONDS"] = &bond;
+  funct["ANGLE"] = &angle;
   funct["ANGLES"] = &angle;
+  funct["DIHEDRAL"] = &dih;
   funct["DIHEDRALS"] = &dih;
   funct["IMPROPER"] = &imp;
+  funct["IMPROPERS"] = &imp;
   if (isCHARMM) {
     funct["NONBONDED"] = &mie;
     funct["NBFIX"] = &nbfix;
