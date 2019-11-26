@@ -190,6 +190,7 @@ int main(int argc, char *argv[])
       Simulation sim(inputFileString.c_str(), multisim);
       sim.RunSimulation();
       PrintSimulationFooter();
+      delete multisim;
     }
 #else
     Simulation sim(inputFileString.c_str());
@@ -198,7 +199,6 @@ int main(int argc, char *argv[])
 #endif
   }
   #if GOMC_LIB_MPI
-    delete multisim;
     MPI_Finalize();
     //std::cout.rdbuf(savedCOUT); //reset to standard output again
   #endif
