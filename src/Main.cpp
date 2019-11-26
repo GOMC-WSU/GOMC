@@ -51,7 +51,11 @@ int main(int argc, char *argv[])
 {
 #if GOMC_LIB_MPI
   string inputFileStringMPI;
+  fstream inputFileReaderMPI;
   MultiSim * multisim;
+  int worldSize;
+  int worldRank;
+  ParallelTemperingPreprocessor pt;
 
   //std::streambuf * savedCOUT;
   //CHECK IF ARGS/FILE PROVIDED IN CMD LINE
@@ -74,33 +78,49 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
       }
     }    
+
+    //OPEN FILE
+    inputFileReaderMPI.open(inputFileStringMPI.c_str(), ios::in | ios::out);
+
+    //CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
+    if (!inputFileReaderMPI.is_open()) {
+      std::cout << "Error: Cannot open/find " << inputFileStringMPI <<
+                " in the directory provided!\n";
+      exit(EXIT_FAILURE);
+    }
+
+    //CLOSE FILE TO NOW PASS TO SIMULATION
+    inputFileReaderMPI.close();
+
     // Initialize the MPI environment
     MPI_Init(NULL, NULL);
 
     // Get the number of processes
-    int worldSize;
     MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
 
     // Get the rank of the process
-    int worldRank;
     MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
 
-    ParallelTemperingPreprocessor pt;
     std::string pathToReplicaDirectory;
     if(pt.checkIfParallelTempering(inputFileStringMPI)){
-        pt.checkIfValid(inputFileStringMPI);
+      pt.checkIfValid(inputFileStringMPI);
+      if(worldSize > pt.getNumberOfReplicas(inputFileStringMPI)){
+        std::cout << "You may not request more processes (" << worldSize
+          << ") than there are replicas(" << pt.getNumberOfReplicas(inputFileStringMPI) << ")! Exiting!\n";
+      } else {
         #if ENSEMBLE == GCMC
-          pathToReplicaDirectory = pt.setupReplicaDirectoriesAndRedirectSTDOUTToFile  ( pt.getMultiSimFolderName(inputFileStringMPI).c_str(),
+        pathToReplicaDirectory = pt.setupReplicaDirectoriesAndRedirectSTDOUTToFile  ( pt.getMultiSimFolderName(inputFileStringMPI).c_str(),
                                                                                         pt.getTemperature(inputFileStringMPI.c_str(), worldRank).c_str(),
                                                                                         pt.getChemicalPotential(inputFileStringMPI.c_str(), worldRank).c_str()
-                                                                                      );
+                                                                                      );                                                                            
         #else
-          pathToReplicaDirectory = pt.setupReplicaDirectoriesAndRedirectSTDOUTToFile  ( pt.getMultiSimFolderName(inputFileStringMPI).c_str(),
+        pathToReplicaDirectory = pt.setupReplicaDirectoriesAndRedirectSTDOUTToFile  ( pt.getMultiSimFolderName(inputFileStringMPI).c_str(),
                                                                                         pt.getTemperature(inputFileStringMPI.c_str(), worldRank).c_str()
                                                                                       );
         #endif
+        multisim = new MultiSim(worldSize, worldRank, pathToReplicaDirectory);
+      }
     }
-    multisim = new MultiSim(worldSize, worldRank, pathToReplicaDirectory);
   }
 #endif
 #ifndef NDEBUG
@@ -166,12 +186,16 @@ int main(int argc, char *argv[])
     //ONCE FILE FOUND PASS STRING TO SIMULATION CLASS TO READ AND
     //HANDLE PDB|PSF FILE
 #if GOMC_LIB_MPI
-    Simulation sim(inputFileString.c_str(), multisim);
+    if(worldSize <= pt.getNumberOfReplicas(inputFileStringMPI)){
+      Simulation sim(inputFileString.c_str(), multisim);
+      sim.RunSimulation();
+      PrintSimulationFooter();
+    }
 #else
     Simulation sim(inputFileString.c_str());
-#endif
     sim.RunSimulation();
     PrintSimulationFooter();
+#endif
   }
   #if GOMC_LIB_MPI
     MPI_Finalize();
