@@ -1743,25 +1743,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim *& multisim)
                out.restart.settings.frequency);
       } else
         printf("%-40s %-s \n", "Info: Printing restart coordinate", "Inactive");
-    } else if (CheckString(line[0], "ParallelTemperingFreq")) {
-      out.parallelTempering.enable = checkBool(line[1]);
-      if(line.size() == 3){
-        out.parallelTempering.frequency = stringtoi(line[2]);
-        multisim->nst = out.parallelTempering.frequency;
-      }
-      if(out.parallelTempering.enable && (line.size() == 2)) {
-        if(sys.step.total > 1000) {
-          out.parallelTempering.frequency = (ulong)sys.step.total / 1000;
-        } else {
-          out.parallelTempering.frequency = (ulong)sys.step.total / 100;
-        }
-      }
-      if(out.parallelTempering.enable) {
-        printf("%-40s %-lu \n", "Info: Parallel Tempering frequency",
-               out.parallelTempering.frequency);
-      } else
-        printf("%-40s %-s \n", "Info: Parallel Tempering", "Inactive");
-      } else if(CheckString(line[0], "ConsoleFreq")) {
+    } else if(CheckString(line[0], "ConsoleFreq")) {
       out.console.enable = checkBool(line[1]);
       if(line.size() == 3)
         out.console.frequency = stringtoi(line[2]);

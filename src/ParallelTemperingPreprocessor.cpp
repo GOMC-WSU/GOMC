@@ -239,6 +239,9 @@ std::string ParallelTemperingPreprocessor::mkdirWrapper(std::string multisimDire
     std::string pathToReplicaDirectory = replicaStream.str();
     replicaStream << "ConsoleOut.dat";
     std::string pathToReplicaLogFile = replicaStream.str();    
+    //std::ofstream out(pathToReplicaLogFile);
+    //std::streambuf * coutbuf;
+    //auto coutbuf = std::cout.rdbuf(out.rdbuf()); //save and redirect
     freopen(pathToReplicaLogFile.c_str(),"w",stdout);
     return pathToReplicaDirectory;
     

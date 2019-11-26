@@ -40,7 +40,6 @@ private:
   std::vector<ulong> frameSteps;
   uint remarksCount;
   ulong startStep;
-  ulong step;
 };
 
 #endif /*SIMULATION_H*/
