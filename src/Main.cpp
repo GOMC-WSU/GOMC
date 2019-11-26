@@ -191,6 +191,9 @@ int main(int argc, char *argv[])
       sim.RunSimulation();
       PrintSimulationFooter();
       delete multisim;
+      MPI_Finalize();
+    } else {
+      MPI_Finalize();
     }
 #else
     Simulation sim(inputFileString.c_str());
@@ -198,10 +201,6 @@ int main(int argc, char *argv[])
     PrintSimulationFooter();
 #endif
   }
-  #if GOMC_LIB_MPI
-    MPI_Finalize();
-    //std::cout.rdbuf(savedCOUT); //reset to standard output again
-  #endif
   return 0;
 }
 
