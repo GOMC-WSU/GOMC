@@ -25,6 +25,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Clock.h"
 #include "CheckpointSetup.h"
 #include "../lib/Lambda.h"
+#include "GOMC_Config.h"
+#if GOMC_LIB_MPI
+#include "ParallelTemperingPreprocessor.h"
+#endif
 
 //Initialization variables
 class Setup;
@@ -39,6 +43,10 @@ public:
   explicit System(StaticVals& statics);
 
   void Init(Setup const& setupData, ulong & startStep);
+
+  #if GOMC_LIB_MPI
+  void Init(Setup const& setupData, ulong & startStep, MultiSim *& multisim, ulong & step);
+  #endif
 
   //Runs move, picked at random
   void ChooseAndRunMove(const uint step);
@@ -120,6 +128,9 @@ public:
 private:
   void InitLambda();
   void InitMoves(Setup const& set);
+  #if GOMC_LIB_MPI
+  void InitMoves(Setup const& set, MultiSim *& multisim, ulong & step);
+  #endif
   void PickMove(uint & kind, double & draw);
   uint SetParams(const uint kind, const double draw);
   uint Transform(const uint kind);
@@ -129,6 +140,12 @@ private:
   double moveTime[mv::MOVE_KINDS_TOTAL];
   MoveBase * moves[mv::MOVE_KINDS_TOTAL];
   Clock time;
+
+  #if GOMC_LIB_MPI
+  ulong stepsPerParallelTempering;
+  bool enableParallelTempering;
+  ulong equilSteps;
+  #endif
 };
 
 #endif /*SYSTEM_H*/
