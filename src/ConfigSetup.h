@@ -168,7 +168,7 @@ struct Step {
 //Holds the percentage of each kind of move for this ensemble.
 struct MovePercents {
   double displace, rotate, intraSwap, intraMemc, regrowth, crankShaft,
-    multiParticle;
+  multiParticle;
   bool multiParticleEnabled;
 #ifdef VARIABLE_VOLUME
   double volume;
@@ -377,7 +377,11 @@ struct Statistics {
 struct Output {
   SysState state, restart;
   Statistics statistics;
+  #if GOMC_LIB_MPI
+  EventSettings console, checkpoint, parallelTempering;
+  #else
   EventSettings console, checkpoint;
+  #endif
 };
 
 }

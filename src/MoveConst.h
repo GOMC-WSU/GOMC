@@ -12,7 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include <vector>
 #include <string>
-
+#include "GOMC_Config.h"
 
 namespace mv
 {
@@ -34,7 +34,13 @@ const uint INTRA_SWAP = 3;
 const uint REGROWTH = 4;
 const uint INTRA_MEMC = 5;
 const uint CRANKSHAFT = 6;
+#if GOMC_LIB_MPI
+const uint PARALLEL_TEMPERING = 7;
+const uint MOVE_KINDS_TOTAL = 8;
+const uint MOVE_KINDS_TOTAL_EXCLUDING_PARALLEL_TEMPERING = 7;
+#else
 const uint MOVE_KINDS_TOTAL = 7;
+#endif
 #elif ENSEMBLE == GCMC
 const uint INTRA_SWAP = 3;
 const uint REGROWTH = 4;
@@ -43,7 +49,13 @@ const uint CRANKSHAFT = 6;
 const uint MEMC = 7;
 const uint MOL_TRANSFER = 8;
 const uint CFCMC = 9;
+#if GOMC_LIB_MPI
+const uint PARALLEL_TEMPERING = 10;
+const uint MOVE_KINDS_TOTAL = 11;
+const uint MOVE_KINDS_TOTAL_EXCLUDING_PARALLEL_TEMPERING = 10;
+#else
 const uint MOVE_KINDS_TOTAL = 10;
+#endif
 #elif ENSEMBLE == GEMC
 const uint VOL_TRANSFER = 3;
 const uint INTRA_SWAP = 4;
@@ -53,14 +65,26 @@ const uint CRANKSHAFT = 7;
 const uint MEMC = 8;
 const uint MOL_TRANSFER = 9;
 const uint CFCMC = 10;
+#if GOMC_LIB_MPI
+const uint PARALLEL_TEMPERING = 11;
+const uint MOVE_KINDS_TOTAL = 12;
+const uint MOVE_KINDS_TOTAL_EXCLUDING_PARALLEL_TEMPERING = 11;
+#else
 const uint MOVE_KINDS_TOTAL = 11;
+#endif
 #elif ENSEMBLE == NPT
 const uint VOL_TRANSFER = 3;
 const uint INTRA_SWAP = 4;
 const uint REGROWTH = 5;
 const uint INTRA_MEMC = 6;
 const uint CRANKSHAFT = 7;
+#if GOMC_LIB_MPI
+const uint PARALLEL_TEMPERING = 8;
+const uint MOVE_KINDS_TOTAL = 9;
+const uint MOVE_KINDS_TOTAL_EXCLUDING_PARALLEL_TEMPERING = 8;
+#else
 const uint MOVE_KINDS_TOTAL = 8;
+#endif
 #endif
 
 const uint BOX0 = 0;

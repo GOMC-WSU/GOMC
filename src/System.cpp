@@ -33,6 +33,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CrankShaft.h"
 #include "CFCMC.h"
 
+#include "GOMC_Config.h"
+#if GOMC_LIB_MPI
+#include "ParallelTempering.h"
+#endif
+
 System::System(StaticVals& statics) :
   statV(statics),
 #ifdef VARIABLE_VOLUME
@@ -52,6 +57,11 @@ System::System(StaticVals& statics) :
   calcEnergy(statics, *this), checkpointSet(*this, statics)
 {
   calcEwald = NULL;
+  #if GOMC_LIB_MPI
+  stepsPerParallelTempering = statics.stepsPerParallelTempering;
+  enableParallelTempering = statics.enableParallelTempering;
+  equilSteps = statics.equilSteps;
+  #endif
 }
 
 System::~System()
@@ -75,6 +85,9 @@ System::~System()
   delete moves[mv::MOL_TRANSFER];
   delete moves[mv::MEMC];
   delete moves[mv::CFCMC];
+#endif
+#if GOMC_LIB_MPI
+  delete moves[mv::PARALLEL_TEMPERING];
 #endif
 }
 
@@ -145,6 +158,75 @@ void System::Init(Setup const& set, ulong & startStep)
     moveTime[m] = 0.0;
 }
 
+#if GOMC_LIB_MPI
+void System::Init(Setup const& set, ulong & startStep, MultiSim *& multisim, ulong & step)
+{
+  prng.Init(set.prng.prngMaker.prng);
+#ifdef VARIABLE_VOLUME
+  boxDimensions->Init(set.config.in.restart,
+                      set.config.sys.volume, set.pdb.cryst,
+                      statV.forcefield);
+#endif
+#ifdef VARIABLE_PARTICLE_NUMBER
+  molLookup.Init(statV.mol, set.pdb.atoms);
+#endif
+  moveSettings.Init(statV, set.pdb.remarks, molLookupRef.GetNumKind());
+  //Note... the following calls use box iterators, so must come after
+  //the molecule lookup initialization, in case we're in a constant
+  //particle/molecule ensemble, e.g. NVT
+  coordinates.InitFromPDB(set.pdb.atoms);
+
+  // At this point see if checkpoint is enabled. if so re-initialize
+  // coordinates, prng, mollookup, step, boxdim, and movesettings
+  if(set.config.in.restart.restartFromCheckpoint) {
+    checkpointSet.ReadAll();
+    checkpointSet.SetStepNumber(startStep);
+    checkpointSet.SetBoxDimensions(boxDimRef);
+    checkpointSet.SetPRNGVariables(prng);
+    checkpointSet.SetCoordinates(coordinates);
+    checkpointSet.SetMoleculeLookup(molLookupRef);
+    checkpointSet.SetMoveSettings(moveSettings);
+  }
+
+  com.CalcCOM();
+  // Allocate space for atom forces
+  atomForceRef.Init(set.pdb.atoms.beta.size());
+  molForceRef.Init(com.Count());
+  // Allocate space for reciprocate force
+  atomForceRecRef.Init(set.pdb.atoms.beta.size());
+  molForceRecRef.Init(com.Count());
+  cellList.SetCutoff();
+  cellList.GridAll(boxDimRef, coordinates, molLookupRef);
+
+  //check if we have to use cached version of ewlad or not.
+  bool ewald = set.config.sys.elect.ewald;
+  bool cached = set.config.sys.elect.cache;
+
+#ifdef GOMC_CUDA
+  if(ewald)
+    calcEwald = new Ewald(statV, *this);
+  else
+    calcEwald = new NoEwald(statV, *this);
+#else
+  if (ewald && cached)
+    calcEwald = new EwaldCached(statV, *this);
+  else if (ewald && !cached)
+    calcEwald = new Ewald(statV, *this);
+  else
+    calcEwald = new NoEwald(statV, *this);
+#endif
+
+  //Initial the lambda before calling SystemTotal
+  InitLambda();
+  calcEnergy.Init(*this);
+  calcEwald->Init();
+  potential = calcEnergy.SystemTotal();
+  InitMoves(set, multisim, step);
+  for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++)
+    moveTime[m] = 0.0;
+}
+#endif
+
 void System::InitMoves(Setup const& set)
 {
   moves[mv::DISPLACE] = new Translate(*this, statV);
@@ -176,6 +258,41 @@ void System::InitMoves(Setup const& set)
   moves[mv::CFCMC] = new CFCMC(*this, statV);
 #endif
 }
+
+#if GOMC_LIB_MPI
+void System::InitMoves(Setup const& set, MultiSim *& multisim, ulong & step)
+{
+  moves[mv::DISPLACE] = new Translate(*this, statV);
+  moves[mv::MULTIPARTICLE] = new MultiParticle(*this, statV);
+  moves[mv::ROTATE] = new Rotate(*this, statV);
+  moves[mv::INTRA_SWAP] = new IntraSwap(*this, statV);
+  moves[mv::REGROWTH] = new Regrowth(*this, statV);
+  moves[mv::CRANKSHAFT] = new CrankShaft(*this, statV);
+  if(set.config.sys.intraMemcVal.MEMC1) {
+    moves[mv::INTRA_MEMC] = new IntraMoleculeExchange1(*this, statV);
+  } else if (set.config.sys.intraMemcVal.MEMC2) {
+    moves[mv::INTRA_MEMC] = new IntraMoleculeExchange2(*this, statV);
+  } else {
+    moves[mv::INTRA_MEMC] = new IntraMoleculeExchange3(*this, statV);
+  }
+
+#if ENSEMBLE == GEMC || ENSEMBLE == NPT
+  moves[mv::VOL_TRANSFER] = new VolumeTransfer(*this, statV);
+#endif
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
+  moves[mv::MOL_TRANSFER] = new MoleculeTransfer(*this, statV);
+  if(set.config.sys.memcVal.MEMC1) {
+    moves[mv::MEMC] = new MoleculeExchange1(*this, statV);
+  } else if (set.config.sys.memcVal.MEMC2) {
+    moves[mv::MEMC] = new MoleculeExchange2(*this, statV);
+  } else {
+    moves[mv::MEMC] = new MoleculeExchange3(*this, statV);
+  }
+  moves[mv::CFCMC] = new CFCMC(*this, statV);
+#endif
+  moves[mv::PARALLEL_TEMPERING] = new ParallelTempering(*this, statV, multisim, step);
+}
+#endif
 
 void System::InitLambda()
 {
@@ -237,11 +354,29 @@ void System::ChooseAndRunMove(const uint step)
   RunMove(majKind, draw, step);
   time.SetStop();
   moveTime[majKind] += time.GetTimDiff();
+  #if GOMC_LIB_MPI
+  //enableParallelTempering = true;
+  //equilSteps = 50;
+  //stepsPerParallelTempering = 1;
+  if (enableParallelTempering && step >= equilSteps && step % stepsPerParallelTempering == 0){
+    // Do ptMove
+    majKind = mv::PARALLEL_TEMPERING;
+    time.SetStart();
+    RunMove(majKind, draw, step);
+    time.SetStop();
+    moveTime[majKind] += time.GetTimDiff();
+  }
+  #endif
 }
 void System::PickMove(uint & kind, double & draw)
 {
+  #if GOMC_LIB_MPI
+  prng.PickArbDist(kind, draw, statV.movePerc, statV.totalPerc,
+                  mv::MOVE_KINDS_TOTAL_EXCLUDING_PARALLEL_TEMPERING);
+  #else
   prng.PickArbDist(kind, draw, statV.movePerc, statV.totalPerc,
                    mv::MOVE_KINDS_TOTAL);
+  #endif
 }
 
 void System::RunMove(uint majKind, double draw, const uint step)
@@ -322,6 +457,9 @@ void System::PrintTime()
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   printf("%-36s %10.4f    sec.\n", "Vol-Transfer:", moveTime[mv::VOL_TRANSFER]);
+#endif
+#if GOMC_MPI_LIB
+  printf("%-36s %10.4f    sec.\n", "Parallel Tempering:", moveTime[mv::PARALLEL_TEMPERING]);
 #endif
   std::cout << std::endl;
 }
