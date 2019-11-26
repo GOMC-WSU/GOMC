@@ -474,7 +474,6 @@ void EwaldCached::backupMolCache()
   exgMolCache();
 #else
   uint m;
-
 #ifdef _OPENMP
   #pragma omp parallel for private(m)
 #endif
