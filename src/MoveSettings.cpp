@@ -122,11 +122,7 @@ void MoveSettings::AdjustMoves(const uint step)
   //Check whether we need to adjust this move's scaling.
   if ((step + 1) % perAdjust == 0) {
     for(uint b = 0; b < BOX_TOTAL; b++) {
-      #if GOMC_LIB_MPI
-      for (uint m = 0; m < mv::MOVE_KINDS_TOTAL_EXCLUDING_PARALLEL_TEMPERING; ++m) {
-      #else
       for (uint m = 0; m < mv::MOVE_KINDS_TOTAL; ++m) {
-      #endif
         for(uint k = 0; k < totKind; k++) {
           Adjust(b, m, k);
         }

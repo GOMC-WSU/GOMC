@@ -55,7 +55,7 @@ Simulation::Simulation(char const*const configFileName, MultiSim *& multisim)
   staticValues = new StaticVals(set);
   system = new System(*staticValues);
   staticValues->Init(set, *system);
-  system->Init(set, startStep, multisim, step);
+  system->Init(set, startStep);
   //recal Init for static value for initializing ewald since ewald is
   //initialized in system
   staticValues->InitOver(set, *system);
@@ -96,7 +96,7 @@ void Simulation::RunSimulation(void)
       cpu->Output(frameSteps[i] - 1);
     }
   }
-  for (step = startStep; step < totalSteps; step++) {
+  for (ulong step = startStep; step < totalSteps; step++) {
     system->moveSettings.AdjustMoves(step);
     system->ChooseAndRunMove(step);
     cpu->Output(step);
