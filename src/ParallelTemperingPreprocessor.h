@@ -14,6 +14,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <sys/stat.h>
 #include <sstream>
 #include <cstdlib>
+#include <mpi.h>
+
 
 #ifdef WIN32
 #define OS_SEP '\\'

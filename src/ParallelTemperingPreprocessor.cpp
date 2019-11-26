@@ -72,6 +72,7 @@ void ParallelTemperingPreprocessor::checkIfValid(std::string inputFileString){
       std::cout << "provide only one temperature or only one chemical potential.\n";
       std::cout << "Number of temperatures provided: " << numberOfTemperatures << "\n";
       std::cout << "Number of chemical potentials provided: " << *it << "\n";
+      MPI_Finalize();
       exit(EXIT_FAILURE);
     }
   }
@@ -80,6 +81,7 @@ void ParallelTemperingPreprocessor::checkIfValid(std::string inputFileString){
       std::cout << "Error: Unequal number of LambdaCoulombs and LambdaVDWs in Free Energy calculation!\n";
       std::cout << "Number of temperatures provided: " << numberOfLambdaCoulombs << "\n";
       std::cout << "Number of temperatures provided: " << numberOfLambdaVDWs << "\n";
+      MPI_Finalize();
       exit(EXIT_FAILURE);
   }
 }
@@ -195,6 +197,7 @@ std::string ParallelTemperingPreprocessor::getChemicalPotential(std::string inpu
         chemPotStream << "_" << resName << "_" << val;
       } else if(line.size() != 3) {
         std::cout << "Error: Chemical potential parameters are not specified!\n";
+        MPI_Finalize();
         exit(EXIT_FAILURE);
       } else {
         resName = line[1];
