@@ -308,6 +308,10 @@ inline void ParallelTempering::Accept(const uint rejectState, const uint step)
     swap(coordCurrRef, newMolsPos);
     swap(comCurrRef, newCOMs);
     cellList.GridAll(boxDimRef, coordCurrRef, molLookupRef);
+    //Update reciprocal
+    for(uint b = 0; b < BOX_TOTAL; b++) {
+      calcEwald->UpdateRecip(b);
+    }
   }
 
   uint mkTot = molLookupRef.GetNumCanMoveKind();
