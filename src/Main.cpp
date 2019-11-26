@@ -190,12 +190,12 @@ int main(int argc, char *argv[])
       Simulation sim(inputFileString.c_str(), multisim);
       sim.RunSimulation();
       PrintSimulationFooter();
+      delete multisim;
     }
 #else
     Simulation sim(inputFileString.c_str());
     sim.RunSimulation();
     PrintSimulationFooter();
-    delete multisim;
 #endif
   }
   #if GOMC_LIB_MPI
