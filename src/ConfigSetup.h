@@ -27,10 +27,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #endif
 
 #include "GOMC_Config.h"    //For PT
-#if GOMC_LIB_MPI
 #include "ParallelTemperingPreprocessor.h"
 #include <sstream>  //for prefixing uniqueVal with the pathToReplicaDirectory
-#endif
 #ifdef WIN32
 #define OS_SEP '\\'
 #else
@@ -389,10 +387,7 @@ public:
   config_setup::Output out;
   config_setup::SystemVals sys;
   ConfigSetup(void);
-  void Init(const char *fileName);
-  #if GOMC_LIB_MPI
-  void Init(const char *fileName, MultiSim *& multisim);
-  #endif
+  void Init(const char *fileName, MultiSim const*const& multisim);
 private:
   void fillDefaults(void);
   bool checkBool(string str);

@@ -25,27 +25,33 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 class ParallelTemperingPreprocessor {
 public:
-explicit ParallelTemperingPreprocessor();
-bool checkIfParallelTempering(std::string inputFileString);
-void checkIfValid(std::string inputFileString);
-int getNumberOfReplicas(std::string inputFileString);
-std::string getMultiSimFolderName(std::string inputFileString);
-std::string getTemperature(std::string inputFileString, int world_rank);
-std::string getChemicalPotential(std::string inputFileString, int world_rank);
+
+explicit ParallelTemperingPreprocessor( int argc, 
+                                        char *argv[]);
+bool checkIfValidRank();
+bool checkIfParallelTempering(const char *fileName);
+void checkIfValid(const char *fileName);
+int getNumberOfReplicas(const char *fileName);
+std::string getMultiSimFolderName(const char *fileName);
+std::string getTemperature(const char *fileName, int worldRank);
+std::string getChemicalPotential(const char *fileName, int worldRank);
 std::string setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature);   
 std::string setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature, std::string chemPot);   
-std::string mkdirWrapper(std::string multisimDirectoryName, string replicaDirectoryName);
+std::string mkdirWrapper(std::string multisimDirectoryName, std::string replicaDirectoryName);
 bool CheckString(string str1, string str2);
 private:
+  friend class MultiSim;
+  std::string inputFileStringMPI;
+  fstream inputFileReaderMPI;
+  std::string pathToReplicaDirectory;
+  int worldSize, worldRank;
 };
 
 class MultiSim {
 public:
-explicit MultiSim(int worldSize, int worldRank, std::string pathToReplicaDirectory);
-int worldSize, worldRank; 
-std::string pathToReplicaDirectory;
-
-
+explicit MultiSim(ParallelTemperingPreprocessor & pt);
+const int worldSize, worldRank; 
+const std::string pathToReplicaDirectory;
 private:
 };
 #endif /*ParallelTemperingPreprocessor_H*/

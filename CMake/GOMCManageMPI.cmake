@@ -38,7 +38,7 @@ if(GOMC_MPI)
   if(GOMC_THREAD_MPI)
     message(STATUS "MPI is not compatible with thread-MPI. Disabling thread-MPI.")
     set(GOMC_THREAD_MPI OFF CACHE BOOL
-        "Build a thread-MPI-based multithreaded version of GROMACS (not compatible with MPI)" FORCE)
+        "Build a thread-MPI-based multithreaded version of GOMC (not compatible with MPI)" FORCE)
   endif()
 
   # Test the CMAKE_C_COMPILER for being an MPI (wrapper) compiler
@@ -116,14 +116,14 @@ if(GOMC_MPI)
         if(OPENMPI_VERSION VERSION_LESS "1.4.1")
           MESSAGE(WARNING
              "CMake found OpenMPI version ${OPENMPI_VERSION} on your system. "
-             "There are known problems with GROMACS and OpenMPI version < 1.4.1. "
+             "There are known problems with GOMC and OpenMPI version < 1.4.1. "
              "Please consider updating your OpenMPI if your MPI wrapper compilers "
              "are using the above OpenMPI version.")
         endif()
         if(OPENMPI_VERSION VERSION_EQUAL "1.8.6")
           MESSAGE(WARNING
              "CMake found OpenMPI version ${OPENMPI_VERSION} on your system. "
-             "This OpenMPI version is known to leak memory with GROMACS,"
+             "This OpenMPI version is known to leak memory with GOMC,"
              "please update to a more recent version. ")
         endif()
         unset(OPENMPI_VERSION)
@@ -154,7 +154,7 @@ if(GOMC_MPI)
           # This test works correctly even with 1.5a1
           MESSAGE(WARNING
              "CMake found MVAPICH2 version ${MVAPICH2_VERSION} on your system. "
-             "There are known problems with GROMACS and MVAPICH2 version < 1.5. "
+             "There are known problems with GOMC and MVAPICH2 version < 1.5. "
              "Please consider updating your MVAPICH2 if your MPI wrapper compilers "
              "are using the above MVAPICH2 version.")
        endif()
