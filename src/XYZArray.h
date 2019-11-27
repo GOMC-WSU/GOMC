@@ -115,6 +115,10 @@ public:
 
   void SetRange(const uint start, const uint stop, XYZ const& val);
 
+  void ResetRange(const uint val, const uint stop);
+
+  void Reset();
+
   ////////////////////////////////////////////////////////////////////
 
   //Add values in two diferent arrays.
@@ -227,6 +231,14 @@ public:
     x[i] += val.x;
     y[i] += val.y;
     z[i] += val.z;
+  }
+
+  // Sub XYZ value val to row i
+  void Sub(const uint i, XYZ const& val)
+  {
+    x[i] -= val.x;
+    y[i] -= val.y;
+    z[i] -= val.z;
   }
 
   //Sub values from a single element of the array's values.
@@ -389,6 +401,23 @@ inline void XYZArray::SetRange(const uint start, const uint stop,
     y[i] = val.y;
     z[i] = val.z;
   }
+}
+
+inline void XYZArray::ResetRange(const uint val, const uint stop) 
+{
+#ifdef _OPENMP
+  #pragma omp parallel default(shared)
+#endif
+  {
+    memset(this->x, val, stop * sizeof(double));
+    memset(this->y, val, stop * sizeof(double));
+    memset(this->z, val, stop * sizeof(double));
+  }
+}
+
+inline void XYZArray::Reset()
+{
+  ResetRange(0, count);
 }
 
 inline void XYZArray::Init(const uint n)

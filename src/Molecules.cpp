@@ -13,6 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "VectorLib.h" //for transfer.
 #include <algorithm> //For count.
 #include <string>
+#include "System.h"
 
 class System;
 
@@ -43,6 +44,11 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
 
   //Molecule instance arrays/data
   count = atoms.startIdxRes.size();
+  if (count == 0) {
+    std::cerr << "Error: No Molecule was found in the PDB file(s)!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
   start = new uint [count + 1];
   start = vect::TransferInto<uint>(start, atoms.startIdxRes);
   start[count] = atoms.x.size();
@@ -145,7 +151,6 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
         pairVirCorrections[i * kindsCount + j];
     }
   }
-
 }
 
 void Molecules::PrintLJInfo(std::vector<uint> &totAtomKind,
@@ -155,32 +160,72 @@ void Molecules::PrintLJInfo(std::vector<uint> &totAtomKind,
   if(printFlag) {
     uint size =  totAtomKind.size();
     printf("NonBonded 1-4 parameters:\n");
-    printf("%-6s %-10s %17s %11s %7s \n", "Type1", "Type2", "Epsilon(K)",
-           "Sigma(A)", "N");
+    if(forcefield.exp6) {
+      printf("%-6s %-10s %17s %11s %11s %11s %7s \n", "Type1", "Type2",
+            "Epsilon(K)", "Sigma(A)", "Rmax(A)", "Rmin(A)", "alpha");
+    } else {
+      printf("%-6s %-10s %17s %11s %7s \n", "Type1", "Type2", "Epsilon(K)",
+            "Sigma(A)", "N");
+    }
     for(uint i = 0; i < size; i++) {
       for(uint j = i; j < size; j++) {
-        printf("%-6s %-10s %17.4f %11.4f %7.2f \n", names[i].c_str(),
-               names[j].c_str(),
-               forcefield.particles->GetEpsilon_1_4(totAtomKind[i],
-                   totAtomKind[j]),
-               forcefield.particles->GetSigma_1_4(totAtomKind[i],
-                   totAtomKind[j]),
-               forcefield.particles->GetN_1_4(totAtomKind[i],
-                                              totAtomKind[j]));
+        if(forcefield.exp6) {
+          printf("%-6s %-10s %17.4f %11.4f %11.4f %11.4f %7.2f \n",
+                names[i].c_str(), names[j].c_str(),
+                forcefield.particles->GetEpsilon_1_4(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetSigma_1_4(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetRmax_1_4(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetRmin_1_4(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetN_1_4(totAtomKind[i],
+                                                totAtomKind[j]));
+        } else {
+          printf("%-6s %-10s %17.4f %11.4f %7.2f \n", names[i].c_str(),
+                names[j].c_str(),
+                forcefield.particles->GetEpsilon_1_4(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetSigma_1_4(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetN_1_4(totAtomKind[i],
+                                                totAtomKind[j]));
+        }
       }
     }
 
     std::cout << std::endl;
     printf("NonBonded parameters:\n");
-    printf("%-6s %-10s %17s %11s %7s \n", "Type1", "Type2", "Epsilon(K)",
-           "Sigma(A)", "N");
+    if(forcefield.exp6) {
+      printf("%-6s %-10s %17s %11s %11s %11s %7s \n", "Type1", "Type2",
+            "Epsilon(K)", "Sigma(A)", "Rmax(A)", "Rmin(A)", "alpha");
+    } else {
+      printf("%-6s %-10s %17s %11s %7s \n", "Type1", "Type2", "Epsilon(K)",
+            "Sigma(A)", "N");
+    }
     for(uint i = 0; i < size; i++) {
       for(uint j = i; j < size; j++) {
-        printf("%-6s %-10s %17.4f %11.4f %7.2f \n", names[i].c_str(),
-               names[j].c_str(),
-               forcefield.particles->GetEpsilon(totAtomKind[i], totAtomKind[j]),
-               forcefield.particles->GetSigma(totAtomKind[i], totAtomKind[j]),
-               forcefield.particles->GetN(totAtomKind[i], totAtomKind[j]));
+        if(forcefield.exp6) {
+          printf("%-6s %-10s %17.4f %11.4f %11.4f %11.4f %7.2f \n",
+                names[i].c_str(), names[j].c_str(),
+                forcefield.particles->GetEpsilon(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetSigma(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetRmax(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetRmin(totAtomKind[i],
+                    totAtomKind[j]),
+                forcefield.particles->GetN(totAtomKind[i],
+                                                totAtomKind[j]));
+        } else {
+          printf("%-6s %-10s %17.4f %11.4f %7.2f \n", names[i].c_str(),
+                names[j].c_str(),
+                forcefield.particles->GetEpsilon(totAtomKind[i], totAtomKind[j]),
+                forcefield.particles->GetSigma(totAtomKind[i], totAtomKind[j]),
+                forcefield.particles->GetN(totAtomKind[i], totAtomKind[j]));
+        }
       }
     }
     std::cout << std::endl;

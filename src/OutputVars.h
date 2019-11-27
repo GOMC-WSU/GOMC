@@ -48,7 +48,7 @@ public:
 
   uint numKinds;
   //Constants
-  double T_in_K;
+  const double& T_in_K;
 
   //References
   double * volumeRef;

@@ -58,19 +58,27 @@ public:
   double GetSigma_1_4(const uint i, const uint j) const;
   double GetN(const uint i, const uint j) const;
   double GetN_1_4(const uint i, const uint j) const;
+  virtual double GetRmin(const uint i, const uint j) const;
+  virtual double GetRmax(const uint i, const uint j) const;
+  virtual double GetRmin_1_4(const uint i, const uint j) const;
+  virtual double GetRmax_1_4(const uint i, const uint j) const;
+
   // LJ interaction functions
   virtual double CalcEn(const double distSq,
-                        const uint kind1, const uint kind2) const;
-  virtual double CalcVir(const double distSq,
-                         const uint kind1, const uint kind2) const;
+                        const uint kind1, const uint kind2,
+                        const double lambda) const;
+  virtual double CalcVir(const double distSq, const uint kind1, 
+                          const uint kind2, const double lambda) const;
   virtual void CalcAdd_1_4(double& en, const double distSq,
                            const uint kind1, const uint kind2) const;
 
   // coulomb interaction functions
-  virtual double CalcCoulomb(const double distSq,
-                             const double qi_qj_Fact, const uint b) const;
-  virtual double CalcCoulombVir(const double distSq,
-                                const double qi_qj, const uint b) const;
+  virtual double CalcCoulomb(const double distSq, const uint kind1,
+                             const uint kind2,const double qi_qj_Fact, 
+                             const double lambda, const uint b) const;
+  virtual double CalcCoulombVir(const double distSq, const uint kind1,
+                                const uint kind2,const double qi_qj,
+                                const double lambda, uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact, const bool NB) const;
 
@@ -79,14 +87,16 @@ public:
   //!Returns Energy long-range correction term for a kind pair
   virtual double VirialLRC(const uint kind1, const uint kind2) const;
 
-  uint NumKinds() const
-  {
-    return count;
-  }
-  double GetMass(const uint kind) const
-  {
-    return mass[kind];
-  }
+  //Calculate the dE/dlambda for vdw energy
+  virtual double CalcdEndL(const double distSq, const uint kind1,
+                           const uint kind2, const double lambda) const;
+  //Calculate the dE/dlambda for Coulomb energy
+  virtual double CalcCoulombdEndL(const double distSq, const uint kind1,
+                                  const uint kind2,const double qi_qj_Fact,
+                                  const double lambda, uint b) const;
+
+  uint NumKinds() const { return count; }                
+  double GetMass(const uint kind) const { return mass[kind]; }
 
 #ifdef GOMC_CUDA
   VariablesCUDA *getCUDAVars()
@@ -96,16 +106,21 @@ public:
 #endif
 
 protected:
+  virtual double CalcEn(const double distSq, const uint index) const;
+  virtual double CalcVir(const double distSq, const uint index) const;
+  virtual double CalcCoulomb(const double distSq, const double qi_qj_Fact, 
+                             const uint b) const;
+  virtual double CalcCoulombVir(const double distSq, const double qi_qj,
+                                uint b) const;
   //Find the index of the pair kind
   uint FlatIndex(const uint i, const uint j) const
   {
     return i + j * count;
   }
   //Combining sigma, epsilon, and n value for different kind
-  void Blend(ff_setup::Particle const& mie, const double rCut);
+  void Blend(ff_setup::Particle const& mie);
   //Use NBFIX to adjust sigma, epsilon, and n value for different kind
-  void AdjNBfix(ff_setup::Particle const& mie, ff_setup::NBfix const& nbfix,
-                const double rCut);
+  void AdjNBfix(ff_setup::Particle const& mie, ff_setup::NBfix const& nbfix);
   //To access rcut and other forcefield data
   const Forcefield& forcefield;
 
@@ -121,10 +136,11 @@ protected:
 #endif
   //For LJ eps_cn(en) --> 4eps, eps_cn_6 --> 24eps, eps_cn_n --> 48eps
   double * sigmaSq, * epsilon, * epsilon_1_4, * epsilon_cn, * epsilon_cn_6,
-         * nOver6, * sigmaSq_1_4, * epsilon_cn_1_4, * epsilon_cn_6_1_4, * nOver6_1_4,
-         * enCorrection, * virCorrection;
+         * nOver6, * sigmaSq_1_4, * epsilon_cn_1_4, * epsilon_cn_6_1_4,
+         * nOver6_1_4;
 
   uint count;
+  bool exp6;
 #ifdef GOMC_CUDA
   VariablesCUDA *varCUDA;
 #endif

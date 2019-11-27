@@ -124,6 +124,7 @@ private:
     funct[pdb_entry::label::REMARK] = &remarks;
     funct[pdb_entry::label::CRYST1] = &cryst;
     funct[pdb_entry::label::ATOM] = &atoms;
+    funct[pdb_entry::label::HETATM] = &atoms;
     return funct;
   }
   const std::map<std::string, FWReadableBase *> dataKinds;

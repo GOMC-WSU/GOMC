@@ -22,7 +22,7 @@ Please include all the files you used to run the simulation.
 **Please complete the following information:**
  - OS: [e.g. Ubuntu, Fedora, CentOS, Windows, Cygwin, macOS, ...]
  - Ensemble: [e.g. NPT, NVT, GEMC, GCMC]
- - Code version [e.g. 2.31]
+ - Code version [e.g. 2.40]
 
 **Additional context**
 Add any other context about the problem here.

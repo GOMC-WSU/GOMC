@@ -40,10 +40,17 @@ void Histogram::Init(pdb_setup::Atoms const& atoms,
       molCount[b] = new uint *[var->numKinds];
       outF[b] = new std::ofstream[var->numKinds];
       for (uint k = 0; k < var->numKinds; ++k) {
-        name[b][k] = GetFName(output.state.files.hist.histName,
-                              output.state.files.hist.number,
-                              output.state.files.hist.letter,
-                              b, k);
+        #if GOMC_LIB_MPI
+          name[b][k] = pathToReplicaDirectory + GetFName( output.state.files.hist.histName,
+                                                          output.state.files.hist.number,
+                                                          output.state.files.hist.letter,
+                                                          b, k);
+        #else
+          name[b][k] = GetFName(output.state.files.hist.histName,
+                                output.state.files.hist.number,
+                                output.state.files.hist.letter,
+                                b, k);
+        #endif
       }
     }
     //Figure out total of each kind of molecule in ALL boxes, including

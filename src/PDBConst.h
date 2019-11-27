@@ -25,6 +25,7 @@ namespace label
 static const std::string REMARK = "REMARK";
 static const std::string CRYST1 = "CRYST1";
 static const std::string ATOM = "ATOM  ";
+static const std::string HETATM = "HETATM";
 static const ConstField POS(0, 6);
 }
 namespace remark

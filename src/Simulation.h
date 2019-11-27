@@ -12,11 +12,13 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "System.h"
 #include "StaticVals.h"
 #include "BasicTypes.h"
+#include "GOMC_Config.h"    //For PT
+#include "ParallelTemperingPreprocessor.h"
 
 class Simulation
 {
 public:
-  explicit Simulation(char const*const configFileName);
+  explicit Simulation(char const*const configFileName, MultiSim const*const& multisim = NULL);
   ~Simulation();
 
   void RunSimulation(void);

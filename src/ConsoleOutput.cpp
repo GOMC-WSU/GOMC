@@ -112,6 +112,13 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
       printElement(var->GetScale(box, sub), elementWidth);
     }
 
+    if(var->Performed(mv::MULTIPARTICLE)) {
+      sub = mv::MULTIPARTICLE;
+      printElement(var->GetTries(box, sub), elementWidth);
+      printElement(var->GetAccepted(box, sub), elementWidth);
+      printElement(var->GetAcceptPercent(box, sub), elementWidth);
+    }
+
     if(var->Performed(mv::INTRA_SWAP)) {
       sub = mv::INTRA_SWAP;
       printElement(var->GetTries(box, sub), elementWidth);
@@ -154,6 +161,13 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
 
   if(var->Performed(mv::MEMC)) {
     sub = mv::MEMC;
+    printElement(var->GetTries(box, sub), elementWidth);
+    printElement(var->GetAccepted(box, sub), elementWidth);
+    printElement(var->GetAcceptPercent(box, sub), elementWidth);
+  }
+
+  if(var->Performed(mv::CFCMC)) {
+    sub = mv::CFCMC;
     printElement(var->GetTries(box, sub), elementWidth);
     printElement(var->GetAccepted(box, sub), elementWidth);
     printElement(var->GetAcceptPercent(box, sub), elementWidth);
@@ -343,6 +357,12 @@ void ConsoleOutput::PrintMoveTitle()
     printElement("ROTMAX", elementWidth);
   }
 
+  if(var->Performed(mv::MULTIPARTICLE)) {
+    printElement("MULTIPARTICLE", elementWidth);
+    printElement("MPACCEPT", elementWidth);
+    printElement("MPACCEPT%", elementWidth);
+  }
+
   if(var->Performed(mv::INTRA_SWAP)) {
     printElement("INTRASWAP", elementWidth);
     printElement("INTACCEPT", elementWidth);
@@ -378,6 +398,12 @@ void ConsoleOutput::PrintMoveTitle()
     printElement("MOLEXCHANGE", elementWidth);
     printElement("MOLEXACCEPT", elementWidth);
     printElement("MOLEXACCEPT%", elementWidth);
+  }
+
+  if(var->Performed(mv::CFCMC)) {
+    printElement("CFCMCTRANSF", elementWidth);
+    printElement("CFCMCACCEPT", elementWidth);
+    printElement("CFCMCACCEPT%", elementWidth);
   }
 #endif
 
