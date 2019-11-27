@@ -16,9 +16,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PRNGSetup.h"
 #include "MolSetup.h"
 #include "GOMC_Config.h"    //For PT
-#if GOMC_LIB_MPI
 #include "ParallelTemperingPreprocessor.h"
-#endif
 class Setup
 {
 public:
@@ -29,27 +27,7 @@ public:
   PRNGSetup prng;      //4
   MolSetup mol;        //5
 
-  void Init(char const*const configFileName)
-  {
-    //Read in all config data
-    config.Init(configFileName);
-    //Read in FF data.
-    ff.Init(config.in.files.param.name, config.in.ffKind.isCHARMM);
-    //Read PDB data
-    pdb.Init(config.in.restart, config.in.files.pdb.name);
-    //Initialize PRNG
-    prng.Init(config.in.restart, config.in.prng, config.in.files.seed.name);
-
-    //Read molecule data from psf
-    if(mol.Init(config.in.restart, config.in.files.psf.name) != 0) {
-      exit(EXIT_FAILURE);
-    }
-    mol.AssignKinds(pdb.atoms, ff);
-
-  }
-
-  #if GOMC_LIB_MPI
-  void Init(char const*const configFileName, MultiSim *& multisim)
+  void Init(char const*const configFileName, MultiSim const*const& multisim)
   {
     //Read in all config data
     config.Init(configFileName, multisim);
@@ -67,7 +45,6 @@ public:
     mol.AssignKinds(pdb.atoms, ff);
 
   }
-  #endif
 };
 
 #endif

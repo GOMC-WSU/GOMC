@@ -28,8 +28,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define HOSTNAME
 #endif
 
-
-
 namespace
 {
 std::ostream& PrintTime(std::ostream& stream);
@@ -50,78 +48,8 @@ void PrintGPUHardwareInfo();
 int main(int argc, char *argv[])
 {
 #if GOMC_LIB_MPI
-  string inputFileStringMPI;
-  fstream inputFileReaderMPI;
-  MultiSim * multisim;
-  int worldSize;
-  int worldRank;
-  ParallelTemperingPreprocessor pt;
-
-  //std::streambuf * savedCOUT;
-  //CHECK IF ARGS/FILE PROVIDED IN CMD LINE
-  if (argc < 2) {
-    std::cout << "Error: Input parameter file (*.dat or *.conf) not specified on command line!\n";
-    exit(EXIT_FAILURE);
-  } else {
-    if(argc == 2) {
-      //FIRST PARAMETER WILL BE FILE NAME
-      inputFileStringMPI = argv[1];
-    } else {
-      //SECOND PARAMETER WILL BE FILE NAME
-      inputFileStringMPI = argv[2];
-
-      if(argv[1][0] == '+' && argv[1][1] == 'p') {
-      // placeholder
-      } else {
-        std::cout << "Error: Undefined command to set number of threads!\n";
-        std::cout << "Use +p# command to set number of threads.\n";
-        exit(EXIT_FAILURE);
-      }
-    }    
-
-    //OPEN FILE
-    inputFileReaderMPI.open(inputFileStringMPI.c_str(), ios::in | ios::out);
-
-    //CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
-    if (!inputFileReaderMPI.is_open()) {
-      std::cout << "Error: Cannot open/find " << inputFileStringMPI <<
-                " in the directory provided!\n";
-      exit(EXIT_FAILURE);
-    }
-
-    //CLOSE FILE TO NOW PASS TO SIMULATION
-    inputFileReaderMPI.close();
-
-    // Initialize the MPI environment
-    MPI_Init(NULL, NULL);
-
-    // Get the number of processes
-    MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
-
-    // Get the rank of the process
-    MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
-
-    std::string pathToReplicaDirectory;
-    if(pt.checkIfParallelTempering(inputFileStringMPI)){
-      pt.checkIfValid(inputFileStringMPI);
-      if(worldSize > pt.getNumberOfReplicas(inputFileStringMPI)){
-        std::cout << "You may not request more processes (" << worldSize
-          << ") than there are replicas(" << pt.getNumberOfReplicas(inputFileStringMPI) << ")! Exiting!\n";
-      } else {
-        #if ENSEMBLE == GCMC
-        pathToReplicaDirectory = pt.setupReplicaDirectoriesAndRedirectSTDOUTToFile  ( pt.getMultiSimFolderName(inputFileStringMPI).c_str(),
-                                                                                        pt.getTemperature(inputFileStringMPI.c_str(), worldRank).c_str(),
-                                                                                        pt.getChemicalPotential(inputFileStringMPI.c_str(), worldRank).c_str()
-                                                                                      );                                                                            
-        #else
-        pathToReplicaDirectory = pt.setupReplicaDirectoriesAndRedirectSTDOUTToFile  ( pt.getMultiSimFolderName(inputFileStringMPI).c_str(),
-                                                                                        pt.getTemperature(inputFileStringMPI.c_str(), worldRank).c_str()
-                                                                                      );
-        #endif
-        multisim = new MultiSim(worldSize, worldRank, pathToReplicaDirectory);
-      }
-    }
-  }
+  ParallelTemperingPreprocessor pt(argc, argv);
+  MultiSim * multisim = pt.checkIfValidRank() ? new MultiSim(pt) : NULL;
 #endif
 #ifndef NDEBUG
   PrintDebugMode();
@@ -186,7 +114,7 @@ int main(int argc, char *argv[])
     //ONCE FILE FOUND PASS STRING TO SIMULATION CLASS TO READ AND
     //HANDLE PDB|PSF FILE
 #if GOMC_LIB_MPI
-    if(worldSize <= pt.getNumberOfReplicas(inputFileStringMPI)){
+    if(multisim != NULL){
       Simulation sim(inputFileString.c_str(), multisim);
       sim.RunSimulation();
       PrintSimulationFooter();
@@ -306,6 +234,7 @@ uint ReadNum(char *argv)
 
   return thread;
 }
+
 }
 
 void PrintHardwareInfo()

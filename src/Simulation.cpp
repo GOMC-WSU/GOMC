@@ -12,39 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <iomanip>
 
-Simulation::Simulation(char const*const configFileName)
-{
-  startStep = 0;
-  //NOTE:
-  //IMPORTANT! Keep this order...
-  //as system depends on staticValues, and cpu sometimes depends on both.
-  set.Init(configFileName);
-  totalSteps = set.config.sys.step.total;
-  staticValues = new StaticVals(set);
-  system = new System(*staticValues);
-  staticValues->Init(set, *system);
-  system->Init(set, startStep);
-  //recal Init for static value for initializing ewald since ewald is
-  //initialized in system
-  staticValues->InitOver(set, *system);
-  cpu = new CPUSide(*system, *staticValues);
-  cpu->Init(set.pdb, set.config.out, set.config.sys.step.equil,
-            totalSteps, startStep);
-
-  //Dump combined PSF
-  PSFOutput psfOut(staticValues->mol, *system, set.mol.kindMap,
-                   set.pdb.atoms.resKindNames);
-  psfOut.PrintPSF(set.config.out.state.files.psf.name);
-  std::cout << "Printed combined psf to file "
-            << set.config.out.state.files.psf.name << '\n';
-
-  if(totalSteps == 0) {
-    frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
-  }
-}
-
-#if GOMC_LIB_MPI
-Simulation::Simulation(char const*const configFileName, MultiSim *& multisim)
+Simulation::Simulation(char const*const configFileName, MultiSim const*const& multisim)
 {
   startStep = 0;
   //NOTE:
@@ -74,7 +42,6 @@ Simulation::Simulation(char const*const configFileName, MultiSim *& multisim)
     frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
   }
 }
-#endif
 
 Simulation::~Simulation()
 {
