@@ -6,6 +6,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 
 #include "ParallelTemperingPreprocessor.h"
+
+#if GOMC_LIB_MPI
 ParallelTemperingPreprocessor::ParallelTemperingPreprocessor( int argc, 
                                                               char *argv[]){
   // Initialize the MPI environment
@@ -340,3 +342,5 @@ bool ParallelTemperingPreprocessor::CheckString(string str1, string str2)
 MultiSim::MultiSim(ParallelTemperingPreprocessor & pt) : 
   worldSize(pt.worldSize), worldRank(pt.worldRank), pathToReplicaDirectory(pt.pathToReplicaDirectory)
 {}
+
+#endif
