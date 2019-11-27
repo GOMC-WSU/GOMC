@@ -26,6 +26,15 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <sstream>  //for reading in variable # of chem. pot.
 #endif
 
+#include "GOMC_Config.h"    //For PT
+#include "ParallelTemperingPreprocessor.h"
+#include <sstream>  //for prefixing uniqueVal with the pathToReplicaDirectory
+#ifdef WIN32
+#define OS_SEP '\\'
+#else
+#define OS_SEP '/'
+#endif
+
 namespace config_setup
 {
 /////////////////////////////////////////////////////////////////////////
@@ -378,8 +387,7 @@ public:
   config_setup::Output out;
   config_setup::SystemVals sys;
   ConfigSetup(void);
-  void Init(const char *fileName);
-
+  void Init(const char *fileName, MultiSim const*const& multisim);
 private:
   void fillDefaults(void);
   bool checkBool(string str);

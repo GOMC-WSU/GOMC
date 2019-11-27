@@ -166,7 +166,7 @@ bool ConfigSetup::CheckString(string str1, string str2)
   return (str1 == str2);
 }
 
-void ConfigSetup::Init(const char *fileName)
+void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
 {
   std::vector<std::string> line;
 
@@ -265,7 +265,11 @@ void ConfigSetup::Init(const char *fileName)
     }
 #endif
     else if(CheckString(line[0], "Temperature")) {
-      sys.T.inKelvin = stringtod(line[1]);
+      if (line.size() > 2 && multisim != NULL){
+        sys.T.inKelvin = stringtod(line[multisim->worldRank+1]);
+      } else {
+        sys.T.inKelvin = stringtod(line[1]);
+      }      
       printf("%-40s %-4.4f K\n", "Info: Input Temperature", sys.T.inKelvin);
     } else if(CheckString(line[0], "Potential")) {
       if(CheckString(line[1], "VDW")) {
@@ -741,15 +745,22 @@ void ConfigSetup::Init(const char *fileName)
 #endif
 #if ENSEMBLE == GCMC
     else if(CheckString(line[0], "ChemPot")) {
-      if(line.size() != 3) {
+      if (line.size() > 3 && multisim != NULL){
+        std::string resName = line[1];
+        double val = stringtod(line[2 + multisim->worldRank]);
+        sys.chemPot.cp[resName] = val;
+        printf("%-40s %-6s %-6.4f K\n", "Info: Chemical potential",
+        resName.c_str(), val);
+      } else if(line.size() != 3) {
         std::cout << "Error: Chemical potential parameters are not specified!\n";
         exit(EXIT_FAILURE);
+      } else {
+        std::string resName = line[1];
+        double val = stringtod(line[2]);
+        sys.chemPot.cp[resName] = val;
+        printf("%-40s %-6s %-6.4f K\n", "Info: Chemical potential",
+        resName.c_str(), val);
       }
-      std::string resName = line[1];
-      double val = stringtod(line[2]);
-      sys.chemPot.cp[resName] = val;
-      printf("%-40s %-6s %-6.4f K\n", "Info: Chemical potential",
-             resName.c_str(), val);
     } else if(CheckString(line[0], "Fugacity")) {
       if(line.size() != 3) {
         std::cout << "Error: Fugacity parameters are not specified!\n";
@@ -855,8 +866,10 @@ void ConfigSetup::Init(const char *fileName)
     }
 #endif
     else if(CheckString(line[0], "OutputName")) {
-      out.statistics.settings.uniqueStr.val = line[1];
-      printf("%-40s %-s \n", "Info: Output name", line[1].c_str());
+      std::stringstream replicaDirectory;
+      replicaDirectory << multisim->pathToReplicaDirectory << line[1];
+      out.statistics.settings.uniqueStr.val = replicaDirectory.str();
+      printf("%-40s %-s \n", "Info: Output name", replicaDirectory.str().c_str());
     } else if(CheckString(line[0], "CheckpointFreq")) {
       out.checkpoint.enable = checkBool(line[1]);
       if(line.size() == 3)

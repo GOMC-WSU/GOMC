@@ -88,10 +88,18 @@ void BlockAverage::DoWrite(const ulong step, uint precision)
 void BlockAverages::Init(pdb_setup::Atoms const& atoms,
                          config_setup::Output const& output)
 {
-  std::string name = "Blk_" + uniqueName + "_BOX_0.dat";
+  #if GOMC_LIB_MPI
+    std::string name = pathToReplicaDirectory + "Blk_" + uniqueName + "_BOX_0.dat";
+  #else
+    std::string name = "Blk_" + uniqueName + "_BOX_0.dat";
+  #endif
   outBlock0.open(name.c_str(), std::ofstream::out);
   if(BOXES_WITH_U_NB >= 2) {
+  #if GOMC_LIB_MPI
+    name = pathToReplicaDirectory + "Blk_" + uniqueName + "_BOX_1.dat";
+  #else
     name = "Blk_" + uniqueName + "_BOX_1.dat";
+  #endif
     outBlock1.open(name.c_str(), std::ofstream::out);
   }
   InitVals(output.statistics.settings.block);

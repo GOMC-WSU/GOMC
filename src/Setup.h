@@ -15,7 +15,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBSetup.h"
 #include "PRNGSetup.h"
 #include "MolSetup.h"
-
+#include "GOMC_Config.h"    //For PT
+#include "ParallelTemperingPreprocessor.h"
 class Setup
 {
 public:
@@ -26,10 +27,10 @@ public:
   PRNGSetup prng;      //4
   MolSetup mol;        //5
 
-  void Init(char const*const configFileName)
+  void Init(char const*const configFileName, MultiSim const*const& multisim)
   {
     //Read in all config data
-    config.Init(configFileName);
+    config.Init(configFileName, multisim);
     //Read in FF data.
     ff.Init(config.in.files.param.name, config.in.ffKind.isCHARMM);
     //Read PDB data

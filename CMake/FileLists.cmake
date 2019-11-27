@@ -32,6 +32,7 @@ set(sources
    src/NoEwald.cpp
    src/OutConst.cpp
    src/OutputVars.cpp
+   src/ParallelTemperingPreprocessor.cpp
    src/PDBSetup.cpp
    src/PDBOutput.cpp
    src/PRNGSetup.cpp
@@ -111,6 +112,7 @@ set(headers
    src/OutConst.h
    src/OutputAbstracts.h
    src/OutputVars.h
+   src/ParallelTemperingPreprocessor.h
    src/PDBConst.h
    src/PDBOutput.h
    src/PDBSetup.h
