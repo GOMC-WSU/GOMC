@@ -46,6 +46,9 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
     case mv::DISPLACE:
       movePerc[m] = perc.displace;
       break;
+    case mv::MULTIPARTICLE:
+      movePerc[m] = perc.multiParticle;
+      break;
     case mv::ROTATE:
       movePerc[m] = perc.rotate;
       break;
@@ -72,8 +75,11 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
       movePerc[m] = perc.transfer;
       break;
     case mv::MEMC :
-      movePerc[m] = perc.memc;
-      break;
+        movePerc[m] = perc.memc;
+        break;
+    case mv::CFCMC :
+        movePerc[m] = perc.cfcmc;
+        break;
 #endif
 #endif
     default:
@@ -107,7 +113,7 @@ void StaticVals::IsBoxOrthogonal(config_setup::Volume const& vol)
     orthogonal[b] = ((cosAngle[b][0] == 0.0) &&
                      (cosAngle[b][1] == 0.0) &&
                      (cosAngle[b][2] == 0.0));
-    isOrthogonal &=  orthogonal[b];
+    isOrthogonal &= orthogonal[b];
   }
 }
 
@@ -123,8 +129,11 @@ void StaticVals::IsBoxOrthogonal(const double cellAngle[][3])
 
 
 StaticVals::StaticVals(Setup & set) : memcVal(set.config.sys.memcVal),
-  intraMemcVal(set.config.sys.intraMemcVal)
+				      intraMemcVal(set.config.sys.intraMemcVal),
+				      cfcmcVal(set.config.sys.cfcmcVal),
+              freeEnVal(set.config.sys.freeEn)
 {
+  multiParticleEnabled = set.config.sys.moves.multiParticleEnabled;
   isOrthogonal = true;
   if(set.config.in.restart.enable) {
     IsBoxOrthogonal(set.pdb.cryst.cellAngle);

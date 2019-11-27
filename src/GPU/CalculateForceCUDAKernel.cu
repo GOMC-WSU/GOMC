@@ -203,7 +203,7 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   cudaFree(gpu_final_value);
 }
 
-void CallForceReciprocalGPU(VariablesCUDA *vars,
+void CallVirialReciprocalGPU(VariablesCUDA *vars,
                             XYZArray const &currentCoords,
                             XYZArray const &currentCOMDiff,
                             vector<double> &particleCharge,
@@ -245,7 +245,7 @@ void CallForceReciprocalGPU(VariablesCUDA *vars,
   // Run the kernel...
   threadsPerBlock = 256;
   blocksPerGrid = (int)(imageSize / threadsPerBlock) + 1;
-  ForceReciprocalGPU <<< blocksPerGrid,
+  VirialReciprocalGPU <<< blocksPerGrid,
                      threadsPerBlock>>>(vars->gpu_x,
                                         vars->gpu_y,
                                         vars->gpu_z,
@@ -425,7 +425,7 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
 }
 
 
-__global__ void ForceReciprocalGPU(double *gpu_x,
+__global__ void VirialReciprocalGPU(double *gpu_x,
                                    double *gpu_y,
                                    double *gpu_z,
                                    double *gpu_comDx,
@@ -497,27 +497,6 @@ __global__ void ForceReciprocalGPU(double *gpu_x,
                                           gpu_kzRef[threadID] * gpu_comDy[i]);
     gpu_rT33[threadID] += factor * (gpu_kzRef[threadID] * gpu_comDz[i]);
   }
-}
-
-__device__ double CalcCoulombForceGPU(double distSq, double qi_qj,
-                                      int gpu_VDW_Kind, int gpu_ewald,
-                                      int gpu_isMartini, double gpu_alpha,
-                                      double gpu_rCutCoulomb, double gpu_diElectric_1)
-{
-  if((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
-    return 0.0;
-  }
-
-  if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
-    return CalcCoulombVirParticleGPU(distSq, qi_qj, gpu_alpha);
-  } else if(gpu_VDW_Kind == GPU_VDW_SHIFT_KIND) {
-    return CalcCoulombVirShiftGPU(distSq, qi_qj, gpu_ewald, gpu_alpha);
-  } else if(gpu_VDW_Kind == GPU_VDW_SWITCH_KIND && gpu_isMartini) {
-    return CalcCoulombVirSwitchMartiniGPU(distSq, qi_qj, gpu_ewald, gpu_alpha,
-                                          gpu_rCutCoulomb, gpu_diElectric_1);
-  } else
-    return CalcCoulombVirSwitchGPU(distSq, qi_qj, gpu_ewald, gpu_alpha,
-                                   gpu_rCutCoulomb);
 }
 
 __device__ double CalcEnForceGPU(double distSq, int kind1, int kind2,
@@ -600,8 +579,8 @@ __device__ double CalcCoulombVirSwitchMartiniGPU(double distSq, double qi_qj,
 }
 
 __device__ double CalcCoulombVirSwitchGPU(double distSq, double qi_qj,
-    int gpu_ewald, double gpu_alpha,
-    double gpu_rCut)
+                                          int gpu_ewald, double gpu_alpha,
+                                          double gpu_rCut)
 {
   if(gpu_ewald) {
     double dist = sqrt(distSq);

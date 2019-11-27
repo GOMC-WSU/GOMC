@@ -272,19 +272,18 @@ void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
       newMol.AddAtom(partner, oldMol.AtomPosition(partner));
       oldMol.ConfirmOldAtom(partner);
     }
+    //First we pick a edge that will be fix and continue copy the coordinate
+    //We continue the same until only one edge left from this node
+    //If current is the terminal node, we dont enter to while loop
+    //Then continue to build the rest of the molecule from current
 
-    if(nodes[current].edges.size() == 1) {
-      //If current is the terminal node, continue building all edges
-      BuildEdges(oldMol, newMol, molIndex, current);
-    } else {
-      //First we pick a edge and continue copying the coordinate
-      //Then continue to build the rest of the molecule from current
-      //Copy the edges of the node to fringe
-      fringe = nodes[current].edges;
-      //randomely pick one one of the edges connected to fixNode
-      uint pickFixEdg = data.prng.randIntExc(fringe.size());
+    //Copy the edges of the node to currFringe
+    currFringe = nodes[current].edges;
+    while (currFringe.size() > 1) {
+      //randomely pick one of the edges connected to current (fixNode)
+      uint pickFixEdg = data.prng.randIntExc(currFringe.size());
       //Travel to picked edges and make it as new fixNode
-      uint fixNode = fringe[pickFixEdg].destination;
+      uint fixNode = currFringe[pickFixEdg].destination;
       visited[fixNode] = true;
       //Copy the all atoms bonded to fixNode's focus
       for(uint b = 0; b < nodes[fixNode].partnerIndex.size(); b++) {
@@ -294,7 +293,7 @@ void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
       }
       //Copy the edges of the new node to fringe
       fringe = nodes[fixNode].edges;
-      //remove the edge that we travelled from
+      //remove the edge that we traveled from
       for( uint f = 0; f < fringe.size(); f++) {
         if(fringe[f].destination == current)
           fringe.erase(fringe.begin() + f);
@@ -320,34 +319,33 @@ void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
           }
         }
       }
-      //Now Start building the rest of the molecule from current
-      //Copy the edges of the current node to fringe
-      fringe = nodes[current].edges;
-      //Remove the fixed edge from fringe
-      fringe.erase(fringe.begin() + pickFixEdg);
-      //Advance along edges, building as we go
-      while(!fringe.empty()) {
-        //Randomely pick one of the edges connected to node
-        uint pick = data.prng.randIntExc(fringe.size());
-        DCComponent* comp = fringe[pick].component;
-        //Call DCLinkedHedron and build all Atoms connected to selected edge
-        comp->PrepareNew(newMol, molIndex);
-        comp->BuildNew(newMol, molIndex);
-        comp->PrepareOld(oldMol, molIndex);
-        comp->BuildOld(oldMol, molIndex);
-        current = fringe[pick].destination;
-        //Remove the edge that we visited
-        fringe[pick] = fringe.back();
-        fringe.pop_back();
-        visited[current] = true;
-        for(uint i = 0; i < nodes[current].edges.size(); ++i) {
-          Edge& e = nodes[current].edges[i];
-          if(!visited[e.destination]) {
-            fringe.push_back(e);
-          }
+      //Remove the fixed edge from currFring
+      currFringe.erase(currFringe.begin() + pickFixEdg);
+    }
+    //Now Start building the rest of the molecule from current
+    //Start with only one left edge
+    //Advance along edges, building as we go
+    while(!currFringe.empty()) {
+      //Randomely pick one of the edges connected to node
+      uint pick = data.prng.randIntExc(currFringe.size());
+      DCComponent* comp = currFringe[pick].component;
+      //Call DCLinkedHedron and build all Atoms connected to selected edge
+      comp->PrepareNew(newMol, molIndex);
+      comp->BuildNew(newMol, molIndex);
+      comp->PrepareOld(oldMol, molIndex);
+      comp->BuildOld(oldMol, molIndex);
+      current = currFringe[pick].destination;
+      //Remove the edge that we visited
+      currFringe[pick] = currFringe.back();
+      currFringe.pop_back();
+      visited[current] = true;
+      for(uint i = 0; i < nodes[current].edges.size(); ++i) {
+        Edge& e = nodes[current].edges[i];
+        if(!visited[e.destination]) {
+          currFringe.push_back(e);
         }
       }
-    }
+    }  
   }
 }
 

@@ -35,15 +35,16 @@ double NoEwald::BoxReciprocal(uint box) const
   return 0.0;
 }
 
-
-//calculate reciprocate force term for a box
-Virial NoEwald::ForceReciprocal(Virial& virial, uint box) const
+//calculate reciprocate force term for a box with molCoords
+void NoEwald::BoxForceReciprocal(XYZArray const& molCoords,
+				                         XYZArray& atomForceRec, XYZArray& molForceRec,
+				                         uint box)
 {
-  return virial;
+  return;
 }
 
-//calculate correction force term for a box
-Virial NoEwald::ForceCorrection(Virial& virial, uint box) const
+//calculate reciprocate force term for a box
+Virial NoEwald::VirialReciprocal(Virial& virial, uint box) const
 {
   return virial;
 }
@@ -52,6 +53,15 @@ Virial NoEwald::ForceCorrection(Virial& virial, uint box) const
 //calculate reciprocate term for displacement and rotation move
 double NoEwald::MolReciprocal(XYZArray const& molCoords,
                               const uint molIndex, const uint box)
+{
+  return 0.0;
+}
+
+
+//calculate reciprocate term for lambdaNew and Old with same coordinates
+double NoEwald::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
+			   const double lambdaNew, const uint molIndex,
+			   const uint box)
 {
   return 0.0;
 }
@@ -91,7 +101,9 @@ double NoEwald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 //calculate reciprocate term for inserting some molecules (kindA) in destination
 // box and removing a molecule (kindB) from destination box
 double NoEwald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
-                          const std::vector<cbmc::TrialMol> &oldMol)
+                          const std::vector<cbmc::TrialMol> &oldMol,
+                          const std::vector<uint> molIndexNew,
+                          const std::vector<uint> molIndexold)
 {
   return 0.0;
 }
@@ -108,6 +120,43 @@ double NoEwald::SwapCorrection(const cbmc::TrialMol& trialMol) const
 {
   return 0.0;
 }
+//calculate correction term after swap move
+double NoEwald::SwapCorrection(const cbmc::TrialMol& trialMol,
+                               const uint molIndex) const
+{
+  return 0.0;
+}
+
+  //It's called in free energy calculation to calculate the change in
+  // self energy in all lambda states
+  void NoEwald::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
+                            const std::vector<double> &lambda_Coul,
+                            const uint iState, const uint molIndex,
+                            const uint box) const
+  {
+    return;
+  }
+
+  //It's called in free energy calculation to calculate the change in
+  // correction energy in all lambda states
+  void NoEwald::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
+                                const std::vector<double> &lambda_Coul,
+                                const uint iState, const uint molIndex,
+                                const uint box) const
+  {
+    return;
+  }
+                                
+  //It's called in free energy calculation to calculate the change in
+  // reciprocal energy in all lambda states
+  void NoEwald::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
+                          const std::vector<double> &lambda_Coul,
+                          const uint iState, const uint molIndex,
+                          const uint box) const
+  {
+    return;
+  }
+
 
 //back up reciptocate value to Ref (will be called during initialization)
 void NoEwald::SetRecipRef(uint box)

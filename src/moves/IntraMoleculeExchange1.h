@@ -350,57 +350,51 @@ inline uint IntraMoleculeExchange1::Prep(const double subDraw,
   //AdjustExRatio();
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
-    //transfering type A from source
+    //transfering type A from source 
     for(uint n = 0; n < numInCavA; n++) {
       newMolA.push_back(cbmc::TrialMol(molRef.kinds[kindIndexA[n]], boxDimRef,
-                                       sourceBox));
+        sourceBox));
       oldMolA.push_back(cbmc::TrialMol(molRef.kinds[kindIndexA[n]], boxDimRef,
-                                       sourceBox));
+        sourceBox));
     }
 
     for(uint n = 0; n < numInCavB; n++) {
       //transfering type B from source
       newMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
-                                       sourceBox));
+        sourceBox));
       oldMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
-                                       sourceBox));
+        sourceBox));
     }
 
-    //set the old coordinate after unwrap them
+    //set the old coordinate and new coordinate
     for(uint n = 0; n < numInCavA; n++) {
-      XYZArray molA(pLenA[n]);
-      coordCurrRef.CopyRange(molA, pStartA[n], 0, pLenA[n]);
-      boxDimRef.UnwrapPBC(molA, sourceBox, comCurrRef.Get(molIndexA[n]));
-      oldMolA[n].SetCoords(molA, 0);
+      oldMolA[n].SetCoords(coordCurrRef, pStartA[n]);
       //copy cavA matrix to slant the old trial of molA
       oldMolA[n].SetCavMatrix(cavA);
-      //set coordinate of moleA to newMolA, later it will shift to centerB
-      newMolA[n].SetCoords(molA, 0);
+      //Later it will shift to centerB
+      newMolA[n].SetCoords(coordCurrRef, pStartA[n]);
       //copy cavB matrix to slant the new trial of molA
       newMolA[n].SetCavMatrix(cavB);
     }
 
     for(uint n = 0; n < numInCavB; n++) {
-      XYZArray molB(pLenB[n]);
-      coordCurrRef.CopyRange(molB, pStartB[n], 0, pLenB[n]);
-      boxDimRef.UnwrapPBC(molB, sourceBox, comCurrRef.Get(molIndexB[n]));
-      oldMolB[n].SetCoords(molB, 0);
+      oldMolB[n].SetCoords(coordCurrRef, pStartB[n]);
       //copy cavB matrix to slant the old trial of molB
       oldMolB[n].SetCavMatrix(cavB);
-      //set coordinate of moleB to newMolB, later it will shift to centerA
-      newMolB[n].SetCoords(molB, 0);
+      //Later it will shift to centerA
+      newMolB[n].SetCoords(coordCurrRef, pStartB[n]);
       //copy cavA matrix to slant the new trial of molB
       newMolB[n].SetCavMatrix(cavA);
     }
 
     //SetSeed(has cavity, COM is fixed, rotate around Backbone)
     for(uint n = 0; n < numInCavB; n++) {
-      //Inserting molB from centerB to the centerA
-      newMolB[n].SetSeed(centerA, cavity, true, true, true);
+      //Inserting molB from centerB to the centerA 
+      newMolB[n].SetSeed(centerA, cavity, true, true, true); 
       // Set the Backbone of large molecule to be inserted
       newMolB[n].SetBackBone(largeBB);
       //perform rotational trial move for oldMolB
-      oldMolB[n].SetSeed(centerB, cavity, true, true, true);
+      oldMolB[n].SetSeed(centerB, cavity, true, true, true); 
       // Set the Backbone of large molecule to be deleted
       oldMolB[n].SetBackBone(largeBB);
     }
@@ -409,7 +403,7 @@ inline uint IntraMoleculeExchange1::Prep(const double subDraw,
       //Inserting molA from cavity(centerA) to the cavityB(centerB)
       newMolA[n].SetSeed(centerB, cavity, true, false, false);
       //perform trial move in cavity in sourceBox for oldMolA
-      oldMolA[n].SetSeed(centerA, cavity, true, false, false);
+      oldMolA[n].SetSeed(centerA, cavity, true, false, false); 
     }
   }
 
@@ -466,8 +460,8 @@ inline void IntraMoleculeExchange1::CalcEn()
   correctDiff = 0.0;
 
   if(!overlap) {
-    recipDiffA = calcEwald->SwapRecip(newMolA, oldMolA);
-    recipDiffB = calcEwald->SwapRecip(newMolB, oldMolB);
+    recipDiffA = calcEwald->SwapRecip(newMolA, oldMolA, molIndexA, molIndexA);
+    recipDiffB = calcEwald->SwapRecip(newMolB, oldMolB, molIndexB, molIndexB);
 
     //No need to contribute the self and correction energy since insertion
     //and deletion are rigid body

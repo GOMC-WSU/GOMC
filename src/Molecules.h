@@ -104,6 +104,7 @@ public:
 
   MoleculeKind * kinds;
   uint kindsCount;
+  uint fractionKind, lambdaSize;
   double* pairEnCorrections;
   double* pairVirCorrections;
 
