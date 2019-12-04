@@ -48,7 +48,7 @@ else
 	echo "==== cub library already exists. Skipping..."
 fi
 
-mkdir -p bin
+mkdir -p bin_MPI
 cd bin
 ICC_PATH="$(which icc)"
 ICPC_PATH="$(which icpc)"
