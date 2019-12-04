@@ -14,8 +14,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <sys/stat.h>
 #include <sstream>
 #include <cstdlib>
-#include <mpi.h>
 
+#include "GOMC_Config.h"    //For version number
+#if GOMC_LIB_MPI
+#include <mpi.h>
+#endif
 
 #ifdef WIN32
 #define OS_SEP '\\'
@@ -25,6 +28,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 class ParallelTemperingPreprocessor {
 public:
+
+#if GOMC_LIB_MPI
 
 explicit ParallelTemperingPreprocessor( int argc, 
                                         char *argv[]);
@@ -45,6 +50,9 @@ private:
   fstream inputFileReaderMPI;
   std::string pathToReplicaDirectory;
   int worldSize, worldRank;
+  
+#endif
+
 };
 
 class MultiSim {
