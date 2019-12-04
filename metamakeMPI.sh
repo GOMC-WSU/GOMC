@@ -49,7 +49,7 @@ else
 fi
 
 mkdir -p bin_MPI
-cd bin
+cd bin_MPI
 ICC_PATH="$(which icc)"
 ICPC_PATH="$(which icpc)"
 export CC=${ICC_PATH}
