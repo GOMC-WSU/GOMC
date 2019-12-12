@@ -866,10 +866,15 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
     }
 #endif
     else if(CheckString(line[0], "OutputName")) {
-      std::stringstream replicaDirectory;
-      replicaDirectory << multisim->pathToReplicaDirectory << line[1];
-      out.statistics.settings.uniqueStr.val = replicaDirectory.str();
-      printf("%-40s %-s \n", "Info: Output name", replicaDirectory.str().c_str());
+      if (multisim != NULL){
+        std::stringstream replicaDirectory;
+        replicaDirectory << multisim->pathToReplicaDirectory << line[1];
+        out.statistics.settings.uniqueStr.val = replicaDirectory.str();
+        printf("%-40s %-s \n", "Info: Output name", replicaDirectory.str().c_str());
+      } else {
+        out.statistics.settings.uniqueStr.val = line[1];
+        printf("%-40s %-s \n", "Info: Output name", line[1].c_str());
+      }
     } else if(CheckString(line[0], "CheckpointFreq")) {
       out.checkpoint.enable = checkBool(line[1]);
       if(line.size() == 3)

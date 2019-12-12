@@ -48,8 +48,8 @@ else
 	echo "==== cub library already exists. Skipping..."
 fi
 
-mkdir -p bin
-cd bin
+mkdir -p bin_MPI
+cd bin_MPI
 ICC_PATH="$(which icc)"
 ICPC_PATH="$(which icpc)"
 export CC=${ICC_PATH}
