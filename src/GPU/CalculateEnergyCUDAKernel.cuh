@@ -74,13 +74,6 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             double *gpu_Invcell_x,
                             double *gpu_Invcell_y,
                             double *gpu_Invcell_z,
-                            bool multiParticleEnabled,
-                            double *gpu_aForcex,
-                            double *gpu_aForcey,
-                            double *gpu_aForcez,
-                            double *gpu_mForcex,
-                            double *gpu_mForcey,
-                            double *gpu_mForcez,
                             int box);
 
 
