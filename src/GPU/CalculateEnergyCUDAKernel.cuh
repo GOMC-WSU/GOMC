@@ -115,8 +115,6 @@ __device__ double CalcCoulombSwitchGPU(double distSq, double qi_qj_fact,
                                        double gpu_rCut);
 __device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
                                             double gpu_ewald, double gpu_alpha);
-__device__ double CalcCoulombVirShiftGPU(double distSq, double qi_qj,
-                                         double gpu_ewald, double gpu_alpha);
 __device__ double CalcCoulombVirSwitchMartiniGPU(double distSq, double qi_qj,
                                                 double gpu_ewald,
                                                 double gpu_alpha,
