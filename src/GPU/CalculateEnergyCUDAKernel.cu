@@ -26,17 +26,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
                      vector<int> particleMol,
                      double &REn,
                      double &LJEn,
-                     bool multiParticleEnabled,
-                     double *aForcex,
-                     double *aForcey,
-                     double *aForcez,
-                     double *mForcex,
-                     double *mForcey,
-                     double *mForcez,
-                     int atomCount,
-                     int molCount,
-                     bool reset_force,
-                     bool copy_back,
                      uint const box)
 {
   int atomNumber = coords.Count();
@@ -46,15 +35,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   double *gpu_REn, *gpu_LJEn;
   double *gpu_final_REn, *gpu_final_LJEn;
   double cpu_final_REn, cpu_final_LJEn;
-
-  if(multiParticleEnabled && reset_force) {
-    cudaMemset(vars->gpu_aForcex, 0, atomCount * sizeof(double));
-    cudaMemset(vars->gpu_aForcey, 0, atomCount * sizeof(double));
-    cudaMemset(vars->gpu_aForcez, 0, atomCount * sizeof(double));
-    cudaMemset(vars->gpu_mForcex, 0, molCount * sizeof(double));
-    cudaMemset(vars->gpu_mForcey, 0, molCount * sizeof(double));
-    cudaMemset(vars->gpu_mForcez, 0, molCount * sizeof(double));
-  }
 
   cudaMalloc((void**) &gpu_pair1, pair1.size() * sizeof(int));
   cudaMalloc((void**) &gpu_pair2, pair2.size() * sizeof(int));
@@ -125,13 +105,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
                                                     vars->gpu_Invcell_x[box],
                                                     vars->gpu_Invcell_y[box],
                                                     vars->gpu_Invcell_z[box],
-                                                    multiParticleEnabled,
-                                                    vars->gpu_aForcex,
-                                                    vars->gpu_aForcey,
-                                                    vars->gpu_aForcez,
-                                                    vars->gpu_mForcex,
-                                                    vars->gpu_mForcey,
-                                                    vars->gpu_mForcez,
                                                     box);
 
   // ReduceSum
@@ -161,27 +134,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   REn = cpu_final_REn;
   LJEn = cpu_final_LJEn;
 
-  // Copy back forces
-  if(multiParticleEnabled && copy_back) {
-    CubDebugExit(cudaMemcpy(aForcex, vars->gpu_aForcex,
-                            sizeof(double) * atomCount,
-                            cudaMemcpyDeviceToHost));
-    CubDebugExit(cudaMemcpy(aForcey, vars->gpu_aForcey,
-                            sizeof(double) * atomCount,
-                            cudaMemcpyDeviceToHost));
-    CubDebugExit(cudaMemcpy(aForcez, vars->gpu_aForcez,
-                            sizeof(double) * atomCount,
-                            cudaMemcpyDeviceToHost));
-    CubDebugExit(cudaMemcpy(mForcex, vars->gpu_mForcex,
-                            sizeof(double) * molCount,
-                            cudaMemcpyDeviceToHost));
-    CubDebugExit(cudaMemcpy(mForcey, vars->gpu_mForcey,
-                            sizeof(double) * molCount,
-                            cudaMemcpyDeviceToHost));
-    CubDebugExit(cudaMemcpy(mForcez, vars->gpu_mForcez,
-                            sizeof(double) * molCount,
-                            cudaMemcpyDeviceToHost));
-  }
   cudaDeviceSynchronize();
 
   cudaFree(gpu_pair1);
@@ -230,13 +182,6 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             double *gpu_Invcell_x,
                             double *gpu_Invcell_y,
                             double *gpu_Invcell_z,
-                            bool multiParticleEnabled,
-                            double *gpu_aForcex,
-                            double *gpu_aForcey,
-                            double *gpu_aForcez,
-                            double *gpu_mForcex,
-                            double *gpu_mForcey,
-                            double *gpu_mForcez,
                             int box)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
@@ -246,8 +191,6 @@ __global__ void BoxInterGPU(int *gpu_pair1,
   double qi_qj_fact;
   double qqFact = 167000.0;
   double virX = 0.0, virY = 0.0, virZ = 0.0;
-  double forceRealx = 0.0, forceRealy = 0.0, forceRealz = 0.0;
-  double forceLJx = 0.0, forceLJy = 0.0, forceLJz = 0.0;
   gpu_REn[threadID] = 0.0;
   gpu_LJEn[threadID] = 0.0;
   double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
@@ -274,47 +217,6 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                                    gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
                                    gpu_VDW_Kind[0], gpu_isMartini[0],
                                    gpu_rCut[0], gpu_rOn[0], gpu_count[0]);
-    if(multiParticleEnabled) {
-      if(electrostatic) {
-        double coulombVir = CalcCoulombForceGPU(distSq, qi_qj_fact,
-                                                gpu_VDW_Kind[0], gpu_ewald[0],
-                                                gpu_isMartini[0],
-                                                gpu_alpha[box],
-                                                gpu_rCutCoulomb[box],
-                                                gpu_diElectric_1[0]);
-        forceRealx = virX * coulombVir;
-        forceRealy = virY * coulombVir;
-        forceRealz = virZ * coulombVir;
-      }
-      double pVF = CalcEnForceGPU(distSq, gpu_particleKind[gpu_pair1[threadID]],
-                                  gpu_particleKind[gpu_pair2[threadID]],
-                                  gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
-                                  gpu_rCut[0], gpu_rOn[0], gpu_isMartini[0],
-                                  gpu_VDW_Kind[0], gpu_count[0]);
-      forceLJx = virX * pVF;
-      forceLJy = virY * pVF;
-      forceLJz = virZ * pVF;
-      
-      atomicAdd(&gpu_aForcex[gpu_pair1[threadID]], forceRealx + forceLJx);
-      atomicAdd(&gpu_aForcey[gpu_pair1[threadID]], forceRealy + forceLJy);
-      atomicAdd(&gpu_aForcez[gpu_pair1[threadID]], forceRealz + forceLJz);
-      atomicAdd(&gpu_aForcex[gpu_pair2[threadID]],-1.0*(forceRealx + forceLJx));
-      atomicAdd(&gpu_aForcey[gpu_pair2[threadID]],-1.0*(forceRealy + forceLJy));
-      atomicAdd(&gpu_aForcez[gpu_pair2[threadID]],-1.0*(forceRealz + forceLJz));
-
-      atomicAdd(&gpu_mForcex[gpu_particleMol[gpu_pair1[threadID]]],
-                forceRealx + forceLJx);
-      atomicAdd(&gpu_mForcey[gpu_particleMol[gpu_pair1[threadID]]],
-                forceRealy + forceLJy);
-      atomicAdd(&gpu_mForcez[gpu_particleMol[gpu_pair1[threadID]]],
-                forceRealz + forceLJz);
-      atomicAdd(&gpu_mForcex[gpu_particleMol[gpu_pair2[threadID]]],
-               -1.0 * (forceRealx + forceLJx));
-      atomicAdd(&gpu_mForcey[gpu_particleMol[gpu_pair2[threadID]]],
-               -1.0 * (forceRealy + forceLJy));
-      atomicAdd(&gpu_mForcez[gpu_particleMol[gpu_pair2[threadID]]],
-               -1.0 * (forceRealz + forceLJz));
-    }
   }
 }
 
