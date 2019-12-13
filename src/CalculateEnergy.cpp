@@ -218,7 +218,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
     CallBoxInterGPU(forcefield.particles->getCUDAVars(), subPair1, subPair2,
                     coords, boxAxes, electrostatic, particleCharge,
-                    particleKind, particleMol, REn, LJEn, false, box);
+                    particleKind, particleMol, REn, LJEn, box);
     tempREn += REn;
     tempLJEn += LJEn;
     currentIndex += MAX_PAIR_SIZE;
@@ -338,7 +338,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
     // Copy back the result if it is the last iteration
     bool copy_back = max == pairSize;
 
-    CallBoxInterGPU(forcefield.particles->getCUDAVars(), subPair1, subPair2,
+    CallBoxForceGPU(forcefield.particles->getCUDAVars(), subPair1, subPair2,
                     coords, boxAxes, electrostatic, particleCharge,
                     particleKind, particleMol, REn, LJEn, multiParticleEnabled,
                     aForcex, aForcey, aForcez, mForcex, mForcey, mForcez,
