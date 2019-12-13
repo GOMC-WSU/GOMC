@@ -218,12 +218,6 @@ __device__ double CalcCoulombVirSwitchMartiniGPU(double distSq, double qi_qj,
 __device__ double CalcCoulombVirSwitchGPU(double distSq, double qi_qj,
                                           int gpu_ewald, double gpu_alpha,
                                           double gpu_rCut);
-__device__ double CalcCoulombGPU(double distSq, double qi_qj_fact,
-                                 double gpu_rCutLow, int gpu_ewald,
-                                 int gpu_VDW_Kind, double gpu_alpha,
-                                 double gpu_rCutCoulomb, int gpu_isMartini,
-                                 double gpu_diElectric_1);
-
 
 //VDW Calculation
 //*****************************************************************//
