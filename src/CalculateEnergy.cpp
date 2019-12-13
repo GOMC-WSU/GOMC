@@ -188,15 +188,6 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   }
 
 #ifdef GOMC_CUDA
-  // make a pointer to atom force and mol force for GPU
-  double *aForcex = atomForceRef.x;
-  double *aForcey = atomForceRef.y;
-  double *aForcez = atomForceRef.z;
-  double *mForcex = molForceRef.x;
-  double *mForcey = molForceRef.y;
-  double *mForcez = molForceRef.z;
-  int atomCount = atomForce.Count();
-  int molCount = molForce.Count();
 
   uint pairSize = pair1.size();
   uint currentIndex = 0;
@@ -225,17 +216,9 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
     std::vector<uint> subPair1(first1, last1);
     std::vector<uint> subPair2(first2, last2);
 
-    // Reset forces on GPU for the first iteration
-    bool reset_force = currentIndex == 0;
-
-    // Copy back the result if it is the last iteration
-    bool copy_back = max == pairSize;
-
     CallBoxInterGPU(forcefield.particles->getCUDAVars(), subPair1, subPair2,
                     coords, boxAxes, electrostatic, particleCharge,
-                    particleKind, particleMol, REn, LJEn, false,
-                    aForcex, aForcey, aForcez, mForcex, mForcey, mForcez,
-                    atomCount, molCount, reset_force, copy_back, box);
+                    particleKind, particleMol, REn, LJEn, false, box);
     tempREn += REn;
     tempLJEn += LJEn;
     currentIndex += MAX_PAIR_SIZE;
