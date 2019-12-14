@@ -350,24 +350,24 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   LJEn = cpu_final_LJEn;
 
   if(copy_back) {
-  CubDebugExit(cudaMemcpy(aForcex, vars->gpu_aForcex,
-                          sizeof(double) * atomCount,
-                          cudaMemcpyDeviceToHost));
-  CubDebugExit(cudaMemcpy(aForcey, vars->gpu_aForcey,
-                          sizeof(double) * atomCount,
-                          cudaMemcpyDeviceToHost));
-  CubDebugExit(cudaMemcpy(aForcez, vars->gpu_aForcez,
-                          sizeof(double) * atomCount,
-                          cudaMemcpyDeviceToHost));
-  CubDebugExit(cudaMemcpy(mForcex, vars->gpu_mForcex,
-                          sizeof(double) * molCount,
-                          cudaMemcpyDeviceToHost));
-  CubDebugExit(cudaMemcpy(mForcey, vars->gpu_mForcey,
-                          sizeof(double) * molCount,
-                          cudaMemcpyDeviceToHost));
-  CubDebugExit(cudaMemcpy(mForcez, vars->gpu_mForcez,
-                          sizeof(double) * molCount,
-                          cudaMemcpyDeviceToHost));
+    CubDebugExit(cudaMemcpy(aForcex, vars->gpu_aForcex,
+                            sizeof(double) * atomCount,
+                            cudaMemcpyDeviceToHost));
+    CubDebugExit(cudaMemcpy(aForcey, vars->gpu_aForcey,
+                            sizeof(double) * atomCount,
+                            cudaMemcpyDeviceToHost));
+    CubDebugExit(cudaMemcpy(aForcez, vars->gpu_aForcez,
+                            sizeof(double) * atomCount,
+                            cudaMemcpyDeviceToHost));
+    CubDebugExit(cudaMemcpy(mForcex, vars->gpu_mForcex,
+                            sizeof(double) * molCount,
+                            cudaMemcpyDeviceToHost));
+    CubDebugExit(cudaMemcpy(mForcey, vars->gpu_mForcey,
+                            sizeof(double) * molCount,
+                            cudaMemcpyDeviceToHost));
+    CubDebugExit(cudaMemcpy(mForcez, vars->gpu_mForcez,
+                            sizeof(double) * molCount,
+                            cudaMemcpyDeviceToHost));
   }
   cudaDeviceSynchronize();
 
