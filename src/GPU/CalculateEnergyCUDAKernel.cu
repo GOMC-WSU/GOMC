@@ -509,7 +509,8 @@ __device__ double CalcEnParticleGPU(double distSq, int index,
   double softDist6 = lambdaCoef * sigma6 + dist6;
   double softRsq = pow(softDist6, 1.0/3.0);
 
-  return lambda * CalcEnParticleGPUNoLambda(softRsq, index);
+  return gpu_lambdaVDW * CalcEnParticleGPUNoLambda(softRsq, index, gpu_sigmaSq,
+                                                   gpu_n, gpu_epsilon_Cn);
 }
 
 __device__ double CalcEnParticleGPUNoLambda(double distSq, int index,
