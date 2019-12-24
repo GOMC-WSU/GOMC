@@ -325,11 +325,9 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
                           gpu_rCut, gpu_lambdaVDW, sc_sigma_6, sc_alpha,
                           sc_power);
   } else if(gpu_VDW_Kind == GPU_VDW_EXP6_KIND) {
-    return CalcEnExp6GPU(double distSq, int index, double gpu_sigmaSq[index],
-                         double *gpu_n, double *gpu_epsilon_Cn,
-                         double gpu_rCut, double gpu_lambdaVDW,
-                         double sc_sigma_6, double sc_alpha,
-                         uint sc_power, gpu_rMin[index],
+    return CalcEnExp6GPU(distSq, index, gpu_sigmaSq[index], gpu_n,
+                         gpu_epsilon_Cn, gpu_rCut, gpu_lambdaVDW, sc_sigma_6,
+                         sc_alpha, sc_power, gpu_rMin[index],
                          gpu_rMaxSq[index], gpu_expConst[index]);
   } else if(gpu_VDW_Kind == GPU_VDW_SWITCH_KIND && gpu_isMartini) {
     return CalcEnSwitchMartiniGPU(distSq, index, gpu_sigmaSq, gpu_n,
