@@ -650,7 +650,7 @@ __device__ double CalcEnExp6GPU(double distSq, int index, double gpu_sigmaSq,
     return num::BIGNUM;
   }
   if(gpu_lambdaVDW >= 0.999999) {
-    return CalcEnExp6GPUNoLambda(distSq, gpu_n, gpu_rMin, gpu_expConst)
+    return CalcEnExp6GPUNoLambda(distSq, gpu_n, gpu_rMin, gpu_expConst);
   }
   double sigma6 = gpu_sigmaSq * gpu_sigmaSq * gpu_sigmaSq;
   sigma6 = max(sigma6, sc_sigma_6);
