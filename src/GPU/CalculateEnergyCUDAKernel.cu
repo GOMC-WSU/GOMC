@@ -332,7 +332,7 @@ __device__ double CalcCoulombParticleGPU(double distSq, double qi_qj_fact, doubl
     double softRsq = pow(softDist6, 1.0/3.0);
     return gpu_lambdaCoulomb * CalcCoulombParticleGPUNoLambda(softRsq, qi_qj_fact, gpu_ewald, gpu_alpha);
   } else {
-    return gpu_lambdaCoulomb * CalcCoulombParticleGPUNoLambda(distSq, qi_qj_fact, gpu_ewald, gpu_alpha)
+    return gpu_lambdaCoulomb * CalcCoulombParticleGPUNoLambda(distSq, qi_qj_fact, gpu_ewald, gpu_alpha);
   }
 }
 
@@ -446,7 +446,12 @@ __device__ double CalcCoulombSwitchMartiniGPUNoLambda(double distSq,
   }
 }
 
-__device__ double CalcCoulombSwitchGPU(double distSq, double qi_qj_fact, double gpu_alpha, int gpu_ewald, double gpu_rCut, double gpu_lambdaCoulomb, bool sc_coul, double sc_sigma_6, double sc_alpha, uint sc_power, double gpu_sigmaSq)
+__device__ double CalcCoulombSwitchGPU(double distSq, double qi_qj_fact,
+                                       double gpu_alpha, int gpu_ewald,
+                                       double gpu_rCut,
+                                       double gpu_lambdaCoulomb, bool sc_coul,
+                                       double sc_sigma_6, double sc_alpha,
+                                       uint sc_power, double gpu_sigmaSq)
 {
   if(gpu_lambdaCoulomb >= 0.999999) {
     return CalcCoulombSwitchGPUNoLambda(distSq, qi_qj_fact, gpu_ewald, gpu_alpha, gpu_rCut);
@@ -465,7 +470,9 @@ __device__ double CalcCoulombSwitchGPU(double distSq, double qi_qj_fact, double 
   }
 }
 
-__device__ double CalcCoulombSwitchGPUNoLambda(double distSq, double qi_qj_fact, double gpu_alpha, int gpu_ewald, double gpu_rCut)
+__device__ double CalcCoulombSwitchGPUNoLambda(double distSq, double qi_qj_fact,
+                                               double gpu_alpha, int gpu_ewald,
+                                               double gpu_rCut)
 {
   if(gpu_ewald) {
     double dist = sqrt(distSq);

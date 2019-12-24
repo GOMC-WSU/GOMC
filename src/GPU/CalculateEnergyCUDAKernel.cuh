@@ -135,7 +135,12 @@ __device__ double CalcCoulombSwitchMartiniGPUNoLambda(double distSq,
 __device__ double CalcCoulombSwitchGPU(double distSq, double qi_qj_fact,
                                        double gpu_alpha, int gpu_ewald,
                                        double gpu_rCut,
-                                       double gpu_lambdaCoulomb, bool sc_coul);
+                                       double gpu_lambdaCoulomb, bool sc_coul,
+                                       double sc_sigma_6, double sc_alpha,
+                                       uint sc_power, double gpu_sigmaSq);
+__device__ double CalcCoulombSwitchGPUNoLambda(double distSq, double qi_qj_fact,
+                                               double gpu_alpha, int gpu_ewald,
+                                               double gpu_rCut)
 
 __device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
                                             double gpu_ewald, double gpu_alpha);
