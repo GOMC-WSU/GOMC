@@ -126,7 +126,7 @@ void CallBoxInterGPU(VariablesCUDA *vars,
                                                     sc_power,
                                                     vars->gpu_rMin,
                                                     vars->gpu_rMaxSq,
-                                                    vars->expConst,
+                                                    vars->gpu_expConst,
                                                     box);
 
   // ReduceSum
@@ -252,10 +252,7 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                                          sc_alpha,
                                          sc_power,
                                          gpu_sigmaSq[threadID],
-                                         gpu_count[0],
-                                         gpu_rMin,
-                                         gpu_rMaxSq,
-                                         gpu_expConst);
+                                         gpu_count[0]);
     }
     gpu_LJEn[threadID] = CalcEnGPU(distSq,
                                    gpu_particleKind[gpu_pair1[threadID]],
@@ -264,7 +261,8 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                                    gpu_VDW_Kind[0], gpu_isMartini[0],
                                    gpu_rCut[0], gpu_rOn[0], gpu_count[0],
                                    gpu_lambdaVDW[threadID],
-                                   sc_sigma_6, sc_alpha, sc_power);
+                                   sc_sigma_6, sc_alpha, sc_power, gpu_rMin,
+                                   gpu_rMaxSq, gpu_expConst);
   }
 }
 
