@@ -164,6 +164,8 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   cudaFree(gpu_LJEn);
   cudaFree(gpu_final_REn);
   cudaFree(gpu_final_LJEn);
+  cudaFree(gpu_lambdaVDW);
+  cudaFree(gpu_lambdaCoulomb);
 }
 
 __global__ void BoxInterGPU(int *gpu_pair1,

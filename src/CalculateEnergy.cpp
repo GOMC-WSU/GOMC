@@ -272,6 +272,8 @@ reduction(+:tempREn, tempLJEn)
 
   potential.Total();
 
+  delete[] arr_lambdaVDW;
+  delete[] arr_lambdaCoulomb;
   return potential;
 }
 
@@ -316,6 +318,18 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
     pair.Next();
   }
 
+  // store lambda values in array
+  // this way GPU can access the same data
+  double *arr_lambdaVDW = new double[pairSize];
+  double *arr_lambdaCoulomb = new double[pairSize];
+  for(i=0; i<pairSize; i++) {
+    arr_lambdaVDW[i] = GetLambdaVDW(particleMol[pair1[i]],particleMol[pair2[i]],box);
+    if(electrostatic) {
+      arr_lambdaCoulomb[i] = GetLambdaCoulomb(particleMol[pair1[i]],
+                                              particleMol[pair2[i]], box);
+    }
+  }
+
 #ifdef GOMC_CUDA
   uint pairSize = pair1.size();
   uint currentIndex = 0;
@@ -354,7 +368,10 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
                     coords, boxAxes, electrostatic, particleCharge,
                     particleKind, particleMol, REn, LJEn,
                     aForcex, aForcey, aForcez, mForcex, mForcey, mForcez,
-                    atomCount, molCount, reset_force, copy_back, box);
+                    atomCount, molCount, reset_force, copy_back, arr_lambdaVDW,
+                    arr_lambdaCoulomb, forcefield.sc_coul,
+                    forcefield.sc_sigma_6, forcefield.sc_alpha,
+                    forcefield.sc_power, box);
     tempREn += REn;
     tempLJEn += LJEn;
     currentIndex += MAX_PAIR_SIZE;
@@ -415,6 +432,8 @@ aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 
   potential.Total();
 
+  delete[] arr_lambdaVDW;
+  delete[] arr_lambdaCoulomb;
   return potential;
 }
 

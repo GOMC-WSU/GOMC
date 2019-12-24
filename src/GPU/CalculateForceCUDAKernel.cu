@@ -225,6 +225,12 @@ void CallBoxForceGPU(VariablesCUDA *vars,
                      int molCount,
                      bool reset_force,
                      bool copy_back,
+                     double *arr_lambdaVDW,
+                     double *arr_lambdaCoulomb,
+                     bool sc_coul,
+                     double sc_sigma_6,
+                     double sc_alpha,
+                     uint sc_power,
                      uint const box)
 {
   int atomNumber = coords.Count();
@@ -234,6 +240,7 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   double *gpu_REn, *gpu_LJEn;
   double *gpu_final_REn, *gpu_final_LJEn;
   double cpu_final_REn, cpu_final_LJEn;
+  double *gpu_lambdaVDW, *gpu_lambdaCoulomb;
 
   if(reset_force) {
     cudaMemset(vars->gpu_aForcex, 0, atomCount * sizeof(double));
@@ -254,6 +261,8 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   cudaMalloc((void**) &gpu_LJEn, pair1.size() * sizeof(double));
   cudaMalloc((void**) &gpu_final_REn, sizeof(double));
   cudaMalloc((void**) &gpu_final_LJEn, sizeof(double));
+  cudaMalloc((void**) &gpu_lambdaVDW, pair1.size() * sizeof(double));
+  cudaMalloc((void**) &gpu_lambdaCoulomb, pair1.size() * sizeof(double));
 
   // Copy necessary data to GPU
   cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int),
@@ -273,6 +282,10 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_y, coords.y, atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_lambdaVDW, lambdaVDW, pair1.size() * sizeof(double),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_lambdaCoulomb, lambdaCoulomb, pair1.size() * sizeof(double),
              cudaMemcpyHostToDevice);
 
   // Run the kernel...
@@ -319,6 +332,12 @@ void CallBoxForceGPU(VariablesCUDA *vars,
                                                     vars->gpu_mForcex,
                                                     vars->gpu_mForcey,
                                                     vars->gpu_mForcez,
+                                                    gpu_lambdaVDW,
+                                                    gpu_lambdaCoulomb,
+                                                    sc_coul,
+                                                    sc_sigma_6,
+                                                    sc_alpha,
+                                                    sc_power,
                                                     box);
 
 
@@ -644,6 +663,12 @@ __global__ void BoxForceGPU(int *gpu_pair1,
                             double *gpu_mForcex,
                             double *gpu_mForcey,
                             double *gpu_mForcez,
+                            double *gpu_lambdaVDW,
+                            double *gpu_lambdaCoulomb,
+                            bool sc_coul,
+                            double sc_sigma_6,
+                            double sc_alpha,
+                            uint sc_power,
                             int box)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
@@ -673,14 +698,23 @@ __global__ void BoxForceGPU(int *gpu_pair1,
                                          gpu_alpha[box],
                                          gpu_rCutCoulomb[box],
                                          gpu_isMartini[0],
-                                         gpu_diElectric_1[0]);
+                                         gpu_diElectric_1[0],
+                                         gpu_lambdaCoulomb[threadID],
+                                         sc_coul,
+                                         sc_sigma_6,
+                                         sc_alpha,
+                                         sc_power,
+                                         gpu_sigmaSq[threadID],
+                                         gpu_count[0]);
     }
     gpu_LJEn[threadID] = CalcEnGPU(distSq,
                                    gpu_particleKind[gpu_pair1[threadID]],
                                    gpu_particleKind[gpu_pair2[threadID]],
                                    gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
                                    gpu_VDW_Kind[0], gpu_isMartini[0],
-                                   gpu_rCut[0], gpu_rOn[0], gpu_count[0]);
+                                   gpu_rCut[0], gpu_rOn[0], gpu_count[0],
+                                   gpu_lambdaVDW[threadID],
+                                   sc_sigma_6, sc_alpha, sc_power);
     if(electrostatic) {
       double coulombVir = CalcCoulombForceGPU(distSq, qi_qj_fact,
                                               gpu_VDW_Kind[0], gpu_ewald[0],
