@@ -593,7 +593,7 @@ __device__ double CalcEnSwitchMartiniGPU(double distSq, int index,
   double sigma6 = gpu_sigmaSq[index] * gpu_sigmaSq[index] * gpu_sigmaSq[index];
   sigma6 = max(sigma6, sc_sigma_6);
   double dist6 = distSq * distSq * distSq;
-  double lambdaCoef = sc_alpha * pow((1.0 - lambda), (double)sc_power);
+  double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaVDW), (double)sc_power);
   double softDist6 = lambdaCoef * sigma6 + dist6;
   double softRsq = pow(softDist6, (double)1.0/3.0);
 
@@ -662,7 +662,7 @@ __device__ double CalcEnSwitchGPU(double distSq, int index, double *gpu_sigmaSq,
   double sigma6 = gpu_sigmaSq[index] * gpu_sigmaSq[index] * gpu_sigmaSq[index];
   sigma6 = max(sigma6, sc_sigma_6);
   double dist6 = distSq * distSq * distSq;
-  double lambdaCoef = sc_alpha * pow((1.0 - lambda), (double)sc_power);
+  double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaVDW), (double)sc_power);
   double softDist6 = lambdaCoef * sigma6 + dist6;
   double softRsq = pow(softDist6, (double)1.0/3.0);
 
