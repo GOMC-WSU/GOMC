@@ -12,6 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BasicTypes.h" //for uint
 #include "NumLib.h" //For Cb, Sq
 #include "FFParticle.h"
+#include "ConstantDefinitionsCUDAKernel.cuh"
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////// Exp-6 Style /////////////////////////////
