@@ -273,16 +273,30 @@ __device__ double CalcCoulombGPU(double distSq, int kind1, int kind2,
 
   int index = FlatIndexGPU(kind1, kind2, gpu_count);
   if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
-    return CalcCoulombParticleGPU(distSq, qi_qj_fact, gpu_ewald, gpu_alpha, gpu_lambdaCoulomb, sc_coul, sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq);
+    return CalcCoulombParticleGPU(distSq, qi_qj_fact, gpu_ewald, gpu_alpha,
+                                  gpu_lambdaCoulomb, sc_coul, sc_sigma_6,
+                                  sc_alpha, sc_power, gpu_sigmaSq);
   } else if(gpu_VDW_Kind == GPU_VDW_SHIFT_KIND) {
-    return CalcCoulombShiftGPU(distSq, qi_qj_fact, gpu_ewald, gpu_alpha, gpu_rCutCoulomb, gpu_lambdaCoulomb, sc_coul, sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq);
+    return CalcCoulombShiftGPU(distSq, qi_qj_fact, gpu_ewald, gpu_alpha,
+                               gpu_rCutCoulomb, gpu_lambdaCoulomb, sc_coul,
+                               sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq);
   } else if(gpu_VDW_Kind == GPU_VDW_SWITCH_KIND && gpu_isMartini) {
-    return CalcCoulombSwitchMartiniGPU(distSq, qi_qj_fact, gpu_ewald, gpu_alpha, gpu_rCutCoulomb, gpu_diElectric_1, gpu_lambdaCoulomb, sc_coul, sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq);
+    return CalcCoulombSwitchMartiniGPU(distSq, qi_qj_fact, gpu_ewald, gpu_alpha,
+                                       gpu_rCutCoulomb, gpu_diElectric_1,
+                                       gpu_lambdaCoulomb, sc_coul, sc_sigma_6,
+                                       sc_alpha, sc_power, gpu_sigmaSq);
   } else
-    return CalcCoulombSwitchGPU(distSq, qi_qj_fact, gpu_alpha, gpu_ewald, gpu_rCutCoulomb, gpu_lambdaCoulomb, sc_coul, sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq);
+    return CalcCoulombSwitchGPU(distSq, qi_qj_fact, gpu_alpha, gpu_ewald,
+                                gpu_rCutCoulomb, gpu_lambdaCoulomb, sc_coul,
+                                sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq);
 }
 
-__device__ double CalcEnGPU(double distSq, int kind1, int kind2, double *gpu_sigmaSq, double *gpu_n, double *gpu_epsilon_Cn, int gpu_VDW_Kind, int gpu_isMartini, double gpu_rCut, double gpu_rOn, int gpu_count, double gpu_lambdaVDW, double sc_sigma_6, double sc_alpha, uint sc_power)
+__device__ double CalcEnGPU(double distSq, int kind1, int kind2,
+                            double *gpu_sigmaSq, double *gpu_n,
+                            double *gpu_epsilon_Cn, int gpu_VDW_Kind,
+                            int gpu_isMartini, double gpu_rCut, double gpu_rOn,
+                            int gpu_count, double gpu_lambdaVDW,
+                            double sc_sigma_6, double sc_alpha, uint sc_power)
 {
   if((gpu_rCut * gpu_rCut) < distSq) {
     return 0.0;
