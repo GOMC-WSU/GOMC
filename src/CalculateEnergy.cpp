@@ -201,8 +201,6 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   }
 
 #ifdef GOMC_CUDA
-
-  uint pairSize = pair1.size();
   uint currentIndex = 0;
   double REn = 0.0, LJEn = 0.0;
   //update unitcell in GPU
@@ -331,7 +329,6 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   }
 
 #ifdef GOMC_CUDA
-  uint pairSize = pair1.size();
   uint currentIndex = 0;
   double REn = 0.0, LJEn = 0.0;
   //update unitcell in GPU
