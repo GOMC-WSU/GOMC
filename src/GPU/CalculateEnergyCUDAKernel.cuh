@@ -167,13 +167,35 @@ __device__ double CalcEnParticleGPUNoLambda(double distSq, int index,
                                             double *gpu_epsilon_Cn);
 __device__ double CalcEnShiftGPU(double distSq, int index, double *gpu_sigmaSq,
                                  double *gpu_n, double *gpu_epsilon_Cn,
-                                 double gpu_rCut);
+                                 double gpu_rCut, double gpu_lambdaVDW,
+                                 double sc_sigma_6, double sc_alpha,
+                                 uint sc_power);
+__device__ double CalcEnShiftGPUNoLambda(double distSq, int index, 
+                                         double *gpu_sigmaSq,
+                                         double *gpu_n, double *gpu_epsilon_Cn,
+                                         double gpu_rCut);
 __device__ double CalcEnSwitchMartiniGPU(double distSq, int index,
                                          double *gpu_sigmaSq, double *gpu_n,
                                          double *gpu_epsilon_Cn,
-                                         double gpu_rCut, double gpu_rOn);
+                                         double gpu_rCut, double gpu_rOn,
+                                         double gpu_lambdaVDW,
+                                         double sc_sigma_6,
+                                         double sc_alpha,
+                                         uint sc_power);
+__device__ double CalcEnSwitchMartiniGPUNoLambda(double distSq, int index,
+                                                 double *gpu_sigmaSq,
+                                                 double *gpu_n,
+                                                 double *gpu_epsilon_Cn,
+                                                 double gpu_rCut,
+                                                 double gpu_rOn);
 __device__ double CalcEnSwitchGPU(double distSq, int index, double *gpu_sigmaSq,
                                   double *gpu_n, double *gpu_epsilon_Cn,
-                                  double gpu_rCut, double gpu_rOn);
+                                  double gpu_rCut, double gpu_rOn,
+                                  double gpu_lambdaVDW, double sc_sigma_6,
+                                  double sc_alpha, uint sc_power);
+__device__ double CalcEnSwitchGPUNoLambda(double distSq, int index,
+                                          double *gpu_sigmaSq, double *gpu_n,
+                                          double *gpu_epsilon_Cn, 
+                                          double gpu_rCut, double gpu_rOn);
 
 #endif /*GOMC_CUDA*/
