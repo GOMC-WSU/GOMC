@@ -162,6 +162,10 @@ __device__ double CalcEnParticleGPU(double distSq, int index,
                                     double sc_sigma_6,
                                     double sc_alpha,
                                     uint sc_power);
+__device__ double CalcCoulombParticleGPUNoLambda(double distSq,
+                                                 double qi_qj_fact,
+                                                 double gpu_ewald,
+                                                 double gpu_alpha);
 __device__ double CalcEnShiftGPU(double distSq, int index, double *gpu_sigmaSq,
                                  double *gpu_n, double *gpu_epsilon_Cn,
                                  double gpu_rCut);
