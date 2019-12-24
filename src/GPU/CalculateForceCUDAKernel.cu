@@ -338,6 +338,9 @@ void CallBoxForceGPU(VariablesCUDA *vars,
                                                     sc_sigma_6,
                                                     sc_alpha,
                                                     sc_power,
+                                                    vars->gpu_rMin,
+                                                    vars->gpu_rMaxSq,
+                                                    vars->gpu_expConst,
                                                     box);
 
 
@@ -669,6 +672,9 @@ __global__ void BoxForceGPU(int *gpu_pair1,
                             double sc_sigma_6,
                             double sc_alpha,
                             uint sc_power,
+                            double *gpu_rMin,
+                            double *gpu_rMaxSq,
+                            double *gpu_expConst,
                             int box)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
@@ -717,7 +723,8 @@ __global__ void BoxForceGPU(int *gpu_pair1,
                                    gpu_VDW_Kind[0], gpu_isMartini[0],
                                    gpu_rCut[0], gpu_rOn[0], gpu_count[0],
                                    gpu_lambdaVDW[threadID],
-                                   sc_sigma_6, sc_alpha, sc_power);
+                                   sc_sigma_6, sc_alpha, sc_power, gpu_rMin,
+                                   gpu_rMaxSq, gpu_expConst);
     if(electrostatic) {
       double coulombVir = CalcCoulombForceGPU(distSq, qi_qj_fact,
                                               gpu_VDW_Kind[0], gpu_ewald[0],

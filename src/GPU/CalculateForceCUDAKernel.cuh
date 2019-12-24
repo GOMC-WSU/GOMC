@@ -130,6 +130,9 @@ __global__ void BoxForceGPU(int *gpu_pair1,
                             double sc_sigma_6,
                             double sc_alpha,
                             uint sc_power,
+                            double *gpu_rMin,
+                            double *gpu_rMaxSq,
+                            double *gpu_expConst,
                             int box);
 
 __global__ void BoxInterForceGPU(int *gpu_pair1,
