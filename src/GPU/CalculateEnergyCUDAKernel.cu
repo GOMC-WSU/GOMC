@@ -274,8 +274,7 @@ __device__ double CalcCoulombGPU(double distSq, int kind1, int kind2,
                                  double gpu_lambdaCoulomb, bool sc_coul,
                                  double sc_sigma_6, double sc_alpha,
                                  uint sc_power, double gpu_sigmaSq,
-                                 int gpu_count, double *gpu_rMin,
-                                 double *gpu_rMaxSq, double *gpu_expConst)
+                                 int gpu_count)
 {
   if((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
     return 0.0;
@@ -310,7 +309,9 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
                             double *gpu_epsilon_Cn, int gpu_VDW_Kind,
                             int gpu_isMartini, double gpu_rCut, double gpu_rOn,
                             int gpu_count, double gpu_lambdaVDW,
-                            double sc_sigma_6, double sc_alpha, uint sc_power)
+                            double sc_sigma_6, double sc_alpha, uint sc_power,
+                            double *gpu_rMin, double *gpu_rMaxSq,
+                            double *gpu_expConst)
 {
   if((gpu_rCut * gpu_rCut) < distSq) {
     return 0.0;
