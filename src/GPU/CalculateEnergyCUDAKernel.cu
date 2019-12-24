@@ -327,7 +327,7 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
                           sc_power);
   } else if(gpu_VDW_Kind == GPU_VDW_EXP6_KIND) {
     return CalcEnExp6GPU(distSq, index, gpu_sigmaSq[index], gpu_n,
-                         gpu_epsilon_Cn, gpu_rCut, gpu_lambdaVDW, sc_sigma_6,
+                         gpu_lambdaVDW, sc_sigma_6,
                          sc_alpha, sc_power, gpu_rMin[index],
                          gpu_rMaxSq[index], gpu_expConst[index]);
   } else if(gpu_VDW_Kind == GPU_VDW_SWITCH_KIND && gpu_isMartini) {
@@ -650,7 +650,7 @@ __device__ double CalcEnExp6GPU(double distSq, int index, double gpu_sigmaSq,
     return num::BIGNUM;
   }
   if(gpu_lambdaVDW >= 0.999999) {
-    return CalcEnExp6GPUNoLambda(distSq,  gpu_n, gpu_rMin, gpu_expConst)
+    return CalcEnExp6GPUNoLambda(distSq, gpu_n, gpu_rMin, gpu_expConst)
   }
   double sigma6 = gpu_sigmaSq * gpu_sigmaSq * gpu_sigmaSq;
   sigma6 = max(sigma6, sc_sigma_6);
