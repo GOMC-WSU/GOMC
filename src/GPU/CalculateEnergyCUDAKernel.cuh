@@ -78,11 +78,11 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             int box);
 
 
-__device__ double CalcCoulombGPU(double distSq, double qi_qj_fact,
-                                 double gpu_rCutLow, int gpu_ewald,
-                                 int gpu_VDW_Kind, double gpu_alpha,
-                                 double gpu_rCutCoulomb, int gpu_isMartini,
-                                 double gpu_diElectric_1,
+__device__ double CalcCoulombGPU(double distSq, int kind1, int kind2,
+                                 double qi_qj_fact, double gpu_rCutLow,
+                                 int gpu_ewald, int gpu_VDW_Kind,
+                                 double gpu_alpha, double gpu_rCutCoulomb,
+                                 int gpu_isMartini, double gpu_diElectric_1,
                                  double gpu_lambdaCoulomb, bool sc_coul,
                                  double sc_sigma_6, double sc_alpha,
                                  uint sc_power, double gpu_sigmaSq,
