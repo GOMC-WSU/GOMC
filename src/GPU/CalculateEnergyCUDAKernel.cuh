@@ -123,7 +123,15 @@ __device__ double CalcCoulombSwitchMartiniGPU(double distSq, double qi_qj_fact,
                                               double gpu_rCut,
                                               double gpu_diElectric_1,
                                               double gpu_lambdaCoulomb,
-                                              bool sc_coul);
+                                              bool sc_coul, double sc_sigma_6,
+                                              double sc_alpha, uint sc_power,
+                                              double gpu_sigmaSq);
+__device__ double CalcCoulombSwitchMartiniGPUNoLambda(double distSq,
+                                                      double qi_qj_fact,
+                                                      int gpu_ewald,
+                                                      double gpu_alpha,
+                                                      double gpu_rCut,
+                                                      double gpu_diElectric_1);
 __device__ double CalcCoulombSwitchGPU(double distSq, double qi_qj_fact,
                                        double gpu_alpha, int gpu_ewald,
                                        double gpu_rCut,
