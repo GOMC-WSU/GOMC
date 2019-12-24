@@ -39,6 +39,8 @@ void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
                             double *invCellBasis_z);
 void DestroyEwaldCUDAVars(VariablesCUDA *vars);
 void DestroyCUDAVars(VariablesCUDA *vars);
+void InitExp6Variables(VariablesCUDA vars, double *rMin, double *expConst,
+                       double *rMaxSq, uint size);
 
 #endif /*GOMC_CUDA*/
 #endif /*CONSTANT_DEFINITIONS_CUDA_KERNEL*/
