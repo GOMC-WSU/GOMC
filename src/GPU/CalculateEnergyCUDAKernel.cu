@@ -554,7 +554,9 @@ __device__ double CalcEnShiftGPU(double distSq, int index, double *gpu_sigmaSq,
   double softDist6 = lambdaCoef * sigma6 + dist6;
   double softRsq = pow(softDist6, (double)1.0/3.0);
 
-  return gpu_lambdaVDW * CalcEnShiftGPUNoLambda(softRsq, index);
+  return gpu_lambdaVDW * CalcEnShiftGPUNoLambda(softRsq, index, gpu_sigmaSq,
+                                                gpu_n, gpu_epsilon_Cn,
+                                                gpu_rCut);
 }
 
 __device__ double CalcEnShiftGPUNoLambda(double distSq, int index,
