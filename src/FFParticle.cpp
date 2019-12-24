@@ -392,7 +392,7 @@ inline double FFParticle::CalcCoulomb(const double distSq,
 }
 
 inline double FFParticle::CalcCoulomb(const double distSq,
-                                      const double qi_qj_Fact, 
+                                      const double qi_qj_Fact,
                                       const uint b) const
 {
   if(forcefield.ewald) {

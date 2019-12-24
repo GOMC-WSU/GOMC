@@ -56,7 +56,7 @@ inline void Lambda::Set(const double vdw, const double coulomb, const uint mol,
     isFraction[box] = true;
 }
 
-inline void Lambda::UnSet(const uint sourceBox, const uint destBox) 
+inline void Lambda::UnSet(const uint sourceBox, const uint destBox)
 {
     isFraction[sourceBox] = isFraction[destBox] = false;
     lambdaVDW[sourceBox] = lambdaCoulomb[sourceBox] = 1.0;

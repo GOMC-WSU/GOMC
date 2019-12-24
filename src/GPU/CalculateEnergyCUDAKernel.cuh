@@ -26,6 +26,12 @@ void CallBoxInterGPU(VariablesCUDA *vars,
                      vector<int> particleMol,
                      double &REn,
                      double &LJEn,
+                     double *lambdaVDW,
+                     double *lambdaCoulomb,
+                     bool sc_coul,
+                     double sc_sigma_6,
+                     double sc_alpha,
+                     uint sc_power,
                      uint const box);
 
 __global__ void BoxInterGPU(int *gpu_pair1,
@@ -63,6 +69,12 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             double *gpu_Invcell_x,
                             double *gpu_Invcell_y,
                             double *gpu_Invcell_z,
+                            double *gpu_lambdaVDW,
+                            double *gpu_lambdaCoulomb,
+                            bool sc_coul,
+                            double sc_sigma_6,
+                            double sc_alpha,
+                            uint sc_power,
                             int box);
 
 
@@ -70,7 +82,8 @@ __device__ double CalcCoulombGPU(double distSq, double qi_qj_fact,
                                  double gpu_rCutLow, int gpu_ewald,
                                  int gpu_VDW_Kind, double gpu_alpha,
                                  double gpu_rCutCoulomb, int gpu_isMartini,
-                                 double gpu_diElectric_1);
+                                 double gpu_diElectric_1,
+                                 double gpu_lambdaCoulomb);
 __device__ double CalcCoulombVirGPU(double distSq, double qi_qj,
                                     double gpu_rCutCoulomb, double gpu_alpha,
                                     int gpu_VDW_Kind, int gpu_ewald,
@@ -79,22 +92,29 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
                             double *gpu_sigmaSq, double *gpu_n,
                             double *gpu_epsilon_Cn, int gpu_VDW_Kind,
                             int gpu_isMartini, double gpu_rCut, double gpu_rOn,
-                            int gpu_count);
+                            int gpu_count, double gpu_lambdaVDW);
 
 //ElectroStatic Calculation
 //**************************************************************//
 __device__ double CalcCoulombParticleGPU(double distSq, double qi_qj_fact,
-                                         double gpu_ewald, double gpu_alpha);
+                                         double gpu_ewald, double gpu_alpha,
+                                         double gpu_lambdaCoulomb,
+                                         bool sc_coul);
 __device__ double CalcCoulombShiftGPU(double distSq, double qi_qj_fact,
                                       int gpu_ewald, double gpu_alpha,
-                                      double gpu_rCut);
+                                      double gpu_rCut,
+                                      double gpu_lambdaCoulomb, bool sc_coul);
 __device__ double CalcCoulombSwitchMartiniGPU(double distSq, double qi_qj_fact,
                                               int gpu_ewald, double gpu_alpha,
                                               double gpu_rCut,
-                                              double gpu_diElectric_1);
+                                              double gpu_diElectric_1,
+                                              double gpu_lambdaCoulomb,
+                                              bool sc_coul);
 __device__ double CalcCoulombSwitchGPU(double distSq, double qi_qj_fact,
                                        double gpu_alpha, int gpu_ewald,
-                                       double gpu_rCut);
+                                       double gpu_rCut,
+                                       double gpu_lambdaCoulomb, bool sc_coul);
+
 __device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
                                             double gpu_ewald, double gpu_alpha);
 __device__ double CalcCoulombVirSwitchMartiniGPU(double distSq, double qi_qj,
@@ -115,9 +135,9 @@ __device__ double CalcEnShiftGPU(double distSq, int index, double *gpu_sigmaSq,
                                  double *gpu_n, double *gpu_epsilon_Cn,
                                  double gpu_rCut);
 __device__ double CalcEnSwitchMartiniGPU(double distSq, int index,
-    double *gpu_sigmaSq, double *gpu_n,
-    double *gpu_epsilon_Cn,
-    double gpu_rCut, double gpu_rOn);
+                                         double *gpu_sigmaSq, double *gpu_n,
+                                         double *gpu_epsilon_Cn,
+                                         double gpu_rCut, double gpu_rOn);
 __device__ double CalcEnSwitchGPU(double distSq, int index, double *gpu_sigmaSq,
                                   double *gpu_n, double *gpu_epsilon_Cn,
                                   double gpu_rCut, double gpu_rOn);
