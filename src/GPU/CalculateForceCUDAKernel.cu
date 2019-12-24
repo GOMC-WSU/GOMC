@@ -693,7 +693,10 @@ __global__ void BoxForceGPU(int *gpu_pair1,
     if(electrostatic) {
       qi_qj_fact = gpu_particleCharge[gpu_pair1[threadID]] *
                    gpu_particleCharge[gpu_pair2[threadID]] * qqFact;
-      gpu_REn[threadID] = CalcCoulombGPU(distSq, qi_qj_fact, gpu_rCutLow[0],
+      gpu_REn[threadID] = CalcCoulombGPU(distSq, 
+                                         gpu_particleKind[gpu_pair1[threadID]],
+                                         gpu_particleKind[gpu_pair2[threadID]],
+                                         qi_qj_fact, gpu_rCutLow[0],
                                          gpu_ewald[0], gpu_VDW_Kind[0],
                                          gpu_alpha[box],
                                          gpu_rCutCoulomb[box],
