@@ -326,7 +326,7 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
                           gpu_rCut, gpu_lambdaVDW, sc_sigma_6, sc_alpha,
                           sc_power);
   } else if(gpu_VDW_Kind == GPU_VDW_EXP6_KIND) {
-    return CalcEnExp6GPU(distSq, index, gpu_sigmaSq[index], gpu_n,
+    return CalcEnExp6GPU(distSq, index, gpu_sigmaSq[index], gpu_n[index],
                          gpu_lambdaVDW, sc_sigma_6,
                          sc_alpha, sc_power, gpu_rMin[index],
                          gpu_rMaxSq[index], gpu_expConst[index]);
@@ -641,7 +641,7 @@ __device__ double CalcEnShiftGPUNoLambda(double distSq, int index,
 }
 
 __device__ double CalcEnExp6GPU(double distSq, int index, double gpu_sigmaSq,
-                                double *gpu_n, double gpu_lambdaVDW,
+                                double gpu_n, double gpu_lambdaVDW,
                                 double sc_sigma_6, double sc_alpha,
                                 uint sc_power, double gpu_rMin,
                                 double gpu_rMaxSq, double gpu_expConst)
@@ -663,7 +663,7 @@ __device__ double CalcEnExp6GPU(double distSq, int index, double gpu_sigmaSq,
                                                gpu_expConst);
 }
 
-__device__ double CalcEnExp6GPUNoLambda(double distSq, double *gpu_n,
+__device__ double CalcEnExp6GPUNoLambda(double distSq, double gpu_n,
                                         double gpu_rMin, double gpu_expConst)
 {
   double dist = sqrt(distSq);
@@ -671,7 +671,7 @@ __device__ double CalcEnExp6GPUNoLambda(double distSq, double *gpu_n,
   double rRat2 = rRat * rRat;
   double attract = rRat2 * rRat2 * rRat2;
 
-  uint alph_ij = gpu_n[index];
+  uint alph_ij = gpu_n;
   double repulse = (6.0 / alph_ij) * exp(alph_ij * (1.0 - dist / gpu_rMin));
   return gpu_expConst * (repulse - attract);
 }
