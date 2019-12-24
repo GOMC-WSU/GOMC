@@ -84,17 +84,16 @@ public:
   virtual double CalcCoulombdEndL(const double distSq, const uint kind1,
                                   const uint kind2,const double qi_qj_Fact,
                                   const double lambda, uint b) const;
+  
+  double *expConst, *expConst_1_4, *rMaxSq, *rMin, *rMaxSq_1_4, *rMin_1_4;
 
-  protected:
+protected:
   virtual double CalcEn(const double distSq, const uint index) const;
   virtual double CalcVir(const double distSq, const uint index) const;
   virtual double CalcCoulomb(const double distSq, const double qi_qj_Fact, 
                              const uint b) const;
   virtual double CalcCoulombVir(const double distSq, const double qi_qj,
                                 uint b) const;
-
-  double *expConst, *expConst_1_4, *rMaxSq, *rMin, *rMaxSq_1_4, *rMin_1_4;
-
 };
 
 inline void FF_EXP6::Init(ff_setup::Particle const& mie,
@@ -142,6 +141,7 @@ inline void FF_EXP6::Init(ff_setup::Particle const& mie,
       delete func4; 
     }
   }
+  InitExp6Variables(varCUDA, rMin, expConst, rMaxSq, size);
 }
                   
 
@@ -210,8 +210,7 @@ inline double FF_EXP6::CalcEn(const double distSq, const uint idx) const
   double attract = rRat2 * rRat2 * rRat2;
   
   uint alpha_ij = n[idx];
-  double repulse = (6.0 / alpha_ij) * exp(alpha_ij * 
-                   (1.0 - dist/rMin[idx]));
+  double repulse = (6.0 / alpha_ij) * exp(alpha_ij *  (1.0 - dist/rMin[idx]));
   return expConst[idx] * (repulse - attract);
 }
 

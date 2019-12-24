@@ -75,6 +75,9 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             double sc_sigma_6,
                             double sc_alpha,
                             uint sc_power,
+                            double *gpu_rMin,
+                            double *gpu_rMaxSq,
+                            double *gpu_expConst,
                             int box);
 
 
@@ -181,6 +184,13 @@ __device__ double CalcEnShiftGPUNoLambda(double distSq, int index,
                                          double *gpu_sigmaSq,
                                          double *gpu_n, double *gpu_epsilon_Cn,
                                          double gpu_rCut);
+__device__ double CalcEnExp6GPU(double distSq, int index, double gpu_sigmaSq,
+                                double *gpu_n, double gpu_lambdaVDW,
+                                double sc_sigma_6, double sc_alpha,
+                                uint sc_power, double gpu_rMin,
+                                double gpu_rMaxSq, double gpu_expConst);
+__device__ double CalcEnExp6GPUNoLambda(double distSq, double *gpu_n,
+                                        double gpu_rMin, double gpu_expConst);
 __device__ double CalcEnSwitchMartiniGPU(double distSq, int index,
                                          double *gpu_sigmaSq, double *gpu_n,
                                          double *gpu_epsilon_Cn,

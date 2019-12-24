@@ -124,6 +124,9 @@ void CallBoxInterGPU(VariablesCUDA *vars,
                                                     sc_sigma_6,
                                                     sc_alpha,
                                                     sc_power,
+                                                    vars->gpu_rMin,
+                                                    vars->gpu_rMaxSq,
+                                                    vars->expConst,
                                                     box);
 
   // ReduceSum
@@ -209,6 +212,9 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             double sc_sigma_6,
                             double sc_alpha,
                             uint sc_power,
+                            double *gpu_rMin,
+                            double *gpu_rMaxSq,
+                            double *gpu_expConst,
                             int box)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
@@ -246,7 +252,10 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                                          sc_alpha,
                                          sc_power,
                                          gpu_sigmaSq[threadID],
-                                         gpu_count[0]);
+                                         gpu_count[0],
+                                         gpu_rMin,
+                                         gpu_rMaxSq,
+                                         gpu_expConst);
     }
     gpu_LJEn[threadID] = CalcEnGPU(distSq,
                                    gpu_particleKind[gpu_pair1[threadID]],
@@ -267,7 +276,8 @@ __device__ double CalcCoulombGPU(double distSq, int kind1, int kind2,
                                  double gpu_lambdaCoulomb, bool sc_coul,
                                  double sc_sigma_6, double sc_alpha,
                                  uint sc_power, double gpu_sigmaSq,
-                                 int gpu_count)
+                                 int gpu_count, double *gpu_rMin,
+                                 double *gpu_rMaxSq, double *gpu_expConst)
 {
   if((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
     return 0.0;
@@ -317,7 +327,12 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
                           gpu_rCut, gpu_lambdaVDW, sc_sigma_6, sc_alpha,
                           sc_power);
   } else if(gpu_VDW_Kind == GPU_VDW_EXP6_KIND) {
-    return CalcEnExp6GPU();
+    return CalcEnExp6GPU(double distSq, int index, double gpu_sigmaSq[index],
+                         double *gpu_n, double *gpu_epsilon_Cn,
+                         double gpu_rCut, double gpu_lambdaVDW,
+                         double sc_sigma_6, double sc_alpha,
+                         uint sc_power, gpu_rMin[index],
+                         gpu_rMaxSq[index], gpu_expConst[index]);
   } else if(gpu_VDW_Kind == GPU_VDW_SWITCH_KIND && gpu_isMartini) {
     return CalcEnSwitchMartiniGPU(distSq, index, gpu_sigmaSq, gpu_n,
                                   gpu_epsilon_Cn, gpu_rCut, gpu_rOn,
@@ -626,6 +641,42 @@ __device__ double CalcEnShiftGPUNoLambda(double distSq, int index,
   double shiftConst = gpu_epsilon_Cn[index] * (shiftRepulse - shiftAttract);
 
   return (gpu_epsilon_Cn[index] * (repulse - attract) - shiftConst);
+}
+
+__device__ double CalcEnExp6GPU(double distSq, int index, double gpu_sigmaSq,
+                                double *gpu_n, double gpu_lambdaVDW,
+                                double sc_sigma_6, double sc_alpha,
+                                uint sc_power, double gpu_rMin,
+                                double gpu_rMaxSq, double gpu_expConst)
+{
+  if(distSq < gpu_rMaxSq) {
+    return num::BIGNUM;
+  }
+  if(gpu_lambdaVDW >= 0.999999) {
+    return CalcEnExp6GPUNoLambda(distSq,  gpu_n, gpu_rMin, gpu_expConst)
+  }
+  double sigma6 = gpu_sigmaSq * gpu_sigmaSq * gpu_sigmaSq;
+  sigma6 = max(sigma6, sc_sigma_6);
+  double dist6 = distSq * distSq * distSq;
+  double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaVDW), (double)sc_power);
+  double softDist6 = lambdaCoef * sigma6 + dist6;
+  double softRsq = pow(softDist6, (double)1.0/3.0);
+
+  return gpu_lambdaVDW * CalcEnExp6GPUNoLambda(distSq,  gpu_n, gpu_rMin,
+                                               gpu_expConst);
+}
+
+__device__ double CalcEnExp6GPUNoLambda(double distSq, double *gpu_n,
+                                        double gpu_rMin, double gpu_expConst)
+{
+  double dist = sqrt(distSq);
+  double rRat = gpu_rMin / dist;
+  double rRat2 = rRat * rRat;
+  double attract = rRat2 * rRat2 * rRat2;
+
+  uint alph_ij = gpu_n[index];
+  double repulse = (6.0 / alph_ij) * exp(alph_ij * (1.0 - dist / gpu_rMin));
+  return gpu_expConst * (repulse - attract);
 }
 
 __device__ double CalcEnSwitchMartiniGPU(double distSq, int index,
