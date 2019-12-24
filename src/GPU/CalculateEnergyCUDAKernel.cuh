@@ -157,7 +157,11 @@ __device__ double CalcCoulombVirSwitchGPU(double distSq, double qi_qj,
 //*****************************************************************//
 __device__ double CalcEnParticleGPU(double distSq, int index,
                                     double *gpu_sigmaSq, double *gpu_n,
-                                    double *gpu_epsilon_Cn);
+                                    double *gpu_epsilon_Cn,
+                                    double gpu_lambdaVDW,
+                                    double sc_sigma_6,
+                                    double sc_alpha,
+                                    uint sc_power);
 __device__ double CalcEnShiftGPU(double distSq, int index, double *gpu_sigmaSq,
                                  double *gpu_n, double *gpu_epsilon_Cn,
                                  double gpu_rCut);
