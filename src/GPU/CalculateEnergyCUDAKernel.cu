@@ -273,7 +273,7 @@ __device__ double CalcCoulombGPU(double distSq, int kind1, int kind2,
 
   int index = FlatIndexGPU(kind1, kind2, gpu_count);
   if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
-    return CalcCoulombParticleGPU(distSq, qi_qj_fact, gpu_ewald, gpu_alpha, gpu_lambdaCoulomb, sc_coul, sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq[index]);
+    return CalcCoulombParticleGPU(distSq, qi_qj_fact, gpu_ewald, gpu_alpha, gpu_lambdaCoulomb, sc_coul, sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq);
   } else if(gpu_VDW_Kind == GPU_VDW_SHIFT_KIND) {
     return CalcCoulombShiftGPU(distSq, qi_qj_fact, gpu_ewald, gpu_alpha, gpu_rCutCoulomb, gpu_lambdaCoulomb, sc_coul, sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq);
   } else if(gpu_VDW_Kind == GPU_VDW_SWITCH_KIND && gpu_isMartini) {
