@@ -12,7 +12,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BasicTypes.h" //for uint
 #include "NumLib.h" //For Cb, Sq
 #include "FFParticle.h"
+#ifdef GOMC_CUDA
 #include "ConstantDefinitionsCUDAKernel.cuh"
+#endif
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////// Exp-6 Style /////////////////////////////
@@ -142,7 +144,9 @@ inline void FF_EXP6::Init(ff_setup::Particle const& mie,
       delete func4; 
     }
   }
+#ifdef GOMC_CUDA
   InitExp6Variables(varCUDA, rMin, expConst, rMaxSq, size);
+#endif
 }
                   
 
