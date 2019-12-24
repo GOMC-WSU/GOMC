@@ -113,18 +113,18 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   cudaMalloc(&vars->gpu_mForcez, maxMolNumber * sizeof(double));
 }
 
-void InitExp6Variables(VariablesCUDA vars, double *rMin, double *expConst,
+void InitExp6Variables(VariablesCUDA *vars, double *rMin, double *expConst,
                        double *rMaxSq, uint size)
 {
-  cudaMalloc(&vars.gpu_rMin, size * sizeof(double));
-  cudaMalloc(&vars.gpu_rMaxSq, size * sizeof(double));
-  cudaMalloc(&vars.gpu_expConst, size * sizeof(double));
+  cudaMalloc(&vars->gpu_rMin, size * sizeof(double));
+  cudaMalloc(&vars->gpu_rMaxSq, size * sizeof(double));
+  cudaMalloc(&vars->gpu_expConst, size * sizeof(double));
 
-  cudaMemcpy(vars.gpu_rMin, rMin, size * sizeof(double),
+  cudaMemcpy(vars->gpu_rMin, rMin, size * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars.gpu_rMaxSq, rMaxSq, size * sizeof(double),
+  cudaMemcpy(vars->gpu_rMaxSq, rMaxSq, size * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars.gpu_expConst, expConst, size * sizeof(double),
+  cudaMemcpy(vars->gpu_expConst, expConst, size * sizeof(double),
              cudaMemcpyHostToDevice);
 }
 
