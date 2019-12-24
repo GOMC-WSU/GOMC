@@ -307,6 +307,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   // Reset Force Arrays
   ResetForce(atomForce, molForce, box);
 
+  uint pairSize = pair1.size();
   //store atom pair index
   while (!pair.Done()) {
     if(!SameMolecule(pair.First(), pair.Second())) {
