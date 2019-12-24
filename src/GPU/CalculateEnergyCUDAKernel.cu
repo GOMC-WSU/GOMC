@@ -328,7 +328,7 @@ __device__ double CalcCoulombParticleGPU(double distSq, double qi_qj_fact, doubl
     double sigma6 = gpu_sigmaSq * gpu_sigmaSq * gpu_sigmaSq;
     sigma6 = max(sigma6, sc_sigma_6);
     double dist6 = distSq * distSq * distSq;
-    double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaCoulomb), sc_power);
+    double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaCoulomb), (double)sc_power);
     double softDist6 = lambdaCoef * sigma6 * dist6;
     double softRsq = pow(softDist6, 1.0/3.0);
     return gpu_lambdaCoulomb * CalcCoulombParticleGPUNoLambda(softRsq, qi_qj_fact, gpu_ewald, gpu_alpha);
@@ -368,9 +368,9 @@ __device__ double CalcCoulombShiftGPU(double distSq, double qi_qj_fact,
     double sigma6 = gpu_sigmaSq * gpu_sigmaSq * gpu_sigmaSq;
     sigma6 = max(sigma6, sc_sigma_6);
     double dist6 = distSq * distSq * distSq;
-    double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaCoulomb), sc_power);
+    double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaCoulomb), (double)sc_power);
     double softDist6 = lambdaCoef * sigma6 * dist6;
-    double softRsq = pow(softDist6, 1.0/3.0);
+    double softRsq = pow(softDist6, (double)1.0/3.0);
     return gpu_lambdaCoulomb * CalcCoulombShiftGPUNoLambda(softRsq, qi_qj_fact, gpu_ewald, gpu_alpha, gpu_rCut);
   } else {
     return gpu_lambdaCoulomb * CalcCoulombShiftGPUNoLambda(distSq, qi_qj_fact, gpu_ewald, gpu_alpha, gpu_rCut);
@@ -408,7 +408,7 @@ __device__ double CalcCoulombSwitchMartiniGPU(double distSq, double qi_qj_fact,
     double sigma6 = gpu_sigmaSq * gpu_sigmaSq * gpu_sigmaSq;
     sigma6 = max(sigma6, sc_sigma_6);
     double dist6 = distSq * distSq * distSq;
-    double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaCoulomb), sc_power);
+    double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaCoulomb), (double)sc_power);
     double softDist6 = lambdaCoef * sigma6 * dist6;
     double softRsq = pow(softDist6, 1.0/3.0);
     return gpu_lambdaCoulomb * CalcCoulombSwitchMartiniGPUNoLambda(softRsq, qi_qj_fact, gpu_ewald, gpu_alpha, gpu_rCut, gpu_diElectric_1);
@@ -462,7 +462,7 @@ __device__ double CalcCoulombSwitchGPU(double distSq, double qi_qj_fact,
     double sigma6 = gpu_sigmaSq * gpu_sigmaSq * gpu_sigmaSq;
     sigma6 = max(sigma6, sc_sigma_6);
     double dist6 = distSq * distSq * distSq;
-    double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaCoulomb), sc_power);
+    double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaCoulomb), (double)sc_power);
     double softDist6 = lambdaCoef * sigma6 * dist6;
     double softRsq = pow(softDist6, 1.0/3.0);
     return gpu_lambdaCoulomb * CalcCoulombSwitchGPUNoLambda(softRsq, qi_qj_fact, gpu_ewald, gpu_alpha, gpu_rCut);
@@ -505,7 +505,7 @@ __device__ double CalcEnParticleGPU(double distSq, int index,
   double sigma6 = gpu_sigmaSq[index] * gpu_sigmaSq[index] * gpu_sigmaSq[index];
   sigma6 = max(sigma6, sc_sigma_6);
   double dist6 = distSq * distSq * distSq;
-  double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaVDW), sc_power);
+  double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaVDW), (double)sc_power);
   double softDist6 = lambdaCoef * sigma6 + dist6;
   double softRsq = pow(softDist6, 1.0/3.0);
 
