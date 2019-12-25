@@ -21,7 +21,6 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort =
   }
 }
 
-#define gpuLastError() { checkLastErrorCUDA(__FILE__, __LINE__); }
 inline void checkLastErrorCUDA(const char *file, int line)
 {
   cudaError_t code = cudaGetLastError();

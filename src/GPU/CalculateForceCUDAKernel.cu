@@ -157,7 +157,7 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
                                                          vars->gpu_rMaxSq,
                                                          vars->gpu_expConst,
                                                          box);
-  gpuLastError();
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaDeviceSynchronize();
   // ReduceSum // Virial of LJ
   void *d_temp_storage = NULL;
@@ -366,7 +366,7 @@ void CallBoxForceGPU(VariablesCUDA *vars,
                                                     vars->gpu_expConst,
                                                     box);
 
-  gpuLastError();
+  checkLastErrorCUDA(__FILE__, __LINE__);
   // ReduceSum
   void * d_temp_storage = NULL;
   size_t temp_storage_bytes = 0;
@@ -493,7 +493,7 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars,
                                         constVal,
                                         imageSize,
                                         atomNumber);
-  gpuLastError();
+  checkLastErrorCUDA(__FILE__, __LINE__);
   // ReduceSum // Virial of Reciprocal
   void *d_temp_storage = NULL;
   size_t temp_storage_bytes = 0;

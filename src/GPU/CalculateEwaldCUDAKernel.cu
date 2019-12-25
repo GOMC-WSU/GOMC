@@ -77,14 +77,14 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
                             vars->gpu_sumRnew[box],
                             vars->gpu_sumInew[box],
                             imageSize);
-  gpuLastError();
+  checkLastErrorCUDA(__FILE__, __LINE__);
 
   BoxReciprocalGPU <<< blocksPerGrid, threadsPerBlock>>>(vars->gpu_prefact[box],
                                                          vars->gpu_sumRnew[box],
                                                          vars->gpu_sumInew[box],
                                                          gpu_energyRecip,
                                                          imageSize);
-  gpuLastError();
+  checkLastErrorCUDA(__FILE__, __LINE__);
 
 #ifndef NDEBUG
   // In the future maybe we could remove this for Nondebug?
@@ -169,7 +169,7 @@ void CallMolReciprocalGPU(VariablesCUDA *vars,
                                       vars->gpu_prefactRef[box],
                                       gpu_energyRecipNew,
                                       imageSize);
-  gpuLastError();
+  checkLastErrorCUDA(__FILE__, __LINE__);
 #ifndef NDEBUG
   cudaMemcpy(sumRnew, vars->gpu_sumRnew[box], imageSize * sizeof(double),
              cudaMemcpyDeviceToHost);
@@ -244,7 +244,7 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars,
                                        insert,
                                        gpu_energyRecipNew,
                                        imageSize);
-  gpuLastError();
+  checkLastErrorCUDA(__FILE__, __LINE__);
 #ifndef NDEBUG
   // In the future maybe we could remove this for Nondebug?
   cudaMemcpy(sumRnew, vars->gpu_sumRnew[box], imageSize * sizeof(double),
