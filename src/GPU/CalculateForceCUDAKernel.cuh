@@ -189,6 +189,12 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                                  double *gpu_Invcell_y,
                                  double *gpu_Invcell_z,
                                  int *gpu_nonOrth,
+                                 double *gpu_lambdaVDW,
+                                 double *gpu_lambdaCoulomb,
+                                 bool sc_coul,
+                                 double sc_sigma_6,
+                                 double sc_alpha,
+                                 uint sc_power,
                                  int box);
 
 __global__ void VirialReciprocalGPU(double *gpu_x,
