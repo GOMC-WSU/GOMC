@@ -353,7 +353,14 @@ __device__ inline double CalcCoulombForceGPU(double distSq, double qi_qj,
                                              int gpu_isMartini,
                                              double gpu_alpha,
                                              double gpu_rCutCoulomb,
-                                             double gpu_diElectric_1)
+                                             double gpu_diElectric_1,
+                                             int index,
+                                             double *gpu_sigmaSq,
+                                             bool sc_coul,
+                                             double sc_sigma_6,
+                                             double sc_alpha,
+                                             uint sc_power,
+                                             double gpu_lambdaCoulomb)
 {
   if((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
     return 0.0;
