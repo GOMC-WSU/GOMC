@@ -62,8 +62,8 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   gpuErrchk(cudaMemcpy(gpu_pair2, &pair2[0], pair2.size() * sizeof(int),
                        cudaMemcpyHostToDevice));
   gpuErrchk(cudaMemcpy(gpu_particleCharge, &particleCharge[0],
-                       particleCharge.size() * sizeof(double)),
-                       cudaMemcpyHostToDevice);
+                       particleCharge.size() * sizeof(double),
+                       cudaMemcpyHostToDevice));
   gpuErrchk(cudaMemcpy(gpu_particleKind, &particleKind[0],
                        particleKind.size() * sizeof(int),
                        cudaMemcpyHostToDevice));
