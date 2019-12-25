@@ -1042,7 +1042,7 @@ __device__ double CalcVirShiftGPU(double distSq, int index, double *gpu_sigmaSq,
   double softDist6 = lambdaCoef * sigma6 + dist6;
   double softRsq = pow(softDist6, (double)1.0/3.0);
   double correction = distSq / softRsq;
-  return lambda * correction * correction *
+  return gpu_lambdaVDW * correction * correction *
     CalcVirShiftGPU(softRsq, index, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn);
 }
 
@@ -1079,7 +1079,7 @@ __device__ double CalcVirExp6GPU(double distSq, double index,
   double softDist6 = lambdaCoef * sigma6 + dist6;
   double softRsq = pow(softDist6, (double)1.0/3.0);
   double correction = distSq / softRsq;
-  return lambda * correction * correction *
+  return gpu_lambdaVDW * correction * correction *
     CalcVir(softRsq, index, gpu_n, gpu_rMin, gpu_expConst);
 }
 
@@ -1113,11 +1113,11 @@ __device__ double CalcVirSwitchMartiniGPU(double distSq, int index,
   double sigma6 = gpu_sigmaSq[index] * gpu_sigmaSq[index] * gpu_sigmaSq[index];
   sigma6 = max(sigma6, sc_sigma_6);
   double dist6 = distSq * distSq * distSq;
-  double lambdaCoef = sc_alpha * pow((1.0 - lambda), (double)sc_power);
+  double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaVDW), (double)sc_power);
   double softDist6 = lambdaCoef * sigma6 + dist6;
   double softRsq = pow(softDist6, (double)1.0/3.0);
   double correction = distSq / softRsq;
-  return lambda * correction * correction *
+  return gpu_lambdaVDW * correction * correction *
     CalcVirSwitchMartiniGPU(softRsq, index, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
                             gpu_rCut, gpu_rOn);
 }
@@ -1176,11 +1176,11 @@ __device__ double CalcVirSwitchGPU(double distSq, int index,
   double sigma6 = gpu_sigmaSq[index] * gpu_sigmaSq[index] * gpu_sigmaSq[index];
   sigma6 = max(sigma6, sc_sigma_6);
   double dist6 = distSq * distSq * distSq;
-  double lambdaCoef = sc_alpha * pow((1.0 - lambda), (double)sc_power);
+  double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaVDW), (double)sc_power);
   double softDist6 = lambdaCoef * sigma6 + dist6;
   double softRsq = pow(softDist6, (double)1.0/3.0);
   double correction = distSq / softRsq;
-  return lambda * correction * correction *
+  return gpu_lambdaVDW * correction * correction *
     CalcVirSwitchGPU(softRsq, index, gpu_sigmaSq, gpu_epsilon_Cn, gpu_n,
                      gpu_rCut, gpu_rOn);
 }
