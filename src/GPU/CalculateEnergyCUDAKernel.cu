@@ -43,42 +43,43 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   double cpu_final_REn, cpu_final_LJEn;
   double *gpu_lambdaVDW, *gpu_lambdaCoulomb;
 
-  cudaMalloc((void**) &gpu_pair1, pair1.size() * sizeof(int));
-  cudaMalloc((void**) &gpu_pair2, pair2.size() * sizeof(int));
-  cudaMalloc((void**) &gpu_particleCharge,
-             particleCharge.size() * sizeof(double));
-  cudaMalloc((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
-  cudaMalloc((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
-  cudaMalloc((void**) &gpu_REn, pair1.size() * sizeof(double));
-  cudaMalloc((void**) &gpu_LJEn, pair1.size() * sizeof(double));
-  cudaMalloc((void**) &gpu_final_REn, sizeof(double));
-  cudaMalloc((void**) &gpu_final_LJEn, sizeof(double));
-  cudaMalloc((void**) &gpu_lambdaVDW, pair1.size() * sizeof(double));
-  cudaMalloc((void**) &gpu_lambdaCoulomb, pair1.size() * sizeof(double));
+  gpuErrchk(cudaMalloc((void**) &gpu_pair1, pair1.size() * sizeof(int)));
+  gpuErrchk(cudaMalloc((void**) &gpu_pair2, pair2.size() * sizeof(int)));
+  gpuErrchk(cudaMalloc((void**) &gpu_particleCharge,
+                       particleCharge.size() * sizeof(double)));
+  gpuErrchk(cudaMalloc((void**) &gpu_particleKind, particleKind.size() * sizeof(int)));
+  gpuErrchk(cudaMalloc((void**) &gpu_particleMol, particleMol.size() * sizeof(int)));
+  gpuErrchk(cudaMalloc((void**) &gpu_REn, pair1.size() * sizeof(double)));
+  gpuErrchk(cudaMalloc((void**) &gpu_LJEn, pair1.size() * sizeof(double)));
+  gpuErrchk(cudaMalloc((void**) &gpu_final_REn, sizeof(double)));
+  gpuErrchk(cudaMalloc((void**) &gpu_final_LJEn, sizeof(double)));
+  gpuErrchk(cudaMalloc((void**) &gpu_lambdaVDW, pair1.size() * sizeof(double)));
+  gpuErrchk(cudaMalloc((void**) &gpu_lambdaCoulomb, pair1.size() * sizeof(double)));
   
   // Copy necessary data to GPU
-  cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_pair2, &pair2[0], pair2.size() * sizeof(int),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_particleCharge, &particleCharge[0],
-             particleCharge.size() * sizeof(double),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_particleKind, &particleKind[0],
-             particleKind.size() * sizeof(int),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_particleMol, &particleMol[0], particleMol.size() * sizeof(int),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_x, coords.x, atomNumber * sizeof(double),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_y, coords.y, atomNumber * sizeof(double),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_lambdaVDW, lambdaVDW, pair1.size() * sizeof(double),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_lambdaCoulomb, lambdaCoulomb, pair1.size() * sizeof(double),
-             cudaMemcpyHostToDevice);
+  gpuErrchk(cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int),
+                       cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpy(gpu_pair2, &pair2[0], pair2.size() * sizeof(int),
+                       cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpy(gpu_particleCharge, &particleCharge[0],
+                       particleCharge.size() * sizeof(double)),
+                       cudaMemcpyHostToDevice);
+  gpuErrchk(cudaMemcpy(gpu_particleKind, &particleKind[0],
+                       particleKind.size() * sizeof(int),
+                       cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpy(gpu_particleMol, &particleMol[0], particleMol.size() * sizeof(int),
+                       cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpy(vars->gpu_x, coords.x, atomNumber * sizeof(double),
+                       cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpy(vars->gpu_y, coords.y, atomNumber * sizeof(double),
+                       cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double),
+                       cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpy(gpu_lambdaVDW, lambdaVDW, pair1.size() * sizeof(double),
+                       cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpy(gpu_lambdaCoulomb, lambdaCoulomb, pair1.size() * sizeof(double),
+                       cudaMemcpyHostToDevice));
+  checkLastErrorCUDA(__FILE__, __LINE__);
 
   // Run the kernel...
   threadsPerBlock = 256;
