@@ -629,7 +629,8 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                                 gpu_isMartini[0], gpu_alpha[box],
                                 gpu_rCutCoulomb[box], gpu_diElectric_1[0],
                                 gpu_sigmaSq, sc_coul, sc_sigma_6, sc_alpha,
-                                sc_power, gpu_lambdaCoulomb, gpu_count[0],
+                                sc_power, gpu_lambdaCoulomb[threadID],
+                                gpu_count[0],
                                 gpu_particleKind[gpu_pair1[threadID]],
                                 gpu_particleKind[gpu_pair2[threadID]]);
 
@@ -771,7 +772,8 @@ __global__ void BoxForceGPU(int *gpu_pair1,
                                               gpu_diElectric_1[0],
                                               gpu_sigmaSq, sc_coul, sc_sigma_6,
                                               sc_alpha, sc_power,
-                                              gpu_lambdaCoulomb, gpu_count[0],
+                                              gpu_lambdaCoulomb[threadID],
+                                              gpu_count[0],
                                               gpu_particleKind[gpu_pair1[threadID]],
                                               gpu_particleKind[gpu_pair2[threadID]]);
       forceRealx = virX * coulombVir;
