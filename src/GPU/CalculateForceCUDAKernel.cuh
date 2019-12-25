@@ -13,6 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BoxDimensions.h"
 #include "VariablesCUDA.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
+#include "CalculateMinImageCUDAKernel.cuh"
 
 using namespace std;
 
