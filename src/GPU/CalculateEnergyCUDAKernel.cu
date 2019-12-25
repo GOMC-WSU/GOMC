@@ -128,6 +128,7 @@ void CallBoxInterGPU(VariablesCUDA *vars,
                                                     vars->gpu_rMaxSq,
                                                     vars->gpu_expConst,
                                                     box);
+  gpuLastError();
 
   // ReduceSum
   void * d_temp_storage = NULL;

@@ -55,6 +55,7 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
   cudaMemcpy(vars.gpu_ewald, &ewald, sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_diElectric_1, &diElectric_1, sizeof(double),
              cudaMemcpyHostToDevice);
+  gpuLastError();
 }
 
 void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
@@ -111,6 +112,7 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   cudaMalloc(&vars->gpu_mForcex, maxMolNumber * sizeof(double));
   cudaMalloc(&vars->gpu_mForcey, maxMolNumber * sizeof(double));
   cudaMalloc(&vars->gpu_mForcez, maxMolNumber * sizeof(double));
+  gpuLastError();
 }
 
 void InitExp6Variables(VariablesCUDA *vars, double *rMin, double *expConst,
@@ -126,6 +128,7 @@ void InitExp6Variables(VariablesCUDA *vars, double *rMin, double *expConst,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_expConst, expConst, size * sizeof(double),
              cudaMemcpyHostToDevice);
+  gpuLastError();
 }
 
 void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal)
@@ -162,6 +165,7 @@ void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal)
     cudaMalloc(&vars->gpu_hsqr[b], imageTotal * sizeof(double));
     cudaMalloc(&vars->gpu_hsqrRef[b], imageTotal * sizeof(double));
   }
+  gpuLastError();
 }
 
 void CopyCurrentToRefCUDA(VariablesCUDA *vars, uint box, uint imageTotal)
@@ -180,6 +184,7 @@ void CopyCurrentToRefCUDA(VariablesCUDA *vars, uint box, uint imageTotal)
              imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
   cudaMemcpy(vars->gpu_kzRef[box], vars->gpu_kz[box],
              imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
+  gpuLastError();
 }
 
 void UpdateRecipVecCUDA(VariablesCUDA *vars, uint box)
@@ -226,6 +231,7 @@ void UpdateCellBasisCUDA(VariablesCUDA *vars, uint box, double *cellBasis_x,
   cudaMemcpy(vars->gpu_cell_z[box], cellBasis_z, 3 * sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_nonOrth, &nonOrth, sizeof(int), cudaMemcpyHostToDevice);
+  gpuLastError();
 }
 
 void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
@@ -240,6 +246,7 @@ void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
   cudaMemcpy(vars->gpu_Invcell_z[box], invCellBasis_z, 3 * sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_nonOrth, &nonOrth, sizeof(int), cudaMemcpyHostToDevice);
+  gpuLastError();
 }
 
 void DestroyEwaldCUDAVars(VariablesCUDA *vars)
