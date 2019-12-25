@@ -626,8 +626,12 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
       qi_qj = gpu_particleCharge[gpu_pair1[threadID]] *
               gpu_particleCharge[gpu_pair2[threadID]];
       pRF = CalcCoulombForceGPU(distSq, qi_qj, gpu_VDW_Kind[0], gpu_ewald[0],
-                                gpu_isMartini[0], gpu_alpha[box], gpu_rCutCoulomb[box],
-                                gpu_diElectric_1[0]);
+                                gpu_isMartini[0], gpu_alpha[box],
+                                gpu_rCutCoulomb[box], gpu_diElectric_1[0],
+                                gpu_sigmaSq, sc_coul, sc_sigma_6, sc_alpha,
+                                sc_power, gpu_lambdaCoulomb, gpu_count[0],
+                                gpu_particleKind[gpu_pair1[threadID]],
+                                gpu_particleKind[gpu_pair2[threadID]]);
 
       gpu_rT11[threadID] = pRF * (virX * diff_comx);
       gpu_rT22[threadID] = pRF * (virY * diff_comy);
@@ -764,7 +768,12 @@ __global__ void BoxForceGPU(int *gpu_pair1,
                                               gpu_isMartini[0],
                                               gpu_alpha[box],
                                               gpu_rCutCoulomb[box],
-                                              gpu_diElectric_1[0]);
+                                              gpu_diElectric_1[0],
+                                              gpu_sigmaSq, sc_coul, sc_sigma_6,
+                                              sc_alpha, sc_power,
+                                              gpu_lambdaCoulomb, gpu_count[0],
+                                              gpu_particleKind[gpu_pair1[threadID]],
+                                              gpu_particleKind[gpu_pair2[threadID]]);
       forceRealx = virX * coulombVir;
       forceRealy = virY * coulombVir;
       forceRealz = virZ * coulombVir;

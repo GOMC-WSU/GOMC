@@ -354,18 +354,20 @@ __device__ inline double CalcCoulombForceGPU(double distSq, double qi_qj,
                                              double gpu_alpha,
                                              double gpu_rCutCoulomb,
                                              double gpu_diElectric_1,
-                                             int index,
                                              double *gpu_sigmaSq,
                                              bool sc_coul,
                                              double sc_sigma_6,
                                              double sc_alpha,
                                              uint sc_power,
-                                             double gpu_lambdaCoulomb)
+                                             double gpu_lambdaCoulomb,
+                                             int gpu_count, int kind1,
+                                             int kind2)
 {
   if((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
     return 0.0;
   }
 
+  int index = FlatIndexGPU(kind1, kind2, gpu_count);
   if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
     return CalcCoulombVirParticleGPU(distSq, qi_qj, gpu_ewald, gpu_alpha, index,
                                      gpu_sigmaSq, sc_coul, sc_sigma_6, sc_alpha,
