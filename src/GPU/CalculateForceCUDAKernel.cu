@@ -91,9 +91,9 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   cudaMemcpy(gpu_particleMol, &particleMol[0],
              particleMol.size() * sizeof(int),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_lambdaVDW, lambdaVDW, pair1.size() * sizeof(double),
+  cudaMemcpy(gpu_lambdaVDW, arr_lambdaVDW, pair1.size() * sizeof(double),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_lambdaCoulomb, lambdaCoulomb, pair1.size() * sizeof(double),
+  cudaMemcpy(gpu_lambdaCoulomb, arr_lambdaCoulomb, pair1.size() * sizeof(double),
              cudaMemcpyHostToDevice);
 
   // Run the kernel...
