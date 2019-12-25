@@ -247,7 +247,7 @@ __device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
                                             double gpu_alpha);
 __device__ double CalcCoulombVirShiftGPU(double distSq, double qi_qj,
                                          int gpu_ewald, double gpu_alpha);
-__device__ double CalcCoulombVirExp6GPU();
+//__device__ double CalcCoulombVirExp6GPU();
 __device__ double CalcCoulombVirSwitchMartiniGPU(double distSq, double qi_qj,
                                                  int gpu_ewald,
                                                  double gpu_alpha,
@@ -325,8 +325,8 @@ __device__ inline double CalcCoulombForceGPU(double distSq, double qi_qj,
     return CalcCoulombVirParticleGPU(distSq, qi_qj, gpu_alpha);
   } else if(gpu_VDW_Kind == GPU_VDW_SHIFT_KIND) {
     return CalcCoulombVirShiftGPU(distSq, qi_qj, gpu_ewald, gpu_alpha);
-  } else if(gpu_VDW_Kind == GPU_VDW_EXP6_KIND) {
-    return CalcCoulombVirExp6GPU();
+  //} else if(gpu_VDW_Kind == GPU_VDW_EXP6_KIND) {
+  //  return CalcCoulombVirExp6GPU();
   } else if(gpu_VDW_Kind == GPU_VDW_SWITCH_KIND && gpu_isMartini) {
     return CalcCoulombVirSwitchMartiniGPU(distSq, qi_qj, gpu_ewald, gpu_alpha,
                                           gpu_rCutCoulomb, gpu_diElectric_1);
