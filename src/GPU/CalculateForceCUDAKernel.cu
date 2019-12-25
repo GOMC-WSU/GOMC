@@ -1079,7 +1079,7 @@ __device__ double CalcVirExp6GPU(double distSq, int index, double *gpu_sigmaSq,
   double softRsq = pow(softDist6, (double)1.0/3.0);
   double correction = distSq / softRsq;
   return gpu_lambdaVDW * correction * correction *
-    CalcVir(softRsq, index, gpu_n, gpu_rMin, gpu_expConst);
+    CalcVirExp6GPU(softRsq, index, gpu_n, gpu_rMin, gpu_expConst);
 }
 
 __device__ double CalcVirExp6GPU(double distSq, double index, double *gpu_n,
