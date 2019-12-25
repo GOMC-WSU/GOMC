@@ -993,7 +993,6 @@ __device__ double CalcCoulombVirShiftGPU(double distSq, double qi_qj,
     return gpu_lambdaCoulomb *
       CalcCoulombVirShiftGPU(distSq, qi_qj, gpu_ewald, gpu_alpha);
   }
-  return vir;
 }
 
 __device__ double CalcCoulombVirShiftGPU(double distSq, double qi_qj,
