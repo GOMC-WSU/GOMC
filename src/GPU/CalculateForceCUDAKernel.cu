@@ -1082,7 +1082,7 @@ __device__ double CalcVirExp6GPU(double distSq, int index, double *gpu_sigmaSq,
     CalcVirExp6GPU(softRsq, index, gpu_n, gpu_rMin, gpu_expConst);
 }
 
-__device__ double CalcVirExp6GPU(double distSq, double index, double *gpu_n,
+__device__ double CalcVirExp6GPU(double distSq, int index, double *gpu_n,
                                  double *gpu_rMin, double *gpu_expConst)
 {
   double dist = sqrt(distSq);

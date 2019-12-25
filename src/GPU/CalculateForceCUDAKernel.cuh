@@ -281,7 +281,7 @@ __device__ double CalcVirExp6GPU(double distSq, int index,
                                  double *gpu_expConst, double gpu_lambdaVDW,
                                  double sc_sigma_6, double sc_alpha,
                                  uint sc_power);
-__device__ double CalcVirExp6GPU(double distSq, double index, double *gpu_n,
+__device__ double CalcVirExp6GPU(double distSq, int index, double *gpu_n,
                                  double *gpu_rMin, double *gpu_expConst);
 __device__ double CalcVirSwitchMartiniGPU(double distSq, int index,
                                           double *gpu_sigmaSq, double *gpu_n,
