@@ -1058,12 +1058,11 @@ __device__ double CalcVirShiftGPU(double distSq, int index, double *gpu_sigmaSq,
          ((gpu_n[index] / 6.0) * repulse - attract) * rNeg2;
 }
 
-__device__ double CalcVirExp6GPU(double distSq, double index,
-                                 double *gpu_sigmaSq, double *gpu_n,
-                                 double *gpu_rMin, double *gpu_rMaxSq,
-                                 double *gpu_expConst, double gpu_lambdaVDW,
-                                 double sc_sigma_6, double sc_alpha,
-                                 uint sc_power)
+__device__ double CalcVirExp6GPU(double distSq, int index, double *gpu_sigmaSq,
+                                 double *gpu_n, double *gpu_rMin,
+                                 double *gpu_rMaxSq, double *gpu_expConst,
+                                 double gpu_lambdaVDW, double sc_sigma_6,
+                                 double sc_alpha, uint sc_power)
 {
   if(distSq < gpu_rMaxSq[index]) {
     return num::BIGNUM;

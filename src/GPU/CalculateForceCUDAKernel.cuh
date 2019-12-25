@@ -275,7 +275,7 @@ __device__ double CalcVirShiftGPU(double distSq, int index,
 __device__ double CalcVirShiftGPU(double distSq, int index,
                                   double *gpu_sigmaSq, double *gpu_n,
                                   double *gpu_epsilon_Cn);
-__device__ double CalcVirExp6GPU(double distSq, double index,
+__device__ double CalcVirExp6GPU(double distSq, int index,
                                  double *gpu_sigmaSq, double *gpu_n,
                                  double *gpu_rMin, double *gpu_rMaxSq,
                                  double *gpu_expConst, double gpu_lambdaVDW,
