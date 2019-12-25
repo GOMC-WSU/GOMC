@@ -225,6 +225,8 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   cudaFree(gpu_particleMol);
   cudaFree(gpu_particleCharge);
   cudaFree(gpu_final_value);
+  cudaFree(gpu_lambdaVDW);
+  cudaFree(gpu_lambdaCoulomb);
 }
 
 void CallBoxForceGPU(VariablesCUDA *vars,
@@ -425,6 +427,8 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   cudaFree(gpu_LJEn);
   cudaFree(gpu_final_REn);
   cudaFree(gpu_final_LJEn);
+  cudaFree(gpu_lambdaVDW);
+  cudaFree(gpu_lambdaCoulomb);
 }
 
 void CallVirialReciprocalGPU(VariablesCUDA *vars,
