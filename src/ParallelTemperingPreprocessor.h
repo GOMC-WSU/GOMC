@@ -39,9 +39,9 @@ void checkIfValid(const char *fileName);
 int getNumberOfReplicas(const char *fileName);
 std::string getMultiSimFolderName(const char *fileName);
 std::string getTemperature(const char *fileName, int worldRank);
+std::string getPressure(const char *fileName, int worldRank);
 std::string getChemicalPotential(const char *fileName, int worldRank);
-std::string setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature);   
-std::string setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature, std::string chemPot);   
+std::string setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature, std::string chemPot, std::string pressure);   
 std::string mkdirWrapper(std::string multisimDirectoryName, std::string replicaDirectoryName);
 bool CheckString(string str1, string str2);
 private:
@@ -50,7 +50,11 @@ private:
   fstream inputFileReaderMPI;
   std::string pathToReplicaDirectory;
   int worldSize, worldRank;
-  
+  bool isParallelTemperingInTemperature;
+  bool isParallelTemperingInChemicalPotential;
+  bool isParallelTemperingInFreeEnergyCoulomb;
+  bool isParallelTemperingInFreeEnergyVDW;
+  bool isParallelTemperingInPressure;
 #endif
 
 };

@@ -251,7 +251,11 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         printf("Info: Running NPT_GEMC\n");
       }
     } else if(CheckString(line[0], "Pressure")) {
-      sys.gemc.pressure = stringtod(line[1]);
+      if (line.size() > 2 && multisim != NULL){
+        sys.gemc.pressure = stringtod(line[multisim->worldRank+1]);
+      } else {
+        sys.gemc.pressure = stringtod(line[1]);
+      }      
       printf("%-40s %-4.4f bar\n", "Info: Input Pressure", sys.gemc.pressure);
       sys.gemc.pressure *= unit::BAR_TO_K_MOLECULE_PER_A3;
     }
@@ -259,7 +263,11 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
 #if ENSEMBLE == NPT
     else if(CheckString(line[0], "Pressure")) {
       sys.gemc.kind = mv::GEMC_NPT;
-      sys.gemc.pressure = stringtod(line[1]);
+      if (line.size() > 2 && multisim != NULL){
+        sys.gemc.pressure = stringtod(line[multisim->worldRank+1]);
+      } else {
+        sys.gemc.pressure = stringtod(line[1]);
+      }      
       printf("%-40s %-4.4f bar\n", "Info: Input Pressure", sys.gemc.pressure);
       sys.gemc.pressure *= unit::BAR_TO_K_MOLECULE_PER_A3;
     }
@@ -762,16 +770,24 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         resName.c_str(), val);
       }
     } else if(CheckString(line[0], "Fugacity")) {
-      if(line.size() != 3) {
+      if (line.size() > 3 && multisim != NULL){
+        std::string resName = line[1];
+        double val = stringtod(line[2 + multisim->worldRank]);
+        sys.chemPot.isFugacity = true;
+        sys.chemPot.cp[resName] = val * unit::BAR_TO_K_MOLECULE_PER_A3;
+        printf("%-40s %-6s %-6.4f bar\n", "Info: Fugacity", resName.c_str(),
+        val);
+      } else if (line.size() == 3){
+        std::string resName = line[1];
+        double val = stringtod(line[2]);
+        sys.chemPot.isFugacity = true;
+        sys.chemPot.cp[resName] = val * unit::BAR_TO_K_MOLECULE_PER_A3;
+        printf("%-40s %-6s %-6.4f bar\n", "Info: Fugacity", resName.c_str(),
+        val);
+      } else {
         std::cout << "Error: Fugacity parameters are not specified!\n";
         exit(EXIT_FAILURE);
       }
-      sys.chemPot.isFugacity = true;
-      std::string resName = line[1];
-      double val = stringtod(line[2]);
-      sys.chemPot.cp[resName] = val * unit::BAR_TO_K_MOLECULE_PER_A3;
-      printf("%-40s %-6s %-6.4f bar\n", "Info: Fugacity", resName.c_str(),
-             val);
     }
 #endif
 #if ENSEMBLE == NVT ||  ENSEMBLE == NPT

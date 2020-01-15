@@ -64,15 +64,12 @@ ParallelTemperingPreprocessor::ParallelTemperingPreprocessor( int argc,
           MPI_Finalize();
           exit(EXIT_FAILURE);
       } else {
-        #if ENSEMBLE == GCMC
         pathToReplicaDirectory = setupReplicaDirectoriesAndRedirectSTDOUTToFile  (  getMultiSimFolderName(inputFileStringMPI.c_str()),
                                                                                     getTemperature(inputFileStringMPI.c_str(), worldRank),
-                                                                                    getChemicalPotential(inputFileStringMPI.c_str(), worldRank));                                                                            
-        #else
-        pathToReplicaDirectory = setupReplicaDirectoriesAndRedirectSTDOUTToFile  (  getMultiSimFolderName(inputFileStringMPI.c_str()),
-                                                                                    getTemperature(inputFileStringMPI.c_str(), worldRank));
-        #endif
-      }
+                                                                                    getChemicalPotential(inputFileStringMPI.c_str(), worldRank),
+                                                                                    getPressure(inputFileStringMPI.c_str(), worldRank));                                                                            
+
+      } 
     }
   }
 }
@@ -90,10 +87,11 @@ bool ParallelTemperingPreprocessor::checkIfParallelTempering(const char *fileNam
   InputFileReader reader;
   std::vector<std::string> line;
   reader.Open(fileName);
-  bool isParallelTemperingInTemperature = false;
-  bool isParallelTemperingInChemicalPotential = false;
-  bool isParallelTemperingInFreeEnergyCoulomb = false;
-  bool isParallelTemperingInFreeEnergyVDW = false;
+  isParallelTemperingInTemperature = false;
+  isParallelTemperingInChemicalPotential = false;
+  isParallelTemperingInFreeEnergyCoulomb = false;
+  isParallelTemperingInFreeEnergyVDW = false;
+  isParallelTemperingInPressure = false;
 
   while(reader.readNextLine(line)) {
     if(line.size() == 0)
@@ -104,17 +102,20 @@ bool ParallelTemperingPreprocessor::checkIfParallelTempering(const char *fileNam
     } else if (CheckString(line[0], "ChemPot")) {
       if (line.size() > 3)
         isParallelTemperingInChemicalPotential = true;
+    } else if (CheckString(line[0], "Pressure")) {
+      if (line.size() > 3)
+        isParallelTemperingInPressure = true;
     } else if (CheckString(line[0], "LambdaCoulomb")) {
       if (line.size() > 2)
         isParallelTemperingInFreeEnergyCoulomb = true;
-    }  else if (CheckString(line[0], "LambdaVDW")) {
+    } else if (CheckString(line[0], "LambdaVDW")) {
       if (line.size() > 2)
         isParallelTemperingInFreeEnergyVDW = true;
     }
     // Clear and get ready for the next line
     line.clear();
   }
-  return isParallelTemperingInTemperature || isParallelTemperingInChemicalPotential || 
+  return isParallelTemperingInTemperature || isParallelTemperingInChemicalPotential || isParallelTemperingInPressure ||
           isParallelTemperingInFreeEnergyCoulomb || isParallelTemperingInFreeEnergyVDW;
 }
 
@@ -123,6 +124,7 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
   std::vector<std::string> line;
   reader.Open(fileName);
   int numberOfTemperatures = 0;
+  int numberOfPressures = 0;
   vector < int > numberOfChemPots;
   int numberOfLambdaCoulombs = 0;
   int numberOfLambdaVDWs = 0;
@@ -132,6 +134,8 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
       continue;
     if(CheckString(line[0], "Temperature")) {
       numberOfTemperatures = line.size() - 1;
+    } else if (CheckString(line[0], "Pressure")){
+      numberOfPressures = line.size() - 1;
     } else if (CheckString(line[0], "ChemPot")) {
       numberOfChemPots.push_back(line.size() - 2);
     } else if (CheckString(line[0], "LambdaCoulomb")) {
@@ -143,15 +147,29 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
     line.clear();
   }
 
-  for( vector < int >::iterator it = numberOfChemPots.begin(); it != numberOfChemPots.end(); ++it ){
-    if (*it > 1 && numberOfTemperatures > 1 && *it != numberOfTemperatures){
-      std::cout << "Error: Unequal number of temperatures and chemical potentials in Multicanonical!\n";
-      std::cout << "If you only want to only sample mu-space or temperature-space\n";
-      std::cout << "provide only one temperature or only one chemical potential.\n";
-      std::cout << "Number of temperatures provided: " << numberOfTemperatures << "\n";
-      std::cout << "Number of chemical potentials provided: " << *it << "\n";
-      MPI_Finalize();
-      exit(EXIT_FAILURE);
+  if (isParallelTemperingInChemicalPotential && isParallelTemperingInTemperature){
+    for( vector < int >::iterator it = numberOfChemPots.begin(); it != numberOfChemPots.end(); ++it ){
+      if (*it > 1 && numberOfTemperatures > 1 && *it != numberOfTemperatures){
+        std::cout << "Error: Unequal number of temperatures and chemical potentials in Multicanonical!\n";
+        std::cout << "If you only want to only sample mu-space or temperature-space\n";
+        std::cout << "provide only one temperature or only one chemical potential.\n";
+        std::cout << "Number of temperatures provided: " << numberOfTemperatures << "\n";
+        std::cout << "Number of chemical potentials provided: " << *it << "\n";
+        MPI_Finalize();
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
+
+  if (isParallelTemperingInTemperature && isParallelTemperingInPressure){
+    if (numberOfTemperatures != numberOfPressures){
+        std::cout << "Error: Unequal number of temperatures and pressures in Multicanonical!\n";
+        std::cout << "If you only want to only sample pressure-space or temperature-space\n";
+        std::cout << "provide only one temperature or only one pressure.\n";
+        std::cout << "Number of temperatures provided: " << numberOfTemperatures << "\n";
+        std::cout << "Number of pressures provided: " << numberOfPressures << "\n";
+        MPI_Finalize();
+        exit(EXIT_FAILURE);
     }
   }
 
@@ -162,6 +180,10 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
       MPI_Finalize();
       exit(EXIT_FAILURE);
   }
+
+
+
+
 }
 
 int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName){
@@ -172,6 +194,7 @@ int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName){
   vector < int > numberOfChemPots;
   int numberOfLambdaCoulombs = 0;
   int numberOfLambdaVDWs = 0;
+  int numberOfPressures = 0;
 
   int numberOfReplicas = 0;
 
@@ -180,6 +203,8 @@ int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName){
       continue;
     if(CheckString(line[0], "Temperature")) {
       numberOfTemperatures = line.size() - 1;
+    } if(CheckString(line[0], "Pressure")) {
+      numberOfPressures = line.size() - 1;
     } else if (CheckString(line[0], "ChemPot")) {
       numberOfChemPots.push_back(line.size() - 2);
     } else if (CheckString(line[0], "LambdaCoulomb")) {
@@ -244,9 +269,9 @@ std::string ParallelTemperingPreprocessor::getTemperature(const char *fileName, 
       continue;
     } else if(line[0] == "Temperature"){
         if (line.size() > 2){
-          temperature = line[worldRank+1];
+          temperature = "temp_" + line[worldRank+1];
         } else {
-          temperature = line[1];
+          //temperature = line[1];
         }
     } 
     // Clear and get ready for the next line
@@ -255,7 +280,28 @@ std::string ParallelTemperingPreprocessor::getTemperature(const char *fileName, 
   return temperature;
 }
 
+std::string ParallelTemperingPreprocessor::getPressure(const char *fileName, int worldRank){
+  InputFileReader reader;
+  std::vector<std::string> line;
+  reader.Open(fileName);
+  string pressure;
 
+
+  while(reader.readNextLine(line)) {
+    if(line.size() == 0){
+      continue;
+    } else if(line[0] == "Pressure"){
+        if (line.size() > 2){
+          pressure = "_pres_" + line[worldRank+1];
+        } else {
+          //pressure = "_pres_" + line[1];
+        }
+    } 
+    // Clear and get ready for the next line
+    line.clear();
+  }
+  return pressure;
+}
 
 std::string ParallelTemperingPreprocessor::getChemicalPotential(const char *fileName, int worldRank){
   InputFileReader reader;
@@ -278,9 +324,9 @@ std::string ParallelTemperingPreprocessor::getChemicalPotential(const char *file
         MPI_Finalize();
         exit(EXIT_FAILURE);
       } else {
-        resName = line[1];
-        val = line[2];
-        chemPotStream << "_" << resName << "_" << val;
+        //resName = line[1];
+        //val = line[2];
+        //chemPotStream << "_" << resName << "_" << val;
       }
     } 
     // Clear and get ready for the next line
@@ -289,16 +335,9 @@ std::string ParallelTemperingPreprocessor::getChemicalPotential(const char *file
   return chemPotStream.str();
 }
 
-std::string ParallelTemperingPreprocessor::setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature){   
+ std::string ParallelTemperingPreprocessor::setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature, std::string chemPot, std::string pressure){   
     std::stringstream replicaTemp;
-    replicaTemp << "temp_" << temperature;  
-    std::string replicaDirectory = replicaTemp.str();
-    return mkdirWrapper(multiSimTitle, replicaDirectory);
- }
-
- std::string ParallelTemperingPreprocessor::setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature, std::string chemPot){   
-    std::stringstream replicaTemp;
-    replicaTemp << "temp_" << temperature << chemPot;
+    replicaTemp << temperature << chemPot << pressure;
     std::string replicaDirectory = replicaTemp.str();
     return mkdirWrapper(multiSimTitle, replicaDirectory);
  }
