@@ -661,7 +661,7 @@ __device__ double CalcEnExp6GPU(double distSq, int index, double gpu_sigmaSq,
   double softDist6 = lambdaCoef * sigma6 + dist6;
   double softRsq = pow(softDist6, (double)1.0/3.0);
 
-  return gpu_lambdaVDW * CalcEnExp6GPUNoLambda(distSq,  gpu_n, gpu_rMin,
+  return gpu_lambdaVDW * CalcEnExp6GPUNoLambda(softRsq,  gpu_n, gpu_rMin,
                                                gpu_expConst);
 }
 
