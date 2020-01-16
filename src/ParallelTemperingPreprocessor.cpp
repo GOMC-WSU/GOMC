@@ -105,7 +105,7 @@ bool ParallelTemperingPreprocessor::checkIfParallelTempering(const char *fileNam
         isParallelTemperingInChemicalPotential = true;
     } else if (CheckString(line[0], "Fugacity")) {
       if (line.size() > 3)
-        isParallelTemperingInChemicalPotential = true;
+        isParallelTemperingInFugacity = true;
     }else if (CheckString(line[0], "Pressure")) {
       if (line.size() > 3)
         isParallelTemperingInPressure = true;
