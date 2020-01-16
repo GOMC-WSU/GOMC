@@ -154,6 +154,36 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
     line.clear();
   }
 
+  if(isParallelTemperingInChemicalPotential){
+    int numRepl = getNumberOfReplicas(inputFileStringMPI.c_str());
+    for( vector < int >::iterator it = numberOfChemPots.begin(); it != numberOfChemPots.end(); ++it ){
+      if (*it > 1 && *it != numRepl){
+        std::cout << "Error: Unequal number of Chemical Potentials between different Residues!\n";
+        std::cout << "Please provide either the same number of Chemical Potentials for each residue\n";
+        std::cout << "or provide only one value for a residue.\n";
+        std::cout << "Number of Chemical Potentials provided: " << numRepl << "\n";
+        std::cout << "Number of Chemical Potentials provided for another residue: " << *it << "\n";
+        MPI_Finalize();
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
+
+  if(isParallelTemperingInFugacity){
+    int numRepl = getNumberOfReplicas(inputFileStringMPI.c_str());
+    for( vector < int >::iterator it = numberOfFugacity.begin(); it != numberOfFugacity.end(); ++it ){
+      if (*it > 1 && *it != numRepl){
+        std::cout << "Error: Unequal number of fugacities between different Residues!\n";
+        std::cout << "Please provide either the same number of fugacities for each residue\n";
+        std::cout << "or provide only one value for a residue.\n";
+        std::cout << "Number of fugacities provided: " << numRepl << "\n";
+        std::cout << "Number of fugacities provided for another residue: " << *it << "\n";
+        MPI_Finalize();
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
+
   if (isParallelTemperingInChemicalPotential  && isParallelTemperingInTemperature){
     for( vector < int >::iterator it = numberOfChemPots.begin(); it != numberOfChemPots.end(); ++it ){
       if (*it > 1 && numberOfTemperatures > 1 && *it != numberOfTemperatures){
