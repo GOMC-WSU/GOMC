@@ -104,7 +104,6 @@ include(${PROJECT_SOURCE_DIR}/CMake/FileLists.cmake)
 include(${PROJECT_SOURCE_DIR}/CMake/GOMCCPUSetup.cmake)
 
 # find CUDA and set it up
-set(CUDA_SEPARABLE_COMPILATION ON)
 find_package(CUDA)
 IF(CUDA_FOUND)
     include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)

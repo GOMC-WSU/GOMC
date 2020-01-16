@@ -125,7 +125,7 @@ inline void Regrowth::Accept(const uint rejectState, const uint step)
     double Wrat = Wn / Wo * W_recip;
 
     //safety to make sure move will be rejected in overlap case
-    if(newMol.GetWeight() != 0.0 && !overlap) {
+    if(!overlap) {
       result = prng() < Wrat;
     } else
       result = false;
