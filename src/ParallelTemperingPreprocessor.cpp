@@ -144,7 +144,7 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
     } else if (CheckString(line[0], "ChemPot")) {
       numberOfChemPots.push_back(line.size() - 2);
     } else if (CheckString(line[0], "Fugacity")) {
-      numberOfChemPots.push_back(line.size() - 2);
+      numberOfFugacity.push_back(line.size() - 2);
     } else if (CheckString(line[0], "LambdaCoulomb")) {
       numberOfLambdaCoulombs = line.size() - 1;
     }  else if (CheckString(line[0], "LambdaVDW")) {
