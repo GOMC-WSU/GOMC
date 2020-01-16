@@ -216,6 +216,7 @@ int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName){
   int numberOfLambdaCoulombs = 0;
   int numberOfLambdaVDWs = 0;
   int numberOfPressures = 0;
+  vector < int > numberOfFugacity;
 
   int numberOfReplicas = 0;
 
@@ -228,6 +229,8 @@ int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName){
       numberOfPressures = line.size() - 1;
     } else if (CheckString(line[0], "ChemPot")) {
       numberOfChemPots.push_back(line.size() - 2);
+    } else if (CheckString(line[0], "Fugacity")) {
+      numberOfFugacity.push_back(line.size() - 2);
     } else if (CheckString(line[0], "LambdaCoulomb")) {
       numberOfLambdaCoulombs = line.size() - 1;
     }  else if (CheckString(line[0], "LambdaVDW")) {
@@ -238,6 +241,10 @@ int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName){
   }
 
   for( vector < int >::iterator it = numberOfChemPots.begin(); it != numberOfChemPots.end(); ++it ){
+    numberOfReplicas = std::max(numberOfReplicas, *it);
+  }
+
+  for( vector < int >::iterator it = numberOfFugacity.begin(); it != numberOfFugacity.end(); ++it ){
     numberOfReplicas = std::max(numberOfReplicas, *it);
   }
   numberOfReplicas = std::max(numberOfReplicas, numberOfTemperatures);
