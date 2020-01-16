@@ -52,6 +52,7 @@ private:
   int worldSize, worldRank;
   bool isParallelTemperingInTemperature;
   bool isParallelTemperingInChemicalPotential;
+  bool isParallelTemperingInFugacity;
   bool isParallelTemperingInFreeEnergyCoulomb;
   bool isParallelTemperingInFreeEnergyVDW;
   bool isParallelTemperingInPressure;

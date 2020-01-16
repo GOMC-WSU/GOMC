@@ -89,6 +89,7 @@ bool ParallelTemperingPreprocessor::checkIfParallelTempering(const char *fileNam
   reader.Open(fileName);
   isParallelTemperingInTemperature = false;
   isParallelTemperingInChemicalPotential = false;
+  isParallelTemperingInFugacity = false;
   isParallelTemperingInFreeEnergyCoulomb = false;
   isParallelTemperingInFreeEnergyVDW = false;
   isParallelTemperingInPressure = false;
@@ -102,7 +103,10 @@ bool ParallelTemperingPreprocessor::checkIfParallelTempering(const char *fileNam
     } else if (CheckString(line[0], "ChemPot")) {
       if (line.size() > 3)
         isParallelTemperingInChemicalPotential = true;
-    } else if (CheckString(line[0], "Pressure")) {
+    } else if (CheckString(line[0], "Fugacity")) {
+      if (line.size() > 3)
+        isParallelTemperingInChemicalPotential = true;
+    }else if (CheckString(line[0], "Pressure")) {
       if (line.size() > 3)
         isParallelTemperingInPressure = true;
     } else if (CheckString(line[0], "LambdaCoulomb")) {
@@ -115,8 +119,8 @@ bool ParallelTemperingPreprocessor::checkIfParallelTempering(const char *fileNam
     // Clear and get ready for the next line
     line.clear();
   }
-  return isParallelTemperingInTemperature || isParallelTemperingInChemicalPotential || isParallelTemperingInPressure ||
-          isParallelTemperingInFreeEnergyCoulomb || isParallelTemperingInFreeEnergyVDW;
+  return isParallelTemperingInTemperature || isParallelTemperingInChemicalPotential || isParallelTemperingInPressure || 
+          isParallelTemperingInFugacity || isParallelTemperingInFreeEnergyCoulomb || isParallelTemperingInFreeEnergyVDW;
 }
 
 void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
@@ -126,6 +130,7 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
   int numberOfTemperatures = 0;
   int numberOfPressures = 0;
   vector < int > numberOfChemPots;
+  vector < int > numberOfFugacity;
   int numberOfLambdaCoulombs = 0;
   int numberOfLambdaVDWs = 0;
 
@@ -138,6 +143,8 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
       numberOfPressures = line.size() - 1;
     } else if (CheckString(line[0], "ChemPot")) {
       numberOfChemPots.push_back(line.size() - 2);
+    } else if (CheckString(line[0], "Fugacity")) {
+      numberOfChemPots.push_back(line.size() - 2);
     } else if (CheckString(line[0], "LambdaCoulomb")) {
       numberOfLambdaCoulombs = line.size() - 1;
     }  else if (CheckString(line[0], "LambdaVDW")) {
@@ -147,7 +154,7 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
     line.clear();
   }
 
-  if (isParallelTemperingInChemicalPotential && isParallelTemperingInTemperature){
+  if (isParallelTemperingInChemicalPotential  && isParallelTemperingInTemperature){
     for( vector < int >::iterator it = numberOfChemPots.begin(); it != numberOfChemPots.end(); ++it ){
       if (*it > 1 && numberOfTemperatures > 1 && *it != numberOfTemperatures){
         std::cout << "Error: Unequal number of temperatures and chemical potentials in Multicanonical!\n";
@@ -155,6 +162,20 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
         std::cout << "provide only one temperature or only one chemical potential.\n";
         std::cout << "Number of temperatures provided: " << numberOfTemperatures << "\n";
         std::cout << "Number of chemical potentials provided: " << *it << "\n";
+        MPI_Finalize();
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
+
+  if (isParallelTemperingInFugacity  && isParallelTemperingInTemperature){
+    for( vector < int >::iterator it = numberOfChemPots.begin(); it != numberOfChemPots.end(); ++it ){
+      if (*it > 1 && numberOfTemperatures > 1 && *it != numberOfTemperatures){
+        std::cout << "Error: Unequal number of temperatures and fugacities in Multicanonical!\n";
+        std::cout << "If you only want to only sample mu-space or temperature-space\n";
+        std::cout << "provide only one temperature or only one chemical potential.\n";
+        std::cout << "Number of temperatures provided: " << numberOfTemperatures << "\n";
+        std::cout << "Number of fugacities provided: " << *it << "\n";
         MPI_Finalize();
         exit(EXIT_FAILURE);
       }
