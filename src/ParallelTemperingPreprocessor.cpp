@@ -73,6 +73,7 @@ ParallelTemperingPreprocessor::ParallelTemperingPreprocessor( int argc,
         pathToReplicaDirectory = setupReplicaDirectoriesAndRedirectSTDOUTToFile  (  getMultiSimFolderName(inputFileStringMPI.c_str()),
                                                                                     getTemperature(inputFileStringMPI.c_str(), worldRank),
                                                                                     getChemicalPotential(inputFileStringMPI.c_str(), worldRank),
+                                                                                    "");
       #elif ENSEMBLE == GEMC
       if(isGEMCNPT){
         pathToReplicaDirectory = setupReplicaDirectoriesAndRedirectSTDOUTToFile  (  getMultiSimFolderName(inputFileStringMPI.c_str()),
@@ -83,7 +84,7 @@ ParallelTemperingPreprocessor::ParallelTemperingPreprocessor( int argc,
         pathToReplicaDirectory = setupReplicaDirectoriesAndRedirectSTDOUTToFile  (  getMultiSimFolderName(inputFileStringMPI.c_str()),
                                                                                     getTemperature(inputFileStringMPI.c_str(), worldRank),
                                                                                     "",
-                                                                                    ""; 
+                                                                                    ""); 
       #else
         pathToReplicaDirectory = setupReplicaDirectoriesAndRedirectSTDOUTToFile  (  getMultiSimFolderName(inputFileStringMPI.c_str()),
                                                                                     getTemperature(inputFileStringMPI.c_str(), worldRank),
