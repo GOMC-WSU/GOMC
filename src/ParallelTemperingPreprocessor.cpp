@@ -372,13 +372,13 @@ std::string ParallelTemperingPreprocessor::getChemicalPotential(const char *file
   while(reader.readNextLine(line)) {
     if(line.size() == 0){
       continue;
-    } else if(CheckString(line[0], "ChemPot")) {
+    } else if(CheckString(line[0], "ChemPot") || CheckString(line[0], "Fugacity")) {
       if (line.size() > 3){
         resName = line[1];
         val = line[2 + worldRank];
         chemPotStream << "_" << resName << "_" << val;
       } else if(line.size() != 3) {
-        std::cout << "Error: Chemical potential parameters are not specified!\n";
+        std::cout << "Error: Chemical potential / fugacity parameters are not specified!\n";
         MPI_Finalize();
         exit(EXIT_FAILURE);
       } else {
