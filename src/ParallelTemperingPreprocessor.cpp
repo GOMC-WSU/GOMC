@@ -112,8 +112,6 @@ bool ParallelTemperingPreprocessor::checkIfParallelTempering(const char *fileNam
   isParallelTemperingInTemperature = false;
   isParallelTemperingInChemicalPotential = false;
   isParallelTemperingInFugacity = false;
-  //isParallelTemperingInFreeEnergyCoulomb = false;
-  //isParallelTemperingInFreeEnergyVDW = false;
   isParallelTemperingInPressure = false;
   isGEMCNPT = false;
 
@@ -146,13 +144,7 @@ bool ParallelTemperingPreprocessor::checkIfParallelTempering(const char *fileNam
       }
     }
     #endif
-    /*else if (CheckString(line[0], "LambdaCoulomb")) {
-      if (line.size() > 2)
-        isParallelTemperingInFreeEnergyCoulomb = true;
-    } else if (CheckString(line[0], "LambdaVDW")) {
-      if (line.size() > 2)
-        isParallelTemperingInFreeEnergyVDW = true;
-    }*/
+
     // Clear and get ready for the next line
     line.clear();
   }
@@ -160,10 +152,7 @@ bool ParallelTemperingPreprocessor::checkIfParallelTempering(const char *fileNam
   #if ENSEMBLE == GEMC
   isParallelTemperingInPressure = isParallelTemperingInPressure && isGEMCNPT;
   #endif
-/*
-  return isParallelTemperingInTemperature || isParallelTemperingInChemicalPotential || isParallelTemperingInPressure || 
-          isParallelTemperingInFugacity || isParallelTemperingInFreeEnergyCoulomb || isParallelTemperingInFreeEnergyVDW;
-*/  
+ 
   return isParallelTemperingInTemperature || isParallelTemperingInChemicalPotential || isParallelTemperingInPressure || 
           isParallelTemperingInFugacity;
 }
@@ -176,8 +165,6 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
   int numberOfPressures = 0;
   vector < int > numberOfChemPots;
   vector < int > numberOfFugacity;
-  //int numberOfLambdaCoulombs = 0;
-  //int numberOfLambdaVDWs = 0;
 
   while(reader.readNextLine(line)) {
     if(line.size() == 0)
@@ -190,11 +177,8 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
       numberOfChemPots.push_back(line.size() - 2);
     } else if (CheckString(line[0], "Fugacity")) {
       numberOfFugacity.push_back(line.size() - 2);
-    }/* else if (CheckString(line[0], "LambdaCoulomb")) {
-      numberOfLambdaCoulombs = line.size() - 1;
-    }  else if (CheckString(line[0], "LambdaVDW")) {
-      numberOfLambdaVDWs = line.size() - 1;
-    }*/
+    }
+    
     // Clear and get ready for the next line
     line.clear();
   }
@@ -275,15 +259,6 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
   }
 
   #endif
-/*
-  if ( numberOfLambdaCoulombs != numberOfLambdaVDWs){
-      std::cout << "Error: Unequal number of LambdaCoulombs and LambdaVDWs in Free Energy calculation!\n";
-      std::cout << "Number of temperatures provided: " << numberOfLambdaCoulombs << "\n";
-      std::cout << "Number of temperatures provided: " << numberOfLambdaVDWs << "\n";
-      MPI_Finalize();
-      exit(EXIT_FAILURE);
-  }
-*/
 }
 
 int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName){
@@ -292,8 +267,6 @@ int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName){
   reader.Open(fileName);
   int numberOfTemperatures = 0;
   vector < int > numberOfChemPots;
-  //int numberOfLambdaCoulombs = 0;
-  //int numberOfLambdaVDWs = 0;
   int numberOfPressures = 0;
   vector < int > numberOfFugacity;
 
@@ -310,11 +283,8 @@ int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName){
       numberOfChemPots.push_back(line.size() - 2);
     } else if (CheckString(line[0], "Fugacity")) {
       numberOfFugacity.push_back(line.size() - 2);
-    } /*else if (CheckString(line[0], "LambdaCoulomb")) {
-      numberOfLambdaCoulombs = line.size() - 1;
-    }  else if (CheckString(line[0], "LambdaVDW")) {
-      numberOfLambdaVDWs = line.size() - 1;
-    }*/
+    }
+
     #if ENSEMBLE == GEMC
     else if(CheckString(line[0], "GEMC")) {
       if(CheckString(line[1], "NPT")) {      
@@ -347,8 +317,6 @@ int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName){
     numberOfReplicas = std::max(numberOfReplicas, numberOfPressures);
   }
   #endif  
-  //numberOfReplicas = std::max(numberOfReplicas, numberOfLambdaCoulombs);
-  //numberOfReplicas = std::max(numberOfReplicas, numberOfLambdaVDWs);
 
   return numberOfReplicas;
 }
