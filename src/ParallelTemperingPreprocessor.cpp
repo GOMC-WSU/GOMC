@@ -199,7 +199,7 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
   }
 
   if (isParallelTemperingInFugacity  && isParallelTemperingInTemperature){
-    for( vector < int >::iterator it = numberOfChemPots.begin(); it != numberOfChemPots.end(); ++it ){
+    for( vector < int >::iterator it = numberOfFugacity.begin(); it != numberOfFugacity.end(); ++it ){
       if (*it > 1 && numberOfTemperatures > 1 && *it != numberOfTemperatures){
         std::cout << "Error: Unequal number of temperatures and fugacities in Multicanonical!\n";
         std::cout << "If you only want to only sample mu-space or temperature-space\n";
