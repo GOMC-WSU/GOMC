@@ -53,9 +53,10 @@ private:
   bool isParallelTemperingInTemperature;
   bool isParallelTemperingInChemicalPotential;
   bool isParallelTemperingInFugacity;
-  bool isParallelTemperingInFreeEnergyCoulomb;
-  bool isParallelTemperingInFreeEnergyVDW;
+  //bool isParallelTemperingInFreeEnergyCoulomb;
+  //bool isParallelTemperingInFreeEnergyVDW;
   bool isParallelTemperingInPressure;
+  bool isGEMCNPT;
 #endif
 
 };

@@ -64,11 +64,32 @@ ParallelTemperingPreprocessor::ParallelTemperingPreprocessor( int argc,
           MPI_Finalize();
           exit(EXIT_FAILURE);
       } else {
+      #if ENSEMBLE == NPT
+        pathToReplicaDirectory = setupReplicaDirectoriesAndRedirectSTDOUTToFile  (  getMultiSimFolderName(inputFileStringMPI.c_str()),
+                                                                                    getTemperature(inputFileStringMPI.c_str(), worldRank),
+                                                                                    "",
+                                                                                    getPressure(inputFileStringMPI.c_str(), worldRank));                                                                            
+      #elif ENSEMBLE == GCMC
         pathToReplicaDirectory = setupReplicaDirectoriesAndRedirectSTDOUTToFile  (  getMultiSimFolderName(inputFileStringMPI.c_str()),
                                                                                     getTemperature(inputFileStringMPI.c_str(), worldRank),
                                                                                     getChemicalPotential(inputFileStringMPI.c_str(), worldRank),
-                                                                                    getPressure(inputFileStringMPI.c_str(), worldRank));                                                                            
-
+      #elif ENSEMBLE == GEMC
+      if(isGEMCNPT){
+        pathToReplicaDirectory = setupReplicaDirectoriesAndRedirectSTDOUTToFile  (  getMultiSimFolderName(inputFileStringMPI.c_str()),
+                                                                                    getTemperature(inputFileStringMPI.c_str(), worldRank),
+                                                                                    "",
+                                                                                    getPressure(inputFileStringMPI.c_str(), worldRank)); 
+      } else {
+        pathToReplicaDirectory = setupReplicaDirectoriesAndRedirectSTDOUTToFile  (  getMultiSimFolderName(inputFileStringMPI.c_str()),
+                                                                                    getTemperature(inputFileStringMPI.c_str(), worldRank),
+                                                                                    "",
+                                                                                    ""; 
+      #else
+        pathToReplicaDirectory = setupReplicaDirectoriesAndRedirectSTDOUTToFile  (  getMultiSimFolderName(inputFileStringMPI.c_str()),
+                                                                                    getTemperature(inputFileStringMPI.c_str(), worldRank),
+                                                                                    "",
+                                                                                    ""); 
+      #endif
       } 
     }
   }
@@ -90,9 +111,10 @@ bool ParallelTemperingPreprocessor::checkIfParallelTempering(const char *fileNam
   isParallelTemperingInTemperature = false;
   isParallelTemperingInChemicalPotential = false;
   isParallelTemperingInFugacity = false;
-  isParallelTemperingInFreeEnergyCoulomb = false;
-  isParallelTemperingInFreeEnergyVDW = false;
+  //isParallelTemperingInFreeEnergyCoulomb = false;
+  //isParallelTemperingInFreeEnergyVDW = false;
   isParallelTemperingInPressure = false;
+  isGEMCNPT = false;
 
   while(reader.readNextLine(line)) {
     if(line.size() == 0)
@@ -100,27 +122,49 @@ bool ParallelTemperingPreprocessor::checkIfParallelTempering(const char *fileNam
     if(CheckString(line[0], "Temperature")) {
       if (line.size() > 2)
         isParallelTemperingInTemperature = true;
-    } else if (CheckString(line[0], "ChemPot")) {
+    } 
+    #if ENSEMBLE == GCMC
+    else if (CheckString(line[0], "ChemPot")) {
       if (line.size() > 3)
         isParallelTemperingInChemicalPotential = true;
     } else if (CheckString(line[0], "Fugacity")) {
       if (line.size() > 3)
         isParallelTemperingInFugacity = true;
-    }else if (CheckString(line[0], "Pressure")) {
+    }
+    #endif
+    #if ENSEMBLE == GEMC || ENSEMBLE == NPT
+    else if (CheckString(line[0], "Pressure")) {
       if (line.size() > 3)
         isParallelTemperingInPressure = true;
-    } else if (CheckString(line[0], "LambdaCoulomb")) {
+    } 
+    #endif
+    #if ENSEMBLE == GEMC
+    else if(CheckString(line[0], "GEMC")) {
+      if(CheckString(line[1], "NPT")) {      
+        isGEMCNPT = true;
+      }
+    }
+    #endif
+    /*else if (CheckString(line[0], "LambdaCoulomb")) {
       if (line.size() > 2)
         isParallelTemperingInFreeEnergyCoulomb = true;
     } else if (CheckString(line[0], "LambdaVDW")) {
       if (line.size() > 2)
         isParallelTemperingInFreeEnergyVDW = true;
-    }
+    }*/
     // Clear and get ready for the next line
     line.clear();
   }
+
+  #if ENSEMBLE == GEMC
+  isParallelTemperingInPressure = isParallelTemperingInPressure && isGEMCNPT;
+  #endif
+/*
   return isParallelTemperingInTemperature || isParallelTemperingInChemicalPotential || isParallelTemperingInPressure || 
           isParallelTemperingInFugacity || isParallelTemperingInFreeEnergyCoulomb || isParallelTemperingInFreeEnergyVDW;
+*/  
+  return isParallelTemperingInTemperature || isParallelTemperingInChemicalPotential || isParallelTemperingInPressure || 
+          isParallelTemperingInFugacity;
 }
 
 void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
@@ -131,8 +175,8 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
   int numberOfPressures = 0;
   vector < int > numberOfChemPots;
   vector < int > numberOfFugacity;
-  int numberOfLambdaCoulombs = 0;
-  int numberOfLambdaVDWs = 0;
+  //int numberOfLambdaCoulombs = 0;
+  //int numberOfLambdaVDWs = 0;
 
   while(reader.readNextLine(line)) {
     if(line.size() == 0)
@@ -145,15 +189,16 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
       numberOfChemPots.push_back(line.size() - 2);
     } else if (CheckString(line[0], "Fugacity")) {
       numberOfFugacity.push_back(line.size() - 2);
-    } else if (CheckString(line[0], "LambdaCoulomb")) {
+    }/* else if (CheckString(line[0], "LambdaCoulomb")) {
       numberOfLambdaCoulombs = line.size() - 1;
     }  else if (CheckString(line[0], "LambdaVDW")) {
       numberOfLambdaVDWs = line.size() - 1;
-    }
+    }*/
     // Clear and get ready for the next line
     line.clear();
   }
 
+  #if ENSEMBLE == GCMC
   if(isParallelTemperingInChemicalPotential){
     int numRepl = getNumberOfReplicas(inputFileStringMPI.c_str());
     for( vector < int >::iterator it = numberOfChemPots.begin(); it != numberOfChemPots.end(); ++it ){
@@ -212,6 +257,10 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
     }
   }
 
+  #endif
+
+  #if ENSEMBLE == NPT || ENSEMBLE == GEMC
+
   if (isParallelTemperingInTemperature && isParallelTemperingInPressure){
     if (numberOfTemperatures != numberOfPressures){
         std::cout << "Error: Unequal number of temperatures and pressures in Multicanonical!\n";
@@ -224,6 +273,8 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
     }
   }
 
+  #endif
+/*
   if ( numberOfLambdaCoulombs != numberOfLambdaVDWs){
       std::cout << "Error: Unequal number of LambdaCoulombs and LambdaVDWs in Free Energy calculation!\n";
       std::cout << "Number of temperatures provided: " << numberOfLambdaCoulombs << "\n";
@@ -231,10 +282,7 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName){
       MPI_Finalize();
       exit(EXIT_FAILURE);
   }
-
-
-
-
+*/
 }
 
 int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName){
@@ -243,8 +291,8 @@ int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName){
   reader.Open(fileName);
   int numberOfTemperatures = 0;
   vector < int > numberOfChemPots;
-  int numberOfLambdaCoulombs = 0;
-  int numberOfLambdaVDWs = 0;
+  //int numberOfLambdaCoulombs = 0;
+  //int numberOfLambdaVDWs = 0;
   int numberOfPressures = 0;
   vector < int > numberOfFugacity;
 
@@ -261,15 +309,23 @@ int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName){
       numberOfChemPots.push_back(line.size() - 2);
     } else if (CheckString(line[0], "Fugacity")) {
       numberOfFugacity.push_back(line.size() - 2);
-    } else if (CheckString(line[0], "LambdaCoulomb")) {
+    } /*else if (CheckString(line[0], "LambdaCoulomb")) {
       numberOfLambdaCoulombs = line.size() - 1;
     }  else if (CheckString(line[0], "LambdaVDW")) {
       numberOfLambdaVDWs = line.size() - 1;
+    }*/
+    #if ENSEMBLE == GEMC
+    else if(CheckString(line[0], "GEMC")) {
+      if(CheckString(line[1], "NPT")) {      
+        isGEMCNPT = true;
+      }
     }
+    #endif
     // Clear and get ready for the next line
     line.clear();
   }
 
+  #if ENSEMBLE == GCMC
   for( vector < int >::iterator it = numberOfChemPots.begin(); it != numberOfChemPots.end(); ++it ){
     numberOfReplicas = std::max(numberOfReplicas, *it);
   }
@@ -277,9 +333,21 @@ int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName){
   for( vector < int >::iterator it = numberOfFugacity.begin(); it != numberOfFugacity.end(); ++it ){
     numberOfReplicas = std::max(numberOfReplicas, *it);
   }
+  #endif
+
   numberOfReplicas = std::max(numberOfReplicas, numberOfTemperatures);
-  numberOfReplicas = std::max(numberOfReplicas, numberOfLambdaCoulombs);
-  numberOfReplicas = std::max(numberOfReplicas, numberOfLambdaVDWs);
+  
+  #if ENSEMBLE == NPT 
+  numberOfReplicas = std::max(numberOfReplicas, numberOfPressures);
+  #endif 
+  
+  #if ENSEMBLE == GEMC
+  if(isGEMCNPT){
+    numberOfReplicas = std::max(numberOfReplicas, numberOfPressures);
+  }
+  #endif  
+  //numberOfReplicas = std::max(numberOfReplicas, numberOfLambdaCoulombs);
+  //numberOfReplicas = std::max(numberOfReplicas, numberOfLambdaVDWs);
 
   return numberOfReplicas;
 }
