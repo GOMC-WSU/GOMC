@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -50,7 +50,7 @@ public:
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2,
                         const double lambda) const;
-  virtual double CalcVir(const double distSq, const uint kind1, 
+  virtual double CalcVir(const double distSq, const uint kind1,
                          const uint kind2, const double lambda) const;
   virtual void CalcAdd_1_4(double& en, const double distSq,
                            const uint kind1, const uint kind2) const;
@@ -59,11 +59,11 @@ public:
   virtual double CalcCoulomb(const double distSq,
                              const uint kind1,
                              const uint kind2,
-                             const double qi_qj_Fact, 
+                             const double qi_qj_Fact,
                              const double lambda,
                              const uint b) const;
   virtual double CalcCoulombVir(const double distSq, const uint kind1,
-                                const uint kind2, const double qi_qj, 
+                                const uint kind2, const double qi_qj,
                                 const double lambda, const uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact,
@@ -82,7 +82,7 @@ public:
 
   //Calculate the dE/dlambda for vdw energy
   virtual double CalcdEndL(const double distSq, const uint kind1,
-                           const uint kind2, const 
+                           const uint kind2, const
                            double lambda) const;
 
   //Calculate the dE/dlambda for Coulomb energy
@@ -90,10 +90,10 @@ public:
                                   const uint kind2, const double qi_qj_Fact,
                                   const double lambda, uint b) const;
 
-  protected:
+protected:
   virtual double CalcEn(const double distSq, const uint index) const;
   virtual double CalcVir(const double distSq, const uint index) const;
-  virtual double CalcCoulomb(const double distSq, const double qi_qj_Fact, 
+  virtual double CalcCoulomb(const double distSq, const double qi_qj_Fact,
                              const uint b) const;
   virtual double CalcCoulombVir(const double distSq, const double qi_qj,
                                 uint b) const;
@@ -166,7 +166,7 @@ inline double FF_SWITCH::CalcEn(const double distSq, const uint kind1,
   double dist6 = distSq * distSq * distSq;
   double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
   double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, 1.0/3.0);
+  double softRsq = pow(softDist6, 1.0 / 3.0);
 
   double en = lambda * CalcEn(softRsq, index);
   return en;
@@ -188,12 +188,12 @@ inline double FF_SWITCH::CalcEn(const double distSq, const uint index) const
   return (epsilon_cn[index] * (repulse - attract)) * factE;
 }
 
-inline double FF_SWITCH::CalcVir(const double distSq, const uint kind1, 
+inline double FF_SWITCH::CalcVir(const double distSq, const uint kind1,
                                  const uint kind2, const double lambda) const
 {
   if(forcefield.rCutSq < distSq)
     return 0.0;
-    
+
   uint index = FlatIndex(kind1, kind2);
   if(lambda >= 0.999999) {
     //save computation time
@@ -204,7 +204,7 @@ inline double FF_SWITCH::CalcVir(const double distSq, const uint kind1,
   double dist6 = distSq * distSq * distSq;
   double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
   double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, 1.0/3.0);
+  double softRsq = pow(softDist6, 1.0 / 3.0);
   double correction = distSq / softRsq;
   //We need to fix the return value from calcVir
   double vir = lambda * correction * correction * CalcVir(softRsq, index);
@@ -235,11 +235,11 @@ inline double FF_SWITCH::CalcVir(const double distSq, const uint index) const
 }
 
 inline double FF_SWITCH::CalcCoulomb(const double distSq,
-                                    const uint kind1,
-                                    const uint kind2,
-                                    const double qi_qj_Fact, 
-                                    const double lambda,
-                                    const uint b) const
+                                     const uint kind1,
+                                     const uint kind2,
+                                     const double qi_qj_Fact,
+                                     const double lambda,
+                                     const uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
@@ -256,7 +256,7 @@ inline double FF_SWITCH::CalcCoulomb(const double distSq,
     double dist6 = distSq * distSq * distSq;
     double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
     double softDist6 = lambdaCoef * sigma6 + dist6;
-    double softRsq = pow(softDist6, 1.0/3.0);
+    double softRsq = pow(softDist6, 1.0 / 3.0);
     en = lambda * CalcCoulomb(softRsq, qi_qj_Fact, b);
   } else {
     en = lambda * CalcCoulomb(distSq, qi_qj_Fact, b);
@@ -265,7 +265,7 @@ inline double FF_SWITCH::CalcCoulomb(const double distSq,
 }
 
 inline double FF_SWITCH::CalcCoulomb(const double distSq,
-                                     const double qi_qj_Fact, 
+                                     const double qi_qj_Fact,
                                      const uint b) const
 {
   if(forcefield.ewald) {
@@ -283,7 +283,7 @@ inline double FF_SWITCH::CalcCoulomb(const double distSq,
 inline double FF_SWITCH::CalcCoulombVir(const double distSq,
                                         const uint kind1,
                                         const uint kind2,
-                                        const double qi_qj, 
+                                        const double qi_qj,
                                         const double lambda,
                                         const uint b) const
 {
@@ -302,7 +302,7 @@ inline double FF_SWITCH::CalcCoulombVir(const double distSq,
     double dist6 = distSq * distSq * distSq;
     double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
     double softDist6 = lambdaCoef * sigma6 + dist6;
-    double softRsq = pow(softDist6, 1.0/3.0);
+    double softRsq = pow(softDist6, 1.0 / 3.0);
     double correction = distSq / softRsq;
     //We need to fix the return value from calcVir
     vir = lambda * correction * correction * CalcCoulombVir(softRsq, qi_qj, b);
@@ -332,7 +332,7 @@ inline double FF_SWITCH::CalcCoulombVir(const double distSq, const double qi_qj,
 }
 
 inline double FF_SWITCH::CalcdEndL(const double distSq, const uint kind1,
-                                  const uint kind2, const double lambda) const
+                                   const uint kind2, const double lambda) const
 {
   if(forcefield.rCutSq < distSq)
     return 0.0;
@@ -343,7 +343,7 @@ inline double FF_SWITCH::CalcdEndL(const double distSq, const uint kind1,
   double dist6 = distSq * distSq * distSq;
   double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
   double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, 1.0/3.0);
+  double softRsq = pow(softDist6, 1.0 / 3.0);
   double fCoef = lambda * forcefield.sc_alpha * forcefield.sc_power / 6.0;
   fCoef *= pow(1.0 - lambda, forcefield.sc_power - 1) * sigma6 / (softRsq * softRsq);
   double dhdl = CalcEn(softRsq, index) + fCoef * CalcVir(softRsq, index);
@@ -352,14 +352,14 @@ inline double FF_SWITCH::CalcdEndL(const double distSq, const uint kind1,
 
 //Calculate the dE/dlambda for Coulomb energy
 inline double FF_SWITCH::CalcCoulombdEndL(const double distSq,
-                                          const uint kind1,
-                                          const uint kind2,
-                                          const double qi_qj_Fact,
-                                          const double lambda, uint b) const
+    const uint kind1,
+    const uint kind2,
+    const double qi_qj_Fact,
+    const double lambda, uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
-    
+
   double dhdl = 0.0;
   if(forcefield.sc_coul) {
     uint index = FlatIndex(kind1, kind2);
@@ -368,15 +368,15 @@ inline double FF_SWITCH::CalcCoulombdEndL(const double distSq,
     double dist6 = distSq * distSq * distSq;
     double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
     double softDist6 = lambdaCoef * sigma6 + dist6;
-    double softRsq = pow(softDist6, 1.0/3.0);
+    double softRsq = pow(softDist6, 1.0 / 3.0);
     double fCoef = lambda * forcefield.sc_alpha * forcefield.sc_power / 6.0;
     fCoef *= pow(1.0 - lambda, forcefield.sc_power - 1) * sigma6 / (softRsq * softRsq);
-    dhdl = CalcCoulomb(softRsq, qi_qj_Fact, b) + 
-          fCoef * CalcCoulombVir(softRsq, qi_qj_Fact, b);
+    dhdl = CalcCoulomb(softRsq, qi_qj_Fact, b) +
+           fCoef * CalcCoulombVir(softRsq, qi_qj_Fact, b);
   } else {
     dhdl = CalcCoulomb(distSq, qi_qj_Fact, b);
   }
-  return dhdl; 
+  return dhdl;
 }
 
 #endif /*FF_SWITCH_H*/

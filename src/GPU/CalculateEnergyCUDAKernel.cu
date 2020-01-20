@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -55,7 +55,7 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   gpuErrchk(cudaMalloc((void**) &gpu_final_LJEn, sizeof(double)));
   gpuErrchk(cudaMalloc((void**) &gpu_lambdaVDW, pair1.size() * sizeof(double)));
   gpuErrchk(cudaMalloc((void**) &gpu_lambdaCoulomb, pair1.size() * sizeof(double)));
-  
+
   // Copy necessary data to GPU
   gpuErrchk(cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int),
                        cudaMemcpyHostToDevice));
@@ -85,50 +85,50 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   threadsPerBlock = 256;
   blocksPerGrid = (int)(pair1.size() / threadsPerBlock) + 1;
   BoxInterGPU <<< blocksPerGrid, threadsPerBlock>>>(gpu_pair1,
-                                                    gpu_pair2,
-                                                    vars->gpu_x,
-                                                    vars->gpu_y,
-                                                    vars->gpu_z,
-                                                    boxAxes.GetAxis(box).x,
-                                                    boxAxes.GetAxis(box).y,
-                                                    boxAxes.GetAxis(box).z,
-                                                    electrostatic,
-                                                    gpu_particleCharge,
-                                                    gpu_particleKind,
-                                                    gpu_particleMol,
-                                                    gpu_REn,
-                                                    gpu_LJEn,
-                                                    pair1.size(),
-                                                    vars->gpu_sigmaSq,
-                                                    vars->gpu_epsilon_Cn,
-                                                    vars->gpu_n,
-                                                    vars->gpu_VDW_Kind,
-                                                    vars->gpu_isMartini,
-                                                    vars->gpu_count,
-                                                    vars->gpu_rCut,
-                                                    vars->gpu_rCutCoulomb,
-                                                    vars->gpu_rCutLow,
-                                                    vars->gpu_rOn,
-                                                    vars->gpu_alpha,
-                                                    vars->gpu_ewald,
-                                                    vars->gpu_diElectric_1,
-                                                    vars->gpu_nonOrth,
-                                                    vars->gpu_cell_x[box],
-                                                    vars->gpu_cell_y[box],
-                                                    vars->gpu_cell_z[box],
-                                                    vars->gpu_Invcell_x[box],
-                                                    vars->gpu_Invcell_y[box],
-                                                    vars->gpu_Invcell_z[box],
-                                                    gpu_lambdaVDW,
-                                                    gpu_lambdaCoulomb,
-                                                    sc_coul,
-                                                    sc_sigma_6,
-                                                    sc_alpha,
-                                                    sc_power,
-                                                    vars->gpu_rMin,
-                                                    vars->gpu_rMaxSq,
-                                                    vars->gpu_expConst,
-                                                    box);
+      gpu_pair2,
+      vars->gpu_x,
+      vars->gpu_y,
+      vars->gpu_z,
+      boxAxes.GetAxis(box).x,
+      boxAxes.GetAxis(box).y,
+      boxAxes.GetAxis(box).z,
+      electrostatic,
+      gpu_particleCharge,
+      gpu_particleKind,
+      gpu_particleMol,
+      gpu_REn,
+      gpu_LJEn,
+      pair1.size(),
+      vars->gpu_sigmaSq,
+      vars->gpu_epsilon_Cn,
+      vars->gpu_n,
+      vars->gpu_VDW_Kind,
+      vars->gpu_isMartini,
+      vars->gpu_count,
+      vars->gpu_rCut,
+      vars->gpu_rCutCoulomb,
+      vars->gpu_rCutLow,
+      vars->gpu_rOn,
+      vars->gpu_alpha,
+      vars->gpu_ewald,
+      vars->gpu_diElectric_1,
+      vars->gpu_nonOrth,
+      vars->gpu_cell_x[box],
+      vars->gpu_cell_y[box],
+      vars->gpu_cell_z[box],
+      vars->gpu_Invcell_x[box],
+      vars->gpu_Invcell_y[box],
+      vars->gpu_Invcell_z[box],
+      gpu_lambdaVDW,
+      gpu_lambdaCoulomb,
+      sc_coul,
+      sc_sigma_6,
+      sc_alpha,
+      sc_power,
+      vars->gpu_rMin,
+      vars->gpu_rMaxSq,
+      vars->gpu_expConst,
+      box);
   checkLastErrorCUDA(__FILE__, __LINE__);
 
   // ReduceSum
@@ -346,10 +346,10 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
 //ElectroStatic Calculation
 //**************************************************************//
 __device__ double CalcCoulombParticleGPU(double distSq, double qi_qj_fact,
-                                         double gpu_ewald, double gpu_alpha,
-                                         double gpu_lambdaCoulomb, bool sc_coul,
-                                         double sc_sigma_6, double sc_alpha,
-                                         uint sc_power, double gpu_sigmaSq)
+    double gpu_ewald, double gpu_alpha,
+    double gpu_lambdaCoulomb, bool sc_coul,
+    double sc_sigma_6, double sc_alpha,
+    uint sc_power, double gpu_sigmaSq)
 {
   if(gpu_lambdaCoulomb >= 0.999999) {
     return CalcCoulombParticleGPUNoLambda(distSq, qi_qj_fact, gpu_ewald, gpu_alpha);
@@ -360,7 +360,7 @@ __device__ double CalcCoulombParticleGPU(double distSq, double qi_qj_fact,
     double dist6 = distSq * distSq * distSq;
     double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaCoulomb), (double)sc_power);
     double softDist6 = lambdaCoef * sigma6 * dist6;
-    double softRsq = pow(softDist6, 1.0/3.0);
+    double softRsq = pow(softDist6, 1.0 / 3.0);
     return gpu_lambdaCoulomb * CalcCoulombParticleGPUNoLambda(softRsq, qi_qj_fact, gpu_ewald, gpu_alpha);
   } else {
     return gpu_lambdaCoulomb * CalcCoulombParticleGPUNoLambda(distSq, qi_qj_fact, gpu_ewald, gpu_alpha);
@@ -368,9 +368,9 @@ __device__ double CalcCoulombParticleGPU(double distSq, double qi_qj_fact,
 }
 
 __device__ double CalcCoulombParticleGPUNoLambda(double distSq,
-                                                 double qi_qj_fact,
-                                                 double gpu_ewald,
-                                                 double gpu_alpha)
+    double qi_qj_fact,
+    double gpu_ewald,
+    double gpu_alpha)
 {
   if(gpu_ewald) {
     double dist = sqrt(distSq);
@@ -401,20 +401,20 @@ __device__ double CalcCoulombShiftGPU(double distSq, double qi_qj_fact,
     double dist6 = distSq * distSq * distSq;
     double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaCoulomb), (double)sc_power);
     double softDist6 = lambdaCoef * sigma6 * dist6;
-    double softRsq = pow(softDist6, (double)1.0/3.0);
+    double softRsq = pow(softDist6, (double)1.0 / 3.0);
     return gpu_lambdaCoulomb * CalcCoulombShiftGPUNoLambda(softRsq, qi_qj_fact,
-                                                           gpu_ewald, gpu_alpha,
-                                                           gpu_rCut);
+           gpu_ewald, gpu_alpha,
+           gpu_rCut);
   } else {
     return gpu_lambdaCoulomb * CalcCoulombShiftGPUNoLambda(distSq, qi_qj_fact,
-                                                           gpu_ewald, gpu_alpha,
-                                                           gpu_rCut);
+           gpu_ewald, gpu_alpha,
+           gpu_rCut);
   }
 }
 
 __device__ double CalcCoulombShiftGPUNoLambda(double distSq, double qi_qj_fact,
-                                              int gpu_ewald, double gpu_alpha,
-                                              double gpu_rCut)
+    int gpu_ewald, double gpu_alpha,
+    double gpu_rCut)
 {
   if(gpu_ewald) {
     double dist = sqrt(distSq);
@@ -443,17 +443,17 @@ __device__ double CalcCoulombExp6GPU(double distSq, double qi_qj_fact,
     double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaCoulomb),
                                        (double)sc_power);
     double softDist6 = lambdaCoef * sigma6 * dist6;
-    double softRsq = pow(softDist6, (double)1.0/3.0);
+    double softRsq = pow(softDist6, (double)1.0 / 3.0);
     return gpu_lambdaCoulomb * CalcCoulombExp6GPUNoLambda(softRsq, qi_qj_fact,
-                                                          gpu_ewald, gpu_alpha);
+           gpu_ewald, gpu_alpha);
   } else {
     return gpu_lambdaCoulomb * CalcCoulombExp6GPUNoLambda(distSq, qi_qj_fact,
-                                                          gpu_ewald, gpu_alpha);
+           gpu_ewald, gpu_alpha);
   }
 }
 
 __device__ double CalcCoulombExp6GPUNoLambda(double distSq, double qi_qj_fact,
-                                             int gpu_ewald, double gpu_alpha)
+    int gpu_ewald, double gpu_alpha)
 {
   if(gpu_ewald) {
     double dist = sqrt(distSq);
@@ -466,13 +466,13 @@ __device__ double CalcCoulombExp6GPUNoLambda(double distSq, double qi_qj_fact,
 }
 
 __device__ double CalcCoulombSwitchMartiniGPU(double distSq, double qi_qj_fact,
-                                              int gpu_ewald, double gpu_alpha,
-                                              double gpu_rCut,
-                                              double gpu_diElectric_1,
-                                              double gpu_lambdaCoulomb,
-                                              bool sc_coul, double sc_sigma_6,
-                                              double sc_alpha, uint sc_power,
-                                              double gpu_sigmaSq)
+    int gpu_ewald, double gpu_alpha,
+    double gpu_rCut,
+    double gpu_diElectric_1,
+    double gpu_lambdaCoulomb,
+    bool sc_coul, double sc_sigma_6,
+    double sc_alpha, uint sc_power,
+    double gpu_sigmaSq)
 {
   if(gpu_lambdaCoulomb >= 0.999999) {
     return CalcCoulombSwitchMartiniGPUNoLambda(distSq, qi_qj_fact, gpu_ewald, gpu_alpha, gpu_rCut, gpu_diElectric_1);
@@ -484,7 +484,7 @@ __device__ double CalcCoulombSwitchMartiniGPU(double distSq, double qi_qj_fact,
     double dist6 = distSq * distSq * distSq;
     double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaCoulomb), (double)sc_power);
     double softDist6 = lambdaCoef * sigma6 * dist6;
-    double softRsq = pow(softDist6, 1.0/3.0);
+    double softRsq = pow(softDist6, 1.0 / 3.0);
     return gpu_lambdaCoulomb * CalcCoulombSwitchMartiniGPUNoLambda(softRsq, qi_qj_fact, gpu_ewald, gpu_alpha, gpu_rCut, gpu_diElectric_1);
   } else {
     return gpu_lambdaCoulomb * CalcCoulombSwitchMartiniGPUNoLambda(distSq, qi_qj_fact, gpu_ewald, gpu_alpha, gpu_rCut, gpu_diElectric_1);
@@ -492,11 +492,11 @@ __device__ double CalcCoulombSwitchMartiniGPU(double distSq, double qi_qj_fact,
 }
 
 __device__ double CalcCoulombSwitchMartiniGPUNoLambda(double distSq,
-                                                      double qi_qj_fact,
-                                                      int gpu_ewald,
-                                                      double gpu_alpha,
-                                                      double gpu_rCut,
-                                                      double gpu_diElectric_1)
+    double qi_qj_fact,
+    int gpu_ewald,
+    double gpu_alpha,
+    double gpu_rCut,
+    double gpu_diElectric_1)
 {
   if(gpu_ewald) {
     double dist = sqrt(distSq);
@@ -538,7 +538,7 @@ __device__ double CalcCoulombSwitchGPU(double distSq, double qi_qj_fact,
     double dist6 = distSq * distSq * distSq;
     double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaCoulomb), (double)sc_power);
     double softDist6 = lambdaCoef * sigma6 * dist6;
-    double softRsq = pow(softDist6, 1.0/3.0);
+    double softRsq = pow(softDist6, 1.0 / 3.0);
     return gpu_lambdaCoulomb * CalcCoulombSwitchGPUNoLambda(softRsq, qi_qj_fact, gpu_ewald, gpu_alpha, gpu_rCut);
   } else {
     return gpu_lambdaCoulomb * CalcCoulombSwitchGPUNoLambda(distSq, qi_qj_fact, gpu_ewald, gpu_alpha, gpu_rCut);
@@ -546,8 +546,8 @@ __device__ double CalcCoulombSwitchGPU(double distSq, double qi_qj_fact,
 }
 
 __device__ double CalcCoulombSwitchGPUNoLambda(double distSq, double qi_qj_fact,
-                                               double gpu_alpha, int gpu_ewald,
-                                               double gpu_rCut)
+    double gpu_alpha, int gpu_ewald,
+    double gpu_rCut)
 {
   if(gpu_ewald) {
     double dist = sqrt(distSq);
@@ -581,15 +581,15 @@ __device__ double CalcEnParticleGPU(double distSq, int index,
   double dist6 = distSq * distSq * distSq;
   double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaVDW), (double)sc_power);
   double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, 1.0/3.0);
+  double softRsq = pow(softDist6, 1.0 / 3.0);
 
   return gpu_lambdaVDW * CalcEnParticleGPUNoLambda(softRsq, index, gpu_sigmaSq,
-                                                   gpu_n, gpu_epsilon_Cn);
+         gpu_n, gpu_epsilon_Cn);
 }
 
 __device__ double CalcEnParticleGPUNoLambda(double distSq, int index,
-                                            double *gpu_sigmaSq, double *gpu_n,
-                                            double *gpu_epsilon_Cn)
+    double *gpu_sigmaSq, double *gpu_n,
+    double *gpu_epsilon_Cn)
 {
   double rRat2 = gpu_sigmaSq[index] / distSq;
   double rRat4 = rRat2 * rRat2;
@@ -616,17 +616,17 @@ __device__ double CalcEnShiftGPU(double distSq, int index, double *gpu_sigmaSq,
   double dist6 = distSq * distSq * distSq;
   double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaVDW), (double)sc_power);
   double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, (double)1.0/3.0);
+  double softRsq = pow(softDist6, (double)1.0 / 3.0);
 
   return gpu_lambdaVDW * CalcEnShiftGPUNoLambda(softRsq, index, gpu_sigmaSq,
-                                                gpu_n, gpu_epsilon_Cn,
-                                                gpu_rCut);
+         gpu_n, gpu_epsilon_Cn,
+         gpu_rCut);
 }
 
 __device__ double CalcEnShiftGPUNoLambda(double distSq, int index,
-                                         double *gpu_sigmaSq,
-                                         double *gpu_n, double *gpu_epsilon_Cn,
-                                         double gpu_rCut)
+    double *gpu_sigmaSq,
+    double *gpu_n, double *gpu_epsilon_Cn,
+    double gpu_rCut)
 {
   double rRat2 = gpu_sigmaSq[index] / distSq;
   double rRat4 = rRat2 * rRat2;
@@ -659,10 +659,10 @@ __device__ double CalcEnExp6GPU(double distSq, int index, double gpu_sigmaSq,
   double dist6 = distSq * distSq * distSq;
   double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaVDW), (double)sc_power);
   double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, (double)1.0/3.0);
+  double softRsq = pow(softDist6, (double)1.0 / 3.0);
 
   return gpu_lambdaVDW * CalcEnExp6GPUNoLambda(softRsq,  gpu_n, gpu_rMin,
-                                               gpu_expConst);
+         gpu_expConst);
 }
 
 __device__ double CalcEnExp6GPUNoLambda(double distSq, double gpu_n,
@@ -679,13 +679,13 @@ __device__ double CalcEnExp6GPUNoLambda(double distSq, double gpu_n,
 }
 
 __device__ double CalcEnSwitchMartiniGPU(double distSq, int index,
-                                         double *gpu_sigmaSq, double *gpu_n,
-                                         double *gpu_epsilon_Cn,
-                                         double gpu_rCut, double gpu_rOn,
-                                         double gpu_lambdaVDW,
-                                         double sc_sigma_6,
-                                         double sc_alpha,
-                                         uint sc_power)
+    double *gpu_sigmaSq, double *gpu_n,
+    double *gpu_epsilon_Cn,
+    double gpu_rCut, double gpu_rOn,
+    double gpu_lambdaVDW,
+    double sc_sigma_6,
+    double sc_alpha,
+    uint sc_power)
 {
   if(gpu_lambdaVDW >= 0.999999) {
     return CalcEnSwitchMartiniGPUNoLambda(distSq, index, gpu_sigmaSq, gpu_n,
@@ -697,20 +697,20 @@ __device__ double CalcEnSwitchMartiniGPU(double distSq, int index,
   double dist6 = distSq * distSq * distSq;
   double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaVDW), (double)sc_power);
   double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, (double)1.0/3.0);
+  double softRsq = pow(softDist6, (double)1.0 / 3.0);
 
   return gpu_lambdaVDW * CalcEnSwitchMartiniGPUNoLambda(softRsq, index,
-                                                        gpu_sigmaSq, gpu_n,
-                                                        gpu_epsilon_Cn,
-                                                        gpu_rCut, gpu_rOn);
+         gpu_sigmaSq, gpu_n,
+         gpu_epsilon_Cn,
+         gpu_rCut, gpu_rOn);
 }
 
 __device__ double CalcEnSwitchMartiniGPUNoLambda(double distSq, int index,
-                                                 double *gpu_sigmaSq,
-                                                 double *gpu_n,
-                                                 double *gpu_epsilon_Cn,
-                                                 double gpu_rCut,
-                                                 double gpu_rOn)
+    double *gpu_sigmaSq,
+    double *gpu_n,
+    double *gpu_epsilon_Cn,
+    double gpu_rCut,
+    double gpu_rOn)
 {
   double r_2 = 1.0 / distSq;
   double r_4 = r_2 * r_2;
@@ -766,17 +766,17 @@ __device__ double CalcEnSwitchGPU(double distSq, int index, double *gpu_sigmaSq,
   double dist6 = distSq * distSq * distSq;
   double lambdaCoef = sc_alpha * pow((1.0 - gpu_lambdaVDW), (double)sc_power);
   double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, (double)1.0/3.0);
+  double softRsq = pow(softDist6, (double)1.0 / 3.0);
 
   return gpu_lambdaVDW * CalcEnSwitchGPUNoLambda(softRsq, index, gpu_sigmaSq,
-                                                 gpu_n, gpu_epsilon_Cn,
-                                                 gpu_rCut, gpu_rOn);
+         gpu_n, gpu_epsilon_Cn,
+         gpu_rCut, gpu_rOn);
 }
 
 __device__ double CalcEnSwitchGPUNoLambda(double distSq, int index,
-                                          double *gpu_sigmaSq, double *gpu_n,
-                                          double *gpu_epsilon_Cn,
-                                          double gpu_rCut, double gpu_rOn)
+    double *gpu_sigmaSq, double *gpu_n,
+    double *gpu_epsilon_Cn,
+    double gpu_rCut, double gpu_rOn)
 {
   double rCutSq = gpu_rCut * gpu_rCut;
   double rOnSq = gpu_rOn * gpu_rOn;

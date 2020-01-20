@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -122,14 +122,14 @@ void OutputVars::CalcAndConvert(ulong step)
 
     if (pressureCalc) {
       if((step + 1) % pCalcFreq == 0 || step == 0) {
-        if(step != 0){
+        if(step != 0) {
           virialRef[b] = calc.VirialCalc(b);
           *virialTotRef += virialRef[b];
         }
         //calculate surface tension in mN/M
         surfaceTens[b] = (virialRef[b].totalTens[2][2] - 0.5 *
                           (virialRef[b].totalTens[0][0] +
-                          virialRef[b].totalTens[1][1]));
+                           virialRef[b].totalTens[1][1]));
         surfaceTens[b] *= unit::K_TO_MN_PER_M /
                           (2.0 * axisRef->Get(b).x * axisRef->Get(b).y);
 
@@ -171,9 +171,9 @@ void OutputVars::CalcAndConvert(ulong step)
         // delta Hv = (Uv-Ul) + P(Vv-Vl)
         heatOfVap = energyRef[vapBox].total / numByBox[vapBox] -
                     energyRef[liqBox].total / numByBox[liqBox];
-        heatOfVap += rawPressure[vapBox] * 
-                    (volumeRef[vapBox] / numByBox[vapBox] -
-                    volumeRef[liqBox] / numByBox[liqBox]);
+        heatOfVap += rawPressure[vapBox] *
+                     (volumeRef[vapBox] / numByBox[vapBox] -
+                      volumeRef[liqBox] / numByBox[liqBox]);
         heatOfVap *= unit::K_TO_KJ_PER_MOL;
 #endif
       }

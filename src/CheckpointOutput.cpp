@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -26,11 +26,11 @@ union uint32_output_union {
 CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
-  #if GOMC_LIB_MPI
+#if GOMC_LIB_MPI
   coordCurrRef(sys.coordinates), filename(pathToReplicaDirectory + "checkpoint.dat")
-  #else
+#else
   coordCurrRef(sys.coordinates), filename("checkpoint.dat")
-  #endif
+#endif
 {
   outputFile = NULL;
 }
@@ -170,9 +170,9 @@ void CheckpointOutput::printVector3DDouble(vector< vector< vector <double> > > d
   outputUintIn8Chars(size_z);
 
   // print tempTries array
-  for(int i=0; i<size_x; i++) {
-    for(int j=0; j<size_y; j++) {
-      for(int k=0; k<size_z; k++) {
+  for(int i = 0; i < size_x; i++) {
+    for(int j = 0; j < size_y; j++) {
+      for(int k = 0; k < size_z; k++) {
         outputDoubleIn8Chars(data[i][j][k]);
       }
     }
@@ -190,9 +190,9 @@ void CheckpointOutput::printVector3DUint(vector< vector< vector <uint> > > data)
   outputUintIn8Chars(size_z);
 
   // print tempTries array
-  for(int i=0; i<size_x; i++) {
-    for(int j=0; j<size_y; j++) {
-      for(int k=0; k<size_z; k++) {
+  for(int i = 0; i < size_x; i++) {
+    for(int j = 0; j < size_y; j++) {
+      for(int k = 0; k < size_z; k++) {
         outputUintIn8Chars(data[i][j][k]);
       }
     }
@@ -208,8 +208,8 @@ void CheckpointOutput::printVector2DUint(vector< vector< uint > > data)
   outputUintIn8Chars(size_y);
 
   // print array iteself
-  for(int i=0; i<size_x; i++) {
-    for(int j=0; j<size_y; j++) {
+  for(int i = 0; i < size_x; i++) {
+    for(int j = 0; j < size_y; j++) {
       outputUintIn8Chars(data[i][j]);
     }
   }
@@ -222,7 +222,7 @@ void CheckpointOutput::printVector1DDouble(vector< double > data)
   outputUintIn8Chars(size_x);
 
   // print array iteself
-  for(int i=0; i<size_x; i++) {
+  for(int i = 0; i < size_x; i++) {
     outputDoubleIn8Chars(data[i]);
   }
 }

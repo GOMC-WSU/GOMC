@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -217,7 +217,7 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
     // refer to issue #131
     if(frameNum == 1)
       pdb[b].open();
-    
+
     while (pdb[b].Read(varName, pdb_entry::label::POS)) {
       //If end of frame, and this is the frame we wanted,
       //end read on this file

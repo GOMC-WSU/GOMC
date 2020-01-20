@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -86,7 +86,7 @@ inline int CellList::PositionToCell(const XYZ& posRef, int box) const
   int y = (int)(pos.y / cellSize[box].y);
   int z = (int)(pos.z / cellSize[box].z);
   //Check the cell number to avoid segfult for coordinates close to axis
-  //x, y, and z should never be equal or greater than number of cells in x, y, 
+  //x, y, and z should never be equal or greater than number of cells in x, y,
   // and z axis, respectively.
   x -= (x == edgeCells[box][0] ?  1 : 0);
   y -= (y == edgeCells[box][1] ?  1 : 0);

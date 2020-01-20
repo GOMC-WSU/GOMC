@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
     //ONCE FILE FOUND PASS STRING TO SIMULATION CLASS TO READ AND
     //HANDLE PDB|PSF FILE
 #if GOMC_LIB_MPI
-    if(multisim != NULL){
+    if(multisim != NULL) {
       Simulation sim(inputFileString.c_str(), multisim);
       sim.RunSimulation();
       PrintSimulationFooter();

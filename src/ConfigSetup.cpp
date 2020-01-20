@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -265,11 +265,11 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
     }
 #endif
     else if(CheckString(line[0], "Temperature")) {
-      if (line.size() > 2 && multisim != NULL){
-        sys.T.inKelvin = stringtod(line[multisim->worldRank+1]);
+      if (line.size() > 2 && multisim != NULL) {
+        sys.T.inKelvin = stringtod(line[multisim->worldRank + 1]);
       } else {
         sys.T.inKelvin = stringtod(line[1]);
-      }      
+      }
       printf("%-40s %-4.4f K\n", "Info: Input Temperature", sys.T.inKelvin);
     } else if(CheckString(line[0], "Potential")) {
       if(CheckString(line[1], "VDW")) {
@@ -486,7 +486,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       sys.moves.displace = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Displacement move frequency",
              sys.moves.displace);
-    } else if(CheckString(line[0],"MultiParticleFreq")) {
+    } else if(CheckString(line[0], "MultiParticleFreq")) {
       sys.moves.multiParticle = stringtod(line[1]);
       if(sys.moves.multiParticle > 0.00) {
         sys.moves.multiParticleEnabled = true;
@@ -494,7 +494,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       printf("%-40s %-4.4f \n",
              "Info: Multi-Particle move frequency",
              sys.moves.multiParticle);
-    } else if(CheckString(line[0],"IntraSwapFreq")) {
+    } else if(CheckString(line[0], "IntraSwapFreq")) {
       sys.moves.intraSwap = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Intra-Swap move frequency",
              sys.moves.intraSwap);
@@ -584,9 +584,9 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
     } else if(CheckString(line[0], "CFCMCFreq")) {
       sys.moves.cfcmc = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: CFCMC move frequency",
-	     sys.moves.cfcmc);
+             sys.moves.cfcmc);
       if(sys.moves.cfcmc > 0.0) {
-	      sys.cfcmcVal.enable = true;
+        sys.cfcmcVal.enable = true;
       }
     } else if(CheckString(line[0], "LambdaCoulomb")) {
       if(line.size() > 1) {
@@ -597,7 +597,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           sys.cfcmcVal.lambdaCoulomb.push_back(val);
           printf("%-6.3f", val);
         }
-        std::cout << endl; 
+        std::cout << endl;
       }
     } else if(CheckString(line[0], "LambdaVDW")) {
       if(line.size() > 1) {
@@ -608,21 +608,21 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           sys.cfcmcVal.lambdaVDW.push_back(val);
           printf("%-6.3f", val);
         }
-        std::cout << endl; 
+        std::cout << endl;
       }
     } else if(CheckString(line[0], "RelaxingSteps")) {
       if(line.size() > 1) {
         sys.cfcmcVal.readRelaxSteps = true;
         sys.cfcmcVal.relaxSteps = stringtoi(line[1]);
         printf("%-40s %-4d \n", "Info: CFCMC Relaxing Steps",
-	      sys.cfcmcVal.relaxSteps);
+               sys.cfcmcVal.relaxSteps);
       }
     } else if(CheckString(line[0], "HistFlatness")) {
       if(line.size() > 1) {
         sys.cfcmcVal.readHistFlatness = true;
         sys.cfcmcVal.histFlatness = stringtod(line[1]);
         printf("%-40s %-4.4f \n", "Info: CFCMC Histogram Flatness",
-	      sys.cfcmcVal.histFlatness);
+               sys.cfcmcVal.histFlatness);
       }
     } else if(CheckString(line[0], "MultiParticleRelaxing")) {
       if(line.size() > 1) {
@@ -631,10 +631,10 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         if(sys.cfcmcVal.MPEnable) {
           sys.moves.multiParticleEnabled = sys.cfcmcVal.MPEnable;
           printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
-          "Active");
+                 "Active");
         } else {
           printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
-            "Inactive");
+                 "Inactive");
         }
       }
     } else if(CheckString(line[0], "ScalePower")) {
@@ -642,21 +642,21 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         sys.cfcmcVal.scalePower = stringtoi(line[1]);
         sys.cfcmcVal.scalePowerRead = true;
         printf("%-40s %-4d \n", "Info: Soft-core scaling power(p)",
-	      sys.cfcmcVal.scalePower);
+               sys.cfcmcVal.scalePower);
       }
     } else if(CheckString(line[0], "ScaleAlpha")) {
       if(line.size() > 1) {
         sys.cfcmcVal.scaleAlpha = stringtod(line[1]);
         sys.cfcmcVal.scaleAlphaRead = true;
         printf("%-40s %-4.4f \n", "Info: Soft-core softness(alpha)",
-	      sys.cfcmcVal.scaleAlpha);
+               sys.cfcmcVal.scaleAlpha);
       }
     } else if(CheckString(line[0], "MinSigma")) {
       if(line.size() > 1) {
         sys.cfcmcVal.scaleSigma = stringtod(line[1]);
         sys.cfcmcVal.scaleSigmaRead = true;
         printf("%-40s %-4.4f A \n", "Info: Soft-core minimum sigma",
-	      sys.cfcmcVal.scaleSigma);
+               sys.cfcmcVal.scaleSigma);
       }
     } else if(CheckString(line[0], "ScaleCoulomb")) {
       if(line.size() > 1) {
@@ -664,10 +664,10 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         sys.cfcmcVal.scaleCoulombRead = true;
         if(sys.cfcmcVal.scaleCoulomb) {
           printf("%-40s %s \n", "Info: Soft-core for Coulombic interaction",
-          "Active");
+                 "Active");
         } else {
           printf("%-40s %s \n", "Info: Soft-core for Coulombic interaction",
-          "Inactive");
+                 "Inactive");
         }
       }
     }
@@ -745,12 +745,12 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
 #endif
 #if ENSEMBLE == GCMC
     else if(CheckString(line[0], "ChemPot")) {
-      if (line.size() > 3 && multisim != NULL){
+      if (line.size() > 3 && multisim != NULL) {
         std::string resName = line[1];
         double val = stringtod(line[2 + multisim->worldRank]);
         sys.chemPot.cp[resName] = val;
         printf("%-40s %-6s %-6.4f K\n", "Info: Chemical potential",
-        resName.c_str(), val);
+               resName.c_str(), val);
       } else if(line.size() != 3) {
         std::cout << "Error: Chemical potential parameters are not specified!\n";
         exit(EXIT_FAILURE);
@@ -759,7 +759,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         double val = stringtod(line[2]);
         sys.chemPot.cp[resName] = val;
         printf("%-40s %-6s %-6.4f K\n", "Info: Chemical potential",
-        resName.c_str(), val);
+               resName.c_str(), val);
       }
     } else if(CheckString(line[0], "Fugacity")) {
       if(line.size() != 3) {
@@ -784,7 +784,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           sys.freeEn.lambdaCoulomb.push_back(val);
           printf("%-6.3f", val);
         }
-        std::cout << endl; 
+        std::cout << endl;
       }
     } else if(CheckString(line[0], "LambdaVDW")) {
       if(line.size() > 1) {
@@ -795,18 +795,18 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           sys.freeEn.lambdaVDW.push_back(val);
           printf("%-6.3f", val);
         }
-        std::cout << endl; 
+        std::cout << endl;
       }
     } else if(CheckString(line[0], "FreeEnergyCalc")) {
       if(line.size() > 1) {
         sys.freeEn.enable = checkBool(line[1]);
-        if(sys.freeEn.enable){
+        if(sys.freeEn.enable) {
           printf("%-40s %-s \n", "Info: Free Energy Calculation", "Active");
           if(line.size() > 2) {
             sys.freeEn.frequency = stringtoi(line[2]);
             sys.freeEn.freqRead = true;
             printf("%-40s %-4d \n", "Info: Free Energy Frequency",
-                  sys.freeEn.frequency);
+                   sys.freeEn.frequency);
           }
         } else {
           printf("%-40s %-s \n", "Info: Free Energy Calculation", "Inactive");
@@ -820,36 +820,36 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           sys.freeEn.molIndex = stringtoi(line[2]);
           sys.freeEn.molIndexRead = true;
           printf("%-40s %-d in %-s \n", "Info: Free Energy Calc for Molecule",
-                sys.freeEn.molIndex, sys.freeEn.molType.c_str());
-        }    
+                 sys.freeEn.molIndex, sys.freeEn.molType.c_str());
+        }
       }
     } else if (CheckString(line[0], "InitialState")) {
       if(line.size() > 1) {
         sys.freeEn.iState = stringtoi(line[1]);
         sys.freeEn.iStateRead = true;
         printf("%-40s %-d \n", "Info: Free Energy Calc Lambda state",
-              sys.freeEn.iState);
+               sys.freeEn.iState);
       }
     } else if(CheckString(line[0], "ScalePower")) {
       if(line.size() > 1) {
         sys.freeEn.scalePower = stringtoi(line[1]);
         sys.freeEn.scalePowerRead = true;
         printf("%-40s %-4d \n", "Info: Soft-core scaling power(p)",
-	      sys.freeEn.scalePower);
+               sys.freeEn.scalePower);
       }
     } else if(CheckString(line[0], "ScaleAlpha")) {
       if(line.size() > 1) {
         sys.freeEn.scaleAlpha = stringtod(line[1]);
         sys.freeEn.scaleAlphaRead = true;
         printf("%-40s %-4.4f \n", "Info: Soft-core softness(alpha)",
-	      sys.freeEn.scaleAlpha);
+               sys.freeEn.scaleAlpha);
       }
     } else if(CheckString(line[0], "MinSigma")) {
       if(line.size() > 1) {
         sys.freeEn.scaleSigma = stringtod(line[1]);
         sys.freeEn.scaleSigmaRead = true;
         printf("%-40s %-4.4f \n", "Info: Soft-core minimum sigma",
-	      sys.freeEn.scaleSigma);
+               sys.freeEn.scaleSigma);
       }
     } else if(CheckString(line[0], "ScaleCoulomb")) {
       if(line.size() > 1) {
@@ -857,16 +857,16 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         sys.freeEn.scaleCoulombRead = true;
         if(sys.freeEn.scaleCoulomb) {
           printf("%-40s %s \n", "Info: Soft-core for Coulombic interaction",
-          "Active");
+                 "Active");
         } else {
           printf("%-40s %s \n", "Info: Soft-core for Coulombic interaction",
-          "Inactive");
+                 "Inactive");
         }
       }
     }
 #endif
     else if(CheckString(line[0], "OutputName")) {
-      if (multisim != NULL){
+      if (multisim != NULL) {
         std::stringstream replicaDirectory;
         replicaDirectory << multisim->pathToReplicaDirectory << line[1];
         out.statistics.settings.uniqueStr.val = replicaDirectory.str();
@@ -1045,7 +1045,7 @@ void ConfigSetup::fillDefaults(void)
            "Default: Multi-Particle move frequency",
            sys.moves.multiParticle);
   }
-  
+
   if(sys.moves.intraMemc == DBL_MAX) {
     sys.moves.intraMemc = 0.0;
     printf("%-40s %-4.4f \n", "Default: Intra-MEMC move frequency",
@@ -1064,7 +1064,7 @@ void ConfigSetup::fillDefaults(void)
            sys.moves.crankShaft);
   }
 
-#if ENSEMBLE == GEMC || ENSEMBLE == GCMC 
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   if(sys.moves.memc == DBL_MAX) {
     sys.moves.memc = 0.0;
     printf("%-40s %-4.4f \n", "Default: MEMC move frequency",
@@ -1074,14 +1074,14 @@ void ConfigSetup::fillDefaults(void)
   if(sys.moves.cfcmc == DBL_MAX) {
     sys.moves.cfcmc = 0.0;
     printf("%-40s %-4.4f \n", "Default: CFCMC move frequency",
-	     sys.moves.cfcmc);
+           sys.moves.cfcmc);
   }
 
   if(sys.cfcmcVal.enable) {
     if(!sys.cfcmcVal.readHistFlatness) {
       sys.cfcmcVal.histFlatness = 0.3;
       printf("%-40s %-4.4f \n", "Default: CFCMC Histogram Flatness",
-        sys.cfcmcVal.histFlatness);
+             sys.cfcmcVal.histFlatness);
     }
 
     if(!sys.elect.enable && !sys.cfcmcVal.readLambdaCoulomb) {
@@ -1092,7 +1092,7 @@ void ConfigSetup::fillDefaults(void)
         double val = sys.cfcmcVal.lambdaCoulomb[i];
         printf("%-6.3f", val);
       }
-      std::cout << endl; 
+      std::cout << endl;
     }
 
     if(sys.cfcmcVal.readLambdaVDW ) {
@@ -1104,42 +1104,42 @@ void ConfigSetup::fillDefaults(void)
           double val = sys.cfcmcVal.lambdaCoulomb[i];
           printf("%-6.3f", val);
         }
-        std::cout << endl; 
+        std::cout << endl;
       }
     }
-      
+
     if(!sys.cfcmcVal.readMPEnable) {
       sys.cfcmcVal.readMPEnable = true;
       sys.cfcmcVal.MPEnable = false;
       printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
-        "Inactive");
+             "Inactive");
     }
 
     if(!sys.cfcmcVal.scalePowerRead) {
       sys.cfcmcVal.scalePower = 2;
       printf("%-40s %-4d \n", "Default: Soft-core scale power(p)",
-        sys.cfcmcVal.scalePower);
+             sys.cfcmcVal.scalePower);
     }
     if(!sys.cfcmcVal.scaleAlphaRead) {
       sys.cfcmcVal.scaleAlpha = 0.5;
       printf("%-40s %-4.4f \n", "Default: Soft-core softness(alpha)",
-        sys.cfcmcVal.scaleAlpha);
+             sys.cfcmcVal.scaleAlpha);
     }
     if(!sys.cfcmcVal.scaleSigmaRead) {
       sys.cfcmcVal.scaleSigma = 3.0;
       printf("%-40s %-4.4f A \n", "Default: Soft-core minimum sigma",
-        sys.cfcmcVal.scaleSigma);
+             sys.cfcmcVal.scaleSigma);
     }
     if(!sys.cfcmcVal.scaleCoulombRead) {
       sys.cfcmcVal.scaleCoulomb = false;
       printf("%-40s %s A \n", "Default: Soft-core for Coulombic interaction",
-            "Inactive");
+             "Inactive");
     }
   }
 
 #endif
 
-#if ENSEMBLE == NVT || ENSEMBLE == NPT 
+#if ENSEMBLE == NVT || ENSEMBLE == NPT
   if(sys.freeEn.enable) {
     if(!sys.elect.enable && !sys.freeEn.readLambdaCoulomb) {
       sys.freeEn.lambdaCoulomb.resize(sys.freeEn.lambdaVDW.size(), 0.0);
@@ -1149,7 +1149,7 @@ void ConfigSetup::fillDefaults(void)
         double val = sys.freeEn.lambdaCoulomb[i];
         printf("%-6.3f", val);
       }
-      std::cout << endl; 
+      std::cout << endl;
     }
 
     if(sys.freeEn.readLambdaVDW) {
@@ -1161,30 +1161,30 @@ void ConfigSetup::fillDefaults(void)
           double val = sys.freeEn.lambdaCoulomb[i];
           printf("%-6.3f", val);
         }
-        std::cout << endl; 
+        std::cout << endl;
       }
     }
 
     if(!sys.freeEn.scalePowerRead) {
       sys.freeEn.scalePower = 2;
       printf("%-40s %-4d \n", "Default: Soft-core scale power(p)",
-        sys.freeEn.scalePower);
+             sys.freeEn.scalePower);
     }
     if(!sys.freeEn.scaleAlphaRead) {
       sys.freeEn.scaleAlpha = 0.5;
       printf("%-40s %-4.4f \n", "Default: Soft-core softness(alpha)",
-        sys.freeEn.scaleAlpha);
+             sys.freeEn.scaleAlpha);
     }
     if(!sys.freeEn.scaleSigmaRead) {
       sys.freeEn.scaleSigma = 3.0;
       printf("%-40s %-4.4f A \n", "Default: Soft-core minimum sigma",
-        sys.freeEn.scaleSigma);
+             sys.freeEn.scaleSigma);
     }
     if(!sys.freeEn.scaleCoulombRead) {
       sys.freeEn.scaleCoulomb = false;
       printf("%-40s %s A \n", "Default: Soft-core for Coulombic interaction",
-            "Inactive");
-    }    
+             "Inactive");
+    }
   }
 #endif
 
@@ -1353,7 +1353,7 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(((sys.ff.VDW_KIND == sys.ff.VDW_STD_KIND) ||
-    (sys.ff.VDW_KIND == sys.ff.VDW_EXP6_KIND)) && (sys.ff.doTailCorr == false)) {
+      (sys.ff.VDW_KIND == sys.ff.VDW_EXP6_KIND)) && (sys.ff.doTailCorr == false)) {
     std::cout << "Warning: Long Range Correction is Inactive for " <<
               "Non-truncated potential." << std::endl;
   }
@@ -1427,7 +1427,7 @@ void ConfigSetup::verifyInputs(void)
   }
 
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc + 
+         sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc +
          sys.moves.crankShaft + sys.moves.multiParticle - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(EXIT_FAILURE);
@@ -1439,7 +1439,7 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.transfer + sys.moves.regrowth + sys.moves.memc + 
+         sys.moves.transfer + sys.moves.regrowth + sys.moves.memc +
          sys.moves.intraMemc + sys.moves.crankShaft +
          sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
@@ -1592,22 +1592,22 @@ void ConfigSetup::verifyInputs(void)
   }
 
   if(sys.cfcmcVal.enable) {
-    
+
     if(!sys.cfcmcVal.readLambdaCoulomb) {
       std::cout << "Error: Lambda Coulomb states were not defined for " <<
-	    "CFCMC move! \n";
+                "CFCMC move! \n";
       exit(EXIT_FAILURE);
-    }  
-    
+    }
+
     if (!sys.cfcmcVal.readLambdaVDW) {
       std::cout << "Error: Lambda VDW states were not defined for " <<
-	    "CFCMC move! \n";
+                "CFCMC move! \n";
       exit(EXIT_FAILURE);
     }
 
     if(sys.cfcmcVal.lambdaCoulomb.size() != sys.cfcmcVal.lambdaVDW.size()) {
       std::cout << "Error: Number of Lambda states for VDW and Coulomb " <<
-	    "are not same in CFCMC move! \n";
+                "are not same in CFCMC move! \n";
       exit(EXIT_FAILURE);
     }
 
@@ -1620,7 +1620,7 @@ void ConfigSetup::verifyInputs(void)
       }
       if(decreasing) {
         std::cout << "Error: Lambda VDW values are not in increasing order " <<
-        "in CFCMC move! \n";
+                  "in CFCMC move! \n";
         exit(EXIT_FAILURE);
       }
     }
@@ -1634,7 +1634,7 @@ void ConfigSetup::verifyInputs(void)
       }
       if(decreasing) {
         std::cout << "Error: Lambda Coulomb values are not in increasing " <<
-        "order in CFCMC move! \n";
+                  "order in CFCMC move! \n";
         exit(EXIT_FAILURE);
       }
     }
@@ -1642,30 +1642,30 @@ void ConfigSetup::verifyInputs(void)
     uint last = sys.cfcmcVal.lambdaVDW.size() - 1;
     if(sys.cfcmcVal.lambdaVDW[last] < 0.9999) {
       std::cout << "Error: Last Lambda value for VDW is not 1.0 " <<
-        "in CFCMC move! \n";
-        exit(EXIT_FAILURE);
-    } 
-    
+                "in CFCMC move! \n";
+      exit(EXIT_FAILURE);
+    }
+
     if(sys.elect.enable) {
       last = sys.cfcmcVal.lambdaCoulomb.size() - 1;
       if(sys.cfcmcVal.lambdaCoulomb[last] < 0.9999) {
         std::cout << "Error: Last Lambda value for Coulomb is not 1.0 " <<
-          "in CFCMC move! \n";
-          exit(EXIT_FAILURE);
+                  "in CFCMC move! \n";
+        exit(EXIT_FAILURE);
       }
     }
-    
+
     if(!sys.cfcmcVal.readRelaxSteps) {
       std::cout << "Error: Relaxing steps was not defined for CFCMC move! \n";
       exit(EXIT_FAILURE);
     } else if (sys.cfcmcVal.relaxSteps == 0) {
       std::cout << "Warning: No thermal relaxing move will be performed in " <<
-	    "CFCMC move! \n";
+                "CFCMC move! \n";
     }
 
-    if(sys.cfcmcVal.histFlatness > 0.999 || sys.cfcmcVal.histFlatness < 0.001){
+    if(sys.cfcmcVal.histFlatness > 0.999 || sys.cfcmcVal.histFlatness < 0.001) {
       std::cout << "Error: Unacceptable Value for Histogram Flatness in " <<
-	    "CFCMC move! \n";
+                "CFCMC move! \n";
       exit(EXIT_FAILURE);
     }
   }
@@ -1674,19 +1674,19 @@ void ConfigSetup::verifyInputs(void)
   if(sys.freeEn.enable) {
     if(!sys.freeEn.readLambdaCoulomb) {
       std::cout << "Error: Lambda Coulomb states were not defined for " <<
-	    "Free Energy Calculation! \n";
+                "Free Energy Calculation! \n";
       exit(EXIT_FAILURE);
-    }  
-    
+    }
+
     if (!sys.freeEn.readLambdaVDW) {
       std::cout << "Error: Lambda VDW states were not defined for " <<
-	    "Free Energy Calculation! \n";
+                "Free Energy Calculation! \n";
       exit(EXIT_FAILURE);
     }
 
     if(sys.freeEn.lambdaCoulomb.size() != sys.freeEn.lambdaVDW.size()) {
       std::cout << "Error: Number of Lambda states for VDW and Coulomb " <<
-	    "are not same in Free Energy Calculation! \n";
+                "are not same in Free Energy Calculation! \n";
       exit(EXIT_FAILURE);
     }
 
@@ -1699,7 +1699,7 @@ void ConfigSetup::verifyInputs(void)
       }
       if(decreasing) {
         std::cout << "Error: Lambda VDW values are not in increasing order " <<
-        "in Free Energy Calculation! \n";
+                  "in Free Energy Calculation! \n";
         exit(EXIT_FAILURE);
       }
     }
@@ -1713,7 +1713,7 @@ void ConfigSetup::verifyInputs(void)
       }
       if(decreasing) {
         std::cout << "Error: Lambda Coulomb values are not in increasing " <<
-        "order in Free Energy Calculation! \n";
+                  "order in Free Energy Calculation! \n";
         exit(EXIT_FAILURE);
       }
     }
@@ -1721,45 +1721,45 @@ void ConfigSetup::verifyInputs(void)
     uint last = sys.freeEn.lambdaVDW.size() - 1;
     if(sys.freeEn.lambdaVDW[last] < 0.9999) {
       std::cout << "Error: Last Lambda value for VDW is not 1.0 " <<
-        "in Free Energy Calculation! \n";
-        exit(EXIT_FAILURE);
+                "in Free Energy Calculation! \n";
+      exit(EXIT_FAILURE);
     }
 
     if(sys.elect.enable) {
       last = sys.freeEn.lambdaCoulomb.size() - 1;
       if(sys.freeEn.lambdaCoulomb[last] < 0.9999) {
         std::cout << "Error: Last Lambda value for Coulomb is not 1.0 " <<
-          "in Free Energy Calculation! \n";
-          exit(EXIT_FAILURE);
+                  "in Free Energy Calculation! \n";
+        exit(EXIT_FAILURE);
       }
     }
 
     if(sys.freeEn.lambdaVDW.size() <= sys.freeEn.iState) {
       std::cout << "Error: Initial Lambda state is not valid " <<
-        "in Free Energy Calculation! \n";
-        exit(EXIT_FAILURE);
+                "in Free Energy Calculation! \n";
+      exit(EXIT_FAILURE);
     }
 
     if(!sys.freeEn.freqRead) {
       std::cout << "Error: Frequency of Free Energy Calculation was " <<
-      "not defined! \n";
+                "not defined! \n";
       exit(EXIT_FAILURE);
     }
     if(!sys.freeEn.molTypeRead) {
       std::cout << "Error: Molecule Type for Free Energy Calculation was " <<
-      "not defined! \n";
+                "not defined! \n";
       exit(EXIT_FAILURE);
     }
     if(!sys.freeEn.molIndexRead) {
       std::cout << "Error: Molecule Index for Free Energy Calculation was " <<
-      "not defined! \n";
+                "not defined! \n";
       exit(EXIT_FAILURE);
     }
 #if ENSEMBLE == NVT
     if(sys.step.pressureCalc) {
       if((sys.freeEn.frequency % sys.step.pressureCalcFreq) != 0) {
         std::cout << "Error: Free Energy calculation Freq must be common " <<
-        "number of Pressure calculation freq! \n";
+                  "number of Pressure calculation freq! \n";
         exit(EXIT_FAILURE);
       }
     }

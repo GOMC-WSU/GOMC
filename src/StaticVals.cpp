@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -75,11 +75,11 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
       movePerc[m] = perc.transfer;
       break;
     case mv::MEMC :
-        movePerc[m] = perc.memc;
-        break;
+      movePerc[m] = perc.memc;
+      break;
     case mv::CFCMC :
-        movePerc[m] = perc.cfcmc;
-        break;
+      movePerc[m] = perc.cfcmc;
+      break;
 #endif
 #endif
     default:
@@ -122,16 +122,16 @@ void StaticVals::IsBoxOrthogonal(const double cellAngle[][3])
 {
   for (uint b = 0; b < BOX_TOTAL; b++) {
     bool orthogonal = ((cellAngle[b][0] == 90.0) && (cellAngle[b][1] == 90.0) &&
-                      (cellAngle[b][2] == 90.0));
+                       (cellAngle[b][2] == 90.0));
     isOrthogonal &= orthogonal;
   }
 }
 
 
 StaticVals::StaticVals(Setup & set) : memcVal(set.config.sys.memcVal),
-				      intraMemcVal(set.config.sys.intraMemcVal),
-				      cfcmcVal(set.config.sys.cfcmcVal),
-              freeEnVal(set.config.sys.freeEn)
+  intraMemcVal(set.config.sys.intraMemcVal),
+  cfcmcVal(set.config.sys.cfcmcVal),
+  freeEnVal(set.config.sys.freeEn)
 {
   multiParticleEnabled = set.config.sys.moves.multiParticleEnabled;
   isOrthogonal = true;

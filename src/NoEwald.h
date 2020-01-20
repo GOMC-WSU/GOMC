@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -35,8 +35,8 @@ public:
 
   //calculate reciprocate force term for a box with molCoords
   virtual void BoxForceReciprocal(XYZArray const& molCoords,
-				                          XYZArray& atomForceRec, XYZArray& molForceRec,
-				                          uint box);
+                                  XYZArray& atomForceRec, XYZArray& molForceRec,
+                                  uint box);
 
   //calculate reciprocate force term for a box
   virtual Virial VirialReciprocal(Virial& virial, uint box) const;
@@ -50,8 +50,8 @@ public:
 
   //calculate reciprocate term for lambdaNew and Old with same coordinates
   virtual double CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
-			    const double lambdaNew, const uint molIndex,
-			    const uint box);
+                            const double lambdaNew, const uint molIndex,
+                            const uint box);
 
   //calculate self term after swap move
   virtual double SwapSelf(const cbmc::TrialMol& trialMo) const;
@@ -59,7 +59,7 @@ public:
   //calculate correction term after swap move with lambda = 1
   virtual double SwapCorrection(const cbmc::TrialMol& trialMol) const;
 
-  //calculate correction term after swap move, with system lambda 
+  //calculate correction term after swap move, with system lambda
   virtual double SwapCorrection(const cbmc::TrialMol& trialMol,
                                 const uint molIndex) const;
 
@@ -77,7 +77,7 @@ public:
                            const std::vector<cbmc::TrialMol> &oldMol,
                            const std::vector<uint> molIndexNew,
                            const std::vector<uint> molIndexold);
-    
+
   //back up reciptocate value to Ref (will be called during initialization)
   virtual void SetRecipRef(uint box);
 
@@ -94,13 +94,13 @@ public:
                                 const std::vector<double> &lambda_Coul,
                                 const uint iState, const uint molIndex,
                                 const uint box) const;
-                                
+
   //It's called in free energy calculation to calculate the change in
   // reciprocal energy in all lambda states
   virtual void ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
-                          const std::vector<double> &lambda_Coul,
-                          const uint iState, const uint molIndex,
-                          const uint box) const;
+                           const std::vector<double> &lambda_Coul,
+                           const uint iState, const uint molIndex,
+                           const uint box) const;
 
   //update reciprocate values
   virtual void UpdateRecip(uint box);

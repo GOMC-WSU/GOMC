@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -338,7 +338,7 @@ XYZ TrialMol::GetCOM()
   tcom *= (1.0 / (double)(atomNumber));
   //Unwrap with respect to COM
   axes->UnwrapPBC(tCoords, box, tcom);
- 
+
   return tcom;
 }
 

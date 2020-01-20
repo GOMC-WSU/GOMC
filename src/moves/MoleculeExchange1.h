@@ -408,28 +408,28 @@ inline uint MoleculeExchange1::Prep(const double subDraw, const double movPerc)
 {
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
-    numTypeASource = (double)(molLookRef.NumKindInBox(kindIndexA[0],sourceBox));
+    numTypeASource = (double)(molLookRef.NumKindInBox(kindIndexA[0], sourceBox));
     numTypeADest = (double)(molLookRef.NumKindInBox(kindIndexA[0], destBox));
-    numTypeBSource = (double)(molLookRef.NumKindInBox(kindIndexB[0],sourceBox));
+    numTypeBSource = (double)(molLookRef.NumKindInBox(kindIndexB[0], sourceBox));
     numTypeBDest = (double)(molLookRef.NumKindInBox(kindIndexB[0], destBox));
 
     //transfering type A from source to dest
     for(uint n = 0; n < numInCavA; n++) {
       newMolA.push_back(cbmc::TrialMol(molRef.kinds[kindIndexA[n]], boxDimRef,
-        destBox));
+                                       destBox));
       oldMolA.push_back(cbmc::TrialMol(molRef.kinds[kindIndexA[n]], boxDimRef,
-        sourceBox));
+                                       sourceBox));
     }
 
     for(uint n = 0; n < numInCavB; n++) {
       //transfering type B from dest to source
       newMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
-        sourceBox));
+                                       sourceBox));
       oldMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
-        destBox));
+                                       destBox));
     }
 
-    //set the old coordinate and new after proper wrap & unwrap 
+    //set the old coordinate and new after proper wrap & unwrap
     for(uint n = 0; n < numInCavA; n++) {
       XYZArray molA(pLenA[n]);
       coordCurrRef.CopyRange(molA, pStartA[n], 0, pLenA[n]);
@@ -437,13 +437,13 @@ inline uint MoleculeExchange1::Prep(const double subDraw, const double movPerc)
       boxDimRef.WrapPBC(molA, destBox);
       oldMolA[n].SetCoords(coordCurrRef, pStartA[n]);
       //set coordinate of moleA to newMolA, later it will shift to center
-      newMolA[n].SetCoords(molA, 0); 
+      newMolA[n].SetCoords(molA, 0);
       //copy cavA matrix to slant the old trial of molA
       oldMolA[n].SetCavMatrix(cavA);
     }
 
     for(uint n = 0; n < numInCavB; n++) {
-      XYZArray molB(pLenB[n]);     
+      XYZArray molB(pLenB[n]);
       coordCurrRef.CopyRange(molB, pStartB[n], 0, pLenB[n]);
       boxDimRef.UnwrapPBC(molB, destBox, comCurrRef.Get(molIndexB[n]));
       boxDimRef.WrapPBC(molB, sourceBox);

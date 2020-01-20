@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -64,10 +64,10 @@ void MoveSettings::Init(StaticVals const& statV,
   }
 
   // Initialize MultiParticle settings
-  for(int b=0; b<BOX_TOTAL; b++) {
+  for(int b = 0; b < BOX_TOTAL; b++) {
     mp_r_max[b] = 0.02 * M_PI;
     mp_t_max[b] = 0.05;
-    for(int m=0; m<mp::MPMVCOUNT; m++) {
+    for(int m = 0; m < mp::MPMVCOUNT; m++) {
       mp_tries[b][m] = 0;
       mp_accepted[b][m] = 0;
     }
@@ -83,7 +83,7 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
   if(isAccepted) {
     tempAccepted[box][move][kind]++;
     accepted[box][move][kind]++;
-    
+
     if(move != mv::MULTIPARTICLE)
       isSingleMoveAccepted = true;
   }
@@ -95,9 +95,9 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
                                    (double)(tries[box][move][kind]);
 
   //for any move that we dont care about kind of molecule, it should be included
-  //in the if condition  
+  //in the if condition
   if (move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE
-  #if ENSEMBLE == GEMC || ENSEMBLE == GCMC 
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
       || move == mv::MEMC
 #endif
 #if ENSEMBLE == NPT || ENSEMBLE == GEMC
@@ -133,9 +133,9 @@ void MoveSettings::AdjustMoves(const uint step)
 
 void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
 {
-  uint totalTries= mp_tries[box][mp::MPDISPLACE] +
-                   mp_tries[box][mp::MPROTATE];
-  if((totalTries+1) % perAdjust == 0 ) {
+  uint totalTries = mp_tries[box][mp::MPDISPLACE] +
+                    mp_tries[box][mp::MPROTATE];
+  if((totalTries + 1) % perAdjust == 0 ) {
     double currentAccept = (double)mp_accepted[box][mp::MPDISPLACE] /
                            (double)mp_tries[box][mp::MPDISPLACE];
     double fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
@@ -152,7 +152,7 @@ void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
 }
 
 void MoveSettings::UpdateMoveSettingMultiParticle(const uint box, bool isAccept,
-        const uint typePick)
+    const uint typePick)
 {
   if(typePick != mp::MPALLRANDOM) {
     mp_tries[box][typePick]++;
@@ -220,7 +220,7 @@ uint MoveSettings::GetAcceptTot(const uint box, const uint move) const
   }
 
   if(move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE
-  #if ENSEMBLE == GEMC || ENSEMBLE == GCMC 
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
       || move == mv::MEMC
 #endif
 #if ENSEMBLE == NPT || ENSEMBLE == GEMC
@@ -249,13 +249,13 @@ uint MoveSettings::GetTrialTot(const uint box, const uint move) const
   }
 
   if(move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE
- #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-     || move == mv::MEMC
- #endif
- #if ENSEMBLE == NPT || ENSEMBLE == GEMC
-     || move == mv::VOL_TRANSFER
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
+      || move == mv::MEMC
 #endif
-  ) {
+#if ENSEMBLE == NPT || ENSEMBLE == GEMC
+      || move == mv::VOL_TRANSFER
+#endif
+    ) {
     sum /= totKind;
   }
 

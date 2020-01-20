@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -74,7 +74,7 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
     sc_alpha = val.cfcmcVal.scaleAlpha;
     sc_sigma = val.cfcmcVal.scaleSigma;
     sc_power = val.cfcmcVal.scalePower;
-    sc_coul = val.cfcmcVal.scaleCoulomb;  
+    sc_coul = val.cfcmcVal.scaleCoulomb;
   } else {
     sc_alpha = 0.0;
     sc_sigma = 0.0;

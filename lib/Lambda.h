@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -13,7 +13,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class Lambda
 {
 public:
-  Lambda() {
+  Lambda()
+  {
     std::fill_n(isFraction, BOX_TOTAL, false);
     std::fill_n(lambdaVDW, BOX_TOTAL, 1.0);
     std::fill_n(lambdaCoulomb, BOX_TOTAL, 1.0);
@@ -28,7 +29,7 @@ public:
 
   double GetLambdaVDW(const uint kind, const uint box) const;
 
-  double GetLambdaCoulomb(const uint mol,const uint kind, const uint box) const;
+  double GetLambdaCoulomb(const uint mol, const uint kind, const uint box) const;
 
   double GetLambdaCoulomb(const uint kind, const uint box) const;
 
@@ -47,97 +48,97 @@ protected:
 };
 
 inline void Lambda::Set(const double vdw, const double coulomb, const uint mol,
-                const uint kind, const uint box)
+                        const uint kind, const uint box)
 {
-    molIndex[box] = mol;
-    kindIndex[box] = kind;
-    lambdaVDW[box] = vdw;
-    lambdaCoulomb[box] = coulomb;
-    isFraction[box] = true;
+  molIndex[box] = mol;
+  kindIndex[box] = kind;
+  lambdaVDW[box] = vdw;
+  lambdaCoulomb[box] = coulomb;
+  isFraction[box] = true;
 }
 
 inline void Lambda::UnSet(const uint sourceBox, const uint destBox)
 {
-    isFraction[sourceBox] = isFraction[destBox] = false;
-    lambdaVDW[sourceBox] = lambdaCoulomb[sourceBox] = 1.0;
-    lambdaVDW[destBox] = lambdaCoulomb[destBox] = 0.0;
+  isFraction[sourceBox] = isFraction[destBox] = false;
+  lambdaVDW[sourceBox] = lambdaCoulomb[sourceBox] = 1.0;
+  lambdaVDW[destBox] = lambdaCoulomb[destBox] = 0.0;
 }
 
 inline double Lambda::GetLambdaVDW(const uint mol, const uint kind,
-                            const uint box) const
+                                   const uint box) const
 {
-    double val = 1.0;
-    if(isFraction[box]) {
-        if((molIndex[box] == mol) && (kindIndex[box] == kind)) {
-            val = lambdaVDW[box];
-        }
+  double val = 1.0;
+  if(isFraction[box]) {
+    if((molIndex[box] == mol) && (kindIndex[box] == kind)) {
+      val = lambdaVDW[box];
     }
-    return val;
+  }
+  return val;
 }
 
 inline double Lambda::GetLambdaVDW(const uint kind, const uint box) const
 {
-    double val = 1.0;
-    if(isFraction[box]) {
-        if(kindIndex[box] == kind) {
-            val = lambdaVDW[box];
-        }
+  double val = 1.0;
+  if(isFraction[box]) {
+    if(kindIndex[box] == kind) {
+      val = lambdaVDW[box];
     }
-    return val;
+  }
+  return val;
 }
 
 inline double Lambda::GetLambdaCoulomb(const uint mol, const uint kind,
-                                const uint box) const
+                                       const uint box) const
 {
-    double val = 1.0;
-    if(isFraction[box]) {
-        if((molIndex[box] == mol) && (kindIndex[box] == kind)) {
-            val = lambdaCoulomb[box];
-        }
+  double val = 1.0;
+  if(isFraction[box]) {
+    if((molIndex[box] == mol) && (kindIndex[box] == kind)) {
+      val = lambdaCoulomb[box];
     }
-    return val;
+  }
+  return val;
 }
 
 inline double Lambda::GetLambdaCoulomb(const uint kind, const uint box) const
 {
-    double val = 1.0;
-    if(isFraction[box]) {
-        if(kindIndex[box] == kind) {
-            val = lambdaCoulomb[box];
-        }
+  double val = 1.0;
+  if(isFraction[box]) {
+    if(kindIndex[box] == kind) {
+      val = lambdaCoulomb[box];
     }
-    return val;
+  }
+  return val;
 }
 
-inline bool Lambda::KindIsFractional(const uint kind, const uint box) const 
+inline bool Lambda::KindIsFractional(const uint kind, const uint box) const
 {
-    bool result = false;
-    if(isFraction[box]) {
-        if(kindIndex[box] == kind) {
-            result = true;
-        }
+  bool result = false;
+  if(isFraction[box]) {
+    if(kindIndex[box] == kind) {
+      result = true;
     }
-    return result;
+  }
+  return result;
 }
 
 inline uint Lambda::GetKind(const uint box) const
 {
-    if(isFraction[box]) {
-        return kindIndex[box];
-    } else {
-        std::cout << "Error: Lambda.h, calling GetKind\n";
-        exit(EXIT_FAILURE);
-    }
+  if(isFraction[box]) {
+    return kindIndex[box];
+  } else {
+    std::cout << "Error: Lambda.h, calling GetKind\n";
+    exit(EXIT_FAILURE);
+  }
 }
 
 inline uint Lambda::GetMolIndex(const uint box) const
 {
-    if(isFraction[box]) {
-        return molIndex[box];
-    } else {
-        std::cout << "Error: Lambda.h, calling GetKind\n";
-        exit(EXIT_FAILURE);
-    }
+  if(isFraction[box]) {
+    return molIndex[box];
+  } else {
+    std::cout << "Error: Lambda.h, calling GetKind\n";
+    exit(EXIT_FAILURE);
+  }
 }
 
 #endif

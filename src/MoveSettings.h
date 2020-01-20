@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -14,18 +14,19 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveConst.h"           //For sizes of arrays.
 #include <vector>
 
-namespace mp {
-  const int MPDISPLACE = 0;
-  const int MPROTATE = 1;
-  const int MPMVCOUNT = 2;
-  const int MPALLDISPLACE = 0;
-  const int MPALLROTATE = 1;
-  const int MPALLRANDOM = 2;
-  // MPTOTALTYPES = 2, we perform either: All displacement, All rotation move.
-  // MPTOTALTYPES = 3, we perform either: All displacement, All rotation move, 
-  //                                      or combined displacement+rotation 
-  const int MPTOTALTYPES = 2;
-  const double TARGET_ACCEPT_FRACT = 0.3;
+namespace mp
+{
+const int MPDISPLACE = 0;
+const int MPROTATE = 1;
+const int MPMVCOUNT = 2;
+const int MPALLDISPLACE = 0;
+const int MPALLROTATE = 1;
+const int MPALLRANDOM = 2;
+// MPTOTALTYPES = 2, we perform either: All displacement, All rotation move.
+// MPTOTALTYPES = 3, we perform either: All displacement, All rotation move,
+//                                      or combined displacement+rotation
+const int MPTOTALTYPES = 2;
+const double TARGET_ACCEPT_FRACT = 0.3;
 }
 
 class StaticVals;                 //For various initialization constants.
@@ -108,8 +109,14 @@ public:
   uint GetAcceptTot(const uint box, const uint move) const;
   uint GetTrialTot(const uint box, const uint move) const;
   double GetScaleTot(const uint box, const uint move) const;
-  bool GetSingleMoveAccepted() { return isSingleMoveAccepted; }
-  void SetSingleMoveAccepted() { isSingleMoveAccepted = true; }
+  bool GetSingleMoveAccepted()
+  {
+    return isSingleMoveAccepted;
+  }
+  void SetSingleMoveAccepted()
+  {
+    isSingleMoveAccepted = true;
+  }
 
 private:
 
@@ -118,7 +125,7 @@ private:
   vector< vector< uint > > mp_accepted, mp_tries;
   vector< double > mp_r_max;
   vector< double > mp_t_max;
-  
+
   uint perAdjust;
   uint totKind;
   bool isSingleMoveAccepted;

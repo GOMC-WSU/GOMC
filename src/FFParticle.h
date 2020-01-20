@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -67,17 +67,17 @@ public:
   virtual double CalcEn(const double distSq,
                         const uint kind1, const uint kind2,
                         const double lambda) const;
-  virtual double CalcVir(const double distSq, const uint kind1, 
-                          const uint kind2, const double lambda) const;
+  virtual double CalcVir(const double distSq, const uint kind1,
+                         const uint kind2, const double lambda) const;
   virtual void CalcAdd_1_4(double& en, const double distSq,
                            const uint kind1, const uint kind2) const;
 
   // coulomb interaction functions
   virtual double CalcCoulomb(const double distSq, const uint kind1,
-                             const uint kind2,const double qi_qj_Fact, 
+                             const uint kind2, const double qi_qj_Fact,
                              const double lambda, const uint b) const;
   virtual double CalcCoulombVir(const double distSq, const uint kind1,
-                                const uint kind2,const double qi_qj,
+                                const uint kind2, const double qi_qj,
                                 const double lambda, uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact, const bool NB) const;
@@ -92,11 +92,17 @@ public:
                            const uint kind2, const double lambda) const;
   //Calculate the dE/dlambda for Coulomb energy
   virtual double CalcCoulombdEndL(const double distSq, const uint kind1,
-                                  const uint kind2,const double qi_qj_Fact,
+                                  const uint kind2, const double qi_qj_Fact,
                                   const double lambda, uint b) const;
 
-  uint NumKinds() const { return count; }                
-  double GetMass(const uint kind) const { return mass[kind]; }
+  uint NumKinds() const
+  {
+    return count;
+  }
+  double GetMass(const uint kind) const
+  {
+    return mass[kind];
+  }
 
 #ifdef GOMC_CUDA
   VariablesCUDA *getCUDAVars()
@@ -108,7 +114,7 @@ public:
 protected:
   virtual double CalcEn(const double distSq, const uint index) const;
   virtual double CalcVir(const double distSq, const uint index) const;
-  virtual double CalcCoulomb(const double distSq, const double qi_qj_Fact, 
+  virtual double CalcCoulomb(const double distSq, const double qi_qj_Fact,
                              const uint b) const;
   virtual double CalcCoulombVir(const double distSq, const double qi_qj,
                                 uint b) const;

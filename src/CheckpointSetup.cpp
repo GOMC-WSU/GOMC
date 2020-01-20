@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -265,7 +265,8 @@ void CheckpointSetup::SetMoveSettings(MoveSettings & moveSettings)
 }
 
 void
-CheckpointSetup::readVector3DDouble(vector<vector<vector<double> > > &data) {
+CheckpointSetup::readVector3DDouble(vector<vector<vector<double> > > &data)
+{
   // read size of data
   ulong size_x = readUintIn8Chars();
   ulong size_y = readUintIn8Chars();
@@ -273,18 +274,19 @@ CheckpointSetup::readVector3DDouble(vector<vector<vector<double> > > &data) {
 
   // read array
   data.resize(size_x);
-  for(int i=0; i<size_x; i++) {
+  for(int i = 0; i < size_x; i++) {
     data[i].resize(size_y);
-    for(int j=0; j<size_y; j++) {
+    for(int j = 0; j < size_y; j++) {
       data[i][j].resize(size_z);
-      for(int k=0; k<size_z; k++) {
+      for(int k = 0; k < size_z; k++) {
         data[i][j][k] = readDoubleIn8Chars();
       }
     }
   }
 }
 
-void CheckpointSetup::readVector3DUint(vector<vector<vector<uint> > > &data) {
+void CheckpointSetup::readVector3DUint(vector<vector<vector<uint> > > &data)
+{
   // read size of data
   ulong size_x = readUintIn8Chars();
   ulong size_y = readUintIn8Chars();
@@ -292,39 +294,41 @@ void CheckpointSetup::readVector3DUint(vector<vector<vector<uint> > > &data) {
 
   // read array
   data.resize(size_x);
-  for(int i=0; i<size_x; i++) {
+  for(int i = 0; i < size_x; i++) {
     data[i].resize(size_y);
-    for(int j=0; j<size_y; j++) {
+    for(int j = 0; j < size_y; j++) {
       data[i][j].resize(size_z);
-      for(int k=0; k<size_z; k++) {
+      for(int k = 0; k < size_z; k++) {
         data[i][j][k] = readUintIn8Chars();
       }
     }
   }
 }
 
-void CheckpointSetup::readVector2DUint(vector<vector<uint> > &data) {
+void CheckpointSetup::readVector2DUint(vector<vector<uint> > &data)
+{
   // read size of data
   ulong size_x = readUintIn8Chars();
   ulong size_y = readUintIn8Chars();
 
   // read array
   data.resize(size_x);
-  for(int i=0; i<size_x; i++) {
+  for(int i = 0; i < size_x; i++) {
     data[i].resize(size_y);
-    for(int j=0; j<size_y; j++) {
+    for(int j = 0; j < size_y; j++) {
       data[i][j] = readUintIn8Chars();
     }
   }
 }
 
-void CheckpointSetup::readVector1DDouble(vector<double> &data) {
+void CheckpointSetup::readVector1DDouble(vector<double> &data)
+{
 // read size of data
   ulong size_x = readUintIn8Chars();
 
   // read array
   data.resize(size_x);
-  for(int i=0; i<size_x; i++) {
+  for(int i = 0; i < size_x; i++) {
     data[i] = readDoubleIn8Chars();
   }
 }

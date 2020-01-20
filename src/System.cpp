@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -192,7 +192,7 @@ void System::InitLambda()
           found = false;
         } else if(totalMol <= FEmolIndex) {
           std::cout << "Error: Molecule index " << statV.freeEnVal.molIndex <<
-          " of kind " << kindName << " does not exist in the simulation box!\n";
+                    " of kind " << kindName << " does not exist in the simulation box!\n";
           exit(EXIT_FAILURE);
         } else {
           uint m = molLookupRef.GetMolNum(FEmolIndex, k, mv::BOX0);
@@ -207,7 +207,7 @@ void System::InitLambda()
 
     if(!found) {
       std::cout << "Error: No molecule of kind " << statV.freeEnVal.molType <<
-      " in the simulation box! \n";
+                " in the simulation box! \n";
       exit(EXIT_FAILURE);
     }
   }

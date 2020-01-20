@@ -1,6 +1,18 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.50] - 1/20/2020
++ Added support for Exponential-6 forcefield
++ Support for multiple simulation with different temperatures
++ Added support for free energy calculations using TI and FEP methods
++ Support for restarting simulation using checkpoint 
++ Added support for new GPU architectures 7.0 and 7.5
++ Added an error message when GPU version was used but there was no GPU present (#126)
++ Read PDB file more efficiently when recalculating trajectory (#131)
++ Fixed detecting simulation box shape (orthogonal and non-orthogonal) (#134)
++ Fixed bugs in PDB reader and support for HETATM field in PDB file
++ Fixed bugs in PSF reader
+
 ## [2.40] - 3/15/2019
 + Added support for Cyclic molecules.
 + Added Inter Molecular Exchange Monte Carlo move in GCMC and GEMC simulation.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -170,7 +170,7 @@ inline void VolumeTransfer::CalcEn()
         //setup reciprocate terms
         calcEwald->BoxReciprocalSetup(bPick[b], newMolsPos);
         sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newDimNonOrth,
-                                        bPick[b]);
+                                       bPick[b]);
       }
       //calculate reciprocate term of electrostatic interaction
       sysPotNew.boxEnergy[bPick[b]].recip = calcEwald->BoxReciprocal(bPick[b]);

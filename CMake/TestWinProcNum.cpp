@@ -2,6 +2,6 @@
 #include <windows.h>
 int main()
 {
-    PROCESSOR_NUMBER p;
-    return 0;
+  PROCESSOR_NUMBER p;
+  return 0;
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -148,14 +148,14 @@ public:
   Intermolecular MoleculeTailVirChange(const uint box,
                                        const uint kind,
                                        const bool add) const;
-                                       
+
   //! Calculates the change in the TC from chaning the lambdaOld -> lambdaNew
   //! @param box Index of box under consideration
   //! @param kind Kind of particle being transfrom in lambda
   double MoleculeTailChange(const uint box, const uint kind,
-			    const std::vector <uint> &kCount,
-			    const double lambdaOld,
-			    const double lambdaNew) const;
+                            const std::vector <uint> &kCount,
+                            const double lambdaOld,
+                            const double lambdaNew) const;
 
   //! Calculates voidintramolecular energy of a full molecule
   void MoleculeIntra(const uint molIndex, const uint box, double *bondEn) const;
@@ -182,7 +182,7 @@ public:
                        XYZArray& molTorque,
                        vector<uint>& moveType,
                        const uint box);
-    
+
   //Finding the molecule inside cavity and store the molecule Index.
   bool FindMolInCavity(std::vector< std::vector<uint> > &mol, const XYZ& center,
                        const XYZ& cavDim, const XYZArray& invCav,
@@ -193,15 +193,15 @@ public:
 
   //Calculate inter energy for single molecule in the system.
   void SingleMoleculeInter(Energy &interEnOld, Energy &interEnNew,
-                          const double lambdaOldVDW,
-                          const double lambdaNewVDW,
-                          const double lambdaOldCoulomb,
-                          const double lambdaNewCoulomb,
-                          const uint molIndex, const uint box) const;
+                           const double lambdaOldVDW,
+                           const double lambdaNewVDW,
+                           const double lambdaOldCoulomb,
+                           const double lambdaNewCoulomb,
+                           const uint molIndex, const uint box) const;
 
   //Calculate the change in energy due to lambda
   void EnergyChange(Energy *energyDiff, Energy &dUdL_VDW, Energy &dUdL_Coul,
-                    const std::vector<double> &lambda_VDW, 
+                    const std::vector<double> &lambda_VDW,
                     const std::vector<double> &lambda_Coul,
                     const uint iState, const uint molIndex,
                     const uint box) const;
@@ -213,7 +213,7 @@ private:
 
   //! Calculates full TC virial for one box in current system
   void VirialCorrection(Virial& virial, BoxDimensions const& boxAxes,
-                       const uint box) const;
+                        const uint box) const;
 
 
   //! Calculates bond vectors of a full molecule, stores them in vecs

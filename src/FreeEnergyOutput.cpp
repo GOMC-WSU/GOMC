@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -12,7 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include <sstream>
 
-FreeEnergyOutput::FreeEnergyOutput(OutputVars & v, System & sys) : 
+FreeEnergyOutput::FreeEnergyOutput(OutputVars & v, System & sys) :
   calcEn(sys.calcEnergy), freeEnVal(sys.statV.freeEnVal),
   lambdaRef(sys.lambdaRef)
 {
@@ -27,7 +27,7 @@ FreeEnergyOutput::FreeEnergyOutput(OutputVars & v, System & sys) :
 }
 
 void FreeEnergyOutput::Init(pdb_setup::Atoms const& atoms,
-                     config_setup::Output const& output)
+                            config_setup::Output const& output)
 {
   stepsPerSample = freeEnVal.frequency;
   stepsPerOut = freeEnVal.frequency;
@@ -37,7 +37,7 @@ void FreeEnergyOutput::Init(pdb_setup::Atoms const& atoms,
 
   if(enableOut) {
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-      std::stringstream sstrm;  
+      std::stringstream sstrm;
       std::string strKind, fileName;
       sstrm << (b);
       sstrm >> strKind;
@@ -46,21 +46,21 @@ void FreeEnergyOutput::Init(pdb_setup::Atoms const& atoms,
       fileName += "_";
       fileName += uniqueName;
       fileName += ".dat";
-      #if GOMC_LIB_MPI
-        name[b] = pathToReplicaDirectory + fileName;
-      #else
-        name[b] = fileName;
-      #endif
+#if GOMC_LIB_MPI
+      name[b] = pathToReplicaDirectory + fileName;
+#else
+      name[b] = fileName;
+#endif
       outF[b].open(name[b].c_str(), std::ofstream::out);
       energyDiff[b] = new Energy[lambdaSize];
     }
-    WriteHeader(); 
+    WriteHeader();
   }
 }
 
 std::string FreeEnergyOutput::GetString(double a, uint p)
 {
-  std::stringstream sstrm;  
+  std::stringstream sstrm;
   std::string tempStr;
   sstrm << std::fixed << std::setprecision(p) << (a);
   //sstrm.precision(p);
@@ -97,7 +97,7 @@ void FreeEnergyOutput::DoOutput(const ulong step)
   if ((step + 1) % stepsPerOut == 0) {
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       if (outF[b].is_open()) {
-          PrintData(b, step + 1);
+        PrintData(b, step + 1);
       } else {
         std::cerr << "Unable to write to file \"" <<  name[b] << "\" "
                   << "(Free Energy file)" << std::endl;
@@ -196,17 +196,17 @@ void FreeEnergyOutput::CalculateFreeEnergy(const uint b)
   //Reset the energy value
   dUdL_VDW[b].Zero();
   dUdL_Coulomb[b].Zero();
-  for(uint i = 0; i < lambdaSize; i++){
+  for(uint i = 0; i < lambdaSize; i++) {
     energyDiff[b][i].Zero();
   }
   //Calculate delta E and dE/dLambda for all lambda states
-  calcEn.EnergyChange(energyDiff[b], dUdL_VDW[b], dUdL_Coulomb[b], 
-                      freeEnVal.lambdaVDW, freeEnVal.lambdaCoulomb, iState, 
+  calcEn.EnergyChange(energyDiff[b], dUdL_VDW[b], dUdL_Coulomb[b],
+                      freeEnVal.lambdaVDW, freeEnVal.lambdaCoulomb, iState,
                       molIndex, b);
   //Convert to kJ/mol
   dUdL_VDW[b] *= unit::K_TO_KJ_PER_MOL;
   dUdL_Coulomb[b] *= unit::K_TO_KJ_PER_MOL;
-  for(uint i = 0; i < lambdaSize; i++){
+  for(uint i = 0; i < lambdaSize; i++) {
     energyDiff[b][i] *= unit::K_TO_KJ_PER_MOL;
   }
 }

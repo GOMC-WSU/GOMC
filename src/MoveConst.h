@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -69,13 +69,13 @@ const uint BOX1 = 1;
 //////////////////////////////////////////////////////////
 
 //NVT : 1. Disp (box 0)         2. Rotate (box 0)     3. MultiParticle (box 0)
-//      4. IntraSwap (box 0)    5. Regrowth (box 0)   6. IntraMEMC (box 0) 
+//      4. IntraSwap (box 0)    5. Regrowth (box 0)   6. IntraMEMC (box 0)
 //      7. CrankShaft (box 0)
 //
 //GCMC: 1. Disp (box 0)         2. Rotate (box 0)     3. MultiParticle (box 0)
 //      4. IntraSwap (box 0)    5. Regrowth (box 0)   6. IntraMEMC (box 0)
 //      7. CrankShaft (box 0)   8. MEMC (box 0)       9. Deletion (box 0)
-//      10. Insertion (box 0)   11. CFCMC (box 0)     12. CFCMC (box 1) 
+//      10. Insertion (box 0)   11. CFCMC (box 0)     12. CFCMC (box 1)
 //
 //GEMC: 1. Disp (box 0)          2. Disp (box 1)
 //      3. MultiParticle (box 0) 4. MultiParticle (box 1)
@@ -87,7 +87,7 @@ const uint BOX1 = 1;
 //     15. CrankShaft (box 0)   16. CrankShaft (box 1)
 //     17. MEMC (box 0)         18. MEMC (box 1)
 //     19. Mol Trans (b0->b1)   20. Mol Trans (b1->b0)
-//     21. CFCMC (b0->b1)       22. CFCMC (b1->b0) 
+//     21. CFCMC (b0->b1)       22. CFCMC (b1->b0)
 //
 //NPT : 1. Disp (box 0)         2. Rotate (box 0)     3. MultiParticle (box 0)
 //      4. Vol. (box 0)         5. IntraSwap (box 0)  6. Regrowth (box 0)

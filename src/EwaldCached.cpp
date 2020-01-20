@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -240,7 +240,7 @@ double EwaldCached::BoxReciprocal(uint box) const
 
 //calculate reciprocate term for displacement and rotation move
 double EwaldCached::MolReciprocal(XYZArray const& molCoords,
-				                          const uint molIndex,
+                                  const uint molIndex,
                                   const uint box)
 {
   double energyRecipNew = 0.0;
@@ -295,7 +295,7 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
 }
 
 //calculate reciprocate term in destination box for swap move
-//No need to scale the charge with lambda, since this function will not be 
+//No need to scale the charge with lambda, since this function will not be
 // called in free energy of CFCMC
 double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
                                   const uint box,
@@ -353,7 +353,7 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
 
 
 //calculate reciprocate term in source box for swap move
-//No need to scale the charge with lambda, since this function will not be 
+//No need to scale the charge with lambda, since this function will not be
 // called in free energy of CFCMC
 double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                     const uint box, const int molIndex)
@@ -394,7 +394,7 @@ double EwaldCached::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
 }
 
 //calculate reciprocate term for lambdaNew and Old with same coordinates
-double EwaldCached::CFCMCRecip(XYZArray const& molCoords,const double lambdaOld,
+double EwaldCached::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
                                const double lambdaNew, const uint molIndex,
                                const uint box)
 {
@@ -426,10 +426,10 @@ void EwaldCached::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
       //Calculate the energy of other state
       coefDiff = sqrt(lambda_Coul[s]) - sqrt(lambda_Coul[iState]);
       energyRecip[s] += prefactRef[box][i] *
-                        ((sumRref[box][i] + coefDiff*cosMolRef[molIndex][i]) * 
-                         (sumRref[box][i] + coefDiff*cosMolRef[molIndex][i]) + 
-                         (sumIref[box][i] + coefDiff*sinMolRef[molIndex][i]) * 
-                         (sumIref[box][i] + coefDiff*sinMolRef[molIndex][i]));
+                        ((sumRref[box][i] + coefDiff * cosMolRef[molIndex][i]) *
+                         (sumRref[box][i] + coefDiff * cosMolRef[molIndex][i]) +
+                         (sumIref[box][i] + coefDiff * sinMolRef[molIndex][i]) *
+                         (sumIref[box][i] + coefDiff * sinMolRef[molIndex][i]));
     }
   }
 
@@ -437,7 +437,7 @@ void EwaldCached::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
   for(s = 0; s < lambdaSize; s++) {
     energyDiff[s].recip = energyRecip[s] - energyRecipOld;
   }
-  //Calculate du/dl of Reciprocal for current state 
+  //Calculate du/dl of Reciprocal for current state
   //energy difference E(lambda =1) - E(lambda = 0)
   dUdL_Coul.recip += energyDiff[lambdaSize - 1].recip - energyDiff[0].recip;
   delete [] energyRecip;

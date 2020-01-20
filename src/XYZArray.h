@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -403,7 +403,7 @@ inline void XYZArray::SetRange(const uint start, const uint stop,
   }
 }
 
-inline void XYZArray::ResetRange(const uint val, const uint stop) 
+inline void XYZArray::ResetRange(const uint val, const uint stop)
 {
 #ifdef _OPENMP
   #pragma omp parallel default(shared)

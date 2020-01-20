@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -166,7 +166,7 @@ struct Step {
 //Holds the percentage of each kind of move for this ensemble.
 struct MovePercents {
   double displace, rotate, intraSwap, intraMemc, regrowth, crankShaft,
-    multiParticle;
+         multiParticle;
   bool multiParticleEnabled;
 #ifdef VARIABLE_VOLUME
   double volume;
@@ -254,17 +254,18 @@ struct MEMCVal {
 };
 
 struct CFCMCVal {
-  bool enable, readLambdaCoulomb, readLambdaVDW, readRelaxSteps; 
+  bool enable, readLambdaCoulomb, readLambdaVDW, readRelaxSteps;
   bool readHistFlatness, MPEnable, readMPEnable;
   uint relaxSteps;
   double histFlatness;
   //scaling parameter
   uint scalePower;
-  double scaleAlpha, scaleSigma; 
+  double scaleAlpha, scaleSigma;
   bool scaleCoulomb;
   bool scalePowerRead, scaleAlphaRead, scaleSigmaRead, scaleCoulombRead;
   std::vector<double> lambdaCoulomb, lambdaVDW;
-  CFCMCVal(void) {
+  CFCMCVal(void)
+  {
     readLambdaCoulomb = readRelaxSteps = readHistFlatness = false;
     readMPEnable = MPEnable = readLambdaVDW = enable = false;
     scalePowerRead = scaleAlphaRead = scaleSigmaRead = scaleCoulombRead = false;
@@ -272,17 +273,18 @@ struct CFCMCVal {
 };
 
 struct FreeEnergy {
-  bool enable, readLambdaCoulomb, readLambdaVDW, freqRead; 
+  bool enable, readLambdaCoulomb, readLambdaVDW, freqRead;
   bool molTypeRead, molIndexRead, iStateRead;
   uint frequency, molIndex, iState;
   //scaling parameter
   uint scalePower;
-  double scaleAlpha, scaleSigma; 
+  double scaleAlpha, scaleSigma;
   bool scaleCoulomb;
   bool scalePowerRead, scaleAlphaRead, scaleSigmaRead, scaleCoulombRead;
   std::string molType;
   std::vector<double> lambdaCoulomb, lambdaVDW;
-  FreeEnergy(void) {
+  FreeEnergy(void)
+  {
     readLambdaCoulomb = readLambdaVDW = enable = freqRead = false;
     molTypeRead = molIndexRead = iStateRead = false;
     scalePowerRead = scaleAlphaRead = scaleSigmaRead = scaleCoulombRead = false;

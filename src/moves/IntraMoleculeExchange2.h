@@ -212,20 +212,20 @@ inline uint IntraMoleculeExchange2::Prep(const double subDraw,
   //AdjustExRatio();
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
-    //transfering type A from source 
+    //transfering type A from source
     for(uint n = 0; n < numInCavA; n++) {
       newMolA.push_back(cbmc::TrialMol(molRef.kinds[kindIndexA[n]], boxDimRef,
-        sourceBox));
+                                       sourceBox));
       oldMolA.push_back(cbmc::TrialMol(molRef.kinds[kindIndexA[n]], boxDimRef,
-        sourceBox));
+                                       sourceBox));
     }
 
     for(uint n = 0; n < numInCavB; n++) {
       //transfering type B from source
       newMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
-        sourceBox));
+                                       sourceBox));
       oldMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
-        sourceBox));
+                                       sourceBox));
     }
 
     //set the old coordinate after unwrap them
@@ -251,12 +251,12 @@ inline uint IntraMoleculeExchange2::Prep(const double subDraw,
 
     //SetSeed(has cavity, COM is fixed, rotate around Backbone)
     for(uint n = 0; n < numInCavB; n++) {
-      //Inserting molB from centerB to the centerA 
-      newMolB[n].SetSeed(centerA, cavity, true, true, true); 
+      //Inserting molB from centerB to the centerA
+      newMolB[n].SetSeed(centerA, cavity, true, true, true);
       // Set the Backbone of large molecule to be inserted
       newMolB[n].SetBackBone(largeBB);
       //perform rotational trial move for oldMolB
-      oldMolB[n].SetSeed(centerB, cavity, true, true, true); 
+      oldMolB[n].SetSeed(centerB, cavity, true, true, true);
       // Set the Backbone of large molecule to be deleted
       oldMolB[n].SetBackBone(largeBB);
     }
@@ -277,7 +277,7 @@ inline uint IntraMoleculeExchange2::Prep(const double subDraw,
         //Inserting molA from cavity(centerA) to the cavityB(centerB)
         newMolA[n].SetSeed(centerB, cavity, true, false, false);
         //perform trial move in cavity in sourceBox for oldMolA
-        oldMolA[n].SetSeed(centerA, cavity, true, false, false); 
+        oldMolA[n].SetSeed(centerA, cavity, true, false, false);
       }
     }
   }
