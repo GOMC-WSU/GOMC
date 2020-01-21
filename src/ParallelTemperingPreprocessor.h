@@ -8,7 +8,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef ParallelTemperingPreprocessor_H
 #define ParallelTemperingPreprocessor_H
 #include "InputFileReader.h"
-#include <dirent.h>
 #include <iostream>
 #include <sys/types.h>
 #include <sys/stat.h>
