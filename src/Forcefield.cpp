@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -10,6 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "FFShift.h"
 #include "FFSwitch.h"
 #include "FFSwitchMartini.h"
+#include "FFExp6.h"
 #ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
 #endif
@@ -56,12 +57,31 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
 
   vdwKind = val.ff.VDW_KIND;
   exckind = val.exclude.EXCLUDE_KIND;
+  freeEnergy = val.freeEn.enable;
 
   electrostatic = val.elect.enable;
   ewald = val.elect.ewald;
   tolerance = val.elect.tolerance;
   rswitch = val.ff.rswitch;
   dielectric = val.elect.dielectric;
+
+  if(val.freeEn.enable) {
+    sc_alpha = val.freeEn.scaleAlpha;
+    sc_sigma = val.freeEn.scaleSigma;
+    sc_power = val.freeEn.scalePower;
+    sc_coul = val.freeEn.scaleCoulomb;
+  } else if (val.cfcmcVal.enable) {
+    sc_alpha = val.cfcmcVal.scaleAlpha;
+    sc_sigma = val.cfcmcVal.scaleSigma;
+    sc_power = val.cfcmcVal.scalePower;
+    sc_coul = val.cfcmcVal.scaleCoulomb;
+  } else {
+    sc_alpha = 0.0;
+    sc_sigma = 0.0;
+    sc_power = 0;
+    sc_coul = false;
+  }
+  sc_sigma_6 = pow(sc_sigma, 6);
 
   for(uint b = 0 ; b < BOX_TOTAL; b++) {
     rCutCoulomb[b] = val.elect.cutoffCoulomb[b];
@@ -74,6 +94,7 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
 
   vdwGeometricSigma = val.ff.vdwGeometricSigma;
   isMartini = ffKind.isMARTINI;
+  exp6 = (vdwKind == val.ff.VDW_EXP6_KIND);
 
 #if ENSEMBLE == GCMC
   isFugacity = val.chemPot.isFugacity;
@@ -81,12 +102,19 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
 
   if(vdwKind == val.ff.VDW_STD_KIND)
     particles = new FFParticle(*this);
+  else if(vdwKind == val.ff.VDW_EXP6_KIND)
+    particles = new FF_EXP6(*this);
   else if(vdwKind == val.ff.VDW_SHIFT_KIND)
     particles = new FF_SHIFT(*this);
   else if (vdwKind == val.ff.VDW_SWITCH_KIND && ffKind.isMARTINI)
     particles = new FF_SWITCH_MARTINI(*this);
-  else
+  else if (vdwKind == val.ff.VDW_SWITCH_KIND && !ffKind.isMARTINI)
     particles = new FF_SWITCH(*this);
+  else {
+    std::cout << "Undefined Potential Type detected!\n" << "Exiting!\n";
+    exit(EXIT_FAILURE);
+  }
+
 
   if(ffKind.isMARTINI)
     angles = new FFAngleMartini();

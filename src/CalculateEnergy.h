@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -40,6 +40,7 @@ class Coordinates;
 class COM;
 class XYZArray;
 class BoxDimensions;
+class Lambda;
 
 namespace cbmc
 {
@@ -59,12 +60,22 @@ public:
   //! Calculates total energy/virial of a single box in the system
   SystemPotential BoxInter(SystemPotential potential,
                            XYZArray const& coords,
-                           XYZArray const& com,
                            BoxDimensions const& boxAxes,
-                           const uint box) ;
+                           const uint box);
+
+  //! Calculates force of a single box in the system
+  SystemPotential BoxForce(SystemPotential potential,
+                           XYZArray const& coords,
+                           XYZArray& atomForce,
+                           XYZArray& molForce,
+                           BoxDimensions const& boxAxes,
+                           const uint box);
 
   //! Calculate force and virial for the box
-  Virial ForceCalc(const uint box);
+  Virial VirialCalc(const uint box);
+
+  //! Set the force for atom and mol to zero for box
+  void ResetForce(XYZArray& atomForce, XYZArray& molForce, uint box);
 
 
   //! Calculates intermolecule energy of all boxes in the system
@@ -122,7 +133,7 @@ public:
                      const uint trials) const;
 
 
-  //! Calculates the change in the TC from adding numChange atoms of a kind
+  //! Calculates change in the ENergyTC from adding numChange atoms of a kind
   //! @param box Index of box under consideration
   //! @param kind Kind of particle being added or removed
   //! @param add If removed: false (sign=-1); if added: true (sign=+1)
@@ -130,7 +141,23 @@ public:
                                     const uint kind,
                                     const bool add) const;
 
-  //! Calculates intramolecular energy of a full molecule
+  //! Calculates change in the Virial TC from adding numChange atoms of a kind
+  //! @param box Index of box under consideration
+  //! @param kind Kind of particle being added or removed
+  //! @param add If removed: false (sign=-1); if added: true (sign=+1)
+  Intermolecular MoleculeTailVirChange(const uint box,
+                                       const uint kind,
+                                       const bool add) const;
+
+  //! Calculates the change in the TC from chaning the lambdaOld -> lambdaNew
+  //! @param box Index of box under consideration
+  //! @param kind Kind of particle being transfrom in lambda
+  double MoleculeTailChange(const uint box, const uint kind,
+                            const std::vector <uint> &kCount,
+                            const double lambdaOld,
+                            const double lambdaNew) const;
+
+  //! Calculates voidintramolecular energy of a full molecule
   void MoleculeIntra(const uint molIndex, const uint box, double *bondEn) const;
 
   //used in molecule exchange for calculating bonded and intraNonbonded energy
@@ -146,6 +173,15 @@ public:
   //for Martini forcefield
   double IntraEnergy_1_4(const double distSq, const uint atom1,
                          const uint atom2, const uint molIndex) const;
+  //! Calculate Torque
+  void CalculateTorque(vector<uint>& moleculeIndex,
+                       XYZArray const& coordinates,
+                       XYZArray const& com,
+                       XYZArray const& atomForce,
+                       XYZArray const& atomForceRec,
+                       XYZArray& molTorque,
+                       vector<uint>& moveType,
+                       const uint box);
 
   //Finding the molecule inside cavity and store the molecule Index.
   bool FindMolInCavity(std::vector< std::vector<uint> > &mol, const XYZ& center,
@@ -155,6 +191,20 @@ public:
   //!Calculates energy corrections for the box
   double EnergyCorrection(const uint box, const uint *kCount) const;
 
+  //Calculate inter energy for single molecule in the system.
+  void SingleMoleculeInter(Energy &interEnOld, Energy &interEnNew,
+                           const double lambdaOldVDW,
+                           const double lambdaNewVDW,
+                           const double lambdaOldCoulomb,
+                           const double lambdaNewCoulomb,
+                           const uint molIndex, const uint box) const;
+
+  //Calculate the change in energy due to lambda
+  void EnergyChange(Energy *energyDiff, Energy &dUdL_VDW, Energy &dUdL_Coul,
+                    const std::vector<double> &lambda_VDW,
+                    const std::vector<double> &lambda_Coul,
+                    const uint iState, const uint molIndex,
+                    const uint box) const;
 private:
 
   //! Calculates full TC energy for one box in current system
@@ -162,8 +212,8 @@ private:
                         const uint box) const;
 
   //! Calculates full TC virial for one box in current system
-  void ForceCorrection(Virial& virial, BoxDimensions const& boxAxes,
-                       const uint box) const;
+  void VirialCorrection(Virial& virial, BoxDimensions const& boxAxes,
+                        const uint box) const;
 
 
   //! Calculates bond vectors of a full molecule, stores them in vecs
@@ -230,6 +280,12 @@ private:
   void MolNonbond_1_3(double & energy, cbmc::TrialMol const &mol,
                       MoleculeKind const& molKind) const;
 
+  //Calculate the change in LRC for each state
+  void ChangeLRC(Energy *energyDiff, Energy &dUdL_VDW,
+                 const std::vector<double> &lambda_VDW,
+                 const uint iState, const uint molIndex,
+                 const uint box) const;
+
   //! For particles in main coordinates array determines if they belong
   //! to same molecule, using internal arrays.
   bool SameMolecule(const uint p1, const uint p2) const
@@ -240,6 +296,9 @@ private:
     return (pair1 == pair2);
   }
 
+  double GetLambdaVDW(uint molA, uint molB, uint box) const;
+  double GetLambdaCoulomb(uint molA, uint molB, uint box) const;
+
 
   const Forcefield& forcefield;
   const Molecules& mols;
@@ -247,8 +306,12 @@ private:
   const MoleculeLookup& molLookup;
   const BoxDimensions& currentAxes;
   const COM& currentCOM;
-  const Ewald  *calcEwald;
-  bool electrostatic;
+  const Ewald *calcEwald;
+  const Lambda& lambdaRef;
+  XYZArray& atomForceRef;
+  XYZArray& molForceRef;
+  bool multiParticleEnabled;
+  bool electrostatic, ewald;
 
   std::vector<int> particleKind;
   std::vector<int> particleMol;

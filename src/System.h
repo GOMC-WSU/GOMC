@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -24,11 +24,14 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CellList.h"
 #include "Clock.h"
 #include "CheckpointSetup.h"
+#include "../lib/Lambda.h"
 
 //Initialization variables
 class Setup;
 class StaticVals;
 class MoveBase;
+class Lambda;
+
 
 class System
 {
@@ -93,6 +96,11 @@ public:
   MoveSettings moveSettings;
   SystemPotential potential;
   Coordinates coordinates;
+  XYZArray atomForceRef;
+  XYZArray molForceRef;
+  XYZArray atomForceRecRef;
+  XYZArray molForceRecRef;
+  Lambda lambdaRef;
   COM com;
 
   CalculateEnergy calcEnergy;
@@ -108,7 +116,9 @@ public:
 
   ~System();
 
+
 private:
+  void InitLambda();
   void InitMoves(Setup const& set);
   void PickMove(uint & kind, double & draw);
   uint SetParams(const uint kind, const double draw);
@@ -116,8 +126,8 @@ private:
   void CalcEn(const uint kind);
   void Accept(const uint kind, const uint rejectState, const uint step);
 
-  MoveBase * moves[mv::MOVE_KINDS_TOTAL];
   double moveTime[mv::MOVE_KINDS_TOTAL];
+  MoveBase * moves[mv::MOVE_KINDS_TOTAL];
   Clock time;
 };
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -9,6 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "BasicTypes.h"
 #include "SubdividedArray.h"
+#include <assert.h>
 
 #include <vector>
 
@@ -97,6 +98,7 @@ public:
   //!/param b index of bond within feature; in [0, bondsPer)
   uint GetBond(uint feature, uint b) const
   {
+    assert((feature * bondsPer + b) < (count * bondsPer));
     return bondIndices[feature * bondsPer + b];
   }
 

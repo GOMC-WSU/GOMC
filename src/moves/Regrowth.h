@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -104,8 +104,8 @@ inline void Regrowth::CalcEn()
   correct_new = 0.0;
 
   if (newMol.GetWeight() != 0.0 && !overlap) {
-    correct_new = calcEwald->SwapCorrection(newMol);
-    correct_old = calcEwald->SwapCorrection(oldMol);
+    correct_new = calcEwald->SwapCorrection(newMol, molIndex);
+    correct_old = calcEwald->SwapCorrection(oldMol, molIndex);
     recipDiff.energy = calcEwald->MolReciprocal(newMol.GetCoords(), molIndex,
                        sourceBox);
     //self energy is same
@@ -125,7 +125,7 @@ inline void Regrowth::Accept(const uint rejectState, const uint step)
     double Wrat = Wn / Wo * W_recip;
 
     //safety to make sure move will be rejected in overlap case
-    if(newMol.GetWeight() != 0.0 && !overlap) {
+    if(!overlap) {
       result = prng() < Wrat;
     } else
       result = false;
@@ -157,6 +157,7 @@ inline void Regrowth::Accept(const uint rejectState, const uint step)
       }
 
       calcEwald->UpdateRecip(sourceBox);
+
       //Retotal
       sysPotRef.Total();
     } else {

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -25,6 +25,7 @@ namespace label
 static const std::string REMARK = "REMARK";
 static const std::string CRYST1 = "CRYST1";
 static const std::string ATOM = "ATOM  ";
+static const std::string HETATM = "HETATM";
 static const ConstField POS(0, 6);
 }
 namespace remark

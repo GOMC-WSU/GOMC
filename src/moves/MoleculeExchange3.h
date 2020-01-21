@@ -50,7 +50,7 @@ inline void MoleculeExchange3::SetMEMC(StaticVals const& statV)
 {
   for(uint t = 0; t < exchangeRatioVec.size(); t++) {
     if(largeBBVec[t][0] != largeBBVec[t][1]) {
-      printf("Error: In ME-3 move, atom name of backbone should be same.\n");
+      printf("Error: In ME-3 move, two atoms with same name should be used as backbone.\n");
       printf("Atom names in backbone was set to %s or %s in %s residue.\n",
              statV.memcVal.largeBBAtom1[t].c_str(),
              statV.memcVal.largeBBAtom2[t].c_str(),
@@ -200,12 +200,13 @@ inline uint MoleculeExchange3::Prep(const double subDraw, const double movPerc)
                                        destBox));
     }
 
-    //set the old coordinate after unwrap them
+    //set the old coordinate and new after proper wrap & unwrap
     for(uint n = 0; n < numInCavA; n++) {
       XYZArray molA(pLenA[n]);
       coordCurrRef.CopyRange(molA, pStartA[n], 0, pLenA[n]);
       boxDimRef.UnwrapPBC(molA, sourceBox, comCurrRef.Get(molIndexA[n]));
-      oldMolA[n].SetCoords(molA, 0);
+      boxDimRef.WrapPBC(molA, destBox);
+      oldMolA[n].SetCoords(coordCurrRef, pStartA[n]);
       //set coordinate of moleA to newMolA, later it will shift to center
       newMolA[n].SetCoords(molA, 0);
       //copy cavA matrix to slant the old trial of molA
@@ -216,7 +217,8 @@ inline uint MoleculeExchange3::Prep(const double subDraw, const double movPerc)
       XYZArray molB(pLenB[n]);
       coordCurrRef.CopyRange(molB, pStartB[n], 0, pLenB[n]);
       boxDimRef.UnwrapPBC(molB, destBox, comCurrRef.Get(molIndexB[n]));
-      oldMolB[n].SetCoords(molB, 0);
+      boxDimRef.WrapPBC(molB, sourceBox);
+      oldMolB[n].SetCoords(coordCurrRef, pStartB[n]);
       //set coordinate of moleB to newMolB, later it will shift
       newMolB[n].SetCoords(molB, 0);
       //copy cavA matrix to slant the new trial of molB

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -62,6 +62,9 @@ private:
   vector<vector<vector<double> > > scaleVec, acceptPercentVec;
   vector<vector<vector<uint32_t> > > acceptedVec, triesVec, tempAcceptedVec,
          tempTriesVec;
+  vector< vector< uint > > mp_acceptedVec, mp_triesVec;
+  vector< double > mp_r_maxVec;
+  vector< double > mp_t_maxVec;
 
   // private functions used by ReadAll and Get functions
   void openInputFile();
@@ -73,6 +76,11 @@ private:
   void readBoxDimensionsData();
   void closeInputFile();
 
+  void readVector3DDouble(vector< vector< vector <double> > > & data);
+  void readVector3DUint(vector< vector< vector <uint> > > & data);
+  void readVector2DUint(vector< vector< uint > > & data);
+  void readVector1DDouble(vector< double > & data);
   double readDoubleIn8Chars();
   uint32_t readUintIn8Chars();
+
 };

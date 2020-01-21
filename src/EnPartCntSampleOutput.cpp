@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -38,10 +38,17 @@ void EnPartCntSample::Init(pdb_setup::Atoms const& atoms,
       output.statistics.settings.hist.frequency / stepsPerSample + 1;
     samplesCollectedInFrame = 0;
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+#if GOMC_LIB_MPI
+      name[b] = pathToReplicaDirectory + GetFName(output.state.files.hist.sampleName,
+                output.state.files.hist.number,
+                output.state.files.hist.letter,
+                b);
+#else
       name[b] = GetFName(output.state.files.hist.sampleName,
                          output.state.files.hist.number,
                          output.state.files.hist.letter,
                          b);
+#endif
       samplesE[b] = new double [samplesPerFrame];
       samplesN[b] = new uint * [var->numKinds];
       for (uint k = 0; k < var->numKinds; ++k) {

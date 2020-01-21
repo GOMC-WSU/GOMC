@@ -17,7 +17,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 #Versioning
 set (GOMC_VERSION_MAJOR 2)
-set (GOMC_VERSION_MINOR 40)
+set (GOMC_VERSION_MINOR 50)
 
 IF(NOT CMAKE_BUILD_TYPE)
    SET(CMAKE_BUILD_TYPE Release CACHE STRING
@@ -33,6 +33,27 @@ set(ENSEMBLE_GPU_NVT ON CACHE BOOL "Build GPU NVT version")
 set(ENSEMBLE_GPU_GEMC ON CACHE BOOL "Build GPU GEMC version")
 set(ENSEMBLE_GPU_GCMC ON CACHE BOOL "Build GPU GCMC version")
 set(ENSEMBLE_GPU_NPT ON CACHE BOOL "Build GPU NPT version")
+
+
+########################  MPI   ##################################
+
+include(${PROJECT_SOURCE_DIR}/CMake/GOMCOptionUtilities.cmake)
+
+option(GOMC_MPI    "Build a parallel (message-passing) version of GOMC" OFF)
+option(GOMC_THREAD_MPI  "Build a thread-MPI-based multithreaded version of GOMC (not compatible with MPI)" ON)
+
+include(${PROJECT_SOURCE_DIR}/CMake/GOMCManageMPI.cmake)
+include(${PROJECT_SOURCE_DIR}/CMake/ThreadMPI.cmake)
+
+set(GOMC_COMMON_LIBRARIES "")
+GOMC_dependent_option(
+    GOMC_MPI_IN_PLACE
+    "Enable MPI_IN_PLACE for MPIs that have it defined"
+    ON
+    GOMC_MPI)
+mark_as_advanced(GOMC_MPI_IN_PLACE)
+
+########################  MPI   ##################################
 
 #enable config header
 configure_file(
@@ -83,7 +104,6 @@ include(${PROJECT_SOURCE_DIR}/CMake/FileLists.cmake)
 include(${PROJECT_SOURCE_DIR}/CMake/GOMCCPUSetup.cmake)
 
 # find CUDA and set it up
-set(CUDA_SEPARABLE_COMPILATION ON)
 find_package(CUDA)
 IF(CUDA_FOUND)
     include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)

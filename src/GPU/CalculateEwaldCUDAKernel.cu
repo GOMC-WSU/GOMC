@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -77,12 +77,14 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
                             vars->gpu_sumRnew[box],
                             vars->gpu_sumInew[box],
                             imageSize);
+  checkLastErrorCUDA(__FILE__, __LINE__);
 
   BoxReciprocalGPU <<< blocksPerGrid, threadsPerBlock>>>(vars->gpu_prefact[box],
       vars->gpu_sumRnew[box],
       vars->gpu_sumInew[box],
       gpu_energyRecip,
       imageSize);
+  checkLastErrorCUDA(__FILE__, __LINE__);
 
 #ifndef NDEBUG
   // In the future maybe we could remove this for Nondebug?
@@ -167,6 +169,7 @@ void CallMolReciprocalGPU(VariablesCUDA *vars,
                                       vars->gpu_prefactRef[box],
                                       gpu_energyRecipNew,
                                       imageSize);
+  checkLastErrorCUDA(__FILE__, __LINE__);
 #ifndef NDEBUG
   cudaMemcpy(sumRnew, vars->gpu_sumRnew[box], imageSize * sizeof(double),
              cudaMemcpyDeviceToHost);
@@ -241,7 +244,7 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars,
                                        insert,
                                        gpu_energyRecipNew,
                                        imageSize);
-
+  checkLastErrorCUDA(__FILE__, __LINE__);
 #ifndef NDEBUG
   // In the future maybe we could remove this for Nondebug?
   cudaMemcpy(sumRnew, vars->gpu_sumRnew[box], imageSize * sizeof(double),

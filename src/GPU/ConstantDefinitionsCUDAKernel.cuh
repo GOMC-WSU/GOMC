@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -17,6 +17,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define GPU_VDW_STD_KIND 0
 #define GPU_VDW_SHIFT_KIND 1
 #define GPU_VDW_SWITCH_KIND 2
+#define GPU_VDW_EXP6_KIND 3
 #define MAX_PAIR_SIZE 10000000
 
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
@@ -38,6 +39,8 @@ void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
                             double *invCellBasis_z);
 void DestroyEwaldCUDAVars(VariablesCUDA *vars);
 void DestroyCUDAVars(VariablesCUDA *vars);
+void InitExp6Variables(VariablesCUDA *vars, double *rMin, double *expConst,
+                       double *rMaxSq, uint size);
 
 #endif /*GOMC_CUDA*/
 #endif /*CONSTANT_DEFINITIONS_CUDA_KERNEL*/

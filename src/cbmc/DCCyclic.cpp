@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -399,19 +399,18 @@ void DCCyclic::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
       newMol.AddAtom(partner, oldMol.AtomPosition(partner));
       oldMol.ConfirmOldAtom(partner);
     }
+    //First we pick a edge that will be fix and continue copy the coordinate
+    //We continue the same until only one edge left from this node
+    //If current is the terminal node, we dont enter to while loop
+    //Then continue to build the rest of the molecule from current
 
-    if(nodes[current].edges.size() == 1) {
-      //If current is the terminal node, continue building all edges
-      BuildEdges(oldMol, newMol, molIndex, current);
-    } else {
-      //First we pick a edge and continue copying the coordinate
-      //Then continue to build the rest of the molecule from current
-      //Copy the edges of the node to fringe
-      fringe = nodes[current].edges;
+    //Copy the edges of the node to currFringe
+    currFringe = nodes[current].edges;
+    while (currFringe.size() > 1) {
       //randomely pick one one of the edges connected to fixNode
-      uint pickFixEdg = data.prng.randIntExc(fringe.size());
+      uint pickFixEdg = data.prng.randIntExc(currFringe.size());
       //Travel to picked edges and make it as new fixNode
-      uint fixNode = fringe[pickFixEdg].destination;
+      uint fixNode = currFringe[pickFixEdg].destination;
       visited[fixNode] = true;
       destVisited[nodes[fixNode].atomIndex] = true;
       //Copy the all atoms bonded to fixNode's focus
@@ -440,7 +439,7 @@ void DCCyclic::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
           newMol.AddAtom(partner, oldMol.AtomPosition(partner));
           oldMol.ConfirmOldAtom(partner);
         }
-        //Travel to new fixNode, remove traversed edge
+        //Travel to new fixNode, remove traverled edge
         fringe[0] = fringe.back();
         fringe.pop_back();
         visited[fixNode] = true;
@@ -453,35 +452,35 @@ void DCCyclic::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
           }
         }
       }
-      //Now Start building the rest of the molecule from current
-      //Copy the edges of the current node to fringe
-      fringe = nodes[current].edges;
-      //Remove the fixed edge from fringe
-      fringe.erase(fringe.begin() + pickFixEdg);
-      for(uint i = 0; i < fringe.size(); i++) {
-        destVisited[fringe[i].atomIndex] = true;
-      }
-      //Advance along edges, building as we go
-      while(!fringe.empty()) {
-        //Randomely pick one of the edges connected to node
-        uint pick = data.prng.randIntExc(fringe.size());
-        DCComponent* comp = fringe[pick].connect;
-        //Call DCLinkedHedron and build all Atoms connected to selected edge
-        comp->PrepareNew(newMol, molIndex);
-        comp->BuildNew(newMol, molIndex);
-        comp->PrepareOld(oldMol, molIndex);
-        comp->BuildOld(oldMol, molIndex);
-        current = fringe[pick].destination;
-        //Remove the edge that we visited
-        fringe[pick] = fringe.back();
-        fringe.pop_back();
-        visited[current] = true;
-        for(uint i = 0; i < nodes[current].edges.size(); ++i) {
-          Edge& e = nodes[current].edges[i];
-          if(!visited[e.destination] && !destVisited[e.atomIndex]) {
-            fringe.push_back(e);
-            destVisited[e.atomIndex] = true;
-          }
+      //Remove the fixed edge from currFring
+      currFringe.erase(currFringe.begin() + pickFixEdg);
+    }
+
+    for(uint i = 0; i < currFringe.size(); i++) {
+      destVisited[currFringe[i].atomIndex] = true;
+    }
+    //Now Start building the rest of the molecule from current
+    //Start with only one left edge
+    //Advance along edges, building as we go
+    while(!currFringe.empty()) {
+      //Randomely pick one of the edges connected to node
+      uint pick = data.prng.randIntExc(currFringe.size());
+      DCComponent* comp = currFringe[pick].connect;
+      //Call DCLinkedCycle and build all Atoms connected to selected edge
+      comp->PrepareNew(newMol, molIndex);
+      comp->BuildNew(newMol, molIndex);
+      comp->PrepareOld(oldMol, molIndex);
+      comp->BuildOld(oldMol, molIndex);
+      current = currFringe[pick].destination;
+      //Remove the edge that we visited
+      currFringe[pick] = currFringe.back();
+      currFringe.pop_back();
+      visited[current] = true;
+      for(uint i = 0; i < nodes[current].edges.size(); ++i) {
+        Edge& e = nodes[current].edges[i];
+        if(!visited[e.destination] && !destVisited[e.atomIndex]) {
+          currFringe.push_back(e);
+          destVisited[e.atomIndex] = true;
         }
       }
     }

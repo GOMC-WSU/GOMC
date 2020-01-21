@@ -7,6 +7,9 @@ if(ENSEMBLE_NVT)
       #needed for hostname
       target_link_libraries(NVT ws2_32)
    endif()
+   if(MPI_FOUND)
+      target_link_libraries(NVT ${MPI_LIBRARIES})
+   endif()
 endif()
 
 if(ENSEMBLE_GEMC)
@@ -17,6 +20,9 @@ if(ENSEMBLE_GEMC)
    if(WIN32)
       #needed for hostname
       target_link_libraries(GEMC ws2_32)
+   endif()
+   if(MPI_FOUND)
+      target_link_libraries(GEMC ${MPI_LIBRARIES})
    endif()
 endif()
 
@@ -29,6 +35,9 @@ if(ENSEMBLE_GCMC)
       #needed for hostname
       target_link_libraries(GCMC ws2_32)
    endif()
+   if(MPI_FOUND)
+      target_link_libraries(GCMC ${MPI_LIBRARIES})
+   endif()
 endif()
 
 if(ENSEMBLE_NPT)
@@ -39,6 +48,9 @@ if(ENSEMBLE_NPT)
    if(WIN32)
       #needed for hostname
       target_link_libraries(NPT ws2_32)
+   endif()
+   if(MPI_FOUND)
+      target_link_libraries(NPT ${MPI_LIBRARIES})
    endif()
 endif()
 

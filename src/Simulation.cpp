@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -12,13 +12,13 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <iomanip>
 
-Simulation::Simulation(char const*const configFileName)
+Simulation::Simulation(char const*const configFileName, MultiSim const*const& multisim)
 {
   startStep = 0;
   //NOTE:
   //IMPORTANT! Keep this order...
   //as system depends on staticValues, and cpu sometimes depends on both.
-  set.Init(configFileName);
+  set.Init(configFileName, multisim);
   totalSteps = set.config.sys.step.total;
   staticValues = new StaticVals(set);
   system = new System(*staticValues);
@@ -123,4 +123,5 @@ void Simulation::RunningCheck(const uint step)
       << std::endl << std::endl;
 
 }
+
 #endif

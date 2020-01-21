@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -55,6 +55,7 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
   cudaMemcpy(vars.gpu_ewald, &ewald, sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars.gpu_diElectric_1, &diElectric_1, sizeof(double),
              cudaMemcpyHostToDevice);
+  checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
 void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
@@ -104,6 +105,30 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
     cudaMalloc(&vars->gpu_Invcell_y[b], 3 * sizeof(double));
     cudaMalloc(&vars->gpu_Invcell_z[b], 3 * sizeof(double));
   }
+
+  cudaMalloc(&vars->gpu_aForcex, atomNumber * sizeof(double));
+  cudaMalloc(&vars->gpu_aForcey, atomNumber * sizeof(double));
+  cudaMalloc(&vars->gpu_aForcez, atomNumber * sizeof(double));
+  cudaMalloc(&vars->gpu_mForcex, maxMolNumber * sizeof(double));
+  cudaMalloc(&vars->gpu_mForcey, maxMolNumber * sizeof(double));
+  cudaMalloc(&vars->gpu_mForcez, maxMolNumber * sizeof(double));
+  checkLastErrorCUDA(__FILE__, __LINE__);
+}
+
+void InitExp6Variables(VariablesCUDA *vars, double *rMin, double *expConst,
+                       double *rMaxSq, uint size)
+{
+  cudaMalloc(&vars->gpu_rMin, size * sizeof(double));
+  cudaMalloc(&vars->gpu_rMaxSq, size * sizeof(double));
+  cudaMalloc(&vars->gpu_expConst, size * sizeof(double));
+
+  cudaMemcpy(vars->gpu_rMin, rMin, size * sizeof(double),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_rMaxSq, rMaxSq, size * sizeof(double),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_expConst, expConst, size * sizeof(double),
+             cudaMemcpyHostToDevice);
+  checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
 void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal)
@@ -140,6 +165,7 @@ void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal)
     cudaMalloc(&vars->gpu_hsqr[b], imageTotal * sizeof(double));
     cudaMalloc(&vars->gpu_hsqrRef[b], imageTotal * sizeof(double));
   }
+  checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
 void CopyCurrentToRefCUDA(VariablesCUDA *vars, uint box, uint imageTotal)
@@ -158,6 +184,7 @@ void CopyCurrentToRefCUDA(VariablesCUDA *vars, uint box, uint imageTotal)
              imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
   cudaMemcpy(vars->gpu_kzRef[box], vars->gpu_kz[box],
              imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
+  checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
 void UpdateRecipVecCUDA(VariablesCUDA *vars, uint box)
@@ -204,6 +231,7 @@ void UpdateCellBasisCUDA(VariablesCUDA *vars, uint box, double *cellBasis_x,
   cudaMemcpy(vars->gpu_cell_z[box], cellBasis_z, 3 * sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_nonOrth, &nonOrth, sizeof(int), cudaMemcpyHostToDevice);
+  checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
 void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
@@ -218,6 +246,7 @@ void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
   cudaMemcpy(vars->gpu_Invcell_z[box], invCellBasis_z, 3 * sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_nonOrth, &nonOrth, sizeof(int), cudaMemcpyHostToDevice);
+  checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
 void DestroyEwaldCUDAVars(VariablesCUDA *vars)
@@ -281,6 +310,12 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   cudaFree(vars->gpu_comx);
   cudaFree(vars->gpu_comy);
   cudaFree(vars->gpu_comz);
+  cudaFree(vars->gpu_aForcex);
+  cudaFree(vars->gpu_aForcey);
+  cudaFree(vars->gpu_aForcez);
+  cudaFree(vars->gpu_mForcex);
+  cudaFree(vars->gpu_mForcey);
+  cudaFree(vars->gpu_mForcez);
   cudaFree(vars->gpu_rT11);
   cudaFree(vars->gpu_rT12);
   cudaFree(vars->gpu_rT13);

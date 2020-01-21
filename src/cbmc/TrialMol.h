@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -108,6 +108,17 @@ public:
   void AddEnergy(const Energy& energy)
   {
     en += energy;
+  }
+
+  //Keep the tcoords and reset everythings
+  void Reset()
+  {
+    totalWeight = 1.0;
+    std::fill_n(atomBuilt, kind->NumAtoms(), false);
+    growthToWorld.LoadIdentity();
+    en.Zero();
+    bonds.Unset();
+    overlap = false;
   }
 
   //!Confirms that atom at index i has been built (used for oldMols)

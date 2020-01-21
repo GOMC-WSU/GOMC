@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -74,7 +74,7 @@ private:
   DCData data;
   bool hasCrankShaft;
   std::vector<Node> nodes;
-  std::vector<Edge> fringe;
+  std::vector<Edge> fringe, currFringe;
   std::vector<bool> visited;
   std::vector<DCComponent*> shaftNodes;
   XYZArray coords;

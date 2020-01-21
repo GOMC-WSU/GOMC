@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -108,8 +108,8 @@ inline void IntraSwap::CalcEn()
   correct_new = 0.0;
 
   if (newMol.GetWeight() != 0.0 && !overlap) {
-    correct_new = calcEwald->SwapCorrection(newMol);
-    correct_old = calcEwald->SwapCorrection(oldMol);
+    correct_new = calcEwald->SwapCorrection(newMol, molIndex);
+    correct_old = calcEwald->SwapCorrection(oldMol, molIndex);
     recipDiff.energy = calcEwald->MolReciprocal(newMol.GetCoords(), molIndex,
                        sourceBox);
     //self energy is same
@@ -150,7 +150,6 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
       comCurrRef.SetNew(molIndex, destBox);
       cellList.AddMol(molIndex, destBox, coordCurrRef);
 
-
       //Zero out box energies to prevent small number
       //errors in double.
       if (molLookRef.NumInBox(sourceBox) == 1) {
@@ -160,7 +159,8 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
         sysPotRef.boxVirial[sourceBox].real = 0;
       }
 
-      calcEwald->UpdateRecip(sourceBox);
+      calcEwald->UpdateRecip(destBox);
+
       //Retotal
       sysPotRef.Total();
     } else {

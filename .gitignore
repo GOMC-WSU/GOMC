@@ -33,6 +33,9 @@
 *.app
 
 bin
+bin_MPI
 lib/cub
+.vscode
 .idea
 cmake-build-debug
+.vscode

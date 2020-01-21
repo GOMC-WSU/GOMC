@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -79,7 +79,7 @@ private:
   std::vector<bool> isRing;     //To check if atom is belong to a ring
   std::vector<uint> ringIdx;    //index to the row of cyclicAtoms
   std::vector<Node> nodes;
-  std::vector<Edge> fringe;
+  std::vector<Edge> fringe, currFringe;
   std::vector<bool> visited, destVisited;
   std::vector<DCComponent*> crankshaft;
   std::vector< std::vector<int> > cyclicAtoms;

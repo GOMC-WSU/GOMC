@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -18,6 +18,15 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort =
   if (code != cudaSuccess) {
     fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
     if (abort) exit(code);
+  }
+}
+
+inline void checkLastErrorCUDA(const char *file, int line)
+{
+  cudaError_t code = cudaGetLastError();
+  if (code != cudaSuccess) {
+    fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+    exit(code);
   }
 }
 
@@ -57,6 +66,12 @@ public:
     gpu_rCutCoulomb = NULL;
     gpu_ewald = NULL;
     gpu_diElectric_1 = NULL;
+    gpu_aForcex = NULL;
+    gpu_aForcey = NULL;
+    gpu_aForcez = NULL;
+    gpu_mForcex = NULL;
+    gpu_mForcey = NULL;
+    gpu_mForcez = NULL;
   }
   double *gpu_sigmaSq;
   double *gpu_epsilon_Cn;
@@ -87,5 +102,8 @@ public:
   double **gpu_cell_x, **gpu_cell_y, **gpu_cell_z;
   double **gpu_Invcell_x, **gpu_Invcell_y, **gpu_Invcell_z;
   int *gpu_nonOrth;
+  double *gpu_aForcex, *gpu_aForcey, *gpu_aForcez;
+  double *gpu_mForcex, *gpu_mForcey, *gpu_mForcez;
+  double *gpu_rMin, *gpu_expConst, *gpu_rMaxSq;
 };
 #endif

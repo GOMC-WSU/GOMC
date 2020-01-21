@@ -64,7 +64,7 @@ inline void MoleculeExchange2::SetMEMC(StaticVals const& statV)
 
     for(uint i = 0; i < 2; i++) {
       if(smallBB[i] == -1) {
-        printf("Error: Atom name %s or %s was not found in %s residue.\n",
+        printf("Error: In ME-2 move, atom name %s or %s was not found in %s residue.\n",
                statV.memcVal.smallBBAtom1[t].c_str(),
                statV.memcVal.smallBBAtom2[t].c_str(),
                statV.memcVal.smallKind[t].c_str());
@@ -74,7 +74,7 @@ inline void MoleculeExchange2::SetMEMC(StaticVals const& statV)
 
     if(molRef.kinds[kindSVec[t]].NumAtoms() > 1) {
       if(smallBB[0] == smallBB[1]) {
-        printf("Error: Atom names in small molecule backbone cannot be same!\n");
+        printf("Error: In ME-2 move, atom names in small molecule backbone cannot be same!\n");
         exit(EXIT_FAILURE);
       }
     }
@@ -243,12 +243,13 @@ inline uint MoleculeExchange2::Prep(const double subDraw, const double movPerc)
                                        destBox));
     }
 
-    //set the old coordinate after unwrap them
+    //set the old coordinate and new after proper wrap & unwrap
     for(uint n = 0; n < numInCavA; n++) {
       XYZArray molA(pLenA[n]);
       coordCurrRef.CopyRange(molA, pStartA[n], 0, pLenA[n]);
       boxDimRef.UnwrapPBC(molA, sourceBox, comCurrRef.Get(molIndexA[n]));
-      oldMolA[n].SetCoords(molA, 0);
+      boxDimRef.WrapPBC(molA, destBox);
+      oldMolA[n].SetCoords(coordCurrRef, pStartA[n]);
       //set coordinate of moleA to newMolA, later it will shift to center
       newMolA[n].SetCoords(molA, 0);
       //copy cavA matrix to slant the old trial of molA
@@ -259,7 +260,8 @@ inline uint MoleculeExchange2::Prep(const double subDraw, const double movPerc)
       XYZArray molB(pLenB[n]);
       coordCurrRef.CopyRange(molB, pStartB[n], 0, pLenB[n]);
       boxDimRef.UnwrapPBC(molB, destBox, comCurrRef.Get(molIndexB[n]));
-      oldMolB[n].SetCoords(molB, 0);
+      boxDimRef.WrapPBC(molB, sourceBox);
+      oldMolB[n].SetCoords(coordCurrRef, pStartB[n]);
       //set coordinate of moleB to newMolB, later it will shift
       newMolB[n].SetCoords(molB, 0);
       //copy cavA matrix to slant the new trial of molB

@@ -1,11 +1,15 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "Simulation.h"
 #include "GOMC_Config.h"    //For version number
+#if GOMC_LIB_MPI
+#include <mpi.h>
+#include "ParallelTemperingPreprocessor.h"
+#endif
 #ifdef GOMC_CUDA
 #include "cuda.h"
 #include <cuda_runtime_api.h>
@@ -43,6 +47,10 @@ void PrintGPUHardwareInfo();
 
 int main(int argc, char *argv[])
 {
+#if GOMC_LIB_MPI
+  ParallelTemperingPreprocessor pt(argc, argv);
+  MultiSim * multisim = pt.checkIfValidRank() ? new MultiSim(pt) : NULL;
+#endif
 #ifndef NDEBUG
   PrintDebugMode();
 #endif
@@ -105,9 +113,21 @@ int main(int argc, char *argv[])
 
     //ONCE FILE FOUND PASS STRING TO SIMULATION CLASS TO READ AND
     //HANDLE PDB|PSF FILE
+#if GOMC_LIB_MPI
+    if(multisim != NULL) {
+      Simulation sim(inputFileString.c_str(), multisim);
+      sim.RunSimulation();
+      PrintSimulationFooter();
+      delete multisim;
+      MPI_Finalize();
+    } else {
+      MPI_Finalize();
+    }
+#else
     Simulation sim(inputFileString.c_str());
     sim.RunSimulation();
     PrintSimulationFooter();
+#endif
   }
   return 0;
 }
@@ -214,6 +234,7 @@ uint ReadNum(char *argv)
 
   return thread;
 }
+
 }
 
 void PrintHardwareInfo()
@@ -251,6 +272,12 @@ void PrintGPUHardwareInfo()
   int fastIndex = 0;
 
   cudaGetDeviceCount(&nDevices);
+
+  if(nDevices == 0) {
+    printf("There are no available device(s) that support CUDA\n");
+    exit(EXIT_FAILURE);
+  }
+
   if(nDevices <= 4) {
     printf("GPU information:\n");
     for (int i = 0; i < nDevices; i++) {

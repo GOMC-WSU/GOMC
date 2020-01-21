@@ -144,13 +144,13 @@ inline void IntraMoleculeExchange1::SetMEMC(StaticVals const& statV)
     }
 
     if(kindS == -1) {
-      printf("Error: Residue name %s was not found in PDB file as small molecule kind to be exchanged or it is fixed in its position.\n",
+      printf("Error: In Intra-MEMC move, residue name %s was not found in PDB file as small molecule kind to be exchanged or it is fixed in its position.\n",
              statV.intraMemcVal.smallKind[t].c_str());
       exit(EXIT_FAILURE);
     }
 
     if(kindL == -1) {
-      printf("Error: Residue name %s was not found in PDB file as large molecule kind to be exchanged or it is fixed in its position.\n",
+      printf("Error: In Intra-MEMC move, residue name %s was not found in PDB file as large molecule kind to be exchanged or it is fixed in its position.\n",
              statV.intraMemcVal.largeKind[t].c_str());
       exit(EXIT_FAILURE);
     }
@@ -166,7 +166,7 @@ inline void IntraMoleculeExchange1::SetMEMC(StaticVals const& statV)
 
     for(uint i = 0; i < 2; i++) {
       if(largeBB[i] == -1) {
-        printf("Error: Atom name %s or %s was not found in %s residue.\n",
+        printf("Error: In Intra-MEMC move, atom name %s or %s was not found in %s residue.\n",
                statV.intraMemcVal.largeBBAtom1[t].c_str(),
                statV.intraMemcVal.largeBBAtom2[t].c_str(),
                statV.intraMemcVal.largeKind[t].c_str());
@@ -177,7 +177,7 @@ inline void IntraMoleculeExchange1::SetMEMC(StaticVals const& statV)
     if(statV.intraMemcVal.MEMC1 || statV.intraMemcVal.MEMC2) {
       if(molRef.kinds[kindL].NumAtoms() > 1) {
         if(largeBB[0] == largeBB[1]) {
-          printf("Error: Atom names in large molecule backbone cannot be same!\n");
+          printf("Error: In Intra-MEMC move, atom names in large molecule backbone cannot be same!\n");
           exit(EXIT_FAILURE);
         }
       }
@@ -366,29 +366,23 @@ inline uint IntraMoleculeExchange1::Prep(const double subDraw,
                                        sourceBox));
     }
 
-    //set the old coordinate after unwrap them
+    //set the old coordinate and new coordinate
     for(uint n = 0; n < numInCavA; n++) {
-      XYZArray molA(pLenA[n]);
-      coordCurrRef.CopyRange(molA, pStartA[n], 0, pLenA[n]);
-      boxDimRef.UnwrapPBC(molA, sourceBox, comCurrRef.Get(molIndexA[n]));
-      oldMolA[n].SetCoords(molA, 0);
+      oldMolA[n].SetCoords(coordCurrRef, pStartA[n]);
       //copy cavA matrix to slant the old trial of molA
       oldMolA[n].SetCavMatrix(cavA);
-      //set coordinate of moleA to newMolA, later it will shift to centerB
-      newMolA[n].SetCoords(molA, 0);
+      //Later it will shift to centerB
+      newMolA[n].SetCoords(coordCurrRef, pStartA[n]);
       //copy cavB matrix to slant the new trial of molA
       newMolA[n].SetCavMatrix(cavB);
     }
 
     for(uint n = 0; n < numInCavB; n++) {
-      XYZArray molB(pLenB[n]);
-      coordCurrRef.CopyRange(molB, pStartB[n], 0, pLenB[n]);
-      boxDimRef.UnwrapPBC(molB, sourceBox, comCurrRef.Get(molIndexB[n]));
-      oldMolB[n].SetCoords(molB, 0);
+      oldMolB[n].SetCoords(coordCurrRef, pStartB[n]);
       //copy cavB matrix to slant the old trial of molB
       oldMolB[n].SetCavMatrix(cavB);
-      //set coordinate of moleB to newMolB, later it will shift to centerA
-      newMolB[n].SetCoords(molB, 0);
+      //Later it will shift to centerA
+      newMolB[n].SetCoords(coordCurrRef, pStartB[n]);
       //copy cavA matrix to slant the new trial of molB
       newMolB[n].SetCavMatrix(cavA);
     }
@@ -466,8 +460,8 @@ inline void IntraMoleculeExchange1::CalcEn()
   correctDiff = 0.0;
 
   if(!overlap) {
-    recipDiffA = calcEwald->SwapRecip(newMolA, oldMolA);
-    recipDiffB = calcEwald->SwapRecip(newMolB, oldMolB);
+    recipDiffA = calcEwald->SwapRecip(newMolA, oldMolA, molIndexA, molIndexA);
+    recipDiffB = calcEwald->SwapRecip(newMolB, oldMolB, molIndexB, molIndexB);
 
     //No need to contribute the self and correction energy since insertion
     //and deletion are rigid body

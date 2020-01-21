@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -67,7 +67,7 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
              cellBasis[b].Length(2));
 
     if(axis.Get(b).Min() < 2.0 * rCut[b]) {
-      printf("Error: Cutoff value is large than half of minimum BOX%d length!\n", b);
+      printf("Error: Cutoff value is larger than half of minimum BOX%d length!\n", b);
       exit(EXIT_FAILURE);
     }
     //Find Cosine Angle of alpha, beta and gamma
@@ -204,7 +204,6 @@ void BoxDimensions::SetVolume(const uint b, const double vol)
   }
   volume[b] = vol;
   volInv[b] = 1.0 / vol;
-
 }
 
 

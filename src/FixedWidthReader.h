@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.40
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -20,6 +20,11 @@ public:
   FixedWidthReader(std::string const& name, std::string const& alias,
                    const bool crit = true, const bool note = true):
     Reader(name, alias, false, NULL, false, NULL, crit, note), line("") {}
+
+  // this default constructor was defined for PDBSetup class to be able to
+  // create objects without initializing right away.
+  FixedWidthReader():
+    Reader("", "", false, NULL, false, NULL, true, true), line("") {}
 
   //Functions to get values from file, using fields.
   FixedWidthReader & Get(double & d, ConstField const& field)
@@ -64,12 +69,15 @@ public:
     if (GoodFileWData()) {
       std::getline(file, line);
       str = Str(field);
-#ifndef NDEBUG
-      //big ol' waste of lines
-      //std::cout << line << std::endl;
-#endif
     }
     return GoodFileWData();
+  }
+
+  void SetData(std::string const& name, std::string const& alias)
+  {
+    fileName = name;
+    fileAlias = alias;
+    nameWAlias = fileAlias + ":  \t" + fileName;
   }
 
 protected:
