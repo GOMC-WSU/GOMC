@@ -67,7 +67,7 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
              cellBasis[b].Length(2));
 
     if(axis.Get(b).Min() < 2.0 * rCut[b]) {
-      printf("Error: Cutoff value is large than half of minimum BOX%d length!\n", b);
+      printf("Error: Cutoff value is larger than half of minimum BOX%d length!\n", b);
       exit(EXIT_FAILURE);
     }
     //Find Cosine Angle of alpha, beta and gamma

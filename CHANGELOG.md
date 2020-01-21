@@ -2,9 +2,10 @@
 All notable changes to this project will be documented in this file.
 
 ## [2.50] - 1/20/2020
-+ Added support for Exponential-6 forcefield
-+ Support for multiple simulation with different temperatures
++ Addes support for force biased multiparticle move
 + Added support for free energy calculations using TI and FEP methods
++ Support for multiple simulation with different temperatures using MPI
++ Added support for Exponential-6 forcefield
 + Support for restarting simulation using checkpoint 
 + Added support for new GPU architectures 7.0 and 7.5
 + Added an error message when GPU version was used but there was no GPU present (#126)
@@ -12,6 +13,14 @@ All notable changes to this project will be documented in this file.
 + Fixed detecting simulation box shape (orthogonal and non-orthogonal) (#134)
 + Fixed bugs in PDB reader and support for HETATM field in PDB file
 + Fixed bugs in PSF reader
++ Fixed Case sensitive keywords (#100)
++ Fixed the timing report on Windows (#89)
++ Added minimum volume in case the difference in box sizes were large (#94)
++ Fixed the issue where cutoff value is larger than half of minimum box length (#98)
++ Added an error message when charges detected and ewald was set to false (#99)
++ Fixed compiling issue on Visual Studio (#110)
++ Fixed the issue where GOMC did not read CHARMM parameter files missing Urey-Bradley terms (#147)
++ Reduced GOMC reposity size
 
 ## [2.40] - 3/15/2019
 + Added support for Cyclic molecules.
