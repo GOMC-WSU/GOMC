@@ -31,7 +31,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class PRNG
 {
 public:
-  PRNG(MoleculeLookup & molLook) : molLookRef(molLook) {}
+  PRNG(MoleculeLookup & molLook) : molLookRef(molLook), hasSecondGaussian(false) {}
   ~PRNG(void)
   {
     delete gen;
@@ -449,6 +449,28 @@ public:
     return PickMol(m, mk, b, subDraw, boxDiv);
   }
 
+  //draw a uniform distribution with average mean
+  // and standard deviation stdDev
+  double Gaussian(double mean, double stdDev)
+  {
+    if(hasSecondGaussian) {
+      secondGaussian = false;
+      return (mean + secondGaussian * stdDev);
+    } else {
+      double r, v1, v2, factor;
+      do {
+        v1 = Sym(1.0);
+        v2 = Sym(1.0);
+        r = v1*v1 + v2*v2;
+      } while (r >= 1.0 || r < 1.523e-8);
+
+      factor = sqrt(-2.0 * log(r) / r);
+      hasSecondGaussian = true;
+      secondGaussian = v1;
+      return (mean + v2 * stdDev);
+    }
+  }
+
   MTRand * GetGenerator()
   {
     return gen;
@@ -457,6 +479,8 @@ public:
 private:
   MTRand * gen;
   MoleculeLookup & molLookRef;
+  bool hasSecondGaussian;
+  double secondGaussian;
 };
 
 //Saves the current state of the PRNG as ./filename
