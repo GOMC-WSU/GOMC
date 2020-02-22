@@ -88,11 +88,11 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
     tempAccepted[box][move][kind]++;
     accepted[box][move][kind]++;
 
-    if(move != mv::MULTIPARTICLE)
+    if(move != mv::MULTIPARTICLE || move != mv::MULTIPARTICLE_BM)
       isSingleMoveAccepted = true;
   }
 
-  if(move == mv::MULTIPARTICLE)
+  if(move == mv::MULTIPARTICLE || move != mv::MULTIPARTICLE_BM)
     isSingleMoveAccepted = false;
 
   acceptPercent[box][move][kind] = (double)(accepted[box][move][kind]) /
@@ -100,7 +100,7 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
 
   //for any move that we don't care about kind of molecule, it should be included
   //in the if condition
-  if (move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE
+  if (move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE || move == mv::MULTIPARTICLE_BM
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
       || move == mv::MEMC
 #endif
@@ -246,7 +246,7 @@ uint MoveSettings::GetAcceptTot(const uint box, const uint move) const
     sum += accepted[box][move][k];
   }
 
-  if(move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE
+  if(move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE || move == mv::MULTIPARTICLE_BM
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
       || move == mv::MEMC
 #endif
@@ -275,7 +275,7 @@ uint MoveSettings::GetTrialTot(const uint box, const uint move) const
     sum += tries[box][move][k];
   }
 
-  if(move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE
+  if(move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE || move == mv::MULTIPARTICLE_BM
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
       || move == mv::MEMC
 #endif

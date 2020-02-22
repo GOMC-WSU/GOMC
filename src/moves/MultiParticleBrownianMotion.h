@@ -77,7 +77,7 @@ inline void MultiParticleBrownian::PrintAcceptKind()
 {
   printf("%-37s", "% Accepted MultiParticle BM ");
   for(uint b = 0; b < BOX_TOTAL; b++) {
-    printf("%10.5f ", 100.0 * moveSetRef.GetAccept(b, mv::MULTIPARTICLE));
+    printf("%10.5f ", 100.0 * moveSetRef.GetAccept(b, mv::MULTIPARTICLE_BM));
   }
   std::cout << std::endl;
 }
@@ -364,7 +364,7 @@ inline void MultiParticleBrownian::Accept(const uint rejectState, const uint ste
   moveSetRef.UpdateMoveSettingMultiParticle(bPick, result, typePick);
   moveSetRef.AdjustMultiParticle(bPick, typePick);
 
-  moveSetRef.Update(mv::MULTIPARTICLE, result, step, bPick);
+  moveSetRef.Update(mv::MULTIPARTICLE_BM, result, step, bPick);
 }
 
 inline XYZ MultiParticleBrownian::CalcRandomTransform(XYZ const &lb, double const max)
