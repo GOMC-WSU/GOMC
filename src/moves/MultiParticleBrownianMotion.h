@@ -371,10 +371,12 @@ inline XYZ MultiParticleBrownian::CalcRandomTransform(XYZ const &lb, double cons
 {
   XYZ lbmax = lb * max;
   XYZ num;
+  //variance is 2A according to the paper, so stdDev is sqrt(variance)
+  double stdDev = sqrt(2.0 * max);
 
-  num.x = lbmax.x + prng.Gaussian(max);
-  num.y = lbmax.y + prng.Gaussian(max);
-  num.z = lbmax.z + prng.Gaussian(max);
+  num.x = lbmax.x + prng.Gaussian(0.0, stdDev);
+  num.y = lbmax.y + prng.Gaussian(0.0, stdDev);
+  num.z = lbmax.z + prng.Gaussian(0.0, stdDev);
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
     std::cout << "Trial Displacement exceed half of the box length in Multiparticle Brownian Motion move.\n";
