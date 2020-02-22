@@ -75,7 +75,7 @@ inline MultiParticleBrownian::MultiParticleBrownian(System &sys, StaticVals cons
 
 inline void MultiParticleBrownian::PrintAcceptKind()
 {
-  printf("%-37s", "% Accepted MultiParticle BM ");
+  printf("%-37s", "% Accepted MultiParticle-Brownian ");
   for(uint b = 0; b < BOX_TOTAL; b++) {
     printf("%10.5f ", 100.0 * moveSetRef.GetAccept(b, mv::MULTIPARTICLE_BM));
   }
