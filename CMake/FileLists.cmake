@@ -172,6 +172,7 @@ set(headers
    src/moves/MoleculeTransfer.h
    src/moves/MoveBase.h
    src/moves/MultiParticle.h
+   src/moves/MultiParticleBrownianMotion.h
    src/moves/Regrowth.h
    src/moves/Rotation.h
    src/moves/Translate.h
