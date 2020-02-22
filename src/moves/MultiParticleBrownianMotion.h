@@ -41,14 +41,14 @@ private:
   vector<uint> moveType, moleculeIndex;
   const MoleculeLookup& molLookup;
 
-  long double GetCoeff();
+  double GetCoeff();
   void CalculateTrialDistRot();
   void RotateForceBiased(uint molIndex);
   void TranslateForceBiased(uint molIndex);
   void SetMolInBox(uint box);
   XYZ CalcRandomTransform(XYZ const &lb, double const max);
   double CalculateWRatio(XYZ const &lb_new, XYZ const &lb_old, XYZ const &k,
-                         double max);
+                         double max4);
 };
 
 inline MultiParticleBrownian::MultiParticleBrownian(System &sys, StaticVals const &statV) :
@@ -282,56 +282,48 @@ inline void MultiParticleBrownian::CalcEn()
 }
 
 inline double MultiParticleBrownian::CalculateWRatio(XYZ const &lb_new, XYZ const &lb_old,
-    XYZ const &k, double max)
+    XYZ const &k, double max4)
 {
-  double w_ratio = 1.0;
-  XYZ lbmax = lb_old * max;
-  //If we used force to bias the displacement or rotation, we include it
-  if(abs(lbmax.x) > MIN_FORCE && abs(lbmax.x) < MAX_FORCE) {
-    w_ratio *= lb_new.x * exp(-lb_new.x * k.x) / (2.0 * sinh(lb_new.x * max));
-    w_ratio /= lb_old.x * exp(lb_old.x * k.x) / (2.0 * sinh(lb_old.x * max));
-  }
+  double w_ratio = 0.0;
+  XYZ old_var = lb_old - k;
+  XYZ new_var = lb_new + k;
 
-  if(abs(lbmax.y) > MIN_FORCE && abs(lbmax.y) < MAX_FORCE) {
-    w_ratio *= lb_new.y * exp(-lb_new.y * k.y) / (2.0 * sinh(lb_new.y * max));
-    w_ratio /= lb_old.y * exp(lb_old.y * k.y) / (2.0 * sinh(lb_old.y * max));
-  }
-
-  if(abs(lbmax.z) > MIN_FORCE && abs(lbmax.z) < MAX_FORCE) {
-    w_ratio *= lb_new.z * exp(-lb_new.z * k.z) / (2.0 * sinh(lb_new.z * max));
-    w_ratio /= lb_old.z * exp(lb_old.z * k.z) / (2.0 * sinh(lb_old.z * max));
-  }
+  // its actually is w_ratio += -1.0 but we simplify it
+  w_ratio -= (new_var.LengthSq() / max4);
+  // its actually is w_ratio -= -1.0 but we simplify it
+  w_ratio += (old_var.LengthSq() / max4);
 
   return w_ratio;
 }
 
-inline long double MultiParticleBrownian::GetCoeff()
+inline double MultiParticleBrownian::GetCoeff()
 {
   // calculate (w_new->old/w_old->new) and return it.
-  XYZ lbf_old, lbf_new; // lambda * BETA * force
-  XYZ lbt_old, lbt_new; // lambda * BETA * torque
-  long double w_ratio = 1.0;
-  double lBeta = lambda * BETA;
+  XYZ bf_old, bf_new; // BETA * force * maxForce
+  XYZ bt_old, bt_new; // BETA * torque * maxTorque
+  double w_ratio = 0.0;
   uint m, molNumber;
   double r_max = moveSetRef.GetRMAX(bPick);
   double t_max = moveSetRef.GetTMAX(bPick);
+  double r_max4 = 4.0 * r_max;
+  double t_max4 = 4.0 * t_max;
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(m, molNumber, lbt_old, lbt_new, lbf_old, lbf_new) reduction(*:w_ratio)
+  #pragma omp parallel for default(shared) private(m, molNumber, bt_old, bt_new, bf_old, bf_new) reduction(+:w_ratio)
 #endif
   for(m = 0; m < moleculeIndex.size(); m++) {
     molNumber = moleculeIndex[m];
     if(moveType[molNumber]) {
       // rotate
-      lbt_old = molTorqueRef.Get(molNumber) * lBeta;
-      lbt_new = molTorqueNew.Get(molNumber) * lBeta;
-      w_ratio *= CalculateWRatio(lbt_new, lbt_old, r_k.Get(molNumber), r_max);
+      bt_old = molTorqueRef.Get(molNumber) * BETA * r_max;
+      bt_new = molTorqueNew.Get(molNumber) * BETA * r_max;
+      w_ratio += CalculateWRatio(bt_new, bt_old, r_k.Get(molNumber), r_max4);
     } else {
       // displace
-      lbf_old = (molForceRef.Get(molNumber) + molForceRecRef.Get(molNumber)) *
-                lBeta;
-      lbf_new = (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber)) *
-                lBeta;
-      w_ratio *= CalculateWRatio(lbf_new, lbf_old, t_k.Get(molNumber), t_max);
+      bf_old = (molForceRef.Get(molNumber) + molForceRecRef.Get(molNumber)) *
+                BETA * t_max;
+      bf_new = (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber)) *
+                BETA * t_max;
+      w_ratio += CalculateWRatio(bf_new, bf_old, t_k.Get(molNumber), t_max4);
     }
   }
 
@@ -350,11 +342,8 @@ inline void MultiParticleBrownian::Accept(const uint rejectState, const uint ste
 {
   // Here we compare the values of reference and trial and decide whether to
   // accept or reject the move
-  long double MPCoeff = GetCoeff();
-  double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
-  long double accept = MPCoeff * uBoltz;
-  // cout << "MPCoeff: " << MPCoeff << ", sysPotNew: " << sysPotNew.Total()
-  //      << ", sysPotRef: " << sysPotRef.Total() << ", accept: " << accept <<endl;
+  double MPCoeff = GetCoeff();
+  double accept = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total() + MPCoeff));
   bool result = (rejectState == mv::fail_state::NO_FAIL) && prng() < accept;
   if(result) {
     sysPotRef = sysPotNew;
@@ -382,36 +371,21 @@ inline XYZ MultiParticleBrownian::CalcRandomTransform(XYZ const &lb, double cons
 {
   XYZ lbmax = lb * max;
   XYZ num;
-  if(abs(lbmax.x) > MIN_FORCE && abs(lbmax.x) < MAX_FORCE) {
-    num.x = log(exp(-1.0 * lbmax.x) + 2 * prng() * sinh(lbmax.x)) / lb.x;
-  } else {
-    num.x = prng.Sym(max);
-  }
 
-  if(abs(lbmax.y) > MIN_FORCE && abs(lbmax.y) < MAX_FORCE) {
-    num.y = log(exp(-1.0 * lbmax.y) + 2 * prng() * sinh(lbmax.y)) / lb.y;
-  } else {
-    num.y = prng.Sym(max);
-  }
-
-  if(abs(lbmax.z) > MIN_FORCE && abs(lbmax.z) < MAX_FORCE) {
-    num.z = log(exp(-1.0 * lbmax.z) + 2 * prng() * sinh(lbmax.z)) / lb.z;
-  } else {
-    num.z = prng.Sym(max);
-  }
+  num.x = lbmax.x + prng.Gaussian(max);
+  num.y = lbmax.y + prng.Gaussian(max);
+  num.z = lbmax.z + prng.Gaussian(max);
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
-    std::cout << "Trial Displacement exceed half of the box length in Multiparticle move.\n";
+    std::cout << "Trial Displacement exceed half of the box length in Multiparticle Brownian Motion move.\n";
     std::cout << "Trial transform: " << num;
     exit(EXIT_FAILURE);
   } else if (!isfinite(num.Length())) {
-    std::cout << "Trial Displacement is not a finite number in Multiparticle move.\n";
+    std::cout << "Trial Displacement is not a finite number in Brownian Motion Multiparticle move.\n";
     std::cout << "Trial transform: " << num;
     exit(EXIT_FAILURE);
   }
-
   // We can possible bound them
-
   return num;
 }
 
@@ -420,18 +394,17 @@ inline void MultiParticleBrownian::CalculateTrialDistRot()
   uint m, molIndex;
   double r_max = moveSetRef.GetRMAX(bPick);
   double t_max = moveSetRef.GetTMAX(bPick);
-  XYZ lbf; // BETA * force * maxTranslate
-  XYZ lbt; // BETA * torque * maxRotation
+  XYZ bf; // BETA * force 
+  XYZ bt; // BETA * torque
   for(m = 0; m < moleculeIndex.size(); m++) {
     molIndex = moleculeIndex[m];
 
     if(moveType[molIndex]) { // rotate
-      lbt = molTorqueRef.Get(molIndex) * lambda * BETA;
-      r_k.Set(molIndex, CalcRandomTransform(lbt, r_max));
+      bt = molTorqueRef.Get(molIndex) * BETA;
+      r_k.Set(molIndex, CalcRandomTransform(bt, r_max));
     } else { // displace
-      lbf = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) *
-            lambda * BETA;
-      t_k.Set(molIndex, CalcRandomTransform(lbf, t_max));
+      bf = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) * BETA;
+      t_k.Set(molIndex, CalcRandomTransform(bf, t_max));
     }
   }
 }
