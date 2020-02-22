@@ -94,6 +94,7 @@ ConfigSetup::ConfigSetup(void)
   sys.moves.intraSwap = DBL_MAX;
   sys.moves.multiParticleEnabled = false;
   sys.moves.multiParticle = DBL_MAX;
+  sys.moves.multiParticleBrownian = DBL_MAX;
   sys.moves.regrowth = DBL_MAX;
   sys.moves.crankShaft = DBL_MAX;
   sys.moves.intraMemc = DBL_MAX;
@@ -567,6 +568,14 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       printf("%-40s %-4.4f \n",
              "Info: Multi-Particle move frequency",
              sys.moves.multiParticle);
+    } else if(CheckString(line[0], "MultiParticleBrownianFreq")) {
+      sys.moves.multiParticleBrownian = stringtod(line[1]);
+      if(sys.moves.multiParticleBrownian > 0.00) {
+        sys.moves.multiParticleEnabled = true;
+      }
+      printf("%-40s %-4.4f \n",
+             "Info: Multi-Particle Brownian move frequency",
+             sys.moves.multiParticleBrownian);
     } else if(CheckString(line[0], "IntraSwapFreq")) {
       sys.moves.intraSwap = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Intra-Swap move frequency",
@@ -1155,6 +1164,13 @@ void ConfigSetup::fillDefaults(void)
            sys.moves.multiParticle);
   }
 
+  if(sys.moves.multiParticleBrownian == DBL_MAX) {
+    sys.moves.multiParticleBrownian = 0.000;
+    printf("%-40s %-4.4f \n",
+           "Default: Multi-Particle Brownian move frequency",
+           sys.moves.multiParticleBrownian);
+  }
+
   if(sys.moves.intraMemc == DBL_MAX) {
     sys.moves.intraMemc = 0.0;
     printf("%-40s %-4.4f \n", "Default: Intra-MEMC move frequency",
@@ -1400,6 +1416,14 @@ void ConfigSetup::fillDefaults(void)
 void ConfigSetup::verifyInputs(void)
 {
   int i;
+
+  if(abs(sys.moves.multiParticle) > 0.000001 && 
+    abs(sys.moves.multiParticleBrownian) > 0.000001) {
+    std::cout << "Error: Both multi-Particle and multi-Particle Brownian! " <<
+    " cannot be used at the same time!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
   if(!sys.elect.enable && sys.elect.oneFourScale != DBL_MAX) {
     printf("Warning: 1-4 Electrostatic scaling set, but will be ignored.\n");
     sys.elect.oneFourScale = 0.0;
@@ -1550,11 +1574,20 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Molecule swap move frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
+<<<<<<< HEAD
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
               sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
               sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft +
               sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!\n";
+=======
+  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
+         sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
+         sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft +
+         sys.moves.multiParticle + sys.moves.multiParticleBrownian +
+        sys.moves.cfcmc - 1.0) > 0.001) {
+    std::cout << "Error: Sum of move frequncies are not equal to one!\n";
+>>>>>>> Add the keyword in ConfigSetup file to active the multiparticle brownian. To activate it, use MultiParticleBrownianFreq. Note: we cannot use both multiparticle and multiparticle brownian at the same time.
     exit(EXIT_FAILURE);
   }
 #elif ENSEMBLE == NPT
@@ -1563,10 +1596,18 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
 
+<<<<<<< HEAD
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
               sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc +
               sys.moves.crankShaft + sys.moves.multiParticle - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!\n";
+=======
+  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
+         sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc +
+         sys.moves.crankShaft + sys.moves.multiParticle + 
+         sys.moves.multiParticleBrownian - 1.0) > 0.001) {
+    std::cout << "Error: Sum of move frequncies are not equal to one!\n";
+>>>>>>> Add the keyword in ConfigSetup file to active the multiparticle brownian. To activate it, use MultiParticleBrownianFreq. Note: we cannot use both multiparticle and multiparticle brownian at the same time.
     exit(EXIT_FAILURE);
   }
 
@@ -1575,18 +1616,19 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Molecule swap move frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
-  if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-              sys.moves.transfer + sys.moves.regrowth + sys.moves.memc +
-              sys.moves.intraMemc + sys.moves.crankShaft +
-              sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequencies is not equal to one!!\n";
+  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
+         sys.moves.transfer + sys.moves.regrowth + sys.moves.memc +
+         sys.moves.intraMemc + sys.moves.crankShaft +
+         sys.moves.multiParticle + sys.moves.multiParticleBrownian + 
+         sys.moves.cfcmc - 1.0) > 0.001) {
+    std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #else
-  if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-              sys.moves.regrowth + sys.moves.intraMemc + sys.moves.crankShaft +
-              sys.moves.multiParticle - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequencies is not equal to one!!\n";
+  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
+         sys.moves.regrowth + sys.moves.intraMemc + sys.moves.crankShaft +
+         sys.moves.multiParticle + sys.moves.multiParticleBrownian - 1.0) > 0.001) {
+    std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #endif

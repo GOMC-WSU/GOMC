@@ -23,6 +23,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeTransfer.h"
 #include "IntraSwap.h"
 #include "MultiParticle.h"
+#include "MultiParticleBrownianMotion.h"
 #include "Regrowth.h"
 #include "MoleculeExchange1.h"
 #include "MoleculeExchange2.h"
@@ -71,6 +72,8 @@ System::~System()
     delete calcEwald;
   delete moves[mv::DISPLACE];
   delete moves[mv::ROTATE];
+  delete moves[mv::MULTIPARTICLE];
+  delete moves[mv::MULTIPARTICLE_BM];
   delete moves[mv::INTRA_SWAP];
   delete moves[mv::REGROWTH];
   delete moves[mv::INTRA_MEMC];
@@ -170,6 +173,7 @@ void System::InitMoves(Setup const& set)
 {
   moves[mv::DISPLACE] = new Translate(*this, statV);
   moves[mv::MULTIPARTICLE] = new MultiParticle(*this, statV);
+  moves[mv::MULTIPARTICLE_BM] = new MultiParticleBrownian(*this, statV);
   moves[mv::ROTATE] = new Rotate(*this, statV);
   moves[mv::INTRA_SWAP] = new IntraSwap(*this, statV);
   moves[mv::REGROWTH] = new Regrowth(*this, statV);
@@ -353,6 +357,7 @@ void System::PrintTime()
   printf("%-36s %10.4f    sec.\n", "Displacement:", moveTime[mv::DISPLACE]);
   printf("%-36s %10.4f    sec.\n", "Rotation:", moveTime[mv::ROTATE]);
   printf("%-36s %10.4f    sec.\n", "MultiParticle:", moveTime[mv::MULTIPARTICLE]);
+  printf("%-36s %10.4f    sec.\n", "MultiParticle-Brownian:", moveTime[mv::MULTIPARTICLE_BM]);
   printf("%-36s %10.4f    sec.\n", "Intra-Swap:", moveTime[mv::INTRA_SWAP]);
   printf("%-36s %10.4f    sec.\n", "Regrowth:", moveTime[mv::REGROWTH]);
   printf("%-36s %10.4f    sec.\n", "Intra-MEMC:", moveTime[mv::INTRA_MEMC]);
