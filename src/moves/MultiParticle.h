@@ -493,6 +493,11 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
 inline void MultiParticle::TranslateForceBiased(uint molIndex)
 {
   XYZ shift = t_k.Get(molIndex);
+  if(shift > boxDimRef.GetHalfAxis(bPick)) {
+    std::cout << "Trial Displacement exceed half of the box length in Multiparticle move.\n";
+    std::cout << "Trial transform: " << shift;
+    exit(EXIT_FAILURE);
+  }
 
   XYZ newcom = newCOMs.Get(molIndex);
   uint stop, start, len;
