@@ -288,6 +288,9 @@ inline double MultiParticleBrownian::CalculateWRatio(XYZ const &lb_new, XYZ cons
   XYZ old_var = lb_old - k;
   XYZ new_var = lb_new + k;
 
+  //Note: we could factor max4 and multiply at the end, but for
+  //      for the move, where we translate and rotate all molecules,
+  //      this method would not work. Hence, I did not factor it.
   // its actually is w_ratio += -1.0 but we simplify it
   w_ratio -= (new_var.LengthSq() / max4);
   // its actually is w_ratio -= -1.0 but we simplify it
@@ -372,8 +375,8 @@ inline XYZ MultiParticleBrownian::CalcRandomTransform(XYZ const &lb, double cons
   num.z = lbmax.z + prng.Gaussian(0.0, stdDev);
 
   if (!isfinite(num.Length())) {
-    std::cout << "Trial transform is not a finite number in Brownian Motion Multiparticle move.\n";
-    std::cout << "Trial transform: " << num;
+    std::cout << "Error: Trial transform is not a finite number in Brownian Motion Multiparticle move.\n";
+    std::cout << "       Trial transform: " << num;
     exit(EXIT_FAILURE);
   }
   // We can possible bound them
@@ -432,8 +435,14 @@ inline void MultiParticleBrownian::TranslateForceBiased(uint molIndex)
 {
   XYZ shift = t_k.Get(molIndex);
   if(shift > boxDimRef.GetHalfAxis(bPick)) {
-    std::cout << "Trial Displacement exceed half of the box length in Multiparticle Brownian Motion move.\n";
-    std::cout << "Trial transform: " << shift;
+    std::cout << "Error: Trial Displacement exceed half of the box length in Multiparticle \n" 
+              << "       Brownian Motion move!\n";
+    std::cout << "       Trial transformation vector: " << shift << std::endl;
+    std::cout << "       Box Dimension: " << boxDimRef.GetAxis(bPick) << std::endl << std::endl;
+    std::cout << "This might be due to bad initial configuration, where atom of the molecules \n" 
+              << "are too close to each other or overlaps. Please equilibrate your system using \n"
+              << "rigid body translation or rotation MC moves, before using the Multiparticle \n"
+              << "Brownian Motion move. \n\n";
     exit(EXIT_FAILURE);
   } 
 
