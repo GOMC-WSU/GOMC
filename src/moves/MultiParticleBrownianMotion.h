@@ -307,6 +307,7 @@ inline double MultiParticleBrownian::GetCoeff()
   double t_max = moveSetRef.GetTMAX(bPick);
   double r_max4 = 4.0 * r_max;
   double t_max4 = 4.0 * t_max;
+
 #ifdef _OPENMP
   #pragma omp parallel for default(shared) private(m, molNumber, bt_old, bt_new, bf_old, bf_new) reduction(+:w_ratio)
 #endif
@@ -327,14 +328,6 @@ inline double MultiParticleBrownian::GetCoeff()
     }
   }
 
-  // In case where force or torque is a large negative number (ex. -800)
-  // the exp value becomes inf. In these situations we have to return 0 to
-  // reject the move
-  // if(!std::isfinite(w_ratio)) {
-  //   // This error can be removed later on once we know this part actually works.
-  //   std::cout << "w_ratio is not a finite number. Auto-rejecting move.\n";
-  //   return 0.0;
-  // }
   return w_ratio;
 }
 
@@ -343,7 +336,7 @@ inline void MultiParticleBrownian::Accept(const uint rejectState, const uint ste
   // Here we compare the values of reference and trial and decide whether to
   // accept or reject the move
   double MPCoeff = GetCoeff();
-  double accept = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total() + MPCoeff));
+  double accept = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()) + MPCoeff);
   bool result = (rejectState == mv::fail_state::NO_FAIL) && prng() < accept;
   if(result) {
     sysPotRef = sysPotNew;
@@ -378,12 +371,8 @@ inline XYZ MultiParticleBrownian::CalcRandomTransform(XYZ const &lb, double cons
   num.y = lbmax.y + prng.Gaussian(0.0, stdDev);
   num.z = lbmax.z + prng.Gaussian(0.0, stdDev);
 
-  if(num.Length() >= boxDimRef.axis.Min(bPick)) {
-    std::cout << "Trial Displacement exceed half of the box length in Multiparticle Brownian Motion move.\n";
-    std::cout << "Trial transform: " << num;
-    exit(EXIT_FAILURE);
-  } else if (!isfinite(num.Length())) {
-    std::cout << "Trial Displacement is not a finite number in Brownian Motion Multiparticle move.\n";
+  if (!isfinite(num.Length())) {
+    std::cout << "Trial transform is not a finite number in Brownian Motion Multiparticle move.\n";
     std::cout << "Trial transform: " << num;
     exit(EXIT_FAILURE);
   }
@@ -442,6 +431,11 @@ inline void MultiParticleBrownian::RotateForceBiased(uint molIndex)
 inline void MultiParticleBrownian::TranslateForceBiased(uint molIndex)
 {
   XYZ shift = t_k.Get(molIndex);
+  if(shift > boxDimRef.GetHalfAxis(bPick)) {
+    std::cout << "Trial Displacement exceed half of the box length in Multiparticle Brownian Motion move.\n";
+    std::cout << "Trial transform: " << shift;
+    exit(EXIT_FAILURE);
+  } 
 
   XYZ newcom = newCOMs.Get(molIndex);
   uint stop, start, len;

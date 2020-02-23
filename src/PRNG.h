@@ -454,7 +454,7 @@ public:
   double Gaussian(double mean, double stdDev)
   {
     if(hasSecondGaussian) {
-      secondGaussian = false;
+      hasSecondGaussian = false;
       return (mean + secondGaussian * stdDev);
     } else {
       double r, v1, v2, factor;
@@ -466,8 +466,8 @@ public:
 
       factor = sqrt(-2.0 * log(r) / r);
       hasSecondGaussian = true;
-      secondGaussian = v1;
-      return (mean + v2 * stdDev);
+      secondGaussian = v1 * factor;
+      return (mean + v2 * factor * stdDev);
     }
   }
 

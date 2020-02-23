@@ -406,12 +406,8 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max)
     num.z = prng.Sym(max);
   }
 
-  if(num.Length() >= boxDimRef.axis.Min(bPick)) {
-    std::cout << "Trial Displacement exceed half of the box length in Multiparticle move.\n";
-    std::cout << "Trial transform: " << num;
-    exit(EXIT_FAILURE);
-  } else if (!isfinite(num.Length())) {
-    std::cout << "Trial Displacement is not a finite number in Multiparticle move.\n";
+ if (!isfinite(num.Length())) {
+    std::cout << "Trial transform is not a finite number in Multiparticle move.\n";
     std::cout << "Trial transform: " << num;
     exit(EXIT_FAILURE);
   }
@@ -473,6 +469,11 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
 inline void MultiParticle::TranslateForceBiased(uint molIndex)
 {
   XYZ shift = t_k.Get(molIndex);
+  if(shift > boxDimRef.GetHalfAxis(bPick)) {
+    std::cout << "Trial Displacement exceed half of the box length in Multiparticle move.\n";
+    std::cout << "Trial transform: " << shift;
+    exit(EXIT_FAILURE);
+  }
 
   XYZ newcom = newCOMs.Get(molIndex);
   uint stop, start, len;

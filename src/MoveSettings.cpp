@@ -70,6 +70,8 @@ void MoveSettings::Init(StaticVals const& statV,
     for(int m = 0; m < mp::MPMVCOUNT; m++) {
       mp_tries[b][m] = 0;
       mp_accepted[b][m] = 0;
+      mp_temp_tries[b][m] = 0;
+      mp_temp_accepted[b][m] = 0;
     }
   }
 }
@@ -133,21 +135,35 @@ void MoveSettings::AdjustMoves(const uint step)
 
 void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
 {
-  uint totalTries = mp_tries[box][mp::MPDISPLACE] +
-                    mp_tries[box][mp::MPROTATE];
+  uint totalTries = mp_temp_tries[box][mp::MPDISPLACE] +
+                    mp_temp_tries[box][mp::MPROTATE];
   if((totalTries + 1) % perAdjust == 0 ) {
-    double currentAccept = (double)mp_accepted[box][mp::MPDISPLACE] /
-                           (double)mp_tries[box][mp::MPDISPLACE];
+    double currentAccept = (double)mp_temp_accepted[box][mp::MPDISPLACE] /
+                           (double)mp_temp_tries[box][mp::MPDISPLACE];
     double fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
-    mp_t_max[box] *= fractOfTargetAccept;
+    if(fractOfTargetAccept > 0.0){
+      mp_t_max[box] *= fractOfTargetAccept;
+    } else {
+      mp_t_max[box] *= 0.5;
+    }
     num::Bound<double>(mp_t_max[box], 0.001,
-                       (boxDimRef.axis.Min(box) / 2) - 0.001);
+                       (boxDimRef.axis.Min(box) / 2.0) - 0.001);
 
-    currentAccept = (double)mp_accepted[box][mp::MPROTATE] /
-                    (double)mp_tries[box][mp::MPROTATE];
+    currentAccept = (double)mp_temp_accepted[box][mp::MPROTATE] /
+                    (double)mp_temp_tries[box][mp::MPROTATE];
     fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
-    mp_r_max[box] *= fractOfTargetAccept;
+    if(fractOfTargetAccept > 0.0){
+      mp_r_max[box] *= fractOfTargetAccept;
+    } else {
+      mp_r_max[box] *= 0.5;
+    }
     num::Bound<double>(mp_r_max[box], 0.001, M_PI - 0.001);
+
+    //reset the temp tries and accepted
+    mp_temp_accepted[box][mp::MPDISPLACE] = 0;
+    mp_temp_tries[box][mp::MPDISPLACE] = 0;
+    mp_temp_accepted[box][mp::MPROTATE] = 0;
+    mp_temp_tries[box][mp::MPROTATE] = 0;
   }
 }
 
@@ -156,8 +172,10 @@ void MoveSettings::UpdateMoveSettingMultiParticle(const uint box, bool isAccept,
 {
   if(typePick != mp::MPALLRANDOM) {
     mp_tries[box][typePick]++;
+    mp_temp_tries[box][typePick]++;
     if(isAccept) {
       mp_accepted[box][typePick]++;
+      mp_temp_accepted[box][typePick]++;
     }
   }
 }
