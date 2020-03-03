@@ -4,33 +4,30 @@ Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
-#ifndef MULTIPARTICLE_H
-#define MULTIPARTICLE_H
+#ifndef MULTIPARTICLEBROWNIANMOTION_H
+#define MULTIPARTICLEBROWNIANMOTION_H
 
 #include "MoveBase.h"
 #include "System.h"
 #include "StaticVals.h"
 #include <cmath>
 
-#define MIN_FORCE 1E-12
-#define MAX_FORCE 30
-
-class MultiParticle : public MoveBase
+class MultiParticleBrownian : public MoveBase
 {
 public:
-  MultiParticle(System &sys, StaticVals const& statV);
+  MultiParticleBrownian(System &sys, StaticVals const& statV);
 
   virtual uint Prep(const double subDraw, const double movPerc);
   virtual void CalcEn();
   virtual uint Transform();
   virtual void Accept(const uint rejectState, const uint step);
   virtual void PrintAcceptKind();
+  //used in CFCMC for initialization
   void PrepCFCMC(const uint box);
 
 private:
   uint bPick;
   uint typePick;
-  double lambda;
   bool initMol[BOX_TOTAL];
   SystemPotential sysPotNew;
   XYZArray molTorqueRef;
@@ -44,17 +41,17 @@ private:
   vector<uint> moveType, moleculeIndex;
   const MoleculeLookup& molLookup;
 
-  long double GetCoeff();
+  double GetCoeff();
   void CalculateTrialDistRot();
   void RotateForceBiased(uint molIndex);
   void TranslateForceBiased(uint molIndex);
   void SetMolInBox(uint box);
   XYZ CalcRandomTransform(XYZ const &lb, double const max);
   double CalculateWRatio(XYZ const &lb_new, XYZ const &lb_old, XYZ const &k,
-                         double max);
+                         double max4);
 };
 
-inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
+inline MultiParticleBrownian::MultiParticleBrownian(System &sys, StaticVals const &statV) :
   MoveBase(sys, statV),
   newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol),
@@ -71,25 +68,22 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   newCOMs.Init(sys.com.Count());
   moveType.resize(sys.com.Count());
 
-  // set default value for r_max, t_max, and lambda
-  // the value of lambda is based on the paper
-  lambda = 0.5;
   for(uint b = 0; b < BOX_TOTAL; b++) {
     initMol[b] = false;
   }
 }
 
-inline void MultiParticle::PrintAcceptKind()
+inline void MultiParticleBrownian::PrintAcceptKind()
 {
-  printf("%-37s", "% Accepted MultiParticle ");
+  printf("%-37s", "% Accepted MultiParticle-Brownian ");
   for(uint b = 0; b < BOX_TOTAL; b++) {
-    printf("%10.5f ", 100.0 * moveSetRef.GetAccept(b, mv::MULTIPARTICLE));
+    printf("%10.5f ", 100.0 * moveSetRef.GetAccept(b, mv::MULTIPARTICLE_BM));
   }
   std::cout << std::endl;
 }
 
 
-inline void MultiParticle::SetMolInBox(uint box)
+inline void MultiParticleBrownian::SetMolInBox(uint box)
 {
   // NEED to check if atom is not fixed!
 #if ENSEMBLE == GCMC || ENSEMBLE == GEMC
@@ -120,7 +114,7 @@ inline void MultiParticle::SetMolInBox(uint box)
   initMol[box] = true;
 }
 
-inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
+inline uint MultiParticleBrownian::Prep(const double subDraw, const double movPerc)
 {
   uint state = mv::fail_state::NO_FAIL;
 #if ENSEMBLE == GCMC
@@ -155,7 +149,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
                                       mp::MPROTATE : mp::MPDISPLACE);
         break;
       default:
-        std::cerr << "Error: Something went wrong preping MultiParticle!\n"
+        std::cerr << "Error: Something went wrong preping MultiParticle Brownian Motion!\n"
                   << "Type Pick value is not valid!\n";
         exit(EXIT_FAILURE);
       }
@@ -184,7 +178,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   return state;
 }
 
-inline void MultiParticle::PrepCFCMC(const uint box)
+inline void MultiParticleBrownian::PrepCFCMC(const uint box)
 {
   bPick = box;
   typePick = prng.randIntExc(mp::MPTOTALTYPES);
@@ -207,7 +201,7 @@ inline void MultiParticle::PrepCFCMC(const uint box)
                                       mp::MPROTATE : mp::MPDISPLACE);
         break;
       default:
-        std::cerr << "Error: Something went wrong preping MultiParticle!\n"
+        std::cerr << "Error: Something went wrong preping MultiParticle Brownian Motion!\n"
                   << "Type Pick value is not valid!\n";
         exit(EXIT_FAILURE);
       }
@@ -235,7 +229,7 @@ inline void MultiParticle::PrepCFCMC(const uint box)
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
 }
 
-inline uint MultiParticle::Transform()
+inline uint MultiParticleBrownian::Transform()
 {
   // Based on the reference force decided whether to displace or rotate each
   // individual particle.
@@ -258,7 +252,7 @@ inline uint MultiParticle::Transform()
   return state;
 }
 
-inline void MultiParticle::CalcEn()
+inline void MultiParticleBrownian::CalcEn()
 {
   // Calculate the new force and energy and we will compare that to the
   // reference values in Accept() function
@@ -287,80 +281,65 @@ inline void MultiParticle::CalcEn()
   sysPotNew.Total();
 }
 
-inline double MultiParticle::CalculateWRatio(XYZ const &lb_new, XYZ const &lb_old,
-    XYZ const &k, double max)
+inline double MultiParticleBrownian::CalculateWRatio(XYZ const &lb_new, XYZ const &lb_old,
+    XYZ const &k, double max4)
 {
-  double w_ratio = 1.0;
-  XYZ lbmax = lb_old * max;
-  //If we used force to bias the displacement or rotation, we include it
-  if(abs(lbmax.x) > MIN_FORCE && abs(lbmax.x) < MAX_FORCE) {
-    w_ratio *= lb_new.x * exp(-lb_new.x * k.x) / (2.0 * sinh(lb_new.x * max));
-    w_ratio /= lb_old.x * exp(lb_old.x * k.x) / (2.0 * sinh(lb_old.x * max));
-  }
+  double w_ratio = 0.0;
+  XYZ old_var = lb_old - k;
+  XYZ new_var = lb_new + k;
 
-  if(abs(lbmax.y) > MIN_FORCE && abs(lbmax.y) < MAX_FORCE) {
-    w_ratio *= lb_new.y * exp(-lb_new.y * k.y) / (2.0 * sinh(lb_new.y * max));
-    w_ratio /= lb_old.y * exp(lb_old.y * k.y) / (2.0 * sinh(lb_old.y * max));
-  }
-
-  if(abs(lbmax.z) > MIN_FORCE && abs(lbmax.z) < MAX_FORCE) {
-    w_ratio *= lb_new.z * exp(-lb_new.z * k.z) / (2.0 * sinh(lb_new.z * max));
-    w_ratio /= lb_old.z * exp(lb_old.z * k.z) / (2.0 * sinh(lb_old.z * max));
-  }
+  //Note: we could factor max4 and multiply at the end, but for
+  //      for the move, where we translate and rotate all molecules,
+  //      this method would not work. Hence, I did not factor it.
+  // its actually is w_ratio += -1.0 but we simplify it
+  w_ratio -= (new_var.LengthSq() / max4);
+  // its actually is w_ratio -= -1.0 but we simplify it
+  w_ratio += (old_var.LengthSq() / max4);
 
   return w_ratio;
 }
 
-inline long double MultiParticle::GetCoeff()
+inline double MultiParticleBrownian::GetCoeff()
 {
   // calculate (w_new->old/w_old->new) and return it.
-  XYZ lbf_old, lbf_new; // lambda * BETA * force
-  XYZ lbt_old, lbt_new; // lambda * BETA * torque
-  long double w_ratio = 1.0;
-  double lBeta = lambda * BETA;
+  XYZ bf_old, bf_new; // BETA * force * maxForce
+  XYZ bt_old, bt_new; // BETA * torque * maxTorque
+  double w_ratio = 0.0;
   uint m, molNumber;
   double r_max = moveSetRef.GetRMAX(bPick);
   double t_max = moveSetRef.GetTMAX(bPick);
+  double r_max4 = 4.0 * r_max;
+  double t_max4 = 4.0 * t_max;
+
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(m, molNumber, lbt_old, lbt_new, lbf_old, lbf_new) reduction(*:w_ratio)
+  #pragma omp parallel for default(shared) private(m, molNumber, bt_old, bt_new, bf_old, bf_new) reduction(+:w_ratio)
 #endif
   for(m = 0; m < moleculeIndex.size(); m++) {
     molNumber = moleculeIndex[m];
     if(moveType[molNumber]) {
       // rotate
-      lbt_old = molTorqueRef.Get(molNumber) * lBeta;
-      lbt_new = molTorqueNew.Get(molNumber) * lBeta;
-      w_ratio *= CalculateWRatio(lbt_new, lbt_old, r_k.Get(molNumber), r_max);
+      bt_old = molTorqueRef.Get(molNumber) * BETA * r_max;
+      bt_new = molTorqueNew.Get(molNumber) * BETA * r_max;
+      w_ratio += CalculateWRatio(bt_new, bt_old, r_k.Get(molNumber), r_max4);
     } else {
       // displace
-      lbf_old = (molForceRef.Get(molNumber) + molForceRecRef.Get(molNumber)) *
-                lBeta;
-      lbf_new = (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber)) *
-                lBeta;
-      w_ratio *= CalculateWRatio(lbf_new, lbf_old, t_k.Get(molNumber), t_max);
+      bf_old = (molForceRef.Get(molNumber) + molForceRecRef.Get(molNumber)) *
+                BETA * t_max;
+      bf_new = (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber)) *
+                BETA * t_max;
+      w_ratio += CalculateWRatio(bf_new, bf_old, t_k.Get(molNumber), t_max4);
     }
   }
 
-  // In case where force or torque is a large negative number (ex. -800)
-  // the exp value becomes inf. In these situations we have to return 0 to
-  // reject the move
-  // if(!std::isfinite(w_ratio)) {
-  //   // This error can be removed later on once we know this part actually works.
-  //   std::cout << "w_ratio is not a finite number. Auto-rejecting move.\n";
-  //   return 0.0;
-  // }
   return w_ratio;
 }
 
-inline void MultiParticle::Accept(const uint rejectState, const uint step)
+inline void MultiParticleBrownian::Accept(const uint rejectState, const uint step)
 {
   // Here we compare the values of reference and trial and decide whether to
   // accept or reject the move
-  long double MPCoeff = GetCoeff();
-  double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
-  long double accept = MPCoeff * uBoltz;
-  // cout << "MPCoeff: " << MPCoeff << ", sysPotNew: " << sysPotNew.Total()
-  //      << ", sysPotRef: " << sysPotRef.Total() << ", accept: " << accept <<endl;
+  double MPCoeff = GetCoeff();
+  double accept = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()) + MPCoeff);
   bool result = (rejectState == mv::fail_state::NO_FAIL) && prng() < accept;
   if(result) {
     sysPotRef = sysPotNew;
@@ -381,64 +360,50 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   moveSetRef.UpdateMoveSettingMultiParticle(bPick, result, typePick);
   moveSetRef.AdjustMultiParticle(bPick, typePick);
 
-  moveSetRef.Update(mv::MULTIPARTICLE, result, step, bPick);
+  moveSetRef.Update(mv::MULTIPARTICLE_BM, result, step, bPick);
 }
 
-inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max)
+inline XYZ MultiParticleBrownian::CalcRandomTransform(XYZ const &lb, double const max)
 {
   XYZ lbmax = lb * max;
   XYZ num;
-  if(abs(lbmax.x) > MIN_FORCE && abs(lbmax.x) < MAX_FORCE) {
-    num.x = log(exp(-1.0 * lbmax.x) + 2 * prng() * sinh(lbmax.x)) / lb.x;
-  } else {
-    num.x = prng.Sym(max);
-  }
+  //variance is 2A according to the paper, so stdDev is sqrt(variance)
+  double stdDev = sqrt(2.0 * max);
 
-  if(abs(lbmax.y) > MIN_FORCE && abs(lbmax.y) < MAX_FORCE) {
-    num.y = log(exp(-1.0 * lbmax.y) + 2 * prng() * sinh(lbmax.y)) / lb.y;
-  } else {
-    num.y = prng.Sym(max);
-  }
+  num.x = lbmax.x + prng.Gaussian(0.0, stdDev);
+  num.y = lbmax.y + prng.Gaussian(0.0, stdDev);
+  num.z = lbmax.z + prng.Gaussian(0.0, stdDev);
 
-  if(abs(lbmax.z) > MIN_FORCE && abs(lbmax.z) < MAX_FORCE) {
-    num.z = log(exp(-1.0 * lbmax.z) + 2 * prng() * sinh(lbmax.z)) / lb.z;
-  } else {
-    num.z = prng.Sym(max);
-  }
-
- if (!isfinite(num.Length())) {
-    std::cout << "Error: Trial transform is not a finite number in Multiparticle move.\n";
+  if (!isfinite(num.Length())) {
+    std::cout << "Error: Trial transform is not a finite number in Brownian Motion Multiparticle move.\n";
     std::cout << "       Trial transform: " << num;
     exit(EXIT_FAILURE);
   }
-
   // We can possible bound them
-
   return num;
 }
 
-inline void MultiParticle::CalculateTrialDistRot()
+inline void MultiParticleBrownian::CalculateTrialDistRot()
 {
   uint m, molIndex;
   double r_max = moveSetRef.GetRMAX(bPick);
   double t_max = moveSetRef.GetTMAX(bPick);
-  XYZ lbf; // lambda * BETA * force * maxTranslate
-  XYZ lbt; // lambda * BETA * torque * maxRotation
+  XYZ bf; // BETA * force 
+  XYZ bt; // BETA * torque
   for(m = 0; m < moleculeIndex.size(); m++) {
     molIndex = moleculeIndex[m];
 
     if(moveType[molIndex]) { // rotate
-      lbt = molTorqueRef.Get(molIndex) * lambda * BETA;
-      r_k.Set(molIndex, CalcRandomTransform(lbt, r_max));
+      bt = molTorqueRef.Get(molIndex) * BETA;
+      r_k.Set(molIndex, CalcRandomTransform(bt, r_max));
     } else { // displace
-      lbf = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) *
-            lambda * BETA;
-      t_k.Set(molIndex, CalcRandomTransform(lbf, t_max));
+      bf = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) * BETA;
+      t_k.Set(molIndex, CalcRandomTransform(bf, t_max));
     }
   }
 }
 
-inline void MultiParticle::RotateForceBiased(uint molIndex)
+inline void MultiParticleBrownian::RotateForceBiased(uint molIndex)
 {
   XYZ rot = r_k.Get(molIndex);
   double rotLen = rot.Length();
@@ -466,16 +431,20 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
   temp.CopyRange(newMolsPos, 0, start, len);
 }
 
-inline void MultiParticle::TranslateForceBiased(uint molIndex)
+inline void MultiParticleBrownian::TranslateForceBiased(uint molIndex)
 {
   XYZ shift = t_k.Get(molIndex);
   if(shift > boxDimRef.GetHalfAxis(bPick)) {
     std::cout << "Error: Trial Displacement exceed half of the box length in Multiparticle \n" 
-              << "       move!\n";
+              << "       Brownian Motion move!\n";
     std::cout << "       Trial transformation vector: " << shift << std::endl;
     std::cout << "       Box Dimension: " << boxDimRef.GetAxis(bPick) << std::endl << std::endl;
+    std::cout << "This might be due to bad initial configuration, where atom of the molecules \n" 
+              << "are too close to each other or overlaps. Please equilibrate your system using \n"
+              << "rigid body translation or rotation MC moves, before using the Multiparticle \n"
+              << "Brownian Motion move. \n\n";
     exit(EXIT_FAILURE);
-  }
+  } 
 
   XYZ newcom = newCOMs.Get(molIndex);
   uint stop, start, len;

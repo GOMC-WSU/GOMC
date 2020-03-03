@@ -50,6 +50,8 @@ public:
     mp_t_max.resize(BOX_TOTAL);
     mp_accepted.resize(BOX_TOTAL);
     mp_tries.resize(BOX_TOTAL);
+    mp_temp_tries.resize(BOX_TOTAL);
+    mp_temp_accepted.resize(BOX_TOTAL);
     for(uint b = 0; b < BOX_TOTAL; b++) {
       acceptPercent[b].resize(mv::MOVE_KINDS_TOTAL);
       scale[b].resize(mv::MOVE_KINDS_TOTAL);
@@ -59,6 +61,8 @@ public:
       tempTries[b].resize(mv::MOVE_KINDS_TOTAL);
       mp_accepted[b].resize(mp::MPMVCOUNT);
       mp_tries[b].resize(mp::MPMVCOUNT);
+      mp_temp_accepted[b].resize(mp::MPMVCOUNT);
+      mp_temp_tries[b].resize(mp::MPMVCOUNT);
     }
   }
 
@@ -122,7 +126,7 @@ private:
 
   vector< vector< vector<double> > > scale, acceptPercent;
   vector< vector< vector<uint> > > accepted, tries, tempAccepted, tempTries;
-  vector< vector< uint > > mp_accepted, mp_tries;
+  vector< vector< uint > > mp_accepted, mp_tries, mp_temp_tries, mp_temp_accepted;
   vector< double > mp_r_max;
   vector< double > mp_t_max;
 
