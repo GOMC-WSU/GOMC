@@ -304,6 +304,14 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
   double energyRecipNew = 0.0;
   double energyRecipOld = 0.0;
 
+#ifdef _OPENMP
+#pragma omp parallel default(shared)
+#endif
+  {
+    std::memcpy(cosMolRestore, cosMolRef[molIndex], sizeof(double)*imageTotal);
+    std::memcpy(sinMolRestore, sinMolRef[molIndex], sizeof(double)*imageTotal);
+  }
+
   if (box < BOXES_WITH_U_NB) {
     uint p, length, start;
     int i;
@@ -317,8 +325,6 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
     #pragma omp parallel for default(shared) private(i, p, dotProductNew) reduction(+:energyRecipNew)
 #endif
     for (i = 0; i < imageSizeRef[box]; i++) {
-      cosMolRestore[i] = cosMolRef[molIndex][i];
-      sinMolRestore[i] = sinMolRef[molIndex][i];
       cosMolRef[molIndex][i] = 0.0;
       sinMolRef[molIndex][i] = 0.0;
       dotProductNew = 0.0;
