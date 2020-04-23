@@ -27,7 +27,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #endif
 
 #include "GOMC_Config.h"    //For PT
-#include "ParallelTemperingPreprocessor.h"
 #include <sstream>  //for prefixing uniqueVal with the pathToReplicaDirectory
 #ifdef WIN32
 #define OS_SEP '\\'
@@ -345,7 +344,7 @@ struct OutFiles {
   HistFiles hist;
 };
 struct Settings {
-  EventSettings block, hist;
+  EventSettings hist;
   UniqueStr uniqueStr;
 };
 

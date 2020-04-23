@@ -927,19 +927,6 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
                out.console.frequency);
       } else
         printf("%-40s %-s \n", "Info: Console output", "Inactive");
-    } else if(CheckString(line[0], "BlockAverageFreq")) {
-      out.statistics.settings.block.enable = checkBool(line[1]);
-      if(line.size() == 3)
-        out.statistics.settings.block.frequency = stringtoi(line[2]);
-
-      if(out.statistics.settings.block.enable && (line.size() == 2))
-        out.statistics.settings.block.frequency = (ulong)sys.step.total / 100;
-
-      if(out.statistics.settings.block.enable) {
-        printf("%-40s %-lu \n", "Info: Average output frequency",
-               out.statistics.settings.block.frequency);
-      } else
-        printf("%-40s %-s \n", "Info: Average output", "Inactive");
     }
 #if ENSEMBLE == GCMC
     else if(CheckString(line[0], "HistogramFreq")) {
@@ -1237,11 +1224,6 @@ void ConfigSetup::fillDefaults(void)
   if(sys.ff.cutoffLow == DBL_MAX) {
     sys.ff.cutoffLow = 0.00;
     printf("%-40s %-4.4f \n", "Default: Short Range Cutoff", sys.ff.cutoffLow);
-  }
-
-  if(out.statistics.settings.block.enable && in.restart.recalcTrajectory) {
-    out.statistics.settings.block.enable = false;
-    printf("%-40s \n", "Warning: Average output is activated but it will be ignored.");
   }
 
   if(out.restart.settings.enable && in.restart.recalcTrajectory) {
@@ -1786,11 +1768,6 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Coordinate frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
-  if(out.statistics.settings.block.enable &&
-      out.statistics.settings.block.frequency == ULONG_MAX) {
-    std::cout << "Error: Average output frequency is not specified!\n";
-    exit(EXIT_FAILURE);
-  }
 #if ENSEMBLE == GCMC
   if(out.statistics.settings.hist.enable &&
       out.statistics.settings.hist.frequency == ULONG_MAX) {
@@ -1818,15 +1795,6 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
 #endif
-  if(!out.statistics.settings.block.enable && out.statistics.vars.energy.block) {
-    printf("Note: Average output Inactived. Energy average output will be ignored.\n");
-    out.statistics.vars.energy.block = false;
-  }
-  if(!out.statistics.settings.block.enable &&
-      out.statistics.vars.pressure.block) {
-    printf("Note: Average output Inactived. Pressure average output will be ignored.\n");
-    out.statistics.vars.pressure.block = false;
-  }
   if(!sys.step.pressureCalc && out.statistics.vars.pressure.block) {
     printf("Note: Pressure Calculation Inactived. Pressure average output will be ignored.\n");
     out.statistics.vars.pressure.block = false;
@@ -1835,20 +1803,9 @@ void ConfigSetup::verifyInputs(void)
     printf("Note: Pressure Calculation Inactived. Surface Tension average output will be ignored.\n");
     out.statistics.vars.surfaceTension.block = false;
   }
-#ifdef VARIABLE_PARTICLE_NUMBER
-  if(!out.statistics.settings.block.enable && out.statistics.vars.molNum.block) {
-    printf("Note: Average output Inactived. Molecule average output will be ignored.\n");
-    out.statistics.vars.molNum.block = false;
-  }
-#endif
   if(!out.statistics.settings.block.enable && out.statistics.vars.density.block) {
     printf("Note: Average output Inactived. Density average output will be ignored.\n");
     out.statistics.vars.density.block = false;
-  }
-#ifdef VARIABLE_VOLUME
-  if(!out.statistics.settings.block.enable && out.statistics.vars.volume.block) {
-    printf("Note: Average output Inactived. Volume average output will be ignored.\n");
-    out.statistics.vars.volume.block = false;
   }
 #endif
   if(!out.console.enable && out.statistics.vars.energy.fluct) {

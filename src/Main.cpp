@@ -6,10 +6,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "Simulation.h"
 #include "GOMC_Config.h"    //For version number
-#if GOMC_LIB_MPI
-#include <mpi.h>
-#include "ParallelTemperingPreprocessor.h"
-#endif
 #ifdef GOMC_CUDA
 #include "cuda.h"
 #include <cuda_runtime_api.h>
