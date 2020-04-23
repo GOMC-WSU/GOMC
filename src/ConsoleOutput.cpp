@@ -133,13 +133,6 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
       printElement(var->GetAcceptPercent(box, sub), elementWidth);
     }
 
-    if(var->Performed(mv::INTRA_MEMC)) {
-      sub = mv::INTRA_MEMC;
-      printElement(var->GetTries(box, sub), elementWidth);
-      printElement(var->GetAccepted(box, sub), elementWidth);
-      printElement(var->GetAcceptPercent(box, sub), elementWidth);
-    }
-
     if(var->Performed(mv::CRANKSHAFT)) {
       sub = mv::CRANKSHAFT;
       printElement(var->GetTries(box, sub), elementWidth);
@@ -154,13 +147,6 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   if(var->Performed(mv::MOL_TRANSFER)) {
     sub = mv::MOL_TRANSFER;
-    printElement(var->GetTries(box, sub), elementWidth);
-    printElement(var->GetAccepted(box, sub), elementWidth);
-    printElement(var->GetAcceptPercent(box, sub), elementWidth);
-  }
-
-  if(var->Performed(mv::MEMC)) {
-    sub = mv::MEMC;
     printElement(var->GetTries(box, sub), elementWidth);
     printElement(var->GetAccepted(box, sub), elementWidth);
     printElement(var->GetAcceptPercent(box, sub), elementWidth);
@@ -375,12 +361,6 @@ void ConsoleOutput::PrintMoveTitle()
     printElement("REGROWACCEPT%", elementWidth);
   }
 
-  if(var->Performed(mv::INTRA_MEMC)) {
-    printElement("INTRAMOLEXCHANGE", elementWidth);
-    printElement("INTMOLEXCACCEPT", elementWidth);
-    printElement("INTMOLEXACCEPT%", elementWidth);
-  }
-
   if(var->Performed(mv::CRANKSHAFT)) {
     printElement("CRANKSHAFT", elementWidth);
     printElement("CRKSHAFTACCEPT", elementWidth);
@@ -392,12 +372,6 @@ void ConsoleOutput::PrintMoveTitle()
     printElement("TRANSFER", elementWidth);
     printElement("TRANACCEPT", elementWidth);
     printElement("TRANACCEPT%", elementWidth);
-  }
-
-  if(var->Performed(mv::MEMC)) {
-    printElement("MOLEXCHANGE", elementWidth);
-    printElement("MOLEXACCEPT", elementWidth);
-    printElement("MOLEXACCEPT%", elementWidth);
   }
 
   if(var->Performed(mv::CFCMC)) {

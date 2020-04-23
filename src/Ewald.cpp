@@ -1168,7 +1168,7 @@ Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
 }
 
 //calculate correction term for a molecule with lambda = 1
-//It's called when the molecule configuration changes, moleculeTransfer, MEMC
+//It's called when the molecule configuration changes, moleculeTransfer
 //It never been caled in Free Energy calculatio, becaue we are in
 // NVT and NPT ensemble
 double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol) const
@@ -1197,7 +1197,7 @@ double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol) const
 }
 
 //calculate correction term for a molecule with system lambda
-//It's called when the molecule configuration changes, regrowth, crankshaft, IntraSwap, IntraMEMC ...
+//It's called when the molecule configuration changes, regrowth, crankshaft, IntraSwap ...
 double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol,
                              const uint molIndex) const
 {

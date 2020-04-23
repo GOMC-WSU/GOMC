@@ -10,7 +10,6 @@ set(sources
    src/CalculateEnergy.cpp
    src/CheckpointOutput.cpp
    src/CheckpointSetup.cpp
-   src/EnPartCntSampleOutput.cpp
    src/Ewald.cpp
    src/EwaldCached.cpp
    src/FFConst.cpp
@@ -20,7 +19,6 @@ set(sources
    src/Forcefield.cpp
    src/FreeEnergyOutput.cpp
    src/Geometry.cpp
-   src/HistOutput.cpp
    src/InputFileReader.cpp
    src/Main.cpp
    src/MoleculeKind.cpp
@@ -75,7 +73,6 @@ set(headers
    src/CoordinateSetup.h
    src/CPUSide.h
    src/EnergyTypes.h
-   src/EnPartCntSampleOutput.h
    src/EnsemblePreprocessor.h
    src/Ewald.h
    src/EwaldCached.h  
@@ -94,7 +91,6 @@ set(headers
    src/FreeEnergyOutput.h
    src/FxdWidthWrtr.h
    src/Geometry.h
-   src/HistOutput.h
    src/InputAbstracts.h
    src/InputFileReader.h
    src/MersenneTwister.h
@@ -148,14 +144,7 @@ set(headers
    src/cbmc/TrialMol.h
    src/moves/CFCMC.h
    src/moves/CrankShaft.h
-   src/moves/IntraMoleculeExchange1.h
-   src/moves/IntraMoleculeExchange2.h
-   src/moves/IntraMoleculeExchange3.h
    src/moves/IntraSwap.h
-   src/moves/MoleculeExchange1.h
-   src/moves/MoleculeExchange2.h
-   src/moves/MoleculeExchange3.h
-   src/moves/MoleculeTransfer.h
    src/moves/MoveBase.h
    src/moves/MultiParticle.h
    src/moves/Regrowth.h

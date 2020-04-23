@@ -258,9 +258,6 @@ public:
     return overlap;
   }
 
-  //Used in MEMC move
-  void SetSeed(const XYZ& coords, const XYZ& cav, const bool inCav,
-               const bool fixCOM, const bool rotBB);
   void SetSeed(const bool inCav, const bool fixCOM, const bool rotBB);
   void SetBackBone(const uint bb[2]);
   XYZ Transform(const XYZ& a)

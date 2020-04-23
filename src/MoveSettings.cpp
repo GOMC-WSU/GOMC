@@ -96,10 +96,7 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
 
   //for any move that we dont care about kind of molecule, it should be included
   //in the if condition
-  if (move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE
-#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-      || move == mv::MEMC
-#endif
+  if (move == mv::MULTIPARTICLE
 #if ENSEMBLE == NPT || ENSEMBLE == GEMC
       || move == mv::VOL_TRANSFER
 #endif
@@ -219,10 +216,7 @@ uint MoveSettings::GetAcceptTot(const uint box, const uint move) const
     sum += accepted[box][move][k];
   }
 
-  if(move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE
-#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-      || move == mv::MEMC
-#endif
+  if(move == mv::MULTIPARTICLE
 #if ENSEMBLE == NPT || ENSEMBLE == GEMC
       || move == mv::VOL_TRANSFER
 #endif
@@ -248,10 +242,7 @@ uint MoveSettings::GetTrialTot(const uint box, const uint move) const
     sum += tries[box][move][k];
   }
 
-  if(move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE
-#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-      || move == mv::MEMC
-#endif
+  if(move == mv::MULTIPARTICLE
 #if ENSEMBLE == NPT || ENSEMBLE == GEMC
       || move == mv::VOL_TRANSFER
 #endif

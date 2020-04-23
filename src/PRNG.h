@@ -371,7 +371,6 @@ public:
     return rejectState;
   }
 
-  // In MEMC move pick n molecules of kind mk
   uint PickMol(const uint mk, uint &mk2, uint &m2, const uint b)
   {
     uint rejectState = mv::fail_state::NO_FAIL;
@@ -394,7 +393,6 @@ public:
     return rejectState;
   }
 
-  // In MEMC move pick n molecules of kind mk
   uint PickMol(const uint mk, std::vector<uint> &mk2,
                std::vector<uint> &m2, const uint n, const uint b)
   {

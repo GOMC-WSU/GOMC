@@ -10,7 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 CPUSide::CPUSide(System & sys, StaticVals & statV) :
   varRef(sys, statV), pdb(sys, statV), console(varRef),
-  hist(varRef), checkpoint(sys, statV)
+  checkpoint(sys, statV)
 #if ENSEMBLE == GCMC
   , sample_N_E(varRef)
 #endif
@@ -33,7 +33,6 @@ void CPUSide::Init(PDBSetup const& pdbSet, config_setup::Output const& out,
     outObj.push_back(&checkpoint);
 
 #if ENSEMBLE == GCMC
-  outObj.push_back(&hist);
   outObj.push_back(&sample_N_E);
 #endif
 #if ENSEMBLE == NVT || ENSEMBLE == NPT

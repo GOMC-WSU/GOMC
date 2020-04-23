@@ -101,12 +101,6 @@ public:
     builder->CrankShaft(oldMol, newMol, molIndex);
   }
 
-  //Used in MEMC move
-  void BuildIDNew(cbmc::TrialMol& newMol, const uint molIndex)
-  {
-    builder->BuildIDNew(newMol, molIndex);
-  }
-
   void BuildIDOld(cbmc::TrialMol& oldMol, const uint molIndex)
   {
     builder->BuildIDOld(oldMol, molIndex);

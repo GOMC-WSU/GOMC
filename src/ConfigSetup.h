@@ -164,14 +164,14 @@ struct Step {
 
 //Holds the percentage of each kind of move for this ensemble.
 struct MovePercents {
-  double displace, rotate, intraSwap, intraMemc, regrowth, crankShaft,
+  double displace, rotate, intraSwap, regrowth, crankShaft,
          multiParticle;
   bool multiParticleEnabled;
 #ifdef VARIABLE_VOLUME
   double volume;
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
-  double transfer, memc, cfcmc;
+  double transfer, cfcmc;
 #endif
 };
 
@@ -235,23 +235,6 @@ struct CBMC {
   GrowBond bonded;
 };
 
-struct MEMCVal {
-  bool enable, readVol, readRatio, readSmallBB, readLargeBB;
-  bool readSK, readLK;
-  bool MEMC1, MEMC2, MEMC3;
-  XYZ subVol;
-  std::vector<std::string> smallKind, largeKind;
-  std::vector<uint> exchangeRatio;
-  std::vector<std::string> smallBBAtom1, smallBBAtom2;
-  std::vector<std::string> largeBBAtom1, largeBBAtom2;
-  MEMCVal(void)
-  {
-    MEMC1 = MEMC2 = MEMC3 = false;
-    readVol = readRatio = readSmallBB = false;
-    readLargeBB = readSK = readLK = false;
-  }
-};
-
 struct CFCMCVal {
   bool enable, readLambdaCoulomb, readLambdaVDW, readRelaxSteps;
   bool readHistFlatness, MPEnable, readMPEnable;
@@ -306,7 +289,6 @@ struct SystemVals {
   MovePercents moves;
   Volume volume; //May go unused
   CBMC cbmcTrials;
-  MEMCVal memcVal, intraMemcVal;
   CFCMCVal cfcmcVal;
   FreeEnergy freeEn;
 #if ENSEMBLE == GCMC
@@ -332,19 +314,12 @@ struct UniqueStr { /* : ReadableBase*/
   std::string val;
 };
 
-struct HistFiles { /* : ReadableBase*/
-  std::string histName, number, letter, sampleName;
-  uint stepsPerHistSample;
-};
-
 //Files for output.
 struct OutFiles {
   FileNames<BOX_TOTAL> pdb;
   FileName psf, seed;
-  HistFiles hist;
 };
 struct Settings {
-  EventSettings hist;
   UniqueStr uniqueStr;
 };
 

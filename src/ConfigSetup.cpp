@@ -49,9 +49,6 @@ ConfigSetup::ConfigSetup(void)
   sys.elect.tolerance = DBL_MAX;
   sys.elect.oneFourScale = DBL_MAX;
   sys.elect.dielectric = DBL_MAX;
-  sys.memcVal.enable = false;
-  sys.cfcmcVal.enable = false;
-  sys.intraMemcVal.enable = false;
   sys.step.total = ULONG_MAX;
   sys.step.equil = ULONG_MAX;
   sys.step.adjustment = ULONG_MAX;
@@ -88,19 +85,11 @@ ConfigSetup::ConfigSetup(void)
   sys.moves.multiParticle = DBL_MAX;
   sys.moves.regrowth = DBL_MAX;
   sys.moves.crankShaft = DBL_MAX;
-  sys.moves.intraMemc = DBL_MAX;
   out.state.settings.enable = true;
   out.restart.settings.enable = true;
   out.console.enable = true;
 #if ENSEMBLE == GCMC
   sys.chemPot.isFugacity = false;
-  out.statistics.settings.hist.enable = false;
-  out.statistics.settings.hist.frequency = ULONG_MAX;
-  out.state.files.hist.histName = "";
-  out.state.files.hist.letter = "";
-  out.state.files.hist.number = "";
-  out.state.files.hist.sampleName = "";
-  out.state.files.hist.stepsPerHistSample = UINT_MAX;
 #endif
   out.checkpoint.enable = false;
   out.checkpoint.frequency = ULONG_MAX;
@@ -116,8 +105,6 @@ ConfigSetup::ConfigSetup(void)
   out.statistics.vars.surfaceTension.fluct = false;
 #ifdef VARIABLE_PARTICLE_NUMBER
   sys.moves.transfer = DBL_MAX;
-  sys.moves.memc = DBL_MAX;
-  sys.moves.cfcmc = DBL_MAX;
   sys.cbmcTrials.bonded.ang = UINT_MAX;
   sys.cbmcTrials.bonded.dih = UINT_MAX;
   sys.cbmcTrials.nonbonded.first = UINT_MAX;
@@ -288,104 +275,6 @@ void ConfigSetup::Init(const char *fileName)
     } else if(CheckString(line[0], "Rswitch")) {
       sys.ff.rswitch = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Switch distance", sys.ff.rswitch);
-    } else if(CheckString(line[0], "ExchangeVolumeDim")) {
-      if(line.size() == 4) {
-        XYZ temp;
-        temp.x = stringtod(line[1]);
-        temp.y = stringtod(line[2]);
-        temp.z = stringtod(line[3]);
-        sys.memcVal.subVol = temp;
-        sys.intraMemcVal.subVol = temp;
-        printf("%-40s %-4.3f %-4.3f %-4.3f A\n",
-               "Info: Exchange Sub-Volume Dimensions", temp.x, temp.y, temp.z);
-        sys.memcVal.readVol = true;
-        sys.intraMemcVal.readVol = true;
-      }
-    } else if(CheckString(line[0], "ExchangeRatio")) {
-      if(line.size() >= 2) {
-        printf("%-41s", "Info: ExchangeRatio");
-        for(uint i = 1; i < line.size(); i++) {
-          uint val = stringtoi(line[i]);
-          sys.memcVal.exchangeRatio.push_back(val);
-          sys.intraMemcVal.exchangeRatio.push_back(val);
-          printf("%-5d", val);
-        }
-        std::cout << endl;
-        sys.memcVal.readRatio = true;
-        sys.intraMemcVal.readRatio = true;
-      }
-    } else if(CheckString(line[0], "ExchangeLargeKind")) {
-      if(line.size() >= 2) {
-        printf("%-41s", "Info: Exchange Large Kind");
-        for(uint i = 1; i < line.size(); i++) {
-          std::string resName = line[i];
-          sys.memcVal.largeKind.push_back(resName);
-          sys.intraMemcVal.largeKind.push_back(resName);
-          printf("%-5s", resName.c_str());
-        }
-        std::cout << endl;
-        sys.memcVal.readLK = true;
-        sys.intraMemcVal.readLK = true;
-      }
-    } else if(CheckString(line[0], "ExchangeSmallKind")) {
-      if(line.size() >= 2) {
-        printf("%-41s", "Info: Exchange Small Kind");
-        for(uint i = 1; i < line.size(); i++) {
-          std::string resName = line[i];
-          sys.memcVal.smallKind.push_back(resName);
-          sys.intraMemcVal.smallKind.push_back(resName);
-          printf("%-5s", resName.c_str());
-        }
-        std::cout << endl;
-        sys.memcVal.readSK = true;
-        sys.intraMemcVal.readSK = true;
-      }
-    } else if(CheckString(line[0], "SmallKindBackBone")) {
-      if((line.size() % 2) == 0) {
-        std::cout << "Error: Two atom names must be defined for the backbone of each small molecule kind!\n";
-        exit(EXIT_FAILURE);
-      }
-      if(line.size() >= 3) {
-        printf("%-41s", "Info: Atom Names in BackBone of Small Molecule Kind ");
-        for(uint i = 1; i < line.size() - 1; i += 2) {
-          if(i != 1) {
-            printf(" , ");
-          }
-          std::string atom1 = line[i];
-          std::string atom2 = line[i + 1];
-          sys.memcVal.smallBBAtom1.push_back(atom1);
-          sys.memcVal.smallBBAtom2.push_back(atom2);
-          sys.intraMemcVal.smallBBAtom1.push_back(atom1);
-          sys.intraMemcVal.smallBBAtom2.push_back(atom2);
-          printf("%-s - %-s", atom1.c_str(), atom2.c_str());
-        }
-        std::cout << endl;
-        sys.memcVal.readSmallBB = true;
-        sys.intraMemcVal.readSmallBB = true;
-      }
-    } else if(CheckString(line[0], "LargeKindBackBone")) {
-      if((line.size() % 2) == 0) {
-        std::cout << "Error: Two atom names must be defined for the backbone of each large molecule kind!\n";
-        exit(EXIT_FAILURE);
-      }
-      if(line.size() >= 3) {
-        printf("%-41s", "Info: Atom Names in BackBone of Large Molecule Kind ");
-        for(uint i = 1; i < line.size() - 1; i += 2) {
-          if(i != 1) {
-            printf(" , ");
-          }
-          std::string atom1 = line[i];
-          std::string atom2 = line[i + 1];
-          sys.memcVal.largeBBAtom1.push_back(atom1);
-          sys.memcVal.largeBBAtom2.push_back(atom2);
-          sys.intraMemcVal.largeBBAtom1.push_back(atom1);
-          sys.intraMemcVal.largeBBAtom2.push_back(atom2);
-          printf("%-s - %-s", atom1.c_str(), atom2.c_str());
-        }
-        std::cout << endl;
-        sys.memcVal.readLargeBB = true;
-        sys.intraMemcVal.readLargeBB = true;
-      }
     } else if(CheckString(line[0], "VDWGeometricSigma")) {
       sys.ff.vdwGeometricSigma = checkBool(line[1]);
       if(sys.ff.vdwGeometricSigma)
@@ -504,30 +393,6 @@ void ConfigSetup::Init(const char *fileName)
       sys.moves.rotate = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Rotation move frequency",
              sys.moves.rotate);
-    } else if(CheckString(line[0], "IntraMEMC-1Freq")) {
-      sys.moves.intraMemc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: IntraMEMC-1 move frequency",
-             sys.moves.intraMemc);
-      if(sys.moves.intraMemc > 0.0) {
-        sys.intraMemcVal.enable = true;
-        sys.intraMemcVal.MEMC1 = true;
-      }
-    } else if(CheckString(line[0], "IntraMEMC-2Freq")) {
-      sys.moves.intraMemc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: IntraMEMC-2 move frequency",
-             sys.moves.intraMemc);
-      if(sys.moves.intraMemc > 0.0) {
-        sys.intraMemcVal.enable = true;
-        sys.intraMemcVal.MEMC2 = true;
-      }
-    } else if(CheckString(line[0], "IntraMEMC-3Freq")) {
-      sys.moves.intraMemc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: IntraMEMC-3 move frequency",
-             sys.moves.intraMemc);
-      if(sys.moves.intraMemc > 0.0) {
-        sys.intraMemcVal.enable = true;
-        sys.intraMemcVal.MEMC3 = true;
-      }
     }
 #ifdef VARIABLE_VOLUME
     else if(CheckString(line[0], "VolFreq")) {
@@ -551,37 +416,6 @@ void ConfigSetup::Init(const char *fileName)
       sys.moves.transfer = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Molecule swap move frequency",
              sys.moves.transfer);
-    } else if(CheckString(line[0], "MEMC-1Freq")) {
-      sys.moves.memc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: MEMC-1 move frequency",
-             sys.moves.memc);
-      if(sys.moves.memc > 0.0) {
-        sys.memcVal.enable = true;
-        sys.memcVal.MEMC1 = true;
-      }
-    } else if(CheckString(line[0], "MEMC-2Freq")) {
-      sys.moves.memc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: MEMC-2 move frequency",
-             sys.moves.memc);
-      if(sys.moves.memc > 0.0) {
-        sys.memcVal.enable = true;
-        sys.memcVal.MEMC2 = true;
-      }
-    } else if(CheckString(line[0], "MEMC-3Freq")) {
-      sys.moves.memc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: MEMC-3 move frequency",
-             sys.moves.memc);
-      if(sys.moves.memc > 0.0) {
-        sys.memcVal.enable = true;
-        sys.memcVal.MEMC3 = true;
-      }
-    } else if(CheckString(line[0], "CFCMCFreq")) {
-      sys.moves.cfcmc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: CFCMC move frequency",
-             sys.moves.cfcmc);
-      if(sys.moves.cfcmc > 0.0) {
-        sys.cfcmcVal.enable = true;
-      }
     } else if(CheckString(line[0], "LambdaCoulomb")) {
       if(line.size() > 1) {
         sys.cfcmcVal.readLambdaCoulomb = true;
@@ -909,39 +743,6 @@ void ConfigSetup::Init(const char *fileName)
       } else
         printf("%-40s %-s \n", "Info: Console output", "Inactive");
     }
-#if ENSEMBLE == GCMC
-    else if(CheckString(line[0], "HistogramFreq")) {
-      out.statistics.settings.hist.enable = checkBool(line[1]);
-      if(line.size() == 3)
-        out.statistics.settings.hist.frequency = stringtoi(line[2]);
-
-      if(out.statistics.settings.hist.enable && (line.size() == 2)) {
-        if(sys.step.total > 1000) {
-          out.statistics.settings.hist.frequency = (ulong)sys.step.total / 1000;
-        } else {
-          out.statistics.settings.hist.frequency = (ulong)sys.step.total / 100;
-        }
-      }
-
-      if(out.statistics.settings.hist.enable) {
-        printf("%-40s %-lu \n", "Info: Histogram output frequency",
-               out.statistics.settings.hist.frequency);
-      } else
-        printf("%-40s %-s \n", "Info: Histogram output", "Inactive");
-    } else if(CheckString(line[0], "DistName")) {
-      out.state.files.hist.histName = line[1];
-    } else if(CheckString(line[0], "HistName")) {
-      out.state.files.hist.sampleName = line[1];
-    } else if(CheckString(line[0], "RunNumber")) {
-      out.state.files.hist.number = line[1];
-    } else if(CheckString(line[0], "RunLetter")) {
-      out.state.files.hist.letter = line[1];
-    } else if(CheckString(line[0], "SampleFreq")) {
-      out.state.files.hist.stepsPerHistSample = stringtoi(line[1]);
-      printf("%-40s %-d \n", "Info: Histogram sample frequency",
-             out.state.files.hist.stepsPerHistSample);
-    }
-#endif
     else if(CheckString(line[0], "OutEnergy")) {
       out.statistics.vars.energy.block = checkBool(line[1]);
       out.statistics.vars.energy.fluct = checkBool(line[2]);
@@ -1014,12 +815,6 @@ void ConfigSetup::fillDefaults(void)
            sys.moves.multiParticle);
   }
 
-  if(sys.moves.intraMemc == DBL_MAX) {
-    sys.moves.intraMemc = 0.0;
-    printf("%-40s %-4.4f \n", "Default: Intra-MEMC move frequency",
-           sys.moves.intraMemc);
-  }
-
   if(sys.moves.regrowth == DBL_MAX) {
     sys.moves.regrowth = 0.000;
     printf("%-40s %-4.4f \n", "Default: Regrowth move frequency",
@@ -1033,11 +828,6 @@ void ConfigSetup::fillDefaults(void)
   }
 
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-  if(sys.moves.memc == DBL_MAX) {
-    sys.moves.memc = 0.0;
-    printf("%-40s %-4.4f \n", "Default: MEMC move frequency",
-           sys.moves.memc);
-  }
 
   if(sys.moves.cfcmc == DBL_MAX) {
     sys.moves.cfcmc = 0.0;
@@ -1378,7 +1168,7 @@ void ConfigSetup::verifyInputs(void)
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
          sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
-         sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft +
+         sys.moves.crankShaft +
          sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(EXIT_FAILURE);
@@ -1390,7 +1180,7 @@ void ConfigSetup::verifyInputs(void)
   }
 
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc +
+         sys.moves.volume + sys.moves.regrowth +
          sys.moves.crankShaft + sys.moves.multiParticle - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
     exit(EXIT_FAILURE);
@@ -1402,15 +1192,14 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.transfer + sys.moves.regrowth + sys.moves.memc +
-         sys.moves.intraMemc + sys.moves.crankShaft +
+         sys.moves.transfer + sys.moves.regrowth + sys.moves.crankShaft +
          sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #else
   if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.regrowth + sys.moves.intraMemc + sys.moves.crankShaft +
+         sys.moves.regrowth + sys.moves.crankShaft +
          sys.moves.multiParticle - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
     exit(EXIT_FAILURE);
@@ -1475,83 +1264,6 @@ void ConfigSetup::verifyInputs(void)
   if(sys.cbmcTrials.nonbonded.nth == UINT_MAX) {
     std::cout << "Error: CBMC number of nth site trials is not specified!\n";
     exit(EXIT_FAILURE);
-  }
-  if(sys.memcVal.enable || sys.intraMemcVal.enable) {
-    if((sys.memcVal.MEMC1 && sys.memcVal.MEMC2) ||
-        (sys.memcVal.MEMC1 && sys.memcVal.MEMC3) ||
-        (sys.memcVal.MEMC2 && sys.memcVal.MEMC3)) {
-      std::cout << "Error: Multiple MEMC methods are specified!\n";
-      exit(EXIT_FAILURE);
-    }
-    if((sys.intraMemcVal.MEMC1 && sys.intraMemcVal.MEMC2) ||
-        (sys.intraMemcVal.MEMC1 && sys.intraMemcVal.MEMC3) ||
-        (sys.intraMemcVal.MEMC2 && sys.intraMemcVal.MEMC3)) {
-      std::cout << "Error: Multiple Intra-MEMC methods are specified!\n";
-      exit(EXIT_FAILURE);
-    }
-    if(!sys.memcVal.readVol || !sys.intraMemcVal.readVol) {
-      std::cout << "Error: In MEMC method, Sub-Volume is not specified!\n";
-      exit(EXIT_FAILURE);
-    }
-    if(!sys.memcVal.readRatio || !sys.intraMemcVal.readRatio) {
-      std::cout << "Error: In MEMC method, Exchange Ratio is not specified!\n";
-      exit(EXIT_FAILURE);
-    }
-    if(sys.memcVal.largeKind.size() != sys.memcVal.exchangeRatio.size()) {
-      std::cout << "Error: In MEMC method, specified number of Large Kinds is " <<
-                sys.memcVal.largeKind.size() << ", but " << sys.memcVal.exchangeRatio.size()
-                << " exchange ratio is specified!\n";
-      exit(EXIT_FAILURE);
-    }
-    if(!sys.memcVal.readSK || !sys.intraMemcVal.readSK) {
-      std::cout << "Error: In MEMC method, Small Kind is not specified!\n";
-      exit(EXIT_FAILURE);
-    }
-    if(!sys.memcVal.readLK || !sys.intraMemcVal.readLK) {
-      std::cout << "Error: In MEMC method, Large Kind is not specified!\n";
-      exit(EXIT_FAILURE);
-    }
-    if((sys.memcVal.largeKind.size() != sys.memcVal.smallKind.size()) ||
-        (sys.intraMemcVal.largeKind.size() != sys.intraMemcVal.smallKind.size())) {
-      std::cout << "Error: In MEMC method, specified number of Large Kinds is not " <<
-                " equal as specified number of Small Kinds!\n";
-      exit(EXIT_FAILURE);
-    }
-    if(!sys.memcVal.readLargeBB || !sys.intraMemcVal.readLargeBB) {
-      std::cout << "Error: In MEMC method, Large Kind BackBone is not specified!\n";
-      exit(EXIT_FAILURE);
-    }
-    if(sys.memcVal.largeKind.size() != sys.memcVal.largeBBAtom1.size()) {
-      std::cout << "Error: In MEMC method, specified number of Large Kinds is " <<
-                sys.memcVal.largeKind.size() << ", but " << sys.memcVal.largeBBAtom1.size()
-                << " sets of Large Molecule BackBone is specified!\n";
-      exit(EXIT_FAILURE);
-    }
-    if(sys.memcVal.MEMC2 && !sys.memcVal.readSmallBB) {
-      std::cout << "Error: In MEMC-2 method, Small Kind BackBone is not specified!\n";
-      exit(EXIT_FAILURE);
-    }
-
-    if(sys.memcVal.MEMC2 && (sys.memcVal.smallKind.size() !=
-                             sys.memcVal.smallBBAtom1.size())) {
-      std::cout << "Error: In MEMC-2 method, specified number of Small Kinds is " <<
-                sys.memcVal.smallKind.size() << ", but " << sys.memcVal.smallBBAtom1.size()
-                << " sets of Small Molecule BackBone is specified!\n";
-      exit(EXIT_FAILURE);
-    }
-
-    if(sys.intraMemcVal.MEMC2 && !sys.intraMemcVal.readSmallBB) {
-      std::cout << "Error: In Intra-MEMC-2 method, Small Kind BackBone is not specified!\n";
-      exit(EXIT_FAILURE);
-    }
-    if(sys.memcVal.enable && sys.intraMemcVal.enable) {
-      if((sys.memcVal.MEMC1 && !sys.intraMemcVal.MEMC1) ||
-          (sys.memcVal.MEMC2 && !sys.intraMemcVal.MEMC2) ||
-          (sys.memcVal.MEMC3 && !sys.intraMemcVal.MEMC3)) {
-        std::cout << "Error: Intra-MEMC method is not same as MEMC method!\n";
-        exit(EXIT_FAILURE);
-      }
-    }
   }
 
   if(sys.cfcmcVal.enable) {
@@ -1749,33 +1461,6 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Coordinate frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
-#if ENSEMBLE == GCMC
-  if(out.statistics.settings.hist.enable &&
-      out.statistics.settings.hist.frequency == ULONG_MAX) {
-    std::cout << "Error: Histogram output frequency is not specified!\n";
-    exit(EXIT_FAILURE);
-  }
-  if(out.state.files.hist.histName == "") {
-    std::cout << "Error: Distribution file name is not specified!" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-  if(out.state.files.hist.sampleName == "") {
-    std::cout << "Error: Histogram file name of is not specified!" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-  if(out.state.files.hist.letter == "") {
-    std::cout << "Error: Run Letter of histogram file name is not specified!\n";
-    exit(EXIT_FAILURE);
-  }
-  if(out.state.files.hist.number == "") {
-    std::cout << "Error: Run number of histogram file is not specified!\n";
-    exit(EXIT_FAILURE);
-  }
-  if(out.state.files.hist.stepsPerHistSample == UINT_MAX) {
-    std::cout << "Error: Histogram output sample frequency is not specified!\n";
-    exit(EXIT_FAILURE);
-  }
-#endif
   if(!out.console.enable && out.statistics.vars.energy.fluct) {
     printf("Note: Console output Inactived. Energy output will be ignored.\n");
     out.statistics.vars.energy.fluct = false;
