@@ -1,7 +1,6 @@
 set(sources
    src/BoxDimensions.cpp
    src/BoxDimensionsNonOrth.cpp
-   src/CBMC.cpp
    src/CellList.cpp
    src/ConfigSetup.cpp
    src/ConsoleOutput.cpp
@@ -17,7 +16,6 @@ set(sources
    src/FFParticle.cpp
    src/FFSetup.cpp
    src/Forcefield.cpp
-   src/FreeEnergyOutput.cpp
    src/Geometry.cpp
    src/InputFileReader.cpp
    src/Main.cpp
@@ -36,31 +34,12 @@ set(sources
    src/Reader.cpp
    src/Simulation.cpp
    src/StaticVals.cpp
-   src/System.cpp
-   src/cbmc/DCCrankShaftAng.cpp
-   src/cbmc/DCCrankShaftDih.cpp
-   src/cbmc/DCCyclic.cpp
-   src/cbmc/DCGraph.cpp
-   src/cbmc/DCFreeCycle.cpp
-   src/cbmc/DCFreeHedron.cpp
-   src/cbmc/DCFreeHedronSeed.cpp
-   src/cbmc/DCFreeCycleSeed.cpp
-   src/cbmc/DCLinkedHedron.cpp
-   src/cbmc/DCLinkedCycle.cpp
-   src/cbmc/DCHedron.cpp
-   src/cbmc/DCHedronCycle.cpp
-   src/cbmc/DCLinear.cpp
-   src/cbmc/DCOnSphere.cpp
-   src/cbmc/DCRotateCOM.cpp
-   src/cbmc/DCRotateOnAtom.cpp
-   src/cbmc/DCSingle.cpp
-   src/cbmc/TrialMol.cpp)
+   src/System.cpp)
 
 set(headers
    src/BoxDimensions.h
    src/BoxDimensionsNonOrth.h
    src/CalculateEnergy.h
-   src/CBMC.h
    src/CellList.h
    src/CheckpointOutput.h
    src/CheckpointSetup.h
@@ -88,7 +67,6 @@ set(headers
    src/FFSwitchMartini.h
    src/FixedWidthReader.h
    src/Forcefield.h
-   src/FreeEnergyOutput.h
    src/FxdWidthWrtr.h
    src/Geometry.h
    src/InputAbstracts.h
@@ -122,32 +100,8 @@ set(headers
    src/TransformMatrix.h
    src/Writer.h
    src/XYZArray.h
-   src/cbmc/DCComponent.h
-   src/cbmc/DCCrankShaftAng.h
-   src/cbmc/DCCrankShaftDih.h
-   src/cbmc/DCCyclic.h
-   src/cbmc/DCData.h
-   src/cbmc/DCFreeCycle.h
-   src/cbmc/DCFreeHedron.h
-   src/cbmc/DCFreeHedronSeed.h
-   src/cbmc/DCFreeCycleSeed.h
-   src/cbmc/DCLinkedHedron.h
-   src/cbmc/DCLinkedCycle.h
-   src/cbmc/DCGraph.h
-   src/cbmc/DCHedron.h
-   src/cbmc/DCHedronCycle.h
-   src/cbmc/DCLinear.h
-   src/cbmc/DCOnSphere.h
-   src/cbmc/DCRotateCOM.h
-   src/cbmc/DCRotateOnAtom.h
-   src/cbmc/DCSingle.h
-   src/cbmc/TrialMol.h
-   src/moves/CFCMC.h
-   src/moves/CrankShaft.h
-   src/moves/IntraSwap.h
    src/moves/MoveBase.h
    src/moves/MultiParticle.h
-   src/moves/Regrowth.h
    src/moves/Rotation.h
    src/moves/Translate.h
    src/moves/VolumeTransfer.h)

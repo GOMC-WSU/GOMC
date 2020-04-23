@@ -35,21 +35,6 @@ public:
                             const double lambdaNew, const uint molIndex,
                             const uint box);
 
-  //calculate reciprocate term in destination box for swap move
-  virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
-                               const int molIndex);
-
-  //calculate reciprocate term in source box for swap move
-  virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
-                                 const uint box, const int molIndex);
-
-  //calculate reciprocate term for inserting some molecules (kindA) in
-  //destination box and removing a molecule (kindB) from destination box
-  virtual double SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
-                           const std::vector<cbmc::TrialMol> &oldMol,
-                           const std::vector<uint> molIndexNew,
-                           const std::vector<uint> molIndexOld);
-
   //It's called in free energy calculation to calculate the change in
   // reciprocal energy in all lambda states
   virtual void ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,

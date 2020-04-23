@@ -12,7 +12,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PRNG.h"
 #include "Geometry.h"
 #include "Setup.h"
-#include "CBMC.h"
 
 #include <vector>
 #include <map>
@@ -96,15 +95,10 @@ void MoleculeKind::Init
   bondList.Init(molData.bonds);
   angles.Init(molData.angles, bondList);
   dihedrals.Init(molData.dihedrals, bondList);
-
-#ifdef VARIABLE_PARTICLE_NUMBER
-  builder = cbmc::MakeCBMC(sys, forcefield, *this, setup);
-  //builder = new cbmc::LinearVlugt(sys, forcefield, *this, setup);
-#endif
 }
 
 MoleculeKind::MoleculeKind() : angles(3), dihedrals(4),
-  atomMass(NULL), atomCharge(NULL), builder(NULL),
+  atomMass(NULL), atomCharge(NULL),
   atomKind(NULL) {}
 
 
@@ -113,7 +107,6 @@ MoleculeKind::~MoleculeKind()
   delete[] atomKind;
   delete[] atomMass;
   delete[] atomCharge;
-  delete builder;
 }
 
 

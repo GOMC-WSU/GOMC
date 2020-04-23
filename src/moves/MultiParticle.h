@@ -10,6 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveBase.h"
 #include "System.h"
 #include "StaticVals.h"
+#include "TransformMatrix.h"
 #include <cmath>
 
 #define MIN_FORCE 1E-12

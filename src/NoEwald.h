@@ -53,31 +53,6 @@ public:
                             const double lambdaNew, const uint molIndex,
                             const uint box);
 
-  //calculate self term after swap move
-  virtual double SwapSelf(const cbmc::TrialMol& trialMo) const;
-
-  //calculate correction term after swap move with lambda = 1
-  virtual double SwapCorrection(const cbmc::TrialMol& trialMol) const;
-
-  //calculate correction term after swap move, with system lambda
-  virtual double SwapCorrection(const cbmc::TrialMol& trialMol,
-                                const uint molIndex) const;
-
-  //calculate reciprocate term in destination box for swap move
-  virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
-                               const int molIndex);
-
-  //calculate reciprocate term in source box for swap move
-  virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
-                                 const uint box, const int molIndex);
-
-  //calculate reciprocate term for inserting some molecules (kindA) in
-  //destination box and removing a molecule (kindB) from destination box
-  virtual double SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
-                           const std::vector<cbmc::TrialMol> &oldMol,
-                           const std::vector<uint> molIndexNew,
-                           const std::vector<uint> molIndexold);
-
   //back up reciptocate value to Ref (will be called during initialization)
   virtual void SetRecipRef(uint box);
 

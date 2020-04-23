@@ -10,8 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BasicTypes.h"          //For uint
 #include "EnsemblePreprocessor.h"
 #include "SubdividedArray.h"
-#include "Geometry.h"            //members
-#include "CBMC.h"
+#include "Geometry.h"
 
 #include <string>
 #include <vector>
@@ -28,10 +27,6 @@ namespace ff_setup
 {
 class Bond;
 class FFBase;
-}
-namespace cbmc
-{
-class TrialMol;
 }
 
 class FFSetup;
@@ -80,52 +75,6 @@ public:
             Forcefield const& forcefield,
             System & sys);
 
-  //Invoke CBMC, oldMol and newMol will be modified
-  void Build(cbmc::TrialMol& oldMol, cbmc::TrialMol& newMol,
-             const uint molIndex)
-  {
-    builder->Build(oldMol, newMol, molIndex);
-  }
-
-  //CBMC for regrowth move
-  void Regrowth(cbmc::TrialMol& oldMol, cbmc::TrialMol& newMol,
-                const uint molIndex)
-  {
-    builder->Regrowth(oldMol, newMol, molIndex);
-  }
-
-  //Crank Shaft move
-  void CrankShaft(cbmc::TrialMol& oldMol, cbmc::TrialMol& newMol,
-                  const uint molIndex)
-  {
-    builder->CrankShaft(oldMol, newMol, molIndex);
-  }
-
-  void BuildIDOld(cbmc::TrialMol& oldMol, const uint molIndex)
-  {
-    builder->BuildIDOld(oldMol, molIndex);
-  }
-
-  void BuildNew(cbmc::TrialMol& newMol, const uint molIndex)
-  {
-    builder->BuildNew(newMol, molIndex);
-  }
-
-  void BuildOld(cbmc::TrialMol& oldMol, const uint molIndex)
-  {
-    builder->BuildOld(oldMol, molIndex);
-  }
-
-  void BuildGrowNew(cbmc::TrialMol& newMol, const uint molIndex)
-  {
-    builder->BuildGrowNew(newMol, molIndex);
-  }
-
-  void BuildGrowOld(cbmc::TrialMol& oldMol, const uint molIndex)
-  {
-    builder->BuildGrowOld(oldMol, molIndex);
-  }
-
   double GetMoleculeCharge();
 
   bool MoleculeHasCharge();
@@ -158,13 +107,6 @@ public:
 private:
 
   void InitAtoms(mol_setup::MolKind const& molData);
-
-  //uses buildBonds to check if molecule is branched
-  //bool CheckBranches();
-  void InitCBMC(System& sys, Forcefield& ff,
-                Setup& set);
-
-  cbmc::CBMC* builder;
 
   uint numAtoms;
   uint * atomKind;

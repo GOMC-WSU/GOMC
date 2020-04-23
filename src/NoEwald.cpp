@@ -80,53 +80,6 @@ double NoEwald::MolCorrection(uint molIndex, uint box) const
   return 0.0;
 }
 
-
-//calculate reciprocate term in destination box for swap move
-double NoEwald::SwapDestRecip(const cbmc::TrialMol &newMol,
-                              const uint box,
-                              const int molIndex)
-{
-  return 0.0;
-}
-
-
-//calculate reciprocate term in source box for swap move
-double NoEwald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
-                                const uint box, const int molIndex)
-{
-  return 0.0;
-}
-
-
-//calculate reciprocate term for inserting some molecules (kindA) in destination
-// box and removing a molecule (kindB) from destination box
-double NoEwald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
-                          const std::vector<cbmc::TrialMol> &oldMol,
-                          const std::vector<uint> molIndexNew,
-                          const std::vector<uint> molIndexold)
-{
-  return 0.0;
-}
-
-
-//calculate self term after swap move
-double NoEwald::SwapSelf(const cbmc::TrialMol& trialMol) const
-{
-  return 0.0;
-}
-
-//calculate correction term after swap move
-double NoEwald::SwapCorrection(const cbmc::TrialMol& trialMol) const
-{
-  return 0.0;
-}
-//calculate correction term after swap move
-double NoEwald::SwapCorrection(const cbmc::TrialMol& trialMol,
-                               const uint molIndex) const
-{
-  return 0.0;
-}
-
 //It's called in free energy calculation to calculate the change in
 // self energy in all lambda states
 void NoEwald::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,

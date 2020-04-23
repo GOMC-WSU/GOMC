@@ -4,7 +4,6 @@ project(GOMC)
 
 include_directories(lib)
 include_directories(src)
-include_directories(src/cbmc)
 include_directories(src/moves)
 
 #fix new policy of cmake about FindOpenMP.cmake (will have to check later if they fixed this issue)

@@ -57,7 +57,6 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
 
   vdwKind = val.ff.VDW_KIND;
   exckind = val.exclude.EXCLUDE_KIND;
-  freeEnergy = val.freeEn.enable;
 
   electrostatic = val.elect.enable;
   ewald = val.elect.ewald;
@@ -65,22 +64,10 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
   rswitch = val.ff.rswitch;
   dielectric = val.elect.dielectric;
 
-  if(val.freeEn.enable) {
-    sc_alpha = val.freeEn.scaleAlpha;
-    sc_sigma = val.freeEn.scaleSigma;
-    sc_power = val.freeEn.scalePower;
-    sc_coul = val.freeEn.scaleCoulomb;
-  } else if (val.cfcmcVal.enable) {
-    sc_alpha = val.cfcmcVal.scaleAlpha;
-    sc_sigma = val.cfcmcVal.scaleSigma;
-    sc_power = val.cfcmcVal.scalePower;
-    sc_coul = val.cfcmcVal.scaleCoulomb;
-  } else {
-    sc_alpha = 0.0;
-    sc_sigma = 0.0;
-    sc_power = 0;
-    sc_coul = false;
-  }
+  sc_alpha = 0.0;
+  sc_sigma = 0.0;
+  sc_power = 0;
+  sc_coul = false;
   sc_sigma_6 = pow(sc_sigma, 6);
 
   for(uint b = 0 ; b < BOX_TOTAL; b++) {

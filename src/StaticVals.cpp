@@ -52,18 +52,6 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
     case mv::ROTATE:
       movePerc[m] = perc.rotate;
       break;
-    case mv::INTRA_SWAP:
-      movePerc[m] = perc.intraSwap;
-      break;
-    case mv::REGROWTH:
-      movePerc[m] = perc.regrowth;
-      break;
-    case mv::INTRA_MEMC:
-      movePerc[m] = perc.intraMemc;
-      break;
-    case mv::CRANKSHAFT:
-      movePerc[m] = perc.crankShaft;
-      break;
 #ifdef VARIABLE_VOLUME
     case mv::VOL_TRANSFER :
       movePerc[m] = perc.volume;
@@ -71,9 +59,6 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
-    case mv::MOL_TRANSFER :
-      movePerc[m] = perc.transfer;
-      break;
     case mv::CFCMC :
       movePerc[m] = perc.cfcmc;
       break;
@@ -125,10 +110,7 @@ void StaticVals::IsBoxOrthogonal(const double cellAngle[][3])
 }
 
 
-StaticVals::StaticVals(Setup & set) : memcVal(set.config.sys.memcVal),
-  intraMemcVal(set.config.sys.intraMemcVal),
-  cfcmcVal(set.config.sys.cfcmcVal),
-  freeEnVal(set.config.sys.freeEn)
+StaticVals::StaticVals(Setup & set)
 {
   multiParticleEnabled = set.config.sys.moves.multiParticleEnabled;
   isOrthogonal = true;
