@@ -13,7 +13,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "StaticVals.h"
 #include "BasicTypes.h"
 #include "GOMC_Config.h"    //For PT
-#include "ParallelTemperingPreprocessor.h"
 
 class Simulation
 {

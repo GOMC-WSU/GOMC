@@ -68,28 +68,7 @@ public:
   void Init(const ulong tillEquil, const ulong totSteps,
             std::string const& uniqueForFileIO)
   {
-#if GOMC_LIB_MPI
-    // For some reason, whether or not split passes by reference or value changes per OS.
-    // Hence the need for a disposable copy of the string
-    std::string copyOfUniqueForFileIO = uniqueForFileIO.c_str();
-#ifdef WIN32
-    std::vector<std::string> tokens = OutputableBase::split(copyOfUniqueForFileIO, std::string(2, OS_SEP));
-#else
-    std::vector<std::string> tokens = OutputableBase::split(copyOfUniqueForFileIO, std::string(1, OS_SEP));
-#endif
-    std::stringstream replicaDirectory;
-    // Loop terminates before last entry to remove the value that
-    // The user gets passes as "OutputName", which we have prefixed w a path
-    // In the ParallelTemperingPreproccessing in Main.cpp.
-    // This leaves only the path, which we store as "pathToReplicaDirectory"
-    for(int i = 0; i < tokens.size() - 1; ++i) {
-      replicaDirectory << tokens[i] << OS_SEP;
-    }
-    pathToReplicaDirectory = replicaDirectory.str();
-    uniqueName = tokens[tokens.size() - 1];
-#else
-    uniqueName = uniqueForFileIO;
-#endif
+    uniqueName = uniqueForFileIO
     stepsTillEquil = tillEquil;
     totSimSteps = totSteps;
     firstPrint = true;

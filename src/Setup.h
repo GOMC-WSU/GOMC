@@ -16,7 +16,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PRNGSetup.h"
 #include "MolSetup.h"
 #include "GOMC_Config.h"    //For PT
-#include "ParallelTemperingPreprocessor.h"
 class Setup
 {
 public:
