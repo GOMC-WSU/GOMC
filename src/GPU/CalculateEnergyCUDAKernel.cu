@@ -266,11 +266,9 @@ __device__ double CalcCoulombGPU(double distSq, int kind1, int kind2,
   }
 
   int index = FlatIndexGPU(kind1, kind2, gpu_count);
-  if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
-    return CalcCoulombParticleGPU(distSq, qi_qj_fact, gpu_ewald, gpu_alpha,
-                                  sc_coul, sc_sigma_6,
-                                  sc_alpha, sc_power, gpu_sigmaSq);
-  }
+  return CalcCoulombParticleGPU(distSq, qi_qj_fact, gpu_ewald, gpu_alpha,
+                                sc_coul, sc_sigma_6,
+                                sc_alpha, sc_power, gpu_sigmaSq);
 }
 
 __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
@@ -287,10 +285,8 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
   }
 
   int index = FlatIndexGPU(kind1, kind2, gpu_count);
-  if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
-    return CalcEnParticleGPU(distSq, index, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
-                             sc_sigma_6, sc_alpha, sc_power);
-  }
+  return CalcEnParticleGPU(distSq, index, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
+                           sc_sigma_6, sc_alpha, sc_power);
 }
 
 //ElectroStatic Calculation

@@ -877,21 +877,7 @@ __device__ double CalcEnForceGPU(double distSq, int kind1, int kind2,
     return CalcVirParticleGPU(distSq, index, gpu_sigmaSq, gpu_n,
                               gpu_epsilon_Cn, sc_sigma_6,
                               sc_alpha, sc_power);
-  } else if(gpu_VDW_Kind == GPU_VDW_SHIFT_KIND) {
-    return CalcVirShiftGPU(distSq, index, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
-                           sc_sigma_6, sc_alpha, sc_power);
-  } else if(gpu_VDW_Kind == GPU_VDW_EXP6_KIND) {
-    return CalcVirExp6GPU(distSq, index, gpu_sigmaSq, gpu_n, gpu_rMin,
-                          gpu_rMaxSq, gpu_expConst, sc_sigma_6,
-                          sc_alpha, sc_power);
-  } else if(gpu_VDW_Kind == GPU_VDW_SWITCH_KIND && gpu_isMartini) {
-    return CalcVirSwitchMartiniGPU(distSq, index, gpu_sigmaSq, gpu_n,
-                                   gpu_epsilon_Cn, gpu_rCut, gpu_rOn,
-                                   sc_sigma_6, sc_alpha,
-                                   sc_power);
-  } else
-    return CalcVirSwitchGPU(distSq, index, gpu_sigmaSq, gpu_epsilon_Cn, gpu_n,
-                            gpu_rCut, gpu_rOn);
+  }
 }
 
 //ElectroStatic Calculation
