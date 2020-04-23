@@ -92,7 +92,6 @@ ConfigSetup::ConfigSetup(void)
   out.state.settings.enable = true;
   out.restart.settings.enable = true;
   out.console.enable = true;
-  out.statistics.settings.block.enable = true;
 #if ENSEMBLE == GCMC
   sys.chemPot.isFugacity = false;
   out.statistics.settings.hist.enable = false;
@@ -109,7 +108,6 @@ ConfigSetup::ConfigSetup(void)
   out.state.settings.frequency = ULONG_MAX;
   out.restart.settings.frequency = ULONG_MAX;
   out.console.frequency = ULONG_MAX;
-  out.statistics.settings.block.frequency = ULONG_MAX;
   out.statistics.vars.energy.block = false;
   out.statistics.vars.energy.fluct = false;
   out.statistics.vars.pressure.block = false;
@@ -1776,19 +1774,6 @@ void ConfigSetup::verifyInputs(void)
   if(out.state.files.hist.stepsPerHistSample == UINT_MAX) {
     std::cout << "Error: Histogram output sample frequency is not specified!\n";
     exit(EXIT_FAILURE);
-  }
-#endif
-  if(!sys.step.pressureCalc && out.statistics.vars.pressure.block) {
-    printf("Note: Pressure Calculation Inactived. Pressure average output will be ignored.\n");
-    out.statistics.vars.pressure.block = false;
-  }
-  if(!sys.step.pressureCalc && out.statistics.vars.surfaceTension.block) {
-    printf("Note: Pressure Calculation Inactived. Surface Tension average output will be ignored.\n");
-    out.statistics.vars.surfaceTension.block = false;
-  }
-  if(!out.statistics.settings.block.enable && out.statistics.vars.density.block) {
-    printf("Note: Average output Inactived. Density average output will be ignored.\n");
-    out.statistics.vars.density.block = false;
   }
 #endif
   if(!out.console.enable && out.statistics.vars.energy.fluct) {
