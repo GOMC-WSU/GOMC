@@ -18,7 +18,6 @@ set(sources
    src/FFParticle.cpp
    src/FFSetup.cpp
    src/Forcefield.cpp
-   src/FreeEnergyOutput.cpp
    src/Geometry.cpp
    src/HistOutput.cpp
    src/InputFileReader.cpp
@@ -91,7 +90,6 @@ set(headers
    src/FFSwitchMartini.h
    src/FixedWidthReader.h
    src/Forcefield.h
-   src/FreeEnergyOutput.h
    src/FxdWidthWrtr.h
    src/Geometry.h
    src/HistOutput.h

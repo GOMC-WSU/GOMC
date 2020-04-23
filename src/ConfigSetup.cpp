@@ -785,21 +785,6 @@ void ConfigSetup::Init(const char *fileName)
         }
         std::cout << endl;
       }
-    } else if(CheckString(line[0], "FreeEnergyCalc")) {
-      if(line.size() > 1) {
-        sys.freeEn.enable = checkBool(line[1]);
-        if(sys.freeEn.enable) {
-          printf("%-40s %-s \n", "Info: Free Energy Calculation", "Active");
-          if(line.size() > 2) {
-            sys.freeEn.frequency = stringtoi(line[2]);
-            sys.freeEn.freqRead = true;
-            printf("%-40s %-4d \n", "Info: Free Energy Frequency",
-                   sys.freeEn.frequency);
-          }
-        } else {
-          printf("%-40s %-s \n", "Info: Free Energy Calculation", "Inactive");
-        }
-      }
     } else if (CheckString(line[0], "MoleculeType")) {
       if(line.size() > 1) {
         sys.freeEn.molType = line[1];
