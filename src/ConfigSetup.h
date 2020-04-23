@@ -388,7 +388,7 @@ public:
   config_setup::Output out;
   config_setup::SystemVals sys;
   ConfigSetup(void);
-  void Init(const char *fileName, MultiSim const*const& multisim);
+  void Init(const char *fileName);
 private:
   void fillDefaults(void);
   bool checkBool(string str);

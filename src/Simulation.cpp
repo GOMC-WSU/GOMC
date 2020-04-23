@@ -12,13 +12,13 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <iomanip>
 
-Simulation::Simulation(char const*const configFileName, MultiSim const*const& multisim)
+Simulation::Simulation(char const*const configFileName)
 {
   startStep = 0;
   //NOTE:
   //IMPORTANT! Keep this order...
   //as system depends on staticValues, and cpu sometimes depends on both.
-  set.Init(configFileName, multisim);
+  set.Init(configFileName);
   totalSteps = set.config.sys.step.total;
   staticValues = new StaticVals(set);
   system = new System(*staticValues);

@@ -18,7 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class Simulation
 {
 public:
-  explicit Simulation(char const*const configFileName, MultiSim const*const& multisim = NULL);
+  explicit Simulation(char const*const configFileName);
   ~Simulation();
 
   void RunSimulation(void);

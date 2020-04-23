@@ -43,10 +43,6 @@ void PrintGPUHardwareInfo();
 
 int main(int argc, char *argv[])
 {
-#if GOMC_LIB_MPI
-  ParallelTemperingPreprocessor pt(argc, argv);
-  MultiSim * multisim = pt.checkIfValidRank() ? new MultiSim(pt) : NULL;
-#endif
 #ifndef NDEBUG
   PrintDebugMode();
 #endif
@@ -106,24 +102,9 @@ int main(int argc, char *argv[])
 
     //CLOSE FILE TO NOW PASS TO SIMULATION
     inputFileReader.close();
-
-    //ONCE FILE FOUND PASS STRING TO SIMULATION CLASS TO READ AND
-    //HANDLE PDB|PSF FILE
-#if GOMC_LIB_MPI
-    if(multisim != NULL) {
-      Simulation sim(inputFileString.c_str(), multisim);
-      sim.RunSimulation();
-      PrintSimulationFooter();
-      delete multisim;
-      MPI_Finalize();
-    } else {
-      MPI_Finalize();
-    }
-#else
     Simulation sim(inputFileString.c_str());
     sim.RunSimulation();
     PrintSimulationFooter();
-#endif
   }
   return 0;
 }

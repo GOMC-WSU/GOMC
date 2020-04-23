@@ -27,10 +27,10 @@ public:
   PRNGSetup prng;      //4
   MolSetup mol;        //5
 
-  void Init(char const*const configFileName, MultiSim const*const& multisim)
+  void Init(char const*const configFileName)
   {
     //Read in all config data
-    config.Init(configFileName, multisim);
+    config.Init(configFileName);
     //Read in FF data.
     ff.Init(config.in.files.param.name, config.in.ffKind.isCHARMM);
     //Read PDB data
