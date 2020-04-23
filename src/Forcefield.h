@@ -64,7 +64,7 @@ public:
   bool vdwGeometricSigma;         //For sigma combining rule
   bool isMartini;
   bool exp6;
-  bool c_coul;       // Free energy parameter
+  bool sc_coul;       // Free energy parameter
   uint vdwKind;                   //To define VdW type, standard, shift or switch
   uint exckind;                   //To define  exclude kind, 1-2, 1-3, 1-4
   uint sc_power;                  // Free energy parameter

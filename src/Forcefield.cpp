@@ -64,12 +64,7 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
   rswitch = val.ff.rswitch;
   dielectric = val.elect.dielectric;
 
-  if(val.freeEn.enable) {
-    sc_alpha = val.freeEn.scaleAlpha;
-    sc_sigma = val.freeEn.scaleSigma;
-    sc_power = val.freeEn.scalePower;
-    sc_coul = val.freeEn.scaleCoulomb;
-  } else if (val.cfcmcVal.enable) {
+  if (val.cfcmcVal.enable) {
     sc_alpha = val.cfcmcVal.scaleAlpha;
     sc_sigma = val.cfcmcVal.scaleSigma;
     sc_power = val.cfcmcVal.scalePower;
