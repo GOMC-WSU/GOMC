@@ -135,6 +135,8 @@ void System::Init(Setup const& set, ulong & startStep)
     calcEwald = new NoEwald(statV, *this);
 #endif
 
+  //Initial the lambda before calling SystemTotal
+  InitLambda();
   calcEnergy.Init(*this);
   calcEwald->Init();
   potential = calcEnergy.SystemTotal();
@@ -173,6 +175,42 @@ void System::InitMoves(Setup const& set)
   }
   moves[mv::CFCMC] = new CFCMC(*this, statV);
 #endif
+}
+
+void System::InitLambda()
+{
+  if(statV.freeEnVal.enable) {
+    bool found = false;
+    for(uint k = 0; k < statV.mol.GetKindsCount(); k++) {
+      std::string kindName = statV.mol.kinds[k].name;
+      if(statV.freeEnVal.molType == kindName) {
+        found = true;
+        uint totalMol = molLookupRef.NumKindInBox(k, mv::BOX0);
+        //In PDB file, molIndex start from 1.
+        uint FEmolIndex = statV.freeEnVal.molIndex - 1;
+        if(totalMol == 0) {
+          found = false;
+        } else if(totalMol <= FEmolIndex) {
+          std::cout << "Error: Molecule index " << statV.freeEnVal.molIndex <<
+                    " of kind " << kindName << " does not exist in the simulation box!\n";
+          exit(EXIT_FAILURE);
+        } else {
+          uint m = molLookupRef.GetMolNum(FEmolIndex, k, mv::BOX0);
+          uint state = statV.freeEnVal.iState;
+          double lambdaCoulomb = statV.freeEnVal.lambdaCoulomb[state];
+          double lambdaVDW = statV.freeEnVal.lambdaVDW[state];
+          lambdaRef.Set(lambdaVDW, lambdaCoulomb, m, k, mv::BOX0);
+        }
+        break;
+      }
+    }
+
+    if(!found) {
+      std::cout << "Error: No molecule of kind " << statV.freeEnVal.molType <<
+                " in the simulation box! \n";
+      exit(EXIT_FAILURE);
+    }
+  }
 }
 
 void System::RecalculateTrajectory(Setup &set, uint frameNum)

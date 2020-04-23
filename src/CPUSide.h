@@ -16,6 +16,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "OutputVars.h"
 #include "CheckpointOutput.h"
 #include "EnPartCntSampleOutput.h"
+#include "FreeEnergyOutput.h"
 
 #include <vector>
 
@@ -39,6 +40,9 @@ private:
   CheckpointOutput checkpoint;
 #if ENSEMBLE == GCMC
   EnPartCntSample sample_N_E;
+#endif
+#if ENSEMBLE == NVT || ENSEMBLE == NPT
+  FreeEnergyOutput freeEnergy;
 #endif
   OutputVars varRef;
 };
