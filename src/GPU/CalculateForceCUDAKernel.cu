@@ -873,11 +873,9 @@ __device__ double CalcEnForceGPU(double distSq, int kind1, int kind2,
   }
 
   int index = FlatIndexGPU(kind1, kind2, gpu_count);
-  if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
-    return CalcVirParticleGPU(distSq, index, gpu_sigmaSq, gpu_n,
-                              gpu_epsilon_Cn, sc_sigma_6,
-                              sc_alpha, sc_power);
-  }
+  return CalcVirParticleGPU(distSq, index, gpu_sigmaSq, gpu_n,
+                            gpu_epsilon_Cn, sc_sigma_6,
+                            sc_alpha, sc_power);
 }
 
 //ElectroStatic Calculation
