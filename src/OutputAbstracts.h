@@ -68,7 +68,7 @@ public:
   void Init(const ulong tillEquil, const ulong totSteps,
             std::string const& uniqueForFileIO)
   {
-    uniqueName = uniqueForFileIO
+    uniqueName = uniqueForFileIO;
     stepsTillEquil = tillEquil;
     totSimSteps = totSteps;
     firstPrint = true;
