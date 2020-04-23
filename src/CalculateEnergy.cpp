@@ -1352,34 +1352,7 @@ void CalculateEnergy::EnergyCorrection(SystemPotential& pot,
             * boxAxes.volInv[box];
     }
   }
-
-  if(!forcefield.freeEnergy) {
-    pot.boxEnergy[box].tc = en;
-  }
-#if ENSEMBLE == NVT || ENSEMBLE == NPT
-  else {
-    //Get the kind and lambda value
-    uint fk = lambdaRef.GetKind(box);
-    double lambdaVDW = lambdaRef.GetLambdaVDW(fk, box);
-    //remove the LRC for one molecule with lambda = 1
-    en += MoleculeTailChange(box, fk, false).energy;
-
-    //Add the LRC for fractional molecule
-    for (uint i = 0; i < mols.GetKindsCount(); ++i) {
-      uint molNum = molLookup.NumKindInBox(i, box);
-      if(i == fk) {
-        --molNum; // We have one less molecule (it is fractional molecule)
-      }
-      double rhoDeltaIJ_2 = 2.0 * (double)(molNum) * currentAxes.volInv[box];
-      en += lambdaVDW * mols.pairEnCorrections[fk * mols.GetKindsCount() + i] *
-            rhoDeltaIJ_2;
-    }
-    //We already calculated part of the change for this type in the loop
-    en += lambdaVDW * mols.pairEnCorrections[fk * mols.GetKindsCount() + fk] *
-          currentAxes.volInv[box];
-    pot.boxEnergy[box].tc = en;
-  }
-#endif
+  pot.boxEnergy[box].tc = en;
 }
 
 //!Calculates energy corrections for the box
@@ -1418,32 +1391,7 @@ void CalculateEnergy::VirialCorrection(Virial& virial,
     }
   }
 
-  if(!forcefield.freeEnergy) {
-    virial.tc = vir;
-  }
-#if ENSEMBLE == NVT || ENSEMBLE == NPT
-  else {
-    //Get the kind and lambda value
-    uint fk = lambdaRef.GetKind(box);
-    double lambdaVDW = lambdaRef.GetLambdaVDW(fk, box);
-    //remove the LRC for one molecule with lambda = 1
-    vir += MoleculeTailVirChange(box, fk, false).virial;
-
-    //Add the LRC for fractional molecule
-    for (uint i = 0; i < mols.GetKindsCount(); ++i) {
-      uint molNum = molLookup.NumKindInBox(i, box);
-      if(i == fk) {
-        --molNum; // We have one less molecule (it is fractional molecule)
-      }
-      double rhoDeltaIJ_2 = 2.0 * (double)(molNum) * currentAxes.volInv[box];
-      vir += mols.pairVirCorrections[fk * mols.GetKindsCount() + i] * rhoDeltaIJ_2;
-    }
-    //We already calculated part of the change for this type in the loop
-    vir += mols.pairVirCorrections[fk * mols.GetKindsCount() + fk] *
-           currentAxes.volInv[box];
-    virial.tc = vir;
-  }
-#endif
+  virial.tc = vir;
 }
 
 //! Calculate Torque
