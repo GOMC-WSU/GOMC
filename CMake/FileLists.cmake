@@ -1,5 +1,4 @@
-set(sources 
-   src/BlockOutput.cpp
+set(sources
    src/BoxDimensions.cpp
    src/BoxDimensionsNonOrth.cpp
    src/CBMC.cpp
@@ -61,7 +60,6 @@ set(sources
    src/cbmc/TrialMol.cpp)
 
 set(headers
-   src/BlockOutput.h
    src/BoxDimensions.h
    src/BoxDimensionsNonOrth.h
    src/CalculateEnergy.h
