@@ -185,7 +185,6 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 
     while (thisMol != end) {
       MoleculeKind const& thisKind = mols.GetKind(*thisMol);
-      double lambdaCoef = GetLambdaCoef(*thisMol, box);
       uint start = mols.MolStart(*thisMol);
 
 #ifdef _OPENMP
@@ -202,15 +201,13 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
           dotProduct = Dot(mols.MolStart(*thisMol) + j,
                            kx[box][i], ky[box][i],
                            kz[box][i], molCoords);
-          //cache the Cos and sin term with lambda = 1
           cosMolRef[*thisMol][i] += (thisKind.AtomCharge(j) *
                                      cos(dotProduct));
           sinMolRef[*thisMol][i] += (thisKind.AtomCharge(j) *
                                      sin(dotProduct));
         }
-        //store the summation with system lambda
-        sumRnew[box][i] += (lambdaCoef * cosMolRef[*thisMol][i]);
-        sumInew[box][i] += (lambdaCoef * sinMolRef[*thisMol][i]);
+        sumRnew[box][i] += (cosMolRef[*thisMol][i]);
+        sumInew[box][i] += (sinMolRef[*thisMol][i]);
       }
       thisMol++;
     }
@@ -253,7 +250,6 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
     int i;
     double sumRealNew, sumImaginaryNew, dotProductNew, sumRealOld,
            sumImaginaryOld;
-    double lambdaCoef = GetLambdaCoef(molIndex, box);
 
 #ifdef _OPENMP
     #pragma omp parallel for default(shared) private(i, p, sumRealNew, sumImaginaryNew, sumRealOld, sumImaginaryOld, dotProductNew) reduction(+:energyRecipNew)
@@ -279,10 +275,8 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
         sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
       }
 
-      sumRnew[box][i] = sumRref[box][i] + lambdaCoef *
-                        (sumRealNew - sumRealOld);
-      sumInew[box][i] = sumIref[box][i] + lambdaCoef *
-                        (sumImaginaryNew - sumImaginaryOld);
+      sumRnew[box][i] = sumRref[box][i] + (sumRealNew - sumRealOld);
+      sumInew[box][i] = sumIref[box][i] + (sumImaginaryNew - sumImaginaryOld);
       cosMolRef[molIndex][i] = sumRealNew;
       sinMolRef[molIndex][i] = sumImaginaryNew;
 
@@ -292,56 +286,6 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
   }
 
   return energyRecipNew - sysPotRef.boxEnergy[box].recip;
-}
-
-//calculate reciprocate term for lambdaNew and Old with same coordinates
-double EwaldCached::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
-                               const double lambdaNew, const uint molIndex,
-                               const uint box)
-{
-  //This function should not be called in CFCMC move
-  std::cout << "Error: Cached Fourier method cannot be used while " <<
-            "performing CFCMC move!" << std::endl;
-  exit(EXIT_FAILURE);
-  return 0.0;
-}
-
-//calculate reciprocate term for lambdaNew and Old with same coordinates
-void EwaldCached::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
-                              const std::vector<double> &lambda_Coul,
-                              const uint iState, const uint molIndex,
-                              const uint box) const
-{
-  //Need to implement GPU
-  uint i, s;
-  uint lambdaSize = lambda_Coul.size();
-  double coefDiff;
-  double *energyRecip = new double [lambdaSize];
-  std::fill_n(energyRecip, lambdaSize, 0.0);
-
-#ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(i, s, coefDiff) reduction(+:energyRecip[:lambdaSize])
-#endif
-  for (i = 0; i < imageSizeRef[box]; i++) {
-    for(s = 0; s < lambdaSize; s++) {
-      //Calculate the energy of other state
-      coefDiff = sqrt(lambda_Coul[s]) - sqrt(lambda_Coul[iState]);
-      energyRecip[s] += prefactRef[box][i] *
-                        ((sumRref[box][i] + coefDiff * cosMolRef[molIndex][i]) *
-                         (sumRref[box][i] + coefDiff * cosMolRef[molIndex][i]) +
-                         (sumIref[box][i] + coefDiff * sinMolRef[molIndex][i]) *
-                         (sumIref[box][i] + coefDiff * sinMolRef[molIndex][i]));
-    }
-  }
-
-  double energyRecipOld = sysPotRef.boxEnergy[box].recip;
-  for(s = 0; s < lambdaSize; s++) {
-    energyDiff[s].recip = energyRecip[s] - energyRecipOld;
-  }
-  //Calculate du/dl of Reciprocal for current state
-  //energy difference E(lambda =1) - E(lambda = 0)
-  dUdL_Coul.recip += energyDiff[lambdaSize - 1].recip - energyDiff[0].recip;
-  delete [] energyRecip;
 }
 
 //restore cosMol and sinMol

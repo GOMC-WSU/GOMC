@@ -40,7 +40,6 @@ class Coordinates;
 class COM;
 class XYZArray;
 class BoxDimensions;
-class Lambda;
 
 class CalculateEnergy
 {
@@ -142,14 +141,6 @@ public:
                                        const uint kind,
                                        const bool add) const;
 
-  //! Calculates the change in the TC from chaning the lambdaOld -> lambdaNew
-  //! @param box Index of box under consideration
-  //! @param kind Kind of particle being transfrom in lambda
-  double MoleculeTailChange(const uint box, const uint kind,
-                            const std::vector <uint> &kCount,
-                            const double lambdaOld,
-                            const double lambdaNew) const;
-
   //! Calculates voidintramolecular energy of a full molecule
   void MoleculeIntra(const uint molIndex, const uint box, double *bondEn) const;
 
@@ -183,21 +174,6 @@ public:
 
   //!Calculates energy corrections for the box
   double EnergyCorrection(const uint box, const uint *kCount) const;
-
-  //Calculate inter energy for single molecule in the system.
-  void SingleMoleculeInter(Energy &interEnOld, Energy &interEnNew,
-                           const double lambdaOldVDW,
-                           const double lambdaNewVDW,
-                           const double lambdaOldCoulomb,
-                           const double lambdaNewCoulomb,
-                           const uint molIndex, const uint box) const;
-
-  //Calculate the change in energy due to lambda
-  void EnergyChange(Energy *energyDiff, Energy &dUdL_VDW, Energy &dUdL_Coul,
-                    const std::vector<double> &lambda_VDW,
-                    const std::vector<double> &lambda_Coul,
-                    const uint iState, const uint molIndex,
-                    const uint box) const;
 private:
 
   //! Calculates full TC energy for one box in current system
@@ -270,12 +246,6 @@ private:
   //for Martini forcefield
   void MolNonbond_1_3(double & energy, MoleculeKind const& molKind) const;
 
-  //Calculate the change in LRC for each state
-  void ChangeLRC(Energy *energyDiff, Energy &dUdL_VDW,
-                 const std::vector<double> &lambda_VDW,
-                 const uint iState, const uint molIndex,
-                 const uint box) const;
-
   //! For particles in main coordinates array determines if they belong
   //! to same molecule, using internal arrays.
   bool SameMolecule(const uint p1, const uint p2) const
@@ -286,9 +256,6 @@ private:
     return (pair1 == pair2);
   }
 
-  double GetLambdaVDW(uint molA, uint molB, uint box) const;
-  double GetLambdaCoulomb(uint molA, uint molB, uint box) const;
-
 
   const Forcefield& forcefield;
   const Molecules& mols;
@@ -297,7 +264,6 @@ private:
   const BoxDimensions& currentAxes;
   const COM& currentCOM;
   const Ewald *calcEwald;
-  const Lambda& lambdaRef;
   XYZArray& atomForceRef;
   XYZArray& molForceRef;
   bool multiParticleEnabled;

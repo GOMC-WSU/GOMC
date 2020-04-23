@@ -65,20 +65,19 @@ public:
 
   // LJ interaction functions
   virtual double CalcEn(const double distSq,
-                        const uint kind1, const uint kind2,
-                        const double lambda) const;
+                        const uint kind1, const uint kind2) const;
   virtual double CalcVir(const double distSq, const uint kind1,
-                         const uint kind2, const double lambda) const;
+                         const uint kind2) const;
   virtual void CalcAdd_1_4(double& en, const double distSq,
                            const uint kind1, const uint kind2) const;
 
   // coulomb interaction functions
   virtual double CalcCoulomb(const double distSq, const uint kind1,
                              const uint kind2, const double qi_qj_Fact,
-                             const double lambda, const uint b) const;
+                             const uint b) const;
   virtual double CalcCoulombVir(const double distSq, const uint kind1,
                                 const uint kind2, const double qi_qj,
-                                const double lambda, uint b) const;
+                                uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact, const bool NB) const;
 
@@ -86,14 +85,6 @@ public:
   virtual double EnergyLRC(const uint kind1, const uint kind2) const;
   //!Returns Energy long-range correction term for a kind pair
   virtual double VirialLRC(const uint kind1, const uint kind2) const;
-
-  //Calculate the dE/dlambda for vdw energy
-  virtual double CalcdEndL(const double distSq, const uint kind1,
-                           const uint kind2, const double lambda) const;
-  //Calculate the dE/dlambda for Coulomb energy
-  virtual double CalcCoulombdEndL(const double distSq, const uint kind1,
-                                  const uint kind2, const double qi_qj_Fact,
-                                  const double lambda, uint b) const;
 
   uint NumKinds() const
   {
@@ -112,12 +103,6 @@ public:
 #endif
 
 protected:
-  virtual double CalcEn(const double distSq, const uint index) const;
-  virtual double CalcVir(const double distSq, const uint index) const;
-  virtual double CalcCoulomb(const double distSq, const double qi_qj_Fact,
-                             const uint b) const;
-  virtual double CalcCoulombVir(const double distSq, const double qi_qj,
-                                uint b) const;
   //Find the index of the pair kind
   uint FlatIndex(const uint i, const uint j) const
   {

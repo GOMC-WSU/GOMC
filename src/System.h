@@ -24,13 +24,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CellList.h"
 #include "Clock.h"
 #include "CheckpointSetup.h"
-#include "../lib/Lambda.h"
 
 //Initialization variables
 class Setup;
 class StaticVals;
 class MoveBase;
-class Lambda;
 
 
 class System
@@ -100,7 +98,6 @@ public:
   XYZArray molForceRef;
   XYZArray atomForceRecRef;
   XYZArray molForceRecRef;
-  Lambda lambdaRef;
   COM com;
 
   CalculateEnergy calcEnergy;

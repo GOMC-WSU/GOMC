@@ -59,12 +59,8 @@ set(headers
    src/FFBonds.h
    src/FFConst.h
    src/FFDihedrals.h
-   src/FFExp6.h
    src/FFParticle.h
    src/FFSetup.h
-   src/FFShift.h
-   src/FFSwitch.h
-   src/FFSwitchMartini.h
    src/FixedWidthReader.h
    src/Forcefield.h
    src/FxdWidthWrtr.h
@@ -110,7 +106,6 @@ set(libHeaders
    lib/BasicTypes.h
    lib/BitLib.h
    lib/GeomLib.h
-   lib/Lambda.h
    lib/NumLib.h
    lib/StrLib.h
    lib/StrStrmLib.h

@@ -278,29 +278,12 @@ inline void FFParticle::CalcCoulombAdd_1_4(double& en, const double distSq,
 
 //mie potential
 inline double FFParticle::CalcEn(const double distSq, const uint kind1,
-                                 const uint kind2, const double lambda) const
+                                 const uint kind2) const
 {
   if(forcefield.rCutSq < distSq)
     return 0.0;
 
   uint index = FlatIndex(kind1, kind2);
-  if(lambda >= 0.999999) {
-    //save computation time
-    return CalcEn(distSq, index);
-  }
-  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
-  sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
-  double dist6 = distSq * distSq * distSq;
-  double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
-  double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, 1.0 / 3.0);
-
-  double en = lambda * CalcEn(softRsq, index);
-  return en;
-}
-
-inline double FFParticle::CalcEn(const double distSq, const uint index) const
-{
   double rRat2 = sigmaSq[index] / distSq;
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
@@ -311,30 +294,12 @@ inline double FFParticle::CalcEn(const double distSq, const uint index) const
 }
 
 inline double FFParticle::CalcVir(const double distSq, const uint kind1,
-                                  const uint kind2, const double lambda) const
+                                  const uint kind2) const
 {
   if(forcefield.rCutSq < distSq)
     return 0.0;
 
   uint index = FlatIndex(kind1, kind2);
-  if(lambda >= 0.999999) {
-    //save computation time
-    return CalcVir(distSq, index);
-  }
-  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
-  sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
-  double dist6 = distSq * distSq * distSq;
-  double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
-  double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, 1.0 / 3.0);
-  double correction = distSq / softRsq;
-  //We need to fix the return value from calcVir
-  double vir = lambda * correction * correction * CalcVir(softRsq, index);
-  return vir;
-}
-
-inline double FFParticle::CalcVir(const double distSq, const uint index) const
-{
   double rNeg2 = 1.0 / distSq;
   double rRat2 = rNeg2 * sigmaSq[index];
   double rRat4 = rRat2 * rRat2;
@@ -349,36 +314,11 @@ inline double FFParticle::CalcCoulomb(const double distSq,
                                       const uint kind1,
                                       const uint kind2,
                                       const double qi_qj_Fact,
-                                      const double lambda,
                                       const uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
 
-  if(lambda >= 0.999999) {
-    //save computation time
-    return CalcCoulomb(distSq, qi_qj_Fact, b);
-  }
-  double en = 0.0;
-  if(forcefield.sc_coul) {
-    uint index = FlatIndex(kind1, kind2);
-    double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
-    sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
-    double dist6 = distSq * distSq * distSq;
-    double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
-    double softDist6 = lambdaCoef * sigma6 + dist6;
-    double softRsq = pow(softDist6, 1.0 / 3.0);
-    en = lambda * CalcCoulomb(softRsq, qi_qj_Fact, b);
-  } else {
-    en = lambda * CalcCoulomb(distSq, qi_qj_Fact, b);
-  }
-  return en;
-}
-
-inline double FFParticle::CalcCoulomb(const double distSq,
-                                      const double qi_qj_Fact,
-                                      const uint b) const
-{
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
     double val = forcefield.alpha[b] * dist;
@@ -393,37 +333,11 @@ inline double FFParticle::CalcCoulombVir(const double distSq,
     const uint kind1,
     const uint kind2,
     const double qi_qj,
-    const double lambda,
     const uint b) const
 {
   if(forcefield.rCutCoulombSq[b] < distSq)
     return 0.0;
 
-  if(lambda >= 0.999999) {
-    //save computation time
-    return CalcCoulombVir(distSq, qi_qj, b);
-  }
-  double vir = 0.0;
-  if(forcefield.sc_coul) {
-    uint index = FlatIndex(kind1, kind2);
-    double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
-    sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
-    double dist6 = distSq * distSq * distSq;
-    double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
-    double softDist6 = lambdaCoef * sigma6 + dist6;
-    double softRsq = pow(softDist6, 1.0 / 3.0);
-    double correction = distSq / softRsq;
-    //We need to fix the return value from calcVir
-    vir = lambda * correction * correction * CalcCoulombVir(softRsq, qi_qj, b);
-  } else {
-    vir = lambda * CalcCoulombVir(distSq, qi_qj, b);
-  }
-  return vir;
-}
-
-inline double FFParticle::CalcCoulombVir(const double distSq,
-    const double qi_qj, const uint b) const
-{
   if(forcefield.ewald) {
     double dist = sqrt(distSq);
     double constValue = 2.0 * forcefield.alpha[b] / sqrt(M_PI);
@@ -435,54 +349,4 @@ inline double FFParticle::CalcCoulombVir(const double distSq,
     double result = qi_qj / (distSq * dist);
     return result;
   }
-}
-
-//Calculate the dE/dlambda for vdw energy
-inline double FFParticle::CalcdEndL(const double distSq, const uint kind1,
-                                    const uint kind2,
-                                    const double lambda) const
-{
-  if(forcefield.rCutSq < distSq)
-    return 0.0;
-
-  uint index = FlatIndex(kind1, kind2);
-  double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
-  sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
-  double dist6 = distSq * distSq * distSq;
-  double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
-  double softDist6 = lambdaCoef * sigma6 + dist6;
-  double softRsq = pow(softDist6, 1.0 / 3.0);
-  double fCoef = lambda * forcefield.sc_alpha * forcefield.sc_power / 6.0;
-  fCoef *= pow(1.0 - lambda, forcefield.sc_power - 1) * sigma6 / (softRsq * softRsq);
-  double dhdl = CalcEn(softRsq, index) + fCoef * CalcVir(softRsq, index);
-  return dhdl;
-}
-
-//Calculate the dE/dlambda for Coulomb energy
-inline double FFParticle::CalcCoulombdEndL(const double distSq,
-    const uint kind1,
-    const uint kind2,
-    const double qi_qj_Fact,
-    const double lambda, uint b) const
-{
-  if(forcefield.rCutCoulombSq[b] < distSq)
-    return 0.0;
-
-  double dhdl = 0.0;
-  if(forcefield.sc_coul) {
-    uint index = FlatIndex(kind1, kind2);
-    double sigma6 = sigmaSq[index] * sigmaSq[index] * sigmaSq[index];
-    sigma6 = std::max(sigma6, forcefield.sc_sigma_6);
-    double dist6 = distSq * distSq * distSq;
-    double lambdaCoef = forcefield.sc_alpha * pow((1.0 - lambda), forcefield.sc_power);
-    double softDist6 = lambdaCoef * sigma6 + dist6;
-    double softRsq = pow(softDist6, 1.0 / 3.0);
-    double fCoef = lambda * forcefield.sc_alpha * forcefield.sc_power / 6.0;
-    fCoef *= pow(1.0 - lambda, forcefield.sc_power - 1) * sigma6 / (softRsq * softRsq);
-    dhdl = CalcCoulomb(softRsq, qi_qj_Fact, b) +
-           fCoef * CalcCoulombVir(softRsq, qi_qj_Fact, b);
-  } else {
-    dhdl = CalcCoulomb(distSq, qi_qj_Fact, b);
-  }
-  return dhdl;
 }

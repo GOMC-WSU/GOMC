@@ -39,7 +39,6 @@ class COM;
 class XYZArray;
 class BoxDimensions;
 class CalculateEnergy;
-class Lambda;
 
 
 class Ewald
@@ -82,11 +81,6 @@ public:
   virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
                                const uint box);
 
-  //calculate reciprocate term for lambdaNew and Old with same coordinates
-  virtual double CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
-                            const double lambdaNew, const uint molIndex,
-                            const uint box);
-
   //calculate correction term for a molecule
   virtual double MolCorrection(uint molIndex, uint box)const;
 
@@ -119,29 +113,6 @@ public:
                                   XYZArray& molForceRec,
                                   uint box);
 
-  double GetLambdaCoef(uint molA, uint box) const;
-
-  //It's called in free energy calculation to calculate the change in
-  // self energy in all lambda states
-  virtual void ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
-                          const std::vector<double> &lambda_Coul,
-                          const uint iState, const uint molIndex,
-                          const uint box) const;
-
-  //It's called in free energy calculation to calculate the change in
-  // correction energy in all lambda states
-  virtual void ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
-                                const std::vector<double> &lambda_Coul,
-                                const uint iState, const uint molIndex,
-                                const uint box) const;
-
-  //It's called in free energy calculation to calculate the change in
-  // reciprocal energy in all lambda states
-  virtual void ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
-                           const std::vector<double> &lambda_Coul,
-                           const uint iState, const uint molIndex,
-                           const uint box) const;
-
 private:
   double currentEnergyRecip[BOXES_WITH_U_NB];
 
@@ -153,7 +124,6 @@ protected:
   const BoxDimensions& currentAxes;
   const COM& currentCOM;
   const SystemPotential &sysPotRef;
-  const Lambda& lambdaRef;
 
   bool electrostatic, ewald, multiParticleEnabled;
   double alpha;

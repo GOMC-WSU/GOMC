@@ -48,34 +48,8 @@ public:
   virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
                                const uint box);
 
-  //calculate reciprocate term for lambdaNew and Old with same coordinates
-  virtual double CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
-                            const double lambdaNew, const uint molIndex,
-                            const uint box);
-
   //back up reciptocate value to Ref (will be called during initialization)
   virtual void SetRecipRef(uint box);
-
-  //It's called in free energy calculation to calculate the change in
-  // self energy in all lambda states
-  virtual void ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
-                          const std::vector<double> &lambda_Coul,
-                          const uint iState, const uint molIndex,
-                          const uint box) const;
-
-  //It's called in free energy calculation to calculate the change in
-  // correction energy in all lambda states
-  virtual void ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
-                                const std::vector<double> &lambda_Coul,
-                                const uint iState, const uint molIndex,
-                                const uint box) const;
-
-  //It's called in free energy calculation to calculate the change in
-  // reciprocal energy in all lambda states
-  virtual void ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
-                           const std::vector<double> &lambda_Coul,
-                           const uint iState, const uint molIndex,
-                           const uint box) const;
 
   //update reciprocate values
   virtual void UpdateRecip(uint box);
