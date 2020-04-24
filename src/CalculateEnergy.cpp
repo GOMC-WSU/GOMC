@@ -357,11 +357,15 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
       if (electrostatic) {
         qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] *
                      num::qqFact;
-        tempREn += forcefield.particles->CalcCoulomb(distSq, particleKind[pair1[i]],
+        double x = forcefield.particles->CalcCoulomb(distSq, particleKind[pair1[i]],
                    particleKind[pair2[i]], qi_qj_fact, box);
+        cout << "electrostatic: " << x << ", ";
+        tempREn += x;
       }
-      tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
+      double y = forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
                   particleKind[pair2[i]]);
+      cout << "energy: " << y << "\n";
+      tempLJEn += y;
 
       // Calculating the force
       if(multiParticleEnabled) {
