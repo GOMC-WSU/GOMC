@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -l
 
 if [ ! -d "./lib/cub" ]; then
 	cd lib
