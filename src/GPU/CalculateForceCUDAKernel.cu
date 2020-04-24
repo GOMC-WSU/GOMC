@@ -294,7 +294,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   // Run the kernel...
   threadsPerBlock = 256;
   blocksPerGrid = (int)(pair1.size() / threadsPerBlock) + 1;
-  cout << "Got before kernel launch\n";
   checkLastErrorCUDA(__FILE__, __LINE__);
   BoxForceGPU <<< blocksPerGrid, threadsPerBlock>>>(gpu_pair1,
       gpu_pair2,
@@ -348,7 +347,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
 
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
-  cout << "After kernel launch\n";
   // ReduceSum
   void * d_temp_storage = NULL;
   size_t temp_storage_bytes = 0;
@@ -396,7 +394,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
                             sizeof(double) * molCount,
                             cudaMemcpyDeviceToHost));
   }
-  cout << "End of CallBoxForce function\n";
 
   cudaFree(gpu_pair1);
   cudaFree(gpu_pair2);
