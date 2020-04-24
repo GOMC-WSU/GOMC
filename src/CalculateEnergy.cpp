@@ -389,6 +389,7 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
     }
   }
 #endif
+  cout << "tempREn: " << tempREn << ", tempLJEn: " << tempLJEn << "\n";
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction
