@@ -158,6 +158,7 @@ void FFParticle::Blend(ff_setup::Particle const& mie)
 
       sigmaSq_1_4[idx] = sigma_1_4 * sigma_1_4;
       sigmaSq[idx] = sigma * sigma;
+      cout << sigmaSq[idx] << "\n";
       epsilon[idx] = num::MeanG(mie.epsilon, mie.epsilon, i, j);
       epsilon_cn[idx] = cn * epsilon[idx];
       epsilon_1_4[idx] = num::MeanG(mie.epsilon_1_4, mie.epsilon_1_4, i, j);
@@ -284,6 +285,7 @@ inline double FFParticle::CalcEn(const double distSq, const uint kind1,
     return 0.0;
 
   uint index = FlatIndex(kind1, kind2);
+  cout << "CalcEn -> SigmaSq[index]: " << sigmaSq[index] << "\n";
   double rRat2 = sigmaSq[index] / distSq;
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;

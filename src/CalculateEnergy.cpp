@@ -332,8 +332,6 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
     // Copy back the result if it is the last iteration
     bool copy_back = max == pairSize;
 
-    cout << "currentIndex: " << currentIndex << ", pairSize: " << pairSize << "\n";
-
     CallBoxForceGPU(forcefield.particles->getCUDAVars(), subPair1, subPair2,
                     coords, boxAxes, electrostatic, particleCharge,
                     particleKind, particleMol, REn, LJEn,
@@ -341,7 +339,6 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
                     atomCount, molCount, reset_force, copy_back, forcefield.sc_coul,
                     forcefield.sc_sigma_6, forcefield.sc_alpha,
                     forcefield.sc_power, box);
-    cout << "tempREn: " << tempREn << ", tempLJEn: " << tempLJEn << "\n";
     tempREn += REn;
     tempLJEn += LJEn;
     currentIndex += MAX_PAIR_SIZE;
@@ -392,7 +389,7 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
     }
   }
 #endif
-  cout << "tempREn: " << tempREn << ", tempLJEn: " << tempLJEn << "\n";
+  //cout << "tempREn: " << tempREn << ", tempLJEn: " << tempLJEn << "\n";
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction
