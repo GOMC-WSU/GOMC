@@ -766,25 +766,19 @@ __global__ void BoxForceGPU(int *gpu_pair1,
     forceLJy = virY * pVF;
     forceLJz = virZ * pVF;
 
-    atomicAdd(&gpu_aForcex[gpu_pair1[threadID]], forceRealx + forceLJx);
-    atomicAdd(&gpu_aForcey[gpu_pair1[threadID]], forceRealy + forceLJy);
-    atomicAdd(&gpu_aForcez[gpu_pair1[threadID]], forceRealz + forceLJz);
-    atomicAdd(&gpu_aForcex[gpu_pair2[threadID]], -1.0 * (forceRealx + forceLJx));
-    atomicAdd(&gpu_aForcey[gpu_pair2[threadID]], -1.0 * (forceRealy + forceLJy));
-    atomicAdd(&gpu_aForcez[gpu_pair2[threadID]], -1.0 * (forceRealz + forceLJz));
+    gpu_aForcex[gpu_pair1[threadID]] += forceRealx + forceLJx;
+    gpu_aForcey[gpu_pair1[threadID]] += forceRealy + forceLJy;
+    gpu_aForcez[gpu_pair1[threadID]] += forceRealz + forceLJz;
+    gpu_aForcex[gpu_pair2[threadID]] += -1.0 * (forceRealx + forceLJx);
+    gpu_aForcey[gpu_pair2[threadID]] += -1.0 * (forceRealy + forceLJy);
+    gpu_aForcez[gpu_pair2[threadID]] += -1.0 * (forceRealz + forceLJz);
 
-    atomicAdd(&gpu_mForcex[gpu_particleMol[gpu_pair1[threadID]]],
-              forceRealx + forceLJx);
-    atomicAdd(&gpu_mForcey[gpu_particleMol[gpu_pair1[threadID]]],
-              forceRealy + forceLJy);
-    atomicAdd(&gpu_mForcez[gpu_particleMol[gpu_pair1[threadID]]],
-              forceRealz + forceLJz);
-    atomicAdd(&gpu_mForcex[gpu_particleMol[gpu_pair2[threadID]]],
-              -1.0 * (forceRealx + forceLJx));
-    atomicAdd(&gpu_mForcey[gpu_particleMol[gpu_pair2[threadID]]],
-              -1.0 * (forceRealy + forceLJy));
-    atomicAdd(&gpu_mForcez[gpu_particleMol[gpu_pair2[threadID]]],
-              -1.0 * (forceRealz + forceLJz));
+    gpu_mForcex[gpu_particleMol[gpu_pair1[threadID]]] += forceRealx + forceLJx;
+    gpu_mForcey[gpu_particleMol[gpu_pair1[threadID]]] += forceRealy + forceLJy;
+    gpu_mForcez[gpu_particleMol[gpu_pair1[threadID]]] += forceRealz + forceLJz;
+    gpu_mForcex[gpu_particleMol[gpu_pair2[threadID]]] += -1.0 * (forceRealx + forceLJx);
+    gpu_mForcey[gpu_particleMol[gpu_pair2[threadID]]] += -1.0 * (forceRealy + forceLJy);
+    gpu_mForcez[gpu_particleMol[gpu_pair2[threadID]]] += -1.0 * (forceRealz + forceLJz);
   }
 }
 
