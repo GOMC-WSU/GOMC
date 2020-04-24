@@ -347,6 +347,7 @@ void CallBoxForceGPU(VariablesCUDA *vars,
       box);
 
   checkLastErrorCUDA(__FILE__, __LINE__);
+  cout << "After kernel launch\n";
   // ReduceSum
   void * d_temp_storage = NULL;
   size_t temp_storage_bytes = 0;
