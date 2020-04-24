@@ -289,7 +289,6 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   // Reset Force Arrays
   ResetForce(atomForce, molForce, box);
 
-  uint pairSize = pair1.size();
   //store atom pair index
   while (!pair.Done()) {
     if(!SameMolecule(pair.First(), pair.Second())) {
@@ -298,6 +297,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
     }
     pair.Next();
   }
+  uint pairSize = pair1.size();
 
 #ifdef GOMC_CUDA
   uint currentIndex = 0;

@@ -294,6 +294,7 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   // Run the kernel...
   threadsPerBlock = 256;
   blocksPerGrid = (int)(pair1.size() / threadsPerBlock) + 1;
+  checkLastErrorCUDA(__FILE__, __LINE__);
   BoxForceGPU <<< blocksPerGrid, threadsPerBlock>>>(gpu_pair1,
       gpu_pair2,
       vars->gpu_x,
