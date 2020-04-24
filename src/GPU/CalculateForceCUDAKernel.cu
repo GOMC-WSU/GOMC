@@ -763,7 +763,7 @@ __global__ void BoxForceGPU(int *gpu_pair1,
     forceLJy = virY * pVF;
     forceLJz = virZ * pVF;
 
-    atomicAdd(&gpu_aForcex[gpu_pair1[threadID]], forceRealx + forceLJx);
+    /*atomicAdd(&gpu_aForcex[gpu_pair1[threadID]], forceRealx + forceLJx);
     atomicAdd(&gpu_aForcey[gpu_pair1[threadID]], forceRealy + forceLJy);
     atomicAdd(&gpu_aForcez[gpu_pair1[threadID]], forceRealz + forceLJz);
     atomicAdd(&gpu_aForcex[gpu_pair2[threadID]], -1.0 * (forceRealx + forceLJx));
@@ -781,7 +781,7 @@ __global__ void BoxForceGPU(int *gpu_pair1,
     atomicAdd(&gpu_mForcey[gpu_particleMol[gpu_pair2[threadID]]],
               -1.0 * (forceRealy + forceLJy));
     atomicAdd(&gpu_mForcez[gpu_particleMol[gpu_pair2[threadID]]],
-              -1.0 * (forceRealz + forceLJz));
+              -1.0 * (forceRealz + forceLJz));*/
   }
 }
 
