@@ -381,8 +381,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   REn = cpu_final_REn;
   LJEn = cpu_final_LJEn;
 
-  cudaMemcpy()
-
   if(copy_back) {
     CubDebugExit(cudaMemcpy(aForcex, vars->gpu_aForcex,
                             sizeof(double) * atomCount,
