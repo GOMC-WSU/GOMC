@@ -60,5 +60,5 @@ ICC_PATH="$(which gcc)"
 ICPC_PATH="$(which g++)"
 export CC=${ICC_PATH}
 export CXX=${ICPC_PATH}
-cmake -DENSEMBLE_NVT=off -DENSEMBLE_NPT=off -DENSEMBLE_GCMC=off -DENSEMBLE_GEMC=off -DENSEMBLE_GPU_NPT=off -DENSEMBLE_GPU_GCMC=off -DENSEMBLE_GPU_GEMC=off ..
-make
+cmake ..
+make GPU_NVT
