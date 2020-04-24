@@ -357,6 +357,13 @@ void CallBoxForceGPU(VariablesCUDA *vars,
                     gpu_final_REn, pair1.size());
   cudaFree(d_temp_storage);
 
+  // print gpu_LJEn
+  double * cpu_LJEn = new double[pair1.size()];
+  cudaMemcpy(cpu_LJEn, gpu_LJEn, pair1.size() * sizeof(double), cudaMemcpyDeviceToHost);
+  for(int i=0; i<100; i++) {
+    cout << "cpu_LJEn: " << cpu_LJEn[i] << "\n";
+  }
+
   // LJ ReduceSum
   d_temp_storage = NULL;
   temp_storage_bytes = 0;
@@ -373,6 +380,8 @@ void CallBoxForceGPU(VariablesCUDA *vars,
                           cudaMemcpyDeviceToHost));
   REn = cpu_final_REn;
   LJEn = cpu_final_LJEn;
+
+  cudaMemcpy()
 
   if(copy_back) {
     CubDebugExit(cudaMemcpy(aForcex, vars->gpu_aForcex,
