@@ -736,9 +736,6 @@ __global__ void BoxForceGPU(int *gpu_pair1,
                                    gpu_rCut[0], gpu_rOn[0], gpu_count[0],
                                    sc_sigma_6, sc_alpha, sc_power, gpu_rMin,
                                    gpu_rMaxSq, gpu_expConst);
-    if(threadID < 100) {
-      printf("%d: %lf\n", threadID, gpu_LJEn[threadID]);
-    }
     if(electrostatic) {
       double coulombVir = CalcCoulombForceGPU(distSq, qi_qj_fact,
                                               gpu_VDW_Kind[0], gpu_ewald[0],
@@ -785,6 +782,9 @@ __global__ void BoxForceGPU(int *gpu_pair1,
               -1.0 * (forceRealy + forceLJy));
     atomicAdd(&gpu_mForcez[gpu_particleMol[gpu_pair2[threadID]]],
               -1.0 * (forceRealz + forceLJz));
+    if(threadID < 100) {
+      printf("%d: %lf\n", threadID, gpu_mForcex[gpu_particleMol[gpu_pair1[threadID]]]);
+    }
   }
 }
 
