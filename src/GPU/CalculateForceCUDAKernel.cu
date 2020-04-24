@@ -357,13 +357,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
                     gpu_final_REn, pair1.size());
   cudaFree(d_temp_storage);
 
-  // print gpu_LJEn
-  double * cpu_LJEn = new double[pair1.size()];
-  cudaMemcpy(cpu_LJEn, gpu_LJEn, pair1.size() * sizeof(double), cudaMemcpyDeviceToHost);
-  for(int i=0; i<100; i++) {
-    cout << "cpu_LJEn: " << cpu_LJEn[i] << "\n";
-  }
-
   // LJ ReduceSum
   d_temp_storage = NULL;
   temp_storage_bytes = 0;
@@ -743,6 +736,9 @@ __global__ void BoxForceGPU(int *gpu_pair1,
                                    gpu_rCut[0], gpu_rOn[0], gpu_count[0],
                                    sc_sigma_6, sc_alpha, sc_power, gpu_rMin,
                                    gpu_rMaxSq, gpu_expConst);
+    if(threadID < 100) {
+      printf("%d: %lf\n", threadID, gpu_LJEn[threadID]);
+    }
     if(electrostatic) {
       double coulombVir = CalcCoulombForceGPU(distSq, qi_qj_fact,
                                               gpu_VDW_Kind[0], gpu_ewald[0],
