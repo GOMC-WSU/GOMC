@@ -1,4 +1,4 @@
-#!/bin/bash -l
+#!/bin/bash
 
 if [ ! -d "./lib/cub" ]; then
 	cd lib
@@ -48,17 +48,11 @@ else
 	echo "==== cub library already exists. Skipping..."
 fi
 
-rm -frd bin
 mkdir -p bin
 cd bin
-module load gcc/6.4.0
-module load cuda
-module load cmake
-#ICC_PATH="$(which icc)"        
-ICC_PATH="$(which gcc)"
-#ICPC_PATH="$(which icpc)"      
-ICPC_PATH="$(which g++)"
+ICC_PATH="$(which icc)"        
+ICPC_PATH="$(which icpc)"      
 export CC=${ICC_PATH}
 export CXX=${ICPC_PATH}
-cmake -DENSEMBLE_NVT=off -DENSEMBLE_NPT=off -DENSEMBLE_GCMC=off -DENSEMBLE_GEMC=off -DENSEMBLE_GPU_NPT=off -DENSEMBLE_GPU_GCMC=off -DENSEMBLE_GPU_GEMC=off ..
+cmake ..
 make
