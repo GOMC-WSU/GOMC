@@ -782,9 +782,6 @@ __global__ void BoxForceGPU(int *gpu_pair1,
               -1.0 * (forceRealy + forceLJy));
     atomicAdd(&gpu_mForcez[gpu_particleMol[gpu_pair2[threadID]]],
               -1.0 * (forceRealz + forceLJz));
-    if(threadID < 100) {
-      printf("%d: %lf\n", threadID, gpu_mForcex[gpu_particleMol[gpu_pair1[threadID]]]);
-    }
   }
 }
 
