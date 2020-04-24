@@ -346,6 +346,7 @@ void CallBoxForceGPU(VariablesCUDA *vars,
       vars->gpu_expConst,
       box);
 
+  cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
   cout << "After kernel launch\n";
   // ReduceSum
@@ -395,7 +396,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
                             sizeof(double) * molCount,
                             cudaMemcpyDeviceToHost));
   }
-  cudaDeviceSynchronize();
   cout << "End of CallBoxForce function\n";
 
   cudaFree(gpu_pair1);
