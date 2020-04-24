@@ -396,6 +396,7 @@ void CallBoxForceGPU(VariablesCUDA *vars,
                             cudaMemcpyDeviceToHost));
   }
   cudaDeviceSynchronize();
+  cout << "End of CallBoxForce function\n";
 
   cudaFree(gpu_pair1);
   cudaFree(gpu_pair2);
