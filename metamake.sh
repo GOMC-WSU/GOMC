@@ -48,11 +48,17 @@ else
 	echo "==== cub library already exists. Skipping..."
 fi
 
+rm -frd bin
 mkdir -p bin
 cd bin
-ICC_PATH="$(which icc)"	
-ICPC_PATH="$(which icpc)"	
-export CC=${ICC_PATH}	
+module load gcc/6.4.0
+module load cuda
+module load cmake
+#ICC_PATH="$(which icc)"        
+ICC_PATH="$(which gcc)"
+#ICPC_PATH="$(which icpc)"      
+ICPC_PATH="$(which g++)"
+export CC=${ICC_PATH}
 export CXX=${ICPC_PATH}
 cmake ..
-make
+make GPU_NVT
