@@ -84,7 +84,7 @@ __device__ double CalcCoulombGPU(double distSq, int kind1, int kind2,
                                  int gpu_isMartini, double gpu_diElectric_1,
                                  bool sc_coul,
                                  double sc_sigma_6, double sc_alpha,
-                                 uint sc_power, double gpu_sigmaSq,
+                                 uint sc_power, double *gpu_sigmaSq,
                                  int gpu_count);
 __device__ double CalcCoulombVirGPU(double distSq, double qi_qj,
                                     double gpu_rCutCoulomb, double gpu_alpha,
@@ -103,7 +103,7 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
 __device__ double CalcCoulombParticleGPU(double distSq, double qi_qj_fact,
     double gpu_ewald, double gpu_alpha, bool sc_coul,
     double sc_sigma_6, double sc_alpha,
-    uint sc_power, double gpu_sigmaSq);
+    uint sc_power, double *gpu_sigmaSq);
 
 __device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
     double gpu_ewald, double gpu_alpha);

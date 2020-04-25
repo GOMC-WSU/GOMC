@@ -158,6 +158,7 @@ void FFParticle::Blend(ff_setup::Particle const& mie)
 
       sigmaSq_1_4[idx] = sigma_1_4 * sigma_1_4;
       sigmaSq[idx] = sigma * sigma;
+      cout << "sigma[idx]: " << sigmaSq[idx] << ", idx: " << idx << "\n";
       epsilon[idx] = num::MeanG(mie.epsilon, mie.epsilon, i, j);
       epsilon_cn[idx] = cn * epsilon[idx];
       epsilon_1_4[idx] = num::MeanG(mie.epsilon_1_4, mie.epsilon_1_4, i, j);

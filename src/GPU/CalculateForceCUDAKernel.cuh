@@ -242,45 +242,6 @@ __device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
     double sc_alpha, uint sc_power);
 __device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
     int gpu_ewald, double gpu_alpha);
-__device__ double CalcCoulombVirShiftGPU(double distSq, double qi_qj,
-    int gpu_ewald, double gpu_alpha,
-    int index, double *gpu_sigmaSq,
-    bool sc_coul, double sc_sigma_6,
-    double sc_alpha, uint sc_power);
-__device__ double CalcCoulombVirShiftGPU(double distSq, double qi_qj,
-    int gpu_ewald, double gpu_alpha);
-__device__ double CalcCoulombVirExp6GPU(double distSq, double qi_qj,
-                                        int gpu_ewald, double gpu_alpha,
-                                        int index, double *gpu_sigmaSq,
-                                        bool sc_coul, double sc_sigma_6,
-                                        double sc_alpha, uint sc_power);
-__device__ double CalcCoulombVirExp6GPU(double distSq, double qi_qj,
-                                        int gpu_ewald, double gpu_alpha);
-__device__ double CalcCoulombVirSwitchMartiniGPU(double distSq, double qi_qj,
-    int gpu_ewald,
-    double gpu_alpha,
-    double gpu_rCut,
-    double gpu_diElectric_1,
-    int index,
-    double *gpu_sigmaSq,
-    bool sc_coul,
-    double sc_sigma_6,
-    double sc_alpha,
-    uint sc_power);
-__device__ double CalcCoulombVirSwitchMartiniGPU(double distSq, double qi_qj,
-    int gpu_ewald,
-    double gpu_alpha,
-    double gpu_rCut,
-    double gpu_diElectric_1);
-__device__ double CalcCoulombVirSwitchGPU(double distSq, double qi_qj,
-    int gpu_ewald, double gpu_alpha,
-    double gpu_rCut, int index,
-    double *gpu_sigmaSq, bool sc_coul,
-    double sc_sigma_6, double sc_alpha,
-    uint sc_power);
-__device__ double CalcCoulombVirSwitchGPU(double distSq, double qi_qj,
-    int gpu_ewald, double gpu_alpha,
-    double gpu_rCut);
 
 //VDW Calculation
 //*****************************************************************//

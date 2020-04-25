@@ -357,15 +357,12 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
       if (electrostatic) {
         qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] *
                      num::qqFact;
-        double x = forcefield.particles->CalcCoulomb(distSq, particleKind[pair1[i]],
-                   particleKind[pair2[i]], qi_qj_fact, box);
-        cout << "electrostatic: " << x << ", ";
-        tempREn += x;
+        tempREn+= forcefield.particles->CalcCoulomb(distSq, 
+                                                    particleKind[pair1[i]],
+                                                    particleKind[pair2[i]],
+                                                    qi_qj_fact, box);
       }
-      double y = forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
-                  particleKind[pair2[i]]);
-      cout << "energy: " << y << "\n";
-      tempLJEn += y;
+      tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]], particleKind[pair2[i]]);
 
       // Calculating the force
       if(multiParticleEnabled) {
@@ -393,7 +390,6 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
     }
   }
 #endif
-  //cout << "tempREn: " << tempREn << ", tempLJEn: " << tempLJEn << "\n";
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction

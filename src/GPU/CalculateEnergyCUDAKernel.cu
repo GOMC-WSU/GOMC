@@ -237,7 +237,7 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                                          sc_sigma_6,
                                          sc_alpha,
                                          sc_power,
-                                         gpu_sigmaSq[threadID],
+                                         gpu_sigmaSq,
                                          gpu_count[0]);
     }
     gpu_LJEn[threadID] = CalcEnGPU(distSq,
@@ -258,7 +258,7 @@ __device__ double CalcCoulombGPU(double distSq, int kind1, int kind2,
                                  int gpu_isMartini, double gpu_diElectric_1,
                                  bool sc_coul,
                                  double sc_sigma_6, double sc_alpha,
-                                 uint sc_power, double gpu_sigmaSq,
+                                 uint sc_power, double *gpu_sigmaSq,
                                  int gpu_count)
 {
   if((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
@@ -294,7 +294,7 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
 __device__ double CalcCoulombParticleGPU(double distSq, double qi_qj_fact,
     double gpu_ewald, double gpu_alpha, bool sc_coul,
     double sc_sigma_6, double sc_alpha,
-    uint sc_power, double gpu_sigmaSq)
+    uint sc_power, double *gpu_sigmaSq)
 {
   if(gpu_ewald) {
     double dist = sqrt(distSq);
