@@ -1,0 +1,29 @@
+*parameters for water models
+BONDS
+!
+!V(bond) = Kb(b - b0)**2
+!
+!Kb: kcal/mole/A**2
+!b0: A
+!
+OT   HT    9999999999.000     1.0000 ! SPC bond length
+
+ANGLES
+!
+!V(angle) = Ktheta(Theta - Theta0)**2
+!
+!Kub: kcal/mole/A**2 (Urey-Bradley)
+!S0: A
+!
+!atom types     Ktheta    Theta0   Kub     S0
+!
+!HT   OT   HT     55.0    109.5    0.0      0.0 ! water
+HT   OT   HT     9999999999.0    109.5    0.0      0.0 ! water
+NONBONDED_MIE
+!
+!V(mie) = 4*eps*((sig_ij/r_ij)^n-(sig_ij/r_ij)^6)
+!
+!atom   eps          sig_ij     n    description
+!SPC/E Water
+HT	 0.00000    0.00   12.0   0.0   0.0
+OT	 78.21      3.167  12.0   0.0	0.0
