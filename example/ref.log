@@ -1,0 +1,231 @@
+################################################################################
+########################## RUNNING GOMC IN DEBUG MODE ##########################
+################################################################################
+Info: GOMC Version 2.50
+Info: Start Time: Sat Apr 25 03:37:47 2020
+Info: Host Name: voh2
+CPU information:
+Info: Total number of CPUs: 40
+Info: Total number of CPUs available: 40
+Info: Model name: Intel(R) Xeon(R) Gold 6148 CPU @ 2.40GHz
+Info: System name: Linux
+Info: Release: 3.10.0-1062.18.1.el7.x86_64
+Info: Version: #1 SMP Tue Mar 17 23:49:17 UTC 2020
+Info: Kernel Architecture: x86_64
+Info: Total Ram: 515411.7MB
+Info: Used Ram: 43495.9MB
+Info: Working in the current directory: /wsu/home/fe/fe18/fe1855/projects/SDSC/GOMC/example
+Info: GOMC COMPILED TO RUN CANONICAL (NVT) ENSEMBLE.
+Info: Number of threads                  1 
+
+Reading Input File:                      in.conf
+Info: Restart simulation                 Active 
+Info: Constant seed                      Active 
+Info: PARAMETER file                     MIE format! 
+Info: Input Temperature                  450.0000 K
+Warning: Unknown input Pressure!
+Info: Non-truncated potential            Active 
+Info: Long Range Correction              Active 
+Info: Cutoff                             10.0000 A
+Info: Exclude                            ONE-FOUR 
+Info: Ewald Summation                    Active 
+Info: Cache Ewald Fourier                Active 
+Info: Ewald Summation Tolerance          1.000E-05 
+Info: Pressure calculation               Inactive 
+Info: Total number of steps              10 
+Info: Number of equilibration steps      2 
+Info: Move adjustment frequency          20 
+Info: Displacement move frequency        0.0000 
+Info: Multi-Particle move frequency      1.0000 
+Warning: Unknown input VolFreq!
+Info: Output name                        output 
+Info: Restart frequency                  10 
+Info: Console output frequency           1 
+Info: Printing coordinate                Inactive 
+Default: Rotation move frequency         0.0000 
+Default: Box  0  CutoffCoulomb           10.0000 A
+Default: Short Range Cutoff              0.0000 
+Finished Reading Input File:             in.conf
+
+Reading from EXOTIC-Style parameter file:  	./water_mie.par
+Reading BONDS parameters.
+Reading ANGLES parameters.
+Reading NONBONDED_MIE parameters.
+Finished reading EXOTIC-Style parameter file:  	./water_mie.par
+Reading from system PDB coordinate file:  	./SPCE_BOX_0_restart.pdb
+Random number seed: 50
+
+Molecules in PSF:
+Molecule Kind: SPCE
+Idx	name	type	charge	mass
+0	H1	HT	0.4238	1.0080
+1	OH2	OT	-0.8476	15.9994
+2	H2	HT	0.4238	1.0080
+
+Bonds:
+[1 0] [1 2] 
+
+Angles:
+[0 1 2] 
+
+Dihedrals:
+
+Bonds parameter:
+Atom Types                             Kb(K)           b0(A) 
+OT	HT	                         FIX           1.0000 
+
+Angles parameter:
+Atom Types                         Ktheta(K)         theta0(degree) 
+HT	OT	HT	                 FIX         109.5000 
+
+Dihedrals parameter:
+Atom Types                           Kchi(K)    n    delta(degree) 
+
+NonBonded 1-4 parameters:
+Type1  Type2             Epsilon(K)    Sigma(A)       N 
+HT     HT                    0.0000      0.0000    0.00 
+HT     OT                    0.0000      0.0000    0.00 
+OT     OT                    0.0000      0.0000    0.00 
+
+NonBonded parameters:
+Type1  Type2             Epsilon(K)    Sigma(A)       N 
+HT     HT                    0.0000      0.0000   12.00 
+HT     OT                    0.0000      1.5835   12.00 
+OT     OT                   78.2100      3.1670   12.00 
+
+Info: Box  0:  Periodic Cell Basis 1     27.849   0.000   0.000 
+Info: Box  0:  Periodic Cell Basis 2      0.000  27.849   0.000 
+Info: Box  0:  Periodic Cell Basis 3      0.000   0.000  27.849 
+
+Minimum coordinates in box 0: x =   -0.424, y =   -0.588, z =   -0.193
+Maximum coordinates in box 0: x =   28.508, y =   28.321, z =   28.413
+Wrapping molecules inside the simulation box 0:
+Box: 0, RecipVectors:   2228, kmax: 11
+
+################################################################################
+########################## INITIAL SIMULATION ENERGY ###########################
+
+ETITLE:     STEP           TOTAL        INTRA(B)       INTRA(NB)       INTER(LJ)             LRC     TOTAL_ELECT            REAL           RECIP            SELF            CORR
+
+ENER_0:        0     -1.8611e+07      0.0000e+00      0.0000e+00      2.7480e+05      0.0000e+00     -1.8885e+07     -1.7289e+06      6.9305e+04     -1.7226e+07     -1.0127e+02
+
+STITLE:     STEP        TOTALMOL     TOT_DENSITY
+
+STAT_0:        0             500      6.9252e+02
+
+################################################################################
+############################# STARTING SIMULATION ##############################
+
+MTITLE:     STEP   MULTIPARTICLE        MPACCEPT       MPACCEPT%
+
+ETITLE:     STEP           TOTAL        INTRA(B)       INTRA(NB)       INTER(LJ)             LRC     TOTAL_ELECT            REAL           RECIP            SELF            CORR
+
+STITLE:     STEP        TOTALMOL     TOT_DENSITY
+
+Printed combined psf to file output_merged.psf
+
+################################################################################
+########################## INITIAL SIMULATION ENERGY ###########################
+
+ETITLE:     STEP           TOTAL        INTRA(B)       INTRA(NB)       INTER(LJ)             LRC     TOTAL_ELECT            REAL           RECIP            SELF            CORR
+
+ENER_0:        0     -1.8599e+07      0.0000e+00      0.0000e+00      2.9487e+05      0.0000e+00     -1.8894e+07     -1.7380e+06      6.9830e+04     -1.7226e+07     -1.0127e+02
+
+STITLE:     STEP        TOTALMOL     TOT_DENSITY
+
+STAT_0:        0             500      6.9252e+02
+
+################################################################################
+############################# STARTING SIMULATION ##############################
+
+MTITLE:     STEP   MULTIPARTICLE        MPACCEPT       MPACCEPT%
+
+ETITLE:     STEP           TOTAL        INTRA(B)       INTRA(NB)       INTER(LJ)             LRC     TOTAL_ELECT            REAL           RECIP            SELF            CORR
+
+STITLE:     STEP        TOTALMOL     TOT_DENSITY
+
+MOVE_0:        2               2               1      5.0000e+01
+
+ENER_0:        2     -1.8599e+07      0.0000e+00      0.0000e+00      2.9487e+05      0.0000e+00     -1.8894e+07     -1.7380e+06      6.9830e+04     -1.7226e+07     -1.0127e+02
+
+STAT_0:        2             500      6.9252e+02
+
+Steps/sec:   0.485, Simulation ends in:   0 d:   0 h:   1 m 
+
+MOVE_0:        3               3               1      3.3333e+01
+
+ENER_0:        3     -1.8599e+07      0.0000e+00      0.0000e+00      2.9487e+05      0.0000e+00     -1.8894e+07     -1.7380e+06      6.9830e+04     -1.7226e+07     -1.0127e+02
+
+STAT_0:        3             500      6.9252e+02
+
+Steps/sec:   1.348, Simulation ends in:   0 d:   0 h:   1 m 
+
+MOVE_0:        4               4               1      2.5000e+01
+
+ENER_0:        4     -1.8599e+07      0.0000e+00      0.0000e+00      2.9487e+05      0.0000e+00     -1.8894e+07     -1.7380e+06      6.9830e+04     -1.7226e+07     -1.0127e+02
+
+STAT_0:        4             500      6.9252e+02
+
+Steps/sec:   1.363, Simulation ends in:   0 d:   0 h:   1 m 
+
+MOVE_0:        5               5               2      4.0000e+01
+
+ENER_0:        5     -1.8594e+07      0.0000e+00      0.0000e+00      3.0272e+05      0.0000e+00     -1.8897e+07     -1.7408e+06      6.9902e+04     -1.7226e+07     -1.0127e+02
+
+STAT_0:        5             500      6.9252e+02
+
+Steps/sec:   1.373, Simulation ends in:   0 d:   0 h:   1 m 
+
+MOVE_0:        6               6               2      3.3333e+01
+
+ENER_0:        6     -1.8594e+07      0.0000e+00      0.0000e+00      3.0272e+05      0.0000e+00     -1.8897e+07     -1.7408e+06      6.9902e+04     -1.7226e+07     -1.0127e+02
+
+STAT_0:        6             500      6.9252e+02
+
+Steps/sec:   1.371, Simulation ends in:   0 d:   0 h:   1 m 
+
+MOVE_0:        7               7               3      4.2857e+01
+
+ENER_0:        7     -1.8599e+07      0.0000e+00      0.0000e+00      3.0344e+05      0.0000e+00     -1.8902e+07     -1.7462e+06      6.9855e+04     -1.7226e+07     -1.0127e+02
+
+STAT_0:        7             500      6.9252e+02
+
+Steps/sec:   1.372, Simulation ends in:   0 d:   0 h:   1 m 
+
+MOVE_0:        8               8               4      5.0000e+01
+
+ENER_0:        8     -1.8600e+07      0.0000e+00      0.0000e+00      2.9893e+05      0.0000e+00     -1.8899e+07     -1.7430e+06      6.9593e+04     -1.7226e+07     -1.0127e+02
+
+STAT_0:        8             500      6.9252e+02
+
+Steps/sec:   1.367, Simulation ends in:   0 d:   0 h:   1 m 
+
+MOVE_0:        9               9               4      4.4444e+01
+
+ENER_0:        9     -1.8600e+07      0.0000e+00      0.0000e+00      2.9893e+05      0.0000e+00     -1.8899e+07     -1.7430e+06      6.9593e+04     -1.7226e+07     -1.0127e+02
+
+STAT_0:        9             500      6.9252e+02
+
+Steps/sec:   1.364, Simulation ends in:   0 d:   0 h:   0 m 
+
+MOVE_0:       10              10               4      4.0000e+01
+
+ENER_0:       10     -1.8600e+07      0.0000e+00      0.0000e+00      2.9893e+05      0.0000e+00     -1.8899e+07     -1.7430e+06      6.9593e+04     -1.7226e+07     -1.0127e+02
+
+STAT_0:       10             500      6.9252e+02
+
+Writing to Output PDB file for Box 1 file: ./output_BOX_0_restart.pdb
+Finished writing Output PDB file for Box 1 file: ./output_BOX_0_restart.pdb
+Simulation Time (total): 7.9433e+00 sec.
+
+Move Type                Mol. Kind      BOX_0      
+% Accepted MultiParticle               40.00000 
+
+Displacement:                            0.0000    sec.
+Rotation:                                0.0000    sec.
+MultiParticle:                           7.9124    sec.
+
+Info: GOMC Version 2.50
+Info: Completed at: Sat Apr 25 03:37:56 2020
+Info: On hostname: voh2
+Finished reading system PDB coordinate file:  	./SPCE_BOX_0_restart.pdb
