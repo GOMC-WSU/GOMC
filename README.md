@@ -24,7 +24,7 @@
       ```
   7. Last step should generate all the executables in `bin` directory
 
-  You can either copy the executable into your example directory or add `bin` directory to your path. We rocommend the latter.
+  You can either copy the executable into your example directory or add `bin` directory to your path. We recommend the latter.
 
 ## Testing
   An example has been included in the `example` directory. You can run using the following command:
