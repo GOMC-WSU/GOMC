@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.51] - 4/30/2020
++ Fixed a bug with EwaldCached
++ Fixed a warning due to ignoring return value of fscanf
+
 ## [2.50] - 1/20/2020
 + Addes support for force biased multiparticle move
 + Added support for free energy calculations using TI and FEP methods

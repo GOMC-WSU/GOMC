@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.50
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -169,15 +169,19 @@ double CheckpointSetup::readDoubleIn8Chars()
     exit(EXIT_FAILURE);
   }
   dbl_input_union temp;
-  fscanf(inputFile, "%c%c%c%c%c%c%c%c",
-         &temp.bin_value[0],
-         &temp.bin_value[1],
-         &temp.bin_value[2],
-         &temp.bin_value[3],
-         &temp.bin_value[4],
-         &temp.bin_value[5],
-         &temp.bin_value[6],
-         &temp.bin_value[7]);
+  int ret = fscanf(inputFile, "%c%c%c%c%c%c%c%c",
+                   &temp.bin_value[0],
+                   &temp.bin_value[1],
+                   &temp.bin_value[2],
+                   &temp.bin_value[3],
+                   &temp.bin_value[4],
+                   &temp.bin_value[5],
+                   &temp.bin_value[6],
+                   &temp.bin_value[7]);
+  if(ret != 8) {
+    std::cerr << "CheckpointSetup couldn't read required data from binary!\n";
+    exit(EXIT_FAILURE);
+  }
   return temp.dbl_value;
 }
 
@@ -190,15 +194,19 @@ uint32_t CheckpointSetup::readUintIn8Chars()
     exit(EXIT_FAILURE);
   }
   uint32_input_union temp;
-  fscanf(inputFile, "%c%c%c%c%c%c%c%c",
-         &temp.bin_value[0],
-         &temp.bin_value[1],
-         &temp.bin_value[2],
-         &temp.bin_value[3],
-         &temp.bin_value[4],
-         &temp.bin_value[5],
-         &temp.bin_value[6],
-         &temp.bin_value[7]);
+  int ret = fscanf(inputFile, "%c%c%c%c%c%c%c%c",
+                   &temp.bin_value[0],
+                   &temp.bin_value[1],
+                   &temp.bin_value[2],
+                   &temp.bin_value[3],
+                   &temp.bin_value[4],
+                   &temp.bin_value[5],
+                   &temp.bin_value[6],
+                   &temp.bin_value[7]);
+  if(ret != 8) {
+    std::cerr << "CheckpointSetup couldn't read required data from binary!\n";
+    exit(EXIT_FAILURE);
+  }
   return temp.uint_value;
 }
 
