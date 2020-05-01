@@ -846,11 +846,7 @@ double Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       LL[3*i + 2] = currentAxes.cellBasis[box][i].z * boxDimension.z;
     }
 
-    cout << "currentCoords.Count(): " << currentCoords.Count() << endl;
-    cout << "ff.tolerance: " << ff.tolerance << endl;
-    cout << "particleCharge.data()[0]: " << particleCharge.data()[0] << endl;
-    for(int i=0; i<9; i++) 
-      cout << "LL[" << i << "]: " << LL[i] << endl;
+    
     ewald::pme p(boxDimension.x, boxDimension.y, boxDimension.z, LL, 
                  currentCoords.Count(), particleCharge.data(),
                  currentAxes.rCut[box], ff.tolerance,
@@ -859,8 +855,10 @@ double Ewald::BoxForceReciprocal(XYZArray const& molCoords,
 #else
                  1);
 #endif
-    
-    double recipPME = p.energy(molCoords.x, molCoords.y, molCoords.z,
+
+    cout << "molCoords.Count(): " << molCoords.Count() << endl;
+    cout << "currentCoords.Count(): " << currentCoords.Count() << endl;
+    double recipPME = p.energy(currentCoords.x, currentCoords.y, currentCoords.z,
                                atomForceRec.x, atomForceRec.y, atomForceRec.z);
     double Eextra = p.energy_extra();
     double Eself  = p.energy_self();
