@@ -110,16 +110,18 @@ set(libHeaders
    lib/StrLib.h
    lib/StrStrmLib.h
    lib/VectorLib.h
-   lib/FloydWarshallCycle.h)
+   lib/FloydWarshallCycle.h
+   lib/libpme6/spline.h
+   lib/libpme6/pme.h
+   lib/libpme6/cube.h
+   lib/libpme6/linear-algebra.h)
 
 set(libSources
     lib/FloydWarshallCycle.cpp
+    lib/libpme6/spline.cpp
     lib/libpme6/pme.cpp
     lib/libpme6/cube.cpp
-    lib/libpme6/dispersive.cpp
-    lib/libpme6/linear-algebra.cpp
-    lib/libpme6/make-box.cpp
-    lib/libpme6/spline.cpp)
+    lib/libpme6/linear-algebra.cpp)
 
 set(cudaHeaders
     src/GPU/ConstantDefinitionsCUDAKernel.cuh

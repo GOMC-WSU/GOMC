@@ -40,7 +40,7 @@ double NoEwald::BoxForceReciprocal(XYZArray const& molCoords,
                                  XYZArray& atomForceRec, XYZArray& molForceRec,
                                  uint box)
 {
-  return;
+  return 0.0;
 }
 
 //calculate reciprocate force term for a box

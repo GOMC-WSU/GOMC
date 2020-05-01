@@ -4,12 +4,9 @@ if(ENSEMBLE_NVT)
       OUTPUT_NAME ${NVT_name}
       COMPILE_FLAGS "${NVT_flags}")
    if(WIN32)
-      #needed for hostname
       target_link_libraries(NVT ws2_32)
    endif()
-   if(MPI_FOUND)
-      target_link_libraries(NVT ${MPI_LIBRARIES})
-   endif()
+   target_link_libraries(NVT ${FFTW_LDFLAGS} ${FFTW_LDFLAGS_OTHER} -lfftw3_omp -lm -lfftw3_threads)
 endif()
 
 if(ENSEMBLE_GEMC)
@@ -18,12 +15,9 @@ if(ENSEMBLE_GEMC)
       OUTPUT_NAME ${GE_name}
       COMPILE_FLAGS "${GE_flags}")
    if(WIN32)
-      #needed for hostname
       target_link_libraries(GEMC ws2_32)
    endif()
-   if(MPI_FOUND)
-      target_link_libraries(GEMC ${MPI_LIBRARIES})
-   endif()
+   target_link_libraries(NVT ${FFTW_LDFLAGS} ${FFTW_LDFLAGS_OTHER} -lfftw3_omp -lm -lfftw3_threads)
 endif()
 
 if(ENSEMBLE_GCMC)
@@ -32,12 +26,9 @@ if(ENSEMBLE_GCMC)
       OUTPUT_NAME ${GC_name}
       COMPILE_FLAGS "${GC_flags}")
    if(WIN32)
-      #needed for hostname
       target_link_libraries(GCMC ws2_32)
    endif()
-   if(MPI_FOUND)
-      target_link_libraries(GCMC ${MPI_LIBRARIES})
-   endif()
+   target_link_libraries(NVT ${FFTW_LDFLAGS} ${FFTW_LDFLAGS_OTHER} -lfftw3_omp -lm -lfftw3_threads)
 endif()
 
 if(ENSEMBLE_NPT)
@@ -46,11 +37,8 @@ if(ENSEMBLE_NPT)
       OUTPUT_NAME ${NPT_name}
       COMPILE_FLAGS "${NPT_flags}")
    if(WIN32)
-      #needed for hostname
       target_link_libraries(NPT ws2_32)
    endif()
-   if(MPI_FOUND)
-      target_link_libraries(NPT ${MPI_LIBRARIES})
-   endif()
+   target_link_libraries(NVT ${FFTW_LDFLAGS} ${FFTW_LDFLAGS_OTHER} -lfftw3_omp -lm -lfftw3_threads)
 endif()
 

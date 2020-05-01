@@ -17,7 +17,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BoxDimensions.h"
 #include "GeomLib.h"
 #include "NumLib.h"
-#include "libpme6/pme.h"
+#include "pme.h"
 #include <cassert>
 #ifdef GOMC_CUDA
 #include "CalculateEwaldCUDAKernel.cuh"
@@ -848,8 +848,13 @@ double Ewald::BoxForceReciprocal(XYZArray const& molCoords,
 
     ewald::pme p(boxDimension.x, boxDimension.y, boxDimension.z, LL, 
                  currentCoords.Count(), particleCharge.data(),
-                 recip_rcut, ff.tolerance, 
+                 recip_rcut, ff.tolerance,
+#ifdef _OPENMP
                  omp_get_max_threads());
+#else
+                 1);
+#endif
+    
     double recipPME = p.energy(molCoords.x, molCoords.y, molCoords.z,
                                atomForceRec.x, atomForceRec.y, atomForceRec.z);
     double Eextra = p.energy_extra();
