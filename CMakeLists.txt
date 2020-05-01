@@ -3,15 +3,40 @@ cmake_minimum_required(VERSION 2.8)
 project(GOMC)
 
 # PME
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(FFTW REQUIRED fftw3)
-include_directories(${FFTW_INCLUDE_DIRS})
-add_definitions(${FFTW_CFLAGS})
+#find_package(PkgConfig REQUIRED)
+#pkg_check_modules(FFTW REQUIRED fftw3)
+#include_directories(${FFTW_INCLUDE_DIRS})
+#add_definitions(${FFTW_CFLAGS})
 #add_library(FFTW)
 
-include(CMakePrintHelpers)
-cmake_print_variables(FFTW_LDFLAGS)
-cmake_print_variables(FFTW_LDFLAGS_OTHER)
+#include(CMakePrintHelpers)
+#cmake_print_variables(FFTW_LDFLAGS)
+#####################
+configure_file(downloadFindFFTW.cmake.in findFFTW-download/CMakeLists.txt)
+execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+        RESULT_VARIABLE result
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/findFFTW-download )
+if(result)
+    message(FATAL_ERROR "CMake step for findFFTW failed: ${result}")
+    else()
+    message("CMake step for findFFTW completed (${result}).")
+endif()
+execute_process(COMMAND ${CMAKE_COMMAND} --build .
+        RESULT_VARIABLE result
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/findFFTW-download )
+if(result)
+    message(FATAL_ERROR "Build step for findFFTW failed: ${result}")
+endif()
+
+set(findFFTW_DIR ${CMAKE_CURRENT_BINARY_DIR}/findFFTW-src)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${findFFTW_DIR}")
+
+find_package(FFTW)
+include_directories(${FFTW_INCLUDE_DIRS})
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${FFTW_LIBRARIES}")
+#####################
+
 
 include_directories(lib)
 include_directories(lib/libpme6)
@@ -51,10 +76,6 @@ configure_file(
 	"${PROJECT_BINARY_DIR}/GOMC_Config.h"
 	)
 include_directories("${PROJECT_BINARY_DIR}")
-
-# libraries for fftw and armadillo
-#set(FFTW_LDFLAGS "/usr/local/lib/libfftw3.dylib /usr/local/lib/libfftw3.a")
-#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ARMADILLO_LIBRARIES} ${FFTW_LDFLAGS} ${FFTW_LDFLAGS_OTHER}")
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -stdlib=libc++") 
