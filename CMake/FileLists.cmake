@@ -113,7 +113,13 @@ set(libHeaders
    lib/FloydWarshallCycle.h)
 
 set(libSources
-    lib/FloydWarshallCycle.cpp)
+    lib/FloydWarshallCycle.cpp
+    lib/libpme6/pme.cpp
+    lib/libpme6/cube.cpp
+    lib/libpme6/dispersive.cpp
+    lib/libpme6/linear-algebra.cpp
+    lib/libpme6/make-box.cpp
+    lib/libpme6/spline.cpp)
 
 set(cudaHeaders
     src/GPU/ConstantDefinitionsCUDAKernel.cuh
