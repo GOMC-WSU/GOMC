@@ -102,7 +102,6 @@ include_directories(${FFTW_INCLUDE_DIRS})
 
 include(CMakePrintHelpers)
 cmake_print_variables(FFTW_LDFLAGS)
-set(FFTW_LDFLAGS "${FFTW_LDFLAGS};-lfftw3_omp;-lm")
-#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib -lfftw3 -lfftw3_omp -lm")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${FFTW_LDFLAGS}")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/lib64 -lfftw3 -lfftw3_omp -lm")
+#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${FFTW_LDFLAGS}")
 #####################
