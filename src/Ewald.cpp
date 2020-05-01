@@ -17,6 +17,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BoxDimensions.h"
 #include "GeomLib.h"
 #include "NumLib.h"
+#include "libpme6/pme.h"
 #include <cassert>
 #ifdef GOMC_CUDA
 #include "CalculateEwaldCUDAKernel.cuh"
@@ -831,67 +832,52 @@ void Ewald::UpdateRecipVec(uint box)
 
 
 //calculate reciprocate force term for a box with molCoords
-void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
+double Ewald::BoxForceReciprocal(XYZArray const& molCoords,
                                XYZArray& atomForceRec,
                                XYZArray& molForceRec,
                                uint box)
 {
   if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
-    // molecule iterator
+    double LL[3 * 3];
+    XYZ boxDimension = currentAxes.axis.Get(box);
+    for(int i=0; i<3; i++) {
+      LL[3*i + 0] = currentAxes.cellBasis.Get(i).x;
+      LL[3*i + 1] = currentAxes.cellBasis.Get(i).y;
+      LL[3*i + 2] = currentAxes.cellBasis.Get(i).z;
+    }
+
+    ewald::pme p(boxDimension.x, boxDimension.y, boxDimension.z, LL, 
+                 currentCoords.Count(), particleCharge.data(),
+                 recip_rcut, ff.tolerance, 
+                 omp_get_max_threads());
+    double recipPME = p.energy(molCoords.x, molCoords.y, molCoords.z,
+                               atomForceRec.x, atomForceRec.y, atomForceRec.z);
+    double Eextra = p.energy_extra();
+    double Eself  = p.energy_self();
+
+    // Calculate molForce based on atomForce returned from p.energy
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
-    double constValue = 2.0 * ff.alpha[box] / sqrt(M_PI);
 
     while(thisMol != end) {
       uint molIndex = *thisMol;
-      uint length, start, p, i;
-      double dot, factor, distSq;
-      XYZ distVect;
-      molForceRec.Set(molIndex, 0.0, 0.0, 0.0);
+
+      uint length, start, p;
       length = mols.GetKind(molIndex).NumAtoms();
       start = mols.MolStart(molIndex);
-
+      double X = 0.0, Y = 0.0, Z = 0.0;
       for(p = start; p < start + length; p++) {
-        double X = 0.0, Y = 0.0, Z = 0.0;
-
-        if(!particleHasNoCharge[p]) {
-          // subtract the intra forces(correction)
-          for(uint j = start; j < start + length; j++) {
-            //no self term in force
-            if(p != j) {
-              currentAxes.InRcut(distSq, distVect, molCoords, p, j, box);
-              double dist = sqrt(distSq);
-              double expConstValue = exp(-1.0 * ff.alphaSq[box] * distSq);
-              double qiqj = particleCharge[p] * particleCharge[j] * num::qqFact;
-              double intraForce = qiqj / distSq;
-              intraForce *= ((erf(ff.alpha[box] * dist) / dist) -
-                             constValue * expConstValue);
-              X -= intraForce * distVect.x;
-              Y -= intraForce * distVect.y;
-              Z -= intraForce * distVect.z;
-            }
-          }
-#ifdef _OPENMP
-          #pragma omp parallel for default(shared) private(i, dot, factor) \
-          reduction(+:X, Y, Z)
-#endif
-          for(i = 0; i < imageSize[box]; i++) {
-            dot = Dot(p, kx[box][i], ky[box][i], kz[box][i], molCoords);
-
-            factor = 2.0 * particleCharge[p] * prefact[box][i] *
-                     (sin(dot) * sumRnew[box][i] - cos(dot) * sumInew[box][i]);
-
-            X += factor * kx[box][i];
-            Y += factor * ky[box][i];
-            Z += factor * kz[box][i];
-          }
-        }
-        //printf("Atomforce: %lf, %lf, %lf\n", X, Y, Z);
-        atomForceRec.Set(p, X, Y, Z);
+        X += atomForceRec.x[p];
+        Y += atomForceRec.y[p];
+        Z += atomForceRec.z[p];
         molForceRec.Add(molIndex, X, Y, Z);
       }
+
       thisMol++;
     }
+
+    return recipPME + Eextra - Eself;
   }
+  return 0.0;
 }
 

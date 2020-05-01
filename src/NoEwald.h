@@ -34,7 +34,7 @@ public:
   virtual double BoxReciprocal(uint box) const;
 
   //calculate reciprocate force term for a box with molCoords
-  virtual void BoxForceReciprocal(XYZArray const& molCoords,
+  virtual double BoxForceReciprocal(XYZArray const& molCoords,
                                   XYZArray& atomForceRec, XYZArray& molForceRec,
                                   uint box);
 

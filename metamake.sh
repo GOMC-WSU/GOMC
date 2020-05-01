@@ -48,17 +48,21 @@ else
 	echo "==== cub library already exists. Skipping..."
 fi
 
+cd lib
+git clone https://github.com/jmbr/libpme6.git
+cd ..
+
 rm -frd bin
 mkdir -p bin
 cd bin
-module load gcc/6.4.0
-module load cuda
-module load cmake
-ICC_PATH="$(which icc)"        
+#module load gcc/6.4.0
+#module load cuda
+#module load cmake
+#ICC_PATH="$(which icc)"
 #ICC_PATH="$(which gcc)"
-ICPC_PATH="$(which icpc)"      
+#ICPC_PATH="$(which icpc)"
 #ICPC_PATH="$(which g++)"
 export CC=${ICC_PATH}
 export CXX=${ICPC_PATH}
 cmake ..
-make GPU_NVT
+make
