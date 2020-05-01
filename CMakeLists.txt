@@ -2,16 +2,6 @@ cmake_minimum_required(VERSION 2.8)
 
 project(GOMC)
 
-# PME
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(FFTW REQUIRED fftw3)
-include_directories(${FFTW_INCLUDE_DIRS})
-
-include(CMakePrintHelpers)
-cmake_print_variables(FFTW_LDFLAGS)
-#####################
-
-
 include_directories(lib)
 include_directories(lib/libpme6)
 include_directories(src)
@@ -104,3 +94,15 @@ if (OPENMP_FOUND)
 	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
+
+# PME
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(FFTW REQUIRED fftw3)
+include_directories(${FFTW_INCLUDE_DIRS})
+
+include(CMakePrintHelpers)
+cmake_print_variables(FFTW_LDFLAGS)
+set(FFTW_LDFLAGS "${FFTW_LDFLAGS};-lfftw3_omp;-lm")
+#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib -lfftw3 -lfftw3_omp -lm")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${FFTW_LDFLAGS}")
+#####################
