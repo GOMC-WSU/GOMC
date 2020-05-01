@@ -846,11 +846,10 @@ double Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       LL[3*i + 2] = currentAxes.cellBasis[box][i].z;
     }
 
-    cout << "recip_rcut: " << recip_rcut << endl;
-    cout << "currentAxes.rCut: " << currentAxes.rCut << endl;
+    cout << "currentAxes.rCut: " << currentAxes.rCut[box] << endl;
     ewald::pme p(boxDimension.x, boxDimension.y, boxDimension.z, LL, 
                  currentCoords.Count(), particleCharge.data(),
-                 recip_rcut, ff.tolerance,
+                 currentAxes.rCut[box], ff.tolerance,
 #ifdef _OPENMP
                  omp_get_max_threads());
 #else
