@@ -841,9 +841,9 @@ double Ewald::BoxForceReciprocal(XYZArray const& molCoords,
     double LL[3 * 3];
     XYZ boxDimension = currentAxes.axis.Get(box);
     for(int i=0; i<3; i++) {
-      LL[3*i + 0] = currentAxes.cellBasis[box][i].x;
-      LL[3*i + 1] = currentAxes.cellBasis[box][i].y;
-      LL[3*i + 2] = currentAxes.cellBasis[box][i].z;
+      LL[3*i + 0] = currentAxes.cellBasis[box][i].x * boxDimension.x;
+      LL[3*i + 1] = currentAxes.cellBasis[box][i].y * boxDimension.y;
+      LL[3*i + 2] = currentAxes.cellBasis[box][i].z * boxDimension.z;
     }
 
     cout << "currentCoords.Count(): " << currentCoords.Count() << endl;
