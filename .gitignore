@@ -35,6 +35,7 @@
 bin
 bin_MPI
 lib/cub
+lib/libpme6
 .vscode
 .idea
 cmake-build-debug
