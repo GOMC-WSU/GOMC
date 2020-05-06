@@ -217,8 +217,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
     CallBoxInterGPU(forcefield.particles->getCUDAVars(), subPair1, subPair2,
                     coords, boxAxes, electrostatic, particleCharge,
-                    particleKind, particleMol, REn, LJEn,
-                    forcefield.sc_coul,
+                    particleKind, particleMol, REn, LJEn, forcefield.sc_coul,
                     forcefield.sc_sigma_6, forcefield.sc_alpha,
                     forcefield.sc_power, box);
     tempREn += REn;

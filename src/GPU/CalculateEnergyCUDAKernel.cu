@@ -70,6 +70,7 @@ void CallBoxInterGPU(VariablesCUDA *vars,
                        cudaMemcpyHostToDevice));
   gpuErrchk(cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double),
                        cudaMemcpyHostToDevice));
+  checkLastErrorCUDA(__FILE__, __LINE__);
 
   // Run the kernel...
   threadsPerBlock = 256;

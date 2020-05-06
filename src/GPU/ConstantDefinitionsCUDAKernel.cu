@@ -33,6 +33,7 @@ void InitGPULambda(VariablesCUDA *vars, int *molIndex, int *kindIndex,
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_isFraction, isFraction, BOX_TOTAL * sizeof(int),
              cudaMemcpyHostToDevice);
+  checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
