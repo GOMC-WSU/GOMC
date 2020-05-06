@@ -179,12 +179,15 @@ void System::InitMoves(Setup const& set)
 
 void System::InitLambda()
 {
-  if(statV.freeEnVal.enable) {
 #ifdef GOMC_CUDA
-    int temp_molIndex[BOX_TOTAL], temp_kindIndex[BOX_TOTAL];
-    double temp_lambdaVDW[BOX_TOTAL], temp_lambdaCoulomb[BOX_TOTAL];
-    bool temp_isFraction[BOX_TOTAL];
+  int temp_molIndex[BOX_TOTAL], temp_kindIndex[BOX_TOTAL];
+  double temp_lambdaVDW[BOX_TOTAL], temp_lambdaCoulomb[BOX_TOTAL];
+  bool temp_isFraction[BOX_TOTAL];
+  for(int i=0; i<BOX_TOTAL; i++) {
+    temp_isFraction[i] = false;
+  }
 #endif
+  if(statV.freeEnVal.enable) {
     bool found = false;
     for(uint k = 0; k < statV.mol.GetKindsCount(); k++) {
       std::string kindName = statV.mol.kinds[k].name;
@@ -224,12 +227,12 @@ void System::InitLambda()
                 " in the simulation box! \n";
       exit(EXIT_FAILURE);
     }
-#ifdef GOMC_CUDA
-    InitGPULambda(statV.forcefield.particles->getCUDAVars(), temp_molIndex,
-                  temp_kindIndex, temp_lambdaVDW, temp_lambdaCoulomb,
-                  temp_isFraction);
-#endif
   }
+#ifdef GOMC_CUDA
+  InitGPULambda(statV.forcefield.particles->getCUDAVars(), temp_molIndex,
+                temp_kindIndex, temp_lambdaVDW, temp_lambdaCoulomb,
+                temp_isFraction);
+#endif
 }
 
 void System::RecalculateTrajectory(Setup &set, uint frameNum)

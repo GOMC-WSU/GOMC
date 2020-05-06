@@ -215,9 +215,6 @@ __global__ void BoxInterGPU(int *gpu_pair1,
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   if(threadID >= pairSize)
     return;
-  if(threadID == 0) {
-    printf("Pairsize: %d\n", pairSize);
-  }
   double distSq;
   double qi_qj_fact;
   double qqFact = 167000.0;
