@@ -116,6 +116,6 @@ public:
   // lambda structure
   int *gpu_molIndex, gpu_kindIndex;
   double *gpu_lambdaVDW, *gpu_lambdaCoulomb;
-  bool *isFraction;
+  bool *gpu_isFraction;
 };
 #endif
