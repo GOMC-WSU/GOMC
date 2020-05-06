@@ -16,11 +16,11 @@ void InitGPULambda(VariablesCUDA &vars, int *molIndex, int *kindIndex,
                    double *lambdaVDW, double *lambdaCoulomb, bool *isFraction)
 {
   // allocate gpu memory for lambda variables
-  cudaMalloc(&vars.gpu_molIndex, BOX_TOTAL * sizeof(int));
-  cudaMalloc(&vars.gpu_kindIndex, BOX_TOTAL * sizeof(int));
-  cudaMalloc(&vars.gpu_labmdaVDW, BOX_TOTAL * sizeof(double));
-  cudaMalloc(&vars.gpu_lambdaCoulomb, BOX_TOTAL * sizeof(double));
-  cudaMalloc(&vars.gpu_isFraction, BOX_TOTAL * sizeof(bool));
+  cudaMalloc(&vars.gpu_molIndex, (int)BOX_TOTAL * sizeof(int));
+  cudaMalloc(&vars.gpu_kindIndex, (int)BOX_TOTAL * sizeof(int));
+  cudaMalloc(&vars.gpu_lambdaVDW, (int)BOX_TOTAL * sizeof(double));
+  cudaMalloc(&vars.gpu_lambdaCoulomb, (int)BOX_TOTAL * sizeof(double));
+  cudaMalloc(&vars.gpu_isFraction, (int)BOX_TOTAL * sizeof(bool));
 
   // copy required data
   cudaMemcpy(vars.gpu_molIndex, molIndex, BOX_TOTAL * sizeof(int),
