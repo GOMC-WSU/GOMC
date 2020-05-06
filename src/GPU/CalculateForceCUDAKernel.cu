@@ -340,11 +340,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
       vars->gpu_mForcex,
       vars->gpu_mForcey,
       vars->gpu_mForcez,
-      vars->gpu_molIndex,
-      vars->gpu_kindIndex,
-      vars->gpu_lambdaVDW,
-      vars->gpu_lambdaCoulomb,
-      vars->gpu_isFraction,
       sc_coul,
       sc_sigma_6,
       sc_alpha,
@@ -352,6 +347,11 @@ void CallBoxForceGPU(VariablesCUDA *vars,
       vars->gpu_rMin,
       vars->gpu_rMaxSq,
       vars->gpu_expConst,
+      vars->gpu_molIndex,
+      vars->gpu_kindIndex,
+      vars->gpu_lambdaVDW,
+      vars->gpu_lambdaCoulomb,
+      vars->gpu_isFraction,
       box);
 
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -587,6 +587,7 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
   double distSq;
   double virX, virY, virZ;
   double pRF = 0.0, qi_qj, pVF = 0.0;
+  double lambdaVDW = 0.0, lambdaCoulomb = 0.0;
   //tensors for VDW and real part of electrostatic
   gpu_vT11[threadID] = 0.0, gpu_vT22[threadID] = 0.0, gpu_vT33[threadID] = 0.0;
   gpu_rT11[threadID] = 0.0, gpu_rT22[threadID] = 0.0, gpu_rT33[threadID] = 0.0;
@@ -631,8 +632,7 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                                 gpu_rCutCoulomb[box], gpu_diElectric_1[0],
                                 gpu_sigmaSq, sc_coul, sc_sigma_6, sc_alpha,
                                 sc_power, lambdaCoulomb, gpu_count[0],
-                                gpu_particleKind[gpu_pair1[threadID]],
-                                gpu_particleKind[gpu_pair2[threadID]]);
+                                kA, kB);
 
       gpu_rT11[threadID] = pRF * (virX * diff_comx);
       gpu_rT22[threadID] = pRF * (virY * diff_comy);
@@ -644,8 +644,7 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
       gpu_rT23[threadID] = pRF * (0.5 * (virY * diff_comz + virZ * diff_comy));
     }
 
-    pVF = CalcEnForceGPU(distSq, gpu_particleKind[gpu_pair1[threadID]],
-                         gpu_particleKind[gpu_pair2[threadID]],
+    pVF = CalcEnForceGPU(distSq, kA, kB,
                          gpu_sigmaSq, gpu_n, gpu_epsilon_Cn, gpu_rCut[0],
                          gpu_rOn[0], gpu_isMartini[0], gpu_VDW_Kind[0],
                          gpu_count[0], lambdaVDW, sc_sigma_6, sc_alpha,
