@@ -12,8 +12,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <stdio.h>
 
-void InitGPULambda(int *molIndex, int *kindIndex, double *lambdaVDW,
-                   double *lambdaCoulomb, bool *isFraction)
+void InitGPULambda(VariablesCUDA &vars, int *molIndex, int *kindIndex,
+                   double *lambdaVDW, double *lambdaCoulomb, bool *isFraction)
 {
   // allocate gpu memory for lambda variables
   cudaMalloc(&vars.gpu_molIndex, BOX_TOTAL * sizeof(int));
