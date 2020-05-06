@@ -70,7 +70,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
                        cudaMemcpyHostToDevice));
   gpuErrchk(cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double),
                        cudaMemcpyHostToDevice));
-  checkLastErrorCUDA(__FILE__, __LINE__);
 
   // Run the kernel...
   threadsPerBlock = 256;
@@ -123,6 +122,7 @@ void CallBoxInterGPU(VariablesCUDA *vars,
       vars->gpu_lambdaCoulomb,
       vars->gpu_isFraction,
       box);
+  cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
 
   // ReduceSum
@@ -151,8 +151,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
                           cudaMemcpyDeviceToHost));
   REn = cpu_final_REn;
   LJEn = cpu_final_LJEn;
-
-  cudaDeviceSynchronize();
 
   cudaFree(gpu_pair1);
   cudaFree(gpu_pair2);
@@ -245,9 +243,7 @@ __global__ void BoxInterGPU(int *gpu_pair1,
       lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
                                              gpu_isFraction, gpu_molIndex,
                                              gpu_kindIndex, gpu_lambdaCoulomb);
-      gpu_REn[threadID] = CalcCoulombGPU(distSq,
-                                         kA,
-                                         kB,
+      gpu_REn[threadID] = CalcCoulombGPU(distSq, kA, kB,
                                          qi_qj_fact, gpu_rCutLow[0],
                                          gpu_ewald[0], gpu_VDW_Kind[0],
                                          gpu_alpha[box],
