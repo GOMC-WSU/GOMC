@@ -225,7 +225,7 @@ void System::InitLambda()
       exit(EXIT_FAILURE);
     }
 #ifdef GOMC_CUDA
-    InitGPULambda(statV.forcefield->particles->GetCUDAVars(), temp_molIndex,
+    InitGPULambda(statV.forcefield.particles->GetCUDAVars(), temp_molIndex,
                   temp_kindIndex, temp_lambdaVDW, temp_lambdaCoulomb,
                   temp_isFraction);
 #endif
