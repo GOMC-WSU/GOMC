@@ -114,7 +114,7 @@ public:
   double *gpu_rMin, *gpu_expConst, *gpu_rMaxSq;
 
   // lambda structure
-  int *gpu_molIndex, gpu_kindIndex;
+  int *gpu_molIndex, *gpu_kindIndex;
   double *gpu_lambdaVDW, *gpu_lambdaCoulomb;
   bool *gpu_isFraction;
 };
