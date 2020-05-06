@@ -1180,8 +1180,9 @@ __device__ double CalcCoulombVirSwitchGPU(double distSq, double qi_qj,
 __device__ double CalcVirParticleGPU(double distSq, int index,
                                      double *gpu_sigmaSq, double *gpu_n,
                                      double *gpu_epsilon_Cn,
-                                     double gpu_lambdaVDW, double sc_sigma_6,
-                                     double sc_alpha, uint sc_power)
+                                     double sc_sigma_6,
+                                     double sc_alpha, uint sc_power,
+                                     double gpu_lambdaVDW)
 {
   if(gpu_lambdaVDW >= 0.999999) {
     return CalcVirParticleGPU(distSq, index, gpu_sigmaSq, gpu_n,
@@ -1214,8 +1215,8 @@ __device__ double CalcVirParticleGPU(double distSq, int index,
 
 __device__ double CalcVirShiftGPU(double distSq, int index, double *gpu_sigmaSq,
                                   double *gpu_n, double *gpu_epsilon_Cn,
-                                  double gpu_lambdaVDW, double sc_sigma_6,
-                                  double sc_alpha, uint sc_power)
+                                  double sc_sigma_6, double sc_alpha,
+                                  uint sc_power, double gpu_lambdaVDW)
 {
   if(gpu_lambdaVDW >= 0.999999) {
     return CalcVirShiftGPU(distSq, index, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn);
@@ -1247,8 +1248,9 @@ __device__ double CalcVirShiftGPU(double distSq, int index, double *gpu_sigmaSq,
 __device__ double CalcVirExp6GPU(double distSq, int index, double *gpu_sigmaSq,
                                  double *gpu_n, double *gpu_rMin,
                                  double *gpu_rMaxSq, double *gpu_expConst,
-                                 double gpu_lambdaVDW, double sc_sigma_6,
-                                 double sc_alpha, uint sc_power)
+                                 double sc_sigma_6,
+                                 double sc_alpha, uint sc_power,
+                                 double gpu_lambdaVDW)
 {
   if(distSq < gpu_rMaxSq[index]) {
     return num::BIGNUM;
@@ -1283,12 +1285,12 @@ __device__ double CalcVirExp6GPU(double distSq, int index, double *gpu_n,
 }
 
 __device__ double CalcVirSwitchMartiniGPU(double distSq, int index,
-    double *gpu_sigmaSq, double *gpu_n,
-    double *gpu_epsilon_Cn,
-    double gpu_rCut, double gpu_rOn,
-    double gpu_lambdaVDW,
-    double sc_sigma_6, double sc_alpha,
-    uint sc_power)
+                                          double *gpu_sigmaSq, double *gpu_n,
+                                          double *gpu_epsilon_Cn,
+                                          double gpu_rCut, double gpu_rOn,
+                                          double sc_sigma_6, double sc_alpha,
+                                          uint sc_power,
+                                          double gpu_lambdaVDW)
 {
   if(gpu_lambdaVDW >= 0.999999) {
     return CalcVirSwitchMartiniGPU(distSq, index, gpu_sigmaSq, gpu_n,
@@ -1308,9 +1310,9 @@ __device__ double CalcVirSwitchMartiniGPU(double distSq, int index,
 }
 
 __device__ double CalcVirSwitchMartiniGPU(double distSq, int index,
-    double *gpu_sigmaSq, double *gpu_n,
-    double *gpu_epsilon_Cn,
-    double gpu_rCut, double gpu_rOn)
+                                          double *gpu_sigmaSq, double *gpu_n,
+                                          double *gpu_epsilon_Cn,
+                                          double gpu_rCut, double gpu_rOn)
 {
   double r_1 = 1.0 / sqrt(distSq);
   double r_8 = pow(r_1, 8);
@@ -1349,9 +1351,10 @@ __device__ double CalcVirSwitchMartiniGPU(double distSq, int index,
 __device__ double CalcVirSwitchGPU(double distSq, int index,
                                    double *gpu_sigmaSq, double *gpu_epsilon_Cn,
                                    double *gpu_n, double gpu_rCut,
-                                   double gpu_rOn, double gpu_lambdaVDW,
+                                   double gpu_rOn,
                                    double sc_sigma_6, double sc_alpha,
-                                   uint sc_power)
+                                   uint sc_power,
+                                   double gpu_lambdaVDW)
 {
   if(gpu_lambdaVDW >= 0.999999) {
     return CalcVirSwitchGPU(distSq, index, gpu_sigmaSq, gpu_epsilon_Cn, gpu_n,
