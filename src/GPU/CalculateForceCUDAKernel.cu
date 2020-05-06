@@ -145,6 +145,11 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
       vars->gpu_rMin,
       vars->gpu_rMaxSq,
       vars->gpu_expConst,
+      vars->gpu_molIndex,
+      vars->gpu_kindIndex,
+      vars->gpu_lambdaVDW,
+      vars->gpu_lambdaCoulomb,
+      vars->gpu_isFraction,
       box);
   checkLastErrorCUDA(__FILE__, __LINE__);
   cudaDeviceSynchronize();
@@ -561,8 +566,6 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                                  double *gpu_Invcell_y,
                                  double *gpu_Invcell_z,
                                  int *gpu_nonOrth,
-                                 double *gpu_lambdaVDW,
-                                 double *gpu_lambdaCoulomb,
                                  bool sc_coul,
                                  double sc_sigma_6,
                                  double sc_alpha,
@@ -570,6 +573,11 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                                  double *gpu_rMin,
                                  double *gpu_rMaxSq,
                                  double *gpu_expConst,
+                                 int *gpu_molIndex,
+                                 int *gpu_kindIndex,
+                                 double *gpu_lambdaVDW,
+                                 double *gpu_lambdaCoulomb,
+                                 bool *gpu_isFraction,
                                  int box)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
@@ -595,26 +603,34 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                yAxes / 2.0, zAxes / 2.0, cutoff, gpu_nonOrth[0],
                gpu_cell_x, gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                gpu_Invcell_z)) {
-    diff_comx = gpu_comx[gpu_particleMol[gpu_pair1[threadID]]] -
-                gpu_comx[gpu_particleMol[gpu_pair2[threadID]]];
-    diff_comy = gpu_comy[gpu_particleMol[gpu_pair1[threadID]]] -
-                gpu_comy[gpu_particleMol[gpu_pair2[threadID]]];
-    diff_comz = gpu_comz[gpu_particleMol[gpu_pair1[threadID]]] -
-                gpu_comz[gpu_particleMol[gpu_pair2[threadID]]];
+    int cA = gpu_particleCharge[gpu_pair1[threadID]];
+    int cB = gpu_particleCharge[gpu_pair2[threadID]];
+    int kA = gpu_particleKind[gpu_pair1[threadID]];
+    int kB = gpu_particleKind[gpu_pair2[threadID]];
+    int mA = gpu_particleMol[gpu_pair1[threadID]];
+    int mB = gpu_particleMol[gpu_pair2[threadID]];
+    
+    lambdaVDW = DeviceGetLambdaVDW(mA, kA, mB, kB, box, gpu_isFraction,
+                                   gpu_molIndex, gpu_kindIndex, gpu_lambdaVDW);
+
+    diff_comx = gpu_comx[mA] - gpu_comx[mB];
+    diff_comy = gpu_comy[mA] - gpu_comy[mB];
+    diff_comz = gpu_comz[mA] - gpu_comz[mB];
 
     diff_comx = MinImageSignedGPU(diff_comx, xAxes, xAxes / 2.0);
     diff_comy = MinImageSignedGPU(diff_comy, yAxes, yAxes / 2.0);
     diff_comz = MinImageSignedGPU(diff_comz, zAxes, zAxes / 2.0);
 
     if(electrostatic) {
-      qi_qj = gpu_particleCharge[gpu_pair1[threadID]] *
-              gpu_particleCharge[gpu_pair2[threadID]];
+      qi_qj = cA * cB;
+      lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
+                                             gpu_isFraction, gpu_molIndex,
+                                             gpu_kindIndex, gpu_lambdaCoulomb);
       pRF = CalcCoulombForceGPU(distSq, qi_qj, gpu_VDW_Kind[0], gpu_ewald[0],
                                 gpu_isMartini[0], gpu_alpha[box],
                                 gpu_rCutCoulomb[box], gpu_diElectric_1[0],
                                 gpu_sigmaSq, sc_coul, sc_sigma_6, sc_alpha,
-                                sc_power, gpu_lambdaCoulomb[threadID],
-                                gpu_count[0],
+                                sc_power, lambdaCoulomb, gpu_count[0],
                                 gpu_particleKind[gpu_pair1[threadID]],
                                 gpu_particleKind[gpu_pair2[threadID]]);
 
@@ -632,9 +648,8 @@ __global__ void BoxInterForceGPU(int *gpu_pair1,
                          gpu_particleKind[gpu_pair2[threadID]],
                          gpu_sigmaSq, gpu_n, gpu_epsilon_Cn, gpu_rCut[0],
                          gpu_rOn[0], gpu_isMartini[0], gpu_VDW_Kind[0],
-                         gpu_count[0], gpu_lambdaVDW[threadID], sc_sigma_6,
-                         sc_alpha, sc_power, gpu_rMin, gpu_rMaxSq,
-                         gpu_expConst);
+                         gpu_count[0], lambdaVDW, sc_sigma_6, sc_alpha,
+                         sc_power, gpu_rMin, gpu_rMaxSq, gpu_expConst);
 
     gpu_vT11[threadID] = pVF * (virX * diff_comx);
     gpu_vT22[threadID] = pVF * (virY * diff_comy);
@@ -688,11 +703,6 @@ __global__ void BoxForceGPU(int *gpu_pair1,
                             double *gpu_mForcex,
                             double *gpu_mForcey,
                             double *gpu_mForcez,
-                            double *gpu_molIndex,
-                            double *gpu_kindIndex,
-                            double *gpu_lambdaVDW,
-                            double *gpu_lambdaCoulomb,
-                            double *gpu_isFraction,
                             bool sc_coul,
                             double sc_sigma_6,
                             double sc_alpha,
@@ -700,6 +710,11 @@ __global__ void BoxForceGPU(int *gpu_pair1,
                             double *gpu_rMin,
                             double *gpu_rMaxSq,
                             double *gpu_expConst,
+                            double *gpu_molIndex,
+                            double *gpu_kindIndex,
+                            double *gpu_lambdaVDW,
+                            double *gpu_lambdaCoulomb,
+                            double *gpu_isFraction,
                             int box)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
