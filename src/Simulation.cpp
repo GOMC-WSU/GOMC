@@ -93,7 +93,7 @@ void Simulation::RunSimulation(void)
   system->PrintTime();
 }
 
-bool RecalculateAndCheck(void) {
+bool Simulation::RecalculateAndCheck(void) {
   system->calcEwald->UpdateVectorsAndRecipTerms();
   SystemPotential pot = system->calcEnergy.SystemTotal();
 
