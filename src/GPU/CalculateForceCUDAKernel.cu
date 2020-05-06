@@ -709,11 +709,11 @@ __global__ void BoxForceGPU(int *gpu_pair1,
                             double *gpu_rMin,
                             double *gpu_rMaxSq,
                             double *gpu_expConst,
-                            double *gpu_molIndex,
-                            double *gpu_kindIndex,
+                            int *gpu_molIndex,
+                            int *gpu_kindIndex,
                             double *gpu_lambdaVDW,
                             double *gpu_lambdaCoulomb,
-                            double *gpu_isFraction,
+                            bool *gpu_isFraction,
                             int box)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
