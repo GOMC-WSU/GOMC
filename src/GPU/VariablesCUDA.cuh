@@ -74,11 +74,11 @@ public:
     gpu_mForcez = NULL;
 
     // setting lambda values to null
-    gpu_molIndex = nullptr;
-    gpu_kindIndex = nullptr;
-    gpu_lambdaVDW = nullptr;
-    gpu_lambdaCoulomb = nullptr;
-    gpu_isFraction = nullptr;
+    gpu_molIndex = NULL;
+    gpu_kindIndex = NULL;
+    gpu_lambdaVDW = NULL;
+    gpu_lambdaCoulomb = NULL;
+    gpu_isFraction = NULL;
   }
   double *gpu_sigmaSq;
   double *gpu_epsilon_Cn;
