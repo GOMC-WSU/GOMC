@@ -12,6 +12,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <iomanip>
 
+#define EPSILON 0.001
+
 Simulation::Simulation(char const*const configFileName, MultiSim const*const& multisim)
 {
   startStep = 0;
@@ -84,8 +86,28 @@ void Simulation::RunSimulation(void)
       RunningCheck(step);
 #endif
   }
+  if(!RecalculateAndCheck()) {
+    std::cerr << "Warning: Updated energy differs from Recalculated Energy!\n";
+  }
   system->PrintAcceptance();
   system->PrintTime();
+}
+
+bool RecalculateAndCheck(void) {
+  system->calcEwald->UpdateVectorsAndRecipTerms();
+  SystemPotential pot = system->calcEnergy.SystemTotal();
+
+  bool compare = true;
+  compare &= abs(system->potential.totalEnergy.intraBond - pot.totalEnergy.intraBond) < EPSILON;
+  compare &= abs(system->potential.totalEnergy.intraNonbond - pot.totalEnergy.intraNonbond) < EPSILON;
+  compare &= abs(system->potential.totalEnergy.inter - pot.totalEnergy.inter) < EPSILON;
+  compare &= abs(system->potential.totalEnergy.tc - pot.totalEnergy.tc) < EPSILON;
+  compare &= abs(system->potential.totalEnergy.real - pot.totalEnergy.real) < EPSILON;
+  compare &= abs(system->potential.totalEnergy.self - pot.totalEnergy.self) < EPSILON;
+  compare &= abs(system->potential.totalEnergy.correction - pot.totalEnergy.correction) < EPSILON;
+  compare &= abs(system->potential.totalEnergy.recip - pot.totalEnergy.recip) < EPSILON;
+
+  return compare;
 }
 
 #ifndef NDEBUG
