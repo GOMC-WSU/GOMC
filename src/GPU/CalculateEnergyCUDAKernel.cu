@@ -116,6 +116,11 @@ void CallBoxInterGPU(VariablesCUDA *vars,
       vars->gpu_rMin,
       vars->gpu_rMaxSq,
       vars->gpu_expConst,
+      vars->gpu_molIndex,
+      vars->gpu_kindIndex,
+      vars->gpu_lambdaVDW,
+      vars->gpu_lambdaCoulomb,
+      vars->gpu_isFraction,
       box);
   checkLastErrorCUDA(__FILE__, __LINE__);
 
@@ -201,6 +206,11 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             double *gpu_rMin,
                             double *gpu_rMaxSq,
                             double *gpu_expConst,
+                            double *gpu_molIndex,
+                            double *gpu_kindIndex,
+                            double *gpu_lambdaVDW,
+                            double *gpu_lambdaCoulomb,
+                            double *gpu_isFraction,
                             int box)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
@@ -210,6 +220,7 @@ __global__ void BoxInterGPU(int *gpu_pair1,
   double qi_qj_fact;
   double qqFact = 167000.0;
   double virX = 0.0, virY = 0.0, virZ = 0.0;
+  double lambdaVDW = 0.0, lambdaCoulomb = 0.0;
   gpu_REn[threadID] = 0.0;
   gpu_LJEn[threadID] = 0.0;
   double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
@@ -220,19 +231,29 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                yAxes / 2.0, zAxes / 2.0, cutoff, gpu_nonOrth[0], gpu_cell_x,
                gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                gpu_Invcell_z)) {
+    int cA = gpu_particleCharge[gpu_pair1[threadID]];
+    int cB = gpu_particleCharge[gpu_pair2[threadID]];
+    int mA = gpu_particleMol[pA];
+    int mB = gpu_particleMol[gpu_pair2[threadID]];
+    int kA = gpu_particleKind[gpu_pair1[threadID]];
+    int kB = gpu_particleKind[gpu_pair2[threadID]];
+    lambdaVDW = DeviceGetLambdaVDW(mA, kA, mB, kB, box, gpu_isFraction,
+                                   gpu_molIndex, gpu_kindIndex, gpu_lambdaVDW);
     if(electrostatic) {
-      qi_qj_fact = gpu_particleCharge[gpu_pair1[threadID]] *
-                   gpu_particleCharge[gpu_pair2[threadID]] * qqFact;
+      qi_qj_fact = cA * cB * qqFact;
+      lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
+                                             gpu_isFraction, gpu_molIndex,
+                                             gpu_kindIndex, gpu_lambdaCoulomb);
       gpu_REn[threadID] = CalcCoulombGPU(distSq,
-                                         gpu_particleKind[gpu_pair1[threadID]],
-                                         gpu_particleKind[gpu_pair2[threadID]],
+                                         kA,
+                                         kB,
                                          qi_qj_fact, gpu_rCutLow[0],
                                          gpu_ewald[0], gpu_VDW_Kind[0],
                                          gpu_alpha[box],
                                          gpu_rCutCoulomb[box],
                                          gpu_isMartini[0],
                                          gpu_diElectric_1[0],
-                                         gpu_lambdaCoulomb[threadID],
+                                         lambdaCoulomb,
                                          sc_coul,
                                          sc_sigma_6,
                                          sc_alpha,
@@ -241,12 +262,12 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                                          gpu_count[0]);
     }
     gpu_LJEn[threadID] = CalcEnGPU(distSq,
-                                   gpu_particleKind[gpu_pair1[threadID]],
-                                   gpu_particleKind[gpu_pair2[threadID]],
+                                   kA,
+                                   kB,
                                    gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
                                    gpu_VDW_Kind[0], gpu_isMartini[0],
                                    gpu_rCut[0], gpu_rOn[0], gpu_count[0],
-                                   gpu_lambdaVDW[threadID],
+                                   lambdaVDW,
                                    sc_sigma_6, sc_alpha, sc_power, gpu_rMin,
                                    gpu_rMaxSq, gpu_expConst);
   }

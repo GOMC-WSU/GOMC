@@ -441,17 +441,6 @@ Virial CalculateEnergy::VirialCalc(const uint box)
   }
 
   uint pairSize = pair1.size();
-  // store lambda values in array
-  // this way GPU can access the same data
-  double *arr_lambdaVDW = new double[pairSize];
-  double *arr_lambdaCoulomb = new double[pairSize];
-  for(i = 0; i < pairSize; i++) {
-    arr_lambdaVDW[i] = GetLambdaVDW(particleMol[pair1[i]], particleMol[pair2[i]], box);
-    if(electrostatic) {
-      arr_lambdaCoulomb[i] = GetLambdaCoulomb(particleMol[pair1[i]],
-                                              particleMol[pair2[i]], box);
-    }
-  }
 
 #ifdef GOMC_CUDA
   //update unitcell in GPU
@@ -487,7 +476,7 @@ Virial CalculateEnergy::VirialCalc(const uint box)
                          electrostatic, particleCharge, particleKind,
                          particleMol, rT11t, rT12t, rT13t, rT22t, rT23t, rT33t,
                          vT11t, vT12t, vT13t, vT22t, vT23t, vT33t,
-                         arr_lambdaVDW, arr_lambdaCoulomb, forcefield.sc_coul,
+                         forcefield.sc_coul,
                          forcefield.sc_sigma_6, forcefield.sc_alpha,
                          forcefield.sc_power, box);
     rT11 += rT11t;
@@ -598,9 +587,6 @@ virC, comC, lambdaVDW, lambdaCoulomb) reduction(+:vT11, vT12, vT13, vT22, \
   tempVir = calcEwald->VirialReciprocal(tempVir, box);
 
   tempVir.Total();
-
-  delete[] arr_lambdaVDW;
-  delete[] arr_lambdaCoulomb;
   return tempVir;
 }
 
