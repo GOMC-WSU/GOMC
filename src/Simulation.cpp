@@ -109,10 +109,7 @@ bool Simulation::RecalculateAndCheck(void) {
 
   if(!compare) {
     std::cout
-        << "================================================================="
-        << std::endl << "-------------------------" << std::endl
-        << " STEP: " << step + 1
-        << std::endl << "-------------------------" << std::endl
+        << "=================================================================\n"
         << "Energy       INTRA B |     INTRA NB |        INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
         << std::endl
         << "System: "
