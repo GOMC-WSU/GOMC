@@ -206,11 +206,11 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             double *gpu_rMin,
                             double *gpu_rMaxSq,
                             double *gpu_expConst,
-                            double *gpu_molIndex,
-                            double *gpu_kindIndex,
+                            int *gpu_molIndex,
+                            int *gpu_kindIndex,
                             double *gpu_lambdaVDW,
                             double *gpu_lambdaCoulomb,
-                            double *gpu_isFraction,
+                            bool *gpu_isFraction,
                             int box)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
@@ -233,7 +233,7 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                gpu_Invcell_z)) {
     int cA = gpu_particleCharge[gpu_pair1[threadID]];
     int cB = gpu_particleCharge[gpu_pair2[threadID]];
-    int mA = gpu_particleMol[pA];
+    int mA = gpu_particleMol[gpu_pair1[threadID]];
     int mB = gpu_particleMol[gpu_pair2[threadID]];
     int kA = gpu_particleKind[gpu_pair1[threadID]];
     int kB = gpu_particleKind[gpu_pair2[threadID]];

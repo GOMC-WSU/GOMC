@@ -131,12 +131,12 @@ __device__ inline double DeviceGetLambdaVDW(int molA, int kindA, int molB,
                                             double *gpu_lambdaVDW)
 {
   double lambda = 1.0;
-  if(isFraction[box]) {
+  if(gpu_isFraction[box]) {
     if((gpu_molIndex[box] == molA) && (gpu_kindIndex[box] == kindA)) {
       lambda *= gpu_lambdaVDW[box];
     }
   }
-  if(isFraction[box]) {
+  if(gpu_isFraction[box]) {
     if((gpu_molIndex[box] == molB) && (gpu_kindIndex[box] == kindB)) {
       lambda *= gpu_lambdaVDW[box];
     }
