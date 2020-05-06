@@ -34,10 +34,10 @@ void InitGPULambda(VariablesCUDA *vars, int *molIndex, int *kindIndex,
   cudaMemcpy(vars->gpu_kindIndex, kindIndex, BOX_TOTAL * sizeof(int),
              cudaMemcpyHostToDevice);
   checkLastErrorCUDA(__FILE__, __LINE__);
-  cudaMemcpy(vars->gpu_lambdaVDW, lambdaVDW, BOX_TOTAL * sizeof(int),
+  cudaMemcpy(vars->gpu_lambdaVDW, lambdaVDW, BOX_TOTAL * sizeof(double),
              cudaMemcpyHostToDevice);
   checkLastErrorCUDA(__FILE__, __LINE__);
-  cudaMemcpy(vars->gpu_lambdaCoulomb, lambdaCoulomb, BOX_TOTAL * sizeof(int),
+  cudaMemcpy(vars->gpu_lambdaCoulomb, lambdaCoulomb, BOX_TOTAL * sizeof(double),
              cudaMemcpyHostToDevice);
   checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(vars->gpu_isFraction, isFraction, BOX_TOTAL * sizeof(int),
