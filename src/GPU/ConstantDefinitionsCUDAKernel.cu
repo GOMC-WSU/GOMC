@@ -12,26 +12,26 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <stdio.h>
 
-void InitGPULambda(VariablesCUDA &vars, int *molIndex, int *kindIndex,
+void InitGPULambda(VariablesCUDA *vars, int *molIndex, int *kindIndex,
                    double *lambdaVDW, double *lambdaCoulomb, bool *isFraction)
 {
   // allocate gpu memory for lambda variables
-  cudaMalloc(&vars.gpu_molIndex, (int)BOX_TOTAL * sizeof(int));
-  cudaMalloc(&vars.gpu_kindIndex, (int)BOX_TOTAL * sizeof(int));
-  cudaMalloc(&vars.gpu_lambdaVDW, (int)BOX_TOTAL * sizeof(double));
-  cudaMalloc(&vars.gpu_lambdaCoulomb, (int)BOX_TOTAL * sizeof(double));
-  cudaMalloc(&vars.gpu_isFraction, (int)BOX_TOTAL * sizeof(bool));
+  cudaMalloc(&vars->gpu_molIndex, (int)BOX_TOTAL * sizeof(int));
+  cudaMalloc(&vars->gpu_kindIndex, (int)BOX_TOTAL * sizeof(int));
+  cudaMalloc(&vars->gpu_lambdaVDW, (int)BOX_TOTAL * sizeof(double));
+  cudaMalloc(&vars->gpu_lambdaCoulomb, (int)BOX_TOTAL * sizeof(double));
+  cudaMalloc(&vars->gpu_isFraction, (int)BOX_TOTAL * sizeof(bool));
 
   // copy required data
-  cudaMemcpy(vars.gpu_molIndex, molIndex, BOX_TOTAL * sizeof(int),
+  cudaMemcpy(vars->gpu_molIndex, molIndex, BOX_TOTAL * sizeof(int),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars.gpu_kindIndex, kindIndex, BOX_TOTAL * sizeof(int),
+  cudaMemcpy(vars->gpu_kindIndex, kindIndex, BOX_TOTAL * sizeof(int),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars.gpu_lambdaVDW, lambdaVDW, BOX_TOTAL * sizeof(int),
+  cudaMemcpy(vars->gpu_lambdaVDW, lambdaVDW, BOX_TOTAL * sizeof(int),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars.gpu_lambdaCoulomb, lambdaCoulomb, BOX_TOTAL * sizeof(int),
+  cudaMemcpy(vars->gpu_lambdaCoulomb, lambdaCoulomb, BOX_TOTAL * sizeof(int),
              cudaMemcpyHostToDevice);
-  cudaMemcpy(vars.gpu_isFraction, isFraction, BOX_TOTAL * sizeof(int),
+  cudaMemcpy(vars->gpu_isFraction, isFraction, BOX_TOTAL * sizeof(int),
              cudaMemcpyHostToDevice);
 }
 
