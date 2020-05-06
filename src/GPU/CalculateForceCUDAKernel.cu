@@ -38,8 +38,6 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
                           double &vT22,
                           double &vT23,
                           double &vT33,
-                          double *arr_lambdaVDW,
-                          double *arr_lambdaCoulomb,
                           bool sc_coul,
                           double sc_sigma_6,
                           double sc_alpha,
@@ -54,7 +52,6 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   int blocksPerGrid, threadsPerBlock;
   double *gpu_particleCharge;
   double *gpu_final_value;
-  double *gpu_lambdaVDW, *gpu_lambdaCoulomb;
 
   cudaMalloc((void**) &gpu_pair1, pair1.size() * sizeof(int));
   cudaMalloc((void**) &gpu_pair2, pair2.size() * sizeof(int));
@@ -63,8 +60,6 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   cudaMalloc((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
   cudaMalloc((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
   cudaMalloc((void**) &gpu_final_value, sizeof(double));
-  cudaMalloc((void**) &gpu_lambdaVDW, pair1.size() * sizeof(double));
-  cudaMalloc((void**) &gpu_lambdaCoulomb, pair1.size() * sizeof(double));
 
   cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int),
              cudaMemcpyHostToDevice);
@@ -90,10 +85,6 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
              cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleMol, &particleMol[0],
              particleMol.size() * sizeof(int),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_lambdaVDW, arr_lambdaVDW, pair1.size() * sizeof(double),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_lambdaCoulomb, arr_lambdaCoulomb, pair1.size() * sizeof(double),
              cudaMemcpyHostToDevice);
 
   // Run the kernel...
@@ -147,8 +138,6 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
       vars->gpu_Invcell_y[box],
       vars->gpu_Invcell_z[box],
       vars->gpu_nonOrth,
-      gpu_lambdaVDW,
-      gpu_lambdaCoulomb,
       sc_coul,
       sc_sigma_6,
       sc_alpha,
@@ -225,8 +214,6 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   cudaFree(gpu_particleMol);
   cudaFree(gpu_particleCharge);
   cudaFree(gpu_final_value);
-  cudaFree(gpu_lambdaVDW);
-  cudaFree(gpu_lambdaCoulomb);
 }
 
 void CallBoxForceGPU(VariablesCUDA *vars,
@@ -250,8 +237,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
                      int molCount,
                      bool reset_force,
                      bool copy_back,
-                     double *lambdaVDW,
-                     double *lambdaCoulomb,
                      bool sc_coul,
                      double sc_sigma_6,
                      double sc_alpha,
@@ -265,7 +250,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   double *gpu_REn, *gpu_LJEn;
   double *gpu_final_REn, *gpu_final_LJEn;
   double cpu_final_REn, cpu_final_LJEn;
-  double *gpu_lambdaVDW, *gpu_lambdaCoulomb;
 
   if(reset_force) {
     cudaMemset(vars->gpu_aForcex, 0, atomCount * sizeof(double));
@@ -286,8 +270,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   cudaMalloc((void**) &gpu_LJEn, pair1.size() * sizeof(double));
   cudaMalloc((void**) &gpu_final_REn, sizeof(double));
   cudaMalloc((void**) &gpu_final_LJEn, sizeof(double));
-  cudaMalloc((void**) &gpu_lambdaVDW, pair1.size() * sizeof(double));
-  cudaMalloc((void**) &gpu_lambdaCoulomb, pair1.size() * sizeof(double));
 
   // Copy necessary data to GPU
   cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int),
@@ -307,10 +289,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_y, coords.y, atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_lambdaVDW, lambdaVDW, pair1.size() * sizeof(double),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_lambdaCoulomb, lambdaCoulomb, pair1.size() * sizeof(double),
              cudaMemcpyHostToDevice);
 
   // Run the kernel...
@@ -357,8 +335,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
       vars->gpu_mForcex,
       vars->gpu_mForcey,
       vars->gpu_mForcez,
-      gpu_lambdaVDW,
-      gpu_lambdaCoulomb,
       sc_coul,
       sc_sigma_6,
       sc_alpha,
@@ -427,8 +403,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   cudaFree(gpu_LJEn);
   cudaFree(gpu_final_REn);
   cudaFree(gpu_final_LJEn);
-  cudaFree(gpu_lambdaVDW);
-  cudaFree(gpu_lambdaCoulomb);
 }
 
 void CallVirialReciprocalGPU(VariablesCUDA *vars,

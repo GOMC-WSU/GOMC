@@ -72,6 +72,13 @@ public:
     gpu_mForcex = NULL;
     gpu_mForcey = NULL;
     gpu_mForcez = NULL;
+
+    // setting lambda values to null
+    gpu_molIndex = nullptr;
+    gpu_kindIndex = nullptr;
+    gpu_lambdaVDW = nullptr;
+    gpu_lambdaCoulomb = nullptr;
+    gpu_isFraction = nullptr;
   }
   double *gpu_sigmaSq;
   double *gpu_epsilon_Cn;
@@ -105,5 +112,10 @@ public:
   double *gpu_aForcex, *gpu_aForcey, *gpu_aForcez;
   double *gpu_mForcex, *gpu_mForcey, *gpu_mForcez;
   double *gpu_rMin, *gpu_expConst, *gpu_rMaxSq;
+
+  // lambda structure
+  int *gpu_molIndex, gpu_kindIndex;
+  double *gpu_lambdaVDW, *gpu_lambdaCoulomb;
+  bool *isFraction;
 };
 #endif

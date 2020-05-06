@@ -12,6 +12,29 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <stdio.h>
 
+void InitGPULambda(int *molIndex, int *kindIndex, double *lambdaVDW,
+                   double *lambdaCoulomb, bool *isFraction)
+{
+  // allocate gpu memory for lambda variables
+  cudaMalloc(&vars.gpu_molIndex, BOX_TOTAL * sizeof(int));
+  cudaMalloc(&vars.gpu_kindIndex, BOX_TOTAL * sizeof(int));
+  cudaMalloc(&vars.gpu_labmdaVDW, BOX_TOTAL * sizeof(double));
+  cudaMalloc(&vars.gpu_lambdaCoulomb, BOX_TOTAL * sizeof(double));
+  cudaMalloc(&vars.gpu_isFraction, BOX_TOTAL * sizeof(bool));
+
+  // copy required data
+  cudaMemcpy(vars.gpu_molIndex, molIndex, BOX_TOTAL * sizeof(int),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars.gpu_kindIndex, kindIndex, BOX_TOTAL * sizeof(int),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars.gpu_lambdaVDW, lambdaVDW, BOX_TOTAL * sizeof(int),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars.gpu_lambdaCoulomb, lambdaCoulomb, BOX_TOTAL * sizeof(int),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars.gpu_isFraction, isFraction, BOX_TOTAL * sizeof(int),
+             cudaMemcpyHostToDevice);
+}
+
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
                        double const *epsilon_Cn,
                        double const *n, int VDW_Kind, int isMartini,

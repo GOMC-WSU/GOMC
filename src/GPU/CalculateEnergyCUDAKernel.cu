@@ -26,8 +26,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
                      vector<int> particleMol,
                      double &REn,
                      double &LJEn,
-                     double *lambdaVDW,
-                     double *lambdaCoulomb,
                      bool sc_coul,
                      double sc_sigma_6,
                      double sc_alpha,
@@ -41,7 +39,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   double *gpu_REn, *gpu_LJEn;
   double *gpu_final_REn, *gpu_final_LJEn;
   double cpu_final_REn, cpu_final_LJEn;
-  double *gpu_lambdaVDW, *gpu_lambdaCoulomb;
 
   gpuErrchk(cudaMalloc((void**) &gpu_pair1, pair1.size() * sizeof(int)));
   gpuErrchk(cudaMalloc((void**) &gpu_pair2, pair2.size() * sizeof(int)));
@@ -53,8 +50,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   gpuErrchk(cudaMalloc((void**) &gpu_LJEn, pair1.size() * sizeof(double)));
   gpuErrchk(cudaMalloc((void**) &gpu_final_REn, sizeof(double)));
   gpuErrchk(cudaMalloc((void**) &gpu_final_LJEn, sizeof(double)));
-  gpuErrchk(cudaMalloc((void**) &gpu_lambdaVDW, pair1.size() * sizeof(double)));
-  gpuErrchk(cudaMalloc((void**) &gpu_lambdaCoulomb, pair1.size() * sizeof(double)));
 
   // Copy necessary data to GPU
   gpuErrchk(cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int),
@@ -75,11 +70,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
                        cudaMemcpyHostToDevice));
   gpuErrchk(cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double),
                        cudaMemcpyHostToDevice));
-  gpuErrchk(cudaMemcpy(gpu_lambdaVDW, lambdaVDW, pair1.size() * sizeof(double),
-                       cudaMemcpyHostToDevice));
-  gpuErrchk(cudaMemcpy(gpu_lambdaCoulomb, lambdaCoulomb, pair1.size() * sizeof(double),
-                       cudaMemcpyHostToDevice));
-  checkLastErrorCUDA(__FILE__, __LINE__);
 
   // Run the kernel...
   threadsPerBlock = 256;
@@ -119,8 +109,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
       vars->gpu_Invcell_x[box],
       vars->gpu_Invcell_y[box],
       vars->gpu_Invcell_z[box],
-      gpu_lambdaVDW,
-      gpu_lambdaCoulomb,
       sc_coul,
       sc_sigma_6,
       sc_alpha,
@@ -169,8 +157,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   cudaFree(gpu_LJEn);
   cudaFree(gpu_final_REn);
   cudaFree(gpu_final_LJEn);
-  cudaFree(gpu_lambdaVDW);
-  cudaFree(gpu_lambdaCoulomb);
 }
 
 __global__ void BoxInterGPU(int *gpu_pair1,
@@ -208,8 +194,6 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             double *gpu_Invcell_x,
                             double *gpu_Invcell_y,
                             double *gpu_Invcell_z,
-                            double *gpu_lambdaVDW,
-                            double *gpu_lambdaCoulomb,
                             bool sc_coul,
                             double sc_sigma_6,
                             double sc_alpha,

@@ -20,6 +20,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define GPU_VDW_EXP6_KIND 3
 #define MAX_PAIR_SIZE 10000000
 
+void InitGPULambda(int *molIndex, int *kindIndex, double *lambdaVDW,
+                   double *lambdaCoulomb, bool *isFraction);
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
                        double const *epsilon_Cn, double const *n,
                        int VDW_Kind, int isMartini, int count,

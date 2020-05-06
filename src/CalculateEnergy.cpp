@@ -188,18 +188,6 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   }
   pairSize = pair1.size();
 
-  // store lambda values in array
-  // this way GPU can access the same data
-  double *arr_lambdaVDW = new double[pairSize];
-  double *arr_lambdaCoulomb = new double[pairSize];
-  for(i = 0; i < pairSize; i++) {
-    arr_lambdaVDW[i] = GetLambdaVDW(particleMol[pair1[i]], particleMol[pair2[i]], box);
-    if(electrostatic) {
-      arr_lambdaCoulomb[i] = GetLambdaCoulomb(particleMol[pair1[i]],
-                                              particleMol[pair2[i]], box);
-    }
-  }
-
 #ifdef GOMC_CUDA
   uint currentIndex = 0;
   double REn = 0.0, LJEn = 0.0;
@@ -229,8 +217,8 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
     CallBoxInterGPU(forcefield.particles->getCUDAVars(), subPair1, subPair2,
                     coords, boxAxes, electrostatic, particleCharge,
-                    particleKind, particleMol, REn, LJEn, arr_lambdaVDW,
-                    arr_lambdaCoulomb, forcefield.sc_coul,
+                    particleKind, particleMol, REn, LJEn,
+                    forcefield.sc_coul,
                     forcefield.sc_sigma_6, forcefield.sc_alpha,
                     forcefield.sc_power, box);
     tempREn += REn;
@@ -246,15 +234,22 @@ reduction(+:tempREn, tempLJEn)
 #endif
   for (i = 0; i < pair1.size(); i++) {
     if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)) {
+      lambdaVDW = GetLambdaVDW(particleMol[pair1[i]],
+                               particleMol[pair2[i]], box);
       if (electrostatic) {
+        lambdaCoulomb = GetLambdaCoulomb(particleMol[pair1[i]],
+                                         particleMol[pair2[i]], box);
         qi_qj_fact = particleCharge[pair1[i]] * particleCharge[pair2[i]] *
                      num::qqFact;
-        tempREn += forcefield.particles->CalcCoulomb(distSq, particleKind[pair1[i]],
-                   particleKind[pair2[i]], qi_qj_fact,
-                   arr_lambdaCoulomb[i], box);
+        tempREn += forcefield.particles->
+                     CalcCoulomb(distSq, particleKind[pair1[i]],
+                                 particleKind[pair2[i]], qi_qj_fact, 
+                                 lambdaCoulomb, box);
       }
-      tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[pair1[i]],
-                  particleKind[pair2[i]], arr_lambdaVDW[i]);
+      tempLJEn += forcefield.particles->
+                    CalcEn(distSq,
+                           particleKind[pair1[i]],
+                           particleKind[pair2[i]], lambdaVDW);
     }
   }
 #endif
@@ -269,9 +264,6 @@ reduction(+:tempREn, tempLJEn)
   }
 
   potential.Total();
-
-  delete[] arr_lambdaVDW;
-  delete[] arr_lambdaCoulomb;
   return potential;
 }
 
@@ -317,18 +309,6 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
     pair.Next();
   }
 
-  // store lambda values in array
-  // this way GPU can access the same data
-  double *arr_lambdaVDW = new double[pairSize];
-  double *arr_lambdaCoulomb = new double[pairSize];
-  for(i = 0; i < pairSize; i++) {
-    arr_lambdaVDW[i] = GetLambdaVDW(particleMol[pair1[i]], particleMol[pair2[i]], box);
-    if(electrostatic) {
-      arr_lambdaCoulomb[i] = GetLambdaCoulomb(particleMol[pair1[i]],
-                                              particleMol[pair2[i]], box);
-    }
-  }
-
 #ifdef GOMC_CUDA
   uint currentIndex = 0;
   double REn = 0.0, LJEn = 0.0;
@@ -366,8 +346,8 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
                     coords, boxAxes, electrostatic, particleCharge,
                     particleKind, particleMol, REn, LJEn,
                     aForcex, aForcey, aForcez, mForcex, mForcey, mForcez,
-                    atomCount, molCount, reset_force, copy_back, arr_lambdaVDW,
-                    arr_lambdaCoulomb, forcefield.sc_coul,
+                    atomCount, molCount, reset_force, copy_back,
+                    forcefield.sc_coul,
                     forcefield.sc_sigma_6, forcefield.sc_alpha,
                     forcefield.sc_power, box);
     tempREn += REn;
@@ -429,9 +409,6 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
   potential.boxEnergy[box].real = tempREn;
 
   potential.Total();
-
-  delete[] arr_lambdaVDW;
-  delete[] arr_lambdaCoulomb;
   return potential;
 }
 
