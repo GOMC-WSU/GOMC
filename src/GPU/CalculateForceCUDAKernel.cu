@@ -814,7 +814,7 @@ __global__ void BoxForceGPU(int *gpu_pair1,
 
     atomicAdd(&gpu_mForcex[mA], forceRealx + forceLJx);
     atomicAdd(&gpu_mForcey[mA], forceRealy + forceLJy);
-    atomicAdd(&gpu_mForcez[mA], orceRealz + forceLJz);
+    atomicAdd(&gpu_mForcez[mA], forceRealz + forceLJz);
     atomicAdd(&gpu_mForcex[mB], -1.0 * (forceRealx + forceLJx));
     atomicAdd(&gpu_mForcey[mB], -1.0 * (forceRealy + forceLJy));
     atomicAdd(&gpu_mForcez[mB], -1.0 * (forceRealz + forceLJz));
