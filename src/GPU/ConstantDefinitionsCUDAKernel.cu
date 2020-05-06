@@ -17,32 +17,22 @@ void InitGPULambda(VariablesCUDA *vars, int *molIndex, int *kindIndex,
 {
   // allocate gpu memory for lambda variables
   cudaMalloc(&vars->gpu_molIndex, (int)BOX_TOTAL * sizeof(int));
-  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMalloc(&vars->gpu_kindIndex, (int)BOX_TOTAL * sizeof(int));
-  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMalloc(&vars->gpu_lambdaVDW, (int)BOX_TOTAL * sizeof(double));
-  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMalloc(&vars->gpu_lambdaCoulomb, (int)BOX_TOTAL * sizeof(double));
-  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMalloc(&vars->gpu_isFraction, (int)BOX_TOTAL * sizeof(bool));
-  checkLastErrorCUDA(__FILE__, __LINE__);
 
   // copy required data
   cudaMemcpy(vars->gpu_molIndex, molIndex, BOX_TOTAL * sizeof(int),
              cudaMemcpyHostToDevice);
-  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(vars->gpu_kindIndex, kindIndex, BOX_TOTAL * sizeof(int),
              cudaMemcpyHostToDevice);
-  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(vars->gpu_lambdaVDW, lambdaVDW, BOX_TOTAL * sizeof(double),
              cudaMemcpyHostToDevice);
-  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(vars->gpu_lambdaCoulomb, lambdaCoulomb, BOX_TOTAL * sizeof(double),
              cudaMemcpyHostToDevice);
-  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(vars->gpu_isFraction, isFraction, BOX_TOTAL * sizeof(bool),
              cudaMemcpyHostToDevice);
-  checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
