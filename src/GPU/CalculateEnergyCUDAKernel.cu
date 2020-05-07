@@ -222,20 +222,22 @@ __global__ void BoxInterGPU(int *gpu_pair1,
   double lambdaVDW = 0.0, lambdaCoulomb = 0.0;
   gpu_REn[threadID] = 0.0;
   gpu_LJEn[threadID] = 0.0;
+  int p1 = gpu_pair1[threadID];
+  int p2 = gpu_pair2[threadID];
   double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
-  if(InRcutGPU(distSq, virX, virY, virZ, gpu_x[gpu_pair1[threadID]],
-               gpu_y[gpu_pair1[threadID]], gpu_z[gpu_pair1[threadID]],
-               gpu_x[gpu_pair2[threadID]], gpu_y[gpu_pair2[threadID]],
-               gpu_z[gpu_pair2[threadID]], xAxes, yAxes, zAxes, xAxes / 2.0,
+  if(InRcutGPU(distSq, virX, virY, virZ, gpu_x[p1],
+               gpu_y[p1], gpu_z[p1],
+               gpu_x[p2], gpu_y[p2],
+               gpu_z[p2], xAxes, yAxes, zAxes, xAxes / 2.0,
                yAxes / 2.0, zAxes / 2.0, cutoff, gpu_nonOrth[0], gpu_cell_x,
                gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                gpu_Invcell_z)) {
-    int cA = gpu_particleCharge[gpu_pair1[threadID]];
-    int cB = gpu_particleCharge[gpu_pair2[threadID]];
-    int mA = gpu_particleMol[gpu_pair1[threadID]];
-    int mB = gpu_particleMol[gpu_pair2[threadID]];
-    int kA = gpu_particleKind[gpu_pair1[threadID]];
-    int kB = gpu_particleKind[gpu_pair2[threadID]];
+    double cA = gpu_particleCharge[p1];
+    double cB = gpu_particleCharge[p2];
+    int mA = gpu_particleMol[p1];
+    int mB = gpu_particleMol[p2];
+    int kA = gpu_particleKind[p1];
+    int kB = gpu_particleKind[p2];
     lambdaVDW = DeviceGetLambdaVDW(mA, kA, mB, kB, box, gpu_isFraction,
                                    gpu_molIndex, gpu_kindIndex, gpu_lambdaVDW);
     if(electrostatic) {
