@@ -135,8 +135,6 @@ __device__ inline double DeviceGetLambdaVDW(int molA, int kindA, int molB,
     if((gpu_molIndex[box] == molA) && (gpu_kindIndex[box] == kindA)) {
       lambda *= gpu_lambdaVDW[box];
     }
-  }
-  if(gpu_isFraction[box]) {
     if((gpu_molIndex[box] == molB) && (gpu_kindIndex[box] == kindB)) {
       lambda *= gpu_lambdaVDW[box];
     }
@@ -156,8 +154,6 @@ __device__ inline double DeviceGetLambdaCoulomb(int molA, int kindA, int molB,
     if((gpu_molIndex[box] == molA) && (gpu_kindIndex[box] == kindA)) {
       lambda *= gpu_lambdaCoulomb[box];
     }
-  }
-  if(gpu_isFraction[box]) {
     if((gpu_molIndex[box] == molB) && (gpu_kindIndex[box] == kindB)) {
       lambda *= gpu_lambdaCoulomb[box];
     }
