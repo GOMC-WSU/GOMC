@@ -261,7 +261,7 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                                          sc_power,
                                          gpu_sigmaSq[threadID],
                                          gpu_count[0]);
-      if(threadID < 100 && gpu_rCutCoulomb[box] * gpu_rCutCoulomb[box] < distSq) {
+      if(threadID < 100 && gpu_rCutCoulomb[box] * gpu_rCutCoulomb[box] > distSq) {
         printf("gpu_REn[%d]: %lf, alpha: %lf,\tqiqjfact: %lf\n", threadID, gpu_REn[threadID], gpu_alpha[box], qi_qj_fact);
         //printf("gpu_REn[%d]: %lf\n", threadID, gpu_REn[threadID]);
       }
