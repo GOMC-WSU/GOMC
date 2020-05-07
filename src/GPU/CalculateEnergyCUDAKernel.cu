@@ -263,10 +263,6 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                                          sc_power,
                                          gpu_sigmaSq[threadID],
                                          gpu_count[0]);
-      if(threadID < 100 && gpu_rCutCoulomb[box] * gpu_rCutCoulomb[box] > distSq) {
-        printf("%d = cA: %lf,\tcB: %lf\n", threadID, cA, cB);
-        //printf("gpu_REn[%d]: %lf\n", threadID, gpu_REn[threadID]);
-      }
     }
     gpu_LJEn[threadID] = CalcEnGPU(distSq,
                                    kA,
