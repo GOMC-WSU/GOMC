@@ -243,9 +243,13 @@ __global__ void BoxInterGPU(int *gpu_pair1,
       lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
                                              gpu_isFraction, gpu_molIndex,
                                              gpu_kindIndex, gpu_lambdaCoulomb);
-      gpu_REn[threadID] = CalcCoulombGPU(distSq, kA, kB,
-                                         qi_qj_fact, gpu_rCutLow[0],
-                                         gpu_ewald[0], gpu_VDW_Kind[0],
+      gpu_REn[threadID] = CalcCoulombGPU(distSq,
+                                         kA,
+                                         kB,
+                                         qi_qj_fact,
+                                         gpu_rCutLow[0],
+                                         gpu_ewald[0],
+                                         gpu_VDW_Kind[0],
                                          gpu_alpha[box],
                                          gpu_rCutCoulomb[box],
                                          gpu_isMartini[0],
@@ -257,6 +261,9 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                                          sc_power,
                                          gpu_sigmaSq[threadID],
                                          gpu_count[0]);
+      if(threadID < 100) {
+        printf("gpu_REn[%d]: %lf\n", threadID, gpu_REn[threadID]);
+      }
     }
     gpu_LJEn[threadID] = CalcEnGPU(distSq,
                                    kA,
@@ -270,14 +277,23 @@ __global__ void BoxInterGPU(int *gpu_pair1,
   }
 }
 
-__device__ double CalcCoulombGPU(double distSq, int kind1, int kind2,
-                                 double qi_qj_fact, double gpu_rCutLow,
-                                 int gpu_ewald, int gpu_VDW_Kind,
-                                 double gpu_alpha, double gpu_rCutCoulomb,
-                                 int gpu_isMartini, double gpu_diElectric_1,
-                                 double gpu_lambdaCoulomb, bool sc_coul,
-                                 double sc_sigma_6, double sc_alpha,
-                                 uint sc_power, double gpu_sigmaSq,
+__device__ double CalcCoulombGPU(double distSq,
+                                 int kind1,
+                                 int kind2,
+                                 double qi_qj_fact, 
+                                 double gpu_rCutLow,
+                                 int gpu_ewald,
+                                 int gpu_VDW_Kind,
+                                 double gpu_alpha,
+                                 double gpu_rCutCoulomb,
+                                 int gpu_isMartini,
+                                 double gpu_diElectric_1,
+                                 double gpu_lambdaCoulomb,
+                                 bool sc_coul,
+                                 double sc_sigma_6,
+                                 double sc_alpha,
+                                 uint sc_power,
+                                 double gpu_sigmaSq,
                                  int gpu_count)
 {
   if((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
@@ -304,8 +320,9 @@ __device__ double CalcCoulombGPU(double distSq, int kind1, int kind2,
                                        sc_alpha, sc_power, gpu_sigmaSq);
   } else
     return CalcCoulombSwitchGPU(distSq, qi_qj_fact, gpu_alpha, gpu_ewald,
-                                gpu_rCutCoulomb, gpu_lambdaCoulomb, sc_coul,
-                                sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq);
+                                gpu_rCutCoulomb, gpu_lambdaCoulomb,
+                                sc_coul, sc_sigma_6, sc_alpha, sc_power,
+                                gpu_sigmaSq);
 }
 
 __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
@@ -348,10 +365,10 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
 //ElectroStatic Calculation
 //**************************************************************//
 __device__ double CalcCoulombParticleGPU(double distSq, double qi_qj_fact,
-    double gpu_ewald, double gpu_alpha,
-    double gpu_lambdaCoulomb, bool sc_coul,
-    double sc_sigma_6, double sc_alpha,
-    uint sc_power, double gpu_sigmaSq)
+                                         double gpu_ewald, double gpu_alpha,
+                                         double gpu_lambdaCoulomb, bool sc_coul,
+                                         double sc_sigma_6, double sc_alpha,
+                                         uint sc_power, double gpu_sigmaSq)
 {
   if(gpu_lambdaCoulomb >= 0.999999) {
     return CalcCoulombParticleGPUNoLambda(distSq, qi_qj_fact, gpu_ewald, gpu_alpha);
