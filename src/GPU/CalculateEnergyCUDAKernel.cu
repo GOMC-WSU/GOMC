@@ -261,8 +261,8 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                                          sc_power,
                                          gpu_sigmaSq[threadID],
                                          gpu_count[0]);
-      if(threadID < 100) {
-        printf("gpu_REn[%d]: %lf,\trcutcoulomb: %lf,\tdistSq: %lf\n", threadID, gpu_REn[threadID], gpu_rCutCoulomb[box], distSq);
+      if(threadID < 100 && gpu_rCutCoulomb[box] * gpu_rCutCoulomb[box] < distSq) {
+        printf("gpu_REn[%d]: %lf, alpha: %lf,\tqiqjfact: %lf\n", threadID, gpu_REn[threadID], gpu_alpha[box], qi_qj_fact);
         //printf("gpu_REn[%d]: %lf\n", threadID, gpu_REn[threadID]);
       }
     }
@@ -388,9 +388,9 @@ __device__ double CalcCoulombParticleGPU(double distSq, double qi_qj_fact,
 }
 
 __device__ double CalcCoulombParticleGPUNoLambda(double distSq,
-    double qi_qj_fact,
-    double gpu_ewald,
-    double gpu_alpha)
+                                                 double qi_qj_fact,
+                                                 double gpu_ewald,
+                                                 double gpu_alpha)
 {
   if(gpu_ewald) {
     double dist = sqrt(distSq);
