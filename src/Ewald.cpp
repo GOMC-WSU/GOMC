@@ -855,9 +855,6 @@ double Ewald::BoxForceReciprocal(XYZArray const& molCoords,
 #else
                  1);
 #endif
-
-    cout << "molCoords.Count(): " << molCoords.Count() << endl;
-    cout << "currentCoords.Count(): " << currentCoords.Count() << endl;
     double recipPME = p.energy(currentCoords.x, currentCoords.y, currentCoords.z,
                                atomForceRec.x, atomForceRec.y, atomForceRec.z);
     double Eextra = p.energy_extra();

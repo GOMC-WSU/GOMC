@@ -216,7 +216,7 @@ inline void MultiParticle::CalcEn()
   //back up cached fourier term
   calcEwald->backupMolCache();
   //setup reciprocate vectors for new positions
-  calcEwald->BoxReciprocalSetup(bPick, newMolsPos);
+  //calcEwald->BoxReciprocalSetup(bPick, newMolsPos);
 
   sysPotNew = sysPotRef;
   //calculate short range energy and force
