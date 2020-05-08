@@ -355,7 +355,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   }
 
 #else
-#if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
+#if _OPENMP >= 201511 // check if OpenMP version is 4.5
 #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, \
 virComponents, forceReal, forceLJ, lambdaVDW, lambdaCoulomb) \
 reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
