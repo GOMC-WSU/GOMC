@@ -355,11 +355,11 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   }
 
 #else
-#ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, \
-  virComponents, forceReal, forceLJ, lambdaVDW, lambdaCoulomb) \
+#ifdef _OPENMP >= 201511 // check if OpenMP version is 4.5
+#pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, \
+virComponents, forceReal, forceLJ, lambdaVDW, lambdaCoulomb) \
 reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
-            aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
+aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 #endif
   for (i = 0; i < pair1.size(); i++) {
     if(boxAxes.InRcut(distSq, virComponents, coords, pair1[i], pair2[i], box)) {
