@@ -846,10 +846,10 @@ double Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       LL[3*i + 2] = currentAxes.cellBasis[box][i].z * boxDimension.z;
     }
 
-    
+    // rCut is in angstrom in our code, however PME uses nm, /10 is required here
     ewald::pme p(boxDimension.x, boxDimension.y, boxDimension.z, LL, 
                  currentCoords.Count(), particleCharge.data(),
-                 currentAxes.rCut[box], ff.tolerance,
+                 currentAxes.rCut[box] / 10, ff.tolerance,
 #ifdef _OPENMP
                  omp_get_max_threads());
 #else
