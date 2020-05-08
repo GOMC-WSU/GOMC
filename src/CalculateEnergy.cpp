@@ -355,7 +355,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   }
 
 #else
-#if _OPENMP >= 201511 // check if OpenMP version is 4.5
+#if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
 #pragma omp parallel for default(shared) private(i, distSq, qi_qj_fact, \
 virComponents, forceReal, forceLJ, lambdaVDW, lambdaCoulomb) \
 reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
@@ -1430,10 +1430,10 @@ void CalculateEnergy::CalculateTorque(vector<uint>& moleculeIndex,
 
     molTorque.Reset();
 
-#ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(m, p, length, start, \
+#if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
+#pragma omp parallel for default(shared) private(m, p, length, start, \
 distFromCOM, tempTorque) reduction(+: torquex[:torqueCount], \
-                                       torquey[:torqueCount], torquez[:torqueCount])
+torquey[:torqueCount], torquez[:torqueCount])
 #endif
     for(m = 0; m < moleculeIndex.size(); m++) {
       length = mols.GetKind(moleculeIndex[m]).NumAtoms();
@@ -1686,10 +1686,10 @@ void CalculateEnergy::EnergyChange(Energy *energyDiff, Energy &dUdL_VDW,
       n.Next();
     }
 
-#ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i, s, distSq, qi_qj_fact, \
+#if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
+#pragma omp parallel for default(shared) private(i, s, distSq, qi_qj_fact, \
 virComponents, energyOldVDW, energyOldCoul) reduction(+:dudl_VDW, dudl_Coul, \
-        tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
+tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
 #endif
     for(i = 0; i < nIndex.size(); i++) {
       distSq = 0.0;
