@@ -145,6 +145,23 @@ void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
     fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
     mp_r_max[box] *= fractOfTargetAccept;
     num::Bound<double>(mp_r_max[box], 0.001, M_PI - 0.001);
+
+    if (!isfinite(mp_r_max[box])) {
+      std::cout << "mp_r_max is not a finite number in Multiparticle move." << endl;
+      std::cout << "mp_r_max[box]: " << mp_r_max[box] << endl;
+      std::cout << "totalTries: " << totalTries << endl;
+      std::cout << "currentAccept: " << currentAccept << endl;
+      std::cout << "fractOfTargetAccept: " << fractOfTargetAccept << endl;
+      exit(EXIT_FAILURE);
+    }
+    if (!isfinite(mp_t_max[box])) {
+      std::cout << "mp_t_max is not a finite number in Multiparticle move." << endl;
+      std::cout << "mp_t_max[box]: " << mp_t_max[box] << endl;
+      std::cout << "totalTries: " << totalTries << endl;
+      std::cout << "currentAccept: " << currentAccept << endl;
+      std::cout << "fractOfTargetAccept: " << fractOfTargetAccept << endl;
+      exit(EXIT_FAILURE);
+    }
   }
 }
 
