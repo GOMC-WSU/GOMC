@@ -141,6 +141,15 @@ void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
     mp_t_max[box] *= fractOfTargetAccept;
     num::Bound<double>(mp_t_max[box], 0.001,
                        (boxDimRef.axis.Min(box) / 2) - 0.001);
+
+    if (!isfinite(mp_t_max[box])) {
+      std::cout << "mp_t_max is not a finite number in Multiparticle move." << endl;
+      std::cout << "mp_t_max[box]: " << mp_t_max[box] << endl;
+      std::cout << "totalTries: " << totalTries << endl;
+      std::cout << "currentAccept: " << currentAccept << endl;
+      std::cout << "fractOfTargetAccept: " << fractOfTargetAccept << endl;
+      exit(EXIT_FAILURE);
+    }
   }
 
   // make sure we ran some rotation, otherwise mp_r_max will be nan!
@@ -150,23 +159,15 @@ void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
     double fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
     mp_r_max[box] *= fractOfTargetAccept;
     num::Bound<double>(mp_r_max[box], 0.001, M_PI - 0.001);
-  }
 
-  if (!isfinite(mp_r_max[box])) {
-    std::cout << "mp_r_max is not a finite number in Multiparticle move." << endl;
-    std::cout << "mp_r_max[box]: " << mp_r_max[box] << endl;
-    std::cout << "totalTries: " << totalTries << endl;
-    std::cout << "currentAccept: " << currentAccept << endl;
-    std::cout << "fractOfTargetAccept: " << fractOfTargetAccept << endl;
-    exit(EXIT_FAILURE);
-  }
-  if (!isfinite(mp_t_max[box])) {
-    std::cout << "mp_t_max is not a finite number in Multiparticle move." << endl;
-    std::cout << "mp_t_max[box]: " << mp_t_max[box] << endl;
-    std::cout << "totalTries: " << totalTries << endl;
-    std::cout << "currentAccept: " << currentAccept << endl;
-    std::cout << "fractOfTargetAccept: " << fractOfTargetAccept << endl;
-    exit(EXIT_FAILURE);
+    if (!isfinite(mp_r_max[box])) {
+      std::cout << "mp_r_max is not a finite number in Multiparticle move." << endl;
+      std::cout << "mp_r_max[box]: " << mp_r_max[box] << endl;
+      std::cout << "totalTries: " << totalTries << endl;
+      std::cout << "currentAccept: " << currentAccept << endl;
+      std::cout << "fractOfTargetAccept: " << fractOfTargetAccept << endl;
+      exit(EXIT_FAILURE);
+    }
   }
 }
 
