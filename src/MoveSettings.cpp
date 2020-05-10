@@ -132,7 +132,7 @@ void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
 {
   uint totalTries = mp_tries[box][mp::MPDISPLACE] +
                     mp_tries[box][mp::MPROTATE];
-  if((totalTries + 1) % perAdjust == 0 ) {
+  if(totalTries != 0 && (totalTries + 1) % perAdjust == 0 ) {
     double currentAccept = (double)mp_accepted[box][mp::MPDISPLACE] /
                            (double)mp_tries[box][mp::MPDISPLACE];
     double fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
