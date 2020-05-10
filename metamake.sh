@@ -48,10 +48,6 @@ else
 	echo "==== cub library already exists. Skipping..."
 fi
 
-cd lib
-git clone https://github.com/jmbr/libpme6.git
-cd ..
-
 rm -frd bin
 mkdir -p bin
 cd bin
