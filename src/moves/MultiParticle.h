@@ -357,12 +357,18 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max)
   }
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
-    std::cout << "Trial Displacement exceed half of the box length in Multiparticle move.\n";
-    std::cout << "Trial transform: " << num;
+    std::cout << "Trial Displacement exceed half of the box length in Multiparticle move." << endl;
+    std::cout << "Trial transform: " << num << endl;
+    std::cout << "lb: " << lb << endl;
+    std::cout << "max: " << max << endl;
+    std::cout << "lbmax: " << lbmax << endl;
     exit(EXIT_FAILURE);
   } else if (!isfinite(num.Length())) {
-    std::cout << "Trial Displacement is not a finite number in Multiparticle move.\n";
-    std::cout << "Trial transform: " << num;
+    std::cout << "Trial Displacement is not a finite number in Multiparticle move." << endl;
+    std::cout << "Trial transform: " << num << endl;
+    std::cout << "lb: " << lb << endl;
+    std::cout << "max: " << max << endl;
+    std::cout << "lbmax: " << lbmax << endl;
     exit(EXIT_FAILURE);
   }
 
