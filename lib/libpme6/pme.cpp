@@ -262,6 +262,7 @@ double pme::energy(double const* __restrict__ x,
 
 double pme::energy_extra() const {
   const double sum_q = std::accumulate(q, q + N, 0.0, std::plus<double>());
+  printf("sum_q: %lf\n", sum_q);
 
   return 1.0 / 6.0 * pow(M_PI * threshold, 3.0) / volume * sum_q * sum_q;
 }
