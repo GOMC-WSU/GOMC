@@ -126,7 +126,7 @@ SystemPotential CalculateEnergy::SystemTotal()
       LL[3*i + 2] = currentAxes.cellBasis[b][i].z * boxDimension.z;
     }
 
-    ewald::pme p(currentAxes.x, currentAxes.y, currentAxes.z, LL, 
+    ewald::pme p(boxDimension.x, boxDimension.y, boxDimension.z, LL, 
                  currentCoords.Count(), particleCharge.data(),
                  currentAxes.rCut[b] / 10, forcefield.tolerance,
 #ifdef _OPENMP
