@@ -21,6 +21,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BoxDimensionsNonOrth.h"
 #include "GeomLib.h"
 #include "NumLib.h"
+#include "pme.h"
 #include <cassert>
 #ifdef GOMC_CUDA
 #include "CalculateEnergyCUDAKernel.cuh"
@@ -111,15 +112,30 @@ SystemPotential CalculateEnergy::SystemTotal()
       MoleculeIntra(molID[i], b, bondEnergy);
       bondEn += bondEnergy[0];
       nonbondEn += bondEnergy[1];
-      //calculate correction term of electrostatic interaction
-      correction += calcEwald->MolCorrection(molID[i], b);
     }
 
     pot.boxEnergy[b].intraBond = bondEn;
     pot.boxEnergy[b].intraNonbond = nonbondEn;
     //calculate self term of electrostatic interaction
-    pot.boxEnergy[b].self = calcEwald->BoxSelf(currentAxes, b);
-    pot.boxEnergy[b].correction = correction;
+
+    double LL[3 * 3];
+    XYZ boxDimension = currentAxes.axis.Get(box);
+    for(int i=0; i<3; i++) {
+      LL[3*i + 0] = currentAxes.cellBasis[box][i].x * boxDimension.x;
+      LL[3*i + 1] = currentAxes.cellBasis[box][i].y * boxDimension.y;
+      LL[3*i + 2] = currentAxes.cellBasis[box][i].z * boxDimension.z;
+    }
+
+    ewald::pme p(currentAxes.x, currentAxes.y, currentAxes.z, LL, 
+                 currentCoords.Count(), particleCharge.data(),
+                 currentAxes.rCut[box] / 10, forcefield.tolerance,
+#ifdef _OPENMP
+                 omp_get_max_threads());
+#else
+                 1);
+#endif
+    pot.boxEnergy[b].correction = p.energy_extra();
+    pot.boxEnergy[b].self  = p.energy_self();
 
     //Calculate Virial
     pot.boxVirial[b] = VirialCalc(b);

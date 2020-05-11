@@ -832,10 +832,11 @@ void Ewald::UpdateRecipVec(uint box)
 
 
 //calculate reciprocate force term for a box with molCoords
-double Ewald::BoxForceReciprocal(XYZArray const& molCoords,
-                               XYZArray& atomForceRec,
-                               XYZArray& molForceRec,
-                               uint box)
+double Ewald::BoxForceReciprocal(SystemPotential &pot,
+                                 XYZArray const& molCoords,
+                                 XYZArray& atomForceRec,
+                                 XYZArray& molForceRec,
+                                 uint box)
 {
   if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
     double LL[3 * 3];
@@ -855,10 +856,10 @@ double Ewald::BoxForceReciprocal(XYZArray const& molCoords,
 #else
                  1);
 #endif
-    double recipPME = p.energy(currentCoords.x, currentCoords.y, currentCoords.z,
-                               atomForceRec.x, atomForceRec.y, atomForceRec.z);
-    double Eextra = p.energy_extra();
-    double Eself  = p.energy_self();
+    pot.boxEnergy[box].recip = p.energy(currentCoords.x, currentCoords.y, currentCoords.z,
+                                        atomForceRec.x, atomForceRec.y, atomForceRec.z);
+    pot.boxEnergy[box].correction = p.energy_extra();
+    pot.boxEnergy[box].self  = p.energy_self();
 
     // Calculate molForce based on atomForce returned from p.energy
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);

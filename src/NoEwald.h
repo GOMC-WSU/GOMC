@@ -34,9 +34,9 @@ public:
   virtual double BoxReciprocal(uint box) const;
 
   //calculate reciprocate force term for a box with molCoords
-  virtual double BoxForceReciprocal(XYZArray const& molCoords,
-                                  XYZArray& atomForceRec, XYZArray& molForceRec,
-                                  uint box);
+  virtual double BoxForceReciprocal(SystemPotential &pot, XYZArray const& molCoords,
+                                    XYZArray& atomForceRec, XYZArray& molForceRec,
+                                    uint box);
 
   //calculate reciprocate force term for a box
   virtual Virial VirialReciprocal(Virial& virial, uint box) const;
