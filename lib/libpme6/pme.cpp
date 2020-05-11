@@ -43,6 +43,10 @@ pme::pme(long d0, long d1, long d2,
 {
   assert(dim0 > 0 && dim1 > 0 && dim2 > 0);
 
+  for(int i=0; i<N; i++) {
+    printf("q[%d]: %lf\n", i, q[i]);
+  }
+
   std::memcpy(L, unit_cell, 3 * 3 * sizeof(double));
   volume = determinant(L);
   assert(volume > 1e2 * epsilon);
