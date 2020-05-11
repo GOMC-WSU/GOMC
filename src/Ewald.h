@@ -108,7 +108,7 @@ public:
   virtual void UpdateVectorsAndRecipTerms();
 
   //calculate reciprocate force term for a box with molCoords
-  virtual double BoxForceReciprocal(SystemPotential &pot,
+  virtual void BoxForceReciprocal(SystemPotential &pot,
                                     XYZArray const& molCoords,
                                     XYZArray& atomForceRec,
                                     XYZArray& molForceRec,

@@ -832,7 +832,7 @@ void Ewald::UpdateRecipVec(uint box)
 
 
 //calculate reciprocate force term for a box with molCoords
-double Ewald::BoxForceReciprocal(SystemPotential &pot,
+void Ewald::BoxForceReciprocal(SystemPotential &pot,
                                  XYZArray const& molCoords,
                                  XYZArray& atomForceRec,
                                  XYZArray& molForceRec,
@@ -881,9 +881,6 @@ double Ewald::BoxForceReciprocal(SystemPotential &pot,
 
       thisMol++;
     }
-
-    return recipPME + Eextra - Eself;
   }
-  return 0.0;
 }
 
