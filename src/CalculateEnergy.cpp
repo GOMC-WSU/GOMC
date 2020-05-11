@@ -116,8 +116,8 @@ SystemPotential CalculateEnergy::SystemTotal()
 
     pot.boxEnergy[b].intraBond = bondEn;
     pot.boxEnergy[b].intraNonbond = nonbondEn;
+    
     //calculate self term of electrostatic interaction
-
     double LL[3 * 3];
     XYZ boxDimension = currentAxes.axis.Get(b);
     for(int i=0; i<3; i++) {
@@ -136,6 +136,8 @@ SystemPotential CalculateEnergy::SystemTotal()
 #endif
     pot.boxEnergy[b].correction = p.energy_extra();
     pot.boxEnergy[b].self  = p.energy_self();
+
+    printf("correction: %lf, self: %lf\n", pot.boxEnergy[b].correction, pot.boxEnergy[b].self);
 
     //Calculate Virial
     pot.boxVirial[b] = VirialCalc(b);
