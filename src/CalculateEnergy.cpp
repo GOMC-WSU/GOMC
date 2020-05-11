@@ -119,16 +119,16 @@ SystemPotential CalculateEnergy::SystemTotal()
     //calculate self term of electrostatic interaction
 
     double LL[3 * 3];
-    XYZ boxDimension = currentAxes.axis.Get(box);
+    XYZ boxDimension = currentAxes.axis.Get(b);
     for(int i=0; i<3; i++) {
-      LL[3*i + 0] = currentAxes.cellBasis[box][i].x * boxDimension.x;
-      LL[3*i + 1] = currentAxes.cellBasis[box][i].y * boxDimension.y;
-      LL[3*i + 2] = currentAxes.cellBasis[box][i].z * boxDimension.z;
+      LL[3*i + 0] = currentAxes.cellBasis[b][i].x * boxDimension.x;
+      LL[3*i + 1] = currentAxes.cellBasis[b][i].y * boxDimension.y;
+      LL[3*i + 2] = currentAxes.cellBasis[b][i].z * boxDimension.z;
     }
 
     ewald::pme p(currentAxes.x, currentAxes.y, currentAxes.z, LL, 
                  currentCoords.Count(), particleCharge.data(),
-                 currentAxes.rCut[box] / 10, forcefield.tolerance,
+                 currentAxes.rCut[b] / 10, forcefield.tolerance,
 #ifdef _OPENMP
                  omp_get_max_threads());
 #else
