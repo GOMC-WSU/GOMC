@@ -474,7 +474,8 @@ Virial CalculateEnergy::VirialCalc(const uint box)
           nParticleIndex < endIndex; nParticleIndex++) {
         nParticle = cellVector[nParticleIndex];
 
-        if(currParticle != nParticle && currParticle < nParticle) {
+        // make sure the pairs are unique and they belong to different molecules
+        if(currParticle < nParticle && particleMol[currParticle] != particleMol[nParticle]) {
           if (currentAxes.InRcut(distSq, virC, currentCoords, currParticle,
                 nParticle, box)) {
             pVF = 0.0;
