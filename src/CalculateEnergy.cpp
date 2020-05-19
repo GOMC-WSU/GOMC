@@ -92,7 +92,7 @@ SystemPotential CalculateEnergy::SystemTotal()
     SystemInter(SystemPotential(), currentCoords, currentCOM, currentAxes);
 
   //system intra
-  for (uint b = 0; b < BOX_TOTAL; ++b) {
+  for (int b = 0; b < BOX_TOTAL; ++b) {
     int i;
     double bondEnergy[2] = {0};
     double bondEn = 0.0, nonbondEn = 0.0, self = 0.0, correction = 0.0;
@@ -147,7 +147,7 @@ SystemPotential CalculateEnergy::SystemInter(SystemPotential potential,
                                              XYZArray const& com,
                                              BoxDimensions const& boxAxes)
 {
-  for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+  for (int b = 0; b < BOXES_WITH_U_NB; ++b) {
     //calculate LJ interaction and real term of electrostatic interaction
     potential = BoxInter(potential, coords, boxAxes, b);
     //calculate reciprocate term of electrostatic interaction
@@ -583,8 +583,8 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
     uint length = mols.GetKind(molIndex).NumAtoms();
     uint start = mols.MolStart(molIndex);
 
-    for (uint p = 0; p < length; ++p) {
-      uint atom = start + p;
+    for (int p = 0; p < length; ++p) {
+      int atom = start + p;
       CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom],
           box);
       n = cellList.EnumerateLocal(currentCoords[atom], box);
@@ -866,7 +866,7 @@ void CalculateEnergy::BondVectors(XYZArray & vecs,
     const uint molIndex,
     const uint box) const
 {
-  for (uint i = 0; i < molKind.bondList.count; ++i) {
+  for (int i = 0; i < molKind.bondList.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.bondList.part1[i];
     uint p2 = mols.start[molIndex] + molKind.bondList.part2[i];
     XYZ dist = currentCoords.Difference(p2, p1);
@@ -885,7 +885,7 @@ void CalculateEnergy::BondVectors(XYZArray & vecs,
 {
   uint box = mol.GetBox();
   uint count = molKind.bondList.count;
-  for (uint i = 0; i < count; ++i) {
+  for (int i = 0; i < count; ++i) {
     uint p1 = molKind.bondList.part1[i];
     uint p2 = molKind.bondList.part2[i];
     if(mol.AtomExists(p1) && mol.AtomExists(p2)) {
@@ -910,7 +910,7 @@ void CalculateEnergy::MolBond(double & energy,
   if (box >= BOXES_WITH_U_B)
     return;
 
-  for (uint b = 0; b < molKind.bondList.count; ++b) {
+  for (int b = 0; b < molKind.bondList.count; ++b) {
     double molLength = vecs.Get(b).Length();
     double eqLength = forcefield.bonds.Length(molKind.bondList.kinds[b]);
     energy += forcefield.bonds.Calc(molKind.bondList.kinds[b], molLength);
@@ -935,7 +935,7 @@ void CalculateEnergy::MolBond(double & energy,
     return;
 
   uint count = molKind.bondList.count;
-  for (uint b = 0; b < count; ++b) {
+  for (int b = 0; b < count; ++b) {
     if(bondExist[b]) {
       energy += forcefield.bonds.Calc(molKind.bondList.kinds[b],
           vecs.Get(b).Length());
@@ -950,7 +950,7 @@ void CalculateEnergy::MolAngle(double & energy,
 {
   if (box >= BOXES_WITH_U_B)
     return;
-  for (uint a = 0; a < molKind.angles.Count(); ++a) {
+  for (int a = 0; a < molKind.angles.Count(); ++a) {
     //Note: need to reverse the second bond to get angle properly.
     double theta = Theta(vecs.Get(molKind.angles.GetBond(a, 0)),
         -vecs.Get(molKind.angles.GetBond(a, 1)));
@@ -967,8 +967,8 @@ void CalculateEnergy::MolAngle(double & energy,
   if (mol.GetBox() >= BOXES_WITH_U_B)
     return;
 
-  uint count = molKind.angles.Count();
-  for (uint a = 0; a < count; ++a) {
+  int count = molKind.angles.Count();
+  for (int a = 0; a < count; ++a) {
     if(bondExist[molKind.angles.GetBond(a, 0)] &&
         bondExist[molKind.angles.GetBond(a, 1)]) {
       //Note: need to reverse the second bond to get angle properly.
@@ -986,7 +986,7 @@ void CalculateEnergy::MolDihedral(double & energy,
 {
   if (box >= BOXES_WITH_U_B)
     return;
-  for (uint d = 0; d < molKind.dihedrals.Count(); ++d) {
+  for (int d = 0; d < molKind.dihedrals.Count(); ++d) {
     double phi = Phi(vecs.Get(molKind.dihedrals.GetBond(d, 0)),
         vecs.Get(molKind.dihedrals.GetBond(d, 1)),
         vecs.Get(molKind.dihedrals.GetBond(d, 2)));
@@ -1004,7 +1004,7 @@ void CalculateEnergy::MolDihedral(double & energy,
     return;
 
   uint count =  molKind.dihedrals.Count();
-  for (uint d = 0; d < count; ++d) {
+  for (int d = 0; d < count; ++d) {
     if(bondExist[molKind.dihedrals.GetBond(d, 0)] &&
         bondExist[molKind.dihedrals.GetBond(d, 1)] &&
         bondExist[molKind.dihedrals.GetBond(d, 2)]) {
@@ -1028,7 +1028,7 @@ void CalculateEnergy::MolNonbond(double & energy,
   double distSq;
   double qi_qj_Fact;
 
-  for (uint i = 0; i < molKind.nonBonded.count; ++i) {
+  for (int i = 0; i < molKind.nonBonded.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded.part1[i];
     uint p2 = mols.start[molIndex] + molKind.nonBonded.part2[i];
     currentAxes.InRcut(distSq, currentCoords, p1, p2, box);
@@ -1061,7 +1061,7 @@ void CalculateEnergy::MolNonbond(double & energy, cbmc::TrialMol const &mol,
   double qi_qj_Fact;
   uint count = molKind.nonBonded.count;
 
-  for (uint i = 0; i < count; ++i) {
+  for (int i = 0; i < count; ++i) {
     uint p1 = molKind.nonBonded.part1[i];
     uint p2 = molKind.nonBonded.part2[i];
     if(mol.AtomExists(p1) && mol.AtomExists(p2)) {
@@ -1094,7 +1094,7 @@ void CalculateEnergy::MolNonbond_1_4(double & energy,
   double distSq;
   double qi_qj_Fact;
 
-  for (uint i = 0; i < molKind.nonBonded_1_4.count; ++i) {
+  for (int i = 0; i < molKind.nonBonded_1_4.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded_1_4.part1[i];
     uint p2 = mols.start[molIndex] + molKind.nonBonded_1_4.part2[i];
     currentAxes.InRcut(distSq, currentCoords, p1, p2, box);
@@ -1128,7 +1128,7 @@ void CalculateEnergy::MolNonbond_1_4(double & energy,
   double qi_qj_Fact;
   uint count = molKind.nonBonded_1_4.count;
 
-  for (uint i = 0; i < count; ++i) {
+  for (int i = 0; i < count; ++i) {
     uint p1 = molKind.nonBonded_1_4.part1[i];
     uint p2 = molKind.nonBonded_1_4.part2[i];
     if(mol.AtomExists(p1) && mol.AtomExists(p2)) {
@@ -1161,7 +1161,7 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
   double distSq;
   double qi_qj_Fact;
 
-  for (uint i = 0; i < molKind.nonBonded_1_3.count; ++i) {
+  for (int i = 0; i < molKind.nonBonded_1_3.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded_1_3.part1[i];
     uint p2 = mols.start[molIndex] + molKind.nonBonded_1_3.part2[i];
     currentAxes.InRcut(distSq, currentCoords, p1, p2, box);
@@ -1195,7 +1195,7 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
   double qi_qj_Fact;
   uint count = molKind.nonBonded_1_3.count;
 
-  for (uint i = 0; i < count; ++i) {
+  for (int i = 0; i < count; ++i) {
     uint p1 = molKind.nonBonded_1_3.part1[i];
     uint p2 = molKind.nonBonded_1_3.part2[i];
     if(mol.AtomExists(p1) && mol.AtomExists(p2)) {
@@ -1287,9 +1287,9 @@ void CalculateEnergy::EnergyCorrection(SystemPotential& pot,
   }
 
   double en = 0.0;
-  for (uint i = 0; i < mols.GetKindsCount(); ++i) {
+  for (int i = 0; i < mols.GetKindsCount(); ++i) {
     uint numI = molLookup.NumKindInBox(i, box);
-    for (uint j = 0; j < mols.GetKindsCount(); ++j) {
+    for (int j = 0; j < mols.GetKindsCount(); ++j) {
       uint numJ = molLookup.NumKindInBox(j, box);
       en += mols.pairEnCorrections[i * mols.GetKindsCount() + j] * numI * numJ
         * boxAxes.volInv[box];
@@ -1308,7 +1308,7 @@ void CalculateEnergy::EnergyCorrection(SystemPotential& pot,
     en += MoleculeTailChange(box, fk, false).energy;
 
     //Add the LRC for fractional molecule
-    for (uint i = 0; i < mols.GetKindsCount(); ++i) {
+    for (int i = 0; i < mols.GetKindsCount(); ++i) {
       uint molNum = molLookup.NumKindInBox(i, box);
       if(i == fk) {
         --molNum; // We have one less molecule (it is fractional molecule)
@@ -1334,8 +1334,8 @@ double CalculateEnergy::EnergyCorrection(const uint box,
   }
 
   double tc = 0.0;
-  for (uint i = 0; i < mols.kindsCount; ++i) {
-    for (uint j = 0; j < mols.kindsCount; ++j) {
+  for (int i = 0; i < mols.kindsCount; ++i) {
+    for (int j = 0; j < mols.kindsCount; ++j) {
       tc += mols.pairEnCorrections[i * mols.kindsCount + j] *
         kCount[i] * kCount[j] * currentAxes.volInv[box];
     }
@@ -1352,9 +1352,9 @@ void CalculateEnergy::VirialCorrection(Virial& virial,
   }
   double vir = 0.0;
 
-  for (uint i = 0; i < mols.GetKindsCount(); ++i) {
+  for (int i = 0; i < mols.GetKindsCount(); ++i) {
     uint numI = molLookup.NumKindInBox(i, box);
-    for (uint j = 0; j < mols.GetKindsCount(); ++j) {
+    for (int j = 0; j < mols.GetKindsCount(); ++j) {
       uint numJ = molLookup.NumKindInBox(j, box);
       vir += mols.pairVirCorrections[i * mols.GetKindsCount() + j] *
         numI * numJ * boxAxes.volInv[box];
@@ -1373,7 +1373,7 @@ void CalculateEnergy::VirialCorrection(Virial& virial,
     vir += MoleculeTailVirChange(box, fk, false).virial;
 
     //Add the LRC for fractional molecule
-    for (uint i = 0; i < mols.GetKindsCount(); ++i) {
+    for (int i = 0; i < mols.GetKindsCount(); ++i) {
       uint molNum = molLookup.NumKindInBox(i, box);
       if(i == fk) {
         --molNum; // We have one less molecule (it is fractional molecule)
@@ -1453,7 +1453,7 @@ void CalculateEnergy::ResetForce(XYZArray& atomForce, XYZArray& molForce,
       start = mols.MolStart(*thisMol);
 
       molForce.Set(*thisMol, 0.0, 0.0, 0.0);
-      for(uint p = start; p < start + length; p++) {
+      for(int p = start; p < start + length; p++) {
         atomForce.Set(p, 0.0, 0.0, 0.0);
       }
       thisMol++;
@@ -1530,7 +1530,7 @@ void CalculateEnergy::SingleMoleculeInter(Energy &interEnOld,
     uint length = mols.GetKind(molIndex).NumAtoms();
     uint start = mols.MolStart(molIndex);
 
-    for (uint p = 0; p < length; ++p) {
+    for (int p = 0; p < length; ++p) {
       uint atom = start + p;
       CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom],
           box);
@@ -1612,7 +1612,7 @@ double CalculateEnergy::MoleculeTailChange(const uint box, const uint kind,
 
   double tcDiff = 0.0;
   uint ktot = mols.GetKindsCount();
-  for (uint i = 0; i < ktot; ++i) {
+  for (int i = 0; i < ktot; ++i) {
     //We should have only one molecule of fractional kind
     double rhoDeltaIJ_2 = 2.0 * (double)(kCount[i]) * currentAxes.volInv[box];
     uint index = kind * ktot + i;
@@ -1650,7 +1650,7 @@ void CalculateEnergy::EnergyChange(Energy *energyDiff, Energy &dUdL_VDW,
   std::fill_n(tempREnDiff, lambdaSize, 0.0);
 
   // Calculate the vdw, short range electrostatic energy
-  for (uint p = 0; p < length; ++p) {
+  for (int p = 0; p < length; ++p) {
     uint atom = start + p;
     CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom], box);
     n = cellList.EnumerateLocal(currentCoords[atom], box);
@@ -1748,9 +1748,9 @@ void CalculateEnergy::ChangeLRC(Energy *energyDiff, Energy &dUdL_VDW,
   double lambda_istate = lambda_VDW[iState];
 
   //Add the LRC for fractional molecule
-  for(uint s = 0; s < lambda_VDW.size(); s++) {
+  for(int s = 0; s < lambda_VDW.size(); s++) {
     double lambdaVDW = lambda_VDW[s];
-    for (uint i = 0; i < mols.GetKindsCount(); ++i) {
+    for (int i = 0; i < mols.GetKindsCount(); ++i) {
       uint molNum = molLookup.NumKindInBox(i, box);
       if(i == fk) {
         --molNum; // We have one less molecule (it is fractional molecule)
