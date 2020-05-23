@@ -273,8 +273,10 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
 }
 
 void CallBoxForceGPU(VariablesCUDA *vars,
-    vector<uint> pair1,
-    vector<uint> pair2,
+    vector<uint> &cellVector,
+    vector<uint> &cellStartIndex,
+    vector<vector<int> > &neighborList,
+    vector<int> &mapParticleToCell,
     XYZArray const &coords,
     BoxDimensions const &boxAxes,
     bool electrostatic,
@@ -291,8 +293,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
     double *mForcez,
     int atomCount,
     int molCount,
-    bool reset_force,
-    bool copy_back,
     bool sc_coul,
     double sc_sigma_6,
     double sc_alpha,
@@ -300,38 +300,47 @@ void CallBoxForceGPU(VariablesCUDA *vars,
     uint const box)
 {
   int atomNumber = coords.Count();
-  int *gpu_pair1, *gpu_pair2, *gpu_particleKind, *gpu_particleMol;
-  int blocksPerGrid, threadsPerBlock;
+  int *gpu_particleKind, *gpu_particleMol;
+  int blocksPerGrid, threadsPerBlock, energyVectorLen;
   double *gpu_particleCharge;
   double *gpu_REn, *gpu_LJEn;
   double *gpu_final_REn, *gpu_final_LJEn;
   double cpu_final_REn, cpu_final_LJEn;
 
-  if(reset_force) {
-    cudaMemset(vars->gpu_aForcex, 0, atomCount * sizeof(double));
-    cudaMemset(vars->gpu_aForcey, 0, atomCount * sizeof(double));
-    cudaMemset(vars->gpu_aForcez, 0, atomCount * sizeof(double));
-    cudaMemset(vars->gpu_mForcex, 0, molCount * sizeof(double));
-    cudaMemset(vars->gpu_mForcey, 0, molCount * sizeof(double));
-    cudaMemset(vars->gpu_mForcez, 0, molCount * sizeof(double));
+  threadsPerBlock = 256;
+  blocksPerGrid = (int)(numberOfCells * NUMBER_OF_NEIGHBOR_CELL);
+  energyVectorLen = numberOfCells * NUMBER_OF_NEIGHBOR_CELL * threadsPerBlock;
+
+  // Convert neighbor list to 1D array
+  std::vector<int> neighborlist1D(neighborListCount);
+  for(int i=0; i<neighborList.size(); i++) {
+    for(int j=0; j<NUMBER_OF_NEIGHBOR_CELL; j++) {
+      neighborlist1D[i*NUMBER_OF_NEIGHBOR_CELL + j] = neighborList[i][j];
+    }
   }
 
-  cudaMalloc((void**) &gpu_pair1, pair1.size() * sizeof(int));
-  cudaMalloc((void**) &gpu_pair2, pair2.size() * sizeof(int));
+  cudaMemset(vars->gpu_aForcex, 0, atomCount * sizeof(double));
+  cudaMemset(vars->gpu_aForcey, 0, atomCount * sizeof(double));
+  cudaMemset(vars->gpu_aForcez, 0, atomCount * sizeof(double));
+  cudaMemset(vars->gpu_mForcex, 0, molCount * sizeof(double));
+  cudaMemset(vars->gpu_mForcey, 0, molCount * sizeof(double));
+  cudaMemset(vars->gpu_mForcez, 0, molCount * sizeof(double));
+
   cudaMalloc((void**) &gpu_particleCharge,
       particleCharge.size() * sizeof(double));
+  cudaMalloc((void**) &gpu_neighborList, neighborListCount * sizeof(int)));
+  cudaMalloc((void**) &gpu_cellStartIndex,
   cudaMalloc((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
   cudaMalloc((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
-  cudaMalloc((void**) &gpu_REn, pair1.size() * sizeof(double));
-  cudaMalloc((void**) &gpu_LJEn, pair1.size() * sizeof(double));
+  cudaMalloc((void**) &gpu_REn, energyVectorLen * sizeof(double));
+  cudaMalloc((void**) &gpu_LJEn, energyVectorLen * sizeof(double));
   cudaMalloc((void**) &gpu_final_REn, sizeof(double));
   cudaMalloc((void**) &gpu_final_LJEn, sizeof(double));
 
   // Copy necessary data to GPU
-  cudaMemcpy(gpu_pair1, &pair1[0], pair1.size() * sizeof(int),
-      cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_pair2, &pair2[0], pair2.size() * sizeof(int),
-      cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0],
+    atomNumber * sizeof(int), cudaMemcpyHostToDevice));
+    cellStartIndex.size() * sizeof(int)));
   cudaMemcpy(gpu_particleCharge, &particleCharge[0],
       particleCharge.size() * sizeof(double),
       cudaMemcpyHostToDevice);
@@ -347,11 +356,12 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double),
       cudaMemcpyHostToDevice);
 
-  // Run the kernel...
-  threadsPerBlock = 256;
-  blocksPerGrid = (int)(pair1.size() / threadsPerBlock) + 1;
-  BoxForceGPU <<< blocksPerGrid, threadsPerBlock>>>(gpu_pair1,
-      gpu_pair2,
+  BoxForceGPU <<< blocksPerGrid, threadsPerBlock>>>(gpu_cellStartIndex,
+      vars->gpu_cellVector,
+      gpu_neighborList,
+      numberOfCells,
+      atomNumber,
+      vars->gpu_mapParticleToCell,
       vars->gpu_x,
       vars->gpu_y,
       vars->gpu_z,
@@ -364,7 +374,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
       gpu_particleMol,
       gpu_REn,
       gpu_LJEn,
-      pair1.size(),
       vars->gpu_sigmaSq,
       vars->gpu_epsilon_Cn,
       vars->gpu_n,
