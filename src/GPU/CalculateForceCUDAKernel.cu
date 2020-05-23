@@ -55,12 +55,14 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   int *gpu_particleMol;
   int *gpu_neighborList, *gpu_cellStartIndex;
   int blocksPerGrid, threadsPerBlock;
+  int energyVectorLen = 0;
   double *gpu_particleCharge;
   double *gpu_final_value;
 
   // Run the kernel...
   threadsPerBlock = 256;
   blocksPerGrid = (int)(numberOfCells * NUMBER_OF_NEIGHBOR_CELL);
+  energyVectorLen = numberOfCells * NUMBER_OF_NEIGHBOR_CELL * threadsPerBlock;
 
   // Convert neighbor list to 1D array
   std::vector<int> neighborlist1D(neighborListCount);
@@ -78,30 +80,18 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   cudaMalloc((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
   cudaMalloc((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
   cudaMalloc((void**) &gpu_final_value, sizeof(double));
-  cudaMalloc(&vars->gpu_rT11, numberOfCells * NUMBER_OF_NEIGHBOR_CELL *
-      threadsPerBlock * sizeof(double));
-  cudaMalloc(&vars->gpu_rT12, numberOfCells * NUMBER_OF_NEIGHBOR_CELL *
-      threadsPerBlock * sizeof(double));
-  cudaMalloc(&vars->gpu_rT13, numberOfCells * NUMBER_OF_NEIGHBOR_CELL *
-      threadsPerBlock * sizeof(double));
-  cudaMalloc(&vars->gpu_rT22, numberOfCells * NUMBER_OF_NEIGHBOR_CELL *
-      threadsPerBlock * sizeof(double));
-  cudaMalloc(&vars->gpu_rT23, numberOfCells * NUMBER_OF_NEIGHBOR_CELL *
-      threadsPerBlock * sizeof(double));
-  cudaMalloc(&vars->gpu_rT33, numberOfCells * NUMBER_OF_NEIGHBOR_CELL *
-      threadsPerBlock * sizeof(double));
-  cudaMalloc(&vars->gpu_vT11, numberOfCells * NUMBER_OF_NEIGHBOR_CELL *
-      threadsPerBlock * sizeof(double));
-  cudaMalloc(&vars->gpu_vT12, numberOfCells * NUMBER_OF_NEIGHBOR_CELL *
-      threadsPerBlock * sizeof(double));
-  cudaMalloc(&vars->gpu_vT13, numberOfCells * NUMBER_OF_NEIGHBOR_CELL *
-      threadsPerBlock * sizeof(double));
-  cudaMalloc(&vars->gpu_vT22, numberOfCells * NUMBER_OF_NEIGHBOR_CELL *
-      threadsPerBlock * sizeof(double));
-  cudaMalloc(&vars->gpu_vT23, numberOfCells * NUMBER_OF_NEIGHBOR_CELL *
-      threadsPerBlock * sizeof(double));
-  cudaMalloc(&vars->gpu_vT33, numberOfCells * NUMBER_OF_NEIGHBOR_CELL *
-      threadsPerBlock * sizeof(double));
+  cudaMalloc(&vars->gpu_rT11, energyVectorLen * sizeof(double));
+  cudaMalloc(&vars->gpu_rT12, energyVectorLen * sizeof(double));
+  cudaMalloc(&vars->gpu_rT13, energyVectorLen * sizeof(double));
+  cudaMalloc(&vars->gpu_rT22, energyVectorLen * sizeof(double));
+  cudaMalloc(&vars->gpu_rT23, energyVectorLen * sizeof(double));
+  cudaMalloc(&vars->gpu_rT33, energyVectorLen * sizeof(double));
+  cudaMalloc(&vars->gpu_vT11, energyVectorLen * sizeof(double));
+  cudaMalloc(&vars->gpu_vT12, energyVectorLen * sizeof(double));
+  cudaMalloc(&vars->gpu_vT13, energyVectorLen * sizeof(double));
+  cudaMalloc(&vars->gpu_vT22, energyVectorLen * sizeof(double));
+  cudaMalloc(&vars->gpu_vT23, energyVectorLen * sizeof(double));
+  cudaMalloc(&vars->gpu_vT33, energyVectorLen * sizeof(double));
 
   cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0],
       atomNumber * sizeof(int), cudaMemcpyHostToDevice);
@@ -206,57 +196,57 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   void *d_temp_storage = NULL;
   size_t temp_storage_bytes = 0;
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, vars->gpu_vT11,
-      gpu_final_value, pair1.size());
+      gpu_final_value, energyVectorLen);
   cudaMalloc(&d_temp_storage, temp_storage_bytes);
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, vars->gpu_vT11,
-      gpu_final_value, pair1.size());
+      gpu_final_value, energyVectorLen);
   cudaMemcpy(&vT11, gpu_final_value, sizeof(double),
       cudaMemcpyDeviceToHost);
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, vars->gpu_vT12,
-      gpu_final_value, pair1.size());
+      gpu_final_value, energyVectorLen);
   cudaMemcpy(&vT12, gpu_final_value, sizeof(double),
       cudaMemcpyDeviceToHost);
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, vars->gpu_vT13,
-      gpu_final_value, pair1.size());
+      gpu_final_value, energyVectorLen);
   cudaMemcpy(&vT13, gpu_final_value, sizeof(double),
       cudaMemcpyDeviceToHost);
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, vars->gpu_vT22,
-      gpu_final_value, pair1.size());
+      gpu_final_value, energyVectorLen);
   cudaMemcpy(&vT22, gpu_final_value, sizeof(double),
       cudaMemcpyDeviceToHost);
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, vars->gpu_vT23,
-      gpu_final_value, pair1.size());
+      gpu_final_value, energyVectorLen);
   cudaMemcpy(&vT23, gpu_final_value, sizeof(double),
       cudaMemcpyDeviceToHost);
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, vars->gpu_vT33,
-      gpu_final_value, pair1.size());
+      gpu_final_value, energyVectorLen);
   cudaMemcpy(&vT33, gpu_final_value, sizeof(double),
       cudaMemcpyDeviceToHost);
 
   if(electrostatic) {
     // ReduceSum // Virial of Coulomb
     DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, vars->gpu_rT11,
-        gpu_final_value, pair1.size());
+        gpu_final_value, energyVectorLen);
     cudaMemcpy(&rT11, gpu_final_value, sizeof(double),
         cudaMemcpyDeviceToHost);
     DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, vars->gpu_rT12,
-        gpu_final_value, pair1.size());
+        gpu_final_value, energyVectorLen);
     cudaMemcpy(&rT12, gpu_final_value, sizeof(double),
         cudaMemcpyDeviceToHost);
     DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, vars->gpu_rT13,
-        gpu_final_value, pair1.size());
+        gpu_final_value, energyVectorLen);
     cudaMemcpy(&rT13, gpu_final_value, sizeof(double),
         cudaMemcpyDeviceToHost);
     DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, vars->gpu_rT22,
-        gpu_final_value, pair1.size());
+        gpu_final_value, energyVectorLen);
     cudaMemcpy(&rT22, gpu_final_value, sizeof(double),
         cudaMemcpyDeviceToHost);
     DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, vars->gpu_rT23,
-        gpu_final_value, pair1.size());
+        gpu_final_value, energyVectorLen);
     cudaMemcpy(&rT23, gpu_final_value, sizeof(double),
         cudaMemcpyDeviceToHost);
     DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, vars->gpu_rT33,
-        gpu_final_value, pair1.size());
+        gpu_final_value, energyVectorLen);
     cudaMemcpy(&rT33, gpu_final_value, sizeof(double),
         cudaMemcpyDeviceToHost);
   }
@@ -274,12 +264,12 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   cudaFree(vars->gpu_vT23);
   cudaFree(vars->gpu_vT33);
   cudaFree(d_temp_storage);
-  cudaFree(gpu_pair1);
-  cudaFree(gpu_pair2);
   cudaFree(gpu_particleKind);
   cudaFree(gpu_particleMol);
   cudaFree(gpu_particleCharge);
   cudaFree(gpu_final_value);
+  cudaFree(gpu_neighborList);
+  cudaFree(gpu_cellStartIndex);
 }
 
 void CallBoxForceGPU(VariablesCUDA *vars,
@@ -420,20 +410,20 @@ void CallBoxForceGPU(VariablesCUDA *vars,
       void * d_temp_storage = NULL;
       size_t temp_storage_bytes = 0;
       DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
-          gpu_final_REn, pair1.size());
+          gpu_final_REn, energyVectorLen);
       CubDebugExit(cudaMalloc(&d_temp_storage, temp_storage_bytes));
       DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
-          gpu_final_REn, pair1.size());
+          gpu_final_REn, energyVectorLen);
       cudaFree(d_temp_storage);
 
       // LJ ReduceSum
       d_temp_storage = NULL;
       temp_storage_bytes = 0;
       DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
-          gpu_final_LJEn, pair1.size());
+          gpu_final_LJEn, energyVectorLen);
       CubDebugExit(cudaMalloc(&d_temp_storage, temp_storage_bytes));
       DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
-          gpu_final_LJEn, pair1.size());
+          gpu_final_LJEn, energyVectorLen);
       cudaFree(d_temp_storage);
       // Copy back the result to CPU ! :)
       CubDebugExit(cudaMemcpy(&cpu_final_REn, gpu_final_REn, sizeof(double),

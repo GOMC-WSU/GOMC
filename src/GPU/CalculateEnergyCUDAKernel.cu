@@ -38,8 +38,10 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   int atomNumber = coords.Count();
   int neighborListCount = neighborList.size() * NUMBER_OF_NEIGHBOR_CELL;
   int numberOfCells = neighborList.size();
-  int *gpu_pair1, *gpu_pair2, *gpu_particleKind, *gpu_particleMol;
+  int *gpu_particleKind, *gpu_particleMol;
+  int *gpu_neighborList, *gpu_cellStartIndex;
   int blocksPerGrid, threadsPerBlock;
+  int energyVectorLen = 0;
   double *gpu_particleCharge;
   double *gpu_REn, *gpu_LJEn;
   double *gpu_final_REn, *gpu_final_LJEn;
@@ -48,6 +50,7 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   // Run the kernel
   threadsPerBlock = 256;
   blocksPerGrid = (int)(numberOfCells * NUMBER_OF_NEIGHBOR_CELL);
+  energyVectorLen = numberOfCells * NUMBER_OF_NEIGHBOR_CELL * threadsPerBlock;
   
   // Convert neighbor list to 1D array
   std::vector<int> neighborlist1D(neighborListCount);
@@ -64,8 +67,8 @@ void CallBoxInterGPU(VariablesCUDA *vars,
         particleCharge.size() * sizeof(double)));
   gpuErrchk(cudaMalloc((void**) &gpu_particleKind, particleKind.size() * sizeof(int)));
   gpuErrchk(cudaMalloc((void**) &gpu_particleMol, particleMol.size() * sizeof(int)));
-  gpuErrchk(cudaMalloc((void**) &gpu_REn, pair1.size() * sizeof(double)));
-  gpuErrchk(cudaMalloc((void**) &gpu_LJEn, pair1.size() * sizeof(double)));
+  gpuErrchk(cudaMalloc((void**) &gpu_REn, energyVectorLen * sizeof(double)));
+  gpuErrchk(cudaMalloc((void**) &gpu_LJEn, energyVectorLen * sizeof(double)));
   gpuErrchk(cudaMalloc((void**) &gpu_final_REn, sizeof(double)));
   gpuErrchk(cudaMalloc((void**) &gpu_final_LJEn, sizeof(double)));
 
@@ -96,9 +99,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   gpuErrchk(cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double),
         cudaMemcpyHostToDevice));
 
-  // Run the kernel...
-  threadsPerBlock = 256;
-  blocksPerGrid = (int)(pair1.size() / threadsPerBlock) + 1;
   BoxInterGPU <<< blocksPerGrid, threadsPerBlock>>>(gpu_cellStartIndex,
       vars->gpu_cellVector,
       gpu_neighborList,
@@ -117,7 +117,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
       gpu_particleMol,
       gpu_REn,
       gpu_LJEn,
-      pair1.size(),
       vars->gpu_sigmaSq,
       vars->gpu_epsilon_Cn,
       vars->gpu_n,
@@ -158,20 +157,20 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   void * d_temp_storage = NULL;
   size_t temp_storage_bytes = 0;
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
-      gpu_final_REn, pair1.size());
+      gpu_final_REn, energyVectorLen);
   CubDebugExit(cudaMalloc(&d_temp_storage, temp_storage_bytes));
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
-      gpu_final_REn, pair1.size());
+      gpu_final_REn, energyVectorLen);
   cudaFree(d_temp_storage);
 
   // LJ ReduceSum
   d_temp_storage = NULL;
   temp_storage_bytes = 0;
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
-      gpu_final_LJEn, pair1.size());
+      gpu_final_LJEn, energyVectorLen);
   CubDebugExit(cudaMalloc(&d_temp_storage, temp_storage_bytes));
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
-      gpu_final_LJEn, pair1.size());
+      gpu_final_LJEn, energyVectorLen);
   cudaFree(d_temp_storage);
   // Copy back the result to CPU ! :)
   CubDebugExit(cudaMemcpy(&cpu_final_REn, gpu_final_REn, sizeof(double),
@@ -181,8 +180,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   REn = cpu_final_REn;
   LJEn = cpu_final_LJEn;
 
-  cudaFree(gpu_pair1);
-  cudaFree(gpu_pair2);
   cudaFree(gpu_particleCharge);
   cudaFree(gpu_particleKind);
   cudaFree(gpu_particleMol);
@@ -190,6 +187,8 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   cudaFree(gpu_LJEn);
   cudaFree(gpu_final_REn);
   cudaFree(gpu_final_LJEn);
+  cudaFree(gpu_neighborList);
+  cudaFree(gpu_cellStartIndex);
 }
 
 __global__ void BoxInterGPU(int *gpu_cellStartIndex,
