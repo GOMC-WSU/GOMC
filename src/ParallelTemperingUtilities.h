@@ -34,9 +34,9 @@ MultiSim const*const& ms;
 SystemPotential & sysPotRef;
 
 #if BOX_TOTAL == 1    
-    vector<double> energies;
+    vector<double> global_energies;
 #else
-    vector<vector <double>> energies;
+    vector<vector <double>> global_energies;
 #endif
 
 };

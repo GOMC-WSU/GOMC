@@ -13,9 +13,9 @@ ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& mul
 ms(multisim), sysPotRef(sys.potential){
 
     #if BOX_TOTAL == 1
-        energies.resize(multisim->worldSize);
+        global_energies.resize(multisim->worldSize, 0.0);
     #else
-        energies.resize(2, std::vector<double>(multisim->worldSize, 0.0));
+        global_energies.resize(2, std::vector<double>(multisim->worldSize, 0.0));
     #endif
 
 }
@@ -23,49 +23,50 @@ ms(multisim), sysPotRef(sys.potential){
 bool ParallelTemperingUtilities::evaluateExchangeCriteria(uint step){
 
     for (int i = 0; i < 2; i++){
-        std::cout << "Before fill : energy[" << i << "] : " << energies[i] << std::endl;
+        std::cout << "Before fill : energy[" << i << "] : " << global_energies[i] << std::endl;
     }
     #if BOX_TOTAL == 1
-    std::memset(&energies[0], 0, ms->worldSize * sizeof(double));
+    std::memset(&global_energies[0], 0, ms->worldSize * sizeof(double));
     #else
-    std::memset(&energies[0], 0, ms->worldSize * sizeof(double));
-    std::memset(&energies[1], 0, ms->worldSize * sizeof(double));
+    std::memset(&global_energies[0], 0, ms->worldSize * sizeof(double));
+    std::memset(&global_energies[1], 0, ms->worldSize * sizeof(double));
     #endif
 
     for (int i = 0; i < 2; i++){
-        std::cout << "After fill : energy[" << i << "] : " << energies[i] << std::endl;
+        std::cout << "After fill : energy[" << i << "] : " << global_energies[i] << std::endl;
     }
 
     #if BOX_TOTAL == 1
-        energies[ms->worldRank] = sysPotRef.boxEnergy[0].total;
+        global_energies[ms->worldRank] = sysPotRef.boxEnergy[0].total;
 
     for (int i = 0; i < 2; i++){
-        std::cout << "After set local energy : energy[" << i << "] : " << energies[i] << std::endl;
+        std::cout << "After set local energy : energy[" << i << "] : " << global_energies[i] << std::endl;
     }
 
-        vector<double> global_energies;
-        global_energies.resize(ms->worldSize, 0);
+    MPI_Allreduce(MPI_IN_PLACE, &global_energies[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
+            MPI_COMM_WORLD);
 
-
-        MPI_Allreduce(&energies[0], &global_energies[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
-              MPI_COMM_WORLD);
-
-        energies = global_energies;
+    //energies = global_energies;
 
     for (int i = 0; i < 2; i++){
-        std::cout << "After allreduce : energy[" << i << "] : " << energies[i] << std::endl;
+        std::cout << "After allreduce : energy[" << i << "] : " << global_energies[i] << std::endl;
     }
 
     #else
-        energies[0][ms->worldRank] = sysPotRef.boxEnergy[0].total;
-        energies[1][ms->worldRank] = sysPotRef.boxEnergy[1].total;
 
-        MPI_Allreduce(&energies[0], &energies[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
+        global_energies[0][ms->worldRank] = sysPotRef.boxEnergy[0].total;
+        global_energies[1][ms->worldRank] = sysPotRef.boxEnergy[1].total;
+
+        MPI_Allreduce(MPI_IN_PLACE, &global_energies[0], ms->worldSize*2, MPI_DOUBLE, MPI_SUM,
               MPI_COMM_WORLD);
-        MPI_Allreduce(&energies[1], &energies[1], ms->worldSize, MPI_DOUBLE, MPI_SUM,
-              MPI_COMM_WORLD);
+        //MPI_Allreduce(MPI_IN_PLACE, &energies[1], ms->worldSize, MPI_DOUBLE, MPI_SUM,
+          //    MPI_COMM_WORLD);
 
     #endif
+
+    //exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
+
+
 }
 
 void ParallelTemperingUtilities::exchangePositions(XYZArray & myPos, MultiSim const*const& multisim){
