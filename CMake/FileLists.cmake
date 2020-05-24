@@ -33,6 +33,7 @@ set(sources
    src/OutConst.cpp
    src/OutputVars.cpp
    src/ParallelTemperingPreprocessor.cpp
+   src/ParallelTemperingUtilities.cpp
    src/PDBSetup.cpp
    src/PDBOutput.cpp
    src/PRNGSetup.cpp
@@ -113,6 +114,7 @@ set(headers
    src/OutputAbstracts.h
    src/OutputVars.h
    src/ParallelTemperingPreprocessor.h
+   src/ParallelTemperingUtilities.h
    src/PDBConst.h
    src/PDBOutput.h
    src/PDBSetup.h
