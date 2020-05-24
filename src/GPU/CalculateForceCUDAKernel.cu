@@ -301,6 +301,9 @@ void CallBoxForceGPU(VariablesCUDA *vars,
 {
   int atomNumber = coords.Count();
   int *gpu_particleKind, *gpu_particleMol;
+  int neighborListCount = neighborList.size() * NUMBER_OF_NEIGHBOR_CELL;
+  int numberOfCells = neighborList.size();
+  int *gpu_neighborList, *gpu_cellStartIndex;
   int blocksPerGrid, threadsPerBlock, energyVectorLen;
   double *gpu_particleCharge;
   double *gpu_REn, *gpu_LJEn;

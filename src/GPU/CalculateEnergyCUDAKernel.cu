@@ -246,7 +246,6 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
   double distSq;
   double qi_qj_fact;
   double qqFact = 167000.0;
-  double virX = 0.0, virY = 0.0, virZ = 0.0;
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   gpu_REn[threadID] = 0.0;
   gpu_LJEn[threadID] = 0.0;
@@ -308,7 +307,7 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
               sc_sigma_6,
               sc_alpha,
               sc_power,
-              gpu_sigmaSq,
+              gpu_sigmaSq[box],
               gpu_count[0]);
         }
         gpu_LJEn[threadID] += CalcEnGPU(distSq,
