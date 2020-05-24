@@ -238,6 +238,8 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
   int nCellIndex = blockIdx.x;
   int neighborCell = gpu_neighborList[nCellIndex];
 
+  if(neighborCell > currentCell) return;
+
   // calculate number of particles inside neighbor Cell
   int particlesInsideCurrentCell, particlesInsideNeighboringCells;
   int endIndex = neighborCell != numberOfCells - 1 ?
@@ -259,7 +261,7 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
     int currentParticle = gpu_cellVector[gpu_cellStartIndex[currentCell] + currentParticleIndex];
     int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
 
-    if(currentParticle < neighborParticle) {
+    if(gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
       // Check if they are within rcut
       distSq = 0;
       double dx = gpu_x[currentParticle] - gpu_x[neighborParticle];
