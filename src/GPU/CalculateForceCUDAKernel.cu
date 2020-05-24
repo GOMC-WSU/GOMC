@@ -340,7 +340,7 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   cudaMalloc((void**) &gpu_final_LJEn, sizeof(double));
 
   // Copy necessary data to GPU
-  cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0], atomNumber * sizeof(int), cudaMemcpyHostToDevice));
+  cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0], atomNumber * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_neighborList, &neighborlist1D[0], neighborListCount * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_cellStartIndex, &cellStartIndex[0], cellStartIndex.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_cellVector, &cellVector[0], atomNumber * sizeof(int), cudaMemcpyHostToDevice);
@@ -445,8 +445,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
       cudaMemcpy(mForcez, vars->gpu_mForcez, sizeof(double) * molCount, cudaMemcpyDeviceToHost);
       cudaDeviceSynchronize();
 
-      cudaFree(gpu_pair1);
-      cudaFree(gpu_pair2);
       cudaFree(gpu_particleCharge);
       cudaFree(gpu_particleKind);
       cudaFree(gpu_particleMol);
