@@ -330,7 +330,7 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   cudaMemset(vars->gpu_mForcez, 0, molCount * sizeof(double));
 
   cudaMalloc((void**) &gpu_particleCharge, particleCharge.size() * sizeof(double));
-  cudaMalloc((void**) &gpu_neighborList, neighborListCount * sizeof(int)));
+  cudaMalloc((void**) &gpu_neighborList, neighborListCount * sizeof(int));
   cudaMalloc((void**) &gpu_cellStartIndex, cellStartIndex.size() * sizeof(int));
   cudaMalloc((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
   cudaMalloc((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
@@ -437,26 +437,12 @@ void CallBoxForceGPU(VariablesCUDA *vars,
       REn = cpu_final_REn;
       LJEn = cpu_final_LJEn;
 
-      if(copy_back) {
-        CubDebugExit(cudaMemcpy(aForcex, vars->gpu_aForcex,
-              sizeof(double) * atomCount,
-              cudaMemcpyDeviceToHost));
-        CubDebugExit(cudaMemcpy(aForcey, vars->gpu_aForcey,
-              sizeof(double) * atomCount,
-              cudaMemcpyDeviceToHost));
-        CubDebugExit(cudaMemcpy(aForcez, vars->gpu_aForcez,
-              sizeof(double) * atomCount,
-              cudaMemcpyDeviceToHost));
-        CubDebugExit(cudaMemcpy(mForcex, vars->gpu_mForcex,
-              sizeof(double) * molCount,
-              cudaMemcpyDeviceToHost));
-        CubDebugExit(cudaMemcpy(mForcey, vars->gpu_mForcey,
-              sizeof(double) * molCount,
-              cudaMemcpyDeviceToHost));
-        CubDebugExit(cudaMemcpy(mForcez, vars->gpu_mForcez,
-              sizeof(double) * molCount,
-              cudaMemcpyDeviceToHost));
-      }
+      cudaMemcpy(aForcex, vars->gpu_aForcex, sizeof(double) * atomCount, cudaMemcpyDeviceToHost);
+      cudaMemcpy(aForcey, vars->gpu_aForcey, sizeof(double) * atomCount, cudaMemcpyDeviceToHost);
+      cudaMemcpy(aForcez, vars->gpu_aForcez, sizeof(double) * atomCount, cudaMemcpyDeviceToHost);
+      cudaMemcpy(mForcex, vars->gpu_mForcex, sizeof(double) * molCount, cudaMemcpyDeviceToHost);
+      cudaMemcpy(mForcey, vars->gpu_mForcey, sizeof(double) * molCount, cudaMemcpyDeviceToHost);
+      cudaMemcpy(mForcez, vars->gpu_mForcez, sizeof(double) * molCount, cudaMemcpyDeviceToHost);
       cudaDeviceSynchronize();
 
       cudaFree(gpu_pair1);
@@ -468,6 +454,8 @@ void CallBoxForceGPU(VariablesCUDA *vars,
       cudaFree(gpu_LJEn);
       cudaFree(gpu_final_REn);
       cudaFree(gpu_final_LJEn);
+      cudaFree(gpu_neighborList);
+      cudaFree(gpu_cellStartIndex);
 }
 
 void CallVirialReciprocalGPU(VariablesCUDA *vars,
