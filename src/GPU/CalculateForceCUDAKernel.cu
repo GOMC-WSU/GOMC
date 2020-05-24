@@ -329,10 +329,9 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   cudaMemset(vars->gpu_mForcey, 0, molCount * sizeof(double));
   cudaMemset(vars->gpu_mForcez, 0, molCount * sizeof(double));
 
-  cudaMalloc((void**) &gpu_particleCharge,
-      particleCharge.size() * sizeof(double));
+  cudaMalloc((void**) &gpu_particleCharge, particleCharge.size() * sizeof(double));
   cudaMalloc((void**) &gpu_neighborList, neighborListCount * sizeof(int)));
-  cudaMalloc((void**) &gpu_cellStartIndex,
+  cudaMalloc((void**) &gpu_cellStartIndex, cellStartIndex.size() * sizeof(int));
   cudaMalloc((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
   cudaMalloc((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
   cudaMalloc((void**) &gpu_REn, energyVectorLen * sizeof(double));
@@ -341,23 +340,16 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   cudaMalloc((void**) &gpu_final_LJEn, sizeof(double));
 
   // Copy necessary data to GPU
-  cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0],
-    atomNumber * sizeof(int), cudaMemcpyHostToDevice));
-    cellStartIndex.size() * sizeof(int)));
-  cudaMemcpy(gpu_particleCharge, &particleCharge[0],
-      particleCharge.size() * sizeof(double),
-      cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_particleKind, &particleKind[0],
-      particleKind.size() * sizeof(int),
-      cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_particleMol, &particleMol[0], particleMol.size() * sizeof(int),
-      cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_x, coords.x, atomNumber * sizeof(double),
-      cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_y, coords.y, atomNumber * sizeof(double),
-      cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double),
-      cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0], atomNumber * sizeof(int), cudaMemcpyHostToDevice));
+  cudaMemcpy(gpu_neighborList, &neighborlist1D[0], neighborListCount * sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_cellStartIndex, &cellStartIndex[0], cellStartIndex.size() * sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_cellVector, &cellVector[0], atomNumber * sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_particleCharge, &particleCharge[0], particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_particleKind, &particleKind[0], particleKind.size() * sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_particleMol, &particleMol[0], particleMol.size() * sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_x, coords.x, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_y, coords.y, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
 
   BoxForceGPU <<< blocksPerGrid, threadsPerBlock>>>(gpu_cellStartIndex,
       vars->gpu_cellVector,
