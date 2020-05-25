@@ -253,6 +253,8 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
     }
   }
 #endif
+
+  printf("LJ: %lf\tReal: %lf\n", tempLJEn, tempREn);
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction
