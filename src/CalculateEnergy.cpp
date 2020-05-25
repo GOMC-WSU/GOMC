@@ -227,7 +227,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
       // avoid duplicate work by ignoring pairs that
       // neighbor cell is larger than current cell
-      if(neighborCell > currentCell) return;
+      if(neighborCell > currCell) return;
 
       // find the ending index in neighboring cell
       endIndex = neighborCell != numberOfCells - 1 ? cellStartIndex[neighborCell+1] : atomNumber;
