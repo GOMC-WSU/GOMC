@@ -9,18 +9,21 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #if GOMC_LIB_MPI
 
-ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& multisim, System & sys):
-ms(multisim), sysPotRef(sys.potential){
+ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& multisim, System & sys, StaticVals const& statV, ulong parallelTempFreq):
+ms(multisim), sysPotRef(sys.potential), parallelTempFreq(parallelTempFreq){
 
     #if BOX_TOTAL == 1
-        global_energies.resize(multisim->worldSize, 0.0);
+        global_energies.resize(ms->worldSize, 0.0);
     #else
-        global_energies.resize(2, std::vector<double>(multisim->worldSize, 0.0));
+        global_energies.resize(2, std::vector<double>(ms->worldSize, 0.0));
     #endif
-
+    global_betas.resize(ms->worldSize, 0.0);
+    global_betas[ms->worldRank] = statV.forcefield.beta;
+    MPI_Allreduce(MPI_IN_PLACE, &global_betas[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
+        MPI_COMM_WORLD);
 }
 
-bool ParallelTemperingUtilities::evaluateExchangeCriteria(uint step){
+bool ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step){
 
     for (int i = 0; i < 2; i++){
         std::cout << "Before fill : energy[" << i << "] : " << global_energies[i] << std::endl;
@@ -46,8 +49,6 @@ bool ParallelTemperingUtilities::evaluateExchangeCriteria(uint step){
     MPI_Allreduce(MPI_IN_PLACE, &global_energies[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
             MPI_COMM_WORLD);
 
-    //energies = global_energies;
-
     for (int i = 0; i < 2; i++){
         std::cout << "After allreduce : energy[" << i << "] : " << global_energies[i] << std::endl;
     }
@@ -64,8 +65,16 @@ bool ParallelTemperingUtilities::evaluateExchangeCriteria(uint step){
 
     #endif
 
-    //exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
+    int parity = step / parallelTempFreq % 2;
+    double uBoltz;
+    for (int i = 1; i < ms->worldSize; i++){
+        if (i % 2 == parity){
+              uBoltz = exp((global_betas[i] - global_betas[i-1]) * (global_energies[i-1] - global_energies[i]));
+        } else {
 
+        }
+    }
+    return 
 
 }
 

@@ -12,10 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <iomanip>
 
-Simulation::Simulation(char const*const configFileName, MultiSim const*const& multisim)
-#if GOMC_LIB_MPI
-:ms(multisim)
-#endif
+Simulation::Simulation(char const*const configFileName, MultiSim const*const& multisim):ms(multisim)
 {
   startStep = 0;
   //NOTE:
@@ -44,6 +41,9 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
   if(totalSteps == 0) {
     frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
   }
+#if GOMC_LIB_MPI
+  PTUtils = set.config.sys.step.parallelTemp ? new ParallelTemperingUtilities(ms, *system, *staticValues, set.config.sys.step.parallelTempFreq): NULL;
+#endif
 }
 
 Simulation::~Simulation()
@@ -56,7 +56,6 @@ Simulation::~Simulation()
 void Simulation::RunSimulation(void)
 {
   double startEnergy = system->potential.totalEnergy.total;
-  ParallelTemperingUtilities pTU(ms, *system);
   if(totalSteps == 0) {
     for(int i = 0; i < frameSteps.size(); i++) {
       if(i == 0) {
@@ -84,7 +83,7 @@ void Simulation::RunSimulation(void)
     }
   #if GOMC_LIB_MPI
 
-    pTU.evaluateExchangeCriteria(step);
+    PTUtils->evaluateExchangeCriteria(step);
     if( step % 100 == 0){
       //pTU.exchangePositions(system->coordinates, ms);
       //pTU.exchangeCOMs(system->com, ms);

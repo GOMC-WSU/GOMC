@@ -37,8 +37,9 @@ private:
   std::vector<ulong> frameSteps;
   uint remarksCount;
   ulong startStep;
-  #if GOMC_LIB_MPI
   MultiSim const*const& ms;
+  #if GOMC_LIB_MPI
+  ParallelTemperingUtilities * PTUtils;
   #endif
 };
 

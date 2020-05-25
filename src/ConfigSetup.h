@@ -159,8 +159,9 @@ struct GEMCKind {
 
 
 struct Step {
-  ulong total, equil, adjustment, pressureCalcFreq;
+  ulong total, equil, adjustment, pressureCalcFreq, parallelTempFreq;
   bool pressureCalc;
+  bool parallelTemp;
 };
 
 //Holds the percentage of each kind of move for this ensemble.

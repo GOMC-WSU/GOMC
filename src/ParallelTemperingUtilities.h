@@ -21,8 +21,8 @@ class ParallelTemperingUtilities
 public:
 
 #if GOMC_LIB_MPI
-explicit ParallelTemperingUtilities(MultiSim const*const& multisim, System & sys);
-bool evaluateExchangeCriteria(uint step);
+explicit ParallelTemperingUtilities(MultiSim const*const& multisim, System & sys, StaticVals const& statV, ulong parallelTempFreq);
+bool evaluateExchangeCriteria(ulong step);
 void exchangePositions(XYZArray & myPos, MultiSim const*const& multisim);
 void exchangeCOMs(XYZArray & myCOMs, MultiSim const*const& multisim);
 
@@ -32,6 +32,8 @@ private:
 
 MultiSim const*const& ms;
 SystemPotential & sysPotRef;
+ulong parallelTempFreq;
+vector<double> global_betas;
 
 #if BOX_TOTAL == 1    
     vector<double> global_energies;

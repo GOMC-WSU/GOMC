@@ -57,6 +57,8 @@ ConfigSetup::ConfigSetup(void)
   sys.step.adjustment = ULONG_MAX;
   sys.step.pressureCalcFreq = ULONG_MAX;
   sys.step.pressureCalc = true;
+  sys.step.parallelTempFreq = ULONG_MAX;
+  sys.step.pressureCalc = false;
   in.ffKind.numOfKinds = 0;
   sys.exclude.EXCLUDE_KIND = UINT_MAX;
   in.prng.kind = "";
@@ -481,6 +483,21 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       else {
         printf("%-40s %-lu \n", "Info: Pressure calculation frequency",
                sys.step.pressureCalcFreq);
+      }
+    } else if(CheckString(line[0], "ParallelTempering")) {
+      sys.step.parallelTemp = checkBool(line[1]);
+      if(line.size() == 3)
+        sys.step.parallelTempFreq = stringtoi(line[2]);
+
+      if(sys.step.parallelTemp && (line.size() == 2)) {
+        std::cout << "Error: Parallel Tempering frequency is not specified!\n";
+        exit(EXIT_FAILURE);
+      }
+      if(!sys.step.parallelTemp)
+        printf("%-40s %-s \n", "Info: Parallel Tempering", "Inactive");
+      else {
+        printf("%-40s %-lu \n", "Info: Parallel Tempering frequency",
+               sys.step.parallelTempFreq);
       }
     } else if(CheckString(line[0], "DisFreq")) {
       sys.moves.displace = stringtod(line[1]);
