@@ -239,14 +239,22 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         std::cout << "Error: Simulation requires " << BOX_TOTAL << " PDB file(s)!\n";
         exit(EXIT_FAILURE);
       }
-      in.files.pdb.name[boxnum] = line[2];
+      if (multisim != NULL && multisim->restart){
+        in.files.pdb.name[boxnum] = multisim->pathToReplicaDirectory + line[2];
+      } else {
+        in.files.pdb.name[boxnum] = line[2];
+      }
     } else if(CheckString(line[0], "Structure")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {
         std::cout << "Error: Simulation requires " << BOX_TOTAL << " PSF file(s)!\n";
         exit(EXIT_FAILURE);
       }
-      in.files.psf.name[boxnum] = line[2];
+      if (multisim != NULL && multisim->restart){
+        in.files.psf.name[boxnum] = multisim->pathToReplicaDirectory + line[2];
+      } else {
+        in.files.psf.name[boxnum] = line[2];
+      }
     }
 #if ENSEMBLE == GEMC
     else if(CheckString(line[0], "GEMC")) {

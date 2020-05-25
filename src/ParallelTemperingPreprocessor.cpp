@@ -73,6 +73,8 @@ ParallelTemperingPreprocessor::ParallelTemperingPreprocessor( int argc,
         pathToReplicaDirectory = setupReplicaDirectoriesAndRedirectSTDOUTToFile  (  getMultiSimFolderName(inputFileStringMPI.c_str()),
                                  getTemperature(inputFileStringMPI.c_str(), worldRank));
 #endif
+      restart = checkIfRestart(inputFileStringMPI.c_str());
+      restartFromCheckpoint = checkIfRestartFromCheckpoint(inputFileStringMPI.c_str());
       }
     }
   }
@@ -101,16 +103,16 @@ bool ParallelTemperingPreprocessor::checkIfParallelTempering(const char *fileNam
   while(reader.readNextLine(line)) {
     if(line.size() == 0)
       continue;
-    if(CheckString(line[0], "Temperature")) {
+    if(checkString(line[0], "Temperature")) {
       if (line.size() > 2)
         isParallelTemperingInTemperature = true;
-    } else if (CheckString(line[0], "ChemPot")) {
+    } else if (checkString(line[0], "ChemPot")) {
       if (line.size() > 3)
         isParallelTemperingInChemicalPotential = true;
-    } else if (CheckString(line[0], "LambdaCoulomb")) {
+    } else if (checkString(line[0], "LambdaCoulomb")) {
       if (line.size() > 2)
         isParallelTemperingInFreeEnergyCoulomb = true;
-    }  else if (CheckString(line[0], "LambdaVDW")) {
+    }  else if (checkString(line[0], "LambdaVDW")) {
       if (line.size() > 2)
         isParallelTemperingInFreeEnergyVDW = true;
     }
@@ -134,13 +136,13 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName)
   while(reader.readNextLine(line)) {
     if(line.size() == 0)
       continue;
-    if(CheckString(line[0], "Temperature")) {
+    if(checkString(line[0], "Temperature")) {
       numberOfTemperatures = line.size() - 1;
-    } else if (CheckString(line[0], "ChemPot")) {
+    } else if (checkString(line[0], "ChemPot")) {
       numberOfChemPots.push_back(line.size() - 2);
-    } else if (CheckString(line[0], "LambdaCoulomb")) {
+    } else if (checkString(line[0], "LambdaCoulomb")) {
       numberOfLambdaCoulombs = line.size() - 1;
-    }  else if (CheckString(line[0], "LambdaVDW")) {
+    }  else if (checkString(line[0], "LambdaVDW")) {
       numberOfLambdaVDWs = line.size() - 1;
     }
     // Clear and get ready for the next line
@@ -183,13 +185,13 @@ int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName)
   while(reader.readNextLine(line)) {
     if(line.size() == 0)
       continue;
-    if(CheckString(line[0], "Temperature")) {
+    if(checkString(line[0], "Temperature")) {
       numberOfTemperatures = line.size() - 1;
-    } else if (CheckString(line[0], "ChemPot")) {
+    } else if (checkString(line[0], "ChemPot")) {
       numberOfChemPots.push_back(line.size() - 2);
-    } else if (CheckString(line[0], "LambdaCoulomb")) {
+    } else if (checkString(line[0], "LambdaCoulomb")) {
       numberOfLambdaCoulombs = line.size() - 1;
-    }  else if (CheckString(line[0], "LambdaVDW")) {
+    }  else if (checkString(line[0], "LambdaVDW")) {
       numberOfLambdaVDWs = line.size() - 1;
     }
     // Clear and get ready for the next line
@@ -276,7 +278,7 @@ std::string ParallelTemperingPreprocessor::getChemicalPotential(const char *file
   while(reader.readNextLine(line)) {
     if(line.size() == 0) {
       continue;
-    } else if(CheckString(line[0], "ChemPot")) {
+    } else if(checkString(line[0], "ChemPot")) {
       if (line.size() > 3) {
         resName = line[1];
         val = line[2 + worldRank];
@@ -295,6 +297,52 @@ std::string ParallelTemperingPreprocessor::getChemicalPotential(const char *file
     line.clear();
   }
   return chemPotStream.str();
+}
+
+bool ParallelTemperingPreprocessor::checkIfRestart(const char *fileName)
+{
+  InputFileReader reader;
+  std::vector<std::string> line;
+  reader.Open(fileName);
+
+  bool restart = false;
+  
+  while(reader.readNextLine(line)) {
+    if(line.size() == 0)
+      continue;
+
+    if(checkString(line[0], "Restart")) {
+      restart = checkBool(line[1]);
+      return restart;
+    }
+     
+    // Clear and get ready for the next line
+    line.clear();
+  }
+  return restart;
+}
+
+bool ParallelTemperingPreprocessor::checkIfRestartFromCheckpoint(const char *fileName)
+{
+  InputFileReader reader;
+  std::vector<std::string> line;
+  reader.Open(fileName);
+
+  bool restartFromCheckpoint = false;
+  
+  while(reader.readNextLine(line)) {
+    if(line.size() == 0)
+      continue;
+
+    if(checkString(line[0], "RestartCheckpoint")) {
+      restartFromCheckpoint = checkBool(line[1]);
+      return restartFromCheckpoint;
+    }
+     
+    // Clear and get ready for the next line
+    line.clear();
+  }
+  return restartFromCheckpoint;
 }
 
 std::string ParallelTemperingPreprocessor::setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature)
@@ -337,7 +385,7 @@ std::string ParallelTemperingPreprocessor::mkdirWrapper(std::string multisimDire
 
 }
 
-bool ParallelTemperingPreprocessor::CheckString(string str1, string str2)
+bool ParallelTemperingPreprocessor::checkString(string str1, string str2)
 {
   for(int k = 0; k < str1.length(); k++) {
     str1[k] = toupper(str1[k]);
@@ -350,8 +398,25 @@ bool ParallelTemperingPreprocessor::CheckString(string str1, string str2)
   return (str1 == str2);
 }
 
+bool ParallelTemperingPreprocessor::checkBool(string str)
+{
+  int k;
+  // capitalize string
+  for(k = 0; k < str.length(); k++) {
+    str[k] = toupper(str[k]);
+  }
+
+  if(str == "ON" || str == "TRUE" || str == "YES")
+    return true;
+  else if(str == "OFF" || str == "FALSE" || str == "NO")
+    return false;
+  std::cout << "Error: " << str << "couldn't be recognized!" << std::endl;
+  exit(EXIT_FAILURE);
+}
+
 MultiSim::MultiSim(ParallelTemperingPreprocessor & pt) :
-  worldSize(pt.worldSize), worldRank(pt.worldRank), pathToReplicaDirectory(pt.pathToReplicaDirectory)
+  worldSize(pt.worldSize), worldRank(pt.worldRank), pathToReplicaDirectory(pt.pathToReplicaDirectory), 
+  restart(pt.restart), restartFromCheckpoint(pt.restartFromCheckpoint)
 {}
 
 #endif
