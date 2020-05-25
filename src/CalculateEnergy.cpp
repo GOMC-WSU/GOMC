@@ -202,7 +202,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   }
 
   CallBoxInterGPU(forcefield.particles->getCUDAVars(), cellVector, cellStartIndex,
-      neighborList, mapParticleToCell, coords, boxAxes, electrostatic, particleCharge,
+      neighborList, coords, boxAxes, electrostatic, particleCharge,
       particleKind, particleMol, REn, LJEn, forcefield.sc_coul,
       forcefield.sc_sigma_6, forcefield.sc_alpha,
       forcefield.sc_power, box);
@@ -224,6 +224,10 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
     for(nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL; nCellIndex++) {
       // find the index of neighboring cell
       neighborCell = neighborList[currCell][nCellIndex];
+
+      // avoid duplicate work by ignoring pairs that
+      // neighbor cell is larger than current cell
+      if(neighborCell > currentCell) return;
 
       // find the ending index in neighboring cell
       endIndex = neighborCell != numberOfCells - 1 ? cellStartIndex[neighborCell+1] : atomNumber;

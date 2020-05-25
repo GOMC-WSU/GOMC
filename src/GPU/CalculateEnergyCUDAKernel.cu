@@ -20,7 +20,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
                      vector<int> cellVector,
                      vector<int> cellStartIndex,
                      std::vector<std::vector<int> > neighborList,
-                     vector<int> mapParticleToCell,
                      XYZArray const &coords,
                      BoxDimensions const &boxAxes,
                      bool electrostatic,
@@ -45,7 +44,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   double *gpu_particleCharge;
   double *gpu_REn, *gpu_LJEn;
   double *gpu_final_REn, *gpu_final_LJEn;
-  double cpu_final_REn, cpu_final_LJEn;
 
   // Run the kernel
   threadsPerBlock = 256;
@@ -71,33 +69,21 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   cudaMalloc((void**) &gpu_final_LJEn, sizeof(double));
 
   // Copy necessary data to GPU
-  cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0], atomNumber * sizeof(int), cudaMemcpyHostToDevice);
-  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(gpu_neighborList, &neighborlist1D[0], neighborListCount * sizeof(int), cudaMemcpyHostToDevice);
-  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(gpu_cellStartIndex, &cellStartIndex[0], cellStartIndex.size() * sizeof(int), cudaMemcpyHostToDevice);
-  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(vars->gpu_cellVector, &cellVector[0], atomNumber * sizeof(int), cudaMemcpyHostToDevice);
-  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(gpu_particleCharge, &particleCharge[0], particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
-  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(gpu_particleKind, &particleKind[0], particleKind.size() * sizeof(int), cudaMemcpyHostToDevice);
-  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(gpu_particleMol, &particleMol[0], particleMol.size() * sizeof(int), cudaMemcpyHostToDevice);
-  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(vars->gpu_x, coords.x, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
-  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(vars->gpu_y, coords.y, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
-  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
-  checkLastErrorCUDA(__FILE__, __LINE__);
 
   BoxInterGPU <<< blocksPerGrid, threadsPerBlock>>>(gpu_cellStartIndex,
       vars->gpu_cellVector,
       gpu_neighborList,
       numberOfCells,
       atomNumber,
-      vars->gpu_mapParticleToCell,
       vars->gpu_x,
       vars->gpu_y,
       vars->gpu_z,
@@ -166,12 +152,10 @@ void CallBoxInterGPU(VariablesCUDA *vars,
       gpu_final_LJEn, energyVectorLen);
   cudaFree(d_temp_storage);
   // Copy back the result to CPU ! :)
-  CubDebugExit(cudaMemcpy(&cpu_final_REn, gpu_final_REn, sizeof(double),
+  CubDebugExit(cudaMemcpy(&REn, gpu_final_REn, sizeof(double),
         cudaMemcpyDeviceToHost));
-  CubDebugExit(cudaMemcpy(&cpu_final_LJEn, gpu_final_LJEn, sizeof(double),
+  CubDebugExit(cudaMemcpy(&LJEn, gpu_final_LJEn, sizeof(double),
         cudaMemcpyDeviceToHost));
-  REn = cpu_final_REn;
-  LJEn = cpu_final_LJEn;
 
   cudaFree(gpu_particleCharge);
   cudaFree(gpu_particleKind);
@@ -189,7 +173,6 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
     int *gpu_neighborList,
     int numberOfCells,
     int atomNumber,
-    int *gpu_mapParticleToCell,
     double *gpu_x,
     double *gpu_y,
     double *gpu_z,
@@ -271,7 +254,7 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
     int currentParticle = gpu_cellVector[gpu_cellStartIndex[currentCell] + currentParticleIndex];
     int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
 
-    if(gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
+    if(currentParticle < neighborParticle && gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
       // Check if they are within rcut
       distSq = 0;
       double dx = gpu_x[currentParticle] - gpu_x[neighborParticle];
