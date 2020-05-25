@@ -107,6 +107,9 @@ public:
   Ewald *calcEwald;
   CellList cellList;
   PRNG prng;
+  #if GOMC_LIB_MPI
+  PRNG  prngParallelTemp;
+  #endif
 
   CheckpointSetup checkpointSet;
 

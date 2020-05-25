@@ -41,6 +41,7 @@ ConfigSetup::ConfigSetup(void)
   in.restart.recalcTrajectory = false;
   in.restart.restartFromCheckpoint = false;
   in.prng.seed = UINT_MAX;
+  in.prngParallelTempering.seed = UINT_MAX;
   sys.elect.readEwald = false;
   sys.elect.readElect = false;
   sys.elect.readCache = false;
@@ -192,6 +193,10 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       in.restart.step = stringtoi(line[1]);
     } else if(CheckString(line[0], "PRNG")) {
       in.prng.kind = line[1];
+      if("RANDOM" == line[1])
+        printf("%-40s %-s \n", "Info: Random seed", "Active");
+    } else if(CheckString(line[0], "PRNG_ParallelTempering")) {
+      in.prngParallelTempering.kind = line[1];
       if("RANDOM" == line[1])
         printf("%-40s %-s \n", "Info: Random seed", "Active");
     } else if(CheckString(line[0], "ParaTypeCHARMM")) {
@@ -484,7 +489,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         printf("%-40s %-lu \n", "Info: Pressure calculation frequency",
                sys.step.pressureCalcFreq);
       }
-    } else if(CheckString(line[0], "ParallelTempering")) {
+    } else if(CheckString(line[0], "ParallelTemperingFreq")) {
       sys.step.parallelTemp = checkBool(line[1]);
       if(line.size() == 3)
         sys.step.parallelTempFreq = stringtoi(line[2]);
@@ -1023,6 +1028,13 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         printf("%-40s %-s \n", "Info: Constant seed", "Active");
       else
         printf("Warning: Constant seed set, but will be ignored.\n");
+    } 
+    else if(CheckString(line[0], "ParallelTempering_Seed")) {
+      in.prngParallelTempering.seed = stringtoi(line[1]);
+      if("INTSEED" == in.prngParallelTempering.kind)
+        printf("%-40s %-s \n", "Info: Constant Parallel Tempering seed", "Active");
+      else
+        printf("Warning: Constant Parallel Tempering seed set, but will be ignored.\n");
     } else {
       cout << "Warning: Unknown input " << line[0] << "!" << endl;
     }

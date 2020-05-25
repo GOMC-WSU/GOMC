@@ -102,7 +102,7 @@ struct InFiles {
 //Input section of config file data.
 struct Input {
   RestartSettings restart;
-  PRNGKind prng;
+  PRNGKind prng, prngParallelTempering;
   FFKind ffKind;
   InFiles files;
 };

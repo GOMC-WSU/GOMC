@@ -10,7 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #if GOMC_LIB_MPI
 
 ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& multisim, System & sys, StaticVals const& statV, ulong parallelTempFreq):
-ms(multisim), sysPotRef(sys.potential), parallelTempFreq(parallelTempFreq){
+ms(multisim), sysPotRef(sys.potential), parallelTempFreq(parallelTempFreq), prng(sys.prngParallelTemp){
 
     #if BOX_TOTAL == 1
         global_energies.resize(ms->worldSize, 0.0);
@@ -18,12 +18,14 @@ ms(multisim), sysPotRef(sys.potential), parallelTempFreq(parallelTempFreq){
         global_energies.resize(2, std::vector<double>(ms->worldSize, 0.0));
     #endif
     global_betas.resize(ms->worldSize, 0.0);
+    exchangeProbabilities.resize(ms->worldSize, 0.0);
+    exchangeResults.resize(ms->worldSize, false);
     global_betas[ms->worldRank] = statV.forcefield.beta;
     MPI_Allreduce(MPI_IN_PLACE, &global_betas[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
         MPI_COMM_WORLD);
 }
 
-bool ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step){
+vector<bool> ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step){
 
     for (int i = 0; i < 2; i++){
         std::cout << "Before fill : energy[" << i << "] : " << global_energies[i] << std::endl;
@@ -69,50 +71,53 @@ bool ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step){
     double uBoltz;
     for (int i = 1; i < ms->worldSize; i++){
         if (i % 2 == parity){
-              uBoltz = exp((global_betas[i] - global_betas[i-1]) * (global_energies[i-1] - global_energies[i]));
+            uBoltz = exp((global_betas[i] - global_betas[i-1]) * (global_energies[i-1] - global_energies[i]));
+            exchangeProbabilities[i] = min(uBoltz, 1.0);
+            exchangeResults[i] = prng() < uBoltz;
         } else {
-
+            exchangeResults[i] = false;
+            exchangeProbabilities[i] = 0.0;
         }
     }
-    return 
+    return exchangeResults; 
 
 }
 
-void ParallelTemperingUtilities::exchangePositions(XYZArray & myPos, MultiSim const*const& multisim){
+void ParallelTemperingUtilities::exchangePositions(XYZArray & myPos, MultiSim const*const& multisim, int exchangePartner, bool leader){
     
     XYZArray buffer(myPos);
-
-    if (multisim->worldRank == 0){
-        MPI_Send(buffer.x, buffer.Count(), MPI_DOUBLE, 1, 0,
+// if im 0, im the follower and i get 1 as a
+    if (leader){
+        MPI_Send(buffer.x, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
-        MPI_Recv(myPos.x, myPos.Count(), MPI_DOUBLE, 1, 0,
+        MPI_Recv(myPos.x, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     } else {
-        MPI_Recv(myPos.x, myPos.Count(), MPI_DOUBLE, 0, 0,
+        MPI_Recv(myPos.x, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Send(buffer.x, buffer.Count(), MPI_DOUBLE, 0, 0,
+        MPI_Send(buffer.x, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
     }
-    if (multisim->worldRank == 0){
-        MPI_Send(buffer.y, buffer.Count(), MPI_DOUBLE, 1, 0,
+    if (leader){
+        MPI_Send(buffer.y, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
-        MPI_Recv(myPos.y, myPos.Count(), MPI_DOUBLE, 1, 0,
+        MPI_Recv(myPos.y, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     } else {
-        MPI_Recv(myPos.y, myPos.Count(), MPI_DOUBLE, 0, 0,
+        MPI_Recv(myPos.y, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Send(buffer.y, buffer.Count(), MPI_DOUBLE, 0, 0,
+        MPI_Send(buffer.y, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
     }
-    if (multisim->worldRank == 0){
-        MPI_Send(buffer.z, buffer.Count(), MPI_DOUBLE, 1, 0,
+    if (leader){
+        MPI_Send(buffer.z, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
-        MPI_Recv(myPos.z, myPos.Count(), MPI_DOUBLE, 1, 0,
+        MPI_Recv(myPos.z, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     } else {
-        MPI_Recv(myPos.z, myPos.Count(), MPI_DOUBLE, 0, 0,
+        MPI_Recv(myPos.z, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Send(buffer.z, buffer.Count(), MPI_DOUBLE, 0, 0,
+        MPI_Send(buffer.z, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
     }
 
@@ -122,41 +127,41 @@ void ParallelTemperingUtilities::exchangePositions(XYZArray & myPos, MultiSim co
     }
 }
 
-void ParallelTemperingUtilities::exchangeCOMs(XYZArray & myCOMs, MultiSim const*const& multisim){
+void ParallelTemperingUtilities::exchangeCOMs(XYZArray & myCOMs, MultiSim const*const& multisim, int exchangePartner, bool leader){
     
     XYZArray buffer(myCOMs);
 
-    if (multisim->worldRank == 0){
-        MPI_Send(buffer.x, buffer.Count(), MPI_DOUBLE, 1, 0,
+    if (leader){
+        MPI_Send(buffer.x, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
-        MPI_Recv(myCOMs.x, myCOMs.Count(), MPI_DOUBLE, 1, 0,
+        MPI_Recv(myCOMs.x, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     } else {
-        MPI_Recv(myCOMs.x, myCOMs.Count(), MPI_DOUBLE, 0, 0,
+        MPI_Recv(myCOMs.x, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Send(buffer.x, buffer.Count(), MPI_DOUBLE, 0, 0,
+        MPI_Send(buffer.x, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
     }
-    if (multisim->worldRank == 0){
-        MPI_Send(buffer.y, buffer.Count(), MPI_DOUBLE, 1, 0,
+    if (leader){
+        MPI_Send(buffer.y, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
-        MPI_Recv(myCOMs.y, myCOMs.Count(), MPI_DOUBLE, 1, 0,
+        MPI_Recv(myCOMs.y, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     } else {
-        MPI_Recv(myCOMs.y, myCOMs.Count(), MPI_DOUBLE, 0, 0,
+        MPI_Recv(myCOMs.y, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Send(buffer.y, buffer.Count(), MPI_DOUBLE, 0, 0,
+        MPI_Send(buffer.y, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
     }
-    if (multisim->worldRank == 0){
-        MPI_Send(buffer.z, buffer.Count(), MPI_DOUBLE, 1, 0,
+    if (leader){
+        MPI_Send(buffer.z, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
-        MPI_Recv(myCOMs.z, myCOMs.Count(), MPI_DOUBLE, 1, 0,
+        MPI_Recv(myCOMs.z, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     } else {
-        MPI_Recv(myCOMs.z, myCOMs.Count(), MPI_DOUBLE, 0, 0,
+        MPI_Recv(myCOMs.z, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Send(buffer.z, buffer.Count(), MPI_DOUBLE, 0, 0,
+        MPI_Send(buffer.z, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
     }
 
@@ -165,6 +170,5 @@ void ParallelTemperingUtilities::exchangeCOMs(XYZArray & myCOMs, MultiSim const*
         std::cout << "Send buffer : " << buffer.x[i] << " x " << buffer.y[i] << " x " << buffer.z[i] << std::endl;
     }
 }
-
 
 #endif

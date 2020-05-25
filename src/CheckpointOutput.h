@@ -45,6 +45,9 @@ private:
   BoxDimensions & boxDimRef;
   Molecules const & molRef;
   PRNG & prngRef;
+  #if GOMC_LIB_MPI
+  PRNG & prngPTRef;
+  #endif
   Coordinates & coordCurrRef;
 
   bool enableOutCheckpoint;

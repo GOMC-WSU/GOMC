@@ -43,6 +43,7 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
   }
 #if GOMC_LIB_MPI
   PTUtils = set.config.sys.step.parallelTemp ? new ParallelTemperingUtilities(ms, *system, *staticValues, set.config.sys.step.parallelTempFreq): NULL;
+  exchangeResults.resize(ms->worldSize, false);
 #endif
 }
 
@@ -83,10 +84,35 @@ void Simulation::RunSimulation(void)
     }
   #if GOMC_LIB_MPI
 
-    PTUtils->evaluateExchangeCriteria(step);
-    if( step % 100 == 0){
-      //pTU.exchangePositions(system->coordinates, ms);
-      //pTU.exchangeCOMs(system->com, ms);
+
+    if( staticValues->simEventFreq.parallelTemp && step % staticValues->simEventFreq.parallelTempFreq == 0){
+
+      exchangeResults = PTUtils->evaluateExchangeCriteria(step);
+    
+      if (exchangeResults[ms->worldRank] == true){
+        PTUtils->exchangePositions(system->coordinates, ms, ms->worldRank-1, true);
+        PTUtils->exchangeCOMs(system->com, ms, ms->worldRank-1, true);
+
+        system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
+        for (uint bPick = 0; bPick < BOX_TOTAL; bPick++){
+          system->calcEwald->BoxReciprocalSetup(bPick, system->coordinates);
+          system->calcEwald->UpdateRecip(bPick);
+        }
+        system->potential = system->calcEnergy.SystemTotal();
+
+      } else if(ms->worldRank+1 != ms->worldSize && exchangeResults[ms->worldRank+1] == true) {
+        PTUtils->exchangePositions(system->coordinates, ms, ms->worldRank+1, false);
+        PTUtils->exchangeCOMs(system->com, ms, ms->worldRank+1, false);
+
+        system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
+               
+        for (uint bPick = 0; bPick < BOX_TOTAL; bPick++){
+          system->calcEwald->BoxReciprocalSetup(bPick, system->coordinates);
+          system->calcEwald->UpdateRecip(bPick);
+        }
+        system->potential = system->calcEnergy.SystemTotal();
+
+      }
     }
   #endif
 

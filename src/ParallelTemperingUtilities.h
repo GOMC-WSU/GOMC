@@ -22,18 +22,22 @@ public:
 
 #if GOMC_LIB_MPI
 explicit ParallelTemperingUtilities(MultiSim const*const& multisim, System & sys, StaticVals const& statV, ulong parallelTempFreq);
-bool evaluateExchangeCriteria(ulong step);
-void exchangePositions(XYZArray & myPos, MultiSim const*const& multisim);
-void exchangeCOMs(XYZArray & myCOMs, MultiSim const*const& multisim);
+vector<bool> evaluateExchangeCriteria(ulong step);
+void exchangePositions(XYZArray & myPos, MultiSim const*const& multisim, int exchangePartner, bool leader);
+void exchangeCOMs(XYZArray & myCOMs, MultiSim const*const& multisim, int exchangePartner, bool leader);
 
 #endif
 
 private:
 
 MultiSim const*const& ms;
+PRNG & prng;
 SystemPotential & sysPotRef;
 ulong parallelTempFreq;
 vector<double> global_betas;
+vector<bool> exchangeResults;
+vector<double> exchangeProbabilities;
+
 
 #if BOX_TOTAL == 1    
     vector<double> global_energies;

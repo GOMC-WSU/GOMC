@@ -46,6 +46,9 @@ System::System(StaticVals& statics) :
   molLookupRef(statics.molLookup),
 #endif
   prng(molLookupRef),
+#if GOMC_LIB_MPI
+  prngParallelTemp(molLookupRef),
+#endif
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
   moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
@@ -81,6 +84,9 @@ System::~System()
 void System::Init(Setup const& set, ulong & startStep)
 {
   prng.Init(set.prng.prngMaker.prng);
+#if GOMC_LIB_MPI
+  prngParallelTemp.Init(set.prngParallelTemp.prngMaker.prng);
+#endif
 #ifdef VARIABLE_VOLUME
   boxDimensions->Init(set.config.in.restart,
                       set.config.sys.volume, set.pdb.cryst,

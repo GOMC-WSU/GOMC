@@ -40,6 +40,8 @@ private:
   MultiSim const*const& ms;
   #if GOMC_LIB_MPI
   ParallelTemperingUtilities * PTUtils;
+  vector<bool> exchangeResults;
+  int parity;
   #endif
 };
 
