@@ -55,6 +55,7 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   for(int i=0; i<neighborList.size(); i++) {
     for(int j=0; j<NUMBER_OF_NEIGHBOR_CELL; j++) {
       neighborlist1D[i*NUMBER_OF_NEIGHBOR_CELL + j] = neighborList[i][j];
+      printf("neighborList[%d][%d]: %d\n", i, j, neighborList[i][j]);
     }
   }
 
