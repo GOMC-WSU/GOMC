@@ -266,7 +266,6 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
       distSq = dx * dx + dy * dy + dz * dz;
 
       if((cutoff * cutoff) > distSq) {
-        printf("%d: cutoff: %lf, distSq: %lf\n", threadID, cutoff, distSq);
         if(electrostatic) {
           qi_qj_fact = gpu_particleCharge[currentParticle] *
             gpu_particleCharge[neighborParticle] * qqFact;
@@ -295,6 +294,9 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
             gpu_rCut[0], gpu_rOn[0], gpu_count[0], gpu_lambdaVDW[box],
             sc_sigma_6, sc_alpha, sc_power, gpu_rMin,
             gpu_rMaxSq, gpu_expConst);
+        if(threadID == 617472) {
+          printf("%lf\n", gpu_LJEn[threadID]);
+        }
       }
     }
   }
