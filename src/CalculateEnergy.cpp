@@ -350,27 +350,29 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
         if(currParticle < nParticle && particleMol[currParticle] != particleMol[nParticle]) {
           if(boxAxes.InRcut(distSq, virComponents, coords, currParticle, nParticle, box)) {
             lambdaVDW = GetLambdaVDW(particleMol[currParticle], particleMol[nParticle], box);
-            printf("%d -> %d\n", currParticle, nParticle);
             if (electrostatic) {
               lambdaCoulomb = GetLambdaCoulomb(particleMol[currParticle],
                   particleMol[nParticle], box);
               qi_qj_fact = particleCharge[currParticle] * particleCharge[nParticle] *
                 num::qqFact;
-              tempREn += forcefield.particles->CalcCoulomb(distSq, particleKind[currParticle],
+              double x = forcefield.particles->CalcCoulomb(distSq, particleKind[currParticle],
                   particleKind[nParticle], qi_qj_fact, lambdaCoulomb, box);
+              tempREn += x;
             }
-            tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[currParticle],
+            double y = forcefield.particles->CalcEn(distSq, particleKind[currParticle],
                 particleKind[nParticle], lambdaVDW);
+            tempLJEn += y;
 
             // Calculating the force
             if(electrostatic) {
-              forceReal = virComponents *
-                forcefield.particles->CalcCoulombVir(distSq, particleKind[currParticle],
+              double coulombvir = forcefield.particles->CalcCoulombVir(distSq, particleKind[currParticle],
                     particleKind[nParticle], qi_qj_fact, lambdaCoulomb, box);
+              forceReal = virComponents * coulombvir;
             }
-            forceLJ = virComponents *
-              forcefield.particles->CalcVir(distSq, particleKind[currParticle],
+            double pvf = forcefield.particles->CalcVir(distSq, particleKind[currParticle],
                   particleKind[nParticle], lambdaVDW);
+            forceLJ = virComponents * pvf;
+            printf("%d,%d,%lf,%lf,%lf,%lf\n", currentParticle, neighborParticle, x, y, coulombvir, pvf);
             aForcex[currParticle] += forceLJ.x + forceReal.x;
             aForcey[currParticle] += forceLJ.y + forceReal.y;
             aForcez[currParticle] += forceLJ.z + forceReal.z;
