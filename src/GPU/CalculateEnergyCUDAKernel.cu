@@ -225,6 +225,7 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   gpu_REn[threadID] = 0.0;
   gpu_LJEn[threadID] = 0.0;
+  double lambdaVDW = 0.0, lambdaCoulomb = 0.0;
   double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
 
   int currentCell = blockIdx.x / 27;
