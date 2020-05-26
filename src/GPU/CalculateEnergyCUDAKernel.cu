@@ -361,7 +361,6 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
     return 0.0;
   }
 
-  printf("passed if\n");
   int index = FlatIndexGPU(kind1, kind2, gpu_count);
   if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
     return CalcEnParticleGPU(distSq, index, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
@@ -638,6 +637,8 @@ __device__ double CalcEnParticleGPUNoLambda(double distSq, int index,
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
   double repulse = pow(rRat2, gpu_n[index] / 2.0);
+  printf("distSq: %lf, gpu_sigmaSq: %lf, repulse: %lf, attract: %lf, gpu_epsilon_Cn: %lf\n",
+    distSq, gpu_sigmaSq[index], repulse, attract, gpu_epsilon_Cn[index]);
   return gpu_epsilon_Cn[index] * (repulse - attract);
 }
 
