@@ -373,9 +373,11 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
     swap(molTorqueRef, molTorqueNew);
     //update reciprocate value
     calcEwald->UpdateRecip(bPick);
+    printf("Accepted!\n");
   } else {
     cellList.GridAll(boxDimRef, coordCurrRef, molLookup);
     calcEwald->exgMolCache();
+    printf("Rejected!\n");
   }
 
   moveSetRef.UpdateMoveSettingMultiParticle(bPick, result, typePick);
