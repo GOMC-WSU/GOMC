@@ -1005,20 +1005,18 @@ __device__ double CalcEnForceGPU(double distSq, int kind1, int kind2,
   int index = FlatIndexGPU(kind1, kind2, gpu_count);
   if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
     return CalcVirParticleGPU(distSq, index, gpu_sigmaSq, gpu_n,
-        gpu_epsilon_Cn, gpu_lambdaVDW, sc_sigma_6,
-        sc_alpha, sc_power);
+        gpu_epsilon_Cn, sc_sigma_6, sc_alpha, sc_power, gpu_lambdaVDW);
   } else if(gpu_VDW_Kind == GPU_VDW_SHIFT_KIND) {
     return CalcVirShiftGPU(distSq, index, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
-        gpu_lambdaVDW, sc_sigma_6, sc_alpha, sc_power);
+        sc_sigma_6, sc_alpha, sc_power, gpu_lambdaVDW);
   } else if(gpu_VDW_Kind == GPU_VDW_EXP6_KIND) {
     return CalcVirExp6GPU(distSq, index, gpu_sigmaSq, gpu_n, gpu_rMin,
-        gpu_rMaxSq, gpu_expConst, gpu_lambdaVDW, sc_sigma_6,
-        sc_alpha, sc_power);
+        gpu_rMaxSq, gpu_expConst, sc_sigma_6,
+        sc_alpha, sc_power, gpu_lambdaVDW);
   } else if(gpu_VDW_Kind == GPU_VDW_SWITCH_KIND && gpu_isMartini) {
     return CalcVirSwitchMartiniGPU(distSq, index, gpu_sigmaSq, gpu_n,
-        gpu_epsilon_Cn, gpu_rCut, gpu_rOn,
-        gpu_lambdaVDW, sc_sigma_6, sc_alpha,
-        sc_power);
+        gpu_epsilon_Cn, gpu_rCut, gpu_rOn, sc_sigma_6, sc_alpha,
+        sc_power, gpu_lambdaVDW);
   } else
     return CalcVirSwitchGPU(distSq, index, gpu_sigmaSq, gpu_epsilon_Cn, gpu_n,
         gpu_rCut, gpu_rOn);
