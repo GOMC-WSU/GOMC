@@ -225,10 +225,6 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
       // find the index of neighboring cell
       neighborCell = neighborList[currCell][nCellIndex];
 
-      // avoid duplicate work by ignoring pairs that
-      // neighbor cell is larger than current cell
-      if(neighborCell > currCell) continue;
-
       // find the ending index in neighboring cell
       endIndex = neighborCell != numberOfCells - 1 ? cellStartIndex[neighborCell+1] : atomNumber;
       // loop over particle inside neighboring cell
