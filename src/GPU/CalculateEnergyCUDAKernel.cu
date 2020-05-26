@@ -249,11 +249,11 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
     int neighborParticleIndex = pairIndex / particlesInsideCurrentCell;
     int currentParticleIndex = pairIndex % particlesInsideCurrentCell;
 
-    printf("pairIndex: %d, neighborParticleIndex: %d, currentParticleIndex: %d\n", pairIndex, neighborParticleIndex, currentParticleIndex);
-
     int currentParticle = gpu_cellVector[gpu_cellStartIndex[currentCell] + currentParticleIndex];
     int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
-
+    
+    printf("pairIndex: %d, currentParticle: %d, neighborParticle: %d\n", pairIndex, currentParticle, neighborParticle);
+    
     if(currentParticle < neighborParticle && gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
       // Check if they are within rcut
       distSq = 0;
