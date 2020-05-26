@@ -294,9 +294,7 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
             gpu_rCut[0], gpu_rOn[0], gpu_count[0], gpu_lambdaVDW[box],
             sc_sigma_6, sc_alpha, sc_power, gpu_rMin,
             gpu_rMaxSq, gpu_expConst);
-        if(threadID == 617472) {
-          printf("%lf\n", gpu_LJEn[threadID]);
-        }
+        printf("LJ[%d]: %lf\n", threadID, gpu_LJEn[threadID]);
       }
     }
   }
