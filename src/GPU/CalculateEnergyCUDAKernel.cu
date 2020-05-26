@@ -58,6 +58,10 @@ void CallBoxInterGPU(VariablesCUDA *vars,
     }
   }
 
+  for(int i=0; i<cellStartIndex.size(); i++) {
+    cout << cellStartIndex[i] << "\n";
+  }
+
   cudaMalloc((void**) &gpu_neighborList, neighborListCount * sizeof(int));
   cudaMalloc((void**) &gpu_cellStartIndex, cellStartIndex.size() * sizeof(int));
   cudaMalloc((void**) &gpu_particleCharge, particleCharge.size() * sizeof(double));
