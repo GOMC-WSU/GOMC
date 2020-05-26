@@ -34,7 +34,7 @@ PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
                      mol_setup::MolMap& molMap,
                      const std::vector<std::string>& kindNames) :
   molecules(&molecules), molNames(kindNames),
-  molLookRef(sys.molLookup)
+  molLookRef(sys.molLookupRef)
 {
   molKinds.resize(molMap.size());
   for(uint i = 0; i < kindNames.size(); ++i) {
