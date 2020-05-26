@@ -820,12 +820,13 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
 
     if(currentParticle < neighborParticle && gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
       if(InRcutGPU(distSq, virX, virY, virZ, gpu_x[currentParticle],
-            gpu_y[currentParticle], gpu_z[currentParticle],
-            gpu_x[neighborParticle], gpu_y[neighborParticle],
-            gpu_z[neighborParticle], xAxes, yAxes, zAxes, xAxes / 2.0,
-            yAxes / 2.0, zAxes / 2.0, cutoff, gpu_nonOrth[0], gpu_cell_x,
-            gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
-            gpu_Invcell_z)) {
+                   gpu_y[currentParticle], gpu_z[currentParticle],
+                   gpu_x[neighborParticle], gpu_y[neighborParticle],
+                   gpu_z[neighborParticle], xAxes, yAxes, zAxes, xAxes / 2.0,
+                   yAxes / 2.0, zAxes / 2.0, cutoff, gpu_nonOrth[0], gpu_cell_x,
+                   gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
+                   gpu_Invcell_z)) {
+        printf("%d -> %d\n", currentParticle, neighborParticle);
         int cA = gpu_particleCharge[currentParticle];
         int cB = gpu_particleCharge[neighborParticle];
         int kA = gpu_particleKind[currentParticle];
@@ -834,58 +835,54 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
         int mB = gpu_particleMol[neighborParticle];
 
         lambdaVDW = DeviceGetLambdaVDW(mA, kA, mB, kB, box, gpu_isFraction,
-            gpu_molIndex, gpu_kindIndex, gpu_lambdaVDW);
+                                       gpu_molIndex, gpu_kindIndex,
+                                       gpu_lambdaVDW);
 
         if(electrostatic) {
           qi_qj_fact = cA * cB * qqFact;
           lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
-              gpu_isFraction, gpu_molIndex,
-              gpu_kindIndex, gpu_lambdaCoulomb);
+                                                 gpu_isFraction, gpu_molIndex,
+                                                 gpu_kindIndex,
+                                                 gpu_lambdaCoulomb);
           gpu_REn[threadID] += CalcCoulombGPU(distSq, kA, kB,
-              qi_qj_fact, gpu_rCutLow[0],
-              gpu_ewald[0], gpu_VDW_Kind[0],
-              gpu_alpha[box],
-              gpu_rCutCoulomb[box],
-              gpu_isMartini[0],
-              gpu_diElectric_1[0],
-              lambdaCoulomb,
-              sc_coul,
-              sc_sigma_6,
-              sc_alpha,
-              sc_power,
-              gpu_sigmaSq[threadID],
-              gpu_count[0]);
+                                              qi_qj_fact, gpu_rCutLow[0],
+                                              gpu_ewald[0], gpu_VDW_Kind[0],
+                                              gpu_alpha[box],
+                                              gpu_rCutCoulomb[box],
+                                              gpu_isMartini[0],
+                                              gpu_diElectric_1[0],
+                                              lambdaCoulomb, c_coul, sc_sigma_6,
+                                              sc_alpha, sc_power,
+                                              gpu_sigmaSq[threadID],
+                                              gpu_count[0]);
         }
-        gpu_LJEn[threadID] += CalcEnGPU(distSq, kA, kB,
-            gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
-            gpu_VDW_Kind[0], gpu_isMartini[0],
-            gpu_rCut[0], gpu_rOn[0], gpu_count[0],
-            lambdaVDW,
-            sc_sigma_6, sc_alpha, sc_power, gpu_rMin,
-            gpu_rMaxSq, gpu_expConst);
+        gpu_LJEn[threadID] += CalcEnGPU(distSq, kA, kB, gpu_sigmaSq, gpu_n,
+                                        gpu_epsilon_Cn, gpu_VDW_Kind[0],
+                                        gpu_isMartini[0], gpu_rCut[0],
+                                        gpu_rOn[0], gpu_count[0], lambdaVDW,
+                                        sc_sigma_6, sc_alpha, sc_power,
+                                        gpu_rMin, gpu_rMaxSq, gpu_expConst);
         if(electrostatic) {
           double coulombVir = CalcCoulombForceGPU(distSq, qi_qj_fact,
-              gpu_VDW_Kind[0], gpu_ewald[0],
-              gpu_isMartini[0],
-              gpu_alpha[box],
-              gpu_rCutCoulomb[box],
-              gpu_diElectric_1[0],
-              gpu_sigmaSq, sc_coul, sc_sigma_6,
-              sc_alpha, sc_power,
-              lambdaCoulomb,
-              gpu_count[0],
-              kA,
-              kB);
+                                                  gpu_VDW_Kind[0], gpu_ewald[0],
+                                                  gpu_isMartini[0],
+                                                  gpu_alpha[box],
+                                                  gpu_rCutCoulomb[box],
+                                                  gpu_diElectric_1[0],
+                                                  gpu_sigmaSq, sc_coul,
+                                                  sc_sigma_6, sc_alpha,
+                                                  sc_power, lambdaCoulomb, 
+                                                  gpu_count[0], kA, kB);
           forceRealx = virX * coulombVir;
           forceRealy = virY * coulombVir;
           forceRealz = virZ * coulombVir;
         }
-        double pVF = CalcEnForceGPU(distSq, kA, kB,
-            gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
-            gpu_rCut[0], gpu_rOn[0], gpu_isMartini[0],
-            gpu_VDW_Kind[0], gpu_count[0],
-            lambdaVDW, sc_sigma_6, sc_alpha,
-            sc_power, gpu_rMin, gpu_rMaxSq, gpu_expConst);
+        double pVF = CalcEnForceGPU(distSq, kA, kB, gpu_sigmaSq, gpu_n,
+                                    gpu_epsilon_Cn, gpu_rCut[0], gpu_rOn[0],
+                                    gpu_isMartini[0], gpu_VDW_Kind[0],
+                                    gpu_count[0], lambdaVDW, sc_sigma_6,
+                                    sc_alpha, sc_power, gpu_rMin, gpu_rMaxSq,
+                                    gpu_expConst);
         forceLJx = virX * pVF;
         forceLJy = virY * pVF;
         forceLJz = virZ * pVF;
