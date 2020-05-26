@@ -693,14 +693,14 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
               sc_power, lambdaCoulomb, gpu_count[0],
               kA, kB);
 
-          gpu_rT11[threadID] = pRF * (virX * diff_comx);
-          gpu_rT22[threadID] = pRF * (virY * diff_comy);
-          gpu_rT33[threadID] = pRF * (virZ * diff_comz);
+          gpu_rT11[threadID] += pRF * (virX * diff_comx);
+          gpu_rT22[threadID] += pRF * (virY * diff_comy);
+          gpu_rT33[threadID] += pRF * (virZ * diff_comz);
 
           //extra tensor calculations
-          gpu_rT12[threadID] = pRF * (0.5 * (virX * diff_comy + virY * diff_comx));
-          gpu_rT13[threadID] = pRF * (0.5 * (virX * diff_comz + virZ * diff_comx));
-          gpu_rT23[threadID] = pRF * (0.5 * (virY * diff_comz + virZ * diff_comy));
+          gpu_rT12[threadID] += pRF * (0.5 * (virX * diff_comy + virY * diff_comx));
+          gpu_rT13[threadID] += pRF * (0.5 * (virX * diff_comz + virZ * diff_comx));
+          gpu_rT23[threadID] += pRF * (0.5 * (virY * diff_comz + virZ * diff_comy));
         }
 
         pVF = CalcEnForceGPU(distSq, kA, kB,
@@ -709,14 +709,14 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
             gpu_count[0], lambdaVDW, sc_sigma_6, sc_alpha,
             sc_power, gpu_rMin, gpu_rMaxSq, gpu_expConst);
 
-        gpu_vT11[threadID] = pVF * (virX * diff_comx);
-        gpu_vT22[threadID] = pVF * (virY * diff_comy);
-        gpu_vT33[threadID] = pVF * (virZ * diff_comz);
+        gpu_vT11[threadID] += pVF * (virX * diff_comx);
+        gpu_vT22[threadID] += pVF * (virY * diff_comy);
+        gpu_vT33[threadID] += pVF * (virZ * diff_comz);
 
         //extra tensor calculations
-        gpu_vT12[threadID] = pVF * (0.5 * (virX * diff_comy + virY * diff_comx));
-        gpu_vT13[threadID] = pVF * (0.5 * (virX * diff_comz + virZ * diff_comx));
-        gpu_vT23[threadID] = pVF * (0.5 * (virY * diff_comz + virZ * diff_comy));
+        gpu_vT12[threadID] += pVF * (0.5 * (virX * diff_comy + virY * diff_comx));
+        gpu_vT13[threadID] += pVF * (0.5 * (virX * diff_comz + virZ * diff_comx));
+        gpu_vT23[threadID] += pVF * (0.5 * (virY * diff_comz + virZ * diff_comy));
       }
     }
   }
