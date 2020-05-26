@@ -350,30 +350,24 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
         if(currParticle < nParticle && particleMol[currParticle] != particleMol[nParticle]) {
           if(boxAxes.InRcut(distSq, virComponents, coords, currParticle, nParticle, box)) {
             lambdaVDW = GetLambdaVDW(particleMol[currParticle], particleMol[nParticle], box);
-            double x=0, y=0, coulombvir=0;
             if (electrostatic) {
               lambdaCoulomb = GetLambdaCoulomb(particleMol[currParticle],
                   particleMol[nParticle], box);
               qi_qj_fact = particleCharge[currParticle] * particleCharge[nParticle] *
                 num::qqFact;
-              x = forcefield.particles->CalcCoulomb(distSq, particleKind[currParticle],
+              tempREn += forcefield.particles->CalcCoulomb(distSq, particleKind[currParticle],
                   particleKind[nParticle], qi_qj_fact, lambdaCoulomb, box);
-              tempREn += x;
             }
-            y = forcefield.particles->CalcEn(distSq, particleKind[currParticle],
+            tempLJEn += forcefield.particles->CalcEn(distSq, particleKind[currParticle],
                 particleKind[nParticle], lambdaVDW);
-            tempLJEn += y;
 
             // Calculating the force
             if(electrostatic) {
-              coulombvir = forcefield.particles->CalcCoulombVir(distSq, particleKind[currParticle],
+              forceReal = virComponents * forcefield.particles->CalcCoulombVir(distSq, particleKind[currParticle],
                     particleKind[nParticle], qi_qj_fact, lambdaCoulomb, box);
-              forceReal = virComponents * coulombvir;
             }
-            double pvf = forcefield.particles->CalcVir(distSq, particleKind[currParticle],
+            forceLJ = virComponents * forcefield.particles->CalcVir(distSq, particleKind[currParticle],
                   particleKind[nParticle], lambdaVDW);
-            forceLJ = virComponents * pvf;
-            //printf("%d,%d,%lf,%lf,%lf,%lf\n", currParticle, nParticle, x, y, coulombvir, pvf);
             aForcex[currParticle] += forceLJ.x + forceReal.x;
             aForcey[currParticle] += forceLJ.y + forceReal.y;
             aForcez[currParticle] += forceLJ.z + forceReal.z;
@@ -392,6 +386,10 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
     }
   }
 #endif
+  for(int i=0; i<10; i++) {
+    cout << aForcex[i] << " ";
+  }
+  cout << "\n";
 
   printf("tempLJEn: %lf, tempREn: %lf\n", tempLJEn, tempREn);
   // setting energy and virial of LJ interaction

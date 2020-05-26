@@ -836,14 +836,13 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
         lambdaVDW = DeviceGetLambdaVDW(mA, kA, mB, kB, box, gpu_isFraction,
                                        gpu_molIndex, gpu_kindIndex,
                                        gpu_lambdaVDW);
-        double x, y, coulombVir;
         if(electrostatic) {
           qi_qj_fact = cA * cB * qqFact;
           lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
                                                  gpu_isFraction, gpu_molIndex,
                                                  gpu_kindIndex,
                                                  gpu_lambdaCoulomb);
-          x = CalcCoulombGPU(distSq, kA, kB,
+          gpu_REn[threadID] += CalcCoulombGPU(distSq, kA, kB,
                                               qi_qj_fact, gpu_rCutLow[0],
                                               gpu_ewald[0], gpu_VDW_Kind[0],
                                               gpu_alpha[box],
@@ -854,17 +853,15 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
                                               sc_alpha, sc_power,
                                               gpu_sigmaSq[threadID],
                                               gpu_count[0]);
-          gpu_REn[threadID] += x;
         }
-        y = CalcEnGPU(distSq, kA, kB, gpu_sigmaSq, gpu_n,
+        gpu_LJEn[threadID] += CalcEnGPU(distSq, kA, kB, gpu_sigmaSq, gpu_n,
                                         gpu_epsilon_Cn, gpu_VDW_Kind[0],
                                         gpu_isMartini[0], gpu_rCut[0],
                                         gpu_rOn[0], gpu_count[0], lambdaVDW,
                                         sc_sigma_6, sc_alpha, sc_power,
                                         gpu_rMin, gpu_rMaxSq, gpu_expConst);
-        gpu_LJEn[threadID] += y;
         if(electrostatic) {
-          coulombVir = CalcCoulombForceGPU(distSq, qi_qj_fact,
+          double coulombVir = CalcCoulombForceGPU(distSq, qi_qj_fact,
                                                   gpu_VDW_Kind[0], gpu_ewald[0],
                                                   gpu_isMartini[0],
                                                   gpu_alpha[box],
@@ -884,7 +881,6 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
                                     gpu_count[0], lambdaVDW, sc_sigma_6,
                                     sc_alpha, sc_power, gpu_rMin, gpu_rMaxSq,
                                     gpu_expConst);
-        //printf("%d,%d,%lf,%lf,%lf,%lf,%lf\n", currentParticle, neighborParticle, x, y, coulombVir, pVF, lambdaVDW);
         forceLJx = virX * pVF;
         forceLJy = virY * pVF;
         forceLJz = virZ * pVF;
