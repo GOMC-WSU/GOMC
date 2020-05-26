@@ -253,8 +253,6 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
     int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
     
     if(currentParticle < neighborParticle && gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
-      printf("currentParticle: %d, neighborParticle: %d\n", pairIndex, currentParticle, neighborParticle);
-      
       // Check if they are within rcut
       distSq = 0;
       double dx = gpu_x[currentParticle] - gpu_x[neighborParticle];
@@ -266,9 +264,7 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
       dz = min(abs(dz), zAxes - abs(dz));
 
       distSq = dx * dx + dy * dy + dz * dz;
-      if(threadID < 20) {
-        printf("%d: cutoff: %lf, distSq: %lf\n", threadID, cutoff, distSq);
-      }
+      printf("%d: cutoff: %lf, distSq: %lf\n", threadID, cutoff, distSq);
 
       if((cutoff * cutoff) > distSq) {
         if(threadID < 20) {
