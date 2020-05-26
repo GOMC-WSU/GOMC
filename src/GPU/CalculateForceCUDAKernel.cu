@@ -1277,7 +1277,6 @@ __device__ double CalcVirParticleGPU(double distSq, int index,
                                      double sc_alpha, uint sc_power,
                                      double gpu_lambdaVDW)
 {
-  printf("%lf\n", gpu_lambdaVDW);
   if(gpu_lambdaVDW >= 0.999999) {
     return CalcVirParticleGPU(distSq, index, gpu_sigmaSq, gpu_n,
         gpu_epsilon_Cn);
