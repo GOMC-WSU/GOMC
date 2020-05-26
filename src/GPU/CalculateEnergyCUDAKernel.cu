@@ -55,7 +55,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   for(int i=0; i<neighborList.size(); i++) {
     for(int j=0; j<NUMBER_OF_NEIGHBOR_CELL; j++) {
       neighborlist1D[i*NUMBER_OF_NEIGHBOR_CELL + j] = neighborList[i][j];
-      printf("neighborList[%d][%d]: %d\n", i, j, neighborList[i][j]);
     }
   }
 
@@ -247,7 +246,7 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
   int numberOfPairs = particlesInsideCurrentCell * particlesInsideNeighboringCells;
 
   if(threadID < 20) {
-    printf("%d: currentCell: %d, neighborCell: %d\n", threadID, currentCell, neighborCell);
+    printf("%d: currentCell: %d, neighborCell: %d, numberOfPairs: %d\n", threadID, currentCell, neighborCell, numberOfPairs);
   }
 
   for(int pairIndex = threadIdx.x; pairIndex < numberOfPairs; pairIndex += blockDim.x) {
