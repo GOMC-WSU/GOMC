@@ -851,7 +851,7 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
                                               gpu_rCutCoulomb[box],
                                               gpu_isMartini[0],
                                               gpu_diElectric_1[0],
-                                              lambdaCoulomb, c_coul, sc_sigma_6,
+                                              lambdaCoulomb, sc_coul, sc_sigma_6,
                                               sc_alpha, sc_power,
                                               gpu_sigmaSq[threadID],
                                               gpu_count[0]);
