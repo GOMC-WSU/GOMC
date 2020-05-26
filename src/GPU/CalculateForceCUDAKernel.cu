@@ -885,7 +885,7 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
         forceLJy = virY * pVF;
         forceLJz = virZ * pVF;
         if(currentParticle == 0) {
-          printf("%lf, %lf, %lf, %lf\n", forceRealx, forceLJx, virX, distSq);
+          printf("%lf, %lf\n", gpu_x[currentParticle], gpu_x[neighborParticle]);
         }
 
         atomicAdd(&gpu_aForcex[currentParticle], forceRealx + forceLJx);
