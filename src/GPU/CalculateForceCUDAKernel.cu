@@ -655,7 +655,7 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
     int currentParticle = gpu_cellVector[gpu_cellStartIndex[currentCell] + currentParticleIndex];
     int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
 
-    if(currentParticle < neighborParticle) {
+    if(currentParticle < neighborParticle && gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
       if(InRcutGPU(distSq, virX, virY, virZ, gpu_x[currentParticle],
             gpu_y[currentParticle], gpu_z[currentParticle],
             gpu_x[neighborParticle], gpu_y[neighborParticle],
@@ -818,7 +818,7 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
     int currentParticle = gpu_cellVector[gpu_cellStartIndex[currentCell] + currentParticleIndex];
     int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
 
-    if(currentParticle < neighborParticle) {
+    if(currentParticle < neighborParticle && gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
       if(InRcutGPU(distSq, virX, virY, virZ, gpu_x[currentParticle],
             gpu_y[currentParticle], gpu_z[currentParticle],
             gpu_x[neighborParticle], gpu_y[neighborParticle],
