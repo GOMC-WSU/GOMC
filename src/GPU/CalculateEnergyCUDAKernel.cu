@@ -231,8 +231,6 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
   int nCellIndex = blockIdx.x;
   int neighborCell = gpu_neighborList[nCellIndex];
 
-  if(neighborCell > currentCell) return;
-
   // calculate number of particles inside neighbor Cell
   int particlesInsideCurrentCell, particlesInsideNeighboringCells;
   int endIndex = neighborCell != numberOfCells - 1 ?
@@ -299,7 +297,6 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
       }
     }
   }
-
 }
 
 __device__ double CalcCoulombGPU(double distSq,
