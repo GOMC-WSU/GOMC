@@ -361,6 +361,7 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
     return 0.0;
   }
 
+  printf("passed if\n");
   int index = FlatIndexGPU(kind1, kind2, gpu_count);
   if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
     return CalcEnParticleGPU(distSq, index, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
