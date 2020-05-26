@@ -367,28 +367,26 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
                 particleKind[nParticle], lambdaVDW);
 
             // Calculating the force
-            if(multiParticleEnabled) {
-              if(electrostatic) {
-                forceReal = virComponents *
-                  forcefield.particles->CalcCoulombVir(distSq, particleKind[currParticle],
-                      particleKind[nParticle], qi_qj_fact, lambdaCoulomb, box);
-              }
-              forceLJ = virComponents *
-                forcefield.particles->CalcVir(distSq, particleKind[currParticle],
-                    particleKind[nParticle], lambdaVDW);
-              aForcex[currParticle] += forceLJ.x + forceReal.x;
-              aForcey[currParticle] += forceLJ.y + forceReal.y;
-              aForcez[currParticle] += forceLJ.z + forceReal.z;
-              aForcex[nParticle] += -(forceLJ.x + forceReal.x);
-              aForcey[nParticle] += -(forceLJ.y + forceReal.y);
-              aForcez[nParticle] += -(forceLJ.z + forceReal.z);
-              mForcex[particleMol[currParticle]] += (forceLJ.x + forceReal.x);
-              mForcey[particleMol[currParticle]] += (forceLJ.y + forceReal.y);
-              mForcez[particleMol[currParticle]] += (forceLJ.z + forceReal.z);
-              mForcex[particleMol[nParticle]] += -(forceLJ.x + forceReal.x);
-              mForcey[particleMol[nParticle]] += -(forceLJ.y + forceReal.y);
-              mForcez[particleMol[nParticle]] += -(forceLJ.z + forceReal.z);
+            if(electrostatic) {
+              forceReal = virComponents *
+                forcefield.particles->CalcCoulombVir(distSq, particleKind[currParticle],
+                    particleKind[nParticle], qi_qj_fact, lambdaCoulomb, box);
             }
+            forceLJ = virComponents *
+              forcefield.particles->CalcVir(distSq, particleKind[currParticle],
+                  particleKind[nParticle], lambdaVDW);
+            aForcex[currParticle] += forceLJ.x + forceReal.x;
+            aForcey[currParticle] += forceLJ.y + forceReal.y;
+            aForcez[currParticle] += forceLJ.z + forceReal.z;
+            aForcex[nParticle] += -(forceLJ.x + forceReal.x);
+            aForcey[nParticle] += -(forceLJ.y + forceReal.y);
+            aForcez[nParticle] += -(forceLJ.z + forceReal.z);
+            mForcex[particleMol[currParticle]] += (forceLJ.x + forceReal.x);
+            mForcey[particleMol[currParticle]] += (forceLJ.y + forceReal.y);
+            mForcez[particleMol[currParticle]] += (forceLJ.z + forceReal.z);
+            mForcex[particleMol[nParticle]] += -(forceLJ.x + forceReal.x);
+            mForcey[particleMol[nParticle]] += -(forceLJ.y + forceReal.y);
+            mForcez[particleMol[nParticle]] += -(forceLJ.z + forceReal.z);
           }
         }
       }
