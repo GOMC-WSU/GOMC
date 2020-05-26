@@ -836,14 +836,14 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
         lambdaVDW = DeviceGetLambdaVDW(mA, kA, mB, kB, box, gpu_isFraction,
                                        gpu_molIndex, gpu_kindIndex,
                                        gpu_lambdaVDW);
-
+        double x, y, coulombVir;
         if(electrostatic) {
           qi_qj_fact = cA * cB * qqFact;
           lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
                                                  gpu_isFraction, gpu_molIndex,
                                                  gpu_kindIndex,
                                                  gpu_lambdaCoulomb);
-          double x = CalcCoulombGPU(distSq, kA, kB,
+          x = CalcCoulombGPU(distSq, kA, kB,
                                               qi_qj_fact, gpu_rCutLow[0],
                                               gpu_ewald[0], gpu_VDW_Kind[0],
                                               gpu_alpha[box],
@@ -856,7 +856,7 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
                                               gpu_count[0]);
           gpu_REn[threadID] += x;
         }
-        double y = CalcEnGPU(distSq, kA, kB, gpu_sigmaSq, gpu_n,
+        y = CalcEnGPU(distSq, kA, kB, gpu_sigmaSq, gpu_n,
                                         gpu_epsilon_Cn, gpu_VDW_Kind[0],
                                         gpu_isMartini[0], gpu_rCut[0],
                                         gpu_rOn[0], gpu_count[0], lambdaVDW,
@@ -864,7 +864,7 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
                                         gpu_rMin, gpu_rMaxSq, gpu_expConst);
         gpu_LJEn[threadID] += y;
         if(electrostatic) {
-          double coulombVir = CalcCoulombForceGPU(distSq, qi_qj_fact,
+          coulombVir = CalcCoulombForceGPU(distSq, qi_qj_fact,
                                                   gpu_VDW_Kind[0], gpu_ewald[0],
                                                   gpu_isMartini[0],
                                                   gpu_alpha[box],
