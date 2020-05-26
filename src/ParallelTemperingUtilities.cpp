@@ -74,7 +74,7 @@ vector<bool> ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step){
     for (int i = 1; i < ms->worldSize; i++){
         bPrint = ms->worldRank == i || ms->worldRank == i -1;
         if (i % 2 == parity){
-            uBoltz = exp((global_betas[i] - global_betas[i-1]) * (global_energies[i-1] - global_energies[i]));
+            uBoltz = exp((global_betas[i-1] - global_betas[i]) * (global_energies[i] - global_energies[i-1]));
             exchangeProbabilities[i] = min(uBoltz, 1.0);
             exchangeResults[i] = (printRecord = prng()) < uBoltz;
             std::cout << "Swapping repl " << i-1 << " and repl " << i << " uBoltz :" << uBoltz << "prng : " << printRecord << std::endl;
