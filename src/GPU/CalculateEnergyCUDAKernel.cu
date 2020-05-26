@@ -266,6 +266,9 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
       distSq = dx * dx + dy * dy + dz * dz;
 
       if((cutoff * cutoff) > distSq) {
+        if(threadID < 20) {
+          printf("%d: cutoff: %lf, distSq: %lf\n", threadID, cutoff, distSq);
+        }
         if(electrostatic) {
           qi_qj_fact = gpu_particleCharge[currentParticle] *
             gpu_particleCharge[neighborParticle] * qqFact;
