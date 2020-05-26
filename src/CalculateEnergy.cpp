@@ -304,8 +304,6 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   int numberOfCells = neighborList.size();
   int atomNumber = currentCoords.Count();
   int currParticle, currCell, nCellIndex, neighborCell, endIndex, nParticleIndex, nParticle;
-  
-  int countCPU = 0, countGPU = 0;
 
 #ifdef GOMC_CUDA
   //update unitcell in GPU
@@ -327,7 +325,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
       particleKind, particleMol, tempREn, tempLJEn, 
       aForcex, aForcey, aForcez, mForcex, mForcey, mForcez,
       atomCount, molCount, forcefield.sc_coul,forcefield.sc_sigma_6, forcefield.sc_alpha,
-      forcefield.sc_power, box, countGPU);
+      forcefield.sc_power, box);
 
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
@@ -351,7 +349,6 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
 
         if(currParticle < nParticle && particleMol[currParticle] != particleMol[nParticle]) {
           if(boxAxes.InRcut(distSq, virComponents, coords, currParticle, nParticle, box)) {
-            countCPU++;
             lambdaVDW = GetLambdaVDW(particleMol[currParticle], particleMol[nParticle], box);
 
             if (electrostatic) {
@@ -393,7 +390,6 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   }
 #endif
 
-  printf("# of Interactions-> CPU: %d, GPU: %d\n", countCPU, countGPU);
   printf("tempLJEn: %lf, tempREn: %lf\n", tempLJEn, tempREn);
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
