@@ -268,11 +268,11 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 }
 
 SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
-    XYZArray const& coords,
-    XYZArray& atomForce,
-    XYZArray& molForce,
-    BoxDimensions const& boxAxes,
-    const uint box)
+                                          XYZArray const& coords,
+                                          XYZArray& atomForce,
+                                          XYZArray& molForce,
+                                          BoxDimensions const& boxAxes,
+                                          const uint box)
 {
   //Handles reservoir box case, returning zeroed structure if
   //interactions are off.
@@ -304,9 +304,10 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   int numberOfCells = neighborList.size();
   int atomNumber = currentCoords.Count();
   int currParticle, currCell, nCellIndex, neighborCell, endIndex, nParticleIndex, nParticle;
+  
+  int countCPU = 0, countGPU = 0;
 
 #ifdef GOMC_CUDA
-  double REn = 0.0, LJEn = 0.0;
   //update unitcell in GPU
   UpdateCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
       boxAxes.cellBasis[box].x, boxAxes.cellBasis[box].y,
@@ -323,13 +324,10 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   CallBoxForceGPU(forcefield.particles->getCUDAVars(), cellVector, 
       cellStartIndex, neighborList, mapParticleToCell,
       coords, boxAxes, electrostatic, particleCharge,
-      particleKind, particleMol, REn, LJEn, 
+      particleKind, particleMol, tempREn, tempLJEn, 
       aForcex, aForcey, aForcez, mForcex, mForcey, mForcez,
       atomCount, molCount, forcefield.sc_coul,forcefield.sc_sigma_6, forcefield.sc_alpha,
-      forcefield.sc_power, box);
-
-  tempREn = REn;
-  tempLJEn = LJEn;
+      forcefield.sc_power, box, countGPU);
 
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
@@ -353,6 +351,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
 
         if(currParticle < nParticle && particleMol[currParticle] != particleMol[nParticle]) {
           if(boxAxes.InRcut(distSq, virComponents, coords, currParticle, nParticle, box)) {
+            countCPU++;
             lambdaVDW = GetLambdaVDW(particleMol[currParticle], particleMol[nParticle], box);
 
             if (electrostatic) {
@@ -394,6 +393,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   }
 #endif
 
+  printf("# of Interactions-> CPU: %d, GPU: %d\n", countCPU, countGPU);
   printf("tempLJEn: %lf, tempREn: %lf\n", tempLJEn, tempREn);
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;

@@ -297,7 +297,8 @@ void CallBoxForceGPU(VariablesCUDA *vars,
                      double sc_sigma_6,
                      double sc_alpha,
                      uint sc_power,
-                     uint const box)
+                     uint const box,
+                     int &countGPU)
 {
   int atomNumber = coords.Count();
   int *gpu_particleKind, *gpu_particleMol;
@@ -309,6 +310,7 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   double *gpu_REn, *gpu_LJEn;
   double *gpu_final_REn, *gpu_final_LJEn;
   double cpu_final_REn, cpu_final_LJEn;
+  int * gpu_countGPU;
 
   threadsPerBlock = 256;
   blocksPerGrid = (int)(numberOfCells * NUMBER_OF_NEIGHBOR_CELL);
@@ -338,6 +340,8 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   cudaMalloc((void**) &gpu_LJEn, energyVectorLen * sizeof(double));
   cudaMalloc((void**) &gpu_final_REn, sizeof(double));
   cudaMalloc((void**) &gpu_final_LJEn, sizeof(double));
+  cudaMalloc((void**) &gpu_countGPU, sizeof(int));
+  cudaMalloc(gpu_countGPU, 0, sizeof(int));
 
   // Copy necessary data to GPU
   cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0], atomNumber * sizeof(int), cudaMemcpyHostToDevice);
@@ -407,7 +411,8 @@ void CallBoxForceGPU(VariablesCUDA *vars,
                                                     vars->gpu_lambdaVDW,
                                                     vars->gpu_lambdaCoulomb,
                                                     vars->gpu_isFraction,
-                                                    box);
+                                                    box,
+                                                    gpu_countGPU);
 
       checkLastErrorCUDA(__FILE__, __LINE__);
       // ReduceSum
@@ -443,6 +448,7 @@ void CallBoxForceGPU(VariablesCUDA *vars,
       cudaMemcpy(mForcex, vars->gpu_mForcex, sizeof(double) * molCount, cudaMemcpyDeviceToHost);
       cudaMemcpy(mForcey, vars->gpu_mForcey, sizeof(double) * molCount, cudaMemcpyDeviceToHost);
       cudaMemcpy(mForcez, vars->gpu_mForcez, sizeof(double) * molCount, cudaMemcpyDeviceToHost);
+      cudaMemcpy(&countGPU, gpu_countGPU, sizeof(int), cudaMemcpyDeviceToHost);
       cudaDeviceSynchronize();
 
       cudaFree(gpu_particleCharge);
@@ -778,7 +784,8 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
                             double *gpu_lambdaVDW,
                             double *gpu_lambdaCoulomb,
                             bool *gpu_isFraction,
-                            int box)
+                            int box,
+                            int *gpu_countGPU)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -826,6 +833,7 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
             yAxes / 2.0, zAxes / 2.0, cutoff, gpu_nonOrth[0], gpu_cell_x,
             gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
             gpu_Invcell_z)) {
+        atomicAdd(&gpu_countGPU[0], 1);
         int cA = gpu_particleCharge[currentParticle];
         int cB = gpu_particleCharge[neighborParticle];
         int kA = gpu_particleKind[currentParticle];
