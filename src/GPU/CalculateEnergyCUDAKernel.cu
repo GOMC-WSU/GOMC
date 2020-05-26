@@ -264,6 +264,9 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
       dz = min(abs(dz), zAxes - abs(dz));
 
       distSq = dx * dx + dy * dy + dz * dz;
+      if(threadID < 20) {
+        printf("%d: cutoff: %lf, distSq: %lf\n", threadID, cutoff, distSq);
+      }
 
       if((cutoff * cutoff) > distSq) {
         if(threadID < 20) {
