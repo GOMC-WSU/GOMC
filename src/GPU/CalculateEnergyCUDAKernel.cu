@@ -617,6 +617,7 @@ __device__ double CalcEnParticleGPU(double distSq, int index,
   if(gpu_lambdaVDW >= 0.999999) {
     return CalcEnParticleGPUNoLambda(distSq, index, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn);
   }
+  printf("%lf\n", gpu_lambdaVDW);
 
   double sigma6 = gpu_sigmaSq[index] * gpu_sigmaSq[index] * gpu_sigmaSq[index];
   sigma6 = max(sigma6, sc_sigma_6);
@@ -637,8 +638,6 @@ __device__ double CalcEnParticleGPUNoLambda(double distSq, int index,
   double rRat4 = rRat2 * rRat2;
   double attract = rRat4 * rRat2;
   double repulse = pow(rRat2, gpu_n[index] / 2.0);
-  printf("distSq: %lf, gpu_sigmaSq: %lf, repulse: %lf, attract: %lf, gpu_epsilon_Cn: %lf\n",
-    distSq, gpu_sigmaSq[index], repulse, attract, gpu_epsilon_Cn[index]);
   return gpu_epsilon_Cn[index] * (repulse - attract);
 }
 
