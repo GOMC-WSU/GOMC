@@ -350,7 +350,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
         if(currParticle < nParticle && particleMol[currParticle] != particleMol[nParticle]) {
           if(boxAxes.InRcut(distSq, virComponents, coords, currParticle, nParticle, box)) {
             lambdaVDW = GetLambdaVDW(particleMol[currParticle], particleMol[nParticle], box);
-            double x, y, coulombvir;
+            double x=0, y=0, coulombvir=0;
             if (electrostatic) {
               lambdaCoulomb = GetLambdaCoulomb(particleMol[currParticle],
                   particleMol[nParticle], box);
