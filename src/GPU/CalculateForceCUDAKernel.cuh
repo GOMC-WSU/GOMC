@@ -146,7 +146,7 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
                             double *gpu_lambdaCoulomb,
                             bool *gpu_isFraction,
                             int box,
-                            int gpu_countGPU);
+                            int *gpu_countGPU);
 
 __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
                                  int *gpu_cellVector,
