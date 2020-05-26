@@ -266,9 +266,21 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
       distSq = dx * dx + dy * dy + dz * dz;
 
       if((cutoff * cutoff) > distSq) {
+        int cA = gpu_particleCharge[currentParticle];
+        int cB = gpu_particleCharge[neighborParticle];
+        int kA = gpu_particleKind[currentParticle];
+        int kB = gpu_particleKind[neighborParticle];
+        int mA = gpu_particleMol[currentParticle];
+        int mB = gpu_particleMol[neighborParticle];
+
+        lambdaVDW = DeviceGetLambdaVDW(mA, kA, mB, kB, box, gpu_isFraction,
+            gpu_molIndex, gpu_kindIndex, gpu_lambdaVDW);
+        
         if(electrostatic) {
-          qi_qj_fact = gpu_particleCharge[currentParticle] *
-            gpu_particleCharge[neighborParticle] * qqFact;
+          qi_qj_fact = cA * cB * qqFact;
+          lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
+              gpu_isFraction, gpu_molIndex,
+              gpu_kindIndex, gpu_lambdaCoulomb);
           gpu_REn[threadID] += CalcCoulombGPU(distSq,
               gpu_particleKind[currentParticle],
               gpu_particleKind[neighborParticle],
@@ -617,7 +629,6 @@ __device__ double CalcEnParticleGPU(double distSq, int index,
   if(gpu_lambdaVDW >= 0.999999) {
     return CalcEnParticleGPUNoLambda(distSq, index, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn);
   }
-  printf("%lf\n", gpu_lambdaVDW);
 
   double sigma6 = gpu_sigmaSq[index] * gpu_sigmaSq[index] * gpu_sigmaSq[index];
   sigma6 = max(sigma6, sc_sigma_6);
