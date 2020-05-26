@@ -341,7 +341,7 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   cudaMalloc((void**) &gpu_final_REn, sizeof(double));
   cudaMalloc((void**) &gpu_final_LJEn, sizeof(double));
   cudaMalloc((void**) &gpu_countGPU, sizeof(int));
-  cudaMalloc(gpu_countGPU, 0, sizeof(int));
+  cudaMemset(gpu_countGPU, 0, sizeof(int));
 
   // Copy necessary data to GPU
   cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0], atomNumber * sizeof(int), cudaMemcpyHostToDevice);
