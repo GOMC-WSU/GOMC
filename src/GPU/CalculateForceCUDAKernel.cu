@@ -884,7 +884,7 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
                                     gpu_count[0], lambdaVDW, sc_sigma_6,
                                     sc_alpha, sc_power, gpu_rMin, gpu_rMaxSq,
                                     gpu_expConst);
-        printf("%d,%d,%lf,%lf,%lf,%lf,%lf\n", currentParticle, neighborParticle, x, y, coulombVir, pVF, lambdaVDW);
+        //printf("%d,%d,%lf,%lf,%lf,%lf,%lf\n", currentParticle, neighborParticle, x, y, coulombVir, pVF, lambdaVDW);
         forceLJx = virX * pVF;
         forceLJy = virY * pVF;
         forceLJz = virZ * pVF;
