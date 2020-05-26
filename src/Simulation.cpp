@@ -92,7 +92,7 @@ void Simulation::RunSimulation(void)
         PTUtils->exchangePositions(system->coordinates, ms, ms->worldRank-1, true);
         PTUtils->exchangeCOMs(system->com, ms, ms->worldRank-1, true);
 
-        system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookupRef);
+        system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
         for (uint bPick = 0; bPick < BOX_TOTAL; bPick++){
           system->calcEwald->BoxReciprocalSetup(bPick, system->coordinates);
           system->calcEwald->UpdateRecip(bPick);
@@ -103,7 +103,7 @@ void Simulation::RunSimulation(void)
         PTUtils->exchangePositions(system->coordinates, ms, ms->worldRank+1, false);
         PTUtils->exchangeCOMs(system->com, ms, ms->worldRank+1, false);
 
-        system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookupRef);
+        system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
                
         for (uint bPick = 0; bPick < BOX_TOTAL; bPick++){
           system->calcEwald->BoxReciprocalSetup(bPick, system->coordinates);
