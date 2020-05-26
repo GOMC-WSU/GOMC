@@ -84,7 +84,6 @@ void Simulation::RunSimulation(void)
     }
   #if GOMC_LIB_MPI
 
-
     if( staticValues->simEventFreq.parallelTemp && step % staticValues->simEventFreq.parallelTempFreq == 0){
 
       exchangeResults = PTUtils->evaluateExchangeCriteria(step);
@@ -113,6 +112,7 @@ void Simulation::RunSimulation(void)
         system->potential = system->calcEnergy.SystemTotal();
 
       }
+
     }
   #endif
 
