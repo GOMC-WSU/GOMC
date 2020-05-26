@@ -299,10 +299,10 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
 
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
   std::vector<std::vector<int> > neighborList;
-  cellList.GetCellListNeighbor(box, currentCoords.Count(), cellVector, cellStartIndex, mapParticleToCell);
+  cellList.GetCellListNeighbor(box, coords.Count(), cellVector, cellStartIndex, mapParticleToCell);
   neighborList = cellList.GetNeighborList(box);
   int numberOfCells = neighborList.size();
-  int atomNumber = currentCoords.Count();
+  int atomNumber = coords.Count();
   int currParticle, currCell, nCellIndex, neighborCell, endIndex, nParticleIndex, nParticle;
 
 #ifdef GOMC_CUDA
@@ -369,7 +369,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
             forceLJ = virComponents * forcefield.particles->CalcVir(distSq, particleKind[currParticle],
                   particleKind[nParticle], lambdaVDW);
             if(currParticle == 0) {
-              printf("%lf, %lf\n", coords.x[currParticle], coords.x[nParticle]);
+              printf("%d, %d, %lf, %lf\n", currParticle, nParticle, coords.x[currParticle], coords.x[nParticle]);
             }
             aForcex[currParticle] += forceLJ.x + forceReal.x;
             aForcey[currParticle] += forceLJ.y + forceReal.y;
