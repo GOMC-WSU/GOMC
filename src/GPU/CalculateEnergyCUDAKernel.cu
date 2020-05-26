@@ -245,13 +245,11 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
   // total number of pairs
   int numberOfPairs = particlesInsideCurrentCell * particlesInsideNeighboringCells;
 
-  if(numberOfPairs != 0) {
-    printf("%d: currentCell: %d, neighborCell: %d, numberOfPairs: %d\n", threadID, currentCell, neighborCell, numberOfPairs);
-  }
-
   for(int pairIndex = threadIdx.x; pairIndex < numberOfPairs; pairIndex += blockDim.x) {
     int neighborParticleIndex = pairIndex / particlesInsideCurrentCell;
     int currentParticleIndex = pairIndex % particlesInsideCurrentCell;
+
+    printf("pairIndex: %d, neighborParticleIndex: %d, currentParticleIndex: %d\n", pairIndex, neighborParticleIndex, currentParticleIndex);
 
     int currentParticle = gpu_cellVector[gpu_cellStartIndex[currentCell] + currentParticleIndex];
     int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
