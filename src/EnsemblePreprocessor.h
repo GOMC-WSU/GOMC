@@ -33,7 +33,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define VARIABLE_DENSITY
 #define BOX_TOTAL 2
 #elif ENSEMBLE == NVT
-//#define VARIABLE_PARTICLE_NUMBER
+#define VARIABLE_PARTICLE_NUMBER
 #define BOX_TOTAL 1
 #elif ENSEMBLE == NPT
 #define VARIABLE_PARTICLE_NUMBER
