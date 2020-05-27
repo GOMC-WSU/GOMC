@@ -161,7 +161,9 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
   blocks[out::ENERGY_RECIP_IDX].Init(&outBlock0, &outBlock1, tracked.energy.block, invSteps, out::ENERGY_RECIP, BOXES_WITH_U_NB);
   blocks[out::VIRIAL_TOTAL_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps, out::VIRIAL_TOTAL, BOXES_WITH_U_NB);
   blocks[out::PRESSURE_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps, out::PRESSURE, BOXES_WITH_U_NB);
+  #if VARIABLE_PARTICLE_NUMBER
   blocks[out::MOL_NUM_IDX].Init(&outBlock0, &outBlock1, tracked.molNum.block, invSteps, out::MOL_NUM, BOXES_WITH_U_NB);
+  #endif
   blocks[out::DENSITY_IDX].Init(&outBlock0, &outBlock1, tracked.density.block, invSteps, out::DENSITY, BOXES_WITH_U_NB);
   blocks[out::SURF_TENSION_IDX].Init(&outBlock0, &outBlock1, tracked.surfaceTension.block, invSteps, out::SURF_TENSION, BOXES_WITH_U_NB);
 #if ENSEMBLE == GEMC
@@ -184,7 +186,9 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
     blocks[out::ENERGY_RECIP_IDX].SetRef(&var->energyRef[b].recip, b);
     blocks[out::VIRIAL_TOTAL_IDX].SetRef(&var->virialRef[b].total, b);
     blocks[out::PRESSURE_IDX].SetRef(&var->pressure[b], b);
+ #if VARIABLE_PARTICLE_NUMBER
     blocks[out::MOL_NUM_IDX].SetRef(&var->numByBox[b], b);
+ #endif 
     blocks[out::DENSITY_IDX].SetRef(&var->densityTot[b], b);
     blocks[out::SURF_TENSION_IDX].SetRef(&var->surfaceTens[b], b);
 #if ENSEMBLE == GEMC

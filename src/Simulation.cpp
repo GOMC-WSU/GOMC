@@ -92,7 +92,7 @@ void Simulation::RunSimulation(void)
         PTUtils->exchangePositions(system->coordinates, ms, ms->worldRank-1, true);
         PTUtils->exchangeCOMs(system->com, ms, ms->worldRank-1, true);
 
-        system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
+        system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookupRef);
 
         system->calcEwald->UpdateVectorsAndRecipTerms();
 
@@ -102,7 +102,7 @@ void Simulation::RunSimulation(void)
         PTUtils->exchangePositions(system->coordinates, ms, ms->worldRank+1, false);
         PTUtils->exchangeCOMs(system->com, ms, ms->worldRank+1, false);
 
-        system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
+        system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookupRef);
                
         system->calcEwald->UpdateVectorsAndRecipTerms();
 
