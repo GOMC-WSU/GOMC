@@ -93,10 +93,9 @@ void Simulation::RunSimulation(void)
         PTUtils->exchangeCOMs(system->com, ms, ms->worldRank-1, true);
 
         system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
-        for (uint bPick = 0; bPick < BOX_TOTAL; bPick++){
-          system->calcEwald->BoxReciprocalSetup(bPick, system->coordinates);
-          system->calcEwald->UpdateRecip(bPick);
-        }
+
+        system->calcEwald->UpdateVectorsAndRecipTerms();
+
         system->potential = system->calcEnergy.SystemTotal();
 
       } else if(ms->worldRank+1 != ms->worldSize && exchangeResults[ms->worldRank+1] == true) {
@@ -105,10 +104,8 @@ void Simulation::RunSimulation(void)
 
         system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
                
-        for (uint bPick = 0; bPick < BOX_TOTAL; bPick++){
-          system->calcEwald->BoxReciprocalSetup(bPick, system->coordinates);
-          system->calcEwald->UpdateRecip(bPick);
-        }
+        system->calcEwald->UpdateVectorsAndRecipTerms();
+
         system->potential = system->calcEnergy.SystemTotal();
 
       }
