@@ -27,9 +27,9 @@ ms(multisim), sysPotRef(sys.potential), parallelTempFreq(parallelTempFreq), prng
 
 vector<bool> ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step){
 
-    for (int i = 0; i < 2; i++){
-        std::cout << "Before fill : energy[" << i << "] : " << global_energies[i] << std::endl;
-    }
+    //for (int i = 0; i < 2; i++){
+      //  std::cout << "Before fill : energy[" << i << "] : " << global_energies[i] << std::endl;
+    //}
     #if BOX_TOTAL == 1
     std::memset(&global_energies[0], 0, ms->worldSize * sizeof(double));
     #else
@@ -37,23 +37,23 @@ vector<bool> ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step){
     std::memset(&global_energies[1], 0, ms->worldSize * sizeof(double));
     #endif
 
-    for (int i = 0; i < 2; i++){
-        std::cout << "After fill : energy[" << i << "] : " << global_energies[i] << std::endl;
-    }
+    //for (int i = 0; i < 2; i++){
+      //  std::cout << "After fill : energy[" << i << "] : " << global_energies[i] << std::endl;
+    //}
 
     #if BOX_TOTAL == 1
         global_energies[ms->worldRank] = sysPotRef.boxEnergy[0].total;
 
-    for (int i = 0; i < 2; i++){
-        std::cout << "After set local energy : energy[" << i << "] : " << global_energies[i] << std::endl;
-    }
+    //for (int i = 0; i < 2; i++){
+      //  std::cout << "After set local energy : energy[" << i << "] : " << global_energies[i] << std::endl;
+    //}
 
     MPI_Allreduce(MPI_IN_PLACE, &global_energies[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
             MPI_COMM_WORLD);
 
-    for (int i = 0; i < 2; i++){
-        std::cout << "After allreduce : energy[" << i << "] : " << global_energies[i] << std::endl;
-    }
+    //for (int i = 0; i < 2; i++){
+     //   std::cout << "After allreduce : energy[" << i << "] : " << global_energies[i] << std::endl;
+   // }
 
     #else
 
@@ -77,7 +77,7 @@ vector<bool> ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step){
             uBoltz = exp((global_betas[i] - global_betas[i-1]) * (global_energies[i] - global_energies[i-1]));
             exchangeProbabilities[i] = min(uBoltz, 1.0);
             exchangeResults[i] = (printRecord = prng()) < uBoltz;
-            std::cout << "Swapping repl " << i-1 << " and repl " << i << " uBoltz :" << uBoltz << "prng : " << printRecord << std::endl;
+            //std::cout << "Swapping repl " << i-1 << " and repl " << i << " uBoltz :" << uBoltz << "prng : " << printRecord << std::endl;
         } else {
             exchangeResults[i] = false;
             exchangeProbabilities[i] = 0.0;
@@ -125,10 +125,10 @@ void ParallelTemperingUtilities::exchangePositions(XYZArray & myPos, MultiSim co
                  MPI_COMM_WORLD);
     }
 
-    for (int i = 0; i < 3; i++){
-        std::cout << "My coords : " << myPos.x[i] << " x " << myPos.y[i] << " x " << myPos.z[i] << std::endl;
-        std::cout << "Send buffer : " << buffer.x[i] << " x " << buffer.y[i] << " x " << buffer.z[i] << std::endl;
-    }
+    //for (int i = 0; i < 3; i++){
+       // std::cout << "My coords : " << myPos.x[i] << " x " << myPos.y[i] << " x " << myPos.z[i] << std::endl;
+     //   std::cout << "Send buffer : " << buffer.x[i] << " x " << buffer.y[i] << " x " << buffer.z[i] << std::endl;
+   // }
 }
 
 void ParallelTemperingUtilities::exchangeCOMs(XYZArray & myCOMs, MultiSim const*const& multisim, int exchangePartner, bool leader){
@@ -169,10 +169,10 @@ void ParallelTemperingUtilities::exchangeCOMs(XYZArray & myCOMs, MultiSim const*
                  MPI_COMM_WORLD);
     }
 
-    for (int i = 0; i < 3; i++){
-        std::cout << "My COMs : " << myCOMs.x[i] << " x " << myCOMs.y[i] << " x " << myCOMs.z[i] << std::endl;
-        std::cout << "Send buffer : " << buffer.x[i] << " x " << buffer.y[i] << " x " << buffer.z[i] << std::endl;
-    }
+    //for (int i = 0; i < 3; i++){
+        //std::cout << "My COMs : " << myCOMs.x[i] << " x " << myCOMs.y[i] << " x " << myCOMs.z[i] << std::endl;
+      //  std::cout << "Send buffer : " << buffer.x[i] << " x " << buffer.y[i] << " x " << buffer.z[i] << std::endl;
+    //}
 }
 
 #endif
