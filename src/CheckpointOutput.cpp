@@ -26,12 +26,11 @@ union uint32_output_union {
 CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
-  coordCurrRef(sys.coordinates),
 #if GOMC_LIB_MPI
-  prngPTRef(sys.prngParallelTemp),
-  filename(pathToReplicaDirectory + "checkpoint.dat")
+  coordCurrRef(sys.coordinates),
+  prngPTRef(sys.prngParallelTemp)
 #else
-  filename("checkpoint.dat")
+  coordCurrRef(sys.coordinates)
 #endif
 {
   outputFile = NULL;
@@ -42,6 +41,11 @@ void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
 {
   enableOutCheckpoint = output.checkpoint.enable;
   stepsPerCheckpoint = output.checkpoint.frequency;
+#if GOMC_LIB_MPI
+  filename = pathToReplicaDirectory + "checkpoint.dat";
+#else
+  filename = "checkpoint.dat";
+#endif
 }
 
 void CheckpointOutput::DoOutput(const ulong step)

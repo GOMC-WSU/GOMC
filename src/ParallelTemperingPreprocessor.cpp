@@ -365,7 +365,7 @@ std::string ParallelTemperingPreprocessor::mkdirWrapper(std::string multisimDire
 {
   std::stringstream replicaStream;
 
-  replicaStream << "." << OS_SEP << multisimDirectoryName << OS_SEP
+  replicaStream << multisimDirectoryName << OS_SEP
                 << replicaDirectoryName << OS_SEP;
   std::string replicaDirectoryPath = replicaStream.str();
 
