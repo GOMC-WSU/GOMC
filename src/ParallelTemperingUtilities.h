@@ -42,7 +42,7 @@ vector<double> exchangeProbabilities;
 #if BOX_TOTAL == 1    
     vector<double> global_energies;
 #else
-    vector<vector <double>> global_energies;
+    vector<vector <double> > global_energies;
 #endif
 
 };
