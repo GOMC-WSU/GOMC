@@ -11,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PSFOutput.h"
 #include <iostream>
 #include <iomanip>
+#include "CUDAMemoryManager.cuh"
 
 #define EPSILON 0.001
 
@@ -20,6 +21,10 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
   //NOTE:
   //IMPORTANT! Keep this order...
   //as system depends on staticValues, and cpu sometimes depends on both.
+#ifdef GOMC_CUDA
+  long long CUDAMemoryManager::totalAllocatedBytes = 0;
+  std::unordered_map<void *, unsigned int> CUDAMemoryManager::allocatedPointers = {};
+#endif
   set.Init(configFileName, multisim);
   totalSteps = set.config.sys.step.total;
   staticValues = new StaticVals(set);
@@ -50,6 +55,9 @@ Simulation::~Simulation()
   delete cpu;
   delete system;
   delete staticValues;
+#ifdef GOMC_CUDA
+  CUDAMemoryManager::isFreed();
+#endif
 }
 
 void Simulation::RunSimulation(void)
