@@ -16,13 +16,13 @@ private:
   static std::unordered_map<void *, unsigned int> allocatedPointers;
 };
 
-cudaError_t CUDAMemoryManager::mallocMemory(void **address, unsigned int size) {
+static cudaError_t CUDAMemoryManager::mallocMemory(void **address, unsigned int size) {
   allocatedPointers[*address] = size;
   totalAllocatedBytes += size;
   return cudaMalloc(address, size);
 }
 
-cudaError_t CUDAMemoryManager::freeMemory(void *address) {
+static cudaError_t CUDAMemoryManager::freeMemory(void *address) {
   if(allocatedPointers.find(address) != allocatedPointers.end()) {
     totalAllocatedBytes -= allocatedPointers[address];
     allocatedPointers.erase(address);
