@@ -81,18 +81,18 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   CUDAMemoryManager::mallocMemory((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
   CUDAMemoryManager::mallocMemory((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
   CUDAMemoryManager::mallocMemory((void**) &gpu_final_value, sizeof(double));
-  CUDAMemoryManager::mallocMemory(&vars->gpu_rT11, energyVectorLen * sizeof(double));
-  CUDAMemoryManager::mallocMemory(&vars->gpu_rT12, energyVectorLen * sizeof(double));
-  CUDAMemoryManager::mallocMemory(&vars->gpu_rT13, energyVectorLen * sizeof(double));
-  CUDAMemoryManager::mallocMemory(&vars->gpu_rT22, energyVectorLen * sizeof(double));
-  CUDAMemoryManager::mallocMemory(&vars->gpu_rT23, energyVectorLen * sizeof(double));
-  CUDAMemoryManager::mallocMemory(&vars->gpu_rT33, energyVectorLen * sizeof(double));
-  CUDAMemoryManager::mallocMemory(&vars->gpu_vT11, energyVectorLen * sizeof(double));
-  CUDAMemoryManager::mallocMemory(&vars->gpu_vT12, energyVectorLen * sizeof(double));
-  CUDAMemoryManager::mallocMemory(&vars->gpu_vT13, energyVectorLen * sizeof(double));
-  CUDAMemoryManager::mallocMemory(&vars->gpu_vT22, energyVectorLen * sizeof(double));
-  CUDAMemoryManager::mallocMemory(&vars->gpu_vT23, energyVectorLen * sizeof(double));
-  CUDAMemoryManager::mallocMemory(&vars->gpu_vT33, energyVectorLen * sizeof(double));
+  CUDAMemoryManager::mallocMemory((void**) &vars->gpu_rT11, energyVectorLen * sizeof(double));
+  CUDAMemoryManager::mallocMemory((void**) &vars->gpu_rT12, energyVectorLen * sizeof(double));
+  CUDAMemoryManager::mallocMemory((void**) &vars->gpu_rT13, energyVectorLen * sizeof(double));
+  CUDAMemoryManager::mallocMemory((void**) &vars->gpu_rT22, energyVectorLen * sizeof(double));
+  CUDAMemoryManager::mallocMemory((void**) &vars->gpu_rT23, energyVectorLen * sizeof(double));
+  CUDAMemoryManager::mallocMemory((void**) &vars->gpu_rT33, energyVectorLen * sizeof(double));
+  CUDAMemoryManager::mallocMemory((void**) &vars->gpu_vT11, energyVectorLen * sizeof(double));
+  CUDAMemoryManager::mallocMemory((void**) &vars->gpu_vT12, energyVectorLen * sizeof(double));
+  CUDAMemoryManager::mallocMemory((void**) &vars->gpu_vT13, energyVectorLen * sizeof(double));
+  CUDAMemoryManager::mallocMemory((void**) &vars->gpu_vT22, energyVectorLen * sizeof(double));
+  CUDAMemoryManager::mallocMemory((void**) &vars->gpu_vT23, energyVectorLen * sizeof(double));
+  CUDAMemoryManager::mallocMemory((void**) &vars->gpu_vT33, energyVectorLen * sizeof(double));
   checkLastErrorCUDA(__FILE__, __LINE__);
 
 
