@@ -1428,7 +1428,6 @@ void CalculateEnergy::CalculateTorque(vector<uint>& moleculeIndex,
         }
       }
     }
-
   }
 }
 
