@@ -342,7 +342,7 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   }
 
   // delete gpu memory for lambda variables
-  CUFREE(vars->gpu_molIndex;
+  CUFREE(vars->gpu_molIndex);
   CUFREE(vars->gpu_kindIndex);
   CUFREE(vars->gpu_lambdaVDW);
   CUFREE(vars->gpu_lambdaCoulomb);
