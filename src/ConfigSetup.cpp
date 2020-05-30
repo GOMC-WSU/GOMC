@@ -597,7 +597,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           sys.cfcmcVal.lambdaCoulomb.push_back(val);
           printf("%-6.3f", val);
         }
-        std::cout << endl;
+        std::cout << std::endl;
       }
     } else if(CheckString(line[0], "LambdaVDW")) {
       if(line.size() > 1) {
@@ -608,7 +608,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           sys.cfcmcVal.lambdaVDW.push_back(val);
           printf("%-6.3f", val);
         }
-        std::cout << endl;
+        std::cout << std::endl;
       }
     } else if(CheckString(line[0], "RelaxingSteps")) {
       if(line.size() > 1) {
@@ -1092,7 +1092,7 @@ void ConfigSetup::fillDefaults(void)
         double val = sys.cfcmcVal.lambdaCoulomb[i];
         printf("%-6.3f", val);
       }
-      std::cout << endl;
+      std::cout << std::endl;
     }
 
     if(sys.cfcmcVal.readLambdaVDW ) {
@@ -1104,7 +1104,7 @@ void ConfigSetup::fillDefaults(void)
           double val = sys.cfcmcVal.lambdaCoulomb[i];
           printf("%-6.3f", val);
         }
-        std::cout << endl;
+        std::cout << std::endl;
       }
     }
 
