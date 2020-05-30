@@ -81,17 +81,30 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   cudaMalloc((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
   cudaMalloc((void**) &gpu_final_value, sizeof(double));
   cudaMalloc(&vars->gpu_rT11, energyVectorLen * sizeof(double));
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMalloc(&vars->gpu_rT12, energyVectorLen * sizeof(double));
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMalloc(&vars->gpu_rT13, energyVectorLen * sizeof(double));
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMalloc(&vars->gpu_rT22, energyVectorLen * sizeof(double));
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMalloc(&vars->gpu_rT23, energyVectorLen * sizeof(double));
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMalloc(&vars->gpu_rT33, energyVectorLen * sizeof(double));
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMalloc(&vars->gpu_vT11, energyVectorLen * sizeof(double));
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMalloc(&vars->gpu_vT12, energyVectorLen * sizeof(double));
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMalloc(&vars->gpu_vT13, energyVectorLen * sizeof(double));
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMalloc(&vars->gpu_vT22, energyVectorLen * sizeof(double));
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMalloc(&vars->gpu_vT23, energyVectorLen * sizeof(double));
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMalloc(&vars->gpu_vT33, energyVectorLen * sizeof(double));
+  checkLastErrorCUDA(__FILE__, __LINE__);
+
 
   cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0],
       atomNumber * sizeof(int), cudaMemcpyHostToDevice);
