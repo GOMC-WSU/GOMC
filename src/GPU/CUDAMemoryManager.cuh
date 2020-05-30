@@ -5,8 +5,6 @@
 #include <unordered_map>
 #include <iostream>
 
-using namespace std;
-
 class CUDAMemoryManager {
 public:
   void Init() { totalAllocatedBytes = 0; }
@@ -15,7 +13,7 @@ public:
 
 private:
   static long long totalAllocatedBytes;
-  static unordered_map<void *, unsigned int> allocatedPointers;
+  static std::unordered_map<void *, unsigned int> allocatedPointers;
 };
 
 cudaError_t CUDAMemoryManager::mallocMemory(void **address, unsigned int size) {
@@ -29,7 +27,7 @@ cudaError_t CUDAMemoryManager::freeMemory(void *address) {
     totalAllocatedBytes -= allocatedPointers[address];
     allocatedPointers.erase(address);
   } else {
-    cout << "Warning! You are trying to free memory where it was freed or never been allocated before!\n";
+    std::cout << "Warning! You are trying to free memory where it was freed or never been allocated before!\n";
   }
   return cudaFree(address);
 }
