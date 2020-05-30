@@ -254,25 +254,25 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
         cudaMemcpyDeviceToHost);
   }
 
-  CUDAMemoryManager::freeMemory(vars->gpu_rT11);
-  CUDAMemoryManager::freeMemory(vars->gpu_rT12);
-  CUDAMemoryManager::freeMemory(vars->gpu_rT13);
-  CUDAMemoryManager::freeMemory(vars->gpu_rT22);
-  CUDAMemoryManager::freeMemory(vars->gpu_rT23);
-  CUDAMemoryManager::freeMemory(vars->gpu_rT33);
-  CUDAMemoryManager::freeMemory(vars->gpu_vT11);
-  CUDAMemoryManager::freeMemory(vars->gpu_vT12);
-  CUDAMemoryManager::freeMemory(vars->gpu_vT13);
-  CUDAMemoryManager::freeMemory(vars->gpu_vT22);
-  CUDAMemoryManager::freeMemory(vars->gpu_vT23);
-  CUDAMemoryManager::freeMemory(vars->gpu_vT33);
-  CUDAMemoryManager::freeMemory(d_temp_storage);
-  CUDAMemoryManager::freeMemory(gpu_particleKind);
-  CUDAMemoryManager::freeMemory(gpu_particleMol);
-  CUDAMemoryManager::freeMemory(gpu_particleCharge);
-  CUDAMemoryManager::freeMemory(gpu_final_value);
-  CUDAMemoryManager::freeMemory(gpu_neighborList);
-  CUDAMemoryManager::freeMemory(gpu_cellStartIndex);
+  CUFREE(vars->gpu_rT11);
+  CUFREE(vars->gpu_rT12);
+  CUFREE(vars->gpu_rT13);
+  CUFREE(vars->gpu_rT22);
+  CUFREE(vars->gpu_rT23);
+  CUFREE(vars->gpu_rT33);
+  CUFREE(vars->gpu_vT11);
+  CUFREE(vars->gpu_vT12);
+  CUFREE(vars->gpu_vT13);
+  CUFREE(vars->gpu_vT22);
+  CUFREE(vars->gpu_vT23);
+  CUFREE(vars->gpu_vT33);
+  CUFREE(d_temp_storage);
+  CUFREE(gpu_particleKind);
+  CUFREE(gpu_particleMol);
+  CUFREE(gpu_particleCharge);
+  CUFREE(gpu_final_value);
+  CUFREE(gpu_neighborList);
+  CUFREE(gpu_cellStartIndex);
 }
 
 void CallBoxForceGPU(VariablesCUDA *vars,
@@ -421,7 +421,7 @@ void CallBoxForceGPU(VariablesCUDA *vars,
       CubDebugExit(CUMALLOC(&d_temp_storage, temp_storage_bytes));
       DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
           gpu_final_REn, energyVectorLen);
-      CUDAMemoryManager::freeMemory(d_temp_storage);
+      CUFREE(d_temp_storage);
 
       // LJ ReduceSum
       d_temp_storage = NULL;
@@ -431,7 +431,7 @@ void CallBoxForceGPU(VariablesCUDA *vars,
       CubDebugExit(CUMALLOC(&d_temp_storage, temp_storage_bytes));
       DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
           gpu_final_LJEn, energyVectorLen);
-      CUDAMemoryManager::freeMemory(d_temp_storage);
+      CUFREE(d_temp_storage);
       // Copy back the result to CPU ! :)
       CubDebugExit(cudaMemcpy(&cpu_final_REn, gpu_final_REn, sizeof(double),
             cudaMemcpyDeviceToHost));
@@ -448,15 +448,15 @@ void CallBoxForceGPU(VariablesCUDA *vars,
       cudaMemcpy(mForcez, vars->gpu_mForcez, sizeof(double) * molCount, cudaMemcpyDeviceToHost);
       cudaDeviceSynchronize();
 
-      CUDAMemoryManager::freeMemory(gpu_particleCharge);
-      CUDAMemoryManager::freeMemory(gpu_particleKind);
-      CUDAMemoryManager::freeMemory(gpu_particleMol);
-      CUDAMemoryManager::freeMemory(gpu_REn);
-      CUDAMemoryManager::freeMemory(gpu_LJEn);
-      CUDAMemoryManager::freeMemory(gpu_final_REn);
-      CUDAMemoryManager::freeMemory(gpu_final_LJEn);
-      CUDAMemoryManager::freeMemory(gpu_neighborList);
-      CUDAMemoryManager::freeMemory(gpu_cellStartIndex);
+      CUFREE(gpu_particleCharge);
+      CUFREE(gpu_particleKind);
+      CUFREE(gpu_particleMol);
+      CUFREE(gpu_REn);
+      CUFREE(gpu_LJEn);
+      CUFREE(gpu_final_REn);
+      CUFREE(gpu_final_LJEn);
+      CUFREE(gpu_neighborList);
+      CUFREE(gpu_cellStartIndex);
 }
 
 void CallVirialReciprocalGPU(VariablesCUDA *vars,
@@ -549,9 +549,9 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars,
   cudaMemcpy(&rT33, gpu_final_value, sizeof(double),
       cudaMemcpyDeviceToHost);
 
-  CUDAMemoryManager::freeMemory(gpu_particleCharge);
-  CUDAMemoryManager::freeMemory(gpu_final_value);
-  CUDAMemoryManager::freeMemory(d_temp_storage);
+  CUFREE(gpu_particleCharge);
+  CUFREE(gpu_final_value);
+  CUFREE(d_temp_storage);
 }
 
 __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,

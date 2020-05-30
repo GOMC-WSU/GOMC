@@ -107,10 +107,10 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
   cudaMemcpy(&energyRecip, gpu_final_energyRecip,
              sizeof(double), cudaMemcpyDeviceToHost);
 
-  CUDAMemoryManager::freeMemory(gpu_particleCharge);
-  CUDAMemoryManager::freeMemory(gpu_energyRecip);
-  CUDAMemoryManager::freeMemory(gpu_final_energyRecip);
-  CUDAMemoryManager::freeMemory(d_temp_storage);
+  CUFREE(gpu_particleCharge);
+  CUFREE(gpu_energyRecip);
+  CUFREE(gpu_final_energyRecip);
+  CUFREE(d_temp_storage);
 }
 
 void CallMolReciprocalGPU(VariablesCUDA *vars,
@@ -189,10 +189,10 @@ void CallMolReciprocalGPU(VariablesCUDA *vars,
              sizeof(double), cudaMemcpyDeviceToHost);
 
 
-  CUDAMemoryManager::freeMemory(gpu_particleCharge);
-  CUDAMemoryManager::freeMemory(gpu_energyRecipNew);
-  CUDAMemoryManager::freeMemory(gpu_final_energyRecipNew);
-  CUDAMemoryManager::freeMemory(d_temp_storage);
+  CUFREE(gpu_particleCharge);
+  CUFREE(gpu_energyRecipNew);
+  CUFREE(gpu_final_energyRecipNew);
+  CUFREE(d_temp_storage);
 }
 
 void CallSwapReciprocalGPU(VariablesCUDA *vars,
@@ -264,10 +264,10 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars,
   cudaMemcpy(&energyRecipNew, gpu_final_energyRecipNew,
              sizeof(double), cudaMemcpyDeviceToHost);
 
-  CUDAMemoryManager::freeMemory(gpu_particleCharge);
-  CUDAMemoryManager::freeMemory(gpu_energyRecipNew);
-  CUDAMemoryManager::freeMemory(gpu_final_energyRecipNew);
-  CUDAMemoryManager::freeMemory(d_temp_storage);
+  CUFREE(gpu_particleCharge);
+  CUFREE(gpu_energyRecipNew);
+  CUFREE(gpu_final_energyRecipNew);
+  CUFREE(d_temp_storage);
 
 }
 
