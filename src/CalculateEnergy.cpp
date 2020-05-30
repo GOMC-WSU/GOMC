@@ -1431,9 +1431,9 @@ void CalculateEnergy::CalculateTorque(vector<uint>& moleculeIndex,
           torquex[moleculeIndex[m]] += tempTorque.x;
           torquey[moleculeIndex[m]] += tempTorque.y;
           torquez[moleculeIndex[m]] += tempTorque.z;
-        }
         if(moleculeIndex[m] == 7) {
-          printf("%lf, %lf, %lf\n", torquex[moleculeIndex[m]], torquey[moleculeIndex[m]], torquez[moleculeIndex[m]]);
+          printf("%d: %lf, %lf, %lf\n", p, tempTorque.x, tempTorque.y, tempTorque.z);
+        }
         }
       }
     }
