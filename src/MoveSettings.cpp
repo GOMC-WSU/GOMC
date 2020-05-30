@@ -145,11 +145,11 @@ void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
                        (boxDimRef.axis.Min(box) / 2) - 0.001);
 
     if(!isfinite(mp_t_max[box])) {
-      cout << "mp_t_max is not a finite number in MultiParticle move." << endl;
-      cout << "mp_t_max[box]: " << mp_t_max[box] << endl;
-      cout << "totalTries: " << totalTries << endl;
-      cout << "currentAccept: " << currentAccept << endl;
-      cout << "fractOfTargetAccept: " << fractOfTargetAccept << endl;
+      std::cout << "mp_t_max is not a finite number in MultiParticle move." << std::endl;
+      std::cout << "mp_t_max[box]: " << mp_t_max[box] << std::endl;
+      std::cout << "totalTries: " << totalTries << std::endl;
+      std::cout << "currentAccept: " << currentAccept << std::endl;
+      std::cout << "fractOfTargetAccept: " << fractOfTargetAccept << std::endl;
       exit(EXIT_FAILURE);
     }
   }
@@ -163,11 +163,11 @@ void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
     num::Bound<double>(mp_r_max[box], 0.001, M_PI - 0.001);
 
     if(!isfinite(mp_r_max[box])) {
-      cout << "mp_r_max is not a finite number in MultiParticle move." << endl;
-      cout << "mp_r_max[box]: " << mp_r_max[box] << endl;
-      cout << "totalTries: " << totalTries << endl;
-      cout << "currentAccept: " << currentAccept << endl;
-      cout << "fractOfTargetAccept: " << fractOfTargetAccept << endl;
+      std::cout << "mp_r_max is not a finite number in MultiParticle move." << std::endl;
+      std::cout << "mp_r_max[box]: " << mp_r_max[box] << std::endl;
+      std::cout << "totalTries: " << totalTries << std::endl;
+      std::cout << "currentAccept: " << currentAccept << std::endl;
+      std::cout << "fractOfTargetAccept: " << fractOfTargetAccept << std::endl;
       exit(EXIT_FAILURE);
     }
   }

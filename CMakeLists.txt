@@ -6,6 +6,7 @@ include_directories(lib)
 include_directories(src)
 include_directories(src/cbmc)
 include_directories(src/moves)
+include_directories(src/GPU)
 
 #fix new policy of cmake about FindOpenMP.cmake (will have to check later if they fixed this issue)
 if(POLICY CMP0012)

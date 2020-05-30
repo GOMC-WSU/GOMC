@@ -62,8 +62,8 @@ int main(int argc, char *argv[])
   //Only run if valid ensemble was detected.
   if (CheckAndPrintEnsemble()) {
     //FOLLOWING LINES ADDED TO OBTAIN INPUT PARAMETER FILE
-    string inputFileString;
-    fstream inputFileReader;
+    std::string inputFileString;
+    std::fstream inputFileReader;
     uint numThreads;
 
     //CHECK IF ARGS/FILE PROVIDED IN CMD LINE
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 #endif
 
     //OPEN FILE
-    inputFileReader.open(inputFileString.c_str(), ios::in | ios::out);
+    inputFileReader.open(inputFileString.c_str(), std::ios::in | std::ios::out);
 
     //CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
     if (!inputFileReader.is_open()) {

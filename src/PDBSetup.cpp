@@ -189,7 +189,7 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
   atoms.Clear();
   remarks.Clear();
 
-  std::map<string, FWReadableBase *>::const_iterator dataKind;
+  std::map<std::string, FWReadableBase *>::const_iterator dataKind;
   remarks.SetRestart(restart);
   atoms.SetRestart(restart);
 
@@ -245,7 +245,7 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
 
 std::vector<ulong> PDBSetup::GetFrameSteps(std::string const*const name)
 {
-  std::map<string, FWReadableBase *>::const_iterator dataKind;
+  std::map<std::string, FWReadableBase *>::const_iterator dataKind;
   remarks.SetBox(mv::BOX0);
   FixedWidthReader pdb(name[mv::BOX0], pdbAlias[mv::BOX0]);
   pdb.open();

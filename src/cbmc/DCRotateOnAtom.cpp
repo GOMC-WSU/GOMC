@@ -90,7 +90,7 @@ DCRotateOnAtom::DCRotateOnAtom(DCData* data, const mol_setup::MolKind& kind,
 
   //Find the dihedral affected by rotation
   //First find the dihedral with x-a0-a1-x in the middle
-  vector<Dihedral>tempDih = DihsOnBond(kind, a1, a0);
+  std::vector<Dihedral>tempDih = DihsOnBond(kind, a1, a0);
   for(uint i = 0; i < tempDih.size(); i++) {
     //Make sure that the dihedral atoms are in the list since they are constant.
     if(std::find(atoms.begin(), atoms.end(), tempDih[i].a0) != atoms.end()) {

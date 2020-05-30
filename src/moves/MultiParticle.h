@@ -41,7 +41,7 @@ private:
   XYZArray r_k;
   Coordinates newMolsPos;
   COM newCOMs;
-  vector<uint> moveType, moleculeIndex;
+  std::vector<uint> moveType, moleculeIndex;
   const MoleculeLookup& molLookup;
 
   long double GetCoeff();
