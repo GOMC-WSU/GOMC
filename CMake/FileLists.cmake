@@ -187,7 +187,8 @@ set(cudaHeaders
     src/GPU/CalculateEnergyCUDAKernel.cuh
     src/GPU/CalculateForceCUDAKernel.cuh
     src/GPU/CalculateEwaldCUDAKernel.cuh
-    src/GPU/VariablesCUDA.cuh)
+    src/GPU/VariablesCUDA.cuh
+    src/GPU/CUDAMemoryManager.cuh)
 
 set(cudaSources
     src/GPU/CalculateEnergyCUDAKernel.cu
