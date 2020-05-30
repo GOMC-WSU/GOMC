@@ -393,7 +393,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   }
 #endif
   for(int i=0; i<20; i++) {
-    printf("%d: %lf, %lf, %lf\n", mForcex[i], mForcey[i], mForcez[i]);
+    printf("%d: %lf, %lf, %lf\n", i, mForcex[i], mForcey[i], mForcez[i]);
   }
 
   // setting energy and virial of LJ interaction
