@@ -1381,13 +1381,13 @@ void CalculateEnergy::VirialCorrection(Virial& virial,
 }
 
 //! Calculate Torque
-void CalculateEnergy::CalculateTorque(vector<uint>& moleculeIndex,
+void CalculateEnergy::CalculateTorque(std::vector<uint>& moleculeIndex,
     XYZArray const& coordinates,
     XYZArray const& com,
     XYZArray const& atomForce,
     XYZArray const& atomForceRec,
     XYZArray& molTorque,
-    vector<uint>& moveType,
+    std::vector<uint>& moveType,
     const uint box)
 {
   if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
