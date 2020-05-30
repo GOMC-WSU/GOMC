@@ -137,7 +137,7 @@ ConfigSetup::ConfigSetup(void)
   out.statistics.vars.density.fluct = false;
 }
 
-bool ConfigSetup::checkBool(string str)
+bool ConfigSetup::checkBool(std::string str)
 {
   int k;
   // capitalize string
@@ -153,7 +153,7 @@ bool ConfigSetup::checkBool(string str)
   exit(EXIT_FAILURE);
 }
 
-bool ConfigSetup::CheckString(string str1, string str2)
+bool ConfigSetup::CheckString(std::string str1, std::string str2)
 {
   for(int k = 0; k < str1.length(); k++) {
     str1[k] = toupper(str1[k]);
@@ -316,7 +316,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           sys.intraMemcVal.exchangeRatio.push_back(val);
           printf("%-5d", val);
         }
-        std::cout << endl;
+        std::cout << std::endl;
         sys.memcVal.readRatio = true;
         sys.intraMemcVal.readRatio = true;
       }
@@ -329,7 +329,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           sys.intraMemcVal.largeKind.push_back(resName);
           printf("%-5s", resName.c_str());
         }
-        std::cout << endl;
+        std::cout << std::endl;
         sys.memcVal.readLK = true;
         sys.intraMemcVal.readLK = true;
       }
@@ -342,7 +342,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           sys.intraMemcVal.smallKind.push_back(resName);
           printf("%-5s", resName.c_str());
         }
-        std::cout << endl;
+        std::cout << std::endl;
         sys.memcVal.readSK = true;
         sys.intraMemcVal.readSK = true;
       }
@@ -365,7 +365,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           sys.intraMemcVal.smallBBAtom2.push_back(atom2);
           printf("%-s - %-s", atom1.c_str(), atom2.c_str());
         }
-        std::cout << endl;
+        std::cout << std::endl;
         sys.memcVal.readSmallBB = true;
         sys.intraMemcVal.readSmallBB = true;
       }
