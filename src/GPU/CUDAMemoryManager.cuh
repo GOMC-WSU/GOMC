@@ -16,9 +16,6 @@ private:
   static bool isFreed();
 };
 
-long long CUDAMemoryManager::totalAllocatedBytes = 0;
-allocatedPointers.resize(0);
-
 cudaError_t CUDAMemoryManager::mallocMemory(void **address, unsigned int size) {
   cudaError_t ret = cudaMalloc(address, size);
   allocatedPointers[*address] = size;
