@@ -79,8 +79,10 @@ elseif(MSVC)
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "${CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT} /MT /Zi /O2 /Ob1 /D NDEBUG")
 endif()
 
-#EnsemblePreprocessor defines NVT = 1, GEMC = 2, GCMC = 3, NPT = 4
+# add c++11 flag
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
+#EnsemblePreprocessor defines NVT = 1, GEMC = 2, GCMC = 3, NPT = 4
 #NPT (Isothermal-Isobaric) Ensemble
 set(NPT_flags "-DENSEMBLE=4")
 set(NPT_name "GOMC_CPU_NPT")
