@@ -2,7 +2,7 @@
 
 #ifdef GOMC_CUDA
 long long CUDAMemoryManager::totalAllocatedBytes = 0;
-std::unordered_map<void *, unsigned int> CUDAMemoryManager::allocatedPointers = {};
+std::unordered_map<void *, std::pair<unsigned int, std::string> > CUDAMemoryManager::allocatedPointers = {};
 
 
 cudaError_t CUDAMemoryManager::mallocMemory(void **address, unsigned int size, std::string var_name) {
