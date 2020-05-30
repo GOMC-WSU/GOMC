@@ -11,9 +11,11 @@ public:
   static cudaError_t freeMemory(void *address);
 
 private:
-  static long long totalAllocatedBytes = 0;
+  static long long totalAllocatedBytes;
   static std::unordered_map<void *, unsigned int> allocatedPointers;
 };
+
+long long CUDAMemoryManager::totalAllocatedBytes = 0;
 
 cudaError_t CUDAMemoryManager::mallocMemory(void **address, unsigned int size) {
   allocatedPointers[*address] = size;
