@@ -7,12 +7,11 @@
 
 class CUDAMemoryManager {
 public:
-  static void Init() { totalAllocatedBytes = 0; }
   static cudaError_t mallocMemory(void **address, unsigned int size);
   static cudaError_t freeMemory(void *address);
 
 private:
-  static long long totalAllocatedBytes;
+  static long long totalAllocatedBytes = 0;
   static std::unordered_map<void *, unsigned int> allocatedPointers;
 };
 
