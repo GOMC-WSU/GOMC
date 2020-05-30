@@ -330,8 +330,8 @@ inline long double MultiParticle::GetCoeff()
       // rotate
       lbt_old = molTorqueRef.Get(molNumber) * lBeta;
       lbt_new = molTorqueNew.Get(molNumber) * lBeta;
-      printf("rotate: %lf, %lf, %lf, %lf\n", lbt_new, lbt_old, r_k.Get(molNumber), r_max);
-      w_ratio *= CalculateWRatio(lbt_new.x, lbt_old.x, r_k.Get(molNumber), r_max);
+      printf("rotate: %lf, %lf, %lf, %lf\n", lbt_new.x, lbt_old.x, r_k.Get(molNumber), r_max);
+      w_ratio *= CalculateWRatio(lbt_new, lbt_old, r_k.Get(molNumber), r_max);
     } else {
       // displace
       lbf_old = (molForceRef.Get(molNumber) + molForceRecRef.Get(molNumber)) *
