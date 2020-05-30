@@ -886,10 +886,7 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
         forceLJx = virX * pVF;
         forceLJy = virY * pVF;
         forceLJz = virZ * pVF;
-        if(mA == 7 || mB == 7) {
-          printf("%d, %d, %lf, %lf\n", currentParticle, neighborParticle, gpu_x[currentParticle], gpu_x[neighborParticle]);
-        }
-        if(pVF > 1000 || forceLJx > 1000) {
+        if(mA == 5 || mB == 5) {
           printf("%d, %d, %lf, %lf\n", currentParticle, neighborParticle, gpu_x[currentParticle], gpu_x[neighborParticle]);
         }
 
