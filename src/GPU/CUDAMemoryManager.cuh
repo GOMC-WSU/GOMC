@@ -2,7 +2,8 @@
 #ifdef GOMC_CUDA
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include <set>
+#include <map>
+#include <iostream>
 
 using namespace std;
 
