@@ -2,7 +2,7 @@
 #ifdef GOMC_CUDA
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include <map>
+#include <unordered_map>
 #include <iostream>
 
 using namespace std;
