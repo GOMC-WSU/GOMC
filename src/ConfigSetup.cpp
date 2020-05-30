@@ -388,7 +388,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           sys.intraMemcVal.largeBBAtom2.push_back(atom2);
           printf("%-s - %-s", atom1.c_str(), atom2.c_str());
         }
-        std::cout << endl;
+        std::cout << std::endl;
         sys.memcVal.readLargeBB = true;
         sys.intraMemcVal.readLargeBB = true;
       }
@@ -784,7 +784,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           sys.freeEn.lambdaCoulomb.push_back(val);
           printf("%-6.3f", val);
         }
-        std::cout << endl;
+        std::cout << std::endl;
       }
     } else if(CheckString(line[0], "LambdaVDW")) {
       if(line.size() > 1) {
@@ -795,7 +795,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           sys.freeEn.lambdaVDW.push_back(val);
           printf("%-6.3f", val);
         }
-        std::cout << endl;
+        std::cout << std::endl;
       }
     } else if(CheckString(line[0], "FreeEnergyCalc")) {
       if(line.size() > 1) {
@@ -1007,7 +1007,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       else
         printf("Warning: Constant seed set, but will be ignored.\n");
     } else {
-      cout << "Warning: Unknown input " << line[0] << "!" << endl;
+      std::cout << "Warning: Unknown input " << line[0] << "!" << std::endl;
     }
     // Clear and get ready for the next line
     line.clear();
@@ -1149,7 +1149,7 @@ void ConfigSetup::fillDefaults(void)
         double val = sys.freeEn.lambdaCoulomb[i];
         printf("%-6.3f", val);
       }
-      std::cout << endl;
+      std::cout << std::endl;
     }
 
     if(sys.freeEn.readLambdaVDW) {
@@ -1161,7 +1161,7 @@ void ConfigSetup::fillDefaults(void)
           double val = sys.freeEn.lambdaCoulomb[i];
           printf("%-6.3f", val);
         }
-        std::cout << endl;
+        std::cout << std::endl;
       }
     }
 
