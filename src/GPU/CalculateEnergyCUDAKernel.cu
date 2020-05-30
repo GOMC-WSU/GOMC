@@ -60,15 +60,15 @@ void CallBoxInterGPU(VariablesCUDA *vars,
     }
   }
 
-  CUDAMemoryManager::mallocMemory((void**) &gpu_neighborList, neighborListCount * sizeof(int));
-  CUDAMemoryManager::mallocMemory((void**) &gpu_cellStartIndex, cellStartIndex.size() * sizeof(int));
-  CUDAMemoryManager::mallocMemory((void**) &gpu_particleCharge, particleCharge.size() * sizeof(double));
-  CUDAMemoryManager::mallocMemory((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
-  CUDAMemoryManager::mallocMemory((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
-  CUDAMemoryManager::mallocMemory((void**) &gpu_REn, energyVectorLen * sizeof(double));
-  CUDAMemoryManager::mallocMemory((void**) &gpu_LJEn, energyVectorLen * sizeof(double));
-  CUDAMemoryManager::mallocMemory((void**) &gpu_final_REn, sizeof(double));
-  CUDAMemoryManager::mallocMemory((void**) &gpu_final_LJEn, sizeof(double));
+  CUMALLOC((void**) &gpu_neighborList, neighborListCount * sizeof(int));
+  CUMALLOC((void**) &gpu_cellStartIndex, cellStartIndex.size() * sizeof(int));
+  CUMALLOC((void**) &gpu_particleCharge, particleCharge.size() * sizeof(double));
+  CUMALLOC((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
+  CUMALLOC((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
+  CUMALLOC((void**) &gpu_REn, energyVectorLen * sizeof(double));
+  CUMALLOC((void**) &gpu_LJEn, energyVectorLen * sizeof(double));
+  CUMALLOC((void**) &gpu_final_REn, sizeof(double));
+  CUMALLOC((void**) &gpu_final_LJEn, sizeof(double));
 
   // Copy necessary data to GPU
   cudaMemcpy(gpu_neighborList, &neighborlist1D[0], neighborListCount * sizeof(int), cudaMemcpyHostToDevice);
@@ -139,7 +139,7 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   size_t temp_storage_bytes = 0;
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
       gpu_final_REn, energyVectorLen);
-  CubDebugExit(CUDAMemoryManager::mallocMemory(&d_temp_storage, temp_storage_bytes));
+  CubDebugExit(CUMALLOC(&d_temp_storage, temp_storage_bytes));
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
       gpu_final_REn, energyVectorLen);
   CUDAMemoryManager::freeMemory(d_temp_storage);
@@ -149,7 +149,7 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   temp_storage_bytes = 0;
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
       gpu_final_LJEn, energyVectorLen);
-  CubDebugExit(CUDAMemoryManager::mallocMemory(&d_temp_storage, temp_storage_bytes));
+  CubDebugExit(CUMALLOC(&d_temp_storage, temp_storage_bytes));
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
       gpu_final_LJEn, energyVectorLen);
   CUDAMemoryManager::freeMemory(d_temp_storage);

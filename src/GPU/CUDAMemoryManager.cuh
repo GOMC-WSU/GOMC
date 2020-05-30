@@ -5,15 +5,17 @@
 #include <unordered_map>
 #include <iostream>
 
+#define CUMALLOC(address,size) CUDAMemoryManager::mallocMemory(address,size,#address)
+
 class CUDAMemoryManager {
 public:
-  static cudaError_t mallocMemory(void **address, unsigned int size);
+  static cudaError_t mallocMemory(void **address, unsigned int size, std::string var_name);
   static cudaError_t freeMemory(void *address);
   static bool isFreed();
 
 private:
   static long long totalAllocatedBytes;
-  static std::unordered_map<void *, unsigned int> allocatedPointers;
+  static std::unordered_map<void *, std::pair<unsigned int, std::string> > allocatedPointers;
 };
 
 #endif
