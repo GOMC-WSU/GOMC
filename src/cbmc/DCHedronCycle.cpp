@@ -378,7 +378,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
         ang = (flip ? 2.0 * M_PI - ang : ang);
         ang += phi[c];
         std::fill_n(angles, nTrials, ang);
-        if(isnan(ang)) {
+        if(std::isnan(ang)) {
           std::cout << "Error: Cannot Construct Angle " <<
                     newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
                     newMol.GetKind().atomTypeNames[focus] << " " <<
@@ -465,7 +465,7 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
         ang = (flip ? 2.0 * M_PI - ang : ang);
         ang += phi[c];
         std::fill_n(angles, nTrials, ang);
-        if(isnan(ang)) {
+        if(std::isnan(ang)) {
           std::cout << "Error: Cannot Construct Angle" <<
                     oldMol.GetKind().atomTypeNames[bonded[b]] << " " <<
                     oldMol.GetKind().atomTypeNames[focus] << " " <<

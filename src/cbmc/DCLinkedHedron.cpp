@@ -301,7 +301,7 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
           nonbonded_1_4[tor] +=
             data->calc.IntraEnergy_1_4(distSq, prevBonded[p],
                                        hed.Bonded(b), molIndex);
-          if(isnan(nonbonded_1_4[tor]))
+          if(std::isnan(nonbonded_1_4[tor]))
             nonbonded_1_4[tor] = num::BIGNUM;
         }
         torEnergy[tor] += ff.dihedrals.Calc(dihKinds[b][p],
@@ -401,7 +401,7 @@ void DCLinkedHedron::ChooseTorsion(TrialMol& mol, uint molIndex,
           nonbonded_1_4[tor] +=
             data->calc.IntraEnergy_1_4(distSq, prevBonded[p],
                                        hed.Bonded(b), molIndex);
-          if(isnan(nonbonded_1_4[tor]))
+          if(std::isnan(nonbonded_1_4[tor]))
             nonbonded_1_4[tor] = num::BIGNUM;
         }
 

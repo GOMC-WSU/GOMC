@@ -298,7 +298,7 @@ void DCHedron::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTrials)
         var = (var < -1.0 && var > -1.1 ? -1.0 : var);
         double ang = acos(var) + phi[c];
         std::fill_n(angles, nTrials, ang);
-        if(isnan(ang)) {
+        if(std::isnan(ang)) {
           //printf("Val: %2.10f, angle: %2.5f \n", var, ang);
           std::cout << "Error: Cannot constrain fix angle for " <<
                     newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
@@ -372,7 +372,7 @@ void DCHedron::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
         var = (var < -1.0 && var > -1.1 ? -1.0 : var);
         double ang = acos(var) + phi[c];
         std::fill_n(angles, nTrials, ang);
-        if(isnan(ang)) {
+        if(std::isnan(ang)) {
           //printf("Val: %2.10f, angle: %2.5f \n", var, ang);
           std::cout << "Error: Cannot constrain fix angle for " <<
                     oldMol.GetKind().atomTypeNames[bonded[b]] << " " <<

@@ -1230,7 +1230,7 @@ double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,
   }
   forcefield.particles->CalcAdd_1_4(eng, distSq, kind1, kind2);
 
-  if(isnan(eng))
+  if(std::isnan(eng))
     eng = num::BIGNUM;
 
   return eng;
@@ -1261,7 +1261,7 @@ double CalculateEnergy::IntraEnergy_1_4(const double distSq, const uint atom1,
   }
   forcefield.particles->CalcAdd_1_4(eng, distSq, kind1, kind2);
 
-  if(isnan(eng))
+  if(std::isnan(eng))
     eng = num::BIGNUM;
 
   return eng;
