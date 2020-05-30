@@ -48,8 +48,7 @@ DCHedron::DCHedron(DCData* data, const mol_setup::MolKind& kind,
   : data(data), focus(focus), prev(prev)
 {
   using namespace mol_setup;
-  using namespace std;
-  vector<Bond> onFocus = AtomBonds(kind, focus);
+  std::vector<Bond> onFocus = AtomBonds(kind, focus);
   onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
                 onFocus.end());
   nBonds = onFocus.size();
@@ -58,9 +57,9 @@ DCHedron::DCHedron(DCData* data, const mol_setup::MolKind& kind,
     bonded[i] = onFocus[i].a1;
   }
 
-  vector<Angle> angles = AtomMidAngles(kind, focus);
+  std::vector<Angle> angles = AtomMidAngles(kind, focus);
   for (uint i = 0; i < nBonds; ++i) {
-    typedef vector<Angle>::const_iterator Aiter;
+    typedef std::vector<Angle>::const_iterator Aiter;
     Aiter free = find_if(angles.begin(), angles.end(),
                          FindAngle(prev, bonded[i]));
     assert(free != angles.end());

@@ -31,8 +31,7 @@ DCFreeHedron::DCFreeHedron(DCData* data, const mol_setup::MolKind& kind,
   : data(data), seed(data, focus), hed(data, kind, focus, prev)
 {
   using namespace mol_setup;
-  using namespace std;
-  vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
+  std::vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
   for(uint i = 0; i < onFocus.size(); ++i) {
     if (onFocus[i].a1 == prev) {
       anchorKind = onFocus[i].kind;

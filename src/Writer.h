@@ -84,17 +84,15 @@ protected:
 
   void HandleError(std::string const& msg)
   {
-    using namespace std;
-    cerr << ((critical) ? "Error " : "Warning ") << nameWAlias << endl
-         << msg << endl;
+    std::cerr << ((critical) ? "Error " : "Warning ") << nameWAlias << std::endl
+         << msg << std::endl;
     if (critical)
       exit(1);
   }
 
   void HandleNote(std::string const& msg)
   {
-    using namespace std;
-    cout << msg << nameWAlias << endl;
+    std::cout << msg << nameWAlias << std::endl;
   }
 
   void CheckFileState(const bool expected,

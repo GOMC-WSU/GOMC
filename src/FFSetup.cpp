@@ -56,13 +56,12 @@ FFSetup::SetReadFunctions(const bool isCHARMM)
 
 void FFSetup::Init(std::string const& name, const bool isCHARMM)
 {
-  using namespace std;
   sectKind = SetReadFunctions(isCHARMM);
-  string currSectName = "", varName = "";
-  string commentChar = "*!";
-  string commentStr = "REMARK ATOM ATOMS MASS set AEXP REXP HAEX AAEX NBOND "
+  std::string currSectName = "", varName = "";
+  std::string commentChar = "*!";
+  std::string commentStr = "REMARK ATOM ATOMS MASS set AEXP REXP HAEX AAEX NBOND "
                       "CUTNB END CTONN EPS VSWI NBXM INHI";
-  map<string, ReadableBaseWithFirst *>::const_iterator sect, currSect;
+  std::map<std::string, ReadableBaseWithFirst *>::const_iterator sect, currSect;
 
   Reader param(name,
                paramFileAlias[isCHARMM ? CHARMM_ALIAS_IDX : EXOTIC_ALIAS_IDX],

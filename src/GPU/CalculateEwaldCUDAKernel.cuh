@@ -14,14 +14,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <vector>
 #include "XYZArray.h"
 
-using namespace std;
-
 void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
                                XYZArray const &coords,
                                double const *kx,
                                double const *ky,
                                double const *kz,
-                               vector<double> particleCharge,
+                               std::vector<double> particleCharge,
                                uint imageSize,
                                double *sumRnew,
                                double *sumInew,
@@ -33,7 +31,7 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
 void CallMolReciprocalGPU(VariablesCUDA *vars,
                           XYZArray const &currentCoords,
                           XYZArray const &newCoords,
-                          vector<double> particleCharge,
+                          std::vector<double> particleCharge,
                           uint imageSize,
                           double *sumRnew,
                           double *sumInew,
@@ -42,7 +40,7 @@ void CallMolReciprocalGPU(VariablesCUDA *vars,
 
 void CallSwapReciprocalGPU(VariablesCUDA *vars,
                            XYZArray const &coords,
-                           vector<double> particleCharge,
+                           std::vector<double> particleCharge,
                            uint imageSize,
                            double *sumRnew,
                            double *sumInew,

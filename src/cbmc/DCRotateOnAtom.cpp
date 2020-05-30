@@ -40,11 +40,10 @@ DCRotateOnAtom::DCRotateOnAtom(DCData* data, const mol_setup::MolKind& kind,
   data(data), a0(a0), a1(a1), a2(a2)
 {
   using namespace mol_setup;
-  using namespace std;
-  vector<bool> visited(kind.atoms.size(), false);
+  std::vector<bool> visited(kind.atoms.size(), false);
   totAtoms = kind.atoms.size();
   //Find all the atoms that bonds with atoms a1
-  vector<Bond> bonds = AtomBonds(kind, a1);
+  std::vector<Bond> bonds = AtomBonds(kind, a1);
   //Remove the a0-a1 and a1-a2 bond
   bonds.erase(remove_if(bonds.begin(), bonds.end(), FindA1(a0)), bonds.end());
   bonds.erase(remove_if(bonds.begin(), bonds.end(), FindA1(a2)), bonds.end());
@@ -58,7 +57,7 @@ DCRotateOnAtom::DCRotateOnAtom(DCData* data, const mol_setup::MolKind& kind,
       visited[bonds[b].a0] = true;
     }
 
-    vector<Bond> temp = AtomBonds(kind, bonds[b].a1);
+    std::vector<Bond> temp = AtomBonds(kind, bonds[b].a1);
     for(uint i = 0; i < temp.size(); i++) {
       if(!visited[temp[i].a0]) {
         bonds.push_back(temp[i]);

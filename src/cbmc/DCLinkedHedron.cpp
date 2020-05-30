@@ -45,8 +45,7 @@ DCLinkedHedron::DCLinkedHedron
   : data(data), hed(data, kind, focus, prev)
 {
   using namespace mol_setup;
-  using namespace std;
-  vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
+  std::vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
   onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
                 onFocus.end());
   //Find the atoms bonded to focus, except prev
@@ -54,7 +53,7 @@ DCLinkedHedron::DCLinkedHedron
     bondKinds[i] = onFocus[i].kind;
   }
 
-  vector<Bond> onPrev = AtomBonds(kind, hed.Prev());
+  std::vector<Bond> onPrev = AtomBonds(kind, hed.Prev());
   onPrev.erase(remove_if(onPrev.begin(), onPrev.end(), FindA1(hed.Focus())),
                onPrev.end());
   nPrevBonds = onPrev.size();
@@ -63,10 +62,10 @@ DCLinkedHedron::DCLinkedHedron
     prevBonded[i] = onPrev[i].a1;
   }
 
-  vector<Dihedral> dihs = DihsOnBond(kind, hed.Focus(), hed.Prev());
+  std::vector<Dihedral> dihs = DihsOnBond(kind, hed.Focus(), hed.Prev());
   for(uint i = 0; i < hed.NumBond(); ++i) {
     for(uint j = 0; j < nPrevBonds; ++j) {
-      vector<Dihedral>::const_iterator match =
+      std::vector<Dihedral>::const_iterator match =
         find_if(dihs.begin(), dihs.end(), FindDih(hed.Bonded(i),
                 prevBonded[j]));
       assert(match != dihs.end());
