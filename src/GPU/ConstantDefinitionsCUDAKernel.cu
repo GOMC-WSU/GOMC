@@ -101,19 +101,6 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   CUMALLOC((void**) &vars->gpu_comy, maxMolNumber * sizeof(double));
   CUMALLOC((void**) &vars->gpu_comz, maxMolNumber * sizeof(double));
 
-  CUMALLOC((void**) &vars->gpu_rT11, MAX_PAIR_SIZE * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_rT12, MAX_PAIR_SIZE * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_rT13, MAX_PAIR_SIZE * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_rT22, MAX_PAIR_SIZE * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_rT23, MAX_PAIR_SIZE * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_rT33, MAX_PAIR_SIZE * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_vT11, MAX_PAIR_SIZE * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_vT12, MAX_PAIR_SIZE * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_vT13, MAX_PAIR_SIZE * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_vT22, MAX_PAIR_SIZE * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_vT23, MAX_PAIR_SIZE * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_vT33, MAX_PAIR_SIZE * sizeof(double));
-
   CUMALLOC((void**) &vars->gpu_nonOrth, sizeof(int));
   vars->gpu_cell_x = new double *[BOX_TOTAL];
   vars->gpu_cell_y = new double *[BOX_TOTAL];
@@ -344,18 +331,6 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   CUFREE(vars->gpu_mForcez);
   CUFREE(vars->gpu_cellVector);
   CUFREE(vars->gpu_mapParticleToCell);
-  CUFREE(vars->gpu_rT11);
-  CUFREE(vars->gpu_rT12);
-  CUFREE(vars->gpu_rT13);
-  CUFREE(vars->gpu_rT22);
-  CUFREE(vars->gpu_rT23);
-  CUFREE(vars->gpu_rT33);
-  CUFREE(vars->gpu_vT11);
-  CUFREE(vars->gpu_vT12);
-  CUFREE(vars->gpu_vT13);
-  CUFREE(vars->gpu_vT22);
-  CUFREE(vars->gpu_vT23);
-  CUFREE(vars->gpu_vT33);
   CUFREE(vars->gpu_nonOrth);
   for(uint b = 0; b < BOX_TOTAL; b++) {
     CUFREE(vars->gpu_cell_x[b]);
@@ -365,6 +340,14 @@ void DestroyCUDAVars(VariablesCUDA *vars)
     CUFREE(vars->gpu_Invcell_y[b]);
     CUFREE(vars->gpu_Invcell_z[b]);
   }
+
+  // delete gpu memory for lambda variables
+  CUFREE(vars->gpu_molIndex;
+  CUFREE(vars->gpu_kindIndex);
+  CUFREE(vars->gpu_lambdaVDW);
+  CUFREE(vars->gpu_lambdaCoulomb);
+  CUFREE(vars->gpu_isFraction);
+
   delete [] vars-> gpu_cell_x;
   delete [] vars-> gpu_cell_y;
   delete [] vars-> gpu_cell_z;
