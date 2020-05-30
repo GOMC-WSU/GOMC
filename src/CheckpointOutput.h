@@ -60,8 +60,8 @@ private:
   void printMoveSettingsData();
   void printBoxDimensionsData();
 
-  void printVector3DDouble(std::vector< std::vector< std::vector <double> > > data);
-  void printVector3DUint(std::vector< std::vector< vector <uint> > > data);
+  void printVector3DDouble(std::vector< std::vector< std::vector<double> > > data);
+  void printVector3DUint(std::vector< std::vector< std::vector<uint> > > data);
   void printVector2DUint(std::vector< std::vector< uint > > data);
   void printVector1DDouble(std::vector< double > data);
   void outputDoubleIn8Chars(double data);
