@@ -304,6 +304,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   int numberOfCells = neighborList.size();
   int atomNumber = coords.Count();
   int currParticle, currCell, nCellIndex, neighborCell, endIndex, nParticleIndex, nParticle;
+  cout << "===============BOXFORCE==============\n";
 
 #ifdef GOMC_CUDA
   //update unitcell in GPU
@@ -368,7 +369,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
             }
             forceLJ = virComponents * forcefield.particles->CalcVir(distSq, particleKind[currParticle],
                   particleKind[nParticle], lambdaVDW);
-            if(currParticle == 0) {
+            if(particleMol[currParticle] == 7) {
               printf("%d, %d, %lf, %lf\n", currParticle, nParticle, coords.x[currParticle], coords.x[nParticle]);
             }
             aForcex[currParticle] += forceLJ.x + forceReal.x;
