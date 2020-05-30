@@ -370,7 +370,9 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
             forceLJ = virComponents * forcefield.particles->CalcVir(distSq, particleKind[currParticle],
                   particleKind[nParticle], lambdaVDW);
             if(particleMol[currParticle] == 5 || particleMol[nParticle] == 5) {
-              printf("%d, %d, %lf, %lf\n", currParticle, nParticle, coords.x[currParticle], coords.x[nParticle]);
+              printf("%d, %d, %lf, %lf, %lf, %lf\n",
+                currParticle, nParticle, coords.x[currParticle], coords.x[nParticle],
+                forceLJ.X, forceReal.X);
             }
             aForcex[currParticle] += forceLJ.x + forceReal.x;
             aForcey[currParticle] += forceLJ.y + forceReal.y;
