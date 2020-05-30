@@ -424,8 +424,8 @@ void EwaldCached::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
   double *energyRecip = new double [lambdaSize];
   std::fill_n(energyRecip, lambdaSize, 0.0);
 
-#ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(i, s, coefDiff) reduction(+:energyRecip[:lambdaSize])
+#if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
+#pragma omp parallel for default(shared) private(i, s, coefDiff) reduction(+:energyRecip[:lambdaSize])
 #endif
   for (i = 0; i < imageSizeRef[box]; i++) {
     for(s = 0; s < lambdaSize; s++) {

@@ -55,4 +55,4 @@ ICPC_PATH="$(which icpc)"
 export CC=${ICC_PATH}
 export CXX=${ICPC_PATH}
 cmake ..
-make
+make -j8

@@ -12,6 +12,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <iomanip>
 
+#define EPSILON 0.001
+
 Simulation::Simulation(char const*const configFileName, MultiSim const*const& multisim)
 {
   startStep = 0;
@@ -84,8 +86,55 @@ void Simulation::RunSimulation(void)
       RunningCheck(step);
 #endif
   }
+  if(!RecalculateAndCheck()) {
+    std::cerr << "Warning: Updated energy differs from Recalculated Energy!\n";
+  }
   system->PrintAcceptance();
   system->PrintTime();
+}
+
+bool Simulation::RecalculateAndCheck(void) {
+  system->calcEwald->UpdateVectorsAndRecipTerms();
+  SystemPotential pot = system->calcEnergy.SystemTotal();
+
+  bool compare = true;
+  compare &= abs(system->potential.totalEnergy.intraBond - pot.totalEnergy.intraBond) < EPSILON;
+  compare &= abs(system->potential.totalEnergy.intraNonbond - pot.totalEnergy.intraNonbond) < EPSILON;
+  compare &= abs(system->potential.totalEnergy.inter - pot.totalEnergy.inter) < EPSILON;
+  compare &= abs(system->potential.totalEnergy.tc - pot.totalEnergy.tc) < EPSILON;
+  compare &= abs(system->potential.totalEnergy.real - pot.totalEnergy.real) < EPSILON;
+  compare &= abs(system->potential.totalEnergy.self - pot.totalEnergy.self) < EPSILON;
+  compare &= abs(system->potential.totalEnergy.correction - pot.totalEnergy.correction) < EPSILON;
+  compare &= abs(system->potential.totalEnergy.recip - pot.totalEnergy.recip) < EPSILON;
+
+  if(!compare) {
+    std::cout
+        << "=================================================================\n"
+        << "Energy       INTRA B |     INTRA NB |        INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
+        << std::endl
+        << "System: "
+        << std::setw(12) << system->potential.totalEnergy.intraBond << " | "
+        << std::setw(12) << system->potential.totalEnergy.intraNonbond << " | "
+        << std::setw(12) << system->potential.totalEnergy.inter << " | "
+        << std::setw(12) << system->potential.totalEnergy.tc << " | "
+        << std::setw(12) << system->potential.totalEnergy.real << " | "
+        << std::setw(12) << system->potential.totalEnergy.self << " | "
+        << std::setw(12) << system->potential.totalEnergy.correction << " | "
+        << std::setw(12) << system->potential.totalEnergy.recip << std::endl
+        << "Recalc: "
+        << std::setw(12) << pot.totalEnergy.intraBond << " | "
+        << std::setw(12) << pot.totalEnergy.intraNonbond << " | "
+        << std::setw(12) << pot.totalEnergy.inter << " | "
+        << std::setw(12) << pot.totalEnergy.tc << " | "
+        << std::setw(12) << pot.totalEnergy.real << " | "
+        << std::setw(12) << pot.totalEnergy.self << " | "
+        << std::setw(12) << pot.totalEnergy.correction << " | "
+        << std::setw(12) << pot.totalEnergy.recip << std::endl
+        << "================================================================"
+        << std::endl << std::endl;
+  }
+
+  return compare;
 }
 
 #ifndef NDEBUG

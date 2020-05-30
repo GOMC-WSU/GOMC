@@ -30,14 +30,14 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 namespace
 {
-std::ostream& PrintTime(std::ostream& stream);
-std::ostream& PrintHostname(std::ostream& stream);
-std::ostream& PrintVersion(std::ostream& stream);
-void PrintSimulationHeader();
-void PrintSimulationFooter();
-void PrintDebugMode();
-bool CheckAndPrintEnsemble();
-uint ReadNum(char *argv);
+  std::ostream& PrintTime(std::ostream& stream);
+  std::ostream& PrintHostname(std::ostream& stream);
+  std::ostream& PrintVersion(std::ostream& stream);
+  void PrintSimulationHeader();
+  void PrintSimulationFooter();
+  void PrintDebugMode();
+  bool CheckAndPrintEnsemble();
+  uint ReadNum(char *argv);
 }
 
 void PrintHardwareInfo();
@@ -96,6 +96,9 @@ int main(int argc, char *argv[])
     printf("%-40s %-d \n", "Info: Number of threads", numThreads);
 #else
     printf("%-40s %-d \n", "Info: Number of threads", 1);
+#endif
+#if defined _OPENMP && _OPENMP < 201511
+    printf("Warning: OpenMP version < 4.5. GOMC will not run optimally!\n");
 #endif
 
     //OPEN FILE

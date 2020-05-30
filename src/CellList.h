@@ -30,6 +30,9 @@ public:
   void GridAll(BoxDimensions& dims, const XYZArray& pos, const MoleculeLookup& lookup);
   void GridBox(BoxDimensions& dims, const XYZArray& pos, const MoleculeLookup& lookup,
                const uint b);
+  void GetCellListNeighbor(uint box, int coordinateSize, vector<int> &cellVector,
+      vector<int> &cellStartIndex, vector<int> &mapParticleToCell) const;
+  std::vector< std::vector<int> > GetNeighborList(uint box) const;
 
   // Index of cell containing position
   int PositionToCell(const XYZ& posRef, int box) const;
@@ -96,60 +99,60 @@ inline int CellList::PositionToCell(const XYZ& posRef, int box) const
 
 class CellList::Cell
 {
-public:
-  Cell(int start, const std::vector<int>& list) :
-    at(start), list(list.begin()) {}
+  public:
+    Cell(int start, const std::vector<int>& list) :
+      at(start), list(list.begin()) {}
 
-  int operator*() const
-  {
-    return at;
-  }
+    int operator*() const
+    {
+      return at;
+    }
 
-  void Next()
-  {
-    at = list[at];
-  }
+    void Next()
+    {
+      at = list[at];
+    }
 
-  bool Done()
-  {
-    return at == CellList::END_CELL;
-  }
+    bool Done()
+    {
+      return at == CellList::END_CELL;
+    }
 
-  void Jump(int head)
-  {
-    at = head;
-  }
+    void Jump(int head)
+    {
+      at = head;
+    }
 
-private:
-  int at;
-  std::vector<int>::const_iterator list;
+  private:
+    int at;
+    std::vector<int>::const_iterator list;
 };
 
 
 class CellList::Neighbors
 {
-public:
-  Neighbors(const std::vector<int>& list,
-            const std::vector<int>& head,
-            const std::vector<int>& neighbors);
+  public:
+    Neighbors(const std::vector<int>& list,
+        const std::vector<int>& head,
+        const std::vector<int>& neighbors);
 
-  int operator*() const
-  {
-    return *cell;
-  }
+    int operator*() const
+    {
+      return *cell;
+    }
 
-  bool Done() const
-  {
-    return (neighbor == nEnd);
-  }
+    bool Done() const
+    {
+      return (neighbor == nEnd);
+    }
 
-  void Next();
+    void Next();
 
-private:
+  private:
 
-  CellList::Cell cell;
-  std::vector<int>::const_iterator head;
-  std::vector<int>::const_iterator neighbor, nEnd;
+    CellList::Cell cell;
+    std::vector<int>::const_iterator head;
+    std::vector<int>::const_iterator neighbor, nEnd;
 };
 
 inline CellList::Cell CellList::EnumerateCell(int cell, int box) const
@@ -179,7 +182,7 @@ inline CellList::Neighbors CellList::EnumerateLocal(const XYZ& pos, int box) con
 #ifndef NDEBUG
   if(cell >= head[box].size()) {
     std::cout << "CellList.h:172: box " << box << ", pos: " << pos
-              << std::endl;
+      << std::endl;
     std::cout << "AxisDimensions: " << dimensions->GetAxis(box) << std::endl;
   }
 #endif
@@ -187,7 +190,7 @@ inline CellList::Neighbors CellList::EnumerateLocal(const XYZ& pos, int box) con
 }
 
 inline CellList::Neighbors::Neighbors(const std::vector<int>& partList,
-                                      const std::vector<int>& headList, const std::vector<int>& neighbors) :
+    const std::vector<int>& headList, const std::vector<int>& neighbors) :
   cell(headList[neighbors[0]], partList),
   head(headList.begin()),
   neighbor(neighbors.begin()),
@@ -222,30 +225,30 @@ inline void CellList::Neighbors::Next()
 
 class CellList::Pairs
 {
-public:
-  Pairs(const CellList& cellList, int box);
+  public:
+    Pairs(const CellList& cellList, int box);
 
-  int First() const
-  {
-    return *cellParticle;
-  }
-  int Second() const
-  {
-    return *localParticle;
-  }
-  void Next();
-  bool Done() const
-  {
-    return cell == nCells;
-  }
-private:
-  // skip to next nonempty cell
-  void NextCell();
+    int First() const
+    {
+      return *cellParticle;
+    }
+    int Second() const
+    {
+      return *localParticle;
+    }
+    void Next();
+    bool Done() const
+    {
+      return cell == nCells;
+    }
+  private:
+    // skip to next nonempty cell
+    void NextCell();
 
-  CellList::Cell cellParticle;
-  CellList::Neighbors localParticle;
-  const CellList& cellList;
-  int box, cell, nCells;
+    CellList::Cell cellParticle;
+    CellList::Neighbors localParticle;
+    const CellList& cellList;
+    int box, cell, nCells;
 };
 
 inline CellList::Pairs::Pairs(const CellList& cellList, int box) :

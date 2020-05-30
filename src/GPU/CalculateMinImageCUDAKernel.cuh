@@ -123,6 +123,44 @@ __device__ inline double DotProductGPU(double kx, double ky, double kz,
   return (kx * x + ky * y + kz * z);
 }
 
+__device__ inline double DeviceGetLambdaVDW(int molA, int kindA, int molB,
+                                            int kindB, int box,
+                                            bool *gpu_isFraction, 
+                                            int *gpu_molIndex,
+                                            int *gpu_kindIndex,
+                                            double *gpu_lambdaVDW)
+{
+  double lambda = 1.0;
+  if(gpu_isFraction[box]) {
+    if((gpu_molIndex[box] == molA) && (gpu_kindIndex[box] == kindA)) {
+      lambda *= gpu_lambdaVDW[box];
+    }
+    if((gpu_molIndex[box] == molB) && (gpu_kindIndex[box] == kindB)) {
+      lambda *= gpu_lambdaVDW[box];
+    }
+  }
+  return lambda;
+}
+
+__device__ inline double DeviceGetLambdaCoulomb(int molA, int kindA, int molB,
+                                                int kindB, int box,
+                                                bool *gpu_isFraction, 
+                                                int *gpu_molIndex,
+                                                int *gpu_kindIndex,
+                                                double *gpu_lambdaCoulomb)
+{
+  double lambda = 1.0;
+  if(gpu_isFraction[box]) {
+    if((gpu_molIndex[box] == molA) && (gpu_kindIndex[box] == kindA)) {
+      lambda *= gpu_lambdaCoulomb[box];
+    }
+    if((gpu_molIndex[box] == molB) && (gpu_kindIndex[box] == kindB)) {
+      lambda *= gpu_lambdaCoulomb[box];
+    }
+  }
+  return lambda;
+}
+
 // Add atomic operations for GPUs that do not support it
 // atomicAdd and atomicSub only support double for Compute Capability >= 6.0
 #if !defined(__CUDA_ARCH__) || __CUDA_ARCH__ >= 600

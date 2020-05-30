@@ -72,6 +72,13 @@ public:
     gpu_mForcex = NULL;
     gpu_mForcey = NULL;
     gpu_mForcez = NULL;
+
+    // setting lambda values to null
+    gpu_molIndex = NULL;
+    gpu_kindIndex = NULL;
+    gpu_lambdaVDW = NULL;
+    gpu_lambdaCoulomb = NULL;
+    gpu_isFraction = NULL;
   }
   double *gpu_sigmaSq;
   double *gpu_epsilon_Cn;
@@ -105,5 +112,13 @@ public:
   double *gpu_aForcex, *gpu_aForcey, *gpu_aForcez;
   double *gpu_mForcex, *gpu_mForcey, *gpu_mForcez;
   double *gpu_rMin, *gpu_expConst, *gpu_rMaxSq;
+
+  // lambda structure
+  int *gpu_molIndex, *gpu_kindIndex;
+  double *gpu_lambdaVDW, *gpu_lambdaCoulomb;
+  bool *gpu_isFraction;
+  
+  // new pair interaction calculation done on GPU
+  int *gpu_cellVector, *gpu_mapParticleToCell;
 };
 #endif

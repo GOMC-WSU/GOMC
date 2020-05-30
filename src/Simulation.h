@@ -22,6 +22,7 @@ public:
   ~Simulation();
 
   void RunSimulation(void);
+  bool RecalculateAndCheck(void);
 
 #ifndef NDEBUG
   void RunningCheck(const uint step);

@@ -12,6 +12,29 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <stdio.h>
 
+void InitGPULambda(VariablesCUDA *vars, int *molIndex, int *kindIndex,
+                   double *lambdaVDW, double *lambdaCoulomb, bool *isFraction)
+{
+  // allocate gpu memory for lambda variables
+  cudaMalloc(&vars->gpu_molIndex, (int)BOX_TOTAL * sizeof(int));
+  cudaMalloc(&vars->gpu_kindIndex, (int)BOX_TOTAL * sizeof(int));
+  cudaMalloc(&vars->gpu_lambdaVDW, (int)BOX_TOTAL * sizeof(double));
+  cudaMalloc(&vars->gpu_lambdaCoulomb, (int)BOX_TOTAL * sizeof(double));
+  cudaMalloc(&vars->gpu_isFraction, (int)BOX_TOTAL * sizeof(bool));
+
+  // copy required data
+  cudaMemcpy(vars->gpu_molIndex, molIndex, BOX_TOTAL * sizeof(int),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_kindIndex, kindIndex, BOX_TOTAL * sizeof(int),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_lambdaVDW, lambdaVDW, BOX_TOTAL * sizeof(double),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_lambdaCoulomb, lambdaCoulomb, BOX_TOTAL * sizeof(double),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_isFraction, isFraction, BOX_TOTAL * sizeof(bool),
+             cudaMemcpyHostToDevice);
+}
+
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
                        double const *epsilon_Cn,
                        double const *n, int VDW_Kind, int isMartini,
@@ -112,6 +135,8 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   cudaMalloc(&vars->gpu_mForcex, maxMolNumber * sizeof(double));
   cudaMalloc(&vars->gpu_mForcey, maxMolNumber * sizeof(double));
   cudaMalloc(&vars->gpu_mForcez, maxMolNumber * sizeof(double));
+  cudaMalloc(&vars->gpu_cellVector, atomNumber * sizeof(int));
+  cudaMalloc(&vars->gpu_mapParticleToCell, atomNumber * sizeof(int));
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
@@ -316,6 +341,8 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   cudaFree(vars->gpu_mForcex);
   cudaFree(vars->gpu_mForcey);
   cudaFree(vars->gpu_mForcez);
+  cudaFree(vars->gpu_cellVector);
+  cudaFree(vars->gpu_mapParticleToCell);
   cudaFree(vars->gpu_rT11);
   cudaFree(vars->gpu_rT12);
   cudaFree(vars->gpu_rT13);
