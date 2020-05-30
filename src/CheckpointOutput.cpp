@@ -159,7 +159,7 @@ void CheckpointOutput::printMoveSettingsData()
   printVector1DDouble(moveSetRef.mp_r_max);
 }
 
-void CheckpointOutput::printVector3DDouble(vector< vector< vector <double> > > data)
+void CheckpointOutput::printVector3DDouble(std::vector< std::vector< std::vector<double> > > data)
 {
   // print size of tempTries
   ulong size_x = data.size();
@@ -179,7 +179,7 @@ void CheckpointOutput::printVector3DDouble(vector< vector< vector <double> > > d
   }
 }
 
-void CheckpointOutput::printVector3DUint(vector< vector< vector <uint> > > data)
+void CheckpointOutput::printVector3DUint(std::vector< std::vector< std::vector<uint> > > data)
 {
   // print size of tempTries
   ulong size_x = data.size();
@@ -199,7 +199,7 @@ void CheckpointOutput::printVector3DUint(vector< vector< vector <uint> > > data)
   }
 }
 
-void CheckpointOutput::printVector2DUint(vector< vector< uint > > data)
+void CheckpointOutput::printVector2DUint(std::vector< std::vector< uint > > data)
 {
   // print size of array
   ulong size_x = data.size();
@@ -215,7 +215,7 @@ void CheckpointOutput::printVector2DUint(vector< vector< uint > > data)
   }
 }
 
-void CheckpointOutput::printVector1DDouble(vector< double > data)
+void CheckpointOutput::printVector1DDouble(std::vector< double > data)
 {
   // print size of array
   ulong size_x = data.size();
