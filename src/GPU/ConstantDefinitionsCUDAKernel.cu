@@ -9,6 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <cuda_runtime.h>
 #include "GeomLib.h"
 #include "ConstantDefinitionsCUDAKernel.cuh"
+#include "CUDAMemoryManager.cuh"
 #include <iostream>
 #include <stdio.h>
 

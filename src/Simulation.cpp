@@ -11,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PSFOutput.h"
 #include <iostream>
 #include <iomanip>
+#include "CUDAMemoryManager.cuh"
 
 #define EPSILON 0.001
 
@@ -20,6 +21,9 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
   //NOTE:
   //IMPORTANT! Keep this order...
   //as system depends on staticValues, and cpu sometimes depends on both.
+#ifdef GOMC_CUDA
+  CUDAMemoryManager::Init();
+#endif
   set.Init(configFileName, multisim);
   totalSteps = set.config.sys.step.total;
   staticValues = new StaticVals(set);
