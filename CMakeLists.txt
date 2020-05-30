@@ -80,7 +80,7 @@ elseif(MSVC)
 endif()
 
 # add c++11 flag
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 #EnsemblePreprocessor defines NVT = 1, GEMC = 2, GCMC = 3, NPT = 4
 #NPT (Isothermal-Isobaric) Ensemble
