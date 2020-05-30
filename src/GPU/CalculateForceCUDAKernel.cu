@@ -60,7 +60,7 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   double *gpu_final_value;
 
   // Run the kernel...
-  threadsPerBlock = 256;
+  threadsPerBlock = 128;
   blocksPerGrid = (int)(numberOfCells * NUMBER_OF_NEIGHBOR_CELL);
   energyVectorLen = numberOfCells * NUMBER_OF_NEIGHBOR_CELL * threadsPerBlock;
 
