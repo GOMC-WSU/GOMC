@@ -886,11 +886,11 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
         forceLJx = virX * pVF;
         forceLJy = virY * pVF;
         forceLJz = virZ * pVF;
-        if(mA == 5 || mB == 5) {
-          printf("%d, %d, %lf, %lf, %lf, %lf\n", currentParticle, neighborParticle,
-            gpu_x[currentParticle], gpu_x[neighborParticle],
-            forceLJx, forceRealx);
-        }
+        // if(mA == 5 || mB == 5) {
+        //   printf("%d, %d, %lf, %lf, %lf, %lf\n", currentParticle, neighborParticle,
+        //     gpu_x[currentParticle], gpu_x[neighborParticle],
+        //     forceLJx, forceRealx);
+        // }
 
         atomicAdd(&gpu_aForcex[currentParticle], forceRealx + forceLJx);
         atomicAdd(&gpu_aForcey[currentParticle], forceRealy + forceLJy);

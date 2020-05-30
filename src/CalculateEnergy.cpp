@@ -369,11 +369,11 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
             }
             forceLJ = virComponents * forcefield.particles->CalcVir(distSq, particleKind[currParticle],
                   particleKind[nParticle], lambdaVDW);
-            if(particleMol[currParticle] == 5 || particleMol[nParticle] == 5) {
-              printf("%d, %d, %lf, %lf, %lf, %lf\n",
-                currParticle, nParticle, coords.x[currParticle], coords.x[nParticle],
-                forceLJ.x, forceReal.x);
-            }
+            // if(particleMol[currParticle] == 5 || particleMol[nParticle] == 5) {
+            //   printf("%d, %d, %lf, %lf, %lf, %lf\n",
+            //     currParticle, nParticle, coords.x[currParticle], coords.x[nParticle],
+            //     forceLJ.x, forceReal.x);
+            // }
             aForcex[currParticle] += forceLJ.x + forceReal.x;
             aForcey[currParticle] += forceLJ.y + forceReal.y;
             aForcez[currParticle] += forceLJ.z + forceReal.z;
@@ -392,6 +392,10 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
     }
   }
 #endif
+  for(int i=0; i<20; i++) {
+    printf("%d: %lf, %lf, %lf\n", mForcex[i], mForcey[i], mForcez[i]);
+  }
+
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction
