@@ -51,20 +51,20 @@ private:
   // and will be passed to the rest of the code via Get functions
   ulong stepNumber;
   uint32_t totalBoxes;
-  vector<vector<double> > axis;
-  vector<vector<double> > cosAngle;
+  std::vector<std::vector<double> > axis;
+  std::vector<std::vector<double> > cosAngle;
   uint32_t* saveArray;
   uint32_t seedLocation, seedLeft, seedValue;
   uint32_t coordLength;
   XYZArray coords;
-  vector<uint32_t> molLookupVec, boxAndKindStartVec, fixedAtomVec;
+  std::vector<uint32_t> molLookupVec, boxAndKindStartVec, fixedAtomVec;
   uint32_t numKinds;
-  vector<vector<vector<double> > > scaleVec, acceptPercentVec;
-  vector<vector<vector<uint32_t> > > acceptedVec, triesVec, tempAcceptedVec,
+  std::vector<std::vector<std::vector<double> > > scaleVec, acceptPercentVec;
+  std::vector<std::vector<std::vector<uint32_t> > > acceptedVec, triesVec, tempAcceptedVec,
          tempTriesVec;
-  vector< vector< uint > > mp_acceptedVec, mp_triesVec;
-  vector< double > mp_r_maxVec;
-  vector< double > mp_t_maxVec;
+  std::vector< std::vector< uint > > mp_acceptedVec, mp_triesVec;
+  std::vector< double > mp_r_maxVec;
+  std::vector< double > mp_t_maxVec;
 
   // private functions used by ReadAll and Get functions
   void openInputFile();
@@ -76,10 +76,10 @@ private:
   void readBoxDimensionsData();
   void closeInputFile();
 
-  void readVector3DDouble(vector< vector< vector <double> > > & data);
-  void readVector3DUint(vector< vector< vector <uint> > > & data);
-  void readVector2DUint(vector< vector< uint > > & data);
-  void readVector1DDouble(vector< double > & data);
+  void readVector3DDouble(std::vector< std::vector< std::vector <double> > > & data);
+  void readVector3DUint(std::vector< std::vector< std::vector <uint> > > & data);
+  void readVector2DUint(std::vector< std::vector< uint > > & data);
+  void readVector1DDouble(std::vector< double > & data);
   double readDoubleIn8Chars();
   uint32_t readUintIn8Chars();
 

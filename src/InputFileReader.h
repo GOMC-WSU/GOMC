@@ -13,7 +13,7 @@ class InputFileReader
 {
 private:
   std::fstream fs;
-  std::vector<string> & split(const std::string &s, char delim, std::vector<std::string> &elems);
+  std::vector<std::string> & split(const std::string &s, char delim, std::vector<std::string> &elems);
 
 public:
   bool readNextLine(std::vector<std::string> & str);
