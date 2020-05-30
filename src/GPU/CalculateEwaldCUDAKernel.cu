@@ -11,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CalculateEwaldCUDAKernel.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #include "CalculateMinImageCUDAKernel.cuh"
+#include "CUDAMemoryManager.cuh"
 #include "cub/cub.cuh"
 #include <vector>
 
@@ -36,10 +37,10 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
   int blocksPerGrid, threadsPerBlock;
   int atomNumber = coords.Count();
 
-  cudaMalloc((void**) &gpu_particleCharge,
+  CUDAMemoryManager::mallocMemory((void**) &gpu_particleCharge,
              particleCharge.size() * sizeof(double));
-  cudaMalloc((void**) &gpu_energyRecip, imageSize * sizeof(double));
-  cudaMalloc((void**) &gpu_final_energyRecip, sizeof(double));
+  CUDAMemoryManager::mallocMemory((void**) &gpu_energyRecip, imageSize * sizeof(double));
+  CUDAMemoryManager::mallocMemory((void**) &gpu_final_energyRecip, sizeof(double));
 
   cudaMemcpy(gpu_particleCharge, &particleCharge[0],
              particleCharge.size() * sizeof(double),
@@ -100,16 +101,16 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
   size_t temp_storage_bytes = 0;
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_energyRecip,
                     gpu_final_energyRecip, imageSize);
-  cudaMalloc(&d_temp_storage, temp_storage_bytes);
+  CUDAMemoryManager::mallocMemory(&d_temp_storage, temp_storage_bytes);
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_energyRecip,
                     gpu_final_energyRecip, imageSize);
   cudaMemcpy(&energyRecip, gpu_final_energyRecip,
              sizeof(double), cudaMemcpyDeviceToHost);
 
-  cudaFree(gpu_particleCharge);
-  cudaFree(gpu_energyRecip);
-  cudaFree(gpu_final_energyRecip);
-  cudaFree(d_temp_storage);
+  CUDAMemoryManager::freeMemory(gpu_particleCharge);
+  CUDAMemoryManager::freeMemory(gpu_energyRecip);
+  CUDAMemoryManager::freeMemory(gpu_final_energyRecip);
+  CUDAMemoryManager::freeMemory(d_temp_storage);
 }
 
 void CallMolReciprocalGPU(VariablesCUDA *vars,
@@ -129,10 +130,10 @@ void CallMolReciprocalGPU(VariablesCUDA *vars,
   int blocksPerGrid, threadsPerBlock;
   double *gpu_energyRecipNew, *gpu_final_energyRecipNew;
 
-  cudaMalloc((void**) &gpu_particleCharge,
+  CUDAMemoryManager::mallocMemory((void**) &gpu_particleCharge,
              particleCharge.size() * sizeof(double));
-  cudaMalloc((void**) &gpu_energyRecipNew, imageSize * sizeof(double));
-  cudaMalloc((void**) &gpu_final_energyRecipNew, sizeof(double));
+  CUDAMemoryManager::mallocMemory((void**) &gpu_energyRecipNew, imageSize * sizeof(double));
+  CUDAMemoryManager::mallocMemory((void**) &gpu_final_energyRecipNew, sizeof(double));
 
   cudaMemcpy(gpu_particleCharge, &particleCharge[0],
              particleCharge.size() * sizeof(double),
@@ -181,17 +182,17 @@ void CallMolReciprocalGPU(VariablesCUDA *vars,
   size_t temp_storage_bytes = 0;
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_energyRecipNew,
                     gpu_final_energyRecipNew, imageSize);
-  cudaMalloc(&d_temp_storage, temp_storage_bytes);
+  CUDAMemoryManager::mallocMemory(&d_temp_storage, temp_storage_bytes);
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_energyRecipNew,
                     gpu_final_energyRecipNew, imageSize);
   cudaMemcpy(&energyRecipNew, gpu_final_energyRecipNew,
              sizeof(double), cudaMemcpyDeviceToHost);
 
 
-  cudaFree(gpu_particleCharge);
-  cudaFree(gpu_energyRecipNew);
-  cudaFree(gpu_final_energyRecipNew);
-  cudaFree(d_temp_storage);
+  CUDAMemoryManager::freeMemory(gpu_particleCharge);
+  CUDAMemoryManager::freeMemory(gpu_energyRecipNew);
+  CUDAMemoryManager::freeMemory(gpu_final_energyRecipNew);
+  CUDAMemoryManager::freeMemory(d_temp_storage);
 }
 
 void CallSwapReciprocalGPU(VariablesCUDA *vars,
@@ -211,10 +212,10 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars,
   int blocksPerGrid, threadsPerBlock;
   double *gpu_energyRecipNew, *gpu_final_energyRecipNew;
 
-  cudaMalloc((void**) &gpu_particleCharge,
+  CUDAMemoryManager::mallocMemory((void**) &gpu_particleCharge,
              particleCharge.size() * sizeof(double));
-  cudaMalloc((void**) &gpu_energyRecipNew, imageSize * sizeof(double));
-  cudaMalloc((void**) &gpu_final_energyRecipNew, sizeof(double));
+  CUDAMemoryManager::mallocMemory((void**) &gpu_energyRecipNew, imageSize * sizeof(double));
+  CUDAMemoryManager::mallocMemory((void**) &gpu_final_energyRecipNew, sizeof(double));
 
   cudaMemcpy(gpu_particleCharge, &particleCharge[0],
              particleCharge.size() * sizeof(double),
@@ -257,16 +258,16 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars,
   size_t temp_storage_bytes = 0;
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_energyRecipNew,
                     gpu_final_energyRecipNew, imageSize);
-  cudaMalloc(&d_temp_storage, temp_storage_bytes);
+  CUDAMemoryManager::mallocMemory(&d_temp_storage, temp_storage_bytes);
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_energyRecipNew,
                     gpu_final_energyRecipNew, imageSize);
   cudaMemcpy(&energyRecipNew, gpu_final_energyRecipNew,
              sizeof(double), cudaMemcpyDeviceToHost);
 
-  cudaFree(gpu_particleCharge);
-  cudaFree(gpu_energyRecipNew);
-  cudaFree(gpu_final_energyRecipNew);
-  cudaFree(d_temp_storage);
+  CUDAMemoryManager::freeMemory(gpu_particleCharge);
+  CUDAMemoryManager::freeMemory(gpu_energyRecipNew);
+  CUDAMemoryManager::freeMemory(gpu_final_energyRecipNew);
+  CUDAMemoryManager::freeMemory(d_temp_storage);
 
 }
 
