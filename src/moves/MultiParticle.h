@@ -408,7 +408,7 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max)
     std::cout << "Trial Displacement exceed half of the box length in Multiparticle move.\n";
     std::cout << "Trial transform: " << num;
     exit(EXIT_FAILURE);
-  } else if (!isfinite(num.Length())) {
+  } else if (!std::isfinite(num.Length())) {
     std::cout << "Trial Displacement is not a finite number in Multiparticle move.\n";
     std::cout << "Trial transform: " << num;
     exit(EXIT_FAILURE);
