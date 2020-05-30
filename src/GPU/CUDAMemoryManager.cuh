@@ -7,9 +7,9 @@
 
 class CUDAMemoryManager {
 public:
-  void Init() { totalAllocatedBytes = 0; }
-  cudaError_t mallocMemory(void **address, unsigned int size);
-  cudaError_t freeMemory(void *address);
+  static void Init() { totalAllocatedBytes = 0; }
+  static cudaError_t mallocMemory(void **address, unsigned int size);
+  static cudaError_t freeMemory(void *address);
 
 private:
   static long long totalAllocatedBytes;
