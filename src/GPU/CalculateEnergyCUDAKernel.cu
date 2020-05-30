@@ -12,20 +12,21 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CalculateMinImageCUDAKernel.cuh"
 #include "CalculateForceCUDAKernel.cuh"
 #include "CalculateEnergyCUDAKernel.cuh"
+#include <vector>
 #define NUMBER_OF_NEIGHBOR_CELL 27
 
 using namespace cub;
 
 void CallBoxInterGPU(VariablesCUDA *vars,
-                     vector<int> cellVector,
-                     vector<int> cellStartIndex,
+                     std::vector<int> cellVector,
+                     std::vector<int> cellStartIndex,
                      std::vector<std::vector<int> > neighborList,
                      XYZArray const &coords,
                      BoxDimensions const &boxAxes,
                      bool electrostatic,
-                     vector<double> particleCharge,
-                     vector<int> particleKind,
-                     vector<int> particleMol,
+                     std::vector<double> particleCharge,
+                     std::vector<int> particleKind,
+                     std::vector<int> particleMol,
                      double &REn,
                      double &LJEn,
                      bool sc_coul,
