@@ -15,7 +15,7 @@ public:
 
 private:
   static long long totalAllocatedBytes;
-  static unordered_map<void *> allocatedPointers;
+  static unordered_map<void *, unsigned int> allocatedPointers;
 };
 
 cudaError_t CUDAMemoryManager::mallocMemory(void **address, unsigned int size) {
