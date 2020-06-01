@@ -8,7 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BoxDimensions.h" //For axis sizes
 #include "BoxDimensionsNonOrth.h"
 #include "StaticVals.h" //For init info.
-
+#include <cmath>
 #include "NumLib.h" //For bounding functions.
 #include "GeomLib.h"    //For M_PI
 
@@ -144,12 +144,12 @@ void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
     num::Bound<double>(mp_t_max[box], 0.001,
                        (boxDimRef.axis.Min(box) / 2) - 0.001);
 
-    if(!isfinite(mp_t_max[box])) {
-      cout << "mp_t_max is not a finite number in MultiParticle move." << endl;
-      cout << "mp_t_max[box]: " << mp_t_max[box] << endl;
-      cout << "totalTries: " << totalTries << endl;
-      cout << "currentAccept: " << currentAccept << endl;
-      cout << "fractOfTargetAccept: " << fractOfTargetAccept << endl;
+    if(!std::isfinite(mp_t_max[box])) {
+      std::cout << "mp_t_max is not a finite number in MultiParticle move." << std::endl;
+      std::cout << "mp_t_max[box]: " << mp_t_max[box] << std::endl;
+      std::cout << "totalTries: " << totalTries << std::endl;
+      std::cout << "currentAccept: " << currentAccept << std::endl;
+      std::cout << "fractOfTargetAccept: " << fractOfTargetAccept << std::endl;
       exit(EXIT_FAILURE);
     }
   }
@@ -162,12 +162,12 @@ void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
     mp_r_max[box] *= fractOfTargetAccept;
     num::Bound<double>(mp_r_max[box], 0.001, M_PI - 0.001);
 
-    if(!isfinite(mp_r_max[box])) {
-      cout << "mp_r_max is not a finite number in MultiParticle move." << endl;
-      cout << "mp_r_max[box]: " << mp_r_max[box] << endl;
-      cout << "totalTries: " << totalTries << endl;
-      cout << "currentAccept: " << currentAccept << endl;
-      cout << "fractOfTargetAccept: " << fractOfTargetAccept << endl;
+    if(!std::isfinite(mp_r_max[box])) {
+      std::cout << "mp_r_max is not a finite number in MultiParticle move." << std::endl;
+      std::cout << "mp_r_max[box]: " << mp_r_max[box] << std::endl;
+      std::cout << "totalTries: " << totalTries << std::endl;
+      std::cout << "currentAccept: " << currentAccept << std::endl;
+      std::cout << "fractOfTargetAccept: " << fractOfTargetAccept << std::endl;
       exit(EXIT_FAILURE);
     }
   }

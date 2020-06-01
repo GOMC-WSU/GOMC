@@ -13,18 +13,16 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BoxDimensions.h"
 #include "VariablesCUDA.cuh"
 
-using namespace std;
-
 void CallBoxInterGPU(VariablesCUDA *vars,
-    vector<int> cellVector,
-    vector<int> cellStartIndex,
-    vector<vector<int> > neighborList,
+    std::vector<int> cellVector,
+    std::vector<int> cellStartIndex,
+    std::vector<std::vector<int> > neighborList,
     XYZArray const &coords,
     BoxDimensions const &boxAxes,
     bool electrostatic,
-    vector<double> particleCharge,
-    vector<int> particleKind,
-    vector<int> particleMol,
+    std::vector<double> particleCharge,
+    std::vector<int> particleKind,
+    std::vector<int> particleMol,
     double &REn,
     double &LJEn,
     bool sc_coul,

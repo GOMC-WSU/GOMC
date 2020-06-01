@@ -12,20 +12,22 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CalculateMinImageCUDAKernel.cuh"
 #include "CalculateForceCUDAKernel.cuh"
 #include "CalculateEnergyCUDAKernel.cuh"
+#include "CUDAMemoryManager.cuh"
+#include <vector>
 #define NUMBER_OF_NEIGHBOR_CELL 27
 
 using namespace cub;
 
 void CallBoxInterGPU(VariablesCUDA *vars,
-                     vector<int> cellVector,
-                     vector<int> cellStartIndex,
+                     std::vector<int> cellVector,
+                     std::vector<int> cellStartIndex,
                      std::vector<std::vector<int> > neighborList,
                      XYZArray const &coords,
                      BoxDimensions const &boxAxes,
                      bool electrostatic,
-                     vector<double> particleCharge,
-                     vector<int> particleKind,
-                     vector<int> particleMol,
+                     std::vector<double> particleCharge,
+                     std::vector<int> particleKind,
+                     std::vector<int> particleMol,
                      double &REn,
                      double &LJEn,
                      bool sc_coul,
@@ -58,15 +60,15 @@ void CallBoxInterGPU(VariablesCUDA *vars,
     }
   }
 
-  cudaMalloc((void**) &gpu_neighborList, neighborListCount * sizeof(int));
-  cudaMalloc((void**) &gpu_cellStartIndex, cellStartIndex.size() * sizeof(int));
-  cudaMalloc((void**) &gpu_particleCharge, particleCharge.size() * sizeof(double));
-  cudaMalloc((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
-  cudaMalloc((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
-  cudaMalloc((void**) &gpu_REn, energyVectorLen * sizeof(double));
-  cudaMalloc((void**) &gpu_LJEn, energyVectorLen * sizeof(double));
-  cudaMalloc((void**) &gpu_final_REn, sizeof(double));
-  cudaMalloc((void**) &gpu_final_LJEn, sizeof(double));
+  CUMALLOC((void**) &gpu_neighborList, neighborListCount * sizeof(int));
+  CUMALLOC((void**) &gpu_cellStartIndex, cellStartIndex.size() * sizeof(int));
+  CUMALLOC((void**) &gpu_particleCharge, particleCharge.size() * sizeof(double));
+  CUMALLOC((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
+  CUMALLOC((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
+  CUMALLOC((void**) &gpu_REn, energyVectorLen * sizeof(double));
+  CUMALLOC((void**) &gpu_LJEn, energyVectorLen * sizeof(double));
+  CUMALLOC((void**) &gpu_final_REn, sizeof(double));
+  CUMALLOC((void**) &gpu_final_LJEn, sizeof(double));
 
   // Copy necessary data to GPU
   cudaMemcpy(gpu_neighborList, &neighborlist1D[0], neighborListCount * sizeof(int), cudaMemcpyHostToDevice);
@@ -137,35 +139,35 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   size_t temp_storage_bytes = 0;
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
       gpu_final_REn, energyVectorLen);
-  CubDebugExit(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+  CubDebugExit(CUMALLOC(&d_temp_storage, temp_storage_bytes));
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
       gpu_final_REn, energyVectorLen);
-  cudaFree(d_temp_storage);
+  CUFREE(d_temp_storage);
 
   // LJ ReduceSum
   d_temp_storage = NULL;
   temp_storage_bytes = 0;
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
       gpu_final_LJEn, energyVectorLen);
-  CubDebugExit(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+  CubDebugExit(CUMALLOC(&d_temp_storage, temp_storage_bytes));
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
       gpu_final_LJEn, energyVectorLen);
-  cudaFree(d_temp_storage);
+  CUFREE(d_temp_storage);
   // Copy back the result to CPU ! :)
   CubDebugExit(cudaMemcpy(&REn, gpu_final_REn, sizeof(double),
         cudaMemcpyDeviceToHost));
   CubDebugExit(cudaMemcpy(&LJEn, gpu_final_LJEn, sizeof(double),
         cudaMemcpyDeviceToHost));
 
-  cudaFree(gpu_particleCharge);
-  cudaFree(gpu_particleKind);
-  cudaFree(gpu_particleMol);
-  cudaFree(gpu_REn);
-  cudaFree(gpu_LJEn);
-  cudaFree(gpu_final_REn);
-  cudaFree(gpu_final_LJEn);
-  cudaFree(gpu_neighborList);
-  cudaFree(gpu_cellStartIndex);
+  CUFREE(gpu_particleCharge);
+  CUFREE(gpu_particleKind);
+  CUFREE(gpu_particleMol);
+  CUFREE(gpu_REn);
+  CUFREE(gpu_LJEn);
+  CUFREE(gpu_final_REn);
+  CUFREE(gpu_final_LJEn);
+  CUFREE(gpu_neighborList);
+  CUFREE(gpu_cellStartIndex);
 }
 
 __global__ void BoxInterGPU(int *gpu_cellStartIndex,

@@ -273,7 +273,7 @@ void CheckpointSetup::SetMoveSettings(MoveSettings & moveSettings)
 }
 
 void
-CheckpointSetup::readVector3DDouble(vector<vector<vector<double> > > &data)
+CheckpointSetup::readVector3DDouble(std::vector<std::vector<std::vector<double> > > &data)
 {
   // read size of data
   ulong size_x = readUintIn8Chars();
@@ -293,7 +293,7 @@ CheckpointSetup::readVector3DDouble(vector<vector<vector<double> > > &data)
   }
 }
 
-void CheckpointSetup::readVector3DUint(vector<vector<vector<uint> > > &data)
+void CheckpointSetup::readVector3DUint(std::vector<std::vector<std::vector<uint> > > &data)
 {
   // read size of data
   ulong size_x = readUintIn8Chars();
@@ -313,7 +313,7 @@ void CheckpointSetup::readVector3DUint(vector<vector<vector<uint> > > &data)
   }
 }
 
-void CheckpointSetup::readVector2DUint(vector<vector<uint> > &data)
+void CheckpointSetup::readVector2DUint(std::vector<std::vector<uint> > &data)
 {
   // read size of data
   ulong size_x = readUintIn8Chars();
@@ -329,7 +329,7 @@ void CheckpointSetup::readVector2DUint(vector<vector<uint> > &data)
   }
 }
 
-void CheckpointSetup::readVector1DDouble(vector<double> &data)
+void CheckpointSetup::readVector1DDouble(std::vector<double> &data)
 {
 // read size of data
   ulong size_x = readUintIn8Chars();

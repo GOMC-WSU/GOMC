@@ -392,8 +392,8 @@ public:
   void Init(const char *fileName, MultiSim const*const& multisim);
 private:
   void fillDefaults(void);
-  bool checkBool(string str);
-  bool CheckString(string str1, string str2);
+  bool checkBool(std::string str);
+  bool CheckString(std::string str1, std::string str2);
   void verifyInputs(void);
   InputFileReader reader;
 

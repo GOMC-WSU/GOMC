@@ -11,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PSFOutput.h"
 #include <iostream>
 #include <iomanip>
+#include "CUDAMemoryManager.cuh"
 
 #define EPSILON 0.001
 
@@ -50,6 +51,9 @@ Simulation::~Simulation()
   delete cpu;
   delete system;
   delete staticValues;
+#ifdef GOMC_CUDA
+  CUDAMemoryManager::isFreed();
+#endif
 }
 
 void Simulation::RunSimulation(void)

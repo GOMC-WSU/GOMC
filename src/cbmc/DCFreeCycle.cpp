@@ -31,9 +31,8 @@ DCFreeCycle::DCFreeCycle(DCData* data, const mol_setup::MolKind& kind,
   : data(data), seed(data, focus), hed(data, kind, cycAtoms, focus, prev)
 {
   using namespace mol_setup;
-  using namespace std;
   std::fill_n(bondedInRing, MAX_BONDS, false);
-  vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
+  std::vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
   for(uint i = 0; i < onFocus.size(); ++i) {
     if(onFocus[i].a1 == prev) {
       anchorKind = onFocus[i].kind;

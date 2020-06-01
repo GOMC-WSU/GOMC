@@ -6,6 +6,7 @@ include_directories(lib)
 include_directories(src)
 include_directories(src/cbmc)
 include_directories(src/moves)
+include_directories(src/GPU)
 
 #fix new policy of cmake about FindOpenMP.cmake (will have to check later if they fixed this issue)
 if(POLICY CMP0012)
@@ -79,8 +80,10 @@ elseif(MSVC)
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "${CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT} /MT /Zi /O2 /Ob1 /D NDEBUG")
 endif()
 
-#EnsemblePreprocessor defines NVT = 1, GEMC = 2, GCMC = 3, NPT = 4
+# add c++11 flag
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+#EnsemblePreprocessor defines NVT = 1, GEMC = 2, GCMC = 3, NPT = 4
 #NPT (Isothermal-Isobaric) Ensemble
 set(NPT_flags "-DENSEMBLE=4")
 set(NPT_name "GOMC_CPU_NPT")

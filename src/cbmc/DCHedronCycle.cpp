@@ -63,8 +63,7 @@ DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
   : data(data), focus(focus), prev(prev)
 {
   using namespace mol_setup;
-  using namespace std;
-  vector<Bond> onFocus = AtomBonds(kind, focus);
+  std::vector<Bond> onFocus = AtomBonds(kind, focus);
   onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
                 onFocus.end());
   nBonds = onFocus.size();
@@ -73,7 +72,7 @@ DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
     bonded[i] = onFocus[i].a1;
   }
 
-  vector<Angle> angles = AtomMidAngles(kind, focus);
+  std::vector<Angle> angles = AtomMidAngles(kind, focus);
   double sumAngle = 0.0;
   for (uint a = 0; a < angles.size(); a++) {
     sumAngle += data->ff.angles->Angle(angles[a].kind);
@@ -85,7 +84,7 @@ DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
   bool constrainAngInRing = false;
 
   for (uint i = 0; i < nBonds; ++i) {
-    typedef vector<Angle>::const_iterator Aiter;
+    typedef std::vector<Angle>::const_iterator Aiter;
     Aiter free = find_if(angles.begin(), angles.end(),
                          FindAngle(prev, bonded[i]));
     assert(free != angles.end());
@@ -378,7 +377,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
         ang = (flip ? 2.0 * M_PI - ang : ang);
         ang += phi[c];
         std::fill_n(angles, nTrials, ang);
-        if(isnan(ang)) {
+        if(std::isnan(ang)) {
           std::cout << "Error: Cannot Construct Angle " <<
                     newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
                     newMol.GetKind().atomTypeNames[focus] << " " <<
@@ -465,7 +464,7 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
         ang = (flip ? 2.0 * M_PI - ang : ang);
         ang += phi[c];
         std::fill_n(angles, nTrials, ang);
-        if(isnan(ang)) {
+        if(std::isnan(ang)) {
           std::cout << "Error: Cannot Construct Angle" <<
                     oldMol.GetKind().atomTypeNames[bonded[b]] << " " <<
                     oldMol.GetKind().atomTypeNames[focus] << " " <<

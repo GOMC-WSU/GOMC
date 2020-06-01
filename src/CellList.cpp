@@ -230,8 +230,8 @@ CellList::Pairs CellList::EnumeratePairs(int box) const
 }
 
 void CellList::GetCellListNeighbor(uint box, int coordinateSize,
-    vector<int> &cellVector, vector<int> &cellStartIndex,
-    vector<int> &mapParticleToCell) const
+    std::vector<int> &cellVector, std::vector<int> &cellStartIndex,
+    std::vector<int> &mapParticleToCell) const
 {
   cellVector.resize(coordinateSize);
   cellStartIndex.resize(head[box].size());
@@ -247,7 +247,7 @@ void CellList::GetCellListNeighbor(uint box, int coordinateSize,
       particleIndex = list[particleIndex];
     }
     // we are going to sort particles in each cell for better memor access
-    sort(cellVector.begin()+cellStartIndex[cell], cellVector.begin()+vector_index);
+    std::sort(cellVector.begin()+cellStartIndex[cell], cellVector.begin()+vector_index);
   }
 }
 

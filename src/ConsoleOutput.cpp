@@ -424,11 +424,11 @@ void ConsoleOutput::printElement(const double t, const int width,
 {
   const char separator = ' ';
   if(abs(t) > 1e99) {
-    std::cout << right << std::scientific << std::setprecision(percision - 1) <<
-              setw(width) << setfill(separator) << t;
+    std::cout << std::right << std::scientific << std::setprecision(percision - 1) <<
+              std::setw(width) << std::setfill(separator) << t;
   } else {
-    std::cout << right << std::scientific << std::setprecision(percision) <<
-              setw(width) << setfill(separator) << t;
+    std::cout << std::right << std::scientific << std::setprecision(percision) <<
+              std::setw(width) << std::setfill(separator) << t;
   }
 
 }
@@ -436,20 +436,20 @@ void ConsoleOutput::printElement(const double t, const int width,
 void ConsoleOutput::printElement(const uint t, const int width) const
 {
   const char separator = ' ';
-  std::cout << right << std::scientific  << setw(width) <<
-            setfill(separator) << t;
+  std::cout << std::right << std::scientific  << std::setw(width) <<
+            std::setfill(separator) << t;
 }
 
 void ConsoleOutput::printElement(const std::string t, const int width) const
 {
   const char separator = ' ';
-  std::cout << right << std::scientific << setw(width) <<
-            setfill(separator) << t;
+  std::cout << std::right << std::scientific << std::setw(width) <<
+            std::setfill(separator) << t;
 }
 
 template <typename T>
 void ConsoleOutput::printElementStep( const T t, const ulong step,
                                       const int width) const
 {
-  std::cout << t << right << setw(width - 7) << step;
+  std::cout << t << std::right << std::setw(width - 7) << step;
 }
