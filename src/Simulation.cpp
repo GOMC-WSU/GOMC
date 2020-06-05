@@ -130,8 +130,8 @@ void Simulation::RunSimulation(void)
        // system->calcEwald->UpdateVectorsAndRecipTerms();
 
 
-      } else if (ms->worldRank == 0){
-      //} else if(ms->worldRank+1 != ms->worldSize && exchangeResults[ms->worldRank+1] == true) {
+      //} else if (ms->worldRank == 0){
+      } else if(ms->worldRank+1 != ms->worldSize && exchangeResults[ms->worldRank+1] == true) {
 
         std::cout << "A swap took place" << std::endl;
 
