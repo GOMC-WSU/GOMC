@@ -16,9 +16,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "EnsemblePreprocessor.h" //For # box const.
 #include "BasicTypes.h" //For uint
 
-#ifndef NDEBUG
+// GJS
+//#ifndef NDEBUG
 #include <iostream>
-#endif
+//#endif
 
 #ifndef BOXES_WITH_U_NB
 #if ENSEMBLE == GCMC || ENSEMBLE == NVT || ENSEMBLE == NPT
