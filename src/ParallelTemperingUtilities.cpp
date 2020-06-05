@@ -200,4 +200,267 @@ void ParallelTemperingUtilities::exchangeCellLists(CellList & myCellList, MultiS
     }
 }
 
+void ParallelTemperingUtilities::exchangePotentials(SystemPotential & mySystemPotential, MultiSim const*const& multisim, int exchangePartner, bool leader){
+    
+    SystemPotential buffer(mySystemPotential);
+
+// if im 0, im the follower and i get 1 as a
+
+    if (leader){
+        MPI_Send(&buffer.totalEnergy.total, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&mySystemPotential.totalEnergy.total, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&mySystemPotential.totalEnergy.total, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.totalEnergy.total, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
+    
+    if (leader){
+        MPI_Send(&buffer.totalEnergy.totalElect, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&mySystemPotential.totalEnergy.totalElect, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&mySystemPotential.totalEnergy.totalElect, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.totalEnergy.totalElect, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
+
+        
+    if (leader){
+        MPI_Send(&buffer.totalEnergy.correction, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&mySystemPotential.totalEnergy.correction, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&mySystemPotential.totalEnergy.correction, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.totalEnergy.correction, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
+
+        
+    if (leader){
+        MPI_Send(&buffer.totalEnergy.inter, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&mySystemPotential.totalEnergy.inter, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&mySystemPotential.totalEnergy.inter, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.totalEnergy.inter, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
+
+        
+    if (leader){
+        MPI_Send(&buffer.totalEnergy.intraBond, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&mySystemPotential.totalEnergy.intraBond, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&mySystemPotential.totalEnergy.intraBond, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.totalEnergy.intraBond, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
+
+        
+    if (leader){
+        MPI_Send(&buffer.totalEnergy.intraNonbond, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&mySystemPotential.totalEnergy.intraNonbond, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&mySystemPotential.totalEnergy.intraNonbond, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.totalEnergy.intraNonbond, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
+
+        
+    if (leader){
+        MPI_Send(&buffer.totalEnergy.real, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&mySystemPotential.totalEnergy.real, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&mySystemPotential.totalEnergy.real, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.totalEnergy.real, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
+
+        
+    if (leader){
+        MPI_Send(&buffer.totalEnergy.recip, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&mySystemPotential.totalEnergy.recip, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&mySystemPotential.totalEnergy.recip, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.totalEnergy.recip, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
+
+        
+    if (leader){
+        MPI_Send(&buffer.totalEnergy.self, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&mySystemPotential.totalEnergy.self, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&mySystemPotential.totalEnergy.self, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.totalEnergy.self, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
+
+    if (leader){
+        MPI_Send(&buffer.totalEnergy.tc, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&mySystemPotential.totalEnergy.tc, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&mySystemPotential.totalEnergy.tc, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.totalEnergy.tc, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
+    for (int b = 0; b < BOX_TOTAL; b++){
+        if (leader){
+            MPI_Send(&buffer.boxEnergy[b].total, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+            MPI_Recv(&mySystemPotential.boxEnergy[b].total, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&mySystemPotential.boxEnergy[b].total, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Send(&buffer.boxEnergy[b].total, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+        }
+        
+        if (leader){
+            MPI_Send(&buffer.boxEnergy[b].totalElect, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+            MPI_Recv(&mySystemPotential.boxEnergy[b].totalElect, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&mySystemPotential.boxEnergy[b].totalElect, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Send(&buffer.boxEnergy[b].totalElect, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+        }
+
+            
+        if (leader){
+            MPI_Send(&buffer.boxEnergy[b].correction, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+            MPI_Recv(&mySystemPotential.boxEnergy[b].correction, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&mySystemPotential.boxEnergy[b].correction, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Send(&buffer.boxEnergy[b].correction, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+        }
+
+            
+        if (leader){
+            MPI_Send(&buffer.boxEnergy[b].inter, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+            MPI_Recv(&mySystemPotential.boxEnergy[b].inter, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&mySystemPotential.boxEnergy[b].inter, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Send(&buffer.boxEnergy[b].inter, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+        }
+
+            
+        if (leader){
+            MPI_Send(&buffer.boxEnergy[b].intraBond, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+            MPI_Recv(&mySystemPotential.boxEnergy[b].intraBond, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&mySystemPotential.boxEnergy[b].intraBond, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Send(&buffer.boxEnergy[b].intraBond, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+        }
+
+            
+        if (leader){
+            MPI_Send(&buffer.boxEnergy[b].intraNonbond, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+            MPI_Recv(&mySystemPotential.boxEnergy[b].intraNonbond, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&mySystemPotential.boxEnergy[b].intraNonbond, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Send(&buffer.boxEnergy[b].intraNonbond, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+        }
+
+            
+        if (leader){
+            MPI_Send(&buffer.boxEnergy[b].real, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+            MPI_Recv(&mySystemPotential.boxEnergy[b].real, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&mySystemPotential.boxEnergy[b].real, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Send(&buffer.boxEnergy[b].real, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+        }
+
+            
+        if (leader){
+            MPI_Send(&buffer.boxEnergy[b].recip, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+            MPI_Recv(&mySystemPotential.boxEnergy[b].recip, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&mySystemPotential.boxEnergy[b].recip, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Send(&buffer.boxEnergy[b].recip, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+        }
+
+            
+        if (leader){
+            MPI_Send(&buffer.boxEnergy[b].self, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+            MPI_Recv(&mySystemPotential.boxEnergy[b].self, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&mySystemPotential.boxEnergy[b].self, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Send(&buffer.boxEnergy[b].self, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+        }
+
+        if (leader){
+            MPI_Send(&buffer.boxEnergy[b].tc, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+            MPI_Recv(&mySystemPotential.boxEnergy[b].tc, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&mySystemPotential.boxEnergy[b].tc, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Send(&buffer.totalEnergy.tc, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+        }
+    }
+}
+
+
 #endif

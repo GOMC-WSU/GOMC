@@ -88,62 +88,74 @@ void Simulation::RunSimulation(void)
 
       exchangeResults = PTUtils->evaluateExchangeCriteria(step);
     
-      if (ms->worldRank == 1){
-      //if (exchangeResults[ms->worldRank] == true){
+      //if (ms->worldRank == 1){
+      if (exchangeResults[ms->worldRank] == true){
+
 
         std::cout << "A swap took place" << std::endl;
 
-        CellList myCellListCloneBeforeExchange(system->cellList);
-        CellList buffer(system->cellList);
+ //       SystemPotential myPotentialCloneBeforeExchange(system->potential);
+ //       SystemPotential potBuffer(system->potential);
 
         PTUtils->exchangePositions(system->coordinates, ms, ms->worldRank-1, true);
         PTUtils->exchangeCOMs(system->com, ms, ms->worldRank-1, true);
 
-        PTUtils->exchangeCellLists(myCellListCloneBeforeExchange, ms, ms->worldRank-1, true);
+     //   PTUtils->exchangeCellLists(myCellListCloneBeforeExchange, ms, ms->worldRank-1, true);
+        PTUtils->exchangeCellLists(system->cellList, ms, ms->worldRank-1, true);
+        //PTUtils->exchangePotentials(myPotentialCloneBeforeExchange, ms, ms->worldRank-1, true);
+        PTUtils->exchangePotentials(system->potential, ms, ms->worldRank-1, true);
 
-        system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
+     //   system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
+        //system->potential = system->calcEnergy.SystemTotal();
+   /*     potBuffer = system->calcEnergy.SystemTotal();
 
+        if (!potBuffer.ComparePotentials(myPotentialCloneBeforeExchange)){
+          std::cout << "Potential objects have different states. Exiting!" << std::endl;
+          exit(EXIT_FAILURE);
+        } else {
+          std::cout << "Potential objects have equivalent states." << std::endl;
+        }
+*/
+      
+
+
+/*
         if (!system->cellList.CompareCellList(myCellListCloneBeforeExchange, system->coordinates.Count())){
           std::cout << "Cell List objects have different states, not simply different orders. Exiting!" << std::endl;
           exit(EXIT_FAILURE);
         } else {
           std::cout << "Cell List objects have equivalent states." << std::endl;
         }
+*/
+       // system->calcEwald->UpdateVectorsAndRecipTerms();
 
-        system->calcEwald->UpdateVectorsAndRecipTerms();
-
-        system->potential = system->calcEnergy.SystemTotal();
 
       } else if (ms->worldRank == 0){
       //} else if(ms->worldRank+1 != ms->worldSize && exchangeResults[ms->worldRank+1] == true) {
 
         std::cout << "A swap took place" << std::endl;
 
-
-        CellList myCellListCloneBeforeExchange(system->cellList);
-        CellList buffer(system->cellList);
+        //SystemPotential myPotentialCloneBeforeExchange(system->potential);
+        //SystemPotential potBuffer(system->potential);
 
         PTUtils->exchangePositions(system->coordinates, ms, ms->worldRank+1, false);
         PTUtils->exchangeCOMs(system->com, ms, ms->worldRank+1, false);
 
-        // The other replica's cell list object
-        PTUtils->exchangeCellLists(myCellListCloneBeforeExchange, ms, ms->worldRank+1, false);
+        //PTUtils->exchangeCellLists(myCellListCloneBeforeExchange, ms, ms->worldRank-1, true);
+        PTUtils->exchangeCellLists(system->cellList, ms, ms->worldRank+1, false);
+        PTUtils->exchangePotentials(system->potential, ms, ms->worldRank+1, false);
 
-        // MY cell list regridded with the other replica's coordinates
-        system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
-               
-        // Comparing the ability of GridAll and my exchangeCellList object to obtain identical results
-        if (!system->cellList.CompareCellList(myCellListCloneBeforeExchange, system->coordinates.Count())){
-          std::cout << "Cell List objects have different states, not simply different orders. Exiting!" << std::endl;
+     //   system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
+        //system->potential = system->calcEnergy.SystemTotal();
+        //potBuffer = system->calcEnergy.SystemTotal();
+/*
+        if (!potBuffer.ComparePotentials(myPotentialCloneBeforeExchange)){
+          std::cout << "Potential objects have different states. Exiting!" << std::endl;
           exit(EXIT_FAILURE);
         } else {
-          std::cout << "Cell List objects have equivalent states." << std::endl;
+          std::cout << "Potential objects have equivalent states." << std::endl;
         }
-        
-        system->calcEwald->UpdateVectorsAndRecipTerms();
-
-        system->potential = system->calcEnergy.SystemTotal();
-
+*/
       }
 
     }

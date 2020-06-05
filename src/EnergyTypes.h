@@ -363,6 +363,7 @@ class SystemPotential
 public:
   void Zero();
   double Total();
+  bool ComparePotentials(SystemPotential & other);
   void Add(const uint b, Intermolecular const& rhs)
   {
     boxVirial[b] += rhs;
@@ -433,6 +434,54 @@ inline double SystemPotential::Total()
     totalVirial += boxVirial[b];
   }
   return totalEnergy.total;
+}
+
+inline bool SystemPotential::ComparePotentials(SystemPotential & other){
+  std::cout.precision(17);
+
+  if(totalEnergy.inter != other.totalEnergy.inter){
+    std::cout << "my inter : " << totalEnergy.inter << "other inter : " << other.totalEnergy.inter << std::endl;
+    return false;
+  }
+
+  if(totalEnergy.intraBond != other.totalEnergy.intraBond){
+    std::cout << "my intraBond : " << totalEnergy.intraBond << "other intraBond : " << other.totalEnergy.intraBond << std::endl;
+    return false;
+  }
+  if(totalEnergy.intraNonbond != other.totalEnergy.intraNonbond){
+    std::cout << "my intraNonbond : " << totalEnergy.intraNonbond << "other intraNonbond : " << other.totalEnergy.intraNonbond << std::endl;
+    return false;
+  }
+  if(totalEnergy.tc != other.totalEnergy.tc){
+    std::cout << "my tc : " << totalEnergy.tc << "other tc : " << other.totalEnergy.tc << std::endl;
+    return false;
+  }
+  if(totalEnergy.real != other.totalEnergy.real){
+    std::cout << "my real : " << totalEnergy.real << "other real : " << other.totalEnergy.real << std::endl;
+    return false;
+  }
+  if(totalEnergy.recip != other.totalEnergy.recip){
+    std::cout << "my recip : " << totalEnergy.recip << "other recip : " << other.totalEnergy.recip << std::endl;
+    return false;
+  }
+  if(totalEnergy.self != other.totalEnergy.self){
+    std::cout << "my self : " << totalEnergy.self << "other self : " << other.totalEnergy.self << std::endl;
+    return false;
+  }
+  if(totalEnergy.correction != other.totalEnergy.correction){
+    std::cout << "my correction : " << totalEnergy.correction << "other correction : " << other.totalEnergy.correction << std::endl;    
+    return false;
+  }
+  if(totalEnergy.totalElect != other.totalEnergy.totalElect){
+    std::cout << "my totalElect : " << totalEnergy.totalElect << "other totalElect : " << other.totalEnergy.totalElect << std::endl;    
+    return false;
+  }
+  if(totalEnergy.total != other.totalEnergy.total){
+    std::cout << "my total : " << totalEnergy.total << "other total : " << other.totalEnergy.total << std::endl;    
+    return false;
+  }
+  return true;
+
 }
 
 #ifndef NDEBUG
