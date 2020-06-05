@@ -25,6 +25,41 @@ CellList::CellList(const Molecules& mols,  BoxDimensions& dims)
   }
 }
 
+CellList::CellList(const CellList & other) : mols(other.mols){
+  dimensions = other.dimensions;
+  isBuilt = true;
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    edgeCells[b][0] = other.edgeCells[b][0];
+    edgeCells[b][1] = other.edgeCells[b][1];
+    edgeCells[b][2] = other.edgeCells[b][2];
+  }
+
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    RebuildNeighbors(b);
+  }
+
+  list.resize(other.list.size());
+
+  for (int i = 0; i < other.list.size(); i++){
+    list[i] = other.list[i];
+  }
+
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    for (int i = 0; i < other.neighbors[b].size(); i++){
+      neighbors[b][i] = other.neighbors[b][i];
+    }
+  }
+
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    for (int i = 0; i < other.head[b].size(); i++){
+      head[b][i] = other.head[b][i];
+    }
+  }
+  //neighbors(other.neighbors);
+  //head(other.head);
+}
+
+
 void CellList::SetCutoff()
 {
   for(uint b = 0; b < BOX_TOTAL; b++) {
@@ -227,4 +262,83 @@ void CellList::GridBox(BoxDimensions& dims, const XYZArray& pos,
 CellList::Pairs CellList::EnumeratePairs(int box) const
 {
   return CellList::Pairs(*this, box);
+}
+
+bool CellList::CompareCellList(CellList & other, int coordinateSize){
+
+
+  std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
+  std::vector<int> otherCellVector, otherCellStartIndex, otherMapParticleToCell;
+
+  for(uint box = 0; box < BOX_TOTAL; box++) {
+
+  cellVector.resize(coordinateSize);
+  cellStartIndex.resize(head[box].size());
+  mapParticleToCell.resize(coordinateSize);
+   
+  otherCellVector.resize(coordinateSize);
+  otherCellStartIndex.resize(head[box].size());
+  otherMapParticleToCell.resize(coordinateSize);
+  }
+  
+  for(uint box = 0; box < BOX_TOTAL; box++) {
+    int vector_index = 0;
+    for(int cell = 0; cell < head[box].size(); cell++) {
+      cellStartIndex[cell] = vector_index;
+      int particleIndex = head[box][cell];
+      while(particleIndex != END_CELL) {
+        cellVector[vector_index] = particleIndex;
+        mapParticleToCell[particleIndex] = cell;
+        vector_index++;
+        particleIndex = list[particleIndex];
+      }
+    }
+  }
+
+  for(uint box = 0; box < BOX_TOTAL; box++) {
+
+    int vector_index = 0;
+    for(int cell = 0; cell < other.head[box].size(); cell++) {
+      otherCellStartIndex[cell] = vector_index;
+      int particleIndex = other.head[box][cell];
+      while(particleIndex != END_CELL) {
+        otherCellVector[vector_index] = particleIndex;
+        otherMapParticleToCell[particleIndex] = cell;
+        vector_index++;
+        particleIndex = other.list[particleIndex];
+      }
+    }
+  }
+
+
+  if(list.size() == other.list.size()){
+    for(int i = 0; i < list.size(); i++){
+        if (list[i] != other.list[i])
+          std::cout << "List objects are different" << std::endl;
+    }
+  }
+
+  for (int i = 0; i < mapParticleToCell.size(); i++){
+    if (mapParticleToCell[i] != otherMapParticleToCell[i])
+      return false;
+  }
+  
+  std::cout << "CellList objects have equal states" << std::endl;
+
+  return true;
+}
+
+void CellList::PrintList(){
+  
+  for(int i = 0; i < list.size(); i++)
+    std::cout << list[i] << std::endl;
+  
+  std::cout << "head vector" << std::endl;  
+  for(int i = 0; i < BOX_TOTAL; i++){
+    for( int j = 0; j < head[i].size(); j++){
+      std::cout << head[i][j] << std::endl;
+    }
+  }
+
+
 }

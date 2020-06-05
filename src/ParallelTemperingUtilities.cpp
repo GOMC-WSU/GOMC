@@ -126,11 +126,6 @@ void ParallelTemperingUtilities::exchangePositions(XYZArray & myPos, MultiSim co
         MPI_Send(buffer.z, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
     }
-
-    //for (int i = 0; i < 3; i++){
-       // std::cout << "My coords : " << myPos.x[i] << " x " << myPos.y[i] << " x " << myPos.z[i] << std::endl;
-     //   std::cout << "Send buffer : " << buffer.x[i] << " x " << buffer.y[i] << " x " << buffer.z[i] << std::endl;
-   // }
 }
 
 void ParallelTemperingUtilities::exchangeCOMs(XYZArray & myCOMs, MultiSim const*const& multisim, int exchangePartner, bool leader){
@@ -170,11 +165,39 @@ void ParallelTemperingUtilities::exchangeCOMs(XYZArray & myCOMs, MultiSim const*
         MPI_Send(buffer.z, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
     }
+}
 
-    //for (int i = 0; i < 3; i++){
-        //std::cout << "My COMs : " << myCOMs.x[i] << " x " << myCOMs.y[i] << " x " << myCOMs.z[i] << std::endl;
-      //  std::cout << "Send buffer : " << buffer.x[i] << " x " << buffer.y[i] << " x " << buffer.z[i] << std::endl;
-    //}
+void ParallelTemperingUtilities::exchangeCellLists(CellList & myCellList, MultiSim const*const& multisim, int exchangePartner, bool leader){
+    
+    CellList buffer(myCellList);
+    std::cout << " buffer list size : " << buffer.list.size() << " myCellList list Size : " << myCellList.list.size() << std::endl; 
+    std::cout << " buffer head size : " << buffer.head[0].size() << " myCellList head Size : " << myCellList.head[0].size() << std::endl; 
+
+// if im 0, im the follower and i get 1 as a
+
+    if (leader){
+        MPI_Send(&buffer.list[0], buffer.list.size(), MPI_INT, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&myCellList.list[0], myCellList.list.size(), MPI_INT, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&myCellList.list[0], myCellList.list.size(), MPI_INT, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.list[0], buffer.list.size(), MPI_INT, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
+    
+    if (leader){
+        MPI_Send(&buffer.head[0][0], buffer.head[0].size(), MPI_INT, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&myCellList.head[0][0], myCellList.head[0].size(), MPI_INT, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&myCellList.head[0][0], myCellList.head[0].size(), MPI_INT, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.head[0][0], buffer.head[0].size(), MPI_INT, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
 }
 
 #endif

@@ -31,6 +31,9 @@ public:
   void ReadAll();
   void SetStepNumber(ulong & startStep);
   void SetPRNGVariables(PRNG & prng);
+  #if GOMC_LIB_MPI
+  void SetPRNGVariablesPT(PRNG & prng);
+  #endif
   void SetBoxDimensions(BoxDimensions & boxDimRef);
   void SetCoordinates(Coordinates & coordinates);
   void SetMoleculeLookup(MoleculeLookup & molLookupRef);
@@ -70,6 +73,9 @@ private:
   void openInputFile();
   void readStepNumber();
   void readRandomNumbers();
+  #if GOMC_LIB_MPI
+  void readRandomNumbersParallelTempering();
+  #endif
   void readCoordinates();
   void readMoleculeLookupData();
   void readMoveSettingsData();

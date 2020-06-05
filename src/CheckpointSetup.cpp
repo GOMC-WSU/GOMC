@@ -38,6 +38,9 @@ void CheckpointSetup::ReadAll()
   readStepNumber();
   readBoxDimensionsData();
   readRandomNumbers();
+  #if GOMC_LIB_MPI
+  readRandomNumbersParallelTempering();
+  #endif
   readCoordinates();
   readMoleculeLookupData();
   readMoveSettingsData();
@@ -92,6 +95,35 @@ void CheckpointSetup::readRandomNumbers()
   // not sure if that is used or not, or how important it is
   seedValue = readUintIn8Chars();
 }
+
+#if GOMC_LIB_MPI
+
+void CheckpointSetup::readRandomNumbersParallelTempering()
+{
+  // First let's read the state array
+  // the length of the array is 624
+  const int N = 624;
+  if(saveArray != NULL) {
+    delete[] saveArray;
+    saveArray = NULL;
+  }
+  saveArray = new uint32_t[N];
+  for(int i = 0; i < N; i++) {
+    saveArray[i] = readUintIn8Chars();
+  }
+
+  // Read the location of pointer in state
+  seedLocation = readUintIn8Chars();
+
+  // Read the "left" value so we can restore
+  seedLeft = readUintIn8Chars();
+
+  // let's save seedValue just in case
+  // not sure if that is used or not, or how important it is
+  seedValue = readUintIn8Chars();
+}
+
+#endif
 
 void CheckpointSetup::readCoordinates()
 {

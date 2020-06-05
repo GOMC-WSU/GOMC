@@ -58,6 +58,9 @@ private:
   void openOutputFile();
   void printStepNumber(ulong step);
   void printRandomNumbers();
+  #if GOMC_LIB_MPI
+  void printRandomNumbersParallelTempering();
+  #endif
   void printCoordinates();
   void printMoleculeLookupData();
   void printMoveSettingsData();

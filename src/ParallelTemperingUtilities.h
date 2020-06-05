@@ -25,6 +25,7 @@ explicit ParallelTemperingUtilities(MultiSim const*const& multisim, System & sys
 vector<bool> evaluateExchangeCriteria(ulong step);
 void exchangePositions(XYZArray & myPos, MultiSim const*const& multisim, int exchangePartner, bool leader);
 void exchangeCOMs(XYZArray & myCOMs, MultiSim const*const& multisim, int exchangePartner, bool leader);
+void exchangeCellLists(CellList & myCellList, MultiSim const*const& multisim, int exchangePartner, bool leader);
 
 #endif
 

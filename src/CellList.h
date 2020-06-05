@@ -23,6 +23,7 @@ class CellList
 {
 public:
   explicit CellList(const Molecules& mols, BoxDimensions& dims);
+  CellList(const CellList & other);
   void SetCutoff();
 
   void RemoveMol(const int molIndex, const int box, const XYZArray& pos);
@@ -55,6 +56,14 @@ public:
   // true if every particle is a member of exactly one cell
   bool IsExhaustive() const;
 
+  //GJS - Compare this cell list with another for evaluating parallel tempering correctness
+  bool CompareCellList(CellList & other, int coordinateSize);
+  void PrintList();
+
+  std::vector<int> list;
+  std::vector<std::vector<int> > neighbors[BOX_TOTAL];
+  std::vector<int> head[BOX_TOTAL];
+
 private:
   static const int END_CELL = -1;
 
@@ -65,9 +74,6 @@ private:
   // Rebuild head/neighbor lists in box b to match current grid
   void RebuildNeighbors(int b);
 
-  std::vector<int> list;
-  std::vector<std::vector<int> > neighbors[BOX_TOTAL];
-  std::vector<int> head[BOX_TOTAL];
   XYZ cellSize[BOX_TOTAL];
   int edgeCells[BOX_TOTAL][3];
   const Molecules* mols;
