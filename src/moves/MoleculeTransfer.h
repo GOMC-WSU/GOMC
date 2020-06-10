@@ -182,7 +182,6 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
       result = false;
 
     if(result) {
-      printf("Moving %d: %d -> %d\n", molIndex, sourceBox, destBox);
       //Add tail corrections
       sysPotRef.boxEnergy[sourceBox].tc += tcLose.energy;
       sysPotRef.boxEnergy[destBox].tc += tcGain.energy;

@@ -233,9 +233,7 @@ void CellList::GetCellListNeighbor(uint box, int coordinateSize,
     std::vector<int> &cellVector, std::vector<int> &cellStartIndex,
     std::vector<int> &mapParticleToCell) const
 {
-  printf("GetCellListNeighbor, box: %d\n", box);
   cellVector.resize(coordinateSize);
-  cellVector.clear();
   cellStartIndex.resize(head[box].size());
   mapParticleToCell.resize(coordinateSize);
   int vector_index = 0;
@@ -251,6 +249,7 @@ void CellList::GetCellListNeighbor(uint box, int coordinateSize,
     // we are going to sort particles in each cell for better memor access
     std::sort(cellVector.begin()+cellStartIndex[cell], cellVector.begin()+vector_index);
   }
+  // in case there are two boxes we need to remove the extra space allocated here
   cellVector.resize(vector_index);
 }
 
