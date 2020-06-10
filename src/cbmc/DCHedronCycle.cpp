@@ -80,7 +80,7 @@ DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
   //If sum of angles = 2*pi = 6.283, it means they are in a plane
   //To avoid geometric conflict for flexible angle, we consider it fix and
   //let crankshaft to sample it. 0.044 ~= 5 degree
-  bool angleInPlane = (abs(2.0 * M_PI - sumAngle) < 0.044);
+  bool angleInPlane = (std::abs(2.0 * M_PI - sumAngle) < 0.044);
   bool constrainAngInRing = false;
 
   for (uint i = 0; i < nBonds; ++i) {
@@ -510,7 +510,7 @@ void DCHedronCycle::SetBasis(TrialMol& mol, uint p1, uint p2)
   wVec.Normalize();
   XYZ uVec;
   //check to make sure our W isn't in line with the standard X Axis
-  if (abs(wVec.x) < 0.8) {
+  if (std::abs(wVec.x) < 0.8) {
     //V will be W x the standard X unit vec
     uVec = XYZ(1.0, 0.0, 0.0);
   } else {

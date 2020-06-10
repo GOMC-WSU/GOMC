@@ -155,7 +155,7 @@ double MoleculeKind::GetMoleculeCharge()
 bool MoleculeKind::MoleculeHasCharge()
 {
   for(uint i = 0; i < numAtoms; ++i) {
-    if(abs(atomCharge[i]) > 0.0)
+    if(std::abs(atomCharge[i]) > 0.0)
       return true;
   }
   return false;

@@ -56,7 +56,7 @@ void BlockAverage::DoWrite(const ulong step, uint precision)
 {
   if (tot >= 1) {
     if (outBlock0->is_open()) {
-      if(abs(block[0]) > 1e99) {
+      if(std::abs(block[0]) > 1e99) {
         (*outBlock0) << std::right << std::scientific  << std::setprecision(precision - 1) <<
                      std::setw(OUTPUTWIDTH);
         (*outBlock0) << block[0];
@@ -70,7 +70,7 @@ void BlockAverage::DoWrite(const ulong step, uint precision)
   }
   if (tot >= 2) {
     if (outBlock1->is_open()) {
-      if(abs(block[0]) > 1e99) {
+      if(std::abs(block[0]) > 1e99) {
         (*outBlock1) << std::right << std::scientific  << std::setprecision(precision - 1) <<
                      std::setw(OUTPUTWIDTH);
         (*outBlock1) << block[1];

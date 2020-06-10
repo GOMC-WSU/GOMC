@@ -100,7 +100,7 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
       }
     }
 
-    if(abs(netCharge) > 10E-7) {
+    if(std::abs(netCharge) > 10E-7) {
       std::cout << "================================================"
                 << std::endl << std::endl
                 << "Warning: Sum of the charge in the system is: "

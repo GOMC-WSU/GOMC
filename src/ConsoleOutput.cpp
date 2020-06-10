@@ -423,7 +423,7 @@ void ConsoleOutput::printElement(const double t, const int width,
                                  uint percision) const
 {
   const char separator = ' ';
-  if(abs(t) > 1e99) {
+  if(std::abs(t) > 1e99) {
     std::cout << std::right << std::scientific << std::setprecision(percision - 1) <<
               std::setw(width) << std::setfill(separator) << t;
   } else {

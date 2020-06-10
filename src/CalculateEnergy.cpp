@@ -905,7 +905,7 @@ void CalculateEnergy::MolBond(double & energy,
     double molLength = vecs.Get(b).Length();
     double eqLength = forcefield.bonds.Length(molKind.bondList.kinds[b]);
     energy += forcefield.bonds.Calc(molKind.bondList.kinds[b], molLength);
-    if(abs(molLength - eqLength) > 0.02) {
+    if(std::abs(molLength - eqLength) > 0.02) {
       uint p1 = molKind.bondList.part1[b];
       uint p2 = molKind.bondList.part2[b];
       printf("Warning: Box%d, %6d %4s,", box, molIndex, molKind.name.c_str());

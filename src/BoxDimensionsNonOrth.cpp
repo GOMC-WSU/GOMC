@@ -79,7 +79,7 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     XYZ bxc = Cross(cellBasis[b].Get(1), cellBasis[b].Get(2));
     XYZ cxa = Cross(cellBasis[b].Get(2), cellBasis[b].Get(0));
     //Calculate volume = A.(B x C)
-    volume[b] = abs(Dot(cellBasis[b].Get(0), bxc));
+    volume[b] = std::abs(Dot(cellBasis[b].Get(0), bxc));
     volInv[b] = 1.0 / volume[b];
     //normalizing unitcell
     for(uint i = 0; i < 3; i++) {

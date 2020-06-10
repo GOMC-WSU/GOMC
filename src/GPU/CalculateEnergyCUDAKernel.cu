@@ -262,9 +262,9 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
       double dy = gpu_y[currentParticle] - gpu_y[neighborParticle];
       double dz = gpu_z[currentParticle] - gpu_z[neighborParticle];
 
-      dx = min(abs(dx), xAxes - abs(dx));
-      dy = min(abs(dy), yAxes - abs(dy));
-      dz = min(abs(dz), zAxes - abs(dz));
+      dx = min(fabs(dx), xAxes - fabs(dx));
+      dy = min(fabs(dy), yAxes - fabs(dy));
+      dz = min(fabs(dz), zAxes - fabs(dz));
 
       distSq = dx * dx + dy * dy + dz * dz;
 

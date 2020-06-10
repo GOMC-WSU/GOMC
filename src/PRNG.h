@@ -193,7 +193,7 @@ public:
       lastZero = i;
     }
     lastZero--;
-    if(abs(draw - totalWeight) < 0.001) {
+    if(std::abs(draw - totalWeight) < 0.001) {
       return lastZero;
     }
 

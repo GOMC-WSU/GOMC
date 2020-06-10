@@ -76,7 +76,7 @@ void Simulation::RunSimulation(void)
 
     if((step + 1) == cpu->equilSteps) {
       double currEnergy = system->potential.totalEnergy.total;
-      if(abs(currEnergy - startEnergy) > 1.0e+10) {
+      if(std::abs(currEnergy - startEnergy) > 1.0e+10) {
         printf("Info: Recalculating the total energies to insure the accuracy"
                " of the computed \n"
                "      running energies.\n\n");
@@ -102,14 +102,14 @@ bool Simulation::RecalculateAndCheck(void) {
   SystemPotential pot = system->calcEnergy.SystemTotal();
 
   bool compare = true;
-  compare &= abs(system->potential.totalEnergy.intraBond - pot.totalEnergy.intraBond) < EPSILON;
-  compare &= abs(system->potential.totalEnergy.intraNonbond - pot.totalEnergy.intraNonbond) < EPSILON;
-  compare &= abs(system->potential.totalEnergy.inter - pot.totalEnergy.inter) < EPSILON;
-  compare &= abs(system->potential.totalEnergy.tc - pot.totalEnergy.tc) < EPSILON;
-  compare &= abs(system->potential.totalEnergy.real - pot.totalEnergy.real) < EPSILON;
-  compare &= abs(system->potential.totalEnergy.self - pot.totalEnergy.self) < EPSILON;
-  compare &= abs(system->potential.totalEnergy.correction - pot.totalEnergy.correction) < EPSILON;
-  compare &= abs(system->potential.totalEnergy.recip - pot.totalEnergy.recip) < EPSILON;
+  compare &= std::abs(system->potential.totalEnergy.intraBond - pot.totalEnergy.intraBond) < EPSILON;
+  compare &= std::abs(system->potential.totalEnergy.intraNonbond - pot.totalEnergy.intraNonbond) < EPSILON;
+  compare &= std::abs(system->potential.totalEnergy.inter - pot.totalEnergy.inter) < EPSILON;
+  compare &= std::abs(system->potential.totalEnergy.tc - pot.totalEnergy.tc) < EPSILON;
+  compare &= std::abs(system->potential.totalEnergy.real - pot.totalEnergy.real) < EPSILON;
+  compare &= std::abs(system->potential.totalEnergy.self - pot.totalEnergy.self) < EPSILON;
+  compare &= std::abs(system->potential.totalEnergy.correction - pot.totalEnergy.correction) < EPSILON;
+  compare &= std::abs(system->potential.totalEnergy.recip - pot.totalEnergy.recip) < EPSILON;
 
   if(!compare) {
     std::cout

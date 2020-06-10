@@ -199,7 +199,7 @@ inline void IntraMoleculeExchange1::AdjustExRatio()
 
     uint index = kindS + kindL * molRef.GetKindsCount();
     double currAccept = (double)(accepted[sourceBox][index]) / (double)(trial[sourceBox][index]);
-    if(abs(currAccept - lastAccept) >= 0.05 * currAccept) {
+    if(std::abs(currAccept - lastAccept) >= 0.05 * currAccept) {
       if(currAccept > lastAccept) {
         exchangeRatio += exDiff;
       } else {

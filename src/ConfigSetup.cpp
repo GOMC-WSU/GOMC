@@ -1413,7 +1413,7 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Molecule swap move frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
-  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
+  if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
          sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
          sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft +
          sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
@@ -1426,7 +1426,7 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
 
-  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
+  if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
          sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc +
          sys.moves.crankShaft + sys.moves.multiParticle - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!\n";
@@ -1438,7 +1438,7 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Molecule swap move frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
-  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
+  if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
          sys.moves.transfer + sys.moves.regrowth + sys.moves.memc +
          sys.moves.intraMemc + sys.moves.crankShaft +
          sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
@@ -1446,7 +1446,7 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
 #else
-  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
+  if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
          sys.moves.regrowth + sys.moves.intraMemc + sys.moves.crankShaft +
          sys.moves.multiParticle - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
