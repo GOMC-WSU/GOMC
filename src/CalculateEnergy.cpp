@@ -415,7 +415,6 @@ Virial CalculateEnergy::VirialCalc(const uint box)
   double rT22 = 0.0, rT23 = 0.0, rT33 = 0.0;
 
   double distSq, pVF, pRF, qi_qj, lambdaVDW, lambdaCoulomb;
-  int i;
   XYZ virC, comC;
 
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
@@ -452,7 +451,8 @@ Virial CalculateEnergy::VirialCalc(const uint box)
       forcefield.sc_power, box);
 #else
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(i, distSq, pVF, pRF, qi_qj, \
+#pragma omp parallel for default(shared) private(currParticleIdx, currParticle, \
+    distSq, currCell, neighborCell, endIndex, nParticleIndex,nParticle, pVF, pRF, qi_qj, \
     virC, comC, lambdaVDW, lambdaCoulomb) reduction(+:vT11, vT12, vT13, vT22, \
       vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33)
 #endif
