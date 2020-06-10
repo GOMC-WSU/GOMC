@@ -182,6 +182,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
       result = false;
 
     if(result) {
+      printf("Moving %d: %d -> %d\n", molIndex, sourceBox, destBox);
       //Add tail corrections
       sysPotRef.boxEnergy[sourceBox].tc += tcLose.energy;
       sysPotRef.boxEnergy[destBox].tc += tcGain.energy;
@@ -204,7 +205,6 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
       molLookRef.ShiftMolBox(molIndex, sourceBox, destBox,
                              kindIndex);
       cellList.AddMol(molIndex, destBox, coordCurrRef);
-
 
       //Zero out box energies to prevent small number
       //errors in double.

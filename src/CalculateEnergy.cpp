@@ -176,6 +176,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   double distSq, qi_qj_fact, lambdaVDW, lambdaCoulomb;
   int i;
   XYZ virComponents;
+  printf("BoxInter called on box: %d\n", box);
 
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
   std::vector< std::vector<int> > neighborList;
@@ -184,7 +185,26 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   neighborList = cellList.GetNeighborList(box);
   int numberOfCells = neighborList.size();
   int atomNumber = currentCoords.Count();
-  int currParticle, currCell, nCellIndex, neighborCell, endIndex, nParticleIndex, nParticle;
+  int currParticleIdx, currParticle, currCell, nCellIndex, neighborCell, endIndex, nParticleIndex, nParticle;
+  int countpairs = 0;
+
+  MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
+  MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+  uint length, start;
+  std::vector<int> molsinbox;
+  while(thisMol != end) {
+    length = mols.GetKind(*thisMol).NumAtoms();
+    start = mols.MolStart(*thisMol);
+
+    for(uint p=start; p<start+length; p++) {
+      molsinbox.push_back(p);
+    }
+    thisMol++;
+  }
+  std::sort(molsinbox.begin(), molsinbox.end());
+  //for(auto x : molsinbox) {
+  //  std::cout << x << "\n";
+  //}
 
 #ifdef GOMC_CUDA
   double REn = 0.0, LJEn = 0.0;
@@ -211,15 +231,16 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 #else
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) \
-  private(currParticle, currCell, nCellIndex, neighborCell, endIndex, \
+  private(currParticleIdx, currParticle, currCell, nCellIndex, neighborCell, endIndex, \
       nParticleIndex, nParticle, distSq, qi_qj_fact, virComponents)\
   reduction(+:tempREn, tempLJEn)
 #endif
   // loop over all particles
-  for(currParticle = 0; currParticle < atomNumber; currParticle++) {
+  for(currParticleIdx = 0; currParticleIdx < cellVector.size(); currParticleIdx++) {
+    currParticle = cellVector[currParticleIdx];
     // find the which cell currParticle belong to
     currCell = mapParticleToCell[currParticle];
-
+    printf("%d -> %d\n", currParticle, currCell);
     // loop over currCell neighboring cells
     for(nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL; nCellIndex++) {
       // find the index of neighboring cell
@@ -234,6 +255,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
         // avoid same particles and duplicate work
         if(currParticle < nParticle && particleMol[currParticle] != particleMol[nParticle]) {
+          countpairs++;
           if(boxAxes.InRcut(distSq, virComponents, coords, currParticle, nParticle, box)) {
             lambdaVDW = GetLambdaVDW(particleMol[currParticle], particleMol[nParticle], box);
             if (electrostatic) {
@@ -245,14 +267,17 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   particleKind[currParticle], particleKind[nParticle],
                   qi_qj_fact, lambdaCoulomb, box);
             }
-            tempLJEn += forcefield.particles->CalcEn(distSq,
+            double x = forcefield.particles->CalcEn(distSq,
                 particleKind[currParticle], particleKind[nParticle], lambdaVDW);
+            tempLJEn += x;
           }
         }
       }
     }
   }
 #endif
+
+  std::cout << "Total Number of Pairs: " << countpairs << "\n";
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction
@@ -905,14 +930,14 @@ void CalculateEnergy::MolBond(double & energy,
     double molLength = vecs.Get(b).Length();
     double eqLength = forcefield.bonds.Length(molKind.bondList.kinds[b]);
     energy += forcefield.bonds.Calc(molKind.bondList.kinds[b], molLength);
-    if(std::abs(molLength - eqLength) > 0.02) {
+    /*if(std::abs(molLength - eqLength) > 0.02) {
       uint p1 = molKind.bondList.part1[b];
       uint p2 = molKind.bondList.part2[b];
       printf("Warning: Box%d, %6d %4s,", box, molIndex, molKind.name.c_str());
       printf("%3s-%-3s bond: Par-file ", molKind.atomNames[p1].c_str(),
           molKind.atomNames[p2].c_str());
       printf("%2.3f A, PDB file %2.3f A!\n", eqLength, molLength);
-    }
+    }*/
   }
 }
 
