@@ -488,6 +488,18 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_dx, currentCOMDiff.x, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_dy, currentCOMDiff.y, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_dz, currentCOMDiff.z, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
+  CUMALLOC((void**) &vars->gpu_rT11, imageSize * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_rT12, imageSize * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_rT13, imageSize * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_rT22, imageSize * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_rT23, imageSize * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_rT33, imageSize * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_vT11, imageSize * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_vT12, imageSize * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_vT13, imageSize * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_vT22, imageSize * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_vT23, imageSize * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_vT33, imageSize * sizeof(double));
   cudaMemcpy(gpu_particleCharge, &particleCharge[0], particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
 
   // Run the kernel...
@@ -549,6 +561,18 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars,
   cudaMemcpy(&rT33, gpu_final_value, sizeof(double),
       cudaMemcpyDeviceToHost);
 
+  CUFREE(vars->gpu_rT11);
+  CUFREE(vars->gpu_rT12);
+  CUFREE(vars->gpu_rT13);
+  CUFREE(vars->gpu_rT22);
+  CUFREE(vars->gpu_rT23);
+  CUFREE(vars->gpu_rT33);
+  CUFREE(vars->gpu_vT11);
+  CUFREE(vars->gpu_vT12);
+  CUFREE(vars->gpu_vT13);
+  CUFREE(vars->gpu_vT22);
+  CUFREE(vars->gpu_vT23);
+  CUFREE(vars->gpu_vT33);
   CUFREE(gpu_particleCharge);
   CUFREE(gpu_final_value);
   CUFREE(d_temp_storage);
