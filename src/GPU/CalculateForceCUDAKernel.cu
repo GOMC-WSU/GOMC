@@ -690,8 +690,8 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
             yAxes / 2.0, zAxes / 2.0, cutoff, gpu_nonOrth[0],
             gpu_cell_x, gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
             gpu_Invcell_z)) {
-        int cA = gpu_particleCharge[currentParticle];
-        int cB = gpu_particleCharge[neighborParticle];
+        double cA = gpu_particleCharge[currentParticle];
+        double cB = gpu_particleCharge[neighborParticle];
         int kA = gpu_particleKind[currentParticle];
         int kB = gpu_particleKind[neighborParticle];
         int mA = gpu_particleMol[currentParticle];
@@ -853,8 +853,8 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
                    yAxes / 2.0, zAxes / 2.0, cutoff, gpu_nonOrth[0], gpu_cell_x,
                    gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                    gpu_Invcell_z)) {
-        int cA = gpu_particleCharge[currentParticle];
-        int cB = gpu_particleCharge[neighborParticle];
+        double cA = gpu_particleCharge[currentParticle];
+        double cB = gpu_particleCharge[neighborParticle];
         int kA = gpu_particleKind[currentParticle];
         int kB = gpu_particleKind[neighborParticle];
         int mA = gpu_particleMol[currentParticle];

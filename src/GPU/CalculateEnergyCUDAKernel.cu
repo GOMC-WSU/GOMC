@@ -270,8 +270,8 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
       distSq = dx * dx + dy * dy + dz * dz;
 
       if((cutoff * cutoff) > distSq) {
-        int cA = gpu_particleCharge[currentParticle];
-        int cB = gpu_particleCharge[neighborParticle];
+        double cA = gpu_particleCharge[currentParticle];
+        double cB = gpu_particleCharge[neighborParticle];
         int kA = gpu_particleKind[currentParticle];
         int kB = gpu_particleKind[neighborParticle];
         int mA = gpu_particleMol[currentParticle];
