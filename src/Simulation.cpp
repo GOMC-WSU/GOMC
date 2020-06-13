@@ -94,8 +94,8 @@ void Simulation::RunSimulation(void)
 
         std::cout << "A swap took place" << std::endl;
 
- //       SystemPotential myPotentialCloneBeforeExchange(system->potential);
- //       SystemPotential potBuffer(system->potential);
+        //SystemPotential myPotentialCloneBeforeExchange(system->potential);
+        //SystemPotential potBuffer(system->potential);
 
         PTUtils->exchangePositions(system->coordinates, ms, ms->worldRank-1, true);
         PTUtils->exchangeCOMs(system->com, ms, ms->worldRank-1, true);
@@ -103,12 +103,12 @@ void Simulation::RunSimulation(void)
      //   PTUtils->exchangeCellLists(myCellListCloneBeforeExchange, ms, ms->worldRank-1, true);
         PTUtils->exchangeCellLists(system->cellList, ms, ms->worldRank-1, true);
         //PTUtils->exchangePotentials(myPotentialCloneBeforeExchange, ms, ms->worldRank-1, true);
-        //PTUtils->exchangePotentials(system->potential, ms, ms->worldRank-1, true);
+        PTUtils->exchangePotentials(system->potential, ms, ms->worldRank-1, true);
 
      //   system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
-        system->potential = system->calcEnergy.SystemTotal();
-   /*     potBuffer = system->calcEnergy.SystemTotal();
-
+ //       system->potential = system->calcEnergy.SystemTotal();
+        //potBuffer = system->calcEnergy.SystemTotal();
+/*
         if (!potBuffer.ComparePotentials(myPotentialCloneBeforeExchange)){
           std::cout << "Potential objects have different states. Exiting!" << std::endl;
           exit(EXIT_FAILURE);
@@ -130,7 +130,7 @@ void Simulation::RunSimulation(void)
        // system->calcEwald->UpdateVectorsAndRecipTerms();
 
 
-      //} else if (ms->worldRank == 0){
+//      } else if (ms->worldRank == 0){
       } else if(ms->worldRank+1 != ms->worldSize && exchangeResults[ms->worldRank+1] == true) {
 
         std::cout << "A swap took place" << std::endl;
@@ -143,10 +143,10 @@ void Simulation::RunSimulation(void)
 
         //PTUtils->exchangeCellLists(myCellListCloneBeforeExchange, ms, ms->worldRank-1, true);
         PTUtils->exchangeCellLists(system->cellList, ms, ms->worldRank+1, false);
-        //PTUtils->exchangePotentials(system->potential, ms, ms->worldRank+1, false);
+        PTUtils->exchangePotentials(system->potential, ms, ms->worldRank+1, false);
 
      //   system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
-        system->potential = system->calcEnergy.SystemTotal();
+        //system->potential = system->calcEnergy.SystemTotal();
         //potBuffer = system->calcEnergy.SystemTotal();
 /*
         if (!potBuffer.ComparePotentials(myPotentialCloneBeforeExchange)){
