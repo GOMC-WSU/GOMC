@@ -84,7 +84,7 @@ void Simulation::RunSimulation(void)
     }
   #if GOMC_LIB_MPI
 
-    if( staticValues->simEventFreq.parallelTemp && step % staticValues->simEventFreq.parallelTempFreq == 0){
+    if( staticValues->simEventFreq.parallelTemp && step > cpu->equilSteps && step % staticValues->simEventFreq.parallelTempFreq == 0){
 
       exchangeResults = PTUtils->evaluateExchangeCriteria(step);
     
