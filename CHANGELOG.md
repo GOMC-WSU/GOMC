@@ -1,6 +1,12 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.60] - 6/16/2020
++ Changed the way we calculate pair interactions. The new approach allows us to optimize GPU by reducing the amount of cudaMemcpy needed.
++ Added C++11 support to our code base and removed any `using namespace std;` statements.
++ GPU memory management class to watch the allocation and deallocation of GPU memories.
++ Bug fixes related to lambda functionalities on GPU
+
 ## [2.51] - 4/30/2020
 + Fixed a bug with EwaldCached
 + Fixed a warning due to ignoring return value of fscanf
