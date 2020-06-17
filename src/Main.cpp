@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -62,8 +62,8 @@ int main(int argc, char *argv[])
   //Only run if valid ensemble was detected.
   if (CheckAndPrintEnsemble()) {
     //FOLLOWING LINES ADDED TO OBTAIN INPUT PARAMETER FILE
-    string inputFileString;
-    fstream inputFileReader;
+    std::string inputFileString;
+    std::fstream inputFileReader;
     uint numThreads;
 
     //CHECK IF ARGS/FILE PROVIDED IN CMD LINE
@@ -97,9 +97,12 @@ int main(int argc, char *argv[])
 #else
     printf("%-40s %-d \n", "Info: Number of threads", 1);
 #endif
+#if defined _OPENMP && _OPENMP < 201511
+    printf("Warning: OpenMP version < 4.5. GOMC will not run optimally!\n");
+#endif
 
     //OPEN FILE
-    inputFileReader.open(inputFileString.c_str(), ios::in | ios::out);
+    inputFileReader.open(inputFileString.c_str(), std::ios::in | std::ios::out);
 
     //CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
     if (!inputFileReader.is_open()) {

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -41,7 +41,7 @@ private:
   XYZArray r_k;
   Coordinates newMolsPos;
   COM newCOMs;
-  vector<uint> moveType, moleculeIndex;
+  std::vector<uint> moveType, moleculeIndex;
   const MoleculeLookup& molLookup;
 
   long double GetCoeff();
@@ -293,17 +293,17 @@ inline double MultiParticle::CalculateWRatio(XYZ const &lb_new, XYZ const &lb_ol
   double w_ratio = 1.0;
   XYZ lbmax = lb_old * max;
   //If we used force to bias the displacement or rotation, we include it
-  if(abs(lbmax.x) > MIN_FORCE && abs(lbmax.x) < MAX_FORCE) {
+  if(std::abs(lbmax.x) > MIN_FORCE && std::abs(lbmax.x) < MAX_FORCE) {
     w_ratio *= lb_new.x * exp(-lb_new.x * k.x) / (2.0 * sinh(lb_new.x * max));
     w_ratio /= lb_old.x * exp(lb_old.x * k.x) / (2.0 * sinh(lb_old.x * max));
   }
 
-  if(abs(lbmax.y) > MIN_FORCE && abs(lbmax.y) < MAX_FORCE) {
+  if(std::abs(lbmax.y) > MIN_FORCE && std::abs(lbmax.y) < MAX_FORCE) {
     w_ratio *= lb_new.y * exp(-lb_new.y * k.y) / (2.0 * sinh(lb_new.y * max));
     w_ratio /= lb_old.y * exp(lb_old.y * k.y) / (2.0 * sinh(lb_old.y * max));
   }
 
-  if(abs(lbmax.z) > MIN_FORCE && abs(lbmax.z) < MAX_FORCE) {
+  if(std::abs(lbmax.z) > MIN_FORCE && std::abs(lbmax.z) < MAX_FORCE) {
     w_ratio *= lb_new.z * exp(-lb_new.z * k.z) / (2.0 * sinh(lb_new.z * max));
     w_ratio /= lb_old.z * exp(lb_old.z * k.z) / (2.0 * sinh(lb_old.z * max));
   }
@@ -359,8 +359,6 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   long double MPCoeff = GetCoeff();
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   long double accept = MPCoeff * uBoltz;
-  // cout << "MPCoeff: " << MPCoeff << ", sysPotNew: " << sysPotNew.Total()
-  //      << ", sysPotRef: " << sysPotRef.Total() << ", accept: " << accept <<endl;
   bool result = (rejectState == mv::fail_state::NO_FAIL) && prng() < accept;
   if(result) {
     sysPotRef = sysPotNew;
@@ -388,19 +386,19 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max)
 {
   XYZ lbmax = lb * max;
   XYZ num;
-  if(abs(lbmax.x) > MIN_FORCE && abs(lbmax.x) < MAX_FORCE) {
+  if(std::abs(lbmax.x) > MIN_FORCE && std::abs(lbmax.x) < MAX_FORCE) {
     num.x = log(exp(-1.0 * lbmax.x) + 2 * prng() * sinh(lbmax.x)) / lb.x;
   } else {
     num.x = prng.Sym(max);
   }
 
-  if(abs(lbmax.y) > MIN_FORCE && abs(lbmax.y) < MAX_FORCE) {
+  if(std::abs(lbmax.y) > MIN_FORCE && std::abs(lbmax.y) < MAX_FORCE) {
     num.y = log(exp(-1.0 * lbmax.y) + 2 * prng() * sinh(lbmax.y)) / lb.y;
   } else {
     num.y = prng.Sym(max);
   }
 
-  if(abs(lbmax.z) > MIN_FORCE && abs(lbmax.z) < MAX_FORCE) {
+  if(std::abs(lbmax.z) > MIN_FORCE && std::abs(lbmax.z) < MAX_FORCE) {
     num.z = log(exp(-1.0 * lbmax.z) + 2 * prng() * sinh(lbmax.z)) / lb.z;
   } else {
     num.z = prng.Sym(max);
@@ -410,7 +408,7 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max)
     std::cout << "Trial Displacement exceed half of the box length in Multiparticle move.\n";
     std::cout << "Trial transform: " << num;
     exit(EXIT_FAILURE);
-  } else if (!isfinite(num.Length())) {
+  } else if (!std::isfinite(num.Length())) {
     std::cout << "Trial Displacement is not a finite number in Multiparticle move.\n";
     std::cout << "Trial transform: " << num;
     exit(EXIT_FAILURE);

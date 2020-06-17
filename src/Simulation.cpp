@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -11,6 +11,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PSFOutput.h"
 #include <iostream>
 #include <iomanip>
+#include "CUDAMemoryManager.cuh"
+
+#define EPSILON 0.001
 
 Simulation::Simulation(char const*const configFileName, MultiSim const*const& multisim)
 {
@@ -48,6 +51,9 @@ Simulation::~Simulation()
   delete cpu;
   delete system;
   delete staticValues;
+#ifdef GOMC_CUDA
+  CUDAMemoryManager::isFreed();
+#endif
 }
 
 void Simulation::RunSimulation(void)
@@ -70,7 +76,7 @@ void Simulation::RunSimulation(void)
 
     if((step + 1) == cpu->equilSteps) {
       double currEnergy = system->potential.totalEnergy.total;
-      if(abs(currEnergy - startEnergy) > 1.0e+10) {
+      if(std::abs(currEnergy - startEnergy) > 1.0e+10) {
         printf("Info: Recalculating the total energies to insure the accuracy"
                " of the computed \n"
                "      running energies.\n\n");
@@ -84,8 +90,56 @@ void Simulation::RunSimulation(void)
       RunningCheck(step);
 #endif
   }
+  if(!RecalculateAndCheck()) {
+    std::cerr << "Warning: Updated energy differs from Recalculated Energy!\n";
+  }
   system->PrintAcceptance();
   system->PrintTime();
+}
+
+bool Simulation::RecalculateAndCheck(void)
+{
+  system->calcEwald->UpdateVectorsAndRecipTerms();
+  SystemPotential pot = system->calcEnergy.SystemTotal();
+
+  bool compare = true;
+  compare &= std::abs(system->potential.totalEnergy.intraBond - pot.totalEnergy.intraBond) < EPSILON;
+  compare &= std::abs(system->potential.totalEnergy.intraNonbond - pot.totalEnergy.intraNonbond) < EPSILON;
+  compare &= std::abs(system->potential.totalEnergy.inter - pot.totalEnergy.inter) < EPSILON;
+  compare &= std::abs(system->potential.totalEnergy.tc - pot.totalEnergy.tc) < EPSILON;
+  compare &= std::abs(system->potential.totalEnergy.real - pot.totalEnergy.real) < EPSILON;
+  compare &= std::abs(system->potential.totalEnergy.self - pot.totalEnergy.self) < EPSILON;
+  compare &= std::abs(system->potential.totalEnergy.correction - pot.totalEnergy.correction) < EPSILON;
+  compare &= std::abs(system->potential.totalEnergy.recip - pot.totalEnergy.recip) < EPSILON;
+
+  if(!compare) {
+    std::cout
+        << "=================================================================\n"
+        << "Energy       INTRA B |     INTRA NB |        INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
+        << std::endl
+        << "System: "
+        << std::setw(12) << system->potential.totalEnergy.intraBond << " | "
+        << std::setw(12) << system->potential.totalEnergy.intraNonbond << " | "
+        << std::setw(12) << system->potential.totalEnergy.inter << " | "
+        << std::setw(12) << system->potential.totalEnergy.tc << " | "
+        << std::setw(12) << system->potential.totalEnergy.real << " | "
+        << std::setw(12) << system->potential.totalEnergy.self << " | "
+        << std::setw(12) << system->potential.totalEnergy.correction << " | "
+        << std::setw(12) << system->potential.totalEnergy.recip << std::endl
+        << "Recalc: "
+        << std::setw(12) << pot.totalEnergy.intraBond << " | "
+        << std::setw(12) << pot.totalEnergy.intraNonbond << " | "
+        << std::setw(12) << pot.totalEnergy.inter << " | "
+        << std::setw(12) << pot.totalEnergy.tc << " | "
+        << std::setw(12) << pot.totalEnergy.real << " | "
+        << std::setw(12) << pot.totalEnergy.self << " | "
+        << std::setw(12) << pot.totalEnergy.correction << " | "
+        << std::setw(12) << pot.totalEnergy.recip << std::endl
+        << "================================================================"
+        << std::endl << std::endl;
+  }
+
+  return compare;
 }
 
 #ifndef NDEBUG

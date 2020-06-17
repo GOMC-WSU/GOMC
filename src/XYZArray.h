@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -437,6 +437,12 @@ inline void XYZArray::Init(const uint n)
   x = new double[n];
   y = new double[n];
   z = new double[n];
+
+  for(int i = 0; i < n; i++) {
+    x[i] = 0.0;
+    y[i] = 0.0;
+    z[i] = 0.0;
+  }
 
   allocDone = true;
 }

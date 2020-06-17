@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -31,8 +31,6 @@ const double TARGET_ACCEPT_FRACT = 0.3;
 
 class StaticVals;                 //For various initialization constants.
 class BoxDimensions;              //For axis sizes
-
-using namespace std;
 
 class MoveSettings
 {
@@ -120,11 +118,11 @@ public:
 
 private:
 
-  vector< vector< vector<double> > > scale, acceptPercent;
-  vector< vector< vector<uint> > > accepted, tries, tempAccepted, tempTries;
-  vector< vector< uint > > mp_accepted, mp_tries;
-  vector< double > mp_r_max;
-  vector< double > mp_t_max;
+  std::vector< std::vector< std::vector<double> > > scale, acceptPercent;
+  std::vector< std::vector< std::vector<uint> > > accepted, tries, tempAccepted, tempTries;
+  std::vector< std::vector< uint > > mp_accepted, mp_tries;
+  std::vector< double > mp_r_max;
+  std::vector< double > mp_t_max;
 
   uint perAdjust;
   uint totKind;

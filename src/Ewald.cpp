@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -113,7 +113,7 @@ void Ewald::Init()
       particleKind.push_back(molKind.AtomKind(a));
       particleMol.push_back(m);
       particleCharge.push_back(molKind.AtomCharge(a));
-      if(abs(molKind.AtomCharge(a)) < 0.000000001) {
+      if(std::abs(molKind.AtomCharge(a)) < 0.000000001) {
         particleHasNoCharge.push_back(true);
       } else {
         particleHasNoCharge.push_back(false);
@@ -507,7 +507,7 @@ void Ewald::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
 
   double dotProduct, sumReal, sumImaginary, coefDiff;
 
-#ifdef _OPENMP
+#if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
   #pragma omp parallel for default(shared) private(i, p, s, dotProduct, \
 sumReal, sumImaginary, coefDiff) reduction(+:energyRecip[:lambdaSize])
 #endif

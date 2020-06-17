@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -31,11 +31,10 @@ DCCrankShaftDih::DCCrankShaftDih(DCData* data, const mol_setup::MolKind& kind,
   data(data), a0(a0), a1(a1), a2(a2), a3(a3)
 {
   using namespace mol_setup;
-  using namespace std;
-  vector<bool> visited(kind.atoms.size(), false);
+  std::vector<bool> visited(kind.atoms.size(), false);
   totAtoms = kind.atoms.size();
   //Find all the atoms that bonds with atoms a1
-  vector<Bond> bonds = AtomBonds(kind, a1);
+  std::vector<Bond> bonds = AtomBonds(kind, a1);
   //Remove the a0-a1 bond
   bonds.erase(remove_if(bonds.begin(), bonds.end(), FindA1(a0)), bonds.end());
 
@@ -47,7 +46,7 @@ DCCrankShaftDih::DCCrankShaftDih(DCData* data, const mol_setup::MolKind& kind,
       visited[bonds[b].a0] = true;
     }
 
-    vector<Bond> temp = AtomBonds(kind, bonds[b].a1);
+    std::vector<Bond> temp = AtomBonds(kind, bonds[b].a1);
     //Remove a2-a3 bonds
     temp.erase(remove_if(temp.begin(), temp.end(), FindA1(a3)), temp.end());
     for(uint i = 0; i < temp.size(); i++) {
@@ -73,14 +72,14 @@ DCCrankShaftDih::DCCrankShaftDih(DCData* data, const mol_setup::MolKind& kind,
   //First find the angle x-a0-a1
   ang = AtomMidEndAngles(kind, a0, a1);
   //Add angle with a2-a3-x
-  vector<Angle> tempAng = AtomMidEndAngles(kind, a3, a2);
+  std::vector<Angle> tempAng = AtomMidEndAngles(kind, a3, a2);
   ang.insert(ang.end(), tempAng.begin(), tempAng.end());
 
   //Find the dihedral affected by rotation
   //First find the dihedral with x-a0-a1-x in the middle
   dih = DihsOnBond(kind, a0, a1);
   //Add dihedral with x-a2-a3-x
-  vector<Dihedral> tempDih = DihsOnBond(kind, a2, a3);
+  std::vector<Dihedral> tempDih = DihsOnBond(kind, a2, a3);
   dih.insert(dih.end(), tempDih.begin(), tempDih.end());
   //Add dihedral with atom a1 in one end: x-x-x-a1
   tempDih = AtomEndDihs(kind, a1);

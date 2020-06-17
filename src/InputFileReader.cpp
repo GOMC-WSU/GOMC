@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -32,9 +32,9 @@ InputFileReader::~InputFileReader()
   //fs.close();
 }
 
-void InputFileReader::Open(string inputFileName)
+void InputFileReader::Open(std::string inputFileName)
 {
-  fs.open(inputFileName.c_str(), fstream::in);
+  fs.open(inputFileName.c_str(), std::fstream::in);
   if(!fs.is_open()) {
     std::cout << "Cannot open input file!" << std::endl;
     exit(EXIT_FAILURE);
@@ -48,7 +48,7 @@ void InputFileReader::Open(string inputFileName)
 */
 bool InputFileReader::readNextLine(std::vector<std::string> & str)
 {
-  string line;
+  std::string line;
   do {
     if (fs.eof() || fs.bad() || fs.fail()) {
       return false;
@@ -58,9 +58,9 @@ bool InputFileReader::readNextLine(std::vector<std::string> & str)
       line = "#";
   } while (line[0] == '#' || line[0] == '\0');
 
-  istringstream iss(line);
-  copy(istream_iterator<std::string>(iss),
-       istream_iterator<std::string>(),
+  std::istringstream iss(line);
+  copy(std::istream_iterator<std::string>(iss),
+       std::istream_iterator<std::string>(),
        back_inserter(str));
   return true;
 }

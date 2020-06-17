@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -94,9 +94,8 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
 void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
 {
   using namespace mol_setup;
-  using namespace std;
   std::vector<uint> bondCount(kind.atoms.size(), 0);
-  vector<Bond> allBonds = BondsAll(kind);
+  std::vector<Bond> allBonds = BondsAll(kind);
   //Count the number of bonds for each atom
   for (uint b = 0; b < allBonds.size(); ++b) {
     ++bondCount[allBonds[b].a0];
@@ -104,7 +103,7 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
   }
 
   //Start with atoms that form dihedral
-  vector<Dihedral> dihs = DihsAll(kind);
+  std::vector<Dihedral> dihs = DihsAll(kind);
   for(uint d = 0; d < dihs.size(); d++) {
     //find the last atomindex in the dihedral
     uint a0 = dihs[d].a0;
@@ -118,9 +117,9 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
 
     bool fixAngle = false;
     //Find all the angle that forms x-a0-a1
-    vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
+    std::vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
     //Find all the angle that forms a2-a3-x
-    vector<Angle> tempAng = AtomMidEndAngles(kind, a3, a2);
+    std::vector<Angle> tempAng = AtomMidEndAngles(kind, a3, a2);
     //merge all the angle
     angle.insert(angle.end(), tempAng.begin(), tempAng.end());
     //Check to see if any of these angles are fixed or not.
@@ -137,7 +136,7 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
   }
 
   //Continue with the atoms that form angles.
-  vector<Angle> angles = AngsAll(kind);
+  std::vector<Angle> angles = AngsAll(kind);
   for(uint a = 0; a < angles.size(); a++) {
     //find the last atomindex in the angle
     uint a0 = angles[a].a0;
@@ -150,9 +149,9 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
 
     bool fixAngle = false;
     //Find all the angle that forms x-a0-a1
-    vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
+    std::vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
     //Find all the angle that forms a1-a2-x
-    vector<Angle> tempAng = AtomMidEndAngles(kind, a2, a1);
+    std::vector<Angle> tempAng = AtomMidEndAngles(kind, a2, a1);
     //merge all the angle
     angle.insert(angle.end(), tempAng.begin(), tempAng.end());
     //Check to see if any of these angles are fixed or not.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -157,10 +157,9 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
 void DCCyclic::InitCrankShaft(const mol_setup::MolKind& kind)
 {
   using namespace mol_setup;
-  using namespace std;
-  vector<Angle> angles = AngsAll(kind);
+  std::vector<Angle> angles = AngsAll(kind);
   std::vector<uint> bondCount(totAtom, 0);
-  vector<Bond> allBonds = BondsAll(kind);
+  std::vector<Bond> allBonds = BondsAll(kind);
   //Count the number of bonds for each atom
   for (uint b = 0; b < allBonds.size(); ++b) {
     ++bondCount[allBonds[b].a0];
@@ -179,9 +178,9 @@ void DCCyclic::InitCrankShaft(const mol_setup::MolKind& kind)
 
     bool fixAngle = false;
     //Find all the angle that forms x-a0-a1
-    vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
+    std::vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
     //Find all the angle that forms a1-a2-x
-    vector<Angle> tempAng = AtomMidEndAngles(kind, a2, a1);
+    std::vector<Angle> tempAng = AtomMidEndAngles(kind, a2, a1);
     //merge all the angle
     angle.insert(angle.end(), tempAng.begin(), tempAng.end());
     //Check to see if any of these angles are fixed or not.
@@ -194,7 +193,7 @@ void DCCyclic::InitCrankShaft(const mol_setup::MolKind& kind)
     bool sameRing = false;
     if(isRing[a1]) {
       //FInd the atoms that are bonded to a1
-      vector<Bond> bonds = AtomBonds(kind, a1);
+      std::vector<Bond> bonds = AtomBonds(kind, a1);
       for(uint b = 0; b < bonds.size(); b++) {
         uint partner = bonds[b].a1;
         if((partner == a0) || (partner == a2)) {
@@ -218,7 +217,7 @@ void DCCyclic::InitCrankShaft(const mol_setup::MolKind& kind)
     //If this atom is in the ring
     if(isRing[atom]) {
       //Find all the angle that forms x-atom-x
-      vector<Angle> angle = AtomMidAngles(kind, atom);
+      std::vector<Angle> angle = AtomMidAngles(kind, atom);
       for(uint a = 0; a < angle.size(); a++) {
         //find the atomindex in the angle
         uint a0 = angle[a].a0;
@@ -233,7 +232,7 @@ void DCCyclic::InitCrankShaft(const mol_setup::MolKind& kind)
           bool fixAngle = false;
           bool sameRing = false;
           //Find the atoms that are bonded to a1
-          vector<Bond> bonds = AtomBonds(kind, a1);
+          std::vector<Bond> bonds = AtomBonds(kind, a1);
           for(uint b = 0; b < bonds.size(); b++) {
             uint partner = bonds[b].a1;
             if((partner == a0) || (partner == a2)) {
@@ -243,7 +242,7 @@ void DCCyclic::InitCrankShaft(const mol_setup::MolKind& kind)
               sameRing |= (ringIdx[a1] == ringIdx[partner]);
             }
             //Find all the angle that forms partner-a1-x (x is either a0 or a2)
-            vector<Angle> ang = AtomMidEndAngles(kind, a1, partner);
+            std::vector<Angle> ang = AtomMidEndAngles(kind, a1, partner);
             //Check to see if any of these angles are fixed or not.
             for(uint i = 0; i < ang.size(); i++) {
               fixAngle |= data.ff.angles->AngleFixed(ang[i].kind);

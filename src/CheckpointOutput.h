@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -60,10 +60,10 @@ private:
   void printMoveSettingsData();
   void printBoxDimensionsData();
 
-  void printVector3DDouble(vector< vector< vector <double> > > data);
-  void printVector3DUint(vector< vector< vector <uint> > > data);
-  void printVector2DUint(vector< vector< uint > > data);
-  void printVector1DDouble(vector< double > data);
+  void printVector3DDouble(std::vector< std::vector< std::vector<double> > > data);
+  void printVector3DUint(std::vector< std::vector< std::vector<uint> > > data);
+  void printVector2DUint(std::vector< std::vector< uint > > data);
+  void printVector1DDouble(std::vector< double > data);
   void outputDoubleIn8Chars(double data);
   void outputUintIn8Chars(uint32_t data);
 

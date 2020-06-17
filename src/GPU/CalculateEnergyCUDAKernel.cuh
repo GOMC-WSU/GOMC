@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -13,29 +13,29 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BoxDimensions.h"
 #include "VariablesCUDA.cuh"
 
-using namespace std;
-
 void CallBoxInterGPU(VariablesCUDA *vars,
-                     vector<uint> pair1,
-                     vector<uint> pair2,
+                     std::vector<int> cellVector,
+                     std::vector<int> cellStartIndex,
+                     std::vector<std::vector<int> > neighborList,
                      XYZArray const &coords,
                      BoxDimensions const &boxAxes,
                      bool electrostatic,
-                     vector<double> particleCharge,
-                     vector<int> particleKind,
-                     vector<int> particleMol,
+                     std::vector<double> particleCharge,
+                     std::vector<int> particleKind,
+                     std::vector<int> particleMol,
                      double &REn,
                      double &LJEn,
-                     double *lambdaVDW,
-                     double *lambdaCoulomb,
                      bool sc_coul,
                      double sc_sigma_6,
                      double sc_alpha,
                      uint sc_power,
                      uint const box);
 
-__global__ void BoxInterGPU(int *gpu_pair1,
-                            int *gpu_pair2,
+__global__ void BoxInterGPU(int *gpu_cellStartIndex,
+                            int *gpu_cellVector,
+                            int *gpu_neighborList,
+                            int numberOfCells,
+                            int cellVectorCount,
                             double *gpu_x,
                             double *gpu_y,
                             double *gpu_z,
@@ -48,7 +48,6 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             int *gpu_particleMol,
                             double *gpu_REn,
                             double *gpu_LJEn,
-                            int pairSize,
                             double *gpu_sigmaSq,
                             double *gpu_epsilon_Cn,
                             double *gpu_n,
@@ -69,8 +68,6 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             double *gpu_Invcell_x,
                             double *gpu_Invcell_y,
                             double *gpu_Invcell_z,
-                            double *gpu_lambdaVDW,
-                            double *gpu_lambdaCoulomb,
                             bool sc_coul,
                             double sc_sigma_6,
                             double sc_alpha,
@@ -78,6 +75,11 @@ __global__ void BoxInterGPU(int *gpu_pair1,
                             double *gpu_rMin,
                             double *gpu_rMaxSq,
                             double *gpu_expConst,
+                            int *gpu_molIndex,
+                            int *gpu_kindIndex,
+                            double *gpu_lambdaVDW,
+                            double *gpu_lambdaCoulomb,
+                            bool *gpu_isFraction,
                             int box);
 
 
@@ -153,7 +155,12 @@ __device__ double CalcCoulombSwitchGPU(double distSq, double qi_qj_fact,
 __device__ double CalcCoulombSwitchGPUNoLambda(double distSq, double qi_qj_fact,
     double gpu_alpha, int gpu_ewald,
     double gpu_rCut);
-
+__device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
+    int gpu_ewald, double gpu_alpha,
+    int index, double *gpu_sigmaSq,
+    bool sc_coul, double sc_sigma_6,
+    double sc_alpha, uint sc_power,
+    double gpu_lambdaCoulomb);
 __device__ double CalcCoulombVirParticleGPU(double distSq, double qi_qj,
     double gpu_ewald, double gpu_alpha);
 __device__ double CalcCoulombVirSwitchMartiniGPU(double distSq, double qi_qj,

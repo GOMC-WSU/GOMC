@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -217,7 +217,7 @@ void TrialMol::SetBasis(const uint p1, const uint p2)
   wVec.Normalize();
   XYZ uVec;
   //check to make sure our W isn't in line with the standard X Axis
-  if (abs(wVec.x) < 0.8) {
+  if (std::abs(wVec.x) < 0.8) {
     //V will be W x the standard X unit vec
     uVec = XYZ(1.0, 0.0, 0.0);
   } else {

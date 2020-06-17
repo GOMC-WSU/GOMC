@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -174,13 +174,13 @@ public:
   double IntraEnergy_1_4(const double distSq, const uint atom1,
                          const uint atom2, const uint molIndex) const;
   //! Calculate Torque
-  void CalculateTorque(vector<uint>& moleculeIndex,
+  void CalculateTorque(std::vector<uint>& moleculeIndex,
                        XYZArray const& coordinates,
                        XYZArray const& com,
                        XYZArray const& atomForce,
                        XYZArray const& atomForceRec,
                        XYZArray& molTorque,
-                       vector<uint>& moveType,
+                       std::vector<uint>& moveType,
                        const uint box);
 
   //Finding the molecule inside cavity and store the molecule Index.

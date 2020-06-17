@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -20,6 +20,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define GPU_VDW_EXP6_KIND 3
 #define MAX_PAIR_SIZE 10000000
 
+void InitGPULambda(VariablesCUDA *vars, int *molIndex, int *kindIndex,
+                   double *lambdaVDW, double *lambdaCoulomb, bool *isFraction);
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
                        double const *epsilon_Cn, double const *n,
                        int VDW_Kind, int isMartini, int count,

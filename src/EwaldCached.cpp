@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -86,7 +86,7 @@ void EwaldCached::Init()
       particleKind.push_back(molKind.AtomKind(a));
       particleMol.push_back(m);
       particleCharge.push_back(molKind.AtomCharge(a));
-      if(abs(molKind.AtomCharge(a)) < 0.000000001) {
+      if(std::abs(molKind.AtomCharge(a)) < 0.000000001) {
         particleHasNoCharge.push_back(true);
       } else {
         particleHasNoCharge.push_back(false);
@@ -212,6 +212,7 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
         sumRnew[box][i] += (lambdaCoef * cosMolRef[*thisMol][i]);
         sumInew[box][i] += (lambdaCoef * sinMolRef[*thisMol][i]);
       }
+
       thisMol++;
     }
   }
@@ -305,7 +306,7 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
   double energyRecipOld = 0.0;
 
 #ifdef _OPENMP
-#pragma omp parallel default(shared)
+  #pragma omp parallel default(shared)
 #endif
   {
     std::memcpy(cosMolRestore, cosMolRef[molIndex], sizeof(double)*imageTotal);
@@ -424,7 +425,7 @@ void EwaldCached::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
   double *energyRecip = new double [lambdaSize];
   std::fill_n(energyRecip, lambdaSize, 0.0);
 
-#ifdef _OPENMP
+#if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
   #pragma omp parallel for default(shared) private(i, s, coefDiff) reduction(+:energyRecip[:lambdaSize])
 #endif
   for (i = 0; i < imageSizeRef[box]; i++) {

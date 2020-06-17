@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -63,8 +63,7 @@ DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
   : data(data), focus(focus), prev(prev)
 {
   using namespace mol_setup;
-  using namespace std;
-  vector<Bond> onFocus = AtomBonds(kind, focus);
+  std::vector<Bond> onFocus = AtomBonds(kind, focus);
   onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
                 onFocus.end());
   nBonds = onFocus.size();
@@ -73,7 +72,7 @@ DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
     bonded[i] = onFocus[i].a1;
   }
 
-  vector<Angle> angles = AtomMidAngles(kind, focus);
+  std::vector<Angle> angles = AtomMidAngles(kind, focus);
   double sumAngle = 0.0;
   for (uint a = 0; a < angles.size(); a++) {
     sumAngle += data->ff.angles->Angle(angles[a].kind);
@@ -81,11 +80,11 @@ DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
   //If sum of angles = 2*pi = 6.283, it means they are in a plane
   //To avoid geometric conflict for flexible angle, we consider it fix and
   //let crankshaft to sample it. 0.044 ~= 5 degree
-  bool angleInPlane = (abs(2.0 * M_PI - sumAngle) < 0.044);
+  bool angleInPlane = (std::abs(2.0 * M_PI - sumAngle) < 0.044);
   bool constrainAngInRing = false;
 
   for (uint i = 0; i < nBonds; ++i) {
-    typedef vector<Angle>::const_iterator Aiter;
+    typedef std::vector<Angle>::const_iterator Aiter;
     Aiter free = find_if(angles.begin(), angles.end(),
                          FindAngle(prev, bonded[i]));
     assert(free != angles.end());
@@ -378,7 +377,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
         ang = (flip ? 2.0 * M_PI - ang : ang);
         ang += phi[c];
         std::fill_n(angles, nTrials, ang);
-        if(isnan(ang)) {
+        if(std::isnan(ang)) {
           std::cout << "Error: Cannot Construct Angle " <<
                     newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
                     newMol.GetKind().atomTypeNames[focus] << " " <<
@@ -465,7 +464,7 @@ void DCHedronCycle::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
         ang = (flip ? 2.0 * M_PI - ang : ang);
         ang += phi[c];
         std::fill_n(angles, nTrials, ang);
-        if(isnan(ang)) {
+        if(std::isnan(ang)) {
           std::cout << "Error: Cannot Construct Angle" <<
                     oldMol.GetKind().atomTypeNames[bonded[b]] << " " <<
                     oldMol.GetKind().atomTypeNames[focus] << " " <<
@@ -511,7 +510,7 @@ void DCHedronCycle::SetBasis(TrialMol& mol, uint p1, uint p2)
   wVec.Normalize();
   XYZ uVec;
   //check to make sure our W isn't in line with the standard X Axis
-  if (abs(wVec.x) < 0.8) {
+  if (std::abs(wVec.x) < 0.8) {
     //V will be W x the standard X unit vec
     uVec = XYZ(1.0, 0.0, 0.0);
   } else {

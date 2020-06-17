@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -184,13 +184,12 @@ void Atoms::Clear()
 void PDBSetup::Init(config_setup::RestartSettings const& restart,
                     std::string const*const name, uint frameNum)
 {
-  using namespace std;
   // Clear the vectors for both atoms and remarks in case Init was called
   // more than once
   atoms.Clear();
   remarks.Clear();
 
-  map<string, FWReadableBase *>::const_iterator dataKind;
+  std::map<std::string, FWReadableBase *>::const_iterator dataKind;
   remarks.SetRestart(restart);
   atoms.SetRestart(restart);
 
@@ -246,7 +245,7 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
 
 std::vector<ulong> PDBSetup::GetFrameSteps(std::string const*const name)
 {
-  map<string, FWReadableBase *>::const_iterator dataKind;
+  std::map<std::string, FWReadableBase *>::const_iterator dataKind;
   remarks.SetBox(mv::BOX0);
   FixedWidthReader pdb(name[mv::BOX0], pdbAlias[mv::BOX0]);
   pdb.open();

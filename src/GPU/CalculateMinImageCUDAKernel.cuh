@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -121,6 +121,44 @@ __device__ inline double DotProductGPU(double kx, double ky, double kz,
                                        double x, double y, double z)
 {
   return (kx * x + ky * y + kz * z);
+}
+
+__device__ inline double DeviceGetLambdaVDW(int molA, int kindA, int molB,
+    int kindB, int box,
+    bool *gpu_isFraction,
+    int *gpu_molIndex,
+    int *gpu_kindIndex,
+    double *gpu_lambdaVDW)
+{
+  double lambda = 1.0;
+  if(gpu_isFraction[box]) {
+    if((gpu_molIndex[box] == molA) && (gpu_kindIndex[box] == kindA)) {
+      lambda *= gpu_lambdaVDW[box];
+    }
+    if((gpu_molIndex[box] == molB) && (gpu_kindIndex[box] == kindB)) {
+      lambda *= gpu_lambdaVDW[box];
+    }
+  }
+  return lambda;
+}
+
+__device__ inline double DeviceGetLambdaCoulomb(int molA, int kindA, int molB,
+    int kindB, int box,
+    bool *gpu_isFraction,
+    int *gpu_molIndex,
+    int *gpu_kindIndex,
+    double *gpu_lambdaCoulomb)
+{
+  double lambda = 1.0;
+  if(gpu_isFraction[box]) {
+    if((gpu_molIndex[box] == molA) && (gpu_kindIndex[box] == kindA)) {
+      lambda *= gpu_lambdaCoulomb[box];
+    }
+    if((gpu_molIndex[box] == molB) && (gpu_kindIndex[box] == kindB)) {
+      lambda *= gpu_lambdaCoulomb[box];
+    }
+  }
+  return lambda;
 }
 
 // Add atomic operations for GPUs that do not support it

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -48,8 +48,7 @@ DCHedron::DCHedron(DCData* data, const mol_setup::MolKind& kind,
   : data(data), focus(focus), prev(prev)
 {
   using namespace mol_setup;
-  using namespace std;
-  vector<Bond> onFocus = AtomBonds(kind, focus);
+  std::vector<Bond> onFocus = AtomBonds(kind, focus);
   onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
                 onFocus.end());
   nBonds = onFocus.size();
@@ -58,9 +57,9 @@ DCHedron::DCHedron(DCData* data, const mol_setup::MolKind& kind,
     bonded[i] = onFocus[i].a1;
   }
 
-  vector<Angle> angles = AtomMidAngles(kind, focus);
+  std::vector<Angle> angles = AtomMidAngles(kind, focus);
   for (uint i = 0; i < nBonds; ++i) {
-    typedef vector<Angle>::const_iterator Aiter;
+    typedef std::vector<Angle>::const_iterator Aiter;
     Aiter free = find_if(angles.begin(), angles.end(),
                          FindAngle(prev, bonded[i]));
     assert(free != angles.end());
@@ -298,7 +297,7 @@ void DCHedron::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTrials)
         var = (var < -1.0 && var > -1.1 ? -1.0 : var);
         double ang = acos(var) + phi[c];
         std::fill_n(angles, nTrials, ang);
-        if(isnan(ang)) {
+        if(std::isnan(ang)) {
           //printf("Val: %2.10f, angle: %2.5f \n", var, ang);
           std::cout << "Error: Cannot constrain fix angle for " <<
                     newMol.GetKind().atomTypeNames[bonded[b]] << " " <<
@@ -372,7 +371,7 @@ void DCHedron::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
         var = (var < -1.0 && var > -1.1 ? -1.0 : var);
         double ang = acos(var) + phi[c];
         std::fill_n(angles, nTrials, ang);
-        if(isnan(ang)) {
+        if(std::isnan(ang)) {
           //printf("Val: %2.10f, angle: %2.5f \n", var, ang);
           std::cout << "Error: Cannot constrain fix angle for " <<
                     oldMol.GetKind().atomTypeNames[bonded[b]] << " " <<

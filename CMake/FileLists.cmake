@@ -187,13 +187,15 @@ set(cudaHeaders
     src/GPU/CalculateEnergyCUDAKernel.cuh
     src/GPU/CalculateForceCUDAKernel.cuh
     src/GPU/CalculateEwaldCUDAKernel.cuh
-    src/GPU/VariablesCUDA.cuh)
+    src/GPU/VariablesCUDA.cuh
+    src/GPU/CUDAMemoryManager.cuh)
 
 set(cudaSources
     src/GPU/CalculateEnergyCUDAKernel.cu
     src/GPU/CalculateForceCUDAKernel.cu
     src/GPU/CalculateEwaldCUDAKernel.cu
-    src/GPU/ConstantDefinitionsCUDAKernel.cu)
+    src/GPU/ConstantDefinitionsCUDAKernel.cu
+    src/GPU/CUDAMemoryManager.cu)
 
 source_group("Header Files" FILES ${headers})
 source_group("Lib Headers" FILES ${libHeaders})

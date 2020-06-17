@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -228,3 +228,33 @@ CellList::Pairs CellList::EnumeratePairs(int box) const
 {
   return CellList::Pairs(*this, box);
 }
+
+void CellList::GetCellListNeighbor(uint box, int coordinateSize,
+                                   std::vector<int> &cellVector, std::vector<int> &cellStartIndex,
+                                   std::vector<int> &mapParticleToCell) const
+{
+  cellVector.resize(coordinateSize);
+  cellStartIndex.resize(head[box].size());
+  mapParticleToCell.resize(coordinateSize);
+  int vector_index = 0;
+  for(int cell = 0; cell < head[box].size(); cell++) {
+    cellStartIndex[cell] = vector_index;
+    int particleIndex = head[box][cell];
+    while(particleIndex != END_CELL) {
+      cellVector[vector_index] = particleIndex;
+      mapParticleToCell[particleIndex] = cell;
+      vector_index++;
+      particleIndex = list[particleIndex];
+    }
+    // we are going to sort particles in each cell for better memor access
+    std::sort(cellVector.begin() + cellStartIndex[cell], cellVector.begin() + vector_index);
+  }
+  // in case there are two boxes we need to remove the extra space allocated here
+  cellVector.resize(vector_index);
+}
+
+std::vector<std::vector<int> > CellList::GetNeighborList(uint box) const
+{
+  return neighbors[box];
+}
+

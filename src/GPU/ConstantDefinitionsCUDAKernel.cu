@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -9,8 +9,32 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <cuda_runtime.h>
 #include "GeomLib.h"
 #include "ConstantDefinitionsCUDAKernel.cuh"
+#include "CUDAMemoryManager.cuh"
 #include <iostream>
 #include <stdio.h>
+
+void InitGPULambda(VariablesCUDA *vars, int *molIndex, int *kindIndex,
+                   double *lambdaVDW, double *lambdaCoulomb, bool *isFraction)
+{
+  // allocate gpu memory for lambda variables
+  CUMALLOC((void**) &vars->gpu_molIndex, (int)BOX_TOTAL * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_kindIndex, (int)BOX_TOTAL * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_lambdaVDW, (int)BOX_TOTAL * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_lambdaCoulomb, (int)BOX_TOTAL * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_isFraction, (int)BOX_TOTAL * sizeof(bool));
+
+  // copy required data
+  cudaMemcpy(vars->gpu_molIndex, molIndex, BOX_TOTAL * sizeof(int),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_kindIndex, kindIndex, BOX_TOTAL * sizeof(int),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_lambdaVDW, lambdaVDW, BOX_TOTAL * sizeof(double),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_lambdaCoulomb, lambdaCoulomb, BOX_TOTAL * sizeof(double),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_isFraction, isFraction, BOX_TOTAL * sizeof(bool),
+             cudaMemcpyHostToDevice);
+}
 
 void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
                        double const *epsilon_Cn,
@@ -20,19 +44,19 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
                        int ewald, double diElectric_1)
 {
   int countSq = count * count;
-  cudaMalloc(&vars.gpu_sigmaSq, countSq * sizeof(double));
-  cudaMalloc(&vars.gpu_epsilon_Cn, countSq * sizeof(double));
-  cudaMalloc(&vars.gpu_n, countSq * sizeof(double));
-  cudaMalloc(&vars.gpu_VDW_Kind, sizeof(int));
-  cudaMalloc(&vars.gpu_isMartini, sizeof(int));
-  cudaMalloc(&vars.gpu_count, sizeof(int));
-  cudaMalloc(&vars.gpu_rCut, sizeof(double));
-  cudaMalloc(&vars.gpu_rCutCoulomb, BOX_TOTAL * sizeof(double));
-  cudaMalloc(&vars.gpu_rCutLow, sizeof(double));
-  cudaMalloc(&vars.gpu_rOn, sizeof(double));
-  cudaMalloc(&vars.gpu_alpha, BOX_TOTAL * sizeof(double));
-  cudaMalloc(&vars.gpu_ewald, sizeof(int));
-  cudaMalloc(&vars.gpu_diElectric_1, sizeof(double));
+  CUMALLOC((void**) &vars.gpu_sigmaSq, countSq * sizeof(double));
+  CUMALLOC((void**) &vars.gpu_epsilon_Cn, countSq * sizeof(double));
+  CUMALLOC((void**) &vars.gpu_n, countSq * sizeof(double));
+  CUMALLOC((void**) &vars.gpu_VDW_Kind, sizeof(int));
+  CUMALLOC((void**) &vars.gpu_isMartini, sizeof(int));
+  CUMALLOC((void**) &vars.gpu_count, sizeof(int));
+  CUMALLOC((void**) &vars.gpu_rCut, sizeof(double));
+  CUMALLOC((void**) &vars.gpu_rCutCoulomb, BOX_TOTAL * sizeof(double));
+  CUMALLOC((void**) &vars.gpu_rCutLow, sizeof(double));
+  CUMALLOC((void**) &vars.gpu_rOn, sizeof(double));
+  CUMALLOC((void**) &vars.gpu_alpha, BOX_TOTAL * sizeof(double));
+  CUMALLOC((void**) &vars.gpu_ewald, sizeof(int));
+  CUMALLOC((void**) &vars.gpu_diElectric_1, sizeof(double));
 
   cudaMemcpy(vars.gpu_sigmaSq, sigmaSq, countSq * sizeof(double),
              cudaMemcpyHostToDevice);
@@ -61,36 +85,23 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
 void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
                          uint maxAtomsInMol, uint maxMolNumber)
 {
-  cudaMalloc(&vars->gpu_x, atomNumber * sizeof(double));
-  cudaMalloc(&vars->gpu_y, atomNumber * sizeof(double));
-  cudaMalloc(&vars->gpu_z, atomNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_x, atomNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_y, atomNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_z, atomNumber * sizeof(double));
 
-  cudaMalloc(&vars->gpu_dx, atomNumber * sizeof(double));
-  cudaMalloc(&vars->gpu_dy, atomNumber * sizeof(double));
-  cudaMalloc(&vars->gpu_dz, atomNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_dx, atomNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_dy, atomNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_dz, atomNumber * sizeof(double));
 
-  cudaMalloc(&vars->gpu_nx, maxAtomsInMol * sizeof(double));
-  cudaMalloc(&vars->gpu_ny, maxAtomsInMol * sizeof(double));
-  cudaMalloc(&vars->gpu_nz, maxAtomsInMol * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_nx, maxAtomsInMol * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_ny, maxAtomsInMol * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_nz, maxAtomsInMol * sizeof(double));
 
-  cudaMalloc(&vars->gpu_comx, maxMolNumber * sizeof(double));
-  cudaMalloc(&vars->gpu_comy, maxMolNumber * sizeof(double));
-  cudaMalloc(&vars->gpu_comz, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_comx, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_comy, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_comz, maxMolNumber * sizeof(double));
 
-  cudaMalloc(&vars->gpu_rT11, MAX_PAIR_SIZE * sizeof(double));
-  cudaMalloc(&vars->gpu_rT12, MAX_PAIR_SIZE * sizeof(double));
-  cudaMalloc(&vars->gpu_rT13, MAX_PAIR_SIZE * sizeof(double));
-  cudaMalloc(&vars->gpu_rT22, MAX_PAIR_SIZE * sizeof(double));
-  cudaMalloc(&vars->gpu_rT23, MAX_PAIR_SIZE * sizeof(double));
-  cudaMalloc(&vars->gpu_rT33, MAX_PAIR_SIZE * sizeof(double));
-  cudaMalloc(&vars->gpu_vT11, MAX_PAIR_SIZE * sizeof(double));
-  cudaMalloc(&vars->gpu_vT12, MAX_PAIR_SIZE * sizeof(double));
-  cudaMalloc(&vars->gpu_vT13, MAX_PAIR_SIZE * sizeof(double));
-  cudaMalloc(&vars->gpu_vT22, MAX_PAIR_SIZE * sizeof(double));
-  cudaMalloc(&vars->gpu_vT23, MAX_PAIR_SIZE * sizeof(double));
-  cudaMalloc(&vars->gpu_vT33, MAX_PAIR_SIZE * sizeof(double));
-
-  cudaMalloc(&vars->gpu_nonOrth, sizeof(int));
+  CUMALLOC((void**) &vars->gpu_nonOrth, sizeof(int));
   vars->gpu_cell_x = new double *[BOX_TOTAL];
   vars->gpu_cell_y = new double *[BOX_TOTAL];
   vars->gpu_cell_z = new double *[BOX_TOTAL];
@@ -98,29 +109,31 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   vars->gpu_Invcell_y = new double *[BOX_TOTAL];
   vars->gpu_Invcell_z = new double *[BOX_TOTAL];
   for(uint b = 0; b < BOX_TOTAL; b++) {
-    cudaMalloc(&vars->gpu_cell_x[b], 3 * sizeof(double));
-    cudaMalloc(&vars->gpu_cell_y[b], 3 * sizeof(double));
-    cudaMalloc(&vars->gpu_cell_z[b], 3 * sizeof(double));
-    cudaMalloc(&vars->gpu_Invcell_x[b], 3 * sizeof(double));
-    cudaMalloc(&vars->gpu_Invcell_y[b], 3 * sizeof(double));
-    cudaMalloc(&vars->gpu_Invcell_z[b], 3 * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_cell_x[b], 3 * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_cell_y[b], 3 * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_cell_z[b], 3 * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_Invcell_x[b], 3 * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_Invcell_y[b], 3 * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_Invcell_z[b], 3 * sizeof(double));
   }
 
-  cudaMalloc(&vars->gpu_aForcex, atomNumber * sizeof(double));
-  cudaMalloc(&vars->gpu_aForcey, atomNumber * sizeof(double));
-  cudaMalloc(&vars->gpu_aForcez, atomNumber * sizeof(double));
-  cudaMalloc(&vars->gpu_mForcex, maxMolNumber * sizeof(double));
-  cudaMalloc(&vars->gpu_mForcey, maxMolNumber * sizeof(double));
-  cudaMalloc(&vars->gpu_mForcez, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_aForcex, atomNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_aForcey, atomNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_aForcez, atomNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_mForcex, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_mForcey, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_mForcez, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_cellVector, atomNumber * sizeof(int));
+  CUMALLOC((void**) &vars->gpu_mapParticleToCell, atomNumber * sizeof(int));
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
 void InitExp6Variables(VariablesCUDA *vars, double *rMin, double *expConst,
                        double *rMaxSq, uint size)
 {
-  cudaMalloc(&vars->gpu_rMin, size * sizeof(double));
-  cudaMalloc(&vars->gpu_rMaxSq, size * sizeof(double));
-  cudaMalloc(&vars->gpu_expConst, size * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_rMin, size * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_rMaxSq, size * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_expConst, size * sizeof(double));
 
   cudaMemcpy(vars->gpu_rMin, rMin, size * sizeof(double),
              cudaMemcpyHostToDevice);
@@ -149,21 +162,21 @@ void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal)
   vars->gpu_hsqrRef = new double *[BOX_TOTAL];
 
   for(uint b = 0; b < BOX_TOTAL; b++) {
-    cudaMalloc(&vars->gpu_kx[b], imageTotal * sizeof(double));
-    cudaMalloc(&vars->gpu_ky[b], imageTotal * sizeof(double));
-    cudaMalloc(&vars->gpu_kz[b], imageTotal * sizeof(double));
-    cudaMalloc(&vars->gpu_kxRef[b], imageTotal * sizeof(double));
-    cudaMalloc(&vars->gpu_kyRef[b], imageTotal * sizeof(double));
-    cudaMalloc(&vars->gpu_kzRef[b], imageTotal * sizeof(double));
-    cudaMalloc(&vars->gpu_sumRnew[b], imageTotal * sizeof(double));
-    cudaMalloc(&vars->gpu_sumRref[b], imageTotal * sizeof(double));
-    cudaMalloc(&vars->gpu_sumInew[b], imageTotal * sizeof(double));
-    cudaMalloc(&vars->gpu_sumIref[b], imageTotal * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_kx[b], imageTotal * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_ky[b], imageTotal * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_kz[b], imageTotal * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_kxRef[b], imageTotal * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_kyRef[b], imageTotal * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_kzRef[b], imageTotal * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_sumRnew[b], imageTotal * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_sumRref[b], imageTotal * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_sumInew[b], imageTotal * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_sumIref[b], imageTotal * sizeof(double));
 
-    cudaMalloc(&vars->gpu_prefact[b], imageTotal * sizeof(double));
-    cudaMalloc(&vars->gpu_prefactRef[b], imageTotal * sizeof(double));
-    cudaMalloc(&vars->gpu_hsqr[b], imageTotal * sizeof(double));
-    cudaMalloc(&vars->gpu_hsqrRef[b], imageTotal * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_prefact[b], imageTotal * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_prefactRef[b], imageTotal * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_hsqr[b], imageTotal * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_hsqrRef[b], imageTotal * sizeof(double));
   }
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
@@ -252,20 +265,20 @@ void UpdateInvCellBasisCUDA(VariablesCUDA *vars, uint box,
 void DestroyEwaldCUDAVars(VariablesCUDA *vars)
 {
   for(uint b = 0; b < BOX_TOTAL; b++) {
-    cudaFree(vars->gpu_kx[b]);
-    cudaFree(vars->gpu_ky[b]);
-    cudaFree(vars->gpu_kz[b]);
-    cudaFree(vars->gpu_kxRef[b]);
-    cudaFree(vars->gpu_kyRef[b]);
-    cudaFree(vars->gpu_kzRef[b]);
-    cudaFree(vars->gpu_sumRnew[b]);
-    cudaFree(vars->gpu_sumRref[b]);
-    cudaFree(vars->gpu_sumInew[b]);
-    cudaFree(vars->gpu_sumIref[b]);
-    cudaFree(vars->gpu_prefact[b]);
-    cudaFree(vars->gpu_prefactRef[b]);
-    cudaFree(vars->gpu_hsqr[b]);
-    cudaFree(vars->gpu_hsqrRef[b]);
+    CUFREE(vars->gpu_kx[b]);
+    CUFREE(vars->gpu_ky[b]);
+    CUFREE(vars->gpu_kz[b]);
+    CUFREE(vars->gpu_kxRef[b]);
+    CUFREE(vars->gpu_kyRef[b]);
+    CUFREE(vars->gpu_kzRef[b]);
+    CUFREE(vars->gpu_sumRnew[b]);
+    CUFREE(vars->gpu_sumRref[b]);
+    CUFREE(vars->gpu_sumInew[b]);
+    CUFREE(vars->gpu_sumIref[b]);
+    CUFREE(vars->gpu_prefact[b]);
+    CUFREE(vars->gpu_prefactRef[b]);
+    CUFREE(vars->gpu_hsqr[b]);
+    CUFREE(vars->gpu_hsqrRef[b]);
   }
   delete [] vars->gpu_kx;
   delete [] vars->gpu_ky;
@@ -285,58 +298,56 @@ void DestroyEwaldCUDAVars(VariablesCUDA *vars)
 
 void DestroyCUDAVars(VariablesCUDA *vars)
 {
-  cudaFree(vars->gpu_sigmaSq);
-  cudaFree(vars->gpu_epsilon_Cn);
-  cudaFree(vars->gpu_n);
-  cudaFree(vars->gpu_VDW_Kind);
-  cudaFree(vars->gpu_isMartini);
-  cudaFree(vars->gpu_count);
-  cudaFree(vars->gpu_rCut);
-  cudaFree(vars->gpu_rCutCoulomb);
-  cudaFree(vars->gpu_rCutLow);
-  cudaFree(vars->gpu_rOn);
-  cudaFree(vars->gpu_alpha);
-  cudaFree(vars->gpu_ewald);
-  cudaFree(vars->gpu_diElectric_1);
-  cudaFree(vars->gpu_x);
-  cudaFree(vars->gpu_y);
-  cudaFree(vars->gpu_z);
-  cudaFree(vars->gpu_dx);
-  cudaFree(vars->gpu_dy);
-  cudaFree(vars->gpu_dz);
-  cudaFree(vars->gpu_nx);
-  cudaFree(vars->gpu_ny);
-  cudaFree(vars->gpu_nz);
-  cudaFree(vars->gpu_comx);
-  cudaFree(vars->gpu_comy);
-  cudaFree(vars->gpu_comz);
-  cudaFree(vars->gpu_aForcex);
-  cudaFree(vars->gpu_aForcey);
-  cudaFree(vars->gpu_aForcez);
-  cudaFree(vars->gpu_mForcex);
-  cudaFree(vars->gpu_mForcey);
-  cudaFree(vars->gpu_mForcez);
-  cudaFree(vars->gpu_rT11);
-  cudaFree(vars->gpu_rT12);
-  cudaFree(vars->gpu_rT13);
-  cudaFree(vars->gpu_rT22);
-  cudaFree(vars->gpu_rT23);
-  cudaFree(vars->gpu_rT33);
-  cudaFree(vars->gpu_vT11);
-  cudaFree(vars->gpu_vT12);
-  cudaFree(vars->gpu_vT13);
-  cudaFree(vars->gpu_vT22);
-  cudaFree(vars->gpu_vT23);
-  cudaFree(vars->gpu_vT33);
-  cudaFree(vars->gpu_nonOrth);
+  CUFREE(vars->gpu_sigmaSq);
+  CUFREE(vars->gpu_epsilon_Cn);
+  CUFREE(vars->gpu_n);
+  CUFREE(vars->gpu_VDW_Kind);
+  CUFREE(vars->gpu_isMartini);
+  CUFREE(vars->gpu_count);
+  CUFREE(vars->gpu_rCut);
+  CUFREE(vars->gpu_rCutCoulomb);
+  CUFREE(vars->gpu_rCutLow);
+  CUFREE(vars->gpu_rOn);
+  CUFREE(vars->gpu_alpha);
+  CUFREE(vars->gpu_ewald);
+  CUFREE(vars->gpu_diElectric_1);
+  CUFREE(vars->gpu_x);
+  CUFREE(vars->gpu_y);
+  CUFREE(vars->gpu_z);
+  CUFREE(vars->gpu_dx);
+  CUFREE(vars->gpu_dy);
+  CUFREE(vars->gpu_dz);
+  CUFREE(vars->gpu_nx);
+  CUFREE(vars->gpu_ny);
+  CUFREE(vars->gpu_nz);
+  CUFREE(vars->gpu_comx);
+  CUFREE(vars->gpu_comy);
+  CUFREE(vars->gpu_comz);
+  CUFREE(vars->gpu_aForcex);
+  CUFREE(vars->gpu_aForcey);
+  CUFREE(vars->gpu_aForcez);
+  CUFREE(vars->gpu_mForcex);
+  CUFREE(vars->gpu_mForcey);
+  CUFREE(vars->gpu_mForcez);
+  CUFREE(vars->gpu_cellVector);
+  CUFREE(vars->gpu_mapParticleToCell);
+  CUFREE(vars->gpu_nonOrth);
   for(uint b = 0; b < BOX_TOTAL; b++) {
-    cudaFree(vars->gpu_cell_x[b]);
-    cudaFree(vars->gpu_cell_y[b]);
-    cudaFree(vars->gpu_cell_z[b]);
-    cudaFree(vars->gpu_Invcell_x[b]);
-    cudaFree(vars->gpu_Invcell_y[b]);
-    cudaFree(vars->gpu_Invcell_z[b]);
+    CUFREE(vars->gpu_cell_x[b]);
+    CUFREE(vars->gpu_cell_y[b]);
+    CUFREE(vars->gpu_cell_z[b]);
+    CUFREE(vars->gpu_Invcell_x[b]);
+    CUFREE(vars->gpu_Invcell_y[b]);
+    CUFREE(vars->gpu_Invcell_z[b]);
   }
+
+  // delete gpu memory for lambda variables
+  CUFREE(vars->gpu_molIndex);
+  CUFREE(vars->gpu_kindIndex);
+  CUFREE(vars->gpu_lambdaVDW);
+  CUFREE(vars->gpu_lambdaCoulomb);
+  CUFREE(vars->gpu_isFraction);
+
   delete [] vars-> gpu_cell_x;
   delete [] vars-> gpu_cell_y;
   delete [] vars-> gpu_cell_z;

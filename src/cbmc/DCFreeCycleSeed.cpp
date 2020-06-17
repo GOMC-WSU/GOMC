@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -31,9 +31,8 @@ DCFreeCycleSeed::DCFreeCycleSeed(DCData* data, const mol_setup::MolKind& kind,
   : data(data), hed(data, kind, cycAtoms, focus, prev)
 {
   using namespace mol_setup;
-  using namespace std;
   std::fill_n(bondedInRing, MAX_BONDS, false);
-  vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
+  std::vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
   for(uint i = 0; i < onFocus.size(); ++i) {
     if (onFocus[i].a1 == prev) {
       anchorKind = onFocus[i].kind;

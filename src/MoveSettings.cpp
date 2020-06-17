@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.51
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -8,7 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BoxDimensions.h" //For axis sizes
 #include "BoxDimensionsNonOrth.h"
 #include "StaticVals.h" //For init info.
-
+#include <cmath>
 #include "NumLib.h" //For bounding functions.
 #include "GeomLib.h"    //For M_PI
 
@@ -133,9 +133,10 @@ void MoveSettings::AdjustMoves(const uint step)
 
 void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
 {
-  uint totalTries = mp_tries[box][mp::MPDISPLACE] +
-                    mp_tries[box][mp::MPROTATE];
-  if((totalTries + 1) % perAdjust == 0 ) {
+  int totalTries = mp_tries[box][mp::MPDISPLACE] +
+                   mp_tries[box][mp::MPROTATE];
+  // make sure we ran some displacement, otherwise mp_t_max will be nan
+  if((double)mp_tries[box][mp::MPDISPLACE] != 0 && (totalTries + 1) % perAdjust == 0) {
     double currentAccept = (double)mp_accepted[box][mp::MPDISPLACE] /
                            (double)mp_tries[box][mp::MPDISPLACE];
     double fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
@@ -143,11 +144,32 @@ void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
     num::Bound<double>(mp_t_max[box], 0.001,
                        (boxDimRef.axis.Min(box) / 2) - 0.001);
 
-    currentAccept = (double)mp_accepted[box][mp::MPROTATE] /
-                    (double)mp_tries[box][mp::MPROTATE];
-    fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
+    if(!std::isfinite(mp_t_max[box])) {
+      std::cout << "mp_t_max is not a finite number in MultiParticle move." << std::endl;
+      std::cout << "mp_t_max[box]: " << mp_t_max[box] << std::endl;
+      std::cout << "totalTries: " << totalTries << std::endl;
+      std::cout << "currentAccept: " << currentAccept << std::endl;
+      std::cout << "fractOfTargetAccept: " << fractOfTargetAccept << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  // make sure we ran some rotation, otherwise mp_r_max will be nan
+  if((double)mp_tries[box][mp::MPROTATE] != 0 && (totalTries + 1) % perAdjust == 0) {
+    double currentAccept = (double)mp_accepted[box][mp::MPROTATE] /
+                           (double)mp_tries[box][mp::MPROTATE];
+    double fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
     mp_r_max[box] *= fractOfTargetAccept;
     num::Bound<double>(mp_r_max[box], 0.001, M_PI - 0.001);
+
+    if(!std::isfinite(mp_r_max[box])) {
+      std::cout << "mp_r_max is not a finite number in MultiParticle move." << std::endl;
+      std::cout << "mp_r_max[box]: " << mp_r_max[box] << std::endl;
+      std::cout << "totalTries: " << totalTries << std::endl;
+      std::cout << "currentAccept: " << currentAccept << std::endl;
+      std::cout << "fractOfTargetAccept: " << fractOfTargetAccept << std::endl;
+      exit(EXIT_FAILURE);
+    }
   }
 }
 
