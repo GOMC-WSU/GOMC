@@ -117,7 +117,7 @@ public:
   int *gpu_molIndex, *gpu_kindIndex;
   double *gpu_lambdaVDW, *gpu_lambdaCoulomb;
   bool *gpu_isFraction;
-  
+
   // new pair interaction calculation done on GPU
   int *gpu_cellVector, *gpu_mapParticleToCell;
 };

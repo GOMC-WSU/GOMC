@@ -136,8 +136,8 @@ void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
   int totalTries = mp_tries[box][mp::MPDISPLACE] +
                    mp_tries[box][mp::MPROTATE];
   // make sure we ran some displacement, otherwise mp_t_max will be nan
-  if((double)mp_tries[box][mp::MPDISPLACE] != 0 && (totalTries+1) % perAdjust == 0) {
-    double currentAccept = (double)mp_accepted[box][mp::MPDISPLACE] / 
+  if((double)mp_tries[box][mp::MPDISPLACE] != 0 && (totalTries + 1) % perAdjust == 0) {
+    double currentAccept = (double)mp_accepted[box][mp::MPDISPLACE] /
                            (double)mp_tries[box][mp::MPDISPLACE];
     double fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
     mp_t_max[box] *= fractOfTargetAccept;
@@ -155,8 +155,8 @@ void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
   }
 
   // make sure we ran some rotation, otherwise mp_r_max will be nan
-  if((double)mp_tries[box][mp::MPROTATE] != 0 && (totalTries+1) % perAdjust == 0) {
-    double currentAccept = (double)mp_accepted[box][mp::MPROTATE] / 
+  if((double)mp_tries[box][mp::MPROTATE] != 0 && (totalTries + 1) % perAdjust == 0) {
+    double currentAccept = (double)mp_accepted[box][mp::MPROTATE] /
                            (double)mp_tries[box][mp::MPROTATE];
     double fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
     mp_r_max[box] *= fractOfTargetAccept;

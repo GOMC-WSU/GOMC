@@ -183,7 +183,7 @@ void System::InitLambda()
   int temp_molIndex[BOX_TOTAL], temp_kindIndex[BOX_TOTAL];
   double temp_lambdaVDW[BOX_TOTAL], temp_lambdaCoulomb[BOX_TOTAL];
   bool temp_isFraction[BOX_TOTAL];
-  for(int i=0; i<BOX_TOTAL; i++) {
+  for(int i = 0; i < BOX_TOTAL; i++) {
     temp_isFraction[i] = false;
   }
 #endif
@@ -209,7 +209,7 @@ void System::InitLambda()
           double lambdaVDW = statV.freeEnVal.lambdaVDW[state];
           lambdaRef.Set(lambdaVDW, lambdaCoulomb, m, k, mv::BOX0);
 
-#ifdef GOMC_CUDA          
+#ifdef GOMC_CUDA
           // initialize arrays to copy to GPU
           temp_molIndex[mv::BOX0] = m;
           temp_kindIndex[mv::BOX0] = k;

@@ -61,7 +61,7 @@ private:
   uint32_t numKinds;
   std::vector<std::vector<std::vector<double> > > scaleVec, acceptPercentVec;
   std::vector<std::vector<std::vector<uint32_t> > > acceptedVec, triesVec, tempAcceptedVec,
-         tempTriesVec;
+      tempTriesVec;
   std::vector< std::vector< uint > > mp_acceptedVec, mp_triesVec;
   std::vector< double > mp_r_maxVec;
   std::vector< double > mp_t_maxVec;

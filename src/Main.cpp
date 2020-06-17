@@ -30,14 +30,14 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 namespace
 {
-  std::ostream& PrintTime(std::ostream& stream);
-  std::ostream& PrintHostname(std::ostream& stream);
-  std::ostream& PrintVersion(std::ostream& stream);
-  void PrintSimulationHeader();
-  void PrintSimulationFooter();
-  void PrintDebugMode();
-  bool CheckAndPrintEnsemble();
-  uint ReadNum(char *argv);
+std::ostream& PrintTime(std::ostream& stream);
+std::ostream& PrintHostname(std::ostream& stream);
+std::ostream& PrintVersion(std::ostream& stream);
+void PrintSimulationHeader();
+void PrintSimulationFooter();
+void PrintDebugMode();
+bool CheckAndPrintEnsemble();
+uint ReadNum(char *argv);
 }
 
 void PrintHardwareInfo();

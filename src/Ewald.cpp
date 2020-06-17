@@ -508,7 +508,7 @@ void Ewald::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
   double dotProduct, sumReal, sumImaginary, coefDiff;
 
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-#pragma omp parallel for default(shared) private(i, p, s, dotProduct, \
+  #pragma omp parallel for default(shared) private(i, p, s, dotProduct, \
 sumReal, sumImaginary, coefDiff) reduction(+:energyRecip[:lambdaSize])
 #endif
   for (i = 0; i < imageSizeRef[box]; i++) {

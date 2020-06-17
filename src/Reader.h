@@ -116,7 +116,7 @@ protected:
   void HandleError(std::string const& msg)
   {
     std::cerr << ((critical) ? "Error " : "Warning ") << nameWAlias << std::endl
-         << msg << std::endl;
+              << msg << std::endl;
     if (critical)
       exit(1);
   }

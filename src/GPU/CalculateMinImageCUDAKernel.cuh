@@ -124,11 +124,11 @@ __device__ inline double DotProductGPU(double kx, double ky, double kz,
 }
 
 __device__ inline double DeviceGetLambdaVDW(int molA, int kindA, int molB,
-                                            int kindB, int box,
-                                            bool *gpu_isFraction, 
-                                            int *gpu_molIndex,
-                                            int *gpu_kindIndex,
-                                            double *gpu_lambdaVDW)
+    int kindB, int box,
+    bool *gpu_isFraction,
+    int *gpu_molIndex,
+    int *gpu_kindIndex,
+    double *gpu_lambdaVDW)
 {
   double lambda = 1.0;
   if(gpu_isFraction[box]) {
@@ -143,11 +143,11 @@ __device__ inline double DeviceGetLambdaVDW(int molA, int kindA, int molB,
 }
 
 __device__ inline double DeviceGetLambdaCoulomb(int molA, int kindA, int molB,
-                                                int kindB, int box,
-                                                bool *gpu_isFraction, 
-                                                int *gpu_molIndex,
-                                                int *gpu_kindIndex,
-                                                double *gpu_lambdaCoulomb)
+    int kindB, int box,
+    bool *gpu_isFraction,
+    int *gpu_molIndex,
+    int *gpu_kindIndex,
+    double *gpu_lambdaCoulomb)
 {
   double lambda = 1.0;
   if(gpu_isFraction[box]) {

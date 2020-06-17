@@ -38,7 +38,7 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
   int atomNumber = coords.Count();
 
   CUMALLOC((void**) &gpu_particleCharge,
-             particleCharge.size() * sizeof(double));
+           particleCharge.size() * sizeof(double));
   CUMALLOC((void**) &gpu_energyRecip, imageSize * sizeof(double));
   CUMALLOC((void**) &gpu_final_energyRecip, sizeof(double));
 
@@ -131,7 +131,7 @@ void CallMolReciprocalGPU(VariablesCUDA *vars,
   double *gpu_energyRecipNew, *gpu_final_energyRecipNew;
 
   CUMALLOC((void**) &gpu_particleCharge,
-             particleCharge.size() * sizeof(double));
+           particleCharge.size() * sizeof(double));
   CUMALLOC((void**) &gpu_energyRecipNew, imageSize * sizeof(double));
   CUMALLOC((void**) &gpu_final_energyRecipNew, sizeof(double));
 
@@ -213,7 +213,7 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars,
   double *gpu_energyRecipNew, *gpu_final_energyRecipNew;
 
   CUMALLOC((void**) &gpu_particleCharge,
-             particleCharge.size() * sizeof(double));
+           particleCharge.size() * sizeof(double));
   CUMALLOC((void**) &gpu_energyRecipNew, imageSize * sizeof(double));
   CUMALLOC((void**) &gpu_final_energyRecipNew, sizeof(double));
 

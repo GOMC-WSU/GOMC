@@ -306,7 +306,7 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
   double energyRecipOld = 0.0;
 
 #ifdef _OPENMP
-#pragma omp parallel default(shared)
+  #pragma omp parallel default(shared)
 #endif
   {
     std::memcpy(cosMolRestore, cosMolRef[molIndex], sizeof(double)*imageTotal);
@@ -426,7 +426,7 @@ void EwaldCached::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
   std::fill_n(energyRecip, lambdaSize, 0.0);
 
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-#pragma omp parallel for default(shared) private(i, s, coefDiff) reduction(+:energyRecip[:lambdaSize])
+  #pragma omp parallel for default(shared) private(i, s, coefDiff) reduction(+:energyRecip[:lambdaSize])
 #endif
   for (i = 0; i < imageSizeRef[box]; i++) {
     for(s = 0; s < lambdaSize; s++) {

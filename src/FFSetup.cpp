@@ -60,7 +60,7 @@ void FFSetup::Init(std::string const& name, const bool isCHARMM)
   std::string currSectName = "", varName = "";
   std::string commentChar = "*!";
   std::string commentStr = "REMARK ATOM ATOMS MASS set AEXP REXP HAEX AAEX NBOND "
-                      "CUTNB END CTONN EPS VSWI NBXM INHI";
+                           "CUTNB END CTONN EPS VSWI NBXM INHI";
   std::map<std::string, ReadableBaseWithFirst *>::const_iterator sect, currSect;
 
   Reader param(name,
