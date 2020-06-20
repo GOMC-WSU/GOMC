@@ -85,7 +85,7 @@ void Simulation::RunSimulation(void)
   #if GOMC_LIB_MPI
 
     if( staticValues->simEventFreq.parallelTemp && step > cpu->equilSteps && step % staticValues->simEventFreq.parallelTempFreq == 0){
-
+      system->potential = system->calcEnergy.SystemTotal();
       exchangeResults = PTUtils->evaluateExchangeCriteria(step);
     
       //if (ms->worldRank == 1){
