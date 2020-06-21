@@ -71,7 +71,6 @@ void Simulation::RunSimulation(void)
     system->moveSettings.AdjustMoves(step);
     system->ChooseAndRunMove(step);
     cpu->Output(step);
-        std::cout << "Virial : " << system->potential.totalVirial.total << std::endl;
 
     if((step + 1) == cpu->equilSteps) {
       double currEnergy = system->potential.totalEnergy.total;
@@ -86,7 +85,7 @@ void Simulation::RunSimulation(void)
   #if GOMC_LIB_MPI
 
     if( staticValues->simEventFreq.parallelTemp && step > cpu->equilSteps && step % staticValues->simEventFreq.parallelTempFreq == 0){
-      system->potential = system->calcEnergy.SystemTotal();
+      //system->potential = system->calcEnergy.SystemTotal();
       exchangeResults = PTUtils->evaluateExchangeCriteria(step);
     
       //if (ms->worldRank == 1){
@@ -103,7 +102,7 @@ void Simulation::RunSimulation(void)
 
      //   PTUtils->exchangeCellLists(myCellListCloneBeforeExchange, ms, ms->worldRank-1, true);
         PTUtils->exchangeCellLists(system->cellList, ms, ms->worldRank-1, true);
-              system->potential = system->calcEnergy.SystemTotal();
+        system->potential = system->calcEnergy.SystemTotal();
 
         //PTUtils->exchangePotentials(myPotentialCloneBeforeExchange, ms, ms->worldRank-1, true);
        // PTUtils->exchangePotentials(system->potential, ms, ms->worldRank-1, true);
@@ -147,7 +146,7 @@ void Simulation::RunSimulation(void)
         //PTUtils->exchangeCellLists(myCellListCloneBeforeExchange, ms, ms->worldRank-1, true);
         PTUtils->exchangeCellLists(system->cellList, ms, ms->worldRank+1, false);
 //        PTUtils->exchangePotentials(system->potential, ms, ms->worldRank+1, false);
-      system->potential = system->calcEnergy.SystemTotal();
+        system->potential = system->calcEnergy.SystemTotal();
 
      //   system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
         //system->potential = system->calcEnergy.SystemTotal();
