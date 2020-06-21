@@ -102,10 +102,12 @@ void Simulation::RunSimulation(void)
 
      //   PTUtils->exchangeCellLists(myCellListCloneBeforeExchange, ms, ms->worldRank-1, true);
         PTUtils->exchangeCellLists(system->cellList, ms, ms->worldRank-1, true);
-        system->potential = system->calcEnergy.SystemTotal();
+        //system->potential = system->calcEnergy.SystemTotal();
 
         //PTUtils->exchangePotentials(myPotentialCloneBeforeExchange, ms, ms->worldRank-1, true);
-       // PTUtils->exchangePotentials(system->potential, ms, ms->worldRank-1, true);
+        PTUtils->exchangePotentials(system->potential, ms, ms->worldRank-1, true);
+        PTUtils->exchangeVirials(system->potential, ms, ms->worldRank-1, true);
+
        // std::cout << "Virial : " << system->potential.totalVirial.total << std::endl;
      //   system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
  //       system->potential = system->calcEnergy.SystemTotal();
@@ -145,8 +147,10 @@ void Simulation::RunSimulation(void)
 
         //PTUtils->exchangeCellLists(myCellListCloneBeforeExchange, ms, ms->worldRank-1, true);
         PTUtils->exchangeCellLists(system->cellList, ms, ms->worldRank+1, false);
-//        PTUtils->exchangePotentials(system->potential, ms, ms->worldRank+1, false);
-        system->potential = system->calcEnergy.SystemTotal();
+        PTUtils->exchangePotentials(system->potential, ms, ms->worldRank+1, false);
+        PTUtils->exchangeVirials(system->potential, ms, ms->worldRank+1, false);
+
+//        system->potential = system->calcEnergy.SystemTotal();
 
      //   system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
         //system->potential = system->calcEnergy.SystemTotal();

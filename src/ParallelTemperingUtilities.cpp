@@ -463,5 +463,340 @@ void ParallelTemperingUtilities::exchangePotentials(SystemPotential & mySystemPo
     }
 }
 
+void ParallelTemperingUtilities::exchangeVirials(SystemPotential & mySystemPotential, MultiSim const*const& multisim, int exchangePartner, bool leader){
+    SystemPotential buffer(mySystemPotential);
+
+// if im 0, im the follower and i get 1 as a
+
+    if (leader){
+        MPI_Send(&buffer.totalVirial.total, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&mySystemPotential.totalVirial.total, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&mySystemPotential.totalVirial.total, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.totalVirial.total, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
+    
+    if (leader){
+        MPI_Send(&buffer.totalVirial.totalElect, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&mySystemPotential.totalVirial.totalElect, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&mySystemPotential.totalVirial.totalElect, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.totalVirial.totalElect, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
+
+        
+    if (leader){
+        MPI_Send(&buffer.totalVirial.correction, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&mySystemPotential.totalVirial.correction, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&mySystemPotential.totalVirial.correction, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.totalVirial.correction, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
+
+        
+    if (leader){
+        MPI_Send(&buffer.totalVirial.inter, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&mySystemPotential.totalVirial.inter, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&mySystemPotential.totalVirial.inter, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.totalVirial.inter, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
+        
+    if (leader){
+        MPI_Send(&buffer.totalVirial.real, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&mySystemPotential.totalVirial.real, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&mySystemPotential.totalVirial.real, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.totalVirial.real, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
+
+        
+    if (leader){
+        MPI_Send(&buffer.totalVirial.recip, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&mySystemPotential.totalVirial.recip, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&mySystemPotential.totalVirial.recip, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.totalVirial.recip, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
+
+        
+    if (leader){
+        MPI_Send(&buffer.totalVirial.self, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&mySystemPotential.totalVirial.self, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&mySystemPotential.totalVirial.self, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.totalVirial.self, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
+
+    if (leader){
+        MPI_Send(&buffer.totalVirial.tc, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+        MPI_Recv(&mySystemPotential.totalVirial.tc, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    } else {
+        MPI_Recv(&mySystemPotential.totalVirial.tc, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(&buffer.totalVirial.tc, 1, MPI_DOUBLE, exchangePartner, 0,
+                 MPI_COMM_WORLD);
+    }
+
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (leader){
+                MPI_Send(&buffer.totalVirial.totalTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD);
+                MPI_Recv(&mySystemPotential.totalVirial.totalTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            } else {
+                MPI_Recv(&mySystemPotential.totalVirial.totalTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                MPI_Send(&buffer.totalVirial.totalTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD);
+            }
+
+            if (leader){
+                MPI_Send(&buffer.totalVirial.interTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD);
+                MPI_Recv(&mySystemPotential.totalVirial.interTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            } else {
+                MPI_Recv(&mySystemPotential.totalVirial.interTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                MPI_Send(&buffer.totalVirial.interTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD);
+            }
+
+            if (leader){
+                MPI_Send(&buffer.totalVirial.realTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD);
+                MPI_Recv(&mySystemPotential.totalVirial.realTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            } else {
+                MPI_Recv(&mySystemPotential.totalVirial.realTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                MPI_Send(&buffer.totalVirial.realTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD);
+            }
+
+            if (leader){
+                MPI_Send(&buffer.totalVirial.recipTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD);
+                MPI_Recv(&mySystemPotential.totalVirial.recipTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            } else {
+                MPI_Recv(&mySystemPotential.totalVirial.recipTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                MPI_Send(&buffer.totalVirial.recipTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD);
+            }
+
+            if (leader){
+                MPI_Send(&buffer.totalVirial.corrTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD);
+                MPI_Recv(&mySystemPotential.totalVirial.corrTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            } else {
+                MPI_Recv(&mySystemPotential.totalVirial.corrTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                MPI_Send(&buffer.totalVirial.corrTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                        MPI_COMM_WORLD);
+            }
+        }
+    }
+
+    for (int b = 0; b < BOX_TOTAL; b++){
+        if (leader){
+            MPI_Send(&buffer.boxVirial[b].total, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+            MPI_Recv(&mySystemPotential.boxVirial[b].total, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&mySystemPotential.boxVirial[b].total, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Send(&buffer.boxVirial[b].total, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+        }
+        
+        if (leader){
+            MPI_Send(&buffer.boxVirial[b].totalElect, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+            MPI_Recv(&mySystemPotential.boxVirial[b].totalElect, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&mySystemPotential.boxVirial[b].totalElect, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Send(&buffer.boxVirial[b].totalElect, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+        }
+
+            
+        if (leader){
+            MPI_Send(&buffer.boxVirial[b].correction, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+            MPI_Recv(&mySystemPotential.boxVirial[b].correction, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&mySystemPotential.boxVirial[b].correction, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Send(&buffer.boxVirial[b].correction, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+        }
+
+            
+        if (leader){
+            MPI_Send(&buffer.boxVirial[b].inter, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+            MPI_Recv(&mySystemPotential.boxVirial[b].inter, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&mySystemPotential.boxVirial[b].inter, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Send(&buffer.boxVirial[b].inter, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+        }
+            
+        if (leader){
+            MPI_Send(&buffer.boxVirial[b].real, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+            MPI_Recv(&mySystemPotential.boxVirial[b].real, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&mySystemPotential.boxVirial[b].real, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Send(&buffer.boxVirial[b].real, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+        }
+
+            
+        if (leader){
+            MPI_Send(&buffer.boxVirial[b].recip, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+            MPI_Recv(&mySystemPotential.boxVirial[b].recip, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&mySystemPotential.boxVirial[b].recip, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Send(&buffer.boxVirial[b].recip, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+        }
+
+            
+        if (leader){
+            MPI_Send(&buffer.boxVirial[b].self, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+            MPI_Recv(&mySystemPotential.boxVirial[b].self, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&mySystemPotential.boxVirial[b].self, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Send(&buffer.boxVirial[b].self, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+        }
+
+        if (leader){
+            MPI_Send(&buffer.boxVirial[b].tc, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+            MPI_Recv(&mySystemPotential.boxVirial[b].tc, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&mySystemPotential.boxVirial[b].tc, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Send(&buffer.boxVirial[b].tc, 1, MPI_DOUBLE, exchangePartner, 0,
+                    MPI_COMM_WORLD);
+        }
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (leader){
+                    MPI_Send(&buffer.boxVirial[b].totalTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD);
+                    MPI_Recv(&mySystemPotential.boxVirial[b].totalTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                } else {
+                    MPI_Recv(&mySystemPotential.boxVirial[b].totalTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                    MPI_Send(&buffer.boxVirial[b].totalTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD);
+                }
+
+                if (leader){
+                    MPI_Send(&buffer.boxVirial[b].interTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD);
+                    MPI_Recv(&mySystemPotential.boxVirial[b].interTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                } else {
+                    MPI_Recv(&mySystemPotential.boxVirial[b].interTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                    MPI_Send(&buffer.boxVirial[b].interTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD);
+                }
+
+                if (leader){
+                    MPI_Send(&buffer.boxVirial[b].realTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD);
+                    MPI_Recv(&mySystemPotential.boxVirial[b].realTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                } else {
+                    MPI_Recv(&mySystemPotential.boxVirial[b].realTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                    MPI_Send(&buffer.boxVirial[b].realTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD);
+                }
+
+                if (leader){
+                    MPI_Send(&buffer.boxVirial[b].recipTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD);
+                    MPI_Recv(&mySystemPotential.boxVirial[b].recipTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                } else {
+                    MPI_Recv(&mySystemPotential.boxVirial[b].recipTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                    MPI_Send(&buffer.boxVirial[b].recipTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD);
+                }
+
+                if (leader){
+                    MPI_Send(&buffer.boxVirial[b].corrTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD);
+                    MPI_Recv(&mySystemPotential.boxVirial[b].corrTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                } else {
+                    MPI_Recv(&mySystemPotential.boxVirial[b].corrTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                    MPI_Send(&buffer.boxVirial[b].corrTens[i][j], 1, MPI_DOUBLE, exchangePartner, 0,
+                            MPI_COMM_WORLD);
+                }
+            }
+        }
+    }
+}
+
 
 #endif
