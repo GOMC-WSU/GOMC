@@ -42,7 +42,8 @@ vector<bool> ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step){
     //}
 
     #if BOX_TOTAL == 1
-        global_energies[ms->worldRank] = sysPotRef.boxEnergy[0].total;
+//        global_energies[ms->worldRank] = sysPotRef.boxEnergy[0].total;
+        global_energies[ms->worldRank] = sysPotRef.totalEnergy.total;
 
     //for (int i = 0; i < 2; i++){
       //  std::cout << "After set local energy : energy[" << i << "] : " << global_energies[i] << std::endl;
