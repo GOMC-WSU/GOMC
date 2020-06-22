@@ -10,7 +10,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #if GOMC_LIB_MPI
 
 ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& multisim, System & sys, StaticVals const& statV, ulong parallelTempFreq):
-ms(multisim), sysPotRef(sys.potential), parallelTempFreq(parallelTempFreq), prng(sys.prngParallelTemp){
+ms(multisim), sysPotRef(sys.potential), parallelTempFreq(parallelTempFreq), prng(sys.prngParallelTemp), newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
+  newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol){
 
     #if BOX_TOTAL == 1
         global_energies.resize(ms->worldSize, 0.0);
@@ -89,6 +90,67 @@ vector<bool> ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step){
     return exchangeResults; 
 
 }
+
+void ParallelTemperingUtilities::conductExchanges(Coordinates & coordCurrRef, COM & comCurrRef, MultiSim const*const& ms, vector<bool> & resultsOfExchangeCriteria){
+
+
+        if (resultsOfExchangeCriteria[ms->worldRank] == true){
+/*
+
+When you wake up in the morning, if the 50m sim returns that flat line,
+
+try building a coord and com object, and then call
+
+    swap(coordCurrRef, newMolsPos);
+    swap(comCurrRef, newCOMs);
+
+*/
+                newMolsPos = coordCurrRef;
+                newCOMs = comCurrRef;
+
+                std::cout << "A swap took place" << std::endl;
+
+                exchangePositions(newMolsPos, ms, ms->worldRank+1, false);
+                exchangeCOMs(newCOMs, ms, ms->worldRank+1, false);
+
+
+                swap(coordCurrRef, newMolsPos);
+                swap(comCurrRef, newCOMs);
+/*
+
+Eventually add this back, but I am isolating the swapping from regrid and repot to see if this is the src of the issue
+
+                myCellList.GridAll(system->boxDimRef, newMolsPos, system->molLookup);
+
+                sysPotNew = system->calcEnergy.SystemTotal();
+
+                sysPotRef = sysPotNew;
+*/
+      } else if(ms->worldRank+1 != ms->worldSize && resultsOfExchangeCriteria[ms->worldRank+1] == true) {
+
+                newMolsPos = coordCurrRef;
+                newCOMs = comCurrRef;
+
+                std::cout << "A swap took place" << std::endl;
+
+                exchangePositions(newMolsPos, ms, ms->worldRank+1, false);
+                exchangeCOMs(newCOMs, ms, ms->worldRank+1, false);
+
+
+                swap(coordCurrRef, newMolsPos);
+                swap(comCurrRef, newCOMs);
+/*
+
+                myCellList.GridAll(system->boxDimRef, newMolsPos, system->molLookup);
+
+                sysPotNew = system->calcEnergy.SystemTotal();
+
+                sysPotRef = sysPotNew;
+*/
+
+      }
+}
+
 
 void ParallelTemperingUtilities::exchangePositions(XYZArray & myPos, MultiSim const*const& multisim, int exchangePartner, bool leader){
     

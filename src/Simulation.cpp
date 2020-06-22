@@ -83,87 +83,33 @@ void Simulation::RunSimulation(void)
       }
     }
   #if GOMC_LIB_MPI
+    // 
+    if( step > cpu->equilSteps && step % staticValues->simEventFreq.parallelTempFreq == 0){
 
-    if( staticValues->simEventFreq.parallelTemp && step > cpu->equilSteps && step % staticValues->simEventFreq.parallelTempFreq == 0){
-      //system->potential = system->calcEnergy.SystemTotal();
+   // if( staticValues->simEventFreq.parallelTemp && step > cpu->equilSteps && step % staticValues->simEventFreq.parallelTempFreq == 0){
+
+      system->potential = system->calcEnergy.SystemTotal();
+
       exchangeResults = PTUtils->evaluateExchangeCriteria(step);
-    
-      //if (ms->worldRank == 1){
-      if (exchangeResults[ms->worldRank] == true){
+      if (staticValues->simEventFreq.parallelTemp){
+        if (exchangeResults[ms->worldRank] == true){
+
+          std::cout << "A swap took place on step " << step << std::endl;
+
+          PTUtils->conductExchanges(system->coordinates, system->com, ms, exchangeResults);
 
 
-        std::cout << "A swap took place" << std::endl;
+        } else if(ms->worldRank+1 != ms->worldSize && exchangeResults[ms->worldRank+1] == true) {
 
-        //SystemPotential myPotentialCloneBeforeExchange(system->potential);
-        //SystemPotential potBuffer(system->potential);
+          std::cout << "A swap took place on step " << step << std::endl;
 
-        PTUtils->exchangePositions(system->coordinates, ms, ms->worldRank-1, true);
-        PTUtils->exchangeCOMs(system->com, ms, ms->worldRank-1, true);
+          PTUtils->conductExchanges(system->coordinates, system->com, ms, exchangeResults);
 
-     //   PTUtils->exchangeCellLists(myCellListCloneBeforeExchange, ms, ms->worldRank-1, true);
-        //PTUtils->exchangeCellLists(system->cellList, ms, ms->worldRank-1, true);
-        //system->potential = system->calcEnergy.SystemTotal();
-
-        //PTUtils->exchangePotentials(myPotentialCloneBeforeExchange, ms, ms->worldRank-1, true);
-        //PTUtils->exchangePotentials(system->potential, ms, ms->worldRank-1, true);
-        //PTUtils->exchangeVirials(system->potential, ms, ms->worldRank-1, true);
-
-       // std::cout << "Virial : " << system->potential.totalVirial.total << std::endl;
-        system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
-        system->potential = system->calcEnergy.SystemTotal();
-        //potBuffer = system->calcEnergy.SystemTotal();
-/*
-        if (!potBuffer.ComparePotentials(myPotentialCloneBeforeExchange)){
-          std::cout << "Potential objects have different states. Exiting!" << std::endl;
-          exit(EXIT_FAILURE);
-        } else {
-          std::cout << "Potential objects have equivalent states." << std::endl;
         }
-*/
-      
-
-
-/*
-        if (!system->cellList.CompareCellList(myCellListCloneBeforeExchange, system->coordinates.Count())){
-          std::cout << "Cell List objects have different states, not simply different orders. Exiting!" << std::endl;
-          exit(EXIT_FAILURE);
-        } else {
-          std::cout << "Cell List objects have equivalent states." << std::endl;
-        }
-*/
-       // system->calcEwald->UpdateVectorsAndRecipTerms();
-
-
-//      } else if (ms->worldRank == 0){
-      } else if(ms->worldRank+1 != ms->worldSize && exchangeResults[ms->worldRank+1] == true) {
-
-        std::cout << "A swap took place" << std::endl;
-
-        //SystemPotential myPotentialCloneBeforeExchange(system->potential);
-        //SystemPotential potBuffer(system->potential);
-
-        PTUtils->exchangePositions(system->coordinates, ms, ms->worldRank+1, false);
-        PTUtils->exchangeCOMs(system->com, ms, ms->worldRank+1, false);
-
-        //PTUtils->exchangeCellLists(myCellListCloneBeforeExchange, ms, ms->worldRank-1, true);
-        //PTUtils->exchangeCellLists(system->cellList, ms, ms->worldRank+1, false);
-        //PTUtils->exchangePotentials(system->potential, ms, ms->worldRank+1, false);
-        //PTUtils->exchangeVirials(system->potential, ms, ms->worldRank+1, false);
-
-//        system->potential = system->calcEnergy.SystemTotal();
-
-        system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
-        system->potential = system->calcEnergy.SystemTotal();
-        //potBuffer = system->calcEnergy.SystemTotal();
-/*
-        if (!potBuffer.ComparePotentials(myPotentialCloneBeforeExchange)){
-          std::cout << "Potential objects have different states. Exiting!" << std::endl;
-          exit(EXIT_FAILURE);
-        } else {
-          std::cout << "Potential objects have equivalent states." << std::endl;
-        }
-*/
       }
+      system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
+
+      system->potential = system->calcEnergy.SystemTotal();
 
     }
   #endif

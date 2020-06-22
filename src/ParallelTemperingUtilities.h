@@ -28,7 +28,7 @@ void exchangeCOMs(XYZArray & myCOMs, MultiSim const*const& multisim, int exchang
 void exchangeCellLists(CellList & myCellList, MultiSim const*const& multisim, int exchangePartner, bool leader);
 void exchangePotentials(SystemPotential & mySystemPotential, MultiSim const*const& multisim, int exchangePartner, bool leader);
 void exchangeVirials(SystemPotential & mySystemPotential, MultiSim const*const& multisim, int exchangePartner, bool leader);
-
+void conductExchanges(Coordinates & coords, COM & coms, MultiSim const*const& ms, vector<bool> & resultsOfExchangeCriteria);
 #endif
 
 private:
@@ -36,11 +36,13 @@ private:
 MultiSim const*const& ms;
 PRNG & prng;
 SystemPotential & sysPotRef;
+SystemPotential sysPotNew;
 ulong parallelTempFreq;
 vector<double> global_betas;
 vector<bool> exchangeResults;
 vector<double> exchangeProbabilities;
-
+Coordinates newMolsPos;
+COM newCOMs;
 
 #if BOX_TOTAL == 1    
     vector<double> global_energies;
