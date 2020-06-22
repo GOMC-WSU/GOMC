@@ -91,8 +91,10 @@ void Simulation::RunSimulation(void)
 
       system->potential = system->calcEnergy.SystemTotal();
 
-      exchangeResults = PTUtils->evaluateExchangeCriteria(step);
       if (staticValues->simEventFreq.parallelTemp){
+        
+        exchangeResults = PTUtils->evaluateExchangeCriteria(step);
+
         std::cout << "Entered inner if for pt " << step << std::endl;
 
         if (exchangeResults[ms->worldRank] == true){
