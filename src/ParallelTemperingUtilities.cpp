@@ -162,109 +162,81 @@ Eventually add this back, but I am isolating the swapping from regrid and repot 
 
 void ParallelTemperingUtilities::exchangePositions(Coordinates & myPos, MultiSim const*const& multisim, int exchangePartner, bool leader){
     
-    double * bufferX = new double[myPos.Count()];
-    double * bufferY = new double[myPos.Count()];
-    double * bufferZ = new double[myPos.Count()];
-
-    for (int i = 0; i < myPos.Count(); i++){
-        bufferX[i] = myPos.x[i];
-        bufferY[i] = myPos.y[i];
-        bufferZ[i] = myPos.z[i];
-    }
-
+    XYZArray buffer(myPos);
 
 // if im 0, im the follower and i get 1 as a
     if (leader){
-        MPI_Send(bufferX, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
+        MPI_Send(buffer.x, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
         MPI_Recv(myPos.x, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     } else {
         MPI_Recv(myPos.x, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Send(bufferX, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
+        MPI_Send(buffer.x, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
     }
     if (leader){
-        MPI_Send(bufferY, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
+        MPI_Send(buffer.y, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
         MPI_Recv(myPos.y, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     } else {
         MPI_Recv(myPos.y, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Send(bufferY, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
+        MPI_Send(buffer.y, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
     }
     if (leader){
-        MPI_Send(bufferZ, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
+        MPI_Send(buffer.z, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
         MPI_Recv(myPos.z, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     } else {
         MPI_Recv(myPos.z, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Send(bufferZ, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
+        MPI_Send(buffer.z, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
     }
-
-    delete[] bufferX;
-    delete[] bufferY;
-    delete[] bufferZ;
-
 }
 
 void ParallelTemperingUtilities::exchangeCOMs(COM & myCOMs, MultiSim const*const& multisim, int exchangePartner, bool leader){
     
-    
-    double * bufferX = new double[myCOMs.Count()];
-    double * bufferY = new double[myCOMs.Count()];
-    double * bufferZ = new double[myCOMs.Count()];
-
-    for (int i = 0; i < myCOMs.Count(); i++){
-        bufferX[i] = myCOMs.x[i];
-        bufferY[i] = myCOMs.y[i];
-        bufferZ[i] = myCOMs.z[i];
-    }
+    XYZArray buffer(myCOMs);
 
     if (leader){
-        MPI_Send(bufferX, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
+        MPI_Send(buffer.x, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
         MPI_Recv(myCOMs.x, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     } else {
         MPI_Recv(myCOMs.x, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Send(bufferX, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
+        MPI_Send(buffer.x, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
     }
     if (leader){
-        MPI_Send(bufferY, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
+        MPI_Send(buffer.y, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
         MPI_Recv(myCOMs.y, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     } else {
         MPI_Recv(myCOMs.y, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Send(bufferY, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
+        MPI_Send(buffer.y, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
     }
     if (leader){
-        MPI_Send(bufferZ, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
+        MPI_Send(buffer.z, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
         MPI_Recv(myCOMs.z, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     } else {
         MPI_Recv(myCOMs.z, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Send(bufferZ, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
+        MPI_Send(buffer.z, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
                  MPI_COMM_WORLD);
     }
-
-    delete[] bufferX;
-    delete[] bufferY;
-    delete[] bufferZ;
-
 }
 
 void ParallelTemperingUtilities::exchangeCellLists(CellList & myCellList, MultiSim const*const& multisim, int exchangePartner, bool leader){
