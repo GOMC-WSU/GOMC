@@ -23,8 +23,8 @@ public:
 #if GOMC_LIB_MPI
 explicit ParallelTemperingUtilities(MultiSim const*const& multisim, System & sys, StaticVals const& statV, ulong parallelTempFreq);
 vector<bool> evaluateExchangeCriteria(ulong step);
-void exchangePositions(XYZArray & myPos, MultiSim const*const& multisim, int exchangePartner, bool leader);
-void exchangeCOMs(XYZArray & myCOMs, MultiSim const*const& multisim, int exchangePartner, bool leader);
+void exchangePositions(Coordinates & myPos, MultiSim const*const& multisim, int exchangePartner, bool leader);
+void exchangeCOMs(COM & myCOMs, MultiSim const*const& multisim, int exchangePartner, bool leader);
 void exchangeCellLists(CellList & myCellList, MultiSim const*const& multisim, int exchangePartner, bool leader);
 void exchangePotentials(SystemPotential & mySystemPotential, MultiSim const*const& multisim, int exchangePartner, bool leader);
 void exchangeVirials(SystemPotential & mySystemPotential, MultiSim const*const& multisim, int exchangePartner, bool leader);

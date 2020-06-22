@@ -160,9 +160,9 @@ Eventually add this back, but I am isolating the swapping from regrid and repot 
 }
 
 
-void ParallelTemperingUtilities::exchangePositions(XYZArray & myPos, MultiSim const*const& multisim, int exchangePartner, bool leader){
+void ParallelTemperingUtilities::exchangePositions(Coordinates & myPos, MultiSim const*const& multisim, int exchangePartner, bool leader){
     
-    XYZArray buffer(myPos);
+    Coordinates buffer = myPos;
 // if im 0, im the follower and i get 1 as a
     if (leader){
         MPI_Send(buffer.x, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
@@ -199,9 +199,9 @@ void ParallelTemperingUtilities::exchangePositions(XYZArray & myPos, MultiSim co
     }
 }
 
-void ParallelTemperingUtilities::exchangeCOMs(XYZArray & myCOMs, MultiSim const*const& multisim, int exchangePartner, bool leader){
+void ParallelTemperingUtilities::exchangeCOMs(COM & myCOMs, MultiSim const*const& multisim, int exchangePartner, bool leader){
     
-    XYZArray buffer(myCOMs);
+    COM buffer = myCOMs;
 
     if (leader){
         MPI_Send(buffer.x, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
