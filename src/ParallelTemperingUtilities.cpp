@@ -110,8 +110,8 @@ try building a coord and com object, and then call
 
                 std::cout << "Reassigned new pos and coms" << std::endl;
 
-                exchangePositions(newMolsPos, ms, ms->worldRank+1, false);
-                exchangeCOMs(newCOMs, ms, ms->worldRank+1, false);
+                exchangePositions(newMolsPos, ms, ms->worldRank-1, true);
+                exchangeCOMs(newCOMs, ms, ms->worldRank-1, true);
 
                 std::cout << "Exchanged new pos and coms" << std::endl;
 
