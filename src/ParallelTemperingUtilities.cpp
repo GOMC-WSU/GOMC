@@ -108,14 +108,19 @@ try building a coord and com object, and then call
                 newMolsPos = coordCurrRef;
                 newCOMs = comCurrRef;
 
-                std::cout << "A swap took place" << std::endl;
+                std::cout << "Reassigned new pos and coms" << std::endl;
 
                 exchangePositions(newMolsPos, ms, ms->worldRank+1, false);
                 exchangeCOMs(newCOMs, ms, ms->worldRank+1, false);
 
+                std::cout << "Exchanged new pos and coms" << std::endl;
+
 
                 swap(coordCurrRef, newMolsPos);
                 swap(comCurrRef, newCOMs);
+
+                std::cout << "Swapped new pos and coms" << std::endl;
+
 /*
 
 Eventually add this back, but I am isolating the swapping from regrid and repot to see if this is the src of the issue
@@ -131,14 +136,17 @@ Eventually add this back, but I am isolating the swapping from regrid and repot 
                 newMolsPos = coordCurrRef;
                 newCOMs = comCurrRef;
 
-                std::cout << "A swap took place" << std::endl;
+                std::cout << "Reassigned new pos and coms" << std::endl;
 
                 exchangePositions(newMolsPos, ms, ms->worldRank+1, false);
                 exchangeCOMs(newCOMs, ms, ms->worldRank+1, false);
+                std::cout << "Exchanged new pos and coms" << std::endl;
 
 
                 swap(coordCurrRef, newMolsPos);
                 swap(comCurrRef, newCOMs);
+                std::cout << "Swapped new pos and coms" << std::endl;
+
 /*
 
                 myCellList.GridAll(system->boxDimRef, newMolsPos, system->molLookup);
