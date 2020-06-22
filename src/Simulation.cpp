@@ -87,11 +87,14 @@ void Simulation::RunSimulation(void)
     if( step > cpu->equilSteps && step % staticValues->simEventFreq.parallelTempFreq == 0){
 
    // if( staticValues->simEventFreq.parallelTemp && step > cpu->equilSteps && step % staticValues->simEventFreq.parallelTempFreq == 0){
+      std::cout << "Entered outer if for pt " << step << std::endl;
 
       system->potential = system->calcEnergy.SystemTotal();
 
       exchangeResults = PTUtils->evaluateExchangeCriteria(step);
       if (staticValues->simEventFreq.parallelTemp){
+        std::cout << "Entered inner if for pt " << step << std::endl;
+
         if (exchangeResults[ms->worldRank] == true){
 
           std::cout << "A swap took place on step " << step << std::endl;
