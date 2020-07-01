@@ -177,7 +177,7 @@ public:
     subDraw = draw - prevSum;
   }
 
-  //Pick an integer in range 0, n given a list of weights, and their sum totalWeight
+    //Pick an integer in range 0, n given a list of weights, and their sum totalWeight
   uint PickWeighted(const double *weights, const uint n, double totalWeight)
   {
     double draw = rand(totalWeight);
@@ -204,6 +204,55 @@ public:
     std::cerr << "totalWeight: " << totalWeight << std::endl;
     std::cerr << "draw: " << draw << std::endl;
     std::cerr << "sum: " << sum << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  //Pick an integer in range 0, n given a list of weights, and their sum totalWeight
+  uint PickWeightedSpecial(const double *weights, const uint n, double totalWeight, double* en, double *real,
+                     XYZArray const& trialPos,
+                     bool* overlap,
+                     const uint partIndex,
+                     const uint molIndex,
+                     const uint box,
+                     const uint trials)
+  {
+    double draw = rand(totalWeight);
+    double sum = 0.0;
+    for(uint i = 0; i < n; ++i) {
+      sum += weights[i];
+      if(sum >= draw) {
+        return i;
+      }
+    }
+    int lastZero = n;
+    for(uint i = n - 1; i > 0 && !weights[i]; i--) {
+      lastZero = i;
+    }
+    lastZero--;
+    if(abs(draw - totalWeight) < 0.001) {
+      return lastZero;
+    }
+
+    // If the code gets to here that means the total of all the weights was
+    // more than totalWeight. So let's print out a message and exit the program
+    std::cerr << "Error: In PRNG::PickWeighted() the total of all weights was" << std::endl;
+    std::cerr << "more than totalWeight" << std::endl << "Debug info:\n";
+    std::cerr << "totalWeight: " << totalWeight << std::endl;
+    std::cerr << "draw: " << draw << std::endl;
+    std::cerr << "sum: " << sum << std::endl;
+    for (int i = 0; i < trialPos.Count(); i++){
+      std::cerr << "en[" << i << "] = " << trialPos[i].x << std::endl;
+      std::cerr << "real[" << i << "].x = " << trialPos[i].x << std::endl;
+
+      std::cerr << "trialPos[" << i << "].x = " << trialPos[i].x << std::endl;
+      std::cerr << "trialPos[" << i << "].y = " << trialPos[i].y << std::endl;
+      std::cerr << "trialPos[" << i << "].z = " << trialPos[i].z << std::endl;
+      std::cerr << "overlap[" << i << "] = " << overlap[i] << std::endl;
+    }
+    std::cerr << "partIndex : " << partIndex << std::endl;
+    std::cerr << "molIndex : " << molIndex << std::endl;
+    std::cerr << "box : " << box << std::endl;
+    std::cerr << "trials : " << trials << std::endl;   
     exit(EXIT_FAILURE);
   }
 
