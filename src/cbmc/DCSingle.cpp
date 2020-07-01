@@ -87,7 +87,7 @@ void DCSingle::BuildNew(TrialMol& newMol, uint molIndex)
     stepWeight += ljWeights[trial];
   }
   uint winner = prng.PickWeightedSpecial(ljWeights, nLJTrials, stepWeight, inter, real, positions, overlap, atom, molIndex,
-                           newMol.GetBox(), nLJTrials);
+                           newMol.GetBox(), nLJTrials, newMol.COMFix());
   newMol.UpdateOverlap(overlap[winner]);
   newMol.MultWeight(stepWeight / nLJTrials);
   newMol.AddEnergy(Energy(0.0, 0.0, inter[winner], real[winner],
