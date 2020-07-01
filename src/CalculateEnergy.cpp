@@ -806,10 +806,7 @@ lambdaVDW, lambdaCoulomb) reduction(+:tempLJ, tempReal)
       if(currentAxes.InRcut(distSq, trialPos, t, currentCoords, nIndex[i], box)) {
         lambdaVDW = GetLambdaVDW(molIndex, particleMol[nIndex[i]], box);
 
-        if (lambdaVDW != 1.0){
-          std::cerr << "Error: We're using lambda!!!" << std::endl;
-          exit(EXIT_FAILURE);
-        }
+        std::cerr << "t : " << t <<  " nIndex : " << i << "lambda : " << lambdaVDW << std::endl;
 
         if(distSq < forcefield.rCutLowSq) {
           overlap[t] |= true;
