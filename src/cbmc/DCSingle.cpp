@@ -38,6 +38,8 @@ void DCSingle::BuildOld(TrialMol& oldMol, uint molIndex)
 
   if(oldMol.COMFix()) {
     nLJTrials = 1;
+    std::cerr << "Error: In DCSingle::entered comfix branch" << std::endl;
+    exit(EXIT_FAILURE);
   } else {
     prng.FillWithRandom(positions, nLJTrials, data->axes, oldMol.GetBox());
   }
@@ -74,6 +76,8 @@ void DCSingle::BuildNew(TrialMol& newMol, uint molIndex)
   if(newMol.COMFix()) {
     nLJTrials = 1;
     positions.Set(0, data->axes.WrapPBC(newMol.GetCavityCenter(), newMol.GetBox()));
+    std::cerr << "Error: In DCSingle::entered comfix branch" << std::endl;
+    exit(EXIT_FAILURE);
   } else {
     prng.FillWithRandom(positions, nLJTrials, data->axes, newMol.GetBox());
   }
