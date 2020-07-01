@@ -246,8 +246,8 @@ public:
     std::cerr << "draw: " << draw << std::endl;
     std::cerr << "sum: " << sum << std::endl;
     for (int i = 0; i < trialPos.Count(); i++){
-      std::cerr << "en[" << i << "] = " << trialPos[i].x << std::endl;
-      std::cerr << "real[" << i << "].x = " << trialPos[i].x << std::endl;
+      std::cerr << "en[" << i << "] = " << en[i] << std::endl;
+      std::cerr << "real[" << i << "] = " << real[i] << std::endl;
 
       std::cerr << "trialPos[" << i << "].x = " << trialPos[i].x << std::endl;
       std::cerr << "trialPos[" << i << "].y = " << trialPos[i].y << std::endl;
