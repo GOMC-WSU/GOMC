@@ -99,14 +99,14 @@ void Simulation::RunSimulation(void)
 
         if (exchangeResults[ms->worldRank] == true){
 
-          std::cout << "A swap took place on step " << step << std::endl;
+          std::cout << "swap\t" << system->potential.totalEnergy.total << std::endl;
 
           PTUtils->conductExchanges(system->coordinates, system->com, ms, exchangeResults);
 
 
         } else if(ms->worldRank+1 != ms->worldSize && exchangeResults[ms->worldRank+1] == true) {
 
-          std::cout << "A swap took place on step " << step << std::endl;
+          std::cout << "swap\t" << system->potential.totalEnergy.total << std::endl;
 
           PTUtils->conductExchanges(system->coordinates, system->com, ms, exchangeResults);
 
