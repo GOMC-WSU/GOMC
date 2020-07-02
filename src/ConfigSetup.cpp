@@ -1031,7 +1031,11 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
     }
 #endif
     else if(CheckString(line[0], "Random_Seed")) {
-      in.prng.seed = stringtoi(line[1]);
+      if (line.size() > 2 && multisim != NULL) {
+        in.prng.seed = stringtoi(line[multisim->worldRank + 1]);
+      } else {
+        in.prng.seed = stringtoi(line[1]);
+      }
       if("INTSEED" == in.prng.kind)
         printf("%-40s %-s \n", "Info: Constant seed", "Active");
       else
