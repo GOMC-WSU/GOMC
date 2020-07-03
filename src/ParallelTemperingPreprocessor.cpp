@@ -375,8 +375,7 @@ std::string ParallelTemperingPreprocessor::mkdirWrapper(std::string multisimDire
 
   std::string replicaDirectoryPathString = replicaStream.str();
 
-  system(("mkdir " + multisimDirectoryName).c_str()); // note the slash after accounts!
-  system(("mkdir " + multisimDirectoryName + OS_SEP + replicaDirectoryPathString).c_str()); // note the slash after accounts!
+  system(("mkdir -p" + multisimDirectoryName + OS_SEP + replicaDirectoryPathString).c_str()); // note the slash after accounts!
 
   std::string pathToReplicaDirectory = replicaStream.str();
   replicaStream << "ConsoleOut.dat";
