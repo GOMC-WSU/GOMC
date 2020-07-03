@@ -375,12 +375,8 @@ std::string ParallelTemperingPreprocessor::mkdirWrapper(std::string multisimDire
 
   std::string replicaDirectoryPathString = replicaStream.str();
 
-  const std::filesystem::path multisimDirectoryPath = multisimDirectoryName.c_str();
-  const std::filesystem::path replicaDirectoryPath = replicaDirectoryPathString.c_str();
-
-
-  std::filesystem::create_directories(multisimDirectoryPath);
-  std::filesystem::create_directories(replicaDirectoryPath);
+  system(("mkdir " + multisimDirectoryName).c_str()); // note the slash after accounts!
+  system(("mkdir " + multisimDirectoryName + OS_SEP + replicaDirectoryPathString).c_str()); // note the slash after accounts!
 
   std::string pathToReplicaDirectory = replicaStream.str();
   replicaStream << "ConsoleOut.dat";
