@@ -81,7 +81,7 @@ vector<bool> ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step){
             #endif
             exchangeProbabilities[i] = min(uBoltz, 1.0);
             exchangeResults[i] = (printRecord = prng()) < uBoltz;
-            //std::cout << "Swapping\t" << global_energies[i-1] << "\t" << global_betas[i] << " uBoltz :" << uBoltz << "prng : " << printRecord << std::endl;
+            //std::cout << "Swapping repl " << i-1 << " and repl " << i << " uBoltz :" << uBoltz << "prng : " << printRecord << std::endl;
         } else {
             exchangeResults[i] = false;
             exchangeProbabilities[i] = 0.0;

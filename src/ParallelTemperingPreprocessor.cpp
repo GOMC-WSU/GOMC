@@ -373,9 +373,11 @@ std::string ParallelTemperingPreprocessor::mkdirWrapper(std::string multisimDire
                 << replicaDirectoryName << OS_SEP;
 
 
-  std::string replicaDirectoryPathString = replicaStream.str();
+  std::string replicaDirectoryPath = replicaStream.str();
 
-  system(("mkdir -p ./" + replicaDirectoryPathString + OS_SEP).c_str()); // note the slash after accounts!
+  //printf("Creating directory : %s\n", multisimDirectoryName.c_str());
+  mkdir(multisimDirectoryName.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  mkdir(replicaDirectoryPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
   std::string pathToReplicaDirectory = replicaStream.str();
   replicaStream << "ConsoleOut.dat";
@@ -386,7 +388,7 @@ std::string ParallelTemperingPreprocessor::mkdirWrapper(std::string multisimDire
   std::string pathToReplicaErrorLogFile = replicaStreamErr.str();
   if(worldRank == 0) {
     std::cout << "Monitor progress of your simulation by navigating to a replica output directory and issuing:\n"
-              << "\t$ tail -f \"YourUniqueFileName\".console " << std::endl;
+              << "\t$ tail -f \"YourUniqueFileName\".console" << std::endl;
   }
   freopen(pathToReplicaLogFile.c_str(), "w", stdout);
   freopen(pathToReplicaErrorLogFile.c_str(), "w", stderr);

@@ -54,8 +54,5 @@ ICC_PATH="$(which icc)"
 ICPC_PATH="$(which icpc)"
 export CC=${ICC_PATH}
 export CXX=${ICPC_PATH}
-export MPI_C_COMPILER={ICC_PATH}
-export MPI_CXX_COMPILER={ICPC_PATH}
-
 cmake .. -DGOMC_MPI=on
 make -j4 NVT

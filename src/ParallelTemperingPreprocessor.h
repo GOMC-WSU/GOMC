@@ -19,7 +19,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <mpi.h>
 #endif
 
-#ifdef _WIN32
+#ifdef WIN32
 #define OS_SEP '\\'
 #else
 #define OS_SEP '/'
