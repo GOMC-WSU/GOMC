@@ -34,7 +34,6 @@ set(ENSEMBLE_GPU_GEMC ON CACHE BOOL "Build GPU GEMC version")
 set(ENSEMBLE_GPU_GCMC ON CACHE BOOL "Build GPU GCMC version")
 set(ENSEMBLE_GPU_NPT ON CACHE BOOL "Build GPU NPT version")
 
-
 ########################  MPI   ##################################
 
 include(${PROJECT_SOURCE_DIR}/CMake/GOMCOptionUtilities.cmake)
