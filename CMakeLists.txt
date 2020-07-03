@@ -53,6 +53,7 @@ GOMC_dependent_option(
     GOMC_MPI)
 mark_as_advanced(GOMC_MPI_IN_PLACE)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 link_libraries(stdc++fs)
 
 ########################  MPI   ##################################
