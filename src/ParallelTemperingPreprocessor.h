@@ -17,8 +17,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "GOMC_Config.h"    //For version number
 #if GOMC_LIB_MPI
 #include <mpi.h>
-#include <experimental/filesystem>
-//#include "filesystem.hpp"
 #endif
 
 #ifdef _WIN32
