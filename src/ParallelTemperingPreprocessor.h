@@ -19,10 +19,19 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <mpi.h>
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
 #define OS_SEP '\\'
 #else
 #define OS_SEP '/'
+#endif
+
+#if __cplusplus < 201703L // If the version of C++ is less than 17
+    // It was still in the experimental:: namespace
+    #include <experimental/filesystem>
+    namespace fs = std::experimental::filesystem;
+#else
+    #include <filesystem>
+    namespace fs = std::filesystem;
 #endif
 
 class ParallelTemperingPreprocessor

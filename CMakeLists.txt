@@ -53,6 +53,8 @@ GOMC_dependent_option(
     GOMC_MPI)
 mark_as_advanced(GOMC_MPI_IN_PLACE)
 
+link_libraries(stdc++fs)
+
 ########################  MPI   ##################################
 
 #enable config header
