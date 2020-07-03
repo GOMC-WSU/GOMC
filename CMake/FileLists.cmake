@@ -93,6 +93,7 @@ set(headers
    src/FFShift.h
    src/FFSwitch.h
    src/FFSwitchMartini.h
+   src/filesystem.hpp
    src/FixedWidthReader.h
    src/Forcefield.h
    src/FreeEnergyOutput.h
