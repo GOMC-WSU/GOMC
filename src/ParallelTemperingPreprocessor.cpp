@@ -376,8 +376,19 @@ std::string ParallelTemperingPreprocessor::mkdirWrapper(std::string multisimDire
   std::string replicaDirectoryPath = replicaStream.str();
 
   //printf("Creating directory : %s\n", multisimDirectoryName.c_str());
-  mkdir(multisimDirectoryName.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  mkdir(replicaDirectoryPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  mode_t nMode = 0733; // UNIX style permissions
+  int nError1 = 0;
+  int nError2 = 0;
+
+  #if defined(_WIN32)
+    nError = _mkdir(multisimDirectoryName.c_str()); // can be used on Windows
+    nError = _mkdir(replicaDirectoryPath.c_str()); // can be used on Windows
+  #else 
+    nError = mkdir(multisimDirectoryName.c_str(),nMode); // can be used on non-Windows
+    nError = mkdir(replicaDirectoryPath.c_str(),nMode); // can be used on non-Windows
+  #endif
+ // mkdir(multisimDirectoryName.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+ // mkdir(replicaDirectoryPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
   std::string pathToReplicaDirectory = replicaStream.str();
   replicaStream << "ConsoleOut.dat";
