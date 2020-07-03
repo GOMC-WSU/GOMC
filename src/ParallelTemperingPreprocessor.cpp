@@ -386,7 +386,7 @@ std::string ParallelTemperingPreprocessor::mkdirWrapper(std::string multisimDire
   std::string pathToReplicaErrorLogFile = replicaStreamErr.str();
   if(worldRank == 0) {
     std::cout << "Monitor progress of your simulation by navigating to a replica output directory and issuing:\n"
-              << "\t$ tail -f \"YourUniqueFileName\".console" << std::endl;
+              << "\t$ tail -f \"YourUniqueFileName\".console " << std::endl;
   }
   freopen(pathToReplicaLogFile.c_str(), "w", stdout);
   freopen(pathToReplicaErrorLogFile.c_str(), "w", stderr);
