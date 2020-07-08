@@ -281,6 +281,10 @@ public:
   {
     uint rejectState = mv::fail_state::NO_FAIL;
     uint mkTot = molLookRef.GetNumCanMoveKind();
+    if(mkTot == 0) {
+      std::cerr << "Error: All molecules inside the box are fixed!\n";
+      exit(EXIT_FAILURE);
+    }
     double molDiv = subPerc / mkTot;
     //Which molecule kind chunk are we in?
     uint k = (uint)(subDraw / molDiv);
@@ -313,6 +317,10 @@ public:
   {
     uint rejectState = mv::fail_state::NO_FAIL;
     uint mkTot = molLookRef.GetNumCanMoveKind();
+    if(mkTot == 0) {
+      std::cerr << "Error: All molecules inside the box are fixed!\n";
+      exit(EXIT_FAILURE);
+    }
     //Which molecule kind chunk are we in?
     uint k = randIntExc(mkTot);
 
@@ -345,6 +353,10 @@ public:
   {
     uint rejectState = mv::fail_state::NO_FAIL;
     uint mkTot = molLookRef.GetNumCanSwapKind();
+    if(mkTot == 0) {
+      std::cerr << "Error: All molecules inside the box are fixed!\n";
+      exit(EXIT_FAILURE);
+    }
     double molDiv = subPerc / mkTot;
     //Which molecule kind chunk are we in?
     uint k = (uint)(subDraw / molDiv);
