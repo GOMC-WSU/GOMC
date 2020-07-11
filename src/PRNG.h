@@ -238,8 +238,8 @@ public:
     // more than totalWeight. So let's print out a message and exit the program
     std::cerr << "Error: In PRNG::PickWeighted() the total of all weights was" << std::endl;
     std::cerr << "more than totalWeight" << std::endl << "Debug info:\n";
-    std::cerr << "n: " << n << std::endl;
     std::cerr << "COMFix: " << isComFix << std::endl;
+    std::cerr << "n: " << n << std::endl;
 
     for(uint i = 0; i < n; ++i) {
       std::cerr << "weights[" << i << "] = " << weights[i] << std::endl;
