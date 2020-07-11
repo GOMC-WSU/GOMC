@@ -68,6 +68,7 @@ public:
   const int worldSize, worldRank;
   const std::string pathToReplicaDirectory;
   bool restart, restartFromCheckpoint;
+  FILE * fplog;
 private:
 };
 #endif /*ParallelTemperingPreprocessor_H*/

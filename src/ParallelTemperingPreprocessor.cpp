@@ -428,6 +428,9 @@ bool ParallelTemperingPreprocessor::checkBool(string str)
 MultiSim::MultiSim(ParallelTemperingPreprocessor & pt) :
   worldSize(pt.worldSize), worldRank(pt.worldRank), pathToReplicaDirectory(pt.pathToReplicaDirectory), 
   restart(pt.restart), restartFromCheckpoint(pt.restartFromCheckpoint)
-{}
+{
+    std::string filename = pathToReplicaDirectory + "ParallelTempering.dat";
+    fplog =  fopen(filename.c_str() , "w");
+}
 
 #endif

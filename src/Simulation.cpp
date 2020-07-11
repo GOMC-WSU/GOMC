@@ -84,10 +84,7 @@ void Simulation::RunSimulation(void)
     }
   #if GOMC_LIB_MPI
     // 
-    if( step > cpu->equilSteps && step % staticValues->simEventFreq.parallelTempFreq == 0){
-
-   // if( staticValues->simEventFreq.parallelTemp && step > cpu->equilSteps && step % staticValues->simEventFreq.parallelTempFreq == 0){
-      //std::cout << "Entered outer if for pt " << step << std::endl;
+    if(staticValues->simEventFreq.parallelTemp && step > cpu->equilSteps && step % staticValues->simEventFreq.parallelTempFreq == 0){
 
       system->potential = system->calcEnergy.SystemTotal();
 
@@ -95,18 +92,11 @@ void Simulation::RunSimulation(void)
         
         exchangeResults = PTUtils->evaluateExchangeCriteria(step);
 
-       // std::cout << "Entered inner if for pt " << step << std::endl;
-
         if (exchangeResults[ms->worldRank] == true){
-
-          std::cout << "swap\t" << system->potential.totalEnergy.total << std::endl;
 
           PTUtils->conductExchanges(system->coordinates, system->com, ms, exchangeResults);
 
-
         } else if(ms->worldRank+1 != ms->worldSize && exchangeResults[ms->worldRank+1] == true) {
-
-          std::cout << "swap\t" << system->potential.totalEnergy.total << std::endl;
 
           PTUtils->conductExchanges(system->coordinates, system->com, ms, exchangeResults);
 
@@ -126,6 +116,10 @@ void Simulation::RunSimulation(void)
   }
   system->PrintAcceptance();
   system->PrintTime();
+  #if GOMC_LIB_MPI
+    if (staticValues->simEventFreq.parallelTemp)
+      PTUtils->print_replica_exchange_statistics(ms->fplog);
+  #endif
 }
 
 #ifndef NDEBUG
