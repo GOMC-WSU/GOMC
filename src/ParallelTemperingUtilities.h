@@ -32,7 +32,7 @@ void conductExchanges(Coordinates & coords, COM & coms, MultiSim const*const& ms
 void print_ind(FILE * fplog, const char* leg, int n, vector<int> ind, const vector<bool> bEx);
 void print_prob(FILE * fplog, const char* leg, int n, vector<double> prob);
 void print_count(FILE * fplog, const char* leg, int n, vector<int> count);
-void print_transition_matrix(FILE * fplog, int n, vector<vector<int>> nmoves, const vector<int> nattempt);
+void print_transition_matrix(FILE * fplog, int n, vector< vector<int> > nmoves, const vector<int> nattempt);
 void print_replica_exchange_statistics(FILE * fplog);
 #endif
 
