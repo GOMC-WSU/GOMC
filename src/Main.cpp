@@ -47,6 +47,15 @@ void PrintGPUHardwareInfo();
 
 int main(int argc, char *argv[])
 {
+/*
+int ifl = 0;
+char hostname[256];
+gethostname(hostname, sizeof(hostname));
+printf("PID %d on %s ready for attach\n", getpid(), hostname);
+fflush(stdout);
+while (0 == ifl)
+      sleep(5);
+*/
 #if GOMC_LIB_MPI
   ParallelTemperingPreprocessor pt(argc, argv);
   MultiSim * multisim = pt.checkIfValidRank() ? new MultiSim(pt) : NULL;
@@ -118,6 +127,7 @@ int main(int argc, char *argv[])
       Simulation sim(inputFileString.c_str(), multisim);
       sim.RunSimulation();
       PrintSimulationFooter();
+      sim.~Simulation();
       delete multisim;
       MPI_Finalize();
     } else {

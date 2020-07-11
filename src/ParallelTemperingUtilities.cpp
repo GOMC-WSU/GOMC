@@ -9,9 +9,15 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #if GOMC_LIB_MPI
 
-ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& multisim, System & sys, StaticVals const& statV, ulong parallelTempFreq):
-ms(multisim), sysPotRef(sys.potential), parallelTempFreq(parallelTempFreq), prng(sys.prngParallelTemp), newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
+ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& multisim, FILE * fplog, System & sys, StaticVals const& statV, config_setup::Step stepData):
+ms(multisim), fplog(fplog), sysPotRef(sys.potential), parallelTempFreq(stepData.parallelTemp), prng(sys.prngParallelTemp), newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol){
+
+   if (fplog == NULL){
+        std::cerr << "Error opening ParallelTempering.dat" << std::endl;
+        std::cout << "Error opening ParallelTempering.dat" << std::endl;
+        exit(EXIT_FAILURE);
+   }
 
     #if BOX_TOTAL == 1
         global_energies.resize(ms->worldSize, 0.0);
@@ -19,11 +25,21 @@ ms(multisim), sysPotRef(sys.potential), parallelTempFreq(parallelTempFreq), prng
         global_energies.resize(2, std::vector<double>(ms->worldSize, 0.0));
     #endif
     global_betas.resize(ms->worldSize, 0.0);
+    ind.resize(ms->worldSize, 0);
+    pind.resize(ms->worldSize, 0);
     exchangeProbabilities.resize(ms->worldSize, 0.0);
+    prob_sum.resize(ms->worldSize, 0.0);
     exchangeResults.resize(ms->worldSize, false);
+    nexchange.resize(ms->worldSize, 0);
+    nattempt.resize(2, 0);
+    nmoves.resize(ms->worldSize, std::vector<int>(ms->worldSize, 0));
     global_betas[ms->worldRank] = statV.forcefield.beta;
     MPI_Allreduce(MPI_IN_PLACE, &global_betas[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
         MPI_COMM_WORLD);
+
+    for (int i = 0; i < ms->worldSize; i++){
+        ind[i] = i;
+    }
 }
 
 vector<bool> ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step){
@@ -37,6 +53,11 @@ vector<bool> ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step){
     std::memset(&global_energies[0], 0, ms->worldSize * sizeof(double));
     std::memset(&global_energies[1], 0, ms->worldSize * sizeof(double));
     #endif
+
+    for (int i = 0; i < ms->worldSize; i++){
+        pind[i] = ind[i];
+    }
+
 
     //for (int i = 0; i < 2; i++){
       //  std::cout << "After fill : energy[" << i << "] : " << global_energies[i] << std::endl;
@@ -81,14 +102,30 @@ vector<bool> ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step){
             #endif
             exchangeProbabilities[i] = min(uBoltz, 1.0);
             exchangeResults[i] = (printRecord = prng()) < uBoltz;
-            //std::cout << "Swapping repl " << i-1 << " and repl " << i << " uBoltz :" << uBoltz << "prng : " << printRecord << std::endl;
+            std::cout << "Swapping repl " << i-1 << " and repl " << i << " uBoltz :" << uBoltz << "prng : " << printRecord << std::endl;
+            prob_sum[i] += exchangeProbabilities[i];
+            if (exchangeResults[i]){
+                /* swap these two */
+                swap(pind[i-1], pind[i]);
+                nexchange[i]++;
+            }
+        
         } else {
             exchangeResults[i] = false;
             exchangeProbabilities[i] = 0.0;
         }
     }
-    return exchangeResults; 
+    /* print some statistics */
+    print_ind(fplog, "ex", ms->worldSize, ind, exchangeResults);
+    print_prob(fplog, "pr", ms->worldSize, exchangeProbabilities);
+    fprintf(fplog, "\n");
+    nattempt[parity]++;
 
+    for (int i = 0; i < ms->worldSize; i++){
+        nmoves[ind[i]][pind[i]] += 1;
+        nmoves[pind[i]][ind[i]] += 1;
+    }
+    return exchangeResults; 
 }
 
 void ParallelTemperingUtilities::conductExchanges(Coordinates & coordCurrRef, COM & comCurrRef, MultiSim const*const& ms, vector<bool> & resultsOfExchangeCriteria){
@@ -869,5 +906,136 @@ void ParallelTemperingUtilities::exchangeVirials(SystemPotential & mySystemPoten
     }
 }
 
+void ParallelTemperingUtilities::print_ind(FILE* fplog, const char* leg, int n, vector<int> ind, const vector<bool> bEx)
+{
+    int i;
+
+    fprintf(fplog, "Repl %2s %2d", leg, ind[0]);
+    for (i = 1; i < n; i++)
+    {
+        fprintf(fplog, " %c %2d", (bEx.empty() != true && bEx[i]) ? 'x' : ' ', ind[i]);
+    }
+    fprintf(fplog, "\n");
+}
+
+void ParallelTemperingUtilities::print_prob(FILE* fplog, const char* leg, int n, vector<double> prob)
+{
+    int  i;
+    char buf[8];
+
+    fprintf(fplog, "Repl %2s ", leg);
+    for (i = 1; i < n; i++)
+    {
+        if (prob[i] >= 0)
+        {
+            sprintf(buf, "%4.2f", prob[i]);
+            fprintf(fplog, "  %3s", buf[0] == '1' ? "1.0" : buf + 1);
+        }
+        else
+        {
+            fprintf(fplog, "     ");
+        }
+    }
+    fprintf(fplog, "\n");
+}
+
+void ParallelTemperingUtilities::print_count(FILE* fplog, const char* leg, int n, vector<int> count)
+{
+    int i;
+
+    fprintf(fplog, "Repl %2s ", leg);
+    for (i = 1; i < n; i++)
+    {
+        fprintf(fplog, " %4d", count[i]);
+    }
+    fprintf(fplog, "\n");
+}
+
+void ParallelTemperingUtilities::print_transition_matrix(FILE* fplog, int n, vector<vector<int>> nmoves, const vector<int> nattempt)
+{
+    int   i, j, ntot;
+    float Tprint;
+
+    ntot = nattempt[0] + nattempt[1];
+    fprintf(fplog, "\n");
+    fprintf(fplog, "Repl");
+    for (i = 0; i < n; i++)
+    {
+        fprintf(fplog, "    "); /* put the title closer to the center */
+    }
+    fprintf(fplog, "Empirical Transition Matrix\n");
+
+    fprintf(fplog, "Repl");
+    for (i = 0; i < n; i++)
+    {
+        fprintf(fplog, "%8d", (i + 1));
+    }
+    fprintf(fplog, "\n");
+
+    for (i = 0; i < n; i++)
+    {
+        fprintf(fplog, "Repl");
+        for (j = 0; j < n; j++)
+        {
+            Tprint = 0.0;
+            if (nmoves[i][j] > 0)
+            {
+                Tprint = nmoves[i][j] / (2.0 * ntot);
+            }
+            fprintf(fplog, "%8.4f", Tprint);
+        }
+        fprintf(fplog, "%3d\n", i);
+    }
+}
+
+void ParallelTemperingUtilities::print_replica_exchange_statistics(FILE* fplog)
+{
+    int i;
+    vector<bool> nullVec;
+
+    fprintf(fplog, "\nReplica exchange statistics\n");
+        fprintf(fplog, "Repl  %d attempts, %d odd, %d even\n", nattempt[0] + nattempt[1],
+                nattempt[1], nattempt[0]);
+
+        fprintf(fplog, "Repl  average probabilities:\n");
+        for (i = 1; i < ms->worldSize; i++)
+        {
+            if (nattempt[i % 2] == 0)
+            {
+                exchangeProbabilities[i] = 0;
+            }
+            else
+            {
+                exchangeProbabilities[i] = prob_sum[i] / nattempt[i % 2];
+            }
+        }
+        print_ind(fplog, "", ms->worldSize, ind, nullVec);
+        print_prob(fplog, "", ms->worldSize, exchangeProbabilities);
+
+        fprintf(fplog, "Repl  number of exchanges:\n");
+        print_ind(fplog, "", ms->worldSize, ind, nullVec);
+        print_count(fplog, "", ms->worldSize, nexchange);
+
+        fprintf(fplog, "Repl  average number of exchanges:\n");
+        for (i = 1; i < ms->worldSize; i++)
+        {
+            if (nattempt[i % 2] == 0)
+            {
+                exchangeProbabilities[i] = 0;
+            }
+            else
+            {
+                exchangeProbabilities[i] = (static_cast<double>(nexchange[i])) / nattempt[i % 2];
+            }
+        }
+        print_ind(fplog, "", ms->worldSize, ind, nullVec);
+        print_prob(fplog, "", ms->worldSize, exchangeProbabilities);
+
+        fprintf(fplog, "\n");
+    
+
+    /* print the transition matrix */
+    print_transition_matrix(fplog, ms->worldSize, nmoves, nattempt);
+}
 
 #endif
