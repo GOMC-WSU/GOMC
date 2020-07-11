@@ -41,7 +41,6 @@ private:
   #if GOMC_LIB_MPI
   ParallelTemperingUtilities * PTUtils;
   vector<bool> exchangeResults;
-  FILE * fplog;
   int parity;
   #endif
 };

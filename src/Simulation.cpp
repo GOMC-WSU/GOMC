@@ -42,13 +42,8 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
     frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
   }
 #if GOMC_LIB_MPI
-  if (ms){
-    std::string filename = ms->pathToReplicaDirectory +"ParallelTempering.dat";
-    fplog =  fopen(filename.c_str() , "w");
-    PTUtils = new ParallelTemperingUtilities(ms, fplog, *system, *staticValues, set.config.sys.step);
-    exchangeResults.resize(ms->worldSize, false);
-  } 
-
+  PTUtils = set.config.sys.step.parallelTemp ? new ParallelTemperingUtilities(ms, *system, *staticValues, set.config.sys.step.parallelTempFreq): NULL;
+  exchangeResults.resize(ms->worldSize, false);
 #endif
 }
 
@@ -57,11 +52,6 @@ Simulation::~Simulation()
   delete cpu;
   delete system;
   delete staticValues;
-  #if GOMC_LIB_MPI
-  //if (ms)
-  //  delete PTUtils;
-  
-  #endif
 }
 
 void Simulation::RunSimulation(void)
@@ -94,12 +84,36 @@ void Simulation::RunSimulation(void)
     }
   #if GOMC_LIB_MPI
     // 
-    if( staticValues->simEventFreq.parallelTemp && step > cpu->equilSteps && step % staticValues->simEventFreq.parallelTempFreq == 0){
+    if( step > cpu->equilSteps && step % staticValues->simEventFreq.parallelTempFreq == 0){
+
+   // if( staticValues->simEventFreq.parallelTemp && step > cpu->equilSteps && step % staticValues->simEventFreq.parallelTempFreq == 0){
+      //std::cout << "Entered outer if for pt " << step << std::endl;
 
       system->potential = system->calcEnergy.SystemTotal();
-      exchangeResults = PTUtils->evaluateExchangeCriteria(step);
-      PTUtils->conductExchanges(system->coordinates, system->com, ms, exchangeResults);
+
+      if (staticValues->simEventFreq.parallelTemp){
+        
+        exchangeResults = PTUtils->evaluateExchangeCriteria(step);
+
+       // std::cout << "Entered inner if for pt " << step << std::endl;
+
+        if (exchangeResults[ms->worldRank] == true){
+
+          std::cout << "swap\t" << system->potential.totalEnergy.total << std::endl;
+
+          PTUtils->conductExchanges(system->coordinates, system->com, ms, exchangeResults);
+
+
+        } else if(ms->worldRank+1 != ms->worldSize && exchangeResults[ms->worldRank+1] == true) {
+
+          std::cout << "swap\t" << system->potential.totalEnergy.total << std::endl;
+
+          PTUtils->conductExchanges(system->coordinates, system->com, ms, exchangeResults);
+
+        }
+      }
       system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
+
       system->potential = system->calcEnergy.SystemTotal();
 
     }
@@ -110,12 +124,6 @@ void Simulation::RunSimulation(void)
       RunningCheck(step);
 #endif
   }
-
-  #if GOMC_LIB_MPI
-  if(PTUtils != NULL)
-    PTUtils->print_replica_exchange_statistics(fplog);
-  #endif
-
   system->PrintAcceptance();
   system->PrintTime();
 }

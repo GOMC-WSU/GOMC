@@ -198,7 +198,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
     } else if(CheckString(line[0], "PRNG_ParallelTempering")) {
       in.prngParallelTempering.kind = line[1];
       if("RANDOM" == line[1])
-        printf("%-40s %-s \n", "Info: ParallelTempering Random seed", "Active");
+        printf("%-40s %-s \n", "Info: Random seed", "Active");
     } else if(CheckString(line[0], "ParaTypeCHARMM")) {
       if(checkBool(line[1])) {
         in.ffKind.numOfKinds++;
@@ -1247,11 +1247,6 @@ void ConfigSetup::fillDefaults(void)
     printf("%-40s %-s \n", "Default: Random seed", "Active");
   }
 
-  if(in.prngParallelTempering.kind == "") {
-    in.prngParallelTempering.kind = in.prng.KIND_RANDOM;
-    printf("%-40s %-s \n", "Default: Parallel Tempering Random seed", "Active");
-  }
-
 #if ENSEMBLE == GEMC
   if(sys.gemc.kind == UINT_MAX) {
     sys.gemc.kind = mv::GEMC_NVT;
@@ -1334,10 +1329,6 @@ void ConfigSetup::verifyInputs(void)
     printf("Warning: Seed value set, but will be ignored.\n");
   }
 
-  if(in.prngParallelTempering.kind == "RANDOM" && in.prngParallelTempering.seed != UINT_MAX) {
-    printf("Warning: Parallel Tempering Seed value set, but will be ignored.\n");
-  }
-
   // Set output files
   if(out.statistics.settings.uniqueStr.val == "") {
     std::cout << "Error: Output name is not specified!" << std::endl;
@@ -1374,12 +1365,6 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Seed value is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
-
-  if(in.prngParallelTempering.kind == "INTSEED" && in.prngParallelTempering.seed == UINT_MAX) {
-    std::cout << "Error: Parallel Tempering Seed value is not specified!" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
   if(in.ffKind.numOfKinds == 0) {
     std::cout << "Error: Force field type is not specified!" << std::endl;
     exit(EXIT_FAILURE);

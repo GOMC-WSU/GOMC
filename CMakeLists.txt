@@ -36,11 +36,6 @@ set(ENSEMBLE_GPU_NPT ON CACHE BOOL "Build GPU NPT version")
 
 
 ########################  MPI   ##################################
-SET(GCC_COVERAGE_COMPILE_FLAGS "-O0 -g")
-add_definitions(${GCC_COVERAGE_COMPILE_FLAGS})
-SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}")
-set(CMAKE_BUILD_TYPE Debug)
-
 
 include(${PROJECT_SOURCE_DIR}/CMake/GOMCOptionUtilities.cmake)
 
