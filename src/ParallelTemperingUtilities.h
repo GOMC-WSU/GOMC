@@ -53,7 +53,7 @@ vector<int> nattempt;
 //! Sum of probabilities
 vector<double> prob_sum;
 //! Number of moves between replicas i and j
-vector<vector<int>> nmoves;
+vector< vector<int> > nmoves;
 
 Coordinates newMolsPos;
 COM newCOMs;

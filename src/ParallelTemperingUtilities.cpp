@@ -942,7 +942,7 @@ void ParallelTemperingUtilities::print_count(FILE* fplog, const char* leg, int n
     fprintf(fplog, "\n");
 }
 
-void ParallelTemperingUtilities::print_transition_matrix(FILE* fplog, int n, vector<vector<int>> nmoves, const vector<int> nattempt)
+void ParallelTemperingUtilities::print_transition_matrix(FILE* fplog, int n, vector< vector<int> > nmoves, const vector<int> nattempt)
 {
     int   i, j, ntot;
     float Tprint;
