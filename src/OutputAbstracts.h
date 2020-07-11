@@ -86,7 +86,6 @@ public:
       replicaDirectory << tokens[i] << OS_SEP;
     }
     pathToReplicaDirectory = replicaDirectory.str();
-      std::cout << "This is what I see as pathToReplicaDirectory :" << pathToReplicaDirectory << std::endl; 
 
     uniqueName = tokens[tokens.size() - 1];
 #else
