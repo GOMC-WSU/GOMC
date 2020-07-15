@@ -82,6 +82,7 @@ void Simulation::RunSimulation(void)
         system->potential = system->calcEnergy.SystemTotal();
       }
     }
+    
   #if GOMC_LIB_MPI
     // 
     if(staticValues->simEventFreq.parallelTemp && step > cpu->equilSteps && step % staticValues->simEventFreq.parallelTempFreq == 0){
@@ -96,8 +97,13 @@ void Simulation::RunSimulation(void)
       system->potential = system->calcEnergy.SystemTotal();
       PTUtils->evaluateExchangeCriteria(step);
       PTUtils->prepareToDoExchange(ms->worldRank, &maxSwap, &bThisReplicaExchanged);
-      PTUtils->conductExchanges(system->coordinates, system->com, ms, maxSwap, bThisReplicaExchanged);      
+      PTUtils->conductExchanges(system->coordinates, system->com, ms, maxSwap, bThisReplicaExchanged);   
       system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
+      if (staticValues->forcefield.ewald){
+        for(int i = 0; i < BOX_TOTAL; i++){
+          system->calcEwald->BoxReciprocalSetup(i, system->coordinates);
+        }
+      }
       system->potential = system->calcEnergy.SystemTotal();
 
     }
