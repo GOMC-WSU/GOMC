@@ -59,7 +59,7 @@ ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& mul
 ms(multisim), fplog(multisim->fplog), sysPotRef(sys.potential), parallelTempFreq(parallelTempFreq), parallelTemperingAttemptsPerExchange(parallelTemperingAttemptsPerExchange), prng(sys.prngParallelTemp), newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol){
 
-    if (parallelTemperingAttemptsPerExchange > 0){
+    if (parallelTemperingAttemptsPerExchange > 1){
         bMultiEx = true;
         fprintf(fplog, "Using multiple random switch exchange. Number of Attempts per Exchange : %d\n", parallelTemperingAttemptsPerExchange);
     } else {
@@ -1259,6 +1259,8 @@ void ParallelTemperingUtilities::print_replica_exchange_statistics(FILE* fplog)
     vector<bool> nullVec;
 
     fprintf(fplog, "\nReplica exchange statistics\n");
+    if (!bMultiEx){
+
         fprintf(fplog, "Repl  %d attempts, %d odd, %d even\n", nattempt[0] + nattempt[1],
                 nattempt[1], nattempt[0]);
 
@@ -1298,7 +1300,7 @@ void ParallelTemperingUtilities::print_replica_exchange_statistics(FILE* fplog)
 
         fprintf(fplog, "\n");
 
-
+    }
     /* print the transition matrix */
     print_transition_matrix(fplog, ms->worldSize, nmoves, nattempt);
 }
