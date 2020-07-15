@@ -159,7 +159,7 @@ struct GEMCKind {
 
 
 struct Step {
-  ulong total, equil, adjustment, pressureCalcFreq, parallelTempFreq;
+  ulong total, equil, adjustment, pressureCalcFreq, parallelTempFreq, parallelTemperingAttemptsPerExchange;
   bool pressureCalc;
   bool parallelTemp;
 };

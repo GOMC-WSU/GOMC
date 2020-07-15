@@ -59,6 +59,7 @@ ConfigSetup::ConfigSetup(void)
   sys.step.pressureCalcFreq = ULONG_MAX;
   sys.step.pressureCalc = true;
   sys.step.parallelTempFreq = ULONG_MAX;
+  sys.step.parallelTemperingAttemptsPerExchange = 0;
   sys.step.pressureCalc = false;
   in.ffKind.numOfKinds = 0;
   sys.exclude.EXCLUDE_KIND = UINT_MAX;
@@ -512,6 +513,10 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         printf("%-40s %-lu \n", "Info: Parallel Tempering frequency",
                sys.step.parallelTempFreq);
       }
+    } if(CheckString(line[0], "ParallelTemperingAttemptsPerExchange")) {
+      sys.step.parallelTemperingAttemptsPerExchange = stringtoi(line[1]);
+      printf("%-40s %d \n", "Info: Number of Attempts Per Exchange Move",
+        sys.step.parallelTemperingAttemptsPerExchange);
     } else if(CheckString(line[0], "DisFreq")) {
       sys.moves.displace = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Displacement move frequency",

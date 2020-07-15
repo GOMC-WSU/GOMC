@@ -42,7 +42,7 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
     frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
   }
 #if GOMC_LIB_MPI
-  PTUtils = set.config.sys.step.parallelTemp ? new ParallelTemperingUtilities(ms, *system, *staticValues, set.config.sys.step.parallelTempFreq): NULL;
+  PTUtils = set.config.sys.step.parallelTemp ? new ParallelTemperingUtilities(ms, *system, *staticValues, set.config.sys.step.parallelTempFreq, set.config.sys.step.parallelTemperingAttemptsPerExchange): NULL;
   exchangeResults.resize(ms->worldSize, false);
 #endif
 }
@@ -86,27 +86,22 @@ void Simulation::RunSimulation(void)
     // 
     if(staticValues->simEventFreq.parallelTemp && step > cpu->equilSteps && step % staticValues->simEventFreq.parallelTempFreq == 0){
 
+      int maxSwap = 0;
+      /* Number of rounds of exchanges needed to deal with any multiple
+      * exchanges. */
+      /* Where each replica ends up after the exchange attempt(s). */
+      /* The order in which multiple exchanges will occur. */
+      bool bThisReplicaExchanged = false;
+
       system->potential = system->calcEnergy.SystemTotal();
-
-      if (staticValues->simEventFreq.parallelTemp){
-        
-        exchangeResults = PTUtils->evaluateExchangeCriteria(step);
-
-        if (exchangeResults[ms->worldRank] == true){
-
-          PTUtils->conductExchanges(system->coordinates, system->com, ms, exchangeResults);
-
-        } else if(ms->worldRank+1 != ms->worldSize && exchangeResults[ms->worldRank+1] == true) {
-
-          PTUtils->conductExchanges(system->coordinates, system->com, ms, exchangeResults);
-
-        }
-      }
+      PTUtils->evaluateExchangeCriteria(step);
+      PTUtils->prepareToDoExchange(ms->worldRank, &maxSwap, &bThisReplicaExchanged);
+      PTUtils->conductExchanges(system->coordinates, system->com, ms, maxSwap, bThisReplicaExchanged);      
       system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
-
       system->potential = system->calcEnergy.SystemTotal();
 
     }
+
   #endif
 
 #ifndef NDEBUG
