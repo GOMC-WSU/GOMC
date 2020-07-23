@@ -55,4 +55,4 @@ ICPC_PATH="$(which icpc)"
 export CC=${ICC_PATH}
 export CXX=${ICPC_PATH}
 cmake .. -DCMAKE_BUILD_TYPE=Debug
-make -j4 GCMC GEMC 
+make -j4 NVT 
