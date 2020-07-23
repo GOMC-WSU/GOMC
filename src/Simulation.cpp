@@ -100,8 +100,10 @@ void Simulation::RunSimulation(void)
       PTUtils->conductExchanges(system->coordinates, system->com, ms, maxSwap, bThisReplicaExchanged);   
       system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
       if (staticValues->forcefield.ewald){
-        for(int i = 0; i < BOX_TOTAL; i++){
-          system->calcEwald->BoxReciprocalSetup(i, system->coordinates);
+        for(int box = 0; box < BOX_TOTAL; box++){
+          system->calcEwald->BoxReciprocalSetup(box, system->coordinates);
+          system->potential.boxEnergy[box].recip = system->calcEwald->BoxReciprocal(box);
+          system->calcEwald->UpdateRecip(box);
         }
       }
       system->potential = system->calcEnergy.SystemTotal();
