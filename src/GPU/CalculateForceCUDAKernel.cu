@@ -300,7 +300,8 @@ void CallBoxForceGPU(VariablesCUDA *vars,
                      double sc_sigma_6,
                      double sc_alpha,
                      uint sc_power,
-                     uint const box)
+                     uint const box,
+                     uint const atomsInsideBox)
 {
   int atomNumber = coords.Count();
   int *gpu_particleKind, *gpu_particleMol;
@@ -410,7 +411,8 @@ void CallBoxForceGPU(VariablesCUDA *vars,
       vars->gpu_lambdaVDW,
       vars->gpu_lambdaCoulomb,
       vars->gpu_isFraction,
-      box);
+      box,
+      atomsInsideBox);
 
   checkLastErrorCUDA(__FILE__, __LINE__);
   // ReduceSum
@@ -805,7 +807,8 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
                             double *gpu_lambdaVDW,
                             double *gpu_lambdaCoulomb,
                             bool *gpu_isFraction,
-                            int box)
+                            int box,
+                            int atomsInsideBox)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -832,7 +835,7 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
 
   // Calculate number of particles inside current Cell
   endIndex = currentCell != numberOfCells - 1 ?
-             gpu_cellStartIndex[currentCell + 1] : atomNumber;
+             gpu_cellStartIndex[currentCell + 1] : atomsInsideBox;
   particlesInsideCurrentCell = endIndex - gpu_cellStartIndex[currentCell];
 
   // total number of pairs
