@@ -298,7 +298,6 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   // Reset Force Arrays
   ResetForce(atomForce, molForce, box);
 
-
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
   std::vector<std::vector<int> > neighborList;
   cellList.GetCellListNeighbor(box, coords.Count(), cellVector, cellStartIndex, mapParticleToCell);
@@ -320,6 +319,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
                            newAxes.cellBasis_Inv[box].y,
                            newAxes.cellBasis_Inv[box].z);
   }
+  uint atomsInsideBox = NumberOfParticlesInsideBox(box);
 
   CallBoxForceGPU(forcefield.particles->getCUDAVars(), cellVector,
                   cellStartIndex, neighborList, mapParticleToCell,
@@ -327,7 +327,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
                   particleKind, particleMol, tempREn, tempLJEn,
                   aForcex, aForcey, aForcez, mForcex, mForcey, mForcez,
                   atomCount, molCount, forcefield.sc_coul, forcefield.sc_sigma_6, forcefield.sc_alpha,
-                  forcefield.sc_power, box);
+                  forcefield.sc_power, box, atomsInsideBox);
 
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
@@ -1453,6 +1453,20 @@ void CalculateEnergy::ResetForce(XYZArray& atomForce, XYZArray& molForce,
       thisMol++;
     }
   }
+}
+
+uint CalculateEnergy::NumberOfParticlesInsideBox(uint box) {
+  uint count = 0;
+  
+  MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
+  MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+
+  while(thisMol != end) {
+    count += mols.GetKind(*thisMol).NumAtoms();
+    thisMol++;
+  }
+
+  return count;
 }
 
 bool CalculateEnergy::FindMolInCavity(std::vector< std::vector<uint> > &mol,
