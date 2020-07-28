@@ -639,7 +639,7 @@ double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
     lengthOld = thisKindOld.NumAtoms();
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i, p, dotProductNew, \
+    #pragma omp parallel for default(shared) private(i, p, m, dotProductNew, \
 lambdaCoef) reduction(+:energyRecipNew, sumRealNew, sumImaginaryNew)
 #endif
     for (i = 0; i < imageSizeRef[box]; i++) {

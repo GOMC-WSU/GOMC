@@ -830,7 +830,7 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
   // calculate number of particles inside neighbor Cell
   int particlesInsideCurrentCell, particlesInsideNeighboringCells;
   int endIndex = neighborCell != numberOfCells - 1 ?
-                 gpu_cellStartIndex[neighborCell + 1] : atomNumber;
+                 gpu_cellStartIndex[neighborCell + 1] : atomsInsideBox;
   particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
 
   // Calculate number of particles inside current Cell

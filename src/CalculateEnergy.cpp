@@ -186,6 +186,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   int atomNumber = currentCoords.Count();
   int currParticleIdx, currParticle, currCell, nCellIndex, neighborCell, endIndex, nParticleIndex, nParticle;
   int countpairs = 0;
+  int atomsInsideBox = NumberOfParticlesInsideBox(box);
 
 #ifdef GOMC_CUDA
   double REn = 0.0, LJEn = 0.0;
@@ -227,7 +228,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
       neighborCell = neighborList[currCell][nCellIndex];
 
       // find the ending index in neighboring cell
-      endIndex = neighborCell != numberOfCells - 1 ? cellStartIndex[neighborCell + 1] : atomNumber;
+      endIndex = neighborCell != numberOfCells - 1 ? cellStartIndex[neighborCell + 1] : atomsInsideBox;
       // loop over particle inside neighboring cell
       for(nParticleIndex = cellStartIndex[neighborCell];
           nParticleIndex < endIndex; nParticleIndex++) {
@@ -305,6 +306,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   int numberOfCells = neighborList.size();
   int atomNumber = coords.Count();
   int currParticleIdx, currParticle, currCell, nCellIndex, neighborCell, endIndex, nParticleIndex, nParticle;
+  uint atomsInsideBox = NumberOfParticlesInsideBox(box);
 
 #ifdef GOMC_CUDA
   //update unitcell in GPU
@@ -319,7 +321,6 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
                            newAxes.cellBasis_Inv[box].y,
                            newAxes.cellBasis_Inv[box].z);
   }
-  uint atomsInsideBox = NumberOfParticlesInsideBox(box);
 
   CallBoxForceGPU(forcefield.particles->getCUDAVars(), cellVector,
                   cellStartIndex, neighborList, mapParticleToCell,
@@ -344,8 +345,7 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
     for(nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL; nCellIndex++) {
       neighborCell = neighborList[currCell][nCellIndex];
 
-      endIndex = neighborCell != numberOfCells - 1 ?
-                 cellStartIndex[neighborCell + 1] : atomNumber;
+      endIndex = neighborCell != numberOfCells - 1 ? cellStartIndex[neighborCell + 1] : atomsInsideBox;
       for(nParticleIndex = cellStartIndex[neighborCell];
           nParticleIndex < endIndex; nParticleIndex++) {
         nParticle = cellVector[nParticleIndex];
@@ -425,6 +425,7 @@ Virial CalculateEnergy::VirialCalc(const uint box)
   int numberOfCells = neighborList.size();
   int atomNumber = currentCoords.Count();
   int currParticleIdx, currParticle, currCell, nCellIndex, neighborCell, endIndex, nParticleIndex, nParticle;
+  uint atomsInsideBox = NumberOfParticlesInsideBox(box);
 
 #ifdef GOMC_CUDA
   //update unitcell in GPU
@@ -463,8 +464,7 @@ virC, comC, lambdaVDW, lambdaCoulomb) reduction(+:vT11, vT12, vT13, vT22, \
     for(nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL; nCellIndex++) {
       neighborCell = neighborList[currCell][nCellIndex];
 
-      endIndex = neighborCell != numberOfCells - 1 ?
-                 cellStartIndex[neighborCell + 1] : atomNumber;
+      endIndex = neighborCell != numberOfCells - 1 ? cellStartIndex[neighborCell + 1] : atomsInsideBox;
       for(nParticleIndex = cellStartIndex[neighborCell];
           nParticleIndex < endIndex; nParticleIndex++) {
         nParticle = cellVector[nParticleIndex];
