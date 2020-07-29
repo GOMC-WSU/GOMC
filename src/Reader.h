@@ -80,7 +80,6 @@ public:
   {
     if (!isOpen) return;
     file.close();
-    CheckFileState(false, "...could not be closed.", "Finished reading ");
   }
 
   //Go to start of file
