@@ -360,6 +360,7 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   long double accept = MPCoeff * uBoltz;
   bool result = (rejectState == mv::fail_state::NO_FAIL) && prng() < accept;
+  printf("%d: MPCoeff: %.20lf, uBoltz: %.20lf, accept: %.20lf, result: %d\n", step, MPCoeff, uBoltz, accept, result);
   if(result) {
     sysPotRef = sysPotNew;
     swap(coordCurrRef, newMolsPos);
