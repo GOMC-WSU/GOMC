@@ -296,6 +296,16 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   int atomCount = atomForce.Count();
   int molCount = molForce.Count();
 
+  // temporary array for gpu // delete this later
+  int aLen = atomForce.Count();
+  int mLen = molForce.Count();
+  double *gpu_aForcex = new double[aLen];
+  double *gpu_aForcey = new double[aLen];
+  double *gpu_aForcez = new double[aLen];
+  double *gpu_mForcex = new double[mLen];
+  double *gpu_mForcey = new double[mLen];
+  double *gpu_mForcez = new double[mLen];
+
   // Reset Force Arrays
   ResetForce(atomForce, molForce, box);
 
@@ -326,11 +336,11 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
                   cellStartIndex, neighborList, mapParticleToCell,
                   coords, boxAxes, electrostatic, particleCharge,
                   particleKind, particleMol, tempREn, tempLJEn,
-                  aForcex, aForcey, aForcez, mForcex, mForcey, mForcez,
+                  gpu_aForcex, gpu_aForcey, gpu_aForcez, gpu_mForcex, gpu_mForcey, gpu_mForcez,
                   atomCount, molCount, forcefield.sc_coul, forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box, atomsInsideBox);
 
-#else
+#endif
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
   #pragma omp parallel for default(shared) private(currParticle, currCell, nCellIndex, \
   neighborCell, endIndex, nParticleIndex, nParticle, distSq, qi_qj_fact, \
@@ -388,12 +398,31 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
       }
     }
   }
-#endif
+//#endif
+
+  for(int i=0; i<aLen; i++) {
+    if(abs(aForcex[i] - gpu_aForcey[i]) > 0.00000000001) {
+      printf("%d: gpu=>%lf, cpu=>%lf, diff=>%lf\n", i, gpu_aForcex[i], aForcex[i], abs(aForcex[i] - gpu_aForcey[i]));
+    }
+  }
+  for(int i=0; i<mLen; i++) {
+    if(abs(mForcex[i] - gpu_mForcex[i]) > 0.00000000001) {
+      printf("%d: gpu=>%lf, cpu=>%lf, diff=>%lf\n", i, gpu_mForcex[i], mForcex[i], abs(mForcex[i] - gpu_mForcey[i]));
+    }
+  }
 
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction
   potential.boxEnergy[box].real = tempREn;
+
+  // delete temporary arrays
+  delete [] gpu_aForcex;
+  delete [] gpu_aForcey;
+  delete [] gpu_aForcez;
+  delete [] gpu_mForcex;
+  delete [] gpu_mForcey;
+  delete [] gpu_mForcez;
 
   potential.Total();
   return potential;
