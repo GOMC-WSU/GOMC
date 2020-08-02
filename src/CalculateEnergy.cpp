@@ -401,13 +401,13 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
 //#endif
 
   for(int i=0; i<aLen; i++) {
-    if(abs(aForcex[i] - gpu_aForcey[i]) > 0.00000000001) {
-      printf("%d: gpu=>%lf, cpu=>%lf, diff=>%lf\n", i, gpu_aForcex[i], aForcex[i], abs(aForcex[i] - gpu_aForcey[i]));
+    if(abs(aForcex[i] - gpu_aForcex[i]) > 0.00000000001) {
+      printf("atom %d: gpu=>%lf, cpu=>%lf, diff=>%lf\n", i, gpu_aForcex[i], aForcex[i], abs(aForcex[i] - gpu_aForcex[i]));
     }
   }
   for(int i=0; i<mLen; i++) {
     if(abs(mForcex[i] - gpu_mForcex[i]) > 0.00000000001) {
-      printf("%d: gpu=>%lf, cpu=>%lf, diff=>%lf\n", i, gpu_mForcex[i], mForcex[i], abs(mForcex[i] - gpu_mForcey[i]));
+      printf("mol %d: gpu=>%lf, cpu=>%lf, diff=>%lf\n", i, gpu_mForcex[i], mForcex[i], abs(mForcex[i] - gpu_mForcex[i]));
     }
   }
 
