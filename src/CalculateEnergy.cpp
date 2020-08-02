@@ -346,7 +346,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
                   cellStartIndex, neighborList, mapParticleToCell,
                   coords, boxAxes, electrostatic, particleCharge,
                   particleKind, particleMol, tempREn, tempLJEn,
-                  gpu_aForcex, gpu_aForcey, gpu_aForcez, gpu_mForcex, gpu_mForcey, gpu_mForcez,
+                  aForcex, aForcey, aForcez, mForcex, mForcey, mForcez,
                   atomCount, molCount, forcefield.sc_coul, forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box, atomsInsideBox);
 
