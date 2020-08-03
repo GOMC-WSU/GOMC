@@ -273,8 +273,10 @@ inline void MultiParticle::CalcEn()
   //calculate short range energy and force
   sysPotNew = calcEnRef.BoxForce(sysPotNew, newMolsPos, atomForceNew,
                                  molForceNew, boxDimRef, bPick);
+  std::cout << imie(sysPotNew.boxEnergy->inter) imie(sysPotNew.boxEnergy->real);
   //calculate long range of new electrostatic energy
   sysPotNew.boxEnergy[bPick].recip = calcEwald->BoxReciprocal(bPick);
+  std::cout << imie(sysPotNew.boxEnergy[bPick].recip);
   //Calculate long range of new electrostatic force
   calcEwald->BoxForceReciprocal(newMolsPos, atomForceRecNew, molForceRecNew,
                                 bPick);
@@ -321,6 +323,7 @@ inline long double MultiParticle::GetCoeff()
   uint m, molNumber;
   double r_max = moveSetRef.GetRMAX(bPick);
   double t_max = moveSetRef.GetTMAX(bPick);
+  std::cout << imie(r_max) imie(t_max);
 #ifdef _OPENMP
   #pragma omp parallel for default(shared) private(m, molNumber, lbt_old, lbt_new, lbf_old, lbf_new) reduction(*:w_ratio)
 #endif
@@ -360,7 +363,7 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   long double accept = MPCoeff * uBoltz;
   bool result = (rejectState == mv::fail_state::NO_FAIL) && prng() < accept;
-  printf("%d: MPCoeff: %.20lf, uBoltz: %.20lf, accept: %.20lf, result: %d\n", step, MPCoeff, uBoltz, accept, result);
+  std::cout << imie(step) imie(MPCoeff) imie(uBoltz) imie(accept);
   if(result) {
     sysPotRef = sysPotNew;
     swap(coordCurrRef, newMolsPos);

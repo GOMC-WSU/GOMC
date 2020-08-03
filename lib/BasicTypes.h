@@ -11,6 +11,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <math.h>
 #include <ostream>
 
+// Just for debugging stuff
+// e.g.
+// cout << imie(variable) imie(another_variable)
+#define imie(...) " [" << #__VA_ARGS__ ": " << (__VA_ARGS__) << "] "
+
 typedef unsigned int uint;
 typedef unsigned long int ulong;
 
