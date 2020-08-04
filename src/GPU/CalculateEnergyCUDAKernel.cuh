@@ -90,7 +90,7 @@ __device__ double CalcCoulombGPU(double distSq, int kind1, int kind2,
                                  int gpu_isMartini, double gpu_diElectric_1,
                                  double gpu_lambdaCoulomb, bool sc_coul,
                                  double sc_sigma_6, double sc_alpha,
-                                 uint sc_power, double gpu_sigmaSq,
+                                 uint sc_power, double * gpu_sigmaSq,
                                  int gpu_count);
 __device__ double CalcCoulombVirGPU(double distSq, double qi_qj,
                                     double gpu_rCutCoulomb, double gpu_alpha,

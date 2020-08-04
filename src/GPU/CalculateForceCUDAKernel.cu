@@ -881,7 +881,7 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
                                               gpu_diElectric_1[0],
                                               lambdaCoulomb, sc_coul, sc_sigma_6,
                                               sc_alpha, sc_power,
-                                              gpu_sigmaSq[box],
+                                              gpu_sigmaSq,
                                               gpu_count[0]);
         }
         gpu_LJEn[threadID] += CalcEnGPU(distSq, kA, kB, gpu_sigmaSq, gpu_n,
