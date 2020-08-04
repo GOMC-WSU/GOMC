@@ -11,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "System.h"
 #include "StaticVals.h"
 #include <cmath>
+#include <fstream>
 
 #define MIN_FORCE 1E-12
 #define MAX_FORCE 30
@@ -129,7 +130,6 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   prng.PickBox(bPick, subDraw, movPerc);
 #endif
 
-  std::cout << imie(coordCurrRef.Get(10).x);
 
   // In each step, we perform either:
   // 1- All displacement move.
@@ -359,6 +359,17 @@ inline long double MultiParticle::GetCoeff()
 
 inline void MultiParticle::Accept(const uint rejectState, const uint step)
 {
+  // dump all coordinates to file
+#ifdef GOMC_CUDA
+  ofstream dump("gpu.csv", ios::out);
+#else
+  ofstream dump("cpu.csv", ios::out);
+#endif
+  for(int i=0; i<coordCurrRef.Count(); i++) {
+    dump << std::setprecision(20) << step << "," << coordCurrRef[i].x << "," << coordCurrRef[i].y << "," << coordCurrRef[i].z << "\n";
+  }
+  dump.close();
+
   // Here we compare the values of reference and trial and decide whether to
   // accept or reject the move
   long double MPCoeff = GetCoeff();
