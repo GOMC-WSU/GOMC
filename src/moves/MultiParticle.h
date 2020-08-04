@@ -361,9 +361,9 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
 {
   // dump all coordinates to file
 #ifdef GOMC_CUDA
-  ofstream dump("gpu.csv", ios::out);
+  std::ofstream dump("gpu.csv", std::ios::out);
 #else
-  ofstream dump("cpu.csv", ios::out);
+  std::ofstream dump("cpu.csv", std::ios::out);
 #endif
   for(int i=0; i<coordCurrRef.Count(); i++) {
     dump << std::setprecision(20) << step << "," << coordCurrRef[i].x << "," << coordCurrRef[i].y << "," << coordCurrRef[i].z << "\n";
