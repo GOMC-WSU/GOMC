@@ -129,6 +129,8 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   prng.PickBox(bPick, subDraw, movPerc);
 #endif
 
+  std::cout << imie(coordCurrRef.Get(10).x);
+
   // In each step, we perform either:
   // 1- All displacement move.
   // 2- All rotation move.
