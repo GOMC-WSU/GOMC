@@ -412,13 +412,13 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
 
   for(int i=0; i<aLen; i++) {
     if(aForcex[i] != gpu_aForcex[i]) {
-      printf("atom %d: gpu=>%lf, cpu=>%lf, diff=>%lf\n", i, gpu_aForcex[i], aForcex[i], abs(aForcex[i] - gpu_aForcex[i]));
+      printf("atom %d: gpu=>%.20lf, cpu=>%.20lf, diff=>%.20lf\n", i, gpu_aForcex[i], aForcex[i], abs(aForcex[i] - gpu_aForcex[i]));
       exit(EXIT_FAILURE);
     }
   }
   for(int i=0; i<mLen; i++) {
     if(mForcex[i] != gpu_mForcex[i]) {
-      printf("mol %d: gpu=>%lf, cpu=>%lf, diff=>%lf\n", i, gpu_mForcex[i], mForcex[i], abs(mForcex[i] - gpu_mForcex[i]));
+      printf("mol %d: gpu=>%.20lf, cpu=>%.20lf, diff=>%.20lf\n", i, gpu_mForcex[i], mForcex[i], abs(mForcex[i] - gpu_mForcex[i]));
       exit(EXIT_FAILURE);
     }
   }
