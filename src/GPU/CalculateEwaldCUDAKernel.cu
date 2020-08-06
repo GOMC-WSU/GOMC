@@ -86,7 +86,7 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
       imageSize);
   checkLastErrorCUDA(__FILE__, __LINE__);
 
-#ifndef NDEBUG
+//#ifndef NDEBUG
   // In the future maybe we could remove this for Nondebug?
   cudaMemcpy(sumRnew, vars->gpu_sumRnew[box],
              imageSize * sizeof(double),
@@ -94,7 +94,7 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
   cudaMemcpy(sumInew, vars->gpu_sumInew[box],
              imageSize * sizeof(double),
              cudaMemcpyDeviceToHost);
-#endif
+//#endif
 
   // ReduceSum
   void *d_temp_storage = NULL;
@@ -170,12 +170,12 @@ void CallMolReciprocalGPU(VariablesCUDA *vars,
                                       gpu_energyRecipNew,
                                       imageSize);
   checkLastErrorCUDA(__FILE__, __LINE__);
-#ifndef NDEBUG
+//#ifndef NDEBUG
   cudaMemcpy(sumRnew, vars->gpu_sumRnew[box], imageSize * sizeof(double),
              cudaMemcpyDeviceToHost);
   cudaMemcpy(sumInew, vars->gpu_sumInew[box], imageSize * sizeof(double),
              cudaMemcpyDeviceToHost);
-#endif
+//#endif
 
   // ReduceSum
   void *d_temp_storage = NULL;
@@ -245,13 +245,13 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars,
                                        gpu_energyRecipNew,
                                        imageSize);
   checkLastErrorCUDA(__FILE__, __LINE__);
-#ifndef NDEBUG
+//#ifndef NDEBUG
   // In the future maybe we could remove this for Nondebug?
   cudaMemcpy(sumRnew, vars->gpu_sumRnew[box], imageSize * sizeof(double),
              cudaMemcpyDeviceToHost);
   cudaMemcpy(sumInew, vars->gpu_sumInew[box], imageSize * sizeof(double),
              cudaMemcpyDeviceToHost);
-#endif
+//#endif
 
   // ReduceSum
   void *d_temp_storage = NULL;
