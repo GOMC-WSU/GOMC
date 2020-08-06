@@ -46,7 +46,8 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
                           double sc_sigma_6,
                           double sc_alpha,
                           uint sc_power,
-                          uint const box)
+                          uint const box,
+                          uint const atomsInsideBox)
 {
   int atomNumber = currentCoords.Count();
   int molNumber = currentCOM.Count();
@@ -192,7 +193,8 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
       vars->gpu_lambdaVDW,
       vars->gpu_lambdaCoulomb,
       vars->gpu_isFraction,
-      box);
+      box,
+      atomsInsideBox);
   checkLastErrorCUDA(__FILE__, __LINE__);
   cudaDeviceSynchronize();
   // ReduceSum // Virial of LJ
@@ -642,7 +644,8 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
                                  double *gpu_lambdaVDW,
                                  double *gpu_lambdaCoulomb,
                                  bool *gpu_isFraction,
-                                 int box)
+                                 int box,
+                                 uint atomsInsideBox)
 {
   double distSq;
   double virX, virY, virZ;
@@ -665,12 +668,12 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
   // calculate number of particles inside neighbor Cell
   int particlesInsideCurrentCell, particlesInsideNeighboringCells;
   int endIndex = neighborCell != numberOfCells - 1 ?
-                 gpu_cellStartIndex[neighborCell + 1] : atomNumber;
+                 gpu_cellStartIndex[neighborCell + 1] : atomsInsideBox;
   particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
 
   // Calculate number of particles inside current Cell
   endIndex = currentCell != numberOfCells - 1 ?
-             gpu_cellStartIndex[currentCell + 1] : atomNumber;
+             gpu_cellStartIndex[currentCell + 1] : atomsInsideBox;
   particlesInsideCurrentCell = endIndex - gpu_cellStartIndex[currentCell];
 
   // total number of pairs

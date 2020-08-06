@@ -446,7 +446,7 @@ Virial CalculateEnergy::VirialCalc(const uint box)
                        vT11, vT12, vT13, vT22, vT23, vT33,
                        forcefield.sc_coul,
                        forcefield.sc_sigma_6, forcefield.sc_alpha,
-                       forcefield.sc_power, box);
+                       forcefield.sc_power, box, atomsInsideBox);
 #else
 #ifdef _OPENMP
   #pragma omp parallel for default(shared) private(currParticleIdx, currParticle, \
