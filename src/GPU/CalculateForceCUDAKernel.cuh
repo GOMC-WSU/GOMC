@@ -384,25 +384,25 @@ __device__ inline double CalcCoulombForceGPU(double distSq, double qi_qj,
   int index = FlatIndexGPU(kind1, kind2, gpu_count);
   if(gpu_VDW_Kind == GPU_VDW_STD_KIND) {
     return CalcCoulombVirParticleGPU(distSq, qi_qj, gpu_ewald, gpu_alpha, index,
-                                     gpu_sigmaSq, sc_coul, sc_sigma_6, sc_alpha,
+                                     gpu_sigmaSq[index], sc_coul, sc_sigma_6, sc_alpha,
                                      sc_power, gpu_lambdaCoulomb);
   } else if(gpu_VDW_Kind == GPU_VDW_SHIFT_KIND) {
     return CalcCoulombVirShiftGPU(distSq, qi_qj, gpu_ewald, gpu_alpha, index,
-                                  gpu_sigmaSq, sc_coul, sc_sigma_6, sc_alpha,
+                                  gpu_sigmaSq[index], sc_coul, sc_sigma_6, sc_alpha,
                                   sc_power, gpu_lambdaCoulomb);
   } else if(gpu_VDW_Kind == GPU_VDW_EXP6_KIND) {
     return CalcCoulombVirExp6GPU(distSq, qi_qj, gpu_ewald, gpu_alpha, index,
-                                 gpu_sigmaSq, sc_coul, sc_sigma_6, sc_alpha,
+                                 gpu_sigmaSq[index], sc_coul, sc_sigma_6, sc_alpha,
                                  sc_power, gpu_lambdaCoulomb);
   } else if(gpu_VDW_Kind == GPU_VDW_SWITCH_KIND && gpu_isMartini) {
     return CalcCoulombVirSwitchMartiniGPU(distSq, qi_qj, gpu_ewald, gpu_alpha,
                                           gpu_rCutCoulomb, gpu_diElectric_1,
-                                          index, gpu_sigmaSq, sc_coul,
+                                          index, gpu_sigmaSq[index], sc_coul,
                                           sc_sigma_6, sc_alpha, sc_power,
                                           gpu_lambdaCoulomb);
   } else
     return CalcCoulombVirSwitchGPU(distSq, qi_qj, gpu_ewald, gpu_alpha,
-                                   gpu_rCutCoulomb, index, gpu_sigmaSq, sc_coul,
+                                   gpu_rCutCoulomb, index, gpu_sigmaSq[index], sc_coul,
                                    sc_sigma_6, sc_alpha, sc_power,
                                    gpu_lambdaCoulomb);
 }
