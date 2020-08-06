@@ -34,10 +34,10 @@ void CallBoxInterGPU(VariablesCUDA *vars,
                      double sc_sigma_6,
                      double sc_alpha,
                      uint sc_power,
-                     uint const box)
+                     uint const box,
+                     uint const atomsInsideBox)
 {
   int atomNumber = coords.Count();
-  int cellVectorCount = cellVector.size();
   int neighborListCount = neighborList.size() * NUMBER_OF_NEIGHBOR_CELL;
   int numberOfCells = neighborList.size();
   int *gpu_particleKind, *gpu_particleMol;
@@ -86,7 +86,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
       vars->gpu_cellVector,
       gpu_neighborList,
       numberOfCells,
-      cellVectorCount,
       vars->gpu_x,
       vars->gpu_y,
       vars->gpu_z,
@@ -131,7 +130,8 @@ void CallBoxInterGPU(VariablesCUDA *vars,
       vars->gpu_lambdaVDW,
       vars->gpu_lambdaCoulomb,
       vars->gpu_isFraction,
-      box);
+      box,
+      atomsInsideBox);
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
 
@@ -175,7 +175,6 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
                             int *gpu_cellVector,
                             int *gpu_neighborList,
                             int numberOfCells,
-                            int cellVectorCount,
                             double *gpu_x,
                             double *gpu_y,
                             double *gpu_z,
@@ -220,7 +219,8 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
                             double *gpu_lambdaVDW,
                             double *gpu_lambdaCoulomb,
                             bool *gpu_isFraction,
-                            int box)
+                            int box,
+                            uint atomsInsideBox)
 {
   double distSq;
   double qi_qj_fact;
@@ -238,12 +238,12 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
   // calculate number of particles inside neighbor Cell
   int particlesInsideCurrentCell, particlesInsideNeighboringCells;
   int endIndex = neighborCell != numberOfCells - 1 ?
-                 gpu_cellStartIndex[neighborCell + 1] : cellVectorCount;
+                 gpu_cellStartIndex[neighborCell + 1] : atomsInsideBox;
   particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
 
   // Calculate number of particles inside current Cell
   endIndex = currentCell != numberOfCells - 1 ?
-             gpu_cellStartIndex[currentCell + 1] : cellVectorCount;
+             gpu_cellStartIndex[currentCell + 1] : atomsInsideBox;
   particlesInsideCurrentCell = endIndex - gpu_cellStartIndex[currentCell];
 
   // total number of pairs

@@ -29,13 +29,13 @@ void CallBoxInterGPU(VariablesCUDA *vars,
                      double sc_sigma_6,
                      double sc_alpha,
                      uint sc_power,
-                     uint const box);
+                     uint const box,
+                     uint const atomsInsideBox);
 
 __global__ void BoxInterGPU(int *gpu_cellStartIndex,
                             int *gpu_cellVector,
                             int *gpu_neighborList,
                             int numberOfCells,
-                            int cellVectorCount,
                             double *gpu_x,
                             double *gpu_y,
                             double *gpu_z,
@@ -80,7 +80,8 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
                             double *gpu_lambdaVDW,
                             double *gpu_lambdaCoulomb,
                             bool *gpu_isFraction,
-                            int box);
+                            int box,
+                            uint atomsInsideBox);
 
 
 __device__ double CalcCoulombGPU(double distSq, int kind1, int kind2,

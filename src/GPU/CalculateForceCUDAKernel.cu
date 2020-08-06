@@ -326,13 +326,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
     }
   }
 
-  cudaMemset(vars->gpu_aForcex, 0, atomCount * sizeof(double));
-  cudaMemset(vars->gpu_aForcey, 0, atomCount * sizeof(double));
-  cudaMemset(vars->gpu_aForcez, 0, atomCount * sizeof(double));
-  cudaMemset(vars->gpu_mForcex, 0, molCount * sizeof(double));
-  cudaMemset(vars->gpu_mForcey, 0, molCount * sizeof(double));
-  cudaMemset(vars->gpu_mForcez, 0, molCount * sizeof(double));
-
   CUMALLOC((void**) &gpu_particleCharge, particleCharge.size() * sizeof(double));
   CUMALLOC((void**) &gpu_neighborList, neighborListCount * sizeof(int));
   CUMALLOC((void**) &gpu_cellStartIndex, cellStartIndex.size() * sizeof(int));
@@ -344,6 +337,12 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   CUMALLOC((void**) &gpu_final_LJEn, sizeof(double));
 
   // Copy necessary data to GPU
+  cudaMemcpy(vars->gpu_aForcex, aForcex, atomCount * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_aForcey, aForcey, atomCount * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_aForcez, aForcez, atomCount * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_mForcex, mForcex, molCount * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_mForcey, mForcey, molCount * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_mForcez, mForcez, molCount * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0], atomNumber * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_neighborList, &neighborlist1D[0], neighborListCount * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_cellStartIndex, &cellStartIndex[0], cellStartIndex.size() * sizeof(int), cudaMemcpyHostToDevice);

@@ -359,25 +359,17 @@ inline long double MultiParticle::GetCoeff()
 
 inline void MultiParticle::Accept(const uint rejectState, const uint step)
 {
-  // dump all coordinates to file
-#ifdef GOMC_CUDA
-  std::ofstream dump("gpu.csv", std::ios::app);
-#else
-  std::ofstream dump("cpu.csv", std::ios::app);
-#endif
-  for(int i=0; i<coordCurrRef.Count(); i++) {
-    dump << std::setprecision(20) << step << "," << coordCurrRef[i].x << "," << coordCurrRef[i].y << "," << coordCurrRef[i].z << "\n";
-  }
-  dump.close();
-
   // Here we compare the values of reference and trial and decide whether to
   // accept or reject the move
   long double MPCoeff = GetCoeff();
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   long double accept = MPCoeff * uBoltz;
-  bool result = (rejectState == mv::fail_state::NO_FAIL) && prng() < accept;
-  //std::cout << imie(step) imie(MPCoeff) imie(uBoltz) imie(accept) "\n";
+  double pr = prng();
+  bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
+  // std::cout << step << ", " << sysPotNew.Total() - sysPotRef.Total() << ", " << uBoltz << ", " << MPCoeff << ", " << accept << " > " << pr << ", ";
+  // std::cout << imie(step) imie(MPCoeff) imie(uBoltz) imie(accept) "\n";
   if(result) {
+    // std::cout << "Accept!\n";
     sysPotRef = sysPotNew;
     swap(coordCurrRef, newMolsPos);
     swap(comCurrRef, newCOMs);
@@ -389,6 +381,7 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
     //update reciprocate value
     calcEwald->UpdateRecip(bPick);
   } else {
+    // std::cout << "Reject!\n";
     cellList.GridAll(boxDimRef, coordCurrRef, molLookup);
     calcEwald->exgMolCache();
   }
