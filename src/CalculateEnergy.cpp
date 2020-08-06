@@ -189,7 +189,6 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   int atomsInsideBox = NumberOfParticlesInsideBox(box);
 
 #ifdef GOMC_CUDA
-  double REn = 0.0, LJEn = 0.0;
   //update unitcell in GPU
   UpdateCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
                       boxAxes.cellBasis[box].x, boxAxes.cellBasis[box].y,
@@ -205,11 +204,9 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
   CallBoxInterGPU(forcefield.particles->getCUDAVars(), cellVector, cellStartIndex,
                   neighborList, coords, boxAxes, electrostatic, particleCharge,
-                  particleKind, particleMol, REn, LJEn, forcefield.sc_coul,
+                  particleKind, particleMol, tempREn, tempLJEn, forcefield.sc_coul,
                   forcefield.sc_sigma_6, forcefield.sc_alpha,
-                  forcefield.sc_power, box);
-  tempREn = REn;
-  tempLJEn = LJEn;
+                  forcefield.sc_power, box, atomsInsideBox);
 #else
 #ifdef _OPENMP
   #pragma omp parallel for default(shared) \
@@ -256,6 +253,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
     }
   }
 #endif
+
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction
@@ -271,11 +269,11 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 }
 
 SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
-    XYZArray const& coords,
-    XYZArray& atomForce,
-    XYZArray& molForce,
-    BoxDimensions const& boxAxes,
-    const uint box)
+                                          XYZArray const& coords,
+                                          XYZArray& atomForce,
+                                          XYZArray& molForce,
+                                          BoxDimensions const& boxAxes,
+                                          const uint box)
 {
   //Handles reservoir box case, returning zeroed structure if
   //interactions are off.
@@ -332,11 +330,11 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
 
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-  #pragma omp parallel for default(shared) private(currParticle, currCell, nCellIndex, \
-  neighborCell, endIndex, nParticleIndex, nParticle, distSq, qi_qj_fact, \
-  virComponents, forceReal, forceLJ, lambdaVDW, lambdaCoulomb) \
+#pragma omp parallel for default(shared) private(currParticle, currCell, nCellIndex, \
+neighborCell, endIndex, nParticleIndex, nParticle, distSq, qi_qj_fact, \
+virComponents, forceReal, forceLJ, lambdaVDW, lambdaCoulomb) \
 reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
-            aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
+          aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 #endif
   for(currParticleIdx = 0; currParticleIdx < cellVector.size(); currParticleIdx++) {
     currParticle = cellVector[currParticleIdx];
@@ -389,7 +387,6 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
     }
   }
 #endif
-
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction
