@@ -1455,17 +1455,14 @@ void CalculateEnergy::ResetForce(XYZArray& atomForce, XYZArray& molForce,
 }
 
 uint CalculateEnergy::NumberOfParticlesInsideBox(uint box) {
-  uint count = 0;
-  
-  MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
-  MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+  uint numberOfAtoms = 0;
 
-  while(thisMol != end) {
-    count += mols.GetKind(*thisMol).NumAtoms();
-    thisMol++;
+  for(int k = 0; k < mols.GetKindsCount(); k++) {
+    MoleculeKind const& thisKind = mols.kinds[k];
+    numberOfAtoms += thisKind.NumAtoms() * molLookup.NumKindInBox(k, box);
   }
 
-  return count;
+  return numberOfAtoms;
 }
 
 bool CalculateEnergy::FindMolInCavity(std::vector< std::vector<uint> > &mol,
