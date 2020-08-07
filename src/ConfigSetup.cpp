@@ -1385,12 +1385,12 @@ void ConfigSetup::verifyInputs(void)
   }
   if(sys.step.adjustment > sys.step.equil && !in.restart.enable &&
       !in.restart.recalcTrajectory) {
-    std::cout << "Error: Move adjustment frequency should be smaller " <<
-              "than Equilibration steps!" << std::endl;
+    std::cout << "Error: Move adjustment frequency cannot exceed " <<
+              "Equilibration steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if(sys.step.equil > sys.step.total && !in.restart.recalcTrajectory) {
-    std::cout << "Error: Equilibratisys.step.totalon steps should be smaller than " <<
+    std::cout << "Error: Equilibration steps cannot exceed " <<
               "Total run steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
