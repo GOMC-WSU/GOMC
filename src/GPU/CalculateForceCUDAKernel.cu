@@ -46,8 +46,7 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
                           double sc_sigma_6,
                           double sc_alpha,
                           uint sc_power,
-                          uint const box,
-                          uint const atomsInsideBox)
+                          uint const box)
 {
   int atomNumber = currentCoords.Count();
   int molNumber = currentCOM.Count();
@@ -193,8 +192,7 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
       vars->gpu_lambdaVDW,
       vars->gpu_lambdaCoulomb,
       vars->gpu_isFraction,
-      box,
-      atomsInsideBox);
+      box);
   checkLastErrorCUDA(__FILE__, __LINE__);
   cudaDeviceSynchronize();
   // ReduceSum // Virial of LJ
@@ -302,8 +300,7 @@ void CallBoxForceGPU(VariablesCUDA *vars,
                      double sc_sigma_6,
                      double sc_alpha,
                      uint sc_power,
-                     uint const box,
-                     uint const atomsInsideBox)
+                     uint const box)
 {
   int atomNumber = coords.Count();
   int *gpu_particleKind, *gpu_particleMol;
@@ -357,64 +354,63 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
 
   BoxForceGPU <<< blocksPerGrid, threadsPerBlock>>>(gpu_cellStartIndex,
-      vars->gpu_cellVector,
-      gpu_neighborList,
-      numberOfCells,
-      atomNumber,
-      vars->gpu_mapParticleToCell,
-      vars->gpu_x,
-      vars->gpu_y,
-      vars->gpu_z,
-      boxAxes.GetAxis(box).x,
-      boxAxes.GetAxis(box).y,
-      boxAxes.GetAxis(box).z,
-      electrostatic,
-      gpu_particleCharge,
-      gpu_particleKind,
-      gpu_particleMol,
-      gpu_REn,
-      gpu_LJEn,
-      vars->gpu_sigmaSq,
-      vars->gpu_epsilon_Cn,
-      vars->gpu_n,
-      vars->gpu_VDW_Kind,
-      vars->gpu_isMartini,
-      vars->gpu_count,
-      vars->gpu_rCut,
-      vars->gpu_rCutCoulomb,
-      vars->gpu_rCutLow,
-      vars->gpu_rOn,
-      vars->gpu_alpha,
-      vars->gpu_ewald,
-      vars->gpu_diElectric_1,
-      vars->gpu_nonOrth,
-      vars->gpu_cell_x[box],
-      vars->gpu_cell_y[box],
-      vars->gpu_cell_z[box],
-      vars->gpu_Invcell_x[box],
-      vars->gpu_Invcell_y[box],
-      vars->gpu_Invcell_z[box],
-      vars->gpu_aForcex,
-      vars->gpu_aForcey,
-      vars->gpu_aForcez,
-      vars->gpu_mForcex,
-      vars->gpu_mForcey,
-      vars->gpu_mForcez,
-      sc_coul,
-      sc_sigma_6,
-      sc_alpha,
-      sc_power,
-      vars->gpu_rMin,
-      vars->gpu_rMaxSq,
-      vars->gpu_expConst,
-      vars->gpu_molIndex,
-      vars->gpu_kindIndex,
-      vars->gpu_lambdaVDW,
-      vars->gpu_lambdaCoulomb,
-      vars->gpu_isFraction,
-      box,
-      atomsInsideBox);
-
+                                                    vars->gpu_cellVector,
+                                                    gpu_neighborList,
+                                                    numberOfCells,
+                                                    atomNumber,
+                                                    vars->gpu_mapParticleToCell,
+                                                    vars->gpu_x,
+                                                    vars->gpu_y,
+                                                    vars->gpu_z,
+                                                    boxAxes.GetAxis(box).x,
+                                                    boxAxes.GetAxis(box).y,
+                                                    boxAxes.GetAxis(box).z,
+                                                    electrostatic,
+                                                    gpu_particleCharge,
+                                                    gpu_particleKind,
+                                                    gpu_particleMol,
+                                                    gpu_REn,
+                                                    gpu_LJEn,
+                                                    vars->gpu_sigmaSq,
+                                                    vars->gpu_epsilon_Cn,
+                                                    vars->gpu_n,
+                                                    vars->gpu_VDW_Kind,
+                                                    vars->gpu_isMartini,
+                                                    vars->gpu_count,
+                                                    vars->gpu_rCut,
+                                                    vars->gpu_rCutCoulomb,
+                                                    vars->gpu_rCutLow,
+                                                    vars->gpu_rOn,
+                                                    vars->gpu_alpha,
+                                                    vars->gpu_ewald,
+                                                    vars->gpu_diElectric_1,
+                                                    vars->gpu_nonOrth,
+                                                    vars->gpu_cell_x[box],
+                                                    vars->gpu_cell_y[box],
+                                                    vars->gpu_cell_z[box],
+                                                    vars->gpu_Invcell_x[box],
+                                                    vars->gpu_Invcell_y[box],
+                                                    vars->gpu_Invcell_z[box],
+                                                    vars->gpu_aForcex,
+                                                    vars->gpu_aForcey,
+                                                    vars->gpu_aForcez,
+                                                    vars->gpu_mForcex,
+                                                    vars->gpu_mForcey,
+                                                    vars->gpu_mForcez,
+                                                    sc_coul,
+                                                    sc_sigma_6,
+                                                    sc_alpha,
+                                                    sc_power,
+                                                    vars->gpu_rMin,
+                                                    vars->gpu_rMaxSq,
+                                                    vars->gpu_expConst,
+                                                    vars->gpu_molIndex,
+                                                    vars->gpu_kindIndex,
+                                                    vars->gpu_lambdaVDW,
+                                                    vars->gpu_lambdaCoulomb,
+                                                    vars->gpu_isFraction,
+                                                    box);
+  cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
   // ReduceSum
   void * d_temp_storage = NULL;
@@ -644,8 +640,7 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
                                  double *gpu_lambdaVDW,
                                  double *gpu_lambdaCoulomb,
                                  bool *gpu_isFraction,
-                                 int box,
-                                 uint atomsInsideBox)
+                                 int box)
 {
   double distSq;
   double virX, virY, virZ;
@@ -667,13 +662,11 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
 
   // calculate number of particles inside neighbor Cell
   int particlesInsideCurrentCell, particlesInsideNeighboringCells;
-  int endIndex = neighborCell != numberOfCells - 1 ?
-                 gpu_cellStartIndex[neighborCell + 1] : atomsInsideBox;
+  int endIndex = gpu_cellStartIndex[neighborCell + 1];
   particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
 
   // Calculate number of particles inside current Cell
-  endIndex = currentCell != numberOfCells - 1 ?
-             gpu_cellStartIndex[currentCell + 1] : atomsInsideBox;
+  endIndex = gpu_cellStartIndex[currentCell + 1];
   particlesInsideCurrentCell = endIndex - gpu_cellStartIndex[currentCell];
 
   // total number of pairs
@@ -809,8 +802,7 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
                             double *gpu_lambdaVDW,
                             double *gpu_lambdaCoulomb,
                             bool *gpu_isFraction,
-                            int box,
-                            int atomsInsideBox)
+                            int box)
 {
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -831,13 +823,11 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
 
   // calculate number of particles inside neighbor Cell
   int particlesInsideCurrentCell, particlesInsideNeighboringCells;
-  int endIndex = neighborCell != numberOfCells - 1 ?
-                 gpu_cellStartIndex[neighborCell + 1] : atomsInsideBox;
+  int endIndex = gpu_cellStartIndex[neighborCell + 1];
   particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
 
   // Calculate number of particles inside current Cell
-  endIndex = currentCell != numberOfCells - 1 ?
-             gpu_cellStartIndex[currentCell + 1] : atomsInsideBox;
+  endIndex = gpu_cellStartIndex[currentCell + 1];
   particlesInsideCurrentCell = endIndex - gpu_cellStartIndex[currentCell];
 
   // total number of pairs

@@ -186,7 +186,6 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   int atomNumber = currentCoords.Count();
   int currParticleIdx, currParticle, currCell, nCellIndex, neighborCell, endIndex, nParticleIndex, nParticle;
   int countpairs = 0;
-  int atomsInsideBox = NumberOfParticlesInsideBox(box);
 
 #ifdef GOMC_CUDA
   //update unitcell in GPU
@@ -206,7 +205,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   neighborList, coords, boxAxes, electrostatic, particleCharge,
                   particleKind, particleMol, tempREn, tempLJEn, forcefield.sc_coul,
                   forcefield.sc_sigma_6, forcefield.sc_alpha,
-                  forcefield.sc_power, box, atomsInsideBox);
+                  forcefield.sc_power, box);
 #else
 #ifdef _OPENMP
   #pragma omp parallel for default(shared) \
@@ -225,7 +224,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
       neighborCell = neighborList[currCell][nCellIndex];
 
       // find the ending index in neighboring cell
-      endIndex = neighborCell != numberOfCells - 1 ? cellStartIndex[neighborCell + 1] : atomsInsideBox;
+      endIndex = cellStartIndex[neighborCell + 1];
       // loop over particle inside neighboring cell
       for(nParticleIndex = cellStartIndex[neighborCell];
           nParticleIndex < endIndex; nParticleIndex++) {
@@ -302,9 +301,8 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   cellList.GetCellListNeighbor(box, coords.Count(), cellVector, cellStartIndex, mapParticleToCell);
   neighborList = cellList.GetNeighborList(box);
   int numberOfCells = neighborList.size();
-  int atomNumber = coords.Count();
-  int currParticleIdx, currParticle, currCell, nCellIndex, neighborCell, endIndex, nParticleIndex, nParticle;
-  uint atomsInsideBox = NumberOfParticlesInsideBox(box);
+  int currParticleIdx, currParticle, currCell, nCellIndex, neighborCell;
+  int endIndex, nParticleIndex, nParticle;
 
 #ifdef GOMC_CUDA
   //update unitcell in GPU
@@ -325,8 +323,9 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
                   coords, boxAxes, electrostatic, particleCharge,
                   particleKind, particleMol, tempREn, tempLJEn,
                   aForcex, aForcey, aForcez, mForcex, mForcey, mForcez,
-                  atomCount, molCount, forcefield.sc_coul, forcefield.sc_sigma_6, forcefield.sc_alpha,
-                  forcefield.sc_power, box, atomsInsideBox);
+                  atomCount, molCount, forcefield.sc_coul,
+                  forcefield.sc_sigma_6, forcefield.sc_alpha,
+                  forcefield.sc_power, box);
 
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
@@ -343,7 +342,7 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
     for(nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL; nCellIndex++) {
       neighborCell = neighborList[currCell][nCellIndex];
 
-      endIndex = neighborCell != numberOfCells - 1 ? cellStartIndex[neighborCell + 1] : atomsInsideBox;
+      endIndex = cellStartIndex[neighborCell + 1];
       for(nParticleIndex = cellStartIndex[neighborCell];
           nParticleIndex < endIndex; nParticleIndex++) {
         nParticle = cellVector[nParticleIndex];
@@ -387,6 +386,7 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
     }
   }
 #endif
+
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction
@@ -417,8 +417,8 @@ Virial CalculateEnergy::VirialCalc(const uint box)
                                cellStartIndex, mapParticleToCell);
   neighborList = cellList.GetNeighborList(box);
   int numberOfCells = neighborList.size();
-  // int atomNumber = currentCoords.Count();
-  uint atomsInsideBox = NumberOfParticlesInsideBox(box);
+  int atomNumber = currentCoords.Count();
+  int currParticleIdx, currParticle, currCell, nCellIndex, neighborCell, endIndex, nParticleIndex, nParticle;
 
 #ifdef GOMC_CUDA
   //update unitcell in GPU
@@ -442,7 +442,7 @@ Virial CalculateEnergy::VirialCalc(const uint box)
                        vT11, vT12, vT13, vT22, vT23, vT33,
                        forcefield.sc_coul,
                        forcefield.sc_sigma_6, forcefield.sc_alpha,
-                       forcefield.sc_power, box, atomsInsideBox);
+                       forcefield.sc_power, box);
 #else
 #ifdef _OPENMP
   #pragma omp parallel for default(shared) reduction(+:vT11, vT12, vT13, vT22, \
@@ -455,9 +455,10 @@ Virial CalculateEnergy::VirialCalc(const uint box)
     for(int nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL; nCellIndex++) {
       int neighborCell = neighborList[currCell][nCellIndex];
 
-      int endIndex = neighborCell != numberOfCells - 1 ? cellStartIndex[neighborCell + 1] : atomsInsideBox;
-      for(int nParticleIndex = cellStartIndex[neighborCell]; nParticleIndex < endIndex; nParticleIndex++) {
-        int nParticle = cellVector[nParticleIndex];
+      endIndex = cellStartIndex[neighborCell + 1];
+      for(nParticleIndex = cellStartIndex[neighborCell];
+          nParticleIndex < endIndex; nParticleIndex++) {
+        nParticle = cellVector[nParticleIndex];
 
         // make sure the pairs are unique and they belong to different molecules
         if(currParticle < nParticle && particleMol[currParticle] != particleMol[nParticle]) {
@@ -1444,17 +1445,14 @@ void CalculateEnergy::ResetForce(XYZArray& atomForce, XYZArray& molForce,
 }
 
 uint CalculateEnergy::NumberOfParticlesInsideBox(uint box) {
-  uint count = 0;
-  
-  MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
-  MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+  uint numberOfAtoms = 0;
 
-  while(thisMol != end) {
-    count += mols.GetKind(*thisMol).NumAtoms();
-    thisMol++;
+  for(int k = 0; k < mols.GetKindsCount(); k++) {
+    MoleculeKind const& thisKind = mols.kinds[k];
+    numberOfAtoms += thisKind.NumAtoms() * molLookup.NumKindInBox(k, box);
   }
 
-  return count;
+  return numberOfAtoms;
 }
 
 bool CalculateEnergy::FindMolInCavity(std::vector< std::vector<uint> > &mol,
