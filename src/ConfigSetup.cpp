@@ -1315,7 +1315,7 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(sys.volume.cstVolBox0) {
-    std::cout << "Error: Fix volume of box 0 cannot be applied fot NPT simulation!\n";
+    std::cout << "Error: Fix volume of box 0 cannot be applied for NPT simulation!\n";
     exit(EXIT_FAILURE);
   }
 #endif
@@ -1417,7 +1417,7 @@ void ConfigSetup::verifyInputs(void)
               sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
               sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft +
               sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequncies are not equal to one!\n";
+    std::cout << "Error: Sum of move frequencies are not equal to one!\n";
     exit(EXIT_FAILURE);
   }
 #elif ENSEMBLE == NPT
@@ -1429,7 +1429,7 @@ void ConfigSetup::verifyInputs(void)
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
               sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc +
               sys.moves.crankShaft + sys.moves.multiParticle - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequncies are not equal to one!\n";
+    std::cout << "Error: Sum of move frequencies are not equal to one!\n";
     exit(EXIT_FAILURE);
   }
 
@@ -1819,65 +1819,65 @@ void ConfigSetup::verifyInputs(void)
   }
 #endif
   if(!out.statistics.settings.block.enable && out.statistics.vars.energy.block) {
-    printf("Note: Average output Inactived. Energy average output will be ignored.\n");
+    printf("Note: Average output Inactivated. Energy average output will be ignored.\n");
     out.statistics.vars.energy.block = false;
   }
   if(!out.statistics.settings.block.enable &&
       out.statistics.vars.pressure.block) {
-    printf("Note: Average output Inactived. Pressure average output will be ignored.\n");
+    printf("Note: Average output Inactivated. Pressure average output will be ignored.\n");
     out.statistics.vars.pressure.block = false;
   }
   if(!sys.step.pressureCalc && out.statistics.vars.pressure.block) {
-    printf("Note: Pressure Calculation Inactived. Pressure average output will be ignored.\n");
+    printf("Note: Pressure Calculation Inactivated. Pressure average output will be ignored.\n");
     out.statistics.vars.pressure.block = false;
   }
   if(!sys.step.pressureCalc && out.statistics.vars.surfaceTension.block) {
-    printf("Note: Pressure Calculation Inactived. Surface Tension average output will be ignored.\n");
+    printf("Note: Pressure Calculation Inactivated. Surface Tension average output will be ignored.\n");
     out.statistics.vars.surfaceTension.block = false;
   }
 #ifdef VARIABLE_PARTICLE_NUMBER
   if(!out.statistics.settings.block.enable && out.statistics.vars.molNum.block) {
-    printf("Note: Average output Inactived. Molecule average output will be ignored.\n");
+    printf("Note: Average output Inactivated. Molecule average output will be ignored.\n");
     out.statistics.vars.molNum.block = false;
   }
 #endif
   if(!out.statistics.settings.block.enable && out.statistics.vars.density.block) {
-    printf("Note: Average output Inactived. Density average output will be ignored.\n");
+    printf("Note: Average output Inactivated. Density average output will be ignored.\n");
     out.statistics.vars.density.block = false;
   }
 #ifdef VARIABLE_VOLUME
   if(!out.statistics.settings.block.enable && out.statistics.vars.volume.block) {
-    printf("Note: Average output Inactived. Volume average output will be ignored.\n");
+    printf("Note: Average output Inactivated. Volume average output will be ignored.\n");
     out.statistics.vars.volume.block = false;
   }
 #endif
   if(!out.console.enable && out.statistics.vars.energy.fluct) {
-    printf("Note: Console output Inactived. Energy output will be ignored.\n");
+    printf("Note: Console output Inactivated. Energy output will be ignored.\n");
     out.statistics.vars.energy.fluct = false;
   }
   if(!out.console.enable && out.statistics.vars.pressure.fluct) {
-    printf("Note: Console output Inactived. Pressure output will be ignored.\n");
+    printf("Note: Console output Inactivated. Pressure output will be ignored.\n");
     out.statistics.vars.pressure.fluct = false;
   }
   if(!sys.step.pressureCalc && out.statistics.vars.pressure.fluct) {
-    printf("Note: Pressure Calculation Inactived. Pressure output will be ignored.\n");
+    printf("Note: Pressure Calculation Inactivated. Pressure output will be ignored.\n");
     out.statistics.vars.pressure.fluct = false;
   }
   if(!sys.step.pressureCalc && out.statistics.vars.surfaceTension.fluct) {
-    printf("Note: Pressure Calculation Inactived. Surface Tension output will be ignored.\n");
+    printf("Note: Pressure Calculation Inactivated. Surface Tension output will be ignored.\n");
     out.statistics.vars.surfaceTension.fluct = false;
   }
 #ifdef VARIABLE_PARTICLE_NUMBER
   if(!out.console.enable && out.statistics.vars.molNum.fluct) {
-    printf("Note: Console output Inactived. Molecule output will be ignored.\n");
+    printf("Note: Console output Inactivated. Molecule output will be ignored.\n");
   }
 #endif
   if(!out.console.enable && out.statistics.vars.density.fluct) {
-    printf("Note: Console output Inactived. Density output will be ignored.\n");
+    printf("Note: Console output Inactivated. Density output will be ignored.\n");
   }
 #ifdef VARIABLE_VOLUME
   if(!out.console.enable && out.statistics.vars.volume.fluct) {
-    printf("Note: Console output Inactived. Volume output will be ignored.\n");
+    printf("Note: Console output Inactivated. Volume output will be ignored.\n");
   }
 #endif
 }
