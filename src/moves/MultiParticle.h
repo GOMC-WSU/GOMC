@@ -11,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "System.h"
 #include "StaticVals.h"
 #include <cmath>
+#include <fstream>
 
 #define MIN_FORCE 1E-12
 #define MAX_FORCE 30
@@ -128,6 +129,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
 #else
   prng.PickBox(bPick, subDraw, movPerc);
 #endif
+
 
   // In each step, we perform either:
   // 1- All displacement move.

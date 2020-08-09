@@ -150,7 +150,7 @@ SystemPotential CalculateEnergy::SystemInter(SystemPotential potential,
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
     //calculate LJ interaction and real term of electrostatic interaction
     potential = BoxInter(potential, coords, boxAxes, b);
-    //calculate reciprocate term of electrostatic interaction
+    //calculate reciprocal term of electrostatic interaction
     potential.boxEnergy[b].recip = calcEwald->BoxReciprocal(b);
   }
 
@@ -252,6 +252,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
     }
   }
 #endif
+
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction
@@ -264,15 +265,6 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
   potential.Total();
   return potential;
-}
-
-template<class T>
-void printVector(const std::vector<T> &v) {
-  std::cout << "[";
-  for(auto &x : v) {
-    std::cout << " " << x;
-  }
-  std::cout << "]\n";
 }
 
 SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
@@ -337,11 +329,11 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
 
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-  #pragma omp parallel for default(shared) private(currParticle, currCell, nCellIndex, \
-  neighborCell, endIndex, nParticleIndex, nParticle, distSq, qi_qj_fact, \
-  virComponents, forceReal, forceLJ, lambdaVDW, lambdaCoulomb) \
+#pragma omp parallel for default(shared) private(currParticle, currCell, nCellIndex, \
+neighborCell, endIndex, nParticleIndex, nParticle, distSq, qi_qj_fact, \
+virComponents, forceReal, forceLJ, lambdaVDW, lambdaCoulomb) \
 reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
-            aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
+          aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 #endif
   for(currParticleIdx = 0; currParticleIdx < cellVector.size(); currParticleIdx++) {
     currParticle = cellVector[currParticleIdx];
@@ -395,36 +387,6 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
   }
 #endif
 
-// LOG EVERYTHING TO FILE
-  std::ofstream log;
-  static int counter = 0;
-#ifdef GOMC_CUDA
-  if(counter == 0) {
-    log.open("gpu2.log", std::ios::out);
-  } else {
-    log.open("gpu2.log", std::ios::app);
-  }
-#else
-  if(counter == 0) {
-    log.open("cpu2.log", std::ios::out);
-  } else {
-    log.open("cpu2.log", std::ios::app);
-  }
-#endif
-  for(int i=0; i<coords.Count(); i++) {
-    log << std::setprecision(15) << counter << "," << coords[i].x << "," << coords[i].y << "," << coords[i].z << ",";
-  }
-  for(int i=0; i<atomForce.Count(); i++) {
-    log << std::setprecision(15) << atomForce[i].x << "," << atomForce[i].y << "," << atomForce[i].z << ",";
-  }
-  for(int i=0; i<molForce.Count(); i++) {
-    log << std::setprecision(15) << molForce[i].x << "," << molForce[i].y << "," << molForce[i].z << ",";
-  }
-  log << std::setprecision(15) << tempLJEn << "\n";
-
-  counter++;
-
-
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction
@@ -435,9 +397,9 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
 }
 
 
-// NOTE: The calculation of W12, W13, W23 is expensive and would not be
-// requied for pressure and surface tension calculation. So, they have been
-// commented out. In case you need to calculate them, uncomment them.
+// NOTE: The calculation of W12, W13, and W23 is expensive and would not be
+// required for pressure and surface tension calculation. So, they have been
+// commented out. If you need to calculate them, uncomment them.
 Virial CalculateEnergy::VirialCalc(const uint box)
 {
   //store virial and energy of reference and modify the virial
@@ -448,9 +410,6 @@ Virial CalculateEnergy::VirialCalc(const uint box)
   double vT22 = 0.0, vT23 = 0.0, vT33 = 0.0;
   double rT11 = 0.0, rT12 = 0.0, rT13 = 0.0;
   double rT22 = 0.0, rT23 = 0.0, rT33 = 0.0;
-
-  double distSq, pVF, pRF, qi_qj, lambdaVDW, lambdaCoulomb;
-  XYZ virC, comC;
 
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
   std::vector<std::vector<int> > neighborList;
@@ -486,17 +445,15 @@ Virial CalculateEnergy::VirialCalc(const uint box)
                        forcefield.sc_power, box);
 #else
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(currParticleIdx, currParticle, \
-  distSq, currCell, neighborCell, endIndex, nParticleIndex,nParticle, pVF, pRF, qi_qj, \
-virC, comC, lambdaVDW, lambdaCoulomb) reduction(+:vT11, vT12, vT13, vT22, \
+  #pragma omp parallel for default(shared) reduction(+:vT11, vT12, vT13, vT22, \
       vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33)
 #endif
-  for(currParticleIdx = 0; currParticleIdx < cellVector.size(); currParticleIdx++) {
-    currParticle = cellVector[currParticleIdx];
-    currCell = mapParticleToCell[currParticle];
+  for(int currParticleIdx = 0; currParticleIdx < cellVector.size(); currParticleIdx++) {
+    int currParticle = cellVector[currParticleIdx];
+    int currCell = mapParticleToCell[currParticle];
 
-    for(nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL; nCellIndex++) {
-      neighborCell = neighborList[currCell][nCellIndex];
+    for(int nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL; nCellIndex++) {
+      int neighborCell = neighborList[currCell][nCellIndex];
 
       endIndex = cellStartIndex[neighborCell + 1];
       for(nParticleIndex = cellStartIndex[neighborCell];
@@ -505,26 +462,24 @@ virC, comC, lambdaVDW, lambdaCoulomb) reduction(+:vT11, vT12, vT13, vT22, \
 
         // make sure the pairs are unique and they belong to different molecules
         if(currParticle < nParticle && particleMol[currParticle] != particleMol[nParticle]) {
+          double distSq;
+          XYZ virC;
           if (currentAxes.InRcut(distSq, virC, currentCoords, currParticle,
                                  nParticle, box)) {
-            pVF = 0.0;
-            pRF = 0.0;
 
             //calculate the distance between com of two molecules
-            comC = currentCOM.Difference(particleMol[currParticle],
-                                         particleMol[nParticle]);
+            XYZ comC = currentCOM.Difference(particleMol[currParticle], particleMol[nParticle]);
             //calculate the minimum image between com of two molecules
             comC = currentAxes.MinImage(comC, box);
-            lambdaVDW = GetLambdaVDW(particleMol[currParticle], particleMol[nParticle], box);
+            double lambdaVDW = GetLambdaVDW(particleMol[currParticle], particleMol[nParticle], box);
 
             if (electrostatic) {
-              lambdaCoulomb = GetLambdaCoulomb(particleMol[currParticle],
+              double lambdaCoulomb = GetLambdaCoulomb(particleMol[currParticle],
                                                particleMol[nParticle], box);
-              qi_qj = particleCharge[currParticle] * particleCharge[nParticle];
+              double qi_qj = particleCharge[currParticle] * particleCharge[nParticle];
 
-              pRF = forcefield.particles->CalcCoulombVir(distSq, particleKind[currParticle],
-                    particleKind[nParticle], qi_qj,
-                    lambdaCoulomb, box);
+              double pRF = forcefield.particles->CalcCoulombVir(distSq, particleKind[currParticle],
+                    particleKind[nParticle], qi_qj, lambdaCoulomb, box);
               //calculate the top diagonal of pressure tensor
               rT11 += pRF * (virC.x * comC.x);
               //rT12 += pRF * (0.5 * (virC.x * comC.y + virC.y * comC.x));
@@ -536,7 +491,7 @@ virC, comC, lambdaVDW, lambdaCoulomb) reduction(+:vT11, vT12, vT13, vT22, \
               rT33 += pRF * (virC.z * comC.z);
             }
 
-            pVF = forcefield.particles->CalcVir(distSq, particleKind[currParticle],
+            double pVF = forcefield.particles->CalcVir(distSq, particleKind[currParticle],
                                                 particleKind[nParticle], lambdaVDW);
             //calculate the top diagonal of pressure tensor
             vT11 += pVF * (virC.x * comC.x);
@@ -591,7 +546,7 @@ virC, comC, lambdaVDW, lambdaCoulomb) reduction(+:vT11, vT12, vT13, vT22, \
     VirialCorrection(tempVir, currentAxes, box);
   }
 
-  //calculate reciprocate term of force
+  //calculate reciprocal term of force
   tempVir = calcEwald->VirialReciprocal(tempVir, box);
 
   tempVir.Total();
@@ -1079,7 +1034,7 @@ void CalculateEnergy::MolNonbond(double & energy,
 
 }
 
-// Calculate 1-N nonbonded intra energy uisng pos
+// Calculate 1-N nonbonded intra energy using pos
 void CalculateEnergy::MolNonbond(double & energy, cbmc::TrialMol const &mol,
                                  MoleculeKind const& molKind) const
 {
@@ -1634,7 +1589,7 @@ double CalculateEnergy::GetLambdaCoulomb(uint molA, uint molB, uint box) const
   double lambda = 1.0;
   lambda *= lambdaRef.GetLambdaCoulomb(molA, mols.GetMolKind(molA), box);
   lambda *= lambdaRef.GetLambdaCoulomb(molB, mols.GetMolKind(molB), box);
-  //no need for sq root for inter energy. Alwayse one of the molecule has
+  //no need for sq root for inter energy. Always one of the molecules has
   // lambda 1
   return lambda;
 }
