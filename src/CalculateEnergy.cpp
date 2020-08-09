@@ -397,7 +397,7 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
 }
 
 
-// NOTE: The calculation of W12, W13, and W23 are expensive and would not be
+// NOTE: The calculation of W12, W13, and W23 is expensive and would not be
 // required for pressure and surface tension calculation. So, they have been
 // commented out. If you need to calculate them, uncomment them.
 Virial CalculateEnergy::VirialCalc(const uint box)
