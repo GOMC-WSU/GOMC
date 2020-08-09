@@ -237,13 +237,11 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
 
   // calculate number of particles inside neighbor Cell
   int particlesInsideCurrentCell, particlesInsideNeighboringCells;
-  int endIndex = neighborCell != numberOfCells - 1 ?
-                 gpu_cellStartIndex[neighborCell + 1] : cellVectorCount;
+  int endIndex = gpu_cellStartIndex[neighborCell + 1];
   particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
 
   // Calculate number of particles inside current Cell
-  endIndex = currentCell != numberOfCells - 1 ?
-             gpu_cellStartIndex[currentCell + 1] : cellVectorCount;
+  endIndex = gpu_cellStartIndex[currentCell + 1];
   particlesInsideCurrentCell = endIndex - gpu_cellStartIndex[currentCell];
 
   // total number of pairs

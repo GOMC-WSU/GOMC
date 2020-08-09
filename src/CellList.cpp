@@ -249,6 +249,9 @@ void CellList::GetCellListNeighbor(uint box, int coordinateSize,
     // we are going to sort particles in each cell for better memor access
     std::sort(cellVector.begin() + cellStartIndex[cell], cellVector.begin() + vector_index);
   }
+  // push one last cellStartIndex for the last cell
+  cellStartIndex.push_back(vector_index);
+
   // in case there are two boxes we need to remove the extra space allocated here
   cellVector.resize(vector_index);
 }

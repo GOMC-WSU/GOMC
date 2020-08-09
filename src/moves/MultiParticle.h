@@ -359,7 +359,8 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   long double MPCoeff = GetCoeff();
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   long double accept = MPCoeff * uBoltz;
-  bool result = (rejectState == mv::fail_state::NO_FAIL) && prng() < accept;
+  double pr = prng();
+  bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
   if(result) {
     sysPotRef = sysPotNew;
     swap(coordCurrRef, newMolsPos);

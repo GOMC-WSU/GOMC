@@ -186,10 +186,8 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   int atomNumber = currentCoords.Count();
   int currParticleIdx, currParticle, currCell, nCellIndex, neighborCell, endIndex, nParticleIndex, nParticle;
   int countpairs = 0;
-  int atomsInsideBox = NumberOfParticlesInsideBox(box);
 
 #ifdef GOMC_CUDA
-  double REn = 0.0, LJEn = 0.0;
   //update unitcell in GPU
   UpdateCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
                       boxAxes.cellBasis[box].x, boxAxes.cellBasis[box].y,
@@ -205,11 +203,9 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 
   CallBoxInterGPU(forcefield.particles->getCUDAVars(), cellVector, cellStartIndex,
                   neighborList, coords, boxAxes, electrostatic, particleCharge,
-                  particleKind, particleMol, REn, LJEn, forcefield.sc_coul,
+                  particleKind, particleMol, tempREn, tempLJEn, forcefield.sc_coul,
                   forcefield.sc_sigma_6, forcefield.sc_alpha,
                   forcefield.sc_power, box);
-  tempREn = REn;
-  tempLJEn = LJEn;
 #else
 #ifdef _OPENMP
   #pragma omp parallel for default(shared) \
@@ -228,7 +224,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
       neighborCell = neighborList[currCell][nCellIndex];
 
       // find the ending index in neighboring cell
-      endIndex = neighborCell != numberOfCells - 1 ? cellStartIndex[neighborCell + 1] : atomsInsideBox;
+      endIndex = cellStartIndex[neighborCell + 1];
       // loop over particle inside neighboring cell
       for(nParticleIndex = cellStartIndex[neighborCell];
           nParticleIndex < endIndex; nParticleIndex++) {
@@ -270,12 +266,21 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   return potential;
 }
 
+template<class T>
+void printVector(const std::vector<T> &v) {
+  std::cout << "[";
+  for(auto &x : v) {
+    std::cout << " " << x;
+  }
+  std::cout << "]\n";
+}
+
 SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
-    XYZArray const& coords,
-    XYZArray& atomForce,
-    XYZArray& molForce,
-    BoxDimensions const& boxAxes,
-    const uint box)
+                                          XYZArray const& coords,
+                                          XYZArray& atomForce,
+                                          XYZArray& molForce,
+                                          BoxDimensions const& boxAxes,
+                                          const uint box)
 {
   //Handles reservoir box case, returning zeroed structure if
   //interactions are off.
@@ -304,9 +309,8 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   cellList.GetCellListNeighbor(box, coords.Count(), cellVector, cellStartIndex, mapParticleToCell);
   neighborList = cellList.GetNeighborList(box);
   int numberOfCells = neighborList.size();
-  int atomNumber = coords.Count();
-  int currParticleIdx, currParticle, currCell, nCellIndex, neighborCell, endIndex, nParticleIndex, nParticle;
-  uint atomsInsideBox = NumberOfParticlesInsideBox(box);
+  int currParticleIdx, currParticle, currCell, nCellIndex, neighborCell;
+  int endIndex, nParticleIndex, nParticle;
 
 #ifdef GOMC_CUDA
   //update unitcell in GPU
@@ -327,8 +331,9 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
                   coords, boxAxes, electrostatic, particleCharge,
                   particleKind, particleMol, tempREn, tempLJEn,
                   aForcex, aForcey, aForcez, mForcex, mForcey, mForcez,
-                  atomCount, molCount, forcefield.sc_coul, forcefield.sc_sigma_6, forcefield.sc_alpha,
-                  forcefield.sc_power, box, atomsInsideBox);
+                  atomCount, molCount, forcefield.sc_coul,
+                  forcefield.sc_sigma_6, forcefield.sc_alpha,
+                  forcefield.sc_power, box);
 
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
@@ -345,7 +350,7 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
     for(nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL; nCellIndex++) {
       neighborCell = neighborList[currCell][nCellIndex];
 
-      endIndex = neighborCell != numberOfCells - 1 ? cellStartIndex[neighborCell + 1] : atomsInsideBox;
+      endIndex = cellStartIndex[neighborCell + 1];
       for(nParticleIndex = cellStartIndex[neighborCell];
           nParticleIndex < endIndex; nParticleIndex++) {
         nParticle = cellVector[nParticleIndex];
@@ -389,6 +394,37 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
     }
   }
 #endif
+
+// LOG EVERYTHING TO FILE
+  std::ofstream log;
+  static int counter = 0;
+#ifdef GOMC_CUDA
+  if(counter == 0) {
+    log.open("gpu2.log", std::ios::out);
+  } else {
+    log.open("gpu2.log", std::ios::app);
+  }
+#else
+  if(counter == 0) {
+    log.open("cpu2.log", std::ios::out);
+  } else {
+    log.open("cpu2.log", std::ios::app);
+  }
+#endif
+  for(int i=0; i<coords.Count(); i++) {
+    log << std::setprecision(15) << counter << "," << coords[i].x << "," << coords[i].y << "," << coords[i].z << ",";
+  }
+  for(int i=0; i<atomForce.Count(); i++) {
+    log << std::setprecision(15) << atomForce[i].x << "," << atomForce[i].y << "," << atomForce[i].z << ",";
+  }
+  for(int i=0; i<molForce.Count(); i++) {
+    log << std::setprecision(15) << molForce[i].x << "," << molForce[i].y << "," << molForce[i].z << ",";
+  }
+  log << std::setprecision(15) << tempLJEn << "\n";
+
+  counter++;
+
+
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
   // setting energy and virial of coulomb interaction
@@ -424,7 +460,6 @@ Virial CalculateEnergy::VirialCalc(const uint box)
   int numberOfCells = neighborList.size();
   int atomNumber = currentCoords.Count();
   int currParticleIdx, currParticle, currCell, nCellIndex, neighborCell, endIndex, nParticleIndex, nParticle;
-  uint atomsInsideBox = NumberOfParticlesInsideBox(box);
 
 #ifdef GOMC_CUDA
   //update unitcell in GPU
@@ -448,7 +483,7 @@ Virial CalculateEnergy::VirialCalc(const uint box)
                        vT11, vT12, vT13, vT22, vT23, vT33,
                        forcefield.sc_coul,
                        forcefield.sc_sigma_6, forcefield.sc_alpha,
-                       forcefield.sc_power, box, atomsInsideBox);
+                       forcefield.sc_power, box);
 #else
 #ifdef _OPENMP
   #pragma omp parallel for default(shared) private(currParticleIdx, currParticle, \
@@ -463,7 +498,7 @@ virC, comC, lambdaVDW, lambdaCoulomb) reduction(+:vT11, vT12, vT13, vT22, \
     for(nCellIndex = 0; nCellIndex < NUMBER_OF_NEIGHBOR_CELL; nCellIndex++) {
       neighborCell = neighborList[currCell][nCellIndex];
 
-      endIndex = neighborCell != numberOfCells - 1 ? cellStartIndex[neighborCell + 1] : atomsInsideBox;
+      endIndex = cellStartIndex[neighborCell + 1];
       for(nParticleIndex = cellStartIndex[neighborCell];
           nParticleIndex < endIndex; nParticleIndex++) {
         nParticle = cellVector[nParticleIndex];
