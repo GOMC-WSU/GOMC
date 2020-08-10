@@ -81,6 +81,7 @@ System::~System()
 void System::Init(Setup const& set, ulong & startStep)
 {
   prng.Init(set.prng.prngMaker.prng);
+  r123wrapper.SetRandomSeed(set.config.in.prng.seed);
 #ifdef VARIABLE_VOLUME
   boxDimensions->Init(set.config.in.restart,
                       set.config.sys.volume, set.pdb.cryst,
@@ -252,6 +253,7 @@ void System::RecalculateTrajectory(Setup &set, uint frameNum)
 
 void System::ChooseAndRunMove(const uint step)
 {
+  r123wrapper.SetStep(step);
   double draw = 0;
   uint majKind = 0;
   PickMove(majKind, draw);

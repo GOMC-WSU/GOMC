@@ -12,6 +12,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "StaticVals.h"
 #include <cmath>
 #include <fstream>
+#include "Random123Wrapper.h"
+#ifdef GOMC_CUDA
+#include "TransformParticlesCUDA.cuh"
+#include "VariablesCUDA.cuh"
+#endif
 
 #define MIN_FORCE 1E-12
 #define MAX_FORCE 30
@@ -44,6 +49,11 @@ private:
   COM newCOMs;
   std::vector<uint> moveType, moleculeIndex;
   const MoleculeLookup& molLookup;
+#ifdef GOMC_CUDA
+  VariablesCUDA *cudaVars;
+  std::vector<int> particleMol;
+#endif
+  Random123Wrapper &r123wrapper;
 
   long double GetCoeff();
   void CalculateTrialDistRot();
@@ -57,9 +67,10 @@ private:
 
 inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   MoveBase(sys, statV),
+
   newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol),
-  molLookup(sys.molLookup)
+  molLookup(sys.molLookup), r123wrapper(sys.r123wrapper)
 {
   molTorqueNew.Init(sys.com.Count());
   molTorqueRef.Init(sys.com.Count());
@@ -244,6 +255,28 @@ inline uint MultiParticle::Transform()
   uint state = mv::fail_state::NO_FAIL;
   uint m;
 
+#ifdef GOMC_CUDA
+  // This kernel will calculate translation/rotation amout + shifting/rotating
+  if(moveType == mp::MPALLROTATE) {
+    double r_max = moveSetRef.GetRMAX(bPick);
+    CallRotateParticlesGPU(cudaVars, moleculeIndex, moveType, r_max,
+                           molTorqueRef.x, molTorqueRef.y, molTorqueRef.z,
+                           r123wrapper.GetStep(), r123wrapper.GetSeedValue(),
+                           particleMol, atomForceRecNew.Count(),
+                           molForceRecNew.Count(), boxDimRef.GetAxis(bPick).x,
+                           boxDimRef.GetAxis(bPick).y, boxDimRef.GetAxis(bPick).z,
+                           newMolsPos, newCOMs);
+  } else {
+    double t_max = moveSetRef.GetTMAX(bPick);
+    CallTranslateParticlesGPU(cudaVars, moleculeIndex, moveType, t_max,
+                              molForceRef.x, molForceRef.y, molForceRef.z,
+                              r123wrapper.GetStep(), r123wrapper.GetSeedValue(),
+                              particleMol, atomForceRecNew.Count(),
+                              molForceRecNew.Count(), boxDimRef.GetAxis(bPick).x,
+                              boxDimRef.GetAxis(bPick).y, boxDimRef.GetAxis(bPick).z,
+                              newMolsPos, newCOMs, lambda * BETA);
+  }
+#else
   // move particles according to force and torque and store them in the new pos
 #ifdef _OPENMP
   #pragma omp parallel for default(shared) private(m)
@@ -257,6 +290,8 @@ inline uint MultiParticle::Transform()
       TranslateForceBiased(moleculeIndex[m]);
     }
   }
+#endif
+
   return state;
 }
 
@@ -390,21 +425,24 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max)
   XYZ lbmax = lb * max;
   XYZ num;
   if(std::abs(lbmax.x) > MIN_FORCE && std::abs(lbmax.x) < MAX_FORCE) {
-    num.x = log(exp(-1.0 * lbmax.x) + 2 * prng() * sinh(lbmax.x)) / lb.x;
+    num.x = log(exp(-1.0 * lbmax.x) + 2 * r123wrapper(m*3+0) * sinh(lbmax.x)) / lb.x;
   } else {
-    num.x = prng.Sym(max);
+    double rr = r123wrapper(m*3+0) * 2.0 - 1.0;
+    num.x = max * rr);
   }
 
   if(std::abs(lbmax.y) > MIN_FORCE && std::abs(lbmax.y) < MAX_FORCE) {
-    num.y = log(exp(-1.0 * lbmax.y) + 2 * prng() * sinh(lbmax.y)) / lb.y;
+    num.y = log(exp(-1.0 * lbmax.y) + 2 * r123wrapper(m*3+1) * sinh(lbmax.y)) / lb.y;
   } else {
-    num.y = prng.Sym(max);
+    double rr = r123wrapper(m*3+1) * 2.0 - 1.0;
+    num.y = max * rr);
   }
 
   if(std::abs(lbmax.z) > MIN_FORCE && std::abs(lbmax.z) < MAX_FORCE) {
-    num.z = log(exp(-1.0 * lbmax.z) + 2 * prng() * sinh(lbmax.z)) / lb.z;
+    num.z = log(exp(-1.0 * lbmax.z) + 2 * r123wrapper(m*3+2) * sinh(lbmax.z)) / lb.z;
   } else {
-    num.z = prng.Sym(max);
+    double rr = r123wrapper(m*3+2) * 2.0 - 1.0;
+    num.z = max * rr);
   }
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
