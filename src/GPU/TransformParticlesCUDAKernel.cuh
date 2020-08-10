@@ -4,23 +4,20 @@
 #include "Random123/philox.h"
 typedef r123::Philox4x32 RNG;
 
-using namespace std;
-
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include "VariablesCUDA.cuh"
 #include "XYZArray.h"
 
 void CallTranslateParticlesGPU(VariablesCUDA *vars,
-                               vector<uint> &moleculeIndex,
-                               uint moveType,
+                               std::vector<uint> &moleculeIndex,
                                double t_max,
                                double *mForcex,
                                double *mForcey,
                                double *mForcez,
                                unsigned int step,
                                unsigned int seed,
-                               vector<int> particleMol,
+                               std::vector<int> particleMol,
                                int atomCount,
                                int molCount,
                                double xAxes,
@@ -31,15 +28,14 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                double lambdaBETA);
 
 void CallRotateParticlesGPU(VariablesCUDA *vars,
-                            vector<uint> &moleculeIndex,
-                            uint moveType,
+                            std::vector<uint> &moleculeIndex,
                             double r_max,
                             double *mTorquex,
                             double *mTorquey,
                             double *mTorquez,
                             unsigned int step,
                             unsigned int seed,
-                            vector<int> particleMol,
+                            std::vector<int> particleMol,
                             int atomCount,
                             int molCount,
                             double xAxes,

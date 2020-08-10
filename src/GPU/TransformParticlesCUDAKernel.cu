@@ -1,5 +1,5 @@
 #ifdef GOMC_CUDA
-#include "TransformParticlesCUDA.cuh"
+#include "TransformParticlesCUDAKernel.cuh"
 
 #define MIN_FORCE 1E-12
 #define MAX_FORCE 30
@@ -115,15 +115,14 @@ __device__ inline void ApplyRotation(double &x, double &y, double &z,
 }
 
 void CallTranslateParticlesGPU(VariablesCUDA *vars,
-                               vector<uint> &moleculeIndex,
-                               uint moveType,
+                               std::vector<uint> &moleculeIndex,
                                double t_max,
                                double *mForcex,
                                double *mForcey,
                                double *mForcez,
                                unsigned int step,
                                unsigned int seed,
-                               vector<int> particleMol,
+                               std::vector<int> particleMol,
                                int atomCount,
                                int molCount,
                                double xAxes,
@@ -154,7 +153,6 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_comx, newCOMs.x, molCount * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_comy, newCOMs.y, molCount * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_comz, newCOMs.z, molCount * sizeof(double), cudaMemcpyHostToDevice);
-  // cout << "old position for atom 100: " << newMolPos.x[100] << ", " << newMolPos.y[100] << ", " << newMolPos.z[100] << "\n";
 
   checkLastErrorCUDA(__FILE__, __LINE__);
   TranslateParticlesKernel<<<blocksPerGrid, threadsPerBlock>>>(numberOfMolecules,
@@ -176,6 +174,7 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                                                vars->gpu_comy,
                                                                vars->gpu_comz,
                                                                lambdaBETA);
+  cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
   
   cudaMemcpy(newMolPos.x, vars->gpu_x, atomCount * sizeof(double), cudaMemcpyDeviceToHost);
@@ -184,21 +183,19 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
   cudaMemcpy(newCOMs.x, vars->gpu_comx, molCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(newCOMs.y, vars->gpu_comy, molCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(newCOMs.z, vars->gpu_comz, molCount * sizeof(double), cudaMemcpyDeviceToHost);
-  // cout << "new position for atom 100: " << newMolPos.x[100] << ", " << newMolPos.y[100] << ", " << newMolPos.z[100] << "\n";
   cudaFree(gpu_particleMol);
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
 void CallRotateParticlesGPU(VariablesCUDA *vars,
-                            vector<uint> &moleculeIndex,
-                            uint moveType,
+                            std::vector<uint> &moleculeIndex,
                             double r_max,
                             double *mTorquex,
                             double *mTorquey,
                             double *mTorquez,
                             unsigned int step,
                             unsigned int seed,
-                            vector<int> particleMol,
+                            std::vector<int> particleMol,
                             int atomCount,
                             int molCount,
                             double xAxes,
@@ -243,6 +240,7 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
                                                             vars->gpu_comx,
                                                             vars->gpu_comy,
                                                             vars->gpu_comz);
+  cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
   
   cudaMemcpy(newMolPos.x, vars->gpu_x, atomCount * sizeof(double), cudaMemcpyDeviceToHost);
@@ -313,11 +311,6 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
     shiftz = t_max * rr;
   }
 
-  // if(molIndex == 3000 && updateCOM) {
-  //   printf("%lf, %lf, %lf\n", shiftx, shifty, shiftz);
-  // }
-
-
   // perform the shift on the coordinates
   gpu_x[atomNumber] += shiftx;
   gpu_y[atomNumber] += shifty;
@@ -333,10 +326,6 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
     gpu_comy[molIndex] += shifty;
     gpu_comz[molIndex] += shiftz;
   }
-
-  // if(molIndex == 3000) {
-  //   printf("%lf, %lf, %lf\n", gpu_x[molIndex], gpu_y[molIndex], gpu_z[molIndex]);
-  // }
 }
 
 __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
@@ -381,7 +370,7 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
   }
 
   if(abs(lbmaxy) > MIN_FORCE && abs(lbmaxy) < MAX_FORCE) {
-    roty = log(exp(-1.0 * lbmaxy) + 2 * randomGPU(molIndex * 3 + 1, step, seed) * sinh(lbmaxx)) / lbty;
+    roty = log(exp(-1.0 * lbmaxy) + 2 * randomGPU(molIndex * 3 + 1, step, seed) * sinh(lbmaxy)) / lbty;
   } else {
     double rr = randomGPU(molIndex * 3 + 1, step, seed) * 2.0 - 1.0;
     roty = r_max * rr;
