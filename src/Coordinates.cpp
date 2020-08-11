@@ -10,16 +10,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <cmath>
 #include <cassert>
 
-Coordinates::Coordinates(BoxDimensions & box, COM & com,
-            MoleculeLookup & molLook, PRNG & prng, Molecules const& mol) :
-  boxDimRef(box), comRef(com), prngRef(prng), molLookRef(molLook),
-  molRef(mol){}
-
-Coordinates::~Coordinates(){
-  // Compiler automagically calls XYZArray::~XYZArray()
-}
-
-
 void Coordinates::InitFromPDB(pdb_setup::Atoms const& atoms)
 {
   //Allocate master array and push stuff to it.

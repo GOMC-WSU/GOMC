@@ -20,7 +20,7 @@ class MultiParticle : public MoveBase
 {
 public:
   MultiParticle(System &sys, StaticVals const& statV);
-  ~MultiParticle();
+
   virtual uint Prep(const double subDraw, const double movPerc);
   virtual void CalcEn();
   virtual uint Transform();
@@ -78,18 +78,6 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   for(uint b = 0; b < BOX_TOTAL; b++) {
     initMol[b] = false;
   }
-}
-
-inline MultiParticle::~MultiParticle(){
-  sysPotNew;
-  molTorqueRef.~XYZArray();
-  molTorqueNew.~XYZArray();
-  atomForceRecNew.~XYZArray();
-  molForceRecNew.~XYZArray();
-  t_k.~XYZArray();
-  r_k.~XYZArray();
-  newMolsPos.~Coordinates();
-  newCOMs.~COM();
 }
 
 inline void MultiParticle::PrintAcceptKind()

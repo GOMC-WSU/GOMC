@@ -27,9 +27,9 @@ public:
   //Declare a set of coordinates with no data (but must have proper frame
   //of reference).
   Coordinates(BoxDimensions & box, COM & com,
-              MoleculeLookup & molLook, PRNG & prng, Molecules const& mol);
-
-  ~Coordinates();
+              MoleculeLookup & molLook, PRNG & prng, Molecules const& mol) :
+    boxDimRef(box), comRef(com), prngRef(prng), molLookRef(molLook),
+    molRef(mol) {}
 
   Coordinates& operator=(Coordinates const& rhs)
   {

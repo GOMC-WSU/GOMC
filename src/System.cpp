@@ -77,13 +77,6 @@ System::~System()
   delete moves[mv::MEMC];
   delete moves[mv::CFCMC];
 #endif
-
-  coordinates.~Coordinates();
-  atomForceRef.~XYZArray();
-  molForceRef.~XYZArray();
-  atomForceRecRef.~XYZArray();
-  molForceRecRef.~XYZArray();
-  com.~COM();
 }
 
 void System::Init(Setup const& set, ulong & startStep)

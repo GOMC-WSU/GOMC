@@ -33,10 +33,6 @@ public:
   {
   }
 
-  ~COM(){
-    // Compiler automagically calls XYZArray::~XYZArray()
-  }
-
   //Init from the coordinates grabbed from pdb file read.
   void CalcCOM();
   void SetNew(const uint m, const uint b);
