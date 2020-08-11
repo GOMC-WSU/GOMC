@@ -45,7 +45,8 @@ public:
   friend void swap(XYZArray& a1, XYZArray& a2);
   ~XYZArray(void)
   {
-    Uninit();
+    if(allocDone)
+      Uninit();
   }
 
   //Wipe out my memberarrays
