@@ -44,6 +44,7 @@ ConfigSetup::ConfigSetup(void)
   sys.elect.readEwald = false;
   sys.elect.readElect = false;
   sys.elect.readCache = false;
+  sys.elect.cache = false;
   sys.elect.ewald = false;
   sys.elect.enable = false;
   sys.elect.tolerance = DBL_MAX;
