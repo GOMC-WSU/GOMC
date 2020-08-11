@@ -71,7 +71,10 @@ public:
   //This function print the internal acceptance state for each molecule kind
   virtual void PrintAcceptKind() = 0;
 
-  virtual ~MoveBase() {}
+  virtual ~MoveBase() {
+    atomForceNew.~XYZArray();
+    molForceNew.~XYZArray();
+  }
 
 protected:
   uint subPick;

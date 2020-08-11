@@ -80,6 +80,18 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   }
 }
 
+inline MultiParticle::~MultiParticle(){
+  sysPotNew;
+  molTorqueRef.~XYZArray();
+  molTorqueNew.~XYZArray();
+  atomForceRecNew.~XYZArray();
+  molForceRecNew.~XYZArray();
+  t_k.~XYZArray();
+  r_k.~XYZArray();
+  newMolsPos.~Coordinates();
+  newCOMs.~COM();
+}
+
 inline void MultiParticle::PrintAcceptKind()
 {
   printf("%-37s", "% Accepted MultiParticle ");
