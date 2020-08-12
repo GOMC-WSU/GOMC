@@ -11,7 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BasicTypes.h"             //uint
 #include "System.h"                 //For init
 #include "StaticVals.h"             //For init
-#include "Forcefield.h"             //
+#include "Forcefield.h"
 #include "MoleculeKind.h"
 #include "Coordinates.h"
 #include "BoxDimensions.h"
@@ -28,7 +28,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 //
 //
 //    Energy Calculation functions for Ewald summation method
-//    Calculating self, correction and reciprocate part of ewald
+//    Calculating self, correction and reciprocal part of ewald
 //
 //    Developed by Y. Li and Mohammad S. Barhaghi
 //
@@ -65,43 +65,39 @@ Ewald::~Ewald()
     DestroyEwaldCUDAVars(ff.particles->getCUDAVars());
 #endif
     for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
-      if (kx[b] != NULL) {
-        delete[] kx[b];
-        delete[] ky[b];
-        delete[] kz[b];
-        delete[] hsqr[b];
-        delete[] prefact[b];
-        delete[] kxRef[b];
-        delete[] kyRef[b];
-        delete[] kzRef[b];
-        delete[] hsqrRef[b];
-        delete[] prefactRef[b];
-        delete[] sumRnew[b];
-        delete[] sumInew[b];
-        delete[] sumRref[b];
-        delete[] sumIref[b];
-      }
+      delete[] kx[b];
+      delete[] ky[b];
+      delete[] kz[b];
+      delete[] hsqr[b];
+      delete[] prefact[b];
+      delete[] kxRef[b];
+      delete[] kyRef[b];
+      delete[] kzRef[b];
+      delete[] hsqrRef[b];
+      delete[] prefactRef[b];
+      delete[] sumRnew[b];
+      delete[] sumInew[b];
+      delete[] sumRref[b];
+      delete[] sumIref[b];
     }
 
-    if (kx != NULL) {
-      delete[] kmax;
-      delete[] kx;
-      delete[] ky;
-      delete[] kz;
-      delete[] hsqr;
-      delete[] prefact;
-      delete[] kxRef;
-      delete[] kyRef;
-      delete[] kzRef;
-      delete[] hsqrRef;
-      delete[] prefactRef;
-      delete[] sumRnew;
-      delete[] sumInew;
-      delete[] sumRref;
-      delete[] sumIref;
-      delete[] imageSize;
-      delete[] imageSizeRef;
-    }
+    delete[] kmax;
+    delete[] kx;
+    delete[] ky;
+    delete[] kz;
+    delete[] hsqr;
+    delete[] prefact;
+    delete[] kxRef;
+    delete[] kyRef;
+    delete[] kzRef;
+    delete[] hsqrRef;
+    delete[] prefactRef;
+    delete[] sumRnew;
+    delete[] sumInew;
+    delete[] sumRref;
+    delete[] sumIref;
+    delete[] imageSize;
+    delete[] imageSizeRef;
   }
 }
 
@@ -122,7 +118,7 @@ void Ewald::Init()
   }
 
   AllocMem();
-  //initialize K vectors and reciprocate terms
+  //initialize K vectors and reciprocal terms
   UpdateVectorsAndRecipTerms();
 }
 
@@ -141,7 +137,6 @@ void Ewald::AllocMem()
 {
   //get size of image using defined Kmax
   //Allocate Memory
-
   kmax = new uint[BOXES_WITH_U_NB];
   imageSize = new uint[BOXES_WITH_U_NB];
   imageSizeRef = new uint[BOXES_WITH_U_NB];
@@ -189,7 +184,7 @@ void Ewald::AllocMem()
 }
 
 
-//calculate reciprocate term for a box
+//calculate reciprocal term for a box
 void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 {
   uint j, m;
@@ -270,7 +265,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 }
 
 
-//calculate reciprocate term for a box
+//calculate reciprocal term for a box
 double Ewald::BoxReciprocal(uint box) const
 {
   int i;
@@ -295,7 +290,7 @@ double Ewald::BoxReciprocal(uint box) const
 }
 
 
-//calculate reciprocate term for displacement and rotation move
+//calculate reciprocal term for displacement and rotation move
 double Ewald::MolReciprocal(XYZArray const& molCoords,
                             const uint molIndex, const uint box)
 {
@@ -370,7 +365,7 @@ reduction(+:energyRecipNew, energyRecipOld)
 
 
 
-//calculate reciprocate term in destination box for swap move
+//calculate reciprocal term in destination box for swap move
 //No need to scale the charge with lambda, since this function will not be
 // called in free energy of CFCMC
 double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
@@ -436,7 +431,7 @@ sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
   return energyRecipNew - energyRecipOld;
 }
 
-//calculate reciprocate term for lambdaNew and Old with same coordinates
+//calculate reciprocal term for lambdaNew and Old with same coordinates
 double Ewald::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
                          const double lambdaNew, const uint molIndex,
                          const uint box)
@@ -490,7 +485,7 @@ sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
   return energyRecipNew - energyRecipOld;
 }
 
-//calculate reciprocate term for lambdaNew and Old with same coordinates
+//calculate reciprocal term for lambdaNew and Old with same coordinates
 //used int free energy calculation
 void Ewald::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
                         const std::vector<double> &lambda_Coul,
@@ -555,7 +550,7 @@ void Ewald::RecipInit(uint box, BoxDimensions const& boxAxes)
 }
 
 
-//calculate reciprocate term in source box for swap move
+//calculate reciprocal term in source box for swap move
 //No need to scale the charge with lambda, since this function is not being
 // called for free energy and CFCMC
 double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
@@ -618,7 +613,7 @@ sumRealNew, sumImaginaryNew) reduction(+:energyRecipNew)
 }
 
 
-//calculate reciprocate term for inserting some molecules (kindA) in destination
+//calculate reciprocal term for inserting some molecules (kindA) in destination
 // box and removing molecule (kindB) from destination box
 double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
                         const std::vector<cbmc::TrialMol> &oldMol,
@@ -893,7 +888,7 @@ void Ewald::RecipCountInit(uint box, BoxDimensions const& boxAxes)
   imageSize[box] = counter;
 }
 
-//back up reciptocate value to Ref (will be called during initialization)
+//back up reciprocal value to Ref (will be called during initialization)
 void Ewald::SetRecipRef(uint box)
 {
 #ifdef _OPENMP
@@ -1015,7 +1010,7 @@ double Ewald::BoxSelf(BoxDimensions const& boxAxes, uint box) const
     }
     self += (molSelfEnergy * molNum);
     if(lambdaRef.KindIsFractional(i, box)) {
-      //Add the fractional nolecule part
+      //Add the fractional molecule part
       self += (molSelfEnergy * lambdaCoef);
     }
   }
@@ -1026,7 +1021,7 @@ double Ewald::BoxSelf(BoxDimensions const& boxAxes, uint box) const
 }
 
 // NOTE: The calculation of W12, W13, W23 is expensive and would not be
-// requied for pressure and surface tension calculation. So, they have been
+// required for pressure and surface tension calculation. So, they have been
 // commented out. In case you need to calculate them, uncomment them.
 Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
 {
@@ -1161,7 +1156,7 @@ Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
   tempVir.recipTens[2][1] = wT23;
   tempVir.recipTens[2][2] = wT33;
 
-  // setting virial of reciprocal cpace
+  // setting virial of reciprocal space
   tempVir.recip = wT11 + wT22 + wT33;
 
   return tempVir;
@@ -1169,7 +1164,7 @@ Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
 
 //calculate correction term for a molecule with lambda = 1
 //It's called when the molecule configuration changes, moleculeTransfer, MEMC
-//It never been caled in Free Energy calculatio, becaue we are in
+//It never been called in Free Energy calculation, because we are in
 // NVT and NPT ensemble
 double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol) const
 {
@@ -1274,7 +1269,7 @@ void Ewald::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
   dUdL_Coul.self += en_self;
 }
 
-//update reciprocate values
+//update reciprocal values
 void Ewald::UpdateRecip(uint box)
 {
   double *tempR, *tempI;
@@ -1319,7 +1314,7 @@ void Ewald::UpdateRecipVec(uint box)
 }
 
 
-//calculate reciprocate force term for a box with molCoords
+//calculate reciprocal force term for a box with molCoords
 void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
                                XYZArray& atomForceRec,
                                XYZArray& molForceRec,
