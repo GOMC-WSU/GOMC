@@ -1272,6 +1272,9 @@ void Ewald::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
 //update reciprocal values
 void Ewald::UpdateRecip(uint box)
 {
+  if (box >= BOXES_WITH_U_NB)
+    return;
+
   double *tempR, *tempI;
   tempR = sumRref[box];
   tempI = sumIref[box];
