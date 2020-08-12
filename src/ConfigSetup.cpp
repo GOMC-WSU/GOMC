@@ -44,9 +44,9 @@ ConfigSetup::ConfigSetup(void)
   sys.elect.readEwald = false;
   sys.elect.readElect = false;
   sys.elect.readCache = false;
-  sys.elect.cache = false;
   sys.elect.ewald = false;
   sys.elect.enable = false;
+  sys.elect.cache = false;
   sys.elect.tolerance = DBL_MAX;
   sys.elect.oneFourScale = DBL_MAX;
   sys.elect.dielectric = DBL_MAX;
@@ -1215,9 +1215,12 @@ void ConfigSetup::fillDefaults(void)
 #endif
 
   if (sys.elect.ewald == true && sys.elect.readCache == false) {
-    sys.elect.cache = true;
-    sys.elect.readCache = true;
-    printf("%-40s %-s \n", "Default: Cache Ewald Fourier", "Active");
+    sys.elect.cache = false;
+    printf("%-40s %-s \n", "Default: Cache Ewald Fourier", "Inactive");
+  }
+
+  if (sys.elect.ewald == false && sys.elect.cache == true) {
+    printf("Warning: Cache Ewald Fourier set, but will be ignored: Ewald method off.\n");
   }
 
   if(sys.elect.enable && sys.elect.dielectric == DBL_MAX && in.ffKind.isMARTINI) {
