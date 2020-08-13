@@ -107,6 +107,7 @@ Ewald::~Ewald()
 
 void Ewald::Init()
 {
+
   for(uint m = 0; m < mols.count; ++m) {
     const MoleculeKind& molKind = mols.GetKind(m);
     for(uint a = 0; a < molKind.NumAtoms(); ++a) {
@@ -119,6 +120,15 @@ void Ewald::Init()
         particleHasNoCharge.push_back(false);
       }
     }
+  }
+  
+  // initialize starting index and length index of each molecule
+  startMol.resize(currentCoords.Count());
+  lengthMol.resize(currentCoords.Count());
+
+  for(int atom = 0; atom < currentCoords.Count(); atom++) {
+    startMol[atom] = mols.MolStart(particleMol[atom]);
+    lengthMol[atom] = mols.MolLength(particleMol[atom]);
   }
 
   AllocMem();
@@ -1326,10 +1336,36 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
                                uint box)
 {
   if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
+    double constValue = 2.0 * ff.alpha[box] / sqrt(M_PI);
+#ifdef GOMC_CUDA
+    // initialize the start and end of each box
+    initializeBoxRange();
+
+    CallBoxForceReciprocalGPU(
+      ff.particles->getCUDAVars(),
+      atomForceRec,
+      molForceRec,
+      particleCharge,
+      particleMol,
+      particleKind,
+      particleHasNoCharge,
+      startMol,
+      lengthMol,
+      ff.alpha[box],
+      ff.alphaSq[box],
+      num::qqFact,
+      constValue,
+      imageSize[box],
+      molCoords,
+      boxStart[box],
+      boxEnd[box],
+      currentAxes,
+      box
+    );
+#else
     // molecule iterator
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
-    double constValue = 2.0 * ff.alpha[box] / sqrt(M_PI);
 
     while(thisMol != end) {
       uint molIndex = *thisMol;
@@ -1383,6 +1419,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       thisMol++;
     }
   }
+#endif
 }
 
 double Ewald::GetLambdaCoef(uint molA, uint box) const
@@ -1392,5 +1429,18 @@ double Ewald::GetLambdaCoef(uint molA, uint box) const
   return sqrt(lambda);
 }
 
-
-
+void Ewald::initializeBoxRange()
+{
+  if(BOX_TOTAL == 1) {
+    boxStart[mv::BOX0] = 0;
+    boxEnd[mv::BOX0] = currentCoords.Count();
+  } else {
+    boxStart[mv::BOX0] = 0;
+    MoleculeLookup::box_iterator startBox1 = molLookup.BoxBegin(mv::BOX1);
+    int firstMoleculeInBox1 = *startBox1;
+    int indexOfFirstAtomInBox1 = mols.MolStart(firstMoleculeInBox1);
+    boxEnd[mv::BOX0] = indexOfFirstAtomInBox1-1;
+    boxStart[mv::BOX1] = indexOfFirstAtomInBox1;
+    boxEnd[mv::BOX1] = currentCoords.Count();
+  }
+}
