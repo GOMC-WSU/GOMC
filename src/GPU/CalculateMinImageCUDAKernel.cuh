@@ -78,8 +78,7 @@ __device__ inline bool InRcutGPU(double &distSq, double gpu_x1, double gpu_y1,
 }
 
 // Call by force calculate to return the distance and virial component
-__device__ inline bool InRcutGPU(double &distSq, double &virX, double &virY,
-                                 double &virZ, double gpu_x1, double gpu_y1,
+__device__ inline bool InRcutGPU(double &distSq, double3 & dist, double gpu_x1, double gpu_y1,
                                  double gpu_z1, double gpu_x2, double gpu_y2,
                                  double gpu_z2, double xAxes, double yAxes,
                                  double zAxes, double xHalfAxes,
@@ -91,22 +90,22 @@ __device__ inline bool InRcutGPU(double &distSq, double &virX, double &virY,
 {
   distSq = 0;
   double tx, ty, tz;
-  virX = gpu_x1 - gpu_x2;
-  virY = gpu_y1 - gpu_y2;
-  virZ = gpu_z1 - gpu_z2;
+  dist.x = gpu_x1 - gpu_x2;
+  dist.y = gpu_y1 - gpu_y2;
+  dist.z = gpu_z1 - gpu_z2;
   if(gpu_nonOrth) {
-    TransformUnSlantGPU(tx, ty, tz, virX, virY, virZ, gpu_Invcell_x,
+    TransformUnSlantGPU(tx, ty, tz, dist.x, dist.y, dist.z, gpu_Invcell_x,
                         gpu_Invcell_y, gpu_Invcell_z);
     tx = MinImageSignedGPU(tx, xAxes, xHalfAxes);
     ty = MinImageSignedGPU(ty, yAxes, yHalfAxes);
     tz = MinImageSignedGPU(tz, zAxes, zHalfAxes);
-    TransformSlantGPU(virX, virY, virZ, tx, ty, tz, gpu_cell_x, gpu_cell_y,
+    TransformSlantGPU(dist.x, dist.y, dist.z, tx, ty, tz, gpu_cell_x, gpu_cell_y,
                       gpu_cell_z);
   } else {
-    virX = MinImageSignedGPU(virX, xAxes, xHalfAxes);
-    virY = MinImageSignedGPU(virY, yAxes, yHalfAxes);
-    virZ = MinImageSignedGPU(virZ, zAxes, zHalfAxes);
-    distSq = virX * virX + virY * virY + virZ * virZ;
+    dist.x = MinImageSignedGPU(dist.x, xAxes, xHalfAxes);
+    dist.y = MinImageSignedGPU(dist.y, yAxes, yHalfAxes);
+    dist.z = MinImageSignedGPU(dist.z, zAxes, zHalfAxes);
+    distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
   }
 
   return ((gpu_rCut * gpu_rCut) > distSq);
