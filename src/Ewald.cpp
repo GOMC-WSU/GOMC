@@ -1337,14 +1337,16 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
 {
   if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
     double constValue = 2.0 * ff.alpha[box] / sqrt(M_PI);
+    XYZArray gpu_atomForceRec(atomForceRec.Count());
+    XYZArray gpu_molForceRec(molForceRec.Count());
 #ifdef GOMC_CUDA
     // initialize the start and end of each box
     initializeBoxRange();
 
     CallBoxForceReciprocalGPU(
       ff.particles->getCUDAVars(),
-      atomForceRec,
-      molForceRec,
+      gpu_atomForceRec,
+      gpu_molForceRec,
       particleCharge,
       particleMol,
       particleKind,
@@ -1362,7 +1364,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       currentAxes,
       box
     );
-#else
+#endif
     // molecule iterator
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
@@ -1418,7 +1420,13 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       }
       thisMol++;
     }
-#endif
+// #endif
+
+    for(int i=0; i<atomForceRec.Count(); i++) {
+      if(atomForceRec[i].x != gpu_atomForceRec[i].x) {
+        printf("%d => %lf != %lf\n", i, atomForceRec[i].x, gpu_atomForceRec[i].x);
+      }
+    }
   }
 }
 
@@ -1439,7 +1447,7 @@ void Ewald::initializeBoxRange()
     MoleculeLookup::box_iterator startBox1 = molLookup.BoxBegin(mv::BOX1);
     int firstMoleculeInBox1 = *startBox1;
     int indexOfFirstAtomInBox1 = mols.MolStart(firstMoleculeInBox1);
-    boxEnd[mv::BOX0] = indexOfFirstAtomInBox1-1;
+    boxEnd[mv::BOX0] = indexOfFirstAtomInBox1;
     boxStart[mv::BOX1] = indexOfFirstAtomInBox1;
     boxEnd[mv::BOX1] = currentCoords.Count();
   }
