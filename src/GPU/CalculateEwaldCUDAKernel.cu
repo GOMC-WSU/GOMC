@@ -468,16 +468,16 @@ __global__ void BoxForceReciprocalGPU(
         gpu_y[particleID] * gpu_ky[vectorIndex] + 
         gpu_z[particleID] * gpu_kz[vectorIndex];
       
-      if(particleID == 0 && vectorIndex == 1100) {
-        printf("%lf\n", dot);
-      }
-      
+        
       double factor = 2.0 * gpu_particleCharge[particleID] * gpu_prefact[vectorIndex] * lambdaCoef *
         (sin(dot) * gpu_sumRnew[vectorIndex] - cos(dot) * gpu_sumInew[vectorIndex]);
-      
+        
       forceX += factor * gpu_kx[vectorIndex];
       forceY += factor * gpu_ky[vectorIndex];
       forceZ += factor * gpu_kz[vectorIndex];
+      if(particleID == 0 && vectorIndex == 1100) {
+        printf("%lf, %lf, %lf, %lf, %lf\n", dot, factor, forceX, forceY, forceZ);
+      }
     }
   }
 

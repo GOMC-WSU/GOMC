@@ -1407,15 +1407,15 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
           for(i = 0; i < imageSize[box]; i++) {
             dot = Dot(p, kx[box][i], ky[box][i], kz[box][i], molCoords);
 
-            if(p == 0 && i == 1100) {
-              printf("%lf\n", dot);
-            }
             factor = 2.0 * particleCharge[p] * prefact[box][i] * lambdaCoef *
                      (sin(dot) * sumRnew[box][i] - cos(dot) * sumInew[box][i]);
 
             X += factor * kx[box][i];
             Y += factor * ky[box][i];
             Z += factor * kz[box][i];
+            if(p == 0 && i == 1100) {
+              printf("%lf, %lf, %lf, %lf, %lf\n", dot, factor, X, Y, Z);
+            }
           }
         }
         atomForceRec.Set(p, X, Y, Z);
