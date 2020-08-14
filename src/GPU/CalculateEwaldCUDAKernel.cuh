@@ -68,7 +68,7 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars,
                            double &energyRecipNew,
                            uint box);
 
-__global__ void BoxForceReciprocalGPU(double *gpu_aForceRecx,
+__global__ void BoxForceReciprocalGPU(/*double *gpu_aForceRecx,
                                       double *gpu_aForceRecy,
                                       double *gpu_aForceRecz,
                                       double *gpu_mForceRecx,
@@ -102,7 +102,7 @@ __global__ void BoxForceReciprocalGPU(double *gpu_aForceRecx,
                                       double axy,
                                       double axz,
                                       double gpu_rCut,
-                                      int box);
+                                      int box*/);
 
 __global__ void BoxReciprocalSetupGPU(double * gpu_x,
                                       double * gpu_y,
