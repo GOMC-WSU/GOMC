@@ -462,7 +462,7 @@ __global__ void BoxForceReciprocalGPU(
       }
     }
     if(blockIdx.x * blockDim.x + threadIdx.x == 0) {
-      printf("GPU: %lf, %lf, %lf\n", gpu_kx[0], gpu_ky[0], gpu_kz[0]);
+      printf("GPU: %lf, %lf, %lf\n", gpu_kx[110], gpu_ky[110], gpu_kz[110]);
     }
 
     // loop over images

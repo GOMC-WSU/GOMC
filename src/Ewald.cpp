@@ -1422,7 +1422,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
     }
 // #endif
 
-    printf("CPU: %lf, %lf, %lf\n", kx[box][0], ky[box][0], kz[box][0]);
+    printf("CPU: %lf, %lf, %lf\n", kx[box][110], ky[box][110], kz[box][110]);
     // for(int i=0; i<atomForceRec.Count(); i++) {
     //   if(atomForceRec[i].x != gpu_atomForceRec[i].x) {
     //     printf("%d => %lf != %lf\n", i, atomForceRec[i].x, gpu_atomForceRec[i].x);
