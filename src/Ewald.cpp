@@ -1381,6 +1381,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
 
       for(p = start; p < start + length; p++) {
         double X = 0.0, Y = 0.0, Z = 0.0;
+        double intraForce;
 
         if(!particleHasNoCharge[p]) {
           // subtract the intra forces(correction)
@@ -1391,7 +1392,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
               double dist = sqrt(distSq);
               double expConstValue = exp(-1.0 * ff.alphaSq[box] * distSq);
               double qiqj = particleCharge[p] * particleCharge[j] * num::qqFact;
-              double intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
+              intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
               intraForce *= ((erf(ff.alpha[box] * dist) / dist) -
                              constValue * expConstValue);
               X -= intraForce * distVect.x;
@@ -1400,7 +1401,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
             }
           }
           if(p == 0) {
-            printf("Intra force: %lf, %lf, %lf\n", X, Y, Z);
+            printf("Intra force CPU: %lf, %lf, %lf\n", X, distSq, intraForce);
           }
 #ifdef _OPENMP
           #pragma omp parallel for default(shared) private(i, dot, factor) \

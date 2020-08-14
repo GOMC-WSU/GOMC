@@ -444,6 +444,7 @@ __global__ void BoxForceReciprocalGPU(
 
     // loop over other particles within the same molecule
     if(threadIdx.x == 0) {
+      double intraForce;
       int lastParticleWithinSameMolecule = gpu_startMol[particleID] + gpu_lengthMol[particleID];
       for(int otherParticle = gpu_startMol[particleID];
         otherParticle <= lastParticleWithinSameMolecule;
@@ -457,7 +458,7 @@ __global__ void BoxForceReciprocalGPU(
 
           double expConstValue = exp(-1.0 * alphaSq * distSq);
           double qiqj = gpu_particleCharge[particleID] * gpu_particleCharge[otherParticle] * qqFact;
-          double intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
+          intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
           intraForce *= ((erf(alpha * dist) / dist) - constValue * expConstValue);
           forceX -= intraForce * distVectX;
           forceY -= intraForce * distVectY;
@@ -465,7 +466,7 @@ __global__ void BoxForceReciprocalGPU(
         }
       }
       if(particleID == 0)
-        printf("Intra force: %lf, %lf, %lf\n", forceX, forceY, forceZ);
+        printf("Intra force GPU: %lf, %lf, %lf\n", forceX, distSq, intraForce);
     }
 
     // loop over images
