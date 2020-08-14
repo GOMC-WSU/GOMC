@@ -443,24 +443,26 @@ __global__ void BoxForceReciprocalGPU(
   double lambdaCoef = DeviceGetLambdaCoulomb(moleculeID, kindID, box, gpu_isFraction, gpu_molIndex, gpu_kindIndex, gpu_lambdaCoulomb);
 
   // loop over other particles within the same molecule
-  int lastParticleWithinSameMolecule = gpu_startMol[particleID] + gpu_lengthMol[particleID];
-  for(int otherParticle = gpu_startMol[particleID];
-    otherParticle <= lastParticleWithinSameMolecule;
-    otherParticle++)
-  {
-    if(particleID != otherParticle) {
-      double distSq = 0.0, dist = 0.0;
-      double distVectX = 0.0, distVectY = 0.0, distVectZ = 0.0;
-      DeviceInRcut(distSq, distVectX, distVectY, distVectZ, gpu_x, gpu_y, gpu_z, particleID, otherParticle, axx, axy, axz, box);
-      dist = sqrt(distSq);
+  if(threadIdx.x == 0) {
+    int lastParticleWithinSameMolecule = gpu_startMol[particleID] + gpu_lengthMol[particleID];
+    for(int otherParticle = gpu_startMol[particleID];
+      otherParticle <= lastParticleWithinSameMolecule;
+      otherParticle++)
+    {
+      if(particleID != otherParticle) {
+        double distSq = 0.0, dist = 0.0;
+        double distVectX = 0.0, distVectY = 0.0, distVectZ = 0.0;
+        DeviceInRcut(distSq, distVectX, distVectY, distVectZ, gpu_x, gpu_y, gpu_z, particleID, otherParticle, axx, axy, axz, box);
+        dist = sqrt(distSq);
 
-      double expConstValue = exp(-1.0 * alphaSq * distSq);
-      double qiqj = gpu_particleCharge[particleID] * gpu_particleCharge[otherParticle] * qqFact;
-      double intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
-      intraForce *= ((erf(alpha * dist) / dist) - constValue * expConstValue);
-      forceX -= intraForce * distVectX;
-      forceY -= intraForce * distVectY;
-      forceZ -= intraForce * distVectZ;
+        double expConstValue = exp(-1.0 * alphaSq * distSq);
+        double qiqj = gpu_particleCharge[particleID] * gpu_particleCharge[otherParticle] * qqFact;
+        double intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
+        intraForce *= ((erf(alpha * dist) / dist) - constValue * expConstValue);
+        forceX -= intraForce * distVectX;
+        forceY -= intraForce * distVectY;
+        forceZ -= intraForce * distVectZ;
+      }
     }
   }
 
