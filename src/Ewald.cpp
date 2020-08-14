@@ -1432,6 +1432,17 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
         printf("%d => %lf != %lf\n", i, atomForceRec[i].z, gpu_atomForceRec[i].z);
       }
     }
+    for(int i=0; i<molForceRec.Count(); i++) {
+      if(abs(molForceRec[i].x - gpu_molForceRec[i].x) > 1e-12) {
+        printf("%d => %lf != %lf\n", i, molForceRec[i].x, gpu_molForceRec[i].x);
+      }
+      if(abs(molForceRec[i].y - gpu_molForceRec[i].y) > 1e-12) {
+        printf("%d => %lf != %lf\n", i, molForceRec[i].y, gpu_molForceRec[i].y);
+      }
+      if(abs(molForceRec[i].z - gpu_molForceRec[i].z) > 1e-12) {
+        printf("%d => %lf != %lf\n", i, molForceRec[i].z, gpu_molForceRec[i].z);
+      }
+    }
   }
 }
 
