@@ -463,7 +463,7 @@ __global__ void BoxForceReciprocalGPU(
     }
 
     // loop over images
-    for(int vectorIndex = 0; vectorIndex < imageSize; vectorIndex += blockDim.x) {
+    for(int vectorIndex = threadIdx.x; vectorIndex < imageSize; vectorIndex += blockDim.x) {
       double dot = gpu_x[particleID] * gpu_kx[vectorIndex] +
         gpu_y[particleID] * gpu_ky[vectorIndex] + 
         gpu_z[particleID] * gpu_kz[vectorIndex];
