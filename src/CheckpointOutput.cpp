@@ -88,7 +88,6 @@ void CheckpointOutput::printRandomNumbers()
   // The MT::save function also appends the "left" variable,
   // so need to allocate one more array element
   uint32_t* saveArray = new uint32_t[N+1];
-  saveArray[624] = -123456;
   prngRef.GetGenerator()->save(saveArray);
   for(int i = 0; i < N; i++) {
     outputUintIn8Chars(saveArray[i]);
