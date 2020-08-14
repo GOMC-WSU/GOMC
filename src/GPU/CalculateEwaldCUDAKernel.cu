@@ -361,12 +361,12 @@ void CallBoxForceReciprocalGPU(
     vars->gpu_isFraction,
     vars->gpu_molIndex,
     vars->gpu_kindIndex,
-    vars->gpu_lambdaCoulomb,
+    vars->gpu_lambdaCoulomb,*/
     boxAxes.GetAxis(box).x,
     boxAxes.GetAxis(box).y,
     boxAxes.GetAxis(box).z,
     vars->gpu_rCut[0],
-    box*/
+    box
   );
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -416,12 +416,12 @@ __global__ void BoxForceReciprocalGPU(
   bool *gpu_isFraction,
   int *gpu_molIndex,
   int *gpu_kindIndex,
-  double *gpu_lambdaCoulomb,
+  double *gpu_lambdaCoulomb,*/
   double axx,
   double axy,
   double axz,
   double gpu_rCut,
-  int box*/
+  int box
 )
 {
   __shared__ double shared[24];
