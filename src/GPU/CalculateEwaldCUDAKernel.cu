@@ -448,7 +448,7 @@ __global__ void BoxForceReciprocalGPU(
       double distVectX = 0.0, distVectY = 0.0, distVectZ = 0.0;
       int lastParticleWithinSameMolecule = gpu_startMol[particleID] + gpu_lengthMol[particleID];
       for(int otherParticle = gpu_startMol[particleID];
-        otherParticle <= lastParticleWithinSameMolecule;
+        otherParticle < lastParticleWithinSameMolecule;
         otherParticle++)
       {
         if(particleID != otherParticle) {
