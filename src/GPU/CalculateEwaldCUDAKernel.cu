@@ -464,8 +464,10 @@ __global__ void BoxForceReciprocalGPU(
           forceZ -= intraForce * distVectZ;
         }
       }
-      if(particleID == 0)
+      if(particleID == 0) {
+        printf("Coords GPU: %lf, %lf, %lf\n", gpu_x[0], gpu_y[0], gpu_z[0]);
         printf("Intra force GPU: %lf, %lf, %lf\n", forceX, distSq, intraForce);
+      }
     }
 
     // loop over images
