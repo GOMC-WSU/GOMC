@@ -1438,6 +1438,8 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       compareDouble(molForceRec.y[i], gpu_molForceRec.y[i], i);
       compareDouble(molForceRec.z[i], gpu_molForceRec.z[i], i);
     }
+    swap(gpu_atomForceRec, atomForceRec);
+    swap(gpu_molForceRec, molForceRec);
   }
 }
 
