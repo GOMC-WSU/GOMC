@@ -444,14 +444,13 @@ __global__ void BoxForceReciprocalGPU(
 
     // loop over other particles within the same molecule
     if(threadIdx.x == 0) {
-      double intraForce;
+      double intraForce, distSq, dist;
       int lastParticleWithinSameMolecule = gpu_startMol[particleID] + gpu_lengthMol[particleID];
       for(int otherParticle = gpu_startMol[particleID];
         otherParticle <= lastParticleWithinSameMolecule;
         otherParticle++)
       {
         if(particleID != otherParticle) {
-          double distSq = 0.0, dist = 0.0;
           double distVectX = 0.0, distVectY = 0.0, distVectZ = 0.0;
           DeviceInRcut(distSq, distVectX, distVectY, distVectZ, gpu_x, gpu_y, gpu_z, particleID, otherParticle, axx, axy, axz, box);
           dist = sqrt(distSq);
