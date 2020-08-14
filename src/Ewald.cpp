@@ -1337,16 +1337,14 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
 {
   if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
     double constValue = 2.0 * ff.alpha[box] / sqrt(M_PI);
-    XYZArray gpu_atomForceRec(atomForceRec.Count());
-    XYZArray gpu_molForceRec(molForceRec.Count());
 #ifdef GOMC_CUDA
     // initialize the start and end of each box
     initializeBoxRange();
 
     CallBoxForceReciprocalGPU(
       ff.particles->getCUDAVars(),
-      gpu_atomForceRec,
-      gpu_molForceRec,
+      atomForceRec,
+      molForceRec,
       particleCharge,
       particleMol,
       particleKind,
@@ -1364,7 +1362,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       currentAxes,
       box
     );
-#endif
+#else
     // molecule iterator
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
@@ -1420,29 +1418,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       }
       thisMol++;
     }
-// #endif
-    for(int i=0; i<atomForceRec.Count(); i++) {
-      if(abs(atomForceRec[i].x - gpu_atomForceRec[i].x) > 1e-12) {
-        printf("%d => %lf != %lf\n", i, atomForceRec[i].x, gpu_atomForceRec[i].x);
-      }
-      if(abs(atomForceRec[i].y - gpu_atomForceRec[i].y) > 1e-12) {
-        printf("%d => %lf != %lf\n", i, atomForceRec[i].y, gpu_atomForceRec[i].y);
-      }
-      if(abs(atomForceRec[i].z - gpu_atomForceRec[i].z) > 1e-12) {
-        printf("%d => %lf != %lf\n", i, atomForceRec[i].z, gpu_atomForceRec[i].z);
-      }
-    }
-    for(int i=0; i<molForceRec.Count(); i++) {
-      if(abs(molForceRec[i].x - gpu_molForceRec[i].x) > 1e-12) {
-        printf("%d => %lf != %lf\n", i, molForceRec[i].x, gpu_molForceRec[i].x);
-      }
-      if(abs(molForceRec[i].y - gpu_molForceRec[i].y) > 1e-12) {
-        printf("%d => %lf != %lf\n", i, molForceRec[i].y, gpu_molForceRec[i].y);
-      }
-      if(abs(molForceRec[i].z - gpu_molForceRec[i].z) > 1e-12) {
-        printf("%d => %lf != %lf\n", i, molForceRec[i].z, gpu_molForceRec[i].z);
-      }
-    }
+#endif
   }
 }
 
