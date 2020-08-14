@@ -1399,6 +1399,9 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
               Z -= intraForce * distVect.z;
             }
           }
+          if(p == 0) {
+            printf("Intra force: %lf, %lf, %lf\n", X, Y, Z);
+          }
 #ifdef _OPENMP
           #pragma omp parallel for default(shared) private(i, dot, factor) \
           reduction(+:X, Y, Z)
@@ -1422,11 +1425,11 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
     }
 // #endif
 
-    for(int i=0; i<atomForceRec.Count(); i++) {
-      if(atomForceRec[i].x != gpu_atomForceRec[i].x) {
-        printf("%d => %lf != %lf\n", i, atomForceRec[i].x, gpu_atomForceRec[i].x);
-      }
-    }
+    // for(int i=0; i<atomForceRec.Count(); i++) {
+    //   if(atomForceRec[i].x != gpu_atomForceRec[i].x) {
+    //     printf("%d => %lf != %lf\n", i, atomForceRec[i].x, gpu_atomForceRec[i].x);
+    //   }
+    // }
   }
 }
 

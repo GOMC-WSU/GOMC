@@ -439,45 +439,47 @@ __global__ void BoxForceReciprocalGPU(
   double forceX = 0.0, forceY = 0.0, forceZ = 0.0;
   int moleculeID = gpu_particleMol[particleID];
   int kindID = gpu_particleKind[particleID];
+  if(!particleHasNoCharge[particleID]) {
+    double lambdaCoef = DeviceGetLambdaCoulomb(moleculeID, kindID, box, gpu_isFraction, gpu_molIndex, gpu_kindIndex, gpu_lambdaCoulomb);
 
-  double lambdaCoef = DeviceGetLambdaCoulomb(moleculeID, kindID, box, gpu_isFraction, gpu_molIndex, gpu_kindIndex, gpu_lambdaCoulomb);
+    // loop over other particles within the same molecule
+    if(threadIdx.x == 0) {
+      int lastParticleWithinSameMolecule = gpu_startMol[particleID] + gpu_lengthMol[particleID];
+      for(int otherParticle = gpu_startMol[particleID];
+        otherParticle <= lastParticleWithinSameMolecule;
+        otherParticle++)
+      {
+        if(particleID != otherParticle) {
+          double distSq = 0.0, dist = 0.0;
+          double distVectX = 0.0, distVectY = 0.0, distVectZ = 0.0;
+          DeviceInRcut(distSq, distVectX, distVectY, distVectZ, gpu_x, gpu_y, gpu_z, particleID, otherParticle, axx, axy, axz, box);
+          dist = sqrt(distSq);
 
-  // loop over other particles within the same molecule
-  if(threadIdx.x == 0) {
-    int lastParticleWithinSameMolecule = gpu_startMol[particleID] + gpu_lengthMol[particleID];
-    for(int otherParticle = gpu_startMol[particleID];
-      otherParticle <= lastParticleWithinSameMolecule;
-      otherParticle++)
-    {
-      if(particleID != otherParticle) {
-        double distSq = 0.0, dist = 0.0;
-        double distVectX = 0.0, distVectY = 0.0, distVectZ = 0.0;
-        DeviceInRcut(distSq, distVectX, distVectY, distVectZ, gpu_x, gpu_y, gpu_z, particleID, otherParticle, axx, axy, axz, box);
-        dist = sqrt(distSq);
-
-        double expConstValue = exp(-1.0 * alphaSq * distSq);
-        double qiqj = gpu_particleCharge[particleID] * gpu_particleCharge[otherParticle] * qqFact;
-        double intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
-        intraForce *= ((erf(alpha * dist) / dist) - constValue * expConstValue);
-        forceX -= intraForce * distVectX;
-        forceY -= intraForce * distVectY;
-        forceZ -= intraForce * distVectZ;
+          double expConstValue = exp(-1.0 * alphaSq * distSq);
+          double qiqj = gpu_particleCharge[particleID] * gpu_particleCharge[otherParticle] * qqFact;
+          double intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
+          intraForce *= ((erf(alpha * dist) / dist) - constValue * expConstValue);
+          forceX -= intraForce * distVectX;
+          forceY -= intraForce * distVectY;
+          forceZ -= intraForce * distVectZ;
+        }
       }
+      printf("Intra force: %lf, %lf, %lf\n", forceX, forceY, forceZ);
     }
-  }
 
-  // loop over images
-  for(int vectorIndex = 0; vectorIndex < imageSize; vectorIndex += blockDim.x) {
-    double dot = gpu_x[particleID] * gpu_kx[vectorIndex] +
-      gpu_y[particleID] * gpu_ky[vectorIndex] + 
-      gpu_z[particleID] * gpu_kz[vectorIndex];
+    // loop over images
+    for(int vectorIndex = 0; vectorIndex < imageSize; vectorIndex += blockDim.x) {
+      double dot = gpu_x[particleID] * gpu_kx[vectorIndex] +
+        gpu_y[particleID] * gpu_ky[vectorIndex] + 
+        gpu_z[particleID] * gpu_kz[vectorIndex];
 
-    double factor = 2.0 * gpu_particleCharge[particleID] * gpu_prefact[vectorIndex] * lambdaCoef *
-      (sin(dot) * gpu_sumRnew[vectorIndex] - cos(dot) * gpu_sumInew[vectorIndex]);
-    
-    forceX += factor * gpu_kx[vectorIndex];
-    forceY += factor * gpu_ky[vectorIndex];
-    forceZ += factor * gpu_kz[vectorIndex];
+      double factor = 2.0 * gpu_particleCharge[particleID] * gpu_prefact[vectorIndex] * lambdaCoef *
+        (sin(dot) * gpu_sumRnew[vectorIndex] - cos(dot) * gpu_sumInew[vectorIndex]);
+      
+      forceX += factor * gpu_kx[vectorIndex];
+      forceY += factor * gpu_ky[vectorIndex];
+      forceZ += factor * gpu_kz[vectorIndex];
+    }
   }
 
   // perform reduction at this point
