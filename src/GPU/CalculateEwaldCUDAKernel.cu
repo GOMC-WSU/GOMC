@@ -328,9 +328,9 @@ void CallBoxForceReciprocalGPU(
   cudaMemcpy(gpu_particleMol, &particleMol[0], sizeof(int) * particleMol.size(), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleKind, &particleKind[0], sizeof(int) * particleKind.size(), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleHasNoCharge, arr_particleHasNoCharge, sizeof(bool) * particleHasNoCharge.size(), cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_x, molCoords.x, sizeof(double) * molCount, cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_y, molCoords.y, sizeof(double) * molCount, cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_z, molCoords.z, sizeof(double) * molCount, cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_x, molCoords.x, sizeof(double) * atomCount, cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_y, molCoords.y, sizeof(double) * atomCount, cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_z, molCoords.z, sizeof(double) * atomCount, cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_startMol, &startMol[0], sizeof(int) * startMol.size(), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_lengthMol, &lengthMol[0], sizeof(int) * lengthMol.size(), cudaMemcpyHostToDevice);
 
