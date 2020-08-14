@@ -332,7 +332,7 @@ void CallBoxForceReciprocalGPU(
 
   checkLastErrorCUDA(__FILE__, __LINE__);
   BoxForceReciprocalGPU<<<blocksPerGrid, threadsPerBlock>>>(
-    /*vars->gpu_aForceRecx,
+    vars->gpu_aForceRecx,
     vars->gpu_aForceRecy,
     vars->gpu_aForceRecz,
     vars->gpu_mForceRecx,
@@ -361,11 +361,10 @@ void CallBoxForceReciprocalGPU(
     vars->gpu_isFraction,
     vars->gpu_molIndex,
     vars->gpu_kindIndex,
-    vars->gpu_lambdaCoulomb,*/
+    vars->gpu_lambdaCoulomb,
     boxAxes.GetAxis(box).x,
     boxAxes.GetAxis(box).y,
     boxAxes.GetAxis(box).z,
-    vars->gpu_rCut[0],
     box
   );
   cudaDeviceSynchronize();
@@ -387,7 +386,7 @@ void CallBoxForceReciprocalGPU(
 }
 
 __global__ void BoxForceReciprocalGPU(
-  /*double *gpu_aForceRecx,
+  double *gpu_aForceRecx,
   double *gpu_aForceRecy,
   double *gpu_aForceRecz,
   double *gpu_mForceRecx,
@@ -416,11 +415,10 @@ __global__ void BoxForceReciprocalGPU(
   bool *gpu_isFraction,
   int *gpu_molIndex,
   int *gpu_kindIndex,
-  double *gpu_lambdaCoulomb,*/
+  double *gpu_lambdaCoulomb,
   double axx,
   double axy,
   double axz,
-  double gpu_rCut,
   int box
 )
 {
@@ -429,7 +427,7 @@ __global__ void BoxForceReciprocalGPU(
   int warpID = threadIdx.x / 32;
   int particleID = blockIdx.x;
   double forceX = 0.0, forceY = 0.0, forceZ = 0.0;
-  /*int moleculeID = gpu_particleMol[particleID];
+  int moleculeID = gpu_particleMol[particleID];
   int kindID = gpu_particleKind[particleID];
 
   double lambdaCoef = DeviceGetLambdaCoulomb(moleculeID, kindID, box, gpu_isFraction, gpu_molIndex, gpu_kindIndex, gpu_lambdaCoulomb);
@@ -497,7 +495,7 @@ __global__ void BoxForceReciprocalGPU(
     atomicAdd(&gpu_mForceRecx[moleculeID], forceX);
     atomicAdd(&gpu_mForceRecy[moleculeID], forceY);
     atomicAdd(&gpu_mForceRecz[moleculeID], forceZ);
-  }*/
+  }
 }
 
 __global__ void SwapReciprocalGPU(double *gpu_x, double *gpu_y, double *gpu_z,
