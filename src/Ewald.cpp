@@ -1329,7 +1329,7 @@ void Ewald::UpdateRecipVec(uint box)
 }
 
 void compareDouble(const double &x, const double &y, const int &i) {
-  if(abs(x-y) > 1e-12) {
+  if(abs(x-y) > 1e-15) {
     printf("%d: %lf != %lf\n", i, x, y);
   }
 }
