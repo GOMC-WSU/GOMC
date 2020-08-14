@@ -334,7 +334,6 @@ void CallBoxForceReciprocalGPU(
   cudaMemcpy(gpu_startMol, &startMol[0], sizeof(int) * startMol.size(), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_lengthMol, &lengthMol[0], sizeof(int) * lengthMol.size(), cudaMemcpyHostToDevice);
 
-  printf("BEFORE: %lf, %lf, %lf\n", molCoords.x[0], molCoords.y[0], molCoords.z[0]);
   checkLastErrorCUDA(__FILE__, __LINE__);
   BoxForceReciprocalGPU<<<blocksPerGrid, threadsPerBlock>>>(
     vars->gpu_aForceRecx,

@@ -1342,6 +1342,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
 #ifdef GOMC_CUDA
     // initialize the start and end of each box
     initializeBoxRange();
+    printf("BEFORE: %lf, %lf, %lf\n", molCoords.x[0], molCoords.y[0], molCoords.z[0]);
 
     CallBoxForceReciprocalGPU(
       ff.particles->getCUDAVars(),
