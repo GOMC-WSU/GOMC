@@ -1342,7 +1342,6 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
 #ifdef GOMC_CUDA
     // initialize the start and end of each box
     initializeBoxRange();
-    printf("BEFORE: %lf, %lf, %lf\n", molCoords.x[0], molCoords.y[0], molCoords.z[0]);
 
     CallBoxForceReciprocalGPU(
       ff.particles->getCUDAVars(),
@@ -1401,9 +1400,6 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
               Z -= intraForce * distVect.z;
             }
           }
-          if(p == 0) {
-            printf("BEFORE OPENMP: %lf, %lf, %lf\n", molCoords.x[p], molCoords.y[p], molCoords.z[p]);
-          }
 #ifdef _OPENMP
           #pragma omp parallel for default(shared) private(i, dot, factor) \
           reduction(+:X, Y, Z)
@@ -1417,11 +1413,6 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
             X += factor * kx[box][i];
             Y += factor * ky[box][i];
             Z += factor * kz[box][i];
-            if(p == 0 && i == 1100) {
-              printf("CPU: %lf, %lf, %lf\n", kx[box][i], ky[box][i], kz[box][i]);
-              printf("CPU: %d, %lf, %lf, %lf\n", p, molCoords.x[p], molCoords.y[p], molCoords.z[p]);
-              printf("CPU: %lf, %lf, %lf, %lf, %lf\n", dot, factor, X, Y, Z);
-            }
           }
         }
         atomForceRec.Set(p, X, Y, Z);
@@ -1430,11 +1421,11 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       thisMol++;
     }
 // #endif
-    // for(int i=0; i<atomForceRec.Count(); i++) {
-    //   if(atomForceRec[i].x != gpu_atomForceRec[i].x) {
-    //     printf("%d => %lf != %lf\n", i, atomForceRec[i].x, gpu_atomForceRec[i].x);
-    //   }
-    // }
+    for(int i=0; i<atomForceRec.Count(); i++) {
+      if(atomForceRec[i].x != gpu_atomForceRec[i].x) {
+        printf("%d => %lf != %lf\n", i, atomForceRec[i].x, gpu_atomForceRec[i].x);
+      }
+    }
   }
 }
 
