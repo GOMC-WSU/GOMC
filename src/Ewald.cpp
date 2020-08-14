@@ -1364,7 +1364,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       currentAxes,
       box
     );
-#else
+#endif
     // molecule iterator
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
@@ -1420,7 +1420,18 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       }
       thisMol++;
     }
-#endif
+// #endif
+    for(int i=0; i<atomForceRec.Count(); i++) {
+      if(abs(atomForceRec[i].x - gpu_atomForceRec[i].x) > 1e-12) {
+        printf("%d => %lf != %lf\n", i, atomForceRec[i].x, gpu_atomForceRec[i].x);
+      }
+      if(abs(atomForceRec[i].y - gpu_atomForceRec[i].y) > 1e-12) {
+        printf("%d => %lf != %lf\n", i, atomForceRec[i].y, gpu_atomForceRec[i].y);
+      }
+      if(abs(atomForceRec[i].z - gpu_atomForceRec[i].z) > 1e-12) {
+        printf("%d => %lf != %lf\n", i, atomForceRec[i].z, gpu_atomForceRec[i].z);
+      }
+    }
   }
 }
 
