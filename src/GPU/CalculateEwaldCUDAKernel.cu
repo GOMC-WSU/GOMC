@@ -301,7 +301,15 @@ void CallBoxForceReciprocalGPU(
   double *gpu_particleCharge;
   int *gpu_particleMol, *gpu_particleKind;
   bool *gpu_particleHasNoCharge;
+  bool *arr_particleHasNoCharge = new bool[particleHasNoCharge.size()];
   int *gpu_startMol, *gpu_lengthMol;
+
+  // particleHasNoCharge is stored in vector<bool>, so in order to copy it to GPU
+  // it needs to be stored in bool[]. because:
+  // std::vector<bool> : Does not necessarily store its elements as a contiguous array
+  for(int i=0; i<particleHasNoCharge.size(); i++) {
+    arr_particleHasNoCharge[i] = particleHasNoCharge[i];
+  }
 
   // calculate block and grid sizes
   int threadsPerBlock = 256;
@@ -323,7 +331,7 @@ void CallBoxForceReciprocalGPU(
   cudaMemcpy(gpu_particleCharge, &particleCharge[0], sizeof(double) * particleCharge.size(), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleMol, &particleMol[0], sizeof(int) * particleMol.size(), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleKind, &particleKind[0], sizeof(int) * particleKind.size(), cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_particleHasNoCharge, &particleHasNoCharge[0], sizeof(bool) * particleHasNoCharge.size(), cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_particleHasNoCharge, arr_particleHasNoCharge, sizeof(bool) * particleHasNoCharge.size(), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_x, molCoords.x, sizeof(double) * molCount, cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_y, molCoords.y, sizeof(double) * molCount, cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_z, molCoords.z, sizeof(double) * molCount, cudaMemcpyHostToDevice);
@@ -377,6 +385,8 @@ void CallBoxForceReciprocalGPU(
   cudaMemcpy(molForceRec.y, vars->gpu_mForceRecy, sizeof(double) * molCount, cudaMemcpyDeviceToHost);
   cudaMemcpy(molForceRec.z, vars->gpu_mForceRecz, sizeof(double) * molCount, cudaMemcpyDeviceToHost);
 
+
+  delete [] arr_particleHasNoCharge;
   CUFREE(gpu_particleCharge);
   CUFREE(gpu_particleHasNoCharge);
   CUFREE(gpu_startMol);
