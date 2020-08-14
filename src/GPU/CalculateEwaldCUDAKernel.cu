@@ -381,7 +381,7 @@ void CallBoxForceReciprocalGPU(
   cudaMemcpy(molForceRec.y, vars->gpu_mForceRecy, sizeof(double) * molCount, cudaMemcpyDeviceToHost);
   cudaMemcpy(molForceRec.z, vars->gpu_mForceRecz, sizeof(double) * molCount, cudaMemcpyDeviceToHost);
 
-
+  cudaDeviceSynchronize();
   delete [] arr_particleHasNoCharge;
   CUFREE(gpu_particleCharge);
   CUFREE(gpu_particleHasNoCharge);
