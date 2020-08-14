@@ -439,7 +439,7 @@ __global__ void BoxForceReciprocalGPU(
   double forceX = 0.0, forceY = 0.0, forceZ = 0.0;
   int moleculeID = gpu_particleMol[particleID];
   int kindID = gpu_particleKind[particleID];
-  if(!particleHasNoCharge[particleID]) {
+  if(!gpu_particleHasNoCharge[particleID]) {
     double lambdaCoef = DeviceGetLambdaCoulomb(moleculeID, kindID, box, gpu_isFraction, gpu_molIndex, gpu_kindIndex, gpu_lambdaCoulomb);
 
     // loop over other particles within the same molecule
