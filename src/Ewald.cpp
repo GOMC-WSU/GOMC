@@ -1407,6 +1407,9 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
           for(i = 0; i < imageSize[box]; i++) {
             dot = Dot(p, kx[box][i], ky[box][i], kz[box][i], molCoords);
 
+            if(p == 0 && i == 1100) {
+              printf("%lf\n", dot);
+            }
             factor = 2.0 * particleCharge[p] * prefact[box][i] * lambdaCoef *
                      (sin(dot) * sumRnew[box][i] - cos(dot) * sumInew[box][i]);
 
@@ -1421,8 +1424,6 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       thisMol++;
     }
 // #endif
-
-    printf("CPU: %lf, %lf, %lf\n", sumRnew[box][110], sumInew[box][110], prefact[box][110]);
     // for(int i=0; i<atomForceRec.Count(); i++) {
     //   if(atomForceRec[i].x != gpu_atomForceRec[i].x) {
     //     printf("%d => %lf != %lf\n", i, atomForceRec[i].x, gpu_atomForceRec[i].x);
