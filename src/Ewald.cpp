@@ -1401,6 +1401,9 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
               Z -= intraForce * distVect.z;
             }
           }
+          if(p == 0) {
+            printf("BEFORE OPENMP: %lf, %lf, %lf\n", molCoords.x[p], molCoords.y[p], molCoords.z[p]);
+          }
 #ifdef _OPENMP
           #pragma omp parallel for default(shared) private(i, dot, factor) \
           reduction(+:X, Y, Z)
