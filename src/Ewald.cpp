@@ -1418,8 +1418,8 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       }
       thisMol++;
     }
-  }
 #endif
+  }
 }
 
 double Ewald::GetLambdaCoef(uint molA, uint box) const
