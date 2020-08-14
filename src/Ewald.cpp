@@ -1328,6 +1328,12 @@ void Ewald::UpdateRecipVec(uint box)
   }
 }
 
+void compareDouble(const double &x, const double &y, const int &i) {
+  if(abs(x-y) > 1e-12) {
+    printf("%d: %lf != %lf\n", i, x, y);
+  }
+}
+
 
 //calculate reciprocate force term for a box with molCoords
 void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
@@ -1432,12 +1438,6 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       compareDouble(molForceRec.y[i], gpu_molForceRec.y[i], i);
       compareDouble(molForceRec.z[i], gpu_molForceRec.z[i], i);
     }
-  }
-}
-
-void compareDouble(const double &x, const double &y, const int &i) {
-  if(abs(x-y) > 1e-12) {
-    printf("%d: %lf != %lf\n", i, x, y);
   }
 }
 
