@@ -1418,9 +1418,9 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
             Y += factor * ky[box][i];
             Z += factor * kz[box][i];
             if(p == 0 && i == 1100) {
-              printf("%lf, %lf, %lf\n", kx[box][i], ky[box][i], kz[box][i]);
-              printf("%d, %lf, %lf, %lf\n", p, molCoords.x[p], molCoords.y[p], molCoords.z[p]);
-              printf("%lf, %lf, %lf, %lf, %lf\n", dot, factor, X, Y, Z);
+              printf("CPU: %lf, %lf, %lf\n", kx[box][i], ky[box][i], kz[box][i]);
+              printf("CPU: %d, %lf, %lf, %lf\n", p, molCoords.x[p], molCoords.y[p], molCoords.z[p]);
+              printf("CPU: %lf, %lf, %lf, %lf, %lf\n", dot, factor, X, Y, Z);
             }
           }
         }
