@@ -1401,7 +1401,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
             }
           }
           if(p == 0) {
-            printf("Coords CPU: %lf, %lf, %lf\n", molCoords[0].x, molCoords[0].y, molCoords[0].z);
+            printf("distVect CPU: %lf, %lf, %lf\n", distVect.x, distVect.y, distVect.z);
             printf("Intra force CPU: %lf, %lf, %lf\n", X, distSq, intraForce);
           }
 #ifdef _OPENMP

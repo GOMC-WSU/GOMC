@@ -465,7 +465,7 @@ __global__ void BoxForceReciprocalGPU(
         }
       }
       if(particleID == 0) {
-        printf("Coords GPU: %lf, %lf, %lf\n", gpu_x[0], gpu_y[0], gpu_z[0]);
+        printf("distVect GPU: %lf, %lf, %lf\n", distVectX, distVectY, distVectZ);
         printf("Intra force GPU: %lf, %lf, %lf\n", forceX, distSq, intraForce);
       }
     }
