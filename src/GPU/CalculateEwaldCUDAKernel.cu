@@ -89,15 +89,12 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
       imageSize);
   checkLastErrorCUDA(__FILE__, __LINE__);
 
-//#ifndef NDEBUG
-  // In the future maybe we could remove this for Nondebug?
   cudaMemcpy(sumRnew, vars->gpu_sumRnew[box],
              imageSize * sizeof(double),
              cudaMemcpyDeviceToHost);
   cudaMemcpy(sumInew, vars->gpu_sumInew[box],
              imageSize * sizeof(double),
              cudaMemcpyDeviceToHost);
-//#endif
 
   // ReduceSum
   void *d_temp_storage = NULL;
@@ -173,12 +170,11 @@ void CallMolReciprocalGPU(VariablesCUDA *vars,
                                       gpu_energyRecipNew,
                                       imageSize);
   checkLastErrorCUDA(__FILE__, __LINE__);
-//#ifndef NDEBUG
+
   cudaMemcpy(sumRnew, vars->gpu_sumRnew[box], imageSize * sizeof(double),
              cudaMemcpyDeviceToHost);
   cudaMemcpy(sumInew, vars->gpu_sumInew[box], imageSize * sizeof(double),
              cudaMemcpyDeviceToHost);
-//#endif
 
   // ReduceSum
   void *d_temp_storage = NULL;
@@ -465,6 +461,9 @@ __global__ void BoxForceReciprocalGPU(
         }
       }
     }
+    if(blockIdx.x * blockDim.x + threadIdx.x == 0) {
+      printf("GPU: %lf, %lf, %lf\n", gpu_kx[0], gpu_ky[0], gpu_kz[0]);
+    }
 
     // loop over images
     for(int vectorIndex = 0; vectorIndex < imageSize; vectorIndex += blockDim.x) {
@@ -497,10 +496,10 @@ __global__ void BoxForceReciprocalGPU(
   // first thread inside the block will write back to global memory
   __syncthreads();
   if(threadIdx.x == 0) {
-    for(int warpID=1; warpID<8; warpID++) {
-      forceX += shared[warpID*3+0];
-      forceY += shared[warpID*3+1];
-      forceZ += shared[warpID*3+2];
+    for(int w=1; w<8; w++) {
+      forceX += shared[w*3+0];
+      forceY += shared[w*3+1];
+      forceZ += shared[w*3+2];
     }
     gpu_aForceRecx[particleID] = forceX;
     gpu_aForceRecy[particleID] = forceY;

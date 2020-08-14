@@ -1415,7 +1415,6 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
             Z += factor * kz[box][i];
           }
         }
-        //printf("Atomforce: %lf, %lf, %lf\n", X, Y, Z);
         atomForceRec.Set(p, X, Y, Z);
         molForceRec.Add(molIndex, X, Y, Z);
       }
@@ -1423,11 +1422,12 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
     }
 // #endif
 
-    for(int i=0; i<atomForceRec.Count(); i++) {
-      if(atomForceRec[i].x != gpu_atomForceRec[i].x) {
-        printf("%d => %lf != %lf\n", i, atomForceRec[i].x, gpu_atomForceRec[i].x);
-      }
-    }
+    printf("CPU: %lf, %lf, %lf\n", kx[box][0], ky[box][0], kz[box][0]);
+    // for(int i=0; i<atomForceRec.Count(); i++) {
+    //   if(atomForceRec[i].x != gpu_atomForceRec[i].x) {
+    //     printf("%d => %lf != %lf\n", i, atomForceRec[i].x, gpu_atomForceRec[i].x);
+    //   }
+    // }
   }
 }
 
