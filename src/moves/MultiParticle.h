@@ -361,7 +361,7 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   double MPCoeff = GetCoeff();
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   double accept = MPCoeff * uBoltz;
-  std::cout << imie(sysPotNew.Total()) imie(sysPotRef.Total()) imie(-BETA) imie(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
+  std::cout << imie(moveType[0]) imie(sysPotNew.Total()) imie(sysPotRef.Total()) imie(-BETA) imie(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   double pr = prng();
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
   printf("%.15lf, %.15lf, %.15lf, %.15lf, %d\n", MPCoeff, uBoltz, accept, pr, result);
