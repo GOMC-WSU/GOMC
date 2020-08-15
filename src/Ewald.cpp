@@ -250,6 +250,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
       std::memset(sumRnew[box], 0.0, sizeof(double) * imageSize[box]);
       std::memset(sumInew[box], 0.0, sizeof(double) * imageSize[box]);
     }
+    thisMol = molLookup.BoxBegin(box);
 
     while (thisMol != end) {
       MoleculeKind const& thisKind = mols.GetKind(*thisMol);
