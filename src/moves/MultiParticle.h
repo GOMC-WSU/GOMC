@@ -137,7 +137,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   // We can also add another move typr, where in this steps, each molecule
   // can displace or rotate, independently from other molecule. To do that, we
   // need to change the  mp::MPTOTALTYPES variable to 3, in MoveSetting.h
-  typePick = 0;//prng.randIntExc(mp::MPTOTALTYPES);
+  typePick = prng.randIntExc(mp::MPTOTALTYPES);
   SetMolInBox(bPick);
 
   for(uint m = 0; m < moleculeIndex.size(); m++) {
@@ -361,7 +361,7 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   double MPCoeff = GetCoeff();
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   double accept = MPCoeff * uBoltz;
-  std::cout << imie(moveType[0]) imie(sysPotNew.Total()) imie(sysPotRef.Total()) imie(-BETA) imie(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
+  std::cout << imie(sysPotNew.Total()) imie(sysPotRef.Total()) imie(-BETA) imie(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   double pr = prng();
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
   printf("%.15lf, %.15lf, %.15lf, %.15lf, %d\n", MPCoeff, uBoltz, accept, pr, result);
