@@ -51,20 +51,28 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
 
   cudaMemcpy(vars->gpu_x, coords.x, atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(vars->gpu_y, coords.y, atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double),
              cudaMemcpyHostToDevice);
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(vars->gpu_kx[box], kx, imageSize * sizeof(double),
              cudaMemcpyHostToDevice);
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(vars->gpu_ky[box], ky, imageSize * sizeof(double),
              cudaMemcpyHostToDevice);
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(vars->gpu_kz[box], kz, imageSize * sizeof(double),
              cudaMemcpyHostToDevice);
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(vars->gpu_prefact[box], prefact, imageSize * sizeof(double),
              cudaMemcpyHostToDevice);
+  checkLastErrorCUDA(__FILE__, __LINE__);
   cudaMemcpy(vars->gpu_hsqr[box], hsqr, imageSize * sizeof(double),
              cudaMemcpyHostToDevice);
+  checkLastErrorCUDA(__FILE__, __LINE__);
 
   threadsPerBlock = 256;
   blocksPerGrid = (int)(imageSize / threadsPerBlock) + 1;
