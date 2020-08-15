@@ -209,6 +209,9 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
   double sumReal = 0.0;
   double sumImaginary = 0.0;
 
+  double *gpu_sumRnew = new double[imageTotal];
+  double *gpu_sumInew = new double[imageTotal];
+
   if (box < BOXES_WITH_U_NB) {
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
@@ -236,10 +239,10 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
     }
     CallBoxReciprocalSetupGPU(ff.particles->getCUDAVars(),
                               thisBoxCoords, kx[box], ky[box], kz[box],
-                              chargeBox, imageSize[box], sumRnew[box],
-                              sumInew[box], prefact[box], hsqr[box],
+                              chargeBox, imageSize[box], gpu_sumRnew,
+                              gpu_sumInew, prefact[box], hsqr[box],
                               currentEnergyRecip[box], box);
-#else
+#endif
 #ifdef _OPENMP
     #pragma omp parallel default(shared)
 #endif
@@ -276,8 +279,20 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
       }
       thisMol++;
     }
-#endif
+// #endif
   }
+
+  for(int i=0; i<imageTotal; i++) {
+    if(sumRnew[box][i] != gpu_sumRnew[i]) {
+      printf("%d: %.15lf, %.15lf\n", sumRnew[box][i], gpu_sumRnew[i]);
+    }
+    if(sumInew[box][i] != gpu_sumInew[i]) {
+      printf("%d: %.15lf, %.15lf\n", sumInew[box][i], gpu_sumInew[i]);
+    }
+  }
+
+  delete [] gpu_sumRnew;
+  delete [] gpu_sumInew;
 }
 
 
