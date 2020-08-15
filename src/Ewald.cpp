@@ -284,10 +284,10 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 
   for(int i=0; i<imageTotal; i++) {
     if(sumRnew[box][i] != gpu_sumRnew[i]) {
-      printf("%d: %.15lf, %.15lf\n", sumRnew[box][i], gpu_sumRnew[i]);
+      printf("%d: %.15lf, %.15lf\n", i, sumRnew[box][i], gpu_sumRnew[i]);
     }
     if(sumInew[box][i] != gpu_sumInew[i]) {
-      printf("%d: %.15lf, %.15lf\n", sumInew[box][i], gpu_sumInew[i]);
+      printf("%d: %.15lf, %.15lf\n", i, sumInew[box][i], gpu_sumInew[i]);
     }
   }
 
