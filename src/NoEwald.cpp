@@ -194,7 +194,7 @@ void NoEwald::backupMolCache()
   return;
 }
 
-void NoEwald::UpdateVectorsAndRecipTerms()
+void NoEwald::UpdateVectorsAndRecipTerms(bool output = false)
 {
   return;
 }

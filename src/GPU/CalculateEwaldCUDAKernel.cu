@@ -68,26 +68,27 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
 
   threadsPerBlock = 256;
   blocksPerGrid = (int)(imageSize / threadsPerBlock) + 1;
-  BoxReciprocalSetupGPU <<< blocksPerGrid,
-                        threadsPerBlock>>>(vars->gpu_x,
-                            vars->gpu_y,
-                            vars->gpu_z,
-                            vars->gpu_kx[box],
-                            vars->gpu_ky[box],
-                            vars->gpu_kz[box],
-                            atomNumber,
-                            gpu_particleCharge,
-                            vars->gpu_sumRnew[box],
-                            vars->gpu_sumInew[box],
-                            imageSize);
+  BoxReciprocalSetupGPU <<< blocksPerGrid, threadsPerBlock>>>(
+    vars->gpu_x,
+    vars->gpu_y,
+    vars->gpu_z,
+    vars->gpu_kx[box],
+    vars->gpu_ky[box],
+    vars->gpu_kz[box],
+    atomNumber,
+    gpu_particleCharge,
+    vars->gpu_sumRnew[box],
+    vars->gpu_sumInew[box],
+    imageSize);
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
 
-  BoxReciprocalGPU <<< blocksPerGrid, threadsPerBlock>>>(vars->gpu_prefact[box],
-      vars->gpu_sumRnew[box],
-      vars->gpu_sumInew[box],
-      gpu_energyRecip,
-      imageSize);
+  BoxReciprocalGPU <<< blocksPerGrid, threadsPerBlock>>>(
+    vars->gpu_prefact[box],
+    vars->gpu_sumRnew[box],
+    vars->gpu_sumInew[box],
+    gpu_energyRecip,
+    imageSize);
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
 

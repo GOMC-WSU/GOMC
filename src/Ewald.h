@@ -137,7 +137,7 @@ public:
   //backup the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
   virtual void backupMolCache();
 
-  virtual void UpdateVectorsAndRecipTerms();
+  virtual void UpdateVectorsAndRecipTerms(bool output = false);
 
   //calculate reciprocate force term for a box with molCoords
   virtual void BoxForceReciprocal(XYZArray const& molCoords,

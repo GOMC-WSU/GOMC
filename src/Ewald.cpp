@@ -133,17 +133,18 @@ void Ewald::Init()
 
   AllocMem();
   //initialize K vectors and reciprocate terms
-  UpdateVectorsAndRecipTerms();
+  UpdateVectorsAndRecipTerms(true);
 }
 
-void Ewald::UpdateVectorsAndRecipTerms()
+void Ewald::UpdateVectorsAndRecipTerms(bool output = false)
 {
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
     RecipInit(b, currentAxes);
     BoxReciprocalSetup(b, currentCoords);
     SetRecipRef(b);
-    printf("Box: %d, RecipVectors: %6d, kmax: %d\n",
-           b, imageSize[b], kmax[b]);
+    if(output) {
+      printf("Box: %d, RecipVectors: %6d, kmax: %d\n", b, imageSize[b], kmax[b]);
+    }
   }
 }
 
