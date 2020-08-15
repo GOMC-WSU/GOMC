@@ -99,7 +99,7 @@ void Simulation::RunSimulation(void)
 
 bool Simulation::RecalculateAndCheck(void)
 {
-  system->calcEwald->UpdateVectorsAndRecipTerms();
+  system->calcEwald->UpdateVectorsAndRecipTerms(true);
   SystemPotential pot = system->calcEnergy.SystemTotal();
 
   bool compare = true;
@@ -145,7 +145,7 @@ bool Simulation::RecalculateAndCheck(void)
 #ifndef NDEBUG
 void Simulation::RunningCheck(const uint step)
 {
-  system->calcEwald->UpdateVectorsAndRecipTerms();
+  system->calcEwald->UpdateVectorsAndRecipTerms(true);
   SystemPotential pot = system->calcEnergy.SystemTotal();
 
   std::cout

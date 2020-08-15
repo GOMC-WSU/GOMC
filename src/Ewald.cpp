@@ -136,7 +136,7 @@ void Ewald::Init()
   UpdateVectorsAndRecipTerms(true);
 }
 
-void Ewald::UpdateVectorsAndRecipTerms(bool output = false)
+void Ewald::UpdateVectorsAndRecipTerms(bool output)
 {
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
     RecipInit(b, currentAxes);
