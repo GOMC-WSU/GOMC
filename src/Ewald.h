@@ -137,7 +137,7 @@ public:
   //backup the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
   virtual void backupMolCache();
 
-  virtual void UpdateVectorsAndRecipTerms();
+  virtual void UpdateVectorsAndRecipTerms(bool output);
 
   //calculate reciprocal force term for a box with molCoords
   virtual void BoxForceReciprocal(XYZArray const& molCoords,
@@ -167,6 +167,8 @@ public:
                            const std::vector<double> &lambda_Coul,
                            const uint iState, const uint molIndex,
                            const uint box) const;
+
+  void initializeBoxRange();
 
 private:
   double currentEnergyRecip[BOXES_WITH_U_NB];
@@ -203,7 +205,18 @@ protected:
 
   std::vector<int> particleKind;
   std::vector<int> particleMol;
+
+  // starting index of molecule
+  std::vector<int> startMol;
+  // length of each molecule
+  std::vector<int> lengthMol;
+  // starting atom index of each box
+  int boxStart[BOX_TOTAL];
+  // ending atom index of each box
+  int boxEnd[BOX_TOTAL];
+  // atom charges
   std::vector<double> particleCharge;
+  // which atoms don't have charge
   std::vector<bool> particleHasNoCharge;
 
 };

@@ -61,8 +61,8 @@ void EwaldCached::Init()
   }
 
   AllocMem();
-  //initialize K vectors and reciprocal terms
-  UpdateVectorsAndRecipTerms();
+  //initialize K vectors and reciprocate terms
+  UpdateVectorsAndRecipTerms(true);
 }
 
 void EwaldCached::AllocMem()
