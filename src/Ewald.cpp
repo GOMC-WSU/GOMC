@@ -1405,9 +1405,6 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
               Z -= intraForce * distVect.z;
             }
           }
-          if(p == 50) {
-            printf("%.15lf,%.15lf,%.15lf\n", X, Y, Z);
-          }
 #ifdef _OPENMP
           #pragma omp parallel for default(shared) private(i, dot, factor) \
           reduction(+:X, Y, Z)
@@ -1430,6 +1427,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
     }
 #endif
   }
+  std::cout << imie(atomForceRec.x[50]) imie(atomForceRec.y[50]) imie(atomForceRec.z[50]);
 }
 
 double Ewald::GetLambdaCoef(uint molA, uint box) const
