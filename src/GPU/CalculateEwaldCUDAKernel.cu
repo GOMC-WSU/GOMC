@@ -506,11 +506,11 @@ __global__ void BoxForceReciprocalGPU(
   // first thread inside the block will write back to global memory
   __syncthreads();
   if(threadIdx.x == 0) {
-    for(int w=1; w<8; w++) {
-      forceX += shared[w*3+0];
-      forceY += shared[w*3+1];
-      forceZ += shared[w*3+2];
-    }
+    // for(int w=1; w<8; w++) {
+    //   forceX += shared[w*3+0];
+    //   forceY += shared[w*3+1];
+    //   forceZ += shared[w*3+2];
+    // }
     gpu_aForceRecx[particleID] = forceX;
     gpu_aForceRecy[particleID] = forceY;
     gpu_aForceRecz[particleID] = forceZ;
