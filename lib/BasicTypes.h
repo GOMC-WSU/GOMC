@@ -25,13 +25,13 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define RECORD_DEBUG_FILE_NAME "cpu.debug"
 #endif
 
-void record_debug(double x, std::string filename, int linenumber) {
+inline void record_debug(double x, std::string filename, int linenumber) {
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "double," << filename << "," << linenumber << "," << x << "\n";
 }
 
-void record_debug(std::vector<double> x, std::string filename, int linenumber) {
+inline void record_debug(std::vector<double> x, std::string filename, int linenumber) {
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|double," << x.size() << "," << filename << "," << linenumber;
@@ -41,7 +41,7 @@ void record_debug(std::vector<double> x, std::string filename, int linenumber) {
   out << "\n";
 }
 
-void record_debug(std::vector<int> x, std::string filename, int linenumber) {
+inline void record_debug(std::vector<int> x, std::string filename, int linenumber) {
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|int," << x.size() << "," << filename << "," << linenumber;
@@ -51,7 +51,7 @@ void record_debug(std::vector<int> x, std::string filename, int linenumber) {
   out << "\n";
 }
 
-void record_debug(double * x, uint len, std::string filename, int linenumber) {
+inline void record_debug(double * x, uint len, std::string filename, int linenumber) {
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|double," << len << "," << filename << "," << linenumber;
