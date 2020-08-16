@@ -168,10 +168,26 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
     //Calculate force for long range electrostatic using old position
     calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef,
                                   bPick);
+#ifdef RECORD_DEBUG
+    record_debug_macro_len(atomForceRecRef.x, atomForceRecRef.Count());
+    record_debug_macro_len(atomForceRecRef.y, atomForceRecRef.Count());
+    record_debug_macro_len(atomForceRecRef.z, atomForceRecRef.Count());
+    record_debug_macro_len(molForceRecRef.x, molForceRecRef.Count());
+    record_debug_macro_len(molForceRecRef.y, molForceRecRef.Count());
+    record_debug_macro_len(molForceRecRef.z, molForceRecRef.Count());
+#endif
 
     //calculate short range energy and force for old positions
     calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
                        boxDimRef, bPick);
+#ifdef RECORD_DEBUG
+    record_debug_macro_len(atomForceRef.x, atomForceRef.Count());
+    record_debug_macro_len(atomForceRef.y, atomForceRef.Count());
+    record_debug_macro_len(atomForceRef.z, atomForceRef.Count());
+    record_debug_macro_len(molForceRef.x, molForceRef.Count());
+    record_debug_macro_len(molForceRef.y, molForceRef.Count());
+    record_debug_macro_len(molForceRef.z, molForceRef.Count());
+#endif
 
     if(typePick != mp::MPALLDISPLACE) {
       //Calculate Torque for old positions
@@ -180,6 +196,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
                                 moveType, bPick);
     }
   }
+
   CalculateTrialDistRot();
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
