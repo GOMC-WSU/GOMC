@@ -258,7 +258,9 @@ inline uint MultiParticle::Transform()
     }
   }
 #ifdef RECORD_DEBUG
-  record_debug_macro(newMolsPos);
+  record_debug_macro(newMolsPos.x, newMolsPos.Count());
+  record_debug_macro(newMolsPos.x, newMolsPos.Count());
+  record_debug_macro(newMolsPos.x, newMolsPos.Count());
 #endif
   return state;
 }

@@ -18,6 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define imie(...) " [" << #__VA_ARGS__ ": " << std::setprecision(15) << (__VA_ARGS__) << "] "
 
 #define record_debug_macro(x) record_debug(x, __FILE__, __LINE__);
+#define record_debug_macro(x,len) record_debug(x, len, __FILE__, __LINE__);
 #ifdef GOMC_CUDA
 #define RECORD_DEBUG_FILE_NAME "gpu.debug"
 #else
@@ -45,6 +46,16 @@ void record_debug(std::vector<int> x, std::string filename, std::string linenumb
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|int," << x.size() << "," << filename << "," << linenumber;
   for(int i=0; i<x.size(); i++) {
+    out << "," << x[i];
+  }
+  out << "\n";
+}
+
+void record_debug(double * x, int len, std::string filename, std::string linenumber) {
+  std::ofstream out;
+  out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
+  out << "vector|double," << len << "," << filename << "," << linenumber;
+  for(int i=0; i<len; i++) {
     out << "," << x[i];
   }
   out << "\n";
