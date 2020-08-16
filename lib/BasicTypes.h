@@ -28,7 +28,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 inline void record_debug(double x, std::string filename, int linenumber) {
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
-  out << "double," << filename << "," << linenumber << "," << x << "\n";
+  out << std::setprecision(12) << "double," << filename << "," << linenumber << "," << x << "\n";
 }
 
 inline void record_debug(std::vector<double> x, std::string filename, int linenumber) {
@@ -36,7 +36,7 @@ inline void record_debug(std::vector<double> x, std::string filename, int linenu
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|double," << x.size() << "," << filename << "," << linenumber;
   for(int i=0; i<x.size(); i++) {
-    out << "," << x[i];
+    out << "," << std::setprecision(12) << x[i];
   }
   out << "\n";
 }
@@ -46,7 +46,7 @@ inline void record_debug(std::vector<int> x, std::string filename, int linenumbe
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|int," << x.size() << "," << filename << "," << linenumber;
   for(int i=0; i<x.size(); i++) {
-    out << "," << x[i];
+    out << "," << std::setprecision(12) << x[i];
   }
   out << "\n";
 }
@@ -56,7 +56,7 @@ inline void record_debug(double * x, uint len, std::string filename, int linenum
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|double," << len << "," << filename << "," << linenumber;
   for(int i=0; i<len; i++) {
-    out << "," << x[i];
+    out << "," << std::setprecision(12) << x[i];
   }
   out << "\n";
 }
