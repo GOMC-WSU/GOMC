@@ -85,10 +85,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   boxAxes.GetAxis(box).y,
   boxAxes.GetAxis(box).z);
 
-  double3 halfAx = make_double3(boxAxes.GetAxis(box).x / 2.0,
-  boxAxes.GetAxis(box).y / 2.0,
-  boxAxes.GetAxis(box).z / 2.0);
-
   BoxInterGPU <<< blocksPerGrid, threadsPerBlock>>>(gpu_cellStartIndex,
       vars->gpu_cellVector,
       gpu_neighborList,
