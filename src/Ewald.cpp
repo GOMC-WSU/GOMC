@@ -1405,7 +1405,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
               Z -= intraForce * distVect.z;
             }
           }
-          if(molIndex == 33) {
+          if(p == 33) {
             printf("%.15lf,%.15lf,%.15lf\n", X, Y, Z);
           }
 #ifdef _OPENMP
