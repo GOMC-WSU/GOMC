@@ -26,6 +26,16 @@ __device__ inline void TransformSlantGPU(double &tx, double &ty, double &tz,
   tz = x * gpu_cell_z[0] + y * gpu_cell_z[1] + z * gpu_cell_z[2];
 }
 
+__device__ inline void TransformSlantGPU(double3 & dist,
+  double3 slant,
+  double *gpu_cell_x,
+  double *gpu_cell_y,
+  double *gpu_cell_z)
+{
+  dist.x = slant.x * gpu_cell_x[0] + slant.y * gpu_cell_x[1] + slant.z * gpu_cell_x[2];
+  dist.y = slant.x * gpu_cell_y[0] + slant.y * gpu_cell_y[1] + slant.z * gpu_cell_y[2];
+  dist.z = slant.x * gpu_cell_z[0] + slant.y * gpu_cell_z[1] + slant.z * gpu_cell_z[2];
+}
 __device__ inline void TransformUnSlantGPU(double &tx, double &ty, double &tz,
     double x, double y, double z,
     double *gpu_Invcell_x,
@@ -35,6 +45,17 @@ __device__ inline void TransformUnSlantGPU(double &tx, double &ty, double &tz,
   tx = x * gpu_Invcell_x[0] + y * gpu_Invcell_x[1] + z * gpu_Invcell_x[2];
   ty = x * gpu_Invcell_y[0] + y * gpu_Invcell_y[1] + z * gpu_Invcell_y[2];
   tz = x * gpu_Invcell_z[0] + y * gpu_Invcell_z[1] + z * gpu_Invcell_z[2];
+}
+
+__device__ inline void TransformUnSlantGPU(double3 & dist,
+  double3 slant,
+  double *gpu_Invcell_x,
+  double *gpu_Invcell_y,
+  double *gpu_Invcell_z)
+{
+  dist.x = slant.x * gpu_Invcell_x[0] + slant.y * gpu_Invcell_x[1] + slant.z * gpu_Invcell_x[2];
+  dist.y = slant.x * gpu_Invcell_y[0] + slant.y * gpu_Invcell_y[1] + slant.z * gpu_Invcell_y[2];
+  dist.z = slant.x * gpu_Invcell_z[0] + slant.y * gpu_Invcell_z[1] + slant.z * gpu_Invcell_z[2];
 }
 
 __device__ inline double MinImageSignedGPU(double raw, double ax, double halfAx)
@@ -54,38 +75,24 @@ __device__ inline double3 MinImageGPU(double3 rawVec, double3 axis, double3 half
 }
 
 // Call by calculate energy whether it is in rCut
-__device__ inline bool InRcutGPU(double &distSq, double gpu_x1, double gpu_y1,
-                                 double gpu_z1, double gpu_x2, double gpu_y2,
-                                 double gpu_z2, double xAxes, double yAxes,
-                                 double zAxes, double xHalfAxes,
-                                 double yHalfAxes, double zHalfAxes,
-                                 double gpu_rCut, int gpu_nonOrth,
-                                 double *gpu_cell_x, double *gpu_cell_y,
-                                 double *gpu_cell_z, double *gpu_Invcell_x,
-                                 double *gpu_Invcell_y, double *gpu_Invcell_z)
+__device__ inline bool InRcutGPU(double &distSq, double * x, double * y, 
+                                double * z, uint i, uint j, double3 axis,
+                                 double cutoff)
 {
   distSq = 0;
-  double tx, ty, tz;
-  double dx = gpu_x1 - gpu_x2;
-  double dy = gpu_y1 - gpu_y2;
-  double dz = gpu_z1 - gpu_z2;
+  double3 d;
+  d.x = x[i] - x[j];
+  d.y = y[i] - y[j];
+  d.z = z[i] - z[j];
 
-  if(gpu_nonOrth) {
-    TransformUnSlantGPU(tx, ty, tz, dx, dy, dz, gpu_Invcell_x, gpu_Invcell_y,
-                        gpu_Invcell_z);
-    tx = MinImageSignedGPU(tx, xAxes, xHalfAxes);
-    ty = MinImageSignedGPU(ty, yAxes, yHalfAxes);
-    tz = MinImageSignedGPU(tz, zAxes, zHalfAxes);
-    TransformSlantGPU(dx, dy, dz, tx, ty, tz, gpu_cell_x, gpu_cell_y,
-                      gpu_cell_z);
-  } else {
-    dx = MinImageSignedGPU(dx, xAxes, xHalfAxes);
-    dy = MinImageSignedGPU(dy, yAxes, yHalfAxes);
-    dz = MinImageSignedGPU(dz, zAxes, zHalfAxes);
-  }
+  d.x = min(fabs(d.x), axis.x - fabs(d.x));
+  d.y = min(fabs(d.y), axis.y - fabs(d.y));
+  d.z = min(fabs(d.z), axis.z - fabs(d.z));
 
-  distSq = dx * dx + dy * dy + dz * dz;
-  return ((gpu_rCut * gpu_rCut) > distSq);
+  distSq = d.x * d.x + d.y * d.y + d.z * d.z;
+
+  return (cutoff * cutoff) > distSq;
+
 }
 
 // Call by force calculate to return the distance and virial component
@@ -103,10 +110,10 @@ __device__ inline bool InRcutGPU(double &distSq, double3 & dist,
   dist = Difference(x, y, z, i, j);
   // Do a binary print here of dist
   if(gpu_nonOrth) {
-    TransformUnSlantGPU(t.x, t.y, t.z, dist.x, dist.y, dist.z, gpu_Invcell_x,
+    TransformUnSlantGPU(t, dist, gpu_Invcell_x,
                         gpu_Invcell_y, gpu_Invcell_z);
     t = MinImageGPU(t, axis, halfAx);
-    TransformSlantGPU(dist.x, dist.y, dist.z, t.x, t.y, t.z, gpu_cell_x, gpu_cell_y,
+    TransformSlantGPU(dist, t, gpu_cell_x, gpu_cell_y,
                       gpu_cell_z);
   } else {
     dist = MinImageGPU(dist, axis, halfAx);

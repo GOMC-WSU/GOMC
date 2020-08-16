@@ -696,9 +696,10 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
     int neighborParticle = gpu_cellVector[gpu_cellStartIndex[neighborCell] + neighborParticleIndex];
 
     if(currentParticle < neighborParticle && gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
-      if(InRcutGPU(distSq, virComponents, gpu_x, gpu_y, gpu_z, currentParticle,
-                   neighborParticle, axis, halfAx, cutoff, gpu_nonOrth[0],
-                   gpu_cell_x, gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
+      if(InRcutGPU(distSq, virComponents, gpu_x, gpu_y, gpu_z, 
+                   currentParticle, neighborParticle, 
+                   axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x, 
+                   gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                    gpu_Invcell_z)) {
         double cA = gpu_particleCharge[currentParticle];
         double cB = gpu_particleCharge[neighborParticle];
@@ -708,7 +709,8 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
         int mB = gpu_particleMol[neighborParticle];
 
         lambdaVDW = DeviceGetLambdaVDW(mA, kA, mB, kB, box, gpu_isFraction,
-                                       gpu_molIndex, gpu_kindIndex, gpu_lambdaVDW);
+                                       gpu_molIndex, gpu_kindIndex, 
+                                       gpu_lambdaVDW);
 
         diff_com = Difference(gpu_comx, gpu_comy, gpu_comz, mA, mB);
         diff_com = MinImageGPU(diff_com, axis, halfAx);
