@@ -18,7 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define imie(...) " [" << #__VA_ARGS__ ": " << std::setprecision(15) << (__VA_ARGS__) << "] "
 
 #define record_debug_macro(x) record_debug(x, __FILE__, __LINE__);
-#define record_debug_macro(x,len) record_debug(x, len, __FILE__, __LINE__);
+#define record_debug_macro_len(x,len) record_debug(x, len, __FILE__, __LINE__);
 #ifdef GOMC_CUDA
 #define RECORD_DEBUG_FILE_NAME "gpu.debug"
 #else
