@@ -23,7 +23,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 //
 //    Calculating Electrostatic calculation without caching Fourier terms.
 //    Energy Calculation functions for Ewald summation method
-//    Calculating self, correction and reciprocate part of ewald
+//    Calculating self, correction and reciprocal part of ewald
 //
 //    Developed by Y. Li and Mohammad S. Barhaghi
 //
@@ -49,41 +49,41 @@ class Ewald
 public:
 
   Ewald(StaticVals & stat, System & sys);
-  ~Ewald();
+  virtual ~Ewald();
 
   virtual void Init();
 
   virtual void AllocMem();
 
-  //initiliazie term used for ewald calculation
+  //initialize term used for ewald calculation
   virtual void RecipInit(uint box, BoxDimensions const& boxAxes);
 
-  //initiliazie wave vector for orthogonal box
+  //initialize wave vector for orthogonal box
   virtual void RecipInitOrth(uint box, BoxDimensions const& boxAxes);
 
-  //initiliazie wave vector for non-orthogonal box
+  //initialize wave vector for non-orthogonal box
   virtual void RecipInitNonOrth(uint box, BoxDimensions const& boxAxes);
 
   //Get initial estimate of memory required
   void RecipCountInit(uint box, BoxDimensions const& boxAxes);
 
-  //setup reciprocate term for a box
+  //setup reciprocal term for a box
   virtual void BoxReciprocalSetup(uint box, XYZArray const& molCoords);
 
-  //calculate reciprocate energy term for a box
+  //calculate reciprocal energy term for a box
   virtual double BoxReciprocal(uint box) const;
 
   //calculate self term for a box
   virtual double BoxSelf(BoxDimensions const& boxAxes, uint box) const;
 
-  //calculate reciprocate force term for a box
+  //calculate reciprocal force term for a box
   virtual Virial VirialReciprocal(Virial& virial, uint box) const;
 
-  //calculate reciprocate term for displacement and rotation move
+  //calculate reciprocal term for displacement and rotation move
   virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
                                const uint box);
 
-  //calculate reciprocate term for lambdaNew and Old with same coordinates
+  //calculate reciprocal term for lambdaNew and Old with same coordinates
   virtual double CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
                             const double lambdaNew, const uint molIndex,
                             const uint box);
@@ -91,15 +91,15 @@ public:
   //calculate correction term for a molecule
   virtual double MolCorrection(uint molIndex, uint box)const;
 
-  //calculate reciprocate term in destination box for swap move
+  //calculate reciprocal term in destination box for swap move
   virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
                                const int molIndex);
 
-  //calculate reciprocate term in source box for swap move
+  //calculate reciprocal term in source box for swap move
   virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                  const uint box, const int molIndex);
 
-  //calculate reciprocate term for inserting some molecules (kindA) in
+  //calculate reciprocal term for inserting some molecules (kindA) in
   //destination box and removing a molecule (kindB) from destination box
   virtual double SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
                            const std::vector<cbmc::TrialMol> &oldMol,
@@ -113,10 +113,10 @@ public:
   virtual double SwapCorrection(const cbmc::TrialMol& trialMol,
                                 const uint molIndex) const;
 
-  //back up reciptocate value to Ref (will be called during initialization)
+  //back up reciprocal value to Ref (will be called during initialization)
   virtual void SetRecipRef(uint box);
 
-  //update reciprocate values
+  //update reciprocal values
   virtual void UpdateRecip(uint box);
 
   //update the hx,y,z hsqr and prefact
@@ -139,7 +139,7 @@ public:
 
   virtual void UpdateVectorsAndRecipTerms(bool output);
 
-  //calculate reciprocate force term for a box with molCoords
+  //calculate reciprocal force term for a box with molCoords
   virtual void BoxForceReciprocal(XYZArray const& molCoords,
                                   XYZArray& atomForceRec,
                                   XYZArray& molForceRec,
@@ -191,8 +191,8 @@ protected:
   //const uint imageTotal = GetImageSize();
   uint imageTotal;
   uint *kmax;
-  double **sumRnew; //cosine serries
-  double **sumInew; //sine serries
+  double **sumRnew; //cosine series
+  double **sumInew; //sine series
   double **sumRref;
   double **sumIref;
 

@@ -46,6 +46,7 @@ ConfigSetup::ConfigSetup(void)
   sys.elect.readCache = false;
   sys.elect.ewald = false;
   sys.elect.enable = false;
+  sys.elect.cache = false;
   sys.elect.tolerance = DBL_MAX;
   sys.elect.oneFourScale = DBL_MAX;
   sys.elect.dielectric = DBL_MAX;
@@ -1214,9 +1215,12 @@ void ConfigSetup::fillDefaults(void)
 #endif
 
   if (sys.elect.ewald == true && sys.elect.readCache == false) {
-    sys.elect.cache = true;
-    sys.elect.readCache = true;
-    printf("%-40s %-s \n", "Default: Cache Ewald Fourier", "Active");
+    sys.elect.cache = false;
+    printf("%-40s %-s \n", "Default: Cache Ewald Fourier", "Inactive");
+  }
+
+  if (sys.elect.ewald == false && sys.elect.cache == true) {
+    printf("Warning: Cache Ewald Fourier set, but will be ignored: Ewald method off.\n");
   }
 
   if(sys.elect.enable && sys.elect.dielectric == DBL_MAX && in.ffKind.isMARTINI) {
@@ -1417,7 +1421,7 @@ void ConfigSetup::verifyInputs(void)
               sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
               sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft +
               sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequencies are not equal to one!\n";
+    std::cout << "Error: Sum of move frequencies is not equal to one!\n";
     exit(EXIT_FAILURE);
   }
 #elif ENSEMBLE == NPT
@@ -1429,7 +1433,7 @@ void ConfigSetup::verifyInputs(void)
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
               sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc +
               sys.moves.crankShaft + sys.moves.multiParticle - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequencies are not equal to one!\n";
+    std::cout << "Error: Sum of move frequencies is not equal to one!\n";
     exit(EXIT_FAILURE);
   }
 
@@ -1442,14 +1446,14 @@ void ConfigSetup::verifyInputs(void)
               sys.moves.transfer + sys.moves.regrowth + sys.moves.memc +
               sys.moves.intraMemc + sys.moves.crankShaft +
               sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
+    std::cout << "Error: Sum of move frequencies is not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #else
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
               sys.moves.regrowth + sys.moves.intraMemc + sys.moves.crankShaft +
               sys.moves.multiParticle - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
+    std::cout << "Error: Sum of move frequencies is not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #endif

@@ -14,36 +14,36 @@ class EwaldCached : public Ewald
 public:
 
   EwaldCached(StaticVals & stat, System & sys);
-  ~EwaldCached();
+  virtual ~EwaldCached();
 
   virtual void Init();
 
   virtual void AllocMem();
 
-  //setup reciprocate term for a box
+  //setup reciprocal term for a box
   virtual void BoxReciprocalSetup(uint box, XYZArray const& molCoords);
 
-  //calculate reciprocate energy term for a box
+  //calculate reciprocal energy term for a box
   virtual double BoxReciprocal(uint box) const;
 
-  //calculate reciprocate term for displacement and rotation move
+  //calculate reciprocal term for displacement and rotation move
   virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
                                const uint box);
 
-  //calculate reciprocate term for lambdaNew and Old with same coordinates
+  //calculate reciprocal term for lambdaNew and Old with same coordinates
   virtual double CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
                             const double lambdaNew, const uint molIndex,
                             const uint box);
 
-  //calculate reciprocate term in destination box for swap move
+  //calculate reciprocal term in destination box for swap move
   virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
                                const int molIndex);
 
-  //calculate reciprocate term in source box for swap move
+  //calculate reciprocal term in source box for swap move
   virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                  const uint box, const int molIndex);
 
-  //calculate reciprocate term for inserting some molecules (kindA) in
+  //calculate reciprocal term for inserting some molecules (kindA) in
   //destination box and removing a molecule (kindB) from destination box
   virtual double SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
                            const std::vector<cbmc::TrialMol> &oldMol,
