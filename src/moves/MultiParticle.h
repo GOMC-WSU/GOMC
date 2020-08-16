@@ -487,6 +487,14 @@ inline void MultiParticle::CalculateTrialDistRot()
 #endif
       r_k.Set(molIndex, CalcRandomTransform(lbt, r_max));
     } else { // displace
+#ifdef RECORD_DEBUG
+      record_debug_macro(molForceRef.Get(molIndex).x);
+      record_debug_macro(molForceRef.Get(molIndex).y);
+      record_debug_macro(molForceRef.Get(molIndex).z);
+      record_debug_macro(molForceRecRef.Get(molIndex).x);
+      record_debug_macro(molForceRecRef.Get(molIndex).y);
+      record_debug_macro(molForceRecRef.Get(molIndex).z);
+#endif
       lbf = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) *
             lambda * BETA;
 #ifdef RECORD_DEBUG
