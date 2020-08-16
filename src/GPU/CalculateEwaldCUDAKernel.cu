@@ -321,7 +321,7 @@ void CallBoxForceReciprocalGPU(
   }
 
   // calculate block and grid sizes
-  int threadsPerBlock = 1;
+  int threadsPerBlock = 256;
   int blocksPerGrid = numberOfAtomsInsideBox;
 
   CUMALLOC((void **) &gpu_particleCharge, particleCharge.size() * sizeof(double));
@@ -491,26 +491,26 @@ __global__ void BoxForceReciprocalGPU(
   }
 
   // perform reduction at this point
-  // int warpSize = 32;
-  // for (int offset = warpSize/2; offset > 0; offset /= 2) {
-  //   forceX += __shfl_down_sync(FULL_MASK, forceX, offset);
-  //   forceY += __shfl_down_sync(FULL_MASK, forceY, offset);
-  //   forceZ += __shfl_down_sync(FULL_MASK, forceZ, offset);
-  // }
-  // if(laneID == 0) {
-  //   shared[warpID*3+0] = forceX;
-  //   shared[warpID*3+1] = forceY;
-  //   shared[warpID*3+2] = forceZ;
-  // }
+  int warpSize = 32;
+  for (int offset = warpSize/2; offset > 0; offset /= 2) {
+    forceX += __shfl_down_sync(FULL_MASK, forceX, offset);
+    forceY += __shfl_down_sync(FULL_MASK, forceY, offset);
+    forceZ += __shfl_down_sync(FULL_MASK, forceZ, offset);
+  }
+  if(laneID == 0) {
+    shared[warpID*3+0] = forceX;
+    shared[warpID*3+1] = forceY;
+    shared[warpID*3+2] = forceZ;
+  }
 
   // first thread inside the block will write back to global memory
   __syncthreads();
   if(threadIdx.x == 0) {
-    // for(int w=1; w<8; w++) {
-    //   forceX += shared[w*3+0];
-    //   forceY += shared[w*3+1];
-    //   forceZ += shared[w*3+2];
-    // }
+    for(int w=1; w<8; w++) {
+      forceX += shared[w*3+0];
+      forceY += shared[w*3+1];
+      forceZ += shared[w*3+2];
+    }
     gpu_aForceRecx[particleID] = forceX;
     gpu_aForceRecy[particleID] = forceY;
     gpu_aForceRecz[particleID] = forceZ;

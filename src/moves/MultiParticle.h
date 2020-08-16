@@ -480,10 +480,20 @@ inline void MultiParticle::CalculateTrialDistRot()
 
     if(moveType[molIndex]) { // rotate
       lbt = molTorqueRef.Get(molIndex) * lambda * BETA;
+#ifdef RECORD_DEBUG
+      record_debug_macro(lbt.x);
+      record_debug_macro(lbt.y);
+      record_debug_macro(lbt.z);
+#endif
       r_k.Set(molIndex, CalcRandomTransform(lbt, r_max));
     } else { // displace
       lbf = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) *
             lambda * BETA;
+#ifdef RECORD_DEBUG
+      record_debug_macro(lbf.x);
+      record_debug_macro(lbf.y);
+      record_debug_macro(lbf.z);
+#endif
       t_k.Set(molIndex, CalcRandomTransform(lbf, t_max));
     }
   }
