@@ -85,7 +85,9 @@ void CheckpointOutput::printRandomNumbers()
   // there is a save function inside MersenneTwister.h file
   // to read back we can use the load function
   const int N = 624;
-  uint32_t* saveArray = new uint32_t[N];
+  // The MT::save function also appends the "left" variable,
+  // so need to allocate one more array element
+  uint32_t* saveArray = new uint32_t[N+1];
   prngRef.GetGenerator()->save(saveArray);
   for(int i = 0; i < N; i++) {
     outputUintIn8Chars(saveArray[i]);
@@ -102,6 +104,8 @@ void CheckpointOutput::printRandomNumbers()
   // let's save seedValue just in case
   // not sure if that is used or not, or how important it is
   outputUintIn8Chars(prngRef.GetGenerator()->seedValue);
+  
+  delete[] saveArray;
 }
 
 void CheckpointOutput::printCoordinates()
@@ -207,7 +211,7 @@ void CheckpointOutput::printVector2DUint(std::vector< std::vector< uint > > data
   outputUintIn8Chars(size_x);
   outputUintIn8Chars(size_y);
 
-  // print array iteself
+  // print array itself
   for(int i = 0; i < size_x; i++) {
     for(int j = 0; j < size_y; j++) {
       outputUintIn8Chars(data[i][j]);

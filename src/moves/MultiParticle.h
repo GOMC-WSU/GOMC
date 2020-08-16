@@ -56,7 +56,7 @@ private:
   Random123Wrapper &r123wrapper;
   const Molecules& mols;
 
-  long double GetCoeff();
+  double GetCoeff();
   void CalculateTrialDistRot();
   void RotateForceBiased(uint molIndex);
   void TranslateForceBiased(uint molIndex);
@@ -195,7 +195,6 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
     //Calculate force for long range electrostatic using old position
     calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef,
                                   bPick);
-
     //calculate short range energy and force for old positions
     calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
                        boxDimRef, bPick);
@@ -207,6 +206,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
                                 moveType, bPick);
     }
   }
+
   CalculateTrialDistRot();
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
@@ -364,12 +364,12 @@ inline double MultiParticle::CalculateWRatio(XYZ const &lb_new, XYZ const &lb_ol
   return w_ratio;
 }
 
-inline long double MultiParticle::GetCoeff()
+inline double MultiParticle::GetCoeff()
 {
   // calculate (w_new->old/w_old->new) and return it.
   XYZ lbf_old, lbf_new; // lambda * BETA * force
   XYZ lbt_old, lbt_new; // lambda * BETA * torque
-  long double w_ratio = 1.0;
+  double w_ratio = 1.0;
   double lBeta = lambda * BETA;
   uint m, molNumber;
   double r_max = moveSetRef.GetRMAX(bPick);
@@ -409,9 +409,9 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
 {
   // Here we compare the values of reference and trial and decide whether to
   // accept or reject the move
-  long double MPCoeff = GetCoeff();
+  double MPCoeff = GetCoeff();
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
-  long double accept = MPCoeff * uBoltz;
+  double accept = MPCoeff * uBoltz;
   double pr = prng();
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
   if(result) {

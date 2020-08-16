@@ -117,7 +117,7 @@ public:
   //backup the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
   virtual void backupMolCache();
 
-  virtual void UpdateVectorsAndRecipTerms();
+  virtual void UpdateVectorsAndRecipTerms(bool output);
 
 };
 

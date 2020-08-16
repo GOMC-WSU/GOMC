@@ -25,50 +25,16 @@ EwaldCached::EwaldCached(StaticVals & stat, System & sys) : Ewald(stat, sys)
 
 EwaldCached::~EwaldCached()
 {
-  SafeDeleteArray(kmax);
-  SafeDeleteArray(imageSize);
-  SafeDeleteArray(imageSizeRef);
-  for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
-    SafeDeleteArray(kx[b]);
-    SafeDeleteArray(ky[b]);
-    SafeDeleteArray(kz[b]);
-    SafeDeleteArray(hsqr[b]);
-    SafeDeleteArray(prefact[b]);
-    SafeDeleteArray(kxRef[b]);
-    SafeDeleteArray(kyRef[b]);
-    SafeDeleteArray(kzRef[b]);
-    SafeDeleteArray(hsqrRef[b]);
-    SafeDeleteArray(prefactRef[b]);
-    SafeDeleteArray(sumRnew[b]);
-    SafeDeleteArray(sumInew[b]);
-    SafeDeleteArray(sumRref[b]);
-    SafeDeleteArray(sumIref[b]);
-  }
-  SafeDeleteArray(kx);
-  SafeDeleteArray(ky);
-  SafeDeleteArray(kz);
-  SafeDeleteArray(hsqr);
-  SafeDeleteArray(prefact);
-  SafeDeleteArray(kxRef);
-  SafeDeleteArray(kyRef);
-  SafeDeleteArray(kzRef);
-  SafeDeleteArray(hsqrRef);
-  SafeDeleteArray(prefactRef);
-  SafeDeleteArray(sumRnew);
-  SafeDeleteArray(sumInew);
-  SafeDeleteArray(sumRref);
-  SafeDeleteArray(sumIref);
-
-  int i;
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(i)
+  #pragma omp parallel for default(shared)
 #endif
-  for (i = 0; i < mols.count; i++) {
+  for (int i = 0; i < mols.count; i++) {
     SafeDeleteArray(cosMolRef[i]);
     SafeDeleteArray(sinMolRef[i]);
     SafeDeleteArray(cosMolBoxRecip[i]);
     SafeDeleteArray(sinMolBoxRecip[i]);
   }
+  
   SafeDeleteArray(cosMolRef);
   SafeDeleteArray(sinMolRef);
   SafeDeleteArray(cosMolBoxRecip);
@@ -96,75 +62,33 @@ void EwaldCached::Init()
 
   AllocMem();
   //initialize K vectors and reciprocate terms
-  UpdateVectorsAndRecipTerms();
+  UpdateVectorsAndRecipTerms(true);
 }
 
 void EwaldCached::AllocMem()
 {
-  kmax = new uint[BOXES_WITH_U_NB];
-  imageSize = new uint[BOXES_WITH_U_NB];
-  imageSizeRef = new uint[BOXES_WITH_U_NB];
-  sumRnew = new double*[BOXES_WITH_U_NB];
-  sumInew = new double*[BOXES_WITH_U_NB];
-  sumRref = new double*[BOXES_WITH_U_NB];
-  sumIref = new double*[BOXES_WITH_U_NB];
-  kx = new double*[BOXES_WITH_U_NB];
-  ky = new double*[BOXES_WITH_U_NB];
-  kz = new double*[BOXES_WITH_U_NB];
-  hsqr = new double*[BOXES_WITH_U_NB];
-  prefact = new double*[BOXES_WITH_U_NB];
-  kxRef = new double*[BOXES_WITH_U_NB];
-  kyRef = new double*[BOXES_WITH_U_NB];
-  kzRef = new double*[BOXES_WITH_U_NB];
-  hsqrRef = new double*[BOXES_WITH_U_NB];
-  prefactRef = new double*[BOXES_WITH_U_NB];
+  //Use the base class member function to allocate base class data members
+  Ewald::AllocMem();
 
+  cosMolRestore = new double[imageTotal];
+  sinMolRestore = new double[imageTotal];
   cosMolRef = new double*[mols.count];
   sinMolRef = new double*[mols.count];
   cosMolBoxRecip = new double*[mols.count];
   sinMolBoxRecip = new double*[mols.count];
 
-  for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
-    RecipCountInit(b, currentAxes);
-  }
-
-  //25% larger than original box size, reserved for image size change
-  imageTotal = Ewald::findLargeImage();
-
-  cosMolRestore = new double[imageTotal];
-  sinMolRestore = new double[imageTotal];
-
-  for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
-    kx[b] = new double[imageTotal];
-    ky[b] = new double[imageTotal];
-    kz[b] = new double[imageTotal];
-    hsqr[b] = new double[imageTotal];
-    prefact[b] = new double[imageTotal];
-    kxRef[b] = new double[imageTotal];
-    kyRef[b] = new double[imageTotal];
-    kzRef[b] = new double[imageTotal];
-    hsqrRef[b] = new double[imageTotal];
-    prefactRef[b] = new double[imageTotal];
-    sumRnew[b] = new double[imageTotal];
-    sumInew[b] = new double[imageTotal];
-    sumRref[b] = new double[imageTotal];
-    sumIref[b] = new double[imageTotal];
-  }
-
-  int i;
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(i)
+  #pragma omp parallel for default(shared)
 #endif
-  for (i = 0; i < mols.count; i++) {
+  for (int i = 0; i < mols.count; i++) {
     cosMolRef[i] = new double[imageTotal];
     sinMolRef[i] = new double[imageTotal];
     cosMolBoxRecip[i] = new double[imageTotal];
     sinMolBoxRecip[i] = new double[imageTotal];
   }
-
 }
 
-//calculate reciprocate term for a box
+//calculate reciprocal term for a box
 void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 {
   uint j, m;
@@ -219,7 +143,7 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 }
 
 
-//calculate reciprocate term for a box
+//calculate reciprocal term for a box
 double EwaldCached::BoxReciprocal(uint box) const
 {
   int i;
@@ -239,7 +163,7 @@ double EwaldCached::BoxReciprocal(uint box) const
   return energyRecip;
 }
 
-//calculate reciprocate term for displacement and rotation move
+//calculate reciprocal term for displacement and rotation move
 double EwaldCached::MolReciprocal(XYZArray const& molCoords,
                                   const uint molIndex,
                                   const uint box)
@@ -295,7 +219,7 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
   return energyRecipNew - sysPotRef.boxEnergy[box].recip;
 }
 
-//calculate reciprocate term in destination box for swap move
+//calculate reciprocal term in destination box for swap move
 //No need to scale the charge with lambda, since this function will not be
 // called in free energy of CFCMC
 double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
@@ -359,7 +283,7 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
 }
 
 
-//calculate reciprocate term in source box for swap move
+//calculate reciprocal term in source box for swap move
 //No need to scale the charge with lambda, since this function will not be
 // called in free energy of CFCMC
 double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
@@ -386,7 +310,7 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
   return energyRecipNew - energyRecipOld;
 }
 
-//calculate reciprocate term for inserting some molecules (kindA) in destination
+//calculate reciprocal term for inserting some molecules (kindA) in destination
 // box and removing a molecule (kindB) from destination box
 double EwaldCached::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
                               const std::vector<cbmc::TrialMol> &oldMol,
@@ -400,7 +324,7 @@ double EwaldCached::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
   return 0.0;
 }
 
-//calculate reciprocate term for lambdaNew and Old with same coordinates
+//calculate reciprocal term for lambdaNew and Old with same coordinates
 double EwaldCached::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
                                const double lambdaNew, const uint molIndex,
                                const uint box)
@@ -412,7 +336,7 @@ double EwaldCached::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld
   return 0.0;
 }
 
-//calculate reciprocate term for lambdaNew and Old with same coordinates
+//calculate reciprocal term for lambdaNew and Old with same coordinates
 void EwaldCached::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
                               const std::vector<double> &lambda_Coul,
                               const uint iState, const uint molIndex,
