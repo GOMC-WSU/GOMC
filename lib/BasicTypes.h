@@ -44,7 +44,7 @@ void record_debug(std::vector<int> x, std::string filename, std::string linenumb
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|int," << x.size() << "," << filename << "," << linenumber;
-  for(int i=0; i<s.size(); i++) {
+  for(int i=0; i<x.size(); i++) {
     out << "," << x[i];
   }
   out << "\n";
