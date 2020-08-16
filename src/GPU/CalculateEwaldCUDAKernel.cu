@@ -473,6 +473,9 @@ __global__ void BoxForceReciprocalGPU(
           forceZ -= intraForce * distVectZ;
         }
       }
+      if(particleID == 33) {
+        printf("%.15lf,%.15lf,%.15lf\n", forceX, forceY, forceZ);
+      }
     }
 
     // loop over images
