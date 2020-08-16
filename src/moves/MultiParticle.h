@@ -259,8 +259,8 @@ inline uint MultiParticle::Transform()
   }
 #ifdef RECORD_DEBUG
   record_debug_macro_len(newMolsPos.x, newMolsPos.Count());
-  record_debug_macro_len(newMolsPos.x, newMolsPos.Count());
-  record_debug_macro_len(newMolsPos.x, newMolsPos.Count());
+  record_debug_macro_len(newMolsPos.y, newMolsPos.Count());
+  record_debug_macro_len(newMolsPos.z, newMolsPos.Count());
 #endif
   return state;
 }
@@ -280,8 +280,19 @@ inline void MultiParticle::CalcEn()
   //calculate short range energy and force
   sysPotNew = calcEnRef.BoxForce(sysPotNew, newMolsPos, atomForceNew,
                                  molForceNew, boxDimRef, bPick);
+#ifdef RECORD_DEBUG
+  record_debug_macro_len(atomForceNew.x, atomForceNew.Count());
+  record_debug_macro_len(atomForceNew.y, atomForceNew.Count());
+  record_debug_macro_len(atomForceNew.z, atomForceNew.Count());
+  record_debug_macro_len(molForceNew.x, molForceNew.Count());
+  record_debug_macro_len(molForceNew.y, molForceNew.Count());
+  record_debug_macro_len(molForceNew.z, molForceNew.Count());
+#endif
   //calculate long range of new electrostatic energy
   sysPotNew.boxEnergy[bPick].recip = calcEwald->BoxReciprocal(bPick);
+#ifdef RECORD_DEBUG
+  record_debug_macro(sysPotNew.boxEnergy[bPick].recip);
+#endif
   //Calculate long range of new electrostatic force
   calcEwald->BoxForceReciprocal(newMolsPos, atomForceRecNew, molForceRecNew,
                                 bPick);
@@ -366,8 +377,13 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   double MPCoeff = GetCoeff();
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   double accept = MPCoeff * uBoltz;
-  std::cout << imie(sysPotNew.boxEnergy[0].inter) imie(sysPotNew.boxEnergy[0].real) imie(sysPotNew.boxEnergy[0].recip) "\n";
   double pr = prng();
+#ifdef RECORD_DEBUG
+  record_debug_macro(MPCoeff);
+  record_debug_macro(uBoltz);
+  record_debug_macro(accept);
+  record_debug_macro(pr);
+#endif
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
   if(result) {
     sysPotRef = sysPotNew;
@@ -433,6 +449,10 @@ inline void MultiParticle::CalculateTrialDistRot()
   uint m, molIndex;
   double r_max = moveSetRef.GetRMAX(bPick);
   double t_max = moveSetRef.GetTMAX(bPick);
+#ifdef RECORD_DEBUG
+  record_debug_macro(r_max);
+  record_debug_macro(t_max);
+#endif
   XYZ lbf; // lambda * BETA * force * maxTranslate
   XYZ lbt; // lambda * BETA * torque * maxRotation
   for(m = 0; m < moleculeIndex.size(); m++) {
@@ -447,6 +467,18 @@ inline void MultiParticle::CalculateTrialDistRot()
       t_k.Set(molIndex, CalcRandomTransform(lbf, t_max));
     }
   }
+
+#ifdef RECORD_DEBUG
+  if(moveType[0]) {
+    record_debug_macro_len(r_k.x, r_k.Count());
+    record_debug_macro_len(r_k.y, r_k.Count());
+    record_debug_macro_len(r_k.z, r_k.Count());
+  } else {
+    record_debug_macro_len(t_k.x, t_k.Count());
+    record_debug_macro_len(t_k.y, t_k.Count());
+    record_debug_macro_len(t_k.z, t_k.Count());
+  }
+#endif
 }
 
 inline void MultiParticle::RotateForceBiased(uint molIndex)
