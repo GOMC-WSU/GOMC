@@ -213,7 +213,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
 
-#ifdef GOMC_CUDAA
+#ifdef GOMC_CUDA
     int numberOfAtoms = 0, i = 0;
 
     for(int k = 0; k < mols.GetKindsCount(); k++) {
