@@ -491,17 +491,17 @@ __global__ void BoxForceReciprocalGPU(
   }
 
   // perform reduction at this point
-  int warpSize = 32;
-  for (int offset = warpSize/2; offset > 0; offset /= 2) {
-    forceX += __shfl_down_sync(FULL_MASK, forceX, offset);
-    forceY += __shfl_down_sync(FULL_MASK, forceY, offset);
-    forceZ += __shfl_down_sync(FULL_MASK, forceZ, offset);
-  }
-  if(laneID == 0) {
-    shared[warpID*3+0] = forceX;
-    shared[warpID*3+1] = forceY;
-    shared[warpID*3+2] = forceZ;
-  }
+  // int warpSize = 32;
+  // for (int offset = warpSize/2; offset > 0; offset /= 2) {
+  //   forceX += __shfl_down_sync(FULL_MASK, forceX, offset);
+  //   forceY += __shfl_down_sync(FULL_MASK, forceY, offset);
+  //   forceZ += __shfl_down_sync(FULL_MASK, forceZ, offset);
+  // }
+  // if(laneID == 0) {
+  //   shared[warpID*3+0] = forceX;
+  //   shared[warpID*3+1] = forceY;
+  //   shared[warpID*3+2] = forceZ;
+  // }
 
   // first thread inside the block will write back to global memory
   __syncthreads();
