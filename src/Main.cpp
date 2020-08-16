@@ -47,6 +47,13 @@ void PrintGPUHardwareInfo();
 
 int main(int argc, char *argv[])
 {
+#ifdef RECORD_DEBUG
+#ifdef GOMC_CUDA
+  remove("gpu.debug");
+#else
+  remove("cpu.debug");
+#endif
+#endif
 #if GOMC_LIB_MPI
   ParallelTemperingPreprocessor pt(argc, argv);
   MultiSim * multisim = pt.checkIfValidRank() ? new MultiSim(pt) : NULL;
