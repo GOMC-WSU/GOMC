@@ -169,6 +169,9 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
     calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef,
                                   bPick);
 #ifdef RECORD_DEBUG
+    record_debug_macro_len(coordCurrRef.x, coordCurrRef.Count());
+    record_debug_macro_len(coordCurrRef.y, coordCurrRef.Count());
+    record_debug_macro_len(coordCurrRef.z, coordCurrRef.Count());
     record_debug_macro_len(atomForceRecRef.x, atomForceRecRef.Count());
     record_debug_macro_len(atomForceRecRef.y, atomForceRecRef.Count());
     record_debug_macro_len(atomForceRecRef.z, atomForceRecRef.Count());
