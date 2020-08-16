@@ -9,12 +9,48 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include <cstddef>
 #include <math.h>
-#include <ostream>
+#include <fstream>
+#include <vector>
 
 // Just for debugging stuff
 // e.g.
 // cout << imie(variable) imie(another_variable)
 #define imie(...) " [" << #__VA_ARGS__ ": " << std::setprecision(15) << (__VA_ARGS__) << "] "
+
+#define record_debug_macro(x) record_debug(x, __FILE__, __LINE__);
+#ifdef GOMC_CUDA
+#define RECORD_DEBUG_FILE_NAME "gpu.debug"
+#else
+#define RECORD_DEBUG_FILE_NAME "cpu.debug"
+#endif
+
+void record_debug(double x, std::string filename, std::string linenumber) {
+  std::ofstream out;
+  out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
+  out << "double," << filename << "," << linenumber << "," << x << "\n";
+}
+
+void record_debug(std::vector<double> x, std::string filename, std::string linenumber) {
+  std::ofstream out;
+  out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
+  out << "vector|double," << x.size() << "," << filename << "," << linenumber;
+  for(int i=0; i<x.size(); i++) {
+    out << "," << x[i];
+  }
+  out << "\n";
+}
+
+void record_debug(std::vector<int> x, std::string filename, std::string linenumber) {
+  std::ofstream out;
+  out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
+  out << "vector|int," << x.size() << "," << filename << "," << linenumber;
+  for(int i=0; i<s.size(); i++) {
+    out << "," << x[i];
+  }
+  out << "\n";
+}
+
+//******************************************************************************
 
 typedef unsigned int uint;
 typedef unsigned long int ulong;

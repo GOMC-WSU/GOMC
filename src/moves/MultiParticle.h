@@ -257,6 +257,9 @@ inline uint MultiParticle::Transform()
       TranslateForceBiased(moleculeIndex[m]);
     }
   }
+#ifdef RECORD_DEBUG
+  record_debug_macro(newMolsPos);
+#endif
   return state;
 }
 
