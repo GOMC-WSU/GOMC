@@ -1344,6 +1344,14 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
 {
   if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
     double constValue = 2.0 * ff.alpha[box] / sqrt(M_PI);
+    MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
+    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+    while(thisMol != end) {
+      uint molIndex = *thisMol;
+      molForceRec.Set(molIndex, 0.0, 0.0, 0.0);
+      thisMol++;
+    }
+
 #ifdef GOMC_CUDA
     // initialize the start and end of each box
     initializeBoxRange();
