@@ -321,7 +321,7 @@ void CallBoxForceReciprocalGPU(
   }
 
   // calculate block and grid sizes
-  int threadsPerBlock = 1;
+  int threadsPerBlock = 256;
   int blocksPerGrid = numberOfAtomsInsideBox;
 
   CUMALLOC((void **) &gpu_particleCharge, particleCharge.size() * sizeof(double));
