@@ -1427,7 +1427,6 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
     }
 #endif
   }
-  std::cout << imie(atomForceRec.x[25]) imie(atomForceRec.y[25]) imie(atomForceRec.z[25]);
 }
 
 double Ewald::GetLambdaCoef(uint molA, uint box) const
