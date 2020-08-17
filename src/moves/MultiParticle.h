@@ -281,6 +281,15 @@ inline uint MultiParticle::Transform()
   record_debug_macro_len(newMolsPos.x, newMolsPos.Count());
   record_debug_macro_len(newMolsPos.y, newMolsPos.Count());
   record_debug_macro_len(newMolsPos.z, newMolsPos.Count());
+  if(moveType[0] == mp::MPALLROTATE) {
+    record_debug_macro_len(molTorqueRef.x, molTorqueRef.Count());
+    record_debug_macro_len(molTorqueRef.y, molTorqueRef.Count());
+    record_debug_macro_len(molTorqueRef.z, molTorqueRef.Count());
+  } else {
+    record_debug_macro_len(molForceRef.x, molForceRef.Count());
+    record_debug_macro_len(molForceRef.y, molForceRef.Count());
+    record_debug_macro_len(molForceRef.z, molForceRef.Count());
+  }
 #endif
 
 #ifdef GOMC_CUDA
