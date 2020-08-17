@@ -163,8 +163,8 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   // We can also add another move typr, where in this steps, each molecule
   // can displace or rotate, independently from other molecule. To do that, we
   // need to change the  mp::MPTOTALTYPES variable to 3, in MoveSetting.h
-  typePick = prng.randIntExc(mp::MPTOTALTYPES);
-  //typePick = 0;
+  //typePick = prng.randIntExc(mp::MPTOTALTYPES);
+  typePick = 0;
   SetMolInBox(bPick);
 
   for(uint m = 0; m < moleculeIndex.size(); m++) {
