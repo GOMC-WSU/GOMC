@@ -112,9 +112,6 @@ __device__ inline void ApplyRotation(double &x, double &y, double &z,
   WrapPBC(x, axx);
   WrapPBC(y, axy);
   WrapPBC(z, axz);
-  if(atomNumber == 4) {
-    printf("GPU: %.15lf, %.15lf, %.15lf\n", x, y, z);
-  }
 }
 
 void CallTranslateParticlesGPU(VariablesCUDA *vars,
@@ -380,14 +377,13 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
     rotz = r_max * rr;
   }
 
-  // if(molIndex == 1 && atomNumber == 4) {
-  //   printf("GPU: %.15lf, %.15lf, %.15lf\n", rotx, roty, rotz);
-  // }
-
   // perform the rot on the coordinates
   ApplyRotation(gpu_x[atomNumber], gpu_y[atomNumber], gpu_z[atomNumber],
                 gpu_comx[molIndex], gpu_comy[molIndex], gpu_comz[molIndex],
                 rotx, roty, rotz, xAxes, yAxes, zAxes, atomNumber);
+  if(atomNumber == 4) {
+    printf("CPU: %.15lf, %.15lf, %.15lf\n", gpu_x[atomNumber], gpu_y[atomNumber], gpu_z[atomNumber]);
+  }
 }
 
 #endif

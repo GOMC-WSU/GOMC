@@ -574,11 +574,11 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
     temp.Add(p, center);
   }
   boxDimRef.WrapPBC(temp, bPick);
-  if(molIndex == 1) {
-    printf("CPU: %.15lf, %.15lf, %.15lf\n", temp.x[0], temp.y[0], temp.z[0]);
-  }
   // Copy back the result
   temp.CopyRange(newMolsPos, 0, start, len);
+  if(molIndex == 1) {
+    printf("CPU: %.15lf, %.15lf, %.15lf\n", newMolsPos.x[4], newMolsPos.y[4], newMolsPos.z[4]);
+  }
 }
 
 inline void MultiParticle::TranslateForceBiased(uint molIndex)
