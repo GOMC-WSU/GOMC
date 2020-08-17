@@ -334,6 +334,9 @@ inline void MultiParticle::CalcEn()
   sysPotNew = calcEnRef.BoxForce(sysPotNew, newMolsPos, atomForceNew,
                                  molForceNew, boxDimRef, bPick);
 #ifdef RECORD_DEBUG
+  record_debug_macro_len(newMolsPos.x, newMolsPos.Count());
+  record_debug_macro_len(newMolsPos.y, newMolsPos.Count());
+  record_debug_macro_len(newMolsPos.z, newMolsPos.Count());
   record_debug_macro_len(atomForceNew.x, atomForceNew.Count());
   record_debug_macro_len(atomForceNew.y, atomForceNew.Count());
   record_debug_macro_len(atomForceNew.z, atomForceNew.Count());
