@@ -39,9 +39,6 @@ __device__ inline void ApplyRotation(double &x, double &y, double &z,
                                      double axx, double axy, double axz, int atomNumber)
 {
   double rotLen = sqrt(rotx * rotx + roty * roty + rotz * rotz);
-  // if(atomNumber == 4) {
-  //   printf("GPU: %.15lf\n", rotLen);
-  // }
   double axisx = rotx * (1.0 / rotLen);
   double axisy = roty * (1.0 / rotLen);
   double axisz = rotz * (1.0 / rotLen);
@@ -85,6 +82,10 @@ __device__ inline void ApplyRotation(double &x, double &y, double &z,
     for(int j=0; j<3; j++) {
       matrix[i][j] += s * cross[i][j] + (1-c) * tensor[i][j];
     }
+  }
+
+  if(atomNumber == 4) {
+    printf("GPU: %.15lf, %.15lf, %.15lf\n", axisx, axisy, axisz);
   }
 
   // unwrap molecule
@@ -387,9 +388,9 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
     rotz = r_max * rr;
   }
 
-  if(molIndex == 1 && atomNumber == 4) {
-    printf("GPU: %.15lf, %.15lf, %.15lf\n", rotx, roty, rotz);
-  }
+  // if(molIndex == 1 && atomNumber == 4) {
+  //   printf("GPU: %.15lf, %.15lf, %.15lf\n", rotx, roty, rotz);
+  // }
 
   // perform the rot on the coordinates
   ApplyRotation(gpu_x[atomNumber], gpu_y[atomNumber], gpu_z[atomNumber],

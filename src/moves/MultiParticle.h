@@ -506,9 +506,9 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
     num.z = max * rr;
   }
 
-  if(molIndex == 1) {
-    printf("CPU: %.15lf, %.15lf, %.15lf\n", num.x, num.y, num.z);
-  }
+  // if(molIndex == 1) {
+  //   printf("CPU: %.15lf, %.15lf, %.15lf\n", num.x, num.y, num.z);
+  // }
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
     std::cout << "Trial Displacement exceed half of the box length in Multiparticle move.\n";
@@ -549,16 +549,16 @@ inline void MultiParticle::CalculateTrialDistRot()
 inline void MultiParticle::RotateForceBiased(uint molIndex)
 {
   XYZ rot = r_k.Get(molIndex);
-  // if(molIndex == 1) {
-  //   printf("CPU: %.15lf, %.15lf, %.15lf\n", rot.x, rot.y, rot.z);
-  // }
   double rotLen = rot.Length();
   RotationMatrix matrix;
 
-  matrix = RotationMatrix::FromAxisAngle(rotLen, rot * (1.0 / rotLen));
-  // if(molIndex == 1) {
-  //   printf("CPU: %.15lf\n", rotLen);
-  // }
+  XYZ axis = rot * (1.0 / rotLen);
+  TransformMatrix cross = TransformMatrix::CrossProduct(axis);
+  TransformMatrix tensor = TransformMatrix::TensorProduct(axis);
+  matrix = RotationMatrix::FromAxisAngle(rotLen, cross, tensor);
+  if(molIndex == 1) {
+    printf("CPU: %.15lf, %.15lf, %.15lf\n", axis.x, axis.y, axis.z);
+  }
 
   XYZ center = newCOMs.Get(molIndex);
   uint start, stop, len;
