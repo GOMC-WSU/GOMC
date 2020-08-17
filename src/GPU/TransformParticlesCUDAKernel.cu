@@ -378,7 +378,7 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
   }
 
   if(atomNumber == 0) {
-    print_tuple("GPU", rotx, roty, rotz);
+    print_tuple("GPU", lbtx, lbty, lbtz);
   }
 
   // perform the rot on the coordinates
