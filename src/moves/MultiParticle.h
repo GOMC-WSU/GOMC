@@ -530,9 +530,9 @@ inline void MultiParticle::CalculateTrialDistRot()
 inline void MultiParticle::RotateForceBiased(uint molIndex)
 {
   XYZ rot = r_k.Get(molIndex);
-  if(molIndex == 1) {
-    printf("CPU: %.15lf, %.15lf, %.15lf\n", rot.x, rot.y, rot.z);
-  }
+  // if(molIndex == 1) {
+  //   printf("CPU: %.15lf, %.15lf, %.15lf\n", rot.x, rot.y, rot.z);
+  // }
   double rotLen = rot.Length();
   RotationMatrix matrix;
 
@@ -551,6 +551,10 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
   for(uint p = 0; p < len; p++) {
     temp.Add(p, -center);
     temp.Set(p, matrix.Apply(temp[p]));
+    XYZ asdf = matrix.Apply(temp[p]);
+    if(molIndex == 1 && p == 0) {
+      printf("CPU: %.15lf, %.15lf, %.15lf\n", asdf.x, asdf.y, asdf.z);
+    }
     temp.Add(p, center);
   }
   boxDimRef.WrapPBC(temp, bPick);
