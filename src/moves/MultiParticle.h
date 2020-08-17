@@ -557,7 +557,13 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
   TransformMatrix tensor = TransformMatrix::TensorProduct(axis);
   matrix = RotationMatrix::FromAxisAngle(rotLen, cross, tensor);
   if(molIndex == 1) {
-    printf("CPU: %.15lf, %.15lf, %.15lf\n", axis.x, axis.y, axis.z);
+    printf("CPU: %.15lf, %.15lf, %.15lf\n", cross.matrix[0][0], cross.matrix[0][1], cross.matrix[0][2]);
+    printf("CPU: %.15lf, %.15lf, %.15lf\n", cross.matrix[1][0], cross.matrix[1][1], cross.matrix[1][2]);
+    printf("CPU: %.15lf, %.15lf, %.15lf\n", cross.matrix[2][0], cross.matrix[2][1], cross.matrix[2][2]);
+    printf("CPU: %.15lf, %.15lf, %.15lf\n", tensor.matrix[0][0], tensor.matrix[0][1], tensor.matrix[0][2]);
+    printf("CPU: %.15lf, %.15lf, %.15lf\n", tensor.matrix[1][0], tensor.matrix[1][1], tensor.matrix[1][2]);
+    printf("CPU: %.15lf, %.15lf, %.15lf\n", tensor.matrix[2][0], tensor.matrix[2][1], tensor.matrix[2][2]);
+    
   }
 
   XYZ center = newCOMs.Get(molIndex);

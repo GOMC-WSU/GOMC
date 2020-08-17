@@ -79,7 +79,7 @@ public:
   TransformMatrix Inverse() const;
 
 
-private:
+// private:
   static const uint N = 3;
   double matrix[N][N];
 
