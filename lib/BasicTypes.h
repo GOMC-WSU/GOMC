@@ -72,7 +72,7 @@ inline void record_debug(double * x, uint len, std::string filename, int linenum
   out << "\n";
 }
 
-inline void print_tuple(std::string s, double x, double y, double z) {
+__host__ __device__ inline void print_tuple(std::string s, double x, double y, double z) {
   printf("%s: %.15lf, %.15lf, %.15lf\n", s.c_str(), x, y, z);
 }
 
