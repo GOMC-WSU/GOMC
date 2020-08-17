@@ -471,7 +471,7 @@ __global__ void BoxForceReciprocalGPU(
     forceZ += factor * gpu_kz[vectorIndex];
   }
 
-  loop over other particles within the same molecule
+  // loop over other particles within the same molecule
   if(threadIdx.x == 0) {
     double intraForce = 0.0, distSq = 0.0, dist = 0.0;
     double distVectX = 0.0, distVectY = 0.0, distVectZ = 0.0;
