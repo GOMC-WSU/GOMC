@@ -334,7 +334,7 @@ inline uint MultiParticle::Transform()
       TranslateForceBiased(moleculeIndex[m]);
     }
   }
-  printf("CPU: %.15lf, %.15lf, %.15lf\n", newMolsPos.x[4], newMolsPos.y[4], newMolsPos.z[4]);
+  printf("CPU: %.15lf, %.15lf, %.15lf\n", newMolsPos.x[0], newMolsPos.y[0], newMolsPos.z[0]);
 #endif
 #ifdef RECORD_DEBUG
   record_debug_macro_len(newMolsPos.x, newMolsPos.Count());

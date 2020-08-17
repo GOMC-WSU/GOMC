@@ -245,7 +245,7 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
   cudaMemcpy(newMolPos.y, vars->gpu_y, atomCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(newMolPos.z, vars->gpu_z, atomCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaDeviceSynchronize();
-  printf("GPU: %.15lf, %.15lf, %.15lf\n", newMolPos.x[4], newMolPos.y[4], newMolPos.z[4]);
+  printf("GPU: %.15lf, %.15lf, %.15lf\n", newMolPos.x[0], newMolPos.y[0], newMolPos.z[0]);
   cudaFree(gpu_particleMol);
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
