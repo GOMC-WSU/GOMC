@@ -570,14 +570,11 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
   for(uint p = 0; p < len; p++) {
     temp.Add(p, -center);
     XYZ newPosition = matrix.Apply(temp[p]);
-    if(molIndex == 1 && p == 0) {
-      printf("CPU: %.15lf, %.15lf, %.15lf\n", newPosition.x, newPosition.y, newPosition.z);
-    }
     temp.Set(p, newPosition);
-    // if(molIndex == 1 && p == 0) {
-    //   printf("CPU: %.15lf, %.15lf, %.15lf\n", newPosition.x, newPosition.y, newPosition.z);
-    // }
     temp.Add(p, center);
+    if(molIndex == 1 && p == 0) {
+      printf("CPU: %.15lf, %.15lf, %.15lf\n", temp.x[0], temp.y[0], temp.z[0]);
+    }
   }
   boxDimRef.WrapPBC(temp, bPick);
   // if(molIndex == 1) {

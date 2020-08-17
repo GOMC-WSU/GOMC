@@ -99,14 +99,6 @@ __device__ inline void ApplyRotation(double &x, double &y, double &z,
   double newy = matrix[1][0] * x + matrix[1][1] * y + matrix[1][2] * z;
   double newz = matrix[2][0] * x + matrix[2][1] * y + matrix[2][2] * z;
 
-  if(atomNumber == 4) {
-    printf("GPU: %.15lf, %.15lf, %.15lf\n", newx, newy, newz);
-  }
-
-  // if(atomNumber == 4) {
-  //   printf("GPU: %.15lf, %.15lf, %.15lf\n", newx, newy, newz);
-  // }
-
   x = newx;
   y = newy;
   z = newz;
@@ -115,6 +107,10 @@ __device__ inline void ApplyRotation(double &x, double &y, double &z,
   x += comx;
   y += comy;
   z += comz;
+
+  if(atomNumber == 4) {
+    printf("GPU: %.15lf, %.15lf, %.15lf\n", x, y, z);
+  }
 
   // wrap again
   WrapPBC(x, axx);
