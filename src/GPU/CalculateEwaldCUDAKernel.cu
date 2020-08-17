@@ -472,7 +472,7 @@ __global__ void BoxForceReciprocalGPU(
   }
 
   // loop over other particles within the same molecule
-  if(threadIdx.x == 0) {
+  if(threadIdx.x == blockDim.x-1) {
     double intraForce = 0.0, distSq = 0.0, dist = 0.0;
     double distVectX = 0.0, distVectY = 0.0, distVectZ = 0.0;
     int lastParticleWithinSameMolecule = gpu_startMol[particleID] + gpu_lengthMol[particleID];
