@@ -52,6 +52,16 @@ inline void record_debug(std::vector<int> x, std::string filename, int linenumbe
   out << "\n";
 }
 
+inline void record_debug(std::vector<uint> x, std::string filename, int linenumber) {
+  std::ofstream out;
+  out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
+  out << "vector|int," << x.size() << "," << filename << "," << linenumber;
+  for(int i=0; i<x.size(); i++) {
+    out << "," << std::setprecision(12) << x[i];
+  }
+  out << "\n";
+}
+
 inline void record_debug(double * x, uint len, std::string filename, int linenumber) {
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);

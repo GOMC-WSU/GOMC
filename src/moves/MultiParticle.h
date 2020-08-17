@@ -281,6 +281,12 @@ inline uint MultiParticle::Transform()
   record_debug_macro_len(newCOMs.x, newCOMs.Count());
   record_debug_macro_len(newCOMs.y, newCOMs.Count());
   record_debug_macro_len(newCOMs.z, newCOMs.Count());
+  record_debug_macro(moleculeIndex);
+  record_debug_macro(moveSetRef.GetRMAX(bPick));
+  record_debug_macro(moveSetRef.GetTMAX(bPick));
+  record_debug_macro(boxDimRef.GetAxis(bPick).x);
+  record_debug_macro(boxDimRef.GetAxis(bPick).y);
+  record_debug_macro(boxDimRef.GetAxis(bPick).z);
   if(moveType[0] == mp::MPALLROTATE) {
     record_debug_macro_len(molTorqueRef.x, molTorqueRef.Count());
     record_debug_macro_len(molTorqueRef.y, molTorqueRef.Count());
@@ -365,17 +371,6 @@ inline void MultiParticle::CalcEn()
   //calculate short range energy and force
   sysPotNew = calcEnRef.BoxForce(sysPotNew, newMolsPos, atomForceNew,
                                  molForceNew, boxDimRef, bPick);
-#ifdef RECORD_DEBUG
-  record_debug_macro_len(newMolsPos.x, newMolsPos.Count());
-  record_debug_macro_len(newMolsPos.y, newMolsPos.Count());
-  record_debug_macro_len(newMolsPos.z, newMolsPos.Count());
-  record_debug_macro_len(atomForceNew.x, atomForceNew.Count());
-  record_debug_macro_len(atomForceNew.y, atomForceNew.Count());
-  record_debug_macro_len(atomForceNew.z, atomForceNew.Count());
-  record_debug_macro_len(molForceNew.x, molForceNew.Count());
-  record_debug_macro_len(molForceNew.y, molForceNew.Count());
-  record_debug_macro_len(molForceNew.z, molForceNew.Count());
-#endif
   //calculate long range of new electrostatic energy
   sysPotNew.boxEnergy[bPick].recip = calcEwald->BoxReciprocal(bPick);
   //Calculate long range of new electrostatic force
@@ -463,14 +458,6 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   double accept = MPCoeff * uBoltz;
   double pr = prng();
-#ifdef RECORD_DEBUG
-  record_debug_macro(MPCoeff);
-  record_debug_macro(sysPotNew.Total());
-  record_debug_macro(sysPotRef.Total());
-  record_debug_macro(uBoltz);
-  record_debug_macro(accept);
-  record_debug_macro(pr);
-#endif
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
   if(result) {
     sysPotRef = sysPotNew;
