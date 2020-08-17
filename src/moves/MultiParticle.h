@@ -470,11 +470,6 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
 {
   XYZ lbmax = lb * max;
   XYZ num;
-#ifdef RECORD_DEBUG
-  record_debug_macro(lb.x);
-  record_debug_macro(lb.y);
-  record_debug_macro(lb.z);
-#endif
   if(std::abs(lbmax.x) > MIN_FORCE && std::abs(lbmax.x) < MAX_FORCE) {
     num.x = log(exp(-1.0 * lbmax.x) + 2 * r123wrapper(molIndex*3+0) * sinh(lbmax.x)) / lb.x;
   } else {
@@ -507,11 +502,6 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
   }
 
   // We can possible bound them
-#ifdef RECORD_DEBUG
-  record_debug_macro(num.x);
-  record_debug_macro(num.y);
-  record_debug_macro(num.z);
-#endif
   return num;
 }
 
