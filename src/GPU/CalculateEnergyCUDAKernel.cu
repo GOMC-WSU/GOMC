@@ -85,6 +85,10 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   boxAxes.GetAxis(box).y,
   boxAxes.GetAxis(box).z);
 
+  double3 halfAx = make_double3(boxAxes.GetAxis(box).x / 2.0,
+                                boxAxes.GetAxis(box).y / 2.0,
+                                boxAxes.GetAxis(box).z / 2.0);
+
   BoxInterGPU <<< blocksPerGrid, threadsPerBlock>>>(gpu_cellStartIndex,
       vars->gpu_cellVector,
       gpu_neighborList,
@@ -93,6 +97,7 @@ void CallBoxInterGPU(VariablesCUDA *vars,
       vars->gpu_y,
       vars->gpu_z,
       axis,
+      halfAx,
       electrostatic,
       gpu_particleCharge,
       gpu_particleKind,
@@ -179,6 +184,7 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
                             double *gpu_y,
                             double *gpu_z,
                             double3 axis,
+                            double3 halfAx,
                             bool electrostatic,
                             double *gpu_particleCharge,
                             int *gpu_particleKind,
@@ -255,7 +261,12 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
       // Check if they are within rcut
       distSq = 0;
 
-      if(InRcutGPU(distSq, gpu_x, gpu_y, gpu_z, currentParticle, neighborParticle, axis, cutoff)) {
+      if(InRcutGPU(distSq, gpu_x, gpu_y, gpu_z, 
+                   currentParticle, neighborParticle,
+                   axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
+                   gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
+                   gpu_Invcell_z)) {        
+        
         double cA = gpu_particleCharge[currentParticle];
         double cB = gpu_particleCharge[neighborParticle];
         int kA = gpu_particleKind[currentParticle];

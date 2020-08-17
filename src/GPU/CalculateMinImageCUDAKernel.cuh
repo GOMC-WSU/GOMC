@@ -15,17 +15,6 @@ __device__ inline double3 Difference(double * x, double * y, double * z, uint i,
   return make_double3(x[i] - x[j], y[i] - y[j], z[i] - z[j]);
 }
 
-__device__ inline void TransformSlantGPU(double &tx, double &ty, double &tz,
-    double x, double y, double z,
-    double *gpu_cell_x,
-    double *gpu_cell_y,
-    double *gpu_cell_z)
-{
-  tx = x * gpu_cell_x[0] + y * gpu_cell_x[1] + z * gpu_cell_x[2];
-  ty = x * gpu_cell_y[0] + y * gpu_cell_y[1] + z * gpu_cell_y[2];
-  tz = x * gpu_cell_z[0] + y * gpu_cell_z[1] + z * gpu_cell_z[2];
-}
-
 __device__ inline void TransformSlantGPU(double3 & dist,
   double3 slant,
   double *gpu_cell_x,
@@ -35,16 +24,6 @@ __device__ inline void TransformSlantGPU(double3 & dist,
   dist.x = slant.x * gpu_cell_x[0] + slant.y * gpu_cell_x[1] + slant.z * gpu_cell_x[2];
   dist.y = slant.x * gpu_cell_y[0] + slant.y * gpu_cell_y[1] + slant.z * gpu_cell_y[2];
   dist.z = slant.x * gpu_cell_z[0] + slant.y * gpu_cell_z[1] + slant.z * gpu_cell_z[2];
-}
-__device__ inline void TransformUnSlantGPU(double &tx, double &ty, double &tz,
-    double x, double y, double z,
-    double *gpu_Invcell_x,
-    double *gpu_Invcell_y,
-    double *gpu_Invcell_z)
-{
-  tx = x * gpu_Invcell_x[0] + y * gpu_Invcell_x[1] + z * gpu_Invcell_x[2];
-  ty = x * gpu_Invcell_y[0] + y * gpu_Invcell_y[1] + z * gpu_Invcell_y[2];
-  tz = x * gpu_Invcell_z[0] + y * gpu_Invcell_z[1] + z * gpu_Invcell_z[2];
 }
 
 __device__ inline void TransformUnSlantGPU(double3 & dist,
@@ -75,24 +54,31 @@ __device__ inline double3 MinImageGPU(double3 rawVec, double3 axis, double3 half
 }
 
 // Call by calculate energy whether it is in rCut
-__device__ inline bool InRcutGPU(double &distSq, double * x, double * y, 
-                                double * z, uint i, uint j, double3 axis,
-                                 double cutoff)
+__device__ inline bool InRcutGPU(double &distSq,                                  
+                                 double * x, double * y, double * z,
+                                 uint i, uint j,
+                                 double3 axis, double3 halfAx, 
+                                 double gpu_rCut, int gpu_nonOrth,
+                                 double *gpu_cell_x, double *gpu_cell_y,
+                                 double *gpu_cell_z, double *gpu_Invcell_x,
+                                 double *gpu_Invcell_y, double *gpu_Invcell_z)
 {
   distSq = 0;
-  double3 d;
-  d.x = x[i] - x[j];
-  d.y = y[i] - y[j];
-  d.z = z[i] - z[j];
+  double3 t, dist;
+  dist = Difference(x, y, z, i, j);
+  // Do a binary print here of dist
+  if(gpu_nonOrth) {
+    TransformUnSlantGPU(t, dist, gpu_Invcell_x,
+                        gpu_Invcell_y, gpu_Invcell_z);
+    t = MinImageGPU(t, axis, halfAx);
+    TransformSlantGPU(dist, t, gpu_cell_x, gpu_cell_y,
+                      gpu_cell_z);
+  } else {
+    dist = MinImageGPU(dist, axis, halfAx);
+    distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
+  }
 
-  d.x = min(fabs(d.x), axis.x - fabs(d.x));
-  d.y = min(fabs(d.y), axis.y - fabs(d.y));
-  d.z = min(fabs(d.z), axis.z - fabs(d.z));
-
-  distSq = d.x * d.x + d.y * d.y + d.z * d.z;
-
-  return (cutoff * cutoff) > distSq;
-
+  return ((gpu_rCut * gpu_rCut) > distSq);
 }
 
 // Call by force calculate to return the distance and virial component
