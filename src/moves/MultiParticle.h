@@ -163,8 +163,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   // We can also add another move typr, where in this steps, each molecule
   // can displace or rotate, independently from other molecule. To do that, we
   // need to change the  mp::MPTOTALTYPES variable to 3, in MoveSetting.h
-  //typePick = prng.randIntExc(mp::MPTOTALTYPES);
-  typePick = 1;
+  typePick = prng.randIntExc(mp::MPTOTALTYPES);
   SetMolInBox(bPick);
 
   for(uint m = 0; m < moleculeIndex.size(); m++) {
@@ -198,14 +197,6 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
     //calculate short range energy and force for old positions
     calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
                        boxDimRef, bPick);
-#ifdef RECORD_DEBUG
-  record_debug_macro_len(atomForceRef.x, atomForceRef.Count());
-  record_debug_macro_len(atomForceRef.y, atomForceRef.Count());
-  record_debug_macro_len(atomForceRef.z, atomForceRef.Count());
-  record_debug_macro_len(molForceRef.x, molForceRef.Count());
-  record_debug_macro_len(molForceRef.y, molForceRef.Count());
-  record_debug_macro_len(molForceRef.z, molForceRef.Count());
-#endif
     if(typePick != mp::MPALLDISPLACE) {
       //Calculate Torque for old positions
       calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef,
@@ -274,30 +265,6 @@ inline uint MultiParticle::Transform()
   // individual particle.
   uint state = mv::fail_state::NO_FAIL;
   uint m;
-#ifdef RECORD_DEBUG
-  record_debug_macro_len(newMolsPos.x, newMolsPos.Count());
-  record_debug_macro_len(newMolsPos.y, newMolsPos.Count());
-  record_debug_macro_len(newMolsPos.z, newMolsPos.Count());
-  record_debug_macro_len(newCOMs.x, newCOMs.Count());
-  record_debug_macro_len(newCOMs.y, newCOMs.Count());
-  record_debug_macro_len(newCOMs.z, newCOMs.Count());
-  record_debug_macro(moleculeIndex);
-  record_debug_macro(moveSetRef.GetRMAX(bPick));
-  record_debug_macro(moveSetRef.GetTMAX(bPick));
-  record_debug_macro(boxDimRef.GetAxis(bPick).x);
-  record_debug_macro(boxDimRef.GetAxis(bPick).y);
-  record_debug_macro(boxDimRef.GetAxis(bPick).z);
-  if(moveType[0] == mp::MPALLROTATE) {
-    record_debug_macro_len(molTorqueRef.x, molTorqueRef.Count());
-    record_debug_macro_len(molTorqueRef.y, molTorqueRef.Count());
-    record_debug_macro_len(molTorqueRef.z, molTorqueRef.Count());
-  } else {
-    record_debug_macro_len(molForceRef.x, molForceRef.Count());
-    record_debug_macro_len(molForceRef.y, molForceRef.Count());
-    record_debug_macro_len(molForceRef.z, molForceRef.Count());
-  }
-#endif
-
 #ifdef GOMC_CUDA
   // This kernel will calculate translation/rotation amount + shifting/rotating
   if(moveType[0] == mp::MPALLROTATE) {
@@ -335,24 +302,6 @@ inline uint MultiParticle::Transform()
     }
   }
 #endif
-#ifdef RECORD_DEBUG
-  record_debug_macro_len(newMolsPos.x, newMolsPos.Count());
-  record_debug_macro_len(newMolsPos.y, newMolsPos.Count());
-  record_debug_macro_len(newMolsPos.z, newMolsPos.Count());
-  record_debug_macro_len(newCOMs.x, newCOMs.Count());
-  record_debug_macro_len(newCOMs.y, newCOMs.Count());
-  record_debug_macro_len(newCOMs.z, newCOMs.Count());
-  if(moveType[0] == mp::MPALLROTATE) {
-    record_debug_macro_len(molTorqueRef.x, molTorqueRef.Count());
-    record_debug_macro_len(molTorqueRef.y, molTorqueRef.Count());
-    record_debug_macro_len(molTorqueRef.z, molTorqueRef.Count());
-  } else {
-    record_debug_macro_len(molForceRef.x, molForceRef.Count());
-    record_debug_macro_len(molForceRef.y, molForceRef.Count());
-    record_debug_macro_len(molForceRef.z, molForceRef.Count());
-  }
-#endif
-
   return state;
 }
 
@@ -504,10 +453,6 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
   } else {
     double rr = r123wrapper(molIndex*3+2) * 2.0 - 1.0;
     num.z = max * rr;
-  }
-
-  if(molIndex == 0) {
-    print_tuple("CPU", lb.x, lb.y, lb.z);
   }
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {

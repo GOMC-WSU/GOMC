@@ -36,7 +36,7 @@ __device__ inline double UnwrapPBC(double &v, double ref, double ax, double half
 __device__ inline void ApplyRotation(double &x, double &y, double &z,
                                      double comx, double comy, double comz,
                                      double rotx, double roty, double rotz,
-                                     double axx, double axy, double axz, int atomNumber)
+                                     double axx, double axy, double axz)
 {
   double rotLen = sqrt(rotx * rotx + roty * roty + rotz * rotz);
   double axisx = rotx * (1.0 / rotLen);
@@ -380,14 +380,10 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
     rotz = r_max * rr;
   }
 
-  if(atomNumber == 0) {
-    print_tuple("GPU", lbtx, lbty, lbtz);
-  }
-
   // perform the rot on the coordinates
   ApplyRotation(gpu_x[atomNumber], gpu_y[atomNumber], gpu_z[atomNumber],
                 gpu_comx[molIndex], gpu_comy[molIndex], gpu_comz[molIndex],
-                rotx, roty, rotz, xAxes, yAxes, zAxes, atomNumber);
+                rotx, roty, rotz, xAxes, yAxes, zAxes);
 }
 
 #endif
