@@ -329,6 +329,23 @@ inline uint MultiParticle::Transform()
     }
   }
 #endif
+  #ifdef RECORD_DEBUG
+  record_debug_macro_len(newMolsPos.x, newMolsPos.Count());
+  record_debug_macro_len(newMolsPos.y, newMolsPos.Count());
+  record_debug_macro_len(newMolsPos.z, newMolsPos.Count());
+  record_debug_macro_len(newCOMs.x, newCOMs.Count());
+  record_debug_macro_len(newCOMs.y, newCOMs.Count());
+  record_debug_macro_len(newCOMs.z, newCOMs.Count());
+  if(moveType[0] == mp::MPALLROTATE) {
+    record_debug_macro_len(molTorqueRef.x, molTorqueRef.Count());
+    record_debug_macro_len(molTorqueRef.y, molTorqueRef.Count());
+    record_debug_macro_len(molTorqueRef.z, molTorqueRef.Count());
+  } else {
+    record_debug_macro_len(molForceRef.x, molForceRef.Count());
+    record_debug_macro_len(molForceRef.y, molForceRef.Count());
+    record_debug_macro_len(molForceRef.z, molForceRef.Count());
+  }
+#endif
 
   return state;
 }
