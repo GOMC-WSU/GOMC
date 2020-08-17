@@ -16,7 +16,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "cub/cub.cuh"
 #include <vector>
 
-#define THREADS_PER_BLOCK 384
+#define THREADS_PER_BLOCK 512
 
 using namespace cub;
 
@@ -469,28 +469,28 @@ __global__ void BoxForceReciprocalGPU(
   }
 
   // loop over other particles within the same molecule
-  if(threadIdx.x == 0) {
-    double intraForce = 0.0, distSq = 0.0, dist = 0.0;
-    double distVectX = 0.0, distVectY = 0.0, distVectZ = 0.0;
-    int lastParticleWithinSameMolecule = gpu_startMol[particleID] + gpu_lengthMol[particleID];
-    for(int otherParticle = gpu_startMol[particleID];
-      otherParticle < lastParticleWithinSameMolecule;
-      otherParticle++)
-    {
-      if(particleID != otherParticle) {
-        DeviceInRcut(distSq, distVectX, distVectY, distVectZ, gpu_x, gpu_y, gpu_z, particleID, otherParticle, axx, axy, axz, box);
-        dist = sqrt(distSq);
+  // if(threadIdx.x == 0) {
+  //   double intraForce = 0.0, distSq = 0.0, dist = 0.0;
+  //   double distVectX = 0.0, distVectY = 0.0, distVectZ = 0.0;
+  //   int lastParticleWithinSameMolecule = gpu_startMol[particleID] + gpu_lengthMol[particleID];
+  //   for(int otherParticle = gpu_startMol[particleID];
+  //     otherParticle < lastParticleWithinSameMolecule;
+  //     otherParticle++)
+  //   {
+  //     if(particleID != otherParticle) {
+  //       DeviceInRcut(distSq, distVectX, distVectY, distVectZ, gpu_x, gpu_y, gpu_z, particleID, otherParticle, axx, axy, axz, box);
+  //       dist = sqrt(distSq);
 
-        double expConstValue = exp(-1.0 * alphaSq * distSq);
-        double qiqj = gpu_particleCharge[particleID] * gpu_particleCharge[otherParticle] * qqFact;
-        intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
-        intraForce *= ((erf(alpha * dist) / dist) - constValue * expConstValue);
-        forceX -= intraForce * distVectX;
-        forceY -= intraForce * distVectY;
-        forceZ -= intraForce * distVectZ;
-      }
-    }
-  }
+  //       double expConstValue = exp(-1.0 * alphaSq * distSq);
+  //       double qiqj = gpu_particleCharge[particleID] * gpu_particleCharge[otherParticle] * qqFact;
+  //       intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
+  //       intraForce *= ((erf(alpha * dist) / dist) - constValue * expConstValue);
+  //       forceX -= intraForce * distVectX;
+  //       forceY -= intraForce * distVectY;
+  //       forceZ -= intraForce * distVectZ;
+  //     }
+  //   }
+  // }
 
   // perform reduction at this point
   int warpSize = 32;
