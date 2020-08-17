@@ -201,7 +201,8 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
                             double yAxes,
                             double zAxes,
                             XYZArray &newMolPos,
-                            XYZArray &newCOMs)
+                            XYZArray &newCOMs,
+                            double lambdaBETA)
 {
   int threadsPerBlock = 256;
   int blocksPerGrid = (int)(atomCount / threadsPerBlock) + 1;
@@ -237,7 +238,8 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
                                                             zAxes,
                                                             vars->gpu_comx,
                                                             vars->gpu_comy,
-                                                            vars->gpu_comz);
+                                                            vars->gpu_comz,
+                                                            lambdaBETA);
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
   
@@ -339,7 +341,8 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                                       double zAxes,
                                       double *gpu_comx,
                                       double *gpu_comy,
-                                      double *gpu_comz)
+                                      double *gpu_comz,
+                                      double lambdaBETA)
 {
   int atomNumber = blockIdx.x * blockDim.x + threadIdx.x;
   if(atomNumber >= atomCount) return;
@@ -347,9 +350,9 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
   int molIndex = gpu_particleMol[atomNumber];
 
   // This section calculates the amount of shift
-  double lbtx = molTorquex[molIndex];
-  double lbty = molTorquey[molIndex];
-  double lbtz = molTorquez[molIndex];
+  double lbtx = molTorquex[molIndex] * lambdaBETA;
+  double lbty = molTorquey[molIndex] * lambdaBETA;
+  double lbtz = molTorquez[molIndex] * lambdaBETA;
   double lbmaxx = lbtx * r_max;
   double lbmaxy = lbty * r_max;
   double lbmaxz = lbtz * r_max;
