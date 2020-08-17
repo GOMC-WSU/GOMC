@@ -472,7 +472,11 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
   }
 
   // We can possible bound them
-
+#ifdef RECORD_DEBUG
+  record_debug_macro(num.x);
+  record_debug_macro(num.y);
+  record_debug_macro(num.z);
+#endif
   return num;
 }
 
@@ -495,6 +499,18 @@ inline void MultiParticle::CalculateTrialDistRot()
       t_k.Set(molIndex, CalcRandomTransform(lbf, t_max, molIndex));
     }
   }
+
+#ifdef RECORD_DEBUG
+  if(moveType[0]) {
+    record_debug_macro_len(r_k.x, r_k.Count());
+    record_debug_macro_len(r_k.y, r_k.Count());
+    record_debug_macro_len(r_k.z, r_k.Count());
+  } else {
+    record_debug_macro_len(t_k.x, t_k.Count());
+    record_debug_macro_len(t_k.y, t_k.Count());
+    record_debug_macro_len(t_k.z, t_k.Count());
+  }
+#endif
 }
 
 inline void MultiParticle::RotateForceBiased(uint molIndex)
