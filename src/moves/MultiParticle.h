@@ -443,6 +443,14 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   double accept = MPCoeff * uBoltz;
   double pr = prng();
+#ifdef RECORD_DEBUG
+  record_debug_macro(MPCoeff);
+  record_debug_macro(sysPotNew.Total());
+  record_debug_macro(sysPotRef.Total());
+  record_debug_macro(uBoltz);
+  record_debug_macro(accept);
+  record_debug_macro(pr);
+#endif
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
   if(result) {
     sysPotRef = sysPotNew;
@@ -561,9 +569,9 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
     temp.Add(p, center);
   }
   boxDimRef.WrapPBC(temp, bPick);
-  if(molIndex == 1) {
-    printf("CPU: %.15lf, %.15lf, %.15lf\n", temp[0].x, temp[0].y, temp[0].z);
-  }
+  // if(molIndex == 1) {
+  //   printf("CPU: %.15lf, %.15lf, %.15lf\n", temp[0].x, temp[0].y, temp[0].z);
+  // }
   // Copy back the result
   temp.CopyRange(newMolsPos, 0, start, len);
 }

@@ -119,9 +119,9 @@ __device__ inline void ApplyRotation(double &x, double &y, double &z,
   WrapPBC(x, axx);
   WrapPBC(y, axy);
   WrapPBC(z, axz);
-  if(atomNumber == 4) {
-    printf("GPU: %.15lf, %.15lf, %.15lf\n", x, y, z);
-  }
+  // if(atomNumber == 4) {
+  //   printf("GPU: %.15lf, %.15lf, %.15lf\n", x, y, z);
+  // }
 }
 
 void CallTranslateParticlesGPU(VariablesCUDA *vars,
