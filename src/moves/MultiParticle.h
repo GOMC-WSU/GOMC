@@ -214,7 +214,10 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
     }
   }
 
+#ifndef GOMC_CUDA
+  // GPU does this part in its kernels
   CalculateTrialDistRot();
+#endif
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
   return state;
@@ -266,7 +269,10 @@ inline void MultiParticle::PrepCFCMC(const uint box)
                                 moveType, bPick);
     }
   }
+#ifndef GOMC_CUDA
+  // GPU does this part in its kernels
   CalculateTrialDistRot();
+#endif
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
 }
@@ -610,6 +616,9 @@ inline void MultiParticle::TranslateForceBiased(uint molIndex)
   //set the new coordinate
   temp.CopyRange(newMolsPos, 0, start, len);
   newCOMs.Set(molIndex, newcom);
+  if(molIndex == 1) {
+
+  }
 }
 
 #endif

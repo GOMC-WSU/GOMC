@@ -132,7 +132,6 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                XYZArray &newCOMs,
                                double lambdaBETA)
 {
-  int numberOfMolecules = moleculeIndex.size();
   int threadsPerBlock = 256;
   int blocksPerGrid = (int)(atomCount / threadsPerBlock) + 1;
   int *gpu_particleMol;
@@ -155,7 +154,7 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_comz, newCOMs.z, molCount * sizeof(double), cudaMemcpyHostToDevice);
 
   checkLastErrorCUDA(__FILE__, __LINE__);
-  TranslateParticlesKernel<<<blocksPerGrid, threadsPerBlock>>>(numberOfMolecules,
+  TranslateParticlesKernel<<<blocksPerGrid, threadsPerBlock>>>(molCount,
                                                                t_max,
                                                                vars->gpu_mForcex,
                                                                vars->gpu_mForcey,
@@ -204,7 +203,6 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
                             XYZArray &newMolPos,
                             XYZArray &newCOMs)
 {
-  int numberOfMolecules = moleculeIndex.size();
   int threadsPerBlock = 256;
   int blocksPerGrid = (int)(atomCount / threadsPerBlock) + 1;
   int *gpu_particleMol;
@@ -222,7 +220,7 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_comy, newCOMs.y, molCount * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_comz, newCOMs.z, molCount * sizeof(double), cudaMemcpyHostToDevice);
 
-  RotateParticlesKernel<<<blocksPerGrid, threadsPerBlock>>>(numberOfMolecules,
+  RotateParticlesKernel<<<blocksPerGrid, threadsPerBlock>>>(molCount,
                                                             r_max,
                                                             vars->gpu_mTorquex,
                                                             vars->gpu_mTorquey,
@@ -283,10 +281,6 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
   double lbmaxx = lbfx * t_max;
   double lbmaxy = lbfy * t_max;
   double lbmaxz = lbfz * t_max;
-
-  // if(molIndex == 3000 && updateCOM) {
-  //   printf("%lf, %lf, %lf\n", molForcex[molIndex], molForcey[molIndex], molForcez[molIndex]);
-  // }
 
   double shiftx, shifty, shiftz;
 
