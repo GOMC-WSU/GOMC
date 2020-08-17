@@ -507,8 +507,7 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
   }
 
   if(molIndex == 1) {
-    printf("CPU: %.15lf, %.15lf, %.15lf\n", r123wrapper(molIndex*3+0),
-    r123wrapper(molIndex*3+1), r123wrapper(molIndex*3+2));
+    printf("CPU: %.15lf, %.15lf, %.15lf\n", max, max, max);
   }
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
