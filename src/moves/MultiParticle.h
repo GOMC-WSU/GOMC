@@ -507,7 +507,7 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
   }
 
   if(molIndex == 0) {
-    print_tuple("CPU", lbmax.x, lbmax.y, lbmax.z);
+    print_tuple("CPU", lb.x, lb.y, lb.z);
   }
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
