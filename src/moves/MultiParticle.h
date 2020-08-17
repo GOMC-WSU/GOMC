@@ -277,6 +277,11 @@ inline uint MultiParticle::Transform()
   // individual particle.
   uint state = mv::fail_state::NO_FAIL;
   uint m;
+#ifdef RECORD_DEBUG
+  record_debug_macro_len(newMolsPos.x, newMolsPos.Count());
+  record_debug_macro_len(newMolsPos.y, newMolsPos.Count());
+  record_debug_macro_len(newMolsPos.z, newMolsPos.Count());
+#endif
 
 #ifdef GOMC_CUDA
   // This kernel will calculate translation/rotation amount + shifting/rotating
