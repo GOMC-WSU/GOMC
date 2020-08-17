@@ -334,8 +334,9 @@ inline uint MultiParticle::Transform()
       TranslateForceBiased(moleculeIndex[m]);
     }
   }
+  printf("CPU: %.15lf, %.15lf, %.15lf\n", newMolsPos.x[4], newMolsPos.y[4], newMolsPos.z[4]);
 #endif
-  #ifdef RECORD_DEBUG
+#ifdef RECORD_DEBUG
   record_debug_macro_len(newMolsPos.x, newMolsPos.Count());
   record_debug_macro_len(newMolsPos.y, newMolsPos.Count());
   record_debug_macro_len(newMolsPos.z, newMolsPos.Count());
@@ -576,9 +577,6 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
   boxDimRef.WrapPBC(temp, bPick);
   // Copy back the result
   temp.CopyRange(newMolsPos, 0, start, len);
-  if(molIndex == 1) {
-    printf("CPU: %.15lf, %.15lf, %.15lf\n", newMolsPos.x[4], newMolsPos.y[4], newMolsPos.z[4]);
-  }
 }
 
 inline void MultiParticle::TranslateForceBiased(uint molIndex)
