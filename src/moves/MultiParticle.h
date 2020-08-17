@@ -537,6 +537,9 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
   RotationMatrix matrix;
 
   matrix = RotationMatrix::FromAxisAngle(rotLen, rot * (1.0 / rotLen));
+  if(molIndex == 1) {
+    printf("CPU: %.15lf\n", rotLen);
+  }
 
   XYZ center = newCOMs.Get(molIndex);
   uint start, stop, len;
@@ -552,9 +555,9 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
     temp.Add(p, -center);
     temp.Set(p, matrix.Apply(temp[p]));
     XYZ asdf = matrix.Apply(temp[p]);
-    if(molIndex == 1 && p == 0) {
-      printf("CPU: %.15lf, %.15lf, %.15lf\n", asdf.x, asdf.y, asdf.z);
-    }
+    // if(molIndex == 1 && p == 0) {
+    //   printf("CPU: %.15lf, %.15lf, %.15lf\n", asdf.x, asdf.y, asdf.z);
+    // }
     temp.Add(p, center);
   }
   boxDimRef.WrapPBC(temp, bPick);

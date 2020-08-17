@@ -75,7 +75,6 @@ public:
   XYZ Apply(const XYZ& pos) const;
 
 
-
   //returns the inverse=transpose of this matrix
   TransformMatrix Inverse() const;
 
