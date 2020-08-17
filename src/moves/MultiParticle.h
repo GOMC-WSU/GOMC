@@ -506,6 +506,10 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
     num.z = max * rr;
   }
 
+  if(molIndex == 1) {
+    printf("CPU: %.15lf, %.15lf, %.15lf\n", num.x, num.y, num.z);
+  }
+
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
     std::cout << "Trial Displacement exceed half of the box length in Multiparticle move.\n";
     std::cout << "Trial transform: " << num;
@@ -545,9 +549,9 @@ inline void MultiParticle::CalculateTrialDistRot()
 inline void MultiParticle::RotateForceBiased(uint molIndex)
 {
   XYZ rot = r_k.Get(molIndex);
-  if(molIndex == 1) {
-    printf("CPU: %.15lf, %.15lf, %.15lf\n", rot.x, rot.y, rot.z);
-  }
+  // if(molIndex == 1) {
+  //   printf("CPU: %.15lf, %.15lf, %.15lf\n", rot.x, rot.y, rot.z);
+  // }
   double rotLen = rot.Length();
   RotationMatrix matrix;
 
