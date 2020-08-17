@@ -458,7 +458,7 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   double accept = MPCoeff * uBoltz;
   double pr = prng();
-  std::cout << imie(MPCoeff, uBoltz, accept, pr)
+  std::cout << imie(MPCoeff, uBoltz, accept, pr);
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
   if(result) {
     sysPotRef = sysPotNew;
