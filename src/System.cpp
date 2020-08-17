@@ -46,6 +46,9 @@ System::System(StaticVals& statics) :
   molLookupRef(statics.molLookup),
 #endif
   prng(molLookupRef),
+#if GOMC_LIB_MPI
+  prngParallelTemp(molLookupRef),
+#endif
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
   moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
@@ -83,6 +86,9 @@ void System::Init(Setup const& set, ulong & startStep)
 {
   prng.Init(set.prng.prngMaker.prng);
   r123wrapper.SetRandomSeed(set.config.in.prng.seed);
+#if GOMC_LIB_MPI
+  prngParallelTemp.Init(set.prngParallelTemp.prngMaker.prng);
+#endif
 #ifdef VARIABLE_VOLUME
   boxDimensions->Init(set.config.in.restart,
                       set.config.sys.volume, set.pdb.cryst,

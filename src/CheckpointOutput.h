@@ -45,6 +45,9 @@ private:
   BoxDimensions & boxDimRef;
   Molecules const & molRef;
   PRNG & prngRef;
+  #if GOMC_LIB_MPI
+  PRNG & prngPTRef;
+  #endif
   Coordinates & coordCurrRef;
 
   bool enableOutCheckpoint;
@@ -55,6 +58,9 @@ private:
   void openOutputFile();
   void printStepNumber(ulong step);
   void printRandomNumbers();
+  #if GOMC_LIB_MPI
+  void printRandomNumbersParallelTempering();
+  #endif
   void printCoordinates();
   void printMoleculeLookupData();
   void printMoveSettingsData();

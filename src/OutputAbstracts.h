@@ -86,6 +86,7 @@ public:
       replicaDirectory << tokens[i] << OS_SEP;
     }
     pathToReplicaDirectory = replicaDirectory.str();
+
     uniqueName = tokens[tokens.size() - 1];
 #else
     uniqueName = uniqueForFileIO;

@@ -41,6 +41,7 @@ ConfigSetup::ConfigSetup(void)
   in.restart.recalcTrajectory = false;
   in.restart.restartFromCheckpoint = false;
   in.prng.seed = UINT_MAX;
+  in.prngParallelTempering.seed = UINT_MAX;
   sys.elect.readEwald = false;
   sys.elect.readElect = false;
   sys.elect.readCache = false;
@@ -58,6 +59,9 @@ ConfigSetup::ConfigSetup(void)
   sys.step.adjustment = ULONG_MAX;
   sys.step.pressureCalcFreq = ULONG_MAX;
   sys.step.pressureCalc = true;
+  sys.step.parallelTempFreq = ULONG_MAX;
+  sys.step.parallelTemperingAttemptsPerExchange = 0;
+  sys.step.pressureCalc = false;
   in.ffKind.numOfKinds = 0;
   sys.exclude.EXCLUDE_KIND = UINT_MAX;
   in.prng.kind = "";
@@ -193,6 +197,10 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       in.prng.kind = line[1];
       if("RANDOM" == line[1])
         printf("%-40s %-s \n", "Info: Random seed", "Active");
+    } else if(CheckString(line[0], "PRNG_ParallelTempering")) {
+      in.prngParallelTempering.kind = line[1];
+      if("RANDOM" == line[1])
+        printf("%-40s %-s \n", "Info: Random seed", "Active");
     } else if(CheckString(line[0], "ParaTypeCHARMM")) {
       if(checkBool(line[1])) {
         in.ffKind.numOfKinds++;
@@ -233,14 +241,22 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         std::cout << "Error: Simulation requires " << BOX_TOTAL << " PDB file(s)!\n";
         exit(EXIT_FAILURE);
       }
-      in.files.pdb.name[boxnum] = line[2];
+      if (multisim != NULL && multisim->restart){
+        in.files.pdb.name[boxnum] = multisim->pathToReplicaDirectory + line[2];
+      } else {
+        in.files.pdb.name[boxnum] = line[2];
+      }
     } else if(CheckString(line[0], "Structure")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {
         std::cout << "Error: Simulation requires " << BOX_TOTAL << " PSF file(s)!\n";
         exit(EXIT_FAILURE);
       }
-      in.files.psf.name[boxnum] = line[2];
+      if (multisim != NULL && multisim->restart){
+        in.files.psf.name[boxnum] = multisim->pathToReplicaDirectory + line[2];
+      } else {
+        in.files.psf.name[boxnum] = line[2];
+      }
     }
 #if ENSEMBLE == GEMC
     else if(CheckString(line[0], "GEMC")) {
@@ -483,6 +499,25 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         printf("%-40s %-lu \n", "Info: Pressure calculation frequency",
                sys.step.pressureCalcFreq);
       }
+    } else if(CheckString(line[0], "ParallelTemperingFreq")) {
+      sys.step.parallelTemp = checkBool(line[1]);
+      if(line.size() == 3)
+        sys.step.parallelTempFreq = stringtoi(line[2]);
+
+      if(sys.step.parallelTemp && (line.size() == 2)) {
+        std::cout << "Error: Parallel Tempering frequency is not specified!\n";
+        exit(EXIT_FAILURE);
+      }
+      if(!sys.step.parallelTemp)
+        printf("%-40s %-s \n", "Info: Parallel Tempering", "Inactive");
+      else {
+        printf("%-40s %-lu \n", "Info: Parallel Tempering frequency",
+               sys.step.parallelTempFreq);
+      }
+    } if(CheckString(line[0], "ParallelTemperingAttemptsPerExchange")) {
+      sys.step.parallelTemperingAttemptsPerExchange = stringtoi(line[1]);
+      printf("%-40s %d \n", "Info: Number of Attempts Per Exchange Move",
+        sys.step.parallelTemperingAttemptsPerExchange);
     } else if(CheckString(line[0], "DisFreq")) {
       sys.moves.displace = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Displacement move frequency",
@@ -1002,11 +1037,22 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
     }
 #endif
     else if(CheckString(line[0], "Random_Seed")) {
-      in.prng.seed = stringtoi(line[1]);
+      if (line.size() > 2 && multisim != NULL) {
+        in.prng.seed = stringtoi(line[multisim->worldRank + 1]);
+      } else {
+        in.prng.seed = stringtoi(line[1]);
+      }
       if("INTSEED" == in.prng.kind)
         printf("%-40s %-s \n", "Info: Constant seed", "Active");
       else
         printf("Warning: Constant seed set, but will be ignored.\n");
+    } 
+    else if(CheckString(line[0], "ParallelTempering_Seed")) {
+      in.prngParallelTempering.seed = stringtoi(line[1]);
+      if("INTSEED" == in.prngParallelTempering.kind)
+        printf("%-40s %-s \n", "Info: Constant Parallel Tempering seed", "Active");
+      else
+        printf("Warning: Constant Parallel Tempering seed set, but will be ignored.\n");
     } else {
       std::cout << "Warning: Unknown input " << line[0] << "!" << std::endl;
     }

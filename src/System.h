@@ -110,6 +110,11 @@ public:
   PRNG prng;
   Random123Wrapper r123wrapper;
 
+  #if GOMC_LIB_MPI
+  PRNG  prngParallelTemp;
+  #endif
+
+
   CheckpointSetup checkpointSet;
 
   //Procedure to run once move is picked... can also be called directly for

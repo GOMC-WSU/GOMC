@@ -27,9 +27,10 @@ CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
 #if GOMC_LIB_MPI
-  coordCurrRef(sys.coordinates), filename(pathToReplicaDirectory + "checkpoint.dat")
+  coordCurrRef(sys.coordinates),
+  prngPTRef(sys.prngParallelTemp)
 #else
-  coordCurrRef(sys.coordinates), filename("checkpoint.dat")
+  coordCurrRef(sys.coordinates)
 #endif
 {
   outputFile = NULL;
@@ -40,6 +41,11 @@ void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
 {
   enableOutCheckpoint = output.checkpoint.enable;
   stepsPerCheckpoint = output.checkpoint.frequency;
+#if GOMC_LIB_MPI
+  filename = pathToReplicaDirectory + "checkpoint.dat";
+#else
+  filename = "checkpoint.dat";
+#endif
 }
 
 void CheckpointOutput::DoOutput(const ulong step)
@@ -49,6 +55,9 @@ void CheckpointOutput::DoOutput(const ulong step)
     printStepNumber(step);
     printBoxDimensionsData();
     printRandomNumbers();
+    #if GOMC_LIB_MPI
+    printRandomNumbersParallelTempering();
+    #endif
     printCoordinates();
     printMoleculeLookupData();
     printMoveSettingsData();
@@ -107,6 +116,34 @@ void CheckpointOutput::printRandomNumbers()
   
   delete[] saveArray;
 }
+
+#if GOMC_LIB_MPI
+void CheckpointOutput::printRandomNumbersParallelTempering()
+{
+  // First let's save the state array inside prng
+  // the length of the array is 624
+  // there is a save function inside MersenneTwister.h file
+  // to read back we can use the load function
+  const int N = 624;
+  uint32_t* saveArray = new uint32_t[N];
+  prngPTRef.GetGenerator()->save(saveArray);
+  for(int i = 0; i < N; i++) {
+    outputUintIn8Chars(saveArray[i]);
+  }
+
+  // Save the location of pointer in state
+  uint32_t location = prngPTRef.GetGenerator()->pNext -
+                      prngPTRef.GetGenerator()->state;
+  outputUintIn8Chars(location);
+
+  // save the "left" value so we can restore it later
+  outputUintIn8Chars(prngPTRef.GetGenerator()->left);
+
+  // let's save seedValue just in case
+  // not sure if that is used or not, or how important it is
+  outputUintIn8Chars(prngPTRef.GetGenerator()->seedValue);
+}
+#endif
 
 void CheckpointOutput::printCoordinates()
 {

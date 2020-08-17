@@ -14,6 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BasicTypes.h"
 #include "GOMC_Config.h"    //For PT
 #include "ParallelTemperingPreprocessor.h"
+#include "ParallelTemperingUtilities.h"
 
 class Simulation
 {
@@ -37,6 +38,12 @@ private:
   std::vector<ulong> frameSteps;
   uint remarksCount;
   ulong startStep;
+  MultiSim const*const& ms;
+  #if GOMC_LIB_MPI
+  ParallelTemperingUtilities * PTUtils;
+  vector<bool> exchangeResults;
+  int parity;
+  #endif
 };
 
 #endif /*SIMULATION_H*/

@@ -36,6 +36,8 @@ public:
   bool checkIfValidRank();
   bool checkIfParallelTempering(const char *fileName);
   void checkIfValid(const char *fileName);
+  bool checkIfRestart(const char *fileName);
+  bool checkIfRestartFromCheckpoint(const char *fileName);
   int getNumberOfReplicas(const char *fileName);
   std::string getMultiSimFolderName(const char *fileName);
   std::string getTemperature(const char *fileName, int worldRank);
@@ -43,13 +45,17 @@ public:
   std::string setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature);
   std::string setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature, std::string chemPot);
   std::string mkdirWrapper(std::string multisimDirectoryName, std::string replicaDirectoryName);
-  bool CheckString(string str1, string str2);
+  bool checkString(string str1, string str2);
+  bool checkBool(string str);
+
 private:
   friend class MultiSim;
   std::string inputFileStringMPI;
   fstream inputFileReaderMPI;
   std::string pathToReplicaDirectory;
   int worldSize, worldRank;
+  bool restartFromCheckpoint;
+  bool restart;
 
 #endif
 
@@ -61,6 +67,8 @@ public:
   explicit MultiSim(ParallelTemperingPreprocessor & pt);
   const int worldSize, worldRank;
   const std::string pathToReplicaDirectory;
+  bool restart, restartFromCheckpoint;
+  FILE * fplog;
 private:
 };
 #endif /*ParallelTemperingPreprocessor_H*/

@@ -15,7 +15,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #define EPSILON 0.001
 
-Simulation::Simulation(char const*const configFileName, MultiSim const*const& multisim)
+Simulation::Simulation(char const*const configFileName, MultiSim const*const& multisim):ms(multisim)
 {
   startStep = 0;
   //NOTE:
@@ -44,6 +44,10 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
   if(totalSteps == 0) {
     frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
   }
+#if GOMC_LIB_MPI
+  PTUtils = set.config.sys.step.parallelTemp ? new ParallelTemperingUtilities(ms, *system, *staticValues, set.config.sys.step.parallelTempFreq, set.config.sys.step.parallelTemperingAttemptsPerExchange): NULL;
+  exchangeResults.resize(ms->worldSize, false);
+#endif
 }
 
 Simulation::~Simulation()
@@ -84,6 +88,35 @@ void Simulation::RunSimulation(void)
         system->potential = system->calcEnergy.SystemTotal();
       }
     }
+    
+  #if GOMC_LIB_MPI
+    // 
+    if(staticValues->simEventFreq.parallelTemp && step > cpu->equilSteps && step % staticValues->simEventFreq.parallelTempFreq == 0){
+
+      int maxSwap = 0;
+      /* Number of rounds of exchanges needed to deal with any multiple
+      * exchanges. */
+      /* Where each replica ends up after the exchange attempt(s). */
+      /* The order in which multiple exchanges will occur. */
+      bool bThisReplicaExchanged = false;
+
+      system->potential = system->calcEnergy.SystemTotal();
+      PTUtils->evaluateExchangeCriteria(step);
+      PTUtils->prepareToDoExchange(ms->worldRank, &maxSwap, &bThisReplicaExchanged);
+      PTUtils->conductExchanges(system->coordinates, system->com, ms, maxSwap, bThisReplicaExchanged);   
+      system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
+      if (staticValues->forcefield.ewald){
+        for(int box = 0; box < BOX_TOTAL; box++){
+          system->calcEwald->BoxReciprocalSetup(box, system->coordinates);
+          system->potential.boxEnergy[box].recip = system->calcEwald->BoxReciprocal(box);
+          system->calcEwald->UpdateRecip(box);
+        }
+      }
+      system->potential = system->calcEnergy.SystemTotal();
+
+    }
+
+  #endif
 
 #ifndef NDEBUG
     if((step + 1) % 1000 == 0)
@@ -95,6 +128,10 @@ void Simulation::RunSimulation(void)
   }
   system->PrintAcceptance();
   system->PrintTime();
+  #if GOMC_LIB_MPI
+    if (staticValues->simEventFreq.parallelTemp)
+      PTUtils->print_replica_exchange_statistics(ms->fplog);
+  #endif
 }
 
 bool Simulation::RecalculateAndCheck(void)

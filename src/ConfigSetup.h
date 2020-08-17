@@ -102,7 +102,7 @@ struct InFiles {
 //Input section of config file data.
 struct Input {
   RestartSettings restart;
-  PRNGKind prng;
+  PRNGKind prng, prngParallelTempering;
   FFKind ffKind;
   InFiles files;
 };
@@ -159,8 +159,9 @@ struct GEMCKind {
 
 
 struct Step {
-  ulong total, equil, adjustment, pressureCalcFreq;
+  ulong total, equil, adjustment, pressureCalcFreq, parallelTempFreq, parallelTemperingAttemptsPerExchange;
   bool pressureCalc;
+  bool parallelTemp;
 };
 
 //Holds the percentage of each kind of move for this ensemble.
