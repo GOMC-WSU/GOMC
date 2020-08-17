@@ -85,12 +85,9 @@ __device__ inline void ApplyRotation(double &x, double &y, double &z,
   }
 
   if(atomNumber == 4) {
-    printf("GPU: %.15lf, %.15lf, %.15lf\n", cross[0][0], cross[0][1], cross[0][2]);
-    printf("GPU: %.15lf, %.15lf, %.15lf\n", cross[1][0], cross[1][1], cross[1][2]);
-    printf("GPU: %.15lf, %.15lf, %.15lf\n", cross[2][0], cross[2][1], cross[2][2]);
-    printf("GPU: %.15lf, %.15lf, %.15lf\n", tensor[0][0], tensor[0][1], tensor[0][2]);
-    printf("GPU: %.15lf, %.15lf, %.15lf\n", tensor[1][0], tensor[1][1], tensor[1][2]);
-    printf("GPU: %.15lf, %.15lf, %.15lf\n", tensor[2][0], tensor[2][1], tensor[2][2]);
+    printf("GPU: %.15lf, %.15lf, %.15lf\n", matrix[0][0], matrix[0][1], matrix[0][2]);
+    printf("GPU: %.15lf, %.15lf, %.15lf\n", matrix[1][0], matrix[1][1], matrix[1][2]);
+    printf("GPU: %.15lf, %.15lf, %.15lf\n", matrix[2][0], matrix[2][1], matrix[2][2]);
   }
 
   // unwrap molecule
