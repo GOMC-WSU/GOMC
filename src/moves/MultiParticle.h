@@ -492,6 +492,19 @@ inline void MultiParticle::CalculateTrialDistRot()
   double t_max = moveSetRef.GetTMAX(bPick);
   XYZ lbf; // lambda * BETA * force * maxTranslate
   XYZ lbt; // lambda * BETA * torque * maxRotation
+
+#ifdef RECORD_DEBUG
+  record_debug_macro_len(molForceRef.x, molForceRef.Count());
+  record_debug_macro_len(molForceRef.y, molForceRef.Count());
+  record_debug_macro_len(molForceRef.z, molForceRef.Count());
+  record_debug_macro_len(molTorqueRef.x, molTorqueRef.Count());
+  record_debug_macro_len(molTorqueRef.y, molTorqueRef.Count());
+  record_debug_macro_len(molTorqueRef.z, molTorqueRef.Count());
+  record_debug_macro_len(molForceRecRef.x, molForceRecRef.Count());
+  record_debug_macro_len(molForceRecRef.y, molForceRecRef.Count());
+  record_debug_macro_len(molForceRecRef.z, molForceRecRef.Count());
+#endif
+
   for(m = 0; m < moleculeIndex.size(); m++) {
     molIndex = moleculeIndex[m];
 
