@@ -378,8 +378,7 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
   }
 
   if(atomNumber == 0) {
-    print_tuple("GPU", r_max, r_max, r_max);
-    printf("GPU: %d\n", molIndex);
+    print_tuple("GPU", lbtx, lbty, lbtz);
   }
 
   // perform the rot on the coordinates
