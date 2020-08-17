@@ -278,6 +278,9 @@ inline uint MultiParticle::Transform()
   record_debug_macro_len(newMolsPos.x, newMolsPos.Count());
   record_debug_macro_len(newMolsPos.y, newMolsPos.Count());
   record_debug_macro_len(newMolsPos.z, newMolsPos.Count());
+  record_debug_macro_len(newCOMs.x, newCOMs.Count());
+  record_debug_macro_len(newCOMs.y, newCOMs.Count());
+  record_debug_macro_len(newCOMs.z, newCOMs.Count());
   if(moveType[0] == mp::MPALLROTATE) {
     record_debug_macro_len(molTorqueRef.x, molTorqueRef.Count());
     record_debug_macro_len(molTorqueRef.y, molTorqueRef.Count());
