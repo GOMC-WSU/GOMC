@@ -16,6 +16,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "cub/cub.cuh"
 #include <vector>
 
+#define THREADS_PER_BLOCK 256
+
 using namespace cub;
 
 #define FULL_MASK 0xffffffff
@@ -321,7 +323,7 @@ void CallBoxForceReciprocalGPU(
   }
 
   // calculate block and grid sizes
-  int threadsPerBlock = 256;
+  int threadsPerBlock = THREADS_PER_BLOCK;
   int blocksPerGrid = numberOfAtomsInsideBox;
 
   CUMALLOC((void **) &gpu_particleCharge, particleCharge.size() * sizeof(double));
@@ -441,7 +443,7 @@ __global__ void BoxForceReciprocalGPU(
   int box
 )
 {
-  __shared__ double shared[24];
+  __shared__ double shared[THREADS_PER_BLOCK/32*3];
   int laneID = threadIdx.x % 32;
   int warpID = threadIdx.x / 32;
   int particleID = blockIdx.x;
@@ -506,7 +508,7 @@ __global__ void BoxForceReciprocalGPU(
   // first thread inside the block will write back to global memory
   __syncthreads();
   if(threadIdx.x == 0) {
-    for(int w=1; w<8; w++) {
+    for(int w=1; w<THREADS_PER_BLOCK/32; w++) {
       forceX += shared[w*3+0];
       forceY += shared[w*3+1];
       forceZ += shared[w*3+2];
