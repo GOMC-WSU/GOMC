@@ -17,6 +17,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 // e.g.
 // cout << imie(variable) imie(another_variable)
 #define imie(...) " [" << #__VA_ARGS__ ": " << std::setprecision(15) << (__VA_ARGS__) << "] "
+#define print_tuple(s,x,y,z) printf(s": %.15lf, %.15lf, %.15lf\n",x,y,z)
 
 #define record_debug_macro(x) record_debug(x, __FILE__, __LINE__);
 #define record_debug_macro_len(x,len) record_debug(x, len, __FILE__, __LINE__);
@@ -70,10 +71,6 @@ inline void record_debug(double * x, uint len, std::string filename, int linenum
     out << "," << std::setprecision(12) << x[i];
   }
   out << "\n";
-}
-
-__host__ __device__ inline void print_tuple(std::string s, double x, double y, double z) {
-  printf("%s: %.15lf, %.15lf, %.15lf\n", s.c_str(), x, y, z);
 }
 
 //******************************************************************************
