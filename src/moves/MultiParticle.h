@@ -334,7 +334,6 @@ inline uint MultiParticle::Transform()
       TranslateForceBiased(moleculeIndex[m]);
     }
   }
-  printf("CPU: %.15lf, %.15lf, %.15lf\n", newMolsPos.x[0], newMolsPos.y[0], newMolsPos.z[0]);
 #endif
 #ifdef RECORD_DEBUG
   record_debug_macro_len(newMolsPos.x, newMolsPos.Count());
@@ -507,9 +506,9 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
     num.z = max * rr;
   }
 
-  // if(molIndex == 1) {
-  //   printf("CPU: %.15lf, %.15lf, %.15lf\n", num.x, num.y, num.z);
-  // }
+  if(molIndex == 0) {
+    print_tuple("CPU", num.x, num.y, num.z);
+  }
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
     std::cout << "Trial Displacement exceed half of the box length in Multiparticle move.\n";

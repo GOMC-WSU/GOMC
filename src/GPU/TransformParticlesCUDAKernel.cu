@@ -244,8 +244,6 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
   cudaMemcpy(newMolPos.x, vars->gpu_x, atomCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(newMolPos.y, vars->gpu_y, atomCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(newMolPos.z, vars->gpu_z, atomCount * sizeof(double), cudaMemcpyDeviceToHost);
-  cudaDeviceSynchronize();
-  printf("GPU: %.15lf, %.15lf, %.15lf\n", newMolPos.x[0], newMolPos.y[0], newMolPos.z[0]);
   cudaFree(gpu_particleMol);
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
@@ -377,6 +375,10 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
   } else {
     double rr = randomGPU(molIndex * 3 + 2, step, seed) * 2.0 - 1.0;
     rotz = r_max * rr;
+  }
+
+  if(atomNumber == 0) {
+    print_tuple("GPU", rotx, roty, rotz);
   }
 
   // perform the rot on the coordinates
