@@ -458,7 +458,6 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   double accept = MPCoeff * uBoltz;
   double pr = prng();
-  std::cout << imie(MPCoeff) imie(uBoltz) imie(accept) imie(pr);
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
   if(result) {
     sysPotRef = sysPotNew;
@@ -507,9 +506,9 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
     num.z = max * rr;
   }
 
-  // if(molIndex == 1) {
-  //   printf("CPU: %.15lf, %.15lf, %.15lf\n", max, max, max);
-  // }
+  if(molIndex == 1) {
+    printf("CPU: %.15lf, %.15lf, %.15lf\n", num.x, num.y, num.z);
+  }
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
     std::cout << "Trial Displacement exceed half of the box length in Multiparticle move.\n";
