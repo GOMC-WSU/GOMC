@@ -516,7 +516,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       }
     } if(CheckString(line[0], "ParallelTemperingAttemptsPerExchange")) {
       sys.step.parallelTemperingAttemptsPerExchange = stringtoi(line[1]);
-      printf("%-40s %d \n", "Info: Number of Attempts Per Exchange Move",
+      printf("%-40s %lu \n", "Info: Number of Attempts Per Exchange Move",
         sys.step.parallelTemperingAttemptsPerExchange);
     } else if(CheckString(line[0], "DisFreq")) {
       sys.moves.displace = stringtod(line[1]);

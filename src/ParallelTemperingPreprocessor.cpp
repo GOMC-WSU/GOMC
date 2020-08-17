@@ -43,7 +43,7 @@ ParallelTemperingPreprocessor::ParallelTemperingPreprocessor( int argc,
       }
     }
     //OPEN FILE
-    inputFileReaderMPI.open(inputFileStringMPI.c_str(), ios::in | ios::out);
+    inputFileReaderMPI.open(inputFileStringMPI.c_str(), std::ios::in | std::ios::out);
 
     //CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
     if (!inputFileReaderMPI.is_open()) {
@@ -129,7 +129,7 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName)
   std::vector<std::string> line;
   reader.Open(fileName);
   int numberOfTemperatures = 0;
-  vector < int > numberOfChemPots;
+  std::vector < int > numberOfChemPots;
   int numberOfLambdaCoulombs = 0;
   int numberOfLambdaVDWs = 0;
 
@@ -149,7 +149,7 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName)
     line.clear();
   }
 
-  for( vector < int >::iterator it = numberOfChemPots.begin(); it != numberOfChemPots.end(); ++it ) {
+  for( std::vector < int >::iterator it = numberOfChemPots.begin(); it != numberOfChemPots.end(); ++it ) {
     if (*it > 1 && numberOfTemperatures > 1 && *it != numberOfTemperatures) {
       std::cout << "Error: Unequal number of temperatures and chemical potentials in Multicanonical!\n";
       std::cout << "If you only want to only sample mu-space or temperature-space\n";
@@ -176,7 +176,7 @@ int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName)
   std::vector<std::string> line;
   reader.Open(fileName);
   int numberOfTemperatures = 0;
-  vector < int > numberOfChemPots;
+  std::vector < int > numberOfChemPots;
   int numberOfLambdaCoulombs = 0;
   int numberOfLambdaVDWs = 0;
 
@@ -198,7 +198,7 @@ int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName)
     line.clear();
   }
 
-  for( vector < int >::iterator it = numberOfChemPots.begin(); it != numberOfChemPots.end(); ++it ) {
+  for( std::vector < int >::iterator it = numberOfChemPots.begin(); it != numberOfChemPots.end(); ++it ) {
     numberOfReplicas = std::max(numberOfReplicas, *it);
   }
   numberOfReplicas = std::max(numberOfReplicas, numberOfTemperatures);
@@ -213,7 +213,7 @@ std::string ParallelTemperingPreprocessor::getMultiSimFolderName(const char *fil
   InputFileReader reader;
   std::vector<std::string> line;
   reader.Open(fileName);
-  string folderName;
+  std::string folderName;
 
   while(reader.readNextLine(line)) {
     if(line.size() == 0) {
@@ -245,7 +245,7 @@ std::string ParallelTemperingPreprocessor::getTemperature(const char *fileName, 
   InputFileReader reader;
   std::vector<std::string> line;
   reader.Open(fileName);
-  string temperature;
+  std::string temperature;
 
 
   while(reader.readNextLine(line)) {
@@ -361,7 +361,7 @@ std::string ParallelTemperingPreprocessor::setupReplicaDirectoriesAndRedirectSTD
   return mkdirWrapper(multiSimTitle, replicaDirectory);
 }
 
-std::string ParallelTemperingPreprocessor::mkdirWrapper(std::string multisimDirectoryName, string replicaDirectoryName)
+std::string ParallelTemperingPreprocessor::mkdirWrapper(std::string multisimDirectoryName, std::string replicaDirectoryName)
 {
   std::stringstream replicaStream;
   std::stringstream replicaStreamErr;
@@ -396,7 +396,7 @@ std::string ParallelTemperingPreprocessor::mkdirWrapper(std::string multisimDire
 
 }
 
-bool ParallelTemperingPreprocessor::checkString(string str1, string str2)
+bool ParallelTemperingPreprocessor::checkString(std::string str1, std::string str2)
 {
   for(int k = 0; k < str1.length(); k++) {
     str1[k] = toupper(str1[k]);
@@ -409,7 +409,7 @@ bool ParallelTemperingPreprocessor::checkString(string str1, string str2)
   return (str1 == str2);
 }
 
-bool ParallelTemperingPreprocessor::checkBool(string str)
+bool ParallelTemperingPreprocessor::checkBool(std::string str)
 {
   int k;
   // capitalize string

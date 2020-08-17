@@ -45,13 +45,13 @@ public:
   std::string setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature);
   std::string setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature, std::string chemPot);
   std::string mkdirWrapper(std::string multisimDirectoryName, std::string replicaDirectoryName);
-  bool checkString(string str1, string str2);
-  bool checkBool(string str);
+  bool checkString(std::string str1, std::string str2);
+  bool checkBool(std::string str);
 
 private:
   friend class MultiSim;
   std::string inputFileStringMPI;
-  fstream inputFileReaderMPI;
+  std::fstream inputFileReaderMPI;
   std::string pathToReplicaDirectory;
   int worldSize, worldRank;
   bool restartFromCheckpoint;
