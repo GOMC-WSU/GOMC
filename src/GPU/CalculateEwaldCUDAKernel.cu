@@ -16,7 +16,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "cub/cub.cuh"
 #include <vector>
 
-#define THREADS_PER_BLOCK 512
+#define THREADS_PER_BLOCK 128
 
 using namespace cub;
 
