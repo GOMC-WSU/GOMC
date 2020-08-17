@@ -213,11 +213,6 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
                                 moveType, bPick);
     }
   }
-
-#ifndef GOMC_CUDA
-  // GPU does this part in its kernels
-  CalculateTrialDistRot();
-#endif
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
   return state;
@@ -269,10 +264,6 @@ inline void MultiParticle::PrepCFCMC(const uint box)
                                 moveType, bPick);
     }
   }
-#ifndef GOMC_CUDA
-  // GPU does this part in its kernels
-  CalculateTrialDistRot();
-#endif
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
 }
@@ -320,6 +311,7 @@ inline uint MultiParticle::Transform()
                               newMolsPos, newCOMs, lambda * BETA);
   }
 #else
+  CalculateTrialDistRot();
   // move particles according to force and torque and store them in the new pos
 #ifdef _OPENMP
   #pragma omp parallel for default(shared) private(m)
@@ -531,18 +523,6 @@ inline void MultiParticle::CalculateTrialDistRot()
   XYZ lbf; // lambda * BETA * force * maxTranslate
   XYZ lbt; // lambda * BETA * torque * maxRotation
 
-#ifdef RECORD_DEBUG
-  record_debug_macro_len(molForceRef.x, molForceRef.Count());
-  record_debug_macro_len(molForceRef.y, molForceRef.Count());
-  record_debug_macro_len(molForceRef.z, molForceRef.Count());
-  record_debug_macro_len(molTorqueRef.x, molTorqueRef.Count());
-  record_debug_macro_len(molTorqueRef.y, molTorqueRef.Count());
-  record_debug_macro_len(molTorqueRef.z, molTorqueRef.Count());
-  record_debug_macro_len(molForceRecRef.x, molForceRecRef.Count());
-  record_debug_macro_len(molForceRecRef.y, molForceRecRef.Count());
-  record_debug_macro_len(molForceRecRef.z, molForceRecRef.Count());
-#endif
-
   for(m = 0; m < moleculeIndex.size(); m++) {
     molIndex = moleculeIndex[m];
 
@@ -555,18 +535,6 @@ inline void MultiParticle::CalculateTrialDistRot()
       t_k.Set(molIndex, CalcRandomTransform(lbf, t_max, molIndex));
     }
   }
-
-#ifdef RECORD_DEBUG
-  if(moveType[0]) {
-    record_debug_macro_len(r_k.x, r_k.Count());
-    record_debug_macro_len(r_k.y, r_k.Count());
-    record_debug_macro_len(r_k.z, r_k.Count());
-  } else {
-    record_debug_macro_len(t_k.x, t_k.Count());
-    record_debug_macro_len(t_k.y, t_k.Count());
-    record_debug_macro_len(t_k.z, t_k.Count());
-  }
-#endif
 }
 
 inline void MultiParticle::RotateForceBiased(uint molIndex)
@@ -616,9 +584,6 @@ inline void MultiParticle::TranslateForceBiased(uint molIndex)
   //set the new coordinate
   temp.CopyRange(newMolsPos, 0, start, len);
   newCOMs.Set(molIndex, newcom);
-  if(molIndex == 1) {
-
-  }
 }
 
 #endif
