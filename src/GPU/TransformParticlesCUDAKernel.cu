@@ -84,16 +84,17 @@ __device__ inline void ApplyRotation(double &x, double &y, double &z,
     }
   }
 
-  if(atomNumber == 4) {
-    printf("GPU: %.15lf, %.15lf, %.15lf\n", matrix[0][0], matrix[0][1], matrix[0][2]);
-    printf("GPU: %.15lf, %.15lf, %.15lf\n", matrix[1][0], matrix[1][1], matrix[1][2]);
-    printf("GPU: %.15lf, %.15lf, %.15lf\n", matrix[2][0], matrix[2][1], matrix[2][2]);
-  }
-
   // unwrap molecule
+  if(atomNumber == 4) {
+    printf("GPU: %.15lf, %.15lf, %.15lf\n", x, y, z);
+  }
   UnwrapPBC(x, comx, axx, axx/2.0);
   UnwrapPBC(y, comy, axy, axy/2.0);
   UnwrapPBC(z, comz, axz, axz/2.0);
+
+  if(atomNumber == 4) {
+    printf("GPU: %.15lf, %.15lf, %.15lf\n", x, y, z);
+  }
 
   // move particle to zero
   x -= comx;

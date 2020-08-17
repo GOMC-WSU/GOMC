@@ -556,12 +556,6 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
   TransformMatrix cross = TransformMatrix::CrossProduct(axis);
   TransformMatrix tensor = TransformMatrix::TensorProduct(axis);
   matrix = RotationMatrix::FromAxisAngle(rotLen, cross, tensor);
-  if(molIndex == 1) {
-    printf("CPU: %.15lf, %.15lf, %.15lf\n", matrix.matrix[0][0], matrix.matrix[0][1], matrix.matrix[0][2]);
-    printf("CPU: %.15lf, %.15lf, %.15lf\n", matrix.matrix[1][0], matrix.matrix[1][1], matrix.matrix[1][2]);
-    printf("CPU: %.15lf, %.15lf, %.15lf\n", matrix.matrix[2][0], matrix.matrix[2][1], matrix.matrix[2][2]);
-    
-  }
 
   XYZ center = newCOMs.Get(molIndex);
   uint start, stop, len;
@@ -570,7 +564,14 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
   // Copy the range into temporary array
   XYZArray temp(len);
   newMolsPos.CopyRange(temp, start, 0, len);
+  if(molIndex == 1) {
+    printf("CPU: %.15lf, %.15lf, %.15lf\n", temp.x[0], temp.y[0], temp.z[0]);
+  }
   boxDimRef.UnwrapPBC(temp, bPick, center);
+
+  if(molIndex == 1) {
+    printf("CPU: %.15lf, %.15lf, %.15lf\n", temp.x[0], temp.y[0], temp.z[0]);
+  }
 
   // Do Rotation
   for(uint p = 0; p < len; p++) {
