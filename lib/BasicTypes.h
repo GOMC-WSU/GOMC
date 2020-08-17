@@ -17,6 +17,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 // e.g.
 // cout << imie(variable) imie(another_variable)
 #define imie(...) " [" << #__VA_ARGS__ ": " << std::setprecision(15) << (__VA_ARGS__) << "] "
+#define print_tuple(s,x,y,z) printf(s": %.15lf, %.15lf, %.15lf\n",x,y,z)
 
 #define record_debug_macro(x) record_debug(x, __FILE__, __LINE__);
 #define record_debug_macro_len(x,len) record_debug(x, len, __FILE__, __LINE__);
@@ -43,6 +44,16 @@ inline void record_debug(std::vector<double> x, std::string filename, int linenu
 }
 
 inline void record_debug(std::vector<int> x, std::string filename, int linenumber) {
+  std::ofstream out;
+  out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
+  out << "vector|int," << x.size() << "," << filename << "," << linenumber;
+  for(int i=0; i<x.size(); i++) {
+    out << "," << std::setprecision(12) << x[i];
+  }
+  out << "\n";
+}
+
+inline void record_debug(std::vector<uint> x, std::string filename, int linenumber) {
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|int," << x.size() << "," << filename << "," << linenumber;

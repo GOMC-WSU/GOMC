@@ -75,12 +75,11 @@ public:
   XYZ Apply(const XYZ& pos) const;
 
 
-
   //returns the inverse=transpose of this matrix
   TransformMatrix Inverse() const;
 
 
-private:
+// private:
   static const uint N = 3;
   double matrix[N][N];
 

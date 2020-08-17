@@ -12,6 +12,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "StaticVals.h"
 #include <cmath>
 #include <fstream>
+#include "Random123Wrapper.h"
+#ifdef GOMC_CUDA
+#include "TransformParticlesCUDAKernel.cuh"
+#include "VariablesCUDA.cuh"
+#endif
 
 #define MIN_FORCE 1E-12
 #define MAX_FORCE 30
@@ -44,22 +49,29 @@ private:
   COM newCOMs;
   std::vector<uint> moveType, moleculeIndex;
   const MoleculeLookup& molLookup;
+#ifdef GOMC_CUDA
+  VariablesCUDA *cudaVars;
+  std::vector<int> particleMol;
+#endif
+  Random123Wrapper &r123wrapper;
+  const Molecules& mols;
 
   double GetCoeff();
   void CalculateTrialDistRot();
   void RotateForceBiased(uint molIndex);
   void TranslateForceBiased(uint molIndex);
   void SetMolInBox(uint box);
-  XYZ CalcRandomTransform(XYZ const &lb, double const max);
+  XYZ CalcRandomTransform(XYZ const &lb, double const max, uint molIndex);
   double CalculateWRatio(XYZ const &lb_new, XYZ const &lb_old, XYZ const &k,
                          double max);
 };
 
 inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   MoveBase(sys, statV),
+
   newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol),
-  molLookup(sys.molLookup)
+  molLookup(sys.molLookup), r123wrapper(sys.r123wrapper), mols(statV.mol)
 {
   molTorqueNew.Init(sys.com.Count());
   molTorqueRef.Init(sys.com.Count());
@@ -78,6 +90,20 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   for(uint b = 0; b < BOX_TOTAL; b++) {
     initMol[b] = false;
   }
+
+#ifdef GOMC_CUDA
+  cudaVars = sys.statV.forcefield.particles->getCUDAVars();
+
+  uint maxAtomInMol = 0;
+  for(uint m = 0; m < mols.count; ++m) {
+    const MoleculeKind& molKind = mols.GetKind(m);
+    if(molKind.NumAtoms() > maxAtomInMol)
+      maxAtomInMol = molKind.NumAtoms();
+    for(uint a = 0; a < molKind.NumAtoms(); ++a) {
+      particleMol.push_back(m);
+    }
+  }
+#endif
 }
 
 inline void MultiParticle::PrintAcceptKind()
@@ -171,7 +197,6 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
     //calculate short range energy and force for old positions
     calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
                        boxDimRef, bPick);
-
     if(typePick != mp::MPALLDISPLACE) {
       //Calculate Torque for old positions
       calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef,
@@ -179,8 +204,6 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
                                 moveType, bPick);
     }
   }
-
-  CalculateTrialDistRot();
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
   return state;
@@ -232,7 +255,6 @@ inline void MultiParticle::PrepCFCMC(const uint box)
                                 moveType, bPick);
     }
   }
-  CalculateTrialDistRot();
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
 }
@@ -243,7 +265,29 @@ inline uint MultiParticle::Transform()
   // individual particle.
   uint state = mv::fail_state::NO_FAIL;
   uint m;
-
+#ifdef GOMC_CUDA
+  // This kernel will calculate translation/rotation amount + shifting/rotating
+  if(moveType[0] == mp::MPALLROTATE) {
+    double r_max = moveSetRef.GetRMAX(bPick);
+    CallRotateParticlesGPU(cudaVars, moleculeIndex, r_max,
+                           molTorqueRef.x, molTorqueRef.y, molTorqueRef.z,
+                           r123wrapper.GetStep(), r123wrapper.GetSeedValue(),
+                           particleMol, atomForceRecNew.Count(),
+                           molForceRecNew.Count(), boxDimRef.GetAxis(bPick).x,
+                           boxDimRef.GetAxis(bPick).y, boxDimRef.GetAxis(bPick).z,
+                           newMolsPos, newCOMs, lambda * BETA);
+  } else {
+    double t_max = moveSetRef.GetTMAX(bPick);
+    CallTranslateParticlesGPU(cudaVars, moleculeIndex, t_max,
+                              molForceRef.x, molForceRef.y, molForceRef.z,
+                              r123wrapper.GetStep(), r123wrapper.GetSeedValue(),
+                              particleMol, atomForceRecNew.Count(),
+                              molForceRecNew.Count(), boxDimRef.GetAxis(bPick).x,
+                              boxDimRef.GetAxis(bPick).y, boxDimRef.GetAxis(bPick).z,
+                              newMolsPos, newCOMs, lambda * BETA);
+  }
+#else
+  CalculateTrialDistRot();
   // move particles according to force and torque and store them in the new pos
 #ifdef _OPENMP
   #pragma omp parallel for default(shared) private(m)
@@ -257,6 +301,7 @@ inline uint MultiParticle::Transform()
       TranslateForceBiased(moleculeIndex[m]);
     }
   }
+#endif
   return state;
 }
 
@@ -385,26 +430,29 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   moveSetRef.Update(mv::MULTIPARTICLE, result, step, bPick);
 }
 
-inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max)
+inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, uint molIndex)
 {
   XYZ lbmax = lb * max;
   XYZ num;
   if(std::abs(lbmax.x) > MIN_FORCE && std::abs(lbmax.x) < MAX_FORCE) {
-    num.x = log(exp(-1.0 * lbmax.x) + 2 * prng() * sinh(lbmax.x)) / lb.x;
+    num.x = log(exp(-1.0 * lbmax.x) + 2 * r123wrapper(molIndex*3+0) * sinh(lbmax.x)) / lb.x;
   } else {
-    num.x = prng.Sym(max);
+    double rr = r123wrapper(molIndex*3+0) * 2.0 - 1.0;
+    num.x = max * rr;
   }
 
   if(std::abs(lbmax.y) > MIN_FORCE && std::abs(lbmax.y) < MAX_FORCE) {
-    num.y = log(exp(-1.0 * lbmax.y) + 2 * prng() * sinh(lbmax.y)) / lb.y;
+    num.y = log(exp(-1.0 * lbmax.y) + 2 * r123wrapper(molIndex*3+1) * sinh(lbmax.y)) / lb.y;
   } else {
-    num.y = prng.Sym(max);
+    double rr = r123wrapper(molIndex*3+1) * 2.0 - 1.0;
+    num.y = max * rr;
   }
 
   if(std::abs(lbmax.z) > MIN_FORCE && std::abs(lbmax.z) < MAX_FORCE) {
-    num.z = log(exp(-1.0 * lbmax.z) + 2 * prng() * sinh(lbmax.z)) / lb.z;
+    num.z = log(exp(-1.0 * lbmax.z) + 2 * r123wrapper(molIndex*3+2) * sinh(lbmax.z)) / lb.z;
   } else {
-    num.z = prng.Sym(max);
+    double rr = r123wrapper(molIndex*3+2) * 2.0 - 1.0;
+    num.z = max * rr;
   }
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
@@ -418,7 +466,6 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max)
   }
 
   // We can possible bound them
-
   return num;
 }
 
@@ -429,16 +476,17 @@ inline void MultiParticle::CalculateTrialDistRot()
   double t_max = moveSetRef.GetTMAX(bPick);
   XYZ lbf; // lambda * BETA * force * maxTranslate
   XYZ lbt; // lambda * BETA * torque * maxRotation
+
   for(m = 0; m < moleculeIndex.size(); m++) {
     molIndex = moleculeIndex[m];
 
     if(moveType[molIndex]) { // rotate
       lbt = molTorqueRef.Get(molIndex) * lambda * BETA;
-      r_k.Set(molIndex, CalcRandomTransform(lbt, r_max));
+      r_k.Set(molIndex, CalcRandomTransform(lbt, r_max, molIndex));
     } else { // displace
       lbf = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) *
             lambda * BETA;
-      t_k.Set(molIndex, CalcRandomTransform(lbf, t_max));
+      t_k.Set(molIndex, CalcRandomTransform(lbf, t_max, molIndex));
     }
   }
 }
@@ -449,7 +497,10 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
   double rotLen = rot.Length();
   RotationMatrix matrix;
 
-  matrix = RotationMatrix::FromAxisAngle(rotLen, rot * (1.0 / rotLen));
+  XYZ axis = rot * (1.0 / rotLen);
+  TransformMatrix cross = TransformMatrix::CrossProduct(axis);
+  TransformMatrix tensor = TransformMatrix::TensorProduct(axis);
+  matrix = RotationMatrix::FromAxisAngle(rotLen, cross, tensor);
 
   XYZ center = newCOMs.Get(molIndex);
   uint start, stop, len;
@@ -463,7 +514,8 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
   // Do Rotation
   for(uint p = 0; p < len; p++) {
     temp.Add(p, -center);
-    temp.Set(p, matrix.Apply(temp[p]));
+    XYZ newPosition = matrix.Apply(temp[p]);
+    temp.Set(p, newPosition);
     temp.Add(p, center);
   }
   boxDimRef.WrapPBC(temp, bPick);
