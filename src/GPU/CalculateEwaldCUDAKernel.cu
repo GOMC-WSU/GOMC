@@ -19,6 +19,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 using namespace cub;
 
 #define IMAGES_PER_BLOCK 64
+#define PARTICLE_PER_BLOCK 64
 
 #define FULL_MASK 0xffffffff
 
@@ -76,8 +77,8 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
              cudaMemcpyHostToDevice);
   checkLastErrorCUDA(__FILE__, __LINE__);
 
-  threadsPerBlock = 256;
-  blocksPerGrid = (int)(imageSize / threadsPerBlock) + 1;
+  dim3 threadsPerBlock(256, 1, 1);
+  dim3 blocksPerGrid((int)(imageSize / threadsPerBlock) + 1, (int)(atomNumber / PARTICLE_PER_BLOCK) + 1, 1);
   BoxReciprocalSetupGPU <<< blocksPerGrid, threadsPerBlock>>>(
     vars->gpu_x,
     vars->gpu_y,
@@ -124,6 +125,70 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
   CUFREE(gpu_energyRecip);
   CUFREE(gpu_final_energyRecip);
   CUFREE(d_temp_storage);
+}
+
+__global__ void BoxReciprocalSetupGPU(double *gpu_x,
+                                      double *gpu_y,
+                                      double *gpu_z,
+                                      double *gpu_kx,
+                                      double *gpu_ky,
+                                      double *gpu_kz,
+                                      double atomNumber,
+                                      double *gpu_particleCharge,
+                                      double *gpu_sumRnew,
+                                      double *gpu_sumInew,
+                                      int imageSize)
+{
+  __shared__ double shared_coords[PARTICLE_PER_BLOCK*3];
+  int threadID = blockIdx.x * blockDim.x + threadIdx.x;
+  int offset_coordinates_index = blockIdx.y * PARTICLE_PER_BLOCK;
+  double sumR = 0.0, sumI = 0.0;
+
+  if(threadIdx.x < PARTICLE_PER_BLOCK) {
+    shared_coords[threadIdx.x * 3    ] = gpu_x[offset_coordinates_index + threadIdx.x];
+    shared_coords[threadIdx.x * 3 + 1] = gpu_y[offset_coordinates_index + threadIdx.x];
+    shared_coords[threadIdx.x * 3 + 2] = gpu_z[offset_coordinates_index + threadIdx.x];
+  }
+
+  if(threadID >= imageSize)
+    return;
+  int i;
+  double dotP;
+
+  // TODO SET SUM ARRAYS TO ZERO
+  if(blockIdx.y == 0) {
+    gpu_sumRnew[threadID] = 0.0;
+    gpu_sumInew[threadID] = 0.0;
+  }
+
+  __syncthreads();
+  for(particleID = 0; particleID < PARTICLE_PER_BLOCK; particleID++) {
+    dotP = DotProductGPU(gpu_kx[threadID], gpu_ky[threadID], gpu_kz[threadID],
+      shared_coords[particleID * 3], shared_coords[particleID * 3 + 1],
+      shared_coords[particleID * 3 + 2]);
+    double dotsin, dotcos;
+    sincos(dot, &dotsin, &dotcos);
+    sumR += gpu_particleCharge[particleID + offset_coordinates_index] * dotsin;
+    sumI += gpu_particleCharge[particleID + offset_coordinates_index] * dotcos;
+  }
+
+  atomicAdd(&gpu_sumRnew[particleID + offset_coordinates_index], sumR);
+  atomicAdd(&gpu_sumInew[particleID + offset_coordinates_index], sumI);
+}
+
+__global__ void BoxReciprocalGPU(double *gpu_prefact,
+                                 double *gpu_sumRnew,
+                                 double *gpu_sumInew,
+                                 double *gpu_energyRecip,
+                                 int imageSize)
+{
+  int threadID = blockIdx.x * blockDim.x + threadIdx.x;
+  if(threadID >= imageSize)
+    return;
+
+  gpu_energyRecip[threadID] = ((gpu_sumRnew[threadID] * gpu_sumRnew[threadID] +
+                                gpu_sumInew[threadID] * gpu_sumInew[threadID]) *
+                               gpu_prefact[threadID]);
 }
 
 void CallMolReciprocalGPU(VariablesCUDA *vars,
@@ -604,49 +669,6 @@ __global__ void MolReciprocalGPU(double *gpu_cx, double *gpu_cy, double *gpu_cz,
                                    gpu_sumInew[threadID] *
                                    gpu_sumInew[threadID]) *
                                   gpu_prefactRef[threadID]);
-}
-
-__global__ void BoxReciprocalSetupGPU(double *gpu_x,
-                                      double *gpu_y,
-                                      double *gpu_z,
-                                      double *gpu_kx,
-                                      double *gpu_ky,
-                                      double *gpu_kz,
-                                      double atomNumber,
-                                      double *gpu_particleCharge,
-                                      double *gpu_sumRnew,
-                                      double *gpu_sumInew,
-                                      int imageSize)
-{
-  int threadID = blockIdx.x * blockDim.x + threadIdx.x;
-  if(threadID >= imageSize)
-    return;
-  int i;
-  double dotP;
-
-  gpu_sumRnew[threadID] = 0.0;
-  gpu_sumInew[threadID] = 0.0;
-  for(i = 0; i < atomNumber; i++) {
-    dotP = DotProductGPU(gpu_kx[threadID], gpu_ky[threadID], gpu_kz[threadID],
-                         gpu_x[i], gpu_y[i], gpu_z[i]);
-    gpu_sumRnew[threadID] += gpu_particleCharge[i] * cos(dotP);
-    gpu_sumInew[threadID] += gpu_particleCharge[i] * sin(dotP);
-  }
-}
-
-__global__ void BoxReciprocalGPU(double *gpu_prefact,
-                                 double *gpu_sumRnew,
-                                 double *gpu_sumInew,
-                                 double *gpu_energyRecip,
-                                 int imageSize)
-{
-  int threadID = blockIdx.x * blockDim.x + threadIdx.x;
-  if(threadID >= imageSize)
-    return;
-
-  gpu_energyRecip[threadID] = ((gpu_sumRnew[threadID] * gpu_sumRnew[threadID] +
-                                gpu_sumInew[threadID] * gpu_sumInew[threadID]) *
-                               gpu_prefact[threadID]);
 }
 
 #endif
