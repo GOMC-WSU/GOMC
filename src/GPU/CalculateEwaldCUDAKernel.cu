@@ -322,10 +322,9 @@ void CallBoxForceReciprocalGPU(
     arr_particleHasNoCharge[i] = particleHasNoCharge[i];
   }
 
-
   // calculate block and grid sizes
   dim3 threadsPerBlock(256, 1, 1);
-  int blocksPerGridX = (int)(numberOfAtomsInsideBox / threadsPerBlock) + 1;
+  int blocksPerGridX = (int)(numberOfAtomsInsideBox / threadsPerBlock.x) + 1;
   int blocksPerGridY = (int)(imageSize / IMAGES_PER_BLOCK) + 1;
   dim3 blocksPerGrid(blocksPerGridX, blocksPerGridY, 1);
 
