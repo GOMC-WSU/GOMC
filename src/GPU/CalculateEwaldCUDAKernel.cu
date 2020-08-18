@@ -481,9 +481,9 @@ __global__ void BoxForceReciprocalGPU(
     // double factor = (2.0 * gpu_particleCharge[particleID] * shared_kvector[vectorIndex*6+3] * lambdaCoef) * 
     //   (sin(dot) * shared_kvector[vectorIndex*6+4] - cos(dot) * shared_kvector[vectorIndex*6+5]);
     
-    forceX += factor * shared_kvector[vectorIndex*6];
-    forceY += factor * shared_kvector[vectorIndex*6+1];
-    forceZ += factor * shared_kvector[vectorIndex*6+2];
+    forceX += factor * vectorIndex;
+    forceY += factor * vectorIndex;
+    forceZ += factor * vectorIndex;
   }
 
   // loop over other particles within the same molecule
