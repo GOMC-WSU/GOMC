@@ -18,6 +18,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 using namespace cub;
 
+#define IMAGES_PER_BLOCK 64
+
 #define FULL_MASK 0xffffffff
 
 void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
@@ -322,8 +324,10 @@ void CallBoxForceReciprocalGPU(
 
 
   // calculate block and grid sizes
-  int threadsPerBlock = 256;
-  int blocksPerGrid = (int)(numberOfAtomsInsideBox / threadsPerBlock) + 1;
+  dim3 threadsPerBlock(256, 1, 1);
+  int blocksPerGridX = (int)(numberOfAtomsInsideBox / threadsPerBlock) + 1;
+  int blocksPerGridY = (int)(imageSize / IMAGES_PER_BLOCK) + 1;
+  dim3 blocksPerGrid(blocksPerGridX, blocksPerGridY, 1);
 
   CUMALLOC((void **) &gpu_particleCharge, particleCharge.size() * sizeof(double));
   CUMALLOC((void **) &gpu_particleHasNoCharge, particleHasNoCharge.size() * sizeof(bool));
@@ -444,8 +448,8 @@ __global__ void BoxForceReciprocalGPU(
   int numberOfAtomsInsideBox
 )
 {
-
   int particleID =  blockDim.x * blockIdx.x + threadIdx.x;
+  int offset_vector_index = blockIdx.y * IMAGES_PER_BLOCK;
   if (particleID >= numberOfAtomsInsideBox) return;
   
   double forceX = 0.0, forceY = 0.0, forceZ = 0.0;
@@ -460,7 +464,7 @@ __global__ void BoxForceReciprocalGPU(
 
   double lambdaCoef = DeviceGetLambdaCoulomb(moleculeID, kindID, box, gpu_isFraction, gpu_molIndex, gpu_kindIndex, gpu_lambdaCoulomb);
   // loop over images
-  for(int vectorIndex = 0; vectorIndex < imageSize; vectorIndex ++) {
+  for(int vectorIndex = offset_vector_index; vectorIndex < offset_vector_index + IMAGES_PER_BLOCK; vectorIndex ++) {
     double dotx = x * gpu_kx[vectorIndex];
     double doty = y * gpu_ky[vectorIndex];
     double dotz = z * gpu_kz[vectorIndex];
@@ -476,34 +480,36 @@ __global__ void BoxForceReciprocalGPU(
     forceZ += factor * gpu_kz[vectorIndex];
   }
 
-// loop over other particles within the same molecule
-  double intraForce = 0.0, distSq = 0.0, dist = 0.0;
-  double distVectX = 0.0, distVectY = 0.0, distVectZ = 0.0;
-  int lastParticleWithinSameMolecule = gpu_startMol[particleID] + gpu_lengthMol[particleID];
-  for(int otherParticle = gpu_startMol[particleID];
-    otherParticle < lastParticleWithinSameMolecule;
-    otherParticle++)
-  {
-    if(particleID != otherParticle) {
-      DeviceInRcut(distSq, distVectX, distVectY, distVectZ, gpu_x, gpu_y, gpu_z, particleID, otherParticle, axx, axy, axz, box);
-      dist = sqrt(distSq);
+  // loop over other particles within the same molecule
+  if(blockIdx.y == 0) {
+    double intraForce = 0.0, distSq = 0.0, dist = 0.0;
+    double distVectX = 0.0, distVectY = 0.0, distVectZ = 0.0;
+    int lastParticleWithinSameMolecule = gpu_startMol[particleID] + gpu_lengthMol[particleID];
+    for(int otherParticle = gpu_startMol[particleID];
+      otherParticle < lastParticleWithinSameMolecule;
+      otherParticle++)
+    {
+      if(particleID != otherParticle) {
+        DeviceInRcut(distSq, distVectX, distVectY, distVectZ, gpu_x, gpu_y, gpu_z, particleID, otherParticle, axx, axy, axz, box);
+        dist = sqrt(distSq);
 
-      double expConstValue = exp(-1.0 * alphaSq * distSq);
-      double qiqj = charge * gpu_particleCharge[otherParticle] * qqFact;
-      intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
-      intraForce *= ((erf(alpha * dist) / dist) - constValue * expConstValue);
-      forceX -= intraForce * distVectX;
-      forceY -= intraForce * distVectY;
-      forceZ -= intraForce * distVectZ;
+        double expConstValue = exp(-1.0 * alphaSq * distSq);
+        double qiqj = charge * gpu_particleCharge[otherParticle] * qqFact;
+        intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
+        intraForce *= ((erf(alpha * dist) / dist) - constValue * expConstValue);
+        forceX -= intraForce * distVectX;
+        forceY -= intraForce * distVectY;
+        forceZ -= intraForce * distVectZ;
+      }
     }
   }
   
-    gpu_aForceRecx[particleID] = forceX;
-    gpu_aForceRecy[particleID] = forceY;
-    gpu_aForceRecz[particleID] = forceZ;
-    atomicAdd(&gpu_mForceRecx[moleculeID], forceX);
-    atomicAdd(&gpu_mForceRecy[moleculeID], forceY);
-    atomicAdd(&gpu_mForceRecz[moleculeID], forceZ);
+  atomicAdd(&gpu_aForceRecx[particleID], forceX);
+  atomicAdd(&gpu_aForceRecy[particleID], forceY);
+  atomicAdd(&gpu_aForceRecz[particleID], forceZ);
+  atomicAdd(&gpu_mForceRecx[moleculeID], forceX);
+  atomicAdd(&gpu_mForceRecy[moleculeID], forceY);
+  atomicAdd(&gpu_mForceRecz[moleculeID], forceZ);
   
 }
 
