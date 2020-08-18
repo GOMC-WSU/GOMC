@@ -165,8 +165,8 @@ __global__ void BoxReciprocalSetupGPU(double *gpu_x,
       shared_coords[particleID * 3 + 2]);
     double dotsin, dotcos;
     sincos(dot, &dotsin, &dotcos);
-    sumR += gpu_particleCharge[particleID + offset_coordinates_index] * dotsin;
-    sumI += gpu_particleCharge[particleID + offset_coordinates_index] * dotcos;
+    sumR += gpu_particleCharge[imageID] * dotsin;
+    sumI += gpu_particleCharge[imageID] * dotcos;
   }
 
   atomicAdd(&gpu_sumRnew[imageID], sumR);
