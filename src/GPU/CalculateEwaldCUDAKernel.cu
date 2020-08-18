@@ -512,7 +512,7 @@ __global__ void BoxForceReciprocalGPU(
     if(ksqr >= rcip_rcut_sq)
       continue;
 
-    prefact = qqFact * exp(-ksqr * alpsqr4) / (ksqr * vol);
+    prefact = qqFact * exp(-ksqrt * alpsqr4) / (ksqr * vol);
     double dotx = gpu_x[particleID] * kX;
     double doty = gpu_y[particleID] * kY;
     double dotz = gpu_z[particleID] * kZ;
