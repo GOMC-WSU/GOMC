@@ -474,7 +474,7 @@ __global__ void BoxForceReciprocalGPU(
   double lambdaCoef = DeviceGetLambdaCoulomb(moleculeID, kindID, box, gpu_isFraction, gpu_molIndex, gpu_kindIndex, gpu_lambdaCoulomb);
   // loop over images
 
-  #pragma unroll 4
+  #pragma unroll 8
   for(int vectorIndex = 0; vectorIndex < IMAGES_PER_BLOCK; vectorIndex ++) {
     double dot = x * shared_kvector[vectorIndex*6] + y *
       shared_kvector[vectorIndex*6+1] + z * shared_kvector[vectorIndex*6+2];
