@@ -447,36 +447,37 @@ __global__ void BoxForceReciprocalGPU(
   int numberOfAtomsInsideBox
 )
 {
+  __shared__ double shared_kx[IMAGES_PER_BLOCK];
+  __shared__ double shared_ky[IMAGES_PER_BLOCK];
+  __shared__ double shared_kz[IMAGES_PER_BLOCK];
   int particleID =  blockDim.x * blockIdx.x + threadIdx.x;
   int offset_vector_index = blockIdx.y * IMAGES_PER_BLOCK;
+
+  if(threadIdx.x < IMAGES_PER_BLOCK) {
+    shared_kx[threadIdx.x] = gpu_kx[offset_vector_index + threadIdx.x];
+    shared_ky[threadIdx.x] = gpu_ky[offset_vector_index + threadIdx.x];
+    shared_kz[threadIdx.x] = gpu_kz[offset_vector_index + threadIdx.x];
+  }
+
   if (particleID >= numberOfAtomsInsideBox) return;
-  
   double forceX = 0.0, forceY = 0.0, forceZ = 0.0;
   int moleculeID = gpu_particleMol[particleID];
   int kindID = gpu_particleKind[particleID];
+
   if(gpu_particleHasNoCharge[particleID])
     return;
-  double x = gpu_x[particleID];
-  double y = gpu_y[particleID];
-  double z = gpu_z[particleID];
-  double charge = gpu_particleCharge[particleID];
 
   double lambdaCoef = DeviceGetLambdaCoulomb(moleculeID, kindID, box, gpu_isFraction, gpu_molIndex, gpu_kindIndex, gpu_lambdaCoulomb);
   // loop over images
-  for(int vectorIndex = offset_vector_index; vectorIndex < offset_vector_index + IMAGES_PER_BLOCK; vectorIndex ++) {
-    double dotx = x * gpu_kx[vectorIndex];
-    double doty = y * gpu_ky[vectorIndex];
-    double dotz = z * gpu_kz[vectorIndex];
-    double dot = dotx + doty + dotz;
+  for(int vectorIndex = 0; vectorIndex < IMAGES_PER_BLOCK; vectorIndex ++) {
+    double dot = gpu_x[particleID] * shared_kx[vectorIndex] + gpu_y[particleID] *
+      shared_ky[vectorIndex] + gpu_z[particleID] * shared_kz[vectorIndex];
+    double factor = (2.0 * gpu_particleCharge[particleID] * gpu_prefact[vectorIndex] * lambdaCoef) * 
+      (sin(dot) * gpu_sumRnew[vectorIndex] - cos(dot) * gpu_sumInew[vectorIndex]);
       
-    double factor_a = 2.0 * charge * gpu_prefact[vectorIndex] * lambdaCoef;
-    double factor_sin = sin(dot) * gpu_sumRnew[vectorIndex];
-    double factor_cos = cos(dot) * gpu_sumInew[vectorIndex];
-    double factor = factor_a * (factor_sin - factor_cos);
-      
-    forceX += factor * gpu_kx[vectorIndex];
-    forceY += factor * gpu_ky[vectorIndex];
-    forceZ += factor * gpu_kz[vectorIndex];
+    forceX += factor * shared_kx[vectorIndex];
+    forceY += factor * shared_ky[vectorIndex];
+    forceZ += factor * shared_kz[vectorIndex];
   }
 
   // loop over other particles within the same molecule
@@ -493,7 +494,7 @@ __global__ void BoxForceReciprocalGPU(
         dist = sqrt(distSq);
 
         double expConstValue = exp(-1.0 * alphaSq * distSq);
-        double qiqj = charge * gpu_particleCharge[otherParticle] * qqFact;
+        double qiqj = gpu_particleCharge[particleID] * gpu_particleCharge[otherParticle] * qqFact;
         intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
         intraForce *= ((erf(alpha * dist) / dist) - constValue * expConstValue);
         forceX -= intraForce * distVectX;
