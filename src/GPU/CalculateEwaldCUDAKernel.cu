@@ -447,9 +447,9 @@ __global__ void BoxForceReciprocalGPU(
   int numberOfAtomsInsideBox
 )
 {
-  __shared__ double shared_kx[IMAGES_PER_BLOCK];
-  __shared__ double shared_ky[IMAGES_PER_BLOCK];
-  __shared__ double shared_kz[IMAGES_PER_BLOCK];
+  __shared__ double shared_kx[IMAGES_PER_BLOCK+1];
+  __shared__ double shared_ky[IMAGES_PER_BLOCK+1];
+  __shared__ double shared_kz[IMAGES_PER_BLOCK+1];
   int particleID =  blockDim.x * blockIdx.x + threadIdx.x;
   int offset_vector_index = blockIdx.y * IMAGES_PER_BLOCK;
 
