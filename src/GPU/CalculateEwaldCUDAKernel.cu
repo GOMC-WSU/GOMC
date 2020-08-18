@@ -452,12 +452,12 @@ __global__ void BoxForceReciprocalGPU(
   int offset_vector_index = blockIdx.y * IMAGES_PER_BLOCK;
 
   if(threadIdx.x < IMAGES_PER_BLOCK) {
-    shared_kvector[threadIdx.x * 3] = gpu_kx[offset_vector_index + threadIdx.x];
-    shared_kvector[threadIdx.x * 3 + 1] = gpu_ky[offset_vector_index + threadIdx.x];
-    shared_kvector[threadIdx.x * 3 + 2] = gpu_kz[offset_vector_index + threadIdx.x];
-    shared_kvector[threadIdx.x * 3 + 3] = gpu_prefact[offset_vector_index + threadIdx.x];
-    shared_kvector[threadIdx.x * 3 + 4] = gpu_sumRnew[offset_vector_index + threadIdx.x];
-    shared_kvector[threadIdx.x * 3 + 5] = gpu_sumInew[offset_vector_index + threadIdx.x];
+    shared_kvector[threadIdx.x * 6] = gpu_kx[offset_vector_index + threadIdx.x];
+    shared_kvector[threadIdx.x * 6 + 1] = gpu_ky[offset_vector_index + threadIdx.x];
+    shared_kvector[threadIdx.x * 6 + 2] = gpu_kz[offset_vector_index + threadIdx.x];
+    shared_kvector[threadIdx.x * 6 + 3] = gpu_prefact[offset_vector_index + threadIdx.x];
+    shared_kvector[threadIdx.x * 6 + 4] = gpu_sumRnew[offset_vector_index + threadIdx.x];
+    shared_kvector[threadIdx.x * 6 + 5] = gpu_sumInew[offset_vector_index + threadIdx.x];
   }
 
   if (particleID >= numberOfAtomsInsideBox) return;
@@ -474,14 +474,14 @@ __global__ void BoxForceReciprocalGPU(
   double lambdaCoef = DeviceGetLambdaCoulomb(moleculeID, kindID, box, gpu_isFraction, gpu_molIndex, gpu_kindIndex, gpu_lambdaCoulomb);
   // loop over images
   for(int vectorIndex = 0; vectorIndex < IMAGES_PER_BLOCK; vectorIndex ++) {
-    double dot = x * shared_kvector[vectorIndex*3] + y *
-      shared_kvector[vectorIndex*3+1] + z * shared_kvector[vectorIndex*3+2];
-    double factor = (2.0 * gpu_particleCharge[particleID] * shared_kvector[vectorIndex*3+3] * lambdaCoef) * 
-      (sin(dot) * shared_kvector[vectorIndex*3+4] - cos(dot) * shared_kvector[vectorIndex*3+5]);
+    double dot = x * shared_kvector[vectorIndex*6] + y *
+      shared_kvector[vectorIndex*6+1] + z * shared_kvector[vectorIndex*6+2];
+    double factor = (2.0 * gpu_particleCharge[particleID] * shared_kvector[vectorIndex*6+3] * lambdaCoef) * 
+      (sin(dot) * shared_kvector[vectorIndex*6+4] - cos(dot) * shared_kvector[vectorIndex*6+5]);
       
-    forceX += factor * shared_kvector[vectorIndex*3];
-    forceY += factor * shared_kvector[vectorIndex*3+1];
-    forceZ += factor * shared_kvector[vectorIndex*3+2];
+    forceX += factor * shared_kvector[vectorIndex*6];
+    forceY += factor * shared_kvector[vectorIndex*6+1];
+    forceZ += factor * shared_kvector[vectorIndex*6+2];
   }
 
   // loop over other particles within the same molecule
