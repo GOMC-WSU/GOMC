@@ -40,7 +40,6 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
   double *gpu_particleCharge;
   double * gpu_energyRecip;
   double * gpu_final_energyRecip;
-  int blocksPerGrid, threadsPerBlock;
   int atomNumber = coords.Count();
 
   CUMALLOC((void**) &gpu_particleCharge,
@@ -152,8 +151,6 @@ __global__ void BoxReciprocalSetupGPU(double *gpu_x,
 
   if(threadID >= imageSize)
     return;
-  int i;
-  double dotP;
 
   // TODO SET SUM ARRAYS TO ZERO
   if(blockIdx.y == 0) {
@@ -162,8 +159,8 @@ __global__ void BoxReciprocalSetupGPU(double *gpu_x,
   }
 
   __syncthreads();
-  for(particleID = 0; particleID < PARTICLE_PER_BLOCK; particleID++) {
-    dotP = DotProductGPU(gpu_kx[threadID], gpu_ky[threadID], gpu_kz[threadID],
+  for(int particleID = 0; particleID < PARTICLE_PER_BLOCK; particleID++) {
+    double dot = DotProductGPU(gpu_kx[threadID], gpu_ky[threadID], gpu_kz[threadID],
       shared_coords[particleID * 3], shared_coords[particleID * 3 + 1],
       shared_coords[particleID * 3 + 2]);
     double dotsin, dotcos;
