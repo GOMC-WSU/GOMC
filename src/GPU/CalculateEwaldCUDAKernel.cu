@@ -154,13 +154,13 @@ __global__ void BoxReciprocalSetupGPU(double *gpu_x,
 
   // TODO SET SUM ARRAYS TO ZERO
   if(blockIdx.y == 0) {
-    gpu_sumRnew[threadID] = 0.0;
-    gpu_sumInew[threadID] = 0.0;
+    gpu_sumRnew[imageID] = 0.0;
+    gpu_sumInew[imageID] = 0.0;
   }
 
   __syncthreads();
   for(int particleID = 0; particleID < PARTICLE_PER_BLOCK; particleID++) {
-    double dot = DotProductGPU(gpu_kx[threadID], gpu_ky[threadID], gpu_kz[threadID],
+    double dot = DotProductGPU(gpu_kx[imageID], gpu_ky[imageID], gpu_kz[imageID],
       shared_coords[particleID * 3], shared_coords[particleID * 3 + 1],
       shared_coords[particleID * 3 + 2]);
     double dotsin, dotcos;
