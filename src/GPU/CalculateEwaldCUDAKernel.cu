@@ -139,7 +139,7 @@ __global__ void BoxReciprocalSetupGPU(double *gpu_x,
                                       int imageSize)
 {
   __shared__ double shared_coords[PARTICLE_PER_BLOCK*3];
-  int threadID = blockIdx.x * blockDim.x + threadIdx.x;
+  int imageID = blockIdx.x * blockDim.x + threadIdx.x;
   int offset_coordinates_index = blockIdx.y * PARTICLE_PER_BLOCK;
   double sumR = 0.0, sumI = 0.0;
 
@@ -149,7 +149,7 @@ __global__ void BoxReciprocalSetupGPU(double *gpu_x,
     shared_coords[threadIdx.x * 3 + 2] = gpu_z[offset_coordinates_index + threadIdx.x];
   }
 
-  if(threadID >= imageSize)
+  if(imageID >= imageSize)
     return;
 
   // TODO SET SUM ARRAYS TO ZERO
@@ -169,8 +169,8 @@ __global__ void BoxReciprocalSetupGPU(double *gpu_x,
     sumI += gpu_particleCharge[particleID + offset_coordinates_index] * dotcos;
   }
 
-  atomicAdd(&gpu_sumRnew[particleID + offset_coordinates_index], sumR);
-  atomicAdd(&gpu_sumInew[particleID + offset_coordinates_index], sumI);
+  atomicAdd(&gpu_sumRnew[imageID], sumR);
+  atomicAdd(&gpu_sumInew[imageID], sumI);
 }
 
 __global__ void BoxReciprocalGPU(double *gpu_prefact,
