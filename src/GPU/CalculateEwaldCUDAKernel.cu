@@ -447,16 +447,14 @@ __global__ void BoxForceReciprocalGPU(
   int numberOfAtomsInsideBox
 )
 {
-  __shared__ double shared_kx[IMAGES_PER_BLOCK+1];
-  __shared__ double shared_ky[IMAGES_PER_BLOCK+1];
-  __shared__ double shared_kz[IMAGES_PER_BLOCK+1];
+  __shared__ double shared_kvector[IMAGES_PER_BLOCK*3];
   int particleID =  blockDim.x * blockIdx.x + threadIdx.x;
   int offset_vector_index = blockIdx.y * IMAGES_PER_BLOCK;
 
   if(threadIdx.x < IMAGES_PER_BLOCK) {
-    shared_kx[threadIdx.x] = gpu_kx[offset_vector_index + threadIdx.x];
-    shared_ky[threadIdx.x] = gpu_ky[offset_vector_index + threadIdx.x];
-    shared_kz[threadIdx.x] = gpu_kz[offset_vector_index + threadIdx.x];
+    shared_kvector[threadIdx.x * 3] = gpu_kx[offset_vector_index + threadIdx.x];
+    shared_kvector[threadIdx.x * 3 + 1] = gpu_ky[offset_vector_index + threadIdx.x];
+    shared_kvector[threadIdx.x * 3 + 2] = gpu_kz[offset_vector_index + threadIdx.x];
   }
 
   if (particleID >= numberOfAtomsInsideBox) return;
@@ -470,14 +468,14 @@ __global__ void BoxForceReciprocalGPU(
   double lambdaCoef = DeviceGetLambdaCoulomb(moleculeID, kindID, box, gpu_isFraction, gpu_molIndex, gpu_kindIndex, gpu_lambdaCoulomb);
   // loop over images
   for(int vectorIndex = 0; vectorIndex < IMAGES_PER_BLOCK; vectorIndex ++) {
-    double dot = gpu_x[particleID] * shared_kx[vectorIndex] + gpu_y[particleID] *
-      shared_ky[vectorIndex] + gpu_z[particleID] * shared_kz[vectorIndex];
+    double dot = gpu_x[particleID] * shared_kvector[vectorIndex*3] + gpu_y[particleID] *
+      shared_kvector[vectorIndex*3+1] + gpu_z[particleID] * shared_kvector[vectorIndex*3+2];
     double factor = (2.0 * gpu_particleCharge[particleID] * gpu_prefact[vectorIndex] * lambdaCoef) * 
       (sin(dot) * gpu_sumRnew[vectorIndex] - cos(dot) * gpu_sumInew[vectorIndex]);
       
-    forceX += factor * shared_kx[vectorIndex];
-    forceY += factor * shared_ky[vectorIndex];
-    forceZ += factor * shared_kz[vectorIndex];
+    forceX += factor * shared_kvector[vectorIndex*3];
+    forceY += factor * shared_kvector[vectorIndex*3+1];
+    forceZ += factor * shared_kvector[vectorIndex*3+2];
   }
 
   // loop over other particles within the same molecule
