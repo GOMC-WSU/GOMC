@@ -77,7 +77,7 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
   checkLastErrorCUDA(__FILE__, __LINE__);
 
   dim3 threadsPerBlock(256, 1, 1);
-  dim3 blocksPerGrid((int)(imageSize / threadsPerBlock) + 1, (int)(atomNumber / PARTICLE_PER_BLOCK) + 1, 1);
+  dim3 blocksPerGrid((int)(imageSize / threadsPerBlock.x) + 1, (int)(atomNumber / PARTICLE_PER_BLOCK) + 1, 1);
   BoxReciprocalSetupGPU <<< blocksPerGrid, threadsPerBlock>>>(
     vars->gpu_x,
     vars->gpu_y,
