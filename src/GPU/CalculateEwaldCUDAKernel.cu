@@ -18,7 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 using namespace cub;
 
-#define IMAGES_PER_BLOCK 64
+#define IMAGES_PER_BLOCK 128
 
 #define FULL_MASK 0xffffffff
 
