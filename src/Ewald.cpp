@@ -806,13 +806,13 @@ void Ewald::RecipInitNonOrth(uint box, BoxDimensions const& boxAxes)
   kmax[box] = std::max(std::max(nkx_max, nky_max), std::max(nky_max, nkz_max));
 
   for (x = 0; x <= nkx_max; x++) {
-    if(x == 0)
+    if(x == 0.0)
       nky_min = 0;
     else
       nky_min = -nky_max;
 
     for(y = nky_min; y <= nky_max; y++) {
-      if(x == 0 && y == 0)
+      if(x == 0.0 && y == 0.0)
         nkz_min = 1;
       else
         nkz_min = -nkz_max;
@@ -1351,23 +1351,6 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       molForceRec.Set(molIndex, 0.0, 0.0, 0.0);
       thisMol++;
     }
-
-    // calculate variables required by k vectors
-    int nkx_max, nky_max, nky_min, nkz_max, nkz_min;
-    double alpsqr4 = 1.0 / (4.0 * ff.alphaSq[box]);
-    XYZArray cellB(boxAxes.cellBasis[box]);
-    cellB.Scale(0, boxAxes.axis.Get(box).x);
-    cellB.Scale(1, boxAxes.axis.Get(box).y);
-    cellB.Scale(2, boxAxes.axis.Get(box).z);
-    XYZArray cellB_Inv(3);
-    double det = cellB.AdjointMatrix(cellB_Inv);
-    cellB_Inv.ScaleRange(0, 3, (2 * M_PI) / det);
-    double vol = boxAxes.volume[box] / (4 * M_PI);
-    nkx_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).x / (2 * M_PI)) + 1;
-    nky_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).y / (2 * M_PI)) + 1;
-    nkz_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).z / (2 * M_PI)) + 1;
-    kmax[box] = std::max(std::max(nkx_max, nky_max), std::max(nky_max, nkz_max));
-
     // initialize the start and end of each box
     initializeBoxRange();
 
@@ -1390,14 +1373,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       boxStart[box],
       boxEnd[box],
       currentAxes,
-      box,
-      nkx_max,
-      nky_max,
-      nkz_max,
-      cellB_Inv,
-      vol,
-      alpsqr4,
-      ff.recip_rcut[box]
+      box
     );
 #else
     // molecule iterator
