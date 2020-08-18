@@ -472,13 +472,13 @@ __global__ void BoxForceReciprocalGPU(
   double y = gpu_y[particleID];
   double z = gpu_z[particleID];
   double lambdaCoef = DeviceGetLambdaCoulomb(moleculeID, kindID, box, gpu_isFraction, gpu_molIndex, gpu_kindIndex, gpu_lambdaCoulomb);
+  
   // loop over images
-
   for(int vectorIndex = 0; vectorIndex < IMAGES_PER_BLOCK; vectorIndex ++) {
     double dot = x * shared_kvector[vectorIndex*6] + y *
       shared_kvector[vectorIndex*6+1] + z * shared_kvector[vectorIndex*6+2];
     double factor = (2.0 * gpu_particleCharge[particleID] * shared_kvector[vectorIndex*6+3] * lambdaCoef) * 
-      (__sinf(dot) * shared_kvector[vectorIndex*6+4] - __cosf(dot) * shared_kvector[vectorIndex*6+5]);
+      (sin(dot) * shared_kvector[vectorIndex*6+4] - cos(dot) * shared_kvector[vectorIndex*6+5]);
       
     forceX += factor * shared_kvector[vectorIndex*6];
     forceY += factor * shared_kvector[vectorIndex*6+1];
