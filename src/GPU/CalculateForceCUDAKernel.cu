@@ -1017,9 +1017,9 @@ __global__ void VirialReciprocalGPU(double *gpu_x,
     sincos(dot, &dotsin, &dotcos);
     factor = gpu_prefactRef[imageID] * 2.0 *
              (gpu_sumIref[imageID] * dotcos - gpu_sumRref[imageID] * dotsin) *
-             gpu_particleCharge[i];
+             gpu_particleCharge[offset_coordinates_index + particleID];
 
-    rT11 += factor * (gpu_kxRef[imageID] * gpu_comDx[i]);
+    rT11 += factor * (gpu_kxRef[imageID] * shared_coords[particleID * 6 + 3]);
     rT12 += factor * 0.5 * (gpu_kxRef[imageID] * shared_coords[particleID * 6 + 4] + gpu_kyRef[imageID] * shared_coords[particleID * 6 + 3]);
     rT13 += factor * 0.5 * (gpu_kxRef[imageID] * shared_coords[particleID * 6 + 5] + gpu_kzRef[imageID] * shared_coords[particleID * 6 + 3]);
     rT22 += factor * (gpu_kyRef[imageID] * shared_coords[particleID * 6 + 4]);
