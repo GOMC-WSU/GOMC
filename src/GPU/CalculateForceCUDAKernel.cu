@@ -15,6 +15,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "cub/cub.cuh"
 #include <stdio.h>
 #define NUMBER_OF_NEIGHBOR_CELL 27
+#define PARTICLE_PER_BLOCK 64
 
 using namespace cub;
 
@@ -960,54 +961,75 @@ __global__ void VirialReciprocalGPU(double *gpu_x,
                                     uint imageSize,
                                     uint atomNumber)
 {
-  int threadID = blockIdx.x * blockDim.x + threadIdx.x;
-  if(threadID >= imageSize)
+  __shared__ double shared_coords[PARTICLE_PER_BLOCK*3];
+  int imageID = blockIdx.x * blockDim.x + threadIdx.x;
+  int offset_coordinates_index = blockIdx.y * PARTICLE_PER_BLOCK;
+  if(threadIdx.x < PARTICLE_PER_BLOCK) {
+    shared_coords[threadIdx.x * 3    ] = gpu_x[offset_coordinates_index + threadIdx.x];
+    shared_coords[threadIdx.x * 3 + 1] = gpu_y[offset_coordinates_index + threadIdx.x];
+    shared_coords[threadIdx.x * 3 + 2] = gpu_z[offset_coordinates_index + threadIdx.x];
+  }
+
+  if(imageID >= imageSize)
     return;
 
-  double factor, arg;
-  int i;
-  factor = gpu_prefactRef[threadID] * (gpu_sumRref[threadID] *
-                                       gpu_sumRref[threadID] +
-                                       gpu_sumIref[threadID] *
-                                       gpu_sumIref[threadID]);
-  gpu_rT11[threadID] = factor * (1.0 - 2.0 *
-                                 (constVal + 1.0 / gpu_hsqrRef[threadID]) *
-                                 gpu_kxRef[threadID] * gpu_kxRef[threadID]);
-  gpu_rT12[threadID] = factor * (-2.0 *
-                                 (constVal + 1.0 / gpu_hsqrRef[threadID]) *
-                                 gpu_kxRef[threadID] * gpu_kyRef[threadID]);
-  gpu_rT13[threadID] = factor * (-2.0 *
-                                 (constVal + 1.0 / gpu_hsqrRef[threadID]) *
-                                 gpu_kxRef[threadID] * gpu_kzRef[threadID]);
-  gpu_rT22[threadID] = factor * (1.0 - 2.0 *
-                                 (constVal + 1.0 / gpu_hsqrRef[threadID]) *
-                                 gpu_kyRef[threadID] * gpu_kyRef[threadID]);
-  gpu_rT23[threadID] = factor * (-2.0 *
-                                 (constVal + 1.0 / gpu_hsqrRef[threadID]) *
-                                 gpu_kyRef[threadID] * gpu_kzRef[threadID]);
-  gpu_rT33[threadID] = factor * (1.0 - 2.0 *
-                                 (constVal + 1.0 / gpu_hsqrRef[threadID]) *
-                                 gpu_kzRef[threadID] * gpu_kzRef[threadID]);
+  double rT11 = 0.0, rT12 = 0.0, rT13 = 0.0, rT22 = 0.0, rT23 = 0.0, rT33 = 0.0;
+  double factor, dot;
+  factor = gpu_prefactRef[imageID] * (gpu_sumRref[imageID] *
+                                       gpu_sumRref[imageID] +
+                                       gpu_sumIref[imageID] *
+                                       gpu_sumIref[imageID]);
+  
+  if(blockIdx.y == 0) {
+    gpu_rT11[imageID] = factor * (1.0 - 2.0 *
+                                  (constVal + 1.0 / gpu_hsqrRef[imageID]) *
+                                  gpu_kxRef[imageID] * gpu_kxRef[imageID]);
+    gpu_rT12[imageID] = factor * (-2.0 *
+                                  (constVal + 1.0 / gpu_hsqrRef[imageID]) *
+                                  gpu_kxRef[imageID] * gpu_kyRef[imageID]);
+    gpu_rT13[imageID] = factor * (-2.0 *
+                                  (constVal + 1.0 / gpu_hsqrRef[imageID]) *
+                                  gpu_kxRef[imageID] * gpu_kzRef[imageID]);
+    gpu_rT22[imageID] = factor * (1.0 - 2.0 *
+                                  (constVal + 1.0 / gpu_hsqrRef[imageID]) *
+                                  gpu_kyRef[imageID] * gpu_kyRef[imageID]);
+    gpu_rT23[imageID] = factor * (-2.0 *
+                                  (constVal + 1.0 / gpu_hsqrRef[imageID]) *
+                                  gpu_kyRef[imageID] * gpu_kzRef[imageID]);
+    gpu_rT33[imageID] = factor * (1.0 - 2.0 *
+                                  (constVal + 1.0 / gpu_hsqrRef[imageID]) *
+                                  gpu_kzRef[imageID] * gpu_kzRef[imageID]);
+  }
+
+  __syncthreads();
 
   //Intramolecular part
-  for(i = 0; i < atomNumber; i++) {
-    arg = DotProductGPU(gpu_kxRef[threadID], gpu_kyRef[threadID],
-                        gpu_kzRef[threadID], gpu_x[i], gpu_y[i], gpu_z[i]);
+  for(int particleID = 0; particleID < PARTICLE_PER_BLOCK; particleID++) {
+    dot = DotProductGPU(gpu_kxRef[imageID], gpu_kyRef[imageID],
+                        gpu_kzRef[imageID], shared_coords[particleID * 3],
+                        shared_coords[particleID * 3 + 1],
+                        shared_coords[particleID * 3 + 2]);
 
-    factor = gpu_prefactRef[threadID] * 2.0 *
-             (gpu_sumIref[threadID] * cos(arg) - gpu_sumRref[threadID] * sin(arg)) *
+    double dotsin, dotcos;
+    sincos(dot, &dotsin, &dotcos);
+    factor = gpu_prefactRef[imageID] * 2.0 *
+             (gpu_sumIref[imageID] * dotcos - gpu_sumRref[imageID] * dotsin) *
              gpu_particleCharge[i];
 
-    gpu_rT11[threadID] += factor * (gpu_kxRef[threadID] * gpu_comDx[i]);
-    gpu_rT12[threadID] += factor * 0.5 * (gpu_kxRef[threadID] * gpu_comDy[i] +
-                                          gpu_kyRef[threadID] * gpu_comDx[i]);
-    gpu_rT13[threadID] += factor * 0.5 * (gpu_kxRef[threadID] * gpu_comDz[i] +
-                                          gpu_kzRef[threadID] * gpu_comDx[i]);
-    gpu_rT22[threadID] += factor * (gpu_kyRef[threadID] * gpu_comDy[i]);
-    gpu_rT13[threadID] += factor * 0.5 * (gpu_kyRef[threadID] * gpu_comDz[i] +
-                                          gpu_kzRef[threadID] * gpu_comDy[i]);
-    gpu_rT33[threadID] += factor * (gpu_kzRef[threadID] * gpu_comDz[i]);
+    rT11 += factor * (gpu_kxRef[imageID] * gpu_comDx[i]);
+    rT12 += factor * 0.5 * (gpu_kxRef[imageID] * gpu_comDy[i] + gpu_kyRef[imageID] * gpu_comDx[i]);
+    rT13 += factor * 0.5 * (gpu_kxRef[imageID] * gpu_comDz[i] + gpu_kzRef[imageID] * gpu_comDx[i]);
+    rT22 += factor * (gpu_kyRef[imageID] * gpu_comDy[i]);
+    rT13 += factor * 0.5 * (gpu_kyRef[imageID] * gpu_comDz[i] + gpu_kzRef[imageID] * gpu_comDy[i]);
+    rT33 += factor * (gpu_kzRef[imageID] * gpu_comDz[i]);
   }
+
+  atomicAdd(&gpu_rT11[imageID], rT11);
+  atomicAdd(&gpu_rT12[imageID], rT12);
+  atomicAdd(&gpu_rT13[imageID], rT13);
+  atomicAdd(&gpu_rT22[imageID], rT22);
+  atomicAdd(&gpu_rT23[imageID], rT23);
+  atomicAdd(&gpu_rT33[imageID], rT33);
 }
 
 __device__ double CalcEnForceGPU(double distSq, int kind1, int kind2,
