@@ -984,23 +984,18 @@ __global__ void VirialReciprocalGPU(double *gpu_x,
                                        gpu_sumIref[imageID]);
   
   if(blockIdx.y == 0) {
-    gpu_rT11[imageID] = factor * (1.0 - 2.0 *
-                                  (constVal + 1.0 / gpu_hsqrRef[imageID]) *
+    double constant_part = constVal + 1.0 / gpu_hsqrRef[imageID];
+    gpu_rT11[imageID] = factor * (1.0 - 2.0 * constant_part) *
                                   gpu_kxRef[imageID] * gpu_kxRef[imageID]);
-    gpu_rT12[imageID] = factor * (-2.0 *
-                                  (constVal + 1.0 / gpu_hsqrRef[imageID]) *
+    gpu_rT12[imageID] = factor * (-2.0 * constant_part) *
                                   gpu_kxRef[imageID] * gpu_kyRef[imageID]);
-    gpu_rT13[imageID] = factor * (-2.0 *
-                                  (constVal + 1.0 / gpu_hsqrRef[imageID]) *
+    gpu_rT13[imageID] = factor * (-2.0 * constant_part) *
                                   gpu_kxRef[imageID] * gpu_kzRef[imageID]);
-    gpu_rT22[imageID] = factor * (1.0 - 2.0 *
-                                  (constVal + 1.0 / gpu_hsqrRef[imageID]) *
+    gpu_rT22[imageID] = factor * (1.0 - 2.0 * constant_part) *
                                   gpu_kyRef[imageID] * gpu_kyRef[imageID]);
-    gpu_rT23[imageID] = factor * (-2.0 *
-                                  (constVal + 1.0 / gpu_hsqrRef[imageID]) *
+    gpu_rT23[imageID] = factor * (-2.0 * constant_part) *
                                   gpu_kyRef[imageID] * gpu_kzRef[imageID]);
-    gpu_rT33[imageID] = factor * (1.0 - 2.0 *
-                                  (constVal + 1.0 / gpu_hsqrRef[imageID]) *
+    gpu_rT33[imageID] = factor * (1.0 - 2.0 * constant_part) *
                                   gpu_kzRef[imageID] * gpu_kzRef[imageID]);
   }
 
