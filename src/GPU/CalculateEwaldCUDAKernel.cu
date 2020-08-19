@@ -141,9 +141,10 @@ __global__ void BoxReciprocalSetupGPU(double *gpu_x,
   __shared__ double shared_coords[PARTICLE_PER_BLOCK*3];
   int imageID = blockIdx.x * blockDim.x + threadIdx.x;
   int offset_coordinates_index = blockIdx.y * PARTICLE_PER_BLOCK;
+  int numberOfAtoms = min(PARTICLE_PER_BLOCK, atomNumber - offset_coordinates_index);
   double sumR = 0.0, sumI = 0.0;
 
-  if(threadIdx.x < PARTICLE_PER_BLOCK) {
+  if(threadIdx.x < numberOfAtoms) {
     shared_coords[threadIdx.x * 3    ] = gpu_x[offset_coordinates_index + threadIdx.x];
     shared_coords[threadIdx.x * 3 + 1] = gpu_y[offset_coordinates_index + threadIdx.x];
     shared_coords[threadIdx.x * 3 + 2] = gpu_z[offset_coordinates_index + threadIdx.x];
@@ -159,7 +160,7 @@ __global__ void BoxReciprocalSetupGPU(double *gpu_x,
   }
 
   __syncthreads();
-  for(int particleID = 0; particleID < PARTICLE_PER_BLOCK; particleID++) {
+  for(int particleID = 0; particleID < numberOfAtoms; particleID++) {
     double dot = DotProductGPU(gpu_kx[imageID], gpu_ky[imageID], gpu_kz[imageID],
       shared_coords[particleID * 3], shared_coords[particleID * 3 + 1],
       shared_coords[particleID * 3 + 2]);
