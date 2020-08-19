@@ -512,8 +512,9 @@ __global__ void BoxForceReciprocalGPU(
   __shared__ double shared_kvector[IMAGES_PER_BLOCK*3];
   int particleID =  blockDim.x * blockIdx.x + threadIdx.x;
   int offset_vector_index = blockIdx.y * IMAGES_PER_BLOCK;
+  int numberOfVectors = min(IMAGES_PER_BLOCK, imageSize - offset_vector_index);
 
-  if(threadIdx.x < IMAGES_PER_BLOCK) {
+  if(threadIdx.x < numberOfVectors) {
     shared_kvector[threadIdx.x * 3] = gpu_kx[offset_vector_index + threadIdx.x];
     shared_kvector[threadIdx.x * 3 + 1] = gpu_ky[offset_vector_index + threadIdx.x];
     shared_kvector[threadIdx.x * 3 + 2] = gpu_kz[offset_vector_index + threadIdx.x];
@@ -533,7 +534,7 @@ __global__ void BoxForceReciprocalGPU(
   double lambdaCoef = DeviceGetLambdaCoulomb(moleculeID, kindID, box, gpu_isFraction, gpu_molIndex, gpu_kindIndex, gpu_lambdaCoulomb);
 
   // loop over images
-  for(int vectorIndex = 0; vectorIndex < IMAGES_PER_BLOCK; vectorIndex ++) {
+  for(int vectorIndex = 0; vectorIndex < numberOfVectors; vectorIndex ++) {
     double dot = x * shared_kvector[vectorIndex*3] + y *
       shared_kvector[vectorIndex*3+1] + z * shared_kvector[vectorIndex*3+2];
     double dotsin, dotcos;
