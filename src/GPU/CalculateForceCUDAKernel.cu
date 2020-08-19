@@ -964,7 +964,8 @@ __global__ void VirialReciprocalGPU(double *gpu_x,
   __shared__ double shared_coords[PARTICLE_PER_BLOCK*6];
   int imageID = blockIdx.x * blockDim.x + threadIdx.x;
   int offset_coordinates_index = blockIdx.y * PARTICLE_PER_BLOCK;
-  if(threadIdx.x < PARTICLE_PER_BLOCK) {
+  int numberOfAtoms = min(PARTICLE_PER_BLOCK, atomNumber - offset_coordinates_index);
+  if(threadIdx.x < numberOfAtoms) {
     shared_coords[threadIdx.x * 6    ] = gpu_x[offset_coordinates_index + threadIdx.x];
     shared_coords[threadIdx.x * 6 + 1] = gpu_y[offset_coordinates_index + threadIdx.x];
     shared_coords[threadIdx.x * 6 + 2] = gpu_z[offset_coordinates_index + threadIdx.x];
@@ -1002,7 +1003,7 @@ __global__ void VirialReciprocalGPU(double *gpu_x,
   __syncthreads();
 
   //Intramolecular part
-  for(int particleID = 0; particleID < PARTICLE_PER_BLOCK; particleID++) {
+  for(int particleID = 0; particleID < numberOfAtoms; particleID++) {
     dot = DotProductGPU(gpu_kxRef[imageID], gpu_kyRef[imageID],
                         gpu_kzRef[imageID], shared_coords[particleID * 6],
                         shared_coords[particleID * 6 + 1],
