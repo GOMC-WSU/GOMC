@@ -84,7 +84,7 @@ void Simulation::RunSimulation(void)
         printf("Info: Recalculating the total energies to insure the accuracy"
                " of the computed \n"
                "      running energies.\n\n");
-        system->calcEwald->Init();
+        system->calcEwald->UpdateVectorsAndRecipTerms(true);
         system->potential = system->calcEnergy.SystemTotal();
       }
     }
