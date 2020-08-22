@@ -514,7 +514,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         printf("%-40s %-lu \n", "Info: Parallel Tempering frequency",
                sys.step.parallelTempFreq);
       }
-    } if(CheckString(line[0], "ParallelTemperingAttemptsPerExchange")) {
+    } else if(CheckString(line[0], "ParallelTemperingAttemptsPerExchange")) {
       sys.step.parallelTemperingAttemptsPerExchange = stringtoi(line[1]);
       printf("%-40s %lu \n", "Info: Number of Attempts Per Exchange Move",
         sys.step.parallelTemperingAttemptsPerExchange);
