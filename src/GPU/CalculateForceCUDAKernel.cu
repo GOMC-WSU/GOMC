@@ -321,7 +321,7 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   double *gpu_final_REn, *gpu_final_LJEn;
   double cpu_final_REn, cpu_final_LJEn;
 
-  threadsPerBlock = 512;
+  threadsPerBlock = 256;
   blocksPerGrid = (int)(numberOfCells * NUMBER_OF_NEIGHBOR_CELL);
   energyVectorLen = numberOfCells * NUMBER_OF_NEIGHBOR_CELL * threadsPerBlock;
 
