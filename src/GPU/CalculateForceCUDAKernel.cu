@@ -822,9 +822,16 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
   double qi_qj_fact;
   double qqFact = 167000.0;
 
-  // GJS - XYZ cuda type initialized to 0.0 
   double3 virComponents, forceReal, forceLJ;
-  // GJS
+  virComponents.x = 0.0;
+  virComponents.y = 0.0;
+  virComponents.z = 0.0;
+  forceReal.x = 0.0;
+  forceReal.y = 0.0;
+  forceReal.z = 0.0;
+  forceLJ.x = 0.0;
+  forceLJ.y = 0.0;
+  forceLJ.z = 0.0;
 
   double lambdaVDW = 0.0, lambdaCoulomb = 0.0;
   gpu_REn[threadID] = 0.0;
