@@ -407,14 +407,6 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   double accept = MPCoeff * uBoltz;
   double pr = prng();
-#ifdef RECORD_DEBUG
-  record_debug_macro(MPCoeff);
-  record_debug_macro(sysPotNew.Total());
-  record_debug_macro(sysPotRef.Total());
-  record_debug_macro(uBoltz);
-  record_debug_macro(accept);
-  record_debug_macro(pr);
-#endif
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
   if(result) {
     sysPotRef = sysPotNew;
