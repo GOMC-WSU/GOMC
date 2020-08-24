@@ -81,14 +81,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_y, coords.y, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
 
-  double3 axis = make_double3(boxAxes.GetAxis(box).x,
-  boxAxes.GetAxis(box).y,
-  boxAxes.GetAxis(box).z);
-
-  double3 halfAx = make_double3(boxAxes.GetAxis(box).x / 2.0,
-                                boxAxes.GetAxis(box).y / 2.0,
-                                boxAxes.GetAxis(box).z / 2.0);
-
   BoxInterGPU <<< blocksPerGrid, threadsPerBlock>>>(gpu_cellStartIndex,
       vars->gpu_cellVector,
       gpu_neighborList,
@@ -96,8 +88,9 @@ void CallBoxInterGPU(VariablesCUDA *vars,
       vars->gpu_x,
       vars->gpu_y,
       vars->gpu_z,
-      axis,
-      halfAx,
+      boxAxes.GetAxis(box).x,
+      boxAxes.GetAxis(box).y,
+      boxAxes.GetAxis(box).z,
       electrostatic,
       gpu_particleCharge,
       gpu_particleKind,
@@ -183,8 +176,9 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
                             double *gpu_x,
                             double *gpu_y,
                             double *gpu_z,
-                            double3 axis,
-                            double3 halfAx,
+                            double xAxes,
+                            double yAxes,
+                            double zAxes,
                             bool electrostatic,
                             double *gpu_particleCharge,
                             int *gpu_particleKind,
@@ -260,13 +254,17 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
     if(currentParticle < neighborParticle && gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
       // Check if they are within rcut
       distSq = 0;
+      double dx = gpu_x[currentParticle] - gpu_x[neighborParticle];
+      double dy = gpu_y[currentParticle] - gpu_y[neighborParticle];
+      double dz = gpu_z[currentParticle] - gpu_z[neighborParticle];
 
-      if(InRcutGPU(distSq, gpu_x, gpu_y, gpu_z, 
-                   currentParticle, neighborParticle,
-                   axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
-                   gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
-                   gpu_Invcell_z)) {        
-        
+      dx = min(fabs(dx), xAxes - fabs(dx));
+      dy = min(fabs(dy), yAxes - fabs(dy));
+      dz = min(fabs(dz), zAxes - fabs(dz));
+
+      distSq = dx * dx + dy * dy + dz * dz;
+
+      if((cutoff * cutoff) > distSq) {
         double cA = gpu_particleCharge[currentParticle];
         double cB = gpu_particleCharge[neighborParticle];
         int kA = gpu_particleKind[currentParticle];
