@@ -339,7 +339,7 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
     gpu_comy[molIndex] += shifty;
     gpu_comz[molIndex] += shiftz;
     gpu_t_k_x[molIndex] = shiftx;
-    gpu_t_k_y[molindex] = shifty;
+    gpu_t_k_y[molIndex] = shifty;
     gpu_t_k_z[molIndex] = shiftz;
   }
 }
