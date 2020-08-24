@@ -295,6 +295,17 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
 
   // Reset Force Arrays
   ResetForce(atomForce, molForce, box);
+#ifdef RECORD_DEBUG
+  record_debug_macro_len(coords.x, atomCount);
+  record_debug_macro_len(coords.y, atomCount);
+  record_debug_macro_len(coords.z, atomCount);
+  record_debug_macro_len(atomForce.x, atomCount);
+  record_debug_macro_len(atomForce.y, atomCount);
+  record_debug_macro_len(atomForce.z, atomCount);
+  record_debug_macro_len(molForce.x, molCount);
+  record_debug_macro_len(molForce.y, molCount);
+  record_debug_macro_len(molForce.z, molCount);
+#endif
 
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
   std::vector<std::vector<int> > neighborList;
@@ -386,6 +397,17 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
     }
   }
 #endif
+#ifdef RECORD_DEBUG
+  record_debug_macro_len(atomForce.x, atomCount);
+  record_debug_macro_len(atomForce.y, atomCount);
+  record_debug_macro_len(atomForce.z, atomCount);
+  record_debug_macro_len(molForce.x, molCount);
+  record_debug_macro_len(molForce.y, molCount);
+  record_debug_macro_len(molForce.z, molCount);
+  record_debug_macro(tempLJEn);
+  record_debug_macro(tempREn);
+#endif
+
 
   // setting energy and virial of LJ interaction
   potential.boxEnergy[box].inter = tempLJEn;
