@@ -275,7 +275,7 @@ inline uint MultiParticle::Transform()
                            particleMol, atomForceRecNew.Count(),
                            molForceRecNew.Count(), boxDimRef.GetAxis(bPick).x,
                            boxDimRef.GetAxis(bPick).y, boxDimRef.GetAxis(bPick).z,
-                           newMolsPos, newCOMs, lambda * BETA);
+                           newMolsPos, newCOMs, lambda * BETA, r_k);
   } else {
     double t_max = moveSetRef.GetTMAX(bPick);
     CallTranslateParticlesGPU(cudaVars, moleculeIndex, t_max,
@@ -284,7 +284,7 @@ inline uint MultiParticle::Transform()
                               particleMol, atomForceRecNew.Count(),
                               molForceRecNew.Count(), boxDimRef.GetAxis(bPick).x,
                               boxDimRef.GetAxis(bPick).y, boxDimRef.GetAxis(bPick).z,
-                              newMolsPos, newCOMs, lambda * BETA);
+                              newMolsPos, newCOMs, lambda * BETA, t_k);
   }
 #else
   CalculateTrialDistRot();

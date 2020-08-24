@@ -130,7 +130,8 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                double zAxes,
                                XYZArray &newMolPos,
                                XYZArray &newCOMs,
-                               double lambdaBETA)
+                               double lambdaBETA,
+                               XYZArray &t_k)
 {
   int threadsPerBlock = 256;
   int blocksPerGrid = (int)(atomCount / threadsPerBlock) + 1;
@@ -172,7 +173,10 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                                                vars->gpu_comx,
                                                                vars->gpu_comy,
                                                                vars->gpu_comz,
-                                                               lambdaBETA);
+                                                               lambdaBETA,
+                                                               vars->gpu_t_k_x,
+                                                               vars->gpu_t_k_y,
+                                                               vars->gpu_t_k_z);
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
   
@@ -182,6 +186,9 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
   cudaMemcpy(newCOMs.x, vars->gpu_comx, molCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(newCOMs.y, vars->gpu_comy, molCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(newCOMs.z, vars->gpu_comz, molCount * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(t_k.x, vars->gpu_t_k_x, molCount * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(t_k.y, vars->gpu_t_k_y, molCount * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(t_k.z, vars->gpu_t_k_z, molCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaFree(gpu_particleMol);
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
@@ -202,7 +209,8 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
                             double zAxes,
                             XYZArray &newMolPos,
                             XYZArray &newCOMs,
-                            double lambdaBETA)
+                            double lambdaBETA,
+                            XYZArray &r_k)
 {
   int threadsPerBlock = 256;
   int blocksPerGrid = (int)(atomCount / threadsPerBlock) + 1;
@@ -239,13 +247,19 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
                                                             vars->gpu_comx,
                                                             vars->gpu_comy,
                                                             vars->gpu_comz,
-                                                            lambdaBETA);
+                                                            lambdaBETA,
+                                                            vars->gpu_r_k_x,
+                                                            vars->gpu_r_k_y,
+                                                            vars->gpu_r_k_z);
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
   
   cudaMemcpy(newMolPos.x, vars->gpu_x, atomCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(newMolPos.y, vars->gpu_y, atomCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(newMolPos.z, vars->gpu_z, atomCount * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(r_k.x, vars->gpu_r_k_x, molCount * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(r_k.y, vars->gpu_r_k_y, molCount * sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(r_k.z, vars->gpu_r_k_z, molCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaFree(gpu_particleMol);
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
@@ -268,13 +282,16 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
                                          double *gpu_comx,
                                          double *gpu_comy,
                                          double *gpu_comz,
-                                         double lambdaBETA)
+                                         double lambdaBETA,
+                                         double *gpu_t_k_x,
+                                         double *gpu_t_k_y,
+                                         double *gpu_t_k_z)
 {
   int atomNumber = blockIdx.x * blockDim.x + threadIdx.x;
   if(atomNumber >= atomCount) return;
 
   int molIndex = gpu_particleMol[atomNumber];
-  bool updateCOM = atomNumber == 0 || (gpu_particleMol[atomNumber] != gpu_particleMol[atomNumber-1]);
+  bool updateMol = atomNumber == 0 || (gpu_particleMol[atomNumber] != gpu_particleMol[atomNumber-1]);
 
   // This section calculates the amount of shift
   double lbfx = molForcex[molIndex] * lambdaBETA;
@@ -317,10 +334,13 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
   WrapPBC(gpu_y[atomNumber], yAxes);
   WrapPBC(gpu_z[atomNumber], zAxes);
 
-  if(updateCOM) {
+  if(updateMol) {
     gpu_comx[molIndex] += shiftx;
     gpu_comy[molIndex] += shifty;
     gpu_comz[molIndex] += shiftz;
+    gpu_t_k_x[molIndex] = shiftx;
+    gpu_t_k_y[molindex] = shifty;
+    gpu_t_k_z[molIndex] = shiftz;
   }
 }
 
@@ -342,10 +362,14 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                                       double *gpu_comx,
                                       double *gpu_comy,
                                       double *gpu_comz,
-                                      double lambdaBETA)
+                                      double lambdaBETA,
+                                      double *gpu_r_k_x,
+                                      double *gpu_r_k_y,
+                                      double *gpu_r_k_z)
 {
   int atomNumber = blockIdx.x * blockDim.x + threadIdx.x;
   if(atomNumber >= atomCount) return;
+  bool updateMol = atomNumber == 0 || (gpu_particleMol[atomNumber] != gpu_particleMol[atomNumber-1]);
 
   int molIndex = gpu_particleMol[atomNumber];
 
@@ -378,6 +402,12 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
   } else {
     double rr = randomGPU(molIndex * 3 + 2, step, seed) * 2.0 - 1.0;
     rotz = r_max * rr;
+  }
+
+  if(updateMol) {
+    gpu_r_k_x[molIndex] = rotx;
+    gpu_r_k_y[molIndex] = roty;
+    gpu_r_k_z[molIndex] = rotz;
   }
 
   // perform the rot on the coordinates
