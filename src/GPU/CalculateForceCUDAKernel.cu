@@ -825,7 +825,6 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
   double qi_qj_fact;
   double qqFact = 167000.0;
 
-  // GJS - XYZ cuda type initialized to 0.0 
   double3 virComponents, forceReal, forceLJ;
   virComponents = make_double3(0.0, 0.0, 0.0);
   forceReal =  make_double3(0.0, 0.0, 0.0);
