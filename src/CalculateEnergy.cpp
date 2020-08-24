@@ -210,7 +210,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 #ifdef _OPENMP
   #pragma omp parallel for default(shared) \
   private(currParticleIdx, currParticle, currCell, nCellIndex, neighborCell, endIndex, \
-          nParticleIndex, nParticle, distSq, qi_qj_fact, virComponents)\
+          nParticleIndex, nParticle, distSq, qi_qj_fact, virComponents, lambdaVDW, lambdaCoulomb)\
   reduction(+:tempREn, tempLJEn)
 #endif
   // loop over all particles
