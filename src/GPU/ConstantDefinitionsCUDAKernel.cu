@@ -340,6 +340,12 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   CUFREE(vars->gpu_comx);
   CUFREE(vars->gpu_comy);
   CUFREE(vars->gpu_comz);
+  CUFREE(vars->gpu_r_k_x);
+  CUFREE(vars->gpu_r_k_y);
+  CUFREE(vars->gpu_r_k_z);
+  CUFREE(vars->gpu_t_k_x);
+  CUFREE(vars->gpu_t_k_y);
+  CUFREE(vars->gpu_t_k_z);
   CUFREE(vars->gpu_aForcex);
   CUFREE(vars->gpu_aForcey);
   CUFREE(vars->gpu_aForcez);
