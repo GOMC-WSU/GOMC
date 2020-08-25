@@ -25,7 +25,8 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                double zAxes,
                                XYZArray &newMolPos,
                                XYZArray &newCOMs,
-                               double lambdaBETA);
+                               double lambdaBETA,
+                               XYZArray &t_k);
 
 void CallRotateParticlesGPU(VariablesCUDA *vars,
                             std::vector<uint> &moleculeIndex,
@@ -43,7 +44,8 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
                             double zAxes,
                             XYZArray &newMolPos,
                             XYZArray &newCOMs,
-                            double lambdaBETA);
+                            double lambdaBETA,
+                            XYZArray &r_k);
 
 __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
                                          double t_max,
@@ -63,7 +65,10 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
                                          double *gpu_comx,
                                          double *gpu_comy,
                                          double *gpu_comz,
-                                         double lambdaBETA);
+                                         double lambdaBETA,
+                                         double *gpu_t_k_x,
+                                         double *gpu_t_k_y,
+                                         double *gpu_t_k_z);
 
 __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                                       double r_max,
@@ -83,5 +88,8 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                                       double *gpu_comx,
                                       double *gpu_comy,
                                       double *gpu_comz,
-                                      double lambdaBETA);
+                                      double lambdaBETA,
+                                      double *gpu_r_k_x,
+                                      double *gpu_r_k_y,
+                                      double *gpu_r_k_z);
 #endif

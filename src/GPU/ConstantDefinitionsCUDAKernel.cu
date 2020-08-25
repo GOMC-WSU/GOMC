@@ -101,6 +101,14 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   CUMALLOC((void**) &vars->gpu_comy, maxMolNumber * sizeof(double));
   CUMALLOC((void**) &vars->gpu_comz, maxMolNumber * sizeof(double));
 
+  CUMALLOC((void**) &vars->gpu_r_k_x, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_r_k_y, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_r_k_z, maxMolNumber * sizeof(double));
+  
+  CUMALLOC((void**) &vars->gpu_t_k_x, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_t_k_y, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_t_k_z, maxMolNumber * sizeof(double));
+
   CUMALLOC((void**) &vars->gpu_nonOrth, sizeof(int));
   vars->gpu_cell_x = new double *[BOX_TOTAL];
   vars->gpu_cell_y = new double *[BOX_TOTAL];
@@ -332,6 +340,12 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   CUFREE(vars->gpu_comx);
   CUFREE(vars->gpu_comy);
   CUFREE(vars->gpu_comz);
+  CUFREE(vars->gpu_r_k_x);
+  CUFREE(vars->gpu_r_k_y);
+  CUFREE(vars->gpu_r_k_z);
+  CUFREE(vars->gpu_t_k_x);
+  CUFREE(vars->gpu_t_k_y);
+  CUFREE(vars->gpu_t_k_z);
   CUFREE(vars->gpu_aForcex);
   CUFREE(vars->gpu_aForcey);
   CUFREE(vars->gpu_aForcez);
