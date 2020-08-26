@@ -1,5 +1,6 @@
 #ifdef GOMC_CUDA
 #include "TransformParticlesCUDAKernel.cuh"
+#include "CUDAMemoryManager.cuh"
 
 #define MIN_FORCE 1E-12
 #define MAX_FORCE 30
