@@ -272,10 +272,21 @@ inline uint MultiParticle::Transform()
   record_debug_macro_len(newMolsPos.z, newMolsPos.Count());
 #endif
 #ifdef GOMC_CUDA
+  // calculate which particles are inside moleculeIndex
+  vector<int> isParticleInsideMoleculeIndex(newMolsPos.Count(), 0);
+  for(int particleID=0; particleID<isParticleInsideMoleculeIndex.size(); particleID++) {
+    int midx = particleMol[particleID];
+    std::vector<uint>::iterator it;
+    it = find(moleculeIndex.begin(), moleculeIndex.end(), midx);
+    if(it != moleculeIndex.end()) {
+      isParticleInsideMoleculeIndex[particleID] = 1;
+    }
+  }
+
   // This kernel will calculate translation/rotation amount + shifting/rotating
   if(moveType[0] == mp::MPALLROTATE) {
     double r_max = moveSetRef.GetRMAX(bPick);
-    CallRotateParticlesGPU(cudaVars, moleculeIndex, r_max,
+    CallRotateParticlesGPU(cudaVars, isParticleInsideMoleculeIndex, r_max,
                            molTorqueRef.x, molTorqueRef.y, molTorqueRef.z,
                            r123wrapper.GetStep(), r123wrapper.GetSeedValue(),
                            particleMol, atomForceRecNew.Count(),
@@ -284,7 +295,7 @@ inline uint MultiParticle::Transform()
                            newMolsPos, newCOMs, lambda * BETA, r_k);
   } else {
     double t_max = moveSetRef.GetTMAX(bPick);
-    CallTranslateParticlesGPU(cudaVars, moleculeIndex, t_max,
+    CallTranslateParticlesGPU(cudaVars, isParticleInsideMoleculeIndex, t_max,
                               molForceRef.x, molForceRef.y, molForceRef.z,
                               r123wrapper.GetStep(), r123wrapper.GetSeedValue(),
                               particleMol, atomForceRecNew.Count(),

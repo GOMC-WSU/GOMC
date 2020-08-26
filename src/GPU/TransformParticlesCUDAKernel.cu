@@ -115,7 +115,7 @@ __device__ inline void ApplyRotation(double &x, double &y, double &z,
 }
 
 void CallTranslateParticlesGPU(VariablesCUDA *vars,
-                               std::vector<uint> &moleculeIndex,
+                               std::vector<int> &isParticleInsideMoleculeIndex,
                                double t_max,
                                double *mForcex,
                                double *mForcey,
@@ -133,11 +133,14 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                double lambdaBETA,
                                XYZArray &t_k)
 {
+  int *gpu_isParticleInsideMoleculeIndex;
   int threadsPerBlock = 256;
   int blocksPerGrid = (int)(atomCount / threadsPerBlock) + 1;
   int *gpu_particleMol;
 
-  cudaMalloc((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
+  CUMALLOC((void **) &gpu_isParticleInsideMoleculeIndex,
+           isParticleInsideMoleculeIndex.size() * sizeof(int));
+  CUMALLOC((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
 
   cudaMemcpy(vars->gpu_mForcex, mForcex, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
@@ -147,6 +150,8 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
              cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleMol, &particleMol[0], particleMol.size() * sizeof(int),
              cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_isParticleInsideMoleculeIndex, &isParticleInsideMoleculeIndex[0],
+             isParticleInsideMoleculeIndex.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_x, newMolPos.x, atomCount * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_y, newMolPos.y, atomCount * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_z, newMolPos.z, atomCount * sizeof(double), cudaMemcpyHostToDevice);
@@ -176,7 +181,8 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                                                lambdaBETA,
                                                                vars->gpu_t_k_x,
                                                                vars->gpu_t_k_y,
-                                                               vars->gpu_t_k_z);
+                                                               vars->gpu_t_k_z,
+                                                               gpu_isParticleInsideMoleculeIndex);
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
   
@@ -189,12 +195,13 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
   cudaMemcpy(t_k.x, vars->gpu_t_k_x, molCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(t_k.y, vars->gpu_t_k_y, molCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(t_k.z, vars->gpu_t_k_z, molCount * sizeof(double), cudaMemcpyDeviceToHost);
-  cudaFree(gpu_particleMol);
+  CUFREE(gpu_isParticleInsideMoleculeIndex);
+  CUFREE(gpu_particleMol);
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
 void CallRotateParticlesGPU(VariablesCUDA *vars,
-                            std::vector<uint> &moleculeIndex,
+                            std::vector<int> &isParticleInsideMoleculeIndex,
                             double r_max,
                             double *mTorquex,
                             double *mTorquey,
@@ -212,11 +219,14 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
                             double lambdaBETA,
                             XYZArray &r_k)
 {
+  int *gpu_isParticleInsideMoleculeIndex;
   int threadsPerBlock = 256;
   int blocksPerGrid = (int)(atomCount / threadsPerBlock) + 1;
   int *gpu_particleMol;
-
-  cudaMalloc((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
+  
+  CUMALLOC((void **) &gpu_isParticleInsideMoleculeIndex,
+           isParticleInsideMoleculeIndex.size() * sizeof(int));
+  CUMALLOC((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
 
   cudaMemcpy(vars->gpu_mTorquex, mTorquex, molCount * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_mTorquey, mTorquey, molCount * sizeof(double), cudaMemcpyHostToDevice);
@@ -228,6 +238,8 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_comx, newCOMs.x, molCount * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_comy, newCOMs.y, molCount * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_comz, newCOMs.z, molCount * sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_isParticleInsideMoleculeIndex, &isParticleInsideMoleculeIndex[0],
+    isParticleInsideMoleculeIndex.size() * sizeof(int), cudaMemcpyHostToDevice);
 
   RotateParticlesKernel<<<blocksPerGrid, threadsPerBlock>>>(molCount,
                                                             r_max,
@@ -250,7 +262,8 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
                                                             lambdaBETA,
                                                             vars->gpu_r_k_x,
                                                             vars->gpu_r_k_y,
-                                                            vars->gpu_r_k_z);
+                                                            vars->gpu_r_k_z,
+                                                            gpu_isParticleInsideMoleculeIndex);
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
   
@@ -260,7 +273,8 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
   cudaMemcpy(r_k.x, vars->gpu_r_k_x, molCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(r_k.y, vars->gpu_r_k_y, molCount * sizeof(double), cudaMemcpyDeviceToHost);
   cudaMemcpy(r_k.z, vars->gpu_r_k_z, molCount * sizeof(double), cudaMemcpyDeviceToHost);
-  cudaFree(gpu_particleMol);
+  CUFREE(gpu_isParticleInsideMoleculeIndex);
+  CUFREE(gpu_particleMol);
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
@@ -285,12 +299,14 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
                                          double lambdaBETA,
                                          double *gpu_t_k_x,
                                          double *gpu_t_k_y,
-                                         double *gpu_t_k_z)
+                                         double *gpu_t_k_z,
+                                         int *gpu_isParticleInsideMoleculeIndex)
 {
   int atomNumber = blockIdx.x * blockDim.x + threadIdx.x;
   if(atomNumber >= atomCount) return;
 
   int molIndex = gpu_particleMol[atomNumber];
+  if(!gpu_isParticleInsideMoleculeIndex[molIndex]) return;
   bool updateMol = atomNumber == 0 || (gpu_particleMol[atomNumber] != gpu_particleMol[atomNumber-1]);
 
   // This section calculates the amount of shift
@@ -368,13 +384,14 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                                       double lambdaBETA,
                                       double *gpu_r_k_x,
                                       double *gpu_r_k_y,
-                                      double *gpu_r_k_z)
+                                      double *gpu_r_k_z,
+                                      int *gpu_isParticleInsideMoleculeIndex)
 {
   int atomNumber = blockIdx.x * blockDim.x + threadIdx.x;
   if(atomNumber >= atomCount) return;
-  bool updateMol = atomNumber == 0 || (gpu_particleMol[atomNumber] != gpu_particleMol[atomNumber-1]);
-
   int molIndex = gpu_particleMol[atomNumber];
+  if(!gpu_isParticleInsideMoleculeIndex[molIndex]) return;
+  bool updateMol = atomNumber == 0 || (gpu_particleMol[atomNumber] != gpu_particleMol[atomNumber-1]);
 
   // This section calculates the amount of shift
   double lbtx = molTorquex[molIndex] * lambdaBETA;
