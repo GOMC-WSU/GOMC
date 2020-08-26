@@ -163,7 +163,8 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   // We can also add another move typr, where in this steps, each molecule
   // can displace or rotate, independently from other molecule. To do that, we
   // need to change the  mp::MPTOTALTYPES variable to 3, in MoveSetting.h
-  typePick = prng.randIntExc(mp::MPTOTALTYPES);
+  //typePick = prng.randIntExc(mp::MPTOTALTYPES);
+  typePick = 0;
   SetMolInBox(bPick);
 
   for(uint m = 0; m < moleculeIndex.size(); m++) {
@@ -265,6 +266,11 @@ inline uint MultiParticle::Transform()
   // individual particle.
   uint state = mv::fail_state::NO_FAIL;
   uint m;
+#ifdef RECORD_DEBUG
+  record_debug_macro_len(newMolsPos.x, newMolsPos.Count());
+  record_debug_macro_len(newMolsPos.y, newMolsPos.Count());
+  record_debug_macro_len(newMolsPos.z, newMolsPos.Count());
+#endif
 #ifdef GOMC_CUDA
   // This kernel will calculate translation/rotation amount + shifting/rotating
   if(moveType[0] == mp::MPALLROTATE) {
@@ -301,6 +307,11 @@ inline uint MultiParticle::Transform()
       TranslateForceBiased(moleculeIndex[m]);
     }
   }
+#endif
+#ifdef RECORD_DEBUG
+  record_debug_macro_len(newMolsPos.x, newMolsPos.Count());
+  record_debug_macro_len(newMolsPos.y, newMolsPos.Count());
+  record_debug_macro_len(newMolsPos.z, newMolsPos.Count());
 #endif
   return state;
 }
@@ -407,6 +418,13 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   double accept = MPCoeff * uBoltz;
   double pr = prng();
+#ifdef RECORD_DEBUG
+  record_debug_macro(MPCoeff);
+  record_debug_macro(sysPotRef.Total());
+  record_debug_macro(sysPotNew.Total());
+  record_debug_macro(accept);
+  record_debug_macro(pr);
+#endif
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
   if(result) {
     sysPotRef = sysPotNew;
@@ -526,6 +544,10 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
 inline void MultiParticle::TranslateForceBiased(uint molIndex)
 {
   XYZ shift = t_k.Get(molIndex);
+
+  if(molIndex == 3) {
+    printf("%.15lf, %.15lf, %.15lf\n", shift.x, shift.y, shift.z);
+  }
 
   XYZ newcom = newCOMs.Get(molIndex);
   uint stop, start, len;
