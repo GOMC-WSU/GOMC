@@ -13,8 +13,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include <limits> // for std::numeric_limit
 
-#if ENSEMBLE == GCMC
-
 EnPartCntSample::~EnPartCntSample()
 {
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
@@ -142,5 +140,3 @@ std::string EnPartCntSample::GetFName(std::string const& sampleName,
   fName += ".dat";
   return fName;
 }
-
-#endif /*ENSEMBLE==GCMC*/

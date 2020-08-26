@@ -19,8 +19,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBSetup.h" //For atoms class.
 #include "EnergyTypes.h"
 
-#if ENSEMBLE == GCMC
-
 namespace config_setup
 {
 class Output;
@@ -67,7 +65,5 @@ private:
   std::ofstream outF[BOXES_WITH_U_NB];
   std::string name [BOXES_WITH_U_NB];
 };
-
-#endif /*ENSEMBLE==GCMC*/
 
 #endif /*EN_PART_CNT_SAMPLE_OUTPUT_H*/

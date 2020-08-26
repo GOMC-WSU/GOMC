@@ -40,9 +40,7 @@ private:
   BlockAverages block;
   Histogram hist;
   CheckpointOutput checkpoint;
-#if ENSEMBLE == GCMC
   EnPartCntSample sample_N_E;
-#endif
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   FreeEnergyOutput freeEnergy;
 #endif

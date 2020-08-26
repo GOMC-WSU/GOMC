@@ -100,6 +100,7 @@ ConfigSetup::ConfigSetup(void)
   out.statistics.settings.block.enable = true;
 #if ENSEMBLE == GCMC
   sys.chemPot.isFugacity = false;
+#endif
   out.statistics.settings.hist.enable = false;
   out.statistics.settings.hist.frequency = ULONG_MAX;
   out.state.files.hist.histName = "";
@@ -107,7 +108,6 @@ ConfigSetup::ConfigSetup(void)
   out.state.files.hist.number = "";
   out.state.files.hist.sampleName = "";
   out.state.files.hist.stepsPerHistSample = UINT_MAX;
-#endif
   out.checkpoint.enable = false;
   out.checkpoint.frequency = ULONG_MAX;
   out.statistics.settings.uniqueStr.val = "";
@@ -977,7 +977,6 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       } else
         printf("%-40s %-s \n", "Info: Average output", "Inactive");
     }
-#if ENSEMBLE == GCMC
     else if(CheckString(line[0], "HistogramFreq")) {
       out.statistics.settings.hist.enable = checkBool(line[1]);
       if(line.size() == 3)
@@ -1009,7 +1008,6 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       printf("%-40s %-d \n", "Info: Histogram sample frequency",
              out.state.files.hist.stepsPerHistSample);
     }
-#endif
     else if(CheckString(line[0], "OutEnergy")) {
       out.statistics.vars.energy.block = checkBool(line[1]);
       out.statistics.vars.energy.fluct = checkBool(line[2]);
@@ -1841,7 +1839,6 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Average output frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
-#if ENSEMBLE == GCMC
   if(out.statistics.settings.hist.enable &&
       out.statistics.settings.hist.frequency == ULONG_MAX) {
     std::cout << "Error: Histogram output frequency is not specified!\n";
@@ -1867,7 +1864,6 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Histogram output sample frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
-#endif
   if(!out.statistics.settings.block.enable && out.statistics.vars.energy.block) {
     printf("Note: Average output Inactivated. Energy average output will be ignored.\n");
     out.statistics.vars.energy.block = false;
