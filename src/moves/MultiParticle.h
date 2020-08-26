@@ -273,7 +273,7 @@ inline uint MultiParticle::Transform()
 #endif
 #ifdef GOMC_CUDA
   // calculate which particles are inside moleculeIndex
-  vector<int> isParticleInsideMoleculeIndex(newMolsPos.Count(), 0);
+  std::vector<int> isParticleInsideMoleculeIndex(newMolsPos.Count(), 0);
   for(int particleID=0; particleID<isParticleInsideMoleculeIndex.size(); particleID++) {
     int midx = particleMol[particleID];
     std::vector<uint>::iterator it;
