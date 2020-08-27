@@ -32,7 +32,7 @@ void EnPartCntSample::Init(pdb_setup::Atoms const& atoms,
   InitVals(output.statistics.settings.hist);
   if (enableOut) {
     stepsPerSample = output.state.files.hist.stepsPerHistSample;
-    uint samplesPerFrame =
+    samplesPerFrame =
       output.statistics.settings.hist.frequency / stepsPerSample + 1;
     samplesCollectedInFrame = 0;
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {

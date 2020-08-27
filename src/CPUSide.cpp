@@ -10,7 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 CPUSide::CPUSide(System & sys, StaticVals & statV) :
   varRef(sys, statV), pdb(sys, statV), console(varRef), block(varRef),
-  hist(varRef), checkpoint(sys, statV), sample_N_E(varRef)
+  hist(varRef), checkpoint(sys, statV), sample_N_E(varRef), kde(sample_N_E)
 #
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   , freeEnergy(varRef, sys)

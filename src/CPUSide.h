@@ -18,6 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CheckpointOutput.h"
 #include "EnPartCntSampleOutput.h"
 #include "FreeEnergyOutput.h"
+#include "KernelDensityEstimator.h"
 
 #include <vector>
 
@@ -45,6 +46,7 @@ private:
   FreeEnergyOutput freeEnergy;
 #endif
   OutputVars varRef;
+  KernelDensityEstimator kde;
 };
 
 #endif /*CPU_SIDE_H*/

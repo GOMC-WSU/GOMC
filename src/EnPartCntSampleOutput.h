@@ -58,12 +58,14 @@ private:
                        std::string const& histNum,
                        std::string const& histLetter,
                        const uint b);
-
+  
+  uint samplesPerFrame; 
   //samplesE --> per box; samplesN --> per kind, per box
   double * samplesE [BOXES_WITH_U_NB];
   uint ** samplesN [BOXES_WITH_U_NB], stepsPerSample, samplesCollectedInFrame;
   std::ofstream outF[BOXES_WITH_U_NB];
   std::string name [BOXES_WITH_U_NB];
+  friend class KernelDensityEstimator;
 };
 
 #endif /*EN_PART_CNT_SAMPLE_OUTPUT_H*/
