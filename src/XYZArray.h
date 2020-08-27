@@ -17,7 +17,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <omp.h>
 #endif
 
-//Forward declare to give accesss to internal arrays.
+//Forward declare to give access to internal arrays.
 class BoxDimensions;
 
 
@@ -48,7 +48,7 @@ public:
     Uninit();
   }
 
-  //Wipe out my memberarrays
+  //Wipe out my member arrays
   void Uninit();
 
   //Helper function to allocated memory to coordinate arrays.
@@ -121,7 +121,7 @@ public:
 
   ////////////////////////////////////////////////////////////////////
 
-  //Add values in two diferent arrays.
+  //Add values in two different arrays.
   //Add the value of src[srcI] to this[i]
   void Add(XYZArray & src, const uint i, const uint srcI)
   {
@@ -209,7 +209,7 @@ public:
     z[i] += z[j];
   }
 
-  //Subract row j from row i
+  //Subtract row j from row i
   void Sub(const uint i, const uint j)
   {
     x[i] -= x[j];
@@ -406,7 +406,7 @@ inline void XYZArray::SetRange(const uint start, const uint stop,
 inline void XYZArray::ResetRange(const uint val, const uint stop)
 {
 #ifdef _OPENMP
-  #pragma omp parallel default(shared)
+  #pragma omp parallel default(none)
 #endif
   {
     memset(this->x, val, stop * sizeof(double));
@@ -548,7 +548,7 @@ inline void XYZArray::CopyRange(XYZArray & dest, const uint srcIndex,
                                 const uint destIndex, const uint len) const
 {
 #ifdef _OPENMP
-  #pragma omp parallel default(shared)
+  #pragma omp parallel default(none) shared(dest)
 #endif
   {
     memcpy(dest.x + destIndex, x + srcIndex, len * sizeof(double));

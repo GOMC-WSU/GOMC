@@ -160,7 +160,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   // In each step, we perform either:
   // 1- All displacement move.
   // 2- All rotation move.
-  // We can also add another move typr, where in this steps, each molecule
+  // We can also add another move type, where in this steps, each molecule
   // can displace or rotate, independently from other molecule. To do that, we
   // need to change the  mp::MPTOTALTYPES variable to 3, in MoveSetting.h
   typePick = prng.randIntExc(mp::MPTOTALTYPES);
@@ -183,7 +183,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
                                       mp::MPROTATE : mp::MPDISPLACE);
         break;
       default:
-        std::cerr << "Error: Something went wrong preping MultiParticle!\n"
+        std::cerr << "Error: Something went wrong prepping MultiParticle!\n"
                   << "Type Pick value is not valid!\n";
         exit(EXIT_FAILURE);
       }
@@ -232,7 +232,7 @@ inline void MultiParticle::PrepCFCMC(const uint box)
                                       mp::MPROTATE : mp::MPDISPLACE);
         break;
       default:
-        std::cerr << "Error: Something went wrong preping MultiParticle!\n"
+        std::cerr << "Error: Something went wrong prepping MultiParticle!\n"
                   << "Type Pick value is not valid!\n";
         exit(EXIT_FAILURE);
       }
@@ -264,7 +264,6 @@ inline uint MultiParticle::Transform()
   // Based on the reference force decided whether to displace or rotate each
   // individual particle.
   uint state = mv::fail_state::NO_FAIL;
-  uint m;
 #ifdef GOMC_CUDA
   // This kernel will calculate translation/rotation amount + shifting/rotating
   if(moveType[0] == mp::MPALLROTATE) {
@@ -290,9 +289,9 @@ inline uint MultiParticle::Transform()
   CalculateTrialDistRot();
   // move particles according to force and torque and store them in the new pos
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(m)
+  #pragma omp parallel for default(none)
 #endif
-  for(m = 0; m < moleculeIndex.size(); m++) {
+  for(uint m = 0; m < moleculeIndex.size(); m++) {
     if(moveType[moleculeIndex[m]]) {
       // rotate
       RotateForceBiased(moleculeIndex[m]);
@@ -311,7 +310,7 @@ inline void MultiParticle::CalcEn()
   // reference values in Accept() function
   cellList.GridAll(boxDimRef, newMolsPos, molLookup);
 
-  //back up cached fourier term
+  //back up cached Fourier term
   calcEwald->backupMolCache();
   //setup reciprocate vectors for new positions
   calcEwald->BoxReciprocalSetup(bPick, newMolsPos);
@@ -361,28 +360,25 @@ inline double MultiParticle::CalculateWRatio(XYZ const &lb_new, XYZ const &lb_ol
 inline double MultiParticle::GetCoeff()
 {
   // calculate (w_new->old/w_old->new) and return it.
-  XYZ lbf_old, lbf_new; // lambda * BETA * force
-  XYZ lbt_old, lbt_new; // lambda * BETA * torque
   double w_ratio = 1.0;
   double lBeta = lambda * BETA;
-  uint m, molNumber;
   double r_max = moveSetRef.GetRMAX(bPick);
   double t_max = moveSetRef.GetTMAX(bPick);
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(m, molNumber, lbt_old, lbt_new, lbf_old, lbf_new) reduction(*:w_ratio)
+  #pragma omp parallel for default(none) shared(lBeta, r_max, t_max) reduction(*:w_ratio)
 #endif
-  for(m = 0; m < moleculeIndex.size(); m++) {
-    molNumber = moleculeIndex[m];
+  for(uint m = 0; m < moleculeIndex.size(); m++) {
+    uint molNumber = moleculeIndex[m];
     if(moveType[molNumber]) {
-      // rotate
-      lbt_old = molTorqueRef.Get(molNumber) * lBeta;
-      lbt_new = molTorqueNew.Get(molNumber) * lBeta;
+      // rotate: lbt_old, lbt_new are lambda * BETA * torque
+      XYZ lbt_old = molTorqueRef.Get(molNumber) * lBeta;
+      XYZ lbt_new = molTorqueNew.Get(molNumber) * lBeta;
       w_ratio *= CalculateWRatio(lbt_new, lbt_old, r_k.Get(molNumber), r_max);
     } else {
-      // displace
-      lbf_old = (molForceRef.Get(molNumber) + molForceRecRef.Get(molNumber)) *
+      // displace: lbf_old, lbf_new are lambda * BETA * force
+      XYZ lbf_old = (molForceRef.Get(molNumber) + molForceRecRef.Get(molNumber)) *
                 lBeta;
-      lbf_new = (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber)) *
+      XYZ lbf_new = (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber)) *
                 lBeta;
       w_ratio *= CalculateWRatio(lbf_new, lbf_old, t_k.Get(molNumber), t_max);
     }
