@@ -363,18 +363,24 @@ inline double MultiParticle::CalculateWRatio(XYZ const &lb_new, XYZ const &lb_ol
   XYZ lbmax = lb_old * max;
   //If we used force to bias the displacement or rotation, we include it
   if(std::abs(lbmax.x) > MIN_FORCE && std::abs(lbmax.x) < MAX_FORCE) {
-    w_ratio *= lb_new.x * exp(-lb_new.x * k.x) / (2.0 * sinh(lb_new.x * max));
-    w_ratio /= lb_old.x * exp(lb_old.x * k.x) / (2.0 * sinh(lb_old.x * max));
+    // w_ratio *= lb_new.x * exp(-lb_new.x * k.x) / (2.0 * sinh(lb_new.x * max));
+    w_ratio *= lb_new.x * exp(-lb_new.x * k.x) / (2.0);
+    // w_ratio /= lb_old.x * exp(lb_old.x * k.x) / (2.0 * sinh(lb_old.x * max));
+    w_ratio /= lb_old.x * exp(lb_old.x * k.x) / (2.0);
   }
 
   if(std::abs(lbmax.y) > MIN_FORCE && std::abs(lbmax.y) < MAX_FORCE) {
-    w_ratio *= lb_new.y * exp(-lb_new.y * k.y) / (2.0 * sinh(lb_new.y * max));
-    w_ratio /= lb_old.y * exp(lb_old.y * k.y) / (2.0 * sinh(lb_old.y * max));
+    // w_ratio *= lb_new.y * exp(-lb_new.y * k.y) / (2.0 * sinh(lb_new.y * max));
+    w_ratio *= lb_new.y * exp(-lb_new.y * k.y) / (2.0);
+    // w_ratio /= lb_old.y * exp(lb_old.y * k.y) / (2.0 * sinh(lb_old.y * max));
+    w_ratio /= lb_old.y * exp(lb_old.y * k.y) / (2.0);
   }
 
   if(std::abs(lbmax.z) > MIN_FORCE && std::abs(lbmax.z) < MAX_FORCE) {
-    w_ratio *= lb_new.z * exp(-lb_new.z * k.z) / (2.0 * sinh(lb_new.z * max));
-    w_ratio /= lb_old.z * exp(lb_old.z * k.z) / (2.0 * sinh(lb_old.z * max));
+    // w_ratio *= lb_new.z * exp(-lb_new.z * k.z) / (2.0 * sinh(lb_new.z * max));
+    w_ratio *= lb_new.z * exp(-lb_new.z * k.z) / (2.0);
+    // w_ratio /= lb_old.z * exp(lb_old.z * k.z) / (2.0 * sinh(lb_old.z * max));
+    w_ratio /= lb_old.z * exp(lb_old.z * k.z) / (2.0);
   }
 
   return w_ratio;
@@ -464,21 +470,24 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
   XYZ lbmax = lb * max;
   XYZ num;
   if(std::abs(lbmax.x) > MIN_FORCE && std::abs(lbmax.x) < MAX_FORCE) {
-    num.x = log(exp(-1.0 * lbmax.x) + 2 * r123wrapper(molIndex*3+0) * sinh(lbmax.x)) / lb.x;
+    // num.x = log(exp(-1.0 * lbmax.x) + 2 * r123wrapper(molIndex*3+0) * sinh(lbmax.x)) / lb.x;
+    num.x = log(exp(-1.0 * lbmax.x) + 2 * r123wrapper(molIndex*3+0)) / lb.x;
   } else {
     double rr = r123wrapper(molIndex*3+0) * 2.0 - 1.0;
     num.x = max * rr;
   }
 
   if(std::abs(lbmax.y) > MIN_FORCE && std::abs(lbmax.y) < MAX_FORCE) {
-    num.y = log(exp(-1.0 * lbmax.y) + 2 * r123wrapper(molIndex*3+1) * sinh(lbmax.y)) / lb.y;
+    // num.y = log(exp(-1.0 * lbmax.y) + 2 * r123wrapper(molIndex*3+1) * sinh(lbmax.y)) / lb.y;
+    num.y = log(exp(-1.0 * lbmax.y) + 2 * r123wrapper(molIndex*3+1)) / lb.y;
   } else {
     double rr = r123wrapper(molIndex*3+1) * 2.0 - 1.0;
     num.y = max * rr;
   }
 
   if(std::abs(lbmax.z) > MIN_FORCE && std::abs(lbmax.z) < MAX_FORCE) {
-    num.z = log(exp(-1.0 * lbmax.z) + 2 * r123wrapper(molIndex*3+2) * sinh(lbmax.z)) / lb.z;
+    // num.z = log(exp(-1.0 * lbmax.z) + 2 * r123wrapper(molIndex*3+2) * sinh(lbmax.z)) / lb.z;
+    num.z = log(exp(-1.0 * lbmax.z) + 2 * r123wrapper(molIndex*3+2)) / lb.z;
   } else {
     double rr = r123wrapper(molIndex*3+2) * 2.0 - 1.0;
     num.z = max * rr;

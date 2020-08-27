@@ -321,21 +321,24 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
   double shiftx, shifty, shiftz;
 
   if(abs(lbmaxx) > MIN_FORCE && abs(lbmaxx) < MAX_FORCE) {
-    shiftx = log(exp(-1.0 * lbmaxx) + 2 * randomGPU(molIndex * 3, step, seed) * sinh(lbmaxx)) / lbfx;
+    // shiftx = log(exp(-1.0 * lbmaxx) + 2 * randomGPU(molIndex * 3, step, seed) * sinh(lbmaxx)) / lbfx;
+    shiftx = log(exp(-1.0 * lbmaxx) + 2 * randomGPU(molIndex * 3, step, seed)) / lbfx;
   } else {
     double rr = randomGPU(molIndex * 3, step, seed) * 2.0 - 1.0;
     shiftx = t_max * rr;
   }
 
   if(abs(lbmaxy) > MIN_FORCE && abs(lbmaxy) < MAX_FORCE) {
-    shifty = log(exp(-1.0 * lbmaxy) + 2 * randomGPU(molIndex * 3 + 1, step, seed) * sinh(lbmaxy)) / lbfy;
+    // shifty = log(exp(-1.0 * lbmaxy) + 2 * randomGPU(molIndex * 3 + 1, step, seed) * sinh(lbmaxy)) / lbfy;
+    shifty = log(exp(-1.0 * lbmaxy) + 2 * randomGPU(molIndex * 3 + 1, step, seed)) / lbfy;
   } else {
     double rr = randomGPU(molIndex * 3 + 1, step, seed) * 2.0 - 1.0;
     shifty = t_max * rr;
   }
 
   if(abs(lbmaxz) > MIN_FORCE && abs(lbmaxz) < MAX_FORCE) {
-    shiftz = log(exp(-1.0 * lbmaxz) + 2 * randomGPU(molIndex * 3 + 2, step, seed) * sinh(lbmaxz)) / lbfz;
+    // shiftz = log(exp(-1.0 * lbmaxz) + 2 * randomGPU(molIndex * 3 + 2, step, seed) * sinh(lbmaxz)) / lbfz;
+    shiftz = log(exp(-1.0 * lbmaxz) + 2 * randomGPU(molIndex * 3 + 2, step, seed)) / lbfz;
   } else {
     double rr = randomGPU(molIndex * 3 + 2, step, seed) * 2.0 - 1.0;
     shiftz = t_max * rr;
@@ -405,21 +408,24 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
   double rotx, roty, rotz;
 
   if(abs(lbmaxx) > MIN_FORCE && abs(lbmaxx) < MAX_FORCE) {
-    rotx = log(exp(-1.0 * lbmaxx) + 2 * randomGPU(molIndex * 3, step, seed) * sinh(lbmaxx)) / lbtx;
+    // rotx = log(exp(-1.0 * lbmaxx) + 2 * randomGPU(molIndex * 3, step, seed) * sinh(lbmaxx)) / lbtx;
+    rotx = log(exp(-1.0 * lbmaxx) + 2 * randomGPU(molIndex * 3, step, seed)) / lbtx;
   } else {
     double rr = randomGPU(molIndex * 3, step, seed) * 2.0 - 1.0;
     rotx = r_max * rr;
   }
 
   if(abs(lbmaxy) > MIN_FORCE && abs(lbmaxy) < MAX_FORCE) {
-    roty = log(exp(-1.0 * lbmaxy) + 2 * randomGPU(molIndex * 3 + 1, step, seed) * sinh(lbmaxy)) / lbty;
+    // roty = log(exp(-1.0 * lbmaxy) + 2 * randomGPU(molIndex * 3 + 1, step, seed) * sinh(lbmaxy)) / lbty;
+    roty = log(exp(-1.0 * lbmaxy) + 2 * randomGPU(molIndex * 3 + 1, step, seed)) / lbty;
   } else {
     double rr = randomGPU(molIndex * 3 + 1, step, seed) * 2.0 - 1.0;
     roty = r_max * rr;
   }
 
   if(abs(lbmaxz) > MIN_FORCE && abs(lbmaxz) < MAX_FORCE) {
-    rotz = log(exp(-1.0 * lbmaxz) + 2 * randomGPU(molIndex * 3 + 2, step, seed) * sinh(lbmaxz)) / lbtz;
+    // rotz = log(exp(-1.0 * lbmaxz) + 2 * randomGPU(molIndex * 3 + 2, step, seed) * sinh(lbmaxz)) / lbtz;
+    rotz = log(exp(-1.0 * lbmaxz) + 2 * randomGPU(molIndex * 3 + 2, step, seed)) / lbtz;
   } else {
     double rr = randomGPU(molIndex * 3 + 2, step, seed) * 2.0 - 1.0;
     rotz = r_max * rr;
