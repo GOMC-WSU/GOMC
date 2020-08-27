@@ -471,7 +471,7 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
   XYZ num;
   if(std::abs(lbmax.x) > MIN_FORCE && std::abs(lbmax.x) < MAX_FORCE) {
     // num.x = log(exp(-1.0 * lbmax.x) + 2 * r123wrapper(molIndex*3+0) * sinh(lbmax.x)) / lb.x;
-    num.x = log(exp(-1.0 * lbmax.x) + 2 * r123wrapper(molIndex*3+0)) / lb.x;
+    num.x = 0.1;
   } else {
     double rr = r123wrapper(molIndex*3+0) * 2.0 - 1.0;
     num.x = max * rr;
@@ -479,7 +479,7 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
 
   if(std::abs(lbmax.y) > MIN_FORCE && std::abs(lbmax.y) < MAX_FORCE) {
     // num.y = log(exp(-1.0 * lbmax.y) + 2 * r123wrapper(molIndex*3+1) * sinh(lbmax.y)) / lb.y;
-    num.y = log(exp(-1.0 * lbmax.y) + 2 * r123wrapper(molIndex*3+1)) / lb.y;
+    num.y = 0.1;
   } else {
     double rr = r123wrapper(molIndex*3+1) * 2.0 - 1.0;
     num.y = max * rr;
@@ -487,7 +487,7 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
 
   if(std::abs(lbmax.z) > MIN_FORCE && std::abs(lbmax.z) < MAX_FORCE) {
     // num.z = log(exp(-1.0 * lbmax.z) + 2 * r123wrapper(molIndex*3+2) * sinh(lbmax.z)) / lb.z;
-    num.z = log(exp(-1.0 * lbmax.z) + 2 * r123wrapper(molIndex*3+2)) / lb.z;
+    num.z = 0.1;
   } else {
     double rr = r123wrapper(molIndex*3+2) * 2.0 - 1.0;
     num.z = max * rr;
