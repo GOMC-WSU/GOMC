@@ -661,6 +661,8 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
   double distSq;
   double3 virComponents;
 
+  virComponents = make_double3(0.0, 0.0, 0.0);
+
   double pRF = 0.0, qi_qj, pVF = 0.0;
   double lambdaVDW = 0.0, lambdaCoulomb = 0.0;
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
@@ -672,6 +674,7 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
   gpu_rT12[threadID] = 0.0, gpu_rT13[threadID] = 0.0, gpu_rT23[threadID] = 0.0;
 
   double3 diff_com;
+  diff_com = make_double3(0.0, 0.0, 0.0);
 
   double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
 
@@ -822,8 +825,10 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
   double qi_qj_fact;
   double qqFact = 167000.0;
 
-  // GJS - XYZ cuda type initialized to 0.0 
   double3 virComponents, forceReal, forceLJ;
+  virComponents = make_double3(0.0, 0.0, 0.0);
+  forceReal =  make_double3(0.0, 0.0, 0.0);
+  forceLJ =  make_double3(0.0, 0.0, 0.0);
   // GJS
 
   double lambdaVDW = 0.0, lambdaCoulomb = 0.0;
