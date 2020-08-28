@@ -14,13 +14,13 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 enum KernelType{ BOXCAR, GAUSSIAN };
 
 
-class KernelDensityEstimator {
+class KernelDensityEstimator : OutputableBase {
   public:
   KernelDensityEstimator(EnPartCntSample & sampler);
   void GeneratePDF();
   ~KernelDensityEstimator();
 
-  int h;
+  double h;
   KernelType k_h;
   uint stepsPerSample;
   std::ofstream * outF [BOXES_WITH_U_NB];
