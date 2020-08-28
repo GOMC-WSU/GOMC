@@ -325,7 +325,6 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
   } else {
     double rr = randomGPU(molIndex * 3, step, seed) * 2.0 - 1.0;
     shiftx = t_max * rr;
-    printf("%.15lf, %.15lf]n", lbmaxx, shiftx);
   }
 
   if(abs(lbmaxy) > MIN_FORCE && abs(lbmaxy) < MAX_FORCE) {
@@ -333,7 +332,6 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
   } else {
     double rr = randomGPU(molIndex * 3 + 1, step, seed) * 2.0 - 1.0;
     shifty = t_max * rr;
-    printf("%.15lf, %.15lf]n", lbmaxy, shifty);
   }
 
   if(abs(lbmaxz) > MIN_FORCE && abs(lbmaxz) < MAX_FORCE) {
@@ -341,7 +339,6 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
   } else {
     double rr = randomGPU(molIndex * 3 + 2, step, seed) * 2.0 - 1.0;
     shiftz = t_max * rr;
-    printf("%.15lf, %.15lf]n", lbmaxz, shiftz);
   }
 
   // perform the shift on the coordinates

@@ -468,7 +468,6 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
   } else {
     double rr = r123wrapper(molIndex*3+0) * 2.0 - 1.0;
     num.x = max * rr;
-    printf("%.15lf, %.15lf]n", lbmax.x, num.x);
   }
 
   if(std::abs(lbmax.y) > MIN_FORCE && std::abs(lbmax.y) < MAX_FORCE) {
@@ -476,7 +475,6 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
   } else {
     double rr = r123wrapper(molIndex*3+1) * 2.0 - 1.0;
     num.y = max * rr;
-    printf("%.15lf, %.15lf]n", lbmax.y, num.y);
   }
 
   if(std::abs(lbmax.z) > MIN_FORCE && std::abs(lbmax.z) < MAX_FORCE) {
@@ -484,7 +482,6 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
   } else {
     double rr = r123wrapper(molIndex*3+2) * 2.0 - 1.0;
     num.z = max * rr;
-    printf("%.15lf, %.15lf]n", lbmax.z, num.z);
   }
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
