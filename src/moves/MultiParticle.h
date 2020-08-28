@@ -19,7 +19,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #endif
 
 #define MIN_FORCE 1E-12
-#define MAX_FORCE 10
+#define MAX_FORCE 30
 
 class MultiParticle : public MoveBase
 {
