@@ -829,7 +829,6 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
   virComponents = make_double3(0.0, 0.0, 0.0);
   forceReal =  make_double3(0.0, 0.0, 0.0);
   forceLJ =  make_double3(0.0, 0.0, 0.0);
-  // GJS
 
   double lambdaVDW = 0.0, lambdaCoulomb = 0.0;
   gpu_REn[threadID] = 0.0;
