@@ -13,8 +13,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define GCMC 3
 #define NPT 4
 
-#define RECORD_DEBUG
-
 #ifndef ENSEMBLE
 //The choice of ensemble.
 #define ENSEMBLE GCMC

@@ -132,7 +132,8 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                XYZArray &newMolPos,
                                XYZArray &newCOMs,
                                double lambdaBETA,
-                               XYZArray &t_k)
+                               XYZArray &t_k,
+                               XYZArray &molForceRecRef)
 {
   int *gpu_isParticleInsideMoleculeIndex;
   int threadsPerBlock = 256;
@@ -148,6 +149,12 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_mForcey, mForcey, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_mForcez, mForcez, molCount * sizeof(double),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_mForceRecx, molForceRecRef.x, molCount * sizeof(double),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_mForceRecy, molForceRecRef.y, molCount * sizeof(double),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_mForceRecz, molForceRecRef.z, molCount * sizeof(double),
              cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleMol, &particleMol[0], particleMol.size() * sizeof(int),
              cudaMemcpyHostToDevice);
@@ -183,7 +190,10 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                                                vars->gpu_t_k_x,
                                                                vars->gpu_t_k_y,
                                                                vars->gpu_t_k_z,
-                                                               gpu_isParticleInsideMoleculeIndex);
+                                                               gpu_isParticleInsideMoleculeIndex,
+                                                               vars->gpu_mForceRecx,
+                                                               vars->gpu_mForceRecy,
+                                                               vars->gpu_mForceRecz);
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
   
@@ -301,7 +311,10 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
                                          double *gpu_t_k_x,
                                          double *gpu_t_k_y,
                                          double *gpu_t_k_z,
-                                         int *gpu_isParticleInsideMoleculeIndex)
+                                         int *gpu_isParticleInsideMoleculeIndex,
+                                         double *gpu_mForceRecx,
+                                         double *gpu_mForceRecy,
+                                         double *gpu_mForceRecz)
 {
   int atomNumber = blockIdx.x * blockDim.x + threadIdx.x;
   if(atomNumber >= atomCount) return;
@@ -311,9 +324,9 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
   bool updateMol = atomNumber == 0 || (gpu_particleMol[atomNumber] != gpu_particleMol[atomNumber-1]);
 
   // This section calculates the amount of shift
-  double lbfx = molForcex[molIndex] * lambdaBETA;
-  double lbfy = molForcey[molIndex] * lambdaBETA;
-  double lbfz = molForcez[molIndex] * lambdaBETA;
+  double lbfx = (molForcex[molIndex] + gpu_mForceRecx[molIndex]) * lambdaBETA;
+  double lbfy = (molForcey[molIndex] + gpu_mForceRecy[molIndex]) * lambdaBETA;
+  double lbfz = (molForcez[molIndex] + gpu_mForceRecz[molIndex]) * lambdaBETA;
   double lbmaxx = lbfx * t_max;
   double lbmaxy = lbfy * t_max;
   double lbmaxz = lbfz * t_max;

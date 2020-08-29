@@ -294,7 +294,7 @@ inline uint MultiParticle::Transform()
                               particleMol, atomForceRecNew.Count(),
                               molForceRecNew.Count(), boxDimRef.GetAxis(bPick).x,
                               boxDimRef.GetAxis(bPick).y, boxDimRef.GetAxis(bPick).z,
-                              newMolsPos, newCOMs, lambda * BETA, t_k);
+                              newMolsPos, newCOMs, lambda * BETA, t_k, molForceRecRef);
   }
 #else
   CalculateTrialDistRot();
@@ -375,6 +375,7 @@ inline double MultiParticle::GetCoeff()
   double lBeta = lambda * BETA;
   double r_max = moveSetRef.GetRMAX(bPick);
   double t_max = moveSetRef.GetTMAX(bPick);
+
 #ifdef _OPENMP
   #pragma omp parallel for default(none) shared(lBeta, r_max, t_max) reduction(*:w_ratio)
 #endif

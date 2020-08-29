@@ -1312,6 +1312,11 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
     while(thisMol != end) {
       uint molIndex = *thisMol;
+      uint length = mols.GetKind(molIndex).NumAtoms();
+      uint start = mols.MolStart(molIndex);
+      for(int p=0; p<length; p++) {
+        atomForceRec.Set(start+p, 0.0, 0.0, 0.0);
+      }
       molForceRec.Set(molIndex, 0.0, 0.0, 0.0);
       thisMol++;
     }

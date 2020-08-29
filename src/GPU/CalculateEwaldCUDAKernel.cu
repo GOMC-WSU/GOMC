@@ -540,8 +540,10 @@ __global__ void BoxForceReciprocalGPU(
       shared_kvector[vectorIndex*3+1] + z * shared_kvector[vectorIndex*3+2];
     double dotsin, dotcos;
     sincos(dot, &dotsin, &dotcos);
-    double factor = 2.0 * gpu_particleCharge[particleID] * gpu_prefact[vectorIndex] * lambdaCoef * 
-      (dotsin * gpu_sumRnew[vectorIndex] - dotcos * gpu_sumInew[vectorIndex]);
+    double factor = 2.0 * gpu_particleCharge[particleID] * 
+      gpu_prefact[offset_vector_index + vectorIndex] * lambdaCoef * 
+      (dotsin * gpu_sumRnew[offset_vector_index + vectorIndex] - 
+       dotcos * gpu_sumInew[offset_vector_index + vectorIndex]);
       
     forceX += factor * shared_kvector[vectorIndex*3];
     forceY += factor * shared_kvector[vectorIndex*3+1];
@@ -571,7 +573,7 @@ __global__ void BoxForceReciprocalGPU(
       }
     }
   }
-  
+
   atomicAdd(&gpu_aForceRecx[particleID], forceX);
   atomicAdd(&gpu_aForceRecy[particleID], forceY);
   atomicAdd(&gpu_aForceRecz[particleID], forceZ);

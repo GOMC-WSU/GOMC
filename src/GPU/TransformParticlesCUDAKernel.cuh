@@ -26,7 +26,8 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                XYZArray &newMolPos,
                                XYZArray &newCOMs,
                                double lambdaBETA,
-                               XYZArray &t_k);
+                               XYZArray &t_k,
+                               XYZArray &molForceRecRef);
 
 void CallRotateParticlesGPU(VariablesCUDA *vars,
                             std::vector<int> &isParticleInsideMoleculeIndex,
@@ -69,7 +70,10 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
                                          double *gpu_t_k_x,
                                          double *gpu_t_k_y,
                                          double *gpu_t_k_z,
-                                         int *gpu_isParticleInsideMoleculeIndex);
+                                         int *gpu_isParticleInsideMoleculeIndex,
+                                         double *gpu_mForceRecx,
+                                         double *gpu_mForceRecy,
+                                         double *gpu_mForceRecz);
 
 __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                                       double r_max,
