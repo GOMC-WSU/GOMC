@@ -352,9 +352,6 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
   WrapPBC(gpu_z[atomNumber], zAxes);
 
   if(updateMol) {
-    if(molIndex == 3) {
-      printf("%.15lf, %.15lf, %.15lf\n", shiftx, shifty, shiftz);
-    }
     gpu_comx[molIndex] += shiftx;
     gpu_comy[molIndex] += shifty;
     gpu_comz[molIndex] += shiftz;
