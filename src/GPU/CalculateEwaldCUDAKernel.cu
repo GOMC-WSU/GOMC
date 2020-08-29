@@ -75,6 +75,10 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_hsqr[box], hsqr, imageSize * sizeof(double),
              cudaMemcpyHostToDevice);
   checkLastErrorCUDA(__FILE__, __LINE__);
+  cudaMemset(vars->gpu_sumRnew[box], 0, imageSize * sizeof(double));
+  checkLastErrorCUDA(__FILE__, __LINE__);
+  cudaMemset(vars->gpu_sumInew[box], 0, imageSize * sizeof(double));
+  checkLastErrorCUDA(__FILE__, __LINE__);
 
   dim3 threadsPerBlock(256, 1, 1);
   dim3 blocksPerGrid((int)(imageSize / threadsPerBlock.x) + 1, (int)(atomNumber / PARTICLE_PER_BLOCK) + 1, 1);
@@ -93,6 +97,8 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
 
+  //Need just one thread per image for this kernel.
+  blocksPerGrid.y = 1;
   BoxReciprocalGPU <<< blocksPerGrid, threadsPerBlock>>>(
     vars->gpu_prefact[box],
     vars->gpu_sumRnew[box],
@@ -153,12 +159,6 @@ __global__ void BoxReciprocalSetupGPU(double *gpu_x,
   if(imageID >= imageSize)
     return;
 
-  // TODO SET SUM ARRAYS TO ZERO
-  if(blockIdx.y == 0) {
-    gpu_sumRnew[imageID] = 0.0;
-    gpu_sumInew[imageID] = 0.0;
-  }
-
   __syncthreads();
   for(int particleID = 0; particleID < numberOfAtoms; particleID++) {
     double dot = DotProductGPU(gpu_kx[imageID], gpu_ky[imageID], gpu_kz[imageID],
@@ -166,8 +166,8 @@ __global__ void BoxReciprocalSetupGPU(double *gpu_x,
       shared_coords[particleID * 3 + 2]);
     double dotsin, dotcos;
     sincos(dot, &dotsin, &dotcos);
-    sumR += gpu_particleCharge[offset_coordinates_index + particleID] * dotsin;
-    sumI += gpu_particleCharge[offset_coordinates_index + particleID] * dotcos;
+    sumR += gpu_particleCharge[offset_coordinates_index + particleID] * dotcos;
+    sumI += gpu_particleCharge[offset_coordinates_index + particleID] * dotsin;
   }
 
   atomicAdd(&gpu_sumRnew[imageID], sumR);
@@ -540,7 +540,7 @@ __global__ void BoxForceReciprocalGPU(
       shared_kvector[vectorIndex*3+1] + z * shared_kvector[vectorIndex*3+2];
     double dotsin, dotcos;
     sincos(dot, &dotsin, &dotcos);
-    double factor = (2.0 * gpu_particleCharge[particleID] * gpu_prefact[vectorIndex] * lambdaCoef) * 
+    double factor = 2.0 * gpu_particleCharge[particleID] * gpu_prefact[vectorIndex] * lambdaCoef * 
       (dotsin * gpu_sumRnew[vectorIndex] - dotcos * gpu_sumInew[vectorIndex]);
       
     forceX += factor * shared_kvector[vectorIndex*3];
