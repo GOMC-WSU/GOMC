@@ -488,7 +488,6 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars,
                              uint box)
 {
   int atomNumber = currentCoords.Count();
-  int blocksPerGrid, threadsPerBlock;
   double *gpu_particleCharge;
   double *gpu_final_value;
 
@@ -503,22 +502,25 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_dy, currentCOMDiff.y, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_dz, currentCOMDiff.z, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
   CUMALLOC((void**) &vars->gpu_rT11, imageSize * sizeof(double));
+  cudaMemset(vars->gpu_rT11, 0, imageSize * sizeof(double));
   CUMALLOC((void**) &vars->gpu_rT12, imageSize * sizeof(double));
+  cudaMemset(vars->gpu_rT12, 0, imageSize * sizeof(double));
   CUMALLOC((void**) &vars->gpu_rT13, imageSize * sizeof(double));
+  cudaMemset(vars->gpu_rT13, 0, imageSize * sizeof(double));
   CUMALLOC((void**) &vars->gpu_rT22, imageSize * sizeof(double));
+  cudaMemset(vars->gpu_rT22, 0, imageSize * sizeof(double));
   CUMALLOC((void**) &vars->gpu_rT23, imageSize * sizeof(double));
+  cudaMemset(vars->gpu_rT23, 0, imageSize * sizeof(double));
   CUMALLOC((void**) &vars->gpu_rT33, imageSize * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_vT11, imageSize * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_vT12, imageSize * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_vT13, imageSize * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_vT22, imageSize * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_vT23, imageSize * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_vT33, imageSize * sizeof(double));
+  cudaMemset(vars->gpu_rT33, 0, imageSize * sizeof(double));
   cudaMemcpy(gpu_particleCharge, &particleCharge[0], particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
 
   // Run the kernel...
-  threadsPerBlock = 256;
-  blocksPerGrid = (int)(imageSize / threadsPerBlock) + 1;
+  // calculate block and grid sizes
+  dim3 threadsPerBlock(256, 1, 1);
+  int blocksPerGridX = (int)(imageSize / threadsPerBlock.x) + 1;
+  int blocksPerGridY = (int)(atomNumber / PARTICLE_PER_BLOCK) + 1;
+  dim3 blocksPerGrid(blocksPerGridX, blocksPerGridY, 1);
   VirialReciprocalGPU <<< blocksPerGrid,
                       threadsPerBlock>>>(vars->gpu_x,
                                          vars->gpu_y,
@@ -583,12 +585,6 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars,
   CUFREE(vars->gpu_rT22);
   CUFREE(vars->gpu_rT23);
   CUFREE(vars->gpu_rT33);
-  CUFREE(vars->gpu_vT11);
-  CUFREE(vars->gpu_vT12);
-  CUFREE(vars->gpu_vT13);
-  CUFREE(vars->gpu_vT22);
-  CUFREE(vars->gpu_vT23);
-  CUFREE(vars->gpu_vT33);
   CUFREE(gpu_particleCharge);
   CUFREE(gpu_final_value);
   CUFREE(d_temp_storage);
@@ -990,17 +986,17 @@ __global__ void VirialReciprocalGPU(double *gpu_x,
   
   if(blockIdx.y == 0) {
     double constant_part = constVal + 1.0 / gpu_hsqrRef[imageID];
-    gpu_rT11[imageID] = factor * (1.0 - 2.0 * constant_part *
+    gpu_rT11[imageID] += factor * (1.0 - 2.0 * constant_part *
                                   gpu_kxRef[imageID] * gpu_kxRef[imageID]);
-    gpu_rT12[imageID] = factor * (-2.0 * constant_part *
+    gpu_rT12[imageID] += factor * (-2.0 * constant_part *
                                   gpu_kxRef[imageID] * gpu_kyRef[imageID]);
-    gpu_rT13[imageID] = factor * (-2.0 * constant_part *
+    gpu_rT13[imageID] += factor * (-2.0 * constant_part *
                                   gpu_kxRef[imageID] * gpu_kzRef[imageID]);
-    gpu_rT22[imageID] = factor * (1.0 - 2.0 * constant_part *
+    gpu_rT22[imageID] += factor * (1.0 - 2.0 * constant_part *
                                   gpu_kyRef[imageID] * gpu_kyRef[imageID]);
-    gpu_rT23[imageID] = factor * (-2.0 * constant_part *
+    gpu_rT23[imageID] += factor * (-2.0 * constant_part *
                                   gpu_kyRef[imageID] * gpu_kzRef[imageID]);
-    gpu_rT33[imageID] = factor * (1.0 - 2.0 * constant_part *
+    gpu_rT33[imageID] += factor * (1.0 - 2.0 * constant_part *
                                   gpu_kzRef[imageID] * gpu_kzRef[imageID]);
   }
 
