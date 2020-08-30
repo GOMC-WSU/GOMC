@@ -9,11 +9,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 KernelDensityEstimator::KernelDensityEstimator(EnPartCntSample & enPCS) : sampler(enPCS)
 {
-  for (uint b = 0; b < BOXES_WITH_U_NB; b++) {
-    outF[b] = NULL;
-    name[b] = NULL;
-  }
-
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
     energiesPerBox[b].resize(sampler.samplesPerFrame);
     probabilitiesPerBox[b].resize(sampler.samplesPerFrame);
@@ -23,7 +18,40 @@ KernelDensityEstimator::KernelDensityEstimator(EnPartCntSample & enPCS) : sample
 KernelDensityEstimator::~KernelDensityEstimator()
 {
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-    if (outF[b]->is_open()) outF[b]->close();
+    if (outF[b].is_open()) outF[b].close();
+  }
+}
+
+void KernelDensityEstimator::Init(pdb_setup::Atoms const& atoms,
+                     config_setup::Output const& output)
+{
+  std::string bStr = "", aliasStr = "", numStr = "";
+  sstrm::Converter toStr;
+  stepsPerSample = output.state.files.hist.stepsPerHistSample;
+  stepsPerOut = output.statistics.settings.hist.frequency;
+  enableOut = output.statistics.settings.hist.enable;
+  if (enableOut) {
+    //Assign arrays for boxes of interest
+    for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+      //Get alias string, based on box #.
+      bStr = "Box ";
+      numStr = "";
+      toStr << b + 1;
+      toStr >> numStr;
+      aliasStr = "Output KDE file for Box ";
+      aliasStr += numStr;
+      bool notify;
+#ifndef NDEBUG
+      notify = true;
+#else
+      notify = false;
+#endif
+#if GOMC_LIB_MPI
+      name[b] = pathToReplicaDirectory + "kde_box_" + std::to_string(b);
+#else
+      name[b] = "kde_box_" + std::to_string(b);
+#endif
+    } 
   }
 }
 
@@ -67,4 +95,31 @@ void KernelDensityEstimator::GeneratePDF(){
 
       break;
   }
+}
+
+void KernelDensityEstimator::DoOutput(const ulong step)
+{
+  //Don't output until equilibrated.
+  if ((step) < stepsTillEquil) return;
+  //Write to histogram file, if equilibrated.
+  if ((step + 1) % stepsPerOut == 0) {
+    for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+        outF[b].open(name[b].c_str(), std::ofstream::out);
+        if (outF[b].is_open()){
+          GeneratePDF();
+          PrintKDE(b);
+        } else
+          std::cerr << "Unable to write to file \"" <<  name[b] << "\" "
+                    << "(kde file)" << std::endl;
+        outF[b].close();
+    }
+  }
+}
+
+
+void KernelDensityEstimator::PrintKDE(const uint b)
+{
+    for (uint n = 0; n < energiesPerBox[b].size(); ++n) {
+        outF[b] << n << " " << energiesPerBox[b][n] << " " << probabilitiesPerBox[b][n] << std::endl;
+    }
 }

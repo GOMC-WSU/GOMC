@@ -6,7 +6,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #ifndef KERNELDENSITYESTIMATOR_H
 #define KERNELDENSITYESTIMATOR_H
-
+  
 #include <string>
 #include <fstream>
 #include "EnPartCntSampleOutput.h"
@@ -14,17 +14,29 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 enum KernelType{ BOXCAR, GAUSSIAN };
 
 
-class KernelDensityEstimator : OutputableBase {
+class KernelDensityEstimator : public OutputableBase {
   public:
   KernelDensityEstimator(EnPartCntSample & sampler);
   void GeneratePDF();
   ~KernelDensityEstimator();
 
+  //We use the EnPartCntSample as our sampler, so do nothing.
+  virtual void Sample(const ulong step) {}
+
+  virtual void Init(pdb_setup::Atoms const& atoms,
+                    config_setup::Output const& output);
+
+  virtual void DoOutput(const ulong step);
+
+  void PrintKDE(const uint b);  
+
+  
+
   double h;
   KernelType k_h;
   uint stepsPerSample;
-  std::ofstream * outF [BOXES_WITH_U_NB];
-  std::string * name [BOXES_WITH_U_NB];
+  std::ofstream outF [BOXES_WITH_U_NB];
+  std::string name [BOXES_WITH_U_NB];
   EnPartCntSample & sampler;
   std::vector< std::vector<double> > energiesPerBox;
   std::vector< std::vector<double> > probabilitiesPerBox;

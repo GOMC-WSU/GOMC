@@ -34,6 +34,7 @@ void CPUSide::Init(PDBSetup const& pdbSet, config_setup::Output const& out,
   if (out.statistics.settings.hist.enable){
     outObj.push_back(&hist);
     outObj.push_back(&sample_N_E);
+    outObj.push_back(&kde);
   }
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   outObj.push_back(&freeEnergy);
