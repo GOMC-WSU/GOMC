@@ -59,7 +59,7 @@ private:
                        std::string const& histLetter,
                        const uint b);
   
-  uint samplesPerFrame; 
+  uint samplesPerFrame, kdeSamplesCollectedInFrame; 
   //samplesE --> per box; samplesN --> per kind, per box
   double * samplesE [BOXES_WITH_U_NB];
   uint ** samplesN [BOXES_WITH_U_NB], stepsPerSample, samplesCollectedInFrame;

@@ -31,7 +31,7 @@ class KernelDensityEstimator : public OutputableBase {
   void PrintKDE(const uint b);  
 
   
-
+  uint kdeCounter;
   double h;
   KernelType k_h;
   uint stepsPerSample;
@@ -40,6 +40,7 @@ class KernelDensityEstimator : public OutputableBase {
   EnPartCntSample & sampler;
   std::vector< std::vector<double> > energiesPerBox;
   std::vector< std::vector<double> > probabilitiesPerBox;
+  friend class EnPartCntSample;
 };
 
 #endif /*KERNELDENSITYESTIMATOR_H*/

@@ -9,10 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 KernelDensityEstimator::KernelDensityEstimator(EnPartCntSample & enPCS) : sampler(enPCS)
 {
-  for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-    energiesPerBox[b].resize(sampler.samplesPerFrame);
-    probabilitiesPerBox[b].resize(sampler.samplesPerFrame);
-  }
+  kdeCounter = 0;
 }
 
 KernelDensityEstimator::~KernelDensityEstimator()
@@ -25,6 +22,12 @@ KernelDensityEstimator::~KernelDensityEstimator()
 void KernelDensityEstimator::Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output)
 {
+  energiesPerBox.resize(BOXES_WITH_U_NB);
+  probabilitiesPerBox.resize(BOXES_WITH_U_NB);
+  for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
+    energiesPerBox[b].resize(sampler.samplesPerFrame);
+    probabilitiesPerBox[b].resize(sampler.samplesPerFrame);
+  }
   std::string bStr = "", aliasStr = "", numStr = "";
   sstrm::Converter toStr;
   stepsPerSample = output.state.files.hist.stepsPerHistSample;
@@ -51,6 +54,7 @@ void KernelDensityEstimator::Init(pdb_setup::Atoms const& atoms,
 #else
       name[b] = "kde_box_" + std::to_string(b);
 #endif
+      outF[b].open(name[b].c_str(), std::ofstream::out);
     } 
   }
 }
@@ -58,7 +62,7 @@ void KernelDensityEstimator::Init(pdb_setup::Atoms const& atoms,
 void KernelDensityEstimator::GeneratePDF(){
 
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-    std::copy(sampler.samplesE[b], sampler.samplesE[b] + sampler.samplesPerFrame, energiesPerBox[b].begin());
+    std::copy(sampler.samplesE[b], sampler.samplesE[b] + sampler.kdeSamplesCollectedInFrame, energiesPerBox[b].begin());
     std::sort(energiesPerBox[b].begin(), energiesPerBox[b].end());
   }
 
@@ -69,10 +73,10 @@ void KernelDensityEstimator::GeneratePDF(){
       #pragma omp parallel for default(none) private(b, i, myBinCount, distance) shared(energiesPerBox, probabilitiesPerBox) collapse(2)
       #endif
       for(b = 0; b < BOXES_WITH_U_NB; b++){
-        for (i = 0; i < sampler.samplesPerFrame; i++){
+        for (i = 0; i < sampler.kdeSamplesCollectedInFrame; i++){
           myBinCount = 1;
           distance = 1;
-          while (i < sampler.samplesPerFrame && i + distance < sampler.samplesPerFrame &&  abs(energiesPerBox[b][i] - energiesPerBox[b][i + distance]) < h ){
+          while (i < sampler.kdeSamplesCollectedInFrame && i + distance < sampler.kdeSamplesCollectedInFrame &&  abs(energiesPerBox[b][i] - energiesPerBox[b][i + distance]) < h ){
             myBinCount++;
             distance++;
           }
@@ -81,7 +85,7 @@ void KernelDensityEstimator::GeneratePDF(){
             myBinCount++;
             distance++;
           }
-          probabilitiesPerBox[b][i] =  (double)myBinCount / (double)sampler.samplesPerFrame;
+          probabilitiesPerBox[b][i] =  (double)myBinCount / (double)sampler.kdeSamplesCollectedInFrame;
         }
       }
 
@@ -104,14 +108,14 @@ void KernelDensityEstimator::DoOutput(const ulong step)
   //Write to histogram file, if equilibrated.
   if ((step + 1) % stepsPerOut == 0) {
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
-        outF[b].open(name[b].c_str(), std::ofstream::out);
         if (outF[b].is_open()){
           GeneratePDF();
           PrintKDE(b);
-        } else
+        } else{
           std::cerr << "Unable to write to file \"" <<  name[b] << "\" "
                     << "(kde file)" << std::endl;
-        outF[b].close();
+          outF[b].close();
+        }
     }
   }
 }
@@ -119,7 +123,8 @@ void KernelDensityEstimator::DoOutput(const ulong step)
 
 void KernelDensityEstimator::PrintKDE(const uint b)
 {
-    for (uint n = 0; n < energiesPerBox[b].size(); ++n) {
-        outF[b] << n << " " << energiesPerBox[b][n] << " " << probabilitiesPerBox[b][n] << std::endl;
+    for (uint n = 0; n < sampler.kdeSamplesCollectedInFrame; ++n) {
+        outF[b] << kdeCounter << " " << energiesPerBox[b][n] << " " << probabilitiesPerBox[b][n] << std::endl;
     }
+    kdeCounter++;
 }

@@ -118,6 +118,11 @@ void EnPartCntSample::DoOutput(const ulong step)
                   << "(energy and part. num samples file)" << std::endl;
     }
   }
+  // This is the only change to make in EnPartCntSample to allow KDE to tag along
+  // Since KDE Output needs a copy of this variable, we make a copy that has one purpose: 
+  // to be read by KDE.  Since these two methods are syncronous in their calls to DoOutput,
+  // with EnPart going first, KDE always has the correct value.
+  kdeSamplesCollectedInFrame = samplesCollectedInFrame;
   samplesCollectedInFrame = 0;
 }
 
