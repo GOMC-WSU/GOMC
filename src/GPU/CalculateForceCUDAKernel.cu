@@ -986,18 +986,12 @@ __global__ void VirialReciprocalGPU(double *gpu_x,
   
   if(blockIdx.y == 0) {
     double constant_part = constVal + 1.0 / gpu_hsqrRef[imageID];
-    gpu_rT11[imageID] += factor * (1.0 - 2.0 * constant_part *
-                                  gpu_kxRef[imageID] * gpu_kxRef[imageID]);
-    gpu_rT12[imageID] += factor * (-2.0 * constant_part *
-                                  gpu_kxRef[imageID] * gpu_kyRef[imageID]);
-    gpu_rT13[imageID] += factor * (-2.0 * constant_part *
-                                  gpu_kxRef[imageID] * gpu_kzRef[imageID]);
-    gpu_rT22[imageID] += factor * (1.0 - 2.0 * constant_part *
-                                  gpu_kyRef[imageID] * gpu_kyRef[imageID]);
-    gpu_rT23[imageID] += factor * (-2.0 * constant_part *
-                                  gpu_kyRef[imageID] * gpu_kzRef[imageID]);
-    gpu_rT33[imageID] += factor * (1.0 - 2.0 * constant_part *
-                                  gpu_kzRef[imageID] * gpu_kzRef[imageID]);
+    rT11 = factor * (1.0 - 2.0 * constant_part * gpu_kxRef[imageID] * gpu_kxRef[imageID]);
+    rT12 = factor * (-2.0 * constant_part * gpu_kxRef[imageID] * gpu_kyRef[imageID]);
+    rT13 = factor * (-2.0 * constant_part * gpu_kxRef[imageID] * gpu_kzRef[imageID]);
+    rT22 = factor * (1.0 - 2.0 * constant_part * gpu_kyRef[imageID] * gpu_kyRef[imageID]);
+    rT23 = factor * (-2.0 * constant_part * gpu_kyRef[imageID] * gpu_kzRef[imageID]);
+    rT33 = factor * (1.0 - 2.0 * constant_part * gpu_kzRef[imageID] * gpu_kzRef[imageID]);
   }
 
   __syncthreads();
@@ -1019,7 +1013,7 @@ __global__ void VirialReciprocalGPU(double *gpu_x,
     rT12 += factor * 0.5 * (gpu_kxRef[imageID] * shared_coords[particleID * 6 + 4] + gpu_kyRef[imageID] * shared_coords[particleID * 6 + 3]);
     rT13 += factor * 0.5 * (gpu_kxRef[imageID] * shared_coords[particleID * 6 + 5] + gpu_kzRef[imageID] * shared_coords[particleID * 6 + 3]);
     rT22 += factor * (gpu_kyRef[imageID] * shared_coords[particleID * 6 + 4]);
-    rT13 += factor * 0.5 * (gpu_kyRef[imageID] * shared_coords[particleID * 6 + 5] + gpu_kzRef[imageID] * shared_coords[particleID * 6 + 4]);
+    rT23 += factor * 0.5 * (gpu_kyRef[imageID] * shared_coords[particleID * 6 + 5] + gpu_kzRef[imageID] * shared_coords[particleID * 6 + 4]);
     rT33 += factor * (gpu_kzRef[imageID] * shared_coords[particleID * 6 + 5]);
   }
 
