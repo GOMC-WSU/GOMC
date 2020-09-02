@@ -668,12 +668,13 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   //tensors for VDW and real part of electrostatic
   gpu_vT11[threadID] = 0.0, gpu_vT22[threadID] = 0.0, gpu_vT33[threadID] = 0.0;
-  if(electrostatic) {
-    gpu_rT11[threadID] = 0.0, gpu_rT22[threadID] = 0.0, gpu_rT33[threadID] = 0.0;
-  }
   // extra tensors reserved for later on
   gpu_vT12[threadID] = 0.0, gpu_vT13[threadID] = 0.0, gpu_vT23[threadID] = 0.0;
+
   if(electrostatic) {
+    //tensors for VDW and real part of electrostatic
+    gpu_rT11[threadID] = 0.0, gpu_rT22[threadID] = 0.0, gpu_rT33[threadID] = 0.0;
+    // extra tensors reserved for later on
     gpu_rT12[threadID] = 0.0, gpu_rT13[threadID] = 0.0, gpu_rT23[threadID] = 0.0;
   }
   
@@ -969,17 +970,18 @@ __global__ void VirialReciprocalGPU(double *gpu_x,
                                     uint imageSize,
                                     uint atomNumber)
 {
-  __shared__ double shared_coords[PARTICLE_PER_BLOCK*6];
+  __shared__ double shared_coords[PARTICLE_PER_BLOCK*7];
   int imageID = blockIdx.x * blockDim.x + threadIdx.x;
   int offset_coordinates_index = blockIdx.y * PARTICLE_PER_BLOCK;
   int numberOfAtoms = min(PARTICLE_PER_BLOCK, atomNumber - offset_coordinates_index);
   if(threadIdx.x < numberOfAtoms) {
-    shared_coords[threadIdx.x * 6    ] = gpu_x[offset_coordinates_index + threadIdx.x];
-    shared_coords[threadIdx.x * 6 + 1] = gpu_y[offset_coordinates_index + threadIdx.x];
-    shared_coords[threadIdx.x * 6 + 2] = gpu_z[offset_coordinates_index + threadIdx.x];
-    shared_coords[threadIdx.x * 6 + 3] = gpu_comDx[offset_coordinates_index + threadIdx.x];
-    shared_coords[threadIdx.x * 6 + 4] = gpu_comDy[offset_coordinates_index + threadIdx.x];
-    shared_coords[threadIdx.x * 6 + 5] = gpu_comDz[offset_coordinates_index + threadIdx.x];
+    shared_coords[threadIdx.x * 7    ] = gpu_x[offset_coordinates_index + threadIdx.x];
+    shared_coords[threadIdx.x * 7 + 1] = gpu_y[offset_coordinates_index + threadIdx.x];
+    shared_coords[threadIdx.x * 7 + 2] = gpu_z[offset_coordinates_index + threadIdx.x];
+    shared_coords[threadIdx.x * 7 + 3] = gpu_comDx[offset_coordinates_index + threadIdx.x];
+    shared_coords[threadIdx.x * 7 + 4] = gpu_comDy[offset_coordinates_index + threadIdx.x];
+    shared_coords[threadIdx.x * 7 + 5] = gpu_comDz[offset_coordinates_index + threadIdx.x];
+    shared_coords[threadIdx.x * 7 + 6] = gpu_particleCharge[offset_coordinates_index + threadIdx.x];
   }
 
   if(imageID >= imageSize)
@@ -987,13 +989,11 @@ __global__ void VirialReciprocalGPU(double *gpu_x,
 
   double rT11 = 0.0, rT12 = 0.0, rT13 = 0.0, rT22 = 0.0, rT23 = 0.0, rT33 = 0.0;
   double factor, dot;
-  factor = gpu_prefactRef[imageID] * (gpu_sumRref[imageID] *
-                                       gpu_sumRref[imageID] +
-                                       gpu_sumIref[imageID] *
-                                       gpu_sumIref[imageID]);
   
   if(blockIdx.y == 0) {
     double constant_part = constVal + 1.0 / gpu_hsqrRef[imageID];
+    factor = gpu_prefactRef[imageID] * (gpu_sumRref[imageID] * gpu_sumRref[imageID] +
+                                        gpu_sumIref[imageID] * gpu_sumIref[imageID]);
     rT11 = factor * (1.0 - 2.0 * constant_part * gpu_kxRef[imageID] * gpu_kxRef[imageID]);
     rT12 = factor * (-2.0 * constant_part * gpu_kxRef[imageID] * gpu_kyRef[imageID]);
     rT13 = factor * (-2.0 * constant_part * gpu_kxRef[imageID] * gpu_kzRef[imageID]);
@@ -1006,23 +1006,22 @@ __global__ void VirialReciprocalGPU(double *gpu_x,
 
   //Intramolecular part
   for(int particleID = 0; particleID < numberOfAtoms; particleID++) {
-    dot = DotProductGPU(gpu_kxRef[imageID], gpu_kyRef[imageID],
-                        gpu_kzRef[imageID], shared_coords[particleID * 6],
-                        shared_coords[particleID * 6 + 1],
-                        shared_coords[particleID * 6 + 2]);
-
     double dotsin, dotcos;
-    sincos(dot, &dotsin, &dotcos);
-    factor = gpu_prefactRef[imageID] * 2.0 *
-             (gpu_sumIref[imageID] * dotcos - gpu_sumRref[imageID] * dotsin) *
-             gpu_particleCharge[offset_coordinates_index + particleID];
 
-    rT11 += factor * (gpu_kxRef[imageID] * shared_coords[particleID * 6 + 3]);
-    rT12 += factor * 0.5 * (gpu_kxRef[imageID] * shared_coords[particleID * 6 + 4] + gpu_kyRef[imageID] * shared_coords[particleID * 6 + 3]);
-    rT13 += factor * 0.5 * (gpu_kxRef[imageID] * shared_coords[particleID * 6 + 5] + gpu_kzRef[imageID] * shared_coords[particleID * 6 + 3]);
-    rT22 += factor * (gpu_kyRef[imageID] * shared_coords[particleID * 6 + 4]);
-    rT23 += factor * 0.5 * (gpu_kyRef[imageID] * shared_coords[particleID * 6 + 5] + gpu_kzRef[imageID] * shared_coords[particleID * 6 + 4]);
-    rT33 += factor * (gpu_kzRef[imageID] * shared_coords[particleID * 6 + 5]);
+    dot = DotProductGPU(gpu_kxRef[imageID], gpu_kyRef[imageID],
+                        gpu_kzRef[imageID], shared_coords[particleID * 7],
+                        shared_coords[particleID * 7 + 1],
+                        shared_coords[particleID * 7 + 2]);
+    sincos(dot, &dotsin, &dotcos);
+    factor = gpu_prefactRef[imageID] * 2.0 * shared_coords[particleID * 7 + 6] *
+             (gpu_sumIref[imageID] * dotcos - gpu_sumRref[imageID] * dotsin);
+
+    rT11 += factor * (gpu_kxRef[imageID] * shared_coords[particleID * 7 + 3]);
+    rT12 += factor * 0.5 * (gpu_kxRef[imageID] * shared_coords[particleID * 7 + 4] + gpu_kyRef[imageID] * shared_coords[particleID * 7 + 3]);
+    rT13 += factor * 0.5 * (gpu_kxRef[imageID] * shared_coords[particleID * 7 + 5] + gpu_kzRef[imageID] * shared_coords[particleID * 7 + 3]);
+    rT22 += factor * (gpu_kyRef[imageID] * shared_coords[particleID * 7 + 4]);
+    rT23 += factor * 0.5 * (gpu_kyRef[imageID] * shared_coords[particleID * 7 + 5] + gpu_kzRef[imageID] * shared_coords[particleID * 7 + 4]);
+    rT33 += factor * (gpu_kzRef[imageID] * shared_coords[particleID * 7 + 5]);
   }
 
   atomicAdd(&gpu_rT11[imageID], rT11);
