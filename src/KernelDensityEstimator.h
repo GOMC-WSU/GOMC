@@ -11,6 +11,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <fstream>
 #include "EnPartCntSampleOutput.h"
 
+#include <limits>
+
+typedef std::numeric_limits< double > dbl;
+
 enum KernelType{ BOXCAR, GAUSSIAN };
 
 

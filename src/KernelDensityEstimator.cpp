@@ -10,6 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 KernelDensityEstimator::KernelDensityEstimator(EnPartCntSample & enPCS) : sampler(enPCS)
 {
   kdeCounter = 0;
+  h = 1.0;
 }
 
 KernelDensityEstimator::~KernelDensityEstimator()
@@ -124,6 +125,7 @@ void KernelDensityEstimator::DoOutput(const ulong step)
 void KernelDensityEstimator::PrintKDE(const uint b)
 {
     for (uint n = 0; n < sampler.kdeSamplesCollectedInFrame; ++n) {
+        outF[b].precision(dbl::max_digits10);
         outF[b] << kdeCounter << " " << energiesPerBox[b][n] << " " << probabilitiesPerBox[b][n] << std::endl;
     }
     kdeCounter++;
