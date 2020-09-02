@@ -82,12 +82,14 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   CUMALLOC((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
   CUMALLOC((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
   CUMALLOC((void**) &gpu_final_value, sizeof(double));
-  CUMALLOC((void**) &vars->gpu_rT11, energyVectorLen * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_rT12, energyVectorLen * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_rT13, energyVectorLen * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_rT22, energyVectorLen * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_rT23, energyVectorLen * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_rT33, energyVectorLen * sizeof(double));
+  if(electrostatic) {
+    CUMALLOC((void**) &vars->gpu_rT11, energyVectorLen * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_rT12, energyVectorLen * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_rT13, energyVectorLen * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_rT22, energyVectorLen * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_rT23, energyVectorLen * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_rT33, energyVectorLen * sizeof(double));
+  }
   CUMALLOC((void**) &vars->gpu_vT11, energyVectorLen * sizeof(double));
   CUMALLOC((void**) &vars->gpu_vT12, energyVectorLen * sizeof(double));
   CUMALLOC((void**) &vars->gpu_vT13, energyVectorLen * sizeof(double));
@@ -262,12 +264,14 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
                cudaMemcpyDeviceToHost);
   }
 
-  CUFREE(vars->gpu_rT11);
-  CUFREE(vars->gpu_rT12);
-  CUFREE(vars->gpu_rT13);
-  CUFREE(vars->gpu_rT22);
-  CUFREE(vars->gpu_rT23);
-  CUFREE(vars->gpu_rT33);
+  if(electrostatic) {
+    CUFREE(vars->gpu_rT11);
+    CUFREE(vars->gpu_rT12);
+    CUFREE(vars->gpu_rT13);
+    CUFREE(vars->gpu_rT22);
+    CUFREE(vars->gpu_rT23);
+    CUFREE(vars->gpu_rT33);
+  }
   CUFREE(vars->gpu_vT11);
   CUFREE(vars->gpu_vT12);
   CUFREE(vars->gpu_vT13);
@@ -664,17 +668,21 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   //tensors for VDW and real part of electrostatic
   gpu_vT11[threadID] = 0.0, gpu_vT22[threadID] = 0.0, gpu_vT33[threadID] = 0.0;
-  gpu_rT11[threadID] = 0.0, gpu_rT22[threadID] = 0.0, gpu_rT33[threadID] = 0.0;
+  if(electrostatic) {
+    gpu_rT11[threadID] = 0.0, gpu_rT22[threadID] = 0.0, gpu_rT33[threadID] = 0.0;
+  }
   // extra tensors reserved for later on
   gpu_vT12[threadID] = 0.0, gpu_vT13[threadID] = 0.0, gpu_vT23[threadID] = 0.0;
-  gpu_rT12[threadID] = 0.0, gpu_rT13[threadID] = 0.0, gpu_rT23[threadID] = 0.0;
-
+  if(electrostatic) {
+    gpu_rT12[threadID] = 0.0, gpu_rT13[threadID] = 0.0, gpu_rT23[threadID] = 0.0;
+  }
+  
   double3 diff_com;
   diff_com = make_double3(0.0, 0.0, 0.0);
 
   double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
 
-  int currentCell = blockIdx.x / 27;
+  int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
   int nCellIndex = blockIdx.x;
   int neighborCell = gpu_neighborList[nCellIndex];
 
@@ -831,7 +839,7 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
   gpu_LJEn[threadID] = 0.0;
   double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
 
-  int currentCell = blockIdx.x / 27;
+  int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
   int nCellIndex = blockIdx.x;
   int neighborCell = gpu_neighborList[nCellIndex];
 
