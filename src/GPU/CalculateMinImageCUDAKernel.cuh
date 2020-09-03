@@ -106,8 +106,9 @@ __device__ inline bool InRcutGPU(double &distSq,
                       gpu_cell_z);
   } else {
     dist = MinImageGPU(dist, axis, halfAx);
-    distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
   }
+
+  distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
 
   return ((gpu_rCut * gpu_rCut) > distSq);
 }
@@ -135,8 +136,9 @@ __device__ inline bool InRcutGPU(double &distSq, double3 & dist,
                       gpu_cell_z);
   } else {
     dist = MinImageGPU(dist, axis, halfAx);
-    distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
   }
+
+  distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
 
   return ((gpu_rCut * gpu_rCut) > distSq);
 }

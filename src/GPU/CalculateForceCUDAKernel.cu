@@ -82,12 +82,14 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   CUMALLOC((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
   CUMALLOC((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
   CUMALLOC((void**) &gpu_final_value, sizeof(double));
-  CUMALLOC((void**) &vars->gpu_rT11, energyVectorLen * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_rT12, energyVectorLen * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_rT13, energyVectorLen * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_rT22, energyVectorLen * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_rT23, energyVectorLen * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_rT33, energyVectorLen * sizeof(double));
+  if(electrostatic) {
+    CUMALLOC((void**) &vars->gpu_rT11, energyVectorLen * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_rT12, energyVectorLen * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_rT13, energyVectorLen * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_rT22, energyVectorLen * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_rT23, energyVectorLen * sizeof(double));
+    CUMALLOC((void**) &vars->gpu_rT33, energyVectorLen * sizeof(double));
+  }
   CUMALLOC((void**) &vars->gpu_vT11, energyVectorLen * sizeof(double));
   CUMALLOC((void**) &vars->gpu_vT12, energyVectorLen * sizeof(double));
   CUMALLOC((void**) &vars->gpu_vT13, energyVectorLen * sizeof(double));
@@ -262,12 +264,14 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
                cudaMemcpyDeviceToHost);
   }
 
-  CUFREE(vars->gpu_rT11);
-  CUFREE(vars->gpu_rT12);
-  CUFREE(vars->gpu_rT13);
-  CUFREE(vars->gpu_rT22);
-  CUFREE(vars->gpu_rT23);
-  CUFREE(vars->gpu_rT33);
+  if(electrostatic) {
+    CUFREE(vars->gpu_rT11);
+    CUFREE(vars->gpu_rT12);
+    CUFREE(vars->gpu_rT13);
+    CUFREE(vars->gpu_rT22);
+    CUFREE(vars->gpu_rT23);
+    CUFREE(vars->gpu_rT33);
+  }
   CUFREE(vars->gpu_vT11);
   CUFREE(vars->gpu_vT12);
   CUFREE(vars->gpu_vT13);
@@ -488,7 +492,6 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars,
                              uint box)
 {
   int atomNumber = currentCoords.Count();
-  int blocksPerGrid, threadsPerBlock;
   double *gpu_particleCharge;
   double *gpu_final_value;
 
@@ -503,22 +506,25 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_dy, currentCOMDiff.y, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_dz, currentCOMDiff.z, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
   CUMALLOC((void**) &vars->gpu_rT11, imageSize * sizeof(double));
+  cudaMemset(vars->gpu_rT11, 0, imageSize * sizeof(double));
   CUMALLOC((void**) &vars->gpu_rT12, imageSize * sizeof(double));
+  cudaMemset(vars->gpu_rT12, 0, imageSize * sizeof(double));
   CUMALLOC((void**) &vars->gpu_rT13, imageSize * sizeof(double));
+  cudaMemset(vars->gpu_rT13, 0, imageSize * sizeof(double));
   CUMALLOC((void**) &vars->gpu_rT22, imageSize * sizeof(double));
+  cudaMemset(vars->gpu_rT22, 0, imageSize * sizeof(double));
   CUMALLOC((void**) &vars->gpu_rT23, imageSize * sizeof(double));
+  cudaMemset(vars->gpu_rT23, 0, imageSize * sizeof(double));
   CUMALLOC((void**) &vars->gpu_rT33, imageSize * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_vT11, imageSize * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_vT12, imageSize * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_vT13, imageSize * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_vT22, imageSize * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_vT23, imageSize * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_vT33, imageSize * sizeof(double));
+  cudaMemset(vars->gpu_rT33, 0, imageSize * sizeof(double));
   cudaMemcpy(gpu_particleCharge, &particleCharge[0], particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
 
   // Run the kernel...
-  threadsPerBlock = 256;
-  blocksPerGrid = (int)(imageSize / threadsPerBlock) + 1;
+  // calculate block and grid sizes
+  dim3 threadsPerBlock(256, 1, 1);
+  int blocksPerGridX = (int)(imageSize / threadsPerBlock.x) + 1;
+  int blocksPerGridY = (int)(atomNumber / PARTICLE_PER_BLOCK) + 1;
+  dim3 blocksPerGrid(blocksPerGridX, blocksPerGridY, 1);
   VirialReciprocalGPU <<< blocksPerGrid,
                       threadsPerBlock>>>(vars->gpu_x,
                                          vars->gpu_y,
@@ -583,12 +589,6 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars,
   CUFREE(vars->gpu_rT22);
   CUFREE(vars->gpu_rT23);
   CUFREE(vars->gpu_rT33);
-  CUFREE(vars->gpu_vT11);
-  CUFREE(vars->gpu_vT12);
-  CUFREE(vars->gpu_vT13);
-  CUFREE(vars->gpu_vT22);
-  CUFREE(vars->gpu_vT23);
-  CUFREE(vars->gpu_vT33);
   CUFREE(gpu_particleCharge);
   CUFREE(gpu_final_value);
   CUFREE(d_temp_storage);
@@ -668,17 +668,22 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   //tensors for VDW and real part of electrostatic
   gpu_vT11[threadID] = 0.0, gpu_vT22[threadID] = 0.0, gpu_vT33[threadID] = 0.0;
-  gpu_rT11[threadID] = 0.0, gpu_rT22[threadID] = 0.0, gpu_rT33[threadID] = 0.0;
   // extra tensors reserved for later on
   gpu_vT12[threadID] = 0.0, gpu_vT13[threadID] = 0.0, gpu_vT23[threadID] = 0.0;
-  gpu_rT12[threadID] = 0.0, gpu_rT13[threadID] = 0.0, gpu_rT23[threadID] = 0.0;
 
+  if(electrostatic) {
+    //tensors for VDW and real part of electrostatic
+    gpu_rT11[threadID] = 0.0, gpu_rT22[threadID] = 0.0, gpu_rT33[threadID] = 0.0;
+    // extra tensors reserved for later on
+    gpu_rT12[threadID] = 0.0, gpu_rT13[threadID] = 0.0, gpu_rT23[threadID] = 0.0;
+  }
+  
   double3 diff_com;
   diff_com = make_double3(0.0, 0.0, 0.0);
 
   double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
 
-  int currentCell = blockIdx.x / 27;
+  int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
   int nCellIndex = blockIdx.x;
   int neighborCell = gpu_neighborList[nCellIndex];
 
@@ -829,14 +834,13 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
   virComponents = make_double3(0.0, 0.0, 0.0);
   forceReal =  make_double3(0.0, 0.0, 0.0);
   forceLJ =  make_double3(0.0, 0.0, 0.0);
-  // GJS
 
   double lambdaVDW = 0.0, lambdaCoulomb = 0.0;
   gpu_REn[threadID] = 0.0;
   gpu_LJEn[threadID] = 0.0;
   double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
 
-  int currentCell = blockIdx.x / 27;
+  int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
   int nCellIndex = blockIdx.x;
   int neighborCell = gpu_neighborList[nCellIndex];
 
@@ -966,17 +970,18 @@ __global__ void VirialReciprocalGPU(double *gpu_x,
                                     uint imageSize,
                                     uint atomNumber)
 {
-  __shared__ double shared_coords[PARTICLE_PER_BLOCK*6];
+  __shared__ double shared_coords[PARTICLE_PER_BLOCK*7];
   int imageID = blockIdx.x * blockDim.x + threadIdx.x;
   int offset_coordinates_index = blockIdx.y * PARTICLE_PER_BLOCK;
   int numberOfAtoms = min(PARTICLE_PER_BLOCK, atomNumber - offset_coordinates_index);
   if(threadIdx.x < numberOfAtoms) {
-    shared_coords[threadIdx.x * 6    ] = gpu_x[offset_coordinates_index + threadIdx.x];
-    shared_coords[threadIdx.x * 6 + 1] = gpu_y[offset_coordinates_index + threadIdx.x];
-    shared_coords[threadIdx.x * 6 + 2] = gpu_z[offset_coordinates_index + threadIdx.x];
-    shared_coords[threadIdx.x * 6 + 3] = gpu_comDx[offset_coordinates_index + threadIdx.x];
-    shared_coords[threadIdx.x * 6 + 4] = gpu_comDy[offset_coordinates_index + threadIdx.x];
-    shared_coords[threadIdx.x * 6 + 5] = gpu_comDz[offset_coordinates_index + threadIdx.x];
+    shared_coords[threadIdx.x * 7    ] = gpu_x[offset_coordinates_index + threadIdx.x];
+    shared_coords[threadIdx.x * 7 + 1] = gpu_y[offset_coordinates_index + threadIdx.x];
+    shared_coords[threadIdx.x * 7 + 2] = gpu_z[offset_coordinates_index + threadIdx.x];
+    shared_coords[threadIdx.x * 7 + 3] = gpu_comDx[offset_coordinates_index + threadIdx.x];
+    shared_coords[threadIdx.x * 7 + 4] = gpu_comDy[offset_coordinates_index + threadIdx.x];
+    shared_coords[threadIdx.x * 7 + 5] = gpu_comDz[offset_coordinates_index + threadIdx.x];
+    shared_coords[threadIdx.x * 7 + 6] = gpu_particleCharge[offset_coordinates_index + threadIdx.x];
   }
 
   if(imageID >= imageSize)
@@ -984,48 +989,39 @@ __global__ void VirialReciprocalGPU(double *gpu_x,
 
   double rT11 = 0.0, rT12 = 0.0, rT13 = 0.0, rT22 = 0.0, rT23 = 0.0, rT33 = 0.0;
   double factor, dot;
-  factor = gpu_prefactRef[imageID] * (gpu_sumRref[imageID] *
-                                       gpu_sumRref[imageID] +
-                                       gpu_sumIref[imageID] *
-                                       gpu_sumIref[imageID]);
   
   if(blockIdx.y == 0) {
     double constant_part = constVal + 1.0 / gpu_hsqrRef[imageID];
-    gpu_rT11[imageID] = factor * (1.0 - 2.0 * constant_part *
-                                  gpu_kxRef[imageID] * gpu_kxRef[imageID]);
-    gpu_rT12[imageID] = factor * (-2.0 * constant_part *
-                                  gpu_kxRef[imageID] * gpu_kyRef[imageID]);
-    gpu_rT13[imageID] = factor * (-2.0 * constant_part *
-                                  gpu_kxRef[imageID] * gpu_kzRef[imageID]);
-    gpu_rT22[imageID] = factor * (1.0 - 2.0 * constant_part *
-                                  gpu_kyRef[imageID] * gpu_kyRef[imageID]);
-    gpu_rT23[imageID] = factor * (-2.0 * constant_part *
-                                  gpu_kyRef[imageID] * gpu_kzRef[imageID]);
-    gpu_rT33[imageID] = factor * (1.0 - 2.0 * constant_part *
-                                  gpu_kzRef[imageID] * gpu_kzRef[imageID]);
+    factor = gpu_prefactRef[imageID] * (gpu_sumRref[imageID] * gpu_sumRref[imageID] +
+                                        gpu_sumIref[imageID] * gpu_sumIref[imageID]);
+    rT11 = factor * (1.0 - 2.0 * constant_part * gpu_kxRef[imageID] * gpu_kxRef[imageID]);
+    rT12 = factor * (-2.0 * constant_part * gpu_kxRef[imageID] * gpu_kyRef[imageID]);
+    rT13 = factor * (-2.0 * constant_part * gpu_kxRef[imageID] * gpu_kzRef[imageID]);
+    rT22 = factor * (1.0 - 2.0 * constant_part * gpu_kyRef[imageID] * gpu_kyRef[imageID]);
+    rT23 = factor * (-2.0 * constant_part * gpu_kyRef[imageID] * gpu_kzRef[imageID]);
+    rT33 = factor * (1.0 - 2.0 * constant_part * gpu_kzRef[imageID] * gpu_kzRef[imageID]);
   }
 
   __syncthreads();
 
   //Intramolecular part
   for(int particleID = 0; particleID < numberOfAtoms; particleID++) {
-    dot = DotProductGPU(gpu_kxRef[imageID], gpu_kyRef[imageID],
-                        gpu_kzRef[imageID], shared_coords[particleID * 6],
-                        shared_coords[particleID * 6 + 1],
-                        shared_coords[particleID * 6 + 2]);
-
     double dotsin, dotcos;
-    sincos(dot, &dotsin, &dotcos);
-    factor = gpu_prefactRef[imageID] * 2.0 *
-             (gpu_sumIref[imageID] * dotcos - gpu_sumRref[imageID] * dotsin) *
-             gpu_particleCharge[offset_coordinates_index + particleID];
 
-    rT11 += factor * (gpu_kxRef[imageID] * shared_coords[particleID * 6 + 3]);
-    rT12 += factor * 0.5 * (gpu_kxRef[imageID] * shared_coords[particleID * 6 + 4] + gpu_kyRef[imageID] * shared_coords[particleID * 6 + 3]);
-    rT13 += factor * 0.5 * (gpu_kxRef[imageID] * shared_coords[particleID * 6 + 5] + gpu_kzRef[imageID] * shared_coords[particleID * 6 + 3]);
-    rT22 += factor * (gpu_kyRef[imageID] * shared_coords[particleID * 6 + 4]);
-    rT13 += factor * 0.5 * (gpu_kyRef[imageID] * shared_coords[particleID * 6 + 5] + gpu_kzRef[imageID] * shared_coords[particleID * 6 + 4]);
-    rT33 += factor * (gpu_kzRef[imageID] * shared_coords[particleID * 6 + 5]);
+    dot = DotProductGPU(gpu_kxRef[imageID], gpu_kyRef[imageID],
+                        gpu_kzRef[imageID], shared_coords[particleID * 7],
+                        shared_coords[particleID * 7 + 1],
+                        shared_coords[particleID * 7 + 2]);
+    sincos(dot, &dotsin, &dotcos);
+    factor = gpu_prefactRef[imageID] * 2.0 * shared_coords[particleID * 7 + 6] *
+             (gpu_sumIref[imageID] * dotcos - gpu_sumRref[imageID] * dotsin);
+
+    rT11 += factor * (gpu_kxRef[imageID] * shared_coords[particleID * 7 + 3]);
+    rT12 += factor * 0.5 * (gpu_kxRef[imageID] * shared_coords[particleID * 7 + 4] + gpu_kyRef[imageID] * shared_coords[particleID * 7 + 3]);
+    rT13 += factor * 0.5 * (gpu_kxRef[imageID] * shared_coords[particleID * 7 + 5] + gpu_kzRef[imageID] * shared_coords[particleID * 7 + 3]);
+    rT22 += factor * (gpu_kyRef[imageID] * shared_coords[particleID * 7 + 4]);
+    rT23 += factor * 0.5 * (gpu_kyRef[imageID] * shared_coords[particleID * 7 + 5] + gpu_kzRef[imageID] * shared_coords[particleID * 7 + 4]);
+    rT33 += factor * (gpu_kzRef[imageID] * shared_coords[particleID * 7 + 5]);
   }
 
   atomicAdd(&gpu_rT11[imageID], rT11);

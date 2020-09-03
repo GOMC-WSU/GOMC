@@ -10,7 +10,7 @@ typedef r123::Philox4x32 RNG;
 #include "XYZArray.h"
 
 void CallTranslateParticlesGPU(VariablesCUDA *vars,
-                               std::vector<uint> &moleculeIndex,
+                               std::vector<int> &isParticleInsideMoleculeIndex,
                                double t_max,
                                double *mForcex,
                                double *mForcey,
@@ -26,10 +26,11 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                XYZArray &newMolPos,
                                XYZArray &newCOMs,
                                double lambdaBETA,
-                               XYZArray &t_k);
+                               XYZArray &t_k,
+                               XYZArray &molForceRecRef);
 
 void CallRotateParticlesGPU(VariablesCUDA *vars,
-                            std::vector<uint> &moleculeIndex,
+                            std::vector<int> &isParticleInsideMoleculeIndex,
                             double r_max,
                             double *mTorquex,
                             double *mTorquey,
@@ -68,7 +69,11 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
                                          double lambdaBETA,
                                          double *gpu_t_k_x,
                                          double *gpu_t_k_y,
-                                         double *gpu_t_k_z);
+                                         double *gpu_t_k_z,
+                                         int *gpu_isParticleInsideMoleculeIndex,
+                                         double *gpu_mForceRecx,
+                                         double *gpu_mForceRecy,
+                                         double *gpu_mForceRecz);
 
 __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                                       double r_max,
@@ -91,5 +96,6 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                                       double lambdaBETA,
                                       double *gpu_r_k_x,
                                       double *gpu_r_k_y,
-                                      double *gpu_r_k_z);
+                                      double *gpu_r_k_z,
+                                      int *gpu_isParticleInsideMoleculeIndex);
 #endif
