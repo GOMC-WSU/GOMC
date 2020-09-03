@@ -23,7 +23,6 @@ set(sources
    src/Geometry.cpp
    src/HistOutput.cpp
    src/InputFileReader.cpp
-   src/KernelDensityEstimator.cpp
    src/Main.cpp
    src/MoleculeKind.cpp
    src/MoleculeLookup.cpp
@@ -102,7 +101,6 @@ set(headers
    src/HistOutput.h
    src/InputAbstracts.h
    src/InputFileReader.h
-   src/KernelDensityEstimator.h
    src/MersenneTwister.h
    src/MoleculeKind.h
    src/MoleculeLookup.h

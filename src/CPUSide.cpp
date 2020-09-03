@@ -10,8 +10,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 CPUSide::CPUSide(System & sys, StaticVals & statV) :
   varRef(sys, statV), pdb(sys, statV), console(varRef), block(varRef),
-  hist(varRef), checkpoint(sys, statV), sample_N_E(varRef), kde(sample_N_E)
-#
+  hist(varRef), checkpoint(sys, statV)
+#if ENSEMBLE == GCMC
+  , sample_N_E(varRef)
+#endif
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   , freeEnergy(varRef, sys)
 #endif
@@ -31,11 +33,11 @@ void CPUSide::Init(PDBSetup const& pdbSet, config_setup::Output const& out,
     outObj.push_back(&block);
   if (out.checkpoint.enable)
     outObj.push_back(&checkpoint);
-  if (out.statistics.settings.hist.enable){
-    outObj.push_back(&hist);
-    outObj.push_back(&sample_N_E);
-    outObj.push_back(&kde);
-  }
+
+#if ENSEMBLE == GCMC
+  outObj.push_back(&hist);
+  outObj.push_back(&sample_N_E);
+#endif
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   outObj.push_back(&freeEnergy);
 #endif
