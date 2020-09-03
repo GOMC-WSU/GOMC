@@ -1844,25 +1844,27 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Histogram output frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
-  if(out.state.files.hist.histName == "") {
-    std::cout << "Error: Distribution file name is not specified!" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-  if(out.state.files.hist.sampleName == "") {
-    std::cout << "Error: Histogram file name of is not specified!" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-  if(out.state.files.hist.letter == "") {
-    std::cout << "Error: Run Letter of histogram file name is not specified!\n";
-    exit(EXIT_FAILURE);
-  }
-  if(out.state.files.hist.number == "") {
-    std::cout << "Error: Run number of histogram file is not specified!\n";
-    exit(EXIT_FAILURE);
-  }
-  if(out.state.files.hist.stepsPerHistSample == UINT_MAX) {
-    std::cout << "Error: Histogram output sample frequency is not specified!\n";
-    exit(EXIT_FAILURE);
+  if(out.statistics.settings.hist.enable){
+    if(out.state.files.hist.histName == "") {
+      std::cout << "Error: Distribution file name is not specified!" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+    if(out.state.files.hist.sampleName == "") {
+      std::cout << "Error: Histogram file name of is not specified!" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+    if(out.state.files.hist.letter == "") {
+      std::cout << "Error: Run Letter of histogram file name is not specified!\n";
+      exit(EXIT_FAILURE);
+    }
+    if(out.state.files.hist.number == "") {
+      std::cout << "Error: Run number of histogram file is not specified!\n";
+      exit(EXIT_FAILURE);
+    }
+    if(out.state.files.hist.stepsPerHistSample == UINT_MAX) {
+      std::cout << "Error: Histogram output sample frequency is not specified!\n";
+      exit(EXIT_FAILURE);
+    }
   }
   if(!out.statistics.settings.block.enable && out.statistics.vars.energy.block) {
     printf("Note: Average output Inactivated. Energy average output will be ignored.\n");
