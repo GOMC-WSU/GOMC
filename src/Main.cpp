@@ -103,13 +103,13 @@ int main(int argc, char *argv[])
     //SET NUMBER OF THREADS
 #ifdef _OPENMP
     //Print OpenMP version if recognized or OpenMP date code if not recognized.
-    std::unordered_map<unsigned,float> omp_map{{200505, 2.5},{200805, 3.0},
-	{201107, 3.1},{201307, 4.0},{201511, 4.5},{201811, 5.0}};
-	std::unordered_map<unsigned,float>::const_iterator match = omp_map.find(_OPENMP);
+    std::unordered_map<unsigned,std::string> omp_map{{200505, "2.5"},{200805, "3.0"},
+	{201107, "3.1"},{201307, "4.0"},{201511, "4.5"},{201611, "5.0 Preview 1"},{201811, "5.0"}};
+	std::unordered_map<unsigned,std::string>::const_iterator match = omp_map.find(_OPENMP);
 	if (match == omp_map.end())
       printf("%-40s %u\n", "Info: Compiled with OpenMP Version", _OPENMP);
     else
-      printf("%-40s %3.1f\n", "Info: Compiled with OpenMP Version", match->second);
+      printf("%-40s %s\n", "Info: Compiled with OpenMP Version", match->second.c_str());
 
     omp_set_num_threads(numThreads);
     printf("%-40s %-d \n", "Info: Number of threads", numThreads);
