@@ -14,6 +14,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "cuda.h"
 #include <cuda_runtime_api.h>
 #endif
+#ifdef _OPENMP
+#include <unordered_map>
+#endif
 #include <iostream>
 #include <ctime>
 
@@ -99,6 +102,9 @@ int main(int argc, char *argv[])
 
     //SET NUMBER OF THREADS
 #ifdef _OPENMP
+    std::unordered_map<unsigned,std::string> map{{200505,"2.5"},{200805,"3.0"},
+	{201107,"3.1"},{201307,"4.0"},{201511,"4.5"},{201811,"5.0"}};
+    printf("%-40s %s\n", "Info: Compiled with OpenMP Version", map.at(_OPENMP).c_str());
     omp_set_num_threads(numThreads);
     printf("%-40s %-d \n", "Info: Number of threads", numThreads);
 #else
