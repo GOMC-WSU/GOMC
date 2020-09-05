@@ -368,6 +368,11 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
     gpu_comx[molIndex] += shiftx;
     gpu_comy[molIndex] += shifty;
     gpu_comz[molIndex] += shiftz;
+
+    WrapPBC(gpu_comx[molIndex], xAxes);
+    WrapPBC(gpu_comy[molIndex], yAxes);
+    WrapPBC(gpu_comz[molIndex], zAxes);
+
     gpu_t_k_x[molIndex] = shiftx;
     gpu_t_k_y[molIndex] = shifty;
     gpu_t_k_z[molIndex] = shiftz;
