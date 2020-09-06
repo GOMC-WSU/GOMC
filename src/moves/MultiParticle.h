@@ -291,7 +291,7 @@ inline void MultiParticle::CalcEn()
   calcEwald->BoxForceReciprocal(newMolsPos, atomForceRecNew, molForceRecNew,
                                 bPick);
 
-  if(typePick == mp::MPROTATE) {
+  if(moveType == mp::MPROTATE) {
     //Calculate Torque for new positions
     calcEnRef.CalculateTorque(moleculeIndex, newMolsPos, newCOMs, atomForceNew,
                               atomForceRecNew, molTorqueNew, bPick);
