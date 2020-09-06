@@ -18,13 +18,6 @@ namespace mp
 {
 const int MPDISPLACE = 0;
 const int MPROTATE = 1;
-const int MPMVCOUNT = 2;
-const int MPALLDISPLACE = 0;
-const int MPALLROTATE = 1;
-const int MPALLRANDOM = 2;
-// MPTOTALTYPES = 2, we perform either: All displacement, All rotation move.
-// MPTOTALTYPES = 3, we perform either: All displacement, All rotation move,
-//                                      or combined displacement+rotation
 const int MPTOTALTYPES = 2;
 const double TARGET_ACCEPT_FRACT = 0.3;
 }
@@ -55,8 +48,8 @@ public:
       tries[b].resize(mv::MOVE_KINDS_TOTAL);
       tempAccepted[b].resize(mv::MOVE_KINDS_TOTAL);
       tempTries[b].resize(mv::MOVE_KINDS_TOTAL);
-      mp_accepted[b].resize(mp::MPMVCOUNT);
-      mp_tries[b].resize(mp::MPMVCOUNT);
+      mp_accepted[b].resize(mp::MPTOTALTYPES);
+      mp_tries[b].resize(mp::MPTOTALTYPES);
     }
   }
 

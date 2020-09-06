@@ -1356,7 +1356,6 @@ void CalculateEnergy::CalculateTorque(std::vector<uint>& moleculeIndex,
                                       XYZArray const& atomForce,
                                       XYZArray const& atomForceRec,
                                       XYZArray& molTorque,
-                                      std::vector<uint>& moveType,
                                       const uint box)
 {
   if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
@@ -1370,25 +1369,22 @@ void CalculateEnergy::CalculateTorque(std::vector<uint>& moleculeIndex,
     molTorque.Reset();
 
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-  #pragma omp parallel for default(none) shared(atomForce, atomForceRec, com, coordinates, moleculeIndex, \
-  moveType) reduction(+: torquex[:torqueCount], torquey[:torqueCount], torquez[:torqueCount])
+  #pragma omp parallel for default(none) shared(atomForce, atomForceRec, com, coordinates, moleculeIndex) \
+  reduction(+: torquex[:torqueCount], torquey[:torqueCount], torquez[:torqueCount])
 #endif
     for(int m = 0; m < moleculeIndex.size(); m++) {
       int length = mols.GetKind(moleculeIndex[m]).NumAtoms();
       int start = mols.MolStart(moleculeIndex[m]);
 
-      //Only if move is rotation
-      if(moveType[moleculeIndex[m]]) {
-        // atom iterator
-        for(int p = start; p < start + length; p++) {
-          XYZ distFromCOM = coordinates.Difference(p, com, (moleculeIndex[m]));
-          distFromCOM = currentAxes.MinImage(distFromCOM, box);
-          XYZ tempTorque = Cross(distFromCOM, atomForce[p] + atomForceRec[p]);
+      // atom iterator
+      for(int p = start; p < start + length; p++) {
+        XYZ distFromCOM = coordinates.Difference(p, com, (moleculeIndex[m]));
+        distFromCOM = currentAxes.MinImage(distFromCOM, box);
+        XYZ tempTorque = Cross(distFromCOM, atomForce[p] + atomForceRec[p]);
 
-          torquex[moleculeIndex[m]] += tempTorque.x;
-          torquey[moleculeIndex[m]] += tempTorque.y;
-          torquez[moleculeIndex[m]] += tempTorque.z;
-        }
+        torquex[moleculeIndex[m]] += tempTorque.x;
+        torquey[moleculeIndex[m]] += tempTorque.y;
+        torquez[moleculeIndex[m]] += tempTorque.z;
       }
     }
   }

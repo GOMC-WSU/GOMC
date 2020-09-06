@@ -180,7 +180,6 @@ public:
                        XYZArray const& atomForce,
                        XYZArray const& atomForceRec,
                        XYZArray& molTorque,
-                       std::vector<uint>& moveType,
                        const uint box);
 
   //Finding the molecule inside cavity and store the molecule Index.
