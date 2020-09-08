@@ -50,7 +50,7 @@ void CheckpointSetup::ReadAll()
   readBoxDimensionsData();
   readRandomNumbers();
   #if GOMC_LIB_MPI
-  if(parallelTemperingEnabled)
+  if(parallelTemperingWasEnabled)
     readRandomNumbersParallelTempering();
   #endif
   readCoordinates();
@@ -61,7 +61,7 @@ void CheckpointSetup::ReadAll()
 
 void CheckpointSetup::readParallelTemperingBoolean()
 {
-  parallelTemperingEnabled = readIntIn1Char();
+  parallelTemperingWasEnabled = readIntIn1Char();
 }
 
 void CheckpointSetup::readStepNumber()
@@ -303,6 +303,21 @@ void CheckpointSetup::SetPRNGVariables(PRNG & prng)
   prng.GetGenerator()->left = seedLeft;
   prng.GetGenerator()->seedValue = seedValue;
 }
+
+bool CheckpointSetup::CheckIfParallelTemperingWasEnabled(){
+  return (bool)parallelTemperingWasEnabled;
+}
+
+
+#if GOMC_LIB_MPI
+void CheckpointSetup::SetPRNGVariablesPT(PRNG & prng)
+{
+  prng.GetGenerator()->load(saveArrayPT);
+  prng.GetGenerator()->pNext = prng.GetGenerator()->state + seedLocationPT;
+  prng.GetGenerator()->left = seedLeftPT;
+  prng.GetGenerator()->seedValue = seedValuePT;
+}
+#endif
 
 void CheckpointSetup::SetCoordinates(Coordinates & coordinates)
 {

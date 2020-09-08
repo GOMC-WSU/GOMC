@@ -83,6 +83,8 @@ System::~System()
   delete moves[mv::MEMC];
   delete moves[mv::CFCMC];
 #endif
+  if(ms->parallelTemperingEnabled)
+    delete prngParallelTemp;
 }
 
 void System::Init(Setup const& set, ulong & startStep)
@@ -117,6 +119,10 @@ void System::Init(Setup const& set, ulong & startStep)
     checkpointSet.SetCoordinates(coordinates);
     checkpointSet.SetMoleculeLookup(molLookupRef);
     checkpointSet.SetMoveSettings(moveSettings);
+    #if GOMC_LIB_MPI
+    if(checkpointSet.CheckIfParallelTemperingWasEnabled())
+      checkpointSet.SetPRNGVariablesPT(*prngParallelTemp);
+    #endif
   }
 
   com.CalcCOM();
