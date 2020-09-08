@@ -28,7 +28,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "GOMC_Config.h"    //For PT
 #include "ParallelTemperingPreprocessor.h"
-#include <sstream>  //for prefixing uniqueVal with the pathToReplicaDirectory
+#include <sstream>  //for prefixing uniqueVal with the pathToReplicaOutputDirectory
 #ifdef WIN32
 #define OS_SEP '\\'
 #else

@@ -24,7 +24,7 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
   set.Init(configFileName, multisim);
   totalSteps = set.config.sys.step.total;
   staticValues = new StaticVals(set);
-  system = new System(*staticValues);
+  system = new System(*staticValues, multisim);
   staticValues->Init(set, *system);
   system->Init(set, startStep);
   //recal Init for static value for initializing ewald since ewald is

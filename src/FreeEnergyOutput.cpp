@@ -47,7 +47,7 @@ void FreeEnergyOutput::Init(pdb_setup::Atoms const& atoms,
       fileName += uniqueName;
       fileName += ".dat";
 #if GOMC_LIB_MPI
-      name[b] = pathToReplicaDirectory + fileName;
+      name[b] = pathToReplicaOutputDirectory + fileName;
 #else
       name[b] = fileName;
 #endif

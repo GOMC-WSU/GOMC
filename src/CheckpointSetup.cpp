@@ -26,7 +26,12 @@ union uint32_input_union {
 CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
-  coordCurrRef(sys.coordinates), filename("checkpoint.dat")
+  coordCurrRef(sys.coordinates)
+  #if GOMC_LIB_MPI
+  , filename(sys.ms->replicaInputDirectoryPath + "checkpoint.dat")
+  #else
+  , filename("checkpoint.dat")
+  #endif
 {
   inputFile = NULL;
   saveArray = NULL;
@@ -45,6 +50,11 @@ void CheckpointSetup::ReadAll()
   readMoleculeLookupData();
   readMoveSettingsData();
   std::cout << "Checkpoint loaded from " << filename << std::endl;
+}
+
+void CheckpointSetup::readSimulationContinuesParallelTempering()
+{
+  stepNumber = readUintIn8Chars();
 }
 
 void CheckpointSetup::readStepNumber()
@@ -215,6 +225,23 @@ double CheckpointSetup::readDoubleIn8Chars()
     exit(EXIT_FAILURE);
   }
   return temp.dbl_value;
+}
+
+int8_t CheckpointSetup::readIntIn1Char()
+{
+  int8_t data;
+  if(inputFile == NULL) {
+    fprintf(stderr, "Error opening checkpoint output file %s\n",
+            filename.c_str());
+    exit(EXIT_FAILURE);
+  }
+
+  int ret = fscanf(inputFile, "%c", data);
+  if(ret != 1) {
+    std::cerr << "CheckpointSetup couldn't read required data from binary!\n";
+    exit(EXIT_FAILURE);
+  }
+  return data;
 }
 
 uint32_t CheckpointSetup::readUintIn8Chars()

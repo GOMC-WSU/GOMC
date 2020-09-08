@@ -42,7 +42,7 @@ void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
   enableOutCheckpoint = output.checkpoint.enable;
   stepsPerCheckpoint = output.checkpoint.frequency;
 #if GOMC_LIB_MPI
-  filename = pathToReplicaDirectory + "checkpoint.dat";
+  filename = pathToReplicaOutputDirectory + "checkpoint.dat";
 #else
   filename = "checkpoint.dat";
 #endif

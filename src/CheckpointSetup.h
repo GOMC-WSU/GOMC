@@ -88,5 +88,6 @@ private:
   void readVector1DDouble(std::vector< double > & data);
   double readDoubleIn8Chars();
   uint32_t readUintIn8Chars();
+  uint32_t readIntIn8Chars();
 
 };
