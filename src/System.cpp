@@ -55,9 +55,10 @@ System::System(StaticVals& statics, MultiSim const*const& multisim) :
   calcEnergy(statics, *this), checkpointSet(*this, statics)
 {
   calcEwald = NULL;
+  #if GOMC_LIB_MPI
   if(ms->parallelTemperingEnabled)
     prngParallelTemp = new PRNG(molLookupRef);
-
+  #endif
 }
 
 System::~System()
@@ -83,8 +84,10 @@ System::~System()
   delete moves[mv::MEMC];
   delete moves[mv::CFCMC];
 #endif
+#if GOMC_LIB_MPI
   if(ms->parallelTemperingEnabled)
     delete prngParallelTemp;
+#endif
 }
 
 void System::Init(Setup const& set, ulong & startStep)

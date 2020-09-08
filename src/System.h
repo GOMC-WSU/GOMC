@@ -110,8 +110,8 @@ public:
   PRNG prng;
   Random123Wrapper r123wrapper;
 
-  MultiSim const*const& ms;
   #if GOMC_LIB_MPI
+  MultiSim const*const& ms;
   PRNG * prngParallelTemp;
   #endif
 

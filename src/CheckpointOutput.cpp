@@ -58,17 +58,17 @@ void CheckpointOutput::DoOutput(const ulong step)
 {
   if(enableOutCheckpoint) {
     openOutputFile();
-    printParallelTemperingBoolean();
     printStepNumber(step);
     printBoxDimensionsData();
     printRandomNumbers();
-    #if GOMC_LIB_MPI
-    if(enableParallelTempering)
-      printRandomNumbersParallelTempering();
-    #endif
     printCoordinates();
     printMoleculeLookupData();
     printMoveSettingsData();
+    #if GOMC_LIB_MPI
+    printParallelTemperingBoolean();
+    if(enableParallelTempering)
+      printRandomNumbersParallelTempering();
+    #endif
     std::cout << "Checkpoint saved to " << filename << std::endl;
   }
 }
