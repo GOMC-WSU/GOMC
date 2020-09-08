@@ -350,7 +350,7 @@ bool ParallelTemperingPreprocessor::checkIfParallelTemperingEnabled(const char *
     if(line.size() == 0)
       continue;
 
-    if(CheckString(line[0], "ParallelTemperingFreq")) {
+    if(checkString(line[0], "ParallelTemperingFreq")) {
       parallelTemperingEnabled = checkBool(line[1]);
     } 
     // Clear and get ready for the next line
@@ -504,7 +504,7 @@ bool ParallelTemperingPreprocessor::checkBool(std::string str)
 MultiSim::MultiSim(ParallelTemperingPreprocessor & pt) :
   worldSize(pt.worldSize), worldRank(pt.worldRank), replicaInputDirectoryPath(pt.replicaInputDirectoryPath), 
   replicaOutputDirectoryPath(pt.replicaOutputDirectoryPath), restart(pt.restart), 
-  restartFromCheckpoint(pt.restartFromCheckpoint)
+  restartFromCheckpoint(pt.restartFromCheckpoint), parallelTemperingEnabled(pt.parallelTemperingEnabled)
 {
     std::string filename = replicaOutputDirectoryPath + "ParallelTempering.dat";
     fplog =  fopen(filename.c_str() , "w");

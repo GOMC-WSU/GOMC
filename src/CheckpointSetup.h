@@ -52,6 +52,7 @@ private:
 
   // the following variables will hold the data read from checkpoint
   // and will be passed to the rest of the code via Get functions
+  int8_t parallelTemperingEnabled;
   ulong stepNumber;
   uint32_t totalBoxes;
   std::vector<std::vector<double> > axis;
@@ -71,6 +72,7 @@ private:
 
   // private functions used by ReadAll and Get functions
   void openInputFile();
+  void readParallelTemperingBoolean();
   void readStepNumber();
   void readRandomNumbers();
   #if GOMC_LIB_MPI
@@ -88,6 +90,6 @@ private:
   void readVector1DDouble(std::vector< double > & data);
   double readDoubleIn8Chars();
   uint32_t readUintIn8Chars();
-  uint32_t readIntIn8Chars();
+  int8_t readIntIn1Char();
 
 };

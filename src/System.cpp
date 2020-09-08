@@ -48,7 +48,6 @@ System::System(StaticVals& statics, MultiSim const*const& multisim) :
   prng(molLookupRef),
 #if GOMC_LIB_MPI
   ms(multisim),
-  prngParallelTemp(molLookupRef),
 #endif
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
@@ -56,6 +55,9 @@ System::System(StaticVals& statics, MultiSim const*const& multisim) :
   calcEnergy(statics, *this), checkpointSet(*this, statics)
 {
   calcEwald = NULL;
+  if(ms->parallelTemperingEnabled)
+    prngParallelTemp = new PRNG(molLookupRef);
+
 }
 
 System::~System()
@@ -88,7 +90,8 @@ void System::Init(Setup const& set, ulong & startStep)
   prng.Init(set.prng.prngMaker.prng);
   r123wrapper.SetRandomSeed(set.config.in.prng.seed);
 #if GOMC_LIB_MPI
-  prngParallelTemp.Init(set.prngParallelTemp.prngMaker.prng);
+  if(ms->parallelTemperingEnabled)
+    prngParallelTemp->Init(set.prngParallelTemp.prngMaker.prng);
 #endif
 #ifdef VARIABLE_VOLUME
   boxDimensions->Init(set.config.in.restart,

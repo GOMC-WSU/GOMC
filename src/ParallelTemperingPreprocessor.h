@@ -56,8 +56,9 @@ private:
   std::fstream inputFileReaderMPI;
   std::string getMultiSimFolderName;
   int worldSize, worldRank;
-  bool restartFromCheckpoint;
-  bool restart;
+  bool restartFromCheckpoint = false;
+  bool restart = false;
+  bool parallelTemperingEnabled = false;
   std::string replicaInputDirectoryPath;
   std::string replicaOutputDirectoryPath;
   FILE * stdOut;

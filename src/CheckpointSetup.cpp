@@ -21,6 +21,11 @@ union uint32_input_union {
   char bin_value[8];
   uint32_t uint_value;
 };
+
+union int8_input_union {
+  char bin_value[1];
+  int8_t int_value;
+};
 }
 
 CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV) :
@@ -40,11 +45,13 @@ CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV) :
 void CheckpointSetup::ReadAll()
 {
   openInputFile();
+  readParallelTemperingBoolean();
   readStepNumber();
   readBoxDimensionsData();
   readRandomNumbers();
   #if GOMC_LIB_MPI
-  readRandomNumbersParallelTempering();
+  if(parallelTemperingEnabled)
+    readRandomNumbersParallelTempering();
   #endif
   readCoordinates();
   readMoleculeLookupData();
@@ -52,9 +59,9 @@ void CheckpointSetup::ReadAll()
   std::cout << "Checkpoint loaded from " << filename << std::endl;
 }
 
-void CheckpointSetup::readSimulationContinuesParallelTempering()
+void CheckpointSetup::readParallelTemperingBoolean()
 {
-  stepNumber = readUintIn8Chars();
+  parallelTemperingEnabled = readIntIn1Char();
 }
 
 void CheckpointSetup::readStepNumber()
@@ -235,13 +242,14 @@ int8_t CheckpointSetup::readIntIn1Char()
             filename.c_str());
     exit(EXIT_FAILURE);
   }
-
-  int ret = fscanf(inputFile, "%c", data);
+  int8_input_union temp;
+  int ret = fscanf(inputFile, "%c",
+                   &temp.bin_value[0]);
   if(ret != 1) {
     std::cerr << "CheckpointSetup couldn't read required data from binary!\n";
     exit(EXIT_FAILURE);
   }
-  return data;
+  return temp.int_value;
 }
 
 uint32_t CheckpointSetup::readUintIn8Chars()

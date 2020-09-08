@@ -51,11 +51,13 @@ private:
   Coordinates & coordCurrRef;
 
   bool enableOutCheckpoint;
+  bool enableParallelTempering;
   std::string filename;
   FILE* outputFile;
   ulong stepsPerCheckpoint;
 
   void openOutputFile();
+  void printParallelTemperingBoolean();
   void printStepNumber(ulong step);
   void printRandomNumbers();
   #if GOMC_LIB_MPI
@@ -71,6 +73,7 @@ private:
   void printVector2DUint(std::vector< std::vector< uint > > data);
   void printVector1DDouble(std::vector< double > data);
   void outputDoubleIn8Chars(double data);
+  void outputIntIn1Char(int8_t data);
   void outputUintIn8Chars(uint32_t data);
 
 };

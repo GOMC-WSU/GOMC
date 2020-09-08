@@ -21,17 +21,23 @@ union uint32_output_union {
   char bin_value[8];
   uint32_t uint_value;
 };
+
+union int8_input_union {
+  char bin_value[1];
+  int8_t int_value;
+};
 }
 
 CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
 #if GOMC_LIB_MPI
-  coordCurrRef(sys.coordinates),
-  prngPTRef(sys.prngParallelTemp)
+  prngPTRef(*sys.prngParallelTemp),
+  enableParallelTempering(sys.ms->parallelTemperingEnabled),
 #else
-  coordCurrRef(sys.coordinates)
+  enableParallelTempering(false),
 #endif
+  coordCurrRef(sys.coordinates)
 {
   outputFile = NULL;
 }
@@ -52,17 +58,25 @@ void CheckpointOutput::DoOutput(const ulong step)
 {
   if(enableOutCheckpoint) {
     openOutputFile();
+    printParallelTemperingBoolean();
     printStepNumber(step);
     printBoxDimensionsData();
     printRandomNumbers();
     #if GOMC_LIB_MPI
-    printRandomNumbersParallelTempering();
+    if(enableParallelTempering)
+      printRandomNumbersParallelTempering();
     #endif
     printCoordinates();
     printMoleculeLookupData();
     printMoveSettingsData();
     std::cout << "Checkpoint saved to " << filename << std::endl;
   }
+}
+
+void CheckpointOutput::printParallelTemperingBoolean()
+{
+  int8_t s = (int8_t) enableParallelTempering;
+  outputIntIn1Char(s);
 }
 
 void CheckpointOutput::printStepNumber(const ulong step)
@@ -296,6 +310,20 @@ void CheckpointOutput::outputDoubleIn8Chars(double data)
           temp.bin_value[5],
           temp.bin_value[6],
           temp.bin_value[7]);
+  fflush(outputFile);
+}
+
+void CheckpointOutput::outputIntIn1Char(int8_t data)
+{
+  if(outputFile == NULL) {
+    fprintf(stderr, "Error opening checkpoint output file %s\n",
+            filename.c_str());
+    exit(EXIT_FAILURE);
+  }
+  int8_input_union temp;
+  temp.int_value = data;
+  fprintf(outputFile, "%c",
+          temp.bin_value[0]);
   fflush(outputFile);
 }
 

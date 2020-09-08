@@ -1370,6 +1370,13 @@ void ConfigSetup::verifyInputs(void)
   }
 #endif
 
+#if GOMC_LIB_MPI
+  if(sys.step.parallelTemp && in.prngParallelTempering.kind != "INTSEED"){
+    std::cout << "Error: INTSEED required for parallel tempering!" << std::endl;
+    exit(EXIT_FAILURE);
+  } 
+#endif
+
   if(in.prng.kind == "INTSEED" && in.prng.seed == UINT_MAX) {
     std::cout << "Error: Seed value is not specified!" << std::endl;
     exit(EXIT_FAILURE);

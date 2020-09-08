@@ -112,7 +112,7 @@ public:
 
   MultiSim const*const& ms;
   #if GOMC_LIB_MPI
-  PRNG  prngParallelTemp;
+  PRNG * prngParallelTemp;
   #endif
 
 
