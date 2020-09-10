@@ -24,7 +24,7 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
   set.Init(configFileName, multisim);
   totalSteps = set.config.sys.step.total;
   staticValues = new StaticVals(set);
-  system = new System(*staticValues);
+  system = new System(*staticValues, multisim);
   staticValues->Init(set, *system);
   system->Init(set, startStep);
   //recal Init for static value for initializing ewald since ewald is
@@ -45,6 +45,7 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
     frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
   }
 #if GOMC_LIB_MPI
+  // set.config.sys.step.parallelTemp is a boolean for enabling/disabling parallel tempering
   PTUtils = set.config.sys.step.parallelTemp ? new ParallelTemperingUtilities(ms, *system, *staticValues, set.config.sys.step.parallelTempFreq, set.config.sys.step.parallelTemperingAttemptsPerExchange): NULL;
   exchangeResults.resize(ms->worldSize, false);
 #endif

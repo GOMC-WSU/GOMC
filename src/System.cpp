@@ -33,7 +33,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CrankShaft.h"
 #include "CFCMC.h"
 
-System::System(StaticVals& statics) :
+System::System(StaticVals& statics, MultiSim const*const& multisim) :
   statV(statics),
 #ifdef VARIABLE_VOLUME
   boxDimRef(*BoxDim(statics.isOrthogonal)),
@@ -47,7 +47,7 @@ System::System(StaticVals& statics) :
 #endif
   prng(molLookupRef),
 #if GOMC_LIB_MPI
-  prngParallelTemp(molLookupRef),
+  ms(multisim),
 #endif
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
@@ -55,6 +55,10 @@ System::System(StaticVals& statics) :
   calcEnergy(statics, *this), checkpointSet(*this, statics)
 {
   calcEwald = NULL;
+  #if GOMC_LIB_MPI
+  if(ms->parallelTemperingEnabled)
+    prngParallelTemp = new PRNG(molLookupRef);
+  #endif
 }
 
 System::~System()
@@ -80,6 +84,10 @@ System::~System()
   delete moves[mv::MEMC];
   delete moves[mv::CFCMC];
 #endif
+#if GOMC_LIB_MPI
+  if(ms->parallelTemperingEnabled)
+    delete prngParallelTemp;
+#endif
 }
 
 void System::Init(Setup const& set, ulong & startStep)
@@ -87,7 +95,8 @@ void System::Init(Setup const& set, ulong & startStep)
   prng.Init(set.prng.prngMaker.prng);
   r123wrapper.SetRandomSeed(set.config.in.prng.seed);
 #if GOMC_LIB_MPI
-  prngParallelTemp.Init(set.prngParallelTemp.prngMaker.prng);
+  if(ms->parallelTemperingEnabled)
+    prngParallelTemp->Init(set.prngParallelTemp.prngMaker.prng);
 #endif
 #ifdef VARIABLE_VOLUME
   boxDimensions->Init(set.config.in.restart,
@@ -113,6 +122,10 @@ void System::Init(Setup const& set, ulong & startStep)
     checkpointSet.SetCoordinates(coordinates);
     checkpointSet.SetMoleculeLookup(molLookupRef);
     checkpointSet.SetMoveSettings(moveSettings);
+    #if GOMC_LIB_MPI
+    if(checkpointSet.CheckIfParallelTemperingWasEnabled() && ms->parallelTemperingEnabled)
+      checkpointSet.SetPRNGVariablesPT(*prngParallelTemp);
+    #endif
   }
 
   com.CalcCOM();

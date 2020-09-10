@@ -41,7 +41,8 @@ public:
     //Initialize PRNG
     prng.Init(config.in.restart, config.in.prng, config.in.files.seed.name);
     #if GOMC_LIB_MPI
-    prngParallelTemp.Init(config.in.restart, config.in.prngParallelTempering, config.in.files.seed.name);
+    if(multisim->parallelTemperingEnabled)
+      prngParallelTemp.Init(config.in.restart, config.in.prngParallelTempering, config.in.files.seed.name);
     #endif
     //Read molecule data from psf
     if(mol.Init(config.in.restart, config.in.files.psf.name) != 0) {

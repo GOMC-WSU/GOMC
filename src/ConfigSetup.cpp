@@ -241,8 +241,8 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         std::cout << "Error: Simulation requires " << BOX_TOTAL << " PDB file(s)!\n";
         exit(EXIT_FAILURE);
       }
-      if (multisim != NULL && multisim->restart){
-        in.files.pdb.name[boxnum] = multisim->pathToReplicaDirectory + line[2];
+      if (multisim != NULL){
+        in.files.pdb.name[boxnum] = multisim->replicaInputDirectoryPath + line[2];
       } else {
         in.files.pdb.name[boxnum] = line[2];
       }
@@ -252,8 +252,8 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         std::cout << "Error: Simulation requires " << BOX_TOTAL << " PSF file(s)!\n";
         exit(EXIT_FAILURE);
       }
-      if (multisim != NULL && multisim->restart){
-        in.files.psf.name[boxnum] = multisim->pathToReplicaDirectory + line[2];
+      if (multisim != NULL){
+        in.files.psf.name[boxnum] = multisim->replicaInputDirectoryPath + line[2];
       } else {
         in.files.psf.name[boxnum] = line[2];
       }
@@ -904,7 +904,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
     else if(CheckString(line[0], "OutputName")) {
       if (multisim != NULL) {
         std::stringstream replicaDirectory;
-        replicaDirectory << multisim->pathToReplicaDirectory << line[1];
+        replicaDirectory << multisim->replicaOutputDirectoryPath << line[1];
         out.statistics.settings.uniqueStr.val = replicaDirectory.str();
         printf("%-40s %-s \n", "Info: Output name", replicaDirectory.str().c_str());
       } else {
@@ -1368,6 +1368,13 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Fix volume of box 0 cannot be applied for NPT simulation!\n";
     exit(EXIT_FAILURE);
   }
+#endif
+
+#if GOMC_LIB_MPI
+  if(sys.step.parallelTemp && in.prngParallelTempering.kind != "INTSEED"){
+    std::cout << "Error: INTSEED required for parallel tempering!" << std::endl;
+    exit(EXIT_FAILURE);
+  } 
 #endif
 
   if(in.prng.kind == "INTSEED" && in.prng.seed == UINT_MAX) {

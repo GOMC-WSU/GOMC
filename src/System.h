@@ -37,7 +37,7 @@ class Lambda;
 class System
 {
 public:
-  explicit System(StaticVals& statics);
+  explicit System(StaticVals& statics, MultiSim const*const& multisim = NULL);
 
   void Init(Setup const& setupData, ulong & startStep);
 
@@ -111,7 +111,8 @@ public:
   Random123Wrapper r123wrapper;
 
   #if GOMC_LIB_MPI
-  PRNG  prngParallelTemp;
+  MultiSim const*const& ms;
+  PRNG * prngParallelTemp;
   #endif
 
 

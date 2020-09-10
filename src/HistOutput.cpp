@@ -41,7 +41,7 @@ void Histogram::Init(pdb_setup::Atoms const& atoms,
       outF[b] = new std::ofstream[var->numKinds];
       for (uint k = 0; k < var->numKinds; ++k) {
 #if GOMC_LIB_MPI
-        name[b][k] = pathToReplicaDirectory + GetFName( output.state.files.hist.histName,
+        name[b][k] = pathToReplicaOutputDirectory + GetFName( output.state.files.hist.histName,
                      output.state.files.hist.number,
                      output.state.files.hist.letter,
                      b, k);

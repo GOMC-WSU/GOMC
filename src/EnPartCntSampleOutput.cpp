@@ -39,7 +39,7 @@ void EnPartCntSample::Init(pdb_setup::Atoms const& atoms,
     samplesCollectedInFrame = 0;
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
 #if GOMC_LIB_MPI
-      name[b] = pathToReplicaDirectory + GetFName(output.state.files.hist.sampleName,
+      name[b] = pathToReplicaOutputDirectory + GetFName(output.state.files.hist.sampleName,
                 output.state.files.hist.number,
                 output.state.files.hist.letter,
                 b);

@@ -34,17 +34,19 @@ public:
   explicit ParallelTemperingPreprocessor( int argc,
                                           char *argv[]);
   bool checkIfValidRank();
-  bool checkIfParallelTempering(const char *fileName);
+  bool checkIfExpandedEnsemble(const char *fileName);
   void checkIfValid(const char *fileName);
+  bool checkIfParallelTemperingEnabled(const char *fileName);
   bool checkIfRestart(const char *fileName);
   bool checkIfRestartFromCheckpoint(const char *fileName);
   int getNumberOfReplicas(const char *fileName);
-  std::string getMultiSimFolderName(const char *fileName);
+  std::string getInputFolderName(const char *fileName);
+  std::string getOutputFolderName(const char *fileName);
   std::string getTemperature(const char *fileName, int worldRank);
   std::string getChemicalPotential(const char *fileName, int worldRank);
-  std::string setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature);
-  std::string setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature, std::string chemPot);
-  std::string mkdirWrapper(std::string multisimDirectoryName, std::string replicaDirectoryName);
+  void setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature);
+  void setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature, std::string chemPot);
+  void mkdirWrapper(std::string multisimDirectoryName, std::string replicaDirectoryName);
   bool checkString(std::string str1, std::string str2);
   bool checkBool(std::string str);
 
@@ -52,10 +54,15 @@ private:
   friend class MultiSim;
   std::string inputFileStringMPI;
   std::fstream inputFileReaderMPI;
-  std::string pathToReplicaDirectory;
+  std::string getMultiSimFolderName;
   int worldSize, worldRank;
-  bool restartFromCheckpoint;
-  bool restart;
+  bool restartFromCheckpoint = false;
+  bool restart = false;
+  bool parallelTemperingEnabled = false;
+  std::string replicaInputDirectoryPath;
+  std::string replicaOutputDirectoryPath;
+  FILE * stdOut;
+  FILE * stdErr;
 
 #endif
 
@@ -66,8 +73,10 @@ class MultiSim
 public:
   explicit MultiSim(ParallelTemperingPreprocessor & pt);
   const int worldSize, worldRank;
-  const std::string pathToReplicaDirectory;
+  const std::string replicaInputDirectoryPath;
+  const std::string replicaOutputDirectoryPath;
   bool restart, restartFromCheckpoint;
+  bool parallelTemperingEnabled;
   FILE * fplog;
 private:
 };
