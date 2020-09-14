@@ -8,9 +8,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define DCONSPHERE_H
 #include "DCComponent.h"
 #include "BasicTypes.h"
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 namespace mol_setup
 {

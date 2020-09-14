@@ -9,9 +9,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "MoveBase.h" //For uint.
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 #ifdef GOMC_CUDA
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
