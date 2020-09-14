@@ -148,13 +148,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   CubDebugExit(CUMALLOC(&d_temp_storage, temp_storage_bytes));
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
                     gpu_final_REn, energyVectorLen);
-  // CUFREE(d_temp_storage);
-
-  // d_temp_storage = NULL;
-  // temp_storage_bytes = 0;
-  // DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
-                    // gpu_final_LJEn, energyVectorLen);
-  // CubDebugExit(CUMALLOC(&d_temp_storage, temp_storage_bytes));
   // LJ ReduceSum
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
                     gpu_final_LJEn, energyVectorLen);
