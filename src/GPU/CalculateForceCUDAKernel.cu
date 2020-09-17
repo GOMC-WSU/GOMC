@@ -664,16 +664,14 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
 
   virComponents = make_double3(0.0, 0.0, 0.0);
 
-  double pRF = 0.0, qi_qj, pVF = 0.0;
-  double lambdaVDW = 0.0, lambdaCoulomb = 0.0;
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
-  //tensors for VDW and real part of electrostatic
+  //tensors for VDW
   gpu_vT11[threadID] = 0.0, gpu_vT22[threadID] = 0.0, gpu_vT33[threadID] = 0.0;
   // extra tensors reserved for later on
   gpu_vT12[threadID] = 0.0, gpu_vT13[threadID] = 0.0, gpu_vT23[threadID] = 0.0;
 
   if(electrostatic) {
-    //tensors for VDW and real part of electrostatic
+    //tensors for real part of electrostatic
     gpu_rT11[threadID] = 0.0, gpu_rT22[threadID] = 0.0, gpu_rT33[threadID] = 0.0;
     // extra tensors reserved for later on
     gpu_rT12[threadID] = 0.0, gpu_rT13[threadID] = 0.0, gpu_rT23[threadID] = 0.0;
@@ -720,36 +718,14 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
         int mA = gpu_particleMol[currentParticle];
         int mB = gpu_particleMol[neighborParticle];
 
-        lambdaVDW = DeviceGetLambdaVDW(mA, kA, mB, kB, box, gpu_isFraction,
+        double lambdaVDW = DeviceGetLambdaVDW(mA, kA, mB, kB, box, gpu_isFraction,
                                        gpu_molIndex, gpu_kindIndex, 
                                        gpu_lambdaVDW);
 
         diff_com = Difference(gpu_comx, gpu_comy, gpu_comz, mA, mB);
         diff_com = MinImageGPU(diff_com, axis, halfAx);
 
-        if(electrostatic) {
-          qi_qj = cA * cB;
-          lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
-                                                 gpu_isFraction, gpu_molIndex,
-                                                 gpu_kindIndex, gpu_lambdaCoulomb);
-          pRF = CalcCoulombForceGPU(distSq, qi_qj, gpu_VDW_Kind[0], gpu_ewald[0],
-                                    gpu_isMartini[0], gpu_alpha[box],
-                                    gpu_rCutCoulomb[box], gpu_diElectric_1[0],
-                                    gpu_sigmaSq, sc_coul, sc_sigma_6, sc_alpha,
-                                    sc_power, lambdaCoulomb, gpu_count[0],
-                                    kA, kB);
-
-          gpu_rT11[threadID] += pRF * (virComponents.x * diff_com.x);
-          gpu_rT22[threadID] += pRF * (virComponents.y * diff_com.y);
-          gpu_rT33[threadID] += pRF * (virComponents.z * diff_com.z);
-
-          //extra tensor calculations
-          gpu_rT12[threadID] += pRF * (0.5 * (virComponents.x * diff_com.y + virComponents.y * diff_com.x));
-          gpu_rT13[threadID] += pRF * (0.5 * (virComponents.x * diff_com.z + virComponents.z * diff_com.x));
-          gpu_rT23[threadID] += pRF * (0.5 * (virComponents.y * diff_com.z + virComponents.z * diff_com.y));
-        }
-
-        pVF = CalcEnForceGPU(distSq, kA, kB,
+        double pVF = CalcEnForceGPU(distSq, kA, kB,
                              gpu_sigmaSq, gpu_n, gpu_epsilon_Cn, gpu_rCut[0],
                              gpu_rOn[0], gpu_isMartini[0], gpu_VDW_Kind[0],
                              gpu_count[0], lambdaVDW, sc_sigma_6, sc_alpha,
@@ -763,6 +739,28 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
         gpu_vT12[threadID] += pVF * (0.5 * (virComponents.x * diff_com.y + virComponents.y * diff_com.x));
         gpu_vT13[threadID] += pVF * (0.5 * (virComponents.x * diff_com.z + virComponents.z * diff_com.x));
         gpu_vT23[threadID] += pVF * (0.5 * (virComponents.y * diff_com.z + virComponents.z * diff_com.y));
+
+        if(electrostatic) {
+          double qi_qj = cA * cB;
+          double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
+                                                        gpu_isFraction, gpu_molIndex,
+                                                        gpu_kindIndex, gpu_lambdaCoulomb);
+          double pRF = CalcCoulombForceGPU(distSq, qi_qj, gpu_VDW_Kind[0], gpu_ewald[0],
+                                           gpu_isMartini[0], gpu_alpha[box],
+                                           gpu_rCutCoulomb[box], gpu_diElectric_1[0],
+                                           gpu_sigmaSq, sc_coul, sc_sigma_6, sc_alpha,
+                                           sc_power, lambdaCoulomb, gpu_count[0],
+                                           kA, kB);
+
+          gpu_rT11[threadID] += pRF * (virComponents.x * diff_com.x);
+          gpu_rT22[threadID] += pRF * (virComponents.y * diff_com.y);
+          gpu_rT33[threadID] += pRF * (virComponents.z * diff_com.z);
+
+          //extra tensor calculations
+          gpu_rT12[threadID] += pRF * (0.5 * (virComponents.x * diff_com.y + virComponents.y * diff_com.x));
+          gpu_rT13[threadID] += pRF * (0.5 * (virComponents.x * diff_com.z + virComponents.z * diff_com.x));
+          gpu_rT23[threadID] += pRF * (0.5 * (virComponents.y * diff_com.z + virComponents.z * diff_com.y));
+        }
       }
     }
   }

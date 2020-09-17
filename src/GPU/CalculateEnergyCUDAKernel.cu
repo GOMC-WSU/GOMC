@@ -65,11 +65,13 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   CUMALLOC((void**) &gpu_particleCharge, particleCharge.size() * sizeof(double));
   CUMALLOC((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
   CUMALLOC((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
-  CUMALLOC((void**) &gpu_REn, energyVectorLen * sizeof(double));
   CUMALLOC((void**) &gpu_LJEn, energyVectorLen * sizeof(double));
-  CUMALLOC((void**) &gpu_final_REn, sizeof(double));
   CUMALLOC((void**) &gpu_final_LJEn, sizeof(double));
-
+  if (electrostatic) {
+    CUMALLOC((void**) &gpu_REn, energyVectorLen * sizeof(double));
+    CUMALLOC((void**) &gpu_final_REn, sizeof(double));
+  }
+  
   // Copy necessary data to GPU
   cudaMemcpy(gpu_neighborList, &neighborlist1D[0], neighborListCount * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_cellStartIndex, &cellStartIndex[0], cellStartIndex.size() * sizeof(int), cudaMemcpyHostToDevice);
@@ -85,9 +87,9 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   boxAxes.GetAxis(box).y,
   boxAxes.GetAxis(box).z);
 
-  double3 halfAx = make_double3(boxAxes.GetAxis(box).x / 2.0,
-                                boxAxes.GetAxis(box).y / 2.0,
-                                boxAxes.GetAxis(box).z / 2.0);
+  double3 halfAx = make_double3(boxAxes.GetAxis(box).x * 0.5,
+                                boxAxes.GetAxis(box).y * 0.5,
+                                boxAxes.GetAxis(box).z * 0.5);
 
   BoxInterGPU <<< blocksPerGrid, threadsPerBlock>>>(gpu_cellStartIndex,
       vars->gpu_cellVector,
@@ -143,28 +145,37 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   // ReduceSum
   void * d_temp_storage = NULL;
   size_t temp_storage_bytes = 0;
-  DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
-                    gpu_final_REn, energyVectorLen);
-  CubDebugExit(CUMALLOC(&d_temp_storage, temp_storage_bytes));
-  DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
-                    gpu_final_REn, energyVectorLen);
   // LJ ReduceSum
   DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
                     gpu_final_LJEn, energyVectorLen);
-  CUFREE(d_temp_storage);
+  CubDebugExit(CUMALLOC(&d_temp_storage, temp_storage_bytes));
+  DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_LJEn,
+                    gpu_final_LJEn, energyVectorLen);
   // Copy back the result to CPU ! :)
-  CubDebugExit(cudaMemcpy(&REn, gpu_final_REn, sizeof(double),
-                          cudaMemcpyDeviceToHost));
   CubDebugExit(cudaMemcpy(&LJEn, gpu_final_LJEn, sizeof(double),
                           cudaMemcpyDeviceToHost));
+  if (electrostatic) {
+    // Real Term ReduceSum
+    DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, gpu_REn,
+                      gpu_final_REn, energyVectorLen);
+    // Copy back the result to CPU ! :)
+    CubDebugExit(cudaMemcpy(&REn, gpu_final_REn, sizeof(double),
+                            cudaMemcpyDeviceToHost));
+  }
+  else {
+    REn = 0.0;
+  }
+  CUFREE(d_temp_storage);
 
   CUFREE(gpu_particleCharge);
   CUFREE(gpu_particleKind);
   CUFREE(gpu_particleMol);
-  CUFREE(gpu_REn);
   CUFREE(gpu_LJEn);
-  CUFREE(gpu_final_REn);
   CUFREE(gpu_final_LJEn);
+  if (electrostatic) {
+    CUFREE(gpu_REn);
+    CUFREE(gpu_final_REn);
+  }
   CUFREE(gpu_neighborList);
   CUFREE(gpu_cellStartIndex);
 }
@@ -247,7 +258,7 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
 
     if(currentParticle < neighborParticle && gpu_particleMol[currentParticle] != gpu_particleMol[neighborParticle]) {
       // Check if they are within rcut
-      double distSq = 0;
+      double distSq = 0.0;
 
       if(InRcutGPU(distSq, gpu_x, gpu_y, gpu_z, 
                    currentParticle, neighborParticle,
@@ -264,6 +275,10 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
 
         double lambdaVDW = DeviceGetLambdaVDW(mA, kA, mB, kB, box, gpu_isFraction,
                                        gpu_molIndex, gpu_kindIndex, gpu_lambdaVDW);
+        LJEn += CalcEnGPU(distSq, kA, kB, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
+                          gpu_VDW_Kind[0], gpu_isMartini[0], gpu_rCut[0],
+                           gpu_rOn[0], gpu_count[0], lambdaVDW, sc_sigma_6,
+                          sc_alpha, sc_power, gpu_rMin, gpu_rMaxSq, gpu_expConst);
 
         if(electrostatic) {
           static const double qqFact = 167000.0;
@@ -278,14 +293,12 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
                                 sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq,
                                 gpu_count[0]);
         }
-        LJEn += CalcEnGPU(distSq, kA, kB, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
-                          gpu_VDW_Kind[0], gpu_isMartini[0], gpu_rCut[0],
-                           gpu_rOn[0], gpu_count[0], lambdaVDW, sc_sigma_6,
-                          sc_alpha, sc_power, gpu_rMin, gpu_rMaxSq, gpu_expConst);
       }
     }
   }
-  gpu_REn[threadID] = REn;
+  if(electrostatic) {
+    gpu_REn[threadID] = REn;
+  }
   gpu_LJEn[threadID] = LJEn;
 }
 
