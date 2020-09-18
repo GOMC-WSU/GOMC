@@ -1,12 +1,10 @@
 # Find CUDA is enabled, set it up
 
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-DGOMC_CUDA)
-######## For CUDA Debugging in Eclipse/cuda-gdb
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	message("-- Debug build type detected, passing : '-g -G --keep' to nvcc")
 	set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -G --keep")
 endif()
-######## For CUDA Debugging in Eclipse/cuda-gdb
 set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 
 include_directories(src/GPU)
@@ -33,20 +31,16 @@ if(ENSEMBLE_GPU_NVT)
         CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${GPU_NVT_name}
         COMPILE_FLAGS "${GPU_NVT_flags}")
-    ######## For CUDA Debugging in Eclipse/cuda-gdb
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		message("-- Debug build type detected, GPU_NVT setting CUDA_RESOLVE_DEVICE_SYMBOLS ON")
     	set_property(TARGET GPU_NVT PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 	endif()
-    ######## For CUDA Debugging in Eclipse/cuda-gdb
     if(WIN32)
-        #needed for hostname
         target_link_libraries(GPU_NVT ws2_32)
     endif()
     if(MPI_FOUND)
-	target_link_libraries(GPU_NVT ${MPI_LIBRARIES})
+	    target_link_libraries(GPU_NVT ${MPI_LIBRARIES})
     endif()
-    
 endif()
 
 if(ENSEMBLE_GPU_GEMC)
@@ -56,18 +50,15 @@ if(ENSEMBLE_GPU_GEMC)
         CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${GPU_GE_name}
         COMPILE_FLAGS "${GPU_GE_flags}")
-    ######## For CUDA Debugging in Eclipse/cuda-gdb
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		message("-- Debug build type detected, GPU_GEMC setting CUDA_RESOLVE_DEVICE_SYMBOLS ON")
     	set_property(TARGET GPU_GEMC PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 	endif()
-    ######## For CUDA Debugging in Eclipse/cuda-gdb
     if(WIN32)
-        #needed for hostname
         target_link_libraries(GPU_GEMC ws2_32)
     endif()
     if(MPI_FOUND)
-	target_link_libraries(GPU_GEMC ${MPI_LIBRARIES})
+	    target_link_libraries(GPU_GEMC ${MPI_LIBRARIES})
     endif()
 endif()
 
@@ -78,18 +69,15 @@ if(ENSEMBLE_GPU_GCMC)
         CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${GPU_GC_name}
         COMPILE_FLAGS "${GPU_GC_flags}")
-    ######## For CUDA Debugging in Eclipse/cuda-gdb
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		message("-- Debug build type detected, GPU_GCMC setting CUDA_RESOLVE_DEVICE_SYMBOLS ON")
     	set_property(TARGET GPU_GCMC PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 	endif()
-    ######## For CUDA Debugging in Eclipse/cuda-gdb
     if(WIN32)
-        #needed for hostname
         target_link_libraries(GPU_GCMC ws2_32)
     endif()
     if(MPI_FOUND)
-	target_link_libraries(GPU_GCMC ${MPI_LIBRARIES})
+	    target_link_libraries(GPU_GCMC ${MPI_LIBRARIES})
     endif()
 endif()
 
@@ -100,17 +88,14 @@ if(ENSEMBLE_GPU_NPT)
         CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${GPU_NPT_name}
         COMPILE_FLAGS "${GPU_NPT_flags}")
-    ######## For CUDA Debugging in Eclipse/cuda-gdb
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		message("-- Debug build type detected, GPU_NPT setting CUDA_RESOLVE_DEVICE_SYMBOLS ON")
     	set_property(TARGET GPU_NPT PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 	endif()
-    ######## For CUDA Debugging in Eclipse/cuda-gdb
     if(WIN32)
-        #needed for hostname
         target_link_libraries(GPU_NPT ws2_32)
     endif()
     if(MPI_FOUND)
-	target_link_libraries(GPU_NPT ${MPI_LIBRARIES})
+	    target_link_libraries(GPU_NPT ${MPI_LIBRARIES})
     endif()
 endif()
