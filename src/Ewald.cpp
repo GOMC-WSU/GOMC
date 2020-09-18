@@ -618,7 +618,7 @@ double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
 
 #ifdef _OPENMP
   #pragma omp parallel for default(none) shared(box, lengthNew, lengthOld, \
-  newMol, oldMol, thisKindNew, thisKindOld, box, molIndexNew, molIndexOld) \
+  newMol, oldMol, thisKindNew, thisKindOld, molIndexNew, molIndexOld) \
   reduction(+:energyRecipNew)
 #endif
     for (uint i = 0; i < imageSizeRef[box]; i++) {
