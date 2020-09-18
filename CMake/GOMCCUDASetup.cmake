@@ -9,6 +9,7 @@ endif()
 ######## For CUDA Debugging in Eclipse/cuda-gdb
 set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 
+include_directories(src/GPU)
 #set(CUDA_VERBOSE_BUILD ON)
 set(CUDA_SEPARABLE_COMPILATION ON)
 
