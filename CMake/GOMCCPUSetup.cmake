@@ -1,3 +1,20 @@
+#EnsemblePreprocessor defines NVT = 1, GEMC = 2, GCMC = 3, NPT = 4
+#NPT (Isothermal-Isobaric) Ensemble
+set(NPT_flags "-DENSEMBLE=4")
+set(NPT_name "GOMC_CPU_NPT")
+
+#Grand Canonical Monte Carlo
+set(GC_flags "-DENSEMBLE=3")
+set(GC_name "GOMC_CPU_GCMC")
+
+#Gibbs Ensemble Monte Carlo
+set(GE_flags "-DENSEMBLE=2")
+set(GE_name "GOMC_CPU_GEMC")
+
+#NVT (Canonical) Ensemble
+set(NVT_flags "-DENSEMBLE=1")
+set(NVT_name "GOMC_CPU_NVT")
+
 if(ENSEMBLE_NVT)
    add_executable(NVT ${sources} ${headers} ${libHeaders} ${libSources})
    set_target_properties(NVT PROPERTIES 

@@ -59,23 +59,6 @@ endif()
 # add c++11 flag
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-#EnsemblePreprocessor defines NVT = 1, GEMC = 2, GCMC = 3, NPT = 4
-#NPT (Isothermal-Isobaric) Ensemble
-set(NPT_flags "-DENSEMBLE=4")
-set(NPT_name "GOMC_CPU_NPT")
-
-#Grand Canonical Monte Carlo
-set(GC_flags "-DENSEMBLE=3")
-set(GC_name "GOMC_CPU_GCMC")
-
-#Gibbs Ensemble Monte Carlo
-set(GE_flags "-DENSEMBLE=2")
-set(GE_name "GOMC_CPU_GEMC")
-
-#NVT (Canonical) Ensemble
-set(NVT_flags "-DENSEMBLE=1")
-set(NVT_name "GOMC_CPU_NVT")
-
 # Set Source and Header files
 include(${PROJECT_SOURCE_DIR}/CMake/FileLists.cmake)
 
@@ -86,6 +69,7 @@ include(${PROJECT_SOURCE_DIR}/CMake/GOMCCPUSetup.cmake)
 include(CheckLanguage)
 check_language(CUDA)
 if (CMAKE_CUDA_COMPILER_LOADED)
+    message("CUDA LOADED")
     enable_language(CUDA)
     include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
 endif()
