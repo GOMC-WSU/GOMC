@@ -1515,7 +1515,8 @@ void CalculateEnergy::SingleMoleculeInter(Energy &interEnOld,
       }
 
 #ifdef _OPENMP
-  #pragma omp parallel for default(none) shared(atom, nIndex) \
+  #pragma omp parallel for default(none) shared(atom, nIndex, box, \
+  lambdaNewCoulomb, lambdaOldCoulomb, lambdaOldVDW, lambdaNewVDW) \
   reduction(+:tempREnOld, tempLJEnOld, tempREnNew, tempLJEnNew)
 #endif
       for(int i = 0; i < nIndex.size(); i++) {
@@ -1630,7 +1631,8 @@ void CalculateEnergy::EnergyChange(Energy *energyDiff, Energy &dUdL_VDW,
     }
 
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-  #pragma omp parallel for default(none) shared(atom, lambda_Coul, lambda_VDW, lambdaSize, nIndex) \
+  #pragma omp parallel for default(none) shared(atom, lambda_Coul, lambda_VDW, \
+  lambdaSize, nIndex, box, iState) \
   reduction(+:dudl_VDW, dudl_Coul, tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
 #endif
     for(int i = 0; i < nIndex.size(); i++) {
