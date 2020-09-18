@@ -8,15 +8,6 @@ include_directories(src/cbmc)
 include_directories(src/moves)
 include_directories(src/GPU)
 
-# Find if CUDA exists and what is the version number
-include(CheckLanguage)
-check_language(CUDA)
-if (CMAKE_CUDA_COMPILER_LOADED)
-    enable_language(CUDA)
-    include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
-endif()
-
-
 #Out-of-source build
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
@@ -90,6 +81,14 @@ include(${PROJECT_SOURCE_DIR}/CMake/FileLists.cmake)
 
 # Setup Serial version
 include(${PROJECT_SOURCE_DIR}/CMake/GOMCCPUSetup.cmake)
+
+# Find if CUDA exists and what is the version number
+include(CheckLanguage)
+check_language(CUDA)
+if (CMAKE_CUDA_COMPILER_LOADED)
+    enable_language(CUDA)
+    include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
+endif()
 
 # find OpenMP and set it up
 find_package(OpenMP)
