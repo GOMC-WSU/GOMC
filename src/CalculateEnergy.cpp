@@ -705,7 +705,8 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
     }
 
 #ifdef _OPENMP
-  #pragma omp parallel for default(none) shared(kindI, kindICharge, nIndex, overlap, t, trialPos) \
+  #pragma omp parallel for default(none) shared(kindI, kindICharge, nIndex, \
+  overlap, t, trialPos, box, molIndex) \
   reduction(+:tempLJ, tempReal)
 #endif
     for(int i = 0; i < nIndex.size(); i++) {
@@ -1373,7 +1374,7 @@ void CalculateEnergy::CalculateTorque(std::vector<uint>& moleculeIndex,
     molTorque.Reset();
 
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-  #pragma omp parallel for default(none) shared(atomForce, atomForceRec, com, coordinates, moleculeIndex) \
+  #pragma omp parallel for default(none) shared(atomForce, atomForceRec, com, coordinates, moleculeIndex, box) \
   reduction(+: torquex[:torqueCount], torquey[:torqueCount], torquez[:torqueCount])
 #endif
     for(int m = 0; m < moleculeIndex.size(); m++) {

@@ -406,7 +406,7 @@ inline void XYZArray::SetRange(const uint start, const uint stop,
 inline void XYZArray::ResetRange(const uint val, const uint stop)
 {
 #ifdef _OPENMP
-  #pragma omp parallel default(none)
+  #pragma omp parallel default(none) shared(val, stop)
 #endif
   {
     memset(this->x, val, stop * sizeof(double));
