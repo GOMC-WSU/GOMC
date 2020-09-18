@@ -11,13 +11,13 @@ set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 
 include_directories(src/GPU)
 
-set(GPU_NPT_flags "-DENSEMBLE=4 -DGOMC_CUDA")
+set(GPU_NPT_flags "-DENSEMBLE=4")
 set(GPU_NPT_name "GOMC_GPU_NPT")
-set(GPU_GC_flags "-DENSEMBLE=3 -DGOMC_CUDA")
+set(GPU_GC_flags "-DENSEMBLE=3")
 set(GPU_GC_name "GOMC_GPU_GCMC")
-set(GPU_GE_flags "-DENSEMBLE=2 -DGOMC_CUDA")
+set(GPU_GE_flags "-DENSEMBLE=2")
 set(GPU_GE_name "GOMC_GPU_GEMC")
-set(GPU_NVT_flags "-DENSEMBLE=1 -DGOMC_CUDA")
+set(GPU_NVT_flags "-DENSEMBLE=1")
 set(GPU_NVT_name "GOMC_GPU_NVT")
 
 if(NOT DEFINED CMAKE_CUDA_STANDARD)
