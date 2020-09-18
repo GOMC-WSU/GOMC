@@ -10,8 +10,6 @@ endif()
 set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 
 include_directories(src/GPU)
-#set(CUDA_VERBOSE_BUILD ON)
-set(CUDA_SEPARABLE_COMPILATION ON)
 
 set(GPU_NPT_flags "-DENSEMBLE=4 -DGOMC_CUDA")
 set(GPU_NPT_name "GOMC_GPU_NPT")
@@ -27,6 +25,7 @@ if(ENSEMBLE_GPU_NVT)
     add_executable(GPU_NVT ${cudaSources} ${cudaHeaders}
     ${sources} ${headers} ${libHeaders} ${libSources})
     set_target_properties(GPU_NVT PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${GPU_NVT_name}
         COMPILE_FLAGS "${GPU_NVT_flags}")
 ######## For CUDA Debugging in Eclipse/cuda-gdb
@@ -49,6 +48,7 @@ if(ENSEMBLE_GPU_GEMC)
     add_executable(GPU_GEMC ${cudaSources} ${cudaHeaders} ${sources}
     ${headers} ${libHeaders} ${libSources})
     set_target_properties(GPU_GEMC PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${GPU_GE_name}
         COMPILE_FLAGS "${GPU_GE_flags}")
 ######## For CUDA Debugging in Eclipse/cuda-gdb
@@ -70,6 +70,7 @@ if(ENSEMBLE_GPU_GCMC)
     add_executable(GPU_GCMC ${cudaSources} ${cudaHeaders} ${sources}
     ${headers} ${libHeaders} ${libSources})
     set_target_properties(GPU_GCMC PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${GPU_GC_name}
         COMPILE_FLAGS "${GPU_GC_flags}")
 ######## For CUDA Debugging in Eclipse/cuda-gdb
@@ -91,6 +92,7 @@ if(ENSEMBLE_GPU_NPT)
     add_executable(GPU_NPT ${cudaSources} ${cudaHeaders} ${sources}
     ${headers} ${libHeaders} ${libSources})
     set_target_properties(GPU_NPT PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${GPU_NPT_name}
         COMPILE_FLAGS "${GPU_NPT_flags}")
 ######## For CUDA Debugging in Eclipse/cuda-gdb
