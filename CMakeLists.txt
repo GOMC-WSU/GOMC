@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 
-project(GOMC)
+project(GOMC CUDA CXX)
 
 include_directories(lib)
 include_directories(src)
