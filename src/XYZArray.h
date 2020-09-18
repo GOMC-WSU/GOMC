@@ -548,7 +548,7 @@ inline void XYZArray::CopyRange(XYZArray & dest, const uint srcIndex,
                                 const uint destIndex, const uint len) const
 {
 #ifdef _OPENMP
-  #pragma omp parallel default(none) shared(dest)
+  #pragma omp parallel default(none) shared(dest, len, srcIndex, destIndex)
 #endif
   {
     memcpy(dest.x + destIndex, x + srcIndex, len * sizeof(double));
