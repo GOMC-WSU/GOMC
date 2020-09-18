@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.8)
 
 project(GOMC)
 
@@ -8,10 +8,14 @@ include_directories(src/cbmc)
 include_directories(src/moves)
 include_directories(src/GPU)
 
-#fix new policy of cmake about FindOpenMP.cmake (will have to check later if they fixed this issue)
-if(POLICY CMP0012)
-  cmake_policy(SET CMP0012 NEW)
+# Find if CUDA exists and what is the version number
+include(CheckLanguage)
+check_language(CUDA)
+if (CMAKE_CUDA_COMPILER_LOADED)
+    enable_language(CUDA)
+    include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
 endif()
+
 
 #Out-of-source build
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -35,26 +39,7 @@ set(ENSEMBLE_GPU_GEMC ON CACHE BOOL "Build GPU GEMC version")
 set(ENSEMBLE_GPU_GCMC ON CACHE BOOL "Build GPU GCMC version")
 set(ENSEMBLE_GPU_NPT ON CACHE BOOL "Build GPU NPT version")
 
-
-########################  MPI   ##################################
-
-include(${PROJECT_SOURCE_DIR}/CMake/GOMCOptionUtilities.cmake)
-
-option(GOMC_MPI    "Build a parallel (message-passing) version of GOMC" OFF)
-option(GOMC_THREAD_MPI  "Build a thread-MPI-based multithreaded version of GOMC (not compatible with MPI)" ON)
-
-include(${PROJECT_SOURCE_DIR}/CMake/GOMCManageMPI.cmake)
-include(${PROJECT_SOURCE_DIR}/CMake/ThreadMPI.cmake)
-
-set(GOMC_COMMON_LIBRARIES "")
-GOMC_dependent_option(
-    GOMC_MPI_IN_PLACE
-    "Enable MPI_IN_PLACE for MPIs that have it defined"
-    ON
-    GOMC_MPI)
-mark_as_advanced(GOMC_MPI_IN_PLACE)
-
-########################  MPI   ##################################
+include(${PROJECT_SOURCE_DIR}/CMake/GOMCMPI.cmake)
 
 #enable config header
 configure_file(
@@ -105,12 +90,6 @@ include(${PROJECT_SOURCE_DIR}/CMake/FileLists.cmake)
 
 # Setup Serial version
 include(${PROJECT_SOURCE_DIR}/CMake/GOMCCPUSetup.cmake)
-
-# find CUDA and set it up
-find_package(CUDA)
-IF(CUDA_FOUND)
-    include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
-ENDIF(CUDA_FOUND)
 
 # find OpenMP and set it up
 find_package(OpenMP)
