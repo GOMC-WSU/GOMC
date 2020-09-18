@@ -323,7 +323,7 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
   reduction(+:energyRecipNew)
 #else
 #pragma omp parallel for default(none) shared(lambdaCoef, length, molCoords, \
-  startAtom, thisKind, box) \
+  startAtom, thisKind) \
   reduction(+:energyRecipNew)
 #endif
 #endif
