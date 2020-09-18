@@ -68,7 +68,7 @@ include(${PROJECT_SOURCE_DIR}/CMake/GOMCCPUSetup.cmake)
 # Find if CUDA exists and what is the version number
 include(CheckLanguage)
 check_language(CUDA)
-if (CMAKE_CUDA_COMPILER_LOADED)
+if (CMAKE_CUDA_COMPILER)
     message("CUDA LOADED")
     enable_language(CUDA)
     include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
