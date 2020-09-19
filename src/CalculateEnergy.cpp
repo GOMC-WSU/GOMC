@@ -202,8 +202,15 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                   forcefield.sc_power, box);
 #else
 #ifdef _OPENMP
-  #pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, cellVector, coords, mapParticleToCell, \
-  neighborList) reduction(+:tempREn, tempLJEn)
+#if GCC_VERSION >= 90000
+  #pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
+  cellVector, coords, mapParticleToCell, box, neighborList) \
+  reduction(+:tempREn, tempLJEn)
+#else
+  #pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
+  cellVector, coords, mapParticleToCell, neighborList) \
+  reduction(+:tempREn, tempLJEn)
+#endif
 #endif
   // loop over all particles
   for(int currParticleIdx = 0; currParticleIdx < cellVector.size(); currParticleIdx++) {
@@ -316,9 +323,17 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
 
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-  #pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, cellVector, coords, mapParticleToCell, \
-  neighborList) reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
+#if GCC_VERSION >= 90000
+#pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
+  cellVector, coords, mapParticleToCell, box, neighborList) \
+  reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
   aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
+#else
+#pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
+  cellVector, coords, mapParticleToCell, neighborList) \
+  reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
+  aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
+#endif
 #endif
   for(int currParticleIdx = 0; currParticleIdx < cellVector.size(); currParticleIdx++) {
     int currParticle = cellVector[currParticleIdx];
@@ -426,8 +441,15 @@ Virial CalculateEnergy::VirialCalc(const uint box)
                        forcefield.sc_power, box);
 #else
 #ifdef _OPENMP
-  #pragma omp parallel for default(none) shared(cellStartIndex, cellVector, mapParticleToCell, neighborList) \
+#if GCC_VERSION >= 90000
+  #pragma omp parallel for default(none) shared(cellStartIndex, cellVector, \
+  mapParticleToCell, neighborList, box) \
   reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33)
+#else
+  #pragma omp parallel for default(none) shared(cellStartIndex, cellVector, \
+  mapParticleToCell, neighborList) \
+  reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33)
+#endif
 #endif
   for(int currParticleIdx = 0; currParticleIdx < cellVector.size(); currParticleIdx++) {
     int currParticle = cellVector[currParticleIdx];
@@ -563,7 +585,13 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
       }
 
 #ifdef _OPENMP
-  #pragma omp parallel for default(none) shared(atom, nIndex) reduction(+:tempREn, tempLJEn)
+#if GCC_VERSION >= 90000
+#pragma omp parallel for default(none) shared(atom, nIndex, box, molIndex) \
+  reduction(+:tempREn, tempLJEn)
+#else
+#pragma omp parallel for default(none) shared(atom, nIndex) \
+  reduction(+:tempREn, tempLJEn)
+#endif
 #endif
       for(int i = 0; i < nIndex.size(); i++) {
         double distSq = 0.0;
@@ -598,8 +626,13 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
       }
 
 #ifdef _OPENMP
-  #pragma omp parallel for default(none) shared(atom, molCoords, nIndex, overlap, p) \
+#if GCC_VERSION >= 90000
+#pragma omp parallel for default(none) shared(atom, molCoords, nIndex, overlap, p, molIndex, box) \
   reduction(+:tempREn, tempLJEn)
+#else
+#pragma omp parallel for default(none) shared(atom, molCoords, nIndex, overlap, p) \
+  reduction(+:tempREn, tempLJEn)
+#endif
 #endif
       for(int i = 0; i < nIndex.size(); i++) {
         double distSq = 0.0;
@@ -701,8 +734,15 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
     }
 
 #ifdef _OPENMP
-  #pragma omp parallel for default(none) shared(kindI, kindICharge, nIndex, overlap, t, trialPos) \
+#if GCC_VERSION >= 90000
+#pragma omp parallel for default(none) shared(kindI, kindICharge, nIndex, \
+  overlap, t, trialPos, box, molIndex) \
   reduction(+:tempLJ, tempReal)
+#else
+#pragma omp parallel for default(none) shared(kindI, kindICharge, nIndex, \
+  overlap, t, trialPos) \
+  reduction(+:tempLJ, tempReal)
+#endif
 #endif
     for(int i = 0; i < nIndex.size(); i++) {
       double distSq = 0.0;
@@ -1369,8 +1409,13 @@ void CalculateEnergy::CalculateTorque(std::vector<uint>& moleculeIndex,
     molTorque.Reset();
 
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-  #pragma omp parallel for default(none) shared(atomForce, atomForceRec, com, coordinates, moleculeIndex) \
+#if GCC_VERSION >= 90000
+#pragma omp parallel for default(none) shared(atomForce, atomForceRec, com, coordinates, moleculeIndex, box) \
   reduction(+: torquex[:torqueCount], torquey[:torqueCount], torquez[:torqueCount])
+#else
+#pragma omp parallel for default(none) shared(atomForce, atomForceRec, com, coordinates, moleculeIndex) \
+  reduction(+: torquex[:torqueCount], torquey[:torqueCount], torquez[:torqueCount])
+#endif
 #endif
     for(int m = 0; m < moleculeIndex.size(); m++) {
       int length = mols.GetKind(moleculeIndex[m]).NumAtoms();
@@ -1510,8 +1555,14 @@ void CalculateEnergy::SingleMoleculeInter(Energy &interEnOld,
       }
 
 #ifdef _OPENMP
-  #pragma omp parallel for default(none) shared(atom, nIndex) \
+#if GCC_VERSION >= 90000
+#pragma omp parallel for default(none) shared(atom, nIndex, box, \
+  lambdaNewCoulomb, lambdaOldCoulomb, lambdaOldVDW, lambdaNewVDW) \
   reduction(+:tempREnOld, tempLJEnOld, tempREnNew, tempLJEnNew)
+#else
+#pragma omp parallel for default(none) shared(atom, nIndex) \
+  reduction(+:tempREnOld, tempLJEnOld, tempREnNew, tempLJEnNew)
+#endif
 #endif
       for(int i = 0; i < nIndex.size(); i++) {
         double distSq = 0.0;
@@ -1625,8 +1676,15 @@ void CalculateEnergy::EnergyChange(Energy *energyDiff, Energy &dUdL_VDW,
     }
 
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-  #pragma omp parallel for default(none) shared(atom, lambda_Coul, lambda_VDW, lambdaSize, nIndex) \
+#if GCC_VERSION >= 90000
+#pragma omp parallel for default(none) shared(atom, lambda_Coul, lambda_VDW, \
+  lambdaSize, nIndex, box, iState) \
   reduction(+:dudl_VDW, dudl_Coul, tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
+#else
+#pragma omp parallel for default(none) shared(atom, lambda_Coul, lambda_VDW, \
+  lambdaSize, nIndex) \
+  reduction(+:dudl_VDW, dudl_Coul, tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
+#endif
 #endif
     for(int i = 0; i < nIndex.size(); i++) {
       double distSq = 0.0;

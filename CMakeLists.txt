@@ -1,17 +1,12 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.8)
 
-project(GOMC)
+project(GOMC CXX)
 
 include_directories(lib)
 include_directories(src)
 include_directories(src/cbmc)
 include_directories(src/moves)
 include_directories(src/GPU)
-
-#fix new policy of cmake about FindOpenMP.cmake (will have to check later if they fixed this issue)
-if(POLICY CMP0012)
-  cmake_policy(SET CMP0012 NEW)
-endif()
 
 #Out-of-source build
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -35,26 +30,7 @@ set(ENSEMBLE_GPU_GEMC ON CACHE BOOL "Build GPU GEMC version")
 set(ENSEMBLE_GPU_GCMC ON CACHE BOOL "Build GPU GCMC version")
 set(ENSEMBLE_GPU_NPT ON CACHE BOOL "Build GPU NPT version")
 
-
-########################  MPI   ##################################
-
-include(${PROJECT_SOURCE_DIR}/CMake/GOMCOptionUtilities.cmake)
-
-option(GOMC_MPI    "Build a parallel (message-passing) version of GOMC" OFF)
-option(GOMC_THREAD_MPI  "Build a thread-MPI-based multithreaded version of GOMC (not compatible with MPI)" ON)
-
-include(${PROJECT_SOURCE_DIR}/CMake/GOMCManageMPI.cmake)
-include(${PROJECT_SOURCE_DIR}/CMake/ThreadMPI.cmake)
-
-set(GOMC_COMMON_LIBRARIES "")
-GOMC_dependent_option(
-    GOMC_MPI_IN_PLACE
-    "Enable MPI_IN_PLACE for MPIs that have it defined"
-    ON
-    GOMC_MPI)
-mark_as_advanced(GOMC_MPI_IN_PLACE)
-
-########################  MPI   ##################################
+include(${PROJECT_SOURCE_DIR}/CMake/GOMCMPI.cmake)
 
 #enable config header
 configure_file(
@@ -83,34 +59,19 @@ endif()
 # add c++11 flag
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-#EnsemblePreprocessor defines NVT = 1, GEMC = 2, GCMC = 3, NPT = 4
-#NPT (Isothermal-Isobaric) Ensemble
-set(NPT_flags "-DENSEMBLE=4")
-set(NPT_name "GOMC_CPU_NPT")
-
-#Grand Canonical Monte Carlo
-set(GC_flags "-DENSEMBLE=3")
-set(GC_name "GOMC_CPU_GCMC")
-
-#Gibbs Ensemble Monte Carlo
-set(GE_flags "-DENSEMBLE=2")
-set(GE_name "GOMC_CPU_GEMC")
-
-#NVT (Canonical) Ensemble
-set(NVT_flags "-DENSEMBLE=1")
-set(NVT_name "GOMC_CPU_NVT")
-
 # Set Source and Header files
 include(${PROJECT_SOURCE_DIR}/CMake/FileLists.cmake)
 
 # Setup Serial version
 include(${PROJECT_SOURCE_DIR}/CMake/GOMCCPUSetup.cmake)
 
-# find CUDA and set it up
-find_package(CUDA)
-IF(CUDA_FOUND)
+# Find if CUDA exists and what is the version number
+include(CheckLanguage)
+check_language(CUDA)
+if (CMAKE_CUDA_COMPILER)
+    enable_language(CUDA)
     include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
-ENDIF(CUDA_FOUND)
+endif()
 
 # find OpenMP and set it up
 find_package(OpenMP)

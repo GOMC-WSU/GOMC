@@ -406,7 +406,11 @@ inline void XYZArray::SetRange(const uint start, const uint stop,
 inline void XYZArray::ResetRange(const uint val, const uint stop)
 {
 #ifdef _OPENMP
+#if GCC_VERSION >= 90000
+  #pragma omp parallel default(none) shared(val, stop)
+#else
   #pragma omp parallel default(none)
+#endif
 #endif
   {
     memset(this->x, val, stop * sizeof(double));
@@ -548,7 +552,11 @@ inline void XYZArray::CopyRange(XYZArray & dest, const uint srcIndex,
                                 const uint destIndex, const uint len) const
 {
 #ifdef _OPENMP
+#if GCC_VERSION >= 90000
+  #pragma omp parallel default(none) shared(dest, len, srcIndex, destIndex)
+#else
   #pragma omp parallel default(none) shared(dest)
+#endif
 #endif
   {
     memcpy(dest.x + destIndex, x + srcIndex, len * sizeof(double));

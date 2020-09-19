@@ -173,8 +173,15 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
     double lambdaCoef = GetLambdaCoef(molIndex, box);
 
 #ifdef _OPENMP
-  #pragma omp parallel for default(none) shared(lambdaCoef, length, molCoords, startAtom, thisKind) \
+#if GCC_VERSION >= 90000
+  #pragma omp parallel for default(none) shared(lambdaCoef, length, molCoords, \
+  startAtom, thisKind, box, molIndex) \
   reduction(+:energyRecipNew)
+#else
+  #pragma omp parallel for default(none) shared(lambdaCoef, length, molCoords, \
+  startAtom, thisKind) \
+  reduction(+:energyRecipNew)
+#endif
 #endif
     for (uint i = 0; i < imageSizeRef[box]; i++) {
       double sumRealNew = 0.0;
@@ -222,7 +229,11 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
   double energyRecipOld = 0.0;
 
 #ifdef _OPENMP
+#if GCC_VERSION >= 90000
+  #pragma omp parallel default(none) shared(molIndex)
+#else
   #pragma omp parallel default(none)
+#endif
 #endif
   {
     std::memcpy(cosMolRestore, cosMolRef[molIndex], sizeof(double)*imageTotal);
@@ -236,8 +247,15 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
     uint startAtom = mols.MolStart(molIndex);
 
 #ifdef _OPENMP
-  #pragma omp parallel for default(none) shared(length, molCoords, startAtom, thisKind) \
+#if GCC_VERSION >= 90000
+  #pragma omp parallel for default(none) shared(length, molCoords, startAtom, \
+  thisKind, box, molIndex) \
   reduction(+:energyRecipNew)
+#else
+  #pragma omp parallel for default(none) shared(length, molCoords, startAtom, \
+  thisKind) \
+  reduction(+:energyRecipNew)
+#endif
 #endif
     for (uint i = 0; i < imageSizeRef[box]; i++) {
       cosMolRef[molIndex][i] = 0.0;
@@ -283,7 +301,11 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 
   if (box < BOXES_WITH_U_NB) {
 #ifdef _OPENMP
+#if GCC_VERSION >= 90000
+  #pragma omp parallel for default(none) shared(box) reduction(+:energyRecipNew)
+#else
   #pragma omp parallel for default(none) reduction(+:energyRecipNew)
+#endif
 #endif
     for (uint i = 0; i < imageSizeRef[box]; i++) {
       sumRnew[box][i] = sumRref[box][i] - cosMolRestore[i];
@@ -336,7 +358,14 @@ void EwaldCached::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
   std::fill_n(energyRecip, lambdaSize, 0.0);
 
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-  #pragma omp parallel for default(none) shared(lambda_Coul, lambdaSize) reduction(+:energyRecip[:lambdaSize])
+#if GCC_VERSION >= 90000
+#pragma omp parallel for default(none) shared(lambda_Coul, lambdaSize, box, \
+  iState, molIndex) \
+  reduction(+:energyRecip[:lambdaSize])
+#else
+#pragma omp parallel for default(none) shared(lambda_Coul, lambdaSize) \
+  reduction(+:energyRecip[:lambdaSize])
+#endif
 #endif
   for (uint i = 0; i < imageSizeRef[box]; i++) {
     for(uint s = 0; s < lambdaSize; s++) {
