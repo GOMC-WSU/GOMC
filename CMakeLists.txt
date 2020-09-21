@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 
-project(GOMC CXX)
+project(GOMC)
 
 include_directories(lib)
 include_directories(src)
