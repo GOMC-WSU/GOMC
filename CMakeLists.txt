@@ -56,6 +56,9 @@ elseif(MSVC)
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "${CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT} /MT /Zi /O2 /Ob1 /D NDEBUG")
 endif()
 
+# Set Source and Header files
+include(${PROJECT_SOURCE_DIR}/CMake/FileLists.cmake)
+
 # Find if CUDA exists and what is the version number
 include(CheckLanguage)
 check_language(CUDA)
@@ -66,9 +69,6 @@ endif()
 
 # Setup Serial version
 include(${PROJECT_SOURCE_DIR}/CMake/GOMCCPUSetup.cmake)
-
-# Set Source and Header files
-include(${PROJECT_SOURCE_DIR}/CMake/FileLists.cmake)
 
 # find OpenMP and set it up
 find_package(OpenMP)
