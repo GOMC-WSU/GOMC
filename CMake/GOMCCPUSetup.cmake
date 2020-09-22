@@ -15,10 +15,8 @@ set(GE_name "GOMC_CPU_GEMC")
 set(NVT_flags "-DENSEMBLE=1")
 set(NVT_name "GOMC_CPU_NVT")
 
-if(NOT DEFINED CMAKE_CXX_STANDARD)
-   set(CMAKE_CXX_STANDARD 11)
-   set(CMAKE_CXX_STANDARD_REQUIRED true)
-endif()
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 if(ENSEMBLE_NVT)
    add_executable(NVT ${sources} ${headers} ${libHeaders} ${libSources})
