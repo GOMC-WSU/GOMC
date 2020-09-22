@@ -21,8 +21,8 @@ if(NOT DEFINED CMAKE_CUDA_STANDARD)
    set(CMAKE_CUDA_STANDARD_REQUIRED true)
 endif()
 
-find_package(CUDALibs)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+message(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
 #####################################
 if(ENSEMBLE_GPU_NVT)
