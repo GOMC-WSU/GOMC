@@ -1,27 +1,27 @@
 # Find CUDA is enabled, set it up
 
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-DGOMC_CUDA)
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	message("-- Debug build type detected, passing : '-g -G --keep' to nvcc")
 	set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -G --keep")
 endif()
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 
 include_directories(src/GPU)
 
-set(GPU_NPT_flags "-DENSEMBLE=4")
+set(GPU_NPT_flags "-DENSEMBLE=4 -DGOMC_CUDA")
 set(GPU_NPT_name "GOMC_GPU_NPT")
-set(GPU_GC_flags "-DENSEMBLE=3")
+set(GPU_GC_flags "-DENSEMBLE=3 -DGOMC_CUDA")
 set(GPU_GC_name "GOMC_GPU_GCMC")
-set(GPU_GE_flags "-DENSEMBLE=2")
+set(GPU_GE_flags "-DENSEMBLE=2 -DGOMC_CUDA")
 set(GPU_GE_name "GOMC_GPU_GEMC")
-set(GPU_NVT_flags "-DENSEMBLE=1")
+set(GPU_NVT_flags "-DENSEMBLE=1 -DGOMC_CUDA")
 set(GPU_NVT_name "GOMC_GPU_NVT")
 
-if(NOT DEFINED CMAKE_CUDA_STANDARD)
-   set(CMAKE_CUDA_STANDARD 14)
-   set(CMAKE_CUDA_STANDARD_REQUIRED true)
-endif()
+set(CMAKE_CUDA_STANDARD 14)
+set(CMAKE_CUDA_STANDARD_REQUIRED true)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED true)
+
+include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
 #####################################
 if(ENSEMBLE_GPU_NVT)

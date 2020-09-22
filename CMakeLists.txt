@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 
-project(GOMC CXX)
+project(GOMC)
 
 include_directories(lib)
 include_directories(src)
@@ -56,14 +56,8 @@ elseif(MSVC)
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "${CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT} /MT /Zi /O2 /Ob1 /D NDEBUG")
 endif()
 
-# add c++11 flag
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
 # Set Source and Header files
 include(${PROJECT_SOURCE_DIR}/CMake/FileLists.cmake)
-
-# Setup Serial version
-include(${PROJECT_SOURCE_DIR}/CMake/GOMCCPUSetup.cmake)
 
 # Find if CUDA exists and what is the version number
 include(CheckLanguage)
@@ -72,6 +66,9 @@ if (CMAKE_CUDA_COMPILER)
     enable_language(CUDA)
     include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
 endif()
+
+# Setup Serial version
+include(${PROJECT_SOURCE_DIR}/CMake/GOMCCPUSetup.cmake)
 
 # find OpenMP and set it up
 find_package(OpenMP)

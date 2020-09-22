@@ -13,6 +13,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <iomanip>
 
+typedef unsigned long int ulong;
+typedef unsigned short int ushort;
+typedef unsigned int uint;
+
 // Just for debugging stuff
 // e.g.
 // cout << imie(variable) imie(another_variable)
