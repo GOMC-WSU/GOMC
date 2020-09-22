@@ -22,7 +22,6 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-message(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
 #####################################
 if(ENSEMBLE_GPU_NVT)
