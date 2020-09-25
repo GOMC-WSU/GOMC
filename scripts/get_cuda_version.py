@@ -8,7 +8,7 @@ with open('output.txt') as f:
     for line in lines:
         if ", release" in line:
             start = line.index(', release') + 10
-            end = line.index(',', start)
+            end = line.index('.', start)
             result = line[start:end]
             print(result)
             quit()
