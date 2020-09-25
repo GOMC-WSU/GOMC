@@ -5,7 +5,7 @@ if command -v nvcc &> /dev/null
 then
 	nvcc_version=($(python scripts/get_cuda_version.py))
 	# Check cuda version, if less than 11 then download CUB, otherwise skip
-	if [ "$nvcc_version" < "11"]
+	if [[ "$nvcc_version" < "11" ]]
 	then
 		# Check if ./lib/cub exists
 		if [ ! -d "./lib/cub" ]; then
