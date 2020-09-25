@@ -3,6 +3,9 @@
 # Check if nvcc is available
 if command -v nvcc &> /dev/null
 then
+	nvcc_version_str=($(python scripts/get_cuda_version.py))
+	nvcc_version=${#nvcc_version_str[@]}
+	echo nvcc_version
 	# Check if ./lib/cub exists
 	if [ ! -d "./lib/cub" ]; then
 		cd lib
