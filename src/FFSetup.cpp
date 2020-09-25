@@ -14,6 +14,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "GeomLib.h"
 
+// For Exotic style parameter header error checking
+#include <regex>
+
+
 
 const uint FFSetup::CHARMM_ALIAS_IDX = 0;
 const uint FFSetup::EXOTIC_ALIAS_IDX = 1;
@@ -40,14 +44,16 @@ FFSetup::SetReadFunctions(const bool isCHARMM)
   funct["DIHEDRALS"] = &dih;
   funct["IMPROPER"] = &imp;
   funct["IMPROPERS"] = &imp;
-  if (isCHARMM) {
-    funct["NONBONDED"] = &mie;
-    funct["NBFIX"] = &nbfix;
-  } else {
-    //Unique to exotic file
-    funct["NONBONDED_MIE"] = &mie;
-    funct["NBFIX_MIE"] = &nbfix;
-  }
+  //Unique to Charmm file
+  funct["NONBONDED"] = &mie;
+  funct["NBFIX"] = &nbfix;
+  // Error checking done to ensure isCharmm is true if these are found
+ 
+  //Unique to exotic file
+  funct["NONBONDED_MIE"] = &mie;
+  funct["NBFIX_MIE"] = &nbfix;
+  // Error checking done to ensure isCharmm is false if these are found
+
   for (sect_it it = funct.begin(); it != funct.end(); ++it) {
     (dynamic_cast<ff_setup::FFBase *>(it->second))->setIsCHARMM(isCHARMM);
   }
@@ -74,6 +80,23 @@ void FFSetup::Init(std::string const& name, const bool isCHARMM)
       currSectName = varName;
       currSect = sect; //Save for later calls.
       std::cout << "Reading " << currSectName << " parameters.\n";
+      if (isCHARMM) {
+        if (hasEnding(currSectName, "MIE")){
+          std::cout << "Error: CHARMM-Style parameter is set but EXOTIC-Style parameter header " << currSectName << " was found.\n"
+          "       Either set EXOTIC-Style in config file or change the keyword\n"
+          "       " << currSectName << " to " << currSectName.substr(0, currSectName.size()-4) << " in the parameter files.\n";
+          exit(EXIT_FAILURE);
+        }
+      } else {
+        std::regex nbonded ("NONBONDED");
+        std::regex nbfix ("NBFIX");
+        if (std::regex_match(currSectName, nbonded) || std::regex_match(currSectName, nbfix)){
+          std::cout << "Error: EXOTIC-Style parameter is set but CHARMM-Style parameter header " << currSectName << " was found.\n"
+          "       Either set CHARMM-Style in config file or change the keyword\n"
+          "       " << currSectName << " to " << currSectName.append("_MIE") << " in the parameter files.\n";          
+          exit(EXIT_FAILURE);
+        }
+      }
     } else
       currSect->second->Read(param, varName);
   }
@@ -96,6 +119,14 @@ void FFSetup::Init(std::string const& name, const bool isCHARMM)
 
   //Adjust dih names so lookup finds kind indices rather than term counts
   dih.clean_names();
+}
+
+bool FFSetup::hasEnding (std::string const &fullString, std::string const &ending) {
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+    } else {
+        return false;
+    }
 }
 
 namespace ff_setup
