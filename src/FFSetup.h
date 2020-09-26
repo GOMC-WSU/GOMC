@@ -16,6 +16,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Reader.h" //For Reader object
 #include "FFConst.h" //for forcefield constants
 #include "BasicTypes.h" //for uint
+#include "InputFileReader.h"
+
 
 namespace ff_setup
 {
@@ -303,6 +305,8 @@ private:
   static const std::string paramFileAlias[];
   static const uint CHARMM_ALIAS_IDX;
   static const uint EXOTIC_ALIAS_IDX;
+  bool hasEnding (std::string const &fullString, std::string const &ending);
+
 };
 
 
