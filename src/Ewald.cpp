@@ -403,7 +403,7 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
   thisKind) reduction(+:energyRecipNew)
 #endif
 #endif
-    for (uint i = 0; i < imageSizeRef[box]; i++) {
+    for (int i = 0; i < imageSizeRef[box]; i++) {
       double sumRealNew = 0.0;
       double sumImaginaryNew = 0.0;
 
@@ -462,7 +462,7 @@ double Ewald::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
   reduction(+:energyRecipNew)
 #endif
 #endif
-    for (uint i = 0; i < imageSizeRef[box]; i++) {
+    for (int i = 0; i < imageSizeRef[box]; i++) {
       double sumRealNew = 0.0;
       double sumImaginaryNew = 0.0;
 
@@ -597,7 +597,7 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
   reduction(+:energyRecipNew)
 #endif
 #endif
-    for (uint i = 0; i < imageSizeRef[box]; i++) {
+    for (int i = 0; i < imageSizeRef[box]; i++) {
       double sumRealNew = 0.0;
       double sumImaginaryNew = 0.0;
 
@@ -656,7 +656,7 @@ double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
   reduction(+:energyRecipNew)
 #endif
 #endif
-    for (uint i = 0; i < imageSizeRef[box]; i++) {
+    for (int i = 0; i < imageSizeRef[box]; i++) {
       double sumRealNew = 0.0;
       double sumImaginaryNew = 0.0;
 
@@ -1103,7 +1103,7 @@ Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
 #ifdef _OPENMP
   #pragma omp parallel for default(none) shared(box, constVal) reduction(+:wT11, wT22, wT33)
 #endif
-  for (uint i = 0; i < imageSizeRef[box]; i++) {
+  for (int i = 0; i < imageSizeRef[box]; i++) {
     double factor = prefactRef[box][i] * (sumRref[box][i] * sumRref[box][i] +
                                    sumIref[box][i] * sumIref[box][i]);
 
@@ -1140,7 +1140,7 @@ Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
 #ifdef _OPENMP
   #pragma omp parallel for default(none) shared(atom, box, charge, diffC) reduction(+:wT11, wT22, wT33)
 #endif
-      for (uint i = 0; i < imageSizeRef[box]; i++) {
+      for (int i = 0; i < imageSizeRef[box]; i++) {
         //compute the dot product of k and r
         double arg = Dot(atom, kxRef[box][i], kyRef[box][i],
                   kzRef[box][i], currentCoords);
@@ -1424,7 +1424,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
 #ifdef _OPENMP
   #pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, p) reduction(+:X, Y, Z)
 #endif
-          for(uint i = 0; i < imageSize[box]; i++) {
+          for(int i = 0; i < imageSize[box]; i++) {
             double dot = Dot(p, kx[box][i], ky[box][i], kz[box][i], molCoords);
 
             double factor = 2.0 * particleCharge[p] * prefact[box][i] * lambdaCoef *

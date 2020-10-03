@@ -255,14 +255,14 @@ inline uint MultiParticle::Transform()
 #ifdef _OPENMP
   #pragma omp parallel for default(none)
 #endif
-    for(uint m = 0; m < moleculeIndex.size(); m++) {
+    for(int m = 0; m < moleculeIndex.size(); m++) {
       RotateForceBiased(moleculeIndex[m]);
     }
   } else {
     #ifdef _OPENMP
   #pragma omp parallel for default(none)
 #endif
-    for(uint m = 0; m < moleculeIndex.size(); m++) {
+    for(int m = 0; m < moleculeIndex.size(); m++) {
       TranslateForceBiased(moleculeIndex[m]);
     }
   }
@@ -334,7 +334,7 @@ inline double MultiParticle::GetCoeff()
 #ifdef _OPENMP
   #pragma omp parallel for default(none) shared(lBeta, r_max, t_max) reduction(*:w_ratio)
 #endif
-  for(uint m = 0; m < moleculeIndex.size(); m++) {
+  for(int m = 0; m < moleculeIndex.size(); m++) {
     uint molNumber = moleculeIndex[m];
     if(moveType == mp::MPROTATE) {
       // rotate: lbt_old, lbt_new are lambda * BETA * torque
