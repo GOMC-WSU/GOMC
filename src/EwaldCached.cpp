@@ -112,7 +112,7 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 #ifdef _OPENMP
   #pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, startAtom, thisKind, thisMol)
 #endif
-      for (uint i = 0; i < imageSize[box]; i++) {
+      for (int i = 0; i < imageSize[box]; i++) {
         cosMolRef[*thisMol][i] = 0.0;
         sinMolRef[*thisMol][i] = 0.0;
 
@@ -149,7 +149,7 @@ double EwaldCached::BoxReciprocal(uint box) const
 #ifdef _OPENMP
   #pragma omp parallel for default(none) shared(box) reduction(+:energyRecip)
 #endif
-    for (uint i = 0; i < imageSize[box]; i++) {
+    for (int i = 0; i < imageSize[box]; i++) {
       energyRecip += (( sumRnew[box][i] * sumRnew[box][i] +
                         sumInew[box][i] * sumInew[box][i]) *
                       prefact[box][i]);
@@ -183,7 +183,7 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
   reduction(+:energyRecipNew)
 #endif
 #endif
-    for (uint i = 0; i < imageSizeRef[box]; i++) {
+    for (int i = 0; i < imageSizeRef[box]; i++) {
       double sumRealNew = 0.0;
       double sumImaginaryNew = 0.0;
       double sumRealOld = cosMolRef[molIndex][i];
@@ -257,7 +257,7 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
   reduction(+:energyRecipNew)
 #endif
 #endif
-    for (uint i = 0; i < imageSizeRef[box]; i++) {
+    for (int i = 0; i < imageSizeRef[box]; i++) {
       cosMolRef[molIndex][i] = 0.0;
       sinMolRef[molIndex][i] = 0.0;
 
@@ -307,7 +307,7 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
   #pragma omp parallel for default(none) reduction(+:energyRecipNew)
 #endif
 #endif
-    for (uint i = 0; i < imageSizeRef[box]; i++) {
+    for (int i = 0; i < imageSizeRef[box]; i++) {
       sumRnew[box][i] = sumRref[box][i] - cosMolRestore[i];
       sumInew[box][i] = sumIref[box][i] - sinMolRestore[i];
 
@@ -422,7 +422,7 @@ void EwaldCached::backupMolCache()
 #ifdef _OPENMP
   #pragma omp parallel for default(none)
 #endif
-  for(uint m = 0; m < mols.count; m++) {
+  for(int m = 0; m < mols.count; m++) {
     std::memcpy(cosMolBoxRecip[m], cosMolRef[m], sizeof(double) * imageTotal);
     std::memcpy(sinMolBoxRecip[m], sinMolRef[m], sizeof(double) * imageTotal);
   }
