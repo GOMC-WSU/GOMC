@@ -57,6 +57,7 @@ then
 		fi
 	else
 		echo "CUDA version is 11.0 or higher, no need to download CUB library! Skipping..."
+		rm -rf ./lib/cub/
 	fi
 fi
 
