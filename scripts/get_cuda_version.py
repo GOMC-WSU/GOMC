@@ -11,4 +11,5 @@ with open('output.txt') as f:
             end = line.index('.', start)
             result = line[start:end]
             print(result)
+            os.remove("output.txt")
             quit()
