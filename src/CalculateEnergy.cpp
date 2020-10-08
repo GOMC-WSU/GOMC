@@ -1400,21 +1400,22 @@ void CalculateEnergy::CalculateTorque(std::vector<uint>& moleculeIndex,
 {
   if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
 
-    // make a pointer to atom force and mol force for openmp
+    // make a pointer to mol torque for openmp
     double *torquex = molTorque.x;
     double *torquey = molTorque.y;
     double *torquez = molTorque.z;
     int torqueCount = molTorque.Count();
 
+  // Reset Torque Arrays
     molTorque.Reset();
 
-#if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
+#if defined _OPENMP
 #if GCC_VERSION >= 90000
-#pragma omp parallel for default(none) shared(atomForce, atomForceRec, com, coordinates, moleculeIndex, box) \
-  reduction(+: torquex[:torqueCount], torquey[:torqueCount], torquez[:torqueCount])
+#pragma omp parallel for default(none) shared(atomForce, atomForceRec, com, coordinates,\
+  moleculeIndex, torquex, torquey, torquez, box)
 #else
-#pragma omp parallel for default(none) shared(atomForce, atomForceRec, com, coordinates, moleculeIndex) \
-  reduction(+: torquex[:torqueCount], torquey[:torqueCount], torquez[:torqueCount])
+#pragma omp parallel for default(none) shared(atomForce, atomForceRec, com, coordinates,\
+  moleculeIndex, torquex, torquey, torquez)
 #endif
 #endif
     for(int m = 0; m < moleculeIndex.size(); m++) {
