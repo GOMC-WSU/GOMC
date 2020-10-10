@@ -150,7 +150,7 @@ inline void VolumeTransfer::CalcEn()
   }
 
   regrewGrid = true;
-  //back up cached fourier term
+  //back up cached Fourier term
   calcEwald->backupMolCache();
   sysPotNew = sysPotRef;
 

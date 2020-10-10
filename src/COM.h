@@ -68,18 +68,31 @@ inline void COM::CalcCOM()
   }
 }
 
-inline void COM::SetNew(const uint m, const uint b)
+inline void COM::SetNew(const uint moleculeIndex, const uint box)
 {
-  uint pStart = 0, pStop = 0, pLen = 0;
-  molRef.GetRange(pStart, pStop, pLen, m);
-  boxDimRef.UnwrapPBC(coordRef, pStart, pStop,
-                      b, coordRef.Get(pStart));
-  Set(m, 0.0, 0.0, 0.0);
-  for (uint p = pStart; p < pStop; p++)
-    Add(coordRef, m, p);
-  boxDimRef.WrapPBC(coordRef, pStart, pStop, b);
-  Scale(m, 1.0 / (double)(pLen));
-  boxDimRef.WrapPBC(x[m], y[m], z[m], b);
+  uint atomStart = 0, atomStop = 0, atomLen = 0;
+
+  // get the range of atoms for molecueIndex
+  molRef.GetRange(atomStart, atomStop, atomLen, moleculeIndex);
+  
+  // unwrap molecule
+  boxDimRef.UnwrapPBC(coordRef, atomStart, atomStop, box, coordRef.Get(atomStart));
+
+  // set COM of moleculeIndex to all 0.0
+  Set(moleculeIndex, 0.0, 0.0, 0.0);
+
+  // add the coordinates of all atoms to COM of molecule moleculeIndex
+  for (uint currentAtom = atomStart; currentAtom < atomStop; currentAtom++)
+    Add(coordRef, moleculeIndex, currentAtom);
+
+  // wrap atoms again
+  boxDimRef.WrapPBC(coordRef, atomStart, atomStop, box);
+
+  // to take average (calculate COM) divide the sum by atom length
+  Scale(moleculeIndex, 1.0 / (double)(atomLen));
+
+  // wrap the COM
+  boxDimRef.WrapPBC(x[moleculeIndex], y[moleculeIndex], z[moleculeIndex], box);
 }
 
 #endif /*COM_H*/

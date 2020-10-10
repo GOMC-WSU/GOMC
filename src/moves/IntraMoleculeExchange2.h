@@ -23,6 +23,7 @@ public:
   IntraMoleculeExchange2(System &sys, StaticVals const& statV) :
     IntraMoleculeExchange1(sys, statV)
   {
+    smallBB[0] = smallBB[1] = 0;
     if(enableID) {
       SetMEMC(statV);
     }
@@ -136,7 +137,7 @@ inline uint IntraMoleculeExchange2::PickMolInCav()
       uint end = molRef.MolStart(pickedS) + smallBB[1];
       SetBasis(cavA, boxDimRef.MinImage(coordCurrRef.Difference(start, end), sourceBox));
     }
-    //Calculate inverse matrix for cav here Inv = transpose
+    //Calculate inverse matrix for cavity here Inverse = transpose
     TransposeMatrix(invCavA, cavA);
 
     //Find the small molecule kind in the cavityA
@@ -191,7 +192,7 @@ inline uint IntraMoleculeExchange2::PickMolInCav()
       uint end = molRef.MolStart(molIndexB[0]) + largeBB[1];
       SetBasis(cavB, boxDimRef.MinImage(coordCurrRef.Difference(start, end), sourceBox));
     }
-    //Calculate inverse matrix for cav. Here Inv = Transpose
+    //Calculate inverse matrix for cavity. Here Inverse = Transpose
     TransposeMatrix(invCavB, cavB);
     if(exchangeRatio == 1) {
       numSCavB = 0;
@@ -205,14 +206,13 @@ inline uint IntraMoleculeExchange2::PickMolInCav()
   return state;
 }
 
-
 inline uint IntraMoleculeExchange2::Prep(const double subDraw,
     const double movPerc)
 {
   //AdjustExRatio();
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
-    //transfering type A from source
+    //transferring type A from source
     for(uint n = 0; n < numInCavA; n++) {
       newMolA.push_back(cbmc::TrialMol(molRef.kinds[kindIndexA[n]], boxDimRef,
                                        sourceBox));
@@ -221,7 +221,7 @@ inline uint IntraMoleculeExchange2::Prep(const double subDraw,
     }
 
     for(uint n = 0; n < numInCavB; n++) {
-      //transfering type B from source
+      //transferring type B from source
       newMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
                                        sourceBox));
       oldMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
@@ -264,12 +264,12 @@ inline uint IntraMoleculeExchange2::Prep(const double subDraw,
     for(uint n = 0; n < numInCavA; n++) {
       if(n == 0) {
         //Inserting molA from cavity(centerA) to the cavityB(centerB)
-        //COM is fixed, rotation around backboe
+        //COM is fixed, rotation around backbone
         newMolA[n].SetSeed(centerB, cavity, true, true, true);
         // Set the Backbone of small molecule to be inserted
         newMolA[n].SetBackBone(smallBB);
         //perform trial move in cavity in sourceBox for oldMolA
-        //COM is fixed, rotation around backboe
+        //COM is fixed, rotation around backbone
         oldMolA[n].SetSeed(centerA, cavity, true, true, true);
         // Set the Backbone of small molecule to be deleted
         oldMolA[n].SetBackBone(smallBB);
@@ -285,41 +285,40 @@ inline uint IntraMoleculeExchange2::Prep(const double subDraw,
   return state;
 }
 
-
 inline uint IntraMoleculeExchange2::Transform()
 {
-  ///Remove the fixed COM kindS at the end because we insert it at first
-  for(uint n = numInCavA; n > 0; n--) {
+  // Remove the fixed COM kindS at the end because we insert it at first
+  for (uint n = numInCavA; n > 0; n--) {
     cellList.RemoveMol(molIndexA[n - 1], sourceBox, coordCurrRef);
     molRef.kinds[kindIndexA[n - 1]].BuildIDOld(oldMolA[n - 1], molIndexA[n - 1]);
-    //Add bonded energy because we dont considered in DCRotate.cpp
+    // Add bonded energy because we don't considered in DCRotate.cpp
     oldMolA[n - 1].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n - 1], molIndexA[n - 1]));
   }
 
-  //Calc old energy before deleting
-  for(uint n = 0; n < numInCavB; n++) {
+  // Calc old energy before deleting
+  for (uint n = 0; n < numInCavB; n++) {
     cellList.RemoveMol(molIndexB[n], sourceBox, coordCurrRef);
     molRef.kinds[kindIndexB[n]].BuildIDOld(oldMolB[n], molIndexB[n]);
-    //Add bonded energy because we dont considered in DCRotate.cpp
+    // Add bonded energy because we don't considered in DCRotate.cpp
     oldMolB[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolB[n], molIndexB[n]));
   }
 
-  //Insert kindL to cavity of  center A
-  for(uint n = 0; n < numInCavB; n++) {
+  // Insert kindL to cavity of center A
+  for (uint n = 0; n < numInCavB; n++) {
     molRef.kinds[kindIndexB[n]].BuildIDNew(newMolB[n], molIndexB[n]);
     ShiftMol(n, false);
     cellList.AddMol(molIndexB[n], sourceBox, coordCurrRef);
-    //Add bonded energy because we dont considered in DCRotate.cpp
+    // Add bonded energy because we don't considered in DCRotate.cpp
     newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n], molIndexB[n]));
     overlap |= newMolB[n].HasOverlap();
   }
 
-  //Insert kindS to cavity of center B
-  for(uint n = 0; n < numInCavA; n++) {
+  // Insert kindS to cavity of center B
+  for (uint n = 0; n < numInCavA; n++) {
     molRef.kinds[kindIndexA[n]].BuildIDNew(newMolA[n], molIndexA[n]);
     ShiftMol(n, true);
     cellList.AddMol(molIndexA[n], sourceBox, coordCurrRef);
-    //Add bonded energy because we dont considered in DCRotate.cpp
+    // Add bonded energy because we don't considered in DCRotate.cpp
     newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n], molIndexA[n]));
     overlap |= newMolA[n].HasOverlap();
   }
@@ -329,6 +328,7 @@ inline uint IntraMoleculeExchange2::Transform()
 
 inline void IntraMoleculeExchange2::CalcEn()
 {
+  // Updates recipDiffA and recipDiffB and updates sum new arrays at the same time
   IntraMoleculeExchange1::CalcEn();
 }
 

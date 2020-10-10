@@ -104,7 +104,8 @@ public:
   virtual double SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
                            const std::vector<cbmc::TrialMol> &oldMol,
                            const std::vector<uint> molIndexNew,
-                           const std::vector<uint> molIndexOld);
+                           const std::vector<uint> molIndexOld,
+                           bool first_call);
 
   //calculate correction term after swap move, with lambda = 1
   virtual double SwapCorrection(const cbmc::TrialMol& trialMol) const;
@@ -137,6 +138,12 @@ public:
   //backup the whole cosMolRef & sinMolRef into cosMolBoxRecip & sinMolBoxRecip
   virtual void backupMolCache();
 
+
+  /// This function performs three actions:
+  /// 1. Initialize k vectors
+  /// 2. Run BoxReciprocalSetup to calculate sumRnew and sumInew
+  /// 3. Then copy all new vectors to ref vectors
+  /// @param bool: whether to print the vector size
   virtual void UpdateVectorsAndRecipTerms(bool output);
 
   //calculate reciprocal force term for a box with molCoords
