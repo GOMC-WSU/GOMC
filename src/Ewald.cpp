@@ -250,12 +250,16 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
         double sumImaginary = 0.0;
 
         for (uint j = 0; j < thisKind.NumAtoms(); j++) {
-          if(particleHasNoCharge[start + j]) {
+          unsigned long currentAtom = start + j;
+          if(particleHasNoCharge[currentAtom]) {
             continue;
           }
-          double dotProduct = Dot(start + j, kx[box][i], ky[box][i],
+          double dotProduct = Dot(currentAtom, kx[box][i], ky[box][i],
                            kz[box][i], molCoords);
 
+          // TODO: sincos() can be used to optimize (GNU compiler only)
+          // Windows doesn't have sincos() function and 
+          // Intel compiler automatically optimizes this part
           sumReal += (thisKind.AtomCharge(j) * cos(dotProduct));
           sumImaginary += (thisKind.AtomCharge(j) * sin(dotProduct));
         }
@@ -338,13 +342,8 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
         if(particleHasNoCharge[atom]) {
           continue;
         }
-        double dotProductNew = Dot(p, kxRef[box][i],
-                            kyRef[box][i], kzRef[box][i],
-                            molCoords);
-
-        double dotProductOld = Dot(atom, kxRef[box][i],
-                            kyRef[box][i], kzRef[box][i],
-                            currentCoords);
+        double dotProductNew = Dot(p, kxRef[box][i], kyRef[box][i], kzRef[box][i], molCoords);
+        double dotProductOld = Dot(atom, kxRef[box][i], kyRef[box][i], kzRef[box][i], currentCoords);
 
         sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
         sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
@@ -419,9 +418,7 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
         sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
       }
 
-      //sumRealNew;
       sumRnew[box][i] = sumRref[box][i] + sumRealNew;
-      //sumImaginaryNew;
       sumInew[box][i] = sumIref[box][i] + sumImaginaryNew;
 
       energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
@@ -522,13 +519,14 @@ void Ewald::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
     double sumImaginary = 0.0;
 
     for (uint p = 0; p < length; ++p) {
-      if(particleHasNoCharge[startAtom + p]) {
+      unsigned long currentAtom = startAtom + p;
+      if(particleHasNoCharge[currentAtom]) {
         continue;
       }
       double dotProduct = Dot(p + startAtom, kxRef[box][i], kyRef[box][i], kzRef[box][i],
                        currentCoords);
-      sumReal += particleCharge[p + startAtom] * cos(dotProduct);
-      sumImaginary += particleCharge[p + startAtom] * sin(dotProduct);
+      sumReal += particleCharge[currentAtom] * cos(dotProduct);
+      sumImaginary += particleCharge[currentAtom] * sin(dotProduct);
     }
     for(uint s = 0; s < lambdaSize; s++) {
       //Calculate the energy of other state
@@ -602,7 +600,8 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
       double sumImaginaryNew = 0.0;
 
       for (uint p = 0; p < length; ++p) {
-        if(particleHasNoCharge[startAtom + p]) {
+        unsigned long currentAtom = startAtom + p;
+        if(particleHasNoCharge[currentAtom]) {
           continue;
         }
         double dotProductNew = Dot(p, kxRef[box][i],
@@ -631,7 +630,8 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
                         const std::vector<cbmc::TrialMol> &oldMol,
                         const std::vector<uint> molIndexNew,
-                        const std::vector<uint> molIndexOld)
+                        const std::vector<uint> molIndexOld,
+                        bool first_call)
 {
   double energyRecipNew = 0.0;
   double energyRecipOld = 0.0;
@@ -660,31 +660,47 @@ double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
       double sumRealNew = 0.0;
       double sumImaginaryNew = 0.0;
 
+      // Add dot sum of the new molecule
       for (uint m = 0; m < newMol.size(); m++) {
-        double lambdaCoef = GetLambdaCoef(molIndexNew[m], box);
+        uint newMoleculeIndex = molIndexNew[m];
+        double lambdaCoef = GetLambdaCoef(newMoleculeIndex, box);
         for (uint p = 0; p < lengthNew; ++p) {
-          if(particleHasNoCharge[mols.MolStart(molIndexNew[m]) + p]) {
+          unsigned long currentAtom = mols.MolStart(newMoleculeIndex) + p;
+          if(particleHasNoCharge[currentAtom]) {
             continue;
           }
           double dotProductNew = Dot(p, kxRef[box][i], kyRef[box][i],
                               kzRef[box][i], newMol[m].GetCoords());
 
+          // TODO: Using GNU extension we could improve this part of the code
+          // by using sincos() function and merge sin() and cos() calculation
+          // However, this will not work with Visual studio
+          // Intel should automatically optimize this section by using
+          // internal functions like __svml_sincosf8..() 
           sumRealNew += (thisKindNew.AtomCharge(p) * lambdaCoef *
                          cos(dotProductNew));
           sumImaginaryNew += (thisKindNew.AtomCharge(p) * lambdaCoef *
                               sin(dotProductNew));
         }
       }
-
+      
+      // Subtract the sum of the old molecule
       for (uint m = 0; m < oldMol.size(); m++) {
-        double lambdaCoef = GetLambdaCoef(molIndexOld[m], box);
+        uint oldMoleculeIndex = molIndexOld[m];
+        double lambdaCoef = GetLambdaCoef(oldMoleculeIndex, box);
         for (uint p = 0; p < lengthOld; ++p) {
-          if(particleHasNoCharge[mols.MolStart(molIndexOld[m]) + p]) {
+          unsigned long currentAtom = mols.MolStart(oldMoleculeIndex) + p;
+          if(particleHasNoCharge[currentAtom]) {
             continue;
           }
           double dotProductOld = Dot(p, kxRef[box][i], kyRef[box][i],
-                              kzRef[box][i], oldMol[m].GetCoords());
+                                     kzRef[box][i], oldMol[m].GetCoords());
 
+          // TODO: Using GNU extension we could improve this part of the code
+          // by using sincos() function and merge sin() and cos() calculation
+          // However, this will not work with Visual studio
+          // Intel should automatically optimize this section by using
+          // internal functions like __svml_sincosf8..() 
           sumRealNew -= thisKindOld.AtomCharge(p) * lambdaCoef *
                           cos(dotProductOld);
           sumImaginaryNew -= thisKindOld.AtomCharge(p) * lambdaCoef *
@@ -692,18 +708,29 @@ double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
         }
       }
 
-      //sumRealNew;
-      sumRnew[box][i] = sumRref[box][i] + sumRealNew;
-      //sumImaginaryNew;
-      sumInew[box][i] = sumIref[box][i] + sumImaginaryNew;
+      // Update the new sum value based on the difference and previous sum
+      // If this is the first call to this function within the same pair of molecules,
+      // then use the ref variable to update new
+      // However, if this is the second time calling it then use the previous result as reference
+      if (first_call) {
+        sumRnew[box][i] = sumRref[box][i] + sumRealNew;
+        sumInew[box][i] = sumIref[box][i] + sumImaginaryNew;
+      }
+      else {
+        sumRnew[box][i] += sumRealNew;
+        sumInew[box][i] += sumImaginaryNew;
+      }
 
+      // Calculate new energy recip based on the new sum real and imaginary values
       energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
                          * sumInew[box][i]) * prefactRef[box][i];
     }
 
+    // Keep hold of the old recip value
     energyRecipOld = sysPotRef.boxEnergy[box].recip;
   }
 
+  // Return the difference between old and new reciprocal energies
   return energyRecipNew - energyRecipOld;
 }
 
@@ -1290,14 +1317,8 @@ void Ewald::UpdateRecip(uint box)
 {
   if (box >= BOXES_WITH_U_NB)
     return;
-
-  double *tempR, *tempI;
-  tempR = sumRref[box];
-  tempI = sumIref[box];
-  sumRref[box] = sumRnew[box];
-  sumIref[box] = sumInew[box];
-  sumRnew[box] = tempR;
-  sumInew[box] = tempI;
+  memcpy(sumRref[box], sumRnew[box], imageSize[box]);
+  memcpy(sumIref[box], sumInew[box], imageSize[box]);
 #ifdef GOMC_CUDA
   UpdateRecipCUDA(ff.particles->getCUDAVars(), box);
 #endif

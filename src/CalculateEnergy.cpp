@@ -1399,8 +1399,7 @@ void CalculateEnergy::CalculateTorque(std::vector<uint>& moleculeIndex,
                                       const uint box)
 {
   if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
-
-    // make a pointer to mol torque for openmp
+    // make a pointer to atom force and mol force for OpenMP
     double *torquex = molTorque.x;
     double *torquey = molTorque.y;
     double *torquez = molTorque.z;
