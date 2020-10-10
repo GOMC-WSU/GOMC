@@ -205,7 +205,7 @@ inline void MultiParticle::PrepCFCMC(const uint box)
     calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
                        boxDimRef, bPick);
 
-    if(moveType != mp::MPROTATE) {
+    if(moveType == mp::MPROTATE) {
       //Calculate Torque for old positions
       calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef,
                                 atomForceRef, atomForceRecRef, molTorqueRef,
