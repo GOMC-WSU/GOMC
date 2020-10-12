@@ -650,11 +650,11 @@ double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
 #pragma omp parallel for default(none) shared(box, lengthNew, lengthOld, \
-  newMol, oldMol, thisKindNew, thisKindOld, molIndexNew, molIndexOld) \
+  newMol, oldMol, thisKindNew, thisKindOld, molIndexNew, molIndexOld, first_call) \
   reduction(+:energyRecipNew)
 #else
 #pragma omp parallel for default(none) shared(box, lengthNew, lengthOld, \
-  newMol, oldMol, thisKindNew, thisKindOld) \
+  newMol, oldMol, thisKindNew, thisKindOld, first_call) \
   reduction(+:energyRecipNew)
 #endif
 #endif
