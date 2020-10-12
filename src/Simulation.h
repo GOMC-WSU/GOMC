@@ -25,10 +25,6 @@ public:
   void RunSimulation(void);
   bool RecalculateAndCheck(void);
 
-#ifndef NDEBUG
-  void RunningCheck(const uint step);
-#endif
-
 private:
   StaticVals * staticValues;
   System * system;
