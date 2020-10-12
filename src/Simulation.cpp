@@ -141,14 +141,14 @@ bool Simulation::RecalculateAndCheck(void)
   SystemPotential pot = system->calcEnergy.SystemTotal();
 
   bool compare = true;
-  compare &= std::abs(system->potential.totalEnergy.intraBond - pot.totalEnergy.intraBond) < EPSILON;
-  compare &= std::abs(system->potential.totalEnergy.intraNonbond - pot.totalEnergy.intraNonbond) < EPSILON;
-  compare &= std::abs(system->potential.totalEnergy.inter - pot.totalEnergy.inter) < EPSILON;
-  compare &= std::abs(system->potential.totalEnergy.tc - pot.totalEnergy.tc) < EPSILON;
-  compare &= std::abs(system->potential.totalEnergy.real - pot.totalEnergy.real) < EPSILON;
-  compare &= std::abs(system->potential.totalEnergy.self - pot.totalEnergy.self) < EPSILON;
-  compare &= std::abs(system->potential.totalEnergy.correction - pot.totalEnergy.correction) < EPSILON;
-  compare &= std::abs(system->potential.totalEnergy.recip - pot.totalEnergy.recip) < EPSILON;
+  compare &= std::abs(system->potential.totalEnergy.intraBond - pot.totalEnergy.intraBond) < (EPSILON * pot.totalEnergy.intraBond);
+  compare &= std::abs(system->potential.totalEnergy.intraNonbond - pot.totalEnergy.intraNonbond) < (EPSILON * pot.totalEnergy.intraNonbond);
+  compare &= std::abs(system->potential.totalEnergy.inter - pot.totalEnergy.inter) < (EPSILON * pot.totalEnergy.inter);
+  compare &= std::abs(system->potential.totalEnergy.tc - pot.totalEnergy.tc) < (EPSILON * pot.totalEnergy.tc);
+  compare &= std::abs(system->potential.totalEnergy.real - pot.totalEnergy.real) < (EPSILON * pot.totalEnergy.real);
+  compare &= std::abs(system->potential.totalEnergy.self - pot.totalEnergy.self) < (EPSILON * pot.totalEnergy.self);
+  compare &= std::abs(system->potential.totalEnergy.correction - pot.totalEnergy.correction) < (EPSILON * pot.totalEnergy.correction);
+  compare &= std::abs(system->potential.totalEnergy.recip - pot.totalEnergy.recip) < (EPSILON * pot.totalEnergy.recip);
 
   if(!compare) {
     std::cout
