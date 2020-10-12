@@ -1,5 +1,6 @@
 set(sources 
    src/BlockOutput.cpp
+   src/BondAdjacencyList.cpp
    src/BoxDimensions.cpp
    src/BoxDimensionsNonOrth.cpp
    src/CBMC.cpp
@@ -63,6 +64,7 @@ set(sources
 
 set(headers
    src/BlockOutput.h
+   src/BondAdjacencyList.h
    src/BoxDimensions.h
    src/BoxDimensionsNonOrth.h
    src/CalculateEnergy.h
