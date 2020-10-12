@@ -6,7 +6,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "Simulation.h"
 #include "Setup.h"          //For setup object
-
+#include "NumLib.h"
 #include "EnergyTypes.h"
 #include "PSFOutput.h"
 #include <iostream>
@@ -141,14 +141,14 @@ bool Simulation::RecalculateAndCheck(void)
   SystemPotential pot = system->calcEnergy.SystemTotal();
 
   bool compare = true;
-  compare &= std::abs(system->potential.totalEnergy.intraBond - pot.totalEnergy.intraBond) < (EPSILON * pot.totalEnergy.intraBond);
-  compare &= std::abs(system->potential.totalEnergy.intraNonbond - pot.totalEnergy.intraNonbond) < (EPSILON * pot.totalEnergy.intraNonbond);
-  compare &= std::abs(system->potential.totalEnergy.inter - pot.totalEnergy.inter) < (EPSILON * pot.totalEnergy.inter);
-  compare &= std::abs(system->potential.totalEnergy.tc - pot.totalEnergy.tc) < (EPSILON * pot.totalEnergy.tc);
-  compare &= std::abs(system->potential.totalEnergy.real - pot.totalEnergy.real) < (EPSILON * pot.totalEnergy.real);
-  compare &= std::abs(system->potential.totalEnergy.self - pot.totalEnergy.self) < (EPSILON * pot.totalEnergy.self);
-  compare &= std::abs(system->potential.totalEnergy.correction - pot.totalEnergy.correction) < (EPSILON * pot.totalEnergy.correction);
-  compare &= std::abs(system->potential.totalEnergy.recip - pot.totalEnergy.recip) < (EPSILON * pot.totalEnergy.recip);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.intraBond, pot.totalEnergy.intraBond, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.intraNonbond, pot.totalEnergy.intraNonbond, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.inter, pot.totalEnergy.inter, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.tc, pot.totalEnergy.tc, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.real, pot.totalEnergy.real, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.self, pot.totalEnergy.self, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.correction, pot.totalEnergy.correction, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.recip, pot.totalEnergy.recip, EPSILON);
 
   if(!compare) {
     std::cout
