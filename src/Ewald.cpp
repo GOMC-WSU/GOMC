@@ -303,6 +303,7 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
                             const uint molIndex, const uint box)
 {
   double energyRecipNew = 0.0;
+  double energyRecipOld = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
     MoleculeKind const& thisKind = mols.GetKind(molIndex);
@@ -338,12 +339,12 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
       double sumImaginaryOld = 0.0;
 
       for (uint p = 0; p < length; ++p) {
-        uint atom = startAtom + p;
-        if(particleHasNoCharge[atom]) {
+        uint currentAtom = startAtom + p;
+        if(particleHasNoCharge[currentAtom]) {
           continue;
         }
         double dotProductNew = Dot(p, kxRef[box][i], kyRef[box][i], kzRef[box][i], molCoords);
-        double dotProductOld = Dot(atom, kxRef[box][i], kyRef[box][i], kzRef[box][i], currentCoords);
+        double dotProductOld = Dot(currentAtom, kxRef[box][i], kyRef[box][i], kzRef[box][i], currentCoords);
 
         sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
         sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
@@ -361,8 +362,9 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
                          * sumInew[box][i]) * prefactRef[box][i];
     }
 #endif
+    energyRecipOld = sysPotRef.boxEnergy[box].recip;
   }
-  return energyRecipNew - sysPotRef.boxEnergy[box].recip;
+  return energyRecipNew - energyRecipOld;
 }
 
 
@@ -1317,8 +1319,14 @@ void Ewald::UpdateRecip(uint box)
 {
   if (box >= BOXES_WITH_U_NB)
     return;
-  memcpy(sumRref[box], sumRnew[box], imageSize[box]);
-  memcpy(sumIref[box], sumInew[box], imageSize[box]);
+
+  double* tempR, * tempI;
+  tempR = sumRnew[box];
+  tempI = sumInew[box];
+  sumRnew[box] = sumRref[box];
+  sumInew[box] = sumIref[box];
+  sumRref[box] = tempR;
+  sumIref[box] = tempI;
 #ifdef GOMC_CUDA
   UpdateRecipCUDA(ff.particles->getCUDAVars(), box);
 #endif
