@@ -40,10 +40,10 @@ public:
     pdb.Init(config.in.restart, config.in.files.pdb.name);
     //Initialize PRNG
     prng.Init(config.in.restart, config.in.prng, config.in.files.seed.name);
-    #if GOMC_LIB_MPI
+#if GOMC_LIB_MPI
     if(multisim->parallelTemperingEnabled)
       prngParallelTemp.Init(config.in.restart, config.in.prngParallelTempering, config.in.files.seed.name);
-    #endif
+#endif
     //Read molecule data from psf
     if(mol.Init(config.in.restart, config.in.files.psf.name) != 0) {
       exit(EXIT_FAILURE);

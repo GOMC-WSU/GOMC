@@ -240,7 +240,8 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
                 << ".. and couldn't find remark in PDB file!" << std::endl;
       exit(EXIT_FAILURE);
     }
-    std::cout.width(40); std::cout << std::left << "Finished reading: ";
+    std::cout.width(40);
+    std::cout << std::left << "Finished reading: ";
     std::cout << "\t" << name[b] << std::endl;
   }
 }

@@ -71,7 +71,7 @@ void CallBoxInterGPU(VariablesCUDA *vars,
     CUMALLOC((void**) &gpu_REn, energyVectorLen * sizeof(double));
     CUMALLOC((void**) &gpu_final_REn, sizeof(double));
   }
-  
+
   // Copy necessary data to GPU
   cudaMemcpy(gpu_neighborList, &neighborlist1D[0], neighborListCount * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_cellStartIndex, &cellStartIndex[0], cellStartIndex.size() * sizeof(int), cudaMemcpyHostToDevice);
@@ -84,8 +84,8 @@ void CallBoxInterGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_z, coords.z, atomNumber * sizeof(double), cudaMemcpyHostToDevice);
 
   double3 axis = make_double3(boxAxes.GetAxis(box).x,
-  boxAxes.GetAxis(box).y,
-  boxAxes.GetAxis(box).z);
+                              boxAxes.GetAxis(box).y,
+                              boxAxes.GetAxis(box).z);
 
   double3 halfAx = make_double3(boxAxes.GetAxis(box).x * 0.5,
                                 boxAxes.GetAxis(box).y * 0.5,
@@ -161,8 +161,7 @@ void CallBoxInterGPU(VariablesCUDA *vars,
     // Copy back the result to CPU ! :)
     CubDebugExit(cudaMemcpy(&REn, gpu_final_REn, sizeof(double),
                             cudaMemcpyDeviceToHost));
-  }
-  else {
+  } else {
     REn = 0.0;
   }
   CUFREE(d_temp_storage);
@@ -260,12 +259,12 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
       // Check if they are within rcut
       double distSq = 0.0;
 
-      if(InRcutGPU(distSq, gpu_x, gpu_y, gpu_z, 
+      if(InRcutGPU(distSq, gpu_x, gpu_y, gpu_z,
                    currentParticle, neighborParticle,
                    axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
                    gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
-                   gpu_Invcell_z)) {        
-        
+                   gpu_Invcell_z)) {
+
         double cA = gpu_particleCharge[currentParticle];
         double cB = gpu_particleCharge[neighborParticle];
         int kA = gpu_particleKind[currentParticle];
@@ -274,18 +273,18 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
         int mB = gpu_particleMol[neighborParticle];
 
         double lambdaVDW = DeviceGetLambdaVDW(mA, kA, mB, kB, box, gpu_isFraction,
-                                       gpu_molIndex, gpu_kindIndex, gpu_lambdaVDW);
+                                              gpu_molIndex, gpu_kindIndex, gpu_lambdaVDW);
         LJEn += CalcEnGPU(distSq, kA, kB, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
                           gpu_VDW_Kind[0], gpu_isMartini[0], gpu_rCut[0],
-                           gpu_rOn[0], gpu_count[0], lambdaVDW, sc_sigma_6,
+                          gpu_rOn[0], gpu_count[0], lambdaVDW, sc_sigma_6,
                           sc_alpha, sc_power, gpu_rMin, gpu_rMaxSq, gpu_expConst);
 
         if(electrostatic) {
           static const double qqFact = 167000.0;
           double qi_qj_fact = cA * cB * qqFact;
           double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
-                                                 gpu_isFraction, gpu_molIndex,
-                                                 gpu_kindIndex, gpu_lambdaCoulomb);
+                                 gpu_isFraction, gpu_molIndex,
+                                 gpu_kindIndex, gpu_lambdaCoulomb);
           REn += CalcCoulombGPU(distSq, kA, kB, qi_qj_fact, gpu_rCutLow[0],
                                 gpu_ewald[0], gpu_VDW_Kind[0], gpu_alpha[box],
                                 gpu_rCutCoulomb[box], gpu_isMartini[0],
@@ -668,9 +667,9 @@ __device__ double CalcEnShiftGPU(double distSq, int index, double *gpu_sigmaSq,
 }
 
 __device__ double CalcEnShiftGPUNoLambda(double distSq, int index,
-                                         double *gpu_sigmaSq,
-                                         double *gpu_n, double *gpu_epsilon_Cn,
-                                         double gpu_rCut)
+    double *gpu_sigmaSq,
+    double *gpu_n, double *gpu_epsilon_Cn,
+    double gpu_rCut)
 {
   double rRat2 = gpu_sigmaSq[index] / distSq;
   double rRat4 = rRat2 * rRat2;
@@ -723,13 +722,13 @@ __device__ double CalcEnExp6GPUNoLambda(double distSq, int index, double* gpu_n,
 }
 
 __device__ double CalcEnSwitchMartiniGPU(double distSq, int index,
-                                         double *gpu_sigmaSq, double *gpu_n,
-                                         double *gpu_epsilon_Cn,
-                                         double gpu_rCut, double gpu_rOn,
-                                         double gpu_lambdaVDW,
-                                         double sc_sigma_6,
-                                         double sc_alpha,
-                                         uint sc_power)
+    double *gpu_sigmaSq, double *gpu_n,
+    double *gpu_epsilon_Cn,
+    double gpu_rCut, double gpu_rOn,
+    double gpu_lambdaVDW,
+    double sc_sigma_6,
+    double sc_alpha,
+    uint sc_power)
 {
   if(gpu_lambdaVDW >= 0.999999) {
     return CalcEnSwitchMartiniGPUNoLambda(distSq, index, gpu_sigmaSq, gpu_n,

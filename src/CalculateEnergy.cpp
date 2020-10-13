@@ -105,8 +105,8 @@ SystemPotential CalculateEnergy::SystemTotal()
     }
 
 #ifdef _OPENMP
-  #pragma omp parallel for default(none) private(bondEnergy) shared(b, molID) \
-  reduction(+:bondEn, nonbondEn, correction)
+    #pragma omp parallel for default(none) private(bondEnergy) shared(b, molID) \
+    reduction(+:bondEn, nonbondEn, correction)
 #endif
     for (int i = 0; i < molID.size(); i++) {
       //calculate nonbonded energy
@@ -205,11 +205,11 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 #if GCC_VERSION >= 90000
   #pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
   cellVector, coords, mapParticleToCell, box, neighborList) \
-  reduction(+:tempREn, tempLJEn)
+reduction(+:tempREn, tempLJEn)
 #else
   #pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
   cellVector, coords, mapParticleToCell, neighborList) \
-  reduction(+:tempREn, tempLJEn)
+reduction(+:tempREn, tempLJEn)
 #endif
 #endif
   // loop over all particles
@@ -237,9 +237,9 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
             double lambdaVDW = GetLambdaVDW(particleMol[currParticle], particleMol[nParticle], box);
             if (electrostatic) {
               double lambdaCoulomb = GetLambdaCoulomb(particleMol[currParticle],
-                                               particleMol[nParticle], box);
+                                                      particleMol[nParticle], box);
               double qi_qj_fact = particleCharge[currParticle] *
-                           particleCharge[nParticle] * num::qqFact;
+                                  particleCharge[nParticle] * num::qqFact;
               tempREn += forcefield.particles->CalcCoulomb(distSq,
                          particleKind[currParticle], particleKind[nParticle],
                          qi_qj_fact, lambdaCoulomb, box);
@@ -268,11 +268,11 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
 }
 
 SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
-                                          XYZArray const& coords,
-                                          XYZArray& atomForce,
-                                          XYZArray& molForce,
-                                          BoxDimensions const& boxAxes,
-                                          const uint box)
+    XYZArray const& coords,
+    XYZArray& atomForce,
+    XYZArray& molForce,
+    BoxDimensions const& boxAxes,
+    const uint box)
 {
   //Handles reservoir box case, returning zeroed structure if
   //interactions are off.
@@ -324,15 +324,15 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
 #else
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
 #if GCC_VERSION >= 90000
-#pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
+  #pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
   cellVector, coords, mapParticleToCell, box, neighborList) \
-  reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
-  aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
+reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
+            aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 #else
-#pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
+  #pragma omp parallel for default(none) shared(boxAxes, cellStartIndex, \
   cellVector, coords, mapParticleToCell, neighborList) \
-  reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
-  aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
+reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
+            aForcez[:atomCount], mForcex[:molCount], mForcey[:molCount], mForcez[:molCount])
 #endif
 #endif
   for(int currParticleIdx = 0; currParticleIdx < cellVector.size(); currParticleIdx++) {
@@ -354,9 +354,9 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
             double lambdaVDW = GetLambdaVDW(particleMol[currParticle], particleMol[nParticle], box);
             if (electrostatic) {
               double lambdaCoulomb = GetLambdaCoulomb(particleMol[currParticle],
-                                               particleMol[nParticle], box);
+                                                      particleMol[nParticle], box);
               double qi_qj_fact = particleCharge[currParticle] * particleCharge[nParticle] *
-                           num::qqFact;
+                                  num::qqFact;
               tempREn += forcefield.particles->CalcCoulomb(distSq, particleKind[currParticle],
                          particleKind[nParticle], qi_qj_fact, lambdaCoulomb, box);
               // Calculating the force
@@ -444,11 +444,11 @@ Virial CalculateEnergy::VirialCalc(const uint box)
 #if GCC_VERSION >= 90000
   #pragma omp parallel for default(none) shared(cellStartIndex, cellVector, \
   mapParticleToCell, neighborList, box) \
-  reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33)
+reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33)
 #else
   #pragma omp parallel for default(none) shared(cellStartIndex, cellVector, \
   mapParticleToCell, neighborList) \
-  reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33)
+reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT33)
 #endif
 #endif
   for(int currParticleIdx = 0; currParticleIdx < cellVector.size(); currParticleIdx++) {
@@ -478,11 +478,11 @@ Virial CalculateEnergy::VirialCalc(const uint box)
 
             if (electrostatic) {
               double lambdaCoulomb = GetLambdaCoulomb(particleMol[currParticle],
-                                               particleMol[nParticle], box);
+                                                      particleMol[nParticle], box);
               double qi_qj = particleCharge[currParticle] * particleCharge[nParticle];
 
               double pRF = forcefield.particles->CalcCoulombVir(distSq, particleKind[currParticle],
-                    particleKind[nParticle], qi_qj, lambdaCoulomb, box);
+                           particleKind[nParticle], qi_qj, lambdaCoulomb, box);
               //calculate the top diagonal of pressure tensor
               rT11 += pRF * (virC.x * comC.x);
               //rT12 += pRF * (0.5 * (virC.x * comC.y + virC.y * comC.x));
@@ -495,7 +495,7 @@ Virial CalculateEnergy::VirialCalc(const uint box)
             }
 
             double pVF = forcefield.particles->CalcVir(distSq, particleKind[currParticle],
-                                                particleKind[nParticle], lambdaVDW);
+                         particleKind[nParticle], lambdaVDW);
             //calculate the top diagonal of pressure tensor
             vT11 += pVF * (virC.x * comC.x);
             //vT12 += pVF * (0.5 * (virC.x * comC.y + virC.y * comC.x));
@@ -586,11 +586,11 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
-#pragma omp parallel for default(none) shared(atom, nIndex, box, molIndex) \
-  reduction(+:tempREn, tempLJEn)
+      #pragma omp parallel for default(none) shared(atom, nIndex, box, molIndex) \
+      reduction(+:tempREn, tempLJEn)
 #else
-#pragma omp parallel for default(none) shared(atom, nIndex) \
-  reduction(+:tempREn, tempLJEn)
+      #pragma omp parallel for default(none) shared(atom, nIndex) \
+      reduction(+:tempREn, tempLJEn)
 #endif
 #endif
       for(int i = 0; i < nIndex.size(); i++) {
@@ -603,9 +603,9 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 
           if (electrostatic) {
             double lambdaCoulomb = GetLambdaCoulomb(molIndex, particleMol[nIndex[i]],
-                                             box);
+                                                    box);
             double qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
-                         num::qqFact;
+                                num::qqFact;
 
             tempREn += -forcefield.particles->CalcCoulomb(distSq, particleKind[atom],
                        particleKind[nIndex[i]], qi_qj_fact, lambdaCoulomb, box);
@@ -627,11 +627,11 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
-#pragma omp parallel for default(none) shared(atom, molCoords, nIndex, overlap, p, molIndex, box) \
-  reduction(+:tempREn, tempLJEn)
+      #pragma omp parallel for default(none) shared(atom, molCoords, nIndex, overlap, p, molIndex, box) \
+      reduction(+:tempREn, tempLJEn)
 #else
-#pragma omp parallel for default(none) shared(atom, molCoords, nIndex, overlap, p) \
-  reduction(+:tempREn, tempLJEn)
+      #pragma omp parallel for default(none) shared(atom, molCoords, nIndex, overlap, p) \
+      reduction(+:tempREn, tempLJEn)
 #endif
 #endif
       for(int i = 0; i < nIndex.size(); i++) {
@@ -647,9 +647,9 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
 
           if (electrostatic) {
             double lambdaCoulomb = GetLambdaCoulomb(molIndex, particleMol[nIndex[i]],
-                                             box);
+                                                    box);
             double qi_qj_fact = particleCharge[atom] *
-                         particleCharge[nIndex[i]] * num::qqFact;
+                                particleCharge[nIndex[i]] * num::qqFact;
 
             tempREn += forcefield.particles->CalcCoulomb(distSq,
                        particleKind[atom], particleKind[nIndex[i]],
@@ -735,13 +735,13 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
 
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
-#pragma omp parallel for default(none) shared(kindI, kindICharge, nIndex, \
-  overlap, t, trialPos, box, molIndex) \
-  reduction(+:tempLJ, tempReal)
+    #pragma omp parallel for default(none) shared(kindI, kindICharge, nIndex, \
+    overlap, t, trialPos, box, molIndex) \
+reduction(+:tempLJ, tempReal)
 #else
-#pragma omp parallel for default(none) shared(kindI, kindICharge, nIndex, \
-  overlap, t, trialPos) \
-  reduction(+:tempLJ, tempReal)
+    #pragma omp parallel for default(none) shared(kindI, kindICharge, nIndex, \
+    overlap, t, trialPos) \
+reduction(+:tempLJ, tempReal)
 #endif
 #endif
     for(int i = 0; i < nIndex.size(); i++) {
@@ -757,7 +757,7 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
                                                lambdaVDW);
         if(electrostatic) {
           double lambdaCoulomb = GetLambdaCoulomb(molIndex, particleMol[nIndex[i]],
-                                           box);
+                                                  box);
           double qi_qj_Fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
           tempReal += forcefield.particles->CalcCoulomb(distSq, kindI,
                       particleKind[nIndex[i]], qi_qj_Fact, lambdaCoulomb, box);
@@ -1405,16 +1405,16 @@ void CalculateEnergy::CalculateTorque(std::vector<uint>& moleculeIndex,
     double *torquez = molTorque.z;
     int torqueCount = molTorque.Count();
 
-  // Reset Torque Arrays
+    // Reset Torque Arrays
     molTorque.Reset();
 
 #if defined _OPENMP
 #if GCC_VERSION >= 90000
-#pragma omp parallel for default(none) shared(atomForce, atomForceRec, com, coordinates,\
-  moleculeIndex, torquex, torquey, torquez, box)
+    #pragma omp parallel for default(none) shared(atomForce, atomForceRec, com, coordinates,\
+    moleculeIndex, torquex, torquey, torquez, box)
 #else
-#pragma omp parallel for default(none) shared(atomForce, atomForceRec, com, coordinates,\
-  moleculeIndex, torquex, torquey, torquez)
+    #pragma omp parallel for default(none) shared(atomForce, atomForceRec, com, coordinates,\
+    moleculeIndex, torquex, torquey, torquez)
 #endif
 #endif
     for(int m = 0; m < moleculeIndex.size(); m++) {
@@ -1458,7 +1458,8 @@ void CalculateEnergy::ResetForce(XYZArray& atomForce, XYZArray& molForce,
   }
 }
 
-uint CalculateEnergy::NumberOfParticlesInsideBox(uint box) {
+uint CalculateEnergy::NumberOfParticlesInsideBox(uint box)
+{
   uint numberOfAtoms = 0;
 
   for(int k = 0; k < mols.GetKindsCount(); k++) {
@@ -1556,12 +1557,12 @@ void CalculateEnergy::SingleMoleculeInter(Energy &interEnOld,
 
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
-#pragma omp parallel for default(none) shared(atom, nIndex, box, \
-  lambdaNewCoulomb, lambdaOldCoulomb, lambdaOldVDW, lambdaNewVDW) \
-  reduction(+:tempREnOld, tempLJEnOld, tempREnNew, tempLJEnNew)
+      #pragma omp parallel for default(none) shared(atom, nIndex, box, \
+      lambdaNewCoulomb, lambdaOldCoulomb, lambdaOldVDW, lambdaNewVDW) \
+reduction(+:tempREnOld, tempLJEnOld, tempREnNew, tempLJEnNew)
 #else
-#pragma omp parallel for default(none) shared(atom, nIndex) \
-  reduction(+:tempREnOld, tempLJEnOld, tempREnNew, tempLJEnNew)
+      #pragma omp parallel for default(none) shared(atom, nIndex) \
+      reduction(+:tempREnOld, tempLJEnOld, tempREnNew, tempLJEnNew)
 #endif
 #endif
       for(int i = 0; i < nIndex.size(); i++) {
@@ -1572,7 +1573,7 @@ void CalculateEnergy::SingleMoleculeInter(Energy &interEnOld,
 
           if (electrostatic) {
             double qi_qj_fact = particleCharge[atom] * particleCharge[nIndex[i]] *
-                         num::qqFact;
+                                num::qqFact;
             tempREnNew += forcefield.particles->CalcCoulomb(distSq, particleKind[atom],
                           particleKind[nIndex[i]], qi_qj_fact, lambdaNewCoulomb, box);
             tempREnOld += forcefield.particles->CalcCoulomb(distSq, particleKind[atom],
@@ -1677,13 +1678,13 @@ void CalculateEnergy::EnergyChange(Energy *energyDiff, Energy &dUdL_VDW,
 
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
 #if GCC_VERSION >= 90000
-#pragma omp parallel for default(none) shared(atom, lambda_Coul, lambda_VDW, \
-  lambdaSize, nIndex, box, iState) \
-  reduction(+:dudl_VDW, dudl_Coul, tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
+    #pragma omp parallel for default(none) shared(atom, lambda_Coul, lambda_VDW, \
+    lambdaSize, nIndex, box, iState) \
+reduction(+:dudl_VDW, dudl_Coul, tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
 #else
-#pragma omp parallel for default(none) shared(atom, lambda_Coul, lambda_VDW, \
-  lambdaSize, nIndex) \
-  reduction(+:dudl_VDW, dudl_Coul, tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
+    #pragma omp parallel for default(none) shared(atom, lambda_Coul, lambda_VDW, \
+    lambdaSize, nIndex) \
+reduction(+:dudl_VDW, dudl_Coul, tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaSize])
 #endif
 #endif
     for(int i = 0; i < nIndex.size(); i++) {
@@ -1694,8 +1695,8 @@ void CalculateEnergy::EnergyChange(Energy *energyDiff, Energy &dUdL_VDW,
         double qi_qj_fact = 0.0, energyOldCoul = 0.0;
         //Calculate the energy of current state
         double energyOldVDW = forcefield.particles->CalcEn(distSq, particleKind[atom],
-                       particleKind[nIndex[i]],
-                       lambda_VDW[iState]);
+                              particleKind[nIndex[i]],
+                              lambda_VDW[iState]);
         //Calculate du/dl in VDW for current state
         dudl_VDW += forcefield.particles->CalcdEndL(distSq, particleKind[atom],
                     particleKind[nIndex[i]], lambda_VDW[iState]);

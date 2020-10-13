@@ -48,7 +48,7 @@ FFSetup::SetReadFunctions(const bool isCHARMM)
   funct["NONBONDED"] = &mie;
   funct["NBFIX"] = &nbfix;
   // Error checking done to ensure isCharmm is true if these are found
- 
+
   //Unique to exotic file
   funct["NONBONDED_MIE"] = &mie;
   funct["NBFIX_MIE"] = &nbfix;
@@ -81,19 +81,19 @@ void FFSetup::Init(std::string const& name, const bool isCHARMM)
       currSect = sect; //Save for later calls.
       std::cout << "Reading " << currSectName << " parameters.\n";
       if (isCHARMM) {
-        if (hasEnding(currSectName, "MIE")){
+        if (hasEnding(currSectName, "MIE")) {
           std::cout << "Error: CHARMM-Style parameter is set but EXOTIC-Style parameter header " << currSectName << " was found.\n"
-          "       Either set EXOTIC-Style in config file or change the keyword\n"
-          "       " << currSectName << " to " << currSectName.substr(0, currSectName.size()-4) << " in the parameter files.\n";
+                    "       Either set EXOTIC-Style in config file or change the keyword\n"
+                    "       " << currSectName << " to " << currSectName.substr(0, currSectName.size() - 4) << " in the parameter files.\n";
           exit(EXIT_FAILURE);
         }
       } else {
         std::regex nbonded ("NONBONDED");
         std::regex nbfix ("NBFIX");
-        if (std::regex_match(currSectName, nbonded) || std::regex_match(currSectName, nbfix)){
+        if (std::regex_match(currSectName, nbonded) || std::regex_match(currSectName, nbfix)) {
           std::cout << "Error: EXOTIC-Style parameter is set but CHARMM-Style parameter header " << currSectName << " was found.\n"
-          "       Either set CHARMM-Style in config file or change the keyword\n"
-          "       " << currSectName << " to " << currSectName.append("_MIE") << " in the parameter files.\n";          
+                    "       Either set CHARMM-Style in config file or change the keyword\n"
+                    "       " << currSectName << " to " << currSectName.append("_MIE") << " in the parameter files.\n";
           exit(EXIT_FAILURE);
         }
       }
@@ -121,12 +121,13 @@ void FFSetup::Init(std::string const& name, const bool isCHARMM)
   dih.clean_names();
 }
 
-bool FFSetup::hasEnding (std::string const &fullString, std::string const &ending) {
-    if (fullString.length() >= ending.length()) {
-        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
-    } else {
-        return false;
-    }
+bool FFSetup::hasEnding (std::string const &fullString, std::string const &ending)
+{
+  if (fullString.length() >= ending.length()) {
+    return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+  } else {
+    return false;
+  }
 }
 
 namespace ff_setup

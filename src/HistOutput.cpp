@@ -65,8 +65,8 @@ void Histogram::Init(pdb_setup::Atoms const& atoms,
       for (uint k = 0; k < var->numKinds; ++k) {
         // + 1 for case where all particles of kind k are in 1 box
         // In such a case, line 100 will array out of bounds
-        molCount[b][k] = new uint[total[k]+1];
-        for (uint n = 0; n < total[k]+1; ++n) {
+        molCount[b][k] = new uint[total[k] + 1];
+        for (uint n = 0; n < total[k] + 1; ++n) {
           molCount[b][k][n] = 0;
         }
       }
@@ -125,7 +125,7 @@ void Histogram::DoOutput(const ulong step)
 }
 void Histogram::PrintKindHist(const uint b, const uint k)
 {
-  for (uint n = 0; n < total[k]+1; ++n) {
+  for (uint n = 0; n < total[k] + 1; ++n) {
     if ( molCount[b][k][n] != 0 )
       outF[b][k] << n << " " << molCount[b][k][n] << std::endl;;
   }

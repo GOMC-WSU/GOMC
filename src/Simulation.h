@@ -35,11 +35,11 @@ private:
   uint remarksCount;
   ulong startStep;
   MultiSim const*const& ms;
-  #if GOMC_LIB_MPI
+#if GOMC_LIB_MPI
   ParallelTemperingUtilities * PTUtils;
   std::vector<bool> exchangeResults;
   int parity;
-  #endif
+#endif
 };
 
 #endif /*SIMULATION_H*/

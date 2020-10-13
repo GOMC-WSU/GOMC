@@ -359,19 +359,19 @@ __device__ double CalcVirSwitchGPU(double distSq, int index,
 // from different files
 // Wanted to call CalcCoulombForceGPU() from CalculateEnergyCUDAKernel.cu file
 __device__ inline double CalcCoulombForceGPU(double distSq, double qi_qj,
-                                             int gpu_VDW_Kind, int gpu_ewald,
-                                             int gpu_isMartini,
-                                             double gpu_alpha,
-                                             double gpu_rCutCoulomb,
-                                             double gpu_diElectric_1,
-                                             double *gpu_sigmaSq,
-                                             bool sc_coul,
-                                             double sc_sigma_6,
-                                             double sc_alpha,
-                                             uint sc_power,
-                                             double gpu_lambdaCoulomb,
-                                             int gpu_count, int kind1,
-                                             int kind2)
+    int gpu_VDW_Kind, int gpu_ewald,
+    int gpu_isMartini,
+    double gpu_alpha,
+    double gpu_rCutCoulomb,
+    double gpu_diElectric_1,
+    double *gpu_sigmaSq,
+    bool sc_coul,
+    double sc_sigma_6,
+    double sc_alpha,
+    uint sc_power,
+    double gpu_lambdaCoulomb,
+    int gpu_count, int kind1,
+    int kind2)
 {
   if((gpu_rCutCoulomb * gpu_rCutCoulomb) < distSq) {
     return 0.0;

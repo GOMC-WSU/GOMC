@@ -104,7 +104,7 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   CUMALLOC((void**) &vars->gpu_r_k_x, maxMolNumber * sizeof(double));
   CUMALLOC((void**) &vars->gpu_r_k_y, maxMolNumber * sizeof(double));
   CUMALLOC((void**) &vars->gpu_r_k_z, maxMolNumber * sizeof(double));
-  
+
   CUMALLOC((void**) &vars->gpu_t_k_x, maxMolNumber * sizeof(double));
   CUMALLOC((void**) &vars->gpu_t_k_y, maxMolNumber * sizeof(double));
   CUMALLOC((void**) &vars->gpu_t_k_z, maxMolNumber * sizeof(double));

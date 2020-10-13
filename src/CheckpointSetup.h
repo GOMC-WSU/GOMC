@@ -32,9 +32,9 @@ public:
   void SetStepNumber(ulong & startStep);
   void SetPRNGVariables(PRNG & prng);
   bool CheckIfParallelTemperingWasEnabled();
-  #if GOMC_LIB_MPI
+#if GOMC_LIB_MPI
   void SetPRNGVariablesPT(PRNG & prng);
-  #endif
+#endif
   void SetBoxDimensions(BoxDimensions & boxDimRef);
   void SetCoordinates(Coordinates & coordinates);
   void SetMoleculeLookup(MoleculeLookup & molLookupRef);
@@ -76,11 +76,11 @@ private:
   void readParallelTemperingBoolean();
   void readStepNumber();
   void readRandomNumbers();
-  #if GOMC_LIB_MPI
+#if GOMC_LIB_MPI
   void readRandomNumbersParallelTempering();
   uint32_t* saveArrayPT;
   uint32_t seedLocationPT, seedLeftPT, seedValuePT;
-  #endif
+#endif
   void readCoordinates();
   void readMoleculeLookupData();
   void readMoveSettingsData();

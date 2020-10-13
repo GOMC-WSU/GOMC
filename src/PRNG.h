@@ -205,11 +205,11 @@ public:
     std::cerr << "draw: " << draw << std::endl;
     std::cerr << "sum: " << sum << std::endl;
 
-    #if GOMC_LIB_MPI
-      std::cerr << "Error: When conducting replica exchange simulations, this error " << std::endl;
-      std::cerr << "usually occurs when using Intraswap or Molecular Exchange moves " << std::endl;
-      std::cerr << "and seeding all simulations with the same seed." << std::endl;
-    #endif
+#if GOMC_LIB_MPI
+    std::cerr << "Error: When conducting replica exchange simulations, this error " << std::endl;
+    std::cerr << "usually occurs when using Intraswap or Molecular Exchange moves " << std::endl;
+    std::cerr << "and seeding all simulations with the same seed." << std::endl;
+#endif
 
     exit(EXIT_FAILURE);
   }

@@ -74,7 +74,7 @@ inline void COM::SetNew(const uint moleculeIndex, const uint box)
 
   // get the range of atoms for molecueIndex
   molRef.GetRange(atomStart, atomStop, atomLen, moleculeIndex);
-  
+
   // unwrap molecule
   boxDimRef.UnwrapPBC(coordRef, atomStart, atomStop, box, coordRef.Get(atomStart));
 

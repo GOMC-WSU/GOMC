@@ -31,7 +31,7 @@ void CallBoxForceReciprocalGPU(VariablesCUDA *vars,
                                XYZArray const &molCoords,
                                int boxStart,
                                int boxEnd,
-                               BoxDimensions const &boxAxes, 
+                               BoxDimensions const &boxAxes,
                                int box);
 
 void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
@@ -102,7 +102,7 @@ __global__ void BoxForceReciprocalGPU(double *gpu_aForceRecx,
                                       double axy,
                                       double axz,
                                       int box,
-				      int numberOfAtomsInsideBox);
+                                      int numberOfAtomsInsideBox);
 
 __global__ void BoxReciprocalSetupGPU(double * gpu_x,
                                       double * gpu_y,

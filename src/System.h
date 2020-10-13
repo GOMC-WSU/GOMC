@@ -110,10 +110,10 @@ public:
   PRNG prng;
   Random123Wrapper r123wrapper;
 
-  #if GOMC_LIB_MPI
+#if GOMC_LIB_MPI
   MultiSim const*const& ms;
   PRNG * prngParallelTemp;
-  #endif
+#endif
 
 
   CheckpointSetup checkpointSet;

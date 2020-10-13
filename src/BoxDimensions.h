@@ -33,11 +33,11 @@ public:
       cellBasis[b] = XYZArray(3);
     }
   }
-  
+
   BoxDimensions(BoxDimensions const& other);
-  
+
   virtual ~BoxDimensions() {};
-  
+
   virtual BoxDimensions& operator=(BoxDimensions const& other);
 
   virtual void Init(config_setup::RestartSettings const& restart,

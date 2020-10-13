@@ -241,7 +241,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         std::cout << "Error: Simulation requires " << BOX_TOTAL << " PDB file(s)!\n";
         exit(EXIT_FAILURE);
       }
-      if (multisim != NULL){
+      if (multisim != NULL) {
         in.files.pdb.name[boxnum] = multisim->replicaInputDirectoryPath + line[2];
       } else {
         in.files.pdb.name[boxnum] = line[2];
@@ -252,7 +252,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         std::cout << "Error: Simulation requires " << BOX_TOTAL << " PSF file(s)!\n";
         exit(EXIT_FAILURE);
       }
-      if (multisim != NULL){
+      if (multisim != NULL) {
         in.files.psf.name[boxnum] = multisim->replicaInputDirectoryPath + line[2];
       } else {
         in.files.psf.name[boxnum] = line[2];
@@ -517,7 +517,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
     } else if(CheckString(line[0], "ParallelTemperingAttemptsPerExchange")) {
       sys.step.parallelTemperingAttemptsPerExchange = stringtoi(line[1]);
       printf("%-40s %lu \n", "Info: Number of Attempts Per Exchange Move",
-        sys.step.parallelTemperingAttemptsPerExchange);
+             sys.step.parallelTemperingAttemptsPerExchange);
     } else if(CheckString(line[0], "DisFreq")) {
       sys.moves.displace = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Displacement move frequency",
@@ -1046,8 +1046,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         printf("%-40s %-s \n", "Info: Constant seed", "Active");
       else
         printf("Warning: Constant seed set, but will be ignored.\n");
-    } 
-    else if(CheckString(line[0], "ParallelTempering_Seed")) {
+    } else if(CheckString(line[0], "ParallelTempering_Seed")) {
       in.prngParallelTempering.seed = stringtoi(line[1]);
       if("INTSEED" == in.prngParallelTempering.kind)
         printf("%-40s %-s \n", "Info: Constant Parallel Tempering seed", "Active");
@@ -1371,10 +1370,10 @@ void ConfigSetup::verifyInputs(void)
 #endif
 
 #if GOMC_LIB_MPI
-  if(sys.step.parallelTemp && in.prngParallelTempering.kind != "INTSEED"){
+  if(sys.step.parallelTemp && in.prngParallelTempering.kind != "INTSEED") {
     std::cout << "Error: INTSEED required for parallel tempering!" << std::endl;
     exit(EXIT_FAILURE);
-  } 
+  }
 #endif
 
   if(in.prng.kind == "INTSEED" && in.prng.seed == UINT_MAX) {

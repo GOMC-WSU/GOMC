@@ -28,8 +28,7 @@ inline bool approximatelyEqual(double a, double b, double epsilon)
 {
   if (abs(a) < 1.0 || abs(b) < 1.0) {
     return abs(a - b) <= epsilon;
-  }
-  else {
+  } else {
     return std::abs(a - b) <= ((std::abs(a) < std::abs(b) ? std::abs(b) : std::abs(a)) * epsilon);
   }
 }

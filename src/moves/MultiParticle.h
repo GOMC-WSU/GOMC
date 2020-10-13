@@ -224,7 +224,7 @@ inline uint MultiParticle::Transform()
 #ifdef GOMC_CUDA
   // calculate which particles are inside moleculeIndex
   std::vector<int> isMoleculeInvolved(newMolsPos.Count(), 0);
-  for(int particleID=0; particleID<isMoleculeInvolved.size(); particleID++) {
+  for(int particleID = 0; particleID < isMoleculeInvolved.size(); particleID++) {
     int midx = particleMol[particleID];
     std::vector<uint>::iterator it;
     it = find(moleculeIndex.begin(), moleculeIndex.end(), midx);
@@ -258,14 +258,14 @@ inline uint MultiParticle::Transform()
   // move particles according to force and torque and store them in the new pos
   if(moveType == mp::MPROTATE) {
 #ifdef _OPENMP
-  #pragma omp parallel for default(none)
+    #pragma omp parallel for default(none)
 #endif
     for(int m = 0; m < moleculeIndex.size(); m++) {
       RotateForceBiased(moleculeIndex[m]);
     }
   } else {
-    #ifdef _OPENMP
-  #pragma omp parallel for default(none)
+#ifdef _OPENMP
+    #pragma omp parallel for default(none)
 #endif
     for(int m = 0; m < moleculeIndex.size(); m++) {
       TranslateForceBiased(moleculeIndex[m]);
@@ -349,9 +349,9 @@ inline double MultiParticle::GetCoeff()
     } else {
       // displace: lbf_old, lbf_new are lambda * BETA * force
       XYZ lbf_old = (molForceRef.Get(molNumber) + molForceRecRef.Get(molNumber)) *
-                lBeta;
+                    lBeta;
       XYZ lbf_new = (molForceNew.Get(molNumber) + molForceRecNew.Get(molNumber)) *
-                lBeta;
+                    lBeta;
       w_ratio *= CalculateWRatio(lbf_new, lbf_old, t_k.Get(molNumber), t_max);
     }
   }
@@ -403,23 +403,23 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
   XYZ lbmax = lb * max;
   XYZ num;
   if(std::abs(lbmax.x) > MIN_FORCE && std::abs(lbmax.x) < MAX_FORCE) {
-    num.x = log(exp(-1.0 * lbmax.x) + 2 * r123wrapper(molIndex*3+0) * sinh(lbmax.x)) / lb.x;
+    num.x = log(exp(-1.0 * lbmax.x) + 2 * r123wrapper(molIndex * 3 + 0) * sinh(lbmax.x)) / lb.x;
   } else {
-    double rr = r123wrapper(molIndex*3+0) * 2.0 - 1.0;
+    double rr = r123wrapper(molIndex * 3 + 0) * 2.0 - 1.0;
     num.x = max * rr;
   }
 
   if(std::abs(lbmax.y) > MIN_FORCE && std::abs(lbmax.y) < MAX_FORCE) {
-    num.y = log(exp(-1.0 * lbmax.y) + 2 * r123wrapper(molIndex*3+1) * sinh(lbmax.y)) / lb.y;
+    num.y = log(exp(-1.0 * lbmax.y) + 2 * r123wrapper(molIndex * 3 + 1) * sinh(lbmax.y)) / lb.y;
   } else {
-    double rr = r123wrapper(molIndex*3+1) * 2.0 - 1.0;
+    double rr = r123wrapper(molIndex * 3 + 1) * 2.0 - 1.0;
     num.y = max * rr;
   }
 
   if(std::abs(lbmax.z) > MIN_FORCE && std::abs(lbmax.z) < MAX_FORCE) {
-    num.z = log(exp(-1.0 * lbmax.z) + 2 * r123wrapper(molIndex*3+2) * sinh(lbmax.z)) / lb.z;
+    num.z = log(exp(-1.0 * lbmax.z) + 2 * r123wrapper(molIndex * 3 + 2) * sinh(lbmax.z)) / lb.z;
   } else {
-    double rr = r123wrapper(molIndex*3+2) * 2.0 - 1.0;
+    double rr = r123wrapper(molIndex * 3 + 2) * 2.0 - 1.0;
     num.z = max * rr;
   }
 

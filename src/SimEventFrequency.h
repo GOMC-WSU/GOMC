@@ -21,10 +21,10 @@ struct SimEventFrequency {
     tillEquil = s.equil;
     pCalcFreq = s.pressureCalcFreq;
     pressureCalc = s.pressureCalc;
-    #if GOMC_LIB_MPI
+#if GOMC_LIB_MPI
     parallelTempFreq =  s.parallelTempFreq;
     parallelTemp = s.parallelTemp;
-    #endif
+#endif
   }
 };
 

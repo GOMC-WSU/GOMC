@@ -117,7 +117,7 @@ void Ewald::Init()
       }
     }
   }
-  
+
   // initialize starting index and length index of each molecule
   startMol.resize(currentCoords.Count());
   lengthMol.resize(currentCoords.Count());
@@ -230,7 +230,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
                               currentEnergyRecip[box], box);
 #else
 #ifdef _OPENMP
-  #pragma omp parallel default(none) shared(box)
+    #pragma omp parallel default(none) shared(box)
 #endif
     {
       std::memset(sumRnew[box], 0.0, sizeof(double) * imageSize[box]);
@@ -243,7 +243,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
       uint start = mols.MolStart(*thisMol);
 
 #ifdef _OPENMP
-  #pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, start, thisKind)
+      #pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, start, thisKind)
 #endif
       for (int i = 0; i < imageSize[box]; i++) {
         double sumReal = 0.0;
@@ -255,10 +255,10 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
             continue;
           }
           double dotProduct = Dot(currentAtom, kx[box][i], ky[box][i],
-                           kz[box][i], molCoords);
+                                  kz[box][i], molCoords);
 
           // TODO: sincos() can be used to optimize (GNU compiler only)
-          // Windows doesn't have sincos() function and 
+          // Windows doesn't have sincos() function and
           // Intel compiler automatically optimizes this part
           sumReal += (thisKind.AtomCharge(j) * cos(dotProduct));
           sumImaginary += (thisKind.AtomCharge(j) * sin(dotProduct));
@@ -284,7 +284,7 @@ double Ewald::BoxReciprocal(uint box) const
     return currentEnergyRecip[box];
 #else
 #ifdef _OPENMP
-  #pragma omp parallel for default(none) shared(box) reduction(+:energyRecip)
+    #pragma omp parallel for default(none) shared(box) reduction(+:energyRecip)
 #endif
     for (int i = 0; i < imageSize[box]; i++) {
       energyRecip += (( sumRnew[box][i] * sumRnew[box][i] +
@@ -323,13 +323,13 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
 #else
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
-#pragma omp parallel for default(none) shared(lambdaCoef, length, molCoords, \
-  startAtom, thisKind, box) \
-  reduction(+:energyRecipNew)
+    #pragma omp parallel for default(none) shared(lambdaCoef, length, molCoords, \
+    startAtom, thisKind, box) \
+reduction(+:energyRecipNew)
 #else
-#pragma omp parallel for default(none) shared(lambdaCoef, length, molCoords, \
-  startAtom, thisKind) \
-  reduction(+:energyRecipNew)
+    #pragma omp parallel for default(none) shared(lambdaCoef, length, molCoords, \
+    startAtom, thisKind) \
+reduction(+:energyRecipNew)
 #endif
 #endif
     for (int i = 0; i < imageSizeRef[box]; i++) {
@@ -397,11 +397,11 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
 #else
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
-#pragma omp parallel for default(none) shared(length, molCoords, startAtom, \
-  thisKind, box) reduction(+:energyRecipNew)
+    #pragma omp parallel for default(none) shared(length, molCoords, startAtom, \
+thisKind, box) reduction(+:energyRecipNew)
 #else
-#pragma omp parallel for default(none) shared(length, molCoords, startAtom, \
-  thisKind) reduction(+:energyRecipNew)
+    #pragma omp parallel for default(none) shared(length, molCoords, startAtom, \
+thisKind) reduction(+:energyRecipNew)
 #endif
 #endif
     for (int i = 0; i < imageSizeRef[box]; i++) {
@@ -413,8 +413,8 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
           continue;
         }
         double dotProductNew = Dot(p, kxRef[box][i],
-                            kyRef[box][i], kzRef[box][i],
-                            molCoords);
+                                   kyRef[box][i], kzRef[box][i],
+                                   molCoords);
 
         sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
         sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
@@ -452,13 +452,13 @@ double Ewald::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
 
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
-#pragma omp parallel for default(none) shared(lambdaCoef, length, molCoords, \
-  startAtom, thisKind, box) \
-  reduction(+:energyRecipNew)
+    #pragma omp parallel for default(none) shared(lambdaCoef, length, molCoords, \
+    startAtom, thisKind, box) \
+reduction(+:energyRecipNew)
 #else
-#pragma omp parallel for default(none) shared(lambdaCoef, length, molCoords, \
-  startAtom, thisKind) \
-  reduction(+:energyRecipNew)
+    #pragma omp parallel for default(none) shared(lambdaCoef, length, molCoords, \
+    startAtom, thisKind) \
+reduction(+:energyRecipNew)
 #endif
 #endif
     for (int i = 0; i < imageSizeRef[box]; i++) {
@@ -470,8 +470,8 @@ double Ewald::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
           continue;
         }
         double dotProductNew = Dot(p, kxRef[box][i],
-                            kyRef[box][i], kzRef[box][i],
-                            molCoords);
+                                   kyRef[box][i], kzRef[box][i],
+                                   molCoords);
 
         sumRealNew += thisKind.AtomCharge(p) * cos(dotProductNew);
         sumImaginaryNew += thisKind.AtomCharge(p) * sin(dotProductNew);
@@ -507,13 +507,13 @@ void Ewald::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
 
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
 #if GCC_VERSION >= 90000
-#pragma omp parallel for default(none) shared(lambda_Coul, lambdaSize, \
+  #pragma omp parallel for default(none) shared(lambda_Coul, lambdaSize, \
   length, startAtom, box, iState) \
-  reduction(+:energyRecip[:lambdaSize])
+reduction(+:energyRecip[:lambdaSize])
 #else
-#pragma omp parallel for default(none) shared(lambda_Coul, lambdaSize, \
+  #pragma omp parallel for default(none) shared(lambda_Coul, lambdaSize, \
   length, startAtom) \
-  reduction(+:energyRecip[:lambdaSize])
+reduction(+:energyRecip[:lambdaSize])
 #endif
 #endif
   for (uint i = 0; i < imageSizeRef[box]; i++) {
@@ -526,7 +526,7 @@ void Ewald::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
         continue;
       }
       double dotProduct = Dot(p + startAtom, kxRef[box][i], kyRef[box][i], kzRef[box][i],
-                       currentCoords);
+                              currentCoords);
       sumReal += particleCharge[currentAtom] * cos(dotProduct);
       sumImaginary += particleCharge[currentAtom] * sin(dotProduct);
     }
@@ -543,7 +543,7 @@ void Ewald::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
 
   double energyRecipOld = sysPotRef.boxEnergy[box].recip;
   for(uint s = 0; s < lambdaSize; s++) {
-    energyDiff[s].recip = energyRecip[s] - energyRecipOld;
+  energyDiff[s].recip = energyRecip[s] - energyRecipOld;
   }
   //Calculate du/dl of Reciprocal for current state  with linear scaling
   //energy difference E(lambda =1) - E(lambda = 0)
@@ -588,13 +588,13 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 #else
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
-#pragma omp parallel for default(none) shared(length, molCoords, startAtom, \
-  thisKind, box) \
-  reduction(+:energyRecipNew)
+    #pragma omp parallel for default(none) shared(length, molCoords, startAtom, \
+    thisKind, box) \
+reduction(+:energyRecipNew)
 #else
-#pragma omp parallel for default(none) shared(length, molCoords, startAtom, \
-  thisKind) \
-  reduction(+:energyRecipNew)
+    #pragma omp parallel for default(none) shared(length, molCoords, startAtom, \
+    thisKind) \
+reduction(+:energyRecipNew)
 #endif
 #endif
     for (int i = 0; i < imageSizeRef[box]; i++) {
@@ -607,8 +607,8 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
           continue;
         }
         double dotProductNew = Dot(p, kxRef[box][i],
-                            kyRef[box][i], kzRef[box][i],
-                            molCoords);
+                                   kyRef[box][i], kzRef[box][i],
+                                   molCoords);
 
         sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
         sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
@@ -649,13 +649,13 @@ double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
 
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
-#pragma omp parallel for default(none) shared(box, first_call, lengthNew, lengthOld, \
-  newMol, oldMol, thisKindNew, thisKindOld, molIndexNew, molIndexOld) \
-  reduction(+:energyRecipNew)
+    #pragma omp parallel for default(none) shared(box, first_call, lengthNew, lengthOld, \
+    newMol, oldMol, thisKindNew, thisKindOld, molIndexNew, molIndexOld) \
+reduction(+:energyRecipNew)
 #else
-#pragma omp parallel for default(none) shared(box, first_call, lengthNew, lengthOld, \
-  newMol, oldMol, thisKindNew, thisKindOld) \
-  reduction(+:energyRecipNew)
+    #pragma omp parallel for default(none) shared(box, first_call, lengthNew, lengthOld, \
+    newMol, oldMol, thisKindNew, thisKindOld) \
+reduction(+:energyRecipNew)
 #endif
 #endif
     for (int i = 0; i < imageSizeRef[box]; i++) {
@@ -672,20 +672,20 @@ double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
             continue;
           }
           double dotProductNew = Dot(p, kxRef[box][i], kyRef[box][i],
-                              kzRef[box][i], newMol[m].GetCoords());
+                                     kzRef[box][i], newMol[m].GetCoords());
 
           // TODO: Using GNU extension we could improve this part of the code
           // by using sincos() function and merge sin() and cos() calculation
           // However, this will not work with Visual studio
           // Intel should automatically optimize this section by using
-          // internal functions like __svml_sincosf8..() 
+          // internal functions like __svml_sincosf8..()
           sumRealNew += (thisKindNew.AtomCharge(p) * lambdaCoef *
                          cos(dotProductNew));
           sumImaginaryNew += (thisKindNew.AtomCharge(p) * lambdaCoef *
                               sin(dotProductNew));
         }
       }
-      
+
       // Subtract the sum of the old molecule
       for (uint m = 0; m < oldMol.size(); m++) {
         uint oldMoleculeIndex = molIndexOld[m];
@@ -702,11 +702,11 @@ double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
           // by using sincos() function and merge sin() and cos() calculation
           // However, this will not work with Visual studio
           // Intel should automatically optimize this section by using
-          // internal functions like __svml_sincosf8..() 
+          // internal functions like __svml_sincosf8..()
           sumRealNew -= thisKindOld.AtomCharge(p) * lambdaCoef *
-                          cos(dotProductOld);
+                        cos(dotProductOld);
           sumImaginaryNew -= thisKindOld.AtomCharge(p) * lambdaCoef *
-                               sin(dotProductOld);
+                             sin(dotProductOld);
         }
       }
 
@@ -717,8 +717,7 @@ double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
       if (first_call) {
         sumRnew[box][i] = sumRref[box][i] + sumRealNew;
         sumInew[box][i] = sumIref[box][i] + sumImaginaryNew;
-      }
-      else {
+      } else {
         sumRnew[box][i] += sumRealNew;
         sumInew[box][i] += sumImaginaryNew;
       }
@@ -1134,7 +1133,7 @@ Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
 #endif
   for (int i = 0; i < imageSizeRef[box]; i++) {
     double factor = prefactRef[box][i] * (sumRref[box][i] * sumRref[box][i] +
-                                   sumIref[box][i] * sumIref[box][i]);
+                                          sumIref[box][i] * sumIref[box][i]);
 
     wT11 += factor * (1.0 - 2.0 * (constVal + 1.0 / hsqrRef[box][i]) *
                       kxRef[box][i] * kxRef[box][i]);
@@ -1167,15 +1166,15 @@ Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
       charge = particleCharge[atom] * lambdaCoef;
 
 #ifdef _OPENMP
-  #pragma omp parallel for default(none) shared(atom, box, charge, diffC) reduction(+:wT11, wT22, wT33)
+      #pragma omp parallel for default(none) shared(atom, box, charge, diffC) reduction(+:wT11, wT22, wT33)
 #endif
       for (int i = 0; i < imageSizeRef[box]; i++) {
         //compute the dot product of k and r
         double arg = Dot(atom, kxRef[box][i], kyRef[box][i],
-                  kzRef[box][i], currentCoords);
+                         kzRef[box][i], currentCoords);
 
         double factor = prefactRef[box][i] * 2.0 * (sumIref[box][i] * cos(arg) -
-                                             sumRref[box][i] * sin(arg)) * charge;
+                        sumRref[box][i] * sin(arg)) * charge;
 
         wT11 += factor * (kxRef[box][i] * diffC.x);
 
@@ -1361,8 +1360,9 @@ void Ewald::UpdateRecipVec(uint box)
   }
 }
 
-void compareDouble(const double &x, const double &y, const int &i) {
-  if(abs(x-y) > 1e-15) {
+void compareDouble(const double &x, const double &y, const int &i)
+{
+  if(abs(x - y) > 1e-15) {
     printf("%d: %lf != %lf\n", i, x, y);
   }
 }
@@ -1384,8 +1384,8 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       uint molIndex = *thisMol;
       uint length = mols.GetKind(molIndex).NumAtoms();
       uint start = mols.MolStart(molIndex);
-      for(int p=0; p<length; p++) {
-        atomForceRec.Set(start+p, 0.0, 0.0, 0.0);
+      for(int p = 0; p < length; p++) {
+        atomForceRec.Set(start + p, 0.0, 0.0, 0.0);
       }
       molForceRec.Set(molIndex, 0.0, 0.0, 0.0);
       thisMol++;
@@ -1451,13 +1451,13 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
             }
           }
 #ifdef _OPENMP
-  #pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, p) reduction(+:X, Y, Z)
+          #pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, p) reduction(+:X, Y, Z)
 #endif
           for(int i = 0; i < imageSize[box]; i++) {
             double dot = Dot(p, kx[box][i], ky[box][i], kz[box][i], molCoords);
 
             double factor = 2.0 * particleCharge[p] * prefact[box][i] * lambdaCoef *
-                     (sin(dot) * sumRnew[box][i] - cos(dot) * sumInew[box][i]);
+                            (sin(dot) * sumRnew[box][i] - cos(dot) * sumInew[box][i]);
 
             X += factor * kx[box][i];
             Y += factor * ky[box][i];

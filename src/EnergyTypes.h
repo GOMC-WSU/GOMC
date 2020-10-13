@@ -437,58 +437,59 @@ inline double SystemPotential::Total()
   return totalEnergy.total;
 }
 
-inline bool SystemPotential::ComparePotentials(SystemPotential & other){
+inline bool SystemPotential::ComparePotentials(SystemPotential & other)
+{
   std::cout.precision(17);
   bool returnVal = true;
-  if(totalEnergy.inter != other.totalEnergy.inter){
+  if(totalEnergy.inter != other.totalEnergy.inter) {
     std::cout << "my inter : " << totalEnergy.inter << "other inter : " << other.totalEnergy.inter << std::endl;
     std::cout << "difference : " << totalEnergy.inter - other.totalEnergy.inter << std::endl;
     returnVal = false;
   }
 
-  if(totalEnergy.intraBond != other.totalEnergy.intraBond){
+  if(totalEnergy.intraBond != other.totalEnergy.intraBond) {
     std::cout << "my intraBond : " << totalEnergy.intraBond << "other intraBond : " << other.totalEnergy.intraBond << std::endl;
     std::cout << "difference : " << totalEnergy.intraBond - other.totalEnergy.intraBond << std::endl;
     returnVal = false;
   }
-  if(totalEnergy.intraNonbond != other.totalEnergy.intraNonbond){
+  if(totalEnergy.intraNonbond != other.totalEnergy.intraNonbond) {
     std::cout << "my intraNonbond : " << totalEnergy.intraNonbond << "other intraNonbond : " << other.totalEnergy.intraNonbond << std::endl;
-    std::cout << "difference : " << totalEnergy.intraNonbond - other.totalEnergy.intraNonbond << std::endl;    
+    std::cout << "difference : " << totalEnergy.intraNonbond - other.totalEnergy.intraNonbond << std::endl;
     returnVal = false;
   }
-  if(totalEnergy.tc != other.totalEnergy.tc){
+  if(totalEnergy.tc != other.totalEnergy.tc) {
     std::cout << "my tc : " << totalEnergy.tc << "other tc : " << other.totalEnergy.tc << std::endl;
     std::cout << "difference : " << totalEnergy.tc - other.totalEnergy.tc << std::endl;
     returnVal = false;
   }
-  if(totalEnergy.real != other.totalEnergy.real){
+  if(totalEnergy.real != other.totalEnergy.real) {
     std::cout << "my real : " << totalEnergy.real << "other real : " << other.totalEnergy.real << std::endl;
-    std::cout << "difference : " << totalEnergy.real - other.totalEnergy.real << std::endl;    
+    std::cout << "difference : " << totalEnergy.real - other.totalEnergy.real << std::endl;
     returnVal = false;
   }
-  if(totalEnergy.recip != other.totalEnergy.recip){
+  if(totalEnergy.recip != other.totalEnergy.recip) {
     std::cout << "my recip : " << totalEnergy.recip << "other recip : " << other.totalEnergy.recip << std::endl;
     std::cout << "difference : " << totalEnergy.recip - other.totalEnergy.recip << std::endl;
     returnVal = false;
   }
-  if(totalEnergy.self != other.totalEnergy.self){
+  if(totalEnergy.self != other.totalEnergy.self) {
     std::cout << "my self : " << totalEnergy.self << "other self : " << other.totalEnergy.self << std::endl;
     std::cout << "difference : " << totalEnergy.self - other.totalEnergy.self << std::endl;
     returnVal = false;
   }
-  if(totalEnergy.correction != other.totalEnergy.correction){
-    std::cout << "my correction : " << totalEnergy.correction << "other correction : " << other.totalEnergy.correction << std::endl;    
-    std::cout << "difference : " << totalEnergy.correction - other.totalEnergy.correction << std::endl;    
+  if(totalEnergy.correction != other.totalEnergy.correction) {
+    std::cout << "my correction : " << totalEnergy.correction << "other correction : " << other.totalEnergy.correction << std::endl;
+    std::cout << "difference : " << totalEnergy.correction - other.totalEnergy.correction << std::endl;
     returnVal = false;
   }
-  if(totalEnergy.totalElect != other.totalEnergy.totalElect){
-    std::cout << "my totalElect : " << totalEnergy.totalElect << "other totalElect : " << other.totalEnergy.totalElect << std::endl;    
-    std::cout << "difference : " << totalEnergy.totalElect - other.totalEnergy.totalElect << std::endl;        
+  if(totalEnergy.totalElect != other.totalEnergy.totalElect) {
+    std::cout << "my totalElect : " << totalEnergy.totalElect << "other totalElect : " << other.totalEnergy.totalElect << std::endl;
+    std::cout << "difference : " << totalEnergy.totalElect - other.totalEnergy.totalElect << std::endl;
     returnVal = false;
   }
-  if(totalEnergy.total != other.totalEnergy.total){
-    std::cout << "my total : " << totalEnergy.total << "other total : " << other.totalEnergy.total << std::endl;    
-    std::cout << "differernce : " << totalEnergy.total  - other.totalEnergy.total << std::endl;    
+  if(totalEnergy.total != other.totalEnergy.total) {
+    std::cout << "my total : " << totalEnergy.total << "other total : " << other.totalEnergy.total << std::endl;
+    std::cout << "differernce : " << totalEnergy.total  - other.totalEnergy.total << std::endl;
     returnVal = false;
   }
   return returnVal;

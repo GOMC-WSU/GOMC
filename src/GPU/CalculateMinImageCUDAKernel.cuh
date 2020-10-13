@@ -11,15 +11,16 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <cuda_runtime.h>
 #include "ConstantDefinitionsCUDAKernel.cuh"
 
-__device__ inline double3 Difference(double * x, double * y, double * z, uint i, uint j){
+__device__ inline double3 Difference(double * x, double * y, double * z, uint i, uint j)
+{
   return make_double3(x[i] - x[j], y[i] - y[j], z[i] - z[j]);
 }
 
 __device__ inline void TransformSlantGPU(double3 & dist,
-  double3 slant,
-  double *gpu_cell_x,
-  double *gpu_cell_y,
-  double *gpu_cell_z)
+    double3 slant,
+    double *gpu_cell_x,
+    double *gpu_cell_y,
+    double *gpu_cell_z)
 {
   dist.x = slant.x * gpu_cell_x[0] + slant.y * gpu_cell_x[1] + slant.z * gpu_cell_x[2];
   dist.y = slant.x * gpu_cell_y[0] + slant.y * gpu_cell_y[1] + slant.z * gpu_cell_y[2];
@@ -27,10 +28,10 @@ __device__ inline void TransformSlantGPU(double3 & dist,
 }
 
 __device__ inline void TransformUnSlantGPU(double3 & dist,
-  double3 slant,
-  double *gpu_Invcell_x,
-  double *gpu_Invcell_y,
-  double *gpu_Invcell_z)
+    double3 slant,
+    double *gpu_Invcell_x,
+    double *gpu_Invcell_y,
+    double *gpu_Invcell_z)
 {
   dist.x = slant.x * gpu_Invcell_x[0] + slant.y * gpu_Invcell_x[1] + slant.z * gpu_Invcell_x[2];
   dist.y = slant.x * gpu_Invcell_y[0] + slant.y * gpu_Invcell_y[1] + slant.z * gpu_Invcell_y[2];
@@ -68,14 +69,15 @@ __device__ inline void DeviceInRcut(
   double diff_z = gpu_z[particleID] - gpu_z[otherParticle];
 
   // min image
-  distX = MinImageSignedGPU(diff_x, axx, axx/2.0);
-  distY = MinImageSignedGPU(diff_y, axy, axy/2.0);
-  distZ = MinImageSignedGPU(diff_z, axz, axz/2.0);
+  distX = MinImageSignedGPU(diff_x, axx, axx / 2.0);
+  distY = MinImageSignedGPU(diff_y, axy, axy / 2.0);
+  distZ = MinImageSignedGPU(diff_z, axz, axz / 2.0);
 
   distSq = distX * distX + distY * distY + distZ * distZ;
 }
 
-__device__ inline double3 MinImageGPU(double3 rawVec, double3 axis, double3 halfAx){
+__device__ inline double3 MinImageGPU(double3 rawVec, double3 axis, double3 halfAx)
+{
   rawVec.x = MinImageSignedGPU(rawVec.x, axis.x, halfAx.x);
   rawVec.y = MinImageSignedGPU(rawVec.y, axis.y, halfAx.y);
   rawVec.z = MinImageSignedGPU(rawVec.z, axis.z, halfAx.z);
@@ -83,10 +85,10 @@ __device__ inline double3 MinImageGPU(double3 rawVec, double3 axis, double3 half
 }
 
 // Call by calculate energy whether it is in rCut
-__device__ inline bool InRcutGPU(double &distSq,                                  
+__device__ inline bool InRcutGPU(double &distSq,
                                  double * x, double * y, double * z,
                                  uint i, uint j,
-                                 double3 axis, double3 halfAx, 
+                                 double3 axis, double3 halfAx,
                                  double gpu_rCut, int gpu_nonOrth,
                                  double *gpu_cell_x, double *gpu_cell_y,
                                  double *gpu_cell_z, double *gpu_Invcell_x,
@@ -114,10 +116,10 @@ __device__ inline bool InRcutGPU(double &distSq,
 }
 
 // Call by force calculate to return the distance and virial component
-__device__ inline bool InRcutGPU(double &distSq, double3 & dist, 
+__device__ inline bool InRcutGPU(double &distSq, double3 & dist,
                                  double * x, double * y, double * z,
                                  uint i, uint j,
-                                 double3 axis, double3 halfAx, 
+                                 double3 axis, double3 halfAx,
                                  double gpu_rCut, int gpu_nonOrth,
                                  double *gpu_cell_x, double *gpu_cell_y,
                                  double *gpu_cell_z, double *gpu_Invcell_x,
@@ -155,11 +157,11 @@ __device__ inline double DotProductGPU(double kx, double ky, double kz,
 }
 
 __device__ inline double DeviceGetLambdaVDW(int molA, int kindA, int molB,
-                                            int kindB, int box,
-                                            bool *gpu_isFraction,
-                                            int *gpu_molIndex,
-                                            int *gpu_kindIndex,
-                                            double *gpu_lambdaVDW)
+    int kindB, int box,
+    bool *gpu_isFraction,
+    int *gpu_molIndex,
+    int *gpu_kindIndex,
+    double *gpu_lambdaVDW)
 {
   double lambda = 1.0;
   if(gpu_isFraction[box]) {
@@ -174,11 +176,11 @@ __device__ inline double DeviceGetLambdaVDW(int molA, int kindA, int molB,
 }
 
 __device__ inline double DeviceGetLambdaCoulomb(int molA, int kindA, int molB,
-                                                int kindB, int box,
-                                                bool *gpu_isFraction,
-                                                int *gpu_molIndex,
-                                                int *gpu_kindIndex,
-                                                double *gpu_lambdaCoulomb)
+    int kindB, int box,
+    bool *gpu_isFraction,
+    int *gpu_molIndex,
+    int *gpu_kindIndex,
+    double *gpu_lambdaCoulomb)
 {
   double lambda = 1.0;
   if(gpu_isFraction[box]) {
@@ -193,10 +195,10 @@ __device__ inline double DeviceGetLambdaCoulomb(int molA, int kindA, int molB,
 }
 
 __device__ inline double DeviceGetLambdaCoulomb(int mol, int kind, int box,
-                                                bool *gpu_isFraction,
-                                                int *gpu_molIndex,
-                                                int *gpu_kindIndex,
-                                                double *gpu_lambdaCoulomb)
+    bool *gpu_isFraction,
+    int *gpu_molIndex,
+    int *gpu_kindIndex,
+    double *gpu_lambdaCoulomb)
 {
   double val = 1.0;
   if(gpu_isFraction[box]) {
