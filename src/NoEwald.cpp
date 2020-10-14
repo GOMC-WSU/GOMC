@@ -103,7 +103,8 @@ double NoEwald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 double NoEwald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
                           const std::vector<cbmc::TrialMol> &oldMol,
                           const std::vector<uint> molIndexNew,
-                          const std::vector<uint> molIndexold)
+                          const std::vector<uint> molIndexold,
+                          bool first_call)
 {
   return 0.0;
 }

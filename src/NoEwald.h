@@ -76,7 +76,8 @@ public:
   virtual double SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
                            const std::vector<cbmc::TrialMol> &oldMol,
                            const std::vector<uint> molIndexNew,
-                           const std::vector<uint> molIndexold);
+                           const std::vector<uint> molIndexold,
+                           bool first_call);
 
   //back up reciptocate value to Ref (will be called during initialization)
   virtual void SetRecipRef(uint box);
