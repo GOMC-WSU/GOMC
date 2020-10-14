@@ -40,3 +40,4 @@ lib/cub
 cmake-build-debug
 .vscode
 output.txt
+*.orig

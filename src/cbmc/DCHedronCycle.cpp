@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -235,7 +235,7 @@ void DCHedronCycle::GenerateAnglesOld(TrialMol& oldMol, uint molIndex,
     data->angleEnergy[i] = data->ff.angles->Calc(kind, data->angles[i]);
 
     double distSq = oldMol.AngleDist(anchorBondOld, bondLengthOld[bType],
-                              data->angles[i]);
+                                     data->angles[i]);
     nonbonded_1_3[i] =
       data->calc.IntraEnergy_1_3(distSq, prev, bonded[bType], molIndex);
 
@@ -406,7 +406,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
     //calculate weights from combined energy
     double stepWeight = 0.0;
 #ifdef _OPENMP
-  #pragma omp parallel for default(none) shared(energies, nonbonded_1_3, nTrials, weights) reduction(+:stepWeight)
+    #pragma omp parallel for default(none) shared(energies, nonbonded_1_3, nTrials, weights) reduction(+:stepWeight)
 #endif
     for (int i = 0; i < nTrials; ++i) {
       weights[i] = exp(-1 * data->ff.beta * (energies[i] + nonbonded_1_3[i]));

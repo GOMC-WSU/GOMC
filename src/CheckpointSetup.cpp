@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -32,11 +32,11 @@ CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
   coordCurrRef(sys.coordinates)
-  #if GOMC_LIB_MPI
+#if GOMC_LIB_MPI
   , filename(sys.ms->replicaInputDirectoryPath + "checkpoint.dat")
-  #else
+#else
   , filename("checkpoint.dat")
-  #endif
+#endif
 {
   inputFile = NULL;
   saveArray = NULL;
@@ -51,11 +51,11 @@ void CheckpointSetup::ReadAll()
   readCoordinates();
   readMoleculeLookupData();
   readMoveSettingsData();
-  #if GOMC_LIB_MPI
+#if GOMC_LIB_MPI
   readParallelTemperingBoolean();
   if(parallelTemperingWasEnabled)
     readRandomNumbersParallelTempering();
-  #endif
+#endif
   std::cout << "Checkpoint loaded from " << filename << std::endl;
 }
 
@@ -310,7 +310,8 @@ void CheckpointSetup::SetPRNGVariables(PRNG & prng)
   prng.GetGenerator()->seedValue = seedValue;
 }
 
-bool CheckpointSetup::CheckIfParallelTemperingWasEnabled(){
+bool CheckpointSetup::CheckIfParallelTemperingWasEnabled()
+{
   return (bool)parallelTemperingWasEnabled;
 }
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -31,47 +31,52 @@ typedef unsigned int uint;
 #define RECORD_DEBUG_FILE_NAME "cpu.debug"
 #endif
 
-inline void record_debug(double x, std::string filename, int linenumber) {
+inline void record_debug(double x, std::string filename, int linenumber)
+{
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << std::setprecision(12) << "double," << filename << "," << linenumber << "," << x << "\n";
 }
 
-inline void record_debug(std::vector<double> x, std::string filename, int linenumber) {
+inline void record_debug(std::vector<double> x, std::string filename, int linenumber)
+{
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|double," << x.size() << "," << filename << "," << linenumber;
-  for(int i=0; i<x.size(); i++) {
+  for(int i = 0; i < x.size(); i++) {
     out << "," << std::setprecision(12) << x[i];
   }
   out << "\n";
 }
 
-inline void record_debug(std::vector<int> x, std::string filename, int linenumber) {
+inline void record_debug(std::vector<int> x, std::string filename, int linenumber)
+{
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|int," << x.size() << "," << filename << "," << linenumber;
-  for(int i=0; i<x.size(); i++) {
+  for(int i = 0; i < x.size(); i++) {
     out << "," << std::setprecision(12) << x[i];
   }
   out << "\n";
 }
 
-inline void record_debug(std::vector<uint> x, std::string filename, int linenumber) {
+inline void record_debug(std::vector<uint> x, std::string filename, int linenumber)
+{
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|int," << x.size() << "," << filename << "," << linenumber;
-  for(int i=0; i<x.size(); i++) {
+  for(int i = 0; i < x.size(); i++) {
     out << "," << std::setprecision(12) << x[i];
   }
   out << "\n";
 }
 
-inline void record_debug(double * x, uint len, std::string filename, int linenumber) {
+inline void record_debug(double * x, uint len, std::string filename, int linenumber)
+{
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|double," << len << "," << filename << "," << linenumber;
-  for(int i=0; i<len; i++) {
+  for(int i = 0; i < len; i++) {
     out << "," << std::setprecision(12) << x[i];
   }
   out << "\n";

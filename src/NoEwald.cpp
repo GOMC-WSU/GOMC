@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -103,7 +103,8 @@ double NoEwald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 double NoEwald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
                           const std::vector<cbmc::TrialMol> &oldMol,
                           const std::vector<uint> molIndexNew,
-                          const std::vector<uint> molIndexold)
+                          const std::vector<uint> molIndexold,
+                          bool first_call)
 {
   return 0.0;
 }

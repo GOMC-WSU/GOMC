@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -64,11 +64,11 @@ void CheckpointOutput::DoOutput(const ulong step)
     printCoordinates();
     printMoleculeLookupData();
     printMoveSettingsData();
-    #if GOMC_LIB_MPI
+#if GOMC_LIB_MPI
     printParallelTemperingBoolean();
     if(enableParallelTempering)
       printRandomNumbersParallelTempering();
-    #endif
+#endif
     std::cout << "Checkpoint saved to " << filename << std::endl;
   }
 }
@@ -110,7 +110,7 @@ void CheckpointOutput::printRandomNumbers()
   const int N = 624;
   // The MT::save function also appends the "left" variable,
   // so need to allocate one more array element
-  uint32_t* saveArray = new uint32_t[N+1];
+  uint32_t* saveArray = new uint32_t[N + 1];
   prngRef.GetGenerator()->save(saveArray);
   for(int i = 0; i < N; i++) {
     outputUintIn8Chars(saveArray[i]);
@@ -127,7 +127,7 @@ void CheckpointOutput::printRandomNumbers()
   // let's save seedValue just in case
   // not sure if that is used or not, or how important it is
   outputUintIn8Chars(prngRef.GetGenerator()->seedValue);
-  
+
   delete[] saveArray;
 }
 

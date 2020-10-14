@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -55,10 +55,10 @@ System::System(StaticVals& statics, MultiSim const*const& multisim) :
   calcEnergy(statics, *this), checkpointSet(*this, statics)
 {
   calcEwald = NULL;
-  #if GOMC_LIB_MPI
+#if GOMC_LIB_MPI
   if(ms->parallelTemperingEnabled)
     prngParallelTemp = new PRNG(molLookupRef);
-  #endif
+#endif
 }
 
 System::~System()
@@ -122,10 +122,10 @@ void System::Init(Setup const& set, ulong & startStep)
     checkpointSet.SetCoordinates(coordinates);
     checkpointSet.SetMoleculeLookup(molLookupRef);
     checkpointSet.SetMoveSettings(moveSettings);
-    #if GOMC_LIB_MPI
+#if GOMC_LIB_MPI
     if(checkpointSet.CheckIfParallelTemperingWasEnabled() && ms->parallelTemperingEnabled)
       checkpointSet.SetPRNGVariablesPT(*prngParallelTemp);
-    #endif
+#endif
   }
 
   com.CalcCOM();

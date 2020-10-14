@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -31,7 +31,7 @@ void CallBoxForceReciprocalGPU(VariablesCUDA *vars,
                                XYZArray const &molCoords,
                                int boxStart,
                                int boxEnd,
-                               BoxDimensions const &boxAxes, 
+                               BoxDimensions const &boxAxes,
                                int box);
 
 void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
@@ -102,7 +102,7 @@ __global__ void BoxForceReciprocalGPU(double *gpu_aForceRecx,
                                       double axy,
                                       double axz,
                                       int box,
-				      int numberOfAtomsInsideBox);
+                                      int numberOfAtomsInsideBox);
 
 __global__ void BoxReciprocalSetupGPU(double * gpu_x,
                                       double * gpu_y,

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -74,7 +74,7 @@ inline void COM::SetNew(const uint moleculeIndex, const uint box)
 
   // get the range of atoms for molecueIndex
   molRef.GetRange(atomStart, atomStop, atomLen, moleculeIndex);
-  
+
   // unwrap molecule
   boxDimRef.UnwrapPBC(coordRef, atomStart, atomStop, box, coordRef.Get(atomStart));
 

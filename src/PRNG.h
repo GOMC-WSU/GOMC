@@ -1,6 +1,6 @@
 
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -205,11 +205,11 @@ public:
     std::cerr << "draw: " << draw << std::endl;
     std::cerr << "sum: " << sum << std::endl;
 
-    #if GOMC_LIB_MPI
-      std::cerr << "Error: When conducting replica exchange simulations, this error " << std::endl;
-      std::cerr << "usually occurs when using Intraswap or Molecular Exchange moves " << std::endl;
-      std::cerr << "and seeding all simulations with the same seed." << std::endl;
-    #endif
+#if GOMC_LIB_MPI
+    std::cerr << "Error: When conducting replica exchange simulations, this error " << std::endl;
+    std::cerr << "usually occurs when using Intraswap or Molecular Exchange moves " << std::endl;
+    std::cerr << "and seeding all simulations with the same seed." << std::endl;
+#endif
 
     exit(EXIT_FAILURE);
   }

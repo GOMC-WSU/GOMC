@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -45,9 +45,9 @@ private:
   BoxDimensions & boxDimRef;
   Molecules const & molRef;
   PRNG & prngRef;
-  #if GOMC_LIB_MPI
+#if GOMC_LIB_MPI
   PRNG & prngPTRef;
-  #endif
+#endif
   Coordinates & coordCurrRef;
 
   bool enableOutCheckpoint;
@@ -60,9 +60,9 @@ private:
   void printParallelTemperingBoolean();
   void printStepNumber(ulong step);
   void printRandomNumbers();
-  #if GOMC_LIB_MPI
+#if GOMC_LIB_MPI
   void printRandomNumbersParallelTempering();
-  #endif
+#endif
   void printCoordinates();
   void printMoleculeLookupData();
   void printMoveSettingsData();

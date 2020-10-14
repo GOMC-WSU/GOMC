@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -240,7 +240,8 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
                 << ".. and couldn't find remark in PDB file!" << std::endl;
       exit(EXIT_FAILURE);
     }
-    std::cout.width(40); std::cout << std::left << "Finished reading: ";
+    std::cout.width(40);
+    std::cout << std::left << "Finished reading: ";
     std::cout << "\t" << name[b] << std::endl;
   }
 }

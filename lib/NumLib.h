@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -28,8 +28,7 @@ inline bool approximatelyEqual(double a, double b, double epsilon)
 {
   if (abs(a) < 1.0 || abs(b) < 1.0) {
     return abs(a - b) <= epsilon;
-  }
-  else {
+  } else {
     return std::abs(a - b) <= ((std::abs(a) < std::abs(b) ? std::abs(b) : std::abs(a)) * epsilon);
   }
 }

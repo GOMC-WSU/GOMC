@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -104,7 +104,7 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   CUMALLOC((void**) &vars->gpu_r_k_x, maxMolNumber * sizeof(double));
   CUMALLOC((void**) &vars->gpu_r_k_y, maxMolNumber * sizeof(double));
   CUMALLOC((void**) &vars->gpu_r_k_z, maxMolNumber * sizeof(double));
-  
+
   CUMALLOC((void**) &vars->gpu_t_k_x, maxMolNumber * sizeof(double));
   CUMALLOC((void**) &vars->gpu_t_k_y, maxMolNumber * sizeof(double));
   CUMALLOC((void**) &vars->gpu_t_k_z, maxMolNumber * sizeof(double));

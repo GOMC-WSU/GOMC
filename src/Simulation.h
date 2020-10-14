@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -35,11 +35,11 @@ private:
   uint remarksCount;
   ulong startStep;
   MultiSim const*const& ms;
-  #if GOMC_LIB_MPI
+#if GOMC_LIB_MPI
   ParallelTemperingUtilities * PTUtils;
   std::vector<bool> exchangeResults;
   int parity;
-  #endif
+#endif
 };
 
 #endif /*SIMULATION_H*/

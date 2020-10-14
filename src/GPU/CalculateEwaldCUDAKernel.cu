@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -144,7 +144,7 @@ __global__ void BoxReciprocalSetupGPU(double *gpu_x,
                                       double *gpu_sumInew,
                                       int imageSize)
 {
-  __shared__ double shared_coords[PARTICLE_PER_BLOCK*3];
+  __shared__ double shared_coords[PARTICLE_PER_BLOCK * 3];
   int imageID = blockIdx.x * blockDim.x + threadIdx.x;
   int offset_coordinates_index = blockIdx.y * PARTICLE_PER_BLOCK;
   int numberOfAtoms = min(PARTICLE_PER_BLOCK, atomNumber - offset_coordinates_index);
@@ -162,8 +162,8 @@ __global__ void BoxReciprocalSetupGPU(double *gpu_x,
   __syncthreads();
   for(int particleID = 0; particleID < numberOfAtoms; particleID++) {
     double dot = DotProductGPU(gpu_kx[imageID], gpu_ky[imageID], gpu_kz[imageID],
-      shared_coords[particleID * 3], shared_coords[particleID * 3 + 1],
-      shared_coords[particleID * 3 + 2]);
+                               shared_coords[particleID * 3], shared_coords[particleID * 3 + 1],
+                               shared_coords[particleID * 3 + 2]);
     double dotsin, dotcos;
     sincos(dot, &dotsin, &dotcos);
     sumR += gpu_particleCharge[offset_coordinates_index + particleID] * dotcos;
@@ -365,7 +365,7 @@ void CallBoxForceReciprocalGPU(
   XYZArray const &molCoords,
   int boxStart,
   int boxEnd,
-  BoxDimensions const &boxAxes, 
+  BoxDimensions const &boxAxes,
   int box
 )
 {
@@ -381,7 +381,7 @@ void CallBoxForceReciprocalGPU(
   // particleHasNoCharge is stored in vector<bool>, so in order to copy it to GPU
   // it needs to be stored in bool[]. because:
   // std::vector<bool> : Does not necessarily store its elements as a contiguous array
-  for(int i=0; i<particleHasNoCharge.size(); i++) {
+  for(int i = 0; i < particleHasNoCharge.size(); i++) {
     arr_particleHasNoCharge[i] = particleHasNoCharge[i];
   }
 
@@ -415,7 +415,7 @@ void CallBoxForceReciprocalGPU(
   cudaMemcpy(gpu_lengthMol, &lengthMol[0], sizeof(int) * lengthMol.size(), cudaMemcpyHostToDevice);
 
   checkLastErrorCUDA(__FILE__, __LINE__);
-  BoxForceReciprocalGPU<<<blocksPerGrid, threadsPerBlock>>>(
+  BoxForceReciprocalGPU <<< blocksPerGrid, threadsPerBlock>>>(
     vars->gpu_aForceRecx,
     vars->gpu_aForceRecy,
     vars->gpu_aForceRecz,
@@ -510,7 +510,7 @@ __global__ void BoxForceReciprocalGPU(
   int numberOfAtomsInsideBox
 )
 {
-  __shared__ double shared_kvector[IMAGES_PER_BLOCK*3];
+  __shared__ double shared_kvector[IMAGES_PER_BLOCK * 3];
   int particleID =  blockDim.x * blockIdx.x + threadIdx.x;
   int offset_vector_index = blockIdx.y * IMAGES_PER_BLOCK;
   int numberOfVectors = min(IMAGES_PER_BLOCK, imageSize - offset_vector_index);
@@ -537,18 +537,18 @@ __global__ void BoxForceReciprocalGPU(
   __syncthreads();
   // loop over images
   for(int vectorIndex = 0; vectorIndex < numberOfVectors; vectorIndex ++) {
-    double dot = x * shared_kvector[vectorIndex*3] + y *
-      shared_kvector[vectorIndex*3+1] + z * shared_kvector[vectorIndex*3+2];
+    double dot = x * shared_kvector[vectorIndex * 3] + y *
+                 shared_kvector[vectorIndex * 3 + 1] + z * shared_kvector[vectorIndex * 3 + 2];
     double dotsin, dotcos;
     sincos(dot, &dotsin, &dotcos);
-    double factor = 2.0 * gpu_particleCharge[particleID] * 
-      gpu_prefact[offset_vector_index + vectorIndex] * lambdaCoef * 
-      (dotsin * gpu_sumRnew[offset_vector_index + vectorIndex] - 
-       dotcos * gpu_sumInew[offset_vector_index + vectorIndex]);
-      
-    forceX += factor * shared_kvector[vectorIndex*3];
-    forceY += factor * shared_kvector[vectorIndex*3+1];
-    forceZ += factor * shared_kvector[vectorIndex*3+2];
+    double factor = 2.0 * gpu_particleCharge[particleID] *
+                    gpu_prefact[offset_vector_index + vectorIndex] * lambdaCoef *
+                    (dotsin * gpu_sumRnew[offset_vector_index + vectorIndex] -
+                     dotcos * gpu_sumInew[offset_vector_index + vectorIndex]);
+
+    forceX += factor * shared_kvector[vectorIndex * 3];
+    forceY += factor * shared_kvector[vectorIndex * 3 + 1];
+    forceZ += factor * shared_kvector[vectorIndex * 3 + 2];
   }
 
   // loop over other particles within the same molecule
@@ -557,9 +557,8 @@ __global__ void BoxForceReciprocalGPU(
     double distVectX = 0.0, distVectY = 0.0, distVectZ = 0.0;
     int lastParticleWithinSameMolecule = gpu_startMol[particleID] + gpu_lengthMol[particleID];
     for(int otherParticle = gpu_startMol[particleID];
-      otherParticle < lastParticleWithinSameMolecule;
-      otherParticle++)
-    {
+        otherParticle < lastParticleWithinSameMolecule;
+        otherParticle++) {
       if(particleID != otherParticle) {
         DeviceInRcut(distSq, distVectX, distVectY, distVectZ, gpu_x, gpu_y, gpu_z, particleID, otherParticle, axx, axy, axz, box);
         dist = sqrt(distSq);
@@ -581,7 +580,7 @@ __global__ void BoxForceReciprocalGPU(
   atomicAdd(&gpu_mForceRecx[moleculeID], forceX);
   atomicAdd(&gpu_mForceRecy[moleculeID], forceY);
   atomicAdd(&gpu_mForceRecz[moleculeID], forceZ);
-  
+
 }
 
 __global__ void SwapReciprocalGPU(double *gpu_x, double *gpu_y, double *gpu_z,

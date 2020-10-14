@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -25,7 +25,8 @@ CellList::CellList(const Molecules& mols,  BoxDimensions& dims)
   }
 }
 
-CellList::CellList(const CellList & other) : mols(other.mols){
+CellList::CellList(const CellList & other) : mols(other.mols)
+{
   dimensions = other.dimensions;
   isBuilt = true;
   for(uint b = 0; b < BOX_TOTAL; b++) {
@@ -40,18 +41,18 @@ CellList::CellList(const CellList & other) : mols(other.mols){
 
   list.resize(other.list.size());
 
-  for (int i = 0; i < other.list.size(); i++){
+  for (int i = 0; i < other.list.size(); i++) {
     list[i] = other.list[i];
   }
 
   for(uint b = 0; b < BOX_TOTAL; b++) {
-    for (int i = 0; i < other.neighbors[b].size(); i++){
+    for (int i = 0; i < other.neighbors[b].size(); i++) {
       neighbors[b][i] = other.neighbors[b][i];
     }
   }
 
   for(uint b = 0; b < BOX_TOTAL; b++) {
-    for (int i = 0; i < other.head[b].size(); i++){
+    for (int i = 0; i < other.head[b].size(); i++) {
       head[b][i] = other.head[b][i];
     }
   }
@@ -297,7 +298,8 @@ std::vector<std::vector<int> > CellList::GetNeighborList(uint box) const
 }
 
 
-bool CellList::CompareCellList(CellList & other, int coordinateSize){
+bool CellList::CompareCellList(CellList & other, int coordinateSize)
+{
 
 
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
@@ -305,15 +307,15 @@ bool CellList::CompareCellList(CellList & other, int coordinateSize){
 
   for(uint box = 0; box < BOX_TOTAL; box++) {
 
-  cellVector.resize(coordinateSize);
-  cellStartIndex.resize(head[box].size());
-  mapParticleToCell.resize(coordinateSize);
-   
-  otherCellVector.resize(coordinateSize);
-  otherCellStartIndex.resize(head[box].size());
-  otherMapParticleToCell.resize(coordinateSize);
+    cellVector.resize(coordinateSize);
+    cellStartIndex.resize(head[box].size());
+    mapParticleToCell.resize(coordinateSize);
+
+    otherCellVector.resize(coordinateSize);
+    otherCellStartIndex.resize(head[box].size());
+    otherMapParticleToCell.resize(coordinateSize);
   }
-  
+
   for(uint box = 0; box < BOX_TOTAL; box++) {
     int vector_index = 0;
     for(int cell = 0; cell < head[box].size(); cell++) {
@@ -344,31 +346,32 @@ bool CellList::CompareCellList(CellList & other, int coordinateSize){
   }
 
 
-  if(list.size() == other.list.size()){
-    for(int i = 0; i < list.size(); i++){
-        if (list[i] != other.list[i])
-          std::cout << "List objects are different" << std::endl;
+  if(list.size() == other.list.size()) {
+    for(int i = 0; i < list.size(); i++) {
+      if (list[i] != other.list[i])
+        std::cout << "List objects are different" << std::endl;
     }
   }
 
-  for (int i = 0; i < mapParticleToCell.size(); i++){
+  for (int i = 0; i < mapParticleToCell.size(); i++) {
     if (mapParticleToCell[i] != otherMapParticleToCell[i])
       return false;
   }
-  
+
   std::cout << "CellList objects have equal states" << std::endl;
 
   return true;
 }
 
-void CellList::PrintList(){
-  
+void CellList::PrintList()
+{
+
   for(int i = 0; i < list.size(); i++)
     std::cout << list[i] << std::endl;
-  
-  std::cout << "head vector" << std::endl;  
-  for(int i = 0; i < BOX_TOTAL; i++){
-    for( int j = 0; j < head[i].size(); j++){
+
+  std::cout << "head vector" << std::endl;
+  for(int i = 0; i < BOX_TOTAL; i++) {
+    for( int j = 0; j < head[i].size(); j++) {
       std::cout << head[i][j] << std::endl;
     }
   }
