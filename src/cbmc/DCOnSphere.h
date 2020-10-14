@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -8,9 +8,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define DCONSPHERE_H
 #include "DCComponent.h"
 #include "BasicTypes.h"
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 namespace mol_setup
 {

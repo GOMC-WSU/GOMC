@@ -39,3 +39,5 @@ lib/cub
 .idea
 cmake-build-debug
 .vscode
+output.txt
+*.orig

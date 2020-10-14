@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -113,8 +113,7 @@ void DCHedron::GenerateAnglesNew(TrialMol& newMol, uint molIndex,
                                  uint kind, uint nTrials, uint bType)
 {
   double* nonbonded_1_3 =  data->nonbonded_1_3;
-  int i;
-  double distSq, thetaFix;
+  double thetaFix;
   bool angleFix = false;
   std::fill_n(nonbonded_1_3, nTrials, 0.0);
 
@@ -123,7 +122,7 @@ void DCHedron::GenerateAnglesNew(TrialMol& newMol, uint molIndex,
     thetaFix = data->ff.angles->Angle(kind);
   }
 
-  for (i = 0; i < nTrials; ++i) {
+  for (int i = 0; i < nTrials; ++i) {
     if(angleFix)
       data->angles[i] = thetaFix;
     else
@@ -131,13 +130,13 @@ void DCHedron::GenerateAnglesNew(TrialMol& newMol, uint molIndex,
   }
 
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(i, distSq)
+  #pragma omp parallel for default(none) shared(bType, kind, molIndex, newMol, nonbonded_1_3, nTrials)
 #endif
-  for (i = 0; i < nTrials; ++i) {
+  for (int i = 0; i < nTrials; ++i) {
     data->angleEnergy[i] = data->ff.angles->Calc(kind, data->angles[i]);
 
-    distSq = newMol.AngleDist(anchorBond, bondLength[bType],
-                              data->angles[i]);
+    double distSq = newMol.AngleDist(anchorBond, bondLength[bType],
+                                     data->angles[i]);
     nonbonded_1_3[i] =
       data->calc.IntraEnergy_1_3(distSq, prev, bonded[bType], molIndex);
 
@@ -150,8 +149,7 @@ void DCHedron::GenerateAnglesOld(TrialMol& oldMol, uint molIndex,
                                  uint kind, uint nTrials, uint bType)
 {
   double* nonbonded_1_3 =  data->nonbonded_1_3;
-  int i;
-  double distSq, thetaFix;
+  double thetaFix;
   bool angleFix = false;
   std::fill_n(nonbonded_1_3, nTrials, 0.0);
 
@@ -160,7 +158,7 @@ void DCHedron::GenerateAnglesOld(TrialMol& oldMol, uint molIndex,
     thetaFix = data->ff.angles->Angle(kind);
   }
 
-  for (i = 0; i < nTrials; ++i) {
+  for (int i = 0; i < nTrials; ++i) {
     if(angleFix)
       data->angles[i] = thetaFix;
     else
@@ -168,13 +166,13 @@ void DCHedron::GenerateAnglesOld(TrialMol& oldMol, uint molIndex,
   }
 
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(i, distSq)
+  #pragma omp parallel for default(none) shared(bType, kind, molIndex, nonbonded_1_3, nTrials, oldMol)
 #endif
-  for (i = 0; i < nTrials; ++i) {
+  for (int i = 0; i < nTrials; ++i) {
     data->angleEnergy[i] = data->ff.angles->Calc(kind, data->angles[i]);
 
-    distSq = oldMol.AngleDist(anchorBondOld, bondLengthOld[bType],
-                              data->angles[i]);
+    double distSq = oldMol.AngleDist(anchorBondOld, bondLengthOld[bType],
+                                     data->angles[i]);
     nonbonded_1_3[i] =
       data->calc.IntraEnergy_1_3(distSq, prev, bonded[bType], molIndex);
 
@@ -324,11 +322,10 @@ void DCHedron::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTrials)
 
     //calculate weights from combined energy
     double stepWeight = 0.0;
-    int i;
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i) reduction(+:stepWeight)
+    #pragma omp parallel for default(none) shared(energies, nonbonded_1_3, nTrials, weights) reduction(+:stepWeight)
 #endif
-    for (i = 0; i < nTrials; ++i) {
+    for (int i = 0; i < nTrials; ++i) {
       weights[i] = exp(-1 * data->ff.beta * (energies[i] +
                                              nonbonded_1_3[i]));
       stepWeight += weights[i];

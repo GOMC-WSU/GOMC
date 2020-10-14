@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -25,6 +25,9 @@ public:
   PDBSetup pdb;        //2
   FFSetup ff;          //3
   PRNGSetup prng;      //4
+#if GOMC_LIB_MPI
+  PRNGSetup prngParallelTemp;      //4
+#endif
   MolSetup mol;        //5
 
   void Init(char const*const configFileName, MultiSim const*const& multisim)
@@ -37,7 +40,10 @@ public:
     pdb.Init(config.in.restart, config.in.files.pdb.name);
     //Initialize PRNG
     prng.Init(config.in.restart, config.in.prng, config.in.files.seed.name);
-
+#if GOMC_LIB_MPI
+    if(multisim->parallelTemperingEnabled)
+      prngParallelTemp.Init(config.in.restart, config.in.prngParallelTempering, config.in.files.seed.name);
+#endif
     //Read molecule data from psf
     if(mol.Init(config.in.restart, config.in.files.psf.name) != 0) {
       exit(EXIT_FAILURE);

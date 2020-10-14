@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -41,11 +41,13 @@ ConfigSetup::ConfigSetup(void)
   in.restart.recalcTrajectory = false;
   in.restart.restartFromCheckpoint = false;
   in.prng.seed = UINT_MAX;
+  in.prngParallelTempering.seed = UINT_MAX;
   sys.elect.readEwald = false;
   sys.elect.readElect = false;
   sys.elect.readCache = false;
   sys.elect.ewald = false;
   sys.elect.enable = false;
+  sys.elect.cache = false;
   sys.elect.tolerance = DBL_MAX;
   sys.elect.oneFourScale = DBL_MAX;
   sys.elect.dielectric = DBL_MAX;
@@ -57,6 +59,9 @@ ConfigSetup::ConfigSetup(void)
   sys.step.adjustment = ULONG_MAX;
   sys.step.pressureCalcFreq = ULONG_MAX;
   sys.step.pressureCalc = true;
+  sys.step.parallelTempFreq = ULONG_MAX;
+  sys.step.parallelTemperingAttemptsPerExchange = 0;
+  sys.step.pressureCalc = false;
   in.ffKind.numOfKinds = 0;
   sys.exclude.EXCLUDE_KIND = UINT_MAX;
   in.prng.kind = "";
@@ -192,6 +197,10 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       in.prng.kind = line[1];
       if("RANDOM" == line[1])
         printf("%-40s %-s \n", "Info: Random seed", "Active");
+    } else if(CheckString(line[0], "PRNG_ParallelTempering")) {
+      in.prngParallelTempering.kind = line[1];
+      if("RANDOM" == line[1])
+        printf("%-40s %-s \n", "Info: Random seed", "Active");
     } else if(CheckString(line[0], "ParaTypeCHARMM")) {
       if(checkBool(line[1])) {
         in.ffKind.numOfKinds++;
@@ -232,14 +241,22 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         std::cout << "Error: Simulation requires " << BOX_TOTAL << " PDB file(s)!\n";
         exit(EXIT_FAILURE);
       }
-      in.files.pdb.name[boxnum] = line[2];
+      if (multisim != NULL) {
+        in.files.pdb.name[boxnum] = multisim->replicaInputDirectoryPath + line[2];
+      } else {
+        in.files.pdb.name[boxnum] = line[2];
+      }
     } else if(CheckString(line[0], "Structure")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {
         std::cout << "Error: Simulation requires " << BOX_TOTAL << " PSF file(s)!\n";
         exit(EXIT_FAILURE);
       }
-      in.files.psf.name[boxnum] = line[2];
+      if (multisim != NULL) {
+        in.files.psf.name[boxnum] = multisim->replicaInputDirectoryPath + line[2];
+      } else {
+        in.files.psf.name[boxnum] = line[2];
+      }
     }
 #if ENSEMBLE == GEMC
     else if(CheckString(line[0], "GEMC")) {
@@ -482,6 +499,25 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         printf("%-40s %-lu \n", "Info: Pressure calculation frequency",
                sys.step.pressureCalcFreq);
       }
+    } else if(CheckString(line[0], "ParallelTemperingFreq")) {
+      sys.step.parallelTemp = checkBool(line[1]);
+      if(line.size() == 3)
+        sys.step.parallelTempFreq = stringtoi(line[2]);
+
+      if(sys.step.parallelTemp && (line.size() == 2)) {
+        std::cout << "Error: Parallel Tempering frequency is not specified!\n";
+        exit(EXIT_FAILURE);
+      }
+      if(!sys.step.parallelTemp)
+        printf("%-40s %-s \n", "Info: Parallel Tempering", "Inactive");
+      else {
+        printf("%-40s %-lu \n", "Info: Parallel Tempering frequency",
+               sys.step.parallelTempFreq);
+      }
+    } else if(CheckString(line[0], "ParallelTemperingAttemptsPerExchange")) {
+      sys.step.parallelTemperingAttemptsPerExchange = stringtoi(line[1]);
+      printf("%-40s %lu \n", "Info: Number of Attempts Per Exchange Move",
+             sys.step.parallelTemperingAttemptsPerExchange);
     } else if(CheckString(line[0], "DisFreq")) {
       sys.moves.displace = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Displacement move frequency",
@@ -868,7 +904,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
     else if(CheckString(line[0], "OutputName")) {
       if (multisim != NULL) {
         std::stringstream replicaDirectory;
-        replicaDirectory << multisim->pathToReplicaDirectory << line[1];
+        replicaDirectory << multisim->replicaOutputDirectoryPath << line[1];
         out.statistics.settings.uniqueStr.val = replicaDirectory.str();
         printf("%-40s %-s \n", "Info: Output name", replicaDirectory.str().c_str());
       } else {
@@ -1001,11 +1037,21 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
     }
 #endif
     else if(CheckString(line[0], "Random_Seed")) {
-      in.prng.seed = stringtoi(line[1]);
+      if (line.size() > 2 && multisim != NULL) {
+        in.prng.seed = stringtoi(line[multisim->worldRank + 1]);
+      } else {
+        in.prng.seed = stringtoi(line[1]);
+      }
       if("INTSEED" == in.prng.kind)
         printf("%-40s %-s \n", "Info: Constant seed", "Active");
       else
         printf("Warning: Constant seed set, but will be ignored.\n");
+    } else if(CheckString(line[0], "ParallelTempering_Seed")) {
+      in.prngParallelTempering.seed = stringtoi(line[1]);
+      if("INTSEED" == in.prngParallelTempering.kind)
+        printf("%-40s %-s \n", "Info: Constant Parallel Tempering seed", "Active");
+      else
+        printf("Warning: Constant Parallel Tempering seed set, but will be ignored.\n");
     } else {
       std::cout << "Warning: Unknown input " << line[0] << "!" << std::endl;
     }
@@ -1214,9 +1260,12 @@ void ConfigSetup::fillDefaults(void)
 #endif
 
   if (sys.elect.ewald == true && sys.elect.readCache == false) {
-    sys.elect.cache = true;
-    sys.elect.readCache = true;
-    printf("%-40s %-s \n", "Default: Cache Ewald Fourier", "Active");
+    sys.elect.cache = false;
+    printf("%-40s %-s \n", "Default: Cache Ewald Fourier", "Inactive");
+  }
+
+  if (sys.elect.ewald == false && sys.elect.cache == true) {
+    printf("Warning: Cache Ewald Fourier set, but will be ignored: Ewald method off.\n");
   }
 
   if(sys.elect.enable && sys.elect.dielectric == DBL_MAX && in.ffKind.isMARTINI) {
@@ -1315,7 +1364,14 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(sys.volume.cstVolBox0) {
-    std::cout << "Error: Fix volume of box 0 cannot be applied fot NPT simulation!\n";
+    std::cout << "Error: Fix volume of box 0 cannot be applied for NPT simulation!\n";
+    exit(EXIT_FAILURE);
+  }
+#endif
+
+#if GOMC_LIB_MPI
+  if(sys.step.parallelTemp && in.prngParallelTempering.kind != "INTSEED") {
+    std::cout << "Error: INTSEED required for parallel tempering!" << std::endl;
     exit(EXIT_FAILURE);
   }
 #endif
@@ -1385,12 +1441,12 @@ void ConfigSetup::verifyInputs(void)
   }
   if(sys.step.adjustment > sys.step.equil && !in.restart.enable &&
       !in.restart.recalcTrajectory) {
-    std::cout << "Error: Move adjustment frequency should be smaller " <<
-              "than Equilibration steps!" << std::endl;
+    std::cout << "Error: Move adjustment frequency cannot exceed " <<
+              "Equilibration steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
   if(sys.step.equil > sys.step.total && !in.restart.recalcTrajectory) {
-    std::cout << "Error: Equilibratisys.step.totalon steps should be smaller than " <<
+    std::cout << "Error: Equilibration steps cannot exceed " <<
               "Total run steps!" << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -1417,7 +1473,7 @@ void ConfigSetup::verifyInputs(void)
               sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
               sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft +
               sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequncies are not equal to one!\n";
+    std::cout << "Error: Sum of move frequencies is not equal to one!\n";
     exit(EXIT_FAILURE);
   }
 #elif ENSEMBLE == NPT
@@ -1429,7 +1485,7 @@ void ConfigSetup::verifyInputs(void)
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
               sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc +
               sys.moves.crankShaft + sys.moves.multiParticle - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequncies are not equal to one!\n";
+    std::cout << "Error: Sum of move frequencies is not equal to one!\n";
     exit(EXIT_FAILURE);
   }
 
@@ -1442,14 +1498,14 @@ void ConfigSetup::verifyInputs(void)
               sys.moves.transfer + sys.moves.regrowth + sys.moves.memc +
               sys.moves.intraMemc + sys.moves.crankShaft +
               sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
+    std::cout << "Error: Sum of move frequencies is not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #else
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
               sys.moves.regrowth + sys.moves.intraMemc + sys.moves.crankShaft +
               sys.moves.multiParticle - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequncies are not equal to one!!\n";
+    std::cout << "Error: Sum of move frequencies is not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
 #endif
@@ -1819,65 +1875,65 @@ void ConfigSetup::verifyInputs(void)
   }
 #endif
   if(!out.statistics.settings.block.enable && out.statistics.vars.energy.block) {
-    printf("Note: Average output Inactived. Energy average output will be ignored.\n");
+    printf("Note: Average output Inactivated. Energy average output will be ignored.\n");
     out.statistics.vars.energy.block = false;
   }
   if(!out.statistics.settings.block.enable &&
       out.statistics.vars.pressure.block) {
-    printf("Note: Average output Inactived. Pressure average output will be ignored.\n");
+    printf("Note: Average output Inactivated. Pressure average output will be ignored.\n");
     out.statistics.vars.pressure.block = false;
   }
   if(!sys.step.pressureCalc && out.statistics.vars.pressure.block) {
-    printf("Note: Pressure Calculation Inactived. Pressure average output will be ignored.\n");
+    printf("Note: Pressure Calculation Inactivated. Pressure average output will be ignored.\n");
     out.statistics.vars.pressure.block = false;
   }
   if(!sys.step.pressureCalc && out.statistics.vars.surfaceTension.block) {
-    printf("Note: Pressure Calculation Inactived. Surface Tension average output will be ignored.\n");
+    printf("Note: Pressure Calculation Inactivated. Surface Tension average output will be ignored.\n");
     out.statistics.vars.surfaceTension.block = false;
   }
 #ifdef VARIABLE_PARTICLE_NUMBER
   if(!out.statistics.settings.block.enable && out.statistics.vars.molNum.block) {
-    printf("Note: Average output Inactived. Molecule average output will be ignored.\n");
+    printf("Note: Average output Inactivated. Molecule average output will be ignored.\n");
     out.statistics.vars.molNum.block = false;
   }
 #endif
   if(!out.statistics.settings.block.enable && out.statistics.vars.density.block) {
-    printf("Note: Average output Inactived. Density average output will be ignored.\n");
+    printf("Note: Average output Inactivated. Density average output will be ignored.\n");
     out.statistics.vars.density.block = false;
   }
 #ifdef VARIABLE_VOLUME
   if(!out.statistics.settings.block.enable && out.statistics.vars.volume.block) {
-    printf("Note: Average output Inactived. Volume average output will be ignored.\n");
+    printf("Note: Average output Inactivated. Volume average output will be ignored.\n");
     out.statistics.vars.volume.block = false;
   }
 #endif
   if(!out.console.enable && out.statistics.vars.energy.fluct) {
-    printf("Note: Console output Inactived. Energy output will be ignored.\n");
+    printf("Note: Console output Inactivated. Energy output will be ignored.\n");
     out.statistics.vars.energy.fluct = false;
   }
   if(!out.console.enable && out.statistics.vars.pressure.fluct) {
-    printf("Note: Console output Inactived. Pressure output will be ignored.\n");
+    printf("Note: Console output Inactivated. Pressure output will be ignored.\n");
     out.statistics.vars.pressure.fluct = false;
   }
   if(!sys.step.pressureCalc && out.statistics.vars.pressure.fluct) {
-    printf("Note: Pressure Calculation Inactived. Pressure output will be ignored.\n");
+    printf("Note: Pressure Calculation Inactivated. Pressure output will be ignored.\n");
     out.statistics.vars.pressure.fluct = false;
   }
   if(!sys.step.pressureCalc && out.statistics.vars.surfaceTension.fluct) {
-    printf("Note: Pressure Calculation Inactived. Surface Tension output will be ignored.\n");
+    printf("Note: Pressure Calculation Inactivated. Surface Tension output will be ignored.\n");
     out.statistics.vars.surfaceTension.fluct = false;
   }
 #ifdef VARIABLE_PARTICLE_NUMBER
   if(!out.console.enable && out.statistics.vars.molNum.fluct) {
-    printf("Note: Console output Inactived. Molecule output will be ignored.\n");
+    printf("Note: Console output Inactivated. Molecule output will be ignored.\n");
   }
 #endif
   if(!out.console.enable && out.statistics.vars.density.fluct) {
-    printf("Note: Console output Inactived. Density output will be ignored.\n");
+    printf("Note: Console output Inactivated. Density output will be ignored.\n");
   }
 #ifdef VARIABLE_VOLUME
   if(!out.console.enable && out.statistics.vars.volume.fluct) {
-    printf("Note: Console output Inactived. Volume output will be ignored.\n");
+    printf("Note: Console output Inactivated. Volume output will be ignored.\n");
   }
 #endif
 }

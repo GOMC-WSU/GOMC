@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -67,7 +67,7 @@ void MoveSettings::Init(StaticVals const& statV,
   for(int b = 0; b < BOX_TOTAL; b++) {
     mp_r_max[b] = 0.02 * M_PI;
     mp_t_max[b] = 0.05;
-    for(int m = 0; m < mp::MPMVCOUNT; m++) {
+    for(int m = 0; m < mp::MPTOTALTYPES; m++) {
       mp_tries[b][m] = 0;
       mp_accepted[b][m] = 0;
     }
@@ -176,11 +176,9 @@ void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
 void MoveSettings::UpdateMoveSettingMultiParticle(const uint box, bool isAccept,
     const uint typePick)
 {
-  if(typePick != mp::MPALLRANDOM) {
-    mp_tries[box][typePick]++;
-    if(isAccept) {
-      mp_accepted[box][typePick]++;
-    }
+  mp_tries[box][typePick]++;
+  if(isAccept) {
+    mp_accepted[box][typePick]++;
   }
 }
 

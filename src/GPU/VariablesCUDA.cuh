@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -111,7 +111,13 @@ public:
   int *gpu_nonOrth;
   double *gpu_aForcex, *gpu_aForcey, *gpu_aForcez;
   double *gpu_mForcex, *gpu_mForcey, *gpu_mForcez;
+  double *gpu_mTorquex, *gpu_mTorquey, *gpu_mTorquez;
+  double *gpu_aForceRecx, *gpu_aForceRecy, *gpu_aForceRecz;
+  double *gpu_mForceRecx, *gpu_mForceRecy, *gpu_mForceRecz;
   double *gpu_rMin, *gpu_expConst, *gpu_rMaxSq;
+
+  double *gpu_r_k_x, *gpu_r_k_y, *gpu_r_k_z;
+  double *gpu_t_k_x, *gpu_t_k_y, *gpu_t_k_z;
 
   // lambda structure
   int *gpu_molIndex, *gpu_kindIndex;

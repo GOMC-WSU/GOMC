@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -81,11 +81,12 @@ public:
     // Loop terminates before last entry to remove the value that
     // The user gets passes as "OutputName", which we have prefixed w a path
     // In the ParallelTemperingPreproccessing in Main.cpp.
-    // This leaves only the path, which we store as "pathToReplicaDirectory"
+    // This leaves only the path, which we store as "pathToReplicaOutputDirectory"
     for(int i = 0; i < tokens.size() - 1; ++i) {
       replicaDirectory << tokens[i] << OS_SEP;
     }
-    pathToReplicaDirectory = replicaDirectory.str();
+    pathToReplicaOutputDirectory = replicaDirectory.str();
+
     uniqueName = tokens[tokens.size() - 1];
 #else
     uniqueName = uniqueForFileIO;
@@ -123,7 +124,7 @@ public:
 //private:
   std::string uniqueName;
 #if GOMC_LIB_MPI
-  std::string pathToReplicaDirectory;
+  std::string pathToReplicaOutputDirectory;
 #endif
   ulong stepsPerOut, stepsTillEquil, totSimSteps;
   bool enableOut, firstPrint;

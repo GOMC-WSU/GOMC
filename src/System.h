@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -25,6 +25,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Clock.h"
 #include "CheckpointSetup.h"
 #include "../lib/Lambda.h"
+#include "Random123Wrapper.h"
 
 //Initialization variables
 class Setup;
@@ -36,7 +37,7 @@ class Lambda;
 class System
 {
 public:
-  explicit System(StaticVals& statics);
+  explicit System(StaticVals& statics, MultiSim const*const& multisim = NULL);
 
   void Init(Setup const& setupData, ulong & startStep);
 
@@ -107,6 +108,13 @@ public:
   Ewald *calcEwald;
   CellList cellList;
   PRNG prng;
+  Random123Wrapper r123wrapper;
+
+#if GOMC_LIB_MPI
+  MultiSim const*const& ms;
+  PRNG * prngParallelTemp;
+#endif
+
 
   CheckpointSetup checkpointSet;
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -47,7 +47,7 @@ void FreeEnergyOutput::Init(pdb_setup::Atoms const& atoms,
       fileName += uniqueName;
       fileName += ".dat";
 #if GOMC_LIB_MPI
-      name[b] = pathToReplicaDirectory + fileName;
+      name[b] = pathToReplicaOutputDirectory + fileName;
 #else
       name[b] = fileName;
 #endif

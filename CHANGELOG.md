@@ -1,6 +1,13 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.70] - 10/13/2020
++ This release forcues on GPU performance improvements
++ Using Random123 to be able to generate the same random number on GPU and port Translation and Rotation of molecules to the GPU
++ Upgraded to C++14
++ Lots of bug fixes
++ Upgraded our CMake to 3.8 and use built-in CUDA support
+
 ## [2.60] - 6/16/2020
 + Changed the way we calculate pair interactions. The new approach allows us to optimize GPU by reducing the amount of cudaMemcpy needed.
 + Added C++11 support to our code base and removed any `using namespace std;` statements.

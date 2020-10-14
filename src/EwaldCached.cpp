@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -25,50 +25,16 @@ EwaldCached::EwaldCached(StaticVals & stat, System & sys) : Ewald(stat, sys)
 
 EwaldCached::~EwaldCached()
 {
-  SafeDeleteArray(kmax);
-  SafeDeleteArray(imageSize);
-  SafeDeleteArray(imageSizeRef);
-  for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
-    SafeDeleteArray(kx[b]);
-    SafeDeleteArray(ky[b]);
-    SafeDeleteArray(kz[b]);
-    SafeDeleteArray(hsqr[b]);
-    SafeDeleteArray(prefact[b]);
-    SafeDeleteArray(kxRef[b]);
-    SafeDeleteArray(kyRef[b]);
-    SafeDeleteArray(kzRef[b]);
-    SafeDeleteArray(hsqrRef[b]);
-    SafeDeleteArray(prefactRef[b]);
-    SafeDeleteArray(sumRnew[b]);
-    SafeDeleteArray(sumInew[b]);
-    SafeDeleteArray(sumRref[b]);
-    SafeDeleteArray(sumIref[b]);
-  }
-  SafeDeleteArray(kx);
-  SafeDeleteArray(ky);
-  SafeDeleteArray(kz);
-  SafeDeleteArray(hsqr);
-  SafeDeleteArray(prefact);
-  SafeDeleteArray(kxRef);
-  SafeDeleteArray(kyRef);
-  SafeDeleteArray(kzRef);
-  SafeDeleteArray(hsqrRef);
-  SafeDeleteArray(prefactRef);
-  SafeDeleteArray(sumRnew);
-  SafeDeleteArray(sumInew);
-  SafeDeleteArray(sumRref);
-  SafeDeleteArray(sumIref);
-
-  int i;
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(i)
+  #pragma omp parallel for default(none)
 #endif
-  for (i = 0; i < mols.count; i++) {
+  for (int i = 0; i < mols.count; i++) {
     SafeDeleteArray(cosMolRef[i]);
     SafeDeleteArray(sinMolRef[i]);
     SafeDeleteArray(cosMolBoxRecip[i]);
     SafeDeleteArray(sinMolBoxRecip[i]);
   }
+
   SafeDeleteArray(cosMolRef);
   SafeDeleteArray(sinMolRef);
   SafeDeleteArray(cosMolBoxRecip);
@@ -86,7 +52,7 @@ void EwaldCached::Init()
       particleKind.push_back(molKind.AtomKind(a));
       particleMol.push_back(m);
       particleCharge.push_back(molKind.AtomCharge(a));
-      if(std::abs(molKind.AtomCharge(a)) < 0.000000001) {
+      if(std::abs(molKind.AtomCharge(a)) < 1e-9) {
         particleHasNoCharge.push_back(true);
       } else {
         particleHasNoCharge.push_back(false);
@@ -96,87 +62,42 @@ void EwaldCached::Init()
 
   AllocMem();
   //initialize K vectors and reciprocate terms
-  UpdateVectorsAndRecipTerms();
+  UpdateVectorsAndRecipTerms(true);
 }
 
 void EwaldCached::AllocMem()
 {
-  kmax = new uint[BOXES_WITH_U_NB];
-  imageSize = new uint[BOXES_WITH_U_NB];
-  imageSizeRef = new uint[BOXES_WITH_U_NB];
-  sumRnew = new double*[BOXES_WITH_U_NB];
-  sumInew = new double*[BOXES_WITH_U_NB];
-  sumRref = new double*[BOXES_WITH_U_NB];
-  sumIref = new double*[BOXES_WITH_U_NB];
-  kx = new double*[BOXES_WITH_U_NB];
-  ky = new double*[BOXES_WITH_U_NB];
-  kz = new double*[BOXES_WITH_U_NB];
-  hsqr = new double*[BOXES_WITH_U_NB];
-  prefact = new double*[BOXES_WITH_U_NB];
-  kxRef = new double*[BOXES_WITH_U_NB];
-  kyRef = new double*[BOXES_WITH_U_NB];
-  kzRef = new double*[BOXES_WITH_U_NB];
-  hsqrRef = new double*[BOXES_WITH_U_NB];
-  prefactRef = new double*[BOXES_WITH_U_NB];
+  //Use the base class member function to allocate base class data members
+  Ewald::AllocMem();
 
+  cosMolRestore = new double[imageTotal];
+  sinMolRestore = new double[imageTotal];
   cosMolRef = new double*[mols.count];
   sinMolRef = new double*[mols.count];
   cosMolBoxRecip = new double*[mols.count];
   sinMolBoxRecip = new double*[mols.count];
 
-  for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
-    RecipCountInit(b, currentAxes);
-  }
-
-  //25% larger than original box size, reserved for image size change
-  imageTotal = Ewald::findLargeImage();
-
-  cosMolRestore = new double[imageTotal];
-  sinMolRestore = new double[imageTotal];
-
-  for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
-    kx[b] = new double[imageTotal];
-    ky[b] = new double[imageTotal];
-    kz[b] = new double[imageTotal];
-    hsqr[b] = new double[imageTotal];
-    prefact[b] = new double[imageTotal];
-    kxRef[b] = new double[imageTotal];
-    kyRef[b] = new double[imageTotal];
-    kzRef[b] = new double[imageTotal];
-    hsqrRef[b] = new double[imageTotal];
-    prefactRef[b] = new double[imageTotal];
-    sumRnew[b] = new double[imageTotal];
-    sumInew[b] = new double[imageTotal];
-    sumRref[b] = new double[imageTotal];
-    sumIref[b] = new double[imageTotal];
-  }
-
-  int i;
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(i)
+  #pragma omp parallel for default(none)
 #endif
-  for (i = 0; i < mols.count; i++) {
+  for (int i = 0; i < mols.count; i++) {
     cosMolRef[i] = new double[imageTotal];
     sinMolRef[i] = new double[imageTotal];
     cosMolBoxRecip[i] = new double[imageTotal];
     sinMolBoxRecip[i] = new double[imageTotal];
   }
-
 }
 
-//calculate reciprocate term for a box
+//calculate reciprocal term for a box
 void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 {
-  uint j, m;
-  int i;
-  double dotProduct = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
 
 #ifdef _OPENMP
-    #pragma omp parallel default(shared)
+    #pragma omp parallel default(none) shared(box)
 #endif
     {
       std::memset(sumRnew[box], 0.0, sizeof(double) * imageSize[box]);
@@ -186,22 +107,22 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
     while (thisMol != end) {
       MoleculeKind const& thisKind = mols.GetKind(*thisMol);
       double lambdaCoef = GetLambdaCoef(*thisMol, box);
-      uint start = mols.MolStart(*thisMol);
+      uint startAtom = mols.MolStart(*thisMol);
 
 #ifdef _OPENMP
-      #pragma omp parallel for default(shared) private(i, j, dotProduct)
+      #pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, startAtom, thisKind, thisMol)
 #endif
-      for (i = 0; i < imageSize[box]; i++) {
+      for (int i = 0; i < imageSize[box]; i++) {
         cosMolRef[*thisMol][i] = 0.0;
         sinMolRef[*thisMol][i] = 0.0;
 
-        for (j = 0; j < thisKind.NumAtoms(); j++) {
-          if(particleHasNoCharge[start + j]) {
+        for (uint j = 0; j < thisKind.NumAtoms(); j++) {
+          if(particleHasNoCharge[startAtom + j]) {
             continue;
           }
-          dotProduct = Dot(mols.MolStart(*thisMol) + j,
-                           kx[box][i], ky[box][i],
-                           kz[box][i], molCoords);
+          double dotProduct = Dot(mols.MolStart(*thisMol) + j,
+                                  kx[box][i], ky[box][i],
+                                  kz[box][i], molCoords);
           //cache the Cos and sin term with lambda = 1
           cosMolRef[*thisMol][i] += (thisKind.AtomCharge(j) *
                                      cos(dotProduct));
@@ -219,17 +140,16 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 }
 
 
-//calculate reciprocate term for a box
+//calculate reciprocal term for a box
 double EwaldCached::BoxReciprocal(uint box) const
 {
-  int i;
   double energyRecip = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i) reduction(+:energyRecip)
+    #pragma omp parallel for default(none) shared(box) reduction(+:energyRecip)
 #endif
-    for (i = 0; i < imageSize[box]; i++) {
+    for (int i = 0; i < imageSize[box]; i++) {
       energyRecip += (( sumRnew[box][i] * sumRnew[box][i] +
                         sumInew[box][i] * sumInew[box][i]) *
                       prefact[box][i]);
@@ -239,7 +159,7 @@ double EwaldCached::BoxReciprocal(uint box) const
   return energyRecip;
 }
 
-//calculate reciprocate term for displacement and rotation move
+//calculate reciprocal term for displacement and rotation move
 double EwaldCached::MolReciprocal(XYZArray const& molCoords,
                                   const uint molIndex,
                                   const uint box)
@@ -249,32 +169,35 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
   if (box < BOXES_WITH_U_NB) {
     MoleculeKind const& thisKind = mols.GetKind(molIndex);
     uint length = thisKind.NumAtoms();
-    uint start = mols.MolStart(molIndex);
-    uint p;
-    int i;
-    double sumRealNew, sumImaginaryNew, dotProductNew, sumRealOld,
-           sumImaginaryOld;
+    uint startAtom = mols.MolStart(molIndex);
     double lambdaCoef = GetLambdaCoef(molIndex, box);
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i, p, sumRealNew, sumImaginaryNew, sumRealOld, sumImaginaryOld, dotProductNew) reduction(+:energyRecipNew)
+#if GCC_VERSION >= 90000
+    #pragma omp parallel for default(none) shared(lambdaCoef, length, molCoords, \
+    startAtom, thisKind, box, molIndex) \
+reduction(+:energyRecipNew)
+#else
+    #pragma omp parallel for default(none) shared(lambdaCoef, length, molCoords, \
+    startAtom, thisKind) \
+reduction(+:energyRecipNew)
 #endif
-    for (i = 0; i < imageSizeRef[box]; i++) {
-      sumRealNew = 0.0;
-      sumImaginaryNew = 0.0;
-      dotProductNew = 0.0;
-      sumRealOld = cosMolRef[molIndex][i];
-      sumImaginaryOld = sinMolRef[molIndex][i];
+#endif
+    for (int i = 0; i < imageSizeRef[box]; i++) {
+      double sumRealNew = 0.0;
+      double sumImaginaryNew = 0.0;
+      double sumRealOld = cosMolRef[molIndex][i];
+      double sumImaginaryOld = sinMolRef[molIndex][i];
       cosMolRestore[i] = cosMolRef[molIndex][i];
       sinMolRestore[i] = sinMolRef[molIndex][i];
 
-      for (p = 0; p < length; ++p) {
-        if(particleHasNoCharge[start + p]) {
+      for (uint p = 0; p < length; ++p) {
+        if(particleHasNoCharge[startAtom + p]) {
           continue;
         }
-        dotProductNew = Dot(p, kxRef[box][i],
-                            kyRef[box][i], kzRef[box][i],
-                            molCoords);
+        double dotProductNew = Dot(p, kxRef[box][i],
+                                   kyRef[box][i], kzRef[box][i],
+                                   molCoords);
 
         sumRealNew += (thisKind.AtomCharge(p) * cos(dotProductNew));
         sumImaginaryNew += (thisKind.AtomCharge(p) * sin(dotProductNew));
@@ -295,7 +218,7 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
   return energyRecipNew - sysPotRef.boxEnergy[box].recip;
 }
 
-//calculate reciprocate term in destination box for swap move
+//calculate reciprocal term in destination box for swap move
 //No need to scale the charge with lambda, since this function will not be
 // called in free energy of CFCMC
 double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
@@ -306,7 +229,11 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
   double energyRecipOld = 0.0;
 
 #ifdef _OPENMP
-  #pragma omp parallel default(shared)
+#if GCC_VERSION >= 90000
+  #pragma omp parallel default(none) shared(molIndex)
+#else
+  #pragma omp parallel default(none)
+#endif
 #endif
   {
     std::memcpy(cosMolRestore, cosMolRef[molIndex], sizeof(double)*imageTotal);
@@ -314,29 +241,33 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
   }
 
   if (box < BOXES_WITH_U_NB) {
-    uint p, length, start;
-    int i;
     MoleculeKind const& thisKind = newMol.GetKind();
     XYZArray molCoords = newMol.GetCoords();
-    double dotProductNew;
-    length = thisKind.NumAtoms();
-    start = mols.MolStart(molIndex);
+    uint length = thisKind.NumAtoms();
+    uint startAtom = mols.MolStart(molIndex);
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i, p, dotProductNew) reduction(+:energyRecipNew)
+#if GCC_VERSION >= 90000
+    #pragma omp parallel for default(none) shared(length, molCoords, startAtom, \
+    thisKind, box, molIndex) \
+reduction(+:energyRecipNew)
+#else
+    #pragma omp parallel for default(none) shared(length, molCoords, startAtom, \
+    thisKind) \
+reduction(+:energyRecipNew)
 #endif
-    for (i = 0; i < imageSizeRef[box]; i++) {
+#endif
+    for (int i = 0; i < imageSizeRef[box]; i++) {
       cosMolRef[molIndex][i] = 0.0;
       sinMolRef[molIndex][i] = 0.0;
-      dotProductNew = 0.0;
 
-      for (p = 0; p < length; ++p) {
-        if(particleHasNoCharge[start + p]) {
+      for (uint p = 0; p < length; ++p) {
+        if(particleHasNoCharge[startAtom + p]) {
           continue;
         }
-        dotProductNew = Dot(p, kxRef[box][i],
-                            kyRef[box][i], kzRef[box][i],
-                            molCoords);
+        double dotProductNew = Dot(p, kxRef[box][i],
+                                   kyRef[box][i], kzRef[box][i],
+                                   molCoords);
         cosMolRef[molIndex][i] += (thisKind.AtomCharge(p) *
                                    cos(dotProductNew));
         sinMolRef[molIndex][i] += (thisKind.AtomCharge(p) *
@@ -359,7 +290,7 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
 }
 
 
-//calculate reciprocate term in source box for swap move
+//calculate reciprocal term in source box for swap move
 //No need to scale the charge with lambda, since this function will not be
 // called in free energy of CFCMC
 double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
@@ -369,11 +300,14 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
   double energyRecipOld = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
-    int i;
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(i) reduction(+:energyRecipNew)
+#if GCC_VERSION >= 90000
+    #pragma omp parallel for default(none) shared(box) reduction(+:energyRecipNew)
+#else
+    #pragma omp parallel for default(none) reduction(+:energyRecipNew)
 #endif
-    for (i = 0; i < imageSizeRef[box]; i++) {
+#endif
+    for (int i = 0; i < imageSizeRef[box]; i++) {
       sumRnew[box][i] = sumRref[box][i] - cosMolRestore[i];
       sumInew[box][i] = sumIref[box][i] - sinMolRestore[i];
 
@@ -386,7 +320,7 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
   return energyRecipNew - energyRecipOld;
 }
 
-//calculate reciprocate term for inserting some molecules (kindA) in destination
+//calculate reciprocal term for inserting some molecules (kindA) in destination
 // box and removing a molecule (kindB) from destination box
 double EwaldCached::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
                               const std::vector<cbmc::TrialMol> &oldMol,
@@ -400,7 +334,7 @@ double EwaldCached::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
   return 0.0;
 }
 
-//calculate reciprocate term for lambdaNew and Old with same coordinates
+//calculate reciprocal term for lambdaNew and Old with same coordinates
 double EwaldCached::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
                                const double lambdaNew, const uint molIndex,
                                const uint box)
@@ -412,26 +346,31 @@ double EwaldCached::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld
   return 0.0;
 }
 
-//calculate reciprocate term for lambdaNew and Old with same coordinates
+//calculate reciprocal term for lambdaNew and Old with same coordinates
 void EwaldCached::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
                               const std::vector<double> &lambda_Coul,
                               const uint iState, const uint molIndex,
                               const uint box) const
 {
   //Need to implement GPU
-  uint i, s;
   uint lambdaSize = lambda_Coul.size();
-  double coefDiff;
   double *energyRecip = new double [lambdaSize];
   std::fill_n(energyRecip, lambdaSize, 0.0);
 
 #if defined _OPENMP && _OPENMP >= 201511 // check if OpenMP version is 4.5
-  #pragma omp parallel for default(shared) private(i, s, coefDiff) reduction(+:energyRecip[:lambdaSize])
+#if GCC_VERSION >= 90000
+  #pragma omp parallel for default(none) shared(lambda_Coul, lambdaSize, box, \
+  iState, molIndex) \
+reduction(+:energyRecip[:lambdaSize])
+#else
+  #pragma omp parallel for default(none) shared(lambda_Coul, lambdaSize) \
+  reduction(+:energyRecip[:lambdaSize])
 #endif
-  for (i = 0; i < imageSizeRef[box]; i++) {
-    for(s = 0; s < lambdaSize; s++) {
+#endif
+  for (uint i = 0; i < imageSizeRef[box]; i++) {
+    for(uint s = 0; s < lambdaSize; s++) {
       //Calculate the energy of other state
-      coefDiff = sqrt(lambda_Coul[s]) - sqrt(lambda_Coul[iState]);
+      double coefDiff = sqrt(lambda_Coul[s]) - sqrt(lambda_Coul[iState]);
       energyRecip[s] += prefactRef[box][i] *
                         ((sumRref[box][i] + coefDiff * cosMolRef[molIndex][i]) *
                          (sumRref[box][i] + coefDiff * cosMolRef[molIndex][i]) +
@@ -441,8 +380,8 @@ void EwaldCached::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
   }
 
   double energyRecipOld = sysPotRef.boxEnergy[box].recip;
-  for(s = 0; s < lambdaSize; s++) {
-    energyDiff[s].recip = energyRecip[s] - energyRecipOld;
+  for(uint s = 0; s < lambdaSize; s++) {
+  energyDiff[s].recip = energyRecip[s] - energyRecipOld;
   }
   //Calculate du/dl of Reciprocal for current state
   //energy difference E(lambda =1) - E(lambda = 0)
@@ -480,11 +419,10 @@ void EwaldCached::backupMolCache()
 #if ENSEMBLE == NPT || ENSEMBLE == NVT
   exgMolCache();
 #else
-  uint m;
 #ifdef _OPENMP
-  #pragma omp parallel for private(m)
+  #pragma omp parallel for default(none)
 #endif
-  for(m = 0; m < mols.count; m++) {
+  for(int m = 0; m < mols.count; m++) {
     std::memcpy(cosMolBoxRecip[m], cosMolRef[m], sizeof(double) * imageTotal);
     std::memcpy(sinMolBoxRecip[m], sinMolRef[m], sizeof(double) * imageTotal);
   }

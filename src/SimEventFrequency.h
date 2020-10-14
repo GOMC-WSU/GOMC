@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -11,8 +11,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "ConfigSetup.h" //for event frequencies from config file.
 
 struct SimEventFrequency {
-  ulong total, perAdjust, tillEquil, pCalcFreq;
-  bool pressureCalc;
+  ulong total, perAdjust, tillEquil, pCalcFreq, parallelTempFreq;
+  bool pressureCalc, parallelTemp;
 
   void Init(config_setup::Step const& s)
   {
@@ -21,6 +21,10 @@ struct SimEventFrequency {
     tillEquil = s.equil;
     pCalcFreq = s.pressureCalcFreq;
     pressureCalc = s.pressureCalc;
+#if GOMC_LIB_MPI
+    parallelTempFreq =  s.parallelTempFreq;
+    parallelTemp = s.parallelTemp;
+#endif
   }
 };
 

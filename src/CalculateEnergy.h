@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -180,7 +180,6 @@ public:
                        XYZArray const& atomForce,
                        XYZArray const& atomForceRec,
                        XYZArray& molTorque,
-                       std::vector<uint>& moveType,
                        const uint box);
 
   //Finding the molecule inside cavity and store the molecule Index.
@@ -298,6 +297,7 @@ private:
 
   double GetLambdaVDW(uint molA, uint molB, uint box) const;
   double GetLambdaCoulomb(uint molA, uint molB, uint box) const;
+  uint NumberOfParticlesInsideBox(uint box);
 
 
   const Forcefield& forcefield;

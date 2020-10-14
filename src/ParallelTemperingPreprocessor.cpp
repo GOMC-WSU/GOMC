@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -43,7 +43,7 @@ ParallelTemperingPreprocessor::ParallelTemperingPreprocessor( int argc,
       }
     }
     //OPEN FILE
-    inputFileReaderMPI.open(inputFileStringMPI.c_str(), ios::in | ios::out);
+    inputFileReaderMPI.open(inputFileStringMPI.c_str(), std::ios::in | std::ios::out);
 
     //CHECK IF FILE IS OPENED...IF NOT OPENED EXCEPTION REASON FIRED
     if (!inputFileReaderMPI.is_open()) {
@@ -56,7 +56,7 @@ ParallelTemperingPreprocessor::ParallelTemperingPreprocessor( int argc,
     //CLOSE FILE TO NOW PASS TO SIMULATION
     inputFileReaderMPI.close();
 
-    if(checkIfParallelTempering(inputFileStringMPI.c_str())) {
+    if(checkIfExpandedEnsemble(inputFileStringMPI.c_str())) {
       checkIfValid(inputFileStringMPI.c_str());
       if(worldRank >= getNumberOfReplicas(inputFileStringMPI.c_str())) {
         std::cout << "You may not request more processes (" << worldSize
@@ -66,13 +66,18 @@ ParallelTemperingPreprocessor::ParallelTemperingPreprocessor( int argc,
         exit(EXIT_FAILURE);
       } else {
 #if ENSEMBLE == GCMC
-        pathToReplicaDirectory = setupReplicaDirectoriesAndRedirectSTDOUTToFile  (  getMultiSimFolderName(inputFileStringMPI.c_str()),
-                                 getTemperature(inputFileStringMPI.c_str(), worldRank),
-                                 getChemicalPotential(inputFileStringMPI.c_str(), worldRank));
+        setupReplicaDirectoriesAndRedirectSTDOUTToFile ( inputFileStringMPI,
+            getTemperature(inputFileStringMPI.c_str(), worldRank),
+            getChemicalPotential(inputFileStringMPI.c_str(), worldRank)
+                                                       );
 #else
-        pathToReplicaDirectory = setupReplicaDirectoriesAndRedirectSTDOUTToFile  (  getMultiSimFolderName(inputFileStringMPI.c_str()),
-                                 getTemperature(inputFileStringMPI.c_str(), worldRank));
+        setupReplicaDirectoriesAndRedirectSTDOUTToFile (inputFileStringMPI,
+            getTemperature(inputFileStringMPI.c_str(), worldRank)
+                                                       );
 #endif
+        restart = checkIfRestart(inputFileStringMPI.c_str());
+        restartFromCheckpoint = checkIfRestartFromCheckpoint(inputFileStringMPI.c_str());
+        parallelTemperingEnabled = checkIfParallelTemperingEnabled(inputFileStringMPI.c_str());
       }
     }
   }
@@ -88,7 +93,7 @@ bool ParallelTemperingPreprocessor::checkIfValidRank()
 }
 
 
-bool ParallelTemperingPreprocessor::checkIfParallelTempering(const char *fileName)
+bool ParallelTemperingPreprocessor::checkIfExpandedEnsemble(const char *fileName)
 {
   InputFileReader reader;
   std::vector<std::string> line;
@@ -101,16 +106,16 @@ bool ParallelTemperingPreprocessor::checkIfParallelTempering(const char *fileNam
   while(reader.readNextLine(line)) {
     if(line.size() == 0)
       continue;
-    if(CheckString(line[0], "Temperature")) {
+    if(checkString(line[0], "Temperature")) {
       if (line.size() > 2)
         isParallelTemperingInTemperature = true;
-    } else if (CheckString(line[0], "ChemPot")) {
+    } else if (checkString(line[0], "ChemPot")) {
       if (line.size() > 3)
         isParallelTemperingInChemicalPotential = true;
-    } else if (CheckString(line[0], "LambdaCoulomb")) {
+    } else if (checkString(line[0], "LambdaCoulomb")) {
       if (line.size() > 2)
         isParallelTemperingInFreeEnergyCoulomb = true;
-    }  else if (CheckString(line[0], "LambdaVDW")) {
+    }  else if (checkString(line[0], "LambdaVDW")) {
       if (line.size() > 2)
         isParallelTemperingInFreeEnergyVDW = true;
     }
@@ -127,27 +132,27 @@ void ParallelTemperingPreprocessor::checkIfValid(const char *fileName)
   std::vector<std::string> line;
   reader.Open(fileName);
   int numberOfTemperatures = 0;
-  vector < int > numberOfChemPots;
+  std::vector < int > numberOfChemPots;
   int numberOfLambdaCoulombs = 0;
   int numberOfLambdaVDWs = 0;
 
   while(reader.readNextLine(line)) {
     if(line.size() == 0)
       continue;
-    if(CheckString(line[0], "Temperature")) {
+    if(checkString(line[0], "Temperature")) {
       numberOfTemperatures = line.size() - 1;
-    } else if (CheckString(line[0], "ChemPot")) {
+    } else if (checkString(line[0], "ChemPot")) {
       numberOfChemPots.push_back(line.size() - 2);
-    } else if (CheckString(line[0], "LambdaCoulomb")) {
+    } else if (checkString(line[0], "LambdaCoulomb")) {
       numberOfLambdaCoulombs = line.size() - 1;
-    }  else if (CheckString(line[0], "LambdaVDW")) {
+    }  else if (checkString(line[0], "LambdaVDW")) {
       numberOfLambdaVDWs = line.size() - 1;
     }
     // Clear and get ready for the next line
     line.clear();
   }
 
-  for( vector < int >::iterator it = numberOfChemPots.begin(); it != numberOfChemPots.end(); ++it ) {
+  for( std::vector < int >::iterator it = numberOfChemPots.begin(); it != numberOfChemPots.end(); ++it ) {
     if (*it > 1 && numberOfTemperatures > 1 && *it != numberOfTemperatures) {
       std::cout << "Error: Unequal number of temperatures and chemical potentials in Multicanonical!\n";
       std::cout << "If you only want to only sample mu-space or temperature-space\n";
@@ -174,7 +179,7 @@ int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName)
   std::vector<std::string> line;
   reader.Open(fileName);
   int numberOfTemperatures = 0;
-  vector < int > numberOfChemPots;
+  std::vector < int > numberOfChemPots;
   int numberOfLambdaCoulombs = 0;
   int numberOfLambdaVDWs = 0;
 
@@ -183,20 +188,20 @@ int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName)
   while(reader.readNextLine(line)) {
     if(line.size() == 0)
       continue;
-    if(CheckString(line[0], "Temperature")) {
+    if(checkString(line[0], "Temperature")) {
       numberOfTemperatures = line.size() - 1;
-    } else if (CheckString(line[0], "ChemPot")) {
+    } else if (checkString(line[0], "ChemPot")) {
       numberOfChemPots.push_back(line.size() - 2);
-    } else if (CheckString(line[0], "LambdaCoulomb")) {
+    } else if (checkString(line[0], "LambdaCoulomb")) {
       numberOfLambdaCoulombs = line.size() - 1;
-    }  else if (CheckString(line[0], "LambdaVDW")) {
+    }  else if (checkString(line[0], "LambdaVDW")) {
       numberOfLambdaVDWs = line.size() - 1;
     }
     // Clear and get ready for the next line
     line.clear();
   }
 
-  for( vector < int >::iterator it = numberOfChemPots.begin(); it != numberOfChemPots.end(); ++it ) {
+  for( std::vector < int >::iterator it = numberOfChemPots.begin(); it != numberOfChemPots.end(); ++it ) {
     numberOfReplicas = std::max(numberOfReplicas, *it);
   }
   numberOfReplicas = std::max(numberOfReplicas, numberOfTemperatures);
@@ -206,17 +211,17 @@ int ParallelTemperingPreprocessor::getNumberOfReplicas(const char *fileName)
   return numberOfReplicas;
 }
 
-std::string ParallelTemperingPreprocessor::getMultiSimFolderName(const char *fileName)
+std::string ParallelTemperingPreprocessor::getInputFolderName(const char *fileName)
 {
   InputFileReader reader;
   std::vector<std::string> line;
   reader.Open(fileName);
-  string folderName;
+  std::string folderName;
 
   while(reader.readNextLine(line)) {
     if(line.size() == 0) {
       continue;
-    } else if(line[0] == "MultiSimFolderName") {
+    } else if(line[0] == "InputFolderName") {
       std::stringstream ss;
       for (int i = 1; i < line.size(); i++) {
         if (line[i] == " ") {
@@ -232,8 +237,44 @@ std::string ParallelTemperingPreprocessor::getMultiSimFolderName(const char *fil
     // Clear and get ready for the next line
     line.clear();
   }
+  // This will default to the input files being in a flat directory
   if (folderName.empty()) {
-    folderName = "MultiSimFolderName";
+    folderName = "";
+  }
+  return folderName;
+}
+
+std::string ParallelTemperingPreprocessor::getOutputFolderName(const char *fileName)
+{
+  InputFileReader reader;
+  std::vector<std::string> line;
+  reader.Open(fileName);
+  std::string folderName;
+
+  while(reader.readNextLine(line)) {
+    if(line.size() == 0) {
+      continue;
+    } else if(line[0] == "OutputFolderName") {
+      std::stringstream ss;
+      for (int i = 1; i < line.size(); i++) {
+        if (line[i] == " ") {
+          ss << '_';
+        } else {
+          ss << line[i];
+          if (i + 1 != line.size())
+            ss << "_";
+        }
+      }
+      folderName = ss.str();
+    }
+    // Clear and get ready for the next line
+    line.clear();
+  }
+
+  // This will default to the output files being in a directory tree structure as follows
+  // ./OutputFolder/temp_xxx ./OutputFolder/temp_yyy
+  if (folderName.empty()) {
+    folderName = "OutputFolder";
   }
   return folderName;
 }
@@ -243,7 +284,7 @@ std::string ParallelTemperingPreprocessor::getTemperature(const char *fileName, 
   InputFileReader reader;
   std::vector<std::string> line;
   reader.Open(fileName);
-  string temperature;
+  std::string temperature;
 
 
   while(reader.readNextLine(line)) {
@@ -276,7 +317,7 @@ std::string ParallelTemperingPreprocessor::getChemicalPotential(const char *file
   while(reader.readNextLine(line)) {
     if(line.size() == 0) {
       continue;
-    } else if(CheckString(line[0], "ChemPot")) {
+    } else if(checkString(line[0], "ChemPot")) {
       if (line.size() > 3) {
         resName = line[1];
         val = line[2 + worldRank];
@@ -297,47 +338,141 @@ std::string ParallelTemperingPreprocessor::getChemicalPotential(const char *file
   return chemPotStream.str();
 }
 
-std::string ParallelTemperingPreprocessor::setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature)
+bool ParallelTemperingPreprocessor::checkIfParallelTemperingEnabled(const char *fileName)
+{
+  InputFileReader reader;
+  std::vector<std::string> line;
+  reader.Open(fileName);
+
+  bool parallelTemperingEnabled = false;
+
+  while(reader.readNextLine(line)) {
+    if(line.size() == 0)
+      continue;
+
+    if(checkString(line[0], "ParallelTemperingFreq")) {
+      parallelTemperingEnabled = checkBool(line[1]);
+    }
+    // Clear and get ready for the next line
+    line.clear();
+  }
+  return parallelTemperingEnabled;
+}
+
+bool ParallelTemperingPreprocessor::checkIfRestart(const char *fileName)
+{
+  InputFileReader reader;
+  std::vector<std::string> line;
+  reader.Open(fileName);
+
+  bool restart = false;
+
+  while(reader.readNextLine(line)) {
+    if(line.size() == 0)
+      continue;
+
+    if(checkString(line[0], "Restart")) {
+      restart = checkBool(line[1]);
+      return restart;
+    }
+
+    // Clear and get ready for the next line
+    line.clear();
+  }
+  return restart;
+}
+
+bool ParallelTemperingPreprocessor::checkIfRestartFromCheckpoint(const char *fileName)
+{
+  InputFileReader reader;
+  std::vector<std::string> line;
+  reader.Open(fileName);
+
+  bool restartFromCheckpoint = false;
+
+  while(reader.readNextLine(line)) {
+    if(line.size() == 0)
+      continue;
+
+    if(checkString(line[0], "RestartCheckpoint")) {
+      restartFromCheckpoint = checkBool(line[1]);
+      return restartFromCheckpoint;
+    }
+
+    // Clear and get ready for the next line
+    line.clear();
+  }
+  return restartFromCheckpoint;
+}
+
+void ParallelTemperingPreprocessor::setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature)
 {
   std::stringstream replicaTemp;
   replicaTemp << "temp_" << temperature;
   std::string replicaDirectory = replicaTemp.str();
-  return mkdirWrapper(multiSimTitle, replicaDirectory);
+  mkdirWrapper(multiSimTitle, replicaDirectory);
 }
 
-std::string ParallelTemperingPreprocessor::setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature, std::string chemPot)
+void ParallelTemperingPreprocessor::setupReplicaDirectoriesAndRedirectSTDOUTToFile(std::string multiSimTitle, std::string temperature, std::string chemPot)
 {
   std::stringstream replicaTemp;
   replicaTemp << "temp_" << temperature << chemPot;
   std::string replicaDirectory = replicaTemp.str();
-  return mkdirWrapper(multiSimTitle, replicaDirectory);
+  mkdirWrapper(multiSimTitle, replicaDirectory);
 }
 
-std::string ParallelTemperingPreprocessor::mkdirWrapper(std::string multisimDirectoryName, string replicaDirectoryName)
+void ParallelTemperingPreprocessor::mkdirWrapper(std::string multisimDirectoryName, std::string replicaDirectoryName)
 {
-  std::stringstream replicaStream;
 
-  replicaStream << "." << OS_SEP << multisimDirectoryName << OS_SEP
-                << replicaDirectoryName << OS_SEP;
-  std::string replicaDirectoryPath = replicaStream.str();
+  std::string multiSimInputFolder;
+  std::string multiSimOutputFolder;
+
+  multiSimInputFolder = getInputFolderName(multisimDirectoryName.c_str());
+  multiSimOutputFolder = getOutputFolderName(multisimDirectoryName.c_str());
+
+  std::stringstream replicaInputStream;
+  std::stringstream replicaOutputStream;
+  std::stringstream replicaErrorStream;
+
+  replicaInputStream << multiSimInputFolder << OS_SEP
+                     << replicaDirectoryName << OS_SEP;
+
+  replicaOutputStream << multiSimOutputFolder << OS_SEP
+                      << replicaDirectoryName << OS_SEP;
+
+  replicaErrorStream << multiSimOutputFolder << OS_SEP
+                     << replicaDirectoryName << OS_SEP;
+
+
+  // If InputFolderName not provided, use empty string.
+  if(multiSimInputFolder.empty()) {
+    replicaInputDirectoryPath = multiSimInputFolder;
+  } else {
+    // Else use the provided InputFolderName
+    replicaInputDirectoryPath = replicaInputStream.str();
+  }
+  replicaOutputDirectoryPath = replicaOutputStream.str();
 
   //printf("Creating directory : %s\n", multisimDirectoryName.c_str());
-  mkdir(multisimDirectoryName.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  mkdir(replicaDirectoryPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  mkdir(multiSimOutputFolder.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  mkdir(replicaOutputDirectoryPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
-  std::string pathToReplicaDirectory = replicaStream.str();
-  replicaStream << "ConsoleOut.dat";
-  std::string pathToReplicaLogFile = replicaStream.str();
+  replicaOutputStream << "ConsoleOut.dat";
+
+  replicaErrorStream  << "ErrorsMessages.dat";
+
+  std::string pathToReplicaLogFile = replicaOutputStream.str();
+  std::string pathToReplicaErrorLogFile = replicaErrorStream.str();
   if(worldRank == 0) {
     std::cout << "Monitor progress of your simulation by navigating to a replica output directory and issuing:\n"
               << "\t$ tail -f \"YourUniqueFileName\".console" << std::endl;
   }
-  freopen(pathToReplicaLogFile.c_str(), "w", stdout);
-  return pathToReplicaDirectory;
 
+  stdOut = freopen(pathToReplicaLogFile.c_str(), "w", stdout);
+  stdErr = freopen(pathToReplicaErrorLogFile.c_str(), "w", stderr);
 }
 
-bool ParallelTemperingPreprocessor::CheckString(string str1, string str2)
+bool ParallelTemperingPreprocessor::checkString(std::string str1, std::string str2)
 {
   for(int k = 0; k < str1.length(); k++) {
     str1[k] = toupper(str1[k]);
@@ -350,8 +485,29 @@ bool ParallelTemperingPreprocessor::CheckString(string str1, string str2)
   return (str1 == str2);
 }
 
+bool ParallelTemperingPreprocessor::checkBool(std::string str)
+{
+  int k;
+  // capitalize string
+  for(k = 0; k < str.length(); k++) {
+    str[k] = toupper(str[k]);
+  }
+
+  if(str == "ON" || str == "TRUE" || str == "YES")
+    return true;
+  else if(str == "OFF" || str == "FALSE" || str == "NO")
+    return false;
+  std::cout << "Error: " << str << "couldn't be recognized!" << std::endl;
+  exit(EXIT_FAILURE);
+}
+
 MultiSim::MultiSim(ParallelTemperingPreprocessor & pt) :
-  worldSize(pt.worldSize), worldRank(pt.worldRank), pathToReplicaDirectory(pt.pathToReplicaDirectory)
-{}
+  worldSize(pt.worldSize), worldRank(pt.worldRank), replicaInputDirectoryPath(pt.replicaInputDirectoryPath),
+  replicaOutputDirectoryPath(pt.replicaOutputDirectoryPath), restart(pt.restart),
+  restartFromCheckpoint(pt.restartFromCheckpoint), parallelTemperingEnabled(pt.parallelTemperingEnabled)
+{
+  std::string filename = replicaOutputDirectoryPath + "ParallelTempering.dat";
+  fplog =  fopen(filename.c_str(), "w");
+}
 
 #endif

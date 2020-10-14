@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -11,26 +11,31 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <cuda_runtime.h>
 #include "ConstantDefinitionsCUDAKernel.cuh"
 
-__device__ inline void TransformSlantGPU(double &tx, double &ty, double &tz,
-    double x, double y, double z,
+__device__ inline double3 Difference(double * x, double * y, double * z, uint i, uint j)
+{
+  return make_double3(x[i] - x[j], y[i] - y[j], z[i] - z[j]);
+}
+
+__device__ inline void TransformSlantGPU(double3 & dist,
+    double3 slant,
     double *gpu_cell_x,
     double *gpu_cell_y,
     double *gpu_cell_z)
 {
-  tx = x * gpu_cell_x[0] + y * gpu_cell_x[1] + z * gpu_cell_x[2];
-  ty = x * gpu_cell_y[0] + y * gpu_cell_y[1] + z * gpu_cell_y[2];
-  tz = x * gpu_cell_z[0] + y * gpu_cell_z[1] + z * gpu_cell_z[2];
+  dist.x = slant.x * gpu_cell_x[0] + slant.y * gpu_cell_x[1] + slant.z * gpu_cell_x[2];
+  dist.y = slant.x * gpu_cell_y[0] + slant.y * gpu_cell_y[1] + slant.z * gpu_cell_y[2];
+  dist.z = slant.x * gpu_cell_z[0] + slant.y * gpu_cell_z[1] + slant.z * gpu_cell_z[2];
 }
 
-__device__ inline void TransformUnSlantGPU(double &tx, double &ty, double &tz,
-    double x, double y, double z,
+__device__ inline void TransformUnSlantGPU(double3 & dist,
+    double3 slant,
     double *gpu_Invcell_x,
     double *gpu_Invcell_y,
     double *gpu_Invcell_z)
 {
-  tx = x * gpu_Invcell_x[0] + y * gpu_Invcell_x[1] + z * gpu_Invcell_x[2];
-  ty = x * gpu_Invcell_y[0] + y * gpu_Invcell_y[1] + z * gpu_Invcell_y[2];
-  tz = x * gpu_Invcell_z[0] + y * gpu_Invcell_z[1] + z * gpu_Invcell_z[2];
+  dist.x = slant.x * gpu_Invcell_x[0] + slant.y * gpu_Invcell_x[1] + slant.z * gpu_Invcell_x[2];
+  dist.y = slant.x * gpu_Invcell_y[0] + slant.y * gpu_Invcell_y[1] + slant.z * gpu_Invcell_y[2];
+  dist.z = slant.x * gpu_Invcell_z[0] + slant.y * gpu_Invcell_z[1] + slant.z * gpu_Invcell_z[2];
 }
 
 __device__ inline double MinImageSignedGPU(double raw, double ax, double halfAx)
@@ -42,72 +47,100 @@ __device__ inline double MinImageSignedGPU(double raw, double ax, double halfAx)
   return raw;
 }
 
+__device__ inline void DeviceInRcut(
+  double &distSq,
+  double &distX,
+  double &distY,
+  double &distZ,
+  double *gpu_x,
+  double *gpu_y,
+  double *gpu_z,
+  int particleID,
+  int otherParticle,
+  double axx,
+  double axy,
+  double axz,
+  int box
+)
+{
+  // calculate difference
+  double diff_x = gpu_x[particleID] - gpu_x[otherParticle];
+  double diff_y = gpu_y[particleID] - gpu_y[otherParticle];
+  double diff_z = gpu_z[particleID] - gpu_z[otherParticle];
+
+  // min image
+  distX = MinImageSignedGPU(diff_x, axx, axx / 2.0);
+  distY = MinImageSignedGPU(diff_y, axy, axy / 2.0);
+  distZ = MinImageSignedGPU(diff_z, axz, axz / 2.0);
+
+  distSq = distX * distX + distY * distY + distZ * distZ;
+}
+
+__device__ inline double3 MinImageGPU(double3 rawVec, double3 axis, double3 halfAx)
+{
+  rawVec.x = MinImageSignedGPU(rawVec.x, axis.x, halfAx.x);
+  rawVec.y = MinImageSignedGPU(rawVec.y, axis.y, halfAx.y);
+  rawVec.z = MinImageSignedGPU(rawVec.z, axis.z, halfAx.z);
+  return rawVec;
+}
+
 // Call by calculate energy whether it is in rCut
-__device__ inline bool InRcutGPU(double &distSq, double gpu_x1, double gpu_y1,
-                                 double gpu_z1, double gpu_x2, double gpu_y2,
-                                 double gpu_z2, double xAxes, double yAxes,
-                                 double zAxes, double xHalfAxes,
-                                 double yHalfAxes, double zHalfAxes,
+__device__ inline bool InRcutGPU(double &distSq,
+                                 double * x, double * y, double * z,
+                                 uint i, uint j,
+                                 double3 axis, double3 halfAx,
                                  double gpu_rCut, int gpu_nonOrth,
                                  double *gpu_cell_x, double *gpu_cell_y,
                                  double *gpu_cell_z, double *gpu_Invcell_x,
                                  double *gpu_Invcell_y, double *gpu_Invcell_z)
 {
   distSq = 0;
-  double tx, ty, tz;
-  double dx = gpu_x1 - gpu_x2;
-  double dy = gpu_y1 - gpu_y2;
-  double dz = gpu_z1 - gpu_z2;
-
+  double3 t, dist;
+  t = make_double3(0.0, 0.0, 0.0);
+  dist = make_double3(0.0, 0.0, 0.0);
+  dist = Difference(x, y, z, i, j);
+  // Do a binary print here of dist
   if(gpu_nonOrth) {
-    TransformUnSlantGPU(tx, ty, tz, dx, dy, dz, gpu_Invcell_x, gpu_Invcell_y,
-                        gpu_Invcell_z);
-    tx = MinImageSignedGPU(tx, xAxes, xHalfAxes);
-    ty = MinImageSignedGPU(ty, yAxes, yHalfAxes);
-    tz = MinImageSignedGPU(tz, zAxes, zHalfAxes);
-    TransformSlantGPU(dx, dy, dz, tx, ty, tz, gpu_cell_x, gpu_cell_y,
+    TransformUnSlantGPU(t, dist, gpu_Invcell_x,
+                        gpu_Invcell_y, gpu_Invcell_z);
+    t = MinImageGPU(t, axis, halfAx);
+    TransformSlantGPU(dist, t, gpu_cell_x, gpu_cell_y,
                       gpu_cell_z);
   } else {
-    dx = MinImageSignedGPU(dx, xAxes, xHalfAxes);
-    dy = MinImageSignedGPU(dy, yAxes, yHalfAxes);
-    dz = MinImageSignedGPU(dz, zAxes, zHalfAxes);
+    dist = MinImageGPU(dist, axis, halfAx);
   }
 
-  distSq = dx * dx + dy * dy + dz * dz;
+  distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
+
   return ((gpu_rCut * gpu_rCut) > distSq);
 }
 
 // Call by force calculate to return the distance and virial component
-__device__ inline bool InRcutGPU(double &distSq, double &virX, double &virY,
-                                 double &virZ, double gpu_x1, double gpu_y1,
-                                 double gpu_z1, double gpu_x2, double gpu_y2,
-                                 double gpu_z2, double xAxes, double yAxes,
-                                 double zAxes, double xHalfAxes,
-                                 double yHalfAxes, double zHalfAxes,
+__device__ inline bool InRcutGPU(double &distSq, double3 & dist,
+                                 double * x, double * y, double * z,
+                                 uint i, uint j,
+                                 double3 axis, double3 halfAx,
                                  double gpu_rCut, int gpu_nonOrth,
                                  double *gpu_cell_x, double *gpu_cell_y,
                                  double *gpu_cell_z, double *gpu_Invcell_x,
                                  double *gpu_Invcell_y, double *gpu_Invcell_z)
 {
   distSq = 0;
-  double tx, ty, tz;
-  virX = gpu_x1 - gpu_x2;
-  virY = gpu_y1 - gpu_y2;
-  virZ = gpu_z1 - gpu_z2;
+  double3 t;
+  t = make_double3(0.0, 0.0, 0.0);
+  dist = Difference(x, y, z, i, j);
+  // Do a binary print here of dist
   if(gpu_nonOrth) {
-    TransformUnSlantGPU(tx, ty, tz, virX, virY, virZ, gpu_Invcell_x,
+    TransformUnSlantGPU(t, dist, gpu_Invcell_x,
                         gpu_Invcell_y, gpu_Invcell_z);
-    tx = MinImageSignedGPU(tx, xAxes, xHalfAxes);
-    ty = MinImageSignedGPU(ty, yAxes, yHalfAxes);
-    tz = MinImageSignedGPU(tz, zAxes, zHalfAxes);
-    TransformSlantGPU(virX, virY, virZ, tx, ty, tz, gpu_cell_x, gpu_cell_y,
+    t = MinImageGPU(t, axis, halfAx);
+    TransformSlantGPU(dist, t, gpu_cell_x, gpu_cell_y,
                       gpu_cell_z);
   } else {
-    virX = MinImageSignedGPU(virX, xAxes, xHalfAxes);
-    virY = MinImageSignedGPU(virY, yAxes, yHalfAxes);
-    virZ = MinImageSignedGPU(virZ, zAxes, zHalfAxes);
-    distSq = virX * virX + virY * virY + virZ * virZ;
+    dist = MinImageGPU(dist, axis, halfAx);
   }
+
+  distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
 
   return ((gpu_rCut * gpu_rCut) > distSq);
 }
@@ -159,6 +192,21 @@ __device__ inline double DeviceGetLambdaCoulomb(int molA, int kindA, int molB,
     }
   }
   return lambda;
+}
+
+__device__ inline double DeviceGetLambdaCoulomb(int mol, int kind, int box,
+    bool *gpu_isFraction,
+    int *gpu_molIndex,
+    int *gpu_kindIndex,
+    double *gpu_lambdaCoulomb)
+{
+  double val = 1.0;
+  if(gpu_isFraction[box]) {
+    if((gpu_molIndex[box] == mol) && (gpu_kindIndex[box] == kind)) {
+      val = gpu_lambdaCoulomb[box];
+    }
+  }
+  return val;
 }
 
 // Add atomic operations for GPUs that do not support it

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -101,6 +101,14 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   CUMALLOC((void**) &vars->gpu_comy, maxMolNumber * sizeof(double));
   CUMALLOC((void**) &vars->gpu_comz, maxMolNumber * sizeof(double));
 
+  CUMALLOC((void**) &vars->gpu_r_k_x, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_r_k_y, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_r_k_z, maxMolNumber * sizeof(double));
+
+  CUMALLOC((void**) &vars->gpu_t_k_x, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_t_k_y, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_t_k_z, maxMolNumber * sizeof(double));
+
   CUMALLOC((void**) &vars->gpu_nonOrth, sizeof(int));
   vars->gpu_cell_x = new double *[BOX_TOTAL];
   vars->gpu_cell_y = new double *[BOX_TOTAL];
@@ -123,6 +131,15 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
   CUMALLOC((void**) &vars->gpu_mForcex, maxMolNumber * sizeof(double));
   CUMALLOC((void**) &vars->gpu_mForcey, maxMolNumber * sizeof(double));
   CUMALLOC((void**) &vars->gpu_mForcez, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_mTorquex, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_mTorquey, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_mTorquez, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_aForceRecx, atomNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_aForceRecy, atomNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_aForceRecz, atomNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_mForceRecx, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_mForceRecy, maxMolNumber * sizeof(double));
+  CUMALLOC((void**) &vars->gpu_mForceRecz, maxMolNumber * sizeof(double));
   CUMALLOC((void**) &vars->gpu_cellVector, atomNumber * sizeof(int));
   CUMALLOC((void**) &vars->gpu_mapParticleToCell, atomNumber * sizeof(int));
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -323,12 +340,27 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   CUFREE(vars->gpu_comx);
   CUFREE(vars->gpu_comy);
   CUFREE(vars->gpu_comz);
+  CUFREE(vars->gpu_r_k_x);
+  CUFREE(vars->gpu_r_k_y);
+  CUFREE(vars->gpu_r_k_z);
+  CUFREE(vars->gpu_t_k_x);
+  CUFREE(vars->gpu_t_k_y);
+  CUFREE(vars->gpu_t_k_z);
   CUFREE(vars->gpu_aForcex);
   CUFREE(vars->gpu_aForcey);
   CUFREE(vars->gpu_aForcez);
   CUFREE(vars->gpu_mForcex);
   CUFREE(vars->gpu_mForcey);
   CUFREE(vars->gpu_mForcez);
+  CUFREE(vars->gpu_mTorquex);
+  CUFREE(vars->gpu_mTorquey);
+  CUFREE(vars->gpu_mTorquez);
+  CUFREE(vars->gpu_aForceRecx);
+  CUFREE(vars->gpu_aForceRecy);
+  CUFREE(vars->gpu_aForceRecz);
+  CUFREE(vars->gpu_mForceRecx);
+  CUFREE(vars->gpu_mForceRecy);
+  CUFREE(vars->gpu_mForceRecz);
   CUFREE(vars->gpu_cellVector);
   CUFREE(vars->gpu_mapParticleToCell);
   CUFREE(vars->gpu_nonOrth);

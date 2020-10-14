@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -21,16 +21,23 @@ union uint32_output_union {
   char bin_value[8];
   uint32_t uint_value;
 };
+
+union int8_input_union {
+  char bin_value[1];
+  int8_t int_value;
+};
 }
 
 CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
 #if GOMC_LIB_MPI
-  coordCurrRef(sys.coordinates), filename(pathToReplicaDirectory + "checkpoint.dat")
+  prngPTRef(*sys.prngParallelTemp),
+  enableParallelTempering(sys.ms->parallelTemperingEnabled),
 #else
-  coordCurrRef(sys.coordinates), filename("checkpoint.dat")
+  enableParallelTempering(false),
 #endif
+  coordCurrRef(sys.coordinates)
 {
   outputFile = NULL;
 }
@@ -40,6 +47,11 @@ void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
 {
   enableOutCheckpoint = output.checkpoint.enable;
   stepsPerCheckpoint = output.checkpoint.frequency;
+#if GOMC_LIB_MPI
+  filename = pathToReplicaOutputDirectory + "checkpoint.dat";
+#else
+  filename = "checkpoint.dat";
+#endif
 }
 
 void CheckpointOutput::DoOutput(const ulong step)
@@ -52,8 +64,19 @@ void CheckpointOutput::DoOutput(const ulong step)
     printCoordinates();
     printMoleculeLookupData();
     printMoveSettingsData();
+#if GOMC_LIB_MPI
+    printParallelTemperingBoolean();
+    if(enableParallelTempering)
+      printRandomNumbersParallelTempering();
+#endif
     std::cout << "Checkpoint saved to " << filename << std::endl;
   }
+}
+
+void CheckpointOutput::printParallelTemperingBoolean()
+{
+  int8_t s = (int8_t) enableParallelTempering;
+  outputIntIn1Char(s);
 }
 
 void CheckpointOutput::printStepNumber(const ulong step)
@@ -85,7 +108,9 @@ void CheckpointOutput::printRandomNumbers()
   // there is a save function inside MersenneTwister.h file
   // to read back we can use the load function
   const int N = 624;
-  uint32_t* saveArray = new uint32_t[N];
+  // The MT::save function also appends the "left" variable,
+  // so need to allocate one more array element
+  uint32_t* saveArray = new uint32_t[N + 1];
   prngRef.GetGenerator()->save(saveArray);
   for(int i = 0; i < N; i++) {
     outputUintIn8Chars(saveArray[i]);
@@ -102,7 +127,37 @@ void CheckpointOutput::printRandomNumbers()
   // let's save seedValue just in case
   // not sure if that is used or not, or how important it is
   outputUintIn8Chars(prngRef.GetGenerator()->seedValue);
+
+  delete[] saveArray;
 }
+
+#if GOMC_LIB_MPI
+void CheckpointOutput::printRandomNumbersParallelTempering()
+{
+  // First let's save the state array inside prng
+  // the length of the array is 624
+  // there is a save function inside MersenneTwister.h file
+  // to read back we can use the load function
+  const int N = 624;
+  uint32_t* saveArray = new uint32_t[N];
+  prngPTRef.GetGenerator()->save(saveArray);
+  for(int i = 0; i < N; i++) {
+    outputUintIn8Chars(saveArray[i]);
+  }
+
+  // Save the location of pointer in state
+  uint32_t location = prngPTRef.GetGenerator()->pNext -
+                      prngPTRef.GetGenerator()->state;
+  outputUintIn8Chars(location);
+
+  // save the "left" value so we can restore it later
+  outputUintIn8Chars(prngPTRef.GetGenerator()->left);
+
+  // let's save seedValue just in case
+  // not sure if that is used or not, or how important it is
+  outputUintIn8Chars(prngPTRef.GetGenerator()->seedValue);
+}
+#endif
 
 void CheckpointOutput::printCoordinates()
 {
@@ -207,7 +262,7 @@ void CheckpointOutput::printVector2DUint(std::vector< std::vector< uint > > data
   outputUintIn8Chars(size_x);
   outputUintIn8Chars(size_y);
 
-  // print array iteself
+  // print array itself
   for(int i = 0; i < size_x; i++) {
     for(int j = 0; j < size_y; j++) {
       outputUintIn8Chars(data[i][j]);
@@ -255,6 +310,20 @@ void CheckpointOutput::outputDoubleIn8Chars(double data)
           temp.bin_value[5],
           temp.bin_value[6],
           temp.bin_value[7]);
+  fflush(outputFile);
+}
+
+void CheckpointOutput::outputIntIn1Char(int8_t data)
+{
+  if(outputFile == NULL) {
+    fprintf(stderr, "Error opening checkpoint output file %s\n",
+            filename.c_str());
+    exit(EXIT_FAILURE);
+  }
+  int8_input_union temp;
+  temp.int_value = data;
+  fprintf(outputFile, "%c",
+          temp.bin_value[0]);
   fflush(outputFile);
 }
 

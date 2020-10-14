@@ -33,6 +33,7 @@ set(sources
    src/OutConst.cpp
    src/OutputVars.cpp
    src/ParallelTemperingPreprocessor.cpp
+   src/ParallelTemperingUtilities.cpp
    src/PDBSetup.cpp
    src/PDBOutput.cpp
    src/PRNGSetup.cpp
@@ -113,6 +114,7 @@ set(headers
    src/OutputAbstracts.h
    src/OutputVars.h
    src/ParallelTemperingPreprocessor.h
+   src/ParallelTemperingUtilities.h
    src/PDBConst.h
    src/PDBOutput.h
    src/PDBSetup.h
@@ -187,15 +189,17 @@ set(cudaHeaders
     src/GPU/CalculateEnergyCUDAKernel.cuh
     src/GPU/CalculateForceCUDAKernel.cuh
     src/GPU/CalculateEwaldCUDAKernel.cuh
-    src/GPU/VariablesCUDA.cuh
-    src/GPU/CUDAMemoryManager.cuh)
+    src/GPU/CUDAMemoryManager.cuh
+    src/GPU/TransformParticlesCUDAKernel.cuh
+    src/GPU/VariablesCUDA.cuh)
 
 set(cudaSources
     src/GPU/CalculateEnergyCUDAKernel.cu
     src/GPU/CalculateForceCUDAKernel.cu
     src/GPU/CalculateEwaldCUDAKernel.cu
     src/GPU/ConstantDefinitionsCUDAKernel.cu
-    src/GPU/CUDAMemoryManager.cu)
+    src/GPU/CUDAMemoryManager.cu
+    src/GPU/TransformParticlesCUDAKernel.cu)
 
 source_group("Header Files" FILES ${headers})
 source_group("Lib Headers" FILES ${libHeaders})

@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -23,6 +23,15 @@ static const double dbl_margin = 0.00001;
 static const double qqFact = 167000.00;
 static const double BIGNUM = DBL_MAX;
 static const uint VDW_STD_KIND = 0, VDW_SHIFT_KIND = 1, VDW_SWITCH_KIND = 2;
+
+inline bool approximatelyEqual(double a, double b, double epsilon)
+{
+  if (abs(a) < 1.0 || abs(b) < 1.0) {
+    return abs(a - b) <= epsilon;
+  } else {
+    return std::abs(a - b) <= ((std::abs(a) < std::abs(b) ? std::abs(b) : std::abs(a)) * epsilon);
+  }
+}
 
 template <typename T>
 inline void BoundGt(double & val, const double bound)

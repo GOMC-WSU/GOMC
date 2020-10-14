@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -41,5 +41,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define VARIABLE_DENSITY
 #define BOX_TOTAL 1
 #endif
+
+// Get GCC version
+// 9.3.0 will become 90300 here
+#define GCC_VERSION (__GNUC__ * 10000 \
+                     + __GNUC_MINOR__ * 100 \
+                     + __GNUC_PATCHLEVEL__)
 
 #endif /*ENSEMBLE_PREPROCESSOR_H*/

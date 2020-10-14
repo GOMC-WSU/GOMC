@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -75,12 +75,11 @@ public:
   XYZ Apply(const XYZ& pos) const;
 
 
-
   //returns the inverse=transpose of this matrix
   TransformMatrix Inverse() const;
 
 
-private:
+// private:
   static const uint N = 3;
   double matrix[N][N];
 
