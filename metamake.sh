@@ -67,5 +67,5 @@ ICC_PATH="$(which icc)"
 ICPC_PATH="$(which icpc)"
 export CC=${ICC_PATH}
 export CXX=${ICPC_PATH}
-cmake .. -DCMAKE_CUDA_HOST_COMPILER=${ICPC_PATH}
+cmake ..
 make -j8
