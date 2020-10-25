@@ -95,7 +95,7 @@ public:
   std::vector<uint> box;
   std::vector<std::string> atomAliases, resNamesFull, resNames,
       resKindNames;
-  std::vector<uint> startIdxRes, resKinds, molBeta;
+  std::vector<uint> startIdxRes, resKinds, molBeta, resIDs;
   bool restart, firstResInFile, recalcTrajectory;
   //CurrRes is used to store res vals, currBox is used to
   //determine box either via the file (new) or the occupancy

@@ -123,8 +123,8 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
       //atom ID, segment name, residue ID, residue name,
       //atom name, atom type, charge, mass, and an unused 0
 
-      fprintf(outfile, atomFormat, atomID, molNames[thisKind].c_str(),
-              molID, molNames[thisKind].c_str(), thisAtom->name.c_str(),
+      fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+              molID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
               thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
       ++atomID;
     }

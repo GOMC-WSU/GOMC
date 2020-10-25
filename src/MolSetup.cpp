@@ -302,7 +302,7 @@ int read_atoms(FILE *psf, unsigned int nAtoms, std::vector<mol_setup::Atom> & al
     sscanf(input, " %u %s %u %s %s %s %lf %lf ",
            &atomID, segment, &molID,
            moleculeName, atomName, atomType, &charge, &mass);
-    allAtoms.push_back(mol_setup::Atom(atomName, moleculeName, molID, atomType, charge, mass));
+    allAtoms.push_back(mol_setup::Atom(atomName, moleculeName, molID, segment, atomType, charge, mass));
   }
 }
 
@@ -356,6 +356,15 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
         // Found a match
         if (itPair.second == it->cend()) {
           // Modify PDBData
+          /* We only change the condensed values of resNames.  We leave resNamesFull intact.
+             We use resNamesFull for printing in the PDB output.  The resIDs are also maintained
+             to provide original residue numbering.  We can use the startIdx to get atom indices
+             into these noncompressed vectors.
+
+             The vectors we modify are compressed to 1 entry per molecule kind.  
+             By modifying them here, we can change what a MapEntry sees as a molecule.
+             For the simulation, we keep track of these startIdxRes for each molecule, single or multires.
+          */
           pdbAtoms.startIdxRes.push_back(it->front());
           pdbAtoms.resKinds.push_back(kindMap[*sizeConsistentEntries].kindIndex);
           pdbAtoms.resNames.push_back(*sizeConsistentEntries);
@@ -827,14 +836,14 @@ int ReadPSFAtoms(FILE* psf, MolMap& kindMap, unsigned int nAtoms)
       it = kindMap.insert(std::make_pair(std::string(moleculeName), MolKind())).first;
       it->second.firstAtomID = atomID;
       it->second.firstMolID = molID;
-      it->second.atoms.push_back(Atom(atomName, moleculeName, molID, atomType, charge, mass));
+      it->second.atoms.push_back(Atom(atomName, moleculeName, molID, segment, atomType, charge, mass));
     }
     //still building a molecule...
     else if (it->second.incomplete) {
       if (molID != it->second.firstMolID)
         it->second.incomplete = false;
       else
-        it->second.atoms.push_back(Atom(atomName, moleculeName, molID, atomType, charge, mass));
+        it->second.atoms.push_back(Atom(atomName, moleculeName, molID, segment, atomType, charge, mass));
     }
   }
   //Fix for one molecule fringe case.

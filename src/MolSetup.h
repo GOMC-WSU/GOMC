@@ -32,12 +32,12 @@ namespace mol_setup
 class Atom
 {
 public:
-  Atom(std::string const& l_name, std::string const& l_residue, uint l_resID, std::string const& l_type,
+  Atom(std::string const& l_name, std::string const& l_residue, uint l_resID, std::string const& l_segment, std::string const& l_type,
        const double l_charge, const double l_mass) :
-    name(l_name), residue(l_residue), residueID(l_resID), type(l_type), charge(l_charge), mass(l_mass) {}
+    name(l_name), residue(l_residue), residueID(l_resID), segment(l_segment), type(l_type), charge(l_charge), mass(l_mass) {}
   //private:
   //name (within a molecule) and type (for forcefield params)
-  std::string name, type, residue;
+  std::string name, type, residue, segment;
   double charge, mass;
   //kind index
   uint kind, residueID;
