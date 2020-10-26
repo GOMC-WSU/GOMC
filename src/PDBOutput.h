@@ -89,9 +89,7 @@ private:
   COM & comCurrRef;
 
   Writer outF[BOX_TOTAL];
-  //NEW_RESTART_CODE
   Writer outRebuildRestart[BOX_TOTAL];
-  std::string outRebuildRestartFName[BOX_TOTAL];
   bool enableRestOut;
   ulong stepsRestPerOut;
   ulong stepsCoordPerOut;

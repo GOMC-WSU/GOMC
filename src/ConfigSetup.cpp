@@ -96,6 +96,8 @@ ConfigSetup::ConfigSetup(void)
   sys.moves.intraMemc = DBL_MAX;
   out.state.settings.enable = true;
   out.restart.settings.enable = true;
+  out.state_dcd.settings.enable = true;
+  out.restart_dcd.settings.enable = true;
   out.console.enable = true;
   out.statistics.settings.block.enable = true;
 #if ENSEMBLE == GCMC
@@ -113,6 +115,8 @@ ConfigSetup::ConfigSetup(void)
   out.statistics.settings.uniqueStr.val = "";
   out.state.settings.frequency = ULONG_MAX;
   out.restart.settings.frequency = ULONG_MAX;
+  out.state_dcd.settings.frequency = ULONG_MAX;
+  out.restart_dcd.settings.frequency = ULONG_MAX;
   out.console.frequency = ULONG_MAX;
   out.statistics.settings.block.frequency = ULONG_MAX;
   out.statistics.vars.energy.block = false;
@@ -946,6 +950,32 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
                out.restart.settings.frequency);
       } else
         printf("%-40s %-s \n", "Info: Printing restart coordinate", "Inactive");
+    } else if(CheckString(line[0], "DCDCoordinatesFreq")) {
+      out.state_dcd.settings.enable = checkBool(line[1]);
+      if(line.size() == 3)
+        out.state_dcd.settings.frequency = stringtoi(line[2]);
+
+      if(out.state_dcd.settings.enable && (line.size() == 2))
+        out.state_dcd.settings.frequency = (ulong)sys.step.total / 10;
+
+      if(out.state_dcd.settings.enable) {
+        printf("%-40s %-lu \n", "Info: DCD Coordinate frequency",
+               out.state_dcd.settings.frequency);
+      } else
+        printf("%-40s %-s \n", "Info: Printing DCD coordinate", "Inactive");
+    } else if(CheckString(line[0], "DCDRestartFreq")) {
+      out.restart_dcd.settings.enable = checkBool(line[1]);
+      if(line.size() == 3)
+        out.restart_dcd.settings.frequency = stringtoi(line[2]);
+
+      if(out.restart_dcd.settings.enable && (line.size() == 2))
+        out.restart_dcd.settings.frequency = (ulong)sys.step.total;
+
+      if(out.restart_dcd.settings.enable) {
+        printf("%-40s %-lu \n", "Info: Restart DCD frequency",
+               out.restart_dcd.settings.frequency);
+      } else
+        printf("%-40s %-s \n", "Info: Printing restart DCD coordinate", "Inactive");
     } else if(CheckString(line[0], "ConsoleFreq")) {
       out.console.enable = checkBool(line[1]);
       if(line.size() == 3)
@@ -1303,6 +1333,16 @@ void ConfigSetup::fillDefaults(void)
     printf("%-40s \n", "Warning: Printing coordinate is activated but it will be ignored.");
   }
 
+  if(out.restart_dcd.settings.enable && in.restart.recalcTrajectory) {
+    out.restart_dcd.settings.enable = false;
+    printf("%-40s \n", "Warning: Printing restart DCD coordinate is activated but it will be ignored.");
+  }
+
+  if(out.state_dcd.settings.enable && in.restart.recalcTrajectory) {
+    out.state_dcd.settings.enable = false;
+    printf("%-40s \n", "Warning: Printing DCD coordinate is activated but it will be ignored.");
+  }
+
   out.state.files.psf.name = out.statistics.settings.uniqueStr.val +
                              "_merged.psf";
   for(int i = 0; i < BOX_TOTAL; i++) {
@@ -1312,6 +1352,12 @@ void ConfigSetup::fillDefaults(void)
     toStr >> numStr;
     out.state.files.pdb.name[i] = out.statistics.settings.uniqueStr.val +
                                   "_BOX_" + numStr + ".pdb";
+    out.restart.files.pdb.name[i] = out.statistics.settings.uniqueStr.val +
+                                  "_BOX_" + numStr + "_restart.pdb";
+    out.state_dcd.files.dcd.name[i] = out.statistics.settings.uniqueStr.val +
+                                  "_BOX_" + numStr + ".dcd";
+    out.restart_dcd.files.dcd.name[i] = out.statistics.settings.uniqueStr.val +
+                                  "_BOX_" + numStr + "_restart.coor";
   }
   out.state.files.seed.name = out.statistics.settings.uniqueStr.val + ".dat";
 }
@@ -1842,6 +1888,39 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Coordinate frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
+
+  if(out.state.settings.enable && out.restart.settings.enable) {
+    if(out.state.settings.frequency < out.restart.settings.frequency) {
+      if ((out.restart.settings.frequency % out.state.settings.frequency) != 0) {
+        std::cout << "Error: Coordinate frequency must be common multiple of ";
+        std::cout << "       restart corrdinate frequency !\n";
+        exit(EXIT_FAILURE);
+      }
+    } else {
+      if ((out.state.settings.frequency % out.restart.settings.frequency) != 0) {
+        std::cout << "Error: Restart coordinate frequency must be common multiple of ";
+        std::cout << "       corrdinate frequency !\n";
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
+  
+  if(out.state_dcd.settings.enable && out.restart_dcd.settings.enable) {
+    if(out.state_dcd.settings.frequency < out.restart_dcd.settings.frequency) {
+      if ((out.restart_dcd.settings.frequency % out.state_dcd.settings.frequency) != 0) {
+        std::cout << "Error: DCD Coordinate frequency must be common multiple of ";
+        std::cout << "       restart corrdinate frequency !\n";
+        exit(EXIT_FAILURE);
+      }
+    } else {
+      if ((out.state_dcd.settings.frequency % out.restart_dcd.settings.frequency) != 0) {
+        std::cout << "Error: DCD Restart coordinate frequency must be common multiple of ";
+        std::cout << "       corrdinate frequency !\n";
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
+
   if(out.statistics.settings.block.enable &&
       out.statistics.settings.block.frequency == ULONG_MAX) {
     std::cout << "Error: Average output frequency is not specified!\n";

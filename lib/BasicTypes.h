@@ -95,7 +95,10 @@ struct XYZ {
 
   XYZ() : x(0.0), y(0.0), z(0.0) {}
   XYZ(double xVal, double yVal, double zVal) : x(xVal), y(yVal), z(zVal) {}
-
+  void Reset()
+  {
+    x = y = z = 0.0;
+  }
   XYZ& operator=(XYZ const& rhs)
   {
     x = rhs.x;

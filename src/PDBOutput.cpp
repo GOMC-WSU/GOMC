@@ -80,7 +80,7 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
       numStr = "";
       toStr << b + 1;
       toStr >> numStr;
-      aliasStr = "Output PDB file for Box ";
+      aliasStr = "Output restart PDB file for Box ";
       aliasStr += numStr;
       bool notify;
 #ifndef NDEBUG
@@ -88,17 +88,9 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
 #else
       notify = false;
 #endif
-      //NEW_RESTART_COD
-      outRebuildRestartFName[b] = output.state.files.pdb.name[b];
-      std::string newStrAddOn = "_restart.pdb";
-      outRebuildRestartFName[b].replace
-      (outRebuildRestartFName[b].end() - 4,
-       outRebuildRestartFName[b].end(),
-       newStrAddOn);
-      outRebuildRestart[b].Init(outRebuildRestartFName[b], aliasStr,
+      outRebuildRestart[b].Init(output.restart.files.pdb.name[b], aliasStr,
                                 true, notify);
     }
-
   }
 }
 

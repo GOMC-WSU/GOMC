@@ -11,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Clock.h"
 #include "ConsoleOutput.h"
 #include "PDBOutput.h"
+#include "DCDOutput.h"
 #include "BlockOutput.h"
 #include "HistOutput.h"
 #include "ConfigSetup.h"
@@ -37,6 +38,7 @@ private:
   std::vector<OutputableBase *> outObj;
   ConsoleOutput console;
   PDBOutput pdb;
+  DCDOutput dcd;
   BlockAverages block;
   Histogram hist;
   CheckpointOutput checkpoint;

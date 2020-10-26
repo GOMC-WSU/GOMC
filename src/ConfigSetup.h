@@ -341,7 +341,7 @@ struct HistFiles { /* : ReadableBase*/
 
 //Files for output.
 struct OutFiles {
-  FileNames<BOX_TOTAL> pdb;
+  FileNames<BOX_TOTAL> pdb, dcd;
   FileName psf, seed;
   HistFiles hist;
 };
@@ -377,6 +377,7 @@ struct Statistics {
 };
 struct Output {
   SysState state, restart;
+  SysState state_dcd, restart_dcd;
   Statistics statistics;
   EventSettings console, checkpoint;
 };
