@@ -98,6 +98,7 @@ public:
   //true while the molecule is still open for modification during PSF read
   bool incomplete;
   bool isMultiResidue;
+  std::vector<uint> intraMoleculeResIDs;
 };
 
 //List of dihedrals with atom at one end, atom first

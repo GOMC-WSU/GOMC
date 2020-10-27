@@ -403,14 +403,22 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
         std::cout << fragName << std::endl;
         std::cout << "found a multiresidue" << std::endl;
         kindMap[fragName] = MolKind();
+        kindMap[fragName].isMultiResidue = true;
         for (std::vector<uint>::const_iterator connectedComponentIt = it->cbegin();
         connectedComponentIt != it->cend(); connectedComponentIt++){
           kindMap[fragName].atoms.push_back(allAtoms[*connectedComponentIt]);
+          kindMap[fragName].intraMoleculeResIDs.push_back(allAtoms[*connectedComponentIt].residueID);
         }
+        /* Normalize resID to intramolecule indices */
+        uint firstResID = kindMap[fragName].intraMoleculeResIDs.front();
+        for (auto& x : kindMap[fragName].intraMoleculeResIDs)
+          x -= firstResID;
+        /* Normalize resID to intramolecule indices */
       } else {
         std::cout << "found a standard" << std::endl;
         fragName = allAtoms[it->front()].residue;
         kindMap[allAtoms[it->front()].residue] = MolKind();
+        kindMap[fragName].isMultiResidue = false;
         for (std::vector<uint>::const_iterator connectedComponentIt = it->cbegin();
         connectedComponentIt != it->cend(); connectedComponentIt++){
           kindMap[fragName].atoms.push_back(allAtoms[*connectedComponentIt]);

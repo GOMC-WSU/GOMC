@@ -108,30 +108,37 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
   fprintf(outfile, headerFormat, totalAtoms, atomHeader);
   //silly psfs index from 1
   uint atomID = 1;
-  uint molID = 1;
+  uint resID = 1;
   uint currKind = molecules->kIndex[0];
   for(uint mol = 0; mol < molecules->count; ++mol) {
     uint thisKind = molecules->kIndex[mol];
     uint nAtoms = molKinds[thisKind].atoms.size();
-    if(thisKind != currKind) {
-      currKind = thisKind;
-      molID = 1;
-    }
 
     for(uint at = 0; at < nAtoms; ++at) {
       const Atom* thisAtom = &molKinds[thisKind].atoms[at];
       //atom ID, segment name, residue ID, residue name,
       //atom name, atom type, charge, mass, and an unused 0
 
-      fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
-              molID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
-              thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+      if(molKinds[thisKind].isMultiResidue){
+        fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+                resID + molKinds[thisKind].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
+                thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+      } else {
+        fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+                resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
+                thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+      }
       ++atomID;
     }
-    ++molID;
+    ++resID;
+    /* To add additional intramolecular residues */
+    if (molKinds[thisKind].isMultiResidue){
+      resID += molKinds[thisKind].intraMoleculeResIDs.back();
+    }
 
-    if(molID == 10000)
-      molID = 1;
+   // ???
+    if(resID == 10000)
+      resID = 1;
   }
   fputc('\n', outfile);
 }

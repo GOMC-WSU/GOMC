@@ -127,6 +127,8 @@ void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
   atomCharge = new double[numAtoms];
   molMass = 0;
   atomNames.clear();
+  isMultiResidue = molData.isMultiResidue;
+  intraMoleculeResIDs = molData.intraMoleculeResIDs;
 
   //convert array of structures to structure of arrays
   for(uint i = 0; i < numAtoms; ++i) {
