@@ -1313,6 +1313,8 @@ void ConfigSetup::fillDefaults(void)
     toStr >> numStr;
     out.state.files.pdb.name[i] = out.statistics.settings.uniqueStr.val +
                                   "_BOX_" + numStr + ".pdb";
+    out.state.files.splitPSF.name[i] = out.statistics.settings.uniqueStr.val +
+                                  "_BOX_" + numStr + ".psf";                              
   }
   out.state.files.seed.name = out.statistics.settings.uniqueStr.val + ".dat";
 }

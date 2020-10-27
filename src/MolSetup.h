@@ -28,7 +28,6 @@ class FFSetup;
 namespace mol_setup
 {
 //!structure to contain an atom's data during initialization
-//!structure to contain an atom's data during initialization
 class Atom
 {
 public:
@@ -40,7 +39,11 @@ public:
   std::string name, type, residue, segment;
   double charge, mass;
   //kind index
-  uint kind, residueID;
+  /* ResID is by the PSF Parser to determine multiresidue status by comparing 1st vs all
+    of resIDs in a row in the moleculeXAtomIDY 2D vector */
+  uint residueID;
+
+  uint kind;
 };
 
 class Dihedral

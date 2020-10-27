@@ -400,8 +400,10 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
           ss << charSuffix;
         }
         fragName = "PROT" + ss.str();
-        std::cout << fragName << std::endl;
-        std::cout << "found a multiresidue" << std::endl;
+        printf("\n%-40s \n", "Warning: A molecule containing > 1 residue is detected.");
+        printf("The simulation will name it %s.\n", fragName.c_str());
+        printf("See the chart at the end of the output log describing this entry.\n");
+
         kindMap[fragName] = MolKind();
         kindMap[fragName].isMultiResidue = true;
         for (std::vector<uint>::const_iterator connectedComponentIt = it->cbegin();
@@ -415,7 +417,6 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
           x -= firstResID;
         /* Normalize resID to intramolecule indices */
       } else {
-        std::cout << "found a standard" << std::endl;
         fragName = allAtoms[it->front()].residue;
         kindMap[allAtoms[it->front()].residue] = MolKind();
         kindMap[fragName].isMultiResidue = false;

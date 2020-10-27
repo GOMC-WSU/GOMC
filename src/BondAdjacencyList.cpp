@@ -70,30 +70,22 @@ BondAdjacencyList::BondAdjacencyList(FILE* psf, uint nAtoms, uint nBonds, std::v
         head[start_ver] = newNode;
     
     }
-
+    /* Generate connected components by DFS of adjacency list.  
+        Stored into moleculeXAtomIDY which is passed by reference */
+        
     connectedComponents(moleculeXAtomIDY);
-    /* For debugging 
-    for (uint i = 0; i < this->nAtoms; i++)
-        display_AdjList(head[i], i);
-    
-    std::cout << "Before sorting" << std::endl;
-    for (std::vector< std::vector<uint> >::iterator it = moleculeXAtomIDY.begin();
-        it != moleculeXAtomIDY.end(); it++){
-        for (std::vector<uint>::iterator it2 = it->begin();
-            it2 != it->end(); it2++){
-            std::cout << *it2 << ", ";
-        }
-        std::cout << std::endl;
-    }
-    */
     /* Sort Atom Indices in N connected components, then sort N connected components by first atom index*/
     for (std::vector< std::vector<uint> >::iterator it = moleculeXAtomIDY.begin();
         it != moleculeXAtomIDY.end(); it++){
         std::sort(it->begin(), it->end());
     }
     std::sort(moleculeXAtomIDY.begin(), moleculeXAtomIDY.end());
-    /* For debugging 
-    std::cout << "After sorting" << std::endl;
+#ifndef NDEBUG
+    std::cout << "Adjacency List" << std::endl;
+    for (uint i = 0; i < this->nAtoms; i++)
+        display_AdjList(head[i], i);
+
+    std::cout << "Connected Components" << std::endl;
     for (std::vector< std::vector<uint> >::iterator it = moleculeXAtomIDY.begin();
         it != moleculeXAtomIDY.end(); it++){
         for (std::vector<uint>::iterator it2 = it->begin();
@@ -102,7 +94,8 @@ BondAdjacencyList::BondAdjacencyList(FILE* psf, uint nAtoms, uint nBonds, std::v
         }
         std::cout << std::endl;
     }
-    */
+#endif    
+  
 }
 
 // Destructor

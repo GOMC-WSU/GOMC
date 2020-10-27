@@ -127,6 +127,10 @@ void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
   atomCharge = new double[numAtoms];
   molMass = 0;
   atomNames.clear();
+
+  /* These two entries all PSFOutput to 
+    correctly assign residueIDs to a map containing
+    multiresidue and standard entries.  */
   isMultiResidue = molData.isMultiResidue;
   intraMoleculeResIDs = molData.intraMoleculeResIDs;
 
