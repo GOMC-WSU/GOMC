@@ -23,7 +23,7 @@ DCDOutput::DCDOutput(System  & sys, StaticVals const& statV) :
   x = NULL;
   y = NULL;
   z = NULL;
-  enableStateOut = enableStateOut = false;
+  enableStateOut = enableRestartOut = false;
   for(int b = 0; b < BOX_TOTAL; b++){
     stateFileFileid[b] = 0;
     restartCoor[b] = NULL;
