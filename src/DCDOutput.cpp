@@ -193,7 +193,7 @@ void DCDOutput::DoOutput(const ulong step)
     
       if (ret_code < 0) {
         char err_msg[257];
-        sprintf(err_msg, "Writing of DCD coordinate failed at step %d!",
+        sprintf(err_msg, "Writing of DCD coordinate %s failed at step %d!",
           outDCDStateFile[b], step+1);
         NAMD_err(err_msg);
       }
