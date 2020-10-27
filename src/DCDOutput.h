@@ -19,6 +19,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeKind.h"
 #include "StaticVals.h"
 #include "Coordinates.h"
+#include "Writer.h"
 #include "DCDlib.h"
 #include "PDBSetup.h" //For atoms class
 
@@ -42,6 +43,7 @@ public:
 
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       close_dcd_write(stateFileFileid[b]);
+      xstFile[b].close();
       if(restartCoor[b]) {
         delete [] restartCoor[b];
       }
@@ -50,6 +52,12 @@ public:
       }
       if(outDCDRestartFile[b]) {
         delete [] outDCDRestartFile[b];
+      }
+      if (outXSTFile[b]) {
+        delete [] outXSTFile[b];
+      }
+      if (outXSCFile[b]) {
+        delete [] outXSCFile[b];
       }
     }
   }
@@ -74,6 +82,13 @@ private:
   int NumAtomInBox(const int box);
   // Write a binary restart file with coordinates
   void Write_binary_file(char *fname, int n, XYZ *vec); 
+  // Write header for dcd coordinate file
+  void WriteDCDHeader(const int numAtoms, const int box);
+  // Write header for xst and xsc files
+  void Write_Extention_System_Header(Writer &outFile, const int box);
+  //Write the cell basis info into xst and xsc files
+  void Write_Extention_System_data(Writer &outFile,
+    const ulong step, const int box);
 
   MoveSettings & moveSetRef;
   MoleculeLookup & molLookupRef;
@@ -87,9 +102,13 @@ private:
   int stateFileFileid[BOX_TOTAL];
   bool enableRestartOut, enableStateOut;
   ulong stepsRestartPerOut, stepsStatePerOut;
-
   float *x, *y, *z;
   XYZ *restartCoor[BOX_TOTAL];
+  // for extension system files
+  Writer xstFile[BOX_TOTAL];
+  Writer xscFile[BOX_TOTAL];
+  char *outXSTFile[BOX_TOTAL];
+  char *outXSCFile[BOX_TOTAL];
 };
 
 #endif /*DCD_OUTPUT_H*/

@@ -28,6 +28,8 @@ DCDOutput::DCDOutput(System  & sys, StaticVals const& statV) :
     restartCoor[b] = NULL;
     outDCDStateFile[b] = NULL;
     outDCDRestartFile[b] = NULL;
+    outXSTFile[b] = NULL;
+    outXSCFile[b] = NULL;
   }
 }
 
@@ -44,6 +46,12 @@ void DCDOutput::Init(pdb_setup::Atoms const& atoms,
   } else {
     stepsPerOut = stepsRestartPerOut;
   }
+  bool printNotify;
+#ifndef NDEBUG
+      printNotify = true;
+#else
+      printNotify = false;
+#endif
 
   if (enableStateOut) {
     int numAtoms = coordCurrRef.Count();
@@ -52,41 +60,20 @@ void DCDOutput::Init(pdb_setup::Atoms const& atoms,
     z = x + 2 * numAtoms;
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       std::string fileName = output.state_dcd.files.dcd.name[b];
-
       int baselen = strlen(fileName.c_str());
       outDCDStateFile[b] = new char[baselen];
       strcpy(outDCDStateFile[b], fileName.c_str());
-      printf("Opening DCD coordinate file: %s \n", outDCDStateFile[b]);
-      stateFileFileid[b] = open_dcd_write(outDCDStateFile[b]);
-
-      if (stateFileFileid[b] == DCD_FILEEXISTS) {
-        char err_msg[257];
-        sprintf(err_msg, "DCD Coordinate file %s already exists!",
-          outDCDStateFile[b]);
-        NAMD_warn(err_msg);
-      } else if (stateFileFileid[b] < 0) {
-        char err_msg[257];
-        sprintf(err_msg, "Couldn't open DCD coordinate file %s",
-          outDCDStateFile[b]);
-        NAMD_err(err_msg);
-      }
-      
       //  Write out the header with lattice parameter
-      int NSAVC, NFILE, NPRIV, NSTEP;
-      NSAVC = stepsStatePerOut;
-      NPRIV = 0;
-      NSTEP = NPRIV - NSAVC;
-      NFILE = 0;
-      int ret_code = write_dcdheader(stateFileFileid[b], 
-          outDCDStateFile[b], numAtoms, NFILE, NPRIV, NSAVC, NSTEP,
-          1.0/48.88841, 1);
-
-      if (ret_code < 0) {
-        char err_msg[257];
-        sprintf(err_msg, "Writing of DCD header file %s failed!",
-          outDCDStateFile[b]);
-        NAMD_err(err_msg);
-      }
+      WriteDCDHeader(numAtoms, b);
+      // prepare the xst file
+      fileName = output.statistics.settings.uniqueStr.val;
+      fileName += "_BOX_" + std::to_string(b) + ".xst";
+      baselen = strlen(fileName.c_str());
+      outXSTFile[b] = new char[baselen];
+      strcpy(outXSTFile[b], fileName.c_str());
+      xstFile[b].Init(fileName, " output XST", true, printNotify);
+      xstFile[b].open();
+      Write_Extention_System_Header(xstFile[b], b);
     }
   }
 
@@ -97,10 +84,91 @@ void DCDOutput::Init(pdb_setup::Atoms const& atoms,
       int baselen = strlen(fileName.c_str());
       outDCDRestartFile[b] = new char[baselen];
       strcpy(outDCDRestartFile[b], fileName.c_str());
+      // prepare the xsc file
+      fileName = output.statistics.settings.uniqueStr.val;
+      fileName += "_BOX_" + std::to_string(b) + ".xsc";
+      baselen = strlen(fileName.c_str());
+      outXSCFile[b] = new char[baselen];
+      strcpy(outXSCFile[b], fileName.c_str());
+      xscFile[b].Init(fileName, " output XSC", true, printNotify);
     }
   }
 
   DoOutput(0);
+}
+
+
+void DCDOutput::Write_Extention_System_Header(Writer &outFile, const int box)
+{
+  outFile.file << "#$LABELS step";
+  outFile.file << " a_x a_y a_z";
+  outFile.file << " b_x b_y b_z";
+  outFile.file << " c_x c_y c_z";
+  outFile.file << " o_x o_y o_z";
+  outFile.file << std::endl;
+}
+
+
+void DCDOutput::Write_Extention_System_data(Writer &outFile,
+    const ulong step, const int box)
+{
+  outFile.file.precision(12);
+  if (step == 0) {
+    outFile.file << 0;
+  } else {
+    outFile.file << step + 1;
+  }
+
+  // because we normalized the cell basis, we need to do this
+  XYZ a = boxDimRef.cellBasis[box].Get(0) * boxDimRef.GetAxis(box).x;
+  XYZ b = boxDimRef.cellBasis[box].Get(1) * boxDimRef.GetAxis(box).y;
+  XYZ c = boxDimRef.cellBasis[box].Get(2) * boxDimRef.GetAxis(box).z;
+
+  outFile.file << " " << a.x;
+  outFile.file << " " << a.y;
+  outFile.file << " " << a.z;
+  outFile.file << " " << b.x;
+  outFile.file << " " << b.y;
+  outFile.file << " " << b.z;
+  outFile.file << " " << c.x;
+  outFile.file << " " << c.y;
+  outFile.file << " " << c.z;
+  // Our origin is fix at origin
+  outFile.file  << " " << 0 << " " << 0 << " " << 0;
+  outFile.file << std::endl;
+}
+
+void DCDOutput::WriteDCDHeader(const int numAtoms, const int box)
+{
+  printf("Opening DCD coordinate file: %s \n", outDCDStateFile[box]);
+  stateFileFileid[box] = open_dcd_write(outDCDStateFile[box]);
+
+  if (stateFileFileid[box] == DCD_FILEEXISTS) {
+    char err_msg[257];
+    sprintf(err_msg, "DCD Coordinate file %s already exists!",
+      outDCDStateFile[box]);
+    NAMD_warn(err_msg);
+  } else if (stateFileFileid[box] < 0) {
+    char err_msg[257];
+    sprintf(err_msg, "Couldn't open DCD coordinate file %s",
+      outDCDStateFile[box]);
+    NAMD_err(err_msg);
+  }
+  int NSAVC, NFILE, NPRIV, NSTEP;
+  NSAVC = stepsStatePerOut;
+  NPRIV = 0;
+  NSTEP = NPRIV - NSAVC;
+  NFILE = 0;
+  int ret_code = write_dcdheader(stateFileFileid[box], 
+      outDCDStateFile[box], numAtoms, NFILE, NPRIV, NSAVC, NSTEP,
+      1.0/48.88841, 1);
+
+  if (ret_code < 0) {
+    char err_msg[257];
+    sprintf(err_msg, "Writing of DCD header file %s failed!",
+      outDCDStateFile[box]);
+    NAMD_err(err_msg);
+  }
 }
 
 void DCDOutput::DoOutput(const ulong step)
@@ -131,6 +199,9 @@ void DCDOutput::DoOutput(const ulong step)
       }
       printf("Finished writing DCD coordinate to file %s at step %d \n",
         outDCDStateFile[b], step+1);
+
+      // write the cellbasis data to xst file
+      Write_Extention_System_data(xstFile[b], step, b);
     }
   }
 
@@ -145,6 +216,14 @@ void DCDOutput::DoOutput(const ulong step)
       Write_binary_file(outDCDRestartFile[b], numAtomInBox, restartCoor[b]);
       printf("Finished writing binary restart coordinate to file %s at step %d \n",
         outDCDRestartFile[b], step+1);
+      
+      // write XSC file
+      NAMD_backup_file(outXSCFile[b], ".BAK");
+      xscFile[b].openOverwrite();
+      Write_Extention_System_Header(xscFile[b], b);
+      // write the cellbasis data to xst file
+      Write_Extention_System_data(xscFile[b], step, b);
+      xscFile[b].close();
     }
   }
 
