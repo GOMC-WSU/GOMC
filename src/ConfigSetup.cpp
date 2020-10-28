@@ -94,10 +94,10 @@ ConfigSetup::ConfigSetup(void)
   sys.moves.regrowth = DBL_MAX;
   sys.moves.crankShaft = DBL_MAX;
   sys.moves.intraMemc = DBL_MAX;
-  out.state.settings.enable = true;
-  out.restart.settings.enable = true;
-  out.state_dcd.settings.enable = true;
-  out.restart_dcd.settings.enable = true;
+  out.state.settings.enable = false;
+  out.restart.settings.enable = false;
+  out.state_dcd.settings.enable = false;
+  out.restart_dcd.settings.enable = false;
   out.console.enable = true;
   out.statistics.settings.block.enable = true;
 #if ENSEMBLE == GCMC
@@ -1886,6 +1886,14 @@ void ConfigSetup::verifyInputs(void)
   }
   if(out.state.settings.enable && out.state.settings.frequency == ULONG_MAX) {
     std::cout << "Error: Coordinate frequency is not specified!\n";
+    exit(EXIT_FAILURE);
+  }
+  if(out.restart_dcd.settings.enable && out.restart_dcd.settings.frequency == ULONG_MAX) {
+    std::cout << "Error: DCD Restart coordinate frequency is not specified!\n";
+    exit(EXIT_FAILURE);
+  }
+  if(out.state_dcd.settings.enable && out.state_dcd.settings.frequency == ULONG_MAX) {
+    std::cout << "Error: DCD Coordinate frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
 
