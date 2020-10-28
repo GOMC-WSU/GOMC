@@ -342,7 +342,9 @@ struct HistFiles { /* : ReadableBase*/
 //Files for output.
 struct OutFiles {
   FileNames<BOX_TOTAL> pdb;
+  /* For split psf files , BOX 0 and BOX 1 */
   FileNames<BOX_TOTAL> splitPSF;
+  /* For merged PSF */
   FileName psf, seed;
   HistFiles hist;
 };
