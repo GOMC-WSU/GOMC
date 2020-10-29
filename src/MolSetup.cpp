@@ -314,10 +314,16 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
 
   /* A size -> moleculeKind map for quick evaluation of new molecules based on molMap entries
     of a given size exisitng or not */ 
+  uint startIdxResBoxOffset;
+  if (pdbAtoms.lastAtomIndexInBox0 == 0){
+  startIdxResBoxOffset = 0;
   pdbAtoms.startIdxRes.clear();
   pdbAtoms.resKinds.clear();
   pdbAtoms.resKindNames.clear();
   pdbAtoms.resNames.clear();
+  } else {
+    startIdxResBoxOffset = pdbAtoms.lastAtomIndexInBox0 + 1;
+  }
 
   typedef std::map<std::size_t, std::vector<std::__cxx11::string> > SizeMap;
   SizeMap sizeToMolecules;                                            
@@ -365,7 +371,8 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
              By modifying them here, we can change what a MapEntry sees as a molecule.
              For the simulation, we keep track of these startIdxRes for each molecule, single or multires.
           */
-          pdbAtoms.startIdxRes.push_back(it->front());
+          //pdbAtoms.startIdxRes.push_back(it->front());
+          pdbAtoms.startIdxRes.push_back(startIdxResBoxOffset + it->front());
           pdbAtoms.resKinds.push_back(kindMap[*sizeConsistentEntries].kindIndex);
           pdbAtoms.resNames.push_back(*sizeConsistentEntries);
           newMapEntry = false;
@@ -428,7 +435,8 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
       kindMap[fragName].firstAtomID = it->front() + 1;
       kindMap[fragName].firstMolID = allAtoms[it->front()].residueID;
       kindMap[fragName].kindIndex = mk;
-      pdbAtoms.startIdxRes.push_back(kindMap[fragName].firstAtomID - 1);
+      //pdbAtoms.startIdxRes.push_back(kindMap[fragName].firstAtomID - 1);
+      pdbAtoms.startIdxRes.push_back(startIdxResBoxOffset + kindMap[fragName].firstAtomID - 1);
       pdbAtoms.resKinds.push_back(kindMap[fragName].kindIndex);
       pdbAtoms.resKindNames.push_back(fragName);
       pdbAtoms.resNames.push_back(fragName);
@@ -441,6 +449,7 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
       }
     }
   }
+  pdbAtoms.lastAtomIndexInBox0 = (moleculeXAtomIDY.back()).back();
 }
 
 typedef std::map<std::__cxx11::string, mol_setup::MolKind> MolMap;
@@ -467,7 +476,7 @@ namespace
 void AssignMolKinds(MolKind& kind, const pdb_setup::Atoms& pdbData, const std::string& name)
 {
   uint index = std::find(pdbData.resKindNames.begin(),
-                         pdbData.resKindNames.end(), name) - pdbData.resKindNames.end();
+                         pdbData.resKindNames.end(), name) - pdbData.resKindNames.begin();
   kind.kindIndex = index;
 }
 

@@ -103,6 +103,8 @@ public:
   //second box read (restart only)
   uint currBox, count, currRes;
   std::string currResname;
+
+  uint lastAtomIndexInBox0 = 0;
 };
 
 }
