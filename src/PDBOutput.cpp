@@ -108,8 +108,8 @@ void PDBOutput::InitPartVec(pdb_setup::Atoms const& atoms)
       molRef.GetRangeStartStop(pStart, pEnd, mI);
 
       for (uint p = pStart; p < pEnd; ++p) {
-        FormatAtom(pStr[p], p, mI, molRef.chain[mI],
-                   atoms.atomAliases[p], resName);
+        FormatAtom(pStr[p], p, atoms.resIDs[p], molRef.chain[mI],
+                   atoms.atomAliases[p], atoms.resNamesFull[p]);
       }
       ++m;
     }
@@ -162,7 +162,7 @@ void PDBOutput::DoOutput(const ulong step)
   }
   //NEW_RESTART_CODE
 
-  if (((step + 1) % stepsRestPerOut == 0) && enableRestOut) {
+  if (step != 0 && ((step + 1) % stepsRestPerOut == 0) && enableRestOut) {
     DoOutputRebuildRestart(step + 1);
   }
   //NEW_RESTART_CODE

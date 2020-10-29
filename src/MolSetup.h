@@ -13,6 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 #include <map>
+#include "BondAdjacencyList.h"
 
 namespace config_setup
 {
@@ -30,14 +31,18 @@ namespace mol_setup
 class Atom
 {
 public:
-  Atom(std::string const& l_name, std::string const& l_type,
+  Atom(std::string const& l_name, std::string const& l_residue, uint l_resID, std::string const& l_segment, std::string const& l_type,
        const double l_charge, const double l_mass) :
-    name(l_name), type(l_type), charge(l_charge), mass(l_mass) {}
+    name(l_name), residue(l_residue), residueID(l_resID), segment(l_segment), type(l_type), charge(l_charge), mass(l_mass) {}
   //private:
   //name (within a molecule) and type (for forcefield params)
-  std::string name, type;
+  std::string name, type, residue, segment;
   double charge, mass;
   //kind index
+  /* ResID is by the PSF Parser to determine multiresidue status by comparing 1st vs all
+    of resIDs in a row in the moleculeXAtomIDY 2D vector */
+  uint residueID;
+
   uint kind;
 };
 
@@ -95,6 +100,8 @@ public:
   uint firstAtomID, firstMolID;
   //true while the molecule is still open for modification during PSF read
   bool incomplete;
+  bool isMultiResidue;
+  std::vector<uint> intraMoleculeResIDs;
 };
 
 //List of dihedrals with atom at one end, atom first
@@ -118,6 +125,7 @@ std::vector<Bond> BondsAll(const MolKind& molKind);
 
 //first element (string) is name of molecule type
 typedef std::map<std::string, MolKind> MolMap;
+typedef std::map<std::size_t, std::vector<std::__cxx11::string> > SizeMap;
 
 //! Reads one or more PSF files into kindMap
 /*!
@@ -126,8 +134,8 @@ typedef std::map<std::string, MolKind> MolMap;
 *\param numFiles number of files to read
 *\return -1 if failed, 0 if successful
 */
-int ReadCombinePSF(MolMap& kindMap, const std::string* psfFilename,
-                   const int numFiles);
+int ReadCombinePSF(MolMap& kindMap, SizeMap& sizeMap, const std::string* psfFilename,
+                   const int numFiles, pdb_setup::Atoms& pdbAtoms);
 
 void PrintMolMapVerbose(const MolMap& kindMap);
 void PrintMolMapBrief(const MolMap& kindMap);
@@ -137,14 +145,29 @@ void PrintMolMapBrief(const MolMap& kindMap);
 class MolSetup
 {
 public:
+  class Atom;
+  int read_atoms(FILE *, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms);
+  int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjList,
+                                              const std::vector< std::vector<uint> > & moleculeXAtomIDY, 
+                                              std::vector<mol_setup::Atom> & allAtoms,
+                                              mol_setup::MolMap & kindMap,
+                                              mol_setup::SizeMap & sizeMap,
+                                              pdb_setup::Atoms& pdbAtoms,
+                                              mol_setup::MolMap * kindMapFromBox1,
+                                              mol_setup::SizeMap * sizeMapFromBox1);
+
+  static void copyBondInfoIntoMapEntry(const BondAdjacencyList & bondAdjList, mol_setup::MolMap & kindMap, std::string fragName);
+
+
   //reads BoxTotal PSFs and merges the data, placing the results in kindMap
   //returns 0 if read is successful, -1 on a failure
   int Init(const config_setup::RestartSettings& restart,
-           const std::string* psfFilename);
+           const std::string* psfFilename, pdb_setup::Atoms& pdbAtoms);
 
   void AssignKinds(const pdb_setup::Atoms& pdbAtoms, const FFSetup& ffData);
 
 //private:
   mol_setup::MolMap kindMap;
+  mol_setup::SizeMap sizeMap;
 };
 #endif

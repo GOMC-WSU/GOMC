@@ -1358,6 +1358,8 @@ void ConfigSetup::fillDefaults(void)
                                   "_BOX_" + numStr + ".dcd";
     out.restart_dcd.files.dcd.name[i] = out.statistics.settings.uniqueStr.val +
                                   "_BOX_" + numStr + "_restart.coor";
+    out.state.files.splitPSF.name[i] = out.statistics.settings.uniqueStr.val +
+                                  "_BOX_" + numStr + ".psf";                              
   }
   out.state.files.seed.name = out.statistics.settings.uniqueStr.val + ".dat";
 }
