@@ -105,6 +105,7 @@ public:
   std::string currResname;
 
   uint lastAtomIndexInBox0 = 0;
+  uint lastResKindIndex = 0;
 };
 
 }
