@@ -170,7 +170,7 @@ void PDBOutput::DoOutput(const ulong step)
   }
   //NEW_RESTART_CODE
 
-  if (((step + 1) % stepsRestPerOut == 0) && enableRestOut) {
+  if (step != 0 && ((step + 1) % stepsRestPerOut == 0) && enableRestOut) {
     DoOutputRebuildRestart(step + 1);
   }
   //NEW_RESTART_CODE

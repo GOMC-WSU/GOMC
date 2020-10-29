@@ -86,7 +86,8 @@ public:
 class MolKind
 {
 public:
-  MolKind() : incomplete(true) {}
+  MolKind() : incomplete(true), isMultiResidue(false), anglesDefined(false), dihedralsDefined(false) {}
+
 
   //private:
   std::vector<Atom> atoms;
@@ -101,6 +102,8 @@ public:
   //true while the molecule is still open for modification during PSF read
   bool incomplete;
   bool isMultiResidue;
+  bool anglesDefined;
+  bool dihedralsDefined;
   std::vector<uint> intraMoleculeResIDs;
 };
 
@@ -126,6 +129,11 @@ std::vector<Bond> BondsAll(const MolKind& molKind);
 //first element (string) is name of molecule type
 typedef std::map<std::string, MolKind> MolMap;
 
+/* Used to quickly evaluate if a molecule has been seen by size */
+typedef std::map<std::size_t, std::vector<std::__cxx11::string> > SizeMap;
+typedef std::map<std::string, uint > KindIndexMap;
+
+
 //! Reads one or more PSF files into kindMap
 /*!
 *\param kindMap map to add PSF data to
@@ -133,7 +141,7 @@ typedef std::map<std::string, MolKind> MolMap;
 *\param numFiles number of files to read
 *\return -1 if failed, 0 if successful
 */
-int ReadCombinePSF(MolMap& kindMap, const std::string* psfFilename,
+int ReadCombinePSF(MolMap& kindMap, SizeMap& sizeToMoleculeMap, const std::string* psfFilename,
                    const int numFiles, pdb_setup::Atoms& pdbAtoms);
 
 void PrintMolMapVerbose(const MolMap& kindMap);
@@ -150,6 +158,7 @@ public:
                                       const std::vector< std::vector<uint> > & moleculeXAtomIDY, 
                                       std::vector<mol_setup::Atom> & allAtoms,
                                       mol_setup::MolMap & kindMap,
+                                      mol_setup::MolMap & sizeToMoleculeMap,
                                       pdb_setup::Atoms& pdbAtoms);
 
   static void copyBondInfoIntoMapEntry(const BondAdjacencyList & bondAdjList, mol_setup::MolMap & kindMap, std::string fragName);
@@ -164,5 +173,6 @@ public:
 
 //private:
   mol_setup::MolMap kindMap;
+  mol_setup::SizeMap sizeToMoleculeMap;                                            
 };
 #endif

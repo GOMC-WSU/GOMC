@@ -67,7 +67,7 @@ class Atoms : public FWReadableBase
 public:
   //Set the current residue to something other than 1
   Atoms(void) : restart(false), currBox(0), count(0),
-    currRes(10) {}
+    currRes(0) {}
   void SetRestart(config_setup::RestartSettings const& r);
   void SetBox(const uint b)
   {
@@ -102,6 +102,19 @@ public:
   //(restart), count allows overwriting of coordinates during
   //second box read (restart only)
   uint currBox, count, currRes;
+  
+  /* Set in MolSetup by createAndModifyPDBAtoms, important for startIdxRes of Box 2 
+    Our current implementation will solve for the startIdxRes of Box 2 to start from 0.
+    By adding the (last Atom index + 1), since the indices start from 0, 
+    from Box 0 to all startIdxRes of Box 2, we obtain correctness. 
+    Since we have a sorted 2D array of molecules and the atoms from Box 0, 
+    
+    MolSetup::moleculeXAtomIDY
+    
+    we can just take the last entry in the last row as this value.  */
+  uint lastAtomIndexInBox0 = 0;
+  uint lastResKindIndex = 0;
+
   std::string currResname;
 };
 
