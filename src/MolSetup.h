@@ -125,6 +125,7 @@ std::vector<Bond> BondsAll(const MolKind& molKind);
 
 //first element (string) is name of molecule type
 typedef std::map<std::string, MolKind> MolMap;
+typedef std::map<std::size_t, std::vector<std::__cxx11::string> > SizeMap;
 
 //! Reads one or more PSF files into kindMap
 /*!
@@ -133,7 +134,7 @@ typedef std::map<std::string, MolKind> MolMap;
 *\param numFiles number of files to read
 *\return -1 if failed, 0 if successful
 */
-int ReadCombinePSF(MolMap& kindMap, const std::string* psfFilename,
+int ReadCombinePSF(MolMap& kindMap, SizeMap& sizeMap, const std::string* psfFilename,
                    const int numFiles, pdb_setup::Atoms& pdbAtoms);
 
 void PrintMolMapVerbose(const MolMap& kindMap);
@@ -147,10 +148,13 @@ public:
   class Atom;
   int read_atoms(FILE *, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms);
   int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjList,
-                                      const std::vector< std::vector<uint> > & moleculeXAtomIDY, 
-                                      std::vector<mol_setup::Atom> & allAtoms,
-                                      mol_setup::MolMap & kindMap,
-                                      pdb_setup::Atoms& pdbAtoms);
+                                              const std::vector< std::vector<uint> > & moleculeXAtomIDY, 
+                                              std::vector<mol_setup::Atom> & allAtoms,
+                                              mol_setup::MolMap & kindMap,
+                                              mol_setup::SizeMap & sizeMap,
+                                              pdb_setup::Atoms& pdbAtoms,
+                                              mol_setup::MolMap * kindMapFromBox1,
+                                              mol_setup::SizeMap * sizeMapFromBox1);
 
   static void copyBondInfoIntoMapEntry(const BondAdjacencyList & bondAdjList, mol_setup::MolMap & kindMap, std::string fragName);
 
@@ -164,5 +168,6 @@ public:
 
 //private:
   mol_setup::MolMap kindMap;
+  mol_setup::SizeMap sizeMap;
 };
 #endif
