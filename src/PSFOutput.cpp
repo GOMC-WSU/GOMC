@@ -31,16 +31,80 @@ const int dihPerLine = 2;
 }
 
 PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
-                     mol_setup::MolMap& molMap,
-                     const std::vector<std::string>& kindNames) :
-  molecules(&molecules), molNames(kindNames),
+                     Setup & set) :
+  molecules(&molecules), molNames(set.pdb.atoms.resKindNames),
   molLookRef(sys.molLookup)
 {
-  molKinds.resize(molMap.size());
-  for(uint i = 0; i < kindNames.size(); ++i) {
-    molKinds[i] = molMap[kindNames[i]];
+  molKinds.resize(set.mol.kindMap.size());
+  for(uint i = 0; i < set.pdb.atoms.resKindNames.size(); ++i) {
+    molKinds[i] = set.mol.kindMap[set.pdb.atoms.resKindNames[i]];
   }
   CountMolecules();
+  PrintPSF(set.config.out.state.files.psf.name);
+  std::cout << "Printed combined psf to file "
+            << set.config.out.state.files.psf.name << '\n';
+
+}
+
+
+void PSFOutput::Init(pdb_setup::Atoms const& atoms,
+                        config_setup::Output const& output)
+{
+  std::string bStr = "", aliasStr = "", numStr = "";
+  sstrm::Converter toStr;
+  enableRestOut = output.restart.settings.enable;
+  stepsRestPerOut = output.restart.settings.frequency;
+  if (enableRestOut) {
+    for (uint b = 0; b < BOX_TOTAL; ++b) {
+      //Get alias string, based on box #.
+      bStr = "Box ";
+      numStr = "";
+      toStr << b + 1;
+      toStr >> numStr;
+      aliasStr = "Output PSF file for Box ";
+      aliasStr += numStr;
+      bool notify;
+#ifndef NDEBUG
+      notify = true;
+#else
+      notify = false;
+#endif
+      //NEW_RESTART_COD
+      outRebuildRestartFName[b] = output.state.files.splitPSF.name[b];
+      std::string newStrAddOn = "_restart.psf";
+      outRebuildRestartFName[b].replace
+      (outRebuildRestartFName[b].end() - 4,
+       outRebuildRestartFName[b].end(),
+       newStrAddOn);
+    }
+  }
+}
+
+void PSFOutput::DoOutput(const ulong step)
+{
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    FILE* outfile = fopen(outRebuildRestartFName[b].c_str(), "w");
+    if (outfile == NULL) {
+      fprintf(stderr, "Error opening PSF output file %s", outRebuildRestartFName[b].c_str());
+      return;
+    }    
+    fprintf(outfile, "PSF\n\n");
+    PrintRemarksInBox(outfile, b);
+    PrintAtomsInBox(outfile, b);
+    PrintBondsInBox(outfile, b);
+    PrintAnglesInBox(outfile, b);
+    PrintDihedralsInBox(outfile, b);
+    fclose(outfile);
+  }
+}
+
+void PSFOutput::Output(const ulong step)
+{
+  //NEW_RESTART_CODE
+  if (((step + 1) % stepsRestPerOut == 0) && enableRestOut) {
+    DoOutput(step + 1);
+  }
+  //NEW_RESTART_CODE
 }
 
 void PSFOutput::CountMolecules()
@@ -207,3 +271,110 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
   }
   fputs("\n\n", outfile);
 }
+
+  void PSFOutput::PrintRemarksInBox(FILE* outfile, uint b) const {
+    std::vector<std::string> remarks;
+    std::string boxSpecific;
+    //default file remarks
+    remarks.push_back("Combined PSF produced by GOMC");
+    boxSpecific = std::string("Contains Geometry data for molecules in Box " + std::to_string(b));
+    remarks.push_back(boxSpecific);
+    PrintRemarks(outfile, remarks);
+  }
+  void PSFOutput::PrintAtomsInBox(FILE* outfile, uint b) const {
+    fprintf(outfile, headerFormat, totalAtoms, atomHeader);
+    //silly psfs index from 1
+    uint atomID = 1;
+    uint resID = 1;
+    for( MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b); thisMol != molLookRef.BoxEnd(b); thisMol++){
+      uint thisKind = molecules->kIndex[*thisMol];
+      uint nAtoms = molKinds[thisKind].atoms.size();
+
+      for(uint at = 0; at < nAtoms; ++at) {
+        const Atom* thisAtom = &molKinds[thisKind].atoms[at];
+        //atom ID, segment name, residue ID, residue name,
+        //atom name, atom type, charge, mass, and an unused 0
+
+        if(molKinds[thisKind].isMultiResidue){
+          fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+                  resID + molKinds[thisKind].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
+                  thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+        } else {
+          fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+                  resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
+                  thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+        }
+        ++atomID;
+      }
+      ++resID;
+      /* To add additional intramolecular residues */
+      if (molKinds[thisKind].isMultiResidue){
+        resID += molKinds[thisKind].intraMoleculeResIDs.back();
+      }
+
+    // ???
+      if(resID == 10000)
+        resID = 1;
+  }
+  fputc('\n', outfile);
+  }
+  void PSFOutput::PrintBondsInBox(FILE* outfile, uint b) const {
+    fprintf(outfile, headerFormat, totalBonds, bondHeader);
+    uint atomID = 1;
+    uint lineEntry = 0;
+    for( MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b); thisMol != molLookRef.BoxEnd(b); thisMol++){
+      const MolKind& thisKind = molKinds[molecules->kIndex[*thisMol]];
+      for(uint i = 0; i < thisKind.bonds.size(); ++i) {
+        fprintf(outfile, "%8d%8d", thisKind.bonds[i].a0 + atomID,
+                thisKind.bonds[i].a1 + atomID);
+        ++lineEntry;
+        if(lineEntry == bondPerLine) {
+          lineEntry = 0;
+          fputc('\n', outfile);
+        }
+      }
+      atomID += thisKind.atoms.size();
+    }
+    fputs("\n\n", outfile);
+  }
+  void PSFOutput::PrintAnglesInBox(FILE* outfile, uint b) const {
+    fprintf(outfile, headerFormat, totalAngles, angleHeader);
+    uint atomID = 1;
+    uint lineEntry = 0;
+    for( MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b); thisMol != molLookRef.BoxEnd(b); thisMol++){
+      const MolKind& thisKind = molKinds[molecules->kIndex[*thisMol]];
+      for(uint i = 0; i < thisKind.angles.size(); ++i) {
+        fprintf(outfile, "%8d%8d%8d", thisKind.angles[i].a0 + atomID,
+                thisKind.angles[i].a1 + atomID,
+                thisKind.angles[i].a2 + atomID);
+        ++lineEntry;
+        if(lineEntry == anglePerLine) {
+          lineEntry = 0;
+          fputc('\n', outfile);
+        }
+      }
+      atomID += thisKind.atoms.size();
+    }
+    fputs("\n\n", outfile);
+  }
+  void PSFOutput::PrintDihedralsInBox(FILE* outfile, uint b) const {  
+    fprintf(outfile, headerFormat, totalDihs, dihedralHeader);
+    uint atomID = 1;
+    uint lineEntry = 0;
+    for( MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b); thisMol != molLookRef.BoxEnd(b); thisMol++){
+      const MolKind& thisKind = molKinds[molecules->kIndex[*thisMol]];
+      for(uint i = 0; i < thisKind.dihedrals.size(); ++i) {
+        fprintf(outfile, "%8d%8d%8d%8d", thisKind.dihedrals[i].a0 + atomID,
+                thisKind.dihedrals[i].a1 + atomID,
+                thisKind.dihedrals[i].a2 + atomID,
+                thisKind.dihedrals[i].a3 + atomID);
+        ++lineEntry;
+        if(lineEntry == dihPerLine) {
+          lineEntry = 0;
+          fputc('\n', outfile);
+        }
+      }
+      atomID += thisKind.atoms.size();
+    }
+    fputs("\n\n", outfile);
+  }
