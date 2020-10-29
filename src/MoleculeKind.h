@@ -156,6 +156,8 @@ public:
 
   double * atomMass;
 
+  bool isMultiResidue;
+  std::vector<uint> intraMoleculeResIDs;
 
 #if ENSEMBLE == GCMC
   double chemPot;

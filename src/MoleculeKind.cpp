@@ -128,6 +128,12 @@ void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
   molMass = 0;
   atomNames.clear();
 
+  /* These two entries all PSFOutput to 
+    correctly assign residueIDs to a map containing
+    multiresidue and standard entries.  */
+  isMultiResidue = molData.isMultiResidue;
+  intraMoleculeResIDs = molData.intraMoleculeResIDs;
+
   //convert array of structures to structure of arrays
   for(uint i = 0; i < numAtoms; ++i) {
     const mol_setup::Atom& atom = molData.atoms[i];

@@ -8,8 +8,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "StaticVals.h"
 #include "CPUSide.h" //Spec declaration
 
-CPUSide::CPUSide(System & sys, StaticVals & statV) :
-  varRef(sys, statV), pdb(sys, statV), console(varRef), block(varRef),
+
+CPUSide::CPUSide(System & sys, StaticVals & statV, Setup & set) :
+  varRef(sys, statV), pdb(sys, statV), 
+  psf(statV.mol, sys, set), 
+  dcd(sys, statV),
+  console(varRef), block(varRef),
   hist(varRef), checkpoint(sys, statV)
 #if ENSEMBLE == GCMC
   , sample_N_E(varRef)
@@ -29,6 +33,8 @@ void CPUSide::Init(PDBSetup const& pdbSet, config_setup::Output const& out,
   timer.Init(out.console.frequency, totSteps, startStep);
   outObj.push_back(&console);
   outObj.push_back(&pdb);
+  outObj.push_back(&dcd);
+  outObj.push_back(&psf);
   if (out.statistics.settings.block.enable)
     outObj.push_back(&block);
   if (out.checkpoint.enable)

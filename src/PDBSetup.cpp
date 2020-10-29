@@ -114,6 +114,9 @@ void Atoms::Assign(std::string const& atomName,
   box.push_back(currBox);
   atomAliases.push_back(atomName);
   resNamesFull.push_back(resName);
+  /* Format Atom previously expected resID to start at 0.  We will subtract 1 here to
+      stay compliant */
+  resIDs.push_back(resNum-1);
   if (resNum != currRes || resName != currResname || firstResInFile) {
     molBeta.push_back(l_beta);
     startIdxRes.push_back(count);

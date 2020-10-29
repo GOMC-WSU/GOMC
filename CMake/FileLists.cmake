@@ -1,5 +1,6 @@
 set(sources 
    src/BlockOutput.cpp
+   src/BondAdjacencyList.cpp
    src/BoxDimensions.cpp
    src/BoxDimensionsNonOrth.cpp
    src/CBMC.cpp
@@ -11,6 +12,8 @@ set(sources
    src/CalculateEnergy.cpp
    src/CheckpointOutput.cpp
    src/CheckpointSetup.cpp
+   src/DCDlib.cpp
+   src/DCDOutput.cpp
    src/EnPartCntSampleOutput.cpp
    src/Ewald.cpp
    src/EwaldCached.cpp
@@ -63,6 +66,7 @@ set(sources
 
 set(headers
    src/BlockOutput.h
+   src/BondAdjacencyList.h
    src/BoxDimensions.h
    src/BoxDimensionsNonOrth.h
    src/CalculateEnergy.h
@@ -78,6 +82,8 @@ set(headers
    src/Coordinates.h
    src/CoordinateSetup.h
    src/CPUSide.h
+   src/DCDlib.h
+   src/DCDOutput.h
    src/EnergyTypes.h
    src/EnPartCntSampleOutput.h
    src/EnsemblePreprocessor.h

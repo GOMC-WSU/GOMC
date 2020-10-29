@@ -20,6 +20,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include <iostream>
 #include <iomanip>
+#include <sstream>      // std::stringstream
 
 
 
@@ -61,7 +62,7 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData);
 //Builds kindMap from PSF file (does not include coordinates) kindMap
 // should be empty returns number of atoms in the file, or READERROR if
 // the read failed somehow
-int ReadPSF(const char* psfFilename, MolMap& kindMap);
+int ReadPSF(const char* psfFilename, MolMap& kindMap, SizeMap& sizeMap, pdb_setup::Atoms& pdbData, MolMap * kindMapFromBox1 = NULL, SizeMap * sizeMapFromBox1 = NULL);
 //adds atoms and molecule data in psf to kindMap
 //pre: stream is at !NATOMS   post: stream is at end of atom section
 int ReadPSFAtoms(FILE* psf,
@@ -213,16 +214,18 @@ std::vector<Bond> mol_setup::BondsAll(const MolKind& molKind)
 }
 
 int mol_setup::ReadCombinePSF(MolMap& kindMap,
+                              SizeMap& sizeMap,
                               std::string const*const psfFilename,
-                              const int numFiles)
+                              const int numFiles, pdb_setup::Atoms& pdbAtoms)
 {
-  int errorcode = ReadPSF(psfFilename[0].c_str(), kindMap);
+  int errorcode = ReadPSF(psfFilename[0].c_str(), kindMap, sizeMap, pdbAtoms);
   if (errorcode < 0)
     return errorcode;
   MolMap map2;
+  SizeMap sizeMap2;
   for (int i = 1; i < numFiles; ++i) {
     map2.clear();
-    errorcode = ReadPSF(psfFilename[i].c_str(), map2);
+    errorcode = ReadPSF(psfFilename[i].c_str(), map2, sizeMap2, pdbAtoms, &kindMap, &sizeMap);
     if (errorcode < 0)
       return errorcode;
     kindMap.insert(map2.begin(), map2.end());
@@ -234,16 +237,17 @@ int mol_setup::ReadCombinePSF(MolMap& kindMap,
   return 0;
 }
 int MolSetup::Init(const config_setup::RestartSettings& restart,
-                   const std::string* psfFilename)
+                   const std::string* psfFilename, pdb_setup::Atoms& pdbAtoms)
 {
   kindMap.clear();
+  sizeMap.clear();
   int numFiles;
   if(restart.enable)
     numFiles = 1;
   else
     numFiles = BOX_TOTAL;
 
-  return ReadCombinePSF(kindMap, psfFilename, numFiles);
+  return ReadCombinePSF(kindMap, sizeMap, psfFilename, numFiles, pdbAtoms);
 }
 
 
@@ -280,13 +284,302 @@ void MolSetup::AssignKinds(const pdb_setup::Atoms& pdbAtoms, const FFSetup& ffDa
   std::cout << std::endl;
 }
 
+int read_atoms(FILE *psf, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms)
+{
+  char input[512];
+  unsigned int atomID = 0;
+  unsigned int molID;
+  char segment[11], moleculeName[11], atomName[11], atomType[11];
+  double charge, mass;
+
+  while (atomID < nAtoms) {
+    char* check = fgets(input, 511, psf);
+    if (check == NULL) {
+      fprintf(stderr, "ERROR: Could not find all atoms in PSF file ");
+      return READERROR;
+    }
+    //skip comment/blank lines
+    if (input[0] == '!' || str::AllWS(input))
+      continue;
+    //parse line
+    sscanf(input, " %u %s %u %s %s %s %lf %lf ",
+           &atomID, segment, &molID,
+           moleculeName, atomName, atomType, &charge, &mass);
+    allAtoms.push_back(mol_setup::Atom(atomName, moleculeName, molID, segment, atomType, charge, mass));
+  }
+}
+
+typedef std::vector<uint>::const_iterator candidateIterator;
+
+int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjList,
+                                            const std::vector< std::vector<uint> > & moleculeXAtomIDY, 
+                                            std::vector<mol_setup::Atom> & allAtoms,
+                                            mol_setup::MolMap & kindMap,
+                                            mol_setup::SizeMap & sizeMap,
+                                            pdb_setup::Atoms& pdbAtoms,
+                                            mol_setup::MolMap * kindMapFromBox1,
+                                            mol_setup::SizeMap * sizeMapFromBox1){
+
+  /* A size -> moleculeKind map for quick evaluation of new molecules based on molMap entries
+    of a given size exisitng or not */ 
+  uint startIdxResBoxOffset;
+  uint resKindIndex;
+  if (pdbAtoms.lastAtomIndexInBox0 == 0){
+  startIdxResBoxOffset = 0;
+  resKindIndex = 0;
+  pdbAtoms.startIdxRes.clear();
+  pdbAtoms.resKinds.clear();
+  pdbAtoms.resKindNames.clear();
+  pdbAtoms.resNames.clear();
+  } else {
+    startIdxResBoxOffset = pdbAtoms.lastAtomIndexInBox0 + 1;
+    resKindIndex = pdbAtoms.lastResKindIndex;
+  }
+
+
+  /* Iterate through N connected components */
+  int stringSuffix = 1;
+  for (std::vector< std::vector<uint> >::const_iterator it = moleculeXAtomIDY.cbegin();
+        it != moleculeXAtomIDY.cend(); it++){
+  
+    std::string fragName;
+    bool multiResidue = false;
+    bool newSize = false;
+    bool newMapEntry = true;
+    bool foundEntryInOldMap = true;
+
+    /* Search by size for existing molecules from Box 1 if it exists*/
+    if (sizeMapFromBox1 != NULL && kindMapFromBox1 != NULL){
+      SizeMap::iterator sizeIt = sizeMapFromBox1->find(it->size());
+
+      /* Found no matching molecules from Box 1 by size */
+      if (sizeIt == sizeMapFromBox1->end()) {
+        /* For record keeping later on */
+        foundEntryInOldMap = false;
+      /* Found molecules with the same size, now evaluate for atom equality */
+      } else {
+        /* Iterate through all the size consistent map entries */
+        for (std::vector<std::__cxx11::string>::const_iterator sizeConsistentEntries = sizeIt->second.cbegin();
+          sizeConsistentEntries != sizeIt->second.cend(); sizeConsistentEntries++){
+          /* Iterate atom by atom of a given size consistent map entries with the candidate molecule*/
+          typedef std::vector<mol_setup::Atom>::const_iterator atomIterator;
+          std::pair<atomIterator, candidateIterator> itPair((*kindMapFromBox1)[*sizeConsistentEntries].atoms.cbegin(), it->cbegin());
+          for (; itPair.second != it->cend(); ++itPair.first, ++itPair.second){
+            if (itPair.first->name == allAtoms[*(itPair.second)].name){
+              continue;
+            } else {
+              break;
+            }
+          }
+          // Found a match in our our molMap.
+          if (itPair.second == it->cend()) {
+
+            /* Get the map key */
+            fragName = *sizeConsistentEntries;
+            /* Boilerplate PDB Data modifications for matches */
+            pdbAtoms.startIdxRes.push_back(startIdxResBoxOffset + it->front());
+            pdbAtoms.resKinds.push_back((*kindMapFromBox1)[fragName].kindIndex);
+            pdbAtoms.resNames.push_back(fragName);
+            newMapEntry = false;
+            /* Boilerplate PDB Data modifications for matches */
+
+            /* Search current KindMap for this entry. 
+              We won't have a value for fragName unless we matched
+              in the old molMap, since it may be a PROTX name.
+              That's why this all has to be in this conditional.
+            */ 
+            MolMap::const_iterator kindIt = kindMap.find(fragName);
+
+            /* If we don't have it in our new Map, then we need to add the first 
+              entry in our new Map to quench the post processessing requirements. */
+            if (kindIt == kindMap.cend()){
+              if((*kindMapFromBox1)[fragName].isMultiResidue){
+                kindMap[fragName] = MolKind();
+                kindMap[fragName].isMultiResidue = true;
+                for (std::vector<uint>::const_iterator connectedComponentIt = it->cbegin();
+                connectedComponentIt != it->cend(); connectedComponentIt++){
+                  kindMap[fragName].atoms.push_back(allAtoms[*connectedComponentIt]);
+                  kindMap[fragName].intraMoleculeResIDs.push_back(allAtoms[*connectedComponentIt].residueID);
+                }
+                /* Normalize resID to intramolecule indices */
+                uint firstResID = kindMap[fragName].intraMoleculeResIDs.front();
+                for (auto& x : kindMap[fragName].intraMoleculeResIDs)
+                  x -= firstResID;
+                /* Normalize resID to intramolecule indices */
+              } else {
+                kindMap[fragName] = MolKind();
+                kindMap[fragName].isMultiResidue = false;
+                for (std::vector<uint>::const_iterator connectedComponentIt = it->cbegin();
+                connectedComponentIt != it->cend(); connectedComponentIt++){
+                  kindMap[fragName].atoms.push_back(allAtoms[*connectedComponentIt]);
+                }
+              }
+              kindMap[fragName].firstAtomID = it->front() + 1;
+              kindMap[fragName].firstMolID = allAtoms[it->front()].residueID;
+              kindMap[fragName].kindIndex = (*kindMapFromBox1)[fragName].kindIndex;
+              MolSetup::copyBondInfoIntoMapEntry(bondAdjList, kindMap, fragName);
+
+              /* Finally, search new sizeMap for existing entry of same size as old molecule.
+                 This handles chance that we have two equal sized, but different, molecules in
+                 the two boxes.  Since the map entry will already exist, it wouldn't be a newSize */
+
+              SizeMap::iterator sizeIt = sizeMap.find(it->size());
+              /* New Size */
+              if (sizeIt == sizeMap.end()) {
+                sizeMap[it->size()] = std::vector<std::__cxx11::string>{fragName};
+              } else {
+                sizeMap[it->size()].push_back(fragName);
+              }
+            }
+          } else {
+            foundEntryInOldMap = false;
+          }
+        }
+      }
+    } else {
+      foundEntryInOldMap = false;
+    }
+
+    /* Follow procedure from earlier versions of single box ensemble map entries. Very similar to above,
+       except we may need to generate fragName in the case of a protein. */
+    if(!foundEntryInOldMap){
+
+      /* Search by size for existing molecules  for quick evaluation of new molecules based on molMap entries
+      of a given size exisitng or not */ 
+      SizeMap::iterator sizeIt = sizeMap.find(it->size());
+      std::string fragName;
+      bool multiResidue = false;
+      bool newSize = false;
+      bool newMapEntry = true;
+
+      typedef std::vector<uint>::const_iterator candidateIterator;
+      /* Found no matching molecules by size */
+      if (sizeIt == sizeMap.end()) {
+        newSize = true;
+      /* Found molecules with the same size, now evaluate for atom equality */
+      } else {
+        /* Iterate through all the size consistent map entries */
+        for (std::vector<std::__cxx11::string>::const_iterator sizeConsistentEntries = sizeIt->second.cbegin();
+          sizeConsistentEntries != sizeIt->second.cend(); sizeConsistentEntries++){
+          /* Iterate atom by atom of a given size consistent map entries with the candidate molecule*/
+          typedef std::vector<mol_setup::Atom>::const_iterator atomIterator;
+          std::pair<atomIterator, candidateIterator> itPair(kindMap[*sizeConsistentEntries].atoms.cbegin(), it->cbegin());
+          for (; itPair.second != it->cend(); ++itPair.first, ++itPair.second){
+            if (itPair.first->name == allAtoms[*(itPair.second)].name){
+              continue;
+            } else {
+              break;
+            }
+          }
+          // Found a match
+          if (itPair.second == it->cend()) {
+            // Modify PDBData
+            pdbAtoms.startIdxRes.push_back(startIdxResBoxOffset + it->front());
+            pdbAtoms.resKinds.push_back(kindMap[*sizeConsistentEntries].kindIndex);
+            newMapEntry = false;
+          }
+        }
+      }
+
+      if (newMapEntry){
+        /* Determine if this connected component is a standard or multiResidue molecule */
+        for (candidateIterator connectedComponentIt = it->cbegin();
+          connectedComponentIt != it->cend(); connectedComponentIt++){
+          if (allAtoms[*connectedComponentIt].residueID == allAtoms[it->front()].residueID){
+            continue;
+          } else {
+            multiResidue = true;
+            break;
+          }
+        }
+      }
+
+      if (newMapEntry){
+        if(multiResidue){  
+          std::stringstream ss;
+          /* Length of Suffix */
+          for (int i = 0; i < (stringSuffix + 26 - 1) / 26; i++){
+            int intermediate = stringSuffix - i * 26;
+            char charSuffix = 'A';
+            /* Increment Char A until reach suffix or 27 which will be Z. */
+            for (int j = 1; j < std::min(intermediate, 27); j++){
+              charSuffix++;
+            }
+            ss << charSuffix;
+          }
+          fragName = "PROT" + ss.str();
+          printf("\n%-40s \n", "Warning: A molecule containing > 1 residue is detected.");
+          printf("The simulation will name it %s.\n", fragName.c_str());
+          printf("See the chart at the end of the output log describing this entry.\n");
+
+          kindMap[fragName] = MolKind();
+          kindMap[fragName].isMultiResidue = true;
+          for (std::vector<uint>::const_iterator connectedComponentIt = it->cbegin();
+          connectedComponentIt != it->cend(); connectedComponentIt++){
+            kindMap[fragName].atoms.push_back(allAtoms[*connectedComponentIt]);
+            kindMap[fragName].intraMoleculeResIDs.push_back(allAtoms[*connectedComponentIt].residueID);
+          }
+          /* Normalize resID to intramolecule indices */
+          uint firstResID = kindMap[fragName].intraMoleculeResIDs.front();
+          for (auto& x : kindMap[fragName].intraMoleculeResIDs)
+            x -= firstResID;
+          /* Normalize resID to intramolecule indices */
+        } else {
+          fragName = allAtoms[it->front()].residue;
+          kindMap[allAtoms[it->front()].residue] = MolKind();
+          kindMap[fragName].isMultiResidue = false;
+          for (std::vector<uint>::const_iterator connectedComponentIt = it->cbegin();
+          connectedComponentIt != it->cend(); connectedComponentIt++){
+            kindMap[fragName].atoms.push_back(allAtoms[*connectedComponentIt]);
+          }
+        }
+        kindMap[fragName].firstAtomID = it->front() + 1;
+        kindMap[fragName].firstMolID = allAtoms[it->front()].residueID;
+        kindMap[fragName].kindIndex = resKindIndex;
+        //pdbAtoms.startIdxRes.push_back(kindMap[fragName].firstAtomID - 1);
+        pdbAtoms.startIdxRes.push_back(startIdxResBoxOffset + kindMap[fragName].firstAtomID - 1);
+        pdbAtoms.resKinds.push_back(kindMap[fragName].kindIndex);
+        pdbAtoms.resKindNames.push_back(fragName);
+        pdbAtoms.resNames.push_back(fragName);
+        MolSetup::copyBondInfoIntoMapEntry(bondAdjList, kindMap, fragName);
+        resKindIndex++;
+        if (newSize){
+          sizeMap[it->size()] = std::vector<std::__cxx11::string>{fragName};
+        } else {
+          sizeMap[it->size()].push_back(fragName);
+        }
+      }
+    }
+  }
+  pdbAtoms.lastAtomIndexInBox0 = (moleculeXAtomIDY.back()).back();
+  pdbAtoms.lastResKindIndex = resKindIndex;
+}
+
+typedef std::map<std::__cxx11::string, mol_setup::MolKind> MolMap;
+void MolSetup::copyBondInfoIntoMapEntry(const BondAdjacencyList & bondAdjList, mol_setup::MolMap & kindMap, std::string fragName){
+
+    unsigned int molBegin = kindMap[fragName].firstAtomID - 1;
+    //index AFTER last atom in molecule
+    unsigned int molEnd = molBegin + kindMap[fragName].atoms.size();
+    //assign the bond
+    for (uint i = molBegin; i < molEnd; i++){
+      adjNode* ptr = bondAdjList.head[i];
+      while (ptr != nullptr) {
+        if (i < ptr->val) {
+          kindMap[fragName].bonds.push_back(Bond(i-molBegin, ptr->val-molBegin));
+        }    
+        ptr = ptr->next;
+      }
+    }
+}
+
 namespace
 {
 
 void AssignMolKinds(MolKind& kind, const pdb_setup::Atoms& pdbData, const std::string& name)
 {
   uint index = std::find(pdbData.resKindNames.begin(),
-                         pdbData.resKindNames.end(), name) - pdbData.resKindNames.end();
+                         pdbData.resKindNames.end(), name) - pdbData.resKindNames.begin();
   kind.kindIndex = index;
 }
 
@@ -544,7 +837,7 @@ namespace
 {
 //Initializes system from PSF file (does not include coordinates)
 //returns number of atoms in the file, or READERROR if the read failed somehow
-int ReadPSF(const char* psfFilename, MolMap& kindMap)
+int ReadPSF(const char* psfFilename, MolMap& kindMap, SizeMap & sizeMap, pdb_setup::Atoms& pdbData, MolMap * kindMapFromBox1, SizeMap * sizeMapFromBox1)
 {
   FILE* psf = fopen(psfFilename, "r");
   char* check;		//return value of fgets
@@ -566,15 +859,18 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap)
     }
   } while (strstr(input, "!NATOM") == NULL);
   sscanf(input, " %u", &nAtoms);
-  ReadPSFAtoms(psf, kindMap, nAtoms);
+
+  /* GJS - This is a flat vector of atom objects.  Instead of building kindMap entries as we parse
+  the PSF file, we will first read the entire atom section, building an N length array of atoms,
+  N is number of atoms.  Since, we process the PSF file as a flat file handle, we cannot process
+  bonds before atoms without physically generating a new PSFFile reversing the order of ATOMS <-> BONDS.
+  Hence, the necessity to build this vector before knowing how the atoms are connected. */
+  std::vector<mol_setup::Atom> allAtoms;
+  read_atoms(psf, nAtoms, allAtoms);
   //build list of start particles for each type, so we can find it and skip
   //everything else
-  std::vector<std::pair<unsigned int, std::string> > firstAtomLookup;
-  for (MolMap::iterator it = kindMap.begin(); it != kindMap.end(); ++it) {
-    firstAtomLookup.push_back(std::make_pair(it->second.firstAtomID, it->first));
-  }
-  std::sort(firstAtomLookup.begin(), firstAtomLookup.end());
-  //find bond header+count
+  //make sure molecule has bonds, appears before !NBOND
+    //find bond header+count
   while (strstr(input, "!NBOND") == NULL) {
     check = fgets(input, 511, psf);
     if (check == NULL) {
@@ -584,12 +880,63 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap)
       return  READERROR;
     }
   }
-  //make sure molecule has bonds, appears before !NBOND
   count = atoi(input);
-  if (ReadPSFBonds(psf, kindMap, firstAtomLookup, count) == READERROR) {
-    fclose(psf);
-    return READERROR;
+  /* moleculeXAtomIDY - A 2D vector, of jagged row length, 
+    of atom indices into the allAtoms vector, with atoms indexed from 0.
+    All indices in a row will make up a connected component.  Note, this is 
+    a redundant vector, and there may be repeated molecules.  These will be
+    consolidated and counted in the (1)createMap portion of 
+    createMapAndModifyPDBAtomDataStructure.
+
+            Y - atom 1 atom 2 .. atom N
+  X - molecule 1  0     3
+  .
+  .
+  .
+  X - molecule M 
+  */
+  std::vector< std::vector<uint> > moleculeXAtomIDY;
+  /* A standard adjacency list with N nodes, where N is number of atoms.
+   This is an undirected graph, where edges between nodes
+   represent bonds between atoms.  It is generated by DFS, checking if a node
+   has been visited before.
+  */
+  BondAdjacencyList bondAdjList(psf, nAtoms, count, moleculeXAtomIDY);
+  /* Molecular equality is determined by a series of evaluations, with early termination - 
+    1) Length of candidate versus all entries in the map
+    2) Atom by atom check for equality between candidate and all entries.
+
+    If the candidate matches an exisiting map entry, we push the first resID onto startIDxRes, along
+    with other necessary information.
+
+    If the candidate is determined to be novel, we first determine its status as standard or multiresidue.
+    
+    If multiresidue a dummy string is generated and atoms added to the entry along with intraMolecularResIDs
+    normalized to 0 .. n-1, n is number of residues in the multiresidue molecule.
+
+    Otherwise, standard procedure for creating a map entry is followed.
+
+    The bond information contained in the Adjacency list is assigned to map entries.
+
+    Finally, entries in startIDxRes are consolidated redefine the start and end of molecule,
+    as far as the pdb data is concerned. 
+  */
+  createMapAndModifyPDBAtomDataStructure( bondAdjList, 
+                                          moleculeXAtomIDY, 
+                                          allAtoms, 
+                                          kindMap, 
+                                          sizeMap,
+                                          pdbData, 
+                                          kindMapFromBox1, 
+                                          sizeMapFromBox1);
+
+  std::vector<std::pair<unsigned int, std::string> > firstAtomLookup;
+  for (MolMap::iterator it = kindMap.begin(); it != kindMap.end(); ++it) {
+    firstAtomLookup.push_back(std::make_pair(it->second.firstAtomID, it->first));
   }
+  std::sort(firstAtomLookup.begin(), firstAtomLookup.end());
+  //find bond header+count
+  //make sure molecule has bonds, appears before !NBOND
   //find angle header+count
   fseek(psf, 0, SEEK_SET);
   while (strstr(input, "!NTHETA") == NULL) {
@@ -659,14 +1006,14 @@ int ReadPSFAtoms(FILE* psf, MolMap& kindMap, unsigned int nAtoms)
       it = kindMap.insert(std::make_pair(std::string(moleculeName), MolKind())).first;
       it->second.firstAtomID = atomID;
       it->second.firstMolID = molID;
-      it->second.atoms.push_back(Atom(atomName, atomType, charge, mass));
+      it->second.atoms.push_back(Atom(atomName, moleculeName, molID, segment, atomType, charge, mass));
     }
     //still building a molecule...
     else if (it->second.incomplete) {
       if (molID != it->second.firstMolID)
         it->second.incomplete = false;
       else
-        it->second.atoms.push_back(Atom(atomName, atomType, charge, mass));
+        it->second.atoms.push_back(Atom(atomName, moleculeName, molID, segment, atomType, charge, mass));
     }
   }
   //Fix for one molecule fringe case.
