@@ -63,6 +63,7 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData);
 // should be empty returns number of atoms in the file, or READERROR if
 // the read failed somehow
 int ReadPSF(const char* psfFilename, MolMap& kindMap, SizeMap& sizeMap, pdb_setup::Atoms& pdbData, MolMap * kindMapFromBox1 = NULL, SizeMap * sizeMapFromBox1 = NULL);
+
 //adds atoms and molecule data in psf to kindMap
 //pre: stream is at !NATOMS   post: stream is at end of atom section
 int ReadPSFAtoms(FILE* psf,
@@ -226,9 +227,10 @@ int mol_setup::ReadCombinePSF(MolMap& kindMap,
   for (int i = 1; i < numFiles; ++i) {
     map2.clear();
     errorcode = ReadPSF(psfFilename[i].c_str(), map2, sizeMap2, pdbAtoms, &kindMap, &sizeMap);
+
     if (errorcode < 0)
       return errorcode;
-    kindMap.insert(map2.begin(), map2.end());
+    //kindMap.insert(map2.begin(), map2.end());
   }
 
   PrintMolMapVerbose(kindMap);
@@ -241,6 +243,7 @@ int MolSetup::Init(const config_setup::RestartSettings& restart,
 {
   kindMap.clear();
   sizeMap.clear();
+
   int numFiles;
   if(restart.enable)
     numFiles = 1;
@@ -248,6 +251,7 @@ int MolSetup::Init(const config_setup::RestartSettings& restart,
     numFiles = BOX_TOTAL;
 
   return ReadCombinePSF(kindMap, sizeMap, psfFilename, numFiles, pdbAtoms);
+
 }
 
 
@@ -341,7 +345,7 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
   int stringSuffix = 1;
   for (std::vector< std::vector<uint> >::const_iterator it = moleculeXAtomIDY.cbegin();
         it != moleculeXAtomIDY.cend(); it++){
-  
+
     std::string fragName;
     bool multiResidue = false;
     bool newSize = false;
@@ -431,6 +435,7 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
                 sizeMap[it->size()].push_back(fragName);
               }
             }
+
           } else {
             foundEntryInOldMap = false;
           }
@@ -551,6 +556,7 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
       }
     }
   }
+
   pdbAtoms.lastAtomIndexInBox0 = (moleculeXAtomIDY.back()).back();
   pdbAtoms.lastResKindIndex = resKindIndex;
 }
@@ -578,6 +584,7 @@ namespace
 
 void AssignMolKinds(MolKind& kind, const pdb_setup::Atoms& pdbData, const std::string& name)
 {
+  /* Bug in old code, should subtract beginning not end */
   uint index = std::find(pdbData.resKindNames.begin(),
                          pdbData.resKindNames.end(), name) - pdbData.resKindNames.begin();
   kind.kindIndex = index;
@@ -967,6 +974,7 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap, SizeMap & sizeMap, pdb_set
   }
   //make sure molecule has dihs, count appears before !NPHI
   count = atoi(input);
+
   if (ReadPSFDihedrals(psf, kindMap, firstAtomLookup, count) == READERROR) {
     fclose(psf);
     return READERROR;
@@ -1080,7 +1088,7 @@ int ReadPSFAngles(FILE* psf, MolMap& kindMap,
 {
   unsigned int atom0, atom1, atom2;
   int dummy;
-  std::vector<bool> defined(firstAtom.size(), false);
+  //std::vector<bool> defined(firstAtom.size(), false);
   for (uint n = 0; n < nangles; n++) {
     dummy = fscanf(psf, "%u %u %u", &atom0, &atom1, &atom2);
     if(dummy != 3) {
@@ -1103,7 +1111,7 @@ int ReadPSFAngles(FILE* psf, MolMap& kindMap,
         currentMol.angles.push_back(Angle(atom0 - molBegin, atom1 - molBegin,
                                           atom2 - molBegin));
         //once we found the molecule kind, break from the loop
-        defined[i] = true;
+        currentMol.anglesDefined = true;
         break;
       }
     }
@@ -1111,7 +1119,7 @@ int ReadPSFAngles(FILE* psf, MolMap& kindMap,
   //Check if we defined all angles
   for (unsigned int i = 0; i < firstAtom.size(); ++i) {
     MolKind& currentMol = kindMap[firstAtom[i].second];
-    if(currentMol.atoms.size() > 2 && !defined[i]) {
+    if(currentMol.atoms.size() > 2 && !currentMol.anglesDefined) {
       std::cout << "Warning: Angle is missing for " << firstAtom[i].second
                 << " !\n";
     }
@@ -1174,15 +1182,15 @@ int ReadPSFDihedrals(FILE* psf, MolMap& kindMap,
           currentMol.dihedrals.push_back(dih);
         }
         //once we found the molecule kind, break from the loop
-        defined[i] = true;
+        currentMol.dihedralsDefined = true;
         break;
       }
     }
   }
-  //Check if we defined all dihedrals
+  //Check if we defined all dihedrals in the map so far.
   for (unsigned int i = 0; i < firstAtom.size(); ++i) {
     MolKind& currentMol = kindMap[firstAtom[i].second];
-    if(currentMol.atoms.size() > 3 && !defined[i]) {
+    if(currentMol.atoms.size() > 3 && !currentMol.dihedralsDefined) {
       std::cout << "Warning: Dihedral is missing for " << firstAtom[i].second
                 << " !\n";
     }

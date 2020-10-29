@@ -18,6 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CheckpointOutput.h"
 #include "EnPartCntSampleOutput.h"
 #include "FreeEnergyOutput.h"
+#include "PSFOutput.h"
 
 #include <vector>
 
@@ -26,7 +27,7 @@ class StaticVals;
 class OutputableBase;
 
 struct CPUSide {
-  CPUSide(System & sys, StaticVals & statV);
+  CPUSide(System & sys, StaticVals & statV, Setup & set);
   void Init(PDBSetup const& pdbSet, config_setup::Output const& out,
             const ulong tillEquil, const ulong totSteps, ulong startStep);
   void Output(const ulong step);
@@ -37,6 +38,7 @@ private:
   std::vector<OutputableBase *> outObj;
   ConsoleOutput console;
   PDBOutput pdb;
+  PSFOutput psf;
   BlockAverages block;
   Histogram hist;
   CheckpointOutput checkpoint;
