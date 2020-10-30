@@ -126,10 +126,13 @@ void MoveSettings::AdjustMoves(const uint step)
   //Check whether we need to adjust this move's scaling.
   if ((step + 1) % perAdjust == 0) {
     for(uint b = 0; b < BOX_TOTAL; b++) {
-      for (uint m = 0; m < mv::MOVE_KINDS_TOTAL; ++m) {
+      for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; ++m) {
         for(uint k = 0; k < totKind; k++) {
           Adjust(b, m, k);
         }
+      }
+      for(int m = 0; m < mp::MPTOTALTYPES; m++) {
+        AdjustMultiParticle(b, m);
       }
     }
   }
@@ -137,49 +140,43 @@ void MoveSettings::AdjustMoves(const uint step)
 
 void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
 {
-  int totalTries = mp_interval_tries[box][mp::MPDISPLACE] +
-                   mp_interval_tries[box][mp::MPROTATE];
-                   
-  //Check if this is an adjustment step
-  if (totalTries == perAdjust) {
-    //Update totals for the entire simulation
-    for(int m = 0; m < mp::MPTOTALTYPES; ++m) {
-      mp_tries[box][m] += mp_interval_tries[box][m];
-      mp_accepted[box][m] += mp_interval_accepted[box][m];
+  //Update totals for the entire simulation
+  for(int m = 0; m < mp::MPTOTALTYPES; ++m) {
+    mp_tries[box][m] += mp_interval_tries[box][m];
+    mp_accepted[box][m] += mp_interval_accepted[box][m];
+  }
+  //Make sure we tried some displacements, otherwise mp_t_max will be nan
+  if((double)mp_interval_tries[box][mp::MPDISPLACE] != 0) {
+    double fractOfTotalAccept = ((double)mp_accepted[box][mp::MPDISPLACE] /
+                                 (double)mp_tries[box][mp::MPDISPLACE]) / mp::TARGET_ACCEPT_FRACT;
+    double fractOfIntervalAccept = ((double)mp_interval_accepted[box][mp::MPDISPLACE] /
+                                  (double)mp_interval_tries[box][mp::MPDISPLACE]) / mp::TARGET_ACCEPT_FRACT;
+    if (fractOfIntervalAccept > 0.0) {
+      mp_t_max[box] *= ((1.0-t_alpha) * fractOfTotalAccept + t_alpha * fractOfIntervalAccept);
+    } else {
+      mp_t_max[box] *= 0.5;
     }
-    //Make sure we tried some displacements, otherwise mp_t_max will be nan
-    if((double)mp_interval_tries[box][mp::MPDISPLACE] != 0) {
-      double fractOfTotalAccept = ((double)mp_accepted[box][mp::MPDISPLACE] /
-                                   (double)mp_tries[box][mp::MPDISPLACE]) / mp::TARGET_ACCEPT_FRACT;
-      double fractOfIntervalAccept = ((double)mp_interval_accepted[box][mp::MPDISPLACE] /
-                                    (double)mp_interval_tries[box][mp::MPDISPLACE]) / mp::TARGET_ACCEPT_FRACT;
-      if (fractOfIntervalAccept > 0.0) {
-        mp_t_max[box] *= ((1.0-t_alpha) * fractOfTotalAccept + t_alpha * fractOfIntervalAccept);
-      } else {
-        mp_t_max[box] *= 0.5;
-      }
-      num::Bound<double>(mp_t_max[box], 0.001, (boxDimRef.axis.Min(box) * 0.5) - 0.001);
-      //Reset totals for next adjustment period
-      mp_interval_accepted[box][mp::MPDISPLACE] = 0;
-      mp_interval_tries[box][mp::MPDISPLACE] = 0;
-    }
+    num::Bound<double>(mp_t_max[box], 0.001, (boxDimRef.axis.Min(box) * 0.5) - 0.001);
+    //Reset totals for next adjustment period
+    mp_interval_accepted[box][mp::MPDISPLACE] = 0;
+    mp_interval_tries[box][mp::MPDISPLACE] = 0;
+  }
 
-    //Make sure we tried some rotations, otherwise mp_r_max will be nan
-    if((double)mp_interval_tries[box][mp::MPROTATE] != 0) {
-      double fractOfTotalAccept = ((double)mp_accepted[box][mp::MPROTATE] /
-                                   (double)mp_tries[box][mp::MPROTATE]) / mp::TARGET_ACCEPT_FRACT;
-      double fractOfIntervalAccept = ((double)mp_interval_accepted[box][mp::MPROTATE] /
-                                    (double)mp_interval_tries[box][mp::MPROTATE]) / mp::TARGET_ACCEPT_FRACT;
-      if (fractOfIntervalAccept > 0.0) {
-        mp_r_max[box] *= ((1.0-r_alpha) * fractOfTotalAccept + r_alpha * fractOfIntervalAccept);
-      } else {
-        mp_r_max[box] *= 0.5;
-      }
-      num::Bound<double>(mp_r_max[box], 0.001, M_PI - 0.001);
-      //Reset totals for next adjustment period
-      mp_interval_accepted[box][mp::MPROTATE] = 0;
-      mp_interval_tries[box][mp::MPROTATE] = 0;
+  //Make sure we tried some rotations, otherwise mp_r_max will be nan
+  if((double)mp_interval_tries[box][mp::MPROTATE] != 0) {
+    double fractOfTotalAccept = ((double)mp_accepted[box][mp::MPROTATE] /
+                                 (double)mp_tries[box][mp::MPROTATE]) / mp::TARGET_ACCEPT_FRACT;
+    double fractOfIntervalAccept = ((double)mp_interval_accepted[box][mp::MPROTATE] /
+                                  (double)mp_interval_tries[box][mp::MPROTATE]) / mp::TARGET_ACCEPT_FRACT;
+    if (fractOfIntervalAccept > 0.0) {
+      mp_r_max[box] *= ((1.0-r_alpha) * fractOfTotalAccept + r_alpha * fractOfIntervalAccept);
+    } else {
+      mp_r_max[box] *= 0.5;
     }
+    num::Bound<double>(mp_r_max[box], 0.001, M_PI - 0.001);
+    //Reset totals for next adjustment period
+    mp_interval_accepted[box][mp::MPROTATE] = 0;
+    mp_interval_tries[box][mp::MPROTATE] = 0;
   }
 }
 
