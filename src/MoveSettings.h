@@ -41,8 +41,8 @@ public:
     mp_t_max.resize(BOX_TOTAL);
     mp_accepted.resize(BOX_TOTAL);
     mp_tries.resize(BOX_TOTAL);
-	mp_interval_accepted.resize(BOX_TOTAL);
-	mp_interval_tries.resize(BOX_TOTAL);
+    mp_interval_accepted.resize(BOX_TOTAL);
+    mp_interval_tries.resize(BOX_TOTAL);
     for(uint b = 0; b < BOX_TOTAL; b++) {
       acceptPercent[b].resize(mv::MOVE_KINDS_TOTAL);
       scale[b].resize(mv::MOVE_KINDS_TOTAL);
