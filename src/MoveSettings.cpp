@@ -4,16 +4,18 @@ Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
-#include "MoveSettings.h" //header spec.
-#include "BoxDimensions.h" //For axis sizes
+#include "MoveSettings.h"    //header spec
+#include "BoxDimensions.h"   //For axis sizes
 #include "BoxDimensionsNonOrth.h"
-#include "StaticVals.h" //For init info.
+#include "StaticVals.h"      //For init info
 #include <cmath>
-#include "NumLib.h" //For bounding functions.
-#include "GeomLib.h"    //For M_PI
+#include "NumLib.h"          //For bounding functions
+#include "GeomLib.h"         //For M_PI
 
-const double MoveSettings::TARGET_ACCEPT_FRACT = 0.50;
-const double MoveSettings::TINY_AMOUNT = 0.0000001;
+const double MoveSettings::TARGET_ACCEPT_FRACT = 0.5;
+const double MoveSettings::TINY_AMOUNT = 1.0e-7;
+const double MoveSettings::r_alpha = 0.2;
+const double MoveSettings::t_alpha = 0.2;
 
 void MoveSettings::Init(StaticVals const& statV,
                         pdb_setup::Remarks const& remarks,
@@ -41,7 +43,7 @@ void MoveSettings::Init(StaticVals const& statV,
           if(remarks.restart && remarks.disp[b] > 0.0) {
             scale[b][m][k] = remarks.disp[b];
           } else {
-            scale[b][m][k] = boxDimRef.axis.Min(b) / 4;
+            scale[b][m][k] = boxDimRef.axis.Min(b) * 0.25;
           }
         } else if (m == mv::ROTATE) {
           if(remarks.restart && remarks.rotate[b] > 0.0) {
@@ -65,11 +67,13 @@ void MoveSettings::Init(StaticVals const& statV,
 
   // Initialize MultiParticle settings
   for(int b = 0; b < BOX_TOTAL; b++) {
-    mp_r_max[b] = 0.02 * M_PI;
-    mp_t_max[b] = 0.05;
+    mp_r_max[b] = 0.01 * M_PI;
+    mp_t_max[b] = 0.02;
     for(int m = 0; m < mp::MPTOTALTYPES; m++) {
       mp_tries[b][m] = 0;
       mp_accepted[b][m] = 0;
+      mp_interval_tries[b][m] = 0;
+      mp_interval_accepted[b][m] = 0;
     }
   }
 }
@@ -94,7 +98,7 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
   acceptPercent[box][move][kind] = (double)(accepted[box][move][kind]) /
                                    (double)(tries[box][move][kind]);
 
-  //for any move that we dont care about kind of molecule, it should be included
+  //for any move that we don't care about kind of molecule, it should be included
   //in the if condition
   if (move == mv::INTRA_MEMC || move == mv::MULTIPARTICLE
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
@@ -133,42 +137,48 @@ void MoveSettings::AdjustMoves(const uint step)
 
 void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
 {
-  int totalTries = mp_tries[box][mp::MPDISPLACE] +
-                   mp_tries[box][mp::MPROTATE];
-  // make sure we ran some displacement, otherwise mp_t_max will be nan
-  if((double)mp_tries[box][mp::MPDISPLACE] != 0 && (totalTries + 1) % perAdjust == 0) {
-    double currentAccept = (double)mp_accepted[box][mp::MPDISPLACE] /
-                           (double)mp_tries[box][mp::MPDISPLACE];
-    double fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
-    mp_t_max[box] *= fractOfTargetAccept;
-    num::Bound<double>(mp_t_max[box], 0.001,
-                       (boxDimRef.axis.Min(box) / 2) - 0.001);
-
-    if(!std::isfinite(mp_t_max[box])) {
-      std::cout << "mp_t_max is not a finite number in MultiParticle move." << std::endl;
-      std::cout << "mp_t_max[box]: " << mp_t_max[box] << std::endl;
-      std::cout << "totalTries: " << totalTries << std::endl;
-      std::cout << "currentAccept: " << currentAccept << std::endl;
-      std::cout << "fractOfTargetAccept: " << fractOfTargetAccept << std::endl;
-      exit(EXIT_FAILURE);
+  int totalTries = mp_interval_tries[box][mp::MPDISPLACE] +
+                   mp_interval_tries[box][mp::MPROTATE];
+                   
+  //Check if this is an adjustment step
+  if (totalTries == perAdjust) {
+    //Update totals for the entire simulation
+    for(int m = 0; m < mp::MPTOTALTYPES; ++m) {
+      mp_tries[box][m] += mp_interval_tries[box][m];
+      mp_accepted[box][m] += mp_interval_accepted[box][m];
     }
-  }
+    //Make sure we tried some displacements, otherwise mp_t_max will be nan
+    if((double)mp_interval_tries[box][mp::MPDISPLACE] != 0) {
+      double fractOfTotalAccept = ((double)mp_accepted[box][mp::MPDISPLACE] /
+                                   (double)mp_tries[box][mp::MPDISPLACE]) / mp::TARGET_ACCEPT_FRACT;
+      double fractOfIntervalAccept = ((double)mp_interval_accepted[box][mp::MPDISPLACE] /
+                                    (double)mp_interval_tries[box][mp::MPDISPLACE]) / mp::TARGET_ACCEPT_FRACT;
+      if (fractOfIntervalAccept > 0.0) {
+        mp_t_max[box] *= ((1.0-t_alpha) * fractOfTotalAccept + t_alpha * fractOfIntervalAccept);
+      } else {
+        mp_t_max[box] *= 0.5;
+      }
+      num::Bound<double>(mp_t_max[box], 0.001, (boxDimRef.axis.Min(box) * 0.5) - 0.001);
+      //Reset totals for next adjustment period
+      mp_interval_accepted[box][mp::MPDISPLACE] = 0;
+      mp_interval_tries[box][mp::MPDISPLACE] = 0;
+    }
 
-  // make sure we ran some rotation, otherwise mp_r_max will be nan
-  if((double)mp_tries[box][mp::MPROTATE] != 0 && (totalTries + 1) % perAdjust == 0) {
-    double currentAccept = (double)mp_accepted[box][mp::MPROTATE] /
-                           (double)mp_tries[box][mp::MPROTATE];
-    double fractOfTargetAccept = currentAccept / mp::TARGET_ACCEPT_FRACT;
-    mp_r_max[box] *= fractOfTargetAccept;
-    num::Bound<double>(mp_r_max[box], 0.001, M_PI - 0.001);
-
-    if(!std::isfinite(mp_r_max[box])) {
-      std::cout << "mp_r_max is not a finite number in MultiParticle move." << std::endl;
-      std::cout << "mp_r_max[box]: " << mp_r_max[box] << std::endl;
-      std::cout << "totalTries: " << totalTries << std::endl;
-      std::cout << "currentAccept: " << currentAccept << std::endl;
-      std::cout << "fractOfTargetAccept: " << fractOfTargetAccept << std::endl;
-      exit(EXIT_FAILURE);
+    //Make sure we tried some rotations, otherwise mp_r_max will be nan
+    if((double)mp_interval_tries[box][mp::MPROTATE] != 0) {
+      double fractOfTotalAccept = ((double)mp_accepted[box][mp::MPROTATE] /
+                                   (double)mp_tries[box][mp::MPROTATE]) / mp::TARGET_ACCEPT_FRACT;
+      double fractOfIntervalAccept = ((double)mp_interval_accepted[box][mp::MPROTATE] /
+                                    (double)mp_interval_tries[box][mp::MPROTATE]) / mp::TARGET_ACCEPT_FRACT;
+      if (fractOfIntervalAccept > 0.0) {
+        mp_r_max[box] *= ((1.0-r_alpha) * fractOfTotalAccept + r_alpha * fractOfIntervalAccept);
+      } else {
+        mp_r_max[box] *= 0.5;
+      }
+      num::Bound<double>(mp_r_max[box], 0.001, M_PI - 0.001);
+      //Reset totals for next adjustment period
+      mp_interval_accepted[box][mp::MPROTATE] = 0;
+      mp_interval_tries[box][mp::MPROTATE] = 0;
     }
   }
 }
@@ -176,9 +186,9 @@ void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
 void MoveSettings::UpdateMoveSettingMultiParticle(const uint box, bool isAccept,
     const uint typePick)
 {
-  mp_tries[box][typePick]++;
+  mp_interval_tries[box][typePick]++;
   if(isAccept) {
-    mp_accepted[box][typePick]++;
+    mp_interval_accepted[box][typePick]++;
   }
 }
 
@@ -196,8 +206,8 @@ void MoveSettings::Adjust(const uint box, const uint move, const uint kind)
         scale[box][move][kind] *= 0.5;
       }
     }
-    num::Bound<double>(scale[box][move][kind], 0.0000000001,
-                       (boxDimRef.axis.Min(box) / 2) - TINY_AMOUNT);
+    num::Bound<double>(scale[box][move][kind], 1.0e-10,
+                       (boxDimRef.axis.Min(box) * 0.5) - TINY_AMOUNT);
   } else if(move == mv::ROTATE) {
     if(tempTries[box][move][kind] > 0) {
       double currentAccept = (double)(tempAccepted[box][move][kind]) /
@@ -209,7 +219,7 @@ void MoveSettings::Adjust(const uint box, const uint move, const uint kind)
         scale[box][move][kind] *= 0.5;
       }
     }
-    num::Bound<double>(scale[box][move][kind], 0.000001, M_PI - TINY_AMOUNT);
+    num::Bound<double>(scale[box][move][kind], 1.0e-6, M_PI - TINY_AMOUNT);
   }
 #if ENSEMBLE == NPT || ENSEMBLE == GEMC
   else if(move == mv::VOL_TRANSFER) {
@@ -223,7 +233,7 @@ void MoveSettings::Adjust(const uint box, const uint move, const uint kind)
         scale[box][move][kind] *= 0.5;
       }
     }
-    //Warning: This will lead to have acceptance > %50
+    //Warning: This will lead to have acceptance > 50%
     double maxVolExchange = boxDimRef.volume[box] - boxDimRef.minVol[box];
     num::Bound<double>(scale[box][move][kind], 0.001,  maxVolExchange - 0.001);
   }
