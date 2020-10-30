@@ -359,7 +359,7 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
       /* Found molecules with the same size, now evaluate for atom equality */
       } else {
         /* Iterate through all the size consistent map entries */
-        for (std::vector<std::__cxx11::string>::const_iterator sizeConsistentEntries = sizeIt->second.cbegin();
+        for (std::vector<std::string>::const_iterator sizeConsistentEntries = sizeIt->second.cbegin();
           sizeConsistentEntries != sizeIt->second.cend(); sizeConsistentEntries++){
           /* Iterate atom by atom of a given size consistent map entries with the candidate molecule*/
           typedef std::vector<mol_setup::Atom>::const_iterator atomIterator;
@@ -426,7 +426,7 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
               SizeMap::iterator sizeIt = sizeMap.find(it->size());
               /* New Size */
               if (sizeIt == sizeMap.end()) {
-                sizeMap[it->size()] = std::vector<std::__cxx11::string>{fragName};
+                sizeMap[it->size()] = std::vector<std::string>{fragName};
               } else {
                 sizeMap[it->size()].push_back(fragName);
               }
@@ -459,7 +459,7 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
       /* Found molecules with the same size, now evaluate for atom equality */
       } else {
         /* Iterate through all the size consistent map entries */
-        for (std::vector<std::__cxx11::string>::const_iterator sizeConsistentEntries = sizeIt->second.cbegin();
+        for (std::vector<std::string>::const_iterator sizeConsistentEntries = sizeIt->second.cbegin();
           sizeConsistentEntries != sizeIt->second.cend(); sizeConsistentEntries++){
           /* Iterate atom by atom of a given size consistent map entries with the candidate molecule*/
           typedef std::vector<mol_setup::Atom>::const_iterator atomIterator;
@@ -544,7 +544,7 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
         MolSetup::copyBondInfoIntoMapEntry(bondAdjList, kindMap, fragName);
         resKindIndex++;
         if (newSize){
-          sizeMap[it->size()] = std::vector<std::__cxx11::string>{fragName};
+          sizeMap[it->size()] = std::vector<std::string>{fragName};
         } else {
           sizeMap[it->size()].push_back(fragName);
         }
@@ -555,7 +555,7 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
   pdbAtoms.lastResKindIndex = resKindIndex;
 }
 
-typedef std::map<std::__cxx11::string, mol_setup::MolKind> MolMap;
+typedef std::map<std::string, mol_setup::MolKind> MolMap;
 void MolSetup::copyBondInfoIntoMapEntry(const BondAdjacencyList & bondAdjList, mol_setup::MolMap & kindMap, std::string fragName){
 
     unsigned int molBegin = kindMap[fragName].firstAtomID - 1;

@@ -125,7 +125,7 @@ std::vector<Bond> BondsAll(const MolKind& molKind);
 
 //first element (string) is name of molecule type
 typedef std::map<std::string, MolKind> MolMap;
-typedef std::map<std::size_t, std::vector<std::__cxx11::string> > SizeMap;
+typedef std::map<std::size_t, std::vector<std::string> > SizeMap;
 
 //! Reads one or more PSF files into kindMap
 /*!
