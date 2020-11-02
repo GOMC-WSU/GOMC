@@ -283,7 +283,7 @@ inline void MultiParticle::CalcEn()
 
   //back up cached Fourier term
   calcEwald->backupMolCache();
-  //setup reciprocate vectors for new positions
+  //setup reciprocal vectors for new positions
   calcEwald->BoxReciprocalSetup(bPick, newMolsPos);
 
   sysPotNew = sysPotRef;
@@ -385,7 +385,7 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
     swap(molForceRecRef, molForceRecNew);
     swap(atomForceRecRef, atomForceRecNew);
     swap(molTorqueRef, molTorqueNew);
-    //update reciprocate value
+    //update reciprocal value
     calcEwald->UpdateRecip(bPick);
   } else {
     cellList.GridAll(boxDimRef, coordCurrRef, molLookup);
@@ -393,7 +393,6 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   }
 
   moveSetRef.UpdateMoveSettingMultiParticle(bPick, result, moveType);
-  moveSetRef.AdjustMultiParticle(bPick, moveType);
 
   moveSetRef.Update(mv::MULTIPARTICLE, result, step, bPick);
 }
@@ -433,7 +432,7 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
     exit(EXIT_FAILURE);
   }
 
-  // We can possible bound them
+  // We can possibly bound them
   return num;
 }
 
