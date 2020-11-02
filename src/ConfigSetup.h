@@ -43,12 +43,20 @@ namespace config_setup
 //A filename
 struct FileName {
   std::string name;
+  bool defined;
+  FileName(void) {
+    defined = false; 
+  }
 };
 
 //Multiple filenames
 template <uint N>
 struct FileNames {
   std::string name[N];
+  bool defined[N];
+  FileNames(void) {
+    std::fill_n(defined, N, false);  
+  }
 };
 
 /////////////////////////////////////////////////////////////////////////
@@ -61,6 +69,8 @@ struct RestartSettings {
   ulong step;
   bool recalcTrajectory;
   bool restartFromCheckpoint;
+  bool restartFromBinaryFile;
+  bool restartFromXSCFile;
   bool operator()(void)
   {
     return enable;
@@ -95,7 +105,7 @@ struct FFKind {
 //Files for input.
 struct InFiles {
   FileName param;
-  FileNames<BOX_TOTAL> pdb, psf;
+  FileNames<BOX_TOTAL> pdb, psf, binaryInput, xscInput;
   FileName seed;
 };
 

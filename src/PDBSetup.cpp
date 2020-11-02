@@ -29,6 +29,9 @@ void Remarks::SetRestart(config_setup::RestartSettings const& r )
 {
   restart = r.enable;
   recalcTrajectory = r.recalcTrajectory;
+  restartFromXSC = r.restartFromXSCFile;
+  restartFromBinary = r.restartFromBinaryFile;
+
   for(uint b = 0; b < BOX_TOTAL; b++) {
     if(recalcTrajectory)
       reached[b] = false;
@@ -49,7 +52,10 @@ void Remarks::Read(FixedWidthReader & pdb)
     .Get(rotate[currBox], rot::POS)
     .Get(vol[currBox], vol::POS);
 
-    CheckGOMC(varName);
+    if(!restartFromXSC && !restartFromBinary){
+      //only check for file format, if we are not reading from binary files
+      CheckGOMC(varName);
+    }
   }
   if(recalcTrajectory) {
     std::string varName;
@@ -85,7 +91,7 @@ void Cryst1::Read(FixedWidthReader & pdb)
 {
   XYZ temp;
   using namespace pdb_entry::cryst1::field;
-  hasVolume = true;
+  hasVolume[currBox] = true;
   pdb.Get(temp.x, x::POS)
   .Get(temp.y, y::POS)
   .Get(temp.z, z::POS)
