@@ -37,7 +37,7 @@ public:
     //Read in all config data
     config.Init(configFileName, multisim);
     //Read in FF data.
-    ff.Init(config.in.files.param.name, config.in.ffKind.isCHARMM);
+    ff.Init(config.in.files.param, config.in.ffKind.isCHARMM);
     //Read in PDB data
     pdb.Init(config.in.restart, config.in.files.pdb.name);
     //Read in extended system file to override the cellBasis data

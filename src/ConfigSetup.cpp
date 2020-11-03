@@ -67,7 +67,6 @@ ConfigSetup::ConfigSetup(void)
   in.ffKind.numOfKinds = 0;
   sys.exclude.EXCLUDE_KIND = UINT_MAX;
   in.prng.kind = "";
-  in.files.param.name = "";
   for(i = 0; i < BOX_TOTAL; i++) {
     in.files.pdb.name[i] = "";
     in.files.psf.name[i] = "";
@@ -242,8 +241,9 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         printf("%-40s %-s \n", "Info: PARAMETER file", "MARTINI using CHARMM format!");
       }
     } else if(CheckString(line[0], "Parameters")) {
-      in.files.param.name = line[1];
-      in.files.param.defined = true;
+      if(line.size() > 1){
+        in.files.param.push_back(config_setup::FileName(line[1], true));
+      }
     } else if(CheckString(line[0], "Coordinates")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {
@@ -1481,7 +1481,7 @@ void ConfigSetup::verifyInputs(void)
       (sys.exclude.EXCLUDE_KIND == sys.exclude.EXC_ONETHREE_KIND)) {
     std::cout << "Warning: Exclude 1-3 is set for EXOTIC type parameter.\n";
   }
-  if(!in.files.param.defined) {
+  if(!in.files.param.size()) {
     std::cout << "Error: Parameter file name is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }

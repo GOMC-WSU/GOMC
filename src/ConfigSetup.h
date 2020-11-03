@@ -45,7 +45,12 @@ struct FileName {
   std::string name;
   bool defined;
   FileName(void) {
-    defined = false; 
+    defined = false;
+    name = ""; 
+  }
+  FileName(std::string file, bool def) {
+    defined = def;
+    name = file; 
   }
 };
 
@@ -104,7 +109,7 @@ struct FFKind {
 
 //Files for input.
 struct InFiles {
-  FileName param;
+  std::vector<FileName> param;
   FileNames<BOX_TOTAL> pdb, psf, binaryInput, xscInput;
   FileName seed;
 };
