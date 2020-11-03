@@ -17,7 +17,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "FFConst.h" //for forcefield constants
 #include "BasicTypes.h" //for uint
 #include "InputFileReader.h"
+#include "ConfigSetup.h" //for access to structure
 
+namespace config_setup
+{
+  struct FileName;
+}
 
 namespace ff_setup
 {
@@ -287,7 +292,7 @@ class FFSetup
 {
 public:
   FFSetup(void) {}
-  void Init(std::string const& fileName, const bool isCHARMM);
+  void Init(const std::vector<config_setup::FileName> &fileName, const bool isCHARMM);
 
   ff_setup::Particle mie;
   ff_setup::NBfix nbfix;
