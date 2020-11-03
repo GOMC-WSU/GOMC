@@ -38,9 +38,10 @@ public:
     config.Init(configFileName, multisim);
     //Read in FF data.
     ff.Init(config.in.files.param.name, config.in.ffKind.isCHARMM);
-    //Read PDB data
+    //Read in PDB data
     pdb.Init(config.in.restart, config.in.files.pdb.name);
-    //Read extended system file to override the cellBasis data
+    //Read in extended system file to override the cellBasis data
+    //Read in binary coordinate file to override the coordinates data
     xsc.Init(pdb, config.in);
     //Initialize PRNG
     prng.Init(config.in.restart, config.in.prng, config.in.files.seed.name);

@@ -34,14 +34,25 @@ class ExtendedSystem  {
   ~ExtendedSystem() {};
   void Init(PDBSetup &pdb, config_setup::Input inputFiles);
   private:
+    // Reads the xsc file and store/calculate cellBasis data
     void ReadExtendedSystem(const char *filename, const int box);
+    // Updates the cellBasis data in pdb data structure
     void UpdateCellBasis(PDBSetup &pdb, const int box);
+    // Reads the binary coordinates and updates the X Y Z coordinates in pdb data structure
+    void UpdateCoordinate(PDBSetup &pdb, const char *filename, const int box);
+    // the time steps in xsc file
     ulong firstStep;
+    // Center of cell, but GOMC always uses 0 center
     XYZ center[BOX_TOTAL];
+    // Cell basis vector
     XYZArray cellBasis[BOX_TOTAL];
+    // Cell length
     XYZArray axis;
+    // Cos values of alpha, beta, gamma
     double cosAngle[BOX_TOTAL][3];
+    // Cell angle (alpha, beta, gamma)
     double cellAngle[BOX_TOTAL][3];
+    // Check to see if xsc is defined
     bool hasCellBasis[BOX_TOTAL];
 };
 

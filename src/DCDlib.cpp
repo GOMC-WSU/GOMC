@@ -1269,6 +1269,7 @@ void read_binary_file(const char *fname, XYZ *data, int n)
     }
   }
 
+  std::cout << "Info: Finished reading from binary file " << fname << "\n" << std::endl;
 }
 
 

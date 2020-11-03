@@ -26,6 +26,7 @@ ExtendedSystem::ExtendedSystem()
 
 void ExtendedSystem::Init(PDBSetup &pdb, config_setup::Input inputFiles)
 {
+  // Read the extended system file and update the cellBasis data
   if(inputFiles.restart.restartFromXSCFile) {
     for(int b = 0; b < BOX_TOTAL; b++) {
       if(inputFiles.files.xscInput.defined[b]) {
@@ -35,13 +36,47 @@ void ExtendedSystem::Init(PDBSetup &pdb, config_setup::Input inputFiles)
       }
     }
   }
+  // Read the binary coordinate and update the PDB coordinate
+  if(inputFiles.restart.restartFromBinaryFile) {
+    for(int b = 0; b < BOX_TOTAL; b++) {
+      if(inputFiles.files.binaryInput.defined[b]) {
+        std::string fName = inputFiles.files.binaryInput.name[b];
+        UpdateCoordinate(pdb, fName.c_str(), b);
+      }
+    }
+  }
 }
 
+void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb,
+      const char *filename, const int box)
+{
+  // We must read restart PDB, which hold correct
+  // number atom info in each Box
+  int numAtoms = pdb.atoms.numAtomsInBox[box];
+  XYZ *binaryCoor;
+  binaryCoor = new XYZ[numAtoms];
+  read_binary_file(filename, binaryCoor, numAtoms);
+  //find the starting index
+  int startIndex = 0;
+  for(int b = 0; b < box; b++) {
+    startIndex += pdb.atoms.numAtomsInBox[b];
+  }
+
+  for(int i = 0; i < numAtoms; i++) {
+    pdb.atoms.x[i + startIndex] = binaryCoor[i].x;
+    pdb.atoms.y[i + startIndex] = binaryCoor[i].y;
+    pdb.atoms.z[i + startIndex] = binaryCoor[i].z;
+  }
+
+  delete [] binaryCoor;
+}
 
 void ExtendedSystem::UpdateCellBasis(PDBSetup &pdb, const int box)
 {
   if (hasCellBasis[box]) {
     pdb.cryst.hasCellBasis[box] = true;
+    // Important to set to false, so BoxDim reads the cellBasis vector
+    // and not cell length and angle
     pdb.cryst.hasVolume[box] = false;
     cellBasis[box].CopyRange(pdb.cryst.cellBasis[box], 0, 0, 3);
     pdb.cryst.axis.Set(box, axis.Get(box));
@@ -55,21 +90,19 @@ void ExtendedSystem::UpdateCellBasis(PDBSetup &pdb, const int box)
 void ExtendedSystem::ReadExtendedSystem(const char *filename, const int box)
 {
   char msg[257];
-  sprintf(msg, "Info: Reading BOX %d extended system file %s \n", box+1, filename);
+  sprintf(msg, "Info: Reading extended system file %s \n", filename);
   std::cout << msg << std::endl;
      
   std::ifstream xscFile(filename);
   if ( ! xscFile ){
-    sprintf(msg, "Unable to open BOX %d extended system file %s!\n",
-            box+1, filename);
+    sprintf(msg, "Unable to open extended system file %s!\n", filename);
     NAMD_die(msg);
   }
 
   char labels[1024];
   do {
     if ( ! xscFile ){
-      sprintf(msg, "Reading BOX %d extended system file %s! \n",
-              box+1, filename);
+      sprintf(msg, "Reading extended system file %s! \n", filename);
       NAMD_die(msg);
     }
     xscFile.getline(labels,1023);
@@ -135,9 +168,9 @@ void ExtendedSystem::ReadExtendedSystem(const char *filename, const int box)
   }
 
 
-  sprintf(msg, "Info: Finished reading BOX %d extended system file %s \n", box+1, filename);
+  sprintf(msg, "Info: Finished reading extended system file %s \n", filename);
   std::cout << msg << std::endl;
-
+  // Store the cellBasis Vector, and calculate the cell angles
   hasCellBasis[box] = true;
   center[box] = origin;
   cellBasis[box].Set(0, cell[0]);
@@ -153,6 +186,7 @@ void ExtendedSystem::ReadExtendedSystem(const char *filename, const int box)
   cosAngle[box][2] = geom::Dot(cellBasis[box].Get(0), cellBasis[box].Get(1)) /
                     (axis.Get(box).x * axis.Get(box).y);
   
+  // Avoid numerical error
   for(int i = 0; i < 3; i++) {
     if(cosAngle[box][i] > 1.0) {
       cosAngle[box][i] = 1.0;
@@ -160,7 +194,7 @@ void ExtendedSystem::ReadExtendedSystem(const char *filename, const int box)
     if(cosAngle[box][i] < -1.0) {
       cosAngle[box][i] = -1.0;
     }
-    cellAngle[box][i] = acos(cosAngle[box][i]) * 180.0 / M_PI;
+    cellAngle[box][i] = float(acos(cosAngle[box][i]) * 180.0f / M_PI);
   }
 }
 

@@ -52,10 +52,8 @@ void Remarks::Read(FixedWidthReader & pdb)
     .Get(rotate[currBox], rot::POS)
     .Get(vol[currBox], vol::POS);
 
-    if(!restartFromXSC && !restartFromBinary){
-      //only check for file format, if we are not reading from binary files
-      CheckGOMC(varName);
-    }
+    CheckGOMC(varName);
+    
   }
   if(recalcTrajectory) {
     std::string varName;
@@ -118,6 +116,7 @@ void Atoms::Assign(std::string const& atomName,
   //box.push_back((bool)(restart?(uint)(l_occ):currBox));
   beta.push_back(l_beta);
   box.push_back(currBox);
+  ++numAtomsInBox[currBox];
   atomAliases.push_back(atomName);
   resNamesFull.push_back(resName);
   /* Format Atom previously expected resID to start at 0.  We will subtract 1 here to

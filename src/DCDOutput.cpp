@@ -54,6 +54,7 @@ void DCDOutput::Init(pdb_setup::Atoms const& atoms,
       printNotify = false;
 #endif
 
+  // Output dcd coordinates and xst file
   if (enableStateOut) {
     int numAtoms = coordCurrRef.Count();
     x = new float [3 * numAtoms];
@@ -78,6 +79,7 @@ void DCDOutput::Init(pdb_setup::Atoms const& atoms,
     }
   }
 
+  // Output restart binary coordinates and xsc file
   if (enableRestartOut) {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       std::string fileName = output.restart_dcd.files.dcd.name[b];
@@ -120,7 +122,7 @@ void DCDOutput::Write_Extention_System_data(Writer &outFile,
     outFile.file << step + 1;
   }
 
-  // because we normalized the cell basis, we need to do this
+  // because we normalized the cell basis, we need to reverse it
   XYZ a = boxDimRef.cellBasis[box].Get(0) * boxDimRef.GetAxis(box).x;
   XYZ b = boxDimRef.cellBasis[box].Get(1) * boxDimRef.GetAxis(box).y;
   XYZ c = boxDimRef.cellBasis[box].Get(2) * boxDimRef.GetAxis(box).z;
@@ -174,9 +176,10 @@ void DCDOutput::WriteDCDHeader(const int numAtoms, const int box)
 
 void DCDOutput::DoOutput(const ulong step)
 {
+  // Output dcd coordinates and xst file
   if(enableStateOut) {
     int numAtoms = coordCurrRef.Count();
-    // Determin which molecule is each box. assume we are in NVT
+    // Determin which molecule is in which box. Assume we are in NVT
     // or NPT, otherwise, SetMolBoxVec would adjust the value.
     std::vector<int> molInBox(molRef.count, 0);
     SetMolBoxVec(molInBox);
@@ -206,10 +209,11 @@ void DCDOutput::DoOutput(const ulong step)
     }
   }
 
-
+  // Output restart binary coordinates and xsc file
   if (((step + 1) % stepsRestartPerOut == 0) && enableRestartOut) {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       int numAtomInBox = NumAtomInBox(b);
+      // Copy the coordinate data for each box into AOS
       SetMolInBox(b);
       printf("Writing binary restart coordinate to file %s at step %d \n",
         outDCDRestartFile[b], step+1);

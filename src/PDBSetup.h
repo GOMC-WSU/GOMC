@@ -65,7 +65,8 @@ private:
 struct Cryst1 : FWReadableBase {
   //box dimensions
   uint currBox;
-  bool hasVolume[BOX_TOTAL], hasCellBasis[BOX_TOTAL];
+  bool hasVolume[BOX_TOTAL];    //If reads cellBasis info from PDB
+  bool hasCellBasis[BOX_TOTAL]; //If reads cellBasis info from XSC
   XYZArray axis, cellBasis[BOX_TOTAL];
   double cellAngle[BOX_TOTAL][3];
   Cryst1(void) : currBox(0), axis(BOX_TOTAL) 
@@ -88,7 +89,12 @@ class Atoms : public FWReadableBase
 public:
   //Set the current residue to something other than 1
   Atoms(void) : restart(false), currBox(0), count(0),
-    currRes(10) {}
+    currRes(10)
+    {
+      for (int b = 0; b < BOX_TOTAL; b++) {
+        numAtomsInBox[b] = 0;
+      }
+    }
   void SetRestart(config_setup::RestartSettings const& r);
   void SetBox(const uint b)
   {
@@ -123,6 +129,7 @@ public:
   //(restart), count allows overwriting of coordinates during
   //second box read (restart only)
   uint currBox, count, currRes;
+  uint numAtomsInBox[BOX_TOTAL]; // number of atom in each box
   std::string currResname;
 
   uint lastAtomIndexInBox0 = 0;
