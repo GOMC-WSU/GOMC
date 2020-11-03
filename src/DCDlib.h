@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
+#include "BasicTypes.h"
 #ifndef _NO_MALLOC_H
 #include <malloc.h>
 #endif
@@ -36,6 +37,8 @@
 #include <time.h>
 #ifdef WIN32
 #include <io.h>
+#define access(PATH,MODE) _access(PATH,00)
+#define NOCOMPRESSED
 #endif
 
 #ifndef __off_t_defined
@@ -96,7 +99,13 @@ int update_dcdstep_par_header(int fd);
 
 /* Write out a timesteps values partially in parallel for part [parL, parU] */
 int write_dcdstep_par_slave(int fd, int parL, int parU, int N, float *X, float *Y, float *Z);
-    
+
+/* Read binary coordinate file and store coordinates in XYZ array */
+void read_binary_file(const char *fname, XYZ *data, int n);
+
+FILE *Fopen(const char *filename, const char *mode);
+int  Fclose(FILE *fout);
+
 /* wrapper for seeking the dcd file */
 OFF_T NAMD_seek(int file, OFF_T offset, int whence);
 

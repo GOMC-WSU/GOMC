@@ -29,6 +29,9 @@ void Remarks::SetRestart(config_setup::RestartSettings const& r )
 {
   restart = r.enable;
   recalcTrajectory = r.recalcTrajectory;
+  restartFromXSC = r.restartFromXSCFile;
+  restartFromBinary = r.restartFromBinaryFile;
+
   for(uint b = 0; b < BOX_TOTAL; b++) {
     if(recalcTrajectory)
       reached[b] = false;
@@ -50,6 +53,7 @@ void Remarks::Read(FixedWidthReader & pdb)
     .Get(vol[currBox], vol::POS);
 
     CheckGOMC(varName);
+    
   }
   if(recalcTrajectory) {
     std::string varName;
@@ -85,7 +89,7 @@ void Cryst1::Read(FixedWidthReader & pdb)
 {
   XYZ temp;
   using namespace pdb_entry::cryst1::field;
-  hasVolume = true;
+  hasVolume[currBox] = true;
   pdb.Get(temp.x, x::POS)
   .Get(temp.y, y::POS)
   .Get(temp.z, z::POS)
@@ -112,6 +116,7 @@ void Atoms::Assign(std::string const& atomName,
   //box.push_back((bool)(restart?(uint)(l_occ):currBox));
   beta.push_back(l_beta);
   box.push_back(currBox);
+  ++numAtomsInBox[currBox];
   atomAliases.push_back(atomName);
   resNamesFull.push_back(resName);
   /* Format Atom previously expected resID to start at 0.  We will subtract 1 here to

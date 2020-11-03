@@ -70,13 +70,14 @@ public:
 
   virtual void DoOutput(const ulong step);
 private:
-
+  // Copy cell length and angles to unitcell[6]
   void Copy_lattice_to_unitcell(double *unitcell, int box);
+  // Unwrap and save coordinates of molecule in box, into *x, *y, *z
   void SetCoordinates(float *x, float *y, float *d,
       std::vector<int> &molInBox, const int box);
-  // unwrap and same coordinates of molecule in box
+  // Unwrap and save coordinates of molecule in box, into *restartCoor
   void SetMolInBox(const int box);
-  //Return a vector that defines the box id for each molecule
+  // Return a vector that defines the box id for each molecule
   void SetMolBoxVec(std::vector<int> & mBox);
   // returns the total number of atoms in box
   int NumAtomInBox(const int box);
@@ -99,16 +100,19 @@ private:
 
   char *outDCDStateFile[BOX_TOTAL];
   char *outDCDRestartFile[BOX_TOTAL];
+  char *outXSTFile[BOX_TOTAL];
+  char *outXSCFile[BOX_TOTAL];
   int stateFileFileid[BOX_TOTAL];
   bool enableRestartOut, enableStateOut;
   ulong stepsRestartPerOut, stepsStatePerOut;
+  // 
   float *x, *y, *z;
-  XYZ *restartCoor[BOX_TOTAL];
+  // AOS for restart binary format. NAMD internal data structure 
+  // is array of vector(XYZ)
+  XYZ *restartCoor[BOX_TOTAL]; 
   // for extension system files
   Writer xstFile[BOX_TOTAL];
   Writer xscFile[BOX_TOTAL];
-  char *outXSTFile[BOX_TOTAL];
-  char *outXSCFile[BOX_TOTAL];
 };
 
 #endif /*DCD_OUTPUT_H*/

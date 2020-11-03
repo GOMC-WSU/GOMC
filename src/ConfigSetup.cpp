@@ -40,6 +40,8 @@ ConfigSetup::ConfigSetup(void)
   in.restart.step = ULONG_MAX;
   in.restart.recalcTrajectory = false;
   in.restart.restartFromCheckpoint = false;
+  in.restart.restartFromBinaryFile = false;
+  in.restart.restartFromXSCFile = false;
   in.prng.seed = UINT_MAX;
   in.prngParallelTempering.seed = UINT_MAX;
   sys.elect.readEwald = false;
@@ -69,6 +71,8 @@ ConfigSetup::ConfigSetup(void)
   for(i = 0; i < BOX_TOTAL; i++) {
     in.files.pdb.name[i] = "";
     in.files.psf.name[i] = "";
+    in.files.binaryInput.name[i] = "";
+    in.files.xscInput.name[i] = "";
   }
 #if ENSEMBLE == GEMC
   sys.gemc.kind = UINT_MAX;
@@ -239,6 +243,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       }
     } else if(CheckString(line[0], "Parameters")) {
       in.files.param.name = line[1];
+      in.files.param.defined = true;
     } else if(CheckString(line[0], "Coordinates")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {
@@ -250,6 +255,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       } else {
         in.files.pdb.name[boxnum] = line[2];
       }
+      in.files.pdb.defined[boxnum] = true;
     } else if(CheckString(line[0], "Structure")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {
@@ -261,6 +267,33 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       } else {
         in.files.psf.name[boxnum] = line[2];
       }
+      in.files.psf.defined[boxnum] = true;
+    } else if(CheckString(line[0], "binCoordinates")) {
+      uint boxnum = stringtoi(line[1]);
+      if(boxnum >= BOX_TOTAL) {
+        std::cout << "Error: Simulation requires " << BOX_TOTAL << " binary coordinate file(s)!\n";
+        exit(EXIT_FAILURE);
+      }
+      if (multisim != NULL) {
+        in.files.binaryInput.name[boxnum] = multisim->replicaInputDirectoryPath + line[2];
+      } else {
+        in.files.binaryInput.name[boxnum] = line[2];
+      }
+      in.files.binaryInput.defined[boxnum] = true;
+      in.restart.restartFromBinaryFile = true;
+    } else if(CheckString(line[0], "extendedSystem")) {
+      uint boxnum = stringtoi(line[1]);
+      if(boxnum >= BOX_TOTAL) {
+        std::cout << "Error: Simulation requires " << BOX_TOTAL << " extended system file(s)!\n";
+        exit(EXIT_FAILURE);
+      }
+      if (multisim != NULL) {
+        in.files.xscInput.name[boxnum] = multisim->replicaInputDirectoryPath + line[2];
+      } else {
+        in.files.xscInput.name[boxnum] = line[2];
+      }
+      in.files.xscInput.defined[boxnum] = true;
+      in.restart.restartFromXSCFile = true;
     }
 #if ENSEMBLE == GEMC
     else if(CheckString(line[0], "GEMC")) {
@@ -1448,7 +1481,7 @@ void ConfigSetup::verifyInputs(void)
       (sys.exclude.EXCLUDE_KIND == sys.exclude.EXC_ONETHREE_KIND)) {
     std::cout << "Warning: Exclude 1-3 is set for EXOTIC type parameter.\n";
   }
-  if(in.files.param.name == "") {
+  if(!in.files.param.defined) {
     std::cout << "Error: Parameter file name is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -1559,19 +1592,43 @@ void ConfigSetup::verifyInputs(void)
 #endif
 
   for(i = 0 ; i < BOX_TOTAL ; i++) {
-    if(in.files.pdb.name[i] == "") {
+    if(!in.files.pdb.defined[i]) {
       std::cout << "Error: PDB file is not been specified for box number "
                 << i << "!" << std::endl;
       exit(EXIT_FAILURE);
     }
   }
   for(i = 0 ; i < BOX_TOTAL ; i++) {
-    if(in.files.psf.name[i] == "") {
+    if(!in.files.psf.defined[i]) {
       std::cout << "Error: PSF file is not specified for box number " <<
                 i << "!" << std::endl;
       exit(EXIT_FAILURE);
     }
   }
+
+  if(in.restart.enable) {
+    // error checking to see if if we missed any binary coordinate file
+    if(in.restart.restartFromBinaryFile) {
+      for(i = 0 ; i < BOX_TOTAL ; i++) {
+        if(!in.files.binaryInput.defined[i]) {
+          std::cout << "Error: Binary coordinate file is not specified for box number " <<
+                    i << "!" << std::endl;  
+          exit(EXIT_FAILURE);
+        }
+      }
+    }
+    // error checking to see if if we missed any xsc file
+    if(in.restart.restartFromXSCFile) {
+      for(i = 0 ; i < BOX_TOTAL ; i++) {
+        if(!in.files.xscInput.defined[i]) {
+          std::cout << "Error: Extended system file is not specified for box number " <<
+                    i << "!" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+      }
+    }
+  }
+
   if(!sys.volume.hasVolume && !in.restart.enable) {
     std::cout << "Error: This simulation requires to define " << 3 * BOX_TOTAL <<
               " Cell Basis vectors!" << std::endl;

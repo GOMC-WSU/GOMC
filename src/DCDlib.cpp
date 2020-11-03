@@ -319,7 +319,6 @@ int open_dcd_read(char *filename)
 /*								*/
 /****************************************************************/
 
-#if 0
 int read_dcdheader(int fd, int *N, int *NSET, int *ISTART, 
 		   int *NSAVC, double *DELTA, int *NAMNF, 
 		   int **FREEINDEXES)
@@ -742,7 +741,7 @@ int read_dcdstep(int fd, int N, float *X, float *Y, float *Z, int num_fixed,
 
 	return(0);
 }
-#endif
+
 
 #ifndef OUTPUT_SINGLE_FILE
 #error OUTPUT_SINGLE_FILE not defined!
@@ -1197,3 +1196,199 @@ void close_dcd_write(int fd)
   }
 }
 
+void read_binary_file(const char *fname, XYZ *data, int n)
+{
+  int32 filen;          //  Number of atoms read from file
+  FILE *fp;             //  File descriptor
+  int needToFlip = 0;
+
+  std::cout << "Info: Reading from binary file " << fname << "\n" << std::endl;
+
+  //  Open the file and die if the open fails
+  if ( (fp = Fopen(fname, "rb")) == NULL)
+  {
+    char errmsg[256];
+    sprintf(errmsg, "Unable to open binary file %s", fname);
+    NAMD_die(errmsg);
+  }
+
+  //  read the number of coordinates in this file
+  if (fread(&filen, sizeof(int32), 1, fp) != (size_t)1)
+  {
+    char errmsg[256];
+    sprintf(errmsg, "Error reading binary file %s", fname);
+    NAMD_die(errmsg);
+  }
+
+  //  read the number of coordinates in this file
+  //  check for palindromic number of atoms
+  char lenbuf[4];
+  memcpy(lenbuf, (const char *)&filen, 4);
+  char tmpc;
+  tmpc = lenbuf[0]; lenbuf[0] = lenbuf[3]; lenbuf[3] = tmpc;
+  tmpc = lenbuf[1]; lenbuf[1] = lenbuf[2]; lenbuf[2] = tmpc;
+  if ( ! memcmp((const char *)&filen, lenbuf, 4) ) {
+    std::cout << "Warning: Number of atoms in binary file " << fname <<
+		" is palindromic, assuming same endian.\n" << std::endl;
+  }
+
+  //  Die if this doesn't match the number in our system
+  if (filen != n)
+  {
+    needToFlip = 1;
+    memcpy((char *)&filen, lenbuf, 4);
+  }
+  if (filen != n)
+  {
+    char errmsg[256];
+    sprintf(errmsg, "Incorrect atom count in binary file %s", fname);
+    NAMD_die(errmsg);
+  }
+
+  if (fread(data, sizeof(XYZ), n, fp) != (size_t)n)
+  {
+    char errmsg[256];
+    sprintf(errmsg, "Error reading binary file %s", fname);
+    NAMD_die(errmsg);
+  }
+
+  Fclose(fp);
+
+  if (needToFlip) { 
+    std::cout << "Converting binary file " << fname << "\n" << std::endl;
+    int i;
+    char *cdata = (char *) data;
+    for ( i=0; i<3*n; ++i, cdata+=8 ) {
+      char tmp0, tmp1, tmp2, tmp3;
+      tmp0 = cdata[0]; tmp1 = cdata[1];
+      tmp2 = cdata[2]; tmp3 = cdata[3];
+      cdata[0] = cdata[7]; cdata[1] = cdata[6];
+      cdata[2] = cdata[5]; cdata[3] = cdata[4];
+      cdata[7] = tmp0; cdata[6] = tmp1;
+      cdata[5] = tmp2; cdata[4] = tmp3;
+    }
+  }
+
+  std::cout << "Info: Finished reading from binary file " << fname << "\n" << std::endl;
+}
+
+
+/***************************************************************************
+ Fopen(char *Filename, char *mode):  similar to fopen(filename,mode) except
+ it checks for compressed file names too.
+ For example:  Fopen("config");
+   This will first look for the filename "config" (and return "r" file handle
+   if it is found).
+   Then it will look for "config.Z" (and run "zcat config.Z", returning
+   a file handle to the uncompressed data if found).
+   Then it will look for "config.gz" (and run "gzip -d -c config.gz", returning
+   a file handle to the uncompressed data if found).
+ ***************************************************************************/
+FILE *Fopen	(const char *filename, const char *mode)
+{
+  struct stat buf;
+  // check if basic filename exists (and not a directory)
+
+#if defined(NOCOMPRESSED)
+  if (!stat(filename,&buf))
+    {
+      FILE *rval;
+      while ( ! (rval = fopen(filename,mode)) ) {
+        if ( errno != EINTR ) break;
+      }
+      return(rval);
+    }
+#else
+  if (!stat(filename,&buf))
+    {
+      if (!S_ISDIR(buf.st_mode)) {
+        FILE *rval;
+        while ( ! (rval = fopen(filename,mode)) ) {
+          if ( errno != EINTR ) break;
+        }
+        return(rval);
+      }
+    }
+  // check for a compressed file
+  /*
+  char *realfilename;
+  char *command;
+  FILE *fout;
+  command = (char *)malloc(strlen(filename)+25);
+  // check for .Z (unix compress)
+  sprintf(command,"zcat %s.Z",filename);
+  realfilename = command+5;
+  iout << "Command = " << command << "\n" << endi;
+  iout << "Filename.Z = " << realfilename << "\n" << endi;
+  if (!stat(realfilename,&buf))
+	{
+	if (!S_ISDIR(buf.st_mode))
+		{
+		fout = popen(command,mode);
+		// on HP-UX, the first character(s) out of pipe may be
+		// garbage!  (Argh!)
+		int C;
+		do
+		  {
+		  C = fgetc(fout);
+		  // iout << "C is " << C << "\n" << endi;
+		  if (isalnum(C) || isspace(C))
+			{
+			ungetc(C,fout);
+			C = -1;	// outta loop
+			}
+		  } while(C != -1);
+		free(command);
+		return(fout);
+		}
+	}
+  // check for .gz (gzip)
+  sprintf(command,"gzip -d -c %s.gz",filename);
+  realfilename = command+11;
+  iout << "Command = " << command << "\n" << endi;
+  iout << "Filename.gz = " << realfilename << "\n" << endi;
+  if (!stat(realfilename,&buf))
+	{
+	if (!S_ISDIR(buf.st_mode))
+		{
+		fout = popen(command,mode);
+		// on HP-UX, the first character(s) out of pipe may be
+		// garbage!  (Argh!)
+		int C;
+		do
+		  {
+		  C = fgetc(fout);
+		  // iout << "C is " << C << "\n" << endi;
+		  if (isalnum(C) || isspace(C))
+			{
+			ungetc(C,fout);
+			C = -1;	// outta loop
+			}
+		  } while(C != -1);
+		free(command);
+		return(fout);
+		}
+	}
+  free(command);
+  */
+#endif /* !defined(NOCOMPRESSED) */
+
+  return(NULL);
+} /* Fopen() */
+
+/***************************************************************************
+ Fclose(FILE *fout):  similar to fclose(fout) except it first checks if the
+ file handle fout is a named pipe.
+ ***************************************************************************/
+int	Fclose	(FILE *fout)
+{
+  int rc = -1;
+#if !defined(NOCOMPRESSED)
+  rc = pclose(fout);
+#endif
+  if (rc == -1)	// stream not associated with a popen()
+    {
+    rc = fclose(fout);
+    }
+  return rc;
+} /* Fclose() */
