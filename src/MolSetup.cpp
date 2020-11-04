@@ -840,7 +840,7 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap, SizeMap & sizeMap, pdb_set
   int count;		//for number of bonds/angles/dihs
   if (psf == NULL) {
     fprintf(stderr, "ERROR: Failed to open PSF file %s for molecule data.\nExiting...\n", psfFilename);
-    return ;
+    return errors::READ_ERROR;
   }
   char input[512];
   unsigned int nAtoms;
