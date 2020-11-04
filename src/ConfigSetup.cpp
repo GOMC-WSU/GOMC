@@ -1574,20 +1574,11 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Molecule swap move frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
-<<<<<<< HEAD
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
               sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
               sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft +
               sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!\n";
-=======
-  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
-         sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
-         sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft +
-         sys.moves.multiParticle + sys.moves.multiParticleBrownian +
-        sys.moves.cfcmc - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequncies are not equal to one!\n";
->>>>>>> Add the keyword in ConfigSetup file to active the multiparticle brownian. To activate it, use MultiParticleBrownianFreq. Note: we cannot use both multiparticle and multiparticle brownian at the same time.
     exit(EXIT_FAILURE);
   }
 #elif ENSEMBLE == NPT
@@ -1596,18 +1587,10 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
 
-<<<<<<< HEAD
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
               sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc +
               sys.moves.crankShaft + sys.moves.multiParticle - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!\n";
-=======
-  if(abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
-         sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc +
-         sys.moves.crankShaft + sys.moves.multiParticle + 
-         sys.moves.multiParticleBrownian - 1.0) > 0.001) {
-    std::cout << "Error: Sum of move frequncies are not equal to one!\n";
->>>>>>> Add the keyword in ConfigSetup file to active the multiparticle brownian. To activate it, use MultiParticleBrownianFreq. Note: we cannot use both multiparticle and multiparticle brownian at the same time.
     exit(EXIT_FAILURE);
   }
 
