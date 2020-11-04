@@ -157,6 +157,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
 
   moveType = prng.randIntExc(mp::MPTOTALTYPES);
   SetMolInBox(bPick);
+
   if (moleculeIndex.size() == 0) {
     std::cout << "Warning: Multi particle move can't move any molecules, Skipping...\n";
     state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
@@ -191,6 +192,12 @@ inline void MultiParticle::PrepCFCMC(const uint box)
   bPick = box;
   moveType = prng.randIntExc(mp::MPTOTALTYPES);
   SetMolInBox(bPick);
+
+  if (moleculeIndex.size() == 0) {
+    std::cout << "Warning: Multi particle move can't move any molecules, Skipping...\n";
+    return;
+  }
+
   uint length = molRef.GetKind(moleculeIndex[0]).NumAtoms();
   if(length == 1) {
     moveType = mp::MPDISPLACE;

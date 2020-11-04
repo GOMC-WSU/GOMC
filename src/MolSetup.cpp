@@ -311,15 +311,14 @@ int read_atoms(FILE *psf, unsigned int nAtoms, std::vector<mol_setup::Atom> & al
 
 typedef std::vector<uint>::const_iterator candidateIterator;
 
-int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjList,
+void createMapAndModifyPDBAtomDataStructure(const BondAdjacencyList & bondAdjList,
                                             const std::vector< std::vector<uint> > & moleculeXAtomIDY, 
                                             std::vector<mol_setup::Atom> & allAtoms,
                                             mol_setup::MolMap & kindMap,
                                             mol_setup::SizeMap & sizeMap,
                                             pdb_setup::Atoms& pdbAtoms,
                                             mol_setup::MolMap * kindMapFromBox1,
-                                            mol_setup::SizeMap * sizeMapFromBox1){
-
+                                            mol_setup::SizeMap * sizeMapFromBox1) {
   /* A size -> moleculeKind map for quick evaluation of new molecules based on molMap entries
     of a given size exisitng or not */ 
   uint startIdxResBoxOffset;

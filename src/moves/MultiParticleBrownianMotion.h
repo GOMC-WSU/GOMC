@@ -11,6 +11,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "System.h"
 #include "StaticVals.h"
 #include <cmath>
+#include <fstream>
+#include "Random123Wrapper.h"
+#ifdef GOMC_CUDA
+#include "TransformParticlesCUDAKernel.cuh"
+#include "VariablesCUDA.cuh"
+#endif
 
 class MultiParticleBrownian : public MoveBase
 {
@@ -27,7 +33,6 @@ public:
 
 private:
   uint bPick;
-  uint typePick;
   bool initMol[BOX_TOTAL];
   SystemPotential sysPotNew;
   XYZArray molTorqueRef;
@@ -38,8 +43,15 @@ private:
   XYZArray r_k;
   Coordinates newMolsPos;
   COM newCOMs;
-  vector<uint> moveType, moleculeIndex;
+  int moveType;
+  std::vector<uint> moleculeIndex;
   const MoleculeLookup& molLookup;
+#ifdef GOMC_CUDA
+  VariablesCUDA *cudaVars;
+  std::vector<int> particleMol;
+#endif
+  Random123Wrapper &r123wrapper;
+  const Molecules& mols;
 
   double GetCoeff();
   void CalculateTrialDistRot();
@@ -55,7 +67,7 @@ inline MultiParticleBrownian::MultiParticleBrownian(System &sys, StaticVals cons
   MoveBase(sys, statV),
   newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol),
-  molLookup(sys.molLookup)
+  molLookup(sys.molLookup), r123wrapper(sys.r123wrapper), mols(statV.mol)
 {
   molTorqueNew.Init(sys.com.Count());
   molTorqueRef.Init(sys.com.Count());
@@ -66,11 +78,24 @@ inline MultiParticleBrownian::MultiParticleBrownian(System &sys, StaticVals cons
   r_k.Init(sys.com.Count());
   newMolsPos.Init(sys.coordinates.Count());
   newCOMs.Init(sys.com.Count());
-  moveType.resize(sys.com.Count());
 
   for(uint b = 0; b < BOX_TOTAL; b++) {
     initMol[b] = false;
   }
+
+#ifdef GOMC_CUDA
+  cudaVars = sys.statV.forcefield.particles->getCUDAVars();
+
+  uint maxAtomInMol = 0;
+  for(uint m = 0; m < mols.count; ++m) {
+    const MoleculeKind& molKind = mols.GetKind(m);
+    if(molKind.NumAtoms() > maxAtomInMol)
+      maxAtomInMol = molKind.NumAtoms();
+    for(uint a = 0; a < molKind.NumAtoms(); ++a) {
+      particleMol.push_back(m);
+    }
+  }
+#endif
 }
 
 inline void MultiParticleBrownian::PrintAcceptKind()
@@ -123,37 +148,17 @@ inline uint MultiParticleBrownian::Prep(const double subDraw, const double movPe
   prng.PickBox(bPick, subDraw, movPerc);
 #endif
 
-  // In each step, we perform either:
-  // 1- All displacement move.
-  // 2- All rotation move.
-  // We can also add another move typr, where in this steps, each molecule
-  // can displace or rotate, independently from other molecule. To do that, we
-  // need to change the  mp::MPTOTALTYPES variable to 3, in MoveSetting.h
-  typePick = prng.randIntExc(mp::MPTOTALTYPES);
+  moveType = prng.randIntExc(mp::MPTOTALTYPES);
   SetMolInBox(bPick);
 
-  for(uint m = 0; m < moleculeIndex.size(); m++) {
-    uint length = molRef.GetKind(moleculeIndex[m]).NumAtoms();
-    if(length == 1) {
-      moveType[moleculeIndex[m]] = mp::MPDISPLACE;
-    } else {
-      switch(typePick) {
-      case mp::MPALLDISPLACE:
-        moveType[moleculeIndex[m]] = mp::MPDISPLACE;
-        break;
-      case mp::MPALLROTATE:
-        moveType[moleculeIndex[m]] = mp::MPROTATE;
-        break;
-      case mp::MPALLRANDOM:
-        moveType[moleculeIndex[m]] = (prng.randInt(1) ?
-                                      mp::MPROTATE : mp::MPDISPLACE);
-        break;
-      default:
-        std::cerr << "Error: Something went wrong preping MultiParticle Brownian Motion!\n"
-                  << "Type Pick value is not valid!\n";
-        exit(EXIT_FAILURE);
-      }
-    }
+  if (moleculeIndex.size() == 0) {
+    std::cout << "Warning: Multi particle move can't move any molecules, Skipping...\n";
+    state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+    return state;
+  }
+  uint length = molRef.GetKind(moleculeIndex[0]).NumAtoms();
+  if(length == 1) {
+    moveType = mp::MPDISPLACE;
   }
 
   if(moveSetRef.GetSingleMoveAccepted()) {
@@ -165,11 +170,11 @@ inline uint MultiParticleBrownian::Prep(const double subDraw, const double movPe
     calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
                        boxDimRef, bPick);
 
-    if(typePick != mp::MPALLDISPLACE) {
+    if(moveType == mp::MPROTATE) {
       //Calculate Torque for old positions
       calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef,
                                 atomForceRef, atomForceRecRef, molTorqueRef,
-                                moveType, bPick);
+                                bPick);
     }
   }
   CalculateTrialDistRot();
@@ -181,31 +186,17 @@ inline uint MultiParticleBrownian::Prep(const double subDraw, const double movPe
 inline void MultiParticleBrownian::PrepCFCMC(const uint box)
 {
   bPick = box;
-  typePick = prng.randIntExc(mp::MPTOTALTYPES);
+  moveType = prng.randIntExc(mp::MPTOTALTYPES);
   SetMolInBox(bPick);
 
-  for(uint m = 0; m < moleculeIndex.size(); m++) {
-    uint length = molRef.GetKind(moleculeIndex[m]).NumAtoms();
-    if(length == 1) {
-      moveType[moleculeIndex[m]] = mp::MPDISPLACE;
-    } else {
-      switch(typePick) {
-      case mp::MPALLDISPLACE:
-        moveType[moleculeIndex[m]] = mp::MPDISPLACE;
-        break;
-      case mp::MPALLROTATE:
-        moveType[moleculeIndex[m]] = mp::MPROTATE;
-        break;
-      case mp::MPALLRANDOM:
-        moveType[moleculeIndex[m]] = (prng.randInt(1) ?
-                                      mp::MPROTATE : mp::MPDISPLACE);
-        break;
-      default:
-        std::cerr << "Error: Something went wrong preping MultiParticle Brownian Motion!\n"
-                  << "Type Pick value is not valid!\n";
-        exit(EXIT_FAILURE);
-      }
-    }
+  if (moleculeIndex.size() == 0) {
+    std::cout << "Warning: Multi particle move can't move any molecules, Skipping...\n";
+    return;
+  }
+
+  uint length = molRef.GetKind(moleculeIndex[0]).NumAtoms();
+  if(length == 1) {
+    moveType = mp::MPDISPLACE;
   }
 
   if(moveSetRef.GetSingleMoveAccepted()) {
@@ -217,11 +208,11 @@ inline void MultiParticleBrownian::PrepCFCMC(const uint box)
     calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
                        boxDimRef, bPick);
 
-    if(typePick != mp::MPALLDISPLACE) {
+    if(moveType == mp::MPROTATE) {
       //Calculate Torque for old positions
       calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef,
                                 atomForceRef, atomForceRecRef, molTorqueRef,
-                                moveType, bPick);
+                                bPick);
     }
   }
   CalculateTrialDistRot();
@@ -236,16 +227,20 @@ inline uint MultiParticleBrownian::Transform()
   uint state = mv::fail_state::NO_FAIL;
   uint m;
 
+  CalculateTrialDistRot();
   // move particles according to force and torque and store them in the new pos
+  if(moveType == mp::MPROTATE) {
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(m)
+    #pragma omp parallel for default(none)
 #endif
-  for(m = 0; m < moleculeIndex.size(); m++) {
-    if(moveType[moleculeIndex[m]]) {
-      // rotate
+    for(int m = 0; m < moleculeIndex.size(); m++) {
       RotateForceBiased(moleculeIndex[m]);
-    } else {
-      // displacement
+    }
+  } else {
+#ifdef _OPENMP
+    #pragma omp parallel for default(none)
+#endif
+    for(int m = 0; m < moleculeIndex.size(); m++) {
       TranslateForceBiased(moleculeIndex[m]);
     }
   }
@@ -273,10 +268,10 @@ inline void MultiParticleBrownian::CalcEn()
   calcEwald->BoxForceReciprocal(newMolsPos, atomForceRecNew, molForceRecNew,
                                 bPick);
 
-  if(typePick != mp::MPALLDISPLACE) {
+  if(moveType == mp::MPROTATE) {
     //Calculate Torque for new positions
     calcEnRef.CalculateTorque(moleculeIndex, newMolsPos, newCOMs, atomForceNew,
-                              atomForceRecNew, molTorqueNew, moveType, bPick);
+                              atomForceRecNew, molTorqueNew, bPick);
   }
   sysPotNew.Total();
 }
@@ -316,7 +311,7 @@ inline double MultiParticleBrownian::GetCoeff()
 #endif
   for(m = 0; m < moleculeIndex.size(); m++) {
     molNumber = moleculeIndex[m];
-    if(moveType[molNumber]) {
+    if(moveType == mp::MPROTATE) {
       // rotate
       bt_old = molTorqueRef.Get(molNumber) * BETA * r_max;
       bt_new = molTorqueNew.Get(molNumber) * BETA * r_max;
@@ -357,8 +352,7 @@ inline void MultiParticleBrownian::Accept(const uint rejectState, const uint ste
     calcEwald->exgMolCache();
   }
 
-  moveSetRef.UpdateMoveSettingMultiParticle(bPick, result, typePick);
-  moveSetRef.AdjustMultiParticle(bPick, typePick);
+  moveSetRef.UpdateMoveSettingMultiParticle(bPick, result, moveType);
 
   moveSetRef.Update(mv::MULTIPARTICLE_BM, result, step, bPick);
 }
@@ -393,7 +387,7 @@ inline void MultiParticleBrownian::CalculateTrialDistRot()
   for(m = 0; m < moleculeIndex.size(); m++) {
     molIndex = moleculeIndex[m];
 
-    if(moveType[molIndex]) { // rotate
+    if(moveType == mp::MPROTATE) { // rotate
       bt = molTorqueRef.Get(molIndex) * BETA;
       r_k.Set(molIndex, CalcRandomTransform(bt, r_max));
     } else { // displace
@@ -409,7 +403,10 @@ inline void MultiParticleBrownian::RotateForceBiased(uint molIndex)
   double rotLen = rot.Length();
   RotationMatrix matrix;
 
-  matrix = RotationMatrix::FromAxisAngle(rotLen, rot * (1.0 / rotLen));
+  XYZ axis = rot * (1.0 / rotLen);
+  TransformMatrix cross = TransformMatrix::CrossProduct(axis);
+  TransformMatrix tensor = TransformMatrix::TensorProduct(axis);
+  matrix = RotationMatrix::FromAxisAngle(rotLen, cross, tensor);
 
   XYZ center = newCOMs.Get(molIndex);
   uint start, stop, len;
@@ -423,7 +420,8 @@ inline void MultiParticleBrownian::RotateForceBiased(uint molIndex)
   // Do Rotation
   for(uint p = 0; p < len; p++) {
     temp.Add(p, -center);
-    temp.Set(p, matrix.Apply(temp[p]));
+    XYZ newPosition = matrix.Apply(temp[p]);
+    temp.Set(p, newPosition);
     temp.Add(p, center);
   }
   boxDimRef.WrapPBC(temp, bPick);

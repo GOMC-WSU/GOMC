@@ -175,7 +175,7 @@ OFF_T NAMD_seek(int file, OFF_T offset, int whence) {
   if ( retval < 0 ) NAMD_err("seek failed while writing DCD file");
   if ( whence == SEEK_SET && retval != offset ) {
     char buf[256];
-    sprintf(buf, "seek failed while writing DCD file: SEEK_SET %lld returned %lld\n", offset, retval);
+    sprintf(buf, "seek failed while writing DCD file: SEEK_SET %ld returned %ld\n", offset, retval);
     NAMD_die(buf);
   }
   return retval;
@@ -861,20 +861,21 @@ int write_dcdstep(int fd, int N, float *X, float *Y, float *Z, double *cell)
 {
 	int32 NSAVC,NSTEP,NFILE;
 	int32 out_integer;
+	size_t return_value;
 
-  /* Unit cell */
-  if (cell) {
-    out_integer = 48;
-    NAMD_write(fd, (char *) &out_integer, sizeof(int32));
-    NAMD_write(fd, (char *) cell, out_integer);
-    NAMD_write(fd, (char *) &out_integer, sizeof(int32));
-  }
+  	/* Unit cell */
+  	if (cell) {
+    	out_integer = 48;
+    	NAMD_write(fd, (char *) &out_integer, sizeof(int32));
+    	NAMD_write(fd, (char *) cell, out_integer);
+    	NAMD_write(fd, (char *) &out_integer, sizeof(int32));
+  	}
 
-  /* Coordinates */
-  // Note: the value of out_integer wraps for N >= 2^30.
+  	/* Coordinates */
+  	// Note: the value of out_integer wraps for N >= 2^30.
 	out_integer = N*4;
-  // Use a separate byte count stored without overflow.
-  size_t nbytes = ((size_t) N) * 4;
+  	// Use a separate byte count stored without overflow.
+  	size_t nbytes = ((size_t) N) * 4;
 
 	NAMD_write(fd, (char *) &out_integer, sizeof(int32));
 	NAMD_write(fd, (char *) X, nbytes);
@@ -887,13 +888,13 @@ int write_dcdstep(int fd, int N, float *X, float *Y, float *Z, double *cell)
 	NAMD_write(fd, (char *) &out_integer, sizeof(int32));
 
 	/* don't update header until after write succeeds */
-        OFF_T end = LSEEK(fd,0,SEEK_CUR);
+    OFF_T end = LSEEK(fd,0,SEEK_CUR);
 	LSEEK(fd,NSAVC_POS,SEEK_SET);
-	READ(fd,(void*) &NSAVC,sizeof(int32));
+	return_value = READ(fd,(void*) &NSAVC,sizeof(int32));
 	LSEEK(fd,NSTEP_POS,SEEK_SET);
-	READ(fd,(void*) &NSTEP,sizeof(int32));
+	return_value = READ(fd,(void*) &NSTEP,sizeof(int32));
 	LSEEK(fd,NFILE_POS,SEEK_SET);
-	READ(fd,(void*) &NFILE,sizeof(int32));
+	return_value = READ(fd,(void*) &NFILE,sizeof(int32));
 	NSTEP += NSAVC;
 	NFILE += 1;
 	LSEEK(fd,NSTEP_POS,SEEK_SET);
@@ -961,15 +962,16 @@ int write_dcdstep_par_XYZUnits(int fd, int N)
 /*  Once all slaves have written the master updates the header.           */
 int update_dcdstep_par_header(int fd)
 {
+	size_t return_value;
 	int32 NSAVC,NSTEP,NFILE;
 	/* don't update header until after write succeeds */
-        OFF_T end = LSEEK(fd,0,SEEK_CUR);
+	OFF_T end = LSEEK(fd,0,SEEK_CUR);
 	LSEEK(fd,NSAVC_POS,SEEK_SET);
-	READ(fd,(void*) &NSAVC,sizeof(int32));
+	return_value = READ(fd,(void*) &NSAVC,sizeof(int32));
 	LSEEK(fd,NSTEP_POS,SEEK_SET);
-	READ(fd,(void*) &NSTEP,sizeof(int32));
+	return_value = READ(fd,(void*) &NSTEP,sizeof(int32));
 	LSEEK(fd,NFILE_POS,SEEK_SET);
-	READ(fd,(void*) &NFILE,sizeof(int32));
+	return_value = READ(fd,(void*) &NFILE,sizeof(int32));
 	NSTEP += NSAVC;
 	NFILE += 1;
 	LSEEK(fd,NSTEP_POS,SEEK_SET);
