@@ -146,7 +146,7 @@ class MolSetup
 {
 public:
   class Atom;
-  int read_atoms(FILE *, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms);
+  void read_atoms(FILE *, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms);
   void createMapAndModifyPDBAtomDataStructure(const BondAdjacencyList & bondAdjList,
                                               const std::vector< std::vector<uint> > & moleculeXAtomIDY, 
                                               std::vector<mol_setup::Atom> & allAtoms,
