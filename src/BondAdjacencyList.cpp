@@ -9,10 +9,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "BondAdjacencyList.h"
 
-
-//return if we fail to read anything
-const int READERROR = -1;
-
 // insert new nodes into adjacency list from given graph
 adjNode* BondAdjacencyList::getAdjListNode(int value, int weight, adjNode* head)   {
     adjNode* newNode = new adjNode;

@@ -45,9 +45,6 @@ bool Dihedral::operator != (const Dihedral& other) const
 
 namespace
 {
-//return if we fail to read anything
-const int READERROR = -1;
-
 //Assigns numerical mol kind indices to all molKinds
 void AssignMolKinds(MolKind& kind, const pdb_setup::Atoms& pdbData, const std::string& name);
 void AssignAtomKinds(MolKind& kind, const FFSetup& ffData);
@@ -60,7 +57,7 @@ void BriefAngleKinds(MolKind& kind, const FFSetup& ffData);
 void BriefDihKinds(MolKind& kind, const FFSetup& ffData);
 
 //Builds kindMap from PSF file (does not include coordinates) kindMap
-// should be empty returns number of atoms in the file, or READERROR if
+// should be empty returns number of atoms in the file, or READ_ERROR if
 // the read failed somehow
 int ReadPSF(const char* psfFilename, MolMap& kindMap, SizeMap& sizeMap, pdb_setup::Atoms& pdbData, MolMap * kindMapFromBox1 = NULL, SizeMap * sizeMapFromBox1 = NULL);
 //adds atoms and molecule data in psf to kindMap
@@ -296,7 +293,7 @@ void read_atoms(FILE *psf, unsigned int nAtoms, std::vector<mol_setup::Atom> & a
     char* check = fgets(input, 511, psf);
     if (check == NULL) {
       fprintf(stderr, "ERROR: Could not find all atoms in PSF file ");
-      return READERROR;
+      return ;
     }
     //skip comment/blank lines
     if (input[0] == '!' || str::AllWS(input))
@@ -835,7 +832,7 @@ void mol_setup::PrintMolMapBrief(const MolMap& kindMap)
 namespace
 {
 //Initializes system from PSF file (does not include coordinates)
-//returns number of atoms in the file, or READERROR if the read failed somehow
+//returns number of atoms in the file, or READ_ERROR if the read failed somehow
 int ReadPSF(const char* psfFilename, MolMap& kindMap, SizeMap & sizeMap, pdb_setup::Atoms& pdbData, MolMap * kindMapFromBox1, SizeMap * sizeMapFromBox1)
 {
   FILE* psf = fopen(psfFilename, "r");
@@ -843,7 +840,7 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap, SizeMap & sizeMap, pdb_set
   int count;		//for number of bonds/angles/dihs
   if (psf == NULL) {
     fprintf(stderr, "ERROR: Failed to open PSF file %s for molecule data.\nExiting...\n", psfFilename);
-    return READERROR;
+    return ;
   }
   char input[512];
   unsigned int nAtoms;
@@ -854,7 +851,7 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap, SizeMap & sizeMap, pdb_set
       fprintf(stderr, "ERROR: Unable to read atoms from PSF file %s",
               psfFilename);
       fclose(psf);
-      return READERROR;
+      return errors::READ_ERROR;
     }
   } while (strstr(input, "!NATOM") == NULL);
   sscanf(input, " %u", &nAtoms);
@@ -876,7 +873,7 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap, SizeMap & sizeMap, pdb_set
       fprintf(stderr, "ERROR: Unable to read bonds from PSF file %s",
               psfFilename);
       fclose(psf);
-      return  READERROR;
+      return  errors::READ_ERROR;
     }
   }
   count = atoi(input);
@@ -944,14 +941,14 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap, SizeMap & sizeMap, pdb_set
       fprintf(stderr, "ERROR: Unable to read angles from PSF file %s",
               psfFilename);
       fclose(psf);
-      return READERROR;
+      return errors::READ_ERROR;
     }
   }
   //make sure molecule has angles, count appears before !NTHETA
   count = atoi(input);
-  if (ReadPSFAngles(psf, kindMap, firstAtomLookup, count) == READERROR) {
+  if (ReadPSFAngles(psf, kindMap, firstAtomLookup, count) == errors::READ_ERROR) {
     fclose(psf);
-    return READERROR;
+    return errors::READ_ERROR;
   }
   //find dihedrals header+count
   fseek(psf, 0, SEEK_SET);
@@ -961,14 +958,14 @@ int ReadPSF(const char* psfFilename, MolMap& kindMap, SizeMap & sizeMap, pdb_set
       fprintf(stderr, "ERROR: Unable to read dihedrals from PSF file %s",
               psfFilename);
       fclose(psf);
-      return READERROR;
+      return errors::READ_ERROR;
     }
   }
   //make sure molecule has dihs, count appears before !NPHI
   count = atoi(input);
-  if (ReadPSFDihedrals(psf, kindMap, firstAtomLookup, count) == READERROR) {
+  if (ReadPSFDihedrals(psf, kindMap, firstAtomLookup, count) == errors::READ_ERROR) {
     fclose(psf);
-    return READERROR;
+    return errors::READ_ERROR;
   }
 
   fclose(psf);
@@ -990,7 +987,7 @@ int ReadPSFAtoms(FILE* psf, MolMap& kindMap, unsigned int nAtoms)
     char* check = fgets(input, 511, psf);
     if (check == NULL) {
       fprintf(stderr, "ERROR: Could not find all atoms in PSF file ");
-      return READERROR;
+      return errors::READ_ERROR;
     }
     //skip comment/blank lines
     if (input[0] == '!' || str::AllWS(input))
@@ -1037,10 +1034,10 @@ int ReadPSFBonds(FILE* psf, MolMap& kindMap,
     dummy = fscanf(psf, "%u %u", &atom0, &atom1);
     if(dummy != 2) {
       fprintf(stderr, "ERROR: Incorrect Number of bonds in PSF file ");
-      return READERROR;
+      return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
       fprintf(stderr, "ERROR: Could not find all bonds in PSF file ");
-      return READERROR;
+      return errors::READ_ERROR;
     }
 
     //loop to find the molecule kind with this bond
@@ -1084,10 +1081,10 @@ int ReadPSFAngles(FILE* psf, MolMap& kindMap,
     dummy = fscanf(psf, "%u %u %u", &atom0, &atom1, &atom2);
     if(dummy != 3) {
       fprintf(stderr, "ERROR: Incorrect Number of angles in PSF file ");
-      return READERROR;
+      return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
       fprintf(stderr, "ERROR: Could not find all angles in PSF file ");
-      return READERROR;
+      return errors::READ_ERROR;
     }
 
     //loop to find the molecule kind with this angles
@@ -1148,10 +1145,10 @@ int ReadPSFDihedrals(FILE* psf, MolMap& kindMap,
     dummy = fscanf(psf, "%u %u %u %u", &dih.a0, &dih.a1, &dih.a2, &dih.a3);
     if(dummy != 4) {
       fprintf(stderr, "ERROR: Incorrect Number of dihedrals in PSF file ");
-      return READERROR;
+      return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
       fprintf(stderr, "ERROR: Could not find all dihedrals in PSF file ");
-      return READERROR;
+      return errors::READ_ERROR;
     }
 
     //loop to find the molecule kind with this dihedral
