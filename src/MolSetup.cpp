@@ -219,6 +219,7 @@ int mol_setup::ReadCombinePSF(MolMap& kindMap,
                               const int numFiles, pdb_setup::Atoms& pdbAtoms)
 {
   int errorcode = ReadPSF(psfFilename[0].c_str(), kindMap, sizeMap, pdbAtoms);
+  int nAtoms = errorcode;
   if (errorcode < 0)
     return errorcode;
   MolMap map2;
@@ -226,9 +227,16 @@ int mol_setup::ReadCombinePSF(MolMap& kindMap,
   for (int i = 1; i < numFiles; ++i) {
     map2.clear();
     errorcode = ReadPSF(psfFilename[i].c_str(), map2, sizeMap2, pdbAtoms, &kindMap, &sizeMap);
+    nAtoms += errorcode;
     if (errorcode < 0)
       return errorcode;
     kindMap.insert(map2.begin(), map2.end());
+  }
+
+  if (pdbAtoms.count != nAtoms){
+    std::cout << "Error: This number of atoms in coordinate file(s) (PDB) " << nAtoms
+    << " does not match the number of atoms in structure file(s) (PSF) " << pdbAtoms.count << "!" << std::endl;
+    exit(EXIT_FAILURE);
   }
 
   PrintMolMapVerbose(kindMap);
@@ -325,12 +333,12 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
   uint startIdxResBoxOffset;
   uint resKindIndex;
   if (pdbAtoms.lastAtomIndexInBox0 == 0){
-  startIdxResBoxOffset = 0;
-  resKindIndex = 0;
-  pdbAtoms.startIdxRes.clear();
-  pdbAtoms.resKinds.clear();
-  pdbAtoms.resKindNames.clear();
-  pdbAtoms.resNames.clear();
+    startIdxResBoxOffset = 0;
+    resKindIndex = 0;
+    pdbAtoms.startIdxRes.clear();
+    pdbAtoms.resKinds.clear();
+    pdbAtoms.resKindNames.clear();
+    pdbAtoms.resNames.clear();
   } else {
     startIdxResBoxOffset = pdbAtoms.lastAtomIndexInBox0 + 1;
     resKindIndex = pdbAtoms.lastResKindIndex;
@@ -348,8 +356,9 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
     bool newMapEntry = true;
     bool foundEntryInOldMap = true;
 
-    /* Search by size for existing molecules from Box 1 if it exists*/
     if (sizeMapFromBox1 != NULL && kindMapFromBox1 != NULL){
+
+    /* Search by size for existing molecules from Box 1 if it exists*/
       SizeMap::iterator sizeIt = sizeMapFromBox1->find(it->size());
 
       /* Found no matching molecules from Box 1 by size */
@@ -365,7 +374,9 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
           typedef std::vector<mol_setup::Atom>::const_iterator atomIterator;
           std::pair<atomIterator, candidateIterator> itPair((*kindMapFromBox1)[*sizeConsistentEntries].atoms.cbegin(), it->cbegin());
           for (; itPair.second != it->cend(); ++itPair.first, ++itPair.second){
-            if (itPair.first->name == allAtoms[*(itPair.second)].name){
+            /* Atom equality operator 
+              Checks atom name, type, residue, charge, and mass */
+            if (*(itPair.first) == allAtoms[*(itPair.second)]){
               continue;
             } else {
               break;
@@ -465,7 +476,7 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
           typedef std::vector<mol_setup::Atom>::const_iterator atomIterator;
           std::pair<atomIterator, candidateIterator> itPair(kindMap[*sizeConsistentEntries].atoms.cbegin(), it->cbegin());
           for (; itPair.second != it->cend(); ++itPair.first, ++itPair.second){
-            if (itPair.first->name == allAtoms[*(itPair.second)].name){
+            if (*(itPair.first) == allAtoms[*(itPair.second)]){
               continue;
             } else {
               break;
