@@ -234,8 +234,8 @@ int mol_setup::ReadCombinePSF(MolMap& kindMap,
   }
 
   if (pdbAtoms.count != nAtoms){
-    std::cout << "Error: This number of atoms in coordinate file(s) (PDB) " << nAtoms
-    << " does not match the number of atoms in structure file(s) (PSF) " << pdbAtoms.count << "!" << std::endl;
+    std::cout << "Error: This number of atoms in coordinate file(s) (PDB) " << pdbAtoms.count
+    << " does not match the number of atoms in structure file(s) (PSF) " << nAtoms << "!" << std::endl;
     exit(EXIT_FAILURE);
   }
 
