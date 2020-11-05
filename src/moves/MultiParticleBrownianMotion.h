@@ -368,7 +368,7 @@ inline XYZ MultiParticleBrownian::CalcRandomTransform(XYZ const &lb, double cons
   num.y = lbmax.y + prng.Gaussian(0.0, stdDev);
   num.z = lbmax.z + prng.Gaussian(0.0, stdDev);
 
-  if (!isfinite(num.Length())) {
+  if (!std::isfinite(num.Length())) {
     std::cout << "Error: Trial transform is not a finite number in Brownian Motion Multiparticle move.\n";
     std::cout << "       Trial transform: " << num;
     exit(EXIT_FAILURE);
