@@ -42,8 +42,9 @@ public:
     }
 
     for (uint b = 0; b < BOX_TOTAL; ++b) {
-      close_dcd_write(stateFileFileid[b]);
-      xstFile[b].close();
+      if(enableStateOut) {
+        close_dcd_write(stateFileFileid[b]);
+      }
       if(restartCoor[b]) {
         delete [] restartCoor[b];
       }
