@@ -44,6 +44,18 @@ public:
   uint residueID;
 
   uint kind;
+
+  bool operator== (const Atom& atm) const
+  {
+    if (name == atm.name && 
+        type == atm.type && 
+        residue == atm.residue && 
+        charge == atm.charge && 
+        mass == atm.mass)
+      return true;
+    else
+      return false;
+  }
 };
 
 class Dihedral
