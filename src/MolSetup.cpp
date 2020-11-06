@@ -354,7 +354,7 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
     bool multiResidue = false;
     bool newSize = false;
     bool newMapEntry = true;
-    bool foundEntryInOldMap = true;
+    bool foundEntryInOldMap = false;
 
     if (sizeMapFromBox1 != NULL && kindMapFromBox1 != NULL){
 
@@ -362,11 +362,7 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
       SizeMap::iterator sizeIt = sizeMapFromBox1->find(it->size());
 
       /* Found no matching molecules from Box 1 by size */
-      if (sizeIt == sizeMapFromBox1->end()) {
-        /* For record keeping later on */
-        foundEntryInOldMap = false;
-      /* Found molecules with the same size, now evaluate for atom equality */
-      } else {
+      if (sizeIt != sizeMapFromBox1->end()) {
         /* Iterate through all the size consistent map entries */
         for (std::vector<std::string>::const_iterator sizeConsistentEntries = sizeIt->second.cbegin();
           sizeConsistentEntries != sizeIt->second.cend(); sizeConsistentEntries++){
@@ -382,7 +378,7 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
               break;
             }
           }
-          // Found a match in our our molMap.
+          // Found a match in the old molMap.
           if (itPair.second == it->cend()) {
 
             /* Get the map key */
@@ -442,13 +438,14 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
                 sizeMap[it->size()].push_back(fragName);
               }
             }
-          } else {
-            foundEntryInOldMap = false;
-          }
+            foundEntryInOldMap = true;
+            /* We found our entry, so there is no need to continue iterating through
+            size consistent entries */
+            break;
+          
+          } 
         }
       }
-    } else {
-      foundEntryInOldMap = false;
     }
 
     /* Follow procedure from earlier versions of single box ensemble map entries. Very similar to above,
@@ -487,6 +484,7 @@ int createMapAndModifyPDBAtomDataStructure( const BondAdjacencyList & bondAdjLis
             // Modify PDBData
             pdbAtoms.startIdxRes.push_back(startIdxResBoxOffset + it->front());
             pdbAtoms.resKinds.push_back(kindMap[*sizeConsistentEntries].kindIndex);
+            pdbAtoms.resNames.push_back(*sizeConsistentEntries);
             newMapEntry = false;
           }
         }
