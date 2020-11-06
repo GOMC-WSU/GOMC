@@ -16,6 +16,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+#include "EnsemblePreprocessor.h"
 
 //Forward declare to give access to internal arrays.
 class BoxDimensions;

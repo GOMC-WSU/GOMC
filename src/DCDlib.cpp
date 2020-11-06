@@ -175,7 +175,7 @@ OFF_T NAMD_seek(int file, OFF_T offset, int whence) {
   if ( retval < 0 ) NAMD_err("seek failed while writing DCD file");
   if ( whence == SEEK_SET && retval != offset ) {
     char buf[256];
-    sprintf(buf, "seek failed while writing DCD file: SEEK_SET %lld returned %lld\n", offset, retval);
+    sprintf(buf, "seek failed while writing DCD file: SEEK_SET %ld returned %ld\n", offset, retval);
     NAMD_die(buf);
   }
   return retval;
@@ -887,13 +887,13 @@ int write_dcdstep(int fd, int N, float *X, float *Y, float *Z, double *cell)
 	NAMD_write(fd, (char *) &out_integer, sizeof(int32));
 
 	/* don't update header until after write succeeds */
-        OFF_T end = LSEEK(fd,0,SEEK_CUR);
+    OFF_T end = LSEEK(fd,0,SEEK_CUR);
 	LSEEK(fd,NSAVC_POS,SEEK_SET);
-	READ(fd,(void*) &NSAVC,sizeof(int32));
+	ssize_t res = READ(fd,(void*) &NSAVC,sizeof(int32));
 	LSEEK(fd,NSTEP_POS,SEEK_SET);
-	READ(fd,(void*) &NSTEP,sizeof(int32));
+	res = READ(fd,(void*) &NSTEP,sizeof(int32));
 	LSEEK(fd,NFILE_POS,SEEK_SET);
-	READ(fd,(void*) &NFILE,sizeof(int32));
+	res = READ(fd,(void*) &NFILE,sizeof(int32));
 	NSTEP += NSAVC;
 	NFILE += 1;
 	LSEEK(fd,NSTEP_POS,SEEK_SET);
@@ -965,11 +965,11 @@ int update_dcdstep_par_header(int fd)
 	/* don't update header until after write succeeds */
         OFF_T end = LSEEK(fd,0,SEEK_CUR);
 	LSEEK(fd,NSAVC_POS,SEEK_SET);
-	READ(fd,(void*) &NSAVC,sizeof(int32));
+	ssize_t res = READ(fd,(void*) &NSAVC,sizeof(int32));
 	LSEEK(fd,NSTEP_POS,SEEK_SET);
-	READ(fd,(void*) &NSTEP,sizeof(int32));
+	res = READ(fd,(void*) &NSTEP,sizeof(int32));
 	LSEEK(fd,NFILE_POS,SEEK_SET);
-	READ(fd,(void*) &NFILE,sizeof(int32));
+	res = READ(fd,(void*) &NFILE,sizeof(int32));
 	NSTEP += NSAVC;
 	NFILE += 1;
 	LSEEK(fd,NSTEP_POS,SEEK_SET);
