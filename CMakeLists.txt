@@ -8,6 +8,10 @@ include_directories(src/cbmc)
 include_directories(src/moves)
 include_directories(src/GPU)
 
+# Enable google test
+enable_testing()
+include(test/GoogleTest.cmake)
+
 #Out-of-source build
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
