@@ -15,10 +15,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "StrStrmLib.h"             //For conversion from uint to string
 #include <iostream>                 //for cout;
 
-DCDOutput::DCDOutput(System  & sys, StaticVals const& statV) :
+DCDOutput::DCDOutput(System& sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
-  coordCurrRef(sys.coordinates), comCurrRef(sys.com),
-  boxDimRef(sys.boxDimRef), molRef(statV.mol)
+  boxDimRef(sys.boxDimRef), molRef(statV.mol),
+  coordCurrRef(sys.coordinates), comCurrRef(sys.com)
 {
   x = NULL;
   y = NULL;
@@ -75,7 +75,7 @@ void DCDOutput::Init(pdb_setup::Atoms const& atoms,
       strcpy(outXSTFile[b], fileName.c_str());
       xstFile[b].Init(fileName, " output XST", true, printNotify);
       xstFile[b].open();
-      Write_Extention_System_Header(xstFile[b], b);
+      Write_Extension_System_Header(xstFile[b]);
     }
   }
 
@@ -101,7 +101,7 @@ void DCDOutput::Init(pdb_setup::Atoms const& atoms,
 }
 
 
-void DCDOutput::Write_Extention_System_Header(Writer &outFile, const int box)
+void DCDOutput::Write_Extension_System_Header(Writer &outFile)
 {
   outFile.file << "#$LABELS step";
   outFile.file << " a_x a_y a_z";
@@ -112,7 +112,7 @@ void DCDOutput::Write_Extention_System_Header(Writer &outFile, const int box)
 }
 
 
-void DCDOutput::Write_Extention_System_data(Writer &outFile,
+void DCDOutput::Write_Extension_System_Data(Writer &outFile,
     const ulong step, const int box)
 {
   outFile.file.precision(12);
@@ -179,15 +179,15 @@ void DCDOutput::DoOutput(const ulong step)
   // Output dcd coordinates and xst file
   if(enableStateOut) {
     int numAtoms = coordCurrRef.Count();
-    // Determin which molecule is in which box. Assume we are in NVT
+    // Determine which molecule is in which box. Assume we are in NVT
     // or NPT, otherwise, SetMolBoxVec would adjust the value.
     std::vector<int> molInBox(molRef.count, 0);
     SetMolBoxVec(molInBox);
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       //  Copy the coordinates for output
-      SetCoordinates(x, y, z, molInBox, b);
+      SetCoordinates(molInBox, b);
       //  Write out the values for this step
-      printf("Writing DCD coordinate to file %s at step %ld \n",
+      printf("Writing DCD coordinate to file %s at step %lu \n",
         outDCDStateFile[b], step+1);
       fflush(stdout);
 
@@ -197,15 +197,15 @@ void DCDOutput::DoOutput(const ulong step)
     
       if (ret_code < 0) {
         char err_msg[257];
-        sprintf(err_msg, "Writing of DCD coordinate %s failed at step %ld!",
+        sprintf(err_msg, "Writing of DCD coordinate %s failed at step %lu!",
           outDCDStateFile[b], step+1);
         NAMD_err(err_msg);
       }
-      printf("Finished writing DCD coordinate to file %s at step %ld \n",
+      printf("Finished writing DCD coordinate to file %s at step %lu \n",
         outDCDStateFile[b], step+1);
 
       // write the cellbasis data to xst file
-      Write_Extention_System_data(xstFile[b], step, b);
+      Write_Extension_System_Data(xstFile[b], step, b);
     }
   }
 
@@ -215,19 +215,19 @@ void DCDOutput::DoOutput(const ulong step)
       int numAtomInBox = NumAtomInBox(b);
       // Copy the coordinate data for each box into AOS
       SetMolInBox(b);
-      printf("Writing binary restart coordinate to file %s at step %ld \n",
+      printf("Writing binary restart coordinate to file %s at step %lu \n",
         outDCDRestartFile[b], step+1);
       //  Generate a binary restart file
       Write_binary_file(outDCDRestartFile[b], numAtomInBox, restartCoor[b]);
-      printf("Finished writing binary restart coordinate to file %s at step %ld \n",
+      printf("Finished writing binary restart coordinate to file %s at step %lu \n",
         outDCDRestartFile[b], step+1);
       
       // write XSC file
       NAMD_backup_file(outXSCFile[b], ".BAK");
       xscFile[b].openOverwrite();
-      Write_Extention_System_Header(xscFile[b], b);
+      Write_Extension_System_Header(xscFile[b]);
       // write the cellbasis data to xst file
-      Write_Extention_System_data(xscFile[b], step, b);
+      Write_Extension_System_Data(xscFile[b], step, b);
       xscFile[b].close();
     }
   }
@@ -261,7 +261,7 @@ void DCDOutput::SetMolInBox(const int box)
   while (m != end) {
     molRef.GetRangeStartStop(pStart, pEnd, *m);
     ref = comCurrRef.Get(*m);
-    for (int p = pStart; p < pEnd; ++p) {
+    for (uint p = pStart; p < pEnd; ++p) {
       coor = coordCurrRef.Get(p);
       boxDimRef.UnwrapPBC(coor, box, ref);
       
@@ -292,47 +292,46 @@ void DCDOutput::Write_binary_file(char *fname, int n, XYZ *vec)
 
 }
 
-void DCDOutput::SetCoordinates(float *x, float *y, float *d, 
-    std::vector<int> &molInBox, const int box)
+void DCDOutput::SetCoordinates(std::vector<int> &molInBox, const int box)
 {
-  uint p, m, pStart = 0, pEnd = 0;
+  uint p, pStart = 0, pEnd = 0;
   int numMolecules = molRef.count;
   XYZ ref, coor;
-  #if ENSEMBLE == NVT || ENSEMBLE == NPT
-    //Loop through all molecules
-    for (m = 0; m < numMolecules; ++m) {
-      molRef.GetRangeStartStop(pStart, pEnd, m);
-      ref = comCurrRef.Get(m);
-      for (p = pStart; p < pEnd; ++p) {
+#if ENSEMBLE == NVT || ENSEMBLE == NPT
+  //Loop through all molecules
+  for (int m = 0; m < numMolecules; ++m) {
+    molRef.GetRangeStartStop(pStart, pEnd, m);
+    ref = comCurrRef.Get(m);
+    for (p = pStart; p < pEnd; ++p) {
+      coor = coordCurrRef.Get(p);
+      boxDimRef.UnwrapPBC(coor, box, ref);
+
+      x[p] = coor.x;
+      y[p] = coor.y;
+      z[p] = coor.z;
+    }
+  }
+#else
+  bool inThisBox; 
+  //Loop through all molecules
+  for (int m = 0; m < numMolecules; ++m) {
+    molRef.GetRangeStartStop(pStart, pEnd, m);
+    ref = comCurrRef.Get(m);
+    inThisBox = (molInBox[m] == box);
+    for (p = pStart; p < pEnd; ++p) {
+      if (inThisBox) {
         coor = coordCurrRef.Get(p);
         boxDimRef.UnwrapPBC(coor, box, ref);
-        
-        x[p] = coor.x;
-        y[p] = coor.y;
-        z[p] = coor.z;
+      } else {
+        coor.Reset();
       }
+
+      x[p] = coor.x;
+      y[p] = coor.y;
+      z[p] = coor.z;
     }
-  #else
-    bool inThisBox; 
-    //Loop through all molecules
-    for (m = 0; m < numMolecules; ++m) {
-      molRef.GetRangeStartStop(pStart, pEnd, m);
-      ref = comCurrRef.Get(m);
-      inThisBox = (molInBox[m] == box);
-      for (p = pStart; p < pEnd; ++p) {
-        if (inThisBox) {
-          coor = coordCurrRef.Get(p);
-          boxDimRef.UnwrapPBC(coor, box, ref);
-        } else {
-          coor.Reset();
-        }
-        
-        x[p] = coor.x;
-        y[p] = coor.y;
-        z[p] = coor.z;
-      }
-    }
-  #endif
+  }
+#endif
 
 }
 
@@ -348,14 +347,14 @@ void DCDOutput::Copy_lattice_to_unitcell(double *unitcell, int box) {
 
 void DCDOutput::SetMolBoxVec(std::vector<int> & mBox)
 {
-  #if ENSEMBLE == GCMC || ENSEMBLE == GEMC
-    for (int b = 0; b < BOX_TOTAL; ++b) {
-      MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
-                                  end = molLookupRef.BoxEnd(b);
-      while (m != end) {
-        mBox[*m] = b;
-        ++m;
-      }
+#if ENSEMBLE == GCMC || ENSEMBLE == GEMC
+  for (int b = 0; b < BOX_TOTAL; ++b) {
+    MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
+                                 end = molLookupRef.BoxEnd(b);
+    while (m != end) {
+      mBox[*m] = b;
+      ++m;
     }
-  #endif
+  }
+#endif
 }

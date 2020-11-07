@@ -64,7 +64,7 @@ public:
   }
 
   //PDB does not need to sample on every step, so does nothing.
-  virtual void Sample(const ulong step) {}
+  virtual void Sample(__attribute__((unused)) const ulong step) {}
 
   virtual void Init(pdb_setup::Atoms const& atoms,
                     config_setup::Output const& output);
@@ -74,8 +74,7 @@ private:
   // Copy cell length and angles to unitcell[6]
   void Copy_lattice_to_unitcell(double *unitcell, int box);
   // Unwrap and save coordinates of molecule in box, into *x, *y, *z
-  void SetCoordinates(float *x, float *y, float *d,
-      std::vector<int> &molInBox, const int box);
+  void SetCoordinates(std::vector<int> &molInBox, const int box);
   // Unwrap and save coordinates of molecule in box, into *restartCoor
   void SetMolInBox(const int box);
   // Return a vector that defines the box id for each molecule
@@ -87,9 +86,9 @@ private:
   // Write header for dcd coordinate file
   void WriteDCDHeader(const int numAtoms, const int box);
   // Write header for xst and xsc files
-  void Write_Extention_System_Header(Writer &outFile, const int box);
+  void Write_Extension_System_Header(Writer &outFile);
   //Write the cell basis info into xst and xsc files
-  void Write_Extention_System_data(Writer &outFile,
+  void Write_Extension_System_Data(Writer &outFile,
     const ulong step, const int box);
 
   MoveSettings & moveSetRef;
