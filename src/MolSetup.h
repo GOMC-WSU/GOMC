@@ -33,13 +33,13 @@ class Atom
 public:
   Atom(std::string const& l_name, std::string const& l_residue, uint l_resID, std::string const& l_segment, std::string const& l_type,
        const double l_charge, const double l_mass) :
-    name(l_name), residue(l_residue), residueID(l_resID), segment(l_segment), type(l_type), charge(l_charge), mass(l_mass) {}
+    name(l_name), type(l_type), residue(l_residue), segment(l_segment), charge(l_charge), mass(l_mass), residueID(l_resID) {}
   //private:
   //name (within a molecule) and type (for forcefield params)
   std::string name, type, residue, segment;
   double charge, mass;
   //kind index
-  /* ResID is by the PSF Parser to determine multiresidue status by comparing 1st vs all
+  /* ResID is by the PSF Parser to determine multi-residue status by comparing 1st vs all
     of resIDs in a row in the moleculeXAtomIDY 2D vector */
   uint residueID;
 

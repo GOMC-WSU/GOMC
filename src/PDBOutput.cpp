@@ -157,7 +157,7 @@ void PDBOutput::DoOutput(const ulong step)
       PrintRemark(b, step, outF[b]);
       PrintCryst1(b, outF[b]);
       PrintAtoms(b, mBox);
-      PrintEnd(b, outF[b]);
+      PrintEnd(outF[b]);
     }
   }
   //NEW_RESTART_CODE
@@ -176,7 +176,7 @@ void PDBOutput::DoOutputRebuildRestart(const uint step)
     PrintCrystRest(b, step, outRebuildRestart[b]);
     PrintCryst1(b, outRebuildRestart[b]);
     PrintAtomsRebuildRestart(b);
-    PrintEnd(b, outRebuildRestart[b]);
+    PrintEnd(outRebuildRestart[b]);
     outRebuildRestart[b].close();
   }
 }

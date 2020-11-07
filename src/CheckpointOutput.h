@@ -27,7 +27,7 @@ public:
   virtual void DoOutput(const ulong step);
   virtual void Init(pdb_setup::Atoms const& atoms,
                     config_setup::Output const& output);
-  virtual void Sample(const ulong step) {}
+  virtual void Sample(__attribute__((unused)) const ulong step) {}
   virtual void Output(const ulong step)
   {
     if(!enableOutCheckpoint) {
@@ -45,10 +45,10 @@ private:
   BoxDimensions & boxDimRef;
   Molecules const & molRef;
   PRNG & prngRef;
+  Coordinates & coordCurrRef;
 #if GOMC_LIB_MPI
   PRNG & prngPTRef;
 #endif
-  Coordinates & coordCurrRef;
 
   bool enableOutCheckpoint;
   bool enableParallelTempering;

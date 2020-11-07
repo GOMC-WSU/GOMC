@@ -94,6 +94,14 @@ public:
   BoxDimensions & boxDimRef;
   MoleculeLookup & molLookupRef;
 
+  PRNG prng;
+  Random123Wrapper r123wrapper;
+
+#if GOMC_LIB_MPI
+  MultiSim const*const& ms;
+  PRNG * prngParallelTemp;
+#endif
+
   MoveSettings moveSettings;
   SystemPotential potential;
   Coordinates coordinates;
@@ -107,14 +115,6 @@ public:
   CalculateEnergy calcEnergy;
   Ewald *calcEwald;
   CellList cellList;
-  PRNG prng;
-  Random123Wrapper r123wrapper;
-
-#if GOMC_LIB_MPI
-  MultiSim const*const& ms;
-  PRNG * prngParallelTemp;
-#endif
-
 
   CheckpointSetup checkpointSet;
 

@@ -17,9 +17,8 @@ class IntraSwap : public MoveBase
 {
 public:
 
-  IntraSwap(System &sys, StaticVals const& statV) :
-    ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
-    MoveBase(sys, statV) {}
+  IntraSwap(System &sys, StaticVals const& statV) : MoveBase(sys, statV),
+    molLookRef(sys.molLookupRef), ffRef(statV.forcefield) {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
   virtual uint Transform();
@@ -176,7 +175,7 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
   } else //else we didn't even try because we knew it would fail
     result = false;
 
-  moveSetRef.Update(mv::INTRA_SWAP, result, step, sourceBox, kindIndex);
+  moveSetRef.Update(mv::INTRA_SWAP, result, sourceBox, kindIndex);
 }
 
 #endif

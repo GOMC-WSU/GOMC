@@ -57,15 +57,10 @@ public:
     }
   }
 
-  inline MoveSettings& operator=(MoveSettings const& rhs)
-  {
-    return *this;
-  }
-
   void Init(StaticVals const& statV, pdb_setup::Remarks const& remarks,
             const uint tkind);
 
-  void Update(const uint move, const bool isAccepted, const uint step,
+  void Update(const uint move, const bool isAccepted,
               const uint box, const uint kind = 0);
 
   void AdjustMoves(const uint step);

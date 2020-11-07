@@ -443,7 +443,7 @@ inline void XYZArray::Init(const uint n)
   y = new double[n];
   z = new double[n];
 
-  for(int i = 0; i < n; i++) {
+  for(uint i = 0; i < n; i++) {
     x[i] = 0.0;
     y[i] = 0.0;
     z[i] = 0.0;

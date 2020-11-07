@@ -86,13 +86,12 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   if(printFlag) {
     //calculating netcharge of all molecule kind
     double netCharge = 0.0;
-    bool hasCharge;
     for (uint mk = 0 ; mk < kindsCount; mk++) {
       netCharge += (countByKind[mk] * kinds[mk].GetMoleculeCharge());
       if(kinds[mk].MoleculeHasCharge()) {
         if(!forcefield.ewald && !forcefield.isMartini) {
           std::cout << "Warning: Charge detected in " << kinds[mk].name
-                    << " but Ewald Summaion method is disabled!\n\n";
+                    << " but Ewald Summation method is disabled!\n\n";
         } else if(!forcefield.electrostatic && forcefield.isMartini) {
           std::cout << "Warning: Charge detected in " << kinds[mk].name
                     << " but Electrostatic energy calculation is disabled!\n\n";
@@ -127,7 +126,7 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   PrintLJInfo(totAtomKind, atomNames, forcefield);
   printFlag = false;
 
-  //Pair Correction matrixes
+  //Pair Correction matrices
   pairEnCorrections = new double[kindsCount * kindsCount];
   pairVirCorrections = new double[kindsCount * kindsCount];
   for(uint i = 0; i < kindsCount; ++i) {

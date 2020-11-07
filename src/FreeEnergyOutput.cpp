@@ -26,8 +26,8 @@ FreeEnergyOutput::FreeEnergyOutput(OutputVars & v, System & sys) :
 #endif
 }
 
-void FreeEnergyOutput::Init(pdb_setup::Atoms const& atoms,
-                            config_setup::Output const& output)
+void FreeEnergyOutput::Init(__attribute__((unused)) pdb_setup::Atoms const& atoms,
+                            __attribute__((unused)) config_setup::Output const& output)
 {
   stepsPerSample = freeEnVal.frequency;
   stepsPerOut = freeEnVal.frequency;
@@ -93,7 +93,7 @@ void FreeEnergyOutput::Sample(const ulong step)
 
 void FreeEnergyOutput::DoOutput(const ulong step)
 {
-  //Write to histogram file, We dont check the equilibrium.
+  //Write to histogram file, We don't check the equilibrium.
   if ((step + 1) % stepsPerOut == 0) {
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       if (outF[b].is_open()) {

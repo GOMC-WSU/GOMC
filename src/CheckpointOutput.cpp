@@ -31,18 +31,18 @@ union int8_input_union {
 CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
+  coordCurrRef(sys.coordinates),
 #if GOMC_LIB_MPI
   prngPTRef(*sys.prngParallelTemp),
-  enableParallelTempering(sys.ms->parallelTemperingEnabled),
+  enableParallelTempering(sys.ms->parallelTemperingEnabled)
 #else
-  enableParallelTempering(false),
+  enableParallelTempering(false)
 #endif
-  coordCurrRef(sys.coordinates)
 {
   outputFile = NULL;
 }
 
-void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
+void CheckpointOutput::Init(__attribute__((unused)) pdb_setup::Atoms const& atoms,
                             config_setup::Output const& output)
 {
   enableOutCheckpoint = output.checkpoint.enable;
@@ -90,7 +90,7 @@ void CheckpointOutput::printBoxDimensionsData()
   // print the number of boxes
   uint32_t totalBoxes = BOX_TOTAL;
   outputUintIn8Chars(totalBoxes);
-  for(int b = 0; b < totalBoxes; b++) {
+  for(int b = 0; b < (int) totalBoxes; b++) {
     XYZ axis = boxDimRef.axis.Get(b);
     outputDoubleIn8Chars(axis.x);
     outputDoubleIn8Chars(axis.y);
@@ -166,7 +166,7 @@ void CheckpointOutput::printCoordinates()
   outputUintIn8Chars(count);
 
   // now let's print the coordinates one by one
-  for(int i = 0; i < count; i++) {
+  for(int i = 0; i < (int) count; i++) {
     outputDoubleIn8Chars(coordCurrRef[i].x);
     outputDoubleIn8Chars(coordCurrRef[i].y);
     outputDoubleIn8Chars(coordCurrRef[i].z);
@@ -178,14 +178,14 @@ void CheckpointOutput::printMoleculeLookupData()
   // print the size of molLookup array
   outputUintIn8Chars(molLookupRef.molLookupCount);
   // print the molLookup array itself
-  for(int i = 0; i < molLookupRef.molLookupCount; i++) {
+  for(int i = 0; i < (int) molLookupRef.molLookupCount; i++) {
     outputUintIn8Chars(molLookupRef.molLookup[i]);
   }
 
   // print the size of boxAndKindStart array
   outputUintIn8Chars(molLookupRef.boxAndKindStartCount);
   // print the BoxAndKindStart array
-  for(int i = 0; i < molLookupRef.boxAndKindStartCount; i++) {
+  for(int i = 0; i < (int) molLookupRef.boxAndKindStartCount; i++) {
     outputUintIn8Chars(molLookupRef.boxAndKindStart[i]);
   }
 
@@ -195,7 +195,7 @@ void CheckpointOutput::printMoleculeLookupData()
   //print the size of fixedAtom array
   outputUintIn8Chars((uint)molLookupRef.fixedAtom.size());
   //print the fixedAtom array itself
-  for(int i = 0; i < molLookupRef.fixedAtom.size(); i++) {
+  for(int i = 0; i < (int) molLookupRef.fixedAtom.size(); i++) {
     outputUintIn8Chars(molLookupRef.fixedAtom[i]);
   }
 }
@@ -225,9 +225,9 @@ void CheckpointOutput::printVector3DDouble(std::vector< std::vector< std::vector
   outputUintIn8Chars(size_z);
 
   // print tempTries array
-  for(int i = 0; i < size_x; i++) {
-    for(int j = 0; j < size_y; j++) {
-      for(int k = 0; k < size_z; k++) {
+  for(int i = 0; i < (int) size_x; i++) {
+    for(int j = 0; j < (int) size_y; j++) {
+      for(int k = 0; k < (int) size_z; k++) {
         outputDoubleIn8Chars(data[i][j][k]);
       }
     }
@@ -245,9 +245,9 @@ void CheckpointOutput::printVector3DUint(std::vector< std::vector< std::vector<u
   outputUintIn8Chars(size_z);
 
   // print tempTries array
-  for(int i = 0; i < size_x; i++) {
-    for(int j = 0; j < size_y; j++) {
-      for(int k = 0; k < size_z; k++) {
+  for(int i = 0; i < (int) size_x; i++) {
+    for(int j = 0; j < (int) size_y; j++) {
+      for(int k = 0; k < (int) size_z; k++) {
         outputUintIn8Chars(data[i][j][k]);
       }
     }
@@ -263,8 +263,8 @@ void CheckpointOutput::printVector2DUint(std::vector< std::vector< uint > > data
   outputUintIn8Chars(size_y);
 
   // print array itself
-  for(int i = 0; i < size_x; i++) {
-    for(int j = 0; j < size_y; j++) {
+  for(int i = 0; i < (int) size_x; i++) {
+    for(int j = 0; j < (int) size_y; j++) {
       outputUintIn8Chars(data[i][j]);
     }
   }
@@ -276,8 +276,8 @@ void CheckpointOutput::printVector1DDouble(std::vector< double > data)
   ulong size_x = data.size();
   outputUintIn8Chars(size_x);
 
-  // print array iteself
-  for(int i = 0; i < size_x; i++) {
+  // print array itself
+  for(int i = 0; i < (int) size_x; i++) {
     outputDoubleIn8Chars(data[i]);
   }
 }

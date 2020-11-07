@@ -41,18 +41,18 @@ CellList::CellList(const CellList & other) : mols(other.mols)
 
   list.resize(other.list.size());
 
-  for (int i = 0; i < other.list.size(); i++) {
+  for (size_t i = 0; i < other.list.size(); i++) {
     list[i] = other.list[i];
   }
 
   for(uint b = 0; b < BOX_TOTAL; b++) {
-    for (int i = 0; i < other.neighbors[b].size(); i++) {
+    for (size_t i = 0; i < other.neighbors[b].size(); i++) {
       neighbors[b][i] = other.neighbors[b][i];
     }
   }
 
   for(uint b = 0; b < BOX_TOTAL; b++) {
-    for (int i = 0; i < other.head[b].size(); i++) {
+    for (size_t i = 0; i < other.head[b].size(); i++) {
       head[b][i] = other.head[b][i];
     }
   }
@@ -76,7 +76,7 @@ bool CellList::IsExhaustive() const
   }
   particles.erase(std::remove(particles.begin(), particles.end(), -1), particles.end());
   std::sort(particles.begin(), particles.end());
-  for(int i = 0; i < particles.size(); ++i) {
+  for(int i = 0; i < (int) particles.size(); ++i) {
     if (i != particles[i]) return false;
   }
   return true;
@@ -119,7 +119,7 @@ void CellList::AddMol(const int molIndex, const int box, const XYZArray& pos)
   int p = mols->MolStart(molIndex);
   int end = mols->MolEnd(molIndex);
 
-  //Note: GridAll assigns everthing to END_CELL
+  //Note: GridAll assigns everything to END_CELL
   // so list should point to that
   // if this is the first particle in a particular cell.
   while(p != end) {
@@ -273,7 +273,7 @@ void CellList::GetCellListNeighbor(uint box, int coordinateSize,
   cellStartIndex.resize(head[box].size());
   mapParticleToCell.resize(coordinateSize);
   int vector_index = 0;
-  for(int cell = 0; cell < head[box].size(); cell++) {
+  for(size_t cell = 0; cell < head[box].size(); cell++) {
     cellStartIndex[cell] = vector_index;
     int particleIndex = head[box][cell];
     while(particleIndex != END_CELL) {
@@ -282,7 +282,7 @@ void CellList::GetCellListNeighbor(uint box, int coordinateSize,
       vector_index++;
       particleIndex = list[particleIndex];
     }
-    // we are going to sort particles in each cell for better memor access
+    // we are going to sort particles in each cell for better memory access
     std::sort(cellVector.begin() + cellStartIndex[cell], cellVector.begin() + vector_index);
   }
   // push one last cellStartIndex for the last cell
@@ -318,7 +318,7 @@ bool CellList::CompareCellList(CellList & other, int coordinateSize)
 
   for(uint box = 0; box < BOX_TOTAL; box++) {
     int vector_index = 0;
-    for(int cell = 0; cell < head[box].size(); cell++) {
+    for(size_t cell = 0; cell < head[box].size(); cell++) {
       cellStartIndex[cell] = vector_index;
       int particleIndex = head[box][cell];
       while(particleIndex != END_CELL) {
@@ -333,7 +333,7 @@ bool CellList::CompareCellList(CellList & other, int coordinateSize)
   for(uint box = 0; box < BOX_TOTAL; box++) {
 
     int vector_index = 0;
-    for(int cell = 0; cell < other.head[box].size(); cell++) {
+    for(size_t cell = 0; cell < other.head[box].size(); cell++) {
       otherCellStartIndex[cell] = vector_index;
       int particleIndex = other.head[box][cell];
       while(particleIndex != END_CELL) {
@@ -347,13 +347,13 @@ bool CellList::CompareCellList(CellList & other, int coordinateSize)
 
 
   if(list.size() == other.list.size()) {
-    for(int i = 0; i < list.size(); i++) {
+    for(size_t i = 0; i < list.size(); i++) {
       if (list[i] != other.list[i])
         std::cout << "List objects are different" << std::endl;
     }
   }
 
-  for (int i = 0; i < mapParticleToCell.size(); i++) {
+  for (size_t i = 0; i < mapParticleToCell.size(); i++) {
     if (mapParticleToCell[i] != otherMapParticleToCell[i])
       return false;
   }
@@ -366,12 +366,12 @@ bool CellList::CompareCellList(CellList & other, int coordinateSize)
 void CellList::PrintList()
 {
 
-  for(int i = 0; i < list.size(); i++)
+  for(size_t i = 0; i < list.size(); i++)
     std::cout << list[i] << std::endl;
 
   std::cout << "head vector" << std::endl;
   for(int i = 0; i < BOX_TOTAL; i++) {
-    for( int j = 0; j < head[i].size(); j++) {
+    for( size_t j = 0; j < head[i].size(); j++) {
       std::cout << head[i][j] << std::endl;
     }
   }

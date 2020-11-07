@@ -62,32 +62,32 @@ typedef __off64_t off64_t;
 #endif
 
 typedef int     int32;
-/*  DEFINE ERROR CODES THAT MAY BE RETURNED BY DCD ROUTINES		*/
-#define DCD_DNE		-2	/*  DCD file does not exist		*/
-#define DCD_OPENFAILED	-3	/*  Open of DCD file failed		*/
-#define DCD_BADREAD 	-4	/*  read call on DCD file failed	*/
-#define DCD_BADEOF	-5	/*  premature EOF found in DCD file	*/
-#define DCD_BADFORMAT	-6	/*  format of DCD file is wrong		*/
-#define DCD_FILEEXISTS  -7	/*  output file already exists		*/
-#define DCD_BADMALLOC   -8	/*  malloc failed			*/
+/*  DEFINE ERROR CODES THAT MAY BE RETURNED BY DCD ROUTINES        */
+#define DCD_DNE        -2    /*  DCD file does not exist        */
+#define DCD_OPENFAILED    -3    /*  Open of DCD file failed        */
+#define DCD_BADREAD     -4    /*  read call on DCD file failed    */
+#define DCD_BADEOF    -5    /*  premature EOF found in DCD file    */
+#define DCD_BADFORMAT    -6    /*  format of DCD file is wrong        */
+#define DCD_FILEEXISTS  -7    /*  output file already exists        */
+#define DCD_BADMALLOC   -8    /*  malloc failed            */
 
-/*			FUNCTION ALLUSIONS				*/
-int open_dcd_read(char *);      /*  Open a DCD file for reading 	*/
-int read_dcdheader(int, int*, int*, int*, int*, double*, int*, int**);	
-				/*  Read the DCD header			*/
-int read_dcdstep(int, int, float*, float*, float*, int, int, int*);	
-				/*  Read a timestep's values		*/
-int open_dcd_write(const char *);     /*  Open a DCD file for writing		*/
+/*            FUNCTION ALLUSIONS                */
+int open_dcd_read(char *);      /*  Open a DCD file for reading     */
+int read_dcdheader(int, int*, int*, int*, int*, double*, int*, int**);    
+                /*  Read the DCD header            */
+int read_dcdstep(int, int, float*, float*, float*, int, int, int*);    
+                /*  Read a timestep's values        */
+int open_dcd_write(const char *);     /*  Open a DCD file for writing        */
 
 int write_dcdstep(int, int, float *, float *, float *, double *unitcell);
-				/*  Write out a timesteps values	*/
-int write_dcdheader(int, const char*, int, int, int, int, int, double, int);	
-				/*  Write a dcd header			*/
+                /*  Write out a timesteps values    */
+int write_dcdheader(int, const char*, int, int, int, int, int, double, int);    
+                /*  Write a dcd header            */
 int get_dcdheader_size(); 
-				/* Get the total size of the header */
+                /* Get the total size of the header */
 void close_dcd_read(int, int, int *);
-				/*  Close a dcd file open for reading   */
-void close_dcd_write(int);	/*  Close a dcd file open for writing   */
+                /*  Close a dcd file open for reading   */
+void close_dcd_write(int);    /*  Close a dcd file open for writing   */
 
 int open_dcd_write_par_slave(char *dcdname);
 /* Slaves open existing file created by master */

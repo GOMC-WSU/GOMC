@@ -81,12 +81,10 @@ public:
   //! Calculates intermolecule energy of all boxes in the system
   //! @param potential Copy of current energy structure to append result to
   //! @param coords Particle coordinates to evaluate for
-  //! @param com Molecular centers of mass of system under evaluation
-  //! @param boxAxes Box Dimenions to evaluate in
+  //! @param boxAxes Box Dimensions to evaluate in
   //! @return System potential assuming no molecule changes
   SystemPotential SystemInter(SystemPotential potential,
                               XYZArray const& coords,
-                              XYZArray const& com,
                               BoxDimensions const& boxAxes) ;
 
   //! Calculates intermolecular energy (LJ and coulomb) of a molecule
@@ -108,7 +106,7 @@ public:
   //! @param trialPos Contains exactly n potential particle positions
   //! @param partIndex Index of particle within the molecule
   //! @param box Index of box molecule is in
-  //! @param trials Number of trials ot loop over in position array. (cbmc)
+  //! @param trials Number of trials to loop over in position array. (cbmc)
   void ParticleNonbonded(double* inter, const cbmc::TrialMol& trialMol,
                          XYZArray const& trialPos,
                          const uint partIndex,
@@ -123,7 +121,7 @@ public:
   //! @param partIndex Index of the particle within the molecule
   //! @param molIndex Index of molecule
   //! @param box Index of box molecule is in
-  //! @param trials Number of trials ot loop over in position array. (cbmc)
+  //! @param trials Number of trials to loop over in position array. (cbmc)
   void ParticleInter(double* en, double *real,
                      XYZArray const& trialPos,
                      bool* overlap,
@@ -149,19 +147,19 @@ public:
                                        const uint kind,
                                        const bool add) const;
 
-  //! Calculates the change in the TC from chaning the lambdaOld -> lambdaNew
+  //! Calculates the change in the TC from changing the lambdaOld -> lambdaNew
   //! @param box Index of box under consideration
-  //! @param kind Kind of particle being transfrom in lambda
+  //! @param kind Kind of particle being transformed in lambda
   double MoleculeTailChange(const uint box, const uint kind,
                             const std::vector <uint> &kCount,
                             const double lambdaOld,
                             const double lambdaNew) const;
 
-  //! Calculates voidintramolecular energy of a full molecule
+  //! Calculates intramolecular energy of a full molecule
   void MoleculeIntra(const uint molIndex, const uint box, double *bondEn) const;
 
   //used in molecule exchange for calculating bonded and intraNonbonded energy
-  Energy MoleculeIntra(cbmc::TrialMol const &mol, const uint molIndex) const;
+  Energy MoleculeIntra(cbmc::TrialMol const &mol) const;
 
 
   //! Calculates Nonbonded 1_3 intramolecule energy of a full molecule
@@ -289,7 +287,7 @@ private:
   //! to same molecule, using internal arrays.
   bool SameMolecule(const uint p1, const uint p2) const
   {
-    //We dont calculate the energy between two atom of same molecule or
+    //We don't calculate the energy between two atoms of same molecule
     uint pair1 = particleMol[p1];
     uint pair2 = particleMol[p2];
     return (pair1 == pair2);
@@ -303,8 +301,6 @@ private:
   const Forcefield& forcefield;
   const Molecules& mols;
   const Coordinates& currentCoords;
-  const MoleculeLookup& molLookup;
-  const BoxDimensions& currentAxes;
   const COM& currentCOM;
   const Ewald *calcEwald;
   const Lambda& lambdaRef;
@@ -316,6 +312,8 @@ private:
   std::vector<int> particleKind;
   std::vector<int> particleMol;
   std::vector<double> particleCharge;
+  const MoleculeLookup& molLookup;
+  const BoxDimensions& currentAxes;
   const CellList& cellList;
 };
 

@@ -40,7 +40,7 @@ public:
   }
 
   //PDB does not need to sample on every step, so does nothing.
-  virtual void Sample(const ulong step) {}
+  virtual void Sample(__attribute__((unused)) const ulong step) {}
 
   virtual void Init(pdb_setup::Atoms const& atoms,
                     config_setup::Output const& output);
@@ -71,7 +71,7 @@ private:
   void InsertAtomInLine(std::string & line, XYZ const& coor,
                         std::string const& occ, std::string const& beta);
 
-  void PrintEnd(const uint b, Writer & out)
+  void PrintEnd(Writer & out)
   {
     out.file << "END" << std::endl;
   }

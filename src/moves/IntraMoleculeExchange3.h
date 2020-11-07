@@ -18,7 +18,7 @@ using namespace geom;
 // Intra Molecule Exchange Move:
 // KindA is small kind. KindB is large kind
 // Orientation center of cavA is on COM of kindS, random orientation.
-// Orientation center of cavB is on COM of kindL, aligned with kindL backbon.
+// Orientation center of cavB is on COM of kindL, aligned with kindL backbone.
 // Delete the exchangeRatio kindS from cavA, and 1 kindL from cavB.
 // Insert the exchangeRatio kindS to cavB and 1 kindL inside the cavA.
 //Use CD-CBMC to build kindL
@@ -66,10 +66,10 @@ inline void IntraMoleculeExchange3::SetMEMC(StaticVals const& statV)
 inline void IntraMoleculeExchange3::AdjustExRatio()
 {
   if(((counter + 1) % perAdjust) == 0) {
-    uint exMax = ceil((float)molInCavCount / (float)perAdjust);
-    uint exMin = 1;
+    int exMax = ceil((float)molInCavCount / (float)perAdjust);
+    int exMin = 1;
 
-    uint index = kindS + kindL * molRef.GetKindsCount();
+    int index = kindS + kindL * molRef.GetKindsCount();
     double currAccept = (double)(accepted[sourceBox][index]) / (double)(trial[sourceBox][index]);
     if(std::abs(currAccept - lastAccept) >= 0.05 * currAccept) {
       if(currAccept > lastAccept) {
@@ -177,7 +177,7 @@ inline uint IntraMoleculeExchange3::Prep(const double subDraw,
   //AdjustExRatio();
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
-    //transfering type A from source
+    //transferring type A from source
     for(uint n = 0; n < numInCavA; n++) {
       newMolA.push_back(cbmc::TrialMol(molRef.kinds[kindIndexA[n]], boxDimRef,
                                        sourceBox));
@@ -186,7 +186,7 @@ inline uint IntraMoleculeExchange3::Prep(const double subDraw,
     }
 
     for(uint n = 0; n < numInCavB; n++) {
-      //transfering type B from source
+      //transferring type B from source
       newMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
                                        sourceBox));
       oldMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
@@ -253,8 +253,8 @@ inline uint IntraMoleculeExchange3::Transform()
   for(uint n = numInCavA; n > 0; n--) {
     cellList.RemoveMol(molIndexA[n - 1], sourceBox, coordCurrRef);
     molRef.kinds[kindIndexA[n - 1]].BuildIDOld(oldMolA[n - 1], molIndexA[n - 1]);
-    //Add bonded energy because we dont considered in DCRotate.cpp
-    oldMolA[n - 1].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n - 1], molIndexA[n - 1]));
+    //Add bonded energy because we don't consider it in DCRotate.cpp
+    oldMolA[n - 1].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n - 1]));
   }
 
   //Calc old energy before deleting
@@ -276,8 +276,8 @@ inline uint IntraMoleculeExchange3::Transform()
     molRef.kinds[kindIndexA[n]].BuildIDNew(newMolA[n], molIndexA[n]);
     ShiftMol(n, true);
     cellList.AddMol(molIndexA[n], sourceBox, coordCurrRef);
-    //Add bonded energy because we dont considered in DCRotate.cpp
-    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n], molIndexA[n]));
+    //Add bonded energy because we don't consider it in DCRotate.cpp
+    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n]));
     overlap |= newMolA[n].HasOverlap();
   }
 

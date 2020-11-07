@@ -283,14 +283,16 @@ inline bool BoxDimensions::InCavity(XYZ const& arr, XYZ const& center,
 }
 
 //Calculate transform
-inline XYZ BoxDimensions::TransformSlant(const XYZ &A, const uint b) const
+inline XYZ BoxDimensions::TransformSlant(const XYZ &A, __attribute__((unused)) const uint b) const
 {
+  // void(b);
   return A;
 }
 
 //Calculate transform
-inline XYZ BoxDimensions::TransformUnSlant(const XYZ &A, const uint b) const
+inline XYZ BoxDimensions::TransformUnSlant(const XYZ &A, __attribute__((unused)) const uint b) const
 {
+  // void(b);
   return A;
 }
 

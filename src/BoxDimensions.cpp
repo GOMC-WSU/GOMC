@@ -30,7 +30,6 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
         beta = 0.0;
       if(float(cryst.cellAngle[b][2]) == 90.0)
         gamma = 0.0;
-      double cosASq = alpha * alpha;
       double cosBSq = beta * beta;
       double cosGSq = gamma * gamma;
       double temp = (alpha - beta * gamma) / (sqrt(1.0 - cosGSq));
@@ -50,7 +49,7 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
       exit(EXIT_FAILURE);
     }
 
-    //Print Box dimensio info
+    //Print Box dimension info
     printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n",
            "Info: Box ", b, " Periodic Cell Basis 1",
            cellBasis[b].Get(0).x, cellBasis[b].Get(0).y,
@@ -258,7 +257,7 @@ double BoxDimensions::WrapPBC(double& v, const double ax) const
   //Note: testing shows that it's most efficient to negate if true.
   //Source:
   // http://jacksondunstan.com/articles/2052
-  if ( v >= ax ) //if +, wrap out to low end, on boundry will wrap to zero
+  if ( v >= ax ) //if +, wrap out to low end, on boundary will wrap to zero
     v -= ax;
   else if ( v < 0 ) //if -, wrap to high end
     v += ax;

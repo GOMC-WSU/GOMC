@@ -151,7 +151,7 @@ ConfigSetup::ConfigSetup(void)
 
 bool ConfigSetup::checkBool(std::string str)
 {
-  int k;
+  uint k;
   // capitalize string
   for(k = 0; k < str.length(); k++) {
     str[k] = toupper(str[k]);
@@ -167,11 +167,11 @@ bool ConfigSetup::checkBool(std::string str)
 
 bool ConfigSetup::CheckString(std::string str1, std::string str2)
 {
-  for(int k = 0; k < str1.length(); k++) {
+  for(uint k = 0; k < str1.length(); k++) {
     str1[k] = toupper(str1[k]);
   }
 
-  for(int j = 0; j < str2.length(); j++) {
+  for(uint j = 0; j < str2.length(); j++) {
     str2[j] = toupper(str2[j]);
   }
 

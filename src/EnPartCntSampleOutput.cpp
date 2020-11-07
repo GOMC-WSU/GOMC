@@ -28,7 +28,7 @@ EnPartCntSample::~EnPartCntSample()
   }
 }
 
-void EnPartCntSample::Init(pdb_setup::Atoms const& atoms,
+void EnPartCntSample::Init(__attribute__((unused)) pdb_setup::Atoms const& atoms,
                            config_setup::Output const& output)
 {
   InitVals(output.statistics.settings.hist);

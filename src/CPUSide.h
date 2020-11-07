@@ -37,10 +37,11 @@ struct CPUSide {
 private:
   Clock timer;
   std::vector<OutputableBase *> outObj;
-  ConsoleOutput console;
+  OutputVars varRef;
   PDBOutput pdb;
-  DCDOutput dcd;
   PSFOutput psf;
+  DCDOutput dcd;
+  ConsoleOutput console;
   BlockAverages block;
   Histogram hist;
   CheckpointOutput checkpoint;
@@ -50,7 +51,6 @@ private:
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   FreeEnergyOutput freeEnergy;
 #endif
-  OutputVars varRef;
 };
 
 #endif /*CPU_SIDE_H*/

@@ -235,7 +235,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
   } else //we didn't even try because we knew it would fail
     result = false;
 
-  moveSetRef.Update(mv::MOL_TRANSFER, result, step, destBox, kindIndex);
+  moveSetRef.Update(mv::MOL_TRANSFER, result, destBox, kindIndex);
 }
 
 #endif

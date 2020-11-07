@@ -70,12 +70,12 @@ public:
                                   const bool NB) const;
 
   //!Returns Ezero, no energy correction
-  virtual double EnergyLRC(const uint kind1, const uint kind2) const
+  virtual double EnergyLRC(__attribute__((unused)) const uint kind1, __attribute__((unused)) const uint kind2) const
   {
     return 0.0;
   }
   //!!Returns Ezero, no virial correction
-  virtual double VirialLRC(const uint kind1, const uint kind2) const
+  virtual double VirialLRC(__attribute__((unused)) const uint kind1, __attribute__((unused)) const uint kind2) const
   {
     return 0.0;
   }
@@ -105,7 +105,7 @@ protected:
 inline void FF_SWITCH::Init(ff_setup::Particle const& mie,
                             ff_setup::NBfix const& nbfix)
 {
-  //Initializ sigma and epsilon
+  //Initialize sigma and epsilon
   FFParticle::Init(mie, nbfix);
   rOn = forcefield.rswitch;
   rOnSq = rOn * rOn;

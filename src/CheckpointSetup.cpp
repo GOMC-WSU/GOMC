@@ -30,8 +30,8 @@ union int8_input_union {
 
 CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
-  boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
-  coordCurrRef(sys.coordinates)
+  boxDimRef(sys.boxDimRef),  molRef(statV.mol), coordCurrRef(sys.coordinates),
+  prngRef(sys.prng)
 #if GOMC_LIB_MPI
   , filename(sys.ms->replicaInputDirectoryPath + "checkpoint.dat")
 #else
@@ -76,7 +76,7 @@ void CheckpointSetup::readBoxDimensionsData()
   axis.resize(totalBoxes);
   cosAngle.resize(totalBoxes);
 
-  for(int b = 0; b < totalBoxes; b++) {
+  for(int b = 0; b < (int) totalBoxes; b++) {
     axis[b].resize(3);
     cosAngle[b].resize(3);
     axis[b][0] = readDoubleIn8Chars();
@@ -149,7 +149,7 @@ void CheckpointSetup::readCoordinates()
 
   // now let's read the coordinates one by one
   coords.Init(coordLength);
-  for(int i = 0; i < coordLength; i++) {
+  for(int i = 0; i < (int) coordLength; i++) {
     XYZ temp;
     temp.x = readDoubleIn8Chars();
     temp.y = readDoubleIn8Chars();
@@ -164,14 +164,14 @@ void CheckpointSetup::readMoleculeLookupData()
   molLookupVec.resize(readUintIn8Chars());
 
   // read the molLookup array itself
-  for(int i = 0; i < molLookupVec.size(); i++) {
+  for(int i = 0; i < (int) molLookupVec.size(); i++) {
     molLookupVec[i] = readUintIn8Chars();
   }
 
   // read the size of boxAndKindStart array
   boxAndKindStartVec.resize(readUintIn8Chars());
   // read the BoxAndKindStart array
-  for(int i = 0; i < boxAndKindStartVec.size(); i++) {
+  for(int i = 0; i < (int) boxAndKindStartVec.size(); i++) {
     boxAndKindStartVec[i] = readUintIn8Chars();
   }
 
@@ -181,7 +181,7 @@ void CheckpointSetup::readMoleculeLookupData()
   //read the size of fixedAtom array
   fixedAtomVec.resize(readUintIn8Chars());
   //read the fixedAtom array itself
-  for(int i = 0; i < fixedAtomVec.size(); i++) {
+  for(int i = 0; i < (int) fixedAtomVec.size(); i++) {
     fixedAtomVec[i] = readUintIn8Chars();
   }
 }
@@ -236,7 +236,6 @@ double CheckpointSetup::readDoubleIn8Chars()
 
 int8_t CheckpointSetup::readIntIn1Char()
 {
-  int8_t data;
   if(inputFile == NULL) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",
             filename.c_str());
@@ -260,7 +259,6 @@ int8_t CheckpointSetup::readIntIn1Char()
 
 uint32_t CheckpointSetup::readUintIn8Chars()
 {
-  uint32_t data;
   if(inputFile == NULL) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",
             filename.c_str());
@@ -290,7 +288,7 @@ void CheckpointSetup::SetStepNumber(ulong & startStep)
 
 void CheckpointSetup::SetBoxDimensions(BoxDimensions & boxDimRef)
 {
-  for(int b = 0; b < totalBoxes; b++) {
+  for(int b = 0; b < (int) totalBoxes; b++) {
     boxDimRef.axis.Set(b, axis[b][0], axis[b][1], axis[b][2]);
     boxDimRef.cosAngle[b][0] = this->cosAngle[b][0];
     boxDimRef.cosAngle[b][1] = this->cosAngle[b][1];
@@ -338,10 +336,10 @@ void CheckpointSetup::SetMoleculeLookup(MoleculeLookup & molLookupRef)
               << "molLookup size does not match with restart file\n";
     exit(EXIT_FAILURE);
   }
-  for(int i = 0; i < this->molLookupVec.size(); i++) {
+  for(int i = 0; i < (int) this->molLookupVec.size(); i++) {
     molLookupRef.molLookup[i] = this->molLookupVec[i];
   }
-  for(int i = 0; i < this->boxAndKindStartVec.size(); i++) {
+  for(int i = 0; i < (int) this->boxAndKindStartVec.size(); i++) {
     molLookupRef.boxAndKindStart[i] = this->boxAndKindStartVec[i];
   }
   molLookupRef.numKinds = this->numKinds;
@@ -371,11 +369,11 @@ CheckpointSetup::readVector3DDouble(std::vector<std::vector<std::vector<double> 
 
   // read array
   data.resize(size_x);
-  for(int i = 0; i < size_x; i++) {
+  for(int i = 0; i < (int) size_x; i++) {
     data[i].resize(size_y);
-    for(int j = 0; j < size_y; j++) {
+    for(int j = 0; j < (int) size_y; j++) {
       data[i][j].resize(size_z);
-      for(int k = 0; k < size_z; k++) {
+      for(int k = 0; k < (int) size_z; k++) {
         data[i][j][k] = readDoubleIn8Chars();
       }
     }
@@ -391,11 +389,11 @@ void CheckpointSetup::readVector3DUint(std::vector<std::vector<std::vector<uint>
 
   // read array
   data.resize(size_x);
-  for(int i = 0; i < size_x; i++) {
+  for(int i = 0; i < (int) size_x; i++) {
     data[i].resize(size_y);
-    for(int j = 0; j < size_y; j++) {
+    for(int j = 0; j < (int) size_y; j++) {
       data[i][j].resize(size_z);
-      for(int k = 0; k < size_z; k++) {
+      for(int k = 0; k < (int) size_z; k++) {
         data[i][j][k] = readUintIn8Chars();
       }
     }
@@ -410,9 +408,9 @@ void CheckpointSetup::readVector2DUint(std::vector<std::vector<uint> > &data)
 
   // read array
   data.resize(size_x);
-  for(int i = 0; i < size_x; i++) {
+  for(int i = 0; i < (int) size_x; i++) {
     data[i].resize(size_y);
-    for(int j = 0; j < size_y; j++) {
+    for(int j = 0; j < (int) size_y; j++) {
       data[i][j] = readUintIn8Chars();
     }
   }
@@ -425,7 +423,7 @@ void CheckpointSetup::readVector1DDouble(std::vector<double> &data)
 
   // read array
   data.resize(size_x);
-  for(int i = 0; i < size_x; i++) {
+  for(int i = 0; i < (int) size_x; i++) {
     data[i] = readDoubleIn8Chars();
   }
 }

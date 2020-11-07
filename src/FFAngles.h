@@ -17,7 +17,7 @@ class FFAngles
 {
 public:
   FFAngles(void) : Ktheta(NULL), theta0(NULL), fixed(NULL) {}
-  ~FFAngles(void)
+  virtual ~FFAngles(void)
   {
     delete[] Ktheta;
     delete[] theta0;

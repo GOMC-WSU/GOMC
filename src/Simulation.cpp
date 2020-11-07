@@ -26,7 +26,7 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
   system = new System(*staticValues, multisim);
   staticValues->Init(set, *system);
   system->Init(set, startStep);
-  //recal Init for static value for initializing ewald since ewald is
+  //recalc Init for static value for initializing ewald since ewald is
   //initialized in system
   staticValues->InitOver(set, *system);
   cpu = new CPUSide(*system, *staticValues, set);
@@ -57,7 +57,7 @@ void Simulation::RunSimulation(void)
 {
   double startEnergy = system->potential.totalEnergy.total;
   if(totalSteps == 0) {
-    for(int i = 0; i < frameSteps.size(); i++) {
+    for(int i = 0; i < (int) frameSteps.size(); i++) {
       if(i == 0) {
         cpu->Output(frameSteps[0] - 1);
         continue;

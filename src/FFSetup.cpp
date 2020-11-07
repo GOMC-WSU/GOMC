@@ -68,7 +68,7 @@ void FFSetup::Init(const std::vector<config_setup::FileName> & fileName, const b
   std::string commentStr = "REMARK ATOM ATOMS MASS set AEXP REXP HAEX AAEX NBOND "
                            "CUTNB END CTONN EPS VSWI NBXM INHI";
 
-  for(int p = 0; p < fileName.size(); p++) {
+  for(int p = 0; p < (int) fileName.size(); p++) {
     std::string name = fileName[p].name;
 
     std::map<std::string, ReadableBaseWithFirst *>::const_iterator sect, currSect;
@@ -336,7 +336,7 @@ void Dihedral::Read(Reader & param, std::string const& firstVar)
     exit(EXIT_FAILURE);
   }
   if(index == 0) {
-    //set phase shif for n=0 to 90 degree
+    //set phase shift for n=0 to 90 degree
     // We will have C0 = Kchi (1 + cos(0 * phi + 90)) = Kchi
     def = 90.00;
   }

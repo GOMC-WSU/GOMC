@@ -50,7 +50,7 @@ protected:
   virtual uint ReplaceMolecule();
   virtual double GetCoeff() const;
 
-  uint smallBB[2];
+  int smallBB[2];
   //To store total sets of exchange pairs
   vector< vector<uint> > smallBBVec;
 };
@@ -233,7 +233,7 @@ inline uint MoleculeExchange2::Prep(const double subDraw, const double movPerc)
     numTypeADest = (double)(molLookRef.NumKindInBox(kindIndexA[0], destBox));
     numTypeBSource = (double)(molLookRef.NumKindInBox(kindIndexB[0], sourceBox));
     numTypeBDest = (double)(molLookRef.NumKindInBox(kindIndexB[0], destBox));
-    //transfering type A from source to dest
+    //transferring type A from source to dest
     for(uint n = 0; n < numInCavA; n++) {
       newMolA.push_back(cbmc::TrialMol(molRef.kinds[kindIndexA[n]], boxDimRef,
                                        destBox));
@@ -242,7 +242,7 @@ inline uint MoleculeExchange2::Prep(const double subDraw, const double movPerc)
     }
 
     for(uint n = 0; n < numInCavB; n++) {
-      //transfering type B from dest to source
+      //transferring type B from dest to source
       newMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
                                        sourceBox));
       oldMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
@@ -336,15 +336,15 @@ inline uint MoleculeExchange2::Transform()
     for(uint n = numInCavA; n > 0; n--) {
       cellList.RemoveMol(molIndexA[n - 1], sourceBox, coordCurrRef);
       molRef.kinds[kindIndexA[n - 1]].BuildIDOld(oldMolA[n - 1], molIndexA[n - 1]);
-      //Add bonded energy because we dont considered in DCRotate.cpp
-      oldMolA[n - 1].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n - 1], molIndexA[n - 1]));
+      //Add bonded energy because we don't consider it in DCRotate.cpp
+      oldMolA[n - 1].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n - 1]));
     }
   } else {
     for(uint n = 0; n < numInCavA; n++) {
       cellList.RemoveMol(molIndexA[n], sourceBox, coordCurrRef);
       molRef.kinds[kindIndexA[n]].BuildIDOld(oldMolA[n], molIndexA[n]);
-      //Add bonded energy because we dont considered in DCRotate.cpp
-      oldMolA[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n], molIndexA[n]));
+      //Add bonded energy because we don't consider it in DCRotate.cpp
+      oldMolA[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n]));
     }
   }
 
@@ -352,8 +352,8 @@ inline uint MoleculeExchange2::Transform()
   for(uint n = 0; n < numInCavB; n++) {
     cellList.RemoveMol(molIndexB[n], destBox, coordCurrRef);
     molRef.kinds[kindIndexB[n]].BuildIDOld(oldMolB[n], molIndexB[n]);
-    //Add bonded energy because we dont considered in DCRotate.cpp
-    oldMolB[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolB[n], molIndexB[n]));
+    //Add bonded energy because we don't consider it in DCRotate.cpp
+    oldMolB[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolB[n]));
   }
 
   //Insert A to destBox
@@ -361,8 +361,8 @@ inline uint MoleculeExchange2::Transform()
     molRef.kinds[kindIndexA[n]].BuildIDNew(newMolA[n], molIndexA[n]);
     ShiftMol(true, n, sourceBox, destBox);
     cellList.AddMol(molIndexA[n], destBox, coordCurrRef);
-    //Add bonded energy because we dont considered in DCRotate.cpp
-    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n], molIndexA[n]));
+    //Add bonded energy because we don't consider it in DCRotate.cpp
+    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n]));
     overlap |= newMolA[n].HasOverlap();
   }
 
@@ -371,8 +371,8 @@ inline uint MoleculeExchange2::Transform()
     molRef.kinds[kindIndexB[n]].BuildIDNew(newMolB[n], molIndexB[n]);
     ShiftMol(false, n, destBox, sourceBox);
     cellList.AddMol(molIndexB[n], sourceBox, coordCurrRef);
-    //Add bonded energy because we dont considered in DCRotate.cpp
-    newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n], molIndexB[n]));
+    //Add bonded energy because we don't consider it in DCRotate.cpp
+    newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n]));
     overlap |= newMolB[n].HasOverlap();
   }
 

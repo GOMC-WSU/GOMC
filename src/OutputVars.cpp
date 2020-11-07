@@ -15,7 +15,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #endif
 
 OutputVars::OutputVars(System & sys, StaticVals const& statV) :
-  calc(sys.calcEnergy), T_in_K(statV.forcefield.T_in_K)
+  T_in_K(statV.forcefield.T_in_K), calc(sys.calcEnergy)
 {
   InitRef(sys, statV);
 }

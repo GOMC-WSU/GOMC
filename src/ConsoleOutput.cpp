@@ -27,7 +27,7 @@ void ConsoleOutput::DoOutput(const ulong step)
     std::cout << std::endl;
 
     for (uint b = 0; b < BOX_TOTAL; b++) {
-      PrintEnergy(b, var->energyRef[b], var->virialRef[b], -1);
+      PrintEnergy(b, var->energyRef[b], -1);
       std::cout <<  std::endl;
     }
 
@@ -67,7 +67,7 @@ void ConsoleOutput::DoOutput(const ulong step)
       }
 
       if(enableEnergy) {
-        PrintEnergy(b, var->energyRef[b], var->virialRef[b], step);
+        PrintEnergy(b, var->energyRef[b], step);
         std::cout << std::endl;
       }
 
@@ -189,7 +189,6 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
 
 void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const
 {
-  double density = 0.0;
   uint offset = box * var->numKinds;
 
   std::string title = "STAT_";
@@ -255,7 +254,7 @@ void ConsoleOutput::PrintPressureTensor(const uint box, const ulong step) const
 
 
 void ConsoleOutput::PrintEnergy(const uint box, Energy const& en,
-                                Virial const& vir, const ulong step) const
+                                const ulong step) const
 {
   std::string title = "ENER_";
   sstrm::Converter toStr;

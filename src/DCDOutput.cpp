@@ -34,7 +34,7 @@ DCDOutput::DCDOutput(System& sys, StaticVals const& statV) :
   }
 }
 
-void DCDOutput::Init(pdb_setup::Atoms const& atoms,
+void DCDOutput::Init(__attribute__((unused)) pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output)
 {
   enableStateOut = output.state_dcd.settings.enable;
@@ -182,7 +182,7 @@ void DCDOutput::DoOutput(const ulong step)
     // Determine which molecule is in which box. Assume we are in NVT
     // or NPT, otherwise, SetMolBoxVec would adjust the value.
     std::vector<int> molInBox(molRef.count, 0);
-    SetMolBoxVec(molInBox);
+    if (BOX_TOTAL > 1) SetMolBoxVec(molInBox);
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       //  Copy the coordinates for output
       SetCoordinates(molInBox, b);
@@ -347,7 +347,6 @@ void DCDOutput::Copy_lattice_to_unitcell(double *unitcell, int box) {
 
 void DCDOutput::SetMolBoxVec(std::vector<int> & mBox)
 {
-#if ENSEMBLE == GCMC || ENSEMBLE == GEMC
   for (int b = 0; b < BOX_TOTAL; ++b) {
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);
@@ -356,5 +355,4 @@ void DCDOutput::SetMolBoxVec(std::vector<int> & mBox)
       ++m;
     }
   }
-#endif
 }

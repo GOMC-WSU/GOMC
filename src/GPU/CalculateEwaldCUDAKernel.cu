@@ -560,7 +560,7 @@ __global__ void BoxForceReciprocalGPU(
         otherParticle < lastParticleWithinSameMolecule;
         otherParticle++) {
       if(particleID != otherParticle) {
-        DeviceInRcut(distSq, distVectX, distVectY, distVectZ, gpu_x, gpu_y, gpu_z, particleID, otherParticle, axx, axy, axz, box);
+        DeviceInRcut(distSq, distVectX, distVectY, distVectZ, gpu_x, gpu_y, gpu_z, particleID, otherParticle, axx, axy, axz);
         dist = sqrt(distSq);
 
         double expConstValue = exp(-1.0 * alphaSq * distSq);

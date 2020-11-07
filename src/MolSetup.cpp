@@ -847,8 +847,8 @@ namespace
 int ReadPSF(const char* psfFilename, MolMap& kindMap, SizeMap & sizeMap, pdb_setup::Atoms& pdbData, MolMap * kindMapFromBox1, SizeMap * sizeMapFromBox1)
 {
   FILE* psf = fopen(psfFilename, "r");
-  char* check;		//return value of fgets
-  int count;		//for number of bonds/angles/dihs
+  char* check;        //return value of fgets
+  int count;        //for number of bonds/angles/dihs
   if (psf == NULL) {
     fprintf(stderr, "ERROR: Failed to open PSF file %s for molecule data.\nExiting...\n", psfFilename);
     return errors::READ_ERROR;

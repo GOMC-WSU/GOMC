@@ -18,7 +18,7 @@ using namespace geom;
 // Intra Molecule Exchange Move:
 // KindA is small kind. KindB is large kind
 // Orientation center of cavA is on COM of kindS, aligned with kindS backbone.
-// Orientation center of cavB is on COM of kindL, aligned with kindL backbon.
+// Orientation center of cavB is on COM of kindL, aligned with kindL backbone.
 // Delete the exchangeRatio kindS from cavA, and 1 kindL from cavB.
 // Insert the exchangeRatio kindS to cavB and 1 kindL inside the cavA.
 
@@ -48,7 +48,7 @@ protected:
   virtual uint PickMolInCav();
   virtual double GetCoeff() const;
 
-  uint smallBB[2];
+  int smallBB[2];
   //To store total sets of exchange pairs
   vector< vector<uint> > smallBBVec;
 };
@@ -90,10 +90,10 @@ inline void IntraMoleculeExchange2::SetMEMC(StaticVals const& statV)
 inline void IntraMoleculeExchange2::AdjustExRatio()
 {
   if(((counter + 1) % perAdjust) == 0) {
-    uint exMax = ceil((float)molInCavCount / (float)perAdjust);
-    uint exMin = 1;
+    int exMax = ceil((float)molInCavCount / (float)perAdjust);
+    int exMin = 1;
 
-    uint index = kindS + kindL * molRef.GetKindsCount();
+    int index = kindS + kindL * molRef.GetKindsCount();
     double currAccept = (double)(accepted[sourceBox][index]) / (double)(trial[sourceBox][index]);
     if(std::abs(currAccept - lastAccept) >= 0.05 * currAccept) {
       if(currAccept > lastAccept) {
@@ -298,7 +298,7 @@ inline uint IntraMoleculeExchange2::Transform()
     cellList.RemoveMol(molIndexA[n - 1], sourceBox, coordCurrRef);
     molRef.kinds[kindIndexA[n - 1]].BuildIDOld(oldMolA[n - 1], molIndexA[n - 1]);
     // Add bonded energy because we don't considered in DCRotate.cpp
-    oldMolA[n - 1].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n - 1], molIndexA[n - 1]));
+    oldMolA[n - 1].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n - 1]));
   }
 
   // Calc old energy before deleting
@@ -306,7 +306,7 @@ inline uint IntraMoleculeExchange2::Transform()
     cellList.RemoveMol(molIndexB[n], sourceBox, coordCurrRef);
     molRef.kinds[kindIndexB[n]].BuildIDOld(oldMolB[n], molIndexB[n]);
     // Add bonded energy because we don't considered in DCRotate.cpp
-    oldMolB[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolB[n], molIndexB[n]));
+    oldMolB[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolB[n]));
   }
 
   // Insert kindL to cavity of center A
@@ -315,7 +315,7 @@ inline uint IntraMoleculeExchange2::Transform()
     ShiftMol(n, false);
     cellList.AddMol(molIndexB[n], sourceBox, coordCurrRef);
     // Add bonded energy because we don't considered in DCRotate.cpp
-    newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n], molIndexB[n]));
+    newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n]));
     overlap |= newMolB[n].HasOverlap();
   }
 
@@ -325,7 +325,7 @@ inline uint IntraMoleculeExchange2::Transform()
     ShiftMol(n, true);
     cellList.AddMol(molIndexA[n], sourceBox, coordCurrRef);
     // Add bonded energy because we don't considered in DCRotate.cpp
-    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n], molIndexA[n]));
+    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n]));
     overlap |= newMolA[n].HasOverlap();
   }
 

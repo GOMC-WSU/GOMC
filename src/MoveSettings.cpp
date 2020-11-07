@@ -80,7 +80,7 @@ void MoveSettings::Init(StaticVals const& statV,
 
 //Process results of move we just did in terms of acceptance counters
 void MoveSettings::Update(const uint move, const bool isAccepted,
-                          const uint step, const uint box, const uint kind)
+                          const uint box, const uint kind)
 {
   tries[box][move][kind]++;
   tempTries[box][move][kind]++;
@@ -141,42 +141,35 @@ void MoveSettings::AdjustMoves(const uint step)
 void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
 {
   //Update totals for the entire simulation
-  for(int m = 0; m < mp::MPTOTALTYPES; ++m) {
-    mp_tries[box][m] += mp_interval_tries[box][m];
-    mp_accepted[box][m] += mp_interval_accepted[box][m];
-  }
-  //Make sure we tried some displacements, otherwise mp_t_max will be nan
-  if((double)mp_interval_tries[box][mp::MPDISPLACE] != 0) {
-    double fractOfTotalAccept = ((double)mp_accepted[box][mp::MPDISPLACE] /
-                                 (double)mp_tries[box][mp::MPDISPLACE]) / mp::TARGET_ACCEPT_FRACT;
-    double fractOfIntervalAccept = ((double)mp_interval_accepted[box][mp::MPDISPLACE] /
-                                  (double)mp_interval_tries[box][mp::MPDISPLACE]) / mp::TARGET_ACCEPT_FRACT;
-    if (fractOfIntervalAccept > 0.0) {
-      mp_t_max[box] *= ((1.0-t_alpha) * fractOfTotalAccept + t_alpha * fractOfIntervalAccept);
+  mp_tries[box][typePick] += mp_interval_tries[box][typePick];
+  mp_accepted[box][typePick] += mp_interval_accepted[box][typePick];
+  
+  //Make sure we tried some of this move type, otherwise move max will be NaN
+  if((double)mp_interval_tries[box][typePick] != 0) {
+    double fractOfTotalAccept = ((double)mp_accepted[box][typePick] /
+                                 (double)mp_tries[box][typePick]) / mp::TARGET_ACCEPT_FRACT;
+    double fractOfIntervalAccept = ((double)mp_interval_accepted[box][typePick] /
+                                  (double)mp_interval_tries[box][typePick]) / mp::TARGET_ACCEPT_FRACT;
+    if (typePick == mp::MPDISPLACE) {
+      if (fractOfIntervalAccept > 0.0) {
+        mp_t_max[box] *= ((1.0-t_alpha) * fractOfTotalAccept
+                          + t_alpha * fractOfIntervalAccept);
+      } else {
+        mp_t_max[box] *= 0.5;
+      }
+      num::Bound<double>(mp_t_max[box], 0.001, (boxDimRef.axis.Min(box) * 0.5) - 0.001);
     } else {
-      mp_t_max[box] *= 0.5;
+      if (fractOfIntervalAccept > 0.0) {
+        mp_r_max[box] *= ((1.0-r_alpha) * fractOfTotalAccept
+                          + r_alpha * fractOfIntervalAccept);
+      } else {
+        mp_r_max[box] *= 0.5;
+      }
+      num::Bound<double>(mp_r_max[box], 0.001, M_PI - 0.001);
     }
-    num::Bound<double>(mp_t_max[box], 0.001, (boxDimRef.axis.Min(box) * 0.5) - 0.001);
     //Reset totals for next adjustment period
-    mp_interval_accepted[box][mp::MPDISPLACE] = 0;
-    mp_interval_tries[box][mp::MPDISPLACE] = 0;
-  }
-
-  //Make sure we tried some rotations, otherwise mp_r_max will be nan
-  if((double)mp_interval_tries[box][mp::MPROTATE] != 0) {
-    double fractOfTotalAccept = ((double)mp_accepted[box][mp::MPROTATE] /
-                                 (double)mp_tries[box][mp::MPROTATE]) / mp::TARGET_ACCEPT_FRACT;
-    double fractOfIntervalAccept = ((double)mp_interval_accepted[box][mp::MPROTATE] /
-                                  (double)mp_interval_tries[box][mp::MPROTATE]) / mp::TARGET_ACCEPT_FRACT;
-    if (fractOfIntervalAccept > 0.0) {
-      mp_r_max[box] *= ((1.0-r_alpha) * fractOfTotalAccept + r_alpha * fractOfIntervalAccept);
-    } else {
-      mp_r_max[box] *= 0.5;
-    }
-    num::Bound<double>(mp_r_max[box], 0.001, M_PI - 0.001);
-    //Reset totals for next adjustment period
-    mp_interval_accepted[box][mp::MPROTATE] = 0;
-    mp_interval_tries[box][mp::MPROTATE] = 0;
+    mp_interval_accepted[box][typePick] = 0;
+    mp_interval_tries[box][typePick] = 0;
   }
 }
 

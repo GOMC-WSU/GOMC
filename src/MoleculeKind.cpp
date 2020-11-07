@@ -104,8 +104,8 @@ void MoleculeKind::Init
 }
 
 MoleculeKind::MoleculeKind() : angles(3), dihedrals(4),
-  atomMass(NULL), atomCharge(NULL), builder(NULL),
-  atomKind(NULL) {}
+  atomMass(NULL), builder(NULL), atomKind(NULL),
+  atomCharge(NULL) {}
 
 
 MoleculeKind::~MoleculeKind()
@@ -130,7 +130,7 @@ void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
 
   /* These two entries all PSFOutput to 
     correctly assign residueIDs to a map containing
-    multiresidue and standard entries.  */
+    multi-residue and standard entries.  */
   isMultiResidue = molData.isMultiResidue;
   intraMoleculeResIDs = molData.intraMoleculeResIDs;
 

@@ -80,7 +80,7 @@ public:
 
   std::string LoadLine(Reader & param, std::string const& firstVar);
 
-//	private:
+//    private:
   std::vector<std::string> name;
   uint numTerms;
   bool multi;
@@ -99,7 +99,7 @@ public:
 #ifndef NDEBUG
   void PrintBrief();
 #endif
-//	private:
+//    private:
   std::vector<double> sigma, epsilon, sigma_1_4, epsilon_1_4;
   std::vector<uint> n, n_1_4;
 
@@ -124,7 +124,7 @@ public:
            const double expN_1_4
 #endif
           );
-//	private:
+//    private:
   std::vector<double> sigma, epsilon, sigma_1_4, epsilon_1_4;
 #ifdef MIE_INT_ONLY
   std::vector<uint> n, n_1_4;

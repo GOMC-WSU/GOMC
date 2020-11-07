@@ -49,9 +49,9 @@ System::System(StaticVals& statics, MultiSim const*const& multisim) :
 #if GOMC_LIB_MPI
   ms(multisim),
 #endif
+  moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
-  moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
   calcEnergy(statics, *this), checkpointSet(*this, statics)
 {
   calcEwald = NULL;
@@ -138,7 +138,7 @@ void System::Init(Setup const& set, ulong & startStep)
   cellList.SetCutoff();
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 
-  //check if we have to use cached version of ewlad or not.
+  //check if we have to use cached version of Ewald or not.
   bool ewald = set.config.sys.elect.ewald;
   bool cached = set.config.sys.elect.cache;
 

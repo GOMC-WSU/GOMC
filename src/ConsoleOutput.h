@@ -35,9 +35,9 @@ public:
   }
 
   //Console Output does not need to sample, so does nothing.
-  virtual void Sample(const ulong step) {}
+  virtual void Sample(__attribute__((unused)) const ulong step) {}
 
-  virtual void Init(pdb_setup::Atoms const& atoms,
+  virtual void Init(__attribute__((unused)) pdb_setup::Atoms const& atoms,
                     config_setup::Output const& output)
   {
     enableOut = output.console.enable;
@@ -73,8 +73,7 @@ private:
   void PrintMoveStat(const uint box, const ulong step) const;
   void PrintStatistic(const uint box, const ulong step) const;
   void PrintPressureTensor(const uint box, const ulong step) const;
-  void PrintEnergy(const uint box, Energy const& en, Virial const& vir,
-                   const ulong step) const;
+  void PrintEnergy(const uint box, Energy const& en, const ulong step) const;
   void PrintEnergyTitle();
   void PrintStatisticTitle();
   void PrintMoveTitle();

@@ -22,7 +22,7 @@ Histogram::Histogram(OutputVars & v)
   }
 }
 
-void Histogram::Init(pdb_setup::Atoms const& atoms,
+void Histogram::Init(__attribute__((unused)) pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output)
 {
   stepsPerSample = output.state.files.hist.stepsPerHistSample;

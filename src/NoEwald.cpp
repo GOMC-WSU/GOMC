@@ -68,7 +68,7 @@ double NoEwald::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
 
 
 //calculate self term for a box
-double NoEwald::BoxSelf(BoxDimensions const& boxAxes, uint box) const
+double NoEwald::BoxSelf(uint box) const
 {
   return 0.0;
 }

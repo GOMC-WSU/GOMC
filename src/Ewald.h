@@ -74,7 +74,7 @@ public:
   virtual double BoxReciprocal(uint box) const;
 
   //calculate self term for a box
-  virtual double BoxSelf(BoxDimensions const& boxAxes, uint box) const;
+  virtual double BoxSelf(uint box) const;
 
   //calculate reciprocal force term for a box
   virtual Virial VirialReciprocal(Virial& virial, uint box) const;

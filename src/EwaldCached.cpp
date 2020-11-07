@@ -28,7 +28,7 @@ EwaldCached::~EwaldCached()
 #ifdef _OPENMP
   #pragma omp parallel for default(none)
 #endif
-  for (int i = 0; i < mols.count; i++) {
+  for (int i = 0; i < (int) mols.count; i++) {
     SafeDeleteArray(cosMolRef[i]);
     SafeDeleteArray(sinMolRef[i]);
     SafeDeleteArray(cosMolBoxRecip[i]);
@@ -80,7 +80,7 @@ void EwaldCached::AllocMem()
 #ifdef _OPENMP
   #pragma omp parallel for default(none)
 #endif
-  for (int i = 0; i < mols.count; i++) {
+  for (int i = 0; i < (int) mols.count; i++) {
     cosMolRef[i] = new double[imageTotal];
     sinMolRef[i] = new double[imageTotal];
     cosMolBoxRecip[i] = new double[imageTotal];
@@ -112,7 +112,7 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 #ifdef _OPENMP
       #pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, startAtom, thisKind, thisMol)
 #endif
-      for (int i = 0; i < imageSize[box]; i++) {
+      for (int i = 0; i < (int) imageSize[box]; i++) {
         cosMolRef[*thisMol][i] = 0.0;
         sinMolRef[*thisMol][i] = 0.0;
 
@@ -149,10 +149,10 @@ double EwaldCached::BoxReciprocal(uint box) const
 #ifdef _OPENMP
     #pragma omp parallel for default(none) shared(box) reduction(+:energyRecip)
 #endif
-    for (int i = 0; i < imageSize[box]; i++) {
-      energyRecip += (( sumRnew[box][i] * sumRnew[box][i] +
-                        sumInew[box][i] * sumInew[box][i]) *
-                      prefact[box][i]);
+    for (int i = 0; i < (int) imageSize[box]; i++) {
+      energyRecip += ((sumRnew[box][i] * sumRnew[box][i] +
+                       sumInew[box][i] * sumInew[box][i]) *
+                       prefact[box][i]);
     }
   }
 
@@ -183,7 +183,7 @@ reduction(+:energyRecipNew)
 reduction(+:energyRecipNew)
 #endif
 #endif
-    for (int i = 0; i < imageSizeRef[box]; i++) {
+    for (int i = 0; i < (int) imageSizeRef[box]; i++) {
       double sumRealNew = 0.0;
       double sumImaginaryNew = 0.0;
       double sumRealOld = cosMolRef[molIndex][i];
@@ -257,7 +257,7 @@ reduction(+:energyRecipNew)
 reduction(+:energyRecipNew)
 #endif
 #endif
-    for (int i = 0; i < imageSizeRef[box]; i++) {
+    for (int i = 0; i < (int) imageSizeRef[box]; i++) {
       cosMolRef[molIndex][i] = 0.0;
       sinMolRef[molIndex][i] = 0.0;
 
@@ -293,8 +293,8 @@ reduction(+:energyRecipNew)
 //calculate reciprocal term in source box for swap move
 //No need to scale the charge with lambda, since this function will not be
 // called in free energy of CFCMC
-double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
-                                    const uint box, const int molIndex)
+double EwaldCached::SwapSourceRecip(__attribute__((unused)) const cbmc::TrialMol &oldMol,
+                                    const uint box, __attribute__((unused)) const int molIndex)
 {
   double energyRecipNew = 0.0;
   double energyRecipOld = 0.0;
@@ -307,7 +307,7 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
     #pragma omp parallel for default(none) reduction(+:energyRecipNew)
 #endif
 #endif
-    for (int i = 0; i < imageSizeRef[box]; i++) {
+    for (int i = 0; i < (int) imageSizeRef[box]; i++) {
       sumRnew[box][i] = sumRref[box][i] - cosMolRestore[i];
       sumInew[box][i] = sumIref[box][i] - sinMolRestore[i];
 
@@ -322,10 +322,10 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 
 //calculate reciprocal term for inserting some molecules (kindA) in destination
 // box and removing a molecule (kindB) from destination box
-double EwaldCached::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
-                              const std::vector<cbmc::TrialMol> &oldMol,
-                              const std::vector<uint> molIndexNew,
-                              const std::vector<uint> molIndexOld)
+double EwaldCached::SwapRecip(__attribute__((unused)) const std::vector<cbmc::TrialMol> &newMol,
+                              __attribute__((unused)) const std::vector<cbmc::TrialMol> &oldMol,
+                              __attribute__((unused)) const std::vector<uint> molIndexNew,
+                              __attribute__((unused)) const std::vector<uint> molIndexOld)
 {
   //This function should not be called in IDExchange move
   std::cout << "Error: Cached Fourier method cannot be used while " <<
@@ -335,9 +335,9 @@ double EwaldCached::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
 }
 
 //calculate reciprocal term for lambdaNew and Old with same coordinates
-double EwaldCached::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
-                               const double lambdaNew, const uint molIndex,
-                               const uint box)
+double EwaldCached::CFCMCRecip(__attribute__((unused)) XYZArray const& molCoords, __attribute__((unused)) const double lambdaOld,
+                               __attribute__((unused)) const double lambdaNew, __attribute__((unused)) const uint molIndex,
+                               __attribute__((unused)) const uint box)
 {
   //This function should not be called in CFCMC move
   std::cout << "Error: Cached Fourier method cannot be used while " <<
@@ -422,7 +422,7 @@ void EwaldCached::backupMolCache()
 #ifdef _OPENMP
   #pragma omp parallel for default(none)
 #endif
-  for(int m = 0; m < mols.count; m++) {
+  for(int m = 0; m < (int) mols.count; m++) {
     std::memcpy(cosMolBoxRecip[m], cosMolRef[m], sizeof(double) * imageTotal);
     std::memcpy(sinMolBoxRecip[m], sinMolRef[m], sizeof(double) * imageTotal);
   }

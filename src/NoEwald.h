@@ -25,7 +25,7 @@ public:
   virtual void RecipInit(uint box, BoxDimensions const& boxAxes);
 
   //calculate self term for a box
-  virtual double BoxSelf(BoxDimensions const& boxAxes, uint box) const;
+  virtual double BoxSelf(uint box) const;
 
   //setup reciprocate term for a box
   virtual void BoxReciprocalSetup(uint box, XYZArray const& molCoords);

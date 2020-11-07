@@ -32,7 +32,7 @@ public:
   void PrintPSF(const std::string& filename, const std::vector<std::string>& remarks) const;
 
   //PSF does not need to sample on every step, so does nothing.
-  virtual void Sample(const ulong step) {}
+  virtual void Sample(__attribute__((unused)) const ulong step) {}
 
   virtual void Init(pdb_setup::Atoms const& atoms, config_setup::Output const& output);
 
