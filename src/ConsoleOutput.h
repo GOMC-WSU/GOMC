@@ -35,9 +35,9 @@ public:
   }
 
   //Console Output does not need to sample, so does nothing.
-  virtual void Sample(__attribute__((unused)) const ulong step) {}
+  virtual void Sample(const ulong step) {}
 
-  virtual void Init(__attribute__((unused)) pdb_setup::Atoms const& atoms,
+  virtual void Init(pdb_setup::Atoms const& atoms,
                     config_setup::Output const& output)
   {
     enableOut = output.console.enable;

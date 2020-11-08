@@ -42,7 +42,7 @@ CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   outputFile = NULL;
 }
 
-void CheckpointOutput::Init(__attribute__((unused)) pdb_setup::Atoms const& atoms,
+void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
                             config_setup::Output const& output)
 {
   enableOutCheckpoint = output.checkpoint.enable;

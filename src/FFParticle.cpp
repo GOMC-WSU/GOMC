@@ -243,19 +243,19 @@ double FFParticle::GetN_1_4(const uint i, const uint j) const
   uint idx = FlatIndex(i, j);
   return n_1_4[idx];
 }
-inline double FFParticle::GetRmin(__attribute__((unused)) const uint i, __attribute__((unused)) const uint j) const
+inline double FFParticle::GetRmin(const uint i, const uint j) const
 {
   return 0.0;
 }
-inline double FFParticle::GetRmax(__attribute__((unused)) const uint i, __attribute__((unused)) const uint j) const
+inline double FFParticle::GetRmax(const uint i, const uint j) const
 {
   return 0.0;
 }
-inline double FFParticle::GetRmin_1_4(__attribute__((unused)) const uint i, __attribute__((unused)) const uint j) const
+inline double FFParticle::GetRmin_1_4(const uint i, const uint j) const
 {
   return 0.0;
 }
-inline double FFParticle::GetRmax_1_4(__attribute__((unused)) const uint i, __attribute__((unused)) const uint j) const
+inline double FFParticle::GetRmax_1_4(const uint i, const uint j) const
 {
   return 0.0;
 }

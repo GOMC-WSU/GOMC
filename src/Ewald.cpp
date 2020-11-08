@@ -736,7 +736,7 @@ reduction(+:energyRecipNew)
 }
 
 //restore cosMol and sinMol
-void Ewald::RestoreMol(__attribute__((unused)) int molIndex)
+void Ewald::RestoreMol(int molIndex)
 {
   return;
 }

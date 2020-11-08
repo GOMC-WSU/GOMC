@@ -27,7 +27,7 @@ public:
   virtual void DoOutput(const ulong step);
   virtual void Init(pdb_setup::Atoms const& atoms,
                     config_setup::Output const& output);
-  virtual void Sample(__attribute__((unused)) const ulong step) {}
+  virtual void Sample(const ulong step) {}
   virtual void Output(const ulong step)
   {
     if(!enableOutCheckpoint) {

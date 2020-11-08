@@ -85,7 +85,7 @@ void BlockAverage::DoWrite(uint precision)
   Zero();
 }
 
-void BlockAverages::Init(__attribute__((unused)) pdb_setup::Atoms const& atoms,
+void BlockAverages::Init(pdb_setup::Atoms const& atoms,
                          config_setup::Output const& output)
 {
 #if GOMC_LIB_MPI
@@ -125,7 +125,7 @@ void BlockAverages::AllocBlocks(void)
   blocks = new BlockAverage[totalBlocks];
 }
 
-void BlockAverages::Sample(__attribute__((unused)) const ulong step)
+void BlockAverages::Sample(const ulong step)
 {
   for (uint v = 0; v < totalBlocks; ++v)
     blocks[v].Sum();

@@ -230,7 +230,7 @@ inline double POW(const double d2, const double d4, const double d6,
 class Exp6Fun
 {
 public:
-  Exp6Fun(const double a, const double s) : alpha(a), sigma(s) {}
+  Exp6Fun(const double a, const double s) : sigma(s), alpha(a) {}
   virtual ~Exp6Fun() {};
   virtual float operator() (float x) = 0;
 
@@ -268,7 +268,7 @@ public:
 
 //Using Brent’s method, find the root of a function func known to lie between x1 and x2.
 //The root, returned as zbrent, will be refined until its accuracy is tol.
-//Brent, R.P. 1973, Algorithms for Minimization without Derivatives (Englewood Cliffs, NJ: PrenticeHall)
+//Brent, R.P. 1973, Algorithms for Minimization without Derivatives (Englewood Cliffs, NJ: Prentice-Hall)
 //Forsythe, G.E., Malcolm, M.A., and Moler, C.B. 1977, Computer Methods for Mathematical Computations (Englewood Cliffs, NJ: Prentice-Hall)
 inline double Zbrent(Exp6Fun* func, float x1, float x2, float tol)
 {

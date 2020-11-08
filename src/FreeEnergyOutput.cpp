@@ -26,8 +26,8 @@ FreeEnergyOutput::FreeEnergyOutput(OutputVars & v, System & sys) :
 #endif
 }
 
-void FreeEnergyOutput::Init(__attribute__((unused)) pdb_setup::Atoms const& atoms,
-                            __attribute__((unused)) config_setup::Output const& output)
+void FreeEnergyOutput::Init(pdb_setup::Atoms const& atoms,
+                            config_setup::Output const& output)
 {
   stepsPerSample = freeEnVal.frequency;
   stepsPerOut = freeEnVal.frequency;

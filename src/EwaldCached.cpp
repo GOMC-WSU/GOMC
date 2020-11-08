@@ -293,8 +293,8 @@ reduction(+:energyRecipNew)
 //calculate reciprocal term in source box for swap move
 //No need to scale the charge with lambda, since this function will not be
 // called in free energy of CFCMC
-double EwaldCached::SwapSourceRecip(__attribute__((unused)) const cbmc::TrialMol &oldMol,
-                                    const uint box, __attribute__((unused)) const int molIndex)
+double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
+                                    const uint box, const int molIndex)
 {
   double energyRecipNew = 0.0;
   double energyRecipOld = 0.0;
@@ -322,10 +322,10 @@ double EwaldCached::SwapSourceRecip(__attribute__((unused)) const cbmc::TrialMol
 
 //calculate reciprocal term for inserting some molecules (kindA) in destination
 // box and removing a molecule (kindB) from destination box
-double EwaldCached::SwapRecip(__attribute__((unused)) const std::vector<cbmc::TrialMol> &newMol,
-                              __attribute__((unused)) const std::vector<cbmc::TrialMol> &oldMol,
-                              __attribute__((unused)) const std::vector<uint> molIndexNew,
-                              __attribute__((unused)) const std::vector<uint> molIndexOld)
+double EwaldCached::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
+                              const std::vector<cbmc::TrialMol> &oldMol,
+                              const std::vector<uint> molIndexNew,
+                              const std::vector<uint> molIndexOld)
 {
   //This function should not be called in IDExchange move
   std::cout << "Error: Cached Fourier method cannot be used while " <<
@@ -335,9 +335,9 @@ double EwaldCached::SwapRecip(__attribute__((unused)) const std::vector<cbmc::Tr
 }
 
 //calculate reciprocal term for lambdaNew and Old with same coordinates
-double EwaldCached::CFCMCRecip(__attribute__((unused)) XYZArray const& molCoords, __attribute__((unused)) const double lambdaOld,
-                               __attribute__((unused)) const double lambdaNew, __attribute__((unused)) const uint molIndex,
-                               __attribute__((unused)) const uint box)
+double EwaldCached::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
+                               const double lambdaNew, const uint molIndex,
+                               const uint box)
 {
   //This function should not be called in CFCMC move
   std::cout << "Error: Cached Fourier method cannot be used while " <<

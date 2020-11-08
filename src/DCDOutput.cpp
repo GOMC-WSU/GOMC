@@ -34,7 +34,7 @@ DCDOutput::DCDOutput(System& sys, StaticVals const& statV) :
   }
 }
 
-void DCDOutput::Init(__attribute__((unused)) pdb_setup::Atoms const& atoms,
+void DCDOutput::Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output)
 {
   enableStateOut = output.state_dcd.settings.enable;

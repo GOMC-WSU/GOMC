@@ -900,7 +900,7 @@ void CalculateEnergy::BondVectors(XYZArray & vecs,
 void CalculateEnergy::MolBond(double & energy,
                               MoleculeKind const& molKind,
                               XYZArray const& vecs,
-                              __attribute__((unused)) const uint molIndex,
+                              const uint molIndex,
                               const uint box) const
 {
   if (box >= BOXES_WITH_U_B)
