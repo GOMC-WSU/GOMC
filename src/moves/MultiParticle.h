@@ -393,8 +393,7 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   }
 
   moveSetRef.UpdateMoveSettingMultiParticle(bPick, result, moveType);
-
-  moveSetRef.Update(mv::MULTIPARTICLE, result, step, bPick);
+  moveSetRef.Update(mv::MULTIPARTICLE, result, bPick);
 }
 
 inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, uint molIndex)

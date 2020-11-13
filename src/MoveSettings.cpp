@@ -16,6 +16,7 @@ const double MoveSettings::TARGET_ACCEPT_FRACT = 0.5;
 const double MoveSettings::TINY_AMOUNT = 1.0e-7;
 const double MoveSettings::r_alpha = 0.2;
 const double MoveSettings::t_alpha = 0.2;
+const double MoveSettings::mp_accept_tol = 0.1;
 
 void MoveSettings::Init(StaticVals const& statV,
                         pdb_setup::Remarks const& remarks,
@@ -140,30 +141,29 @@ void MoveSettings::AdjustMoves(const uint step)
 
 void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
 {
-  //Update totals for the entire simulation
-  mp_tries[box][typePick] += mp_interval_tries[box][typePick];
-  mp_accepted[box][typePick] += mp_interval_accepted[box][typePick];
-  
-  //Make sure we tried some of this move type, otherwise move max will be NaN
-  if((double)mp_interval_tries[box][typePick] != 0) {
+  //Make sure we tried some moves of this move type, otherwise move max will be NaN
+  if (mp_interval_tries[box][typePick] > 0) {
+    //Update totals for the entire simulation
+    mp_tries[box][typePick] += mp_interval_tries[box][typePick];
+    mp_accepted[box][typePick] += mp_interval_accepted[box][typePick];
     double fractOfTotalAccept = ((double)mp_accepted[box][typePick] /
                                  (double)mp_tries[box][typePick]) / mp::TARGET_ACCEPT_FRACT;
     double fractOfIntervalAccept = ((double)mp_interval_accepted[box][typePick] /
-                                  (double)mp_interval_tries[box][typePick]) / mp::TARGET_ACCEPT_FRACT;
+                                    (double)mp_interval_tries[box][typePick]) / mp::TARGET_ACCEPT_FRACT;
     if (typePick == mp::MPDISPLACE) {
-      if (fractOfIntervalAccept > 0.0) {
+      if (fractOfIntervalAccept == 0.0) {
+        mp_t_max[box] *= 0.5;
+      } else if (fabs(fractOfIntervalAccept - mp::TARGET_ACCEPT_FRACT) > mp_accept_tol) {
         mp_t_max[box] *= ((1.0-t_alpha) * fractOfTotalAccept
                           + t_alpha * fractOfIntervalAccept);
-      } else {
-        mp_t_max[box] *= 0.5;
       }
       num::Bound<double>(mp_t_max[box], 0.001, (boxDimRef.axis.Min(box) * 0.5) - 0.001);
     } else {
-      if (fractOfIntervalAccept > 0.0) {
+      if (fractOfIntervalAccept == 0.0) {
+        mp_r_max[box] *= 0.5;
+      } else if (fabs(fractOfIntervalAccept - mp::TARGET_ACCEPT_FRACT) > mp_accept_tol) {
         mp_r_max[box] *= ((1.0-r_alpha) * fractOfTotalAccept
                           + r_alpha * fractOfIntervalAccept);
-      } else {
-        mp_r_max[box] *= 0.5;
       }
       num::Bound<double>(mp_r_max[box], 0.001, M_PI - 0.001);
     }

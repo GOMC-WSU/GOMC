@@ -133,6 +133,8 @@ private:
   //The alpha values are used to control how much weight is placed on the number of accepted
   //moves from the most recent adjustment period versus on the total number of accepted moves
   static const double r_alpha, t_alpha;
+  //If the MultiParticle acceptance percentage is within mp_accept_tol, we don't adjust the max
+  static const double mp_accept_tol;
 
   // make CheckpointOutput and CheckpointSetup friend classes to have access to
   // private data
