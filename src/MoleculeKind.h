@@ -151,7 +151,7 @@ public:
   bool oneThree, oneFour;
 
   std::string name;
-  std::vector<std::string> atomNames, atomTypeNames;
+  std::vector<std::string> atomNames, atomTypeNames, resNames;
   double molMass;
 
   double * atomMass;

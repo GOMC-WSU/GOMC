@@ -127,6 +127,7 @@ void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
   atomCharge = new double[numAtoms];
   molMass = 0;
   atomNames.clear();
+  resNames.clear();
 
   /* These two entries all PSFOutput to 
     correctly assign residueIDs to a map containing
@@ -138,6 +139,7 @@ void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
   for(uint i = 0; i < numAtoms; ++i) {
     const mol_setup::Atom& atom = molData.atoms[i];
     atomNames.push_back(atom.name);
+    resNames.push_back(atom.residue);
     atomTypeNames.push_back(atom.type);
     atomMass[i] = atom.mass;
     molMass += atom.mass;
