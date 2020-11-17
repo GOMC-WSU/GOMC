@@ -145,7 +145,7 @@ void PSFOutput::CountMoleculesInBoxes()
       boxAtoms[b] += molKind.NumAtoms() * molLookRef.NumKindInBox(k, b);
       boxBonds[b] += molKind.NumBonds() * molLookRef.NumKindInBox(k, b);
       boxAngles[b] += molKind.NumAngles() * molLookRef.NumKindInBox(k, b);
-      boxDihs[b]s += molKind.NumDihs() * molLookRef.NumKindInBox(k, b);
+      boxDihs[b] += molKind.NumDihs() * molLookRef.NumKindInBox(k, b);
 
       atomT += molLookRef.NumKindInBox(k, b);
     }
