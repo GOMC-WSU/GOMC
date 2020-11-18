@@ -89,7 +89,7 @@ void DCDOutput::Init(pdb_setup::Atoms const& atoms,
       strcpy(outDCDRestartFile[b], fileName.c_str());
       // prepare the xsc file
       fileName = output.statistics.settings.uniqueStr.val;
-      fileName += "_BOX_" + std::to_string(b) + ".xsc";
+      fileName += "_BOX_" + std::to_string(b) + "_restart.xsc";
       baselen = strlen(fileName.c_str());
       outXSCFile[b] = new char[baselen];
       strcpy(outXSCFile[b], fileName.c_str());
