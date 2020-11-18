@@ -147,7 +147,7 @@ typedef std::map<std::size_t, std::vector<std::string> > SizeMap;
 *\return -1 if failed, 0 if successful
 */
 int ReadCombinePSF(MolMap& kindMap, SizeMap& sizeMap, const std::string* psfFilename,
-                   const int numFiles, pdb_setup::Atoms& pdbAtoms);
+                   const bool* psfDefined, pdb_setup::Atoms& pdbAtoms);
 
 void PrintMolMapVerbose(const MolMap& kindMap);
 void PrintMolMapBrief(const MolMap& kindMap);
@@ -174,7 +174,9 @@ public:
   //reads BoxTotal PSFs and merges the data, placing the results in kindMap
   //returns 0 if read is successful, -1 on a failure
   int Init(const config_setup::RestartSettings& restart,
-           const std::string* psfFilename, pdb_setup::Atoms& pdbAtoms);
+           const std::string* psfFilename, 
+           const bool* psfDefined, 
+           pdb_setup::Atoms& pdbAtoms);
 
   void AssignKinds(const pdb_setup::Atoms& pdbAtoms, const FFSetup& ffData);
 
