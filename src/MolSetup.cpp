@@ -213,7 +213,8 @@ std::vector<Bond> mol_setup::BondsAll(const MolKind& molKind)
 int mol_setup::ReadCombinePSF(MolMap& kindMap,
                               SizeMap& sizeMap,
                               std::string const*const psfFilename,
-                              const int numFiles, pdb_setup::Atoms& pdbAtoms)
+                              const bool* psfDefined, 
+                              pdb_setup::Atoms& pdbAtoms)
 {
   int errorcode = ReadPSF(psfFilename[0].c_str(), kindMap, sizeMap, pdbAtoms);
   int nAtoms = errorcode;
@@ -221,9 +222,9 @@ int mol_setup::ReadCombinePSF(MolMap& kindMap,
     return errorcode;
   MolMap map2;
   SizeMap sizeMap2;
-  for (int i = 1; i < numFiles; ++i) {
+  if (pdbAtoms.count != nAtoms && BOX_TOTAL == 2 && psfDefined[1]) {    
     map2.clear();
-    errorcode = ReadPSF(psfFilename[i].c_str(), map2, sizeMap2, pdbAtoms, &kindMap, &sizeMap);
+    errorcode = ReadPSF(psfFilename[1].c_str(), map2, sizeMap2, pdbAtoms, &kindMap, &sizeMap);
     nAtoms += errorcode;
     if (errorcode < 0)
       return errorcode;
@@ -242,17 +243,13 @@ int mol_setup::ReadCombinePSF(MolMap& kindMap,
   return 0;
 }
 int MolSetup::Init(const config_setup::RestartSettings& restart,
-                   const std::string* psfFilename, pdb_setup::Atoms& pdbAtoms)
+                   const std::string* psfFilename, 
+                   const bool* psfDefined, 
+                   pdb_setup::Atoms& pdbAtoms)
 {
   kindMap.clear();
   sizeMap.clear();
-  int numFiles;
-  if(restart.enable)
-    numFiles = 1;
-  else
-    numFiles = BOX_TOTAL;
-
-  return ReadCombinePSF(kindMap, sizeMap, psfFilename, numFiles, pdbAtoms);
+  return ReadCombinePSF(kindMap, sizeMap, psfFilename, psfDefined, pdbAtoms);
 }
 
 

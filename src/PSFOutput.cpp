@@ -18,6 +18,11 @@ const char* atomHeader = "!NATOM";
 const char* bondHeader = "!NBOND: bonds";
 const char* angleHeader = "!NTHETA: angles";
 const char* dihedralHeader = "!NPHI: dihedrals";
+const char* improperHeader = "!NIMPHI: impropers";
+const char* donorHeader = "!NDON: donors";
+const char* acceptorHeader = "!NACC: acceptors";
+const char* excludedHeader = "!NNB";
+const char* groupHeader = "!NGRP";
 
 const char* headerFormat = "%8d %s \n";
 //atom ID, segment name, residue ID, residue name,
@@ -95,6 +100,7 @@ void PSFOutput::DoOutput(const ulong step)
     PrintBondsInBox(outfile, b);
     PrintAnglesInBox(outfile, b);
     PrintDihedralsInBox(outfile, b);
+    PrintNAMDCompliantSuffixInBox(outfile, b);
     fclose(outfile);
   }
 }
@@ -176,6 +182,7 @@ void PSFOutput::PrintPSF(const std::string& filename,
   PrintBonds(outfile);
   PrintAngles(outfile);
   PrintDihedrals(outfile);
+  PrintNAMDCompliantSuffix(outfile);
   fclose(outfile);
 }
 
@@ -217,6 +224,8 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
       }
       ++atomID;
     }
+    /* This isn't actually residue, it is running count of the number of
+      molecule kinds we have printed */
     ++resID;
     /* To add additional intramolecular residues */
     if (molKinds[thisKind].isMultiResidue){
@@ -295,6 +304,18 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
   fputs("\n\n", outfile);
 }
 
+  void PSFOutput::PrintNAMDCompliantSuffix(FILE* outfile) const {
+    fprintf(outfile, headerFormat, 0, improperHeader);
+    fputs("\n\n", outfile);
+    fprintf(outfile, headerFormat, 0, donorHeader);
+    fputs("\n\n", outfile);
+    fprintf(outfile, headerFormat, 0, acceptorHeader);
+    fputs("\n\n", outfile);
+    fprintf(outfile, headerFormat, 0, excludedHeader);
+    fputs("\n\n", outfile);
+    fprintf(outfile, headerFormat, 0, groupHeader);
+  }
+
   void PSFOutput::PrintRemarksInBox(FILE* outfile, uint b) const {
     std::vector<std::string> remarks;
     std::string boxSpecific;
@@ -338,8 +359,8 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
     // ???
       if(resID == 10000)
         resID = 1;
-  }
-  fputc('\n', outfile);
+    }
+    fputc('\n', outfile);
   }
   void PSFOutput::PrintBondsInBox(FILE* outfile, uint b) const {
     fprintf(outfile, headerFormat, boxBonds[b], bondHeader);
@@ -400,4 +421,16 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
       atomID += thisKind.atoms.size();
     }
     fputs("\n\n", outfile);
+  }
+
+  void PSFOutput::PrintNAMDCompliantSuffixInBox(FILE* outfile, uint b) const {
+    fprintf(outfile, headerFormat, 0, improperHeader);
+    fputs("\n\n", outfile);
+    fprintf(outfile, headerFormat, 0, donorHeader);
+    fputs("\n\n", outfile);
+    fprintf(outfile, headerFormat, 0, acceptorHeader);
+    fputs("\n\n", outfile);
+    fprintf(outfile, headerFormat, 0, excludedHeader);
+    fputs("\n\n", outfile);
+    fprintf(outfile, headerFormat, 0, groupHeader);
   }

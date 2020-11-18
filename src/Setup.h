@@ -57,7 +57,7 @@ public:
             to serve as a multiresidue molecule entry into the kindMap containing
             all these residues.  This is as upstream as possible to change as little code
             as necessary */
-    if(mol.Init(config.in.restart, config.in.files.psf.name, pdb.atoms) != 0) {
+    if(mol.Init(config.in.restart, config.in.files.psf.name, config.in.files.psf.defined, pdb.atoms) != 0) {
       exit(EXIT_FAILURE);
     }
     mol.AssignKinds(pdb.atoms, ff);
