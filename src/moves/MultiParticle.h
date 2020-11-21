@@ -167,6 +167,8 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
     moveType = mp::MPDISPLACE;
   }
 
+  //We don't use forces for non-MP moves, so we need to calculate them for the
+  //current system if any other moves, besides other MP moves, have been accepted.
   if(moveSetRef.GetSingleMoveAccepted()) {
     //Calculate force for long range electrostatic using old position
     calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef,
@@ -196,6 +198,8 @@ inline void MultiParticle::PrepCFCMC(const uint box)
     moveType = mp::MPDISPLACE;
   }
 
+  //We don't use forces for non-MP moves, so we need to calculate them for the
+  //current system if any other moves, besides other MP moves, have been accepted.
   if(moveSetRef.GetSingleMoveAccepted()) {
     //Calculate force for long range electrostatic using old position
     calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef,

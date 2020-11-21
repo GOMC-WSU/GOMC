@@ -110,6 +110,11 @@ public:
     isSingleMoveAccepted = true;
   }
 
+  inline void ClearSingleMoveAccepted()
+  {
+    isSingleMoveAccepted = false;
+  }
+
 private:
 
   std::vector< std::vector< std::vector<double> > > scale, acceptPercent;

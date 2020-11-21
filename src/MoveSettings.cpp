@@ -22,7 +22,9 @@ void MoveSettings::Init(StaticVals const& statV,
                         pdb_setup::Remarks const& remarks,
                         const uint tkind)
 {
-  isSingleMoveAccepted = true;
+  //Set to true so that we calculate the forces for the current system, even if
+  //a MultiParticle move is called before any other moves are accepted.
+  SetSingleMoveAccepted();
   totKind = tkind;
   perAdjust = statV.simEventFreq.perAdjust;
   for(uint b = 0; b < BOX_TOTAL; b++) {
@@ -90,11 +92,11 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
     accepted[box][move][kind]++;
 
     if(move != mv::MULTIPARTICLE)
-      isSingleMoveAccepted = true;
+      SetSingleMoveAccepted();
   }
 
   if(move == mv::MULTIPARTICLE)
-    isSingleMoveAccepted = false;
+    ClearSingleMoveAccepted();
 
   acceptPercent[box][move][kind] = (double)(accepted[box][move][kind]) /
                                    (double)(tries[box][move][kind]);
