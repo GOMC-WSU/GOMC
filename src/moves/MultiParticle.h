@@ -227,20 +227,20 @@ inline uint MultiParticle::Transform()
   uint state = mv::fail_state::NO_FAIL;
 #ifdef GOMC_CUDA
   // calculate which particles are inside moleculeIndex
-  std::vector<int> isMoleculeInvolved(newMolsPos.Count(), 0);
-  for(int particleID = 0; particleID < isMoleculeInvolved.size(); particleID++) {
+  std::vector<int> isParticleInvolved(newMolsPos.Count(), 0);
+  for(int particleID = 0; particleID < isParticleInvolved.size(); particleID++) {
     int midx = particleMol[particleID];
     std::vector<uint>::iterator it;
     it = find(moleculeIndex.begin(), moleculeIndex.end(), midx);
     if(it != moleculeIndex.end()) {
-      isMoleculeInvolved[particleID] = 1;
+      isParticleInvolved[particleID] = 1;
     }
   }
 
   // This kernel will calculate translation/rotation amount + shifting/rotating
   if(moveType == mp::MPROTATE) {
     double r_max = moveSetRef.GetRMAX(bPick);
-    CallRotateParticlesGPU(cudaVars, isMoleculeInvolved, r_max,
+    CallRotateParticlesGPU(cudaVars, isParticleInvolved, r_max,
                            molTorqueRef.x, molTorqueRef.y, molTorqueRef.z,
                            r123wrapper.GetStep(), r123wrapper.GetSeedValue(),
                            particleMol, atomForceRecNew.Count(),
@@ -249,7 +249,7 @@ inline uint MultiParticle::Transform()
                            newMolsPos, newCOMs, lambda * BETA, r_k);
   } else {
     double t_max = moveSetRef.GetTMAX(bPick);
-    CallTranslateParticlesGPU(cudaVars, isMoleculeInvolved, t_max,
+    CallTranslateParticlesGPU(cudaVars, isParticleInvolved, t_max,
                               molForceRef.x, molForceRef.y, molForceRef.z,
                               r123wrapper.GetStep(), r123wrapper.GetSeedValue(),
                               particleMol, atomForceRecNew.Count(),
