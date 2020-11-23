@@ -17,9 +17,9 @@ union dbl_input_union {
   double dbl_value;
 };
 
-union uint32_input_union {
+union uint64_input_union {
   char bin_value[8];
-  uint32_t uint_value;
+  uint64_t uint_value;
 };
 
 union int8_input_union {
@@ -44,11 +44,10 @@ CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV) :
 
 void CheckpointSetup::ReadAll()
 {
+  readGOMCVersion();
   openInputFile();
   readStepNumber();
-  readBoxDimensionsData();
   readRandomNumbers();
-  readCoordinates();
   readMoleculeLookupData();
   readMoveSettingsData();
 #if GOMC_LIB_MPI
@@ -57,6 +56,26 @@ void CheckpointSetup::ReadAll()
     readRandomNumbersParallelTempering();
 #endif
   std::cout << "Checkpoint loaded from " << filename << std::endl;
+}
+
+bool CheckpointSetup::isLegacy()
+{
+  char first_symbol = ' ';
+  int ret = fscanf(inputFile, "%c", &first_symbol);
+  return first_symbol != '$';
+}
+
+void CheckpointSetup::readGOMCVersion()
+{
+  if(isLegacy()) {
+    // Return cursor to beginning of the file
+    fseek(inputFile, 0, SEEK_SET);
+    sprintf(gomc_version, "0.00\0");
+  } else {
+    fscanf(inputFile, "%[^$]", gomc_version);
+    // Move the cursor past the $ sign
+    fseek(inputFile, 1, SEEK_CUR);
+  }
 }
 
 void CheckpointSetup::readParallelTemperingBoolean()
@@ -257,14 +276,14 @@ int8_t CheckpointSetup::readIntIn1Char()
   return temp.int_value;
 }
 
-uint32_t CheckpointSetup::readUintIn8Chars()
+uint64_t CheckpointSetup::readUintIn8Chars()
 {
   if(inputFile == NULL) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",
             filename.c_str());
     exit(EXIT_FAILURE);
   }
-  uint32_input_union temp;
+  uint64_input_union temp;
   int ret = fscanf(inputFile, "%c%c%c%c%c%c%c%c",
                    &temp.bin_value[0],
                    &temp.bin_value[1],
