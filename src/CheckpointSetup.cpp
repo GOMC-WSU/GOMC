@@ -22,6 +22,11 @@ union uint64_input_union {
   uint64_t uint_value;
 };
 
+union uint32_input_union {
+  char bin_value[4];
+  uint32_t uint_value;
+}
+
 union int8_input_union {
   char bin_value[1];
   int8_t int_value;
@@ -80,30 +85,30 @@ void CheckpointSetup::readGOMCVersion()
 
 void CheckpointSetup::readParallelTemperingBoolean()
 {
-  parallelTemperingWasEnabled = readIntIn1Char();
+  parallelTemperingWasEnabled = read_uint8_binary();
 }
 
 void CheckpointSetup::readStepNumber()
 {
-  stepNumber = readUintIn8Chars();
+  stepNumber = read_uint64_binary();
 }
 
 void CheckpointSetup::readBoxDimensionsData()
 {
   // read the number of boxes
-  totalBoxes = readUintIn8Chars();
+  totalBoxes = read_uint64_binary();
   axis.resize(totalBoxes);
   cosAngle.resize(totalBoxes);
 
   for(int b = 0; b < (int) totalBoxes; b++) {
     axis[b].resize(3);
     cosAngle[b].resize(3);
-    axis[b][0] = readDoubleIn8Chars();
-    axis[b][1] = readDoubleIn8Chars();
-    axis[b][2] = readDoubleIn8Chars();
-    cosAngle[b][0] = readDoubleIn8Chars();
-    cosAngle[b][1] = readDoubleIn8Chars();
-    cosAngle[b][2] = readDoubleIn8Chars();
+    axis[b][0] = read_double_binary();
+    axis[b][1] = read_double_binary();
+    axis[b][2] = read_double_binary();
+    cosAngle[b][0] = read_double_binary();
+    cosAngle[b][1] = read_double_binary();
+    cosAngle[b][2] = read_double_binary();
   }
 }
 
@@ -118,18 +123,18 @@ void CheckpointSetup::readRandomNumbers()
   }
   saveArray = new uint32_t[N];
   for(int i = 0; i < N; i++) {
-    saveArray[i] = readUintIn8Chars();
+    saveArray[i] = read_uint64_binary();
   }
 
   // Read the location of pointer in state
-  seedLocation = readUintIn8Chars();
+  seedLocation = read_uint64_binary();
 
   // Read the "left" value so we can restore
-  seedLeft = readUintIn8Chars();
+  seedLeft = read_uint64_binary();
 
   // let's save seedValue just in case
   // not sure if that is used or not, or how important it is
-  seedValue = readUintIn8Chars();
+  seedValue = read_uint64_binary();
 }
 
 #if GOMC_LIB_MPI
@@ -145,18 +150,18 @@ void CheckpointSetup::readRandomNumbersParallelTempering()
   }
   saveArrayPT = new uint32_t[N];
   for(int i = 0; i < N; i++) {
-    saveArrayPT[i] = readUintIn8Chars();
+    saveArrayPT[i] = read_uint64_binary();
   }
 
   // Read the location of pointer in state
-  seedLocationPT = readUintIn8Chars();
+  seedLocationPT = read_uint64_binary();
 
   // Read the "left" value so we can restore
-  seedLeftPT = readUintIn8Chars();
+  seedLeftPT = read_uint64_binary();
 
   // let's save seedValue just in case
   // not sure if that is used or not, or how important it is
-  seedValuePT = readUintIn8Chars();
+  seedValuePT = read_uint64_binary();
 }
 
 #endif
@@ -164,15 +169,15 @@ void CheckpointSetup::readRandomNumbersParallelTempering()
 void CheckpointSetup::readCoordinates()
 {
   // first let's read the count
-  coordLength = readUintIn8Chars();
+  coordLength = read_uint64_binary();
 
   // now let's read the coordinates one by one
   coords.Init(coordLength);
   for(int i = 0; i < (int) coordLength; i++) {
     XYZ temp;
-    temp.x = readDoubleIn8Chars();
-    temp.y = readDoubleIn8Chars();
-    temp.z = readDoubleIn8Chars();
+    temp.x = read_double_binary();
+    temp.y = read_double_binary();
+    temp.z = read_double_binary();
     coords.Set(i, temp);
   }
 }
@@ -180,28 +185,28 @@ void CheckpointSetup::readCoordinates()
 void CheckpointSetup::readMoleculeLookupData()
 {
   // read the size of molLookup array
-  molLookupVec.resize(readUintIn8Chars());
+  molLookupVec.resize(read_uint64_binary());
 
   // read the molLookup array itself
   for(int i = 0; i < (int) molLookupVec.size(); i++) {
-    molLookupVec[i] = readUintIn8Chars();
+    molLookupVec[i] = read_uint64_binary();
   }
 
   // read the size of boxAndKindStart array
-  boxAndKindStartVec.resize(readUintIn8Chars());
+  boxAndKindStartVec.resize(read_uint64_binary());
   // read the BoxAndKindStart array
   for(int i = 0; i < (int) boxAndKindStartVec.size(); i++) {
-    boxAndKindStartVec[i] = readUintIn8Chars();
+    boxAndKindStartVec[i] = read_uint64_binary();
   }
 
   // read numKinds
-  numKinds = readUintIn8Chars();
+  numKinds = read_uint64_binary();
 
   //read the size of fixedAtom array
-  fixedAtomVec.resize(readUintIn8Chars());
+  fixedAtomVec.resize(read_uint64_binary());
   //read the fixedAtom array itself
   for(int i = 0; i < (int) fixedAtomVec.size(); i++) {
-    fixedAtomVec[i] = readUintIn8Chars();
+    fixedAtomVec[i] = read_uint64_binary();
   }
 }
 
@@ -229,7 +234,7 @@ void CheckpointSetup::openInputFile()
   }
 }
 
-double CheckpointSetup::readDoubleIn8Chars()
+double CheckpointSetup::read_double_binary()
 {
   if(inputFile == NULL) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",
@@ -253,7 +258,7 @@ double CheckpointSetup::readDoubleIn8Chars()
   return temp.dbl_value;
 }
 
-int8_t CheckpointSetup::readIntIn1Char()
+int8_t CheckpointSetup::read_uint8_binary()
 {
   if(inputFile == NULL) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",
@@ -276,7 +281,29 @@ int8_t CheckpointSetup::readIntIn1Char()
   return temp.int_value;
 }
 
-uint64_t CheckpointSetup::readUintIn8Chars()
+uint32_t CheckpointSetup::read_uint32_binary()
+{
+  if(inputFile == NULL) {
+    fprintf(stderr, "Error opening checkpoint output file %s\n",
+            filename.c_str());
+    exit(EXIT_FAILURE);
+  }
+  uint32_input_union temp;
+  int ret = fscanf(inputFile, "%c%c%c%c",
+                   &temp.bin_value[0],
+                   &temp.bin_value[1],
+                   &temp.bin_value[2],
+                   &temp.bin_value[3]);
+  if(ret != 8) {
+    std::cerr << "CheckpointSetup couldn't read required data from binary!\n";
+    exit(EXIT_FAILURE);
+  }
+  // Fix endianness, implementation in lib/Endian.h
+  ftoh32(temp.uint_value);
+  return temp.uint_value;
+}
+
+uint64_t CheckpointSetup::read_uint64_binary()
 {
   if(inputFile == NULL) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",
@@ -297,6 +324,8 @@ uint64_t CheckpointSetup::readUintIn8Chars()
     std::cerr << "CheckpointSetup couldn't read required data from binary!\n";
     exit(EXIT_FAILURE);
   }
+  // Fix endianness, implementation in lib/Endian.h
+  ftoh64(temp.uint_value);
   return temp.uint_value;
 }
 
@@ -382,9 +411,9 @@ void
 CheckpointSetup::readVector3DDouble(std::vector<std::vector<std::vector<double> > > &data)
 {
   // read size of data
-  ulong size_x = readUintIn8Chars();
-  ulong size_y = readUintIn8Chars();
-  ulong size_z = readUintIn8Chars();
+  ulong size_x = read_uint64_binary();
+  ulong size_y = read_uint64_binary();
+  ulong size_z = read_uint64_binary();
 
   // read array
   data.resize(size_x);
@@ -393,7 +422,7 @@ CheckpointSetup::readVector3DDouble(std::vector<std::vector<std::vector<double> 
     for(int j = 0; j < (int) size_y; j++) {
       data[i][j].resize(size_z);
       for(int k = 0; k < (int) size_z; k++) {
-        data[i][j][k] = readDoubleIn8Chars();
+        data[i][j][k] = read_double_binary();
       }
     }
   }
@@ -402,9 +431,9 @@ CheckpointSetup::readVector3DDouble(std::vector<std::vector<std::vector<double> 
 void CheckpointSetup::readVector3DUint(std::vector<std::vector<std::vector<uint> > > &data)
 {
   // read size of data
-  ulong size_x = readUintIn8Chars();
-  ulong size_y = readUintIn8Chars();
-  ulong size_z = readUintIn8Chars();
+  ulong size_x = read_uint64_binary();
+  ulong size_y = read_uint64_binary();
+  ulong size_z = read_uint64_binary();
 
   // read array
   data.resize(size_x);
@@ -413,7 +442,7 @@ void CheckpointSetup::readVector3DUint(std::vector<std::vector<std::vector<uint>
     for(int j = 0; j < (int) size_y; j++) {
       data[i][j].resize(size_z);
       for(int k = 0; k < (int) size_z; k++) {
-        data[i][j][k] = readUintIn8Chars();
+        data[i][j][k] = read_uint64_binary();
       }
     }
   }
@@ -422,15 +451,15 @@ void CheckpointSetup::readVector3DUint(std::vector<std::vector<std::vector<uint>
 void CheckpointSetup::readVector2DUint(std::vector<std::vector<uint> > &data)
 {
   // read size of data
-  ulong size_x = readUintIn8Chars();
-  ulong size_y = readUintIn8Chars();
+  ulong size_x = read_uint64_binary();
+  ulong size_y = read_uint64_binary();
 
   // read array
   data.resize(size_x);
   for(int i = 0; i < (int) size_x; i++) {
     data[i].resize(size_y);
     for(int j = 0; j < (int) size_y; j++) {
-      data[i][j] = readUintIn8Chars();
+      data[i][j] = read_uint64_binary();
     }
   }
 }
@@ -438,11 +467,11 @@ void CheckpointSetup::readVector2DUint(std::vector<std::vector<uint> > &data)
 void CheckpointSetup::readVector1DDouble(std::vector<double> &data)
 {
 // read size of data
-  ulong size_x = readUintIn8Chars();
+  ulong size_x = read_uint64_binary();
 
   // read array
   data.resize(size_x);
   for(int i = 0; i < (int) size_x; i++) {
-    data[i] = readDoubleIn8Chars();
+    data[i] = read_double_binary();
   }
 }

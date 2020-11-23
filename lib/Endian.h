@@ -36,6 +36,8 @@
  *
  */
 
+#include <stdlib.h>
+
 #define bswap_64(x)                            \
   ((((x) & 0xff00000000000000ull) >> 56)       \
    | (((x) & 0x00ff000000000000ull) >> 40)     \
@@ -57,18 +59,18 @@
    | (((x) & 0x00ff) << 8))
 
 enum ENDIANNESS {
-  LITTLE_ENDIAN,
-  BIG_ENDIAN,
-  UNHANDLE
+  __LITTLE_ENDIAN,
+  __BIG_ENDIAN,
+  __UNHANDLE
 };
 
-ENDIANNES GetEndian() {
+ENDIANNESS GetEndian() {
   long int endian = 0x0000000000000001;
-  return (*(char *) &endian == 0x01) ? LITTLE_ENDIAN : BIG_ENDIAN;
+  return (*(char *) &endian == 0x01) ? __LITTLE_ENDIAN : __BIG_ENDIAN;
 }
 
 uint64_t htof64(uint64_t host_integer) {
-  if(GetEndian() == LITTLE_ENDIAN) {
+  if(GetEndian() == __LITTLE_ENDIAN) {
     // Same endianness, so just return the same integer
     return host_integer;
   } else {
@@ -78,7 +80,7 @@ uint64_t htof64(uint64_t host_integer) {
 }
 
 uint64_t ftoh64(uint64_t file_integer) {
-  if(GetEndian() == LITTLE_ENDIAN) {
+  if(GetEndian() == __LITTLE_ENDIAN) {
     // Same endianness, so just return the same integer
     return file_integer;
   } else {
@@ -88,7 +90,7 @@ uint64_t ftoh64(uint64_t file_integer) {
 }
 
 uint32_t htof32(uint32_t host_integer) {
-  if(GetEndian() == LITTLE_ENDIAN) {
+  if(GetEndian() == __LITTLE_ENDIAN) {
     return host_integer;
   } else {
     return bswap_32(host_integer);
@@ -96,7 +98,7 @@ uint32_t htof32(uint32_t host_integer) {
 }
 
 uint32_t ftoh32(uint32_t file_integer) {
-  if(GetEndian() == LITTLE_ENDIAN) {
+  if(GetEndian() == __LITTLE_ENDIAN) {
     return file_integer;
   } else {
     return bswap_32(file_integer);
@@ -104,7 +106,7 @@ uint32_t ftoh32(uint32_t file_integer) {
 }
 
 uint16_t htof16(uint32_t host_integer) {
-  if(GetEndian() == LITTLE_ENDIAN) {
+  if(GetEndian() == __LITTLE_ENDIAN) {
     return host_integer;
   } else {
     return bswap_16(host_integer);
@@ -112,7 +114,7 @@ uint16_t htof16(uint32_t host_integer) {
 }
 
 uint16_t ftoh16(uint16_t file_integer) {
-  if(GetEndian() == LITTLE_ENDIAN) {
+  if(GetEndian() == __LITTLE_ENDIAN) {
     return file_integer;
   } else {
     return bswap_16(file_integer);

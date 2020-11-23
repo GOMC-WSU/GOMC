@@ -94,8 +94,8 @@ private:
   void readVector3DUint(std::vector< std::vector< std::vector <uint> > > & data);
   void readVector2DUint(std::vector< std::vector< uint > > & data);
   void readVector1DDouble(std::vector< double > & data);
-  double readDoubleIn8Chars();
-  uint32_t readUintIn8Chars();
-  int8_t readIntIn1Char();
-
+  double read_double_binary();
+  int8_t read_uint8_binary();
+  uint32_t read_uint32_binary();
+  uint64_t read_uint64_binary();
 };

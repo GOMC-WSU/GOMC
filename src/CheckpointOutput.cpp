@@ -18,9 +18,14 @@ union dbl_output_union {
 };
 
 union uint32_output_union {
-  char bin_value[8];
+  char bin_value[4];
   uint32_t uint_value;
 };
+
+union uint64_output_union {
+  char bin_value[8];
+  uint64_t uint_value;
+}
 
 union int8_input_union {
   char bin_value[1];
@@ -59,9 +64,7 @@ void CheckpointOutput::DoOutput(const ulong step)
   if(enableOutCheckpoint) {
     openOutputFile();
     printStepNumber(step);
-    printBoxDimensionsData();
     printRandomNumbers();
-    printCoordinates();
     printMoleculeLookupData();
     printMoveSettingsData();
 #if GOMC_LIB_MPI
@@ -76,28 +79,28 @@ void CheckpointOutput::DoOutput(const ulong step)
 void CheckpointOutput::printParallelTemperingBoolean()
 {
   int8_t s = (int8_t) enableParallelTempering;
-  outputIntIn1Char(s);
+  write_uint8_binary(s);
 }
 
 void CheckpointOutput::printStepNumber(const ulong step)
 {
   uint32_t s = (uint32_t) step + 1;
-  outputUintIn8Chars(s);
+  write_uint64_binary(s);
 }
 
 void CheckpointOutput::printBoxDimensionsData()
 {
   // print the number of boxes
   uint32_t totalBoxes = BOX_TOTAL;
-  outputUintIn8Chars(totalBoxes);
+  write_uint64_binary(totalBoxes);
   for(int b = 0; b < (int) totalBoxes; b++) {
     XYZ axis = boxDimRef.axis.Get(b);
-    outputDoubleIn8Chars(axis.x);
-    outputDoubleIn8Chars(axis.y);
-    outputDoubleIn8Chars(axis.z);
-    outputDoubleIn8Chars(boxDimRef.cosAngle[b][0]);
-    outputDoubleIn8Chars(boxDimRef.cosAngle[b][1]);
-    outputDoubleIn8Chars(boxDimRef.cosAngle[b][2]);
+    write_double_binary(axis.x);
+    write_double_binary(axis.y);
+    write_double_binary(axis.z);
+    write_double_binary(boxDimRef.cosAngle[b][0]);
+    write_double_binary(boxDimRef.cosAngle[b][1]);
+    write_double_binary(boxDimRef.cosAngle[b][2]);
   }
 }
 
@@ -113,20 +116,20 @@ void CheckpointOutput::printRandomNumbers()
   uint32_t* saveArray = new uint32_t[N + 1];
   prngRef.GetGenerator()->save(saveArray);
   for(int i = 0; i < N; i++) {
-    outputUintIn8Chars(saveArray[i]);
+    write_uint64_binary(saveArray[i]);
   }
 
   // Save the location of pointer in state
   uint32_t location = prngRef.GetGenerator()->pNext -
                       prngRef.GetGenerator()->state;
-  outputUintIn8Chars(location);
+  write_uint64_binary(location);
 
   // save the "left" value so we can restore it later
-  outputUintIn8Chars(prngRef.GetGenerator()->left);
+  write_uint64_binary(prngRef.GetGenerator()->left);
 
   // let's save seedValue just in case
   // not sure if that is used or not, or how important it is
-  outputUintIn8Chars(prngRef.GetGenerator()->seedValue);
+  write_uint64_binary(prngRef.GetGenerator()->seedValue);
 
   delete[] saveArray;
 }
@@ -142,20 +145,20 @@ void CheckpointOutput::printRandomNumbersParallelTempering()
   uint32_t* saveArray = new uint32_t[N];
   prngPTRef.GetGenerator()->save(saveArray);
   for(int i = 0; i < N; i++) {
-    outputUintIn8Chars(saveArray[i]);
+    write_uint64_binary(saveArray[i]);
   }
 
   // Save the location of pointer in state
   uint32_t location = prngPTRef.GetGenerator()->pNext -
                       prngPTRef.GetGenerator()->state;
-  outputUintIn8Chars(location);
+  write_uint64_binary(location);
 
   // save the "left" value so we can restore it later
-  outputUintIn8Chars(prngPTRef.GetGenerator()->left);
+  write_uint64_binary(prngPTRef.GetGenerator()->left);
 
   // let's save seedValue just in case
   // not sure if that is used or not, or how important it is
-  outputUintIn8Chars(prngPTRef.GetGenerator()->seedValue);
+  write_uint64_binary(prngPTRef.GetGenerator()->seedValue);
 }
 #endif
 
@@ -163,40 +166,40 @@ void CheckpointOutput::printCoordinates()
 {
   // first let's print the count
   uint32_t count = coordCurrRef.Count();
-  outputUintIn8Chars(count);
+  write_uint64_binary(count);
 
   // now let's print the coordinates one by one
   for(int i = 0; i < (int) count; i++) {
-    outputDoubleIn8Chars(coordCurrRef[i].x);
-    outputDoubleIn8Chars(coordCurrRef[i].y);
-    outputDoubleIn8Chars(coordCurrRef[i].z);
+    write_double_binary(coordCurrRef[i].x);
+    write_double_binary(coordCurrRef[i].y);
+    write_double_binary(coordCurrRef[i].z);
   }
 }
 
 void CheckpointOutput::printMoleculeLookupData()
 {
   // print the size of molLookup array
-  outputUintIn8Chars(molLookupRef.molLookupCount);
+  write_uint64_binary(molLookupRef.molLookupCount);
   // print the molLookup array itself
   for(int i = 0; i < (int) molLookupRef.molLookupCount; i++) {
-    outputUintIn8Chars(molLookupRef.molLookup[i]);
+    write_uint64_binary(molLookupRef.molLookup[i]);
   }
 
   // print the size of boxAndKindStart array
-  outputUintIn8Chars(molLookupRef.boxAndKindStartCount);
+  write_uint64_binary(molLookupRef.boxAndKindStartCount);
   // print the BoxAndKindStart array
   for(int i = 0; i < (int) molLookupRef.boxAndKindStartCount; i++) {
-    outputUintIn8Chars(molLookupRef.boxAndKindStart[i]);
+    write_uint64_binary(molLookupRef.boxAndKindStart[i]);
   }
 
   // print numKinds
-  outputUintIn8Chars(molLookupRef.numKinds);
+  write_uint64_binary(molLookupRef.numKinds);
 
   //print the size of fixedAtom array
-  outputUintIn8Chars((uint)molLookupRef.fixedAtom.size());
+  write_uint64_binary((uint)molLookupRef.fixedAtom.size());
   //print the fixedAtom array itself
   for(int i = 0; i < (int) molLookupRef.fixedAtom.size(); i++) {
-    outputUintIn8Chars(molLookupRef.fixedAtom[i]);
+    write_uint64_binary(molLookupRef.fixedAtom[i]);
   }
 }
 
@@ -220,15 +223,15 @@ void CheckpointOutput::printVector3DDouble(std::vector< std::vector< std::vector
   ulong size_x = data.size();
   ulong size_y = data[0].size();
   ulong size_z = data[0][0].size();
-  outputUintIn8Chars(size_x);
-  outputUintIn8Chars(size_y);
-  outputUintIn8Chars(size_z);
+  write_uint64_binary(size_x);
+  write_uint64_binary(size_y);
+  write_uint64_binary(size_z);
 
   // print tempTries array
   for(int i = 0; i < (int) size_x; i++) {
     for(int j = 0; j < (int) size_y; j++) {
       for(int k = 0; k < (int) size_z; k++) {
-        outputDoubleIn8Chars(data[i][j][k]);
+        write_double_binary(data[i][j][k]);
       }
     }
   }
@@ -240,15 +243,15 @@ void CheckpointOutput::printVector3DUint(std::vector< std::vector< std::vector<u
   ulong size_x = data.size();
   ulong size_y = data[0].size();
   ulong size_z = data[0][0].size();
-  outputUintIn8Chars(size_x);
-  outputUintIn8Chars(size_y);
-  outputUintIn8Chars(size_z);
+  write_uint64_binary(size_x);
+  write_uint64_binary(size_y);
+  write_uint64_binary(size_z);
 
   // print tempTries array
   for(int i = 0; i < (int) size_x; i++) {
     for(int j = 0; j < (int) size_y; j++) {
       for(int k = 0; k < (int) size_z; k++) {
-        outputUintIn8Chars(data[i][j][k]);
+        write_uint64_binary(data[i][j][k]);
       }
     }
   }
@@ -259,13 +262,13 @@ void CheckpointOutput::printVector2DUint(std::vector< std::vector< uint > > data
   // print size of array
   ulong size_x = data.size();
   ulong size_y = data[0].size();
-  outputUintIn8Chars(size_x);
-  outputUintIn8Chars(size_y);
+  write_uint64_binary(size_x);
+  write_uint64_binary(size_y);
 
   // print array itself
   for(int i = 0; i < (int) size_x; i++) {
     for(int j = 0; j < (int) size_y; j++) {
-      outputUintIn8Chars(data[i][j]);
+      write_uint64_binary(data[i][j]);
     }
   }
 }
@@ -274,11 +277,11 @@ void CheckpointOutput::printVector1DDouble(std::vector< double > data)
 {
   // print size of array
   ulong size_x = data.size();
-  outputUintIn8Chars(size_x);
+  write_uint64_binary(size_x);
 
   // print array itself
   for(int i = 0; i < (int) size_x; i++) {
-    outputDoubleIn8Chars(data[i]);
+    write_double_binary(data[i]);
   }
 }
 
@@ -292,7 +295,7 @@ void CheckpointOutput::openOutputFile()
   }
 }
 
-void CheckpointOutput::outputDoubleIn8Chars(double data)
+void CheckpointOutput::write_double_binary(double data)
 {
   if(outputFile == NULL) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",
@@ -313,7 +316,7 @@ void CheckpointOutput::outputDoubleIn8Chars(double data)
   fflush(outputFile);
 }
 
-void CheckpointOutput::outputIntIn1Char(int8_t data)
+void CheckpointOutput::write_uint8_binary(int8_t data)
 {
   if(outputFile == NULL) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",
@@ -327,7 +330,7 @@ void CheckpointOutput::outputIntIn1Char(int8_t data)
   fflush(outputFile);
 }
 
-void CheckpointOutput::outputUintIn8Chars(uint32_t data)
+void CheckpointOutput::write_uint64_binary(uint64_t data)
 {
   if(outputFile == NULL) {
     fprintf(stderr, "Error opening checkpoint output file %s\n",
@@ -345,5 +348,22 @@ void CheckpointOutput::outputUintIn8Chars(uint32_t data)
           temp.bin_value[5],
           temp.bin_value[6],
           temp.bin_value[7]);
+  fflush(outputFile);
+}
+
+void CheckpointOutput::write_uint32_binary(uint32_t data)
+{
+  if(outputFile == NULL) {
+    fprintf(stderr, "Error opening checkpoint output file %s\n",
+            filename.c_str());
+    exit(EXIT_FAILURE);
+  }
+  uint32_output_union temp;
+  temp.uint_value = data;
+  fprintf(outputFile, "%c%c%c%c",
+          temp.bin_value[0],
+          temp.bin_value[1],
+          temp.bin_value[2],
+          temp.bin_value[3]);
   fflush(outputFile);
 }
