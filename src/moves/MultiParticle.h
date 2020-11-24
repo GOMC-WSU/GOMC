@@ -222,25 +222,22 @@ inline void MultiParticle::PrepCFCMC(const uint box)
 
 inline uint MultiParticle::Transform()
 {
-  // Based on the reference force decided whether to displace or rotate each
+  // Based on the reference force decide whether to displace or rotate each
   // individual particle.
   uint state = mv::fail_state::NO_FAIL;
 #ifdef GOMC_CUDA
-  // calculate which particles are inside moleculeIndex
-  std::vector<int> isParticleInvolved(newMolsPos.Count(), 0);
-  for(int particleID = 0; particleID < isParticleInvolved.size(); particleID++) {
-    int midx = particleMol[particleID];
-    std::vector<uint>::iterator it;
-    it = find(moleculeIndex.begin(), moleculeIndex.end(), midx);
-    if(it != moleculeIndex.end()) {
-      isParticleInvolved[particleID] = 1;
-    }
+  // One CoM per molecule, so use this to set the vector size.
+  std::vector<int8_t> isMoleculeInvolved(newCOMs.Count(), 0);
+  // find the IDs of molecules in moleculeIndex
+  for(int m = 0; m < (int) moleculeIndex.size(); m++) {
+    int mol = moleculeIndex[m];
+    isMoleculeInvolved[mol] = 1;
   }
 
   // This kernel will calculate translation/rotation amount + shifting/rotating
   if(moveType == mp::MPROTATE) {
     double r_max = moveSetRef.GetRMAX(bPick);
-    CallRotateParticlesGPU(cudaVars, isParticleInvolved, r_max,
+    CallRotateParticlesGPU(cudaVars, isMoleculeInvolved, r_max,
                            molTorqueRef.x, molTorqueRef.y, molTorqueRef.z,
                            r123wrapper.GetStep(), r123wrapper.GetSeedValue(),
                            particleMol, atomForceRecNew.Count(),
@@ -249,7 +246,7 @@ inline uint MultiParticle::Transform()
                            newMolsPos, newCOMs, lambda * BETA, r_k);
   } else {
     double t_max = moveSetRef.GetTMAX(bPick);
-    CallTranslateParticlesGPU(cudaVars, isParticleInvolved, t_max,
+    CallTranslateParticlesGPU(cudaVars, isMoleculeInvolved, t_max,
                               molForceRef.x, molForceRef.y, molForceRef.z,
                               r123wrapper.GetStep(), r123wrapper.GetSeedValue(),
                               particleMol, atomForceRecNew.Count(),
@@ -380,6 +377,7 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   double accept = MPCoeff * uBoltz;
   double pr = prng();
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
+  std::cout << "Total energy is " << sysPotNew.Total() << " and result is " << result << std::endl;
   if(result) {
     sysPotRef = sysPotNew;
     swap(coordCurrRef, newMolsPos);
