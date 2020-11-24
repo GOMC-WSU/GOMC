@@ -188,32 +188,25 @@ void CheckpointSetup::readMoleculeLookupData()
 {
   // read the size of molLookup array
   molLookupVec.resize(read_uint32_binary());
-  printf("molLookupCount: %d\n", molLookupVec.size());
   // read the molLookup array itself
   for(int i = 0; i < (int) molLookupVec.size(); i++) {
     molLookupVec[i] = read_uint32_binary();
-    printf("molLookupVec[%d]: %d\n", i, molLookupVec[i]);
   }
 
   // read the size of boxAndKindStart array
   boxAndKindStartVec.resize(read_uint32_binary());
-  printf("boxAndKindStartVec.size(): %d\n", boxAndKindStartVec.size());
   // read the BoxAndKindStart array
   for(int i = 0; i < (int) boxAndKindStartVec.size(); i++) {
     boxAndKindStartVec[i] = read_uint32_binary();
-    printf("boxAndKindStartVec[%d]: %d\n", i, boxAndKindStartVec[i]);
   }
 
   // read numKinds
   numKinds = read_uint32_binary();
-  printf("numKinds: %d\n", numKinds);
   //read the size of fixedAtom array
   fixedAtomVec.resize(read_uint32_binary());
-  printf("fixedAtomVec.size: %d\n", (uint)fixedAtomVec.size());
   //read the fixedAtom array itself
   for(int i = 0; i < (int) fixedAtomVec.size(); i++) {
     fixedAtomVec[i] = read_uint32_binary();
-    printf("fixedAtomVec[%d]: %d\n", i, fixedAtomVec[i]);
   }
 }
 
@@ -421,6 +414,7 @@ CheckpointSetup::readVector3DDouble(std::vector<std::vector<std::vector<double> 
   ulong size_x = read_uint64_binary();
   ulong size_y = read_uint64_binary();
   ulong size_z = read_uint64_binary();
+  printf("array size: %ld %ld %ld\n", size_x, size_y, size_z);
 
   // read array
   data.resize(size_x);

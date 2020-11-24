@@ -99,8 +99,7 @@ void CheckpointOutput::printParallelTemperingBoolean()
 
 void CheckpointOutput::printStepNumber(const ulong step)
 {
-  uint32_t s = (uint32_t) step + 1;
-  write_uint64_binary(s);
+  write_uint64_binary(step+1);
 }
 
 void CheckpointOutput::printBoxDimensionsData()
@@ -195,32 +194,25 @@ void CheckpointOutput::printMoleculeLookupData()
 {
   // print the size of molLookup array
   write_uint32_binary(molLookupRef.molLookupCount);
-  printf("molLookupCount: %d\n", molLookupRef.molLookupCount);
   // print the molLookup array itself
   for(int i = 0; i < (int) molLookupRef.molLookupCount; i++) {
     write_uint32_binary(molLookupRef.molLookup[i]);
-    printf("molLookupRef.molLookup[%d]: %d\n", i, molLookupRef.molLookup[i]);
   }
 
   // print the size of boxAndKindStart array
   write_uint32_binary(molLookupRef.boxAndKindStartCount);
-  printf("molLookupRef.boxAndKindStartCount: %d\n", molLookupRef.boxAndKindStartCount);
   // print the BoxAndKindStart array
   for(int i = 0; i < (int) molLookupRef.boxAndKindStartCount; i++) {
     write_uint32_binary(molLookupRef.boxAndKindStart[i]);
-    printf("molLookupRef.boxAndKindStart[%d]: %d\n", i, molLookupRef.boxAndKindStart[i]);
   }
 
   // print numKinds
   write_uint32_binary(molLookupRef.numKinds);
-  printf("molLookupRef.numKinds: %d\n", molLookupRef.numKinds);
   //print the size of fixedAtom array
   write_uint32_binary((uint)molLookupRef.fixedAtom.size());
-  printf("fixedAtom.size: %d\n", (uint)molLookupRef.fixedAtom.size());
   //print the fixedAtom array itself
   for(int i = 0; i < (int) molLookupRef.fixedAtom.size(); i++) {
     write_uint32_binary(molLookupRef.fixedAtom[i]);
-    printf("molLookupRef.fixedAtom[%d]: %d\n", i, molLookupRef.fixedAtom[i]);
   }
 }
 
@@ -247,6 +239,7 @@ void CheckpointOutput::printVector3DDouble(std::vector< std::vector< std::vector
   write_uint64_binary(size_x);
   write_uint64_binary(size_y);
   write_uint64_binary(size_z);
+  printf("array size: %ld %ld %ld\n", size_x, size_y, size_z);
 
   // print tempTries array
   for(int i = 0; i < (int) size_x; i++) {
