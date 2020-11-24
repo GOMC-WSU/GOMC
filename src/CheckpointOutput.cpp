@@ -100,7 +100,7 @@ void CheckpointOutput::printParallelTemperingBoolean()
 void CheckpointOutput::printStepNumber(const ulong step)
 {
   uint32_t s = (uint32_t) step + 1;
-  write_uint32_binary(s);
+  write_uint64_binary(s);
 }
 
 void CheckpointOutput::printBoxDimensionsData()
