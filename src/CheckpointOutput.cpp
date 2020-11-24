@@ -87,7 +87,7 @@ void CheckpointOutput::setGOMCVersion()
 
 void CheckpointOutput::printGOMCVersion()
 {
-  fprintf(inputFile, "%c%s%c", '$', gomc_version, '$');
+  fprintf(outputFile, "%c%s%c", '$', gomc_version, '$');
 }
 
 void CheckpointOutput::printParallelTemperingBoolean()
