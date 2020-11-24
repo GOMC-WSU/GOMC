@@ -87,6 +87,7 @@ void CheckpointOutput::setGOMCVersion()
 
 void CheckpointOutput::printGOMCVersion()
 {
+  setGOMCVersion();
   fprintf(outputFile, "%c%s%c", '$', gomc_version, '$');
 }
 
