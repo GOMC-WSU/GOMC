@@ -55,8 +55,10 @@ private:
   std::string filename;
   FILE* outputFile;
   ulong stepsPerCheckpoint;
+  char gomc_version[5];
 
   void openOutputFile();
+  void printGOMCVersion();
   void printParallelTemperingBoolean();
   void printStepNumber(ulong step);
   void printRandomNumbers();

@@ -9,6 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CheckpointOutput.h"
 #include "MoleculeLookup.h"
 #include "System.h"
+#include "GOMC_Config.h"
 
 #include "Endian.h"
 
@@ -65,6 +66,7 @@ void CheckpointOutput::DoOutput(const ulong step)
 {
   if(enableOutCheckpoint) {
     openOutputFile();
+    printGOMCVersion();
     printStepNumber(step);
     printRandomNumbers();
     printMoleculeLookupData();
@@ -76,6 +78,16 @@ void CheckpointOutput::DoOutput(const ulong step)
 #endif
     std::cout << "Checkpoint saved to " << filename << std::endl;
   }
+}
+
+void CheckpointOutput::setGOMCVersion()
+{
+  sprintf(gomc_version, "%d.%02d\0", GOMC_VERSION_MAJOR, GOMC_VERSION_MINOR % 100);
+}
+
+void CheckpointOutput::printGOMCVersion()
+{
+  fprintf(inputFile, "%c%s%c", '$', gomc_version, '$');
 }
 
 void CheckpointOutput::printParallelTemperingBoolean()
