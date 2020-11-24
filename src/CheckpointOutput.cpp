@@ -351,7 +351,7 @@ void CheckpointOutput::write_uint64_binary(uint64_t data)
             filename.c_str());
     exit(EXIT_FAILURE);
   }
-  uint32_output_union temp;
+  uint64_output_union temp;
   temp.uint_value = htof64(data);
   fprintf(outputFile, "%c%c%c%c%c%c%c%c",
           temp.bin_value[0],
