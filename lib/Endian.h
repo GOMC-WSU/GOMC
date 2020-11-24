@@ -59,18 +59,17 @@
    | (((x) & 0x00ff) << 8))
 
 enum ENDIANNESS {
-  __LITTLE_ENDIAN,
-  __BIG_ENDIAN,
-  __UNHANDLE
+  LT_ENDIAN,
+  BG_ENDIAN
 };
 
 ENDIANNESS GetEndian() {
   long int endian = 0x0000000000000001;
-  return (*(char *) &endian == 0x01) ? __LITTLE_ENDIAN : __BIG_ENDIAN;
+  return (*(char *) &endian == 0x01) ? LT_ENDIAN : BG_ENDIAN;
 }
 
 uint64_t htof64(uint64_t host_integer) {
-  if(GetEndian() == __LITTLE_ENDIAN) {
+  if(GetEndian() == LT_ENDIAN) {
     // Same endianness, so just return the same integer
     return host_integer;
   } else {
@@ -80,7 +79,7 @@ uint64_t htof64(uint64_t host_integer) {
 }
 
 uint64_t ftoh64(uint64_t file_integer) {
-  if(GetEndian() == __LITTLE_ENDIAN) {
+  if(GetEndian() == LT_ENDIAN) {
     // Same endianness, so just return the same integer
     return file_integer;
   } else {
@@ -90,7 +89,7 @@ uint64_t ftoh64(uint64_t file_integer) {
 }
 
 uint32_t htof32(uint32_t host_integer) {
-  if(GetEndian() == __LITTLE_ENDIAN) {
+  if(GetEndian() == LT_ENDIAN) {
     return host_integer;
   } else {
     return bswap_32(host_integer);
@@ -98,7 +97,7 @@ uint32_t htof32(uint32_t host_integer) {
 }
 
 uint32_t ftoh32(uint32_t file_integer) {
-  if(GetEndian() == __LITTLE_ENDIAN) {
+  if(GetEndian() == LT_ENDIAN) {
     return file_integer;
   } else {
     return bswap_32(file_integer);
@@ -106,7 +105,7 @@ uint32_t ftoh32(uint32_t file_integer) {
 }
 
 uint16_t htof16(uint32_t host_integer) {
-  if(GetEndian() == __LITTLE_ENDIAN) {
+  if(GetEndian() == LT_ENDIAN) {
     return host_integer;
   } else {
     return bswap_16(host_integer);
@@ -114,7 +113,7 @@ uint16_t htof16(uint32_t host_integer) {
 }
 
 uint16_t ftoh16(uint16_t file_integer) {
-  if(GetEndian() == __LITTLE_ENDIAN) {
+  if(GetEndian() == LT_ENDIAN) {
     return file_integer;
   } else {
     return bswap_16(file_integer);

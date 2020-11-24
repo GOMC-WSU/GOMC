@@ -10,6 +10,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeLookup.h"
 #include "System.h"
 
+#include "Endian.h"
+
 namespace
 {
 union dbl_output_union {
@@ -25,7 +27,7 @@ union uint32_output_union {
 union uint64_output_union {
   char bin_value[8];
   uint64_t uint_value;
-}
+};
 
 union int8_input_union {
   char bin_value[1];

@@ -54,7 +54,7 @@ private:
   // the following variables will hold the data read from checkpoint
   // and will be passed to the rest of the code via Get functions
   int8_t parallelTemperingWasEnabled;
-  char gomc_verion[5];
+  char gomc_version[5];
   ulong stepNumber;
   uint32_t totalBoxes;
   std::vector<std::vector<double> > axis;
@@ -74,7 +74,7 @@ private:
 
   // private functions used by ReadAll and Get functions
   void readGOMCVersion();
-  void isLegacy();
+  bool isLegacy();
   void openInputFile();
   void readParallelTemperingBoolean();
   void readStepNumber();
