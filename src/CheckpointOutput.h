@@ -58,6 +58,7 @@ private:
   char gomc_version[5];
 
   void openOutputFile();
+  void setGOMCVersion();
   void printGOMCVersion();
   void printParallelTemperingBoolean();
   void printStepNumber(ulong step);
