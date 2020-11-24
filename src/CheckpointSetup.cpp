@@ -296,7 +296,7 @@ uint32_t CheckpointSetup::read_uint32_binary()
                    &temp.bin_value[1],
                    &temp.bin_value[2],
                    &temp.bin_value[3]);
-  if(ret != 8) {
+  if(ret != 4) {
     std::cerr << "CheckpointSetup couldn't read required data from binary!\n";
     exit(EXIT_FAILURE);
   }
