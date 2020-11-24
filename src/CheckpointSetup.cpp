@@ -98,7 +98,7 @@ void CheckpointSetup::readStepNumber()
 void CheckpointSetup::readBoxDimensionsData()
 {
   // read the number of boxes
-  totalBoxes = read_uint64_binary();
+  totalBoxes = read_uint32_binary();
   axis.resize(totalBoxes);
   cosAngle.resize(totalBoxes);
 
@@ -152,18 +152,18 @@ void CheckpointSetup::readRandomNumbersParallelTempering()
   }
   saveArrayPT = new uint32_t[N];
   for(int i = 0; i < N; i++) {
-    saveArrayPT[i] = read_uint64_binary();
+    saveArrayPT[i] = read_uint32_binary();
   }
 
   // Read the location of pointer in state
-  seedLocationPT = read_uint64_binary();
+  seedLocationPT = read_uint32_binary();
 
   // Read the "left" value so we can restore
-  seedLeftPT = read_uint64_binary();
+  seedLeftPT = read_uint32_binary();
 
   // let's save seedValue just in case
   // not sure if that is used or not, or how important it is
-  seedValuePT = read_uint64_binary();
+  seedValuePT = read_uint32_binary();
 }
 
 #endif
@@ -171,7 +171,7 @@ void CheckpointSetup::readRandomNumbersParallelTempering()
 void CheckpointSetup::readCoordinates()
 {
   // first let's read the count
-  coordLength = read_uint64_binary();
+  coordLength = read_uint32_binary();
 
   // now let's read the coordinates one by one
   coords.Init(coordLength);
@@ -187,28 +187,28 @@ void CheckpointSetup::readCoordinates()
 void CheckpointSetup::readMoleculeLookupData()
 {
   // read the size of molLookup array
-  molLookupVec.resize(read_uint64_binary());
+  molLookupVec.resize(read_uint32_binary());
 
   // read the molLookup array itself
   for(int i = 0; i < (int) molLookupVec.size(); i++) {
-    molLookupVec[i] = read_uint64_binary();
+    molLookupVec[i] = read_uint32_binary();
   }
 
   // read the size of boxAndKindStart array
-  boxAndKindStartVec.resize(read_uint64_binary());
+  boxAndKindStartVec.resize(read_uint32_binary());
   // read the BoxAndKindStart array
   for(int i = 0; i < (int) boxAndKindStartVec.size(); i++) {
-    boxAndKindStartVec[i] = read_uint64_binary();
+    boxAndKindStartVec[i] = read_uint32_binary();
   }
 
   // read numKinds
-  numKinds = read_uint64_binary();
+  numKinds = read_uint32_binary();
 
   //read the size of fixedAtom array
-  fixedAtomVec.resize(read_uint64_binary());
+  fixedAtomVec.resize(read_uint32_binary());
   //read the fixedAtom array itself
   for(int i = 0; i < (int) fixedAtomVec.size(); i++) {
-    fixedAtomVec[i] = read_uint64_binary();
+    fixedAtomVec[i] = read_uint32_binary();
   }
 }
 
@@ -444,7 +444,7 @@ void CheckpointSetup::readVector3DUint(std::vector<std::vector<std::vector<uint>
     for(int j = 0; j < (int) size_y; j++) {
       data[i][j].resize(size_z);
       for(int k = 0; k < (int) size_z; k++) {
-        data[i][j][k] = read_uint64_binary();
+        data[i][j][k] = read_uint32_binary();
       }
     }
   }
@@ -461,7 +461,7 @@ void CheckpointSetup::readVector2DUint(std::vector<std::vector<uint> > &data)
   for(int i = 0; i < (int) size_x; i++) {
     data[i].resize(size_y);
     for(int j = 0; j < (int) size_y; j++) {
-      data[i][j] = read_uint64_binary();
+      data[i][j] = read_uint32_binary();
     }
   }
 }

@@ -100,14 +100,14 @@ void CheckpointOutput::printParallelTemperingBoolean()
 void CheckpointOutput::printStepNumber(const ulong step)
 {
   uint32_t s = (uint32_t) step + 1;
-  write_uint64_binary(s);
+  write_uint32_binary(s);
 }
 
 void CheckpointOutput::printBoxDimensionsData()
 {
   // print the number of boxes
   uint32_t totalBoxes = BOX_TOTAL;
-  write_uint64_binary(totalBoxes);
+  write_uint32_binary(totalBoxes);
   for(int b = 0; b < (int) totalBoxes; b++) {
     XYZ axis = boxDimRef.axis.Get(b);
     write_double_binary(axis.x);
@@ -160,20 +160,20 @@ void CheckpointOutput::printRandomNumbersParallelTempering()
   uint32_t* saveArray = new uint32_t[N];
   prngPTRef.GetGenerator()->save(saveArray);
   for(int i = 0; i < N; i++) {
-    write_uint64_binary(saveArray[i]);
+    write_uint32_binary(saveArray[i]);
   }
 
   // Save the location of pointer in state
   uint32_t location = prngPTRef.GetGenerator()->pNext -
                       prngPTRef.GetGenerator()->state;
-  write_uint64_binary(location);
+  write_uint32_binary(location);
 
   // save the "left" value so we can restore it later
-  write_uint64_binary(prngPTRef.GetGenerator()->left);
+  write_uint32_binary(prngPTRef.GetGenerator()->left);
 
   // let's save seedValue just in case
   // not sure if that is used or not, or how important it is
-  write_uint64_binary(prngPTRef.GetGenerator()->seedValue);
+  write_uint32_binary(prngPTRef.GetGenerator()->seedValue);
 }
 #endif
 
@@ -181,7 +181,7 @@ void CheckpointOutput::printCoordinates()
 {
   // first let's print the count
   uint32_t count = coordCurrRef.Count();
-  write_uint64_binary(count);
+  write_uint32_binary(count);
 
   // now let's print the coordinates one by one
   for(int i = 0; i < (int) count; i++) {
@@ -194,27 +194,27 @@ void CheckpointOutput::printCoordinates()
 void CheckpointOutput::printMoleculeLookupData()
 {
   // print the size of molLookup array
-  write_uint64_binary(molLookupRef.molLookupCount);
+  write_uint32_binary(molLookupRef.molLookupCount);
   // print the molLookup array itself
   for(int i = 0; i < (int) molLookupRef.molLookupCount; i++) {
-    write_uint64_binary(molLookupRef.molLookup[i]);
+    write_uint32_binary(molLookupRef.molLookup[i]);
   }
 
   // print the size of boxAndKindStart array
-  write_uint64_binary(molLookupRef.boxAndKindStartCount);
+  write_uint32_binary(molLookupRef.boxAndKindStartCount);
   // print the BoxAndKindStart array
   for(int i = 0; i < (int) molLookupRef.boxAndKindStartCount; i++) {
-    write_uint64_binary(molLookupRef.boxAndKindStart[i]);
+    write_uint32_binary(molLookupRef.boxAndKindStart[i]);
   }
 
   // print numKinds
-  write_uint64_binary(molLookupRef.numKinds);
+  write_uint32_binary(molLookupRef.numKinds);
 
   //print the size of fixedAtom array
-  write_uint64_binary((uint)molLookupRef.fixedAtom.size());
+  write_uint32_binary((uint)molLookupRef.fixedAtom.size());
   //print the fixedAtom array itself
   for(int i = 0; i < (int) molLookupRef.fixedAtom.size(); i++) {
-    write_uint64_binary(molLookupRef.fixedAtom[i]);
+    write_uint32_binary(molLookupRef.fixedAtom[i]);
   }
 }
 
@@ -266,7 +266,7 @@ void CheckpointOutput::printVector3DUint(std::vector< std::vector< std::vector<u
   for(int i = 0; i < (int) size_x; i++) {
     for(int j = 0; j < (int) size_y; j++) {
       for(int k = 0; k < (int) size_z; k++) {
-        write_uint64_binary(data[i][j][k]);
+        write_uint32_binary(data[i][j][k]);
       }
     }
   }
@@ -283,7 +283,7 @@ void CheckpointOutput::printVector2DUint(std::vector< std::vector< uint > > data
   // print array itself
   for(int i = 0; i < (int) size_x; i++) {
     for(int j = 0; j < (int) size_y; j++) {
-      write_uint64_binary(data[i][j]);
+      write_uint32_binary(data[i][j]);
     }
   }
 }
