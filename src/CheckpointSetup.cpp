@@ -125,18 +125,18 @@ void CheckpointSetup::readRandomNumbers()
   }
   saveArray = new uint32_t[N];
   for(int i = 0; i < N; i++) {
-    saveArray[i] = read_uint64_binary();
+    saveArray[i] = read_uint32_binary();
   }
 
   // Read the location of pointer in state
-  seedLocation = read_uint64_binary();
+  seedLocation = read_uint32_binary();
 
   // Read the "left" value so we can restore
-  seedLeft = read_uint64_binary();
+  seedLeft = read_uint32_binary();
 
   // let's save seedValue just in case
   // not sure if that is used or not, or how important it is
-  seedValue = read_uint64_binary();
+  seedValue = read_uint32_binary();
 }
 
 #if GOMC_LIB_MPI

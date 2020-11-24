@@ -131,20 +131,20 @@ void CheckpointOutput::printRandomNumbers()
   uint32_t* saveArray = new uint32_t[N + 1];
   prngRef.GetGenerator()->save(saveArray);
   for(int i = 0; i < N; i++) {
-    write_uint64_binary(saveArray[i]);
+    write_uint32_binary(saveArray[i]);
   }
 
   // Save the location of pointer in state
   uint32_t location = prngRef.GetGenerator()->pNext -
                       prngRef.GetGenerator()->state;
-  write_uint64_binary(location);
+  write_uint32_binary(location);
 
   // save the "left" value so we can restore it later
-  write_uint64_binary(prngRef.GetGenerator()->left);
+  write_uint32_binary(prngRef.GetGenerator()->left);
 
   // let's save seedValue just in case
   // not sure if that is used or not, or how important it is
-  write_uint64_binary(prngRef.GetGenerator()->seedValue);
+  write_uint32_binary(prngRef.GetGenerator()->seedValue);
 
   delete[] saveArray;
 }
