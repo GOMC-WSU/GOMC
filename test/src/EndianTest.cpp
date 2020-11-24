@@ -13,4 +13,7 @@ TEST(EndianTest, TestBitSwap) {
   uint16_t z = 0x0123;
   uint16_t rev_z = 0x2301;
   EXPECT_EQ(rev_z, bswap_16(z));
+
+  uint64_t w = 0x0123456789abcdefull;
+  EXPECT_EQ(w, bswap_64(bswap_64(w)));
 }
