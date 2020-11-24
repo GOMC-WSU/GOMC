@@ -377,7 +377,6 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   double accept = MPCoeff * uBoltz;
   double pr = prng();
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
-  std::cout << "Total energy is " << sysPotNew.Total() << " and result is " << result << std::endl;
   if(result) {
     sysPotRef = sysPotNew;
     swap(coordCurrRef, newMolsPos);
