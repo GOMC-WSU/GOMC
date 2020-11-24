@@ -51,8 +51,8 @@ CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV) :
 
 void CheckpointSetup::ReadAll()
 {
-  readGOMCVersion();
   openInputFile();
+  readGOMCVersion();
   readStepNumber();
   readRandomNumbers();
   readMoleculeLookupData();
