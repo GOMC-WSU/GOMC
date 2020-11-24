@@ -299,7 +299,7 @@ uint32_t CheckpointSetup::read_uint32_binary()
     exit(EXIT_FAILURE);
   }
   // Fix endianness, implementation in lib/Endian.h
-  ftoh32(temp.uint_value);
+  temp.uint_value = ftoh32(temp.uint_value);
   return temp.uint_value;
 }
 
@@ -325,7 +325,7 @@ uint64_t CheckpointSetup::read_uint64_binary()
     exit(EXIT_FAILURE);
   }
   // Fix endianness, implementation in lib/Endian.h
-  ftoh64(temp.uint_value);
+  temp.uint_value = ftoh64(temp.uint_value);
   return temp.uint_value;
 }
 
