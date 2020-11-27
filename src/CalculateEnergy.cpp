@@ -277,7 +277,7 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
     return potential;
 
   double tempREn = 0.0, tempLJEn = 0.0;
-  // make a pointer to atom force and mol force for openmp
+  // make a pointer to atom force and mol force for OpenMP
   double *aForcex = atomForce.x;
   double *aForcey = atomForce.y;
   double *aForcez = atomForce.z;
@@ -571,10 +571,8 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
       uint atom = start + p;
       CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom],
                               box);
-      n = cellList.EnumerateLocal(currentCoords[atom], box);
 
       std::vector<uint> nIndex;
-
       //store atom index in neighboring cell
       while (!n.Done()) {
         nIndex.push_back(*n);
@@ -1537,7 +1535,6 @@ void CalculateEnergy::SingleMoleculeInter(Energy &interEnOld,
       uint atom = start + p;
       CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom],
                               box);
-      n = cellList.EnumerateLocal(currentCoords[atom], box);
 
       std::vector<uint> nIndex;
 
@@ -1658,7 +1655,6 @@ void CalculateEnergy::EnergyChange(Energy *energyDiff, Energy &dUdL_VDW,
   for (uint p = 0; p < length; ++p) {
     uint atom = start + p;
     CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom], box);
-    n = cellList.EnumerateLocal(currentCoords[atom], box);
 
     std::vector<uint> nIndex;
 
