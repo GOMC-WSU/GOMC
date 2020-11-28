@@ -388,7 +388,6 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
   // setting energy and virial of coulomb interaction
   potential.boxEnergy[box].real = tempREn;
 
-  potential.Total();
   return potential;
 }
 
@@ -1537,7 +1536,6 @@ void CalculateEnergy::SingleMoleculeInter(Energy &interEnOld,
                               box);
 
       std::vector<uint> nIndex;
-
       //store atom index in neighboring cell
       while (!n.Done()) {
         if(particleMol[*n] != (int) molIndex) {
@@ -1657,7 +1655,6 @@ void CalculateEnergy::EnergyChange(Energy *energyDiff, Energy &dUdL_VDW,
     CellList::Neighbors n = cellList.EnumerateLocal(currentCoords[atom], box);
 
     std::vector<uint> nIndex;
-
     //store atom index in neighboring cell
     while (!n.Done()) {
       if(particleMol[*n] != (int) molIndex) {

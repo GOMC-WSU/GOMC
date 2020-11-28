@@ -302,7 +302,6 @@ inline void MultiParticle::CalcEn()
     calcEnRef.CalculateTorque(moleculeIndex, newMolsPos, newCOMs, atomForceNew,
                               atomForceRecNew, molTorqueNew, bPick);
   }
-  sysPotNew.Total();
 }
 
 inline double MultiParticle::CalculateWRatio(XYZ const &lb_new, XYZ const &lb_old,
@@ -373,11 +372,14 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   // Here we compare the values of reference and trial and decide whether to
   // accept or reject the move
   double MPCoeff = GetCoeff();
-  double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
+  Energy delta_energy = sysPotNew.boxEnergy[bPick];
+  delta_energy -= sysPotRef.boxEnergy[bPick];
+  double uBoltz = exp(-BETA * (delta_energy.real + delta_energy.inter + delta_energy.recip));
   double accept = MPCoeff * uBoltz;
   double pr = prng();
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
   if(result) {
+    sysPotNew.Total();
     sysPotRef = sysPotNew;
     swap(coordCurrRef, newMolsPos);
     swap(comCurrRef, newCOMs);
@@ -423,7 +425,7 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
   }
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
-    std::cout << "Trial Displacement exceed half of the box length in Multiparticle move.\n";
+    std::cout << "Trial Displacement exceeds half of the box length in Multiparticle move.\n";
     std::cout << "Trial transform: " << num;
     exit(EXIT_FAILURE);
   } else if (!std::isfinite(num.Length())) {
