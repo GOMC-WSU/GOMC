@@ -481,6 +481,7 @@ void createMapAndModifyPDBAtomDataStructure(const BondAdjacencyList & bondAdjLis
             pdbAtoms.resKinds.push_back(kindMap[*sizeConsistentEntries].kindIndex);
             pdbAtoms.resNames.push_back(*sizeConsistentEntries);
             newMapEntry = false;
+            break;
           }
         }
       }
@@ -496,9 +497,6 @@ void createMapAndModifyPDBAtomDataStructure(const BondAdjacencyList & bondAdjLis
             break;
           }
         }
-      }
-
-      if (newMapEntry){
         if(multiResidue){  
           std::stringstream ss;
           /* Length of Suffix */
