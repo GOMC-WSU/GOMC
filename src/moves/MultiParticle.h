@@ -169,19 +169,25 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
 
   //We don't use forces for non-MP moves, so we need to calculate them for the
   //current system if any other moves, besides other MP moves, have been accepted.
+  //Or, if this is the first MP move, which is handled with the same flag.
   if(moveSetRef.GetSingleMoveAccepted()) {
-    //Calculate force for long range electrostatic using old position
-    calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef,
-                                  bPick);
-    //calculate short range energy and force for old positions
-    calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
-                       boxDimRef, bPick);
-    if(moveType == mp::MPROTATE) {
-      //Calculate Torque for old positions
-      calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef,
-                                atomForceRef, atomForceRecRef, molTorqueRef,
-                                bPick);
+    //Recalculate for all boxes. Could use separate flags for each box, but many
+    //accepted moves change both boxes anyway.
+    for (uint b=0; b < BOXES_WITH_U_NB; b++) {
+      //Calculate force for long range electrostatic using old positions
+      calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef, b);
+
+      //Calculate short range energy and force for old positions
+      calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
+                         boxDimRef, b);
+
+      if(moveType == mp::MPROTATE) {
+        //Calculate Torque for old positions
+        calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef,
+                                  atomForceRef, atomForceRecRef, molTorqueRef, b);
+      }
     }
+	sysPotRef.Total();
   }
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
@@ -200,21 +206,25 @@ inline void MultiParticle::PrepCFCMC(const uint box)
 
   //We don't use forces for non-MP moves, so we need to calculate them for the
   //current system if any other moves, besides other MP moves, have been accepted.
+  //Or, if this is the first MP move, which is handled with the same flag.
   if(moveSetRef.GetSingleMoveAccepted()) {
-    //Calculate force for long range electrostatic using old position
-    calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef,
-                                  bPick);
+    //Recalculate for all boxes. Could use separate flags for each box, but many
+    //accepted moves change both boxes anyway.
+    for (uint b=0; b < BOXES_WITH_U_NB; b++) {
+      //Calculate force for long range electrostatic using old positions
+      calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef, b);
 
-    //calculate short range energy and force for old positions
-    calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
-                       boxDimRef, bPick);
+      //Calculate short range energy and force for old positions
+      calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
+                         boxDimRef, b);
 
-    if(moveType == mp::MPROTATE) {
-      //Calculate Torque for old positions
-      calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef,
-                                atomForceRef, atomForceRecRef, molTorqueRef,
-                                bPick);
+      if(moveType == mp::MPROTATE) {
+        //Calculate Torque for old positions
+        calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef,
+                                  atomForceRef, atomForceRecRef, molTorqueRef, b);
+      }
     }
+	sysPotRef.Total();
   }
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
