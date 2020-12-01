@@ -241,7 +241,6 @@ void CheckpointOutput::printVector3DDouble(std::vector< std::vector< std::vector
   write_uint64_binary(size_x);
   write_uint64_binary(size_y);
   write_uint64_binary(size_z);
-  printf("array size: %ld %ld %ld\n", size_x, size_y, size_z);
 
   // print tempTries array
   for(int i = 0; i < (int) size_x; i++) {
