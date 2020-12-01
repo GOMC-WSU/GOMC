@@ -41,7 +41,7 @@ CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV,
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), coordCurrRef(sys.coordinates),
   prngRef(sys.prng)
 {
-  std::string file = set.config.in.files.checkpoint.name[0] + "_restart.chk";
+  std::string file = set.config.in.files.checkpoint.name[0];
 #if GOMC_LIB_MPI
   filename = sys.ms->replicaInputDirectoryPath + file;
 #else
