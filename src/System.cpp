@@ -33,8 +33,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CrankShaft.h"
 #include "CFCMC.h"
 
-System::System(StaticVals& statics, MultiSim const*const& multisim,
-               Setup const& set) :
+System::System(StaticVals& statics, Setup const& set,
+               MultiSim const*const& multisim) :
   statV(statics),
 #ifdef VARIABLE_VOLUME
   boxDimRef(*BoxDim(statics.isOrthogonal)),
