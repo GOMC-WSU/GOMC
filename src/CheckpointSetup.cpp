@@ -416,7 +416,6 @@ CheckpointSetup::readVector3DDouble(std::vector<std::vector<std::vector<double> 
   ulong size_x = read_uint64_binary();
   ulong size_y = read_uint64_binary();
   ulong size_z = read_uint64_binary();
-  printf("array size: %ld %ld %ld\n", size_x, size_y, size_z);
 
   // read array
   data.resize(size_x);
