@@ -56,7 +56,6 @@ void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
   enableOutCheckpoint = output.restart_dcd.settings.enable;
   stepsPerCheckpoint = output.restart_dcd.settings.frequency;
   std::string file = output.statistics.settings.uniqueStr.val + "_restart.chk";
-  printf("%d, %d, %s\n", enableOutCheckpoint, stepsPerCheckpoint, file);
 #if GOMC_LIB_MPI
   filename = pathToReplicaOutputDirectory + file;
 #else
