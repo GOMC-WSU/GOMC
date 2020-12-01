@@ -193,11 +193,6 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       if(in.restart.enable) {
         printf("%-40s %-s \n", "Info: Restart simulation",  "Active");
       }
-    } else if(CheckString(line[0], "RestartCheckpoint")) {
-      in.restart.restartFromCheckpoint = checkBool(line[1]);
-      if(in.restart.restartFromCheckpoint) {
-        printf("%-40s %-s \n", "Info: Restart checkpoint", "Active");
-      }
     } else if(CheckString(line[0], "FirstStep")) {
       in.restart.step = stringtoi(line[1]);
     } else if(CheckString(line[0], "PRNG")) {
@@ -294,6 +289,14 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       }
       in.files.xscInput.defined[boxnum] = true;
       in.restart.restartFromXSCFile = true;
+    } else if(CheckString(line[0], "Checkpoint")) {
+      if(multisim != NULL) {
+        in.files.checkpoint.name[0] = multisim->replicaInputDirectoryPath + line[1];
+      } else {
+        in.files.checkpoint.name[0] = line[1];
+      }
+      in.files.checkpoint.defined[0] = true;
+      in.restart.restartFromCheckpoint = true;
     }
 #if ENSEMBLE == GEMC
     else if(CheckString(line[0], "GEMC")) {
@@ -948,15 +951,6 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         out.statistics.settings.uniqueStr.val = line[1];
         printf("%-40s %-s \n", "Info: Output name", line[1].c_str());
       }
-    } else if(CheckString(line[0], "CheckpointFreq")) {
-      out.checkpoint.enable = checkBool(line[1]);
-      if(line.size() == 3)
-        out.checkpoint.frequency = stringtoi(line[2]);
-      if(out.checkpoint.enable)
-        printf("%-40s %-lu \n", "Info: Checkpoint frequency",
-               out.checkpoint.frequency);
-      else
-        printf("%-40s %-s \n", "Info: Saving checkpoint", "Inactive");
     } else if(CheckString(line[0], "CoordinatesFreq")) {
       out.state.settings.enable = checkBool(line[1]);
       if(line.size() == 3)

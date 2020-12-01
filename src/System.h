@@ -37,7 +37,8 @@ class Lambda;
 class System
 {
 public:
-  explicit System(StaticVals& statics, MultiSim const*const& multisim = NULL);
+  explicit System(StaticVals& statics, MultiSim const*const& multisim = NULL,
+                  Setup const& set);
 
   void Init(Setup const& setupData, ulong & startStep);
 

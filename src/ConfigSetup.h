@@ -110,7 +110,7 @@ struct FFKind {
 //Files for input.
 struct InFiles {
   std::vector<FileName> param;
-  FileNames<BOX_TOTAL> pdb, psf, binaryInput, xscInput;
+  FileNames<BOX_TOTAL> pdb, psf, binaryInput, xscInput, checkpoint;
   FileName seed;
 };
 

@@ -33,7 +33,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CrankShaft.h"
 #include "CFCMC.h"
 
-System::System(StaticVals& statics, MultiSim const*const& multisim) :
+System::System(StaticVals& statics, MultiSim const*const& multisim,
+               Setup const& set) :
   statV(statics),
 #ifdef VARIABLE_VOLUME
   boxDimRef(*BoxDim(statics.isOrthogonal)),
@@ -52,7 +53,7 @@ System::System(StaticVals& statics, MultiSim const*const& multisim) :
   moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
-  calcEnergy(statics, *this), checkpointSet(*this, statics)
+  calcEnergy(statics, *this), checkpointSet(*this, statics, set)
 {
   calcEwald = NULL;
 #if GOMC_LIB_MPI

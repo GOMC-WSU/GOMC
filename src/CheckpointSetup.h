@@ -14,7 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class CheckpointSetup
 {
 public:
-  CheckpointSetup(System & sys, StaticVals const& statV);
+  CheckpointSetup(System & sys, StaticVals const& statV, Setup const& set);
 
   ~CheckpointSetup()
   {
