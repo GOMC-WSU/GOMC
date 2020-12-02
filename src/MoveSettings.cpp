@@ -24,7 +24,9 @@ void MoveSettings::Init(StaticVals const& statV,
 {
   //Set to true so that we calculate the forces for the current system, even if
   //a MultiParticle move is called before any other moves are accepted.
-  SetSingleMoveAccepted();
+  for (uint b; b < BOXES_WITH_U_NB; b++) {
+    SetSingleMoveAccepted(b);
+  }
   totKind = tkind;
   perAdjust = statV.simEventFreq.perAdjust;
   for(uint b = 0; b < BOX_TOTAL; b++) {
@@ -91,12 +93,24 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
     tempAccepted[box][move][kind]++;
     accepted[box][move][kind]++;
 
-    if(move != mv::MULTIPARTICLE)
-      SetSingleMoveAccepted();
+    if(move != mv::MULTIPARTICLE) {
+      SetSingleMoveAccepted(box);
+#if ENSEMBLE == GEMC
+      //GEMC has multiple boxes and this move changed both boxes, so we
+      //need to also mark the other box as having a move accepted.
+      if(move == mv::MEMC || move == mv::MOL_TRANSFER || move == mv::CFCMC ||
+         move == mv::VOL_TRANSFER) {
+        //Simple way to figure out which box is the other one. 0 -->1 and 1-->0
+        //Assumes just two boxes.
+        uint otherBox = box == 0;
+        SetSingleMoveAccepted(otherBox);
+      }
+#endif
+    }
   }
 
   if(move == mv::MULTIPARTICLE)
-    ClearSingleMoveAccepted();
+    UnsetSingleMoveAccepted(box);
 
   acceptPercent[box][move][kind] = (double)(accepted[box][move][kind]) /
                                    (double)(tries[box][move][kind]);

@@ -599,7 +599,8 @@ inline bool CFCMC::AcceptInflating()
     //Retotal
     sysPotRef.Total();
     //set single move accept to true for multiparticle
-    moveSetRef.SetSingleMoveAccepted();
+    moveSetRef.SetSingleMoveAccepted(sourceBox);
+    moveSetRef.SetSingleMoveAccepted(destBox);
   }
   overlapCFCMC = false;
 
@@ -674,7 +675,7 @@ inline void CFCMC::CalcEnRelaxing(uint b)
     //calculate LJ interaction and real term of electrostatic interaction
     overlap = calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);
     if(!overlap) {
-      //calculate reciprocate term of electrostatic interaction
+      //calculate reciprocal term of electrostatic interaction
       recip.energy = calcEwald->MolReciprocal(newMolPos, m, b);
     }
   }

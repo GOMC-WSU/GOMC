@@ -100,19 +100,19 @@ public:
   uint GetTrialTot(const uint box, const uint move) const;
   double GetScaleTot(const uint box, const uint move) const;
   
-  inline bool GetSingleMoveAccepted() const
+  inline bool GetSingleMoveAccepted(uint box) const
   {
-    return isSingleMoveAccepted;
+    return isSingleMoveAccepted[box];
   }
   
-  inline void SetSingleMoveAccepted()
+  inline void SetSingleMoveAccepted(uint box)
   {
-    isSingleMoveAccepted = true;
+    isSingleMoveAccepted[box] = true;
   }
 
-  inline void ClearSingleMoveAccepted()
+  inline void UnsetSingleMoveAccepted(uint box)
   {
-    isSingleMoveAccepted = false;
+    isSingleMoveAccepted[box] = false;
   }
 
 private:
@@ -125,7 +125,7 @@ private:
 
   uint perAdjust;
   uint totKind;
-  bool isSingleMoveAccepted;
+  bool isSingleMoveAccepted[BOXES_WITH_U_NB];
 
 #if ENSEMBLE == GEMC
   uint GEMC_KIND;
