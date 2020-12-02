@@ -450,6 +450,7 @@ void CallBoxForceReciprocalGPU(
     boxAxes.GetAxis(box).y,
     boxAxes.GetAxis(box).z,
     box,
+	boxStart,
     numberOfAtomsInsideBox
   );
   cudaDeviceSynchronize();
@@ -507,11 +508,12 @@ __global__ void BoxForceReciprocalGPU(
   double axy,
   double axz,
   int box,
+  int boxStart,
   int numberOfAtomsInsideBox
 )
 {
   __shared__ double shared_kvector[IMAGES_PER_BLOCK * 3];
-  int particleID =  blockDim.x * blockIdx.x + threadIdx.x;
+  int particleID =  blockDim.x * blockIdx.x + threadIdx.x + boxStart;
   int offset_vector_index = blockIdx.y * IMAGES_PER_BLOCK;
   int numberOfVectors = min(IMAGES_PER_BLOCK, imageSize - offset_vector_index);
 
@@ -521,7 +523,7 @@ __global__ void BoxForceReciprocalGPU(
     shared_kvector[threadIdx.x * 3 + 2] = gpu_kz[offset_vector_index + threadIdx.x];
   }
 
-  if (particleID >= numberOfAtomsInsideBox) return;
+  if (particleID >= numberOfAtomsInsideBox+boxStart) return;
   double forceX = 0.0, forceY = 0.0, forceZ = 0.0;
   int moleculeID = gpu_particleMol[particleID];
   int kindID = gpu_particleKind[particleID];

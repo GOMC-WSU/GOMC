@@ -102,6 +102,7 @@ __global__ void BoxForceReciprocalGPU(double *gpu_aForceRecx,
                                       double axy,
                                       double axz,
                                       int box,
+									  int boxStart,
                                       int numberOfAtomsInsideBox);
 
 __global__ void BoxReciprocalSetupGPU(double * gpu_x,
