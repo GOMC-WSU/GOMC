@@ -161,15 +161,16 @@ SystemPotential CalculateEnergy::SystemInter(SystemPotential potential,
 // Calculate the inter energy for Box. Fractional molecule are not allowed in
 // this function. Need to implement the GPU function
 SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
-    XYZArray const& coords,
-    BoxDimensions const& boxAxes,
-    const uint box)
+                                          XYZArray const& coords,
+                                          BoxDimensions const& boxAxes,
+                                          const uint box)
 {
   //Handles reservoir box case, returning zeroed structure if
   //interactions are off.
   if (box >= BOXES_WITH_U_NB)
     return potential;
 
+  std::cout << "=============== BOX INTER ===============\n";
   double tempREn = 0.0, tempLJEn = 0.0;
 
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
@@ -177,6 +178,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   cellList.GetCellListNeighbor(box, currentCoords.Count(),
                                cellVector, cellStartIndex, mapParticleToCell);
   neighborList = cellList.GetNeighborList(box);
+  std::cout << neighborList.size(); << ", " << neighborList[0].size() << "\n";
 
 #ifdef GOMC_CUDA
   //update unitcell in GPU
@@ -259,6 +261,7 @@ reduction(+:tempREn, tempLJEn)
   if (forcefield.useLRC) {
     EnergyCorrection(potential, boxAxes, box);
   }
+  std::cout << "=========================================\n";
 
   potential.Total();
   return potential;
