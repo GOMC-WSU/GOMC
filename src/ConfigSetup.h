@@ -394,8 +394,7 @@ struct Statistics {
   TrackedVars vars;
 };
 struct Output {
-  SysState state, restart;
-  SysState state_dcd, restart_dcd;
+  SysState state, restart, state_dcd, restart_dcd;
   Statistics statistics;
   EventSettings console, checkpoint;
 };

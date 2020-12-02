@@ -37,7 +37,7 @@ void CPUSide::Init(PDBSetup const& pdbSet, config_setup::Output const& out,
   outObj.push_back(&psf);
   if (out.statistics.settings.block.enable)
     outObj.push_back(&block);
-  if (out.restart_dcd.settings.enable)
+  if (out.restart.settings.enable)
     outObj.push_back(&checkpoint);
 
 #if ENSEMBLE == GCMC
