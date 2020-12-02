@@ -416,10 +416,6 @@ private:
   bool CheckString(std::string str1, std::string str2);
   void verifyInputs(void);
   InputFileReader reader;
-
-  //Names of config file.
-  static const char defaultConfigFileName[]; // "in.dat"
-  static const char configFileAlias[];       // "GO-MC Configuration File"
 };
 
 #endif

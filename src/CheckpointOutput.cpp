@@ -66,7 +66,7 @@ void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
 void CheckpointOutput::DoOutput(const ulong step)
 {
   if(enableOutCheckpoint) {
-    std::cout << "Writing checkpoint to file " << filename << " at step " << step << "\n";
+    std::cout << "Writing checkpoint to file " << filename << " at step " << step+1 << "\n";
     openOutputFile();
     printGOMCVersion();
     printStepNumber(step);

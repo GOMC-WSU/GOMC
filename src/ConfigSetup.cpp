@@ -2092,9 +2092,6 @@ const std::string config_setup::Exclude::EXC_ONETWO = "1-2";
 const std::string config_setup::Exclude::EXC_ONETHREE = "1-3";
 const std::string config_setup::Exclude::EXC_ONEFOUR = "1-4";
 
-const char ConfigSetup::defaultConfigFileName[] = "in.dat";
-const char ConfigSetup::configFileAlias[] = "GOMC Configuration File";
-
 const uint config_setup::FFValues::VDW_STD_KIND = 0;
 const uint config_setup::FFValues::VDW_SHIFT_KIND = 1;
 const uint config_setup::FFValues::VDW_SWITCH_KIND = 2;
