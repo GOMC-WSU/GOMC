@@ -66,10 +66,8 @@ private:
 #if GOMC_LIB_MPI
   void printRandomNumbersParallelTempering();
 #endif
-  void printCoordinates();
   void printMoleculeLookupData();
   void printMoveSettingsData();
-  void printBoxDimensionsData();
 
   void printVector3DDouble(std::vector< std::vector< std::vector<double> > > data);
   void printVector3DUint(std::vector< std::vector< std::vector<uint> > > data);

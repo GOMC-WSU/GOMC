@@ -35,8 +35,6 @@ public:
 #if GOMC_LIB_MPI
   void SetPRNGVariablesPT(PRNG & prng);
 #endif
-  void SetBoxDimensions(BoxDimensions & boxDimRef);
-  void SetCoordinates(Coordinates & coordinates);
   void SetMoleculeLookup(MoleculeLookup & molLookupRef);
   void SetMoveSettings(MoveSettings & moveSettings);
 
@@ -57,12 +55,8 @@ private:
   char gomc_version[5];
   ulong stepNumber;
   uint32_t totalBoxes;
-  std::vector<std::vector<double> > axis;
-  std::vector<std::vector<double> > cosAngle;
   uint32_t* saveArray;
   uint32_t seedLocation, seedLeft, seedValue;
-  uint32_t coordLength;
-  XYZArray coords;
   std::vector<uint32_t> molLookupVec, boxAndKindStartVec, fixedAtomVec;
   uint32_t numKinds;
   std::vector<std::vector<std::vector<double> > > scaleVec, acceptPercentVec;
@@ -84,10 +78,8 @@ private:
   uint32_t* saveArrayPT;
   uint32_t seedLocationPT, seedLeftPT, seedValuePT;
 #endif
-  void readCoordinates();
   void readMoleculeLookupData();
   void readMoveSettingsData();
-  void readBoxDimensionsData();
   void closeInputFile();
 
   void readVector3DDouble(std::vector< std::vector< std::vector <double> > > & data);

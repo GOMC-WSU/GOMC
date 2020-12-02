@@ -97,25 +97,6 @@ void CheckpointSetup::readStepNumber()
   stepNumber = read_uint64_binary();
 }
 
-void CheckpointSetup::readBoxDimensionsData()
-{
-  // read the number of boxes
-  totalBoxes = read_uint32_binary();
-  axis.resize(totalBoxes);
-  cosAngle.resize(totalBoxes);
-
-  for(int b = 0; b < (int) totalBoxes; b++) {
-    axis[b].resize(3);
-    cosAngle[b].resize(3);
-    axis[b][0] = read_double_binary();
-    axis[b][1] = read_double_binary();
-    axis[b][2] = read_double_binary();
-    cosAngle[b][0] = read_double_binary();
-    cosAngle[b][1] = read_double_binary();
-    cosAngle[b][2] = read_double_binary();
-  }
-}
-
 void CheckpointSetup::readRandomNumbers()
 {
   // First let's read the state array
@@ -169,22 +150,6 @@ void CheckpointSetup::readRandomNumbersParallelTempering()
 }
 
 #endif
-
-void CheckpointSetup::readCoordinates()
-{
-  // first let's read the count
-  coordLength = read_uint32_binary();
-
-  // now let's read the coordinates one by one
-  coords.Init(coordLength);
-  for(int i = 0; i < (int) coordLength; i++) {
-    XYZ temp;
-    temp.x = read_double_binary();
-    temp.y = read_double_binary();
-    temp.z = read_double_binary();
-    coords.Set(i, temp);
-  }
-}
 
 void CheckpointSetup::readMoleculeLookupData()
 {
@@ -336,20 +301,6 @@ void CheckpointSetup::SetStepNumber(ulong & startStep)
   startStep = stepNumber;
 }
 
-void CheckpointSetup::SetBoxDimensions(BoxDimensions & boxDimRef)
-{
-  for(int b = 0; b < (int) totalBoxes; b++) {
-    boxDimRef.axis.Set(b, axis[b][0], axis[b][1], axis[b][2]);
-    boxDimRef.cosAngle[b][0] = this->cosAngle[b][0];
-    boxDimRef.cosAngle[b][1] = this->cosAngle[b][1];
-    boxDimRef.cosAngle[b][2] = this->cosAngle[b][2];
-    boxDimRef.volume[b] = axis[b][0] * axis[b][1] * axis[b][2];
-    boxDimRef.volInv[b] = 1.0 / boxDimRef.volume[b];
-  }
-  boxDimRef.axis.CopyRange(boxDimRef.halfAx, 0, 0, BOX_TOTAL);
-  boxDimRef.halfAx.ScaleRange(0, BOX_TOTAL, 0.5);
-}
-
 void CheckpointSetup::SetPRNGVariables(PRNG & prng)
 {
   prng.GetGenerator()->load(saveArray);
@@ -373,11 +324,6 @@ void CheckpointSetup::SetPRNGVariablesPT(PRNG & prng)
   prng.GetGenerator()->seedValue = seedValuePT;
 }
 #endif
-
-void CheckpointSetup::SetCoordinates(Coordinates & coordinates)
-{
-  coords.CopyRange(coordinates, 0, 0, coordLength);
-}
 
 void CheckpointSetup::SetMoleculeLookup(MoleculeLookup & molLookupRef)
 {

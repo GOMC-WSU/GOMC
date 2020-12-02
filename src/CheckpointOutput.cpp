@@ -104,22 +104,6 @@ void CheckpointOutput::printStepNumber(const ulong step)
   write_uint64_binary(step+1);
 }
 
-void CheckpointOutput::printBoxDimensionsData()
-{
-  // print the number of boxes
-  uint32_t totalBoxes = BOX_TOTAL;
-  write_uint32_binary(totalBoxes);
-  for(int b = 0; b < (int) totalBoxes; b++) {
-    XYZ axis = boxDimRef.axis.Get(b);
-    write_double_binary(axis.x);
-    write_double_binary(axis.y);
-    write_double_binary(axis.z);
-    write_double_binary(boxDimRef.cosAngle[b][0]);
-    write_double_binary(boxDimRef.cosAngle[b][1]);
-    write_double_binary(boxDimRef.cosAngle[b][2]);
-  }
-}
-
 void CheckpointOutput::printRandomNumbers()
 {
   // First let's save the state array inside prng
@@ -177,20 +161,6 @@ void CheckpointOutput::printRandomNumbersParallelTempering()
   write_uint32_binary(prngPTRef.GetGenerator()->seedValue);
 }
 #endif
-
-void CheckpointOutput::printCoordinates()
-{
-  // first let's print the count
-  uint32_t count = coordCurrRef.Count();
-  write_uint32_binary(count);
-
-  // now let's print the coordinates one by one
-  for(int i = 0; i < (int) count; i++) {
-    write_double_binary(coordCurrRef[i].x);
-    write_double_binary(coordCurrRef[i].y);
-    write_double_binary(coordCurrRef[i].z);
-  }
-}
 
 void CheckpointOutput::printMoleculeLookupData()
 {

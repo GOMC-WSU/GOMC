@@ -118,9 +118,7 @@ void System::Init(Setup const& set, ulong & startStep)
   if(set.config.in.restart.restartFromCheckpoint) {
     checkpointSet.ReadAll();
     checkpointSet.SetStepNumber(startStep);
-    checkpointSet.SetBoxDimensions(boxDimRef);
     checkpointSet.SetPRNGVariables(prng);
-    checkpointSet.SetCoordinates(coordinates);
     checkpointSet.SetMoleculeLookup(molLookupRef);
     checkpointSet.SetMoveSettings(moveSettings);
 #if GOMC_LIB_MPI
