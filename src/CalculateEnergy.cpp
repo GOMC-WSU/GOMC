@@ -178,7 +178,10 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   cellList.GetCellListNeighbor(box, currentCoords.Count(),
                                cellVector, cellStartIndex, mapParticleToCell);
   neighborList = cellList.GetNeighborList(box);
-  std::cout << neighborList.size() << ", " << neighborList[0].size() << "\n";
+  for(int i=0; i<currentCoords.Count(); i++) {
+    std::cout << currentCoords.x[i] << " ";
+  }
+  std::cout << "\n";
 
 #ifdef GOMC_CUDA
   //update unitcell in GPU
