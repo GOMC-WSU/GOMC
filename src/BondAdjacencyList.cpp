@@ -101,7 +101,11 @@ BondAdjacencyList::BondAdjacencyList(FILE* psf, uint nAtoms, uint nBonds, std::v
 // Destructor
 BondAdjacencyList::~BondAdjacencyList() {
     for (uint i = 0; i < nAtoms; i++){
-        delete[] head[i];
+      while (head[i] != nullptr) {
+        adjNode *curr = head[i];
+        head[i] = head[i]->next;
+        delete curr;
+      }
     }
     delete[] edges;        
     delete[] head;
