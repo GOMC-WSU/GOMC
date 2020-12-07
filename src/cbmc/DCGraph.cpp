@@ -105,7 +105,7 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
   //Start with atoms that form dihedral
   std::vector<Dihedral> dihs = DihsAll(kind);
   for(uint d = 0; d < dihs.size(); d++) {
-    //find the last atomindex in the dihedral
+    //find the last atom index in the dihedral
     uint a0 = dihs[d].a0;
     uint a1 = dihs[d].a1;
     uint a2 = dihs[d].a2;
@@ -138,7 +138,7 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
   //Continue with the atoms that form angles.
   std::vector<Angle> angles = AngsAll(kind);
   for(uint a = 0; a < angles.size(); a++) {
-    //find the last atomindex in the angle
+    //find the last atom index in the angle
     uint a0 = angles[a].a0;
     uint a1 = angles[a].a1;
     uint a2 = angles[a].a2;
@@ -192,7 +192,7 @@ void DCGraph::CrankShaft(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 
 void DCGraph::Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 {
-  //Randomely pick a node to call DCFreeHedron on it
+  //Randomly pick a node to call DCFreeHedron on it
   uint current = data.prng.randIntExc(nodes.size());
   visited.assign(nodes.size(), false);
   //Visiting the node
@@ -244,7 +244,7 @@ void DCGraph::BuildEdges(TrialMol& oldMol, TrialMol& newMol, uint molIndex,
 
 void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 {
-  //Randomely pick a node to keep it fix and not grow it
+  //Randomly pick a node to keep it fix and not grow it
   uint current = data.prng.randIntExc(nodes.size());
   visited.assign(nodes.size(), false);
   //Visiting the node
@@ -325,7 +325,7 @@ void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
     //Start with only one left edge
     //Advance along edges, building as we go
     while(!currFringe.empty()) {
-      //Randomely pick one of the edges connected to node
+      //Randomly pick one of the edges connected to node
       uint pick = data.prng.randIntExc(currFringe.size());
       DCComponent* comp = currFringe[pick].component;
       //Call DCLinkedHedron and build all Atoms connected to selected edge
@@ -362,7 +362,7 @@ void DCGraph::BuildIDOld(TrialMol& oldMol, uint molIndex)
 
 void DCGraph::BuildOld(TrialMol& oldMol, uint molIndex)
 {
-  //Randomely pick a node to call DCFreeHedron on it
+  //Randomly pick a node to call DCFreeHedron on it
   uint current = data.prng.randIntExc(nodes.size());
   visited.assign(nodes.size(), false);
   //Visiting the node
@@ -376,7 +376,7 @@ void DCGraph::BuildOld(TrialMol& oldMol, uint molIndex)
   fringe = nodes[current].edges;
   //Advance along edges, building as we go
   while(!fringe.empty()) {
-    //Randomely pick one of the edges connected to node
+    //Randomly pick one of the edges connected to node
     uint pick = data.prng.randIntExc(fringe.size());
     DCComponent* comp = fringe[pick].component;
     //Call DCLinkedHedron and build all Atoms connected to selected edge
@@ -404,7 +404,7 @@ void DCGraph::BuildOld(TrialMol& oldMol, uint molIndex)
 
 void DCGraph::BuildNew(TrialMol& newMol, uint molIndex)
 {
-  //Randomely pick a node to call DCFreeHedron on it
+  //Randomly pick a node to call DCFreeHedron on it
   uint current = data.prng.randIntExc(nodes.size());
   visited.assign(nodes.size(), false);
   //Visiting the node
@@ -418,7 +418,7 @@ void DCGraph::BuildNew(TrialMol& newMol, uint molIndex)
   fringe = nodes[current].edges;
   //Advance along edges, building as we go
   while(!fringe.empty()) {
-    //Randomely pick one of the edges connected to node
+    //Randomly pick one of the edges connected to node
     uint pick = data.prng.randIntExc(fringe.size());
     DCComponent* comp = fringe[pick].component;
     //Call DCLinkedHedron and build all Atoms connected to selected edge
@@ -474,7 +474,7 @@ void DCGraph::BuildGrowOld(TrialMol& oldMol, uint molIndex)
   fringe = nodes[current].edges;
   //Advance along edges, building as we go
   while(!fringe.empty()) {
-    //Randomely pick one of the edges connected to node
+    //Randomly pick one of the edges connected to node
     uint pick = data.prng.randIntExc(fringe.size());
     DCComponent* comp = fringe[pick].component;
     //Call DCLinkedHedron and build all Atoms connected to selected edge
@@ -531,7 +531,7 @@ void DCGraph::BuildGrowNew(TrialMol& newMol, uint molIndex)
   fringe = nodes[current].edges;
   //Advance along edges, building as we go
   while(!fringe.empty()) {
-    //Randomely pick one of the edges connected to node
+    //Randomly pick one of the edges connected to node
     uint pick = data.prng.randIntExc(fringe.size());
     DCComponent* comp = fringe[pick].component;
     //Call DCLinkedHedron and build all Atoms connected to selected edge
