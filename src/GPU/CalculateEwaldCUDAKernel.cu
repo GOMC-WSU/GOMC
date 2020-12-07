@@ -355,6 +355,7 @@ void CallBoxForceReciprocalGPU(
   const std::vector<int> &particleMol,
   const std::vector<int> &particleKind,
   const std::vector<bool> &particleHasNoCharge,
+  const bool *particleUsed,
   const std::vector<int> &startMol,
   const std::vector<int> &lengthMol,
   double alpha,
@@ -363,18 +364,15 @@ void CallBoxForceReciprocalGPU(
   double constValue,
   uint imageSize,
   XYZArray const &molCoords,
-  int boxStart,
-  int boxEnd,
   BoxDimensions const &boxAxes,
   int box
 )
 {
-  int numberOfAtomsInsideBox = boxEnd - boxStart;
   int atomCount = atomForceRec.Count();
   int molCount = molForceRec.Count();
   double *gpu_particleCharge;
   int *gpu_particleMol, *gpu_particleKind;
-  bool *gpu_particleHasNoCharge;
+  bool *gpu_particleHasNoCharge, *gpu_particleUsed;
   bool *arr_particleHasNoCharge = new bool[particleHasNoCharge.size()];
   int *gpu_startMol, *gpu_lengthMol;
 
@@ -387,12 +385,13 @@ void CallBoxForceReciprocalGPU(
 
   // calculate block and grid sizes
   dim3 threadsPerBlock(256, 1, 1);
-  int blocksPerGridX = (int)(numberOfAtomsInsideBox / threadsPerBlock.x) + 1;
+  int blocksPerGridX = (int)(atomCount / threadsPerBlock.x) + 1;
   int blocksPerGridY = (int)(imageSize / IMAGES_PER_BLOCK) + 1;
   dim3 blocksPerGrid(blocksPerGridX, blocksPerGridY, 1);
 
   CUMALLOC((void **) &gpu_particleCharge, particleCharge.size() * sizeof(double));
   CUMALLOC((void **) &gpu_particleHasNoCharge, particleHasNoCharge.size() * sizeof(bool));
+  CUMALLOC((void **) &gpu_particleUsed, atomCount * sizeof(bool));
   CUMALLOC((void **) &gpu_startMol, startMol.size() * sizeof(int));
   CUMALLOC((void **) &gpu_lengthMol, lengthMol.size() * sizeof(int));
   CUMALLOC((void **) &gpu_particleMol, particleMol.size() * sizeof(int));
@@ -408,6 +407,7 @@ void CallBoxForceReciprocalGPU(
   cudaMemcpy(gpu_particleMol, &particleMol[0], sizeof(int) * particleMol.size(), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleKind, &particleKind[0], sizeof(int) * particleKind.size(), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleHasNoCharge, arr_particleHasNoCharge, sizeof(bool) * particleHasNoCharge.size(), cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_particleUsed, particleUsed, sizeof(bool) * atomCount, cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_x, molCoords.x, sizeof(double) * atomCount, cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_y, molCoords.y, sizeof(double) * atomCount, cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_z, molCoords.z, sizeof(double) * atomCount, cudaMemcpyHostToDevice);
@@ -426,6 +426,7 @@ void CallBoxForceReciprocalGPU(
     gpu_particleMol,
     gpu_particleKind,
     gpu_particleHasNoCharge,
+    gpu_particleUsed,
     gpu_startMol,
     gpu_lengthMol,
     alpha,
@@ -450,8 +451,7 @@ void CallBoxForceReciprocalGPU(
     boxAxes.GetAxis(box).y,
     boxAxes.GetAxis(box).z,
     box,
-	boxStart,
-    numberOfAtomsInsideBox
+    atomCount
   );
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -467,6 +467,7 @@ void CallBoxForceReciprocalGPU(
   delete [] arr_particleHasNoCharge;
   CUFREE(gpu_particleCharge);
   CUFREE(gpu_particleHasNoCharge);
+  CUFREE(gpu_particleUsed);
   CUFREE(gpu_startMol);
   CUFREE(gpu_lengthMol);
   CUFREE(gpu_particleMol);
@@ -484,6 +485,7 @@ __global__ void BoxForceReciprocalGPU(
   int *gpu_particleMol,
   int *gpu_particleKind,
   bool *gpu_particleHasNoCharge,
+  bool *gpu_particleUsed,
   int *gpu_startMol,
   int *gpu_lengthMol,
   double alpha,
@@ -508,12 +510,11 @@ __global__ void BoxForceReciprocalGPU(
   double axy,
   double axz,
   int box,
-  int boxStart,
-  int numberOfAtomsInsideBox
+  int atomCount
 )
 {
   __shared__ double shared_kvector[IMAGES_PER_BLOCK * 3];
-  int particleID =  blockDim.x * blockIdx.x + threadIdx.x + boxStart;
+  int particleID =  blockDim.x * blockIdx.x + threadIdx.x;
   int offset_vector_index = blockIdx.y * IMAGES_PER_BLOCK;
   int numberOfVectors = min(IMAGES_PER_BLOCK, imageSize - offset_vector_index);
 
@@ -523,7 +524,7 @@ __global__ void BoxForceReciprocalGPU(
     shared_kvector[threadIdx.x * 3 + 2] = gpu_kz[offset_vector_index + threadIdx.x];
   }
 
-  if (particleID >= numberOfAtomsInsideBox+boxStart) return;
+  if (particleID >= atomCount || !gpu_particleUsed[particleID]) return;
   double forceX = 0.0, forceY = 0.0, forceZ = 0.0;
   int moleculeID = gpu_particleMol[particleID];
   int kindID = gpu_particleKind[particleID];
@@ -582,7 +583,6 @@ __global__ void BoxForceReciprocalGPU(
   atomicAdd(&gpu_mForceRecx[moleculeID], forceX);
   atomicAdd(&gpu_mForceRecy[moleculeID], forceY);
   atomicAdd(&gpu_mForceRecz[moleculeID], forceZ);
-
 }
 
 __global__ void SwapReciprocalGPU(double *gpu_x, double *gpu_y, double *gpu_z,

@@ -175,8 +175,6 @@ public:
                            const uint iState, const uint molIndex,
                            const uint box) const;
 
-  void initializeBoxRange();
-
 private:
   double currentEnergyRecip[BOXES_WITH_U_NB];
 

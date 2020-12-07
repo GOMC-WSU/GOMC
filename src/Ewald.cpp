@@ -1377,6 +1377,11 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
     double constValue = 2.0 * ff.alpha[box] / sqrt(M_PI);
 
 #ifdef GOMC_CUDA
+    bool *particleUsed;
+    particleUsed = new bool[atomForceRec.Count()];
+    memset((void *) particleUsed, false, atomForceRec.Count() * sizeof(bool));
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
+    memset((void *) particleUsed, false, atomForceRec.Count() * sizeof(bool));
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
     while(thisMol != end) {
@@ -1385,12 +1390,17 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       uint start = mols.MolStart(molIndex);
       for(uint p = 0; p < length; p++) {
         atomForceRec.Set(start + p, 0.0, 0.0, 0.0);
+        particleUsed[start + p] = true;
       }
       molForceRec.Set(molIndex, 0.0, 0.0, 0.0);
       thisMol++;
     }
-    // initialize the start and end of each box
-    initializeBoxRange();
+#else
+    //Only one box, so clear all atoms and molecules and mark all particles as Used
+    atomForceRec.Reset();
+    molForceRec.Reset();
+    memset((void *) particleUsed, true, atomForceRec.Count() * sizeof(bool));
+#endif
 
     CallBoxForceReciprocalGPU(
       ff.particles->getCUDAVars(),
@@ -1400,6 +1410,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       particleMol,
       particleKind,
       particleHasNoCharge,
+      particleUsed,
       startMol,
       lengthMol,
       ff.alpha[box],
@@ -1408,11 +1419,10 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       constValue,
       imageSize[box],
       molCoords,
-      boxStart[box],
-      boxEnd[box],
       currentAxes,
       box
     );
+    delete[] particleUsed;
 #else
     // molecule iterator
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
@@ -1430,7 +1440,6 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
 
       for(p = start; p < start + length; p++) {
         double X = 0.0, Y = 0.0, Z = 0.0;
-        double intraForce;
 
         if(!particleHasNoCharge[p]) {
           // subtract the intra forces(correction)
@@ -1441,7 +1450,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
               double dist = sqrt(distSq);
               double expConstValue = exp(-1.0 * ff.alphaSq[box] * distSq);
               double qiqj = particleCharge[p] * particleCharge[j] * num::qqFact;
-              intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
+              double intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
               intraForce *= ((erf(ff.alpha[box] * dist) / dist) -
                              constValue * expConstValue);
               X -= intraForce * distVect.x;
@@ -1477,20 +1486,4 @@ double Ewald::GetLambdaCoef(uint molA, uint box) const
   double lambda = lambdaRef.GetLambdaCoulomb(molA, mols.GetMolKind(molA), box);
   //Each charge gets sq root of it.
   return sqrt(lambda);
-}
-
-void Ewald::initializeBoxRange()
-{
-  if(BOX_TOTAL == 1) {
-    boxStart[mv::BOX0] = 0;
-    boxEnd[mv::BOX0] = currentCoords.Count();
-  } else {
-    boxStart[mv::BOX0] = 0;
-    MoleculeLookup::box_iterator startBox1 = molLookup.BoxBegin(mv::BOX1);
-    int firstMoleculeInBox1 = *startBox1;
-    int indexOfFirstAtomInBox1 = mols.MolStart(firstMoleculeInBox1);
-    boxEnd[mv::BOX0] = indexOfFirstAtomInBox1;
-    boxStart[mv::BOX1] = indexOfFirstAtomInBox1;
-    boxEnd[mv::BOX1] = currentCoords.Count();
-  }
 }
