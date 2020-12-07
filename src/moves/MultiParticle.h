@@ -376,9 +376,10 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   // Here we compare the values of reference and trial and decide whether to
   // accept or reject the move
   double MPCoeff = GetCoeff();
-  Energy delta_energy = sysPotNew.boxEnergy[bPick];
-  delta_energy -= sysPotRef.boxEnergy[bPick];
-  double uBoltz = exp(-BETA * (delta_energy.real + delta_energy.inter + delta_energy.recip));
+  double delta_real = sysPotNew.boxEnergy[bPick].real - sysPotRef.boxEnergy[bPick].real;
+  double delta_inter = sysPotNew.boxEnergy[bPick].inter - sysPotRef.boxEnergy[bPick].inter;
+  double delta_recip = sysPotNew.boxEnergy[bPick].recip - sysPotRef.boxEnergy[bPick].recip;
+  double uBoltz = exp(-BETA * (delta_real + delta_inter + delta_recip));
   double accept = MPCoeff * uBoltz;
   double pr = prng();
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
