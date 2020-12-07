@@ -106,7 +106,7 @@ inline void IntraSwap::CalcEn()
   correct_old = 0.0;
   correct_new = 0.0;
 
-  if (newMol.GetWeight() != 0.0 && !overlap) {
+  if (newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
     correct_new = calcEwald->SwapCorrection(newMol, molIndex);
     correct_old = calcEwald->SwapCorrection(oldMol, molIndex);
     recipDiff.energy = calcEwald->MolReciprocal(newMol.GetCoords(), molIndex,
@@ -129,7 +129,7 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
     double Wrat = Wn / Wo * W_tc * W_recip;
 
     //safety to make sure move will be rejected in overlap case
-    if(!overlap) {
+    if(newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
       result = prng() < molTransCoeff * Wrat;
     } else
       result = false;

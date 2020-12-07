@@ -116,7 +116,7 @@ inline void MoleculeTransfer::CalcEn()
     W_tc = exp(-1.0 * ffRef.beta * (tcGain.energy + tcLose.energy));
   }
 
-  if (newMol.GetWeight() != 0.0 && !overlap) {
+  if (newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
     correct_new = calcEwald->SwapCorrection(newMol);
     correct_old = calcEwald->SwapCorrection(oldMol);
     self_new = calcEwald->SwapSelf(newMol);
@@ -176,7 +176,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
     double Wrat = Wn / Wo * W_tc * W_recip;
 
     //safety to make sure move will be rejected in overlap case
-    if(!overlap) {
+    if(newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
       result = prng() < molTransCoeff * Wrat;
     } else
       result = false;
