@@ -17,6 +17,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define DBL_MAX 1.7976931348623158e+308
 #endif
 
+#ifndef SMALL_WEIGHT
+#define SMALL_WEIGHT 1.0e-38
+#endif
 namespace num
 {
 static const double dbl_margin = 0.00001;
