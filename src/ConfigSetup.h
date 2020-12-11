@@ -188,7 +188,7 @@ struct MovePercents {
   double volume;
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
-  double transfer, memc, cfcmc;
+  double transfer, memc, cfcmc, targetedSwap;
 #endif
 };
 
@@ -250,6 +250,201 @@ struct GrowBond {
 struct CBMC {
   GrowNonbond nonbonded;
   GrowBond bonded;
+};
+
+// Holds information that is required to define the cavity
+// for targeted swap
+struct TargetSwapParam {
+  // defines the center of subVolume
+  XYZ subVolumeCenter; 
+  // defines the dimension of subVolume
+  XYZ subVolumeDim; 
+  // defines the targeted molecule kind
+  std::vector<std::string> selectedResKind; 
+  // defines box index for subVolume
+  uint selectedBox;
+  // defines the subVolume index for error checking
+  int subVolumeIdx; 
+
+  bool center_defined, dim_defined, reskind_defined;
+  bool box_defined;
+  TargetSwapParam(void) {
+    center_defined = dim_defined = false;
+    reskind_defined = box_defined = false;
+    subVolumeIdx = 0;
+  }
+
+  TargetSwapParam& operator=(TargetSwapParam const& rhs)
+  {
+    subVolumeCenter = rhs.subVolumeCenter;
+    subVolumeDim = rhs.subVolumeDim;
+    selectedResKind = rhs.selectedResKind;
+    selectedBox = rhs.selectedBox;
+    subVolumeIdx = rhs.subVolumeIdx;
+    //copy boolean parameters
+    center_defined = rhs.center_defined;
+    dim_defined = rhs.dim_defined;
+    reskind_defined = rhs.reskind_defined;
+    box_defined = rhs.box_defined;
+    return *this;
+  }
+
+  // Make sure all parameters have been set
+  void VerifyParm() {
+    bool allSet = true;
+    if(!box_defined) {
+      printf("Error: Box has not been defined fo subVolume index %d!\n",
+            subVolumeIdx);
+      allSet = false;
+    }
+    if(!center_defined) {
+      printf("Error: Center has not been defined fo subVolume index %d!\n",
+            subVolumeIdx);
+      allSet = false;
+    }
+    if(!dim_defined) {
+      printf("Error: dimension has not been defined fo subVolume index %d!\n",
+            subVolumeIdx);
+      allSet = false;
+    }
+    if(!reskind_defined) {
+      printf("Error: residue kind has not been defined fo subVolume index %d!\n",
+            subVolumeIdx);
+      allSet = false;
+    }
+
+    if(!allSet)
+      exit(EXIT_FAILURE);
+  }
+};
+
+struct TargetSwapCollection {
+  TargetSwapCollection(void) {
+    enable = false;
+  }
+  // Search for cavIdx in the targetSwap. If it exists,
+  // returns true + the index to targetSwap vector
+  bool SearchExisting(const int &subVIdx, int &idx) {
+    for (int i = 0; i < targetedSwap.size(); i++) {
+      if (targetedSwap[i].subVolumeIdx == subVIdx) {
+        idx = i;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // add a new subVolume
+  void AddsubVolumeBox(const int &subVIdx, uint &box) {
+    int idx = 0;
+    if (box < BOX_TOTAL) {
+      if (!SearchExisting(subVIdx, idx)) {
+        // If the subVolume index did not exist, add one
+        TargetSwapParam tempPar;
+        tempPar.subVolumeIdx = subVIdx;
+        tempPar.selectedBox = box;
+        tempPar.box_defined = true;
+        targetedSwap.push_back(tempPar);
+      } else {
+        // If subVolume index exist and subvolume box is defined
+        if(targetedSwap[idx].box_defined) {
+          printf("Error: The subVolume index %d has already been defined for Box %d!\n",
+                subVIdx, targetedSwap[idx].selectedBox);
+          printf("       Please use different subVolume index.\n");
+          exit(EXIT_FAILURE);
+        } else {
+          targetedSwap[idx].selectedBox = box;
+          targetedSwap[idx].box_defined = true;
+        }
+      }
+    } else {
+      printf("Error: Subvolume index %d cannot be set for box %d!\n", subVIdx, box);
+      #if ENSEMBLE == GCMC
+        printf("       Maximum box index for this simulation is %d!\n", BOX_TOTAL - 2);
+      #else
+        printf("       Maximum box index for this simulation is %d!\n", BOX_TOTAL - 1);
+      #endif
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  // add dimension of subVolume to subVIdx
+  void AddsubVolumeDimension(const int &subVIdx, XYZ &dimension) {
+    int idx = 0;
+    if (!SearchExisting(subVIdx, idx)) {
+      // If the subVolume index did not exist, add one
+      TargetSwapParam tempPar;
+      tempPar.subVolumeIdx = subVIdx;
+      tempPar.subVolumeDim = dimension;
+      tempPar.dim_defined = true;
+      targetedSwap.push_back(tempPar);
+    } else {
+      // If subVolume index exist and subvolume dimension is defined
+      if(targetedSwap[idx].dim_defined) {
+        printf("Error: The subVolume dimension (%g, %g, %g) has already been defined for subVolume index %d!\n",
+               targetedSwap[idx].subVolumeDim.x, targetedSwap[idx].subVolumeDim.y,
+               targetedSwap[idx].subVolumeDim.z, subVIdx);
+        printf("       Please use different subVolume index.\n");
+        exit(EXIT_FAILURE);
+      } else {
+        targetedSwap[idx].subVolumeDim = dimension;
+        targetedSwap[idx].dim_defined = true;
+      }
+    }
+  }
+
+  // add dimension of subVolume to subVIdx
+  void AddsubVolumeCenter(const int &subVIdx, XYZ &center) {
+    int idx = 0;
+    if (!SearchExisting(subVIdx, idx)) {
+      // If the subVolume index did not exist, add one
+      TargetSwapParam tempPar;
+      tempPar.subVolumeIdx = subVIdx;
+      tempPar.subVolumeCenter = center;
+      tempPar.center_defined = true;
+      targetedSwap.push_back(tempPar);
+    } else {
+      // If subVolume index exist and and subvolume center is defined
+      if(targetedSwap[idx].center_defined) {
+        printf("Error: The subVolume center (%g, %g, %g) has already been defined for subVolume index %d!\n",
+               targetedSwap[idx].subVolumeCenter.x, targetedSwap[idx].subVolumeCenter.y,
+               targetedSwap[idx].subVolumeCenter.z, subVIdx);
+        printf("       Please use different subVolume index.\n");
+        exit(EXIT_FAILURE);
+      } else {
+        targetedSwap[idx].subVolumeCenter = center;
+        targetedSwap[idx].center_defined = true;
+      }
+    }
+  }
+
+  // add targeted residue kind of subVolume to subVIdx
+  void AddsubVolumeResKind(const int &subVIdx, std::vector<std::string> &kind) {
+    int idx = 0;
+    if (!SearchExisting(subVIdx, idx)) {
+      // If the subVolume index did not exist, add one
+      TargetSwapParam tempPar;
+      tempPar.subVolumeIdx = subVIdx;
+      tempPar.selectedResKind = kind;
+      tempPar.reskind_defined = true;
+      targetedSwap.push_back(tempPar);
+    } else {
+      // If subVolume index exist and and reskind is defined
+      if(targetedSwap[idx].reskind_defined) {
+        printf("Error: The targeted residue kind has already been defined for subVolume index %d!\n",
+                subVIdx);
+        printf("       Please use different subVolume index.\n");
+        exit(EXIT_FAILURE);
+      } else {
+        targetedSwap[idx].selectedResKind = kind;
+        targetedSwap[idx].reskind_defined = true;
+      }
+    }
+  }
+
+  public:
+    std::vector<TargetSwapParam> targetedSwap;
+    bool enable;
 };
 
 struct MEMCVal {
@@ -326,6 +521,7 @@ struct SystemVals {
   MEMCVal memcVal, intraMemcVal;
   CFCMCVal cfcmcVal;
   FreeEnergy freeEn;
+  TargetSwapCollection targetedSwapCollection;
 #if ENSEMBLE == GCMC
   ChemicalPotential chemPot;
 #elif ENSEMBLE == GEMC || ENSEMBLE == NPT

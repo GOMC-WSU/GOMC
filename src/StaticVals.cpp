@@ -130,7 +130,7 @@ void StaticVals::IsBoxOrthogonal(const double cellAngle[][3])
 
 StaticVals::StaticVals(Setup & set) : intraMemcVal(set.config.sys.intraMemcVal),
   freeEnVal(set.config.sys.freeEn), memcVal(set.config.sys.memcVal),
-  cfcmcVal(set.config.sys.cfcmcVal)
+  cfcmcVal(set.config.sys.cfcmcVal), targetedSwapVal(set.config.sys.targetedSwapCollection)
   
 {
   multiParticleEnabled = set.config.sys.moves.multiParticleEnabled;
