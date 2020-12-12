@@ -137,6 +137,7 @@ set(headers
    src/StaticVals.h
    src/SubdividedArray.h
    src/System.h
+   src/TargetedSwap.h
    src/TransformMatrix.h
    src/Writer.h
    src/XYZArray.h

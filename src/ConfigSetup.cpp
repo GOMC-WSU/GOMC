@@ -710,6 +710,9 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       }
     } else if(CheckString(line[0], "TargetedSwapFreq")) {
       sys.moves.targetedSwap = stringtod(line[1]);
+      if(sys.moves.targetedSwap > 0.0) {
+        sys.targetedSwapCollection.enable = true;
+      }
       printf("%-40s %-4.4f \n", "Info: Targeted Swap move frequency",
              sys.moves.targetedSwap);
     } else if(CheckString(line[0], "CFCMCFreq")) {

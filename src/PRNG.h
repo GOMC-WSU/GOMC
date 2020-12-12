@@ -390,6 +390,27 @@ public:
     return rejectState;
   }
 
+  // Pick a random molecule of kind mk in box b
+  uint PickMolIndex(uint &m_idx, const uint mk, const uint b)
+  {
+    uint rejectState = mv::fail_state::NO_FAIL;
+    //Pick molecule with the help of molecule lookup table.
+    if ((molLookRef.NumKindInBox(mk, b) == 0)) {
+      rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+    } else {
+      uint mOff, m;
+      //Among the ones of that kind in that box, pick one @ random.
+      //Molecule with a tag (beta == 2 and beta == 1) cannot be selected.
+      do {
+        mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
+        //Lookup true index in table.
+        m = molLookRef.GetMolNum(mOff, mk, b);
+      } while(molLookRef.IsNoSwap(m));
+      m_idx = m;
+    }
+    return rejectState;
+  }
+
   // In MEMC move pick n molecules of kind mk
   uint PickMol(const uint mk, uint &mk2, uint &m2, const uint b)
   {
