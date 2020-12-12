@@ -355,6 +355,32 @@ void CheckpointSetup::SetMoveSettings(MoveSettings & moveSettings)
   moveSettings.mp_r_max = this->mp_r_maxVec;
 }
 
+void CheckpointSetup::FixAtomOrders(PDBSetup &pdb, MoleculeLookup &molLookupRef, Molecules &mol)
+{
+  int numAtoms = pdb.atoms.x.size();
+  XYZ * arr = new XYZ[numAtoms];
+  for(int i=0; i<numAtoms; i++) {
+    arr[i].x = pdb.atoms.x[i];
+    arr[i].y = pdb.atoms.y[i];
+    arr[i].z = pdb.atoms.z[i];
+  }
+
+  for(int molIndex=0; molIndex<mol.count; molIndex++) {
+    int target_mol = molLookupRef.molLookup[molIndex];
+    if(molIndex == target_mol) continue;
+    int mol_start = mol.start[molIndex];
+    int tar_start = mol.start[target_mol];
+    int mol_length = mol.MolLength(molIndex);
+    for(int atom=0; atom<mol_length; atom++) {
+      pdb.atoms.x[tar_start + atom] = arr[mol_start + atom].x;
+      pdb.atoms.y[tar_start + atom] = arr[mol_start + atom].y;
+      pdb.atoms.z[tar_start + atom] = arr[mol_start + atom].z;
+    }
+  }
+
+  delete [] arr;
+}
+
 void
 CheckpointSetup::readVector3DDouble(std::vector<std::vector<std::vector<double> > > &data)
 {

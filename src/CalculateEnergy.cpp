@@ -170,7 +170,6 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   if (box >= BOXES_WITH_U_NB)
     return potential;
 
-  std::cout << "=============== BOX INTER ===============\n";
   double tempREn = 0.0, tempLJEn = 0.0;
 
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
@@ -178,10 +177,6 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   cellList.GetCellListNeighbor(box, currentCoords.Count(),
                                cellVector, cellStartIndex, mapParticleToCell);
   neighborList = cellList.GetNeighborList(box);
-  for(int i=0; i<currentCoords.Count(); i++) {
-    std::cout << currentCoords.x[i] << " ";
-  }
-  std::cout << "\n";
 
 #ifdef GOMC_CUDA
   //update unitcell in GPU
@@ -264,7 +259,6 @@ reduction(+:tempREn, tempLJEn)
   if (forcefield.useLRC) {
     EnergyCorrection(potential, boxAxes, box);
   }
-  std::cout << "=========================================\n";
 
   potential.Total();
   return potential;

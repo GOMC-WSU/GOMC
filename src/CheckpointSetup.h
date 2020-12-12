@@ -9,6 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "OutputAbstracts.h"
 #include "MoveSettings.h"
 #include "Coordinates.h"
+#include "PDBSetup.h"
 #include <iostream>
 
 class CheckpointSetup
@@ -37,6 +38,7 @@ public:
 #endif
   void SetMoleculeLookup(MoleculeLookup & molLookupRef);
   void SetMoveSettings(MoveSettings & moveSettings);
+  void FixAtomOrders(PDBSetup &pdb, MoleculeLookup & molLookupRef, Molecules &mol);
 
 private:
   MoveSettings & moveSetRef;

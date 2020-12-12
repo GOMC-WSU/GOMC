@@ -40,7 +40,7 @@ public:
   explicit System(StaticVals& statics, Setup const& set,
                   MultiSim const*const& multisim = NULL);
 
-  void Init(Setup const& setupData, ulong & startStep);
+  void Init(Setup & setupData, ulong & startStep);
 
   //Runs move, picked at random
   void ChooseAndRunMove(const uint step);

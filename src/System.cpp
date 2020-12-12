@@ -91,7 +91,7 @@ System::~System()
 #endif
 }
 
-void System::Init(Setup const& set, ulong & startStep)
+void System::Init(Setup & set, ulong & startStep)
 {
   prng.Init(set.prng.prngMaker.prng);
   r123wrapper.SetRandomSeed(set.config.in.prng.seed);
@@ -108,10 +108,6 @@ void System::Init(Setup const& set, ulong & startStep)
   molLookup.Init(statV.mol, set.pdb.atoms);
 #endif
   moveSettings.Init(statV, set.pdb.remarks, molLookupRef.GetNumKind());
-  //Note... the following calls use box iterators, so must come after
-  //the molecule lookup initialization, in case we're in a constant
-  //particle/molecule ensemble, e.g. NVT
-  coordinates.InitFromPDB(set.pdb.atoms);
 
   // At this point see if checkpoint is enabled. if so re-initialize
   // coordinates, prng, mollookup, step, boxdim, and movesettings
@@ -121,11 +117,13 @@ void System::Init(Setup const& set, ulong & startStep)
     checkpointSet.SetPRNGVariables(prng);
     checkpointSet.SetMoleculeLookup(molLookupRef);
     checkpointSet.SetMoveSettings(moveSettings);
+    checkpointSet.FixAtomOrders(set.pdb, molLookupRef, statV.mol);
 #if GOMC_LIB_MPI
     if(checkpointSet.CheckIfParallelTemperingWasEnabled() && ms->parallelTemperingEnabled)
       checkpointSet.SetPRNGVariablesPT(*prngParallelTemp);
 #endif
   }
+  coordinates.InitFromPDB(set.pdb.atoms);
 
   com.CalcCOM();
   // Allocate space for atom forces
@@ -276,6 +274,9 @@ void System::ChooseAndRunMove(const uint step)
   double draw = 0;
   uint majKind = 0;
   PickMove(majKind, draw);
+  for(int i=0; i<coordinates.Count(); i++) {
+    std::cout << coordinates.x[i] << " " << coordinates.y[i] << " " << coordinates.z[i] << "\n";
+  }
   time.SetStart();
   RunMove(majKind, draw, step);
   time.SetStop();
