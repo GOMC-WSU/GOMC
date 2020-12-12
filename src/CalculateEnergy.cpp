@@ -1514,6 +1514,67 @@ bool CalculateEnergy::FindMolInCavity(std::vector< std::vector<uint> > &mol,
     return false;
 }
 
+bool CalculateEnergy::FindMolInCavity(std::vector<uint> &mol,
+                                      const XYZ& center, const XYZ& cavDim,
+                                      const uint box, const uint kind)
+{
+  uint molKind, molIndex;
+  double maxLength = cavDim.Max();
+  XYZ halfDim = cavDim * 0.5;
+  XYZ halfDimSq = halfDim * halfDim;
+  XYZ dist, distSq; // distance from center to atoms
+
+  if(maxLength <= currentAxes.rCut[box]) {
+    CellList::Neighbors n = cellList.EnumerateLocal(center, box);
+    while (!n.Done()) {
+      molIndex = particleMol[*n];
+      molKind = mols.GetMolKind(molIndex);
+      // Check the kind to before calculating distance to save time
+      //if molecule can be transfer between boxes and it's the right kind
+      if(!molLookup.IsNoSwap(molIndex) && (molKind == kind)) {
+        dist = currentAxes.MinImage(currentCoords.Get(*n) - center, box);
+        distSq = dist * dist;
+        if (distSq.x < halfDimSq.x && distSq.y < halfDimSq.y && distSq.z < halfDimSq.z) {
+          mol.push_back(molIndex);
+        }
+      }
+      n.Next();
+    }
+  } else {
+    MoleculeLookup::box_iterator n = molLookup.BoxBegin(box);
+    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+    uint start, length, p;
+    while (n != end) {        
+      molIndex = *n;
+      molKind = mols.GetMolKind(molIndex);
+      // Check the kind to before calculating distance to save time
+      //if molecule can be transfer between boxes and it's the right kind
+      if(!molLookup.IsNoSwap(molIndex) && (molKind == kind)) {
+        length = mols.GetKind(*n).NumAtoms();
+        start = mols.MolStart(*n);
+        // loop through All atoms in molecule
+        for(p = start; p < start + length; ++p) {
+          dist = currentAxes.MinImage(currentCoords.Get(p) - center, box);
+          distSq = dist * dist;
+          if (distSq.x < halfDimSq.x && distSq.y < halfDimSq.y && distSq.z < halfDimSq.z) {
+            mol.push_back(molIndex);
+          }
+        }
+      }
+      n++;
+    }
+  }
+
+  // Find a unique molecule index
+  std::vector<uint>::iterator ip;
+  std::sort(mol.begin(), mol.end());
+  ip = std::unique(mol.begin(), mol.end());
+  mol.resize(std::distance(mol.begin(), ip));
+
+  // returns true if there is a molecule of kind in cavity
+  return mol.size();
+}
+
 
 void CalculateEnergy::SingleMoleculeInter(Energy &interEnOld,
     Energy &interEnNew,

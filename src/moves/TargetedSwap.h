@@ -97,7 +97,8 @@ private:
 
   double GetCoeff() const;
   uint GetBoxPairAndMol(const double subDraw, const double movPerc);
-  MolPick molPick;
+  uint PickMolInSubVolume(const uint &box);
+  void CheckSubVolumePBC(const uint &box);
   uint sourceBox, destBox;
   uint pStart, pLen;
   uint molIndex, kindIndex;
@@ -110,6 +111,7 @@ private:
   Forcefield const& ffRef;
 
   std::vector<TSwapParam> targetSwapParam[BOX_TOTAL];
+  std::vector<uint> molIdxInSubVolume[BOX_TOTAL];
   XYZ subVolCenter[BOX_TOTAL], subVolDim[BOX_TOTAL];
   double subVolume[BOX_TOTAL];
   bool hasSubVolume[BOX_TOTAL];
@@ -149,6 +151,8 @@ inline uint TargetedSwap::GetBoxPairAndMol(const double subDraw, const double mo
 
   // 1. Pick a pair of box to determin source and destination box.
   prng.PickBoxPair(sourceBox, destBox, subDraw, movPerc);
+  molIdxInSubVolume[sourceBox].clear();
+  molIdxInSubVolume[destBox].clear();
   // If we have a subvolume for source box, pick one of the subvolume randomely
   if(hasSubVolume[sourceBox]) {
     int SubVIdx_source = prng.randIntExc(targetSwapParam[sourceBox].size());
@@ -157,6 +161,9 @@ inline uint TargetedSwap::GetBoxPairAndMol(const double subDraw, const double mo
     subVolCenter[sourceBox] = targetSwapParam[sourceBox][SubVIdx_source].subVolumeCenter;
     subVolDim[sourceBox] = targetSwapParam[sourceBox][SubVIdx_source].subVolumeDim;
     subVolume[sourceBox] = targetSwapParam[sourceBox][SubVIdx_source].subVolume;
+    // Wrap the center of subVolume and make sure the it's dimension is less than
+    // simulation box
+    CheckSubVolumePBC(sourceBox);
   }
 
   // If we have a subvolume for dest box, pick one of the subvolume randomely
@@ -167,6 +174,9 @@ inline uint TargetedSwap::GetBoxPairAndMol(const double subDraw, const double mo
     subVolCenter[destBox] = targetSwapParam[destBox][SubVIdx_dest].subVolumeCenter;
     subVolDim[destBox] = targetSwapParam[destBox][SubVIdx_dest].subVolumeDim;
     subVolume[destBox] = targetSwapParam[destBox][SubVIdx_dest].subVolume;
+    // Wrap the center of subVolume and make sure the it's dimension is less than
+    // simulation box
+    CheckSubVolumePBC(destBox);
   }
 
   // 2. Pick a molecule kind
@@ -187,7 +197,9 @@ inline uint TargetedSwap::GetBoxPairAndMol(const double subDraw, const double mo
 
   // 3. Pick a molecule Index for the picked molecule kind
   if(hasSubVolume[sourceBox]) {
-    //Search through all molecule in the subVolume and randomely pick one
+    // Search through all molecule in the subVolume and randomely pick 
+    // one of the picked kind
+    state = PickMolInSubVolume(sourceBox);
   } else {
     // Randomely pick one molecule of the picked kind from whole source box
     state = prng.PickMolIndex(molIndex, kindIndex, sourceBox);
@@ -207,6 +219,67 @@ inline uint TargetedSwap::GetBoxPairAndMol(const double subDraw, const double mo
     molRef.GetRangeStartLength(pStart, pLen, molIndex);
   }
   return state;
+}
+
+inline void TargetedSwap::CheckSubVolumePBC(const uint &box)
+{
+  XYZ boxAxis = boxDimRef.GetAxis(box);
+  bool shrunk = false;
+  // Check the subVolume dimension
+  if(subVolDim[box].x > boxAxis.x) {
+    printf("Error: In Targeted Swap move, box dimension in X axis shrunk bellow %g A for Subvolume %d!\n",
+           subVolDim[box].x, targetSwapParam[box][pickedSubV[box]].subVolumeIdx);
+    shrunk = true;
+  }
+  if(subVolDim[box].y > boxAxis.y) {
+    printf("Error: In Targeted Swap move, box dimension in Y axis shrunk bellow %g A for Subvolume %d!\n",
+           subVolDim[box].y, targetSwapParam[box][pickedSubV[box]].subVolumeIdx);
+    shrunk = true;
+  }
+  if(subVolDim[box].z > boxAxis.z) {
+    printf("Error: In Targeted Swap move, box dimension in Z axis shrunk bellow %g A for Subvolume %d!\n",
+           subVolDim[box].z, targetSwapParam[box][pickedSubV[box]].subVolumeIdx);
+    shrunk = true;
+  }
+
+  // Wrap the center of subVolume and check for PBC
+  subVolCenter[box] = boxDimRef.WrapPBC(subVolCenter[box], box);
+  // Check the center or subvolume
+  if(subVolCenter[box].x >= boxAxis.x) {
+    printf("Error: In Targeted Swap move, box dimension in X axis shrunk bellow center %g A for Subvolume %d!\n",
+           subVolCenter[box].x, targetSwapParam[box][pickedSubV[box]].subVolumeIdx);
+    shrunk = true;
+  }
+  if(subVolCenter[box].y >= boxAxis.y) {
+    printf("Error: In Targeted Swap move, box dimension in Y axis shrunk bellow center %g A for Subvolume %d!\n",
+           subVolCenter[box].y, targetSwapParam[box][pickedSubV[box]].subVolumeIdx);
+    shrunk = true;
+  }
+  if(subVolCenter[box].z >= boxAxis.z) {
+    printf("Error: In Targeted Swap move, box dimension in Z axis shrunk bellow center %g A for Subvolume %d!\n",
+           subVolCenter[box].z, targetSwapParam[box][pickedSubV[box]].subVolumeIdx);
+    shrunk = true;
+  }
+
+  if (shrunk) {
+    exit(EXIT_FAILURE);
+  }
+}
+
+inline uint TargetedSwap::PickMolInSubVolume(const uint &box)
+{
+  uint rejectState = mv::fail_state::NO_FAIL;
+  // Find all the molecule of kindIndex in subvolume
+  bool foundMol = calcEnRef.FindMolInCavity(molIdxInSubVolume[box],
+                  subVolCenter[box], subVolDim[box], box, kindIndex);
+  if(foundMol) {
+    molIndex = prng.randIntExc(molIdxInSubVolume[box].size());
+  } else {
+    //reject the move if no molecule was find
+    rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+  }
+  
+  return rejectState;
 }
 
 inline uint TargetedSwap::Transform()
