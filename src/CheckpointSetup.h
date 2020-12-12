@@ -38,7 +38,6 @@ public:
 #endif
   void SetMoleculeLookup(MoleculeLookup & molLookupRef);
   void SetMoveSettings(MoveSettings & moveSettings);
-  void FixAtomOrders(PDBSetup &pdb, MoleculeLookup & molLookupRef, Molecules &mol);
 
 private:
   MoveSettings & moveSetRef;
