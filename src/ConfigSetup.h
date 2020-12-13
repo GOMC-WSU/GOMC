@@ -426,9 +426,12 @@ struct TargetSwapCollection {
       // If the subVolume index did not exist, add one
       TargetSwapParam tempPar;
       tempPar.subVolumeIdx = subVIdx;
-      tempPar.selectedResKind = kind;
-      tempPar.reskind_defined = true;
-      targetedSwap.push_back(tempPar);
+      // if there is any kind defined!
+      if (kind.size()) {
+        tempPar.selectedResKind = kind;
+        tempPar.reskind_defined = true;
+        targetedSwap.push_back(tempPar);
+      }
     } else {
       // If subVolume index exist and and reskind is defined
       if(targetedSwap[idx].reskind_defined) {
@@ -437,8 +440,11 @@ struct TargetSwapCollection {
         printf("       Please use different subVolume index.\n");
         exit(EXIT_FAILURE);
       } else {
-        targetedSwap[idx].selectedResKind = kind;
-        targetedSwap[idx].reskind_defined = true;
+        // if there is any kind defined!
+        if (kind.size()) {
+          targetedSwap[idx].selectedResKind = kind;
+          targetedSwap[idx].reskind_defined = true;
+        }
       }
     }
   }

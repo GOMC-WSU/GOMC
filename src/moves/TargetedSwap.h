@@ -44,7 +44,7 @@ public:
       }
 
       if(statV.targetedSwapVal.enable) {
-        for(int s = 0; statV.targetedSwapVal.targetedSwap.size(); s++) {
+        for(int s = 0; s < statV.targetedSwapVal.targetedSwap.size(); s++) {
           config_setup::TargetSwapParam tsp = statV.targetedSwapVal.targetedSwap[s];
           TSwapParam tempVar;
           // copy data from TargetSwapParam struct to TSwapParam
@@ -78,7 +78,7 @@ public:
               // If there was no such a residue name, through error
               if(!found) {
                 printf("Error: In Targeted Swap move, residue name %s was not found in PDB/PSF file!\n",
-                        kindName);
+                        kindName.c_str());
                 exit(EXIT_FAILURE);
               }
             }
@@ -201,10 +201,12 @@ inline uint TargetedSwap::GetBoxPairAndMol(const double subDraw, const double mo
   //  would be biased.
   if(hasSubVolume[sourceBox]) {
     // Pick a molecule kind that specified for sourceBox subvolume
-    kindIndex = prng.randIntExc(targetSwapParam[sourceBox][pickedSubV[sourceBox]].selectedResKind.size());
+    uint i = prng.randIntExc(targetSwapParam[sourceBox][pickedSubV[sourceBox]].selectedResKind.size());
+    kindIndex = targetSwapParam[sourceBox][pickedSubV[sourceBox]].selectedResKind[i];
   } else if (hasSubVolume[destBox]) {
     // Pick a molecule kind that specified for destBox subvolume
-    kindIndex = prng.randIntExc(targetSwapParam[destBox][pickedSubV[destBox]].selectedResKind.size());
+    uint i = prng.randIntExc(targetSwapParam[destBox][pickedSubV[destBox]].selectedResKind.size());
+    kindIndex = targetSwapParam[destBox][pickedSubV[destBox]].selectedResKind[i];
   } else {
     printf("Error: In Targeted Swap move, no subVolume was defined for any Box!\n");
     exit(EXIT_FAILURE);
@@ -289,7 +291,8 @@ inline uint TargetedSwap::PickMolInSubVolume(const uint &box)
                   subVolCenter[box], subVolDim[box], box, kindIndex);
   if(foundMol) {
     // The return vector, stores unique molecule index
-    molIndex = prng.randIntExc(molIdxInSubVolume[box].size());
+    uint i = prng.randIntExc(molIdxInSubVolume[box].size());
+    molIndex = molIdxInSubVolume[box][i];
   } else {
     //reject the move if no molecule was find
     rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;

@@ -386,14 +386,14 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         exit(EXIT_FAILURE);
       }
     } else if(CheckString(line[0], "SubVolumeResidueKind")) {
-      if(line.size() > 3) {
+      if(line.size() >= 3) {
         int idx = stringtoi(line[1]); 
         std::vector<std::string> temp;
         // user can set it to all for All residues
         if (CheckString(line[2], "All")) {
           line[2] = "ALL";
         }
-        for(int k = 2; k < line.size() - 2; k++) {
+        for(int k = 2; k < line.size(); k++) {
           temp.push_back(line[k]);
         }
         sys.targetedSwapCollection.AddsubVolumeResKind(idx, temp);
@@ -1469,22 +1469,24 @@ void ConfigSetup::verifyInputs(void)
   int i;
 
   #ifdef VARIABLE_PARTICLE_NUMBER
-  for (i = 0; i < sys.targetedSwapCollection.targetedSwap.size(); i++) {
-    config_setup::TargetSwapParam tsp = sys.targetedSwapCollection.targetedSwap[i];
-    // make sure all required parameter has been set
-    tsp.VerifyParm();
-    printf("%-40s %d: \n",       "Info: Targeted Swap parameter for subVolume index",
-            tsp.subVolumeIdx);
-    printf("%-40s: %d \n",       "      SubVolume Box", tsp.selectedBox);
-    printf("%-40s: %g %g %g \n", "      SubVolume center",
-            tsp.subVolumeCenter.x, tsp.subVolumeCenter.y, tsp.subVolumeCenter.z);
-    printf("%-40s: %g %g %g \n", "      SubVolume dimension",
-            tsp.subVolumeDim.x, tsp.subVolumeDim.y, tsp.subVolumeDim.z);
-    printf("%-40s: ",            "      Targeted residue kind");
-    for (int j = 0; j < tsp.selectedResKind.size(); j++) {
-      printf("%-5s ", tsp.selectedResKind[j]);
+  if(sys.targetedSwapCollection.enable) {
+    for (i = 0; i < sys.targetedSwapCollection.targetedSwap.size(); i++) {
+      config_setup::TargetSwapParam tsp = sys.targetedSwapCollection.targetedSwap[i];
+      // make sure all required parameter has been set
+      tsp.VerifyParm();
+      printf("%-40s %d: \n",       "Info: Targeted Swap parameter for subVolume index",
+              tsp.subVolumeIdx);
+      printf("%-40s %d \n",       "      SubVolume Box:", tsp.selectedBox);
+      printf("%-40s %g %g %g \n", "      SubVolume center:",
+              tsp.subVolumeCenter.x, tsp.subVolumeCenter.y, tsp.subVolumeCenter.z);
+      printf("%-40s %g %g %g \n", "      SubVolume dimension:",
+              tsp.subVolumeDim.x, tsp.subVolumeDim.y, tsp.subVolumeDim.z);
+      printf("%-40s ",            "      Targeted residue kind:");
+      for (int j = 0; j < tsp.selectedResKind.size(); j++) {
+        printf("%-5s ", tsp.selectedResKind[j].c_str());
+      }
+      printf("\n\n");
     }
-    printf("\n\n");
   }
   #endif
 
