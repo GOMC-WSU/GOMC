@@ -220,6 +220,10 @@ inline uint TargetedSwap::GetBoxPairAndMol(const double subDraw, const double mo
   } else {
     // Randomely pick one molecule of the picked kind from whole source box
     state = prng.PickMolIndex(molIndex, kindIndex, sourceBox);
+    // Just call the function to get number of molecule in cavity in destBox
+    calcEnRef.FindMolInCavity(molIdxInSubVolume[destBox],
+                              subVolCenter[destBox], subVolDim[destBox],
+                              destBox, kindIndex);
   }
 
 #if ENSEMBLE == GCMC
