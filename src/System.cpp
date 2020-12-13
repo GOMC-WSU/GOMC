@@ -32,6 +32,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "IntraMoleculeExchange3.h"
 #include "CrankShaft.h"
 #include "CFCMC.h"
+#include "TargetedSwap.h"
 
 System::System(StaticVals& statics, MultiSim const*const& multisim) :
   statV(statics),
@@ -83,6 +84,7 @@ System::~System()
   delete moves[mv::MOL_TRANSFER];
   delete moves[mv::MEMC];
   delete moves[mv::CFCMC];
+  delete moves[mv::TARGETED_SWAP];
 #endif
 #if GOMC_LIB_MPI
   if(ms->parallelTemperingEnabled)
@@ -195,6 +197,8 @@ void System::InitMoves(Setup const& set)
     moves[mv::MEMC] = new MoleculeExchange3(*this, statV);
   }
   moves[mv::CFCMC] = new CFCMC(*this, statV);
+  moves[mv::TARGETED_SWAP] = new TargetedSwap(*this, statV);
+
 #endif
 }
 

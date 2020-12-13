@@ -137,7 +137,6 @@ set(headers
    src/StaticVals.h
    src/SubdividedArray.h
    src/System.h
-   src/TargetedSwap.h
    src/TransformMatrix.h
    src/Writer.h
    src/XYZArray.h
@@ -175,6 +174,7 @@ set(headers
    src/moves/MultiParticle.h
    src/moves/Regrowth.h
    src/moves/Rotation.h
+   src/moves/TargetedSwap.h
    src/moves/Translate.h
    src/moves/VolumeTransfer.h)
 

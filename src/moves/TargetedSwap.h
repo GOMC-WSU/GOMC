@@ -60,6 +60,8 @@ public:
               tempVar.selectedResKind.push_back(kindIdx);
             }
           } else {
+            // Sort user defined residue kind
+            std::sort(tsp.selectedResKind.begin(), tsp.selectedResKind.end());
             // Loop through all user defined residue name
             for (uint i = 0; i < tsp.selectedResKind.size(); i++) {
               std::string kindName = tsp.selectedResKind[i];
@@ -123,8 +125,8 @@ void TargetedSwap::PrintAcceptKind()
   for(uint k = 0; k < molRef.GetKindsCount(); k++) {
     printf("%-30s %-5s ", "% Accepted Targeted-Swap ", molRef.kinds[k].name.c_str());
     for(uint b = 0; b < BOX_TOTAL; b++) {
-      if(moveSetRef.GetTrial(b, mv::MOL_TRANSFER, k) > 0)
-        printf("%10.5f ", (100.0 * moveSetRef.GetAccept(b, mv::MOL_TRANSFER, k)));
+      if(moveSetRef.GetTrial(b, mv::TARGETED_SWAP, k) > 0)
+        printf("%10.5f ", (100.0 * moveSetRef.GetAccept(b, mv::TARGETED_SWAP, k)));
       else
         printf("%10.5f ", 0.0);
     }
@@ -141,6 +143,19 @@ inline uint TargetedSwap::Prep(const double subDraw, const double movPerc)
     newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
     oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
     oldMol.SetCoords(coordCurrRef, pStart);
+
+    // the trial configuration has cavity but COM is not fix and no rotation
+    // around backbone
+    if(hasSubVolume[sourceBox]) {
+      // Since the subVolume is orthogonal, no need to calculate and set the cellBasis
+      // matrix. The default value for cellBasis matrix is I 
+      oldMol.SetSeed(subVolCenter[sourceBox], subVolDim[sourceBox], true, false, false);
+    }
+    if(hasSubVolume[destBox]) {
+      // Since the subVolume is orthogonal, no need to calculate and set the cellBasis
+      // matrix. The default value for cellBasis matrix is I 
+      newMol.SetSeed(subVolCenter[destBox], subVolDim[destBox], true, false, false);
+    }
   }
   return state;
 }
@@ -273,6 +288,7 @@ inline uint TargetedSwap::PickMolInSubVolume(const uint &box)
   bool foundMol = calcEnRef.FindMolInCavity(molIdxInSubVolume[box],
                   subVolCenter[box], subVolDim[box], box, kindIndex);
   if(foundMol) {
+    // The return vector, stores unique molecule index
     molIndex = prng.randIntExc(molIdxInSubVolume[box].size());
   } else {
     //reject the move if no molecule was find
@@ -331,23 +347,23 @@ inline double TargetedSwap::GetCoeff() const
          boxDimRef.volume[destBox] * boxDimRef.volInv[sourceBox];
 #elif ENSEMBLE == GCMC
   if (sourceBox == mv::BOX0) { //Delete case
+    double molNumber =  double(molIdxInSubVolume[sourceBox].size());
+    double invVolume = 1.0 / subVolume[sourceBox];
     if(ffRef.isFugacity) {
-      return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
-             boxDimRef.volInv[sourceBox] /
+      return molNumber * invVolume /
              (BETA * molRef.kinds[kindIndex].chemPot);
     } else {
-      return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
-             boxDimRef.volInv[sourceBox] *
+      return molNumber * invVolume *
              exp(-BETA * molRef.kinds[kindIndex].chemPot);
     }
   } else { //Insertion case
+    double molNumber =  double(molIdxInSubVolume[destBox].size());
+    double volume = subVolume[destBox];
     if(ffRef.isFugacity) {
-      return boxDimRef.volume[destBox] /
-             (double)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
+      return volume / (molNumber + 1) *
              (BETA * molRef.kinds[kindIndex].chemPot);
     } else {
-      return boxDimRef.volume[destBox] /
-             (double)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
+      return volume / (molNumber + 1) *
              exp(BETA * molRef.kinds[kindIndex].chemPot);
     }
   }
@@ -424,7 +440,7 @@ inline void TargetedSwap::Accept(const uint rejectState, const uint step)
   } else //we didn't even try because we knew it would fail
     result = false;
 
-  moveSetRef.Update(mv::MOL_TRANSFER, result, destBox, kindIndex);
+  moveSetRef.Update(mv::TARGETED_SWAP, result, destBox, kindIndex);
 }
 
 #endif

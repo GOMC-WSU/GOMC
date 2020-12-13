@@ -80,6 +80,9 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
     case mv::CFCMC :
       movePerc[m] = perc.cfcmc;
       break;
+    case mv::TARGETED_SWAP :
+      movePerc[m] = perc.targetedSwap;
+      break;
 #endif
 #endif
     default:

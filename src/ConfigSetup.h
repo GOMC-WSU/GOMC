@@ -21,6 +21,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "XYZArray.h" //For box dimensions.
 #include "MoveConst.h"
 #include "UnitConst.h" //For bar --> mol*K / A3 conversion
+#include "EnergyTypes.h"
 
 #if ENSEMBLE == GCMC
 #include <sstream>  //for reading in variable # of chem. pot.
@@ -293,22 +294,22 @@ struct TargetSwapParam {
   void VerifyParm() {
     bool allSet = true;
     if(!box_defined) {
-      printf("Error: Box has not been defined fo subVolume index %d!\n",
+      printf("Error: Box has not been defined for subVolume index %d!\n",
             subVolumeIdx);
       allSet = false;
     }
     if(!center_defined) {
-      printf("Error: Center has not been defined fo subVolume index %d!\n",
+      printf("Error: Center has not been defined for subVolume index %d!\n",
             subVolumeIdx);
       allSet = false;
     }
     if(!dim_defined) {
-      printf("Error: dimension has not been defined fo subVolume index %d!\n",
+      printf("Error: dimension has not been defined for subVolume index %d!\n",
             subVolumeIdx);
       allSet = false;
     }
     if(!reskind_defined) {
-      printf("Error: residue kind has not been defined fo subVolume index %d!\n",
+      printf("Error: residue kind has not been defined for subVolume index %d!\n",
             subVolumeIdx);
       allSet = false;
     }
@@ -337,7 +338,7 @@ struct TargetSwapCollection {
   // add a new subVolume
   void AddsubVolumeBox(const int &subVIdx, uint &box) {
     int idx = 0;
-    if (box < BOX_TOTAL) {
+    if (box < BOXES_WITH_U_NB) {
       if (!SearchExisting(subVIdx, idx)) {
         // If the subVolume index did not exist, add one
         TargetSwapParam tempPar;
@@ -360,9 +361,9 @@ struct TargetSwapCollection {
     } else {
       printf("Error: Subvolume index %d cannot be set for box %d!\n", subVIdx, box);
       #if ENSEMBLE == GCMC
-        printf("       Maximum box index for this simulation is %d!\n", BOX_TOTAL - 2);
+        printf("       Maximum box index for this simulation is %d!\n", BOXES_WITH_U_NB - 1);
       #else
-        printf("       Maximum box index for this simulation is %d!\n", BOX_TOTAL - 1);
+        printf("       Maximum box index for this simulation is %d!\n", BOXES_WITH_U_NB - 1);
       #endif
       exit(EXIT_FAILURE);
     }

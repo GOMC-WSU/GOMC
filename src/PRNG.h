@@ -127,6 +127,19 @@ public:
     loc = temp;
   }
 
+  // generate random coordinate in cavity with dimension of cavDim and center
+  // of cavCenter
+  void FillWithRandomInCavity(XYZArray &loc, const uint len, XYZ const& cavDim, 
+                              XYZ const& cavCenter)
+  {
+    // generate random trial in range of [-cavDim/2, +cavDim/2]
+    for (uint i = 0; i < len; ++i) {
+      loc.Set(i, SymExc(cavDim.x / 2.0), SymExc(cavDim.y / 2.0), SymExc(cavDim.z / 2.0));
+    }
+    // Shift by center
+    loc.AddRange(0, len, cavCenter);
+  }
+
   //using UniformRandom algorithm in TransformMatrix.h
   XYZ RandomUnitVect()
   {
