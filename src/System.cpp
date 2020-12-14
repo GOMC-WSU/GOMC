@@ -365,8 +365,10 @@ void System::PrintTime()
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   printf("%-36s %10.4f    sec.\n", "Mol-Transfer:",
          moveTime[mv::MOL_TRANSFER]);
+  printf("%-36s %10.4f    sec.\n", "Targeted-Transfer:",
+         moveTime[mv::TARGETED_SWAP]);
   printf("%-36s %10.4f    sec.\n", "MEMC:", moveTime[mv::MEMC]);
-  printf("%-36s %10.4f    sec.\n", "CFCMC:", moveTime[mv::CFCMC]);
+  //printf("%-36s %10.4f    sec.\n", "CFCMC:", moveTime[mv::CFCMC]);
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   printf("%-36s %10.4f    sec.\n", "Vol-Transfer:", moveTime[mv::VOL_TRANSFER]);
