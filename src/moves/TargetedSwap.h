@@ -77,7 +77,7 @@ public:
               }
               // If there was no such a residue name, through error
               if(!found) {
-                printf("Error: In Targeted Swap move, residue name %s was not found in PDB/PSF file!\n",
+                printf("Error: In Targeted Swap move, residue name %s cannot be swapped or was not found in PDB/PSF file!\n",
                         kindName.c_str());
                 exit(EXIT_FAILURE);
               }
@@ -349,6 +349,8 @@ inline void TargetedSwap::CalcEn()
 inline double TargetedSwap::GetCoeff() const
 {
 #if ENSEMBLE == GEMC
+  printf("Error: GOMC does not support Targeted swap for GEMC!\n");
+  exit(EXIT_FAILURE);
   return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) /
          (double)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
          boxDimRef.volume[destBox] * boxDimRef.volInv[sourceBox];

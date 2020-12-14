@@ -24,7 +24,7 @@ DCDOutput::DCDOutput(System& sys, StaticVals const& statV) :
   y = NULL;
   z = NULL;
   enableStateOut = enableRestartOut = false;
-  for(int b = 0; b < BOX_TOTAL; b++){
+  for(uint b = 0; b < BOX_TOTAL; ++b){
     stateFileFileid[b] = 0;
     restartCoor[b] = NULL;
     outDCDStateFile[b] = NULL;
@@ -69,7 +69,9 @@ void DCDOutput::Init(pdb_setup::Atoms const& atoms,
       WriteDCDHeader(numAtoms, b);
       // prepare the xst file
       fileName = output.statistics.settings.uniqueStr.val;
-      fileName += "_BOX_" + std::to_string(b) + ".xst";
+      fileName += "_BOX_";
+      fileName += std::to_string(b);
+      fileName += ".xst";
       baselen = strlen(fileName.c_str());
       outXSTFile[b] = new char[baselen];
       strcpy(outXSTFile[b], fileName.c_str());
@@ -89,7 +91,9 @@ void DCDOutput::Init(pdb_setup::Atoms const& atoms,
       strcpy(outDCDRestartFile[b], fileName.c_str());
       // prepare the xsc file
       fileName = output.statistics.settings.uniqueStr.val;
-      fileName += "_BOX_" + std::to_string(b) + "_restart.xsc";
+      fileName += "_BOX_";
+      fileName += std::to_string(b);
+      fileName += "_restart.xsc";
       baselen = strlen(fileName.c_str());
       outXSCFile[b] = new char[baselen];
       strcpy(outXSCFile[b], fileName.c_str());
