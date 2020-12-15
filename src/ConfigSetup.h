@@ -421,6 +421,7 @@ struct TargetSwapCollection {
 
   // add targeted residue kind of subVolume to subVIdx
   void AddsubVolumeResKind(const int &subVIdx, std::vector<std::string> &kind) {
+    CheckSelectedKind(subVIdx, kind);
     int idx = 0;
     if (!SearchExisting(subVIdx, idx)) {
       // If the subVolume index did not exist, add one
@@ -447,6 +448,37 @@ struct TargetSwapCollection {
         }
       }
     }
+  }
+  //Check if user defined multiple reskind
+  void CheckSelectedKind(const int &subVIdx, std::vector<std::string> &kind) {
+    std::vector<std::string> newKind = kind;
+    std::vector<std::string>::iterator ip;
+    std::sort(newKind.begin(), newKind.end());
+    ip = std::unique(newKind.begin(), newKind.end());
+    //Find Uniquie reskind
+    newKind.resize(std::distance(newKind.begin(), ip));
+    if(newKind.size() != kind.size()) {
+      printf("Warning: Duplicated residue kind was defined for subVolume index %d!\n",
+                subVIdx);
+      printf("Warning: Proceed with unique residue kind for subVolume index %d!\n",
+                subVIdx);
+    }
+
+    bool selectedAll = (std::find(newKind.begin(), newKind.end(), "ALL") != newKind.end());
+    selectedAll |= (std::find(newKind.begin(), newKind.end(), "all") != newKind.end());
+    selectedAll |= (std::find(newKind.begin(), newKind.end(), "All") != newKind.end());
+    if(selectedAll) {
+      if(newKind.size() > 1) {
+        printf("Warning: %d additional residue kind was defined for subVolume index %d, while using all residues!\n",
+                  newKind.size() - 1, subVIdx);
+        printf("Warning: Proceed with all residue kind for subVolume index %d!\n",
+                  subVIdx);
+      }
+      newKind.clear();
+      newKind.push_back("ALL");
+    }
+
+    kind = newKind;
   }
 
   public:

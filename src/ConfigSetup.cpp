@@ -389,13 +389,11 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       if(line.size() >= 3) {
         int idx = stringtoi(line[1]); 
         std::vector<std::string> temp;
-        // user can set it to all for All residues
-        if (CheckString(line[2], "All")) {
-          line[2] = "ALL";
-        }
+        
         for(int k = 2; k < line.size(); k++) {
           temp.push_back(line[k]);
         }
+        
         sys.targetedSwapCollection.AddsubVolumeResKind(idx, temp);
       } else {
         printf("%-40s %-d !\n", "Error: Expected atleast 2 values for SubVolumeResidueKind, but received",
