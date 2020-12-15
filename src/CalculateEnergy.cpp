@@ -1519,8 +1519,8 @@ bool CalculateEnergy::FindMolInCavity(std::vector<uint> &mol,
                                       const uint box, const uint kind)
 {
   uint molKind, molIndex;
-  double maxLength = cavDim.Max();
   XYZ halfDim = cavDim * 0.5;
+  double maxLength = halfDim.Max();
   XYZ halfDimSq = halfDim * halfDim;
   XYZ dist, distSq; // distance from center to atoms
 
@@ -1534,7 +1534,7 @@ bool CalculateEnergy::FindMolInCavity(std::vector<uint> &mol,
       if(!molLookup.IsNoSwap(molIndex) && (molKind == kind)) {
         dist = currentAxes.MinImage(currentCoords.Get(*n) - center, box);
         distSq = dist * dist;
-        if (distSq.x < halfDimSq.x && distSq.y < halfDimSq.y && distSq.z < halfDimSq.z) {
+        if (distSq.x <= halfDimSq.x && distSq.y <= halfDimSq.y && distSq.z <= halfDimSq.z) {
           mol.push_back(molIndex);
         }
       }
@@ -1556,7 +1556,7 @@ bool CalculateEnergy::FindMolInCavity(std::vector<uint> &mol,
         for(p = start; p < start + length; ++p) {
           dist = currentAxes.MinImage(currentCoords.Get(p) - center, box);
           distSq = dist * dist;
-          if (distSq.x < halfDimSq.x && distSq.y < halfDimSq.y && distSq.z < halfDimSq.z) {
+          if (distSq.x <= halfDimSq.x && distSq.y <= halfDimSq.y && distSq.z <= halfDimSq.z) {
             mol.push_back(molIndex);
           }
         }
