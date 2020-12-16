@@ -1532,7 +1532,7 @@ bool CalculateEnergy::FindMolInCavity(std::vector<uint> &mol,
       // Check the kind to before calculating distance to save time
       //if molecule can be transfer between boxes and it's the right kind
       if(!molLookup.IsNoSwap(molIndex) && (molKind == kind)) {
-        dist = currentAxes.MinImage(currentCoords.Get(*n) - center, box);
+        dist = currentAxes.MinImage(currentCOM.Get(*n) - center, box);
         distSq = dist * dist;
         if (distSq.x <= halfDimSq.x && distSq.y <= halfDimSq.y && distSq.z <= halfDimSq.z) {
           mol.push_back(molIndex);
@@ -1543,23 +1543,18 @@ bool CalculateEnergy::FindMolInCavity(std::vector<uint> &mol,
   } else {
     MoleculeLookup::box_iterator n = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
-    uint start, length, p;
+    //uint start, length, p;
     while (n != end) {        
       molIndex = *n;
       molKind = mols.GetMolKind(molIndex);
       // Check the kind to before calculating distance to save time
       //if molecule can be transfer between boxes and it's the right kind
       if(!molLookup.IsNoSwap(molIndex) && (molKind == kind)) {
-        length = mols.GetKind(*n).NumAtoms();
-        start = mols.MolStart(*n);
-        // loop through All atoms in molecule
-        for(p = start; p < start + length; ++p) {
-          dist = currentAxes.MinImage(currentCoords.Get(p) - center, box);
+          dist = currentAxes.MinImage(currentCOM.Get(molIndex) - center, box);
           distSq = dist * dist;
           if (distSq.x <= halfDimSq.x && distSq.y <= halfDimSq.y && distSq.z <= halfDimSq.z) {
             mol.push_back(molIndex);
-          }
-        }
+          }  
       }
       n++;
     }

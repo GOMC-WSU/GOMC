@@ -144,6 +144,16 @@ inline uint TargetedSwap::Prep(const double subDraw, const double movPerc)
     oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
     oldMol.SetCoords(coordCurrRef, pStart);
 
+    // We need to copy the oldMol coordinate to newMol in order to be able to
+    // insert rigidly in dest box. This means we need to unwrap it using source box,
+    // and then wrap it using dest box
+    XYZArray molA(pLen);
+    coordCurrRef.CopyRange(molA, pStart, 0, pLen);
+    boxDimRef.UnwrapPBC(molA, sourceBox, comCurrRef.Get(molIndex));
+    boxDimRef.WrapPBC(molA, destBox);
+    //set coordinate of mole to newMol, later it will shift to center
+    newMol.SetCoords(molA, 0);
+
     // the trial configuration has cavity but COM is not fix and no rotation
     // around backbone
     if(hasSubVolume[sourceBox]) {
@@ -308,7 +318,14 @@ inline uint TargetedSwap::PickMolInSubVolume(const uint &box)
 inline uint TargetedSwap::Transform()
 {
   cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
-  molRef.kinds[kindIndex].Build(oldMol, newMol, molIndex);
+  molRef.kinds[kindIndex].BuildIDOld(oldMol, molIndex);
+  //Add bonded energy because we don't consider it in DCRotate.cpp
+  oldMol.AddEnergy(calcEnRef.MoleculeIntra(oldMol));
+
+  molRef.kinds[kindIndex].BuildIDNew(newMol, molIndex);
+  //Add bonded energy because we don't consider it in DCRotate.cpp
+  newMol.AddEnergy(calcEnRef.MoleculeIntra(newMol));
+
   overlap = newMol.HasOverlap();
   return mv::fail_state::NO_FAIL;
 }
