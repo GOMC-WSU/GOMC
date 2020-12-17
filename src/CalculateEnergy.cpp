@@ -149,7 +149,7 @@ SystemPotential CalculateEnergy::SystemInter(SystemPotential potential,
     //calculate LJ interaction and real term of electrostatic interaction
     potential = BoxInter(potential, coords, boxAxes, b);
     //calculate reciprocal term of electrostatic interaction
-    potential.boxEnergy[b].recip = calcEwald->BoxReciprocal(b);
+    potential.boxEnergy[b].recip = calcEwald->BoxReciprocal(b, false);
   }
 
   potential.Total();

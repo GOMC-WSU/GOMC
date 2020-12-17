@@ -103,7 +103,6 @@ Ewald::~Ewald()
 
 void Ewald::Init()
 {
-
   for(uint m = 0; m < mols.count; ++m) {
     const MoleculeKind& molKind = mols.GetKind(m);
     for(uint a = 0; a < molKind.NumAtoms(); ++a) {
@@ -128,7 +127,7 @@ void Ewald::Init()
   }
 
   AllocMem();
-  //initialize K vectors and reciprocate terms
+  //initialize K vectors and reciprocal terms
   UpdateVectorsAndRecipTerms(true);
 }
 
@@ -195,7 +194,9 @@ void Ewald::AllocMem()
 }
 
 
-//calculate reciprocal term for a box
+//calculate reciprocal terms for a box. Should be called only at
+//the start of the simulation to initialize the settings and when
+//testing a change in box dimensions, such as a volume transfer.
 void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 {
   if (box < BOXES_WITH_U_NB) {
@@ -243,7 +244,8 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
       uint start = mols.MolStart(*thisMol);
 
 #ifdef _OPENMP
-      #pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, start, thisKind)
+      #pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, \
+      start, thisKind)
 #endif
       for (int i = 0; i < (int) imageSize[box]; i++) {
         double sumReal = 0.0;
@@ -274,8 +276,98 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 }
 
 
-//calculate reciprocal term for a box
-double Ewald::BoxReciprocal(uint box) const
+//Calculate reciprocal terms for a box, when an updated value is needed
+//because the number and location of molecules could have changed since
+//the volume was set. Examples include MultiParticle and Molecule Exchange
+//moves. For these calls, we need to use the Reference settings, since
+//these hold the information for the current box dimensions.
+void Ewald::BoxReciprocalSums(uint box, XYZArray const& molCoords)
+{
+  if (box < BOXES_WITH_U_NB) {
+    MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
+    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+
+#ifdef GOMC_CUDA
+    int numberOfAtoms = 0, i = 0;
+    
+    for(int k = 0; k < (int) mols.GetKindsCount(); k++) {
+      MoleculeKind const& thisKind = mols.kinds[k];
+      numberOfAtoms += thisKind.NumAtoms() * molLookup.NumKindInBox(k, box);
+    }
+
+    XYZArray thisBoxCoords(numberOfAtoms);
+    std::vector<double> chargeBox;
+
+    while (thisMol != end) {
+      MoleculeKind const& thisKind = mols.GetKind(*thisMol);
+      double lambdaCoef = GetLambdaCoef(*thisMol, box);
+      for (uint j = 0; j < thisKind.NumAtoms(); j++) {
+        thisBoxCoords.Set(i, molCoords[mols.MolStart(*thisMol) + j]);
+        chargeBox.push_back(thisKind.AtomCharge(j) * lambdaCoef);
+        i++;
+      }
+      thisMol++;
+    }
+    CallBoxReciprocalSumsGPU(ff.particles->getCUDAVars(), thisBoxCoords,
+                             chargeBox, imageSizeRef[box], sumRnew[box],
+                             sumInew[box], currentEnergyRecip[box], box);
+#else
+#ifdef _OPENMP
+    #pragma omp parallel default(none) shared(box)
+#endif
+    {
+      std::memset(sumRnew[box], 0.0, sizeof(double) * imageSizeRef[box]);
+      std::memset(sumInew[box], 0.0, sizeof(double) * imageSizeRef[box]);
+    }
+
+    while (thisMol != end) {
+      MoleculeKind const& thisKind = mols.GetKind(*thisMol);
+      double lambdaCoef = GetLambdaCoef(*thisMol, box);
+      uint startAtom = mols.MolStart(*thisMol);
+
+#ifdef _OPENMP
+      #pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, \
+      startAtom, thisKind)
+#endif
+      for (int i = 0; i < (int) imageSizeRef[box]; i++) {
+        double sumReal = 0.0;
+        double sumImaginary = 0.0;
+
+        for (uint j = 0; j < thisKind.NumAtoms(); j++) {
+          unsigned long currentAtom = startAtom + j;
+          if(particleHasNoCharge[currentAtom]) {
+            continue;
+          }
+          double dotProduct = Dot(currentAtom, kxRef[box][i], kyRef[box][i],
+                                  kzRef[box][i], molCoords);
+
+          // TODO: sincos() can be used to optimize (GNU compiler only)
+          // Windows doesn't have sincos() function and
+          // Intel compiler automatically optimizes this part
+          sumReal += (thisKind.AtomCharge(j) * cos(dotProduct));
+          sumImaginary += (thisKind.AtomCharge(j) * sin(dotProduct));
+        }
+        //we assume all atom charges are scaled with lambda
+        sumRnew[box][i] += (lambdaCoef * sumReal);
+        sumInew[box][i] += (lambdaCoef * sumImaginary);
+      }
+      thisMol++;
+    }
+#endif
+  }
+}
+
+
+//Calculate reciprocal energy for a box. This function is called for two reasons:
+// 1. During a volume move, we call this function to total the sums for the new
+//    volume. For these calls, need to total the sums with the new volume settings.
+// 2. During a Molecule Exchange or MultiParticle move, we need to recompute these
+//    sums for the current volume, since the number and location of molecules
+//    could have changed since the volume was set. For these calls, we need to
+//    use the Reference settings, since these hold the information for the current
+//    box dimensions. Also called at the start of the simulation, after the
+//    Reference volume parameters have been set.
+double Ewald::BoxReciprocal(uint box, bool isNewVolume) const
 {
   double energyRecip = 0.0;
 
@@ -283,13 +375,23 @@ double Ewald::BoxReciprocal(uint box) const
 #ifdef GOMC_CUDA
     return currentEnergyRecip[box];
 #else
+    double *prefactPtr;
+    int imageSzVal;
+    if (isNewVolume) {
+      prefactPtr = prefact[box];
+      imageSzVal = static_cast<int>(imageSize[box]);
+    } else {
+      prefactPtr = prefactRef[box];
+      imageSzVal = static_cast<int>(imageSizeRef[box]);
+    }
 #ifdef _OPENMP
-    #pragma omp parallel for default(none) shared(box) reduction(+:energyRecip)
+    #pragma omp parallel for default(none) shared(box, imageSzVal, prefactPtr) \
+    reduction(+:energyRecip)
 #endif
-    for (int i = 0; i < (int) imageSize[box]; i++) {
+    for (int i = 0; i < imageSzVal; i++) {
       energyRecip += (( sumRnew[box][i] * sumRnew[box][i] +
                         sumInew[box][i] * sumInew[box][i]) *
-                      prefact[box][i]);
+                      prefactPtr[i]);
     }
 #endif
   }
@@ -516,7 +618,7 @@ reduction(+:energyRecip[:lambdaSize])
 reduction(+:energyRecip[:lambdaSize])
 #endif
 #endif
-  for (uint i = 0; i < imageSizeRef[box]; i++) {
+  for (int i = 0; i < (int) imageSizeRef[box]; i++) {
     double sumReal = 0.0;
     double sumImaginary = 0.0;
 
@@ -950,12 +1052,9 @@ void Ewald::SetRecipRef(uint box)
     std::memcpy(prefactRef[box], prefact[box], sizeof(double) *imageSize[box]);
   }
 #ifdef GOMC_CUDA
-  CopyCurrentToRefCUDA(ff.particles->getCUDAVars(),
-                       box, imageSize[box]);
+  CopyCurrentToRefCUDA(ff.particles->getCUDAVars(), box, imageSize[box]);
 #endif
-  for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
-    imageSizeRef[b] = imageSize[b];
-  }
+  imageSizeRef[box] = imageSize[box];
 }
 
 //calculate correction term for a molecule, with system lambda
@@ -1350,13 +1449,12 @@ void Ewald::UpdateRecipVec(uint box)
   kz[box] = tempKz;
   hsqr[box] = tempHsqr;
   prefact[box] = tempPrefact;
+
+  imageSizeRef[box] = imageSize[box];
+
 #ifdef GOMC_CUDA
   UpdateRecipVecCUDA(ff.particles->getCUDAVars(), box);
 #endif
-
-  for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
-    imageSizeRef[b] = imageSize[b];
-  }
 }
 
 void compareDouble(const double &x, const double &y, const int &i)
@@ -1417,7 +1515,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       ff.alphaSq[box],
       num::qqFact,
       constValue,
-      imageSize[box],
+      imageSizeRef[box],
       molCoords,
       currentAxes,
       box
@@ -1461,15 +1559,15 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
 #ifdef _OPENMP
           #pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, p) reduction(+:X, Y, Z)
 #endif
-          for(int i = 0; i < (int) imageSize[box]; i++) {
-            double dot = Dot(p, kx[box][i], ky[box][i], kz[box][i], molCoords);
+          for(int i = 0; i < (int) imageSizeRef[box]; i++) {
+            double dot = Dot(p, kxRef[box][i], kyRef[box][i], kzRef[box][i], molCoords);
 
-            double factor = 2.0 * particleCharge[p] * prefact[box][i] * lambdaCoef *
+            double factor = 2.0 * particleCharge[p] * prefactRef[box][i] * lambdaCoef *
                             (sin(dot) * sumRnew[box][i] - cos(dot) * sumInew[box][i]);
 
-            X += factor * kx[box][i];
-            Y += factor * ky[box][i];
-            Z += factor * kz[box][i];
+            X += factor * kxRef[box][i];
+            Y += factor * kyRef[box][i];
+            Z += factor * kzRef[box][i];
           }
         }
         atomForceRec.Set(p, X, Y, Z);
