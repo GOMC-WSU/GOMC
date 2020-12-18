@@ -375,6 +375,11 @@ inline double TargetedSwap::GetCoeff() const
   if (sourceBox == mv::BOX0) { //Delete case
     double molNumber =  double(molIdxInSubVolume[sourceBox].size());
     double invVolume = 1.0 / subVolume[sourceBox];
+    /*
+    if (molIdxInSubVolume[sourceBox].size() != molLookRef.NumKindInBox(kindIndex, sourceBox)) {
+      printf("Error: %d in subVolume vs %d in box!\n", molIdxInSubVolume[sourceBox].size(),
+      molLookRef.NumKindInBox(kindIndex, sourceBox));
+    } */
     if(ffRef.isFugacity) {
       return molNumber * invVolume /
              (BETA * molRef.kinds[kindIndex].chemPot);
@@ -385,6 +390,11 @@ inline double TargetedSwap::GetCoeff() const
   } else { //Insertion case
     double molNumber =  double(molIdxInSubVolume[destBox].size());
     double volume = subVolume[destBox];
+    /*
+    if (molIdxInSubVolume[destBox].size() != molLookRef.NumKindInBox(kindIndex, destBox)) {
+      printf("Error: %d in subVolume vs %d in box!\n", molIdxInSubVolume[destBox].size(),
+      molLookRef.NumKindInBox(kindIndex, destBox));
+    } */
     if(ffRef.isFugacity) {
       return volume / (molNumber + 1) *
              (BETA * molRef.kinds[kindIndex].chemPot);

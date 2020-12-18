@@ -1532,7 +1532,7 @@ bool CalculateEnergy::FindMolInCavity(std::vector<uint> &mol,
       // Check the kind to before calculating distance to save time
       //if molecule can be transfer between boxes and it's the right kind
       if(!molLookup.IsNoSwap(molIndex) && (molKind == kind)) {
-        dist = currentAxes.MinImage(currentCOM.Get(*n) - center, box);
+        dist = currentAxes.MinImage(currentCOM.Get(molIndex) - center, box);
         distSq = dist * dist;
         if (distSq.x <= halfDimSq.x && distSq.y <= halfDimSq.y && distSq.z <= halfDimSq.z) {
           mol.push_back(molIndex);
