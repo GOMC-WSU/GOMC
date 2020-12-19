@@ -176,6 +176,12 @@ void NoEwald::UpdateRecip(uint box)
   return;
 }
 
+//copy reciprocal values from ref to new
+void NoEwald::CopyRecip(uint box)
+{
+  return;
+}
+
 //update the kx, ky, kz, hsqr and prefact
 void NoEwald::UpdateRecipVec(uint box)
 {

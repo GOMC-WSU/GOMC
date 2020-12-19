@@ -124,7 +124,7 @@ public:
   virtual void UpdateRecip(uint box);
 
   //copy reciprocal values from ref to new
-  void CopyRecip(uint box);
+  virtual void CopyRecip(uint box);
 
   //update kx, ky, kz, hsqr and prefact
   virtual void UpdateRecipVec(uint box);

@@ -109,6 +109,9 @@ public:
   //update reciprocal values
   virtual void UpdateRecip(uint box);
 
+  //copy reciprocal values from ref to new
+  virtual void CopyRecip(uint box);
+
   //update the kx, ky, kz, hsqr and prefact
   virtual void UpdateRecipVec(uint box);
 
