@@ -22,20 +22,25 @@ void NoEwald::RecipInit(uint box, BoxDimensions const& boxAxes)
   return;
 }
 
-//calculate reciprocate term for a box
+//compute reciprocal term for a box with a new volume
 void NoEwald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 {
   return;
 }
 
+//compute reciprocal term for a box when not testing a volume change
+void NoEwald::BoxReciprocalSums(uint box, XYZArray const& molCoords)
+{
+  return;
+}
 
-//calculate reciprocate term for a box
-double NoEwald::BoxReciprocal(uint box) const
+//calculate reciprocal term for a box
+double NoEwald::BoxReciprocal(uint box, bool isNewVolume) const
 {
   return 0.0;
 }
 
-//calculate reciprocate force term for a box with molCoords
+//calculate reciprocal force term for a box with molCoords
 void NoEwald::BoxForceReciprocal(XYZArray const& molCoords,
                                  XYZArray& atomForceRec, XYZArray& molForceRec,
                                  uint box)
@@ -43,14 +48,14 @@ void NoEwald::BoxForceReciprocal(XYZArray const& molCoords,
   return;
 }
 
-//calculate reciprocate force term for a box
+//calculate reciprocal force term for a box
 Virial NoEwald::VirialReciprocal(Virial& virial, uint box) const
 {
   return virial;
 }
 
 
-//calculate reciprocate term for displacement and rotation move
+//calculate reciprocal term for displacement and rotation move
 double NoEwald::MolReciprocal(XYZArray const& molCoords,
                               const uint molIndex, const uint box)
 {
@@ -58,7 +63,7 @@ double NoEwald::MolReciprocal(XYZArray const& molCoords,
 }
 
 
-//calculate reciprocate term for lambdaNew and Old with same coordinates
+//calculate reciprocal term for lambdaNew and Old with same coordinates
 double NoEwald::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
                            const double lambdaNew, const uint molIndex,
                            const uint box)
@@ -81,7 +86,7 @@ double NoEwald::MolCorrection(uint molIndex, uint box) const
 }
 
 
-//calculate reciprocate term in destination box for swap move
+//calculate reciprocal term in destination box for swap move
 double NoEwald::SwapDestRecip(const cbmc::TrialMol &newMol,
                               const uint box,
                               const int molIndex)
@@ -90,7 +95,7 @@ double NoEwald::SwapDestRecip(const cbmc::TrialMol &newMol,
 }
 
 
-//calculate reciprocate term in source box for swap move
+//calculate reciprocal term in source box for swap move
 double NoEwald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                 const uint box, const int molIndex)
 {
@@ -98,7 +103,7 @@ double NoEwald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 }
 
 
-//calculate reciprocate term for inserting some molecules (kindA) in destination
+//calculate reciprocal term for inserting some molecules (kindA) in destination
 // box and removing a molecule (kindB) from destination box
 double NoEwald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
                           const std::vector<cbmc::TrialMol> &oldMol,
@@ -159,19 +164,25 @@ void NoEwald::ChangeRecip(Energy *energyDiff, Energy &dUdL_Coul,
 }
 
 
-//back up reciptocate value to Ref (will be called during initialization)
+//back up reciprocal value to Ref (will be called during initialization)
 void NoEwald::SetRecipRef(uint box)
 {
   return;
 }
 
-//update reciprocate values
+//update reciprocal values
 void NoEwald::UpdateRecip(uint box)
 {
   return;
 }
 
-//update the hx,y,z hsqr and prefact
+//copy reciprocal values from ref to new
+void NoEwald::CopyRecip(uint box)
+{
+  return;
+}
+
+//update the kx, ky, kz, hsqr and prefact
 void NoEwald::UpdateRecipVec(uint box)
 {
   return;

@@ -100,8 +100,8 @@ void Simulation::RunSimulation(void)
       system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
       if (staticValues->forcefield.ewald) {
         for(int box = 0; box < BOX_TOTAL; box++) {
-          system->calcEwald->BoxReciprocalSetup(box, system->coordinates);
-          system->potential.boxEnergy[box].recip = system->calcEwald->BoxReciprocal(box);
+          system->calcEwald->BoxReciprocalSums(box, system->coordinates, false);
+          system->potential.boxEnergy[box].recip = system->calcEwald->BoxReciprocal(box, false);
           system->calcEwald->UpdateRecip(box);
         }
       }

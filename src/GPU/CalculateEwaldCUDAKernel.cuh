@@ -47,6 +47,15 @@ void CallBoxReciprocalSetupGPU(VariablesCUDA *vars,
                                double &energyRecip,
                                uint box);
 
+void CallBoxReciprocalSumsGPU(VariablesCUDA *vars,
+                              XYZArray const &coords,
+                              std::vector<double> particleCharge,
+                              uint imageSize,
+                              double *sumRnew,
+                              double *sumInew,
+                              double &energyRecip,
+                              uint box);
+
 void CallMolReciprocalGPU(VariablesCUDA *vars,
                           XYZArray const &currentCoords,
                           XYZArray const &newCoords,
@@ -63,7 +72,7 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars,
                            uint imageSize,
                            double *sumRnew,
                            double *sumInew,
-                           int const insert,
+                           const bool insert,
                            double &energyRecipNew,
                            uint box);
 
@@ -104,17 +113,17 @@ __global__ void BoxForceReciprocalGPU(double *gpu_aForceRecx,
                                       int box,
                                       int atomCount);
 
-__global__ void BoxReciprocalSetupGPU(double * gpu_x,
-                                      double * gpu_y,
-                                      double * gpu_z,
-                                      double * gpu_kx,
-                                      double * gpu_ky,
-                                      double * gpu_kz,
-                                      int atomNumber,
-                                      double * gpu_particleCharge,
-                                      double * gpu_sumRnew,
-                                      double * gpu_sumInew,
-                                      int imageSize);
+__global__ void BoxReciprocalSumsGPU(double * gpu_x,
+                                     double * gpu_y,
+                                     double * gpu_z,
+                                     double * gpu_kx,
+                                     double * gpu_ky,
+                                     double * gpu_kz,
+                                     int atomNumber,
+                                     double * gpu_particleCharge,
+                                     double * gpu_sumRnew,
+                                     double * gpu_sumInew,
+                                     int imageSize);
 
 __global__ void MolReciprocalGPU(double *gpu_cx, double *gpu_cy, double *gpu_cz,
                                  double *gpu_nx, double *gpu_ny, double *gpu_nz,
@@ -138,7 +147,7 @@ __global__ void SwapReciprocalGPU(double *gpu_x, double *gpu_y, double *gpu_z,
                                   double *gpu_sumRref,
                                   double *gpu_sumIref,
                                   double *gpu_prefactRef,
-                                  int insert,
+                                  const bool insert,
                                   double *gpu_energyRecipNew,
                                   int imageSize);
 

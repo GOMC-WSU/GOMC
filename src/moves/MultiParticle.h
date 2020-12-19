@@ -158,7 +158,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   moveType = prng.randIntExc(mp::MPTOTALTYPES);
   SetMolInBox(bPick);
   if (moleculeIndex.size() == 0) {
-    std::cout << "Warning: Multi particle move can't move any molecules, Skipping...\n";
+    std::cout << "Warning: MultiParticle move can't move any molecules, Skipping...\n";
     state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
     return state;
   }
@@ -171,7 +171,10 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   //current system if any other moves, besides other MP moves, have been accepted.
   //Or, if this is the first MP move, which is handled with the same flag.
   if(moveSetRef.GetSingleMoveAccepted(bPick)) {
-    //Calculate force for long range electrostatic using old positions
+    //Copy ref reciprocal terms to new for calculation with old positions
+    calcEwald->CopyRecip(bPick);
+
+    //Calculate long range electrostatic force for old positions
     calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef, bPick);
 
     //Calculate short range energy and force for old positions
@@ -205,7 +208,10 @@ inline void MultiParticle::PrepCFCMC(const uint box)
   //current system if any other moves, besides other MP moves, have been accepted.
   //Or, if this is the first MP move, which is handled with the same flag.
   if(moveSetRef.GetSingleMoveAccepted(bPick)) {
-    //Calculate force for long range electrostatic using old positions
+    //Copy ref reciprocal terms to new for calculation with old positions
+    calcEwald->CopyRecip(bPick);
+
+    //Calculate long range electrostatic force for old positions
     calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef, bPick);
 
     //Calculate short range energy and force for old positions
@@ -288,16 +294,17 @@ inline void MultiParticle::CalcEn()
 
   //back up cached Fourier term
   calcEwald->backupMolCache();
+
   //setup reciprocal vectors for new positions
-  calcEwald->BoxReciprocalSetup(bPick, newMolsPos);
+  calcEwald->BoxReciprocalSums(bPick, newMolsPos);
 
   sysPotNew = sysPotRef;
   //calculate short range energy and force
   sysPotNew = calcEnRef.BoxForce(sysPotNew, newMolsPos, atomForceNew,
                                  molForceNew, boxDimRef, bPick);
-  //calculate long range of new electrostatic energy
-  sysPotNew.boxEnergy[bPick].recip = calcEwald->BoxReciprocal(bPick);
-  //Calculate long range of new electrostatic force
+  //calculate long range electrostatic energy for new positions
+  sysPotNew.boxEnergy[bPick].recip = calcEwald->BoxReciprocal(bPick, false);
+  //Calculate long range electrostatic force for new positions
   calcEwald->BoxForceReciprocal(newMolsPos, atomForceRecNew, molForceRecNew,
                                 bPick);
 
@@ -376,10 +383,10 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
   // Here we compare the values of reference and trial and decide whether to
   // accept or reject the move
   double MPCoeff = GetCoeff();
-  double delta_real = sysPotNew.boxEnergy[bPick].real - sysPotRef.boxEnergy[bPick].real;
-  double delta_inter = sysPotNew.boxEnergy[bPick].inter - sysPotRef.boxEnergy[bPick].inter;
-  double delta_recip = sysPotNew.boxEnergy[bPick].recip - sysPotRef.boxEnergy[bPick].recip;
-  double uBoltz = exp(-BETA * (delta_real + delta_inter + delta_recip));
+  double delta_energy = sysPotNew.boxEnergy[bPick].real - sysPotRef.boxEnergy[bPick].real;
+  delta_energy += sysPotNew.boxEnergy[bPick].inter - sysPotRef.boxEnergy[bPick].inter;
+  delta_energy += sysPotNew.boxEnergy[bPick].recip - sysPotRef.boxEnergy[bPick].recip;
+  double uBoltz = exp(-BETA * delta_energy);
   double accept = MPCoeff * uBoltz;
   double pr = prng();
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
@@ -430,11 +437,11 @@ inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, u
   }
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
-    std::cout << "Trial Displacement exceeds half of the box length in Multiparticle move.\n";
+    std::cout << "Trial Displacement exceeds half of the box length in MultiParticle move.\n";
     std::cout << "Trial transform: " << num;
     exit(EXIT_FAILURE);
   } else if (!std::isfinite(num.Length())) {
-    std::cout << "Trial Displacement is not a finite number in Multiparticle move.\n";
+    std::cout << "Trial Displacement is not a finite number in MultiParticle move.\n";
     std::cout << "Trial transform: " << num;
     exit(EXIT_FAILURE);
   }

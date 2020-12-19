@@ -217,6 +217,15 @@ void CopyCurrentToRefCUDA(VariablesCUDA *vars, uint box, uint imageTotal)
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
+void CopyRefToNewCUDA(VariablesCUDA *vars, uint box, uint imageTotal)
+{
+  cudaMemcpy(vars->gpu_sumRnew[box], vars->gpu_sumRref[box],
+             imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
+  cudaMemcpy(vars->gpu_sumInew[box], vars->gpu_sumIref[box],
+             imageTotal * sizeof(double), cudaMemcpyDeviceToDevice);
+  checkLastErrorCUDA(__FILE__, __LINE__);
+}
+
 void UpdateRecipVecCUDA(VariablesCUDA *vars, uint box)
 {
   double *tempKx, *tempKy, *tempKz, *tempHsqr, *tempPrefact;
