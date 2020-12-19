@@ -32,6 +32,7 @@ void InitCoordinatesCUDA(VariablesCUDA *vars, uint atomNumber,
                          uint maxAtomsInMol, uint maxMolNumber);
 void InitEwaldVariablesCUDA(VariablesCUDA *vars, uint imageTotal);
 void CopyCurrentToRefCUDA(VariablesCUDA *vars, uint box, uint imageTotal);
+void CopyRefToNewCUDA(VariablesCUDA *vars, uint box, uint imageTotal);
 void UpdateRecipVecCUDA(VariablesCUDA *vars, uint box);
 void UpdateRecipCUDA(VariablesCUDA *vars, uint box);
 void UpdateCellBasisCUDA(VariablesCUDA *vars, uint box, double *cellBasis_x,

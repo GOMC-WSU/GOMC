@@ -171,7 +171,10 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   //current system if any other moves, besides other MP moves, have been accepted.
   //Or, if this is the first MP move, which is handled with the same flag.
   if(moveSetRef.GetSingleMoveAccepted(bPick)) {
-    //Calculate force for long range electrostatic using old positions
+    //Copy ref reciprocal terms to new for calculation with old positions
+    calcEwald->CopyRecip(bPick);
+
+    //Calculate long range electrostatic force for old positions
     calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef, bPick);
 
     //Calculate short range energy and force for old positions
@@ -205,7 +208,10 @@ inline void MultiParticle::PrepCFCMC(const uint box)
   //current system if any other moves, besides other MP moves, have been accepted.
   //Or, if this is the first MP move, which is handled with the same flag.
   if(moveSetRef.GetSingleMoveAccepted(bPick)) {
-    //Calculate force for long range electrostatic using old positions
+    //Copy ref reciprocal terms to new for calculation with old positions
+    calcEwald->CopyRecip(bPick);
+
+    //Calculate long range electrostatic force for old positions
     calcEwald->BoxForceReciprocal(coordCurrRef, atomForceRecRef, molForceRecRef, bPick);
 
     //Calculate short range energy and force for old positions

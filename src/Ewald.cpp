@@ -1429,6 +1429,28 @@ void Ewald::UpdateRecip(uint box)
 #endif
 }
 
+//copy reciprocal values from ref to new
+//Used to reinitialize these two arrays for MultiParticle moves so that the
+//forces can be computed using the current positions, before making the MP
+//move. The other option would be to create different versions of these
+//functions to access SumIref and SumRref instead of SumInew and SumRnew.
+void Ewald::CopyRecip(uint box)
+{
+  if (box >= BOXES_WITH_U_NB)
+    return;
+
+#ifdef _OPENMP
+  #pragma omp parallel default(none) shared(box)
+#endif
+  {
+    std::memcpy(sumRnew[box], sumRref[box], sizeof(double) * imageSizeRef[box]);
+    std::memcpy(sumInew[box], sumIref[box], sizeof(double) * imageSizeRef[box]);
+  }
+#ifdef GOMC_CUDA
+  CopyRefToNewCUDA(ff.particles->getCUDAVars(), box, imageSizeRef[box]);
+#endif
+}
+
 void Ewald::UpdateRecipVec(uint box)
 {
   double *tempKx, *tempKy, *tempKz, *tempHsqr, *tempPrefact;
