@@ -9,6 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "EnsemblePreprocessor.h" //for BOX_TOTAL
 #include "BasicTypes.h" //For uint
+#include "algorithm"
 #include <vector>
 
 class CheckpointOutput;
@@ -58,9 +59,29 @@ public:
     return canSwapKind[k];
   }
 
+  // returns true if molecule kind k can transfer between boxes
+  bool IsKindSwapable(const uint k)
+  {
+    if(std::find(canSwapKind.begin(), canSwapKind.end(), k) == canSwapKind.end()) {
+      return false;
+    } else  {
+      return true;
+    }
+  }
+
   uint GetCanMoveKind(const uint k) const
   {
     return canMoveKind[k];
+  }
+
+  // returns true if molecule kind k can move in it's box
+  bool IsKindMoveable(const uint k)
+  {
+    if(std::find(canMoveKind.begin(), canMoveKind.end(), k) == canMoveKind.end()) {
+      return false;
+    } else  {
+      return true;
+    }
   }
 
   //Returns number of given kind in given box

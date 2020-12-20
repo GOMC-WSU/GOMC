@@ -13,9 +13,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "TrialMol.h"
 #include "GeomLib.h"
 #include "ConfigSetup.h"
+#include "Geometry.h" // for bond info
 #include <cmath>
+#include <queue>
 
 //struct config_setup::TargetSwapParam;
+struct BondList;
 
 struct TSwapParam {
   // defines the center of subVolume
@@ -28,6 +31,8 @@ struct TSwapParam {
   int subVolumeIdx; 
   // volume of subVolume (A^3)
   double subVolume;
+  // swap type rigid/flexible
+  bool rigidSwap;
 };
 
 class TargetedSwap : public MoveBase
@@ -38,6 +43,7 @@ public:
     ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
     MoveBase(sys, statV)
     {
+      rigidSwap = true;
       for(int b = 0; b < BOX_TOTAL; b++) {
         hasSubVolume[b] = false;
         pickedSubV[b] = 0;
@@ -53,6 +59,7 @@ public:
           tempVar.subVolumeIdx = tsp.subVolumeIdx;
           tempVar.subVolume = tsp.subVolumeDim.x * tsp.subVolumeDim.y *
                               tsp.subVolumeDim.z;
+          tempVar.rigidSwap = tsp.rigid_swap;
           // Use all residue kind
           if (tsp.selectedResKind[0] == "ALL") {
             for(uint k = 0; k < molLookRef.GetNumCanSwapKind(); k++) {
@@ -86,6 +93,13 @@ public:
           targetSwapParam[tsp.selectedBox].push_back(tempVar);
           hasSubVolume[tsp.selectedBox] = true;
         }
+
+        // Get the atom index for growing seed for each atomKind
+        for(uint k = 0; k < molLookRef.GetNumKind(); k++) {
+          growingAtomIndex.push_back(GetGrowingAtomIndex(k));
+        }
+
+        PrintTargetedSwapInfo();
       }
     }
 
@@ -99,8 +113,11 @@ private:
 
   double GetCoeff() const;
   uint GetBoxPairAndMol(const double subDraw, const double movPerc);
-  uint PickMolInSubVolume(const uint &box);
+  uint PickMolInSubVolume();
   void CheckSubVolumePBC(const uint &box);
+  void  PrintTargetedSwapInfo();
+  // Returns the center node in molecule's graph
+  uint GetGrowingAtomIndex(const uint k);
   uint sourceBox, destBox;
   uint pStart, pLen;
   uint molIndex, kindIndex;
@@ -112,12 +129,14 @@ private:
   MoleculeLookup & molLookRef;
   Forcefield const& ffRef;
 
+  std::vector<uint> growingAtomIndex;
   std::vector<TSwapParam> targetSwapParam[BOX_TOTAL];
   std::vector<uint> molIdxInSubVolume[BOX_TOTAL];
   XYZ subVolCenter[BOX_TOTAL], subVolDim[BOX_TOTAL];
   double subVolume[BOX_TOTAL];
   bool hasSubVolume[BOX_TOTAL];
   int pickedSubV[BOX_TOTAL];
+  bool rigidSwap;
 };
 
 void TargetedSwap::PrintAcceptKind()
@@ -156,15 +175,17 @@ inline uint TargetedSwap::Prep(const double subDraw, const double movPerc)
 
     // the trial configuration has cavity but COM is not fix and no rotation
     // around backbone
-    if(hasSubVolume[sourceBox]) {
+    if(hasSubVolume[sourceBox]) { // deletion
       // Since the subVolume is orthogonal, no need to calculate and set the cellBasis
       // matrix. The default value for cellBasis matrix is I 
       oldMol.SetSeed(subVolCenter[sourceBox], subVolDim[sourceBox], true, false, false);
+      oldMol.SetGrowingAtomIndex(growingAtomIndex[kindIndex]);
     }
-    if(hasSubVolume[destBox]) {
+    if(hasSubVolume[destBox]) { //insertion
       // Since the subVolume is orthogonal, no need to calculate and set the cellBasis
       // matrix. The default value for cellBasis matrix is I 
       newMol.SetSeed(subVolCenter[destBox], subVolDim[destBox], true, false, false);
+      newMol.SetGrowingAtomIndex(growingAtomIndex[kindIndex]);
     }
   }
   return state;
@@ -178,6 +199,7 @@ inline uint TargetedSwap::GetBoxPairAndMol(const double subDraw, const double mo
   prng.PickBoxPair(sourceBox, destBox, subDraw, movPerc);
   molIdxInSubVolume[sourceBox].clear();
   molIdxInSubVolume[destBox].clear();
+  rigidSwap = true;
   // If we have a subvolume for source box, pick one of the subvolume randomely
   if(hasSubVolume[sourceBox]) {
     int SubVIdx_source = prng.randIntExc(targetSwapParam[sourceBox].size());
@@ -186,6 +208,7 @@ inline uint TargetedSwap::GetBoxPairAndMol(const double subDraw, const double mo
     subVolCenter[sourceBox] = targetSwapParam[sourceBox][SubVIdx_source].subVolumeCenter;
     subVolDim[sourceBox] = targetSwapParam[sourceBox][SubVIdx_source].subVolumeDim;
     subVolume[sourceBox] = targetSwapParam[sourceBox][SubVIdx_source].subVolume;
+    rigidSwap = targetSwapParam[sourceBox][SubVIdx_source].rigidSwap;
     // Wrap the center of subVolume and make sure the it's dimension is less than
     // simulation box
     CheckSubVolumePBC(sourceBox);
@@ -199,6 +222,7 @@ inline uint TargetedSwap::GetBoxPairAndMol(const double subDraw, const double mo
     subVolCenter[destBox] = targetSwapParam[destBox][SubVIdx_dest].subVolumeCenter;
     subVolDim[destBox] = targetSwapParam[destBox][SubVIdx_dest].subVolumeDim;
     subVolume[destBox] = targetSwapParam[destBox][SubVIdx_dest].subVolume;
+    rigidSwap = targetSwapParam[destBox][SubVIdx_dest].rigidSwap;
     // Wrap the center of subVolume and make sure the it's dimension is less than
     // simulation box
     CheckSubVolumePBC(destBox);
@@ -223,18 +247,8 @@ inline uint TargetedSwap::GetBoxPairAndMol(const double subDraw, const double mo
   }
 
   // 3. Pick a molecule Index for the picked molecule kind
-  if(hasSubVolume[sourceBox]) {
-    // Search through all molecule in the subVolume and randomely pick 
-    // one of the picked kind
-    state = PickMolInSubVolume(sourceBox);
-  } else {
-    // Randomely pick one molecule of the picked kind from whole source box
-    state = prng.PickMolIndex(molIndex, kindIndex, sourceBox);
-    // Just call the function to get number of molecule in cavity in destBox
-    calcEnRef.FindMolInCavity(molIdxInSubVolume[destBox],
-                              subVolCenter[destBox], subVolDim[destBox],
-                              destBox, kindIndex);
-  }
+  state = PickMolInSubVolume();
+  
 
 #if ENSEMBLE == GCMC
   if(state == mv::fail_state::NO_MOL_OF_KIND_IN_BOX && sourceBox == mv::BOX1) {
@@ -297,35 +311,73 @@ inline void TargetedSwap::CheckSubVolumePBC(const uint &box)
   }
 }
 
-inline uint TargetedSwap::PickMolInSubVolume(const uint &box)
+inline uint TargetedSwap::PickMolInSubVolume()
 {
+
   uint rejectState = mv::fail_state::NO_FAIL;
-  // Find all the molecule of kindIndex in subvolume
-  bool foundMol = calcEnRef.FindMolInCavity(molIdxInSubVolume[box],
-                  subVolCenter[box], subVolDim[box], box, kindIndex);
-  if(foundMol) {
-    // The return vector, stores unique molecule index
-    uint i = prng.randIntExc(molIdxInSubVolume[box].size());
-    molIndex = molIdxInSubVolume[box][i];
-  } else {
-    //reject the move if no molecule was find
-    rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+  if(hasSubVolume[sourceBox]) {
+    // Search through all molecule in the subVolume and randomely pick 
+    // one of the picked kind
+    bool foundMol = false;
+    if(rigidSwap) {
+      // count molecule in subVolume by molecule geometric center
+      // Find all the molecule of kindIndex in subvolume
+      foundMol = calcEnRef.FindMolInCavity(molIdxInSubVolume[sourceBox],
+                    subVolCenter[sourceBox], subVolDim[sourceBox],
+                    sourceBox, kindIndex);
+    } else {
+      // count molecule in subVolume by coordinate of seed atomIdx
+      // Find all the molecule of kindIndex in subvolume
+      foundMol = calcEnRef.FindMolInCavity(molIdxInSubVolume[sourceBox],
+                    subVolCenter[sourceBox], subVolDim[sourceBox],
+                    sourceBox, kindIndex, growingAtomIndex[kindIndex]);
+    }
+
+    if(foundMol) {
+      // The return vector, stores unique molecule index
+      uint i = prng.randIntExc(molIdxInSubVolume[sourceBox].size());
+      molIndex = molIdxInSubVolume[sourceBox][i];
+    } else {
+      //reject the move if no molecule was find
+      rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+    }
+  } else { // means we have subVolume in destBox
+    // Randomely pick one molecule of the picked kind from whole source box
+    rejectState = prng.PickMolIndex(molIndex, kindIndex, sourceBox);
+    // Just call the function to get number of molecule in cavity in destBox
+    if(rigidSwap) {
+      // count molecule in subVolume by molecule geometric center
+      // Find all the molecule of kindIndex in subvolume
+      calcEnRef.FindMolInCavity(molIdxInSubVolume[destBox],
+                subVolCenter[destBox], subVolDim[destBox],
+                destBox, kindIndex);
+    } else {
+      // count molecule in subVolume by coordinate of seed atomIdx
+      // Find all the molecule of kindIndex in subvolume
+      calcEnRef.FindMolInCavity(molIdxInSubVolume[destBox],
+                subVolCenter[destBox], subVolDim[destBox],
+                destBox, kindIndex, growingAtomIndex[kindIndex]);
+    }
   }
-  
+
   return rejectState;
 }
 
 inline uint TargetedSwap::Transform()
 {
   cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
-  molRef.kinds[kindIndex].BuildIDOld(oldMol, molIndex);
-  //Add bonded energy because we don't consider it in DCRotate.cpp
-  oldMol.AddEnergy(calcEnRef.MoleculeIntra(oldMol));
+  if(rigidSwap) {
+    molRef.kinds[kindIndex].BuildIDOld(oldMol, molIndex);
+    //Add bonded energy because we don't consider it in DCRotateCOM.cpp
+    oldMol.AddEnergy(calcEnRef.MoleculeIntra(oldMol));
 
-  molRef.kinds[kindIndex].BuildIDNew(newMol, molIndex);
-  //Add bonded energy because we don't consider it in DCRotate.cpp
-  newMol.AddEnergy(calcEnRef.MoleculeIntra(newMol));
-
+    molRef.kinds[kindIndex].BuildIDNew(newMol, molIndex);
+    //Add bonded energy because we don't consider it in DCRotateCOM.cpp
+    newMol.AddEnergy(calcEnRef.MoleculeIntra(newMol));
+  } else {
+    // insert or delete using CD-CBMC starting from growingatom Index
+    molRef.kinds[kindIndex].BuildGrowInCav(oldMol, newMol, molIndex);
+  }
   overlap = newMol.HasOverlap();
   return mv::fail_state::NO_FAIL;
 }
@@ -477,6 +529,115 @@ inline void TargetedSwap::Accept(const uint rejectState, const uint step)
     result = false;
 
   moveSetRef.Update(mv::TARGETED_SWAP, result, destBox, kindIndex);
+}
+
+
+uint TargetedSwap::GetGrowingAtomIndex(const uint k)
+{
+  // if molecule kind is not swapable, dont waste time to get the
+  // center node. This kind will not be selected to swap
+  if (!molLookRef.IsKindSwapable(k)) {
+    return 0;
+  }
+
+  // If molecule is mono or diatomic, retrune index 0
+  if (molRef.kinds[k].NumAtoms() <= 2) { 
+    return 0;
+  }
+
+  // need to find the center node.
+  // https://codeforces.com/blog/entry/17974
+  {
+    MoleculeKind &kind = molRef.kinds[k];
+
+    uint   N = kind.NumAtoms();     // Number of nodes in graph
+    uint   maxlevel = 0;            // Level of center of graph
+    std::vector<uint> level(N, 0);  // Level of node
+    std::vector<uint> degree(N, 0); // Degree of node
+    std::vector<uint> c;            // Center of graph
+    std::queue<uint> q;            // Queue for algorithm
+
+    uint i, v;
+
+    //Setup the node's degree
+    uint bondCount = kind.bondList.count;
+    for (i = 0; i < bondCount; ++i) {
+      ++degree[kind.bondList.part1[i]];
+      ++degree[kind.bondList.part2[i]];
+    }
+
+    // Start from leaves
+    for (i = 0; i < N; i++) {
+        if (degree[i] == 1) {
+            q.push(i);
+        }
+    }
+
+    while (!q.empty()) {
+        v = q.front(); //.back()
+        q.pop();
+
+        // Remove leaf and try to add its parent
+        for (i = 0; i < N; i++) {
+            if (kind.bondList.IsBonded(v, i)) {
+                --degree[i];
+                
+                if (degree[i] == 1) {
+                    q.push(i);
+                    level[i] = level[v] + 1;
+                    maxlevel = std::max(maxlevel, level[i]);
+                }
+            }
+        }
+    }
+
+    for (i = 0; i < N; i++) {
+        if (level[i] == maxlevel) {
+            c.push_back(i);
+        }
+    }
+
+    // There could be maximum of 2 center node. Pick the first one
+    if(c.size()) {
+      return c[0];
+    } else {
+      printf("Error: In TargetedSwap move, no center atom was found for %s!\n",
+              kind.name.c_str());
+      exit(EXIT_FAILURE);
+    }
+  }
+}
+
+void TargetedSwap::PrintTargetedSwapInfo()
+{
+  int i, k, b;
+  for(b = 0; b < BOX_TOTAL; ++b) {
+    for (i = 0; i < targetSwapParam[b].size(); ++i) {
+      TSwapParam tsp = targetSwapParam[b][i];
+      printf("%-40s %d: \n",       "Info: Targeted Swap parameter for subVolume index",
+              tsp.subVolumeIdx);
+      printf("%-40s %d \n",       "      SubVolume Box:", b);
+      printf("%-40s %g %g %g \n", "      SubVolume center:",
+              tsp.subVolumeCenter.x, tsp.subVolumeCenter.y, tsp.subVolumeCenter.z);
+      printf("%-40s %g %g %g \n", "      SubVolume dimension:",
+              tsp.subVolumeDim.x, tsp.subVolumeDim.y, tsp.subVolumeDim.z);
+      printf("%-40s %s \n",       "      SubVolume Swap type:", (tsp.rigidSwap ? "Rigid body" : "Flexible"));
+      printf("%-40s ",            "      Targeted residue kind:");
+      for (k = 0; k < tsp.selectedResKind.size(); ++k) {
+        printf("%-5s ", molRef.kinds[k].name.c_str());
+      }
+      printf("\n");
+      if(!tsp.rigidSwap) {
+        for (k = 0; k < tsp.selectedResKind.size(); ++k) {
+          printf("%-40s %s: (%d, %s) \n",       "      Starting atom (index, name) for",
+                molRef.kinds[k].name.c_str(), growingAtomIndex[k],
+                molRef.kinds[k].atomNames[growingAtomIndex[k]].c_str());
+        }
+      }
+      printf("\n\n");
+    }
+  }
+
 }
 
 #endif

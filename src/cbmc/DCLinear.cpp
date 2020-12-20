@@ -136,3 +136,27 @@ void DCLinear::BuildGrowNew(TrialMol& newMol, uint molIndex)
     comps[i]->BuildNew(newMol, molIndex);
   }
 }
+
+void DCLinear::BuildGrowInCav(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
+{
+  //Get the seedIndex
+  int sIndex;
+  if (newMol.HasCav()) {
+    sIndex = newMol.GetGrowingAtomIndex();
+  } else if (oldMol.HasCav()) {
+    sIndex = oldMol.GetGrowingAtomIndex();
+  } else {
+    std::cout << "Error: Calling BuildGrowInCav, but there is no cavity" <<
+    " defined for newMol and oldMol.\n";
+    exit(EXIT_FAILURE);
+  }
+
+  //If backbone is atom 0, we use forward, otherwise backward
+  std::vector<DCComponent*>& comps = sIndex ? backward : forward;
+  for(uint i = 0; i < comps.size(); ++i) {
+    comps[i]->PrepareNew(newMol, molIndex);
+    comps[i]->BuildNew(newMol, molIndex);
+    comps[i]->PrepareOld(oldMol, molIndex);
+    comps[i]->BuildOld(oldMol, molIndex);
+  }
+}

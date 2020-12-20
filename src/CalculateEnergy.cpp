@@ -78,6 +78,7 @@ void CalculateEnergy::Init(System & sys)
       particleKind.push_back(molKind.AtomKind(a));
       particleMol.push_back(m);
       particleCharge.push_back(molKind.AtomCharge(a));
+      particleIndex.push_back(int(a));
     }
   }
 #ifdef GOMC_CUDA
@@ -1522,7 +1523,7 @@ bool CalculateEnergy::FindMolInCavity(std::vector<uint> &mol,
   XYZ halfDim = cavDim * 0.5;
   double maxLength = halfDim.Max();
   XYZ halfDimSq = halfDim * halfDim;
-  XYZ dist, distSq; // distance from center to atoms
+  XYZ dist, distSq; // distance from center to geometric center of molecule
 
   if(maxLength <= currentAxes.rCut[box]) {
     CellList::Neighbors n = cellList.EnumerateLocal(center, box);
@@ -1540,6 +1541,12 @@ bool CalculateEnergy::FindMolInCavity(std::vector<uint> &mol,
       }
       n.Next();
     }
+
+    // Find a unique molecule index
+    std::vector<uint>::iterator ip;
+    std::sort(mol.begin(), mol.end());
+    ip = std::unique(mol.begin(), mol.end());
+    mol.resize(std::distance(mol.begin(), ip));
   } else {
     MoleculeLookup::box_iterator n = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
@@ -1558,13 +1565,76 @@ bool CalculateEnergy::FindMolInCavity(std::vector<uint> &mol,
       }
       n++;
     }
+    // No need to find the unique molIndex, since we loop through all molecules and
+    // and not atoms
   }
 
-  // Find a unique molecule index
-  std::vector<uint>::iterator ip;
-  std::sort(mol.begin(), mol.end());
-  ip = std::unique(mol.begin(), mol.end());
-  mol.resize(std::distance(mol.begin(), ip));
+  // returns true if there is a molecule of kind in cavity
+  return mol.size();
+}
+
+
+bool CalculateEnergy::FindMolInCavity(std::vector<uint> &mol, const XYZ& center,
+                       const XYZ& cavDim, const uint box,
+                       const uint kind, const int atomIdx)
+{
+  uint molKind, molIndex;
+  int aIdx;
+  XYZ halfDim = cavDim * 0.5;
+  double maxLength = halfDim.Max();
+  XYZ halfDimSq = halfDim * halfDim;
+  XYZ dist, distSq; // distance from center to atoms
+
+  if(maxLength <= currentAxes.rCut[box]) {
+    CellList::Neighbors n = cellList.EnumerateLocal(center, box);
+    while (!n.Done()) {
+      aIdx = particleIndex[*n];
+      molIndex = particleMol[*n];
+      molKind = mols.GetMolKind(molIndex);
+      // Check the kind to before calculating distance to save time
+      //if molecule can be transfer between boxes and it's the right kind
+      if(aIdx == atomIdx && (molKind == kind) && !molLookup.IsNoSwap(molIndex)) {
+        dist = currentAxes.MinImage(currentCoords.Get(*n) - center, box);
+        distSq = dist * dist;
+        if (distSq.x <= halfDimSq.x && distSq.y <= halfDimSq.y && distSq.z <= halfDimSq.z) {
+          mol.push_back(molIndex);
+        }
+      }
+      n.Next();
+    }
+
+    // There should be only one atom with atomIdx, so no need to
+    // find the unique molIndex
+  } else {
+    MoleculeLookup::box_iterator n = molLookup.BoxBegin(box);
+    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+    uint start, length, p;
+    while (n != end) {        
+      molIndex = *n;
+      molKind = mols.GetMolKind(molIndex);
+      // Check the kind to before calculating distance to save time
+      //if molecule can be transfer between boxes and it's the right kind
+      if(!molLookup.IsNoSwap(molIndex) && (molKind == kind)) {
+        // get atom start index and length
+        length = mols.GetKind(molIndex).NumAtoms();
+        start = mols.MolStart(molIndex);
+        // loop through all atom and calculate the distance between center and
+        // atomIdx coordinate
+        for(p = 0; p < length; ++p) {
+          if(p == atomIdx) {
+            dist = currentAxes.MinImage(currentCoords.Get(start+p) - center, box);
+            distSq = dist * dist;
+            if (distSq.x <= halfDimSq.x && distSq.y <= halfDimSq.y && distSq.z <= halfDimSq.z) {
+              mol.push_back(molIndex);
+            } 
+          }
+        } 
+      }
+      n++;
+    }
+    // No need to find the unique molIndex, since we loop through all molecules and
+    // and not atoms
+  }
 
   // returns true if there is a molecule of kind in cavity
   return mol.size();

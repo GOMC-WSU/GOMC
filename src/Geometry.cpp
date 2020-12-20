@@ -212,6 +212,17 @@ void BondList::Init(const std::vector<mol_setup::Bond>& bonds)
   }
 }
 
+bool BondList::IsBonded(const uint &i, const uint &j)
+{
+  for(uint i = 0; i < count; ++i) {
+    if(part1[i] == i && part2[i] == j)
+      return true;
+    else if (part1[i] == j && part2[i] == i)
+      return true;
+  }
+  return false;
+}
+
 BondList::BondList() : part1(NULL), part2(NULL), kinds(NULL), count(0) {}
 
 BondList::~BondList()

@@ -52,6 +52,9 @@ public:
   virtual void BuildGrowNew(TrialMol& newMol, uint molIndex) = 0;
   virtual void BuildGrowOld(TrialMol& oldMol, uint molIndex) = 0;
 
+  // grow the molecule with starting seed within subVolume
+  virtual void BuildGrowInCav(TrialMol& oldMol, TrialMol& newMol, uint molIndex) = 0;
+
   virtual ~CBMC() {}
 };
 

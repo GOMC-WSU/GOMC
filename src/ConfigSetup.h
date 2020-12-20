@@ -266,12 +266,17 @@ struct TargetSwapParam {
   uint selectedBox;
   // defines the subVolume index for error checking
   int subVolumeIdx; 
+  // defines if we do rigid body insertion/deletion or not
+  // defaut value is true
+  bool rigid_swap;
 
   bool center_defined, dim_defined, reskind_defined;
-  bool box_defined;
+  bool box_defined, rigidSwap_defined;;
   TargetSwapParam(void) {
     center_defined = dim_defined = false;
     reskind_defined = box_defined = false;
+    rigidSwap_defined = false;
+    rigid_swap = false;
     subVolumeIdx = 0;
   }
 
@@ -282,11 +287,13 @@ struct TargetSwapParam {
     selectedResKind = rhs.selectedResKind;
     selectedBox = rhs.selectedBox;
     subVolumeIdx = rhs.subVolumeIdx;
+    rigid_swap = rhs.rigid_swap;
     //copy boolean parameters
     center_defined = rhs.center_defined;
     dim_defined = rhs.dim_defined;
     reskind_defined = rhs.reskind_defined;
     box_defined = rhs.box_defined;
+    rigidSwap_defined = rhs.rigidSwap_defined;
     return *this;
   }
 
@@ -312,6 +319,11 @@ struct TargetSwapParam {
       printf("Error: residue kind has not been defined for subVolume index %d!\n",
             subVolumeIdx);
       allSet = false;
+    }
+    if(!rigidSwap_defined) {
+      printf("Default: Rigid body swap type has been defined for subVolume index %d!\n",
+            subVolumeIdx);
+      rigid_swap = true;
     }
 
     if(!allSet)
@@ -479,6 +491,30 @@ struct TargetSwapCollection {
     }
 
     kind = newKind;
+  }
+
+  // add a swapType for subvolume
+  void AddsubVolumeSwapType(const int &subVIdx, bool &isRigid) {
+    int idx = 0;
+      if (!SearchExisting(subVIdx, idx)) {
+        // If the subVolume index did not exist, add one
+        TargetSwapParam tempPar;
+        tempPar.subVolumeIdx = subVIdx;
+        tempPar.rigid_swap = isRigid;
+        tempPar.rigidSwap_defined = true;
+        targetedSwap.push_back(tempPar);
+      } else {
+        // If subVolume index exist and subvolume box is defined
+        if(targetedSwap[idx].rigidSwap_defined) {
+          printf("Error: The swap type has already been defined for subVolume index %d!\n",
+                subVIdx);
+          printf("       Please use different subVolume index.\n");
+          exit(EXIT_FAILURE);
+        } else {
+          targetedSwap[idx].rigid_swap = isRigid;
+          targetedSwap[idx].rigidSwap_defined = true;
+        }
+      }
   }
 
   public:

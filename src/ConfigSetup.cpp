@@ -360,7 +360,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         exit(EXIT_FAILURE);
       }
     } else if(CheckString(line[0], "SubVolumeCenter")) {
-      if(line.size() == 5) {
+      if(line.size() >= 5) {
         int idx = stringtoi(line[1]); 
         XYZ temp;
         temp.x = stringtod(line[2]);
@@ -373,7 +373,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         exit(EXIT_FAILURE);
       }
     } else if(CheckString(line[0], "SubVolumeDim")) {
-      if(line.size() == 5) {
+      if(line.size() >= 5) {
         int idx = stringtoi(line[1]); 
         XYZ temp;
         temp.x = stringtod(line[2]);
@@ -397,6 +397,16 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         sys.targetedSwapCollection.AddsubVolumeResKind(idx, temp);
       } else {
         printf("%-40s %-d !\n", "Error: Expected atleast 2 values for SubVolumeResidueKind, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } else if(CheckString(line[0], "SubVolumeRigidSwap")) {
+      if(line.size() >= 3) {
+        int idx = stringtoi(line[1]); 
+        bool isRigid = checkBool(line[2]);
+        sys.targetedSwapCollection.AddsubVolumeSwapType(idx, isRigid);
+      } else {
+        printf("%-40s %-d !\n", "Error: Expected 2 values for SubVolumeRigidSwap, but received",
                 line.size() -1);
         exit(EXIT_FAILURE);
       }
@@ -1469,21 +1479,8 @@ void ConfigSetup::verifyInputs(void)
   #ifdef VARIABLE_PARTICLE_NUMBER
   if(sys.targetedSwapCollection.enable) {
     for (i = 0; i < sys.targetedSwapCollection.targetedSwap.size(); i++) {
-      config_setup::TargetSwapParam tsp = sys.targetedSwapCollection.targetedSwap[i];
       // make sure all required parameter has been set
-      tsp.VerifyParm();
-      printf("%-40s %d: \n",       "Info: Targeted Swap parameter for subVolume index",
-              tsp.subVolumeIdx);
-      printf("%-40s %d \n",       "      SubVolume Box:", tsp.selectedBox);
-      printf("%-40s %g %g %g \n", "      SubVolume center:",
-              tsp.subVolumeCenter.x, tsp.subVolumeCenter.y, tsp.subVolumeCenter.z);
-      printf("%-40s %g %g %g \n", "      SubVolume dimension:",
-              tsp.subVolumeDim.x, tsp.subVolumeDim.y, tsp.subVolumeDim.z);
-      printf("%-40s ",            "      Targeted residue kind:");
-      for (int j = 0; j < tsp.selectedResKind.size(); j++) {
-        printf("%-5s ", tsp.selectedResKind[j].c_str());
-      }
-      printf("\n\n");
+      sys.targetedSwapCollection.targetedSwap[i].VerifyParm();
     }
   }
   #endif
