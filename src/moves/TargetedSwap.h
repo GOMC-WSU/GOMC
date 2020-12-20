@@ -94,6 +94,18 @@ public:
           hasSubVolume[tsp.selectedBox] = true;
         }
 
+        //Initialize the trial and acceptance
+        for(uint b = 0; b < BOX_TOTAL; ++b) {
+          if(hasSubVolume[b]) {
+            trial[b].resize(targetSwapParam[b].size());
+            accepted[b].resize(targetSwapParam[b].size());
+            for(uint idx = 0; idx < targetSwapParam[b].size(); ++idx) {
+              trial[b][idx].resize(molRef.GetKindsCount(), 0);
+              accepted[b][idx].resize(molRef.GetKindsCount(), 0);
+            }
+          }
+        }
+
         // Get the atom index for growing seed for each atomKind
         for(uint k = 0; k < molLookRef.GetNumKind(); k++) {
           growingAtomIndex.push_back(GetGrowingAtomIndex(k));
@@ -116,6 +128,8 @@ private:
   uint PickMolInSubVolume();
   void CheckSubVolumePBC(const uint &box);
   void  PrintTargetedSwapInfo();
+  // Track the acceptance for each subVolume
+  void AcceptSubVolumeIdx(const uint &state, const uint &kind, const uint &box);
   // Returns the center node in molecule's graph
   uint GetGrowingAtomIndex(const uint k);
   uint sourceBox, destBox;
@@ -132,6 +146,8 @@ private:
   std::vector<uint> growingAtomIndex;
   std::vector<TSwapParam> targetSwapParam[BOX_TOTAL];
   std::vector<uint> molIdxInSubVolume[BOX_TOTAL];
+  //For move acceptance of each molecule subVolume, and kind
+  std::vector< std::vector<uint> > trial[BOX_TOTAL], accepted[BOX_TOTAL];
   XYZ subVolCenter[BOX_TOTAL], subVolDim[BOX_TOTAL];
   double subVolume[BOX_TOTAL];
   bool hasSubVolume[BOX_TOTAL];
@@ -139,17 +155,23 @@ private:
   bool rigidSwap;
 };
 
+// Need to fix it for GEMC
 void TargetedSwap::PrintAcceptKind()
 {
-  for(uint k = 0; k < molRef.GetKindsCount(); k++) {
-    printf("%-30s %-5s ", "% Accepted Targeted-Swap ", molRef.kinds[k].name.c_str());
-    for(uint b = 0; b < BOX_TOTAL; b++) {
-      if(moveSetRef.GetTrial(b, mv::TARGETED_SWAP, k) > 0)
-        printf("%10.5f ", (100.0 * moveSetRef.GetAccept(b, mv::TARGETED_SWAP, k)));
-      else
-        printf("%10.5f ", 0.0);
+  for(uint b = 0; b < BOX_TOTAL; ++b) {
+    if(hasSubVolume[b]) {
+      for(uint idx = 0; idx < targetSwapParam[b].size(); ++idx) {
+        for(uint k = 0; k < targetSwapParam[b][idx].selectedResKind.size(); ++k) {
+          int t = trial[b][idx][k];
+          int a = accepted[b][idx][k];
+          double percentAccept = (t ? 100 * (double)a/t: 0.0);
+          char msg[257];
+          sprintf(msg, "%% Accepted Targeted-Swap (%d)", idx);
+          printf("%-30s %-5s ", msg, molRef.kinds[k].name.c_str());
+          printf("%10.5f %10.5f \n", percentAccept, percentAccept);
+        }
+      }
     }
-    std::cout << std::endl;
   }
 }
 
@@ -529,6 +551,7 @@ inline void TargetedSwap::Accept(const uint rejectState, const uint step)
     result = false;
 
   moveSetRef.Update(mv::TARGETED_SWAP, result, destBox, kindIndex);
+  AcceptSubVolumeIdx(result, kindIndex, destBox);
 }
 
 
@@ -637,8 +660,20 @@ void TargetedSwap::PrintTargetedSwapInfo()
       printf("\n\n");
     }
   }
-
 }
+
+
+  void TargetedSwap::AcceptSubVolumeIdx(const uint &state, const uint &kind,
+                                        const uint &box)
+  {
+    if (hasSubVolume[box]) {
+      uint subVidx = pickedSubV[box];
+      ++trial[box][subVidx][kind];
+      if(state) {
+        ++accepted[box][subVidx][kind];
+      }
+    }
+  }
 
 #endif
 
