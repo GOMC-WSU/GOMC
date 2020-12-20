@@ -833,6 +833,16 @@ reduction(+:energyRecipNew)
     energyRecipOld = sysPotRef.boxEnergy[box].recip;
   }
 
+//Because SwapRecip does not have a matching GPU function, this is a stub
+//function to copy the CPU sumRnew and sumInew vectors to the GPU in case
+//the move is accepted. If this function is ported to the GPU, this call
+//should be moved to the beginning of the SwapRecip function and called
+//instead of running the CPU code.
+#ifdef GOMC_CUDA
+  CallSwapRecipGPU(ff.particles->getCUDAVars(), imageSizeRef[box], sumRnew[box],
+                   sumInew[box], box);
+#endif
+
   // Return the difference between old and new reciprocal energies
   return energyRecipNew - energyRecipOld;
 }

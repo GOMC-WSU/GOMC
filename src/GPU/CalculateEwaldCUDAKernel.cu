@@ -442,6 +442,18 @@ void CallSwapReciprocalGPU(VariablesCUDA *vars,
   CUFREE(d_temp_storage);
 }
 
+void CallSwapRecipGPU(VariablesCUDA *vars,
+                      uint imageSize,
+                      double *sumRnew,
+                      double *sumInew,
+                      uint box)
+{
+  cudaMemcpy(vars->gpu_sumRnew[box], sumRnew, imageSize * sizeof(double),
+             cudaMemcpyHostToDevice);
+  cudaMemcpy(vars->gpu_sumInew[box], sumInew, imageSize * sizeof(double),
+             cudaMemcpyHostToDevice);
+}
+
 void CallBoxForceReciprocalGPU(
   VariablesCUDA *vars,
   XYZArray &atomForceRec,

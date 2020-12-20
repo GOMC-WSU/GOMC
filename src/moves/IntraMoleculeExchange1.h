@@ -583,7 +583,6 @@ inline void IntraMoleculeExchange1::Accept(const uint rejectState,
       sysPotRef.boxEnergy[sourceBox].correction += correctDiff;
 
       // Update reciprocal
-      calcEwald->BoxReciprocalSums(sourceBox, coordCurrRef);
       calcEwald->UpdateRecip(sourceBox);
 
       // molA and molB already added to cellist
