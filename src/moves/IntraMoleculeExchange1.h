@@ -585,7 +585,7 @@ inline void IntraMoleculeExchange1::Accept(const uint rejectState,
       // Update reciprocal
       calcEwald->UpdateRecip(sourceBox);
 
-      // molA and molB already added to cellist
+      // molA and molB already added to cellList
 
       // Recalculate total
       sysPotRef.Total();
