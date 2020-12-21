@@ -14,6 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "GeomLib.h"
 #include "ConfigSetup.h"
 #include "Geometry.h" // for bond info
+#include "FloydWarshallCycle.h"
 #include <cmath>
 #include <queue>
 
@@ -572,62 +573,24 @@ uint TargetedSwap::GetGrowingAtomIndex(const uint k)
   // https://codeforces.com/blog/entry/17974
   {
     MoleculeKind &kind = molRef.kinds[k];
-
-    uint   N = kind.NumAtoms();     // Number of nodes in graph
-    uint   maxlevel = 0;            // Level of center of graph
-    std::vector<uint> level(N, 0);  // Level of node
-    std::vector<uint> degree(N, 0); // Degree of node
-    std::vector<uint> c;            // Center of graph
-    std::queue<uint> q;            // Queue for algorithm
-
-    uint i, v;
-
+    FloydWarshallCycle flw(kind.NumAtoms());
     //Setup the node's degree
     uint bondCount = kind.bondList.count;
-    for (i = 0; i < bondCount; ++i) {
-      ++degree[kind.bondList.part1[i]];
-      ++degree[kind.bondList.part2[i]];
+    for (int i = 0; i < bondCount; ++i) {
+      flw.AddEdge(kind.bondList.part1[i], kind.bondList.part2[i]);
     }
 
-    // Start from leaves
-    for (i = 0; i < N; i++) {
-        if (degree[i] == 1) {
-            q.push(i);
-        }
-    }
-
-    while (!q.empty()) {
-        v = q.front(); //.back()
-        q.pop();
-
-        // Remove leaf and try to add its parent
-        for (i = 0; i < N; i++) {
-            if (kind.bondList.IsBonded(v, i)) {
-                --degree[i];
-                
-                if (degree[i] == 1) {
-                    q.push(i);
-                    level[i] = level[v] + 1;
-                    maxlevel = std::max(maxlevel, level[i]);
-                }
-            }
-        }
-    }
-
-    for (i = 0; i < N; i++) {
-        if (level[i] == maxlevel) {
-            c.push_back(i);
-        }
-    }
-
-    // There could be maximum of 2 center node. Pick the first one
-    if(c.size()) {
-      return c[0];
-    } else {
+    // get the centric node
+    int centric = flw.GetCentricNode();
+    
+    // If it was not successfull, it returns -1
+    if(centric == -1) {
       printf("Error: In TargetedSwap move, no center atom was found for %s!\n",
               kind.name.c_str());
       exit(EXIT_FAILURE);
     }
+
+    return centric;
   }
 }
 
