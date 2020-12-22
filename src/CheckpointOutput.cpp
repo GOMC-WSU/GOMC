@@ -85,7 +85,7 @@ void CheckpointOutput::DoOutput(const ulong step)
 
 void CheckpointOutput::setGOMCVersion()
 {
-  sprintf(gomc_version, "%d.%02d\0", GOMC_VERSION_MAJOR, GOMC_VERSION_MINOR % 100);
+  sprintf(gomc_version, "%d.%02d", GOMC_VERSION_MAJOR, GOMC_VERSION_MINOR % 100);
 }
 
 void CheckpointOutput::printGOMCVersion()
