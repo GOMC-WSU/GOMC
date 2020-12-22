@@ -68,6 +68,7 @@ private:
 #endif
   void printMoleculeLookupData();
   void printMoveSettingsData();
+  void printMoleculesData();
 
   void printVector3DDouble(std::vector< std::vector< std::vector<double> > > data);
   void printVector3DUint(std::vector< std::vector< std::vector<uint> > > data);

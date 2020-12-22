@@ -73,6 +73,7 @@ void CheckpointOutput::DoOutput(const ulong step)
     printRandomNumbers();
     printMoleculeLookupData();
     printMoveSettingsData();
+    printMoleculesData();
 #if GOMC_LIB_MPI
     printParallelTemperingBoolean();
     if(enableParallelTempering)
@@ -185,6 +186,25 @@ void CheckpointOutput::printMoleculeLookupData()
   //print the fixedAtom array itself
   for(int i = 0; i < (int) molLookupRef.fixedAtom.size(); i++) {
     write_uint32_binary(molLookupRef.fixedAtom[i]);
+  }
+}
+
+void CheckpointOutput::printMoleculesData()
+{
+  // print the start of each molecule
+  // there is an extra one at the end which store the total count
+  // that is used for to calculate the length of molecule
+  // so the length of last molecule can be calculated using
+  // start[molIndex+1]-start[molIndex]
+  write_uint32_binary(molRef.count);
+  for(int i = 0; i < (int)molRef.count+1; i++) {
+    write_uint32_binary(molRef.start[i]);
+  }
+
+  // print the start of each kind
+  write_uint32_binary(molRef.kIndexCount);
+  for(int i = 0; i < (int)molRef.kIndexCount; i++) {
+    write_uint32_binary(molRef.kIndex[i]);
   }
 }
 

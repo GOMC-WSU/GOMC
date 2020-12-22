@@ -59,6 +59,7 @@ void CheckpointSetup::ReadAll()
   readRandomNumbers();
   readMoleculeLookupData();
   readMoveSettingsData();
+  readMoleculesData();
 #if GOMC_LIB_MPI
   readParallelTemperingBoolean();
   if(parallelTemperingWasEnabled)
@@ -177,6 +178,22 @@ void CheckpointSetup::readMoleculeLookupData()
   }
 }
 
+void CheckpointSetup::readMoleculesData()
+{
+  // read the size of start array
+  uint startCount = read_uint32_binary() + 1;
+  molecules_startVec.resize(startCount);
+  for(int i = 0; i < (int)startCount; i++) {
+    molecules_startVec[i] = read_uint32_binary();
+  }
+
+  // read the kIndex array
+  molecules_kIndexVec.resize(read_uint32_binary());
+  for(int i = 0; i < molecules_kIndexVec.size(); i++) {
+    molecules_kIndexVec[i] = read_uint32_binary();
+  }
+}
+
 void CheckpointSetup::readMoveSettingsData()
 {
   readVector3DDouble(scaleVec);
@@ -199,6 +216,15 @@ void CheckpointSetup::openInputFile()
             filename.c_str());
     exit(EXIT_FAILURE);
   }
+}
+
+void CheckpointSetup::closeInputFile()
+{
+  if(inputFile == NULL) {
+    fprintf(stderr, "Checkpoint file was not open!\n");
+    exit(EXIT_FAILURE);
+  }
+  fclose(inputFile);
 }
 
 double CheckpointSetup::read_double_binary()
@@ -339,6 +365,16 @@ void CheckpointSetup::SetMoleculeLookup(MoleculeLookup & molLookupRef)
     molLookupRef.boxAndKindStart[i] = this->boxAndKindStartVec[i];
   }
   molLookupRef.numKinds = this->numKinds;
+}
+
+void CheckpointSetup::SetMolecules(Molecules& mols)
+{
+  for(int i = 0; i < (int)this->molecules_startVec.size(); i++) {
+    mols.start[i] = molecules_startVec[i];
+  }
+  for(int i = 0; i < (int)this->molecules_kIndexVec.size(); i++) {
+    mols.kIndex[i] = molecules_kIndexVec[i];
+  }
 }
 
 void CheckpointSetup::SetMoveSettings(MoveSettings & moveSettings)

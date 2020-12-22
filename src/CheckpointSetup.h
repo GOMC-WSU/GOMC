@@ -37,6 +37,7 @@ public:
   void SetPRNGVariablesPT(PRNG & prng);
 #endif
   void SetMoleculeLookup(MoleculeLookup & molLookupRef);
+  void SetMolecules(Molecules& mos);
   void SetMoveSettings(MoveSettings & moveSettings);
 
 private:
@@ -67,6 +68,10 @@ private:
   std::vector< double > mp_r_maxVec;
   std::vector< double > mp_t_maxVec;
 
+  // molecules data
+  std::vector< uint > molecules_startVec;
+  std::vector< uint > molecules_kIndexVec;
+
   // private functions used by ReadAll and Get functions
   void readGOMCVersion();
   bool isLegacy();
@@ -81,6 +86,7 @@ private:
 #endif
   void readMoleculeLookupData();
   void readMoveSettingsData();
+  void readMoleculesData();
   void closeInputFile();
 
   void readVector3DDouble(std::vector< std::vector< std::vector <double> > > & data);

@@ -108,7 +108,7 @@ public:
   box_iterator BoxBegin(const uint box) const;
   box_iterator BoxEnd(const uint box) const;
 
-private:
+//private:
 
 #ifdef VARIABLE_PARTICLE_NUMBER
   void Shift(const uint index, const uint currentBox,
@@ -140,8 +140,6 @@ inline uint MoleculeLookup::NumKindInBox(const uint kind, const uint box) const
   return boxAndKindStart[box * numKinds + kind + 1] -
          boxAndKindStart[box * numKinds + kind];
 }
-
-
 
 class MoleculeLookup::box_iterator
 {
