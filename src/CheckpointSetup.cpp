@@ -39,7 +39,7 @@ CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV,
                                  Setup const& set) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), coordCurrRef(sys.coordinates),
-  prngRef(sys.prng)
+  prngRef(sys.prng), parallelTemperingWasEnabled(false)
 {
   std::string file = set.config.in.files.checkpoint.name[0];
 #if GOMC_LIB_MPI
@@ -72,6 +72,10 @@ bool CheckpointSetup::isLegacy()
 {
   char first_symbol = ' ';
   int ret = fscanf(inputFile, "%c", &first_symbol);
+  if(ret != 1) {
+    std::cerr << "Could not read checkpoint file!\n";
+    exit(EXIT_FAILURE);
+  }
   return first_symbol != '$';
 }
 
