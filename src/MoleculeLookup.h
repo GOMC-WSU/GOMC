@@ -28,12 +28,15 @@ class MoleculeLookup
 {
 public:
 
-  MoleculeLookup() : molLookup(NULL), boxAndKindStart(NULL) {}
+  MoleculeLookup() : molLookup(NULL), boxAndKindStart(NULL),
+  molIndex(NULL), kindIndex(NULL) {}
 
   ~MoleculeLookup()
   {
     delete[] molLookup;
     delete[] boxAndKindStart;
+    delete[] molIndex;
+    delete[] kindIndex;
   }
 
   //Initialize this object to be consistent with Molecules mols
@@ -110,6 +113,23 @@ public:
     return molLookup[boxAndKindStart[box * numKinds + kind] + subIndex];
   }
 
+  // determine if molecule is in this box or not
+  bool IsMoleculeInBox(const uint &molIdx, const uint &kindIdx, const uint &box)
+  {
+    uint index = std::find(
+                  molLookup + boxAndKindStart[box * numKinds + kindIdx],
+                  molLookup + boxAndKindStart[box * numKinds + kindIdx + 1], molIdx)
+                - molLookup;
+
+    return ((molLookup[index] == molIdx));
+  }
+
+  // determine if atom is in this box or not// uses global atom index
+  bool IsAtomInBox(const uint &aIdx, const uint &box)
+  {
+    return IsMoleculeInBox(molIndex[aIdx], kindIndex[aIdx], box);
+  }
+
   void TotalAndDensity(uint * numByBox, uint * numByKindBox,
                        double * molFractionByBoxKind,
                        double * densityByKindBox,
@@ -151,6 +171,8 @@ private:
   std::vector <uint> fixedAtom;
   std::vector <uint> canSwapKind; //Kinds that can move intra and inter box
   std::vector <uint> canMoveKind; //Kinds that can move intra box only
+  uint *molIndex; // stores the molecule index for global atom index
+  uint *kindIndex; // stores the molecule index for global atom index
 
   // make CheckpointOutput class a friend so it can print all the private data
   friend class CheckpointOutput;

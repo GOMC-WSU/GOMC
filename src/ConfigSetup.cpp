@@ -7,7 +7,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <map> //for function handle storage.
 #include <string> //for var names, etc.
 #include <vector>
-#include <string>
 #include <iomanip>
 
 #include "ConfigSetup.h"
@@ -15,23 +14,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef DBL_MAX
 #define DBL_MAX 1.7976931348623158e+308
 #endif
-
-int stringtoi(const std::string& s)
-{
-  std::istringstream str(s);
-  uint i;
-  str >> i;
-  return i;
-}
-
-double stringtod(const std::string& s)
-{
-  std::istringstream str(s);
-  double i;
-  str >> i;
-  return i;
-}
-
 
 ConfigSetup::ConfigSetup(void)
 {
@@ -148,6 +130,22 @@ ConfigSetup::ConfigSetup(void)
 #endif
   out.statistics.vars.density.block = false;
   out.statistics.vars.density.fluct = false;
+}
+
+int ConfigSetup::stringtoi(const std::string& s)
+{
+  std::istringstream str(s);
+  uint i;
+  str >> i;
+  return i;
+}
+
+double ConfigSetup::stringtod(const std::string& s)
+{
+  std::istringstream str(s);
+  double i;
+  str >> i;
+  return i;
 }
 
 bool ConfigSetup::checkBool(std::string str)
@@ -369,6 +367,19 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         sys.targetedSwapCollection.AddsubVolumeCenter(idx, temp);
       } else {
         printf("%-40s %-d !\n", "Error: Expected 4 values for SubVolumeCenter, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } else if(CheckString(line[0], "SubVolumeCenterList")) {
+      if(line.size() >= 3) {
+        int idx = stringtoi(line[1]); 
+        std::vector<std::string> temp;
+        for(int k = 2; k < line.size(); k++) {
+          temp.push_back(line[k]);
+        }
+        sys.targetedSwapCollection.AddsubVolumeAtomList(idx, temp);
+      } else {
+        printf("%-40s %-d !\n", "Error: Expected atleast 3 values for SubVolumeCenterList, but received",
                 line.size() -1);
         exit(EXIT_FAILURE);
       }

@@ -28,12 +28,17 @@ struct TSwapParam {
   XYZ subVolumeDim; 
   // defines the targeted molecule kind
   std::vector<uint> selectedResKind; 
+  // defines the list if atom to calculcate the center of
+  // subVolume
+  std::vector<int> atomList; 
   // defines the subVolume index for error checking
   int subVolumeIdx; 
   // volume of subVolume (A^3)
   double subVolume;
   // swap type rigid/flexible
   bool rigidSwap;
+  // use atomList to find subvolume center
+  bool calcSubVolCenter;
 };
 
 class TargetedSwap : public MoveBase
@@ -56,11 +61,15 @@ public:
           TSwapParam tempVar;
           // copy data from TargetSwapParam struct to TSwapParam
           tempVar.subVolumeCenter = tsp.subVolumeCenter;
+          tempVar.atomList = tsp.atomList;
           tempVar.subVolumeDim = tsp.subVolumeDim;
           tempVar.subVolumeIdx = tsp.subVolumeIdx;
           tempVar.subVolume = tsp.subVolumeDim.x * tsp.subVolumeDim.y *
                               tsp.subVolumeDim.z;
           tempVar.rigidSwap = tsp.rigid_swap;
+          // if the size of atom list is not zero, then we must calculate the center
+          // of subVolume
+          tempVar.calcSubVolCenter = tempVar.atomList.size();
           // Use all residue kind
           if (tsp.selectedResKind[0] == "ALL") {
             for(uint k = 0; k < molLookRef.GetNumCanSwapKind(); k++) {
@@ -127,6 +136,9 @@ private:
   double GetCoeff() const;
   uint GetBoxPairAndMol(const double subDraw, const double movPerc);
   uint PickMolInSubVolume();
+  // Calculate the subvolume center, using defined atomList
+  XYZ GetSubVolumeCenter(const uint &box, const uint &SubVIdx);
+  // Check periodic boundary for subVolume
   void CheckSubVolumePBC(const uint &box);
   void  PrintTargetedSwapInfo();
   // Track the acceptance for each subVolume
@@ -228,10 +240,15 @@ inline uint TargetedSwap::GetBoxPairAndMol(const double subDraw, const double mo
     int SubVIdx_source = prng.randIntExc(targetSwapParam[sourceBox].size());
     // Set the picked subVolume parameter for source box
     pickedSubV[sourceBox] = SubVIdx_source;
-    subVolCenter[sourceBox] = targetSwapParam[sourceBox][SubVIdx_source].subVolumeCenter;
     subVolDim[sourceBox] = targetSwapParam[sourceBox][SubVIdx_source].subVolumeDim;
     subVolume[sourceBox] = targetSwapParam[sourceBox][SubVIdx_source].subVolume;
     rigidSwap = targetSwapParam[sourceBox][SubVIdx_source].rigidSwap;
+    //determin if we should calculate the center of subvolume or not
+    if (targetSwapParam[sourceBox][SubVIdx_source].calcSubVolCenter) {
+      subVolCenter[sourceBox] = GetSubVolumeCenter(sourceBox, SubVIdx_source);
+    } else {
+      subVolCenter[sourceBox] = targetSwapParam[sourceBox][SubVIdx_source].subVolumeCenter;
+    }
     // Wrap the center of subVolume and make sure the it's dimension is less than
     // simulation box
     CheckSubVolumePBC(sourceBox);
@@ -242,10 +259,15 @@ inline uint TargetedSwap::GetBoxPairAndMol(const double subDraw, const double mo
     int SubVIdx_dest = prng.randIntExc(targetSwapParam[destBox].size());
     // Set the picked subVolume parameter for dest box
     pickedSubV[destBox] = SubVIdx_dest;
-    subVolCenter[destBox] = targetSwapParam[destBox][SubVIdx_dest].subVolumeCenter;
     subVolDim[destBox] = targetSwapParam[destBox][SubVIdx_dest].subVolumeDim;
     subVolume[destBox] = targetSwapParam[destBox][SubVIdx_dest].subVolume;
     rigidSwap = targetSwapParam[destBox][SubVIdx_dest].rigidSwap;
+    //determin if we should calculate the center of subvolume or not
+    if (targetSwapParam[destBox][SubVIdx_dest].calcSubVolCenter) {
+      subVolCenter[destBox] = GetSubVolumeCenter(destBox, SubVIdx_dest);
+    } else {
+      subVolCenter[destBox] = targetSwapParam[destBox][SubVIdx_dest].subVolumeCenter;
+    }
     // Wrap the center of subVolume and make sure the it's dimension is less than
     // simulation box
     CheckSubVolumePBC(destBox);
@@ -287,6 +309,33 @@ inline uint TargetedSwap::GetBoxPairAndMol(const double subDraw, const double mo
     molRef.GetRangeStartLength(pStart, pLen, molIndex);
   }
   return state;
+}
+
+inline XYZ TargetedSwap::GetSubVolumeCenter(const uint &box, const uint &subVIdx)
+{
+  int i;
+  TSwapParam tsp = targetSwapParam[box][subVIdx];
+  int listSize = tsp.atomList.size();
+  // use first atomIndex to unwrap others
+  XYZ reference = coordCurrRef.Get(tsp.atomList[0]);
+  XYZ center = reference;
+  XYZ atomCoord;
+  // start from next atom index
+  for(i = 1; i < listSize; ++i) {
+    if(molLookRef.IsAtomInBox(tsp.atomList[i], box)) {
+      atomCoord = coordCurrRef.Get(tsp.atomList[i]);
+      center += boxDimRef.UnwrapPBC(atomCoord, box, reference);
+    } else {
+      printf("Error: In Targeted Swap move, atom index %d does not exist in box %d!\n",
+            tsp.atomList[i], box);
+      printf("Error: Cannot calculate the center of subVolume %d!\n", subVIdx);
+      exit(EXIT_FAILURE);
+    }
+  }
+  center *= 1.0 / double(listSize);
+  // wrap the center
+  center = boxDimRef.WrapPBC(center, box);
+  return center;
 }
 
 inline void TargetedSwap::CheckSubVolumePBC(const uint &box)
@@ -603,8 +652,20 @@ void TargetedSwap::PrintTargetedSwapInfo()
       printf("%-40s %d: \n",       "Info: Targeted Swap parameter for subVolume index",
               tsp.subVolumeIdx);
       printf("%-40s %d \n",       "      SubVolume Box:", b);
-      printf("%-40s %g %g %g \n", "      SubVolume center:",
-              tsp.subVolumeCenter.x, tsp.subVolumeCenter.y, tsp.subVolumeCenter.z);
+      if (tsp.calcSubVolCenter) {
+        printf("%-40s Using %d defined atom indexe/s \n", "      Calculating subVolume center:",
+                tsp.atomList.size());
+        int max = *std::max_element(tsp.atomList.begin(), tsp.atomList.end());
+        if(max >= coordCurrRef.Count()) {
+          printf("Error: Atom index %d is beyond total number of atoms (%d) in the system!\n",
+                 max, coordCurrRef.Count());
+          printf("       Make sure to use 0 based atom index!\n");
+          exit(EXIT_FAILURE);
+        }
+      } else {
+        printf("%-40s %g %g %g \n", "      SubVolume center:",
+                tsp.subVolumeCenter.x, tsp.subVolumeCenter.y, tsp.subVolumeCenter.z);
+      }
       printf("%-40s %g %g %g \n", "      SubVolume dimension:",
               tsp.subVolumeDim.x, tsp.subVolumeDim.y, tsp.subVolumeDim.z);
       printf("%-40s %s \n",       "      SubVolume Swap type:", (tsp.rigidSwap ? "Rigid body" : "Flexible"));

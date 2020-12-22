@@ -262,6 +262,8 @@ struct TargetSwapParam {
   XYZ subVolumeDim; 
   // defines the targeted molecule kind
   std::vector<std::string> selectedResKind; 
+  // defines the atom Indexes to find subVolume center
+  std::vector<int> atomList; 
   // defines box index for subVolume
   uint selectedBox;
   // defines the subVolume index for error checking
@@ -271,12 +273,12 @@ struct TargetSwapParam {
   bool rigid_swap;
 
   bool center_defined, dim_defined, reskind_defined;
-  bool box_defined, rigidSwap_defined;;
+  bool box_defined, rigidSwap_defined, atomList_defined;
   TargetSwapParam(void) {
     center_defined = dim_defined = false;
     reskind_defined = box_defined = false;
     rigidSwap_defined = false;
-    rigid_swap = false;
+    rigid_swap = atomList_defined = false;
     subVolumeIdx = 0;
   }
 
@@ -285,6 +287,7 @@ struct TargetSwapParam {
     subVolumeCenter = rhs.subVolumeCenter;
     subVolumeDim = rhs.subVolumeDim;
     selectedResKind = rhs.selectedResKind;
+    atomList = rhs.atomList;
     selectedBox = rhs.selectedBox;
     subVolumeIdx = rhs.subVolumeIdx;
     rigid_swap = rhs.rigid_swap;
@@ -294,6 +297,7 @@ struct TargetSwapParam {
     reskind_defined = rhs.reskind_defined;
     box_defined = rhs.box_defined;
     rigidSwap_defined = rhs.rigidSwap_defined;
+    atomList_defined = rhs.atomList_defined;
     return *this;
   }
 
@@ -305,8 +309,8 @@ struct TargetSwapParam {
             subVolumeIdx);
       allSet = false;
     }
-    if(!center_defined) {
-      printf("Error: Center has not been defined for subVolume index %d!\n",
+    if(!center_defined && !atomList_defined) {
+      printf("Error: Center or atom list (to find the center) has not been defined for subVolume index %d!\n",
             subVolumeIdx);
       allSet = false;
     }
@@ -406,7 +410,7 @@ struct TargetSwapCollection {
     }
   }
 
-  // add dimension of subVolume to subVIdx
+  // add center subVolume to subVIdx
   void AddsubVolumeCenter(const int &subVIdx, XYZ &center) {
     int idx = 0;
     if (!SearchExisting(subVIdx, idx)) {
@@ -424,11 +428,98 @@ struct TargetSwapCollection {
                targetedSwap[idx].subVolumeCenter.z, subVIdx);
         printf("       Please use different subVolume index.\n");
         exit(EXIT_FAILURE);
+      } else if (targetedSwap[idx].atomList_defined){
+        printf("Error: Atom list has already been defined to find center in subVolume index %d!\n",
+                subVIdx);
+        printf("       One of the SubVolumeCenter or SubVolumeCenterList must be defined.\n");
+        exit(EXIT_FAILURE);
       } else {
         targetedSwap[idx].subVolumeCenter = center;
         targetedSwap[idx].center_defined = true;
       }
     }
+  }
+
+  // add center subVolume to subVIdx
+  void AddsubVolumeAtomList(const int &subVIdx, std::vector<std::string> &atoms) {
+    int idx = 0;
+    std::vector<int> alist = ParsAtomList(subVIdx, atoms);
+    if (!SearchExisting(subVIdx, idx)) {
+      // If the subVolume index did not exist, add one
+      TargetSwapParam tempPar;
+      tempPar.subVolumeIdx = subVIdx;
+      tempPar.atomList = alist;
+      tempPar.atomList_defined = true;
+      targetedSwap.push_back(tempPar);
+    } else {
+      // If subVolume index exist and and subvolume center is defined
+      if(targetedSwap[idx].atomList_defined) {
+        printf("Error: The atom list has already been defined to find center for subVolume index %d!\n",
+                subVIdx);
+        printf("       Please use different subVolume index.\n");
+        exit(EXIT_FAILURE);
+      } else if (targetedSwap[idx].center_defined){
+        printf("Error: Subvolume center (%g, %g, %g) has been defined for in subVolume index %d!\n",
+                targetedSwap[idx].subVolumeCenter.x, targetedSwap[idx].subVolumeCenter.y,
+                targetedSwap[idx].subVolumeCenter.z,subVIdx);
+        printf("       One of the SubVolumeCenter or SubVolumeCenterList must be defined.\n");
+        exit(EXIT_FAILURE);
+      } else {
+        targetedSwap[idx].atomList = alist;
+        targetedSwap[idx].atomList_defined = true;
+      }
+    }
+  }
+
+  int stringtoui(const std::string& s)
+  {
+    int i = std::stoi(s);
+    std::string newstr = std::to_string(i);
+
+    if(i < 0) {
+      printf("Error: Expected to receive unsigned integer, but received %s!\n",
+            s.c_str());
+      exit(EXIT_FAILURE);
+    } 
+    if (s != newstr) {
+      printf("Warning: Converting %s to %s in parsing integer!\n",
+            s.c_str(), newstr.c_str());
+    }
+    
+    return i;
+  }
+
+  // Pars the list of atom. If user use a range of atom (e.g. 5-10)
+  // This function would handle it properly
+  std::vector<int> ParsAtomList(const int &subVIdx, std::vector<std::string> &atoms)
+  {
+    const char dash = '-';
+    size_t pos = 0;
+    int start = 0, end = 0;
+    std::vector<int> list;
+    for(int i = 0; i < atoms.size(); ++i) {
+      if(atoms[i] == "-") {
+        printf("Error: If you are trying to use a range of atom indicies, use '-' without any space!\n");
+        printf("       For example: 1-15!\n");
+        exit(EXIT_FAILURE);
+      }
+      // check if string has dash in it
+      pos = atoms[i].find(dash);
+      if (pos != std::string::npos && pos != 0) {
+        start = stringtoui(atoms[i].substr(0, pos));
+        //dash has length of 1
+        end = stringtoui(atoms[i].substr(pos+1, atoms[i].length()));
+        while (start <= end) {
+          list.push_back(start);
+          ++start;
+        }
+
+      } else {
+        // it's single atom index
+        list.push_back(stringtoui(atoms[i]));
+      }
+    }
+    return list;
   }
 
   // add targeted residue kind of subVolume to subVIdx
@@ -683,6 +774,8 @@ public:
   void Init(const char *fileName, MultiSim const*const& multisim);
 private:
   void fillDefaults(void);
+  int stringtoi(const std::string& s);
+  double stringtod(const std::string& s);
   bool checkBool(std::string str);
   bool CheckString(std::string str1, std::string str2);
   void verifyInputs(void);

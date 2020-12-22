@@ -19,6 +19,9 @@ void MoleculeLookup::Init(const Molecules& mols,
   numKinds = mols.GetKindsCount();
   molLookup = new uint[mols.count];
   molLookupCount = mols.count;
+  // similar to coordinates, use beta to get total atom size
+  molIndex = new uint[atomData.beta.size()];
+  kindIndex = new uint[atomData.beta.size()];
 
   //+1 to store end value
   boxAndKindStart = new uint[numKinds * BOX_TOTAL + 1];
@@ -34,11 +37,18 @@ void MoleculeLookup::Init(const Molecules& mols,
     indexVector[b].resize(numKinds);
   }
 
+  uint counter = 0;
   for(uint m = 0; m < mols.count; ++m) {
     uint box = atomData.box[atomData.startIdxRes[m]];
     uint kind = mols.kIndex[m];
     indexVector[box][kind].push_back(m);
     fixedAtom[m] = atomData.molBeta[m];
+    const MoleculeKind& molKind = mols.GetKind(m);
+    for(uint a = 0; a < molKind.NumAtoms(); ++a) {
+      molIndex[counter] = m;
+      kindIndex[counter] = kind;
+      ++counter;
+    }
 
     //Find the kind that can be swap(beta == 0) or move(beta == 0 or 2)
     if(fixedAtom[m] == 0) {
