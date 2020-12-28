@@ -76,11 +76,11 @@ public:
 
   //calculate reciprocal term for inserting some molecules (kindA) in
   //destination box and removing a molecule (kindB) from destination box
-  virtual double SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
-                           const std::vector<cbmc::TrialMol> &oldMol,
-                           const std::vector<uint> molIndexNew,
-                           const std::vector<uint> molIndexold,
-                           bool first_call);
+  virtual double MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
+                                       const std::vector<cbmc::TrialMol> &oldMol,
+                                       const std::vector<uint> molIndexNew,
+                                       const std::vector<uint> molIndexold,
+                                       bool first_call);
 
   //back up reciprocal value to Ref (will be called during initialization)
   virtual void SetRecipRef(uint box);

@@ -731,11 +731,11 @@ reduction(+:energyRecipNew)
 
 //calculate reciprocal term for inserting some molecules (kindA) in destination
 // box and removing molecule (kindB) from destination box
-double Ewald::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
-                        const std::vector<cbmc::TrialMol> &oldMol,
-                        const std::vector<uint> molIndexNew,
-                        const std::vector<uint> molIndexOld,
-                        bool first_call)
+double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
+                                    const std::vector<cbmc::TrialMol> &oldMol,
+                                    const std::vector<uint> molIndexNew,
+                                    const std::vector<uint> molIndexOld,
+                                    bool first_call)
 {
   double energyRecipNew = 0.0;
   double energyRecipOld = 0.0;
@@ -833,14 +833,14 @@ reduction(+:energyRecipNew)
     energyRecipOld = sysPotRef.boxEnergy[box].recip;
   }
 
-//Because SwapRecip does not have a matching GPU function, this is a stub
-//function to copy the CPU sumRnew and sumInew vectors to the GPU in case
-//the move is accepted. If this function is ported to the GPU, this call
-//should be moved to the beginning of the SwapRecip function and called
+//Because MolExchangeReciprocal does not have a matching GPU function, this is
+//a stub function to copy the CPU sumRnew and sumInew vectors to the GPU in case
+//the move is accepted. If this function is ported to the GPU, this call should
+//be moved to the beginning of the MolExchangeReciprocal function and called
 //instead of running the CPU code.
 #ifdef GOMC_CUDA
-  CallSwapRecipGPU(ff.particles->getCUDAVars(), imageSizeRef[box], sumRnew[box],
-                   sumInew[box], box);
+  CallMolExchangeReciprocalGPU(ff.particles->getCUDAVars(), imageSizeRef[box],
+                               sumRnew[box], sumInew[box], box);
 #endif
 
   // Return the difference between old and new reciprocal energies

@@ -584,7 +584,7 @@ inline void MoleculeExchange1::CalcEn()
       self_newA += calcEwald->SwapSelf(newMolA[n]);
       self_oldA += calcEwald->SwapSelf(oldMolA[n]);
     }
-    recipDest = calcEwald->SwapRecip(newMolA, oldMolB, molIndexA, molIndexB, true);
+    recipDest = calcEwald->MolExchangeReciprocal(newMolA, oldMolB, molIndexA, molIndexB, true);
 
     for(uint n = 0; n < numInCavB; n++) {
       correct_newB += calcEwald->SwapCorrection(newMolB[n]);
@@ -592,7 +592,7 @@ inline void MoleculeExchange1::CalcEn()
       self_newB += calcEwald->SwapSelf(newMolB[n]);
       self_oldB += calcEwald->SwapSelf(oldMolB[n]);
     }
-    recipSource = calcEwald->SwapRecip(newMolB, oldMolA, molIndexB, molIndexA, true);
+    recipSource = calcEwald->MolExchangeReciprocal(newMolB, oldMolA, molIndexB, molIndexA, true);
 
     //need to contribute the self and correction energy
     W_recip = exp(-1.0 * ffRef.beta * (recipSource + recipDest +

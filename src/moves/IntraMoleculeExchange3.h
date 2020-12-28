@@ -296,8 +296,8 @@ inline void IntraMoleculeExchange3::CalcEn()
       correctDiff += calcEwald->SwapCorrection(newMolB[n], molIndexB[n]);
       correctDiff -= calcEwald->SwapCorrection(oldMolB[n], molIndexB[n]);
     }
-    recipDiffA = calcEwald->SwapRecip(newMolA, oldMolA, molIndexA, molIndexA, true);
-    recipDiffB = calcEwald->SwapRecip(newMolB, oldMolB, molIndexB, molIndexB, false);
+    recipDiffA = calcEwald->MolExchangeReciprocal(newMolA, oldMolA, molIndexA, molIndexA, true);
+    recipDiffB = calcEwald->MolExchangeReciprocal(newMolB, oldMolB, molIndexB, molIndexB, false);
 
     W_recip = exp(-1.0 * ffRef.beta * (recipDiffA + recipDiffB +
                                        correctDiff));
