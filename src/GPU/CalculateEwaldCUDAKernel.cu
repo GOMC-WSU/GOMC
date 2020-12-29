@@ -709,14 +709,15 @@ __global__ void SwapReciprocalGPU(double *gpu_x, double *gpu_y, double *gpu_z,
   if(threadID >= imageSize)
     return;
 
-  int p;
-  double dotProduct = 0.0, sumReal = 0.0, sumImaginary = 0.0;
+  double sumReal = 0.0, sumImaginary = 0.0;
 
-  for(p = 0; p < atomNumber; p++) {
-    dotProduct = DotProductGPU(gpu_kx[threadID], gpu_ky[threadID],
-                               gpu_kz[threadID], gpu_x[p], gpu_y[p], gpu_z[p]);
-    sumReal += (gpu_particleCharge[p] * cos(dotProduct));
-    sumImaginary += (gpu_particleCharge[p] * sin(dotProduct));
+  for(int p = 0; p < atomNumber; p++) {
+    double dotProduct = DotProductGPU(gpu_kx[threadID], gpu_ky[threadID],
+                                      gpu_kz[threadID], gpu_x[p], gpu_y[p], gpu_z[p]);
+    double dotsin, dotcos;
+    sincos(dotProduct, &dotsin, &dotcos);
+    sumReal += (gpu_particleCharge[p] * dotcos);
+    sumImaginary += (gpu_particleCharge[p] * dotsin);
   }
 
   //If we insert the molecule to the box, we add the sum value.
@@ -752,22 +753,25 @@ __global__ void MolReciprocalGPU(double *gpu_cx, double *gpu_cy, double *gpu_cz,
   int threadID = blockIdx.x * blockDim.x + threadIdx.x;
   if(threadID >= imageSize)
     return;
-  int p;
-  double dotProductOld = 0.0, dotProductNew = 0.0;
-  double sumRealNew = 0.0, sumImaginaryNew = 0.0;
-  double sumRealOld = 0.0, sumImaginaryOld = 0.0;
 
-  for(p = 0; p < atomNumber; p++) {
-    dotProductOld = DotProductGPU(gpu_kx[threadID], gpu_ky[threadID],
-                                  gpu_kz[threadID],
-                                  gpu_cx[p], gpu_cy[p], gpu_cz[p]);
-    dotProductNew = DotProductGPU(gpu_kx[threadID], gpu_ky[threadID],
-                                  gpu_kz[threadID],
-                                  gpu_nx[p], gpu_ny[p], gpu_nz[p]);
-    sumRealNew += (gpu_particleCharge[p] * cos(dotProductNew));
-    sumImaginaryNew += (gpu_particleCharge[p] * sin(dotProductNew));
-    sumRealOld += (gpu_particleCharge[p] * cos(dotProductOld));
-    sumImaginaryOld += (gpu_particleCharge[p] * sin(dotProductOld));
+  double sumRealOld = 0.0, sumImaginaryOld = 0.0;
+  double sumRealNew = 0.0, sumImaginaryNew = 0.0;
+
+  for(int p = 0; p < atomNumber; p++) {
+    double dotProductOld = DotProductGPU(gpu_kx[threadID], gpu_ky[threadID],
+                                         gpu_kz[threadID],
+                                         gpu_cx[p], gpu_cy[p], gpu_cz[p]);
+    double dotProductNew = DotProductGPU(gpu_kx[threadID], gpu_ky[threadID],
+                                         gpu_kz[threadID],
+                                         gpu_nx[p], gpu_ny[p], gpu_nz[p]);
+    double oldsin, oldcos;
+    sincos(dotProductOld, &oldsin, &oldcos);
+    sumRealOld += (gpu_particleCharge[p] * oldcos);
+    sumImaginaryOld += (gpu_particleCharge[p] * oldsin);
+    double newsin, newcos;
+    sincos(dotProductNew, &newsin, &newcos);
+    sumRealNew += (gpu_particleCharge[p] * newcos);
+    sumImaginaryNew += (gpu_particleCharge[p] * newsin);
   }
 
   gpu_sumRnew[threadID] = gpu_sumRref[threadID] - sumRealOld + sumRealNew;

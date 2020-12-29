@@ -80,14 +80,14 @@ __device__ inline void ApplyRotation(double &x, double &y, double &z,
   }
 
   // build matrix
-  double c = cos(rotLen);
+  double s, c;
+  sincos(rotLen, &s, &c);
   for(int i = 0; i < 3; i++) {
     for(int j = 0; j < 3; j++) {
       matrix[i][j] = 0.0;
     }
     matrix[i][i] = c;
   }
-  double s = sin(rotLen);
   for(int i = 0; i < 3; i++) {
     for(int j = 0; j < 3; j++) {
       matrix[i][j] += s * cross[i][j] + (1 - c) * tensor[i][j];
