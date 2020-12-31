@@ -229,10 +229,10 @@ inline uint MoleculeExchange2::Prep(const double subDraw, const double movPerc)
 {
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
-    numTypeASource = (double)(molLookRef.NumKindInBox(kindIndexA[0], sourceBox));
-    numTypeADest = (double)(molLookRef.NumKindInBox(kindIndexA[0], destBox));
-    numTypeBSource = (double)(molLookRef.NumKindInBox(kindIndexB[0], sourceBox));
-    numTypeBDest = (double)(molLookRef.NumKindInBox(kindIndexB[0], destBox));
+    numTypeASource = (double)(molLookRef.NumKindInBoxSwappable(kindIndexA[0], sourceBox));
+    numTypeADest = (double)(molLookRef.NumKindInBoxSwappable(kindIndexA[0], destBox));
+    numTypeBSource = (double)(molLookRef.NumKindInBoxSwappable(kindIndexB[0], sourceBox));
+    numTypeBDest = (double)(molLookRef.NumKindInBoxSwappable(kindIndexB[0], destBox));
     //transferring type A from source to dest
     for(uint n = 0; n < numInCavA; n++) {
       newMolA.push_back(cbmc::TrialMol(molRef.kinds[kindIndexA[n]], boxDimRef,
