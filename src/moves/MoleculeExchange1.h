@@ -252,7 +252,7 @@ inline void MoleculeExchange1::SetBox()
     for(uint b = 0; b < BOX_TOTAL; b++) {
       density = 0.0;
       for(uint k = 0; k < molLookRef.GetNumKind(); k++) {
-        density += molLookRef.NumKindInBox(k, b) * boxDimRef.volInv[b] *
+        density += molLookRef.NumKindInBoxSwappable(k, b) * boxDimRef.volInv[b] *
                    molRef.kinds[k].molMass;
       }
       if(density > maxDens) {
