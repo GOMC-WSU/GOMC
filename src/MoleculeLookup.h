@@ -33,6 +33,7 @@ public:
   {
     delete[] molLookup;
     delete[] boxAndKindStart;
+    delete[] boxAndKindSwappableCounts;
   }
 
   //Initialize this object to be consistent with Molecules mols
