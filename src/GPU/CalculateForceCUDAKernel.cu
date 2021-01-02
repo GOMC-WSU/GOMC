@@ -890,6 +890,8 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
 
         if(electrostatic) {
           double qi_qj_fact = gpu_particleCharge[currentParticle] * gpu_particleCharge[neighborParticle];
+          //initialize forceReal in case qi_qj_fact == 0.0
+          forceReal =  make_double3(0.0, 0.0, 0.0);
           if(qi_qj_fact != 0.0) {
             static const double qqFact = 167000.0;
             qi_qj_fact *= qqFact;

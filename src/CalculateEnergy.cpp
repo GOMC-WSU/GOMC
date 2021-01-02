@@ -702,6 +702,7 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
           if (electrostatic) {
             double qi_qj_fact = kind.AtomCharge(partIndex) *
                                 kind.AtomCharge(*partner) * num::qqFact;
+
             if (qi_qj_fact != 0.0) {
               forcefield.particles->CalcCoulombAdd_1_4(inter[t], distSq,
                                                        qi_qj_fact, true);
@@ -766,6 +767,7 @@ reduction(+:tempLJ, tempReal)
           double lambdaCoulomb = GetLambdaCoulomb(molIndex, particleMol[nIndex[i]],
                                                   box);
           double qi_qj_fact = particleCharge[nIndex[i]] * kindICharge * num::qqFact;
+ 
           if (qi_qj_fact != 0.0) {
             tempReal += forcefield.particles->CalcCoulomb(distSq, kindI,
                         particleKind[nIndex[i]], qi_qj_fact, lambdaCoulomb, box);
@@ -1049,10 +1051,11 @@ void CalculateEnergy::MolNonbond(double & energy,
         qi_qj_fact = num::qqFact *
                      molKind.AtomCharge(molKind.nonBonded.part1[i]) *
                      molKind.AtomCharge(molKind.nonBonded.part2[i]);
-            if (qi_qj_fact != 0.0) {
-              forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
-              qi_qj_fact, true);
-            }
+
+        if (qi_qj_fact != 0.0) {
+          forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
+            qi_qj_fact, true);
+        }
       }
     }
   }
