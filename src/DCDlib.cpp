@@ -21,6 +21,9 @@
 #define access(PATH,MODE) _access(PATH,00)
 #endif
 
+#ifndef O_LARGEFILE
+#define O_LARGEFILE 0x0
+#endif
 
 // same as write, only does error checking internally
 void NAMD_write(int fd, const char *buf, size_t count, const char *errmsg) {
@@ -184,9 +187,7 @@ OFF_T NAMD_seek(int file, OFF_T offset, int whence) {
 #undef LSEEK
 #define LSEEK NAMD_seek
 
-#ifndef O_LARGEFILE
-#define O_LARGEFILE 0x0
-#endif
+
 
 
 /************************************************************************/
@@ -889,7 +890,7 @@ int write_dcdstep(int fd, int N, float *X, float *Y, float *Z, double *cell)
     /* don't update header until after write succeeds */
     OFF_T end = LSEEK(fd,0,SEEK_CUR);
     LSEEK(fd,NSAVC_POS,SEEK_SET);
-    ssize_t res = READ(fd,(void*) &NSAVC,sizeof(int32));
+    size_t res = READ(fd,(void*) &NSAVC,sizeof(int32));
     LSEEK(fd,NSTEP_POS,SEEK_SET);
     res = READ(fd,(void*) &NSTEP,sizeof(int32));
     LSEEK(fd,NFILE_POS,SEEK_SET);
@@ -965,7 +966,7 @@ int update_dcdstep_par_header(int fd)
     /* don't update header until after write succeeds */
         OFF_T end = LSEEK(fd,0,SEEK_CUR);
     LSEEK(fd,NSAVC_POS,SEEK_SET);
-    ssize_t res = READ(fd,(void*) &NSAVC,sizeof(int32));
+    size_t res = READ(fd,(void*) &NSAVC,sizeof(int32));
     LSEEK(fd,NSTEP_POS,SEEK_SET);
     res = READ(fd,(void*) &NSTEP,sizeof(int32));
     LSEEK(fd,NFILE_POS,SEEK_SET);

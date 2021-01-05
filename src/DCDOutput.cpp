@@ -38,10 +38,10 @@ void DCDOutput::Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output)
 {
   enableStateOut = output.state_dcd.settings.enable;
-  enableRestartOut = output.restart_dcd.settings.enable;
+  enableRestartOut = output.restart.settings.enable;
   enableOut = enableStateOut | enableRestartOut;
   stepsStatePerOut = output.state_dcd.settings.frequency;
-  stepsRestartPerOut = output.restart_dcd.settings.frequency;
+  stepsRestartPerOut = output.restart.settings.frequency;
   if (stepsStatePerOut < stepsRestartPerOut) {
     stepsPerOut = stepsStatePerOut;
   } else {

@@ -24,7 +24,7 @@ ExtendedSystem::ExtendedSystem()
   }
 }
 
-void ExtendedSystem::Init(PDBSetup &pdb, config_setup::Input inputFiles)
+void ExtendedSystem::Init(PDBSetup &pdb, config_setup::Input inputFiles, MoleculeLookup & molLookup, Molecules & mols)
 {
   // Read the extended system file and update the cellBasis data
   if(inputFiles.restart.restartFromXSCFile) {
@@ -38,34 +38,40 @@ void ExtendedSystem::Init(PDBSetup &pdb, config_setup::Input inputFiles)
   }
   // Read the binary coordinate and update the PDB coordinate
   if(inputFiles.restart.restartFromBinaryFile) {
+    int cmIndex = 0;
     for(int b = 0; b < BOX_TOTAL; b++) {
       if(inputFiles.files.binaryInput.defined[b]) {
         std::string fName = inputFiles.files.binaryInput.name[b];
-        UpdateCoordinate(pdb, fName.c_str(), b);
+        UpdateCoordinate(pdb, fName.c_str(), b, molLookup, mols, cmIndex);
       }
     }
   }
 }
 
-void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb,
-      const char *filename, const int box)
+void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb, const char *filename, const int box, MoleculeLookup & molLookup, Molecules & mols, int & cmIndex)
 {
   // We must read restart PDB, which hold correct
   // number atom info in each Box
   int numAtoms = pdb.atoms.numAtomsInBox[box];
+  int moleculeOffset = 0;
   XYZ *binaryCoor;
   binaryCoor = new XYZ[numAtoms];
   read_binary_file(filename, binaryCoor, numAtoms);
   //find the starting index
-  int startIndex = 0;
-  for(int b = 0; b < box; b++) {
-    startIndex += pdb.atoms.numAtomsInBox[b];
-  }
 
-  for(int i = 0; i < numAtoms; i++) {
-    pdb.atoms.x[i + startIndex] = binaryCoor[i].x;
-    pdb.atoms.y[i + startIndex] = binaryCoor[i].y;
-    pdb.atoms.z[i + startIndex] = binaryCoor[i].z;
+  for(; cmIndex < molLookup.molLookupCount; cmIndex++) {
+    if(moleculeOffset >= numAtoms) break;
+    int currentMolecule = molLookup.molLookup[cmIndex];
+    int numberOfAtoms = mols.start[currentMolecule + 1] - mols.start[currentMolecule];
+    int atomDestinationStart = mols.start[currentMolecule];
+
+    for(int atom = 0; atom < numberOfAtoms; atom++) {
+      pdb.atoms.x[atomDestinationStart + atom] = binaryCoor[moleculeOffset + atom].x;
+      pdb.atoms.y[atomDestinationStart + atom] = binaryCoor[moleculeOffset + atom].y;
+      pdb.atoms.z[atomDestinationStart + atom] = binaryCoor[moleculeOffset + atom].z;
+    }
+
+    moleculeOffset += numberOfAtoms;
   }
 
   delete [] binaryCoor;

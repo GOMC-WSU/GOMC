@@ -22,6 +22,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeLookup.h"
 #include "MoveSettings.h"
 #include "CellList.h"
+#include "ExtendedSystem.h"
 #include "Clock.h"
 #include "CheckpointSetup.h"
 #include "../lib/Lambda.h"
@@ -37,9 +38,10 @@ class Lambda;
 class System
 {
 public:
-  explicit System(StaticVals& statics, MultiSim const*const& multisim = NULL);
+  explicit System(StaticVals& statics, Setup const& set,
+                  MultiSim const*const& multisim = NULL);
 
-  void Init(Setup const& setupData, ulong & startStep);
+  void Init(Setup & setupData, ulong & startStep);
 
   //Runs move, picked at random
   void ChooseAndRunMove(const uint step);
@@ -111,6 +113,7 @@ public:
   XYZArray molForceRecRef;
   Lambda lambdaRef;
   COM com;
+  ExtendedSystem xsc;
 
   CalculateEnergy calcEnergy;
   Ewald *calcEwald;

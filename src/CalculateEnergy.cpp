@@ -161,9 +161,9 @@ SystemPotential CalculateEnergy::SystemInter(SystemPotential potential,
 // Calculate the inter energy for Box. Fractional molecule are not allowed in
 // this function. Need to implement the GPU function
 SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
-    XYZArray const& coords,
-    BoxDimensions const& boxAxes,
-    const uint box)
+                                          XYZArray const& coords,
+                                          BoxDimensions const& boxAxes,
+                                          const uint box)
 {
   //Handles reservoir box case, returning zeroed structure if
   //interactions are off.
