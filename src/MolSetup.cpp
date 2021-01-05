@@ -322,7 +322,6 @@ void createMapAndModifyPDBAtomDataStructure(mol_setup::MoleculeVariables & molVa
                                             std::vector<mol_setup::Atom> & allAtoms,
                                             mol_setup::MolMap & kindMap,
                                             mol_setup::SizeMap & sizeMap,
-                                            pdb_setup::Atoms& pdbAtoms,
                                             mol_setup::MolMap * kindMapFromBox1,
                                             mol_setup::SizeMap * sizeMapFromBox1){
 
@@ -333,10 +332,6 @@ void createMapAndModifyPDBAtomDataStructure(mol_setup::MoleculeVariables & molVa
   if (molVars.lastAtomIndexInBox0 == 0){
     startIdxResBoxOffset = 0;
     resKindIndex = 0;
-    pdbAtoms.startIdxRes.clear();
-    pdbAtoms.resKinds.clear();
-    pdbAtoms.resKindNames.clear();
-    pdbAtoms.resNames.clear();
 
     molVars.startIdxMolecules.clear();
     molVars.moleculeKinds.clear();
@@ -387,10 +382,7 @@ void createMapAndModifyPDBAtomDataStructure(mol_setup::MoleculeVariables & molVa
 
             /* Get the map key */
             fragName = *sizeConsistentEntries;
-            /* Boilerplate PDB Data modifications for matches */
-            pdbAtoms.startIdxRes.push_back(startIdxResBoxOffset + it->front());
-            pdbAtoms.resKinds.push_back((*kindMapFromBox1)[fragName].kindIndex);
-            pdbAtoms.resNames.push_back(fragName);
+            /* Boilerplate Molecule Index/Name vector entries for matches */
 
             molVars.startIdxMolecules.push_back(startIdxResBoxOffset + it->front());
             molVars.moleculeKinds.push_back((*kindMapFromBox1)[fragName].kindIndex);
@@ -490,11 +482,6 @@ void createMapAndModifyPDBAtomDataStructure(mol_setup::MoleculeVariables & molVa
           }
           // Found a match
           if (itPair.second == it->cend()) {
-            // Modify PDBData
-            pdbAtoms.startIdxRes.push_back(startIdxResBoxOffset + it->front());
-            pdbAtoms.resKinds.push_back(kindMap[*sizeConsistentEntries].kindIndex);
-            pdbAtoms.resNames.push_back(*sizeConsistentEntries);
-
 
             molVars.startIdxMolecules.push_back(startIdxResBoxOffset + it->front());
             molVars.moleculeKinds.push_back(kindMap[*sizeConsistentEntries].kindIndex);
@@ -558,11 +545,6 @@ void createMapAndModifyPDBAtomDataStructure(mol_setup::MoleculeVariables & molVa
         kindMap[fragName].firstAtomID = it->front() + 1;
         kindMap[fragName].firstMolID = allAtoms[it->front()].residueID;
         kindMap[fragName].kindIndex = resKindIndex;
-        //pdbAtoms.startIdxRes.push_back(kindMap[fragName].firstAtomID - 1);
-        pdbAtoms.startIdxRes.push_back(startIdxResBoxOffset + kindMap[fragName].firstAtomID - 1);
-        pdbAtoms.resKinds.push_back(kindMap[fragName].kindIndex);
-        pdbAtoms.resKindNames.push_back(fragName);
-        pdbAtoms.resNames.push_back(fragName);
 
         molVars.startIdxMolecules.push_back(startIdxResBoxOffset + kindMap[fragName].firstAtomID - 1);
         molVars.moleculeKinds.push_back(kindMap[fragName].kindIndex);
@@ -969,7 +951,6 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
                                           allAtoms, 
                                           kindMap, 
                                           sizeMap,
-                                          pdbData, 
                                           kindMapFromBox1, 
                                           sizeMapFromBox1);
 

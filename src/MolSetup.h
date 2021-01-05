@@ -173,7 +173,6 @@ public:
                                               std::vector<mol_setup::Atom> & allAtoms,
                                               mol_setup::MolMap & kindMap,
                                               mol_setup::SizeMap & sizeMap,
-                                              pdb_setup::Atoms& pdbAtoms,
                                               mol_setup::MolMap * kindMapFromBox1,
                                               mol_setup::SizeMap * sizeMapFromBox1);
 
