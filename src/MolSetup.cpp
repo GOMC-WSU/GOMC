@@ -255,11 +255,11 @@ int MolSetup::Init(const config_setup::RestartSettings& restart,
 }
 
 
-void MolSetup::AssignKinds(const pdb_setup::Atoms& pdbAtoms, const FFSetup& ffData)
+void MolSetup::AssignKinds(const mol_setup::MoleculeVariables& molVars, const FFSetup& ffData)
 {
   typedef MolMap::iterator MapIt;
   for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it) {
-    AssignMolKinds(it->second, pdbAtoms, it->first);
+    AssignMolKinds(it->second, molVars, it->first);
     AssignAtomKinds(it->second, ffData);
     AssignBondKinds(it->second, ffData);
     AssignAngleKinds(it->second, ffData);
@@ -316,14 +316,14 @@ int read_atoms(FILE *psf, unsigned int nAtoms, std::vector<mol_setup::Atom> & al
 
 typedef std::vector<uint>::const_iterator candidateIterator;
 
-void createMapAndModifyPDBAtomDataStructure(mol_setup::MoleculeVariables & molVars,
-                                            const BondAdjacencyList & bondAdjList,
-                                            const std::vector< std::vector<uint> > & moleculeXAtomIDY, 
-                                            std::vector<mol_setup::Atom> & allAtoms,
-                                            mol_setup::MolMap & kindMap,
-                                            mol_setup::SizeMap & sizeMap,
-                                            mol_setup::MolMap * kindMapFromBox1,
-                                            mol_setup::SizeMap * sizeMapFromBox1){
+void createKindMap (mol_setup::MoleculeVariables & molVars,
+                    const BondAdjacencyList & bondAdjList,
+                    const std::vector< std::vector<uint> > & moleculeXAtomIDY, 
+                    std::vector<mol_setup::Atom> & allAtoms,
+                    mol_setup::MolMap & kindMap,
+                    mol_setup::SizeMap & sizeMap,
+                    mol_setup::MolMap * kindMapFromBox1,
+                    mol_setup::SizeMap * sizeMapFromBox1){
 
   /* A size -> moleculeKind map for quick evaluation of new molecules based on molMap entries
     of a given size exisitng or not */ 
@@ -586,13 +586,7 @@ void MolSetup::copyBondInfoIntoMapEntry(const BondAdjacencyList & bondAdjList, m
 namespace
 {
 
-void AssignMolKinds(MolKind& kind, const pdb_setup::Atoms& pdbData, const std::string& name)
-{
-  uint index = std::find(pdbData.resKindNames.begin(),
-                         pdbData.resKindNames.end(), name) - pdbData.resKindNames.begin();
-  kind.kindIndex = index;
-}
-
+/* Currently unused, would be useful for number of aa's in a protein */
 void AssignResKinds(MolKind& kind, const pdb_setup::Atoms& pdbData, const std::string& name)
 {
   uint index = std::find(pdbData.resKindNames.begin(),
@@ -945,14 +939,14 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
     Finally, entries in startIDxRes are consolidated redefine the start and end of molecule,
     as far as the pdb data is concerned. 
   */
-  createMapAndModifyPDBAtomDataStructure( molVars,
-                                          bondAdjList, 
-                                          moleculeXAtomIDY, 
-                                          allAtoms, 
-                                          kindMap, 
-                                          sizeMap,
-                                          kindMapFromBox1, 
-                                          sizeMapFromBox1);
+  createKindMap(molVars,
+                bondAdjList, 
+                moleculeXAtomIDY, 
+                allAtoms, 
+                kindMap, 
+                sizeMap,
+                kindMapFromBox1, 
+                sizeMapFromBox1);
 
   std::vector<std::pair<unsigned int, std::string> > firstAtomLookup;
   for (MolMap::iterator it = kindMap.begin(); it != kindMap.end(); ++it) {

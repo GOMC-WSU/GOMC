@@ -60,7 +60,7 @@ public:
     if(mol.Init(config.in.restart, config.in.files.psf.name, config.in.files.psf.defined, pdb.atoms) != 0) {
       exit(EXIT_FAILURE);
     }
-    mol.AssignKinds(pdb.atoms, ff);
+    mol.AssignKinds(mol.molVars, ff);
 
   }
 };
