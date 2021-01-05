@@ -55,7 +55,8 @@ public:
 
   bool operator== (const Atom& atm) const
   {
-    if (name == atm.name && 
+    if (// To get graphene to work
+        //name == atm.name && 
         type == atm.type && 
         residue == atm.residue && 
         charge == atm.charge && 
