@@ -47,6 +47,7 @@ namespace
 {
 //Assigns numerical mol kind indices to all molKinds
 void AssignMolKinds(MolKind& kind, const pdb_setup::Atoms& pdbData, const std::string& name);
+void AssignMolKinds(MolKind& kind, const mol_setup::MoleculeVariables& molVars, const std::string& name);
 void AssignAtomKinds(MolKind& kind, const FFSetup& ffData);
 void AssignBondKinds(MolKind& kind, const FFSetup& ffData);
 void AssignAngleKinds(MolKind& kind, const FFSetup& ffData);
@@ -607,6 +608,20 @@ void AssignMolKinds(MolKind& kind, const pdb_setup::Atoms& pdbData, const std::s
 {
   uint index = std::find(pdbData.resKindNames.begin(),
                          pdbData.resKindNames.end(), name) - pdbData.resKindNames.begin();
+  kind.kindIndex = index;
+}
+
+void AssignResKinds(MolKind& kind, const pdb_setup::Atoms& pdbData, const std::string& name)
+{
+  uint index = std::find(pdbData.resKindNames.begin(),
+                         pdbData.resKindNames.end(), name) - pdbData.resKindNames.begin();
+  kind.kindIndex = index;
+}
+
+void AssignMolKinds(MolKind& kind, const mol_setup::MoleculeVariables& molVars, const std::string& name)
+{
+  uint index = std::find(molVars.moleculeKindNames.begin(),
+                         molVars.moleculeKindNames.end(), name) - molVars.moleculeKindNames.begin();
   kind.kindIndex = index;
 }
 
