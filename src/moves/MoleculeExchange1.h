@@ -550,7 +550,7 @@ inline void MoleculeExchange1::CalcTc()
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       uint* kCount = new uint[molRef.kindsCount];
       for (uint k = 0; k < molRef.kindsCount; ++k) {
-        kCount[k] = molLookRef.NumKindInBoxSwappable(k, b);
+        kCount[k] = molLookRef.NumKindInBox(k, b);
       }
 
       if (b == sourceBox) {
