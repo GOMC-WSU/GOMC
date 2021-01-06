@@ -82,6 +82,17 @@ inline void record_debug(double * x, uint len, std::string filename, int linenum
   out << "\n";
 }
 
+inline void record_debug(uint* x, uint len, std::string filename, int linenumber)
+{
+  std::ofstream out;
+  out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
+  out << "vector|uint," << len << "," << filename << "," << linenumber;
+  for (uint i = 0; i < len; i++) {
+    out << "," << x[i];
+  }
+  out << "\n";
+}
+
 //******************************************************************************
 
 typedef unsigned int uint;

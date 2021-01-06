@@ -52,7 +52,10 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   start = new uint [count + 1];
   start = vect::TransferInto<uint>(start, setup.mol.molVars.startIdxMolecules);
   start[count] = atoms.x.size();
+
   kIndex = vect::transfer<uint>(setup.mol.molVars.moleculeKinds);
+  kIndexCount = setup.mol.molVars.moleculeKinds.size();
+
   chain = vect::transfer<char>(atoms.chainLetter);
   for (uint mk = 0 ; mk < kindsCount; mk++) {
     countByKind[mk] =
