@@ -17,7 +17,7 @@
 TEST(PSFParserTest, CheckProtAndWaterTest) {
 
     config_setup::RestartSettings rs;
-    std::__cxx11::string pdbnames[2];
+    std::string pdbnames[2];
 
     pdbnames[0] = "./test/input/PSFParser/BOX_0.pdb";
     pdbnames[1] = "./test/input/PSFParser/BOX_1.pdb";
@@ -26,7 +26,7 @@ TEST(PSFParserTest, CheckProtAndWaterTest) {
 
     pdb.Init(rs, pdbnames);
 
-    std::__cxx11::string psfnames[2];
+    std::string psfnames[2];
     bool psfdefined[2];
 
     MolSetup ms;
