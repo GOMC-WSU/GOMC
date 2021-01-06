@@ -111,7 +111,7 @@ public:
   box_iterator BoxBegin(const uint box) const;
   box_iterator BoxEnd(const uint box) const;
 
-private:
+//private:
 
 #ifdef VARIABLE_PARTICLE_NUMBER
   void Shift(const uint index, const uint currentBox,
