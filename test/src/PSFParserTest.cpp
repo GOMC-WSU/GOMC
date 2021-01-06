@@ -14,6 +14,133 @@
 #include "Reader.cpp"
 
 
+TEST(PSFParserTest, CheckGraphenePoreTest) {
+
+    config_setup::RestartSettings rs;
+    std::string pdbnames[2];
+
+    pdbnames[0] = "./test/input/PSFParser/GRAPHENE_PORE_0.pdb";
+    pdbnames[1] = "./test/input/PSFParser/GRAPHENE_PORE_1.pdb";
+
+    PDBSetup pdb;
+
+    pdb.Init(rs, pdbnames);
+
+    std::string psfnames[2];
+    bool psfdefined[2];
+
+    MolSetup ms;
+
+    /*
+        Let GOMC parse dialanine
+    */
+
+    psfnames[0] = "./test/input/PSFParser/GRAPHENE_PORE_0.psf";
+    psfnames[1] = "./test/input/PSFParser/GRAPHENE_PORE_1.psf";
+
+    psfdefined[0] = true;
+    psfdefined[1] = true;
+
+    ms.Init(rs, psfnames, psfdefined, pdb.atoms);
+
+    /* 
+        Build the 10 atoms of TOP Sheet
+    */
+
+    std::vector<mol_setup::Atom> TOP;
+
+    mol_setup::Atom TOP_atom_1 = mol_setup::Atom( "C1",   "TOP", 1, "SYS", "B",   0.000000, 12.0108);
+    mol_setup::Atom TOP_atom_2 = mol_setup::Atom( "C2",   "TOP", 1, "SYS", "B",    0.000000, 12.0108);
+    mol_setup::Atom TOP_atom_3 = mol_setup::Atom( "C3",   "TOP", 1, "SYS", "B",    0.000000, 12.0108);
+    mol_setup::Atom TOP_atom_4 = mol_setup::Atom( "C4",   "TOP", 1, "SYS", "B",   0.000000, 12.0108);
+    mol_setup::Atom TOP_atom_5 = mol_setup::Atom( "C5",   "TOP", 1, "SYS", "B",    0.000000, 12.0108);
+    mol_setup::Atom TOP_atom_6 = mol_setup::Atom( "C6",   "TOP", 1, "SYS", "B",    0.000000, 12.0108);
+    mol_setup::Atom TOP_atom_7 = mol_setup::Atom( "C7",   "TOP", 1, "SYS", "B",   0.000000, 12.0108);
+    mol_setup::Atom TOP_atom_8 = mol_setup::Atom( "C8",   "TOP", 1, "SYS", "B",    0.000000, 12.0108);
+    mol_setup::Atom TOP_atom_9 = mol_setup::Atom( "C9",   "TOP", 1, "SYS", "B",    0.000000, 12.0108);
+    mol_setup::Atom TOP_atom_10 = mol_setup::Atom( "CA",   "TOP", 1, "SYS", "B",   0.000000, 12.0108);
+
+    TOP.push_back(TOP_atom_1);
+    TOP.push_back(TOP_atom_2);
+    TOP.push_back(TOP_atom_3);
+    TOP.push_back(TOP_atom_4);
+    TOP.push_back(TOP_atom_5);
+    TOP.push_back(TOP_atom_6);
+    TOP.push_back(TOP_atom_7);
+    TOP.push_back(TOP_atom_8);
+    TOP.push_back(TOP_atom_9);
+    TOP.push_back(TOP_atom_10);
+
+/*
+                HB2
+                 |                               
+          HB1---CB---HB3      O                  
+                 |           | |                  
+                 |           | |        HT1         
+    OT2```       |           | |   HA    |  
+        ``     `.CA-.`     `. C.`  |     N --HT2 
+         .- C :  |   `` N.` .`   `.CA.-  |         
+           | |   HA      |         |    HT3         
+           | |          HN         |             
+           | |                     |             
+           OT1               HB1---CB---HB3             
+                                   |
+                                   HB2
+*/
+
+
+    /* 
+        Build the 10 atoms of TOP Sheet
+    */
+
+    std::vector<mol_setup::Atom> BOT;
+
+    mol_setup::Atom BOT_atom_1 = mol_setup::Atom( "C1",   "BOT", 2, "SYS", "A",   0.000000, 12.0108);
+    mol_setup::Atom BOT_atom_2 = mol_setup::Atom( "C2",   "BOT", 2, "SYS", "A",    0.000000, 12.0108);
+    mol_setup::Atom BOT_atom_3 = mol_setup::Atom( "C3",   "BOT", 2, "SYS", "A",    0.000000, 12.0108);
+    mol_setup::Atom BOT_atom_4 = mol_setup::Atom( "C4",   "BOT", 2, "SYS", "A",   0.000000, 12.0108);
+    mol_setup::Atom BOT_atom_5 = mol_setup::Atom( "C5",   "BOT", 2, "SYS", "A",    0.000000, 12.0108);
+    mol_setup::Atom BOT_atom_6 = mol_setup::Atom( "C6",   "BOT", 2, "SYS", "A",    0.000000, 12.0108);
+    mol_setup::Atom BOT_atom_7 = mol_setup::Atom( "C7",   "BOT", 2, "SYS", "A",   0.000000, 12.0108);
+    mol_setup::Atom BOT_atom_8 = mol_setup::Atom( "C8",   "BOT", 2, "SYS", "A",    0.000000, 12.0108);
+    mol_setup::Atom BOT_atom_9 = mol_setup::Atom( "C9",   "BOT", 2, "SYS", "A",    0.000000, 12.0108);
+    mol_setup::Atom BOT_atom_10 = mol_setup::Atom( "CA",   "BOT", 2, "SYS", "A",   0.000000, 12.0108);
+
+    BOT.push_back(BOT_atom_1);
+    BOT.push_back(BOT_atom_2);
+    BOT.push_back(BOT_atom_3);
+    BOT.push_back(BOT_atom_4);
+    BOT.push_back(BOT_atom_5);
+    BOT.push_back(BOT_atom_6);
+    BOT.push_back(BOT_atom_7);
+    BOT.push_back(BOT_atom_8);
+    BOT.push_back(BOT_atom_9);
+    BOT.push_back(BOT_atom_10);
+    /* Compare GOMC Parser's TOP and BOT vs our Manual TOP and BOTs */
+
+    typedef std::vector<mol_setup::Atom>::const_iterator atomIterator;
+    std::pair<atomIterator, atomIterator> itPair1(ms.kindMap["BOT"].atoms.cbegin(), BOT.cbegin());
+    for (; itPair1.second != BOT.cend(); ++itPair1.first, ++itPair1.second){
+        EXPECT_EQ(*itPair1.first == *itPair1.second, true);
+        if (*itPair1.first == *itPair1.second){
+
+        } else {
+            std::cout << (*itPair1.first).name << " " << (*itPair1.first).mass << " not equal to " << (*itPair1.second).name << " " << (*itPair1.second).mass << std::endl;
+        }
+    }
+
+    std::pair<atomIterator, atomIterator> itPair2(ms.kindMap["TOP"].atoms.cbegin(), TOP.cbegin());
+    for (; itPair2.second != TOP.cend(); ++itPair2.first, ++itPair2.second){
+        EXPECT_EQ(*itPair2.first == *itPair2.second, true);
+        if (*itPair2.first == *itPair2.second){
+
+        } else {
+            std::cout << (*itPair2.first).name << " " << (*itPair2.first).mass << " not equal to " << (*itPair2.second).name << " " << (*itPair2.second).mass << std::endl;
+        }
+    }    
+
+}
+
 TEST(PSFParserTest, CheckProtAndWaterTest) {
 
     config_setup::RestartSettings rs;
@@ -42,15 +169,6 @@ TEST(PSFParserTest, CheckProtAndWaterTest) {
     psfdefined[1] = true;
 
     ms.Init(rs, psfnames, psfdefined, pdb.atoms);
-
-    /*
-        Manually build dialanine
-    */
-
-    mol_setup::MolMap kindMap;
-
-    kindMap["PROTA"] = MolKind();
-    kindMap["PROTA"].isMultiResidue = true;
 
     /* 
         Build the 3 atoms of SPCE
@@ -167,3 +285,4 @@ TEST(PSFParserTest, CheckProtAndWaterTest) {
     EXPECT_EQ(ms.kindMap["SPCE"].isMultiResidue, false);
 
 }
+
