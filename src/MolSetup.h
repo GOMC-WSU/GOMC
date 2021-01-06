@@ -55,8 +55,7 @@ public:
 
   bool operator== (const Atom& atm) const
   {
-    if (// To get graphene to work
-        //name == atm.name && 
+    if (name == atm.name && 
         type == atm.type && 
         residue == atm.residue && 
         charge == atm.charge && 
@@ -168,9 +167,10 @@ class MolSetup
 public:
   class Atom;
   int read_atoms(FILE *, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms);
-  void createKindMap (mol_setup::MoleculeVariables & molVars,
+  void createKindMap (pdb_setup::Atoms& pdbAtoms,
+                      mol_setup::MoleculeVariables & molVars,
                       const BondAdjacencyList & bondAdjList,
-                      const std::vector< std::vector<uint> > & moleculeXAtomIDY, 
+                      std::vector< std::vector<int> > & moleculeXAtomIDY, 
                       std::vector<mol_setup::Atom> & allAtoms,
                       mol_setup::MolMap & kindMap,
                       mol_setup::SizeMap & sizeMap,
