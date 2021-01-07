@@ -132,8 +132,6 @@ public:
   uint numAtomsInBox[BOX_TOTAL]; // number of atom in each box
   std::string currResname;
 
-  uint lastAtomIndexInBox0 = 0;
-  uint lastResKindIndex = 0;
 };
 
 }

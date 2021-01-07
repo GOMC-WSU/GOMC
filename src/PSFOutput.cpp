@@ -37,12 +37,12 @@ const int dihPerLine = 2;
 
 PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
                      Setup & set) :
-  molecules(&molecules), molNames(set.pdb.atoms.resKindNames),
+  molecules(&molecules), molNames(set.mol.molVars.moleculeKindNames),
   molLookRef(sys.molLookup)
 {
   molKinds.resize(set.mol.kindMap.size());
-  for(uint i = 0; i < set.pdb.atoms.resKindNames.size(); ++i) {
-    molKinds[i] = set.mol.kindMap[set.pdb.atoms.resKindNames[i]];
+  for(uint i = 0; i < set.mol.molVars.moleculeKindNames.size(); ++i) {
+    molKinds[i] = set.mol.kindMap[set.mol.molVars.moleculeKindNames[i]];
   }
   CountMolecules();
   PrintPSF(set.config.out.state.files.psf.name);

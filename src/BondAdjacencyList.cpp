@@ -22,7 +22,7 @@ adjNode* BondAdjacencyList::getAdjListNode(int value, int weight, adjNode* head)
     return newNode;
 }
 
-BondAdjacencyList::BondAdjacencyList(FILE* psf, uint nAtoms, uint nBonds, std::vector< std::vector<uint> > & moleculeXAtomIDY){
+BondAdjacencyList::BondAdjacencyList(FILE* psf, uint nAtoms, uint nBonds, std::vector< std::vector<int> > & moleculeXAtomIDY){
 
     this->nAtoms = nAtoms;
     this->nBonds = nBonds;
@@ -75,18 +75,19 @@ BondAdjacencyList::BondAdjacencyList(FILE* psf, uint nAtoms, uint nBonds, std::v
         
     connectedComponents(moleculeXAtomIDY);
     /* Sort Atom Indices in N connected components, then sort N connected components by first atom index*/
-    for (std::vector< std::vector<uint> >::iterator it = moleculeXAtomIDY.begin();
+    for (std::vector< std::vector<int> >::iterator it = moleculeXAtomIDY.begin();
         it != moleculeXAtomIDY.end(); it++){
         std::sort(it->begin(), it->end());
     }
     std::sort(moleculeXAtomIDY.begin(), moleculeXAtomIDY.end());
+/*
 #ifndef NDEBUG
     std::cout << "Adjacency List" << std::endl;
     for (uint i = 0; i < nAtoms; i++)
         display_AdjList(head[i], i);
 
     std::cout << "Connected Components" << std::endl;
-    for (std::vector< std::vector<uint> >::iterator it = moleculeXAtomIDY.begin();
+    for (std::vector< std::vector<int> >::iterator it = moleculeXAtomIDY.begin();
         it != moleculeXAtomIDY.end(); it++){
         for (std::vector<uint>::iterator it2 = it->begin();
             it2 != it->end(); it2++){
@@ -95,7 +96,7 @@ BondAdjacencyList::BondAdjacencyList(FILE* psf, uint nAtoms, uint nBonds, std::v
         std::cout << std::endl;
     }
 #endif    
-  
+*/
 }
 
 // Destructor
@@ -124,7 +125,7 @@ void BondAdjacencyList::display_AdjList(adjNode* ptr, int i)
 
 // Method to print connected components in an 
 // undirected graph 
-void BondAdjacencyList::connectedComponents(std::vector< std::vector<uint> > & moleculeXAtomIDY) 
+void BondAdjacencyList::connectedComponents(std::vector< std::vector<int> > & moleculeXAtomIDY) 
 { 
     // Mark all the vertices as not visited 
     bool *visited = new bool[nAtoms]; 
@@ -139,7 +140,7 @@ void BondAdjacencyList::connectedComponents(std::vector< std::vector<uint> > & m
             // from v 
             /* For debugging
             std::cout << "Calling DFSUtil" << std::endl; */
-            std::vector<uint> moleculeX;
+            std::vector<int> moleculeX;
             DFSUtil(v, this->head[v], this->head, visited, moleculeX); 
             moleculeXAtomIDY.push_back(moleculeX);
             /* For debugging std::cout << "\n"; */
@@ -148,7 +149,7 @@ void BondAdjacencyList::connectedComponents(std::vector< std::vector<uint> > & m
     delete[] visited; 
 } 
   
-void BondAdjacencyList::DFSUtil(int v, adjNode * node, adjNode ** head, bool * visited, std::vector<uint> & moleculeX) 
+void BondAdjacencyList::DFSUtil(int v, adjNode * node, adjNode ** head, bool * visited, std::vector<int> & moleculeX) 
 { 
     // Mark the current node as visited and print it 
     visited[v] = true; 

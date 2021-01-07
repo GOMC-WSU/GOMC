@@ -27,6 +27,14 @@ class FFSetup;
 
 namespace mol_setup
 {
+
+struct MoleculeVariables {
+  std::vector<uint> startIdxMolecules, moleculeKinds;
+  std::vector<std::string> moleculeNames, moleculeKindNames;
+  uint lastAtomIndexInBox0 = 0;
+  uint lastResKindIndex = 0;
+};
+
 //!structure to contain an atom's data during initialization
 class Atom
 {
@@ -146,7 +154,7 @@ typedef std::map<std::size_t, std::vector<std::string> > SizeMap;
 *\param numFiles number of files to read
 *\return -1 if failed, 0 if successful
 */
-int ReadCombinePSF(MolMap& kindMap, SizeMap& sizeMap, const std::string* psfFilename,
+int ReadCombinePSF(MoleculeVariables & molVars, MolMap& kindMap, SizeMap& sizeMap, const std::string* psfFilename,
                    const bool* psfDefined, pdb_setup::Atoms& pdbAtoms);
 
 void PrintMolMapVerbose(const MolMap& kindMap);
@@ -159,14 +167,15 @@ class MolSetup
 public:
   class Atom;
   int read_atoms(FILE *, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms);
-  void createMapAndModifyPDBAtomDataStructure(const BondAdjacencyList & bondAdjList,
-                                              const std::vector< std::vector<uint> > & moleculeXAtomIDY, 
-                                              std::vector<mol_setup::Atom> & allAtoms,
-                                              mol_setup::MolMap & kindMap,
-                                              mol_setup::SizeMap & sizeMap,
-                                              pdb_setup::Atoms& pdbAtoms,
-                                              mol_setup::MolMap * kindMapFromBox1,
-                                              mol_setup::SizeMap * sizeMapFromBox1);
+  void createKindMap (pdb_setup::Atoms& pdbAtoms,
+                      mol_setup::MoleculeVariables & molVars,
+                      const BondAdjacencyList & bondAdjList,
+                      std::vector< std::vector<int> > & moleculeXAtomIDY, 
+                      std::vector<mol_setup::Atom> & allAtoms,
+                      mol_setup::MolMap & kindMap,
+                      mol_setup::SizeMap & sizeMap,
+                      mol_setup::MolMap * kindMapFromBox1,
+                      mol_setup::SizeMap * sizeMapFromBox1);
 
   static void copyBondInfoIntoMapEntry(const BondAdjacencyList & bondAdjList, mol_setup::MolMap & kindMap, std::string fragName);
 
@@ -178,10 +187,11 @@ public:
            const bool* psfDefined, 
            pdb_setup::Atoms& pdbAtoms);
 
-  void AssignKinds(const pdb_setup::Atoms& pdbAtoms, const FFSetup& ffData);
+  void AssignKinds(const mol_setup::MoleculeVariables& molVars, const FFSetup& ffData);
 
 //private:
   mol_setup::MolMap kindMap;
   mol_setup::SizeMap sizeMap;
+  mol_setup::MoleculeVariables molVars;
 };
 #endif
