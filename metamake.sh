@@ -4,6 +4,18 @@
 if command -v nvcc &> /dev/null
 then
 	nvcc_version=($(python scripts/get_cuda_version.py))
+	if [ -z "$nvcc_version" ]
+	then
+		echo "python command not on path. trying python3"
+		nvcc_version=($(python3 scripts/get_cuda_version.py))
+		if [ -z "$nvcc_version" ]
+		then
+			echo "python3 command not on path. Please install/add to path. Exiting..."
+			exit 1
+		else
+			echo "python3 found"
+		fi
+	fi
 	# Check cuda version, if less than 11 then download CUB, otherwise skip
 	if [[ "$nvcc_version" < "11" ]]
 	then
