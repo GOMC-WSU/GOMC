@@ -38,7 +38,9 @@ void MoleculeLookup::Init(const Molecules& mols,
     uint box = atomData.box[mols.start[m]];
     uint kind = mols.kIndex[m];
     indexVector[box][kind].push_back(m);
-    fixedAtom[m] = atomData.molBeta[m];
+    // Residue Beta from PDB
+    //     fixedAtom[m] = atomData.molBeta[mols.start[m]];
+    fixedAtom[m] = atomData.beta[mols.start[m]];
 
     //Find the kind that can be swap(beta == 0) or move(beta == 0 or 2)
     if(fixedAtom[m] == 0) {

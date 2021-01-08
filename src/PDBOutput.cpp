@@ -104,11 +104,11 @@ void PDBOutput::InitPartVec(pdb_setup::Atoms const& atoms)
     while (m != end) {
       uint mI = *m;
 
-      std::string resName = atoms.resNames[mI];
+      //std::string resName = atoms.resNames[mI];
       molRef.GetRangeStartStop(pStart, pEnd, mI);
 
       for (uint p = pStart; p < pEnd; ++p) {
-        FormatAtom(pStr[p], p, atoms.resIDs[p], molRef.chain[mI],
+        FormatAtom(pStr[p], p, atoms.resIDs[p], molRef.chain[molRef.kIndex[mI]],
                    atoms.atomAliases[p], atoms.resNamesFull[p]);
       }
       ++m;
