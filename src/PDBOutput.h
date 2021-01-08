@@ -97,6 +97,7 @@ private:
   bool enableOutState;
   std::vector<std::string> pStr;
   int frameNumber[BOX_TOTAL];
+
 };
 
 #endif /*PDB_OUTPUT_H*/

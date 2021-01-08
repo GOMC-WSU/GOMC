@@ -224,7 +224,7 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
                 thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
       } else {
         fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
-                resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
+                molLookRef.GetResID(atomID-1) + 1, molLookRef.GetResidueName(atomID-1).c_str(), molLookRef.GetAtomAlias(atomID-1).c_str(),
                 thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
       }
       ++atomID;
@@ -350,7 +350,7 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         } else {
           fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
-                  resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
+                  molLookRef.GetResID(atomID-1) + 1, molLookRef.GetResidueName(atomID-1).c_str(), molLookRef.GetAtomAlias(atomID-1).c_str(),
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         }
         ++atomID;

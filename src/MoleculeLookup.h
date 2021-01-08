@@ -74,6 +74,22 @@ public:
     return fixedAtom[m];
   }
 
+  uint GetResID( const uint m) const
+  {
+    uint ret = resIDs[m];
+    return resIDs[m];
+  }
+
+  std::string GetAtomAlias( const uint m) const
+  {
+    return atomAliases[m];
+  }
+
+  std::string GetResidueName( const uint m) const
+  {
+    return resNamesFull[m];
+  }
+
   bool IsFix(const uint m) const
   {
     return (fixedAtom[m] == 1);
@@ -133,6 +149,8 @@ private:
 
   // make CheckpointOutput class a friend so it can print all the private data
   friend class CheckpointOutput;
+  std::vector<std::string> atomAliases, resNamesFull;
+  std::vector<uint> resIDs;
 };
 
 inline uint MoleculeLookup::NumKindInBox(const uint kind, const uint box) const

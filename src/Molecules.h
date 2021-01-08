@@ -107,7 +107,6 @@ public:
   uint fractionKind, lambdaSize;
   double* pairEnCorrections;
   double* pairVirCorrections;
-
   bool printFlag;
 };
 
