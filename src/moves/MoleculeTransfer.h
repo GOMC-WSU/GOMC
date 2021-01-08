@@ -137,28 +137,28 @@ inline void MoleculeTransfer::CalcEn()
 inline double MoleculeTransfer::GetCoeff() const
 {
 #if ENSEMBLE == GEMC
-  return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) /
-         (double)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
+  return (double)(molLookRef.NumKindInBoxSwappable(kindIndex, sourceBox)) /
+         (double)(molLookRef.NumKindInBoxSwappable(kindIndex, destBox) + 1) *
          boxDimRef.volume[destBox] * boxDimRef.volInv[sourceBox];
 #elif ENSEMBLE == GCMC
   if (sourceBox == mv::BOX0) { //Delete case
     if(ffRef.isFugacity) {
-      return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
+      return (double)(molLookRef.NumKindInBoxSwappable(kindIndex, sourceBox)) *
              boxDimRef.volInv[sourceBox] /
              (BETA * molRef.kinds[kindIndex].chemPot);
     } else {
-      return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
+      return (double)(molLookRef.NumKindInBoxSwappable(kindIndex, sourceBox)) *
              boxDimRef.volInv[sourceBox] *
              exp(-BETA * molRef.kinds[kindIndex].chemPot);
     }
   } else { //Insertion case
     if(ffRef.isFugacity) {
       return boxDimRef.volume[destBox] /
-             (double)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
+             (double)(molLookRef.NumKindInBoxSwappable(kindIndex, destBox) + 1) *
              (BETA * molRef.kinds[kindIndex].chemPot);
     } else {
       return boxDimRef.volume[destBox] /
-             (double)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
+             (double)(molLookRef.NumKindInBoxSwappable(kindIndex, destBox) + 1) *
              exp(BETA * molRef.kinds[kindIndex].chemPot);
     }
   }

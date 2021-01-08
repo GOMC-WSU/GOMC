@@ -43,22 +43,23 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   kinds = new MoleculeKind[kindsCount];
 
   //Molecule instance arrays/data
-  count = setup.mol.molVars.startIdxMolecules.size();
+  count = atoms.startIdxRes.size();
   if (count == 0) {
     std::cerr << "Error: No Molecule was found in the PDB file(s)!" << std::endl;
     exit(EXIT_FAILURE);
   }
 
   start = new uint [count + 1];
-  start = vect::TransferInto<uint>(start, setup.mol.molVars.startIdxMolecules);
+  start = vect::TransferInto<uint>(start, atoms.startIdxRes);
   start[count] = atoms.x.size();
-  kIndex = vect::transfer<uint>(setup.mol.molVars.moleculeKinds);
+  kIndex = vect::transfer<uint>(atoms.resKinds);
+  kIndexCount = atoms.resKinds.size();
   chain = vect::transfer<char>(atoms.chainLetter);
   for (uint mk = 0 ; mk < kindsCount; mk++) {
     countByKind[mk] =
-      std::count(setup.mol.molVars.moleculeNames.begin(), setup.mol.molVars.moleculeNames.end(),
-                 setup.mol.molVars.moleculeKindNames[mk]);
-    kinds[mk].Init(setup.mol.molVars.moleculeKindNames[mk], setup, forcefield, sys);
+      std::count(atoms.resNames.begin(), atoms.resNames.end(),
+                 atoms.resKindNames[mk]);
+    kinds[mk].Init(atoms.resKindNames[mk], setup, forcefield, sys);
   }
 
 #if ENSEMBLE == GCMC

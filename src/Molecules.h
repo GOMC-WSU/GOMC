@@ -97,8 +97,9 @@ public:
   //Kind index of each molecule and start in master particle array
   //Plus counts
   uint* start;
-  uint* kIndex;
   uint count;
+  uint* kIndex;
+  uint kIndexCount;
   uint* countByKind;
   char* chain;
 

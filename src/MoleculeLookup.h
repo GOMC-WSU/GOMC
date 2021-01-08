@@ -33,6 +33,7 @@ public:
   {
     delete[] molLookup;
     delete[] boxAndKindStart;
+    delete[] boxAndKindSwappableCounts;
   }
 
   //Initialize this object to be consistent with Molecules mols
@@ -65,6 +66,8 @@ public:
 
   //Returns number of given kind in given box
   uint NumKindInBox(const uint kind, const uint box) const;
+
+  uint NumKindInBoxSwappable(const uint kind, const uint box) const;
 
   //!Returns total number of molecules in a given box
   uint NumInBox(const uint box) const;
@@ -124,7 +127,7 @@ public:
   box_iterator BoxBegin(const uint box) const;
   box_iterator BoxEnd(const uint box) const;
 
-private:
+//private:
 
 #ifdef VARIABLE_PARTICLE_NUMBER
   void Shift(const uint index, const uint currentBox,
@@ -141,6 +144,7 @@ private:
   //index [BOX_TOTAL * kind + box + 1] is the element after the end
   //of that kind/box
   uint* boxAndKindStart;
+  uint* boxAndKindSwappableCounts;
   uint boxAndKindStartCount;
   uint numKinds;
   std::vector <uint> fixedAtom;
@@ -159,7 +163,10 @@ inline uint MoleculeLookup::NumKindInBox(const uint kind, const uint box) const
          boxAndKindStart[box * numKinds + kind];
 }
 
-
+inline uint MoleculeLookup::NumKindInBoxSwappable(const uint kind, const uint box) const
+{
+  return boxAndKindSwappableCounts[box * numKinds + kind];
+}
 
 class MoleculeLookup::box_iterator
 {

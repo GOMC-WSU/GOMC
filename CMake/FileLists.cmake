@@ -180,6 +180,7 @@ set(headers
 set(libHeaders
    lib/BasicTypes.h
    lib/BitLib.h
+   lib/Endian.h
    lib/GeomLib.h
    lib/Lambda.h
    lib/NumLib.h
