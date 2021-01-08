@@ -207,7 +207,6 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
   fprintf(outfile, headerFormat, totalAtoms, atomHeader);
   //silly psfs index from 1
   uint atomID = 1;
-  uint resID = 1;
   uint currKind = molecules->kIndex[0];
   for(uint mol = 0; mol < molecules->count; ++mol) {
     uint thisKind = molecules->kIndex[mol];
@@ -217,29 +216,12 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
       const Atom* thisAtom = &molKinds[thisKind].atoms[at];
       //atom ID, segment name, residue ID, residue name,
       //atom name, atom type, charge, mass, and an unused 0
-
-      if(molKinds[thisKind].isMultiResidue){
-        fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
-                resID + molKinds[thisKind].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
-                thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
-      } else {
-        fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
-                molLookRef.GetResID(atomID-1) + 1, molLookRef.GetResidueName(atomID-1).c_str(), molLookRef.GetAtomAlias(atomID-1).c_str(),
-                thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
-      }
+      fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+              molLookRef.GetResID(atomID-1) + 1, molLookRef.GetResidueName(atomID-1).c_str(), molLookRef.GetAtomAlias(atomID-1).c_str(),
+              thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+      
       ++atomID;
     }
-    /* This isn't actually residue, it is running count of the number of
-      molecule kinds we have printed */
-    ++resID;
-    /* To add additional intramolecular residues */
-    if (molKinds[thisKind].isMultiResidue){
-      resID += molKinds[thisKind].intraMoleculeResIDs.back();
-    }
-
-   // ???
-    if(resID == 10000)
-      resID = 1;
   }
   fputc('\n', outfile);
 }
@@ -334,7 +316,6 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
     fprintf(outfile, headerFormat, boxAtoms[b], atomHeader);
     //silly psfs index from 1
     uint atomID = 1;
-    uint resID = 1;
     for( MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b); thisMol != molLookRef.BoxEnd(b); thisMol++){
       uint thisKind = molecules->kIndex[*thisMol];
       uint nAtoms = molKinds[thisKind].atoms.size();
@@ -343,27 +324,12 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
         const Atom* thisAtom = &molKinds[thisKind].atoms[at];
         //atom ID, segment name, residue ID, residue name,
         //atom name, atom type, charge, mass, and an unused 0
-
-        if(molKinds[thisKind].isMultiResidue){
-          fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
-                  resID + molKinds[thisKind].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
-                  thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
-        } else {
-          fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
-                  molLookRef.GetResID(atomID-1) + 1, molLookRef.GetResidueName(atomID-1).c_str(), molLookRef.GetAtomAlias(atomID-1).c_str(),
-                  thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
-        }
+        fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+                molLookRef.GetResID(atomID-1) + 1, molLookRef.GetResidueName(atomID-1).c_str(), molLookRef.GetAtomAlias(atomID-1).c_str(),
+                thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+      
         ++atomID;
       }
-      ++resID;
-      /* To add additional intramolecular residues */
-      if (molKinds[thisKind].isMultiResidue){
-        resID += molKinds[thisKind].intraMoleculeResIDs.back();
-      }
-
-    // ???
-      if(resID == 10000)
-        resID = 1;
     }
     fputc('\n', outfile);
   }

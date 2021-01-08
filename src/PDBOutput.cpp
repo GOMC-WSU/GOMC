@@ -307,7 +307,7 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
 {
   using namespace pdb_entry::atom::field;
   using namespace pdb_entry;
-  char segname = 'A';
+  //char segname = 'A';
   uint molecule = 0, atom = 0, pStart = 0, pEnd = 0;
   for (uint k = 0; k < molRef.kindsCount; ++k) {
     uint countByKind = molLookupRef.NumKindInBox(k, b);
@@ -320,7 +320,7 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
         std::string line = GetDefaultAtomStr();
         XYZ coor = coordCurrRef.Get(p);
         boxDimRef.UnwrapPBC(coor, b, ref);
-        FormatAtom(line, atom, molLookupRef.GetResID(p), segname,
+        FormatAtom(line, atom, molLookupRef.GetResID(p), molRef.chain[molRef.kIndex[p]],
                    molLookupRef.GetAtomAlias(p), molLookupRef.GetResidueName(p));
 
         //Fill in particle's stock string with new x, y, z, and occupancy
