@@ -1393,7 +1393,7 @@ __device__ double CalcVirExp6GPU(double distSq, int index, double gpu_sigmaSq,
                                  double gpu_lambdaVDW)
 {
   if(distSq < gpu_rMaxSq[index]) {
-    return num::BIGNUM;
+    return DBL_MAX;
   }
   if(gpu_lambdaVDW >= 0.999999) {
     return CalcVirExp6GPU(distSq, index, gpu_n, gpu_rMin, gpu_expConst);
