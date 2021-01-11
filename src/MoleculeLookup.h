@@ -82,9 +82,9 @@ public:
     return (fixedAtom[m] == 1);
   }
 
-  bool IsNoSwap(const uint m) const
+  bool IsSwap(const uint m) const
   {
-    return (fixedAtom[m] >= 1);
+    return (fixedAtom[m] < 1);
   }
 
   uint GetMolNum(const uint subIndex, const uint kind, const uint box)

@@ -1511,7 +1511,7 @@ bool CalculateEnergy::FindMolInCavity(std::vector< std::vector<uint> > &mol,
                               invCav, box)) {
         uint molIndex = particleMol[*n];
         //if molecule can be transfer between boxes
-        if(!molLookup.IsNoSwap(molIndex)) {
+        if(molLookup.IsSwap(molIndex)) {
           k = mols.GetMolKind(molIndex);
           bool exist = std::find(mol[k].begin(), mol[k].end(), molIndex) !=
                        mol[k].end();
@@ -1525,10 +1525,10 @@ bool CalculateEnergy::FindMolInCavity(std::vector< std::vector<uint> > &mol,
     MoleculeLookup::box_iterator n = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
     while (n != end) {
-      if(currentAxes.InCavity(currentCOM.Get(*n), center, cavDim, invCav, box)) {
-        uint molIndex = *n;
+      uint molIndex = *n;
+      if(currentAxes.InCavity(currentCOM.Get(molIndex), center, cavDim, invCav, box)) {
         //if molecule can be transfer between boxes
-        if(!molLookup.IsNoSwap(molIndex)) {
+        if(molLookup.IsSwap(molIndex)) {
           k = mols.GetMolKind(molIndex);
           bool exist = std::find(mol[k].begin(), mol[k].end(), molIndex) !=
                        mol[k].end();

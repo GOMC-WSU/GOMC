@@ -384,7 +384,7 @@ public:
         uint mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
         //Lookup true index in table.
         m = molLookRef.GetMolNum(mOff, mk, b);
-      } while(molLookRef.IsNoSwap(m));
+      } while(!molLookRef.IsSwap(m));
     }
 
     return rejectState;
@@ -405,7 +405,7 @@ public:
         mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
         //Lookup true index in table.
         m = molLookRef.GetMolNum(mOff, mk, b);
-      } while(molLookRef.IsNoSwap(m));
+      } while(!molLookRef.IsSwap(m));
       m2 = m;
       mk2 = mk;
     }
@@ -432,7 +432,7 @@ public:
           mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
           //Lookup true index in table.
           m = molLookRef.GetMolNum(mOff, mk, b);
-        } while(molLookRef.IsNoSwap(m) ||
+        } while(!molLookRef.IsSwap(m) ||
                 std::find(m2.begin(), m2.end(), m) != m2.end());
         m2.push_back(m);
         mk2.push_back(mk);
