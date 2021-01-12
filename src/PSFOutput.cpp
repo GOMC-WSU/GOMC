@@ -216,10 +216,16 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
       const Atom* thisAtom = &molKinds[thisKind].atoms[at];
       //atom ID, segment name, residue ID, residue name,
       //atom name, atom type, charge, mass, and an unused 0
-      fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
-              molLookRef.GetResID(atomID-1) + 1, molLookRef.GetResidueName(atomID-1).c_str(), molLookRef.GetAtomAlias(atomID-1).c_str(),
-              thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
-      
+
+      if(molKinds[thisKind].isMultiResidue){
+        fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+                resID + molKinds[thisKind].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
+                thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+      } else {
+        fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+                resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
+                thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+      }
       ++atomID;
     }
   }
@@ -324,10 +330,16 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
         const Atom* thisAtom = &molKinds[thisKind].atoms[at];
         //atom ID, segment name, residue ID, residue name,
         //atom name, atom type, charge, mass, and an unused 0
-        fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
-                molLookRef.GetResID(atomID-1) + 1, molLookRef.GetResidueName(atomID-1).c_str(), molLookRef.GetAtomAlias(atomID-1).c_str(),
-                thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
-      
+
+        if(molKinds[thisKind].isMultiResidue){
+          fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+                  resID + molKinds[thisKind].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
+                  thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+        } else {
+          fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+                  resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
+                  thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+        }
         ++atomID;
       }
     }

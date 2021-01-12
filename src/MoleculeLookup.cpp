@@ -19,9 +19,7 @@ void MoleculeLookup::Init(const Molecules& mols,
   numKinds = mols.GetKindsCount();
   molLookup = new uint[mols.count];
   molLookupCount = mols.count;
-  atomAliases =  atomData.atomAliases;
-  resNamesFull = atomData.resNamesFull;
-  resIDs = atomData.resIDs;
+
   //+1 to store end value
   boxAndKindStart = new uint[numKinds * BOX_TOTAL + 1];
   boxAndKindSwappableCounts = new uint[numKinds * BOX_TOTAL];

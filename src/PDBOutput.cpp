@@ -108,8 +108,8 @@ void PDBOutput::InitPartVec(pdb_setup::Atoms const& atoms)
       molRef.GetRangeStartStop(pStart, pEnd, mI);
 
       for (uint p = pStart; p < pEnd; ++p) {
-        FormatAtom(pStr[p], p, molLookupRef.GetResID(p), molRef.chain[molRef.kIndex[mI]],
-                   molLookupRef.GetAtomAlias(p), molLookupRef.GetResidueName(p));
+        FormatAtom(pStr[p], p, atoms.resIDs[p], molRef.chain[molRef.kIndex[mI]],
+                   atoms.atomAliases[p], atoms.resNamesFull[p]);
       }
       ++m;
     }
@@ -320,8 +320,8 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
         std::string line = GetDefaultAtomStr();
         XYZ coor = coordCurrRef.Get(p);
         boxDimRef.UnwrapPBC(coor, b, ref);
-        FormatAtom(line, atom, molLookupRef.GetResID(p), molRef.chain[molRef.kIndex[p]],
-                   molLookupRef.GetAtomAlias(p), molLookupRef.GetResidueName(p));
+        FormatAtom(line, atom, molecule, molRef.chain[molRef.kIndex[p]],
+                   molRef.kinds[k].atomNames[p - pStart], molRef.kinds[k].resNames[p - pStart]);
 
         //Fill in particle's stock string with new x, y, z, and occupancy
         InsertAtomInLine(line, coor, occupancy::BOX[0], beta::FIX[beta]);
