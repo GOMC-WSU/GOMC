@@ -22,7 +22,7 @@ class MoleculeLookup;
 class OutputVars
 {
 public:
-  OutputVars(System & sys, StaticVals const& statV, std::vector<std::string> molKindNames);
+  OutputVars(System & sys, StaticVals const& statV, const std::vector<std::string> & molKindNames);
 
   ~OutputVars(void);
 

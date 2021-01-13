@@ -14,7 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveConst.h" //For box constants, if we're calculating Hv
 #endif
 
-OutputVars::OutputVars(System & sys, StaticVals const& statV, std::vector <std::string> molKindNames) :
+OutputVars::OutputVars(System & sys, StaticVals const& statV, const std::vector<std::string> & molKindNames) :
   T_in_K(statV.forcefield.T_in_K), calc(sys.calcEnergy), molKindNames(molKindNames)
 {
   InitRef(sys, statV);
