@@ -324,7 +324,6 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
 {
   using namespace pdb_entry::atom::field;
   using namespace pdb_entry;
-  char segname = 'A';
   uint molecule = 0, atom = 0, pStart = 0, pEnd = 0;
   for (uint k = 0; k < molRef.kindsCount; ++k) {
     uint countByKind = molLookupRef.NumKindInBox(k, b);
@@ -339,10 +338,10 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
         XYZ coor = coordCurrRef.Get(p);
         boxDimRef.UnwrapPBC(coor, b, ref);
         if (molRef.kinds[k].isMultiResidue){
-          FormatAtom(line, atom, molecule + molRef.kinds[k].intraMoleculeResIDs[p - pStart], segname,
+          FormatAtom(line, atom, molecule + molRef.kinds[k].intraMoleculeResIDs[p - pStart], molRef.chain[p],
                     molRef.kinds[k].atomNames[p - pStart], molRef.kinds[k].resNames[p - pStart]);
         } else {
-          FormatAtom(line, atom, molecule, segname,
+          FormatAtom(line, atom, molecule, molRef.chain[p],
                     molRef.kinds[k].atomNames[p - pStart], molRef.kinds[k].resNames[p - pStart]);
         }
         //Fill in particle's stock string with new x, y, z, and occupancy
@@ -360,9 +359,6 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
       if(molecule == 9999)
         molecule = 0;
     }
-    /* 
-    We obliterate input segname */
-    ++segname;
   }
 }
 

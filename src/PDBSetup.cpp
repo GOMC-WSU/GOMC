@@ -139,6 +139,9 @@ void Atoms::Assign(std::string const& atomName,
     // pushes the index of the residue to the resKinds
     resKinds.push_back(kIndex);
   }
+
+  chainLetter.push_back(l_chain);
+
   // push the coordinates of atoms to x, y, and z
   x.push_back(l_x);
   y.push_back(l_y);
