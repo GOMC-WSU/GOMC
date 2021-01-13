@@ -390,7 +390,7 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
 //ElectroStatic Calculation
 //**************************************************************//
 __device__ double CalcCoulombParticleGPU(double distSq, int index, double qi_qj_fact,
-    double gpu_ewald, double gpu_alpha,
+    int gpu_ewald, double gpu_alpha,
     double gpu_lambdaCoulomb, bool sc_coul,
     double sc_sigma_6, double sc_alpha,
     uint sc_power, double *gpu_sigmaSq)
@@ -413,7 +413,7 @@ __device__ double CalcCoulombParticleGPU(double distSq, int index, double qi_qj_
 
 __device__ double CalcCoulombParticleGPUNoLambda(double distSq,
     double qi_qj_fact,
-    double gpu_ewald,
+    int gpu_ewald,
     double gpu_alpha)
 {
   if(gpu_ewald) {
@@ -590,8 +590,7 @@ __device__ double CalcCoulombSwitchGPU(double distSq, int index, double qi_qj_fa
 }
 
 __device__ double CalcCoulombSwitchGPUNoLambda(double distSq, double qi_qj_fact,
-    double gpu_alpha, int gpu_ewald,
-    double gpu_rCut)
+    int gpu_ewald, double gpu_alpha, double gpu_rCut)
 {
   if(gpu_ewald) {
     double dist = sqrt(distSq);
