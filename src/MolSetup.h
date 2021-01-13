@@ -162,7 +162,6 @@ class MolSetup
 {
 public:
   class Atom;
-  int read_atoms(FILE *, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms);
   void createKindMap (mol_setup::MoleculeVariables & molVars,
                       const BondAdjacencyList & bondAdjList,
                       const std::vector< std::vector<uint> > & moleculeXAtomIDY, 

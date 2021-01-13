@@ -62,8 +62,7 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData);
 int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMap, SizeMap& sizeMap, pdb_setup::Atoms& pdbData, MolMap * kindMapFromBox1 = NULL, SizeMap * sizeMapFromBox1 = NULL);
 //adds atoms and molecule data in psf to kindMap
 //pre: stream is at !NATOMS   post: stream is at end of atom section
-int ReadPSFAtoms(FILE* psf,
-                 MolMap& kindMap, uint nAtoms);
+int ReadPSFAtoms(FILE *, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms);
 //adds bonds in psf to kindMap
 //pre: stream is before !BONDS   post: stream is in bond section just after
 //the first appearance of the last molecule
@@ -288,32 +287,6 @@ void MolSetup::AssignKinds(const mol_setup::MoleculeVariables& molVars, const FF
     BriefDihKinds(it->second, ffData);
   }
   std::cout << std::endl;
-}
-
-int read_atoms(FILE *psf, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms)
-{
-  char input[512];
-  unsigned int atomID = 0;
-  unsigned int molID;
-  char segment[11], moleculeName[11], atomName[11], atomType[11];
-  double charge, mass;
-
-  while (atomID < nAtoms) {
-    char* check = fgets(input, 511, psf);
-    if (check == NULL) {
-      fprintf(stderr, "ERROR: Could not find all atoms in PSF file ");
-      return errors::READ_ERROR;
-    }
-    //skip comment/blank lines
-    if (input[0] == '!' || str::AllWS(input))
-      continue;
-    //parse line
-    sscanf(input, " %u %s %u %s %s %s %lf %lf ",
-           &atomID, segment, &molID,
-           moleculeName, atomName, atomType, &charge, &mass);
-    allAtoms.push_back(mol_setup::Atom(atomName, moleculeName, molID, segment, atomType, charge, mass));
-  }
-  return 0;
 }
 
 typedef std::vector<uint>::const_iterator candidateIterator;
@@ -877,7 +850,7 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
   bonds before atoms without physically generating a new PSFFile reversing the order of ATOMS <-> BONDS.
   Hence, the necessity to build this vector before knowing how the atoms are connected. */
   std::vector<mol_setup::Atom> allAtoms;
-  read_atoms(psf, nAtoms, allAtoms);
+  ReadPSFAtoms(psf, nAtoms, allAtoms);
   //build list of start particles for each type, so we can find it and skip
   //everything else
   //make sure molecule has bonds, appears before !NBOND
@@ -988,7 +961,7 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
 
 //adds atoms and molecule data in psf to kindMap
 //pre: stream is at !NATOMS   post: stream is at end of atom section
-int ReadPSFAtoms(FILE* psf, MolMap& kindMap, unsigned int nAtoms)
+int ReadPSFAtoms(FILE *psf, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms)
 {
   char input[512];
   unsigned int atomID = 0;
@@ -1009,26 +982,7 @@ int ReadPSFAtoms(FILE* psf, MolMap& kindMap, unsigned int nAtoms)
     sscanf(input, " %u %s %u %s %s %s %lf %lf ",
            &atomID, segment, &molID,
            moleculeName, atomName, atomType, &charge, &mass);
-    MolMap::iterator it = kindMap.find(moleculeName);
-    //found new molecule kind...
-    if (it == kindMap.end()) {
-      it = kindMap.insert(std::make_pair(std::string(moleculeName), MolKind())).first;
-      it->second.firstAtomID = atomID;
-      it->second.firstMolID = molID;
-      it->second.atoms.push_back(Atom(atomName, moleculeName, molID, segment, atomType, charge, mass));
-    }
-    //still building a molecule...
-    else if (it->second.incomplete) {
-      if (molID != it->second.firstMolID)
-        it->second.incomplete = false;
-      else
-        it->second.atoms.push_back(Atom(atomName, moleculeName, molID, segment, atomType, charge, mass));
-    }
-  }
-  //Fix for one molecule fringe case.
-  if (molID == 1) {
-    MolMap::iterator it = kindMap.find(moleculeName);
-    it->second.incomplete = false;
+    allAtoms.push_back(mol_setup::Atom(atomName, moleculeName, molID, segment, atomType, charge, mass));
   }
   return 0;
 }

@@ -107,10 +107,6 @@ void PDBOutput::InitPartVec(pdb_setup::Atoms const& atoms)
       molRef.GetRangeStartStop(pStart, pEnd, mI);
 
       for (uint p = pStart; p < pEnd; ++p) {
-        /* To have the original atom aliases and resIds
-        FormatAtom(pStr[p], p, atoms.resIDs[p], molRef.chain[molRef.kIndex[mI]],
-                   atoms.atomAliases[p], atoms.resNamesFull[p]);
-        */
         if (molRef.kinds[molRef.kIndex[mI]].isMultiResidue){
           FormatAtom(pStr[p], p, molecule + molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs[p - pStart], molRef.chain[molRef.kIndex[mI]],
                     molRef.kinds[molRef.kIndex[mI]].atomNames[p - pStart], molRef.kinds[molRef.kIndex[mI]].resNames[p - pStart]);
