@@ -174,11 +174,11 @@ void CheckpointSetup::readMoleculeLookupData()
 
   // read numKinds
   numKinds = read_uint32_binary();
-  //read the size of fixedAtom array
-  fixedAtomVec.resize(read_uint32_binary());
-  //read the fixedAtom array itself
-  for(int i = 0; i < (int) fixedAtomVec.size(); i++) {
-    fixedAtomVec[i] = read_uint32_binary();
+  //read the size of fixedMolecule array
+  fixedMoleculeVec.resize(read_uint32_binary());
+  //read the fixedMolecule array itself
+  for(int i = 0; i < (int) fixedMoleculeVec.size(); i++) {
+    fixedMoleculeVec[i] = read_uint32_binary();
   }
 }
 

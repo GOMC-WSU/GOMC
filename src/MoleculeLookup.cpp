@@ -29,7 +29,7 @@ void MoleculeLookup::Init(const Molecules& mols,
   // vector[box][kind] = list of mol indices for kind in box
   std::vector<std::vector<std::vector<uint> > > indexVector;
   indexVector.resize(BOX_TOTAL);
-  fixedAtom.resize(mols.count);
+  fixedMolecule.resize(mols.count);
 
   for (int i = 0; i < numKinds * BOX_TOTAL; i++){
     boxAndKindSwappableCounts[i] = 0;
@@ -41,13 +41,16 @@ void MoleculeLookup::Init(const Molecules& mols,
   }
 
   for(uint m = 0; m < mols.count; ++m) {
-    uint box = atomData.box[atomData.startIdxRes[m]];
+    uint box = atomData.box[mols.start[m]];
     uint kind = mols.kIndex[m];
     indexVector[box][kind].push_back(m);
-    fixedAtom[m] = atomData.molBeta[m];
+    /* We don't currently support hybrid molecules - part fixed part flexible */
+    /* molBeta is of size number of residues - which is a problem, so we use the 
+       beta of the first atom in the molecule */
+    fixedMolecule[m] = atomData.beta[mols.start[m]];
 
     //Find the kind that can be swap(beta == 0) or move(beta == 0 or 2)
-    if(fixedAtom[m] == 0) {
+    if(fixedMolecule[m] == 0) {
       if(std::find(canSwapKind.begin(), canSwapKind.end(), kind) ==
           canSwapKind.end())
         canSwapKind.push_back(kind);
@@ -58,7 +61,7 @@ void MoleculeLookup::Init(const Molecules& mols,
 
       boxAndKindSwappableCounts[box * numKinds + kind]++;
 
-    } else if(fixedAtom[m] == 2) {
+    } else if(fixedMolecule[m] == 2) {
       if(std::find(canMoveKind.begin(), canMoveKind.end(), kind) ==
           canMoveKind.end())
         canMoveKind.push_back(kind);

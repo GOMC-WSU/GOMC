@@ -74,17 +74,17 @@ public:
 
   uint GetBeta( const uint m) const
   {
-    return fixedAtom[m];
+    return fixedMolecule[m];
   }
 
   bool IsFix(const uint m) const
   {
-    return (fixedAtom[m] == 1);
+    return (fixedMolecule[m] == 1);
   }
 
   bool IsNoSwap(const uint m) const
   {
-    return (fixedAtom[m] >= 1);
+    return (fixedMolecule[m] >= 1);
   }
 
   uint GetMolNum(const uint subIndex, const uint kind, const uint box)
@@ -131,7 +131,7 @@ public:
   uint* boxAndKindSwappableCounts;
   uint boxAndKindStartCount;
   uint numKinds;
-  std::vector <uint> fixedAtom;
+  std::vector <uint> fixedMolecule;
   std::vector <uint> canSwapKind; //Kinds that can move intra and inter box
   std::vector <uint> canMoveKind; //Kinds that can move intra box only
 

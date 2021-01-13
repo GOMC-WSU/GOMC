@@ -104,11 +104,10 @@ void PDBOutput::InitPartVec(pdb_setup::Atoms const& atoms)
     while (m != end) {
       uint mI = *m;
 
-      std::string resName = atoms.resNames[mI];
       molRef.GetRangeStartStop(pStart, pEnd, mI);
 
       for (uint p = pStart; p < pEnd; ++p) {
-        FormatAtom(pStr[p], p, atoms.resIDs[p], molRef.chain[mI],
+        FormatAtom(pStr[p], p, atoms.resIDs[p], molRef.chain[molRef.kIndex[mI]],
                    atoms.atomAliases[p], atoms.resNamesFull[p]);
       }
       ++m;
@@ -313,6 +312,7 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
     uint countByKind = molLookupRef.NumKindInBox(k, b);
     for (uint kI = 0; kI < countByKind; ++kI) {
       uint molI = molLookupRef.GetMolNum(kI, k, b);
+      /* We don't support hybrid fixed/flexible molecule currently */
       uint beta = molLookupRef.GetBeta(molI);
       molRef.GetRangeStartStop(pStart, pEnd, molI);
       XYZ ref = comCurrRef.Get(molI);
@@ -320,9 +320,13 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
         std::string line = GetDefaultAtomStr();
         XYZ coor = coordCurrRef.Get(p);
         boxDimRef.UnwrapPBC(coor, b, ref);
-        FormatAtom(line, atom, molecule, segname,
-                   molRef.kinds[k].atomNames[p - pStart], molRef.kinds[k].resNames[p - pStart]);
-
+        if (molRef.kinds[k].isMultiResidue){
+          FormatAtom(line, atom, molecule + molRef.kinds[k].intraMoleculeResIDs[p - pStart], segname,
+                    molRef.kinds[k].atomNames[p - pStart], molRef.kinds[k].resNames[p - pStart]);
+        } else {
+          FormatAtom(line, atom, molecule, segname,
+                    molRef.kinds[k].atomNames[p - pStart], molRef.kinds[k].resNames[p - pStart]);
+        }
         //Fill in particle's stock string with new x, y, z, and occupancy
         InsertAtomInLine(line, coor, occupancy::BOX[0], beta::FIX[beta]);
         //Write finished string out.
@@ -330,9 +334,17 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
         ++atom;
       }
       ++molecule;
+      /* To add additional intramolecular residues */
+      if (molRef.kinds[k].isMultiResidue){
+        molecule += molRef.kinds[k].intraMoleculeResIDs.back();
+      }
+      /* 0 & 9999 since FormatAtom adds 1 shifting to 1 and 10,000*/
+      if(molecule == 9999)
+        molecule = 0;
     }
+    /* 
+    We obliterate input segname */
     ++segname;
-    molecule = 0;
   }
 }
 
