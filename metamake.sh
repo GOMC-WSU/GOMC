@@ -80,4 +80,4 @@ ICPC_PATH="$(which icpc 2>/dev/null)"
 export CC=${ICC_PATH}
 export CXX=${ICPC_PATH}
 cmake ..
-make -j8 NVT
+make -j8
