@@ -316,13 +316,13 @@ void ConsoleOutput::PrintStatisticTitle()
 
     for(uint k = 0; k < var->numKinds; k++) {
       if(var->numKinds > 1) {
-        std::string molName = "MOLFRAC_" + var->resKindNames[k];
+        std::string molName = "MOLFRAC_" + var->molKindNames[k];
         printElement(molName, elementWidth);
       }
     }
     for(uint k = 0; k < var->numKinds; k++) {
       if(var->numKinds > 1) {
-        std::string molName = "MOLDENS_" + var->resKindNames[k];
+        std::string molName = "MOLDENS_" + var->molKindNames[k];
         printElement(molName, elementWidth);
       }
     }

@@ -131,6 +131,7 @@ public:
   uint* boxAndKindSwappableCounts;
   uint boxAndKindStartCount;
   uint numKinds;
+  std::vector <std::string> molKindNames;
   std::vector <uint> fixedMolecule;
   std::vector <uint> canSwapKind; //Kinds that can move intra and inter box
   std::vector <uint> canMoveKind; //Kinds that can move intra box only

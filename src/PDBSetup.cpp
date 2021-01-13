@@ -119,8 +119,7 @@ void Atoms::Assign(std::string const& atomName,
   ++numAtomsInBox[currBox];
   atomAliases.push_back(atomName);
   resNamesFull.push_back(resName);
-  /* Format Atom previously expected resID to start at 0.  We will subtract 1 here to
-      stay compliant */
+  /* Previous molecule parser.  We could adapt this in the future to build an array of residue info 
   resIDs.push_back(resNum-1);
   if (resNum != currRes || resName != currResname || firstResInFile) {
     molBeta.push_back(l_beta);
@@ -139,8 +138,8 @@ void Atoms::Assign(std::string const& atomName,
     // pushes the index of the residue to the resKinds
     resKinds.push_back(kIndex);
   }
-
-  chainLetter.push_back(l_chain);
+  */
+  chainLetterFull.push_back(l_chain);
 
   // push the coordinates of atoms to x, y, and z
   x.push_back(l_x);
@@ -175,6 +174,7 @@ void Atoms::Read(FixedWidthReader & file)
 void Atoms::Clear()
 {
   chainLetter.clear();
+  chainLetterFull.clear();
   x.clear();
   y.clear();
   z.clear();

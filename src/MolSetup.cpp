@@ -326,18 +326,18 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
 
   /* A size -> moleculeKind map for quick evaluation of new molecules based on molMap entries
     of a given size exisitng or not */ 
-  uint startIdxResBoxOffset;
-  uint resKindIndex;
+  uint startIdxMolBoxOffset;
+  uint molKindIndex;
   if (molVars.lastAtomIndexInBox0 == 0){
-    startIdxResBoxOffset = 0;
-    resKindIndex = 0;
+    startIdxMolBoxOffset = 0;
+    molKindIndex = 0;
     molVars.startIdxMolecules.clear();
     molVars.moleculeKinds.clear();
     molVars.moleculeKindNames.clear();
     molVars.moleculeNames.clear();
   } else {
-    startIdxResBoxOffset = molVars.lastAtomIndexInBox0 + 1;
-    resKindIndex = molVars.lastResKindIndex;
+    startIdxMolBoxOffset = molVars.lastAtomIndexInBox0 + 1;
+    molKindIndex = molVars.lastMolKindIndex;
   }
 
 
@@ -380,7 +380,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
             /* Get the map key */
             fragName = *sizeConsistentEntries;
             /* Boilerplate PDB Data modifications for matches */
-            molVars.startIdxMolecules.push_back(startIdxResBoxOffset + it->front());
+            molVars.startIdxMolecules.push_back(startIdxMolBoxOffset + it->front());
             molVars.moleculeKinds.push_back((*kindMapFromBox1)[fragName].kindIndex);
             molVars.moleculeNames.push_back(fragName);
             newMapEntry = false;
@@ -481,7 +481,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
           // Found a match
           if (itPair.second == it->cend()) {
             // Modify PDBData
-            molVars.startIdxMolecules.push_back(startIdxResBoxOffset + it->front());
+            molVars.startIdxMolecules.push_back(startIdxMolBoxOffset + it->front());
             molVars.moleculeKinds.push_back(kindMap[*sizeConsistentEntries].kindIndex);
             molVars.moleculeNames.push_back(*sizeConsistentEntries);
             newMapEntry = false;
@@ -544,13 +544,13 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
         }
         kindMap[fragName].firstAtomID = it->front() + 1;
         kindMap[fragName].firstMolID = allAtoms[it->front()].residueID;
-        kindMap[fragName].kindIndex = resKindIndex;
-        molVars.startIdxMolecules.push_back(startIdxResBoxOffset + kindMap[fragName].firstAtomID - 1);
+        kindMap[fragName].kindIndex = molKindIndex;
+        molVars.startIdxMolecules.push_back(startIdxMolBoxOffset + kindMap[fragName].firstAtomID - 1);
         molVars.moleculeKinds.push_back(kindMap[fragName].kindIndex);
         molVars.moleculeKindNames.push_back(fragName);
         molVars.moleculeNames.push_back(fragName);
         MolSetup::copyBondInfoIntoMapEntry(bondAdjList, kindMap, fragName);
-        resKindIndex++;
+        molKindIndex++;
         if (newSize){
           sizeMap[it->size()] = std::vector<std::string>{fragName};
         } else {
@@ -560,7 +560,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
     }
   }
   molVars.lastAtomIndexInBox0 = (moleculeXAtomIDY.back()).back();
-  molVars.lastResKindIndex = resKindIndex;
+  molVars.lastMolKindIndex = molKindIndex;
 }
 
 typedef std::map<std::string, mol_setup::MolKind> MolMap;

@@ -31,7 +31,7 @@ struct MoleculeVariables {
   std::vector<uint> startIdxMolecules, moleculeKinds;
   std::vector<std::string> moleculeNames, moleculeKindNames;
   uint lastAtomIndexInBox0 = 0;
-  uint lastResKindIndex = 0;
+  uint lastMolKindIndex = 0;
 };
 
 //!structure to contain an atom's data during initialization

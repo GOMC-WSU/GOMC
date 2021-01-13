@@ -28,7 +28,7 @@ void CPUSide::Init(PDBSetup const& pdbSet, config_setup::Output const& out,
 {
   equilSteps = tillEquil;
   //Initialize arrays in object that collects references and calc'ed vals.
-  varRef.Init(pdbSet.atoms);
+  varRef.Init();
   //Initialize output components.
   timer.Init(out.console.frequency, totSteps, startStep);
   outObj.push_back(&console);

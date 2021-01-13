@@ -17,6 +17,9 @@ void MoleculeLookup::Init(const Molecules& mols,
                           const pdb_setup::Atoms& atomData)
 {
   numKinds = mols.GetKindsCount();
+  for (int k = 0; k < numKinds; ++k){
+    molKindNames.push_back(mols.kinds[k].name);
+  }
   molLookup = new uint[mols.count];
   molLookupCount = mols.count;
 

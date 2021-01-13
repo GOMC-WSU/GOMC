@@ -26,7 +26,7 @@ public:
 
   ~OutputVars(void);
 
-  void Init(pdb_setup::Atoms const& atoms);
+  void Init();
   void InitRef(System & sys, StaticVals const& statV);
 
   void CalcAndConvert(ulong step);
@@ -61,7 +61,7 @@ public:
   CalculateEnergy& calc;
 
   //Local copy of res names.
-  std::vector<std::string> resKindNames;
+  std::vector<std::string> molKindNames;
   double const* movePercRef;
   MoveSettings * moveSetRef;
 

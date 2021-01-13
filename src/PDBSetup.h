@@ -116,7 +116,7 @@ public:
 
   //private:
   //member data
-  std::vector<char> chainLetter; //chain ids of each molecule
+  std::vector<char> chainLetter, chainLetterFull; //chain ids of each molecule/atom respectively
   std::vector<double> x, y, z; //coordinates of each particle
   std::vector<double> beta;  //beta value of each molecule
   std::vector<uint> box;

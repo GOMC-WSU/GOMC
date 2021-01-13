@@ -66,11 +66,11 @@ double OutputVars::GetAcceptPercent(uint box, uint sub)
   return (double)(GetAccepted(box, sub)) / (double)(GetTries(box, sub)) * 100.0;
 }
 
-void OutputVars::Init(pdb_setup::Atoms const& atoms)
+void OutputVars::Init()
 {
   //Init vals.
   numKinds = molLookupRef->GetNumKind();
-  resKindNames = atoms.resKindNames;
+  molKindNames = molLookupRef->molKindNames;
 
   //Allocate arrays,
   uint kTot = BOX_TOTAL * numKinds;
