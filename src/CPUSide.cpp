@@ -10,7 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 
 CPUSide::CPUSide(System & sys, StaticVals & statV, Setup & set) :
-  varRef(sys, statV), pdb(sys, statV), 
+  varRef(sys, statV, set.mol.molVars.moleculeKindNames), pdb(sys, statV), 
   psf(statV.mol, sys, set), 
   dcd(sys, statV),
   console(varRef), block(varRef),
@@ -23,8 +23,11 @@ CPUSide::CPUSide(System & sys, StaticVals & statV, Setup & set) :
 #endif
 {}
 
-void CPUSide::Init(PDBSetup const& pdbSet, config_setup::Output const& out,
-                   const ulong tillEquil, const ulong totSteps, ulong startStep)
+void CPUSide::Init( PDBSetup const& pdbSet, 
+                    config_setup::Output const& out,
+                    const ulong tillEquil, 
+                    const ulong totSteps, 
+                    ulong startStep)
 {
   equilSteps = tillEquil;
   //Initialize arrays in object that collects references and calc'ed vals.

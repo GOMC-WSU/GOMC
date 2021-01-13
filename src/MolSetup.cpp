@@ -258,6 +258,9 @@ void MolSetup::AssignKinds(const mol_setup::MoleculeVariables& molVars, const FF
 {
   typedef MolMap::iterator MapIt;
   for (MapIt it = kindMap.begin(), end = kindMap.end(); it != end; ++it) {
+    /* Indices determined using molVars name vector,
+    so we pass molVars.moleculeKindNames to outputVars 
+    in initialization of CPUSide */
     AssignMolKinds(it->second, molVars, it->first);
     AssignAtomKinds(it->second, ffData);
     AssignBondKinds(it->second, ffData);

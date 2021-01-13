@@ -14,8 +14,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveConst.h" //For box constants, if we're calculating Hv
 #endif
 
-OutputVars::OutputVars(System & sys, StaticVals const& statV) :
-  T_in_K(statV.forcefield.T_in_K), calc(sys.calcEnergy)
+OutputVars::OutputVars(System & sys, StaticVals const& statV, std::vector <std::string> molKindNames) :
+  T_in_K(statV.forcefield.T_in_K), calc(sys.calcEnergy), molKindNames(molKindNames)
 {
   InitRef(sys, statV);
 }
@@ -70,7 +70,6 @@ void OutputVars::Init()
 {
   //Init vals.
   numKinds = molLookupRef->GetNumKind();
-  molKindNames = molLookupRef->molKindNames;
 
   //Allocate arrays,
   uint kTot = BOX_TOTAL * numKinds;

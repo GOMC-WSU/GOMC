@@ -29,8 +29,11 @@ class OutputableBase;
 
 struct CPUSide {
   CPUSide(System & sys, StaticVals & statV, Setup & set);
-  void Init(PDBSetup const& pdbSet, config_setup::Output const& out,
-            const ulong tillEquil, const ulong totSteps, ulong startStep);
+  void Init(PDBSetup const& pdbSet, 
+            config_setup::Output const& out,
+            const ulong tillEquil, 
+            const ulong totSteps, 
+            ulong startStep);
   void Output(const ulong step);
 
   ulong equilSteps;
