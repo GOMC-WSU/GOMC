@@ -96,7 +96,7 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
 
 void PDBOutput::InitPartVec(pdb_setup::Atoms const& atoms)
 {
-  uint pStart = 0, pEnd = 0;
+  uint pStart = 0, pEnd = 0, molecule = 0;
   //Start particle numbering @ 1
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
@@ -107,10 +107,28 @@ void PDBOutput::InitPartVec(pdb_setup::Atoms const& atoms)
       molRef.GetRangeStartStop(pStart, pEnd, mI);
 
       for (uint p = pStart; p < pEnd; ++p) {
+        /* To have the original atom aliases and resIds
         FormatAtom(pStr[p], p, atoms.resIDs[p], molRef.chain[molRef.kIndex[mI]],
                    atoms.atomAliases[p], atoms.resNamesFull[p]);
+        */
+        if (molRef.kinds[molRef.kIndex[mI]].isMultiResidue){
+          FormatAtom(pStr[p], p, molecule + molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs[p - pStart], molRef.chain[molRef.kIndex[mI]],
+                    molRef.kinds[molRef.kIndex[mI]].atomNames[p - pStart], molRef.kinds[molRef.kIndex[mI]].resNames[p - pStart]);
+        } else {
+          FormatAtom(pStr[p], p, molecule, molRef.chain[molRef.kIndex[mI]],
+                    molRef.kinds[molRef.kIndex[mI]].atomNames[p - pStart], molRef.kinds[molRef.kIndex[mI]].resNames[p - pStart]);
+        }
       }
       ++m;
+      ++molecule;
+      /* If you want to keep orig resID's comment these out */
+      if (molRef.kinds[molRef.kIndex[mI]].isMultiResidue){
+        molecule += molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs.back();
+      }
+      /* 0 & 9999 since FormatAtom adds 1 shifting to 1 and 10,000*/
+      if(molecule == 9999)
+        molecule = 0;
+      /* If you want to keep orig resID's comment these out */
     }
   }
 }
