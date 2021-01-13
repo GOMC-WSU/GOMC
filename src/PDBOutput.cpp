@@ -308,7 +308,7 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
   using namespace pdb_entry::atom::field;
   using namespace pdb_entry;
   //char segname = 'A';
-  uint molecule = 0, atom = 0, pStart = 0, pEnd = 0;
+  uint resID = 0, atom = 0, pStart = 0, pEnd = 0;
   for (uint k = 0; k < molRef.kindsCount; ++k) {
     uint countByKind = molLookupRef.NumKindInBox(k, b);
     for (uint kI = 0; kI < countByKind; ++kI) {
@@ -320,19 +320,29 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
         std::string line = GetDefaultAtomStr();
         XYZ coor = coordCurrRef.Get(p);
         boxDimRef.UnwrapPBC(coor, b, ref);
-        FormatAtom(line, atom, molecule, molRef.chain[molRef.kIndex[p]],
-                   molRef.kinds[k].atomNames[p - pStart], molRef.kinds[k].resNames[p - pStart]);
-
+        if(molRef.kinds[k].isMultiResidue){
+          FormatAtom(line, atom, resID + molRef.kinds[k].intraMoleculeResIDs[p], molRef.chain[molRef.kIndex[p]],
+                    molRef.kinds[k].atomNames[p - pStart], molRef.kinds[k].resNames[p - pStart]);
+        } else {
+          FormatAtom(line, atom, resID, molRef.chain[molRef.kIndex[p]],
+                    molRef.kinds[k].atomNames[p - pStart], molRef.kinds[k].resNames[p - pStart]);
+        
+        }
         //Fill in particle's stock string with new x, y, z, and occupancy
         InsertAtomInLine(line, coor, occupancy::BOX[0], beta::FIX[beta]);
         //Write finished string out.
         outRebuildRestart[b].file << line << std::endl;
         ++atom;
       }
-      ++molecule;
+      /* This isn't actually residue, it is running count of the number of
+      molecule kinds we have printed */
+      ++resID;
+      /* To add additional intramolecular residues */
+      if (molRef.kinds[k].isMultiResidue){
+        resID += molRef.kinds[k].intraMoleculeResIDs.back();
+      }
     }
-    ++segname;
-    molecule = 0;
+    resID = 0;
   }
 }
 

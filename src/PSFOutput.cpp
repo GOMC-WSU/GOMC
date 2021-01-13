@@ -207,6 +207,7 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
   fprintf(outfile, headerFormat, totalAtoms, atomHeader);
   //silly psfs index from 1
   uint atomID = 1;
+  uint resID = 1;
   uint currKind = molecules->kIndex[0];
   for(uint mol = 0; mol < molecules->count; ++mol) {
     uint thisKind = molecules->kIndex[mol];
@@ -227,6 +228,17 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
                 thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
       }
       ++atomID;
+    }
+    /* This isn't actually residue, it is running count of the number of
+    molecule kinds we have printed, therefore we need to add intramol residues */
+    ++resID;
+    /* To add additional intramolecular residues */
+    if (molKinds[thisKind].isMultiResidue){
+      resID += molKinds[thisKind].intraMoleculeResIDs.back();
+    }
+
+    if(resID == 10000)
+      resID = 1;
     }
   }
   fputc('\n', outfile);
@@ -322,6 +334,7 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
     fprintf(outfile, headerFormat, boxAtoms[b], atomHeader);
     //silly psfs index from 1
     uint atomID = 1;
+    uint resID = 1;
     for( MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b); thisMol != molLookRef.BoxEnd(b); thisMol++){
       uint thisKind = molecules->kIndex[*thisMol];
       uint nAtoms = molKinds[thisKind].atoms.size();
@@ -342,7 +355,17 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
         }
         ++atomID;
       }
-    }
+      /* This isn't actually residue, it is running count of the number of
+      molecule kinds we have printed */
+      ++resID;
+      /* To add additional intramolecular residues */
+      if (molKinds[thisKind].isMultiResidue){
+        resID += molKinds[thisKind].intraMoleculeResIDs.back();
+      }
+
+      if(resID == 10000)
+        resID = 1;
+      }
     fputc('\n', outfile);
   }
   void PSFOutput::PrintBondsInBox(FILE* outfile, uint b) const {
