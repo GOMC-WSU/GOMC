@@ -62,7 +62,7 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData);
 int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMap, SizeMap& sizeMap, pdb_setup::Atoms& pdbData, MolMap * kindMapFromBox1 = NULL, SizeMap * sizeMapFromBox1 = NULL);
 //adds atoms and molecule data in psf to kindMap
 //pre: stream is at !NATOMS   post: stream is at end of atom section
-int ReadPSFAtoms(FILE *, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms);
+int ReadPSFAtoms(FILE *, uint nAtoms, std::vector<mol_setup::Atom> & allAtoms);
 //adds bonds in psf to kindMap
 //pre: stream is before !BONDS   post: stream is in bond section just after
 //the first appearance of the last molecule
@@ -831,7 +831,7 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
     return errors::READ_ERROR;
   }
   char input[512];
-  unsigned int nAtoms;
+  uint nAtoms;
   //find atom header+count
   do {
     check = fgets(input, 511, psf);
@@ -961,7 +961,7 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
 
 //adds atoms and molecule data in psf to kindMap
 //pre: stream is at !NATOMS   post: stream is at end of atom section
-int ReadPSFAtoms(FILE *psf, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms)
+int ReadPSFAtoms(FILE *psf, uint nAtoms, std::vector<mol_setup::Atom> & allAtoms)
 {
   char input[512];
   unsigned int atomID = 0;
