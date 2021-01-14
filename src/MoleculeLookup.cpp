@@ -174,8 +174,8 @@ uint MoleculeLookup::GetConsensusMolBeta( const uint pStart,
                                           const uint m,
                                           const uint box,
                                           const std::string & name){
-  double firstBeta;
-  double consensusBeta;
+  double firstBeta = 0.0;
+  double consensusBeta = 0.0;
   for (uint p = pStart; p < pEnd; ++p) {
     if (p == pStart){
       firstBeta = betas[p];
