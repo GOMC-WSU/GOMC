@@ -409,6 +409,7 @@ public:
   config_setup::SystemVals sys;
   ConfigSetup(void);
   void Init(const char *fileName, MultiSim const*const& multisim);
+  void NormalizeMovePercentages(config_setup::MovePercents & moves, double & sum);
 private:
   void fillDefaults(void);
   bool checkBool(std::string str);

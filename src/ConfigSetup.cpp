@@ -32,6 +32,60 @@ double stringtod(const std::string& s)
   return i;
 }
 
+void ConfigSetup::NormalizeMovePercentages(config_setup::MovePercents & moves, double & sum){
+    std::cout << "Move Frequencies normalized to 1.0" << std::endl;
+  #if ENSEMBLE == GEMC
+    std::cout << "Displacement : " << (moves.displace /= sum) << std::endl;
+    std::cout << "Rotation : " << (moves.rotate /= sum) << std::endl;
+    std::cout << "Transfer : " << (moves.transfer /= sum) << std::endl;
+    std::cout << "Intraswap : " << (moves.intraSwap  /= sum) << std::endl;
+    std::cout << "Volume : " << (moves.volume  /= sum) << std::endl;
+    std::cout << "Regrowth : " << (moves.regrowth /= sum) << std::endl;
+    std::cout << "MEMC : " << (moves.memc  /= sum) << std::endl;
+    std::cout << "intra-MEMC : " << (moves.intraMemc  /= sum) << std::endl;
+    std::cout << "Crankshaft : " << (moves.crankShaft /= sum) << std::endl;
+    std::cout << "Multiparticle : " << (moves.multiParticle  /= sum) << std::endl;
+    std::cout << "CFCMC : " << (moves.cfcmc /= sum) << std::endl;
+  #elif ENSEMBLE == NPT
+    std::cout << "Displacement : " << (moves.displace /= sum) << std::endl;
+    std::cout << "Rotation : " << (moves.rotate /= sum) << std::endl;
+    //std::cout << "Transfer : " << (moves.transfer /= sum) << std::endl;
+    std::cout << "Intraswap : " << (moves.intraSwap  /= sum) << std::endl;
+    std::cout << "Volume : " << (moves.volume  /= sum) << std::endl;
+    std::cout << "Regrowth : " << (moves.regrowth /= sum) << std::endl;
+    //std::cout << "MEMC : " << (moves.memc  /= sum) << std::endl;
+    std::cout << "intra-MEMC : " << (moves.intraMemc  /= sum) << std::endl;
+    std::cout << "Crankshaft : " << (moves.crankShaft /= sum) << std::endl;
+    std::cout << "Multiparticle : " << (moves.multiParticle  /= sum) << std::endl;
+    //std::cout << "CFCMC : " << (moves.cfcmc /= sum) << std::endl;
+  #elif ENSEMBLE == GCMC
+    std::cout << "Displacement : " << (moves.displace /= sum) << std::endl;
+    std::cout << "Rotation : " << (moves.rotate /= sum) << std::endl;
+    std::cout << "Transfer : " << (moves.transfer /= sum) << std::endl;
+    std::cout << "Intraswap : " << (moves.intraSwap  /= sum) << std::endl;
+    //std::cout << "Volume : " << (moves.volume  /= sum) << std::endl;
+    std::cout << "Regrowth : " << (moves.regrowth /= sum) << std::endl;
+    std::cout << "MEMC : " << (moves.memc  /= sum) << std::endl;
+    std::cout << "intra-MEMC : " << (moves.intraMemc  /= sum) << std::endl;
+    std::cout << "Crankshaft : " << (moves.crankShaft /= sum) << std::endl;
+    std::cout << "Multiparticle : " << (moves.multiParticle  /= sum) << std::endl;
+    std::cout << "CFCMC : " << (moves.cfcmc /= sum) << std::endl;
+  #else
+    std::cout << "Displacement : " << (moves.displace /= sum) << std::endl;
+    std::cout << "Rotation : " << (moves.rotate /= sum) << std::endl;
+    //std::cout << "Transfer : " << (moves.transfer /= sum) << std::endl;
+    std::cout << "Intraswap : " << (moves.intraSwap  /= sum) << std::endl;
+    //std::cout << "Volume : " << (moves.volume  /= sum) << std::endl;
+    std::cout << "Regrowth : " << (moves.regrowth /= sum) << std::endl;
+    //std::cout << "MEMC : " << (moves.memc  /= sum) << std::endl;
+    std::cout << "intra-MEMC : " << (moves.intraMemc  /= sum) << std::endl;
+    std::cout << "Crankshaft : " << (moves.crankShaft /= sum) << std::endl;
+    std::cout << "Multiparticle : " << (moves.multiParticle  /= sum) << std::endl;
+    //std::cout << "CFCMC : " << (moves.cfcmc /= sum) << std::endl;
+  #endif
+}
+
+
 
 ConfigSetup::ConfigSetup(void)
 {
@@ -1506,62 +1560,50 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(sys.moves.displace == DBL_MAX) {
-    std::cout << "Error: Displacement move frequency is not specified!\n";
-    exit(EXIT_FAILURE);
+    std::cout << "Warning: Displacement move frequency is not specified!\n";
   }
-#if ENSEMBLE == NPT
+#if ENSEMBLE == NPT || ENSEMBLE == GEMC
   if(sys.moves.volume == DBL_MAX) {
-    std::cout << "Error: Volume move frequency is not specified!" << std::endl;
-    exit(EXIT_FAILURE);
+    std::cout << "Warning: Volume move frequency is not specified!" << std::endl;
   }
 #endif
+double sum;
 #if ENSEMBLE == GEMC
-  if(sys.moves.volume == DBL_MAX) {
-    std::cout << "Error: Volume move frequency is not specified!" << std::endl;
-    exit(EXIT_FAILURE);
-  }
   if(sys.moves.transfer == DBL_MAX) {
-    std::cout << "Error: Molecule swap move frequency is not specified!\n";
-    exit(EXIT_FAILURE);
+    std::cout << "Warning: Molecule swap move frequency is not specified!\n";
   }
-  if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
+  if(sum = std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
               sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
               sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft +
               sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!\n";
-    exit(EXIT_FAILURE);
+    NormalizeMovePercentages(sys.moves, sum);
   }
 #elif ENSEMBLE == NPT
-  if(sys.moves.volume == DBL_MAX) {
-    std::cout << "Error: Volume move frequency is not specified!" << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
-  if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
+  if(sum = std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
               sys.moves.volume + sys.moves.regrowth + sys.moves.intraMemc +
               sys.moves.crankShaft + sys.moves.multiParticle - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!\n";
-    exit(EXIT_FAILURE);
+    NormalizeMovePercentages(sys.moves, sum);
   }
 
 #elif ENSEMBLE == GCMC
   if(sys.moves.transfer == DBL_MAX) {
-    std::cout << "Error: Molecule swap move frequency is not specified!\n";
-    exit(EXIT_FAILURE);
+    std::cout << "Warning: Molecule swap move frequency is not specified!\n";
   }
-  if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
+  if(sum = std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
               sys.moves.transfer + sys.moves.regrowth + sys.moves.memc +
               sys.moves.intraMemc + sys.moves.crankShaft +
               sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!!\n";
-    exit(EXIT_FAILURE);
+    NormalizeMovePercentages(sys.moves, sum);
   }
 #else
-  if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
+  if(sum = std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
               sys.moves.regrowth + sys.moves.intraMemc + sys.moves.crankShaft +
               sys.moves.multiParticle - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!!\n";
-    exit(EXIT_FAILURE);
+    NormalizeMovePercentages(sys.moves, sum);
   }
 #endif
 
