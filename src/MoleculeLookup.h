@@ -27,7 +27,7 @@ class MoleculeLookup
 {
 public:
 
-  MoleculeLookup() : molLookup(NULL), boxAndKindStart(NULL) {}
+  MoleculeLookup() : molLookup(NULL), boxAndKindStart(NULL), boxAndKindSwappableCounts(NULL) {}
 
   ~MoleculeLookup()
   {
@@ -103,6 +103,13 @@ public:
   bool ShiftMolBox(const uint mol, const uint currentBox,
                    const uint intoBox, const uint kind);
 #endif
+
+uint GetConsensusMolBeta( const uint pStart,
+                          const uint pEnd, 
+                          const std::vector<double> & betas,
+                          const uint m,
+                          const uint box,
+                          const std::string & name);
 
   //iterator to traverse all the molecules in a particular box
   class box_iterator;

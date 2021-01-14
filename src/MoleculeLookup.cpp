@@ -45,10 +45,11 @@ void MoleculeLookup::Init(const Molecules& mols,
     uint box = atomData.box[mols.start[m]];
     uint kind = mols.kIndex[m];
     indexVector[box][kind].push_back(m);
-    /* We don't currently support hybrid molecules - part fixed part flexible */
-    /* molBeta is of size number of residues - which is a problem, so we use the 
-       beta of the first atom in the molecule */
-    fixedMolecule[m] = atomData.beta[mols.start[m]];
+    /* We don't currently support hybrid molecules - part fixed part flexible
+      so we get a consensus based on the precendent of betas defined in this method */
+    uint pStart = 0, pEnd = 0;
+    mols.GetRangeStartStop(pStart, pEnd, m);
+    fixedMolecule[m] = GetConsensusMolBeta(pStart, pEnd, atomData.beta, m, box, mols.kinds[mols.kIndex[m]].name);
 
     //Find the kind that can be swap(beta == 0) or move(beta == 0 or 2)
     if(fixedMolecule[m] == 0) {
@@ -167,6 +168,48 @@ void MoleculeLookup::Shift(const uint index, const uint currentBox,
 
 #endif /*ifdef VARIABLE_PARTICLE_NUMBER*/
 
+uint MoleculeLookup::GetConsensusMolBeta( const uint pStart,
+                                          const uint pEnd,
+                                          const std::vector<double> & betas,
+                                          const uint m,
+                                          const uint box,
+                                          const std::string & name){
+  double firstBeta;
+  double consensusBeta;
+  for (uint p = pStart; p < pEnd; ++p) {
+    if (p == pStart){
+      firstBeta = betas[p];
+      consensusBeta = firstBeta;
+    } 
+    if (firstBeta != betas[p]){
+      std::cout << 
+      "\nWarning: Conflict between the beta values of atoms in the same molecule" <<
+      "\nName : " << name << 
+      "\nMol Index : " << m <<
+      "\nConflicting Indices" <<
+      "\nStarting Index : " << pStart << 
+      "\nConflicting Index : " << p  << std::endl;
+      /* A beta == 1 functions like multiplying any number  by 0,
+        even if there is only 1 atom with beta == 1, 
+        the entire molecule will be fixed */
+      if (firstBeta == 1.0 || betas[p] == 1.0){
+        std::cout << "Beta == 1.0 takes precedent, so " << 
+        "\nName : " << name << 
+        "\nMol Index : " << m <<
+        "\nis fixed in place."  << std::endl;
+        consensusBeta = 1.0;
+        break;
+      } else {
+        std::cout << "Beta == 2.0 takes precedent, so " << 
+        "\nName: " << name << 
+        "\nMol Index: " << m <<
+        "\nis fixed in box " << box << std::endl;
+        consensusBeta = 2.0;
+      }
+    }
+  }
+  return (uint)consensusBeta;
+}
 
 MoleculeLookup::box_iterator MoleculeLookup::box_iterator::operator++(int)
 {
