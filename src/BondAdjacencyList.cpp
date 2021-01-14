@@ -9,6 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "BondAdjacencyList.h"
 
+#define debugAdjList 0 
 
 //return if we fail to read anything
 const int READERROR = -1;
@@ -80,6 +81,7 @@ BondAdjacencyList::BondAdjacencyList(FILE* psf, uint nAtoms, uint nBonds, std::v
         std::sort(it->begin(), it->end());
     }
     std::sort(moleculeXAtomIDY.begin(), moleculeXAtomIDY.end());
+#if debugAdjList
 #ifndef NDEBUG
     std::cout << "Adjacency List" << std::endl;
     for (uint i = 0; i < nAtoms; i++)
@@ -95,7 +97,7 @@ BondAdjacencyList::BondAdjacencyList(FILE* psf, uint nAtoms, uint nBonds, std::v
         std::cout << std::endl;
     }
 #endif    
-  
+#endif
 }
 
 // Destructor

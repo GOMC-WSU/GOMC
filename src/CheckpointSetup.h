@@ -59,7 +59,7 @@ private:
   uint32_t totalBoxes;
   uint32_t* saveArray;
   uint32_t seedLocation, seedLeft, seedValue;
-  std::vector<uint32_t> molLookupVec, boxAndKindStartVec, fixedAtomVec;
+  std::vector<uint32_t> molLookupVec, boxAndKindStartVec, fixedMoleculeVec;
   uint32_t numKinds;
   std::vector<std::vector<std::vector<double> > > scaleVec, acceptPercentVec;
   std::vector<std::vector<std::vector<uint32_t> > > acceptedVec, triesVec, tempAcceptedVec,

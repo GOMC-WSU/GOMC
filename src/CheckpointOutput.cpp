@@ -181,11 +181,11 @@ void CheckpointOutput::printMoleculeLookupData()
 
   // print numKinds
   write_uint32_binary(molLookupRef.numKinds);
-  //print the size of fixedAtom array
-  write_uint32_binary((uint)molLookupRef.fixedAtom.size());
-  //print the fixedAtom array itself
-  for(int i = 0; i < (int) molLookupRef.fixedAtom.size(); i++) {
-    write_uint32_binary(molLookupRef.fixedAtom[i]);
+  //print the size of fixedMolecule array
+  write_uint32_binary((uint)molLookupRef.fixedMolecule.size());
+  //print the fixedMolecule array itself
+  for(int i = 0; i < (int) molLookupRef.fixedMolecule.size(); i++) {
+    write_uint32_binary(molLookupRef.fixedMolecule[i]);
   }
 }
 

@@ -27,7 +27,7 @@ class MoleculeLookup
 {
 public:
 
-  MoleculeLookup() : molLookup(NULL), boxAndKindStart(NULL) {}
+  MoleculeLookup() : molLookup(NULL), boxAndKindStart(NULL), boxAndKindSwappableCounts(NULL) {}
 
   ~MoleculeLookup()
   {
@@ -74,17 +74,17 @@ public:
 
   uint GetBeta( const uint m) const
   {
-    return fixedAtom[m];
+    return fixedMolecule[m];
   }
 
   bool IsFix(const uint m) const
   {
-    return (fixedAtom[m] == 1);
+    return (fixedMolecule[m] == 1);
   }
 
   bool IsNoSwap(const uint m) const
   {
-    return (fixedAtom[m] >= 1);
+    return (fixedMolecule[m] >= 1);
   }
 
   uint GetMolNum(const uint subIndex, const uint kind, const uint box)
@@ -103,6 +103,13 @@ public:
   bool ShiftMolBox(const uint mol, const uint currentBox,
                    const uint intoBox, const uint kind);
 #endif
+
+uint GetConsensusMolBeta( const uint pStart,
+                          const uint pEnd, 
+                          const std::vector<double> & betas,
+                          const uint m,
+                          const uint box,
+                          const std::string & name);
 
   //iterator to traverse all the molecules in a particular box
   class box_iterator;
@@ -131,7 +138,7 @@ public:
   uint* boxAndKindSwappableCounts;
   uint boxAndKindStartCount;
   uint numKinds;
-  std::vector <uint> fixedAtom;
+  std::vector <uint> fixedMolecule;
   std::vector <uint> canSwapKind; //Kinds that can move intra and inter box
   std::vector <uint> canMoveKind; //Kinds that can move intra box only
 

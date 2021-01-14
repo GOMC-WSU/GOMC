@@ -17,6 +17,7 @@ void MoleculeLookup::Init(const Molecules& mols,
                           const pdb_setup::Atoms& atomData)
 {
   numKinds = mols.GetKindsCount();
+
   molLookup = new uint[mols.count];
   molLookupCount = mols.count;
 
@@ -29,7 +30,7 @@ void MoleculeLookup::Init(const Molecules& mols,
   // vector[box][kind] = list of mol indices for kind in box
   std::vector<std::vector<std::vector<uint> > > indexVector;
   indexVector.resize(BOX_TOTAL);
-  fixedAtom.resize(mols.count);
+  fixedMolecule.resize(mols.count);
 
   for (int i = 0; i < numKinds * BOX_TOTAL; i++){
     boxAndKindSwappableCounts[i] = 0;
@@ -41,13 +42,17 @@ void MoleculeLookup::Init(const Molecules& mols,
   }
 
   for(uint m = 0; m < mols.count; ++m) {
-    uint box = atomData.box[atomData.startIdxRes[m]];
+    uint box = atomData.box[mols.start[m]];
     uint kind = mols.kIndex[m];
     indexVector[box][kind].push_back(m);
-    fixedAtom[m] = atomData.molBeta[m];
+    /* We don't currently support hybrid molecules - part fixed part flexible
+      so we get a consensus based on the precendent of betas defined in this method */
+    uint pStart = 0, pEnd = 0;
+    mols.GetRangeStartStop(pStart, pEnd, m);
+    fixedMolecule[m] = GetConsensusMolBeta(pStart, pEnd, atomData.beta, m, box, mols.kinds[mols.kIndex[m]].name);
 
     //Find the kind that can be swap(beta == 0) or move(beta == 0 or 2)
-    if(fixedAtom[m] == 0) {
+    if(fixedMolecule[m] == 0) {
       if(std::find(canSwapKind.begin(), canSwapKind.end(), kind) ==
           canSwapKind.end())
         canSwapKind.push_back(kind);
@@ -58,7 +63,7 @@ void MoleculeLookup::Init(const Molecules& mols,
 
       boxAndKindSwappableCounts[box * numKinds + kind]++;
 
-    } else if(fixedAtom[m] == 2) {
+    } else if(fixedMolecule[m] == 2) {
       if(std::find(canMoveKind.begin(), canMoveKind.end(), kind) ==
           canMoveKind.end())
         canMoveKind.push_back(kind);
@@ -163,6 +168,48 @@ void MoleculeLookup::Shift(const uint index, const uint currentBox,
 
 #endif /*ifdef VARIABLE_PARTICLE_NUMBER*/
 
+uint MoleculeLookup::GetConsensusMolBeta( const uint pStart,
+                                          const uint pEnd,
+                                          const std::vector<double> & betas,
+                                          const uint m,
+                                          const uint box,
+                                          const std::string & name){
+  double firstBeta = 0.0;
+  double consensusBeta = 0.0;
+  for (uint p = pStart; p < pEnd; ++p) {
+    if (p == pStart){
+      firstBeta = betas[p];
+      consensusBeta = firstBeta;
+    } 
+    if (firstBeta != betas[p]){
+      std::cout << 
+      "\nWarning: Conflict between the beta values of atoms in the same molecule" <<
+      "\nName : " << name << 
+      "\nMol Index : " << m <<
+      "\nConflicting Indices" <<
+      "\nStarting Index : " << pStart << 
+      "\nConflicting Index : " << p  << std::endl;
+      /* A beta == 1 functions like multiplying any number  by 0,
+        even if there is only 1 atom with beta == 1, 
+        the entire molecule will be fixed */
+      if (firstBeta == 1.0 || betas[p] == 1.0){
+        std::cout << "Beta == 1.0 takes precedent, so " << 
+        "\nName : " << name << 
+        "\nMol Index : " << m <<
+        "\nis fixed in place."  << std::endl;
+        consensusBeta = 1.0;
+        break;
+      } else {
+        std::cout << "Beta == 2.0 takes precedent, so " << 
+        "\nName: " << name << 
+        "\nMol Index: " << m <<
+        "\nis fixed in box " << box << std::endl;
+        consensusBeta = 2.0;
+      }
+    }
+  }
+  return (uint)consensusBeta;
+}
 
 MoleculeLookup::box_iterator MoleculeLookup::box_iterator::operator++(int)
 {

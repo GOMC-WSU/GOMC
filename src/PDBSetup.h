@@ -88,8 +88,7 @@ class Atoms : public FWReadableBase
 {
 public:
   //Set the current residue to something other than 1
-  Atoms(void) : restart(false), currBox(0), count(0),
-    currRes(10)
+  Atoms(void) : restart(false), currBox(0), count(0)
     {
       for (int b = 0; b < BOX_TOTAL; b++) {
         numAtomsInBox[b] = 0;
@@ -99,7 +98,6 @@ public:
   void SetBox(const uint b)
   {
     currBox = b;
-    firstResInFile = true;
   }
   void Assign(std::string const& atomName,
               std::string const& resName,
@@ -116,24 +114,18 @@ public:
 
   //private:
   //member data
-  std::vector<char> chainLetter; //chain ids of each molecule
+  std::vector<char> chainLetter; //chain ids of each atom respectively
   std::vector<double> x, y, z; //coordinates of each particle
   std::vector<double> beta;  //beta value of each molecule
   std::vector<uint> box;
-  std::vector<std::string> atomAliases, resNamesFull, resNames,
-      resKindNames;
-  std::vector<uint> startIdxRes, resKinds, molBeta, resIDs;
+  std::vector<std::string> resNames;
   bool restart, firstResInFile, recalcTrajectory;
   //CurrRes is used to store res vals, currBox is used to
   //determine box either via the file (new) or the occupancy
   //(restart), count allows overwriting of coordinates during
   //second box read (restart only)
-  uint currBox, count, currRes;
+  uint currBox, count;
   uint numAtomsInBox[BOX_TOTAL]; // number of atom in each box
-  std::string currResname;
-
-  uint lastAtomIndexInBox0 = 0;
-  uint lastResKindIndex = 0;
 };
 
 }

@@ -96,7 +96,7 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
 
 void PDBOutput::InitPartVec(pdb_setup::Atoms const& atoms)
 {
-  uint pStart = 0, pEnd = 0;
+  uint pStart = 0, pEnd = 0, molecule = 0;
   //Start particle numbering @ 1
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
@@ -104,14 +104,27 @@ void PDBOutput::InitPartVec(pdb_setup::Atoms const& atoms)
     while (m != end) {
       uint mI = *m;
 
-      std::string resName = atoms.resNames[mI];
       molRef.GetRangeStartStop(pStart, pEnd, mI);
 
       for (uint p = pStart; p < pEnd; ++p) {
-        FormatAtom(pStr[p], p, atoms.resIDs[p], molRef.chain[mI],
-                   atoms.atomAliases[p], atoms.resNamesFull[p]);
+        if (molRef.kinds[molRef.kIndex[mI]].isMultiResidue){
+          FormatAtom(pStr[p], p, molecule + molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs[p - pStart], molRef.chain[molRef.kIndex[mI]],
+                    molRef.kinds[molRef.kIndex[mI]].atomNames[p - pStart], molRef.kinds[molRef.kIndex[mI]].resNames[p - pStart]);
+        } else {
+          FormatAtom(pStr[p], p, molecule, molRef.chain[molRef.kIndex[mI]],
+                    molRef.kinds[molRef.kIndex[mI]].atomNames[p - pStart], molRef.kinds[molRef.kIndex[mI]].resNames[p - pStart]);
+        }
       }
       ++m;
+      ++molecule;
+      /* If you want to keep orig resID's comment these out */
+      if (molRef.kinds[molRef.kIndex[mI]].isMultiResidue){
+        molecule += molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs.back();
+      }
+      /* 0 & 9999 since FormatAtom adds 1 shifting to 1 and 10,000*/
+      if(molecule == 9999)
+        molecule = 0;
+      /* If you want to keep orig resID's comment these out */
     }
   }
 }
@@ -307,12 +320,12 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
 {
   using namespace pdb_entry::atom::field;
   using namespace pdb_entry;
-  char segname = 'A';
   uint molecule = 0, atom = 0, pStart = 0, pEnd = 0;
   for (uint k = 0; k < molRef.kindsCount; ++k) {
     uint countByKind = molLookupRef.NumKindInBox(k, b);
     for (uint kI = 0; kI < countByKind; ++kI) {
       uint molI = molLookupRef.GetMolNum(kI, k, b);
+      /* We don't support hybrid fixed/flexible molecule currently */
       uint beta = molLookupRef.GetBeta(molI);
       molRef.GetRangeStartStop(pStart, pEnd, molI);
       XYZ ref = comCurrRef.Get(molI);
@@ -320,9 +333,13 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
         std::string line = GetDefaultAtomStr();
         XYZ coor = coordCurrRef.Get(p);
         boxDimRef.UnwrapPBC(coor, b, ref);
-        FormatAtom(line, atom, molecule, segname,
-                   molRef.kinds[k].atomNames[p - pStart], molRef.kinds[k].resNames[p - pStart]);
-
+        if (molRef.kinds[k].isMultiResidue){
+          FormatAtom(line, atom, molecule + molRef.kinds[k].intraMoleculeResIDs[p - pStart], molRef.chain[p],
+                    molRef.kinds[k].atomNames[p - pStart], molRef.kinds[k].resNames[p - pStart]);
+        } else {
+          FormatAtom(line, atom, molecule, molRef.chain[p],
+                    molRef.kinds[k].atomNames[p - pStart], molRef.kinds[k].resNames[p - pStart]);
+        }
         //Fill in particle's stock string with new x, y, z, and occupancy
         InsertAtomInLine(line, coor, occupancy::BOX[0], beta::FIX[beta]);
         //Write finished string out.
@@ -330,9 +347,14 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
         ++atom;
       }
       ++molecule;
+      /* To add additional intramolecular residues */
+      if (molRef.kinds[k].isMultiResidue){
+        molecule += molRef.kinds[k].intraMoleculeResIDs.back();
+      }
+      /* 0 & 9999 since FormatAtom adds 1 shifting to 1 and 10,000*/
+      if(molecule == 9999)
+        molecule = 0;
     }
-    ++segname;
-    molecule = 0;
   }
 }
 

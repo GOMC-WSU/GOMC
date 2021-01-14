@@ -14,8 +14,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveConst.h" //For box constants, if we're calculating Hv
 #endif
 
-OutputVars::OutputVars(System & sys, StaticVals const& statV) :
-  T_in_K(statV.forcefield.T_in_K), calc(sys.calcEnergy)
+OutputVars::OutputVars(System & sys, StaticVals const& statV, const std::vector<std::string> & molKindNames) :
+  T_in_K(statV.forcefield.T_in_K), calc(sys.calcEnergy), molKindNames(molKindNames)
 {
   InitRef(sys, statV);
 }
@@ -66,11 +66,10 @@ double OutputVars::GetAcceptPercent(uint box, uint sub)
   return (double)(GetAccepted(box, sub)) / (double)(GetTries(box, sub)) * 100.0;
 }
 
-void OutputVars::Init(pdb_setup::Atoms const& atoms)
+void OutputVars::Init()
 {
   //Init vals.
   numKinds = molLookupRef->GetNumKind();
-  resKindNames = atoms.resKindNames;
 
   //Allocate arrays,
   uint kTot = BOX_TOTAL * numKinds;
