@@ -33,6 +33,15 @@ double stringtod(const std::string& s)
 }
 
 void ConfigSetup::NormalizeMovePercentages(config_setup::MovePercents & moves, double & sum){
+  if (sum == 0.0){
+    std::cout << "Error: Sum is zero, so normalize would divide by zero.\n" <<
+    "Please provide non-zero frequencies to eligible moves in your ensemble." << 
+    "Ineligible moves for NVT : Transfer, Volume, MEMC, CFCMC" << std::endl << 
+    "Ineligible moves for NPT : Transfer, MEMC, CFCMC" << std::endl << 
+    "Ineligible moves for GCMC : Volume" << std::endl << 
+    "Ineligible moves for GEMC : None" << std::endl;
+    exit(EXIT_FAILURE); 
+  }
     std::cout << "Move Frequencies normalized to 1.0" << std::endl;
   #if ENSEMBLE == GEMC
     std::cout << "Displacement : " << (moves.displace /= sum) << std::endl;
