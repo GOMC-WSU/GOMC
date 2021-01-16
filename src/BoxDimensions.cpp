@@ -199,7 +199,7 @@ void BoxDimensions::SetVolume(const uint b, const double vol)
     axis.Scale(b, 1.0, 1.0, ratio);
     halfAx.Scale(b, 1.0, 1.0, ratio);
   } else {
-    double ratio = pow(vol / volume[b], (1.0 / 3.0));
+    double ratio = cbrt(vol / volume[b]);
     axis.Scale(b, ratio);
     halfAx.Scale(b, ratio);
   }

@@ -200,7 +200,7 @@ void ExtendedSystem::ReadExtendedSystem(const char *filename, const int box)
     if(cosAngle[box][i] < -1.0) {
       cosAngle[box][i] = -1.0;
     }
-    cellAngle[box][i] = float(acos(cosAngle[box][i]) * 180.0f / M_PI);
+    cellAngle[box][i] = float(acos(cosAngle[box][i]) * 180.0f * (float) M_1_PI);
   }
 }
 

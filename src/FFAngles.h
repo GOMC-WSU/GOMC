@@ -11,7 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BasicTypes.h" //For "uint"
 #include "VectorLib.h" //For transfer vect --> array function
 #include "NumLib.h" //For "Sq" function
-#include <math.h>
+#include <cmath>
 
 class FFAngles
 {

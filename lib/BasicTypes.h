@@ -8,7 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define BASIC_TYPES_H
 
 #include <cstddef>
-#include <math.h>
+#include <cmath>
 #include <fstream>
 #include <vector>
 #include <iomanip>

@@ -884,12 +884,12 @@ void Ewald::RecipInitOrth(uint box, BoxDimensions const& boxAxes)
   double alpsqr4 = 1.0 / (4.0 * ff.alphaSq[box]);
   XYZ constValue = boxAxes.axis.Get(box);
   constValue.Inverse();
-  constValue *= 2 * M_PI;
+  constValue *= 2.0 * M_PI;
 
-  double vol = boxAxes.volume[box] / (4 * M_PI);
-  nkx_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).x / (2 * M_PI)) + 1;
-  nky_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).y / (2 * M_PI)) + 1;
-  nkz_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).z / (2 * M_PI)) + 1;
+  double vol = boxAxes.volume[box] / (4.0 * M_PI);
+  nkx_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).x / (2.0 * M_PI)) + 1;
+  nky_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).y / (2.0 * M_PI)) + 1;
+  nkz_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).z / (2.0 * M_PI)) + 1;
   kmax[box] = std::max(std::max(nkx_max, nky_max), std::max(nky_max, nkz_max));
 
   for(x = 0; x <= nkx_max; x++) {
@@ -944,12 +944,12 @@ void Ewald::RecipInitNonOrth(uint box, BoxDimensions const& boxAxes)
   cellB.Scale(2, boxAxes.axis.Get(box).z);
   XYZArray cellB_Inv(3);
   double det = cellB.AdjointMatrix(cellB_Inv);
-  cellB_Inv.ScaleRange(0, 3, (2 * M_PI) / det);
+  cellB_Inv.ScaleRange(0, 3, (2.0 * M_PI) / det);
 
-  double vol = boxAxes.volume[box] / (4 * M_PI);
-  nkx_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).x / (2 * M_PI)) + 1;
-  nky_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).y / (2 * M_PI)) + 1;
-  nkz_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).z / (2 * M_PI)) + 1;
+  double vol = boxAxes.volume[box] / (4.0 * M_PI);
+  nkx_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).x / (2.0 * M_PI)) + 1;
+  nky_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).y / (2.0 * M_PI)) + 1;
+  nkz_max = int(ff.recip_rcut[box] * boxAxes.axis.Get(box).z / (2.0 * M_PI)) + 1;
   kmax[box] = std::max(std::max(nkx_max, nky_max), std::max(nky_max, nkz_max));
 
   for (x = 0; x <= nkx_max; x++) {
@@ -1013,11 +1013,11 @@ void Ewald::RecipCountInit(uint box, BoxDimensions const& boxAxes)
   cellB.Scale(2, constValue.z);
   XYZArray cellB_Inv(3);
   double det = cellB.AdjointMatrix(cellB_Inv);
-  cellB_Inv.ScaleRange(0, 3, (2 * M_PI) / det);
+  cellB_Inv.ScaleRange(0, 3, (2.0 * M_PI) / det);
 
-  nkx_max = int(ff.recip_rcut[box] * constValue.x / (2 * M_PI)) + 1;
-  nky_max = int(ff.recip_rcut[box] * constValue.y / (2 * M_PI)) + 1;
-  nkz_max = int(ff.recip_rcut[box] * constValue.z / (2 * M_PI)) + 1;
+  nkx_max = int(ff.recip_rcut[box] * constValue.x / (2.0 * M_PI)) + 1;
+  nky_max = int(ff.recip_rcut[box] * constValue.y / (2.0 * M_PI)) + 1;
+  nkz_max = int(ff.recip_rcut[box] * constValue.z / (2.0 * M_PI)) + 1;
 
   for(x = 0; x <= nkx_max; x++) {
     if(x == 0.0)
@@ -1170,7 +1170,8 @@ double Ewald::BoxSelf(uint box) const
     }
   }
 
-  self = -1.0 * self * ff.alpha[box] * num::qqFact / sqrt(M_PI);
+  // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
+  self *= -1.0 * ff.alpha[box] * num::qqFact * M_2_SQRTPI * 0.5;
 
   return self;
 }
@@ -1392,7 +1393,8 @@ double Ewald::SwapSelf(const cbmc::TrialMol& trialMol) const
   for (uint i = 0; i < atomSize; i++) {
     en_self -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(i));
   }
-  return (en_self * ff.alpha[box] * num::qqFact / sqrt(M_PI));
+  // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
+  return (en_self * ff.alpha[box] * num::qqFact * M_2_SQRTPI * 0.5);
 }
 
 //It's called in free energy calculation to calculate the change in
@@ -1410,7 +1412,8 @@ void Ewald::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
   for (uint i = 0; i < atomSize; i++) {
     en_self += (particleCharge[i + start] * particleCharge[i + start]);
   }
-  en_self *= -1.0 * ff.alpha[box] * num::qqFact / sqrt(M_PI);
+  // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
+  en_self *= -1.0 * ff.alpha[box] * num::qqFact * M_2_SQRTPI * 0.5;
 
   //Calculate the energy difference for each lambda state
   for (uint s = 0; s < lambdaSize; s++) {
@@ -1504,7 +1507,8 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
                                uint box)
 {
   if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
-    double constValue = 2.0 * ff.alpha[box] / sqrt(M_PI);
+    // M_2_SQRTPI is 2/sqrt(PI)
+    double constValue = ff.alpha[box] * M_2_SQRTPI;
 
 #ifdef GOMC_CUDA
     bool *particleUsed;

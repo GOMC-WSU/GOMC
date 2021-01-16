@@ -78,7 +78,8 @@ private:
 
   double ConvAng(const double t)
   {
-    return acos(t) * 180.0 / M_PI;
+    // M_1_PI is 1/PI
+    return acos(t) * 180.0 * M_1_PI;
   }
 
   MoveSettings & moveSetRef;

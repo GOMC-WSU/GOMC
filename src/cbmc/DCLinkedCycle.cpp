@@ -5,7 +5,7 @@ A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 #include "DCLinkedCycle.h"
 #include "DCData.h"
 #include "TrialMol.h"
@@ -364,7 +364,7 @@ void DCLinkedCycle::BuildOld(TrialMol& oldMol, uint molIndex)
   for (uint tor = 0; tor < nDihTrials; ++tor) {
     //No trial torsion if it is not free end
     if(prevBondedRing == -1) {
-      torsion[tor] = (tor == 0) ? 0.0 : data->prng.rand(M_PI * 2);
+      torsion[tor] = (tor == 0) ? 0.0 : data->prng.rand(2.0 * M_PI);
     } else {
       torsion[tor] = 0.0;
     }
@@ -492,7 +492,7 @@ void DCLinkedCycle::ChooseTorsion(TrialMol& mol, uint molIndex,
     if(prevBondedRing != -1) {
       torsion[tor] = torDiff;
     } else {
-      torsion[tor] = data->prng.rand(M_PI * 2);
+      torsion[tor] = data->prng.rand(2.0 * M_PI);
     }
     torEnergy[tor] = 0.0;
     nonbonded_1_4[tor] = 0.0;

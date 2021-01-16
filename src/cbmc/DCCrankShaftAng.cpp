@@ -305,7 +305,7 @@ void DCCrankShaftAng::ChooseTorsion(TrialMol& mol, uint molIndex,
 
   XYZ center = mol.AtomPosition(a0);
   for (uint tor = 0; tor < nDihTrials; ++tor) {
-    torsion[tor] = data->prng.rand(M_PI * 2);
+    torsion[tor] = data->prng.rand(2.0 * M_PI);
     //convert chosen torsion to 3D positions
     RotationMatrix spin = RotationMatrix::FromAxisAngle(torsion[tor],
                           cross, tensor);
@@ -331,7 +331,7 @@ void DCCrankShaftAng::ChooseTorsionOld(TrialMol& mol, uint molIndex,
   XYZ center = mol.AtomPosition(a0);
   for (uint tor = 0; tor < nDihTrials; ++tor) {
     //Use actual coordinate fir first torsion trial
-    torsion[tor] = (tor == 0) ? 0.0 : data->prng.rand(M_PI * 2);
+    torsion[tor] = (tor == 0) ? 0.0 : data->prng.rand(2.0 * M_PI);
     //convert chosen torsion to 3D positions
     RotationMatrix spin = RotationMatrix::FromAxisAngle(torsion[tor],
                           cross, tensor);

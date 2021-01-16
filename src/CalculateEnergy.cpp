@@ -241,7 +241,7 @@ reduction(+:tempREn, tempLJEn)
                 tempREn += forcefield.particles->CalcCoulomb(distSq,
                            particleKind[currParticle], particleKind[nParticle],
                            qi_qj_fact, lambdaCoulomb, box);
-               }
+              }
             }
             tempLJEn += forcefield.particles->CalcEn(distSq,
                         particleKind[currParticle], particleKind[nParticle], lambdaVDW);

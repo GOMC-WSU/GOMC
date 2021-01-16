@@ -5,7 +5,7 @@ A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 #include "DCHedron.h"
 #include "TrialMol.h"
 #include "DCData.h"
@@ -279,7 +279,7 @@ void DCHedron::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTrials)
     std::fill_n(nonbonded_1_3, nTrials, 0.0);
     //pick "twist" angles
     for (uint i = 0; i < nTrials; ++i) {
-      angles[i] = data->prng.rand(M_PI * 2);
+      angles[i] = data->prng.rand(2.0 * M_PI);
     }
 
     //modify the twist angle if it was fixed
@@ -352,7 +352,7 @@ void DCHedron::ConstrainedAnglesOld(uint nTrials, TrialMol& oldMol,
 
     //pick "twist" angles
     for (uint i = 0; i < nTrials; ++i) {
-      angles[i]  = data->prng.rand(M_PI * 2);
+      angles[i]  = data->prng.rand(2.0 * M_PI);
     }
 
     //modify the twist angle if it was fixed

@@ -7,7 +7,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef FF_DIHEDRALS_H
 #define FF_DIHEDRALS_H
 
-#include <math.h>       //cos, pow
+#include <cmath>       //cos, pow
 
 #include "FFConst.h"    //GetRot
 #include "SubdividedArray.h" //Subdivisions in master array for dih sets.

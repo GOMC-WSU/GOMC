@@ -247,8 +247,8 @@ public:
   virtual ~RminFun() {};
   virtual float operator() (float x)
   {
-    double rep = (6.0 / alpha) * exp(alpha * (1 - sigma / x));
-    double at = pow(x / sigma, 6);
+    double rep = (6.0 / alpha) * exp(alpha * (1.0 - sigma / x));
+    double at = pow(x / sigma, 6.0);
     return (float)(rep - at);
   }
 };
@@ -263,8 +263,8 @@ public:
   virtual ~RmaxFun() {};
   virtual float operator() (float x)
   {
-    double rep = (-1.0 / rmin) * exp(alpha * (1 - x / rmin));
-    double at = pow(rmin / x, 6) / x;
+    double rep = (-1.0 / rmin) * exp(alpha * (1.0 - x / rmin));
+    double at = pow(rmin / x, 6.0) / x;
     return (float)(rep + at);
   }
 };
