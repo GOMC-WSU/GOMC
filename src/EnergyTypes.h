@@ -92,8 +92,8 @@ public:
   Energy(double bond, double nonbond, double inter, double real,
          double recip, double self, double correc) :
     intraBond(bond), intraNonbond(nonbond), inter(inter),
-    tc(0.0), real(real), recip(recip), self(self), correction(correc),
-    totalElect(0.0), total(0.0) {}
+    tc(0.0), total(0.0), real(real), recip(recip), self(self),
+    correction(correc), totalElect(0.0) {}
 
   //VALUE SETTERS
   double Total()
@@ -489,7 +489,7 @@ inline bool SystemPotential::ComparePotentials(SystemPotential & other)
   }
   if(totalEnergy.total != other.totalEnergy.total) {
     std::cout << "my total : " << totalEnergy.total << "other total : " << other.totalEnergy.total << std::endl;
-    std::cout << "differernce : " << totalEnergy.total  - other.totalEnergy.total << std::endl;
+    std::cout << "difference : " << totalEnergy.total  - other.totalEnergy.total << std::endl;
     returnVal = false;
   }
   return returnVal;

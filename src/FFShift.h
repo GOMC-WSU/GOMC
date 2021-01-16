@@ -95,7 +95,7 @@ protected:
 inline void FF_SHIFT::Init(ff_setup::Particle const& mie,
                            ff_setup::NBfix const& nbfix)
 {
-  //Initializ sigma and epsilon
+  //Initialize sigma and epsilon
   FFParticle::Init(mie, nbfix);
   uint size = num::Sq(count);
   //allocate memory

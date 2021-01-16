@@ -33,7 +33,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CrankShaft.h"
 #include "CFCMC.h"
 
-System::System(StaticVals& statics, MultiSim const*const& multisim) :
+System::System(StaticVals& statics, Setup const& set,
+               MultiSim const*const& multisim) :
   statV(statics),
 #ifdef VARIABLE_VOLUME
   boxDimRef(*BoxDim(statics.isOrthogonal)),
@@ -49,10 +50,10 @@ System::System(StaticVals& statics, MultiSim const*const& multisim) :
 #if GOMC_LIB_MPI
   ms(multisim),
 #endif
+  moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
-  moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
-  calcEnergy(statics, *this), checkpointSet(*this, statics)
+  calcEnergy(statics, *this), checkpointSet(*this, statics, set)
 {
   calcEwald = NULL;
 #if GOMC_LIB_MPI
@@ -90,7 +91,7 @@ System::~System()
 #endif
 }
 
-void System::Init(Setup const& set, ulong & startStep)
+void System::Init(Setup & set, ulong & startStep)
 {
   prng.Init(set.prng.prngMaker.prng);
   r123wrapper.SetRandomSeed(set.config.in.prng.seed);
@@ -107,26 +108,24 @@ void System::Init(Setup const& set, ulong & startStep)
   molLookup.Init(statV.mol, set.pdb.atoms);
 #endif
   moveSettings.Init(statV, set.pdb.remarks, molLookupRef.GetNumKind());
-  //Note... the following calls use box iterators, so must come after
-  //the molecule lookup initialization, in case we're in a constant
-  //particle/molecule ensemble, e.g. NVT
-  coordinates.InitFromPDB(set.pdb.atoms);
 
   // At this point see if checkpoint is enabled. if so re-initialize
   // coordinates, prng, mollookup, step, boxdim, and movesettings
   if(set.config.in.restart.restartFromCheckpoint) {
     checkpointSet.ReadAll();
     checkpointSet.SetStepNumber(startStep);
-    checkpointSet.SetBoxDimensions(boxDimRef);
     checkpointSet.SetPRNGVariables(prng);
-    checkpointSet.SetCoordinates(coordinates);
     checkpointSet.SetMoleculeLookup(molLookupRef);
     checkpointSet.SetMoveSettings(moveSettings);
+    checkpointSet.SetMolecules(statV.mol);
 #if GOMC_LIB_MPI
     if(checkpointSet.CheckIfParallelTemperingWasEnabled() && ms->parallelTemperingEnabled)
       checkpointSet.SetPRNGVariablesPT(*prngParallelTemp);
 #endif
   }
+
+  xsc.Init(set.pdb, set.config.in, molLookupRef, statV.mol);
+  coordinates.InitFromPDB(set.pdb.atoms);
 
   com.CalcCOM();
   // Allocate space for atom forces
@@ -138,7 +137,7 @@ void System::Init(Setup const& set, ulong & startStep)
   cellList.SetCutoff();
   cellList.GridAll(boxDimRef, coordinates, molLookupRef);
 
-  //check if we have to use cached version of ewlad or not.
+  //check if we have to use cached version of Ewald or not.
   bool ewald = set.config.sys.elect.ewald;
   bool cached = set.config.sys.elect.cache;
 

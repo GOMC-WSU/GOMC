@@ -17,9 +17,8 @@ class Regrowth : public MoveBase
 {
 public:
 
-  Regrowth(System &sys, StaticVals const& statV) :
-    ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
-    MoveBase(sys, statV) {}
+  Regrowth(System &sys, StaticVals const& statV) : MoveBase(sys, statV),
+    ffRef(statV.forcefield), molLookRef(sys.molLookupRef) {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
   virtual uint Transform();
@@ -172,7 +171,7 @@ inline void Regrowth::Accept(const uint rejectState, const uint step)
   } else //else we didn't even try because we knew it would fail
     result = false;
 
-  moveSetRef.Update(mv::REGROWTH, result, step, sourceBox, kindIndex);
+  moveSetRef.Update(mv::REGROWTH, result, sourceBox, kindIndex);
 }
 
 #endif

@@ -19,7 +19,7 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
     rCut[b] = std::max(ff.rCut, ff.rCutCoulomb[b]);
     rCutSq[b] = rCut[b] * rCut[b];
     minVol[b] = 8.0 * rCutSq[b] * rCut[b] + 0.001;
-    if(restart.enable && cryst.hasVolume) {
+    if(restart.enable && cryst.hasVolume[b]) {
       axis = cryst.axis;
       double alpha = cos(cryst.cellAngle[b][0] * M_PI / 180.0);
       double beta  = cos(cryst.cellAngle[b][1] * M_PI / 180.0);
@@ -30,7 +30,6 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
         beta = 0.0;
       if(float(cryst.cellAngle[b][2]) == 90.0)
         gamma = 0.0;
-      double cosASq = alpha * alpha;
       double cosBSq = beta * beta;
       double cosGSq = gamma * gamma;
       double temp = (alpha - beta * gamma) / (sqrt(1.0 - cosGSq));
@@ -40,15 +39,17 @@ void BoxDimensions::Init(config_setup::RestartSettings const& restart,
       cellBasis[b].Scale(0, axis.Get(b).x);
       cellBasis[b].Scale(1, axis.Get(b).y);
       cellBasis[b].Scale(2, axis.Get(b).z);
+    } else if (restart.enable && cryst.hasCellBasis[b]) {
+      cryst.cellBasis[b].CopyRange(cellBasis[b], 0, 0, 3);
     } else if(confVolume.hasVolume) {
       confVolume.axis[b].CopyRange(cellBasis[b], 0, 0, 3);
     } else {
       fprintf(stderr,
-              "Error: Cell Basis not specified in PDB or in.conf files.\n");
+              "Error: Cell Basis not specified in XSC, PDB, or in.conf files.\n");
       exit(EXIT_FAILURE);
     }
 
-    //Print Box dimensio info
+    //Print Box dimension info
     printf("%s %-d: %-26s %6.3f %7.3f %7.3f \n",
            "Info: Box ", b, " Periodic Cell Basis 1",
            cellBasis[b].Get(0).x, cellBasis[b].Get(0).y,
@@ -256,7 +257,7 @@ double BoxDimensions::WrapPBC(double& v, const double ax) const
   //Note: testing shows that it's most efficient to negate if true.
   //Source:
   // http://jacksondunstan.com/articles/2052
-  if ( v >= ax ) //if +, wrap out to low end, on boundry will wrap to zero
+  if ( v >= ax ) //if +, wrap out to low end, on boundary will wrap to zero
     v -= ax;
   else if ( v < 0 ) //if -, wrap to high end
     v += ax;

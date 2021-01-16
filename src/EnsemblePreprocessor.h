@@ -48,4 +48,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
                      + __GNUC_MINOR__ * 100 \
                      + __GNUC_PATCHLEVEL__)
 
+// Error flags
+namespace errors {
+    const int READ_ERROR = -1;
+}
+
 #endif /*ENSEMBLE_PREPROCESSOR_H*/

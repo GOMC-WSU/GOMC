@@ -11,8 +11,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #endif
 
 FFParticle::FFParticle(Forcefield &ff) : forcefield(ff), mass(NULL), nameFirst(NULL), nameSec(NULL),
-  n(NULL), n_1_4(NULL), sigmaSq(NULL), sigmaSq_1_4(NULL), epsilon_cn(NULL),
-  epsilon(NULL), epsilon_1_4(NULL), epsilon_cn_1_4(NULL), epsilon_cn_6(NULL),
+  n(NULL), n_1_4(NULL), sigmaSq(NULL), sigmaSq_1_4(NULL), epsilon(NULL),
+  epsilon_1_4(NULL), epsilon_cn(NULL), epsilon_cn_1_4(NULL), epsilon_cn_6(NULL),
   epsilon_cn_6_1_4(NULL), nOver6(NULL), nOver6_1_4(NULL)
 #ifdef GOMC_CUDA
   , varCUDA(NULL)
@@ -85,7 +85,7 @@ void FFParticle::Init(ff_setup::Particle const& mie,
   //Combining VDW parameter
   Blend(mie);
   //Adjusting VDW parameter using NBFIX
-  AdjNBfix(mie, nbfix);
+  AdjNBfix(nbfix);
 
 #ifdef GOMC_CUDA
   double diElectric_1 = 1.0 / forcefield.dielectric;
@@ -177,7 +177,7 @@ void FFParticle::Blend(ff_setup::Particle const& mie)
       epsilon[idx] = num::MeanG(mie.epsilon, mie.epsilon, i, j);
       epsilon_cn[idx] = cn * epsilon[idx];
       epsilon_1_4[idx] = num::MeanG(mie.epsilon_1_4, mie.epsilon_1_4, i, j);
-      epsilon_cn_1_4[idx] = cn * epsilon_1_4[idx];
+      epsilon_cn_1_4[idx] = cn_1_4 * epsilon_1_4[idx];
       epsilon_cn_6[idx] = epsilon_cn[idx] * 6;
       epsilon_cn_6_1_4[idx] = epsilon_cn_1_4[idx] * 6;
       nOver6[idx] = n[idx] / 6;
@@ -186,8 +186,7 @@ void FFParticle::Blend(ff_setup::Particle const& mie)
   }
 }
 
-void FFParticle::AdjNBfix(ff_setup::Particle const& mie,
-                          ff_setup::NBfix const& nbfix)
+void FFParticle::AdjNBfix(ff_setup::NBfix const& nbfix)
 {
   uint size = num::Sq(count);
   for(uint i = 0; i < nbfix.epsilon.size(); i++) {

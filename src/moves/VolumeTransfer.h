@@ -32,12 +32,12 @@ private:
   //Note: This is only used for GEMC-NPT and NPT
   uint box;
   SystemPotential sysPotNew;
-  const Forcefield& forcefield;
+  MoleculeLookup & molLookRef;
   BoxDimensions newDim;
   BoxDimensionsNonOrth newDimNonOrth;
   Coordinates newMolsPos;
+  const Forcefield& forcefield;
   COM newCOMs;
-  MoleculeLookup & molLookRef;
   const uint GEMC_KIND;
   const double PRESSURE;
   bool regrewGrid, isOrth;
@@ -46,9 +46,9 @@ private:
 
 inline VolumeTransfer::VolumeTransfer(System &sys, StaticVals const& statV)  :
   MoveBase(sys, statV), molLookRef(sys.molLookupRef),
+  newDim(), newDimNonOrth(),
   newMolsPos(boxDimRef, newCOMs, sys.molLookupRef,
              sys.prng, statV.mol), forcefield(statV.forcefield),
-  newDim(), newDimNonOrth(),
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef,
           statV.mol), GEMC_KIND(statV.kindOfGEMC),
   PRESSURE(statV.pressure), regrewGrid(false)
@@ -79,7 +79,7 @@ inline uint VolumeTransfer::Prep(const double subDraw, const double movePerc)
     if(fixBox0) {
       //For NPT-GEMC and when box0 is fixed, we cannot pick box 0
       while(box == 0) {
-        //To avoid infinit loop, we dont use sunDraw
+        //To avoid infinite loop, we don't use sunDraw
         box = prng.randIntExc(BOX_TOTAL);
       }
     }
@@ -110,7 +110,7 @@ inline uint VolumeTransfer::Transform()
                                            newDimNonOrth, comCurrRef, max, bPick);
     }
   } else {
-    //NPT ot GEMC-NPT we change volume of one box
+    //NPT or GEMC-NPT we change volume of one box
     XYZ scale;
     double max = moveSetRef.Scale(box, mv::VOL_TRANSFER);
     double delta = prng.Sym(max);
@@ -159,34 +159,34 @@ inline void VolumeTransfer::CalcEn()
       //calculate new K vectors
       if(isOrth) {
         calcEwald->RecipInit(bPick[b], newDim);
-        //setup reciprocate terms
+        //setup reciprocal terms
         calcEwald->BoxReciprocalSetup(bPick[b], newMolsPos);
         sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newDim, bPick[b]);
       } else {
         calcEwald->RecipInit(bPick[b], newDimNonOrth);
-        //setup reciprocate terms
+        //setup reciprocal terms
         calcEwald->BoxReciprocalSetup(bPick[b], newMolsPos);
         sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newDimNonOrth,
                                        bPick[b]);
       }
-      //calculate reciprocate term of electrostatic interaction
-      sysPotNew.boxEnergy[bPick[b]].recip = calcEwald->BoxReciprocal(bPick[b]);
+      //calculate reciprocal term of electrostatic interaction
+      sysPotNew.boxEnergy[bPick[b]].recip = calcEwald->BoxReciprocal(bPick[b], true);
     }
   } else {
     //calculate new K vectors
     if(isOrth) {
       calcEwald->RecipInit(box, newDim);
-      //setup reciprocate terms
+      //setup reciprocal terms
       calcEwald->BoxReciprocalSetup(box, newMolsPos);
       sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newDim, box);
     } else {
       calcEwald->RecipInit(box, newDimNonOrth);
-      //setup reciprocate terms
+      //setup reciprocal terms
       calcEwald->BoxReciprocalSetup(box, newMolsPos);
       sysPotNew = calcEnRef.BoxInter(sysPotNew, newMolsPos, newDimNonOrth, box);
     }
-    //calculate reciprocate term of electrostatic interaction
-    sysPotNew.boxEnergy[box].recip = calcEwald->BoxReciprocal(box);
+    //calculate reciprocal term of electrostatic interaction
+    sysPotNew.boxEnergy[box].recip = calcEwald->BoxReciprocal(box, true);
   }
 
   sysPotNew.Total();
@@ -199,9 +199,9 @@ inline double VolumeTransfer::GetCoeff() const
   ////Log-volume style shift -- is turned off, at present.
   //
   //return pow(newDim.volume[b_i]/boxDimRef.volume[b_i],
-  //	      (double)molLookRef.NumInBox(b_i)+1) *
+  //          (double)molLookRef.NumInBox(b_i)+1) *
   //  pow(newDim.volume[b_ii]/boxDimRef.volume[b_ii],
-  //	 (double)molLookRef.NumInBox(b_ii)+1);
+  //     (double)molLookRef.NumInBox(b_ii)+1);
   double coeff = 1.0;
   if (GEMC_KIND == mv::GEMC_NVT) {
     for (uint b = 0; b < 2; ++b) {
@@ -297,10 +297,10 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
   }
 
   if (GEMC_KIND == mv::GEMC_NVT) {
-    moveSetRef.Update(mv::VOL_TRANSFER, result, step, bPick[0]);
-    moveSetRef.Update(mv::VOL_TRANSFER, result, step, bPick[1]);
+    moveSetRef.Update(mv::VOL_TRANSFER, result, bPick[0]);
+    moveSetRef.Update(mv::VOL_TRANSFER, result, bPick [1]);
   } else {
-    moveSetRef.Update(mv::VOL_TRANSFER, result, step, box);
+    moveSetRef.Update(mv::VOL_TRANSFER, result, box);
   }
 
 }

@@ -126,7 +126,7 @@ protected:
   //Combining sigma, epsilon, and n value for different kind
   void Blend(ff_setup::Particle const& mie);
   //Use NBFIX to adjust sigma, epsilon, and n value for different kind
-  void AdjNBfix(ff_setup::Particle const& mie, ff_setup::NBfix const& nbfix);
+  void AdjNBfix(ff_setup::NBfix const& nbfix);
   //To access rcut and other forcefield data
   const Forcefield& forcefield;
 
@@ -136,20 +136,19 @@ protected:
 
   //vars for LJ-LJ pairs
 #ifdef MIE_INT_ONLY
-  uint* n, *n_1_4;
+  uint *n, *n_1_4;
 #else
   double *n, *n_1_4;
 #endif
   //For LJ eps_cn(en) --> 4eps, eps_cn_6 --> 24eps, eps_cn_n --> 48eps
-  double * sigmaSq, * epsilon, * epsilon_1_4, * epsilon_cn, * epsilon_cn_6,
-         * nOver6, * sigmaSq_1_4, * epsilon_cn_1_4, * epsilon_cn_6_1_4,
-         * nOver6_1_4;
-
-  uint count;
-  bool exp6;
+  double *sigmaSq, *sigmaSq_1_4, *epsilon, *epsilon_1_4, *epsilon_cn,
+         *epsilon_cn_1_4, *epsilon_cn_6, *epsilon_cn_6_1_4, *nOver6,
+         *nOver6_1_4;
 #ifdef GOMC_CUDA
   VariablesCUDA *varCUDA;
 #endif
+  uint count;
+  bool exp6;
 };
 
 

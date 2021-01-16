@@ -21,34 +21,37 @@ public:
 
   virtual void AllocMem();
 
-  //initiliazie term used for ewald calculation
+  //initialize term used for ewald calculation
   virtual void RecipInit(uint box, BoxDimensions const& boxAxes);
 
   //calculate self term for a box
-  virtual double BoxSelf(BoxDimensions const& boxAxes, uint box) const;
+  virtual double BoxSelf(uint box) const;
 
-  //setup reciprocate term for a box
+  //compute reciprocal term for a box with a new volume
   virtual void BoxReciprocalSetup(uint box, XYZArray const& molCoords);
 
-  //calculate reciprocate energy term for a box
-  virtual double BoxReciprocal(uint box) const;
+  //compute reciprocal term for a box when not testing a volume change
+  virtual void BoxReciprocalSums(uint box, XYZArray const& molCoords);
 
-  //calculate reciprocate force term for a box with molCoords
+  //calculate reciprocal energy term for a box
+  virtual double BoxReciprocal(uint box, bool isNewVolume) const;
+
+  //calculate reciprocal force term for a box with molCoords
   virtual void BoxForceReciprocal(XYZArray const& molCoords,
                                   XYZArray& atomForceRec, XYZArray& molForceRec,
                                   uint box);
 
-  //calculate reciprocate force term for a box
+  //calculate reciprocal force term for a box
   virtual Virial VirialReciprocal(Virial& virial, uint box) const;
 
   //calculate correction term for a molecule
   virtual double MolCorrection(uint molIndex, uint box)const;
 
-  //calculate reciprocate term for displacement and rotation move
+  //calculate reciprocal term for displacement and rotation move
   virtual double MolReciprocal(XYZArray const& molCoords, const uint molIndex,
                                const uint box);
 
-  //calculate reciprocate term for lambdaNew and Old with same coordinates
+  //calculate reciprocal term for lambdaNew and Old with same coordinates
   virtual double CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
                             const double lambdaNew, const uint molIndex,
                             const uint box);
@@ -63,23 +66,23 @@ public:
   virtual double SwapCorrection(const cbmc::TrialMol& trialMol,
                                 const uint molIndex) const;
 
-  //calculate reciprocate term in destination box for swap move
+  //calculate reciprocal term in destination box for swap move
   virtual double SwapDestRecip(const cbmc::TrialMol &newMol, const uint box,
                                const int molIndex);
 
-  //calculate reciprocate term in source box for swap move
+  //calculate reciprocal term in source box for swap move
   virtual double SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                  const uint box, const int molIndex);
 
-  //calculate reciprocate term for inserting some molecules (kindA) in
+  //calculate reciprocal term for inserting some molecules (kindA) in
   //destination box and removing a molecule (kindB) from destination box
-  virtual double SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
-                           const std::vector<cbmc::TrialMol> &oldMol,
-                           const std::vector<uint> molIndexNew,
-                           const std::vector<uint> molIndexold,
-                           bool first_call);
+  virtual double MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
+                                       const std::vector<cbmc::TrialMol> &oldMol,
+                                       const std::vector<uint> molIndexNew,
+                                       const std::vector<uint> molIndexold,
+                                       bool first_call);
 
-  //back up reciptocate value to Ref (will be called during initialization)
+  //back up reciprocal value to Ref (will be called during initialization)
   virtual void SetRecipRef(uint box);
 
   //It's called in free energy calculation to calculate the change in
@@ -103,10 +106,13 @@ public:
                            const uint iState, const uint molIndex,
                            const uint box) const;
 
-  //update reciprocate values
+  //update reciprocal values
   virtual void UpdateRecip(uint box);
 
-  //update the hx,y,z hsqr and prefact
+  //copy reciprocal values from ref to new
+  virtual void CopyRecip(uint box);
+
+  //update the kx, ky, kz, hsqr and prefact
   virtual void UpdateRecipVec(uint box);
 
   //restore cosMol and sinMol

@@ -40,6 +40,8 @@ ConfigSetup::ConfigSetup(void)
   in.restart.step = ULONG_MAX;
   in.restart.recalcTrajectory = false;
   in.restart.restartFromCheckpoint = false;
+  in.restart.restartFromBinaryFile = false;
+  in.restart.restartFromXSCFile = false;
   in.prng.seed = UINT_MAX;
   in.prngParallelTempering.seed = UINT_MAX;
   sys.elect.readEwald = false;
@@ -65,10 +67,11 @@ ConfigSetup::ConfigSetup(void)
   in.ffKind.numOfKinds = 0;
   sys.exclude.EXCLUDE_KIND = UINT_MAX;
   in.prng.kind = "";
-  in.files.param.name = "";
   for(i = 0; i < BOX_TOTAL; i++) {
     in.files.pdb.name[i] = "";
     in.files.psf.name[i] = "";
+    in.files.binaryInput.name[i] = "";
+    in.files.xscInput.name[i] = "";
   }
 #if ENSEMBLE == GEMC
   sys.gemc.kind = UINT_MAX;
@@ -97,7 +100,6 @@ ConfigSetup::ConfigSetup(void)
   out.state.settings.enable = false;
   out.restart.settings.enable = false;
   out.state_dcd.settings.enable = false;
-  out.restart_dcd.settings.enable = false;
   out.console.enable = true;
   out.statistics.settings.block.enable = true;
 #if ENSEMBLE == GCMC
@@ -116,7 +118,6 @@ ConfigSetup::ConfigSetup(void)
   out.state.settings.frequency = ULONG_MAX;
   out.restart.settings.frequency = ULONG_MAX;
   out.state_dcd.settings.frequency = ULONG_MAX;
-  out.restart_dcd.settings.frequency = ULONG_MAX;
   out.console.frequency = ULONG_MAX;
   out.statistics.settings.block.frequency = ULONG_MAX;
   out.statistics.vars.energy.block = false;
@@ -148,7 +149,7 @@ ConfigSetup::ConfigSetup(void)
 
 bool ConfigSetup::checkBool(std::string str)
 {
-  int k;
+  uint k;
   // capitalize string
   for(k = 0; k < str.length(); k++) {
     str[k] = toupper(str[k]);
@@ -164,11 +165,11 @@ bool ConfigSetup::checkBool(std::string str)
 
 bool ConfigSetup::CheckString(std::string str1, std::string str2)
 {
-  for(int k = 0; k < str1.length(); k++) {
+  for(uint k = 0; k < str1.length(); k++) {
     str1[k] = toupper(str1[k]);
   }
 
-  for(int j = 0; j < str2.length(); j++) {
+  for(uint j = 0; j < str2.length(); j++) {
     str2[j] = toupper(str2[j]);
   }
 
@@ -189,11 +190,6 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       in.restart.enable = checkBool(line[1]);
       if(in.restart.enable) {
         printf("%-40s %-s \n", "Info: Restart simulation",  "Active");
-      }
-    } else if(CheckString(line[0], "RestartCheckpoint")) {
-      in.restart.restartFromCheckpoint = checkBool(line[1]);
-      if(in.restart.restartFromCheckpoint) {
-        printf("%-40s %-s \n", "Info: Restart checkpoint", "Active");
       }
     } else if(CheckString(line[0], "FirstStep")) {
       in.restart.step = stringtoi(line[1]);
@@ -238,7 +234,9 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         printf("%-40s %-s \n", "Info: PARAMETER file", "MARTINI using CHARMM format!");
       }
     } else if(CheckString(line[0], "Parameters")) {
-      in.files.param.name = line[1];
+      if(line.size() > 1){
+        in.files.param.push_back(config_setup::FileName(line[1], true));
+      }
     } else if(CheckString(line[0], "Coordinates")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {
@@ -250,6 +248,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       } else {
         in.files.pdb.name[boxnum] = line[2];
       }
+      in.files.pdb.defined[boxnum] = true;
     } else if(CheckString(line[0], "Structure")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {
@@ -261,6 +260,41 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       } else {
         in.files.psf.name[boxnum] = line[2];
       }
+      in.files.psf.defined[boxnum] = true;
+    } else if(CheckString(line[0], "binCoordinates")) {
+      uint boxnum = stringtoi(line[1]);
+      if(boxnum >= BOX_TOTAL) {
+        std::cout << "Error: Simulation requires " << BOX_TOTAL << " binary coordinate file(s)!\n";
+        exit(EXIT_FAILURE);
+      }
+      if (multisim != NULL) {
+        in.files.binaryInput.name[boxnum] = multisim->replicaInputDirectoryPath + line[2];
+      } else {
+        in.files.binaryInput.name[boxnum] = line[2];
+      }
+      in.files.binaryInput.defined[boxnum] = true;
+      in.restart.restartFromBinaryFile = true;
+    } else if(CheckString(line[0], "extendedSystem")) {
+      uint boxnum = stringtoi(line[1]);
+      if(boxnum >= BOX_TOTAL) {
+        std::cout << "Error: Simulation requires " << BOX_TOTAL << " extended system file(s)!\n";
+        exit(EXIT_FAILURE);
+      }
+      if (multisim != NULL) {
+        in.files.xscInput.name[boxnum] = multisim->replicaInputDirectoryPath + line[2];
+      } else {
+        in.files.xscInput.name[boxnum] = line[2];
+      }
+      in.files.xscInput.defined[boxnum] = true;
+      in.restart.restartFromXSCFile = true;
+    } else if(CheckString(line[0], "Checkpoint")) {
+      if(multisim != NULL) {
+        in.files.checkpoint.name[0] = multisim->replicaInputDirectoryPath + line[1];
+      } else {
+        in.files.checkpoint.name[0] = line[1];
+      }
+      in.files.checkpoint.defined[0] = true;
+      in.restart.restartFromCheckpoint = true;
     }
 #if ENSEMBLE == GEMC
     else if(CheckString(line[0], "GEMC")) {
@@ -915,15 +949,6 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         out.statistics.settings.uniqueStr.val = line[1];
         printf("%-40s %-s \n", "Info: Output name", line[1].c_str());
       }
-    } else if(CheckString(line[0], "CheckpointFreq")) {
-      out.checkpoint.enable = checkBool(line[1]);
-      if(line.size() == 3)
-        out.checkpoint.frequency = stringtoi(line[2]);
-      if(out.checkpoint.enable)
-        printf("%-40s %-lu \n", "Info: Checkpoint frequency",
-               out.checkpoint.frequency);
-      else
-        printf("%-40s %-s \n", "Info: Saving checkpoint", "Inactive");
     } else if(CheckString(line[0], "CoordinatesFreq")) {
       out.state.settings.enable = checkBool(line[1]);
       if(line.size() == 3)
@@ -950,7 +975,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
                out.restart.settings.frequency);
       } else
         printf("%-40s %-s \n", "Info: Printing restart coordinate", "Inactive");
-    } else if(CheckString(line[0], "DCDCoordinatesFreq")) {
+    } else if(CheckString(line[0], "DCDFreq")) {
       out.state_dcd.settings.enable = checkBool(line[1]);
       if(line.size() == 3)
         out.state_dcd.settings.frequency = stringtoi(line[2]);
@@ -959,23 +984,10 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         out.state_dcd.settings.frequency = (ulong)sys.step.total / 10;
 
       if(out.state_dcd.settings.enable) {
-        printf("%-40s %-lu \n", "Info: DCD Coordinate frequency",
+        printf("%-40s %-lu \n", "Info: DCD frequency",
                out.state_dcd.settings.frequency);
       } else
-        printf("%-40s %-s \n", "Info: Printing DCD coordinate", "Inactive");
-    } else if(CheckString(line[0], "DCDRestartFreq")) {
-      out.restart_dcd.settings.enable = checkBool(line[1]);
-      if(line.size() == 3)
-        out.restart_dcd.settings.frequency = stringtoi(line[2]);
-
-      if(out.restart_dcd.settings.enable && (line.size() == 2))
-        out.restart_dcd.settings.frequency = (ulong)sys.step.total;
-
-      if(out.restart_dcd.settings.enable) {
-        printf("%-40s %-lu \n", "Info: Restart DCD frequency",
-               out.restart_dcd.settings.frequency);
-      } else
-        printf("%-40s %-s \n", "Info: Printing restart DCD coordinate", "Inactive");
+        printf("%-40s %-s \n", "Info: Printing DCD ", "Inactive");
     } else if(CheckString(line[0], "ConsoleFreq")) {
       out.console.enable = checkBool(line[1]);
       if(line.size() == 3)
@@ -1333,11 +1345,6 @@ void ConfigSetup::fillDefaults(void)
     printf("%-40s \n", "Warning: Printing coordinate is activated but it will be ignored.");
   }
 
-  if(out.restart_dcd.settings.enable && in.restart.recalcTrajectory) {
-    out.restart_dcd.settings.enable = false;
-    printf("%-40s \n", "Warning: Printing restart DCD coordinate is activated but it will be ignored.");
-  }
-
   if(out.state_dcd.settings.enable && in.restart.recalcTrajectory) {
     out.state_dcd.settings.enable = false;
     printf("%-40s \n", "Warning: Printing DCD coordinate is activated but it will be ignored.");
@@ -1448,7 +1455,7 @@ void ConfigSetup::verifyInputs(void)
       (sys.exclude.EXCLUDE_KIND == sys.exclude.EXC_ONETHREE_KIND)) {
     std::cout << "Warning: Exclude 1-3 is set for EXOTIC type parameter.\n";
   }
-  if(in.files.param.name == "") {
+  if(!in.files.param.size()) {
     std::cout << "Error: Parameter file name is not specified!" << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -1559,19 +1566,43 @@ void ConfigSetup::verifyInputs(void)
 #endif
 
   for(i = 0 ; i < BOX_TOTAL ; i++) {
-    if(in.files.pdb.name[i] == "") {
+    if(!in.files.pdb.defined[i]) {
       std::cout << "Error: PDB file is not been specified for box number "
                 << i << "!" << std::endl;
       exit(EXIT_FAILURE);
     }
   }
   for(i = 0 ; i < BOX_TOTAL ; i++) {
-    if(in.files.psf.name[i] == "") {
+    if(!in.files.psf.defined[i]) {
       std::cout << "Error: PSF file is not specified for box number " <<
                 i << "!" << std::endl;
       exit(EXIT_FAILURE);
     }
   }
+
+  if(in.restart.enable) {
+    // error checking to see if if we missed any binary coordinate file
+    if(in.restart.restartFromBinaryFile) {
+      for(i = 0 ; i < BOX_TOTAL ; i++) {
+        if(!in.files.binaryInput.defined[i]) {
+          std::cout << "Error: Binary coordinate file is not specified for box number " <<
+                    i << "!" << std::endl;  
+          exit(EXIT_FAILURE);
+        }
+      }
+    }
+    // error checking to see if if we missed any xsc file
+    if(in.restart.restartFromXSCFile) {
+      for(i = 0 ; i < BOX_TOTAL ; i++) {
+        if(!in.files.xscInput.defined[i]) {
+          std::cout << "Error: Extended system file is not specified for box number " <<
+                    i << "!" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+      }
+    }
+  }
+
   if(!sys.volume.hasVolume && !in.restart.enable) {
     std::cout << "Error: This simulation requires to define " << 3 * BOX_TOTAL <<
               " Cell Basis vectors!" << std::endl;
@@ -1890,10 +1921,6 @@ void ConfigSetup::verifyInputs(void)
     std::cout << "Error: Coordinate frequency is not specified!\n";
     exit(EXIT_FAILURE);
   }
-  if(out.restart_dcd.settings.enable && out.restart_dcd.settings.frequency == ULONG_MAX) {
-    std::cout << "Error: DCD Restart coordinate frequency is not specified!\n";
-    exit(EXIT_FAILURE);
-  }
   if(out.state_dcd.settings.enable && out.state_dcd.settings.frequency == ULONG_MAX) {
     std::cout << "Error: DCD Coordinate frequency is not specified!\n";
     exit(EXIT_FAILURE);
@@ -1909,22 +1936,6 @@ void ConfigSetup::verifyInputs(void)
     } else {
       if ((out.state.settings.frequency % out.restart.settings.frequency) != 0) {
         std::cout << "Error: Restart coordinate frequency must be common multiple of ";
-        std::cout << "       corrdinate frequency !\n";
-        exit(EXIT_FAILURE);
-      }
-    }
-  }
-  
-  if(out.state_dcd.settings.enable && out.restart_dcd.settings.enable) {
-    if(out.state_dcd.settings.frequency < out.restart_dcd.settings.frequency) {
-      if ((out.restart_dcd.settings.frequency % out.state_dcd.settings.frequency) != 0) {
-        std::cout << "Error: DCD Coordinate frequency must be common multiple of ";
-        std::cout << "       restart corrdinate frequency !\n";
-        exit(EXIT_FAILURE);
-      }
-    } else {
-      if ((out.state_dcd.settings.frequency % out.restart_dcd.settings.frequency) != 0) {
-        std::cout << "Error: DCD Restart coordinate frequency must be common multiple of ";
         std::cout << "       corrdinate frequency !\n";
         exit(EXIT_FAILURE);
       }
@@ -2040,9 +2051,6 @@ const std::string config_setup::FFValues::VDW_SWITCH = "VDW_SWITCH";
 const std::string config_setup::Exclude::EXC_ONETWO = "1-2";
 const std::string config_setup::Exclude::EXC_ONETHREE = "1-3";
 const std::string config_setup::Exclude::EXC_ONEFOUR = "1-4";
-
-const char ConfigSetup::defaultConfigFileName[] = "in.dat";
-const char ConfigSetup::configFileAlias[] = "GOMC Configuration File";
 
 const uint config_setup::FFValues::VDW_STD_KIND = 0;
 const uint config_setup::FFValues::VDW_SHIFT_KIND = 1;

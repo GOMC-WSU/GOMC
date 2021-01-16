@@ -27,7 +27,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class System;
 
 struct BlockAverage {
-  BlockAverage(): enable(false), block(NULL), uintSrc(NULL), dblSrc(NULL) {}
+  BlockAverage(): uintSrc(NULL), dblSrc(NULL), block(NULL), enable(false) {}
   ~BlockAverage()
   {
     if (dblSrc != NULL) {
@@ -60,11 +60,11 @@ struct BlockAverage {
     dblSrc[b] = NULL;
   }
   void Sum(void);
-  void Write(const ulong step, const bool firstPrint, uint precision)
+  void Write(const bool firstPrint, uint precision)
   {
     first = firstPrint;
     if (enable)
-      DoWrite(step, precision);
+      DoWrite(precision);
   }
 
 private:
@@ -74,8 +74,8 @@ private:
       block[b] = 0.0;
     samples = 0;
   }
-  void DoWrite(const ulong step, uint precision);
-  void printTitle(std::string output, uint boxes);
+  void DoWrite(uint precision);
+  void printTitle(std::string output);
 
   std::ofstream* outBlock0;
   std::ofstream* outBlock1;
@@ -125,8 +125,9 @@ private:
   }
   void AllocBlocks(void);
   void InitWatchSingle(config_setup::TrackedVars const& tracked);
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   void InitWatchMulti(config_setup::TrackedVars const& tracked);
-
+#endif
   std::ofstream outBlock0;
   std::ofstream outBlock1;
   //Block vars

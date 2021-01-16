@@ -9,12 +9,13 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "OutputAbstracts.h"
 #include "MoveSettings.h"
 #include "Coordinates.h"
+#include "PDBSetup.h"
 #include <iostream>
 
 class CheckpointSetup
 {
 public:
-  CheckpointSetup(System & sys, StaticVals const& statV);
+  CheckpointSetup(System & sys, StaticVals const& statV, Setup const& set);
 
   ~CheckpointSetup()
   {
@@ -35,9 +36,8 @@ public:
 #if GOMC_LIB_MPI
   void SetPRNGVariablesPT(PRNG & prng);
 #endif
-  void SetBoxDimensions(BoxDimensions & boxDimRef);
-  void SetCoordinates(Coordinates & coordinates);
   void SetMoleculeLookup(MoleculeLookup & molLookupRef);
+  void SetMolecules(Molecules& mos);
   void SetMoveSettings(MoveSettings & moveSettings);
 
 private:
@@ -54,15 +54,12 @@ private:
   // the following variables will hold the data read from checkpoint
   // and will be passed to the rest of the code via Get functions
   int8_t parallelTemperingWasEnabled;
+  char gomc_version[5];
   ulong stepNumber;
   uint32_t totalBoxes;
-  std::vector<std::vector<double> > axis;
-  std::vector<std::vector<double> > cosAngle;
   uint32_t* saveArray;
   uint32_t seedLocation, seedLeft, seedValue;
-  uint32_t coordLength;
-  XYZArray coords;
-  std::vector<uint32_t> molLookupVec, boxAndKindStartVec, fixedAtomVec;
+  std::vector<uint32_t> molLookupVec, boxAndKindStartVec, fixedMoleculeVec;
   uint32_t numKinds;
   std::vector<std::vector<std::vector<double> > > scaleVec, acceptPercentVec;
   std::vector<std::vector<std::vector<uint32_t> > > acceptedVec, triesVec, tempAcceptedVec,
@@ -71,7 +68,13 @@ private:
   std::vector< double > mp_r_maxVec;
   std::vector< double > mp_t_maxVec;
 
+  // molecules data
+  std::vector< uint > molecules_startVec;
+  std::vector< uint > molecules_kIndexVec;
+
   // private functions used by ReadAll and Get functions
+  void readGOMCVersion();
+  bool isLegacy();
   void openInputFile();
   void readParallelTemperingBoolean();
   void readStepNumber();
@@ -81,18 +84,17 @@ private:
   uint32_t* saveArrayPT;
   uint32_t seedLocationPT, seedLeftPT, seedValuePT;
 #endif
-  void readCoordinates();
   void readMoleculeLookupData();
   void readMoveSettingsData();
-  void readBoxDimensionsData();
+  void readMoleculesData();
   void closeInputFile();
 
   void readVector3DDouble(std::vector< std::vector< std::vector <double> > > & data);
   void readVector3DUint(std::vector< std::vector< std::vector <uint> > > & data);
   void readVector2DUint(std::vector< std::vector< uint > > & data);
   void readVector1DDouble(std::vector< double > & data);
-  double readDoubleIn8Chars();
-  uint32_t readUintIn8Chars();
-  int8_t readIntIn1Char();
-
+  double read_double_binary();
+  int8_t read_uint8_binary();
+  uint32_t read_uint32_binary();
+  uint64_t read_uint64_binary();
 };

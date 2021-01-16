@@ -38,7 +38,7 @@ void BlockAverage::Init(std::ofstream* file0,
       uintSrc[b] = NULL;
       dblSrc[b] = NULL;
     }
-    printTitle(var, bTot);
+    printTitle(var);
   }
 }
 
@@ -52,7 +52,7 @@ void BlockAverage::Sum(void)
       block[b] += *dblSrc[b] * scl;
 }
 
-void BlockAverage::DoWrite(const ulong step, uint precision)
+void BlockAverage::DoWrite(uint precision)
 {
   if (tot >= 1) {
     if (outBlock0->is_open()) {
@@ -105,7 +105,9 @@ void BlockAverages::Init(pdb_setup::Atoms const& atoms,
   InitVals(output.statistics.settings.block);
   AllocBlocks();
   InitWatchSingle(output.statistics.vars);
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   InitWatchMulti(output.statistics.vars);
+#endif
   outBlock0 << std::endl;
   if(outBlock1.is_open())
     outBlock1 << std::endl;
@@ -136,9 +138,9 @@ void BlockAverages::DoOutput(const ulong step)
   outBlock1 << std::left << std::scientific << std::setw(OUTPUTWIDTH) << nextStep;
   for (uint v = 0; v < totalBlocks; ++v) {
     if(v < out::TOTAL_SINGLE)
-      blocks[v].Write(nextStep, firstPrint, 8);
+      blocks[v].Write(firstPrint, 8);
     else
-      blocks[v].Write(nextStep, firstPrint, 8);
+      blocks[v].Write(firstPrint, 8);
   }
   outBlock0 << std::endl;
   if(outBlock1.is_open())
@@ -198,10 +200,10 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
   }
 }
 
+#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
 void BlockAverages::InitWatchMulti(config_setup::TrackedVars const& tracked)
 {
   using namespace pdb_entry::atom::field;
-#if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   uint start = out::TOTAL_SINGLE;
   //Var is molecule kind name plus the prepend related output info kind.
   std::string name;
@@ -244,10 +246,10 @@ void BlockAverages::InitWatchMulti(config_setup::TrackedVars const& tracked)
       }
     }
   }
-#endif
 }
+#endif
 
-void BlockAverage::printTitle(std::string output, uint boxes)
+void BlockAverage::printTitle(std::string output)
 {
   if(tot >= 1) {
     if((*outBlock0).is_open()) {

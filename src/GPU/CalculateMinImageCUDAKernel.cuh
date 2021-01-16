@@ -59,8 +59,7 @@ __device__ inline void DeviceInRcut(
   int otherParticle,
   double axx,
   double axy,
-  double axz,
-  int box
+  double axz
 )
 {
   // calculate difference

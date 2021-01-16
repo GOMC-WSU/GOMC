@@ -265,8 +265,6 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
                    gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                    gpu_Invcell_z)) {
 
-        double cA = gpu_particleCharge[currentParticle];
-        double cB = gpu_particleCharge[neighborParticle];
         int kA = gpu_particleKind[currentParticle];
         int kB = gpu_particleKind[neighborParticle];
         int mA = gpu_particleMol[currentParticle];
@@ -280,17 +278,20 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
                           sc_alpha, sc_power, gpu_rMin, gpu_rMaxSq, gpu_expConst);
 
         if(electrostatic) {
-          static const double qqFact = 167000.0;
-          double qi_qj_fact = cA * cB * qqFact;
-          double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
-                                 gpu_isFraction, gpu_molIndex,
-                                 gpu_kindIndex, gpu_lambdaCoulomb);
-          REn += CalcCoulombGPU(distSq, kA, kB, qi_qj_fact, gpu_rCutLow[0],
-                                gpu_ewald[0], gpu_VDW_Kind[0], gpu_alpha[box],
-                                gpu_rCutCoulomb[box], gpu_isMartini[0],
-                                gpu_diElectric_1[0], lambdaCoulomb, sc_coul,
-                                sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq,
-                                gpu_count[0]);
+          double qi_qj_fact = gpu_particleCharge[currentParticle] * gpu_particleCharge[neighborParticle];
+          if(qi_qj_fact != 0.0) {
+            static const double qqFact = 167000.0;
+            qi_qj_fact *= qqFact;
+            double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
+                                   gpu_isFraction, gpu_molIndex,
+                                   gpu_kindIndex, gpu_lambdaCoulomb);
+            REn += CalcCoulombGPU(distSq, kA, kB, qi_qj_fact, gpu_rCutLow[0],
+                                  gpu_ewald[0], gpu_VDW_Kind[0], gpu_alpha[box],
+                                  gpu_rCutCoulomb[box], gpu_isMartini[0],
+                                  gpu_diElectric_1[0], lambdaCoulomb, sc_coul,
+                                  sc_sigma_6, sc_alpha, sc_power, gpu_sigmaSq,
+                                  gpu_count[0]);
+          }
         }
       }
     }
@@ -389,7 +390,7 @@ __device__ double CalcEnGPU(double distSq, int kind1, int kind2,
 //ElectroStatic Calculation
 //**************************************************************//
 __device__ double CalcCoulombParticleGPU(double distSq, int index, double qi_qj_fact,
-    double gpu_ewald, double gpu_alpha,
+    int gpu_ewald, double gpu_alpha,
     double gpu_lambdaCoulomb, bool sc_coul,
     double sc_sigma_6, double sc_alpha,
     uint sc_power, double *gpu_sigmaSq)
@@ -412,7 +413,7 @@ __device__ double CalcCoulombParticleGPU(double distSq, int index, double qi_qj_
 
 __device__ double CalcCoulombParticleGPUNoLambda(double distSq,
     double qi_qj_fact,
-    double gpu_ewald,
+    int gpu_ewald,
     double gpu_alpha)
 {
   if(gpu_ewald) {
@@ -589,8 +590,7 @@ __device__ double CalcCoulombSwitchGPU(double distSq, int index, double qi_qj_fa
 }
 
 __device__ double CalcCoulombSwitchGPUNoLambda(double distSq, double qi_qj_fact,
-    double gpu_alpha, int gpu_ewald,
-    double gpu_rCut)
+    int gpu_ewald, double gpu_alpha, double gpu_rCut)
 {
   if(gpu_ewald) {
     double dist = sqrt(distSq);

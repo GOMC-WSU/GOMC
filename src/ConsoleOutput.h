@@ -73,8 +73,7 @@ private:
   void PrintMoveStat(const uint box, const ulong step) const;
   void PrintStatistic(const uint box, const ulong step) const;
   void PrintPressureTensor(const uint box, const ulong step) const;
-  void PrintEnergy(const uint box, Energy const& en, Virial const& vir,
-                   const ulong step) const;
+  void PrintEnergy(const uint box, Energy const& en, const ulong step) const;
   void PrintEnergyTitle();
   void PrintStatisticTitle();
   void PrintMoveTitle();

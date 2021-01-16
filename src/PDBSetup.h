@@ -27,11 +27,25 @@ namespace pdb_setup
 {
 struct Remarks : FWReadableBase {
   uint currBox;
-  double  disp[BOX_TOTAL], rotate[BOX_TOTAL], vol[BOX_TOTAL];
+  double disp[BOX_TOTAL], rotate[BOX_TOTAL], vol[BOX_TOTAL];
   ulong step[BOX_TOTAL];
   uint frameNumber[BOX_TOTAL], targetFrame[BOX_TOTAL];
   std::vector<ulong> frameSteps;
   bool restart, reached[BOX_TOTAL], recalcTrajectory;
+  bool restartFromXSC, restartFromBinary;
+  Remarks () {
+    currBox = 0;
+    restart = recalcTrajectory = false;
+    restartFromXSC = restartFromBinary = false;
+    for (int b = 0; b < BOX_TOTAL; b++) {
+      reached[b] = false;
+      frameNumber[b] = targetFrame[b] = 0;
+      //set to -1, so in Movesetting, we initialize it
+      disp[b] = rotate[b] = vol[b] = -1.0; 
+      step[b] = 0;
+    }
+  }
+
   void SetRestart(config_setup::RestartSettings const& r);
   void Read(FixedWidthReader & pdb);
   void SetBox(const uint b)
@@ -51,10 +65,18 @@ private:
 struct Cryst1 : FWReadableBase {
   //box dimensions
   uint currBox;
-  bool hasVolume;
-  XYZArray axis;
+  bool hasVolume[BOX_TOTAL];    //If reads cellBasis info from PDB
+  bool hasCellBasis[BOX_TOTAL]; //If reads cellBasis info from XSC
+  XYZArray axis, cellBasis[BOX_TOTAL];
   double cellAngle[BOX_TOTAL][3];
-  Cryst1(void) : currBox(0), hasVolume(false), axis(BOX_TOTAL) {}
+  Cryst1(void) : currBox(0), axis(BOX_TOTAL) 
+  {
+    for(int b = 0; b < BOX_TOTAL; b++) {
+      hasCellBasis[b] = false;
+      hasVolume[b] = false;
+      cellBasis[b] = XYZArray(3);
+    }
+  }
   void SetBox(const uint b)
   {
     currBox = b;
@@ -66,13 +88,16 @@ class Atoms : public FWReadableBase
 {
 public:
   //Set the current residue to something other than 1
-  Atoms(void) : restart(false), currBox(0), count(0),
-    currRes(10) {}
+  Atoms(void) : restart(false), currBox(0), count(0)
+    {
+      for (int b = 0; b < BOX_TOTAL; b++) {
+        numAtomsInBox[b] = 0;
+      }
+    }
   void SetRestart(config_setup::RestartSettings const& r);
   void SetBox(const uint b)
   {
     currBox = b;
-    firstResInFile = true;
   }
   void Assign(std::string const& atomName,
               std::string const& resName,
@@ -89,23 +114,18 @@ public:
 
   //private:
   //member data
-  std::vector<char> chainLetter; //chain ids of each molecule
+  std::vector<char> chainLetter; //chain ids of each atom respectively
   std::vector<double> x, y, z; //coordinates of each particle
   std::vector<double> beta;  //beta value of each molecule
   std::vector<uint> box;
-  std::vector<std::string> atomAliases, resNamesFull, resNames,
-      resKindNames;
-  std::vector<uint> startIdxRes, resKinds, molBeta, resIDs;
+  std::vector<std::string> resNames;
   bool restart, firstResInFile, recalcTrajectory;
   //CurrRes is used to store res vals, currBox is used to
   //determine box either via the file (new) or the occupancy
   //(restart), count allows overwriting of coordinates during
   //second box read (restart only)
-  uint currBox, count, currRes;
-  std::string currResname;
-
-  uint lastAtomIndexInBox0 = 0;
-  uint lastResKindIndex = 0;
+  uint currBox, count;
+  uint numAtomsInBox[BOX_TOTAL]; // number of atom in each box
 };
 
 }

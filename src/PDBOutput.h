@@ -71,7 +71,7 @@ private:
   void InsertAtomInLine(std::string & line, XYZ const& coor,
                         std::string const& occ, std::string const& beta);
 
-  void PrintEnd(const uint b, Writer & out)
+  void PrintEnd(Writer & out)
   {
     out.file << "END" << std::endl;
   }

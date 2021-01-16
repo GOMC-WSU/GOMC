@@ -57,15 +57,10 @@ public:
     }
   }
 
-  inline MoveSettings& operator=(MoveSettings const& rhs)
-  {
-    return *this;
-  }
-
   void Init(StaticVals const& statV, pdb_setup::Remarks const& remarks,
             const uint tkind);
 
-  void Update(const uint move, const bool isAccepted, const uint step,
+  void Update(const uint move, const bool isAccepted,
               const uint box, const uint kind = 0);
 
   void AdjustMoves(const uint step);
@@ -105,14 +100,19 @@ public:
   uint GetTrialTot(const uint box, const uint move) const;
   double GetScaleTot(const uint box, const uint move) const;
   
-  inline bool GetSingleMoveAccepted() const
+  inline bool GetSingleMoveAccepted(uint box) const
   {
-    return isSingleMoveAccepted;
+    return isSingleMoveAccepted[box];
   }
   
-  inline void SetSingleMoveAccepted()
+  inline void SetSingleMoveAccepted(uint box)
   {
-    isSingleMoveAccepted = true;
+    isSingleMoveAccepted[box] = true;
+  }
+
+  inline void UnsetSingleMoveAccepted(uint box)
+  {
+    isSingleMoveAccepted[box] = false;
   }
 
 private:
@@ -125,7 +125,7 @@ private:
 
   uint perAdjust;
   uint totKind;
-  bool isSingleMoveAccepted;
+  bool isSingleMoveAccepted[BOXES_WITH_U_NB];
 
 #if ENSEMBLE == GEMC
   uint GEMC_KIND;
@@ -138,6 +138,8 @@ private:
   //The alpha values are used to control how much weight is placed on the number of accepted
   //moves from the most recent adjustment period versus on the total number of accepted moves
   static const double r_alpha, t_alpha;
+  //If the MultiParticle acceptance percentage is within mp_accept_tol, we don't adjust the max
+  static const double mp_accept_tol;
 
   // make CheckpointOutput and CheckpointSetup friend classes to have access to
   // private data

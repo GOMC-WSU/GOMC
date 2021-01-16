@@ -14,8 +14,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CUDAMemoryManager.cuh"
 #include "cub/cub.cuh"
 #include <stdio.h>
-#define NUMBER_OF_NEIGHBOR_CELL 27
-#define PARTICLE_PER_BLOCK 64
+#define NUMBER_OF_NEIGHBOR_CELLS 27
+#define PARTICLES_PER_BLOCK 64
 
 using namespace cub;
 
@@ -51,8 +51,8 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
 {
   int atomNumber = currentCoords.Count();
   int molNumber = currentCOM.Count();
-  int neighborListCount = neighborList.size() * NUMBER_OF_NEIGHBOR_CELL;
   int numberOfCells = neighborList.size();
+  int numberOfCellPairs = numberOfCells * NUMBER_OF_NEIGHBOR_CELLS;
   int *gpu_particleKind;
   int *gpu_particleMol;
   int *gpu_neighborList, *gpu_cellStartIndex;
@@ -63,18 +63,18 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
 
   // Run the kernel...
   threadsPerBlock = 128;
-  blocksPerGrid = (int)(numberOfCells * NUMBER_OF_NEIGHBOR_CELL);
-  energyVectorLen = numberOfCells * NUMBER_OF_NEIGHBOR_CELL * threadsPerBlock;
+  blocksPerGrid = numberOfCellPairs;
+  energyVectorLen = blocksPerGrid * threadsPerBlock;
 
   // Convert neighbor list to 1D array
-  std::vector<int> neighborlist1D(neighborListCount);
-  for(int i = 0; i < neighborList.size(); i++) {
-    for(int j = 0; j < NUMBER_OF_NEIGHBOR_CELL; j++) {
-      neighborlist1D[i * NUMBER_OF_NEIGHBOR_CELL + j] = neighborList[i][j];
+  std::vector<int> neighborlist1D(numberOfCellPairs);
+  for(int i = 0; i < numberOfCells; i++) {
+    for(int j = 0; j < NUMBER_OF_NEIGHBOR_CELLS; j++) {
+      neighborlist1D[i * NUMBER_OF_NEIGHBOR_CELLS + j] = neighborList[i][j];
     }
   }
 
-  CUMALLOC((void**) &gpu_neighborList, neighborListCount * sizeof(int));
+  CUMALLOC((void**) &gpu_neighborList, numberOfCellPairs * sizeof(int));
   CUMALLOC((void**) &gpu_cellStartIndex,
            cellStartIndex.size() * sizeof(int));
   CUMALLOC((void**) &gpu_particleCharge,
@@ -102,7 +102,7 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0],
              atomNumber * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_neighborList, &neighborlist1D[0],
-             neighborListCount * sizeof(int),
+             numberOfCellPairs * sizeof(int),
              cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_cellStartIndex, &cellStartIndex[0],
              cellStartIndex.size() * sizeof(int),
@@ -316,8 +316,8 @@ void CallBoxForceGPU(VariablesCUDA *vars,
 {
   int atomNumber = coords.Count();
   int *gpu_particleKind, *gpu_particleMol;
-  int neighborListCount = neighborList.size() * NUMBER_OF_NEIGHBOR_CELL;
   int numberOfCells = neighborList.size();
+  int numberOfCellPairs = numberOfCells * NUMBER_OF_NEIGHBOR_CELLS;
   int *gpu_neighborList, *gpu_cellStartIndex;
   int blocksPerGrid, threadsPerBlock, energyVectorLen;
   double *gpu_particleCharge;
@@ -326,19 +326,19 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   double cpu_final_REn = 0.0, cpu_final_LJEn = 0.0;
 
   threadsPerBlock = 256;
-  blocksPerGrid = numberOfCells * NUMBER_OF_NEIGHBOR_CELL;
-  energyVectorLen = numberOfCells * NUMBER_OF_NEIGHBOR_CELL * threadsPerBlock;
+  blocksPerGrid = numberOfCells * NUMBER_OF_NEIGHBOR_CELLS;
+  energyVectorLen = numberOfCells * NUMBER_OF_NEIGHBOR_CELLS * threadsPerBlock;
 
   // Convert neighbor list to 1D array
-  std::vector<int> neighborlist1D(neighborListCount);
-  for(int i = 0; i < neighborList.size(); i++) {
-    for(int j = 0; j < NUMBER_OF_NEIGHBOR_CELL; j++) {
-      neighborlist1D[i * NUMBER_OF_NEIGHBOR_CELL + j] = neighborList[i][j];
+  std::vector<int> neighborlist1D(numberOfCellPairs);
+  for(int i = 0; i < numberOfCells; i++) {
+    for(int j = 0; j < NUMBER_OF_NEIGHBOR_CELLS; j++) {
+      neighborlist1D[i * NUMBER_OF_NEIGHBOR_CELLS + j] = neighborList[i][j];
     }
   }
 
   CUMALLOC((void**) &gpu_particleCharge, particleCharge.size() * sizeof(double));
-  CUMALLOC((void**) &gpu_neighborList, neighborListCount * sizeof(int));
+  CUMALLOC((void**) &gpu_neighborList, numberOfCellPairs * sizeof(int));
   CUMALLOC((void**) &gpu_cellStartIndex, cellStartIndex.size() * sizeof(int));
   CUMALLOC((void**) &gpu_particleKind, particleKind.size() * sizeof(int));
   CUMALLOC((void**) &gpu_particleMol, particleMol.size() * sizeof(int));
@@ -357,7 +357,7 @@ void CallBoxForceGPU(VariablesCUDA *vars,
   cudaMemcpy(vars->gpu_mForcey, mForcey, molCount * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_mForcez, mForcez, molCount * sizeof(double), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_mapParticleToCell, &mapParticleToCell[0], atomNumber * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(gpu_neighborList, &neighborlist1D[0], neighborListCount * sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(gpu_neighborList, &neighborlist1D[0], numberOfCellPairs * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_cellStartIndex, &cellStartIndex[0], cellStartIndex.size() * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_cellVector, &cellVector[0], atomNumber * sizeof(int), cudaMemcpyHostToDevice);
   cudaMemcpy(gpu_particleCharge, &particleCharge[0], particleCharge.size() * sizeof(double), cudaMemcpyHostToDevice);
@@ -524,7 +524,7 @@ void CallVirialReciprocalGPU(VariablesCUDA *vars,
   // calculate block and grid sizes
   dim3 threadsPerBlock(256, 1, 1);
   int blocksPerGridX = (int)(imageSize / threadsPerBlock.x) + 1;
-  int blocksPerGridY = (int)(atomNumber / PARTICLE_PER_BLOCK) + 1;
+  int blocksPerGridY = (int)(atomNumber / PARTICLES_PER_BLOCK) + 1;
   dim3 blocksPerGrid(blocksPerGridX, blocksPerGridY, 1);
   VirialReciprocalGPU <<< blocksPerGrid,
                       threadsPerBlock>>>(vars->gpu_x,
@@ -682,21 +682,21 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
 
   double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
 
-  int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
+  int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELLS;
   int nCellIndex = blockIdx.x;
   int neighborCell = gpu_neighborList[nCellIndex];
 
   // calculate number of particles inside neighbor Cell
-  int particlesInsideCurrentCell, particlesInsideNeighboringCells;
+  int particlesInsideCurrentCell, particlesInsideNeighboringCell;
   int endIndex = gpu_cellStartIndex[neighborCell + 1];
-  particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
+  particlesInsideNeighboringCell = endIndex - gpu_cellStartIndex[neighborCell];
 
-  // Calculate number of particles inside current Cell
+  // calculate number of particles inside current Cell
   endIndex = gpu_cellStartIndex[currentCell + 1];
   particlesInsideCurrentCell = endIndex - gpu_cellStartIndex[currentCell];
 
   // total number of pairs
-  int numberOfPairs = particlesInsideCurrentCell * particlesInsideNeighboringCells;
+  int numberOfPairs = particlesInsideCurrentCell * particlesInsideNeighboringCell;
 
   for(int pairIndex = threadIdx.x; pairIndex < numberOfPairs; pairIndex += blockDim.x) {
     int neighborParticleIndex = pairIndex / particlesInsideCurrentCell;
@@ -711,8 +711,6 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
                    axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
                    gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                    gpu_Invcell_z)) {
-        double cA = gpu_particleCharge[currentParticle];
-        double cB = gpu_particleCharge[neighborParticle];
         int kA = gpu_particleKind[currentParticle];
         int kB = gpu_particleKind[neighborParticle];
         int mA = gpu_particleMol[currentParticle];
@@ -741,25 +739,28 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
         gpu_vT23[threadID] += pVF * (0.5 * (virComponents.y * diff_com.z + virComponents.z * diff_com.y));
 
         if(electrostatic) {
-          double qi_qj = cA * cB;
-          double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
-                                 gpu_isFraction, gpu_molIndex,
-                                 gpu_kindIndex, gpu_lambdaCoulomb);
-          double pRF = CalcCoulombForceGPU(distSq, qi_qj, gpu_VDW_Kind[0], gpu_ewald[0],
-                                           gpu_isMartini[0], gpu_alpha[box],
-                                           gpu_rCutCoulomb[box], gpu_diElectric_1[0],
-                                           gpu_sigmaSq, sc_coul, sc_sigma_6, sc_alpha,
-                                           sc_power, lambdaCoulomb, gpu_count[0],
-                                           kA, kB);
+          double qi_qj = gpu_particleCharge[currentParticle] * gpu_particleCharge[neighborParticle];
+          //skip particle pairs with no charge
+          if(qi_qj != 0.0) {
+            double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
+                                   gpu_isFraction, gpu_molIndex,
+                                   gpu_kindIndex, gpu_lambdaCoulomb);
+            double pRF = CalcCoulombForceGPU(distSq, qi_qj, gpu_VDW_Kind[0], gpu_ewald[0],
+                                             gpu_isMartini[0], gpu_alpha[box],
+                                             gpu_rCutCoulomb[box], gpu_diElectric_1[0],
+                                             gpu_sigmaSq, sc_coul, sc_sigma_6, sc_alpha,
+                                             sc_power, lambdaCoulomb, gpu_count[0],
+                                             kA, kB);
 
-          gpu_rT11[threadID] += pRF * (virComponents.x * diff_com.x);
-          gpu_rT22[threadID] += pRF * (virComponents.y * diff_com.y);
-          gpu_rT33[threadID] += pRF * (virComponents.z * diff_com.z);
+            gpu_rT11[threadID] += pRF * (virComponents.x * diff_com.x);
+            gpu_rT22[threadID] += pRF * (virComponents.y * diff_com.y);
+            gpu_rT33[threadID] += pRF * (virComponents.z * diff_com.z);
 
-          //extra tensor calculations
-          gpu_rT12[threadID] += pRF * (0.5 * (virComponents.x * diff_com.y + virComponents.y * diff_com.x));
-          gpu_rT13[threadID] += pRF * (0.5 * (virComponents.x * diff_com.z + virComponents.z * diff_com.x));
-          gpu_rT23[threadID] += pRF * (0.5 * (virComponents.y * diff_com.z + virComponents.z * diff_com.y));
+            //extra tensor calculations
+            gpu_rT12[threadID] += pRF * (0.5 * (virComponents.x * diff_com.y + virComponents.y * diff_com.x));
+            gpu_rT13[threadID] += pRF * (0.5 * (virComponents.x * diff_com.z + virComponents.z * diff_com.x));
+            gpu_rT23[threadID] += pRF * (0.5 * (virComponents.y * diff_com.z + virComponents.z * diff_com.y));
+          }
         }
       }
     }
@@ -833,21 +834,21 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
   double REn = 0.0, LJEn = 0.0;
   double cutoff = fmax(gpu_rCut[0], gpu_rCutCoulomb[box]);
 
-  int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELL;
+  int currentCell = blockIdx.x / NUMBER_OF_NEIGHBOR_CELLS;
   int nCellIndex = blockIdx.x;
   int neighborCell = gpu_neighborList[nCellIndex];
 
   // calculate number of particles inside neighbor Cell
-  int particlesInsideCurrentCell, particlesInsideNeighboringCells;
+  int particlesInsideCurrentCell, particlesInsideNeighboringCell;
   int endIndex = gpu_cellStartIndex[neighborCell + 1];
-  particlesInsideNeighboringCells = endIndex - gpu_cellStartIndex[neighborCell];
+  particlesInsideNeighboringCell = endIndex - gpu_cellStartIndex[neighborCell];
 
   // Calculate number of particles inside current Cell
   endIndex = gpu_cellStartIndex[currentCell + 1];
   particlesInsideCurrentCell = endIndex - gpu_cellStartIndex[currentCell];
 
   // total number of pairs
-  int numberOfPairs = particlesInsideCurrentCell * particlesInsideNeighboringCells;
+  int numberOfPairs = particlesInsideCurrentCell * particlesInsideNeighboringCell;
 
   for(int pairIndex = threadIdx.x; pairIndex < numberOfPairs; pairIndex += blockDim.x) {
     int neighborParticleIndex = pairIndex / particlesInsideCurrentCell;
@@ -862,8 +863,6 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
                    axis, halfAx, cutoff, gpu_nonOrth[0], gpu_cell_x,
                    gpu_cell_y, gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y,
                    gpu_Invcell_z)) {
-        double cA = gpu_particleCharge[currentParticle];
-        double cB = gpu_particleCharge[neighborParticle];
         int kA = gpu_particleKind[currentParticle];
         int kB = gpu_particleKind[neighborParticle];
         int mA = gpu_particleMol[currentParticle];
@@ -890,37 +889,42 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
         forceLJ.z = virComponents.z * pVF;
 
         if(electrostatic) {
-          static const double qqFact = 167000.0;
-          double qi_qj_fact = cA * cB * qqFact;
-          double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
-                                 gpu_isFraction, gpu_molIndex,
-                                 gpu_kindIndex,
-                                 gpu_lambdaCoulomb);
-          REn += CalcCoulombGPU(distSq, kA, kB,
-                                qi_qj_fact, gpu_rCutLow[0],
-                                gpu_ewald[0], gpu_VDW_Kind[0],
-                                gpu_alpha[box],
-                                gpu_rCutCoulomb[box],
-                                gpu_isMartini[0],
-                                gpu_diElectric_1[0],
-                                lambdaCoulomb, sc_coul, sc_sigma_6,
-                                sc_alpha, sc_power,
-                                gpu_sigmaSq,
-                                gpu_count[0]);
+          double qi_qj_fact = gpu_particleCharge[currentParticle] * gpu_particleCharge[neighborParticle];
+          //initialize forceReal in case qi_qj_fact == 0.0
+          forceReal =  make_double3(0.0, 0.0, 0.0);
+          if(qi_qj_fact != 0.0) {
+            static const double qqFact = 167000.0;
+            qi_qj_fact *= qqFact;
+            double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
+                                   gpu_isFraction, gpu_molIndex,
+                                   gpu_kindIndex,
+                                   gpu_lambdaCoulomb);
+            REn += CalcCoulombGPU(distSq, kA, kB,
+                                  qi_qj_fact, gpu_rCutLow[0],
+                                  gpu_ewald[0], gpu_VDW_Kind[0],
+                                  gpu_alpha[box],
+                                  gpu_rCutCoulomb[box],
+                                  gpu_isMartini[0],
+                                  gpu_diElectric_1[0],
+                                  lambdaCoulomb, sc_coul, sc_sigma_6,
+                                  sc_alpha, sc_power,
+                                  gpu_sigmaSq,
+                                  gpu_count[0]);
 
-          double coulombVir = CalcCoulombForceGPU(distSq, qi_qj_fact,
-                                                  gpu_VDW_Kind[0], gpu_ewald[0],
-                                                  gpu_isMartini[0],
-                                                  gpu_alpha[box],
-                                                  gpu_rCutCoulomb[box],
-                                                  gpu_diElectric_1[0],
-                                                  gpu_sigmaSq, sc_coul,
-                                                  sc_sigma_6, sc_alpha,
-                                                  sc_power, lambdaCoulomb,
-                                                  gpu_count[0], kA, kB);
-          forceReal.x = virComponents.x * coulombVir;
-          forceReal.y = virComponents.y * coulombVir;
-          forceReal.z = virComponents.z * coulombVir;
+            double coulombVir = CalcCoulombForceGPU(distSq, qi_qj_fact,
+                                                    gpu_VDW_Kind[0], gpu_ewald[0],
+                                                    gpu_isMartini[0],
+                                                    gpu_alpha[box],
+                                                    gpu_rCutCoulomb[box],
+                                                    gpu_diElectric_1[0],
+                                                    gpu_sigmaSq, sc_coul,
+                                                    sc_sigma_6, sc_alpha,
+                                                    sc_power, lambdaCoulomb,
+                                                    gpu_count[0], kA, kB);
+            forceReal.x = virComponents.x * coulombVir;
+            forceReal.y = virComponents.y * coulombVir;
+            forceReal.z = virComponents.z * coulombVir;
+          }
         }
 
         atomicAdd(&gpu_aForcex[currentParticle], forceReal.x + forceLJ.x);
@@ -968,10 +972,10 @@ __global__ void VirialReciprocalGPU(double *gpu_x,
                                     uint imageSize,
                                     uint atomNumber)
 {
-  __shared__ double shared_coords[PARTICLE_PER_BLOCK * 7];
+  __shared__ double shared_coords[PARTICLES_PER_BLOCK * 7];
   int imageID = blockIdx.x * blockDim.x + threadIdx.x;
-  int offset_coordinates_index = blockIdx.y * PARTICLE_PER_BLOCK;
-  int numberOfAtoms = min(PARTICLE_PER_BLOCK, atomNumber - offset_coordinates_index);
+  int offset_coordinates_index = blockIdx.y * PARTICLES_PER_BLOCK;
+  int numberOfAtoms = min(PARTICLES_PER_BLOCK, atomNumber - offset_coordinates_index);
   if(threadIdx.x < numberOfAtoms) {
     shared_coords[threadIdx.x * 7    ] = gpu_x[offset_coordinates_index + threadIdx.x];
     shared_coords[threadIdx.x * 7 + 1] = gpu_y[offset_coordinates_index + threadIdx.x];

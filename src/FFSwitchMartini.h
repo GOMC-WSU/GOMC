@@ -123,7 +123,7 @@ protected:
                                 uint b) const;
 
   double *An, *Bn, *Cn, *An_1_4, *Bn_1_4, *Cn_1_4;
-  double *sig6, *sig6_1_4, *sign, *sign_1_4;
+  double *sig6, *sign, *sig6_1_4, *sign_1_4;
 
   double diElectric_1, rOn, rOnSq, rOnCoul, A1, B1, C1, A6, B6, C6;
 
@@ -132,7 +132,7 @@ protected:
 inline void FF_SWITCH_MARTINI::Init(ff_setup::Particle const& mie,
                                     ff_setup::NBfix const& nbfix)
 {
-  //Initializ sigma and epsilon
+  //Initialize sigma and epsilon
   FFParticle::Init(mie, nbfix);
   uint size = num::Sq(count);
   //allocate memory

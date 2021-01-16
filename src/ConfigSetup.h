@@ -43,12 +43,25 @@ namespace config_setup
 //A filename
 struct FileName {
   std::string name;
+  bool defined;
+  FileName(void) {
+    defined = false;
+    name = ""; 
+  }
+  FileName(std::string file, bool def) {
+    defined = def;
+    name = file; 
+  }
 };
 
 //Multiple filenames
 template <uint N>
 struct FileNames {
   std::string name[N];
+  bool defined[N];
+  FileNames(void) {
+    std::fill_n(defined, N, false);  
+  }
 };
 
 /////////////////////////////////////////////////////////////////////////
@@ -61,6 +74,8 @@ struct RestartSettings {
   ulong step;
   bool recalcTrajectory;
   bool restartFromCheckpoint;
+  bool restartFromBinaryFile;
+  bool restartFromXSCFile;
   bool operator()(void)
   {
     return enable;
@@ -94,8 +109,8 @@ struct FFKind {
 
 //Files for input.
 struct InFiles {
-  FileName param;
-  FileNames<BOX_TOTAL> pdb, psf;
+  std::vector<FileName> param;
+  FileNames<BOX_TOTAL> pdb, psf, binaryInput, xscInput, checkpoint;
   FileName seed;
 };
 
@@ -379,8 +394,7 @@ struct Statistics {
   TrackedVars vars;
 };
 struct Output {
-  SysState state, restart;
-  SysState state_dcd, restart_dcd;
+  SysState state, restart, state_dcd, restart_dcd;
   Statistics statistics;
   EventSettings console, checkpoint;
 };
@@ -401,10 +415,6 @@ private:
   bool CheckString(std::string str1, std::string str2);
   void verifyInputs(void);
   InputFileReader reader;
-
-  //Names of config file.
-  static const char defaultConfigFileName[]; // "in.dat"
-  static const char configFileAlias[];       // "GO-MC Configuration File"
 };
 
 #endif

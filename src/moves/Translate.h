@@ -111,7 +111,7 @@ inline void Translate::Accept(const uint rejectState, const uint step)
     molRemoved = false;
   }
 
-  moveSetRef.Update(mv::DISPLACE, result, step, b, mk);
+  moveSetRef.Update(mv::DISPLACE, result, b, mk);
 }
 
 #endif /*TRANSLATE_H*/

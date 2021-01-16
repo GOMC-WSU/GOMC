@@ -16,7 +16,7 @@ typedef r123::Philox4x32 RNG;
 #include "XYZArray.h"
 
 void CallTranslateParticlesGPU(VariablesCUDA *vars,
-                               std::vector<int> &isMoleculeInvolved,
+                               std::vector<int8_t> &isMoleculeInvolved,
                                double t_max,
                                double *mForcex,
                                double *mForcey,
@@ -36,7 +36,7 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                XYZArray &molForceRecRef);
 
 void CallRotateParticlesGPU(VariablesCUDA *vars,
-                            std::vector<int> &isMoleculeInvolved,
+                            std::vector<int8_t> &isMoleculeInvolved,
                             double r_max,
                             double *mTorquex,
                             double *mTorquey,
@@ -76,7 +76,7 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
     double *gpu_t_k_x,
     double *gpu_t_k_y,
     double *gpu_t_k_z,
-    int *gpu_isMoleculeInvolved,
+    int8_t *gpu_isMoleculeInvolved,
     double *gpu_mForceRecx,
     double *gpu_mForceRecy,
     double *gpu_mForceRecz);
@@ -103,5 +103,5 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                                       double *gpu_r_k_x,
                                       double *gpu_r_k_y,
                                       double *gpu_r_k_z,
-                                      int *gpu_isMoleculeInvolved);
+                                      int8_t *gpu_isMoleculeInvolved);
 #endif

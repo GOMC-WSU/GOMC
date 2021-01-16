@@ -17,7 +17,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "FFConst.h" //for forcefield constants
 #include "BasicTypes.h" //for uint
 #include "InputFileReader.h"
+#include "ConfigSetup.h" //for access to structure
 
+namespace config_setup
+{
+  struct FileName;
+}
 
 namespace ff_setup
 {
@@ -75,7 +80,7 @@ public:
 
   std::string LoadLine(Reader & param, std::string const& firstVar);
 
-//	private:
+//    private:
   std::vector<std::string> name;
   uint numTerms;
   bool multi;
@@ -94,7 +99,7 @@ public:
 #ifndef NDEBUG
   void PrintBrief();
 #endif
-//	private:
+//    private:
   std::vector<double> sigma, epsilon, sigma_1_4, epsilon_1_4;
   std::vector<uint> n, n_1_4;
 
@@ -119,7 +124,7 @@ public:
            const double expN_1_4
 #endif
           );
-//	private:
+//    private:
   std::vector<double> sigma, epsilon, sigma_1_4, epsilon_1_4;
 #ifdef MIE_INT_ONLY
   std::vector<uint> n, n_1_4;
@@ -287,7 +292,7 @@ class FFSetup
 {
 public:
   FFSetup(void) {}
-  void Init(std::string const& fileName, const bool isCHARMM);
+  void Init(const std::vector<config_setup::FileName> &fileName, const bool isCHARMM);
 
   ff_setup::Particle mie;
   ff_setup::NBfix nbfix;

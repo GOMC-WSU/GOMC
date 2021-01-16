@@ -104,8 +104,8 @@ void MoleculeKind::Init
 }
 
 MoleculeKind::MoleculeKind() : angles(3), dihedrals(4),
-  atomMass(NULL), atomCharge(NULL), builder(NULL),
-  atomKind(NULL) {}
+  atomMass(NULL), builder(NULL), atomKind(NULL),
+  atomCharge(NULL) {}
 
 
 MoleculeKind::~MoleculeKind()
@@ -116,9 +116,6 @@ MoleculeKind::~MoleculeKind()
   delete builder;
 }
 
-
-
-
 void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
 {
   numAtoms = molData.atoms.size();
@@ -127,10 +124,11 @@ void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
   atomCharge = new double[numAtoms];
   molMass = 0;
   atomNames.clear();
+  resNames.clear();
 
   /* These two entries all PSFOutput to 
     correctly assign residueIDs to a map containing
-    multiresidue and standard entries.  */
+    multi-residue and standard entries.  */
   isMultiResidue = molData.isMultiResidue;
   intraMoleculeResIDs = molData.intraMoleculeResIDs;
 
@@ -138,6 +136,7 @@ void MoleculeKind::InitAtoms(mol_setup::MolKind const& molData)
   for(uint i = 0; i < numAtoms; ++i) {
     const mol_setup::Atom& atom = molData.atoms[i];
     atomNames.push_back(atom.name);
+    resNames.push_back(atom.residue);
     atomTypeNames.push_back(atom.type);
     atomMass[i] = atom.mass;
     molMass += atom.mass;

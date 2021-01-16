@@ -15,6 +15,7 @@ set(sources
    src/DCDlib.cpp
    src/DCDOutput.cpp
    src/EnPartCntSampleOutput.cpp
+   src/ExtendedSystem.cpp
    src/Ewald.cpp
    src/EwaldCached.cpp
    src/FFConst.cpp
@@ -87,6 +88,7 @@ set(headers
    src/EnergyTypes.h
    src/EnPartCntSampleOutput.h
    src/EnsemblePreprocessor.h
+   src/ExtendedSystem.h
    src/Ewald.h
    src/EwaldCached.h  
    src/FFAngles.h
@@ -178,6 +180,7 @@ set(headers
 set(libHeaders
    lib/BasicTypes.h
    lib/BitLib.h
+   lib/Endian.h
    lib/GeomLib.h
    lib/Lambda.h
    lib/NumLib.h

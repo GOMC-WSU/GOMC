@@ -45,35 +45,38 @@ private:
   BoxDimensions & boxDimRef;
   Molecules const & molRef;
   PRNG & prngRef;
+  Coordinates & coordCurrRef;
 #if GOMC_LIB_MPI
   PRNG & prngPTRef;
 #endif
-  Coordinates & coordCurrRef;
 
   bool enableOutCheckpoint;
   bool enableParallelTempering;
   std::string filename;
   FILE* outputFile;
   ulong stepsPerCheckpoint;
+  char gomc_version[5];
 
   void openOutputFile();
+  void setGOMCVersion();
+  void printGOMCVersion();
   void printParallelTemperingBoolean();
   void printStepNumber(ulong step);
   void printRandomNumbers();
 #if GOMC_LIB_MPI
   void printRandomNumbersParallelTempering();
 #endif
-  void printCoordinates();
   void printMoleculeLookupData();
   void printMoveSettingsData();
-  void printBoxDimensionsData();
+  void printMoleculesData();
 
   void printVector3DDouble(std::vector< std::vector< std::vector<double> > > data);
   void printVector3DUint(std::vector< std::vector< std::vector<uint> > > data);
   void printVector2DUint(std::vector< std::vector< uint > > data);
   void printVector1DDouble(std::vector< double > data);
-  void outputDoubleIn8Chars(double data);
-  void outputIntIn1Char(int8_t data);
-  void outputUintIn8Chars(uint32_t data);
+  void write_double_binary(double data);
+  void write_uint8_binary(int8_t data);
+  void write_uint32_binary(uint32_t data);
+  void write_uint64_binary(uint64_t data);
 
 };

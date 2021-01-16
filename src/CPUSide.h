@@ -29,18 +29,22 @@ class OutputableBase;
 
 struct CPUSide {
   CPUSide(System & sys, StaticVals & statV, Setup & set);
-  void Init(PDBSetup const& pdbSet, config_setup::Output const& out,
-            const ulong tillEquil, const ulong totSteps, ulong startStep);
+  void Init(PDBSetup const& pdbSet, 
+            config_setup::Output const& out,
+            const ulong tillEquil, 
+            const ulong totSteps, 
+            ulong startStep);
   void Output(const ulong step);
 
   ulong equilSteps;
 private:
   Clock timer;
   std::vector<OutputableBase *> outObj;
-  ConsoleOutput console;
+  OutputVars varRef;
   PDBOutput pdb;
-  DCDOutput dcd;
   PSFOutput psf;
+  DCDOutput dcd;
+  ConsoleOutput console;
   BlockAverages block;
   Histogram hist;
   CheckpointOutput checkpoint;
@@ -50,7 +54,6 @@ private:
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   FreeEnergyOutput freeEnergy;
 #endif
-  OutputVars varRef;
 };
 
 #endif /*CPU_SIDE_H*/

@@ -17,9 +17,9 @@ class CrankShaft : public MoveBase
 {
 public:
 
-  CrankShaft(System &sys, StaticVals const& statV) :
-    ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
-    MoveBase(sys, statV) {}
+  CrankShaft(System &sys, StaticVals const& statV) : MoveBase(sys, statV), 
+    molLookRef(sys.molLookupRef), ffRef(statV.forcefield)
+    {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
   virtual uint Transform();
@@ -174,7 +174,7 @@ inline void CrankShaft::Accept(const uint rejectState, const uint step)
   } else //else we didn't even try because we knew it would fail
     result = false;
 
-  moveSetRef.Update(mv::CRANKSHAFT, result, step, sourceBox, kindIndex);
+  moveSetRef.Update(mv::CRANKSHAFT, result, sourceBox, kindIndex);
 }
 
 #endif

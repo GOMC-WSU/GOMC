@@ -103,7 +103,7 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
     molRemoved = false;
   }
 
-  moveSetRef.Update(mv::ROTATE, result, step, b, mk);
+  moveSetRef.Update(mv::ROTATE, result, b, mk);
 }
 
 #endif /*ROTATION_H*/

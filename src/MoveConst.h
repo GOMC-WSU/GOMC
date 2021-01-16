@@ -85,7 +85,7 @@ const uint BOX1 = 1;
 //     11. Regrowth (box 0)     12. Regrowth (box 1)
 //     13. IntraMEMC (box 0)    14. IntraMEMC (box 1)
 //     15. CrankShaft (box 0)   16. CrankShaft (box 1)
-//     17. MEMC (box 0)         18. MEMC (box 1)
+//     17. MEMC (b0->b1)         18. MEMC (b1->b0)
 //     19. Mol Trans (b0->b1)   20. Mol Trans (b1->b0)
 //     21. CFCMC (b0->b1)       22. CFCMC (b1->b0)
 //

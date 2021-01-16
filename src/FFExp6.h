@@ -31,8 +31,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 struct FF_EXP6 : public FFParticle {
 public:
-  FF_EXP6(Forcefield &ff) : FFParticle(ff), expConst(NULL), rMin(NULL),
-    rMaxSq(NULL), expConst_1_4(NULL), rMin_1_4(NULL), rMaxSq_1_4(NULL) {}
+  FF_EXP6(Forcefield &ff) : FFParticle(ff), expConst(NULL), expConst_1_4(NULL),
+    rMin(NULL), rMin_1_4(NULL), rMaxSq(NULL), rMaxSq_1_4(NULL) {}
   virtual ~FF_EXP6()
   {
     delete[] expConst;
@@ -88,7 +88,7 @@ public:
                                   const uint kind2, const double qi_qj_Fact,
                                   const double lambda, uint b) const;
 
-  double *expConst, *expConst_1_4, *rMaxSq, *rMin, *rMaxSq_1_4, *rMin_1_4;
+  double *expConst, *expConst_1_4, *rMin, *rMin_1_4, *rMaxSq, *rMaxSq_1_4;
 
 protected:
   virtual double CalcEn(const double distSq, const uint index) const;
@@ -102,7 +102,7 @@ protected:
 inline void FF_EXP6::Init(ff_setup::Particle const& mie,
                           ff_setup::NBfix const& nbfix)
 {
-  //Initializ sigma and epsilon
+  //Initialize sigma and epsilon
   FFParticle::Init(mie, nbfix);
   uint size = num::Sq(count);
   //allocate memory

@@ -63,7 +63,7 @@ public:
   void AddRotationX(double angle);
   void AddRotationY(double angle);
   void AddRotationZ(double angle);
-  //z-x-z euler angles - beware ye gimbal lock
+  //z-x-z Euler angles - beware ye gimbal lock
   void AddRotation(const XYZ& rotateBy);
 
   //!Set the matrix to a change-of-basis rotation from unity
@@ -172,7 +172,6 @@ inline TransformMatrix TransformMatrix::operator*(const TransformMatrix& o) cons
   TransformMatrix result(0.0);
   for(uint i = 0; i < N; ++i) {
     for(uint j = 0; j < N; ++j) {
-      double entry = 0.0;
       for(uint k = 0; k < N; ++k) {
         result.matrix[i][j] += matrix[i][k] * o.matrix[k][j];
       }
@@ -186,7 +185,7 @@ inline TransformMatrix TransformMatrix::Inverse() const
   TransformMatrix inverse;
   //this method does not work in the general case, but it works when we only have
   //rotations and translations
-  //transpose orthagonal rotation section
+  //transpose orthogonal rotation section
   for(uint i = 0; i < 3; ++i) {
     for(uint j = 0; j < 3; ++j) {
       inverse.matrix[i][j] = matrix[j][i];

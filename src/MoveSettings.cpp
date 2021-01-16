@@ -16,12 +16,17 @@ const double MoveSettings::TARGET_ACCEPT_FRACT = 0.5;
 const double MoveSettings::TINY_AMOUNT = 1.0e-7;
 const double MoveSettings::r_alpha = 0.2;
 const double MoveSettings::t_alpha = 0.2;
+const double MoveSettings::mp_accept_tol = 0.1;
 
 void MoveSettings::Init(StaticVals const& statV,
                         pdb_setup::Remarks const& remarks,
                         const uint tkind)
 {
-  isSingleMoveAccepted = true;
+  //Set to true so that we calculate the forces for the current system, even if
+  //a MultiParticle move is called before any other moves are accepted.
+  for (uint b; b < BOXES_WITH_U_NB; b++) {
+    SetSingleMoveAccepted(b);
+  }
   totKind = tkind;
   perAdjust = statV.simEventFreq.perAdjust;
   for(uint b = 0; b < BOX_TOTAL; b++) {
@@ -80,7 +85,7 @@ void MoveSettings::Init(StaticVals const& statV,
 
 //Process results of move we just did in terms of acceptance counters
 void MoveSettings::Update(const uint move, const bool isAccepted,
-                          const uint step, const uint box, const uint kind)
+                          const uint box, const uint kind)
 {
   tries[box][move][kind]++;
   tempTries[box][move][kind]++;
@@ -88,12 +93,24 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
     tempAccepted[box][move][kind]++;
     accepted[box][move][kind]++;
 
-    if(move != mv::MULTIPARTICLE)
-      isSingleMoveAccepted = true;
+    if(move != mv::MULTIPARTICLE) {
+      SetSingleMoveAccepted(box);
+#if ENSEMBLE == GEMC
+      //GEMC has multiple boxes and this move changed both boxes, so we
+      //need to also mark the other box as having a move accepted.
+      if(move == mv::MEMC || move == mv::MOL_TRANSFER || move == mv::CFCMC ||
+         move == mv::VOL_TRANSFER) {
+        //Simple way to figure out which box is the other one. 0 -->1 and 1-->0
+        //Assumes just two boxes.
+        uint otherBox = box == 0;
+        SetSingleMoveAccepted(otherBox);
+      }
+#endif
+    }
   }
 
   if(move == mv::MULTIPARTICLE)
-    isSingleMoveAccepted = false;
+    UnsetSingleMoveAccepted(box);
 
   acceptPercent[box][move][kind] = (double)(accepted[box][move][kind]) /
                                    (double)(tries[box][move][kind]);
@@ -140,43 +157,35 @@ void MoveSettings::AdjustMoves(const uint step)
 
 void MoveSettings::AdjustMultiParticle(const uint box, const uint typePick)
 {
-  //Update totals for the entire simulation
-  for(int m = 0; m < mp::MPTOTALTYPES; ++m) {
-    mp_tries[box][m] += mp_interval_tries[box][m];
-    mp_accepted[box][m] += mp_interval_accepted[box][m];
-  }
-  //Make sure we tried some displacements, otherwise mp_t_max will be nan
-  if((double)mp_interval_tries[box][mp::MPDISPLACE] != 0) {
-    double fractOfTotalAccept = ((double)mp_accepted[box][mp::MPDISPLACE] /
-                                 (double)mp_tries[box][mp::MPDISPLACE]) / mp::TARGET_ACCEPT_FRACT;
-    double fractOfIntervalAccept = ((double)mp_interval_accepted[box][mp::MPDISPLACE] /
-                                  (double)mp_interval_tries[box][mp::MPDISPLACE]) / mp::TARGET_ACCEPT_FRACT;
-    if (fractOfIntervalAccept > 0.0) {
-      mp_t_max[box] *= ((1.0-t_alpha) * fractOfTotalAccept + t_alpha * fractOfIntervalAccept);
+  //Make sure we tried some moves of this move type, otherwise move max will be NaN
+  if (mp_interval_tries[box][typePick] > 0) {
+    //Update totals for the entire simulation
+    mp_tries[box][typePick] += mp_interval_tries[box][typePick];
+    mp_accepted[box][typePick] += mp_interval_accepted[box][typePick];
+    double fractOfTotalAccept = ((double)mp_accepted[box][typePick] /
+                                 (double)mp_tries[box][typePick]) / mp::TARGET_ACCEPT_FRACT;
+    double fractOfIntervalAccept = ((double)mp_interval_accepted[box][typePick] /
+                                    (double)mp_interval_tries[box][typePick]) / mp::TARGET_ACCEPT_FRACT;
+    if (typePick == mp::MPDISPLACE) {
+      if (fractOfIntervalAccept == 0.0) {
+        mp_t_max[box] *= 0.5;
+      } else if (fabs(fractOfIntervalAccept - mp::TARGET_ACCEPT_FRACT) > mp_accept_tol) {
+        mp_t_max[box] *= ((1.0-t_alpha) * fractOfTotalAccept
+                          + t_alpha * fractOfIntervalAccept);
+      }
+      num::Bound<double>(mp_t_max[box], 0.001, (boxDimRef.axis.Min(box) * 0.5) - 0.001);
     } else {
-      mp_t_max[box] *= 0.5;
+      if (fractOfIntervalAccept == 0.0) {
+        mp_r_max[box] *= 0.5;
+      } else if (fabs(fractOfIntervalAccept - mp::TARGET_ACCEPT_FRACT) > mp_accept_tol) {
+        mp_r_max[box] *= ((1.0-r_alpha) * fractOfTotalAccept
+                          + r_alpha * fractOfIntervalAccept);
+      }
+      num::Bound<double>(mp_r_max[box], 0.001, M_PI - 0.001);
     }
-    num::Bound<double>(mp_t_max[box], 0.001, (boxDimRef.axis.Min(box) * 0.5) - 0.001);
     //Reset totals for next adjustment period
-    mp_interval_accepted[box][mp::MPDISPLACE] = 0;
-    mp_interval_tries[box][mp::MPDISPLACE] = 0;
-  }
-
-  //Make sure we tried some rotations, otherwise mp_r_max will be nan
-  if((double)mp_interval_tries[box][mp::MPROTATE] != 0) {
-    double fractOfTotalAccept = ((double)mp_accepted[box][mp::MPROTATE] /
-                                 (double)mp_tries[box][mp::MPROTATE]) / mp::TARGET_ACCEPT_FRACT;
-    double fractOfIntervalAccept = ((double)mp_interval_accepted[box][mp::MPROTATE] /
-                                  (double)mp_interval_tries[box][mp::MPROTATE]) / mp::TARGET_ACCEPT_FRACT;
-    if (fractOfIntervalAccept > 0.0) {
-      mp_r_max[box] *= ((1.0-r_alpha) * fractOfTotalAccept + r_alpha * fractOfIntervalAccept);
-    } else {
-      mp_r_max[box] *= 0.5;
-    }
-    num::Bound<double>(mp_r_max[box], 0.001, M_PI - 0.001);
-    //Reset totals for next adjustment period
-    mp_interval_accepted[box][mp::MPROTATE] = 0;
-    mp_interval_tries[box][mp::MPROTATE] = 0;
+    mp_interval_accepted[box][typePick] = 0;
+    mp_interval_tries[box][typePick] = 0;
   }
 }
 

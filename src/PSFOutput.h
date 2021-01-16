@@ -50,6 +50,11 @@ private:
   uint totalAngles;
   uint totalDihs;
 
+  uint boxAtoms[BOX_TOTAL];
+  uint boxBonds[BOX_TOTAL];
+  uint boxAngles[BOX_TOTAL];
+  uint boxDihs[BOX_TOTAL];
+
   void PrintRemarks(FILE* outfile, const std::vector<std::string>& remarks) const;
   void PrintAtoms(FILE* outfile) const;
   void PrintBonds(FILE* outfile) const;
@@ -62,7 +67,11 @@ private:
   void PrintAnglesInBox(FILE* outfile, uint b) const;
   void PrintDihedralsInBox(FILE* outfile, uint b) const;
 
+  void PrintNAMDCompliantSuffix(FILE* outfile) const;
+  void PrintNAMDCompliantSuffixInBox(FILE* outfile, uint b) const;
+
   void CountMolecules();
+  void CountMoleculesInBoxes();
 
   //NEW_RESTART_CODE
   FILE * outRebuildRestart[BOX_TOTAL];

@@ -116,7 +116,7 @@ inline void MoleculeTransfer::CalcEn()
     W_tc = exp(-1.0 * ffRef.beta * (tcGain.energy + tcLose.energy));
   }
 
-  if (newMol.GetWeight() != 0.0 && !overlap) {
+  if (newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
     correct_new = calcEwald->SwapCorrection(newMol);
     correct_old = calcEwald->SwapCorrection(oldMol);
     self_new = calcEwald->SwapSelf(newMol);
@@ -137,28 +137,28 @@ inline void MoleculeTransfer::CalcEn()
 inline double MoleculeTransfer::GetCoeff() const
 {
 #if ENSEMBLE == GEMC
-  return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) /
-         (double)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
+  return (double)(molLookRef.NumKindInBoxSwappable(kindIndex, sourceBox)) /
+         (double)(molLookRef.NumKindInBoxSwappable(kindIndex, destBox) + 1) *
          boxDimRef.volume[destBox] * boxDimRef.volInv[sourceBox];
 #elif ENSEMBLE == GCMC
   if (sourceBox == mv::BOX0) { //Delete case
     if(ffRef.isFugacity) {
-      return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
+      return (double)(molLookRef.NumKindInBoxSwappable(kindIndex, sourceBox)) *
              boxDimRef.volInv[sourceBox] /
              (BETA * molRef.kinds[kindIndex].chemPot);
     } else {
-      return (double)(molLookRef.NumKindInBox(kindIndex, sourceBox)) *
+      return (double)(molLookRef.NumKindInBoxSwappable(kindIndex, sourceBox)) *
              boxDimRef.volInv[sourceBox] *
              exp(-BETA * molRef.kinds[kindIndex].chemPot);
     }
   } else { //Insertion case
     if(ffRef.isFugacity) {
       return boxDimRef.volume[destBox] /
-             (double)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
+             (double)(molLookRef.NumKindInBoxSwappable(kindIndex, destBox) + 1) *
              (BETA * molRef.kinds[kindIndex].chemPot);
     } else {
       return boxDimRef.volume[destBox] /
-             (double)(molLookRef.NumKindInBox(kindIndex, destBox) + 1) *
+             (double)(molLookRef.NumKindInBoxSwappable(kindIndex, destBox) + 1) *
              exp(BETA * molRef.kinds[kindIndex].chemPot);
     }
   }
@@ -176,7 +176,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
     double Wrat = Wn / Wo * W_tc * W_recip;
 
     //safety to make sure move will be rejected in overlap case
-    if(!overlap) {
+    if(newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
       result = prng() < molTransCoeff * Wrat;
     } else
       result = false;
@@ -235,7 +235,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
   } else //we didn't even try because we knew it would fail
     result = false;
 
-  moveSetRef.Update(mv::MOL_TRANSFER, result, step, destBox, kindIndex);
+  moveSetRef.Update(mv::MOL_TRANSFER, result, destBox, kindIndex);
 }
 
 #endif

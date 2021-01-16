@@ -31,16 +31,14 @@ class MoveBase
 public:
 
   MoveBase(System & sys, StaticVals const& statV) :
-    boxDimRef(sys.boxDimRef), moveSetRef(sys.moveSettings),
-    sysPotRef(sys.potential),
-    calcEnRef(sys.calcEnergy), comCurrRef(sys.com),
-    coordCurrRef(sys.coordinates), prng(sys.prng), molRef(statV.mol),
+    moveSetRef(sys.moveSettings), sysPotRef(sys.potential),
+    coordCurrRef(sys.coordinates), comCurrRef(sys.com),
+    calcEnRef(sys.calcEnergy), atomForceRef(sys.atomForceRef),
+    molForceRef(sys.molForceRef), atomForceRecRef(sys.atomForceRecRef),
+    molForceRecRef(sys.molForceRecRef), prng(sys.prng),
+    boxDimRef(sys.boxDimRef), molRef(statV.mol),
     BETA(statV.forcefield.beta), ewald(statV.forcefield.ewald),
-    cellList(sys.cellList), molRemoved(false),
-    atomForceRef(sys.atomForceRef),
-    molForceRef(sys.molForceRef),
-    atomForceRecRef(sys.atomForceRecRef),
-    molForceRecRef(sys.molForceRecRef)
+    cellList(sys.cellList)
   {
     atomForceNew.Init(sys.atomForceRef.Count());
     molForceNew.Init(sys.molForceRef.Count());
@@ -99,7 +97,7 @@ protected:
   bool multiParticleEnabled;
 };
 
-//Data needed for transforming a molecule's position via inter or intrabox
+//Data needed for transforming a molecule's position via inter or intra box
 //moves.
 class MolTransformBase
 {

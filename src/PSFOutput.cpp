@@ -18,6 +18,11 @@ const char* atomHeader = "!NATOM";
 const char* bondHeader = "!NBOND: bonds";
 const char* angleHeader = "!NTHETA: angles";
 const char* dihedralHeader = "!NPHI: dihedrals";
+const char* improperHeader = "!NIMPHI: impropers";
+const char* donorHeader = "!NDON: donors";
+const char* acceptorHeader = "!NACC: acceptors";
+const char* excludedHeader = "!NNB";
+const char* groupHeader = "!NGRP";
 
 const char* headerFormat = "%8d %s \n";
 //atom ID, segment name, residue ID, residue name,
@@ -32,12 +37,12 @@ const int dihPerLine = 2;
 
 PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
                      Setup & set) :
-  molecules(&molecules), molNames(set.pdb.atoms.resKindNames),
+  molecules(&molecules), molNames(set.mol.molVars.moleculeKindNames),
   molLookRef(sys.molLookup)
 {
   molKinds.resize(set.mol.kindMap.size());
-  for(uint i = 0; i < set.pdb.atoms.resKindNames.size(); ++i) {
-    molKinds[i] = set.mol.kindMap[set.pdb.atoms.resKindNames[i]];
+ for(uint i = 0; i < set.mol.molVars.moleculeKindNames.size(); ++i) {
+    molKinds[i] = set.mol.kindMap[set.mol.molVars.moleculeKindNames[i]];
   }
   CountMolecules();
   PrintPSF(set.config.out.state.files.psf.name);
@@ -89,11 +94,13 @@ void PSFOutput::DoOutput(const ulong step)
       return;
     }    
     fprintf(outfile, "PSF\n\n");
+    CountMoleculesInBoxes();
     PrintRemarksInBox(outfile, b);
     PrintAtomsInBox(outfile, b);
     PrintBondsInBox(outfile, b);
     PrintAnglesInBox(outfile, b);
     PrintDihedralsInBox(outfile, b);
+    PrintNAMDCompliantSuffixInBox(outfile, b);
     fclose(outfile);
   }
 }
@@ -117,12 +124,39 @@ void PSFOutput::CountMolecules()
 
   for(uint b = 0; b < BOX_TOTAL; b++) {
     for(uint k = 0; k < molKinds.size(); ++k) {
-      const MoleculeKind& molKind = molecules->GetKind(atomT);
+      // This doesnt work when the molecules are interspersed instead of all of one type then all the other
+      //const MoleculeKind& molKind = molecules->GetKind(atomT);
+
+      const MoleculeKind& molKind = molecules->kinds[k];
 
       totalAtoms += molKind.NumAtoms() * molLookRef.NumKindInBox(k, b);
       totalBonds += molKind.NumBonds() * molLookRef.NumKindInBox(k, b);
       totalAngles += molKind.NumAngles() * molLookRef.NumKindInBox(k, b);
       totalDihs += molKind.NumDihs() * molLookRef.NumKindInBox(k, b);
+
+      atomT += molLookRef.NumKindInBox(k, b);
+    }
+  }
+}
+
+void PSFOutput::CountMoleculesInBoxes()
+{
+  uint atomT = 0;
+
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    boxAtoms[b] = 0;
+    boxBonds[b] = 0;
+    boxAngles[b] = 0;
+    boxDihs[b] = 0;
+    for(uint k = 0; k < molKinds.size(); ++k) {
+      // This doesnt work when the molecules are interspersed instead of all of one type then all the other
+      //const MoleculeKind& molKind = molecules->GetKind(atomT);      
+      const MoleculeKind& molKind = molecules->kinds[k];
+
+      boxAtoms[b] += molKind.NumAtoms() * molLookRef.NumKindInBox(k, b);
+      boxBonds[b] += molKind.NumBonds() * molLookRef.NumKindInBox(k, b);
+      boxAngles[b] += molKind.NumAngles() * molLookRef.NumKindInBox(k, b);
+      boxDihs[b] += molKind.NumDihs() * molLookRef.NumKindInBox(k, b);
 
       atomT += molLookRef.NumKindInBox(k, b);
     }
@@ -153,6 +187,7 @@ void PSFOutput::PrintPSF(const std::string& filename,
   PrintBonds(outfile);
   PrintAngles(outfile);
   PrintDihedrals(outfile);
+  PrintNAMDCompliantSuffix(outfile);
   fclose(outfile);
 }
 
@@ -194,6 +229,8 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
       }
       ++atomID;
     }
+    /* This isn't actually residue, it is running count of the number of
+      molecule kinds we have printed */
     ++resID;
     /* To add additional intramolecular residues */
     if (molKinds[thisKind].isMultiResidue){
@@ -272,17 +309,29 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
   fputs("\n\n", outfile);
 }
 
+  void PSFOutput::PrintNAMDCompliantSuffix(FILE* outfile) const {
+    fprintf(outfile, headerFormat, 0, improperHeader);
+    fputs("\n\n", outfile);
+    fprintf(outfile, headerFormat, 0, donorHeader);
+    fputs("\n\n", outfile);
+    fprintf(outfile, headerFormat, 0, acceptorHeader);
+    fputs("\n\n", outfile);
+    fprintf(outfile, headerFormat, 0, excludedHeader);
+    fputs("\n\n", outfile);
+    fprintf(outfile, headerFormat, 0, groupHeader);
+  }
+
   void PSFOutput::PrintRemarksInBox(FILE* outfile, uint b) const {
     std::vector<std::string> remarks;
     std::string boxSpecific;
     //default file remarks
-    remarks.push_back("Combined PSF produced by GOMC");
+    remarks.push_back("Restart PSF produced by GOMC");
     boxSpecific = std::string("Contains Geometry data for molecules in Box " + std::to_string(b));
     remarks.push_back(boxSpecific);
     PrintRemarks(outfile, remarks);
   }
   void PSFOutput::PrintAtomsInBox(FILE* outfile, uint b) const {
-    fprintf(outfile, headerFormat, totalAtoms, atomHeader);
+    fprintf(outfile, headerFormat, boxAtoms[b], atomHeader);
     //silly psfs index from 1
     uint atomID = 1;
     uint resID = 1;
@@ -315,11 +364,11 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
     // ???
       if(resID == 10000)
         resID = 1;
-  }
-  fputc('\n', outfile);
+    }
+    fputc('\n', outfile);
   }
   void PSFOutput::PrintBondsInBox(FILE* outfile, uint b) const {
-    fprintf(outfile, headerFormat, totalBonds, bondHeader);
+    fprintf(outfile, headerFormat, boxBonds[b], bondHeader);
     uint atomID = 1;
     uint lineEntry = 0;
     for( MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b); thisMol != molLookRef.BoxEnd(b); thisMol++){
@@ -338,7 +387,7 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
     fputs("\n\n", outfile);
   }
   void PSFOutput::PrintAnglesInBox(FILE* outfile, uint b) const {
-    fprintf(outfile, headerFormat, totalAngles, angleHeader);
+    fprintf(outfile, headerFormat, boxAngles[b], angleHeader);
     uint atomID = 1;
     uint lineEntry = 0;
     for( MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b); thisMol != molLookRef.BoxEnd(b); thisMol++){
@@ -358,7 +407,7 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
     fputs("\n\n", outfile);
   }
   void PSFOutput::PrintDihedralsInBox(FILE* outfile, uint b) const {  
-    fprintf(outfile, headerFormat, totalDihs, dihedralHeader);
+    fprintf(outfile, headerFormat, boxDihs[b], dihedralHeader);
     uint atomID = 1;
     uint lineEntry = 0;
     for( MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b); thisMol != molLookRef.BoxEnd(b); thisMol++){
@@ -377,4 +426,16 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
       atomID += thisKind.atoms.size();
     }
     fputs("\n\n", outfile);
+  }
+
+  void PSFOutput::PrintNAMDCompliantSuffixInBox(FILE* outfile, uint b) const {
+    fprintf(outfile, headerFormat, 0, improperHeader);
+    fputs("\n\n", outfile);
+    fprintf(outfile, headerFormat, 0, donorHeader);
+    fputs("\n\n", outfile);
+    fprintf(outfile, headerFormat, 0, acceptorHeader);
+    fputs("\n\n", outfile);
+    fprintf(outfile, headerFormat, 0, excludedHeader);
+    fputs("\n\n", outfile);
+    fprintf(outfile, headerFormat, 0, groupHeader);
   }

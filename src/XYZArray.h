@@ -16,6 +16,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+#include "EnsemblePreprocessor.h"
 
 //Forward declare to give access to internal arrays.
 class BoxDimensions;
@@ -442,7 +443,7 @@ inline void XYZArray::Init(const uint n)
   y = new double[n];
   z = new double[n];
 
-  for(int i = 0; i < n; i++) {
+  for(uint i = 0; i < n; i++) {
     x[i] = 0.0;
     y[i] = 0.0;
     z[i] = 0.0;

@@ -19,7 +19,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #endif
 
 struct Clock {
-  Clock(): stepsPerOut(0), prevStep(0), lastStep(0), lastTime(0.0) {}
+  Clock(): lastTime(0.0), stepsPerOut(0), prevStep(0), lastStep(0) {}
   void Init(const ulong steps, const ulong totSt, const ulong startStep)
   {
     stepsPerOut = steps;

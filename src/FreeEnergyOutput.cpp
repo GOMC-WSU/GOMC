@@ -93,7 +93,7 @@ void FreeEnergyOutput::Sample(const ulong step)
 
 void FreeEnergyOutput::DoOutput(const ulong step)
 {
-  //Write to histogram file, We dont check the equilibrium.
+  //Write to histogram file, We don't check the equilibrium.
   if ((step + 1) % stepsPerOut == 0) {
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       if (outF[b].is_open()) {

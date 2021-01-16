@@ -23,8 +23,8 @@ public:
   //Read order follows each item
   ConfigSetup config;  //1
   PDBSetup pdb;        //2
-  FFSetup ff;          //3
-  PRNGSetup prng;      //4
+  FFSetup ff;          //4
+  PRNGSetup prng;      //5
 #if GOMC_LIB_MPI
   PRNGSetup prngParallelTemp;      //4
 #endif
@@ -35,8 +35,8 @@ public:
     //Read in all config data
     config.Init(configFileName, multisim);
     //Read in FF data.
-    ff.Init(config.in.files.param.name, config.in.ffKind.isCHARMM);
-    //Read PDB data
+    ff.Init(config.in.files.param, config.in.ffKind.isCHARMM);
+    //Read in PDB data
     pdb.Init(config.in.restart, config.in.files.pdb.name);
     //Initialize PRNG
     prng.Init(config.in.restart, config.in.prng, config.in.files.seed.name);
@@ -52,10 +52,10 @@ public:
             to serve as a multiresidue molecule entry into the kindMap containing
             all these residues.  This is as upstream as possible to change as little code
             as necessary */
-    if(mol.Init(config.in.restart, config.in.files.psf.name, pdb.atoms) != 0) {
+    if(mol.Init(config.in.restart, config.in.files.psf.name, config.in.files.psf.defined, pdb.atoms) != 0) {
       exit(EXIT_FAILURE);
     }
-    mol.AssignKinds(pdb.atoms, ff);
+    mol.AssignKinds(mol.molVars, ff);
 
   }
 };

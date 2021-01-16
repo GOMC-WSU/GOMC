@@ -17,9 +17,8 @@ class IntraSwap : public MoveBase
 {
 public:
 
-  IntraSwap(System &sys, StaticVals const& statV) :
-    ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
-    MoveBase(sys, statV) {}
+  IntraSwap(System &sys, StaticVals const& statV) : MoveBase(sys, statV),
+    molLookRef(sys.molLookupRef), ffRef(statV.forcefield) {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
   virtual uint Transform();
@@ -107,7 +106,7 @@ inline void IntraSwap::CalcEn()
   correct_old = 0.0;
   correct_new = 0.0;
 
-  if (newMol.GetWeight() != 0.0 && !overlap) {
+  if (newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
     correct_new = calcEwald->SwapCorrection(newMol, molIndex);
     correct_old = calcEwald->SwapCorrection(oldMol, molIndex);
     recipDiff.energy = calcEwald->MolReciprocal(newMol.GetCoords(), molIndex,
@@ -130,7 +129,7 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
     double Wrat = Wn / Wo * W_tc * W_recip;
 
     //safety to make sure move will be rejected in overlap case
-    if(!overlap) {
+    if(newMol.GetWeight() > SMALL_WEIGHT && !overlap) {
       result = prng() < molTransCoeff * Wrat;
     } else
       result = false;
@@ -176,7 +175,7 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
   } else //else we didn't even try because we knew it would fail
     result = false;
 
-  moveSetRef.Update(mv::INTRA_SWAP, result, step, sourceBox, kindIndex);
+  moveSetRef.Update(mv::INTRA_SWAP, result, sourceBox, kindIndex);
 }
 
 #endif

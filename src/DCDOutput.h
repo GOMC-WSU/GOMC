@@ -42,8 +42,9 @@ public:
     }
 
     for (uint b = 0; b < BOX_TOTAL; ++b) {
-      close_dcd_write(stateFileFileid[b]);
-      xstFile[b].close();
+      if(enableStateOut) {
+        close_dcd_write(stateFileFileid[b]);
+      }
       if(restartCoor[b]) {
         delete [] restartCoor[b];
       }
@@ -70,13 +71,13 @@ public:
 
   virtual void DoOutput(const ulong step);
 private:
-
+  // Copy cell length and angles to unitcell[6]
   void Copy_lattice_to_unitcell(double *unitcell, int box);
-  void SetCoordinates(float *x, float *y, float *d,
-      std::vector<int> &molInBox, const int box);
-  // unwrap and same coordinates of molecule in box
+  // Unwrap and save coordinates of molecule in box, into *x, *y, *z
+  void SetCoordinates(std::vector<int> &molInBox, const int box);
+  // Unwrap and save coordinates of molecule in box, into *restartCoor
   void SetMolInBox(const int box);
-  //Return a vector that defines the box id for each molecule
+  // Return a vector that defines the box id for each molecule
   void SetMolBoxVec(std::vector<int> & mBox);
   // returns the total number of atoms in box
   int NumAtomInBox(const int box);
@@ -85,9 +86,9 @@ private:
   // Write header for dcd coordinate file
   void WriteDCDHeader(const int numAtoms, const int box);
   // Write header for xst and xsc files
-  void Write_Extention_System_Header(Writer &outFile, const int box);
+  void Write_Extension_System_Header(Writer &outFile);
   //Write the cell basis info into xst and xsc files
-  void Write_Extention_System_data(Writer &outFile,
+  void Write_Extension_System_Data(Writer &outFile,
     const ulong step, const int box);
 
   MoveSettings & moveSetRef;
@@ -99,16 +100,19 @@ private:
 
   char *outDCDStateFile[BOX_TOTAL];
   char *outDCDRestartFile[BOX_TOTAL];
+  char *outXSTFile[BOX_TOTAL];
+  char *outXSCFile[BOX_TOTAL];
   int stateFileFileid[BOX_TOTAL];
   bool enableRestartOut, enableStateOut;
   ulong stepsRestartPerOut, stepsStatePerOut;
+  // 
   float *x, *y, *z;
-  XYZ *restartCoor[BOX_TOTAL];
+  // AOS for restart binary format. NAMD internal data structure 
+  // is array of vector(XYZ)
+  XYZ *restartCoor[BOX_TOTAL]; 
   // for extension system files
   Writer xstFile[BOX_TOTAL];
   Writer xscFile[BOX_TOTAL];
-  char *outXSTFile[BOX_TOTAL];
-  char *outXSCFile[BOX_TOTAL];
 };
 
 #endif /*DCD_OUTPUT_H*/

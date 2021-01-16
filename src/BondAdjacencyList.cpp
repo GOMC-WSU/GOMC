@@ -1,5 +1,5 @@
 /*******************************************************************************
-GPU OPTIMIZED MONTE CARLO (GOMC) 2.60
+GPU OPTIMIZED MONTE CARLO (GOMC) 2.70
 Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
@@ -9,6 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "BondAdjacencyList.h"
 
+#define debugAdjList 0 
 
 //return if we fail to read anything
 const int READERROR = -1;
@@ -32,7 +33,7 @@ BondAdjacencyList::BondAdjacencyList(FILE* psf, uint nAtoms, uint nBonds, std::v
     unsigned int atom0, atom1;
     int dummy;
     // Loads all the bonds into edges array
-    for (uint i = 0; i < this->nBonds; i++) {
+    for (uint i = 0; i < nBonds; i++) {
     dummy = fscanf(psf, "%u %u", &atom0, &atom1);
     if(dummy != 2) {
         fprintf(stderr, "ERROR: Incorrect Number of bonds in PSF file ");
@@ -45,12 +46,12 @@ BondAdjacencyList::BondAdjacencyList(FILE* psf, uint nAtoms, uint nBonds, std::v
     }
 
     // allocate new node
-    head = new adjNode*[this->nAtoms]();
+    head = new adjNode*[nAtoms]();
     // initialize head pointer for all vertices
-    for (uint i = 0; i < this->nAtoms; i++)
+    for (uint i = 0; i < nAtoms; i++)
         head[i] = nullptr;
     // construct directed graph by adding edges to it
-    for (uint i = 0; i < this->nBonds; i++)  {
+    for (uint i = 0; i < nBonds; i++)  {
         int start_ver = edges[i].start_ver;
         int end_ver = edges[i].end_ver;
         int weight = edges[i].weight;
@@ -80,9 +81,10 @@ BondAdjacencyList::BondAdjacencyList(FILE* psf, uint nAtoms, uint nBonds, std::v
         std::sort(it->begin(), it->end());
     }
     std::sort(moleculeXAtomIDY.begin(), moleculeXAtomIDY.end());
+#if debugAdjList
 #ifndef NDEBUG
     std::cout << "Adjacency List" << std::endl;
-    for (uint i = 0; i < this->nAtoms; i++)
+    for (uint i = 0; i < nAtoms; i++)
         display_AdjList(head[i], i);
 
     std::cout << "Connected Components" << std::endl;
@@ -95,13 +97,17 @@ BondAdjacencyList::BondAdjacencyList(FILE* psf, uint nAtoms, uint nBonds, std::v
         std::cout << std::endl;
     }
 #endif    
-  
+#endif
 }
 
 // Destructor
 BondAdjacencyList::~BondAdjacencyList() {
-    for (int i = 0; i < this->nAtoms; i++){
-        delete[] head[i];
+    for (uint i = 0; i < nAtoms; i++){
+      while (head[i] != nullptr) {
+        adjNode *curr = head[i];
+        head[i] = head[i]->next;
+        delete curr;
+      }
     }
     delete[] edges;        
     delete[] head;
@@ -123,15 +129,15 @@ void BondAdjacencyList::display_AdjList(adjNode* ptr, int i)
 void BondAdjacencyList::connectedComponents(std::vector< std::vector<uint> > & moleculeXAtomIDY) 
 { 
     // Mark all the vertices as not visited 
-    bool *visited = new bool[this->nAtoms]; 
-    for(int v = 0; v < this->nAtoms; v++) 
+    bool *visited = new bool[nAtoms]; 
+    for(uint v = 0; v < nAtoms; v++) 
         visited[v] = false; 
   
-    for (int v=0; v<this->nAtoms; v++) 
+    for (uint v=0; v < nAtoms; v++) 
     { 
         if (visited[v] == false) 
         { 
-            // print all reachable vertices 
+            // print all reachable vertices
             // from v 
             /* For debugging
             std::cout << "Calling DFSUtil" << std::endl; */

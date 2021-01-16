@@ -20,9 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
-#ifndef _NO_MALLOC_H
-#include <malloc.h>
-#endif
+#include "BasicTypes.h"
 #ifndef WIN32
 #include <unistd.h>
 #endif
@@ -36,21 +34,9 @@
 #include <time.h>
 #ifdef WIN32
 #include <io.h>
+#define access(PATH,MODE) _access(PATH,00)
+#define NOCOMPRESSED
 #endif
-
-#ifndef __off_t_defined
-# ifndef __USE_FILE_OFFSET64
-typedef __off_t off_t;
-# else
-typedef __off64_t off_t;
-# endif
-# define __off_t_defined
-#endif
-#if defined __USE_LARGEFILE64 && !defined __off64_t_defined
-typedef __off64_t off64_t;
-# define __off64_t_defined
-#endif
-
 
 #ifdef WIN32
 #define OFF_T __int64
@@ -59,32 +45,32 @@ typedef __off64_t off64_t;
 #endif
 
 typedef int     int32;
-/*  DEFINE ERROR CODES THAT MAY BE RETURNED BY DCD ROUTINES		*/
-#define DCD_DNE		-2	/*  DCD file does not exist		*/
-#define DCD_OPENFAILED	-3	/*  Open of DCD file failed		*/
-#define DCD_BADREAD 	-4	/*  read call on DCD file failed	*/
-#define DCD_BADEOF	-5	/*  premature EOF found in DCD file	*/
-#define DCD_BADFORMAT	-6	/*  format of DCD file is wrong		*/
-#define DCD_FILEEXISTS  -7	/*  output file already exists		*/
-#define DCD_BADMALLOC   -8	/*  malloc failed			*/
+/*  DEFINE ERROR CODES THAT MAY BE RETURNED BY DCD ROUTINES        */
+#define DCD_DNE        -2    /*  DCD file does not exist        */
+#define DCD_OPENFAILED    -3    /*  Open of DCD file failed        */
+#define DCD_BADREAD     -4    /*  read call on DCD file failed    */
+#define DCD_BADEOF    -5    /*  premature EOF found in DCD file    */
+#define DCD_BADFORMAT    -6    /*  format of DCD file is wrong        */
+#define DCD_FILEEXISTS  -7    /*  output file already exists        */
+#define DCD_BADMALLOC   -8    /*  malloc failed            */
 
-/*			FUNCTION ALLUSIONS				*/
-int open_dcd_read(char *);      /*  Open a DCD file for reading 	*/
-int read_dcdheader(int, int*, int*, int*, int*, double*, int*, int**);	
-				/*  Read the DCD header			*/
-int read_dcdstep(int, int, float*, float*, float*, int, int, int*);	
-				/*  Read a timestep's values		*/
-int open_dcd_write(const char *);     /*  Open a DCD file for writing		*/
+/*            FUNCTION ALLUSIONS                */
+int open_dcd_read(char *);      /*  Open a DCD file for reading     */
+int read_dcdheader(int, int*, int*, int*, int*, double*, int*, int**);    
+                /*  Read the DCD header            */
+int read_dcdstep(int, int, float*, float*, float*, int, int, int*);    
+                /*  Read a timestep's values        */
+int open_dcd_write(const char *);     /*  Open a DCD file for writing        */
 
 int write_dcdstep(int, int, float *, float *, float *, double *unitcell);
-				/*  Write out a timesteps values	*/
-int write_dcdheader(int, const char*, int, int, int, int, int, double, int);	
-				/*  Write a dcd header			*/
+                /*  Write out a timesteps values    */
+int write_dcdheader(int, const char*, int, int, int, int, int, double, int);    
+                /*  Write a dcd header            */
 int get_dcdheader_size(); 
-				/* Get the total size of the header */
+                /* Get the total size of the header */
 void close_dcd_read(int, int, int *);
-				/*  Close a dcd file open for reading   */
-void close_dcd_write(int);	/*  Close a dcd file open for writing   */
+                /*  Close a dcd file open for reading   */
+void close_dcd_write(int);    /*  Close a dcd file open for writing   */
 
 int open_dcd_write_par_slave(char *dcdname);
 /* Slaves open existing file created by master */
@@ -96,7 +82,13 @@ int update_dcdstep_par_header(int fd);
 
 /* Write out a timesteps values partially in parallel for part [parL, parU] */
 int write_dcdstep_par_slave(int fd, int parL, int parU, int N, float *X, float *Y, float *Z);
-    
+
+/* Read binary coordinate file and store coordinates in XYZ array */
+void read_binary_file(const char *fname, XYZ *data, int n);
+
+FILE *Fopen(const char *filename, const char *mode);
+int  Fclose(FILE *fout);
+
 /* wrapper for seeking the dcd file */
 OFF_T NAMD_seek(int file, OFF_T offset, int whence);
 

@@ -105,7 +105,7 @@ protected:
 inline void FF_SWITCH::Init(ff_setup::Particle const& mie,
                             ff_setup::NBfix const& nbfix)
 {
-  //Initializ sigma and epsilon
+  //Initialize sigma and epsilon
   FFParticle::Init(mie, nbfix);
   rOn = forcefield.rswitch;
   rOnSq = rOn * rOn;

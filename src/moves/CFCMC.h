@@ -173,7 +173,7 @@ inline uint CFCMC::Prep(const double subDraw, const double movPerc)
     newMolCFCMC = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
     oldMolCFCMC = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
     oldMolCFCMC.SetCoords(coordCurrRef, pStartCFCMC);
-    //Unwrap the old coordinate for using in new coordinate after wraping
+    //Unwrap the old coordinate for using in new coordinate after wrapping
     XYZArray mol(pLenCFCMC);
     coordCurrRef.CopyRange(mol, pStartCFCMC, 0, pLenCFCMC);
     boxDimRef.UnwrapPBC(mol, sourceBox, comCurrRef.Get(molIndex));
@@ -211,8 +211,8 @@ inline uint CFCMC::Transform()
   //Start growing the fractional molecule in destBox
   molRef.kinds[kindIndex].BuildIDNew(newMolCFCMC, molIndex);
   overlapCFCMC = newMolCFCMC.HasOverlap();
-  //Add bonded energy because we dont considered in DCRotate.cpp
-  newMolCFCMC.AddEnergy(calcEnRef.MoleculeIntra(newMolCFCMC, molIndex));
+  //Add bonded energy because we don't consider it in DCRotate.cpp
+  newMolCFCMC.AddEnergy(calcEnRef.MoleculeIntra(newMolCFCMC));
   ShiftMolToDestBox();
 
   do {
@@ -225,17 +225,17 @@ inline uint CFCMC::Transform()
     if(lambdaIdxNew == 0) {
       //removing the fractional molecule in last steps using CBMC in sourceBox
       molRef.kinds[kindIndex].BuildIDOld(oldMolCFCMC, molIndex);
-      //Add bonded energy because we dont considered in DCRotate.cpp
-      oldMolCFCMC.AddEnergy(calcEnRef.MoleculeIntra(oldMolCFCMC, molIndex));
+      //Add bonded energy because we don't consider it in DCRotate.cpp
+      oldMolCFCMC.AddEnergy(calcEnRef.MoleculeIntra(oldMolCFCMC));
     } else if(lambdaIdxNew == lambdaWindow) {
       //removing the inserted fractional molecule using CBMC in destBox
       cellList.RemoveMol(molIndex, destBox, coordCurrRef);
       molRef.kinds[kindIndex].BuildIDOld(newMolCFCMC, molIndex);
-      //Add bonded energy because we dont considered in DCRotate.cpp
-      newMolCFCMC.AddEnergy(calcEnRef.MoleculeIntra(newMolCFCMC, molIndex));
+      //Add bonded energy because we don't consider it in DCRotate.cpp
+      newMolCFCMC.AddEnergy(calcEnRef.MoleculeIntra(newMolCFCMC));
       cellList.AddMol(molIndex, destBox, coordCurrRef);
     }
-    //Calculate the old and new energy in source and destBox(if we dont do CBMC)
+    //Calculate the old and new energy in source and destBox(if we don't do CBMC)
     CalcEnCFCMC(lambdaIdxOld, lambdaIdxNew);
     //Accept or reject the inflation
     bool acceptedInflate = AcceptInflating();
@@ -249,7 +249,7 @@ inline uint CFCMC::Transform()
                     kindIndex, destBox);
     }
     RelaxingMolecules();
-    //Dont update Bias if move resulted in overLap
+    //Don't update Bias if move resulted in overLap
     if(!overlapCFCMC) {
       UpdateBias();
     }
@@ -332,7 +332,7 @@ inline void CFCMC::CalcEnCFCMC(uint lambdaIdxOldS, uint lambdaIdxNewS)
   correctDiffDest = coefDiffD * calcEwald->SwapCorrection(newMolCFCMC);
   selfDiffSource = coefDiffS * calcEwald->SwapSelf(oldMolCFCMC);
   selfDiffDest = coefDiffD * calcEwald->SwapSelf(newMolCFCMC);
-  //calculate Recprocal Difference in source and dest box
+  //calculate Reciprocal Difference in source and dest box
   recipDiffSource = calcEwald->CFCMCRecip(oldMolCFCMC.GetCoords(),
                                           lambdaOld_Coulomb_S,
                                           lambdaNew_Coulomb_S,
@@ -431,7 +431,7 @@ inline void CFCMC::Accept(const uint rejectState, const uint step)
       ShiftMolToSourceBox();
     }
   }
-  moveSetRef.Update(mv::CFCMC, result, step, destBox, kindIndex);
+  moveSetRef.Update(mv::CFCMC, result, destBox, kindIndex);
 }
 
 
@@ -467,7 +467,7 @@ inline void CFCMC::UpdateBias()
   for(uint b = 0; b < 2; b++) {
     hist[box[b]][kindIndex][idx[b]] += 1;
 
-    //In Bias, if lambda is 1.0, it is also 0.0 for continueity
+    //In Bias, if lambda is 1.0, it is also 0.0 for continuity
     if((idxS == lambdaWindow) || (idxS == 0)) {
       hist[box[b]][kindIndex][idx[1 - b]] += 1;
     }
@@ -479,7 +479,7 @@ inline void CFCMC::UpdateBias()
                molRef.kinds[kindIndex].name.c_str());
         firstPrint[box[b]][kindIndex] = false;
       }
-      //Check after equilibration if all the bin visited atleast X% of
+      //Check after equilibration if all the bin visited at least X% of
       // the most visited bin
       long trial = std::accumulate(hist[box[b]][kindIndex].begin(), hist[box[b]][kindIndex].end(), 0);
       if((trial + 1) % (histFreq * 10) == 0) {
@@ -487,7 +487,7 @@ inline void CFCMC::UpdateBias()
                                            hist[box[b]][kindIndex].end());
         long int minVisited = *min_element(hist[box[b]][kindIndex].begin(),
                                            hist[box[b]][kindIndex].end());
-        //check to see if all the bin visited atleast X% of the most visited bin
+        //check to see if all the bin visited at least X% of the most visited bin
         if(minVisited < flatness * maxVisited) {
           //nu[box[b]][kindIndex] = 0.01;
           //std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
@@ -501,13 +501,13 @@ inline void CFCMC::UpdateBias()
 
     //Update the bias for both box
     bias[box[b]][kindIndex][idx[b]] -= nu[box[b]][kindIndex];
-    //In Bias, if lambda is 1.0, it is also 0.0 for continueity
+    //In Bias, if lambda is 1.0, it is also 0.0 for continuity
     if((idxS == lambdaWindow) || (idxS == 0)) {
       bias[box[b]][kindIndex][idx[1 - b]] -= nu[box[b]][kindIndex];
     }
 
 #if ENSEMBLE == GCMC
-    //We dont consider biasing in reservoir
+    //We don't consider biasing in reservoir
     bias[1][kindIndex][idxD] = bias[1][kindIndex][idxS] = 0.0;
     hist[1][kindIndex][idxD] = hist[1][kindIndex][idxS] = 0;
 #endif
@@ -520,7 +520,7 @@ inline void CFCMC::UpdateBias()
                                      hist[box[b]][kindIndex].end());
       uint minVisited = *min_element(hist[box[b]][kindIndex].begin(),
                                      hist[box[b]][kindIndex].end());
-      //check to see if all the bin visited atleast X% of the most visited bin
+      //check to see if all the bin visited at least X% of the most visited bin
       if(minVisited > flatness * maxVisited) {
         nu[box[b]][kindIndex] *= 0.5;
         std::fill_n(hist[box[b]][kindIndex].begin(), lambdaWindow + 1, 0);
@@ -567,11 +567,11 @@ inline bool CFCMC::AcceptInflating()
   double Wrat = W1 * W2 * W_tc * W_recip;
 
   bool result = prng() < molTransCoeff * Wrat;
-  //Reject the move if we had overlaped
+  //Reject the move if we had overlapped
   result = result && !overlapCFCMC;
   /*
     if(!overlapCFCMC) {
-      printf("lambda[%5s]: %-2d -> %-2d : WS: %5.1e : WD: %5.1e : Wtot: %5.1e : Coef: %5.1e : SourceBox: %d \n", molRef.kinds[kindIndex].name.c_str(), lambdaIdxOld, lambdaIdxNew, W1, W2, Wrat, molTransCoeff, sourceBox);
+      printf("lambda[%5s]: %-2d -> %-2d : WS: %5.1e : WD: %5.1e : Wtot: %5.1e : Coeff: %5.1e : SourceBox: %d \n", molRef.kinds[kindIndex].name.c_str(), lambdaIdxOld, lambdaIdxNew, W1, W2, Wrat, molTransCoeff, sourceBox);
     }
   */
   if(result) {
@@ -599,7 +599,8 @@ inline bool CFCMC::AcceptInflating()
     //Retotal
     sysPotRef.Total();
     //set single move accept to true for multiparticle
-    moveSetRef.SetSingleMoveAccepted();
+    moveSetRef.SetSingleMoveAccepted(sourceBox);
+    moveSetRef.SetSingleMoveAccepted(destBox);
   }
   overlapCFCMC = false;
 
@@ -641,7 +642,7 @@ inline uint CFCMC::TransformRelaxing(uint b)
     MP.PrepCFCMC(b);
     MP.Transform();
   } else {
-    //Randomely pick a molecule in Box
+    //Randomly pick a molecule in Box
     uint state = prng.PickMol(m, mk, b);
     if(state == mv::fail_state::NO_FAIL) {
       pStart = 0, pLen = 0;
@@ -674,7 +675,7 @@ inline void CFCMC::CalcEnRelaxing(uint b)
     //calculate LJ interaction and real term of electrostatic interaction
     overlap = calcEnRef.MoleculeInter(inter_LJ, inter_Real, newMolPos, m, b);
     if(!overlap) {
-      //calculate reciprocate term of electrostatic interaction
+      //calculate reciprocal term of electrostatic interaction
       recip.energy = calcEwald->MolReciprocal(newMolPos, m, b);
     }
   }

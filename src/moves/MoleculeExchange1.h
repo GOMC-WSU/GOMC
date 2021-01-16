@@ -98,7 +98,7 @@ protected:
   uint GetBoxPairAndMol(const double subDraw, const double movPerc);
 
   bool insertL, enableID;
-  uint largeBB[2];
+  int largeBB[2];
   uint sourceBox, destBox;
   uint perAdjust, molInCavCount, counter;
   uint numInCavA, numInCavB, kindS, kindL, totMolInCav;
@@ -287,9 +287,9 @@ inline uint MoleculeExchange1::PickMolInCav()
   //pick a random location in dense phase
   XYZ axis = boxDimRef.GetAxis(sourceBox);
   XYZ temp(prng.randExc(axis.x), prng.randExc(axis.y), prng.randExc(axis.z));
-  //Use to shift the new insterted molecule
+  //Use to shift the new inserted molecule
   center = temp;
-  //Pick random vector anad find two vectors that are perpendicular to V1
+  //Pick random vector and find two vectors that are perpendicular to V1
   SetBasis(cavA, prng.RandomUnitVect());
   //Calculate inverse matrix for cav here Inv = transpose
   TransposeMatrix(invCavA, cavA);
@@ -359,7 +359,7 @@ inline uint MoleculeExchange1::GetBoxPairAndMol(const double subDraw,
 {
   uint state = mv::fail_state::NO_FAIL;
   overlap = false;
-  //deside to insert or remove the big molecule
+  //decide to insert or remove the big molecule
   prng.PickBool(insertL, subDraw, movPerc);
   //Set the source and dest Box.
   SetBox();
@@ -414,12 +414,12 @@ inline uint MoleculeExchange1::Prep(const double subDraw, const double movPerc)
 {
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
-    numTypeASource = (double)(molLookRef.NumKindInBox(kindIndexA[0], sourceBox));
-    numTypeADest = (double)(molLookRef.NumKindInBox(kindIndexA[0], destBox));
-    numTypeBSource = (double)(molLookRef.NumKindInBox(kindIndexB[0], sourceBox));
-    numTypeBDest = (double)(molLookRef.NumKindInBox(kindIndexB[0], destBox));
+    numTypeASource = (double)(molLookRef.NumKindInBoxSwappable(kindIndexA[0], sourceBox));
+    numTypeADest = (double)(molLookRef.NumKindInBoxSwappable(kindIndexA[0], destBox));
+    numTypeBSource = (double)(molLookRef.NumKindInBoxSwappable(kindIndexB[0], sourceBox));
+    numTypeBDest = (double)(molLookRef.NumKindInBoxSwappable(kindIndexB[0], destBox));
 
-    //transfering type A from source to dest
+    //transferring type A from source to dest
     for(uint n = 0; n < numInCavA; n++) {
       newMolA.push_back(cbmc::TrialMol(molRef.kinds[kindIndexA[n]], boxDimRef,
                                        destBox));
@@ -428,7 +428,7 @@ inline uint MoleculeExchange1::Prep(const double subDraw, const double movPerc)
     }
 
     for(uint n = 0; n < numInCavB; n++) {
-      //transfering type B from dest to source
+      //transferring type B from dest to source
       newMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
                                        sourceBox));
       oldMolB.push_back(cbmc::TrialMol(molRef.kinds[kindIndexB[n]], boxDimRef,
@@ -500,23 +500,23 @@ inline uint MoleculeExchange1::Prep(const double subDraw, const double movPerc)
 
 inline uint MoleculeExchange1::Transform()
 {
-  //Need to calculate Tc before transofriming the molecules.
+  //Need to calculate Tc before transforming the molecules.
   CalcTc();
 
   //Calc Old energy and delete A from source
   for(uint n = 0; n < numInCavA; n++) {
     cellList.RemoveMol(molIndexA[n], sourceBox, coordCurrRef);
     molRef.kinds[kindIndexA[n]].BuildIDOld(oldMolA[n], molIndexA[n]);
-    //Add bonded energy because we dont considered in DCRotate.cpp
-    oldMolA[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n], molIndexA[n]));
+    //Add bonded energy because we don't consider it in DCRotate.cpp
+    oldMolA[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolA[n]));
   }
 
   //Calc old energy and delete B from destBox
   for(uint n = 0; n < numInCavB; n++) {
     cellList.RemoveMol(molIndexB[n], destBox, coordCurrRef);
     molRef.kinds[kindIndexB[n]].BuildIDOld(oldMolB[n], molIndexB[n]);
-    //Add bonded energy because we dont considered in DCRotate.cpp
-    oldMolB[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolB[n], molIndexB[n]));
+    //Add bonded energy because we don't consider it in DCRotate.cpp
+    oldMolB[n].AddEnergy(calcEnRef.MoleculeIntra(oldMolB[n]));
   }
 
   //Insert A to destBox
@@ -524,8 +524,8 @@ inline uint MoleculeExchange1::Transform()
     molRef.kinds[kindIndexA[n]].BuildIDNew(newMolA[n], molIndexA[n]);
     ShiftMol(true, n, sourceBox, destBox);
     cellList.AddMol(molIndexA[n], destBox, coordCurrRef);
-    //Add bonded energy because we dont considered in DCRotate.cpp
-    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n], molIndexA[n]));
+    //Add bonded energy because we don't consider it in DCRotate.cpp
+    newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n]));
     overlap |= newMolA[n].HasOverlap();
   }
 
@@ -534,8 +534,8 @@ inline uint MoleculeExchange1::Transform()
     molRef.kinds[kindIndexB[n]].BuildIDNew(newMolB[n], molIndexB[n]);
     ShiftMol(false, n, destBox, sourceBox);
     cellList.AddMol(molIndexB[n], sourceBox, coordCurrRef);
-    //Add bonded energy because we dont considered in DCRotate.cpp
-    newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n], molIndexB[n]));
+    //Add bonded energy because we don't consider it in DCRotate.cpp
+    newMolB[n].AddEnergy(calcEnRef.MoleculeIntra(newMolB[n]));
     overlap |= newMolB[n].HasOverlap();
   }
 
@@ -584,7 +584,7 @@ inline void MoleculeExchange1::CalcEn()
       self_newA += calcEwald->SwapSelf(newMolA[n]);
       self_oldA += calcEwald->SwapSelf(oldMolA[n]);
     }
-    recipDest = calcEwald->SwapRecip(newMolA, oldMolB, molIndexA, molIndexB, true);
+    recipDest = calcEwald->MolExchangeReciprocal(newMolA, oldMolB, molIndexA, molIndexB, true);
 
     for(uint n = 0; n < numInCavB; n++) {
       correct_newB += calcEwald->SwapCorrection(newMolB[n]);
@@ -592,7 +592,7 @@ inline void MoleculeExchange1::CalcEn()
       self_newB += calcEwald->SwapSelf(newMolB[n]);
       self_oldB += calcEwald->SwapSelf(oldMolB[n]);
     }
-    recipSource = calcEwald->SwapRecip(newMolB, oldMolA, molIndexB, molIndexA, true);
+    recipSource = calcEwald->MolExchangeReciprocal(newMolB, oldMolA, molIndexB, molIndexA, true);
 
     //need to contribute the self and correction energy
     W_recip = exp(-1.0 * ffRef.beta * (recipSource + recipDest +
@@ -763,7 +763,7 @@ inline void MoleculeExchange1::Accept(const uint rejectState, const uint step)
 
       calcEwald->UpdateRecip(sourceBox);
       calcEwald->UpdateRecip(destBox);
-      //molA and molB already transfered to destBox and added to cellist
+      //molA and molB already transferred to destBox and added to cellist
       //Retotal
       sysPotRef.Total();
     } else {
@@ -785,10 +785,10 @@ inline void MoleculeExchange1::Accept(const uint rejectState, const uint step)
     result = false;
   }
 
-  moveSetRef.Update(mv::MEMC, result, step, sourceBox);
-  moveSetRef.Update(mv::MEMC, result, step, destBox);
+  moveSetRef.Update(mv::MEMC, result, sourceBox);
+  moveSetRef.Update(mv::MEMC, result, destBox);
 
-  //If we consider total aceeptance of S->L and L->S
+  //If we consider total acceptance of S->L and L->S
   AcceptKind(result, kindS + kindL * molRef.GetKindsCount(), sourceBox);
   AcceptKind(result, kindS + kindL * molRef.GetKindsCount(), destBox);
 

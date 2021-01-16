@@ -43,22 +43,23 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   kinds = new MoleculeKind[kindsCount];
 
   //Molecule instance arrays/data
-  count = atoms.startIdxRes.size();
+  count = setup.mol.molVars.startIdxMolecules.size();
   if (count == 0) {
     std::cerr << "Error: No Molecule was found in the PDB file(s)!" << std::endl;
     exit(EXIT_FAILURE);
   }
 
   start = new uint [count + 1];
-  start = vect::TransferInto<uint>(start, atoms.startIdxRes);
+  start = vect::TransferInto<uint>(start, setup.mol.molVars.startIdxMolecules);
   start[count] = atoms.x.size();
-  kIndex = vect::transfer<uint>(atoms.resKinds);
+  kIndex = vect::transfer<uint>(setup.mol.molVars.moleculeKinds);
+  kIndexCount = setup.mol.molVars.moleculeKinds.size();
   chain = vect::transfer<char>(atoms.chainLetter);
   for (uint mk = 0 ; mk < kindsCount; mk++) {
     countByKind[mk] =
-      std::count(atoms.resNames.begin(), atoms.resNames.end(),
-                 atoms.resKindNames[mk]);
-    kinds[mk].Init(atoms.resKindNames[mk], setup, forcefield, sys);
+      std::count(setup.mol.molVars.moleculeNames.begin(), setup.mol.molVars.moleculeNames.end(),
+                 setup.mol.molVars.moleculeKindNames[mk]);
+    kinds[mk].Init(setup.mol.molVars.moleculeKindNames[mk], setup, forcefield, sys);
   }
 
 #if ENSEMBLE == GCMC
@@ -86,13 +87,12 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   if(printFlag) {
     //calculating netcharge of all molecule kind
     double netCharge = 0.0;
-    bool hasCharge;
     for (uint mk = 0 ; mk < kindsCount; mk++) {
       netCharge += (countByKind[mk] * kinds[mk].GetMoleculeCharge());
       if(kinds[mk].MoleculeHasCharge()) {
         if(!forcefield.ewald && !forcefield.isMartini) {
           std::cout << "Warning: Charge detected in " << kinds[mk].name
-                    << " but Ewald Summaion method is disabled!\n\n";
+                    << " but Ewald Summation method is disabled!\n\n";
         } else if(!forcefield.electrostatic && forcefield.isMartini) {
           std::cout << "Warning: Charge detected in " << kinds[mk].name
                     << " but Electrostatic energy calculation is disabled!\n\n";
@@ -127,7 +127,7 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   PrintLJInfo(totAtomKind, atomNames, forcefield);
   printFlag = false;
 
-  //Pair Correction matrixes
+  //Pair Correction matrices
   pairEnCorrections = new double[kindsCount * kindsCount];
   pairVirCorrections = new double[kindsCount * kindsCount];
   for(uint i = 0; i < kindsCount; ++i) {

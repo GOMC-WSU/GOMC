@@ -43,7 +43,7 @@ inline void record_debug(std::vector<double> x, std::string filename, int linenu
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|double," << x.size() << "," << filename << "," << linenumber;
-  for(int i = 0; i < x.size(); i++) {
+  for(size_t i = 0; i < x.size(); i++) {
     out << "," << std::setprecision(12) << x[i];
   }
   out << "\n";
@@ -54,7 +54,7 @@ inline void record_debug(std::vector<int> x, std::string filename, int linenumbe
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|int," << x.size() << "," << filename << "," << linenumber;
-  for(int i = 0; i < x.size(); i++) {
+  for(size_t i = 0; i < x.size(); i++) {
     out << "," << std::setprecision(12) << x[i];
   }
   out << "\n";
@@ -65,7 +65,7 @@ inline void record_debug(std::vector<uint> x, std::string filename, int linenumb
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|int," << x.size() << "," << filename << "," << linenumber;
-  for(int i = 0; i < x.size(); i++) {
+  for(size_t i = 0; i < x.size(); i++) {
     out << "," << std::setprecision(12) << x[i];
   }
   out << "\n";
@@ -76,8 +76,19 @@ inline void record_debug(double * x, uint len, std::string filename, int linenum
   std::ofstream out;
   out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
   out << "vector|double," << len << "," << filename << "," << linenumber;
-  for(int i = 0; i < len; i++) {
+  for(uint i = 0; i < len; i++) {
     out << "," << std::setprecision(12) << x[i];
+  }
+  out << "\n";
+}
+
+inline void record_debug(uint* x, uint len, std::string filename, int linenumber)
+{
+  std::ofstream out;
+  out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
+  out << "vector|uint," << len << "," << filename << "," << linenumber;
+  for (uint i = 0; i < len; i++) {
+    out << "," << x[i];
   }
   out << "\n";
 }

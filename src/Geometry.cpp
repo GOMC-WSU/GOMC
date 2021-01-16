@@ -235,7 +235,6 @@ GeomFeature::~GeomFeature()
 
 void GeomFeature::Init(const std::vector<mol_setup::Angle>& angles, const BondList& bList)
 {
-  uint atomsPer = bondsPer + 1;
   count = angles.size();
   if (count == 0)
     return;
@@ -257,7 +256,6 @@ void GeomFeature::Init(const std::vector<mol_setup::Angle>& angles, const BondLi
 
 void GeomFeature::Init(const std::vector<mol_setup::Dihedral>& dihs, const BondList& bList)
 {
-  uint atomsPer = bondsPer + 1;
   count = dihs.size();
   if (count == 0)
     return;
