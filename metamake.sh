@@ -75,12 +75,9 @@ fi
 
 mkdir -p bin
 cd bin
-ICC_PATH="$(which gcc 2> /dev/null)"
-ICPC_PATH="$(which g++ 2> /dev/null)"
-# ICC_PATH="$(which icc 2> /dev/null)"
-# ICPC_PATH="$(which icpc 2> /dev/null)"
+ICC_PATH="$(which icc 2> /dev/null)"
+ICPC_PATH="$(which icpc 2> /dev/null)"
 export CC=${ICC_PATH}
 export CXX=${ICPC_PATH}
-cmake -DCMAKE_BUILD_TYPE=Debug ..
-# cmake ..
+cmake ..
 make -j8
