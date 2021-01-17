@@ -176,7 +176,14 @@ struct XYZ {
   {
     return XYZ(*this) /= rhs;
   }
-
+  XYZ operator/(double const& rhs) const
+  {
+    XYZ ret(*this);
+    ret.x /= rhs;
+    ret.y /= rhs;
+    ret.z /= rhs;
+    return ret;
+  }
 
   XYZ operator*(const double a) const
   {

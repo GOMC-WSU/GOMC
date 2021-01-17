@@ -38,6 +38,17 @@ public:
   // Index of cell containing position
   int PositionToCell(const XYZ& posRef, int box) const;
 
+  // Index of cell containing position for single dimension
+  int PositionToCellDimension(const XYZ& posRef, int box, int dimension) const;
+  // Helper function for PositionToCellDimension
+  void GetRangeDimension(int start_cell, int end_cell, int maximum, std::vector<std::pair<int, int>> & range) const;
+
+  // Return all the cells that are inside the cavity
+  std::vector<int> CellsInCavity(XYZ const& center, XYZ const& cavDim, uint box) const;
+
+  // Return all the particles inside cells
+  std::vector<int> GetParticlesInCells(std::vector<int> cells, uint box) const;
+
   // Iterates over all particles in a cell
   class Cell;
   Cell EnumerateCell(int cell, int box) const;
@@ -85,8 +96,6 @@ private:
   bool isBuilt;
 };
 
-
-
 inline int CellList::PositionToCell(const XYZ& posRef, int box) const
 {
   //Transfer to unslant coordinate to find the neighbor
@@ -101,6 +110,19 @@ inline int CellList::PositionToCell(const XYZ& posRef, int box) const
   y -= (y == edgeCells[box][1] ?  1 : 0);
   z -= (z == edgeCells[box][2] ?  1 : 0);
   return x * edgeCells[box][1] * edgeCells[box][2] + y * edgeCells[box][2] + z;
+}
+
+inline int CellList::PositionToCellDimension(const XYZ& posRef, int box, int dimension) const
+{
+  XYZ pos = dimensions->TransformUnSlant(posRef, box);
+  int cellSizeInDimension;
+  if(dimension == 0)      cellSizeInDimension = (int)(pos.x / cellSize[box].x);
+  else if(dimension == 1) cellSizeInDimension = (int)(pos.y / cellSize[box].y);
+  else                    cellSizeInDimension = (int)(pos.z / cellSize[box].z);
+
+  cellSizeInDimension -= (cellSizeInDimension == edgeCells[box][dimension] ? 1 : 0);
+
+  return cellSizeInDimension;
 }
 
 class CellList::Cell

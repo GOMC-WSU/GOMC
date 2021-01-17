@@ -23,6 +23,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "GeomLib.h"
 #include "NumLib.h"
 #include <cassert>
+#include <set>
 #ifdef GOMC_CUDA
 #include "CalculateEnergyCUDAKernel.cuh"
 #include "CalculateForceCUDAKernel.cuh"
@@ -1504,6 +1505,10 @@ bool CalculateEnergy::FindMolInCavity(std::vector< std::vector<uint> > &mol,
   mol.resize(molLookup.GetNumKind());
   double maxLength = cavDim.Max();
 
+  // from my understanding:
+  // if the maximum dimension size of cavity is less than rCut, then just look
+  // inside the cell center of box is, otherwise look through all molecule
+  // inside box.
   if(maxLength <= currentAxes.rCut[box]) {
     CellList::Neighbors n = cellList.EnumerateLocal(center, box);
     while (!n.Done()) {
@@ -1512,31 +1517,37 @@ bool CalculateEnergy::FindMolInCavity(std::vector< std::vector<uint> > &mol,
         uint molIndex = particleMol[*n];
         //if molecule can be transfer between boxes
         if(molLookup.IsSwap(molIndex)) {
-          k = mols.GetMolKind(molIndex);
-          bool exist = std::find(mol[k].begin(), mol[k].end(), molIndex) !=
-                       mol[k].end();
+          uint kindIndex = mols.GetMolKind(molIndex);
+
+          // instead of searching for each element, std::set can be used here as well
+          auto searchIndex = std::find(mol[kindIndex].begin(), mol[kindIndex].end(), molIndex);
+          bool exist = searchIndex != mol[kindIndex].end();
+          // add only if it doesn't already exist.
           if(!exist)
-            mol[k].push_back(molIndex);
+            mol[kindIndex].push_back(molIndex);
         }
       }
       n.Next();
     }
   } else {
-    MoleculeLookup::box_iterator n = molLookup.BoxBegin(box);
-    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
-    while (n != end) {
-      uint molIndex = *n;
+    std::vector<int> cellsInCavity = cellList.CellsInCavity(center, cavDim, box);
+    std::vector<int> particlesInCavity = cellList.GetParticlesInCells(cellsInCavity, box);
+
+    std::vector<int> molsInsideCavity;
+    for(const int & particle : particlesInCavity) {
+      molsInsideCavity.push_back(particleMol[particle]);
+    }
+    for(const int & molIndex : molsInsideCavity) {
       if(currentAxes.InCavity(currentCOM.Get(molIndex), center, cavDim, invCav, box)) {
-        //if molecule can be transfer between boxes
+        // if molecules can be transferred between boxes
         if(molLookup.IsSwap(molIndex)) {
-          k = mols.GetMolKind(molIndex);
-          bool exist = std::find(mol[k].begin(), mol[k].end(), molIndex) !=
-                       mol[k].end();
-          if(!exist)
-            mol[k].push_back(molIndex);
+          uint kindIndex = mols.GetMolKind(molIndex);
+
+          auto searchIndex = std::find(mol[kindIndex].begin(), mol[kindIndex].end(), molIndex);
+          bool exist = searchIndex != mol[kindIndex].end();
+          if(!exist) mol[kindIndex].push_back(molIndex);
         }
       }
-      n++;
     }
   }
 
@@ -1546,7 +1557,6 @@ bool CalculateEnergy::FindMolInCavity(std::vector< std::vector<uint> > &mol,
   else
     return false;
 }
-
 
 void CalculateEnergy::SingleMoleculeInter(Energy &interEnOld,
     Energy &interEnNew,

@@ -12,6 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeLookup.h"
 
 #include <algorithm>
+#include <set>
 
 const int CellList::END_CELL;
 
@@ -259,7 +260,6 @@ void CellList::GridBox(BoxDimensions& dims, const XYZArray& pos,
   }
 }
 
-
 CellList::Pairs CellList::EnumeratePairs(int box) const
 {
   return CellList::Pairs(*this, box);
@@ -297,16 +297,12 @@ std::vector<std::vector<int> > CellList::GetNeighborList(uint box) const
   return neighbors[box];
 }
 
-
 bool CellList::CompareCellList(CellList & other, int coordinateSize)
 {
-
-
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
   std::vector<int> otherCellVector, otherCellStartIndex, otherMapParticleToCell;
 
   for(uint box = 0; box < BOX_TOTAL; box++) {
-
     cellVector.resize(coordinateSize);
     cellStartIndex.resize(head[box].size());
     mapParticleToCell.resize(coordinateSize);
@@ -331,7 +327,6 @@ bool CellList::CompareCellList(CellList & other, int coordinateSize)
   }
 
   for(uint box = 0; box < BOX_TOTAL; box++) {
-
     int vector_index = 0;
     for(size_t cell = 0; cell < other.head[box].size(); cell++) {
       otherCellStartIndex[cell] = vector_index;
@@ -344,7 +339,6 @@ bool CellList::CompareCellList(CellList & other, int coordinateSize)
       }
     }
   }
-
 
   if(list.size() == other.list.size()) {
     for(size_t i = 0; i < list.size(); i++) {
@@ -365,7 +359,6 @@ bool CellList::CompareCellList(CellList & other, int coordinateSize)
 
 void CellList::PrintList()
 {
-
   for(size_t i = 0; i < list.size(); i++)
     std::cout << list[i] << std::endl;
 
@@ -375,6 +368,86 @@ void CellList::PrintList()
       std::cout << head[i][j] << std::endl;
     }
   }
+}
 
+void CellList::GetRangeDimension(int start_cell, int end_cell, int maximum, std::vector<std::pair<int, int>> & range) const
+{
+  if(start_cell < 0 && end_cell >= maximum) { // wrap around from both end, not sure if this even happens
+    range.push_back(std::pair<int, int>(0, maximum-1));
+  } else if(start_cell < 0) { // wrap around from start
+    range.push_back(std::pair<int, int>(0, end_cell));
+    range.push_back(std::pair<int, int>(start_cell + maximum, maximum-1));
+  } else if(end_cell >= maximum) {
+    range.push_back(std::pair<int, int>(start_cell, maximum-1));
+    range.push_back(std::pair<int, int>(0, end_cell - maximum));
+  } else { // no wrap around
+    range.push_back(std::pair<int, int>(start_cell, end_cell));
+  }
+}
 
+std::vector<int> CellList::CellsInCavity(XYZ const& center, XYZ const& cavDim, uint box) const
+{
+  // using std::set to avoid duplicates
+  std::set<int> cells;
+  // final return vector
+  std::vector<int> cellsInsideCavity;
+  // range of cells for each dimension
+  std::vector<std::pair<int, int>> all_x_range, all_y_range, all_z_range;
+
+  XYZ start_corner = center - cavDim / 2.0;
+  XYZ end_corner   = center + cavDim / 2.0;
+
+  int start_cell_x = PositionToCellDimension(start_corner, box, 0);
+  int end_cell_x   = PositionToCellDimension(end_corner, box, 0);
+  GetRangeDimension(start_cell_x, end_cell_x, edgeCells[box][0], all_x_range);
+
+  int start_cell_y = PositionToCellDimension(start_corner, box, 1);
+  int end_cell_y   = PositionToCellDimension(end_corner, box, 1);
+  GetRangeDimension(start_cell_y, end_cell_y, edgeCells[box][1], all_y_range);
+
+  int start_cell_z = PositionToCellDimension(start_corner, box, 2);
+  int end_cell_z   = PositionToCellDimension(end_corner, box, 2);
+  GetRangeDimension(start_cell_z, end_cell_z, edgeCells[box][2], all_z_range);
+
+  // first loop over the possible ranges in each dimension
+  // in most cases there are only 1 or 2 possible ranges.
+  for(auto & x_range : all_x_range) {
+    for(auto & y_range : all_y_range) {
+      for(auto & z_range : all_z_range) {
+        // loop over each individual range
+        for(int cell_x_idx = x_range.first; cell_x_idx <= x_range.second; cell_x_idx++) {
+          for(int cell_y_idx = y_range.first; cell_y_idx <= y_range.second; cell_y_idx++) {
+            for(int cell_z_idx = z_range.first; cell_z_idx <= z_range.second; cell_z_idx++) {
+              // once we have each cell's index in each dimension,
+              // we can calculate the cell index and add it to ``cells'' set
+              int cell_idx = cell_x_idx * edgeCells[box][1] * edgeCells[box][2] +
+                             cell_y_idx * edgeCells[box][2] +
+                             cell_z_idx;
+              cells.insert(cell_idx);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  std::copy(cells.begin(), cells.end(), cellsInsideCavity.begin());
+
+  return cellsInsideCavity;
+}
+
+// returns all the particles that exist in the list of cells
+std::vector<int> CellList::GetParticlesInCells(std::vector<int> cells, uint box) const
+{
+  std::vector<int> particlesInsideCells;
+
+  for(auto & cell : cells) {
+    int particleIndex = head[box][cell];
+    while(particleIndex != END_CELL) {
+      particlesInsideCells.push_back(particleIndex);
+      particleIndex = list[particleIndex];
+    }
+  }
+
+  return particlesInsideCells;
 }
