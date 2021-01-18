@@ -399,8 +399,8 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 // box and removing a molecule (kindB) from destination box
 double EwaldCached::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
                                           const std::vector<cbmc::TrialMol> &oldMol,
-                                          const std::vector<uint> molIndexNew,
-                                          const std::vector<uint> molIndexOld)
+                                          const std::vector<uint> &molIndexNew,
+                                          const std::vector<uint> &molIndexOld)
 {
   //This function should not be called in IDExchange move
   std::cout << "Error: Cached Fourier method cannot be used while " <<

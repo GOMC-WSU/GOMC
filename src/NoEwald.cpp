@@ -107,8 +107,8 @@ double NoEwald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 // box and removing a molecule (kindB) from destination box
 double NoEwald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
                                       const std::vector<cbmc::TrialMol> &oldMol,
-                                      const std::vector<uint> molIndexNew,
-                                      const std::vector<uint> molIndexold,
+                                      const std::vector<uint> &molIndexNew,
+                                      const std::vector<uint> &molIndexold,
                                       bool first_call)
 {
   return 0.0;

@@ -733,8 +733,8 @@ reduction(+:energyRecipNew)
 // box and removing molecule (kindB) from destination box
 double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
                                     const std::vector<cbmc::TrialMol> &oldMol,
-                                    const std::vector<uint> molIndexNew,
-                                    const std::vector<uint> molIndexOld,
+                                    const std::vector<uint> &molIndexNew,
+                                    const std::vector<uint> &molIndexOld,
                                     bool first_call)
 {
   double energyRecipNew = 0.0;
@@ -750,15 +750,9 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
     lengthOld = thisKindOld.NumAtoms();
 
 #ifdef _OPENMP
-#if GCC_VERSION >= 90000
     #pragma omp parallel for default(none) shared(box, first_call, lengthNew, lengthOld, \
     newMol, oldMol, thisKindNew, thisKindOld, molIndexNew, molIndexOld) \
 reduction(+:energyRecipNew)
-#else
-    #pragma omp parallel for default(none) shared(box, first_call, lengthNew, lengthOld, \
-    newMol, oldMol, thisKindNew, thisKindOld) \
-reduction(+:energyRecipNew)
-#endif
 #endif
     for (int i = 0; i < (int) imageSizeRef[box]; i++) {
       double sumRealNew = 0.0;

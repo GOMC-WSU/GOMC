@@ -6,14 +6,13 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "FloydWarshallCycle.h"
 
-FloydWarshallCycle::FloydWarshallCycle(int non)
+FloydWarshallCycle::FloydWarshallCycle(int numNodes)
 {
-  // let's check couple of things before we start
-  // number of nodes probably greater than zero
-  assert(non > 0);
+  // Confirm that the number of nodes is greater than zero
+  assert(numNodes > 0);
 
   // Store the size of the graph in numberOfNodes
-  numberOfNodes = non;
+  numberOfNodes = numNodes;
 
   // Resize both graph and next vectors to the size of N*N
   graph.resize(numberOfNodes);
@@ -34,9 +33,11 @@ FloydWarshallCycle::~FloydWarshallCycle()
 
 void FloydWarshallCycle::AddEdge(int src, int dest)
 {
-  // make sure src and dest are not something crazy!
+  // make sure src and dest are valid node IDs
   assert(src >= 0);
+  assert(src < numberOfNodes);
   assert(dest >= 0);
+  assert(dest < numberOfNodes);
 
   std::vector<int> temp;
   temp.push_back(src);
@@ -48,6 +49,7 @@ std::vector<int> FloydWarshallCycle::GetShortestCycle(int src)
 {
   // check src value
   assert(src >= 0);
+  assert(src < numberOfNodes);
 
   std::vector< std::vector<int> > paths;
   std::vector<int> allEdgesIncludingSrc = getConnectionsFor(src);
@@ -112,9 +114,11 @@ void FloydWarshallCycle::floydWarshall()
 
 std::vector<int> FloydWarshallCycle::getPath(int src, int dest)
 {
-  // check input
+  // make sure src and dest are valid node IDs
   assert(src >= 0);
+  assert(src < numberOfNodes);
   assert(dest >= 0);
+  assert(dest < numberOfNodes);
 
   std::vector<int> path;
   if (next[src][dest] == -1)
@@ -175,9 +179,10 @@ std::vector<int> FloydWarshallCycle::getConnectionsFor(int index)
   return conn;
 }
 
-std::vector<int> FloydWarshallCycle::findMinimumPath(std::vector< std::vector<int> > paths)
+std::vector<int> FloydWarshallCycle::findMinimumPath(const std::vector< std::vector<int> > &paths)
 {
-  int min = 10000;
+  //The path shouldn't be more than numberOfNodes without negative cycles
+  int min = 2 * numberOfNodes;
   std::vector<int> shortest;
   for (int i = 0; i < paths.size(); i++) {
     if (paths[i].size() != 0 && paths[i].size() < min) {
@@ -210,7 +215,7 @@ std::vector< std::vector<int> > FloydWarshallCycle::getUniqueVectors(std::vector
   return uniqueCycles;
 }
 
-bool FloydWarshallCycle::isVectorsEqual(std::vector<int> first, std::vector<int> second)
+bool FloydWarshallCycle::isVectorsEqual(const std::vector<int> &first, const std::vector<int> &second)
 {
   if (first.size() != second.size())
     return false;
@@ -222,7 +227,7 @@ bool FloydWarshallCycle::isVectorsEqual(std::vector<int> first, std::vector<int>
   return true;
 }
 
-bool FloydWarshallCycle::haveCommonElements(std::vector<int> first, std::vector<int> second)
+bool FloydWarshallCycle::haveCommonElements(const std::vector<int> &first, const std::vector<int> &second)
 {
   for (int i = 0; i < first.size(); i++) {
     if (std::find(second.begin(), second.end(), first[i]) != second.end()) {
@@ -232,7 +237,7 @@ bool FloydWarshallCycle::haveCommonElements(std::vector<int> first, std::vector<
   return false;
 }
 
-std::vector<int> FloydWarshallCycle::returnCombinedSet(std::vector<int> first, std::vector<int> second)
+std::vector<int> FloydWarshallCycle::returnCombinedSet(const std::vector<int> &first, const std::vector<int> &second)
 {
   std::vector<int> ret(first);
   for (int i = 0; i < second.size(); i++) {
