@@ -8,7 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define BASIC_TYPES_H
 
 #include <cstddef>
-#include <math.h>
+#include <cmath>
 #include <fstream>
 #include <vector>
 #include <iomanip>
@@ -78,6 +78,17 @@ inline void record_debug(double * x, uint len, std::string filename, int linenum
   out << "vector|double," << len << "," << filename << "," << linenumber;
   for(uint i = 0; i < len; i++) {
     out << "," << std::setprecision(12) << x[i];
+  }
+  out << "\n";
+}
+
+inline void record_debug(uint* x, uint len, std::string filename, int linenumber)
+{
+  std::ofstream out;
+  out.open(RECORD_DEBUG_FILE_NAME, std::ofstream::out | std::ofstream::app);
+  out << "vector|uint," << len << "," << filename << "," << linenumber;
+  for (uint i = 0; i < len; i++) {
+    out << "," << x[i];
   }
   out << "\n";
 }

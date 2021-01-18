@@ -12,7 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <cstdlib>
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 
 #include "MersenneTwister.h"
 #include "EnsemblePreprocessor.h"
@@ -169,8 +169,8 @@ public:
     //pick u = cos(phi) uniformly instead
     double u = gen->rand(2.0);
     u -= 1.0;
-    double theta = gen->randExc(2 * M_PI);
-    double rootTerm = sqrt(1 - u * u);
+    double theta = gen->randExc(2.0 * M_PI);
+    double rootTerm = sqrt(1.0 - u * u);
     return XYZ(rootTerm * cos(theta), rootTerm * sin(theta), u);
   }
 

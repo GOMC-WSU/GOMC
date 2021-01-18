@@ -8,10 +8,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define TRANSFORMMATRIX_H
 
 #include "BasicTypes.h"
-#ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
-#endif
-#include <math.h>           //cos and sin
+#include <cmath>           //cos and sin
 
 class TransformMatrix;
 typedef TransformMatrix RotationMatrix;
@@ -260,10 +258,10 @@ inline TransformMatrix TransformMatrix::UniformRandom(double u1, double u2, doub
   //method from Arvo (1992)
   //rotate around the pole (0,0,1), then move the pole to a random
   //point in S2 via an inverted Householder reflection
-  u1 *= 2 * M_PI;   //theta - magnitude of polar rotation
-  u1 -= M_PI;       //make restricted rotations symmetric for detailed balance
-  u2 *= 2 * M_PI;   //phi   - direction of pole shift
-  u3 *= 2.0;        //z     - magnitude of pole shift
+  u1 *= 2.0 * M_PI;   //theta - magnitude of polar rotation
+  u1 -= M_PI;         //make restricted rotations symmetric for detailed balance
+  u2 *= 2.0 * M_PI;   //phi   - direction of pole shift
+  u3 *= 2.0;          //z     - magnitude of pole shift
 
   double r = sqrt(u3);
   //Vector used for reflection

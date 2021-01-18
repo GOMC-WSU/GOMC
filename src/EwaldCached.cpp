@@ -61,7 +61,7 @@ void EwaldCached::Init()
   }
 
   AllocMem();
-  //initialize K vectors and reciprocate terms
+  //initialize K vectors and reciprocal terms
   UpdateVectorsAndRecipTerms(true);
 }
 
@@ -88,13 +88,15 @@ void EwaldCached::AllocMem()
   }
 }
 
-//calculate reciprocal term for a box
+
+//calculate reciprocal terms for a box. Should be called only at
+//the start of the simulation to initialize the settings and when
+//testing a change in box dimensions, such as a volume transfer.
 void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 {
-
   if (box < BOXES_WITH_U_NB) {
-    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
+    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
 
 #ifdef _OPENMP
     #pragma omp parallel default(none) shared(box)
@@ -110,7 +112,8 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
       uint startAtom = mols.MolStart(*thisMol);
 
 #ifdef _OPENMP
-      #pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, startAtom, thisKind, thisMol)
+      #pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, \
+      startAtom, thisKind, thisMol)
 #endif
       for (int i = 0; i < (int) imageSize[box]; i++) {
         cosMolRef[*thisMol][i] = 0.0;
@@ -120,9 +123,8 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
           if(particleHasNoCharge[startAtom + j]) {
             continue;
           }
-          double dotProduct = Dot(mols.MolStart(*thisMol) + j,
-                                  kx[box][i], ky[box][i],
-                                  kz[box][i], molCoords);
+          double dotProduct = Dot(mols.MolStart(*thisMol) + j, kx[box][i],
+                                  ky[box][i], kz[box][i], molCoords);
           //cache the Cos and sin term with lambda = 1
           cosMolRef[*thisMol][i] += (thisKind.AtomCharge(j) *
                                      cos(dotProduct));
@@ -140,19 +142,92 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 }
 
 
-//calculate reciprocal term for a box
-double EwaldCached::BoxReciprocal(uint box) const
+//Calculate reciprocal terms for a box, when an updated value is needed
+//because the number and location of molecules could have changed since
+//the volume was set. Examples include MultiParticle and Molecule Exchange
+//moves. For these calls, we need to use the Reference settings, since
+//these hold the information for the current box dimensions.
+void EwaldCached::BoxReciprocalSums(uint box, XYZArray const& molCoords)
+{
+  if (box < BOXES_WITH_U_NB) {
+    MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
+    MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
+
+#ifdef _OPENMP
+    #pragma omp parallel default(none) shared(box)
+#endif
+    {
+      std::memset(sumRnew[box], 0.0, sizeof(double) * imageSizeRef[box]);
+      std::memset(sumInew[box], 0.0, sizeof(double) * imageSizeRef[box]);
+    }
+
+    while (thisMol != end) {
+      MoleculeKind const& thisKind = mols.GetKind(*thisMol);
+      double lambdaCoef = GetLambdaCoef(*thisMol, box);
+      uint startAtom = mols.MolStart(*thisMol);
+
+#ifdef _OPENMP
+      #pragma omp parallel for default(none) shared(box, lambdaCoef, molCoords, \
+      startAtom, thisKind, thisMol)
+#endif
+      for (int i = 0; i < (int) imageSizeRef[box]; i++) {
+        cosMolRef[*thisMol][i] = 0.0;
+        sinMolRef[*thisMol][i] = 0.0;
+
+        for (uint j = 0; j < thisKind.NumAtoms(); j++) {
+          if(particleHasNoCharge[startAtom + j]) {
+            continue;
+          }
+          double dotProduct = Dot(mols.MolStart(*thisMol) + j, kxRef[box][i],
+                                  kyRef[box][i], kzRef[box][i], molCoords);
+          //cache the Cos and sin term with lambda = 1
+          cosMolRef[*thisMol][i] += (thisKind.AtomCharge(j) *
+                                     cos(dotProduct));
+          sinMolRef[*thisMol][i] += (thisKind.AtomCharge(j) *
+                                     sin(dotProduct));
+        }
+        //store the summation with system lambda
+        sumRnew[box][i] += (lambdaCoef * cosMolRef[*thisMol][i]);
+        sumInew[box][i] += (lambdaCoef * sinMolRef[*thisMol][i]);
+      }
+
+      thisMol++;
+    }
+  }
+}
+
+
+//Calculate reciprocal energy for a box. This function is called for two reasons:
+// 1. During a volume move, we call this function to total the sums for the new
+//    volume. For these calls, need to total the sums with the new volume settings.
+// 2. During a Molecule Exchange or MultiParticle move, we need to recompute these
+//    sums for the current volume, since the number and location of molecules
+//    could have changed since the volume was set. For these calls, we need to
+//    use the Reference settings, since these hold the information for the current
+//    box dimensions. Also called at the start of the simulation, after the
+//    Reference volume parameters have been set.
+double EwaldCached::BoxReciprocal(uint box, bool isNewVolume) const
 {
   double energyRecip = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
+    double *prefactPtr;
+    int imageSzVal;
+    if (isNewVolume) {
+      prefactPtr = prefact[box];
+      imageSzVal = static_cast<int>(imageSize[box]);
+    } else {
+      prefactPtr = prefactRef[box];
+      imageSzVal = static_cast<int>(imageSizeRef[box]);
+    }
 #ifdef _OPENMP
-    #pragma omp parallel for default(none) shared(box) reduction(+:energyRecip)
+    #pragma omp parallel for default(none) shared(box, imageSzVal, prefactPtr) \
+    reduction(+:energyRecip)
 #endif
-    for (int i = 0; i < (int) imageSize[box]; i++) {
+    for (int i = 0; i < imageSzVal; i++) {
       energyRecip += ((sumRnew[box][i] * sumRnew[box][i] +
                        sumInew[box][i] * sumInew[box][i]) *
-                       prefact[box][i]);
+                       prefactPtr[i]);
     }
   }
 
@@ -322,10 +397,10 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 
 //calculate reciprocal term for inserting some molecules (kindA) in destination
 // box and removing a molecule (kindB) from destination box
-double EwaldCached::SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
-                              const std::vector<cbmc::TrialMol> &oldMol,
-                              const std::vector<uint> molIndexNew,
-                              const std::vector<uint> molIndexOld)
+double EwaldCached::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
+                                          const std::vector<cbmc::TrialMol> &oldMol,
+                                          const std::vector<uint> molIndexNew,
+                                          const std::vector<uint> molIndexOld)
 {
   //This function should not be called in IDExchange move
   std::cout << "Error: Cached Fourier method cannot be used while " <<

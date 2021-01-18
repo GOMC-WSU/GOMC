@@ -15,7 +15,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBSetup.h"
 #include "PRNGSetup.h"
 #include "MolSetup.h"
-#include "ExtendedSystem.h"
 #include "GOMC_Config.h"    //For PT
 #include "ParallelTemperingPreprocessor.h"
 class Setup
@@ -24,7 +23,6 @@ public:
   //Read order follows each item
   ConfigSetup config;  //1
   PDBSetup pdb;        //2
-  ExtendedSystem xsc;  //3
   FFSetup ff;          //4
   PRNGSetup prng;      //5
 #if GOMC_LIB_MPI
@@ -40,9 +38,6 @@ public:
     ff.Init(config.in.files.param, config.in.ffKind.isCHARMM);
     //Read in PDB data
     pdb.Init(config.in.restart, config.in.files.pdb.name);
-    //Read in extended system file to override the cellBasis data
-    //Read in binary coordinate file to override the coordinates data
-    xsc.Init(pdb, config.in);
     //Initialize PRNG
     prng.Init(config.in.restart, config.in.prng, config.in.files.seed.name);
 #if GOMC_LIB_MPI
@@ -60,7 +55,7 @@ public:
     if(mol.Init(config.in.restart, config.in.files.psf.name, config.in.files.psf.defined, pdb.atoms) != 0) {
       exit(EXIT_FAILURE);
     }
-    mol.AssignKinds(pdb.atoms, ff);
+    mol.AssignKinds(mol.molVars, ff);
 
   }
 };

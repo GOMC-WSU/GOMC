@@ -64,7 +64,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <Random123/features/compilerfeatures.h>
 #include <Random123/uniform.hpp>
-#include <math.h>
+#include <cmath>
 
 namespace r123{
 

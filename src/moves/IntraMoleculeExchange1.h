@@ -487,8 +487,8 @@ inline void IntraMoleculeExchange1::CalcEn()
   correctDiff = 0.0;
 
   if(!overlap) {
-    recipDiffA = calcEwald->SwapRecip(newMolA, oldMolA, molIndexA, molIndexA, true);
-    recipDiffB = calcEwald->SwapRecip(newMolB, oldMolB, molIndexB, molIndexB, false);
+    recipDiffA = calcEwald->MolExchangeReciprocal(newMolA, oldMolA, molIndexA, molIndexA, true);
+    recipDiffB = calcEwald->MolExchangeReciprocal(newMolB, oldMolB, molIndexB, molIndexB, false);
 
     //No need to contribute the self and correction energy since insertion
     //and deletion are rigid body
@@ -583,10 +583,9 @@ inline void IntraMoleculeExchange1::Accept(const uint rejectState,
       sysPotRef.boxEnergy[sourceBox].correction += correctDiff;
 
       // Update reciprocal
-      calcEwald->BoxReciprocalSetup(sourceBox, coordCurrRef);
       calcEwald->UpdateRecip(sourceBox);
 
-      // molA and molB already added to cellist
+      // molA and molB already added to cellList
 
       // Recalculate total
       sysPotRef.Total();

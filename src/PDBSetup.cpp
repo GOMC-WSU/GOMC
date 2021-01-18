@@ -117,35 +117,15 @@ void Atoms::Assign(std::string const& atomName,
   beta.push_back(l_beta);
   box.push_back(currBox);
   ++numAtomsInBox[currBox];
-  atomAliases.push_back(atomName);
-  resNamesFull.push_back(resName);
-  /* Format Atom previously expected resID to start at 0.  We will subtract 1 here to
-      stay compliant */
-  resIDs.push_back(resNum-1);
-  if (resNum != currRes || resName != currResname || firstResInFile) {
-    molBeta.push_back(l_beta);
-    startIdxRes.push_back(count);
-    currRes = resNum;
-    currResname = resName;
-    resNames.push_back(resName);
-    chainLetter.push_back(l_chain);
-    //Check if this kind of residue has been found
-    uint kIndex = std::find(resKindNames.begin(), resKindNames.end(),
-                            resName) - resKindNames.begin();
-    // if not push it to resKindNames -> new molecule found
-    if(kIndex == resKindNames.size()) {
-      resKindNames.push_back(resName);
-    }
-    // pushes the index of the residue to the resKinds
-    resKinds.push_back(kIndex);
-  }
+  resNames.push_back(resName);
+  chainLetter.push_back(l_chain);
+
   // push the coordinates of atoms to x, y, and z
   x.push_back(l_x);
   y.push_back(l_y);
   z.push_back(l_z);
 
   count++;
-  firstResInFile = false;
 }
 
 void Atoms::Read(FixedWidthReader & file)
@@ -177,13 +157,7 @@ void Atoms::Clear()
   z.clear();
   beta.clear();
   box.clear();
-  atomAliases.clear();
-  resNamesFull.clear();
   resNames.clear();
-  resKindNames.clear();
-  startIdxRes.clear();
-  resKinds.clear();
-  molBeta.clear();
   count = 0;
 }
 

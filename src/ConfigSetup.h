@@ -111,7 +111,7 @@ struct FFKind {
 //Files for input.
 struct InFiles {
   std::vector<FileName> param;
-  FileNames<BOX_TOTAL> pdb, psf, binaryInput, xscInput;
+  FileNames<BOX_TOTAL> pdb, psf, binaryInput, xscInput, checkpoint;
   FileName seed;
 };
 
@@ -756,8 +756,7 @@ struct Statistics {
   TrackedVars vars;
 };
 struct Output {
-  SysState state, restart;
-  SysState state_dcd, restart_dcd;
+  SysState state, restart, state_dcd, restart_dcd;
   Statistics statistics;
   EventSettings console, checkpoint;
 };
@@ -780,10 +779,6 @@ private:
   bool CheckString(std::string str1, std::string str2);
   void verifyInputs(void);
   InputFileReader reader;
-
-  //Names of config file.
-  static const char defaultConfigFileName[]; // "in.dat"
-  static const char configFileAlias[];       // "GO-MC Configuration File"
 };
 
 #endif

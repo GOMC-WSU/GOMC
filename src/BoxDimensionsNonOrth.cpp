@@ -207,7 +207,7 @@ void BoxDimensionsNonOrth::SetVolume(const uint b, const double vol)
     halfAx.Scale(b, 1.0, 1.0, ratio);
     cellLength.Scale(b, 1.0, 1.0, ratio);
   } else {
-    double ratio = pow(vol / volume[b], (1.0 / 3.0));
+    double ratio = cbrt(vol / volume[b]);
     axis.Scale(b, ratio);
     halfAx.Scale(b, ratio);
     cellLength.Scale(b, ratio);

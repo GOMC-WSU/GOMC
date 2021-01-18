@@ -414,10 +414,10 @@ inline uint MoleculeExchange1::Prep(const double subDraw, const double movPerc)
 {
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
-    numTypeASource = (double)(molLookRef.NumKindInBox(kindIndexA[0], sourceBox));
-    numTypeADest = (double)(molLookRef.NumKindInBox(kindIndexA[0], destBox));
-    numTypeBSource = (double)(molLookRef.NumKindInBox(kindIndexB[0], sourceBox));
-    numTypeBDest = (double)(molLookRef.NumKindInBox(kindIndexB[0], destBox));
+    numTypeASource = (double)(molLookRef.NumKindInBoxSwappable(kindIndexA[0], sourceBox));
+    numTypeADest = (double)(molLookRef.NumKindInBoxSwappable(kindIndexA[0], destBox));
+    numTypeBSource = (double)(molLookRef.NumKindInBoxSwappable(kindIndexB[0], sourceBox));
+    numTypeBDest = (double)(molLookRef.NumKindInBoxSwappable(kindIndexB[0], destBox));
 
     //transferring type A from source to dest
     for(uint n = 0; n < numInCavA; n++) {
@@ -584,7 +584,7 @@ inline void MoleculeExchange1::CalcEn()
       self_newA += calcEwald->SwapSelf(newMolA[n]);
       self_oldA += calcEwald->SwapSelf(oldMolA[n]);
     }
-    recipDest = calcEwald->SwapRecip(newMolA, oldMolB, molIndexA, molIndexB, true);
+    recipDest = calcEwald->MolExchangeReciprocal(newMolA, oldMolB, molIndexA, molIndexB, true);
 
     for(uint n = 0; n < numInCavB; n++) {
       correct_newB += calcEwald->SwapCorrection(newMolB[n]);
@@ -592,7 +592,7 @@ inline void MoleculeExchange1::CalcEn()
       self_newB += calcEwald->SwapSelf(newMolB[n]);
       self_oldB += calcEwald->SwapSelf(oldMolB[n]);
     }
-    recipSource = calcEwald->SwapRecip(newMolB, oldMolA, molIndexB, molIndexA, true);
+    recipSource = calcEwald->MolExchangeReciprocal(newMolB, oldMolA, molIndexB, molIndexA, true);
 
     //need to contribute the self and correction energy
     W_recip = exp(-1.0 * ffRef.beta * (recipSource + recipDest +

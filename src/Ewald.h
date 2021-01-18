@@ -67,11 +67,14 @@ public:
   //Get initial estimate of memory required
   void RecipCountInit(uint box, BoxDimensions const& boxAxes);
 
-  //setup reciprocal term for a box
+  //compute reciprocal term for a box with a new volume
   virtual void BoxReciprocalSetup(uint box, XYZArray const& molCoords);
 
+  //compute reciprocal term for a box when not testing a volume change
+  virtual void BoxReciprocalSums(uint box, XYZArray const& molCoords);
+
   //calculate reciprocal energy term for a box
-  virtual double BoxReciprocal(uint box) const;
+  virtual double BoxReciprocal(uint box, bool isNewVolume) const;
 
   //calculate self term for a box
   virtual double BoxSelf(uint box) const;
@@ -101,11 +104,11 @@ public:
 
   //calculate reciprocal term for inserting some molecules (kindA) in
   //destination box and removing a molecule (kindB) from destination box
-  virtual double SwapRecip(const std::vector<cbmc::TrialMol> &newMol,
-                           const std::vector<cbmc::TrialMol> &oldMol,
-                           const std::vector<uint> molIndexNew,
-                           const std::vector<uint> molIndexOld,
-                           bool first_call);
+  virtual double MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
+                                       const std::vector<cbmc::TrialMol> &oldMol,
+                                       const std::vector<uint> molIndexNew,
+                                       const std::vector<uint> molIndexOld,
+                                       bool first_call);
 
   //calculate correction term after swap move, with lambda = 1
   virtual double SwapCorrection(const cbmc::TrialMol& trialMol) const;
@@ -120,7 +123,10 @@ public:
   //update reciprocal values
   virtual void UpdateRecip(uint box);
 
-  //update the hx,y,z hsqr and prefact
+  //copy reciprocal values from ref to new
+  virtual void CopyRecip(uint box);
+
+  //update kx, ky, kz, hsqr and prefact
   virtual void UpdateRecipVec(uint box);
 
   //calculate self term after swap move
@@ -141,7 +147,7 @@ public:
 
   /// This function performs three actions:
   /// 1. Initialize k vectors
-  /// 2. Run BoxReciprocalSetup to calculate sumRnew and sumInew
+  /// 2. Run BoxReciprocalSetup to calculate sumRnew and sumInew vectors
   /// 3. Then copy all new vectors to ref vectors
   /// @param bool: whether to print the vector size
   virtual void UpdateVectorsAndRecipTerms(bool output);

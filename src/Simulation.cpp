@@ -17,13 +17,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 Simulation::Simulation(char const*const configFileName, MultiSim const*const& multisim): ms(multisim)
 {
   startStep = 0;
-  //NOTE:
-  //IMPORTANT! Keep this order...
-  //as system depends on staticValues, and cpu sometimes depends on both.
   set.Init(configFileName, multisim);
   totalSteps = set.config.sys.step.total;
   staticValues = new StaticVals(set);
-  system = new System(*staticValues, multisim);
+  system = new System(*staticValues, set, multisim);
   staticValues->Init(set, *system);
   system->Init(set, startStep);
   //recalc Init for static value for initializing ewald since ewald is
@@ -100,8 +97,8 @@ void Simulation::RunSimulation(void)
       system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
       if (staticValues->forcefield.ewald) {
         for(int box = 0; box < BOX_TOTAL; box++) {
-          system->calcEwald->BoxReciprocalSetup(box, system->coordinates);
-          system->potential.boxEnergy[box].recip = system->calcEwald->BoxReciprocal(box);
+          system->calcEwald->BoxReciprocalSums(box, system->coordinates, false);
+          system->potential.boxEnergy[box].recip = system->calcEwald->BoxReciprocal(box, false);
           system->calcEwald->UpdateRecip(box);
         }
       }
