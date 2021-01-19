@@ -1,7 +1,9 @@
 #include <iostream> 
 #include <list> 
 #include <stack> 
-
+#include <vector>
+#include <unordered_set>
+#include <map>
 class Edge { 
 public: 
 	int u; 
@@ -22,5 +24,6 @@ class Graph {
 public: 
 	Graph(int V); // Constructor 
 	void addEdge(int v, int w); // function to add an edge to graph 
-	void BCC(); // prints strongly connected components 
+	void BCC(); // prints strongly connected components
+	std::map < int , std::vector< std::unordered_set<int> > > blockGraph;
 }; 
