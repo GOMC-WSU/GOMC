@@ -47,6 +47,8 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
   //FloydWarshallCycle fwc(totAtom);
   //JohnsonsCircuit jc(totAtom);
   Graph bcc(totAtom);
+  CircuitFinder CF(totAtom);
+
   //Count the number of bonds for each atom
   for (uint b = 0; b < setupKind.bonds.size(); ++b) {
     const Bond& bond = setupKind.bonds[b];
@@ -55,8 +57,11 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
     //fwc.AddEdge(bond.a0, bond.a1);
     bcc.addEdge(bond.a0, bond.a1);
     bcc.addEdge(bond.a1, bond.a0);
+    CF.addEdge(bond.a0, bond.a1);
+    CF.addEdge(bond.a1, bond.a0);
   }
   bcc.BCC();
+  CF.run();
   //cyclicAtoms = jc.getAllElementaryCycles();
   /*
   cyclicAtoms = fwc.GetAllCommonCycles();
