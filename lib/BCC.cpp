@@ -65,16 +65,29 @@ void Graph::BCCUtil(int u, int disc[], int low[], list<Edge>* st,
 
 			// If u is an articulation point, 
 			// pop all edges from stack till u -- v 
-			if ((disc[u] == 1 && children > 1) || (disc[u] > 1 && low[v] >= disc[u])) { 
+			if ((disc[u] == 1 && children > 1) || (disc[u] > 1 && low[v] >= disc[u])) {
+				int articulationPoint = u;
+				if ( blockGraph.find(articulationPoint) == blockGraph.end() ) {				
+					blockGraph[articulationPoint] = std::vector < std::unordered_set<int> >();
+				}
+
+				std::vector<int> biconnectedComponent;
+
 				while (st->back().u != u || st->back().v != v) { 
-					cout << st->back().u << "--" << st->back().v << " "; 
+					cout << st->back().u << "--" << st->back().v << " ";
+					biconnectedComponent.push_back(st->back().v); 
+					biconnectedComponent.push_back(st->back().u); 
 					st->pop_back(); 
 				}
+				biconnectedComponent.push_back(st->back().u);
+				biconnectedComponent.push_back(st->back().v);
 
 				cout << st->back().u << "--" << st->back().v;
 
 				st->pop_back(); 
 				cout << endl; 
+				blockGraph[u].push_back(unordered_set<int>(biconnectedComponent.begin(), biconnectedComponent.end()));
+				biconnectedComponent.clear();
 				count++; 
 			} 
 		} 
