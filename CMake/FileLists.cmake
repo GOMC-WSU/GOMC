@@ -188,11 +188,13 @@ set(libHeaders
    lib/StrStrmLib.h
    lib/VectorLib.h
    lib/BCC.h
-   lib/CircuitFinder.h)
+   lib/CircuitFinder.h
+   lib/FloydWarshallCycle.h)
 
 set(libSources
     lib/BCC.cpp
-    lib/CircuitFinder.cpp)
+    lib/CircuitFinder.cpp
+    lib/FloydWarshallCycle.cpp)
 
 set(cudaHeaders
     src/GPU/ConstantDefinitionsCUDAKernel.cuh
