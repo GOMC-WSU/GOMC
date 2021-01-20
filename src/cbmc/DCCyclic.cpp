@@ -44,9 +44,6 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
   std::vector<uint> bondCount(totAtom, 0);
   isRing.resize(totAtom, false);
   ringIdx.resize(totAtom, -1);
-  //FloydWarshallCycle fwc(totAtom);
-  //JohnsonsCircuit jc(totAtom);
-  Graph bcc(totAtom);
   CircuitFinder CF(totAtom);
 
   //Count the number of bonds for each atom
@@ -54,17 +51,10 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
     const Bond& bond = setupKind.bonds[b];
     ++bondCount[bond.a0];
     ++bondCount[bond.a1];
-    //fwc.AddEdge(bond.a0, bond.a1);
-    bcc.addEdge(bond.a0, bond.a1);
-    bcc.addEdge(bond.a1, bond.a0);
     CF.addEdge(bond.a0, bond.a1);
     CF.addEdge(bond.a1, bond.a0);
   }
-  bcc.BCC();
-  CF.run();
-  //cyclicAtoms = jc.getAllElementaryCycles();
-  /*
-  cyclicAtoms = fwc.GetAllCommonCycles();
+  cyclicAtoms = CF.GetAllCommonCycles();
   //Find the ringindex that each atom belongs to
   for (uint atom = 0; atom < totAtom; ++atom) {
     if (bondCount[atom] < 2) {
@@ -82,7 +72,7 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
       }
     }
   }
-*/
+
   //Find the node (number of bound > 1)
   //Construct the starting node (DCFreeHedron or DCFreeCycle)
   //Construct the Linking node (DCLinkHedron or DCLinkedCycle or DCCloseCycle)
