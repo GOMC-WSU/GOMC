@@ -102,6 +102,7 @@ GOMC_PROFILE_EVENT(RECIP_SWAP_ENERGY, "ewald_molecule_swap_recip_energy")
 GOMC_PROFILE_EVENT(RECIP_MEMC_ENERGY, "ewald_molecule_MEMC_recip_energy")
 GOMC_PROFILE_EVENT(RECIP_CFCMC_ENERGY, "ewald_molecule_CFCMC_recip_energy")
 GOMC_PROFILE_EVENT(SELF_MOL, "ewald_molecule_self_energy")
+GOMC_PROFILE_EVENT(SELF_SWAP, "ewald_molecule_swap_self_energy")
 GOMC_PROFILE_EVENT(CORR_MOL, "ewald_molecule_correction_energy")
 GOMC_PROFILE_EVENT(CORR_SWAP, "ewald_molecule_swap_correction_energy")
 // dummy events

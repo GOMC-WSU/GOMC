@@ -6,6 +6,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "EwaldCached.h"
 #include "StaticVals.h"
+#include "GOMCEventsProfile.h"
 
 using namespace geom;
 
@@ -94,6 +95,7 @@ void EwaldCached::AllocMem()
 //testing a change in box dimensions, such as a volume transfer.
 void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::RECIP_BOX_SETUP);
   if (box < BOXES_WITH_U_NB) {
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
@@ -139,6 +141,7 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
       thisMol++;
     }
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_SETUP);
 }
 
 
@@ -149,6 +152,7 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 //these hold the information for the current box dimensions.
 void EwaldCached::BoxReciprocalSums(uint box, XYZArray const& molCoords)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::RECIP_BOX_SETUP);
   if (box < BOXES_WITH_U_NB) {
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
@@ -194,6 +198,7 @@ void EwaldCached::BoxReciprocalSums(uint box, XYZArray const& molCoords)
       thisMol++;
     }
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_SETUP);
 }
 
 
@@ -208,6 +213,7 @@ void EwaldCached::BoxReciprocalSums(uint box, XYZArray const& molCoords)
 //    Reference volume parameters have been set.
 double EwaldCached::BoxReciprocal(uint box, bool isNewVolume) const
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::RECIP_BOX_ENERGY);
   double energyRecip = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
@@ -231,6 +237,7 @@ double EwaldCached::BoxReciprocal(uint box, bool isNewVolume) const
     }
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_ENERGY);
   return energyRecip;
 }
 
@@ -239,6 +246,7 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
                                   const uint molIndex,
                                   const uint box)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::RECIP_MOL_ENERGY);
   double energyRecipNew = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
@@ -290,6 +298,7 @@ reduction(+:energyRecipNew)
     }
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_MOL_ENERGY);
   return energyRecipNew - sysPotRef.boxEnergy[box].recip;
 }
 
@@ -300,6 +309,7 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
                                   const uint box,
                                   const int molIndex)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::RECIP_SWAP_ENERGY);
   double energyRecipNew = 0.0;
   double energyRecipOld = 0.0;
 
@@ -361,6 +371,7 @@ reduction(+:energyRecipNew)
     energyRecipOld = sysPotRef.boxEnergy[box].recip;
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_SWAP_ENERGY);
   return energyRecipNew - energyRecipOld;
 }
 
@@ -371,6 +382,7 @@ reduction(+:energyRecipNew)
 double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                     const uint box, const int molIndex)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::RECIP_SWAP_ENERGY);
   double energyRecipNew = 0.0;
   double energyRecipOld = 0.0;
 
@@ -392,6 +404,7 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
 
     energyRecipOld = sysPotRef.boxEnergy[box].recip;
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_SWAP_ENERGY);
   return energyRecipNew - energyRecipOld;
 }
 
