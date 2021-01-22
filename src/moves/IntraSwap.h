@@ -77,6 +77,7 @@ inline uint IntraSwap::GetBoxAndMol(const double subDraw, const double movPerc)
 
 inline uint IntraSwap::Prep(const double subDraw, const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_INTRA_SWAP);
   overlap = false;
   uint state = GetBoxAndMol(subDraw, movPerc);
   if (state == mv::fail_state::NO_FAIL) {
@@ -85,20 +86,24 @@ inline uint IntraSwap::Prep(const double subDraw, const double movPerc)
     oldMol.SetCoords(coordCurrRef, pStart);
     W_tc = 1.0;
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_INTRA_SWAP);
   return state;
 }
 
 
 inline uint IntraSwap::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_INTRA_SWAP);
   cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
   molRef.kinds[kindIndex].Build(oldMol, newMol, molIndex);
   overlap = newMol.HasOverlap();
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_INTRA_SWAP);
   return mv::fail_state::NO_FAIL;
 }
 
 inline void IntraSwap::CalcEn()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_INTRA_SWAP);
   // since number of molecules would not change in the box,
   //there is no change in Tc
   W_tc = 1.0;
@@ -115,11 +120,13 @@ inline void IntraSwap::CalcEn()
     W_recip = exp(-1.0 * ffRef.beta * (recipDiff.energy + correct_new -
                                        correct_old));
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_INTRA_SWAP);
 }
 
 
 inline void IntraSwap::Accept(const uint rejectState, const uint step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::ACC_INTRA_SWAP);
   bool result;
   //If we didn't skip the move calculation
   if(rejectState == mv::fail_state::NO_FAIL) {
@@ -176,6 +183,7 @@ inline void IntraSwap::Accept(const uint rejectState, const uint step)
     result = false;
 
   moveSetRef.Update(mv::INTRA_SWAP, result, sourceBox, kindIndex);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_INTRA_SWAP);
 }
 
 #endif

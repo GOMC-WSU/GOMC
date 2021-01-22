@@ -412,6 +412,7 @@ inline uint MoleculeExchange1::GetBoxPairAndMol(const double subDraw,
 
 inline uint MoleculeExchange1::Prep(const double subDraw, const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_MEMC);
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
     numTypeASource = (double)(molLookRef.NumKindInBoxSwappable(kindIndexA[0], sourceBox));
@@ -494,12 +495,14 @@ inline uint MoleculeExchange1::Prep(const double subDraw, const double movPerc)
     }
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_MEMC);
   return state;
 }
 
 
 inline uint MoleculeExchange1::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_MEMC);
   //Need to calculate Tc before transforming the molecules.
   CalcTc();
 
@@ -539,6 +542,7 @@ inline uint MoleculeExchange1::Transform()
     overlap |= newMolB[n].HasOverlap();
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_MEMC);
   return mv::fail_state::NO_FAIL;
 }
 
@@ -570,6 +574,7 @@ inline void MoleculeExchange1::CalcTc()
 
 inline void MoleculeExchange1::CalcEn()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_MEMC);
   W_recip = 1.0;
   correct_oldA = 0.0, correct_newA = 0.0;
   self_oldA = 0.0, self_newA = 0.0;
@@ -601,6 +606,7 @@ inline void MoleculeExchange1::CalcEn()
                                        self_newA - self_oldA +
                                        self_newB - self_oldB));
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_MEMC);
 }
 
 inline double MoleculeExchange1::GetCoeff() const
@@ -709,6 +715,7 @@ inline void MoleculeExchange1::RecoverMol(const bool A, const uint n,
 
 inline void MoleculeExchange1::Accept(const uint rejectState, const uint step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::ACC_MEMC);
   bool result;
 
   //If we didn't skip the move calculation
@@ -792,6 +799,7 @@ inline void MoleculeExchange1::Accept(const uint rejectState, const uint step)
   AcceptKind(result, kindS + kindL * molRef.GetKindsCount(), sourceBox);
   AcceptKind(result, kindS + kindL * molRef.GetKindsCount(), destBox);
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_MEMC);
 }
 
 #endif
