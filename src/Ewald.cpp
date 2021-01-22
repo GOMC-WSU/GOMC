@@ -1640,7 +1640,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
     }
 #endif
   }
-  GOMC_EVENT_START(1, GomcProfileEvent::RECIP_BOX_FORCE);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_FORCE);
 }
 
 double Ewald::GetLambdaCoef(uint molA, uint box) const

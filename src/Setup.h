@@ -17,6 +17,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MolSetup.h"
 #include "GOMC_Config.h"    //For PT
 #include "ParallelTemperingPreprocessor.h"
+#include "GOMCEventsProfile.h"
 class Setup
 {
 public:
@@ -32,14 +33,13 @@ public:
 
   void Init(char const*const configFileName, MultiSim const*const& multisim)
   {
+    GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
     //Read in all config data
     config.Init(configFileName, multisim);
     //Read in FF data.
     ff.Init(config.in.files.param, config.in.ffKind.isCHARMM);
     //Read in PDB data
     pdb.Init(config.in.restart, config.in.files.pdb.name);
-    //Initialize PRNG
-    prng.Init(config.in.restart, config.in.prng, config.in.files.seed.name);
 #if GOMC_LIB_MPI
     if(multisim->parallelTemperingEnabled)
       prngParallelTemp.Init(config.in.restart, config.in.prngParallelTempering, config.in.files.seed.name);
@@ -56,6 +56,9 @@ public:
       exit(EXIT_FAILURE);
     }
     mol.AssignKinds(mol.molVars, ff);
+    GOMC_EVENT_STOP(1, GomcProfileEvent::READ_INPUT_FILES);
+    //Initialize PRNG
+    prng.Init(config.in.restart, config.in.prng, config.in.files.seed.name);
 
   }
 };

@@ -106,6 +106,7 @@ void EnPartCntSample::DoOutput(const ulong step)
   if ((step) < stepsTillEquil) return;
   //Output a sample in the form <N1,... Nk, E_total>
   //Only sample on specified interval.
+  GOMC_EVENT_START(1, GomcProfileEvent::HIST_OUTPUT);
   if ((step + 1) % stepsPerOut == 0) {
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       if (outF[b].is_open()) {
@@ -120,6 +121,7 @@ void EnPartCntSample::DoOutput(const ulong step)
                   << "(energy and part. num samples file)" << std::endl;
     }
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::HIST_OUTPUT);
   samplesCollectedInFrame = 0;
 }
 

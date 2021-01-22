@@ -87,6 +87,7 @@ void PSFOutput::Init(pdb_setup::Atoms const& atoms,
 
 void PSFOutput::DoOutput(const ulong step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PSF_RESTART_OUTPUT);
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     FILE* outfile = fopen(outRebuildRestartFName[b].c_str(), "w");
     if (outfile == NULL) {
@@ -103,6 +104,7 @@ void PSFOutput::DoOutput(const ulong step)
     PrintNAMDCompliantSuffixInBox(outfile, b);
     fclose(outfile);
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PSF_RESTART_OUTPUT);
 }
 
 void PSFOutput::Output(const ulong step)
@@ -165,11 +167,13 @@ void PSFOutput::CountMoleculesInBoxes()
 
 void PSFOutput::PrintPSF(const std::string& filename) const
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PSF_MERGED_OUTPUT);
   std::vector<std::string> remarks;
   //default file remarks
   remarks.push_back("Combined PSF produced by GOMC");
   remarks.push_back("Contains Geometry data for molecules in ALL boxes in the system");
   PrintPSF(filename, remarks);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PSF_MERGED_OUTPUT);
 }
 
 void PSFOutput::PrintPSF(const std::string& filename,

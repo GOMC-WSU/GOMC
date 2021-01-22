@@ -164,6 +164,7 @@ void PDBOutput::FormatAtom
 void PDBOutput::DoOutput(const ulong step)
 {
   if(enableOutState) {
+    GOMC_EVENT_START(1, GomcProfileEvent::PDB_OUTPUT);
     std::vector<uint> mBox(molRef.count);
     SetMolBoxVec(mBox);
     for (uint b = 0; b < BOX_TOTAL; ++b) {
@@ -172,6 +173,7 @@ void PDBOutput::DoOutput(const ulong step)
       PrintAtoms(b, mBox);
       PrintEnd(outF[b]);
     }
+    GOMC_EVENT_STOP(1, GomcProfileEvent::PDB_OUTPUT);
   }
   //NEW_RESTART_CODE
 
@@ -184,6 +186,7 @@ void PDBOutput::DoOutput(const ulong step)
 //NEW_RESTART_CODE
 void PDBOutput::DoOutputRebuildRestart(const uint step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PDB_RESTART_OUTPUT);
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     outRebuildRestart[b].openOverwrite();
     PrintCrystRest(b, step, outRebuildRestart[b]);
@@ -192,6 +195,7 @@ void PDBOutput::DoOutputRebuildRestart(const uint step)
     PrintEnd(outRebuildRestart[b]);
     outRebuildRestart[b].close();
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PDB_RESTART_OUTPUT);
 }
 //NEW_RESTART_CODE
 

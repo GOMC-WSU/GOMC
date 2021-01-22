@@ -109,6 +109,7 @@ void Histogram::DoOutput(const ulong step)
   //Don't output until equilibrated.
   if ((step) < stepsTillEquil) return;
   //Write to histogram file, if equilibrated.
+  GOMC_EVENT_START(1, GomcProfileEvent::DIST_OUTPUT);
   if ((step + 1) % stepsPerOut == 0) {
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       for (uint k = 0; k < var->numKinds; ++k) {
@@ -122,6 +123,7 @@ void Histogram::DoOutput(const ulong step)
       }
     }
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::DIST_OUTPUT);
 }
 void Histogram::PrintKindHist(const uint b, const uint k)
 {

@@ -19,6 +19,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 void ConsoleOutput::DoOutput(const ulong step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CONSOLE_OUTPUT);
   if (step == 0) {
     std::cout << std::endl << "################################################################################" << std::endl;
     std::cout << "########################## INITIAL SIMULATION ENERGY ###########################" << std::endl << std::endl;
@@ -84,6 +85,7 @@ void ConsoleOutput::DoOutput(const ulong step)
     }
 
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CONSOLE_OUTPUT);
 }
 
 void ConsoleOutput::PrintMove(const uint box, const ulong step) const
