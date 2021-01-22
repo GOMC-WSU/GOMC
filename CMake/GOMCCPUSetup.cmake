@@ -1,26 +1,19 @@
 #EnsemblePreprocessor defines NVT = 1, GEMC = 2, GCMC = 3, NPT = 4
 #NPT (Isothermal-Isobaric) Ensemble
 
-set(GEN_COMP_flag "")
-
-if (GOMC_NVTX_ENABLED)
-	message("-- Enabling profiling with NVTX for CPU")
-	set(GEN_COMP_flag "${GEN_COMP_flag} -DGOMC_NVTX_ENABLED")
-endif()
-
-set(NPT_flags "-DENSEMBLE=4 ${GEN_COMP_flag}")
+set(NPT_flags "-DENSEMBLE=4")
 set(NPT_name "GOMC_CPU_NPT")
 
 #Grand Canonical Monte Carlo
-set(GC_flags "-DENSEMBLE=3 ${GEN_COMP_flag}")
+set(GC_flags "-DENSEMBLE=3")
 set(GC_name "GOMC_CPU_GCMC")
 
 #Gibbs Ensemble Monte Carlo
-set(GE_flags "-DENSEMBLE=2 ${GEN_COMP_flag}")
+set(GE_flags "-DENSEMBLE=2")
 set(GE_name "GOMC_CPU_GEMC")
 
 #NVT (Canonical) Ensemble
-set(NVT_flags "-DENSEMBLE=1 ${GEN_COMP_flag}")
+set(NVT_flags "-DENSEMBLE=1")
 set(NVT_name "GOMC_CPU_NVT")
 
 set(CMAKE_CXX_STANDARD 14)
