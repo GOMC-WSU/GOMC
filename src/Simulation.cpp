@@ -19,7 +19,9 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
 {
   GOMC_EVENT_START(1, GomcProfileEvent::INITIALIZE);
   startStep = 0;
+  GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
   set.Init(configFileName, multisim);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::READ_INPUT_FILES);
   totalSteps = set.config.sys.step.total;
   staticValues = new StaticVals(set);
   system = new System(*staticValues, set, multisim);

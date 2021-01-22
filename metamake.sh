@@ -80,6 +80,7 @@ fi
 while (( $# > 0 )); do
 	if [[ "$1" != --* ]]; then
 		echo "ERROR: Expected an option beginning with -- but found $1"
+		echo "Available options are: --with-profiling"
 		exit 1
 	fi
 	case "$1" in
@@ -89,6 +90,7 @@ while (( $# > 0 )); do
 	;;
 	*)
 		echo "ERROR: unknown option $1"
+		echo "Available options are: --with-profiling"
 		exit 1
 	;;
     esac
