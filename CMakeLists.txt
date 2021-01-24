@@ -10,7 +10,7 @@ include_directories(src/GPU)
 
 # Enable google test
 # for now we will disable testing for intel compiler
-if(NOT "${CMAKE_CXX_COMPILER_ID}" STRNEQUAL "Intel")
+if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   enable_testing()
   include(test/GoogleTest.cmake)
 endif()
