@@ -9,8 +9,11 @@ include_directories(src/moves)
 include_directories(src/GPU)
 
 # Enable google test
-enable_testing()
-include(test/GoogleTest.cmake)
+# for now we will disable testing for intel compiler
+if(NOT "${CMAKE_CXX_COMPILER_ID}" STRNEQUAL "Intel")
+  enable_testing()
+  include(test/GoogleTest.cmake)
+endif()
 
 #Out-of-source build
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
