@@ -14,7 +14,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "DCRotateCOM.h"
 #include "DCCrankShaftAng.h"
 #include "DCRotateOnAtom.h"
-#include "FloydWarshallCycle.h"
 #include <cassert>
 #include <map>
 
