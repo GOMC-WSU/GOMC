@@ -1,0 +1,50 @@
+CRYST1    0.000    0.000    0.000  90.00  90.00  90.00 P 1           1
+ATOM      1  N   ALA     1      -0.677  -1.230  -0.491  1.00  0.00      TRI  N
+ATOM      2  HN  ALA     1      -0.130   1.000   2.000  1.00  0.00      TRI   
+ATOM      3  CA  ALA     1      -0.001   0.064  -0.491  1.00  0.00      TRI  C
+ATOM      4  HA  ALA     1      -0.269   0.603  -1.418  1.00  0.00      TRI  H
+ATOM      5  CB  ALA     1      -0.509   0.856   0.727  1.00  0.00      TRI  C
+ATOM      6  HB1 ALA     1      -1.605   1.006   0.691  1.00  0.00      TRI  H
+ATOM      7  HB2 ALA     1      -0.285   0.342   1.681  1.00  0.00      TRI  H
+ATOM      8  HB3 ALA     1      -0.053   1.861   0.784  1.00  0.00      TRI  H
+ATOM      9  C   ALA     1       1.499  -0.110  -0.491  1.00  0.00      TRI  C
+ATOM     10  O   ALA     1       2.065  -0.922   0.251  1.00  0.00      TRI  O
+ATOM     11  N   PRO     2       2.212   0.610  -1.288  1.00  0.00      TRI  N
+ATOM     12  CD  PRO     2       1.630   1.583  -2.187  1.00  0.00      TRI  C
+ATOM     13  HD1 PRO     2       1.143   1.066  -3.018  1.00  0.00      TRI  H
+ATOM     14  HD2 PRO     2       0.913   2.221  -1.667  1.00  0.00      TRI  H
+ATOM     15  CA  PRO     2       3.662   0.506  -1.352  1.00  0.00      TRI  C
+ATOM     16  HA  PRO     2       3.967  -0.536  -1.472  1.00  0.00      TRI  H
+ATOM     17  CB  PRO     2       3.983   1.321  -2.615  1.00  0.00      TRI  C
+ATOM     18  HB1 PRO     2       3.910   0.667  -3.486  1.00  0.00      TRI  H
+ATOM     19  HB2 PRO     2       4.977   1.772  -2.588  1.00  0.00      TRI  H
+ATOM     20  CG  PRO     2       2.856   2.363  -2.669  1.00  0.00      TRI  C
+ATOM     21  HG1 PRO     2       2.714   2.776  -3.671  1.00  0.00      TRI  H
+ATOM     22  HG2 PRO     2       3.071   3.172  -1.968  1.00  0.00      TRI  H
+ATOM     23  C   PRO     2       4.327   1.073  -0.086  1.00  0.00      TRI  C
+ATOM     24  O   PRO     2       3.955   2.148   0.386  1.00  0.00      TRI  O
+ATOM     25  N   TRP     3       5.280   0.418   0.485  1.00  0.00      TRI  N
+ATOM     26  HN  TRP     3       5.590   4.000   5.000  1.00  0.00      TRI   
+ATOM     27  CA  TRP     3       5.900   0.971   1.685  1.00  0.00      TRI  C
+ATOM     28  HA  TRP     3       5.703   2.059   1.726  1.00  0.00      TRI  H
+ATOM     29  CB  TRP     3       5.301   0.269   2.936  1.00  0.00      TRI  C
+ATOM     30  HB1 TRP     3       5.852   0.573   3.846  1.00  0.00      TRI  H
+ATOM     31  HB2 TRP     3       5.462  -0.826   2.872  1.00  0.00      TRI  H
+ATOM     32  CG  TRP     3       3.816   0.550   3.180  1.00  0.00      TRI  C
+ATOM     33  CD1 TRP     3       2.746  -0.278   2.783  1.00  0.00      TRI  C
+ATOM     34  HD1 TRP     3       2.872  -1.221   2.266  1.00  0.00      TRI  H
+ATOM     35  NE1 TRP     3       1.499   0.304   3.083  1.00  0.00      TRI  N
+ATOM     36  HE1 TRP     3       0.562  -0.056   2.872  1.00  0.00      TRI  H
+ATOM     37  CE2 TRP     3       1.832   1.515   3.672  1.00  0.00      TRI  C
+ATOM     38  CD2 TRP     3       3.238   1.674   3.734  1.00  0.00      TRI  C
+ATOM     39  CE3 TRP     3       3.808   2.856   4.274  1.00  0.00      TRI  C
+ATOM     40  HE3 TRP     3       4.880   2.989   4.312  1.00  0.00      TRI  H
+ATOM     41  CZ3 TRP     3       2.950   3.844   4.757  1.00  0.00      TRI  C
+ATOM     42  HZ3 TRP     3       3.368   4.747   5.178  1.00  0.00      TRI  H
+ATOM     43  CZ2 TRP     3       0.984   2.533   4.160  1.00  0.00      TRI  C
+ATOM     44  HZ2 TRP     3      -0.089   2.418   4.114  1.00  0.00      TRI  H
+ATOM     45  CH2 TRP     3       1.559   3.685   4.703  1.00  0.00      TRI  C
+ATOM     46  HH2 TRP     3       0.920   4.466   5.089  1.00  0.00      TRI  H
+ATOM     47  C   TRP     3       7.398   0.779   1.660  1.00  0.00      TRI  C
+ATOM     48  O   TRP     3       7.967   0.222   0.723  1.00  0.00      TRI  O
+END

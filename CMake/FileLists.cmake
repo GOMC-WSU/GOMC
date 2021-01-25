@@ -187,9 +187,11 @@ set(libHeaders
    lib/StrLib.h
    lib/StrStrmLib.h
    lib/VectorLib.h
+   lib/CircuitFinder.h
    lib/FloydWarshallCycle.h)
 
 set(libSources
+    lib/CircuitFinder.cpp
     lib/FloydWarshallCycle.cpp)
 
 set(cudaHeaders
