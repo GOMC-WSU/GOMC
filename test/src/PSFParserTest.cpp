@@ -1,18 +1,12 @@
 #include <gtest/gtest.h>
 #include "PDBSetup.h"
-#include "PDBSetup.cpp"
 #include "MolSetup.h"
-#include "MolSetup.cpp"
 #include "BondAdjacencyList.h"
-#include "BondAdjacencyList.cpp"
 #include "ConfigSetup.h"
 #include "FFSetup.h"        //For geometry kinds
-#include "FFSetup.cpp"        //For geometry kinds
 #include "FFConst.h"
-#include "FFConst.cpp"
 #include "Reader.h"
-#include "Reader.cpp"
-
+#include "InputFileReader.h"
 
 TEST(PSFParserTest, CheckProtAndWaterTest) {
 
@@ -49,7 +43,7 @@ TEST(PSFParserTest, CheckProtAndWaterTest) {
 
     mol_setup::MolMap kindMap;
 
-    kindMap["PROTA"] = MolKind();
+    kindMap["PROTA"] = mol_setup::MolKind();
     kindMap["PROTA"].isMultiResidue = true;
 
     /* 
