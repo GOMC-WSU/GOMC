@@ -38,8 +38,8 @@ struct FindAngle {
   }
 };
 
-//Check to see of angle a is in the ring or not
-bool IsInRing(std::vector<int> cycAtoms, const mol_setup::Angle& a)
+//Check to see if angle a is in the ring or not
+bool IsInRing(const std::vector<int> &cycAtoms, const mol_setup::Angle& a)
 {
   bool res = true;
   if(std::find(cycAtoms.begin(), cycAtoms.end(), a.a0) == cycAtoms.end()) {
@@ -59,7 +59,7 @@ namespace cbmc
 
 
 DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
-                             std::vector<int> cycAtoms, uint focus, uint prev)
+                             const std::vector<int> &cycAtoms, uint focus, uint prev)
   : data(data), focus(focus), prev(prev)
 {
   using namespace mol_setup;
@@ -78,8 +78,8 @@ DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
     sumAngle += data->ff.angles->Angle(angles[a].kind);
   }
   //If sum of angles = 2*pi = 6.283, it means they are in a plane
-  //To avoid geometric conflict for flexible angle, we consider it fix and
-  //let crankshaft to sample it. 0.044 ~= 5 degree
+  //To avoid geometric conflict for flexible angle, we consider it fixed and
+  //let crankshaft sample it. 0.044 ~= 5 degree
   bool angleInPlane = (std::abs(2.0 * M_PI - sumAngle) < 0.044);
   bool constrainAngInRing = false;
 
@@ -102,7 +102,7 @@ DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
     }
   }
 
-  //If one of the constrained angle is belong to ring and angle form a plane
+  //If one of the constrained angles belongs to a ring and the angle forms a plane
   // we fix the free and constrained angles
   if(constrainAngInRing && angleInPlane) {
     for (uint i = 0; i < nBonds; ++i) {

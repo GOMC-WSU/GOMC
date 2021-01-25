@@ -106,8 +106,8 @@ public:
   //destination box and removing a molecule (kindB) from destination box
   virtual double MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
                                        const std::vector<cbmc::TrialMol> &oldMol,
-                                       const std::vector<uint> molIndexNew,
-                                       const std::vector<uint> molIndexOld,
+                                       const std::vector<uint> &molIndexNew,
+                                       const std::vector<uint> &molIndexOld,
                                        bool first_call);
 
   //calculate correction term after swap move, with lambda = 1

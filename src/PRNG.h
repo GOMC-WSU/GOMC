@@ -107,8 +107,15 @@ public:
                       const uint b)
   {
     for (uint i = 0; i < len; ++i) {
-      loc.Set(i, randExc(dims.axis.x[b]), randExc(dims.axis.y[b]),
-              randExc(dims.axis.z[b]));
+      // We trip over a gcc compiler optimization bug if we put all three of these
+      // calls to randExc() in a single function call. Verified for gcc 7.3 and
+      // gcc 8.6, so better to avoid even if fixed in newer releases.
+      // loc.Set(i, randExc(dims.axis.x[b]), randExc(dims.axis.y[b]),
+      //         randExc(dims.axis.z[b]));
+      double x = randExc(dims.axis.x[b]);
+      double y = randExc(dims.axis.y[b]);
+      double z = randExc(dims.axis.z[b]);
+      loc.Set(i, x, y, z);
       loc.Set(i, dims.TransformSlant(loc.Get(i), b));
     }
   }
@@ -116,8 +123,16 @@ public:
   void FillWithRandom(XYZ & loc, BoxDimensions const& dims,
                       const uint b)
   {
-    XYZ temp(randExc(dims.axis.x[b]), randExc(dims.axis.y[b]),
-             randExc(dims.axis.z[b]));
+    // We trip over a gcc compiler optimization bug if we put all three of these
+    // calls to randExc() in a single function call. At least, we did in the
+    // version above where a loop is being used. Verified for gcc 7.3 and gcc 8.6,
+    // so better to avoid even if fixed in newer releases.
+    // XYZ temp(randExc(dims.axis.x[b]), randExc(dims.axis.y[b]),
+    //          randExc(dims.axis.z[b]));
+    double x = randExc(dims.axis.x[b]);
+    double y = randExc(dims.axis.y[b]);
+    double z = randExc(dims.axis.z[b]);
+    XYZ temp(x, y, z);
     loc = dims.TransformSlant(temp, b);
   }
 

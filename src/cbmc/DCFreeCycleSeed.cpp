@@ -27,7 +27,7 @@ struct FindA1 {
 };
 
 DCFreeCycleSeed::DCFreeCycleSeed(DCData* data, const mol_setup::MolKind& kind,
-                                 std::vector<int> cycAtoms, uint focus, uint prev)
+                                 const std::vector<int> &cycAtoms, uint focus, uint prev)
   : data(data), hed(data, kind, cycAtoms, focus, prev)
 {
   using namespace mol_setup;

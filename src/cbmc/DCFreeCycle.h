@@ -24,7 +24,7 @@ class DCFreeCycle : public DCComponent
 {
 public:
   DCFreeCycle(DCData* data, const mol_setup::MolKind& kind,
-              std::vector<int> cycAtoms, uint focus, uint prev);
+              const std::vector<int> &cycAtoms, uint focus, uint prev);
   void PrepareNew(TrialMol& newMol, uint molIndex);
   void PrepareOld(TrialMol& oldMol, uint molIndex);
   void BuildOld(TrialMol& oldMol, uint molIndex);
