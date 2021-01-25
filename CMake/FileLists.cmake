@@ -187,12 +187,10 @@ set(libHeaders
    lib/StrLib.h
    lib/StrStrmLib.h
    lib/VectorLib.h
-   lib/BCC.h
    lib/CircuitFinder.h
    lib/FloydWarshallCycle.h)
 
 set(libSources
-    lib/BCC.cpp
     lib/CircuitFinder.cpp
     lib/FloydWarshallCycle.cpp)
 
