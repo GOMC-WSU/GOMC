@@ -54,11 +54,7 @@ CalculateEnergy::CalculateEnergy(StaticVals & stat, System & sys) :
 #else
   molLookup(stat.molLookup),
 #endif
-#ifdef VARIABLE_VOLUME
   currentAxes(sys.boxDimRef),
-#else
-  currentAxes(*stat.GetBoxDim()),
-#endif
   cellList(sys.cellList)
 {
 }

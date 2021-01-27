@@ -36,11 +36,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 System::System(StaticVals& statics, Setup const& set,
                MultiSim const*const& multisim) :
   statV(statics),
-#ifdef VARIABLE_VOLUME
   boxDimRef(*BoxDim(statics.isOrthogonal)),
-#else
-  boxDimRef(*statics.GetBoxDim()),
-#endif
 #ifdef VARIABLE_PARTICLE_NUMBER
   molLookupRef(molLookup),
 #else
@@ -64,10 +60,9 @@ System::System(StaticVals& statics, Setup const& set,
 
 System::~System()
 {
-#ifdef VARIABLE_VOLUME
   if (boxDimensions != NULL)
     delete boxDimensions;
-#endif
+  
   if (calcEwald != NULL)
     delete calcEwald;
   delete moves[mv::DISPLACE];
@@ -99,11 +94,6 @@ void System::Init(Setup & set, ulong & startStep)
   if(ms->parallelTemperingEnabled)
     prngParallelTemp->Init(set.prngParallelTemp.prngMaker.prng);
 #endif
-#ifdef VARIABLE_VOLUME
-  boxDimensions->Init(set.config.in.restart,
-                      set.config.sys.volume, set.pdb.cryst,
-                      statV.forcefield);
-#endif
 #ifdef VARIABLE_PARTICLE_NUMBER
   molLookup.Init(statV.mol, set.pdb.atoms);
 #endif
@@ -125,6 +115,9 @@ void System::Init(Setup & set, ulong & startStep)
   }
 
   xsc.Init(set.pdb, set.config.in, molLookupRef, statV.mol);
+  boxDimensions->Init(set.config.in.restart,
+                      set.config.sys.volume, set.pdb.cryst,
+                      statV.forcefield);
   coordinates.InitFromPDB(set.pdb.atoms);
 
   com.CalcCOM();

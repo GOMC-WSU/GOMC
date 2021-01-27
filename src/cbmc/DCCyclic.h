@@ -14,7 +14,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeKind.h"
 #include <vector>
 #include <utility>
-
+#include "FloydWarshallCycle.h"
+#include "CircuitFinder.h"
 /*CBMC forcyclic molecule
 * The Decoupled/Coupled CBMC algorithm is represented by
 * traversing a spanning tree of the graph.
