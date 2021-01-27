@@ -175,12 +175,13 @@ void TargetedSwap::PrintAcceptKind()
     if(hasSubVolume[b]) {
       for(uint idx = 0; idx < targetSwapParam[b].size(); ++idx) {
         for(uint k = 0; k < targetSwapParam[b][idx].selectedResKind.size(); ++k) {
-          int t = trial[b][idx][k];
-          int a = accepted[b][idx][k];
+          int tsKind = targetSwapParam[b][idx].selectedResKind[k];
+          int t = trial[b][idx][tsKind];
+          int a = accepted[b][idx][tsKind];
           double percentAccept = (t ? 100 * (double)a/t: 0.0);
           char msg[257];
           sprintf(msg, "%% Accepted Targeted-Swap (%d)", idx);
-          printf("%-30s %-5s ", msg, molRef.kinds[k].name.c_str());
+          printf("%-30s %-5s ", msg, molRef.kinds[tsKind].name.c_str());
           printf("%10.5f %10.5f \n", percentAccept, percentAccept);
         }
       }
