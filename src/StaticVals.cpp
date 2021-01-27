@@ -17,10 +17,6 @@ void StaticVals::Init(Setup & set, System& sys)
   simEventFreq.Init(set.config.sys.step);
   forcefield.Init(set);
   mol.Init(set, forcefield, sys);
-#ifndef VARIABLE_VOLUME
-  boxDimensions->Init(set.config.in.restart, set.config.sys.volume,
-                      set.pdb.cryst, forcefield);
-#endif
 #ifndef VARIABLE_PARTICLE_NUMBER
   molLookup.Init(mol, set.pdb.atoms);
 #endif
@@ -140,20 +136,6 @@ StaticVals::StaticVals(Setup & set) : intraMemcVal(set.config.sys.intraMemcVal),
   } else {
     IsBoxOrthogonal(set.config.sys.volume);
   }
-#ifndef VARIABLE_VOLUME
-  boxDimensions = NULL;
-  if(isOrthogonal) {
-    boxDimensions = new BoxDimensions();
-  } else {
-    boxDimensions = new BoxDimensionsNonOrth();
-  }
-#endif
 }
 
-StaticVals::~StaticVals()
-{
-#ifndef VARIABLE_VOLUME
-  delete boxDimensions;
-#endif
-}
 
