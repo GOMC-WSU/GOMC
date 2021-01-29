@@ -126,6 +126,7 @@ void DCDOutput::Write_Extension_System_Data(Writer &outFile,
   XYZ a = boxDimRef.cellBasis[box].Get(0) * boxDimRef.GetAxis(box).x;
   XYZ b = boxDimRef.cellBasis[box].Get(1) * boxDimRef.GetAxis(box).y;
   XYZ c = boxDimRef.cellBasis[box].Get(2) * boxDimRef.GetAxis(box).z;
+  XYZ center(0.5*a.Length(), 0.5*b.Length(), 0.5*c.Length());
 
   outFile.file << " " << a.x;
   outFile.file << " " << a.y;
@@ -136,8 +137,9 @@ void DCDOutput::Write_Extension_System_Data(Writer &outFile,
   outFile.file << " " << c.x;
   outFile.file << " " << c.y;
   outFile.file << " " << c.z;
-  // Our origin is fix at origin
-  outFile.file  << " " << 0 << " " << 0 << " " << 0;
+  // Our origin is fix at (0, 0 ,0 ), but we set it to half box length 
+  // to be compatible with NAMD
+  outFile.file  << " " << center.x << " " << center.y << " " << center.z;
   outFile.file << std::endl;
 }
 

@@ -672,14 +672,14 @@ void TargetedSwap::PrintTargetedSwapInfo()
       printf("%-40s %s \n",       "      SubVolume Swap type:", (tsp.rigidSwap ? "Rigid body" : "Flexible"));
       printf("%-40s ",            "      Targeted residue kind:");
       for (k = 0; k < tsp.selectedResKind.size(); ++k) {
-        printf("%-5s ", molRef.kinds[k].name.c_str());
+        printf("%-5s ", molRef.kinds[tsp.selectedResKind[k]].name.c_str());
       }
       printf("\n");
       if(!tsp.rigidSwap) {
         for (k = 0; k < tsp.selectedResKind.size(); ++k) {
           printf("%-40s %s: (%d, %s) \n",       "      Starting atom (index, name) for",
-                molRef.kinds[k].name.c_str(), growingAtomIndex[k],
-                molRef.kinds[k].atomNames[growingAtomIndex[k]].c_str());
+                molRef.kinds[tsp.selectedResKind[k]].name.c_str(), growingAtomIndex[tsp.selectedResKind[k]],
+                molRef.kinds[tsp.selectedResKind[k]].atomNames[growingAtomIndex[tsp.selectedResKind[k]]].c_str());
         }
       }
       printf("\n\n");
