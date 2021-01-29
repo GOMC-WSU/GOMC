@@ -184,6 +184,7 @@ inline uint MoleculeExchange3::ReplaceMolecule()
 
 inline uint MoleculeExchange3::Prep(const double subDraw, const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_MEMC);
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
     numTypeASource = (double)(molLookRef.NumKindInBoxSwappable(kindIndexA[0], sourceBox));
@@ -275,12 +276,14 @@ inline uint MoleculeExchange3::Prep(const double subDraw, const double movPerc)
     }
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_MEMC);
   return state;
 }
 
 
 inline uint MoleculeExchange3::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_MEMC);
   CalcTc();
 
   //Deleting A, B from their box
@@ -347,6 +350,7 @@ inline uint MoleculeExchange3::Transform()
     }
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_MEMC);
   return mv::fail_state::NO_FAIL;
 }
 

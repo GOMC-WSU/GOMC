@@ -148,6 +148,7 @@ inline void MultiParticle::SetMolInBox(uint box)
 
 inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_MULTIPARTICLE);
   uint state = mv::fail_state::NO_FAIL;
 #if ENSEMBLE == GCMC
   bPick = mv::BOX0;
@@ -171,6 +172,7 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   //current system if any other moves, besides other MP moves, have been accepted.
   //Or, if this is the first MP move, which is handled with the same flag.
   if(moveSetRef.GetSingleMoveAccepted(bPick)) {
+    GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_MULTIPARTICLE);
     //Copy ref reciprocal terms to new for calculation with old positions
     calcEwald->CopyRecip(bPick);
 
@@ -188,9 +190,11 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
     }
 
     sysPotRef.Total();
+    GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_MULTIPARTICLE);
   }
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_MULTIPARTICLE);
   return state;
 }
 
@@ -232,6 +236,7 @@ inline void MultiParticle::PrepCFCMC(const uint box)
 
 inline uint MultiParticle::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_MULTIPARTICLE);
   // Based on the reference force decide whether to displace or rotate each
   // individual particle.
   uint state = mv::fail_state::NO_FAIL;
@@ -283,11 +288,13 @@ inline uint MultiParticle::Transform()
     }
   }
 #endif
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_MULTIPARTICLE);
   return state;
 }
 
 inline void MultiParticle::CalcEn()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_MULTIPARTICLE);
   // Calculate the new force and energy and we will compare that to the
   // reference values in Accept() function
   cellList.GridAll(boxDimRef, newMolsPos, molLookup);
@@ -313,6 +320,7 @@ inline void MultiParticle::CalcEn()
     calcEnRef.CalculateTorque(moleculeIndex, newMolsPos, newCOMs, atomForceNew,
                               atomForceRecNew, molTorqueNew, bPick);
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_MULTIPARTICLE);
 }
 
 inline double MultiParticle::CalculateWRatio(XYZ const &lb_new, XYZ const &lb_old,
@@ -380,6 +388,7 @@ inline double MultiParticle::GetCoeff()
 
 inline void MultiParticle::Accept(const uint rejectState, const uint step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::ACC_MULTIPARTICLE);
   // Here we compare the values of reference and trial and decide whether to
   // accept or reject the move
   double MPCoeff = GetCoeff();
@@ -409,6 +418,7 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
 
   moveSetRef.UpdateMoveSettingMultiParticle(bPick, result, moveType);
   moveSetRef.Update(mv::MULTIPARTICLE, result, bPick);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_MULTIPARTICLE);
 }
 
 inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, uint molIndex)

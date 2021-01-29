@@ -70,6 +70,7 @@ void VolumeTransfer::PrintAcceptKind()
 
 inline uint VolumeTransfer::Prep(const double subDraw, const double movePerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_VOL_TRANSFER);
   uint state = mv::fail_state::NO_FAIL;
 
   if (GEMC_KIND == mv::GEMC_NVT) {
@@ -92,11 +93,13 @@ inline uint VolumeTransfer::Prep(const double subDraw, const double movePerc)
 
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_VOL_TRANSFER);
   return state;
 }
 
 inline uint VolumeTransfer::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_VOL_TRANSFER);
   uint state = mv::fail_state::NO_FAIL;
   //Reinit, if necessary.
   if (GEMC_KIND == mv::GEMC_NVT) {
@@ -130,11 +133,13 @@ inline uint VolumeTransfer::Transform()
       }
     }
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_VOL_TRANSFER);
   return state;
 }
 
 inline void VolumeTransfer::CalcEn()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_VOL_TRANSFER);
   if (GEMC_KIND == mv::GEMC_NVT) {
     if(isOrth) {
       cellList.GridAll(newDim, newMolsPos, molLookRef);
@@ -190,6 +195,7 @@ inline void VolumeTransfer::CalcEn()
   }
 
   sysPotNew.Total();
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_VOL_TRANSFER);
 }
 
 
@@ -228,6 +234,7 @@ inline double VolumeTransfer::GetCoeff() const
 
 inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::ACC_VOL_TRANSFER);
   double volTransCoeff = GetCoeff();
   double uBoltz = exp(-BETA * (sysPotNew.Total() - sysPotRef.Total()));
   double accept = volTransCoeff * uBoltz;
@@ -302,6 +309,7 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
   } else {
     moveSetRef.Update(mv::VOL_TRANSFER, result, box);
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_VOL_TRANSFER);
 
 }
 

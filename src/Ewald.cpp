@@ -24,6 +24,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CalculateForceCUDAKernel.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
+#include "GOMCEventsProfile.h"
 
 //
 //
@@ -196,6 +197,7 @@ void Ewald::AllocMem()
 void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 {
   if (box < BOXES_WITH_U_NB) {
+    GOMC_EVENT_START(1, GomcProfileEvent::RECIP_BOX_SETUP);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
 
@@ -268,6 +270,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
       thisMol++;
     }
 #endif
+    GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_SETUP);
   }
 }
 
@@ -280,6 +283,7 @@ void Ewald::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 void Ewald::BoxReciprocalSums(uint box, XYZArray const& molCoords)
 {
   if (box < BOXES_WITH_U_NB) {
+    GOMC_EVENT_START(1, GomcProfileEvent::RECIP_BOX_SETUP);
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
 
@@ -350,6 +354,7 @@ void Ewald::BoxReciprocalSums(uint box, XYZArray const& molCoords)
       thisMol++;
     }
 #endif
+    GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_SETUP);
   }
 }
 
@@ -368,6 +373,7 @@ double Ewald::BoxReciprocal(uint box, bool isNewVolume) const
   double energyRecip = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
+    //GOMC_EVENT_START(1, GomcProfileEvent::RECIP_BOX_ENERGY);
 #ifdef GOMC_CUDA
     return currentEnergyRecip[box];
 #else
@@ -390,6 +396,7 @@ double Ewald::BoxReciprocal(uint box, bool isNewVolume) const
                       prefactPtr[i]);
     }
 #endif
+    //GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_ENERGY);
   }
 
   return energyRecip;
@@ -404,6 +411,7 @@ double Ewald::MolReciprocal(XYZArray const& molCoords,
   double energyRecipOld = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
+    GOMC_EVENT_START(1, GomcProfileEvent::RECIP_MOL_ENERGY);
     MoleculeKind const& thisKind = mols.GetKind(molIndex);
     uint length = thisKind.NumAtoms();
     uint startAtom = mols.MolStart(molIndex);
@@ -461,6 +469,7 @@ reduction(+:energyRecipNew)
     }
 #endif
     energyRecipOld = sysPotRef.boxEnergy[box].recip;
+    GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_MOL_ENERGY);
   }
   return energyRecipNew - energyRecipOld;
 }
@@ -478,6 +487,7 @@ double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
   double energyRecipOld = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
+    GOMC_EVENT_START(1, GomcProfileEvent::RECIP_SWAP_ENERGY);
     MoleculeKind const& thisKind = newMol.GetKind();
     XYZArray molCoords = newMol.GetCoords();
     uint length = thisKind.NumAtoms();
@@ -526,6 +536,7 @@ thisKind) reduction(+:energyRecipNew)
     }
 #endif
     energyRecipOld = sysPotRef.boxEnergy[box].recip;
+    GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_SWAP_ENERGY);
   }
 
   return energyRecipNew - energyRecipOld;
@@ -543,6 +554,7 @@ double Ewald::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
   //Need to implement the GPU part
   //
   if (box < BOXES_WITH_U_NB) {
+    GOMC_EVENT_START(1, GomcProfileEvent::RECIP_CFCMC_ENERGY);
     MoleculeKind const& thisKind = mols.GetKind(molIndex);
     uint length = thisKind.NumAtoms();
     uint startAtom = mols.MolStart(molIndex);
@@ -584,6 +596,7 @@ reduction(+:energyRecipNew)
                          * sumInew[box][i]) * prefactRef[box][i];
     }
     energyRecipOld = sysPotRef.boxEnergy[box].recip;
+    GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_CFCMC_ENERGY);
   }
 
   return energyRecipNew - energyRecipOld;
@@ -651,10 +664,13 @@ reduction(+:energyRecip[:lambdaSize])
 
 void Ewald::RecipInit(uint box, BoxDimensions const& boxAxes)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::RECIP_INIT);
   if(boxAxes.orthogonal[box])
     RecipInitOrth(box, boxAxes);
   else
     RecipInitNonOrth(box, boxAxes);
+
+  GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_INIT);
 }
 
 
@@ -668,6 +684,7 @@ double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
   double energyRecipOld = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
+    GOMC_EVENT_START(1, GomcProfileEvent::RECIP_SWAP_ENERGY);
     MoleculeKind const& thisKind = oldMol.GetKind();
     XYZArray molCoords = oldMol.GetCoords();
     uint length = thisKind.NumAtoms();
@@ -720,6 +737,7 @@ reduction(+:energyRecipNew)
     }
 #endif
     energyRecipOld = sysPotRef.boxEnergy[box].recip;
+    GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_SWAP_ENERGY);
   }
   return energyRecipNew - energyRecipOld;
 }
@@ -739,6 +757,7 @@ double Ewald::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &newMol,
   uint box = newMol[0].GetBox();
 
   if (box < BOXES_WITH_U_NB) {
+    GOMC_EVENT_START(1, GomcProfileEvent::RECIP_MEMC_ENERGY);
     uint lengthNew, lengthOld;
     MoleculeKind const& thisKindNew = newMol[0].GetKind();
     MoleculeKind const& thisKindOld = oldMol[0].GetKind();
@@ -821,6 +840,7 @@ reduction(+:energyRecipNew)
 
     // Keep hold of the old recip value
     energyRecipOld = sysPotRef.boxEnergy[box].recip;
+    GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_MEMC_ENERGY);
   }
 
 //Because MolExchangeReciprocal does not have a matching GPU function, this is
@@ -1063,6 +1083,7 @@ double Ewald::MolCorrection(uint molIndex, uint box) const
   if (box >= BOXES_WITH_U_NB)
     return 0.0;
 
+  GOMC_EVENT_START(1, GomcProfileEvent::CORR_MOL);
   double dist, distSq;
   double correction = 0.0;
   XYZ virComponents;
@@ -1085,6 +1106,7 @@ double Ewald::MolCorrection(uint molIndex, uint box) const
     }
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_MOL);
   return -1.0 * num::qqFact * correction * lambdaCoef * lambdaCoef;
 }
 
@@ -1132,6 +1154,7 @@ double Ewald::BoxSelf(uint box) const
   if (box >= BOXES_WITH_U_NB)
     return 0.0;
 
+  GOMC_EVENT_START(1, GomcProfileEvent::SELF_BOX);
   double self = 0.0;
   double molSelfEnergy;
   uint i, j, length, molNum;
@@ -1163,6 +1186,7 @@ double Ewald::BoxSelf(uint box) const
   // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
   self *= -1.0 * ff.alpha[box] * num::qqFact * M_2_SQRTPI * 0.5;
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_BOX);
   return self;
 }
 
@@ -1175,6 +1199,7 @@ Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
   if (box >= BOXES_WITH_U_NB)
     return tempVir;
 
+  GOMC_EVENT_START(1, GomcProfileEvent::RECIP_BOX_VIRIAL);
   double wT11 = 0.0, wT12 = 0.0, wT13 = 0.0;
   double wT22 = 0.0, wT23 = 0.0, wT33 = 0.0;
 
@@ -1301,6 +1326,7 @@ Virial Ewald::VirialReciprocal(Virial& virial, uint box) const
 
   // setting virial of reciprocal space
   tempVir.recip = wT11 + wT22 + wT33;
+  GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_VIRIAL);
 
   return tempVir;
 }
@@ -1315,6 +1341,7 @@ double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol) const
   if (box >= BOXES_WITH_U_NB)
     return 0.0;
 
+  GOMC_EVENT_START(1, GomcProfileEvent::CORR_SWAP);
   double dist, distSq;
   double correction = 0.0;
   XYZ virComponents;
@@ -1331,6 +1358,7 @@ double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol) const
                      erf(ff.alpha[box] * dist) / dist);
     }
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_SWAP);
   return num::qqFact * correction;
 }
 
@@ -1343,6 +1371,7 @@ double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol,
   if (box >= BOXES_WITH_U_NB)
     return 0.0;
 
+  GOMC_EVENT_START(1, GomcProfileEvent::CORR_SWAP);
   double dist, distSq;
   double correction = 0.0;
   XYZ virComponents;
@@ -1364,6 +1393,7 @@ double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol,
                      erf(ff.alpha[box] * dist) / dist);
     }
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_SWAP);
   return num::qqFact * correction * lambdaCoef * lambdaCoef;
 }
 
@@ -1376,6 +1406,7 @@ double Ewald::SwapSelf(const cbmc::TrialMol& trialMol) const
   if (box >= BOXES_WITH_U_NB)
     return 0.0;
 
+  GOMC_EVENT_START(1, GomcProfileEvent::SELF_SWAP);
   MoleculeKind const& thisKind = trialMol.GetKind();
   uint atomSize = thisKind.NumAtoms();
   double en_self = 0.0;
@@ -1383,6 +1414,7 @@ double Ewald::SwapSelf(const cbmc::TrialMol& trialMol) const
   for (uint i = 0; i < atomSize; i++) {
     en_self -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(i));
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_SWAP);
   // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
   return (en_self * ff.alpha[box] * num::qqFact * M_2_SQRTPI * 0.5);
 }
@@ -1497,6 +1529,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
                                uint box)
 {
   if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
+    GOMC_EVENT_START(1, GomcProfileEvent::RECIP_BOX_FORCE);
     // M_2_SQRTPI is 2/sqrt(PI)
     double constValue = ff.alpha[box] * M_2_SQRTPI;
 
@@ -1602,6 +1635,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       thisMol++;
     }
 #endif
+    GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_FORCE);
   }
 }
 

@@ -375,6 +375,7 @@ inline uint IntraMoleculeExchange1::GetBoxPairAndMol(const double subDraw,
 inline uint IntraMoleculeExchange1::Prep(const double subDraw,
     const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_INTRA_MEMC);
   //AdjustExRatio();
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
@@ -434,6 +435,7 @@ inline uint IntraMoleculeExchange1::Prep(const double subDraw,
       oldMolA[n].SetSeed(centerA, cavity, true, false, false);
     }
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_INTRA_MEMC);
 
   return state;
 }
@@ -441,6 +443,7 @@ inline uint IntraMoleculeExchange1::Prep(const double subDraw,
 
 inline uint IntraMoleculeExchange1::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_INTRA_MEMC);
   // Calc old energy before deleting
   for (uint n = 0; n < numInCavA; n++) {
     cellList.RemoveMol(molIndexA[n], sourceBox, coordCurrRef);
@@ -476,12 +479,14 @@ inline uint IntraMoleculeExchange1::Transform()
     newMolA[n].AddEnergy(calcEnRef.MoleculeIntra(newMolA[n]));
     overlap |= newMolA[n].HasOverlap();
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_INTRA_MEMC);
 
   return mv::fail_state::NO_FAIL;
 }
 
 inline void IntraMoleculeExchange1::CalcEn()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_INTRA_MEMC);
   W_recip = 1.0;
   recipDiffA = 0.0, recipDiffB = 0.0;
   correctDiff = 0.0;
@@ -494,6 +499,7 @@ inline void IntraMoleculeExchange1::CalcEn()
     //and deletion are rigid body
     W_recip = exp(-1.0 * ffRef.beta * (recipDiffA + recipDiffB));
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_INTRA_MEMC);
 }
 
 inline double IntraMoleculeExchange1::GetCoeff() const
@@ -544,6 +550,7 @@ inline void IntraMoleculeExchange1::RecoverMol(const uint n, const bool typeA)
 inline void IntraMoleculeExchange1::Accept(const uint rejectState,
     const uint step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::ACC_INTRA_MEMC);
   bool result;
   //If we didn't skip the move calculation
   if(rejectState == mv::fail_state::NO_FAIL) {
@@ -612,6 +619,7 @@ inline void IntraMoleculeExchange1::Accept(const uint rejectState,
   //If we consider total acceptance of S->L and L->S
   AcceptKind(result, kindS * molRef.GetKindsCount() + kindL, sourceBox);
   AcceptKind(result, kindL * molRef.GetKindsCount() + kindS, sourceBox);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_INTRA_MEMC);
 }
 
 #endif

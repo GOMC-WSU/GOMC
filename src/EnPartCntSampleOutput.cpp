@@ -107,6 +107,7 @@ void EnPartCntSample::DoOutput(const ulong step)
   //Output a sample in the form <N1,... Nk, E_total>
   //Only sample on specified interval.
   if ((step + 1) % stepsPerOut == 0) {
+    GOMC_EVENT_START(1, GomcProfileEvent::HIST_OUTPUT);
     for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {
       if (outF[b].is_open()) {
         for (uint n = 0; n < samplesCollectedInFrame; ++n) {
@@ -119,6 +120,7 @@ void EnPartCntSample::DoOutput(const ulong step)
         std::cerr << "Unable to write to file \"" <<  name[b] << "\" "
                   << "(energy and part. num samples file)" << std::endl;
     }
+    GOMC_EVENT_STOP(1, GomcProfileEvent::HIST_OUTPUT);
   }
   samplesCollectedInFrame = 0;
 }

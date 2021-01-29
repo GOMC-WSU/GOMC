@@ -51,18 +51,25 @@ inline uint Translate::ReplaceRot(Rotate const& other)
 
 inline uint Translate::Prep(const double subDraw, const double movPerc)
 {
-  return GetBoxAndMol(prng, molRef, subDraw, movPerc);
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_DISPLACE);
+  uint state = GetBoxAndMol(prng, molRef, subDraw, movPerc);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_DISPLACE);
+  return state;
 }
 
 inline uint Translate::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_DISPLACE);
   coordCurrRef.TranslateRand(newMolPos, newCOM, pStart, pLen,
                              m, b, moveSetRef.Scale(b, mv::DISPLACE, mk));
+  
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_DISPLACE);
   return mv::fail_state::NO_FAIL;
 }
 
 inline void Translate::CalcEn()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_DISPLACE);
   cellList.RemoveMol(m, b, coordCurrRef);
   molRemoved = true;
   overlap = false;
@@ -73,10 +80,12 @@ inline void Translate::CalcEn()
     //calculate reciprocate term of electrostatic interaction
     recip.energy = calcEwald->MolReciprocal(newMolPos, m, b);
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_DISPLACE);
 }
 
 inline void Translate::Accept(const uint rejectState, const uint step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::ACC_DISPLACE);
   bool res = false;
   if (rejectState == mv::fail_state::NO_FAIL) {
     double pr = prng();
@@ -112,6 +121,7 @@ inline void Translate::Accept(const uint rejectState, const uint step)
   }
 
   moveSetRef.Update(mv::DISPLACE, result, b, mk);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_DISPLACE);
 }
 
 #endif /*TRANSLATE_H*/

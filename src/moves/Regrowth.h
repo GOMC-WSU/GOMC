@@ -77,6 +77,7 @@ inline uint Regrowth::GetBoxAndMol(const double subDraw, const double movPerc)
 
 inline uint Regrowth::Prep(const double subDraw, const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_REGROWTH);
   overlap = false;
   uint state = GetBoxAndMol(subDraw, movPerc);
   if (state == mv::fail_state::NO_FAIL) {
@@ -84,19 +85,23 @@ inline uint Regrowth::Prep(const double subDraw, const double movPerc)
     oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
     oldMol.SetCoords(coordCurrRef, pStart);
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_REGROWTH);
   return state;
 }
 
 inline uint Regrowth::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_REGROWTH);
   cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
   molRef.kinds[kindIndex].Regrowth(oldMol, newMol, molIndex);
   overlap = newMol.HasOverlap();
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_REGROWTH);
   return mv::fail_state::NO_FAIL;
 }
 
 inline void Regrowth::CalcEn()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_REGROWTH);
   // since number of molecules would not change in the box,
   W_recip = 1.0;
   correct_old = 0.0;
@@ -111,11 +116,13 @@ inline void Regrowth::CalcEn()
     W_recip = exp(-1.0 * ffRef.beta * (recipDiff.energy + correct_new -
                                        correct_old));
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_REGROWTH);
 }
 
 
 inline void Regrowth::Accept(const uint rejectState, const uint step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::ACC_REGROWTH);
   bool result;
   //If we didn't skip the move calculation
   if(rejectState == mv::fail_state::NO_FAIL) {
@@ -172,6 +179,7 @@ inline void Regrowth::Accept(const uint rejectState, const uint step)
     result = false;
 
   moveSetRef.Update(mv::REGROWTH, result, sourceBox, kindIndex);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_REGROWTH);
 }
 
 #endif

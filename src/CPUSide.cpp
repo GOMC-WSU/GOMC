@@ -7,6 +7,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "System.h"
 #include "StaticVals.h"
 #include "CPUSide.h" //Spec declaration
+#include "GOMCEventsProfile.h"
 
 
 CPUSide::CPUSide(System & sys, StaticVals & statV, Setup & set) :
@@ -58,10 +59,12 @@ void CPUSide::Init( PDBSetup const& pdbSet,
 
 void CPUSide::Output(const ulong step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::FILE_IO_OUTPUT);
   //Calculate pressure, heat of vap. (if applicable), etc.
   varRef.CalcAndConvert(step);
   //Do standard output events.
   for (uint o = 0; o < outObj.size(); o++)
     outObj[o]->Output(step);
   timer.CheckTime(step);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::FILE_IO_OUTPUT);
 }

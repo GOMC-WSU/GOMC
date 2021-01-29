@@ -178,6 +178,7 @@ void DCDOutput::DoOutput(const ulong step)
 {
   // Output dcd coordinates and xst file
   if(enableStateOut) {
+    GOMC_EVENT_START(1, GomcProfileEvent::DCD_OUTPUT);
     int numAtoms = coordCurrRef.Count();
     // Determine which molecule is in which box. Assume we are in NVT
     // or NPT, otherwise, SetMolBoxVec would adjust the value.
@@ -207,10 +208,12 @@ void DCDOutput::DoOutput(const ulong step)
       // write the cellbasis data to xst file
       Write_Extension_System_Data(xstFile[b], step, b);
     }
+    GOMC_EVENT_STOP(1, GomcProfileEvent::DCD_OUTPUT);
   }
 
   // Output restart binary coordinates and xsc file
   if (((step + 1) % stepsRestartPerOut == 0) && enableRestartOut) {
+    GOMC_EVENT_START(1, GomcProfileEvent::DCD_RESTART_OUTPUT);
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       int numAtomInBox = NumAtomInBox(b);
       // Copy the coordinate data for each box into AOS
@@ -230,6 +233,7 @@ void DCDOutput::DoOutput(const ulong step)
       Write_Extension_System_Data(xscFile[b], step, b);
       xscFile[b].close();
     }
+    GOMC_EVENT_STOP(1, GomcProfileEvent::DCD_RESTART_OUTPUT);
   }
 
 }

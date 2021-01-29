@@ -133,6 +133,7 @@ void BlockAverages::Sample(const ulong step)
 
 void BlockAverages::DoOutput(const ulong step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::BLK_OUTPUT);
   ulong nextStep = step + 1;
   outBlock0 << std::left << std::scientific << std::setw(OUTPUTWIDTH) << nextStep;
   outBlock1 << std::left << std::scientific << std::setw(OUTPUTWIDTH) << nextStep;
@@ -145,6 +146,7 @@ void BlockAverages::DoOutput(const ulong step)
   outBlock0 << std::endl;
   if(outBlock1.is_open())
     outBlock1 << std::endl;
+  GOMC_EVENT_STOP(1, GomcProfileEvent::BLK_OUTPUT);
 }
 
 void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)

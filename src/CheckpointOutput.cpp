@@ -66,6 +66,7 @@ void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
 void CheckpointOutput::DoOutput(const ulong step)
 {
   if(enableOutCheckpoint) {
+    GOMC_EVENT_START(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
     std::cout << "Writing checkpoint to file " << filename << " at step " << step+1 << "\n";
     openOutputFile();
     printGOMCVersion();
@@ -80,6 +81,7 @@ void CheckpointOutput::DoOutput(const ulong step)
       printRandomNumbersParallelTempering();
 #endif
     std::cout << "Checkpoint saved to " << filename << std::endl;
+    GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
   }
 }
 

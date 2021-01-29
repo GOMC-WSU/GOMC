@@ -1,8 +1,11 @@
 #!/bin/bash
+use_cuda=0
+use_profiler=0
 
 # Check if nvcc is available
 if command -v nvcc &> /dev/null
 then
+	use_cuda=1
 	nvcc_version=($(python scripts/get_cuda_version.py))
 	if [ -z "$nvcc_version" ]
 	then
@@ -73,17 +76,51 @@ then
 	fi
 fi
 
+# check to see if we passed the profile flag
+while (( $# > 0 )); do
+	if [[ "$1" != --* ]]; then
+		echo "ERROR: Expected an option beginning with -- but found $1"
+		echo "Available options are: --with-profiling"
+		exit 1
+	fi
+	case "$1" in
+	--with-profiling)
+	shift
+	use_profiler=1
+	;;
+	*)
+		echo "ERROR: unknown option $1"
+		echo "Available options are: --with-profiling"
+		exit 1
+	;;
+    esac
+
+    shift
+done
+
 mkdir -p bin
 cd bin
-COMPILER_C_PATH="$(which icc 2> /dev/null)"
-COMPILER_CXX_PATH="$(which icpc 2> /dev/null)"
+ICC_PATH="$(which icc 2> /dev/null)"
+ICPC_PATH="$(which icpc 2> /dev/null)"
 # if intel was not available, link to gcc
 if [ -z "$COMPILER_C_PATH" ]
 then
   COMPILER_C_PATH="$(which gcc 2> /dev/null)"
   COMPILER_CXX_PATH="$(which g++ 2> /dev/null)"
 fi
-export CC=${COMPILER_C_PATH}
-export CXX=${COMPILER_CXX_PATH}
-cmake ..
+export CC=${ICC_PATH}
+export CXX=${ICPC_PATH}
+
+if (( $use_profiler )); then
+    if (( $use_cuda )); then
+      	echo "Enabling NVTX profiling for CUDA "
+	  	cmake .. -DGOMC_NVTX_ENABLED=1
+    else
+      	echo "Warning: Cannot enable NVTX profiling without CUDA enabled."
+		cmake ..
+    fi
+else
+	cmake ..
+fi
+
 make -j8
