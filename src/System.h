@@ -61,7 +61,6 @@ public:
     return calcEwald;
   }
 
-#ifdef VARIABLE_VOLUME
   BoxDimensions * BoxDim(const bool isOrthogonal)
   {
     boxDimensions = NULL;
@@ -72,7 +71,6 @@ public:
     }
     return boxDimensions;
   }
-#endif
 
 
 
@@ -85,9 +83,7 @@ public:
   //Important! These must come first, as other objects may depend
   //on their val for init!
   //Only include these variables if they vary for this ensemble...
-#ifdef VARIABLE_VOLUME
   BoxDimensions *boxDimensions;
-#endif
 #ifdef  VARIABLE_PARTICLE_NUMBER
   MoleculeLookup molLookup;
 #endif
