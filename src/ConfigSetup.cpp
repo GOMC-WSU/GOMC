@@ -371,6 +371,15 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
                 line.size() -1);
         exit(EXIT_FAILURE);
       }
+    } else if(CheckString(line[0], "SubVolumePBC")) {
+      if(line.size() == 3) {
+        int idx = stringtoi(line[1]); 
+        sys.targetedSwapCollection.AddsubVolumePBC(idx, line[2]);
+      } else {
+        printf("%-40s %-d !\n", "Error: Expected 2 values for SubVolumePBC, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
     } else if(CheckString(line[0], "SubVolumeCenterList")) {
       if(line.size() >= 3) {
         int idx = stringtoi(line[1]); 

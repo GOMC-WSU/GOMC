@@ -215,6 +215,14 @@ void BoxDimensions::WrapPBC(double &x, double &y, double &z, const uint b) const
   WrapPBC(z, axis.z[b]);
 }
 
+void BoxDimensions::WrapPBC(double &x, double &y, double &z, const uint b,
+                      const bool &pbcX, const bool &pbcY, const bool &pbcZ) const
+{
+  if(pbcX) {WrapPBC(x, axis.x[b]);}
+  if(pbcY) {WrapPBC(y, axis.y[b]);}
+  if(pbcZ) {WrapPBC(z, axis.z[b]);}
+}
+
 void BoxDimensions::UnwrapPBC(double & x, double & y, double & z,
                               const uint b, XYZ const& ref) const
 {
@@ -294,6 +302,24 @@ XYZ BoxDimensions::MinImage(XYZ rawVec, const uint b) const
 {
   rawVec.x = MinImageSigned(rawVec.x, axis.x[b], halfAx.x[b]);
   rawVec.y = MinImageSigned(rawVec.y, axis.y[b], halfAx.y[b]);
+  rawVec.z = MinImageSigned(rawVec.z, axis.z[b], halfAx.z[b]);
+  return rawVec;
+}
+
+XYZ BoxDimensions::MinImage_X(XYZ rawVec, const uint b) const
+{
+  rawVec.x = MinImageSigned(rawVec.x, axis.x[b], halfAx.x[b]);
+  return rawVec;
+}
+
+XYZ BoxDimensions::MinImage_Y(XYZ rawVec, const uint b) const
+{
+  rawVec.y = MinImageSigned(rawVec.y, axis.y[b], halfAx.y[b]);
+  return rawVec;
+}
+
+XYZ BoxDimensions::MinImage_Z(XYZ rawVec, const uint b) const
+{
   rawVec.z = MinImageSigned(rawVec.z, axis.z[b], halfAx.z[b]);
   return rawVec;
 }

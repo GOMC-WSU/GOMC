@@ -29,14 +29,17 @@ class MoleculeLookup
 public:
 
   MoleculeLookup() : molLookup(NULL), boxAndKindStart(NULL), boxAndKindSwappableCounts(NULL),
-   molIndex(NULL), kindIndex(NULL) {}
+   molIndex(NULL), atomIndex(NULL), molKind(NULL), atomKind(NULL), atomCharge(NULL) {}
 
   ~MoleculeLookup()
   {
     delete[] molLookup;
     delete[] boxAndKindStart;
     delete[] molIndex;
-    delete[] kindIndex;
+    delete[] atomIndex;
+    delete[] molKind;
+    delete[] atomKind;
+    delete[] atomCharge;
     delete[] boxAndKindSwappableCounts;
   }
 
@@ -130,7 +133,7 @@ public:
   // determine if atom is in this box or not// uses global atom index
   bool IsAtomInBox(const uint &aIdx, const uint &box)
   {
-    return IsMoleculeInBox(molIndex[aIdx], kindIndex[aIdx], box);
+    return IsMoleculeInBox(molIndex[aIdx], molKind[aIdx], box);
   }
 
   void TotalAndDensity(uint * numByBox, uint * numByKindBox,
@@ -182,8 +185,11 @@ uint GetConsensusMolBeta( const uint pStart,
   std::vector <uint> fixedMolecule;
   std::vector <uint> canSwapKind; //Kinds that can move intra and inter box
   std::vector <uint> canMoveKind; //Kinds that can move intra box only
-  uint *molIndex; // stores the molecule index for global atom index
-  uint *kindIndex; // stores the molecule index for global atom index
+  int *molIndex; // stores the molecule index for global atom index
+  int *atomIndex; // stores the local atom index for global atom index
+  int *molKind; // stores the molecule kind for global atom index
+  int *atomKind; // stores the atom kind for global atom index
+  double *atomCharge; // stores the atom's charge for global atom index
 
   // make CheckpointOutput class a friend so it can print all the private data
   friend class CheckpointOutput;

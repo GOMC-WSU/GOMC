@@ -21,6 +21,17 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 //struct config_setup::TargetSwapParam;
 struct BondList;
 
+// enumerator for periodicity of each axis
+enum PBC {
+  PBC_X,
+  PBC_Y,
+  PBC_Z,
+  PBC_XY,
+  PBC_XZ,
+  PBC_YZ,
+  PBC_XYZ
+};
+
 struct TSwapParam {
   // defines the center of subVolume
   XYZ subVolumeCenter; 
@@ -28,8 +39,9 @@ struct TSwapParam {
   XYZ subVolumeDim; 
   // defines the targeted molecule kind
   std::vector<uint> selectedResKind; 
-  // defines the list if atom to calculcate the center of
-  // subVolume
+  // sub-Volume periodicity for each axis
+  PBC subVolumePBC;
+  // defines the list if atom to calculcate the center of subVolume
   std::vector<int> atomList; 
   // defines the subVolume index for error checking
   int subVolumeIdx; 
@@ -39,7 +51,10 @@ struct TSwapParam {
   bool rigidSwap;
   // use atomList to find subvolume center
   bool calcSubVolCenter;
+  // sub-Volume periodicity for each axis
+  std::vector<bool> xyzPBC;
 };
+
 
 class TargetedSwap : public MoveBase
 {
@@ -52,6 +67,7 @@ public:
       rigidSwap = true;
       for(int b = 0; b < BOX_TOTAL; b++) {
         hasSubVolume[b] = false;
+        pbcMode[b]= PBC_XYZ;
         pickedSubV[b] = 0;
       }
 
@@ -70,6 +86,27 @@ public:
           // if the size of atom list is not zero, then we must calculate the center
           // of subVolume
           tempVar.calcSubVolCenter = tempVar.atomList.size();
+          // Set the PBC info
+          tempVar.xyzPBC = tsp.subVolumeBPC;
+          if(tempVar.xyzPBC[0]) {// pbc in x axis
+            tempVar.subVolumePBC = PBC_X;
+            if(tempVar.xyzPBC[1]) {// pbc in y axis
+              tempVar.subVolumePBC = PBC_XY;
+              if(tempVar.xyzPBC[2]) {// pbc in z axis
+                tempVar.subVolumePBC = PBC_XYZ;
+              }
+            } else if(tempVar.xyzPBC[2]) {// pbc in z axis
+              tempVar.subVolumePBC = PBC_XZ;
+            }
+          } else if(tempVar.xyzPBC[1]) {// pbc in y axis
+            tempVar.subVolumePBC = PBC_Y;
+            if(tempVar.xyzPBC[2]) {// pbc in z axis
+              tempVar.subVolumePBC = PBC_YZ;
+            }
+          } else if(tempVar.xyzPBC[2]) {// pbc in z axis
+              tempVar.subVolumePBC = PBC_Z; 
+          }
+
           // Use all residue kind
           if (tsp.selectedResKind[0] == "ALL") {
             for(uint k = 0; k < molLookRef.GetNumCanSwapKind(); k++) {
@@ -145,6 +182,16 @@ private:
   void AcceptSubVolumeIdx(const uint &state, const uint &kind, const uint &box);
   // Returns the center node in molecule's graph
   uint GetGrowingAtomIndex(const uint k);
+  // Finding the molecule of kind inside cavity and store the molecule Index
+  bool FindMolInSubVolume(const uint box, const uint kind, const bool useGC);
+  // find the molecule index that it's geometric center is within sub-volume
+  template <bool pbcX, bool pbcY, bool pbcZ>
+  bool SearchCavity_GC(std::vector<uint> &mol, const XYZ& center,
+                       const XYZ& cavDim, const uint box, const uint kind);
+  // find the molecule index that specific atom is within sub-volume
+  template <bool pbcX, bool pbcY, bool pbcZ>
+  bool SearchCavity_AC(std::vector<uint> &mol, const XYZ& center, const XYZ& cavDim,
+                       const uint box, const uint kind, const int atomIdx);
   uint sourceBox, destBox;
   uint pStart, pLen;
   uint molIndex, kindIndex;
@@ -165,7 +212,11 @@ private:
   double subVolume[BOX_TOTAL];
   bool hasSubVolume[BOX_TOTAL];
   int pickedSubV[BOX_TOTAL];
+  //sub-Volume periodicity for each axis
+  int pbcMode[BOX_TOTAL];
   bool rigidSwap;
+  //sub-Volume periodicity for each axis
+  std::vector<bool> xyzPBC[BOX_TOTAL]; // true if we have PBC in x, y, or z axis
 };
 
 // Need to fix it for GEMC
@@ -241,6 +292,8 @@ inline uint TargetedSwap::GetBoxPairAndMol(const double subDraw, const double mo
     int SubVIdx_source = prng.randIntExc(targetSwapParam[sourceBox].size());
     // Set the picked subVolume parameter for source box
     pickedSubV[sourceBox] = SubVIdx_source;
+    pbcMode[sourceBox] = targetSwapParam[sourceBox][SubVIdx_source].subVolumePBC;
+    xyzPBC[sourceBox] = targetSwapParam[sourceBox][SubVIdx_source].xyzPBC;
     subVolDim[sourceBox] = targetSwapParam[sourceBox][SubVIdx_source].subVolumeDim;
     subVolume[sourceBox] = targetSwapParam[sourceBox][SubVIdx_source].subVolume;
     rigidSwap = targetSwapParam[sourceBox][SubVIdx_source].rigidSwap;
@@ -260,6 +313,8 @@ inline uint TargetedSwap::GetBoxPairAndMol(const double subDraw, const double mo
     int SubVIdx_dest = prng.randIntExc(targetSwapParam[destBox].size());
     // Set the picked subVolume parameter for dest box
     pickedSubV[destBox] = SubVIdx_dest;
+    pbcMode[destBox] = targetSwapParam[destBox][SubVIdx_dest].subVolumePBC;
+    xyzPBC[destBox] = targetSwapParam[destBox][SubVIdx_dest].xyzPBC;
     subVolDim[destBox] = targetSwapParam[destBox][SubVIdx_dest].subVolumeDim;
     subVolume[destBox] = targetSwapParam[destBox][SubVIdx_dest].subVolume;
     rigidSwap = targetSwapParam[destBox][SubVIdx_dest].rigidSwap;
@@ -342,41 +397,72 @@ inline XYZ TargetedSwap::GetSubVolumeCenter(const uint &box, const uint &subVIdx
 inline void TargetedSwap::CheckSubVolumePBC(const uint &box)
 {
   XYZ boxAxis = boxDimRef.GetAxis(box);
+  int subVolIdx = targetSwapParam[box][pickedSubV[box]].subVolumeIdx;
   bool shrunk = false;
   // Check the subVolume dimension
   if(subVolDim[box].x > boxAxis.x) {
     printf("Error: In Targeted Swap move, box dimension in X axis shrunk bellow %g A for Subvolume %d!\n",
-           subVolDim[box].x, targetSwapParam[box][pickedSubV[box]].subVolumeIdx);
+           subVolDim[box].x, subVolIdx);
     shrunk = true;
   }
   if(subVolDim[box].y > boxAxis.y) {
     printf("Error: In Targeted Swap move, box dimension in Y axis shrunk bellow %g A for Subvolume %d!\n",
-           subVolDim[box].y, targetSwapParam[box][pickedSubV[box]].subVolumeIdx);
+           subVolDim[box].y, subVolIdx);
     shrunk = true;
   }
   if(subVolDim[box].z > boxAxis.z) {
     printf("Error: In Targeted Swap move, box dimension in Z axis shrunk bellow %g A for Subvolume %d!\n",
-           subVolDim[box].z, targetSwapParam[box][pickedSubV[box]].subVolumeIdx);
+           subVolDim[box].z, subVolIdx);
     shrunk = true;
   }
 
   // Wrap the center of subVolume and check for PBC
-  subVolCenter[box] = boxDimRef.WrapPBC(subVolCenter[box], box);
+  subVolCenter[box] = boxDimRef.WrapPBC(subVolCenter[box], box, xyzPBC[box][0],
+                                        xyzPBC[box][1], xyzPBC[box][2]);
+
   // Check the center or subvolume
-  if(subVolCenter[box].x >= boxAxis.x) {
-    printf("Error: In Targeted Swap move, box dimension in X axis shrunk bellow center %g A for Subvolume %d!\n",
-           subVolCenter[box].x, targetSwapParam[box][pickedSubV[box]].subVolumeIdx);
+  if((subVolCenter[box].x >= boxAxis.x) || (subVolCenter[box].x < 0)) {
+    printf("Error: In Targeted Swap move, subVolume center.x %g A for Subvolume %d is out of range of axis.x %g A!\n",
+           subVolCenter[box].x, subVolIdx, boxAxis.x);
     shrunk = true;
   }
-  if(subVolCenter[box].y >= boxAxis.y) {
-    printf("Error: In Targeted Swap move, box dimension in Y axis shrunk bellow center %g A for Subvolume %d!\n",
-           subVolCenter[box].y, targetSwapParam[box][pickedSubV[box]].subVolumeIdx);
+  if((subVolCenter[box].y >= boxAxis.y) || (subVolCenter[box].y < 0)) {
+    printf("Error: In Targeted Swap move, subVolume center.y %g A for Subvolume %d is out of range of axis.y %g A!\n",
+           subVolCenter[box].y, subVolIdx, boxAxis.y);
     shrunk = true;
   }
-  if(subVolCenter[box].z >= boxAxis.z) {
-    printf("Error: In Targeted Swap move, box dimension in Z axis shrunk bellow center %g A for Subvolume %d!\n",
-           subVolCenter[box].z, targetSwapParam[box][pickedSubV[box]].subVolumeIdx);
+  if((subVolCenter[box].z >= boxAxis.z) || (subVolCenter[box].z < 0)) {
+    printf("Error: In Targeted Swap move, subVolume center.z %g A for Subvolume %d is out of range of axis.z %g A!\n",
+           subVolCenter[box].z, subVolIdx, boxAxis.z);
     shrunk = true;
+  }
+
+  //check the subVolume dimensions with respect to simBox
+  XYZ maxDim = subVolCenter[box] + (subVolDim[box] * 0.5);
+  XYZ minDim = subVolCenter[box] - (subVolDim[box] * 0.5);
+  if(!xyzPBC[box][0]) { // no PBC in x axis
+    // need to use >= because if atom is exactly on axis, it would wrap to 0.0!
+    if((maxDim.x >= boxAxis.x) || (minDim.x < 0)) {
+      printf("Error: In Targeted Swap move with no PBC in x axis, subVolume.x range [%g-%g] A for Subvolume %d is out of range of axis.x %g A!\n",
+            minDim.x, maxDim.x, subVolIdx, boxAxis.x);
+      shrunk = true;
+    }
+  }
+  if(!xyzPBC[box][1]) { // no PBC in y axis
+    // need to use >= because if atom is exactly on axis, it would wrap to 0.0!
+    if((maxDim.y >= boxAxis.y) || (minDim.y < 0)) {
+      printf("Error: In Targeted Swap move with no PBC in y axis, subVolume.y range [%g-%g] A for Subvolume %d is out of range of axis.y %g A!\n",
+            minDim.y, maxDim.y, subVolIdx, boxAxis.y);
+      shrunk = true;
+    }
+  }
+  if(!xyzPBC[box][2]) { // no PBC in z axis
+    // need to use >= because if atom is exactly on axis, it would wrap to 0.0!
+    if((maxDim.z >= boxAxis.z) || (minDim.z < 0)) {
+      printf("Error: In Targeted Swap move with no PBC in z axis, subVolume.z range [%g-%g] A for Subvolume %d is out of range of axis.z %g A!\n",
+            minDim.z, maxDim.z, subVolIdx, boxAxis.z);
+      shrunk = true;
+    }
   }
 
   if (shrunk) {
@@ -391,20 +477,7 @@ inline uint TargetedSwap::PickMolInSubVolume()
   if(hasSubVolume[sourceBox]) {
     // Search through all molecule in the subVolume and randomely pick 
     // one of the picked kind
-    bool foundMol = false;
-    if(rigidSwap) {
-      // count molecule in subVolume by molecule geometric center
-      // Find all the molecule of kindIndex in subvolume
-      foundMol = calcEnRef.FindMolInCavity(molIdxInSubVolume[sourceBox],
-                    subVolCenter[sourceBox], subVolDim[sourceBox],
-                    sourceBox, kindIndex);
-    } else {
-      // count molecule in subVolume by coordinate of seed atomIdx
-      // Find all the molecule of kindIndex in subvolume
-      foundMol = calcEnRef.FindMolInCavity(molIdxInSubVolume[sourceBox],
-                    subVolCenter[sourceBox], subVolDim[sourceBox],
-                    sourceBox, kindIndex, growingAtomIndex[kindIndex]);
-    }
+    bool foundMol = FindMolInSubVolume(sourceBox, kindIndex, rigidSwap);
 
     if(foundMol) {
       // The return vector, stores unique molecule index
@@ -418,19 +491,7 @@ inline uint TargetedSwap::PickMolInSubVolume()
     // Randomely pick one molecule of the picked kind from whole source box
     rejectState = prng.PickMolIndex(molIndex, kindIndex, sourceBox);
     // Just call the function to get number of molecule in cavity in destBox
-    if(rigidSwap) {
-      // count molecule in subVolume by molecule geometric center
-      // Find all the molecule of kindIndex in subvolume
-      calcEnRef.FindMolInCavity(molIdxInSubVolume[destBox],
-                subVolCenter[destBox], subVolDim[destBox],
-                destBox, kindIndex);
-    } else {
-      // count molecule in subVolume by coordinate of seed atomIdx
-      // Find all the molecule of kindIndex in subvolume
-      calcEnRef.FindMolInCavity(molIdxInSubVolume[destBox],
-                subVolCenter[destBox], subVolDim[destBox],
-                destBox, kindIndex, growingAtomIndex[kindIndex]);
-    }
+    FindMolInSubVolume(destBox, kindIndex, rigidSwap);
   }
 
   return rejectState;
@@ -667,6 +728,9 @@ void TargetedSwap::PrintTargetedSwapInfo()
         printf("%-40s %g %g %g \n", "      SubVolume center:",
                 tsp.subVolumeCenter.x, tsp.subVolumeCenter.y, tsp.subVolumeCenter.z);
       }
+      
+      printf("%-40s %s%s%s \n", "      SubVolume PBC:", (tsp.xyzPBC[0] ? "X" : ""),
+              (tsp.xyzPBC[1] ? "Y" : ""), (tsp.xyzPBC[2] ? "Z" : ""));
       printf("%-40s %g %g %g \n", "      SubVolume dimension:",
               tsp.subVolumeDim.x, tsp.subVolumeDim.y, tsp.subVolumeDim.z);
       printf("%-40s %s \n",       "      SubVolume Swap type:", (tsp.rigidSwap ? "Rigid body" : "Flexible"));
@@ -687,18 +751,250 @@ void TargetedSwap::PrintTargetedSwapInfo()
   }
 }
 
-
-  void TargetedSwap::AcceptSubVolumeIdx(const uint &state, const uint &kind,
-                                        const uint &box)
-  {
-    if (hasSubVolume[box]) {
-      uint subVidx = pickedSubV[box];
-      ++trial[box][subVidx][kind];
-      if(state) {
-        ++accepted[box][subVidx][kind];
-      }
+void TargetedSwap::AcceptSubVolumeIdx(const uint &state, const uint &kind,
+                                      const uint &box)
+{
+  if (hasSubVolume[box]) {
+    uint subVidx = pickedSubV[box];
+    ++trial[box][subVidx][kind];
+    if(state) {
+      ++accepted[box][subVidx][kind];
     }
   }
+}
+
+
+bool TargetedSwap::FindMolInSubVolume(const uint box, const uint kind, 
+                                      const bool useGC)
+{
+  bool found = false;
+  if(useGC) { // uses the geometric center to detect the molecule in cavity
+    switch (pbcMode[box]) {
+      case PBC_X:
+        found = SearchCavity_GC<true, false, false>(molIdxInSubVolume[box],
+                  subVolCenter[box], subVolDim[box], box, kind);
+        break;
+      case PBC_Y:
+        found = SearchCavity_GC<false, true, false>(molIdxInSubVolume[box],
+                  subVolCenter[box], subVolDim[box], box, kind);
+        break;
+      case PBC_Z:
+        found = SearchCavity_GC<false, false, true>(molIdxInSubVolume[box],
+                  subVolCenter[box], subVolDim[box], box, kind);
+        break;
+      case PBC_XY:
+        found = SearchCavity_GC<true, true, false>(molIdxInSubVolume[box],
+                  subVolCenter[box], subVolDim[box], box, kind);
+        break;
+      case PBC_XZ:
+        found = SearchCavity_GC<true, false, true>(molIdxInSubVolume[box],
+                  subVolCenter[box], subVolDim[box], box, kind);
+        break;
+      case PBC_YZ:
+        found = SearchCavity_GC<false, true, true>(molIdxInSubVolume[box],
+                  subVolCenter[box], subVolDim[box], box, kind);
+        break;
+      case PBC_XYZ:
+        found = SearchCavity_GC<true, true, true>(molIdxInSubVolume[box],
+                  subVolCenter[box], subVolDim[box], box, kind);
+        break;
+      
+      default:
+        printf("Error: Unknown PBC mode %d in targetedSwap move!\n", pbcMode);
+        exit(EXIT_FAILURE);
+        break;
+    }
+
+  } else { // uses the specified atom index to detect the molecule in cavity
+    switch (pbcMode[box]) {
+      case PBC_X:
+        found = SearchCavity_AC<true, false, false>(molIdxInSubVolume[box],
+                  subVolCenter[box], subVolDim[box], box, kind, growingAtomIndex[kind]);
+        break;
+      case PBC_Y:
+        found = SearchCavity_AC<false, true, false>(molIdxInSubVolume[box],
+                  subVolCenter[box], subVolDim[box], box, kind, growingAtomIndex[kind]);
+        break;
+      case PBC_Z:
+        found = SearchCavity_AC<false, false, true>(molIdxInSubVolume[box],
+                  subVolCenter[box], subVolDim[box], box, kind, growingAtomIndex[kind]);
+        break;
+      case PBC_XY:
+        found = SearchCavity_AC<true, true, false>(molIdxInSubVolume[box],
+                  subVolCenter[box], subVolDim[box], box, kind, growingAtomIndex[kind]);
+        break;
+      case PBC_XZ:
+        found = SearchCavity_AC<true, false, true>(molIdxInSubVolume[box],
+                  subVolCenter[box], subVolDim[box], box, kind, growingAtomIndex[kind]);
+        break;
+      case PBC_YZ:
+        found = SearchCavity_AC<false, true, true>(molIdxInSubVolume[box],
+                  subVolCenter[box], subVolDim[box], box, kind, growingAtomIndex[kind]);
+        break;
+      case PBC_XYZ:
+        found = SearchCavity_AC<true, true, true>(molIdxInSubVolume[box],
+                  subVolCenter[box], subVolDim[box], box, kind, growingAtomIndex[kind]);
+        break;
+      
+      default:
+        printf("Error: Unknown PBC mode %d in targetedSwap move!\n", pbcMode);
+        exit(EXIT_FAILURE);
+        break;
+    }
+
+  }
+
+  return found;
+}
+
+template <bool pbcX, bool pbcY, bool pbcZ>
+bool TargetedSwap::SearchCavity_GC(std::vector<uint> &mol, const XYZ& center,
+                    const XYZ& cavDim, const uint box, const uint kind)
+{
+  int *particleMol = molLookRef.molIndex;
+  uint molKind, molIndex;
+  XYZ halfDim = cavDim * 0.5;
+  double maxLength = halfDim.Max();
+  XYZ halfDimSq = halfDim * halfDim;
+  XYZ dist, distSq; // distance from center to geometric center of molecule
+
+  if(maxLength <= boxDimRef.rCut[box]) {
+    CellList::Neighbors n = cellList.EnumerateLocal(center, box);
+    while (!n.Done()) {
+      molIndex = particleMol[*n];
+      molKind = molRef.GetMolKind(molIndex);
+      // Check the kind to before calculating distance to save time
+      //if molecule can be transfer between boxes and it's the right kind
+      if(!molLookRef.IsNoSwap(molIndex) && (molKind == kind)) {
+        dist = comCurrRef.Get(molIndex) - center;
+        //Apply pbc on selectice axis
+        if(pbcX) {dist = boxDimRef.MinImage_X(dist, box);}
+        if(pbcY) {dist = boxDimRef.MinImage_Y(dist, box);}
+        if(pbcZ) {dist = boxDimRef.MinImage_Z(dist, box);}
+        distSq = dist * dist;
+        if (distSq.x <= halfDimSq.x && distSq.y <= halfDimSq.y && distSq.z <= halfDimSq.z) {
+          mol.push_back(molIndex);
+        }
+      }
+      n.Next();
+    }
+
+    // Find a unique molecule index
+    std::vector<uint>::iterator ip;
+    std::sort(mol.begin(), mol.end());
+    ip = std::unique(mol.begin(), mol.end());
+    mol.resize(std::distance(mol.begin(), ip));
+  } else {
+    MoleculeLookup::box_iterator n = molLookRef.BoxBegin(box);
+    MoleculeLookup::box_iterator end = molLookRef.BoxEnd(box);
+    //uint start, length, p;
+    while (n != end) {        
+      molIndex = *n;
+      molKind = molRef.GetMolKind(molIndex);
+      // Check the kind to before calculating distance to save time
+      //if molecule can be transfer between boxes and it's the right kind
+      if(!molLookRef.IsNoSwap(molIndex) && (molKind == kind)) {
+          dist = comCurrRef.Get(molIndex) - center;
+          //Apply pbc on selectice axis
+          if(pbcX) {dist = boxDimRef.MinImage_X(dist, box);}
+          if(pbcY) {dist = boxDimRef.MinImage_Y(dist, box);}
+          if(pbcZ) {dist = boxDimRef.MinImage_Z(dist, box);}
+
+          distSq = dist * dist;
+          if (distSq.x <= halfDimSq.x && distSq.y <= halfDimSq.y && distSq.z <= halfDimSq.z) {
+            mol.push_back(molIndex);
+          }  
+      }
+      n++;
+    }
+    // No need to find the unique molIndex, since we loop through all molecules and
+    // and not atoms
+  }
+
+  // returns true if there is a molecule of kind in cavity
+  return mol.size();
+}
+
+template <bool pbcX, bool pbcY, bool pbcZ>
+bool TargetedSwap::SearchCavity_AC(std::vector<uint> &mol, const XYZ& center,
+                    const XYZ& cavDim, const uint box, const uint kind,
+                    const int atomIdx)
+{
+  int *particleMol = molLookRef.molIndex;
+  int *particleIndex = molLookRef.atomIndex;
+  uint molKind, molIndex;
+  int aIdx;
+  XYZ halfDim = cavDim * 0.5;
+  double maxLength = halfDim.Max();
+  XYZ halfDimSq = halfDim * halfDim;
+  XYZ dist, distSq; // distance from center to atoms
+
+  if(maxLength <= boxDimRef.rCut[box]) {
+    CellList::Neighbors n = cellList.EnumerateLocal(center, box);
+    while (!n.Done()) {
+      aIdx = particleIndex[*n];
+      molIndex = particleMol[*n];
+      molKind = molRef.GetMolKind(molIndex);
+      // Check the kind to before calculating distance to save time
+      //if molecule can be transfer between boxes and it's the right kind
+      if(aIdx == atomIdx && (molKind == kind) && !molLookRef.IsNoSwap(molIndex)) {
+        dist = coordCurrRef.Get(*n) - center;
+        //Apply pbc on selectice axis
+        if(pbcX) {dist = boxDimRef.MinImage_X(dist, box);}
+        if(pbcY) {dist = boxDimRef.MinImage_Y(dist, box);}
+        if(pbcZ) {dist = boxDimRef.MinImage_Z(dist, box);}
+
+        distSq = dist * dist;
+        if (distSq.x <= halfDimSq.x && distSq.y <= halfDimSq.y && distSq.z <= halfDimSq.z) {
+          mol.push_back(molIndex);
+        }
+      }
+      n.Next();
+    }
+
+    // There should be only one atom with atomIdx, so no need to
+    // find the unique molIndex
+  } else {
+    MoleculeLookup::box_iterator n = molLookRef.BoxBegin(box);
+    MoleculeLookup::box_iterator end = molLookRef.BoxEnd(box);
+    uint start, length, p;
+    while (n != end) {        
+      molIndex = *n;
+      molKind = molRef.GetMolKind(molIndex);
+      // Check the kind to before calculating distance to save time
+      //if molecule can be transfer between boxes and it's the right kind
+      if(!molLookRef.IsNoSwap(molIndex) && (molKind == kind)) {
+        // get atom start index and length
+        length = molRef.GetKind(molIndex).NumAtoms();
+        start = molRef.MolStart(molIndex);
+        // loop through all atom and calculate the distance between center and
+        // atomIdx coordinate
+        for(p = 0; p < length; ++p) {
+          if(p == atomIdx) {
+            dist = coordCurrRef.Get(start+p) - center;
+            //Apply pbc on selectice axis
+            if(pbcX) {dist = boxDimRef.MinImage_X(dist, box);}
+            if(pbcY) {dist = boxDimRef.MinImage_Y(dist, box);}
+            if(pbcZ) {dist = boxDimRef.MinImage_Z(dist, box);}
+
+            distSq = dist * dist;
+            if (distSq.x <= halfDimSq.x && distSq.y <= halfDimSq.y && distSq.z <= halfDimSq.z) {
+              mol.push_back(molIndex);
+            } 
+            break;
+          }
+        } 
+      }
+      n++;
+    }
+    // No need to find the unique molIndex, since we loop through all molecules and
+    // and not atoms
+  }
+
+  // returns true if there is a molecule of kind in cavity
+  return mol.size();
+}
+
 
 #endif
 

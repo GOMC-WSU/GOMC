@@ -226,6 +226,30 @@ XYZ BoxDimensionsNonOrth::MinImage(XYZ rawVecRef, const uint b) const
   return rawVecRef;
 }
 
+XYZ BoxDimensionsNonOrth::MinImage_X(XYZ rawVecRef, const uint b) const
+{
+  XYZ rawVec = TransformUnSlant(rawVecRef, b);
+  rawVecRef = BoxDimensions:: MinImage_X(rawVec, b);
+  rawVecRef = TransformSlant(rawVecRef, b);
+  return rawVecRef;
+}
+
+XYZ BoxDimensionsNonOrth::MinImage_Y(XYZ rawVecRef, const uint b) const
+{
+  XYZ rawVec = TransformUnSlant(rawVecRef, b);
+  rawVecRef = BoxDimensions:: MinImage_Y(rawVec, b);
+  rawVecRef = TransformSlant(rawVecRef, b);
+  return rawVecRef;
+}
+
+XYZ BoxDimensionsNonOrth::MinImage_Z(XYZ rawVecRef, const uint b) const
+{
+  XYZ rawVec = TransformUnSlant(rawVecRef, b);
+  rawVecRef = BoxDimensions:: MinImage_Z(rawVec, b);
+  rawVecRef = TransformSlant(rawVecRef, b);
+  return rawVecRef;
+}
+
 void BoxDimensionsNonOrth::WrapPBC(double &x, double &y, double &z,
                                    const uint b) const
 {
@@ -235,6 +259,23 @@ void BoxDimensionsNonOrth::WrapPBC(double &x, double &y, double &z,
   BoxDimensions::WrapPBC(unslant.x, axis.x[b]);
   BoxDimensions::WrapPBC(unslant.y, axis.y[b]);
   BoxDimensions::WrapPBC(unslant.z, axis.z[b]);
+  //convert XYZ to slant
+  XYZ slant = TransformSlant(unslant, b);
+  x = slant.x;
+  y = slant.y;
+  z = slant.z;
+}
+
+void BoxDimensionsNonOrth::WrapPBC(double &x, double &y, double &z,
+                                   const uint b, const bool &pbcX,
+                                   const bool &pbcY, const bool &pbcZ) const
+{
+  //convert XYZ to unslant
+  XYZ unwrap(x, y, z);
+  XYZ unslant = TransformUnSlant(unwrap, b);
+  if(pbcX) {BoxDimensions::WrapPBC(unslant.x, axis.x[b]);}
+  if(pbcY) {BoxDimensions::WrapPBC(unslant.y, axis.y[b]);}
+  if(pbcZ) {BoxDimensions::WrapPBC(unslant.z, axis.z[b]);}
   //convert XYZ to slant
   XYZ slant = TransformSlant(unslant, b);
   x = slant.x;

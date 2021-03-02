@@ -20,9 +20,12 @@ void MoleculeLookup::Init(const Molecules& mols,
 
   molLookup = new uint[mols.count];
   molLookupCount = mols.count;
-  // similar to coordinates, use beta to get total atom size
-  molIndex = new uint[atomData.beta.size()];
-  kindIndex = new uint[atomData.beta.size()];
+  // beta has same size as total number of atoms
+  molIndex = new int[atomData.beta.size()];
+  atomIndex = new int[atomData.beta.size()];
+  molKind = new int[atomData.beta.size()];
+  atomKind = new int[atomData.beta.size()];
+  atomCharge = new double[atomData.beta.size()];
 
   //+1 to store end value
   boxAndKindStart = new uint[numKinds * BOX_TOTAL + 1];
@@ -44,15 +47,18 @@ void MoleculeLookup::Init(const Molecules& mols,
     indexVector[b].resize(numKinds);
   }
 
-  uint counter = 0;
+  int counter = 0;
   for(uint m = 0; m < mols.count; ++m) {
     uint box = atomData.box[mols.start[m]];
     uint kind = mols.kIndex[m];
     indexVector[box][kind].push_back(m);
-    const MoleculeKind& molKind = mols.GetKind(m);
-    for(uint a = 0; a < molKind.NumAtoms(); ++a) {
-      molIndex[counter] = m;
-      kindIndex[counter] = kind;
+    const MoleculeKind& mk = mols.GetKind(m);
+    for(uint a = 0; a < mk.NumAtoms(); ++a) {
+      molIndex[counter] = int(m);
+      atomIndex[counter] = int(a);
+      molKind[counter] = int(kind);
+      atomKind[counter] = int(mk.AtomKind(a));
+      atomCharge[counter] = mk.AtomCharge(a);
       ++counter;
     }
     /* We don't currently support hybrid molecules - part fixed part flexible

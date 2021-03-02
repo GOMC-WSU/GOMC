@@ -271,15 +271,19 @@ struct TargetSwapParam {
   // defines if we do rigid body insertion/deletion or not
   // defaut value is true
   bool rigid_swap;
+  //defines if we have pbc in xyz axis, default is true in all axis
+  std::vector<bool> subVolumeBPC;
 
   bool center_defined, dim_defined, reskind_defined;
   bool box_defined, rigidSwap_defined, atomList_defined;
+  bool pbc_defined;
   TargetSwapParam(void) {
     center_defined = dim_defined = false;
     reskind_defined = box_defined = false;
-    rigidSwap_defined = false;
+    rigidSwap_defined = pbc_defined = false;
     rigid_swap = atomList_defined = false;
     subVolumeIdx = 0;
+    subVolumeBPC.resize(3, true);
   }
 
   TargetSwapParam& operator=(TargetSwapParam const& rhs)
@@ -291,6 +295,7 @@ struct TargetSwapParam {
     selectedBox = rhs.selectedBox;
     subVolumeIdx = rhs.subVolumeIdx;
     rigid_swap = rhs.rigid_swap;
+    subVolumeBPC = rhs.subVolumeBPC;
     //copy boolean parameters
     center_defined = rhs.center_defined;
     dim_defined = rhs.dim_defined;
@@ -298,6 +303,7 @@ struct TargetSwapParam {
     box_defined = rhs.box_defined;
     rigidSwap_defined = rhs.rigidSwap_defined;
     atomList_defined = rhs.atomList_defined;
+    pbc_defined = rhs.pbc_defined;
     return *this;
   }
 
@@ -319,6 +325,13 @@ struct TargetSwapParam {
             subVolumeIdx);
       allSet = false;
     }
+
+    if(subVolumeDim.x < 0.0 || subVolumeDim.y < 0.0 || subVolumeDim.z < 0.0) {
+      printf("Error: SubVolume dimension (%g %g %g) cannot be negative for subVolume index %d!\n",
+            subVolumeDim.x, subVolumeDim.y, subVolumeDim.z, subVolumeIdx);
+      allSet = false;
+    }
+
     if(!reskind_defined) {
       printf("Error: residue kind has not been defined for subVolume index %d!\n",
             subVolumeIdx);
@@ -587,25 +600,66 @@ struct TargetSwapCollection {
   // add a swapType for subvolume
   void AddsubVolumeSwapType(const int &subVIdx, bool &isRigid) {
     int idx = 0;
-      if (!SearchExisting(subVIdx, idx)) {
-        // If the subVolume index did not exist, add one
-        TargetSwapParam tempPar;
-        tempPar.subVolumeIdx = subVIdx;
-        tempPar.rigid_swap = isRigid;
-        tempPar.rigidSwap_defined = true;
-        targetedSwap.push_back(tempPar);
+    if (!SearchExisting(subVIdx, idx)) {
+      // If the subVolume index did not exist, add one
+      TargetSwapParam tempPar;
+      tempPar.subVolumeIdx = subVIdx;
+      tempPar.rigid_swap = isRigid;
+      tempPar.rigidSwap_defined = true;
+      targetedSwap.push_back(tempPar);
+    } else {
+      // If subVolume index exist and subvolume box is defined
+      if(targetedSwap[idx].rigidSwap_defined) {
+        printf("Error: The swap type has already been defined for subVolume index %d!\n",
+              subVIdx);
+        printf("       Please use different subVolume index.\n");
+        exit(EXIT_FAILURE);
       } else {
-        // If subVolume index exist and subvolume box is defined
-        if(targetedSwap[idx].rigidSwap_defined) {
-          printf("Error: The swap type has already been defined for subVolume index %d!\n",
-                subVIdx);
-          printf("       Please use different subVolume index.\n");
-          exit(EXIT_FAILURE);
-        } else {
-          targetedSwap[idx].rigid_swap = isRigid;
-          targetedSwap[idx].rigidSwap_defined = true;
-        }
+        targetedSwap[idx].rigid_swap = isRigid;
+        targetedSwap[idx].rigidSwap_defined = true;
       }
+    }
+  }
+
+  // add a PBC mode for subvolume
+  void AddsubVolumePBC(const int &subVIdx, const std::string &pbc) {
+    int idx = 0;
+    std::vector<bool> pbcMode(3, false);
+    char upper;
+    for(uint k = 0; k < pbc.length(); k++) {
+      upper = toupper(pbc[k]);
+      if(upper == 'X') {
+        pbcMode[0] = true;
+      } else if (upper == 'Y'){
+        pbcMode[1] = true;
+      } else if (upper == 'Z'){
+        pbcMode[2] = true;
+      } else {
+        printf("Error: Unknown option '%c' in '%s' for PBC type in subVolume index %d!\n",
+              pbc[k], pbc.c_str(), subVIdx);
+        exit(EXIT_FAILURE);
+      }
+    }
+
+    if (!SearchExisting(subVIdx, idx)) {
+      // If the subVolume index did not exist, add one
+      TargetSwapParam tempPar;
+      tempPar.subVolumeIdx = subVIdx;
+      tempPar.subVolumeBPC = pbcMode;
+      tempPar.pbc_defined = true;
+      targetedSwap.push_back(tempPar);
+    } else {
+      // If subVolume index exist and subvolume box is defined
+      if(targetedSwap[idx].pbc_defined) {
+        printf("Error: The PBC mode has already been defined for subVolume index %d!\n",
+              subVIdx);
+        printf("       Please use different subVolume index.\n");
+        exit(EXIT_FAILURE);
+      } else {
+        targetedSwap[idx].subVolumeBPC = pbcMode;
+        targetedSwap[idx].pbc_defined = true;
+      }
+    }
   }
 
   public:

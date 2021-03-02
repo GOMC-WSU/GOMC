@@ -64,6 +64,13 @@ public:
   //Vector btwn two points, accounting for PBC, on an individual axis
   virtual XYZ MinImage(XYZ rawVec, const uint b) const;
 
+  //Apply PBC, on X axis
+  virtual XYZ MinImage_X(XYZ rawVec, const uint b) const;
+  //Apply PBC, on Y axis
+  virtual XYZ MinImage_Y(XYZ rawVec, const uint b) const;
+  //Apply PBC, on Z axis
+  virtual XYZ MinImage_Z(XYZ rawVec, const uint b) const;
+
   //Wrap all coordinates in object.
   void WrapPBC(XYZArray & arr, const uint b) const;
 
@@ -81,11 +88,19 @@ public:
   //Wrap one coordinate.
   XYZ WrapPBC(XYZ rawPos, const uint b) const;
 
+  //Wrap one coordinate for each axis that has PBC
+  XYZ WrapPBC(XYZ rawPos, const uint b, const bool &pbcX, const bool &pbcY,
+              const bool &pbcZ) const;
+
   //Unwrap one coordinate.
   XYZ UnwrapPBC(XYZ& rawPos, const uint b, XYZ const& ref) const;
 
-  //Unwrap one coordinate.
+  //wrap one coordinate.
   virtual void WrapPBC(double &x, double &y, double &z, const uint b) const;
+
+  //wrap one coordinate and check for PBC
+  virtual void WrapPBC(double &x, double &y, double &z, const uint b,
+                      const bool &pbcX, const bool &pbcY, const bool &pbcZ) const;
 
   //Unwrap one coordinate.
   virtual void UnwrapPBC(double & x, double & y, double & z,
@@ -168,6 +183,13 @@ inline XYZ BoxDimensions::WrapPBC(XYZ rawPos, const uint b) const
   return rawPos;
 }
 
+//Wrap one coordinate.
+inline XYZ BoxDimensions::WrapPBC(XYZ rawPos, const uint b, const bool &pbcX,
+                                  const bool &pbcY, const bool &pbcZ) const
+{
+  WrapPBC(rawPos.x, rawPos.y, rawPos.z, b, pbcX, pbcY, pbcZ);
+  return rawPos;
+}
 
 //Unwrap one coordinate.
 inline XYZ BoxDimensions::UnwrapPBC(XYZ & rawPos, const uint b,

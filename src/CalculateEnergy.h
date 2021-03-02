@@ -186,17 +186,6 @@ public:
                        const XYZ& cavDim, const XYZArray& invCav,
                        const uint box, const uint kind, const uint exRatio);
 
-  // Finding the molecule of kind inside cavity using geometric center
-  // and store the molecule Index. Only supports orthogonal cavity
-  bool FindMolInCavity(std::vector<uint> &mol, const XYZ& center,
-                       const XYZ& cavDim, const uint box, const uint kind);
-
-  // Finding the molecule of kind inside cavity using atomIdx coordinate
-  // and store the molecule Index. Only supports orthogonal cavity
-  bool FindMolInCavity(std::vector<uint> &mol, const XYZ& center,
-                       const XYZ& cavDim, const uint box,
-                       const uint kind, const int atomIdx);
-
   //!Calculates energy corrections for the box
   double EnergyCorrection(const uint box, const uint *kCount) const;
 
