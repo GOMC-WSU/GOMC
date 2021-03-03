@@ -253,6 +253,18 @@ struct CBMC {
   GrowBond bonded;
 };
 
+#if ENSEMBLE == GCMC
+struct ChemicalPotential {
+  bool isFugacity;
+  std::map<std::string, double> cp;
+  ChemicalPotential& operator=(ChemicalPotential const& rhs) {
+    isFugacity = rhs.isFugacity;
+    cp = rhs.cp;
+    return *this;
+  }
+};
+#endif
+
 // Holds information that is required to define the cavity
 // for targeted swap
 struct TargetSwapParam {
@@ -273,15 +285,20 @@ struct TargetSwapParam {
   bool rigid_swap;
   //defines if we have pbc in xyz axis, default is true in all axis
   std::vector<bool> subVolumeBPC;
+  // specify chemical potential for subVolume
+  #if ENSEMBLE == GCMC
+  ChemicalPotential subVolumeChemPot;
+  #endif
 
   bool center_defined, dim_defined, reskind_defined;
   bool box_defined, rigidSwap_defined, atomList_defined;
-  bool pbc_defined;
+  bool pbc_defined, chemPot_defined;
   TargetSwapParam(void) {
     center_defined = dim_defined = false;
     reskind_defined = box_defined = false;
     rigidSwap_defined = pbc_defined = false;
     rigid_swap = atomList_defined = false;
+    chemPot_defined = false;
     subVolumeIdx = 0;
     subVolumeBPC.resize(3, true);
   }
@@ -295,7 +312,10 @@ struct TargetSwapParam {
     selectedBox = rhs.selectedBox;
     subVolumeIdx = rhs.subVolumeIdx;
     rigid_swap = rhs.rigid_swap;
-    subVolumeBPC = rhs.subVolumeBPC;
+    subVolumeBPC = rhs.subVolumeBPC; 
+  #if ENSEMBLE == GCMC
+    subVolumeChemPot = rhs.subVolumeChemPot;
+  #endif
     //copy boolean parameters
     center_defined = rhs.center_defined;
     dim_defined = rhs.dim_defined;
@@ -342,6 +362,35 @@ struct TargetSwapParam {
             subVolumeIdx);
       rigid_swap = true;
     }
+    if(!pbc_defined) {
+      printf("Default: XYZ PBC has been defined for subVolume index %d!\n",
+            subVolumeIdx);
+      pbc_defined = true;
+    }
+
+#if ENSEMBLE == GCMC
+    // make sure the resname exist in the list of targeted reskind
+    if(chemPot_defined) {
+      bool notExist = false;
+      std::map<std::string, double>::const_iterator start = subVolumeChemPot.cp.begin();
+      std::map<std::string, double>::const_iterator end = subVolumeChemPot.cp.end();
+      if((selectedResKind[0] != "ALL") && reskind_defined) {
+        while (start != end) {
+          std::string resname = start->first;
+          notExist = (std::find(selectedResKind.begin(), selectedResKind.end(),
+                                resname) == selectedResKind.end());
+
+          if(notExist){
+            allSet = false;
+            printf("Error: residue name %s has not been defined in SubVolumeResidueKind list for subVolume index %d!\n",
+                  resname.c_str(), subVolumeIdx);
+          }
+
+          ++start;
+        }
+      }
+    }
+#endif
 
     if(!allSet)
       exit(EXIT_FAILURE);
@@ -661,6 +710,29 @@ struct TargetSwapCollection {
       }
     }
   }
+ 
+#if ENSEMBLE == GCMC
+  // set chemical potential for subvolume
+  void AddsubVolumeChemPot(const int &subVIdx, const std::string &resName,
+                          const double &cpValue, const bool &isFugacity) {
+    int idx = 0;
+    double value = cpValue * (isFugacity ? unit::BAR_TO_K_MOLECULE_PER_A3 : 1.0);
+    if (!SearchExisting(subVIdx, idx)) {
+      // If the subVolume index did not exist, add one
+      TargetSwapParam tempPar;
+      tempPar.subVolumeIdx = subVIdx;
+      tempPar.subVolumeChemPot.cp[resName] = value;
+      tempPar.subVolumeChemPot.isFugacity = isFugacity;
+      tempPar.chemPot_defined = true;
+      targetedSwap.push_back(tempPar);
+    } else {
+      // If subVolume index exist
+      targetedSwap[idx].subVolumeChemPot.cp[resName] = value;
+      targetedSwap[idx].subVolumeChemPot.isFugacity = isFugacity;
+      targetedSwap[idx].chemPot_defined = true;
+    }
+  }
+#endif
 
   public:
     std::vector<TargetSwapParam> targetedSwap;
@@ -722,13 +794,6 @@ struct FreeEnergy {
   }
 };
 
-
-#if ENSEMBLE == GCMC
-struct ChemicalPotential {
-  bool isFugacity;
-  std::map<std::string, double> cp;
-};
-#endif
 struct SystemVals {
   ElectroStatic elect;
   Temperature T;

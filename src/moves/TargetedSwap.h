@@ -18,7 +18,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <cmath>
 #include <queue>
 
-//struct config_setup::TargetSwapParam;
 struct BondList;
 
 // enumerator for periodicity of each axis
@@ -53,6 +52,10 @@ struct TSwapParam {
   bool calcSubVolCenter;
   // sub-Volume periodicity for each axis
   std::vector<bool> xyzPBC;
+  #if ENSEMBLE == GCMC
+  //to keep track of chemical potentials for each subVolume
+  std::vector<double> chemPot;
+  #endif
 };
 
 
@@ -137,6 +140,41 @@ public:
               }
             }
           }
+#if ENSEMBLE == GCMC
+          // default value of chemPot is system value
+          for(uint k = 0; k < molLookRef.GetNumKind(); k++) {
+            tempVar.chemPot.push_back(molRef.kinds[k].chemPot);
+          }
+          // Set the chemical potential once we had a clear idea of our selected reskind
+          // and overwrite the system value
+          std::map<std::string, double>::const_iterator start = tsp.subVolumeChemPot.cp.begin();
+          std::map<std::string, double>::const_iterator end = tsp.subVolumeChemPot.cp.end();
+          while (start != end) {
+            bool found = false;
+            std::string resname = start->first;
+            double cpot = start->second;
+            for (int k = 0; k < tempVar.selectedResKind.size(); ++k) {
+              int kIndex = tempVar.selectedResKind[k];
+              if(resname == molRef.kinds[kIndex].name) {
+                found = true;
+                tempVar.chemPot[kIndex] = cpot;
+              }
+            }
+            //If there was no such a residue name, through error
+            if(!found) {
+              printf("Error: In Targeted Swap move, residue name %s cannot be swapped or was not found in PDB/PSF file!\n",
+                      resname.c_str());
+              exit(EXIT_FAILURE);
+            }
+            // make sure we use fugacity or chemical potential everywhere
+            if(ffRef.isFugacity != tsp.subVolumeChemPot.isFugacity) {
+              printf("Error: In Targeted Swap move, chemPot and Fugacity cannot be defined together!\n");
+              exit(EXIT_FAILURE);
+            }
+
+            ++start;
+          }
+#endif
           targetSwapParam[tsp.selectedBox].push_back(tempVar);
           hasSubVolume[tsp.selectedBox] = true;
         }
@@ -419,48 +457,57 @@ inline void TargetedSwap::CheckSubVolumePBC(const uint &box)
   // Wrap the center of subVolume and check for PBC
   subVolCenter[box] = boxDimRef.WrapPBC(subVolCenter[box], box, xyzPBC[box][0],
                                         xyzPBC[box][1], xyzPBC[box][2]);
-
+  // need to look at unslant center in order to compare with XYZ axis
+  XYZ unSlanCenter = boxDimRef.TransformUnSlant(subVolCenter[box], box);
   // Check the center or subvolume
-  if((subVolCenter[box].x >= boxAxis.x) || (subVolCenter[box].x < 0)) {
+  if((unSlanCenter.x >= boxAxis.x) || (unSlanCenter.x < 0)) {
     printf("Error: In Targeted Swap move, subVolume center.x %g A for Subvolume %d is out of range of axis.x %g A!\n",
            subVolCenter[box].x, subVolIdx, boxAxis.x);
+    printf("     : Define the subVolume center.x within the simulation box or turn on the PBC in x axis.\n");
     shrunk = true;
   }
-  if((subVolCenter[box].y >= boxAxis.y) || (subVolCenter[box].y < 0)) {
+  if((unSlanCenter.y >= boxAxis.y) || (unSlanCenter.y < 0)) {
     printf("Error: In Targeted Swap move, subVolume center.y %g A for Subvolume %d is out of range of axis.y %g A!\n",
            subVolCenter[box].y, subVolIdx, boxAxis.y);
+    printf("     : Define the subVolume center.y within the simulation box or turn on the PBC in y axis.\n");
     shrunk = true;
   }
-  if((subVolCenter[box].z >= boxAxis.z) || (subVolCenter[box].z < 0)) {
+  if((unSlanCenter.z >= boxAxis.z) || (unSlanCenter.z < 0)) {
     printf("Error: In Targeted Swap move, subVolume center.z %g A for Subvolume %d is out of range of axis.z %g A!\n",
            subVolCenter[box].z, subVolIdx, boxAxis.z);
+    printf("     : Define the subVolume center.z within the simulation box or turn on the PBC in z axis.\n");
     shrunk = true;
   }
 
   //check the subVolume dimensions with respect to simBox
-  XYZ maxDim = subVolCenter[box] + (subVolDim[box] * 0.5);
-  XYZ minDim = subVolCenter[box] - (subVolDim[box] * 0.5);
+  XYZ unSlantMaxDim = unSlanCenter + (subVolDim[box] * 0.5);
+  XYZ unSlantMinDim = unSlanCenter - (subVolDim[box] * 0.5); 
+  XYZ slantMaxDim = subVolCenter[box] + (subVolDim[box] * 0.5);
+  XYZ slantMinDim = subVolCenter[box] - (subVolDim[box] * 0.5);
   if(!xyzPBC[box][0]) { // no PBC in x axis
     // need to use >= because if atom is exactly on axis, it would wrap to 0.0!
-    if((maxDim.x >= boxAxis.x) || (minDim.x < 0)) {
-      printf("Error: In Targeted Swap move with no PBC in x axis, subVolume.x range [%g-%g] A for Subvolume %d is out of range of axis.x %g A!\n",
-            minDim.x, maxDim.x, subVolIdx, boxAxis.x);
+    if((unSlantMaxDim.x >= boxAxis.x) || (unSlantMinDim.x < 0)) {
+      printf("Error: In Targeted Swap move with no PBC in x axis, subVolume.x range [%g-%g] A for Subvolume %d is on the edge or out of range of axis.x %g A!\n",
+            slantMinDim.x, slantMaxDim.x, subVolIdx, boxAxis.x);
+      printf("     : Decrease the subVolume dimension.x or turn on the PBC in x axis.\n");
       shrunk = true;
     }
   }
   if(!xyzPBC[box][1]) { // no PBC in y axis
     // need to use >= because if atom is exactly on axis, it would wrap to 0.0!
-    if((maxDim.y >= boxAxis.y) || (minDim.y < 0)) {
-      printf("Error: In Targeted Swap move with no PBC in y axis, subVolume.y range [%g-%g] A for Subvolume %d is out of range of axis.y %g A!\n",
-            minDim.y, maxDim.y, subVolIdx, boxAxis.y);
+    if((unSlantMaxDim.y >= boxAxis.y) || (unSlantMinDim.y < 0)) {
+      printf("Error: In Targeted Swap move with no PBC in y axis, subVolume.y range [%g-%g] A for Subvolume %d is on the edge or out of range of axis.y %g A!\n",
+            slantMinDim.y, slantMaxDim.y, subVolIdx, boxAxis.y);
+      printf("     : Decrease the subVolume dimension.y or turn on the PBC in y axis.\n");
       shrunk = true;
     }
   }
   if(!xyzPBC[box][2]) { // no PBC in z axis
     // need to use >= because if atom is exactly on axis, it would wrap to 0.0!
-    if((maxDim.z >= boxAxis.z) || (minDim.z < 0)) {
-      printf("Error: In Targeted Swap move with no PBC in z axis, subVolume.z range [%g-%g] A for Subvolume %d is out of range of axis.z %g A!\n",
-            minDim.z, maxDim.z, subVolIdx, boxAxis.z);
+    if((unSlantMaxDim.z >= boxAxis.z) || (unSlantMinDim.z < 0)) {
+      printf("Error: In Targeted Swap move with no PBC in z axis, subVolume.z range [%g-%g] A for Subvolume %d is on the edge or out of range of axis.z %g A!\n",
+            slantMinDim.z, slantMaxDim.z, subVolIdx, boxAxis.z);
+      printf("     : Decrease the subVolume dimension.z or turn on the PBC in z axis.\n");
       shrunk = true;
     }
   }
@@ -561,32 +608,31 @@ inline double TargetedSwap::GetCoeff() const
   if (sourceBox == mv::BOX0) { //Delete case
     double molNumber =  double(molIdxInSubVolume[sourceBox].size());
     double invVolume = 1.0 / subVolume[sourceBox];
+    double chemicalP = targetSwapParam[sourceBox][pickedSubV[sourceBox]].chemPot[kindIndex];
     /*
     if (molIdxInSubVolume[sourceBox].size() != molLookRef.NumKindInBox(kindIndex, sourceBox)) {
       printf("Error: %d in subVolume vs %d in box!\n", molIdxInSubVolume[sourceBox].size(),
       molLookRef.NumKindInBox(kindIndex, sourceBox));
     } */
     if(ffRef.isFugacity) {
-      return molNumber * invVolume /
-             (BETA * molRef.kinds[kindIndex].chemPot);
+      return molNumber * invVolume / (BETA * chemicalP);
     } else {
-      return molNumber * invVolume *
-             exp(-BETA * molRef.kinds[kindIndex].chemPot);
+      return molNumber * invVolume * exp(-BETA * chemicalP);
     }
-  } else { //Insertion case
+  } else { //Insertion case    
     double molNumber =  double(molIdxInSubVolume[destBox].size());
     double volume = subVolume[destBox];
+    double chemicalP = targetSwapParam[destBox][pickedSubV[destBox]].chemPot[kindIndex];
+
     /*
     if (molIdxInSubVolume[destBox].size() != molLookRef.NumKindInBox(kindIndex, destBox)) {
       printf("Error: %d in subVolume vs %d in box!\n", molIdxInSubVolume[destBox].size(),
       molLookRef.NumKindInBox(kindIndex, destBox));
     } */
     if(ffRef.isFugacity) {
-      return volume / (molNumber + 1) *
-             (BETA * molRef.kinds[kindIndex].chemPot);
+      return volume / (molNumber + 1) * (BETA * chemicalP);
     } else {
-      return volume / (molNumber + 1) *
-             exp(BETA * molRef.kinds[kindIndex].chemPot);
+      return volume / (molNumber + 1) * exp(BETA * chemicalP);
     }
   }
 #endif
@@ -741,11 +787,20 @@ void TargetedSwap::PrintTargetedSwapInfo()
       printf("\n");
       if(!tsp.rigidSwap) {
         for (k = 0; k < tsp.selectedResKind.size(); ++k) {
+          int kIdx = tsp.selectedResKind[k];
           printf("%-40s %s: (%d, %s) \n",       "      Starting atom (index, name) for",
-                molRef.kinds[tsp.selectedResKind[k]].name.c_str(), growingAtomIndex[tsp.selectedResKind[k]],
-                molRef.kinds[tsp.selectedResKind[k]].atomNames[growingAtomIndex[tsp.selectedResKind[k]]].c_str());
+                molRef.kinds[kIdx].name.c_str(), growingAtomIndex[kIdx],
+                molRef.kinds[kIdx].atomNames[growingAtomIndex[kIdx]].c_str());
         }
       }
+#if ENSEMBLE == GCMC
+      printf("%-40s ", (ffRef.isFugacity ? "      Targeted fugacity (bar):" : "      Targeted chemical potential (K):"));
+      for (k = 0; k < tsp.selectedResKind.size(); ++k) {
+        int kIdx = tsp.selectedResKind[k];
+        double value = tsp.chemPot[kIdx] / (ffRef.isFugacity ? unit::BAR_TO_K_MOLECULE_PER_A3 : 1.0);
+        printf("(%-4s: %g) ", molRef.kinds[kIdx].name.c_str(), value);
+      }
+#endif
       printf("\n\n");
     }
   }

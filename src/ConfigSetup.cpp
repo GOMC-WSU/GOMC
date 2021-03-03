@@ -372,7 +372,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         exit(EXIT_FAILURE);
       }
     } else if(CheckString(line[0], "SubVolumePBC")) {
-      if(line.size() == 3) {
+      if(line.size() >= 3) {
         int idx = stringtoi(line[1]); 
         sys.targetedSwapCollection.AddsubVolumePBC(idx, line[2]);
       } else {
@@ -431,7 +431,35 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
                 line.size() -1);
         exit(EXIT_FAILURE);
       }
-    } else if(CheckString(line[0], "ExchangeVolumeDim")) {
+    }
+#if ENSEMBLE == GCMC
+     else if(CheckString(line[0], "SubVolumeChemPot")) {
+      if(line.size() >= 4) {
+        int idx = stringtoi(line[1]); 
+        std::string resName = line[2];
+        double value = stringtod(line[3]);
+        bool isFugacity = false;
+        sys.targetedSwapCollection.AddsubVolumeChemPot(idx, resName, value, isFugacity);
+      } else {
+        printf("%-40s %-d !\n", "Error: Expected 3 values for SubVolumeChemPot, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } else if(CheckString(line[0], "SubVolumeFugacity")) {
+      if(line.size() >= 4) {
+        int idx = stringtoi(line[1]); 
+        std::string resName = line[2];
+        double value = stringtod(line[3]);
+        bool isFugacity = true;
+        sys.targetedSwapCollection.AddsubVolumeChemPot(idx, resName, value, isFugacity);
+      } else {
+        printf("%-40s %-d !\n", "Error: Expected 3 values for SubVolumeFugacity, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } 
+#endif
+    else if(CheckString(line[0], "ExchangeVolumeDim")) {
       if(line.size() == 4) {
         XYZ temp;
         temp.x = stringtod(line[1]);
