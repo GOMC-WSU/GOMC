@@ -247,3 +247,52 @@ std::vector<int> FloydWarshallCycle::returnCombinedSet(const std::vector<int> &f
   }
   return ret;
 }
+
+int FloydWarshallCycle::GetCentricNode()
+{
+  // Got it from:
+  // https://codeforces.com/blog/entry/17974
+
+  // values of eccentricity
+  std::vector<int> ecc(numberOfNodes, 0);
+  int i, j, raduse;
+  setDefaults();
+  
+  for (j = 0; j < connections.size(); j++) {
+    int zero = connections[j][0];
+    int one = connections[j][1];
+    graph[zero][one] = 1;
+    graph[one][zero] = 1;
+  }
+
+  floydWarshall();
+
+  // Counting values of eccentricity which is
+  // maximal distance from that node to other
+  for (i = 0; i < numberOfNodes; i++) {
+    for (j = 0; j < numberOfNodes; j++) {
+      if (ecc[i] < graph[i][j]) {
+        ecc[i] = graph[i][j];
+      }
+    }
+  }
+  
+  raduse = 1000000;  
+  // Having values of eccentricity of all nodes, 
+  // we can define radius of graph as minimal one among them
+  for (i = 0; i < numberOfNodes; i++) {
+    if (raduse > ecc[i]) {
+      raduse = ecc[i];
+    }
+  }
+
+  // Center of graph is set of nodes with eccentricity equal to the radius of graph:
+  for (i = 0; i < numberOfNodes; i++) {
+    if (raduse == ecc[i]) {
+      return i;
+    }
+  }
+
+  return -1;
+
+}

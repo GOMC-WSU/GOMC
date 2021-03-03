@@ -9,6 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "EnsemblePreprocessor.h" //for BOX_TOTAL
 #include "BasicTypes.h" //For uint
+#include "algorithm"
 #include <vector>
 
 class CheckpointOutput;
@@ -27,12 +28,18 @@ class MoleculeLookup
 {
 public:
 
-  MoleculeLookup() : molLookup(NULL), boxAndKindStart(NULL), boxAndKindSwappableCounts(NULL) {}
+  MoleculeLookup() : molLookup(NULL), boxAndKindStart(NULL), boxAndKindSwappableCounts(NULL),
+   molIndex(NULL), atomIndex(NULL), molKind(NULL), atomKind(NULL), atomCharge(NULL) {}
 
   ~MoleculeLookup()
   {
     delete[] molLookup;
     delete[] boxAndKindStart;
+    delete[] molIndex;
+    delete[] atomIndex;
+    delete[] molKind;
+    delete[] atomKind;
+    delete[] atomCharge;
     delete[] boxAndKindSwappableCounts;
   }
 
@@ -59,9 +66,29 @@ public:
     return canSwapKind[k];
   }
 
+  // returns true if molecule kind k can transfer between boxes
+  bool IsKindSwapable(const uint k)
+  {
+    if(std::find(canSwapKind.begin(), canSwapKind.end(), k) == canSwapKind.end()) {
+      return false;
+    } else  {
+      return true;
+    }
+  }
+
   uint GetCanMoveKind(const uint k) const
   {
     return canMoveKind[k];
+  }
+
+  // returns true if molecule kind k can move in it's box
+  bool IsKindMoveable(const uint k)
+  {
+    if(std::find(canMoveKind.begin(), canMoveKind.end(), k) == canMoveKind.end()) {
+      return false;
+    } else  {
+      return true;
+    }
   }
 
   //Returns number of given kind in given box
@@ -90,6 +117,23 @@ public:
   uint GetMolNum(const uint subIndex, const uint kind, const uint box)
   {
     return molLookup[boxAndKindStart[box * numKinds + kind] + subIndex];
+  }
+
+  // determine if molecule is in this box or not
+  bool IsMoleculeInBox(const uint &molIdx, const uint &kindIdx, const uint &box)
+  {
+    uint index = std::find(
+                  molLookup + boxAndKindStart[box * numKinds + kindIdx],
+                  molLookup + boxAndKindStart[box * numKinds + kindIdx + 1], molIdx)
+                - molLookup;
+
+    return ((molLookup[index] == molIdx));
+  }
+
+  // determine if atom is in this box or not// uses global atom index
+  bool IsAtomInBox(const uint &aIdx, const uint &box)
+  {
+    return IsMoleculeInBox(molIndex[aIdx], molKind[aIdx], box);
   }
 
   void TotalAndDensity(uint * numByBox, uint * numByKindBox,
@@ -141,6 +185,11 @@ uint GetConsensusMolBeta( const uint pStart,
   std::vector <uint> fixedMolecule;
   std::vector <uint> canSwapKind; //Kinds that can move intra and inter box
   std::vector <uint> canMoveKind; //Kinds that can move intra box only
+  int *molIndex; // stores the molecule index for global atom index
+  int *atomIndex; // stores the local atom index for global atom index
+  int *molKind; // stores the molecule kind for global atom index
+  int *atomKind; // stores the atom kind for global atom index
+  double *atomCharge; // stores the atom's charge for global atom index
 
   // make CheckpointOutput class a friend so it can print all the private data
   friend class CheckpointOutput;

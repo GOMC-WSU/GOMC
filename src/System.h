@@ -72,8 +72,6 @@ public:
     return boxDimensions;
   }
 
-
-
   //NOTE:
   //This must also come first... as subsequent values depend on obj.
   //That may be in here, i.e. Box Dimensions

@@ -174,6 +174,13 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
     printElement(var->GetAccepted(box, sub), elementWidth);
     printElement(var->GetAcceptPercent(box, sub), elementWidth);
   }
+
+  if(var->Performed(mv::TARGETED_SWAP)) {
+    sub = mv::TARGETED_SWAP;
+    printElement(var->GetTries(box, sub), elementWidth);
+    printElement(var->GetAccepted(box, sub), elementWidth);
+    printElement(var->GetAcceptPercent(box, sub), elementWidth);
+  }
 #endif
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
@@ -405,6 +412,12 @@ void ConsoleOutput::PrintMoveTitle()
     printElement("CFCMCTRANSF", elementWidth);
     printElement("CFCMCACCEPT", elementWidth);
     printElement("CFCMCACCEPT%", elementWidth);
+  }
+
+  if(var->Performed(mv::TARGETED_SWAP)) {
+    printElement("TARGETTRANSFER", elementWidth);
+    printElement("TARGETTACCEPT", elementWidth);
+    printElement("TARGETTACCEPT%", elementWidth);
   }
 #endif
 

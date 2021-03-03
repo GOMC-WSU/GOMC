@@ -176,6 +176,7 @@ set(headers
    src/moves/MultiParticle.h
    src/moves/Regrowth.h
    src/moves/Rotation.h
+   src/moves/TargetedSwap.h
    src/moves/Translate.h
    src/moves/VolumeTransfer.h)
 

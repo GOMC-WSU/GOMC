@@ -32,6 +32,7 @@ TrialMol::TrialMol(const MoleculeKind& k, const BoxDimensions& ax,
   std::fill_n(atomBuilt, k.NumAtoms(), false);
   growthToWorld.LoadIdentity();
   backbone[0] = backbone[1] = 0;
+  growingAtomIndex = 0;
   comInCav = false;
   comFix = false;
   rotateBB = false;
@@ -47,6 +48,7 @@ TrialMol::TrialMol()
     cavMatrix(3), bCoords(0), bonds()
 {
   backbone[0] = backbone[1] = 0;
+  growingAtomIndex = 0;
   cavMatrix.Set(0, 1.0, 0.0, 0.0);
   cavMatrix.Set(1, 0.0, 1.0, 0.0);
   cavMatrix.Set(2, 0.0, 0.0, 1.0);
@@ -62,6 +64,7 @@ TrialMol::TrialMol(const TrialMol& other) :
   std::copy(other.atomBuilt, other.atomBuilt + kind->NumAtoms(), atomBuilt);
   bonds.Unset();
   backbone[0] = backbone[1] = 0;
+  growingAtomIndex = 0;
   comInCav = false;
   comFix = false;
   rotateBB = false;

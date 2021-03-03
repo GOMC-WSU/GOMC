@@ -27,6 +27,10 @@ public:
 
   std::vector< std::vector<int> > GetAllCommonCycles();
 
+  // return the centric node
+  // https://codeforces.com/blog/entry/17974
+  int GetCentricNode();
+
 private:
   // Number of nodes
   int numberOfNodes;

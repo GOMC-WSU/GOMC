@@ -741,6 +741,57 @@ void DCCyclic::BuildGrowNew(TrialMol& newMol, uint molIndex)
   }
 }
 
+void DCCyclic::BuildGrowInCav(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
+{
+  //Set bCoords to unwrap coordinate of actual molecule
+  newMol.GetCoords().CopyRange(coords, 0, 0, coords.Count());
+  //No need to unwrap since copied coordinate is unwraped and wrapped properly
+  newMol.SetBCoords(coords, 0);
+
+  visited.assign(nodes.size(), false);
+  destVisited.assign(totAtom, false);
+  //Get the seedIndex
+  int sIndex;
+  if (newMol.HasCav()) {
+    sIndex = newMol.GetGrowingAtomIndex();
+  } else if (oldMol.HasCav()) {
+    sIndex = oldMol.GetGrowingAtomIndex();
+  } else {
+    std::cout << "Error: Calling BuildGrowInCav, but there is no cavity" <<
+    " defined for newMol and oldMol.\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  //Use seedIndex atom to start the node
+  uint current = -1;
+  for(uint i = 0; i < nodes.size(); i++) {
+    if(nodes[i].atomIndex == sIndex) {
+      current = i;
+      break;
+    }
+  }
+
+  if(current == -1) {
+    std::cout << "Error: In TargetedSwap move, atom " 
+              << newMol.GetKind().atomNames[sIndex] <<
+              " in " << newMol.GetKind().name << " must be a node.\n";
+    std::cout << "       This atom must be bounded to two or more atoms! \n";
+    exit(1);
+  }
+
+  //Visiting the node
+  visited[current] = true;
+  destVisited[nodes[current].atomIndex] = true;
+  DCComponent* comp = nodes[current].starting;
+  //Call DCFreeHedron to build all Atoms connected to the node
+  comp->PrepareNew(newMol, molIndex);
+  comp->BuildNew(newMol, molIndex);
+  comp->PrepareOld(oldMol, molIndex);
+  comp->BuildOld(oldMol, molIndex);
+  //Advance along edges, building as we go
+  BuildEdges(oldMol, newMol, molIndex, current);
+}
+
 DCCyclic::~DCCyclic()
 {
   delete idExchange;

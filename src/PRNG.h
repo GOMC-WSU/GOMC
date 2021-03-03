@@ -142,6 +142,19 @@ public:
     loc = temp;
   }
 
+  // generate random coordinate in cavity with dimension of cavDim and center
+  // of cavCenter
+  void FillWithRandomInCavity(XYZArray &loc, const uint len, XYZ const& cavDim, 
+                              XYZ const& cavCenter)
+  {
+    // generate random trial in range of [-cavDim/2, +cavDim/2]
+    for (uint i = 0; i < len; ++i) {
+      loc.Set(i, SymExc(cavDim.x / 2.0), SymExc(cavDim.y / 2.0), SymExc(cavDim.z / 2.0));
+    }
+    // Shift by center
+    loc.AddRange(0, len, cavCenter);
+  }
+
   //using UniformRandom algorithm in TransformMatrix.h
   XYZ RandomUnitVect()
   {
@@ -402,6 +415,27 @@ public:
       } while(molLookRef.IsNoSwap(m));
     }
 
+    return rejectState;
+  }
+
+  // Pick a random molecule of kind mk in box b
+  uint PickMolIndex(uint &m_idx, const uint mk, const uint b)
+  {
+    uint rejectState = mv::fail_state::NO_FAIL;
+    //Pick molecule with the help of molecule lookup table.
+    if ((molLookRef.NumKindInBox(mk, b) == 0)) {
+      rejectState = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+    } else {
+      uint mOff, m;
+      //Among the ones of that kind in that box, pick one @ random.
+      //Molecule with a tag (beta == 2 and beta == 1) cannot be selected.
+      do {
+        mOff = randIntExc(molLookRef.NumKindInBox(mk, b));
+        //Lookup true index in table.
+        m = molLookRef.GetMolNum(mOff, mk, b);
+      } while(molLookRef.IsNoSwap(m));
+      m_idx = m;
+    }
     return rejectState;
   }
 

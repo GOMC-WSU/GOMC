@@ -101,6 +101,13 @@ public:
     builder->CrankShaft(oldMol, newMol, molIndex);
   }
 
+  // Targeted Swap move
+  void BuildGrowInCav(cbmc::TrialMol& oldMol, cbmc::TrialMol& newMol,
+                      const uint molIndex)
+  {
+    builder->BuildGrowInCav(oldMol, newMol, molIndex);
+  }
+
   //Used in MEMC move
   void BuildIDNew(cbmc::TrialMol& newMol, const uint molIndex)
   {

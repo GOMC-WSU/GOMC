@@ -65,6 +65,7 @@ struct BondList {
   uint count;
 
   void Init(const std::vector<mol_setup::Bond>& bonds);
+  bool IsBonded(const uint &i, const uint &j);
 
   BondList();
   ~BondList();

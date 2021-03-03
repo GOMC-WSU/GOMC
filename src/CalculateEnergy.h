@@ -180,7 +180,8 @@ public:
                        XYZArray& molTorque,
                        const uint box);
 
-  //Finding the molecule inside cavity and store the molecule Index.
+  //Finding the molecule inside cavity using geometric center
+  // and store the molecule Index.
   bool FindMolInCavity(std::vector< std::vector<uint> > &mol, const XYZ& center,
                        const XYZ& cavDim, const XYZArray& invCav,
                        const uint box, const uint kind, const uint exRatio);
@@ -309,8 +310,13 @@ private:
   bool multiParticleEnabled;
   bool electrostatic, ewald;
 
+  // stores kindIndex for each global atom idx
   std::vector<int> particleKind;
+  // stores molIndex for each global atom idx
   std::vector<int> particleMol;
+  // stores atomIndex for each global atom idx
+  std::vector<int> particleIndex;
+  // stores charge for each global atom idx
   std::vector<double> particleCharge;
   const MoleculeLookup& molLookup;
   const BoxDimensions& currentAxes;

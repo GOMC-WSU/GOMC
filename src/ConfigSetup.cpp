@@ -7,7 +7,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <map> //for function handle storage.
 #include <string> //for var names, etc.
 #include <vector>
-#include <string>
 #include <iomanip>
 
 #include "ConfigSetup.h"
@@ -15,23 +14,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef DBL_MAX
 #define DBL_MAX 1.7976931348623158e+308
 #endif
-
-int stringtoi(const std::string& s)
-{
-  std::istringstream str(s);
-  uint i;
-  str >> i;
-  return i;
-}
-
-double stringtod(const std::string& s)
-{
-  std::istringstream str(s);
-  double i;
-  str >> i;
-  return i;
-}
-
 
 ConfigSetup::ConfigSetup(void)
 {
@@ -130,6 +112,7 @@ ConfigSetup::ConfigSetup(void)
   sys.moves.transfer = DBL_MAX;
   sys.moves.memc = DBL_MAX;
   sys.moves.cfcmc = DBL_MAX;
+  sys.moves.targetedSwap = DBL_MAX;
   sys.cbmcTrials.bonded.ang = UINT_MAX;
   sys.cbmcTrials.bonded.dih = UINT_MAX;
   sys.cbmcTrials.nonbonded.first = UINT_MAX;
@@ -145,6 +128,22 @@ ConfigSetup::ConfigSetup(void)
 #endif
   out.statistics.vars.density.block = false;
   out.statistics.vars.density.fluct = false;
+}
+
+int ConfigSetup::stringtoi(const std::string& s)
+{
+  std::istringstream str(s);
+  uint i;
+  str >> i;
+  return i;
+}
+
+double ConfigSetup::stringtod(const std::string& s)
+{
+  std::istringstream str(s);
+  double i;
+  str >> i;
+  return i;
 }
 
 bool ConfigSetup::checkBool(std::string str)
@@ -349,7 +348,118 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
     } else if(CheckString(line[0], "Rswitch")) {
       sys.ff.rswitch = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Switch distance", sys.ff.rswitch);
-    } else if(CheckString(line[0], "ExchangeVolumeDim")) {
+    } else if(CheckString(line[0], "SubVolumeBox")) {
+      if(line.size() == 3) {
+        int idx = stringtoi(line[1]); 
+        uint b = stringtoi(line[2]);
+        sys.targetedSwapCollection.AddsubVolumeBox(idx, b);
+      } else {
+        printf("%-40s %-d !\n", "Error: Expected 2 values for SubVolumeBox, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } else if(CheckString(line[0], "SubVolumeCenter")) {
+      if(line.size() >= 5) {
+        int idx = stringtoi(line[1]); 
+        XYZ temp;
+        temp.x = stringtod(line[2]);
+        temp.y = stringtod(line[3]);
+        temp.z = stringtod(line[4]);
+        sys.targetedSwapCollection.AddsubVolumeCenter(idx, temp);
+      } else {
+        printf("%-40s %-d !\n", "Error: Expected 4 values for SubVolumeCenter, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } else if(CheckString(line[0], "SubVolumePBC")) {
+      if(line.size() >= 3) {
+        int idx = stringtoi(line[1]); 
+        sys.targetedSwapCollection.AddsubVolumePBC(idx, line[2]);
+      } else {
+        printf("%-40s %-d !\n", "Error: Expected 2 values for SubVolumePBC, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } else if(CheckString(line[0], "SubVolumeCenterList")) {
+      if(line.size() >= 3) {
+        int idx = stringtoi(line[1]); 
+        std::vector<std::string> temp;
+        for(int k = 2; k < line.size(); k++) {
+          temp.push_back(line[k]);
+        }
+        sys.targetedSwapCollection.AddsubVolumeAtomList(idx, temp);
+      } else {
+        printf("%-40s %-d !\n", "Error: Expected atleast 3 values for SubVolumeCenterList, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } else if(CheckString(line[0], "SubVolumeDim")) {
+      if(line.size() >= 5) {
+        int idx = stringtoi(line[1]); 
+        XYZ temp;
+        temp.x = stringtod(line[2]);
+        temp.y = stringtod(line[3]);
+        temp.z = stringtod(line[4]);
+        sys.targetedSwapCollection.AddsubVolumeDimension(idx, temp);
+      } else {
+        printf("%-40s %-d !\n", "Error: Expected 4 values for SubVolumeDim, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } else if(CheckString(line[0], "SubVolumeResidueKind")) {
+      if(line.size() >= 3) {
+        int idx = stringtoi(line[1]); 
+        std::vector<std::string> temp;
+        
+        for(int k = 2; k < line.size(); k++) {
+          temp.push_back(line[k]);
+        }
+        
+        sys.targetedSwapCollection.AddsubVolumeResKind(idx, temp);
+      } else {
+        printf("%-40s %-d !\n", "Error: Expected atleast 2 values for SubVolumeResidueKind, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } else if(CheckString(line[0], "SubVolumeRigidSwap")) {
+      if(line.size() >= 3) {
+        int idx = stringtoi(line[1]); 
+        bool isRigid = checkBool(line[2]);
+        sys.targetedSwapCollection.AddsubVolumeSwapType(idx, isRigid);
+      } else {
+        printf("%-40s %-d !\n", "Error: Expected 2 values for SubVolumeRigidSwap, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    }
+#if ENSEMBLE == GCMC
+     else if(CheckString(line[0], "SubVolumeChemPot")) {
+      if(line.size() >= 4) {
+        int idx = stringtoi(line[1]); 
+        std::string resName = line[2];
+        double value = stringtod(line[3]);
+        bool isFugacity = false;
+        sys.targetedSwapCollection.AddsubVolumeChemPot(idx, resName, value, isFugacity);
+      } else {
+        printf("%-40s %-d !\n", "Error: Expected 3 values for SubVolumeChemPot, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } else if(CheckString(line[0], "SubVolumeFugacity")) {
+      if(line.size() >= 4) {
+        int idx = stringtoi(line[1]); 
+        std::string resName = line[2];
+        double value = stringtod(line[3]);
+        bool isFugacity = true;
+        sys.targetedSwapCollection.AddsubVolumeChemPot(idx, resName, value, isFugacity);
+      } else {
+        printf("%-40s %-d !\n", "Error: Expected 3 values for SubVolumeFugacity, but received",
+                line.size() -1);
+        exit(EXIT_FAILURE);
+      }
+    } 
+#endif
+    else if(CheckString(line[0], "ExchangeVolumeDim")) {
       if(line.size() == 4) {
         XYZ temp;
         temp.x = stringtod(line[1]);
@@ -655,6 +765,13 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         sys.memcVal.enable = true;
         sys.memcVal.MEMC3 = true;
       }
+    } else if(CheckString(line[0], "TargetedSwapFreq")) {
+      sys.moves.targetedSwap = stringtod(line[1]);
+      if(sys.moves.targetedSwap > 0.0) {
+        sys.targetedSwapCollection.enable = true;
+      }
+      printf("%-40s %-4.4f \n", "Info: Targeted Swap move frequency",
+             sys.moves.targetedSwap);
     } else if(CheckString(line[0], "CFCMCFreq")) {
       sys.moves.cfcmc = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: CFCMC move frequency",
@@ -1165,6 +1282,12 @@ void ConfigSetup::fillDefaults(void)
            sys.moves.cfcmc);
   }
 
+  if(sys.moves.targetedSwap == DBL_MAX) {
+    sys.moves.targetedSwap = 0.0;
+    printf("%-40s %-4.4f \n", "Default: Targeted Swap move frequency",
+           sys.moves.targetedSwap);
+  }
+
   if(sys.cfcmcVal.enable) {
     if(!sys.cfcmcVal.readHistFlatness) {
       sys.cfcmcVal.histFlatness = 0.3;
@@ -1374,6 +1497,16 @@ void ConfigSetup::fillDefaults(void)
 void ConfigSetup::verifyInputs(void)
 {
   int i;
+
+  #ifdef VARIABLE_PARTICLE_NUMBER
+  if(sys.targetedSwapCollection.enable) {
+    for (i = 0; i < sys.targetedSwapCollection.targetedSwap.size(); i++) {
+      // make sure all required parameter has been set
+      sys.targetedSwapCollection.targetedSwap[i].VerifyParm();
+    }
+  }
+  #endif
+
   if(!sys.elect.enable && sys.elect.oneFourScale != DBL_MAX) {
     printf("Warning: 1-4 Electrostatic scaling set, but will be ignored.\n");
     sys.elect.oneFourScale = 0.0;
@@ -1527,7 +1660,8 @@ void ConfigSetup::verifyInputs(void)
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
               sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
               sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft +
-              sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
+              sys.moves.multiParticle + sys.moves.cfcmc + 
+              sys.moves.targetedSwap - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!\n";
     exit(EXIT_FAILURE);
   }
@@ -1552,7 +1686,8 @@ void ConfigSetup::verifyInputs(void)
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
               sys.moves.transfer + sys.moves.regrowth + sys.moves.memc +
               sys.moves.intraMemc + sys.moves.crankShaft +
-              sys.moves.multiParticle + sys.moves.cfcmc - 1.0) > 0.001) {
+              sys.moves.multiParticle + sys.moves.cfcmc +
+              sys.moves.targetedSwap - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!!\n";
     exit(EXIT_FAILURE);
   }

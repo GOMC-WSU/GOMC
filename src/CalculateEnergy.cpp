@@ -75,6 +75,7 @@ void CalculateEnergy::Init(System & sys)
       particleKind.push_back(molKind.AtomKind(a));
       particleMol.push_back(m);
       particleCharge.push_back(molKind.AtomCharge(a));
+      particleIndex.push_back(int(a));
     }
   }
 #ifdef GOMC_CUDA
@@ -1572,7 +1573,6 @@ bool CalculateEnergy::FindMolInCavity(std::vector< std::vector<uint> > &mol,
   else
     return false;
 }
-
 
 void CalculateEnergy::SingleMoleculeInter(Energy &interEnOld,
     Energy &interEnNew,

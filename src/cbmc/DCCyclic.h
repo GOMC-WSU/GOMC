@@ -45,6 +45,8 @@ public:
   void BuildOld(TrialMol& oldMol, uint molIndex);
   void BuildGrowNew(TrialMol& newMol, uint molIndex);
   void BuildGrowOld(TrialMol& oldMol, uint molIndex);
+  // used in TargetedSwap
+  void BuildGrowInCav(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
   ~DCCyclic();
 
 private:
