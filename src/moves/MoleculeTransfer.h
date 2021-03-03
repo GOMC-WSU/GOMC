@@ -82,6 +82,7 @@ inline uint MoleculeTransfer::GetBoxPairAndMol(const double subDraw, const doubl
 
 inline uint MoleculeTransfer::Prep(const double subDraw, const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_SWAP);
   overlap = false;
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if (state == mv::fail_state::NO_FAIL) {
@@ -89,20 +90,24 @@ inline uint MoleculeTransfer::Prep(const double subDraw, const double movPerc)
     oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
     oldMol.SetCoords(coordCurrRef, pStart);
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_SWAP);
   return state;
 }
 
 
 inline uint MoleculeTransfer::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_SWAP);
   cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
   molRef.kinds[kindIndex].Build(oldMol, newMol, molIndex);
   overlap = newMol.HasOverlap();
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_SWAP);
   return mv::fail_state::NO_FAIL;
 }
 
 inline void MoleculeTransfer::CalcEn()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_SWAP);
   W_tc = 1.0;
   W_recip = 1.0;
   correct_old = 0.0;
@@ -131,7 +136,7 @@ inline void MoleculeTransfer::CalcEn()
                                        correct_new - correct_old +
                                        self_new - self_old));
   }
-
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_SWAP);
 }
 
 inline double MoleculeTransfer::GetCoeff() const
@@ -167,6 +172,7 @@ inline double MoleculeTransfer::GetCoeff() const
 
 inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::ACC_SWAP);
   bool result;
   //If we didn't skip the move calculation
   if(rejectState == mv::fail_state::NO_FAIL) {
@@ -236,6 +242,7 @@ inline void MoleculeTransfer::Accept(const uint rejectState, const uint step)
     result = false;
 
   moveSetRef.Update(mv::MOL_TRANSFER, result, destBox, kindIndex);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_SWAP);
 }
 
 #endif

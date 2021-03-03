@@ -25,6 +25,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "NoEwald.h"
 #include "MolPick.h"
 #include "Forcefield.h"
+#include "GOMCEventsProfile.h" // for NVTX profiling
 
 class MoveBase
 {

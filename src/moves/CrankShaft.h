@@ -78,6 +78,7 @@ inline uint CrankShaft::GetBoxAndMol(const double subDraw, const double movPerc)
 
 inline uint CrankShaft::Prep(const double subDraw, const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_CRANKSHAFT);
   overlap = false;
   uint state = GetBoxAndMol(subDraw, movPerc);
   if (state == mv::fail_state::NO_FAIL) {
@@ -85,20 +86,24 @@ inline uint CrankShaft::Prep(const double subDraw, const double movPerc)
     oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
     oldMol.SetCoords(coordCurrRef, pStart);
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_CRANKSHAFT);
   return state;
 }
 
 
 inline uint CrankShaft::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_CRANKSHAFT);
   cellList.RemoveMol(molIndex, sourceBox, coordCurrRef);
   molRef.kinds[kindIndex].CrankShaft(oldMol, newMol, molIndex);
   overlap = newMol.HasOverlap();
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_CRANKSHAFT);
   return mv::fail_state::NO_FAIL;
 }
 
 inline void CrankShaft::CalcEn()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_CRANKSHAFT);
   // since number of molecules would not change in the box,
   W_recip = 1.0;
   correct_old = 0.0;
@@ -113,11 +118,13 @@ inline void CrankShaft::CalcEn()
     W_recip = exp(-1.0 * ffRef.beta * (recipDiff.energy + correct_new -
                                        correct_old));
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_CRANKSHAFT);
 }
 
 
 inline void CrankShaft::Accept(const uint rejectState, const uint step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::ACC_CRANKSHAFT);
   bool result;
   //If we didn't skip the move calculation
   if(rejectState == mv::fail_state::NO_FAIL) {
@@ -175,6 +182,7 @@ inline void CrankShaft::Accept(const uint rejectState, const uint step)
     result = false;
 
   moveSetRef.Update(mv::CRANKSHAFT, result, sourceBox, kindIndex);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_CRANKSHAFT);
 }
 
 #endif

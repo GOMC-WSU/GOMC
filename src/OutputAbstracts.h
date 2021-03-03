@@ -15,6 +15,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "StaticVals.h"
 #include "ConfigSetup.h" //For enables, etc.
 #include "PDBSetup.h" //For atoms class
+#include "GOMCEventsProfile.h" // for profiling
 
 #include "GOMC_Config.h"    //For MPI 
 #ifdef WIN32

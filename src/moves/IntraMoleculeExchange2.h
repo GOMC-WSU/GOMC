@@ -215,6 +215,7 @@ inline uint IntraMoleculeExchange2::PickMolInCav()
 inline uint IntraMoleculeExchange2::Prep(const double subDraw,
     const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_INTRA_MEMC);
   //AdjustExRatio();
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
@@ -288,11 +289,13 @@ inline uint IntraMoleculeExchange2::Prep(const double subDraw,
     }
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_INTRA_MEMC);
   return state;
 }
 
 inline uint IntraMoleculeExchange2::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_INTRA_MEMC);
   // Remove the fixed COM kindS at the end because we insert it at first
   for (uint n = numInCavA; n > 0; n--) {
     cellList.RemoveMol(molIndexA[n - 1], sourceBox, coordCurrRef);
@@ -329,6 +332,7 @@ inline uint IntraMoleculeExchange2::Transform()
     overlap |= newMolA[n].HasOverlap();
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_INTRA_MEMC);
   return mv::fail_state::NO_FAIL;
 }
 

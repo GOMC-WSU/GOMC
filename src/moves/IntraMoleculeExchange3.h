@@ -174,6 +174,7 @@ inline uint IntraMoleculeExchange3::PickMolInCav()
 inline uint IntraMoleculeExchange3::Prep(const double subDraw,
     const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_INTRA_MEMC);
   //AdjustExRatio();
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
@@ -243,12 +244,14 @@ inline uint IntraMoleculeExchange3::Prep(const double subDraw,
     }
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_INTRA_MEMC);
   return state;
 }
 
 
 inline uint IntraMoleculeExchange3::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_INTRA_MEMC);
   ///Remove the fixed COM kindS at the end because we insert it at first
   for(uint n = numInCavA; n > 0; n--) {
     cellList.RemoveMol(molIndexA[n - 1], sourceBox, coordCurrRef);
@@ -281,11 +284,13 @@ inline uint IntraMoleculeExchange3::Transform()
     overlap |= newMolA[n].HasOverlap();
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_INTRA_MEMC);
   return mv::fail_state::NO_FAIL;
 }
 
 inline void IntraMoleculeExchange3::CalcEn()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_INTRA_MEMC);
   W_recip = 1.0;
   recipDiffA = 0.0, recipDiffB = 0.0;
   correctDiff = 0.0;
@@ -302,6 +307,7 @@ inline void IntraMoleculeExchange3::CalcEn()
     W_recip = exp(-1.0 * ffRef.beta * (recipDiffA + recipDiffB +
                                        correctDiff));
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_INTRA_MEMC);
 }
 
 inline double IntraMoleculeExchange3::GetCoeff() const

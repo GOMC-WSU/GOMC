@@ -33,6 +33,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CrankShaft.h"
 #include "CFCMC.h"
 #include "TargetedSwap.h"
+#include "GOMCEventsProfile.h"
 
 System::System(StaticVals& statics, Setup const& set,
                MultiSim const*const& multisim) :
@@ -63,7 +64,6 @@ System::~System()
 {
   if (boxDimensions != NULL)
     delete boxDimensions;
-
   if (calcEwald != NULL)
     delete calcEwald;
   delete moves[mv::DISPLACE];
@@ -116,7 +116,9 @@ void System::Init(Setup & set, ulong & startStep)
 #endif
   }
 
+  GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
   xsc.Init(set.pdb, set.config.in, molLookupRef, statV.mol);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::READ_INPUT_FILES);
   boxDimensions->Init(set.config.in.restart,
                       set.config.sys.volume, set.pdb.cryst,
                       statV.forcefield);

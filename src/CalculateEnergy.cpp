@@ -28,6 +28,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CalculateForceCUDAKernel.cuh"
 #include "ConstantDefinitionsCUDAKernel.cuh"
 #endif
+#include "GOMCEventsProfile.h"
 #define NUMBER_OF_NEIGHBOR_CELL 27
 
 //
@@ -85,11 +86,13 @@ void CalculateEnergy::Init(System & sys)
 
 SystemPotential CalculateEnergy::SystemTotal()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::EN_SYSTEM_TOTAL);
   SystemPotential pot =
     SystemInter(SystemPotential(), currentCoords, currentAxes);
 
   //system intra
   for (uint b = 0; b < BOX_TOTAL; ++b) {
+    GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_INTRA);
     double bondEnergy[2] = {0};
     double bondEn = 0.0, nonbondEn = 0.0, correction = 0.0;
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(b);
@@ -120,6 +123,7 @@ SystemPotential CalculateEnergy::SystemTotal()
     pot.boxEnergy[b].self = calcEwald->BoxSelf(b);
     pot.boxEnergy[b].correction = correction;
 
+    GOMC_EVENT_STOP(1, GomcProfileEvent::EN_BOX_INTRA);
     //Calculate Virial
     pot.boxVirial[b] = VirialCalc(b);
   }
@@ -134,6 +138,7 @@ SystemPotential CalculateEnergy::SystemTotal()
               "         of the computed running energies.\n";
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::EN_SYSTEM_TOTAL);
   return pot;
 }
 
@@ -167,6 +172,7 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
   if (box >= BOXES_WITH_U_NB)
     return potential;
 
+  GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_INTER);
   double tempREn = 0.0, tempLJEn = 0.0;
 
   std::vector<int> cellVector, cellStartIndex, mapParticleToCell;
@@ -254,6 +260,7 @@ reduction(+:tempREn, tempLJEn)
   // setting energy and virial of coulomb interaction
   potential.boxEnergy[box].real = tempREn;
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::EN_BOX_INTER);
   // set correction energy and virial
   if (forcefield.useLRC) {
     EnergyCorrection(potential, boxAxes, box);
@@ -274,6 +281,8 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
   //interactions are off.
   if (box >= BOXES_WITH_U_NB)
     return potential;
+    
+  GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_FORCE);
 
   double tempREn = 0.0, tempLJEn = 0.0;
   // make a pointer to atom force and mol force for OpenMP
@@ -389,6 +398,7 @@ reduction(+:tempREn, tempLJEn, aForcex[:atomCount], aForcey[:atomCount], \
   // setting energy and virial of coulomb interaction
   potential.boxEnergy[box].real = tempREn;
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::EN_BOX_FORCE);
   return potential;
 }
 
@@ -400,6 +410,11 @@ Virial CalculateEnergy::VirialCalc(const uint box)
 {
   //store virial and energy of reference and modify the virial
   Virial tempVir;
+  // no need to calculate the virial for reservoir
+  if (box >= BOXES_WITH_U_NB)
+    return tempVir;
+  
+  GOMC_EVENT_START(1, GomcProfileEvent::EN_BOX_VIRIAL);
 
   //tensors for VDW and real part of electrostatic
   double vT11 = 0.0, vT12 = 0.0, vT13 = 0.0;
@@ -545,6 +560,8 @@ reduction(+:vT11, vT12, vT13, vT22, vT23, vT33, rT11, rT12, rT13, rT22, rT23, rT
   // setting virial of coulomb
   tempVir.real = (rT11 + rT22 + rT33) * num::qqFact;
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::EN_BOX_VIRIAL);
+
   if (forcefield.useLRC) {
     VirialCorrection(tempVir, currentAxes, box);
   }
@@ -567,6 +584,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
   bool overlap = false;
 
   if (box < BOXES_WITH_U_NB) {
+    GOMC_EVENT_START(1, GomcProfileEvent::EN_MOL_INTER);
     uint length = mols.GetKind(molIndex).NumAtoms();
     uint start = mols.MolStart(molIndex);
 
@@ -664,6 +682,7 @@ bool CalculateEnergy::MoleculeInter(Intermolecular &inter_LJ,
         }
       }
     }
+    GOMC_EVENT_STOP(1, GomcProfileEvent::EN_MOL_INTER);
   }
 
   inter_LJ.energy = tempLJEn;
@@ -682,6 +701,7 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
   if (box >= BOXES_WITH_U_B)
     return;
 
+  GOMC_EVENT_START(1, GomcProfileEvent::EN_CBMC_INTRA_NB);
   const MoleculeKind& kind = trialMol.GetKind();
   //loop over all partners of the trial particle
   const uint* partner = kind.sortedNB.Begin(partIndex);
@@ -710,6 +730,7 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
     }
     ++partner;
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::EN_CBMC_INTRA_NB);
 }
 
 void CalculateEnergy::ParticleInter(double* en, double *real,
@@ -722,6 +743,8 @@ void CalculateEnergy::ParticleInter(double* en, double *real,
 {
   if(box >= BOXES_WITH_U_NB)
     return;
+  
+  GOMC_EVENT_START(1, GomcProfileEvent::EN_CBMC_INTER);
   double tempLJ, tempReal;
   MoleculeKind const& thisKind = mols.GetKind(molIndex);
   uint kindI = thisKind.AtomKind(partIndex);
@@ -775,6 +798,7 @@ reduction(+:tempLJ, tempReal)
     en[t] += tempLJ;
     real[t] += tempReal;
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::EN_CBMC_INTER);
 }
 
 
@@ -833,6 +857,7 @@ Intermolecular CalculateEnergy::MoleculeTailVirChange(const uint box,
 void CalculateEnergy::MoleculeIntra(const uint molIndex,
                                     const uint box, double *bondEn) const
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::EN_MOL_INTRA);
   bondEn[0] = 0.0, bondEn[1] = 0.0;
 
   MoleculeKind& molKind = mols.kinds[mols.kIndex[molIndex]];
@@ -846,11 +871,13 @@ void CalculateEnergy::MoleculeIntra(const uint molIndex,
   MolNonbond(bondEn[1], molKind, molIndex, box);
   MolNonbond_1_4(bondEn[1], molKind, molIndex, box);
   MolNonbond_1_3(bondEn[1], molKind, molIndex, box);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::EN_MOL_INTRA);
 }
 
 //used in molecule exchange for calculating bonded and intraNonbonded energy
 Energy CalculateEnergy::MoleculeIntra(cbmc::TrialMol const &mol) const
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::EN_MOL_INTRA);
   double bondEn = 0.0, intraNonbondEn = 0.0;
   // *2 because we'll be storing inverse bond vectors
   const MoleculeKind& molKind = mol.GetKind();
@@ -865,6 +892,7 @@ Energy CalculateEnergy::MoleculeIntra(cbmc::TrialMol const &mol) const
   MolNonbond(intraNonbondEn, mol, molKind);
   MolNonbond_1_4(intraNonbondEn, mol, molKind);
   MolNonbond_1_3(intraNonbondEn, mol, molKind);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::EN_MOL_INTRA);
   return Energy(bondEn, intraNonbondEn, 0.0, 0.0, 0.0, 0.0, 0.0);
 }
 
@@ -1421,6 +1449,7 @@ void CalculateEnergy::CalculateTorque(std::vector<uint>& moleculeIndex,
                                       const uint box)
 {
   if(multiParticleEnabled && (box < BOXES_WITH_U_NB)) {
+    GOMC_EVENT_START(1, GomcProfileEvent::BOX_TORQUE);
     // make a pointer to mol torque for OpenMP
     double *torquex = molTorque.x;
     double *torquey = molTorque.y;
@@ -1454,6 +1483,7 @@ void CalculateEnergy::CalculateTorque(std::vector<uint>& moleculeIndex,
       }
     }
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::BOX_TORQUE);
 }
 
 void CalculateEnergy::ResetForce(XYZArray& atomForce, XYZArray& molForce,
@@ -1671,6 +1701,7 @@ void CalculateEnergy::EnergyChange(Energy *energyDiff, Energy &dUdL_VDW,
     return;
   }
 
+  GOMC_EVENT_START(1, GomcProfileEvent::FREE_ENERGY);
   uint length = mols.GetKind(molIndex).NumAtoms();
   uint start = mols.MolStart(molIndex);
   uint lambdaSize = lambda_VDW.size();
@@ -1770,6 +1801,7 @@ reduction(+:dudl_VDW, dudl_Coul, tempREnDiff[:lambdaSize], tempLJEnDiff[:lambdaS
   //Need to calculate change in Reciprocal
   calcEwald->ChangeRecip(energyDiff, dUdL_Coul, lambda_Coul, iState, molIndex,
                          box);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::FREE_ENERGY);
 }
 
 //Calculate the change in LRC for each state

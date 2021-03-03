@@ -11,13 +11,17 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <iomanip>
 #include "CUDAMemoryManager.cuh"
+#include "GOMCEventsProfile.h"
 
 #define EPSILON 0.001
 
 Simulation::Simulation(char const*const configFileName, MultiSim const*const& multisim): ms(multisim)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::INITIALIZE);
   startStep = 0;
+  GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
   set.Init(configFileName, multisim);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::READ_INPUT_FILES);
   totalSteps = set.config.sys.step.total;
   staticValues = new StaticVals(set);
   system = new System(*staticValues, set, multisim);
@@ -38,20 +42,24 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
   PTUtils = set.config.sys.step.parallelTemp ? new ParallelTemperingUtilities(ms, *system, *staticValues, set.config.sys.step.parallelTempFreq, set.config.sys.step.parallelTemperingAttemptsPerExchange) : NULL;
   exchangeResults.resize(ms->worldSize, false);
 #endif
+  GOMC_EVENT_STOP(1, GomcProfileEvent::INITIALIZE);
 }
 
 Simulation::~Simulation()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::DESTRUCTION);
   delete cpu;
   delete system;
   delete staticValues;
 #ifdef GOMC_CUDA
   CUDAMemoryManager::isFreed();
 #endif
+  GOMC_EVENT_STOP(1, GomcProfileEvent::DESTRUCTION);
 }
 
 void Simulation::RunSimulation(void)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::MC_RUN);
   double startEnergy = system->potential.totalEnergy.total;
   if(totalSteps == 0) {
     for(int i = 0; i < (int) frameSteps.size(); i++) {
@@ -113,6 +121,7 @@ void Simulation::RunSimulation(void)
       RecalculateAndCheck();
 #endif
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::MC_RUN);
   if(!RecalculateAndCheck()) {
     std::cerr << "Warning: Updated energy differs from Recalculated Energy!\n";
   }

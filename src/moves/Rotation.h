@@ -39,21 +39,28 @@ void Rotate::PrintAcceptKind()
 
 inline uint Rotate::Prep(const double subDraw, const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_ROTATE);
   uint state = GetBoxAndMol(prng, molRef, subDraw, movPerc);
   if (state == mv::fail_state::NO_FAIL && molRef.NumAtoms(mk)  <= 1)
     state = mv::fail_state::ROTATE_ON_SINGLE_ATOM;
+
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_ROTATE);
   return state;
 }
 
 inline uint Rotate::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_ROTATE);
   coordCurrRef.RotateRand(newMolPos, pStart, pLen, m, b,
                           moveSetRef.Scale(b, mv::ROTATE, mk));
+  
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_ROTATE);
   return mv::fail_state::NO_FAIL;
 }
 
 inline void Rotate::CalcEn()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_ROTATE);
   cellList.RemoveMol(m, b, coordCurrRef);
   molRemoved = true;
   overlap = false;
@@ -64,10 +71,12 @@ inline void Rotate::CalcEn()
     //calculate reciprocate term of electrostatic interaction
     recip.energy = calcEwald->MolReciprocal(newMolPos, m, b);
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_ROTATE);
 }
 
 inline void Rotate::Accept(const uint rejectState, const uint step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::ACC_ROTATE);
   bool res = false;
 
   if(rejectState == mv::fail_state::NO_FAIL) {
@@ -104,6 +113,7 @@ inline void Rotate::Accept(const uint rejectState, const uint step)
   }
 
   moveSetRef.Update(mv::ROTATE, result, b, mk);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_ROTATE);
 }
 
 #endif /*ROTATION_H*/

@@ -6,6 +6,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #include "EwaldCached.h"
 #include "StaticVals.h"
+#include "GOMCEventsProfile.h"
 
 using namespace geom;
 
@@ -95,6 +96,7 @@ void EwaldCached::AllocMem()
 void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 {
   if (box < BOXES_WITH_U_NB) {
+    GOMC_EVENT_START(1, GomcProfileEvent::RECIP_BOX_SETUP);
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
 
@@ -138,6 +140,7 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 
       thisMol++;
     }
+    GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_SETUP);
   }
 }
 
@@ -150,6 +153,7 @@ void EwaldCached::BoxReciprocalSetup(uint box, XYZArray const& molCoords)
 void EwaldCached::BoxReciprocalSums(uint box, XYZArray const& molCoords)
 {
   if (box < BOXES_WITH_U_NB) {
+    GOMC_EVENT_START(1, GomcProfileEvent::RECIP_BOX_SETUP);
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
 
@@ -193,6 +197,7 @@ void EwaldCached::BoxReciprocalSums(uint box, XYZArray const& molCoords)
 
       thisMol++;
     }
+    GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_SETUP);
   }
 }
 
@@ -211,6 +216,7 @@ double EwaldCached::BoxReciprocal(uint box, bool isNewVolume) const
   double energyRecip = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
+    //GOMC_EVENT_START(1, GomcProfileEvent::RECIP_BOX_ENERGY);
     double *prefactPtr;
     int imageSzVal;
     if (isNewVolume) {
@@ -229,6 +235,7 @@ double EwaldCached::BoxReciprocal(uint box, bool isNewVolume) const
                        sumInew[box][i] * sumInew[box][i]) *
                        prefactPtr[i]);
     }
+    //GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_BOX_ENERGY);
   }
 
   return energyRecip;
@@ -242,6 +249,7 @@ double EwaldCached::MolReciprocal(XYZArray const& molCoords,
   double energyRecipNew = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
+    GOMC_EVENT_START(1, GomcProfileEvent::RECIP_MOL_ENERGY);
     MoleculeKind const& thisKind = mols.GetKind(molIndex);
     uint length = thisKind.NumAtoms();
     uint startAtom = mols.MolStart(molIndex);
@@ -288,6 +296,7 @@ reduction(+:energyRecipNew)
       energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
                          * sumInew[box][i]) * prefactRef[box][i];
     }
+    GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_MOL_ENERGY);
   }
 
   return energyRecipNew - sysPotRef.boxEnergy[box].recip;
@@ -300,6 +309,7 @@ double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
                                   const uint box,
                                   const int molIndex)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::RECIP_SWAP_ENERGY);
   double energyRecipNew = 0.0;
   double energyRecipOld = 0.0;
 
@@ -361,6 +371,7 @@ reduction(+:energyRecipNew)
     energyRecipOld = sysPotRef.boxEnergy[box].recip;
   }
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_SWAP_ENERGY);
   return energyRecipNew - energyRecipOld;
 }
 
@@ -375,6 +386,7 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
   double energyRecipOld = 0.0;
 
   if (box < BOXES_WITH_U_NB) {
+    GOMC_EVENT_START(1, GomcProfileEvent::RECIP_SWAP_ENERGY);
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
     #pragma omp parallel for default(none) shared(box) reduction(+:energyRecipNew)
@@ -391,6 +403,7 @@ double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
     }
 
     energyRecipOld = sysPotRef.boxEnergy[box].recip;
+    GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_SWAP_ENERGY);
   }
   return energyRecipNew - energyRecipOld;
 }

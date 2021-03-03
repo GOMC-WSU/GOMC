@@ -106,6 +106,8 @@ set(headers
    src/FreeEnergyOutput.h
    src/FxdWidthWrtr.h
    src/Geometry.h
+   src/GOMCEventsProfile.h
+   src/GOMCEventsProfileDef.h
    src/HistOutput.h
    src/InputAbstracts.h
    src/InputFileReader.h

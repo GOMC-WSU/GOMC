@@ -17,8 +17,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 //Member variables
 #include "Forcefield.h"
 #include "SimEventFrequency.h"
-#include "BoxDimensions.h"
-#include "BoxDimensionsNonOrth.h"
 #include "MoleculeLookup.h"
 #include "Molecules.h"
 

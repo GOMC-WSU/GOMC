@@ -167,6 +167,7 @@ inline uint CFCMC::GetBoxPairAndMol(const double subDraw, const double movPerc)
 
 inline uint CFCMC::Prep(const double subDraw, const double movPerc)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_CFCMC);
   overlapCFCMC = false;
   uint state = GetBoxPairAndMol(subDraw, movPerc);
   if(state == mv::fail_state::NO_FAIL) {
@@ -193,12 +194,14 @@ inline uint CFCMC::Prep(const double subDraw, const double movPerc)
       }
     }
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_CFCMC);
   return state;
 }
 
 
 inline uint CFCMC::Transform()
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::TRANS_CFCMC);
   //Start with full interaction in sourceBox, zero interaction in destBox
   //SInce we have the lambda for growing molecule, in sourceBox, lambdaWindow
   // correspond to full interaction and (lambdaWindow - X) is for destBox
@@ -257,6 +260,7 @@ inline uint CFCMC::Transform()
     lambdaIdxNew = lambdaIdxOld + (prng.randInt(1) ? 1 : -1);
   } while(lambdaIdxOld > 0 && lambdaIdxOld < lambdaWindow);
 
+  GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_CFCMC);
   return mv::fail_state::NO_FAIL;
 }
 
@@ -267,6 +271,7 @@ inline void CFCMC::CalcEn()
 
 inline void CFCMC::CalcEnCFCMC(uint lambdaIdxOldS, uint lambdaIdxNewS)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_CFCMC);
   W_tc = 1.0;
   W_recip = 1.0;
   correctDiffDest = correctDiffSource = 0.0;
@@ -346,6 +351,7 @@ inline void CFCMC::CalcEnCFCMC(uint lambdaIdxOldS, uint lambdaIdxNewS)
   W_recip = exp(-1.0 * ffRef.beta * (recipDiffSource + recipDiffDest +
                                      correctDiffSource + correctDiffDest +
                                      selfDiffSource + selfDiffDest));
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_CFCMC);
 }
 
 inline double CFCMC::GetCoeff() const
@@ -415,6 +421,7 @@ inline double CFCMC::GetCoeff() const
 
 inline void CFCMC::Accept(const uint rejectState, const uint step)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::ACC_CFCMC);
   bool result = false;
   steps = step;
   //If we didn't skip the move calculation
@@ -432,6 +439,7 @@ inline void CFCMC::Accept(const uint rejectState, const uint step)
     }
   }
   moveSetRef.Update(mv::CFCMC, result, destBox, kindIndex);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::ACC_CFCMC);
 }
 
 
