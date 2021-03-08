@@ -11,6 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "System.h"
 #include "StaticVals.h"
 #include <cmath>
+#include "Random123Wrapper.h"
 
 class MultiParticleBrownian : public MoveBase
 {
@@ -127,9 +128,6 @@ inline uint MultiParticleBrownian::Prep(const double subDraw, const double movPe
   // In each step, we perform either:
   // 1- All displacement move.
   // 2- All rotation move.
-  // We can also add another move typr, where in this steps, each molecule
-  // can displace or rotate, independently from other molecule. To do that, we
-  // need to change the  mp::MPTOTALTYPES variable to 3, in MoveSetting.h
   moveType = prng.randIntExc(mp::MPTOTALTYPES);
   SetMolInBox(bPick);
   if (moleculeIndex.size() == 0) {
@@ -158,7 +156,7 @@ inline uint MultiParticleBrownian::Prep(const double subDraw, const double movPe
     calcEnRef.BoxForce(sysPotRef, coordCurrRef, atomForceRef, molForceRef,
                        boxDimRef, bPick);
 
-    if(moveType != mp::MPROTATE) {
+    if(moveType == mp::MPROTATE) {
       //Calculate Torque for old positions
       calcEnRef.CalculateTorque(moleculeIndex, coordCurrRef, comCurrRef,
                                 atomForceRef, atomForceRecRef, molTorqueRef, bPick);
@@ -260,7 +258,7 @@ inline void MultiParticleBrownian::CalcEn()
   calcEwald->BoxForceReciprocal(newMolsPos, atomForceRecNew, molForceRecNew,
                                 bPick);
 
-  if(moveType != mp::MPROTATE) {
+  if(moveType == mp::MPROTATE) {
     //Calculate Torque for new positions
     calcEnRef.CalculateTorque(moleculeIndex, newMolsPos, newCOMs, atomForceNew,
                               atomForceRecNew, molTorqueNew, bPick);
@@ -279,9 +277,9 @@ inline double MultiParticleBrownian::CalculateWRatio(XYZ const &lb_new, XYZ cons
   //Note: we could factor max4 and multiply at the end, but
   //      for the move, where we translate and rotate all molecules,
   //      this method would not work. Hence, I did not factor it.
-  // its actually is w_ratio += -1.0 but we simplify it
+  // its actually is w_ratio += -1.0* but we simplify it
   w_ratio -= (new_var.LengthSq() / max4);
-  // its actually is w_ratio -= -1.0 but we simplify it
+  // its actually is w_ratio -= -1.0* but we simplify it
   w_ratio += (old_var.LengthSq() / max4);
 
   return w_ratio;
@@ -355,9 +353,14 @@ inline XYZ MultiParticleBrownian::CalcRandomTransform(XYZ const &lb, double cons
   //variance is 2A according to the paper, so stdDev is sqrt(variance)
   double stdDev = sqrt(2.0 * max);
 
-  num.x = lbmax.x + prng.Gaussian(0.0, stdDev);
-  num.y = lbmax.y + prng.Gaussian(0.0, stdDev);
-  num.z = lbmax.z + prng.Gaussian(0.0, stdDev);
+  // num.x = lbmax.x + prng.Gaussian(0.0, stdDev);
+  // num.y = lbmax.y + prng.Gaussian(0.0, stdDev);
+  // num.z = lbmax.z + prng.Gaussian(0.0, stdDev);
+
+  num.x = lbmax.x + r123wrapper.GetGaussianNumber(molIndex * 3 + 0, 0.0, stdDev);
+  num.y = lbmax.y + r123wrapper.GetGaussianNumber(molIndex * 3 + 1, 0.0, stdDev);
+  num.z = lbmax.z + r123wrapper.GetGaussianNumber(molIndex * 3 + 2, 0.0, stdDev);
+
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
     std::cout << "Trial Displacement exceeds half of the box length in Brownian Motion MultiParticle move.\n";
