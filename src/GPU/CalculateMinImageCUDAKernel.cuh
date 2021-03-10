@@ -38,6 +38,27 @@ __device__ inline void TransformUnSlantGPU(double3 & dist,
   dist.z = slant.x * gpu_Invcell_z[0] + slant.y * gpu_Invcell_z[1] + slant.z * gpu_Invcell_z[2];
 }
 
+
+__device__ inline double WrapPBC(double &v, double ax)
+{
+  if(v >= ax)
+    v -= ax;
+  else if(v < 0)
+    v += ax;
+  return v;
+}
+
+__device__ inline double UnwrapPBC(double &v, double ref, double ax, double halfax)
+{
+  if(abs(ref - v) > halfax) {
+    if(ref < halfax)
+      v -= ax;
+    else
+      v += ax;
+  }
+  return v;
+}
+
 __device__ inline double MinImageSignedGPU(double raw, double ax, double halfAx)
 {
   if (raw > halfAx)

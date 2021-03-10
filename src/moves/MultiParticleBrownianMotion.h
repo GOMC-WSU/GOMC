@@ -43,6 +43,9 @@ private:
   const MoleculeLookup& molLookup;
   Random123Wrapper &r123wrapper;
   bool allTranslate;
+#ifdef GOMC_CUDA
+  VariablesCUDA *cudaVars;
+#endif
 
   double GetCoeff();
   void CalculateTrialDistRot();
@@ -83,6 +86,10 @@ inline MultiParticleBrownian::MultiParticleBrownian(System &sys, StaticVals cons
   // If we have only one atom in each kind, it means all molecule
   // in the system is monoatomic
   allTranslate = (numAtomsPerKind == molLookup.GetNumKind());
+
+#ifdef GOMC_CUDA
+  cudaVars = sys.statV.forcefield.particles->getCUDAVars();
+#endif
 }
 
 inline void MultiParticleBrownian::PrintAcceptKind()
@@ -364,15 +371,10 @@ inline XYZ MultiParticleBrownian::CalcRandomTransform(XYZ const &lb, double cons
   //variance is 2A according to the paper, so stdDev is sqrt(variance)
   double stdDev = sqrt(2.0 * max);
 
-#ifdef GOMC_CUDA
-  num.x = lbmax.x + prng.Gaussian(0.0, stdDev);
-  num.y = lbmax.y + prng.Gaussian(0.0, stdDev);
-  num.z = lbmax.z + prng.Gaussian(0.0, stdDev);
-#else
   num.x = lbmax.x + r123wrapper.GetGaussianNumber(molIndex * 3 + 0, 0.0, stdDev);
   num.y = lbmax.y + r123wrapper.GetGaussianNumber(molIndex * 3 + 1, 0.0, stdDev);
   num.z = lbmax.z + r123wrapper.GetGaussianNumber(molIndex * 3 + 2, 0.0, stdDev);
-#endif
+
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
     std::cout << "Trial Displacement exceeds half of the box length in Brownian Motion MultiParticle move.\n";

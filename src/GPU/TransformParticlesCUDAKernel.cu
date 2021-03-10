@@ -6,7 +6,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 #ifdef GOMC_CUDA
 #include "TransformParticlesCUDAKernel.cuh"
+#include "CalculateMinImageCUDAKernel.cuh"
 #include "CUDAMemoryManager.cuh"
+#include "Random123/boxmuller.hpp"
 
 #define MIN_FORCE 1E-12
 #define MAX_FORCE 30
@@ -23,24 +25,19 @@ __device__ inline double randomGPU(unsigned int counter, unsigned int step, unsi
   return (double)r[0] / UINT_MAX;
 }
 
-__device__ inline double WrapPBC(double &v, double ax)
+__device__ inline double randomGaussianGPU(unsigned int counter, unsigned int step,
+                                           unsigned int seed, double mean, double stdDev)
 {
-  if(v >= ax)
-    v -= ax;
-  else if(v < 0)
-    v += ax;
-  return v;
-}
-
-__device__ inline double UnwrapPBC(double &v, double ref, double ax, double halfax)
-{
-  if(abs(ref - v) > halfax) {
-    if(ref < halfax)
-      v -= ax;
-    else
-      v += ax;
-  }
-  return v;
+  RNG::ctr_type c = {{}};
+  RNG::ukey_type uk = {{}};
+  uk[0] = step;
+  uk[1] = seed;
+  RNG::key_type k = uk;
+  c[0] = counter;
+  RNG::ctr_type r = philox4x32(c, k);
+  float2 normalf2 = r123::boxmuller(r[0], r[1]);
+  double shiftedVal = mean + (double)(normalf2.x) * stdDev;
+  return  shiftedVal;
 }
 
 __device__ inline void ApplyRotation(double &x, double &y, double &z,
