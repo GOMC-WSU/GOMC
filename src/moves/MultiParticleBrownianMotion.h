@@ -42,6 +42,7 @@ private:
   std::vector<uint> moleculeIndex;
   const MoleculeLookup& molLookup;
   Random123Wrapper &r123wrapper;
+  bool allTranslate;
 
   double GetCoeff();
   void CalculateTrialDistRot();
@@ -72,6 +73,16 @@ inline MultiParticleBrownian::MultiParticleBrownian(System &sys, StaticVals cons
   for(uint b = 0; b < BOX_TOTAL; b++) {
     initMol[b] = false;
   }
+
+  // Check to see if we have only monoatomic molecule or not
+  allTranslate = false;
+  int numAtomsPerKind = 0;
+  for (int k = 0; k < molLookup.GetNumKind(); ++k) {
+    numAtomsPerKind += molRef.NumAtoms(k);
+  }
+  // If we have only one atom in each kind, it means all molecule
+  // in the system is monoatomic
+  allTranslate = (numAtomsPerKind == molLookup.GetNumKind());
 }
 
 inline void MultiParticleBrownian::PrintAcceptKind()
@@ -128,17 +139,17 @@ inline uint MultiParticleBrownian::Prep(const double subDraw, const double movPe
   // In each step, we perform either:
   // 1- All displacement move.
   // 2- All rotation move.
-  moveType = prng.randIntExc(mp::MPTOTALTYPES);
+  if(allTranslate) {
+    moveType = mp::MPDISPLACE;
+  } else {
+    moveType = prng.randIntExc(mp::MPTOTALTYPES);
+  }
+
   SetMolInBox(bPick);
   if (moleculeIndex.size() == 0) {
     std::cout << "Warning: MultiParticleBrownian move can't move any molecules, Skipping...\n";
     state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
     return state;
-  }
-
-  uint length = molRef.GetKind(moleculeIndex[0]).NumAtoms();
-  if(length == 1) {
-    moveType = mp::MPDISPLACE;
   }
 
   //We don't use forces for non-MP moves, so we need to calculate them for the
@@ -353,14 +364,15 @@ inline XYZ MultiParticleBrownian::CalcRandomTransform(XYZ const &lb, double cons
   //variance is 2A according to the paper, so stdDev is sqrt(variance)
   double stdDev = sqrt(2.0 * max);
 
-  // num.x = lbmax.x + prng.Gaussian(0.0, stdDev);
-  // num.y = lbmax.y + prng.Gaussian(0.0, stdDev);
-  // num.z = lbmax.z + prng.Gaussian(0.0, stdDev);
-
+#ifdef GOMC_CUDA
+  num.x = lbmax.x + prng.Gaussian(0.0, stdDev);
+  num.y = lbmax.y + prng.Gaussian(0.0, stdDev);
+  num.z = lbmax.z + prng.Gaussian(0.0, stdDev);
+#else
   num.x = lbmax.x + r123wrapper.GetGaussianNumber(molIndex * 3 + 0, 0.0, stdDev);
   num.y = lbmax.y + r123wrapper.GetGaussianNumber(molIndex * 3 + 1, 0.0, stdDev);
   num.z = lbmax.z + r123wrapper.GetGaussianNumber(molIndex * 3 + 2, 0.0, stdDev);
-
+#endif
 
   if(num.Length() >= boxDimRef.axis.Min(bPick)) {
     std::cout << "Trial Displacement exceeds half of the box length in Brownian Motion MultiParticle move.\n";
