@@ -99,14 +99,11 @@ public:
   {
     currBox = b;
   }
-  void Assign(std::string const& atomName,
-              std::string const& resName,
-              const uint resNum,
+  void Assign(std::string const& resName,
               const char l_chain,
               const double l_x,
               const double l_y,
               const double l_z,
-              const double l_occ,
               const double l_beta);
 
   void Read(FixedWidthReader & file);

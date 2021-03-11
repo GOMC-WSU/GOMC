@@ -129,8 +129,8 @@ void DCLinkedHedron::SetBondLengthOld(TrialMol& oldMol)
 void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
 {
   PRNG& prng = data->prng;
-  const CalculateEnergy& calc = data->calc;
-  const Forcefield& ff = data->ff;
+  // const CalculateEnergy& calc = data->calc;
+  // const Forcefield& ff = data->ff;
   uint nLJTrials = data->nLJTrialsNth;
   uint nDihTrials = data->nDihTrials;
   double* torsion = data->angles;
@@ -212,7 +212,7 @@ void DCLinkedHedron::BuildNew(TrialMol& newMol, uint molIndex)
 void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
 {
   PRNG& prng = data->prng;
-  const CalculateEnergy& calc = data->calc;
+  // const CalculateEnergy& calc = data->calc;
   const Forcefield& ff = data->ff;
   uint nLJTrials = data->nLJTrialsNth;
   uint nDihTrials = data->nDihTrials;
@@ -283,7 +283,6 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
     torEnergy[tor] = 0.0;
     nonbonded_1_4[tor] = 0.0;
     for (uint b = 0; b < hed.NumBond(); ++b) {
-      double theta1 =  hed.Theta(b);
       double trialPhi = hed.Phi(b) + torsion[tor];
       XYZ bondedC;
       if(oldMol.OneFour()) {
@@ -384,7 +383,6 @@ void DCLinkedHedron::ChooseTorsion(TrialMol& mol, uint molIndex,
     torEnergy[tor] = 0.0;
     nonbonded_1_4[tor] = 0.0;
     for (uint b = 0; b < hed.NumBond(); ++b) {
-      double theta1 =  hed.Theta(b);
       double trialPhi = hed.Phi(b) + torsion[tor];
       XYZ bondedC;
       if(mol.OneFour()) {

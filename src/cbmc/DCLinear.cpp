@@ -65,7 +65,6 @@ void DCLinear::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
   } else {
     //we only have two atoms in molecule: atom 0, 1
     uint fix = data.prng.randInt(1);
-    uint grow = 1 - fix;
     //If fix == 0, forward (build atom 1), else backward (build atom 0)
     std::vector<DCComponent*>& comps = fix ? backward : forward;
 

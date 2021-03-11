@@ -13,7 +13,6 @@ using namespace mol_setup;
 namespace
 {
 const char* remarkHeader = "!NTITLE";
-const char* remarkTag = " REMARKS ";
 const char* atomHeader = "!NATOM";
 const char* bondHeader = "!NBOND: bonds";
 const char* angleHeader = "!NTHETA: angles";
@@ -37,8 +36,8 @@ const int dihPerLine = 2;
 
 PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
                      Setup & set) :
-  molecules(&molecules), molNames(set.mol.molVars.moleculeKindNames),
-  molLookRef(sys.molLookup)
+  molecules(&molecules), molLookRef(sys.molLookup),
+  molNames(set.mol.molVars.moleculeKindNames)
 {
   molKinds.resize(set.mol.kindMap.size());
  for(uint i = 0; i < set.mol.molVars.moleculeKindNames.size(); ++i) {
@@ -68,12 +67,6 @@ void PSFOutput::Init(pdb_setup::Atoms const& atoms,
       toStr >> numStr;
       aliasStr = "Output PSF file for Box ";
       aliasStr += numStr;
-      bool notify;
-#ifndef NDEBUG
-      notify = true;
-#else
-      notify = false;
-#endif
       //NEW_RESTART_COD
       outRebuildRestartFName[b] = output.state.files.splitPSF.name[b];
       std::string newStrAddOn = "_restart.psf";
@@ -101,7 +94,7 @@ void PSFOutput::DoOutput(const ulong step)
     PrintBondsInBox(outfile, b);
     PrintAnglesInBox(outfile, b);
     PrintDihedralsInBox(outfile, b);
-    PrintNAMDCompliantSuffixInBox(outfile, b);
+    PrintNAMDCompliantSuffixInBox(outfile);
     fclose(outfile);
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::PSF_RESTART_OUTPUT);
@@ -212,7 +205,6 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
   //silly psfs index from 1
   uint atomID = 1;
   uint resID = 1;
-  uint currKind = molecules->kIndex[0];
   for(uint mol = 0; mol < molecules->count; ++mol) {
     uint thisKind = molecules->kIndex[mol];
     uint nAtoms = molKinds[thisKind].atoms.size();
@@ -432,7 +424,7 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
     fputs("\n\n", outfile);
   }
 
-  void PSFOutput::PrintNAMDCompliantSuffixInBox(FILE* outfile, uint b) const {
+  void PSFOutput::PrintNAMDCompliantSuffixInBox(FILE* outfile) const {
     fprintf(outfile, headerFormat, 0, improperHeader);
     fputs("\n\n", outfile);
     fprintf(outfile, headerFormat, 0, donorHeader);

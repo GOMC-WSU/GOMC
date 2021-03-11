@@ -404,7 +404,7 @@ struct TargetSwapCollection {
   // Search for cavIdx in the targetSwap. If it exists,
   // returns true + the index to targetSwap vector
   bool SearchExisting(const int &subVIdx, int &idx) {
-    for (int i = 0; i < targetedSwap.size(); i++) {
+    for (int i = 0; i < (int) targetedSwap.size(); i++) {
       if (targetedSwap[i].subVolumeIdx == subVIdx) {
         idx = i;
         return true;
@@ -551,7 +551,7 @@ struct TargetSwapCollection {
     return i;
   }
 
-  // Pars the list of atom. If user use a range of atom (e.g. 5-10)
+  // Parse the list of atoms. If user uses a range of atom (e.g. 5-10)
   // This function would handle it properly
   std::vector<int> ParsAtomList(const int &subVIdx, std::vector<std::string> &atoms)
   {
@@ -559,10 +559,9 @@ struct TargetSwapCollection {
     size_t pos = 0;
     int start = 0, end = 0;
     std::vector<int> list;
-    for(int i = 0; i < atoms.size(); ++i) {
+    for(int i = 0; i < (int) atoms.size(); ++i) {
       if(atoms[i] == "-") {
-        printf("Error: If you are trying to use a range of atom indicies, use '-' without any space!\n");
-        printf("       For example: 1-15!\n");
+        printf("Error: In subVolume Index %d, if you are trying to use a range of atom indices, use '-' without any space!\n", subVIdx);
         exit(EXIT_FAILURE);
       }
       // check if string has dash in it
@@ -634,9 +633,9 @@ struct TargetSwapCollection {
     selectedAll |= (std::find(newKind.begin(), newKind.end(), "All") != newKind.end());
     if(selectedAll) {
       if(newKind.size() > 1) {
-        printf("Warning: %d additional residue kind was defined for subVolume index %d, while using all residues!\n",
+        printf("Warning: %lu additional residue kinds were defined for subVolume index %d, while using all residues!\n",
                   newKind.size() - 1, subVIdx);
-        printf("Warning: Proceed with all residue kind for subVolume index %d!\n",
+        printf("Warning: Proceed with all residue kinds for subVolume index %d!\n",
                   subVIdx);
       }
       newKind.clear();

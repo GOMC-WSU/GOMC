@@ -69,8 +69,8 @@ inline void MoleculeExchange3::SetMEMC(StaticVals const& statV)
 inline void MoleculeExchange3::AdjustExRatio()
 {
   if(((counter + 1) % perAdjust) == 0) {
-    uint exMax = ceil((float)molInCavCount / (float)perAdjust);
-    uint exMin = 1;
+    int exMax = ceil((float)molInCavCount / (float)perAdjust);
+    int exMin = 1;
     uint index = kindS + kindL * molRef.GetKindsCount();
     double currAccept = (double)(accepted[sourceBox][index]) / (double)(trial[sourceBox][index]);
     if(std::abs(currAccept - lastAccept) >= 0.05 * currAccept) {
@@ -362,9 +362,8 @@ inline void MoleculeExchange3::CalcEn()
 
 inline double MoleculeExchange3::GetCoeff() const
 {
-  double volSource = boxDimRef.volume[sourceBox];
-  double volDest = boxDimRef.volume[destBox];
 #if ENSEMBLE == GEMC
+  double volDest = boxDimRef.volume[destBox];
   if(insertL) {
     //kindA is the small molecule
     double ratioF = num::Factorial(totMolInCav - 1) /

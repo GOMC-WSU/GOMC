@@ -99,6 +99,7 @@ public:
 #endif
 
   MoveSettings moveSettings;
+  CellList cellList;
   SystemPotential potential;
   Coordinates coordinates;
   XYZArray atomForceRef;
@@ -111,7 +112,6 @@ public:
 
   CalculateEnergy calcEnergy;
   Ewald *calcEwald;
-  CellList cellList;
 
   CheckpointSetup checkpointSet;
 

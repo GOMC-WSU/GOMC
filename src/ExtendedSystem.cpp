@@ -59,7 +59,7 @@ void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb, const char *filename, const
   read_binary_file(filename, binaryCoor, numAtoms);
   //find the starting index
 
-  for(; cmIndex < molLookup.molLookupCount; cmIndex++) {
+  for(; cmIndex < (int) molLookup.molLookupCount; cmIndex++) {
     if(moleculeOffset >= numAtoms) break;
     int currentMolecule = molLookup.molLookup[cmIndex];
     int numberOfAtoms = mols.start[currentMolecule + 1] - mols.start[currentMolecule];

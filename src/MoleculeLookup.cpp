@@ -38,7 +38,7 @@ void MoleculeLookup::Init(const Molecules& mols,
   indexVector.resize(BOX_TOTAL);
   fixedMolecule.resize(mols.count);
 
-  for (int i = 0; i < numKinds * BOX_TOTAL; i++){
+  for (int i = 0; i < (int) numKinds * BOX_TOTAL; i++){
     boxAndKindSwappableCounts[i] = 0;
   }
 

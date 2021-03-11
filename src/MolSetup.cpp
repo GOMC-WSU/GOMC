@@ -59,16 +59,16 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData);
 //Builds kindMap from PSF file (does not include coordinates) kindMap
 // should be empty returns number of atoms in the file, or errors::READ_ERROR if
 // the read failed somehow
-int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMap, SizeMap& sizeMap, pdb_setup::Atoms& pdbData, MolMap * kindMapFromBox1 = NULL, SizeMap * sizeMapFromBox1 = NULL);
+int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMap, SizeMap& sizeMap, MolMap * kindMapFromBox1 = NULL, SizeMap * sizeMapFromBox1 = NULL);
 //adds atoms and molecule data in psf to kindMap
 //pre: stream is at !NATOMS   post: stream is at end of atom section
 int ReadPSFAtoms(FILE *, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms);
 //adds bonds in psf to kindMap
 //pre: stream is before !BONDS   post: stream is in bond section just after
 //the first appearance of the last molecule
-int ReadPSFBonds(FILE* psf, MolMap& kindMap,
-                 std::vector<std::pair<uint, std::string> >& firstAtom,
-                 const uint nbonds);
+// int ReadPSFBonds(FILE* psf, MolMap& kindMap,
+                 // std::vector<std::pair<uint, std::string> >& firstAtom,
+                 // const uint nbonds);
 //adds angles in psf to kindMap
 //pre: stream is before !NTHETA   post: stream is in angle section just
 //after the first appearance of the last molecule
@@ -216,22 +216,22 @@ int mol_setup::ReadCombinePSF(MoleculeVariables & molVars,
                               const bool* psfDefined, 
                               pdb_setup::Atoms& pdbAtoms)
 {
-  int errorcode = ReadPSF(psfFilename[0].c_str(), molVars, kindMap, sizeMap, pdbAtoms);
+  int errorcode = ReadPSF(psfFilename[0].c_str(), molVars, kindMap, sizeMap);
   int nAtoms = errorcode;
   if (errorcode < 0)
     return errorcode;
   MolMap map2;
   SizeMap sizeMap2;
-  if (pdbAtoms.count != nAtoms && BOX_TOTAL == 2 && psfDefined[1]) {    
+  if ((int) pdbAtoms.count != nAtoms && BOX_TOTAL == 2 && psfDefined[1]) {    
     map2.clear();
-    errorcode = ReadPSF(psfFilename[1].c_str(), molVars, map2, sizeMap2, pdbAtoms, &kindMap, &sizeMap);
+    errorcode = ReadPSF(psfFilename[1].c_str(), molVars, map2, sizeMap2, &kindMap, &sizeMap);
     nAtoms += errorcode;
     if (errorcode < 0)
       return errorcode;
     kindMap.insert(map2.begin(), map2.end());
   }
 
-  if (pdbAtoms.count != nAtoms){
+  if ((int) pdbAtoms.count != nAtoms){
     std::cout << "Error: This number of atoms in coordinate file(s) (PDB) " << pdbAtoms.count
     << " does not match the number of atoms in structure file(s) (PSF) " << nAtoms << "!" << std::endl;
     exit(EXIT_FAILURE);
@@ -323,9 +323,6 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
         it != moleculeXAtomIDY.cend(); it++){
   
     std::string fragName;
-    bool multiResidue = false;
-    bool newSize = false;
-    bool newMapEntry = true;
     bool foundEntryInOldMap = false;
 
     if (sizeMapFromBox1 != NULL && kindMapFromBox1 != NULL){
@@ -359,7 +356,6 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
             molVars.startIdxMolecules.push_back(startIdxMolBoxOffset + it->front());
             molVars.moleculeKinds.push_back((*kindMapFromBox1)[fragName].kindIndex);
             molVars.moleculeNames.push_back(fragName);
-            newMapEntry = false;
             /* Boilerplate PDB Data modifications for matches */
 
             /* Search current KindMap for this entry. 
@@ -542,11 +538,11 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
 typedef std::map<std::string, mol_setup::MolKind> MolMap;
 void MolSetup::copyBondInfoIntoMapEntry(const BondAdjacencyList & bondAdjList, mol_setup::MolMap & kindMap, std::string fragName){
 
-    unsigned int molBegin = kindMap[fragName].firstAtomID - 1;
+    int molBegin = static_cast<int>(kindMap[fragName].firstAtomID) - 1;
     //index AFTER last atom in molecule
-    unsigned int molEnd = molBegin + kindMap[fragName].atoms.size();
+    int molEnd = molBegin + static_cast<int>(kindMap[fragName].atoms.size());
     //assign the bond
-    for (uint i = molBegin; i < molEnd; i++){
+    for (int i = molBegin; i < molEnd; i++){
       adjNode* ptr = bondAdjList.head[i];
       while (ptr != nullptr) {
         if (i < ptr->val) {
@@ -821,7 +817,7 @@ namespace
 {
 //Initializes system from PSF file (does not include coordinates)
 //returns number of atoms in the file, or errors::READ_ERROR if the read failed somehow
-int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMap, SizeMap & sizeMap, pdb_setup::Atoms& pdbData, MolMap * kindMapFromBox1, SizeMap * sizeMapFromBox1)
+int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMap, SizeMap & sizeMap, MolMap * kindMapFromBox1, SizeMap * sizeMapFromBox1)
 {
   FILE* psf = fopen(psfFilename, "r");
   char* check;        //return value of fgets
@@ -990,49 +986,49 @@ int ReadPSFAtoms(FILE *psf, unsigned int nAtoms, std::vector<mol_setup::Atom> & 
 //adds bonds in psf to kindMap
 //pre: stream is before !BONDS   post: stream is in bond section just after
 //the first appearance of the last molecule
-int ReadPSFBonds(FILE* psf, MolMap& kindMap,
-                 std::vector<std::pair<unsigned int, std::string> >& firstAtom,
-                 const uint nbonds)
-{
-  unsigned int atom0, atom1;
-  int dummy;
-  std::vector<bool> defined(firstAtom.size(), false);
-  for (uint n = 0; n < nbonds; n++) {
-    dummy = fscanf(psf, "%u %u", &atom0, &atom1);
-    if(dummy != 2) {
-      fprintf(stderr, "ERROR: Incorrect Number of bonds in PSF file ");
-      return errors::READ_ERROR;
-    } else if (feof(psf) || ferror(psf)) {
-      fprintf(stderr, "ERROR: Could not find all bonds in PSF file ");
-      return errors::READ_ERROR;
-    }
+// int ReadPSFBonds(FILE* psf, MolMap& kindMap,
+                 // std::vector<std::pair<unsigned int, std::string> >& firstAtom,
+                 // const uint nbonds)
+// {
+  // unsigned int atom0, atom1;
+  // int dummy;
+  // std::vector<bool> defined(firstAtom.size(), false);
+  // for (uint n = 0; n < nbonds; n++) {
+    // dummy = fscanf(psf, "%u %u", &atom0, &atom1);
+    // if(dummy != 2) {
+      // fprintf(stderr, "ERROR: Incorrect Number of bonds in PSF file ");
+      // return errors::READ_ERROR;
+    // } else if (feof(psf) || ferror(psf)) {
+      // fprintf(stderr, "ERROR: Could not find all bonds in PSF file ");
+      // return errors::READ_ERROR;
+    // }
 
-    //loop to find the molecule kind with this bond
-    for (unsigned int i = 0; i < firstAtom.size(); ++i) {
-      MolKind& currentMol = kindMap[firstAtom[i].second];
-      //index of first atom in molecule
-      unsigned int molBegin = firstAtom[i].first;
-      //index AFTER last atom in molecule
-      unsigned int molEnd = molBegin + currentMol.atoms.size();
-      //assign the bond
-      if (atom0 >= molBegin && atom0 < molEnd) {
-        currentMol.bonds.push_back(Bond(atom0 - molBegin, atom1 - molBegin));
-        //once we found the molecule kind, break from the loop
-        defined[i] = true;
-        break;
-      }
-    }
-  }
-  //Check if we defined all bonds
-  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
-    MolKind& currentMol = kindMap[firstAtom[i].second];
-    if(currentMol.atoms.size() > 1 && !defined[i]) {
-      std::cout << "Warning: Bond is missing for " << firstAtom[i].second
-                << " !\n";
-    }
-  }
-  return 0;
-}
+    // //loop to find the molecule kind with this bond
+    // for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+      // MolKind& currentMol = kindMap[firstAtom[i].second];
+      // //index of first atom in molecule
+      // unsigned int molBegin = firstAtom[i].first;
+      // //index AFTER last atom in molecule
+      // unsigned int molEnd = molBegin + currentMol.atoms.size();
+      // //assign the bond
+      // if (atom0 >= molBegin && atom0 < molEnd) {
+        // currentMol.bonds.push_back(Bond(atom0 - molBegin, atom1 - molBegin));
+        // //once we found the molecule kind, break from the loop
+        // defined[i] = true;
+        // break;
+      // }
+    // }
+  // }
+  // //Check if we defined all bonds
+  // for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+    // MolKind& currentMol = kindMap[firstAtom[i].second];
+    // if(currentMol.atoms.size() > 1 && !defined[i]) {
+      // std::cout << "Warning: Bond is missing for " << firstAtom[i].second
+                // << " !\n";
+    // }
+  // }
+  // return 0;
+// }
 
 //adds angles in psf to kindMap
 //pre: stream is before !NTHETA   post: stream is in angle section just after
@@ -1084,18 +1080,18 @@ int ReadPSFAngles(FILE* psf, MolMap& kindMap,
 
 
 
-bool ContainsDihedral(const std::vector<uint>& vec, const int dih[])
-{
-  for (uint i = 0; i < vec.size(); i += 4) {
-    bool match = true;
-    for (uint j = 0; j < 4; ++j)
-      if (vec[i + j] != dih[j])
-        match = false;
-    if (match)
-      return true;
-  }
-  return false;
-}
+// bool ContainsDihedral(const std::vector<uint>& vec, const int dih[])
+// {
+  // for (uint i = 0; i < vec.size(); i += 4) {
+    // bool match = true;
+    // for (uint j = 0; j < 4; ++j)
+      // if ((int) vec[i + j] != dih[j])
+        // match = false;
+    // if (match)
+      // return true;
+  // }
+  // return false;
+// }
 
 
 //adds dihedrals in psf to kindMap

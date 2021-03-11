@@ -23,7 +23,7 @@ FloydWarshallCycle::FloydWarshallCycle(int numNodes)
     next[i].resize(numberOfNodes);
 
   // double check
-  assert(graph.size() == numberOfNodes);
+  assert((int) graph.size() == numberOfNodes);
 }
 
 
@@ -53,7 +53,7 @@ std::vector<int> FloydWarshallCycle::GetShortestCycle(int src)
 
   std::vector< std::vector<int> > paths;
   std::vector<int> allEdgesIncludingSrc = getConnectionsFor(src);
-  for (int i = 0; i < allEdgesIncludingSrc.size(); i++) {
+  for (int i = 0; i < (int) allEdgesIncludingSrc.size(); i++) {
     setDefaults();
     setValues(allEdgesIncludingSrc[i]);
     floydWarshall();
@@ -157,7 +157,7 @@ void FloydWarshallCycle::setDefaults()
 
 void FloydWarshallCycle::setValues(int exceptThisOne)
 {
-  for (int j = 0; j < connections.size(); j++) {
+  for (int j = 0; j < (int) connections.size(); j++) {
     if (exceptThisOne != j) {
       int zero = connections[j][0];
       int one = connections[j][1];
@@ -172,7 +172,7 @@ void FloydWarshallCycle::setValues(int exceptThisOne)
 std::vector<int> FloydWarshallCycle::getConnectionsFor(int index)
 {
   std::vector<int> conn;
-  for (int i = 0; i < connections.size(); i++) {
+  for (int i = 0; i < (int) connections.size(); i++) {
     if (connections[i][0] == index || connections[i][1] == index)
       conn.push_back(i);
   }
@@ -184,8 +184,8 @@ std::vector<int> FloydWarshallCycle::findMinimumPath(const std::vector< std::vec
   //The path shouldn't be more than numberOfNodes without negative cycles
   int min = 2 * numberOfNodes;
   std::vector<int> shortest;
-  for (int i = 0; i < paths.size(); i++) {
-    if (paths[i].size() != 0 && paths[i].size() < min) {
+  for (int i = 0; i < (int) paths.size(); i++) {
+    if (paths[i].size() != 0 && (int) paths[i].size() < min) {
       min = paths[i].size();
       shortest = paths[i];
     }
@@ -197,17 +197,17 @@ std::vector< std::vector<int> > FloydWarshallCycle::getUniqueVectors(std::vector
 {
   int j;
   std::vector< std::vector<int> > uniqueCycles;
-  for (int i = 0; i < allCycles.size(); i++) {
+  for (int i = 0; i < (int) allCycles.size(); i++) {
     std::sort(allCycles[i].begin(), allCycles[i].end());
   }
-  for (int i = 0; i < allCycles.size(); i++) {
+  for (int i = 0; i < (int) allCycles.size(); i++) {
     if (uniqueCycles.size() == 0) {
       uniqueCycles.push_back(allCycles[i]);
     } else {
-      for (j = 0; j < uniqueCycles.size(); j++)
+      for (j = 0; j < (int) uniqueCycles.size(); j++)
         if (isVectorsEqual(uniqueCycles[j], allCycles[i]))
           break;
-      if (j == uniqueCycles.size()) {
+      if (j == (int) uniqueCycles.size()) {
         uniqueCycles.push_back(allCycles[i]);
       }
     }
@@ -219,7 +219,7 @@ bool FloydWarshallCycle::isVectorsEqual(const std::vector<int> &first, const std
 {
   if (first.size() != second.size())
     return false;
-  for (int i = 0; i < first.size(); i++) {
+  for (int i = 0; i < (int) first.size(); i++) {
     if (first[i] != second[i]) {
       return false;
     }
@@ -229,7 +229,7 @@ bool FloydWarshallCycle::isVectorsEqual(const std::vector<int> &first, const std
 
 bool FloydWarshallCycle::haveCommonElements(const std::vector<int> &first, const std::vector<int> &second)
 {
-  for (int i = 0; i < first.size(); i++) {
+  for (int i = 0; i < (int) first.size(); i++) {
     if (std::find(second.begin(), second.end(), first[i]) != second.end()) {
       return true;
     }
@@ -240,7 +240,7 @@ bool FloydWarshallCycle::haveCommonElements(const std::vector<int> &first, const
 std::vector<int> FloydWarshallCycle::returnCombinedSet(const std::vector<int> &first, const std::vector<int> &second)
 {
   std::vector<int> ret(first);
-  for (int i = 0; i < second.size(); i++) {
+  for (int i = 0; i < (int) second.size(); i++) {
     if (std::find(ret.begin(), ret.end(), second[i]) == ret.end()) {
       ret.push_back(second[i]);
     }
@@ -258,7 +258,7 @@ int FloydWarshallCycle::GetCentricNode()
   int i, j, raduse;
   setDefaults();
   
-  for (j = 0; j < connections.size(); j++) {
+  for (j = 0; j < (int) connections.size(); j++) {
     int zero = connections[j][0];
     int one = connections[j][1];
     graph[zero][one] = 1;

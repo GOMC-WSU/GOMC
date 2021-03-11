@@ -53,7 +53,7 @@ private:
   //Store edge's atom that are connected to node and has more than 1 bond
   //Each edge is a node as well
   struct Edge {
-    uint destination; //destination is partner node index.
+    int destination; //destination is partner node index.
     DCComponent* component;
     Edge(uint d, DCComponent* c) : destination(d), component(c) {}
   };

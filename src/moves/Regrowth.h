@@ -18,7 +18,7 @@ class Regrowth : public MoveBase
 public:
 
   Regrowth(System &sys, StaticVals const& statV) : MoveBase(sys, statV),
-    ffRef(statV.forcefield), molLookRef(sys.molLookupRef) {}
+    molLookRef(sys.molLookupRef), ffRef(statV.forcefield) {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
   virtual uint Transform();

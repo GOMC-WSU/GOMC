@@ -354,7 +354,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         uint b = stringtoi(line[2]);
         sys.targetedSwapCollection.AddsubVolumeBox(idx, b);
       } else {
-        printf("%-40s %-d !\n", "Error: Expected 2 values for SubVolumeBox, but received",
+        printf("%-40s %-lu !\n", "Error: Expected 2 values for SubVolumeBox, but received",
                 line.size() -1);
         exit(EXIT_FAILURE);
       }
@@ -367,7 +367,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         temp.z = stringtod(line[4]);
         sys.targetedSwapCollection.AddsubVolumeCenter(idx, temp);
       } else {
-        printf("%-40s %-d !\n", "Error: Expected 4 values for SubVolumeCenter, but received",
+        printf("%-40s %-lu !\n", "Error: Expected 4 values for SubVolumeCenter, but received",
                 line.size() -1);
         exit(EXIT_FAILURE);
       }
@@ -376,7 +376,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         int idx = stringtoi(line[1]); 
         sys.targetedSwapCollection.AddsubVolumePBC(idx, line[2]);
       } else {
-        printf("%-40s %-d !\n", "Error: Expected 2 values for SubVolumePBC, but received",
+        printf("%-40s %-lu !\n", "Error: Expected 2 values for SubVolumePBC, but received",
                 line.size() -1);
         exit(EXIT_FAILURE);
       }
@@ -384,12 +384,12 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       if(line.size() >= 3) {
         int idx = stringtoi(line[1]); 
         std::vector<std::string> temp;
-        for(int k = 2; k < line.size(); k++) {
+        for(int k = 2; k < (int) line.size(); k++) {
           temp.push_back(line[k]);
         }
         sys.targetedSwapCollection.AddsubVolumeAtomList(idx, temp);
       } else {
-        printf("%-40s %-d !\n", "Error: Expected atleast 3 values for SubVolumeCenterList, but received",
+        printf("%-40s %-lu !\n", "Error: Expected atleast 3 values for SubVolumeCenterList, but received",
                 line.size() -1);
         exit(EXIT_FAILURE);
       }
@@ -402,7 +402,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         temp.z = stringtod(line[4]);
         sys.targetedSwapCollection.AddsubVolumeDimension(idx, temp);
       } else {
-        printf("%-40s %-d !\n", "Error: Expected 4 values for SubVolumeDim, but received",
+        printf("%-40s %-lu !\n", "Error: Expected 4 values for SubVolumeDim, but received",
                 line.size() -1);
         exit(EXIT_FAILURE);
       }
@@ -411,13 +411,13 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         int idx = stringtoi(line[1]); 
         std::vector<std::string> temp;
         
-        for(int k = 2; k < line.size(); k++) {
+        for(int k = 2; k < (int) line.size(); k++) {
           temp.push_back(line[k]);
         }
         
         sys.targetedSwapCollection.AddsubVolumeResKind(idx, temp);
       } else {
-        printf("%-40s %-d !\n", "Error: Expected atleast 2 values for SubVolumeResidueKind, but received",
+        printf("%-40s %-lu !\n", "Error: Expected atleast 2 values for SubVolumeResidueKind, but received",
                 line.size() -1);
         exit(EXIT_FAILURE);
       }
@@ -427,7 +427,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         bool isRigid = checkBool(line[2]);
         sys.targetedSwapCollection.AddsubVolumeSwapType(idx, isRigid);
       } else {
-        printf("%-40s %-d !\n", "Error: Expected 2 values for SubVolumeRigidSwap, but received",
+        printf("%-40s %-lu !\n", "Error: Expected 2 values for SubVolumeRigidSwap, but received",
                 line.size() -1);
         exit(EXIT_FAILURE);
       }
@@ -441,7 +441,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         bool isFugacity = false;
         sys.targetedSwapCollection.AddsubVolumeChemPot(idx, resName, value, isFugacity);
       } else {
-        printf("%-40s %-d !\n", "Error: Expected 3 values for SubVolumeChemPot, but received",
+        printf("%-40s %-lu !\n", "Error: Expected 3 values for SubVolumeChemPot, but received",
                 line.size() -1);
         exit(EXIT_FAILURE);
       }
@@ -453,7 +453,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         bool isFugacity = true;
         sys.targetedSwapCollection.AddsubVolumeChemPot(idx, resName, value, isFugacity);
       } else {
-        printf("%-40s %-d !\n", "Error: Expected 3 values for SubVolumeFugacity, but received",
+        printf("%-40s %-lu !\n", "Error: Expected 3 values for SubVolumeFugacity, but received",
                 line.size() -1);
         exit(EXIT_FAILURE);
       }
@@ -1500,7 +1500,7 @@ void ConfigSetup::verifyInputs(void)
 
   #ifdef VARIABLE_PARTICLE_NUMBER
   if(sys.targetedSwapCollection.enable) {
-    for (i = 0; i < sys.targetedSwapCollection.targetedSwap.size(); i++) {
+    for (i = 0; i < (int) sys.targetedSwapCollection.targetedSwap.size(); i++) {
       // make sure all required parameter has been set
       sys.targetedSwapCollection.targetedSwap[i].VerifyParm();
     }

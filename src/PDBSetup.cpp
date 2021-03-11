@@ -105,12 +105,9 @@ void Atoms::SetRestart(config_setup::RestartSettings const& r )
   recalcTrajectory = r.recalcTrajectory;
 }
 
-void Atoms::Assign(std::string const& atomName,
-                   std::string const& resName,
-                   const uint resNum,
+void Atoms::Assign(std::string const& resName,
                    const char l_chain, const double l_x,
                    const double l_y, const double l_z,
-                   const double l_occ,
                    const double l_beta)
 {
   //box.push_back((bool)(restart?(uint)(l_occ):currBox));
@@ -145,8 +142,7 @@ void Atoms::Read(FixedWidthReader & file)
   if(recalcTrajectory && (uint)l_occ != currBox) {
     return;
   }
-  Assign(atomName, resName, resNum, l_chain, l_x, l_y, l_z,
-         l_occ, l_beta);
+  Assign(resName, l_chain, l_x, l_y, l_z, l_beta);
 }
 
 void Atoms::Clear()

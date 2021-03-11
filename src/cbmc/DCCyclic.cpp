@@ -88,9 +88,9 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
       nodes.push_back(Node());
       Node& node = nodes.back();
 
-      //Check if the node belong to a ring or not
+      //Check if the node belongs to a ring or not
       if(isRing[atom]) {
-        uint prev = -1;
+        int prev = -1;
         for(uint i = 0; i < bonds.size(); i++) {
           //Use one of the atoms that is in the ring as prev
           if(isRing[bonds[i].a1]) {
@@ -147,7 +147,7 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
   //reassign destination values from atom indices to node indices
   for (uint i = 0; i < nodes.size(); ++i) {
     for (uint j = 0; j < nodes[i].edges.size(); ++j) {
-      uint& dest = nodes[i].edges[j].destination;
+      int& dest = nodes[i].edges[j].destination;
       dest = atomToNode[dest];
       assert(dest != -1);
     }
@@ -356,7 +356,7 @@ void DCCyclic::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
   bool growAll = data.prng() < 1.0 / nodes.size();
 
   //Randomely pick a node to keep it fix and not grow it
-  uint current = data.prng.randIntExc(nodes.size());
+  int current = data.prng.randIntExc(nodes.size());
   visited.assign(nodes.size(), false);
   destVisited.assign(totAtom, false);
   //Visiting the node
@@ -616,8 +616,8 @@ void DCCyclic::BuildGrowOld(TrialMol& oldMol, uint molIndex)
   visited.assign(nodes.size(), false);
   destVisited.assign(totAtom, false);
   //Use backbone atom to start the node
-  uint current = -1;
-  for(uint i = 0; i < nodes.size(); i++) {
+  int current = -1;
+  for(int i = 0; i < (int) nodes.size(); i++) {
     if(nodes[i].atomIndex == oldMol.GetAtomBB(0)) {
       current = i;
       break;
@@ -684,8 +684,8 @@ void DCCyclic::BuildGrowNew(TrialMol& newMol, uint molIndex)
   visited.assign(nodes.size(), false);
   destVisited.assign(totAtom, false);
   //Use backbone atom to start the node
-  uint current = -1;
-  for(uint i = 0; i < nodes.size(); i++) {
+  int current = -1;
+  for(int i = 0; i < (int) nodes.size(); i++) {
     if(nodes[i].atomIndex == newMol.GetAtomBB(0)) {
       current = i;
       break;
@@ -763,9 +763,9 @@ void DCCyclic::BuildGrowInCav(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
   }
   
   //Use seedIndex atom to start the node
-  uint current = -1;
-  for(uint i = 0; i < nodes.size(); i++) {
-    if(nodes[i].atomIndex == sIndex) {
+  int current = -1;
+  for(int i = 0; i < (int) nodes.size(); i++) {
+    if((int) nodes[i].atomIndex == sIndex) {
       current = i;
       break;
     }

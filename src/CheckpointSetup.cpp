@@ -193,7 +193,7 @@ void CheckpointSetup::readMoleculesData()
 
   // read the kIndex array
   molecules_kIndexVec.resize(read_uint32_binary());
-  for(int i = 0; i < molecules_kIndexVec.size(); i++) {
+  for(int i = 0; i < (int) molecules_kIndexVec.size(); i++) {
     molecules_kIndexVec[i] = read_uint32_binary();
   }
 }
