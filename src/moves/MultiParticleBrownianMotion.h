@@ -12,6 +12,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "StaticVals.h"
 #include <cmath>
 #include "Random123Wrapper.h"
+#ifdef GOMC_CUDA
+#include "TransformParticlesCUDAKernel.cuh"
+#include "VariablesCUDA.cuh"
+#endif
 
 class MultiParticleBrownian : public MoveBase
 {
@@ -28,7 +32,7 @@ public:
 
 private:
   uint bPick;
-  bool initMol[BOX_TOTAL];
+  bool initMol;
   SystemPotential sysPotNew;
   XYZArray molTorqueRef;
   XYZArray molTorqueNew;
@@ -45,6 +49,7 @@ private:
   bool allTranslate;
 #ifdef GOMC_CUDA
   VariablesCUDA *cudaVars;
+  bool isOrthogonal;
 #endif
 
   double GetCoeff();
@@ -73,10 +78,8 @@ inline MultiParticleBrownian::MultiParticleBrownian(System &sys, StaticVals cons
   newMolsPos.Init(sys.coordinates.Count());
   newCOMs.Init(sys.com.Count());
 
-  for(uint b = 0; b < BOX_TOTAL; b++) {
-    initMol[b] = false;
-  }
-
+  initMol = false;
+  
   // Check to see if we have only monoatomic molecule or not
   allTranslate = false;
   int numAtomsPerKind = 0;
@@ -89,6 +92,7 @@ inline MultiParticleBrownian::MultiParticleBrownian(System &sys, StaticVals cons
 
 #ifdef GOMC_CUDA
   cudaVars = sys.statV.forcefield.particles->getCUDAVars();
+  isOrthogonal = statV.isOrthogonal;
 #endif
 }
 
@@ -106,6 +110,7 @@ inline void MultiParticleBrownian::SetMolInBox(uint box)
 {
   // NEED to check if atom is not fixed!
 #if ENSEMBLE == GCMC || ENSEMBLE == GEMC
+  // need to be initialized for every move since number of atom is changing
   moleculeIndex.clear();
   MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
   MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
@@ -117,7 +122,8 @@ inline void MultiParticleBrownian::SetMolInBox(uint box)
     thisMol++;
   }
 #else
-  if(!initMol[box]) {
+  // box would be always 0 in NVT or NPT ensemble, initialize it once
+  if(!initMol) {
     moleculeIndex.clear();
     MoleculeLookup::box_iterator thisMol = molLookup.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookup.BoxEnd(box);
@@ -128,9 +134,9 @@ inline void MultiParticleBrownian::SetMolInBox(uint box)
       }
       thisMol++;
     }
+    initMol = true;
   }
 #endif
-  initMol[box] = true;
 }
 
 inline uint MultiParticleBrownian::Prep(const double subDraw, const double movPerc)
@@ -232,23 +238,49 @@ inline uint MultiParticleBrownian::Transform()
   // individual particle.
   uint state = mv::fail_state::NO_FAIL;
 
-  CalculateTrialDistRot();
-  // move particles according to force and torque and store them in the new pos
+#ifdef GOMC_CUDA
+  // This kernel will calculate translation/rotation amount + shifting/rotating
   if(moveType == mp::MPROTATE) {
-#ifdef _OPENMP
-    #pragma omp parallel for default(none)
-#endif
-    for(int m = 0; m < (int) moleculeIndex.size(); m++) {
-      RotateForceBiased(moleculeIndex[m]);
-    }
+    double r_max = moveSetRef.GetRMAX(bPick);
+    BrownianMotionRotateParticlesGPU(
+      cudaVars,
+      moleculeIndex,
+      molTorqueRef,
+      newMolsPos, 
+      newCOMs, 
+      r_k, 
+      boxDimRef.GetAxis(bPick),
+      BETA, 
+      r_max,
+      r123wrapper.GetStep(), 
+      r123wrapper.GetSeedValue(),
+      bPick,
+      isOrthogonal);
+
   } else {
-#ifdef _OPENMP
-    #pragma omp parallel for default(none)
-#endif
-    for(int m = 0; m < (int) moleculeIndex.size(); m++) {
-      TranslateForceBiased(moleculeIndex[m]);
-    }
+    double t_max = moveSetRef.GetTMAX(bPick);
+    BrownianMotionTranslateParticlesGPU(
+      cudaVars,
+      moleculeIndex,
+      molForceRef,
+      molForceRecRef,
+      newMolsPos, 
+      newCOMs, 
+      t_k, 
+      boxDimRef.GetAxis(bPick),
+      BETA, 
+      t_max,
+      r123wrapper.GetStep(), 
+      r123wrapper.GetSeedValue(),
+      bPick,
+      isOrthogonal);
+
   }
+#else
+  // Calculate trial translate and rotate
+  // move particles according to force and torque and store them in the new pos
+  CalculateTrialDistRot();
+#endif
   GOMC_EVENT_STOP(1, GomcProfileEvent::TRANS_MULTIPARTICLE_BM);
   return state;
 }
@@ -312,17 +344,23 @@ inline double MultiParticleBrownian::GetCoeff()
   double r_max4 = 4.0 * r_max;
   double t_max4 = 4.0 * t_max;
 
+  if(moveType == mp::MPROTATE) {// rotate, 
 #ifdef _OPENMP
-  #pragma omp parallel for default(none) shared(r_max, t_max, r_max4, t_max4) reduction(+:w_ratio)
+  #pragma omp parallel for default(none) shared(moleculeIndex, r_max, t_max, r_max4, t_max4) reduction(+:w_ratio)
 #endif
-  for(int m = 0; m < moleculeIndex.size(); m++) {
-    uint molNumber = moleculeIndex[m];
-    if(moveType == mp::MPROTATE) {// rotate, 
+    for(int m = 0; m < moleculeIndex.size(); m++) {
+      uint molNumber = moleculeIndex[m];
       // rotate, bt_ = BETA * force * maxForce
       XYZ bt_old = molTorqueRef.Get(molNumber) * BETA * r_max;
       XYZ bt_new = molTorqueNew.Get(molNumber) * BETA * r_max;
       w_ratio += CalculateWRatio(bt_new, bt_old, r_k.Get(molNumber), r_max4);
-    } else {// displace
+    } 
+  } else {// displace
+#ifdef _OPENMP
+  #pragma omp parallel for default(none) shared(moleculeIndex, r_max, t_max, r_max4, t_max4) reduction(+:w_ratio)
+#endif
+    for(int m = 0; m < moleculeIndex.size(); m++) {
+      uint molNumber = moleculeIndex[m];
       // bf_ = BETA * torque * maxTorque
       XYZ bf_old = (molForceRef.Get(molNumber) + molForceRecRef.Get(molNumber)) *
                 BETA * t_max;
@@ -391,20 +429,40 @@ inline XYZ MultiParticleBrownian::CalcRandomTransform(XYZ const &lb, double cons
 
 inline void MultiParticleBrownian::CalculateTrialDistRot()
 {
-  uint m, molIndex;
+  uint molIndex;
   double r_max = moveSetRef.GetRMAX(bPick);
   double t_max = moveSetRef.GetTMAX(bPick);
-  XYZ bf; // BETA * force 
-  XYZ bt; // BETA * torque
-  for(m = 0; m < moleculeIndex.size(); m++) {
-    molIndex = moleculeIndex[m];
-
-    if(moveType == mp::MPROTATE) { // rotate
-      bt = molTorqueRef.Get(molIndex) * BETA;
-      r_k.Set(molIndex, CalcRandomTransform(bt, r_max, molIndex));
-    } else { // displace
-      bf = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) * BETA;
-      t_k.Set(molIndex, CalcRandomTransform(bf, t_max, molIndex));
+  if(moveType == mp::MPROTATE) { // rotate
+    double *x = r_k.x;
+    double *y = r_k.y;
+    double *z = r_k.z;
+#ifdef _OPENMP
+    #pragma omp parallel for default(none) shared(moleculeIndex, r_max, x, y, z)
+#endif
+    for(int m = 0; m < moleculeIndex.size(); m++) {
+      uint molIndex = moleculeIndex[m];
+      XYZ bt = molTorqueRef.Get(molIndex) * BETA;
+      XYZ val = CalcRandomTransform(bt, r_max, molIndex);
+      x[molIndex] = val.x; 
+      y[molIndex] = val.y; 
+      z[molIndex] = val.z;
+      RotateForceBiased(molIndex);
+    }
+  } else { // displace
+    double *x = t_k.x;
+    double *y = t_k.y;
+    double *z = t_k.z;
+#ifdef _OPENMP
+    #pragma omp parallel for default(none) shared(moleculeIndex, t_max, x, y, z)
+#endif
+    for(int m = 0; m < moleculeIndex.size(); m++) {
+      uint molIndex = moleculeIndex[m];
+      XYZ bf = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) * BETA;
+      XYZ val = CalcRandomTransform(bf, t_max, molIndex);
+      x[molIndex] = val.x; 
+      y[molIndex] = val.y; 
+      z[molIndex] = val.z; 
+      TranslateForceBiased(molIndex);
     }
   }
 }

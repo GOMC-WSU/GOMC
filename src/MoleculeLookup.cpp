@@ -12,9 +12,16 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <algorithm>
 #include <utility>
 #include <iostream>
+#ifdef GOMC_CUDA
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include "CUDAMemoryManager.cuh"
+#include "VariablesCUDA.cuh"
+#endif
 
 void MoleculeLookup::Init(const Molecules& mols,
-                          const pdb_setup::Atoms& atomData)
+                          const pdb_setup::Atoms& atomData,
+                          Forcefield &ff)
 {
   numKinds = mols.GetKindsCount();
 
@@ -97,6 +104,17 @@ void MoleculeLookup::Init(const Molecules& mols,
     }
   }
   boxAndKindStart[numKinds * BOX_TOTAL] = mols.count;
+
+// allocate and set gpu variables
+#ifdef GOMC_CUDA
+  VariablesCUDA *cudaVars = ff.particles->getCUDAVars();
+  int numMol = mols.count + 1;
+  // allocate memory to store molecule start atom index
+  CUMALLOC((void**) &cudaVars->gpu_startAtomIdx, numMol * sizeof(int));
+  // copy start atom index
+  cudaMemcpy(cudaVars->gpu_startAtomIdx, mols.start, numMol * sizeof(int), cudaMemcpyHostToDevice);
+#endif
+
 }
 
 uint MoleculeLookup::NumInBox(const uint box) const

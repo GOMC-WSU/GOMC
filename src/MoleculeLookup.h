@@ -10,6 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "EnsemblePreprocessor.h" //for BOX_TOTAL
 #include "BasicTypes.h" //For uint
 #include "algorithm"
+#include "Forcefield.h"
 #include <vector>
 
 class CheckpointOutput;
@@ -44,7 +45,8 @@ public:
   }
 
   //Initialize this object to be consistent with Molecules mols
-  void Init(Molecules const& mols, const pdb_setup::Atoms& atomData);
+  void Init(Molecules const& mols, const pdb_setup::Atoms& atomData,
+            Forcefield &ff);
 
   uint GetNumKind(void) const
   {

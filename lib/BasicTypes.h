@@ -125,7 +125,7 @@ struct XYZ {
   }
   bool operator<(XYZ const& rhs)
   {
-    if(x < rhs.x || y < rhs.y || z < rhs.z)
+    if(x < rhs.x && y < rhs.y && z < rhs.z)
       return true;
     return false;
   }
