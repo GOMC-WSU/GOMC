@@ -635,11 +635,7 @@ struct TargetSwapCollection {
     selectedAll |= (std::find(newKind.begin(), newKind.end(), "All") != newKind.end());
     if(selectedAll) {
       if(newKind.size() > 1) {
-<<<<<<< 75b594a05c6f708125a2925a5b9af285bbcb90d3
         printf("Warning: %lu additional residue kinds were defined for subVolume index %d, while using all residues!\n",
-=======
-        printf("Warning: %lu additional residue kind was defined for subVolume index %d, while using all residues!\n",
->>>>>>> testers and error fix of pt.
                   newKind.size() - 1, subVIdx);
         printf("Warning: Proceed with all residue kinds for subVolume index %d!\n",
                   subVIdx);
