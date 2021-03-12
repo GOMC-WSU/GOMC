@@ -64,8 +64,7 @@ class TargetedSwap : public MoveBase
 public:
 
   TargetedSwap(System &sys, StaticVals const& statV) :
-    ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
-    MoveBase(sys, statV)
+    MoveBase(sys, statV), molLookRef(sys.molLookupRef), ffRef(statV.forcefield)
     {
       rigidSwap = true;
       for(int b = 0; b < BOX_TOTAL; b++) {
@@ -75,7 +74,7 @@ public:
       }
 
       if(statV.targetedSwapVal.enable) {
-        for(int s = 0; s < statV.targetedSwapVal.targetedSwap.size(); s++) {
+        for(int s = 0; s < (int) statV.targetedSwapVal.targetedSwap.size(); s++) {
           config_setup::TargetSwapParam tsp = statV.targetedSwapVal.targetedSwap[s];
           TSwapParam tempVar;
           // copy data from TargetSwapParam struct to TSwapParam
@@ -153,7 +152,7 @@ public:
             bool found = false;
             std::string resname = start->first;
             double cpot = start->second;
-            for (int k = 0; k < tempVar.selectedResKind.size(); ++k) {
+            for (int k = 0; k < (int) tempVar.selectedResKind.size(); ++k) {
               int kIndex = tempVar.selectedResKind[k];
               if(resname == molRef.kinds[kIndex].name) {
                 found = true;
@@ -733,7 +732,7 @@ uint TargetedSwap::GetGrowingAtomIndex(const uint k)
     FloydWarshallCycle flw(kind.NumAtoms());
     //Setup the node's degree
     uint bondCount = kind.bondList.count;
-    for (int i = 0; i < bondCount; ++i) {
+    for (int i = 0; i < (int) bondCount; ++i) {
       flw.AddEdge(kind.bondList.part1[i], kind.bondList.part2[i]);
     }
 
@@ -755,16 +754,16 @@ void TargetedSwap::PrintTargetedSwapInfo()
 {
   int i, k, b;
   for(b = 0; b < BOX_TOTAL; ++b) {
-    for (i = 0; i < targetSwapParam[b].size(); ++i) {
+    for (i = 0; i < (int) targetSwapParam[b].size(); ++i) {
       TSwapParam tsp = targetSwapParam[b][i];
       printf("%-40s %d: \n",       "Info: Targeted Swap parameter for subVolume index",
               tsp.subVolumeIdx);
       printf("%-40s %d \n",       "      SubVolume Box:", b);
       if (tsp.calcSubVolCenter) {
-        printf("%-40s Using %d defined atom index/es \n", "      Calculating subVolume center:",
+        printf("%-40s Using %lu defined atom indexes \n", "      Calculating subVolume center:",
                 tsp.atomList.size());
         int max = *std::max_element(tsp.atomList.begin(), tsp.atomList.end());
-        if(max >= coordCurrRef.Count()) {
+        if(max >= (int) coordCurrRef.Count()) {
           printf("Error: Atom index %d is beyond total number of atoms (%d) in the system!\n",
                  max, coordCurrRef.Count());
           printf("       Make sure to use 0 based atom index!\n");
@@ -781,12 +780,12 @@ void TargetedSwap::PrintTargetedSwapInfo()
               tsp.subVolumeDim.x, tsp.subVolumeDim.y, tsp.subVolumeDim.z);
       printf("%-40s %s \n",       "      SubVolume Swap type:", (tsp.rigidSwap ? "Rigid body" : "Flexible"));
       printf("%-40s ",            "      Targeted residue kind:");
-      for (k = 0; k < tsp.selectedResKind.size(); ++k) {
+      for (k = 0; k < (int) tsp.selectedResKind.size(); ++k) {
         printf("%-5s ", molRef.kinds[tsp.selectedResKind[k]].name.c_str());
       }
       printf("\n");
       if(!tsp.rigidSwap) {
-        for (k = 0; k < tsp.selectedResKind.size(); ++k) {
+        for (k = 0; k < (int) tsp.selectedResKind.size(); ++k) {
           int kIdx = tsp.selectedResKind[k];
           printf("%-40s %s: (%d, %s) \n",       "      Starting atom (index, name) for",
                 molRef.kinds[kIdx].name.c_str(), growingAtomIndex[kIdx],
@@ -795,7 +794,7 @@ void TargetedSwap::PrintTargetedSwapInfo()
       }
 #if ENSEMBLE == GCMC
       printf("%-40s ", (ffRef.isFugacity ? "      Targeted fugacity (bar):" : "      Targeted chemical potential (K):"));
-      for (k = 0; k < tsp.selectedResKind.size(); ++k) {
+      for (k = 0; k < (int) tsp.selectedResKind.size(); ++k) {
         int kIdx = tsp.selectedResKind[k];
         double value = tsp.chemPot[kIdx] / (ffRef.isFugacity ? unit::BAR_TO_K_MOLECULE_PER_A3 : 1.0);
         printf("(%-4s: %g) ", molRef.kinds[kIdx].name.c_str(), value);
@@ -855,7 +854,7 @@ bool TargetedSwap::FindMolInSubVolume(const uint box, const uint kind,
         break;
       
       default:
-        printf("Error: Unknown PBC mode %d in targetedSwap move!\n", pbcMode);
+        printf("Error: Unknown PBC mode %d in targetedSwap move!\n", pbcMode[box]);
         exit(EXIT_FAILURE);
         break;
     }
@@ -892,7 +891,7 @@ bool TargetedSwap::FindMolInSubVolume(const uint box, const uint kind,
         break;
       
       default:
-        printf("Error: Unknown PBC mode %d in targetedSwap move!\n", pbcMode);
+        printf("Error: Unknown PBC mode %d in targetedSwap move!\n", pbcMode[box]);
         exit(EXIT_FAILURE);
         break;
     }
@@ -1012,7 +1011,7 @@ bool TargetedSwap::SearchCavity_AC(std::vector<uint> &mol, const XYZ& center,
   } else {
     MoleculeLookup::box_iterator n = molLookRef.BoxBegin(box);
     MoleculeLookup::box_iterator end = molLookRef.BoxEnd(box);
-    uint start, length, p;
+    int start, length, p;
     while (n != end) {        
       molIndex = *n;
       molKind = molRef.GetMolKind(molIndex);

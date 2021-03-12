@@ -50,8 +50,8 @@ private:
   uint prevBonded[MAX_BONDS];
   //kind[bonded][previous]
   uint dihKinds[MAX_BONDS][MAX_BONDS];
-  //Used in finding the atom bonded to prev and focus and bith are in the ring
-  uint prevBondedRing, focBondedRing;
+  //Used in finding the atom bonded to prev and focus and both are in the ring
+  int prevBondedRing, focBondedRing;
   //Calculate torsion difference to match ring dihedral
   double torDiff;
 

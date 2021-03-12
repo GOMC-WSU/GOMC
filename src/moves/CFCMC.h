@@ -20,8 +20,8 @@ class CFCMC : public MoveBase
 public:
 
   CFCMC(System &sys, StaticVals const& statV) :
-    ffRef(statV.forcefield), molLookRef(sys.molLookupRef),
-    lambdaRef(sys.lambdaRef), MoveBase(sys, statV), MP(sys, statV)
+    MoveBase(sys, statV), lambdaRef(sys.lambdaRef), MP(sys, statV),
+    ffRef(statV.forcefield), molLookRef(sys.molLookupRef)
   {
     if(statV.cfcmcVal.enable) {
       MPEnable = statV.cfcmcVal.MPEnable;
@@ -104,11 +104,10 @@ private:
   XYZArray newMolPos;
   Intermolecular inter_LJ, inter_Real, recip;
 
-
   cbmc::TrialMol oldMolCFCMC, newMolCFCMC;
   Energy oldEnergy[BOX_TOTAL], newEnergy[BOX_TOTAL];
-  MoleculeLookup & molLookRef;
   Forcefield const& ffRef;
+  MoleculeLookup & molLookRef;
   SystemPotential sysPotNew;
 };
 

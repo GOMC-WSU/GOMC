@@ -68,7 +68,7 @@ private:
   void PrintDihedralsInBox(FILE* outfile, uint b) const;
 
   void PrintNAMDCompliantSuffix(FILE* outfile) const;
-  void PrintNAMDCompliantSuffixInBox(FILE* outfile, uint b) const;
+  void PrintNAMDCompliantSuffixInBox(FILE* outfile) const;
 
   void CountMolecules();
   void CountMoleculesInBoxes();

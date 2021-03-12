@@ -31,7 +31,7 @@ struct FindA1 {
 
 struct FindAngle {
   FindAngle(uint x, uint y) : x(x), y(y) {}
-  uint y, x;
+  uint x, y;
   bool operator()(const mol_setup::Angle& a)
   {
     return (a.a0 == x && a.a2 == y) || (a.a0 == y && a.a2 == x);
@@ -186,14 +186,14 @@ void DCHedronCycle::GenerateAnglesNew(TrialMol& newMol, uint molIndex,
     return;
   }
 
-  for (int i = 0; i < nTrials; ++i) {
+  for (int i = 0; i < (int) nTrials; ++i) {
     data->angles[i] = data->prng.rand(M_PI);
   }
 
 #ifdef _OPENMP
   #pragma omp parallel for default(none) shared(bType, kind, molIndex, newMol, nonbonded_1_3, nTrials)
 #endif
-  for (int i = 0; i < nTrials; ++i) {
+  for (int i = 0; i < (int) nTrials; ++i) {
     data->angleEnergy[i] = data->ff.angles->Calc(kind, data->angles[i]);
     double distSq = newMol.AngleDist(anchorBond, bondLength[bType],
                                      data->angles[i]);
@@ -224,14 +224,14 @@ void DCHedronCycle::GenerateAnglesOld(TrialMol& oldMol, uint molIndex,
     return;
   }
 
-  for (int i = 0; i < nTrials; ++i) {
+  for (int i = 0; i < (int) nTrials; ++i) {
     data->angles[i] = data->prng.rand(M_PI);
   }
 
 #ifdef _OPENMP
   #pragma omp parallel for default(none) shared(bType, kind, molIndex, nonbonded_1_3, nTrials, oldMol)
 #endif
-  for (int i = 0; i < nTrials; ++i) {
+  for (int i = 0; i < (int) nTrials; ++i) {
     data->angleEnergy[i] = data->ff.angles->Calc(kind, data->angles[i]);
 
     double distSq = oldMol.AngleDist(anchorBondOld, bondLengthOld[bType],
@@ -408,7 +408,7 @@ void DCHedronCycle::ConstrainedAngles(TrialMol& newMol, uint molIndex, uint nTri
 #ifdef _OPENMP
     #pragma omp parallel for default(none) shared(energies, nonbonded_1_3, nTrials, weights) reduction(+:stepWeight)
 #endif
-    for (int i = 0; i < nTrials; ++i) {
+    for (int i = 0; i < (int) nTrials; ++i) {
       weights[i] = exp(-1 * data->ff.beta * (energies[i] + nonbonded_1_3[i]));
       stepWeight += weights[i];
     }

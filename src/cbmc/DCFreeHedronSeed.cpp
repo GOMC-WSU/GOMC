@@ -99,7 +99,7 @@ void DCFreeHedronSeed::BuildNew(TrialMol& newMol, uint molIndex)
 {
   PRNG& prng = data->prng;
   const CalculateEnergy& calc = data->calc;
-  const Ewald *calcEwald = data->calcEwald;
+  // const Ewald *calcEwald = data->calcEwald;
   const Forcefield& ff = data->ff;
   uint nLJTrials = data->nLJTrialsNth;
   double* ljWeights = data->ljWeights;
@@ -173,7 +173,7 @@ void DCFreeHedronSeed::BuildOld(TrialMol& oldMol, uint molIndex)
 {
   PRNG& prng = data->prng;
   const CalculateEnergy& calc = data->calc;
-  const Ewald * calcEwald = data->calcEwald;
+  // const Ewald * calcEwald = data->calcEwald;
   const Forcefield& ff = data->ff;
   uint nLJTrials = data->nLJTrialsNth;
   double* ljWeights = data->ljWeights;
@@ -193,7 +193,6 @@ void DCFreeHedronSeed::BuildOld(TrialMol& oldMol, uint molIndex)
   hed.ConstrainedAnglesOld(data->nAngleTrials - 1, oldMol, molIndex);
   const XYZ center = oldMol.AtomPosition(hed.Focus());
   XYZArray* positions = data->multiPositions;
-  double prevPhi[MAX_BONDS];
   for (uint i = 0; i < hed.NumBond(); ++i) {
     //get position and shift to origin
     positions[i].Set(0, oldMol.AtomPosition(hed.Bonded(i)));

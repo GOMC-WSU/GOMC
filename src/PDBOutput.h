@@ -49,7 +49,7 @@ public:
 private:
   std::string GetDefaultAtomStr();
 
-  void InitPartVec(pdb_setup::Atoms const& atoms);
+  void InitPartVec();
 
   void SetMolBoxVec(std::vector<uint> & mBox);
 

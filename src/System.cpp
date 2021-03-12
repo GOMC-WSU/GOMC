@@ -130,7 +130,7 @@ void System::Init(Setup & set, ulong & startStep)
   // Allocate space for atom forces
   atomForceRef.Init(set.pdb.atoms.beta.size());
   molForceRef.Init(com.Count());
-  // Allocate space for reciprocate force
+  // Allocate space for reciprocal force
   atomForceRecRef.Init(set.pdb.atoms.beta.size());
   molForceRecRef.Init(com.Count());
   cellList.SetCutoff();
@@ -138,7 +138,6 @@ void System::Init(Setup & set, ulong & startStep)
 
   //check if we have to use cached version of Ewald or not.
   bool ewald = set.config.sys.elect.ewald;
-  bool cached = set.config.sys.elect.cache;
 
 #ifdef GOMC_CUDA
   if(ewald)
@@ -146,6 +145,7 @@ void System::Init(Setup & set, ulong & startStep)
   else
     calcEwald = new NoEwald(statV, *this);
 #else
+  bool cached = set.config.sys.elect.cache;
   if (ewald && cached)
     calcEwald = new EwaldCached(statV, *this);
   else if (ewald && !cached)
@@ -154,7 +154,7 @@ void System::Init(Setup & set, ulong & startStep)
     calcEwald = new NoEwald(statV, *this);
 #endif
 
-  //Initial the lambda before calling SystemTotal
+  //Initialize lambda before calling SystemTotal
   InitLambda();
   calcEnergy.Init(*this);
   calcEwald->Init();

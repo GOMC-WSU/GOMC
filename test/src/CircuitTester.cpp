@@ -58,7 +58,7 @@ TEST(CircuitTester, DialaTest) {
     cyclicFWAtoms = fw.GetAllCommonCycles();
 
     /* FW leaves empty vectors when unioning */
-    for (int i = 0; i < cyclicFWAtoms.size(); ) {
+    for (int i = 0; i < (int) cyclicFWAtoms.size(); ) {
         if (cyclicFWAtoms[i].size() == 0) {
             cyclicFWAtoms.erase(cyclicFWAtoms.begin() + i);
         } else ++i;
@@ -69,7 +69,7 @@ TEST(CircuitTester, DialaTest) {
 
     /* The two algorithms don't guaruntee ordering of cyclic atoms */
     /* First we sort within cycles */
-    for (int i = 0; i < cyclicFWAtoms.size(); i++) {
+    for (int i = 0; i < (int) cyclicFWAtoms.size(); i++) {
         std::sort (cyclicCFAtoms[i].begin(), cyclicCFAtoms[i].end());
         std::sort (cyclicFWAtoms[i].begin(), cyclicFWAtoms[i].end());
     }
@@ -78,7 +78,7 @@ TEST(CircuitTester, DialaTest) {
     std::sort(cyclicFWAtoms.begin(), cyclicFWAtoms.end(), std::greater<std::vector<int>>());
 
     /* Cycles are the same size */
-    for (int i = 0; i < cyclicCFAtoms.size(); i++) {
+    for (int i = 0; i < (int) cyclicCFAtoms.size(); i++) {
         EXPECT_EQ(cyclicCFAtoms[i].size() == cyclicFWAtoms[i].size(), true);
     }
 

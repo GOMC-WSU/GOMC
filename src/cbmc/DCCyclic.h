@@ -55,7 +55,7 @@ private:
   //Store edge's atom that are connected to node and has more than 1 bond
   //Each edge is a node as well
   struct Edge {
-    uint destination; //destination is partner node index.
+    int destination; //destination is partner node index.
     uint atomIndex; //atom index of the edge
     //To build the next segment from prev-focus
     DCComponent* connect;

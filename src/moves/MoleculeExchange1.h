@@ -30,9 +30,9 @@ class MoleculeExchange1 : public MoveBase
 public:
 
   MoleculeExchange1(System &sys, StaticVals const& statV) :
-    ffRef(statV.forcefield), molLookRef(sys.molLookupRef), MoveBase(sys, statV),
+    MoveBase(sys, statV), perAdjust(statV.GetPerAdjust()),
     cavity(statV.memcVal.subVol), cavA(3), invCavA(3),
-    perAdjust(statV.GetPerAdjust())
+    molLookRef(sys.molLookupRef), ffRef(statV.forcefield)
   {
     enableID = statV.memcVal.enable;
     trial.resize(BOX_TOTAL);
@@ -101,7 +101,8 @@ protected:
   int largeBB[2];
   uint sourceBox, destBox;
   uint perAdjust, molInCavCount, counter;
-  uint numInCavA, numInCavB, kindS, kindL, totMolInCav;
+  uint numInCavA, numInCavB, totMolInCav;
+  int kindS, kindL;
   vector<uint> pStartA, pLenA, pStartB, pLenB;
   vector<uint> molIndexA, kindIndexA, molIndexB, kindIndexB;
   vector< vector<uint> > molInCav;
@@ -214,8 +215,8 @@ inline void MoleculeExchange1::SetMEMC(StaticVals const& statV)
 inline void MoleculeExchange1::AdjustExRatio()
 {
   if(((counter + 1) % perAdjust) == 0) {
-    uint exMax = ceil((float)molInCavCount / (float)perAdjust);
-    uint exMin = ceil((float)exMax / 2.0);
+    int exMax = ceil((float)molInCavCount / (float)perAdjust);
+    int exMin = ceil((float)exMax / 2.0);
     if(exMin == 0)
       exMin = 1;
 
@@ -612,8 +613,8 @@ inline void MoleculeExchange1::CalcEn()
 inline double MoleculeExchange1::GetCoeff() const
 {
   double volSource = boxDimRef.volume[sourceBox];
-  double volDest = boxDimRef.volume[destBox];
 #if ENSEMBLE == GEMC
+  double volDest = boxDimRef.volume[destBox];
   if(insertL) {
     //kindA is the small molecule
     double ratioF =  num::Factorial(totMolInCav) /

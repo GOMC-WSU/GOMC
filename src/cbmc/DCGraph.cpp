@@ -81,7 +81,7 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
   //reassign destination values from atom indices to node indices
   for (uint i = 0; i < nodes.size(); ++i) {
     for (uint j = 0; j < nodes[i].edges.size(); ++j) {
-      uint& dest = nodes[i].edges[j].destination;
+      int& dest = nodes[i].edges[j].destination;
       dest = atomToNode[dest];
       assert(dest != -1);
     }
@@ -244,8 +244,8 @@ void DCGraph::BuildEdges(TrialMol& oldMol, TrialMol& newMol, uint molIndex,
 
 void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
 {
-  //Randomly pick a node to keep it fix and not grow it
-  uint current = data.prng.randIntExc(nodes.size());
+  //Randomly pick a node to keep it fixed and not grow it
+  int current = data.prng.randIntExc(nodes.size());
   visited.assign(nodes.size(), false);
   //Visiting the node
   visited[current] = true;
@@ -271,9 +271,9 @@ void DCGraph::Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
       newMol.AddAtom(partner, oldMol.AtomPosition(partner));
       oldMol.ConfirmOldAtom(partner);
     }
-    //First we pick a edge that will be fix and continue copy the coordinate
+    //First we pick a edge that will be fixed and copy the coordinates
     //We continue the same until only one edge left from this node
-    //If current is the terminal node, we dont enter to while loop
+    //If current is the terminal node, we don't enter the while loop
     //Then continue to build the rest of the molecule from current
 
     //Copy the edges of the node to currFringe
@@ -448,8 +448,8 @@ void DCGraph::BuildGrowOld(TrialMol& oldMol, uint molIndex)
 {
   visited.assign(nodes.size(), false);
   //Use backbone atom to start the node
-  uint current = -1;
-  for(uint i = 0; i < nodes.size(); i++) {
+  int current = -1;
+  for(int i = 0; i < (int) nodes.size(); i++) {
     if(nodes[i].atomIndex == oldMol.GetAtomBB(0)) {
       current = i;
       break;
@@ -505,8 +505,8 @@ void DCGraph::BuildGrowNew(TrialMol& newMol, uint molIndex)
 {
   visited.assign(nodes.size(), false);
   //Use backbone atom to start the node
-  uint current = -1;
-  for(uint i = 0; i < nodes.size(); i++) {
+  int current = -1;
+  for(int i = 0; i < (int) nodes.size(); i++) {
     if(nodes[i].atomIndex == newMol.GetAtomBB(0)) {
       current = i;
       break;
@@ -573,9 +573,9 @@ void DCGraph::BuildGrowInCav(TrialMol& oldMol, TrialMol& newMol, uint molIndex)
   }
 
   //Use backbone atom to start the node
-  uint current = -1;
-  for(uint i = 0; i < nodes.size(); i++) {
-    if(nodes[i].atomIndex == sIndex) {
+  int current = -1;
+  for(int i = 0; i < (int) nodes.size(); i++) {
+    if((int) nodes[i].atomIndex == sIndex) {
       current = i;
       break;
     }
