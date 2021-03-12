@@ -1276,7 +1276,7 @@ void ParallelTemperingUtilities::print_replica_exchange_statistics(FILE* fplog)
   print_transition_matrix(fplog, ms->worldSize, nmoves, nattempt);
 }
 
-void ParallelTemperingUtilities::print_allswitchind(FILE* fplog, int n, const std::vector<int> &pind, const std::vector<int> &allswaps, const std::vector<int> &tmpswap)
+void ParallelTemperingUtilities::print_allswitchind(FILE* fplog, int n, const std::vector<int> &pind, std::vector<int> &allswaps, std::vector<int> &tmpswap)
 {
   int i;
 

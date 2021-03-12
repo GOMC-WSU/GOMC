@@ -108,8 +108,8 @@ then
   COMPILER_C_PATH="$(which gcc 2> /dev/null)"
   COMPILER_CXX_PATH="$(which g++ 2> /dev/null)"
 fi
-export CC=${ICC_PATH}
-export CXX=${ICPC_PATH}
+#export CC=${ICC_PATH}
+#export CXX=${ICPC_PATH}
 
 if (( $use_profiler )); then
     if (( $use_cuda )); then
@@ -123,4 +123,4 @@ else
 	cmake ..
 fi
 
-make -j8
+make -j8 GOMC_Test

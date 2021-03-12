@@ -2,6 +2,9 @@
 # Check if nvcc is available
 use_cuda=0
 use_profiler=0
+use_gtest=0
+MPI="off"
+ENSEMBLES=""
 
 if command -v nvcc &> /dev/null
 then
@@ -62,45 +65,65 @@ then
         fi
 fi
 
-# check to see if we passed the profile flag
-while (( $# > 0 )); do
-	if [[ "$1" != --* ]]; then
-		echo "ERROR: Expected an option beginning with -- but found $1"
-		echo "Available options are: --with-profiling"
-		exit 1
-	fi
-	case "$1" in
-	--with-profiling)
-	shift
-	use_profiler=1
-	;;
-	*)
-		echo "ERROR: unknown option $1"
-		echo "Available options are: --with-profiling"
-		exit 1
-	;;
+while getopts 'mpt' opt; do
+    case "$opt" in
+        p)
+            use_profiler=1;;
+        m)
+            MPI="on";;
+        t)
+            use_gtest=1
+            ENSEMBLES+="GOMC_Test";;
+        *)  echo 'Error in command line options' >&2
+            echo "Available options are: -p (NVTX tags),"
+            echo "-t (disables Intel compiler to allow GTests to compile),"
+            echo "-m, enables MPI support (Required for Parallel Tempering)"
+            echo "For combined usage: -ptm"
+            exit 1
     esac
+done
 
+shift "$(( OPTIND - 1 ))"
+
+while [ "$#" -ne 0 ]; do
+    case "$1" in
+        NVT|NPT|GCMC|GEMC|GPU_NVT|GPU_NPT|GPU_GCMC|GPU_GEMC)                   # or just:  -t|--t*)
+            ENSEMBLES+="$1 ";;
+        GOMC_Test)
+            ENSEMBLES+="$1"
+            use_gtest=1;;
+         [!-]*) echo 'Error in Ensembles' >&2
+                echo 'Valid Options: {NVT|NPT|GCMC|GEMC|GPU_NVT|GPU_NPT|GPU_GCMC|GPU_GEMC|GOMC_Test}' >&2
+                exit 1;;# non-option detected, break out of loop
+        --)    shift; break ;; # explicit end of options detected, break
+        *)  echo 'Error in command line options' >&2
+            exit 1
+    esac
     shift
 done
+
+echo "Ensembles To Compile: $ENSEMBLES"
 
 mkdir -p bin_MPI
 cd bin_MPI
 ICC_PATH="$(which icc)"
 ICPC_PATH="$(which icpc)"
-export CC=${ICC_PATH}
-export CXX=${ICPC_PATH}
+
+if (( !$use_gtest )); then
+    export CC=${ICC_PATH}
+    export CXX=${ICPC_PATH}
+fi
 
 if (( $use_profiler )); then
     if (( $use_cuda )); then
       	echo "Enabling NVTX profiling for CUDA "
-	cmake .. -DGOMC_MPI=on -DGOMC_NVTX_ENABLED=1
+	cmake .. -DGOMC_MPI=$MPI -DGOMC_NVTX_ENABLED=1
     else
       	echo "Warning: Cannot enable NVTX profiling without CUDA enabled."
-	cmake .. -DGOMC_MPI=on
+	cmake .. -DGOMC_MPI=$MPI
     fi
 else
-	cmake ..
+	cmake .. -DGOMC_MPI=$MPI
 fi
 
-make -j8 
+make -j8 $ENSEMBLES

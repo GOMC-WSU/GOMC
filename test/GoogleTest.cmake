@@ -44,3 +44,7 @@ add_test(NAME EndianTest COMMAND TestBitSwap)
 add_test(NAME ConsistentTrajectoryTest COMMAND CheckPDBTrajCoordinates)
 
 
+add_test(NAME ParallelTemperingTest COMMAND ParallelTemperingTest)
+if(MPI_FOUND)
+  target_link_libraries(GOMC_Test ${MPI_LIBRARIES})
+endif()

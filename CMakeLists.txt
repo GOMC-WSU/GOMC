@@ -34,6 +34,13 @@ include(${PROJECT_SOURCE_DIR}/CMake/GOMCMPI.cmake)
 
 include_directories("${PROJECT_BINARY_DIR}")
 
+# Enable google test
+# for now we will disable testing for intel compiler
+if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+  enable_testing()
+  include(test/GoogleTest.cmake)
+endif()
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -stdlib=libc++") 
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -stdlib=libc++")

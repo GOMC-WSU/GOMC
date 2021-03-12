@@ -88,8 +88,7 @@ public:
   void print_count(FILE * fplog, const char* leg, int n, const std::vector<int> &count);
   void print_transition_matrix(FILE * fplog, int n, const std::vector< std::vector<int> > &nmoves, const std::vector<int> &nattempt);
   void print_replica_exchange_statistics(FILE * fplog);
-  void print_allswitchind(FILE* fplog, int n, const std::vector<int> &pind, const std::vector<int> &allswaps, const std::vector<int> &tmpswap);
-#endif
+  void print_allswitchind(FILE* fplog, int n, const std::vector<int> &pind, std::vector<int> &allswaps, std::vector<int> &tmpswap);
 
 private:
 
@@ -131,6 +130,8 @@ private:
   std::vector<std::vector <double> > global_energies;
 #endif
 
+
+#endif
 };
 
 #endif /*ParallelTemperingUtilities_H*/
