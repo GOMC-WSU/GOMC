@@ -1,2 +1,0 @@
-/home/greg/GOMC/build/CMakeFiles/CheckCUDA/CMakeFiles/rebuild_cache.dir
-/home/greg/GOMC/build/CMakeFiles/CheckCUDA/CMakeFiles/edit_cache.dir
