@@ -47,7 +47,6 @@ private:
   Coordinates newMolsPos;
   COM newCOMs;
   int moveType;
-  bool allTranslate;
   std::vector<uint> moleculeIndex;
   const MoleculeLookup& molLookup;
 #ifdef GOMC_CUDA
@@ -90,16 +89,6 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   for(uint b = 0; b < BOX_TOTAL; b++) {
     initMol[b] = false;
   }
-
-  // Check to see if we have only monoatomic molecule or not
-  allTranslate = false;
-  int numAtomsPerKind = 0;
-  for (int k = 0; k < molLookup.GetNumKind(); ++k) {
-    numAtomsPerKind += molRef.NumAtoms(k);
-  }
-  // If we have only one atom in each kind, it means all molecule
-  // in the system is monoatomic
-  allTranslate = (numAtomsPerKind == molLookup.GetNumKind());
 
 #ifdef GOMC_CUDA
   cudaVars = sys.statV.forcefield.particles->getCUDAVars();
@@ -167,20 +156,16 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   prng.PickBox(bPick, subDraw, movPerc);
 #endif
 
-  // In each step, we perform either:
-  // 1- All displacement move.
-  // 2- All rotation move.
-  if(allTranslate) {
-    moveType = mp::MPDISPLACE;
-  } else {
-    moveType = prng.randIntExc(mp::MPTOTALTYPES);
-  }
-
+  moveType = prng.randIntExc(mp::MPTOTALTYPES);
   SetMolInBox(bPick);
   if (moleculeIndex.size() == 0) {
     std::cout << "Warning: MultiParticle move can't move any molecules, Skipping...\n";
     state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
     return state;
+  }
+  uint length = molRef.GetKind(moleculeIndex[0]).NumAtoms();
+  if(length == 1) {
+    moveType = mp::MPDISPLACE;
   }
 
   //We don't use forces for non-MP moves, so we need to calculate them for the
@@ -532,13 +517,6 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
 inline void MultiParticle::TranslateForceBiased(uint molIndex)
 {
   XYZ shift = t_k.Get(molIndex);
-  if(shift > boxDimRef.GetHalfAxis(bPick)) {
-    std::cout << "Error: Trial Displacement exceed half of the box length in Multiparticle \n" 
-              << "       move!\n";
-    std::cout << "       Trial transformation vector: " << shift << std::endl;
-    std::cout << "       Box Dimension: " << boxDimRef.GetAxis(bPick) << std::endl << std::endl;
-    exit(EXIT_FAILURE);
-  }
 
   XYZ newcom = newCOMs.Get(molIndex);
   uint stop, start, len;
