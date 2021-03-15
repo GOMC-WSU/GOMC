@@ -365,11 +365,10 @@ void ParallelTemperingUtilities::computeExchangeOrder(std::vector< std::vector<i
 
 
 
-void ParallelTemperingUtilities::conductExchanges(Coordinates & coordCurrRef, COM & comCurrRef, MultiSim const*const& ms, const int & maxSwap, const bool & bThisReplicaExchanged)
+void ParallelTemperingUtilities::conductExchanges(Coordinates & coordCurrRef, COM & comCurrRef, int replicaID, const int & maxSwap, const bool & bThisReplicaExchanged)
 {
 
   int exchangePartner;
-  int replicaID = ms->worldRank;
 
   if (bThisReplicaExchanged) {
 

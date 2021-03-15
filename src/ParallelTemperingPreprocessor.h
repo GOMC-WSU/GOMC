@@ -72,6 +72,7 @@ class MultiSim
 {
 public:
   explicit MultiSim(ParallelTemperingPreprocessor & pt);
+  explicit MultiSim(int worldSize, int worldRank);
   const int worldSize, worldRank;
   const std::string replicaInputDirectoryPath;
   const std::string replicaOutputDirectoryPath;

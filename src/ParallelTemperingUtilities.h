@@ -76,7 +76,7 @@ public:
   void cyclicDecomposition(const std::vector<int> &destinations, std::vector< std::vector<int> > & cyclic, std::vector<bool> & incycle, const int nrepl, int * nswap);
   void computeExchangeOrder(std::vector< std::vector<int> > & cyclic, std::vector< std::vector<int> > & order, const int nrepl, const int maxswap);
 
-  void conductExchanges(Coordinates & coordCurrRef, COM & comCurrRef, MultiSim const*const& ms, const int & maxSwap, const bool & bThisReplicaExchanged);
+  void conductExchanges(Coordinates & coordCurrRef, COM & comCurrRef, int replicaID, const int & maxSwap, const bool & bThisReplicaExchanged);
 
 
   void exchangeCellLists(CellList & myCellList, MultiSim const*const& multisim, int exchangePartner, bool leader);

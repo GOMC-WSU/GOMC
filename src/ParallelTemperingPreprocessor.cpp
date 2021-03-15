@@ -510,4 +510,8 @@ MultiSim::MultiSim(ParallelTemperingPreprocessor & pt) :
   fplog =  fopen(filename.c_str(), "w");
 }
 
+MultiSim::MultiSim(int worldSize, int worldRank) :
+  worldSize(worldSize), worldRank(worldRank)
+{}
+
 #endif

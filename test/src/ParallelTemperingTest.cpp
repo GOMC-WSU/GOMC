@@ -36,7 +36,7 @@ GTEST_API_ int main(int argc, char **argv) {
 
 }
 
-TEST(ParallelTemperingTest, ParallelTemperingTest) {  /// Then you can create tests as usual,
+TEST(ParallelTemperingTest, Pos&COMCommunication) {  /// Then you can create tests as usual,
   //using namespace mpi;
   //ompi_communicator_t world;  /// and use MPI inside your tests.
   /* ... test stuff here ... */
@@ -108,6 +108,29 @@ TEST(ParallelTemperingTest, ParallelTemperingTest) {  /// Then you can create te
   EXPECT_EQ(oldCoords, newCoords);
   EXPECT_EQ(oldComs, newComs);
 
+}
+
+TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as usual,
+  //using namespace mpi;
+  //ompi_communicator_t world;  /// and use MPI inside your tests.
+  /* ... test stuff here ... */
+
+  // Get the number of processes
+  int worldSize;
+  // Initialize the MPI environment
+  int worldRank;
+  // Get the rank of the process
+  MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
+  MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
+
+  std::cout << worldRank << std::endl;
+
+  MultiSim ms(worldSize, worldRank);
+  if(worldRank == 0){
+    Simulation sim0("test/input/ParallelTempering/temp_120.00/repl0.conf", ms);
+  } else {
+    Simulation sim1("test/input/ParallelTempering/temp_180.00/repl1.conf", ms);
+  }
 }
 
 #endif
