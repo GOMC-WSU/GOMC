@@ -49,11 +49,6 @@ public:
   {
     return axis.Get(b);
   }
-  
-  XYZ GetHalfAxis(const uint b) const
-  {
-    return halfAx.Get(b);
-  }
 
   double GetTotVolume(const uint b1, const uint b2) const;
 
