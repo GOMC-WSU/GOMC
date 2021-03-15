@@ -373,6 +373,7 @@ void DestroyCUDAVars(VariablesCUDA *vars)
   CUFREE(vars->gpu_cellVector);
   CUFREE(vars->gpu_mapParticleToCell);
   CUFREE(vars->gpu_nonOrth);
+  CUFREE(vars->gpu_startAtomIdx);
   for(uint b = 0; b < BOX_TOTAL; b++) {
     CUFREE(vars->gpu_cell_x[b]);
     CUFREE(vars->gpu_cell_y[b]);
