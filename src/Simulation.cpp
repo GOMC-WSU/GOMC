@@ -102,7 +102,7 @@ void Simulation::RunSimulation(void)
       system->potential = system->calcEnergy.SystemTotal();
       PTUtils->evaluateExchangeCriteria(step);
       PTUtils->prepareToDoExchange(ms->worldRank, &maxSwap, &bThisReplicaExchanged);
-      PTUtils->conductExchanges(system->coordinates, system->com, ms, maxSwap, bThisReplicaExchanged);
+      PTUtils->conductExchanges(system->coordinates, system->com, ms->worldRank, maxSwap, bThisReplicaExchanged);
       system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
       if (staticValues->forcefield.ewald) {
         for(int box = 0; box < BOX_TOTAL; box++) {

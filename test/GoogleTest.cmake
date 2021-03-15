@@ -1,9 +1,12 @@
 function(add_mpi_test name no_mpi_proc)
+  set(NVT_flags "-DENSEMBLE=1")
       # My test are all called name_test.cpp
-      add_executable(${name} ${GOMCMPISources} ${GOMCMPIHeaders} ${MPITestSources})
+      add_executable(${name} ${GOMCMPISources} ${GOMCMPIHeaders} ${libHeaders} ${libSources} ${MPITestSources})
       add_dependencies(${name} googletest)
   # Make sure to link MPI here too:
   target_link_libraries(${name} ${MPI_LIBRARIES} gtest_main)
+  set_target_properties(${name} PROPERTIES 
+      COMPILE_FLAGS "${NVT_flags}")
   #set(test_parameters " ${MPIEXEC_NUMPROC_FLAG} ${no_mpi_proc} ./${name}")
   #add_test(NAME ${name} COMMAND "${MPIEXEC} ${test_parameters}")
   add_test(NAME ${name} COMMAND ParallelTemperingTest)

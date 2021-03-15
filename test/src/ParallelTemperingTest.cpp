@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include "GOMC_Config.h"    //For PT
 #include "ReplicaCommunicator.h"
+#include "Simulation.h"
+#include "ParallelTemperingPreprocessor.h"
 #include <iostream>
 #include <stdlib.h>
 #if GOMC_LIB_MPI
@@ -36,7 +38,7 @@ GTEST_API_ int main(int argc, char **argv) {
 
 }
 
-TEST(ParallelTemperingTest, Pos&COMCommunication) {  /// Then you can create tests as usual,
+TEST(ParallelTemperingTest, Pos_And_COMCommunication) {  /// Then you can create tests as usual,
   //using namespace mpi;
   //ompi_communicator_t world;  /// and use MPI inside your tests.
   /* ... test stuff here ... */
@@ -125,11 +127,11 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
 
   std::cout << worldRank << std::endl;
 
-  MultiSim ms(worldSize, worldRank);
+  const MultiSim ms(worldSize, worldRank);
   if(worldRank == 0){
-    Simulation sim0("test/input/ParallelTempering/temp_120.00/repl0.conf", ms);
+    Simulation sim0("test/input/ParallelTempering/temp_120.00/repl0.conf", &ms);
   } else {
-    Simulation sim1("test/input/ParallelTempering/temp_180.00/repl1.conf", ms);
+    Simulation sim1("test/input/ParallelTempering/temp_180.00/repl1.conf", &ms);
   }
 }
 
