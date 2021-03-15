@@ -50,9 +50,9 @@ __device__ inline void ApplyRotation(double &x, double &y, double &z,
   double axisy = roty * (1.0 / rotLen);
   double axisz = rotz * (1.0 / rotLen);
   double matrix[3][3], cross[3][3], tensor[3][3];
-  double halfAxx = axisx * 0.5;
-  double halfAxy = axisy * 0.5;
-  double halfAxz = axisz * 0.5;
+  double halfAxx = axx * 0.5;
+  double halfAxy = axy * 0.5;
+  double halfAxz = axz * 0.5;
 
   // build cross
   cross[0][0] = 0.0;
@@ -483,7 +483,7 @@ void BrownianMotionRotateParticlesGPU(
   int molCountInBox = moleculeInvolved.size();
   int *gpu_moleculeInvolved;
   // Each block would handle one molecule
-  int threadsPerBlock = 64;
+  int threadsPerBlock = 32;
   int blocksPerGrid = molCountInBox;
 
   CUMALLOC((void **) &gpu_moleculeInvolved, molCountInBox * sizeof(int));
@@ -669,7 +669,7 @@ __global__ void BrownianMotionRotateKernel(
   }
 
   __syncthreads();
-  // use strid of blockDim.x, which is 64
+  // use strid of blockDim.x, which is 32
   // each thread handles one atom rotation
   for(atomIdx = startIdx + threadIdx.x; atomIdx < endIdx; atomIdx += blockDim.x) {
     double3 coor = make_double3(gpu_x[atomIdx], gpu_y[atomIdx], gpu_z[atomIdx]);
@@ -734,7 +734,7 @@ void BrownianMotionTranslateParticlesGPU(
   int molCountInBox = moleculeInvolved.size();
   int *gpu_moleculeInvolved;
   // Each block would handle one molecule
-  int threadsPerBlock = 64;
+  int threadsPerBlock = 32;
   int blocksPerGrid = molCountInBox;
 
   CUMALLOC((void **) &gpu_moleculeInvolved, molCountInBox * sizeof(int));
@@ -916,7 +916,7 @@ __global__ void BrownianMotionTranslateKernel(
   }
 
   __syncthreads();
-  // use strid of blockDim.x, which is 64
+  // use strid of blockDim.x, which is 32
   // each thread handles one atom translation
   for(atomIdx = startIdx + threadIdx.x; atomIdx < endIdx; atomIdx += blockDim.x) {
     double3 coor = make_double3(gpu_x[atomIdx], gpu_y[atomIdx], gpu_z[atomIdx]);
