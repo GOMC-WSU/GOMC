@@ -42,6 +42,10 @@ public:
 
   XYZArray(const XYZArray& other);
   XYZArray& operator=(XYZArray other);
+  bool operator==(XYZArray other) const;
+  bool operator!=(XYZArray other) const;
+
+
 
   friend void swap(XYZArray& a1, XYZArray& a2);
   ~XYZArray(void)
@@ -365,6 +369,30 @@ inline XYZArray& XYZArray::operator=(XYZArray other)
 {
   swap(*this, other);
   return *this;
+}
+
+//Equality operator
+inline bool XYZArray::operator==(XYZArray other) const
+{
+  if(count != other.count)
+    return false;
+  for(int i = 0; i < count; i++){
+    if(x[i] != other.x[i] || y[i] != other.y[i] || z[i] != other.z[i])
+      return false;
+  }
+  return true;
+}
+
+//Non-Equality operator
+inline bool XYZArray::operator!=(XYZArray other) const
+{
+  if(count != other.count)
+    return true;
+  for(int i = 0; i < count; i++){
+    if(x[i] != other.x[i] || y[i] != other.y[i] || z[i] != other.z[i])
+      return true;
+  }
+  return false;
 }
 
 inline void swap(XYZArray& a1, XYZArray& a2)

@@ -62,6 +62,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "ParallelTemperingPreprocessor.h"
 #include "System.h"
 #include "ConfigSetup.h"
+#include "ReplicaCommunicator.h"
+
 
 class ParallelTemperingUtilities
 {
@@ -75,11 +77,8 @@ public:
   void computeExchangeOrder(std::vector< std::vector<int> > & cyclic, std::vector< std::vector<int> > & order, const int nrepl, const int maxswap);
 
   void conductExchanges(Coordinates & coordCurrRef, COM & comCurrRef, MultiSim const*const& ms, const int & maxSwap, const bool & bThisReplicaExchanged);
-  void exchangePositionsNonBlocking(Coordinates & myPos, MultiSim const*const& multisim, int exchangePartner);
-  void exchangeCOMsNonBlocking(COM & myCOMs, MultiSim const*const& multisim, int exchangePartner);
 
-  void exchangePositions(Coordinates & myPos, MultiSim const*const& multisim, int exchangePartner, bool leader);
-  void exchangeCOMs(COM & myCOMs, MultiSim const*const& multisim, int exchangePartner, bool leader);
+
   void exchangeCellLists(CellList & myCellList, MultiSim const*const& multisim, int exchangePartner, bool leader);
   void exchangePotentials(SystemPotential & mySystemPotential, MultiSim const*const& multisim, int exchangePartner, bool leader);
   void exchangeVirials(SystemPotential & mySystemPotential, MultiSim const*const& multisim, int exchangePartner, bool leader);
@@ -93,6 +92,7 @@ public:
 private:
 
   MultiSim const*const& ms;
+  ReplicaCommunicator replcomm;
   bool bMultiEx;
   FILE * fplog;
   PRNG & prng;

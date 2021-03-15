@@ -5,12 +5,20 @@ set(TestSources
     test/src/MolLookupTest.cpp
     test/src/CircuitTester.cpp
     test/src/PSFParserTest.cpp
+<<<<<<< 6999568989b504076e46b53df19131353683d601
     test/src/ConsistentTrajectoryTest.cpp
     test/src/ParallelTemperingTest.cpp
+=======
+>>>>>>> Replica communication tested for com and coords
 )
 
 set(TestHeaders
+    src/ReplicaCommunicator.h
+)
 
+set(MPITestSources
+    test/src/ParallelTemperingTest.cpp
+    test/src/gtest-mpi-listener.hpp
 )
 
 set(GOMCSources
@@ -25,8 +33,11 @@ set(GOMCSources
     lib/CircuitFinder.cpp
     src/InputFileReader.cpp
     lib/FloydWarshallCycle.cpp
+<<<<<<< 6999568989b504076e46b53df19131353683d601
     src/MoleculeLookup.cpp
     src/Simulation.cpp
+=======
+>>>>>>> Replica communication tested for com and coords
 )
 
 set(GOMCHeaders
@@ -42,7 +53,27 @@ set(GOMCHeaders
     src/InputFileReader.h
     lib/FloydWarshallCycle.h
     GOMC_Config.h
-    src/Simulation.h
+)
+
+set(GOMCMPISources
+    src/ParallelTemperingUtilities.cpp
+    src/ParallelTemperingPreprocessor.cpp
+    src/InputFileReader.cpp
+    src/CellList.cpp
+    src/MoleculeLookup.cpp
+    src/ReplicaCommunicator.cpp
+
+)
+
+set(GOMCMPIHeaders
+    GOMC_Config.h
+    src/XYZArray.h
+    src/ConfigSetup.h
+    src/ParallelTemperingPreprocessor.h
+    src/InputFileReader.h
+    src/CellList.h
+    src/MoleculeLookup.h
+    src/ReplicaCommunicator.h
 )
 
 set(sources 

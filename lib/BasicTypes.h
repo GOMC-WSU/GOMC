@@ -117,6 +117,12 @@ struct XYZ {
     z = rhs.z;
     return *this;
   }
+  bool operator==(XYZ const& rhs)
+  {
+    if(x != rhs.x || y != rhs.y || z != rhs.z)
+      return false;
+    return true;
+  }
   bool operator!=(XYZ const& rhs)
   {
     if(x != rhs.x || y != rhs.y || z != rhs.z)

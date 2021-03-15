@@ -126,4 +126,5 @@ else
 	cmake .. -DGOMC_MPI=$MPI
 fi
 
-make -j8 $ENSEMBLES
+#make -j8 $ENSEMBLES
+make -j8 GOMC_MPI_Test

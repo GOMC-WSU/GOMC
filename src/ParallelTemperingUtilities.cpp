@@ -385,8 +385,8 @@ void ParallelTemperingUtilities::conductExchanges(Coordinates & coordCurrRef, CO
         newMolsPos = coordCurrRef;
         newCOMs = comCurrRef;
 
-        exchangePositionsNonBlocking(newMolsPos, ms, exchangePartner);
-        exchangeCOMsNonBlocking(newCOMs, ms, exchangePartner);
+        replcomm.exchangePositionsNonBlocking(&newMolsPos, exchangePartner);
+        replcomm.exchangeCOMsNonBlocking(&newCOMs, exchangePartner);
 
         swap(coordCurrRef, newMolsPos);
         swap(comCurrRef, newCOMs);
@@ -395,137 +395,6 @@ void ParallelTemperingUtilities::conductExchanges(Coordinates & coordCurrRef, CO
 
   }
 
-}
-
-void ParallelTemperingUtilities::exchangePositionsNonBlocking(Coordinates & myPos, MultiSim const*const& multisim, int exchangePartner)
-{
-
-  XYZArray buffer(myPos);
-
-
-  MPI_Request mpi_req;
-
-  MPI_Isend(buffer.x, buffer.Count() * sizeof(double), MPI_BYTE, exchangePartner, 0, MPI_COMM_WORLD, &mpi_req);
-  MPI_Recv(myPos.x, myPos.Count() * sizeof(double), MPI_BYTE, exchangePartner, 0, MPI_COMM_WORLD,
-           MPI_STATUS_IGNORE);
-  MPI_Wait(&mpi_req, MPI_STATUS_IGNORE);
-
-  MPI_Isend(buffer.y, buffer.Count() * sizeof(double), MPI_BYTE, exchangePartner, 0, MPI_COMM_WORLD, &mpi_req);
-  MPI_Recv(myPos.y, myPos.Count() * sizeof(double), MPI_BYTE, exchangePartner, 0, MPI_COMM_WORLD,
-           MPI_STATUS_IGNORE);
-  MPI_Wait(&mpi_req, MPI_STATUS_IGNORE);
-
-  MPI_Isend(buffer.z, buffer.Count() * sizeof(double), MPI_BYTE, exchangePartner, 0, MPI_COMM_WORLD, &mpi_req);
-  MPI_Recv(myPos.z, myPos.Count() * sizeof(double), MPI_BYTE, exchangePartner, 0, MPI_COMM_WORLD,
-           MPI_STATUS_IGNORE);
-  MPI_Wait(&mpi_req, MPI_STATUS_IGNORE);
-
-}
-
-void ParallelTemperingUtilities::exchangeCOMsNonBlocking(COM & myCOMs, MultiSim const*const& multisim, int exchangePartner)
-{
-
-  XYZArray buffer(myCOMs);
-
-
-  MPI_Request mpi_req;
-
-  MPI_Isend(buffer.x, buffer.Count() * sizeof(double), MPI_BYTE, exchangePartner, 0, MPI_COMM_WORLD, &mpi_req);
-  MPI_Recv(myCOMs.x, myCOMs.Count() * sizeof(double), MPI_BYTE, exchangePartner, 0, MPI_COMM_WORLD,
-           MPI_STATUS_IGNORE);
-  MPI_Wait(&mpi_req, MPI_STATUS_IGNORE);
-
-  MPI_Isend(buffer.y, buffer.Count() * sizeof(double), MPI_BYTE, exchangePartner, 0, MPI_COMM_WORLD, &mpi_req);
-  MPI_Recv(myCOMs.y, myCOMs.Count() * sizeof(double), MPI_BYTE, exchangePartner, 0, MPI_COMM_WORLD,
-           MPI_STATUS_IGNORE);
-  MPI_Wait(&mpi_req, MPI_STATUS_IGNORE);
-
-  MPI_Isend(buffer.z, buffer.Count() * sizeof(double), MPI_BYTE, exchangePartner, 0, MPI_COMM_WORLD, &mpi_req);
-  MPI_Recv(myCOMs.z, myCOMs.Count() * sizeof(double), MPI_BYTE, exchangePartner, 0, MPI_COMM_WORLD,
-           MPI_STATUS_IGNORE);
-  MPI_Wait(&mpi_req, MPI_STATUS_IGNORE);
-
-}
-
-void ParallelTemperingUtilities::exchangePositions(Coordinates & myPos, MultiSim const*const& multisim, int exchangePartner, bool leader)
-{
-
-  XYZArray buffer(myPos);
-
-// if im 0, im the follower and i get 1 as a
-  if (leader) {
-    MPI_Send(buffer.x, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD);
-    MPI_Recv(myPos.x, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  } else {
-    MPI_Recv(myPos.x, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    MPI_Send(buffer.x, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD);
-  }
-  if (leader) {
-    MPI_Send(buffer.y, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD);
-    MPI_Recv(myPos.y, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  } else {
-    MPI_Recv(myPos.y, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    MPI_Send(buffer.y, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD);
-  }
-  if (leader) {
-    MPI_Send(buffer.z, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD);
-    MPI_Recv(myPos.z, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  } else {
-    MPI_Recv(myPos.z, myPos.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    MPI_Send(buffer.z, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD);
-  }
-}
-
-void ParallelTemperingUtilities::exchangeCOMs(COM & myCOMs, MultiSim const*const& multisim, int exchangePartner, bool leader)
-{
-
-  XYZArray buffer(myCOMs);
-
-  if (leader) {
-    MPI_Send(buffer.x, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD);
-    MPI_Recv(myCOMs.x, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  } else {
-    MPI_Recv(myCOMs.x, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    MPI_Send(buffer.x, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD);
-  }
-  if (leader) {
-    MPI_Send(buffer.y, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD);
-    MPI_Recv(myCOMs.y, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  } else {
-    MPI_Recv(myCOMs.y, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    MPI_Send(buffer.y, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD);
-  }
-  if (leader) {
-    MPI_Send(buffer.z, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD);
-    MPI_Recv(myCOMs.z, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  } else {
-    MPI_Recv(myCOMs.z, myCOMs.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    MPI_Send(buffer.z, buffer.Count(), MPI_DOUBLE, exchangePartner, 0,
-             MPI_COMM_WORLD);
-  }
 }
 
 void ParallelTemperingUtilities::exchangeCellLists(CellList & myCellList, MultiSim const*const& multisim, int exchangePartner, bool leader)

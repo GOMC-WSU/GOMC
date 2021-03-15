@@ -45,6 +45,7 @@ set(sources
    src/PSFOutput.cpp
    src/Random123Wrapper.cpp
    src/Reader.cpp
+   src/ReplicaCommunicator.cpp
    src/Simulation.cpp
    src/StaticVals.cpp
    src/System.cpp
@@ -136,6 +137,7 @@ set(headers
    src/PSFOutput.h
    src/Random123Wrapper.h
    src/Reader.h
+   src/ReplicaCommunicator.h
    src/SeedReader.h
    src/Setup.h
    src/SimEventFrequency.h
