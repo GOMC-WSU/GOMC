@@ -42,6 +42,7 @@ set(sources
    src/PDBOutput.cpp
    src/PRNGSetup.cpp
    src/PSFOutput.cpp
+   src/Random123Wrapper.cpp
    src/Reader.cpp
    src/Simulation.cpp
    src/StaticVals.cpp
@@ -131,6 +132,7 @@ set(headers
    src/PRNG.h
    src/PRNGSetup.h
    src/PSFOutput.h
+   src/Random123Wrapper.h
    src/Reader.h
    src/SeedReader.h
    src/Setup.h
@@ -174,6 +176,7 @@ set(headers
    src/moves/MoleculeTransfer.h
    src/moves/MoveBase.h
    src/moves/MultiParticle.h
+   src/moves/MultiParticleBrownianMotion.h
    src/moves/Regrowth.h
    src/moves/Rotation.h
    src/moves/TargetedSwap.h

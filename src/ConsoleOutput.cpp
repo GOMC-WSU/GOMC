@@ -121,6 +121,13 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
       printElement(var->GetAcceptPercent(box, sub), elementWidth);
     }
 
+    if(var->Performed(mv::MULTIPARTICLE_BM)) {
+      sub = mv::MULTIPARTICLE_BM;
+      printElement(var->GetTries(box, sub), elementWidth);
+      printElement(var->GetAccepted(box, sub), elementWidth);
+      printElement(var->GetAcceptPercent(box, sub), elementWidth);
+    }
+
     if(var->Performed(mv::INTRA_SWAP)) {
       sub = mv::INTRA_SWAP;
       printElement(var->GetTries(box, sub), elementWidth);
@@ -369,6 +376,12 @@ void ConsoleOutput::PrintMoveTitle()
     printElement("MULTIPARTICLE", elementWidth);
     printElement("MPACCEPT", elementWidth);
     printElement("MPACCEPT%", elementWidth);
+  }
+
+  if(var->Performed(mv::MULTIPARTICLE_BM)) {
+    printElement("MULTIPARTICLEBM", elementWidth);
+    printElement("MPBMACCEPT", elementWidth);
+    printElement("MPBMACCEPT%", elementWidth);
   }
 
   if(var->Performed(mv::INTRA_SWAP)) {

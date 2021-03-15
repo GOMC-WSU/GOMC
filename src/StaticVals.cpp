@@ -18,7 +18,7 @@ void StaticVals::Init(Setup & set, System& sys)
   forcefield.Init(set);
   mol.Init(set, forcefield, sys);
 #ifndef VARIABLE_PARTICLE_NUMBER
-  molLookup.Init(mol, set.pdb.atoms);
+  molLookup.Init(mol, set.pdb.atoms, forcefield);
 #endif
   InitMovePercents(set.config.sys.moves);
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
@@ -44,6 +44,9 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
       break;
     case mv::MULTIPARTICLE:
       movePerc[m] = perc.multiParticle;
+      break;
+    case mv::MULTIPARTICLE_BM:
+      movePerc[m] = perc.multiParticleBrownian;
       break;
     case mv::ROTATE:
       movePerc[m] = perc.rotate;
