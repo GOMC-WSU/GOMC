@@ -198,13 +198,16 @@ inline uint MultiParticleBrownian::Prep(const double subDraw, const double movPe
 inline void MultiParticleBrownian::PrepCFCMC(const uint box)
 {
   bPick = box;
-  moveType = prng.randIntExc(mp::MPTOTALTYPES);
-  SetMolInBox(bPick);
-  uint length = molRef.GetKind(moleculeIndex[0]).NumAtoms();
-  if(length == 1) {
+  // In each step, we perform either:
+  // 1- All displacement move.
+  // 2- All rotation move.
+  if(allTranslate) {
     moveType = mp::MPDISPLACE;
+  } else {
+    moveType = prng.randIntExc(mp::MPTOTALTYPES);
   }
 
+  SetMolInBox(bPick);
   //We don't use forces for non-MP moves, so we need to calculate them for the
   //current system if any other moves, besides other MP moves, have been accepted.
   //Or, if this is the first MP move, which is handled with the same flag.
@@ -295,8 +298,8 @@ inline void MultiParticleBrownian::CalcEn()
   //back up cached fourier term
   calcEwald->backupMolCache();
 
-  //setup reciprocate vectors for new positions
-  calcEwald->BoxReciprocalSetup(bPick, newMolsPos);
+  //setup reciprocal vectors for new positions
+  calcEwald->BoxReciprocalSums(bPick, newMolsPos);
 
   sysPotNew = sysPotRef;
   //calculate short range energy and force
