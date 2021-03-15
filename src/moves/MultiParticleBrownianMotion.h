@@ -13,6 +13,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <cmath>
 #include "Random123Wrapper.h"
 #ifdef GOMC_CUDA
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include "CUDAMemoryManager.cuh"
 #include "TransformParticlesCUDAKernel.cuh"
 #include "VariablesCUDA.cuh"
 #endif
@@ -21,6 +24,12 @@ class MultiParticleBrownian : public MoveBase
 {
 public:
   MultiParticleBrownian(System &sys, StaticVals const& statV);
+  ~MultiParticleBrownian() {
+#ifdef GOMC_CUDA
+    cudaVars = NULL;
+    cudaFreeHost(kill);
+#endif
+  }
 
   virtual uint Prep(const double subDraw, const double movPerc);
   virtual void CalcEn();
@@ -50,6 +59,7 @@ private:
 #ifdef GOMC_CUDA
   VariablesCUDA *cudaVars;
   bool isOrthogonal;
+  int *kill; // kill the simulation if we started with bad configuration
 #endif
 
   double GetCoeff();
@@ -93,6 +103,8 @@ inline MultiParticleBrownian::MultiParticleBrownian(System &sys, StaticVals cons
 #ifdef GOMC_CUDA
   cudaVars = sys.statV.forcefield.particles->getCUDAVars();
   isOrthogonal = statV.isOrthogonal;
+  cudaMallocHost((void**) &kill, sizeof(int));
+  checkLastErrorCUDA(__FILE__, __LINE__);
 #endif
 }
 
@@ -258,8 +270,8 @@ inline uint MultiParticleBrownian::Transform()
       r123wrapper.GetStep(), 
       r123wrapper.GetSeedValue(),
       bPick,
-      isOrthogonal);
-
+      isOrthogonal,
+      kill);
   } else {
     double t_max = moveSetRef.GetTMAX(bPick);
     BrownianMotionTranslateParticlesGPU(
@@ -276,9 +288,20 @@ inline uint MultiParticleBrownian::Transform()
       r123wrapper.GetStep(), 
       r123wrapper.GetSeedValue(),
       bPick,
-      isOrthogonal);
-
+      isOrthogonal,
+      kill);
   }
+  // kill the simulation if we had bad initial configuration
+  if(kill[0]) {
+    std::cout << "Error: Transformation of " << kill[0] << "in Multiparticle Brownian Motion move failed!\n"
+              << "       Either trial rotate/translate is not finite number or their translation \n" 
+              << "       exceeded half of the box length! \n\n";
+    std::cout << "This might be due to bad initial configuration, where atom of the molecules \n" 
+              << "are too close to each other or overlaps. Please equilibrate your system using \n"
+              << "rigid body translation or rotation MC moves, before using the Multiparticle \n"
+              << "Brownian Motion move. \n\n";
+    exit(EXIT_FAILURE);
+} 
 #else
   // Calculate trial translate and rotate
   // move particles according to force and torque and store them in the new pos
@@ -293,7 +316,8 @@ inline void MultiParticleBrownian::CalcEn()
   GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_MULTIPARTICLE_BM);
   // Calculate the new force and energy and we will compare that to the
   // reference values in Accept() function
-  cellList.GridAll(boxDimRef, newMolsPos, molLookup);
+  //cellList.GridAll(boxDimRef, newMolsPos, molLookup);
+  cellList.GridBox(boxDimRef, newMolsPos, molLookup, bPick);
 
   //back up cached fourier term
   calcEwald->backupMolCache();
@@ -417,11 +441,7 @@ inline XYZ MultiParticleBrownian::CalcRandomTransform(XYZ const &lb, double cons
   num.z = lbmax.z + r123wrapper.GetGaussianNumber(molIndex * 3 + 2, 0.0, stdDev);
 
 
-  if(num.Length() >= boxDimRef.axis.Min(bPick)) {
-    std::cout << "Trial Displacement exceeds half of the box length in Brownian Motion MultiParticle move.\n";
-    std::cout << "Trial transform: " << num;
-    exit(EXIT_FAILURE);
-  } else if (!std::isfinite(num.Length())) {
+  if (!std::isfinite(num.Length())) {
     std::cout << "Error: Trial transform is not a finite number in Brownian Motion Multiparticle move.\n";
     std::cout << "       Trial transform: " << num;
     exit(EXIT_FAILURE);
@@ -501,6 +521,7 @@ inline void MultiParticleBrownian::RotateForceBiased(uint molIndex)
 inline void MultiParticleBrownian::TranslateForceBiased(uint molIndex)
 {
   XYZ shift = t_k.Get(molIndex);
+  // check for PBC error and bad initial configuration
   if(shift > boxDimRef.GetHalfAxis(bPick)) {
     std::cout << "Error: Trial Displacement exceed half of the box length in Multiparticle \n" 
               << "       Brownian Motion move!\n";

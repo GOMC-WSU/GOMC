@@ -75,7 +75,6 @@ System::~System()
   delete moves[mv::REGROWTH];
   delete moves[mv::INTRA_MEMC];
   delete moves[mv::CRANKSHAFT];
-  delete moves[mv::MULTIPARTICLE];
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   delete moves[mv::VOL_TRANSFER];
 #endif

@@ -25,6 +25,7 @@ class MultiParticle : public MoveBase
 {
 public:
   MultiParticle(System &sys, StaticVals const& statV);
+  ~MultiParticle() {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
   virtual void CalcEn();

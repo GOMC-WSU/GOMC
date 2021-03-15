@@ -14,6 +14,7 @@ typedef r123::Philox4x32 RNG;
 #include <cuda_runtime.h>
 #include "VariablesCUDA.cuh"
 #include "XYZArray.h"
+#include "math.h"
 
 void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                const std::vector<int8_t> &isMoleculeInvolved,
@@ -119,7 +120,8 @@ void BrownianMotionRotateParticlesGPU(
   unsigned int step,
   unsigned int seed,
   const int box,
-  bool isOrthogonal);
+  bool isOrthogonal,
+  int *kill);
 
 
 void BrownianMotionTranslateParticlesGPU(
@@ -136,7 +138,8 @@ void BrownianMotionTranslateParticlesGPU(
   unsigned int step,
   unsigned int seed,
   const int box,
-  bool isOrthogonal);
+  bool isOrthogonal,
+  int *kill);
 
 
 template<bool isOrthogonal>
@@ -167,7 +170,8 @@ __global__ void BrownianMotionRotateKernel(
   double r_max,
   unsigned int step,
   unsigned int seed,
-  double BETA);
+  double BETA,
+  int *kill);
 
 
 template<bool isOrthogonal>
@@ -201,6 +205,7 @@ __global__ void BrownianMotionTranslateKernel(
   double t_max,
   unsigned int step,
   unsigned int seed,
-  double BETA);
+  double BETA,
+  int *kill);
 
 #endif
