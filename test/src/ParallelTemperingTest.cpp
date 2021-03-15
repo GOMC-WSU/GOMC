@@ -2,6 +2,7 @@
 #include "GOMC_Config.h"    //For PT
 #include "ReplicaCommunicator.h"
 #include <iostream>
+#include <stdlib.h>
 #if GOMC_LIB_MPI
 #include <mpi.h>
 #include "gtest-mpi-listener.hpp"
@@ -40,8 +41,6 @@ TEST(ParallelTemperingTest, ParallelTemperingTest) {  /// Then you can create te
   //ompi_communicator_t world;  /// and use MPI inside your tests.
   /* ... test stuff here ... */
 
-    //Simulation sim0("freq10.conf");
-    //Simulation sim1("freq10.conf");
   // Get the number of processes
   int worldSize;
   // Initialize the MPI environment
@@ -52,16 +51,16 @@ TEST(ParallelTemperingTest, ParallelTemperingTest) {  /// Then you can create te
 
   std::cout << worldRank << std::endl;
 
-  XYZArray oldCoords(5000);
-  XYZArray oldComs(5000);
+  XYZArray oldCoords(5);
+  XYZArray oldComs(5);
 
-  for (int i = 0; i < 5000; i++){
-    oldCoords.Set(i, (double)(rand()), (double)(rand()), (double)(rand()));
-    oldComs.Set(i, (double)(rand()), (double)(rand()), (double)(rand()));
+  for (int i = 0; i < 5; i++){
+    oldCoords.Set(i, (double)(worldRank), (double)(worldRank), (double)(worldRank));
+    oldComs.Set(i, (double)(worldRank), (double)(worldRank), (double)(worldRank));
   }
 
-  XYZArray newCoords(5000);
-  XYZArray newComs(5000);
+  XYZArray newCoords(5);
+  XYZArray newComs(5);
 
   newCoords = oldCoords;
   newComs = oldComs;
@@ -72,6 +71,11 @@ TEST(ParallelTemperingTest, ParallelTemperingTest) {  /// Then you can create te
   ReplicaCommunicator replcomm;
 
   if(worldRank == 0){
+    for (int i = 0; i < 5; i++)
+      std::cout << newCoords[i];
+  }
+
+  if(worldRank == 0){
     replcomm.exchangePositionsNonBlocking(&newCoords, 1);
     replcomm.exchangeCOMsNonBlocking(&newComs, 1);
   } else if (worldRank == 1) {
@@ -79,8 +83,13 @@ TEST(ParallelTemperingTest, ParallelTemperingTest) {  /// Then you can create te
     replcomm.exchangeCOMsNonBlocking(&newComs, 0);
   }
 
-  XYZArray interCoords(5000);
-  XYZArray interComs(5000);
+  if(worldRank == 0){
+    for (int i = 0; i < 5; i++)
+      std::cout << newCoords[i];
+  }
+
+  XYZArray interCoords(5);
+  XYZArray interComs(5);
 
   interCoords = newCoords;
   interComs = newComs;
