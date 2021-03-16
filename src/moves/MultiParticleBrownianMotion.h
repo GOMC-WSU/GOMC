@@ -28,6 +28,7 @@ public:
 #ifdef GOMC_CUDA
     cudaVars = NULL;
     cudaFreeHost(kill);
+    kill = NULL;
 #endif
   }
 
@@ -254,6 +255,7 @@ inline uint MultiParticleBrownian::Transform()
   uint state = mv::fail_state::NO_FAIL;
 
 #ifdef GOMC_CUDA
+  kill[0] = 0;
   // This kernel will calculate translation/rotation amount + shifting/rotating
   if(moveType == mp::MPROTATE) {
     double r_max = moveSetRef.GetRMAX(bPick);
