@@ -123,7 +123,14 @@ void CellList::AddMol(const int molIndex, const int box, const XYZArray& pos)
   // so list should point to that
   // if this is the first particle in a particular cell.
   while(p != end) {
-    int cell = PositionToCell(pos[p], box);
+    int cell = PositionToCell(pos[p], box); 
+#ifndef NDEBUG
+    if(cell >= static_cast<int>(head[box].size())) {
+      std::cout << "CellList.cpp:129: box " << box << ", pos out of cell: " << pos[p]
+                << std::endl;
+      std::cout << "AxisDimensions: " << dimensions->GetAxis(box) << std::endl;
+    }
+#endif
     //Make the current head index the index the new head points at.
     list[p] = head[box][cell];
     //Assign the new head as our particle index

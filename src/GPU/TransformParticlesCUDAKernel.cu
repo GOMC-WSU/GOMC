@@ -50,9 +50,9 @@ __device__ inline void ApplyRotation(double &x, double &y, double &z,
   double axisy = roty * (1.0 / rotLen);
   double axisz = rotz * (1.0 / rotLen);
   double matrix[3][3], cross[3][3], tensor[3][3];
-  double halfAxx = axisx * 0.5;
-  double halfAxy = axisy * 0.5;
-  double halfAxz = axisz * 0.5;
+  double halfAxx = axx * 0.5;
+  double halfAxy = axy * 0.5;
+  double halfAxz = axz * 0.5;
 
   // build cross
   cross[0][0] = 0.0;
@@ -476,14 +476,15 @@ void BrownianMotionRotateParticlesGPU(
   unsigned int step,
   unsigned int seed,
   const int box,
-  bool isOrthogonal)
+  bool isOrthogonal,
+  int *kill)
 {
   int atomCount = newMolPos.Count();
   int molCount = newCOMs.Count();
   int molCountInBox = moleculeInvolved.size();
   int *gpu_moleculeInvolved;
   // Each block would handle one molecule
-  int threadsPerBlock = 64;
+  int threadsPerBlock = 32;
   int blocksPerGrid = molCountInBox;
 
   CUMALLOC((void **) &gpu_moleculeInvolved, molCountInBox * sizeof(int));
@@ -530,7 +531,8 @@ void BrownianMotionRotateParticlesGPU(
       r_max,
       step,
       seed,
-      BETA);
+      BETA,
+      kill);
   } else {
     BrownianMotionRotateKernel<false><<< blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_startAtomIdx,
@@ -559,7 +561,8 @@ void BrownianMotionRotateParticlesGPU(
       r_max,
       step,
       seed,
-      BETA);
+      BETA,
+      kill);
   }
 
   cudaDeviceSynchronize();
@@ -603,7 +606,8 @@ __global__ void BrownianMotionRotateKernel(
   double r_max,
   unsigned int step,
   unsigned int seed,
-  double BETA)
+  double BETA,
+  int *kill)
 {
   //Each grid take cares of one molecule
   int molIndex = moleculeInvolved[blockIdx.x];
@@ -630,6 +634,10 @@ __global__ void BrownianMotionRotateKernel(
     gpu_r_k_x[molIndex] = rot_x;
     gpu_r_k_y[molIndex] = rot_y;
     gpu_r_k_z[molIndex] = rot_z;
+    //check for bad configuration
+    if(!isfinite(rot_x + rot_y + rot_z)) {
+      atomicAdd(kill, 1);
+    }
     // build rotation matrix
     double cross[3][3], tensor[3][3];
     double rotLen = sqrt(rot_x * rot_x + rot_y * rot_y + rot_z * rot_z);
@@ -669,7 +677,7 @@ __global__ void BrownianMotionRotateKernel(
   }
 
   __syncthreads();
-  // use strid of blockDim.x, which is 64
+  // use strid of blockDim.x, which is 32
   // each thread handles one atom rotation
   for(atomIdx = startIdx + threadIdx.x; atomIdx < endIdx; atomIdx += blockDim.x) {
     double3 coor = make_double3(gpu_x[atomIdx], gpu_y[atomIdx], gpu_z[atomIdx]);
@@ -727,14 +735,15 @@ void BrownianMotionTranslateParticlesGPU(
   unsigned int step,
   unsigned int seed,
   const int box,
-  bool isOrthogonal)
+  bool isOrthogonal,
+  int *kill)
 {
   int atomCount = newMolPos.Count();
   int molCount = newCOMs.Count();
   int molCountInBox = moleculeInvolved.size();
   int *gpu_moleculeInvolved;
   // Each block would handle one molecule
-  int threadsPerBlock = 64;
+  int threadsPerBlock = 32;
   int blocksPerGrid = molCountInBox;
 
   CUMALLOC((void **) &gpu_moleculeInvolved, molCountInBox * sizeof(int));
@@ -787,7 +796,8 @@ void BrownianMotionTranslateParticlesGPU(
       t_max,
       step,
       seed,
-      BETA);
+      BETA,
+      kill);
   } else {
     BrownianMotionTranslateKernel<false><<< blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_startAtomIdx,
@@ -819,7 +829,8 @@ void BrownianMotionTranslateParticlesGPU(
       t_max,
       step,
       seed,
-      BETA);
+      BETA,
+      kill);
   }
 
   cudaDeviceSynchronize();
@@ -870,7 +881,8 @@ __global__ void BrownianMotionTranslateKernel(
   double t_max,
   unsigned int step,
   unsigned int seed,
-  double BETA)
+  double BETA,
+  int *kill)
 {
   //Each grid take cares of one molecule
   int molIndex = moleculeInvolved[blockIdx.x];
@@ -913,10 +925,16 @@ __global__ void BrownianMotionTranslateKernel(
     gpu_comx[molIndex] = com.x;
     gpu_comy[molIndex] = com.y;
     gpu_comz[molIndex] = com.z;
+    //check for bad configuration
+    if(!isfinite(shift.x + shift.y + shift.z)) {
+      atomicAdd(kill, 1);
+    } else if (shift.x > halfAx.x || shift.y > halfAx.y || shift.z > halfAx.z) {
+      atomicAdd(kill, 1);
+    }
   }
 
   __syncthreads();
-  // use strid of blockDim.x, which is 64
+  // use strid of blockDim.x, which is 32
   // each thread handles one atom translation
   for(atomIdx = startIdx + threadIdx.x; atomIdx < endIdx; atomIdx += blockDim.x) {
     double3 coor = make_double3(gpu_x[atomIdx], gpu_y[atomIdx], gpu_z[atomIdx]);
