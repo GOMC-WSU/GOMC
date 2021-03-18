@@ -14,7 +14,7 @@ void ReplicaCommunicator::exchangePositionsNonBlocking(Coordinates * myPos, int 
   double * buffer_z = new double[count];
 /*
 #ifdef _OPENMP
-  #pragma omp parallel default(none) shared(count)
+  #pragma omp parallel default(none) 
 #endif
   {
     std::memcpy(buffer_x, myPos->x, sizeof(double) * count);

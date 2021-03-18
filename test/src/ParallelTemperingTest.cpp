@@ -126,30 +126,41 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
 
   std::cout << worldRank << std::endl;
 
-  Simulation * sim;
-
   const MultiSim ms(worldSize, worldRank);
   if(worldRank == 0){
-    sim  = new Simulation ("test/input/ParallelTempering/temp_120.00/repl0.conf", &ms);
+    Simulation sim("test/input/ParallelTempering/temp_120.00/repl0.conf", &ms);
+    double original = sim.GetSystemEnergy();
+    std::cout << worldRank << "before : " << original << std::endl;
+    sim.ExchangeReplicas();
+    double other = sim.GetSystemEnergy();
+    std::cout << worldRank << "after : " << other << std::endl;
+
+    ASSERT_NE(original, other);
+
+    sim.ExchangeReplicas();
+    double shouldBeOriginal = sim.GetSystemEnergy();
+    std::cout << worldRank << "last : " << shouldBeOriginal << std::endl;
+
+    ASSERT_DOUBLE_EQ(original, shouldBeOriginal);
   } else if(worldRank == 1){
-    sim  = new Simulation ("test/input/ParallelTempering/temp_180.00/repl1.conf", &ms);
+    Simulation sim("test/input/ParallelTempering/temp_180.00/repl1.conf", &ms);
+    double original = sim.GetSystemEnergy();
+    std::cout << worldRank << "before : " << original << std::endl;
+    sim.ExchangeReplicas();
+    double other = sim.GetSystemEnergy();
+    std::cout << worldRank << "after : " << other << std::endl;
+
+    ASSERT_NE(original, other);
+
+    sim.ExchangeReplicas();
+    double shouldBeOriginal = sim.GetSystemEnergy();
+    std::cout << worldRank << "last : " << shouldBeOriginal << std::endl;
+
+    ASSERT_DOUBLE_EQ(original, shouldBeOriginal);
   } else {
     std::cout << worldRank << "something weird happened. " << std::endl;
   }
 
-  double original = sim->GetSystemEnergy();
-  std::cout << worldRank << "before : " << original << std::endl;
-  sim->ExchangeReplicas();
-  double other = sim->GetSystemEnergy();
-  std::cout << worldRank << "after : " << other << std::endl;
-
-  ASSERT_NE(original, other);
-
-  sim->ExchangeReplicas();
-  double shouldBeOriginal = sim->GetSystemEnergy();
-  std::cout << worldRank << "last : " << shouldBeOriginal << std::endl;
-
-  ASSERT_DOUBLE_EQ(original, shouldBeOriginal);
 }
 
 #endif
