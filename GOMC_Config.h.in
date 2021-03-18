@@ -3,6 +3,12 @@
 #define GOMC_VERSION_MAJOR @GOMC_VERSION_MAJOR@
 #define GOMC_VERSION_MINOR @GOMC_VERSION_MINOR@
 
+/* Allow exposure of methods only used in unit testing */
+#cmakedefine01 GOMC_GTEST
+
+/* Allow exposure of methods only used in unit testing - MPI Enabled */
+#cmakedefine01 GOMC_GTEST_MPI
+
 /* Use MPI (with mpicc) for parallelization */
 #cmakedefine01 GOMC_LIB_MPI
 

@@ -510,6 +510,7 @@ MultiSim::MultiSim(ParallelTemperingPreprocessor & pt) :
   fplog =  fopen(filename.c_str(), "w");
 }
 
+#if GOMC_GTEST_MPI
 /* For GTesting Only */
 MultiSim::MultiSim(int worldSize, int worldRank) :
   worldSize(worldSize), worldRank(worldRank), replicaInputDirectoryPath(""),
@@ -519,5 +520,6 @@ MultiSim::MultiSim(int worldSize, int worldRank) :
   std::string filename = replicaOutputDirectoryPath + "ParallelTempering.dat";
   fplog =  fopen(filename.c_str(), "w");
 }
+#endif
 
 #endif

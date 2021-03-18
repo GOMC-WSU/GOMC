@@ -103,7 +103,7 @@ cd bin
 ICC_PATH="$(which icc 2> /dev/null)"
 ICPC_PATH="$(which icpc 2> /dev/null)"
 # if intel was not available, link to gcc
-if [ -z "$COMPILER_C_PATH" ]
+if [ -z "$ICC_PATH" ]
 then
   COMPILER_C_PATH="$(which gcc 2> /dev/null)"
   COMPILER_CXX_PATH="$(which g++ 2> /dev/null)"

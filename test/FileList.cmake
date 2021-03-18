@@ -5,11 +5,8 @@ set(TestSources
     test/src/MolLookupTest.cpp
     test/src/CircuitTester.cpp
     test/src/PSFParserTest.cpp
-<<<<<<< 6999568989b504076e46b53df19131353683d601
     test/src/ConsistentTrajectoryTest.cpp
     test/src/ParallelTemperingTest.cpp
-=======
->>>>>>> Replica communication tested for com and coords
 )
 
 set(TestHeaders
@@ -33,11 +30,8 @@ set(GOMCSources
     lib/CircuitFinder.cpp
     src/InputFileReader.cpp
     lib/FloydWarshallCycle.cpp
-<<<<<<< 6999568989b504076e46b53df19131353683d601
     src/MoleculeLookup.cpp
     src/Simulation.cpp
-=======
->>>>>>> Replica communication tested for com and coords
 )
 
 set(GOMCHeaders

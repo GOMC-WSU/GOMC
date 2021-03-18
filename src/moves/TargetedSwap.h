@@ -766,7 +766,11 @@ void TargetedSwap::PrintTargetedSwapInfo()
               tsp.subVolumeIdx);
       printf("%-40s %d \n",       "      SubVolume Box:", b);
       if (tsp.calcSubVolCenter) {
+<<<<<<< 3a8246d639fe64bf97df426a1a753b1350ab1813
         printf("%-40s Using %lu defined atom indexes \n", "      Calculating subVolume center:",
+=======
+        printf("%-40s Using %lu defined atom index/es \n", "      Calculating subVolume center:",
+>>>>>>> making and targeted swap and checkpoint
                 tsp.atomList.size());
         int max = *std::max_element(tsp.atomList.begin(), tsp.atomList.end());
         if(max >= (int) coordCurrRef.Count()) {

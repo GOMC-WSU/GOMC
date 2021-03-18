@@ -72,7 +72,9 @@ class MultiSim
 {
 public:
   explicit MultiSim(ParallelTemperingPreprocessor & pt);
+  #if GOMC_GTEST_MPI
   explicit MultiSim(int worldSize, int worldRank);
+  #endif
   const int worldSize, worldRank;
   const std::string replicaInputDirectoryPath;
   const std::string replicaOutputDirectoryPath;
