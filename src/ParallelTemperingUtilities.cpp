@@ -365,7 +365,7 @@ void ParallelTemperingUtilities::computeExchangeOrder(std::vector< std::vector<i
 
 
 
-void ParallelTemperingUtilities::conductExchanges(Coordinates & coordCurrRef, COM & comCurrRef, int replicaID, const int & maxSwap, const bool & bThisReplicaExchanged)
+void ParallelTemperingUtilities::conductExchanges(int replicaID, Coordinates & currCoordRef, COM & currComRef, const int & maxSwap, const bool & bThisReplicaExchanged)
 {
 
   int exchangePartner;
@@ -381,14 +381,15 @@ void ParallelTemperingUtilities::conductExchanges(Coordinates & coordCurrRef, CO
         fprintf(fplog, "Exchanging %d with %d\n", replicaID, exchangePartner);
 #endif
 
-        newMolsPos = coordCurrRef;
-        newCOMs = comCurrRef;
+        /* Calls deep copy operators */
+        newMolsPos = currCoordRef;
+        newCOMs = currComRef;
 
         replcomm.exchangePositionsNonBlocking(&newMolsPos, exchangePartner);
         replcomm.exchangeCOMsNonBlocking(&newCOMs, exchangePartner);
 
-        swap(coordCurrRef, newMolsPos);
-        swap(comCurrRef, newCOMs);
+        swap(currCoordRef, newMolsPos);
+        swap(currComRef, newCOMs);
       }
     }
 
@@ -1178,5 +1179,25 @@ void ParallelTemperingUtilities::print_allswitchind(FILE* fplog, int n, const st
   }
   fprintf(fplog, "\n\n");
 }
+
+#if GOMC_GTEST_MPI
+void ParallelTemperingUtilities::forceExchange(int worldRank, Coordinates & currCoordRef, COM & currComRef){
+        int exchangePartner;
+        if(worldRank == 0){
+          exchangePartner = 1;
+        } else {
+          exchangePartner = 0;
+        }
+
+        newMolsPos = currCoordRef;
+        newCOMs = currComRef;
+
+        replcomm.exchangePositionsNonBlocking(&newMolsPos, exchangePartner);
+        replcomm.exchangeCOMsNonBlocking(&newCOMs, exchangePartner);
+
+        swap(currCoordRef, newMolsPos);
+        swap(currComRef, newCOMs);
+}
+#endif
 
 #endif

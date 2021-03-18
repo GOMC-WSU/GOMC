@@ -102,7 +102,7 @@ void Simulation::RunSimulation(void)
       system->potential = system->calcEnergy.SystemTotal();
       PTUtils->evaluateExchangeCriteria(step);
       PTUtils->prepareToDoExchange(ms->worldRank, &maxSwap, &bThisReplicaExchanged);
-      PTUtils->conductExchanges(system->coordinates, system->com, ms->worldRank, maxSwap, bThisReplicaExchanged);
+      PTUtils->conductExchanges(ms->worldRank, system->coordinates, system->com, maxSwap, bThisReplicaExchanged);
       system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
       if (staticValues->forcefield.ewald) {
         for(int box = 0; box < BOX_TOTAL; box++) {
@@ -178,3 +178,22 @@ bool Simulation::RecalculateAndCheck(void)
 
   return compare;
 }
+
+  #if GOMC_GTEST_MPI
+      double Simulation::GetSystemEnergy(void){
+        return (system->calcEnergy.SystemTotal()).Total();
+      }
+      void Simulation::ExchangeReplicas(void){
+        PTUtils->forceExchange(ms->worldRank, system->coordinates, system->com);
+        system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
+        /*
+        if (staticValues->forcefield.ewald) {
+          for(int box = 0; box < BOX_TOTAL; box++) {
+            system->calcEwald->BoxReciprocalSums(box, system->coordinates);
+            system->potential.boxEnergy[box].recip = system->calcEwald->BoxReciprocal(box, false);
+            system->calcEwald->UpdateRecip(box);
+          }
+        }
+        */
+      }
+  #endif

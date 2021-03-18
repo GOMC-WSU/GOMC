@@ -75,8 +75,7 @@ public:
   void prepareToDoExchange(const int replica_id, int* maxswap, bool* bThisReplicaExchanged);
   void cyclicDecomposition(const std::vector<int> &destinations, std::vector< std::vector<int> > & cyclic, std::vector<bool> & incycle, const int nrepl, int * nswap);
   void computeExchangeOrder(std::vector< std::vector<int> > & cyclic, std::vector< std::vector<int> > & order, const int nrepl, const int maxswap);
-
-  void conductExchanges(Coordinates & coordCurrRef, COM & comCurrRef, int replicaID, const int & maxSwap, const bool & bThisReplicaExchanged);
+  void conductExchanges(int replicaID, Coordinates & currCoordRef, COM & currComRef, const int & maxSwap, const bool & bThisReplicaExchanged);
 
 
   void exchangeCellLists(CellList & myCellList, MultiSim const*const& multisim, int exchangePartner, bool leader);
@@ -89,6 +88,11 @@ public:
   void print_replica_exchange_statistics(FILE * fplog);
   void print_allswitchind(FILE* fplog, int n, const std::vector<int> &pind, std::vector<int> &allswaps, std::vector<int> &tmpswap);
 
+#if GOMC_GTEST_MPI
+  /* Assumes only two replicas exist */
+  void forceExchange(int worldRank, Coordinates & currCoordRef, COM & currComRef);
+#endif
+
 private:
 
   MultiSim const*const& ms;
@@ -97,6 +101,8 @@ private:
   FILE * fplog;
   PRNG & prng;
   SystemPotential & sysPotRef;
+  //Coordinates & coordRef;
+  //COM & comRef;
   SystemPotential sysPotNew;
   ulong parallelTempFreq, parallelTemperingAttemptsPerExchange;
   std::vector<double> global_betas;

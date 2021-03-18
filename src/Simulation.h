@@ -25,6 +25,11 @@ public:
   void RunSimulation(void);
   bool RecalculateAndCheck(void);
 
+  #if GOMC_GTEST_MPI
+      double GetSystemEnergy(void);
+      void ExchangeReplicas(void);
+  #endif
+
 private:
   StaticVals * staticValues;
   System * system;

@@ -37,11 +37,10 @@ GTEST_API_ int main(int argc, char **argv) {
   return 0;  // Run tests, then clean up and exit
 
 }
-
+/*
 TEST(ParallelTemperingTest, Pos_And_COMCommunication) {  /// Then you can create tests as usual,
   //using namespace mpi;
   //ompi_communicator_t world;  /// and use MPI inside your tests.
-  /* ... test stuff here ... */
 
   // Get the number of processes
   int worldSize;
@@ -111,7 +110,7 @@ TEST(ParallelTemperingTest, Pos_And_COMCommunication) {  /// Then you can create
   EXPECT_EQ(oldComs, newComs);
 
 }
-
+*/
 TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as usual,
   //using namespace mpi;
   //ompi_communicator_t world;  /// and use MPI inside your tests.
@@ -127,12 +126,30 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
 
   std::cout << worldRank << std::endl;
 
+  Simulation * sim;
+
   const MultiSim ms(worldSize, worldRank);
   if(worldRank == 0){
-    Simulation sim0("test/input/ParallelTempering/temp_120.00/repl0.conf", &ms);
+    sim  = new Simulation ("test/input/ParallelTempering/temp_120.00/repl0.conf", &ms);
+  } else if(worldRank == 1){
+    sim  = new Simulation ("test/input/ParallelTempering/temp_180.00/repl1.conf", &ms);
   } else {
-    Simulation sim1("test/input/ParallelTempering/temp_180.00/repl1.conf", &ms);
+    std::cout << worldRank << "something weird happened. " << std::endl;
   }
+
+  double original = sim->GetSystemEnergy();
+  std::cout << worldRank << "before : " << original << std::endl;
+  sim->ExchangeReplicas();
+  double other = sim->GetSystemEnergy();
+  std::cout << worldRank << "after : " << other << std::endl;
+
+  ASSERT_NE(original, other);
+
+  sim->ExchangeReplicas();
+  double shouldBeOriginal = sim->GetSystemEnergy();
+  std::cout << worldRank << "last : " << shouldBeOriginal << std::endl;
+
+  ASSERT_DOUBLE_EQ(original, shouldBeOriginal);
 }
 
 #endif

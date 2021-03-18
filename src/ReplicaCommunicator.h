@@ -7,12 +7,18 @@
 #include <mpi.h>
 #endif
 #include "XYZArray.h"
+#include "Coordinates.h"
+#include "COM.h"
+#include <cstdint>
+#include <cstring>
 
 class ReplicaCommunicator{
   public:
+  #if GOMC_LIB_MPI
     ReplicaCommunicator();
-    void exchangePositionsNonBlocking(XYZArray * myPos, int exchangePartner);
-    void exchangeCOMsNonBlocking(XYZArray * myCOMs, int exchangePartner);
+    void exchangePositionsNonBlocking(Coordinates * myPos, int exchangePartner);
+    void exchangeCOMsNonBlocking(COM * myCOMs, int exchangePartner);
+  #endif
 };
 
 #endif
