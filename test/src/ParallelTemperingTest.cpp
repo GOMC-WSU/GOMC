@@ -132,9 +132,68 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
   Simulation * sim;
 
   if(worldRank == 0){
-    sim = new Simulation("test/input/ParallelTempering/temp_120.00/repl0.conf", &ms);
+    sim = new Simulation("test/input/ParallelTempering/noewald/temp_120.00/repl0.conf", &ms);
   } else if(worldRank == 1){
-    sim = new Simulation("test/input/ParallelTempering/temp_180.00/repl1.conf", &ms);
+    sim = new Simulation("test/input/ParallelTempering/noewald/temp_180.00/repl1.conf", &ms);
+  } else {
+    std::cout << worldRank << "something weird happened. " << std::endl;
+  }
+
+  Coordinates originalCoords = sim->getCoordinates();
+  COM originalCOM = sim->getCOMs();
+  //CellList originalCellList = sim->getCellList();
+  double originalEnergy = sim->GetSystemEnergy();
+
+  sim->ExchangeReplicas(worldRank);
+
+  Coordinates otherCoords = sim->getCoordinates();
+  COM otherCOM = sim->getCOMs();
+  //CellList otherCellList = sim->getCellList();
+  double otherEnergy = sim->GetSystemEnergy();
+
+  ASSERT_NE(originalCoords, otherCoords);
+  ASSERT_NE(originalCOM, otherCOM);
+  //ASSERT_NE(originalCellList, otherCellList);
+  ASSERT_NE(originalEnergy, otherEnergy);
+  
+  sim->ExchangeReplicas(worldRank);  
+
+  Coordinates shouldBeOriginalCoords = sim->getCoordinates();
+  COM shouldBeOriginalCOM = sim->getCOMs();
+  //CellList shouldBeOriginalCellList = sim->getCellList();
+  double shouldBeOriginalEnergy = sim->GetSystemEnergy();
+
+  EXPECT_EQ(originalCoords, shouldBeOriginalCoords);
+  EXPECT_EQ(originalCOM, shouldBeOriginalCOM);
+  //EXPECT_EQ(originalCellList, shouldBeOriginalCellList);
+  EXPECT_EQ(originalEnergy, shouldBeOriginalEnergy);
+
+}
+
+TEST(ParallelTemperingTest, FullSwapEwald) {  /// Then you can create tests as usual,
+  //using namespace mpi;
+  //ompi_communicator_t world;  /// and use MPI inside your tests.
+  /* ... test stuff here ... */
+
+  // Get the number of processes
+  int worldSize;
+  // Initialize the MPI environment
+  int worldRank;
+  // Get the rank of the process
+  MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
+  MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
+
+  std::cout << worldRank << std::endl;
+
+  /* Dummy object, ms->worldRank is corrupted after first swap, hence why we pass it as an argument to ExRep */
+  const MultiSim ms(worldSize, worldRank);
+
+  Simulation * sim;
+
+  if(worldRank == 0){
+    sim = new Simulation("test/input/ParallelTempering/ewald/temp_530.00/repl0.conf", &ms);
+  } else if(worldRank == 1){
+    sim = new Simulation("test/input/ParallelTempering/ewald/temp_600.00/repl1.conf", &ms);
   } else {
     std::cout << worldRank << "something weird happened. " << std::endl;
   }
