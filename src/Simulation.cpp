@@ -180,10 +180,9 @@ bool Simulation::RecalculateAndCheck(void)
 
   #if GOMC_GTEST_MPI
       double Simulation::GetSystemEnergy(void){
-        return (system->calcEnergy.SystemTotal()).Total();
+        return (system->potential.Total();
       }
       void Simulation::ExchangeReplicas(int worldRank){
-//        std::cout << "ms->worldRank " << worldRank << std::endl;
         PTUtils->forceExchange(worldRank, system->coordinates, system->com);
         system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
         if (staticValues->forcefield.ewald) {
@@ -192,7 +191,7 @@ bool Simulation::RecalculateAndCheck(void)
             system->potential.boxEnergy[box].recip = system->calcEwald->BoxReciprocal(box, false);
           }
         }
-        
+        system->potential = system->calcEnergy.SystemTotal();
       }
       Coordinates& Simulation::getCoordinates(void){
         return system->coordinates;
