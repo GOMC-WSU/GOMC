@@ -385,8 +385,8 @@ void ParallelTemperingUtilities::conductExchanges(int replicaID, Coordinates & c
         newMolsPos = currCoordRef;
         newCOMs = currComRef;
 
-        replcomm.exchangePositionsNonBlocking(&newMolsPos, exchangePartner);
-        replcomm.exchangeCOMsNonBlocking(&newCOMs, exchangePartner);
+        replcomm.exchangeXYZArrayNonBlocking(&newMolsPos, exchangePartner);
+        replcomm.exchangeXYZArrayNonBlocking(&newCOMs, exchangePartner);
 
         swap(currCoordRef, newMolsPos);
         swap(currComRef, newCOMs);
@@ -1192,14 +1192,11 @@ void ParallelTemperingUtilities::forceExchange(int worldRank, Coordinates & curr
         newMolsPos = currCoordRef;
         newCOMs = currComRef;
 
-        replcomm.exchangePositionsNonBlocking(&newMolsPos, exchangePartner);
-        replcomm.exchangeCOMsNonBlocking(&newCOMs, exchangePartner);
+        replcomm.exchangeXYZArrayNonBlocking(&newMolsPos, exchangePartner);
+        replcomm.exchangeXYZArrayNonBlocking(&newCOMs, exchangePartner);
 
         swap(currCoordRef, newMolsPos);
         swap(currComRef, newCOMs);
-
-        //currCoordRef = newMolsPos;
-        //currComRef = newCOMs;
 
 }
 #endif

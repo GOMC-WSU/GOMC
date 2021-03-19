@@ -60,6 +60,74 @@ CellList::CellList(const CellList & other) : mols(other.mols)
   //head(other.head);
 }
 
+bool CellList::operator==(const CellList & other){
+
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    if(edgeCells[b][0] != other.edgeCells[b][0] || 
+        edgeCells[b][1] != other.edgeCells[b][1] || 
+          edgeCells[b][2] != other.edgeCells[b][2])
+              return false;
+  }
+
+  if(list.size() != other.list.size())
+    return false;
+
+  for (size_t i = 0; i < other.list.size(); i++) {
+    if(list[i] != other.list[i])
+      return false;
+  }
+
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    for (size_t i = 0; i < other.neighbors[b].size(); i++) {
+      if(neighbors[b][i] != other.neighbors[b][i])
+        return false;
+    }
+  }
+
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    for (size_t i = 0; i < other.head[b].size(); i++) {
+      if(head[b][i] != other.head[b][i])
+        return false;
+    }
+  }
+
+  return true;
+}
+
+bool CellList::operator!=(const CellList & other){
+
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    if(edgeCells[b][0] != other.edgeCells[b][0] || 
+        edgeCells[b][1] != other.edgeCells[b][1] || 
+          edgeCells[b][2] != other.edgeCells[b][2])
+              return true;
+  }
+
+  if(list.size() != other.list.size())
+    return true;
+
+  for (size_t i = 0; i < other.list.size(); i++) {
+    if(list[i] != other.list[i])
+      return true;
+  }
+
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    for (size_t i = 0; i < other.neighbors[b].size(); i++) {
+      if(neighbors[b][i] != other.neighbors[b][i])
+        return true;
+    }
+  }
+
+  for(uint b = 0; b < BOX_TOTAL; b++) {
+    for (size_t i = 0; i < other.head[b].size(); i++) {
+      if(head[b][i] != other.head[b][i])
+        return true;
+    }
+  }
+
+  return false;
+}
+
 
 void CellList::SetCutoff()
 {

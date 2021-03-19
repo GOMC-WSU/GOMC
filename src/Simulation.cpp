@@ -184,10 +184,9 @@ bool Simulation::RecalculateAndCheck(void)
         return (system->calcEnergy.SystemTotal()).Total();
       }
       void Simulation::ExchangeReplicas(int worldRank){
-        std::cout << "ms->worldRank " << worldRank << std::endl;
+//        std::cout << "ms->worldRank " << worldRank << std::endl;
         PTUtils->forceExchange(worldRank, system->coordinates, system->com);
-        //system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
-        /*
+        system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
         if (staticValues->forcefield.ewald) {
           for(int box = 0; box < BOX_TOTAL; box++) {
             system->calcEwald->BoxReciprocalSums(box, system->coordinates);
@@ -195,7 +194,7 @@ bool Simulation::RecalculateAndCheck(void)
             system->calcEwald->UpdateRecip(box);
           }
         }
-        */
+        
       }
       Coordinates& Simulation::getCoordinates(void){
         return system->coordinates;

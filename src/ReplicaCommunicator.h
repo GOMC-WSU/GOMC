@@ -16,8 +16,7 @@ class ReplicaCommunicator{
   public:
   #if GOMC_LIB_MPI
     ReplicaCommunicator();
-    void exchangePositionsNonBlocking(XYZArray * myPos, int exchangePartner);
-    void exchangeCOMsNonBlocking(XYZArray * myCOMs, int exchangePartner);
+    void exchangeXYZArrayNonBlocking(XYZArray * myXYZArray, int exchangePartner);
   #endif
 };
 

@@ -30,6 +30,7 @@ public:
       void ExchangeReplicas(int worldRank);
       Coordinates& getCoordinates(void);
       COM& getCOMs(void);
+      CellList& getCellList(void);
 
   #endif
 

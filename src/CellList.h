@@ -24,6 +24,9 @@ class CellList
 public:
   explicit CellList(const Molecules& mols, BoxDimensions& dims);
   CellList(const CellList & other);
+  bool operator==(const CellList & other);
+  bool operator!=(const CellList & other);
+
   void SetCutoff();
 
   void RemoveMol(const int molIndex, const int box, const XYZArray& pos);
