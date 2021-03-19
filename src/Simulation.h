@@ -27,7 +27,10 @@ public:
 
   #if GOMC_GTEST_MPI
       double GetSystemEnergy(void);
-      void ExchangeReplicas(void);
+      void ExchangeReplicas(int worldRank);
+      Coordinates& getCoordinates(void);
+      COM& getCOMs(void);
+
   #endif
 
 private:

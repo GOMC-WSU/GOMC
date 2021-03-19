@@ -183,9 +183,10 @@ bool Simulation::RecalculateAndCheck(void)
       double Simulation::GetSystemEnergy(void){
         return (system->calcEnergy.SystemTotal()).Total();
       }
-      void Simulation::ExchangeReplicas(void){
-        PTUtils->forceExchange(ms->worldRank, system->coordinates, system->com);
-        system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
+      void Simulation::ExchangeReplicas(int worldRank){
+        std::cout << "ms->worldRank " << worldRank << std::endl;
+        PTUtils->forceExchange(worldRank, system->coordinates, system->com);
+        //system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
         /*
         if (staticValues->forcefield.ewald) {
           for(int box = 0; box < BOX_TOTAL; box++) {
@@ -195,5 +196,14 @@ bool Simulation::RecalculateAndCheck(void)
           }
         }
         */
+      }
+      Coordinates& Simulation::getCoordinates(void){
+        return system->coordinates;
+      }
+      COM& Simulation::getCOMs(void){
+        return system->com;
+      }
+      CellList& Simulation::getCellList(void){
+        return system->cellList;
       }
   #endif

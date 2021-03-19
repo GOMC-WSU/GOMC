@@ -3,7 +3,7 @@
 #if GOMC_LIB_MPI
 ReplicaCommunicator::ReplicaCommunicator(){}
 
-void ReplicaCommunicator::exchangePositionsNonBlocking(Coordinates * myPos, int exchangePartner)
+void ReplicaCommunicator::exchangePositionsNonBlocking(XYZArray * myPos, int exchangePartner)
 {
 
   int count = myPos->Count();
@@ -50,7 +50,7 @@ void ReplicaCommunicator::exchangePositionsNonBlocking(Coordinates * myPos, int 
 
 }
 
-void ReplicaCommunicator::exchangeCOMsNonBlocking(COM * myCOMs, int exchangePartner)
+void ReplicaCommunicator::exchangeCOMsNonBlocking(XYZArray * myCOMs, int exchangePartner)
 {
   int count = myCOMs->Count();
 

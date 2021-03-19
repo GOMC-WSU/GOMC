@@ -37,7 +37,7 @@ GTEST_API_ int main(int argc, char **argv) {
   return 0;  // Run tests, then clean up and exit
 
 }
-/*
+
 TEST(ParallelTemperingTest, Pos_And_COMCommunication) {  /// Then you can create tests as usual,
   //using namespace mpi;
   //ompi_communicator_t world;  /// and use MPI inside your tests.
@@ -110,7 +110,7 @@ TEST(ParallelTemperingTest, Pos_And_COMCommunication) {  /// Then you can create
   EXPECT_EQ(oldComs, newComs);
 
 }
-*/
+
 TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as usual,
   //using namespace mpi;
   //ompi_communicator_t world;  /// and use MPI inside your tests.
@@ -126,40 +126,46 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
 
   std::cout << worldRank << std::endl;
 
+  /* Dummy object, ms->worldRank is corrupted after first swap, hence why we pass it as an argument to ExRep */
   const MultiSim ms(worldSize, worldRank);
+
   if(worldRank == 0){
     Simulation sim("test/input/ParallelTempering/temp_120.00/repl0.conf", &ms);
-    double original = sim.GetSystemEnergy();
-    std::cout << worldRank << "before : " << original << std::endl;
-    sim.ExchangeReplicas();
-    double other = sim.GetSystemEnergy();
-    std::cout << worldRank << "after : " << other << std::endl;
-
-    ASSERT_NE(original, other);
-
-    sim.ExchangeReplicas();
-    double shouldBeOriginal = sim.GetSystemEnergy();
-    std::cout << worldRank << "last : " << shouldBeOriginal << std::endl;
-
-    ASSERT_DOUBLE_EQ(original, shouldBeOriginal);
   } else if(worldRank == 1){
     Simulation sim("test/input/ParallelTempering/temp_180.00/repl1.conf", &ms);
-    double original = sim.GetSystemEnergy();
-    std::cout << worldRank << "before : " << original << std::endl;
-    sim.ExchangeReplicas();
-    double other = sim.GetSystemEnergy();
-    std::cout << worldRank << "after : " << other << std::endl;
-
-    ASSERT_NE(original, other);
-
-    sim.ExchangeReplicas();
-    double shouldBeOriginal = sim.GetSystemEnergy();
-    std::cout << worldRank << "last : " << shouldBeOriginal << std::endl;
-
-    ASSERT_DOUBLE_EQ(original, shouldBeOriginal);
   } else {
     std::cout << worldRank << "something weird happened. " << std::endl;
   }
+
+  Coordinates originalCoords = sim.getCoordinates();
+  COM originalCOM = sim.getCOMs();
+  CellList originalCellList = sim.getCellList();
+  double originalEnergy = sim.GetSystemEnergy();
+
+  sim.ExchangeReplicas(worldRank);
+
+  Coordinates otherCoords = sim.getCoordinates();
+  COM otherCOM = sim.getCOMs();
+  CellList otherCellList = sim.getCellList();
+  double otherEnergy = sim.GetSystemEnergy();
+
+  ASSERT_NE(originalCoords, otherCoords);
+  ASSERT_NE(originalCOM, otherCOM);
+  ASSERT_NE(originalCellList, otherCellList);
+  ASSERT_NE(originalEnergy, otherEnergy);
+  
+  sim.ExchangeReplicas(worldRank);  
+
+  Coordinates shouldBeOriginalCoords = sim.getCoordinates();
+  COM shouldBeOriginalCOM = sim.getCOMs();
+  CellList shouldBeOriginalCellList = sim.getCellList();
+  double shouldBeOriginalEnergy = sim.GetSystemEnergy();
+
+  EXPECT_EQ(originalCoords, shouldBeOriginalCoords);
+  EXPECT_EQ(originalCOM, shouldBeOriginalCOM);
+  EXPECT_EQ(originalCellList, shouldBeOriginalCellList);
+  EXPECT_EQ(originalEnergy, shouldBeOriginalEnergy);
+
 
 }
 

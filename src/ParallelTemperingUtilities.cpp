@@ -1197,6 +1197,10 @@ void ParallelTemperingUtilities::forceExchange(int worldRank, Coordinates & curr
 
         swap(currCoordRef, newMolsPos);
         swap(currComRef, newCOMs);
+
+        //currCoordRef = newMolsPos;
+        //currComRef = newCOMs;
+
 }
 #endif
 
