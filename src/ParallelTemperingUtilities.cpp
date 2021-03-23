@@ -58,6 +58,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& multisim, System & sys, StaticVals const& statV, ulong parallelTempFreq, ulong parallelTemperingAttemptsPerExchange):
   ms(multisim), fplog(multisim->fplog), sysPotRef(sys.potential), parallelTempFreq(parallelTempFreq), parallelTemperingAttemptsPerExchange(parallelTemperingAttemptsPerExchange), prng(*sys.prngParallelTemp), newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol)
+  #if ENSEMBLE == NPT
+  , boxDimRef(sys.boxDimRef), PRESSURE(statV.pressure)
+  #endif
 {
 
   if (parallelTemperingAttemptsPerExchange > 1) {
@@ -75,6 +78,10 @@ ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& mul
   global_energies.resize(2, std::vector<double>(ms->worldSize, 0.0));
 #endif
   global_betas.resize(ms->worldSize, 0.0);
+#if ENSEMBLE == NPT
+  global_pressures.resize(ms->worldSize, 0.0);
+  global_volumes.resize(ms->worldSize, 0.0);
+#endif
   ind.resize(ms->worldSize, 0);
   pind.resize(ms->worldSize, 0);
   exchangeProbabilities.resize(ms->worldSize, 0.0);
@@ -85,14 +92,22 @@ ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& mul
   tempswap.resize(ms->worldSize, 0);
   nattempt.resize(2, 0);
   nmoves.resize(ms->worldSize, std::vector<int>(ms->worldSize, 0));
-  global_betas[ms->worldRank] = statV.forcefield.beta;
   cyclic.resize(ms->worldSize, std::vector<int>(ms->worldSize + 1, -1));
   order.resize(ms->worldSize, std::vector<int>(ms->worldSize, -1));
   incycle.resize(ms->worldSize, false);
 
 
+  global_betas[ms->worldRank] = statV.forcefield.beta;
   MPI_Allreduce(MPI_IN_PLACE, &global_betas[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
                 MPI_COMM_WORLD);
+
+#if ENSEMBLE == NPT
+  global_pressures[ms->worldRank] = PRESSURE;
+  MPI_Allreduce(MPI_IN_PLACE, &global_pressures[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
+                MPI_COMM_WORLD);
+
+#endif
+
   for (int i = 0; i < ms->worldSize; i++) {
     ind[i] = i;
     allswaps[i] = i;
@@ -102,38 +117,31 @@ ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& mul
 void ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step)
 {
 
-  //for (int i = 0; i < 2; i++){
-  //  std::cout << "Before fill : energy[" << i << "] : " << global_energies[i] << std::endl;
-  //}
 #if BOX_TOTAL == 1
   std::memset(&global_energies[0], 0, ms->worldSize * sizeof(double));
+  #if ENSEMBLE == NPT
+  std::memset(&global_volumes[0], 0, ms->worldSize * sizeof(double));
+  #endif
 #else
   std::memset(&global_energies[0], 0, ms->worldSize * sizeof(double));
   std::memset(&global_energies[1], 0, ms->worldSize * sizeof(double));
 #endif
 
-  for (int i = 0; i < ms->worldSize; i++) {
-    pind[i] = ind[i];
-  }
-
-  //for (int i = 0; i < 2; i++){
-  //  std::cout << "After fill : energy[" << i << "] : " << global_energies[i] << std::endl;
-  //}
+for (int i = 0; i < ms->worldSize; i++) {
+  pind[i] = ind[i];
+}
 
 #if BOX_TOTAL == 1
-//        global_energies[ms->worldRank] = sysPotRef.boxEnergy[0].total;
   global_energies[ms->worldRank] = sysPotRef.totalEnergy.total;
-
-  //for (int i = 0; i < 2; i++){
-  //  std::cout << "After set local energy : energy[" << i << "] : " << global_energies[i] << std::endl;
-  //}
-
   MPI_Allreduce(MPI_IN_PLACE, &global_energies[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
                 MPI_COMM_WORLD);
 
-  //for (int i = 0; i < 2; i++){
-  //   std::cout << "After allreduce : energy[" << i << "] : " << global_energies[i] << std::endl;
-  // }
+
+  #if ENSEMBLE == NPT
+  global_volumes[ms->worldRank] = boxDimRef.volume[0];
+  MPI_Allreduce(MPI_IN_PLACE, &global_volumes[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
+                MPI_COMM_WORLD);
+  #endif
 
 #else
 
@@ -146,12 +154,12 @@ void ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step)
   //    MPI_COMM_WORLD);
 
 #endif
-  double uBoltz;
+  double uBoltz, delta;
   bool bPrint = false;
   double printRecord;
+  int i0, i1, a, b, ap, bp;
+  
   if (bMultiEx) {
-
-    int i0, i1, a, b, ap, bp;
 
     /* multiple random switch exchange */
     int nself = 0;
@@ -172,9 +180,9 @@ void ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step)
 
       bPrint = false; /* too noisy */
       /* calculate the energy difference */
-#if ENSEMBLE == NVT
-      uBoltz = exp((global_betas[b] - global_betas[a]) * (global_energies[bp] - global_energies[ap]));
-#endif
+      delta = calcDelta(fplog, bPrint, ap, bp,  a, b);
+      uBoltz = exp(-delta);
+      
       /* we actually only use the first space in the prob and bEx array,
          since there are actually many switches between pairs. */
       exchangeProbabilities[0] = std::min(uBoltz, 1.0);
@@ -196,11 +204,13 @@ void ParallelTemperingUtilities::evaluateExchangeCriteria(ulong step)
     int parity = step / parallelTempFreq % 2;
 
     for (int i = 1; i < ms->worldSize; i++) {
-      bPrint = ms->worldRank == i || ms->worldRank == i - 1;
       if (i % 2 == parity) {
-#if ENSEMBLE == NVT
-        uBoltz = exp((global_betas[i] - global_betas[i - 1]) * (global_energies[i] - global_energies[i - 1]));
-#endif
+        a = ind[i - 1];
+        b = ind[i];
+        bPrint = ms->worldRank == a || ms->worldRank == b;
+        delta = calcDelta(fplog, bPrint, a, b, a, b);
+        uBoltz = exp(-delta);
+
         exchangeProbabilities[i] = std::min(uBoltz, 1.0);
         exchangeResults[i] = (printRecord = prng()) < uBoltz;
         //std::cout << "Swapping repl " << i-1 << " and repl " << i << " uBoltz :" << uBoltz << "prng : " << printRecord << std::endl;
@@ -395,6 +405,24 @@ void ParallelTemperingUtilities::conductExchanges(int replicaID, Coordinates & c
 
   }
 
+}
+
+double ParallelTemperingUtilities::calcDelta(FILE* fplog, bool bPrint, int a, int b, int ap, int bp){
+  double delta, dpV, ediff;
+  ediff = global_energies[b] - global_energies[a];
+  delta = -(global_betas[bp] - global_betas[ap])*ediff;
+  if (bPrint){
+    fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e \n", a, b, delta);
+  }
+  #if ENSEMBLE == NPT
+    dpV = (global_betas[ap] * global_pressures[ap] - global_betas[bp] * global_pressures[bp]) * (global_volumes[b] - global_volumes[a]);
+    if (bPrint)
+    {
+      fprintf(fplog, "  dpV = %10.3e  d = %10.3e\n", dpV, delta + dpV);
+    }
+    delta += dpV;
+  #endif
+  return delta;
 }
 
 void ParallelTemperingUtilities::exchangeCellLists(CellList & myCellList, MultiSim const*const& multisim, int exchangePartner, bool leader)

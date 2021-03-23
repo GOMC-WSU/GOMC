@@ -76,8 +76,7 @@ public:
   void cyclicDecomposition(const std::vector<int> &destinations, std::vector< std::vector<int> > & cyclic, std::vector<bool> & incycle, const int nrepl, int * nswap);
   void computeExchangeOrder(std::vector< std::vector<int> > & cyclic, std::vector< std::vector<int> > & order, const int nrepl, const int maxswap);
   void conductExchanges(int replicaID, Coordinates & currCoordRef, COM & currComRef, const int & maxSwap, const bool & bThisReplicaExchanged);
-
-
+  double calcDelta(FILE* fplog, bool bPrint, int a, int b, int ap, int bp);
   void exchangeCellLists(CellList & myCellList, MultiSim const*const& multisim, int exchangePartner, bool leader);
   void exchangePotentials(SystemPotential & mySystemPotential, MultiSim const*const& multisim, int exchangePartner, bool leader);
   void exchangeVirials(SystemPotential & mySystemPotential, MultiSim const*const& multisim, int exchangePartner, bool leader);
@@ -101,6 +100,11 @@ private:
   FILE * fplog;
   PRNG & prng;
   SystemPotential & sysPotRef;
+  // For volume
+  #if ENSEMBLE == NPT
+  BoxDimensions & boxDimRef;
+  const double PRESSURE;
+  #endif
   //Coordinates & coordRef;
   //COM & comRef;
   SystemPotential sysPotNew;
@@ -135,7 +139,10 @@ private:
 #else
   std::vector<std::vector <double> > global_energies;
 #endif
-
+  #if ENSEMBLE == NPT
+  std::vector<double> global_pressures;
+  std::vector<double> global_volumes;
+  #endif
 
 #endif
 };
