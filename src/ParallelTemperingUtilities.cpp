@@ -408,9 +408,19 @@ void ParallelTemperingUtilities::conductExchanges(int replicaID, Coordinates & c
 }
 
 double ParallelTemperingUtilities::calcDelta(FILE* fplog, bool bPrint, int a, int b, int ap, int bp){
+
   double delta, dpV, ediff;
+  delta = dpV = ediff = 0;
+  #if ENSEMBLE == GEMC
+    for (uint box = 0; box < BOX_TOTAL; box++){
+      ediff = global_energies[box][b] - global_energies[box][a];
+      delta += -(global_betas[bp] - global_betas[ap])*ediff;
+    }
+  #else
   ediff = global_energies[b] - global_energies[a];
   delta = -(global_betas[bp] - global_betas[ap])*ediff;
+  #endif
+
   if (bPrint){
     fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e \n", a, b, delta);
   }

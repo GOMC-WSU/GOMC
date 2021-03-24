@@ -19,6 +19,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include <cassert>
 
+#include "GOMC_Config.h"    //For Serialization to a vector
+
+
 //Use shortcuts when calculating Rcut
 //#define RCUT_SHORTCUT
 
@@ -154,7 +157,13 @@ public:
   virtual XYZ TransformUnSlant(const XYZ &A, const uint b) const;
 
   //Transform A to slant coordinate
+  /* Copies all variables into a flat array of doubles */
   virtual XYZ TransformSlant(const XYZ &A, const uint b) const;
+
+#if GOMC_LIB_MPI
+  virtual std::vector<double> SerializeBoxDimObject();
+  virtual void ReadFromSerializedBoxDimObject(std::vector<double> & serialBoxDim);
+#endif
 
 //private:
   XYZArray axis;                  //x, y, z dimensions of each box (a)
@@ -320,7 +329,5 @@ inline XYZ BoxDimensions::TransformUnSlant(const XYZ &A, const uint b) const
 {
   return A;
 }
-
-
 
 #endif /*BOX_DIMENSIONS_H*/

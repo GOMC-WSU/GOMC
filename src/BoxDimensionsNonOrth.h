@@ -77,6 +77,11 @@ public:
   //Transform A to slant coordinate
   XYZ TransformSlant(const XYZ &A, const uint b) const;
 
+  #if GOMC_LIB_MPI
+  virtual std::vector<double> SerializeBoxDimObject();
+  virtual void ReadFromSerializedBoxDimObject(std::vector<double> & serialBoxDim);
+#endif
+
 //private:
   XYZArray cellBasis_Inv[BOX_TOTAL]; //inverse cell matrix for each box
   XYZArray cellLength;                //Length of a, b, c for each box

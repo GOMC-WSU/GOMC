@@ -352,3 +352,160 @@ double BoxDimensions::MinImageSigned(double raw, double ax, double halfAx) const
     raw += ax;
   return raw;
 }
+
+/*
+                                                                  #BOXES  1 / 2
+                                                                        _________
+  XYZArray axis;                  //x, y, z dimensions of each box (a)    3 / 6
+  XYZArray halfAx;               //x, y, z dimensions / 2 of each box (a) 3 / 6
+  XYZArray cellBasis[BOX_TOTAL];  //x, y, z vector, 3 for each box        9 / 18
+  double volume[BOX_TOTAL];       //volume of each box in (a^3)           1 / 2
+  double volInv[BOX_TOTAL];       //inverse volume of each box in (a^-3)  1 / 2
+  double cosAngle[BOX_TOTAL][3];  //alpha, beta, gamma for each box       3 / 6
+  double rCut[BOX_TOTAL];                                               //1 / 2
+  double rCutSq[BOX_TOTAL];                                             //1 / 2
+  double minVol[BOX_TOTAL];                                             //1 / 2
+  bool cubic[BOX_TOTAL], orthogonal[BOX_TOTAL], constArea;              //3 / 5
+                                                                      + _________
+ NUMBER_OF_ATTRIBUTES                                                 // 26 / 51
+  */
+
+#if GOMC_LIB_MPI
+  std::vector<double> BoxDimensions::SerializeBoxDimObject(){
+    #if ENSEMBLE == GEMC
+      int NUMBER_OF_ATTRIBUTES = 51;
+      std::vector<double> serialBoxDim(NUMBER_OF_ATTRIBUTES);
+      serialBoxDim[0] = axis[0].x;
+      serialBoxDim[1] = axis[0].y;
+      serialBoxDim[2] = axis[0].z;
+      serialBoxDim[3] = axis[1].x;
+      serialBoxDim[4] = axis[1].y;
+      serialBoxDim[5] = axis[1].z;
+      serialBoxDim[6] = halfAx[0].x;
+      serialBoxDim[7] = halfAx[0].y;
+      serialBoxDim[8] = halfAx[0].z;
+      serialBoxDim[9] = halfAx[1].x;
+      serialBoxDim[10] = halfAx[1].y;
+      serialBoxDim[11] = halfAx[1].z;
+      memcpy(&serialBoxDim[12], cellBasis[0].x, 3*sizeof(double));
+      memcpy(&serialBoxDim[15], cellBasis[0].y, 3*sizeof(double));
+      memcpy(&serialBoxDim[18], cellBasis[0].z, 3*sizeof(double));
+      memcpy(&serialBoxDim[21], cellBasis[1].x, 3*sizeof(double));
+      memcpy(&serialBoxDim[24], cellBasis[1].y, 3*sizeof(double));
+      memcpy(&serialBoxDim[27], cellBasis[1].z, 3*sizeof(double));
+      serialBoxDim[30] = volume[0];
+      serialBoxDim[31] = volume[1];
+      serialBoxDim[32] = volInv[0];
+      serialBoxDim[33] = volInv[1];
+      memcpy(&serialBoxDim[34], cosAngle[0], 3*sizeof(double));
+      memcpy(&serialBoxDim[37], cosAngle[1], 3*sizeof(double));
+      serialBoxDim[40] = rCut[0];
+      serialBoxDim[41] = rCut[1];
+      serialBoxDim[42] = rCutSq[0];
+      serialBoxDim[43] = rCutSq[1];
+      serialBoxDim[44] = minVol[0];
+      serialBoxDim[45] = minVol[1];
+      serialBoxDim[46] = (double)cubic[0];
+      serialBoxDim[47] = (double)cubic[1];
+      serialBoxDim[48] = (double)orthogonal[0];
+      serialBoxDim[49] = (double)orthogonal[1];
+      serialBoxDim[50] = (double)constArea;
+    #else
+      int NUMBER_OF_ATTRIBUTES = 26;
+      std::vector<double> serialBoxDim(NUMBER_OF_ATTRIBUTES);
+      serialBoxDim[0] = axis[0].x;
+      serialBoxDim[1] = axis[0].y;
+      serialBoxDim[2] = axis[0].z;
+      serialBoxDim[3] = halfAx[0].x;
+      serialBoxDim[4] = halfAx[0].y;
+      serialBoxDim[5] = halfAx[0].z;
+      memcpy(&serialBoxDim[6], cellBasis[0].x, 3*sizeof(double));
+      memcpy(&serialBoxDim[9], cellBasis[0].y, 3*sizeof(double));
+      memcpy(&serialBoxDim[12], cellBasis[0].z, 3*sizeof(double));
+      serialBoxDim[15] = volume[0];
+      serialBoxDim[16] = volInv[0];
+      memcpy(&serialBoxDim[17], cosAngle[0], 3*sizeof(double));
+      serialBoxDim[20] = rCut[0];
+      serialBoxDim[21] = rCutSq[0];
+      serialBoxDim[22] = minVol[0];
+      serialBoxDim[23] = (double)cubic[0];
+      serialBoxDim[24] = (double)orthogonal[0];
+      serialBoxDim[25] = (double)constArea;
+    #endif
+
+    return serialBoxDim;
+  }
+
+    void BoxDimensions::ReadFromSerializedBoxDimObject(std::vector<double> & serialBoxDim){
+    
+    #if ENSEMBLE == GEMC
+
+      axis[0].x = serialBoxDim[0];
+      axis[0].y = serialBoxDim[1];
+      axis[0].z = serialBoxDim[2];
+      axis[1].x = serialBoxDim[3];
+      axis[1].y = serialBoxDim[4];
+      axis[1].z = serialBoxDim[5];
+      halfAx[0].x = serialBoxDim[6];
+      halfAx[0].y = serialBoxDim[7];
+      halfAx[0].z = serialBoxDim[8];
+      halfAx[1].x = serialBoxDim[9];
+      halfAx[1].y = serialBoxDim[10];
+      halfAx[1].z = serialBoxDim[11];
+
+      memcpy(cellBasis[0].x, &serialBoxDim[12], 3*sizeof(double));
+      memcpy(cellBasis[0].y, &serialBoxDim[15], 3*sizeof(double));
+      memcpy(cellBasis[0].z, &serialBoxDim[18], 3*sizeof(double));
+      memcpy(cellBasis[1].x, &serialBoxDim[21], 3*sizeof(double));
+      memcpy(cellBasis[1].y, &serialBoxDim[24], 3*sizeof(double));
+      memcpy(cellBasis[1].z, &serialBoxDim[27], 3*sizeof(double));
+
+      volume[0] = serialBoxDim[30];
+      volume[1] = serialBoxDim[31];
+      volInv[0] = serialBoxDim[32];
+      volInv[1] = serialBoxDim[33];
+
+      memcpy(cosAngle[0], &serialBoxDim[34], 3*sizeof(double));
+      memcpy(cosAngle[1], &serialBoxDim[37], 3*sizeof(double));
+
+      rCut[0] = serialBoxDim[40];
+      rCut[1] = serialBoxDim[41];
+      rCutSq[0] = serialBoxDim[42];
+      rCutSq[1] = serialBoxDim[43];
+      minVol[0] = serialBoxDim[44];
+      minVol[1] = serialBoxDim[45];
+      cubic[0] = (bool)serialBoxDim[46];
+      cubic[1] = (bool)serialBoxDim[47];
+      orthogonal[0] = (bool)serialBoxDim[48];
+      orthogonal[1] = (bool)serialBoxDim[49];
+      constArea = (bool)serialBoxDim[50];
+
+    #else
+
+      axis[0].x = serialBoxDim[0];
+      axis[0].y = serialBoxDim[1];
+      axis[0].z = serialBoxDim[2];
+      halfAx[0].x = serialBoxDim[3];
+      halfAx[0].y = serialBoxDim[4];
+      halfAx[0].z = serialBoxDim[5];
+
+      memcpy(cellBasis[0].x, &serialBoxDim[6], 3*sizeof(double));
+      memcpy(cellBasis[0].y, &serialBoxDim[9], 3*sizeof(double));
+      memcpy(cellBasis[0].z, &serialBoxDim[12], 3*sizeof(double));
+
+      volume[0] = serialBoxDim[15];
+      volInv[0] = serialBoxDim[16];
+
+      memcpy(cosAngle[0], &serialBoxDim[17], 3*sizeof(double));
+
+      rCut[0] = serialBoxDim[20];
+      rCutSq[0] = serialBoxDim[21];
+      minVol[0] = serialBoxDim[22];
+      cubic[0] = (bool)serialBoxDim[23];
+      orthogonal[0] = (bool)serialBoxDim[24];
+      constArea = (bool)serialBoxDim[25];
+
+    #endif
+
+  }
+#endif
