@@ -14,6 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <map>
 #include "BondAdjacencyList.h"
+#include "AlphaNum.h"
 
 namespace config_setup
 {
@@ -31,6 +32,7 @@ struct MoleculeVariables {
   std::vector<uint> startIdxMolecules, moleculeKinds;
   std::vector<std::string> moleculeNames, moleculeKindNames;
   uint lastAtomIndexInBox0 = 0;
+  uint numberMolsInBox0 = 0;
   uint lastMolKindIndex = 0;
 };
 

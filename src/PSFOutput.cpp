@@ -201,6 +201,7 @@ void PSFOutput::PrintRemarks(FILE* outfile, const std::vector<std::string>& rema
 
 void PSFOutput::PrintAtoms(FILE* outfile) const
 {
+  AlphaNum fixedOrder;
   fprintf(outfile, headerFormat, totalAtoms, atomHeader);
   //silly psfs index from 1
   uint atomID = 1;
@@ -215,14 +216,24 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
       //atom name, atom type, charge, mass, and an unused 0
 
       if(molKinds[thisKind].isMultiResidue){
-        fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+        fprintf(outfile, atomFormat, atomID, fixedOrder.uint2String(mol).c_str(),
                 resID + molKinds[thisKind].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
                 thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
       } else {
-        fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+        fprintf(outfile, atomFormat, atomID, fixedOrder.uint2String(mol).c_str(),
                 resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
                 thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
       }
+/*      if(molKinds[thisKind].isMultiResidue){
+          fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+                  resID + molKinds[thisKind].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
+                  thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+        } else {
+          fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+                  resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
+                  thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+        }
+*/      
       ++atomID;
     }
     /* This isn't actually residue, it is running count of the number of

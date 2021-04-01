@@ -16,6 +16,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeLookup.h"
 #include "OutputAbstracts.h"
 #include "Writer.h"
+#include "AlphaNum.h"
 
 class Molecules;
 
@@ -76,7 +77,7 @@ private:
   //NEW_RESTART_CODE
   FILE * outRebuildRestart[BOX_TOTAL];
   std::string outRebuildRestartFName[BOX_TOTAL];
-  bool enableRestOut;
+  bool enableRestOut, enableRestIn;
   ulong stepsRestPerOut;
   //NEW_RESTART_CODE
   bool enableOutState;
