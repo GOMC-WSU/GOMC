@@ -45,7 +45,7 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   //Molecule instance arrays/data
   count = setup.mol.molVars.startIdxMolecules.size();
   if (count == 0) {
-    std::cerr << "Error: No Molecule was found in the PDB file(s)!" << std::endl;
+    std::cerr << "Error: No Molecule was found in the PSF file(s)!" << std::endl;
     exit(EXIT_FAILURE);
   }
 

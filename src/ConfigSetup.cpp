@@ -261,6 +261,13 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         in.files.psf.name[boxnum] = line[2];
       }
       in.files.psf.defined[boxnum] = true;
+    } else if(CheckString(line[0], "ReferenceStructure")) {
+      if (multisim != NULL) {
+        in.files.referenceStructure.name[0] = multisim->replicaInputDirectoryPath + line[1];
+      } else {
+        in.files.referenceStructure.name[0] = line[1];
+      }
+      in.files.referenceStructure.defined[0] = true;
     } else if(CheckString(line[0], "binCoordinates")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {

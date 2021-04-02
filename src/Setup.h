@@ -45,13 +45,6 @@ public:
       prngParallelTemp.Init(config.in.restart, config.in.prngParallelTempering, config.in.files.seed.name);
 #endif
     //Read molecule data from psf
-    /* GJS - I added pdb.atoms as an argument here, so I may modify the
-            pdb.atoms data structure to reflect multiresidue molecules.
-            Consolidating entries in startIDxRes will allow me to 
-            redefine the start and end of molecule.  Also, I generate a string
-            to serve as a multiresidue molecule entry into the kindMap containing
-            all these residues.  This is as upstream as possible to change as little code
-            as necessary */
     if(mol.Init(config.in.restart, config.in.files.psf.name, config.in.files.psf.defined, pdb.atoms) != 0) {
       exit(EXIT_FAILURE);
     }
