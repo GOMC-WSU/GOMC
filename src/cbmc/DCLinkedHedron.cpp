@@ -69,8 +69,9 @@ DCLinkedHedron::DCLinkedHedron
         find_if(dihs.begin(), dihs.end(), FindDih(hed.Bonded(i),
                 prevBonded[j]));
 
-      // This is only true of AUTO ANGLES DIHE is used
+      // This is only true if AUTO ANGLES DIHE is used
       // Certain scenarios (proteins) don't have all possible angles/dihe
+      // calculated from the number of bonds.
       //assert(match != dihs.end());
       dihKinds[i][j] = match->kind;
     }
