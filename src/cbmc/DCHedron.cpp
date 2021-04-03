@@ -62,6 +62,8 @@ DCHedron::DCHedron(DCData* data, const mol_setup::MolKind& kind,
     typedef std::vector<Angle>::const_iterator Aiter;
     Aiter free = find_if(angles.begin(), angles.end(),
                          FindAngle(prev, bonded[i]));
+    // This is only true of AUTO ANGLES DIHE is used
+    // Certain scenarios (proteins) don't have all possible angles/dihe
     //assert(free != angles.end());
     angleKinds[i][i] = free->kind;
 
