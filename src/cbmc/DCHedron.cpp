@@ -62,7 +62,7 @@ DCHedron::DCHedron(DCData* data, const mol_setup::MolKind& kind,
     typedef std::vector<Angle>::const_iterator Aiter;
     Aiter free = find_if(angles.begin(), angles.end(),
                          FindAngle(prev, bonded[i]));
-    assert(free != angles.end());
+    //assert(free != angles.end());
     angleKinds[i][i] = free->kind;
 
     for (uint j = i + 1; j < nBonds; ++j) {

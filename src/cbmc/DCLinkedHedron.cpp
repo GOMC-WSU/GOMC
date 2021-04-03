@@ -68,7 +68,10 @@ DCLinkedHedron::DCLinkedHedron
       std::vector<Dihedral>::const_iterator match =
         find_if(dihs.begin(), dihs.end(), FindDih(hed.Bonded(i),
                 prevBonded[j]));
-      assert(match != dihs.end());
+
+      // This is only true of AUTO ANGLES DIHE is used
+      // Certain scenarios (proteins) don't have all possible angles/dihe
+      //assert(match != dihs.end());
       dihKinds[i][j] = match->kind;
     }
   }
