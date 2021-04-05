@@ -394,8 +394,8 @@ void DCCrankShaftAng::ParticleNonbonded1_N(cbmc::TrialMol const& mol,
         (std::find(atoms.begin(), atoms.end(), *partner) == atoms.end())) {
       for (uint t = 0; t < trials; ++t) {
         double distSq;
-        if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(),
-                             *partner, box)) {
+        data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(), *partner, box);
+        if(data->ff.rCutSq > distSq) {
           nonbonded[t] += data->ff.particles->CalcEn(distSq,
                           kind.AtomKind(partIndex),
                           kind.AtomKind(*partner), 1.0);
@@ -431,8 +431,8 @@ void DCCrankShaftAng::ParticleNonbonded1_4(cbmc::TrialMol const& mol,
         (std::find(atoms.begin(), atoms.end(), *partner) == atoms.end())) {
       for (uint t = 0; t < trials; ++t) {
         double distSq;
-        if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(),
-                             *partner, box)) {
+        data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(), *partner, box);
+        if(data->ff.rCutSq > distSq) {
           data->ff.particles->CalcAdd_1_4(nonbonded[t], distSq,
                                           kind.AtomKind(partIndex),
                                           kind.AtomKind(*partner));
@@ -468,8 +468,8 @@ void DCCrankShaftAng::ParticleNonbonded1_3(cbmc::TrialMol const& mol,
         (std::find(atoms.begin(), atoms.end(), *partner) == atoms.end())) {
       for (uint t = 0; t < trials; ++t) {
         double distSq;
-        if(data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(),
-                             *partner, box)) {
+        data->axes.InRcut(distSq, trialPos, t, mol.GetCoords(), *partner, box);
+        if(data->ff.rCutSq > distSq) {
           data->ff.particles->CalcAdd_1_4(nonbonded[t], distSq,
                                           kind.AtomKind(partIndex),
                                           kind.AtomKind(*partner));

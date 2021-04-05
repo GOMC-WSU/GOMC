@@ -710,9 +710,8 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
     if (trialMol.AtomExists(*partner)) {
       for (uint t = 0; t < trials; ++t) {
         double distSq;
-
-        if (currentAxes.InRcut(distSq, trialPos, t, trialMol.GetCoords(),
-                               *partner, box)) {
+        currentAxes.InRcut(distSq, trialPos, t, trialMol.GetCoords(), *partner, box);
+        if (forcefield.rCutSq > distSq) {
           inter[t] += forcefield.particles->CalcEn(distSq,
                       kind.AtomKind(partIndex),
                       kind.AtomKind(*partner), 1.0);
@@ -1269,7 +1268,7 @@ double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,
 {
   if(!forcefield.OneThree)
     return 0.0;
-  else if(forcefield.rCutSq < distSq)
+  else if(forcefield.rCutSq <= distSq)
     return 0.0;
 
   double eng = 0.0;
@@ -1301,7 +1300,7 @@ double CalculateEnergy::IntraEnergy_1_4(const double distSq, const uint atom1,
 {
   if(!forcefield.OneFour)
     return 0.0;
-  else if(forcefield.rCutSq < distSq)
+  else if(forcefield.rCutSq <= distSq)
     return 0.0;
 
   double eng = 0.0;

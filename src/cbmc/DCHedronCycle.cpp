@@ -77,10 +77,10 @@ DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
   for (uint a = 0; a < angles.size(); a++) {
     sumAngle += data->ff.angles->Angle(angles[a].kind);
   }
-  //If sum of angles = 2*pi = 6.283, it means they are in a plane
+  //If sum of angles (sumAngle +/- 10) ~ 2*pi = 6.283, it means they are in a plane
   //To avoid geometric conflict for flexible angle, we consider it fixed and
-  //let crankshaft sample it. 0.044 ~= 5 degree
-  bool angleInPlane = (std::abs(2.0 * M_PI - sumAngle) < 0.044);
+  //let crankshaft sample it. 0.1745 ~= 10 degree tolerance 
+  bool angleInPlane = (std::abs(2.0 * M_PI - sumAngle) < 0.1745);
   bool constrainAngInRing = false;
 
   for (uint i = 0; i < nBonds; ++i) {
