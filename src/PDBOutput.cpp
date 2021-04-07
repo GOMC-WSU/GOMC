@@ -41,6 +41,7 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
   sstrm::Converter toStr;
   enableOutState = output.state.settings.enable;
   enableRestOut = output.restart.settings.enable;
+  enableSortedSegmentOut = output.sortBySegmentLabels.enable;
   enableOut = enableOutState | enableRestOut;
   stepsCoordPerOut = output.state.settings.frequency;
   stepsRestPerOut = output.restart.settings.frequency;
@@ -68,7 +69,11 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
       outF[b].Init(output.state.files.pdb.name[b], aliasStr, true, notify);
       outF[b].open();
     }
-    InitPartVec();
+    if (enableSortedSegmentOut){
+      InitPartVecSorted();
+    } else {
+      InitPartVec();
+    }
     DoOutput(0);
   }
 
@@ -127,6 +132,13 @@ void PDBOutput::InitPartVec()
     }
   }
 }
+
+/* We need to do this in the sorted molecule order, using the alphanumberic keys stored in segment column from reference merged_psf */
+void PDBOutput::InitPartVecSorted()
+{
+
+}
+
 
 void PDBOutput::FormatAtom
 (std::string & line, const uint p, const uint m, const char chain,

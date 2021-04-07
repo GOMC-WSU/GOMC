@@ -50,11 +50,24 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   }
 
   start = new uint [count + 1];
-  start = vect::TransferInto<uint>(start, setup.mol.molVars.startIdxMolecules);
+  if(setup.mol.molVars.sortBySegmentLabels){
+    SortMoleculesBySegment( setup.mol.molVars.startIdxMolecules,
+                            setup.mol.molVars.moleculeKinds,
+                            atoms.chainLetter,
+                            setup.mol.molVars.moleculeSegmentNames,
+                            start,
+                            kIndex,
+                            chain
+                          );
+  } else {
+    start = vect::TransferInto<uint>(start, setup.mol.molVars.startIdxMolecules);
+    kIndex = vect::transfer<uint>(setup.mol.molVars.moleculeKinds);
+    chain = vect::transfer<char>(atoms.chainLetter);
+  }
+
   start[count] = atoms.x.size();
-  kIndex = vect::transfer<uint>(setup.mol.molVars.moleculeKinds);
   kIndexCount = setup.mol.molVars.moleculeKinds.size();
-  chain = vect::transfer<char>(atoms.chainLetter);
+
   for (uint mk = 0 ; mk < kindsCount; mk++) {
     countByKind[mk] =
       std::count(setup.mol.molVars.moleculeNames.begin(), setup.mol.molVars.moleculeNames.end(),
@@ -231,3 +244,45 @@ void Molecules::PrintLJInfo(std::vector<uint> &totAtomKind,
     std::cout << std::endl;
   }
 }
+
+void Molecules::SortMoleculesBySegment(std::vector<uint> & unorderedStart,
+                                        std::vector<uint> & unorderedKIndex,
+                                        std::vector<char> & unorderedChain,
+                                        std::vector<std::string> & unorderedSegments,
+                                        uint * start,
+                                        uint * kIndex,
+                                        char * chain
+                                      ){
+
+  /* For Hybid MC-MD Cycle Consistency between molecular order
+     Sort these three vectors according to alphanmeric segment label */ 
+  std::vector<uint> sortedSegmentIndices(count);
+  std::vector<uint> sortedStart(count);
+  std::vector<uint> sortedKIndex(count);
+  std::vector<char> sortedChain(count);
+  std::iota(sortedSegmentIndices.begin(), sortedSegmentIndices.end(), 0);
+  //declaring vector of pairs
+  std::vector< std::pair <std::string,uint> > pairVector;
+  // Entering values in vector of pairs
+  for (int i=0; i<count; i++)
+      pairVector.push_back( std::make_pair(unorderedSegments[i],sortedSegmentIndices[i]) );
+
+  // Using simple sort() function to sort
+  std::sort(pairVector.begin(), pairVector.end());
+
+  for (int i = 0; i < count; i++){
+    sortedStart.push_back(unorderedStart[sortedSegmentIndices[i]]);  
+    sortedKIndex.push_back(unorderedKIndex[sortedSegmentIndices[i]]);  
+    sortedChain.push_back(unorderedChain[sortedSegmentIndices[i]]);  
+    sortedSegmentLabel.push_back(unorderedSegments[sortedSegmentIndices[i]]);  
+  }
+
+  start = vect::TransferInto<uint>(start, sortedStart);
+  kIndex = vect::transfer<uint>(sortedKIndex);
+  chain = vect::transfer<char>(sortedChain);
+
+  /* For Hybid MC-MD Cycle Consistency between molecular order
+    Sort these three vectors according to alphanmeric segment label */ 
+
+}
+

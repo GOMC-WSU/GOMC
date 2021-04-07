@@ -50,6 +50,7 @@ private:
   std::string GetDefaultAtomStr();
 
   void InitPartVec();
+  void InitPartVecSorted();
 
   void SetMolBoxVec(std::vector<uint> & mBox);
 
@@ -91,7 +92,7 @@ private:
 
   Writer outF[BOX_TOTAL];
   Writer outRebuildRestart[BOX_TOTAL];
-  bool enableRestOut;
+  bool enableRestOut, enableSortedSegmentOut;
   ulong stepsRestPerOut;
   ulong stepsCoordPerOut;
   //NEW_RESTART_CODE

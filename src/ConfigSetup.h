@@ -77,6 +77,8 @@ struct RestartSettings {
   bool restartFromCheckpoint;
   bool restartFromBinaryFile;
   bool restartFromXSCFile;
+  /* sortBySegmentLabels, generateSegmentLabels are for consistent trajectory order across MC-MD cycles */
+  bool sortBySegmentLabels, generateSegmentLabels;
   bool operator()(void)
   {
     return enable;
@@ -111,7 +113,7 @@ struct FFKind {
 //Files for input.
 struct InFiles {
   std::vector<FileName> param;
-  FileNames<BOX_TOTAL> pdb, psf, binaryInput, xscInput, checkpoint, referenceStructure;
+  FileNames<BOX_TOTAL> pdb, psf, binaryInput, xscInput, checkpoint, referencePSF;
   FileName seed;
 };
 
@@ -876,7 +878,7 @@ struct Statistics {
 struct Output {
   SysState state, restart, state_dcd, restart_dcd;
   Statistics statistics;
-  EventSettings console, checkpoint;
+  EventSettings console, checkpoint, sortBySegmentLabels;
 };
 
 }

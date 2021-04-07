@@ -11,6 +11,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MolSetup.h"
 #include <map>
 #include <string>
+// For iota
+#include <numeric>
 
 namespace pdb_setup
 {
@@ -93,6 +95,14 @@ public:
                    std::vector<std::string> &names,
                    Forcefield & forcefield);
 
+  void SortMoleculesBySegment(std::vector<uint> & unorderedStart,
+                              std::vector<uint> & unorderedKIndex,
+                              std::vector<char> & unorderedChain,
+                              std::vector<std::string> & segments,
+                              uint * start,
+                              uint * kIndex,
+                              char * chain);
+
   //private:
   //Kind index of each molecule and start in master particle array
   //Plus counts
@@ -108,6 +118,9 @@ public:
   uint fractionKind, lambdaSize;
   double* pairEnCorrections;
   double* pairVirCorrections;
+
+  /* For Hybrid MC-MD Order Consistency B/w cycles */
+  std::vector<std::string> sortedSegmentLabel;
 
   bool printFlag;
 };

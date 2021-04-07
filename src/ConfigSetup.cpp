@@ -26,6 +26,11 @@ ConfigSetup::ConfigSetup(void)
   in.restart.restartFromXSCFile = false;
   in.prng.seed = UINT_MAX;
   in.prngParallelTempering.seed = UINT_MAX;
+  /* Hybrid MC-MD Cycle Restarts */
+  in.restart.sortBySegmentLabels = false;
+  out.sortBySegmentLabels.enable = false;
+  /* Hybrid MC-MD Cycle Restarts */
+  in.restart.generateSegmentLabels = false;
   sys.elect.readEwald = false;
   sys.elect.readElect = false;
   sys.elect.readCache = false;
@@ -129,6 +134,7 @@ ConfigSetup::ConfigSetup(void)
 #endif
   out.statistics.vars.density.block = false;
   out.statistics.vars.density.fluct = false;
+
 }
 
 int ConfigSetup::stringtoi(const std::string& s)
@@ -261,13 +267,12 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         in.files.psf.name[boxnum] = line[2];
       }
       in.files.psf.defined[boxnum] = true;
-    } else if(CheckString(line[0], "ReferenceStructure")) {
-      if (multisim != NULL) {
-        in.files.referenceStructure.name[0] = multisim->replicaInputDirectoryPath + line[1];
-      } else {
-        in.files.referenceStructure.name[0] = line[1];
-      }
-      in.files.referenceStructure.defined[0] = true;
+    /* Reference Order of Atoms In Trajectory File For Hybrid MC-MD */
+    } else if(CheckString(line[0], "SortBySegment")) {
+        in.restart.sortBySegmentLabels = checkBool(line[1]);
+        out.sortBySegmentLabels.enable = in.restart.sortBySegmentLabels;
+    } else if(CheckString(line[0], "GenerateSegmentLabels")) {
+        in.restart.generateSegmentLabels = checkBool(line[1]);
     } else if(CheckString(line[0], "binCoordinates")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {

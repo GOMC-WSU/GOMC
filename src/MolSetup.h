@@ -30,10 +30,14 @@ namespace mol_setup
 {
 struct MoleculeVariables {
   std::vector<uint> startIdxMolecules, moleculeKinds;
-  std::vector<std::string> moleculeNames, moleculeKindNames;
+  std::vector<std::string> moleculeNames, moleculeKindNames, moleculeSegmentNames;
   uint lastAtomIndexInBox0 = 0;
   uint numberMolsInBox0 = 0;
-  uint lastMolKindIndex = 0;
+  uint molKindIndex = 0;
+  uint stringSuffix = 0;
+  uint moleculeIteration = 0;
+  bool generateSegmentLabels = false;
+  bool sortBySegmentLabels = false;
 };
 
 //!structure to contain an atom's data during initialization
@@ -57,7 +61,9 @@ public:
   bool operator== (const Atom& atm) const
   {
     if (type == atm.type && 
-        charge == atm.charge)
+          charge == atm.charge && 
+            residue == atm.residue &&
+              mass == atm.mass)
       return true;
     else
       return false;
