@@ -95,14 +95,7 @@ public:
                    std::vector<std::string> &names,
                    Forcefield & forcefield);
 
-  void SortMoleculesBySegment(std::vector<uint> & unorderedStart,
-                              std::vector<uint> & unorderedKIndex,
-                              std::vector<char> & unorderedChain,
-                              std::vector<std::string> & segments,
-                              uint * start,
-                              uint * kIndex
-                              //, char * chain
-                            );
+  std::vector<uint> SortMoleculesBySegment(std::vector<std::string> & unorderedSegments);
 
   //private:
   //Kind index of each molecule and start in master particle array
