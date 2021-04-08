@@ -133,10 +133,35 @@ void PDBOutput::InitPartVec()
   }
 }
 
-/* We need to do this in the sorted molecule order, using the alphanumberic keys stored in segment column from reference merged_psf */
+/* We need to do this in the sorted molecule order, using the alphanumberic keys stored in segment column from reference merged_psf
+    Key difference is we define atomIndex for ordering and only uses pStart and pEnd for molecule length */
 void PDBOutput::InitPartVecSorted()
 {
+  uint pStart = 0, pEnd = 0, molecule = 0, atomIndex = 0;
+  //Start particle numbering @ 1
+  for(uint mol = 0; mol < molRef.count; ++mol) {
+    molRef.GetRangeStartStop(pStart, pEnd, mol);
 
+    for (uint p = pStart; p < pEnd; ++p) {
+      if (molRef.kinds[molRef.kIndex[mol]].isMultiResidue){
+        FormatAtom(pStr[atomIndex], atomIndex, molecule + molRef.kinds[molRef.kIndex[mol]].intraMoleculeResIDs[p - pStart], molRef.chain[molRef.kIndex[mol]],
+                  molRef.kinds[molRef.kIndex[mol]].atomNames[p - pStart], molRef.kinds[molRef.kIndex[mol]].resNames[p - pStart]);
+      } else {
+        FormatAtom(pStr[atomIndex], atomIndex, molecule, molRef.chain[molRef.kIndex[mol]],
+                  molRef.kinds[molRef.kIndex[mol]].atomNames[p - pStart], molRef.kinds[molRef.kIndex[mol]].resNames[p - pStart]);
+      }
+      ++atomIndex;
+    }
+    ++molecule;
+    /* If you want to keep orig resID's comment these out */
+    if (molRef.kinds[molRef.kIndex[mol]].isMultiResidue){
+      molecule += molRef.kinds[molRef.kIndex[mol]].intraMoleculeResIDs.back();
+    }
+    /* 0 & 9999 since FormatAtom adds 1 shifting to 1 and 10,000*/
+    if(molecule == 9999)
+      molecule = 0;
+    /* If you want to keep orig resID's comment these out */
+  }
 }
 
 
@@ -309,7 +334,7 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
   using namespace pdb_entry::atom::field;
   using namespace pdb_entry;
   bool inThisBox = false;
-  uint pStart = 0, pEnd = 0;
+  uint pStart = 0, pEnd = 0, atomIndex = 0;
   //Loop through all molecules
   for (uint m = 0; m < molRef.count; ++m) {
     //Loop through particles in mol.
@@ -323,9 +348,14 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
         coor = coordCurrRef.Get(p);
         boxDimRef.UnwrapPBC(coor, b, ref);
       }
-      InsertAtomInLine(pStr[p], coor, occupancy::BOX[mBox[m]], beta::FIX[beta]);
+      if(enableSortedSegmentOut){
+        InsertAtomInLine(pStr[atomIndex], coor, occupancy::BOX[mBox[m]], beta::FIX[beta]);
+      } else {
+        InsertAtomInLine(pStr[p], coor, occupancy::BOX[mBox[m]], beta::FIX[beta]);
+      }
       //Write finished string out.
       outF[b].file << pStr[p] << std::endl;
+      ++atomIndex;
     }
   }
 }
