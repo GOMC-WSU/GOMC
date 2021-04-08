@@ -260,7 +260,7 @@ void  Molecules::SortMoleculesBySegment(std::vector<std::string> & unorderedSegm
       pairVector.push_back( std::make_pair(unorderedSegments[i],unsortedSegmentIndices[i]) );
 
   // Using simple sort() function to sort
-  std::sort(pairVector.begin(), pairVector.end());
+  std::sort(pairVector.begin(), pairVector.end(), compare());
 
   for (int i = 0; i < count; i++){
     sortedSegmentName.push_back(unorderedSegments[pairVector[i].second]); 
