@@ -100,8 +100,9 @@ public:
                               std::vector<char> & unorderedChain,
                               std::vector<std::string> & segments,
                               uint * start,
-                              uint * kIndex,
-                              char * chain);
+                              uint * kIndex
+                              //, char * chain
+                            );
 
   //private:
   //Kind index of each molecule and start in master particle array
@@ -120,8 +121,9 @@ public:
   double* pairVirCorrections;
 
   /* For Hybrid MC-MD Order Consistency B/w cycles */
-  std::vector<std::string> sortedSegmentLabel;
-
+  /* Only used for testing purposes */
+  std::vector<std::string> sortedSegmentName;
+  std::vector<uint> sortedSegmentIndices;
   bool printFlag;
 };
 

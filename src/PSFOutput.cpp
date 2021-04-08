@@ -37,7 +37,10 @@ const int dihPerLine = 2;
 PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
                      Setup & set) :
   molecules(&molecules), molLookRef(sys.molLookup),
-  molNames(set.mol.molVars.moleculeKindNames)
+  molNames(set.mol.molVars.moleculeKindNames), 
+  generateSegmentLabels(set.mol.molVars.generateSegmentLabels),
+  enableSortedSegmentOut (set.mol.molVars.sortBySegmentLabels),
+  moleculeSegmentNames(set.mol.molVars.moleculeSegmentNames)
 {
   molKinds.resize(set.mol.kindMap.size());
  for(uint i = 0; i < set.mol.molVars.moleculeKindNames.size(); ++i) {
@@ -216,24 +219,15 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
       //atom name, atom type, charge, mass, and an unused 0
 
       if(molKinds[thisKind].isMultiResidue){
-        fprintf(outfile, atomFormat, atomID, fixedOrder.uint2String(mol).c_str(),
-                resID + molKinds[thisKind].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
-                thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
-      } else {
-        fprintf(outfile, atomFormat, atomID, fixedOrder.uint2String(mol).c_str(),
-                resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
-                thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
-      }
-/*      if(molKinds[thisKind].isMultiResidue){
-          fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+          fprintf(outfile, atomFormat, atomID, enableSortedSegmentOut ? moleculeSegmentNames[mol].c_str() : thisAtom->segment.c_str(),
                   resID + molKinds[thisKind].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         } else {
-          fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+          fprintf(outfile, atomFormat, atomID, enableSortedSegmentOut ? moleculeSegmentNames[mol].c_str() : thisAtom->segment.c_str(),
                   resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         }
-*/      
+      
       ++atomID;
     }
     /* This isn't actually residue, it is running count of the number of
@@ -352,11 +346,11 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
         //atom name, atom type, charge, mass, and an unused 0
 
         if(molKinds[thisKind].isMultiResidue){
-          fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+          fprintf(outfile, atomFormat, atomID, generateSegmentLabels ? moleculeSegmentNames[*thisMol].c_str() : thisAtom->segment.c_str(),
                   resID + molKinds[thisKind].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         } else {
-          fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+          fprintf(outfile, atomFormat, atomID, generateSegmentLabels ? moleculeSegmentNames[*thisMol].c_str() : thisAtom->segment.c_str(),
                   resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         }
