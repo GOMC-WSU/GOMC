@@ -20,6 +20,7 @@ PDBOutput::PDBOutput(System  & sys, StaticVals const& statV) :
   boxDimRef(sys.boxDimRef), molRef(statV.mol), coordCurrRef(sys.coordinates),
   comCurrRef(sys.com), pStr(coordCurrRef.Count(), GetDefaultAtomStr())
 {
+  //sortedSegmentIndices = statV.mol.moleculeIndices;
   for(int i = 0; i < BOX_TOTAL; i++)
     frameNumber[i] = 0;
 }
@@ -137,25 +138,27 @@ void PDBOutput::InitPartVec()
     Key difference is we define atomIndex for ordering and only uses pStart and pEnd for molecule length */
 void PDBOutput::InitPartVecSorted()
 {
-  uint pStart = 0, pEnd = 0, molecule = 0, atomIndex = 0;
+  uint pStart = 0, pEnd = 0, molecule = 0, atomIndex = 0, sortedMolIndex = 0;
   //Start particle numbering @ 1
   for(uint mol = 0; mol < molRef.count; ++mol) {
-    molRef.GetRangeStartStop(pStart, pEnd, mol);
+    sortedMolIndex = molRef.sortedMoleculeIndices[mol];;
+
+    molRef.GetRangeStartStop(pStart, pEnd, sortedMolIndex);
 
     for (uint p = pStart; p < pEnd; ++p) {
-      if (molRef.kinds[molRef.kIndex[mol]].isMultiResidue){
-        FormatAtom(pStr[atomIndex], atomIndex, molecule + molRef.kinds[molRef.kIndex[mol]].intraMoleculeResIDs[p - pStart], molRef.chain[molRef.kIndex[mol]],
-                  molRef.kinds[molRef.kIndex[mol]].atomNames[p - pStart], molRef.kinds[molRef.kIndex[mol]].resNames[p - pStart]);
+      if (molRef.kinds[molRef.kIndex[sortedMolIndex]].isMultiResidue){
+        FormatAtom(pStr[atomIndex], atomIndex, molecule + molRef.kinds[molRef.kIndex[sortedMolIndex]].intraMoleculeResIDs[p - pStart], molRef.chain[molRef.kIndex[sortedMolIndex]],
+                  molRef.kinds[molRef.kIndex[sortedMolIndex]].atomNames[p - pStart], molRef.kinds[molRef.kIndex[sortedMolIndex]].resNames[p - pStart]);
       } else {
-        FormatAtom(pStr[atomIndex], atomIndex, molecule, molRef.chain[molRef.kIndex[mol]],
-                  molRef.kinds[molRef.kIndex[mol]].atomNames[p - pStart], molRef.kinds[molRef.kIndex[mol]].resNames[p - pStart]);
+        FormatAtom(pStr[atomIndex], atomIndex, molecule, molRef.chain[molRef.kIndex[sortedMolIndex]],
+                  molRef.kinds[molRef.kIndex[sortedMolIndex]].atomNames[p - pStart], molRef.kinds[molRef.kIndex[sortedMolIndex]].resNames[p - pStart]);
       }
       ++atomIndex;
     }
     ++molecule;
     /* If you want to keep orig resID's comment these out */
-    if (molRef.kinds[molRef.kIndex[mol]].isMultiResidue){
-      molecule += molRef.kinds[molRef.kIndex[mol]].intraMoleculeResIDs.back();
+    if (molRef.kinds[molRef.kIndex[sortedMolIndex]].isMultiResidue){
+      molecule += molRef.kinds[molRef.kIndex[sortedMolIndex]].intraMoleculeResIDs.back();
     }
     /* 0 & 9999 since FormatAtom adds 1 shifting to 1 and 10,000*/
     if(molecule == 9999)
@@ -206,7 +209,10 @@ void PDBOutput::DoOutput(const ulong step)
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       PrintRemark(b, step, outF[b]);
       PrintCryst1(b, outF[b]);
-      PrintAtoms(b, mBox);
+      if(enableSortedSegmentOut)
+        PrintAtomsSorted(b, mBox);
+      else
+        PrintAtoms(b, mBox);
       PrintEnd(outF[b]);
     }
     GOMC_EVENT_STOP(1, GomcProfileEvent::PDB_OUTPUT);
@@ -353,6 +359,36 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
       } else {
         InsertAtomInLine(pStr[p], coor, occupancy::BOX[mBox[m]], beta::FIX[beta]);
       }
+      //Write finished string out.
+      outF[b].file << pStr[p] << std::endl;
+      ++atomIndex;
+    }
+  }
+}
+
+void PDBOutput::PrintAtomsSorted(const uint b, std::vector<uint> & mBox)
+{
+  using namespace pdb_entry::atom::field;
+  using namespace pdb_entry;
+  bool inThisBox = false;
+  uint pStart = 0, pEnd = 0, molecule = 0, atomIndex = 0, sortedMolIndex = 0;
+  //Loop through all molecules
+  for (uint m = 0; m < molRef.count; ++m) {
+
+    sortedMolIndex = molRef.sortedMoleculeIndices[m];
+
+    //Loop through particles in mol.
+    uint beta = molLookupRef.GetBeta(sortedMolIndex);
+    molRef.GetRangeStartStop(pStart, pEnd, sortedMolIndex);
+    XYZ ref = comCurrRef.Get(sortedMolIndex);
+    inThisBox = (mBox[sortedMolIndex] == b);
+    for (uint p = pStart; p < pEnd; ++p) {
+      XYZ coor;
+      if (inThisBox) {
+        coor = coordCurrRef.Get(p);
+        boxDimRef.UnwrapPBC(coor, b, ref);
+      }
+      InsertAtomInLine(pStr[atomIndex], coor, occupancy::BOX[mBox[sortedMolIndex]], beta::FIX[beta]);
       //Write finished string out.
       outF[b].file << pStr[p] << std::endl;
       ++atomIndex;

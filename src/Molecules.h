@@ -95,7 +95,7 @@ public:
                    std::vector<std::string> &names,
                    Forcefield & forcefield);
 
-  std::vector<uint> SortMoleculesBySegment(std::vector<std::string> & unorderedSegments);
+  void SortMoleculesBySegment(std::vector<std::string> & unorderedSegments);
 
   //private:
   //Kind index of each molecule and start in master particle array
@@ -107,6 +107,8 @@ public:
   uint* countByKind;
   char* chain;
 
+  uint *  sortedMoleculeIndices;
+
   MoleculeKind * kinds;
   uint kindsCount;
   uint fractionKind, lambdaSize;
@@ -115,8 +117,8 @@ public:
 
   /* For Hybrid MC-MD Order Consistency B/w cycles */
   /* Only used for testing purposes */
-  std::vector<std::string> sortedSegmentName;
-  std::vector<uint> sortedSegmentIndices;
+  std::string * sortedMoleculeSegmentName;
+
   bool printFlag;
 };
 
