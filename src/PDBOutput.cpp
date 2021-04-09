@@ -134,36 +134,41 @@ void PDBOutput::InitPartVec()
   }
 }
 
-/* We need to do this in the sorted molecule order, using the alphanumberic keys stored in segment column from reference merged_psf
-    Key difference is we define atomIndex for ordering and only uses pStart and pEnd for molecule length */
 void PDBOutput::InitPartVecSorted()
 {
-  uint pStart = 0, pEnd = 0, molecule = 0, atomIndex = 0, sortedMolIndex = 0;
+  uint pStart = 0, pEnd = 0, molecule = 0, atomIndex = 0;
   //Start particle numbering @ 1
-  for(uint mol = 0; mol < molRef.count; ++mol) {
-    sortedMolIndex = molRef.sortedMoleculeIndices[mol];;
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
+                                 end = molLookupRef.BoxEnd(b);
+    while (m != end) {
+      uint mI = *m;
 
-    molRef.GetRangeStartStop(pStart, pEnd, sortedMolIndex);
+      molRef.GetRangeStartStop(pStart, pEnd, molRef.sortedMoleculeIndices[mI]);
 
-    for (uint p = pStart; p < pEnd; ++p) {
-      if (molRef.kinds[molRef.kIndex[sortedMolIndex]].isMultiResidue){
-        FormatAtom(pStr[atomIndex], atomIndex, molecule + molRef.kinds[molRef.kIndex[sortedMolIndex]].intraMoleculeResIDs[p - pStart], molRef.chain[molRef.kIndex[sortedMolIndex]],
-                  molRef.kinds[molRef.kIndex[sortedMolIndex]].atomNames[p - pStart], molRef.kinds[molRef.kIndex[sortedMolIndex]].resNames[p - pStart]);
-      } else {
-        FormatAtom(pStr[atomIndex], atomIndex, molecule, molRef.chain[molRef.kIndex[sortedMolIndex]],
-                  molRef.kinds[molRef.kIndex[sortedMolIndex]].atomNames[p - pStart], molRef.kinds[molRef.kIndex[sortedMolIndex]].resNames[p - pStart]);
+      for (uint p = pStart; p < pEnd; ++p) {
+        if (molRef.kinds[molRef.sortedKIndex[mI]].isMultiResidue){
+          FormatAtom(pStr[atomIndex], atomIndex, molecule + molRef.kinds[molRef.sortedKIndex[mI]].intraMoleculeResIDs[p - pStart], molRef.chain[molRef.sortedKIndex[mI]],
+                    molRef.kinds[molRef.sortedKIndex[mI]].atomNames[p - pStart], molRef.kinds[molRef.sortedKIndex[mI]].resNames[p - pStart]);
+        } else {
+          std::cout << molRef.kinds[molRef.sortedKIndex[mI]].atomNames[p - pStart] << std::endl;
+           std::cout << molRef.kinds[molRef.sortedKIndex[mI]].resNames[p - pStart]<< std::endl;
+          FormatAtom(pStr[atomIndex], atomIndex, molecule, molRef.chain[molRef.sortedKIndex[mI]],
+                    molRef.kinds[molRef.sortedKIndex[mI]].atomNames[p - pStart], molRef.kinds[molRef.sortedKIndex[mI]].resNames[p - pStart]);
+        }
+        atomIndex++;
       }
-      ++atomIndex;
+      ++m;
+      ++molecule;
+      /* If you want to keep orig resID's comment these out */
+      if (molRef.kinds[molRef.sortedKIndex[mI]].isMultiResidue){
+        molecule += molRef.kinds[molRef.sortedKIndex[mI]].intraMoleculeResIDs.back();
+      }
+      /* 0 & 9999 since FormatAtom adds 1 shifting to 1 and 10,000*/
+      if(molecule == 9999)
+        molecule = 0;
+      /* If you want to keep orig resID's comment these out */
     }
-    ++molecule;
-    /* If you want to keep orig resID's comment these out */
-    if (molRef.kinds[molRef.kIndex[sortedMolIndex]].isMultiResidue){
-      molecule += molRef.kinds[molRef.kIndex[sortedMolIndex]].intraMoleculeResIDs.back();
-    }
-    /* 0 & 9999 since FormatAtom adds 1 shifting to 1 and 10,000*/
-    if(molecule == 9999)
-      molecule = 0;
-    /* If you want to keep orig resID's comment these out */
   }
 }
 
@@ -362,7 +367,7 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
       //Write finished string out.
       outF[b].file << pStr[p] << std::endl;
       ++atomIndex;
-    }
+    }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
   }
 }
 
@@ -390,7 +395,7 @@ void PDBOutput::PrintAtomsSorted(const uint b, std::vector<uint> & mBox)
       }
       InsertAtomInLine(pStr[atomIndex], coor, occupancy::BOX[mBox[sortedMolIndex]], beta::FIX[beta]);
       //Write finished string out.
-      outF[b].file << pStr[p] << std::endl;
+      outF[b].file << pStr[atomIndex] << std::endl;
       ++atomIndex;
     }
   }

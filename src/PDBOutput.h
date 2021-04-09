@@ -100,7 +100,7 @@ private:
   //NEW_RESTART_CODE
   bool enableOutState;
   std::vector<std::string> pStr;
-  std::vector<int> sortedSegmentIndices;
+  //std::vector<int> sortedSegmentIndices;
   int frameNumber[BOX_TOTAL];
 };
 
