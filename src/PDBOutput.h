@@ -50,15 +50,12 @@ private:
   std::string GetDefaultAtomStr();
 
   void InitPartVec();
-  void InitPartVecSorted();
 
   void SetMolBoxVec(std::vector<uint> & mBox);
 
   void PrintCryst1(const uint b, Writer & out);
 
   void PrintAtoms(const uint b, std::vector<uint> & mBox);
-  void PrintAtomsSorted(const uint b, std::vector<uint> & mBox);
-
 
   //NEW_RESTART_CODE
   void DoOutputRebuildRestart(const uint step);

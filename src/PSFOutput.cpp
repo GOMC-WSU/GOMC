@@ -204,19 +204,15 @@ void PSFOutput::PrintRemarks(FILE* outfile, const std::vector<std::string>& rema
 
 void PSFOutput::PrintAtoms(FILE* outfile) const
 {
-  AlphaNum fixedOrder;
   fprintf(outfile, headerFormat, totalAtoms, atomHeader);
   //silly psfs index from 1
   uint atomID = 1;
   uint resID = 1;
-  uint thisKIndex = 0, nAtoms = 0, sortedMolIndex = 0;
+  uint thisKIndex = 0, nAtoms = 0, mI = 0;
   for(uint mol = 0; mol < molecules->count; ++mol) {
-    if(enableSortedSegmentOut){
-      sortedMolIndex = molecules->sortedMoleculeIndices[mol];
-      thisKIndex = molecules->kIndex[sortedMolIndex];
-    } else{
-      thisKIndex = molecules->kIndex[mol];
-    }
+    mI = enableSortedSegmentOut ? molecules->sortedMoleculeIndices[mol] : mol;
+    thisKIndex = molecules->kIndex[mI];
+    
     nAtoms = molKinds[thisKIndex].atoms.size();
 
     for(uint at = 0; at < nAtoms; ++at) {
@@ -225,11 +221,11 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
       //atom name, atom type, charge, mass, and an unused 0
 
       if(molKinds[thisKIndex].isMultiResidue){
-          fprintf(outfile, atomFormat, atomID, enableSortedSegmentOut ? moleculeSegmentNames[sortedMolIndex].c_str() : moleculeSegmentNames[mol].c_str(),
+          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[mI].c_str(),
                   resID + molKinds[thisKIndex].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         } else {
-          fprintf(outfile, atomFormat, atomID, enableSortedSegmentOut ? moleculeSegmentNames[sortedMolIndex].c_str() : moleculeSegmentNames[mol].c_str(),
+          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[mI].c_str(),
                   resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         }
@@ -256,14 +252,10 @@ void PSFOutput::PrintBonds(FILE* outfile) const
   fprintf(outfile, headerFormat, totalBonds, bondHeader);
   uint atomID = 1;
   uint lineEntry = 0;
-  uint thisKIndex = 0, sortedMolIndex = 0;
+  uint thisKIndex = 0, mI = 0;
   for(uint mol = 0; mol < molecules->count; ++mol) {
-    if(enableSortedSegmentOut){
-      sortedMolIndex = molecules->sortedMoleculeIndices[mol];
-      thisKIndex = molecules->kIndex[sortedMolIndex];
-    } else{
-      thisKIndex = molecules->kIndex[mol];
-    }
+    mI = enableSortedSegmentOut ? molecules->sortedMoleculeIndices[mol] : mol;
+    thisKIndex = molecules->kIndex[mI];
     const MolKind& thisKind = molKinds[thisKIndex];
     for(uint i = 0; i < thisKind.bonds.size(); ++i) {
       fprintf(outfile, "%8d%8d", thisKind.bonds[i].a0 + atomID,
@@ -284,14 +276,10 @@ void PSFOutput::PrintAngles(FILE* outfile) const
   fprintf(outfile, headerFormat, totalAngles, angleHeader);
   uint atomID = 1;
   uint lineEntry = 0;
-  uint thisKIndex = 0, sortedMolIndex = 0;
+  uint thisKIndex = 0, mI = 0;
   for(uint mol = 0; mol < molecules->count; ++mol) {
-    if(enableSortedSegmentOut){
-      sortedMolIndex = molecules->sortedMoleculeIndices[mol];
-      thisKIndex = molecules->kIndex[sortedMolIndex];
-    } else{
-      thisKIndex = molecules->kIndex[mol];
-    }
+    mI = enableSortedSegmentOut ? molecules->sortedMoleculeIndices[mol] : mol;
+    thisKIndex = molecules->kIndex[mI];
     const MolKind& thisKind = molKinds[thisKIndex];
     for(uint i = 0; i < thisKind.angles.size(); ++i) {
       fprintf(outfile, "%8d%8d%8d", thisKind.angles[i].a0 + atomID,
@@ -312,14 +300,10 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
   fprintf(outfile, headerFormat, totalDihs, dihedralHeader);
   uint atomID = 1;
   uint lineEntry = 0;
-  uint thisKIndex = 0, sortedMolIndex = 0;
+  uint thisKIndex = 0, mI = 0;
   for(uint mol = 0; mol < molecules->count; ++mol) {
-    if(enableSortedSegmentOut){
-      sortedMolIndex = molecules->sortedMoleculeIndices[mol];
-      thisKIndex = molecules->kIndex[sortedMolIndex];
-    } else{
-      thisKIndex = molecules->kIndex[mol];
-    }
+    mI = enableSortedSegmentOut ? molecules->sortedMoleculeIndices[mol] : mol;
+    thisKIndex = molecules->kIndex[mI];
     const MolKind& thisKind = molKinds[thisKIndex];
     for(uint i = 0; i < thisKind.dihedrals.size(); ++i) {
       fprintf(outfile, "%8d%8d%8d%8d", thisKind.dihedrals[i].a0 + atomID,

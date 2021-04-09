@@ -40,6 +40,7 @@ void DCDOutput::Init(pdb_setup::Atoms const& atoms,
   enableStateOut = output.state_dcd.settings.enable;
   enableRestartOut = output.restart.settings.enable;
   enableOut = enableStateOut | enableRestartOut;
+  enableSortedSegmentOut = output.sortBySegmentLabels.enable;
   stepsStatePerOut = output.state_dcd.settings.frequency;
   stepsRestartPerOut = output.restart.settings.frequency;
   if (stepsStatePerOut < stepsRestartPerOut) {
@@ -300,29 +301,32 @@ void DCDOutput::Write_binary_file(char *fname, int n, XYZ *vec)
 
 void DCDOutput::SetCoordinates(std::vector<int> &molInBox, const int box)
 {
-  uint p, pStart = 0, pEnd = 0;
+  uint p, pStart = 0, pEnd = 0, atomIndex = 0, mI = 0, pI = 0;
   int numMolecules = molRef.count;
   XYZ ref, coor;
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   //Loop through all molecules
   for (int m = 0; m < numMolecules; ++m) {
-    molRef.GetRangeStartStop(pStart, pEnd, m);
-    ref = comCurrRef.Get(m);
+    mI = enableSortedSegmentOut ? molRef.sortedMoleculeIndices[m] : m
+    molRef.GetRangeStartStop(pStart, pEnd, mI);
+    ref = comCurrRef.Get(mI);
     for (p = pStart; p < pEnd; ++p) {
       coor = coordCurrRef.Get(p);
       boxDimRef.UnwrapPBC(coor, box, ref);
 
-      x[p] = coor.x;
-      y[p] = coor.y;
-      z[p] = coor.z;
+      pI = enableSortedSegmentOut ? atomIndex : p;
+      x[pI] = coor.x;
+      y[pI] = coor.y;
+      z[pI] = coor.z;
+      ++atomIndex;
     }
   }
 #else
   bool inThisBox; 
   //Loop through all molecules
   for (int m = 0; m < numMolecules; ++m) {
-    molRef.GetRangeStartStop(pStart, pEnd, m);
-    ref = comCurrRef.Get(m);
+    mI = enableSortedSegmentOut ? molRef.sortedMoleculeIndices[m] : m;
+    molRef.GetRangeStartStop(pStart, pEnd, mI);
     inThisBox = (molInBox[m] == box);
     for (p = pStart; p < pEnd; ++p) {
       if (inThisBox) {
@@ -331,10 +335,11 @@ void DCDOutput::SetCoordinates(std::vector<int> &molInBox, const int box)
       } else {
         coor.Reset();
       }
-
-      x[p] = coor.x;
-      y[p] = coor.y;
-      z[p] = coor.z;
+      pI = enableSortedSegmentOut ? atomIndex : p;
+      x[pI] = coor.x;
+      y[pI] = coor.y;
+      z[pI] = coor.z;
+      ++atomIndex;
     }
   }
 #endif

@@ -103,7 +103,7 @@ private:
   char *outXSTFile[BOX_TOTAL];
   char *outXSCFile[BOX_TOTAL];
   int stateFileFileid[BOX_TOTAL];
-  bool enableRestartOut, enableStateOut;
+  bool enableRestartOut, enableStateOut, enableSortedSegmentOut;
   ulong stepsRestartPerOut, stepsStatePerOut;
   // 
   float *x, *y, *z;
