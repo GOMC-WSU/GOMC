@@ -110,11 +110,15 @@ void PDBOutput::InitPartVec()
       for (uint p = pStart; p < pEnd; ++p) {
         pI = enableSortedSegmentOut ? atomIndex : p;
         if (molRef.kinds[molRef.kIndex[mI]].isMultiResidue){
-          FormatAtom(pStr[pI], pI, molecule + molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs[p - pStart], molRef.chain[molRef.kIndex[mI]],
-                    molRef.kinds[molRef.kIndex[mI]].atomNames[p - pStart], molRef.kinds[molRef.kIndex[mI]].resNames[p - pStart]);
+          FormatAtom(pStr[pI], pI, molecule + molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs[p - pStart], 
+                    molRef.chain[mI + (p - pStart)],
+                    molRef.kinds[molRef.kIndex[mI]].atomNames[p - pStart], 
+                    molRef.kinds[molRef.kIndex[mI]].resNames[p - pStart]);
         } else {
-          FormatAtom(pStr[pI], pI, molecule, molRef.chain[molRef.kIndex[mI]],
-                    molRef.kinds[molRef.kIndex[mI]].atomNames[p - pStart], molRef.kinds[molRef.kIndex[mI]].resNames[p - pStart]);
+          FormatAtom(pStr[pI], pI, molecule, 
+                    molRef.chain[mI + (p - pStart)],
+                    molRef.kinds[molRef.kIndex[mI]].atomNames[p - pStart], 
+                    molRef.kinds[molRef.kIndex[mI]].resNames[p - pStart]);
         }
         ++atomIndex;
       }
