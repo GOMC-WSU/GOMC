@@ -95,14 +95,14 @@ inline char *& FromStr(char *& c, std::string const& str)
 
 
 struct Converter {
-  std::stringstream strm;
+  std::stringstream strm;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
 
   Converter()
   {
     AutoFmt();
-  }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    }
 
-  //No width or precision set, by default.
+  //No width or precision set, by default.                                                        
   Converter & AutoFmt()
   {
     Align(align::RIGHT).Fixed();

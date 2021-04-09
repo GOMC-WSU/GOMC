@@ -4,6 +4,10 @@ AlphaNum::AlphaNum(){}
 
 /* Alpha numberic A, B, ... Z, AA, AB, ... AZ, */
 /* Index from 0 to A */
+// return true if s1 comes before s2
+
+// compare character case-insensitive
+
 
 std::string AlphaNum::uint2String(uint stringSuffix){
 
@@ -28,3 +32,4 @@ std::string AlphaNum::uint2String(uint stringSuffix){
 
     return forwards.assign(backwards.rbegin(), backwards.rend());
 }
+
