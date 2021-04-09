@@ -876,7 +876,7 @@ struct Statistics {
 struct Output {
   SysState state, restart, state_dcd, restart_dcd;
   Statistics statistics;
-  EventSettings console, checkpoint, sortBySegmentLabels;
+  EventSettings console, checkpoint;
 };
 
 }

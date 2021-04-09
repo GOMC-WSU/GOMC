@@ -40,7 +40,7 @@ void DCDOutput::Init(pdb_setup::Atoms const& atoms,
   enableStateOut = output.state_dcd.settings.enable;
   enableRestartOut = output.restart.settings.enable;
   enableOut = enableStateOut | enableRestartOut;
-  enableSortedSegmentOut = output.sortBySegmentLabels.enable;
+  enableSortedSegmentOut = molRef.enableSortedSegmentOut;
   stepsStatePerOut = output.state_dcd.settings.frequency;
   stepsRestartPerOut = output.restart.settings.frequency;
   if (stepsStatePerOut < stepsRestartPerOut) {
