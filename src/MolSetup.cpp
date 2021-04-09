@@ -242,15 +242,20 @@ int mol_setup::ReadCombinePSF(MoleculeVariables & molVars,
 
   return 0;
 }
-int MolSetup::Init(const config_setup::RestartSettings& restart,
+int MolSetup::Init(const bool restartIn,
+                   const bool restartOut,
                    const std::string* psfFilename, 
                    const bool* psfDefined, 
                    pdb_setup::Atoms& pdbAtoms)
 {
   kindMap.clear();
   sizeMap.clear();
-  molVars.generateSegmentLabels = restart.generateSegmentLabels;
-  molVars.sortBySegmentLabels = restart.sortBySegmentLabels;
+  /* Generate segment labels if this is the first time a simulation is called,
+    and the user enabled restart output */
+  molVars.generateSegmentLabels = !restartIn && restartOut;
+  /* Sort the segments if the user states this is a restarted simulation since we
+      automatically generate segment labels when outputting restart files */
+  molVars.sortBySegmentLabels = restartIn;
   return ReadCombinePSF(molVars, kindMap, sizeMap, psfFilename, psfDefined, pdbAtoms);
 }
 

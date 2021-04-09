@@ -45,7 +45,7 @@ public:
       prngParallelTemp.Init(config.in.restart, config.in.prngParallelTempering, config.in.files.seed.name);
 #endif
     //Read molecule data from psf
-    if(mol.Init(config.in.restart, config.in.files.psf.name, config.in.files.psf.defined, pdb.atoms) != 0) {
+    if(mol.Init(config.in.restart.enable, config.out.restart.settings.enable, config.in.files.psf.name, config.in.files.psf.defined, pdb.atoms) != 0) {
       exit(EXIT_FAILURE);
     }
     mol.AssignKinds(mol.molVars, ff);

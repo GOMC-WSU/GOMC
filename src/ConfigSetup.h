@@ -77,8 +77,6 @@ struct RestartSettings {
   bool restartFromCheckpoint;
   bool restartFromBinaryFile;
   bool restartFromXSCFile;
-  /* sortBySegmentLabels, generateSegmentLabels are for consistent trajectory order across MC-MD cycles */
-  bool sortBySegmentLabels, generateSegmentLabels;
   bool operator()(void)
   {
     return enable;

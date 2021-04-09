@@ -36,6 +36,7 @@ struct MoleculeVariables {
   uint molKindIndex = 0;
   uint stringSuffix = 0;
   uint moleculeIteration = 0;
+  /* sortBySegmentLabels, generateSegmentLabels are for consistent trajectory order across restarts */
   bool generateSegmentLabels = false;
   bool sortBySegmentLabels = false;
 };
@@ -184,7 +185,8 @@ public:
 
   //reads BoxTotal PSFs and merges the data, placing the results in kindMap
   //returns 0 if read is successful, -1 on a failure
-  int Init(const config_setup::RestartSettings& restart,
+  int Init(const bool restartIn,
+           const bool restartOut,
            const std::string* psfFilename, 
            const bool* psfDefined, 
            pdb_setup::Atoms& pdbAtoms);
