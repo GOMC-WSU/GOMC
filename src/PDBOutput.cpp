@@ -108,15 +108,16 @@ void PDBOutput::InitPartVec()
       molRef.GetRangeStartStop(pStart, pEnd, mI);
 
       for (uint p = pStart; p < pEnd; ++p) {
+        molecule = enableSortedSegmentOut ? molecule : mI;
         pI = enableSortedSegmentOut ? atomIndex : p;
         if (molRef.kinds[molRef.kIndex[mI]].isMultiResidue){
           FormatAtom(pStr[pI], pI, molecule + molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs[p - pStart], 
-                    molRef.chain[mI + (p - pStart)],
+                    molRef.chain[p],
                     molRef.kinds[molRef.kIndex[mI]].atomNames[p - pStart], 
                     molRef.kinds[molRef.kIndex[mI]].resNames[p - pStart]);
         } else {
           FormatAtom(pStr[pI], pI, molecule, 
-                    molRef.chain[mI + (p - pStart)],
+                    molRef.chain[p],
                     molRef.kinds[molRef.kIndex[mI]].atomNames[p - pStart], 
                     molRef.kinds[molRef.kIndex[mI]].resNames[p - pStart]);
         }
