@@ -252,10 +252,10 @@ int MolSetup::Init(const bool restartIn,
   sizeMap.clear();
   /* Generate segment labels if this is the first time a simulation is called,
     and the user enabled restart output */
-  molVars.generateSegmentLabels = !restartIn && restartOut;
+  molVars.enableGenerateSegmentOut = !restartIn && restartOut;
   /* Sort the segments if the user states this is a restarted simulation since we
       automatically generate segment labels when outputting restart files */
-  molVars.sortBySegmentLabels = restartIn;
+  molVars.enableSortedSegmentOut = restartIn;
   return ReadCombinePSF(molVars, kindMap, sizeMap, psfFilename, psfDefined, pdbAtoms);
 }
 
@@ -359,7 +359,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
             molVars.startIdxMolecules.push_back(startIdxAtomBoxOffset + it->front());
             molVars.moleculeKinds.push_back((*kindMapFromBox1)[fragName].kindIndex);
             molVars.moleculeNames.push_back(fragName);
-            if(molVars.generateSegmentLabels)
+            if(molVars.enableGenerateSegmentOut)
               molVars.generatedSegmentNames.push_back(uniqueSuffixGenerator.uint2String(molVars.moleculeIteration));
             molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
             
@@ -463,7 +463,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
             molVars.startIdxMolecules.push_back(startIdxAtomBoxOffset + it->front());
             molVars.moleculeKinds.push_back(kindMap[*sizeConsistentEntries].kindIndex);
             molVars.moleculeNames.push_back(*sizeConsistentEntries);
-            if(molVars.generateSegmentLabels)
+            if(molVars.enableGenerateSegmentOut)
               molVars.generatedSegmentNames.push_back(uniqueSuffixGenerator.uint2String(molVars.moleculeIteration));
             molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
             
@@ -522,7 +522,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
         molVars.moleculeKinds.push_back(kindMap[fragName].kindIndex);
         molVars.moleculeKindNames.push_back(fragName);
         molVars.moleculeNames.push_back(fragName);
-        if(molVars.generateSegmentLabels)
+        if(molVars.enableGenerateSegmentOut)
           molVars.generatedSegmentNames.push_back(uniqueSuffixGenerator.uint2String(molVars.moleculeIteration));
         molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
         

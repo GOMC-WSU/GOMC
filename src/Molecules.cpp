@@ -54,7 +54,11 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   //chain = new char [atoms.x.size()];
   start = new uint [count + 1];
   sortedMoleculeIndices = new uint [count];
-  if(setup.mol.molVars.sortBySegmentLabels){
+
+  enableGenerateSegmentOut = setup.mol.molVars.enableGenerateSegmentOut;
+  enableSortedSegmentOut = setup.mol.molVars.enableSortedSegmentOut;
+
+  if(enableSortedSegmentOut){
     /* We need to create the sortedArray in the method and return it, instead of directly modifying the class' vector
      because of the way this class is initialized twice */
     SortMoleculesBySegment(setup.mol.molVars.moleculeSegmentNames);

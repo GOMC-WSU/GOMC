@@ -122,6 +122,8 @@ public:
   uint *  sortedMoleculeIndices;
   /* Only used for testing purposes */
   std::string * sortedMoleculeSegmentName;
+  bool enableSortedSegmentOut, enableGenerateSegmentOut;
+  bool generateSegmentName;
 
   bool printFlag;
 };

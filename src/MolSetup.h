@@ -36,9 +36,9 @@ struct MoleculeVariables {
   uint molKindIndex = 0;
   uint stringSuffix = 0;
   uint moleculeIteration = 0;
-  /* sortBySegmentLabels, generateSegmentLabels are for consistent trajectory order across restarts */
-  bool generateSegmentLabels = false;
-  bool sortBySegmentLabels = false;
+  /* enableGenerateSegmentOut, enableSortedSegmentOut are for consistent trajectory order across restarts */
+  bool enableGenerateSegmentOut = false;
+  bool enableSortedSegmentOut = false;
 };
 
 //!structure to contain an atom's data during initialization

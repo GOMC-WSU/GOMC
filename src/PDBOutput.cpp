@@ -42,7 +42,7 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
   sstrm::Converter toStr;
   enableOutState = output.state.settings.enable;
   enableRestOut = output.restart.settings.enable;
-  enableSortedSegmentOut = output.sortBySegmentLabels.enable;
+  enableSortedSegmentOut = molRef.enableSortedSegmentOut;
   enableOut = enableOutState | enableRestOut;
   stepsCoordPerOut = output.state.settings.frequency;
   stepsRestPerOut = output.restart.settings.frequency;

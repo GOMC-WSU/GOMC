@@ -80,7 +80,7 @@ private:
   bool enableRestOut, enableRestIn;
   ulong stepsRestPerOut;
   //NEW_RESTART_CODE
-  bool enableOutState, generateSegmentLabels, enableSortedSegmentOut;
+  bool enableOutState, enableGenerateSegmentOut, enableSortedSegmentOut;
 
   /* For Hybrid MC-MD Order Consistency B/w cycles */
   std::vector<std::string> moleculeSegmentNames, generatedSegmentNames;
