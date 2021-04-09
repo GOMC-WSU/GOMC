@@ -354,11 +354,10 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
             molVars.startIdxMolecules.push_back(startIdxAtomBoxOffset + it->front());
             molVars.moleculeKinds.push_back((*kindMapFromBox1)[fragName].kindIndex);
             molVars.moleculeNames.push_back(fragName);
-            if(molVars.generateSegmentLabels){
-              molVars.moleculeSegmentNames.push_back(uniqueSuffixGenerator.uint2String(molVars.moleculeIteration));
-            } else {
-              molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
-            }
+            if(molVars.generateSegmentLabels)
+              molVars.generatedSegmentNames.push_back(uniqueSuffixGenerator.uint2String(molVars.moleculeIteration));
+            molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
+            
             /* Boilerplate PDB Data modifications for matches */
 
             /* Search current KindMap for this entry. 
@@ -459,11 +458,10 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
             molVars.startIdxMolecules.push_back(startIdxAtomBoxOffset + it->front());
             molVars.moleculeKinds.push_back(kindMap[*sizeConsistentEntries].kindIndex);
             molVars.moleculeNames.push_back(*sizeConsistentEntries);
-            if(molVars.generateSegmentLabels){
-              molVars.moleculeSegmentNames.push_back(uniqueSuffixGenerator.uint2String(molVars.moleculeIteration));
-            } else {
-              molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
-            }
+            if(molVars.generateSegmentLabels)
+              molVars.generatedSegmentNames.push_back(uniqueSuffixGenerator.uint2String(molVars.moleculeIteration));
+            molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
+            
             newMapEntry = false;
             break;
           }
@@ -519,11 +517,10 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
         molVars.moleculeKinds.push_back(kindMap[fragName].kindIndex);
         molVars.moleculeKindNames.push_back(fragName);
         molVars.moleculeNames.push_back(fragName);
-        if(molVars.generateSegmentLabels){
-          molVars.moleculeSegmentNames.push_back(uniqueSuffixGenerator.uint2String(molVars.moleculeIteration));
-        } else {
-          molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
-        }
+        if(molVars.generateSegmentLabels)
+          molVars.generatedSegmentNames.push_back(uniqueSuffixGenerator.uint2String(molVars.moleculeIteration));
+        molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
+        
         MolSetup::copyBondInfoIntoMapEntry(bondAdjList, kindMap, fragName);
         molVars.molKindIndex++;
         if (newSize){

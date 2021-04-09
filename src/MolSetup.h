@@ -30,7 +30,7 @@ namespace mol_setup
 {
 struct MoleculeVariables {
   std::vector<uint> startIdxMolecules, moleculeKinds;
-  std::vector<std::string> moleculeNames, moleculeKindNames, moleculeSegmentNames;
+  std::vector<std::string> moleculeNames, moleculeKindNames, moleculeSegmentNames, generatedSegmentNames;
   uint lastAtomIndexInBox0 = 0;
   uint numberMolsInBox0 = 0;
   uint molKindIndex = 0;

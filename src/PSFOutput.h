@@ -83,7 +83,7 @@ private:
   bool enableOutState, generateSegmentLabels, enableSortedSegmentOut;
 
   /* For Hybrid MC-MD Order Consistency B/w cycles */
-  std::vector<std::string> moleculeSegmentNames;
+  std::vector<std::string> moleculeSegmentNames, generatedSegmentNames;
 };
 
 #endif

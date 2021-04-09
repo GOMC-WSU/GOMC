@@ -40,7 +40,8 @@ PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
   molNames(set.mol.molVars.moleculeKindNames), 
   generateSegmentLabels(set.mol.molVars.generateSegmentLabels),
   enableSortedSegmentOut (set.mol.molVars.sortBySegmentLabels),
-  moleculeSegmentNames(set.mol.molVars.moleculeSegmentNames)
+  moleculeSegmentNames(set.mol.molVars.moleculeSegmentNames),
+  generatedSegmentNames(set.mol.molVars.generatedSegmentNames)
 {
   molKinds.resize(set.mol.kindMap.size());
  for(uint i = 0; i < set.mol.molVars.moleculeKindNames.size(); ++i) {
@@ -357,11 +358,16 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
         //atom name, atom type, charge, mass, and an unused 0
 
         if(molKinds[thisKind].isMultiResidue){
-          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[*thisMol].c_str(),
-                  resID + molKinds[thisKind].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
+          fprintf(outfile, atomFormat, atomID, generateSegmentLabels ? 
+                  generatedSegmentNames[*thisMol].c_str() : 
+                  moleculeSegmentNames[*thisMol].c_str(),
+                  resID + molKinds[thisKind].intraMoleculeResIDs[at], 
+                  thisAtom->residue.c_str(), thisAtom->name.c_str(),
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         } else {
-          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[*thisMol].c_str(),
+          fprintf(outfile, atomFormat, atomID, generateSegmentLabels ? 
+                  generatedSegmentNames[*thisMol].c_str() : 
+                  moleculeSegmentNames[*thisMol].c_str(),
                   resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         }
