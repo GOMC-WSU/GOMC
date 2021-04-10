@@ -24,6 +24,7 @@ ConfigSetup::ConfigSetup(void)
   in.restart.restartFromCheckpoint = false;
   in.restart.restartFromBinaryFile = false;
   in.restart.restartFromXSCFile = false;
+  in.restart.hybrid = false;
   in.prng.seed = UINT_MAX;
   in.prngParallelTempering.seed = UINT_MAX;
   sys.elect.readEwald = false;
@@ -297,6 +298,8 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       }
       in.files.checkpoint.defined[0] = true;
       in.restart.restartFromCheckpoint = true;
+    } else if(CheckString(line[0], "Hybrid")) {
+      in.restart.hybrid = true;
     }
 #if ENSEMBLE == GEMC
     else if(CheckString(line[0], "GEMC")) {

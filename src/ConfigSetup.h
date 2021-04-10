@@ -77,6 +77,7 @@ struct RestartSettings {
   bool restartFromCheckpoint;
   bool restartFromBinaryFile;
   bool restartFromXSCFile;
+  bool hybrid;
   bool operator()(void)
   {
     return enable;

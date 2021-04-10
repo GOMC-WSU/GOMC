@@ -256,6 +256,7 @@ int MolSetup::Init(const bool restartIn,
   /* Sort the segments if the user states this is a restarted simulation since we
       automatically generate segment labels when outputting restart files */
   molVars.enableSortedSegmentOut = restartIn;
+  molVars.hybrid = pdbAtoms.hybrid;
   return ReadCombinePSF(molVars, kindMap, sizeMap, psfFilename, psfDefined, pdbAtoms);
 }
 

@@ -141,11 +141,28 @@ void Atoms::Read(FixedWidthReader & file)
   .Get(l_occ, field::occupancy::POS)
   .Get(l_beta, field::beta::POS);
   /* In Hybrid MC-MD, we use occupancy as -1 == currBox, 1 == otherBox */
-  if(hybrid)
-    if(l_occ == -1.00)
+
+  if(hybrid) {
+    /* I only want to construct the inThisBox vector once */
+    if(currBox == 0){
+      if(l_occ == -1.00){
+        inThisBox.push_back(1);
+      } else {
+        inThisBox.push_back(0);
+      }
+    }
+    /* This will demix the boxes from two merged files, so the
+      pdbatoms data structure will be aligned box 0 0 0 1 1 1
+      since we return when we get to atoms not in our box
+      We'll use the inThisBox vector to skip over atoms not in our box
+      during DCD parsing.  For PSF parsing we just use restartPSF */
+    if(l_occ == -1.00){
       l_occ = currBox;
-    else
+      inThisBox.push_back(1);
+    } else {
       return;
+    }
+  }  
   if(recalcTrajectory && (uint)l_occ != currBox) {
     return;
   }
@@ -173,7 +190,7 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
   // more than once
   atoms.Clear();
   remarks.Clear();
-
+  atoms.hybrid = restart.hybrid;
   std::map<std::string, FWReadableBase *>::const_iterator dataKind;
   remarks.SetRestart(restart);
   atoms.SetRestart(restart);

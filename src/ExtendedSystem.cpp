@@ -42,7 +42,10 @@ void ExtendedSystem::Init(PDBSetup &pdb, config_setup::Input inputFiles, Molecul
     for(int b = 0; b < BOX_TOTAL; b++) {
       if(inputFiles.files.binaryInput.defined[b]) {
         std::string fName = inputFiles.files.binaryInput.name[b];
-        UpdateCoordinate(pdb, fName.c_str(), b, molLookup, mols, cmIndex);
+        if(pdb.atoms.hybrid)
+          UpdateCoordinateHybrid(pdb, fName.c_str(), b);
+        else
+          UpdateCoordinate(pdb, fName.c_str(), b, molLookup, mols, cmIndex);
       }
     }
   }
@@ -72,6 +75,30 @@ void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb, const char *filename, const
     }
 
     moleculeOffset += numberOfAtoms;
+  }
+
+  delete [] binaryCoor;
+}
+
+/* We know the atoms are in order since the Restarts are fixed ordered.  We therefore don't need the last 
+two arguments and extra logic to map moleculeOffset and current molecule index */
+void ExtendedSystem::UpdateCoordinateHybrid(PDBSetup &pdb, const char *filename, const int box)
+{
+  // We must read restart PDB, which hold correct
+  // number atom info in each Box
+  int numAtoms = pdb.atoms.inThisBox.size();
+  int moleculeOffset = 0;
+  XYZ *binaryCoor;
+  binaryCoor = new XYZ[numAtoms];
+  read_binary_file(filename, binaryCoor, numAtoms);
+  //find the starting index
+
+  for(int atom = 0; atom < numAtoms; atom++) {
+    if(pdb.atoms.inThisBox[atom]==box){
+      pdb.atoms.x[atom] = binaryCoor[atom].x;
+      pdb.atoms.y[atom] = binaryCoor[atom].y;
+      pdb.atoms.z[atom] = binaryCoor[atom].z;
+    }
   }
 
   delete [] binaryCoor;

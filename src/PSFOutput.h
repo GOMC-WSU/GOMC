@@ -68,11 +68,18 @@ private:
   void PrintAnglesInBox(FILE* outfile, uint b) const;
   void PrintDihedralsInBox(FILE* outfile, uint b) const;
 
+  void PrintAtomsInBox(FILE* outfile, uint b, std::vector<uint> & mBox) const;
+  void PrintBondsInBox(FILE* outfile, uint b, std::vector<uint> & mBox) const;
+  void PrintAnglesInBox(FILE* outfile, uint b, std::vector<uint> & mBox) const;
+  void PrintDihedralsInBox(FILE* outfile, uint b, std::vector<uint> & mBox) const;
+
   void PrintNAMDCompliantSuffix(FILE* outfile) const;
   void PrintNAMDCompliantSuffixInBox(FILE* outfile) const;
 
   void CountMolecules();
   void CountMoleculesInBoxes();
+
+  void SetMolBoxVec(std::vector<uint> & mBox);
 
   //NEW_RESTART_CODE
   FILE * outRebuildRestart[BOX_TOTAL];
@@ -84,6 +91,7 @@ private:
 
   /* For Hybrid MC-MD Order Consistency B/w cycles */
   std::vector<std::string> moleculeSegmentNames, generatedSegmentNames;
+  bool hybrid;
 };
 
 #endif

@@ -112,6 +112,7 @@ public:
 
   //private:
   bool hybrid = true;
+  std::vector<int> inThisBox;
   //member data
   std::vector<char> chainLetter; //chain ids of each atom respectively
   std::vector<double> x, y, z; //coordinates of each particle

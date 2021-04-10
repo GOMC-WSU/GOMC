@@ -42,6 +42,7 @@ class ExtendedSystem  {
     void UpdateCellBasis(PDBSetup &pdb, const int box);
     // Reads the binary coordinates and updates the X Y Z coordinates in pdb data structure
     void UpdateCoordinate(PDBSetup &pdb, const char *filename, const int box, MoleculeLookup & molLookup, Molecules & mols, int & cmIndex);
+    void UpdateCoordinateHybrid(PDBSetup &pdb, const char *filename, const int box);
     // the time steps in xsc file
     ulong firstStep;
     // Center of cell, but GOMC always uses 0 center

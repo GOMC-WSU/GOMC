@@ -39,6 +39,7 @@ struct MoleculeVariables {
   /* enableGenerateSegmentOut, enableSortedSegmentOut are for consistent trajectory order across restarts */
   bool enableGenerateSegmentOut = false;
   bool enableSortedSegmentOut = false;
+  bool hybrid = false;
 };
 
 //!structure to contain an atom's data during initialization
