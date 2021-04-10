@@ -59,6 +59,7 @@ private:
 
   //NEW_RESTART_CODE
   void DoOutputRebuildRestart(const uint step);
+  void PrintAtomsRebuildRestart(const uint b, std::vector<uint> & mBox);
   void PrintAtomsRebuildRestart(const uint b);
   void PrintCrystRest(const uint b, const uint step, Writer & out);
   void PrintRemark(const uint b, const uint step, Writer & out);
@@ -98,6 +99,8 @@ private:
   bool enableOutState;
   std::vector<std::string> pStr;
   int frameNumber[BOX_TOTAL];
+
+  bool hybrid = true;
 };
 
 #endif /*PDB_OUTPUT_H*/
