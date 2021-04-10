@@ -47,6 +47,7 @@ struct Remarks : FWReadableBase {
   }
 
   void SetRestart(config_setup::RestartSettings const& r);
+  /* Add uint b, so I can tell pass this if I encounted Occupancy == -1 */
   void Read(FixedWidthReader & pdb);
   void SetBox(const uint b)
   {
@@ -110,13 +111,14 @@ public:
   void Clear();
 
   //private:
+  bool hybrid = true;
   //member data
   std::vector<char> chainLetter; //chain ids of each atom respectively
   std::vector<double> x, y, z; //coordinates of each particle
   std::vector<double> beta;  //beta value of each molecule
   std::vector<uint> box;
   std::vector<std::string> resNames;
-  bool restart, firstResInFile, recalcTrajectory;
+  bool restart, firstResInFile, recalcTrajectory, restartFromCheckpoint;
   //CurrRes is used to store res vals, currBox is used to
   //determine box either via the file (new) or the occupancy
   //(restart), count allows overwriting of coordinates during

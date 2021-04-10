@@ -407,6 +407,7 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b, std::vector<uint> & mBox)
                   molRef.kinds[k].atomNames[p - pStart], molRef.kinds[k].resNames[p - pStart]);
       }
       //Fill in particle's stock string with new x, y, z, and occupancy
+      /* In NAMD FE -1 == on, 1 == off , when lambda is fixed at 0*/
       InsertAtomInLine(line, coor, inThisBox ? "-1.00" : "1.00", beta::FIX[beta]);
       //Write finished string out.
       outRebuildRestart[b].file << line << std::endl;

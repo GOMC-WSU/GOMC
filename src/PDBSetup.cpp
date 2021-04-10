@@ -103,6 +103,7 @@ void Atoms::SetRestart(config_setup::RestartSettings const& r )
 {
   restart = r.enable;
   recalcTrajectory = r.recalcTrajectory;
+  restartFromCheckpoint = r.restartFromCheckpoint;
 }
 
 void Atoms::Assign(std::string const& resName,
@@ -139,6 +140,12 @@ void Atoms::Read(FixedWidthReader & file)
   .Get(l_y, field::y::POS).Get(l_z, field::z::POS)
   .Get(l_occ, field::occupancy::POS)
   .Get(l_beta, field::beta::POS);
+  /* In Hybrid MC-MD, we use occupancy as -1 == currBox, 1 == otherBox */
+  if(hybrid)
+    if(l_occ == -1.00)
+      l_occ = currBox;
+    else
+      return;
   if(recalcTrajectory && (uint)l_occ != currBox) {
     return;
   }
