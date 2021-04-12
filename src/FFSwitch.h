@@ -118,6 +118,9 @@ inline void FF_SWITCH::Init(ff_setup::Particle const& mie,
 inline void FF_SWITCH::CalcAdd_1_4(double& en, const double distSq,
                                    const uint kind1, const uint kind2) const
 {
+  if(forcefield.rCutSq < distSq)
+    return;
+
   uint index = FlatIndex(kind1, kind2);
   double rCutSq_rijSq = forcefield.rCutSq - distSq;
   double rCutSq_rijSq_Sq = rCutSq_rijSq * rCutSq_rijSq;
@@ -144,6 +147,9 @@ inline void FF_SWITCH::CalcCoulombAdd_1_4(double& en, const double distSq,
     const double qi_qj_Fact,
     const bool NB) const
 {
+  if(forcefield.rCutSq < distSq)
+    return;
+
   double dist = sqrt(distSq);
   if(NB)
     en += qi_qj_Fact / dist;

@@ -265,6 +265,9 @@ inline double FFParticle::GetRmax_1_4(const uint i, const uint j) const
 inline void FFParticle::CalcAdd_1_4(double& en, const double distSq,
                                     const uint kind1, const uint kind2) const
 {
+  if(forcefield.rCutSq < distSq)
+    return;
+
   uint index = FlatIndex(kind1, kind2);
   double rRat2 = sigmaSq_1_4[index] / distSq;
   double rRat4 = rRat2 * rRat2;
@@ -284,6 +287,9 @@ inline void FFParticle::CalcCoulombAdd_1_4(double& en, const double distSq,
     const double qi_qj_Fact,
     const bool NB) const
 {
+  if(forcefield.rCutSq < distSq)
+    return;
+
   double dist = sqrt(distSq);
   if(NB)
     en += qi_qj_Fact / dist;

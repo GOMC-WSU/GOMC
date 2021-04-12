@@ -220,6 +220,9 @@ inline void FF_SWITCH_MARTINI::CalcAdd_1_4(double& en, const double distSq,
     const uint kind1,
     const uint kind2) const
 {
+  if(forcefield.rCutSq < distSq)
+    return;
+
   uint index = FlatIndex(kind1, kind2);
   double r_2 = 1.0 / distSq;
   double r_4 = r_2 * r_2;
@@ -253,6 +256,9 @@ inline void FF_SWITCH_MARTINI::CalcCoulombAdd_1_4(double& en,
     const double qi_qj_Fact,
     const bool NB) const
 {
+  if(forcefield.rCutSq < distSq)
+    return;
+
   double dist = sqrt(distSq);
   if(NB)
     en += qi_qj_Fact / dist;
