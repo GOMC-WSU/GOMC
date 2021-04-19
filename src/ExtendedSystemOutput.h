@@ -31,11 +31,11 @@ struct Output;
 class MoveSettings;
 class MoleculeLookup;
 
-struct DCDOutput : OutputableBase {
+struct ExtendedSystemOutput : OutputableBase {
 public:
-  DCDOutput(System & sys, StaticVals const& statV);
+  ExtendedSystemOutput(System & sys, StaticVals const& statV);
 
-  ~DCDOutput()
+  ~ExtendedSystemOutput()
   {
     if (x) {
       delete [] x; // y and z are continue of x

@@ -45,9 +45,9 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
   stepsCoordPerOut = output.state.settings.frequency;
   stepsRestPerOut = output.restart.settings.frequency;
   if (stepsCoordPerOut < stepsRestPerOut)
-    stepsPerOut = output.state.settings.frequency;
+    stepsPerOut = stepsCoordPerOut;
   else
-    stepsPerOut = output.restart.settings.frequency;
+    stepsPerOut = stepsRestPerOut;
 
   if (enableOutState) {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
@@ -162,7 +162,7 @@ void PDBOutput::FormatAtom
 
 void PDBOutput::DoOutput(const ulong step)
 {
-  if(enableOutState) {
+  if(enableOutState && ((step + 1) % stepsCoordPerOut == 0)) {
     GOMC_EVENT_START(1, GomcProfileEvent::PDB_OUTPUT);
     std::vector<uint> mBox(molRef.count);
     SetMolBoxVec(mBox);

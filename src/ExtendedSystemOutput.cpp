@@ -4,7 +4,7 @@ Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
-#include "DCDOutput.h"              //For spec;
+#include "ExtendedSystemOutput.h"              //For spec;
 #include "EnsemblePreprocessor.h"   //For BOX_TOTAL, ensemble
 #include "System.h"                 //for init
 #include "StaticVals.h"             //for init
@@ -15,7 +15,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "StrStrmLib.h"             //For conversion from uint to string
 #include <iostream>                 //for cout;
 
-DCDOutput::DCDOutput(System& sys, StaticVals const& statV) :
+ExtendedSystemOutput::ExtendedSystemOutput(System& sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef), molRef(statV.mol),
   coordCurrRef(sys.coordinates), comCurrRef(sys.com)
@@ -34,7 +34,7 @@ DCDOutput::DCDOutput(System& sys, StaticVals const& statV) :
   }
 }
 
-void DCDOutput::Init(pdb_setup::Atoms const& atoms,
+void ExtendedSystemOutput::Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output)
 {
   enableStateOut = output.state_dcd.settings.enable;
@@ -101,7 +101,7 @@ void DCDOutput::Init(pdb_setup::Atoms const& atoms,
 }
 
 
-void DCDOutput::Write_Extension_System_Header(Writer &outFile)
+void ExtendedSystemOutput::Write_Extension_System_Header(Writer &outFile)
 {
   outFile.file << "#$LABELS step";
   outFile.file << " a_x a_y a_z";
@@ -112,7 +112,7 @@ void DCDOutput::Write_Extension_System_Header(Writer &outFile)
 }
 
 
-void DCDOutput::Write_Extension_System_Data(Writer &outFile,
+void ExtendedSystemOutput::Write_Extension_System_Data(Writer &outFile,
     const ulong step, const int box)
 {
   outFile.file.precision(12);
@@ -143,7 +143,7 @@ void DCDOutput::Write_Extension_System_Data(Writer &outFile,
   outFile.file << std::endl;
 }
 
-void DCDOutput::WriteDCDHeader(const int numAtoms, const int box)
+void ExtendedSystemOutput::WriteDCDHeader(const int numAtoms, const int box)
 {
   printf("Opening DCD coordinate file: %s \n", outDCDStateFile[box]);
   stateFileFileid[box] = open_dcd_write(outDCDStateFile[box]);
@@ -176,10 +176,10 @@ void DCDOutput::WriteDCDHeader(const int numAtoms, const int box)
   }
 }
 
-void DCDOutput::DoOutput(const ulong step)
+void ExtendedSystemOutput::DoOutput(const ulong step)
 {
   // Output dcd coordinates and xst file
-  if(enableStateOut) {
+  if(((step + 1) % stepsStatePerOut == 0) && enableStateOut) {
     GOMC_EVENT_START(1, GomcProfileEvent::DCD_OUTPUT);
     int numAtoms = coordCurrRef.Count();
     // Determine which molecule is in which box. Assume we are in NVT
@@ -240,7 +240,7 @@ void DCDOutput::DoOutput(const ulong step)
 
 }
 
-int DCDOutput::NumAtomInBox(const int box)
+int ExtendedSystemOutput::NumAtomInBox(const int box)
 {
   int numAtoms = 0;
   int totKind = molLookupRef.GetNumKind();
@@ -251,7 +251,7 @@ int DCDOutput::NumAtomInBox(const int box)
   return numAtoms;
 }
 
-void DCDOutput::SetMolInBox(const int box)
+void ExtendedSystemOutput::SetMolInBox(const int box)
 {
   #if ENSEMBLE == GCMC || ENSEMBLE == GEMC      
   if(restartCoor[box]) {
@@ -280,7 +280,7 @@ void DCDOutput::SetMolInBox(const int box)
   }
 }
 
-void DCDOutput::Write_binary_file(char *fname, int n, XYZ *vec) 
+void ExtendedSystemOutput::Write_binary_file(char *fname, int n, XYZ *vec) 
 {
   char errmsg[256];
   int fd;    //  File descriptor
@@ -298,7 +298,7 @@ void DCDOutput::Write_binary_file(char *fname, int n, XYZ *vec)
 
 }
 
-void DCDOutput::SetCoordinates(std::vector<int> &molInBox, const int box)
+void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int box)
 {
   uint p, pStart = 0, pEnd = 0;
   int numMolecules = molRef.count;
@@ -341,7 +341,7 @@ void DCDOutput::SetCoordinates(std::vector<int> &molInBox, const int box)
 
 }
 
-void DCDOutput::Copy_lattice_to_unitcell(double *unitcell, int box) {
+void ExtendedSystemOutput::Copy_lattice_to_unitcell(double *unitcell, int box) {
   unitcell[0] = boxDimRef.GetAxis(box).x;
   unitcell[2] = boxDimRef.GetAxis(box).y;
   unitcell[5] = boxDimRef.GetAxis(box).z;
@@ -351,7 +351,7 @@ void DCDOutput::Copy_lattice_to_unitcell(double *unitcell, int box) {
 }
 
 
-void DCDOutput::SetMolBoxVec(std::vector<int> & mBox)
+void ExtendedSystemOutput::SetMolBoxVec(std::vector<int> & mBox)
 {
   for (int b = 0; b < BOX_TOTAL; ++b) {
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),

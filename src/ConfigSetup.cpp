@@ -2087,14 +2087,30 @@ void ConfigSetup::verifyInputs(void)
   if(out.state.settings.enable && out.restart.settings.enable) {
     if(out.state.settings.frequency < out.restart.settings.frequency) {
       if ((out.restart.settings.frequency % out.state.settings.frequency) != 0) {
-        std::cout << "Error: Coordinate frequency must be common multiple of ";
+        std::cout << "Error: Coordinate frequency must be common multiple of \n";
         std::cout << "       restart corrdinate frequency !\n";
         exit(EXIT_FAILURE);
       }
     } else {
       if ((out.state.settings.frequency % out.restart.settings.frequency) != 0) {
-        std::cout << "Error: Restart coordinate frequency must be common multiple of ";
+        std::cout << "Error: Restart coordinate frequency must be common multiple of \n";
         std::cout << "       corrdinate frequency !\n";
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
+
+  if(out.state_dcd.settings.enable && out.restart.settings.enable) {
+    if(out.state_dcd.settings.frequency < out.restart.settings.frequency) {
+      if ((out.restart.settings.frequency % out.state_dcd.settings.frequency) != 0) {
+        std::cout << "Error: DCD frequency must be common multiple of \n";
+        std::cout << "       restart corrdinate frequency !\n";
+        exit(EXIT_FAILURE);
+      }
+    } else {
+      if ((out.state_dcd.settings.frequency % out.restart.settings.frequency) != 0) {
+        std::cout << "Error: Restart coordinate frequency must be common multiple of \n";
+        std::cout << "       DCD frequency !\n";
         exit(EXIT_FAILURE);
       }
     }
