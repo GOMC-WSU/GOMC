@@ -14,6 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBSetup.h"
 #include "ConfigSetup.h"
 #include "PRNG.h"
+#include "UnitConst.h"
 
 namespace config_setup
 {
@@ -108,7 +109,7 @@ private:
         if(mass <= 0.0) {
             kbToverM = 0.0;
         }else {
-            kbToverM = sqrt(temperature / mass);
+            kbToverM = sqrt(temperature * unit::BOLTZMANN / mass);
         }
 
         for(randnum=0.0, i=0; i<12; ++i)
