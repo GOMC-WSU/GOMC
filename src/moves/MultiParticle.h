@@ -430,6 +430,8 @@ inline void MultiParticle::Accept(const uint rejectState, const uint step)
     swap(molTorqueRef, molTorqueNew);
     //update reciprocal value
     calcEwald->UpdateRecip(bPick);
+    // Update the velocity in box
+    velocity.UpdateBoxVelocity(bPick);
   } else {
     cellList.GridAll(boxDimRef, coordCurrRef, molLookup);
     calcEwald->exgMolCache();
