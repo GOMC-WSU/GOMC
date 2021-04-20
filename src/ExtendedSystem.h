@@ -14,6 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBSetup.h"
 #include "Molecules.h"
 #include "MoleculeLookup.h"
+#include "Velocity.h"
 #include "GeomLib.h" // for PI and Dot product
 #include <vector>
 
@@ -34,14 +35,19 @@ class ExtendedSystem  {
   public:
   ExtendedSystem();
   ~ExtendedSystem() {};
-  void Init(PDBSetup &pdb, config_setup::Input inputFiles, MoleculeLookup & molLookup, Molecules & mols);
+  void Init(PDBSetup &pdb, Velocity &vel, config_setup::Input inputFiles,
+            MoleculeLookup & molLookup, Molecules & mols);
   private:
     // Reads the xsc file and store/calculate cellBasis data
     void ReadExtendedSystem(const char *filename, const int box);
     // Updates the cellBasis data in pdb data structure
     void UpdateCellBasis(PDBSetup &pdb, const int box);
     // Reads the binary coordinates and updates the X Y Z coordinates in pdb data structure
-    void UpdateCoordinate(PDBSetup &pdb, const char *filename, const int box, MoleculeLookup & molLookup, Molecules & mols, int & cmIndex);
+    void UpdateCoordinate(PDBSetup &pdb, const char *filename, const int box,
+                          MoleculeLookup & molLookup, Molecules & mols, int & cmIndex);
+    // Reads the binary velocities and updates the X Y Z velocity data structure
+    void UpdateVelocity(PDBSetup &pdb, Velocity &vel, const char *filename, const int box,
+                        MoleculeLookup & molLookup, Molecules & mols, int & cmIndex);
     // the time steps in xsc file
     ulong firstStep;
     // Center of cell, but GOMC always uses 0 center

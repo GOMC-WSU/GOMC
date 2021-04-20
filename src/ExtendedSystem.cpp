@@ -10,6 +10,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "FixedWidthReader.h" //For fixed width reader
 #include "ConfigSetup.h" //For restart info
 #include "DCDlib.h" // for Error output
+#include "Velocity.h" // for velocity data
 #include <stdlib.h> //for exit
 #include <string> // for to_string
 
@@ -24,7 +25,8 @@ ExtendedSystem::ExtendedSystem()
   }
 }
 
-void ExtendedSystem::Init(PDBSetup &pdb, config_setup::Input inputFiles, MoleculeLookup & molLookup, Molecules & mols)
+void ExtendedSystem::Init(PDBSetup &pdb, Velocity &vel,  config_setup::Input inputFiles,
+                          MoleculeLookup & molLookup, Molecules & mols)
 {
   // Read the extended system file and update the cellBasis data
   if(inputFiles.restart.restartFromXSCFile) {
@@ -37,18 +39,29 @@ void ExtendedSystem::Init(PDBSetup &pdb, config_setup::Input inputFiles, Molecul
     }
   }
   // Read the binary coordinate and update the PDB coordinate
-  if(inputFiles.restart.restartFromBinaryFile) {
+  if(inputFiles.restart.restartFromBinaryCoorFile) {
     int cmIndex = 0;
     for(int b = 0; b < BOX_TOTAL; b++) {
-      if(inputFiles.files.binaryInput.defined[b]) {
-        std::string fName = inputFiles.files.binaryInput.name[b];
+      if(inputFiles.files.binaryCoorInput.defined[b]) {
+        std::string fName = inputFiles.files.binaryCoorInput.name[b];
         UpdateCoordinate(pdb, fName.c_str(), b, molLookup, mols, cmIndex);
+      }
+    }
+  }
+  // Read the binary velocity and update the buffer
+  if(inputFiles.restart.restartFromBinaryVelFile) {
+    int cmIndex = 0;
+    for(int b = 0; b < BOX_TOTAL; b++) {
+      if(inputFiles.files.binaryVelInput.defined[b]) {
+        std::string fName = inputFiles.files.binaryVelInput.name[b];
+        UpdateVelocity(pdb, vel, fName.c_str(), b, molLookup, mols, cmIndex);
       }
     }
   }
 }
 
-void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb, const char *filename, const int box, MoleculeLookup & molLookup, Molecules & mols, int & cmIndex)
+void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb, const char *filename, const int box, MoleculeLookup & molLookup,
+                                      Molecules & mols, int & cmIndex)
 {
   // We must read restart PDB, which hold correct
   // number atom info in each Box
@@ -75,6 +88,36 @@ void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb, const char *filename, const
   }
 
   delete [] binaryCoor;
+}
+
+void ExtendedSystem::UpdateVelocity(PDBSetup &pdb, Velocity &vel, const char *filename, const int box,
+                                    MoleculeLookup & molLookup, Molecules & mols, int & cmIndex)
+{
+  // We must read restart PDB, which hold correct
+  // number atom info in each Box
+  int numAtoms = pdb.atoms.numAtomsInBox[box];
+  int moleculeOffset = 0;
+  XYZ *binaryVel;
+  binaryVel = new XYZ[numAtoms];
+  read_binary_file(filename, binaryVel, numAtoms);
+  //find the starting index
+
+  for(; cmIndex < (int) molLookup.molLookupCount; cmIndex++) {
+    if(moleculeOffset >= numAtoms) break;
+    int currentMolecule = molLookup.molLookup[cmIndex];
+    int numberOfAtoms = mols.start[currentMolecule + 1] - mols.start[currentMolecule];
+    int atomDestinationStart = mols.start[currentMolecule];
+
+    for(int atom = 0; atom < numberOfAtoms; atom++) {
+      vel.x[atomDestinationStart + atom] = binaryVel[moleculeOffset + atom].x;
+      vel.y[atomDestinationStart + atom] = binaryVel[moleculeOffset + atom].y;
+      vel.z[atomDestinationStart + atom] = binaryVel[moleculeOffset + atom].z;
+    }
+
+    moleculeOffset += numberOfAtoms;
+  }
+
+  delete [] binaryVel;
 }
 
 void ExtendedSystem::UpdateCellBasis(PDBSetup &pdb, const int box)

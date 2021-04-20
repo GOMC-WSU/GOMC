@@ -75,7 +75,8 @@ struct RestartSettings {
   ulong step;
   bool recalcTrajectory;
   bool restartFromCheckpoint;
-  bool restartFromBinaryFile;
+  bool restartFromBinaryCoorFile;
+  bool restartFromBinaryVelFile;
   bool restartFromXSCFile;
   bool operator()(void)
   {
@@ -111,7 +112,8 @@ struct FFKind {
 //Files for input.
 struct InFiles {
   std::vector<FileName> param;
-  FileNames<BOX_TOTAL> pdb, psf, binaryInput, xscInput, checkpoint;
+  FileNames<BOX_TOTAL> pdb, psf, checkpoint;
+  FileNames<BOX_TOTAL> binaryCoorInput, binaryVelInput, xscInput;
   FileName seed;
 };
 
@@ -875,6 +877,7 @@ struct Statistics {
 };
 struct Output {
   SysState state, restart, state_dcd, restart_dcd;
+  SysState restart_vel;
   Statistics statistics;
   EventSettings console, checkpoint;
 };

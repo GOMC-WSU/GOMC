@@ -17,7 +17,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 ExtendedSystemOutput::ExtendedSystemOutput(System& sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
-  boxDimRef(sys.boxDimRef), molRef(statV.mol),
+  boxDimRef(sys.boxDimRef), molRef(statV.mol), velCurrRef(sys.vel),
   coordCurrRef(sys.coordinates), comCurrRef(sys.com)
 {
   x = NULL;
@@ -27,8 +27,10 @@ ExtendedSystemOutput::ExtendedSystemOutput(System& sys, StaticVals const& statV)
   for(uint b = 0; b < BOX_TOTAL; ++b){
     stateFileFileid[b] = 0;
     restartCoor[b] = NULL;
+    restartVel[b] = NULL;
     outDCDStateFile[b] = NULL;
     outDCDRestartFile[b] = NULL;
+    outVelRestartFile[b] = NULL;
     outXSTFile[b] = NULL;
     outXSCFile[b] = NULL;
   }
@@ -42,6 +44,7 @@ void ExtendedSystemOutput::Init(pdb_setup::Atoms const& atoms,
   enableOut = enableStateOut | enableRestartOut;
   stepsStatePerOut = output.state_dcd.settings.frequency;
   stepsRestartPerOut = output.restart.settings.frequency;
+  outputVelocity = output.restart_vel.settings.enable;
   if (stepsStatePerOut < stepsRestartPerOut) {
     stepsPerOut = stepsStatePerOut;
   } else {
@@ -79,14 +82,25 @@ void ExtendedSystemOutput::Init(pdb_setup::Atoms const& atoms,
     }
   }
 
-  // Output restart binary coordinates and xsc file
+  // Output restart binary coordinates, velocities, and xsc file
   if (enableRestartOut) {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
+      // prepare coor file
       std::string fileName = output.restart_dcd.files.dcd.name[b];
       restartCoor[b] = new XYZ[NumAtomInBox(b)];
       int baselen = strlen(fileName.c_str());
       outDCDRestartFile[b] = new char[baselen+1];
       strcpy(outDCDRestartFile[b], fileName.c_str());
+
+      //prepare vel file
+      if(outputVelocity) {
+        std::string fileName = output.restart_vel.files.dcd.name[b];
+        restartVel[b] = new XYZ[NumAtomInBox(b)];
+        baselen = strlen(fileName.c_str());
+        outVelRestartFile[b] = new char[baselen+1];
+        strcpy(outVelRestartFile[b], fileName.c_str());
+      }
+
       // prepare the xsc file
       fileName = output.statistics.settings.uniqueStr.val;
       fileName += "_BOX_" + std::to_string(b) + "_restart.xsc";
@@ -213,20 +227,32 @@ void ExtendedSystemOutput::DoOutput(const ulong step)
     GOMC_EVENT_STOP(1, GomcProfileEvent::DCD_OUTPUT);
   }
 
-  // Output restart binary coordinates and xsc file
+  // Output restart binary coordinates, velocities, and xsc file
   if (((step + 1) % stepsRestartPerOut == 0) && enableRestartOut) {
     GOMC_EVENT_START(1, GomcProfileEvent::DCD_RESTART_OUTPUT);
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       int numAtomInBox = NumAtomInBox(b);
-      // Copy the coordinate data for each box into AOS
+      // Copy the coordinates and velocities data for each box into AOS
       SetMolInBox(b);
       printf("Writing binary restart coordinate to file %s at step %lu \n",
         outDCDRestartFile[b], step+1);
-      //  Generate a binary restart file
+      //  Generate a binary restart coordinate file
       Write_binary_file(outDCDRestartFile[b], numAtomInBox, restartCoor[b]);
       printf("Finished writing binary restart coordinate to file %s at step %lu \n",
         outDCDRestartFile[b], step+1);
       
+      // output restart velocities
+      if(outputVelocity) {
+        // Update the velocity in box
+        velCurrRef.UpdateVelocityInBox(b);
+        printf("Writing binary restart velocity to file %s at step %lu \n",
+          outVelRestartFile[b], step+1);
+        //  Generate a binary restart velocity file
+        Write_binary_file(outVelRestartFile[b], numAtomInBox, restartVel[b]);
+        printf("Finished writing binary restart velocity to file %s at step %lu \n",
+          outVelRestartFile[b], step+1);
+      }
+
       // write XSC file
       NAMD_backup_file(outXSCFile[b], ".BAK");
       xscFile[b].openOverwrite();
@@ -257,6 +283,10 @@ void ExtendedSystemOutput::SetMolInBox(const int box)
   if(restartCoor[box]) {
     delete [] restartCoor[box];
     restartCoor[box] = new XYZ[NumAtomInBox(box)];
+  } 
+  if(restartVel[box]) {
+    delete [] restartVel[box];
+    restartVel[box] = new XYZ[NumAtomInBox(box)];
   }
   #endif
 
@@ -274,6 +304,11 @@ void ExtendedSystemOutput::SetMolInBox(const int box)
       restartCoor[box][i].x = coor.x;
       restartCoor[box][i].y = coor.y;
       restartCoor[box][i].z = coor.z;
+
+      if(outputVelocity) {
+        restartVel[box][i] = velCurrRef.Get(p);
+      }
+
       ++i;
     }
     ++m;

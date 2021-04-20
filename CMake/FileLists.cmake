@@ -142,6 +142,7 @@ set(headers
    src/SubdividedArray.h
    src/System.h
    src/TransformMatrix.h
+   src/Velocity.h
    src/Writer.h
    src/XYZArray.h
    src/cbmc/DCComponent.h
