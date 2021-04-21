@@ -109,6 +109,8 @@ inline void Translate::Accept(const uint rejectState, const uint step)
     calcEwald->UpdateRecip(b);
 
     sysPotRef.Total();
+    // Update the velocity
+    velocity.UpdateMolVelocity(m, b);
   }
 
   if(molRemoved) {

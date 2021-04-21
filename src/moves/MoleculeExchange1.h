@@ -774,6 +774,15 @@ inline void MoleculeExchange1::Accept(const uint rejectState, const uint step)
       //molA and molB already transferred to destBox and added to cellist
       //Retotal
       sysPotRef.Total();
+
+      // Update the velocity
+      for(uint n = 0; n < numInCavB; n++) {
+        velocity.UpdateMolVelocity(molIndexB[n], sourceBox);
+      }
+      for(uint n = 0; n < numInCavA; n++) {
+        velocity.UpdateMolVelocity(molIndexA[n], destBox);
+      }
+
     } else {
       //transfer molA from destBox to source
       for(uint n = 0; n < numInCavA; n++) {

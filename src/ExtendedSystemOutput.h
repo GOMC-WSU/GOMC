@@ -19,6 +19,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeKind.h"
 #include "StaticVals.h"
 #include "Coordinates.h"
+#include "Velocity.h"
 #include "Writer.h"
 #include "DCDlib.h"
 #include "PDBSetup.h" //For atoms class
@@ -31,11 +32,11 @@ struct Output;
 class MoveSettings;
 class MoleculeLookup;
 
-struct DCDOutput : OutputableBase {
+struct ExtendedSystemOutput : OutputableBase {
 public:
-  DCDOutput(System & sys, StaticVals const& statV);
+  ExtendedSystemOutput(System & sys, StaticVals const& statV);
 
-  ~DCDOutput()
+  ~ExtendedSystemOutput()
   {
     if (x) {
       delete [] x; // y and z are continue of x
@@ -48,11 +49,17 @@ public:
       if(restartCoor[b]) {
         delete [] restartCoor[b];
       }
+      if(restartVel[b]) {
+        delete [] restartVel[b];
+      }
       if(outDCDStateFile[b]) {
         delete [] outDCDStateFile[b];
       }
       if(outDCDRestartFile[b]) {
         delete [] outDCDRestartFile[b];
+      }
+      if(outVelRestartFile[b]) {
+        delete [] outVelRestartFile[b];
       }
       if (outXSTFile[b]) {
         delete [] outXSTFile[b];
@@ -76,6 +83,7 @@ private:
   // Unwrap and save coordinates of molecule in box, into *x, *y, *z
   void SetCoordinates(std::vector<int> &molInBox, const int box);
   // Unwrap and save coordinates of molecule in box, into *restartCoor
+  // Save velocities of molecule in box, into *restartVel
   void SetMolInBox(const int box);
   // Return a vector that defines the box id for each molecule
   void SetMolBoxVec(std::vector<int> & mBox);
@@ -96,20 +104,24 @@ private:
   BoxDimensions& boxDimRef;
   Molecules const& molRef;
   Coordinates & coordCurrRef;
+  Velocity & velCurrRef;
   COM & comCurrRef;
 
   char *outDCDStateFile[BOX_TOTAL];
   char *outDCDRestartFile[BOX_TOTAL];
+  char *outVelRestartFile[BOX_TOTAL];
   char *outXSTFile[BOX_TOTAL];
   char *outXSCFile[BOX_TOTAL];
   int stateFileFileid[BOX_TOTAL];
   bool enableRestartOut, enableStateOut;
+  bool outputVelocity; //output Velocity or not
   ulong stepsRestartPerOut, stepsStatePerOut;
   // 
   float *x, *y, *z;
   // AOS for restart binary format. NAMD internal data structure 
   // is array of vector(XYZ)
   XYZ *restartCoor[BOX_TOTAL]; 
+  XYZ *restartVel[BOX_TOTAL]; 
   // for extension system files
   Writer xstFile[BOX_TOTAL];
   Writer xscFile[BOX_TOTAL];

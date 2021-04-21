@@ -13,7 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 CPUSide::CPUSide(System & sys, StaticVals & statV, Setup & set) :
   varRef(sys, statV, set.mol.molVars.moleculeKindNames), pdb(sys, statV), 
   psf(statV.mol, sys, set), 
-  dcd(sys, statV),
+  xstBinary(sys, statV),
   console(varRef), block(varRef),
   hist(varRef), checkpoint(sys, statV)
 #if ENSEMBLE == GCMC
@@ -37,7 +37,7 @@ void CPUSide::Init( PDBSetup const& pdbSet,
   timer.Init(out.console.frequency, totSteps, startStep);
   outObj.push_back(&console);
   outObj.push_back(&pdb);
-  outObj.push_back(&dcd);
+  outObj.push_back(&xstBinary);
   outObj.push_back(&psf);
   if (out.statistics.settings.block.enable)
     outObj.push_back(&block);

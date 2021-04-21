@@ -261,6 +261,7 @@ inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
       calcEwald->UpdateRecip(box);
       calcEwald->UpdateRecipVec(box);
     }
+    // No need to update the velocity
 
   } else if (rejectState == mv::fail_state::NO_FAIL && regrewGrid) {
     if (GEMC_KIND == mv::GEMC_NVT) {

@@ -166,6 +166,8 @@ inline void Regrowth::Accept(const uint rejectState, const uint step)
 
       //Retotal
       sysPotRef.Total();
+      // Update the velocity
+      velocity.UpdateMolVelocity(molIndex, sourceBox);
     } else {
       cellList.AddMol(molIndex, sourceBox, coordCurrRef);
 

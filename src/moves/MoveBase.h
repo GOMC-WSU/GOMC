@@ -26,6 +26,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MolPick.h"
 #include "Forcefield.h"
 #include "GOMCEventsProfile.h" // for NVTX profiling
+#include "Velocity.h"
 
 class MoveBase
 {
@@ -39,7 +40,7 @@ public:
     molForceRecRef(sys.molForceRecRef), prng(sys.prng),
     boxDimRef(sys.boxDimRef), molRef(statV.mol),
     BETA(statV.forcefield.beta), ewald(statV.forcefield.ewald),
-    cellList(sys.cellList)
+    cellList(sys.cellList), velocity(sys.vel)
   {
     atomForceNew.Init(sys.atomForceRef.Count());
     molForceNew.Init(sys.molForceRef.Count());
@@ -87,6 +88,7 @@ protected:
   XYZArray molForceNew;
   XYZArray& atomForceRecRef;
   XYZArray& molForceRecRef;
+  Velocity& velocity;
 
   PRNG & prng;
   BoxDimensions & boxDimRef;
