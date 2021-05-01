@@ -35,7 +35,11 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
             totalSteps, startStep);
             
   if(totalSteps == 0) {
-    frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
+    if (set.pdb.remarks.restartFromBinary){
+      frameSteps = set.pdb.GetFrameStepsFromBinary(set.config.in.files.binaryInput.name, set.pdb.atoms.numAtomsInBox);
+    } else {
+      frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
+    }
   }
 #if GOMC_LIB_MPI
   // set.config.sys.step.parallelTemp is a boolean for enabling/disabling parallel tempering

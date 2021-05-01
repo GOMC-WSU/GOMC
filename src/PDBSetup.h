@@ -16,6 +16,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "PDBConst.h" //For fields positions, etc.
 #include "XYZArray.h" //For box dimensions.
 
+// Recalc Traj from Binary
+#include "DCDlib.h" // for Error output
+
 namespace config_setup
 {
 struct RestartSettings;
@@ -116,7 +119,7 @@ public:
   std::vector<double> beta;  //beta value of each molecule
   std::vector<uint> box;
   std::vector<std::string> resNames;
-  bool restart, firstResInFile, recalcTrajectory;
+  bool restart, firstResInFile, recalcTrajectory, restartFromBinary;
   //CurrRes is used to store res vals, currBox is used to
   //determine box either via the file (new) or the occupancy
   //(restart), count allows overwriting of coordinates during
@@ -136,6 +139,8 @@ struct PDBSetup {
   void Init(config_setup::RestartSettings const& restart,
             std::string const*const name, uint frameNumber = 1);
   std::vector<ulong> GetFrameSteps(std::string const*const name);
+  std::vector<ulong> GetFrameStepsFromBinary(std::string const*const name, uint * numAtomsInBox);
+
 private:
   //Map variable names to functions
   std::map<std::string, FWReadableBase *>  SetReadFunctions(void)

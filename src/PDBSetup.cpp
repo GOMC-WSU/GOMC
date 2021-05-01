@@ -14,6 +14,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveConst.h"
 #include <stdlib.h> //for exit
 #include <string> // for to_string
+#include "ExtendedSystem.h"
+
 
 #if BOX_TOTAL == 1
 const std::string PDBSetup::pdbAlias[] = {"system PDB coordinate file"};
@@ -102,6 +104,7 @@ void Cryst1::Read(FixedWidthReader & pdb)
 void Atoms::SetRestart(config_setup::RestartSettings const& r )
 {
   restart = r.enable;
+  restartFromBinary = r.restartFromBinaryFile;
   recalcTrajectory = r.recalcTrajectory;
 }
 
@@ -139,7 +142,7 @@ void Atoms::Read(FixedWidthReader & file)
   .Get(l_y, field::y::POS).Get(l_z, field::z::POS)
   .Get(l_occ, field::occupancy::POS)
   .Get(l_beta, field::beta::POS);
-  if(recalcTrajectory && (uint)l_occ != currBox) {
+  if(recalcTrajectory && (uint)l_occ != currBox  && !restartFromBinary) {
     return;
   }
   Assign(resName, l_chain, l_x, l_y, l_z, l_beta);
@@ -213,9 +216,9 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
     }
     // If the recalcTrajectory is true and reached was still false
     // it means we couldn't find a remark and hence have to exit with error
-    if(!remarks.reached[b] && remarks.recalcTrajectory) {
+    if(!remarks.reached[b] && remarks.recalcTrajectory && !remarks.restartFromBinary) {
       std::cerr << "Error: Recalculate Trajectory is active..." << std::endl
-                << ".. and couldn't find remark in PDB file!" << std::endl;
+                << ".. and couldn't find remark in PDB/DCD file!" << std::endl;
       exit(EXIT_FAILURE);
     }
     std::cout.width(40);
@@ -241,4 +244,12 @@ std::vector<ulong> PDBSetup::GetFrameSteps(std::string const*const name)
     }
   }
   return remarks.frameSteps;
+}
+
+std::vector<ulong> PDBSetup::GetFrameStepsFromBinary(std::string const*const name, uint * numAtomsInBox){
+  std::string filename = name[mv::BOX0];
+  uint numAtoms = numAtomsInBox[mv::BOX0];
+  XYZ *binaryCoor;
+  binaryCoor = new XYZ[numAtoms];
+  read_binary_file(filename.c_str(), binaryCoor, numAtoms);
 }
