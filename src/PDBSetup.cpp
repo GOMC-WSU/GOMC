@@ -259,6 +259,7 @@ bool PDBSetup::GetBinaryTrajectoryBoolean(){
   for (uint b = 0; b < BOX_TOTAL; ++b){
     defined |= binTraj[b].defined;
   }
+  return defined;
 }
 
 std::vector<ulong> PDBSetup::GetFrameStepsFromBinary(uint startStep, config_setup::InFiles const& inFiles){
