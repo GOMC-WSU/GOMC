@@ -557,6 +557,8 @@ void MolSetup::copyBondInfoIntoMapEntry(const BondAdjacencyList & bondAdjList, m
         ptr = ptr->next;
       }
     }
+    /* before returning, reverse the bonds vector, which should get dead on balls accurate merged psfs across cycles */
+    std::reverse(kindMap[fragName].bonds.begin(), kindMap[fragName].bonds.end());
 }
 
 namespace
