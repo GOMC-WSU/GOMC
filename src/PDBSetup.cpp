@@ -36,7 +36,9 @@ void Remarks::SetRestart(config_setup::RestartSettings const& r )
 
   for(uint b = 0; b < BOX_TOTAL; b++) {
     if(recalcTrajectory)
-      reached[b] = false;
+      /* If the user provides a binary file when recalcTraj is true
+        assume the trajectory is in binary format */
+      reached[b] = restartFromBinary;
     else
       reached[b] = true;
   }
