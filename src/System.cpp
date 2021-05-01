@@ -259,7 +259,7 @@ void System::InitLambda()
 void System::RecalculateTrajectory(Setup &set, uint frameNum)
 {
   if(set.pdb.GetBinaryTrajectoryBoolean())
-    set.pdb.LoadBinaryTrajectoryStep();
+    set.pdb.LoadBinaryTrajectoryStep(frameNum);
   else
     set.pdb.Init(set.config.in.restart, set.config.in.files, set.config.in.files.pdb.name, frameNum);
   statV.InitOver(set, *this);

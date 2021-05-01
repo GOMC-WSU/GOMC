@@ -166,7 +166,7 @@ struct PDBSetup {
   bool GetBinaryTrajectoryBoolean();
   std::vector<ulong> GetFrameStepsFromBinary(uint startStep, config_setup::InFiles const& inFiles);
   int InitBinaryTrajectory(config_setup::InFiles const& inFiles);
-  void LoadBinaryTrajectoryStep();
+  int LoadBinaryTrajectoryStep(uint frameNum);
 
 private:
   //Map variable names to functions
