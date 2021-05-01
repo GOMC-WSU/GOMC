@@ -36,7 +36,7 @@ DCDOutput::DCDOutput(System& sys, StaticVals const& statV) :
 void DCDOutput::Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output)
 {
-  enableOut = output.state_dcd.settings.enable || forceOutput;
+  enableOut = output.state_dcd.settings.enable || atoms.recalcTrajectoryBinary;
   enableRestOut = output.restart.settings.enable;
   stepsPerOut = output.state_dcd.settings.frequency;
   stepsRestPerOut = output.restart.settings.frequency;

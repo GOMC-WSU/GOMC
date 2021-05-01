@@ -38,7 +38,8 @@ void Remarks::SetRestart(config_setup::RestartSettings const& r )
   for(uint b = 0; b < BOX_TOTAL; b++) {
     if(recalcTrajectory)
       /* If the user provides a binary file when recalcTraj is true
-        assume the trajectory is in binary format */
+        ignore PDB file except for first frame.  Even then, 
+        the first frame can be overwritten by a binary coords. */
       reached[b] = recalcTrajectoryBinary;
     else
       reached[b] = true;
@@ -109,6 +110,7 @@ void Atoms::SetRestart(config_setup::RestartSettings const& r )
   restart = r.enable;
   restartFromBinary = r.restartFromBinaryFile;
   recalcTrajectory = r.recalcTrajectory;
+  //recalcTrajectory = r.recalcTrajectory && !r.recalcTrajectoryBinary;
   recalcTrajectoryBinary = r.recalcTrajectoryBinary;
 }
 
@@ -146,6 +148,7 @@ void Atoms::Read(FixedWidthReader & file)
   .Get(l_y, field::y::POS).Get(l_z, field::z::POS)
   .Get(l_occ, field::occupancy::POS)
   .Get(l_beta, field::beta::POS);
+  /* In the rare case you wanted 0-convention PDB Trajectories */
   if(recalcTrajectory && (uint)l_occ != currBox  && !recalcTrajectoryBinary) {
     return;
   }

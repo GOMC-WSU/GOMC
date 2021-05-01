@@ -74,10 +74,10 @@ struct RestartSettings {
   bool enable;
   ulong step;
   bool recalcTrajectory;
+  bool recalcTrajectoryBinary;
   bool restartFromCheckpoint;
   bool restartFromBinaryFile;
   bool restartFromXSCFile;
-  bool recalcTrajectoryBinary;
   bool operator()(void)
   {
     return enable;

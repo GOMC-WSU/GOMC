@@ -40,7 +40,7 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
 {
   std::string bStr = "", aliasStr = "", numStr = "";
   sstrm::Converter toStr;
-  enableOut = output.state.settings.enable;
+  enableOut = output.state.settings.enable || atoms.recalcTrajectory;
   enableRestOut = output.restart.settings.enable;
   enableSortedSegmentOut = molRef.enableSortedSegmentOut;
 
@@ -50,7 +50,7 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
   if (stepsPerOut > stepsRestPerOut)
     stepsPerOut = stepsRestPerOut;
 
-  if (enableOut || forceOutput) {
+  if (enableOut) {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       //Get alias string, based on box #.
       bStr = "Box ";

@@ -121,7 +121,7 @@ public:
   std::vector<double> beta;  //beta value of each molecule
   std::vector<uint> box;
   std::vector<std::string> resNames;
-  bool restart, firstResInFile, recalcTrajectory, recalcTrajectoryBinary, restartFromBinary;
+  bool restart, restartFromBinary, firstResInFile, recalcTrajectory, recalcTrajectoryBinary;
   //CurrRes is used to store res vals, currBox is used to
   //determine box either via the file (new) or the occupancy
   //(restart), count allows overwriting of coordinates during

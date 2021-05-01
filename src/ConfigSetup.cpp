@@ -21,6 +21,7 @@ ConfigSetup::ConfigSetup(void)
   in.restart.enable = false;
   in.restart.step = ULONG_MAX;
   in.restart.recalcTrajectory = false;
+  in.restart.recalcTrajectoryBinary = false;
   in.restart.restartFromCheckpoint = false;
   in.restart.restartFromBinaryFile = false;
   in.restart.restartFromXSCFile = false;
