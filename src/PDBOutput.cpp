@@ -50,7 +50,7 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
   if (stepsPerOut > stepsRestPerOut)
     stepsPerOut = stepsRestPerOut;
 
-  if (enableOut) {
+  if (enableOut || forceOutput) {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       //Get alias string, based on box #.
       bStr = "Box ";

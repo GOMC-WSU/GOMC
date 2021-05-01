@@ -36,10 +36,11 @@ DCDOutput::DCDOutput(System& sys, StaticVals const& statV) :
 void DCDOutput::Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output)
 {
-  enableOut = output.state_dcd.settings.enable;
+  enableOut = output.state_dcd.settings.enable || forceOutput;
   enableRestOut = output.restart.settings.enable;
   stepsPerOut = output.state_dcd.settings.frequency;
   stepsRestPerOut = output.restart.settings.frequency;
+  enableSortedSegmentOut = molRef.enableSortedSegmentOut;
   if (stepsPerOut >= stepsRestPerOut) {
     stepsPerOut = stepsRestPerOut;
   }

@@ -54,7 +54,6 @@ public:
 
     /* We will output either when the step number is every stepsPerOut
        Or recalculate trajectory is enabled (forceOutput) */
-    //if ((onlyPrintOnFirstStep) || (enableOut && ((step + 1) % stepsPerOut == 0)) || forceOutput) {
     if ((onlyPrintOnFirstStep && step == 0) || (enableOut && ((step + 1) % stepsPerOut == 0)) || forceOutput) {
       DoOutput(step);
       firstPrint = false;
