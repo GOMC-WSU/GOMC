@@ -18,7 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 Simulation::Simulation(char const*const configFileName, MultiSim const*const& multisim): ms(multisim)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::INITIALIZE);
-  startStep = 0;
+  startStep = set.config.sys.step.firsttimestep;
   GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
   set.Init(configFileName, multisim);
   GOMC_EVENT_STOP(1, GomcProfileEvent::READ_INPUT_FILES);

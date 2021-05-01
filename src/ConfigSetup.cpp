@@ -40,6 +40,7 @@ ConfigSetup::ConfigSetup(void)
   sys.memcVal.enable = false;
   sys.cfcmcVal.enable = false;
   sys.intraMemcVal.enable = false;
+  sys.step.firsttimestep = 0;
   sys.step.total = ULONG_MAX;
   sys.step.equil = ULONG_MAX;
   sys.step.adjustment = ULONG_MAX;
@@ -639,6 +640,9 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
     } else if(CheckString(line[0], "Dielectric")) {
       sys.elect.dielectric = stringtod(line[1]);
       printf("%-40s %-4.4f \n", "Info: Dielectric", sys.elect.dielectric);
+    } else if(CheckString(line[0], "firsttimestep")) {
+      sys.step.firsttimestep = stringtoi(line[1]);
+      printf("%-40s %-lu \n", "Info: firsttimestep ", sys.step.firsttimestep);
     } else if(CheckString(line[0], "RunSteps")) {
       sys.step.total = stringtoi(line[1]);
       printf("%-40s %-lu \n", "Info: Total number of steps", sys.step.total);

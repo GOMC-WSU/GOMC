@@ -29,6 +29,7 @@ private:
   StaticVals * staticValues;
   System * system;
   CPUSide * cpu;
+  ulong firstStep;
   ulong totalSteps;
   Setup set;
   std::vector<ulong> frameSteps;
