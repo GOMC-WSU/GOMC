@@ -54,13 +54,18 @@ public:
 
     /* We will output either when the step number is every stepsPerOut
        Or recalculate trajectory is enabled (forceOutput) */
-    if ((onlyPrintOnFirstStep && step == 0) || (enableOut && ((step + 1) % stepsPerOut == 0)) || !onlyPrintOnFirstStep && forceOutput) {
+    if ((onlyPrintOnFirstStep && firstPrint) || (enableOut && ((step + 1) % stepsPerOut == 0)) || forceOutput) {
+    /*
+    I want to always generate a merged psf file, even on recalcTraj where startStep != 0
+    //if ((onlyPrintOnFirstStep && step == 0) || (enableOut && ((step + 1) % stepsPerOut == 0)) || forceOutput) {
+    */
       DoOutput(step);
       firstPrint = false;
     }
 
     /* We will output if the step number is every stepsRestPerOut */
-    if (enableRestOut && ((step + 1) % stepsRestPerOut == 0)) {
+    /* (forceOutput && onlyPrintOnFirstStep) - only ever true for PSF files, which I want to see to test collation */
+    if ((enableRestOut && ((step + 1) % stepsRestPerOut == 0)) || (forceOutput && onlyPrintOnFirstStep)) {
       DoOutputRestart(step);
     }
   }
@@ -102,7 +107,6 @@ public:
 #endif
     stepsTillEquil = tillEquil;
     totSimSteps = totSteps;
-    firstPrint = true;
 
     // We will use forceOutput for recalculate trajectory
     // If we are not running any simulation then the step will stay 0
@@ -136,7 +140,7 @@ public:
   std::string pathToReplicaOutputDirectory;
 #endif
   ulong stepsPerOut = 0, stepsRestPerOut = 0, stepsTillEquil = 0, totSimSteps = 0;
-  bool enableOut = false, enableRestOut = false, firstPrint = false, forceOutput = false, onlyPrintOnFirstStep = false;
+  bool enableOut = false, enableRestOut = false, firstPrint = true, forceOutput = false, onlyPrintOnFirstStep = false;
 
   //Contains references to various objects.
   OutputVars * var;

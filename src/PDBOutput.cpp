@@ -43,7 +43,10 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
   If we want to convert PDBTraj to DCDTraj use this version
   enableOut = output.state.settings.enable || atoms.recalcTrajectory;
   */
+   /* For testing purposes it is good to print PDB since it is readable.
   enableOut = output.state.settings.enable || (atoms.recalcTrajectory && !atoms.recalcTrajectoryBinary);
+  */
+  enableOut = output.state.settings.enable || atoms.recalcTrajectory;
   enableRestOut = output.restart.settings.enable;
   enableSortedSegmentOut = molRef.enableSortedSegmentOut;
 

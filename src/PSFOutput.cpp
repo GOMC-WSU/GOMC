@@ -60,7 +60,7 @@ void PSFOutput::Init(pdb_setup::Atoms const& atoms,
 {
   std::string bStr = "", aliasStr = "", numStr = "";
   sstrm::Converter toStr;
-  enableRestOut = output.restart.settings.enable;
+  enableRestOut = output.restart.settings.enable || forceOutput;
   stepsRestPerOut = output.restart.settings.frequency;
   if (enableRestOut) {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
