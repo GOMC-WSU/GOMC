@@ -302,7 +302,7 @@ void DCDOutput::SetCoordinates(std::vector<int> &molInBox, const int box)
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   //Loop through all molecules
   for (int m = 0; m < numMolecules; ++m) {
-    mI = enableSortedSegmentOut ? molRef.sortedMoleculeIndices[m] : m
+    mI = enableSortedSegmentOut ? molRef.sortedMoleculeIndices[m] : m;
     molRef.GetRangeStartStop(pStart, pEnd, mI);
     ref = comCurrRef.Get(mI);
     for (p = pStart; p < pEnd; ++p) {

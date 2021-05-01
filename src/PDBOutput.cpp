@@ -20,7 +20,6 @@ PDBOutput::PDBOutput(System  & sys, StaticVals const& statV) :
   boxDimRef(sys.boxDimRef), molRef(statV.mol), coordCurrRef(sys.coordinates),
   comCurrRef(sys.com), pStr(coordCurrRef.Count(), GetDefaultAtomStr())
 {
-  //sortedSegmentIndices = statV.mol.moleculeIndices;
   for(int i = 0; i < BOX_TOTAL; i++)
     frameNumber[i] = 0;
 }
@@ -40,7 +39,11 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
 {
   std::string bStr = "", aliasStr = "", numStr = "";
   sstrm::Converter toStr;
+  /* My reasoning is if you pass a PDB trajectory in, you want a PDB traj out 
+  If we want to convert PDBTraj to DCDTraj use this version
   enableOut = output.state.settings.enable || atoms.recalcTrajectory;
+  */
+  enableOut = output.state.settings.enable || (atoms.recalcTrajectory && !atoms.recalcTrajectoryBinary);
   enableRestOut = output.restart.settings.enable;
   enableSortedSegmentOut = molRef.enableSortedSegmentOut;
 
