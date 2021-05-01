@@ -73,7 +73,8 @@ void DCDOutput::Init(pdb_setup::Atoms const& atoms,
       xstFile[b].Init(fileName, " output XST", true, printNotify);
       xstFile[b].open();
       Write_Extension_System_Header(xstFile[b]);
-    }
+    }  
+    DoOutput(0);
   }
 
   // Output restart binary coordinates and xsc file
@@ -94,7 +95,6 @@ void DCDOutput::Init(pdb_setup::Atoms const& atoms,
     }
   }
 
-  DoOutput(0);
 }
 
 
