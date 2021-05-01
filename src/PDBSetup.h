@@ -22,6 +22,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 namespace config_setup
 {
 struct RestartSettings;
+struct InFiles;
 }
 struct FWReadableBase;
 
@@ -35,7 +36,7 @@ struct Remarks : FWReadableBase {
   uint frameNumber[BOX_TOTAL], targetFrame[BOX_TOTAL];
   std::vector<ulong> frameSteps;
   bool restart, reached[BOX_TOTAL], recalcTrajectory;
-  bool restartFromXSC, restartFromBinary;
+  bool restartFromXSC, restartFromBinary, recalcTrajectoryBinary;
   Remarks () {
     currBox = 0;
     restart = recalcTrajectory = false;
@@ -119,7 +120,7 @@ public:
   std::vector<double> beta;  //beta value of each molecule
   std::vector<uint> box;
   std::vector<std::string> resNames;
-  bool restart, firstResInFile, recalcTrajectory, restartFromBinary;
+  bool restart, firstResInFile, recalcTrajectory, recalcTrajectoryBinary, restartFromBinary;
   //CurrRes is used to store res vals, currBox is used to
   //determine box either via the file (new) or the occupancy
   //(restart), count allows overwriting of coordinates during
@@ -128,18 +129,36 @@ public:
   uint numAtomsInBox[BOX_TOTAL]; // number of atom in each box
 };
 
+struct BinaryTrajectory {
+  bool defined;
+
+  /* For reading header */
+  int fd, N, NSET, ISTART, NSAVC, NAMNF;
+  double DELTA;
+  int * FREEINDEXES;
+
+  /* For reading step */
+  float *X, *Y, *Z; 
+  int num_fixed, first, *indexes;
+};
+
 }
 
 struct PDBSetup {
   pdb_setup::Atoms atoms;
   pdb_setup::Cryst1 cryst;
   pdb_setup::Remarks remarks;
+  pdb_setup::BinaryTrajectory binTraj[BOX_TOTAL];
   FixedWidthReader pdb[BOX_TOTAL];
   PDBSetup(void) : dataKinds(SetReadFunctions()) {}
   void Init(config_setup::RestartSettings const& restart,
+            config_setup::InFiles const& inFiles,
             std::string const*const name, uint frameNumber = 1);
   std::vector<ulong> GetFrameSteps(std::string const*const name);
-  std::vector<ulong> GetFrameStepsFromBinary(std::string const*const name, uint * numAtomsInBox);
+  bool GetBinaryTrajectoryBoolean();
+  std::vector<ulong> GetFrameStepsFromBinary(uint startStep, config_setup::InFiles const& inFiles);
+  void InitBinaryTrajectory(config_setup::InFiles const& inFiles);
+  void LoadBinaryTrajectoryStep();
 
 private:
   //Map variable names to functions

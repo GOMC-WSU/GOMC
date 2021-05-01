@@ -55,7 +55,7 @@ typedef int     int32;
 #define DCD_BADMALLOC   -8    /*  malloc failed            */
 
 /*            FUNCTION ALLUSIONS                */
-int open_dcd_read(char *);      /*  Open a DCD file for reading     */
+int open_dcd_read(const char *);      /*  Open a DCD file for reading     */
 int read_dcdheader(int, int*, int*, int*, int*, double*, int*, int**);    
                 /*  Read the DCD header            */
 int read_dcdstep(int, int, float*, float*, float*, int, int, int*);    

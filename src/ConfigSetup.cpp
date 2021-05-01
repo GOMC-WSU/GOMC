@@ -276,6 +276,21 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       }
       in.files.binaryInput.defined[boxnum] = true;
       in.restart.restartFromBinaryFile = true;
+    } else if(CheckString(line[0], "binTrajectory")) {
+      if(line.size() >= 3) {
+      uint boxnum = stringtoi(line[1]);
+      if (multisim != NULL) {
+        in.files.binaryTrajectory.name[boxnum] = multisim->replicaInputDirectoryPath + line[2];
+      } else {
+        in.files.binaryTrajectory.name[boxnum] = line[2];
+      }
+      in.files.binaryTrajectory.defined[boxnum] = true;
+      in.restart.recalcTrajectoryBinary = true;
+      } else {
+        printf("%-40s %-lu !\n", "Error: Expected 2 values for binTrajectory, but received",
+        line.size() -1);
+        exit(EXIT_FAILURE);
+      }
     } else if(CheckString(line[0], "extendedSystem")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {

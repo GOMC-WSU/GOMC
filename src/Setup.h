@@ -37,7 +37,7 @@ public:
     //Read in FF data.
     ff.Init(config.in.files.param, config.in.ffKind.isCHARMM);
     //Read in PDB data
-    pdb.Init(config.in.restart, config.in.files.pdb.name);
+    pdb.Init(config.in.restart, config.in.files, config.in.files.pdb.name);
     //Initialize PRNG
     prng.Init(config.in.restart, config.in.prng, config.in.files.seed.name);
 #if GOMC_LIB_MPI

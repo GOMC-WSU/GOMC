@@ -77,6 +77,7 @@ struct RestartSettings {
   bool restartFromCheckpoint;
   bool restartFromBinaryFile;
   bool restartFromXSCFile;
+  bool recalcTrajectoryBinary;
   bool operator()(void)
   {
     return enable;
@@ -111,7 +112,7 @@ struct FFKind {
 //Files for input.
 struct InFiles {
   std::vector<FileName> param;
-  FileNames<BOX_TOTAL> pdb, psf, binaryInput, xscInput, checkpoint, referencePSF;
+  FileNames<BOX_TOTAL> pdb, psf, binaryInput, xscInput, checkpoint, binaryTrajectory;
   FileName seed;
 };
 

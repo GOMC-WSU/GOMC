@@ -35,8 +35,8 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
             totalSteps, startStep);
             
   if(totalSteps == 0) {
-    if (set.pdb.remarks.restartFromBinary){
-      frameSteps = set.pdb.GetFrameStepsFromBinary(set.config.in.files.binaryInput.name, set.pdb.atoms.numAtomsInBox);
+    if (set.pdb.GetBinaryTrajectoryBoolean()){
+      frameSteps = set.pdb.GetFrameStepsFromBinary(startStep, set.config.in.files);
     } else {
       frameSteps = set.pdb.GetFrameSteps(set.config.in.files.pdb.name);
     }

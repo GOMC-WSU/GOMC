@@ -109,7 +109,9 @@ void System::Init(Setup & set, ulong & startStep)
     checkpointSet.ReadAll();
     checkpointSet.SetStepNumber(startStep);
     checkpointSet.SetPRNGVariables(prng);
+    checkpointSet.SetMoleculeLookup(molLookupRef);
     checkpointSet.SetMoveSettings(moveSettings);
+    checkpointSet.SetMolecules(statV.mol);
 #if GOMC_LIB_MPI
     if(checkpointSet.CheckIfParallelTemperingWasEnabled() && ms->parallelTemperingEnabled)
       checkpointSet.SetPRNGVariablesPT(*prngParallelTemp);
@@ -256,7 +258,10 @@ void System::InitLambda()
 
 void System::RecalculateTrajectory(Setup &set, uint frameNum)
 {
-  set.pdb.Init(set.config.in.restart, set.config.in.files.pdb.name, frameNum);
+  if(set.pdb.GetBinaryTrajectoryBoolean())
+    set.pdb.LoadBinaryTrajectoryStep();
+  else
+    set.pdb.Init(set.config.in.restart, set.config.in.files, set.config.in.files.pdb.name, frameNum);
   statV.InitOver(set, *this);
 #ifdef VARIABLE_PARTICLE_NUMBER
   molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield);

@@ -31,6 +31,7 @@ void Remarks::SetRestart(config_setup::RestartSettings const& r )
 {
   restart = r.enable;
   recalcTrajectory = r.recalcTrajectory;
+  recalcTrajectoryBinary = r.recalcTrajectoryBinary;
   restartFromXSC = r.restartFromXSCFile;
   restartFromBinary = r.restartFromBinaryFile;
 
@@ -38,7 +39,7 @@ void Remarks::SetRestart(config_setup::RestartSettings const& r )
     if(recalcTrajectory)
       /* If the user provides a binary file when recalcTraj is true
         assume the trajectory is in binary format */
-      reached[b] = restartFromBinary;
+      reached[b] = recalcTrajectoryBinary;
     else
       reached[b] = true;
   }
@@ -108,6 +109,7 @@ void Atoms::SetRestart(config_setup::RestartSettings const& r )
   restart = r.enable;
   restartFromBinary = r.restartFromBinaryFile;
   recalcTrajectory = r.recalcTrajectory;
+  recalcTrajectoryBinary = r.recalcTrajectoryBinary;
 }
 
 void Atoms::Assign(std::string const& resName,
@@ -144,7 +146,7 @@ void Atoms::Read(FixedWidthReader & file)
   .Get(l_y, field::y::POS).Get(l_z, field::z::POS)
   .Get(l_occ, field::occupancy::POS)
   .Get(l_beta, field::beta::POS);
-  if(recalcTrajectory && (uint)l_occ != currBox  && !restartFromBinary) {
+  if(recalcTrajectory && (uint)l_occ != currBox  && !recalcTrajectoryBinary) {
     return;
   }
   Assign(resName, l_chain, l_x, l_y, l_z, l_beta);
@@ -165,6 +167,7 @@ void Atoms::Clear()
 } //end namespace pdb_setup
 
 void PDBSetup::Init(config_setup::RestartSettings const& restart,
+                    config_setup::InFiles const& inFiles,
                     std::string const*const name, uint frameNum)
 {
   // Clear the vectors for both atoms and remarks in case Init was called
@@ -218,7 +221,7 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
     }
     // If the recalcTrajectory is true and reached was still false
     // it means we couldn't find a remark and hence have to exit with error
-    if(!remarks.reached[b] && remarks.recalcTrajectory && !remarks.restartFromBinary) {
+    if(!remarks.reached[b] && remarks.recalcTrajectory && !remarks.recalcTrajectoryBinary) {
       std::cerr << "Error: Recalculate Trajectory is active..." << std::endl
                 << ".. and couldn't find remark in PDB/DCD file!" << std::endl;
       exit(EXIT_FAILURE);
@@ -227,6 +230,9 @@ void PDBSetup::Init(config_setup::RestartSettings const& restart,
     std::cout << std::left << "Finished reading: ";
     std::cout << "\t" << name[b] << std::endl;
   }
+
+  if(remarks.recalcTrajectoryBinary)
+    InitBinaryTrajectory(inFiles);
 }
 
 std::vector<ulong> PDBSetup::GetFrameSteps(std::string const*const name)
@@ -248,10 +254,52 @@ std::vector<ulong> PDBSetup::GetFrameSteps(std::string const*const name)
   return remarks.frameSteps;
 }
 
-std::vector<ulong> PDBSetup::GetFrameStepsFromBinary(std::string const*const name, uint * numAtomsInBox){
-  std::string filename = name[mv::BOX0];
-  uint numAtoms = numAtomsInBox[mv::BOX0];
-  XYZ *binaryCoor;
-  binaryCoor = new XYZ[numAtoms];
-  read_binary_file(filename.c_str(), binaryCoor, numAtoms);
+bool PDBSetup::GetBinaryTrajectoryBoolean(){
+  bool defined = false;
+  for (uint b = 0; b < BOX_TOTAL; ++b){
+    defined |= binTraj[b].defined;
+  }
+}
+
+std::vector<ulong> PDBSetup::GetFrameStepsFromBinary(uint startStep, config_setup::InFiles const& inFiles){
+  std::vector<ulong> frameSteps;
+  for (uint b = 0; b < BOX_TOTAL; ++b){
+    if(inFiles.binaryTrajectory.defined[b]){
+      frameSteps.push_back(startStep);
+      for (int i = 0; i < binTraj[b].NSET; ++i){
+        frameSteps.push_back(binTraj[b].ISTART + i*binTraj[b].NSAVC);
+      }
+      /* One of these is guarunteed defined.  Also, the frameSteps are equal for both trajectories */
+      return frameSteps;
+    }
+  }
+}
+
+void PDBSetup::LoadBinaryTrajectoryStep(){
+  for (int b = 0; b < BOX_TOTAL; ++b){
+    if(binTraj[b].defined){
+      read_dcdstep(binTraj[b].fd, binTraj[b].N, binTraj[b].X, binTraj[b].Y, binTraj[b].Z, binTraj[b].num_fixed,
+         binTraj[b].first, binTraj[b].indexes);
+    }
+  }
+}
+
+void PDBSetup::InitBinaryTrajectory(config_setup::InFiles const& inFiles){
+  for (int b = 0; b < BOX_TOTAL; ++b){
+    if(inFiles.binaryTrajectory.defined[b]){
+      binTraj[b].defined = true;
+      if(binTraj[b].fd = open_dcd_read(inFiles.binaryTrajectory.name[b].c_str())){
+        read_dcdheader(binTraj[b].fd, &binTraj[b].N, &binTraj[b].NSET, &binTraj[b].ISTART, &binTraj[b].NSAVC, 
+                       &binTraj[b].DELTA, &binTraj[b].NAMNF, &binTraj[b].FREEINDEXES);
+      } else {
+        std::cout << "Error: " << inFiles.binaryTrajectory.name[b] << "couldn't be opened!" << std::endl;
+        exit(EXIT_FAILURE);
+      }
+      binTraj[b].X = new float[binTraj[b].N];
+      binTraj[b].Y = new float[binTraj[b].N];
+      binTraj[b].Z = new float[binTraj[b].N];
+    } else {
+      binTraj[b].defined = false;
+    }
+  }
 }

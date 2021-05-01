@@ -267,7 +267,7 @@ void pad(char *s, int len)
 /*                                    */
 /************************************************************************/
 
-int open_dcd_read(char *filename)
+int open_dcd_read(const char *filename)
 
 {
     int dcdfd;        /*  file descriptor for dcd file    */
