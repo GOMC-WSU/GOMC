@@ -72,9 +72,7 @@ void CheckpointOutput::DoOutput(const ulong step)
     printGOMCVersion();
     printStepNumber(step);
     printRandomNumbers();
-    printMoleculeLookupData();
     printMoveSettingsData();
-    printMoleculesData();
 #if GOMC_LIB_MPI
     printParallelTemperingBoolean();
     if(enableParallelTempering)
@@ -164,51 +162,6 @@ void CheckpointOutput::printRandomNumbersParallelTempering()
   write_uint32_binary(prngPTRef.GetGenerator()->seedValue);
 }
 #endif
-
-void CheckpointOutput::printMoleculeLookupData()
-{
-  // print the size of molLookup array
-  write_uint32_binary(molLookupRef.molLookupCount);
-  // print the molLookup array itself
-  for(int i = 0; i < (int) molLookupRef.molLookupCount; i++) {
-    write_uint32_binary(molLookupRef.molLookup[i]);
-  }
-
-  // print the size of boxAndKindStart array
-  write_uint32_binary(molLookupRef.boxAndKindStartCount);
-  // print the BoxAndKindStart array
-  for(int i = 0; i < (int) molLookupRef.boxAndKindStartCount; i++) {
-    write_uint32_binary(molLookupRef.boxAndKindStart[i]);
-  }
-
-  // print numKinds
-  write_uint32_binary(molLookupRef.numKinds);
-  //print the size of fixedMolecule array
-  write_uint32_binary((uint)molLookupRef.fixedMolecule.size());
-  //print the fixedMolecule array itself
-  for(int i = 0; i < (int) molLookupRef.fixedMolecule.size(); i++) {
-    write_uint32_binary(molLookupRef.fixedMolecule[i]);
-  }
-}
-
-void CheckpointOutput::printMoleculesData()
-{
-  // print the start of each molecule
-  // there is an extra one at the end which store the total count
-  // that is used for to calculate the length of molecule
-  // so the length of last molecule can be calculated using
-  // start[molIndex+1]-start[molIndex]
-  write_uint32_binary(molRef.count);
-  for(int i = 0; i < (int)molRef.count+1; i++) {
-    write_uint32_binary(molRef.start[i]);
-  }
-
-  // print the start of each kind
-  write_uint32_binary(molRef.kIndexCount);
-  for(int i = 0; i < (int)molRef.kIndexCount; i++) {
-    write_uint32_binary(molRef.kIndex[i]);
-  }
-}
 
 void CheckpointOutput::printMoveSettingsData()
 {
