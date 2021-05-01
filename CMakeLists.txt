@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.8)
 project(GOMC)
 
 include_directories(lib)
+include_directories(lib/DCDParser)
+include_directories(lib/DCDParser/include)
 include_directories(src)
 include_directories(src/cbmc)
 include_directories(src/moves)

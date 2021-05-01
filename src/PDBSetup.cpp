@@ -263,41 +263,70 @@ bool PDBSetup::GetBinaryTrajectoryBoolean(){
 
 std::vector<ulong> PDBSetup::GetFrameStepsFromBinary(uint startStep, config_setup::InFiles const& inFiles){
   std::vector<ulong> frameSteps;
+  /*
   for (uint b = 0; b < BOX_TOTAL; ++b){
     if(inFiles.binaryTrajectory.defined[b]){
       frameSteps.push_back(startStep);
       for (int i = 0; i < binTraj[b].NSET; ++i){
         frameSteps.push_back(binTraj[b].ISTART + i*binTraj[b].NSAVC);
       }
-      /* One of these is guarunteed defined.  Also, the frameSteps are equal for both trajectories */
       return frameSteps;
     }
   }
+  */
+  return frameSteps;
 }
 
 void PDBSetup::LoadBinaryTrajectoryStep(){
+  /*
+  int atomOffset = 0;
   for (int b = 0; b < BOX_TOTAL; ++b){
     if(binTraj[b].defined){
       read_dcdstep(binTraj[b].fd, binTraj[b].N, binTraj[b].X, binTraj[b].Y, binTraj[b].Z, binTraj[b].num_fixed,
          binTraj[b].first, binTraj[b].indexes);
+      if (b == 0)
+        atomOffset = 0;
+      else 
+        atomOffset = atoms.numAtomsInBox[0];
+      for (int i = 0; i < binTraj[b].N; ++i){
+        atoms.x[atomOffset + i] = (double) binTraj[b].X[i];
+        atoms.y[atomOffset + i] = (double) binTraj[b].Y[i];
+        atoms.z[atomOffset + i] = (double) binTraj[b].Z[i];
+      }
     }
   }
+  */
 }
 
-void PDBSetup::InitBinaryTrajectory(config_setup::InFiles const& inFiles){
+int PDBSetup::InitBinaryTrajectory(config_setup::InFiles const& inFiles){
   for (int b = 0; b < BOX_TOTAL; ++b){
     if(inFiles.binaryTrajectory.defined[b]){
       binTraj[b].defined = true;
-      if(binTraj[b].fd = open_dcd_read(inFiles.binaryTrajectory.name[b].c_str())){
-        read_dcdheader(binTraj[b].fd, &binTraj[b].N, &binTraj[b].NSET, &binTraj[b].ISTART, &binTraj[b].NSAVC, 
-                       &binTraj[b].DELTA, &binTraj[b].NAMNF, &binTraj[b].FREEINDEXES);
-      } else {
-        std::cout << "Error: " << inFiles.binaryTrajectory.name[b] << "couldn't be opened!" << std::endl;
-        exit(EXIT_FAILURE);
+      int natoms = 0;
+      binTraj[b].v = DCDPlugin::open_dcd_read(inFiles.binaryTrajectory.name[b].c_str(), "dcd", &natoms);
+      if (!binTraj[b].v) {
+        fprintf(stderr, "main) open_dcd_read failed for file %s\n", inFiles.binaryTrajectory.name[b].c_str());
+        return 1;
       }
-      binTraj[b].X = new float[binTraj[b].N];
-      binTraj[b].Y = new float[binTraj[b].N];
-      binTraj[b].Z = new float[binTraj[b].N];
+      binTraj[b].natoms = natoms;
+      binTraj[b].dcd = (DCDPlugin::dcdhandle *)binTraj[b].v;
+      binTraj[b].sizeMB = ((binTraj[b].dcd->natoms * 3.0) * binTraj[b].dcd->nsets * 4.0) / (1024.0 * 1024.0);
+      binTraj[b].totalMB += binTraj[b].sizeMB; 
+      printf("main) file: %s\n", inFiles.binaryTrajectory.name[b].c_str());
+      printf("  %d atoms, %d frames, size: %6.1fMB\n", binTraj[b].dcd->natoms, binTraj[b].dcd->nsets, binTraj[b].sizeMB);
+
+      
+      binTraj[b].timestep.coords = (float *)malloc(3*sizeof(float)*binTraj[b].natoms);
+      for (int i=0; i< binTraj[b].dcd->nsets; i++) {
+        int rc = DCDPlugin::read_next_timestep(binTraj[b].v, binTraj[b].natoms, &binTraj[b].timestep);
+        if (rc) {
+          fprintf(stderr, "error in read_next_timestep on frame %d\n", i);
+          return 1;
+        }
+        for( int j = 0; j < binTraj[b].natoms; j++)
+          printf("atom %d [ %f, %f, %f ]\n", j, binTraj[b].timestep.coords[j*3 + 0], binTraj[b].timestep.coords[j*3 + 1], binTraj[b].timestep.coords[j*3 + 2]);
+      
+      } 
     } else {
       binTraj[b].defined = false;
     }

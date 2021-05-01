@@ -195,12 +195,22 @@ set(libHeaders
    lib/StrStrmLib.h
    lib/VectorLib.h
    lib/CircuitFinder.h
-   lib/FloydWarshallCycle.h)
+   lib/FloydWarshallCycle.h
+   lib/DCDParser/dcdplugin.h
+   lib/DCDParser/endianswap.h
+   lib/DCDParser/fastio.h
+   lib/DCDParser/largefiles.h
+   lib/DCDParser/molfile_plugin.h
+   lib/DCDParser/vmdplugin.h
+   lib/DCDParser/include/libmolfile_plugin.h
+   lib/DCDParser/include/molfile_plugin.h
+   lib/DCDParser/include/vmdplugin.h)
 
 set(libSources
     lib/AlphaNum.cpp
     lib/CircuitFinder.cpp
-    lib/FloydWarshallCycle.cpp)
+    lib/FloydWarshallCycle.cpp
+    lib/DCDParser/dcdplugin.cpp)
 
 set(cudaHeaders
     src/GPU/ConstantDefinitionsCUDAKernel.cuh

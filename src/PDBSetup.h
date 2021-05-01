@@ -18,6 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 // Recalc Traj from Binary
 #include "DCDlib.h" // for Error output
+#include "dcdplugin.h" // for Error output
 
 namespace config_setup
 {
@@ -131,15 +132,22 @@ public:
 
 struct BinaryTrajectory {
   bool defined;
+  /*
+  bool defined;
 
-  /* For reading header */
   int fd, N, NSET, ISTART, NSAVC, NAMNF;
   double DELTA;
   int * FREEINDEXES;
 
-  /* For reading step */
   float *X, *Y, *Z; 
   int num_fixed, first, *indexes;
+  */
+  molfile_timestep_t timestep;
+  void *v;
+  DCDPlugin::dcdhandle *dcd;
+  int i, natoms;
+  float sizeMB =0.0, totalMB = 0.0;
+  double starttime, endtime, totaltime = 0.0;
 };
 
 }
@@ -157,7 +165,7 @@ struct PDBSetup {
   std::vector<ulong> GetFrameSteps(std::string const*const name);
   bool GetBinaryTrajectoryBoolean();
   std::vector<ulong> GetFrameStepsFromBinary(uint startStep, config_setup::InFiles const& inFiles);
-  void InitBinaryTrajectory(config_setup::InFiles const& inFiles);
+  int InitBinaryTrajectory(config_setup::InFiles const& inFiles);
   void LoadBinaryTrajectoryStep();
 
 private:
