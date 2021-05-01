@@ -262,16 +262,23 @@ void System::RecalculateTrajectory(Setup &set, uint frameNum)
     set.pdb.LoadBinaryTrajectoryStep(frameNum);
   else
     set.pdb.Init(set.config.in.restart, set.config.in.files, set.config.in.files.pdb.name, frameNum);
-  statV.InitOver(set, *this);
-#ifdef VARIABLE_PARTICLE_NUMBER
-  molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield);
-#endif
-  coordinates.InitFromPDB(set.pdb.atoms);
-  com.CalcCOM();
-  cellList.GridAll(boxDimRef, coordinates, molLookupRef);
-  calcEnergy.Init(*this);
-  calcEwald->Init();
-  potential = calcEnergy.SystemTotal();
+  if(set.config.in.restart.simplyCollateTrajectories){
+    coordinates.InitFromPDB(set.pdb.atoms);
+    // COM is calced in InitFromPDB
+    //com.CalcCOM();
+  } else {
+    statV.InitOver(set, *this);
+  #ifdef VARIABLE_PARTICLE_NUMBER
+    molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield);
+  #endif
+    coordinates.InitFromPDB(set.pdb.atoms);
+    // COM is calced in InitFromPDB
+    //com.CalcCOM();
+    cellList.GridAll(boxDimRef, coordinates, molLookupRef);
+    calcEnergy.Init(*this);
+    calcEwald->Init();
+    potential = calcEnergy.SystemTotal();
+  }
 }
 
 void System::ChooseAndRunMove(const uint step)

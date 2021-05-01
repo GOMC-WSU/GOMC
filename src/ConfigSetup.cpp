@@ -22,6 +22,7 @@ ConfigSetup::ConfigSetup(void)
   in.restart.step = ULONG_MAX;
   in.restart.recalcTrajectory = false;
   in.restart.recalcTrajectoryBinary = false;
+  in.restart.simplyCollateTrajectories = false;
   in.restart.restartFromCheckpoint = false;
   in.restart.restartFromBinaryFile = false;
   in.restart.restartFromXSCFile = false;
@@ -292,6 +293,8 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         line.size() -1);
         exit(EXIT_FAILURE);
       }
+    }else if(CheckString(line[0], "SimplyCollateTrajectories")) {
+        in.restart.simplyCollateTrajectories = checkBool(line[1]);
     } else if(CheckString(line[0], "extendedSystem")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {

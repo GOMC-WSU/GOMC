@@ -73,6 +73,7 @@ struct FileNames {
 struct RestartSettings {
   bool enable;
   ulong step;
+  bool simplyCollateTrajectories;
   bool recalcTrajectory;
   bool recalcTrajectoryBinary;
   bool restartFromCheckpoint;
