@@ -88,6 +88,8 @@ void ConsoleOutput::DoOutput(const ulong step)
   GOMC_EVENT_STOP(1, GomcProfileEvent::CONSOLE_OUTPUT);
 }
 
+void ConsoleOutput::DoOutputRestart(const ulong step){}
+
 void ConsoleOutput::PrintMove(const uint box, const ulong step) const
 {
   uint sub;

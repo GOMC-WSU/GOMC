@@ -82,7 +82,7 @@ void PSFOutput::Init(pdb_setup::Atoms const& atoms,
   }
 }
 
-void PSFOutput::DoOutput(const ulong step)
+void PSFOutput::DoOutputRestart(const ulong step)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::PSF_RESTART_OUTPUT);
   for (uint b = 0; b < BOX_TOTAL; ++b) {
@@ -104,13 +104,35 @@ void PSFOutput::DoOutput(const ulong step)
   GOMC_EVENT_STOP(1, GomcProfileEvent::PSF_RESTART_OUTPUT);
 }
 
-void PSFOutput::Output(const ulong step)
-{
-  //NEW_RESTART_CODE
-  if (((step + 1) % stepsRestPerOut == 0) && enableRestOut) {
-    DoOutput(step + 1);
+/* Output (merged_psf) occurs in Constructor only */
+void PSFOutput::DoOutput(const ulong step){
+  GOMC_EVENT_START(1, GomcProfileEvent::PSF_MERGED_OUTPUT);
+
+  CountMolecules();
+
+  std::vector<std::string> remarks;
+  //default file remarks
+  remarks.push_back("Combined PSF produced by GOMC");
+  remarks.push_back("Contains Geometry data for molecules in ALL boxes in the system");
+  FILE* outfile = fopen(outFName.c_str(), "w");
+  if (outfile == NULL) {
+    fprintf(stderr, "Error opening PSF output file %s", outFName.c_str());
+    return;
   }
-  //NEW_RESTART_CODE
+
+  fprintf(outfile, "PSF\n\n");
+  PrintRemarks(outfile, remarks);
+  PrintAtoms(outfile);
+  PrintBonds(outfile);
+  PrintAngles(outfile);
+  PrintDihedrals(outfile);
+  PrintNAMDCompliantSuffix(outfile);
+  fclose(outfile);
+
+  std::cout << "Printed combined psf to file "
+            << outFName << '\n';
+
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PSF_MERGED_OUTPUT);
 }
 
 void PSFOutput::CountMolecules()

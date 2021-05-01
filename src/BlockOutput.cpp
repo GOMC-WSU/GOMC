@@ -149,6 +149,8 @@ void BlockAverages::DoOutput(const ulong step)
   GOMC_EVENT_STOP(1, GomcProfileEvent::BLK_OUTPUT);
 }
 
+void BlockAverages::DoOutputRestart(const ulong step){}
+
 void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
 {
   outBlock0 << std::left << std::scientific << std::setw(OUTPUTWIDTH) << "#STEPS";

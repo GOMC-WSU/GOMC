@@ -40,18 +40,17 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
 {
   std::string bStr = "", aliasStr = "", numStr = "";
   sstrm::Converter toStr;
-  enableOutState = output.state.settings.enable;
+  enableOut = output.state.settings.enable;
   enableRestOut = output.restart.settings.enable;
   enableSortedSegmentOut = molRef.enableSortedSegmentOut;
-  enableOut = enableOutState | enableRestOut;
-  stepsCoordPerOut = output.state.settings.frequency;
-  stepsRestPerOut = output.restart.settings.frequency;
-  if (stepsCoordPerOut < stepsRestPerOut)
-    stepsPerOut = output.state.settings.frequency;
-  else
-    stepsPerOut = output.restart.settings.frequency;
 
-  if (enableOutState) {
+  stepsPerOut = output.state.settings.frequency;
+  stepsRestPerOut = output.restart.settings.frequency;
+
+  if (stepsPerOut > stepsRestPerOut)
+    stepsPerOut = stepsRestPerOut;
+
+  if (enableOut) {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       //Get alias string, based on box #.
       bStr = "Box ";
@@ -171,24 +170,31 @@ void PDBOutput::FormatAtom
 
 void PDBOutput::DoOutput(const ulong step)
 {
-  if(enableOutState) {
-    GOMC_EVENT_START(1, GomcProfileEvent::PDB_OUTPUT);
-    std::vector<uint> mBox(molRef.count);
-    SetMolBoxVec(mBox);
-    for (uint b = 0; b < BOX_TOTAL; ++b) {
-      PrintRemark(b, step, outF[b]);
-      PrintCryst1(b, outF[b]);
-      PrintAtoms(b, mBox);
-      PrintEnd(outF[b]);
-    }
-    GOMC_EVENT_STOP(1, GomcProfileEvent::PDB_OUTPUT);
+  GOMC_EVENT_START(1, GomcProfileEvent::PDB_OUTPUT);
+  std::vector<uint> mBox(molRef.count);
+  SetMolBoxVec(mBox);
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    PrintRemark(b, step, outF[b]);
+    PrintCryst1(b, outF[b]);
+    PrintAtoms(b, mBox);
+    PrintEnd(outF[b]);
   }
-  //NEW_RESTART_CODE
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PDB_OUTPUT);
+}
 
-  if (step != 0 && ((step + 1) % stepsRestPerOut == 0) && enableRestOut) {
-    DoOutputRebuildRestart(step + 1);
+//NEW_RESTART_CODE
+void PDBOutput::DoOutputRestart(const ulong step)
+{
+  GOMC_EVENT_START(1, GomcProfileEvent::PDB_RESTART_OUTPUT);
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    outRebuildRestart[b].openOverwrite();
+    PrintCrystRest(b, step, outRebuildRestart[b]);
+    PrintCryst1(b, outRebuildRestart[b]);
+    PrintAtomsRebuildRestart(b);
+    PrintEnd(outRebuildRestart[b]);
+    outRebuildRestart[b].close();
   }
-  //NEW_RESTART_CODE
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PDB_RESTART_OUTPUT);
 }
 
 //NEW_RESTART_CODE

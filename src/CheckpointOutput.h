@@ -25,19 +25,11 @@ public:
   }
 
   virtual void DoOutput(const ulong step);
+  virtual void DoOutputRestart(const ulong step);  
   virtual void Init(pdb_setup::Atoms const& atoms,
                     config_setup::Output const& output);
   virtual void Sample(const ulong step) {}
-  virtual void Output(const ulong step)
-  {
-    if(!enableOutCheckpoint) {
-      return;
-    }
 
-    if((step + 1) % stepsPerCheckpoint == 0) {
-      DoOutput(step);
-    }
-  }
 
 private:
   MoveSettings & moveSetRef;
@@ -50,7 +42,6 @@ private:
   PRNG & prngPTRef;
 #endif
 
-  bool enableOutCheckpoint;
   bool enableParallelTempering;
   std::string filename;
   FILE* outputFile;

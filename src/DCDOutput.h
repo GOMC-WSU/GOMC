@@ -42,7 +42,7 @@ public:
     }
 
     for (uint b = 0; b < BOX_TOTAL; ++b) {
-      if(enableStateOut) {
+      if(enableOut) {
         close_dcd_write(stateFileFileid[b]);
       }
       if(restartCoor[b]) {
@@ -70,6 +70,7 @@ public:
                     config_setup::Output const& output);
 
   virtual void DoOutput(const ulong step);
+  virtual void DoOutputRestart(const ulong step);
 private:
   // Copy cell length and angles to unitcell[6]
   void Copy_lattice_to_unitcell(double *unitcell, int box);
@@ -103,8 +104,7 @@ private:
   char *outXSTFile[BOX_TOTAL];
   char *outXSCFile[BOX_TOTAL];
   int stateFileFileid[BOX_TOTAL];
-  bool enableRestartOut, enableStateOut, enableSortedSegmentOut;
-  ulong stepsRestartPerOut, stepsStatePerOut;
+  bool enableSortedSegmentOut;
   // 
   float *x, *y, *z;
   // AOS for restart binary format. NAMD internal data structure 

@@ -53,8 +53,8 @@ CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
 void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
                             config_setup::Output const& output)
 {
-  enableOutCheckpoint = output.restart.settings.enable;
-  stepsPerCheckpoint = output.restart.settings.frequency;
+  enableRestOut = output.restart.settings.enable;
+  stepsRestPerOut = output.restart.settings.frequency;
   std::string file = output.statistics.settings.uniqueStr.val + "_restart.chk";
 #if GOMC_LIB_MPI
   filename = pathToReplicaOutputDirectory + file;
@@ -63,26 +63,26 @@ void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
 #endif
 }
 
-void CheckpointOutput::DoOutput(const ulong step)
+void CheckpointOutput::DoOutput(const ulong step){}
+
+void CheckpointOutput::DoOutputRestart(const ulong step)
 {
-  if(enableOutCheckpoint) {
-    GOMC_EVENT_START(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
-    std::cout << "Writing checkpoint to file " << filename << " at step " << step+1 << "\n";
-    openOutputFile();
-    printGOMCVersion();
-    printStepNumber(step);
-    printRandomNumbers();
-    printMoleculeLookupData();
-    printMoveSettingsData();
-    printMoleculesData();
+  GOMC_EVENT_START(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
+  std::cout << "Writing checkpoint to file " << filename << " at step " << step+1 << "\n";
+  openOutputFile();
+  printGOMCVersion();
+  printStepNumber(step);
+  printRandomNumbers();
+  printMoleculeLookupData();
+  printMoveSettingsData();
+  printMoleculesData();
 #if GOMC_LIB_MPI
-    printParallelTemperingBoolean();
-    if(enableParallelTempering)
-      printRandomNumbersParallelTempering();
+  printParallelTemperingBoolean();
+  if(enableParallelTempering)
+    printRandomNumbersParallelTempering();
 #endif
-    std::cout << "Checkpoint saved to " << filename << std::endl;
-    GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
-  }
+  std::cout << "Checkpoint saved to " << filename << std::endl;
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
 }
 
 void CheckpointOutput::setGOMCVersion()

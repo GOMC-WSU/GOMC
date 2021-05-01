@@ -38,8 +38,7 @@ public:
   virtual void Init(pdb_setup::Atoms const& atoms, config_setup::Output const& output);
 
   virtual void DoOutput(const ulong step);
-
-  virtual void Output(const ulong step);
+  virtual void DoOutputRestart(const ulong step);
 
 private:
   const Molecules* molecules;
@@ -74,13 +73,10 @@ private:
   void CountMolecules();
   void CountMoleculesInBoxes();
 
-  //NEW_RESTART_CODE
   FILE * outRebuildRestart[BOX_TOTAL];
+  std::string outFName;
   std::string outRebuildRestartFName[BOX_TOTAL];
-  bool enableRestOut, enableRestIn;
-  ulong stepsRestPerOut;
-  //NEW_RESTART_CODE
-  bool enableOutState, enableGenerateSegmentOut, enableSortedSegmentOut;
+  bool enableGenerateSegmentOut, enableSortedSegmentOut;
 
   /* For Hybrid MC-MD Order Consistency B/w cycles */
   std::vector<std::string> moleculeSegmentNames, generatedSegmentNames;

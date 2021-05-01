@@ -46,6 +46,7 @@ public:
                     config_setup::Output const& output);
 
   virtual void DoOutput(const ulong step);
+  virtual void DoOutputRestart(const ulong step);
 private:
   std::string GetDefaultAtomStr();
 
@@ -91,11 +92,7 @@ private:
 
   Writer outF[BOX_TOTAL];
   Writer outRebuildRestart[BOX_TOTAL];
-  bool enableRestOut, enableSortedSegmentOut;
-  ulong stepsRestPerOut;
-  ulong stepsCoordPerOut;
-  //NEW_RESTART_CODE
-  bool enableOutState;
+  bool enableSortedSegmentOut;
   std::vector<std::string> pStr;
   int frameNumber[BOX_TOTAL];
 };
