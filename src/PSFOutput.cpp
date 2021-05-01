@@ -47,10 +47,10 @@ PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
  for(uint i = 0; i < set.mol.molVars.moleculeKindNames.size(); ++i) {
     molKinds[i] = set.mol.kindMap[set.mol.molVars.moleculeKindNames[i]];
   }
-  CountMolecules();
-  PrintPSF(set.config.out.state.files.psf.name);
-  std::cout << "Printed combined psf to file "
-            << set.config.out.state.files.psf.name << '\n';
+  outFName = set.config.out.state.files.psf.name;
+  onlyPrintOnFirstStep = true;
+  /* To eliminate arithmetic exceptions */
+  stepsPerOut = 1;
 
 }
 
