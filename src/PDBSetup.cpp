@@ -297,6 +297,7 @@ int PDBSetup::LoadBinaryTrajectoryStep(uint frameNum){
       }
     }
   }
+  return 0;
 }
 
 int PDBSetup::InitBinaryTrajectory(config_setup::InFiles const& inFiles){
