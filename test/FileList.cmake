@@ -14,6 +14,7 @@ set(TestHeaders
 set(GOMCSources
     src/PDBSetup.cpp
     src/MolSetup.cpp
+    lib/AlphaNum.cpp
     src/BondAdjacencyList.cpp
     src/ConfigSetup.cpp
     src/FFSetup.cpp
@@ -22,11 +23,13 @@ set(GOMCSources
     lib/CircuitFinder.cpp
     src/InputFileReader.cpp
     lib/FloydWarshallCycle.cpp
+    lib/DCDParser/dcdplugin.cpp
 )
 
 set(GOMCHeaders
     src/PDBSetup.h
     src/MolSetup.h
+    lib/AlphaNum.h
     src/BondAdjacencyList.h
     src/ConfigSetup.h
     src/FFSetup.h
@@ -35,4 +38,13 @@ set(GOMCHeaders
     lib/CircuitFinder.h
     src/InputFileReader.h
     lib/FloydWarshallCycle.h
+    lib/DCDParser/dcdplugin.h
+    lib/DCDParser/endianswap.h
+    lib/DCDParser/fastio.h
+    lib/DCDParser/largefiles.h
+    lib/DCDParser/molfile_plugin.h
+    lib/DCDParser/vmdplugin.h
+    lib/DCDParser/include/libmolfile_plugin.h
+    lib/DCDParser/include/molfile_plugin.h
+    lib/DCDParser/include/vmdplugin.h
 )
