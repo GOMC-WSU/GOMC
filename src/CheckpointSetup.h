@@ -36,8 +36,6 @@ public:
 #if GOMC_LIB_MPI
   void SetPRNGVariablesPT(PRNG & prng);
 #endif
-  void SetMoleculeLookup(MoleculeLookup & molLookupRef);
-  void SetMolecules(Molecules& mos);
   void SetMoveSettings(MoveSettings & moveSettings);
 
 private:

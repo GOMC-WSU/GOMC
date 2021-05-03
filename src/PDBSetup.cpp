@@ -108,7 +108,7 @@ void Cryst1::Read(FixedWidthReader & pdb)
 void Atoms::SetRestart(config_setup::RestartSettings const& r )
 {
   restart = r.enable;
-  restartFromBinary = r.restartFromBinaryFile;
+  restartFromBinary = r.restartFromBinaryCoorFile;
   recalcTrajectory = r.recalcTrajectory;
   //recalcTrajectory = r.recalcTrajectory && !r.recalcTrajectoryBinary;
   recalcTrajectoryBinary = r.recalcTrajectoryBinary;
