@@ -421,6 +421,8 @@ inline void MultiParticleBrownian::Accept(const uint rejectState, const uint ste
     swap(molTorqueRef, molTorqueNew);
     //update reciprocate value
     calcEwald->UpdateRecip(bPick);
+    // Update the velocity in box
+    velocity.UpdateBoxVelocity(bPick);
   } else {
     cellList.GridAll(boxDimRef, coordCurrRef, molLookup);
     calcEwald->exgMolCache();

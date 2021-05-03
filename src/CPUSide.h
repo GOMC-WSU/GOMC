@@ -11,7 +11,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Clock.h"
 #include "ConsoleOutput.h"
 #include "PDBOutput.h"
-#include "DCDOutput.h"
+#include "ExtendedSystemOutput.h"
 #include "BlockOutput.h"
 #include "HistOutput.h"
 #include "ConfigSetup.h"
@@ -43,7 +43,7 @@ private:
   OutputVars varRef;
   PDBOutput pdb;
   PSFOutput psf;
-  DCDOutput dcd;
+  ExtendedSystemOutput xstBinary;
   ConsoleOutput console;
   BlockAverages block;
   Histogram hist;

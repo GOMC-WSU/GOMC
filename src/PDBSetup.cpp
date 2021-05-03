@@ -33,7 +33,7 @@ void Remarks::SetRestart(config_setup::RestartSettings const& r )
   recalcTrajectory = r.recalcTrajectory;
   recalcTrajectoryBinary = r.recalcTrajectoryBinary;
   restartFromXSC = r.restartFromXSCFile;
-  restartFromBinary = r.restartFromBinaryFile;
+  restartFromBinary = r.restartFromBinaryCoorFile;
 
   for(uint b = 0; b < BOX_TOTAL; b++) {
     if(recalcTrajectory)

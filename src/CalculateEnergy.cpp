@@ -710,9 +710,7 @@ void CalculateEnergy::ParticleNonbonded(double* inter,
     if (trialMol.AtomExists(*partner)) {
       for (uint t = 0; t < trials; ++t) {
         double distSq;
-
-        if (currentAxes.InRcut(distSq, trialPos, t, trialMol.GetCoords(),
-                               *partner, box)) {
+        if (currentAxes.InRcut(distSq, trialPos, t, trialMol.GetCoords(), *partner, box)) {
           inter[t] += forcefield.particles->CalcEn(distSq,
                       kind.AtomKind(partIndex),
                       kind.AtomKind(*partner), 1.0);
@@ -1066,8 +1064,7 @@ void CalculateEnergy::MolNonbond(double & energy,
   for (uint i = 0; i < molKind.nonBonded.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded.part1[i];
     uint p2 = mols.start[molIndex] + molKind.nonBonded.part2[i];
-    currentAxes.InRcut(distSq, currentCoords, p1, p2, box);
-    if (forcefield.rCutSq > distSq) {
+    if (currentAxes.InRcut(distSq, currentCoords, p1, p2, box)) {
       energy += forcefield.particles->CalcEn(distSq, molKind.AtomKind
                                              (molKind.nonBonded.part1[i]),
                                              molKind.AtomKind
@@ -1102,8 +1099,7 @@ void CalculateEnergy::MolNonbond(double & energy, cbmc::TrialMol const &mol,
     uint p1 = molKind.nonBonded.part1[i];
     uint p2 = molKind.nonBonded.part2[i];
     if(mol.AtomExists(p1) && mol.AtomExists(p2)) {
-      currentAxes.InRcut(distSq, mol.GetCoords(), p1, p2, mol.GetBox());
-      if (forcefield.rCutSq > distSq) {
+      if (currentAxes.InRcut(distSq, mol.GetCoords(), p1, p2, mol.GetBox())) {
         energy += forcefield.particles->CalcEn(distSq, molKind.AtomKind(p1),
                                                molKind.AtomKind(p2), 1.0);
         if (electrostatic) {
@@ -1136,8 +1132,7 @@ void CalculateEnergy::MolNonbond_1_4(double & energy,
   for (uint i = 0; i < molKind.nonBonded_1_4.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded_1_4.part1[i];
     uint p2 = mols.start[molIndex] + molKind.nonBonded_1_4.part2[i];
-    currentAxes.InRcut(distSq, currentCoords, p1, p2, box);
-    if (forcefield.rCutSq > distSq) {
+    if (currentAxes.InRcut(distSq, currentCoords, p1, p2, box)) {
       forcefield.particles->CalcAdd_1_4(energy, distSq,
                                         molKind.AtomKind
                                         (molKind.nonBonded_1_4.part1[i]),
@@ -1173,8 +1168,7 @@ void CalculateEnergy::MolNonbond_1_4(double & energy,
     uint p1 = molKind.nonBonded_1_4.part1[i];
     uint p2 = molKind.nonBonded_1_4.part2[i];
     if(mol.AtomExists(p1) && mol.AtomExists(p2)) {
-      currentAxes.InRcut(distSq, mol.GetCoords(), p1, p2, mol.GetBox());
-      if (forcefield.rCutSq > distSq) {
+      if (currentAxes.InRcut(distSq, mol.GetCoords(), p1, p2, mol.GetBox())) {
         forcefield.particles->CalcAdd_1_4(energy, distSq,
                                           molKind.AtomKind(p1),
                                           molKind.AtomKind(p2));
@@ -1207,8 +1201,7 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
   for (uint i = 0; i < molKind.nonBonded_1_3.count; ++i) {
     uint p1 = mols.start[molIndex] + molKind.nonBonded_1_3.part1[i];
     uint p2 = mols.start[molIndex] + molKind.nonBonded_1_3.part2[i];
-    currentAxes.InRcut(distSq, currentCoords, p1, p2, box);
-    if (forcefield.rCutSq > distSq) {
+    if (currentAxes.InRcut(distSq, currentCoords, p1, p2, box)) {
       forcefield.particles->CalcAdd_1_4(energy, distSq,
                                         molKind.AtomKind
                                         (molKind.nonBonded_1_3.part1[i]),
@@ -1244,8 +1237,7 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
     uint p1 = molKind.nonBonded_1_3.part1[i];
     uint p2 = molKind.nonBonded_1_3.part2[i];
     if(mol.AtomExists(p1) && mol.AtomExists(p2)) {
-      currentAxes.InRcut(distSq, mol.GetCoords(), p1, p2, mol.GetBox());
-      if (forcefield.rCutSq > distSq) {
+      if (currentAxes.InRcut(distSq, mol.GetCoords(), p1, p2, mol.GetBox())) {
         forcefield.particles->CalcAdd_1_4(energy, distSq,
                                           molKind.AtomKind(p1),
                                           molKind.AtomKind(p2));
@@ -1268,8 +1260,6 @@ double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,
                                         const uint atom2, const uint molIndex) const
 {
   if(!forcefield.OneThree)
-    return 0.0;
-  else if(forcefield.rCutSq < distSq)
     return 0.0;
 
   double eng = 0.0;
@@ -1300,8 +1290,6 @@ double CalculateEnergy::IntraEnergy_1_4(const double distSq, const uint atom1,
                                         const uint atom2, const uint molIndex) const
 {
   if(!forcefield.OneFour)
-    return 0.0;
-  else if(forcefield.rCutSq < distSq)
     return 0.0;
 
   double eng = 0.0;

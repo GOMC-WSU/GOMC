@@ -596,6 +596,15 @@ inline void IntraMoleculeExchange1::Accept(const uint rejectState,
 
       // Recalculate total
       sysPotRef.Total();
+
+      // Update the velocity
+      for(uint n = 0; n < numInCavB; n++) {
+        velocity.UpdateMolVelocity(molIndexB[n], sourceBox);
+      }
+      for(uint n = 0; n < numInCavA; n++) {
+        velocity.UpdateMolVelocity(molIndexA[n], sourceBox);
+      }
+
     } else {
       //transfer molA
       for(uint n = 0; n < numInCavA; n++) {

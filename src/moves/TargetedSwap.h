@@ -694,6 +694,8 @@ inline void TargetedSwap::Accept(const uint rejectState, const uint step)
 
       //Retotal
       sysPotRef.Total();
+      // Update the velocity
+      velocity.UpdateMolVelocity(molIndex, destBox);
     } else {
       cellList.AddMol(molIndex, sourceBox, coordCurrRef);
       //when weight is 0, MolDestSwap() will not be executed, thus cos/sin

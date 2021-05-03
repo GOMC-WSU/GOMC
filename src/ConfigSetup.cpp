@@ -24,7 +24,8 @@ ConfigSetup::ConfigSetup(void)
   in.restart.recalcTrajectoryBinary = false;
   in.restart.simplyCollateTrajectories = false;
   in.restart.restartFromCheckpoint = false;
-  in.restart.restartFromBinaryFile = false;
+  in.restart.restartFromBinaryCoorFile = false;
+  in.restart.restartFromBinaryVelFile = false;
   in.restart.restartFromXSCFile = false;
   in.prng.seed = UINT_MAX;
   in.prngParallelTempering.seed = UINT_MAX;
@@ -55,7 +56,8 @@ ConfigSetup::ConfigSetup(void)
   for(i = 0; i < BOX_TOTAL; i++) {
     in.files.pdb.name[i] = "";
     in.files.psf.name[i] = "";
-    in.files.binaryInput.name[i] = "";
+    in.files.binaryCoorInput.name[i] = "";
+    in.files.binaryVelInput.name[i] = "";
     in.files.xscInput.name[i] = "";
   }
 #if ENSEMBLE == GEMC
@@ -86,6 +88,7 @@ ConfigSetup::ConfigSetup(void)
   out.state.settings.enable = false;
   out.restart.settings.enable = false;
   out.state_dcd.settings.enable = false;
+  out.restart_vel.settings.enable = false;
   out.console.enable = true;
   out.statistics.settings.block.enable = true;
 #if ENSEMBLE == GCMC
@@ -273,11 +276,11 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         exit(EXIT_FAILURE);
       }
       if (multisim != NULL) {
-        in.files.binaryInput.name[boxnum] = multisim->replicaInputDirectoryPath + line[2];
+        in.files.binaryCoorInput.name[boxnum] = multisim->replicaInputDirectoryPath + line[2];
       } else {
-        in.files.binaryInput.name[boxnum] = line[2];
+        in.files.binaryCoorInput.name[boxnum] = line[2];
       }
-      in.files.binaryInput.defined[boxnum] = true;
+      in.files.binaryCoorInput.defined[boxnum] = true;
       in.restart.restartFromBinaryFile = true;
     } else if(CheckString(line[0], "binTrajectory")) {
       if(line.size() >= 3) {
@@ -294,8 +297,26 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         line.size() -1);
         exit(EXIT_FAILURE);
       }
-    }else if(CheckString(line[0], "SimplyCollateTrajectories")) {
+    } else if(CheckString(line[0], "SimplyCollateTrajectories")) {
         in.restart.simplyCollateTrajectories = checkBool(line[1]);
+      in.files.binaryCoorInput.defined[boxnum] = true;
+      in.restart.restartFromBinaryCoorFile = true;
+    } else if(CheckString(line[0], "binVelocities")) {
+      uint boxnum = stringtoi(line[1]);
+      if(boxnum >= BOX_TOTAL) {
+        std::cout << "Error: Simulation requires " << BOX_TOTAL << " binary velocity file(s)!\n";
+        exit(EXIT_FAILURE);
+      }
+      if (multisim != NULL) {
+        in.files.binaryVelInput.name[boxnum] = multisim->replicaInputDirectoryPath + line[2];
+      } else {
+        in.files.binaryVelInput.name[boxnum] = line[2];
+      }
+      in.files.binaryVelInput.defined[boxnum] = true;
+      in.restart.restartFromBinaryVelFile = true;
+      // If we read the binary vel, we also output the restart vel. Otherwise
+      // we dont have any output velocity
+      out.restart_vel.settings.enable = true;
     } else if(CheckString(line[0], "extendedSystem")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {
@@ -1529,6 +1550,8 @@ void ConfigSetup::fillDefaults(void)
                                   "_BOX_" + numStr + ".dcd";
     out.restart_dcd.files.dcd.name[i] = out.statistics.settings.uniqueStr.val +
                                   "_BOX_" + numStr + "_restart.coor";
+    out.restart_vel.files.dcd.name[i] = out.statistics.settings.uniqueStr.val +
+                                  "_BOX_" + numStr + "_restart.vel";
     out.state.files.splitPSF.name[i] = out.statistics.settings.uniqueStr.val +
                                   "_BOX_" + numStr + ".psf";                              
   }
@@ -1765,9 +1788,9 @@ void ConfigSetup::verifyInputs(void)
 
   if(in.restart.enable) {
     // error checking to see if if we missed any binary coordinate file
-    if(in.restart.restartFromBinaryFile) {
+    if(in.restart.restartFromBinaryCoorFile) {
       for(i = 0 ; i < BOX_TOTAL ; i++) {
-        if(!in.files.binaryInput.defined[i]) {
+        if(!in.files.binaryCoorInput.defined[i]) {
           std::cout << "Error: Binary coordinate file is not specified for box number " <<
                     i << "!" << std::endl;  
           exit(EXIT_FAILURE);
@@ -2112,14 +2135,30 @@ void ConfigSetup::verifyInputs(void)
   if(out.state.settings.enable && out.restart.settings.enable) {
     if(out.state.settings.frequency < out.restart.settings.frequency) {
       if ((out.restart.settings.frequency % out.state.settings.frequency) != 0) {
-        std::cout << "Error: Coordinate frequency must be common multiple of ";
+        std::cout << "Error: Coordinate frequency must be common multiple of \n";
         std::cout << "       restart corrdinate frequency !\n";
         exit(EXIT_FAILURE);
       }
     } else {
       if ((out.state.settings.frequency % out.restart.settings.frequency) != 0) {
-        std::cout << "Error: Restart coordinate frequency must be common multiple of ";
+        std::cout << "Error: Restart coordinate frequency must be common multiple of \n";
         std::cout << "       corrdinate frequency !\n";
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
+
+  if(out.state_dcd.settings.enable && out.restart.settings.enable) {
+    if(out.state_dcd.settings.frequency < out.restart.settings.frequency) {
+      if ((out.restart.settings.frequency % out.state_dcd.settings.frequency) != 0) {
+        std::cout << "Error: DCD frequency must be common multiple of \n";
+        std::cout << "       restart corrdinate frequency !\n";
+        exit(EXIT_FAILURE);
+      }
+    } else {
+      if ((out.state_dcd.settings.frequency % out.restart.settings.frequency) != 0) {
+        std::cout << "Error: Restart coordinate frequency must be common multiple of \n";
+        std::cout << "       DCD frequency !\n";
         exit(EXIT_FAILURE);
       }
     }

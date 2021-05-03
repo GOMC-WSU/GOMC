@@ -52,7 +52,8 @@ System::System(StaticVals& statics, Setup const& set,
   moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
-  calcEnergy(statics, *this), checkpointSet(*this, statics, set)
+  calcEnergy(statics, *this), checkpointSet(*this, statics, set),
+  vel(statics.forcefield, molLookupRef, statics.mol, prng)
 {
   calcEwald = NULL;
 #if GOMC_LIB_MPI
@@ -102,6 +103,8 @@ void System::Init(Setup & set, ulong & startStep)
   molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield);
 #endif
   moveSettings.Init(statV, set.pdb.remarks, molLookupRef.GetNumKind());
+  // allocate memory for atom's velocity if we read the binVelocities
+  vel.Init(set.pdb.atoms, set.config.in);
 
   // At this point see if checkpoint is enabled. if so re-initialize
   // coordinates, prng, mollookup, step, boxdim, and movesettings
@@ -119,7 +122,8 @@ void System::Init(Setup & set, ulong & startStep)
   }
 
   GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
-  xsc.Init(set.pdb, set.config.in, molLookupRef, statV.mol);
+  // set coordinates and velocities for atoms in system
+  xsc.Init(set.pdb, vel, set.config.in, molLookupRef, statV.mol);
   GOMC_EVENT_STOP(1, GomcProfileEvent::READ_INPUT_FILES);
   boxDimensions->Init(set.config.in.restart,
                       set.config.sys.volume, set.pdb.cryst,

@@ -153,6 +153,9 @@ inline void FF_EXP6::Init(ff_setup::Particle const& mie,
 inline void FF_EXP6::CalcAdd_1_4(double& en, const double distSq,
                                  const uint kind1, const uint kind2) const
 {
+  if(forcefield.rCutSq < distSq)
+    return;
+
   uint idx = FlatIndex(kind1, kind2);
   if(distSq < rMaxSq_1_4[idx]) {
     en += num::BIGNUM;
@@ -174,6 +177,9 @@ inline void FF_EXP6::CalcCoulombAdd_1_4(double& en, const double distSq,
                                         const double qi_qj_Fact,
                                         const bool NB) const
 {
+  if(forcefield.rCutSq < distSq)
+    return;
+
   double dist = sqrt(distSq);
   if(NB)
     en += qi_qj_Fact / dist;

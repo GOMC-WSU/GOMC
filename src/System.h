@@ -27,6 +27,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CheckpointSetup.h"
 #include "../lib/Lambda.h"
 #include "Random123Wrapper.h"
+#include "Velocity.h"
 
 //Initialization variables
 class Setup;
@@ -109,6 +110,7 @@ public:
   Lambda lambdaRef;
   COM com;
   ExtendedSystem xsc;
+  Velocity vel;
 
   CalculateEnergy calcEnergy;
   Ewald *calcEwald;
