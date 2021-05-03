@@ -322,7 +322,8 @@ void DCDOutput::SetCoordinates(std::vector<int> &molInBox, const int box)
   for (int m = 0; m < numMolecules; ++m) {
     mI = enableSortedSegmentOut ? molRef.sortedMoleculeIndices[m] : m;
     molRef.GetRangeStartStop(pStart, pEnd, mI);
-    inThisBox = (molInBox[m] == box);
+    ref = comCurrRef.Get(mI);
+    inThisBox = (molInBox[mI] == box);
     for (p = pStart; p < pEnd; ++p) {
       if (inThisBox) {
         coor = coordCurrRef.Get(p);
