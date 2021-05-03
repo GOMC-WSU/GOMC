@@ -86,7 +86,7 @@ void CheckpointSetup::readGOMCVersion()
     fseek(inputFile, 0, SEEK_SET);
     sprintf(gomc_version, "0.00");
   } else {
-    fscanf(inputFile, "%[^$]", gomc_version);
+    int result = fscanf(inputFile, "%[^$]", gomc_version);
     // Move the cursor past the $ sign
     fseek(inputFile, 1, SEEK_CUR);
   }
