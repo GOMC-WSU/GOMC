@@ -323,4 +323,5 @@ int PDBSetup::InitBinaryTrajectory(config_setup::InFiles const& inFiles){
       binTraj[b].defined = false;
     }
   }
+  return 0;
 }
