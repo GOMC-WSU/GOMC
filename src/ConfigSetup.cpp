@@ -281,7 +281,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         in.files.binaryCoorInput.name[boxnum] = line[2];
       }
       in.files.binaryCoorInput.defined[boxnum] = true;
-      in.restart.restartFromBinaryFile = true;
+      in.restart.restartFromBinaryCoorFile = true;
     } else if(CheckString(line[0], "binTrajectory")) {
       if(line.size() >= 3) {
       uint boxnum = stringtoi(line[1]);
@@ -299,8 +299,6 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       }
     } else if(CheckString(line[0], "SimplyCollateTrajectories")) {
         in.restart.simplyCollateTrajectories = checkBool(line[1]);
-      in.files.binaryCoorInput.defined[boxnum] = true;
-      in.restart.restartFromBinaryCoorFile = true;
     } else if(CheckString(line[0], "binVelocities")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {
