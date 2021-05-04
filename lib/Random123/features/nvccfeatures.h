@@ -81,7 +81,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // tell the philox code to use the mulhilo64 asm because
 // nvcc doesn't grok uint128_t.
 #ifndef R123_USE_MULHILO64_ASM
+//#define R123_USE_MULHILO64_ASM 1
+#if defined(__GNUC__)
 #define R123_USE_MULHILO64_ASM 1
+#elif defined(_MSC_FULL_VER)
+#define R123_USE_MULHILO64_ASM 0
+#endif
 #endif
 
 #endif // __CUDA_ARCH__

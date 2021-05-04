@@ -7,7 +7,9 @@ Current Release: 2.70 (10/13/2020)
 
 We recommend the [GOMC Project Website](http://gomc.eng.wayne.edu/ "GOMC Website") and the [user manual](https://gomc-wsu.github.io/Manual/ "User Manual") for further information and examples.
 
-To cite GOMC project, please use [GOMC SoftwareX paper](https://www.sciencedirect.com/science/article/pii/S2352711018301171?via%3Dihub "SoftwareX").
+To cite GOMC project, please use cite the following papers:
+1.  [Y. Nejahi, M. Soroush Barhaghi,  G. Schwing, L. Schwiebert, J. Potoff. SoftwareX, 13, 100627 (2021)](https://www.sciencedirect.com/science/article/pii/S235271102030340X)
+2.  [Y. Nejahi, M. Soroush Barhaghi, J. Mick, B. Jackman, K. Rushaidat, Y. Li, L. Schwiebert, J. Potoff. SoftwareX, 9, 20-27 (2019)](https://www.sciencedirect.com/science/article/pii/S2352711018301171?via%3Dihub "SoftwareX")
 
 ## Building GOMC on GNU/Linux, macOS, or Cygwin:
 
