@@ -54,6 +54,7 @@ private:
   void printParallelTemperingBoolean();
   void printStepNumber(ulong step);
   void printRandomNumbers();
+  void printSortedMoleculeIndices();
 #if GOMC_LIB_MPI
   void printRandomNumbersParallelTempering();
 #endif
@@ -63,6 +64,7 @@ private:
   void printVector3DUint(const std::vector< std::vector< std::vector<uint> > > &data);
   void printVector2DUint(const std::vector< std::vector< uint > > &data);
   void printVector1DDouble(const std::vector< double > &data);
+  void printVector1DUint(const std::vector< uint > &data);
   void write_double_binary(double data);
   void write_uint8_binary(int8_t data);
   void write_uint32_binary(uint32_t data);

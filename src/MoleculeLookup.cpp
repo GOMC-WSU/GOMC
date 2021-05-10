@@ -21,8 +21,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 void MoleculeLookup::Init(const Molecules& mols,
                           const pdb_setup::Atoms& atomData,
-                          Forcefield &ff)
+                          Forcefield &ff,
+                          bool restartFromCheckpoint)
 {
+  this->restartFromCheckpoint = restartFromCheckpoint;
+
   numKinds = mols.GetKindsCount();
 
   molLookup = new uint[mols.count];

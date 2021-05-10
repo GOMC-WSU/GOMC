@@ -74,6 +74,8 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
   printStepNumber(step);
   printRandomNumbers();
   printMoveSettingsData();
+  /* For consistent trajectory ordering */
+  printSortedMoleculeIndices();
 #if GOMC_LIB_MPI
   printParallelTemperingBoolean();
   if(enableParallelTempering)
@@ -177,6 +179,21 @@ void CheckpointOutput::printMoveSettingsData()
   printVector1DDouble(moveSetRef.mp_r_max);
 }
 
+
+void CheckpointOutput::printSortedMoleculeIndices(){
+  uint b = 0, k = 0, kI = 0, countByKind = 0;
+  std::vector<uint> consistentMolInds;
+  for (b = 0; b < BOX_TOTAL; ++b) {
+    for (k = 0; k < molRef.kindsCount; ++k) {
+      countByKind = molLookupRef.NumKindInBox(k, b);
+      for (kI = 0; kI < countByKind; ++kI) {
+        consistentMolInds.push_back(molLookupRef.GetSortedMolNum(kI, k, b));
+      }
+    }
+  }
+  printVector1DUint(consistentMolInds);
+}
+
 void CheckpointOutput::printVector3DDouble(const std::vector< std::vector< std::vector<double> > > &data)
 {
   // print size of tempTries
@@ -230,6 +247,18 @@ void CheckpointOutput::printVector2DUint(const std::vector< std::vector< uint > 
     for(int j = 0; j < (int) size_y; j++) {
       write_uint32_binary(data[i][j]);
     }
+  }
+}
+
+void CheckpointOutput::printVector1DUint(const std::vector< uint > &data)
+{
+  // print size of array
+  ulong size_x = data.size();
+  write_uint64_binary(size_x);
+
+  // print array itself
+  for(int i = 0; i < (int) size_x; i++) {
+    write_uint32_binary(data[i]);
   }
 }
 

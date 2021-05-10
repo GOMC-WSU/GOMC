@@ -233,7 +233,7 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
   uint resID = 1;
   uint thisKIndex = 0, nAtoms = 0, mI = 0;
   for(uint mol = 0; mol < molecules->count; ++mol) {
-    mI = enableSortedSegmentOut ? molecules->sortedMoleculeIndices[mol] : mol;
+    mI = molLookRef.restartFromCheckpoint ? molLookRef.originalMoleculeIndices[mol] : mol;
     thisKIndex = molecules->kIndex[mI];
     
     nAtoms = molKinds[thisKIndex].atoms.size();
@@ -277,7 +277,7 @@ void PSFOutput::PrintBonds(FILE* outfile) const
   uint lineEntry = 0;
   uint thisKIndex = 0, mI = 0;
   for(uint mol = 0; mol < molecules->count; ++mol) {
-    mI = enableSortedSegmentOut ? molecules->sortedMoleculeIndices[mol] : mol;
+    mI = molLookRef.restartFromCheckpoint ? molLookRef.originalMoleculeIndices[mol] : mol;
     thisKIndex = molecules->kIndex[mI];
     const MolKind& thisKind = molKinds[thisKIndex];
     for(uint i = 0; i < thisKind.bonds.size(); ++i) {
@@ -301,7 +301,7 @@ void PSFOutput::PrintAngles(FILE* outfile) const
   uint lineEntry = 0;
   uint thisKIndex = 0, mI = 0;
   for(uint mol = 0; mol < molecules->count; ++mol) {
-    mI = enableSortedSegmentOut ? molecules->sortedMoleculeIndices[mol] : mol;
+    mI = molLookRef.restartFromCheckpoint ? molLookRef.originalMoleculeIndices[mol] : mol;
     thisKIndex = molecules->kIndex[mI];
     const MolKind& thisKind = molKinds[thisKIndex];
     for(uint i = 0; i < thisKind.angles.size(); ++i) {
@@ -325,7 +325,7 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
   uint lineEntry = 0;
   uint thisKIndex = 0, mI = 0;
   for(uint mol = 0; mol < molecules->count; ++mol) {
-    mI = enableSortedSegmentOut ? molecules->sortedMoleculeIndices[mol] : mol;
+    mI = molLookRef.restartFromCheckpoint ? molLookRef.originalMoleculeIndices[mol] : mol;
     thisKIndex = molecules->kIndex[mI];
     const MolKind& thisKind = molKinds[thisKIndex];
     for(uint i = 0; i < thisKind.dihedrals.size(); ++i) {

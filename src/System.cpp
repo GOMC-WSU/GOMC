@@ -100,19 +100,20 @@ void System::Init(Setup & set, ulong & startStep)
     prngParallelTemp->Init(set.prngParallelTemp.prngMaker.prng);
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
-  molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield);
+  molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield, set.config.in.restart.restartFromCheckpoint);
 #endif
   moveSettings.Init(statV, set.pdb.remarks, molLookupRef.GetNumKind());
   // allocate memory for atom's velocity if we read the binVelocities
   vel.Init(set.pdb.atoms, set.config.in);
 
   // At this point see if checkpoint is enabled. if so re-initialize
-  // coordinates, prng, mollookup, step, boxdim, and movesettings
+  // coordinates, prng, mollookup, step, boxdim, movesettings, and original molecule indices
   if(set.config.in.restart.restartFromCheckpoint) {
     checkpointSet.ReadAll();
     checkpointSet.SetStepNumber(startStep);
     checkpointSet.SetPRNGVariables(prng);
     checkpointSet.SetMoveSettings(moveSettings);
+    checkpointSet.SetOriginalMoleculeIndices(molLookupRef);
 #if GOMC_LIB_MPI
     if(checkpointSet.CheckIfParallelTemperingWasEnabled() && ms->parallelTemperingEnabled)
       checkpointSet.SetPRNGVariablesPT(*prngParallelTemp);
@@ -271,7 +272,7 @@ void System::RecalculateTrajectory(Setup &set, uint frameNum)
   } else {
     statV.InitOver(set, *this);
   #ifdef VARIABLE_PARTICLE_NUMBER
-    molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield);
+    molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield, set.config.in.restart.restartFromCheckpoint);
   #endif
     coordinates.InitFromPDB(set.pdb.atoms);
     // COM is calced in InitFromPDB

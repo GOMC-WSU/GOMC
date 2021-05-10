@@ -11,6 +11,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Coordinates.h"
 #include "PDBSetup.h"
 #include <iostream>
+#include "VectorLib.h" //for transfer.
+
 
 class CheckpointSetup
 {
@@ -37,6 +39,7 @@ public:
   void SetPRNGVariablesPT(PRNG & prng);
 #endif
   void SetMoveSettings(MoveSettings & moveSettings);
+  void SetOriginalMoleculeIndices(MoleculeLookup & molLookupRef);
 
 private:
   MoveSettings & moveSetRef;
@@ -67,8 +70,7 @@ private:
   std::vector< double > mp_t_maxVec;
 
   // molecules data
-  std::vector< uint > molecules_startVec;
-  std::vector< uint > molecules_kIndexVec;
+  std::vector< uint > originalMoleculeIndicesVec;
 
   // private functions used by ReadAll and Get functions
   void readGOMCVersion();
@@ -76,6 +78,7 @@ private:
   void openInputFile();
   void readParallelTemperingBoolean();
   void readStepNumber();
+  void readOriginalMoleculeIndices();
   void readRandomNumbers();
 #if GOMC_LIB_MPI
   void readRandomNumbersParallelTempering();
@@ -90,6 +93,7 @@ private:
   void readVector3DDouble(std::vector< std::vector< std::vector <double> > > & data);
   void readVector3DUint(std::vector< std::vector< std::vector <uint> > > & data);
   void readVector2DUint(std::vector< std::vector< uint > > & data);
+  void readVector1DUint(std::vector< uint > & data);
   void readVector1DDouble(std::vector< double > & data);
   double read_double_binary();
   int8_t read_uint8_binary();

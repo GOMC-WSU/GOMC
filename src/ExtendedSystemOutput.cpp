@@ -336,7 +336,7 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   //Loop through all molecules
   for (int m = 0; m < numMolecules; ++m) {
-    mI = enableSortedSegmentOut ? molRef.sortedMoleculeIndices[m] : m;
+    mI = molLookupRef.restartFromCheckpoint ? molLookupRef.originalMoleculeIndices[mol] : mol;
     molRef.GetRangeStartStop(pStart, pEnd, mI);
     ref = comCurrRef.Get(mI);
     for (p = pStart; p < pEnd; ++p) {
@@ -354,7 +354,7 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
   bool inThisBox; 
   //Loop through all molecules
   for (int m = 0; m < numMolecules; ++m) {
-    mI = enableSortedSegmentOut ? molRef.sortedMoleculeIndices[m] : m;
+    mI = molLookupRef.restartFromCheckpoint ? molLookupRef.originalMoleculeIndices[m] : m;
     molRef.GetRangeStartStop(pStart, pEnd, mI);
     ref = comCurrRef.Get(mI);
     inThisBox = (molInBox[mI] == box);

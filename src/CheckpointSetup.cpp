@@ -57,9 +57,8 @@ void CheckpointSetup::ReadAll()
   readGOMCVersion();
   readStepNumber();
   readRandomNumbers();
-  readMoleculeLookupData();
   readMoveSettingsData();
-  readMoleculesData();
+  readOriginalMoleculeIndices();
 #if GOMC_LIB_MPI
   readParallelTemperingBoolean();
   if(parallelTemperingWasEnabled)
@@ -182,22 +181,6 @@ void CheckpointSetup::readMoleculeLookupData()
   }
 }
 
-void CheckpointSetup::readMoleculesData()
-{
-  // read the size of start array
-  uint startCount = read_uint32_binary() + 1;
-  molecules_startVec.resize(startCount);
-  for(int i = 0; i < (int)startCount; i++) {
-    molecules_startVec[i] = read_uint32_binary();
-  }
-
-  // read the kIndex array
-  molecules_kIndexVec.resize(read_uint32_binary());
-  for(int i = 0; i < (int) molecules_kIndexVec.size(); i++) {
-    molecules_kIndexVec[i] = read_uint32_binary();
-  }
-}
-
 void CheckpointSetup::readMoveSettingsData()
 {
   readVector3DDouble(scaleVec);
@@ -210,6 +193,10 @@ void CheckpointSetup::readMoveSettingsData()
   readVector2DUint(mp_acceptedVec);
   readVector1DDouble(mp_t_maxVec);
   readVector1DDouble(mp_r_maxVec);
+}
+
+void CheckpointSetup::readOriginalMoleculeIndices(){
+ readVector1DUint(originalMoleculeIndicesVec);
 }
 
 void CheckpointSetup::openInputFile()
@@ -369,6 +356,11 @@ void CheckpointSetup::SetMoveSettings(MoveSettings & moveSettings)
   moveSettings.mp_r_max = this->mp_r_maxVec;
 }
 
+void CheckpointSetup::SetOriginalMoleculeIndices(MoleculeLookup & molLookupRef)
+{
+  molLookupRef.originalMoleculeIndices = vect::transfer<uint>(this->originalMoleculeIndicesVec);
+}
+
 void
 CheckpointSetup::readVector3DDouble(std::vector<std::vector<std::vector<double> > > &data)
 {
@@ -435,5 +427,17 @@ void CheckpointSetup::readVector1DDouble(std::vector<double> &data)
   data.resize(size_x);
   for(int i = 0; i < (int) size_x; i++) {
     data[i] = read_double_binary();
+  }
+}
+
+void CheckpointSetup::readVector1DUint(std::vector< uint > &data)
+{
+// read size of data
+  ulong size_x = read_uint64_binary();
+
+  // read array
+  data.resize(size_x);
+  for(int i = 0; i < (int) size_x; i++) {
+    data[i] = read_uint32_binary();
   }
 }

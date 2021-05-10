@@ -322,13 +322,13 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
   //Loop through all molecules
   for (uint m = 0; m < molRef.count; ++m) {
     //Loop through particles in mol.
-    mI = enableSortedSegmentOut ? molRef.sortedMoleculeIndices[m] : m;
+    mI = molLookupRef.restartFromCheckpoint ? molLookupRef.originalMoleculeIndices[m] : m;
     uint beta = molLookupRef.GetBeta(mI);
     molRef.GetRangeStartStop(pStart, pEnd, mI);
     XYZ ref = comCurrRef.Get(mI);
     inThisBox = (mBox[mI] == b);
     for (uint p = pStart; p < pEnd; ++p) {
-      pI = enableSortedSegmentOut ? atomIndex : p;
+      pI = molLookupRef.restartFromCheckpoint ? atomIndex : p;
       XYZ coor;
       if (inThisBox) {
         coor = coordCurrRef.Get(pI);
