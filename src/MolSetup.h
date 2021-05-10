@@ -30,15 +30,12 @@ namespace mol_setup
 {
 struct MoleculeVariables {
   std::vector<uint> startIdxMolecules, moleculeKinds;
-  std::vector<std::string> moleculeNames, moleculeKindNames, moleculeSegmentNames, generatedSegmentNames;
+  std::vector<std::string> moleculeNames, moleculeKindNames, moleculeSegmentNames;
   uint lastAtomIndexInBox0 = 0;
   uint numberMolsInBox0 = 0;
   uint molKindIndex = 0;
   uint stringSuffix = 0;
   uint moleculeIteration = 0;
-  /* enableGenerateSegmentOut, enableSortedSegmentOut are for consistent trajectory order across restarts */
-  bool enableGenerateSegmentOut = false;
-  bool enableSortedSegmentOut = false;
 };
 
 //!structure to contain an atom's data during initialization
@@ -185,9 +182,7 @@ public:
 
   //reads BoxTotal PSFs and merges the data, placing the results in kindMap
   //returns 0 if read is successful, -1 on a failure
-  int Init(const bool restartIn,
-           const bool restartOut,
-           const std::string* psfFilename, 
+  int Init(const std::string* psfFilename, 
            const bool* psfDefined, 
            pdb_setup::Atoms& pdbAtoms);
 

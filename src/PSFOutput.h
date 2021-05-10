@@ -76,10 +76,7 @@ private:
   FILE * outRebuildRestart[BOX_TOTAL];
   std::string outFName;
   std::string outRebuildRestartFName[BOX_TOTAL];
-  bool enableGenerateSegmentOut, enableSortedSegmentOut;
-
-  /* For Hybrid MC-MD Order Consistency B/w cycles */
-  std::vector<std::string> moleculeSegmentNames, generatedSegmentNames;
+  std::vector<std::string> moleculeSegmentNames;
 };
 
 #endif

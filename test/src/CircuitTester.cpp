@@ -39,7 +39,7 @@ TEST(CircuitTester, DialaTest) {
     psfdefined2[0] = true;
     psfdefined2[1] = true;
 
-    ms2.Init(false, false, psfnames2, psfdefined2, pdb2.atoms);
+    ms2.Init(psfnames2, psfdefined2, pdb2.atoms);
 
     CircuitFinder cf(ms2.kindMap["PROTA"].atoms.size());
     FloydWarshallCycle fw(ms2.kindMap["PROTA"].atoms.size());

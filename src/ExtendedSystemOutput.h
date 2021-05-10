@@ -114,7 +114,6 @@ private:
   char *outXSTFile[BOX_TOTAL];
   char *outXSCFile[BOX_TOTAL];
   int stateFileFileid[BOX_TOTAL];
-  bool enableSortedSegmentOut;
   bool outputVelocity; //output Velocity or not
   float *x, *y, *z;
   // AOS for restart binary format. NAMD internal data structure 

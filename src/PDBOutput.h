@@ -92,7 +92,6 @@ private:
 
   Writer outF[BOX_TOTAL];
   Writer outRebuildRestart[BOX_TOTAL];
-  bool enableSortedSegmentOut;
   std::vector<std::string> pStr;
   int frameNumber[BOX_TOTAL];
 };

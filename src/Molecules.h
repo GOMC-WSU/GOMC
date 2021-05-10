@@ -118,13 +118,6 @@ public:
   double* pairEnCorrections;
   double* pairVirCorrections;
 
-  /* For Hybrid MC-MD Order Consistency B/w cycles */
-  uint *  sortedMoleculeIndices;
-  /* Only used for testing purposes */
-  std::string * sortedMoleculeSegmentName;
-  bool enableSortedSegmentOut, enableGenerateSegmentOut;
-  bool generateSegmentName;
-
   bool printFlag;
 };
 

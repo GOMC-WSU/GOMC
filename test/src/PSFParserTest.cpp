@@ -36,7 +36,7 @@ TEST(PSFParserTest, CheckProtAndWaterTest) {
     psfdefined[0] = true;
     psfdefined[1] = true;
 
-    ms.Init(false, false, psfnames, psfdefined, pdb.atoms);
+    ms.Init(psfnames, psfdefined, pdb.atoms);
 
     /*
         Manually build dialanine

@@ -48,7 +48,6 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
   */
   enableOut = output.state.settings.enable || atoms.recalcTrajectory;
   enableRestOut = output.restart.settings.enable;
-  enableSortedSegmentOut = molRef.enableSortedSegmentOut;
 
   stepsPerOut = output.state.settings.frequency;
   stepsRestPerOut = output.restart.settings.frequency;
@@ -108,13 +107,13 @@ void PDBOutput::InitPartVec()
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);
     while (m != end) {
-      mI = enableSortedSegmentOut ? molRef.sortedMoleculeIndices[*m] : *m;
+      mI = molLookupRef.restartFromCheckpoint ? molLookupRef.originalMoleculeIndices[*m] : *m;
 
       molRef.GetRangeStartStop(pStart, pEnd, mI);
 
       for (uint p = pStart; p < pEnd; ++p) {
-        molecule = enableSortedSegmentOut ? molecule : mI;
-        pI = enableSortedSegmentOut ? atomIndex : p;
+        molecule = molLookupRef.restartFromCheckpoint ? molecule : mI;
+        pI = molLookupRef.restartFromCheckpoint ? atomIndex : p;
         if (molRef.kinds[molRef.kIndex[mI]].isMultiResidue){
           FormatAtom(pStr[pI], pI, molecule + molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs[p - pStart], 
                     molRef.chain[p],

@@ -242,20 +242,12 @@ int mol_setup::ReadCombinePSF(MoleculeVariables & molVars,
 
   return 0;
 }
-int MolSetup::Init(const bool restartIn,
-                   const bool restartOut,
-                   const std::string* psfFilename, 
+int MolSetup::Init(const std::string* psfFilename, 
                    const bool* psfDefined, 
                    pdb_setup::Atoms& pdbAtoms)
 {
   kindMap.clear();
   sizeMap.clear();
-  /* Generate segment labels if this is the first time a simulation is called,
-    and the user enabled restart output */
-  molVars.enableGenerateSegmentOut = !restartIn && restartOut;
-  /* Sort the segments if the user states this is a restarted simulation since we
-      automatically generate segment labels when outputting restart files */
-  molVars.enableSortedSegmentOut = restartIn;
   return ReadCombinePSF(molVars, kindMap, sizeMap, psfFilename, psfDefined, pdbAtoms);
 }
 
@@ -359,8 +351,6 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
             molVars.startIdxMolecules.push_back(startIdxAtomBoxOffset + it->front());
             molVars.moleculeKinds.push_back((*kindMapFromBox1)[fragName].kindIndex);
             molVars.moleculeNames.push_back(fragName);
-            if(molVars.enableGenerateSegmentOut)
-              molVars.generatedSegmentNames.push_back(uniqueSuffixGenerator.uint2String(molVars.moleculeIteration));
             molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
             
             /* Boilerplate PDB Data modifications for matches */
@@ -463,8 +453,6 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
             molVars.startIdxMolecules.push_back(startIdxAtomBoxOffset + it->front());
             molVars.moleculeKinds.push_back(kindMap[*sizeConsistentEntries].kindIndex);
             molVars.moleculeNames.push_back(*sizeConsistentEntries);
-            if(molVars.enableGenerateSegmentOut)
-              molVars.generatedSegmentNames.push_back(uniqueSuffixGenerator.uint2String(molVars.moleculeIteration));
             molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
             
             newMapEntry = false;
@@ -522,8 +510,6 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
         molVars.moleculeKinds.push_back(kindMap[fragName].kindIndex);
         molVars.moleculeKindNames.push_back(fragName);
         molVars.moleculeNames.push_back(fragName);
-        if(molVars.enableGenerateSegmentOut)
-          molVars.generatedSegmentNames.push_back(uniqueSuffixGenerator.uint2String(molVars.moleculeIteration));
         molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
         
         MolSetup::copyBondInfoIntoMapEntry(bondAdjList, kindMap, fragName);

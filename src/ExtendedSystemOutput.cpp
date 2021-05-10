@@ -42,7 +42,6 @@ void ExtendedSystemOutput::Init(pdb_setup::Atoms const& atoms,
   enableRestOut = output.restart.settings.enable;
   stepsPerOut = output.state_dcd.settings.frequency;
   stepsRestPerOut = output.restart.settings.frequency;
-  enableSortedSegmentOut = molRef.enableSortedSegmentOut;
   outputVelocity = output.restart_vel.settings.enable;
   if (stepsPerOut >= stepsRestPerOut) {
     stepsPerOut = stepsRestPerOut;
@@ -343,7 +342,7 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
       coor = coordCurrRef.Get(p);
       boxDimRef.UnwrapPBC(coor, box, ref);
 
-      pI = enableSortedSegmentOut ? atomIndex : p;
+      pI = mol ? atomIndex : p;
       x[pI] = coor.x;
       y[pI] = coor.y;
       z[pI] = coor.z;
@@ -365,7 +364,7 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
       } else {
         coor.Reset();
       }
-      pI = enableSortedSegmentOut ? atomIndex : p;
+      pI = molLookupRef.restartFromCheckpoint ? atomIndex : p;
       x[pI] = coor.x;
       y[pI] = coor.y;
       z[pI] = coor.z;

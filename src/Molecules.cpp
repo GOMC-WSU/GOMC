@@ -20,8 +20,7 @@ class System;
 
 Molecules::Molecules() : start(NULL), kIndex(NULL), countByKind(NULL),
   chain(NULL), kinds(NULL), pairEnCorrections(NULL),
-  pairVirCorrections(NULL), printFlag(true), sortedMoleculeSegmentName(NULL), 
-  sortedMoleculeIndices(NULL){}
+  pairVirCorrections(NULL), printFlag(true){}
 
 Molecules::~Molecules(void)
 {
@@ -32,8 +31,6 @@ Molecules::~Molecules(void)
   delete[] kinds;
   delete[] pairEnCorrections;
   delete[] pairVirCorrections;
-  delete[] sortedMoleculeSegmentName;
-  delete[] sortedMoleculeIndices;
 }
 
 void Molecules::Init(Setup & setup, Forcefield & forcefield,
@@ -53,16 +50,6 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   }
   //chain = new char [atoms.x.size()];
   start = new uint [count + 1];
-  sortedMoleculeIndices = new uint [count];
-
-  enableGenerateSegmentOut = setup.mol.molVars.enableGenerateSegmentOut;
-  enableSortedSegmentOut = setup.mol.molVars.enableSortedSegmentOut;
-
-  if(enableSortedSegmentOut){
-    /* We need to create the sortedArray in the method and return it, instead of directly modifying the class' vector
-     because of the way this class is initialized twice */
-    SortMoleculesBySegment(setup.mol.molVars.moleculeSegmentNames);
-  }
 
   start = vect::TransferInto<uint>(start, setup.mol.molVars.startIdxMolecules);
   kIndex = vect::transfer<uint>(setup.mol.molVars.moleculeKinds);
@@ -246,38 +233,5 @@ void Molecules::PrintLJInfo(std::vector<uint> &totAtomKind,
     }
     std::cout << std::endl;
   }
-}
-
-void  Molecules::SortMoleculesBySegment(std::vector<std::string> & unorderedSegments){
-
-  /* For Hybid MC-MD Cycle Consistency between molecular order
-     Sort these three vectors according to alphanmeric segment label */ 
-
-  std::vector<std::string> sortedSegmentName;
-  std::vector<uint> sortedSegmentIndices;
-
-  std::vector<uint> unsortedSegmentIndices(count);
-  std::iota(unsortedSegmentIndices.begin(), unsortedSegmentIndices.end(), 0);
-  //declaring vector of pairs
-  std::vector< std::pair <std::string,int> > pairVector;
-  // Entering values in vector of pairs
-  for (int i=0; i<count; i++)
-      pairVector.push_back( std::make_pair(unorderedSegments[i],unsortedSegmentIndices[i]) );
-
-  // Using simple sort() function to sort
-  std::sort(pairVector.begin(), pairVector.end(), compare());
-
-  for (int i = 0; i < count; i++){
-    sortedSegmentName.push_back(unorderedSegments[pairVector[i].second]); 
-    sortedSegmentIndices.push_back(pairVector[i].second); 
-  }
-
-
-  vect::TransferInto<uint>(this->sortedMoleculeIndices, sortedSegmentIndices);
-  //chain = vect::transfer<char>(sortedChain);
-  //return sortedSegmentIndices;
-  /* For Hybid MC-MD Cycle Consistency between molecular order
-    Sort these three vectors according to alphanmeric segment label */ 
-
 }
 
