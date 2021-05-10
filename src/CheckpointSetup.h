@@ -18,6 +18,8 @@ class CheckpointSetup
 {
 public:
   CheckpointSetup(System & sys, StaticVals const& statV, Setup const& set);
+  /* For GTesting */
+  CheckpointSetup(std::string file);
 
   ~CheckpointSetup()
   {

@@ -51,6 +51,16 @@ CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV,
   saveArray = NULL;
 }
 
+CheckpointSetup::CheckpointSetup(std::string file) :
+  moveSetRef((MoveSettings &)file), molLookupRef((MoleculeLookup &)file),
+  boxDimRef((BoxDimensions &)file),  molRef((Molecules &)file), coordCurrRef((Coordinates &)file),
+  prngRef((PRNG &)file), parallelTemperingWasEnabled(false)
+{
+  filename = file;
+  inputFile = NULL;
+  saveArray = NULL;
+}
+
 void CheckpointSetup::ReadAll()
 {
   openInputFile();
