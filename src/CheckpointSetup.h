@@ -44,13 +44,6 @@ public:
   void SetOriginalMoleculeIndices(MoleculeLookup & molLookupRef);
 
 private:
-  MoveSettings & moveSetRef;
-  MoleculeLookup & molLookupRef;
-  BoxDimensions & boxDimRef;
-  Molecules const & molRef;
-  Coordinates & coordCurrRef;
-  PRNG & prngRef;
-
   std::string filename;
   FILE* inputFile;
 

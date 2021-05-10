@@ -37,9 +37,7 @@ union int8_input_union {
 
 CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV,
                                  Setup const& set) :
-  moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
-  boxDimRef(sys.boxDimRef),  molRef(statV.mol), coordCurrRef(sys.coordinates),
-  prngRef(sys.prng), parallelTemperingWasEnabled(false)
+  parallelTemperingWasEnabled(false)
 {
   std::string file = set.config.in.files.checkpoint.name[0];
 #if GOMC_LIB_MPI
@@ -52,11 +50,13 @@ CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV,
 }
 
 CheckpointSetup::CheckpointSetup(std::string file) :
-  moveSetRef((MoveSettings &)file), molLookupRef((MoleculeLookup &)file),
-  boxDimRef((BoxDimensions &)file),  molRef((Molecules &)file), coordCurrRef((Coordinates &)file),
-  prngRef((PRNG &)file), parallelTemperingWasEnabled(false)
+  parallelTemperingWasEnabled(false)
 {
+#if GOMC_LIB_MPI
+  filename = sys.ms->replicaInputDirectoryPath + file;
+#else
   filename = file;
+#endif
   inputFile = NULL;
   saveArray = NULL;
 }
