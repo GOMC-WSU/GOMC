@@ -38,5 +38,7 @@ TEST(ConsistentTrajectoryTest, CheckCheckpointVersusPSF) {
     psfdefined[1] = true;
 
     ms.Init(psfnames, psfdefined, pdb.atoms);
+    
+    ms.molVars.moleculeSegmentNames
 
 }
