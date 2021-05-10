@@ -187,7 +187,8 @@ void CheckpointOutput::printSortedMoleculeIndices(){
     for (k = 0; k < molRef.kindsCount; ++k) {
       countByKind = molLookupRef.NumKindInBox(k, b);
       for (kI = 0; kI < countByKind; ++kI) {
-        consistentMolInds.push_back(molLookupRef.GetSortedMolNum(kI, k, b));
+        consistentMolInds.push_back(molLookupRef.restartFromCheckpoint ? molLookupRef.GetSortedMolNum(kI, k, b) : 
+        molLookupRef.GetMolNum(kI, k, b));
       }
     }
   }
