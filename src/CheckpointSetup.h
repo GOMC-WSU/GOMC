@@ -41,6 +41,7 @@ public:
   void SetPRNGVariablesPT(PRNG & prng);
 #endif
   void SetMoveSettings(MoveSettings & moveSettings);
+  void SetMoleculeLookup(MoleculeLookup & molLookupRef);
   void SetOriginalMoleculeIndices(MoleculeLookup & molLookupRef);
 
 
@@ -85,7 +86,6 @@ private:
 #endif
   void readMoleculeLookupData();
   void readMoveSettingsData();
-  void readMoleculesData();
   void closeInputFile();
 
   void readVector3DDouble(std::vector< std::vector< std::vector <double> > > & data);

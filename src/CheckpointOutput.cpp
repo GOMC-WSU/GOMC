@@ -74,6 +74,7 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
   printStepNumber(step);
   printRandomNumbers();
   printMoveSettingsData();
+  printMoleculeLookupData();
   /* For consistent trajectory ordering */
   printSortedMoleculeIndices();
 #if GOMC_LIB_MPI
@@ -179,6 +180,31 @@ void CheckpointOutput::printMoveSettingsData()
   printVector1DDouble(moveSetRef.mp_r_max);
 }
 
+void CheckpointOutput::printMoleculeLookupData()
+{
+  // print the size of molLookup array
+  write_uint32_binary(molLookupRef.molLookupCount);
+  // print the molLookup array itself
+  for(int i = 0; i < (int) molLookupRef.molLookupCount; i++) {
+    write_uint32_binary(molLookupRef.molLookup[i]);
+  }
+
+  // print the size of boxAndKindStart array
+  write_uint32_binary(molLookupRef.boxAndKindStartCount);
+  // print the BoxAndKindStart array
+  for(int i = 0; i < (int) molLookupRef.boxAndKindStartCount; i++) {
+    write_uint32_binary(molLookupRef.boxAndKindStart[i]);
+  }
+
+  // print numKinds
+  write_uint32_binary(molLookupRef.numKinds);
+  //print the size of fixedMolecule array
+  write_uint32_binary((uint)molLookupRef.fixedMolecule.size());
+  //print the fixedMolecule array itself
+  for(int i = 0; i < (int) molLookupRef.fixedMolecule.size(); i++) {
+    write_uint32_binary(molLookupRef.fixedMolecule[i]);
+  }
+}
 
 void CheckpointOutput::printSortedMoleculeIndices(){
   uint b = 0, k = 0, kI = 0, countByKind = 0;

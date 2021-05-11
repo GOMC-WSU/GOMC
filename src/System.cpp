@@ -113,6 +113,7 @@ void System::Init(Setup & set, ulong & startStep)
     checkpointSet.SetStepNumber(startStep);
     checkpointSet.SetPRNGVariables(prng);
     checkpointSet.SetMoveSettings(moveSettings);
+    checkpointSet.SetMoleculeLookup(molLookupRef);
     checkpointSet.SetOriginalMoleculeIndices(molLookupRef);
 #if GOMC_LIB_MPI
     if(checkpointSet.CheckIfParallelTemperingWasEnabled() && ms->parallelTemperingEnabled)

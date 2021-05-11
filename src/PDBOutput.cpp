@@ -107,12 +107,13 @@ void PDBOutput::InitPartVec()
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);
     while (m != end) {
-      mI = molLookupRef.restartFromCheckpoint ? molLookupRef.originalMoleculeIndices[*m] : *m;
+      mI = *m;
 
       molRef.GetRangeStartStop(pStart, pEnd, mI);
 
       for (uint p = pStart; p < pEnd; ++p) {
-        molecule = molLookupRef.restartFromCheckpoint ? molecule : mI;
+        // If you don't want to preserve resID's comment this out -> mol = mI
+        molecule = mI;
         pI = molLookupRef.restartFromCheckpoint ? atomIndex : p;
         if (molRef.kinds[molRef.kIndex[mI]].isMultiResidue){
           FormatAtom(pStr[pI], pI, molecule + molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs[p - pStart], 

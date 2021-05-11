@@ -54,6 +54,7 @@ private:
   void printParallelTemperingBoolean();
   void printStepNumber(ulong step);
   void printRandomNumbers();
+  void printMoleculeLookupData();
   void printSortedMoleculeIndices();
 #if GOMC_LIB_MPI
   void printRandomNumbersParallelTempering();
