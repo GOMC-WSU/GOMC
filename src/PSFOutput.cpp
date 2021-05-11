@@ -228,45 +228,44 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
   //silly psfs index from 1
   uint atomID = 1;
   uint resID = 1;
-  uint thisKIndex = 0, nAtoms = 0, mI;
+  uint thisKIndex = 0, nAtoms = 0, mI = 0;
   uint pStart = 0, pEnd = 0;
   //Start particle numbering @ 1
   for (uint b = 0; b < BOX_TOTAL; ++b) {
-    MoleculeLookup::box_iterator m = molLookRef.BoxBegin(b),
-                                 end = molLookRef.BoxEnd(b);   
-    mI = *m;
-    thisKIndex = molecules->kIndex[mI];
-    
-    nAtoms = molKinds[thisKIndex].atoms.size();
-
-    for(uint at = 0; at < nAtoms; ++at) {
-      const Atom* thisAtom = &molKinds[thisKIndex].atoms[at];
-      //atom ID, segment name, residue ID, residue name,
-      //atom name, atom type, charge, mass, and an unused 0
-
-      if(molKinds[thisKIndex].isMultiResidue){
-          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[mI],
-                  resID + molKinds[thisKIndex].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
-                  thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
-        } else {
-          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[mI],
-                  resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
-                  thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
-        }
+    for(MoleculeLookup::box_iterator m = molLookRef.BoxBegin(b); m != molLookRef.BoxEnd(b); m++){  
+      mI = *m;
+      thisKIndex = molecules->kIndex[mI];
       
-      ++atomID;
-    }
-    /* This isn't actually residue, it is running count of the number of
-      molecule kinds we have printed */
-    ++resID;
-    /* To add additional intramolecular residues */
-    if (molKinds[thisKIndex].isMultiResidue){
-      resID += molKinds[thisKIndex].intraMoleculeResIDs.back();
-    }
+      nAtoms = molKinds[thisKIndex].atoms.size();
 
-   // ???
-    if(resID == 10000)
-      resID = 1;
+      for(uint at = 0; at < nAtoms; ++at) {
+        const Atom* thisAtom = &molKinds[thisKIndex].atoms[at];
+        //atom ID, segment name, residue ID, residue name,
+        //atom name, atom type, charge, mass, and an unused 0
+
+        if(molKinds[thisKIndex].isMultiResidue){
+            fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[mI],
+                    resID + molKinds[thisKIndex].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
+                    thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+          } else {
+            fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[mI],
+                    resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
+                    thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+          }
+        
+        ++atomID;
+      }
+      /* This isn't actually residue, it is running count of the number of
+        molecule kinds we have printed */
+      ++resID;
+      /* To add additional intramolecular residues */
+      if (molKinds[thisKIndex].isMultiResidue){
+        resID += molKinds[thisKIndex].intraMoleculeResIDs.back();
+      }
+
+      if(resID == 10000)
+        resID = 1;
+    }
   }
   fputc('\n', outfile);
 }
@@ -278,21 +277,21 @@ void PSFOutput::PrintBonds(FILE* outfile) const
   uint lineEntry = 0;
   uint thisKIndex = 0, mI = 0;
   for (uint b = 0; b < BOX_TOTAL; ++b) {
-    MoleculeLookup::box_iterator m = molLookRef.BoxBegin(b),
-                                 end = molLookRef.BoxEnd(b);   
-    mI = *m;
-    thisKIndex = molecules->kIndex[mI];
-    const MolKind& thisKind = molKinds[thisKIndex];
-    for(uint i = 0; i < thisKind.bonds.size(); ++i) {
-      fprintf(outfile, "%8d%8d", thisKind.bonds[i].a0 + atomID,
-              thisKind.bonds[i].a1 + atomID);
-      ++lineEntry;
-      if(lineEntry == bondPerLine) {
-        lineEntry = 0;
-        fputc('\n', outfile);
+    for(MoleculeLookup::box_iterator m = molLookRef.BoxBegin(b); m != molLookRef.BoxEnd(b); m++){ 
+      mI = *m;
+      thisKIndex = molecules->kIndex[mI];
+      const MolKind& thisKind = molKinds[thisKIndex];
+      for(uint i = 0; i < thisKind.bonds.size(); ++i) {
+        fprintf(outfile, "%8d%8d", thisKind.bonds[i].a0 + atomID,
+                thisKind.bonds[i].a1 + atomID);
+        ++lineEntry;
+        if(lineEntry == bondPerLine) {
+          lineEntry = 0;
+          fputc('\n', outfile);
+        }
       }
+      atomID += thisKind.atoms.size();
     }
-    atomID += thisKind.atoms.size();
   }
   fputs("\n\n", outfile);
 }
@@ -304,22 +303,22 @@ void PSFOutput::PrintAngles(FILE* outfile) const
   uint lineEntry = 0;
   uint thisKIndex = 0, mI = 0;
   for (uint b = 0; b < BOX_TOTAL; ++b) {
-    MoleculeLookup::box_iterator m = molLookRef.BoxBegin(b),
-                                 end = molLookRef.BoxEnd(b);   
-    mI = *m;
-    thisKIndex = molecules->kIndex[mI];
-    const MolKind& thisKind = molKinds[thisKIndex];
-    for(uint i = 0; i < thisKind.angles.size(); ++i) {
-      fprintf(outfile, "%8d%8d%8d", thisKind.angles[i].a0 + atomID,
-              thisKind.angles[i].a1 + atomID,
-              thisKind.angles[i].a2 + atomID);
-      ++lineEntry;
-      if(lineEntry == anglePerLine) {
-        lineEntry = 0;
-        fputc('\n', outfile);
+    for(MoleculeLookup::box_iterator m = molLookRef.BoxBegin(b); m != molLookRef.BoxEnd(b); m++){  
+      mI = *m;
+      thisKIndex = molecules->kIndex[mI];
+      const MolKind& thisKind = molKinds[thisKIndex];
+      for(uint i = 0; i < thisKind.angles.size(); ++i) {
+        fprintf(outfile, "%8d%8d%8d", thisKind.angles[i].a0 + atomID,
+                thisKind.angles[i].a1 + atomID,
+                thisKind.angles[i].a2 + atomID);
+        ++lineEntry;
+        if(lineEntry == anglePerLine) {
+          lineEntry = 0;
+          fputc('\n', outfile);
+        }
       }
+      atomID += thisKind.atoms.size();
     }
-    atomID += thisKind.atoms.size();
   }
   fputs("\n\n", outfile);
 }
@@ -330,23 +329,23 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
   uint lineEntry = 0;
   uint thisKIndex = 0, mI = 0;
   for (uint b = 0; b < BOX_TOTAL; ++b) {
-    MoleculeLookup::box_iterator m = molLookRef.BoxBegin(b),
-                                 end = molLookRef.BoxEnd(b);   
-    mI = *m;
-    thisKIndex = molecules->kIndex[mI];
-    const MolKind& thisKind = molKinds[thisKIndex];
-    for(uint i = 0; i < thisKind.dihedrals.size(); ++i) {
-      fprintf(outfile, "%8d%8d%8d%8d", thisKind.dihedrals[i].a0 + atomID,
-              thisKind.dihedrals[i].a1 + atomID,
-              thisKind.dihedrals[i].a2 + atomID,
-              thisKind.dihedrals[i].a3 + atomID);
-      ++lineEntry;
-      if(lineEntry == dihPerLine) {
-        lineEntry = 0;
-        fputc('\n', outfile);
+    for(MoleculeLookup::box_iterator m = molLookRef.BoxBegin(b); m != molLookRef.BoxEnd(b); m++){   
+      mI = *m;
+      thisKIndex = molecules->kIndex[mI];
+      const MolKind& thisKind = molKinds[thisKIndex];
+      for(uint i = 0; i < thisKind.dihedrals.size(); ++i) {
+        fprintf(outfile, "%8d%8d%8d%8d", thisKind.dihedrals[i].a0 + atomID,
+                thisKind.dihedrals[i].a1 + atomID,
+                thisKind.dihedrals[i].a2 + atomID,
+                thisKind.dihedrals[i].a3 + atomID);
+        ++lineEntry;
+        if(lineEntry == dihPerLine) {
+          lineEntry = 0;
+          fputc('\n', outfile);
+        }
       }
+      atomID += thisKind.atoms.size();
     }
-    atomID += thisKind.atoms.size();
   }
   fputs("\n\n", outfile);
 }

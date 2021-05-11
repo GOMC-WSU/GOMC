@@ -351,7 +351,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
             molVars.startIdxMolecules.push_back(startIdxAtomBoxOffset + it->front());
             molVars.moleculeKinds.push_back((*kindMapFromBox1)[fragName].kindIndex);
             molVars.moleculeNames.push_back(fragName);
-            molVars.moleculeSegmentNames.push_back(it - moleculeXAtomIDY.begin());
+            molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
             
             /* Boilerplate PDB Data modifications for matches */
 
@@ -453,7 +453,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
             molVars.startIdxMolecules.push_back(startIdxAtomBoxOffset + it->front());
             molVars.moleculeKinds.push_back(kindMap[*sizeConsistentEntries].kindIndex);
             molVars.moleculeNames.push_back(*sizeConsistentEntries);
-            molVars.moleculeSegmentNames.push_back(it - moleculeXAtomIDY.begin());
+            molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
             
             newMapEntry = false;
             break;
@@ -510,7 +510,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
         molVars.moleculeKinds.push_back(kindMap[fragName].kindIndex);
         molVars.moleculeKindNames.push_back(fragName);
         molVars.moleculeNames.push_back(fragName);
-        molVars.moleculeSegmentNames.push_back(it - moleculeXAtomIDY.begin());
+        molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
         
         MolSetup::copyBondInfoIntoMapEntry(bondAdjList, kindMap, fragName);
         molVars.molKindIndex++;

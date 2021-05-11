@@ -76,7 +76,7 @@ private:
   FILE * outRebuildRestart[BOX_TOTAL];
   std::string outFName;
   std::string outRebuildRestartFName[BOX_TOTAL];
-  std::vector<uint> moleculeSegmentNames;
+  std::vector<std::string> moleculeSegmentNames;
 };
 
 #endif
