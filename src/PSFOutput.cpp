@@ -277,8 +277,10 @@ void PSFOutput::PrintBonds(FILE* outfile) const
   uint atomID = 1;
   uint lineEntry = 0;
   uint thisKIndex = 0, mI = 0;
-  for(uint mol = 0; mol < molecules->count; ++mol) {
-    mI = molLookRef.restartFromCheckpoint ? molLookRef.originalMoleculeIndices[mol] : mol;
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    MoleculeLookup::box_iterator m = molLookRef.BoxBegin(b),
+                                 end = molLookRef.BoxEnd(b);   
+    mI = *m;
     thisKIndex = molecules->kIndex[mI];
     const MolKind& thisKind = molKinds[thisKIndex];
     for(uint i = 0; i < thisKind.bonds.size(); ++i) {
@@ -301,8 +303,10 @@ void PSFOutput::PrintAngles(FILE* outfile) const
   uint atomID = 1;
   uint lineEntry = 0;
   uint thisKIndex = 0, mI = 0;
-  for(uint mol = 0; mol < molecules->count; ++mol) {
-    mI = molLookRef.restartFromCheckpoint ? molLookRef.originalMoleculeIndices[mol] : mol;
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    MoleculeLookup::box_iterator m = molLookRef.BoxBegin(b),
+                                 end = molLookRef.BoxEnd(b);   
+    mI = *m;
     thisKIndex = molecules->kIndex[mI];
     const MolKind& thisKind = molKinds[thisKIndex];
     for(uint i = 0; i < thisKind.angles.size(); ++i) {
@@ -325,8 +329,10 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
   uint atomID = 1;
   uint lineEntry = 0;
   uint thisKIndex = 0, mI = 0;
-  for(uint mol = 0; mol < molecules->count; ++mol) {
-    mI = molLookRef.restartFromCheckpoint ? molLookRef.originalMoleculeIndices[mol] : mol;
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    MoleculeLookup::box_iterator m = molLookRef.BoxBegin(b),
+                                 end = molLookRef.BoxEnd(b);   
+    mI = *m;
     thisKIndex = molecules->kIndex[mI];
     const MolKind& thisKind = molKinds[thisKIndex];
     for(uint i = 0; i < thisKind.dihedrals.size(); ++i) {
