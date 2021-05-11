@@ -107,7 +107,9 @@ void PDBOutput::InitPartVec()
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);
     while (m != end) {
-      mI = *m;
+      // If this isn't checkpoint restarted, then this is
+      // mI = *m;
+      mI = molLookupRef.originalMoleculeIndices[*m];
 
       molRef.GetRangeStartStop(pStart, pEnd, mI);
 
@@ -324,7 +326,7 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
   MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);
   while (m != end) {
-    mI = *m;
+    mI = molLookupRef.originalMoleculeIndices[*m];
     //Loop through particles in mol.
     uint beta = molLookupRef.GetBeta(mI);
     molRef.GetRangeStartStop(pStart, pEnd, mI);

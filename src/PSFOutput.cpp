@@ -233,7 +233,9 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
   //Start particle numbering @ 1
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     for(MoleculeLookup::box_iterator m = molLookRef.BoxBegin(b); m != molLookRef.BoxEnd(b); m++){  
-      mI = *m;
+      // If this isn't checkpoint restarted, then this is
+      // mI = *m;
+      mI = molLookRef.originalMoleculeIndices[*m];
       thisKIndex = molecules->kIndex[mI];
       
       nAtoms = molKinds[thisKIndex].atoms.size();
@@ -278,7 +280,9 @@ void PSFOutput::PrintBonds(FILE* outfile) const
   uint thisKIndex = 0, mI = 0;
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     for(MoleculeLookup::box_iterator m = molLookRef.BoxBegin(b); m != molLookRef.BoxEnd(b); m++){ 
-      mI = *m;
+      // If this isn't checkpoint restarted, then this is
+      // mI = *m;
+      mI = molLookRef.originalMoleculeIndices[*m];
       thisKIndex = molecules->kIndex[mI];
       const MolKind& thisKind = molKinds[thisKIndex];
       for(uint i = 0; i < thisKind.bonds.size(); ++i) {
@@ -304,7 +308,9 @@ void PSFOutput::PrintAngles(FILE* outfile) const
   uint thisKIndex = 0, mI = 0;
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     for(MoleculeLookup::box_iterator m = molLookRef.BoxBegin(b); m != molLookRef.BoxEnd(b); m++){  
-      mI = *m;
+      // If this isn't checkpoint restarted, then this is
+      // mI = *m;
+      mI = molLookRef.originalMoleculeIndices[*m];
       thisKIndex = molecules->kIndex[mI];
       const MolKind& thisKind = molKinds[thisKIndex];
       for(uint i = 0; i < thisKind.angles.size(); ++i) {
@@ -330,7 +336,9 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
   uint thisKIndex = 0, mI = 0;
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     for(MoleculeLookup::box_iterator m = molLookRef.BoxBegin(b); m != molLookRef.BoxEnd(b); m++){   
-      mI = *m;
+        // If this isn't checkpoint restarted, then this is
+      // mI = *m;
+      mI = molLookRef.originalMoleculeIndices[*m];
       thisKIndex = molecules->kIndex[mI];
       const MolKind& thisKind = molKinds[thisKIndex];
       for(uint i = 0; i < thisKind.dihedrals.size(); ++i) {
