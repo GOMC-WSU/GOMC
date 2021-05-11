@@ -43,6 +43,10 @@ public:
   void SetMoveSettings(MoveSettings & moveSettings);
   void SetOriginalMoleculeIndices(MoleculeLookup & molLookupRef);
 
+
+  // molecules data, for GTest I need this public
+  // Will add GTest macros around this when I merge PTTesters Branch
+  std::vector< uint > originalMoleculeIndicesVec;
 private:
   std::string filename;
   FILE* inputFile;
@@ -64,8 +68,7 @@ private:
   std::vector< double > mp_r_maxVec;
   std::vector< double > mp_t_maxVec;
 
-  // molecules data
-  std::vector< uint > originalMoleculeIndicesVec;
+
 
   // private functions used by ReadAll and Get functions
   void readGOMCVersion();

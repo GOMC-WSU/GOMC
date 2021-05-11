@@ -52,11 +52,7 @@ CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV,
 CheckpointSetup::CheckpointSetup(std::string file) :
   parallelTemperingWasEnabled(false)
 {
-#if GOMC_LIB_MPI
-  filename = sys.ms->replicaInputDirectoryPath + file;
-#else
   filename = file;
-#endif
   inputFile = NULL;
   saveArray = NULL;
 }

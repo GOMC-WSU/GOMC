@@ -335,14 +335,14 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   //Loop through all molecules
   for (int m = 0; m < numMolecules; ++m) {
-    mI = molLookupRef.restartFromCheckpoint ? molLookupRef.originalMoleculeIndices[mol] : mol;
+    mI = molLookupRef.restartFromCheckpoint ? molLookupRef.originalMoleculeIndices[m] : m;
     molRef.GetRangeStartStop(pStart, pEnd, mI);
     ref = comCurrRef.Get(mI);
     for (p = pStart; p < pEnd; ++p) {
       coor = coordCurrRef.Get(p);
       boxDimRef.UnwrapPBC(coor, box, ref);
 
-      pI = mol ? atomIndex : p;
+      pI = molLookupRef.restartFromCheckpoint ? atomIndex : p;
       x[pI] = coor.x;
       y[pI] = coor.y;
       z[pI] = coor.z;

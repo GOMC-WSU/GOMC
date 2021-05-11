@@ -57,6 +57,13 @@ void MoleculeLookup::Init(const Molecules& mols,
     indexVector[b].resize(numKinds);
   }
 
+  if (!restartFromCheckpoint){
+    originalMoleculeIndices = new uint[mols.count];
+    for (uint i = 0; i < mols.count; ++i){
+      originalMoleculeIndices[i] = i;
+    }
+  }
+
   int counter = 0;
   for(uint m = 0; m < mols.count; ++m) {
     uint box = atomData.box[mols.start[m]];
@@ -186,19 +193,19 @@ void MoleculeLookup::Shift(const uint index, const uint currentBox,
   if(currentBox >= intoBox) {
     while (section != intoBox * numKinds + kind) {
       newIndex = boxAndKindStart[section]++;
-      uint temp = molLookup[oldIndex];
-      molLookup[oldIndex] = molLookup[newIndex];
-      molLookup[newIndex] = temp;
-      oldIndex = newIndex;
+      std::swap(molLookup[oldIndex], molLookup[newIndex]);
+      std::swap(oldIndex, newIndex);
+      /* For consistent molecule trajectory output on checkpointing */
+      std::swap(originalMoleculeIndices[oldIndex], originalMoleculeIndices[newIndex]);
       --section;
     }
   } else {
     while (section != intoBox * numKinds + kind) {
       newIndex = --boxAndKindStart[++section];
-      uint temp = molLookup[oldIndex];
-      molLookup[oldIndex] = molLookup[newIndex];
-      molLookup[newIndex] = temp;
-      oldIndex = newIndex;
+      std::swap(molLookup[oldIndex], molLookup[newIndex]);
+      std::swap(oldIndex, newIndex);
+      /* For consistent molecule trajectory output on checkpointing */
+      std::swap(originalMoleculeIndices[oldIndex], originalMoleculeIndices[newIndex]);
     }
   }
 }

@@ -33,3 +33,14 @@ std::string AlphaNum::uint2String(uint stringSuffix){
     return forwards.assign(backwards.rbegin(), backwards.rend());
 }
 
+uint AlphaNum::string2Uint(std::string stringSuffix){
+
+    char* char_arr = &stringSuffix[0];
+    char charSuffix = 'A';
+    uint index = 0;
+    for (int i = 0; i < stringSuffix.length(); ++i){
+        index += 26 * i + (char_arr[i] - charSuffix);
+    }
+    return index;
+}
+

@@ -7,6 +7,8 @@
 #include "FFConst.h"
 #include "Reader.h"
 #include "InputFileReader.h"
+#include "AlphaNum.h"
+#include "CheckpointSetup.h"
 
 
 TEST(ConsistentTrajectoryTest, CheckCheckpointVersusPSF) {
@@ -38,7 +40,18 @@ TEST(ConsistentTrajectoryTest, CheckCheckpointVersusPSF) {
     psfdefined[1] = true;
 
     ms.Init(psfnames, psfdefined, pdb.atoms);
-    
-    ms.molVars.moleculeSegmentNames
 
+    CheckpointSetup csp("./test/input/ConsistentTrajectory/Checkpoint.chk");
+    csp.ReadAll();
+
+    
+    typedef std::vector<std::string>::const_iterator segmentNameIterator;
+    typedef std::vector<uint>::const_iterator checkpointIterator;
+    std::pair<segmentNameIterator, checkpointIterator> itPair(ms.molVars.moleculeSegmentNames.cbegin(), csp.originalMoleculeIndicesVec.cbegin());
+    AlphaNum seg2Uint;
+    std::cout << *itPair.first << " " << seg2Uint.string2Uint(*itPair.first) << " " << *itPair.second << std::endl;
+    for (; itPair.second != csp.originalMoleculeIndicesVec.cend(); ++itPair.first, ++itPair.second){
+        std::cout << *itPair.first << " " << seg2Uint.string2Uint(*itPair.first) << " " << *itPair.second << std::endl;
+        EXPECT_EQ(seg2Uint.string2Uint(*itPair.first) == *itPair.second, true);
+    }
 }

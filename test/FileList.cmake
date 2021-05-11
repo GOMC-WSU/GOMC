@@ -5,6 +5,7 @@ set(TestSources
     test/src/MolLookupTest.cpp
     test/src/CircuitTester.cpp
     test/src/PSFParserTest.cpp
+    test/src/ConsistentTrajectoryTest.cpp
 )
 
 set(TestHeaders
@@ -16,6 +17,7 @@ set(GOMCSources
     src/MolSetup.cpp
     lib/AlphaNum.cpp
     src/BondAdjacencyList.cpp
+    src/CheckpointSetup.cpp
     src/ConfigSetup.cpp
     src/FFSetup.cpp
     src/FFConst.cpp
@@ -31,6 +33,7 @@ set(GOMCHeaders
     src/MolSetup.h
     lib/AlphaNum.h
     src/BondAdjacencyList.h
+    src/CheckpointSetup.h
     src/ConfigSetup.h
     src/FFSetup.h
     src/FFConst.h
