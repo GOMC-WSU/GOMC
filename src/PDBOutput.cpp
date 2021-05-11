@@ -318,26 +318,27 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
   using namespace pdb_entry::atom::field;
   using namespace pdb_entry;
   bool inThisBox = false;
-  uint pStart = 0, pEnd = 0, atomIndex = 0, mI = 0, pI = 0;
-  //Loop through all molecules
-  for (uint m = 0; m < molRef.count; ++m) {
+
+  uint pStart = 0, pEnd = 0, mI = 0;
+  //Start particle numbering @ 1
+  MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
+                                 end = molLookupRef.BoxEnd(b);
+  while (m != end) {
+    mI = *m;
     //Loop through particles in mol.
-    mI = molLookupRef.restartFromCheckpoint ? molLookupRef.originalMoleculeIndices[m] : m;
     uint beta = molLookupRef.GetBeta(mI);
     molRef.GetRangeStartStop(pStart, pEnd, mI);
     XYZ ref = comCurrRef.Get(mI);
     inThisBox = (mBox[mI] == b);
     for (uint p = pStart; p < pEnd; ++p) {
-      pI = molLookupRef.restartFromCheckpoint ? atomIndex : p;
       XYZ coor;
       if (inThisBox) {
-        coor = coordCurrRef.Get(pI);
+        coor = coordCurrRef.Get(p);
         boxDimRef.UnwrapPBC(coor, b, ref);
       }
-      InsertAtomInLine(pStr[pI], coor, occupancy::BOX[mBox[mI]], beta::FIX[beta]);
+      InsertAtomInLine(pStr[p], coor, occupancy::BOX[mBox[mI]], beta::FIX[beta]);
       //Write finished string out.
-      outF[b].file << pStr[pI] << std::endl;
-      ++atomIndex;
+      outF[b].file << pStr[p] << std::endl;
     }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
   }
 }

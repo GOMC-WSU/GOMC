@@ -332,28 +332,29 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
   uint p, pStart = 0, pEnd = 0, atomIndex = 0, mI = 0, pI = 0;
   int numMolecules = molRef.count;
   XYZ ref, coor;
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   //Loop through all molecules
-  for (int m = 0; m < numMolecules; ++m) {
-    mI = molLookupRef.restartFromCheckpoint ? molLookupRef.originalMoleculeIndices[m] : m;
+    MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
+                                 end = molLookupRef.BoxEnd(b);   
+    mI = *m;
     molRef.GetRangeStartStop(pStart, pEnd, mI);
     ref = comCurrRef.Get(mI);
     for (p = pStart; p < pEnd; ++p) {
       coor = coordCurrRef.Get(p);
       boxDimRef.UnwrapPBC(coor, box, ref);
-
-      pI = molLookupRef.restartFromCheckpoint ? atomIndex : p;
-      x[pI] = coor.x;
-      y[pI] = coor.y;
-      z[pI] = coor.z;
+      x[p] = coor.x;
+      y[p] = coor.y;
+      z[p] = coor.z;
       ++atomIndex;
     }
   }
 #else
-  bool inThisBox; 
+    bool inThisBox; 
   //Loop through all molecules
-  for (int m = 0; m < numMolecules; ++m) {
-    mI = molLookupRef.restartFromCheckpoint ? molLookupRef.originalMoleculeIndices[m] : m;
+    MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
+                                 end = molLookupRef.BoxEnd(b);   
+    mI = *m;
     molRef.GetRangeStartStop(pStart, pEnd, mI);
     ref = comCurrRef.Get(mI);
     inThisBox = (molInBox[mI] == box);
@@ -364,15 +365,13 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
       } else {
         coor.Reset();
       }
-      pI = molLookupRef.restartFromCheckpoint ? atomIndex : p;
-      x[pI] = coor.x;
-      y[pI] = coor.y;
-      z[pI] = coor.z;
+      x[p] = coor.x;
+      y[p] = coor.y;
+      z[p] = coor.z;
       ++atomIndex;
     }
   }
 #endif
-
 }
 
 void ExtendedSystemOutput::Copy_lattice_to_unitcell(double *unitcell, int box) {
