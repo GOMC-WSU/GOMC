@@ -5,8 +5,8 @@ PSF
  REMARKS Contains Geometry data for molecules in Box 0
 
        2 !NATOM 
-       1 1    1    AR   AR   AR     0.000000       39.9480           0
-       2 3    2    AR   AR   AR     0.000000       39.9480           0
+       1 A    1    AR   AR   AR     0.000000       39.9480           0
+       2 C    2    AR   AR   AR     0.000000       39.9480           0
 
        0 !NBOND: bonds 
 
