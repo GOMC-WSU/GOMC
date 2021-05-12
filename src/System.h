@@ -44,6 +44,9 @@ public:
 
   void Init(Setup & setupData, ulong & startStep);
 
+  /* To reinit the checkpointed original molecule starts */
+  void InitOver(Setup & set, Molecules & molRef);
+
   //Runs move, picked at random
   void ChooseAndRunMove(const uint step);
 

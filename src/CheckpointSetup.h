@@ -42,12 +42,14 @@ public:
 #endif
   void SetMoveSettings(MoveSettings & moveSettings);
   void SetMoleculeLookup(MoleculeLookup & molLookupRef);
+  void SetMolecules(Molecules & molRef);
   void SetOriginalMoleculeIndices(MoleculeLookup & molLookupRef);
 
 
   // molecules data, for GTest I need this public
   // Will add GTest macros around this when I merge PTTesters Branch
-  std::vector< uint > originalMoleculeIndicesVec;
+  std::vector< uint > originalMoleculeIndicesVec, molecules_originalStartVec, molecules_originalKIndexVec;
+
 private:
   std::string filename;
   FILE* inputFile;
@@ -84,6 +86,7 @@ private:
   uint32_t* saveArrayPT;
   uint32_t seedLocationPT, seedLeftPT, seedValuePT;
 #endif
+  void readMoleculesData();
   void readMoleculeLookupData();
   void readMoveSettingsData();
   void closeInputFile();

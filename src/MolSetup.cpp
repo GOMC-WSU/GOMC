@@ -523,8 +523,9 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
     }
     molVars.moleculeIteration++;
   }
-  molVars.lastAtomIndexInBox0 = (moleculeXAtomIDY.back()).back();
   molVars.numberMolsInBox0 = moleculeXAtomIDY.size();
+  if (molVars.numberMolsInBox0 != 0)
+    molVars.lastAtomIndexInBox0 = (moleculeXAtomIDY.back()).back();
 }
 
 typedef std::map<std::string, mol_setup::MolKind> MolMap;

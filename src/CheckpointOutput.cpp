@@ -74,7 +74,8 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
   printStepNumber(step);
   printRandomNumbers();
   printMoveSettingsData();
-  printMoleculeLookupData();
+  //printMoleculeLookupData();
+  printMoleculesData();
   /* For consistent trajectory ordering */
   printSortedMoleculeIndices();
 #if GOMC_LIB_MPI
@@ -180,6 +181,25 @@ void CheckpointOutput::printMoveSettingsData()
   printVector1DDouble(moveSetRef.mp_r_max);
 }
 
+void CheckpointOutput::printMoleculesData()
+{
+  // print the start of each molecule
+  // there is an extra one at the end which store the total count
+  // that is used for to calculate the length of molecule
+  // so the length of last molecule can be calculated using
+  // start[molIndex+1]-start[molIndex]
+  write_uint32_binary(molRef.count);
+  for(int i = 0; i < (int)molRef.count+1; i++) {
+    write_uint32_binary(molRef.start[i]);
+  }
+
+  // print the start of each kind
+  write_uint32_binary(molRef.kIndexCount);
+  for(int i = 0; i < (int)molRef.kIndexCount; i++) {
+    write_uint32_binary(molRef.kIndex[i]);
+  }
+}
+
 void CheckpointOutput::printMoleculeLookupData()
 {
   // print the size of molLookup array
@@ -207,13 +227,28 @@ void CheckpointOutput::printMoleculeLookupData()
 }
 
 void CheckpointOutput::printSortedMoleculeIndices(){
-  uint b = 0, k = 0, kI = 0, countByKind = 0;
-  std::vector<uint> consistentMolInds;
+
+  uint b = 0, k = 0, kI = 0, countByKind = 0, newMolInd = 0;
+  
+  for (int i = 0; i < molLookupRef.molLookupCount; i++){
+    std::cout << molLookupRef.originalMoleculeIndices[i] << " ";
+  }
+  std::cout << std::endl;
+  for (int i = 0; i < molLookupRef.molLookupCount; i++){
+    std::cout << molLookupRef.permutedMoleculeIndices[i] << " ";
+  }
+  std::cout << std::endl;
+  
+  std::vector<uint> consistentMolInds(molLookupRef.molLookupCount);
   for (b = 0; b < BOX_TOTAL; ++b) {
     for (k = 0; k < molRef.kindsCount; ++k) {
       countByKind = molLookupRef.NumKindInBox(k, b);
       for (kI = 0; kI < countByKind; ++kI) {
-        consistentMolInds.push_back(molLookupRef.GetSortedMolNum(kI, k, b));
+        std::cout << newMolInd << " " << molLookupRef.GetSortedMolNum(b, k, kI) << " " << molLookupRef.originalMoleculeIndices[newMolInd] << " " << molLookupRef.permutedMoleculeIndices[newMolInd] << " " << molLookupRef.permutedMoleculeIndices[molLookupRef.GetMolNum(b, k, kI)]<< std::endl;
+        std::cout << molLookupRef.originalMoleculeIndices[molLookupRef.permutedMoleculeIndices[newMolInd]] << std::endl;
+        consistentMolInds[newMolInd] = molLookupRef.originalMoleculeIndices[molLookupRef.permutedMoleculeIndices[newMolInd]];
+
+        ++newMolInd;
       }
     }
   }

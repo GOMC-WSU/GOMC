@@ -64,7 +64,8 @@ void CheckpointSetup::ReadAll()
   readStepNumber();
   readRandomNumbers();
   readMoveSettingsData();
-  readMoleculeLookupData();
+  //readMoleculeLookupData();
+  readMoleculesData();
   readOriginalMoleculeIndices();
 #if GOMC_LIB_MPI
   readParallelTemperingBoolean();
@@ -200,6 +201,22 @@ void CheckpointSetup::readMoveSettingsData()
   readVector2DUint(mp_acceptedVec);
   readVector1DDouble(mp_t_maxVec);
   readVector1DDouble(mp_r_maxVec);
+}
+
+void CheckpointSetup::readMoleculesData()
+{
+  // read the size of start array
+  uint startCount = read_uint32_binary() + 1;
+  molecules_originalStartVec.resize(startCount);
+  for(int i = 0; i < (int)startCount; i++) {
+    molecules_originalStartVec[i] = read_uint32_binary();
+  }
+
+  // read the kIndex array
+  molecules_originalKIndexVec.resize(read_uint32_binary());
+  for(int i = 0; i < (int) molecules_originalKIndexVec.size(); i++) {
+    molecules_originalKIndexVec[i] = read_uint32_binary();
+  }
 }
 
 void CheckpointSetup::readOriginalMoleculeIndices(){
@@ -363,24 +380,19 @@ void CheckpointSetup::SetMoveSettings(MoveSettings & moveSettings)
   moveSettings.mp_r_max = this->mp_r_maxVec;
 }
 
-void CheckpointSetup::SetMoleculeLookup(MoleculeLookup & molLookupRef)
+void CheckpointSetup::SetMolecules(Molecules& mols)
 {
-  if(molLookupRef.molLookupCount != this->molLookupVec.size()) {
-    std::cerr << "ERROR: Restarting from checkpoint...\n"
-              << "molLookup size does not match with restart file\n";
-    exit(EXIT_FAILURE);
+  for(int i = 0; i < (int)this->molecules_originalStartVec.size(); i++) {
+    mols.originalStart[i] = molecules_originalStartVec[i];
   }
-  for(int i = 0; i < (int) this->molLookupVec.size(); i++) {
-    molLookupRef.molLookup[i] = this->molLookupVec[i];
+  for(int i = 0; i < (int)this->molecules_originalKIndexVec.size(); i++) {
+    mols.originalKIndex[i] = molecules_originalKIndexVec[i];
   }
-  for(int i = 0; i < (int) this->boxAndKindStartVec.size(); i++) {
-    molLookupRef.boxAndKindStart[i] = this->boxAndKindStartVec[i];
-  }
-  molLookupRef.numKinds = this->numKinds;
 }
 
 void CheckpointSetup::SetOriginalMoleculeIndices(MoleculeLookup & molLookupRef)
 {
+  /* Original Mol Indices are for constant trajectory output */
   molLookupRef.originalMoleculeIndices = vect::transfer<uint>(this->originalMoleculeIndicesVec);
 }
 

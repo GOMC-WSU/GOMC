@@ -101,7 +101,7 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
 
 void PDBOutput::InitPartVec()
 {
-  uint pStart = 0, pEnd = 0, molecule = 0, atomIndex = 0, mI = 0, pI = 0;
+  uint pStart = 0, pEnd = 0, molecule = 0, atomIndex = 0, mI = 0;
   //Start particle numbering @ 1
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
@@ -111,30 +111,29 @@ void PDBOutput::InitPartVec()
       // mI = *m;
       mI = molLookupRef.originalMoleculeIndices[*m];
 
-      molRef.GetRangeStartStop(pStart, pEnd, mI);
+      molRef.GetOriginalRangeStartStop(pStart, pEnd, mI);
 
       for (uint p = pStart; p < pEnd; ++p) {
         // If you don't want to preserve resID's comment this out -> mol = mI
         molecule = mI;
-        pI = molLookupRef.restartFromCheckpoint ? atomIndex : p;
-        if (molRef.kinds[molRef.kIndex[mI]].isMultiResidue){
-          FormatAtom(pStr[pI], pI, molecule + molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs[p - pStart], 
+        if (molRef.kinds[molRef.originalKIndex[mI]].isMultiResidue){
+          FormatAtom(pStr[p], p, molecule + molRef.kinds[molRef.originalKIndex[mI]].intraMoleculeResIDs[p - pStart], 
                     molRef.chain[p],
-                    molRef.kinds[molRef.kIndex[mI]].atomNames[p - pStart], 
-                    molRef.kinds[molRef.kIndex[mI]].resNames[p - pStart]);
+                    molRef.kinds[molRef.originalKIndex[mI]].atomNames[p - pStart], 
+                    molRef.kinds[molRef.originalKIndex[mI]].resNames[p - pStart]);
         } else {
-          FormatAtom(pStr[pI], pI, molecule, 
+          FormatAtom(pStr[p], p, molecule, 
                     molRef.chain[p],
-                    molRef.kinds[molRef.kIndex[mI]].atomNames[p - pStart], 
-                    molRef.kinds[molRef.kIndex[mI]].resNames[p - pStart]);
+                    molRef.kinds[molRef.originalKIndex[mI]].atomNames[p - pStart], 
+                    molRef.kinds[molRef.originalKIndex[mI]].resNames[p - pStart]);
         }
         ++atomIndex;
       }
       ++m;
       ++molecule;
       /* If you want to keep orig resID's comment these out */
-      if (molRef.kinds[molRef.kIndex[mI]].isMultiResidue){
-        molecule += molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs.back();
+      if (molRef.kinds[molRef.originalKIndex[mI]].isMultiResidue){
+        molecule += molRef.kinds[molRef.originalKIndex[mI]].intraMoleculeResIDs.back();
       }
       /* 0 & 9999 since FormatAtom adds 1 shifting to 1 and 10,000*/
       if(molecule == 9999)
@@ -323,25 +322,32 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
 
   uint pStart = 0, pEnd = 0, mI = 0;
   //Start particle numbering @ 1
-  MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
-                                 end = molLookupRef.BoxEnd(b);
-  while (m != end) {
-    mI = molLookupRef.originalMoleculeIndices[*m];
-    //Loop through particles in mol.
-    uint beta = molLookupRef.GetBeta(mI);
-    molRef.GetRangeStartStop(pStart, pEnd, mI);
-    XYZ ref = comCurrRef.Get(mI);
-    inThisBox = (mBox[mI] == b);
-    for (uint p = pStart; p < pEnd; ++p) {
-      XYZ coor;
-      if (inThisBox) {
-        coor = coordCurrRef.Get(p);
-        boxDimRef.UnwrapPBC(coor, b, ref);
-      }
-      InsertAtomInLine(pStr[p], coor, occupancy::BOX[mBox[mI]], beta::FIX[beta]);
-      //Write finished string out.
-      outF[b].file << pStr[p] << std::endl;
-    }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+  for (uint box = 0; box < BOX_TOTAL; ++box) {
+    MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(box),
+                                  end = molLookupRef.BoxEnd(box);
+    while (m != end) {
+      mI = molLookupRef.originalMoleculeIndices[*m];
+      std::cout << *m << " " << mI << std::endl;
+
+      //Loop through particles in mol.
+      uint beta = molLookupRef.GetBeta(mI);
+      molRef.GetOriginalRangeStartStop(pStart, pEnd, mI);
+      XYZ ref = comCurrRef.Get(mI);
+      inThisBox = (mBox[mI] == b);
+      for (uint p = pStart; p < pEnd; ++p) {
+        XYZ coor;
+        if (inThisBox) {
+          coor = coordCurrRef.Get(p);
+          boxDimRef.UnwrapPBC(coor, b, ref);
+        }
+        InsertAtomInLine(pStr[p], coor, occupancy::BOX[mBox[mI]], beta::FIX[beta]);
+        //Write finished string out.
+      }  
+      ++m;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+    }
+  }
+  for (uint p = 0; p < coordCurrRef.Count(); ++p){
+    outF[b].file << pStr[p] << std::endl;
   }
 }
 

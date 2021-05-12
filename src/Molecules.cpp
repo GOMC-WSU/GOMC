@@ -18,13 +18,15 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class System;
 
 
-Molecules::Molecules() : start(NULL), kIndex(NULL), countByKind(NULL),
+Molecules::Molecules() : start(NULL), originalStart(NULL), originalKIndex(NULL), kIndex(NULL), countByKind(NULL),
   chain(NULL), kinds(NULL), pairEnCorrections(NULL),
   pairVirCorrections(NULL), printFlag(true){}
 
 Molecules::~Molecules(void)
 {
   delete[] start;
+  delete[] originalStart;
+  delete[] originalKIndex;
   delete[] kIndex;
   delete[] countByKind;
   delete[] chain;
@@ -50,7 +52,15 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   }
   //chain = new char [atoms.x.size()];
   start = new uint [count + 1];
-
+  originalStart = new uint [count + 1];
+  /* If new run, originalStart & originalKIndex and start & kIndex are identical */
+  if(!setup.config.in.restart.restartFromCheckpoint){
+    originalStart = vect::TransferInto<uint>(originalStart, setup.mol.molVars.startIdxMolecules);
+    originalStart[count] = atoms.x.size();
+    originalKIndex = vect::transfer<uint>(setup.mol.molVars.moleculeKinds);
+  } else {
+    originalKIndex = new uint [count];
+  }
   start = vect::TransferInto<uint>(start, setup.mol.molVars.startIdxMolecules);
   kIndex = vect::transfer<uint>(setup.mol.molVars.moleculeKinds);
   chain = vect::transfer<char>(atoms.chainLetter);

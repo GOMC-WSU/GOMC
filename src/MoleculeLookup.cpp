@@ -110,11 +110,37 @@ void MoleculeLookup::Init(const Molecules& mols,
     }
   }
 
-  //if (!restartFromCheckpoint){
-  //  originalMoleculeIndices = 
-  //}
-
   boxAndKindStart[numKinds * BOX_TOTAL] = mols.count;
+
+  /* originalMoleculeIndices have 2 sources
+    if a new run, they are depedent on the originalMolInds set below
+    if a checkpointed run, they are the originalInds permuted through mol transfers */
+  if (!restartFromCheckpoint){
+    originalMoleculeIndices = new uint[mols.count];
+    permutedMoleculeIndices = new uint[mols.count];
+    uint molCounter = 0, b, k, kI, countByKind, molI;
+    for (b = 0; b < BOX_TOTAL; ++b) {
+      for (k = 0; k < mols.kindsCount; ++k) {
+        countByKind = NumKindInBox(k, b);
+        for (kI = 0; kI < countByKind; ++kI) {
+          molI = GetMolNum(kI, k, b);
+          originalMoleculeIndices[molCounter] = molI;
+          ++molCounter;
+        }
+      }
+    }
+    molCounter = 0;
+    for (b = 0; b < BOX_TOTAL; ++b) {
+      for (k = 0; k < mols.kindsCount; ++k) {
+        countByKind = NumKindInBox(k, b);
+        for (kI = 0; kI < countByKind; ++kI) {
+          molI = GetMolNum(kI, k, b);
+          permutedMoleculeIndices[molCounter] = molCounter;
+          ++molCounter;
+        }
+      }
+    }
+  }
 
 // allocate and set gpu variables
 #ifdef GOMC_CUDA
@@ -196,8 +222,8 @@ void MoleculeLookup::Shift(const uint index, const uint currentBox,
       newIndex = boxAndKindStart[section]++;
       std::swap(molLookup[oldIndex], molLookup[newIndex]);
       std::swap(oldIndex, newIndex);
-      /* For consistent molecule trajectory output on checkpointing */
-      std::swap(originalMoleculeIndices[oldIndex], originalMoleculeIndices[newIndex]);
+      if (!restartFromCheckpoint)
+      std::swap(permutedMoleculeIndices[oldIndex], permutedMoleculeIndices[newIndex]);
       --section;
     }
   } else {
@@ -205,8 +231,8 @@ void MoleculeLookup::Shift(const uint index, const uint currentBox,
       newIndex = --boxAndKindStart[++section];
       std::swap(molLookup[oldIndex], molLookup[newIndex]);
       std::swap(oldIndex, newIndex);
-      /* For consistent molecule trajectory output on checkpointing */
-      std::swap(originalMoleculeIndices[oldIndex], originalMoleculeIndices[newIndex]);
+      if (!restartFromCheckpoint)
+      std::swap(permutedMoleculeIndices[oldIndex], permutedMoleculeIndices[newIndex]);
     }
   }
 }

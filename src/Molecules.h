@@ -84,6 +84,12 @@ public:
     stop = start[m + 1];
   }
 
+  void GetOriginalRangeStartStop(uint & _start, uint & stop, const uint m) const
+  {
+    _start = originalStart[m];
+    stop = originalStart[m + 1];
+  }
+
   void GetRangeStartLength(uint & _start, uint & len, const uint m) const
   {
     _start = start[m];
@@ -99,12 +105,16 @@ public:
                    std::vector<std::string> &names,
                    Forcefield & forcefield);
 
-  void SortMoleculesBySegment(std::vector<std::string> & unorderedSegments);
 
   //private:
   //Kind index of each molecule and start in master particle array
   //Plus counts
   uint* start;
+  /* From checkpoint for consistent trajectories */
+  uint* originalStart;
+  uint* originalKIndex;
+
+  /* only used for output */
   uint count;
   uint* kIndex;
   uint kIndexCount;
