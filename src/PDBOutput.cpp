@@ -183,7 +183,7 @@ void PDBOutput::DoOutput(const ulong step)
 }
 
 //NEW_RESTART_CODE
-void PDBOutput::DoOutputRebuildRestart(const uint step)
+void PDBOutput::DoOutputRebuildRestart(const ulong step)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::PDB_RESTART_OUTPUT);
   for (uint b = 0; b < BOX_TOTAL; ++b) {
@@ -240,7 +240,7 @@ void PDBOutput::PrintCryst1(const uint b, Writer & out)
   out.file << outStr << std::endl;
 }
 
-void PDBOutput::PrintCrystRest(const uint b, const uint step, Writer & out)
+void PDBOutput::PrintCrystRest(const uint b, const ulong step, Writer & out)
 {
   using namespace pdb_entry::cryst1::field;
   using namespace pdb_entry;
@@ -363,7 +363,7 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
 // This function should print a remark for recalculating trajectory
 // The format is the following:
 // REMARK GOMC <frame number> <step number>
-void PDBOutput::PrintRemark(const uint b, const uint step, Writer & out)
+void PDBOutput::PrintRemark(const uint b, const ulong step, Writer & out)
 {
   using namespace pdb_entry::cryst1::field;
   using namespace pdb_entry;

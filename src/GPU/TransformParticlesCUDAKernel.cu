@@ -13,7 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define MIN_FORCE 1E-12
 #define MAX_FORCE 30
 
-__device__ inline double randomGPU(unsigned int counter, unsigned int step, unsigned int seed)
+__device__ inline double randomGPU(unsigned int counter, ulong step, ulong seed)
 {
   RNG::ctr_type c = {{}};
   RNG::ukey_type uk = {{}};
@@ -21,12 +21,12 @@ __device__ inline double randomGPU(unsigned int counter, unsigned int step, unsi
   uk[1] = seed;
   RNG::key_type k = uk;
   c[0] = counter;
-  RNG::ctr_type r = philox4x32(c, k);
-  return (double)r[0] / UINT_MAX;
+  RNG::ctr_type r = philox4x64(c, k);
+  return (double)r[0] / ULONG_MAX;
 }
 
-__device__ inline double randomGaussianGPU(unsigned int counter, unsigned int step,
-                                           unsigned int seed, double mean, double stdDev)
+__device__ inline double randomGaussianGPU(unsigned int counter, ulong step,
+                                           ulong seed, double mean, double stdDev)
 {
   RNG::ctr_type c = {{}};
   RNG::ukey_type uk = {{}};
@@ -34,9 +34,9 @@ __device__ inline double randomGaussianGPU(unsigned int counter, unsigned int st
   uk[1] = seed;
   RNG::key_type k = uk;
   c[0] = counter;
-  RNG::ctr_type r = philox4x32(c, k);
-  float2 normalf2 = r123::boxmuller(r[0], r[1]);
-  double shiftedVal = mean + (double)(normalf2.x) * stdDev;
+  RNG::ctr_type r = philox4x64(c, k);
+  double2 normal2 = r123::boxmuller(r[0], r[1]);
+  double shiftedVal = mean + normal2.x * stdDev;
   return  shiftedVal;
 }
 
@@ -130,8 +130,8 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                double *mForcex,
                                double *mForcey,
                                double *mForcez,
-                               unsigned int step,
-                               unsigned int seed,
+                               ulong step,
+                               ulong seed,
                                const std::vector<int> &particleMol,
                                int atomCount,
                                int molCount,
@@ -226,8 +226,8 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
                             double *mTorquex,
                             double *mTorquey,
                             double *mTorquez,
-                            unsigned int step,
-                            unsigned int seed,
+                            ulong step,
+                            ulong seed,
                             const std::vector<int> &particleMol,
                             int atomCount,
                             int molCount,
@@ -303,8 +303,8 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
     double *molForcex,
     double *molForcey,
     double *molForcez,
-    unsigned int step,
-    unsigned int seed,
+    ulong step,
+    ulong seed,
     double *gpu_x,
     double *gpu_y,
     double *gpu_z,
@@ -393,8 +393,8 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                                       double *molTorquex,
                                       double *molTorquey,
                                       double *molTorquez,
-                                      unsigned int step,
-                                      unsigned int seed,
+                                      ulong step,
+                                      ulong seed,
                                       double *gpu_x,
                                       double *gpu_y,
                                       double *gpu_z,
@@ -473,8 +473,8 @@ void BrownianMotionRotateParticlesGPU(
   const XYZ &boxAxes,
   const double BETA,
   const double r_max,
-  unsigned int step,
-  unsigned int seed,
+  ulong step,
+  ulong seed,
   const int box,
   bool isOrthogonal,
   int *kill)
@@ -604,8 +604,8 @@ __global__ void BrownianMotionRotateKernel(
   double3 halfAx,
   int atomCount,
   double r_max,
-  unsigned int step,
-  unsigned int seed,
+  ulong step,
+  ulong seed,
   double BETA,
   int *kill)
 {
@@ -732,8 +732,8 @@ void BrownianMotionTranslateParticlesGPU(
   const XYZ &boxAxes,
   const double BETA,
   const double t_max,
-  unsigned int step,
-  unsigned int seed,
+  ulong step,
+  ulong seed,
   const int box,
   bool isOrthogonal,
   int *kill)
@@ -879,8 +879,8 @@ __global__ void BrownianMotionTranslateKernel(
   double3 halfAx,
   int atomCount,
   double t_max,
-  unsigned int step,
-  unsigned int seed,
+  ulong step,
+  ulong seed,
   double BETA,
   int *kill)
 {

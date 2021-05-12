@@ -38,7 +38,7 @@ public:
   virtual uint Prep(const double subDraw, const double movPerc);
   virtual uint Transform();
   virtual void CalcEn();
-  virtual void Accept(const uint earlyReject, const uint step);
+  virtual void Accept(const uint earlyReject, const ulong step);
 
 protected:
 
@@ -352,7 +352,7 @@ inline double IntraMoleculeExchange2::GetCoeff() const
 }
 
 inline void IntraMoleculeExchange2::Accept(const uint rejectState,
-    const uint step)
+    const ulong step)
 {
   IntraMoleculeExchange1::Accept(rejectState, step);
 }

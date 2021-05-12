@@ -63,7 +63,7 @@ public:
   void Update(const uint move, const bool isAccepted,
               const uint box, const uint kind = 0);
 
-  void AdjustMoves(const uint step);
+  void AdjustMoves(const ulong step);
 
   void Adjust(const uint box, const uint move, const uint kind);
 

@@ -1,15 +1,15 @@
 #pragma once
 
 #include "Random123/philox.h"
-typedef r123::Philox4x32 RNG;
+typedef r123::Philox4x64 RNG;
 
 class Random123Wrapper
 {
 public:
   Random123Wrapper();
 
-  void SetStep(unsigned int step);
-  void SetRandomSeed(unsigned int seedValue);
+  void SetStep(ulong step);
+  void SetRandomSeed(ulong seedValue);
 
   double GetRandomNumber(unsigned int counter);
 

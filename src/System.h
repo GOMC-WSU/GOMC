@@ -45,7 +45,7 @@ public:
   void Init(Setup & setupData, ulong & startStep);
 
   //Runs move, picked at random
-  void ChooseAndRunMove(const uint step);
+  void ChooseAndRunMove(const ulong step);
 
   // Recalculate Trajectory
   void RecalculateTrajectory(Setup & set, uint frameNum);
@@ -119,7 +119,7 @@ public:
 
   //Procedure to run once move is picked... can also be called directly for
   //debugging...
-  void RunMove(uint majKind, double draw, const uint step);
+  void RunMove(uint majKind, double draw, const ulong step);
 
   ~System();
 
@@ -131,7 +131,7 @@ private:
   uint SetParams(const uint kind, const double draw);
   uint Transform(const uint kind);
   void CalcEn(const uint kind);
-  void Accept(const uint kind, const uint rejectState, const uint step);
+  void Accept(const uint kind, const uint rejectState, const ulong step);
 
   double moveTime[mv::MOVE_KINDS_TOTAL];
   MoveBase * moves[mv::MOVE_KINDS_TOTAL];

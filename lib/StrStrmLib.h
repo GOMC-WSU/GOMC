@@ -157,6 +157,11 @@ struct Converter {
     strm << i;
     return *this;
   }
+  Converter & operator<<(const ulong ul)
+  {
+    strm << ul;
+    return *this;
+  }
   Converter & operator<<(const uint ui)
   {
     strm << ui;
@@ -210,6 +215,14 @@ struct Converter {
     std::string temp;
     Width(field.LENGTH);
     *this << i;
+    *this >> temp;
+    str.replace(field.START, field.LENGTH, temp);
+  }
+  void Replace(std::string & str, const ulong ul, ConstField const& field)
+  {
+    std::string temp;
+    Width(field.LENGTH);
+    *this << ul;
     *this >> temp;
     str.replace(field.START, field.LENGTH, temp);
   }

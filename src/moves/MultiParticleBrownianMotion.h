@@ -35,7 +35,7 @@ public:
   virtual uint Prep(const double subDraw, const double movPerc);
   virtual void CalcEn();
   virtual uint Transform();
-  virtual void Accept(const uint rejectState, const uint step);
+  virtual void Accept(const uint rejectState, const ulong step);
   virtual void PrintAcceptKind();
   //used in CFCMC for initialization
   void PrepCFCMC(const uint box);
@@ -402,7 +402,7 @@ inline double MultiParticleBrownian::GetCoeff()
   return w_ratio;
 }
 
-inline void MultiParticleBrownian::Accept(const uint rejectState, const uint step)
+inline void MultiParticleBrownian::Accept(const uint rejectState, const ulong step)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::ACC_MULTIPARTICLE_BM);
   // Here we compare the values of reference and trial and decide whether to

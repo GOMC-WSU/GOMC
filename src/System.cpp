@@ -275,7 +275,7 @@ void System::RecalculateTrajectory(Setup &set, uint frameNum)
   potential = calcEnergy.SystemTotal();
 }
 
-void System::ChooseAndRunMove(const uint step)
+void System::ChooseAndRunMove(const ulong step)
 {
   r123wrapper.SetStep(step);
   double draw = 0;
@@ -292,7 +292,7 @@ void System::PickMove(uint & kind, double & draw)
                    mv::MOVE_KINDS_TOTAL);
 }
 
-void System::RunMove(uint majKind, double draw, const uint step)
+void System::RunMove(uint majKind, double draw, const ulong step)
 {
   //return now if move targets molecule and there's none in that box.
   uint rejectState = SetParams(majKind, draw);
@@ -325,7 +325,7 @@ void System::CalcEn(const uint kind)
   moves[kind]->CalcEn();
 }
 
-void System::Accept(const uint kind, const uint rejectState, const uint step)
+void System::Accept(const uint kind, const uint rejectState, const ulong step)
 {
   moves[kind]->Accept(rejectState, step);
 }

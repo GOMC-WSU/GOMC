@@ -23,7 +23,7 @@ public:
   virtual uint Prep(const double subDraw, const double movPerc);
   virtual uint Transform();
   virtual void CalcEn();
-  virtual void Accept(const uint earlyReject, const uint step);
+  virtual void Accept(const uint earlyReject, const ulong step);
   virtual void PrintAcceptKind();
 private:
   uint GetBoxAndMol(const double subDraw, const double movPerc);
@@ -124,7 +124,7 @@ inline void IntraSwap::CalcEn()
 }
 
 
-inline void IntraSwap::Accept(const uint rejectState, const uint step)
+inline void IntraSwap::Accept(const uint rejectState, const ulong step)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::ACC_INTRA_SWAP);
   bool result;

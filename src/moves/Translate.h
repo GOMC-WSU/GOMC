@@ -22,7 +22,7 @@ public:
   uint ReplaceRot(Rotate const& other);
   virtual uint Transform();
   virtual void CalcEn();
-  virtual void Accept(const uint rejectState, const uint step);
+  virtual void Accept(const uint rejectState, const ulong step);
   virtual void PrintAcceptKind();
 private:
   Intermolecular inter_LJ, inter_Real, recip;
@@ -83,7 +83,7 @@ inline void Translate::CalcEn()
   GOMC_EVENT_STOP(1, GomcProfileEvent::CALC_EN_DISPLACE);
 }
 
-inline void Translate::Accept(const uint rejectState, const uint step)
+inline void Translate::Accept(const uint rejectState, const ulong step)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::ACC_DISPLACE);
   bool res = false;

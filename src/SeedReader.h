@@ -18,7 +18,7 @@ struct SeedReader : Reader {
   }
 
   //Keep going until desired var hit.
-  inline Reader & GotoStep(const unsigned int step)
+  inline Reader & GotoStep(const ulong step)
   {
     while (!file.eof() && !RdLn().StrtComp()("STEP")(step).FinComp()) {}
     if (file.eof()) {

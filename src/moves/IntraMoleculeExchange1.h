@@ -88,7 +88,7 @@ public:
   virtual uint Prep(const double subDraw, const double movPerc);
   virtual uint Transform();
   virtual void CalcEn();
-  virtual void Accept(const uint earlyReject, const uint step);
+  virtual void Accept(const uint earlyReject, const ulong step);
   virtual void PrintAcceptKind();
   //This function carries out actions based on the internal acceptance state and
   //molecule kind
@@ -548,7 +548,7 @@ inline void IntraMoleculeExchange1::RecoverMol(const uint n, const bool typeA)
 }
 
 inline void IntraMoleculeExchange1::Accept(const uint rejectState,
-    const uint step)
+    const ulong step)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::ACC_INTRA_MEMC);
   bool result;

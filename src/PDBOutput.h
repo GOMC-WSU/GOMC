@@ -58,10 +58,10 @@ private:
   void PrintAtoms(const uint b, std::vector<uint> & mBox);
 
   //NEW_RESTART_CODE
-  void DoOutputRebuildRestart(const uint step);
+  void DoOutputRebuildRestart(const ulong step);
   void PrintAtomsRebuildRestart(const uint b);
-  void PrintCrystRest(const uint b, const uint step, Writer & out);
-  void PrintRemark(const uint b, const uint step, Writer & out);
+  void PrintCrystRest(const uint b, const ulong step, Writer & out);
+  void PrintRemark(const uint b, const ulong step, Writer & out);
   //NEW_RESTART_CODE
 
   void FormatAtom(std::string & line, const uint p, const uint m,
