@@ -57,13 +57,6 @@ void MoleculeLookup::Init(const Molecules& mols,
     indexVector[b].resize(numKinds);
   }
 
-  if (!restartFromCheckpoint){
-    originalMoleculeIndices = new uint[mols.count];
-    for (uint i = 0; i < mols.count; ++i){
-      originalMoleculeIndices[i] = i;
-    }
-  }
-
   int counter = 0;
   for(uint m = 0; m < mols.count; ++m) {
     uint box = atomData.box[mols.start[m]];
@@ -78,6 +71,9 @@ void MoleculeLookup::Init(const Molecules& mols,
       atomCharge[counter] = mk.AtomCharge(a);
       ++counter;
     }
+
+
+
     /* We don't currently support hybrid molecules - part fixed part flexible
       so we get a consensus based on the precendent of betas defined in this method */
     uint pStart = 0, pEnd = 0;
@@ -113,6 +109,11 @@ void MoleculeLookup::Init(const Molecules& mols,
                            indexVector[b][k].end(), progress);
     }
   }
+
+  //if (!restartFromCheckpoint){
+  //  originalMoleculeIndices = 
+  //}
+
   boxAndKindStart[numKinds * BOX_TOTAL] = mols.count;
 
 // allocate and set gpu variables

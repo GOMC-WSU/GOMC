@@ -337,7 +337,9 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
   //Loop through all molecules
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);   
-    mI = *m;
+    // If this isn't checkpoint restarted, then this is
+    // mI = *m;
+    mI = molLookupRef.originalMoleculeIndices[*m];
     molRef.GetRangeStartStop(pStart, pEnd, mI);
     ref = comCurrRef.Get(mI);
     for (p = pStart; p < pEnd; ++p) {
@@ -354,7 +356,9 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
   //Loop through all molecules
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);   
-    mI = *m;
+    // If this isn't checkpoint restarted, then this is
+    // mI = *m;
+    mI = molLookupRef.originalMoleculeIndices[*m];
     molRef.GetRangeStartStop(pStart, pEnd, mI);
     ref = comCurrRef.Get(mI);
     inThisBox = (molInBox[mI] == box);
