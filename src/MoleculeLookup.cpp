@@ -125,16 +125,14 @@ void MoleculeLookup::Init(const Molecules& mols,
         for (kI = 0; kI < countByKind; ++kI) {
           molI = GetMolNum(kI, k, b);
           originalMoleculeIndices[molCounter] = molI;
-          ++molCounter;
-        }
-      }
-    }
-    molCounter = 0;
-    for (b = 0; b < BOX_TOTAL; ++b) {
-      for (k = 0; k < mols.kindsCount; ++k) {
-        countByKind = NumKindInBox(k, b);
-        for (kI = 0; kI < countByKind; ++kI) {
-          molI = GetMolNum(kI, k, b);
+          /* This allows us to use input files that aren't of the form
+          box 0 kind 0 
+          box 0 kind 1
+          etc.
+          without an n^3 search operation.
+          Since checkpointed outputs are sorted in the above form,
+          we use origMolInds only when rest from checkpoint.
+          */
           permutedMoleculeIndices[molCounter] = molCounter;
           ++molCounter;
         }

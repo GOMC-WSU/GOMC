@@ -327,8 +327,6 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
                                   end = molLookupRef.BoxEnd(box);
     while (m != end) {
       mI = molLookupRef.originalMoleculeIndices[*m];
-      std::cout << *m << " " << mI << std::endl;
-
       //Loop through particles in mol.
       uint beta = molLookupRef.GetBeta(mI);
       molRef.GetOriginalRangeStartStop(pStart, pEnd, mI);
