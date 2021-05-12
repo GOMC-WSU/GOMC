@@ -49,9 +49,7 @@ TEST(ConsistentTrajectoryTest, CheckCheckpointVersusPSF) {
     typedef std::vector<uint>::const_iterator checkpointIterator;
     std::pair<segmentNameIterator, checkpointIterator> itPair(ms.molVars.moleculeSegmentNames.cbegin(), csp.originalMoleculeIndicesVec.cbegin());
     AlphaNum seg2Uint;
-    std::cout << *itPair.first << " " << seg2Uint.string2Uint(*itPair.first) << " " << *itPair.second << std::endl;
     for (; itPair.second != csp.originalMoleculeIndicesVec.cend(); ++itPair.first, ++itPair.second){
-        std::cout << *itPair.first << " " << seg2Uint.string2Uint(*itPair.first) << " " << *itPair.second << std::endl;
-        EXPECT_EQ(seg2Uint.string2Uint(*itPair.first) == *itPair.second, true);
+        EXPECT_EQ(*itPair.first, *itPair.second);
     }
 }
