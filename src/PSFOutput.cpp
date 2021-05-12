@@ -236,7 +236,7 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
       // If this isn't checkpoint restarted, then this is
       // mI = *m;
       mI = molLookRef.originalMoleculeIndices[*m];
-      thisKIndex = molecules->kIndex[mI];
+      thisKIndex = molecules->originalKIndex[mI];
       
       nAtoms = molKinds[thisKIndex].atoms.size();
 
@@ -283,7 +283,7 @@ void PSFOutput::PrintBonds(FILE* outfile) const
       // If this isn't checkpoint restarted, then this is
       // mI = *m;
       mI = molLookRef.originalMoleculeIndices[*m];
-      thisKIndex = molecules->kIndex[mI];
+      thisKIndex = molecules->originalKIndex[mI];
       const MolKind& thisKind = molKinds[thisKIndex];
       for(uint i = 0; i < thisKind.bonds.size(); ++i) {
         fprintf(outfile, "%8d%8d", thisKind.bonds[i].a0 + atomID,
@@ -311,7 +311,7 @@ void PSFOutput::PrintAngles(FILE* outfile) const
       // If this isn't checkpoint restarted, then this is
       // mI = *m;
       mI = molLookRef.originalMoleculeIndices[*m];
-      thisKIndex = molecules->kIndex[mI];
+      thisKIndex = molecules->originalKIndex[mI];
       const MolKind& thisKind = molKinds[thisKIndex];
       for(uint i = 0; i < thisKind.angles.size(); ++i) {
         fprintf(outfile, "%8d%8d%8d", thisKind.angles[i].a0 + atomID,
@@ -339,7 +339,7 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
         // If this isn't checkpoint restarted, then this is
       // mI = *m;
       mI = molLookRef.originalMoleculeIndices[*m];
-      thisKIndex = molecules->kIndex[mI];
+      thisKIndex = molecules->originalKIndex[mI];
       const MolKind& thisKind = molKinds[thisKIndex];
       for(uint i = 0; i < thisKind.dihedrals.size(); ++i) {
         fprintf(outfile, "%8d%8d%8d%8d", thisKind.dihedrals[i].a0 + atomID,
