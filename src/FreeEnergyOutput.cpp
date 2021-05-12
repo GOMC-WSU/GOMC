@@ -110,7 +110,7 @@ void FreeEnergyOutput::DoOutput(const ulong step)
 void FreeEnergyOutput::DoOutputRestart(const ulong step)
 {}
 
-void FreeEnergyOutput::PrintData(const uint b, const uint step)
+void FreeEnergyOutput::PrintData(const uint b, const ulong step)
 {
   outF[b] << std::setw(11) << std::left << step << " ";
   outF[b] << std::setw(25) << std::right << std::fixed << Etotal << " ";

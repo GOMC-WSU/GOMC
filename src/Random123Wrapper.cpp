@@ -8,11 +8,11 @@ Random123Wrapper::Random123Wrapper()
   uk = {{}};
 }
 
-void Random123Wrapper::SetStep(unsigned int step)
+void Random123Wrapper::SetStep(ulong step)
 {
   uk[0] = step;
 }
-void Random123Wrapper::SetRandomSeed(unsigned int seedValue)
+void Random123Wrapper::SetRandomSeed(ulong seedValue)
 {
   uk[1] = seedValue;
 }
@@ -23,7 +23,7 @@ double Random123Wrapper::GetRandomNumber(unsigned int counter)
   RNG::key_type k = uk;
   RNG::ctr_type r = rng(c, k);
   double r01 = r[0];
-  r01 /= UINT_MAX;
+  r01 /= ULONG_MAX;
   return r01;
 }
 
@@ -47,8 +47,8 @@ double Random123Wrapper::GetGaussian(unsigned int counter)
   c[0] = counter;
   RNG::key_type k = uk;
   RNG::ctr_type r = rng(c, k);
-  r123::float2 normalf2 = r123::boxmuller(r[0], r[1]);
-  return double(normalf2.x);
+  r123::double2 normal2 = r123::boxmuller(r[0], r[1]);
+  return normal2.x;
 }
 
 double Random123Wrapper::GetGaussianNumber(unsigned int counter, double mean, double stdDev)

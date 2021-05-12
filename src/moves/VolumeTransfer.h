@@ -24,7 +24,7 @@ public:
   virtual void CalcEn();
   virtual uint Transform();
   double GetCoeff() const;
-  virtual void Accept(const uint rejectState, const uint step);
+  virtual void Accept(const uint rejectState, const ulong step);
   virtual void PrintAcceptKind();
 private:
   //Note: This is only used for GEMC-NVT
@@ -232,7 +232,7 @@ inline double VolumeTransfer::GetCoeff() const
   return coeff;
 }
 
-inline void VolumeTransfer::Accept(const uint rejectState, const uint step)
+inline void VolumeTransfer::Accept(const uint rejectState, const ulong step)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::ACC_VOL_TRANSFER);
   double volTransCoeff = GetCoeff();

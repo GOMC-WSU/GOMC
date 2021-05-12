@@ -61,7 +61,7 @@ public:
   config_setup::TargetSwapCollection targetedSwapVal;
 #endif
 
-  bool IsEquil(const uint step)
+  bool IsEquil(const ulong step)
   {
     return step >= simEventFreq.tillEquil;
   }

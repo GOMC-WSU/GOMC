@@ -8,7 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifdef GOMC_CUDA
 #include <vector>
 #include "Random123/philox.h"
-typedef r123::Philox4x32 RNG;
+typedef r123::Philox4x64 RNG;
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -22,8 +22,8 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                double *mForcex,
                                double *mForcey,
                                double *mForcez,
-                               unsigned int step,
-                               unsigned int seed,
+                               ulong step,
+                               ulong seed,
                                const std::vector<int> &particleMol,
                                int atomCount,
                                int molCount,
@@ -42,8 +42,8 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
                             double *mTorquex,
                             double *mTorquey,
                             double *mTorquez,
-                            unsigned int step,
-                            unsigned int seed,
+                            ulong step,
+                            ulong seed,
                             const std::vector<int> &particleMol,
                             int atomCount,
                             int molCount,
@@ -60,8 +60,8 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
     double *molForcex,
     double *molForcey,
     double *molForcez,
-    unsigned int step,
-    unsigned int seed,
+    ulong step,
+    ulong seed,
     double *gpu_x,
     double *gpu_y,
     double *gpu_z,
@@ -87,8 +87,8 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                                       double *molTorquex,
                                       double *molTorquey,
                                       double *molTorquez,
-                                      unsigned int step,
-                                      unsigned int seed,
+                                      ulong step,
+                                      ulong seed,
                                       double *gpu_x,
                                       double *gpu_y,
                                       double *gpu_z,
@@ -117,8 +117,8 @@ void BrownianMotionRotateParticlesGPU(
   const XYZ &boxAxes,
   const double BETA,
   const double r_max,
-  unsigned int step,
-  unsigned int seed,
+  ulong step,
+  ulong seed,
   const int box,
   bool isOrthogonal,
   int *kill);
@@ -135,8 +135,8 @@ void BrownianMotionTranslateParticlesGPU(
   const XYZ &boxAxes,
   const double BETA,
   const double t_max,
-  unsigned int step,
-  unsigned int seed,
+  ulong step,
+  ulong seed,
   const int box,
   bool isOrthogonal,
   int *kill);
@@ -168,8 +168,8 @@ __global__ void BrownianMotionRotateKernel(
   double3 halfAx,
   int atomCount,
   double r_max,
-  unsigned int step,
-  unsigned int seed,
+  ulong step,
+  ulong seed,
   double BETA,
   int *kill);
 
@@ -203,8 +203,8 @@ __global__ void BrownianMotionTranslateKernel(
   double3 halfAx,
   int atomCount,
   double t_max,
-  unsigned int step,
-  unsigned int seed,
+  ulong step,
+  ulong seed,
   double BETA,
   int *kill);
 

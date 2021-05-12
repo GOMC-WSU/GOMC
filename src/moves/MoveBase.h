@@ -63,7 +63,7 @@ public:
   virtual void CalcEn() = 0;
 
   //This function carries out actions based on the internal acceptance state.
-  virtual void Accept(const uint rejectState, const uint step) = 0;
+  virtual void Accept(const uint rejectState, const ulong step) = 0;
 
   //This function carries out actions based on the internal acceptance state and
   //molecule kind

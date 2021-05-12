@@ -138,7 +138,7 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
   }
 }
 
-void MoveSettings::AdjustMoves(const uint step)
+void MoveSettings::AdjustMoves(const ulong step)
 {
   //Check whether we need to adjust this move's scaling.
   if ((step + 1) % perAdjust == 0) {
