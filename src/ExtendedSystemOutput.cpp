@@ -340,7 +340,7 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
     // If this isn't checkpoint restarted, then this is
     // mI = *m;
     mI = molLookupRef.originalMoleculeIndices[*m];
-    molRef.GetRangeStartStop(pStart, pEnd, mI);
+    molRef.GetOriginalRangeStartStop(pStart, pEnd, mI);
     ref = comCurrRef.Get(mI);
     for (p = pStart; p < pEnd; ++p) {
       coor = coordCurrRef.Get(p);
@@ -359,7 +359,7 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
     // If this isn't checkpoint restarted, then this is
     // mI = *m;
     mI = molLookupRef.originalMoleculeIndices[*m];
-    molRef.GetRangeStartStop(pStart, pEnd, mI);
+    molRef.GetOriginalRangeStartStop(pStart, pEnd, mI);
     ref = comCurrRef.Get(mI);
     inThisBox = (molInBox[mI] == box);
     for (p = pStart; p < pEnd; ++p) {
