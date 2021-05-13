@@ -191,7 +191,7 @@ uint GetConsensusMolBeta( const uint pStart,
   uint numKinds;
   /* For consistent trajectory ordering across checkpoints */
   bool restartFromCheckpoint;
-  uint * originalMoleculeIndices, * permutedMoleculeIndices;
+  uint * originalMoleculeIndices, * permutedMoleculeIndices, * constantReverseSort;
 
   std::vector <uint> fixedMolecule;
   std::vector <uint> canSwapKind; //Kinds that can move intra and inter box

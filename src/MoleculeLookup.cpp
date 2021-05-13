@@ -118,6 +118,8 @@ void MoleculeLookup::Init(const Molecules& mols,
   if (!restartFromCheckpoint){
     originalMoleculeIndices = new uint[mols.count];
     permutedMoleculeIndices = new uint[mols.count];
+    constantReverseSort = new uint[mols.count];
+
     uint molCounter = 0, b, k, kI, countByKind, molI;
     for (b = 0; b < BOX_TOTAL; ++b) {
       for (k = 0; k < mols.kindsCount; ++k) {
@@ -125,6 +127,8 @@ void MoleculeLookup::Init(const Molecules& mols,
         for (kI = 0; kI < countByKind; ++kI) {
           molI = GetMolNum(kI, k, b);
           originalMoleculeIndices[molCounter] = molI;
+          /* We eventually overwrite origMolI, but cRS stays untouched */
+          constantReverseSort[molCounter] = molI;
           /* This allows us to use input files that aren't of the form
           box 0 kind 0 
           box 0 kind 1
@@ -138,11 +142,6 @@ void MoleculeLookup::Init(const Molecules& mols,
         }
       }
     }
-  } else {
-        permutedMoleculeIndices = new uint[mols.count];
-
-    for (uint i = 0; i < molLookupCount; ++i)
-      permutedMoleculeIndices[i] = i;
   }
 
 // allocate and set gpu variables

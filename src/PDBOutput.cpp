@@ -101,29 +101,41 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
 
 void PDBOutput::InitPartVec()
 {
-  uint pStart = 0, pEnd = 0, molecule = 0, atomIndex = 0, mI = 0;
+  uint pStart = 0, pEnd = 0, dStart = 0, dEnd = 0, molecule = 0, atomIndex = 0, mI = 0;
   //Start particle numbering @ 1
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);
-    while (m != end) {
-      // If this isn't checkpoint restarted, then this is
-      // mI = *m;
-      mI = molLookupRef.originalMoleculeIndices[molLookupRef.permutedMoleculeIndices[*m]];
 
+    for (int i = 0; i < molLookupRef.molLookupCount; i++)
+      std::cout << molLookupRef.constantReverseSort[i] << " ";
+    std::cout<< std::endl;
+
+    for (int i = 0; i < molLookupRef.molLookupCount; i++)
+      std::cout << molLookupRef.originalMoleculeIndices[i] << " ";
+    std::cout<< std::endl;
+
+    for (int i = 0; i < molLookupRef.molLookupCount; i++)
+      std::cout << molLookupRef.permutedMoleculeIndices[i] << " ";
+    std::cout<< std::endl;
+
+
+    while (m != end) {
+      mI = molLookupRef.constantReverseSort[molLookupRef.originalMoleculeIndices[molLookupRef.constantReverseSort[*m]]];
+      molRef.GetRangeStartStop(dStart, dEnd, *m);
       molRef.GetOriginalRangeStartStop(pStart, pEnd, mI);
 
-      for (uint p = pStart; p < pEnd; ++p) {
+      for (uint p = pStart, d = dStart; p < pEnd; ++p, ++d) {
         // If you don't want to preserve resID's comment this out -> mol = mI
         molecule = mI;
         if (molRef.kinds[molRef.originalKIndex[mI]].isMultiResidue){
           FormatAtom(pStr[p], p, molecule + molRef.kinds[molRef.originalKIndex[mI]].intraMoleculeResIDs[p - pStart], 
-                    molRef.chain[p],
+                    molRef.chain[d],
                     molRef.kinds[molRef.originalKIndex[mI]].atomNames[p - pStart], 
                     molRef.kinds[molRef.originalKIndex[mI]].resNames[p - pStart]);
         } else {
           FormatAtom(pStr[p], p, molecule, 
-                    molRef.chain[p],
+                    molRef.chain[d],
                     molRef.kinds[molRef.originalKIndex[mI]].atomNames[p - pStart], 
                     molRef.kinds[molRef.originalKIndex[mI]].resNames[p - pStart]);
         }

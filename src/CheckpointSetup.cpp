@@ -222,6 +222,7 @@ void CheckpointSetup::readMoleculesData()
 void CheckpointSetup::readOriginalMoleculeIndices(){
  readVector1DUint(originalMoleculeIndicesVec);
  readVector1DUint(permutedMoleculeIndicesVec);
+ readVector1DUint(constantReverseSortVec);
 }
 
 void CheckpointSetup::openInputFile()
@@ -407,6 +408,8 @@ void CheckpointSetup::SetOriginalMoleculeIndices(MoleculeLookup & molLookupRef)
     molLookupRef.originalMoleculeIndices[this->originalMoleculeIndicesVec[molCounter]] = this->permutedMoleculeIndicesVec[molCounter];
     molLookupRef.permutedMoleculeIndices[molCounter] = molCounter;
   }
+  /* This array is for undoing the unsorted to box kind sort that happens on the first simulation */
+  molLookupRef.constantReverseSort = vect::transfer<uint>(this->constantReverseSortVec);
 }
 
 void

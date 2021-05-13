@@ -228,20 +228,9 @@ void CheckpointOutput::printMoleculeLookupData()
 
 /* Index magic. Don't touch */
 void CheckpointOutput::printSortedMoleculeIndices(){
-
-  uint b = 0, k = 0, kI = 0, countByKind = 0, newMolInd = 0; 
-  std::vector<uint> consistentMolInds(molLookupRef.molLookupCount);
-  for (b = 0; b < BOX_TOTAL; ++b) {
-    for (k = 0; k < molRef.kindsCount; ++k) {
-      countByKind = molLookupRef.NumKindInBox(k, b);
-      for (kI = 0; kI < countByKind; ++kI) {
-        consistentMolInds[newMolInd] = molLookupRef.originalMoleculeIndices[molLookupRef.permutedMoleculeIndices[newMolInd]];
-        ++newMolInd;
-      }
-    }
-  }
   printArray1DUint(molLookupRef.originalMoleculeIndices, molLookupRef.molLookupCount);
   printArray1DUint(molLookupRef.permutedMoleculeIndices, molLookupRef.molLookupCount);
+  printArray1DUint(molLookupRef.constantReverseSort, molLookupRef.molLookupCount);
 }
 
 void CheckpointOutput::printVector3DDouble(const std::vector< std::vector< std::vector<double> > > &data)
