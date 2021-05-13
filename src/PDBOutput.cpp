@@ -109,7 +109,7 @@ void PDBOutput::InitPartVec()
     while (m != end) {
       // If this isn't checkpoint restarted, then this is
       // mI = *m;
-      mI = molLookupRef.originalMoleculeIndices[*m];
+      mI = molLookupRef.originalMoleculeIndices[molLookupRef.permutedMoleculeIndices[*m]];
 
       molRef.GetOriginalRangeStartStop(pStart, pEnd, mI);
 

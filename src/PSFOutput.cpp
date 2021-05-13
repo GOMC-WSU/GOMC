@@ -242,11 +242,11 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
       //atom name, atom type, charge, mass, and an unused 0
 
       if(molKinds[thisKIndex].isMultiResidue){
-          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[molLookRef.originalMoleculeIndices[mol]].c_str(),
+          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[molLookRef.originalMoleculeIndices[molLookRef.permutedMoleculeIndices[mol]]].c_str(),
                   resID + molKinds[thisKIndex].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         } else {
-          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[molLookRef.originalMoleculeIndices[mol]].c_str(),
+          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[molLookRef.originalMoleculeIndices[molLookRef.permutedMoleculeIndices[mol]]].c_str(),
                   resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         }

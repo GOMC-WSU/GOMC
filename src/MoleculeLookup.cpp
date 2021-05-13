@@ -138,6 +138,11 @@ void MoleculeLookup::Init(const Molecules& mols,
         }
       }
     }
+  } else {
+        permutedMoleculeIndices = new uint[mols.count];
+
+    for (uint i = 0; i < molLookupCount; ++i)
+      permutedMoleculeIndices[i] = i;
   }
 
 // allocate and set gpu variables

@@ -226,6 +226,7 @@ void CheckpointOutput::printMoleculeLookupData()
   }
 }
 
+/* Index magic. Don't touch */
 void CheckpointOutput::printSortedMoleculeIndices(){
 
   uint b = 0, k = 0, kI = 0, countByKind = 0, newMolInd = 0; 
@@ -234,14 +235,13 @@ void CheckpointOutput::printSortedMoleculeIndices(){
     for (k = 0; k < molRef.kindsCount; ++k) {
       countByKind = molLookupRef.NumKindInBox(k, b);
       for (kI = 0; kI < countByKind; ++kI) {
-        consistentMolInds[newMolInd] = molLookupRef.restartFromCheckpoint ? 
-              molLookupRef.originalMoleculeIndices[newMolInd] :
-              molLookupRef.originalMoleculeIndices[molLookupRef.permutedMoleculeIndices[newMolInd]];
+        consistentMolInds[newMolInd] = molLookupRef.originalMoleculeIndices[molLookupRef.permutedMoleculeIndices[newMolInd]];
         ++newMolInd;
       }
     }
   }
-  printVector1DUint(consistentMolInds);
+  printArray1DUint(molLookupRef.originalMoleculeIndices, molLookupRef.molLookupCount);
+  printArray1DUint(molLookupRef.permutedMoleculeIndices, molLookupRef.molLookupCount);
 }
 
 void CheckpointOutput::printVector3DDouble(const std::vector< std::vector< std::vector<double> > > &data)
@@ -311,6 +311,19 @@ void CheckpointOutput::printVector1DUint(const std::vector< uint > &data)
     write_uint32_binary(data[i]);
   }
 }
+
+void CheckpointOutput::printArray1DUint(const uint * data, uint count)
+{
+  // print size of array
+  ulong size_x = count;
+  write_uint64_binary(size_x);
+
+  // print array itself
+  for(int i = 0; i < (int) size_x; i++) {
+    write_uint32_binary(data[i]);
+  }
+}
+
 
 void CheckpointOutput::printVector1DDouble(const std::vector< double > &data)
 {

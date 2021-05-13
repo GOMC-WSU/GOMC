@@ -221,6 +221,7 @@ void CheckpointSetup::readMoleculesData()
 
 void CheckpointSetup::readOriginalMoleculeIndices(){
  readVector1DUint(originalMoleculeIndicesVec);
+ readVector1DUint(permutedMoleculeIndicesVec);
 }
 
 void CheckpointSetup::openInputFile()
@@ -390,10 +391,22 @@ void CheckpointSetup::SetMolecules(Molecules& mols)
   }
 }
 
+/* Index magic. Don't touch */
 void CheckpointSetup::SetOriginalMoleculeIndices(MoleculeLookup & molLookupRef)
 {
-  /* Original Mol Indices are for constant trajectory output */
-  molLookupRef.originalMoleculeIndices = vect::transfer<uint>(this->originalMoleculeIndicesVec);
+  /* Original Mol Indices are for constant trajectory output from start to finish of a single run*/
+  molLookupRef.originalMoleculeIndices = new uint[molLookupRef.molLookupCount];
+  /* Permuted Mol Indices are for following single molecules as molLookup permutes the indices and continuing the next run*/
+  molLookupRef.permutedMoleculeIndices = new uint[molLookupRef.molLookupCount];
+  for (uint molCounter = 0; molCounter < molLookupRef.molLookupCount; ++molCounter){
+    /* Since the original run sorted the molecules by box and kind
+    GetMolNum would just return 0 ... n , molLookupRef.GetMolNum(kI, k, b);
+    */
+    // This line reverses the original sort by indexing orig into orig, and sets the permuted from
+    // the previous run as the new original.
+    molLookupRef.originalMoleculeIndices[this->originalMoleculeIndicesVec[molCounter]] = this->permutedMoleculeIndicesVec[molCounter];
+    molLookupRef.permutedMoleculeIndices[molCounter] = molCounter;
+  }
 }
 
 void

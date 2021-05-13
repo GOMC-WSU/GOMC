@@ -68,6 +68,8 @@ private:
   void printVector2DUint(const std::vector< std::vector< uint > > &data);
   void printVector1DDouble(const std::vector< double > &data);
   void printVector1DUint(const std::vector< uint > &data);
+  void printArray1DUint(const uint * data, uint count);
+
   void write_double_binary(double data);
   void write_uint8_binary(int8_t data);
   void write_uint32_binary(uint32_t data);
