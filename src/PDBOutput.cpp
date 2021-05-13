@@ -121,7 +121,11 @@ void PDBOutput::InitPartVec()
 
 
     while (m != end) {
-      mI = molLookupRef.constantReverseSort[molLookupRef.originalMoleculeIndices[molLookupRef.constantReverseSort[*m]]];
+      if(molLookupRef.restartFromCheckpoint){
+        mI = molLookupRef.constantReverseSort[molLookupRef.originalMoleculeIndices[molLookupRef.constantReverseSort[*m]]];
+      } else {
+        mI = *m;
+      } 
       molRef.GetRangeStartStop(dStart, dEnd, *m);
       molRef.GetOriginalRangeStartStop(pStart, pEnd, mI);
 
