@@ -37,10 +37,10 @@ public:
     coordCurrRef(sys.coordinates), comCurrRef(sys.com),
     calcEnRef(sys.calcEnergy), atomForceRef(sys.atomForceRef),
     molForceRef(sys.molForceRef), atomForceRecRef(sys.atomForceRecRef),
-    molForceRecRef(sys.molForceRecRef), prng(sys.prng),
+    molForceRecRef(sys.molForceRecRef), velocity(sys.vel), prng(sys.prng),
     boxDimRef(sys.boxDimRef), molRef(statV.mol),
     BETA(statV.forcefield.beta), ewald(statV.forcefield.ewald),
-    cellList(sys.cellList), velocity(sys.vel)
+    cellList(sys.cellList)
   {
     atomForceNew.Init(sys.atomForceRef.Count());
     molForceNew.Init(sys.molForceRef.Count());

@@ -25,8 +25,8 @@ class Velocity : public XYZArray
 {
 public:
     Velocity(Forcefield &ff, MoleculeLookup & molLook, Molecules const& mol, PRNG & prng) :
-    prngRef(prng), molRef(mol), molLookRef(molLook), temperature(ff.T_in_K),
-    hasVelocity(false) {}
+    prngRef(prng), molRef(mol), molLookRef(molLook), hasVelocity(false),
+    temperature(ff.T_in_K) {}
 
     void Init(pdb_setup::Atoms const& atoms, config_setup::Input const& inputFile) {
         if(inputFile.restart.restartFromBinaryVelFile){
@@ -56,7 +56,7 @@ public:
         }
 
         molRef.GetRangeStartStop(pStart, pEnd, mol);
-        for (int p = pStart; p < pEnd; ++p) {
+        for (uint p = pStart; p < pEnd; ++p) {
             mass = molRef.GetKind(mol).atomMass[p - pStart];
             this->Set(p, Random_velocity(mass));
         }
@@ -75,7 +75,7 @@ public:
         // loop thorugh all molecule in box
         while (m != end) {
             molRef.GetRangeStartStop(pStart, pEnd, *m);
-            for (p = pStart; p < pEnd; ++p) {
+            for (uint p = pStart; p < pEnd; ++p) {
                 mass = molRef.GetKind(*m).atomMass[p - pStart];
                 this->Set(p, Random_velocity(mass));
             }
@@ -106,6 +106,7 @@ private:
     //  "Handbook of Mathematical Functions", pg 952.
     XYZ Random_velocity(const double &mass) {
         XYZ vel;
+        int i;
         if(mass <= 0.0) {
             kbToverM = 0.0;
         }else {
@@ -143,15 +144,13 @@ private:
     Molecules const& molRef;
     MoleculeLookup & molLookRef;
     uint pStart, pEnd;  // start and end of atom index
-    int p, i;           // Iterator
-    double randnum;	    // Random number from -6.0 to 6.0
-    double kbToverM;	// sqrt(Kb*Temp/Mass)
+    double randnum;     // Random number from -6.0 to 6.0
+    double kbToverM;    // sqrt(Kb*Temp/Mass)
     double mass;        // Mass of particle
 
     bool hasVelocity;
     bool updateBoxVelocity[BOX_TOTAL];     // update all atom's velocities
     double & temperature;                  // system temperature
-
 };
 
 

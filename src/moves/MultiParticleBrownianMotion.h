@@ -93,8 +93,8 @@ inline MultiParticleBrownian::MultiParticleBrownian(System &sys, StaticVals cons
   
   // Check to see if we have only monoatomic molecule or not
   allTranslate = false;
-  int numAtomsPerKind = 0;
-  for (int k = 0; k < molLookup.GetNumKind(); ++k) {
+  uint numAtomsPerKind = 0;
+  for (uint k = 0; k < molLookup.GetNumKind(); ++k) {
     numAtomsPerKind += molRef.NumAtoms(k);
   }
   // If we have only one atom in each kind, it means all molecule
@@ -377,7 +377,7 @@ inline double MultiParticleBrownian::GetCoeff()
 #ifdef _OPENMP
   #pragma omp parallel for default(none) shared(moleculeIndex, r_max, t_max, r_max4, t_max4) reduction(+:w_ratio)
 #endif
-    for(int m = 0; m < moleculeIndex.size(); m++) {
+    for(uint m = 0; m < moleculeIndex.size(); m++) {
       uint molNumber = moleculeIndex[m];
       // rotate, bt_ = BETA * force * maxForce
       XYZ bt_old = molTorqueRef.Get(molNumber) * BETA * r_max;
@@ -388,7 +388,7 @@ inline double MultiParticleBrownian::GetCoeff()
 #ifdef _OPENMP
   #pragma omp parallel for default(none) shared(moleculeIndex, r_max, t_max, r_max4, t_max4) reduction(+:w_ratio)
 #endif
-    for(int m = 0; m < moleculeIndex.size(); m++) {
+    for(uint m = 0; m < moleculeIndex.size(); m++) {
       uint molNumber = moleculeIndex[m];
       // bf_ = BETA * torque * maxTorque
       XYZ bf_old = (molForceRef.Get(molNumber) + molForceRecRef.Get(molNumber)) *
@@ -456,7 +456,6 @@ inline XYZ MultiParticleBrownian::CalcRandomTransform(XYZ const &lb, double cons
 
 inline void MultiParticleBrownian::CalculateTrialDistRot()
 {
-  uint molIndex;
   double r_max = moveSetRef.GetRMAX(bPick);
   double t_max = moveSetRef.GetTMAX(bPick);
   if(moveType == mp::MPROTATE) { // rotate
@@ -466,7 +465,7 @@ inline void MultiParticleBrownian::CalculateTrialDistRot()
 #ifdef _OPENMP
     #pragma omp parallel for default(none) shared(moleculeIndex, r_max, x, y, z)
 #endif
-    for(int m = 0; m < moleculeIndex.size(); m++) {
+    for(uint m = 0; m < moleculeIndex.size(); m++) {
       uint molIndex = moleculeIndex[m];
       XYZ bt = molTorqueRef.Get(molIndex) * BETA;
       XYZ val = CalcRandomTransform(bt, r_max, molIndex);
@@ -482,7 +481,7 @@ inline void MultiParticleBrownian::CalculateTrialDistRot()
 #ifdef _OPENMP
     #pragma omp parallel for default(none) shared(moleculeIndex, t_max, x, y, z)
 #endif
-    for(int m = 0; m < moleculeIndex.size(); m++) {
+    for(int m = 0; m < (int) moleculeIndex.size(); m++) {
       uint molIndex = moleculeIndex[m];
       XYZ bf = (molForceRef.Get(molIndex) + molForceRecRef.Get(molIndex)) * BETA;
       XYZ val = CalcRandomTransform(bf, t_max, molIndex);

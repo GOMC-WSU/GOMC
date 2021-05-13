@@ -17,8 +17,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 ExtendedSystemOutput::ExtendedSystemOutput(System& sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
-  boxDimRef(sys.boxDimRef), molRef(statV.mol), velCurrRef(sys.vel),
-  coordCurrRef(sys.coordinates), comCurrRef(sys.com)
+  boxDimRef(sys.boxDimRef), molRef(statV.mol), coordCurrRef(sys.coordinates),
+  velCurrRef(sys.vel), comCurrRef(sys.com)
 {
   x = NULL;
   y = NULL;

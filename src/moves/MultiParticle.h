@@ -94,8 +94,8 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
 
   // Check to see if we have only monoatomic molecule or not
   allTranslate = false;
-  int numAtomsPerKind = 0;
-  for (int k = 0; k < molLookup.GetNumKind(); ++k) {
+  uint numAtomsPerKind = 0;
+  for (uint k = 0; k < molLookup.GetNumKind(); ++k) {
     numAtomsPerKind += molRef.NumAtoms(k);
   }
   // If we have only one atom in each kind, it means all molecule
