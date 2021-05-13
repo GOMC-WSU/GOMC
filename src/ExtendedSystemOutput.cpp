@@ -329,7 +329,7 @@ void ExtendedSystemOutput::Write_binary_file(char *fname, int n, XYZ *vec)
 
 void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int box)
 {
-  uint p, pStart = 0, pEnd = 0, atomIndex = 0, mI = 0, pI = 0;
+  uint p, d, placementStart, placementEnd, dataStart, dataEnd, trajectoryI, dataI;
   int numMolecules = molRef.count;
   XYZ ref, coor;
   for (uint b = 0; b < BOX_TOTAL; ++b) {
@@ -337,18 +337,21 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
   //Loop through all molecules
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);   
-    // If this isn't checkpoint restarted, then this is
-    // mI = *m;
-    mI = molLookupRef.originalMoleculeIndices[*m];
-    molRef.GetOriginalRangeStartStop(pStart, pEnd, mI);
-    ref = comCurrRef.Get(mI);
-    for (p = pStart; p < pEnd; ++p) {
-      coor = coordCurrRef.Get(p);
+    if(molLookupRef.restartFromCheckpoint){
+      trajectoryI = molLookupRef.constantReverseSort[molLookupRef.originalMoleculeIndices[molLookupRef.constantReverseSort[*m]]];
+    } else {
+      trajectoryI = *m;
+    }       
+    dataI = *m;    
+    molRef.GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
+    molRef.GetRangeStartStop(dataStart, dataEnd, dataI);    
+    ref = comCurrRef.Get(dataI);
+    for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
+      coor = coordCurrRef.Get(d);
       boxDimRef.UnwrapPBC(coor, box, ref);
       x[p] = coor.x;
       y[p] = coor.y;
       z[p] = coor.z;
-      ++atomIndex;
     }
   }
 #else
@@ -356,15 +359,17 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
   //Loop through all molecules
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);   
-    // If this isn't checkpoint restarted, then this is
-    // mI = *m;
-    mI = molLookupRef.originalMoleculeIndices[*m];
-    molRef.GetOriginalRangeStartStop(pStart, pEnd, mI);
-    ref = comCurrRef.Get(mI);
-    inThisBox = (molInBox[mI] == box);
-    for (p = pStart; p < pEnd; ++p) {
+    if(molLookupRef.restartFromCheckpoint){
+      trajectoryI = molLookupRef.constantReverseSort[molLookupRef.originalMoleculeIndices[molLookupRef.constantReverseSort[*m]]];
+    } else {
+      trajectoryI = *m;
+    }       
+    dataI = *m;    
+    ref = comCurrRef.Get(dataI);
+    inThisBox = (molInBox[dataI] == box);
+    for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
       if (inThisBox) {
-        coor = coordCurrRef.Get(p);
+        coor = coordCurrRef.Get(d);
         boxDimRef.UnwrapPBC(coor, box, ref);
       } else {
         coor.Reset();
@@ -372,7 +377,6 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
       x[p] = coor.x;
       y[p] = coor.y;
       z[p] = coor.z;
-      ++atomIndex;
     }
   }
 #endif

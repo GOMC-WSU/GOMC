@@ -327,7 +327,7 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
   using namespace pdb_entry;
   bool inThisBox = false;
 
-  uint placementStart = 0, placementEnd = 0, dataStart = 0, dataEnd = 0, trajectoryI = 0, dataI = 0;
+  uint p, d, placementStart, placementEnd, dataStart, dataEnd, trajectoryI, dataI;
   //Start particle numbering @ 1
   for (uint box = 0; box < BOX_TOTAL; ++box) {
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(box),
@@ -345,7 +345,7 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
       molRef.GetRangeStartStop(dataStart, dataEnd, dataI);
       XYZ ref = comCurrRef.Get(dataI);
       inThisBox = (mBox[dataI] == b);
-      for (uint p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
+      for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
         XYZ coor;
         if (inThisBox) {
           coor = coordCurrRef.Get(d);
