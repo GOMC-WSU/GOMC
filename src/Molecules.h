@@ -120,6 +120,7 @@ public:
   uint kIndexCount;
   uint* countByKind;
   char* chain;
+  double* beta;
 
 
   MoleculeKind * kinds;
