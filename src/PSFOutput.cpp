@@ -229,16 +229,12 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
   uint atomID = 1;
   uint resID = 1;
   uint thisKIndex = 0, nAtoms = 0, mI = 0;
-  uint pStart = 0, pEnd = 0, segI;
+  uint pStart = 0, pEnd = 0;
   //Start particle numbering @ 1
   for(uint mol = 0; mol < molecules->count; ++mol) { 
     // If this isn't checkpoint restarted, then this is
-    thisKIndex = molecules->originalKIndex[mol];
-    nAtoms = molKinds[thisKIndex].atoms.size();
-
-
-      segI = mol;
-    
+    thisKIndex = molecules->kIndex[mol];
+    nAtoms = molKinds[thisKIndex].atoms.size();    
 
     for(uint at = 0; at < nAtoms; ++at) {
       const Atom* thisAtom = &molKinds[thisKIndex].atoms[at];
@@ -246,11 +242,11 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
       //atom name, atom type, charge, mass, and an unused 0
 
       if(molKinds[thisKIndex].isMultiResidue){
-          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[segI].c_str(),
+          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[mol].c_str(),
                   resID + molKinds[thisKIndex].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         } else {
-          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[segI].c_str(),
+          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[mol].c_str(),
                   resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         }
@@ -280,7 +276,7 @@ void PSFOutput::PrintBonds(FILE* outfile) const
   uint thisKIndex = 0, mI = 0;
   for(uint mol = 0; mol < molecules->count; ++mol) {
     // If this isn't checkpoint restarted, then this is
-    thisKIndex = molecules->originalKIndex[mol];
+    thisKIndex = molecules->kIndex[mol];
     const MolKind& thisKind = molKinds[thisKIndex];
     for(uint i = 0; i < thisKind.bonds.size(); ++i) {
       fprintf(outfile, "%8d%8d", thisKind.bonds[i].a0 + atomID,
@@ -306,7 +302,7 @@ void PSFOutput::PrintAngles(FILE* outfile) const
   for(uint mol = 0; mol < molecules->count; ++mol) {
     // If this isn't checkpoint restarted, then this is
     // mI = *m;
-    thisKIndex = molecules->originalKIndex[mol];
+    thisKIndex = molecules->kIndex[mol];
     const MolKind& thisKind = molKinds[thisKIndex];
     for(uint i = 0; i < thisKind.angles.size(); ++i) {
       fprintf(outfile, "%8d%8d%8d", thisKind.angles[i].a0 + atomID,
@@ -330,7 +326,7 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
   uint lineEntry = 0;
   uint thisKIndex = 0, mI = 0;
   for(uint mol = 0; mol < molecules->count; ++mol) {
-    thisKIndex = molecules->originalKIndex[mol];
+    thisKIndex = molecules->kIndex[mol];
     const MolKind& thisKind = molKinds[thisKIndex];
     for(uint i = 0; i < thisKind.dihedrals.size(); ++i) {
       fprintf(outfile, "%8d%8d%8d%8d", thisKind.dihedrals[i].a0 + atomID,
