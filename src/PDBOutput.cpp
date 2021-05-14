@@ -107,26 +107,12 @@ void PDBOutput::InitPartVec()
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);
 
-  while (m != end) {
-  if(molLookupRef.restartFromCheckpoint){
-    mI = molLookupRef.originalMoleculeIndices[*m];
-  } else {
-    mI = *m;
-  } 
-
-  for (int i = 0; i < molLookupRef.molLookupCount; i++){
-    std::cout << molLookupRef.originalMoleculeIndices[i] << " ";
-  }
-  std::cout << std::endl;
-  for (int i = 0; i < molLookupRef.molLookupCount; i++){
-    std::cout << molLookupRef.permutedMoleculeIndices[i] << " ";
-  }
-    std::cout << std::endl;
-
-  for (int i = 0; i < molLookupRef.molLookupCount; i++){
-    std::cout << molLookupRef.constantReverseSort[i] << " ";
-  }
-  std::cout << std::endl;
+    while (m != end) {
+      if(molLookupRef.restartFromCheckpoint){
+        mI = molLookupRef.originalMoleculeIndices[*m];
+      } else {
+        mI = *m;
+      } 
 
       /* If we are on an original run, placement and data are equal.
       If we a checkpoint restarting they may differ
