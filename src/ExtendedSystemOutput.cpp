@@ -338,7 +338,7 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);   
     if(molLookupRef.restartFromCheckpoint){
-      trajectoryI = molLookupRef.constantReverseSort[molLookupRef.originalMoleculeIndices[molLookupRef.constantReverseSort[*m]]];
+      trajectoryI = molLookupRef.originalMoleculeIndices[*m];
     } else {
       trajectoryI = *m;
     }       
@@ -360,7 +360,7 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);   
     if(molLookupRef.restartFromCheckpoint){
-      trajectoryI = molLookupRef.constantReverseSort[molLookupRef.originalMoleculeIndices[molLookupRef.constantReverseSort[*m]]];
+      trajectoryI = molLookupRef.originalMoleculeIndices[*m];
     } else {
       trajectoryI = *m;
     }       

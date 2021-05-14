@@ -137,16 +137,16 @@ void PDBOutput::InitPartVec()
       for (uint p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
         // If you don't want to preserve resID's comment this out -> mol = mI
         molecule = mI;
-        if (molRef.kinds[molRef.originalKIndex[mI]].isMultiResidue){
-          FormatAtom(pStr[p], p, molecule + molRef.kinds[molRef.originalKIndex[mI]].intraMoleculeResIDs[p - placementStart], 
+        if (molRef.kinds[molRef.originalKIndex[*m]].isMultiResidue){
+          FormatAtom(pStr[p], p, molecule + molRef.kinds[molRef.originalKIndex[*m]].intraMoleculeResIDs[p - placementStart], 
                     molRef.chain[d],
-                    molRef.kinds[molRef.originalKIndex[mI]].atomNames[p - placementStart], 
-                    molRef.kinds[molRef.originalKIndex[mI]].resNames[p - placementStart]);
+                    molRef.kinds[molRef.originalKIndex[*m]].atomNames[p - placementStart], 
+                    molRef.kinds[molRef.originalKIndex[*m]].resNames[p - placementStart]);
         } else {
           FormatAtom(pStr[p], p, molecule, 
                     molRef.chain[d],
-                    molRef.kinds[molRef.originalKIndex[mI]].atomNames[p - placementStart], 
-                    molRef.kinds[molRef.originalKIndex[mI]].resNames[p - placementStart]);
+                    molRef.kinds[molRef.originalKIndex[*m]].atomNames[p - placementStart], 
+                    molRef.kinds[molRef.originalKIndex[*m]].resNames[p - placementStart]);
         }
         ++atomIndex;
       }
@@ -348,7 +348,7 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
                                   end = molLookupRef.BoxEnd(box);
     while (m != end) {
       if(molLookupRef.restartFromCheckpoint){
-        trajectoryI = molLookupRef.constantReverseSort[molLookupRef.originalMoleculeIndices[molLookupRef.constantReverseSort[*m]]];
+        trajectoryI = molLookupRef.originalMoleculeIndices[*m];
       } else {
         trajectoryI = *m;
       }       
