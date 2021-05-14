@@ -46,7 +46,7 @@ public:
   virtual void Output(const ulong step) final
   {
     /* merged psf only prints on first step */
-    if ((!enableOut && !enableRestOut && !forceOutput) || (onlyPrintOnFirstStep && step != 0)) {
+    if ((!enableOut && !enableRestOut && !forceOutput)) {
       return;
     } else {
       Sample(step);
@@ -54,11 +54,7 @@ public:
 
     /* We will output either when the step number is every stepsPerOut
        Or recalculate trajectory is enabled (forceOutput) */
-    if ((enableOut && ((step + 1) % stepsPerOut == 0)) || forceOutput) {
-    /*
-    I want to always generate a merged psf file, even on recalcTraj where startStep != 0
-    //if ((onlyPrintOnFirstStep && step == 0) || (enableOut && ((step + 1) % stepsPerOut == 0)) || forceOutput) {
-    */
+    if ((onlyPrintOnFirstStep && step == 1) || (enableOut && ((step + 1) % stepsPerOut == 0)) || forceOutput) {
       DoOutput(step);
       firstPrint = false;
     }
