@@ -121,11 +121,6 @@ void PDBOutput::InitPartVec()
   for (int i = 0; i < molLookupRef.molLookupCount; i++){
     std::cout << molLookupRef.permutedMoleculeIndices[i] << " ";
   }
-    std::cout << std::endl;
-
-  for (int i = 0; i < molLookupRef.molLookupCount; i++){
-    std::cout << molLookupRef.constantReverseSort[i] << " ";
-  }
   std::cout << std::endl;
 
       /* If we are on an original run, placement and data are equal.
@@ -137,16 +132,16 @@ void PDBOutput::InitPartVec()
       for (uint p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
         // If you don't want to preserve resID's comment this out -> mol = mI
         molecule = mI;
-        if (molRef.kinds[molRef.originalKIndex[*m]].isMultiResidue){
-          FormatAtom(pStr[p], p, molecule + molRef.kinds[molRef.originalKIndex[*m]].intraMoleculeResIDs[p - placementStart], 
+        if (molRef.kinds[molRef.kIndex[*m]].isMultiResidue){
+          FormatAtom(pStr[p], p, molecule + molRef.kinds[molRef.kIndex[*m]].intraMoleculeResIDs[p - placementStart], 
                     molRef.chain[d],
-                    molRef.kinds[molRef.originalKIndex[*m]].atomNames[p - placementStart], 
-                    molRef.kinds[molRef.originalKIndex[*m]].resNames[p - placementStart]);
+                    molRef.kinds[molRef.kIndex[*m]].atomNames[p - placementStart], 
+                    molRef.kinds[molRef.kIndex[*m]].resNames[p - placementStart]);
         } else {
           FormatAtom(pStr[p], p, molecule, 
                     molRef.chain[d],
-                    molRef.kinds[molRef.originalKIndex[*m]].atomNames[p - placementStart], 
-                    molRef.kinds[molRef.originalKIndex[*m]].resNames[p - placementStart]);
+                    molRef.kinds[molRef.kIndex[*m]].atomNames[p - placementStart], 
+                    molRef.kinds[molRef.kIndex[*m]].resNames[p - placementStart]);
         }
         ++atomIndex;
       }

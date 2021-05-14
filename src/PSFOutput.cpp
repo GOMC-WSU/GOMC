@@ -236,11 +236,9 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
     thisKIndex = molecules->originalKIndex[mol];
     nAtoms = molKinds[thisKIndex].atoms.size();
 
-    if(molLookRef.restartFromCheckpoint){
-      segI = molLookRef.constantReverseSort[molLookRef.originalMoleculeIndices[molLookRef.originalMoleculeIndices[molLookRef.constantReverseSort[mol]]]];
-    } else {
+
       segI = mol;
-    } 
+    
 
     for(uint at = 0; at < nAtoms; ++at) {
       const Atom* thisAtom = &molKinds[thisKIndex].atoms[at];
