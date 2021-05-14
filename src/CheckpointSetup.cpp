@@ -221,8 +221,6 @@ void CheckpointSetup::readMoleculesData()
 
 void CheckpointSetup::readOriginalMoleculeIndices(){
  readVector1DUint(originalMoleculeIndicesVec);
- readVector1DUint(permutedMoleculeIndicesVec);
- readVector1DUint(constantReverseSortVec);
 }
 
 void CheckpointSetup::openInputFile()
@@ -382,6 +380,8 @@ void CheckpointSetup::SetMoveSettings(MoveSettings & moveSettings)
   moveSettings.mp_r_max = this->mp_r_maxVec;
 }
 
+/* These arrays are neccessary for out of order initialization of the trajectory files.
+   These allow for eventual parallelization of filling the trajectory arrays if we so desire */ 
 void CheckpointSetup::SetMolecules(Molecules& mols)
 {
   for(int i = 0; i < (int)this->molecules_originalStartVec.size(); i++) {
@@ -398,9 +398,7 @@ void CheckpointSetup::SetOriginalMoleculeIndices(MoleculeLookup & molLookupRef)
   /* Original Mol Indices are for constant trajectory output from start to finish of a single run*/
   molLookupRef.originalMoleculeIndices = vect::transfer<uint>(this->originalMoleculeIndicesVec);
   /* Permuted Mol Indices are for following single molecules as molLookup permutes the indices and continuing the next run*/
-  molLookupRef.permutedMoleculeIndices = vect::transfer<uint>(this->permutedMoleculeIndicesVec);
-  /* This array is for undoing the unsorted to box kind sort that happens on the first simulation */
-  molLookupRef.constantReverseSort = vect::transfer<uint>(this->constantReverseSortVec);
+  molLookupRef.permutedMoleculeIndices = vect::transfer<uint>(this->originalMoleculeIndicesVec);
 }
 
 void

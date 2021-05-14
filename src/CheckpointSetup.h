@@ -48,7 +48,6 @@ public:
 
   // molecules data, for GTest I need this public
   // Will add GTest macros around this when I merge PTTesters Branch
-  std::vector< uint > constantReverseSortVec;
   std::vector< uint > originalMoleculeIndicesVec;
   std::vector< uint > permutedMoleculeIndicesVec; 
   std::vector< uint > molecules_originalStartVec, molecules_originalKIndexVec;

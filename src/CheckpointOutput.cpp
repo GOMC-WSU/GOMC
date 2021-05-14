@@ -225,12 +225,20 @@ void CheckpointOutput::printMoleculeLookupData()
     write_uint32_binary(molLookupRef.fixedMolecule[i]);
   }
 }
+
 /* After the first run, the molecules are sorted, so we need to use the same sorting process
-   seen below, to reinitialize the originalMolInds every checkpoint */
+   seen below, to reinitialize the originalMolInds every checkpoint.
+   
+   After the first restart from checkpoint, the molecules have been sorted in the output
+   So we use GetSortedMolNum 
+   
+   This indexing allows linear time sorting of the molecules.  It took much playing with,
+   so modify with extreme care.
+*/
 void CheckpointOutput::printSortedMoleculeIndices(){
+  uint molCounter = 0, b, k, kI, countByKind, molI;
+  std::vector<uint> originalMoleculeIndicesVec(molLookupRef.molLookupCount);
   if (!molLookupRef.restartFromCheckpoint){
-    std::vector<uint> originalMoleculeIndicesVec(molLookupRef.molLookupCount);
-    uint molCounter = 0, b, k, kI, countByKind, molI;
     for (b = 0; b < BOX_TOTAL; ++b) {
       for (k = 0; k < molLookupRef.numKinds; ++k) {
         countByKind = molLookupRef.NumKindInBox(k, b);
@@ -241,15 +249,7 @@ void CheckpointOutput::printSortedMoleculeIndices(){
         }
       }
     }
-    for (uint molI = 0; molI < molLookupRef.molLookupCount; ++molI){
-      molLookupRef.permutedMoleculeIndices[molI] = molLookupRef.originalMoleculeIndices[molI];
-    }
-    printVector1DUint(originalMoleculeIndicesVec);
-    printArray1DUint(molLookupRef.permutedMoleculeIndices, molLookupRef.molLookupCount);
-    printArray1DUint(molLookupRef.constantReverseSort, molLookupRef.molLookupCount);
   } else {
-    std::vector<uint> originalMoleculeIndicesVec(molLookupRef.molLookupCount);
-    uint molCounter = 0, b, k, kI, countByKind, molI;
     for (b = 0; b < BOX_TOTAL; ++b) {
       for (k = 0; k < molLookupRef.numKinds; ++k) {
         countByKind = molLookupRef.NumKindInBox(k, b);
@@ -260,32 +260,8 @@ void CheckpointOutput::printSortedMoleculeIndices(){
         }
       }
     }
-    for (uint molI = 0; molI < molLookupRef.molLookupCount; ++molI){
-      molLookupRef.permutedMoleculeIndices[molI] = molLookupRef.originalMoleculeIndices[molI];
-    }
-    printVector1DUint(originalMoleculeIndicesVec);
-    printArray1DUint(molLookupRef.permutedMoleculeIndices, molLookupRef.molLookupCount);
-    printArray1DUint(molLookupRef.constantReverseSort, molLookupRef.molLookupCount);
   }
-  /*
-  if(!molLookupRef.restartFromCheckpoint){
-    std::vector<uint> originalMoleculeIndicesVec(molLookupRef.molLookupCount), permutedMoleculeIndicesVec(molLookupRef.molLookupCount);
-    for (uint molCounter = 0; molCounter < molLookupRef.molLookupCount; ++molCounter){
-
-      // This line reverses the original sort by indexing orig into orig, and sets the permuted from
-      // the previous run as the new original.
-      originalMoleculeIndicesVec[molLookupRef.originalMoleculeIndices[molCounter]] = molLookupRef.permutedMoleculeIndices[molCounter];
-      permutedMoleculeIndicesVec[molCounter] = molCounter;
-    }
-    printVector1DUint(originalMoleculeIndicesVec);
-    printVector1DUint(permutedMoleculeIndicesVec);
-    printArray1DUint(molLookupRef.constantReverseSort, molLookupRef.molLookupCount);
-  } else {
-    printArray1DUint(molLookupRef.originalMoleculeIndices, molLookupRef.molLookupCount);
-    printArray1DUint(molLookupRef.permutedMoleculeIndices, molLookupRef.molLookupCount);
-    printArray1DUint(molLookupRef.constantReverseSort, molLookupRef.molLookupCount);
-  }
-  */
+  printVector1DUint(originalMoleculeIndicesVec);
 }
 
 void CheckpointOutput::printVector3DDouble(const std::vector< std::vector< std::vector<double> > > &data)
