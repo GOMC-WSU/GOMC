@@ -120,27 +120,10 @@ void MoleculeLookup::Init(const Molecules& mols,
     permutedMoleculeIndices = new uint[mols.count];
     constantReverseSort = new uint[mols.count];
 
-    uint molCounter = 0, b, k, kI, countByKind, molI;
-    for (b = 0; b < BOX_TOTAL; ++b) {
-      for (k = 0; k < mols.kindsCount; ++k) {
-        countByKind = NumKindInBox(k, b);
-        for (kI = 0; kI < countByKind; ++kI) {
-          molI = GetMolNum(kI, k, b);
-          originalMoleculeIndices[molCounter] = molI;
-          /* We eventually overwrite origMolI, but cRS stays untouched */
-          constantReverseSort[molCounter] = molI;
-          /* This allows us to use input files that aren't of the form
-          box 0 kind 0 
-          box 0 kind 1
-          etc.
-          without an n^3 search operation.
-          Since checkpointed outputs are sorted in the above form,
-          we use origMolInds only when rest from checkpoint.
-          */
-          permutedMoleculeIndices[molCounter] = molCounter;
-          ++molCounter;
-        }
-      }
+    for (uint molI = 0; molI < molLookupCount; ++molI){
+      originalMoleculeIndices[molI] = molI;
+      constantReverseSort[molI] = molI;
+      permutedMoleculeIndices[molI] = molI;
     }
   }
 

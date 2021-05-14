@@ -396,18 +396,9 @@ void CheckpointSetup::SetMolecules(Molecules& mols)
 void CheckpointSetup::SetOriginalMoleculeIndices(MoleculeLookup & molLookupRef)
 {
   /* Original Mol Indices are for constant trajectory output from start to finish of a single run*/
-  molLookupRef.originalMoleculeIndices = new uint[molLookupRef.molLookupCount];
+  molLookupRef.originalMoleculeIndices = vect::transfer<uint>(this->originalMoleculeIndicesVec);
   /* Permuted Mol Indices are for following single molecules as molLookup permutes the indices and continuing the next run*/
-  molLookupRef.permutedMoleculeIndices = new uint[molLookupRef.molLookupCount];
-  for (uint molCounter = 0; molCounter < molLookupRef.molLookupCount; ++molCounter){
-    /* Since the original run sorted the molecules by box and kind
-    GetMolNum would just return 0 ... n , molLookupRef.GetMolNum(kI, k, b);
-    */
-    // This line reverses the original sort by indexing orig into orig, and sets the permuted from
-    // the previous run as the new original.
-    molLookupRef.originalMoleculeIndices[this->originalMoleculeIndicesVec[molCounter]] = this->permutedMoleculeIndicesVec[molCounter];
-    molLookupRef.permutedMoleculeIndices[molCounter] = molCounter;
-  }
+  molLookupRef.permutedMoleculeIndices = vect::transfer<uint>(this->permutedMoleculeIndicesVec);
   /* This array is for undoing the unsorted to box kind sort that happens on the first simulation */
   molLookupRef.constantReverseSort = vect::transfer<uint>(this->constantReverseSortVec);
 }

@@ -229,12 +229,18 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
   uint atomID = 1;
   uint resID = 1;
   uint thisKIndex = 0, nAtoms = 0, mI = 0;
-  uint pStart = 0, pEnd = 0;
+  uint pStart = 0, pEnd = 0, segI;
   //Start particle numbering @ 1
   for(uint mol = 0; mol < molecules->count; ++mol) { 
     // If this isn't checkpoint restarted, then this is
     thisKIndex = molecules->originalKIndex[mol];
     nAtoms = molKinds[thisKIndex].atoms.size();
+
+    if(molLookRef.restartFromCheckpoint){
+      segI = molLookRef.constantReverseSort[molLookRef.originalMoleculeIndices[molLookRef.originalMoleculeIndices[molLookRef.constantReverseSort[mol]]]];
+    } else {
+      segI = mol;
+    } 
 
     for(uint at = 0; at < nAtoms; ++at) {
       const Atom* thisAtom = &molKinds[thisKIndex].atoms[at];
@@ -242,11 +248,11 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
       //atom name, atom type, charge, mass, and an unused 0
 
       if(molKinds[thisKIndex].isMultiResidue){
-          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[molLookRef.originalMoleculeIndices[molLookRef.permutedMoleculeIndices[mol]]].c_str(),
+          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[segI].c_str(),
                   resID + molKinds[thisKIndex].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         } else {
-          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[molLookRef.originalMoleculeIndices[molLookRef.permutedMoleculeIndices[mol]]].c_str(),
+          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[segI].c_str(),
                   resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         }
