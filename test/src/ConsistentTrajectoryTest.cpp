@@ -29,7 +29,11 @@
 
 TEST(ConsistentTrajectoryTest, CheckChainLetters) {
 
-    config_setup::RestartSettings rs;
+    config_setup::RestartSettings rsStart;
+    config_setup::RestartSettings rsBase;
+    config_setup::RestartSettings rs1;
+    config_setup::RestartSettings rsN;
+
     config_setup::InFiles if2;
 
     std::string pdbnamesSTART[2], pdbnamesBase[2], pdbnames1[2], pdbnamesN[2], pdbnamesNPlus1[2];
@@ -48,10 +52,12 @@ TEST(ConsistentTrajectoryTest, CheckChainLetters) {
 
     PDBSetup pdbStart, pdbBase, pdb1, pdbN;
 
-    pdbStart.Init(rs, if2, pdbnamesSTART);
-    pdbBase.Init(rs, if2, pdbnamesBase);    
-    pdb1.Init(rs, if2, pdbnames1);
-    pdbN.Init(rs, if2, pdbnamesN);
+    rsStart.recalcTrajectory = false;
+
+    pdbStart.Init(rsStart, if2, pdbnamesSTART);
+    pdbBase.Init(rsBase, if2, pdbnamesBase);    
+    pdb1.Init(rs1, if2, pdbnames1);
+    pdbN.Init(rsN, if2, pdbnamesN);
     
     for (uint i = 0; i < pdbStart.atoms.count; ++i){
         EXPECT_EQ(pdbStart.atoms.chainLetter[i] == pdbBase.atoms.chainLetter[i], true);
