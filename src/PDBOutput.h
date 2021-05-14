@@ -70,7 +70,7 @@ private:
                   std::string const& resName);
 
   void InsertAtomInLine(std::string & line, XYZ const& coor,
-                        std::string const& occ, std::string const& beta);
+                        std::string const& occ, double const& beta);
 
   void PrintEnd(Writer & out)
   {
