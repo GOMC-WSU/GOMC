@@ -118,11 +118,8 @@ void MoleculeLookup::Init(const Molecules& mols,
   if (!restartFromCheckpoint){
     originalMoleculeIndices = new uint[mols.count];
     permutedMoleculeIndices = new uint[mols.count];
-    constantReverseSort = new uint[mols.count];
-
     for (uint molI = 0; molI < molLookupCount; ++molI){
       originalMoleculeIndices[molI] = molI;
-      constantReverseSort[molI] = molI;
       permutedMoleculeIndices[molI] = molI;
     }
   }

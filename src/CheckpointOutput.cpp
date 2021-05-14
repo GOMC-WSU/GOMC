@@ -246,7 +246,6 @@ void CheckpointOutput::printSortedMoleculeIndices(){
     }
     printVector1DUint(originalMoleculeIndicesVec);
     printArray1DUint(molLookupRef.permutedMoleculeIndices, molLookupRef.molLookupCount);
-    printArray1DUint(molLookupRef.constantReverseSort, molLookupRef.molLookupCount);
   } else {
     std::vector<uint> originalMoleculeIndicesVec(molLookupRef.molLookupCount);
     uint molCounter = 0, b, k, kI, countByKind, molI;
@@ -260,12 +259,8 @@ void CheckpointOutput::printSortedMoleculeIndices(){
         }
       }
     }
-    //for (uint molI = 0; molI < molLookupRef.molLookupCount; ++molI){
-    //  molLookupRef.permutedMoleculeIndices[molI] = molLookupRef.originalMoleculeIndices[molI];
-    //}
     printVector1DUint(originalMoleculeIndicesVec);
     printArray1DUint(molLookupRef.permutedMoleculeIndices, molLookupRef.molLookupCount);
-    printArray1DUint(molLookupRef.constantReverseSort, molLookupRef.molLookupCount);
   }
 }
 
