@@ -61,7 +61,7 @@ void Remarks::Read(FixedWidthReader & pdb)
     CheckGOMC(varName);
     
   }
-  if(recalcTrajectory) {
+  if(recalcTrajectory && !recalcTrajectoryBinary) {
     std::string varName;
     pdb.Get(varName, name::POS)
     .Get(frameNumber[currBox], frameNum::POS)
