@@ -286,14 +286,28 @@ int PDBSetup::LoadBinaryTrajectoryStep(uint frameNum){
         fprintf(stderr, "error in read_next_timestep on frame %d\n", (int)frameNum);
         return 1;
       }
-      if (b == 0)
-        atomOffset = 0;
-      else 
-        atomOffset = atoms.numAtomsInBox[0];
-      for (int i = 0; i < binTraj[b].dcd->natoms; ++i){
-        atoms.x[atomOffset + i] = (double) binTraj[b].dcd->x[i];
-        atoms.y[atomOffset + i] = (double) binTraj[b].dcd->y[i];
-        atoms.z[atomOffset + i] = (double) binTraj[b].dcd->z[i];
+      /*NAMD trajectories use absent convention for non-occupying molecules in a box */
+      if (binTraj[b].natoms != atoms.count){
+        if (b == 0)
+          atomOffset = 0;
+        else 
+          atomOffset = atoms.numAtomsInBox[0];
+        for (int i = 0; i < binTraj[b].dcd->natoms; ++i) {
+          atoms.x[atomOffset + i] = (double) binTraj[b].dcd->x[i];
+          atoms.y[atomOffset + i] = (double) binTraj[b].dcd->y[i];
+          atoms.z[atomOffset + i] = (double) binTraj[b].dcd->z[i];
+        }
+      } else {
+        /* GOMC trajectories use [0.0, 0.0, 0.0]-convention for non-occupying molecules */
+        for (int i = 0; i < binTraj[b].dcd->natoms; ++i){
+          if (binTraj[b].dcd->x[i] != 0.0
+                && binTraj[b].dcd->y[i] != 0.0
+                  && binTraj[b].dcd->z[i] != 0.0){
+            atoms.x[atomOffset + i] = (double) binTraj[b].dcd->x[i];
+            atoms.y[atomOffset + i] = (double) binTraj[b].dcd->y[i];
+            atoms.z[atomOffset + i] = (double) binTraj[b].dcd->z[i];
+          }
+        }
       }
     }
   }
