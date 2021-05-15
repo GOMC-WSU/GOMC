@@ -365,6 +365,8 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
       trajectoryI = *m;
     }       
     dataI = *m;    
+    molRef.GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
+    molRef.GetRangeStartStop(dataStart, dataEnd, dataI);  
     ref = comCurrRef.Get(dataI);
     inThisBox = (molInBox[dataI] == box);
     for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
