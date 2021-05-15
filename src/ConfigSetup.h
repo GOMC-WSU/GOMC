@@ -71,15 +71,15 @@ struct FileNames {
 //Could use "EnableEvent", but restart's enable arguably needs its
 //own struct as "frequency" is misleading name for step number
 struct RestartSettings {
-  bool enable;
-  ulong step;
-  bool simplyCollateTrajectories;
-  bool recalcTrajectory;
-  bool recalcTrajectoryBinary;
-  bool restartFromCheckpoint;
-  bool restartFromBinaryCoorFile;
-  bool restartFromBinaryVelFile;
-  bool restartFromXSCFile;
+  bool enable = false;
+  ulong step = 0;
+  bool simplyCollateTrajectories = false;
+  bool recalcTrajectory = false;
+  bool recalcTrajectoryBinary = false;
+  bool restartFromCheckpoint = false;
+  bool restartFromBinaryCoorFile = false;
+  bool restartFromBinaryVelFile = false;
+  bool restartFromXSCFile = false;
   bool operator()(void)
   {
     return enable;
