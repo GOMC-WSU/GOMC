@@ -103,9 +103,9 @@ TEST(ConsistentTrajectoryTest, CheckPDBTrajCoordinates) {
     PDBSetup pdbBaseRestart, pdb1Restart, pdbNRestart;
 
     rsStart.recalcTrajectory = false;
-    rsBase.recalcTrajectory = false;
-    rs1.recalcTrajectory = false;
-    rsN.recalcTrajectory = false;
+    rsBase.recalcTrajectory = true;
+    rs1.recalcTrajectory = true;
+    rsN.recalcTrajectory = true;
 
     uint frameNum = 1;
 
@@ -114,26 +114,52 @@ TEST(ConsistentTrajectoryTest, CheckPDBTrajCoordinates) {
     pdb1.Init(rs1, if2, pdbnames1, frameNum);
     pdbN.Init(rsN, if2, pdbnamesN, frameNum);
 
-/*
+    frameNum = 2;
+
+    pdbBase.Init(rsBase, if2, pdbnamesBase, frameNum);    
+    pdb1.Init(rs1, if2, pdbnames1, frameNum);
+    pdbN.Init(rsN, if2, pdbnamesN, frameNum);
+
+
     config_setup::RestartSettings rsBaseRestart;
     config_setup::RestartSettings rs1Restart;
     config_setup::RestartSettings rsNRestart;
 
-    rsBaseRestart.restartFromCheckpoint;
-    rs1Restart.restartFromCheckpoint;
-    rsNRestart.restartFromCheckpoint;
-*/
-    pdbBaseRestart.Init(rsBase, if2, pdbnamesBaseRestart);    
-    pdb1Restart.Init(rs1, if2, pdbnames1Restart);
-    pdbNRestart.Init(rsN, if2, pdbnamesNRestart);
+    rsBaseRestart.restartFromCheckpoint = true;
+    rs1Restart.restartFromCheckpoint = true;
+    rsNRestart.restartFromCheckpoint = true;
+
+    pdbBaseRestart.Init(rsBaseRestart, if2, pdbnamesBaseRestart);    
+    pdb1Restart.Init(rs1Restart, if2, pdbnames1Restart);
+    pdbNRestart.Init(rsNRestart, if2, pdbnamesNRestart);
     
     for (uint i = 0; i < pdbStart.atoms.count; ++i){
         /* Find mol i's chain index in restart output files */
         ptrdiff_t pos = find(pdbBaseRestart.atoms.chainLetter.begin(), 
-            pdbBaseRestart.atoms.chainLetter.end(), pdbStart.atoms.chainLetter[i])
+            pdbBaseRestart.atoms.chainLetter.end(), pdbBase.atoms.chainLetter[i])
             - pdbBaseRestart.atoms.chainLetter.begin();
         if(pdbBase.atoms.x[i] != pdbBaseRestart.atoms.x[pos])
-            std::cout << pdbBase.atoms.x[i] << " " << pdbBaseRestart.atoms.x[pos] << std::endl;
+            std::cout << pdbBase.atoms.x[i] << " " << i << " " << pdbBaseRestart.atoms.x[pos] << " " << pos <<  std::endl;
         EXPECT_EQ(pdbBase.atoms.x[i] == pdbBaseRestart.atoms.x[pos], true);
+    }
+
+    for (uint i = 0; i < pdbStart.atoms.count; ++i){
+        /* Find mol i's chain index in restart output files */
+        ptrdiff_t pos = find(pdb1Restart.atoms.chainLetter.begin(), 
+            pdb1Restart.atoms.chainLetter.end(), pdb1.atoms.chainLetter[i])
+            - pdb1Restart.atoms.chainLetter.begin();
+        if(pdb1.atoms.x[i] != pdb1Restart.atoms.x[pos])
+            std::cout << pdbBase.atoms.x[i] << " " << i << " " << pdb1Restart.atoms.x[pos] << " " << pos <<  std::endl;
+        EXPECT_EQ(pdb1.atoms.x[i] == pdb1Restart.atoms.x[pos], true);
+    }
+
+    for (uint i = 0; i < pdbStart.atoms.count; ++i){
+        /* Find mol i's chain index in restart output files */
+        ptrdiff_t pos = find(pdbNRestart.atoms.chainLetter.begin(), 
+            pdbNRestart.atoms.chainLetter.end(), pdbN.atoms.chainLetter[i])
+            - pdbNRestart.atoms.chainLetter.begin();
+        if(pdbN.atoms.x[i] != pdbNRestart.atoms.x[pos])
+            std::cout << pdbN.atoms.x[i] << " " << i << " " << pdbNRestart.atoms.x[pos] << " " << pos <<  std::endl;
+        EXPECT_EQ(pdbN.atoms.x[i] == pdbNRestart.atoms.x[pos], true);
     }
 }
