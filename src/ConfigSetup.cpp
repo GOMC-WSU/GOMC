@@ -307,13 +307,23 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       in.files.xscInput.defined[boxnum] = true;
       in.restart.restartFromXSCFile = true;
     } else if(CheckString(line[0], "Checkpoint")) {
-      if(multisim != NULL) {
-        in.files.checkpoint.name[0] = multisim->replicaInputDirectoryPath + line[1];
+      if (line.size() == 3){
+        in.files.checkpoint.defined[0] = checkBool(line[1]);
+        in.restart.restartFromCheckpoint = checkBool(line[1]);
+        if(multisim != NULL) {
+          in.files.checkpoint.name[0] = multisim->replicaInputDirectoryPath + line[2];
+        } else {
+          in.files.checkpoint.name[0] = line[2];
+        }
       } else {
-        in.files.checkpoint.name[0] = line[1];
+        in.files.checkpoint.defined[0] = true;
+        in.restart.restartFromCheckpoint = true;
+        if(multisim != NULL) {
+          in.files.checkpoint.name[0] = multisim->replicaInputDirectoryPath + line[1];
+        } else {
+          in.files.checkpoint.name[0] = line[1];
+        }
       }
-      in.files.checkpoint.defined[0] = true;
-      in.restart.restartFromCheckpoint = true;
     }
 #if ENSEMBLE == GEMC
     else if(CheckString(line[0], "GEMC")) {
