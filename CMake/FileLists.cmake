@@ -185,6 +185,7 @@ set(headers
    src/moves/VolumeTransfer.h)
 
 set(libHeaders
+   lib/AlphaNum.h
    lib/BasicTypes.h
    lib/BitLib.h
    lib/Endian.h
@@ -198,6 +199,7 @@ set(libHeaders
    lib/FloydWarshallCycle.h)
 
 set(libSources
+    lib/AlphaNum.cpp
     lib/CircuitFinder.cpp
     lib/FloydWarshallCycle.cpp)
 

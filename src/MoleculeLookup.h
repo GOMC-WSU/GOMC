@@ -12,7 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "algorithm"
 #include "Forcefield.h"
 #include <vector>
-
+#include <cstring>
 class CheckpointOutput;
 
 namespace pdb_setup
@@ -46,7 +46,7 @@ public:
 
   //Initialize this object to be consistent with Molecules mols
   void Init(Molecules const& mols, const pdb_setup::Atoms& atomData,
-            Forcefield &ff);
+            Forcefield &ff, bool restartFromCheckpoint);
 
   uint GetNumKind(void) const
   {
@@ -121,6 +121,11 @@ public:
     return molLookup[boxAndKindStart[box * numKinds + kind] + subIndex];
   }
 
+  uint GetSortedMolNum(const uint subIndex, const uint kind, const uint box)
+  {
+    return originalMoleculeIndices[molLookup[boxAndKindStart[box * numKinds + kind] + subIndex]];
+  }
+
   // determine if molecule is in this box or not
   bool IsMoleculeInBox(const uint &molIdx, const uint &kindIdx, const uint &box)
   {
@@ -184,6 +189,10 @@ uint GetConsensusMolBeta( const uint pStart,
   uint* boxAndKindSwappableCounts;
   uint boxAndKindStartCount;
   uint numKinds;
+  /* For consistent trajectory ordering across checkpoints */
+  bool restartFromCheckpoint;
+  uint * originalMoleculeIndices, * permutedMoleculeIndices;
+
   std::vector <uint> fixedMolecule;
   std::vector <uint> canSwapKind; //Kinds that can move intra and inter box
   std::vector <uint> canMoveKind; //Kinds that can move intra box only

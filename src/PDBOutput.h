@@ -46,6 +46,7 @@ public:
                     config_setup::Output const& output);
 
   virtual void DoOutput(const ulong step);
+  virtual void DoOutputRestart(const ulong step);
 private:
   std::string GetDefaultAtomStr();
 
@@ -69,7 +70,7 @@ private:
                   std::string const& resName);
 
   void InsertAtomInLine(std::string & line, XYZ const& coor,
-                        std::string const& occ, std::string const& beta);
+                        std::string const& occ, double const& beta);
 
   void PrintEnd(Writer & out)
   {
@@ -91,11 +92,6 @@ private:
 
   Writer outF[BOX_TOTAL];
   Writer outRebuildRestart[BOX_TOTAL];
-  bool enableRestOut;
-  ulong stepsRestPerOut;
-  ulong stepsCoordPerOut;
-  //NEW_RESTART_CODE
-  bool enableOutState;
   std::vector<std::string> pStr;
   int frameNumber[BOX_TOTAL];
 };

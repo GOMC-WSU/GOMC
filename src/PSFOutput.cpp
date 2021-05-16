@@ -37,16 +37,17 @@ const int dihPerLine = 2;
 PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
                      Setup & set) :
   molecules(&molecules), molLookRef(sys.molLookup),
-  molNames(set.mol.molVars.moleculeKindNames)
+  molNames(set.mol.molVars.moleculeKindNames), 
+  moleculeSegmentNames(set.mol.molVars.moleculeSegmentNames)
 {
   molKinds.resize(set.mol.kindMap.size());
  for(uint i = 0; i < set.mol.molVars.moleculeKindNames.size(); ++i) {
     molKinds[i] = set.mol.kindMap[set.mol.molVars.moleculeKindNames[i]];
   }
-  CountMolecules();
-  PrintPSF(set.config.out.state.files.psf.name);
-  std::cout << "Printed combined psf to file "
-            << set.config.out.state.files.psf.name << '\n';
+  outFName = set.config.out.state.files.psf.name;
+  onlyPrintOnFirstStep = true;
+  /* To eliminate arithmetic exceptions */
+  stepsPerOut = 1;
 
 }
 
@@ -56,7 +57,7 @@ void PSFOutput::Init(pdb_setup::Atoms const& atoms,
 {
   std::string bStr = "", aliasStr = "", numStr = "";
   sstrm::Converter toStr;
-  enableRestOut = output.restart.settings.enable;
+  enableRestOut = output.restart.settings.enable || forceOutput;
   stepsRestPerOut = output.restart.settings.frequency;
   if (enableRestOut) {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
@@ -78,7 +79,7 @@ void PSFOutput::Init(pdb_setup::Atoms const& atoms,
   }
 }
 
-void PSFOutput::DoOutput(const ulong step)
+void PSFOutput::DoOutputRestart(const ulong step)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::PSF_RESTART_OUTPUT);
   for (uint b = 0; b < BOX_TOTAL; ++b) {
@@ -100,13 +101,35 @@ void PSFOutput::DoOutput(const ulong step)
   GOMC_EVENT_STOP(1, GomcProfileEvent::PSF_RESTART_OUTPUT);
 }
 
-void PSFOutput::Output(const ulong step)
-{
-  //NEW_RESTART_CODE
-  if (((step + 1) % stepsRestPerOut == 0) && enableRestOut) {
-    DoOutput(step + 1);
+/* Output (merged_psf) occurs in Constructor only */
+void PSFOutput::DoOutput(const ulong step){
+  GOMC_EVENT_START(1, GomcProfileEvent::PSF_MERGED_OUTPUT);
+
+  CountMolecules();
+
+  std::vector<std::string> remarks;
+  //default file remarks
+  remarks.push_back("Combined PSF produced by GOMC");
+  remarks.push_back("Contains Geometry data for molecules in ALL boxes in the system");
+  FILE* outfile = fopen(outFName.c_str(), "w");
+  if (outfile == NULL) {
+    fprintf(stderr, "Error opening PSF output file %s", outFName.c_str());
+    return;
   }
-  //NEW_RESTART_CODE
+
+  fprintf(outfile, "PSF\n\n");
+  PrintRemarks(outfile, remarks);
+  PrintAtoms(outfile);
+  PrintBonds(outfile);
+  PrintAngles(outfile);
+  PrintDihedrals(outfile);
+  PrintNAMDCompliantSuffix(outfile);
+  fclose(outfile);
+
+  std::cout << "Printed combined psf to file "
+            << outFName << '\n';
+
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PSF_MERGED_OUTPUT);
 }
 
 void PSFOutput::CountMolecules()
@@ -205,37 +228,42 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
   //silly psfs index from 1
   uint atomID = 1;
   uint resID = 1;
-  for(uint mol = 0; mol < molecules->count; ++mol) {
-    uint thisKind = molecules->kIndex[mol];
-    uint nAtoms = molKinds[thisKind].atoms.size();
+  uint thisKIndex = 0, nAtoms = 0, mI = 0;
+  uint pStart = 0, pEnd = 0;
+  //Start particle numbering @ 1
+  for(uint mol = 0; mol < molecules->count; ++mol) { 
+    // If this isn't checkpoint restarted, then this is
+    thisKIndex = molecules->kIndex[mol];
+    nAtoms = molKinds[thisKIndex].atoms.size();    
 
     for(uint at = 0; at < nAtoms; ++at) {
-      const Atom* thisAtom = &molKinds[thisKind].atoms[at];
+      const Atom* thisAtom = &molKinds[thisKIndex].atoms[at];
       //atom ID, segment name, residue ID, residue name,
       //atom name, atom type, charge, mass, and an unused 0
 
-      if(molKinds[thisKind].isMultiResidue){
-        fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
-                resID + molKinds[thisKind].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
-                thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
-      } else {
-        fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
-                resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
-                thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
-      }
+      if(molKinds[thisKIndex].isMultiResidue){
+          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[mol].c_str(),
+                  resID + molKinds[thisKIndex].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
+                  thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+        } else {
+          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[mol].c_str(),
+                  resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
+                  thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+        }
+      
       ++atomID;
     }
     /* This isn't actually residue, it is running count of the number of
       molecule kinds we have printed */
     ++resID;
     /* To add additional intramolecular residues */
-    if (molKinds[thisKind].isMultiResidue){
-      resID += molKinds[thisKind].intraMoleculeResIDs.back();
+    if (molKinds[thisKIndex].isMultiResidue){
+      resID += molKinds[thisKIndex].intraMoleculeResIDs.back();
     }
 
-   // ???
     if(resID == 10000)
       resID = 1;
+    
   }
   fputc('\n', outfile);
 }
@@ -245,8 +273,11 @@ void PSFOutput::PrintBonds(FILE* outfile) const
   fprintf(outfile, headerFormat, totalBonds, bondHeader);
   uint atomID = 1;
   uint lineEntry = 0;
+  uint thisKIndex = 0, mI = 0;
   for(uint mol = 0; mol < molecules->count; ++mol) {
-    const MolKind& thisKind = molKinds[molecules->kIndex[mol]];
+    // If this isn't checkpoint restarted, then this is
+    thisKIndex = molecules->kIndex[mol];
+    const MolKind& thisKind = molKinds[thisKIndex];
     for(uint i = 0; i < thisKind.bonds.size(); ++i) {
       fprintf(outfile, "%8d%8d", thisKind.bonds[i].a0 + atomID,
               thisKind.bonds[i].a1 + atomID);
@@ -257,6 +288,7 @@ void PSFOutput::PrintBonds(FILE* outfile) const
       }
     }
     atomID += thisKind.atoms.size();
+    
   }
   fputs("\n\n", outfile);
 }
@@ -266,8 +298,12 @@ void PSFOutput::PrintAngles(FILE* outfile) const
   fprintf(outfile, headerFormat, totalAngles, angleHeader);
   uint atomID = 1;
   uint lineEntry = 0;
+  uint thisKIndex = 0, mI = 0;
   for(uint mol = 0; mol < molecules->count; ++mol) {
-    const MolKind& thisKind = molKinds[molecules->kIndex[mol]];
+    // If this isn't checkpoint restarted, then this is
+    // mI = *m;
+    thisKIndex = molecules->kIndex[mol];
+    const MolKind& thisKind = molKinds[thisKIndex];
     for(uint i = 0; i < thisKind.angles.size(); ++i) {
       fprintf(outfile, "%8d%8d%8d", thisKind.angles[i].a0 + atomID,
               thisKind.angles[i].a1 + atomID,
@@ -279,6 +315,7 @@ void PSFOutput::PrintAngles(FILE* outfile) const
       }
     }
     atomID += thisKind.atoms.size();
+    
   }
   fputs("\n\n", outfile);
 }
@@ -287,8 +324,10 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
   fprintf(outfile, headerFormat, totalDihs, dihedralHeader);
   uint atomID = 1;
   uint lineEntry = 0;
+  uint thisKIndex = 0, mI = 0;
   for(uint mol = 0; mol < molecules->count; ++mol) {
-    const MolKind& thisKind = molKinds[molecules->kIndex[mol]];
+    thisKIndex = molecules->kIndex[mol];
+    const MolKind& thisKind = molKinds[thisKIndex];
     for(uint i = 0; i < thisKind.dihedrals.size(); ++i) {
       fprintf(outfile, "%8d%8d%8d%8d", thisKind.dihedrals[i].a0 + atomID,
               thisKind.dihedrals[i].a1 + atomID,
@@ -341,11 +380,14 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
         //atom name, atom type, charge, mass, and an unused 0
 
         if(molKinds[thisKind].isMultiResidue){
-          fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
-                  resID + molKinds[thisKind].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
+          fprintf(outfile, atomFormat, atomID, 
+                  moleculeSegmentNames[*thisMol].c_str(),
+                  resID + molKinds[thisKind].intraMoleculeResIDs[at], 
+                  thisAtom->residue.c_str(), thisAtom->name.c_str(),
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         } else {
-          fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+          fprintf(outfile, atomFormat, atomID, 
+                  moleculeSegmentNames[*thisMol].c_str(),
                   resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         }

@@ -37,9 +37,7 @@ union int8_input_union {
 
 CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV,
                                  Setup const& set) :
-  moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
-  boxDimRef(sys.boxDimRef),  molRef(statV.mol), coordCurrRef(sys.coordinates),
-  prngRef(sys.prng), parallelTemperingWasEnabled(false)
+  parallelTemperingWasEnabled(false)
 {
   std::string file = set.config.in.files.checkpoint.name[0];
 #if GOMC_LIB_MPI
@@ -51,15 +49,24 @@ CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV,
   saveArray = NULL;
 }
 
+CheckpointSetup::CheckpointSetup(std::string file) :
+  parallelTemperingWasEnabled(false)
+{
+  filename = file;
+  inputFile = NULL;
+  saveArray = NULL;
+}
+
 void CheckpointSetup::ReadAll()
 {
   openInputFile();
   readGOMCVersion();
   readStepNumber();
   readRandomNumbers();
-  readMoleculeLookupData();
   readMoveSettingsData();
+  //readMoleculeLookupData();
   readMoleculesData();
+  readOriginalMoleculeIndices();
 #if GOMC_LIB_MPI
   readParallelTemperingBoolean();
   if(parallelTemperingWasEnabled)
@@ -86,7 +93,7 @@ void CheckpointSetup::readGOMCVersion()
     fseek(inputFile, 0, SEEK_SET);
     sprintf(gomc_version, "0.00");
   } else {
-    fscanf(inputFile, "%[^$]", gomc_version);
+    int result = fscanf(inputFile, "%[^$]", gomc_version);
     // Move the cursor past the $ sign
     fseek(inputFile, 1, SEEK_CUR);
   }
@@ -182,22 +189,6 @@ void CheckpointSetup::readMoleculeLookupData()
   }
 }
 
-void CheckpointSetup::readMoleculesData()
-{
-  // read the size of start array
-  uint startCount = read_uint32_binary() + 1;
-  molecules_startVec.resize(startCount);
-  for(int i = 0; i < (int)startCount; i++) {
-    molecules_startVec[i] = read_uint32_binary();
-  }
-
-  // read the kIndex array
-  molecules_kIndexVec.resize(read_uint32_binary());
-  for(int i = 0; i < (int) molecules_kIndexVec.size(); i++) {
-    molecules_kIndexVec[i] = read_uint32_binary();
-  }
-}
-
 void CheckpointSetup::readMoveSettingsData()
 {
   readVector3DDouble(scaleVec);
@@ -210,6 +201,27 @@ void CheckpointSetup::readMoveSettingsData()
   readVector2DUint(mp_acceptedVec);
   readVector1DDouble(mp_t_maxVec);
   readVector1DDouble(mp_r_maxVec);
+}
+
+void CheckpointSetup::readMoleculesData()
+{
+  // read the size of start array
+  uint startCount = read_uint32_binary() + 1;
+  molecules_originalStartVec.resize(startCount);
+  for(int i = 0; i < (int)startCount; i++) {
+    molecules_originalStartVec[i] = read_uint32_binary();
+  }
+
+  // read the kIndex array
+  molecules_originalKIndexVec.resize(read_uint32_binary());
+  for(int i = 0; i < (int) molecules_originalKIndexVec.size(); i++) {
+    molecules_originalKIndexVec[i] = read_uint32_binary();
+  }
+}
+
+void CheckpointSetup::readOriginalMoleculeIndices(){
+ readVector1DUint(originalMoleculeIndicesVec);
+ readVector1DUint(permutedMoleculeIndicesVec);
 }
 
 void CheckpointSetup::openInputFile()
@@ -355,32 +367,6 @@ void CheckpointSetup::SetPRNGVariablesPT(PRNG & prng)
 }
 #endif
 
-void CheckpointSetup::SetMoleculeLookup(MoleculeLookup & molLookupRef)
-{
-  if(molLookupRef.molLookupCount != this->molLookupVec.size()) {
-    std::cerr << "ERROR: Restarting from checkpoint...\n"
-              << "molLookup size does not match with restart file\n";
-    exit(EXIT_FAILURE);
-  }
-  for(int i = 0; i < (int) this->molLookupVec.size(); i++) {
-    molLookupRef.molLookup[i] = this->molLookupVec[i];
-  }
-  for(int i = 0; i < (int) this->boxAndKindStartVec.size(); i++) {
-    molLookupRef.boxAndKindStart[i] = this->boxAndKindStartVec[i];
-  }
-  molLookupRef.numKinds = this->numKinds;
-}
-
-void CheckpointSetup::SetMolecules(Molecules& mols)
-{
-  for(int i = 0; i < (int)this->molecules_startVec.size(); i++) {
-    mols.start[i] = molecules_startVec[i];
-  }
-  for(int i = 0; i < (int)this->molecules_kIndexVec.size(); i++) {
-    mols.kIndex[i] = molecules_kIndexVec[i];
-  }
-}
-
 void CheckpointSetup::SetMoveSettings(MoveSettings & moveSettings)
 {
   moveSettings.scale = this->scaleVec;
@@ -393,6 +379,25 @@ void CheckpointSetup::SetMoveSettings(MoveSettings & moveSettings)
   moveSettings.mp_accepted = this->mp_acceptedVec;
   moveSettings.mp_t_max = this->mp_t_maxVec;
   moveSettings.mp_r_max = this->mp_r_maxVec;
+}
+
+void CheckpointSetup::SetMolecules(Molecules& mols)
+{
+  for(int i = 0; i < (int)this->molecules_originalStartVec.size(); i++) {
+    mols.originalStart[i] = molecules_originalStartVec[i];
+  }
+  for(int i = 0; i < (int)this->molecules_originalKIndexVec.size(); i++) {
+    mols.originalKIndex[i] = molecules_originalKIndexVec[i];
+  }
+}
+
+/* Index magic. Don't touch */
+void CheckpointSetup::SetOriginalMoleculeIndices(MoleculeLookup & molLookupRef)
+{
+  /* Original Mol Indices are for constant trajectory output from start to finish of a single run*/
+  molLookupRef.originalMoleculeIndices = vect::transfer<uint>(this->originalMoleculeIndicesVec);
+  /* Permuted Mol Indices are for following single molecules as molLookup permutes the indices and continuing the next run*/
+  molLookupRef.permutedMoleculeIndices = vect::transfer<uint>(this->permutedMoleculeIndicesVec);
 }
 
 void
@@ -461,5 +466,17 @@ void CheckpointSetup::readVector1DDouble(std::vector<double> &data)
   data.resize(size_x);
   for(int i = 0; i < (int) size_x; i++) {
     data[i] = read_double_binary();
+  }
+}
+
+void CheckpointSetup::readVector1DUint(std::vector< uint > &data)
+{
+// read size of data
+  ulong size_x = read_uint64_binary();
+
+  // read array
+  data.resize(size_x);
+  for(int i = 0; i < (int) size_x; i++) {
+    data[i] = read_uint32_binary();
   }
 }

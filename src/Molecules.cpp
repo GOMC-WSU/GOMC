@@ -18,13 +18,15 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class System;
 
 
-Molecules::Molecules() : start(NULL), kIndex(NULL), countByKind(NULL),
+Molecules::Molecules() : start(NULL), originalStart(NULL), originalKIndex(NULL), kIndex(NULL), countByKind(NULL),
   chain(NULL), kinds(NULL), pairEnCorrections(NULL),
-  pairVirCorrections(NULL), printFlag(true) {}
+  pairVirCorrections(NULL), printFlag(true){}
 
 Molecules::~Molecules(void)
 {
   delete[] start;
+  delete[] originalStart;
+  delete[] originalKIndex;
   delete[] kIndex;
   delete[] countByKind;
   delete[] chain;
@@ -45,16 +47,28 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
   //Molecule instance arrays/data
   count = setup.mol.molVars.startIdxMolecules.size();
   if (count == 0) {
-    std::cerr << "Error: No Molecule was found in the PDB file(s)!" << std::endl;
+    std::cerr << "Error: No Molecule was found in the PSF file(s)!" << std::endl;
     exit(EXIT_FAILURE);
   }
-
+  //chain = new char [atoms.x.size()];
   start = new uint [count + 1];
+  originalStart = new uint [count + 1];
+  /* If new run, originalStart & originalKIndex and start & kIndex are identical */
+  if(!setup.config.in.restart.restartFromCheckpoint){
+    originalStart = vect::TransferInto<uint>(originalStart, setup.mol.molVars.startIdxMolecules);
+    originalStart[count] = atoms.x.size();
+    originalKIndex = vect::transfer<uint>(setup.mol.molVars.moleculeKinds);
+  } else {
+    originalKIndex = new uint [count];
+  }
   start = vect::TransferInto<uint>(start, setup.mol.molVars.startIdxMolecules);
-  start[count] = atoms.x.size();
   kIndex = vect::transfer<uint>(setup.mol.molVars.moleculeKinds);
-  kIndexCount = setup.mol.molVars.moleculeKinds.size();
   chain = vect::transfer<char>(atoms.chainLetter);
+  beta =  vect::transfer<double>(atoms.beta);
+
+  start[count] = atoms.x.size();
+  kIndexCount = setup.mol.molVars.moleculeKinds.size();
+
   for (uint mk = 0 ; mk < kindsCount; mk++) {
     countByKind[mk] =
       std::count(setup.mol.molVars.moleculeNames.begin(), setup.mol.molVars.moleculeNames.end(),
@@ -231,3 +245,4 @@ void Molecules::PrintLJInfo(std::vector<uint> &totAtomKind,
     std::cout << std::endl;
   }
 }
+

@@ -30,7 +30,7 @@ struct Histogram : OutputableBase {
                     config_setup::Output const& output);
 
   virtual void DoOutput(const ulong step);
-
+  virtual void DoOutputRestart(const ulong step);
 private:
   void PrintKindHist(const uint b, const uint k);
 

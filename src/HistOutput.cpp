@@ -125,6 +125,9 @@ void Histogram::DoOutput(const ulong step)
     GOMC_EVENT_STOP(1, GomcProfileEvent::DIST_OUTPUT);
   }
 }
+
+void Histogram::DoOutputRestart(const ulong step){}
+
 void Histogram::PrintKindHist(const uint b, const uint k)
 {
   for (uint n = 0; n < total[k] + 1; ++n) {

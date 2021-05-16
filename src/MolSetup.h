@@ -14,6 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <map>
 #include "BondAdjacencyList.h"
+#include "AlphaNum.h"
 
 namespace config_setup
 {
@@ -29,9 +30,12 @@ namespace mol_setup
 {
 struct MoleculeVariables {
   std::vector<uint> startIdxMolecules, moleculeKinds;
-  std::vector<std::string> moleculeNames, moleculeKindNames;
+  std::vector<std::string> moleculeNames, moleculeKindNames, moleculeSegmentNames;
   uint lastAtomIndexInBox0 = 0;
-  uint lastMolKindIndex = 0;
+  uint numberMolsInBox0 = 0;
+  uint molKindIndex = 0;
+  uint stringSuffix = 0;
+  uint moleculeIteration = 0;
 };
 
 //!structure to contain an atom's data during initialization
@@ -55,7 +59,9 @@ public:
   bool operator== (const Atom& atm) const
   {
     if (type == atm.type && 
-        charge == atm.charge)
+          charge == atm.charge && 
+            residue == atm.residue &&
+              mass == atm.mass)
       return true;
     else
       return false;
@@ -176,8 +182,7 @@ public:
 
   //reads BoxTotal PSFs and merges the data, placing the results in kindMap
   //returns 0 if read is successful, -1 on a failure
-  int Init(const config_setup::RestartSettings& restart,
-           const std::string* psfFilename, 
+  int Init(const std::string* psfFilename, 
            const bool* psfDefined, 
            pdb_setup::Atoms& pdbAtoms);
 

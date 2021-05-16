@@ -25,19 +25,11 @@ public:
   }
 
   virtual void DoOutput(const ulong step);
+  virtual void DoOutputRestart(const ulong step);  
   virtual void Init(pdb_setup::Atoms const& atoms,
                     config_setup::Output const& output);
   virtual void Sample(const ulong step) {}
-  virtual void Output(const ulong step)
-  {
-    if(!enableOutCheckpoint) {
-      return;
-    }
 
-    if((step + 1) % stepsPerCheckpoint == 0) {
-      DoOutput(step);
-    }
-  }
 
 private:
   MoveSettings & moveSetRef;
@@ -50,7 +42,6 @@ private:
   PRNG & prngPTRef;
 #endif
 
-  bool enableOutCheckpoint;
   bool enableParallelTempering;
   std::string filename;
   FILE* outputFile;
@@ -63,17 +54,22 @@ private:
   void printParallelTemperingBoolean();
   void printStepNumber(ulong step);
   void printRandomNumbers();
+  void printMoleculeLookupData();
+  void printMoleculesData();
+
+  void printSortedMoleculeIndices();
 #if GOMC_LIB_MPI
   void printRandomNumbersParallelTempering();
 #endif
-  void printMoleculeLookupData();
   void printMoveSettingsData();
-  void printMoleculesData();
 
   void printVector3DDouble(const std::vector< std::vector< std::vector<double> > > &data);
   void printVector3DUint(const std::vector< std::vector< std::vector<uint> > > &data);
   void printVector2DUint(const std::vector< std::vector< uint > > &data);
   void printVector1DDouble(const std::vector< double > &data);
+  void printVector1DUint(const std::vector< uint > &data);
+  void printArray1DUint(const uint * data, uint count);
+
   void write_double_binary(double data);
   void write_uint8_binary(int8_t data);
   void write_uint32_binary(uint32_t data);

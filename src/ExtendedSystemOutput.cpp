@@ -17,13 +17,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 ExtendedSystemOutput::ExtendedSystemOutput(System& sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
-  boxDimRef(sys.boxDimRef), molRef(statV.mol), coordCurrRef(sys.coordinates),
-  velCurrRef(sys.vel), comCurrRef(sys.com)
+  boxDimRef(sys.boxDimRef), molRef(statV.mol), velCurrRef(sys.vel),
+  coordCurrRef(sys.coordinates), comCurrRef(sys.com)
 {
   x = NULL;
   y = NULL;
   z = NULL;
-  enableStateOut = enableRestartOut = false;
   for(uint b = 0; b < BOX_TOTAL; ++b){
     stateFileFileid[b] = 0;
     restartCoor[b] = NULL;
@@ -39,16 +38,13 @@ ExtendedSystemOutput::ExtendedSystemOutput(System& sys, StaticVals const& statV)
 void ExtendedSystemOutput::Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output)
 {
-  enableStateOut = output.state_dcd.settings.enable;
-  enableRestartOut = output.restart.settings.enable;
-  enableOut = enableStateOut | enableRestartOut;
-  stepsStatePerOut = output.state_dcd.settings.frequency;
-  stepsRestartPerOut = output.restart.settings.frequency;
+  enableOut = output.state_dcd.settings.enable;
+  enableRestOut = output.restart.settings.enable;
+  stepsPerOut = output.state_dcd.settings.frequency;
+  stepsRestPerOut = output.restart.settings.frequency;
   outputVelocity = output.restart_vel.settings.enable;
-  if (stepsStatePerOut < stepsRestartPerOut) {
-    stepsPerOut = stepsStatePerOut;
-  } else {
-    stepsPerOut = stepsRestartPerOut;
+  if (stepsPerOut >= stepsRestPerOut) {
+    stepsPerOut = stepsRestPerOut;
   }
   bool printNotify;
 #ifndef NDEBUG
@@ -58,7 +54,7 @@ void ExtendedSystemOutput::Init(pdb_setup::Atoms const& atoms,
 #endif
 
   // Output dcd coordinates and xst file
-  if (enableStateOut) {
+  if (enableOut) {
     int numAtoms = coordCurrRef.Count();
     x = new float [3 * numAtoms];
     y = x + numAtoms;
@@ -79,11 +75,12 @@ void ExtendedSystemOutput::Init(pdb_setup::Atoms const& atoms,
       xstFile[b].Init(fileName, " output XST", true, printNotify);
       xstFile[b].open();
       Write_Extension_System_Header(xstFile[b]);
-    }
+    }  
+    DoOutput(0);
   }
 
-  // Output restart binary coordinates, velocities, and xsc file
-  if (enableRestartOut) {
+  // Output restart binary coordinates and xsc file
+  if (enableRestOut) {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       // prepare coor file
       std::string fileName = output.restart_dcd.files.dcd.name[b];
@@ -111,7 +108,6 @@ void ExtendedSystemOutput::Init(pdb_setup::Atoms const& atoms,
     }
   }
 
-  DoOutput(0);
 }
 
 
@@ -174,7 +170,7 @@ void ExtendedSystemOutput::WriteDCDHeader(const int numAtoms, const int box)
     NAMD_err(err_msg);
   }
   int NSAVC, NFILE, NPRIV, NSTEP;
-  NSAVC = stepsStatePerOut;
+  NSAVC = stepsPerOut;
   NPRIV = 0;
   NSTEP = NPRIV - NSAVC;
   NFILE = 0;
@@ -193,77 +189,75 @@ void ExtendedSystemOutput::WriteDCDHeader(const int numAtoms, const int box)
 void ExtendedSystemOutput::DoOutput(const ulong step)
 {
   // Output dcd coordinates and xst file
-  if(((step + 1) % stepsStatePerOut == 0) && enableStateOut) {
-    GOMC_EVENT_START(1, GomcProfileEvent::DCD_OUTPUT);
-    int numAtoms = coordCurrRef.Count();
-    // Determine which molecule is in which box. Assume we are in NVT
-    // or NPT, otherwise, SetMolBoxVec would adjust the value.
-    std::vector<int> molInBox(molRef.count, 0);
-    if (BOX_TOTAL > 1) SetMolBoxVec(molInBox);
-    for (uint b = 0; b < BOX_TOTAL; ++b) {
-      //  Copy the coordinates for output
-      SetCoordinates(molInBox, b);
-      //  Write out the values for this step
-      printf("Writing DCD coordinate to file %s at step %lu \n",
-        outDCDStateFile[b], step+1);
-      fflush(stdout);
+  GOMC_EVENT_START(1, GomcProfileEvent::DCD_OUTPUT);
+  int numAtoms = coordCurrRef.Count();
+  // Determine which molecule is in which box. Assume we are in NVT
+  // or NPT, otherwise, SetMolBoxVec would adjust the value.
+  std::vector<int> molInBox(molRef.count, 0);
+  if (BOX_TOTAL > 1) SetMolBoxVec(molInBox);
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    //  Copy the coordinates for output
+    SetCoordinates(molInBox, b);
+    //  Write out the values for this step
+    printf("Writing DCD coordinate to file %s at step %lu \n",
+      outDCDStateFile[b], step+1);
+    fflush(stdout);
 
-      double unitcell[6];
-      Copy_lattice_to_unitcell(unitcell, b);
-      int ret_code = write_dcdstep(stateFileFileid[b], numAtoms, x, y, z, unitcell);
-    
-      if (ret_code < 0) {
-        char err_msg[257];
-        sprintf(err_msg, "Writing of DCD coordinate %s failed at step %lu!",
-          outDCDStateFile[b], step+1);
-        NAMD_err(err_msg);
-      }
-      printf("Finished writing DCD coordinate to file %s at step %lu \n",
+    double unitcell[6];
+    Copy_lattice_to_unitcell(unitcell, b);
+    int ret_code = write_dcdstep(stateFileFileid[b], numAtoms, x, y, z, unitcell);
+  
+    if (ret_code < 0) {
+      char err_msg[257];
+      sprintf(err_msg, "Writing of DCD coordinate %s failed at step %lu!",
         outDCDStateFile[b], step+1);
-
-      // write the cellbasis data to xst file
-      Write_Extension_System_Data(xstFile[b], step, b);
+      NAMD_err(err_msg);
     }
+    printf("Finished writing DCD coordinate to file %s at step %lu \n",
+      outDCDStateFile[b], step+1);
+
+    // write the cellbasis data to xst file
+    Write_Extension_System_Data(xstFile[b], step, b);
     GOMC_EVENT_STOP(1, GomcProfileEvent::DCD_OUTPUT);
   }
+}
 
-  // Output restart binary coordinates, velocities, and xsc file
-  if (((step + 1) % stepsRestartPerOut == 0) && enableRestartOut) {
-    GOMC_EVENT_START(1, GomcProfileEvent::DCD_RESTART_OUTPUT);
-    for (uint b = 0; b < BOX_TOTAL; ++b) {
-      int numAtomInBox = NumAtomInBox(b);
-      // Copy the coordinates and velocities data for each box into AOS
-      SetMolInBox(b);
-      printf("Writing binary restart coordinate to file %s at step %lu \n",
-        outDCDRestartFile[b], step+1);
-      //  Generate a binary restart coordinate file
-      Write_binary_file(outDCDRestartFile[b], numAtomInBox, restartCoor[b]);
-      printf("Finished writing binary restart coordinate to file %s at step %lu \n",
-        outDCDRestartFile[b], step+1);
-      
-      // output restart velocities
-      if(outputVelocity) {
-        // Update the velocity in box
-        velCurrRef.UpdateVelocityInBox(b);
-        printf("Writing binary restart velocity to file %s at step %lu \n",
-          outVelRestartFile[b], step+1);
-        //  Generate a binary restart velocity file
-        Write_binary_file(outVelRestartFile[b], numAtomInBox, restartVel[b]);
-        printf("Finished writing binary restart velocity to file %s at step %lu \n",
-          outVelRestartFile[b], step+1);
-      }
 
-      // write XSC file
-      NAMD_backup_file(outXSCFile[b], ".BAK");
-      xscFile[b].openOverwrite();
-      Write_Extension_System_Header(xscFile[b]);
-      // write the cellbasis data to xst file
-      Write_Extension_System_Data(xscFile[b], step, b);
-      xscFile[b].close();
+void ExtendedSystemOutput::DoOutputRestart(const ulong step)
+{
+  // Output restart binary coordinates and xsc file
+  GOMC_EVENT_START(1, GomcProfileEvent::DCD_RESTART_OUTPUT);
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    int numAtomInBox = NumAtomInBox(b);
+    // Copy the coordinate data for each box into AOS
+    SetMolInBox(b);
+    printf("Writing binary restart coordinate to file %s at step %lu \n",
+      outDCDRestartFile[b], step+1);
+    //  Generate a binary restart file
+    Write_binary_file(outDCDRestartFile[b], numAtomInBox, restartCoor[b]);
+    printf("Finished writing binary restart coordinate to file %s at step %lu \n",
+      outDCDRestartFile[b], step+1);
+
+    // output restart velocities
+    if(outputVelocity) {
+      // Update the velocity in box
+      velCurrRef.UpdateVelocityInBox(b);
+      printf("Writing binary restart velocity to file %s at step %lu \n",
+        outVelRestartFile[b], step+1);
+      //  Generate a binary restart velocity file
+      Write_binary_file(outVelRestartFile[b], numAtomInBox, restartVel[b]);
+      printf("Finished writing binary restart velocity to file %s at step %lu \n",
+        outVelRestartFile[b], step+1);
     }
-    GOMC_EVENT_STOP(1, GomcProfileEvent::DCD_RESTART_OUTPUT);
+    // write XSC file
+    NAMD_backup_file(outXSCFile[b], ".BAK");
+    xscFile[b].openOverwrite();
+    Write_Extension_System_Header(xscFile[b]);
+    // write the cellbasis data to xst file
+    Write_Extension_System_Data(xscFile[b], step, b);
+    xscFile[b].close();
   }
-
+  GOMC_EVENT_STOP(1, GomcProfileEvent::DCD_RESTART_OUTPUT);
 }
 
 int ExtendedSystemOutput::NumAtomInBox(const int box)
@@ -335,45 +329,59 @@ void ExtendedSystemOutput::Write_binary_file(char *fname, int n, XYZ *vec)
 
 void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int box)
 {
-  uint p, pStart = 0, pEnd = 0;
+  uint p, d, placementStart, placementEnd, dataStart, dataEnd, trajectoryI, dataI;
   int numMolecules = molRef.count;
   XYZ ref, coor;
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   //Loop through all molecules
-  for (int m = 0; m < numMolecules; ++m) {
-    molRef.GetRangeStartStop(pStart, pEnd, m);
-    ref = comCurrRef.Get(m);
-    for (p = pStart; p < pEnd; ++p) {
-      coor = coordCurrRef.Get(p);
+    MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
+                                 end = molLookupRef.BoxEnd(b);   
+    if(molLookupRef.restartFromCheckpoint){
+      trajectoryI = molLookupRef.originalMoleculeIndices[*m];
+    } else {
+      trajectoryI = *m;
+    }       
+    dataI = *m;    
+    molRef.GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
+    molRef.GetRangeStartStop(dataStart, dataEnd, dataI);    
+    ref = comCurrRef.Get(dataI);
+    for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
+      coor = coordCurrRef.Get(d);
       boxDimRef.UnwrapPBC(coor, box, ref);
-
       x[p] = coor.x;
       y[p] = coor.y;
       z[p] = coor.z;
     }
   }
 #else
-  bool inThisBox; 
+    bool inThisBox; 
   //Loop through all molecules
-  for (int m = 0; m < numMolecules; ++m) {
-    molRef.GetRangeStartStop(pStart, pEnd, m);
-    ref = comCurrRef.Get(m);
-    inThisBox = (molInBox[m] == box);
-    for (p = pStart; p < pEnd; ++p) {
+    MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
+                                 end = molLookupRef.BoxEnd(b);   
+    if(molLookupRef.restartFromCheckpoint){
+      trajectoryI = molLookupRef.originalMoleculeIndices[*m];
+    } else {
+      trajectoryI = *m;
+    }       
+    dataI = *m;    
+    molRef.GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
+    molRef.GetRangeStartStop(dataStart, dataEnd, dataI);  
+    ref = comCurrRef.Get(dataI);
+    inThisBox = (molInBox[dataI] == box);
+    for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
       if (inThisBox) {
-        coor = coordCurrRef.Get(p);
+        coor = coordCurrRef.Get(d);
         boxDimRef.UnwrapPBC(coor, box, ref);
       } else {
         coor.Reset();
       }
-
       x[p] = coor.x;
       y[p] = coor.y;
       z[p] = coor.z;
     }
   }
 #endif
-
 }
 
 void ExtendedSystemOutput::Copy_lattice_to_unitcell(double *unitcell, int box) {

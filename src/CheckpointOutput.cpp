@@ -53,8 +53,8 @@ CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
 void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
                             config_setup::Output const& output)
 {
-  enableOutCheckpoint = output.restart.settings.enable;
-  stepsPerCheckpoint = output.restart.settings.frequency;
+  enableRestOut = output.restart.settings.enable;
+  stepsRestPerOut = output.restart.settings.frequency;
   std::string file = output.statistics.settings.uniqueStr.val + "_restart.chk";
 #if GOMC_LIB_MPI
   filename = pathToReplicaOutputDirectory + file;
@@ -63,26 +63,28 @@ void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
 #endif
 }
 
-void CheckpointOutput::DoOutput(const ulong step)
+void CheckpointOutput::DoOutput(const ulong step){}
+
+void CheckpointOutput::DoOutputRestart(const ulong step)
 {
-  if(enableOutCheckpoint) {
-    GOMC_EVENT_START(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
-    std::cout << "Writing checkpoint to file " << filename << " at step " << step+1 << "\n";
-    openOutputFile();
-    printGOMCVersion();
-    printStepNumber(step);
-    printRandomNumbers();
-    printMoleculeLookupData();
-    printMoveSettingsData();
-    printMoleculesData();
+  GOMC_EVENT_START(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
+  std::cout << "Writing checkpoint to file " << filename << " at step " << step+1 << "\n";
+  openOutputFile();
+  printGOMCVersion();
+  printStepNumber(step);
+  printRandomNumbers();
+  printMoveSettingsData();
+  //printMoleculeLookupData();
+  printMoleculesData();
+  /* For consistent trajectory ordering */
+  printSortedMoleculeIndices();
 #if GOMC_LIB_MPI
-    printParallelTemperingBoolean();
-    if(enableParallelTempering)
-      printRandomNumbersParallelTempering();
+  printParallelTemperingBoolean();
+  if(enableParallelTempering)
+    printRandomNumbersParallelTempering();
 #endif
-    std::cout << "Checkpoint saved to " << filename << std::endl;
-    GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
-  }
+  std::cout << "Checkpoint saved to " << filename << std::endl;
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
 }
 
 void CheckpointOutput::setGOMCVersion()
@@ -165,6 +167,39 @@ void CheckpointOutput::printRandomNumbersParallelTempering()
 }
 #endif
 
+void CheckpointOutput::printMoveSettingsData()
+{
+  printVector3DDouble(moveSetRef.scale);
+  printVector3DDouble(moveSetRef.acceptPercent);
+  printVector3DUint(moveSetRef.accepted);
+  printVector3DUint(moveSetRef.tries);
+  printVector3DUint(moveSetRef.tempAccepted);
+  printVector3DUint(moveSetRef.tempTries);
+  printVector2DUint(moveSetRef.mp_tries);
+  printVector2DUint(moveSetRef.mp_accepted);
+  printVector1DDouble(moveSetRef.mp_t_max);
+  printVector1DDouble(moveSetRef.mp_r_max);
+}
+
+void CheckpointOutput::printMoleculesData()
+{
+  // print the start of each molecule
+  // there is an extra one at the end which store the total count
+  // that is used for to calculate the length of molecule
+  // so the length of last molecule can be calculated using
+  // start[molIndex+1]-start[molIndex]
+  write_uint32_binary(molRef.count);
+  for(int i = 0; i < (int)molRef.count+1; i++) {
+    write_uint32_binary(molRef.start[i]);
+  }
+
+  // print the start of each kind
+  write_uint32_binary(molRef.kIndexCount);
+  for(int i = 0; i < (int)molRef.kIndexCount; i++) {
+    write_uint32_binary(molRef.kIndex[i]);
+  }
+}
+
 void CheckpointOutput::printMoleculeLookupData()
 {
   // print the size of molLookup array
@@ -190,38 +225,39 @@ void CheckpointOutput::printMoleculeLookupData()
     write_uint32_binary(molLookupRef.fixedMolecule[i]);
   }
 }
-
-void CheckpointOutput::printMoleculesData()
-{
-  // print the start of each molecule
-  // there is an extra one at the end which store the total count
-  // that is used for to calculate the length of molecule
-  // so the length of last molecule can be calculated using
-  // start[molIndex+1]-start[molIndex]
-  write_uint32_binary(molRef.count);
-  for(int i = 0; i < (int)molRef.count+1; i++) {
-    write_uint32_binary(molRef.start[i]);
+/* After the first run, the molecules are sorted, so we need to use the same sorting process
+   seen below, to reinitialize the originalMolInds every checkpoint */
+void CheckpointOutput::printSortedMoleculeIndices(){
+  uint molCounter = 0, b, k, kI, countByKind, molI;
+  std::vector<uint> originalMoleculeIndicesVec(molLookupRef.molLookupCount);
+  if (!molLookupRef.restartFromCheckpoint){
+    for (b = 0; b < BOX_TOTAL; ++b) {
+      for (k = 0; k < molLookupRef.numKinds; ++k) {
+        countByKind = molLookupRef.NumKindInBox(k, b);
+        for (kI = 0; kI < countByKind; ++kI) {
+          molI = molLookupRef.GetMolNum(kI, k, b);
+          originalMoleculeIndicesVec[molCounter] = molI;
+          ++molCounter;
+        }
+      }
+    }
+    for (uint molI = 0; molI < molLookupRef.molLookupCount; ++molI){
+      molLookupRef.permutedMoleculeIndices[molI] = molLookupRef.originalMoleculeIndices[molI];
+    }
+  } else {
+    for (b = 0; b < BOX_TOTAL; ++b) {
+      for (k = 0; k < molLookupRef.numKinds; ++k) {
+        countByKind = molLookupRef.NumKindInBox(k, b);
+        for (kI = 0; kI < countByKind; ++kI) {
+          molI = molLookupRef.GetSortedMolNum(kI, k, b);
+          originalMoleculeIndicesVec[molCounter] = molLookupRef.permutedMoleculeIndices[molI];
+          ++molCounter;
+        }
+      }
+    }
   }
-
-  // print the start of each kind
-  write_uint32_binary(molRef.kIndexCount);
-  for(int i = 0; i < (int)molRef.kIndexCount; i++) {
-    write_uint32_binary(molRef.kIndex[i]);
-  }
-}
-
-void CheckpointOutput::printMoveSettingsData()
-{
-  printVector3DDouble(moveSetRef.scale);
-  printVector3DDouble(moveSetRef.acceptPercent);
-  printVector3DUint(moveSetRef.accepted);
-  printVector3DUint(moveSetRef.tries);
-  printVector3DUint(moveSetRef.tempAccepted);
-  printVector3DUint(moveSetRef.tempTries);
-  printVector2DUint(moveSetRef.mp_tries);
-  printVector2DUint(moveSetRef.mp_accepted);
-  printVector1DDouble(moveSetRef.mp_t_max);
-  printVector1DDouble(moveSetRef.mp_r_max);
+  printVector1DUint(originalMoleculeIndicesVec);
+  printArray1DUint(molLookupRef.permutedMoleculeIndices, molLookupRef.molLookupCount);
 }
 
 void CheckpointOutput::printVector3DDouble(const std::vector< std::vector< std::vector<double> > > &data)
@@ -279,6 +315,31 @@ void CheckpointOutput::printVector2DUint(const std::vector< std::vector< uint > 
     }
   }
 }
+
+void CheckpointOutput::printVector1DUint(const std::vector< uint > &data)
+{
+  // print size of array
+  ulong size_x = data.size();
+  write_uint64_binary(size_x);
+
+  // print array itself
+  for(int i = 0; i < (int) size_x; i++) {
+    write_uint32_binary(data[i]);
+  }
+}
+
+void CheckpointOutput::printArray1DUint(const uint * data, uint count)
+{
+  // print size of array
+  ulong size_x = count;
+  write_uint64_binary(size_x);
+
+  // print array itself
+  for(int i = 0; i < (int) size_x; i++) {
+    write_uint32_binary(data[i]);
+  }
+}
+
 
 void CheckpointOutput::printVector1DDouble(const std::vector< double > &data)
 {

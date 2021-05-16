@@ -11,6 +11,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MolSetup.h"
 #include <map>
 #include <string>
+// For iota
+#include <numeric>
+// For custom sort 
+#include "AlphaNum.h"
+
 
 namespace pdb_setup
 {
@@ -78,6 +83,13 @@ public:
     _start = start[m];
     stop = start[m + 1];
   }
+
+  void GetOriginalRangeStartStop(uint & _start, uint & stop, const uint m) const
+  {
+    _start = originalStart[m];
+    stop = originalStart[m + 1];
+  }
+
   void GetRangeStartLength(uint & _start, uint & len, const uint m) const
   {
     _start = start[m];
@@ -93,15 +105,23 @@ public:
                    std::vector<std::string> &names,
                    Forcefield & forcefield);
 
+
   //private:
   //Kind index of each molecule and start in master particle array
   //Plus counts
   uint* start;
+  /* From checkpoint for consistent trajectories */
+  uint* originalStart;
+  uint* originalKIndex;
+
+  /* only used for output */
   uint count;
   uint* kIndex;
   uint kIndexCount;
   uint* countByKind;
   char* chain;
+  double* beta;
+
 
   MoleculeKind * kinds;
   uint kindsCount;

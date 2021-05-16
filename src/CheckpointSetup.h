@@ -11,11 +11,15 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Coordinates.h"
 #include "PDBSetup.h"
 #include <iostream>
+#include "VectorLib.h" //for transfer.
+
 
 class CheckpointSetup
 {
 public:
   CheckpointSetup(System & sys, StaticVals const& statV, Setup const& set);
+  /* For GTesting */
+  CheckpointSetup(std::string file);
 
   ~CheckpointSetup()
   {
@@ -36,18 +40,19 @@ public:
 #if GOMC_LIB_MPI
   void SetPRNGVariablesPT(PRNG & prng);
 #endif
-  void SetMoleculeLookup(MoleculeLookup & molLookupRef);
-  void SetMolecules(Molecules& mos);
   void SetMoveSettings(MoveSettings & moveSettings);
+  void SetMoleculeLookup(MoleculeLookup & molLookupRef);
+  void SetMolecules(Molecules & molRef);
+  void SetOriginalMoleculeIndices(MoleculeLookup & molLookupRef);
+
+
+  // molecules data, for GTest I need this public
+  // Will add GTest macros around this when I merge PTTesters Branch
+  std::vector< uint > originalMoleculeIndicesVec;
+  std::vector< uint > permutedMoleculeIndicesVec; 
+  std::vector< uint > molecules_originalStartVec, molecules_originalKIndexVec;
 
 private:
-  MoveSettings & moveSetRef;
-  MoleculeLookup & molLookupRef;
-  BoxDimensions & boxDimRef;
-  Molecules const & molRef;
-  Coordinates & coordCurrRef;
-  PRNG & prngRef;
-
   std::string filename;
   FILE* inputFile;
 
@@ -68,9 +73,7 @@ private:
   std::vector< double > mp_r_maxVec;
   std::vector< double > mp_t_maxVec;
 
-  // molecules data
-  std::vector< uint > molecules_startVec;
-  std::vector< uint > molecules_kIndexVec;
+
 
   // private functions used by ReadAll and Get functions
   void readGOMCVersion();
@@ -78,20 +81,22 @@ private:
   void openInputFile();
   void readParallelTemperingBoolean();
   void readStepNumber();
+  void readOriginalMoleculeIndices();
   void readRandomNumbers();
 #if GOMC_LIB_MPI
   void readRandomNumbersParallelTempering();
   uint32_t* saveArrayPT;
   uint32_t seedLocationPT, seedLeftPT, seedValuePT;
 #endif
+  void readMoleculesData();
   void readMoleculeLookupData();
   void readMoveSettingsData();
-  void readMoleculesData();
   void closeInputFile();
 
   void readVector3DDouble(std::vector< std::vector< std::vector <double> > > & data);
   void readVector3DUint(std::vector< std::vector< std::vector <uint> > > & data);
   void readVector2DUint(std::vector< std::vector< uint > > & data);
+  void readVector1DUint(std::vector< uint > & data);
   void readVector1DDouble(std::vector< double > & data);
   double read_double_binary();
   int8_t read_uint8_binary();
