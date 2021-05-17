@@ -109,15 +109,15 @@ public:
   //private:
   //Kind index of each molecule and start in master particle array
   //Plus counts
-  uint* start;
+  uint32_t* start;
   /* From checkpoint for consistent trajectories */
-  uint* originalStart;
-  uint* originalKIndex;
+  uint32_t* originalStart;
+  uint32_t* originalKIndex;
 
   /* only used for output */
-  uint count;
-  uint* kIndex;
-  uint kIndexCount;
+  uint32_t count;
+  uint32_t* kIndex;
+  uint32_t kIndexCount;
   uint* countByKind;
   char* chain;
   double* beta;

@@ -13,6 +13,18 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include "VectorLib.h" //for transfer.
 
+#include <boost/archive/tmpdir.hpp>
+
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+
+#include <boost/serialization/base_object.hpp>
+#include <boost/serialization/utility.hpp>
+#include <boost/serialization/list.hpp>
+#include <boost/serialization/assume_abstract.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/vector.hpp>
+
 
 class CheckpointSetup
 {
@@ -60,7 +72,8 @@ private:
   // and will be passed to the rest of the code via Get functions
   int8_t parallelTemperingWasEnabled;
   char gomc_version[5];
-  ulong stepNumber;
+  uint64_t stepNumber;
+  //ulong stepNumber;
   uint32_t totalBoxes;
   uint32_t* saveArray;
   uint32_t seedLocation, seedLeft, seedValue;
@@ -116,10 +129,12 @@ private:
     {
         assert(gomc_version == nullptr);
         gomc_version = new char[5];
-        assert(atomKind == nullptr);
+        assert(saveArray == nullptr);
         saveArray = new uint32_t[N + 1];
-        assert(atomCharge == nullptr);
-        atomCharge = new double[numAtoms];        
+        #if GOMC_LIB_MPI
+        assert(saveArrayPT == nullptr);
+        saveArrayPT = new uint32_t[N + 1];        
+        #endif       
     }
     // GOMC Version
     ar & boost::serialization::make_array<char>(gomc_version, 5);  
@@ -127,9 +142,9 @@ private:
     ar & step;
     // PRNG Vars
     ar & boost::serialization::make_array<uint>(saveArray, N + 1);  
-    ar & location;
-    ar & left;
-    ar & seed;
+    ar & seedLocation;
+    ar & seedLeft;
+    ar & seedValue;
     // Move Settings Vectors
     ar & moveSetRef.scale;
     ar & moveSetRef.acceptPercent;
@@ -141,17 +156,20 @@ private:
     ar & moveSetRef.mp_accepted;
     ar & moveSetRef.mp_t_max;
     ar & moveSetRef.mp_r_max;
+    // Start and KIndex arrays
+    ar & boost::serialization::make_array<uint32_t>(molRef.originalStart, molRef.count + 1);  
+    ar & boost::serialization::make_array<uint32_t>(molRef.originalKIndex, molRef.kIndexCount);  
     // Sorted Molecule Indices
-    ar & originalMoleculeIndicesVec;
+    ar & boost::serialization::make_array<uint>(molLookupRef.originalMoleculeIndices, molLookupRef.molLookupCount);  
     ar & boost::serialization::make_array<uint>(molLookupRef.permutedMoleculeIndices, molLookupRef.molLookupCount);  
     // PT boolean
     ar & enableParallelTempering;
     #if GOMC_LIB_MPI
       // PRNG PT Vars
       ar & boost::serialization::make_array<uint>(saveArrayPT, N + 1);  
-      ar & locationPT;
-      ar & leftPT;
-      ar & seedPT;
+      ar & seedLocationPT;
+      ar & seedLeftPT;
+      ar & seedValuePT;
     #endif
   }
 };

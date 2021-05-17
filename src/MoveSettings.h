@@ -118,8 +118,8 @@ public:
 private:
 
   std::vector< std::vector< std::vector<double> > > scale, acceptPercent;
-  std::vector< std::vector< std::vector<uint> > > accepted, tries, tempAccepted, tempTries;
-  std::vector< std::vector< uint > > mp_accepted, mp_tries, mp_interval_accepted, mp_interval_tries;
+  std::vector< std::vector< std::vector<uint32_t> > > accepted, tries, tempAccepted, tempTries;
+  std::vector< std::vector< uint32_t > > mp_accepted, mp_tries, mp_interval_accepted, mp_interval_tries;
   std::vector< double > mp_r_max;
   std::vector< double > mp_t_max;
 

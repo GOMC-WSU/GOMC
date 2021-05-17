@@ -109,6 +109,11 @@ void System::Init(Setup & set, ulong & startStep)
   // At this point see if checkpoint is enabled. if so re-initialize
   // coordinates, prng, mollookup, step, boxdim, movesettings, and original molecule indices
   if(set.config.in.restart.restartFromCheckpoint) {
+    std::ofstream ofs(checkpointSet.filename);
+    boost::archive::text_oarchive oa(ofs);
+    oa >> checkpointSet;
+    ofs.close();
+    /*
     checkpointSet.ReadAll();
     checkpointSet.SetStepNumber(startStep);
     checkpointSet.SetPRNGVariables(prng);
@@ -116,10 +121,12 @@ void System::Init(Setup & set, ulong & startStep)
     checkpointSet.SetMolecules(statV.mol);
     //checkpointSet.SetMoleculeLookup(molLookupRef);
     checkpointSet.SetOriginalMoleculeIndices(molLookupRef);
+    */
 #if GOMC_LIB_MPI
-    if(checkpointSet.CheckIfParallelTemperingWasEnabled() && ms->parallelTemperingEnabled)
-      checkpointSet.SetPRNGVariablesPT(*prngParallelTemp);
+    //if(checkpointSet.CheckIfParallelTemperingWasEnabled() && ms->parallelTemperingEnabled)
+    //  checkpointSet.SetPRNGVariablesPT(*prngParallelTemp);
 #endif
+  
   }
 
   GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);

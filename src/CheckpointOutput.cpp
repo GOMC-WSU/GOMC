@@ -13,29 +13,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "Endian.h"
 
-namespace
-{
-union dbl_output_union {
-  char bin_value[8];
-  double dbl_value;
-};
-
-union uint32_output_union {
-  char bin_value[4];
-  uint32_t uint_value;
-};
-
-union uint64_output_union {
-  char bin_value[8];
-  uint64_t uint_value;
-};
-
-union int8_input_union {
-  char bin_value[1];
-  int8_t int_value;
-};
-}
-
 CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
@@ -49,13 +26,10 @@ CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
 {
   outputFile = NULL;
   saveArray = new uint32_t[N + 1];
+  originalMoleculeIndicesCheck = new uint32_t[molLookupRef.molLookupCount];
   #if GOMC_LIB_MPI
     saveArrayPT = new uint32_t[N + 1];
   #endif
-
-  
-  // save data to archive
-  boost::archive::text_oarchive oa(ofs);
 }
 
 void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
@@ -102,61 +76,14 @@ void CheckpointOutput::setGOMCVersion()
   sprintf(gomc_version, "%d.%02d", GOMC_VERSION_MAJOR, GOMC_VERSION_MINOR % 100);
 }
 
-void CheckpointOutput::printGOMCVersion()
-{
-  setGOMCVersion();
-  fprintf(outputFile, "%c%s%c", '$', gomc_version, '$');
-}
-
-void CheckpointOutput::printParallelTemperingBoolean()
-{
-  int8_t s = (int8_t) enableParallelTempering;
-  write_uint8_binary(s);
-}
-
 void CheckpointOutput::setParallelTemperingBoolean()
 {
   enableParallelTempering = (int8_t) enableParallelTemperingBool;
 }
 
-void CheckpointOutput::printStepNumber(const ulong step)
-{
-  write_uint64_binary(step+1);
-}
-
 void CheckpointOutput::setStepNumber(const ulong stepArg)
 {
    step = (uint64_t) stepArg;
-}
-
-void CheckpointOutput::printRandomNumbers()
-{
-  // First let's save the state array inside prng
-  // the length of the array is 624
-  // there is a save function inside MersenneTwister.h file
-  // to read back we can use the load function
-  const int N = 624;
-  // The MT::save function also appends the "left" variable,
-  // so need to allocate one more array element
-  uint32_t* saveArray = new uint32_t[N + 1];
-  prngRef.GetGenerator()->save(saveArray);
-  for(int i = 0; i < N; i++) {
-    write_uint32_binary(saveArray[i]);
-  }
-
-  // Save the location of pointer in state
-  uint32_t location = prngRef.GetGenerator()->pNext -
-                      prngRef.GetGenerator()->state;
-  write_uint32_binary(location);
-
-  // save the "left" value so we can restore it later
-  write_uint32_binary(prngRef.GetGenerator()->left);
-
-  // let's save seedValue just in case
-  // not sure if that is used or not, or how important it is
-  write_uint32_binary(prngRef.GetGenerator()->seedValue);
-
-  //delete[] saveArray;
 }
 
 void CheckpointOutput::setRandomNumbers()
@@ -180,32 +107,6 @@ void CheckpointOutput::setRandomNumbers()
 }
 
 #if GOMC_LIB_MPI
-void CheckpointOutput::printRandomNumbersParallelTempering()
-{
-  // First let's save the state array inside prng
-  // the length of the array is 624
-  // there is a save function inside MersenneTwister.h file
-  // to read back we can use the load function
-  const int N = 624;
-  uint32_t* saveArray = new uint32_t[N];
-  prngPTRef.GetGenerator()->save(saveArray);
-  for(int i = 0; i < N; i++) {
-    write_uint32_binary(saveArray[i]);
-  }
-
-  // Save the location of pointer in state
-  uint32_t location = prngPTRef.GetGenerator()->pNext -
-                      prngPTRef.GetGenerator()->state;
-  write_uint32_binary(location);
-
-  // save the "left" value so we can restore it later
-  write_uint32_binary(prngPTRef.GetGenerator()->left);
-
-  // let's save seedValue just in case
-  // not sure if that is used or not, or how important it is
-  write_uint32_binary(prngPTRef.GetGenerator()->seedValue);
-}
-
 void CheckpointOutput::setRandomNumbersParallelTempering()
 {
   // First let's save the state array inside prng
@@ -264,15 +165,13 @@ void CheckpointOutput::printMoleculesData()
    seen below, to reinitialize the originalMolInds every checkpoint */
 void CheckpointOutput::setSortedMoleculeIndices(){
   uint molCounter = 0, b, k, kI, countByKind, molI;
-  originalMoleculeIndicesVec.clear();
-  originalMoleculeIndicesVec.resize(molLookupRef.molLookupCount)l
   if (!molLookupRef.restartFromCheckpoint){
     for (b = 0; b < BOX_TOTAL; ++b) {
       for (k = 0; k < molLookupRef.numKinds; ++k) {
         countByKind = molLookupRef.NumKindInBox(k, b);
         for (kI = 0; kI < countByKind; ++kI) {
           molI = molLookupRef.GetMolNum(kI, k, b);
-          originalMoleculeIndicesVec[molCounter] = molI;
+          originalMoleculeIndicesCheck[molCounter] = molI;
           ++molCounter;
         }
       }
@@ -286,106 +185,11 @@ void CheckpointOutput::setSortedMoleculeIndices(){
         countByKind = molLookupRef.NumKindInBox(k, b);
         for (kI = 0; kI < countByKind; ++kI) {
           molI = molLookupRef.GetSortedMolNum(kI, k, b);
-          originalMoleculeIndicesVec[molCounter] = molLookupRef.permutedMoleculeIndices[molI];
+          originalMoleculeIndicesCheck[molCounter] = molLookupRef.permutedMoleculeIndices[molI];
           ++molCounter;
         }
       }
     }
-  }
-  //printVector1DUint(originalMoleculeIndicesVec);
-  //printArray1DUint(molLookupRef.permutedMoleculeIndices, molLookupRef.molLookupCount);
-}
-
-void CheckpointOutput::printVector3DDouble(const std::vector< std::vector< std::vector<double> > > &data)
-{
-  // print size of tempTries
-  ulong size_x = data.size();
-  ulong size_y = data[0].size();
-  ulong size_z = data[0][0].size();
-  write_uint64_binary(size_x);
-  write_uint64_binary(size_y);
-  write_uint64_binary(size_z);
-
-  // print tempTries array
-  for(int i = 0; i < (int) size_x; i++) {
-    for(int j = 0; j < (int) size_y; j++) {
-      for(int k = 0; k < (int) size_z; k++) {
-        write_double_binary(data[i][j][k]);
-      }
-    }
-  }
-}
-
-void CheckpointOutput::printVector3DUint(const std::vector< std::vector< std::vector<uint> > > &data)
-{
-  // print size of tempTries
-  ulong size_x = data.size();
-  ulong size_y = data[0].size();
-  ulong size_z = data[0][0].size();
-  write_uint64_binary(size_x);
-  write_uint64_binary(size_y);
-  write_uint64_binary(size_z);
-
-  // print tempTries array
-  for(int i = 0; i < (int) size_x; i++) {
-    for(int j = 0; j < (int) size_y; j++) {
-      for(int k = 0; k < (int) size_z; k++) {
-        write_uint32_binary(data[i][j][k]);
-      }
-    }
-  }
-}
-
-void CheckpointOutput::printVector2DUint(const std::vector< std::vector< uint > > &data)
-{
-  // print size of array
-  ulong size_x = data.size();
-  ulong size_y = data[0].size();
-  write_uint64_binary(size_x);
-  write_uint64_binary(size_y);
-
-  // print array itself
-  for(int i = 0; i < (int) size_x; i++) {
-    for(int j = 0; j < (int) size_y; j++) {
-      write_uint32_binary(data[i][j]);
-    }
-  }
-}
-
-void CheckpointOutput::printVector1DUint(const std::vector< uint > &data)
-{
-  // print size of array
-  ulong size_x = data.size();
-  write_uint64_binary(size_x);
-
-  // print array itself
-  for(int i = 0; i < (int) size_x; i++) {
-    write_uint32_binary(data[i]);
-  }
-}
-
-void CheckpointOutput::printArray1DUint(const uint * data, uint count)
-{
-  // print size of array
-  ulong size_x = count;
-  write_uint64_binary(size_x);
-
-  // print array itself
-  for(int i = 0; i < (int) size_x; i++) {
-    write_uint32_binary(data[i]);
-  }
-}
-
-
-void CheckpointOutput::printVector1DDouble(const std::vector< double > &data)
-{
-  // print size of array
-  ulong size_x = data.size();
-  write_uint64_binary(size_x);
-
-  // print array itself
-  for(int i = 0; i < (int) size_x; i++) {
-    write_double_binary(data[i]);
   }
 }
 
