@@ -42,9 +42,9 @@ CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   coordCurrRef(sys.coordinates),
 #if GOMC_LIB_MPI
   prngPTRef(*sys.prngParallelTemp),
-  enableParallelTempering(sys.ms->parallelTemperingEnabled)
+  enableParallelTemperingBool(sys.ms->parallelTemperingEnabled)
 #else
-  enableParallelTempering(false)
+  enableParallelTemperingBool(false)
 #endif
 {
   outputFile = NULL;
@@ -70,14 +70,13 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
   GOMC_EVENT_START(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
   std::cout << "Writing checkpoint to file " << filename << " at step " << step+1 << "\n";
   openOutputFile();
-  printGOMCVersion();
-  printStepNumber(step);
-  printRandomNumbers();
-  printMoveSettingsData();
-  //printMoleculeLookupData();
-  printMoleculesData();
+  //printGOMCVersion();
+  //printStepNumber(step);
+  //printRandomNumbers();
+  //printMoveSettingsData();
+  //printMoleculesData();
   /* For consistent trajectory ordering */
-  printSortedMoleculeIndices();
+  //printSortedMoleculeIndices();
 #if GOMC_LIB_MPI
   printParallelTemperingBoolean();
   if(enableParallelTempering)
@@ -136,7 +135,7 @@ void CheckpointOutput::printRandomNumbers()
   // not sure if that is used or not, or how important it is
   write_uint32_binary(prngRef.GetGenerator()->seedValue);
 
-  delete[] saveArray;
+  //delete[] saveArray;
 }
 
 #if GOMC_LIB_MPI
@@ -229,7 +228,8 @@ void CheckpointOutput::printMoleculeLookupData()
    seen below, to reinitialize the originalMolInds every checkpoint */
 void CheckpointOutput::printSortedMoleculeIndices(){
   uint molCounter = 0, b, k, kI, countByKind, molI;
-  std::vector<uint> originalMoleculeIndicesVec(molLookupRef.molLookupCount);
+  originalMoleculeIndicesVec.clear();
+  originalMoleculeIndicesVec.resize(molLookupRef.molLookupCount)l
   if (!molLookupRef.restartFromCheckpoint){
     for (b = 0; b < BOX_TOTAL; ++b) {
       for (k = 0; k < molLookupRef.numKinds; ++k) {
