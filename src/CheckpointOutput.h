@@ -62,6 +62,11 @@ private:
   /* Variables to set before call to boost serialize */
   char gomc_version[5];
 
+  uint64_t step;
+
+  const int N = 624;
+
+
   uint32_t* saveArray;
   uint32_t location;
   uint32_t left;
@@ -83,17 +88,24 @@ private:
   void openOutputFile();
   void setGOMCVersion();
   void printGOMCVersion();
+  void setParallelTemperingBoolean();
   void printParallelTemperingBoolean();
+  void setStepNumber(ulong stepArg);
   void printStepNumber(ulong step);
+  void setRandomNumbers();
   void printRandomNumbers();
-  void printMoleculeLookupData();
+  void setMoleculesData();
   void printMoleculesData();
-
+  void setSortedMoleculeIndices();
   void printSortedMoleculeIndices();
+
 #if GOMC_LIB_MPI
+  void setRandomNumbersParallelTempering();
   void printRandomNumbersParallelTempering();
 #endif
   void printMoveSettingsData();
+  void setMoveSettingsData();
+
 
   void printVector3DDouble(const std::vector< std::vector< std::vector<double> > > &data);
   void printVector3DUint(const std::vector< std::vector< std::vector<uint> > > &data);
@@ -114,14 +126,62 @@ private:
   template<class Archive>
   void serialize(Archive & ar, const unsigned int version)
   {
-    ar & name;
-    ar & type;
-    ar & residue;
-    ar & segment;
-    ar & charge;
-    ar & mass; 
-    ar & residueID; 
-    ar & kind; 
+    // GOMC Version
+    ar & boost::serialization::make_array<char>(gomc_version, 5);  
+    // Step
+    ar & step;
+    // PRNG Vars
+    ar & boost::serialization::make_array<uint32_t>(saveArray, N + 1);  
+    ar & location;
+    ar & left;
+    ar & seed;
+    // Move Settings Vectors
+    ar & moveSetRef.scale;
+    ar & moveSetRef.acceptPercent;
+    ar & moveSetRef.accepted;
+    ar & moveSetRef.tries;
+    ar & moveSetRef.tempAccepted;
+    ar & moveSetRef.tempTries;
+    ar & moveSetRef.mp_tries;
+    ar & moveSetRef.mp_accepted;
+    ar & moveSetRef.mp_t_max;
+    ar & moveSetRef.mp_r_max;
+    // Sorted Molecule Indices
+    ar & originalMoleculeIndicesVec;
+    ar & boost::serialization::make_array<uint>(molLookupRef.permutedMoleculeIndices, molLookupRef.molLookupCount);  
+    // PT boolean
+    ar & enableParallelTempering;
+    #if GOMC_LIB_MPI
+      // PRNG PT Vars
+      ar & boost::serialization::make_array<uint32_t>(saveArrayPT, N + 1);  
+      ar & locationPT;
+      ar & leftPT;
+      ar & seedPT;
+    #endif
+  }
+
+  /* Variables to set before call to boost serialize */
+  char gomc_version[5];
+
+  uint64_t step;
+
+  const int N = 624;
+
+  uint32_t* saveArray;
+  uint32_t location;
+  uint32_t left;
+  uint32_t seed;
+
+  std::vector<uint32_t> originalMoleculeIndicesVec;
+
+  int8_t enableParallelTempering;
+
+#if GOMC_LIB_MPI
+  uint32_t* saveArrayPT;
+  uint32_t locationPT;
+  uint32_t leftPT;
+  uint32_t seedPT;
+#endif
   }
 
 };

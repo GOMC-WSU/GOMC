@@ -48,6 +48,14 @@ CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
 #endif
 {
   outputFile = NULL;
+  saveArray = new uint32_t[N + 1];
+  #if GOMC_LIB_MPI
+    saveArrayPT = new uint32_t[N + 1];
+  #endif
+
+  
+  // save data to archive
+  boost::archive::text_oarchive oa(ofs);
 }
 
 void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
@@ -69,19 +77,22 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
   std::cout << "Writing checkpoint to file " << filename << " at step " << step+1 << "\n";
-  openOutputFile();
-  //printGOMCVersion();
-  //printStepNumber(step);
-  //printRandomNumbers();
-  //printMoveSettingsData();
-  //printMoleculesData();
+  //openOutputFile();
+  setGOMCVersion();
+  setStepNumber(step);
+  setRandomNumbers();
   /* For consistent trajectory ordering */
-  //printSortedMoleculeIndices();
+  setSortedMoleculeIndices();
 #if GOMC_LIB_MPI
-  printParallelTemperingBoolean();
+  setParallelTemperingBoolean();
   if(enableParallelTempering)
-    printRandomNumbersParallelTempering();
+    setRandomNumbersParallelTempering();
 #endif
+  // create and open a character archive for output
+  std::ofstream ofs(filename);
+  boost::archive::text_oarchive oa(ofs);
+  oa << *this;
+  ofs.close();
   std::cout << "Checkpoint saved to " << filename << std::endl;
   GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
 }
@@ -103,9 +114,19 @@ void CheckpointOutput::printParallelTemperingBoolean()
   write_uint8_binary(s);
 }
 
+void CheckpointOutput::setParallelTemperingBoolean()
+{
+  enableParallelTempering = (int8_t) enableParallelTemperingBool;
+}
+
 void CheckpointOutput::printStepNumber(const ulong step)
 {
   write_uint64_binary(step+1);
+}
+
+void CheckpointOutput::setStepNumber(const ulong stepArg)
+{
+   step = (uint64_t) stepArg;
 }
 
 void CheckpointOutput::printRandomNumbers()
@@ -138,6 +159,26 @@ void CheckpointOutput::printRandomNumbers()
   //delete[] saveArray;
 }
 
+void CheckpointOutput::setRandomNumbers()
+{
+  // First let's save the state array inside prng
+  // the length of the array is 624
+  // there is a save function inside MersenneTwister.h file
+  // to read back we can use the load function
+  // The MT::save function also appends the "left" variable,
+  // so need to allocate one more array element
+  prngRef.GetGenerator()->save(saveArray);
+  // Save the location of pointer in state
+  location = prngRef.GetGenerator()->pNext - prngRef.GetGenerator()->state;
+
+  // save the "left" value so we can restore it later
+  left = (prngRef.GetGenerator()->left);
+
+  // let's save seedValue just in case
+  // not sure if that is used or not, or how important it is
+  seed = prngRef.GetGenerator()->seedValue;
+}
+
 #if GOMC_LIB_MPI
 void CheckpointOutput::printRandomNumbersParallelTempering()
 {
@@ -163,6 +204,26 @@ void CheckpointOutput::printRandomNumbersParallelTempering()
   // let's save seedValue just in case
   // not sure if that is used or not, or how important it is
   write_uint32_binary(prngPTRef.GetGenerator()->seedValue);
+}
+
+void CheckpointOutput::setRandomNumbersParallelTempering()
+{
+  // First let's save the state array inside prng
+  // the length of the array is 624
+  // there is a save function inside MersenneTwister.h file
+  // to read back we can use the load function
+  // The MT::save function also appends the "left" variable,
+  // so need to allocate one more array element
+  prngPTRef.GetGenerator()->save(saveArrayPT);
+  // Save the location of pointer in state
+  locationPT = prngPTRef.GetGenerator()->pNext - prngPTRef.GetGenerator()->state;
+
+  // save the "left" value so we can restore it later
+  leftPT = (prngPTRef.GetGenerator()->left);
+
+  // let's save seedValue just in case
+  // not sure if that is used or not, or how important it is
+  seedPT = prngPTRef.GetGenerator()->seedValue;
 }
 #endif
 
@@ -199,34 +260,9 @@ void CheckpointOutput::printMoleculesData()
   }
 }
 
-void CheckpointOutput::printMoleculeLookupData()
-{
-  // print the size of molLookup array
-  write_uint32_binary(molLookupRef.molLookupCount);
-  // print the molLookup array itself
-  for(int i = 0; i < (int) molLookupRef.molLookupCount; i++) {
-    write_uint32_binary(molLookupRef.molLookup[i]);
-  }
-
-  // print the size of boxAndKindStart array
-  write_uint32_binary(molLookupRef.boxAndKindStartCount);
-  // print the BoxAndKindStart array
-  for(int i = 0; i < (int) molLookupRef.boxAndKindStartCount; i++) {
-    write_uint32_binary(molLookupRef.boxAndKindStart[i]);
-  }
-
-  // print numKinds
-  write_uint32_binary(molLookupRef.numKinds);
-  //print the size of fixedMolecule array
-  write_uint32_binary((uint)molLookupRef.fixedMolecule.size());
-  //print the fixedMolecule array itself
-  for(int i = 0; i < (int) molLookupRef.fixedMolecule.size(); i++) {
-    write_uint32_binary(molLookupRef.fixedMolecule[i]);
-  }
-}
 /* After the first run, the molecules are sorted, so we need to use the same sorting process
    seen below, to reinitialize the originalMolInds every checkpoint */
-void CheckpointOutput::printSortedMoleculeIndices(){
+void CheckpointOutput::setSortedMoleculeIndices(){
   uint molCounter = 0, b, k, kI, countByKind, molI;
   originalMoleculeIndicesVec.clear();
   originalMoleculeIndicesVec.resize(molLookupRef.molLookupCount)l
@@ -256,8 +292,8 @@ void CheckpointOutput::printSortedMoleculeIndices(){
       }
     }
   }
-  printVector1DUint(originalMoleculeIndicesVec);
-  printArray1DUint(molLookupRef.permutedMoleculeIndices, molLookupRef.molLookupCount);
+  //printVector1DUint(originalMoleculeIndicesVec);
+  //printArray1DUint(molLookupRef.permutedMoleculeIndices, molLookupRef.molLookupCount);
 }
 
 void CheckpointOutput::printVector3DDouble(const std::vector< std::vector< std::vector<double> > > &data)

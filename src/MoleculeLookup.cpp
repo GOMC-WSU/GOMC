@@ -116,8 +116,8 @@ void MoleculeLookup::Init(const Molecules& mols,
     if a new run, they are depedent on the originalMolInds set below
     if a checkpointed run, they are the originalInds permuted through mol transfers */
   if (!restartFromCheckpoint){
-    originalMoleculeIndices = new uint[mols.count];
-    permutedMoleculeIndices = new uint[mols.count];
+    originalMoleculeIndices = new uint32_t[mols.count];
+    permutedMoleculeIndices = new uint32_t[mols.count];
     for (uint molI = 0; molI < molLookupCount; ++molI){
       originalMoleculeIndices[molI] = molI;
       permutedMoleculeIndices[molI] = molI;

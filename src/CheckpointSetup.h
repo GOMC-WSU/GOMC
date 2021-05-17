@@ -102,4 +102,56 @@ private:
   int8_t read_uint8_binary();
   uint32_t read_uint32_binary();
   uint64_t read_uint64_binary();
+
+  const int N = 624;
+
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+    if (Archive::is_loading::value)
+    {
+        assert(gomc_version == nullptr);
+        gomc_version = new char[5];
+        assert(atomKind == nullptr);
+        saveArray = new uint32_t[N + 1];
+        assert(atomCharge == nullptr);
+        atomCharge = new double[numAtoms];        
+    }
+    // GOMC Version
+    ar & boost::serialization::make_array<char>(gomc_version, 5);  
+    // Step
+    ar & step;
+    // PRNG Vars
+    ar & boost::serialization::make_array<uint>(saveArray, N + 1);  
+    ar & location;
+    ar & left;
+    ar & seed;
+    // Move Settings Vectors
+    ar & moveSetRef.scale;
+    ar & moveSetRef.acceptPercent;
+    ar & moveSetRef.accepted;
+    ar & moveSetRef.tries;
+    ar & moveSetRef.tempAccepted;
+    ar & moveSetRef.tempTries;
+    ar & moveSetRef.mp_tries;
+    ar & moveSetRef.mp_accepted;
+    ar & moveSetRef.mp_t_max;
+    ar & moveSetRef.mp_r_max;
+    // Sorted Molecule Indices
+    ar & originalMoleculeIndicesVec;
+    ar & boost::serialization::make_array<uint>(molLookupRef.permutedMoleculeIndices, molLookupRef.molLookupCount);  
+    // PT boolean
+    ar & enableParallelTempering;
+    #if GOMC_LIB_MPI
+      // PRNG PT Vars
+      ar & boost::serialization::make_array<uint>(saveArrayPT, N + 1);  
+      ar & locationPT;
+      ar & leftPT;
+      ar & seedPT;
+    #endif
+  }
 };
