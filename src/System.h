@@ -118,6 +118,7 @@ public:
   CalculateEnergy calcEnergy;
   Ewald *calcEwald;
 
+  /* For checkpoint restoration */
   CheckpointSetup checkpointSet;
 
   //Procedure to run once move is picked... can also be called directly for
@@ -139,6 +140,8 @@ private:
   double moveTime[mv::MOVE_KINDS_TOTAL];
   MoveBase * moves[mv::MOVE_KINDS_TOTAL];
   Clock time;
+
+  void loadCheckpointInputFile(std::string filenameArg);
 };
 
 #endif /*SYSTEM_H*/

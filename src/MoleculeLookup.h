@@ -42,6 +42,8 @@ public:
     delete[] atomKind;
     delete[] atomCharge;
     delete[] boxAndKindSwappableCounts;
+    delete[] originalMoleculeIndices;
+    delete[] permutedMoleculeIndices;
   }
 
   //Initialize this object to be consistent with Molecules mols

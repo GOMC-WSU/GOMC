@@ -109,24 +109,15 @@ void System::Init(Setup & set, ulong & startStep)
   // At this point see if checkpoint is enabled. if so re-initialize
   // coordinates, prng, mollookup, step, boxdim, movesettings, and original molecule indices
   if(set.config.in.restart.restartFromCheckpoint) {
-    std::ofstream ofs(checkpointSet.filename);
-    boost::archive::text_oarchive oa(ofs);
-    oa >> checkpointSet;
-    ofs.close();
-    /*
-    checkpointSet.ReadAll();
+    loadCheckpointInputFile(checkpointSet.getFileName());
     checkpointSet.SetStepNumber(startStep);
     checkpointSet.SetPRNGVariables(prng);
-    checkpointSet.SetMoveSettings(moveSettings);
     checkpointSet.SetMolecules(statV.mol);
-    //checkpointSet.SetMoleculeLookup(molLookupRef);
-    checkpointSet.SetOriginalMoleculeIndices(molLookupRef);
-    */
 #if GOMC_LIB_MPI
-    //if(checkpointSet.CheckIfParallelTemperingWasEnabled() && ms->parallelTemperingEnabled)
-    //  checkpointSet.SetPRNGVariablesPT(*prngParallelTemp);
+    if(checkpointSet.CheckIfParallelTemperingWasEnabled() && ms->parallelTemperingEnabled)
+      checkpointSet.SetPRNGVariablesPT(*prngParallelTemp);
 #endif
-  
+    std::cout << "Checkpoint loaded from " << checkpointSet.getFileName() << std::endl;
   }
 
   GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
@@ -389,4 +380,22 @@ void System::PrintTime()
   printf("%-36s %10.4f    sec.\n", "Vol-Transfer:", moveTime[mv::VOL_TRANSFER]);
 #endif
   std::cout << std::endl;
+}
+
+void System::loadCheckpointInputFile(std::string filenameArg)
+{
+  std::ifstream ifs(filenameArg);
+  boost::archive::text_iarchive ia(ifs);
+
+  if(!ifs.is_open()) {
+    fprintf(stderr, "Error opening checkpoint input file %s\n",
+            filenameArg.c_str());
+    exit(EXIT_FAILURE);
+  }
+  ia >> checkpointSet;
+  if(!ifs.is_open()) {
+    fprintf(stderr, "Checkpoint file was not open!\n");
+    exit(EXIT_FAILURE);
+  }
+  ifs.close();
 }

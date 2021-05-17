@@ -63,12 +63,31 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
     setRandomNumbersParallelTempering();
 #endif
   // create and open a character archive for output
-  std::ofstream ofs(filename);
-  boost::archive::text_oarchive oa(ofs);
-  oa << *this;
-  ofs.close();
+  openOutputFile(filename);
+  *oa << *this;
+  closeOutputFile();
   std::cout << "Checkpoint saved to " << filename << std::endl;
   GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
+}
+
+void CheckpointOutput::openOutputFile(std::string filenameArg)
+{
+  ofs = new std::ofstream(filenameArg);
+  oa = new boost::archive::text_oarchive(*ofs);
+  if(!ofs->is_open()) {
+    fprintf(stderr, "Error opening checkpoint output file %s\n",
+            filenameArg.c_str());
+    exit(EXIT_FAILURE);
+  }
+}
+
+void CheckpointOutput::closeOutputFile()
+{
+  if(!ofs->is_open()) {
+    fprintf(stderr, "Checkpoint file was not open!\n");
+    exit(EXIT_FAILURE);
+  }
+  ofs->close();
 }
 
 void CheckpointOutput::setGOMCVersion()
@@ -128,39 +147,6 @@ void CheckpointOutput::setRandomNumbersParallelTempering()
 }
 #endif
 
-void CheckpointOutput::printMoveSettingsData()
-{
-  printVector3DDouble(moveSetRef.scale);
-  printVector3DDouble(moveSetRef.acceptPercent);
-  printVector3DUint(moveSetRef.accepted);
-  printVector3DUint(moveSetRef.tries);
-  printVector3DUint(moveSetRef.tempAccepted);
-  printVector3DUint(moveSetRef.tempTries);
-  printVector2DUint(moveSetRef.mp_tries);
-  printVector2DUint(moveSetRef.mp_accepted);
-  printVector1DDouble(moveSetRef.mp_t_max);
-  printVector1DDouble(moveSetRef.mp_r_max);
-}
-
-void CheckpointOutput::printMoleculesData()
-{
-  // print the start of each molecule
-  // there is an extra one at the end which store the total count
-  // that is used for to calculate the length of molecule
-  // so the length of last molecule can be calculated using
-  // start[molIndex+1]-start[molIndex]
-  write_uint32_binary(molRef.count);
-  for(int i = 0; i < (int)molRef.count+1; i++) {
-    write_uint32_binary(molRef.start[i]);
-  }
-
-  // print the start of each kind
-  write_uint32_binary(molRef.kIndexCount);
-  for(int i = 0; i < (int)molRef.kIndexCount; i++) {
-    write_uint32_binary(molRef.kIndex[i]);
-  }
-}
-
 /* After the first run, the molecules are sorted, so we need to use the same sorting process
    seen below, to reinitialize the originalMolInds every checkpoint */
 void CheckpointOutput::setSortedMoleculeIndices(){
@@ -191,87 +177,4 @@ void CheckpointOutput::setSortedMoleculeIndices(){
       }
     }
   }
-}
-
-void CheckpointOutput::openOutputFile()
-{
-  outputFile = fopen(filename.c_str(), "wb");
-  if(outputFile == NULL) {
-    fprintf(stderr, "Error opening checkpoint output file %s\n",
-            filename.c_str());
-    exit(EXIT_FAILURE);
-  }
-}
-
-void CheckpointOutput::write_double_binary(double data)
-{
-  if(outputFile == NULL) {
-    fprintf(stderr, "Error opening checkpoint output file %s\n",
-            filename.c_str());
-    exit(EXIT_FAILURE);
-  }
-  dbl_output_union temp;
-  temp.dbl_value = data;
-  fprintf(outputFile, "%c%c%c%c%c%c%c%c",
-          temp.bin_value[0],
-          temp.bin_value[1],
-          temp.bin_value[2],
-          temp.bin_value[3],
-          temp.bin_value[4],
-          temp.bin_value[5],
-          temp.bin_value[6],
-          temp.bin_value[7]);
-  fflush(outputFile);
-}
-
-void CheckpointOutput::write_uint8_binary(int8_t data)
-{
-  if(outputFile == NULL) {
-    fprintf(stderr, "Error opening checkpoint output file %s\n",
-            filename.c_str());
-    exit(EXIT_FAILURE);
-  }
-  int8_input_union temp;
-  temp.int_value = data;
-  fprintf(outputFile, "%c",
-          temp.bin_value[0]);
-  fflush(outputFile);
-}
-
-void CheckpointOutput::write_uint64_binary(uint64_t data)
-{
-  if(outputFile == NULL) {
-    fprintf(stderr, "Error opening checkpoint output file %s\n",
-            filename.c_str());
-    exit(EXIT_FAILURE);
-  }
-  uint64_output_union temp;
-  temp.uint_value = htof64(data);
-  fprintf(outputFile, "%c%c%c%c%c%c%c%c",
-          temp.bin_value[0],
-          temp.bin_value[1],
-          temp.bin_value[2],
-          temp.bin_value[3],
-          temp.bin_value[4],
-          temp.bin_value[5],
-          temp.bin_value[6],
-          temp.bin_value[7]);
-  fflush(outputFile);
-}
-
-void CheckpointOutput::write_uint32_binary(uint32_t data)
-{
-  if(outputFile == NULL) {
-    fprintf(stderr, "Error opening checkpoint output file %s\n",
-            filename.c_str());
-    exit(EXIT_FAILURE);
-  }
-  uint32_output_union temp;
-  temp.uint_value = htof32(data);
-  fprintf(outputFile, "%c%c%c%c",
-          temp.bin_value[0],
-          temp.bin_value[1],
-          temp.bin_value[2],
-          temp.bin_value[3]);
-  fflush(outputFile);
 }

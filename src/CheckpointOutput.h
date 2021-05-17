@@ -44,6 +44,9 @@ public:
 
 
 private:
+  std::ofstream * ofs;
+  boost::archive::text_oarchive * oa;
+
   MoveSettings & moveSetRef;
   MoleculeLookup & molLookupRef;
   BoxDimensions & boxDimRef;
@@ -85,12 +88,12 @@ private:
   /* Variables to set before call to boost serialize */
 
 
-  void openOutputFile();
+  void openOutputFile(std::string filenameArg);
+  void closeOutputFile();
   void setGOMCVersion();
   void setParallelTemperingBoolean();
   void setStepNumber(ulong stepArg);
   void setRandomNumbers();
-  void setMoleculesData();
   void setSortedMoleculeIndices();
 
 #if GOMC_LIB_MPI
@@ -134,11 +137,13 @@ private:
     // PT boolean
     ar & enableParallelTempering;
     #if GOMC_LIB_MPI
+    if(enableParallelTemperingBool){
       // PRNG PT Vars
       ar & boost::serialization::make_array<uint32_t>(saveArrayPT, N + 1);  
       ar & locationPT;
       ar & leftPT;
       ar & seedPT;
+    }
     #endif
   }
 };

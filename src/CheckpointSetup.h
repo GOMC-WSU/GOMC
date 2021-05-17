@@ -31,90 +31,60 @@ class CheckpointSetup
 public:
   CheckpointSetup(System & sys, StaticVals const& statV, Setup const& set);
   /* For GTesting */
-  CheckpointSetup(std::string file);
+  CheckpointSetup(std::string file, MoleculeLookup & molLookup, MoveSettings & moveSettings);
 
   ~CheckpointSetup()
   {
-    if(inputFile != NULL) {
-      fclose(inputFile);
-      inputFile = NULL;
-    }
-    if(saveArray != NULL) {
+    if(saveArray != nullptr) {
       delete [] saveArray;
-      saveArray = NULL;
+      saveArray = nullptr;
     }
+    if(originalStartLocalCopy != nullptr){
+      delete [] originalStartLocalCopy;
+      originalStartLocalCopy = nullptr;
+    }
+    if(originalKIndexLocalCopy != nullptr){
+      delete [] originalKIndexLocalCopy;
+      originalKIndexLocalCopy = nullptr;
+    }
+    #if GOMC_LIB_MPI
+    if(saveArrayPT != nullptr) {
+      delete [] saveArrayPT;
+      saveArrayPT = nullptr;
+    }
+    #endif
   }
-
-  void ReadAll();
+  std::string getFileName();
   void SetStepNumber(ulong & startStep);
   void SetPRNGVariables(PRNG & prng);
   bool CheckIfParallelTemperingWasEnabled();
 #if GOMC_LIB_MPI
   void SetPRNGVariablesPT(PRNG & prng);
 #endif
-  void SetMoveSettings(MoveSettings & moveSettings);
-  void SetMoleculeLookup(MoleculeLookup & molLookupRef);
   void SetMolecules(Molecules & molRef);
-  void SetOriginalMoleculeIndices(MoleculeLookup & molLookupRef);
-
-
-  // molecules data, for GTest I need this public
-  // Will add GTest macros around this when I merge PTTesters Branch
-  std::vector< uint > originalMoleculeIndicesVec;
-  std::vector< uint > permutedMoleculeIndicesVec; 
-  std::vector< uint > molecules_originalStartVec, molecules_originalKIndexVec;
 
 private:
+
+
   std::string filename;
-  FILE* inputFile;
+  MoleculeLookup & molLookupRef;
+  MoveSettings & moveSetRef;
 
   // the following variables will hold the data read from checkpoint
   // and will be passed to the rest of the code via Get functions
+  bool enableParallelTemperingBool;
   int8_t parallelTemperingWasEnabled;
   char gomc_version[5];
   uint64_t stepNumber;
+  // Molecules must be stored locally for InitOver
+  uint32_t * originalStartLocalCopy, * originalKIndexLocalCopy;
   //ulong stepNumber;
-  uint32_t totalBoxes;
   uint32_t* saveArray;
   uint32_t seedLocation, seedLeft, seedValue;
-  std::vector<uint32_t> molLookupVec, boxAndKindStartVec, fixedMoleculeVec;
-  uint32_t numKinds;
-  std::vector<std::vector<std::vector<double> > > scaleVec, acceptPercentVec;
-  std::vector<std::vector<std::vector<uint32_t> > > acceptedVec, triesVec, tempAcceptedVec,
-      tempTriesVec;
-  std::vector< std::vector< uint > > mp_acceptedVec, mp_triesVec;
-  std::vector< double > mp_r_maxVec;
-  std::vector< double > mp_t_maxVec;
-
-
-
-  // private functions used by ReadAll and Get functions
-  void readGOMCVersion();
-  bool isLegacy();
-  void openInputFile();
-  void readParallelTemperingBoolean();
-  void readStepNumber();
-  void readOriginalMoleculeIndices();
-  void readRandomNumbers();
-#if GOMC_LIB_MPI
-  void readRandomNumbersParallelTempering();
+  #if GOMC_LIB_MPI
   uint32_t* saveArrayPT;
   uint32_t seedLocationPT, seedLeftPT, seedValuePT;
 #endif
-  void readMoleculesData();
-  void readMoleculeLookupData();
-  void readMoveSettingsData();
-  void closeInputFile();
-
-  void readVector3DDouble(std::vector< std::vector< std::vector <double> > > & data);
-  void readVector3DUint(std::vector< std::vector< std::vector <uint> > > & data);
-  void readVector2DUint(std::vector< std::vector< uint > > & data);
-  void readVector1DUint(std::vector< uint > & data);
-  void readVector1DDouble(std::vector< double > & data);
-  double read_double_binary();
-  int8_t read_uint8_binary();
-  uint32_t read_uint32_binary();
-  uint64_t read_uint64_binary();
 
   const int N = 624;
 
@@ -127,10 +97,12 @@ private:
   {
     if (Archive::is_loading::value)
     {
-        assert(gomc_version == nullptr);
-        gomc_version = new char[5];
         assert(saveArray == nullptr);
         saveArray = new uint32_t[N + 1];
+        assert(originalStartLocalCopy == nullptr);
+        originalStartLocalCopy = new uint32_t[molLookupRef.molLookupCount + 1];
+        assert(originalKIndexLocalCopy == nullptr);
+        originalKIndexLocalCopy = new uint32_t[molLookupRef.molLookupCount];
         #if GOMC_LIB_MPI
         assert(saveArrayPT == nullptr);
         saveArrayPT = new uint32_t[N + 1];        
@@ -139,7 +111,7 @@ private:
     // GOMC Version
     ar & boost::serialization::make_array<char>(gomc_version, 5);  
     // Step
-    ar & step;
+    ar & stepNumber;
     // PRNG Vars
     ar & boost::serialization::make_array<uint>(saveArray, N + 1);  
     ar & seedLocation;
@@ -157,19 +129,22 @@ private:
     ar & moveSetRef.mp_t_max;
     ar & moveSetRef.mp_r_max;
     // Start and KIndex arrays
-    ar & boost::serialization::make_array<uint32_t>(molRef.originalStart, molRef.count + 1);  
-    ar & boost::serialization::make_array<uint32_t>(molRef.originalKIndex, molRef.kIndexCount);  
+    ar & boost::serialization::make_array<uint32_t>(originalStartLocalCopy, molLookupRef.molLookupCount + 1);  
+    ar & boost::serialization::make_array<uint32_t>(originalKIndexLocalCopy, molLookupRef.molLookupCount);  
     // Sorted Molecule Indices
-    ar & boost::serialization::make_array<uint>(molLookupRef.originalMoleculeIndices, molLookupRef.molLookupCount);  
-    ar & boost::serialization::make_array<uint>(molLookupRef.permutedMoleculeIndices, molLookupRef.molLookupCount);  
+    ar & boost::serialization::make_array<uint32_t>(molLookupRef.originalMoleculeIndices, molLookupRef.molLookupCount);  
+    ar & boost::serialization::make_array<uint32_t>(molLookupRef.permutedMoleculeIndices, molLookupRef.molLookupCount);  
     // PT boolean
-    ar & enableParallelTempering;
+    ar & parallelTemperingWasEnabled;
     #if GOMC_LIB_MPI
+    if((bool)parallelTemperingWasEnabled){
       // PRNG PT Vars
       ar & boost::serialization::make_array<uint>(saveArrayPT, N + 1);  
       ar & seedLocationPT;
       ar & seedLeftPT;
       ar & seedValuePT;
+    }
     #endif
+    std::cout << "Checkpoint loaded from " << filename << std::endl;
   }
 };
