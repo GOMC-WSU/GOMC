@@ -29,9 +29,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class CheckpointSetup
 {
 public:
-  CheckpointSetup(System & sys, StaticVals const& statV, Setup const& set);
+  CheckpointSetup();
   /* For GTesting */
-  CheckpointSetup(std::string file, MoleculeLookup & molLookup, MoveSettings & moveSettings);
+  CheckpointSetup();
 
   ~CheckpointSetup()
   {
@@ -81,6 +81,17 @@ private:
   //ulong stepNumber;
   uint32_t* saveArray;
   uint32_t seedLocation, seedLeft, seedValue;
+
+  // Move Settings Vectors
+  std::vector<std::vector<std::vector<double> > > scaleVec, acceptPercentVec;
+  std::vector<std::vector<std::vector<uint32_t> > > acceptedVec, triesVec, tempAcceptedVec,
+      tempTriesVec;
+  std::vector< std::vector< uint32_t > > mp_acceptedVec, mp_triesVec;
+  std::vector< double > mp_r_maxVec;
+  std::vector< double > mp_t_maxVec;
+
+
+
   #if GOMC_LIB_MPI
   uint32_t* saveArrayPT;
   uint32_t seedLocationPT, seedLeftPT, seedValuePT;
@@ -117,17 +128,18 @@ private:
     ar & seedLocation;
     ar & seedLeft;
     ar & seedValue;
+
     // Move Settings Vectors
-    ar & moveSetRef.scale;
-    ar & moveSetRef.acceptPercent;
-    ar & moveSetRef.accepted;
-    ar & moveSetRef.tries;
-    ar & moveSetRef.tempAccepted;
-    ar & moveSetRef.tempTries;
-    ar & moveSetRef.mp_tries;
-    ar & moveSetRef.mp_accepted;
-    ar & moveSetRef.mp_t_max;
-    ar & moveSetRef.mp_r_max;
+    ar & scaleVec;
+    ar & acceptPercentVec;
+    ar & acceptedVec;
+    ar & triesVec;
+    ar & tempAcceptedVec;
+    ar & tempTriesVec;
+    ar & mp_triesVec;
+    ar & mp_acceptedVec;
+    ar & mp_t_maxVec;
+    ar & mp_r_maxVec;
     // Start and KIndex arrays
     ar & boost::serialization::make_array<uint32_t>(originalStartLocalCopy, molLookupRef.molLookupCount + 1);  
     ar & boost::serialization::make_array<uint32_t>(originalKIndexLocalCopy, molLookupRef.molLookupCount);  
