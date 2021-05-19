@@ -157,7 +157,7 @@ public:
                    const uint intoBox, const uint kind);
 #endif
 
-uint GetConsensusMolBeta( const uint pStart,
+static uint GetConsensusMolBeta( const uint pStart,
                           const uint pEnd, 
                           const std::vector<double> & betas,
                           const uint m,

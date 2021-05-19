@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 #include "MoleculeLookup.h"
-#include "MoleculeLookup.cpp"
 
 
 TEST(MolLookupTest, CheckConsensusBeta) {
@@ -13,45 +12,41 @@ TEST(MolLookupTest, CheckConsensusBeta) {
         2   2   2 -> 2
     */
     uint molBeta;
-    MoleculeLookup ml;
-    std::vector<double> beta;
+    //MoleculeLookup ml;
+    std::vector<double> beta(3);
 
-    beta.push_back(1.0);
-    beta.push_back(0.0);
-    beta.push_back(2.0);
+    beta[0] = 1.0;
+    beta[1] = 0.0;
+    beta[2] = 2.0;
     
-    molBeta = ml.GetConsensusMolBeta(0, 2, beta, 0, 0, "test0");
+    molBeta = MoleculeLookup::GetConsensusMolBeta(0, 2, beta, 0, 0, "test0");
     EXPECT_EQ(molBeta, 1);
 
-    beta.clear();
+    beta[0] = 2.0;
+    beta[1] = 1.0;
+    beta[2] = 0.0;
 
-    beta.push_back(2.0);
-    beta.push_back(1.0);
-    beta.push_back(0.0);
-    molBeta = ml.GetConsensusMolBeta(0, 2, beta, 0, 0, "test1");
+    molBeta = MoleculeLookup::GetConsensusMolBeta(0, 2, beta, 0, 0, "test1");
     EXPECT_EQ(molBeta, 1);
 
-    beta.clear();
+    beta[0] = 2.0;
+    beta[1] = 0.0;
+    beta[2] = 2.0;
 
-    beta.push_back(2.0);
-    beta.push_back(0.0);
-    beta.push_back(2.0);
-    molBeta = ml.GetConsensusMolBeta(0, 2, beta, 0, 0, "test2");
+    molBeta = MoleculeLookup::GetConsensusMolBeta(0, 2, beta, 0, 0, "test2");
     EXPECT_EQ(molBeta, 2);
     
-    beta.clear();
+    beta[0] = 0.0;
+    beta[1] = 0.0;
+    beta[2] = 0.0;
 
-    beta.push_back(0.0);
-    beta.push_back(0.0);
-    beta.push_back(0.0);
-    molBeta = ml.GetConsensusMolBeta(0, 2, beta, 0, 0, "test3");
+    molBeta = MoleculeLookup::GetConsensusMolBeta(0, 2, beta, 0, 0, "test3");
     EXPECT_EQ(molBeta, 0);
         
-    beta.clear();
+    beta[0] = 2.0;
+    beta[1] = 2.0;
+    beta[2] = 2.0;
 
-    beta.push_back(2.0);
-    beta.push_back(2.0);
-    beta.push_back(2.0);
-    molBeta = ml.GetConsensusMolBeta(0, 2, beta, 0, 0, "test4");
+    molBeta = MoleculeLookup::GetConsensusMolBeta(0, 2, beta, 0, 0, "test4");
     EXPECT_EQ(molBeta, 2);
 }

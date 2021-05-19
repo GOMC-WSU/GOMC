@@ -2,6 +2,7 @@ set(TestSources
     test/src/BasicTypesTest.cpp
     test/src/BitLibTest.cpp
     test/src/EndianTest.cpp
+    test/src/MolLookupTest.cpp
     test/src/CircuitTester.cpp
     test/src/PSFParserTest.cpp
     test/src/ConsistentTrajectoryTest.cpp
@@ -23,6 +24,7 @@ set(GOMCSources
     lib/CircuitFinder.cpp
     src/InputFileReader.cpp
     lib/FloydWarshallCycle.cpp
+    src/MoleculeLookup.cpp
 )
 
 set(GOMCHeaders
