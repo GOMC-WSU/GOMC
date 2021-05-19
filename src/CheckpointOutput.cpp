@@ -70,7 +70,6 @@ void CheckpointOutput::saveCheckpointFile(const ulong & startStep,
                     molRef,
                     molLookRef);
   oa << chkObj;
-  std::cout << "Checkpoint saved to " << filename << std::endl;
 }
 
 

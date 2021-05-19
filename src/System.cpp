@@ -108,7 +108,7 @@ void System::Init(Setup & set, ulong & startStep)
   vel.Init(set.pdb.atoms, set.config.in);
 
   // At this point see if checkpoint is enabled. if so re-initialize
-  // coordinates, prng, mollookup, step, boxdim, movesettings, and original molecule indices
+  // step, movesettings, prng, original molecule start and kindex arrays, and original molecule trajectory indices
   if(set.config.in.restart.restartFromCheckpoint) {
     checkpointSet.loadCheckpointFile(startStep);
   }
