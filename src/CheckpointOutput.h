@@ -61,17 +61,6 @@ private:
   bool enableParallelTemperingBool;
   std::string filename;
   ulong stepsPerCheckpoint;
-
-  void setGOMCVersion();
-  void saveCheckpointFile();
-
-
-#if GOMC_LIB_MPI
-  void setRandomNumbersParallelTempering();
-#endif
-  void setMoveSettingsData();
-
-
 };
 
 #endif

@@ -2,7 +2,6 @@ set(TestSources
     test/src/BasicTypesTest.cpp
     test/src/BitLibTest.cpp
     test/src/EndianTest.cpp
-    test/src/MolLookupTest.cpp
     test/src/CircuitTester.cpp
     test/src/PSFParserTest.cpp
     test/src/ConsistentTrajectoryTest.cpp
@@ -13,11 +12,10 @@ set(TestHeaders
 )
 
 set(GOMCSources
+    lib/AlphaNum.cpp
     src/PDBSetup.cpp
     src/MolSetup.cpp
-    lib/AlphaNum.cpp
     src/BondAdjacencyList.cpp
-    src/CheckpointSetup.cpp
     src/ConfigSetup.cpp
     src/FFSetup.cpp
     src/FFConst.cpp
@@ -25,7 +23,6 @@ set(GOMCSources
     lib/CircuitFinder.cpp
     src/InputFileReader.cpp
     lib/FloydWarshallCycle.cpp
-    lib/DCDParser/dcdplugin.cpp
 )
 
 set(GOMCHeaders
@@ -33,7 +30,6 @@ set(GOMCHeaders
     src/MolSetup.h
     lib/AlphaNum.h
     src/BondAdjacencyList.h
-    src/CheckpointSetup.h
     src/ConfigSetup.h
     src/FFSetup.h
     src/FFConst.h
@@ -41,13 +37,4 @@ set(GOMCHeaders
     lib/CircuitFinder.h
     src/InputFileReader.h
     lib/FloydWarshallCycle.h
-    lib/DCDParser/dcdplugin.h
-    lib/DCDParser/endianswap.h
-    lib/DCDParser/fastio.h
-    lib/DCDParser/largefiles.h
-    lib/DCDParser/molfile_plugin.h
-    lib/DCDParser/vmdplugin.h
-    lib/DCDParser/include/libmolfile_plugin.h
-    lib/DCDParser/include/molfile_plugin.h
-    lib/DCDParser/include/vmdplugin.h
 )

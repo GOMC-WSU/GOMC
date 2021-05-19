@@ -14,8 +14,13 @@ TEST(MolLookupTest, CheckConsensusBeta) {
     */
     uint molBeta;
     MoleculeLookup ml;
-    std::vector<double> beta{ 1.0, 0.0, 2.0 };
-    molBeta = ml.GetConsensusMolBeta(0, 2, beta, 0, 0, "test");
+    std::vector<double> beta;
+
+    beta.push_back(1.0);
+    beta.push_back(0.0);
+    beta.push_back(2.0);
+    
+    molBeta = ml.GetConsensusMolBeta(0, 2, beta, 0, 0, "test0");
     EXPECT_EQ(molBeta, 1);
 
     beta.clear();
@@ -23,7 +28,7 @@ TEST(MolLookupTest, CheckConsensusBeta) {
     beta.push_back(2.0);
     beta.push_back(1.0);
     beta.push_back(0.0);
-    molBeta = ml.GetConsensusMolBeta(0, 2, beta, 0, 0, "test");
+    molBeta = ml.GetConsensusMolBeta(0, 2, beta, 0, 0, "test1");
     EXPECT_EQ(molBeta, 1);
 
     beta.clear();
@@ -31,7 +36,7 @@ TEST(MolLookupTest, CheckConsensusBeta) {
     beta.push_back(2.0);
     beta.push_back(0.0);
     beta.push_back(2.0);
-    molBeta = ml.GetConsensusMolBeta(0, 2, beta, 0, 0, "test");
+    molBeta = ml.GetConsensusMolBeta(0, 2, beta, 0, 0, "test2");
     EXPECT_EQ(molBeta, 2);
     
     beta.clear();
@@ -39,7 +44,7 @@ TEST(MolLookupTest, CheckConsensusBeta) {
     beta.push_back(0.0);
     beta.push_back(0.0);
     beta.push_back(0.0);
-    molBeta = ml.GetConsensusMolBeta(0, 2, beta, 0, 0, "test");
+    molBeta = ml.GetConsensusMolBeta(0, 2, beta, 0, 0, "test3");
     EXPECT_EQ(molBeta, 0);
         
     beta.clear();
@@ -47,6 +52,6 @@ TEST(MolLookupTest, CheckConsensusBeta) {
     beta.push_back(2.0);
     beta.push_back(2.0);
     beta.push_back(2.0);
-    molBeta = ml.GetConsensusMolBeta(0, 2, beta, 0, 0, "test");
+    molBeta = ml.GetConsensusMolBeta(0, 2, beta, 0, 0, "test4");
     EXPECT_EQ(molBeta, 2);
 }

@@ -11,15 +11,15 @@
 TEST(PSFParserTest, CheckProtAndWaterTest) {
 
     config_setup::RestartSettings rs;
+    rs.recalcTrajectory = false;
     std::string pdbnames[2];
 
     pdbnames[0] = "./test/input/PSFParser/BOX_0.pdb";
     pdbnames[1] = "./test/input/PSFParser/BOX_1.pdb";
 
     PDBSetup pdb;
-    config_setup::InFiles if2;
 
-    pdb.Init(rs, if2, pdbnames);
+    pdb.Init(rs, pdbnames);
 
     std::string psfnames[2];
     bool psfdefined[2];

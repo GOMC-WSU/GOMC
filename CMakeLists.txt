@@ -8,13 +8,6 @@ include_directories(src/cbmc)
 include_directories(src/moves)
 include_directories(src/GPU)
 
-# Enable google test
-# for now we will disable testing for intel compiler
-if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-  enable_testing()
-  include(test/GoogleTest.cmake)
-endif()
-
 #Out-of-source build
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
@@ -74,12 +67,19 @@ message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 find_package(Boost COMPONENTS serialization )
 
 if(Boost_FOUND)
-    message(STATUS "Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
-    message(STATUS "Boost_LIBRARIES: ${Boost_LIBRARIES}")
-    message(STATUS "Boost_VERSION: ${Boost_VERSION}")
+    message(STATUS "Boost_INCLUDE_DIRS: ${BOOST_INCLUDE_DIRS}")
+    message(STATUS "Boost_LIBRARIES: ${BOOST_LIBRARIES}")
+    message(STATUS "Boost_VERSION: ${Boost_VERSION_STRING}")
 endif()
 
 include_directories(${BOOST_INCLUDE_DIRS})
+
+# Enable google test
+# for now we will disable testing for intel compiler
+if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+  enable_testing()
+  include(test/GoogleTest.cmake)
+endif()
 
 # Find if CUDA exists and what is the version number
 include(CheckLanguage)

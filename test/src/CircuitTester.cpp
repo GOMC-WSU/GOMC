@@ -13,7 +13,6 @@
 TEST(CircuitTester, DialaTest) {
 
     config_setup::RestartSettings rs2;
-    config_setup::InFiles if2;
 
     std::string pdbnames2[2];
 
@@ -22,7 +21,7 @@ TEST(CircuitTester, DialaTest) {
 
     PDBSetup pdb2;
 
-    pdb2.Init(rs2, if2, pdbnames2);
+    pdb2.Init(rs2, pdbnames2);
 
     std::string psfnames2[2];
     bool psfdefined2[2];

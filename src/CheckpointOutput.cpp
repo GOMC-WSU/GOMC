@@ -7,11 +7,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include <stdint.h>
 #include "CheckpointOutput.h"
-#include "MoleculeLookup.h"
-#include "System.h"
 #include "GOMC_Config.h"
 
-#include "Endian.h"
 
 CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
@@ -24,7 +21,6 @@ CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   enableParallelTemperingBool(false)
 #endif
 {
-  //outputFile = NULL;
 }
 
 void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
@@ -46,7 +42,6 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
   std::cout << "Writing checkpoint to file " << filename << " at step " << step+1 << "\n";
-  //setGOMCVersion();
   saveCheckpointFile(step, moveSetRef, prngRef, molRef, molLookupRef);
   std::cout << "Checkpoint saved to " << filename << std::endl;
   GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
