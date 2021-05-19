@@ -32,22 +32,21 @@ public:
 
 
 private:
-  void GatherCheckpointData(MoveSettings & movSetRef,
-                            MoleculeLookup & molLookRef,
-                            Molecules & molRef,
-                            PRNG & prng);
+  void saveCheckpointFile(const ulong & startStep,
+                          MoveSettings & movSetRef,
+                          PRNG & prng,
+                          const Molecules & molRef,
+                          MoleculeLookup & molLookRef);
   #if GOMC_LIB_MPI
-  void GatherCheckpointData(MoveSettings & movSetRef,
-                            MoleculeLookup & molLookRef,
-                            Molecules & molRef,
-                            PRNG & prng,
-                            bool & parallelTemperingEnabled,
-                            PRNG & prngPT);
+  void saveCheckpointFile(const ulong & startStep,
+                        MoveSettings & movSetRef,
+                        PRNG & prng,
+                        const Molecules & molRef,
+                        MoleculeLookup & molLookRef,
+                        bool & parallelTemperingEnabled,
+                        PRNG & prngPT);
   #endif
 
-
-  std::ofstream * ofs;
-  boost::archive::text_oarchive * oa;
 
   MoveSettings & moveSetRef;
   MoleculeLookup & molLookupRef;
@@ -63,13 +62,9 @@ private:
   std::string filename;
   ulong stepsPerCheckpoint;
 
-  void openOutputFile(std::string filenameArg);
-  void closeOutputFile();
   void setGOMCVersion();
-  void setParallelTemperingBoolean();
-  void setStepNumber(ulong stepArg);
-  void setRandomNumbers();
-  void setSortedMoleculeIndices();
+  void saveCheckpointFile();
+
 
 #if GOMC_LIB_MPI
   void setRandomNumbersParallelTempering();

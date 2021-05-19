@@ -29,7 +29,7 @@ public:
                                 Setup const& set);
   ~CheckpointSetup();
 
-  void loadCheckpointInputFile(ulong & startStep);
+  void loadCheckpointFile(ulong & startStep);
   void InitOver(Molecules & molRef);
 
 private:

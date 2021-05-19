@@ -22,22 +22,47 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class Checkpoint
 {
     public:
-    Checkpoint(ulong & startStep,
+    Checkpoint(const ulong & startStep,
                 MoveSettings & movSetRef,
                 PRNG & prng,
-                Molecules & molRef,
+                const Molecules & molRef,
                 MoleculeLookup & molLookRef);
+
+#if GOMC_LIB_MPI
+    Checkpoint(const ulong & startStep,
+                MoveSettings & movSetRef,
+                PRNG & prng,
+                const Molecules & molRef,
+                MoleculeLookup & molLookRef,
+                bool & parallelTemperingIsEnabled,
+                PRNG & prngPTRef);
+#endif
+
     Checkpoint();
     ~Checkpoint();
+
 
     private:
         friend class CheckpointSetup;
         friend class CheckpointOutput;
 
+        void GatherGOMCVersion();
+        void GatherStep(const ulong & startStep);
+        void GatherMolecules(const Molecules & molRef);
+        void GatherMoveSettings(MoveSettings & movSetRef);
+        void GatherSortedMoleculeIndices(MoleculeLookup & molLookupRef);
+        void GatherRandomNumbers(PRNG & prngRef);
+    #if GOMC_LIB_MPI
+        void GatherParallelTemperingBoolean(bool & parallelTemperingIsEnabled);
+        void GatherRandomNumbersParallelTempering(PRNG & prngPTRef);
+    #endif
+
+
         // the following variables will hold the data read from checkpoint
         // and will be passed to the rest of the code via Get functions
 
         char gomc_version[5];
+
         uint64_t stepNumber;
 
         // Original molecule start positions.  Could be generated through kind,
@@ -61,9 +86,9 @@ class Checkpoint
         std::vector< double > mp_r_maxVec;
         std::vector< double > mp_t_maxVec;
 
+        #if GOMC_LIB_MPI
         int8_t parallelTemperingEnabled;
 
-        #if GOMC_LIB_MPI
         uint32_t saveArrayPT[N_array_size+1];
         uint32_t seedLocationPT, seedLeftPT, seedValuePT;
         #endif

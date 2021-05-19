@@ -110,7 +110,7 @@ void System::Init(Setup & set, ulong & startStep)
   // At this point see if checkpoint is enabled. if so re-initialize
   // coordinates, prng, mollookup, step, boxdim, movesettings, and original molecule indices
   if(set.config.in.restart.restartFromCheckpoint) {
-    checkpointSet.loadCheckpointInputFile(startStep);
+    checkpointSet.loadCheckpointFile(startStep);
   }
 
   GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);

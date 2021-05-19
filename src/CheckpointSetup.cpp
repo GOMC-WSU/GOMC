@@ -30,7 +30,7 @@ std::string CheckpointSetup::getFileName(){
   return filename;
 }
 
-void CheckpointSetup::loadCheckpointInputFile(ulong & startStep){
+void CheckpointSetup::loadCheckpointFile(ulong & startStep){
   // create and open a character archive for intput
   std::ifstream ifs(filename);
   if (!ifs.is_open()){
