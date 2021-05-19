@@ -13,12 +13,22 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/serialization/vector.hpp>
 
+
+#include "MoveSettings.h"
+#include "MoleculeLookup.h"
+#include "Molecules.h"
+#include "PRNG.h"
+
 class Checkpoint
 {
     public:
-
-        Checkpoint();
-        ~Checkpoint();
+    Checkpoint(ulong & startStep,
+                MoveSettings & movSetRef,
+                PRNG & prng,
+                Molecules & molRef,
+                MoleculeLookup & molLookRef);
+    Checkpoint();
+    ~Checkpoint();
 
     private:
         friend class CheckpointSetup;

@@ -143,7 +143,7 @@ private:
 
   // make CheckpointOutput and CheckpointSetup friend classes to have access to
   // private data
-  friend class CheckpointOutput;
+  friend class Checkpoint;
   friend class CheckpointSetup;
 };
 

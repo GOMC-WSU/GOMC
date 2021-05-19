@@ -75,7 +75,7 @@ private:
 #if GOMC_LIB_MPI
   bool parallelTemperingWasEnabled;
   bool & parallelTemperingIsEnabled;
-  PRNG & prngPT;p
+  PRNG & prngPT;
 #endif
   Checkpoint chkObj;
 };

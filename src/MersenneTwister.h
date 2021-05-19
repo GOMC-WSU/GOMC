@@ -130,7 +130,7 @@ public:
   void load( uint32 *const loadArray );  // from such array
   friend std::ostream& operator<<( std::ostream& os, const MTRand& mtrand );
   friend std::istream& operator>>( std::istream& is, MTRand& mtrand );
-  friend class CheckpointOutput;
+  friend class Checkpoint;
   friend class CheckpointSetup;
   MTRand& operator=( const MTRand& o );
 protected:

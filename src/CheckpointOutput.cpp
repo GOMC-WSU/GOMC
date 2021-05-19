@@ -24,7 +24,7 @@ CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
   enableParallelTemperingBool(false)
 #endif
 {
-  outputFile = NULL;
+  //outputFile = NULL;
 }
 
 void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
