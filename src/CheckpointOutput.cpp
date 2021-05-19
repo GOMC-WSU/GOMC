@@ -25,11 +25,6 @@ CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
 #endif
 {
   outputFile = NULL;
-  saveArray = new uint32_t[N + 1];
-  originalMoleculeIndicesCheck = new uint32_t[molLookupRef.molLookupCount];
-  #if GOMC_LIB_MPI
-    saveArrayPT = new uint32_t[N + 1];
-  #endif
 }
 
 void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,

@@ -4,7 +4,9 @@ Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
-#pragma once
+
+#ifndef CHECKPOINT_OUTPUT_H
+#define CHECKPOINT_OUTPUT__H
 
 #include "OutputAbstracts.h"
 #include "MoveSettings.h"
@@ -44,6 +46,20 @@ public:
 
 
 private:
+  void GatherCheckpointData(MoveSettings & movSetRef,
+                            MoleculeLookup & molLookRef,
+                            Molecules & molRef,
+                            PRNG & prng);
+  #if GOMC_LIB_MPI
+  void GatherCheckpointData(MoveSettings & movSetRef,
+                            MoleculeLookup & molLookRef,
+                            Molecules & molRef,
+                            PRNG & prng,
+                            bool & parallelTemperingEnabled,
+                            PRNG & prngPT);
+  #endif
+
+
   std::ofstream * ofs;
   boost::archive::text_oarchive * oa;
 
@@ -147,3 +163,5 @@ private:
     #endif
   }
 };
+
+#endif

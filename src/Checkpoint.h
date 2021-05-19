@@ -4,14 +4,10 @@ Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
-#pragma once
+#ifndef CHECKPOINT_H
+#define CHECKPOINT_H
 
 #include "GOMC_Config.h"
-
-#include "MoveSettings.h"
-#include "MoleculeLookup.h"
-#include "Molecules.h"
-#include "PRNG.h"
 
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
@@ -23,32 +19,10 @@ class Checkpoint
 
         Checkpoint();
         ~Checkpoint();
-        void GatherCheckpointData(MoveSettings & movSetRef,
-                                  MoleculeLookup & molLookRef,
-                                  Molecules & molRef,
-                                  PRNG & prng);
-        #if GOMC_LIB_MPI
-        void GatherCheckpointData(MoveSettings & movSetRef,
-                                  MoleculeLookup & molLookRef,
-                                  Molecules & molRef,
-                                  PRNG & prng,
-                                  bool & parallelTemperingEnabled,
-                                  PRNG & prngPT);
-        #endif
-        void SetCheckpointData   (MoveSettings & movSetRef,
-                                  MoleculeLookup & molLookRef,
-                                  Molecules & molRef,
-                                  PRNG & prng);
-        #if GOMC_LIB_MPI
-        void SetCheckpointData   (MoveSettings & movSetRef,
-                                  MoleculeLookup & molLookRef,
-                                  Molecules & molRef,
-                                  PRNG & prng,
-                                  bool & parallelTemperingEnabled,
-                                  PRNG & prngPT);
-        #endif
 
     private:
+        friend class CheckpointSetup;
+        friend class CheckpointOutput;
 
         // the following variables will hold the data read from checkpoint
         // and will be passed to the rest of the code via Get functions
@@ -63,10 +37,10 @@ class Checkpoint
         // Molecule Indices for consistent trajectories 
         std::vector<uint32_t> originalMoleculeIndicesVec, permutedMoleculeIndicesVec;
 
-        #define N 624
+        #define N_array_size 624
 
         //ulong stepNumber;
-        uint32_t saveArray[N+1];
+        uint32_t saveArray[N_array_size+1];
         uint32_t seedLocation, seedLeft, seedValue;
 
         // Move Settings Vectors
@@ -80,7 +54,7 @@ class Checkpoint
         int8_t parallelTemperingEnabled;
 
         #if GOMC_LIB_MPI
-        uint32_t saveArrayPT[N+1];
+        uint32_t saveArrayPT[N_array_size+1];
         uint32_t seedLocationPT, seedLeftPT, seedValuePT;
         #endif
 
@@ -96,7 +70,7 @@ class Checkpoint
             // Step
             ar & stepNumber;
             // PRNG Vars
-            ar & boost::serialization::make_array<uint>(saveArray, N + 1);  
+            ar & boost::serialization::make_array<uint>(saveArray, N_array_size + 1);  
             ar & seedLocation;
             ar & seedLeft;
             ar & seedValue;
@@ -118,16 +92,18 @@ class Checkpoint
             // Sorted Molecule Indices
             ar & originalMoleculeIndicesVec;  
             ar & permutedMoleculeIndicesVec;  
+            #if GOMC_LIB_MPI
             // PT boolean
             ar & parallelTemperingEnabled;
-            #if GOMC_LIB_MPI
             if((bool)parallelTemperingEnabled){
                 // PRNG PT Vars
-                ar & boost::serialization::make_array<uint>(saveArrayPT, N + 1);  
+                ar & boost::serialization::make_array<uint>(saveArrayPT, N_array_size + 1);  
                 ar & seedLocationPT;
                 ar & seedLeftPT;
                 ar & seedValuePT;
             }
             #endif
         }
-}
+};
+
+#endif

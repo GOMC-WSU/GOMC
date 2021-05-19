@@ -24,17 +24,18 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CellList.h"
 #include "ExtendedSystem.h"
 #include "Clock.h"
-#include "CheckpointSetup.h"
 #include "../lib/Lambda.h"
 #include "Random123Wrapper.h"
 #include "Velocity.h"
+
+#include "CheckpointSetup.h"
+
 
 //Initialization variables
 class Setup;
 class StaticVals;
 class MoveBase;
 class Lambda;
-
 
 class System
 {
@@ -140,8 +141,6 @@ private:
   double moveTime[mv::MOVE_KINDS_TOTAL];
   MoveBase * moves[mv::MOVE_KINDS_TOTAL];
   Clock time;
-
-  void loadCheckpointInputFile(std::string filenameArg);
 };
 
 #endif /*SYSTEM_H*/

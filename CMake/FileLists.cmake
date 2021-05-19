@@ -10,6 +10,7 @@ set(sources
    src/Coordinates.cpp
    src/CPUSide.cpp
    src/CalculateEnergy.cpp
+   src/Checkpoint.cpp
    src/CheckpointOutput.cpp
    src/CheckpointSetup.cpp
    src/DCDlib.cpp
@@ -74,6 +75,7 @@ set(headers
    src/CalculateEnergy.h
    src/CBMC.h
    src/CellList.h
+   src/Checkpoint.h
    src/CheckpointOutput.h
    src/CheckpointSetup.h
    src/Clock.h

@@ -52,7 +52,8 @@ System::System(StaticVals& statics, Setup const& set,
   moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
-  calcEnergy(statics, *this), checkpointSet(*this, statics, set),
+  calcEnergy(statics, *this), 
+  checkpointSet(molLookupRef, moveSettings, statics.mol, prng, set),
   vel(statics.forcefield, molLookupRef, statics.mol, prng)
 {
   calcEwald = NULL;
@@ -109,15 +110,7 @@ void System::Init(Setup & set, ulong & startStep)
   // At this point see if checkpoint is enabled. if so re-initialize
   // coordinates, prng, mollookup, step, boxdim, movesettings, and original molecule indices
   if(set.config.in.restart.restartFromCheckpoint) {
-    loadCheckpointInputFile(checkpointSet.getFileName());
-    checkpointSet.SetStepNumber(startStep);
-    checkpointSet.SetPRNGVariables(prng);
-    checkpointSet.SetMolecules(statV.mol);
-#if GOMC_LIB_MPI
-    if(checkpointSet.CheckIfParallelTemperingWasEnabled() && ms->parallelTemperingEnabled)
-      checkpointSet.SetPRNGVariablesPT(*prngParallelTemp);
-#endif
-    std::cout << "Checkpoint loaded from " << checkpointSet.getFileName() << std::endl;
+    checkpointSet.loadCheckpointInputFile(startStep);
   }
 
   GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
@@ -169,7 +162,7 @@ void System::Init(Setup & set, ulong & startStep)
 void System::InitOver(Setup & set, Molecules & molRef)
 {
   if(set.config.in.restart.restartFromCheckpoint)
-    checkpointSet.SetMolecules(molRef);
+    checkpointSet.InitOver(molRef);
 }
 
 void System::InitMoves(Setup const& set)
@@ -380,22 +373,4 @@ void System::PrintTime()
   printf("%-36s %10.4f    sec.\n", "Vol-Transfer:", moveTime[mv::VOL_TRANSFER]);
 #endif
   std::cout << std::endl;
-}
-
-void System::loadCheckpointInputFile(std::string filenameArg)
-{
-  std::ifstream ifs(filenameArg);
-  boost::archive::text_iarchive ia(ifs);
-
-  if(!ifs.is_open()) {
-    fprintf(stderr, "Error opening checkpoint input file %s\n",
-            filenameArg.c_str());
-    exit(EXIT_FAILURE);
-  }
-  ia >> checkpointSet;
-  if(!ifs.is_open()) {
-    fprintf(stderr, "Checkpoint file was not open!\n");
-    exit(EXIT_FAILURE);
-  }
-  ifs.close();
 }

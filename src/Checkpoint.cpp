@@ -9,35 +9,3 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
   
 Checkpoint::Checkpoint(){}
 Checkpoint::~Checkpoint(){}
-void Checkpoint::GatherCheckpointData(MoveSettings & movSetRef,
-                                    MoleculeLookup & molLookRef,
-                                    Molecules & molRef,
-                                    PRNG & prng){
-    
-}
-#if GOMC_LIB_MPI
-void Checkpoint::GatherCheckpointData(MoveSettings & movSetRef,
-                                    MoleculeLookup & molLookRef,
-                                    Molecules & molRef,
-                                    PRNG & prng,
-                                    bool & parallelTemperingEnabled,
-                                    PRNG & prngPT){
-    
-}
-#endif
-void Checkpoint::SetCheckpointData(MoveSettings & movSetRef,
-                                    MoleculeLookup & molLookRef,
-                                    Molecules & molRef,
-                                    PRNG & prng){
-    
-}
-#if GOMC_LIB_MPI
-void Checkpoint::SetCheckpointData(MoveSettings & movSetRef,
-                                    MoleculeLookup & molLookRef,
-                                    Molecules & molRef,
-                                    PRNG & prng,
-                                    bool & parallelTemperingEnabled,
-                                    PRNG & prngPT){
-    
-}
-#endif
