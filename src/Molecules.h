@@ -124,6 +124,7 @@ public:
   uint32_t* originalKIndex2CurrentKIndex;
 
 
+
   /* only used for output */
   uint32_t count;
   uint32_t* kIndex;

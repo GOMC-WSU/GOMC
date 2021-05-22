@@ -56,10 +56,12 @@ private:
   void SetMoveSettings(MoveSettings & movSetRef);
   void SetPRNGVariables(PRNG & prng);
   void SetMolecules(Molecules& mols);
+  void SetMoleculeKindDictionary(Molecules& mols);
   void SetMoleculeIndices(MoleculeLookup& molLookup);
   void SetMoveSettings();
   void SetPRNGVariables();
   void SetMolecules();
+  void SetMoleculeKindDictionary();
   void SetMoleculeIndices();
 #if GOMC_LIB_MPI  
   void SetParallelTemperingWasEnabled();

@@ -27,6 +27,7 @@ Molecules::~Molecules(void)
   delete[] start;
   delete[] originalStart;
   delete[] originalKIndex;
+  delete[] originalKIndex2CurrentKIndex;
   delete[] kIndex;
   delete[] countByKind;
   delete[] chain;

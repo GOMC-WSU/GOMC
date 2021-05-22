@@ -63,9 +63,9 @@ void Checkpoint::GatherMolecules(const Molecules & molRef){
 }
 
 void Checkpoint::GatherMoleculeKindDictionary(const Molecules & molRef){
-  nameIndexMap.clear();
+  originalNameIndexMap.clear();
   for (uint mk = 0 ; mk < molRef.kindsCount; mk++)
-    nameIndexMap[molRef.kinds[mk].name] = molRef.kinds[mk].kindIndex;
+    originalNameIndexMap[molRef.kinds[mk].name] = (uint32_t)molRef.kinds[mk].kindIndex;
 }
 
 

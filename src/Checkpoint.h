@@ -77,7 +77,7 @@ class Checkpoint
         std::vector<uint32_t> originalMoleculeIndicesVec, permutedMoleculeIndicesVec;
 
         // Kind indices and name map
-        std::map<std::string, uint32_t> nameIndexMap;
+        std::map<std::string, uint32_t> originalNameIndexMap;
 
         #define N_array_size 624
 
@@ -135,7 +135,7 @@ class Checkpoint
             ar & originalMoleculeIndicesVec;  
             ar & permutedMoleculeIndicesVec; 
             // name & index Map
-            ar& nameIndexMap;
+            ar& originalNameIndexMap;
 
             #if GOMC_LIB_MPI
             // PT boolean

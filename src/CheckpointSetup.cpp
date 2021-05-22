@@ -46,6 +46,7 @@ void CheckpointSetup::loadCheckpointFile(ulong & startStep){
 
 void CheckpointSetup::InitOver(Molecules & molRef){
   SetMolecules(molRef);
+  SetMoleculeKindDictionary(molRef);
 }
 
 void CheckpointSetup::SetCheckpointData   (ulong & startStep,
@@ -57,6 +58,7 @@ void CheckpointSetup::SetCheckpointData   (ulong & startStep,
   SetMoveSettings(movSetRef);
   SetPRNGVariables(prng);
   SetMolecules(molRef);
+  SetMoleculeKindDictionary(molRef);
   SetMoleculeIndices(molLookRef);
 }
 
@@ -65,6 +67,7 @@ void CheckpointSetup::SetCheckpointData   (ulong & startStep){
   SetMoveSettings();
   SetPRNGVariables();
   SetMolecules();
+  SetMoleculeKindDictionary();
   SetMoleculeIndices();
 }
 
@@ -80,6 +83,7 @@ void CheckpointSetup::SetCheckpointData   (ulong & startStep,
   SetMoveSettings(movSetRef);
   SetPRNGVariables(prng);
   SetMolecules(molRef);
+  SetMoleculeKindDictionary(molRef);
   SetMoleculeIndices(molLookRef);
   SetParallelTemperingWasEnabled();
   if(parallelTemperingIsEnabled && parallelTemperingWasEnabled)
@@ -127,6 +131,28 @@ void CheckpointSetup::SetMoleculeIndices(MoleculeLookup& molLookupRef){
   molLookupRef.originalMoleculeIndices = vect::transfer<uint32_t>(chkObj.originalMoleculeIndicesVec);
   /* Permuted Mol Indices are for following single molecules as molLookup permutes the indices and continuing the next run*/
   molLookupRef.permutedMoleculeIndices = vect::transfer<uint32_t>(chkObj.permutedMoleculeIndicesVec);
+}
+
+void CheckpointSetup::SetMoleculeKindDictionary(Molecules& mols){
+  // Kind indices and name map
+  std::map<std::string, uint32_t> nameIndexMap;
+  for (uint mk = 0 ; mk < mols.kindsCount; mk++)
+    nameIndexMap[mols.kinds[mk].name] = (uint32_t)mk;
+
+  for (uint mk = 0 ; mk < mols.kindsCount; mk++)
+    mols.originalKIndex2CurrentKIndex[chkObj.originalNameIndexMap[mols.kinds[mk].name]]
+         = nameIndexMap[mols.kinds[mk].name];
+}
+
+void CheckpointSetup::SetMoleculeKindDictionary(){
+  // Kind indices and name map
+  std::map<std::string, uint32_t> nameIndexMap;
+  for (uint mk = 0 ; mk < molRef.kindsCount; mk++)
+    nameIndexMap[molRef.kinds[mk].name] = (uint32_t)mk;
+
+  for (uint mk = 0 ; mk < molRef.kindsCount; mk++)
+    molRef.originalKIndex2CurrentKIndex[chkObj.originalNameIndexMap[molRef.kinds[mk].name]]
+         = nameIndexMap[molRef.kinds[mk].name];
 }
 
 void CheckpointSetup::SetMoveSettings()
