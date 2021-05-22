@@ -5,6 +5,7 @@ set(TestSources
     test/src/MolLookupTest.cpp
     test/src/CircuitTester.cpp
     test/src/PSFParserTest.cpp
+    test/src/ConsistentTrajectoryTest.cpp
 )
 
 set(TestHeaders
@@ -12,6 +13,7 @@ set(TestHeaders
 )
 
 set(GOMCSources
+    lib/AlphaNum.cpp
     src/PDBSetup.cpp
     src/MolSetup.cpp
     src/BondAdjacencyList.cpp
@@ -22,11 +24,13 @@ set(GOMCSources
     lib/CircuitFinder.cpp
     src/InputFileReader.cpp
     lib/FloydWarshallCycle.cpp
+    src/MoleculeLookup.cpp
 )
 
 set(GOMCHeaders
     src/PDBSetup.h
     src/MolSetup.h
+    lib/AlphaNum.h
     src/BondAdjacencyList.h
     src/ConfigSetup.h
     src/FFSetup.h

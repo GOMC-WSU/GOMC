@@ -34,10 +34,13 @@ endif()
 include(test/FileList.cmake)
 
 # Now simply link against gtest or gtest_main as needed. Eg
-add_executable(GOMC_Test ${TestHeaders} ${TestSources} ${GOMCHeaders} ${GOMCSources} )
-target_link_libraries(GOMC_Test gtest_main)
+add_executable(GOMC_Test ${TestHeaders} ${TestSources} ${GOMCHeaders} ${GOMCSources} ${BOOST_INCLUDE_DIRS})
+target_link_libraries(GOMC_Test gtest_main ${BOOST_LIBRARIES})
 add_test(NAME BasicTypesTest COMMAND BasicTypesTest)
 add_test(NAME CircuitTester COMMAND DialaTest)
 add_test(NAME MolLookupTest COMMAND CheckConsensusBeta)
 add_test(NAME PSFParserTest COMMAND CheckProtAndWaterTest)
 add_test(NAME EndianTest COMMAND TestBitSwap)
+add_test(NAME ConsistentTrajectoryTest COMMAND CheckPDBTrajCoordinates)
+
+

@@ -4,7 +4,9 @@ Copyright (C) 2018  GOMC Group
 A copy of the GNU General Public License can be found in the COPYRIGHT.txt
 along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
-#pragma once
+
+#ifndef CHECKPOINT_OUTPUT_H
+#define CHECKPOINT_OUTPUT__H
 
 #include "OutputAbstracts.h"
 #include "MoveSettings.h"
@@ -20,26 +22,32 @@ public:
 
   ~CheckpointOutput()
   {
-    if(outputFile)
-      fclose(outputFile);
   }
 
   virtual void DoOutput(const ulong step);
+  virtual void DoOutputRestart(const ulong step);  
   virtual void Init(pdb_setup::Atoms const& atoms,
                     config_setup::Output const& output);
   virtual void Sample(const ulong step) {}
-  virtual void Output(const ulong step)
-  {
-    if(!enableOutCheckpoint) {
-      return;
-    }
 
-    if((step + 1) % stepsPerCheckpoint == 0) {
-      DoOutput(step);
-    }
-  }
 
 private:
+  void saveCheckpointFile(const ulong & startStep,
+                          MoveSettings & movSetRef,
+                          PRNG & prng,
+                          const Molecules & molRef,
+                          MoleculeLookup & molLookRef);
+  #if GOMC_LIB_MPI
+  void saveCheckpointFile(const ulong & startStep,
+                        MoveSettings & movSetRef,
+                        PRNG & prng,
+                        const Molecules & molRef,
+                        MoleculeLookup & molLookRef,
+                        bool & parallelTemperingEnabled,
+                        PRNG & prngPT);
+  #endif
+
+
   MoveSettings & moveSetRef;
   MoleculeLookup & molLookupRef;
   BoxDimensions & boxDimRef;
@@ -50,33 +58,9 @@ private:
   PRNG & prngPTRef;
 #endif
 
-  bool enableOutCheckpoint;
-  bool enableParallelTempering;
+  bool enableParallelTemperingBool;
   std::string filename;
-  FILE* outputFile;
   ulong stepsPerCheckpoint;
-  char gomc_version[5];
-
-  void openOutputFile();
-  void setGOMCVersion();
-  void printGOMCVersion();
-  void printParallelTemperingBoolean();
-  void printStepNumber(ulong step);
-  void printRandomNumbers();
-#if GOMC_LIB_MPI
-  void printRandomNumbersParallelTempering();
-#endif
-  void printMoleculeLookupData();
-  void printMoveSettingsData();
-  void printMoleculesData();
-
-  void printVector3DDouble(const std::vector< std::vector< std::vector<double> > > &data);
-  void printVector3DUint(const std::vector< std::vector< std::vector<uint> > > &data);
-  void printVector2DUint(const std::vector< std::vector< uint > > &data);
-  void printVector1DDouble(const std::vector< double > &data);
-  void write_double_binary(double data);
-  void write_uint8_binary(int8_t data);
-  void write_uint32_binary(uint32_t data);
-  void write_uint64_binary(uint64_t data);
-
 };
+
+#endif

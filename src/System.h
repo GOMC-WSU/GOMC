@@ -24,17 +24,18 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "CellList.h"
 #include "ExtendedSystem.h"
 #include "Clock.h"
-#include "CheckpointSetup.h"
 #include "../lib/Lambda.h"
 #include "Random123Wrapper.h"
 #include "Velocity.h"
+
+#include "CheckpointSetup.h"
+
 
 //Initialization variables
 class Setup;
 class StaticVals;
 class MoveBase;
 class Lambda;
-
 
 class System
 {
@@ -43,6 +44,9 @@ public:
                   MultiSim const*const& multisim = NULL);
 
   void Init(Setup & setupData, ulong & startStep);
+
+  /* To reinit the checkpointed original molecule starts */
+  void InitOver(Setup & set, Molecules & molRef);
 
   //Runs move, picked at random
   void ChooseAndRunMove(const ulong step);
@@ -115,6 +119,7 @@ public:
   CalculateEnergy calcEnergy;
   Ewald *calcEwald;
 
+  /* For checkpoint restoration */
   CheckpointSetup checkpointSet;
 
   //Procedure to run once move is picked... can also be called directly for

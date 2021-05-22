@@ -125,6 +125,7 @@ void EnPartCntSample::DoOutput(const ulong step)
   samplesCollectedInFrame = 0;
 }
 
+void EnPartCntSample::DoOutputRestart(const ulong step){}
 
 std::string EnPartCntSample::GetFName(std::string const& sampleName,
                                       std::string const& histNum,

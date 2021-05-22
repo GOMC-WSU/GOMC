@@ -10,6 +10,7 @@ set(sources
    src/Coordinates.cpp
    src/CPUSide.cpp
    src/CalculateEnergy.cpp
+   src/Checkpoint.cpp
    src/CheckpointOutput.cpp
    src/CheckpointSetup.cpp
    src/DCDlib.cpp
@@ -74,6 +75,7 @@ set(headers
    src/CalculateEnergy.h
    src/CBMC.h
    src/CellList.h
+   src/Checkpoint.h
    src/CheckpointOutput.h
    src/CheckpointSetup.h
    src/Clock.h
@@ -185,6 +187,7 @@ set(headers
    src/moves/VolumeTransfer.h)
 
 set(libHeaders
+   lib/AlphaNum.h
    lib/BasicTypes.h
    lib/BitLib.h
    lib/Endian.h
@@ -198,6 +201,7 @@ set(libHeaders
    lib/FloydWarshallCycle.h)
 
 set(libSources
+    lib/AlphaNum.cpp
     lib/CircuitFinder.cpp
     lib/FloydWarshallCycle.cpp)
 

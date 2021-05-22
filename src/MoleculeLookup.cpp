@@ -21,8 +21,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 void MoleculeLookup::Init(const Molecules& mols,
                           const pdb_setup::Atoms& atomData,
-                          Forcefield &ff)
+                          Forcefield &ff,
+                          bool restartFromCheckpoint)
 {
+  this->restartFromCheckpoint = restartFromCheckpoint;
+
   numKinds = mols.GetKindsCount();
 
   molLookup = new uint[mols.count];
@@ -68,6 +71,9 @@ void MoleculeLookup::Init(const Molecules& mols,
       atomCharge[counter] = mk.AtomCharge(a);
       ++counter;
     }
+
+
+
     /* We don't currently support hybrid molecules - part fixed part flexible
       so we get a consensus based on the precendent of betas defined in this method */
     uint pStart = 0, pEnd = 0;
@@ -103,7 +109,20 @@ void MoleculeLookup::Init(const Molecules& mols,
                            indexVector[b][k].end(), progress);
     }
   }
+
   boxAndKindStart[numKinds * BOX_TOTAL] = mols.count;
+
+  /* originalMoleculeIndices have 2 sources
+    if a new run, they are depedent on the originalMolInds set below
+    if a checkpointed run, they are the originalInds permuted through mol transfers */
+  if (!restartFromCheckpoint){
+    originalMoleculeIndices = new uint32_t[mols.count];
+    permutedMoleculeIndices = new uint32_t[mols.count];
+    for (uint molI = 0; molI < molLookupCount; ++molI){
+      originalMoleculeIndices[molI] = molI;
+      permutedMoleculeIndices[molI] = molI;
+    }
+  }
 
 // allocate and set gpu variables
 #ifdef GOMC_CUDA
@@ -183,19 +202,19 @@ void MoleculeLookup::Shift(const uint index, const uint currentBox,
   if(currentBox >= intoBox) {
     while (section != intoBox * numKinds + kind) {
       newIndex = boxAndKindStart[section]++;
-      uint temp = molLookup[oldIndex];
-      molLookup[oldIndex] = molLookup[newIndex];
-      molLookup[newIndex] = temp;
-      oldIndex = newIndex;
+      std::swap(molLookup[oldIndex], molLookup[newIndex]);
+      std::swap(oldIndex, newIndex);
+      if (!restartFromCheckpoint)
+      std::swap(permutedMoleculeIndices[oldIndex], permutedMoleculeIndices[newIndex]);
       --section;
     }
   } else {
     while (section != intoBox * numKinds + kind) {
       newIndex = --boxAndKindStart[++section];
-      uint temp = molLookup[oldIndex];
-      molLookup[oldIndex] = molLookup[newIndex];
-      molLookup[newIndex] = temp;
-      oldIndex = newIndex;
+      std::swap(molLookup[oldIndex], molLookup[newIndex]);
+      std::swap(oldIndex, newIndex);
+      if (!restartFromCheckpoint)
+      std::swap(permutedMoleculeIndices[oldIndex], permutedMoleculeIndices[newIndex]);
     }
   }
 }

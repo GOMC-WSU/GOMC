@@ -52,8 +52,9 @@ System::System(StaticVals& statics, Setup const& set,
   moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
-  vel(statics.forcefield, molLookupRef, statics.mol, prng),
-  calcEnergy(statics, *this), checkpointSet(*this, statics, set)
+  calcEnergy(statics, *this), 
+  checkpointSet(molLookupRef, moveSettings, statics.mol, prng, set),
+  vel(statics.forcefield, molLookupRef, statics.mol, prng)
 {
   calcEwald = NULL;
 #if GOMC_LIB_MPI
@@ -100,25 +101,16 @@ void System::Init(Setup & set, ulong & startStep)
     prngParallelTemp->Init(set.prngParallelTemp.prngMaker.prng);
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
-  molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield);
+  molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield, set.config.in.restart.restartFromCheckpoint);
 #endif
   moveSettings.Init(statV, set.pdb.remarks, molLookupRef.GetNumKind());
   // allocate memory for atom's velocity if we read the binVelocities
   vel.Init(set.pdb.atoms, set.config.in);
 
   // At this point see if checkpoint is enabled. if so re-initialize
-  // coordinates, prng, mollookup, step, boxdim, and movesettings
+  // step, movesettings, prng, original molecule start and kindex arrays, and original molecule trajectory indices
   if(set.config.in.restart.restartFromCheckpoint) {
-    checkpointSet.ReadAll();
-    checkpointSet.SetStepNumber(startStep);
-    checkpointSet.SetPRNGVariables(prng);
-    checkpointSet.SetMoleculeLookup(molLookupRef);
-    checkpointSet.SetMoveSettings(moveSettings);
-    checkpointSet.SetMolecules(statV.mol);
-#if GOMC_LIB_MPI
-    if(checkpointSet.CheckIfParallelTemperingWasEnabled() && ms->parallelTemperingEnabled)
-      checkpointSet.SetPRNGVariablesPT(*prngParallelTemp);
-#endif
+    checkpointSet.loadCheckpointFile(startStep);
   }
 
   GOMC_EVENT_START(1, GomcProfileEvent::READ_INPUT_FILES);
@@ -165,6 +157,12 @@ void System::Init(Setup & set, ulong & startStep)
   InitMoves(set);
   for(uint m = 0; m < mv::MOVE_KINDS_TOTAL; m++)
     moveTime[m] = 0.0;
+}
+
+void System::InitOver(Setup & set, Molecules & molRef)
+{
+  if(set.config.in.restart.restartFromCheckpoint)
+    checkpointSet.InitOver(molRef);
 }
 
 void System::InitMoves(Setup const& set)
@@ -265,7 +263,7 @@ void System::RecalculateTrajectory(Setup &set, uint frameNum)
   set.pdb.Init(set.config.in.restart, set.config.in.files.pdb.name, frameNum);
   statV.InitOver(set, *this);
 #ifdef VARIABLE_PARTICLE_NUMBER
-  molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield);
+  molLookup.Init(statV.mol, set.pdb.atoms, statV.forcefield, set.config.in.restart.restartFromCheckpoint);
 #endif
   coordinates.InitFromPDB(set.pdb.atoms);
   com.CalcCOM();

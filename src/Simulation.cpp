@@ -30,6 +30,7 @@ Simulation::Simulation(char const*const configFileName, MultiSim const*const& mu
   //recalc Init for static value for initializing ewald since ewald is
   //initialized in system
   staticValues->InitOver(set, *system);
+  system->InitOver(set, staticValues->mol);
   cpu = new CPUSide(*system, *staticValues, set);
   cpu->Init(set.pdb, set.config.out, set.config.sys.step.equil,
             totalSteps, startStep);

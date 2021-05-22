@@ -11,6 +11,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MolSetup.h"
 #include <map>
 #include <string>
+// For iota
+#include <numeric>
+// For custom sort 
+#include "AlphaNum.h"
+
 
 namespace pdb_setup
 {
@@ -78,6 +83,13 @@ public:
     _start = start[m];
     stop = start[m + 1];
   }
+
+  void GetOriginalRangeStartStop(uint & _start, uint & stop, const uint m) const
+  {
+    _start = originalStart[m];
+    stop = originalStart[m + 1];
+  }
+
   void GetRangeStartLength(uint & _start, uint & len, const uint m) const
   {
     _start = start[m];
@@ -93,15 +105,34 @@ public:
                    std::vector<std::string> &names,
                    Forcefield & forcefield);
 
+
+  uint GetOriginalKindIndexInCurrentKindArray(uint molIndex) const
+  {
+    return originalKIndex2CurrentKIndex[originalKIndex[molIndex]];
+  }
+
   //private:
   //Kind index of each molecule and start in master particle array
   //Plus counts
-  uint* start;
-  uint count;
-  uint* kIndex;
-  uint kIndexCount;
+  uint32_t* start;
+  /* From checkpoint for consistent trajectories */
+  uint32_t* originalStart;
+  uint32_t* originalKIndex;
+  /* Kind index is dependent on order a kind is encountered when parsing a psf.
+     In open ensembles this can change, so we use the below array to make sure we
+     print the correct accessory molecule data in PDB Output */
+  uint32_t* originalKIndex2CurrentKIndex;
+
+
+
+  /* only used for output */
+  uint32_t count;
+  uint32_t* kIndex;
+  uint32_t kIndexCount;
   uint* countByKind;
   char* chain;
+  double* beta;
+
 
   MoleculeKind * kinds;
   uint kindsCount;

@@ -13,6 +13,7 @@
 TEST(CircuitTester, DialaTest) {
 
     config_setup::RestartSettings rs2;
+
     std::string pdbnames2[2];
 
     pdbnames2[0] = "./test/input/CircuitFinder/START_BOX_0.pdb";
@@ -37,7 +38,7 @@ TEST(CircuitTester, DialaTest) {
     psfdefined2[0] = true;
     psfdefined2[1] = true;
 
-    ms2.Init(rs2, psfnames2, psfdefined2, pdb2.atoms);
+    ms2.Init(psfnames2, psfdefined2, pdb2.atoms);
 
     CircuitFinder cf(ms2.kindMap["PROTA"].atoms.size());
     FloydWarshallCycle fw(ms2.kindMap["PROTA"].atoms.size());

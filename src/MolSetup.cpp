@@ -62,7 +62,7 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData);
 int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMap, SizeMap& sizeMap, MolMap * kindMapFromBox1 = NULL, SizeMap * sizeMapFromBox1 = NULL);
 //adds atoms and molecule data in psf to kindMap
 //pre: stream is at !NATOMS   post: stream is at end of atom section
-int ReadPSFAtoms(FILE *, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms);
+int ReadPSFAtoms(FILE *, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms, MoleculeVariables & molVars);
 //adds bonds in psf to kindMap
 //pre: stream is before !BONDS   post: stream is in bond section just after
 //the first appearance of the last molecule
@@ -242,8 +242,7 @@ int mol_setup::ReadCombinePSF(MoleculeVariables & molVars,
 
   return 0;
 }
-int MolSetup::Init(const config_setup::RestartSettings& restart,
-                   const std::string* psfFilename, 
+int MolSetup::Init(const std::string* psfFilename, 
                    const bool* psfDefined, 
                    pdb_setup::Atoms& pdbAtoms)
 {
@@ -302,23 +301,19 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
 
   /* A size -> moleculeKind map for quick evaluation of new molecules based on molMap entries
     of a given size exisitng or not */ 
-  uint startIdxMolBoxOffset;
-  uint molKindIndex;
+  uint startIdxAtomBoxOffset;
+  AlphaNum uniqueSuffixGenerator;
   if (molVars.lastAtomIndexInBox0 == 0){
-    startIdxMolBoxOffset = 0;
-    molKindIndex = 0;
+    startIdxAtomBoxOffset = 0;
     molVars.startIdxMolecules.clear();
     molVars.moleculeKinds.clear();
     molVars.moleculeKindNames.clear();
     molVars.moleculeNames.clear();
+    molVars.moleculeSegmentNames.clear();
   } else {
-    startIdxMolBoxOffset = molVars.lastAtomIndexInBox0 + 1;
-    molKindIndex = molVars.lastMolKindIndex;
+    startIdxAtomBoxOffset = molVars.lastAtomIndexInBox0 + 1;
   }
 
-
-  /* Iterate through N connected components */
-  int stringSuffix = 1;
   for (std::vector< std::vector<uint> >::const_iterator it = moleculeXAtomIDY.cbegin();
         it != moleculeXAtomIDY.cend(); it++){
   
@@ -353,9 +348,11 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
             /* Get the map key */
             fragName = *sizeConsistentEntries;
             /* Boilerplate PDB Data modifications for matches */
-            molVars.startIdxMolecules.push_back(startIdxMolBoxOffset + it->front());
+            molVars.startIdxMolecules.push_back(startIdxAtomBoxOffset + it->front());
             molVars.moleculeKinds.push_back((*kindMapFromBox1)[fragName].kindIndex);
             molVars.moleculeNames.push_back(fragName);
+            molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
+            
             /* Boilerplate PDB Data modifications for matches */
 
             /* Search current KindMap for this entry. 
@@ -453,9 +450,11 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
           // Found a match
           if (itPair.second == it->cend()) {
             // Modify PDBData
-            molVars.startIdxMolecules.push_back(startIdxMolBoxOffset + it->front());
+            molVars.startIdxMolecules.push_back(startIdxAtomBoxOffset + it->front());
             molVars.moleculeKinds.push_back(kindMap[*sizeConsistentEntries].kindIndex);
             molVars.moleculeNames.push_back(*sizeConsistentEntries);
+            molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
+            
             newMapEntry = false;
             break;
           }
@@ -474,18 +473,8 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
           }
         }
         if(multiResidue){  
-          std::stringstream ss;
-          /* Length of Suffix */
-          for (int i = 0; i < (stringSuffix + 26 - 1) / 26; i++){
-            int intermediate = stringSuffix - i * 26;
-            char charSuffix = 'A';
-            /* Increment Char A until reach suffix or 27 which will be Z. */
-            for (int j = 1; j < std::min(intermediate, 27); j++){
-              charSuffix++;
-            }
-            ss << charSuffix;
-          }
-          fragName = "PROT" + ss.str();
+          fragName = "PROT" + uniqueSuffixGenerator.uint2String(molVars.stringSuffix);
+          molVars.stringSuffix++;
           printf("\n%-40s \n", "Warning: A molecule containing > 1 residue is detected.");
           printf("The simulation will name it %s.\n", fragName.c_str());
           printf("See the chart at the end of the output log describing this entry.\n");
@@ -516,13 +505,15 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
         }
         kindMap[fragName].firstAtomID = it->front() + 1;
         kindMap[fragName].firstMolID = allAtoms[it->front()].residueID;
-        kindMap[fragName].kindIndex = molKindIndex;
-        molVars.startIdxMolecules.push_back(startIdxMolBoxOffset + kindMap[fragName].firstAtomID - 1);
+        kindMap[fragName].kindIndex = molVars.molKindIndex;
+        molVars.startIdxMolecules.push_back(startIdxAtomBoxOffset + kindMap[fragName].firstAtomID - 1);
         molVars.moleculeKinds.push_back(kindMap[fragName].kindIndex);
         molVars.moleculeKindNames.push_back(fragName);
         molVars.moleculeNames.push_back(fragName);
+        molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
+        
         MolSetup::copyBondInfoIntoMapEntry(bondAdjList, kindMap, fragName);
-        molKindIndex++;
+        molVars.molKindIndex++;
         if (newSize){
           sizeMap[it->size()] = std::vector<std::string>{fragName};
         } else {
@@ -530,9 +521,11 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
         }
       }
     }
+    molVars.moleculeIteration++;
   }
-  molVars.lastAtomIndexInBox0 = (moleculeXAtomIDY.back()).back();
-  molVars.lastMolKindIndex = molKindIndex;
+  molVars.numberMolsInBox0 = moleculeXAtomIDY.size();
+  if (molVars.numberMolsInBox0 != 0)
+    molVars.lastAtomIndexInBox0 = (moleculeXAtomIDY.back()).back();
 }
 
 typedef std::map<std::string, mol_setup::MolKind> MolMap;
@@ -551,6 +544,8 @@ void MolSetup::copyBondInfoIntoMapEntry(const BondAdjacencyList & bondAdjList, m
         ptr = ptr->next;
       }
     }
+    /* before returning, reverse the bonds vector, which should get dead on balls accurate merged psfs across cycles */
+    std::reverse(kindMap[fragName].bonds.begin(), kindMap[fragName].bonds.end());
 }
 
 namespace
@@ -846,7 +841,7 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
   bonds before atoms without physically generating a new PSFFile reversing the order of ATOMS <-> BONDS.
   Hence, the necessity to build this vector before knowing how the atoms are connected. */
   std::vector<mol_setup::Atom> allAtoms;
-  ReadPSFAtoms(psf, nAtoms, allAtoms);
+  ReadPSFAtoms(psf, nAtoms, allAtoms, molVars);
   //build list of start particles for each type, so we can find it and skip
   //everything else
   //make sure molecule has bonds, appears before !NBOND
@@ -957,7 +952,7 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
 
 //adds atoms and molecule data in psf to kindMap
 //pre: stream is at !NATOMS   post: stream is at end of atom section
-int ReadPSFAtoms(FILE *psf, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms)
+int ReadPSFAtoms(FILE *psf, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms, MoleculeVariables & molVars)
 {
   char input[512];
   unsigned int atomID = 0;
@@ -978,7 +973,7 @@ int ReadPSFAtoms(FILE *psf, unsigned int nAtoms, std::vector<mol_setup::Atom> & 
     sscanf(input, " %u %s %u %s %s %s %lf %lf ",
            &atomID, segment, &molID,
            moleculeName, atomName, atomType, &charge, &mass);
-    allAtoms.push_back(mol_setup::Atom(atomName, moleculeName, molID, segment, atomType, charge, mass));
+      allAtoms.push_back(mol_setup::Atom(atomName, moleculeName, molID, segment, atomType, charge, mass));
   }
   return 0;
 }

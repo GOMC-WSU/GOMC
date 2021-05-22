@@ -11,6 +11,7 @@
 TEST(PSFParserTest, CheckProtAndWaterTest) {
 
     config_setup::RestartSettings rs;
+    rs.recalcTrajectory = false;
     std::string pdbnames[2];
 
     pdbnames[0] = "./test/input/PSFParser/BOX_0.pdb";
@@ -35,7 +36,7 @@ TEST(PSFParserTest, CheckProtAndWaterTest) {
     psfdefined[0] = true;
     psfdefined[1] = true;
 
-    ms.Init(rs, psfnames, psfdefined, pdb.atoms);
+    ms.Init(psfnames, psfdefined, pdb.atoms);
 
     /*
         Manually build dialanine

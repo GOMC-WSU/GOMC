@@ -64,7 +64,7 @@ public:
     DoOutput(0);
   }
   virtual void DoOutput(const ulong step);
-
+  virtual void DoOutputRestart(const ulong step);
 private:
   const static int elementWidth = 16;
   bool enableEnergy, enablePressure, enableDens, enableVolume, enableMol;

@@ -8,13 +8,6 @@ include_directories(src/cbmc)
 include_directories(src/moves)
 include_directories(src/GPU)
 
-# Enable google test
-# for now we will disable testing for intel compiler
-if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-  enable_testing()
-  include(test/GoogleTest.cmake)
-endif()
-
 #Out-of-source build
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
@@ -66,6 +59,28 @@ endif()
 # Set Source and Header files
 include(${PROJECT_SOURCE_DIR}/CMake/FileLists.cmake)
 
+# find Boost, and if not found download and install serialization library for checkpointing
+# Set Source and Header files
+#set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/FindBoost.cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
+find_package(Boost COMPONENTS serialization )
+
+if(Boost_FOUND)
+    message(STATUS "Boost_INCLUDE_DIRS: ${BOOST_INCLUDE_DIRS}")
+    message(STATUS "Boost_LIBRARIES: ${BOOST_LIBRARIES}")
+    message(STATUS "Boost_VERSION: ${Boost_VERSION_STRING}")
+endif()
+
+include_directories(${BOOST_INCLUDE_DIRS})
+
+# Enable google test
+# for now we will disable testing for intel compiler
+if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+  enable_testing()
+  include(test/GoogleTest.cmake)
+endif()
+
 # Find if CUDA exists and what is the version number
 include(CheckLanguage)
 check_language(CUDA)
@@ -83,3 +98,5 @@ if (OPENMP_FOUND)
 	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
+
+

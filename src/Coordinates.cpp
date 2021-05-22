@@ -34,6 +34,12 @@ void Coordinates::CheckCoordinate()
     MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b),
                                  end = molLookRef.BoxEnd(b),
                                  endc = molLookRef.BoxEnd(b);
+    /* Prevent segfault on empty boxes */
+    if (thisMol == end){
+      printf("No molecules to wrap inside the simulation box %d:\n", b);
+      continue;
+    }
+
     //find the min and max coordinate
     stRange = molRef.MolStart(*thisMol);
     --endc;
