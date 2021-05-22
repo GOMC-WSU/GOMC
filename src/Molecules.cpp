@@ -58,8 +58,13 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
     originalStart = vect::TransferInto<uint>(originalStart, setup.mol.molVars.startIdxMolecules);
     originalStart[count] = atoms.x.size();
     originalKIndex = vect::transfer<uint>(setup.mol.molVars.moleculeKinds);
+    /* since this is a new run, the original kind indices are the current kind indices */
+    std::vector<uint32_t> kindsIndicesVec(kindsCount);
+    std::iota(kindsIndicesVec.begin(), kindsIndicesVec.end(), 0); // kindsIndicesVec will become: [0..kindsCount-1]
+    originalKIndex2CurrentKIndex = vect::transfer<uint32_t>(kindsIndicesVec);
   } else {
     originalKIndex = new uint [count];
+    originalKIndex2CurrentKIndex = new uint [kindsCount];
   }
   start = vect::TransferInto<uint>(start, setup.mol.molVars.startIdxMolecules);
   kIndex = vect::transfer<uint>(setup.mol.molVars.moleculeKinds);
@@ -73,7 +78,7 @@ void Molecules::Init(Setup & setup, Forcefield & forcefield,
     countByKind[mk] =
       std::count(setup.mol.molVars.moleculeNames.begin(), setup.mol.molVars.moleculeNames.end(),
                  setup.mol.molVars.moleculeKindNames[mk]);
-    kinds[mk].Init(setup.mol.molVars.moleculeKindNames[mk], setup, forcefield, sys);
+    kinds[mk].Init(mk, setup.mol.molVars.moleculeKindNames[mk], setup, forcefield, sys);
   }
 
 #if ENSEMBLE == GCMC

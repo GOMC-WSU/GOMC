@@ -123,24 +123,24 @@ void PDBOutput::InitPartVec()
       for (uint p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
         // If you don't want to preserve resID's comment this out -> mol = mI
         molecule = mI;
-        if (molRef.kinds[molRef.kIndex[*m]].isMultiResidue){
-          FormatAtom(pStr[p], p, molecule + molRef.kinds[molRef.kIndex[*m]].intraMoleculeResIDs[p - placementStart], 
+        if (molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(*m)].isMultiResidue){
+          FormatAtom(pStr[p], p, molecule + molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(*m)].intraMoleculeResIDs[p - placementStart], 
                     molRef.chain[d],
-                    molRef.kinds[molRef.kIndex[*m]].atomNames[p - placementStart], 
-                    molRef.kinds[molRef.kIndex[*m]].resNames[p - placementStart]);
+                    molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(*m)].atomNames[p - placementStart], 
+                    molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(*m)].resNames[p - placementStart]);
         } else {
           FormatAtom(pStr[p], p, molecule, 
                     molRef.chain[d],
-                    molRef.kinds[molRef.kIndex[*m]].atomNames[p - placementStart], 
-                    molRef.kinds[molRef.kIndex[*m]].resNames[p - placementStart]);
+                    molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(*m)].atomNames[p - placementStart], 
+                    molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(*m)].resNames[p - placementStart]);
         }
         ++atomIndex;
       }
       ++m;
       ++molecule;
       /* If you want to keep orig resID's comment these out */
-      if (molRef.kinds[molRef.originalKIndex[mI]].isMultiResidue){
-        molecule += molRef.kinds[molRef.originalKIndex[mI]].intraMoleculeResIDs.back();
+      if (molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(mI)].isMultiResidue){
+        molecule += molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(mI)].intraMoleculeResIDs.back();
       }
       /* 0 & 9999 since FormatAtom adds 1 shifting to 1 and 10,000*/
       if(molecule == 9999)

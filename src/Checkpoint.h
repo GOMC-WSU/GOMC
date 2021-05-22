@@ -12,7 +12,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/map.hpp>
 
+
+#include <map>
 
 #include "MoveSettings.h"
 #include "MoleculeLookup.h"
@@ -49,6 +52,7 @@ class Checkpoint
         void GatherGOMCVersion();
         void GatherStep(const ulong & startStep);
         void GatherMolecules(const Molecules & molRef);
+        void GatherMoleculeKindDictionary(const Molecules & molRef);
         void GatherMoveSettings(MoveSettings & movSetRef);
         void GatherSortedMoleculeIndices(MoleculeLookup & molLookupRef);
         void GatherRandomNumbers(PRNG & prngRef);
@@ -71,6 +75,9 @@ class Checkpoint
 
         // Molecule Indices for consistent trajectories 
         std::vector<uint32_t> originalMoleculeIndicesVec, permutedMoleculeIndicesVec;
+
+        // Kind indices and name map
+        std::map<std::string, uint32_t> nameIndexMap;
 
         #define N_array_size 624
 
@@ -126,7 +133,10 @@ class Checkpoint
             ar & originalKIndexVec;  
             // Sorted Molecule Indices
             ar & originalMoleculeIndicesVec;  
-            ar & permutedMoleculeIndicesVec;  
+            ar & permutedMoleculeIndicesVec; 
+            // name & index Map
+            ar& nameIndexMap;
+
             #if GOMC_LIB_MPI
             // PT boolean
             ar & parallelTemperingEnabled;

@@ -75,7 +75,8 @@ public:
 
   //Initialize this kind
   //Exits program if param and psf files don't match
-  void Init(std::string const& l_name,
+  void Init(uint & l_kindIndex, 
+            std::string const& l_name,
             Setup const& setup,
             Forcefield const& forcefield,
             System & sys);
@@ -158,6 +159,7 @@ public:
   bool oneThree, oneFour;
 
   std::string name;
+  uint kindIndex;
   std::vector<std::string> atomNames, atomTypeNames, resNames;
   double molMass;
 

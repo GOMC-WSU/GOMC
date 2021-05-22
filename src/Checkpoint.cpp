@@ -17,6 +17,7 @@ Checkpoint::Checkpoint(const ulong & startStep,
     GatherMoveSettings(movSetRef);
     GatherRandomNumbers(prngRef);
     GatherMolecules(molRef);
+    GatherMoleculeKindDictionary(molRef);
     GatherSortedMoleculeIndices(molLookupRef);
 }
 
@@ -32,6 +33,7 @@ Checkpoint::Checkpoint(const ulong & startStep,
     GatherMoveSettings(movSetRef);
     GatherRandomNumbers(prngRef);
     GatherMolecules(molRef);
+    GatherMoleculeKindDictionary(molRef);
     GatherSortedMoleculeIndices(molLookupRef);
     GatherParallelTemperingBoolean(parallelTemperingIsEnabled);
     if(parallelTemperingIsEnabled)
@@ -59,6 +61,13 @@ void Checkpoint::GatherMolecules(const Molecules & molRef){
     originalStartVec.assign(molRef.originalStart, molRef.originalStart + molRef.count + 1);
     originalKIndexVec.assign(molRef.originalKIndex, molRef.originalKIndex + molRef.kIndexCount);
 }
+
+void Checkpoint::GatherMoleculeKindDictionary(const Molecules & molRef){
+  nameIndexMap.clear();
+  for (uint mk = 0 ; mk < molRef.kindsCount; mk++)
+    nameIndexMap[molRef.kinds[mk].name] = molRef.kinds[mk].kindIndex;
+}
+
 
 void Checkpoint::GatherRandomNumbers(PRNG & prngRef){
 

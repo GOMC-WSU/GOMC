@@ -106,6 +106,11 @@ public:
                    Forcefield & forcefield);
 
 
+  uint GetOriginalKindIndexInCurrentKindArray(uint molIndex) const
+  {
+    return originalKIndex2CurrentKIndex[originalKIndex[molIndex]];
+  }
+
   //private:
   //Kind index of each molecule and start in master particle array
   //Plus counts
@@ -113,6 +118,11 @@ public:
   /* From checkpoint for consistent trajectories */
   uint32_t* originalStart;
   uint32_t* originalKIndex;
+  /* Kind index is dependent on order a kind is encountered when parsing a psf.
+     In open ensembles this can change, so we use the below array to make sure we
+     print the correct accessory molecule data in PDB Output */
+  uint32_t* originalKIndex2CurrentKIndex;
+
 
   /* only used for output */
   uint32_t count;

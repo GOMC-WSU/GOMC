@@ -26,9 +26,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 
 void MoleculeKind::Init
-(std::string const& l_name, Setup const& setup,
+(uint & l_kindIndex, std::string const& l_name, Setup const& setup,
  Forcefield const& forcefield, System& sys)
 {
+  kindIndex = l_kindIndex;
   mol_setup::MolMap::const_iterator dataIterator =
     setup.mol.kindMap.find(l_name);
   if(dataIterator == setup.mol.kindMap.end()) {
