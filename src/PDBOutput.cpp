@@ -123,16 +123,16 @@ void PDBOutput::InitPartVec()
       for (uint p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
         // If you don't want to preserve resID's comment this out -> mol = mI
         molecule = mI;
-        if (molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(*m)].isMultiResidue){
-          FormatAtom(pStr[p], p, molecule + molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(*m)].intraMoleculeResIDs[p - placementStart], 
+        if (molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(mI)].isMultiResidue){
+          FormatAtom(pStr[p], p, molecule + molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(mI)].intraMoleculeResIDs[p - placementStart], 
                     molRef.chain[d],
-                    molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(*m)].atomNames[p - placementStart], 
-                    molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(*m)].resNames[p - placementStart]);
+                    molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(mI)].atomNames[p - placementStart], 
+                    molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(mI)].resNames[p - placementStart]);
         } else {
           FormatAtom(pStr[p], p, molecule, 
                     molRef.chain[d],
-                    molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(*m)].atomNames[p - placementStart], 
-                    molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(*m)].resNames[p - placementStart]);
+                    molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(mI)].atomNames[p - placementStart], 
+                    molRef.kinds[molRef.GetOriginalKindIndexInCurrentKindArray(mI)].resNames[p - placementStart]);
         }
         ++atomIndex;
       }
