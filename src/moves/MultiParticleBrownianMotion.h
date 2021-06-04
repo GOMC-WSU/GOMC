@@ -375,7 +375,9 @@ inline double MultiParticleBrownian::GetCoeff()
 
   if(moveType == mp::MPROTATE) {// rotate, 
 #ifdef _OPENMP
-  #pragma omp parallel for default(none) shared(moleculeIndex, r_max, t_max, r_max4, t_max4) reduction(+:w_ratio)
+  // Global var moleculeIndex is predetermined shared.  Older compilers won't compile if you redeclare it shared.
+  //#pragma omp parallel for default(none) shared(moleculeIndex, r_max, t_max, r_max4, t_max4) reduction(+:w_ratio)
+  #pragma omp parallel for default(none) shared(r_max, t_max, r_max4, t_max4) reduction(+:w_ratio)
 #endif
     for(uint m = 0; m < moleculeIndex.size(); m++) {
       uint molNumber = moleculeIndex[m];
@@ -386,7 +388,9 @@ inline double MultiParticleBrownian::GetCoeff()
     } 
   } else {// displace
 #ifdef _OPENMP
-  #pragma omp parallel for default(none) shared(moleculeIndex, r_max, t_max, r_max4, t_max4) reduction(+:w_ratio)
+  //#pragma omp parallel for default(none) shared(moleculeIndex, r_max, t_max, r_max4, t_max4) reduction(+:w_ratio)
+  // Global var moleculeIndex is predetermined shared.  Older compilers won't compile if you redeclare it shared.
+  #pragma omp parallel for default(none) shared(r_max, t_max, r_max4, t_max4) reduction(+:w_ratio)
 #endif
     for(uint m = 0; m < moleculeIndex.size(); m++) {
       uint molNumber = moleculeIndex[m];
@@ -463,7 +467,9 @@ inline void MultiParticleBrownian::CalculateTrialDistRot()
     double *y = r_k.y;
     double *z = r_k.z;
 #ifdef _OPENMP
-    #pragma omp parallel for default(none) shared(moleculeIndex, r_max, x, y, z)
+    //Global var moleculeIndex is predetermined shared.  Older compilers won't compile if you redeclare it shared.
+    //#pragma omp parallel for default(none) shared(moleculeIndex, r_max, x, y, z)
+    #pragma omp parallel for default(none) shared(r_max, x, y, z)
 #endif
     for(uint m = 0; m < moleculeIndex.size(); m++) {
       uint molIndex = moleculeIndex[m];
@@ -479,7 +485,9 @@ inline void MultiParticleBrownian::CalculateTrialDistRot()
     double *y = t_k.y;
     double *z = t_k.z;
 #ifdef _OPENMP
-    #pragma omp parallel for default(none) shared(moleculeIndex, t_max, x, y, z)
+    //Global var moleculeIndex is predetermined shared.  Older compilers won't compile if you redeclare it shared.
+    //#pragma omp parallel for default(none) shared(moleculeIndex, t_max, x, y, z)
+    #pragma omp parallel for default(none) shared(t_max, x, y, z)
 #endif
     for(int m = 0; m < (int) moleculeIndex.size(); m++) {
       uint molIndex = moleculeIndex[m];
