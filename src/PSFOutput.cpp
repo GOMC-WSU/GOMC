@@ -32,6 +32,8 @@ const char* atomFormat = "%8d %-5s%-5d%-5s%-5s%-3s%12.6f%14.4f%12d\n";
 const int bondPerLine = 4;
 const int anglePerLine = 3;
 const int dihPerLine = 2;
+const int impsPerLine = 2;
+
 }
 
 PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
@@ -95,6 +97,7 @@ void PSFOutput::DoOutputRestart(const ulong step)
     PrintBondsInBox(outfile, b);
     PrintAnglesInBox(outfile, b);
     PrintDihedralsInBox(outfile, b);
+    PrintImpropersInBox(outfile, b);
     PrintNAMDCompliantSuffixInBox(outfile);
     fclose(outfile);
   }
@@ -123,6 +126,7 @@ void PSFOutput::DoOutput(const ulong step){
   PrintBonds(outfile);
   PrintAngles(outfile);
   PrintDihedrals(outfile);
+  PrintImpropers(outfile);
   PrintNAMDCompliantSuffix(outfile);
   fclose(outfile);
 
@@ -138,6 +142,7 @@ void PSFOutput::CountMolecules()
   totalAtoms = 0;
   totalBonds = 0;
   totalDihs = 0;
+  totalImps = 0;
   uint atomT = 0;
 
   for(uint b = 0; b < BOX_TOTAL; b++) {
@@ -151,6 +156,7 @@ void PSFOutput::CountMolecules()
       totalBonds += molKind.NumBonds() * molLookRef.NumKindInBox(k, b);
       totalAngles += molKind.NumAngles() * molLookRef.NumKindInBox(k, b);
       totalDihs += molKind.NumDihs() * molLookRef.NumKindInBox(k, b);
+      totalImps += molKind.NumDihs() * molLookRef.NumKindInBox(k, b);
 
       atomT += molLookRef.NumKindInBox(k, b);
     }
@@ -207,6 +213,7 @@ void PSFOutput::PrintPSF(const std::string& filename,
   PrintBonds(outfile);
   PrintAngles(outfile);
   PrintDihedrals(outfile);
+  PrintImpropers(outfile);
   PrintNAMDCompliantSuffix(outfile);
   fclose(outfile);
 }
@@ -344,9 +351,34 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
   fputs("\n\n", outfile);
 }
 
+void PSFOutput::PrintImpropers(FILE* outfile) const
+{
+  fprintf(outfile, headerFormat, totalImps, improperHeader);
+  uint atomID = 1;
+  uint lineEntry = 0;
+  uint thisKIndex = 0, mI = 0;
+  for(uint mol = 0; mol < molecules->count; ++mol) {
+    thisKIndex = molecules->kIndex[mol];
+    const MolKind& thisKind = molKinds[thisKIndex];
+    for(uint i = 0; i < thisKind.impropers.size(); ++i) {
+      fprintf(outfile, "%8d%8d%8d%8d", thisKind.impropers[i].a0 + atomID,
+              thisKind.impropers[i].a1 + atomID,
+              thisKind.impropers[i].a2 + atomID,
+              thisKind.impropers[i].a3 + atomID);
+      ++lineEntry;
+      if(lineEntry == impsPerLine) {
+        lineEntry = 0;
+        fputc('\n', outfile);
+      }
+    }
+    atomID += thisKind.atoms.size();
+  }
+  fputs("\n\n", outfile);
+}
+
   void PSFOutput::PrintNAMDCompliantSuffix(FILE* outfile) const {
-    fprintf(outfile, headerFormat, 0, improperHeader);
-    fputs("\n\n", outfile);
+    //fprintf(outfile, headerFormat, 0, improperHeader);
+    //fputs("\n\n", outfile);
     fprintf(outfile, headerFormat, 0, donorHeader);
     fputs("\n\n", outfile);
     fprintf(outfile, headerFormat, 0, acceptorHeader);
@@ -466,9 +498,31 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
     fputs("\n\n", outfile);
   }
 
-  void PSFOutput::PrintNAMDCompliantSuffixInBox(FILE* outfile) const {
-    fprintf(outfile, headerFormat, 0, improperHeader);
+  void PSFOutput::PrintImpropersInBox(FILE* outfile, uint b) const {  
+    fprintf(outfile, headerFormat, boxImps[b], improperHeader);
+    uint atomID = 1;
+    uint lineEntry = 0;
+    for( MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b); thisMol != molLookRef.BoxEnd(b); thisMol++){
+      const MolKind& thisKind = molKinds[molecules->kIndex[*thisMol]];
+      for(uint i = 0; i < thisKind.impropers.size(); ++i) {
+        fprintf(outfile, "%8d%8d%8d%8d", thisKind.impropers[i].a0 + atomID,
+                thisKind.impropers[i].a1 + atomID,
+                thisKind.impropers[i].a2 + atomID,
+                thisKind.impropers[i].a3 + atomID);
+        ++lineEntry;
+        if(lineEntry == impsPerLine) {
+          lineEntry = 0;
+          fputc('\n', outfile);
+        }
+      }
+      atomID += thisKind.atoms.size();
+    }
     fputs("\n\n", outfile);
+  }
+
+  void PSFOutput::PrintNAMDCompliantSuffixInBox(FILE* outfile) const {
+    //fprintf(outfile, headerFormat, 0, improperHeader);
+    //fputs("\n\n", outfile);
     fprintf(outfile, headerFormat, 0, donorHeader);
     fputs("\n\n", outfile);
     fprintf(outfile, headerFormat, 0, acceptorHeader);

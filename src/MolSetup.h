@@ -83,6 +83,21 @@ public:
   uint kind;
 };
 
+class Improper
+{
+public:
+  Improper(uint atom0, uint atom1, uint atom2, uint atom3)
+    : a0(atom0), a1(atom1), a2(atom2), a3(atom3) {}
+  //some xplor PSF files have duplicate dihedrals, we need to ignore these
+  bool operator == (const Improper& other) const;
+  bool operator != (const Improper& other) const;
+
+  //private:
+  //atoms
+  uint a0, a1, a2, a3;
+  uint kind;
+};
+
 class Angle
 {
 public:
@@ -115,6 +130,8 @@ public:
   std::vector<Bond> bonds;
   std::vector<Angle> angles;
   std::vector<Dihedral> dihedrals;
+  std::vector<Improper> impropers;
+
 
   uint kindIndex;
 

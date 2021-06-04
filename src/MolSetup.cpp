@@ -43,6 +43,23 @@ bool Dihedral::operator != (const Dihedral& other) const
   return !(*this == other);
 }
 
+bool Improper::operator == (const Improper& o) const
+{
+  bool same = false;
+  if(a0 == o.a0 && a1 == o.a1 && a2 == o.a2 && a3 == o.a3)
+    same = true;
+
+  if(a0 == o.a3 && a1 == o.a2 && a2 == o.a1 && a3 == o.a0)
+    same = true;
+
+  return same;
+}
+
+bool Improper::operator != (const Improper& other) const
+{
+  return !(*this == other);
+}
+
 namespace
 {
 //Assigns numerical mol kind indices to all molKinds
@@ -79,6 +96,12 @@ int ReadPSFAngles(FILE* psf, MolMap& kindMap,
 //pre: stream is before !NPHI   post: stream is in dihedral section just
 //after the first appearance of the last molecule
 int ReadPSFDihedrals(FILE* psf, MolMap& kindMap,
+                     std::vector<std::pair<uint, std::string> >& firstAtom,
+                     const uint ndihedrals);
+//adds impropers in psf to kindMap
+//pre: stream is before !NPHI   post: stream is in dihedral section just
+//after the first appearance of the last molecule
+int ReadPSFImpropers(FILE* psf, MolMap& kindMap,
                      std::vector<std::pair<uint, std::string> >& firstAtom,
                      const uint ndihedrals);
 
@@ -945,6 +968,24 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
     return errors::READ_ERROR;
   }
 
+  //find dihedrals header+count
+  fseek(psf, 0, SEEK_SET);
+  while (strstr(input, "!NIMPHI") == NULL) {
+    check = fgets(input, 511, psf);
+    if (check == NULL) {
+      fprintf(stderr, "ERROR: Unable to read impropers from PSF file %s",
+              psfFilename);
+      fclose(psf);
+      return errors::READ_ERROR;
+    }
+  }
+  //make sure molecule has imps, count appears before !NIMPHI
+  count = atoi(input);
+  if (ReadPSFImpropers(psf, kindMap, firstAtomLookup, count) == errors::READ_ERROR) {
+    fclose(psf);
+    return errors::READ_ERROR;
+  }
+
   fclose(psf);
 
   return nAtoms;
@@ -1138,6 +1179,61 @@ int ReadPSFDihedrals(FILE* psf, MolMap& kindMap,
     MolKind& currentMol = kindMap[firstAtom[i].second];
     if(currentMol.atoms.size() > 3 && !defined[i]) {
       std::cout << "Warning: Dihedral is missing for " << firstAtom[i].second
+                << " !\n";
+    }
+  }
+  return 0;
+}
+
+//adds impropers in psf to kindMap
+//pre: stream is before !NIMPHI   post: stream is in donors (NDON) section just after
+//the first appearance of the last improper
+//
+int ReadPSFImpropers(FILE* psf, MolMap& kindMap,
+                     std::vector<std::pair<unsigned int, std::string> >& firstAtom, const uint nimpropers)
+{
+  Improper imp(0, 0, 0, 0);
+  int dummy;
+  std::vector<bool> defined(firstAtom.size(), false);
+  for (uint n = 0; n < nimpropers; n++) {
+    dummy = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
+    if(dummy != 4) {
+      fprintf(stderr, "ERROR: Incorrect Number of impropers in PSF file ");
+      return errors::READ_ERROR;
+    } else if (feof(psf) || ferror(psf)) {
+      fprintf(stderr, "ERROR: Could not find all impropers in PSF file ");
+      return errors::READ_ERROR;
+    }
+
+    //loop to find the molecule kind with this impropers
+    for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+      MolKind& currentMol = kindMap[firstAtom[i].second];
+      //index of first atom in moleule
+      unsigned int molBegin = firstAtom[i].first;
+      //index AFTER last atom in molecule
+      unsigned int molEnd = molBegin + currentMol.atoms.size();
+      //assign impropers
+      if (imp.a0 >= molBegin && imp.a0 < molEnd) {
+        imp.a0 -= molBegin;
+        imp.a1 -= molBegin;
+        imp.a2 -= molBegin;
+        imp.a3 -= molBegin;
+        //some xplor PSF files have duplicate impropers, we need to ignore these
+        if (std::find(currentMol.impropers.begin(), currentMol.impropers.end(),
+                      imp) == currentMol.impropers.end()) {
+          currentMol.impropers.push_back(imp);
+        }
+        //once we found the molecule kind, break from the loop
+        defined[i] = true;
+        break;
+      }
+    }
+  }
+  //Check if we defined all impropers
+  for (unsigned int i = 0; i < firstAtom.size(); ++i) {
+    MolKind& currentMol = kindMap[firstAtom[i].second];
+    if(currentMol.atoms.size() > 3 && !defined[i]) {
+      std::cout << "Warning: Improper is missing for " << firstAtom[i].second
                 << " !\n";
     }
   }

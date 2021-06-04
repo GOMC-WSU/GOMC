@@ -289,6 +289,29 @@ void GeomFeature::Init(const std::vector<mol_setup::Dihedral>& dihs, const BondL
   }
 }
 
+void GeomFeature::Init(const std::vector<mol_setup::Improper>& imps, const BondList& bList)
+{
+  count = imps.size();
+  if (count == 0)
+    return;
+  //find corresponding bond indices
+  kinds = new uint[count];
+  bondIndices = new uint[count * bondsPer];
+
+  int bondCounter = 0;
+  for (uint i = 0; i < imps.size(); ++i) {
+    bondIndices[bondCounter] =
+      findPair(imps[i].a0, imps[i].a1, bList);
+    ++bondCounter;
+    bondIndices[bondCounter] =
+      findPair(imps[i].a1, imps[i].a2, bList);
+    ++bondCounter;
+    bondIndices[bondCounter] =
+      findPair(imps[i].a2, imps[i].a3, bList);
+    ++bondCounter;
+    kinds[i] = imps[i].kind;
+  }
+}
 
 
 void SortedNonbond::Init(const Nonbond& nb, const uint numAtoms)
