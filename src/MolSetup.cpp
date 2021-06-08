@@ -810,6 +810,15 @@ void mol_setup::PrintMolMapVerbose(const MolMap& kindMap)
                 << it->second.dihedrals[i].a2 << ' '
                 << it->second.dihedrals[i].a3 << ']' << ' ';
     }
+    std::cout << std::endl << "\nImpropers:";
+    for (uint i = 0; i < it->second.impropers.size(); i++) {
+      if (i % 5 == 0)
+        std::cout << std::endl;
+      std::cout << "[" << it->second.impropers[i].a0 << ' '
+                << it->second.impropers[i].a1 << ' '
+                << it->second.impropers[i].a2 << ' '
+                << it->second.impropers[i].a3 << ']' << ' ';
+    }
     ++it;
     std::cout << std::endl << std::endl;
   }
@@ -825,6 +834,7 @@ void mol_setup::PrintMolMapBrief(const MolMap& kindMap)
               it->second.bonds.size() << '\t' <<
               it->second.angles.size() << '\t' <<
               it->second.dihedrals.size() << '\t' << std::endl;
+              it->second.impropers.size() << '\t' << std::endl;
     ++it;
   }
 
