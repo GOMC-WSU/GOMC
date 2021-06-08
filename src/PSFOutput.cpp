@@ -156,7 +156,7 @@ void PSFOutput::CountMolecules()
       totalBonds += molKind.NumBonds() * molLookRef.NumKindInBox(k, b);
       totalAngles += molKind.NumAngles() * molLookRef.NumKindInBox(k, b);
       totalDihs += molKind.NumDihs() * molLookRef.NumKindInBox(k, b);
-      totalImps += molKind.NumDihs() * molLookRef.NumKindInBox(k, b);
+      totalImps += molKind.NumImps() * molLookRef.NumKindInBox(k, b);
 
       atomT += molLookRef.NumKindInBox(k, b);
     }
@@ -172,6 +172,7 @@ void PSFOutput::CountMoleculesInBoxes()
     boxBonds[b] = 0;
     boxAngles[b] = 0;
     boxDihs[b] = 0;
+    boxImps[b] = 0;
     for(uint k = 0; k < molKinds.size(); ++k) {
       // This doesnt work when the molecules are interspersed instead of all of one type then all the other
       //const MoleculeKind& molKind = molecules->GetKind(atomT);      
@@ -181,6 +182,7 @@ void PSFOutput::CountMoleculesInBoxes()
       boxBonds[b] += molKind.NumBonds() * molLookRef.NumKindInBox(k, b);
       boxAngles[b] += molKind.NumAngles() * molLookRef.NumKindInBox(k, b);
       boxDihs[b] += molKind.NumDihs() * molLookRef.NumKindInBox(k, b);
+      boxImps[b] += molKind.NumImps() * molLookRef.NumKindInBox(k, b);
 
       atomT += molLookRef.NumKindInBox(k, b);
     }

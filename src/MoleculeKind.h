@@ -64,6 +64,10 @@ public:
   {
     return dihedrals.Count();
   }
+  uint NumImps() const
+  {
+    return impropers.Count();
+  }
   uint AtomKind(const uint a) const
   {
     return atomKind[a];
