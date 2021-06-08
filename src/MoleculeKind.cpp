@@ -105,7 +105,7 @@ void MoleculeKind::Init
 #endif
 }
 
-MoleculeKind::MoleculeKind() : angles(3), dihedrals(4), impropers(3),
+MoleculeKind::MoleculeKind() : angles(3), dihedrals(4), impropers(4),
   atomMass(NULL), builder(NULL), atomKind(NULL),
   atomCharge(NULL) {}
 
