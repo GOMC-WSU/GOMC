@@ -1034,7 +1034,6 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
     return errors::READ_ERROR;
   }
 
-
   //find donors header+count
   fseek(psf, 0, SEEK_SET);
   while (strstr(input, "!NDON") == NULL) {
@@ -1052,7 +1051,6 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
     fclose(psf);
     return errors::READ_ERROR;
   }
-
 
   //find acceptors header+count
   fseek(psf, 0, SEEK_SET);
@@ -1084,13 +1082,12 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
       return errors::READ_ERROR;
     }
   }
-  //make sure molecule has explicit nonbond exclusions , count appears before !NNB
+  //make sure molecule has explicit nonbond exclusions, count appears before !NNB
   count = atoi(input);
   if (ReadPSFExplicitNonbondExclusions(psf, kindMap, firstAtomLookup, count) == errors::READ_ERROR) {
     fclose(psf);
     return errors::READ_ERROR;
   }
-
 
   //find groups header+count
   fseek(psf, 0, SEEK_SET);
@@ -1103,15 +1100,14 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
       return errors::READ_ERROR;
     }
   }
-    //make sure molecule has groups, count appears before !NGRP
+  //make sure molecule has groups, count appears before !NGRP
   count = atoi(input);
   if (ReadPSFGroups(psf, kindMap, firstAtomLookup, count) == errors::READ_ERROR) {
     fclose(psf);
     return errors::READ_ERROR;
   }
 
-
-  //find groups header+count
+  //find cross terms header+count
   fseek(psf, 0, SEEK_SET);
   while (strstr(input, "!NCRTERM") == NULL) {
     check = fgets(input, 511, psf);
@@ -1122,7 +1118,7 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
       return errors::READ_ERROR;
     }
   }
-    //make sure molecule has cross terms, count appears before !NCRTERM
+  //make sure molecule has cross terms, count appears before !NCRTERM
   count = atoi(input);
   if (ReadPSFCrossTerms(psf, kindMap, firstAtomLookup, count) == errors::READ_ERROR) {
     fclose(psf);
