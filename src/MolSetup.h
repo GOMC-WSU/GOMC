@@ -119,6 +119,30 @@ public:
   uint kind;
 };
 
+
+class Donor
+{
+public:
+  Donor(uint atom0, uint atom1)
+    : a0(atom0), a1(atom1) {}
+//   private:
+  uint a0, a1;
+  uint kind;
+};
+
+
+class Acceptor
+{
+public:
+  Acceptor(uint atom0, uint atom1)
+    : a0(atom0), a1(atom1) {}
+//   private:
+  uint a0, a1;
+  uint kind;
+};
+
+
+
 //!Structure to contain a molecule kind's data during initialization
 class MolKind
 {
@@ -131,6 +155,9 @@ public:
   std::vector<Angle> angles;
   std::vector<Dihedral> dihedrals;
   std::vector<Improper> impropers;
+  std::vector<Donor> donors;
+  std::vector<Acceptor> acceptors;
+
 
 
   uint kindIndex;

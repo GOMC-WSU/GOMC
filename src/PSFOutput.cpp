@@ -33,6 +33,8 @@ const int bondPerLine = 4;
 const int anglePerLine = 3;
 const int dihPerLine = 2;
 const int impsPerLine = 2;
+const int donorPerLine = 4;
+const int acceptorPerLine = 4;
 
 }
 
@@ -127,6 +129,8 @@ void PSFOutput::DoOutput(const ulong step){
   PrintAngles(outfile);
   PrintDihedrals(outfile);
   PrintImpropers(outfile);
+  PrintDonors(outfile);
+  PrintAcceptors(outfile);
   PrintNAMDCompliantSuffix(outfile);
   fclose(outfile);
 
@@ -157,6 +161,11 @@ void PSFOutput::CountMolecules()
       totalAngles += molKind.NumAngles() * molLookRef.NumKindInBox(k, b);
       totalDihs += molKind.NumDihs() * molLookRef.NumKindInBox(k, b);
       totalImps += molKind.NumImps() * molLookRef.NumKindInBox(k, b);
+      totalDons += molKind.NumDons() * molLookRef.NumKindInBox(k, b);
+      totalAccs += molKind.NumAccs() * molLookRef.NumKindInBox(k, b);
+      totalNNBs += molKind.NumNNBs() * molLookRef.NumKindInBox(k, b);
+      totalGrps += molKind.NumGrps() * molLookRef.NumKindInBox(k, b);
+      totalCrtrms += molKind.NumCrtrms() * molLookRef.NumKindInBox(k, b);
 
       atomT += molLookRef.NumKindInBox(k, b);
     }
@@ -173,6 +182,11 @@ void PSFOutput::CountMoleculesInBoxes()
     boxAngles[b] = 0;
     boxDihs[b] = 0;
     boxImps[b] = 0;
+    boxDons[b] = 0;
+    boxAccs[b] = 0;
+    boxNNBs[b] = 0;
+    boxGrps[b] = 0;
+    boxCrtrms[b] = 0;
     for(uint k = 0; k < molKinds.size(); ++k) {
       // This doesnt work when the molecules are interspersed instead of all of one type then all the other
       //const MoleculeKind& molKind = molecules->GetKind(atomT);      
@@ -183,8 +197,11 @@ void PSFOutput::CountMoleculesInBoxes()
       boxAngles[b] += molKind.NumAngles() * molLookRef.NumKindInBox(k, b);
       boxDihs[b] += molKind.NumDihs() * molLookRef.NumKindInBox(k, b);
       boxImps[b] += molKind.NumImps() * molLookRef.NumKindInBox(k, b);
-
-      atomT += molLookRef.NumKindInBox(k, b);
+      boxDons[b] += molKind.NumDons() * molLookRef.NumKindInBox(k, b);
+      boxAccs[b] += molKind.NumAccs() * molLookRef.NumKindInBox(k, b);
+      boxNNBs[b] += molKind.NumNNBs() * molLookRef.NumKindInBox(k, b);
+      boxGrps[b] += molKind.NumGrps() * molLookRef.NumKindInBox(k, b);
+      boxCrtrms[b] += molKind.NumCrtrms() * molLookRef.NumKindInBox(k, b);
     }
   }
 }
@@ -378,13 +395,65 @@ void PSFOutput::PrintImpropers(FILE* outfile) const
   fputs("\n\n", outfile);
 }
 
+
+void PSFOutput::PrintDonors(FILE* outfile) const
+{
+  fprintf(outfile, headerFormat, totalDonors, donorHeader);
+  uint atomID = 1;
+  uint lineEntry = 0;
+  uint thisKIndex = 0, mI = 0;
+  for(uint mol = 0; mol < molecules->count; ++mol) {
+    // If this isn't checkpoint restarted, then this is
+    thisKIndex = molecules->kIndex[mol];
+    const MolKind& thisKind = molKinds[thisKIndex];
+    for(uint i = 0; i < thisKind.donors.size(); ++i) {
+      fprintf(outfile, "%8d%8d", thisKind.donors[i].a0 + atomID,
+              thisKind.donors[i].a1 + atomID);
+      ++lineEntry;
+      if(lineEntry == donorPerLine) {
+        lineEntry = 0;
+        fputc('\n', outfile);
+      }
+    }
+    atomID += thisKind.atoms.size();
+    
+  }
+  fputs("\n\n", outfile);
+}
+
+
+void PSFOutput::PrintAcceptors(FILE* outfile) const
+{
+  fprintf(outfile, headerFormat, totalAcceptors, acceptorHeader);
+  uint atomID = 1;
+  uint lineEntry = 0;
+  uint thisKIndex = 0, mI = 0;
+  for(uint mol = 0; mol < molecules->count; ++mol) {
+    // If this isn't checkpoint restarted, then this is
+    thisKIndex = molecules->kIndex[mol];
+    const MolKind& thisKind = molKinds[thisKIndex];
+    for(uint i = 0; i < thisKind.acceptors.size(); ++i) {
+      fprintf(outfile, "%8d%8d", thisKind.acceptors[i].a0 + atomID,
+              thisKind.acceptors[i].a1 + atomID);
+      ++lineEntry;
+      if(lineEntry == acceptorPerLine) {
+        lineEntry = 0;
+        fputc('\n', outfile);
+      }
+    }
+    atomID += thisKind.atoms.size();
+    
+  }
+  fputs("\n\n", outfile);
+}
+
   void PSFOutput::PrintNAMDCompliantSuffix(FILE* outfile) const {
     //fprintf(outfile, headerFormat, 0, improperHeader);
     //fputs("\n\n", outfile);
-    fprintf(outfile, headerFormat, 0, donorHeader);
-    fputs("\n\n", outfile);
-    fprintf(outfile, headerFormat, 0, acceptorHeader);
-    fputs("\n\n", outfile);
+    //fprintf(outfile, headerFormat, 0, donorHeader);
+    //fputs("\n\n", outfile);
+    //fprintf(outfile, headerFormat, 0, acceptorHeader);
+    //fputs("\n\n", outfile);
     fprintf(outfile, headerFormat, 0, excludedHeader);
     fputs("\n\n", outfile);
     fprintf(outfile, headerFormat, 0, groupHeader);
@@ -522,13 +591,53 @@ void PSFOutput::PrintImpropers(FILE* outfile) const
     fputs("\n\n", outfile);
   }
 
+  void PSFOutput::PrintDonorsInBox(FILE* outfile, uint b) const {
+    fprintf(outfile, headerFormat, boxDonors[b], donorHeader);
+    uint atomID = 1;
+    uint lineEntry = 0;
+    for( MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b); thisMol != molLookRef.BoxEnd(b); thisMol++){
+      const MolKind& thisKind = molKinds[molecules->kIndex[*thisMol]];
+      for(uint i = 0; i < thisKind.donors.size(); ++i) {
+        fprintf(outfile, "%8d%8d", thisKind.donors[i].a0 + atomID,
+                thisKind.donors[i].a1 + atomID);
+        ++lineEntry;
+        if(lineEntry == donorPerLine) {
+          lineEntry = 0;
+          fputc('\n', outfile);
+        }
+      }
+      atomID += thisKind.atoms.size();
+    }
+    fputs("\n\n", outfile);
+  }
+
+  void PSFOutput::PrintAcceptorsInBox(FILE* outfile, uint b) const {
+    fprintf(outfile, headerFormat, boxAcceptors[b], acceptorHeader);
+    uint atomID = 1;
+    uint lineEntry = 0;
+    for( MoleculeLookup::box_iterator thisMol = molLookRef.BoxBegin(b); thisMol != molLookRef.BoxEnd(b); thisMol++){
+      const MolKind& thisKind = molKinds[molecules->kIndex[*thisMol]];
+      for(uint i = 0; i < thisKind.acceptors.size(); ++i) {
+        fprintf(outfile, "%8d%8d", thisKind.acceptors[i].a0 + atomID,
+                thisKind.acceptors[i].a1 + atomID);
+        ++lineEntry;
+        if(lineEntry == acceptorPerLine) {
+          lineEntry = 0;
+          fputc('\n', outfile);
+        }
+      }
+      atomID += thisKind.atoms.size();
+    }
+    fputs("\n\n", outfile);
+  }
+
   void PSFOutput::PrintNAMDCompliantSuffixInBox(FILE* outfile) const {
     //fprintf(outfile, headerFormat, 0, improperHeader);
     //fputs("\n\n", outfile);
-    fprintf(outfile, headerFormat, 0, donorHeader);
-    fputs("\n\n", outfile);
-    fprintf(outfile, headerFormat, 0, acceptorHeader);
-    fputs("\n\n", outfile);
+    //fprintf(outfile, headerFormat, 0, donorHeader);
+    //fputs("\n\n", outfile);
+    //fprintf(outfile, headerFormat, 0, acceptorHeader);
+    //fputs("\n\n", outfile);
     fprintf(outfile, headerFormat, 0, excludedHeader);
     fputs("\n\n", outfile);
     fprintf(outfile, headerFormat, 0, groupHeader);

@@ -98,6 +98,9 @@ void MoleculeKind::Init
   angles.Init(molData.angles, bondList);
   dihedrals.Init(molData.dihedrals, bondList);
   impropers.Init(molData.impropers, bondList);
+  donorList.Init(molData.donors);
+  acceptorList.Init(molData.acceptors);
+
   
 #ifdef VARIABLE_PARTICLE_NUMBER
   builder = cbmc::MakeCBMC(sys, forcefield, *this, setup);
