@@ -49,8 +49,9 @@ bool Improper::operator == (const Improper& o) const
   if(a0 == o.a0 && a1 == o.a1 && a2 == o.a2 && a3 == o.a3)
     same = true;
 
-  if(a0 == o.a3 && a1 == o.a2 && a2 == o.a1 && a3 == o.a0)
-    same = true;
+  //Impropers are order specific, as opposed to Dihedrals
+  //if(a0 == o.a3 && a1 == o.a2 && a2 == o.a1 && a3 == o.a0)
+  //  same = true;
 
   return same;
 }
@@ -1033,7 +1034,7 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
     fclose(psf);
     return errors::READ_ERROR;
   }
-
+ 
   //find donors header+count
   fseek(psf, 0, SEEK_SET);
   while (strstr(input, "!NDON") == NULL) {
@@ -1069,7 +1070,7 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
     fclose(psf);
     return errors::READ_ERROR;
   }
-
+ /*
 
   //find explicit nonbond exclusions  header+count
   fseek(psf, 0, SEEK_SET);
@@ -1124,7 +1125,7 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
     fclose(psf);
     return errors::READ_ERROR;
   }
-
+*/
   fclose(psf);
 
   return nAtoms;
@@ -1355,7 +1356,7 @@ int ReadPSFDonors(FILE* psf, MolMap& kindMap,
       unsigned int molEnd = molBegin + currentMol.atoms.size();
       //assign the bond
       if (atom0 >= molBegin && atom0 < molEnd) {
-        currentMol.donors.push_back(Donor(atom0 - molBegin, atom1 - molBegin));
+        currentMol.donors.push_back(Bond(atom0 - molBegin, atom1 - molBegin));
         //once we found the molecule kind, break from the loop
         defined[i] = true;
         break;
@@ -1395,7 +1396,7 @@ int ReadPSFAcceptors(FILE* psf, MolMap& kindMap,
       unsigned int molEnd = molBegin + currentMol.atoms.size();
       //assign the bond
       if (atom0 >= molBegin && atom0 < molEnd) {
-        currentMol.acceptors.push_back(Acceptor(atom0 - molBegin, atom1 - molBegin));
+        currentMol.acceptors.push_back(Bond(atom0 - molBegin, atom1 - molBegin));
         //once we found the molecule kind, break from the loop
         defined[i] = true;
         break;
@@ -1440,10 +1441,10 @@ int ReadPSFExplicitNonbondExclusions (FILE* psf, MolMap& kindMap,
   for (uint n = 0; n < nNonbondExclusions; n++) {
     dummy = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
     if(dummy != 4) {
-      fprintf(stderr, "ERROR: Incorrect Number of impropers in PSF file ");
+      fprintf(stderr, "ERROR: Incorrect Number of NNB's in PSF file ");
       return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
-      fprintf(stderr, "ERROR: Could not find all impropers in PSF file ");
+      fprintf(stderr, "ERROR: Could not find all NNB's in PSF file ");
       return errors::READ_ERROR;
     }
 
@@ -1487,10 +1488,10 @@ int ReadPSFGroups (FILE* psf, MolMap& kindMap,
   for (uint n = 0; n < nGroups; n++) {
     dummy = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
     if(dummy != 4) {
-      fprintf(stderr, "ERROR: Incorrect Number of impropers in PSF file ");
+      fprintf(stderr, "ERROR: Incorrect Number of groups in PSF file ");
       return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
-      fprintf(stderr, "ERROR: Could not find all impropers in PSF file ");
+      fprintf(stderr, "ERROR: Could not find all groups in PSF file ");
       return errors::READ_ERROR;
     }
 
@@ -1534,266 +1535,10 @@ int ReadPSFCrossTerms (FILE* psf, MolMap& kindMap,
   for (uint n = 0; n < nCrossTerms; n++) {
     dummy = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
     if(dummy != 4) {
-      fprintf(stderr, "ERROR: Incorrect Number of impropers in PSF file ");
+      fprintf(stderr, "ERROR: Incorrect Number of cross terms in PSF file ");
       return errors::READ_ERROR;
     } else if (feof(psf) || ferror(psf)) {
-      fprintf(stderr, "ERROR: Could not find all impropers in PSF file ");
-      return errors::READ_ERROR;
-    }
-
-    //loop to find the molecule kind with this impropers
-    for (unsigned int i = 0; i < firstAtom.size(); ++i) {
-      MolKind& currentMol = kindMap[firstAtom[i].second];
-      //index of first atom in moleule
-      unsigned int molBegin = firstAtom[i].first;
-      //index AFTER last atom in molecule
-      unsigned int molEnd = molBegin + currentMol.atoms.size();
-      //assign impropers
-      if (imp.a0 >= molBegin && imp.a0 < molEnd) {
-        imp.a0 -= molBegin;
-        imp.a1 -= molBegin;
-        imp.a2 -= molBegin;
-        imp.a3 -= molBegin;
-        //some xplor PSF files have duplicate impropers, we need to ignore these
-        if (std::find(currentMol.impropers.begin(), currentMol.impropers.end(),
-                      imp) == currentMol.impropers.end()) {
-          currentMol.impropers.push_back(imp);
-        }
-        //once we found the molecule kind, break from the loop
-        defined[i] = true;
-        break;
-      }
-    }
-  }*/
-  return 0;
-}
-
-//adds donors in psf to kindMap
-//pre: stream is before !NDON   post: stream is in acceptors (NACC) section just after
-//the first appearance of the last donor
-//
-int ReadPSFDonors(FILE* psf, MolMap& kindMap,
-                     std::vector<std::pair<unsigned int, std::string> >& firstAtom, const uint ndonors)
-{
-  Improper imp(0, 0, 0, 0);
-  int dummy;
-  std::vector<bool> defined(firstAtom.size(), false);
-  for (uint n = 0; n < nimpropers; n++) {
-    dummy = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
-    if(dummy != 4) {
-      fprintf(stderr, "ERROR: Incorrect Number of impropers in PSF file ");
-      return errors::READ_ERROR;
-    } else if (feof(psf) || ferror(psf)) {
-      fprintf(stderr, "ERROR: Could not find all impropers in PSF file ");
-      return errors::READ_ERROR;
-    }
-
-    //loop to find the molecule kind with this impropers
-    for (unsigned int i = 0; i < firstAtom.size(); ++i) {
-      MolKind& currentMol = kindMap[firstAtom[i].second];
-      //index of first atom in moleule
-      unsigned int molBegin = firstAtom[i].first;
-      //index AFTER last atom in molecule
-      unsigned int molEnd = molBegin + currentMol.atoms.size();
-      //assign impropers
-      if (imp.a0 >= molBegin && imp.a0 < molEnd) {
-        imp.a0 -= molBegin;
-        imp.a1 -= molBegin;
-        imp.a2 -= molBegin;
-        imp.a3 -= molBegin;
-        //some xplor PSF files have duplicate impropers, we need to ignore these
-        if (std::find(currentMol.impropers.begin(), currentMol.impropers.end(),
-                      imp) == currentMol.impropers.end()) {
-          currentMol.impropers.push_back(imp);
-        }
-        //once we found the molecule kind, break from the loop
-        defined[i] = true;
-        break;
-      }
-    }
-  }
-  return 0;
-}
-
-//adds acceptors in psf to kindMap
-//pre: stream is before !NACC   post: stream is in explicit nonbond exclusions (NNB) section just after
-//the first appearance of the last donor
-//
-int ReadPSFAcceptors(FILE* psf, MolMap& kindMap,
-                     std::vector<std::pair<unsigned int, std::string> >& firstAtom, const uint nacceptors)
-{
-  Improper imp(0, 0, 0, 0);
-  int dummy;
-  std::vector<bool> defined(firstAtom.size(), false);
-  for (uint n = 0; n < nimpropers; n++) {
-    dummy = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
-    if(dummy != 4) {
-      fprintf(stderr, "ERROR: Incorrect Number of impropers in PSF file ");
-      return errors::READ_ERROR;
-    } else if (feof(psf) || ferror(psf)) {
-      fprintf(stderr, "ERROR: Could not find all impropers in PSF file ");
-      return errors::READ_ERROR;
-    }
-
-    //loop to find the molecule kind with this impropers
-    for (unsigned int i = 0; i < firstAtom.size(); ++i) {
-      MolKind& currentMol = kindMap[firstAtom[i].second];
-      //index of first atom in moleule
-      unsigned int molBegin = firstAtom[i].first;
-      //index AFTER last atom in molecule
-      unsigned int molEnd = molBegin + currentMol.atoms.size();
-      //assign impropers
-      if (imp.a0 >= molBegin && imp.a0 < molEnd) {
-        imp.a0 -= molBegin;
-        imp.a1 -= molBegin;
-        imp.a2 -= molBegin;
-        imp.a3 -= molBegin;
-        //some xplor PSF files have duplicate impropers, we need to ignore these
-        if (std::find(currentMol.impropers.begin(), currentMol.impropers.end(),
-                      imp) == currentMol.impropers.end()) {
-          currentMol.impropers.push_back(imp);
-        }
-        //once we found the molecule kind, break from the loop
-        defined[i] = true;
-        break;
-      }
-    }
-  }
-  return 0;
-}
-
-/* Explanation of NNB Format
-
-Per https://www.ks.uiuc.edu/Research/namd/mailing_list/namd-l.2007-2008/0984.html
-
-the section begins with a series of lists of excluded atoms, 
-and those lists are then assigned to other atoms by a list 
-of offsets within that first list... Since it is probably 
-very unclear, let me use an example: 
-
-if there are 8 atoms in total and I want to exclude 
-{1, 2} from 3 and {1, 4, 5} from 6, 
-here is the NNB section I need:
-
-5 !NNB
-1 2 1 4 5 - column indices
-0 0 2 2 2 5 5 5 - row offsets
-
-Basically CSR
-
-*/
-
-//adds explicit nonbond exclusions in psf to kindMap
-//pre: stream is before !NNB   post: stream is in groups (NGRP) section just after
-//the first appearance of the last donor
-//
-int ReadPSFExplicitNonbondExclusions (FILE* psf, MolMap& kindMap,
-                     std::vector<std::pair<unsigned int, std::string> >& firstAtom, const uint nNonbondExclusions)
-{
-  Improper imp(0, 0, 0, 0);
-  int dummy;
-  std::vector<bool> defined(firstAtom.size(), false);
-  for (uint n = 0; n < nimpropers; n++) {
-    dummy = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
-    if(dummy != 4) {
-      fprintf(stderr, "ERROR: Incorrect Number of impropers in PSF file ");
-      return errors::READ_ERROR;
-    } else if (feof(psf) || ferror(psf)) {
-      fprintf(stderr, "ERROR: Could not find all impropers in PSF file ");
-      return errors::READ_ERROR;
-    }
-
-    //loop to find the molecule kind with this impropers
-    for (unsigned int i = 0; i < firstAtom.size(); ++i) {
-      MolKind& currentMol = kindMap[firstAtom[i].second];
-      //index of first atom in moleule
-      unsigned int molBegin = firstAtom[i].first;
-      //index AFTER last atom in molecule
-      unsigned int molEnd = molBegin + currentMol.atoms.size();
-      //assign impropers
-      if (imp.a0 >= molBegin && imp.a0 < molEnd) {
-        imp.a0 -= molBegin;
-        imp.a1 -= molBegin;
-        imp.a2 -= molBegin;
-        imp.a3 -= molBegin;
-        //some xplor PSF files have duplicate impropers, we need to ignore these
-        if (std::find(currentMol.impropers.begin(), currentMol.impropers.end(),
-                      imp) == currentMol.impropers.end()) {
-          currentMol.impropers.push_back(imp);
-        }
-        //once we found the molecule kind, break from the loop
-        defined[i] = true;
-        break;
-      }
-    }
-  }
-  return 0;
-}
-
-//adds groups in psf to kindMap
-//pre: stream is before !NGRP   post: stream is in cross-terms (NCRTERM) section just after
-//the first appearance of the last donor
-//
-int ReadPSFGroups (FILE* psf, MolMap& kindMap,
-                     std::vector<std::pair<unsigned int, std::string> >& firstAtom, const uint nGroups)
-{
-  Improper imp(0, 0, 0, 0);
-  int dummy;
-  std::vector<bool> defined(firstAtom.size(), false);
-  for (uint n = 0; n < nimpropers; n++) {
-    dummy = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
-    if(dummy != 4) {
-      fprintf(stderr, "ERROR: Incorrect Number of impropers in PSF file ");
-      return errors::READ_ERROR;
-    } else if (feof(psf) || ferror(psf)) {
-      fprintf(stderr, "ERROR: Could not find all impropers in PSF file ");
-      return errors::READ_ERROR;
-    }
-
-    //loop to find the molecule kind with this impropers
-    for (unsigned int i = 0; i < firstAtom.size(); ++i) {
-      MolKind& currentMol = kindMap[firstAtom[i].second];
-      //index of first atom in moleule
-      unsigned int molBegin = firstAtom[i].first;
-      //index AFTER last atom in molecule
-      unsigned int molEnd = molBegin + currentMol.atoms.size();
-      //assign impropers
-      if (imp.a0 >= molBegin && imp.a0 < molEnd) {
-        imp.a0 -= molBegin;
-        imp.a1 -= molBegin;
-        imp.a2 -= molBegin;
-        imp.a3 -= molBegin;
-        //some xplor PSF files have duplicate impropers, we need to ignore these
-        if (std::find(currentMol.impropers.begin(), currentMol.impropers.end(),
-                      imp) == currentMol.impropers.end()) {
-          currentMol.impropers.push_back(imp);
-        }
-        //once we found the molecule kind, break from the loop
-        defined[i] = true;
-        break;
-      }
-    }
-  }
-  return 0;
-}
-
-
-//adds cross terms in psf to kindMap
-//pre: stream is before !NCRTERM   post: stream is at end of psf
-// two quadruples of atoms per line: 
-int ReadPSFCrossTerms (FILE* psf, MolMap& kindMap,
-                     std::vector<std::pair<unsigned int, std::string> >& firstAtom, const uint nCrossTerms)
-{
-  Improper imp(0, 0, 0, 0);
-  int dummy;
-  std::vector<bool> defined(firstAtom.size(), false);
-  for (uint n = 0; n < nimpropers; n++) {
-    dummy = fscanf(psf, "%u %u %u %u", &imp.a0, &imp.a1, &imp.a2, &imp.a3);
-    if(dummy != 4) {
-      fprintf(stderr, "ERROR: Incorrect Number of impropers in PSF file ");
-      return errors::READ_ERROR;
-    } else if (feof(psf) || ferror(psf)) {
-      fprintf(stderr, "ERROR: Could not find all impropers in PSF file ");
+      fprintf(stderr, "ERROR: Could not find all cross terms in PSF file ");
       return errors::READ_ERROR;
     }
 

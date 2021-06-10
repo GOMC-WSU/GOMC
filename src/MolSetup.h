@@ -88,7 +88,8 @@ class Improper
 public:
   Improper(uint atom0, uint atom1, uint atom2, uint atom3)
     : a0(atom0), a1(atom1), a2(atom2), a3(atom3) {}
-  //some xplor PSF files have duplicate dihedrals, we need to ignore these
+  //Impropers are order specific, so these methods different from Dihedrals,
+  // Hence why we define a separate class for Impropers
   bool operator == (const Improper& other) const;
   bool operator != (const Improper& other) const;
 
@@ -119,30 +120,6 @@ public:
   uint kind;
 };
 
-
-class Donor
-{
-public:
-  Donor(uint atom0, uint atom1)
-    : a0(atom0), a1(atom1) {}
-//   private:
-  uint a0, a1;
-  uint kind;
-};
-
-
-class Acceptor
-{
-public:
-  Acceptor(uint atom0, uint atom1)
-    : a0(atom0), a1(atom1) {}
-//   private:
-  uint a0, a1;
-  uint kind;
-};
-
-
-
 //!Structure to contain a molecule kind's data during initialization
 class MolKind
 {
@@ -155,8 +132,9 @@ public:
   std::vector<Angle> angles;
   std::vector<Dihedral> dihedrals;
   std::vector<Improper> impropers;
-  std::vector<Donor> donors;
-  std::vector<Acceptor> acceptors;
+  /*Technically H-Bonds, but no difference in class structure */
+  std::vector<Bond> donors;
+  std::vector<Bond> acceptors;
 
 
 

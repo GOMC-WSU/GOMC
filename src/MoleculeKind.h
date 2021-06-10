@@ -76,6 +76,7 @@ public:
   {
     return acceptorList.count;
   }
+  /*
   uint NumNNBs() const
   {
     return nnbs.Count();
@@ -88,6 +89,7 @@ public:
   {
     return crossterms.Count();
   }
+  */
   uint AtomKind(const uint a) const
   {
     return atomKind[a];
