@@ -119,7 +119,7 @@ int ReadPSFDonors(FILE* psf, MolMap& kindMap,
 //
 int ReadPSFAcceptors(FILE* psf, MolMap& kindMap,
                      std::vector<std::pair<uint, std::string> >& firstAtom,
-                     const uint ndihedrals);
+                     const uint nAcceptors);
 
 //adds explicit nonbond exclusions in psf to kindMap
 //pre: stream is before !NNB   post: stream is in groups (NGRP) section just after
