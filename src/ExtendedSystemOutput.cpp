@@ -336,22 +336,25 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   //Loop through all molecules
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
-                                 end = molLookupRef.BoxEnd(b);   
-    if(molLookupRef.restartFromCheckpoint){
-      trajectoryI = molLookupRef.originalMoleculeIndices[*m];
-    } else {
-      trajectoryI = *m;
-    }       
-    dataI = *m;    
-    molRef.GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
-    molRef.GetRangeStartStop(dataStart, dataEnd, dataI);    
-    ref = comCurrRef.Get(dataI);
-    for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
-      coor = coordCurrRef.Get(d);
-      boxDimRef.UnwrapPBC(coor, box, ref);
-      x[p] = coor.x;
-      y[p] = coor.y;
-      z[p] = coor.z;
+                                 end = molLookupRef.BoxEnd(b);
+    while (m != end) {                             
+      if(molLookupRef.restartFromCheckpoint){
+        trajectoryI = molLookupRef.originalMoleculeIndices[*m];
+      } else {
+        trajectoryI = *m;
+      }       
+      dataI = *m;    
+      molRef.GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
+      molRef.GetRangeStartStop(dataStart, dataEnd, dataI);    
+      ref = comCurrRef.Get(dataI);
+      for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
+        coor = coordCurrRef.Get(d);
+        boxDimRef.UnwrapPBC(coor, box, ref);
+        x[p] = coor.x;
+        y[p] = coor.y;
+        z[p] = coor.z;
+      }
+      ++m;
     }
   }
 #else
@@ -359,26 +362,29 @@ void ExtendedSystemOutput::SetCoordinates(std::vector<int> &molInBox, const int 
   //Loop through all molecules
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);   
-    if(molLookupRef.restartFromCheckpoint){
-      trajectoryI = molLookupRef.originalMoleculeIndices[*m];
-    } else {
-      trajectoryI = *m;
-    }       
-    dataI = *m;    
-    molRef.GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
-    molRef.GetRangeStartStop(dataStart, dataEnd, dataI);  
-    ref = comCurrRef.Get(dataI);
-    inThisBox = (molInBox[dataI] == box);
-    for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
-      if (inThisBox) {
-        coor = coordCurrRef.Get(d);
-        boxDimRef.UnwrapPBC(coor, box, ref);
+    while (m != end) {                             
+      if(molLookupRef.restartFromCheckpoint){
+        trajectoryI = molLookupRef.originalMoleculeIndices[*m];
       } else {
-        coor.Reset();
+        trajectoryI = *m;
+      }       
+      dataI = *m;    
+      molRef.GetOriginalRangeStartStop(placementStart, placementEnd, trajectoryI);
+      molRef.GetRangeStartStop(dataStart, dataEnd, dataI);  
+      ref = comCurrRef.Get(dataI);
+      inThisBox = (molInBox[dataI] == box);
+      for (p = placementStart, d = dataStart; p < placementEnd; ++p, ++d) {
+        if (inThisBox) {
+          coor = coordCurrRef.Get(d);
+          boxDimRef.UnwrapPBC(coor, box, ref);
+        } else {
+          coor.Reset();
+        }
+        x[p] = coor.x;
+        y[p] = coor.y;
+        z[p] = coor.z;
       }
-      x[p] = coor.x;
-      y[p] = coor.y;
-      z[p] = coor.z;
+      ++m;
     }
   }
 #endif
