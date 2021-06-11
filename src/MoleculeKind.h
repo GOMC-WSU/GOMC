@@ -64,6 +64,32 @@ public:
   {
     return dihedrals.Count();
   }
+  uint NumImps() const
+  {
+    return impropers.Count();
+  }
+  uint NumDons() const
+  {
+    return donorList.count;
+  }
+  uint NumAccs() const
+  {
+    return acceptorList.count;
+  }
+  /*
+  uint NumNNBs() const
+  {
+    return nnbs.Count();
+  }
+  uint NumGrps() const
+  {
+    return groups.Count();
+  }
+  uint NumCrtrms() const
+  {
+    return crossterms.Count();
+  }
+  */
   uint AtomKind(const uint a) const
   {
     return atomKind[a];
@@ -153,9 +179,11 @@ public:
   Nonbond_1_3 nonBonded_1_3;
   EwaldNonbond nonEwaldBonded;
 
-  BondList bondList;
+  BondList bondList, donorList, acceptorList;
   GeomFeature angles;
   GeomFeature dihedrals;
+  GeomFeature impropers;
+  
   bool oneThree, oneFour;
 
   std::string name;
