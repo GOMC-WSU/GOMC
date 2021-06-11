@@ -49,23 +49,47 @@ private:
   uint totalBonds;
   uint totalAngles;
   uint totalDihs;
+  uint totalImps;
+  uint totalDons;
+  uint totalAccs;
+  uint totalNNBs;
+  uint totalGrps;
+  uint totalCrtrms;
 
   uint boxAtoms[BOX_TOTAL];
   uint boxBonds[BOX_TOTAL];
   uint boxAngles[BOX_TOTAL];
   uint boxDihs[BOX_TOTAL];
+  uint boxImps[BOX_TOTAL];
+  uint boxDons[BOX_TOTAL];
+  uint boxAccs[BOX_TOTAL];
+  uint boxNNBs[BOX_TOTAL];
+  uint boxGrps[BOX_TOTAL];
+  uint boxCrtrms[BOX_TOTAL];
 
   void PrintRemarks(FILE* outfile, const std::vector<std::string>& remarks) const;
   void PrintAtoms(FILE* outfile) const;
   void PrintBonds(FILE* outfile) const;
   void PrintAngles(FILE* outfile) const;
   void PrintDihedrals(FILE* outfile) const;
+  void PrintImpropers(FILE* outfile) const;
+  void PrintDonors(FILE* outfile) const;
+  void PrintAcceptors(FILE* outfile) const;
+  void PrintExplicitNonbondedExclusions(FILE* outfile) const;
+  void PrintGroups(FILE* outfile) const;
+  void PrintCrossTerms(FILE* outfile) const;
 
   void PrintRemarksInBox(FILE* outfile, uint b) const;
   void PrintAtomsInBox(FILE* outfile, uint b) const;
   void PrintBondsInBox(FILE* outfile, uint b) const;
   void PrintAnglesInBox(FILE* outfile, uint b) const;
   void PrintDihedralsInBox(FILE* outfile, uint b) const;
+  void PrintImpropersInBox(FILE* outfile, uint b) const;
+  void PrintDonorsInBox(FILE* outfile, uint b) const;
+  void PrintAcceptorsInBox(FILE* outfile, uint b) const;
+  void PrintExplicitNonbondedExclusionsInBox(FILE* outfile, uint b) const;
+  void PrintGroupsInBox(FILE* outfile, uint b) const;
+  void PrintCrossTermsInBox(FILE* outfile, uint b) const;
 
   void PrintNAMDCompliantSuffix(FILE* outfile) const;
   void PrintNAMDCompliantSuffixInBox(FILE* outfile) const;

@@ -97,14 +97,18 @@ void MoleculeKind::Init
   bondList.Init(molData.bonds);
   angles.Init(molData.angles, bondList);
   dihedrals.Init(molData.dihedrals, bondList);
+  impropers.Init(molData.impropers, bondList);
+  donorList.Init(molData.donors);
+  acceptorList.Init(molData.acceptors);
 
+  
 #ifdef VARIABLE_PARTICLE_NUMBER
   builder = cbmc::MakeCBMC(sys, forcefield, *this, setup);
   //builder = new cbmc::LinearVlugt(sys, forcefield, *this, setup);
 #endif
 }
 
-MoleculeKind::MoleculeKind() : angles(3), dihedrals(4),
+MoleculeKind::MoleculeKind() : angles(3), dihedrals(4), impropers(4),
   atomMass(NULL), builder(NULL), atomKind(NULL),
   atomCharge(NULL) {}
 
