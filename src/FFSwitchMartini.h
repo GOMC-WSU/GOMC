@@ -195,7 +195,7 @@ inline void FF_SWITCH_MARTINI::Init(ff_setup::Particle const& mie,
                 (rCut - rOn) * (rCut - rOn) * (rCut - rOn));
       Cn[idx] = 1.0 / pow(rCut, pn) - An[idx] / 3.0 * (rCut - rOn) * (rCut - rOn) *
                 (rCut - rOn) - Bn[idx] / 4.0 * (rCut - rOn) * (rCut - rOn) *
-				(rCut - rOn) * (rCut - rOn);
+                (rCut - rOn) * (rCut - rOn);
       double sigma = sqrt(sigmaSq[idx]);
       sig6[idx] = pow(sigma, 6.0);
       sign[idx] = pow(sigma, pn);
@@ -208,7 +208,7 @@ inline void FF_SWITCH_MARTINI::Init(ff_setup::Particle const& mie,
                     (pow(rCut, pn_1_4 + 2.0) * (rCut - rOn) * (rCut - rOn) * (rCut - rOn));
       Cn_1_4[idx] = 1.0 / pow(rCut, pn_1_4) - An_1_4[idx] / 3.0 *
                     (rCut - rOn) * (rCut - rOn) * (rCut - rOn) - Bn_1_4[idx] / 4.0 *
-					(rCut - rOn) * (rCut - rOn) * (rCut - rOn) * (rCut - rOn);
+                    (rCut - rOn) * (rCut - rOn) * (rCut - rOn) * (rCut - rOn);
       double sigma_1_4 = sqrt(sigmaSq_1_4[idx]);
       sig6_1_4[idx] = pow(sigma_1_4, 6.0);
       sign_1_4[idx] = pow(sigma_1_4, pn_1_4);
