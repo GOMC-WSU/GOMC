@@ -31,6 +31,7 @@ Molecules::~Molecules(void)
   delete[] kIndex;
   delete[] countByKind;
   delete[] chain;
+  delete[] beta;
   delete[] kinds;
   delete[] pairEnCorrections;
   delete[] pairVirCorrections;
