@@ -89,7 +89,7 @@ inline uint VolumeTransfer::Prep(const double subDraw, const double movePerc)
   if(isOrth)
     newDim = boxDimRef;
   else
-    newDimNonOrth = *((BoxDimensionsNonOrth*)(&boxDimRef));
+    newDimNonOrth = *(static_cast<BoxDimensionsNonOrth*>(&boxDimRef));
 
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
@@ -250,7 +250,7 @@ inline void VolumeTransfer::Accept(const uint rejectState, const ulong step)
     if(isOrth)
       boxDimRef = newDim;
     else
-      *((BoxDimensionsNonOrth*)(&boxDimRef)) = newDimNonOrth;
+      *(static_cast<BoxDimensionsNonOrth*>(&boxDimRef)) = newDimNonOrth;
 
     if (GEMC_KIND == mv::GEMC_NVT) {
       for (uint b = 0; b < 2; b++) {
@@ -281,12 +281,14 @@ inline void VolumeTransfer::Accept(const uint rejectState, const ulong step)
                             boxDimRef.cellBasis[bPick[b]].y,
                             boxDimRef.cellBasis[bPick[b]].z);
         if(!isOrth) {
-          BoxDimensionsNonOrth newAxes = *((BoxDimensionsNonOrth*)(&boxDimRef));
+          //In this case, boxDimRef is really an object of type BoxDimensionsNonOrth,
+          // so cast and copy the additional data to the GPU
+          const BoxDimensionsNonOrth *NonOrthAxes = static_cast<const BoxDimensionsNonOrth*>(&boxDimRef);
           UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), bPick[b],
-                                 newAxes.cellBasis_Inv[bPick[b]].x,
-                                 newAxes.cellBasis_Inv[bPick[b]].y,
-                                 newAxes.cellBasis_Inv[bPick[b]].z);
-        }
+                                 NonOrthAxes->cellBasis_Inv[bPick[b]].x,
+                                 NonOrthAxes->cellBasis_Inv[bPick[b]].y,
+                                 NonOrthAxes->cellBasis_Inv[bPick[b]].z);
+         }
       }
     } else {
       UpdateCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
@@ -294,11 +296,13 @@ inline void VolumeTransfer::Accept(const uint rejectState, const ulong step)
                           boxDimRef.cellBasis[box].y,
                           boxDimRef.cellBasis[box].z);
       if(!isOrth) {
-        BoxDimensionsNonOrth newAxes = *((BoxDimensionsNonOrth*)(&boxDimRef));
+        //In this case, boxDimRef is really an object of type BoxDimensionsNonOrth,
+        // so cast and copy the additional data to the GPU
+        const BoxDimensionsNonOrth *NonOrthAxes = static_cast<const BoxDimensionsNonOrth*>(&boxDimRef);
         UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
-                               newAxes.cellBasis_Inv[box].x,
-                               newAxes.cellBasis_Inv[box].y,
-                               newAxes.cellBasis_Inv[box].z);
+                               NonOrthAxes->cellBasis_Inv[box].x,
+                               NonOrthAxes->cellBasis_Inv[box].y,
+                               NonOrthAxes->cellBasis_Inv[box].z);
       }
     }
 #endif

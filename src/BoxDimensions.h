@@ -77,28 +77,28 @@ public:
   virtual XYZ MinImage_Z(XYZ rawVec, const uint b) const;
 
   //Wrap all coordinates in object.
-  void WrapPBC(XYZArray & arr, const uint b) const;
+  virtual void WrapPBC(XYZArray & arr, const uint b) const;
 
   //Unwrap all coordinates in object.
-  void UnwrapPBC(XYZArray & arr, const uint b, XYZ const& ref) const;
+  virtual void UnwrapPBC(XYZArray & arr, const uint b, XYZ const& ref) const;
 
   //Wrap range of coordinates in object
-  void WrapPBC(XYZArray & arr, const uint start, const uint stop,
-               const uint b) const;
+  virtual void WrapPBC(XYZArray & arr, const uint start, const uint stop,
+                       const uint b) const;
 
   //Unwrap range of coordinates in object
-  void UnwrapPBC(XYZArray & arr, const uint start, const uint stop,
-                 const uint b, XYZ const& ref) const;
+  virtual void UnwrapPBC(XYZArray & arr, const uint start, const uint stop,
+                         const uint b, XYZ const& ref) const;
 
   //Wrap one coordinate.
-  XYZ WrapPBC(XYZ rawPos, const uint b) const;
+  virtual XYZ WrapPBC(XYZ rawPos, const uint b) const;
 
   //Wrap one coordinate for each axis that has PBC
-  XYZ WrapPBC(XYZ rawPos, const uint b, const bool &pbcX, const bool &pbcY,
+  virtual XYZ WrapPBC(XYZ rawPos, const uint b, const bool &pbcX, const bool &pbcY,
               const bool &pbcZ) const;
 
   //Unwrap one coordinate.
-  XYZ UnwrapPBC(XYZ& rawPos, const uint b, XYZ const& ref) const;
+  virtual XYZ UnwrapPBC(XYZ& rawPos, const uint b, XYZ const& ref) const;
 
   //wrap one coordinate.
   virtual void WrapPBC(double &x, double &y, double &z, const uint b) const;

@@ -60,14 +60,14 @@ public:
   //Apply PBC, on Z axis
   virtual XYZ MinImage_Z(XYZ rawVec, const uint b) const;
   
-  //wrap one coordinate.
+  //wrap one coordinate
   virtual void WrapPBC(double &x, double &y, double &z, const uint b) const;
 
   //wrap one coordinate and check for PBC
   virtual void WrapPBC(double &x, double &y, double &z, const uint b,
                       const bool &pbcX, const bool &pbcY, const bool &pbcZ) const;
 
-  //Unwrap one coordinate.
+  //Unwrap one coordinate
   virtual void UnwrapPBC(double & x, double & y, double & z,
                          const uint b, XYZ const& ref) const;
 

@@ -18,6 +18,7 @@ typedef r123::Philox4x64 RNG;
 
 void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                const std::vector<int8_t> &isMoleculeInvolved,
+                               int box,
                                double t_max,
                                double *mForcex,
                                double *mForcey,
@@ -38,6 +39,7 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
 
 void CallRotateParticlesGPU(VariablesCUDA *vars,
                             const std::vector<int8_t> &isMoleculeInvolved,
+                            int box,
                             double r_max,
                             double *mTorquex,
                             double *mTorquey,
@@ -73,6 +75,13 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
     double *gpu_comx,
     double *gpu_comy,
     double *gpu_comz,
+    double *gpu_cell_x,
+    double *gpu_cell_y,
+    double *gpu_cell_z,
+    double *gpu_Invcell_x,
+    double *gpu_Invcell_y,
+    double *gpu_Invcell_z,
+    int *gpu_nonOrth,
     double lambdaBETA,
     double *gpu_t_k_x,
     double *gpu_t_k_y,
@@ -100,6 +109,13 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                                       double *gpu_comx,
                                       double *gpu_comy,
                                       double *gpu_comz,
+                                      double *gpu_cell_x,
+                                      double *gpu_cell_y,
+                                      double *gpu_cell_z,
+                                      double *gpu_Invcell_x,
+                                      double *gpu_Invcell_y,
+                                      double *gpu_Invcell_z,
+                                      int *gpu_nonOrth,
                                       double lambdaBETA,
                                       double *gpu_r_k_x,
                                       double *gpu_r_k_y,
@@ -120,7 +136,7 @@ void BrownianMotionRotateParticlesGPU(
   ulong step,
   ulong seed,
   const int box,
-  bool isOrthogonal,
+  const bool isOrthogonal,
   int *kill);
 
 
@@ -138,11 +154,11 @@ void BrownianMotionTranslateParticlesGPU(
   ulong step,
   ulong seed,
   const int box,
-  bool isOrthogonal,
+  const bool isOrthogonal,
   int *kill);
 
 
-template<bool isOrthogonal>
+template<const bool isOrthogonal>
 __global__ void BrownianMotionRotateKernel(
   int *startAtomIdx,
   double *gpu_x,
@@ -174,7 +190,7 @@ __global__ void BrownianMotionRotateKernel(
   int *kill);
 
 
-template<bool isOrthogonal>
+template<const bool isOrthogonal>
 __global__ void BrownianMotionTranslateKernel(
   int *startAtomIdx,
   double *gpu_x,

@@ -40,19 +40,18 @@ __device__ inline double randomGaussianGPU(unsigned int counter, ulong step,
   return  shiftedVal;
 }
 
-__device__ inline void ApplyRotation(double &x, double &y, double &z,
+__device__ inline void ApplyRotation(int atomnum, double &x, double &y, double &z,
                                      double comx, double comy, double comz,
                                      double rotx, double roty, double rotz,
-                                     double axx, double axy, double axz)
+                                     double axx, double axy, double axz, int gpu_nonOrth,
+                                     double *gpu_cell_x, double *gpu_cell_y, double *gpu_cell_z,
+                                     double *gpu_Invcell_x, double *gpu_Invcell_y, double *gpu_Invcell_z)
 {
   double rotLen = sqrt(rotx * rotx + roty * roty + rotz * rotz);
   double axisx = rotx * (1.0 / rotLen);
   double axisy = roty * (1.0 / rotLen);
   double axisz = rotz * (1.0 / rotLen);
   double matrix[3][3], cross[3][3], tensor[3][3];
-  double halfAxx = axx * 0.5;
-  double halfAxy = axy * 0.5;
-  double halfAxz = axz * 0.5;
 
   // build cross
   cross[0][0] = 0.0;
@@ -95,37 +94,47 @@ __device__ inline void ApplyRotation(double &x, double &y, double &z,
   }
 
   // unwrap molecule
-  UnwrapPBC(x, comx, axx, halfAxx);
-  UnwrapPBC(y, comy, axy, halfAxy);
-  UnwrapPBC(z, comz, axz, halfAxz);
+  double3 coor = make_double3(x, y, z);
+  double3 com = make_double3(comx, comy, comz);
+  double3 axes = make_double3(axx, axy, axz);
+  double3 halfAx = make_double3(axx * 0.5, axy * 0.5, axz * 0.5);
+
+  if (gpu_nonOrth)
+    UnwrapPBCNonOrth3(coor, com, axes, halfAx, gpu_cell_x, gpu_cell_y, gpu_cell_z,
+                      gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
+  else
+    UnwrapPBC3(coor, com, axes, halfAx);
 
   // move particle to zero
-  x -= comx;
-  y -= comy;
-  z -= comz;
+  coor.x -= com.x;
+  coor.y -= com.y;
+  coor.z -= com.z;
 
   // rotate
-  double newx = matrix[0][0] * x + matrix[0][1] * y + matrix[0][2] * z;
-  double newy = matrix[1][0] * x + matrix[1][1] * y + matrix[1][2] * z;
-  double newz = matrix[2][0] * x + matrix[2][1] * y + matrix[2][2] * z;
+  double3 newcoor;
+  newcoor.x = matrix[0][0] * coor.x + matrix[0][1] * coor.y + matrix[0][2] * coor.z;
+  newcoor.y = matrix[1][0] * coor.x + matrix[1][1] * coor.y + matrix[1][2] * coor.z;
+  newcoor.z = matrix[2][0] * coor.x + matrix[2][1] * coor.y + matrix[2][2] * coor.z;
 
-  x = newx;
-  y = newy;
-  z = newz;
-
-  // move back to com
-  x += comx;
-  y += comy;
-  z += comz;
+  coor.x = newcoor.x + com.x;
+  coor.y = newcoor.y + com.y;
+  coor.z = newcoor.z + com.z;
 
   // wrap again
-  WrapPBC(x, axx);
-  WrapPBC(y, axy);
-  WrapPBC(z, axz);
+  if (gpu_nonOrth)
+    WrapPBCNonOrth3(coor, axes, gpu_cell_x, gpu_cell_y, gpu_cell_z,
+                    gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
+  else
+    WrapPBC3(coor, axes);
+
+  x = coor.x;
+  y = coor.y;
+  z = coor.z;
 }
 
 void CallTranslateParticlesGPU(VariablesCUDA *vars,
                                const std::vector<int8_t> &isMoleculeInvolved,
+                               int box,
                                double t_max,
                                double *mForcex,
                                double *mForcey,
@@ -195,6 +204,13 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
       vars->gpu_comx,
       vars->gpu_comy,
       vars->gpu_comz,
+      vars->gpu_cell_x[box],
+      vars->gpu_cell_y[box],
+      vars->gpu_cell_z[box],
+      vars->gpu_Invcell_x[box],
+      vars->gpu_Invcell_y[box],
+      vars->gpu_Invcell_z[box],
+      vars->gpu_nonOrth,
       lambdaBETA,
       vars->gpu_t_k_x,
       vars->gpu_t_k_y,
@@ -222,6 +238,7 @@ void CallTranslateParticlesGPU(VariablesCUDA *vars,
 
 void CallRotateParticlesGPU(VariablesCUDA *vars,
                             const std::vector<int8_t> &isMoleculeInvolved,
+                            int box,
                             double r_max,
                             double *mTorquex,
                             double *mTorquey,
@@ -279,6 +296,13 @@ void CallRotateParticlesGPU(VariablesCUDA *vars,
       vars->gpu_comx,
       vars->gpu_comy,
       vars->gpu_comz,
+      vars->gpu_cell_x[box],
+      vars->gpu_cell_y[box],
+      vars->gpu_cell_z[box],
+      vars->gpu_Invcell_x[box],
+      vars->gpu_Invcell_y[box],
+      vars->gpu_Invcell_z[box],
+      vars->gpu_nonOrth,
       lambdaBETA,
       vars->gpu_r_k_x,
       vars->gpu_r_k_y,
@@ -316,6 +340,13 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
     double *gpu_comx,
     double *gpu_comy,
     double *gpu_comz,
+    double *gpu_cell_x,
+    double *gpu_cell_y,
+    double *gpu_cell_z,
+    double *gpu_Invcell_x,
+    double *gpu_Invcell_y,
+    double *gpu_Invcell_z,
+    int *gpu_nonOrth,
     double lambdaBETA,
     double *gpu_t_k_x,
     double *gpu_t_k_y,
@@ -364,24 +395,35 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
   }
 
   // perform the shift on the coordinates
-  gpu_x[atomNumber] += shiftx;
-  gpu_y[atomNumber] += shifty;
-  gpu_z[atomNumber] += shiftz;
+  double3 coor = make_double3(gpu_x[atomNumber] + shiftx, gpu_y[atomNumber] + shifty,
+                              gpu_z[atomNumber] + shiftz);
 
   // rewrapping
-  WrapPBC(gpu_x[atomNumber], xAxes);
-  WrapPBC(gpu_y[atomNumber], yAxes);
-  WrapPBC(gpu_z[atomNumber], zAxes);
+  double3 axes = make_double3(xAxes, yAxes, zAxes);
+  if (gpu_nonOrth[0])
+    WrapPBCNonOrth3(coor, axes, gpu_cell_x, gpu_cell_y, gpu_cell_z,
+                    gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
+  else
+    WrapPBC3(coor, axes);
 
+  gpu_x[atomNumber] = coor.x;
+  gpu_y[atomNumber] = coor.y;
+  gpu_z[atomNumber] = coor.z;
+    
+  //update the CoM just once per molecule
   if(updateMol) {
-    gpu_comx[molIndex] += shiftx;
-    gpu_comy[molIndex] += shifty;
-    gpu_comz[molIndex] += shiftz;
+    double3 com = make_double3(gpu_comx[molIndex] + shiftx, gpu_comy[molIndex] + shifty,
+                               gpu_comz[molIndex] + shiftz);
 
-    WrapPBC(gpu_comx[molIndex], xAxes);
-    WrapPBC(gpu_comy[molIndex], yAxes);
-    WrapPBC(gpu_comz[molIndex], zAxes);
+    if (gpu_nonOrth[0])
+      WrapPBCNonOrth3(com, axes, gpu_cell_x, gpu_cell_y, gpu_cell_z,
+                      gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
+    else 
+      WrapPBC3(com, axes);
 
+    gpu_comx[molIndex] = com.x;
+    gpu_comy[molIndex] = com.y;
+    gpu_comz[molIndex] = com.z;
     gpu_t_k_x[molIndex] = shiftx;
     gpu_t_k_y[molIndex] = shifty;
     gpu_t_k_z[molIndex] = shiftz;
@@ -406,6 +448,13 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
                                       double *gpu_comx,
                                       double *gpu_comy,
                                       double *gpu_comz,
+                                      double *gpu_cell_x,
+                                      double *gpu_cell_y,
+                                      double *gpu_cell_z,
+                                      double *gpu_Invcell_x,
+                                      double *gpu_Invcell_y,
+                                      double *gpu_Invcell_z,
+                                      int *gpu_nonOrth,
                                       double lambdaBETA,
                                       double *gpu_r_k_x,
                                       double *gpu_r_k_y,
@@ -456,9 +505,11 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
   }
 
   // perform the rotation on the coordinates
-  ApplyRotation(gpu_x[atomNumber], gpu_y[atomNumber], gpu_z[atomNumber],
+  ApplyRotation(atomNumber, gpu_x[atomNumber], gpu_y[atomNumber], gpu_z[atomNumber],
                 gpu_comx[molIndex], gpu_comy[molIndex], gpu_comz[molIndex],
-                rotx, roty, rotz, xAxes, yAxes, zAxes);
+                rotx, roty, rotz, xAxes, yAxes, zAxes, *gpu_nonOrth,
+                gpu_cell_x, gpu_cell_y, gpu_cell_z,
+                gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
 }
 
 // CUDA implementation of MultiParticle Brownian transformation 
@@ -476,7 +527,7 @@ void BrownianMotionRotateParticlesGPU(
   ulong step,
   ulong seed,
   const int box,
-  bool isOrthogonal,
+  const bool isOrthogonal,
   int *kill)
 {
   int atomCount = newMolPos.Count();
@@ -501,9 +552,9 @@ void BrownianMotionRotateParticlesGPU(
   cudaMemcpy(gpu_moleculeInvolved, &moleculeInvolved[0], molCountInBox * sizeof(int), cudaMemcpyHostToDevice);
 
   double3 axis = make_double3(boxAxes.x, boxAxes.y, boxAxes.z);
-  double3 halfAx = make_double3(boxAxes.x / 2.0, boxAxes.y / 2.0, boxAxes.z / 2.0);
+  double3 halfAx = make_double3(boxAxes.x * 0.5, boxAxes.y * 0.5, boxAxes.z * 0.5);
 
-  if(isOrthogonal) {
+  if (isOrthogonal)
     BrownianMotionRotateKernel<true><<< blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_startAtomIdx,
       vars->gpu_x,
@@ -533,8 +584,8 @@ void BrownianMotionRotateParticlesGPU(
       seed,
       BETA,
       kill);
-  } else {
-    BrownianMotionRotateKernel<false><<< blocksPerGrid, threadsPerBlock>>>(
+else
+      BrownianMotionRotateKernel<true><<< blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_startAtomIdx,
       vars->gpu_x,
       vars->gpu_y,
@@ -563,8 +614,7 @@ void BrownianMotionRotateParticlesGPU(
       seed,
       BETA,
       kill);
-  }
-
+      
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
 
@@ -578,7 +628,7 @@ void BrownianMotionRotateParticlesGPU(
   checkLastErrorCUDA(__FILE__, __LINE__);
 }
 
-template<bool isOrthogonal>
+template<const bool isOrthogonal>
 __global__ void BrownianMotionRotateKernel(
   int *startAtomIdx,
   double *gpu_x,
@@ -677,19 +727,16 @@ __global__ void BrownianMotionRotateKernel(
   }
 
   __syncthreads();
-  // use strid of blockDim.x, which is 32
+  // use stride of blockDim.x, which is 32
   // each thread handles one atom rotation
   for(atomIdx = startIdx + threadIdx.x; atomIdx < endIdx; atomIdx += blockDim.x) {
     double3 coor = make_double3(gpu_x[atomIdx], gpu_y[atomIdx], gpu_z[atomIdx]);
     // unwrap molecule
-    if(isOrthogonal) {
-      UnwrapPBC_f3(coor, com, axis, halfAx);
-    } else {
-      double3 unSlant = make_double3(0.0, 0.0, 0.0);
-      TransformUnSlantGPU(unSlant, coor, gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
-      UnwrapPBC_f3(unSlant, com, axis, halfAx);
-      TransformSlantGPU(coor, unSlant, gpu_cell_x, gpu_cell_y, gpu_cell_z);
-    }
+    if(isOrthogonal)
+      UnwrapPBC3(coor, com, axis, halfAx);
+    else
+      UnwrapPBCNonOrth3(coor, com, axis, halfAx, gpu_cell_x, gpu_cell_y, gpu_cell_z,
+                        gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
 
     // move COM of molecule to zero
     coor.x -= com.x;
@@ -706,14 +753,12 @@ __global__ void BrownianMotionRotateKernel(
     coor.z = newz + com.z;
 
     // wrap again
-    if(isOrthogonal) {
-      WrapPBC_f3(coor, axis);
-    } else {
-      double3 unSlant = make_double3(0.0, 0.0, 0.0);
-      TransformUnSlantGPU(unSlant, coor, gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
-      WrapPBC_f3(unSlant, axis);
-      TransformSlantGPU(coor, unSlant, gpu_cell_x, gpu_cell_y, gpu_cell_z);
-    }
+    if(isOrthogonal)
+      WrapPBC3(coor, axis);
+    else
+      WrapPBCNonOrth3(coor, axis, gpu_cell_x, gpu_cell_y, gpu_cell_z,
+                      gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
+
     // update the new position
     gpu_x[atomIdx] = coor.x;
     gpu_y[atomIdx] = coor.y;
@@ -735,7 +780,7 @@ void BrownianMotionTranslateParticlesGPU(
   ulong step,
   ulong seed,
   const int box,
-  bool isOrthogonal,
+  const bool isOrthogonal,
   int *kill)
 {
   int atomCount = newMolPos.Count();
@@ -763,9 +808,9 @@ void BrownianMotionTranslateParticlesGPU(
   cudaMemcpy(gpu_moleculeInvolved, &moleculeInvolved[0], molCountInBox * sizeof(int), cudaMemcpyHostToDevice);
 
   double3 axis = make_double3(boxAxes.x, boxAxes.y, boxAxes.z);
-  double3 halfAx = make_double3(boxAxes.x / 2.0, boxAxes.y / 2.0, boxAxes.z / 2.0);
+  double3 halfAx = make_double3(boxAxes.x * 0.5, boxAxes.y * 0.5, boxAxes.z * 0.5);
 
-  if(isOrthogonal) {
+  if (isOrthogonal)
     BrownianMotionTranslateKernel<true><<< blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_startAtomIdx,
       vars->gpu_x,
@@ -798,7 +843,7 @@ void BrownianMotionTranslateParticlesGPU(
       seed,
       BETA,
       kill);
-  } else {
+  else
     BrownianMotionTranslateKernel<false><<< blocksPerGrid, threadsPerBlock>>>(
       vars->gpu_startAtomIdx,
       vars->gpu_x,
@@ -831,7 +876,6 @@ void BrownianMotionTranslateParticlesGPU(
       seed,
       BETA,
       kill);
-  }
 
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
@@ -850,7 +894,7 @@ void BrownianMotionTranslateParticlesGPU(
 }
 
 
-template<bool isOrthogonal>
+template<const bool isOrthogonal>
 __global__ void BrownianMotionTranslateKernel(
   int *startAtomIdx,
   double *gpu_x,
@@ -913,14 +957,12 @@ __global__ void BrownianMotionTranslateKernel(
     com.y += shift.y;
     com.z += shift.z;
     // wrap COM
-    if(isOrthogonal) {
-      WrapPBC_f3(com, axis);
-    } else {
-      double3 unSlant = make_double3(0.0, 0.0, 0.0);
-      TransformUnSlantGPU(unSlant, com, gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
-      WrapPBC_f3(unSlant, axis);
-      TransformSlantGPU(com, unSlant, gpu_cell_x, gpu_cell_y, gpu_cell_z);
-    }
+    if(isOrthogonal)
+      WrapPBC3(com, axis);
+    else
+      WrapPBCNonOrth3(com, axis, gpu_cell_x, gpu_cell_y, gpu_cell_z,
+                      gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
+
     //update COM
     gpu_comx[molIndex] = com.x;
     gpu_comy[molIndex] = com.y;
@@ -944,14 +986,12 @@ __global__ void BrownianMotionTranslateKernel(
     coor.y += shift.y;
     coor.z += shift.z;
     // wrap coordinate
-    if(isOrthogonal) {
-      WrapPBC_f3(coor, axis);
-    } else {
-      double3 unSlant = make_double3(0.0, 0.0, 0.0);
-      TransformUnSlantGPU(unSlant, coor, gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
-      WrapPBC_f3(unSlant, axis);
-      TransformSlantGPU(coor, unSlant, gpu_cell_x, gpu_cell_y, gpu_cell_z);
-    }
+    if(isOrthogonal)
+      WrapPBC3(coor, axis);
+    else
+      WrapPBCNonOrth3(coor, axis, gpu_cell_x, gpu_cell_y, gpu_cell_z,
+                      gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
+
     // update the new position
     gpu_x[atomIdx] = coor.x;
     gpu_y[atomIdx] = coor.y;

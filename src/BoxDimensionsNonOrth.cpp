@@ -64,7 +64,6 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
            cellBasis[b].Get(2).x, cellBasis[b].Get(2).y,
            cellBasis[b].Get(2).z);
 
-
     //Find the length of a, b, c
     cellLength.Set(b, cellBasis[b].Length(0), cellBasis[b].Length(1),
                    cellBasis[b].Length(2));
@@ -94,7 +93,7 @@ void BoxDimensionsNonOrth::Init(config_setup::RestartSettings const& restart,
     axis.Set(b, cellLength[b]);
 
     if(axis.Get(b).Min() < 2.0 * rCut[b]) {
-      printf("Error: Cutoff value is large than half of minimum BOX%d length!\n", b);
+      printf("Error: Cutoff value is larger than half of minimum BOX%d length!\n", b);
       exit(EXIT_FAILURE);
     }
   }
@@ -221,7 +220,7 @@ void BoxDimensionsNonOrth::SetVolume(const uint b, const double vol)
 XYZ BoxDimensionsNonOrth::MinImage(XYZ rawVecRef, const uint b) const
 {
   XYZ rawVec = TransformUnSlant(rawVecRef, b);
-  rawVecRef = BoxDimensions:: MinImage(rawVec, b);
+  rawVecRef = BoxDimensions::MinImage(rawVec, b);
   rawVecRef = TransformSlant(rawVecRef, b);
   return rawVecRef;
 }
@@ -229,7 +228,7 @@ XYZ BoxDimensionsNonOrth::MinImage(XYZ rawVecRef, const uint b) const
 XYZ BoxDimensionsNonOrth::MinImage_X(XYZ rawVecRef, const uint b) const
 {
   XYZ rawVec = TransformUnSlant(rawVecRef, b);
-  rawVecRef = BoxDimensions:: MinImage_X(rawVec, b);
+  rawVecRef = BoxDimensions::MinImage_X(rawVec, b);
   rawVecRef = TransformSlant(rawVecRef, b);
   return rawVecRef;
 }
@@ -237,7 +236,7 @@ XYZ BoxDimensionsNonOrth::MinImage_X(XYZ rawVecRef, const uint b) const
 XYZ BoxDimensionsNonOrth::MinImage_Y(XYZ rawVecRef, const uint b) const
 {
   XYZ rawVec = TransformUnSlant(rawVecRef, b);
-  rawVecRef = BoxDimensions:: MinImage_Y(rawVec, b);
+  rawVecRef = BoxDimensions::MinImage_Y(rawVec, b);
   rawVecRef = TransformSlant(rawVecRef, b);
   return rawVecRef;
 }
@@ -245,7 +244,7 @@ XYZ BoxDimensionsNonOrth::MinImage_Y(XYZ rawVecRef, const uint b) const
 XYZ BoxDimensionsNonOrth::MinImage_Z(XYZ rawVecRef, const uint b) const
 {
   XYZ rawVec = TransformUnSlant(rawVecRef, b);
-  rawVecRef = BoxDimensions:: MinImage_Z(rawVec, b);
+  rawVecRef = BoxDimensions::MinImage_Z(rawVec, b);
   rawVecRef = TransformSlant(rawVecRef, b);
   return rawVecRef;
 }
@@ -293,7 +292,6 @@ void BoxDimensionsNonOrth::UnwrapPBC(double & x, double & y, double & z,
   BoxDimensions::UnwrapPBC(unslant.x, unslantRef.x, axis.x[b], halfAx.x[b]);
   BoxDimensions::UnwrapPBC(unslant.y, unslantRef.y, axis.y[b], halfAx.y[b]);
   BoxDimensions::UnwrapPBC(unslant.z, unslantRef.z, axis.z[b], halfAx.z[b]);
-  XYZ unwrap(x, y, z);
   //convert XYZ to slant
   XYZ slant = TransformSlant(unslant, b);
   x = slant.x;

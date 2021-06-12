@@ -271,7 +271,7 @@ inline uint MultiParticle::Transform()
   // This kernel will calculate translation/rotation amount + shifting/rotating
   if(moveType == mp::MPROTATE) {
     double r_max = moveSetRef.GetRMAX(bPick);
-    CallRotateParticlesGPU(cudaVars, isMoleculeInvolved, r_max,
+    CallRotateParticlesGPU(cudaVars, isMoleculeInvolved, bPick, r_max,
                            molTorqueRef.x, molTorqueRef.y, molTorqueRef.z,
                            r123wrapper.GetStep(), r123wrapper.GetSeedValue(),
                            particleMol, atomForceRecNew.Count(),
@@ -280,7 +280,7 @@ inline uint MultiParticle::Transform()
                            newMolsPos, newCOMs, lambda * BETA, r_k);
   } else {
     double t_max = moveSetRef.GetTMAX(bPick);
-    CallTranslateParticlesGPU(cudaVars, isMoleculeInvolved, t_max,
+    CallTranslateParticlesGPU(cudaVars, isMoleculeInvolved, bPick, t_max,
                               molForceRef.x, molForceRef.y, molForceRef.z,
                               r123wrapper.GetStep(), r123wrapper.GetSeedValue(),
                               particleMol, atomForceRecNew.Count(),
@@ -415,6 +415,7 @@ inline void MultiParticle::Accept(const uint rejectState, const ulong step)
   delta_energy += sysPotNew.boxEnergy[bPick].inter - sysPotRef.boxEnergy[bPick].inter;
   delta_energy += sysPotNew.boxEnergy[bPick].recip - sysPotRef.boxEnergy[bPick].recip;
   double uBoltz = exp(-BETA * delta_energy);
+
   double accept = MPCoeff * uBoltz;
   double pr = prng();
   bool result = (rejectState == mv::fail_state::NO_FAIL) && pr < accept;
@@ -522,7 +523,7 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
   XYZArray temp(len);
   newMolsPos.CopyRange(temp, start, 0, len);
   boxDimRef.UnwrapPBC(temp, bPick, center);
-
+  
   // Do Rotation
   for(uint p = 0; p < len; p++) {
     temp.Add(p, -center);
@@ -539,7 +540,7 @@ inline void MultiParticle::TranslateForceBiased(uint molIndex)
 {
   XYZ shift = t_k.Get(molIndex);
   if(shift > boxDimRef.GetHalfAxis(bPick)) {
-    std::cout << "Error: Trial Displacement exceed half of the box length in Multiparticle \n" 
+    std::cout << "Error: Trial Displacement exceeds half of the box length in Multiparticle\n" 
               << "       move!\n";
     std::cout << "       Trial transformation vector: " << shift << std::endl;
     std::cout << "       Box Dimension: " << boxDimRef.GetAxis(bPick) << std::endl << std::endl;

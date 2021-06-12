@@ -188,11 +188,13 @@ SystemPotential CalculateEnergy::BoxInter(SystemPotential potential,
                       boxAxes.cellBasis[box].z);
 
   if(!boxAxes.orthogonal[box]) {
-    BoxDimensionsNonOrth newAxes = *((BoxDimensionsNonOrth*)(&boxAxes));
+    //In this case, boxAxes is really an object of type BoxDimensionsNonOrth,
+    // so cast and copy the additional data to the GPU
+    const BoxDimensionsNonOrth *NonOrthAxes = static_cast<const BoxDimensionsNonOrth*>(&boxAxes);
     UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
-                           newAxes.cellBasis_Inv[box].x,
-                           newAxes.cellBasis_Inv[box].y,
-                           newAxes.cellBasis_Inv[box].z);
+                           NonOrthAxes->cellBasis_Inv[box].x,
+                           NonOrthAxes->cellBasis_Inv[box].y,
+                           NonOrthAxes->cellBasis_Inv[box].z);
   }
 
   CallBoxInterGPU(forcefield.particles->getCUDAVars(), cellVector, cellStartIndex,
@@ -310,11 +312,13 @@ SystemPotential CalculateEnergy::BoxForce(SystemPotential potential,
                       boxAxes.cellBasis[box].z);
 
   if(!boxAxes.orthogonal[box]) {
-    BoxDimensionsNonOrth newAxes = *((BoxDimensionsNonOrth*)(&boxAxes));
+    // In this case, boxAxes is really an object of type BoxDimensionsNonOrth,
+    // so cast and copy the additional data to the GPU
+    const BoxDimensionsNonOrth *NonOrthAxes = static_cast<const BoxDimensionsNonOrth*>(&boxAxes);
     UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
-                           newAxes.cellBasis_Inv[box].x,
-                           newAxes.cellBasis_Inv[box].y,
-                           newAxes.cellBasis_Inv[box].z);
+                           NonOrthAxes->cellBasis_Inv[box].x,
+                           NonOrthAxes->cellBasis_Inv[box].y,
+                           NonOrthAxes->cellBasis_Inv[box].z);
   }
 
   CallBoxForceGPU(forcefield.particles->getCUDAVars(), cellVector,
@@ -436,10 +440,13 @@ Virial CalculateEnergy::VirialCalc(const uint box)
                       currentAxes.cellBasis[box].z);
 
   if(!currentAxes.orthogonal[box]) {
-    BoxDimensionsNonOrth newAxes = *((BoxDimensionsNonOrth*)(&currentAxes));
+    //In this case, currentAxes is really an object of type BoxDimensionsNonOrth,
+    // so cast and copy the additional data to the GPU
+    const BoxDimensionsNonOrth *NonOrthAxes = static_cast<const BoxDimensionsNonOrth*>(&currentAxes);
     UpdateInvCellBasisCUDA(forcefield.particles->getCUDAVars(), box,
-                           newAxes.cellBasis_Inv[box].x, newAxes.cellBasis_Inv[box].y,
-                           newAxes.cellBasis_Inv[box].z);
+                           NonOrthAxes->cellBasis_Inv[box].x,
+                           NonOrthAxes->cellBasis_Inv[box].y,
+                           NonOrthAxes->cellBasis_Inv[box].z);
   }
 
   CallBoxInterForceGPU(forcefield.particles->getCUDAVars(),
