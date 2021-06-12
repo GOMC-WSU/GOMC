@@ -722,7 +722,8 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
 
         diff_com = Difference(gpu_comx, gpu_comy, gpu_comz, mA, mB);
         if (gpu_nonOrth[0])
-          diff_com = MinImageNonOrthGPU(diff_com, axis, halfAx, gpu_cell_x, gpu_cell_y, gpu_cell_z,                              gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
+          diff_com = MinImageNonOrthGPU(diff_com, axis, halfAx, gpu_cell_x, gpu_cell_y, gpu_cell_z,
+                                        gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
         else
           diff_com = MinImageGPU(diff_com, axis, halfAx);
 
