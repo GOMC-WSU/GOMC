@@ -40,7 +40,7 @@ __device__ inline double randomGaussianGPU(unsigned int counter, ulong step,
   return  shiftedVal;
 }
 
-__device__ inline void ApplyRotation(int atomnum, double &x, double &y, double &z,
+__device__ inline void ApplyRotation(double &x, double &y, double &z,
                                      double comx, double comy, double comz,
                                      double rotx, double roty, double rotz,
                                      double axx, double axy, double axz, int gpu_nonOrth,
@@ -505,7 +505,7 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
   }
 
   // perform the rotation on the coordinates
-  ApplyRotation(atomNumber, gpu_x[atomNumber], gpu_y[atomNumber], gpu_z[atomNumber],
+  ApplyRotation(gpu_x[atomNumber], gpu_y[atomNumber], gpu_z[atomNumber],
                 gpu_comx[molIndex], gpu_comy[molIndex], gpu_comz[molIndex],
                 rotx, roty, rotz, xAxes, yAxes, zAxes, *gpu_nonOrth,
                 gpu_cell_x, gpu_cell_y, gpu_cell_z,

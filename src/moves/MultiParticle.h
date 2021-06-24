@@ -75,8 +75,8 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol),
   molLookup(sys.molLookup), r123wrapper(sys.r123wrapper), mols(statV.mol)
 {
-  molTorqueNew.Init(sys.com.Count());
   molTorqueRef.Init(sys.com.Count());
+  molTorqueNew.Init(sys.com.Count());
   atomForceRecNew.Init(sys.coordinates.Count());
   molForceRecNew.Init(sys.com.Count());
 
@@ -92,14 +92,14 @@ inline MultiParticle::MultiParticle(System &sys, StaticVals const &statV) :
     initMol[b] = false;
   }
 
-  // Check to see if we have only monoatomic molecule or not
+  // Check to see if we have only monoatomic molecules or not
   allTranslate = false;
   uint numAtomsPerKind = 0;
   for (uint k = 0; k < molLookup.GetNumKind(); ++k) {
     numAtomsPerKind += molRef.NumAtoms(k);
   }
-  // If we have only one atom in each kind, it means all molecule
-  // in the system is monoatomic
+  // If we have only one atom in each kind, it means all molecules
+  // in the system are monoatomic
   allTranslate = (numAtomsPerKind == molLookup.GetNumKind());
 
 #ifdef GOMC_CUDA
@@ -428,8 +428,10 @@ inline void MultiParticle::Accept(const uint rejectState, const ulong step)
     swap(atomForceRef, atomForceNew);
     swap(molForceRecRef, molForceRecNew);
     swap(atomForceRecRef, atomForceRecNew);
-    swap(molTorqueRef, molTorqueNew);
-    //update reciprocal value
+    // molTorqueRef is computed only for rotate move
+	if (moveType == mp::MPROTATE)
+      swap(molTorqueRef, molTorqueNew);
+    // Update reciprocal value
     calcEwald->UpdateRecip(bPick);
     // Update the velocity in box
     velocity.UpdateBoxVelocity(bPick);
@@ -518,7 +520,7 @@ inline void MultiParticle::RotateForceBiased(uint molIndex)
   XYZ center = newCOMs.Get(molIndex);
   uint start, stop, len;
   molRef.GetRange(start, stop, len, molIndex);
-
+  
   // Copy the range into temporary array
   XYZArray temp(len);
   newMolsPos.CopyRange(temp, start, 0, len);
