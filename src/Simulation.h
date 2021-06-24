@@ -24,7 +24,9 @@ public:
 
   void RunSimulation(void);
   bool RecalculateAndCheck(void);
-
+  void RecalculateTrajectory();
+  void StandardSimulation();
+  void CalculateMayerFunctionEnergies();
 private:
   StaticVals * staticValues;
   System * system;

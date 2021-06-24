@@ -61,17 +61,86 @@ Simulation::~Simulation()
 void Simulation::RunSimulation(void)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::MC_RUN);
-  double startEnergy = system->potential.totalEnergy.total;
-  if(totalSteps == 0) {
-    for(int i = 0; i < (int) frameSteps.size(); i++) {
-      if(i == 0) {
-        cpu->Output(frameSteps[0] - 1);
-        continue;
-      }
-      system->RecalculateTrajectory(set, i + 1);
-      cpu->Output(frameSteps[i] - 1);
+  if(set.config.in.boutique.enableMayerFunction)
+      CalculateMayerFunctionEnergies();
+  else {
+    if(totalSteps == 0) {
+      RecalculateTrajectory();
+    } else {
+      StandardSimulation();
     }
   }
+}
+
+bool Simulation::RecalculateAndCheck(void)
+{
+  system->calcEwald->UpdateVectorsAndRecipTerms(false);
+  SystemPotential pot = system->calcEnergy.SystemTotal();
+
+  bool compare = true;
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.intraBond, pot.totalEnergy.intraBond, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.intraNonbond, pot.totalEnergy.intraNonbond, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.inter, pot.totalEnergy.inter, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.tc, pot.totalEnergy.tc, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.real, pot.totalEnergy.real, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.self, pot.totalEnergy.self, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.correction, pot.totalEnergy.correction, EPSILON);
+  compare &= num::approximatelyEqual(system->potential.totalEnergy.recip, pot.totalEnergy.recip, EPSILON);
+
+  if(!compare) {
+    std::cout
+        << "=================================================================\n"
+        << "Energy       INTRA B |     INTRA NB |        INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
+        << std::endl
+        << "System: "
+        << std::setw(12) << system->potential.totalEnergy.intraBond << " | "
+        << std::setw(12) << system->potential.totalEnergy.intraNonbond << " | "
+        << std::setw(12) << system->potential.totalEnergy.inter << " | "
+        << std::setw(12) << system->potential.totalEnergy.tc << " | "
+        << std::setw(12) << system->potential.totalEnergy.real << " | "
+        << std::setw(12) << system->potential.totalEnergy.self << " | "
+        << std::setw(12) << system->potential.totalEnergy.correction << " | "
+        << std::setw(12) << system->potential.totalEnergy.recip << std::endl
+        << "Recalc: "
+        << std::setw(12) << pot.totalEnergy.intraBond << " | "
+        << std::setw(12) << pot.totalEnergy.intraNonbond << " | "
+        << std::setw(12) << pot.totalEnergy.inter << " | "
+        << std::setw(12) << pot.totalEnergy.tc << " | "
+        << std::setw(12) << pot.totalEnergy.real << " | "
+        << std::setw(12) << pot.totalEnergy.self << " | "
+        << std::setw(12) << pot.totalEnergy.correction << " | "
+        << std::setw(12) << pot.totalEnergy.recip << std::endl
+        << "================================================================"
+        << std::endl << std::endl;
+  }
+
+  return compare;
+}
+
+void Simulation::CalculateMayerFunctionEnergies(){
+  ulong numberOfPairs = 10;
+  int LargestMultFactor = 3;
+  for (ulong pairID = 0; pairID < numberOfPairs; ++pairID) {
+  /* How BoxInter calculates energy
+  for(int currParticleIdx = 0; currParticleIdx < (int) cellVector.size(); currParticleIdx++) {
+  // avoid same particles and duplicate work
+    if(currParticle < nParticle && particleMol[currParticle] != particleMol[nParticle]) {
+      Calculate Pairwise energies
+  */ 
+    // How far in on each axis do we displace 
+    // Say unit is 1 angstrom
+    // unit x multiplicativeFactor = 1, then 2, then 3...
+    for (int multiplicativeFactor = 1; multiplicativeFactor < LargestMultFactor; ++multiplicativeFactor) {
+      // x == 0, y == 1, z == 2
+      for (int dimension = 0; dimension < 3; ++dimension) {
+        //system->RunMayerMove(pairID);
+      }
+    } 
+  }
+}
+
+void Simulation::StandardSimulation(){
+  double startEnergy = system->potential.totalEnergy.total;
   for (ulong step = startStep; step < totalSteps; step++) {
     system->moveSettings.AdjustMoves(step);
     system->ChooseAndRunMove(step);
@@ -134,47 +203,13 @@ void Simulation::RunSimulation(void)
 #endif
 }
 
-bool Simulation::RecalculateAndCheck(void)
-{
-  system->calcEwald->UpdateVectorsAndRecipTerms(false);
-  SystemPotential pot = system->calcEnergy.SystemTotal();
-
-  bool compare = true;
-  compare &= num::approximatelyEqual(system->potential.totalEnergy.intraBond, pot.totalEnergy.intraBond, EPSILON);
-  compare &= num::approximatelyEqual(system->potential.totalEnergy.intraNonbond, pot.totalEnergy.intraNonbond, EPSILON);
-  compare &= num::approximatelyEqual(system->potential.totalEnergy.inter, pot.totalEnergy.inter, EPSILON);
-  compare &= num::approximatelyEqual(system->potential.totalEnergy.tc, pot.totalEnergy.tc, EPSILON);
-  compare &= num::approximatelyEqual(system->potential.totalEnergy.real, pot.totalEnergy.real, EPSILON);
-  compare &= num::approximatelyEqual(system->potential.totalEnergy.self, pot.totalEnergy.self, EPSILON);
-  compare &= num::approximatelyEqual(system->potential.totalEnergy.correction, pot.totalEnergy.correction, EPSILON);
-  compare &= num::approximatelyEqual(system->potential.totalEnergy.recip, pot.totalEnergy.recip, EPSILON);
-
-  if(!compare) {
-    std::cout
-        << "=================================================================\n"
-        << "Energy       INTRA B |     INTRA NB |        INTER |           TC |         REAL |         SELF |   CORRECTION |        RECIP"
-        << std::endl
-        << "System: "
-        << std::setw(12) << system->potential.totalEnergy.intraBond << " | "
-        << std::setw(12) << system->potential.totalEnergy.intraNonbond << " | "
-        << std::setw(12) << system->potential.totalEnergy.inter << " | "
-        << std::setw(12) << system->potential.totalEnergy.tc << " | "
-        << std::setw(12) << system->potential.totalEnergy.real << " | "
-        << std::setw(12) << system->potential.totalEnergy.self << " | "
-        << std::setw(12) << system->potential.totalEnergy.correction << " | "
-        << std::setw(12) << system->potential.totalEnergy.recip << std::endl
-        << "Recalc: "
-        << std::setw(12) << pot.totalEnergy.intraBond << " | "
-        << std::setw(12) << pot.totalEnergy.intraNonbond << " | "
-        << std::setw(12) << pot.totalEnergy.inter << " | "
-        << std::setw(12) << pot.totalEnergy.tc << " | "
-        << std::setw(12) << pot.totalEnergy.real << " | "
-        << std::setw(12) << pot.totalEnergy.self << " | "
-        << std::setw(12) << pot.totalEnergy.correction << " | "
-        << std::setw(12) << pot.totalEnergy.recip << std::endl
-        << "================================================================"
-        << std::endl << std::endl;
+void Simulation::RecalculateTrajectory(){
+  for(int i = 0; i < (int) frameSteps.size(); i++) {
+    if(i == 0) {
+      cpu->Output(frameSteps[0] - 1);
+      continue;
+    }
+    system->RecalculateTrajectory(set, i + 1);
+    cpu->Output(frameSteps[i] - 1);
   }
-
-  return compare;
 }

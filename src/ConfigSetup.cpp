@@ -27,6 +27,7 @@ ConfigSetup::ConfigSetup(void)
   in.restart.restartFromXSCFile = false;
   in.prng.seed = UINT_MAX;
   in.prngParallelTempering.seed = UINT_MAX;
+  in.boutique.enableMayerFunction = false;
   sys.elect.readEwald = false;
   sys.elect.readElect = false;
   sys.elect.readCache = false;
@@ -194,8 +195,6 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       if(in.restart.enable) {
         printf("%-40s %-s \n", "Info: Restart simulation",  "Active");
       }
-    } else if(CheckString(line[0], "FirstStep")) {
-      in.restart.step = stringtoi(line[1]);
     } else if(CheckString(line[0], "PRNG")) {
       in.prng.kind = line[1];
       if("RANDOM" == line[1])
@@ -204,6 +203,12 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       in.prngParallelTempering.kind = line[1];
       if("RANDOM" == line[1])
         printf("%-40s %-s \n", "Info: Random seed", "Active");
+    // Experimental
+    } else if(CheckString(line[0], "FirstStep")) {
+      in.restart.step = stringtoi(line[1]);
+    } else if(CheckString(line[0], "MayerFunction")) {
+      in.boutique.enableMayerFunction = checkBool(line[1]);
+    // Experimental
     } else if(CheckString(line[0], "ParaTypeCHARMM")) {
       if(checkBool(line[1])) {
         in.ffKind.numOfKinds++;

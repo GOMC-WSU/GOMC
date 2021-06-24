@@ -84,6 +84,15 @@ struct RestartSettings {
   }
 };
 
+// Boutique Settings for non-simulation purposes
+struct BoutiqueSettings {
+  bool enableMayerFunction;
+  bool operator()(void)
+  {
+    return enableMayerFunction;
+  }
+};
+
 //Kinds of Mersenne Twister initialization
 struct PRNGKind {
   std::string kind;
@@ -120,6 +129,7 @@ struct InFiles {
 //Input section of config file data.
 struct Input {
   RestartSettings restart;
+  BoutiqueSettings boutique;
   PRNGKind prng, prngParallelTempering;
   FFKind ffKind;
   InFiles files;
