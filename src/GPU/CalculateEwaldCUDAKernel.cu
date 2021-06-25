@@ -472,8 +472,7 @@ void CallBoxForceReciprocalGPU(
   uint imageSize,
   XYZArray const &molCoords,
   BoxDimensions const &boxAxes,
-  int box
-)
+  int box)
 {
   int atomCount = atomForceRec.Count();
   int molCount = molForceRec.Count();
@@ -554,12 +553,18 @@ void CallBoxForceReciprocalGPU(
     vars->gpu_molIndex,
     vars->gpu_kindIndex,
     vars->gpu_lambdaCoulomb,
+    vars->gpu_cell_x[box],
+    vars->gpu_cell_y[box],
+    vars->gpu_cell_z[box],
+    vars->gpu_Invcell_x[box],
+    vars->gpu_Invcell_y[box],
+    vars->gpu_Invcell_z[box],
+    vars->gpu_nonOrth,
     boxAxes.GetAxis(box).x,
     boxAxes.GetAxis(box).y,
     boxAxes.GetAxis(box).z,
     box,
-    atomCount
-  );
+    atomCount);
   cudaDeviceSynchronize();
   checkLastErrorCUDA(__FILE__, __LINE__);
 
@@ -613,12 +618,18 @@ __global__ void BoxForceReciprocalGPU(
   int *gpu_molIndex,
   int *gpu_kindIndex,
   double *gpu_lambdaCoulomb,
+  double *gpu_cell_x,
+  double *gpu_cell_y,
+  double *gpu_cell_z,
+  double *gpu_Invcell_x,
+  double *gpu_Invcell_y,
+  double *gpu_Invcell_z,
+  int *gpu_nonOrth,
   double axx,
   double axy,
   double axz,
   int box,
-  int atomCount
-)
+  int atomCount)
 {
   __shared__ double shared_kvector[IMAGES_PER_BLOCK * 3];
   int particleID =  blockDim.x * blockIdx.x + threadIdx.x;
@@ -664,22 +675,24 @@ __global__ void BoxForceReciprocalGPU(
   // loop over other particles within the same molecule
   if(blockIdx.y == 0) {
     double intraForce = 0.0, distSq = 0.0, dist = 0.0;
-    double distVectX = 0.0, distVectY = 0.0, distVectZ = 0.0;
+    double3 distVect;
     int lastParticleWithinSameMolecule = gpu_startMol[particleID] + gpu_lengthMol[particleID];
     for(int otherParticle = gpu_startMol[particleID];
         otherParticle < lastParticleWithinSameMolecule;
         otherParticle++) {
       if(particleID != otherParticle) {
-        DeviceInRcut(distSq, distVectX, distVectY, distVectZ, gpu_x, gpu_y, gpu_z, particleID, otherParticle, axx, axy, axz);
+        DeviceInRcut(distSq, distVect, gpu_x, gpu_y, gpu_z, particleID, otherParticle,
+                     axx, axy, axz, *gpu_nonOrth, gpu_cell_x, gpu_cell_y,
+                     gpu_cell_z, gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
         dist = sqrt(distSq);
 
         double expConstValue = exp(-1.0 * alphaSq * distSq);
         double qiqj = gpu_particleCharge[particleID] * gpu_particleCharge[otherParticle] * qqFact;
         intraForce = qiqj * lambdaCoef * lambdaCoef / distSq;
         intraForce *= ((erf(alpha * dist) / dist) - constValue * expConstValue);
-        forceX -= intraForce * distVectX;
-        forceY -= intraForce * distVectY;
-        forceZ -= intraForce * distVectZ;
+        forceX -= intraForce * distVect.x;
+        forceY -= intraForce * distVect.y;
+        forceZ -= intraForce * distVect.z;
       }
     }
   }

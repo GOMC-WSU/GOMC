@@ -106,23 +106,6 @@ __device__ inline double MinImageSignedGPU(double raw, const double ax, const do
   return raw;
 }
 
-__device__ inline void DeviceInRcut(double &distSq, double &distX, double &distY, double &distZ,
-    const double *gpu_x, const double *gpu_y, const double *gpu_z, int particleID, int otherParticle,
-    double axx, double axy, double axz)
-{
-  // calculate difference
-  double diff_x = gpu_x[particleID] - gpu_x[otherParticle];
-  double diff_y = gpu_y[particleID] - gpu_y[otherParticle];
-  double diff_z = gpu_z[particleID] - gpu_z[otherParticle];
-
-  // min image
-  distX = MinImageSignedGPU(diff_x, axx, axx * 0.5);
-  distY = MinImageSignedGPU(diff_y, axy, axy * 0.5);
-  distZ = MinImageSignedGPU(diff_z, axz, axz * 0.5);
-
-  distSq = distX * distX + distY * distY + distZ * distZ;
-}
-
 __device__ inline double3 MinImageGPU(double3 rawVec, const double3 axis, const double3 halfAx)
 {
   rawVec.x = MinImageSignedGPU(rawVec.x, axis.x, halfAx.x);
@@ -141,6 +124,36 @@ __device__ inline double3 MinImageNonOrthGPU(double3 rawVec, const double3 &axis
   t = MinImageGPU(t, axis, halfAx);
   TransformSlantGPU(rawVec, t, gpu_cell_x, gpu_cell_y, gpu_cell_z);
   return rawVec;
+}
+
+
+__device__ inline void DeviceInRcut(double &distSq, double3 &dist, const double *gpu_x,
+    const double *gpu_y, const double *gpu_z, int particleID, int otherParticle, double axx,
+    double axy, double axz, int gpu_nonOrth, double *gpu_cell_x, double *gpu_cell_y,
+    double *gpu_cell_z, double *gpu_Invcell_x, double *gpu_Invcell_y, double *gpu_Invcell_z)
+{
+  // calculate distance
+  double3 axes, halfAx;
+  dist.x = gpu_x[particleID] - gpu_x[otherParticle];
+  dist.y = gpu_y[particleID] - gpu_y[otherParticle];
+  dist.z = gpu_z[particleID] - gpu_z[otherParticle];
+  
+  axes.x = axx;
+  halfAx.x = axx * 0.5;
+  axes.y = axy;
+  halfAx.y = axy * 0.5;
+  axes.z = axz;
+  halfAx.z = axz * 0.5;
+  
+  // minimum image
+  if(gpu_nonOrth) {
+    dist = MinImageNonOrthGPU(dist, axes, halfAx, gpu_cell_x, gpu_cell_y, gpu_cell_z,
+                              gpu_Invcell_x, gpu_Invcell_y, gpu_Invcell_z);
+  } else {
+    dist = MinImageGPU(dist, axes, halfAx);
+  }
+
+  distSq = dist.x * dist.x + dist.y * dist.y + dist.z * dist.z;
 }
 
 // Call by calculate energy whether it is in rCut
