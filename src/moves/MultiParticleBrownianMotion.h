@@ -173,7 +173,7 @@ inline uint MultiParticleBrownian::Prep(const double subDraw, const double movPe
 
   SetMolInBox(bPick);
   if (moleculeIndex.size() == 0) {
-    std::cout << "Warning: MultiParticleBrownian move can't move any molecules, Skipping...\n";
+    std::cout << "Warning: MultiParticleBrownian move can't move any molecules. Skipping..." << std::endl;
     state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
     return state;
   }
@@ -295,13 +295,19 @@ inline uint MultiParticleBrownian::Transform()
   }
   // kill the simulation if we had bad initial configuration
   if(kill[0]) {
-    std::cout << "Error: Transformation of " << kill[0] << "in Multiparticle Brownian Motion move failed!\n"
-              << "       Either trial rotate/translate is not finite number or their translation \n" 
-              << "       exceeded half of the box length! \n\n";
-    std::cout << "This might be due to bad initial configuration, where atom of the molecules \n" 
-              << "are too close to each other or overlaps. Please equilibrate your system using \n"
-              << "rigid body translation or rotation MC moves, before using the Multiparticle \n"
-              << "Brownian Motion move. \n\n";
+    std::cout << "Error: Transformation of " << kill[0] << " molecules in Multiparticle Brownian Motion move failed!" << std::endl;
+  if(moveType == mp::MPROTATE) {
+    std::cout << "       Either trial rotation is not a finite number or the molecule after rotation" << std::endl
+              << "       exceeded half of the box length!" << std::endl << std::endl;
+  }
+  else {
+    std::cout << "       Either trial translation is not a finite number or the translation" << std::endl
+              << "       exceeded half of the box length!" << std::endl << std::endl;
+  }
+    std::cout << "This might be due to a bad initial configuration, where atoms of the molecules" << std::endl
+              << "are too close to each other or overlap. Please equilibrate your system using" << std::endl
+              << "rigid body translation or rotation MC moves before using the Multiparticle" << std::endl
+              << "Brownian Motion move." << std::endl << std::endl;
     exit(EXIT_FAILURE);
 } 
 #else
@@ -450,8 +456,8 @@ inline XYZ MultiParticleBrownian::CalcRandomTransform(XYZ const &lb, double cons
 
 
   if (!std::isfinite(num.Length())) {
-    std::cout << "Error: Trial transform is not a finite number in Brownian Motion Multiparticle move.\n";
-    std::cout << "       Trial transform: " << num;
+    std::cout << "Error: Trial transform is not a finite number in Brownian Motion Multiparticle move." << std::endl;
+    std::cout << "       Trial transform: " << num << std::endl;
     exit(EXIT_FAILURE);
   }
   // We can possible bound them
@@ -534,14 +540,14 @@ inline void MultiParticleBrownian::TranslateForceBiased(uint molIndex)
   XYZ shift = t_k.Get(molIndex);
   // check for PBC error and bad initial configuration
   if(shift > boxDimRef.GetHalfAxis(bPick)) {
-    std::cout << "Error: Trial Displacement exceed half of the box length in Multiparticle \n" 
-              << "       Brownian Motion move!\n";
+    std::cout << "Error: Trial Displacement exceeds half of the box length in Multiparticle" << std::endl
+              << "       Brownian Motion move!" << std::endl;
     std::cout << "       Trial transformation vector: " << shift << std::endl;
-    std::cout << "       Box Dimension: " << boxDimRef.GetAxis(bPick) << std::endl << std::endl;
-    std::cout << "This might be due to bad initial configuration, where atom of the molecules \n" 
-              << "are too close to each other or overlaps. Please equilibrate your system using \n"
-              << "rigid body translation or rotation MC moves, before using the Multiparticle \n"
-              << "Brownian Motion move. \n\n";
+    std::cout << "       Box Dimensions: " << boxDimRef.GetAxis(bPick) << std::endl << std::endl;
+    std::cout << "This might be due to a bad initial configuration, where atoms of the molecules" << std::endl 
+              << "are too close to each other or overlap. Please equilibrate your system using" << std::endl
+              << "rigid body translation or rotation MC moves before using the Multiparticle" << std::endl
+              << "Brownian Motion move." << std::endl << std::endl;
     exit(EXIT_FAILURE);
   } 
 
