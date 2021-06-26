@@ -429,7 +429,7 @@ inline void MultiParticle::Accept(const uint rejectState, const ulong step)
     swap(molForceRecRef, molForceRecNew);
     swap(atomForceRecRef, atomForceRecNew);
     // molTorqueRef is computed only for rotate move
-	if (moveType == mp::MPROTATE)
+    if (moveType == mp::MPROTATE)
       swap(molTorqueRef, molTorqueNew);
     // Update reciprocal value
     calcEwald->UpdateRecip(bPick);
