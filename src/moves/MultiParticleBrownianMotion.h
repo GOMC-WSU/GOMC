@@ -297,8 +297,7 @@ inline uint MultiParticleBrownian::Transform()
   if(kill[0]) {
     std::cout << "Error: Transformation of " << kill[0] << " molecules in Multiparticle Brownian Motion move failed!" << std::endl;
   if(moveType == mp::MPROTATE) {
-    std::cout << "       Either trial rotation is not a finite number or the molecule after rotation" << std::endl
-              << "       exceeded half of the box length!" << std::endl << std::endl;
+    std::cout << "       Trial rotation is not a finite number!" << std::endl << std::endl;
   }
   else {
     std::cout << "       Either trial translation is not a finite number or the translation" << std::endl
