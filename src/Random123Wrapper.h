@@ -23,6 +23,7 @@ public:
 
   double GetGaussian(unsigned int counter);
   double GetGaussianNumber(unsigned int counter, double mean, double stdDev);
+  XYZ GetGaussianCoords(unsigned int counter, double mean, double stdDev);
 
 private:
   RNG::ctr_type c;

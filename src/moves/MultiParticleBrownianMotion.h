@@ -445,13 +445,14 @@ inline void MultiParticleBrownian::Accept(const uint rejectState, const ulong st
 inline XYZ MultiParticleBrownian::CalcRandomTransform(XYZ const &lb, double const max, uint molIndex)
 {
   XYZ lbmax = lb * max;
-  XYZ num;
+  XYZ num, randnums;
   //variance is 2A according to the paper, so stdDev is sqrt(variance)
   double stdDev = sqrt(2.0 * max);
-
-  num.x = lbmax.x + r123wrapper.GetGaussianNumber(molIndex * 3 + 0, 0.0, stdDev);
-  num.y = lbmax.y + r123wrapper.GetGaussianNumber(molIndex * 3 + 1, 0.0, stdDev);
-  num.z = lbmax.z + r123wrapper.GetGaussianNumber(molIndex * 3 + 2, 0.0, stdDev);
+  
+  randnums = r123wrapper.GetGaussianCoords(molIndex, 0.0, stdDev);
+  num.x = lbmax.x + randnums.x;
+  num.y = lbmax.y + randnums.y;
+  num.z = lbmax.z + randnums.z;
 
 
   if (!std::isfinite(num.Length())) {

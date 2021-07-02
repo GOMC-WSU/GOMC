@@ -66,3 +66,15 @@ double Random123Wrapper::GetGaussianNumber(unsigned int counter, double mean, do
   double gNum = this->GetGaussian(counter);
   return (mean + gNum * stdDev);
 }
+
+XYZ Random123Wrapper::GetGaussianCoords(unsigned int counter, double mean, double stdDev)
+{
+  c[0] = counter;
+  RNG::key_type k = uk;
+  RNG::ctr_type r = rng(c, k);
+  r123::double2 normal1 = r123::boxmuller(r[0], r[1]);
+  r123::double2 normal2 = r123::boxmuller(r[2], r[3]);
+
+  XYZ normals(mean + normal1.x * stdDev, mean + normal1.y * stdDev, mean + normal2.x * stdDev);
+  return normals;
+}

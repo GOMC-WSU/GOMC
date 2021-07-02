@@ -56,6 +56,25 @@ __device__ inline double randomGaussianGPU(unsigned int counter, ulong step,
   return  shiftedVal;
 }
 
+__device__ inline double3 randomGaussianCoordsGPU(unsigned int counter, ulong step,
+                                                  ulong seed, double mean, double stdDev)
+{
+  RNG::ctr_type c = {{}};
+  RNG::ukey_type uk = {{}};
+  uk[0] = step;
+  uk[1] = seed;
+  RNG::key_type k = uk;
+  c[0] = counter;
+  RNG::ctr_type r = philox4x64(c, k);
+  double2 normal1 = r123::boxmuller(r[0], r[1]);
+  double2 normal2 = r123::boxmuller(r[2], r[3]);
+
+  double3 normals = make_double3(mean + normal1.x * stdDev,
+                                 mean + normal1.y * stdDev,
+                                 mean + normal2.x * stdDev);
+  return normals;
+}
+
 __device__ inline void ApplyRotation(double &x, double &y, double &z,
                                      double comx, double comy, double comz,
                                      double rotx, double roty, double rotz,
@@ -695,9 +714,10 @@ __global__ void BrownianMotionRotateKernel(
     double btm_y = molTorquey[molIndex] * BETA * r_max;
     double btm_z = molTorquez[molIndex] * BETA * r_max;
 
-    double rot_x = btm_x + randomGaussianGPU(molIndex * 3, step, seed, 0.0, stdDev);
-    double rot_y = btm_y + randomGaussianGPU(molIndex * 3 + 1, step, seed, 0.0, stdDev);
-    double rot_z = btm_z + randomGaussianGPU(molIndex * 3 + 2, step, seed, 0.0, stdDev);
+    double3 randnums = randomGaussianCoordsGPU(molIndex, step, seed, 0.0, stdDev);
+    double rot_x = btm_x + randnums.x;
+    double rot_y = btm_y + randnums.y;
+    double rot_z = btm_z + randnums.z;
     // update the trial torque
     gpu_r_k_x[molIndex] = rot_x;
     gpu_r_k_y[molIndex] = rot_y;
@@ -963,9 +983,10 @@ __global__ void BrownianMotionTranslateKernel(
     double bfm_y = (molForcey[molIndex] + molForceRecy[molIndex]) * BETA * t_max;
     double bfm_z = (molForcez[molIndex] + molForceRecz[molIndex]) * BETA * t_max;
 
-    shift.x = bfm_x + randomGaussianGPU(molIndex * 3, step, seed, 0.0, stdDev);
-    shift.y = bfm_y + randomGaussianGPU(molIndex * 3 + 1, step, seed, 0.0, stdDev);
-    shift.z = bfm_z + randomGaussianGPU(molIndex * 3 + 2, step, seed, 0.0, stdDev);
+    double3 randnums = randomGaussianCoordsGPU(molIndex, step, seed, 0.0, stdDev);
+    shift.x = bfm_x + randnums.x;
+    shift.y = bfm_y + randnums.y;
+    shift.z = bfm_z + randnums.z;
     // update the trial translate
     gpu_t_k_x[molIndex] = shift.x;
     gpu_t_k_y[molIndex] = shift.y;
