@@ -1,6 +1,5 @@
 #include "Random123Wrapper.h"
 #include "Random123/boxmuller.hpp"
-#include <climits>
 
 Random123Wrapper::Random123Wrapper()
 {
@@ -22,8 +21,19 @@ double Random123Wrapper::GetRandomNumber(unsigned int counter)
   c[0] = counter;
   RNG::key_type k = uk;
   RNG::ctr_type r = rng(c, k);
-  double r01 = r[0];
-  r01 /= ULONG_MAX;
+  double r01 = r[0] * RAND_INTERVAL;
+  return r01;
+}
+
+XYZ Random123Wrapper::GetRandomCoords(unsigned int counter)
+{
+  c[0] = counter;
+  RNG::key_type k = uk;
+  RNG::ctr_type r = rng(c, k);
+  XYZ r01;
+  r01.x = static_cast<double>(r[0]) * RAND_INTERVAL;
+  r01.y = static_cast<double>(r[1]) * RAND_INTERVAL;
+  r01.z = static_cast<double>(r[2]) * RAND_INTERVAL;
   return r01;
 }
 

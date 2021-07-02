@@ -9,6 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <vector>
 #include "Random123/philox.h"
 typedef r123::Philox4x64 RNG;
+static const double RAND_INTERVAL_GPU = 1.0/static_cast<double>(ULONG_MAX);
 
 #include <cuda.h>
 #include <cuda_runtime.h>

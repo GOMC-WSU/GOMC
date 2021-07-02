@@ -448,25 +448,26 @@ inline void MultiParticle::Accept(const uint rejectState, const ulong step)
 inline XYZ MultiParticle::CalcRandomTransform(XYZ const &lb, double const max, uint molIndex)
 {
   XYZ lbmax = lb * max;
-  XYZ num;
+  XYZ num, randnums;
+  randnums = r123wrapper.GetRandomCoords(molIndex);
   if(std::abs(lbmax.x) > MIN_FORCE && std::abs(lbmax.x) < MAX_FORCE) {
-    num.x = log(exp(-1.0 * lbmax.x) + 2 * r123wrapper(molIndex * 3 + 0) * sinh(lbmax.x)) / lb.x;
+    num.x = log(exp(-1.0 * lbmax.x) + 2 * randnums.x * sinh(lbmax.x)) / lb.x;
   } else {
-    double rr = r123wrapper(molIndex * 3 + 0) * 2.0 - 1.0;
+    double rr = randnums.x * 2.0 - 1.0;
     num.x = max * rr;
   }
 
   if(std::abs(lbmax.y) > MIN_FORCE && std::abs(lbmax.y) < MAX_FORCE) {
-    num.y = log(exp(-1.0 * lbmax.y) + 2 * r123wrapper(molIndex * 3 + 1) * sinh(lbmax.y)) / lb.y;
+    num.y = log(exp(-1.0 * lbmax.y) + 2 * randnums.y * sinh(lbmax.y)) / lb.y;
   } else {
-    double rr = r123wrapper(molIndex * 3 + 1) * 2.0 - 1.0;
+    double rr = randnums.y * 2.0 - 1.0;
     num.y = max * rr;
   }
 
   if(std::abs(lbmax.z) > MIN_FORCE && std::abs(lbmax.z) < MAX_FORCE) {
-    num.z = log(exp(-1.0 * lbmax.z) + 2 * r123wrapper(molIndex * 3 + 2) * sinh(lbmax.z)) / lb.z;
+    num.z = log(exp(-1.0 * lbmax.z) + 2 * randnums.z * sinh(lbmax.z)) / lb.z;
   } else {
-    double rr = r123wrapper(molIndex * 3 + 2) * 2.0 - 1.0;
+    double rr = randnums.z * 2.0 - 1.0;
     num.z = max * rr;
   }
 

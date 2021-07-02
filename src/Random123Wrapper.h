@@ -1,7 +1,10 @@
 #pragma once
 
+#include <climits>
+#include "BasicTypes.h"
 #include "Random123/philox.h"
 typedef r123::Philox4x64 RNG;
+static const double RAND_INTERVAL = 1.0/static_cast<double>(ULONG_MAX);
 
 class Random123Wrapper
 {
@@ -12,6 +15,7 @@ public:
   void SetRandomSeed(ulong seedValue);
 
   double GetRandomNumber(unsigned int counter);
+  XYZ GetRandomCoords(unsigned int counter);
 
   unsigned int GetStep();
   unsigned int GetSeedValue();

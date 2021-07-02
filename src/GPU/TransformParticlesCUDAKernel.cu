@@ -22,7 +22,23 @@ __device__ inline double randomGPU(unsigned int counter, ulong step, ulong seed)
   RNG::key_type k = uk;
   c[0] = counter;
   RNG::ctr_type r = philox4x64(c, k);
-  return (double)r[0] / ULONG_MAX;
+  return static_cast<double>(r[0]) * RAND_INTERVAL_GPU;
+}
+
+__device__ inline double3 randomCoordsGPU(unsigned int counter, ulong step, ulong seed)
+{
+  RNG::ctr_type c = {{}};
+  RNG::ukey_type uk = {{}};
+  uk[0] = step;
+  uk[1] = seed;
+  RNG::key_type k = uk;
+  c[0] = counter;
+  RNG::ctr_type r = philox4x64(c, k);
+  double3 r01;
+  r01.x = static_cast<double>(r[0]) * RAND_INTERVAL_GPU;
+  r01.y = static_cast<double>(r[1]) * RAND_INTERVAL_GPU;
+  r01.z = static_cast<double>(r[2]) * RAND_INTERVAL_GPU;
+  return r01;
 }
 
 __device__ inline double randomGaussianGPU(unsigned int counter, ulong step,
@@ -372,25 +388,26 @@ __global__ void TranslateParticlesKernel(unsigned int numberOfMolecules,
   double lbmaxz = lbfz * t_max;
 
   double shiftx, shifty, shiftz;
+  double3 randnums = randomCoordsGPU(molIndex, step, seed);
 
   if(abs(lbmaxx) > MIN_FORCE && abs(lbmaxx) < MAX_FORCE) {
-    shiftx = log(exp(-1.0 * lbmaxx) + 2 * randomGPU(molIndex * 3, step, seed) * sinh(lbmaxx)) / lbfx;
+    shiftx = log(exp(-1.0 * lbmaxx) + 2 * randnums.x * sinh(lbmaxx)) / lbfx;
   } else {
-    double rr = randomGPU(molIndex * 3, step, seed) * 2.0 - 1.0;
+    double rr = randnums.x * 2.0 - 1.0;
     shiftx = t_max * rr;
   }
 
   if(abs(lbmaxy) > MIN_FORCE && abs(lbmaxy) < MAX_FORCE) {
-    shifty = log(exp(-1.0 * lbmaxy) + 2 * randomGPU(molIndex * 3 + 1, step, seed) * sinh(lbmaxy)) / lbfy;
+    shifty = log(exp(-1.0 * lbmaxy) + 2 * randnums.y * sinh(lbmaxy)) / lbfy;
   } else {
-    double rr = randomGPU(molIndex * 3 + 1, step, seed) * 2.0 - 1.0;
+    double rr = randnums.y * 2.0 - 1.0;
     shifty = t_max * rr;
   }
 
   if(abs(lbmaxz) > MIN_FORCE && abs(lbmaxz) < MAX_FORCE) {
-    shiftz = log(exp(-1.0 * lbmaxz) + 2 * randomGPU(molIndex * 3 + 2, step, seed) * sinh(lbmaxz)) / lbfz;
+    shiftz = log(exp(-1.0 * lbmaxz) + 2 * randnums.z * sinh(lbmaxz)) / lbfz;
   } else {
-    double rr = randomGPU(molIndex * 3 + 2, step, seed) * 2.0 - 1.0;
+    double rr = randnums.z * 2.0 - 1.0;
     shiftz = t_max * rr;
   }
 
@@ -476,25 +493,26 @@ __global__ void RotateParticlesKernel(unsigned int numberOfMolecules,
   double lbmaxz = lbtz * r_max;
 
   double rotx, roty, rotz;
+  double3 randnums = randomCoordsGPU(molIndex, step, seed);
 
   if(abs(lbmaxx) > MIN_FORCE && abs(lbmaxx) < MAX_FORCE) {
-    rotx = log(exp(-1.0 * lbmaxx) + 2 * randomGPU(molIndex * 3, step, seed) * sinh(lbmaxx)) / lbtx;
+    rotx = log(exp(-1.0 * lbmaxx) + 2 * randnums.x * sinh(lbmaxx)) / lbtx;
   } else {
-    double rr = randomGPU(molIndex * 3, step, seed) * 2.0 - 1.0;
+    double rr = randnums.x * 2.0 - 1.0;
     rotx = r_max * rr;
   }
 
   if(abs(lbmaxy) > MIN_FORCE && abs(lbmaxy) < MAX_FORCE) {
-    roty = log(exp(-1.0 * lbmaxy) + 2 * randomGPU(molIndex * 3 + 1, step, seed) * sinh(lbmaxy)) / lbty;
+    roty = log(exp(-1.0 * lbmaxy) + 2 * randnums.y * sinh(lbmaxy)) / lbty;
   } else {
-    double rr = randomGPU(molIndex * 3 + 1, step, seed) * 2.0 - 1.0;
+    double rr = randnums.y * 2.0 - 1.0;
     roty = r_max * rr;
   }
 
   if(abs(lbmaxz) > MIN_FORCE && abs(lbmaxz) < MAX_FORCE) {
-    rotz = log(exp(-1.0 * lbmaxz) + 2 * randomGPU(molIndex * 3 + 2, step, seed) * sinh(lbmaxz)) / lbtz;
+    rotz = log(exp(-1.0 * lbmaxz) + 2 * randnums.z * sinh(lbmaxz)) / lbtz;
   } else {
-    double rr = randomGPU(molIndex * 3 + 2, step, seed) * 2.0 - 1.0;
+    double rr = randnums.z * 2.0 - 1.0;
     rotz = r_max * rr;
   }
 
@@ -659,7 +677,7 @@ __global__ void BrownianMotionRotateKernel(
   double BETA,
   int *kill)
 {
-  //Each grid take cares of one molecule
+  //Each block takes care of one molecule
   int molIndex = moleculeInvolved[blockIdx.x];
   int startIdx = startAtomIdx[molIndex];
   int endIdx = startAtomIdx[molIndex + 1];
@@ -668,7 +686,7 @@ __global__ void BrownianMotionRotateKernel(
   __shared__ double matrix[3][3];
   __shared__ double3 com;
 
-  // thread 0 will setup the matrix and update the gpu_r_k
+  // thread 0 will set up the matrix and update the gpu_r_k
   if(threadIdx.x == 0) {
     com = make_double3(gpu_comx[molIndex], gpu_comy[molIndex], gpu_comz[molIndex]);
     // This section calculates the amount of rotation
@@ -928,7 +946,7 @@ __global__ void BrownianMotionTranslateKernel(
   double BETA,
   int *kill)
 {
-  //Each grid take cares of one molecule
+  //Each block takes care of one molecule
   int molIndex = moleculeInvolved[blockIdx.x];
   int startIdx = startAtomIdx[molIndex];
   int endIdx = startAtomIdx[molIndex + 1];
@@ -976,7 +994,7 @@ __global__ void BrownianMotionTranslateKernel(
   }
 
   __syncthreads();
-  // use strid of blockDim.x, which is 32
+  // use stride of blockDim.x, which is 32
   // each thread handles one atom translation
   for(atomIdx = startIdx + threadIdx.x; atomIdx < endIdx; atomIdx += blockDim.x) {
     double3 coor = make_double3(gpu_x[atomIdx], gpu_y[atomIdx], gpu_z[atomIdx]);
