@@ -177,6 +177,8 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
 #if ENSEMBLE == NPT
   blocks[out::VOLUME_IDX].Init(&outBlock0, &outBlock1, tracked.volume.block, invSteps, out::VOLUME, BOXES_WITH_U_NB);
 #endif
+  //blocks[out::COMPRESSIBILITY].Init(&outBlock0, &outBlock1, tracked.compressibility.block, invSteps, out::COMPRESSIBILITY, BOXES_WITH_U_NB);
+
 
   //Note: The order of Init should be same as order of Init
   for (uint b = 0; b < BOXES_WITH_U_NB; ++b) {

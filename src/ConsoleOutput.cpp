@@ -82,6 +82,11 @@ void ConsoleOutput::DoOutput(const ulong step)
         std::cout << std::endl;
       }
 
+      if(enableCompressibility){
+        PrintCompressibility(b, step);
+        std::cout << std::endl;
+      }
+
     }
 
   }
@@ -267,6 +272,19 @@ void ConsoleOutput::PrintPressureTensor(const uint box, const ulong step) const
     // Else, just print the diameter of the pressure Tensor, W11, W22, W33
     printElement(var->pressureTens[box][i][i], elementWidth);
   }
+  std::cout << std::endl;
+}
+
+void ConsoleOutput::PrintCompressibility(const uint box, const ulong step) const
+{
+  std::string title = "COMPRESS_";
+  sstrm::Converter toStr;
+  std::string numStr = "";
+  toStr << box;
+  toStr >> numStr;
+  title += numStr + ":";
+  printElementStep(title, step + 1, elementWidth);
+  printElement(1.0, elementWidth);
   std::cout << std::endl;
 }
 
