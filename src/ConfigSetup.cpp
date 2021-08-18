@@ -18,7 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ConfigSetup::ConfigSetup(void)
 {
   int i;
-  exptMode = true;
+  exptMode = false;
   in.restart.enable = false;
   in.restart.step = ULONG_MAX;
   in.restart.recalcTrajectory = false;
@@ -1696,7 +1696,7 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(sys.moves.displace == DBL_MAX) {
-    if(exptMode){
+    if(!exptMode){
       std::cout << "Error: Displacement move frequency is not specified!\n";
       exit(EXIT_FAILURE);
     } else {
@@ -1707,7 +1707,7 @@ void ConfigSetup::verifyInputs(void)
   }
 #if ENSEMBLE == NPT
   if(sys.moves.volume == DBL_MAX) {
-    if(exptMode){
+    if(!exptMode){
       std::cout << "Error: Volume move frequency is not specified!" << std::endl;
       exit(EXIT_FAILURE);
     } else {
@@ -1719,7 +1719,7 @@ void ConfigSetup::verifyInputs(void)
 #endif
 #if ENSEMBLE == GEMC
   if(sys.moves.volume == DBL_MAX) {
-    if(exptMode){
+    if(!exptMode){
       std::cout << "Error: Volume move frequency is not specified!" << std::endl;
       exit(EXIT_FAILURE);
     } else {
@@ -1729,7 +1729,7 @@ void ConfigSetup::verifyInputs(void)
     }
   }
   if(sys.moves.transfer == DBL_MAX) {
-    if(exptMode){
+    if(!exptMode){
       std::cout << "Error: Molecule swap move frequency is not specified!" << std::endl;
       exit(EXIT_FAILURE);
     } else {
@@ -1748,7 +1748,7 @@ void ConfigSetup::verifyInputs(void)
   }
 #elif ENSEMBLE == NPT
   if(sys.moves.volume == DBL_MAX) {
-    if(exptMode){
+    if(!exptMode){
       std::cout << "Error: Volume move frequency is not specified!" << std::endl;
       exit(EXIT_FAILURE);
     } else {
@@ -1768,7 +1768,7 @@ void ConfigSetup::verifyInputs(void)
 
 #elif ENSEMBLE == GCMC
   if(sys.moves.transfer == DBL_MAX) {
-    if(exptMode){
+    if(!exptMode){
       std::cout << "Error: Molecule swap move frequency is not specified!" << std::endl;
       exit(EXIT_FAILURE);
     } else {
