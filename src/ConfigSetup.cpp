@@ -18,6 +18,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ConfigSetup::ConfigSetup(void)
 {
   int i;
+  chkErr = true;
   in.restart.enable = false;
   in.restart.step = ULONG_MAX;
   in.restart.recalcTrajectory = false;
@@ -1249,6 +1250,9 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         printf("%-40s %-s \n", "Info: Constant Parallel Tempering seed", "Active");
       else
         printf("Warning: Constant Parallel Tempering seed set, but will be ignored.\n");
+    } else if(CheckString(line[0], "CheckError")) {
+        chkErr = checkBool(line[1]);
+        printf("%-40s %-s \n", "Info: Ensemble Move Choice Error Checking", chkErr ? "Active" : "Inactive");
     } else {
       std::cout << "Warning: Unknown input " << line[0] << "!" << std::endl;
     }
@@ -1692,23 +1696,47 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
   if(sys.moves.displace == DBL_MAX) {
-    std::cout << "Error: Displacement move frequency is not specified!\n";
-    exit(EXIT_FAILURE);
+    if(chkErr){
+      std::cout << "Error: Displacement move frequency is not specified!\n";
+      exit(EXIT_FAILURE);
+    } else {
+      sys.moves.displace = 0.0;
+      printf("%-40s %-4.4f \n", "ADV USER: Displacement move frequency",
+          sys.moves.displace);
+    }
   }
 #if ENSEMBLE == NPT
   if(sys.moves.volume == DBL_MAX) {
-    std::cout << "Error: Volume move frequency is not specified!" << std::endl;
-    exit(EXIT_FAILURE);
+    if(chkErr){
+      std::cout << "Error: Volume move frequency is not specified!" << std::endl;
+      exit(EXIT_FAILURE);
+    } else {
+      sys.moves.volume = 0.0;
+      printf("%-40s %-4.4f \n", "ADV USER: Volume move frequency",
+          sys.moves.volume);
+    }
   }
 #endif
 #if ENSEMBLE == GEMC
   if(sys.moves.volume == DBL_MAX) {
-    std::cout << "Error: Volume move frequency is not specified!" << std::endl;
-    exit(EXIT_FAILURE);
+    if(chkErr){
+      std::cout << "Error: Volume move frequency is not specified!" << std::endl;
+      exit(EXIT_FAILURE);
+    } else {
+      sys.moves.volume = 0.0;
+      printf("%-40s %-4.4f \n", "ADV USER: Volume move frequency",
+          sys.moves.volume);
+    }
   }
   if(sys.moves.transfer == DBL_MAX) {
-    std::cout << "Error: Molecule swap move frequency is not specified!\n";
-    exit(EXIT_FAILURE);
+    if(chkErr){
+      std::cout << "Error: Molecule swap move frequency is not specified!" << std::endl;
+      exit(EXIT_FAILURE);
+    } else {
+      sys.moves.transfer = 0.0;
+      printf("%-40s %-4.4f \n", "ADV USER: Molecule swap move frequency",
+          sys.moves.transfer);
+    }
   }
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
               sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
@@ -1720,8 +1748,14 @@ void ConfigSetup::verifyInputs(void)
   }
 #elif ENSEMBLE == NPT
   if(sys.moves.volume == DBL_MAX) {
-    std::cout << "Error: Volume move frequency is not specified!" << std::endl;
-    exit(EXIT_FAILURE);
+    if(chkErr){
+      std::cout << "Error: Volume move frequency is not specified!" << std::endl;
+      exit(EXIT_FAILURE);
+    } else {
+      sys.moves.volume = 0.0;
+      printf("%-40s %-4.4f \n", "ADV USER: Volume move frequency",
+          sys.moves.volume);
+    }
   }
 
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
@@ -1734,8 +1768,14 @@ void ConfigSetup::verifyInputs(void)
 
 #elif ENSEMBLE == GCMC
   if(sys.moves.transfer == DBL_MAX) {
-    std::cout << "Error: Molecule swap move frequency is not specified!\n";
-    exit(EXIT_FAILURE);
+    if(chkErr){
+      std::cout << "Error: Molecule swap move frequency is not specified!" << std::endl;
+      exit(EXIT_FAILURE);
+    } else {
+      sys.moves.transfer = 0.0;
+      printf("%-40s %-4.4f \n", "ADV USER: Molecule swap move frequency",
+          sys.moves.transfer);
+    }
   }
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.intraSwap +
               sys.moves.transfer + sys.moves.regrowth + sys.moves.memc +
