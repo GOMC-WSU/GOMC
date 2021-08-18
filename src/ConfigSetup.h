@@ -890,7 +890,7 @@ public:
   config_setup::Input in;
   config_setup::Output out;
   config_setup::SystemVals sys;
-  bool chkErr;
+  bool exptMode;
   ConfigSetup(void);
   void Init(const char *fileName, MultiSim const*const& multisim);
 private:
