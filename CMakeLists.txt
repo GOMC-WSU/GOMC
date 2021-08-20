@@ -70,9 +70,14 @@ if(Boost_FOUND)
     message(STATUS "Boost_INCLUDE_DIRS: ${BOOST_INCLUDE_DIRS}")
     message(STATUS "Boost_LIBRARIES: ${BOOST_LIBRARIES}")
     message(STATUS "Boost_VERSION: ${Boost_VERSION_STRING}")
+    set(GOMC_BOOST_LIB CACHE 1 
+    "Build a Boost-enabled version of GOMC" FORCE)
+    include_directories(${BOOST_INCLUDE_DIRS})
+else()
+    message(STATUS "Using native checkpointing.  To download boost -DCMAKE_DOWNLOAD_BOOST=ON")
+    include_directories(lib/cereal-1.3.0/include)
 endif()
 
-include_directories(${BOOST_INCLUDE_DIRS})
 
 # Enable google test
 # for now we will disable testing for intel compiler

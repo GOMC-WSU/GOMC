@@ -58,13 +58,20 @@ void CheckpointOutput::saveCheckpointFile(const ulong & startStep,
             filename.c_str());
     exit(EXIT_FAILURE);
   }
-  boost::archive::text_oarchive oa(ofs);
+
   Checkpoint chkObj(startStep,
                     movSetRef,
                     prng,
                     molRef,
                     molLookRef);
+
+  #if GOMC_BOOST_LIB
+    boost::archive::text_oarchive oa(ofs);
+  #else
+    cereal::BinaryOutputArchive oa(ofs);
+  #endif
   oa << chkObj;
+
 }
 
 

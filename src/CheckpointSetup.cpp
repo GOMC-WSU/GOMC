@@ -38,7 +38,11 @@ void CheckpointSetup::loadCheckpointFile(ulong & startStep){
             filename.c_str());
     exit(EXIT_FAILURE);
   }
-  boost::archive::text_iarchive ia(ifs);
+  #if GOMC_BOOST_LIB
+    boost::archive::text_iarchive ia(ifs);
+  #else
+    cereal::BinaryInputArchive ia(ifs);
+  #endif
   ia >> chkObj;
   SetCheckpointData(startStep);
   std::cout << "Checkpoint loaded from " << filename << std::endl;

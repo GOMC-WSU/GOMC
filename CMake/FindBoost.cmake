@@ -42,6 +42,8 @@
 #
 #  BOOST_USE_STATIC_LIBS : boolean (default: OFF)
 
+option(CMAKE_DOWNLOAD_BOOST "Download and build the boost library" OFF)
+
 if(NOT Boost_FIND_COMPONENTS)
 	message(FATAL_ERROR "No COMPONENTS specified for Boost")
 endif()
@@ -155,20 +157,23 @@ macro(DO_FIND_BOOST_DOWNLOAD)
 		)
 	mark_as_advanced(BOOST_LIBRARIES BOOST_INCLUDE_DIRS)
 	message(STATUS "Finished Downloading Boost")
-
+	set(GOMC_BOOST_LIB CACHE 1 
+    "Build a Boost-enabled version of GOMC" FORCE)
 endmacro()
 
-
-if(NOT BOOST_FOUND)
-	DO_FIND_BOOST_ROOT()
-endif()
 
 if(NOT BOOST_FOUND)
 	DO_FIND_BOOST_SYSTEM()
 endif()
 
 if(NOT BOOST_FOUND)
-	message(STATUS "Downloading Boost")
-	DO_FIND_BOOST_DOWNLOAD()
+	DO_FIND_BOOST_ROOT()
+endif()
+
+if(NOT BOOST_FOUND)
+	if(CMAKE_DOWNLOAD_BOOST)
+		message(STATUS "Downloading Boost")
+		DO_FIND_BOOST_DOWNLOAD()
+	endif()
 endif()
 

@@ -14,6 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveBase.h"
 #include <iostream>
 #include "GOMC_Config.h"
+#include "Checkpoint.h"
 
 class CheckpointOutput : public OutputableBase
 {
