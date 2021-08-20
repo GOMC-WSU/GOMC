@@ -32,11 +32,6 @@ set(ENSEMBLE_GPU_NPT ON CACHE BOOL "Build GPU NPT version")
 
 include(${PROJECT_SOURCE_DIR}/CMake/GOMCMPI.cmake)
 
-#enable config header
-configure_file(
-	"${PROJECT_SOURCE_DIR}/GOMC_Config.h.in"
-	"${PROJECT_BINARY_DIR}/GOMC_Config.h"
-	)
 include_directories("${PROJECT_BINARY_DIR}")
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -62,6 +57,9 @@ include(${PROJECT_SOURCE_DIR}/CMake/FileLists.cmake)
 # find Boost, and if not found download and install serialization library for checkpointing
 # Set Source and Header files
 #set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/FindBoost.cmake")
+    set(GOMC_BOOST_LIB 0 CACHE INTERNAL
+        "Build a Boost-enabled version of GOMC" FORCE)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 find_package(Boost COMPONENTS serialization )
@@ -70,13 +68,19 @@ if(Boost_FOUND)
     message(STATUS "Boost_INCLUDE_DIRS: ${BOOST_INCLUDE_DIRS}")
     message(STATUS "Boost_LIBRARIES: ${BOOST_LIBRARIES}")
     message(STATUS "Boost_VERSION: ${Boost_VERSION_STRING}")
-    set(GOMC_BOOST_LIB CACHE 1 
-    "Build a Boost-enabled version of GOMC" FORCE)
+    set(GOMC_BOOST_LIB 1 CACHE INTERNAL
+        "Build a Boost-enabled version of GOMC" FORCE)
     include_directories(${BOOST_INCLUDE_DIRS})
 else()
     message(STATUS "Using native checkpointing.  To download boost -DCMAKE_DOWNLOAD_BOOST=ON")
     include_directories(lib/cereal-1.3.0/include)
 endif()
+
+#enable config header
+configure_file(
+	"${PROJECT_SOURCE_DIR}/GOMC_Config.h.in"
+	"${PROJECT_BINARY_DIR}/GOMC_Config.h"
+)
 
 
 # Enable google test

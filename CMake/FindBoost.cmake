@@ -157,8 +157,8 @@ macro(DO_FIND_BOOST_DOWNLOAD)
 		)
 	mark_as_advanced(BOOST_LIBRARIES BOOST_INCLUDE_DIRS)
 	message(STATUS "Finished Downloading Boost")
-	set(GOMC_BOOST_LIB CACHE 1 
-    "Build a Boost-enabled version of GOMC" FORCE)
+    set(GOMC_BOOST_LIB 1 CACHE INTERNAL
+        "Build a Boost-enabled version of GOMC" FORCE)
 endmacro()
 
 
