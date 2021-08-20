@@ -13,6 +13,7 @@ set(sources
    src/Checkpoint.cpp
    src/CheckpointOutput.cpp
    src/CheckpointSetup.cpp
+   src/CheckpointUtilities.cpp
    src/DCDlib.cpp
    src/ExtendedSystemOutput.cpp
    src/EnPartCntSampleOutput.cpp
@@ -78,6 +79,7 @@ set(headers
    src/Checkpoint.h
    src/CheckpointOutput.h
    src/CheckpointSetup.h
+   src/CheckpointUtilities.h
    src/Clock.h
    src/COM.h
    src/ConfigSetup.h

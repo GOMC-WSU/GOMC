@@ -9,12 +9,16 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "GOMC_Config.h"
 
+#if GOMC_BOOST_LIB
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
-
-
+#else
+#include <cereal/types/map.hpp>
+#include <cereal/types/vector.hpp>
+#include <cereal/archives/binary.hpp>
+#endif
 #include <map>
 
 #include "MoveSettings.h"
@@ -100,6 +104,7 @@ class Checkpoint
         uint32_t seedLocationPT, seedLeftPT, seedValuePT;
         #endif
 
+#if GOMC_BOOST_LIB
         friend class boost::serialization::access;
         // When the class Archive corresponds to an output archive, the
         // & operator is defined similar to <<.  Likewise, when the class Archive
@@ -149,6 +154,9 @@ class Checkpoint
             }
             #endif
         }
+#else
+
+#endif
 };
 
 #endif

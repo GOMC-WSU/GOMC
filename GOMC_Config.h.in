@@ -15,3 +15,6 @@
 
 /* MPI_IN_PLACE exists for collective operations */
 #cmakedefine01 MPI_IN_PLACE_EXISTS
+
+/* Boost serialization library exists for checkpointing */
+#cmakedefine01 GOMC_BOOST_LIB

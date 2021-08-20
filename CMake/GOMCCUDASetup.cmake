@@ -39,7 +39,10 @@ include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 #####################################
 if(ENSEMBLE_GPU_NVT)
     add_executable(GPU_NVT ${cudaSources} ${cudaHeaders}
-    ${sources} ${headers} ${libHeaders} ${libSources} ${BOOST_INCLUDE_DIRS})
+    ${sources} ${headers} ${libHeaders} ${libSources})
+    if(Boost_FOUND)
+        target_sources(GPU_NVT PRIVATE ${BOOST_INCLUDE_DIRS})
+    endif()
     set_target_properties(GPU_NVT PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${GPU_NVT_name}
@@ -54,12 +57,17 @@ if(ENSEMBLE_GPU_NVT)
     if(MPI_FOUND)
 	    target_link_libraries(GPU_NVT ${MPI_LIBRARIES})
     endif()
-    target_link_libraries(GPU_NVT ${BOOST_LIBRARIES})
+    if(Boost_FOUND)
+        target_link_libraries(GPU_NVT ${BOOST_LIBRARIES})
+    endif()
 endif()
 
 if(ENSEMBLE_GPU_GEMC)
     add_executable(GPU_GEMC ${cudaSources} ${cudaHeaders} ${sources}
-    ${headers} ${libHeaders} ${libSources} ${BOOST_INCLUDE_DIRS})
+    ${headers} ${libHeaders} ${libSources})
+    if(Boost_FOUND)
+        target_sources(GPU_GEMC PRIVATE ${BOOST_INCLUDE_DIRS})
+    endif()
     set_target_properties(GPU_GEMC PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${GPU_GE_name}
@@ -74,12 +82,17 @@ if(ENSEMBLE_GPU_GEMC)
     if(MPI_FOUND)
 	    target_link_libraries(GPU_GEMC ${MPI_LIBRARIES})
     endif()
-	target_link_libraries(GPU_GEMC ${BOOST_LIBRARIES})
+    if(Boost_FOUND)
+        target_link_libraries(GPU_GEMC ${BOOST_LIBRARIES})
+    endif()
 endif()
 
 if(ENSEMBLE_GPU_GCMC)
     add_executable(GPU_GCMC ${cudaSources} ${cudaHeaders} ${sources}
-    ${headers} ${libHeaders} ${libSources} ${BOOST_INCLUDE_DIRS})
+    ${headers} ${libHeaders} ${libSources})
+    if(Boost_FOUND)
+        target_sources(GPU_GCMC PRIVATE ${BOOST_INCLUDE_DIRS})
+    endif()
     set_target_properties(GPU_GCMC PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${GPU_GC_name}
@@ -94,12 +107,17 @@ if(ENSEMBLE_GPU_GCMC)
     if(MPI_FOUND)
 	    target_link_libraries(GPU_GCMC ${MPI_LIBRARIES})
     endif()
-    target_link_libraries(GPU_GCMC ${BOOST_LIBRARIES})
+    if(Boost_FOUND)
+        target_link_libraries(GPU_GCMC ${BOOST_LIBRARIES})
+    endif()
 endif()
 
 if(ENSEMBLE_GPU_NPT)
     add_executable(GPU_NPT ${cudaSources} ${cudaHeaders} ${sources}
-    ${headers} ${libHeaders} ${libSources} ${BOOST_INCLUDE_DIRS})
+    ${headers} ${libHeaders} ${libSources})
+    if(Boost_FOUND)
+        target_sources(GPU_NPT PRIVATE ${BOOST_INCLUDE_DIRS})
+    endif()
     set_target_properties(GPU_NPT PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         OUTPUT_NAME ${GPU_NPT_name}
@@ -114,5 +132,7 @@ if(ENSEMBLE_GPU_NPT)
     if(MPI_FOUND)
 	    target_link_libraries(GPU_NPT ${MPI_LIBRARIES})
     endif()
-    target_link_libraries(GPU_NPT ${BOOST_LIBRARIES})
+    if(Boost_FOUND)
+        target_link_libraries(GPU_NPT ${BOOST_LIBRARIES})
+    endif()
 endif()
