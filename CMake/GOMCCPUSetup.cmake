@@ -22,8 +22,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED true)
 if(ENSEMBLE_NVT)
    add_executable(NVT ${sources} ${headers} ${libHeaders} ${libSources})
    if(Boost_FOUND)
-     message(STATUS "I think I found boost in CPU")
-
       target_sources(NVT PRIVATE ${BOOST_INCLUDE_DIRS})
    endif()
    set_target_properties(NVT PROPERTIES 
