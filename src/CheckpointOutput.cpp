@@ -67,11 +67,11 @@ void CheckpointOutput::saveCheckpointFile(const ulong & startStep,
 
   #if GOMC_BOOST_LIB
     boost::archive::text_oarchive oa(ofs);
-    oa << chkObj;
   #else
     cereal::BinaryOutputArchive oa(ofs);
-    oa << chkObj;
   #endif
+  oa << chkObj;
+
 }
 
 

@@ -8,6 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define CHECKPOINT_H
 
 #include "GOMC_Config.h"
+#include <map>
 
 #if GOMC_BOOST_LIB
 #include <boost/archive/text_iarchive.hpp>
@@ -15,16 +16,19 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
 #else
-#include <cereal/types/map.hpp>
-#include <cereal/types/vector.hpp>
 #include <cereal/archives/binary.hpp>
+#include <cereal/types/vector.hpp>
+#include <cereal/types/string.hpp>
+#include <cereal/types/map.hpp>
+#include <cereal/types/array.hpp>
+
 #endif
-#include <map>
 
 #include "MoveSettings.h"
 #include "MoleculeLookup.h"
 #include "Molecules.h"
 #include "PRNG.h"
+#include <stdint.h>
 
 class Checkpoint
 {
@@ -109,15 +113,26 @@ class Checkpoint
         // When the class Archive corresponds to an output archive, the
         // & operator is defined similar to <<.  Likewise, when the class Archive
         // is a type of input archive the & operator is defined similar to >>.
+#else
+        friend class cereal::access;
+#endif
         template<class Archive>
         void serialize(Archive & ar, const unsigned int version)
         {
             // GOMC Version
-            ar & boost::serialization::make_array<char>(gomc_version, 5);  
+#if GOMC_BOOST_LIB
+            ar & boost::serialization::make_array<char>(gomc_version, 5);
+#else
+            ar & gomc_version;
+#endif
             // Step
             ar & stepNumber;
             // PRNG Vars
+#if GOMC_BOOST_LIB
             ar & boost::serialization::make_array<uint>(saveArray, N_array_size + 1);  
+#else
+            ar & saveArray;
+#endif
             ar & seedLocation;
             ar & seedLeft;
             ar & seedValue;
@@ -140,23 +155,24 @@ class Checkpoint
             ar & originalMoleculeIndicesVec;  
             ar & permutedMoleculeIndicesVec; 
             // name & index Map
-            ar& originalNameIndexMap;
+            ar & originalNameIndexMap;
 
             #if GOMC_LIB_MPI
             // PT boolean
             ar & parallelTemperingEnabled;
             if((bool)parallelTemperingEnabled){
                 // PRNG PT Vars
+    #if GOMC_BOOST_LIB
                 ar & boost::serialization::make_array<uint>(saveArrayPT, N_array_size + 1);  
+    #else
+                ar & saveArrayPT;
+    #endif
                 ar & seedLocationPT;
-                ar & seedLeftPT;
+                ar & seedLeftP  T;
                 ar & seedValuePT;
             }
             #endif
         }
-#else
-
-#endif
 };
 
 #endif
