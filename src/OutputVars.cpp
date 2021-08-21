@@ -165,6 +165,8 @@ void OutputVars::CalcAndConvert(ulong step)
         pressure[b] = rawPressure[b];
         pressure[b] *= unit::K_MOLECULE_PER_A3_TO_BAR;
 
+        compressability[b] = (pressure[b]) * (volumeRef[b]) / numByBox[b] / (T_in_K) / (UNIT_CONST_H::unit::K_MOLECULE_PER_A3_TO_BAR);
+        enthalpy[b] = (energyRef[b].total / numByBox[b] + rawPressure[b] * volumeRef[b] / numByBox[b]) * UNIT_CONST_H::unit::K_TO_KJ_PER_MOL;
 
 #if ENSEMBLE == GEMC
         // delta Hv = (Uv-Ul) + P(Vv-Vl)

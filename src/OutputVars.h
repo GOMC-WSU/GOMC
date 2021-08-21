@@ -39,8 +39,8 @@ public:
 //private:
   //Intermediate vars.
   uint * numByBox, * numByKindBox;
-  double * molFractionByKindBox, * densityByKindBox,
-         pressure[BOXES_WITH_U_NB], densityTot[BOX_TOTAL];
+  double *molFractionByKindBox, *densityByKindBox,
+      pressure[BOXES_WITH_U_NB], densityTot[BOX_TOTAL], compressability[BOXES_WITH_U_NB], enthalpy[BOXES_WITH_U_NB];
   double pressureTens[BOXES_WITH_U_NB][3][3];
   double surfaceTens[BOXES_WITH_U_NB];
   ulong pCalcFreq;
