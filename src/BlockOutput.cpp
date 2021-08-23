@@ -169,6 +169,8 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
   blocks[out::PRESSURE_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps, out::PRESSURE, BOXES_WITH_U_NB);
   blocks[out::MOL_NUM_IDX].Init(&outBlock0, &outBlock1, tracked.molNum.block, invSteps, out::MOL_NUM, BOXES_WITH_U_NB);
   blocks[out::DENSITY_IDX].Init(&outBlock0, &outBlock1, tracked.density.block, invSteps, out::DENSITY, BOXES_WITH_U_NB);
+  blocks[out::COMPRESSIBILITY_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps, out::COMPRESSIBILITY, BOXES_WITH_U_NB);
+  blocks[out::ENTHALPY_IDX].Init(&outBlock0, &outBlock1, tracked.pressure.block, invSteps, out::ENTHALPY, BOXES_WITH_U_NB);
   blocks[out::SURF_TENSION_IDX].Init(&outBlock0, &outBlock1, tracked.surfaceTension.block, invSteps, out::SURF_TENSION, BOXES_WITH_U_NB);
 #if ENSEMBLE == GEMC
   blocks[out::VOLUME_IDX].Init(&outBlock0, &outBlock1, tracked.volume.block, invSteps, out::VOLUME, BOXES_WITH_U_NB);
@@ -192,6 +194,8 @@ void BlockAverages::InitWatchSingle(config_setup::TrackedVars const& tracked)
     blocks[out::PRESSURE_IDX].SetRef(&var->pressure[b], b);
     blocks[out::MOL_NUM_IDX].SetRef(&var->numByBox[b], b);
     blocks[out::DENSITY_IDX].SetRef(&var->densityTot[b], b);
+    blocks[out::COMPRESSIBILITY_IDX].SetRef(&var->compressability[b], b);
+    blocks[out::ENTHALPY_IDX].SetRef(&var->enthalpy[b], b);
     blocks[out::SURF_TENSION_IDX].SetRef(&var->surfaceTens[b], b);
 #if ENSEMBLE == GEMC
     blocks[out::VOLUME_IDX].SetRef(&var->volumeRef[b], b);

@@ -18,6 +18,8 @@ const std::string ENERGY_REAL = "EN_REAL";
 const std::string ENERGY_RECIP = "EN_RECIP";
 const std::string VIRIAL_TOTAL = "TOTAL_VIR";
 const std::string PRESSURE = "PRESSURE";
+const std::string COMPRESSIBILITY = "COMPRESSIBILITY";
+const std::string ENTHALPY = "ENTHALPY";
 #if ENSEMBLE == GEMC
 const std::string HEAT_OF_VAP = "HEAT_VAP";
 const std::string VOLUME = "VOLUME";
