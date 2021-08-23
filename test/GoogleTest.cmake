@@ -35,11 +35,6 @@ include(test/FileList.cmake)
 
 # Now simply link against gtest or gtest_main as needed. Eg
 add_executable(GOMC_Test ${TestHeaders} ${TestSources} ${GOMCHeaders} ${GOMCSources})
-if(Boost_FOUND)
-  message(STATUS "I think I found boost in GTEST")
-  target_sources(GOMC_Test PRIVATE ${BOOST_INCLUDE_DIRS})
-  target_link_libraries(GOMC_Test ${BOOST_LIBRARIES})
-endif()
 target_link_libraries(GOMC_Test gtest_main)
 add_test(NAME BasicTypesTest COMMAND BasicTypesTest)
 add_test(NAME CircuitTester COMMAND DialaTest)
