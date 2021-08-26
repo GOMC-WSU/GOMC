@@ -203,8 +203,9 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         printf("%-40s %-s \n", "Info: Random seed", "Active");
     } else if(CheckString(line[0], "PRNG_ParallelTempering")) {
       in.prngParallelTempering.kind = line[1];
-      if("RANDOM" == line[1])
-        printf("%-40s %-s \n", "Info: Random seed", "Active");
+      if("RANDOM" == line[1]){
+        printf("%-40s %-s \n", "Info: Parallel Tempering Random seed", "Active");
+      }
     } else if(CheckString(line[0], "ParaTypeCHARMM")) {
       if(checkBool(line[1])) {
         in.ffKind.numOfKinds++;
