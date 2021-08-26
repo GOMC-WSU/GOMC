@@ -60,7 +60,8 @@ ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& mul
   ms(multisim), fplog(multisim->fplog), sysPotRef(sys.potential), parallelTempFreq(parallelTempFreq), parallelTemperingAttemptsPerExchange(parallelTemperingAttemptsPerExchange), prng(*sys.prngParallelTemp), newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol)
   #if ENSEMBLE == NPT
-  , boxDimRef(sys.boxDimRef), PRESSURE(statV.pressure)
+  , boxDimRef(sys.boxDimRef), PRESSURE(statV.pressure),
+  isOrth(statV.isOrthogonal)
   #endif
 {
 
@@ -435,7 +436,23 @@ void ParallelTemperingUtilities::conductExchanges(int replicaID, Coordinates & c
         /* Calls deep copy operators */
         newMolsPos = currCoordRef;
         newCOMs = currComRef;
-
+  #if ENSEMBLE == NPT
+        if(isOrth) {
+          newDim = boxDimRef;
+          for (int b = 0; b < BOX_TOTAL; b++) {
+            newDim.SetVolume(b, global_volumes[exchangePartner]);
+          }
+        } else {
+          newDimNonOrth = *((BoxDimensionsNonOrth*)(&boxDimRef));
+          for (int b = 0; b < BOX_TOTAL; b++) {
+            newDimNonOrth.SetVolume(b, global_volumes[exchangePartner]);
+          }
+        }
+        if(isOrth)
+          boxDimRef = newDim;
+        else
+        *((BoxDimensionsNonOrth*)(&boxDimRef)) = newDimNonOrth;
+  #endif
         replcomm.exchangeXYZArrayNonBlocking(&newMolsPos, exchangePartner);
         replcomm.exchangeXYZArrayNonBlocking(&newCOMs, exchangePartner);
 

@@ -18,7 +18,6 @@ class ReplicaCommunicator{
     ReplicaCommunicator();
     void exchangeXYZArrayNonBlocking(XYZArray * myXYZArray, int exchangePartner);
     void exchangeBoxDimensionsNonBlocking(BoxDimensions * myBoxDimensions, int exchangePartner);
-
   #endif
 };
 

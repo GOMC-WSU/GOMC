@@ -138,6 +138,9 @@ private:
 
   Coordinates newMolsPos;
   COM newCOMs;
+  bool isOrth;
+  BoxDimensions newDim;
+  BoxDimensionsNonOrth newDimNonOrth;
 
 #if BOX_TOTAL == 1
   std::vector<double> global_energies;
