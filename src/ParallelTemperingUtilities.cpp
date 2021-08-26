@@ -52,7 +52,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 
 #include "ParallelTemperingUtilities.h"
-
+//! Helps cut off probability values.
+constexpr int c_probabilityCutoff = 100;
 #if GOMC_LIB_MPI
 
 ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& multisim, System & sys, StaticVals const& statV, ulong parallelTempFreq, ulong parallelTemperingAttemptsPerExchange):
@@ -180,14 +181,36 @@ for (int i = 0; i < ms->worldSize; i++) {
 
       bPrint = false; /* too noisy */
       /* calculate the energy difference */
-      delta = calcDelta(fplog, bPrint, ap, bp,  a, b);
-      uBoltz = exp(-delta);
-      
+      delta = calc_delta(fplog, bPrint, ap, bp, a, b);
+
       /* we actually only use the first space in the prob and bEx array,
+          since there are actually many switches between pairs. */
+
+      if (delta <= 0)
+      {
+          /* accepted */
+          exchangeProbabilities[0] = 1;
+          exchangeResults[0]  = true;
+      }
+      else
+      {
+          if (delta > c_probabilityCutoff)
+          {
+              exchangeProbabilities[0] = 0;
+          }
+          else
+          {
+            exchangeProbabilities[0] = exp(-delta);
+          }
+          // roll a number to determine if accepted. For now it is superfluous to
+          // reset, but just in case we ever add more calls in different branches
+          // it is safer to always reset the distribution.
+          //uniformRealDist.reset();
+          //bEx[0] = uniformRealDist(rng) < prob[0];
+          exchangeResults[0] = (printRecord = prng()) < uBoltz;
+      }
+            /* we actually only use the first space in the prob and bEx array,
          since there are actually many switches between pairs. */
-      exchangeProbabilities[0] = std::min(uBoltz, 1.0);
-      exchangeResults[0] = (printRecord = prng()) < uBoltz;
-      //std::cout << "Swapping repl " << i-1 << " and repl " << i << " uBoltz :" << uBoltz << "prng : " << printRecord << std::endl;
       prob_sum[0] += exchangeProbabilities[0];
       if (exchangeResults[0]) {
         /* swap these two */
@@ -407,28 +430,26 @@ void ParallelTemperingUtilities::conductExchanges(int replicaID, Coordinates & c
 
 }
 
-double ParallelTemperingUtilities::calcDelta(FILE* fplog, bool bPrint, int a, int b, int ap, int bp){
-
-  double delta, dpV, ediff;
-  delta = dpV = ediff = 0;
-  #if ENSEMBLE == GEMC
-    for (uint box = 0; box < BOX_TOTAL; box++){
-      ediff = global_energies[box][b] - global_energies[box][a];
-      delta += -(global_betas[bp] - global_betas[ap])*ediff;
-    }
-  #else
+double ParallelTemperingUtilities::calc_delta(FILE* fplog, 
+                                              bool bPrint,
+                                              int a,
+                                              int b,
+                                              int ap,
+                                              int bp){
+  double   ediff, dpV, delta = 0;
   ediff = global_energies[b] - global_energies[a];
-  delta = -(global_betas[bp] - global_betas[ap])*ediff;
-  #endif
-
-  if (bPrint){
-    fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e \n", a, b, delta);
+  delta = -(global_betas[bp] - global_betas[ap]) * ediff;
+  if (bPrint)
+  {
+      fprintf(fplog, "Repl %d <-> %d  dE_term = %10.3e (kT)\n", a, b, delta);
   }
   #if ENSEMBLE == NPT
-    dpV = (global_betas[ap] * global_pressures[ap] - global_betas[bp] * global_pressures[bp]) * (global_volumes[b] - global_volumes[a]);
+    /* revist the calculation for 5.0.  Might be some improvements. */
+    dpV = (global_betas[ap] * global_pressures[ap] - global_betas[bp] * global_pressures[bp]) * 
+            (global_volumes[b] - global_volumes[a]);
     if (bPrint)
     {
-      fprintf(fplog, "  dpV = %10.3e  d = %10.3e\n", dpV, delta + dpV);
+        fprintf(fplog, "  dpV = %10.3e  d = %10.3e\n", dpV, delta + dpV);
     }
     delta += dpV;
   #endif
