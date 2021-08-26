@@ -135,8 +135,8 @@ if (( !$use_gtest )); then
 else
     if (( $use_mpi )); 
     then
-        ENSEMBLES+="GOMC_NVT_MPI_Test"
-		ENSEMBLES+="GOMC_NPT_MPI_Test"
+        ENSEMBLES+="GOMC_NVT_MPI_Test "
+		ENSEMBLES+="GOMC_NPT_MPI_Test "
         CMAKEARGS+="-DGOMC_GTEST_MPI=on "
     else
         ENSEMBLES+="GOMC_Test"
@@ -157,6 +157,6 @@ if (( $use_profiler )); then
     fi
 fi
 
-cmake .. $CMAKEARGS
+cmake .. $CMAKEARGS -DCMAKE_BUILD_TYPE=Debug
 make -j8 $ENSEMBLES
 #make -j8 GOMC_MPI_Test
