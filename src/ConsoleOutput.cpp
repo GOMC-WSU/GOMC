@@ -82,10 +82,6 @@ void ConsoleOutput::DoOutput(const ulong step)
         std::cout << std::endl;
       }
 
-      if (enableCompressibility) {
-        PrintCompressibility(b, step);
-        std::cout << std::endl;
-      }
     }
 
   }
@@ -226,6 +222,7 @@ void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const
 
   if(enablePressure)
     printElement(var->pressure[box], elementWidth);
+    printElement((var->pressure[box]) * (var->volumeRef[box]) / (var->numByBox[box]) / (var->T_in_K) / (UNIT_CONST_H::unit::K_MOLECULE_PER_A3_TO_BAR), elementWidth);
 
   if(enableMol) {
     printElement(var->numByBox[box], elementWidth);
@@ -274,20 +271,6 @@ void ConsoleOutput::PrintPressureTensor(const uint box, const ulong step) const
   std::cout << std::endl;
 }
 
-void ConsoleOutput::PrintCompressibility(const uint box, const ulong step) const
-{
-  std::string title = "COMPRESS_";
-  sstrm::Converter toStr;
-  std::string numStr = "";
-  toStr << box;
-  toStr >> numStr;
-  title += numStr + ":";
-  printElementStep(title, step + 1, elementWidth);
-  printElement((var->pressure[box]) * (var->volumeRef[box]) / (var->numByBox[box]) / (var->T_in_K) / (UNIT_CONST_H::unit::K_MOLECULE_PER_A3_TO_BAR), elementWidth);
-  std::cout << std::endl;
-}
-
-
 void ConsoleOutput::PrintEnergy(const uint box, Energy const& en,
                                 const ulong step) const
 {
@@ -309,6 +292,8 @@ void ConsoleOutput::PrintEnergy(const uint box, Energy const& en,
   printElement(en.recip, elementWidth);
   printElement(en.self, elementWidth);
   printElement(en.correction, elementWidth);
+  if (enablePressure)
+    printElement((en.total / var->numByBox[box] + var->pressure[box] * var->volumeRef[box] / var->numByBox[box]) * UNIT_CONST_H::unit::K_TO_KJ_PER_MOL, elementWidth);
   std::cout << std::endl;
 }
 
@@ -328,6 +313,8 @@ void ConsoleOutput::PrintEnergyTitle()
   printElement("RECIP", elementWidth);
   printElement("SELF", elementWidth);
   printElement("CORR", elementWidth);
+  if (enablePressure)
+    printElement("ENTHALPY", elementWidth);
   std::cout << std::endl;
 }
 
@@ -345,6 +332,7 @@ void ConsoleOutput::PrintStatisticTitle()
 
   if(enablePressure)
     printElement("PRESSURE", elementWidth);
+    printElement("COMPRESSIBILITY", elementWidth);
 
   if(enableMol) {
     printElement("TOTALMOL", elementWidth);
