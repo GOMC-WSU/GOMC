@@ -58,7 +58,8 @@ constexpr int c_probabilityCutoff = 100;
 
 ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& multisim, System & sys, StaticVals const& statV, ulong parallelTempFreq, ulong parallelTemperingAttemptsPerExchange):
   ms(multisim), fplog(multisim->fplog), sysPotRef(sys.potential), parallelTempFreq(parallelTempFreq), parallelTemperingAttemptsPerExchange(parallelTemperingAttemptsPerExchange), prng(*sys.prngParallelTemp), newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
-  newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol)
+  newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol),
+  sysRef(sys), statVRef(statV)
   #if ENSEMBLE == NPT
   , boxDimRef(sys.boxDimRef), PRESSURE(statV.pressure),
   isOrth(statV.isOrthogonal)
@@ -458,11 +459,47 @@ void ParallelTemperingUtilities::conductExchanges(int replicaID, Coordinates & c
 
         swap(currCoordRef, newMolsPos);
         swap(currComRef, newCOMs);
+
+        ReinitializeReplicas();
       }
     }
 
   }
 
+}
+
+void ParallelTemperingUtilities::ReinitializeReplicas(){
+  sysRef.cellList.GridAll(sysRef.boxDimRef, sysRef.coordinates, sysRef.molLookup);
+  if (statVRef.forcefield.ewald) {
+    for(int box = 0; box < BOX_TOTAL; box++) {
+      #if ENSEMBLE == NVT
+        sysRef.calcEwald->BoxReciprocalSums(box, sysRef.coordinates);
+        sysRef.potential.boxEnergy[box].recip = sysRef.calcEwald->BoxReciprocal(box, false);
+        sysRef.potential = sysRef.calcEnergy.SystemTotal();
+      #elif ENSEMBLE == NPT
+        //calculate new K vectors
+        if(isOrth) {
+          sysRef.calcEwald->RecipInit(box, sysRef.boxDimRef);
+          //setup reciprocal terms
+          sysRef.calcEwald->BoxReciprocalSetup(box, sysRef.coordinates);
+          sysPotNew = sysRef.calcEnergy.BoxInter(sysPotNew, sysRef.coordinates, sysRef.boxDimRef, box);
+        } else {
+          sysRef.calcEwald->RecipInit(box, sysRef.boxDimRef);
+          //setup reciprocal terms
+          sysRef.calcEwald->BoxReciprocalSetup(box, sysRef.coordinates);
+          sysPotNew = sysRef.calcEnergy.BoxInter(sysPotNew, sysRef.coordinates, sysRef.boxDimRef, box);
+        }
+        //calculate reciprocal term of electrostatic interaction
+        sysPotNew.boxEnergy[box].recip = sysRef.calcEwald->BoxReciprocal(box, true);
+        sysPotNew.Total();
+
+        sysPotRef = sysPotNew;
+        // Swaps old kvectors with the ones we just init'ed
+        sysRef.calcEwald->UpdateRecip(box);
+        sysRef.calcEwald->UpdateRecipVec(box);
+      #endif
+    }
+  }
 }
 
 double ParallelTemperingUtilities::calc_delta(FILE* fplog, 

@@ -98,6 +98,7 @@ public:
 #endif
 
 private:
+  void ReinitializeReplicas();
 
   MultiSim const*const& ms;
   ReplicaCommunicator replcomm;
@@ -135,7 +136,8 @@ private:
   std::vector<double> prob_sum;
 //! Number of moves between replicas i and j
   std::vector< std::vector<int> > nmoves;
-
+  System & sysRef;
+  const StaticVals & statVRef;
   Coordinates newMolsPos;
   COM newCOMs;
   bool isOrth;
