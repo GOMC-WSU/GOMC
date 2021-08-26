@@ -1,9 +1,26 @@
-function(add_mpi_test name no_mpi_proc)
+#EnsemblePreprocessor defines NVT = 1, GEMC = 2, GCMC = 3, NPT = 4
+
+function(add_NVT_mpi_test name no_mpi_proc)
+  set(NVT_flags "-DENSEMBLE=1")
       # My test are all called name_test.cpp
       add_executable(${name} ${GOMCMPISources} ${GOMCMPIHeaders} ${MPITestSources})
       add_dependencies(${name} googletest)
   # Make sure to link MPI here too:
   target_link_libraries(${name} ${MPI_LIBRARIES} gtest_main)
+  #set(test_parameters " ${MPIEXEC_NUMPROC_FLAG} ${no_mpi_proc} ./${name}")
+  #add_test(NAME ${name} COMMAND "${MPIEXEC} ${test_parameters}")
+  add_test(NAME ${name} COMMAND ParallelTemperingTest)
+endfunction(add_NVT_mpi_test)
+
+function(add_NPT_mpi_test name no_mpi_proc)
+  #NPT (Isothermal-Isobaric) Ensemble
+  set(NPT_flags "-DENSEMBLE=4")
+      # My test are all called name_test.cpp
+      add_executable(${name} ${GOMCMPISources} ${GOMCMPIHeaders} ${libHeaders} ${libSources} ${MPITestSources})
+  # Make sure to link MPI here too:
+  target_link_libraries(${name} ${MPI_LIBRARIES} gtest_main)
+  set_target_properties(${name} PROPERTIES 
+      COMPILE_FLAGS "${NPT_flags}")
   #set(test_parameters " ${MPIEXEC_NUMPROC_FLAG} ${no_mpi_proc} ./${name}")
   #add_test(NAME ${name} COMMAND "${MPIEXEC} ${test_parameters}")
   add_test(NAME ${name} COMMAND ParallelTemperingTest)
@@ -44,9 +61,13 @@ endif()
 # Include file lists
 include(test/FileList.cmake)
 
-if(MPI_FOUND)
-  add_mpi_test(GOMC_MPI_Test 2)
-else()
+if(GOMC_GTEST_MPI)
+  add_NVT_mpi_test(GOMC_NVT_MPI_Test 2)
+  add_NPT_mpi_test(GOMC_NPT_MPI_Test 2)
+  set(GOMC_GTEST_MPI 1)
+endif()
+
+if(GOMC_GTEST)
 # Now simply link against gtest or gtest_main as needed. Eg
 add_executable(GOMC_Test ${sources} ${headers} ${libHeaders} ${libSources} ${TestHeaders} ${TestSources})
 target_link_libraries(GOMC_Test gtest_main)

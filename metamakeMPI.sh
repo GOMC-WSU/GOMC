@@ -135,7 +135,8 @@ if (( !$use_gtest )); then
 else
     if (( $use_mpi )); 
     then
-        ENSEMBLES+="GOMC_MPI_Test"
+        ENSEMBLES+="GOMC_NVT_MPI_Test"
+		ENSEMBLES+="GOMC_NPT_MPI_Test"
         CMAKEARGS+="-DGOMC_GTEST_MPI=on "
     else
         ENSEMBLES+="GOMC_Test"

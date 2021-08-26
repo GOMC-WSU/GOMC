@@ -43,6 +43,14 @@ To cite GOMC project, please use cite the following papers:
   Building GOMC requires cmake, available at http://www.cmake.org and in most Linux package repositories (as cmake).
   If you wish to utilize NVIDIA graphic cards you will need to install NVIDIA toolkit before compiling. The metamake file will automatically detect the location of CUDA installation. (More info in Manual)
 
+## Unit Testing GOMC:
+Add the -t flag to metamake.
+If testing standard compilation:
+./bin/GOMC_Test
+
+If testing MPI compilation:
+mpiexec -np 2 ./bin/GOMC_MPI_Test
+
 ## BUILDING GOMC ON WINDOWS:
   1. Open the Windows-compatible CMake GUI.
   2. Set the Source Folder to the GOMC root folder.
