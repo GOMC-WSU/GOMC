@@ -78,8 +78,8 @@ public:
   XYZ TransformSlant(const XYZ &A, const uint b) const;
 
   #if GOMC_LIB_MPI
-  virtual std::vector<double> SerializeBoxDimObject();
-  virtual void ReadFromSerializedBoxDimObject(std::vector<double> & serialBoxDim);
+  //virtual std::vector<double> SerializeBoxDimObject();
+  //virtual void ReadFromSerializedBoxDimObject(std::vector<double> & serialBoxDim);
 #endif
 
 //private:

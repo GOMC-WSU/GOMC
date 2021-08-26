@@ -155,7 +155,7 @@ for (int i = 0; i < ms->worldSize; i++) {
   //    MPI_COMM_WORLD);
 
 #endif
-  double uBoltz, delta;
+  double delta;
   bool bPrint = false;
   double printRecord;
   int i0, i1, a, b, ap, bp;
@@ -207,7 +207,7 @@ for (int i = 0; i < ms->worldSize; i++) {
           // it is safer to always reset the distribution.
           //uniformRealDist.reset();
           //bEx[0] = uniformRealDist(rng) < prob[0];
-          exchangeResults[0] = (printRecord = prng()) < uBoltz;
+          exchangeResults[0] = (printRecord = prng()) < exchangeProbabilities[0];
       }
             /* we actually only use the first space in the prob and bEx array,
          since there are actually many switches between pairs. */
@@ -231,30 +231,48 @@ for (int i = 0; i < ms->worldSize; i++) {
         a = ind[i - 1];
         b = ind[i];
         bPrint = ms->worldRank == a || ms->worldRank == b;
-        delta = calcDelta(fplog, bPrint, a, b, a, b);
-        uBoltz = exp(-delta);
+        delta = calc_delta(fplog, bPrint, ap, bp, a, b);
 
-        exchangeProbabilities[i] = std::min(uBoltz, 1.0);
-        exchangeResults[i] = (printRecord = prng()) < uBoltz;
-        //std::cout << "Swapping repl " << i-1 << " and repl " << i << " uBoltz :" << uBoltz << "prng : " << printRecord << std::endl;
+        /* we actually only use the first space in the prob and bEx array,
+            since there are actually many switches between pairs. */
+
+        if (delta <= 0)
+        {
+            /* accepted */
+            exchangeProbabilities[i] = 1;
+            exchangeResults[i]  = true;
+        } else {
+          if (delta > c_probabilityCutoff) {
+              exchangeProbabilities[i] = 0;
+          } else {
+            exchangeProbabilities[i] = exp(-delta);
+          }
+          // roll a number to determine if accepted. For now it is superfluous to
+          // reset, but just in case we ever add more calls in different branches
+          // it is safer to always reset the distribution.
+          //uniformRealDist.reset();
+          //bEx[0] = uniformRealDist(rng) < prob[0];
+          exchangeResults[i] = (printRecord = prng()) < exchangeProbabilities[i];
+        }
+              /* we actually only use the first space in the prob and bEx array,
+          since there are actually many switches between pairs. */
         prob_sum[i] += exchangeProbabilities[i];
-        if (exchangeResults[i]) {
+        if (exchangeResults[0]) {
           /* swap these two */
-          int tmp = pind[i - 1];
+          int tmp      = pind[i - 1];
           pind[i - 1] = pind[i];
           pind[i] = tmp;
-          nexchange[i]++;
-        }
+          nexchange[i]++; /* statistics for back compatibility */
+        }            
       } else {
-        exchangeResults[i] = false;
-        exchangeProbabilities[i] = 0.0;
+          exchangeProbabilities[i] = -1;
+          exchangeResults[i]  = false;
       }
     }
     print_ind(fplog, "ex", ms->worldSize, ind, exchangeResults);
     print_prob(fplog, "pr", ms->worldSize, exchangeProbabilities);
     fprintf(fplog, "\n");
     nattempt[parity]++;
-
   }
 
   for (int i = 0; i < ms->worldSize; i++) {

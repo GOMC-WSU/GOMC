@@ -371,6 +371,7 @@ double BoxDimensions::MinImageSigned(double raw, double ax, double halfAx) const
   */
 
 #if GOMC_LIB_MPI
+/*
   std::vector<double> BoxDimensions::SerializeBoxDimObject(){
     #if ENSEMBLE == GEMC
       int NUMBER_OF_ATTRIBUTES = 51;
@@ -435,7 +436,7 @@ double BoxDimensions::MinImageSigned(double raw, double ax, double halfAx) const
 
     return serialBoxDim;
   }
-
+/*
     void BoxDimensions::ReadFromSerializedBoxDimObject(std::vector<double> & serialBoxDim){
     
     #if ENSEMBLE == GEMC
@@ -508,4 +509,5 @@ double BoxDimensions::MinImageSigned(double raw, double ax, double halfAx) const
     #endif
 
   }
+  */
 #endif
