@@ -1,0 +1,57 @@
+PSF
+
+       2 !NTITLE 
+ REMARKS Combined PSF produced by GOMC
+ REMARKS Contains Geometry data for molecules in ALL boxes in the system
+
+      40 !NATOM 
+       1 AR   1    AR   AR   AR     0.000000       39.9480           0
+       2 AR   2    AR   AR   AR     0.000000       39.9480           0
+       3 AR   3    AR   AR   AR     0.000000       39.9480           0
+       4 AR   4    AR   AR   AR     0.000000       39.9480           0
+       5 AR   5    AR   AR   AR     0.000000       39.9480           0
+       6 AR   6    AR   AR   AR     0.000000       39.9480           0
+       7 AR   7    AR   AR   AR     0.000000       39.9480           0
+       8 AR   8    AR   AR   AR     0.000000       39.9480           0
+       9 AR   9    AR   AR   AR     0.000000       39.9480           0
+      10 AR   10   AR   AR   AR     0.000000       39.9480           0
+      11 AR   11   AR   AR   AR     0.000000       39.9480           0
+      12 AR   12   AR   AR   AR     0.000000       39.9480           0
+      13 AR   13   AR   AR   AR     0.000000       39.9480           0
+      14 AR   14   AR   AR   AR     0.000000       39.9480           0
+      15 AR   15   AR   AR   AR     0.000000       39.9480           0
+      16 AR   16   AR   AR   AR     0.000000       39.9480           0
+      17 AR   17   AR   AR   AR     0.000000       39.9480           0
+      18 AR   18   AR   AR   AR     0.000000       39.9480           0
+      19 AR   19   AR   AR   AR     0.000000       39.9480           0
+      20 AR   20   AR   AR   AR     0.000000       39.9480           0
+      21 AR   21   AR   AR   AR     0.000000       39.9480           0
+      22 AR   22   AR   AR   AR     0.000000       39.9480           0
+      23 AR   23   AR   AR   AR     0.000000       39.9480           0
+      24 AR   24   AR   AR   AR     0.000000       39.9480           0
+      25 AR   25   AR   AR   AR     0.000000       39.9480           0
+      26 AR   26   AR   AR   AR     0.000000       39.9480           0
+      27 AR   27   AR   AR   AR     0.000000       39.9480           0
+      28 AR   28   AR   AR   AR     0.000000       39.9480           0
+      29 AR   29   AR   AR   AR     0.000000       39.9480           0
+      30 AR   30   AR   AR   AR     0.000000       39.9480           0
+      31 AR   31   AR   AR   AR     0.000000       39.9480           0
+      32 AR   32   AR   AR   AR     0.000000       39.9480           0
+      33 AR   33   AR   AR   AR     0.000000       39.9480           0
+      34 AR   34   AR   AR   AR     0.000000       39.9480           0
+      35 AR   35   AR   AR   AR     0.000000       39.9480           0
+      36 AR   36   AR   AR   AR     0.000000       39.9480           0
+      37 AR   37   AR   AR   AR     0.000000       39.9480           0
+      38 AR   38   AR   AR   AR     0.000000       39.9480           0
+      39 AR   39   AR   AR   AR     0.000000       39.9480           0
+      40 AR   40   AR   AR   AR     0.000000       39.9480           0
+
+       0 !NBOND: bonds 
+
+
+       0 !NTHETA: angles 
+
+
+       0 !NPHI: dihedrals 
+
+
