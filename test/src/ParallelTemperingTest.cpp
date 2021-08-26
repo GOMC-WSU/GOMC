@@ -133,17 +133,17 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
 
   #if ENSEMBLE == NVT
     if(worldRank == 0){
-      sim = new Simulation("test/input/ParallelTempering/NVT/noewald/temp_530.00/repl0.conf", &ms);
+      sim = new Simulation("test/input/ParallelTempering/NVT/noewald/temp_120.00/repl0.conf", &ms);
     } else if(worldRank == 1){
-      sim = new Simulation("test/input/ParallelTempering/NVT/noewald/temp_600.00/repl1.conf", &ms);
+      sim = new Simulation("test/input/ParallelTempering/NVT/noewald/temp_180.00/repl1.conf", &ms);
     } else {
       std::cout << worldRank << "something weird happened. " << std::endl;
     }
   #elif ENSEMBLE == NPT
     if(worldRank == 0){
-      sim = new Simulation("test/input/ParallelTempering/NPT/noewald/temp_530.00/repl0.conf", &ms);
+      sim = new Simulation("test/input/ParallelTempering/NPT/noewald/temp_120.00/repl0.conf", &ms);
     } else if(worldRank == 1){
-      sim = new Simulation("test/input/ParallelTempering/NPT/noewald/temp_600.00/repl1.conf", &ms);
+      sim = new Simulation("test/input/ParallelTempering/NPT/noewald/temp_180.00/repl1.conf", &ms);
     } else {
       std::cout << worldRank << "something weird happened. " << std::endl;
     }
