@@ -57,11 +57,14 @@ constexpr int c_probabilityCutoff = 100;
 #if GOMC_LIB_MPI
 
 ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& multisim, System & sys, StaticVals const& statV, ulong parallelTempFreq, ulong parallelTemperingAttemptsPerExchange):
-  ms(multisim), fplog(multisim->fplog), sysPotRef(sys.potential), parallelTempFreq(parallelTempFreq), parallelTemperingAttemptsPerExchange(parallelTemperingAttemptsPerExchange), prng(*sys.prngParallelTemp), newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
+  ms(multisim), fplog(multisim->fplog), sysPotRef(sys.potential), 
+  parallelTempFreq(parallelTempFreq), parallelTemperingAttemptsPerExchange(parallelTemperingAttemptsPerExchange), 
+  prng(*sys.prngParallelTemp), 
+  newMolsPos(sys.boxDimRef, newCOMs, sys.molLookupRef, sys.prng, statV.mol),
   newCOMs(sys.boxDimRef, newMolsPos, sys.molLookupRef, statV.mol),
   sysRef(sys), statVRef(statV)
   #if ENSEMBLE == NPT
-  , boxDimRef(sys.boxDimRef), PRESSURE(statV.pressure),
+  ,PRESSURE(statV.pressure),
   isOrth(statV.isOrthogonal)
   #endif
 {
@@ -141,7 +144,7 @@ for (int i = 0; i < ms->worldSize; i++) {
 
 
   #if ENSEMBLE == NPT
-  global_volumes[ms->worldRank] = boxDimRef.volume[0];
+  global_volumes[ms->worldRank] = sysRef.boxDimRef.volume[0];
   MPI_Allreduce(MPI_IN_PLACE, &global_volumes[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
                 MPI_COMM_WORLD);
   #endif
@@ -439,20 +442,20 @@ void ParallelTemperingUtilities::conductExchanges(int replicaID, Coordinates & c
         newCOMs = currComRef;
   #if ENSEMBLE == NPT
         if(isOrth) {
-          newDim = boxDimRef;
+          newDim = sysRef.boxDimRef;
           for (int b = 0; b < BOX_TOTAL; b++) {
             newDim.SetVolume(b, global_volumes[exchangePartner]);
           }
         } else {
-          newDimNonOrth = *((BoxDimensionsNonOrth*)(&boxDimRef));
+          newDimNonOrth = *((BoxDimensionsNonOrth*)(&sysRef.boxDimRef));
           for (int b = 0; b < BOX_TOTAL; b++) {
             newDimNonOrth.SetVolume(b, global_volumes[exchangePartner]);
           }
         }
         if(isOrth)
-          boxDimRef = newDim;
+          sysRef.boxDimRef = newDim;
         else
-        *((BoxDimensionsNonOrth*)(&boxDimRef)) = newDimNonOrth;
+        *((BoxDimensionsNonOrth*)(&sysRef.boxDimRef)) = newDimNonOrth;
   #endif
         replcomm.exchangeXYZArrayNonBlocking(&newMolsPos, exchangePartner);
         replcomm.exchangeXYZArrayNonBlocking(&newCOMs, exchangePartner);
@@ -1338,6 +1341,41 @@ void ParallelTemperingUtilities::forceExchange(int worldRank, Coordinates & curr
     global_volumes[worldRank] = volume;
     MPI_Allreduce(MPI_IN_PLACE, &global_volumes[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
                   MPI_COMM_WORLD);
+  }
+  void ParallelTemperingUtilities::forceExchange(int worldRank, Coordinates & currCoordRef, COM & currComRef, BoxDimensions & boxDimRef){
+        int exchangePartner;
+        if(worldRank == 0){
+          exchangePartner = 1;
+        } else {
+          exchangePartner = 0;
+        }
+
+          if(isOrth) {
+            newDim = boxDimRef;
+            for (int b = 0; b < BOX_TOTAL; b++) {
+              newDim.SetVolume(b, global_volumes[exchangePartner]);
+            }
+          } else {
+            newDimNonOrth = *((BoxDimensionsNonOrth*)(&boxDimRef));
+            for (int b = 0; b < BOX_TOTAL; b++) {
+              newDimNonOrth.SetVolume(b, global_volumes[exchangePartner]);
+            }
+          }
+          if(isOrth)
+            boxDimRef = newDim;
+          else
+          *((BoxDimensionsNonOrth*)(&boxDimRef)) = newDimNonOrth;
+
+        newMolsPos = currCoordRef;
+        newCOMs = currComRef;
+
+        replcomm.exchangeXYZArrayNonBlocking(&newMolsPos, exchangePartner);
+        replcomm.exchangeXYZArrayNonBlocking(&newCOMs, exchangePartner);
+
+        swap(currCoordRef, newMolsPos);
+        swap(currComRef, newCOMs);
+        
+        ReinitializeReplicas();
   }
 #endif
 

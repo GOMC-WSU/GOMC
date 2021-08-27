@@ -97,6 +97,7 @@ public:
   void forceExchange(int worldRank, Coordinates & currCoordRef, COM & currComRef);
 
 #if ENSEMBLE == NPT
+  void forceExchange(int worldRank, Coordinates & currCoordRef, COM & currComRef, BoxDimensions & boxDimRef);
   void SetGlobalVolumes(int worldRank, double global_volumes_arg);
 #endif
 
@@ -113,7 +114,7 @@ private:
   SystemPotential & sysPotRef;
   // For volume
   #if ENSEMBLE == NPT
-  BoxDimensions & boxDimRef;
+  //BoxDimensions & boxDimRef;
   const double PRESSURE;
   #endif
   //Coordinates & coordRef;
