@@ -175,14 +175,6 @@ bool Simulation::RecalculateAndCheck(void)
       }
       void Simulation::ExchangeReplicas(int worldRank){
         PTUtils->forceExchange(worldRank, system->coordinates, system->com);
-        system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
-        if (staticValues->forcefield.ewald) {
-          for(int box = 0; box < BOX_TOTAL; box++) {
-            system->calcEwald->BoxReciprocalSums(box, system->coordinates);
-            system->potential.boxEnergy[box].recip = system->calcEwald->BoxReciprocal(box, false);
-          }
-        }
-        system->potential = system->calcEnergy.SystemTotal();
       }
       Coordinates& Simulation::getCoordinates(void){
         return system->coordinates;

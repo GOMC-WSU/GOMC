@@ -499,6 +499,8 @@ void ParallelTemperingUtilities::ReinitializeReplicas(){
         sysRef.calcEwald->UpdateRecipVec(box);
       #endif
     }
+  } else {
+    sysRef.potential = sysRef.calcEnergy.SystemTotal();
   }
 }
 
@@ -1328,7 +1330,8 @@ void ParallelTemperingUtilities::forceExchange(int worldRank, Coordinates & curr
 
         swap(currCoordRef, newMolsPos);
         swap(currComRef, newCOMs);
-
+        
+        ReinitializeReplicas();
 }
 #endif
 
