@@ -95,6 +95,11 @@ public:
 #if GOMC_GTEST_MPI
   /* Assumes only two replicas exist */
   void forceExchange(int worldRank, Coordinates & currCoordRef, COM & currComRef);
+
+#if ENSEMBLE == NPT
+  void SetGlobalVolumes(int worldRank, double global_volumes_arg);
+#endif
+
 #endif
 
 private:

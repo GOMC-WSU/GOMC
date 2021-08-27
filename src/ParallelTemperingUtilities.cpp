@@ -1333,6 +1333,14 @@ void ParallelTemperingUtilities::forceExchange(int worldRank, Coordinates & curr
         
         ReinitializeReplicas();
 }
+#if ENSEMBLE == NPT
+  void ParallelTemperingUtilities::SetGlobalVolumes(int worldRank, double volume){
+    global_volumes[worldRank] = volume;
+    MPI_Allreduce(MPI_IN_PLACE, &global_volumes[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
+                  MPI_COMM_WORLD);
+  }
+#endif
+
 #endif
 
 #endif

@@ -31,7 +31,10 @@ public:
       Coordinates& getCoordinates(void);
       COM& getCOMs(void);
       CellList& getCellList(void);
-
+    #if ENSEMBLE == NPT
+      double getVolume(int box);
+      void SetGlobalVolumes(int worldRank);
+    #endif
   #endif
 
 private:

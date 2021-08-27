@@ -216,6 +216,11 @@ TEST(ParallelTemperingTest, FullSwapEwald) {  /// Then you can create tests as u
       std::cout << worldRank << "something weird happened. " << std::endl;
     }
   #endif
+  
+  #if ENSEMBLE == NPT
+    sim->SetGlobalVolumes(worldRank);
+  #endif
+
   Coordinates originalCoords = sim->getCoordinates();
   COM originalCOM = sim->getCOMs();
   //CellList originalCellList = sim->getCellList();

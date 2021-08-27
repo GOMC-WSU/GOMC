@@ -185,4 +185,13 @@ bool Simulation::RecalculateAndCheck(void)
       CellList& Simulation::getCellList(void){
         return system->cellList;
       }
+    #if ENSEMBLE == NPT
+        void Simulation::SetGlobalVolumes(int worldRank){
+          PTUtils->SetGlobalVolumes(worldRank, getVolume(0));
+        }
+
+        double Simulation::getVolume(int box){
+          return system->boxDimRef.volume[box];
+        }
+    #endif
   #endif
