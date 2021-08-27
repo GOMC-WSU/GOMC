@@ -54,6 +54,9 @@ public:
   //(if necessary) molecule kind.
   virtual uint Prep(const double subDraw, const double movPerc) = 0;
 
+  // Setup the picked box and molecule to perform relaxation in NeMTMC move
+  virtual uint PrepNEMTMC(const uint box, const uint midx = 0, const uint kidx = 0) = 0;
+
   //Note, in general this function is responsible for generating the new
   //configuration to test.
   virtual uint Transform() = 0;

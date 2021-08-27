@@ -115,6 +115,33 @@ public:
     isSingleMoveAccepted[box] = false;
   }
 
+  void SetStatValues(const MoveSettings &rhs) {
+    this->acceptPercent = rhs.acceptPercent;
+    this->accepted = rhs.accepted;
+    this->tries = rhs.tries;
+    this->tempAccepted = rhs.tempAccepted; 
+    this->tempTries = rhs.tempTries;
+    this->mp_accepted = rhs.mp_accepted;
+    this->mp_tries = rhs.mp_tries;
+    this->mp_interval_accepted = rhs.mp_interval_accepted;
+    this->mp_interval_tries = rhs.mp_interval_tries;
+    this->perAdjust = rhs.perAdjust;
+    this->totKind = rhs.totKind;
+    for(uint b = 0; b < BOXES_WITH_U_NB; b++) {
+      this->isSingleMoveAccepted[b] = rhs.isSingleMoveAccepted[b];
+    }
+  }
+  void SetScaleValues(const MoveSettings &rhs) {
+    this->scale = rhs.scale;
+    this->mp_t_max = rhs.mp_t_max;
+    this->mp_r_max = rhs.mp_r_max;
+  }
+
+  void SetValues(const MoveSettings &rhs) {
+    this->SetStatValues(rhs);
+    this->SetScaleValues(rhs);
+  }
+
 private:
 
   std::vector< std::vector< std::vector<double> > > scale, acceptPercent;
@@ -126,10 +153,6 @@ private:
   uint perAdjust;
   uint totKind;
   bool isSingleMoveAccepted[BOXES_WITH_U_NB];
-
-#if ENSEMBLE == GEMC
-  uint GEMC_KIND;
-#endif
 
   BoxDimensions & boxDimRef;
 

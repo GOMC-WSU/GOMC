@@ -15,6 +15,8 @@ public:
   Rotate(System &sys, StaticVals const& statV) : MoveBase(sys, statV) {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
+  // To relax the system in NE_MTMC move
+  virtual uint PrepNEMTMC(const uint box, const uint midx = 0, const uint kidx = 0);
   virtual uint Transform();
   virtual void CalcEn();
   virtual void Accept(const uint earlyReject, const ulong step);
@@ -46,6 +48,20 @@ inline uint Rotate::Prep(const double subDraw, const double movPerc)
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_ROTATE);
   return state;
+}
+
+inline uint Rotate::PrepNEMTMC(const uint box, const uint midx, const uint kidx)
+{
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_ROTATE);
+  b = box;
+  m = midx;
+  mk = kidx;
+  pStart = pLen = 0;
+  molRef.GetRangeStartLength(pStart, pLen, m);
+  newMolPos.Uninit();
+  newMolPos.Init(pLen);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_ROTATE);
+  return mv::fail_state::NO_FAIL;
 }
 
 inline uint Rotate::Transform()

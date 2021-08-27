@@ -21,6 +21,10 @@ public:
   VolumeTransfer(System &sys, StaticVals const& statV);
 
   virtual uint Prep(const double subDraw, const double movePerc);
+  // To relax the system in NE_MTMC move
+  virtual uint PrepNEMTMC(const uint box, const uint midx = 0, const uint kidx = 0) {
+    return mv::fail_state::NO_FAIL;
+  }
   virtual void CalcEn();
   virtual uint Transform();
   double GetCoeff() const;

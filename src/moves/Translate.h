@@ -19,6 +19,8 @@ public:
   Translate(System &sys, StaticVals const& statV) : MoveBase(sys, statV) {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
+  // To relax the system in NE_MTMC move
+  virtual uint PrepNEMTMC(const uint box, const uint midx = 0, const uint kidx = 0);
   uint ReplaceRot(Rotate const& other);
   virtual uint Transform();
   virtual void CalcEn();
@@ -55,6 +57,20 @@ inline uint Translate::Prep(const double subDraw, const double movPerc)
   uint state = GetBoxAndMol(prng, molRef, subDraw, movPerc);
   GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_DISPLACE);
   return state;
+}
+
+inline uint Translate::PrepNEMTMC(const uint box, const uint midx, const uint kidx)
+{
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_DISPLACE);
+  b = box;
+  m = midx;
+  mk = kidx;
+  pStart = pLen = 0;
+  molRef.GetRangeStartLength(pStart, pLen, m);
+  newMolPos.Uninit();
+  newMolPos.Init(pLen);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_DISPLACE);
+  return mv::fail_state::NO_FAIL;
 }
 
 inline uint Translate::Transform()

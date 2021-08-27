@@ -167,7 +167,7 @@ set(headers
    src/cbmc/DCRotateOnAtom.h
    src/cbmc/DCSingle.h
    src/cbmc/TrialMol.h
-   src/moves/CFCMC.h
+   src/moves/NeMTMC.h
    src/moves/CrankShaft.h
    src/moves/IntraMoleculeExchange1.h
    src/moves/IntraMoleculeExchange2.h

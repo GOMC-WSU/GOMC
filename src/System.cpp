@@ -32,7 +32,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "IntraMoleculeExchange2.h"
 #include "IntraMoleculeExchange3.h"
 #include "CrankShaft.h"
-#include "CFCMC.h"
+#include "NeMTMC.h"
 #include "TargetedSwap.h"
 #include "GOMCEventsProfile.h"
 
@@ -83,7 +83,7 @@ System::~System()
 #if ENSEMBLE == GEMC || ENSEMBLE == GCMC
   delete moves[mv::MOL_TRANSFER];
   delete moves[mv::MEMC];
-  delete moves[mv::CFCMC];
+  delete moves[mv::NE_MTMC];
   delete moves[mv::TARGETED_SWAP];
 #endif
 #if GOMC_LIB_MPI
@@ -194,7 +194,7 @@ void System::InitMoves(Setup const& set)
   } else {
     moves[mv::MEMC] = new MoleculeExchange3(*this, statV);
   }
-  moves[mv::CFCMC] = new CFCMC(*this, statV);
+  moves[mv::NE_MTMC] = new NEMTMC(*this, statV);
   moves[mv::TARGETED_SWAP] = new TargetedSwap(*this, statV);
 
 #endif
@@ -367,7 +367,7 @@ void System::PrintTime()
   printf("%-36s %10.4f    sec.\n", "Targeted-Transfer:",
          moveTime[mv::TARGETED_SWAP]);
   printf("%-36s %10.4f    sec.\n", "MEMC:", moveTime[mv::MEMC]);
-  //printf("%-36s %10.4f    sec.\n", "CFCMC:", moveTime[mv::CFCMC]);
+  printf("%-36s %10.4f    sec.\n", "nonEq Mol-Transfer:", moveTime[mv::NE_MTMC]);
 #endif
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
   printf("%-36s %10.4f    sec.\n", "Vol-Transfer:", moveTime[mv::VOL_TRANSFER]);

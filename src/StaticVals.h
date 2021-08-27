@@ -57,7 +57,7 @@ public:
 #endif
 #ifdef  VARIABLE_PARTICLE_NUMBER
   config_setup::MEMCVal   memcVal;
-  config_setup::CFCMCVal  cfcmcVal;
+  config_setup::NEMTMCVal  neMTMCVal;
   config_setup::TargetSwapCollection targetedSwapVal;
 #endif
 

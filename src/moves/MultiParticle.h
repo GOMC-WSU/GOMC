@@ -28,11 +28,12 @@ public:
   ~MultiParticle() {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
+  // To relax the system in NE_MTMC move
+  virtual uint PrepNEMTMC(const uint box, const uint midx = 0, const uint kidx = 0);
   virtual void CalcEn();
   virtual uint Transform();
   virtual void Accept(const uint rejectState, const ulong step);
   virtual void PrintAcceptKind();
-  void PrepCFCMC(const uint box);
 
 private:
   uint bPick;
@@ -214,8 +215,11 @@ inline uint MultiParticle::Prep(const double subDraw, const double movPerc)
   return state;
 }
 
-inline void MultiParticle::PrepCFCMC(const uint box)
+// To relax the system in NE_MTMC move
+inline uint MultiParticle::PrepNEMTMC(const uint box, const uint midx, const uint kidx)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_MULTIPARTICLE);
+  uint state = mv::fail_state::NO_FAIL;
   bPick = box;
   // In each step, we perform either:
   // 1- All displacement move.
@@ -227,6 +231,12 @@ inline void MultiParticle::PrepCFCMC(const uint box)
   }
 
   SetMolInBox(bPick);
+  if (moleculeIndex.size() == 0) {
+    std::cout << "Warning: MultiParticle move can't move any molecules, Skipping...\n";
+    state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+    return state;
+  }
+  
   //We don't use forces for non-MP moves, so we need to calculate them for the
   //current system if any other moves, besides other MP moves, have been accepted.
   //Or, if this is the first MP move, which is handled with the same flag.
@@ -251,6 +261,8 @@ inline void MultiParticle::PrepCFCMC(const uint box)
   }
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_MULTIPARTICLE);
+  return state;
 }
 
 inline uint MultiParticle::Transform()

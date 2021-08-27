@@ -66,6 +66,17 @@ void CallMolReciprocalGPU(VariablesCUDA *vars,
                           double &energyRecipNew,
                           uint box);
 
+//Calculate reciprocal term for lambdaNew and Old with same coordinates
+void CallChangeLambdaMolReciprocalGPU(VariablesCUDA *vars,
+                                      XYZArray const &coords,
+                                      const std::vector<double> &particleCharge,
+                                      uint imageSize,
+                                      double *sumRnew,
+                                      double *sumInew,
+                                      double &energyRecipNew,
+                                      const double lambdaCoef,
+                                      uint box);
+
 void CallSwapReciprocalGPU(VariablesCUDA *vars,
                            XYZArray const &coords,
                            const std::vector<double> &particleCharge,
@@ -150,6 +161,19 @@ __global__ void MolReciprocalGPU(double *gpu_cx, double *gpu_cy, double *gpu_cz,
                                  double *gpu_prefactRef,
                                  double *gpu_energyRecipNew,
                                  int imageSize);
+
+__global__ void ChangeLambdaMolReciprocalGPU(double *gpu_x, double *gpu_y, double *gpu_z,
+                                            double *gpu_kx, double *gpu_ky, double *gpu_kz,
+                                            int atomNumber,
+                                            double *gpu_particleCharge,
+                                            double *gpu_sumRnew,
+                                            double *gpu_sumInew,
+                                            double *gpu_sumRref,
+                                            double *gpu_sumIref,
+                                            double *gpu_prefactRef,
+                                            double *gpu_energyRecipNew,
+                                            double lambdaCoef,
+                                            int imageSize);
 
 __global__ void SwapReciprocalGPU(double *gpu_x, double *gpu_y, double *gpu_z,
                                   double *gpu_kx, double *gpu_ky, double *gpu_kz,

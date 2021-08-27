@@ -76,8 +76,8 @@ void StaticVals::InitMovePercents(config_setup::MovePercents const& perc)
     case mv::MEMC :
       movePerc[m] = perc.memc;
       break;
-    case mv::CFCMC :
-      movePerc[m] = perc.cfcmc;
+    case mv::NE_MTMC :
+      movePerc[m] = perc.neMolTransfer;
       break;
     case mv::TARGETED_SWAP :
       movePerc[m] = perc.targetedSwap;
@@ -132,7 +132,7 @@ void StaticVals::IsBoxOrthogonal(const double cellAngle[][3])
 
 StaticVals::StaticVals(Setup & set) : intraMemcVal(set.config.sys.intraMemcVal),
   freeEnVal(set.config.sys.freeEn), memcVal(set.config.sys.memcVal),
-  cfcmcVal(set.config.sys.cfcmcVal), targetedSwapVal(set.config.sys.targetedSwapCollection)
+  neMTMCVal(set.config.sys.neMTMCVal), targetedSwapVal(set.config.sys.targetedSwapCollection)
   
 {
   multiParticleEnabled = set.config.sys.moves.multiParticleEnabled;

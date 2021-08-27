@@ -87,9 +87,9 @@ public:
                                const uint box);
 
   //calculate reciprocal term for lambdaNew and Old with same coordinates
-  virtual double CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
-                            const double lambdaNew, const uint molIndex,
-                            const uint box);
+  virtual double ChangeLambdaRecip(XYZArray const& molCoords, const double lambdaOld,
+                                  const double lambdaNew, const uint molIndex,
+                                  const uint box);
 
   //calculate correction term for a molecule
   virtual double MolCorrection(uint molIndex, uint box)const;

@@ -98,7 +98,7 @@ void MoveSettings::Update(const uint move, const bool isAccepted,
 #if ENSEMBLE == GEMC
       //GEMC has multiple boxes and this move changed both boxes, so we
       //need to also mark the other box as having a move accepted.
-      if(move == mv::MEMC || move == mv::MOL_TRANSFER || move == mv::CFCMC ||
+      if(move == mv::MEMC || move == mv::MOL_TRANSFER || move == mv::NE_MTMC ||
          move == mv::VOL_TRANSFER || move == mv::TARGETED_SWAP) {
         //Simple way to figure out which box is the other one. 0 -->1 and 1-->0
         //Assumes just two boxes.
