@@ -117,10 +117,10 @@ void Simulation::RunSimulation(void)
 
 #endif
 
-//#ifndef NDEBUG
-    if((step + 1) % 20 == 0)
+#ifndef NDEBUG
+    if((step + 1) % 1000 == 0)
       RecalculateAndCheck();
-//#endif
+#endif
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::MC_RUN);
   if(!RecalculateAndCheck()) {
@@ -136,7 +136,6 @@ void Simulation::RunSimulation(void)
 
 bool Simulation::RecalculateAndCheck(void)
 {
-  std::cout << "Recalculating Energy!!! \n";
   system->calcEwald->UpdateVectorsAndRecipTerms(false);
   SystemPotential pot = system->calcEnergy.SystemTotal();
 

@@ -202,14 +202,13 @@ void System::InitMoves(Setup const& set)
 
 void System::InitLambda()
 {
-#ifdef GOMC_CUDA
-  int temp_molIndex[BOX_TOTAL], temp_kindIndex[BOX_TOTAL];
-  double temp_lambdaVDW[BOX_TOTAL], temp_lambdaCoulomb[BOX_TOTAL];
-  bool temp_isFraction[BOX_TOTAL];
-  for(int i = 0; i < BOX_TOTAL; i++) {
-    temp_isFraction[i] = false;
-  }
-#endif
+  //Set the pointer to cudaVar and initialize the values
+  lambdaRef.Init(
+  #ifdef GOMC_CUDA 
+    statV.forcefield.particles->getCUDAVars()
+  #endif
+  );
+
   if(statV.freeEnVal.enable) {
     bool found = false;
     for(uint k = 0; k < statV.mol.GetKindsCount(); k++) {
@@ -231,15 +230,6 @@ void System::InitLambda()
           double lambdaCoulomb = statV.freeEnVal.lambdaCoulomb[state];
           double lambdaVDW = statV.freeEnVal.lambdaVDW[state];
           lambdaRef.Set(lambdaVDW, lambdaCoulomb, m, k, mv::BOX0);
-
-#ifdef GOMC_CUDA
-          // initialize arrays to copy to GPU
-          temp_molIndex[mv::BOX0] = m;
-          temp_kindIndex[mv::BOX0] = k;
-          temp_lambdaVDW[mv::BOX0] = lambdaVDW;
-          temp_lambdaCoulomb[mv::BOX0] = lambdaCoulomb;
-          temp_isFraction[mv::BOX0] = true;
-#endif
         }
         break;
       }
@@ -251,11 +241,6 @@ void System::InitLambda()
       exit(EXIT_FAILURE);
     }
   }
-#ifdef GOMC_CUDA
-  InitGPULambda(statV.forcefield.particles->getCUDAVars(), temp_molIndex,
-                temp_kindIndex, temp_lambdaVDW, temp_lambdaCoulomb,
-                temp_isFraction);
-#endif
 }
 
 void System::RecalculateTrajectory(Setup &set, uint frameNum)

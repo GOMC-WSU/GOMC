@@ -2073,20 +2073,51 @@ void ConfigSetup::verifyInputs(void)
       exit(EXIT_FAILURE);
     } else if (sys.neMTMCVal.relaxSteps == 0) {
       std::cout << "Warning: No thermal relaxing move will be performed in " <<
-                "NeMTMC move! \n";
+                  "NeMTMC move! \n";
     }
 
     if(sys.neMTMCVal.conformationProb > 1.0f) {
-      std::cout << "Error: Intra-Swap/Regrowth Frequency in NeMTMC Relaxing Steps " <<
-                   "       must be less than 1.0 \n";
+      std::cout << "Error: Intra-Swap/Regrowth Frequency in NeMTMC Relaxing Steps \n" <<
+                   "       must be less than 1.0! \n";
       exit(EXIT_FAILURE);
     }
 
     if(sys.neMTMCVal.lambdaLimit > 1.0f) {
-      std::cout << "Error: Lambda VDW limit for Intra-Swap move in NeMTMC Relaxing Steps " <<
-                   "       must be less than 1.0 \n";
+      std::cout << "Error: Lambda VDW limit for Intra-Swap move in NeMTMC Relaxing Steps \n" <<
+                   "       must be less than 1.0! \n";
       exit(EXIT_FAILURE);
     }
+
+    if(sys.moves.multiParticleEnabled) {
+      if(sys.neMTMCVal.MPEnable && sys.neMTMCVal.MPBEnable) {
+        std::cout << "Error: Multi-Particle and Multi-Particle Brownian moves cannot \n" <<
+                    "       be used simultaneously in NeMTMC Relaxing Steps! \n";
+        exit(EXIT_FAILURE);
+
+      }
+    }
+
+    if(!sys.moves.multiParticleEnabled) {
+      if(sys.moves.displace < 1e-7 || sys.moves.rotate < 1e-7) {
+        std::cout << "Error: Displacement and rotation move must be activated in " <<
+                    "NeMTMC Relaxing Steps! \n";
+        exit(EXIT_FAILURE);
+      }
+    }
+
+    if(sys.moves.multiParticleEnabled) {
+      if(sys.moves.multiParticle < 1e-7 && sys.neMTMCVal.MPEnable) {
+        std::cout << "Error: Multi-Particle move must be activated in " <<
+                    "NeMTMC Relaxing Steps! \n";
+        exit(EXIT_FAILURE);
+      }
+      if(sys.moves.multiParticleBrownian < 1e-7 && sys.neMTMCVal.MPBEnable) {
+        std::cout << "Error: Multi-Particle Brownian move must be activated in " <<
+                    "NeMTMC Relaxing Steps! \n";
+        exit(EXIT_FAILURE);
+      }
+    }
+
   }
 #endif
 #if ENSEMBLE == NVT || ENSEMBLE == NPT

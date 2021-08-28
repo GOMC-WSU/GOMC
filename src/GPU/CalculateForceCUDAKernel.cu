@@ -198,7 +198,6 @@ void CallBoxInterForceGPU(VariablesCUDA *vars,
       vars->gpu_rMaxSq,
       vars->gpu_expConst,
       vars->gpu_molIndex,
-      vars->gpu_kindIndex,
       vars->gpu_lambdaVDW,
       vars->gpu_lambdaCoulomb,
       vars->gpu_isFraction,
@@ -426,7 +425,6 @@ void CallBoxForceGPU(VariablesCUDA *vars,
       vars->gpu_rMaxSq,
       vars->gpu_expConst,
       vars->gpu_molIndex,
-      vars->gpu_kindIndex,
       vars->gpu_lambdaVDW,
       vars->gpu_lambdaCoulomb,
       vars->gpu_isFraction,
@@ -653,7 +651,6 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
                                  double *gpu_rMaxSq,
                                  double *gpu_expConst,
                                  int *gpu_molIndex,
-                                 int *gpu_kindIndex,
                                  double *gpu_lambdaVDW,
                                  double *gpu_lambdaCoulomb,
                                  bool *gpu_isFraction,
@@ -716,9 +713,8 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
         int mA = gpu_particleMol[currentParticle];
         int mB = gpu_particleMol[neighborParticle];
 
-        double lambdaVDW = DeviceGetLambdaVDW(mA, kA, mB, kB, box, gpu_isFraction,
-                                              gpu_molIndex, gpu_kindIndex,
-                                              gpu_lambdaVDW);
+        double lambdaVDW = DeviceGetLambdaVDW(mA, mB, box, gpu_isFraction,
+                                              gpu_molIndex, gpu_lambdaVDW);
 
         diff_com = Difference(gpu_comx, gpu_comy, gpu_comz, mA, mB);
         if (gpu_nonOrth[0])
@@ -746,9 +742,9 @@ __global__ void BoxInterForceGPU(int *gpu_cellStartIndex,
           double qi_qj = gpu_particleCharge[currentParticle] * gpu_particleCharge[neighborParticle];
           //skip particle pairs with no charge
           if(qi_qj != 0.0) {
-            double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
+            double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, mB, box,
                                    gpu_isFraction, gpu_molIndex,
-                                   gpu_kindIndex, gpu_lambdaCoulomb);
+                                   gpu_lambdaCoulomb);
             double pRF = CalcCoulombForceGPU(distSq, qi_qj, gpu_VDW_Kind[0], gpu_ewald[0],
                                              gpu_isMartini[0], gpu_alpha[box],
                                              gpu_rCutCoulomb[box], gpu_diElectric_1[0],
@@ -822,7 +818,6 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
                             double *gpu_rMaxSq,
                             double *gpu_expConst,
                             int *gpu_molIndex,
-                            int *gpu_kindIndex,
                             double *gpu_lambdaVDW,
                             double *gpu_lambdaCoulomb,
                             bool *gpu_isFraction,
@@ -872,9 +867,8 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
         int mA = gpu_particleMol[currentParticle];
         int mB = gpu_particleMol[neighborParticle];
 
-        double lambdaVDW = DeviceGetLambdaVDW(mA, kA, mB, kB, box, gpu_isFraction,
-                                              gpu_molIndex, gpu_kindIndex,
-                                              gpu_lambdaVDW);
+        double lambdaVDW = DeviceGetLambdaVDW(mA, mB, box, gpu_isFraction,
+                                              gpu_molIndex, gpu_lambdaVDW);
 
         LJEn += CalcEnGPU(distSq, kA, kB, gpu_sigmaSq, gpu_n,
                           gpu_epsilon_Cn, gpu_VDW_Kind[0],
@@ -899,9 +893,8 @@ __global__ void BoxForceGPU(int *gpu_cellStartIndex,
           if(qi_qj_fact != 0.0) {
             static const double qqFact = 167000.0;
             qi_qj_fact *= qqFact;
-            double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
+            double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, mB, box,
                                    gpu_isFraction, gpu_molIndex,
-                                   gpu_kindIndex,
                                    gpu_lambdaCoulomb);
             REn += CalcCoulombGPU(distSq, kA, kB,
                                   qi_qj_fact, gpu_rCutLow[0],

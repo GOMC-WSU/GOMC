@@ -465,7 +465,7 @@ inline void NEMTMC::RelaxingTransform(uint box)
     if(sampleConf) {
       // sample conformation
       // Check the lambda to decide to perform regrowth or intraSwap
-      if(lambdaRef.GetLambdaVDW(molIndex, kindIndex, box) <= lambdaLimit) {
+      if(lambdaRef.GetLambdaVDW(molIndex, box) <= lambdaLimit) {
         //Perform IntraSwap move
         propagationMove = systemRef.GetMoveObject((prng.randInt(1) ? mv::INTRA_SWAP : mv::REGROWTH));
       } else {

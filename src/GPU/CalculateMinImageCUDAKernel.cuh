@@ -212,45 +212,45 @@ __device__ inline double DotProductGPU(double kx, double ky, double kz,
   return (kx * x + ky * y + kz * z);
 }
 
-__device__ inline double DeviceGetLambdaVDW(int molA, int kindA, int molB,
-    int kindB, int box, const bool *gpu_isFraction, const int *gpu_molIndex,
-    const int *gpu_kindIndex, const double *gpu_lambdaVDW)
+__device__ inline double DeviceGetLambdaVDW(int molA, int molB,
+    int box, const bool *gpu_isFraction, const int *gpu_molIndex,
+    const double *gpu_lambdaVDW)
 {
   double lambda = 1.0;
   if(gpu_isFraction[box]) {
-    if((gpu_molIndex[box] == molA) && (gpu_kindIndex[box] == kindA)) {
+    if(gpu_molIndex[box] == molA) {
       lambda *= gpu_lambdaVDW[box];
     }
-    if((gpu_molIndex[box] == molB) && (gpu_kindIndex[box] == kindB)) {
+    if(gpu_molIndex[box] == molB) {
       lambda *= gpu_lambdaVDW[box];
     }
   }
   return lambda;
 }
 
-__device__ inline double DeviceGetLambdaCoulomb(int molA, int kindA, int molB,
-    int kindB, int box, const bool *gpu_isFraction, const int *gpu_molIndex,
-    const int *gpu_kindIndex, const double *gpu_lambdaCoulomb)
-{
-  double lambda = 1.0;
-  if(gpu_isFraction[box]) {
-    if((gpu_molIndex[box] == molA) && (gpu_kindIndex[box] == kindA)) {
-      lambda *= gpu_lambdaCoulomb[box];
-    }
-    if((gpu_molIndex[box] == molB) && (gpu_kindIndex[box] == kindB)) {
-      lambda *= gpu_lambdaCoulomb[box];
-    }
-  }
-  return lambda;
-}
-
-__device__ inline double DeviceGetLambdaCoulomb(int mol, int kind, int box,
-    const bool *gpu_isFraction, const int *gpu_molIndex, const int *gpu_kindIndex,
+__device__ inline double DeviceGetLambdaCoulomb(int molA, int molB,
+    int box, const bool *gpu_isFraction, const int *gpu_molIndex,
     const double *gpu_lambdaCoulomb)
 {
   double lambda = 1.0;
   if(gpu_isFraction[box]) {
-    if((gpu_molIndex[box] == mol) && (gpu_kindIndex[box] == kind)) {
+    if(gpu_molIndex[box] == molA) {
+      lambda *= gpu_lambdaCoulomb[box];
+    }
+    if(gpu_molIndex[box] == molB) {
+      lambda *= gpu_lambdaCoulomb[box];
+    }
+  }
+  return lambda;
+}
+
+__device__ inline double DeviceGetLambdaCoulomb(int mol, int box,
+    const bool *gpu_isFraction, const int *gpu_molIndex,
+    const double *gpu_lambdaCoulomb)
+{
+  double lambda = 1.0;
+  if(gpu_isFraction[box]) {
+    if(gpu_molIndex[box] == mol) {
       lambda = gpu_lambdaCoulomb[box];
     }
   }

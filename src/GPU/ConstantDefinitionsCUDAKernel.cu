@@ -13,20 +13,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <stdio.h>
 
-void InitGPULambda(VariablesCUDA *vars, int *molIndex, int *kindIndex,
-                   double *lambdaVDW, double *lambdaCoulomb, bool *isFraction)
+void UpdateGPULambda(VariablesCUDA *vars, int *molIndex, double *lambdaVDW,
+                    double *lambdaCoulomb, bool *isFraction)
 {
-  // allocate gpu memory for lambda variables
-  CUMALLOC((void**) &vars->gpu_molIndex, (int)BOX_TOTAL * sizeof(int));
-  CUMALLOC((void**) &vars->gpu_kindIndex, (int)BOX_TOTAL * sizeof(int));
-  CUMALLOC((void**) &vars->gpu_lambdaVDW, (int)BOX_TOTAL * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_lambdaCoulomb, (int)BOX_TOTAL * sizeof(double));
-  CUMALLOC((void**) &vars->gpu_isFraction, (int)BOX_TOTAL * sizeof(bool));
-
-  // copy required data
+  // copy lambda data
   cudaMemcpy(vars->gpu_molIndex, molIndex, BOX_TOTAL * sizeof(int),
-             cudaMemcpyHostToDevice);
-  cudaMemcpy(vars->gpu_kindIndex, kindIndex, BOX_TOTAL * sizeof(int),
              cudaMemcpyHostToDevice);
   cudaMemcpy(vars->gpu_lambdaVDW, lambdaVDW, BOX_TOTAL * sizeof(double),
              cudaMemcpyHostToDevice);
@@ -57,6 +48,12 @@ void InitGPUForceField(VariablesCUDA &vars, double const *sigmaSq,
   CUMALLOC((void**) &vars.gpu_alpha, BOX_TOTAL * sizeof(double));
   CUMALLOC((void**) &vars.gpu_ewald, sizeof(int));
   CUMALLOC((void**) &vars.gpu_diElectric_1, sizeof(double));
+
+  // allocate gpu memory for lambda variables
+  CUMALLOC((void**) &vars.gpu_molIndex, (int)BOX_TOTAL * sizeof(int));
+  CUMALLOC((void**) &vars.gpu_lambdaVDW, (int)BOX_TOTAL * sizeof(double));
+  CUMALLOC((void**) &vars.gpu_lambdaCoulomb, (int)BOX_TOTAL * sizeof(double));
+  CUMALLOC((void**) &vars.gpu_isFraction, (int)BOX_TOTAL * sizeof(bool));
 
   cudaMemcpy(vars.gpu_sigmaSq, sigmaSq, countSq * sizeof(double),
              cudaMemcpyHostToDevice);
@@ -385,7 +382,6 @@ void DestroyCUDAVars(VariablesCUDA *vars)
 
   // delete gpu memory for lambda variables
   CUFREE(vars->gpu_molIndex);
-  CUFREE(vars->gpu_kindIndex);
   CUFREE(vars->gpu_lambdaVDW);
   CUFREE(vars->gpu_lambdaCoulomb);
   CUFREE(vars->gpu_isFraction);

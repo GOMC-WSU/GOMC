@@ -1572,7 +1572,6 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       molForceRec,
       particleCharge,
       particleMol,
-      particleKind,
       particleHasNoCharge,
       particleUsed,
       startMol,
@@ -1648,7 +1647,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
 
 double Ewald::GetLambdaCoef(uint molA, uint box) const
 {
-  double lambda = lambdaRef.GetLambdaCoulomb(molA, mols.GetMolKind(molA), box);
+  double lambda = lambdaRef.GetLambdaCoulomb(molA, box);
   //Each charge gets sq root of it.
   return sqrt(lambda);
 }
