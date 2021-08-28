@@ -94,17 +94,16 @@ public:
 
 #if GOMC_GTEST_MPI
   /* Assumes only two replicas exist */
-  void forceExchange(int worldRank, Coordinates & currCoordRef, COM & currComRef);
+  void forceExchange(int worldRank, System & sysRef, const StaticVals & statVRef);
 
 #if ENSEMBLE == NPT
-  void forceExchange(int worldRank, Coordinates & currCoordRef, COM & currComRef, BoxDimensions & boxDimRef);
   void SetGlobalVolumes(int worldRank, double global_volumes_arg);
 #endif
 
 #endif
 
 private:
-  void ReinitializeReplicas();
+  void ReinitializeReplicas(System & sysRef, const StaticVals & statVRef);
 
   MultiSim const*const& ms;
   ReplicaCommunicator replcomm;
@@ -135,9 +134,6 @@ private:
   std::vector< std::vector<int> > order;
   std::vector<bool> incycle;
   /* For multiex */
-
-
-
 //! Sum of probabilities
   std::vector<double> prob_sum;
 //! Number of moves between replicas i and j

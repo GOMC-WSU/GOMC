@@ -463,7 +463,7 @@ void ParallelTemperingUtilities::conductExchanges(int replicaID, Coordinates & c
         swap(currCoordRef, newMolsPos);
         swap(currComRef, newCOMs);
 
-        ReinitializeReplicas();
+        ReinitializeReplicas(sysRef, statVRef);
       }
     }
 
@@ -471,9 +471,17 @@ void ParallelTemperingUtilities::conductExchanges(int replicaID, Coordinates & c
 
 }
 
-void ParallelTemperingUtilities::ReinitializeReplicas(){
+void ParallelTemperingUtilities::ReinitializeReplicas(System & sysRef, const StaticVals & statVRef){
   std::cout << "calling Grid all" << std::endl;
+  #if ENSEMBLE == NVT
   sysRef.cellList.GridAll(sysRef.boxDimRef, sysRef.coordinates, sysRef.molLookup);
+  #else
+  if(isOrth) {
+    sysRef.cellList.GridBox(sysRef.boxDimRef, sysRef.coordinates, sysRef.molLookup, 0);
+  } else {
+    sysRef.cellList.GridBox(sysRef.boxDimRef, sysRef.coordinates, sysRef.molLookup, 0);
+  }
+  #endif
   std::cout << "Grid all" << std::endl;
   if (statVRef.forcefield.ewald) {
     for(int box = 0; box < BOX_TOTAL; box++) {
@@ -482,9 +490,13 @@ void ParallelTemperingUtilities::ReinitializeReplicas(){
         sysRef.potential.boxEnergy[box].recip = sysRef.calcEwald->BoxReciprocal(box, false);
         sysRef.potential = sysRef.calcEnergy.SystemTotal();
       #elif ENSEMBLE == NPT
-        //calculate new K vectors
-                std::cout << "Calc En called" << std::endl;
 
+        bool regrewGrid = true;
+        //back up cached Fourier term
+        sysRef.calcEwald->backupMolCache();
+        SystemPotential sysPotNew = sysRef.potential;
+        
+        //calculate new K vectors
         if(isOrth) {
           sysRef.calcEwald->RecipInit(box, sysRef.boxDimRef);
           //setup reciprocal terms
@@ -496,14 +508,12 @@ void ParallelTemperingUtilities::ReinitializeReplicas(){
           sysRef.calcEwald->BoxReciprocalSetup(box, sysRef.coordinates);
           sysPotNew = sysRef.calcEnergy.BoxInter(sysPotNew, sysRef.coordinates, sysRef.boxDimRef, box);
         }
-        std::cout << "Calc En finished" << std::endl;
-
         //calculate reciprocal term of electrostatic interaction
         sysPotNew.boxEnergy[box].recip = sysRef.calcEwald->BoxReciprocal(box, true);
         sysPotNew.Total();
 
-        sysPotRef = sysPotNew;
-        // Swaps old kvectors with the ones we just init'ed
+        sysRef.potential = sysPotNew;
+
         sysRef.calcEwald->UpdateRecip(box);
         sysRef.calcEwald->UpdateRecipVec(box);
       #endif
@@ -1338,7 +1348,7 @@ void ParallelTemperingUtilities::print_allswitchind(FILE* fplog, int n, const st
       std::cout << global_volumes[0] << " " << global_volumes[1] << std::endl;
 
   }
-  void ParallelTemperingUtilities::forceExchange(int worldRank, Coordinates & currCoordRef, COM & currComRef, BoxDimensions & boxDimRef){
+  void ParallelTemperingUtilities::forceExchange(int worldRank, System & sysRef, const StaticVals & statVRef){
     int exchangePartner;
     if(worldRank == 0){
       exchangePartner = 1;
@@ -1366,28 +1376,28 @@ void ParallelTemperingUtilities::print_allswitchind(FILE* fplog, int n, const st
       *((BoxDimensionsNonOrth*)(&boxDimRef)) = newDimNonOrth;
 */
     for (int b = 0; b < BOX_TOTAL; b++) {
-      std::cout << "overwriting my vol " << boxDimRef.volume[b] <<
+      std::cout << "overwriting my vol " << sysRef.boxDimRef.volume[b] <<
         " with other vol " << global_volumes[exchangePartner] << std::endl;
-      boxDimRef.SetVolume(b, global_volumes[exchangePartner]);
-        std::cout << "changed my (" << worldRank << ") volume to " << boxDimRef.volume[b] << std::endl;
+      sysRef.boxDimRef.SetVolume(b, global_volumes[exchangePartner]);
+        std::cout << "changed my (" << worldRank << ") volume to " << sysRef.boxDimRef.volume[b] << std::endl;
 
     }
 
-    newMolsPos = currCoordRef;
-    newCOMs = currComRef;
+    newMolsPos = sysRef.coordinates;
+    newCOMs = sysRef.com;
 
     replcomm.exchangeXYZArrayNonBlocking(&newMolsPos, exchangePartner);
     replcomm.exchangeXYZArrayNonBlocking(&newCOMs, exchangePartner);
 
-    swap(currCoordRef, newMolsPos);
-    swap(currComRef, newCOMs);
+    swap(sysRef.coordinates, newMolsPos);
+    swap(sysRef.com, newCOMs);
     std::cout << "swapped" << std::endl;
 
-    ReinitializeReplicas();
+    ReinitializeReplicas(sysRef, statVRef);
     std::cout << "reinitted" << std::endl;
   }
 #else
-void ParallelTemperingUtilities::forceExchange(int worldRank, Coordinates & currCoordRef, COM & currComRef){
+void ParallelTemperingUtilities::forceExchange(int worldRank, System & sysRef, const StaticVals & statVRef){
       std::cout << "called wrong fE" << std::endl;
 
   int exchangePartner;
@@ -1397,16 +1407,16 @@ void ParallelTemperingUtilities::forceExchange(int worldRank, Coordinates & curr
     exchangePartner = 0;
   }
 
-  newMolsPos = currCoordRef;
-  newCOMs = currComRef;
+  newMolsPos = sysRef.coordRef;
+  newCOMs = sysRef.comRef;
 
   replcomm.exchangeXYZArrayNonBlocking(&newMolsPos, exchangePartner);
   replcomm.exchangeXYZArrayNonBlocking(&newCOMs, exchangePartner);
 
-  swap(currCoordRef, newMolsPos);
-  swap(currComRef, newCOMs);
+  swap(sysRef.coordRef, newMolsPos);
+  swap(sysRef.comRef, newCOMs);
   
-  ReinitializeReplicas();
+  ReinitializeReplicas(sysRef, statVRef);
 }
 #endif
 

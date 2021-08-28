@@ -197,7 +197,7 @@ bool Simulation::RecalculateAndCheck(void)
 
       void Simulation::ExchangeReplicas(int worldRank){
         std::cout << "calling fe" << std::endl;
-        PTUtils->forceExchange(worldRank, system->coordinates, system->com, system->boxDimRef);
+        PTUtils->forceExchange(worldRank, *system, *staticValues);
         std::cout << "returned from fe" << std::endl;
       }
     #else

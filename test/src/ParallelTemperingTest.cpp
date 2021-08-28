@@ -171,10 +171,10 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
     otherVolume = sim->getVolume(0);
   #endif
 
-  //ASSERT_NE(originalCoords, otherCoords);
-  //ASSERT_NE(originalCOM, otherCOM);
+  ASSERT_NE(originalCoords, otherCoords);
+  ASSERT_NE(originalCOM, otherCOM);
   //ASSERT_NE(originalCellList, otherCellList);
-  //ASSERT_NE(originalEnergy, otherEnergy);
+  ASSERT_NE(originalEnergy, otherEnergy);
  #if ENSEMBLE == NPT
   ASSERT_NE(originalVolume, otherVolume);
   #endif
@@ -191,10 +191,10 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
   //CellList shouldBeOriginalCellList = sim->getCellList();
   double shouldBeOriginalEnergy = sim->GetSystemEnergy();
 
-  //EXPECT_EQ(originalCoords, shouldBeOriginalCoords);
-  //EXPECT_EQ(originalCOM, shouldBeOriginalCOM);
+  EXPECT_EQ(originalCoords, shouldBeOriginalCoords);
+  EXPECT_EQ(originalCOM, shouldBeOriginalCOM);
   //EXPECT_EQ(originalCellList, shouldBeOriginalCellList);
-  //EXPECT_EQ(originalEnergy, shouldBeOriginalEnergy);
+  EXPECT_EQ(originalEnergy, shouldBeOriginalEnergy);
  #if ENSEMBLE == NPT
   EXPECT_EQ(originalVolume, shouldBeOriginalVol);
   #endif
@@ -259,10 +259,10 @@ TEST(ParallelTemperingTest, FullSwapEwald) {  /// Then you can create tests as u
     otherVolume = sim->getVolume(0);
   #endif
 
-  //ASSERT_NE(originalCoords, otherCoords);
-  //ASSERT_NE(originalCOM, otherCOM);
+  ASSERT_NE(originalCoords, otherCoords);
+  ASSERT_NE(originalCOM, otherCOM);
   //ASSERT_NE(originalCellList, otherCellList);
-  //ASSERT_NE(originalEnergy, otherEnergy);
+  ASSERT_NE(originalEnergy, otherEnergy);
  #if ENSEMBLE == NPT
   ASSERT_NE(originalVolume, otherVolume);
   #endif
@@ -279,10 +279,10 @@ TEST(ParallelTemperingTest, FullSwapEwald) {  /// Then you can create tests as u
   //CellList shouldBeOriginalCellList = sim->getCellList();
   double shouldBeOriginalEnergy = sim->GetSystemEnergy();
 
-  //EXPECT_EQ(originalCoords, shouldBeOriginalCoords);
-  //EXPECT_EQ(originalCOM, shouldBeOriginalCOM);
+  EXPECT_EQ(originalCoords, shouldBeOriginalCoords);
+  EXPECT_EQ(originalCOM, shouldBeOriginalCOM);
   //EXPECT_EQ(originalCellList, shouldBeOriginalCellList);
-  //EXPECT_EQ(originalEnergy, shouldBeOriginalEnergy);
+  EXPECT_EQ(originalEnergy, shouldBeOriginalEnergy);
  #if ENSEMBLE == NPT
   EXPECT_EQ(originalVolume, shouldBeOriginalVol);
   #endif
