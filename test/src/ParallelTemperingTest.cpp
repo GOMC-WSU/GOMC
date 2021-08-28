@@ -149,10 +149,24 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
     }
   #endif
 
+  double originalVolume, otherVolume, shouldBeOriginalVol;
+  #if ENSEMBLE == NPT
+    sim->SetGlobalVolumes(worldRank);
+    originalVolume = sim->getVolume(0);
+  std::cout << "\n\nEnsemble is NPT\n\n" << std::endl;
+  #else
+  std::cout << "\n\nEnsemble isnt NPT\n\n" << std::endl;
+  #endif
+
   Coordinates originalCoords = sim->getCoordinates();
+    std::cout << "\n\nGrabbed coords\n\n" << std::endl;
+
   COM originalCOM = sim->getCOMs();
+    std::cout << "\n\nGrabbed com\n\n" << std::endl;
+
   //CellList originalCellList = sim->getCellList();
   double originalEnergy = sim->GetSystemEnergy();
+  std::cout << "\n\nGrabbed en\n\n" << std::endl;
 
   sim->ExchangeReplicas(worldRank);
 
@@ -160,11 +174,17 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
   COM otherCOM = sim->getCOMs();
   //CellList otherCellList = sim->getCellList();
   double otherEnergy = sim->GetSystemEnergy();
-
+  #if ENSEMBLE == NPT
+    sim->SetGlobalVolumes(worldRank);
+    otherVolume = sim->getVolume(0);
+  #endif
   ASSERT_NE(originalCoords, otherCoords);
   ASSERT_NE(originalCOM, otherCOM);
   //ASSERT_NE(originalCellList, otherCellList);
   ASSERT_NE(originalEnergy, otherEnergy);
+   #if ENSEMBLE == NPT
+  ASSERT_NE(originalVolume, otherVolume);
+  #endif
   
   sim->ExchangeReplicas(worldRank);  
 
@@ -172,12 +192,18 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
   COM shouldBeOriginalCOM = sim->getCOMs();
   //CellList shouldBeOriginalCellList = sim->getCellList();
   double shouldBeOriginalEnergy = sim->GetSystemEnergy();
+  #if ENSEMBLE == NPT
+    sim->SetGlobalVolumes(worldRank);
+    shouldBeOriginalVol = sim->getVolume(0);
+  #endif
 
   EXPECT_EQ(originalCoords, shouldBeOriginalCoords);
   EXPECT_EQ(originalCOM, shouldBeOriginalCOM);
   //EXPECT_EQ(originalCellList, shouldBeOriginalCellList);
   EXPECT_EQ(originalEnergy, shouldBeOriginalEnergy);
-
+ #if ENSEMBLE == NPT
+  EXPECT_EQ(originalVolume, shouldBeOriginalVol);
+  #endif
 }
 
 TEST(ParallelTemperingTest, FullSwapEwald) {  /// Then you can create tests as usual,
@@ -216,11 +242,12 @@ TEST(ParallelTemperingTest, FullSwapEwald) {  /// Then you can create tests as u
       std::cout << worldRank << "something weird happened. " << std::endl;
     }
   #endif
-  
+  double originalVolume, otherVolume, shouldBeOriginalVol;
   #if ENSEMBLE == NPT
     sim->SetGlobalVolumes(worldRank);
+    originalVolume = sim->getVolume(0);
+  std::cout << "\n\nEnsemble is NPT\n\n" << std::endl;
   #endif
-
   Coordinates originalCoords = sim->getCoordinates();
   COM originalCOM = sim->getCOMs();
   //CellList originalCellList = sim->getCellList();
@@ -233,12 +260,25 @@ TEST(ParallelTemperingTest, FullSwapEwald) {  /// Then you can create tests as u
   //CellList otherCellList = sim->getCellList();
   double otherEnergy = sim->GetSystemEnergy();
 
+  #if ENSEMBLE == NPT
+    sim->SetGlobalVolumes(worldRank);
+    otherVolume = sim->getVolume(0);
+  #endif
+
   ASSERT_NE(originalCoords, otherCoords);
   ASSERT_NE(originalCOM, otherCOM);
   //ASSERT_NE(originalCellList, otherCellList);
   ASSERT_NE(originalEnergy, otherEnergy);
+ #if ENSEMBLE == NPT
+  ASSERT_NE(originalVolume, otherVolume);
+  #endif
   
   sim->ExchangeReplicas(worldRank);  
+
+  #if ENSEMBLE == NPT
+    sim->SetGlobalVolumes(worldRank);
+    shouldBeOriginalVol = sim->getVolume(0);
+  #endif
 
   Coordinates shouldBeOriginalCoords = sim->getCoordinates();
   COM shouldBeOriginalCOM = sim->getCOMs();
@@ -249,7 +289,9 @@ TEST(ParallelTemperingTest, FullSwapEwald) {  /// Then you can create tests as u
   EXPECT_EQ(originalCOM, shouldBeOriginalCOM);
   //EXPECT_EQ(originalCellList, shouldBeOriginalCellList);
   EXPECT_EQ(originalEnergy, shouldBeOriginalEnergy);
-
+ #if ENSEMBLE == NPT
+  EXPECT_EQ(originalVolume, shouldBeOriginalVol);
+  #endif
 }
 
 #endif

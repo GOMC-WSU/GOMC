@@ -472,7 +472,9 @@ void ParallelTemperingUtilities::conductExchanges(int replicaID, Coordinates & c
 }
 
 void ParallelTemperingUtilities::ReinitializeReplicas(){
+  std::cout << "calling Grid all" << std::endl;
   sysRef.cellList.GridAll(sysRef.boxDimRef, sysRef.coordinates, sysRef.molLookup);
+  std::cout << "Grid all" << std::endl;
   if (statVRef.forcefield.ewald) {
     for(int box = 0; box < BOX_TOTAL; box++) {
       #if ENSEMBLE == NVT
@@ -481,6 +483,8 @@ void ParallelTemperingUtilities::ReinitializeReplicas(){
         sysRef.potential = sysRef.calcEnergy.SystemTotal();
       #elif ENSEMBLE == NPT
         //calculate new K vectors
+                std::cout << "Calc En called" << std::endl;
+
         if(isOrth) {
           sysRef.calcEwald->RecipInit(box, sysRef.boxDimRef);
           //setup reciprocal terms
@@ -492,6 +496,8 @@ void ParallelTemperingUtilities::ReinitializeReplicas(){
           sysRef.calcEwald->BoxReciprocalSetup(box, sysRef.coordinates);
           sysPotNew = sysRef.calcEnergy.BoxInter(sysPotNew, sysRef.coordinates, sysRef.boxDimRef, box);
         }
+        std::cout << "Calc En finished" << std::endl;
+
         //calculate reciprocal term of electrostatic interaction
         sysPotNew.boxEnergy[box].recip = sysRef.calcEwald->BoxReciprocal(box, true);
         sysPotNew.Total();
@@ -1317,66 +1323,91 @@ void ParallelTemperingUtilities::print_allswitchind(FILE* fplog, int n, const st
 }
 
 #if GOMC_GTEST_MPI
-void ParallelTemperingUtilities::forceExchange(int worldRank, Coordinates & currCoordRef, COM & currComRef){
-        int exchangePartner;
-        if(worldRank == 0){
-          exchangePartner = 1;
-        } else {
-          exchangePartner = 0;
-        }
 
-        newMolsPos = currCoordRef;
-        newCOMs = currComRef;
-
-        replcomm.exchangeXYZArrayNonBlocking(&newMolsPos, exchangePartner);
-        replcomm.exchangeXYZArrayNonBlocking(&newCOMs, exchangePartner);
-
-        swap(currCoordRef, newMolsPos);
-        swap(currComRef, newCOMs);
-        
-        ReinitializeReplicas();
-}
 #if ENSEMBLE == NPT
   void ParallelTemperingUtilities::SetGlobalVolumes(int worldRank, double volume){
+        //std::cout << "worldRank is "<< worldRank << std::endl;
+        //std::cout << "volume is "<< volume << std::endl;
+        int numberOfTests = 2;
+    std::memset(&global_volumes[0], 0, numberOfTests * sizeof(double));
+    std::cout << global_volumes[0] << " " << global_volumes[1] << std::endl;
     global_volumes[worldRank] = volume;
-    MPI_Allreduce(MPI_IN_PLACE, &global_volumes[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
-                  MPI_COMM_WORLD);
+    std::cout << global_volumes[0] << " " << global_volumes[1] << std::endl;
+
+    MPI_Allreduce(MPI_IN_PLACE, &global_volumes[0], numberOfTests, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+      std::cout << global_volumes[0] << " " << global_volumes[1] << std::endl;
+
   }
   void ParallelTemperingUtilities::forceExchange(int worldRank, Coordinates & currCoordRef, COM & currComRef, BoxDimensions & boxDimRef){
-        int exchangePartner;
-        if(worldRank == 0){
-          exchangePartner = 1;
-        } else {
-          exchangePartner = 0;
-        }
+    int exchangePartner;
+    if(worldRank == 0){
+      exchangePartner = 1;
+    } else {
+      exchangePartner = 0;
+    }
+    std::cout << "entered fE" << std::endl;
+    /*
+    if(isOrth) {
+      newDim = boxDimRef;
+      for (int b = 0; b < BOX_TOTAL; b++) {
+        newDim.SetVolume(b, global_volumes[exchangePartner]);
+      }
+    } else {
+      newDimNonOrth = *((BoxDimensionsNonOrth*)(&boxDimRef));
+      for (int b = 0; b < BOX_TOTAL; b++) {
+        newDimNonOrth.SetVolume(b, global_volumes[exchangePartner]);
+      }
+    }
+    std::cout << "Set newDim vol" << std::endl;
 
-          if(isOrth) {
-            newDim = boxDimRef;
-            for (int b = 0; b < BOX_TOTAL; b++) {
-              newDim.SetVolume(b, global_volumes[exchangePartner]);
-            }
-          } else {
-            newDimNonOrth = *((BoxDimensionsNonOrth*)(&boxDimRef));
-            for (int b = 0; b < BOX_TOTAL; b++) {
-              newDimNonOrth.SetVolume(b, global_volumes[exchangePartner]);
-            }
-          }
-          if(isOrth)
-            boxDimRef = newDim;
-          else
-          *((BoxDimensionsNonOrth*)(&boxDimRef)) = newDimNonOrth;
+    if(isOrth)
+      boxDimRef = newDim;
+    else
+      *((BoxDimensionsNonOrth*)(&boxDimRef)) = newDimNonOrth;
+*/
+    for (int b = 0; b < BOX_TOTAL; b++) {
+      std::cout << "overwriting my vol " << boxDimRef.volume[b] <<
+        " with other vol " << global_volumes[exchangePartner] << std::endl;
+      boxDimRef.SetVolume(b, global_volumes[exchangePartner]);
+        std::cout << "changed my (" << worldRank << ") volume to " << boxDimRef.volume[b] << std::endl;
 
-        newMolsPos = currCoordRef;
-        newCOMs = currComRef;
+    }
 
-        replcomm.exchangeXYZArrayNonBlocking(&newMolsPos, exchangePartner);
-        replcomm.exchangeXYZArrayNonBlocking(&newCOMs, exchangePartner);
+    newMolsPos = currCoordRef;
+    newCOMs = currComRef;
 
-        swap(currCoordRef, newMolsPos);
-        swap(currComRef, newCOMs);
-        
-        ReinitializeReplicas();
+    replcomm.exchangeXYZArrayNonBlocking(&newMolsPos, exchangePartner);
+    replcomm.exchangeXYZArrayNonBlocking(&newCOMs, exchangePartner);
+
+    swap(currCoordRef, newMolsPos);
+    swap(currComRef, newCOMs);
+    std::cout << "swapped" << std::endl;
+
+    ReinitializeReplicas();
+    std::cout << "reinitted" << std::endl;
   }
+#else
+void ParallelTemperingUtilities::forceExchange(int worldRank, Coordinates & currCoordRef, COM & currComRef){
+      std::cout << "called wrong fE" << std::endl;
+
+  int exchangePartner;
+  if(worldRank == 0){
+    exchangePartner = 1;
+  } else {
+    exchangePartner = 0;
+  }
+
+  newMolsPos = currCoordRef;
+  newCOMs = currComRef;
+
+  replcomm.exchangeXYZArrayNonBlocking(&newMolsPos, exchangePartner);
+  replcomm.exchangeXYZArrayNonBlocking(&newCOMs, exchangePartner);
+
+  swap(currCoordRef, newMolsPos);
+  swap(currComRef, newCOMs);
+  
+  ReinitializeReplicas();
+}
 #endif
 
 #endif

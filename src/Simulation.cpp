@@ -173,9 +173,6 @@ bool Simulation::RecalculateAndCheck(void)
       double Simulation::GetSystemEnergy(void){
         return system->potential.Total();
       }
-      void Simulation::ExchangeReplicas(int worldRank){
-        PTUtils->forceExchange(worldRank, system->coordinates, system->com);
-      }
       Coordinates& Simulation::getCoordinates(void){
         return system->coordinates;
       }
@@ -187,11 +184,29 @@ bool Simulation::RecalculateAndCheck(void)
       }
     #if ENSEMBLE == NPT
         void Simulation::SetGlobalVolumes(int worldRank){
+          std::cout << "I (" << worldRank << ") think my volume is " 
+            << getVolume(0) << std::endl;
           PTUtils->SetGlobalVolumes(worldRank, getVolume(0));
+           std::cout << "My (" << worldRank << ") volume is now " 
+            << getVolume(0) << std::endl;
         }
 
         double Simulation::getVolume(int box){
           return system->boxDimRef.volume[box];
         }
+
+      void Simulation::ExchangeReplicas(int worldRank){
+        std::cout << "calling fe" << std::endl;
+        PTUtils->forceExchange(worldRank, system->coordinates, system->com, system->boxDimRef);
+        std::cout << "returned from fe" << std::endl;
+      }
+    #else
+      void Simulation::ExchangeReplicas(int worldRank){
+                std::cout << "calling wrong fe" << std::endl;
+
+        PTUtils->forceExchange(worldRank, system->coordinates, system->com);
+              std::cout << "returned from wrong fe" << std::endl;
+
+      }
     #endif
   #endif
