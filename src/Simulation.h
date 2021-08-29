@@ -28,12 +28,15 @@ public:
   #if GOMC_GTEST_MPI
       double GetSystemEnergy(void);
       void ExchangeReplicas(int worldRank);
-      Coordinates& getCoordinates(void);
-      COM& getCOMs(void);
-      CellList& getCellList(void);
+      Coordinates& GetCoordinates(void);
+      COM& GetCOMs(void);
+      CellList& GetCellList(void);
     #if ENSEMBLE == NPT
-      double getVolume(int box);
+      double GetVolume(int box);
       void SetGlobalVolumes(int worldRank);
+    #elif ENSEMBLE == GCMC
+      double GetChemPot(int box);
+      void SetGlobalChemPots(int worldRank);
     #endif
   #endif
 

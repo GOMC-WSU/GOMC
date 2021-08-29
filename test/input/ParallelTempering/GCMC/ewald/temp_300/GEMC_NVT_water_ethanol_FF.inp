@@ -1,0 +1,115 @@
+*  GEMC_NVT_water_ethanol_liq and GEMC_NVT_water_ethanol_vap - created by mBuild using the on 2021-08-29 12:40:25.341665
+*  parameters from the {'H2O': '../common/spce.xml', 'ETO': 'oplsaa'} force field(s) via MoSDef
+*  1-4 coulombic scaling = {'H2O': 0.5, 'ETO': 0.5}, and 1-4 LJ scaling = {'H2O': 0.5, 'ETO': 0.5}
+
+*  8217 atoms
+*  6260 bonds
+*  6649 angles
+*  4692 dihedrals
+*  0 impropers
+
+*  7 atom types
+*  6 bond types
+*  8 angle types
+*  4 dihedral types
+
+
+* masses
+
+! atom_types 	mass 		  atomTypeForceFieldName_ResidueName (i.e., atoms_type_per_utilized_FF)  
+*  C		12.010780	! opls_135_ETO
+*  G		12.010780	! opls_157_ETO
+*  E		15.999430	! opls_154_ETO
+*  D		1.007947	! opls_140_ETO
+*  F		1.007947	! opls_155_ETO
+*  B		15.999430	! o_spce_H2O
+*  A		1.007947	! h_spce_H2O
+
+BONDS * harmonic
+!
+!V(bond) = Kb(b - b0)**2
+!
+!Kb: kcal/mole/A**2
+!b0: A
+!Kb (kcal/mol) = Kb_K (K) * Boltz. const.; (9999999999 if no stretching)
+!
+!atom_types 	 Kb		b0 		  atoms_types_per_utilized_FF
+A	B	999999999999	1.0		! h_spce_H2O	o_spce_H2O
+D	G	340.0	1.09		! opls_140_ETO	opls_157_ETO
+E	G	320.0	1.41		! opls_154_ETO	opls_157_ETO
+E	F	553.0	0.945		! opls_154_ETO	opls_155_ETO
+C	D	340.0	1.09		! opls_135_ETO	opls_140_ETO
+C	G	268.0	1.529		! opls_135_ETO	opls_157_ETO
+
+ANGLES * harmonic
+!
+!V(angle) = Ktheta(Theta - Theta0)**2
+!
+!Ktheta: kcal/mole/rad**2
+!Theta0: degrees
+!
+! Ktheta (kcal/mol) = Ktheta_K (K) * Boltz. const.		
+!
+!atom_types 		Ktheta		Theta0			  atoms_types_per_utilized_FF
+F	E	G	55.0		108.50000		! opls_155_ETO	opls_154_ETO	opls_157_ETO
+D	C	G	37.5		110.70000		! opls_140_ETO	opls_135_ETO	opls_157_ETO
+D	G	E	35.0		109.50000		! opls_140_ETO	opls_157_ETO	opls_154_ETO
+A	B	A	999999999999		109.47122		! h_spce_H2O	o_spce_H2O	h_spce_H2O
+C	G	E	50.0		109.50000		! opls_135_ETO	opls_157_ETO	opls_154_ETO
+D	C	D	33.0		107.80000		! opls_140_ETO	opls_135_ETO	opls_140_ETO
+D	G	D	33.0		107.80000		! opls_140_ETO	opls_157_ETO	opls_140_ETO
+C	G	D	37.5		110.70000		! opls_135_ETO	opls_157_ETO	opls_140_ETO
+
+DIHEDRALS * CHARMM
+!
+!V(dihedral) = Kchi(1 + cos(n(chi) - delta))
+!
+!Kchi: kcal/mole
+!n: multiplicity
+!delta: degrees
+!
+! Kchi (kcal/mol) = Kchi_K (K) * Boltz. const.
+! Boltzmann = 0.0019872041 kcal / (mol * K)
+!
+!atom_types 			Kchi		n	delta		  atoms_types_per_utilized_FF
+C	G	E	F	-0.038002	0	90.0		! opls_135_ETO	opls_157_ETO	opls_154_ETO	opls_155_ETO
+C	G	E	F	0.178003	1	180.0		! opls_135_ETO	opls_157_ETO	opls_154_ETO	opls_155_ETO
+C	G	E	F	0.086999	2	0.0		! opls_135_ETO	opls_157_ETO	opls_154_ETO	opls_155_ETO
+C	G	E	F	-0.246000	3	180.0		! opls_135_ETO	opls_157_ETO	opls_154_ETO	opls_155_ETO
+C	G	E	F	0.000000	4	0.0		! opls_135_ETO	opls_157_ETO	opls_154_ETO	opls_155_ETO
+C	G	E	F	0.000000	5	180.0		! opls_135_ETO	opls_157_ETO	opls_154_ETO	opls_155_ETO
+D	G	E	F	0.450000	0	90.0		! opls_140_ETO	opls_157_ETO	opls_154_ETO	opls_155_ETO
+D	G	E	F	0.000000	1	180.0		! opls_140_ETO	opls_157_ETO	opls_154_ETO	opls_155_ETO
+D	G	E	F	0.000000	2	0.0		! opls_140_ETO	opls_157_ETO	opls_154_ETO	opls_155_ETO
+D	G	E	F	-0.225000	3	180.0		! opls_140_ETO	opls_157_ETO	opls_154_ETO	opls_155_ETO
+D	G	E	F	0.000000	4	0.0		! opls_140_ETO	opls_157_ETO	opls_154_ETO	opls_155_ETO
+D	G	E	F	0.000000	5	180.0		! opls_140_ETO	opls_157_ETO	opls_154_ETO	opls_155_ETO
+D	C	G	D	0.300000	0	90.0		! opls_140_ETO	opls_135_ETO	opls_157_ETO	opls_140_ETO
+D	C	G	D	0.000000	1	180.0		! opls_140_ETO	opls_135_ETO	opls_157_ETO	opls_140_ETO
+D	C	G	D	0.000000	2	0.0		! opls_140_ETO	opls_135_ETO	opls_157_ETO	opls_140_ETO
+D	C	G	D	-0.150000	3	180.0		! opls_140_ETO	opls_135_ETO	opls_157_ETO	opls_140_ETO
+D	C	G	D	0.000000	4	0.0		! opls_140_ETO	opls_135_ETO	opls_157_ETO	opls_140_ETO
+D	C	G	D	0.000000	5	180.0		! opls_140_ETO	opls_135_ETO	opls_157_ETO	opls_140_ETO
+E	G	C	D	0.468000	0	90.0		! opls_154_ETO	opls_157_ETO	opls_135_ETO	opls_140_ETO
+E	G	C	D	-0.000001	1	180.0		! opls_154_ETO	opls_157_ETO	opls_135_ETO	opls_140_ETO
+E	G	C	D	0.000000	2	0.0		! opls_154_ETO	opls_157_ETO	opls_135_ETO	opls_140_ETO
+E	G	C	D	-0.234000	3	180.0		! opls_154_ETO	opls_157_ETO	opls_135_ETO	opls_140_ETO
+E	G	C	D	0.000000	4	0.0		! opls_154_ETO	opls_157_ETO	opls_135_ETO	opls_140_ETO
+E	G	C	D	0.000000	5	180.0		! opls_154_ETO	opls_157_ETO	opls_135_ETO	opls_140_ETO
+! RB-torsion to CHARMM dihedral conversion error is OK [error <= 10^(-10)]
+! Maximum( |(RB-torsion calc)-(CHARMM dihedral calc)| ) =  1.942890293094024e-15
+
+NONBONDED
+!
+!V(Lennard-Jones) = Eps,i,j[(Rmin,i,j/ri,j)**12 - 2(Rmin,i,j/ri,j)**6]
+!
+!atype 	ignored	epsilon 	Rmin/2 		ignored	eps,1-4		Rmin/2,1-4		  atom_type_per_utilized_FF
+C	0.00	-0.066000000	1.96430858454	0.00	-0.033000000	1.96430858454		! opls_135_ETO	opls_135_ETO
+G	0.00	-0.066000000	1.96430858454	0.00	-0.033000000	1.96430858454		! opls_157_ETO	opls_157_ETO
+E	0.00	-0.170000000	1.75104079536	0.00	-0.085000000	1.75104079536		! opls_154_ETO	opls_154_ETO
+D	0.00	-0.030000000	1.40307756039	0.00	-0.015000000	1.40307756039		! opls_140_ETO	opls_140_ETO
+F	0.00	-0.000000000	5.61231024155	0.00	-0.000000000	5.61231024155		! opls_155_ETO	opls_155_ETO
+B	0.00	-0.155377629	1.77663293006	0.00	-0.077688815	1.77663293006		! o_spce_H2O	o_spce_H2O
+A	0.00	-0.000000000	0.00000000000	0.00	-0.000000000	0.00000000000		! h_spce_H2O	h_spce_H2O
+
+END

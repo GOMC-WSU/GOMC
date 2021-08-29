@@ -173,26 +173,38 @@ bool Simulation::RecalculateAndCheck(void)
       double Simulation::GetSystemEnergy(void){
         return system->potential.Total();
       }
-      Coordinates& Simulation::getCoordinates(void){
+      Coordinates& Simulation::GetCoordinates(void){
         return system->coordinates;
       }
-      COM& Simulation::getCOMs(void){
+      COM& Simulation::GetCOMs(void){
         return system->com;
       }
-      CellList& Simulation::getCellList(void){
+      CellList& Simulation::GetCellList(void){
         return system->cellList;
       }
     #if ENSEMBLE == NPT
         void Simulation::SetGlobalVolumes(int worldRank){
           std::cout << "I (" << worldRank << ") think my volume is " 
-            << getVolume(0) << std::endl;
-          PTUtils->SetGlobalVolumes(worldRank, getVolume(0));
+            << GetVolume(0) << std::endl;
+          PTUtils->SetGlobalVolumes(worldRank, GetVolume(0));
            std::cout << "My (" << worldRank << ") volume is now " 
-            << getVolume(0) << std::endl;
+            << GetVolume(0) << std::endl;
         }
 
-        double Simulation::getVolume(int box){
+        double Simulation::GetVolume(int box){
           return system->boxDimRef.volume[box];
+        }
+    #elif ENSEMBLE == GCMC
+        void Simulation::SetGlobalChemPots(int worldRank){
+          std::cout << "I (" << worldRank << ") think my volume is " 
+            << GetChemPot(0) << std::endl;
+          PTUtils->SetGlobalChemPots(worldRank, *system, *staticValues);
+           std::cout << "My (" << worldRank << ") volume is now " 
+            << GetChemPot(0) << std::endl;
+        }
+
+        double Simulation::GetChemPot(int kind){
+          return staticValues->mol.kinds[kind].chemPot;
         }
     #endif
       void Simulation::ExchangeReplicas(int worldRank){

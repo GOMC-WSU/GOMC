@@ -98,6 +98,10 @@ public:
 
 #if ENSEMBLE == NPT
   void SetGlobalVolumes(int worldRank, double global_volumes_arg);
+#elif ENSEMBLE == GCMC
+  void SetGlobalChemPots(int worldRank, System & sysRef, StaticVals & statVRef);
+  void SetGlobalNumberOfMolecules(int worldRank, System & sysRef, StaticVals & statVRef);
+
 #endif
 
 #endif

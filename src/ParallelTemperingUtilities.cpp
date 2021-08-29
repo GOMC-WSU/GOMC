@@ -1362,6 +1362,33 @@ void ParallelTemperingUtilities::print_allswitchind(FILE* fplog, int n, const st
       std::cout << global_volumes[0] << " " << global_volumes[1] << std::endl;
 
   }
+
+#elif ENSEMBLE == GCMC
+  void ParallelTemperingUtilities::SetGlobalChemPots(int worldRank, System & sysRef, StaticVals & statVRef){
+
+    int numberOfTests = 2;
+    //std::memset(&global_chempots[0], 0, numberOfTests * sizeof(double));
+    //std::cout << global_chempots[0] << " " << global_chempots[1] << std::endl;
+    for (int kind = 0; kind < statVRef.mol.kindsCount; ++kind)
+      global_chempots[worldRank][kind] = statVRef.mol.kinds[kind].chemPot;
+    //std::cout << global_chempots[0] << " " << global_chempots[1] << std::endl;
+
+    MPI_Allreduce(MPI_IN_PLACE, &global_chempots[0], numberOfTests, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    //std::cout << global_chempots[0] << " " << global_chempots[1] << std::endl;
+
+  }
+  void ParallelTemperingUtilities::SetGlobalNumberOfMolecules(int worldRank, System & sysRef, StaticVals & statVRef){
+    int numberOfTests = 2;
+    std::memset(&global_number_of_molecules[0], 0, numberOfTests * sizeof(uint));
+    //std::cout << global_chempots[0] << " " << global_chempots[1] << std::endl;
+    for (uint box = 0; box < BOX_TOTAL; ++box)
+      for (int kind = 0; kind < statVRef.mol.kindsCount; ++kind)
+        global_number_of_molecules[worldRank][kind] = sysRef.molLookupRef.NumKindInBox(kind, box);
+    //std::cout << global_chempots[0] << " " << global_chempots[1] << std::endl;
+    MPI_Allreduce(MPI_IN_PLACE, &global_number_of_molecules[0], numberOfTests, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
+    //std::cout << global_chempots[0] << " " << global_chempots[1] << std::endl;
+  }
+
 #endif
 
   void ParallelTemperingUtilities::forceExchange(int worldRank, System & sysRef, const StaticVals & statVRef){
