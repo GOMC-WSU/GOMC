@@ -83,7 +83,7 @@ ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& mul
 #if ENSEMBLE != GEMC
   global_energies.resize(ms->worldSize, 0.0);
 #else
-  global_energies.resize(2, std::vector<double>(ms->worldSize, 0.0));
+  global_energies.resize(BOX_TOTAL, std::vector<double>(ms->worldSize, 0.0));
 #endif
   global_betas.resize(ms->worldSize, 0.0);
 #if ENSEMBLE == NPT

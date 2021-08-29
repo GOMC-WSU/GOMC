@@ -46,6 +46,8 @@ public:
     delete[] permutedMoleculeIndices;
   }
 
+ MoleculeLookup& operator=(const MoleculeLookup & rhs);
+
   //Initialize this object to be consistent with Molecules mols
   void Init(Molecules const& mols, const pdb_setup::Atoms& atomData,
             Forcefield &ff, bool restartFromCheckpoint);

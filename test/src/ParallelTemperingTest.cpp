@@ -148,6 +148,9 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
       std::cout << worldRank << "something weird happened. " << std::endl;
     }
   #elif ENSEMBLE == GCMC
+    std::vector<uint> originalNumberOfMolecules;
+    std::vector<uint> otherNumberOfMolecules;
+    std::vector<uint> shouldBeOriginalNumberOfMolecules;
     if(worldRank == 0){
       sim = new Simulation("test/input/ParallelTempering/GCMC/noewald/temp_300/repl0.conf", &ms);
     } else if(worldRank == 1){
@@ -162,7 +165,12 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
     sim->SetGlobalVolumes(worldRank);
     originalVolume = sim->GetVolume(0);
   std::cout << "\n\nEnsemble is NPT\n\n" << std::endl;
+  #elif ENSEMBLE == GCMC
+  sim->SetGlobalNumberOfMolecules(worldRank);
+  sim->GetNumberOfMolecules(originalNumberOfMolecules);
+  std::cout << "\n\nEnsemble is GCMC\n\n" << std::endl;
   #endif
+
   Coordinates originalCoords = sim->GetCoordinates();
   COM originalCOM = sim->GetCOMs();
   //CellList originalCellList = sim->GetCellList();
@@ -178,21 +186,30 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
   #if ENSEMBLE == NPT
     sim->SetGlobalVolumes(worldRank);
     otherVolume = sim->GetVolume(0);
+  #elif ENSEMBLE == GCMC
+  sim->SetGlobalNumberOfMolecules(worldRank);
+  sim->GetNumberOfMolecules(otherNumberOfMolecules);
+  std::cout << "\n\nEnsemble is GCMC\n\n" << std::endl;
   #endif
-
   ASSERT_NE(originalCoords, otherCoords);
   ASSERT_NE(originalCOM, otherCOM);
   //ASSERT_NE(originalCellList, otherCellList);
   ASSERT_NE(originalEnergy, otherEnergy);
- #if ENSEMBLE == NPT
+  #if ENSEMBLE == NPT
   ASSERT_NE(originalVolume, otherVolume);
+  #elif ENSEMBLE == GCMC
+  ASSERT_NE(originalNumberOfMolecules, otherNumberOfMolecules);
   #endif
-  
+
   sim->ExchangeReplicas(worldRank);  
 
   #if ENSEMBLE == NPT
     sim->SetGlobalVolumes(worldRank);
     shouldBeOriginalVol = sim->GetVolume(0);
+  #elif ENSEMBLE == GCMC
+  sim->SetGlobalNumberOfMolecules(worldRank);
+  sim->GetNumberOfMolecules(shouldBeOriginalNumberOfMolecules);
+  std::cout << "\n\nEnsemble is GCMC\n\n" << std::endl;
   #endif
 
   Coordinates shouldBeOriginalCoords = sim->GetCoordinates();
@@ -204,8 +221,10 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
   EXPECT_EQ(originalCOM, shouldBeOriginalCOM);
   //EXPECT_EQ(originalCellList, shouldBeOriginalCellList);
   EXPECT_EQ(originalEnergy, shouldBeOriginalEnergy);
- #if ENSEMBLE == NPT
+  #if ENSEMBLE == NPT
   EXPECT_EQ(originalVolume, shouldBeOriginalVol);
+  #elif ENSEMBLE == GCMC
+  EXPECT_EQ(originalNumberOfMolecules, shouldBeOriginalNumberOfMolecules);
   #endif
 }
 

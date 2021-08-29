@@ -96,12 +96,12 @@ public:
   /* Assumes only two replicas exist */
   void forceExchange(int worldRank, System & sysRef, const StaticVals & statVRef);
 
-#if ENSEMBLE == NPT
-  void SetGlobalVolumes(int worldRank, double global_volumes_arg);
-#elif ENSEMBLE == GCMC
-  void SetGlobalChemPots(int worldRank, System & sysRef, StaticVals & statVRef);
-  void SetGlobalNumberOfMolecules(int worldRank, System & sysRef, StaticVals & statVRef);
-#endif
+  #if ENSEMBLE == NPT
+    void SetGlobalVolumes(int worldRank, double global_volumes_arg);
+  #elif ENSEMBLE == GCMC
+    void SetGlobalChemPots(int worldRank, System & sysRef, StaticVals & statVRef);
+    void SetGlobalNumberOfMolecules(int worldRank, System & sysRef, StaticVals & statVRef);
+  #endif
 
 #endif
 
@@ -117,9 +117,6 @@ private:
   // For volume
   #if ENSEMBLE == NPT
   const double PRESSURE;
-  #elif ENSEMBLE == GCMC
-  std::vector< std::vector<double> > global_chempots;
-  std::vector< std::vector<uint> > global_number_of_molecules;
   #endif
   //Coordinates & coordRef;
   //COM & comRef;
@@ -148,17 +145,19 @@ private:
   Coordinates newMolsPos;
   COM newCOMs;
   bool isOrth;
-  BoxDimensions newDim;
-  BoxDimensionsNonOrth newDimNonOrth;
 
-#if ENSEMBLE != GEMC
-  std::vector<double> global_energies;
-#else
-  std::vector<std::vector <double> > global_energies;
-#endif
+  #if ENSEMBLE != GEMC
+    std::vector<double> global_energies;
+  #else
+    std::vector<std::vector <double> > global_energies;
+  #endif
+
   #if ENSEMBLE == NPT
   std::vector<double> global_pressures;
   std::vector<double> global_volumes;
+  #elif ENSEMBLE == GCMC
+  std::vector< std::vector<double> > global_chempots;
+  std::vector< std::vector<uint> > global_number_of_molecules;
   #endif
 
 #endif
