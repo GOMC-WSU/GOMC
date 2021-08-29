@@ -137,6 +137,7 @@ else
     then
         ENSEMBLES+="GOMC_NVT_MPI_Test "
 		ENSEMBLES+="GOMC_NPT_MPI_Test "
+		ENSEMBLES+="GOMC_GCMC_MPI_Test "
         CMAKEARGS+="-DGOMC_GTEST_MPI=on "
     else
         ENSEMBLES+="GOMC_Test"

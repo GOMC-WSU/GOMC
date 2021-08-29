@@ -1379,7 +1379,8 @@ void ParallelTemperingUtilities::print_allswitchind(FILE* fplog, int n, const st
   }
   void ParallelTemperingUtilities::SetGlobalNumberOfMolecules(int worldRank, System & sysRef, StaticVals & statVRef){
     int numberOfTests = 2;
-    std::memset(&global_number_of_molecules[0], 0, numberOfTests * sizeof(uint));
+    for (int replica = 0; replica < ms->worldSize; ++replica)
+      std::fill(global_number_of_molecules[replica].begin(), global_number_of_molecules[replica].end(), 0);
     //std::cout << global_chempots[0] << " " << global_chempots[1] << std::endl;
     for (uint box = 0; box < BOX_TOTAL; ++box)
       for (int kind = 0; kind < statVRef.mol.kindsCount; ++kind)

@@ -37,6 +37,8 @@ public:
     #elif ENSEMBLE == GCMC
       double GetChemPot(int box);
       void SetGlobalChemPots(int worldRank);
+      void GetNumberOfMolecules(std::vector<uint> & moleculeNumbers);
+      void SetGlobalNumberOfMolecules(int worldRank);
     #endif
   #endif
 

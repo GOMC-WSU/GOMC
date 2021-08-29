@@ -196,7 +196,7 @@ bool Simulation::RecalculateAndCheck(void)
         }
     #elif ENSEMBLE == GCMC
         void Simulation::SetGlobalChemPots(int worldRank){
-          std::cout << "I (" << worldRank << ") think my volume is " 
+          std::cout << "I (" << worldRank << ") think my chem pots are " 
             << GetChemPot(0) << std::endl;
           PTUtils->SetGlobalChemPots(worldRank, *system, *staticValues);
            std::cout << "My (" << worldRank << ") volume is now " 
@@ -205,6 +205,19 @@ bool Simulation::RecalculateAndCheck(void)
 
         double Simulation::GetChemPot(int kind){
           return staticValues->mol.kinds[kind].chemPot;
+        }
+        void Simulation::SetGlobalNumberOfMolecules(int worldRank){
+          std::cout << "I (" << worldRank << ") think my molecule numbers are " 
+            << GetChemPot(0) << std::endl;
+          PTUtils->SetGlobalNumberOfMolecules(worldRank, *system, *staticValues);
+           std::cout << "My (" << worldRank << ") volume is now " 
+            << GetChemPot(0) << std::endl;
+        }
+
+        void Simulation::GetNumberOfMolecules(std::vector<uint> & moleculeNumbers){
+          for (uint box = 0; box < BOX_TOTAL; ++box)
+            for (int kind = 0; kind < staticValues->mol.kindsCount; ++kind)
+              moleculeNumbers.push_back(system->molLookupRef.NumKindInBox(kind, box));    
         }
     #endif
       void Simulation::ExchangeReplicas(int worldRank){

@@ -149,9 +149,9 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
     }
   #elif ENSEMBLE == GCMC
     if(worldRank == 0){
-      sim = new Simulation("test/input/ParallelTempering/GCMC/noewald/temp_530.00/repl0.conf", &ms);
+      sim = new Simulation("test/input/ParallelTempering/GCMC/noewald/temp_300/repl0.conf", &ms);
     } else if(worldRank == 1){
-      sim = new Simulation("test/input/ParallelTempering/GCMC/noewald/temp_600.00/repl1.conf", &ms);
+      sim = new Simulation("test/input/ParallelTempering/GCMC/noewald/temp_400/repl1.conf", &ms);
     } else {
       std::cout << worldRank << "something weird happened. " << std::endl;
     }
@@ -237,6 +237,7 @@ TEST(ParallelTemperingTest, FullSwapEwald) {  /// Then you can create tests as u
       std::cout << worldRank << "something weird happened. " << std::endl;
     }
   #elif ENSEMBLE == NPT
+    double originalVolume, otherVolume, shouldBeOriginalVol;
     if(worldRank == 0){
       sim = new Simulation("test/input/ParallelTempering/NPT/ewald/temp_530.00/repl0.conf", &ms);
     } else if(worldRank == 1){
@@ -245,19 +246,25 @@ TEST(ParallelTemperingTest, FullSwapEwald) {  /// Then you can create tests as u
       std::cout << worldRank << "something weird happened. " << std::endl;
     }
   #elif ENSEMBLE == GCMC
+    std::vector<uint> originalNumberOfMolecules;
+    std::vector<uint> otherNumberOfMolecules;
+    std::vector<uint> shouldBeOriginalNumberOfMolecules;
     if(worldRank == 0){
-      sim = new Simulation("test/input/ParallelTempering/GCMC/ewald/temp_530.00/repl0.conf", &ms);
+      sim = new Simulation("test/input/ParallelTempering/GCMC/ewald/temp_300/repl0.conf", &ms);
     } else if(worldRank == 1){
-      sim = new Simulation("test/input/ParallelTempering/GCMC/ewald/temp_600.00/repl1.conf", &ms);
+      sim = new Simulation("test/input/ParallelTempering/GCMC/ewald/temp_400/repl1.conf", &ms);
     } else {
       std::cout << worldRank << "something weird happened. " << std::endl;
     }
   #endif
-  double originalVolume, otherVolume, shouldBeOriginalVol;
   #if ENSEMBLE == NPT
-    sim->SetGlobalVolumes(worldRank);
-    originalVolume = sim->GetVolume(0);
+  sim->SetGlobalVolumes(worldRank);
+  originalVolume = sim->GetVolume(0);
   std::cout << "\n\nEnsemble is NPT\n\n" << std::endl;
+  #elif ENSEMBLE == GCMC
+  sim->SetGlobalNumberOfMolecules(worldRank);
+  sim->GetNumberOfMolecules(originalNumberOfMolecules);
+  std::cout << "\n\nEnsemble is GCMC\n\n" << std::endl;
   #endif
   Coordinates originalCoords = sim->GetCoordinates();
   COM originalCOM = sim->GetCOMs();
@@ -274,21 +281,30 @@ TEST(ParallelTemperingTest, FullSwapEwald) {  /// Then you can create tests as u
   #if ENSEMBLE == NPT
     sim->SetGlobalVolumes(worldRank);
     otherVolume = sim->GetVolume(0);
+  #elif ENSEMBLE == GCMC
+  sim->SetGlobalNumberOfMolecules(worldRank);
+  sim->GetNumberOfMolecules(otherNumberOfMolecules);
+  std::cout << "\n\nEnsemble is GCMC\n\n" << std::endl;
   #endif
 
   ASSERT_NE(originalCoords, otherCoords);
   ASSERT_NE(originalCOM, otherCOM);
   //ASSERT_NE(originalCellList, otherCellList);
   ASSERT_NE(originalEnergy, otherEnergy);
- #if ENSEMBLE == NPT
+  #if ENSEMBLE == NPT
   ASSERT_NE(originalVolume, otherVolume);
+  #elif ENSEMBLE == GCMC
+  ASSERT_NE(originalNumberOfMolecules, otherNumberOfMolecules);
   #endif
-  
   sim->ExchangeReplicas(worldRank);  
 
   #if ENSEMBLE == NPT
     sim->SetGlobalVolumes(worldRank);
     shouldBeOriginalVol = sim->GetVolume(0);
+  #elif ENSEMBLE == GCMC
+  sim->SetGlobalNumberOfMolecules(worldRank);
+  sim->GetNumberOfMolecules(shouldBeOriginalNumberOfMolecules);
+  std::cout << "\n\nEnsemble is GCMC\n\n" << std::endl;
   #endif
 
   Coordinates shouldBeOriginalCoords = sim->GetCoordinates();
@@ -300,8 +316,10 @@ TEST(ParallelTemperingTest, FullSwapEwald) {  /// Then you can create tests as u
   EXPECT_EQ(originalCOM, shouldBeOriginalCOM);
   //EXPECT_EQ(originalCellList, shouldBeOriginalCellList);
   EXPECT_EQ(originalEnergy, shouldBeOriginalEnergy);
- #if ENSEMBLE == NPT
+  #if ENSEMBLE == NPT
   EXPECT_EQ(originalVolume, shouldBeOriginalVol);
+  #elif ENSEMBLE == GCMC
+  EXPECT_EQ(originalNumberOfMolecules, shouldBeOriginalNumberOfMolecules);
   #endif
 }
 

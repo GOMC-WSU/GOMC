@@ -101,7 +101,6 @@ public:
 #elif ENSEMBLE == GCMC
   void SetGlobalChemPots(int worldRank, System & sysRef, StaticVals & statVRef);
   void SetGlobalNumberOfMolecules(int worldRank, System & sysRef, StaticVals & statVRef);
-
 #endif
 
 #endif

@@ -24,7 +24,22 @@ function(add_NPT_mpi_test name no_mpi_proc)
   #set(test_parameters " ${MPIEXEC_NUMPROC_FLAG} ${no_mpi_proc} ./${name}")
   #add_test(NAME ${name} COMMAND "${MPIEXEC} ${test_parameters}")
   add_test(NAME ${name} COMMAND ParallelTemperingTest)
-endfunction(add_mpi_test)
+endfunction(add_NPT_mpi_test)
+
+function(add_GCMC_mpi_test name no_mpi_proc)
+  #Grand Canonical Monte Carlo
+  set(GC_flags "-DENSEMBLE=3")
+      # My test are all called name_test.cpp
+  add_executable(${name} ${GOMCMPISources} ${GOMCMPIHeaders} ${libHeaders} ${libSources} ${MPITestSources})
+  # Make sure to link MPI here too:
+  target_link_libraries(${name} ${MPI_LIBRARIES} gtest_main)
+  set_target_properties(${name} PROPERTIES 
+      COMPILE_FLAGS "${GC_flags}")
+  #set(test_parameters " ${MPIEXEC_NUMPROC_FLAG} ${no_mpi_proc} ./${name}")
+  #add_test(NAME ${name} COMMAND "${MPIEXEC} ${test_parameters}")
+  add_test(NAME ${name} COMMAND ParallelTemperingTest)
+endfunction(add_GCMC_mpi_test)
+
 
 # Download and unpack googletest at configure time
 configure_file(${PROJECT_SOURCE_DIR}/test/CMakeLists.txt.in googletest-download/CMakeLists.txt)
@@ -64,6 +79,7 @@ include(test/FileList.cmake)
 if(GOMC_GTEST_MPI)
   add_NVT_mpi_test(GOMC_NVT_MPI_Test 2)
   add_NPT_mpi_test(GOMC_NPT_MPI_Test 2)
+  add_GCMC_mpi_test(GOMC_GCMC_MPI_Test 2)
   set(GOMC_GTEST_MPI 1)
 endif()
 
