@@ -766,11 +766,7 @@ void TargetedSwap::PrintTargetedSwapInfo()
               tsp.subVolumeIdx);
       printf("%-40s %d \n",       "      SubVolume Box:", b);
       if (tsp.calcSubVolCenter) {
-<<<<<<< 3a8246d639fe64bf97df426a1a753b1350ab1813
-        printf("%-40s Using %lu defined atom indexes \n", "      Calculating subVolume center:",
-=======
         printf("%-40s Using %lu defined atom index/es \n", "      Calculating subVolume center:",
->>>>>>> making and targeted swap and checkpoint
                 tsp.atomList.size());
         int max = *std::max_element(tsp.atomList.begin(), tsp.atomList.end());
         if(max >= (int) coordCurrRef.Count()) {
@@ -915,7 +911,7 @@ template <bool pbcX, bool pbcY, bool pbcZ>
 bool TargetedSwap::SearchCavity_GC(std::vector<uint> &mol, const XYZ& center,
                     const XYZ& cavDim, const uint box, const uint kind)
 {
-  int *particleMol = molLookRef.molIndex;
+  int *particleMol = molLookRef.molIndex.data();
   uint molKind, molIndex;
   XYZ halfDim = cavDim * 0.5;
   double maxLength = halfDim.Max();
@@ -984,8 +980,8 @@ bool TargetedSwap::SearchCavity_AC(std::vector<uint> &mol, const XYZ& center,
                     const XYZ& cavDim, const uint box, const uint kind,
                     const int atomIdx)
 {
-  int *particleMol = molLookRef.molIndex;
-  int *particleIndex = molLookRef.atomIndex;
+  int *particleMol = molLookRef.molIndex.data();
+  int *particleIndex = molLookRef.atomIndex.data();
   uint molKind, molIndex;
   int aIdx;
   XYZ halfDim = cavDim * 0.5;

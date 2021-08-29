@@ -32,7 +32,7 @@ void MoleculeLookup::Init(const Molecules& mols,
   this->restartFromCheckpoint = restartFromCheckpoint;
 
   numKinds = mols.GetKindsCount();
-
+/*
   molLookup = new uint[mols.count];
   molLookupCount = mols.count;
   // beta has same size as total number of atoms
@@ -41,10 +41,20 @@ void MoleculeLookup::Init(const Molecules& mols,
   molKind = new int[atomData.beta.size()];
   atomKind = new int[atomData.beta.size()];
   atomCharge = new double[atomData.beta.size()];
+*/
+  molLookup.resize(mols.count);
+  molLookupCount = mols.count;
+  // beta has same size as total number of atoms
+  molIndex.resize(atomData.beta.size());
+  atomIndex.resize(atomData.beta.size());
+  molKind.resize(atomData.beta.size());
+  atomKind.resize(atomData.beta.size());
+  atomCharge.resize(atomData.beta.size());
+  
 
   //+1 to store end value
-  boxAndKindStart = new uint[numKinds * BOX_TOTAL + 1];
-  boxAndKindSwappableCounts = new uint[numKinds * BOX_TOTAL];
+  boxAndKindStart.resize(numKinds * BOX_TOTAL + 1);
+  boxAndKindSwappableCounts.resize(numKinds * BOX_TOTAL);
 
   boxAndKindStartCount = numKinds * BOX_TOTAL + 1;
 
@@ -106,10 +116,10 @@ void MoleculeLookup::Init(const Molecules& mols,
   }
 
 
-  uint* progress = molLookup;
+  uint* progress = &molLookup[0];
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     for (uint k = 0; k < numKinds; ++k) {
-      boxAndKindStart[b * numKinds + k] = progress - molLookup;
+      boxAndKindStart[b * numKinds + k] = progress - &molLookup[0];
       progress = std::copy(indexVector[b][k].begin(),
                            indexVector[b][k].end(), progress);
     }
@@ -185,9 +195,9 @@ bool MoleculeLookup::ShiftMolBox(const uint mol, const uint currentBox,
                                  const uint intoBox, const uint kind)
 {
   uint index = std::find(
-                 molLookup + boxAndKindStart[currentBox * numKinds + kind],
-                 molLookup + boxAndKindStart[currentBox * numKinds + kind + 1], mol)
-               - molLookup;
+                 molLookup.begin() + boxAndKindStart[currentBox * numKinds + kind],
+                 molLookup.begin() + boxAndKindStart[currentBox * numKinds + kind + 1], mol)
+               - molLookup.begin();
   assert(index != boxAndKindStart[currentBox * numKinds + kind + 1]);
   assert(molLookup[index] == mol);
   Shift(index, currentBox, intoBox, kind);
@@ -277,16 +287,18 @@ MoleculeLookup::box_iterator MoleculeLookup::box_iterator::operator++(int)
 }
 
 
-MoleculeLookup::box_iterator::box_iterator(uint* _pLook, uint* _pSec)
+MoleculeLookup::box_iterator::box_iterator(const uint* _pLook, const uint* _pSec)
   : pIt(_pLook + * _pSec) {}
 
 
 MoleculeLookup::box_iterator MoleculeLookup::BoxBegin(const uint box) const
 {
-  return box_iterator(molLookup, boxAndKindStart + box * numKinds);
+  return box_iterator(&molLookup[0], &boxAndKindStart[box * numKinds]);
 }
 
 MoleculeLookup::box_iterator MoleculeLookup::BoxEnd(const uint box) const
 {
-  return box_iterator(molLookup, boxAndKindStart + (box + 1) * numKinds);
+  return box_iterator(&molLookup[0], &boxAndKindStart[(box + 1)* numKinds]);
 }
+
+
