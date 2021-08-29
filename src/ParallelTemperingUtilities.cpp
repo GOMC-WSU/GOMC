@@ -66,6 +66,8 @@ ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& mul
   #if ENSEMBLE == NPT
   ,PRESSURE(statV.pressure),
   isOrth(statV.isOrthogonal)
+  #elif ENSEMBLE == GCMC
+
   #endif
 {
 
@@ -78,7 +80,7 @@ ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& mul
 
   }
 
-#if BOX_TOTAL == 1
+#if ENSEMBLE != GEMC
   global_energies.resize(ms->worldSize, 0.0);
 #else
   global_energies.resize(2, std::vector<double>(ms->worldSize, 0.0));
@@ -87,6 +89,9 @@ ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& mul
 #if ENSEMBLE == NPT
   global_pressures.resize(ms->worldSize, 0.0);
   global_volumes.resize(ms->worldSize, 0.0);
+#elif ENSEMBLE == GCMC
+  global_chempots.resize(ms->worldSize, std::vector<double>(statVRef.mol.kindsCount, 0));
+  global_number_of_molecules.resize(ms->worldSize, std::vector<uint>(statVRef.mol.kindsCount, 0));
 #endif
   ind.resize(ms->worldSize, 0);
   pind.resize(ms->worldSize, 0);
@@ -112,6 +117,12 @@ ParallelTemperingUtilities::ParallelTemperingUtilities(MultiSim const*const& mul
   MPI_Allreduce(MPI_IN_PLACE, &global_pressures[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
                 MPI_COMM_WORLD);
 
+#elif ENSEMBLE == GCMC
+  for (int kind = 0; statVRef.mol.kindsCount; ++kind){
+    global_chempots[ms->worldRank][kind] = statVRef.mol.kinds[kind].chemPot;
+  }
+  MPI_Allreduce(MPI_IN_PLACE, &global_chempots[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
+                MPI_COMM_WORLD);
 #endif
 
   for (int i = 0; i < ms->worldSize; i++) {
@@ -137,7 +148,7 @@ for (int i = 0; i < ms->worldSize; i++) {
   pind[i] = ind[i];
 }
 
-#if BOX_TOTAL == 1
+#if ENSEMBLE != GEMC
   global_energies[ms->worldRank] = sysPotRef.totalEnergy.total;
   MPI_Allreduce(MPI_IN_PLACE, &global_energies[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
                 MPI_COMM_WORLD);
@@ -529,7 +540,7 @@ double ParallelTemperingUtilities::calc_delta(FILE* fplog,
                                               int b,
                                               int ap,
                                               int bp){
-  double   ediff, dpV, delta = 0;
+  double   ediff, dpV, dMuN, delta = 0;
   ediff = global_energies[b] - global_energies[a];
   delta = -(global_betas[bp] - global_betas[ap]) * ediff;
   if (bPrint)
@@ -545,6 +556,9 @@ double ParallelTemperingUtilities::calc_delta(FILE* fplog,
         fprintf(fplog, "  dpV = %10.3e  d = %10.3e\n", dpV, delta + dpV);
     }
     delta += dpV;
+  #elif ENSEMBLE == GCMC
+    //for (int kind = 0; i < )
+    dMuN += 0;
   #endif
   return delta;
 }
@@ -1348,6 +1362,8 @@ void ParallelTemperingUtilities::print_allswitchind(FILE* fplog, int n, const st
       std::cout << global_volumes[0] << " " << global_volumes[1] << std::endl;
 
   }
+#endif
+
   void ParallelTemperingUtilities::forceExchange(int worldRank, System & sysRef, const StaticVals & statVRef){
     int exchangePartner;
     if(worldRank == 0){
@@ -1356,25 +1372,7 @@ void ParallelTemperingUtilities::print_allswitchind(FILE* fplog, int n, const st
       exchangePartner = 0;
     }
     std::cout << "entered fE" << std::endl;
-    /*
-    if(isOrth) {
-      newDim = boxDimRef;
-      for (int b = 0; b < BOX_TOTAL; b++) {
-        newDim.SetVolume(b, global_volumes[exchangePartner]);
-      }
-    } else {
-      newDimNonOrth = *((BoxDimensionsNonOrth*)(&boxDimRef));
-      for (int b = 0; b < BOX_TOTAL; b++) {
-        newDimNonOrth.SetVolume(b, global_volumes[exchangePartner]);
-      }
-    }
-    std::cout << "Set newDim vol" << std::endl;
-
-    if(isOrth)
-      boxDimRef = newDim;
-    else
-      *((BoxDimensionsNonOrth*)(&boxDimRef)) = newDimNonOrth;
-*/
+    #if ENSEMBLE == NPT
     for (int b = 0; b < BOX_TOTAL; b++) {
       std::cout << "overwriting my vol " << sysRef.boxDimRef.volume[b] <<
         " with other vol " << global_volumes[exchangePartner] << std::endl;
@@ -1382,7 +1380,7 @@ void ParallelTemperingUtilities::print_allswitchind(FILE* fplog, int n, const st
         std::cout << "changed my (" << worldRank << ") volume to " << sysRef.boxDimRef.volume[b] << std::endl;
 
     }
-
+    #endif
     newMolsPos = sysRef.coordinates;
     newCOMs = sysRef.com;
 
@@ -1396,29 +1394,6 @@ void ParallelTemperingUtilities::print_allswitchind(FILE* fplog, int n, const st
     ReinitializeReplicas(sysRef, statVRef);
     std::cout << "reinitted" << std::endl;
   }
-#else
-void ParallelTemperingUtilities::forceExchange(int worldRank, System & sysRef, const StaticVals & statVRef){
-      std::cout << "called wrong fE" << std::endl;
-
-  int exchangePartner;
-  if(worldRank == 0){
-    exchangePartner = 1;
-  } else {
-    exchangePartner = 0;
-  }
-
-  newMolsPos = sysRef.coordRef;
-  newCOMs = sysRef.comRef;
-
-  replcomm.exchangeXYZArrayNonBlocking(&newMolsPos, exchangePartner);
-  replcomm.exchangeXYZArrayNonBlocking(&newCOMs, exchangePartner);
-
-  swap(sysRef.coordRef, newMolsPos);
-  swap(sysRef.comRef, newCOMs);
-  
-  ReinitializeReplicas(sysRef, statVRef);
-}
-#endif
 
 #endif
 

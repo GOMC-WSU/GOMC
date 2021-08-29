@@ -194,19 +194,10 @@ bool Simulation::RecalculateAndCheck(void)
         double Simulation::getVolume(int box){
           return system->boxDimRef.volume[box];
         }
-
+    #endif
       void Simulation::ExchangeReplicas(int worldRank){
         std::cout << "calling fe" << std::endl;
         PTUtils->forceExchange(worldRank, *system, *staticValues);
         std::cout << "returned from fe" << std::endl;
       }
-    #else
-      void Simulation::ExchangeReplicas(int worldRank){
-                std::cout << "calling wrong fe" << std::endl;
-
-        PTUtils->forceExchange(worldRank, system->coordinates, system->com);
-              std::cout << "returned from wrong fe" << std::endl;
-
-      }
-    #endif
   #endif

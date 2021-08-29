@@ -113,8 +113,10 @@ private:
   SystemPotential & sysPotRef;
   // For volume
   #if ENSEMBLE == NPT
-  //BoxDimensions & boxDimRef;
   const double PRESSURE;
+  #elif ENSEMBLE == GCMC
+  std::vector< std::vector<double> > global_chempots;
+  std::vector< std::vector<uint> > global_number_of_molecules;
   #endif
   //Coordinates & coordRef;
   //COM & comRef;
@@ -146,7 +148,7 @@ private:
   BoxDimensions newDim;
   BoxDimensionsNonOrth newDimNonOrth;
 
-#if BOX_TOTAL == 1
+#if ENSEMBLE != GEMC
   std::vector<double> global_energies;
 #else
   std::vector<std::vector <double> > global_energies;
