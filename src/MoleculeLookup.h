@@ -45,7 +45,12 @@ public:
     */
   }
 
- MoleculeLookup& operator=(const MoleculeLookup & rhs);
+  MoleculeLookup& operator=(const MoleculeLookup & rhs);
+  bool operator==(const MoleculeLookup & rhs);
+
+
+  static void swap(MoleculeLookup& oldMolLookup, MoleculeLookup& newMolLookup);
+
 
   //Initialize this object to be consistent with Molecules mols
   void Init(Molecules const& mols, const pdb_setup::Atoms& atomData,

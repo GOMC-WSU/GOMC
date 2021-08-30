@@ -19,8 +19,73 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "VariablesCUDA.cuh"
 #endif
 
- MoleculeLookup& MoleculeLookup::operator=(const MoleculeLookup & rhs){
+MoleculeLookup& MoleculeLookup::operator=(const MoleculeLookup & rhs){
+  molLookup = rhs.molLookup;
+  molLookupCount = rhs.molLookupCount;
+  //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
+  //molLookup
+  //index [BOX_TOTAL * kind + box + 1] is the element after the end
+  //of that kind/box
+  boxAndKindStart = rhs.boxAndKindStart;
+  boxAndKindSwappableCounts = rhs.boxAndKindSwappableCounts;
+  boxAndKindStartCount = rhs.boxAndKindStartCount;
+  numKinds = rhs.numKinds;
+  fixedMolecule = rhs.fixedMolecule;
+  canSwapKind = rhs.canSwapKind; //Kinds that can move intra and inter box
+  canMoveKind = rhs.canMoveKind; //Kinds that can move intra box only
+  molIndex = rhs.molIndex; // stores the molecule index for global atom index
+  atomIndex = rhs.atomIndex; // stores the local atom index for global atom index
+  molKind = rhs.molKind; // stores the molecule kind for global atom index
+  atomKind = rhs.atomKind; // stores the atom kind for global atom index
+  atomCharge = rhs.atomCharge; // stores the atom's charge for global atom index
 
+  return *this;
+
+}
+
+bool MoleculeLookup::operator==(const MoleculeLookup & rhs){
+  bool result;
+
+  result &= (molLookup == rhs.molLookup);
+  result &= (molLookupCount == rhs.molLookupCount);
+  //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
+  //molLookup
+  //index [BOX_TOTAL * kind + box + 1] is the element after the end
+  //of that kind/box
+  result &= (boxAndKindStart == rhs.boxAndKindStart);
+  result &= (boxAndKindSwappableCounts == rhs.boxAndKindSwappableCounts);
+  result &= (boxAndKindStartCount == rhs.boxAndKindStartCount);
+  result &= (numKinds == rhs.numKinds);
+  result &= (fixedMolecule == rhs.fixedMolecule);
+  result &= (canSwapKind == rhs.canSwapKind); //Kinds that can move intra and inter box
+  result &= (canMoveKind == rhs.canMoveKind); //Kinds that can move intra box only
+  result &= (molIndex == rhs.molIndex); // stores the molecule index for global atom index
+  result &= (atomIndex == rhs.atomIndex); // stores the local atom index for global atom index
+  result &= (molKind == rhs.molKind); // stores the molecule kind for global atom index
+  result &= (atomKind == rhs.atomKind); // stores the atom kind for global atom index
+  result &= (atomCharge == rhs.atomCharge); // stores the atom's charge for global atom index
+
+  return result;
+
+}
+
+void MoleculeLookup::swap(MoleculeLookup& oldMolLookup, MoleculeLookup& newMolLookup)
+{
+  using std::swap;
+  swap(oldMolLookup.atomCharge, newMolLookup.atomCharge);
+  swap(oldMolLookup.atomIndex, newMolLookup.atomIndex);
+  swap(oldMolLookup.atomKind, newMolLookup.atomKind);
+  swap(oldMolLookup.boxAndKindStart, newMolLookup.boxAndKindStart);
+  swap(oldMolLookup.boxAndKindStartCount, newMolLookup.boxAndKindStartCount);
+  swap(oldMolLookup.boxAndKindSwappableCounts, newMolLookup.boxAndKindSwappableCounts);
+  swap(oldMolLookup.canMoveKind, newMolLookup.canMoveKind);
+  swap(oldMolLookup.canSwapKind, newMolLookup.canSwapKind);
+  swap(oldMolLookup.fixedMolecule, newMolLookup.fixedMolecule);
+  swap(oldMolLookup.molIndex, newMolLookup.molIndex);
+  swap(oldMolLookup.molKind, newMolLookup.molKind);
+  swap(oldMolLookup.molLookup, newMolLookup.molLookup);
+  swap(oldMolLookup.molLookupCount, newMolLookup.molLookupCount);
+  swap(oldMolLookup.numKinds, newMolLookup.numKinds);
 }
 
 

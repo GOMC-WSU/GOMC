@@ -484,7 +484,7 @@ void ParallelTemperingUtilities::conductExchanges(int replicaID, Coordinates & c
 
 void ParallelTemperingUtilities::ReinitializeReplicas(System & sysRef, const StaticVals & statVRef){
   std::cout << "calling Grid all" << std::endl;
-  #if ENSEMBLE == NVT
+  #if ENSEMBLE == NVT 
   sysRef.cellList.GridAll(sysRef.boxDimRef, sysRef.coordinates, sysRef.molLookup);
   #else
   if(isOrth) {
@@ -1409,14 +1409,32 @@ void ParallelTemperingUtilities::print_allswitchind(FILE* fplog, int n, const st
 
     }
     #endif
+    std::cout << "copying molPos and com" << std::endl;
     newMolsPos = sysRef.coordinates;
     newCOMs = sysRef.com;
+    std::cout << "copying nml" << std::endl;
+
+    #if ENSEMBLE == GCMC
+    newMolLookup = sysRef.molLookupRef;
+    std::cout << "copied nml" << std::endl;
+    #endif
+
 
     replcomm.exchangeXYZArrayNonBlocking(&newMolsPos, exchangePartner);
     replcomm.exchangeXYZArrayNonBlocking(&newCOMs, exchangePartner);
+    #if ENSEMBLE == GCMC
+      std::cout << "exchanging nml" << std::endl;
+
+    replcomm.exchangeMolLookupNonBlocking(&sysRef.molLookupRef, &newMolLookup, exchangePartner);
+        std::cout << "exchanged nml" << std::endl;
+
+    #endif
 
     swap(sysRef.coordinates, newMolsPos);
     swap(sysRef.com, newCOMs);
+    #if ENSEMBLE == GCMC
+    MoleculeLookup::swap(sysRef.molLookup, newMolLookup);
+    #endif
     std::cout << "swapped" << std::endl;
 
     ReinitializeReplicas(sysRef, statVRef);

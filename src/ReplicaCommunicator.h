@@ -17,7 +17,7 @@ class ReplicaCommunicator{
   #if GOMC_LIB_MPI
     ReplicaCommunicator();
     void exchangeXYZArrayNonBlocking(XYZArray * myXYZArray, int exchangePartner);
-    void exchangeBoxDimensionsNonBlocking(BoxDimensions * myBoxDimensions, int exchangePartner);
+    void exchangeMolLookupNonBlocking(MoleculeLookup * newMolLookup, MoleculeLookup * oldMolLookup, int exchangePartner);
   #endif
 };
 

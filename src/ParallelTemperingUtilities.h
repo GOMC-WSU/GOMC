@@ -144,6 +144,7 @@ private:
   const StaticVals & statVRef;
   Coordinates newMolsPos;
   COM newCOMs;
+  MoleculeLookup newMolLookup;
   bool isOrth;
 
   #if ENSEMBLE != GEMC

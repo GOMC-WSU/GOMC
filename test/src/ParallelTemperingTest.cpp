@@ -166,7 +166,7 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
     originalVolume = sim->GetVolume(0);
   std::cout << "\n\nEnsemble is NPT\n\n" << std::endl;
   #elif ENSEMBLE == GCMC
-  sim->SetGlobalNumberOfMolecules(worldRank);
+  //sim->SetGlobalNumberOfMolecules(worldRank);
   sim->GetNumberOfMolecules(originalNumberOfMolecules);
   std::cout << "\n\nEnsemble is GCMC\n\n" << std::endl;
   #endif
@@ -187,7 +187,7 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
     sim->SetGlobalVolumes(worldRank);
     otherVolume = sim->GetVolume(0);
   #elif ENSEMBLE == GCMC
-  sim->SetGlobalNumberOfMolecules(worldRank);
+  //sim->SetGlobalNumberOfMolecules(worldRank);
   sim->GetNumberOfMolecules(otherNumberOfMolecules);
   std::cout << "\n\nEnsemble is GCMC\n\n" << std::endl;
   #endif
@@ -207,7 +207,7 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
     sim->SetGlobalVolumes(worldRank);
     shouldBeOriginalVol = sim->GetVolume(0);
   #elif ENSEMBLE == GCMC
-  sim->SetGlobalNumberOfMolecules(worldRank);
+  //sim->SetGlobalNumberOfMolecules(worldRank);
   sim->GetNumberOfMolecules(shouldBeOriginalNumberOfMolecules);
   std::cout << "\n\nEnsemble is GCMC\n\n" << std::endl;
   #endif
@@ -281,7 +281,7 @@ TEST(ParallelTemperingTest, FullSwapEwald) {  /// Then you can create tests as u
   originalVolume = sim->GetVolume(0);
   std::cout << "\n\nEnsemble is NPT\n\n" << std::endl;
   #elif ENSEMBLE == GCMC
-  sim->SetGlobalNumberOfMolecules(worldRank);
+  //sim->SetGlobalNumberOfMolecules(worldRank);
   sim->GetNumberOfMolecules(originalNumberOfMolecules);
   std::cout << "\n\nEnsemble is GCMC\n\n" << std::endl;
   #endif
@@ -301,7 +301,7 @@ TEST(ParallelTemperingTest, FullSwapEwald) {  /// Then you can create tests as u
     sim->SetGlobalVolumes(worldRank);
     otherVolume = sim->GetVolume(0);
   #elif ENSEMBLE == GCMC
-  sim->SetGlobalNumberOfMolecules(worldRank);
+  //sim->SetGlobalNumberOfMolecules(worldRank);
   sim->GetNumberOfMolecules(otherNumberOfMolecules);
   std::cout << "\n\nEnsemble is GCMC\n\n" << std::endl;
   #endif
@@ -318,10 +318,10 @@ TEST(ParallelTemperingTest, FullSwapEwald) {  /// Then you can create tests as u
   sim->ExchangeReplicas(worldRank);  
 
   #if ENSEMBLE == NPT
-    sim->SetGlobalVolumes(worldRank);
-    shouldBeOriginalVol = sim->GetVolume(0);
+  sim->SetGlobalVolumes(worldRank);
+  shouldBeOriginalVol = sim->GetVolume(0);
   #elif ENSEMBLE == GCMC
-  sim->SetGlobalNumberOfMolecules(worldRank);
+  //sim->SetGlobalNumberOfMolecules(worldRank);
   sim->GetNumberOfMolecules(shouldBeOriginalNumberOfMolecules);
   std::cout << "\n\nEnsemble is GCMC\n\n" << std::endl;
   #endif
