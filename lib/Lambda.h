@@ -50,7 +50,7 @@ public:
 
   bool KindIsFractional(const uint kind, const uint box) const;
 
-  uint GetMolIndex(const uint box) const;
+  int GetMolIndex(const uint box) const;
 
 
 protected:
@@ -126,7 +126,7 @@ inline bool Lambda::KindIsFractional(const uint kind, const uint box) const
   return result;
 }
 
-inline uint Lambda::GetMolIndex(const uint box) const
+inline int Lambda::GetMolIndex(const uint box) const
 {
   if(isFraction[box]) {
     return molIndex[box];
