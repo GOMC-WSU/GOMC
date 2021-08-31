@@ -21,6 +21,8 @@ public:
     molLookRef(sys.molLookupRef), ffRef(statV.forcefield) {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
+  // To relax the system in NE_MTMC move
+  virtual uint PrepNEMTMC(const uint box, const uint midx = 0, const uint kidx = 0);
   virtual uint Transform();
   virtual void CalcEn();
   virtual void Accept(const uint earlyReject, const ulong step);
@@ -87,6 +89,22 @@ inline uint Regrowth::Prep(const double subDraw, const double movPerc)
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_REGROWTH);
   return state;
+}
+
+inline uint Regrowth::PrepNEMTMC(const uint box, const uint midx, const uint kidx)
+{
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_REGROWTH);
+  overlap = false;
+  destBox = sourceBox = box;
+  molIndex = midx;
+  kindIndex = kidx;
+  pStart = pLen = 0;
+  molRef.GetRangeStartLength(pStart, pLen, molIndex);
+  newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
+  oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
+  oldMol.SetCoords(coordCurrRef, pStart);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_REGROWTH);
+  return mv::fail_state::NO_FAIL;
 }
 
 inline uint Regrowth::Transform()

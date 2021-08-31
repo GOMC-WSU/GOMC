@@ -68,11 +68,11 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
     sc_sigma = val.freeEn.scaleSigma;
     sc_power = val.freeEn.scalePower;
     sc_coul = val.freeEn.scaleCoulomb;
-  } else if (val.cfcmcVal.enable) {
-    sc_alpha = val.cfcmcVal.scaleAlpha;
-    sc_sigma = val.cfcmcVal.scaleSigma;
-    sc_power = val.cfcmcVal.scalePower;
-    sc_coul = val.cfcmcVal.scaleCoulomb;
+  } else if (val.neMTMCVal.enable) {
+    sc_alpha = val.neMTMCVal.scaleAlpha;
+    sc_sigma = val.neMTMCVal.scaleSigma;
+    sc_power = val.neMTMCVal.scalePower;
+    sc_coul = val.neMTMCVal.scaleCoulomb;
   } else {
     sc_alpha = 0.0;
     sc_sigma = 0.0;

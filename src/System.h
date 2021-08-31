@@ -66,6 +66,11 @@ public:
     return calcEwald;
   }
 
+  // Return the pointer to specific move
+  MoveBase * GetMoveObject(const uint moveIndex) {
+    return moves[moveIndex];
+  }
+
   BoxDimensions * BoxDim(const bool isOrthogonal)
   {
     boxDimensions = NULL;

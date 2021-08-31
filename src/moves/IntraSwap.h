@@ -21,6 +21,8 @@ public:
     molLookRef(sys.molLookupRef), ffRef(statV.forcefield) {}
 
   virtual uint Prep(const double subDraw, const double movPerc);
+  // To relax the system in NE_MTMC move
+  virtual uint PrepNEMTMC(const uint box, const uint midx = 0, const uint kidx = 0);
   virtual uint Transform();
   virtual void CalcEn();
   virtual void Accept(const uint earlyReject, const ulong step);
@@ -32,7 +34,7 @@ private:
   uint pStart, pLen;
   uint molIndex, kindIndex;
 
-  double W_tc, W_recip;
+  double W_recip;
   double correct_old, correct_new;
   cbmc::TrialMol oldMol, newMol;
   Intermolecular tcLose, tcGain, recipDiff;
@@ -84,12 +86,26 @@ inline uint IntraSwap::Prep(const double subDraw, const double movPerc)
     newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
     oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
     oldMol.SetCoords(coordCurrRef, pStart);
-    W_tc = 1.0;
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_INTRA_SWAP);
   return state;
 }
 
+inline uint IntraSwap::PrepNEMTMC(const uint box, const uint midx, const uint kidx)
+{
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_INTRA_SWAP);
+  overlap = false;
+  destBox = sourceBox = box;
+  molIndex = midx;
+  kindIndex = kidx;
+  pStart = pLen = 0;
+  molRef.GetRangeStartLength(pStart, pLen, molIndex);
+  newMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, destBox);
+  oldMol = cbmc::TrialMol(molRef.kinds[kindIndex], boxDimRef, sourceBox);
+  oldMol.SetCoords(coordCurrRef, pStart);
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_INTRA_SWAP);
+  return mv::fail_state::NO_FAIL;
+}
 
 inline uint IntraSwap::Transform()
 {
@@ -106,7 +122,6 @@ inline void IntraSwap::CalcEn()
   GOMC_EVENT_START(1, GomcProfileEvent::CALC_EN_INTRA_SWAP);
   // since number of molecules would not change in the box,
   //there is no change in Tc
-  W_tc = 1.0;
   W_recip = 1.0;
   correct_old = 0.0;
   correct_new = 0.0;
@@ -133,7 +148,7 @@ inline void IntraSwap::Accept(const uint rejectState, const ulong step)
     double molTransCoeff = 1.0;
     double Wo = oldMol.GetWeight();
     double Wn = newMol.GetWeight();
-    double Wrat = Wn / Wo * W_tc * W_recip;
+    double Wrat = Wn / Wo * W_recip;
 
     //safety to make sure move will be rejected in overlap case
     if(newMol.GetWeight() > SMALL_WEIGHT && !overlap) {

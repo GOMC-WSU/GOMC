@@ -191,7 +191,7 @@ struct MovePercents {
   double volume;
 #endif
 #ifdef VARIABLE_PARTICLE_NUMBER
-  double transfer, memc, cfcmc, targetedSwap;
+  double transfer, memc, neMolTransfer, targetedSwap;
 #endif
 };
 
@@ -757,22 +757,26 @@ struct MEMCVal {
   }
 };
 
-struct CFCMCVal {
-  bool enable, readLambdaCoulomb, readLambdaVDW, readRelaxSteps;
-  bool readHistFlatness, MPEnable, readMPEnable;
+struct NEMTMCVal {
+  // relaxing parameter
   uint relaxSteps;
-  double histFlatness;
+  double lambdaLimit, conformationProb;
+  bool MPEnable, MPBEnable;
+  bool readRelaxSteps, readMPEnable, readMPBEnable;
+  bool readLambdaLimit, readConformationProb;
   //scaling parameter
   uint scalePower;
   double scaleAlpha, scaleSigma;
   bool scaleCoulomb;
+  bool enable, readLambdaCoulomb, readLambdaVDW;
   bool scalePowerRead, scaleAlphaRead, scaleSigmaRead, scaleCoulombRead;
   std::vector<double> lambdaCoulomb, lambdaVDW;
-  CFCMCVal(void)
+  NEMTMCVal(void)
   {
-    readLambdaCoulomb = readRelaxSteps = readHistFlatness = false;
+    readLambdaCoulomb = readRelaxSteps = false;
     readMPEnable = MPEnable = readLambdaVDW = enable = false;
     scalePowerRead = scaleAlphaRead = scaleSigmaRead = scaleCoulombRead = false;
+    MPBEnable = readMPBEnable = readLambdaLimit = readConformationProb = false;
   }
 };
 
@@ -805,7 +809,7 @@ struct SystemVals {
   Volume volume; //May go unused
   CBMC cbmcTrials;
   MEMCVal memcVal, intraMemcVal;
-  CFCMCVal cfcmcVal;
+  NEMTMCVal neMTMCVal;
   FreeEnergy freeEn;
   TargetSwapCollection targetedSwapCollection;
 #if ENSEMBLE == GCMC

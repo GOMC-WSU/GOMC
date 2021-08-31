@@ -134,7 +134,6 @@ void CallBoxInterGPU(VariablesCUDA *vars,
       vars->gpu_rMaxSq,
       vars->gpu_expConst,
       vars->gpu_molIndex,
-      vars->gpu_kindIndex,
       vars->gpu_lambdaVDW,
       vars->gpu_lambdaCoulomb,
       vars->gpu_isFraction,
@@ -222,7 +221,6 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
                             double *gpu_rMaxSq,
                             double *gpu_expConst,
                             int *gpu_molIndex,
-                            int *gpu_kindIndex,
                             double *gpu_lambdaVDW,
                             double *gpu_lambdaCoulomb,
                             bool *gpu_isFraction,
@@ -270,8 +268,8 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
         int mA = gpu_particleMol[currentParticle];
         int mB = gpu_particleMol[neighborParticle];
 
-        double lambdaVDW = DeviceGetLambdaVDW(mA, kA, mB, kB, box, gpu_isFraction,
-                                              gpu_molIndex, gpu_kindIndex, gpu_lambdaVDW);
+        double lambdaVDW = DeviceGetLambdaVDW(mA, mB, box, gpu_isFraction,
+                                              gpu_molIndex, gpu_lambdaVDW);
         LJEn += CalcEnGPU(distSq, kA, kB, gpu_sigmaSq, gpu_n, gpu_epsilon_Cn,
                           gpu_VDW_Kind[0], gpu_isMartini[0], gpu_rCut[0],
                           gpu_rOn[0], gpu_count[0], lambdaVDW, sc_sigma_6,
@@ -282,9 +280,9 @@ __global__ void BoxInterGPU(int *gpu_cellStartIndex,
           if(qi_qj_fact != 0.0) {
             static const double qqFact = 167000.0;
             qi_qj_fact *= qqFact;
-            double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, kA, mB, kB, box,
+            double lambdaCoulomb = DeviceGetLambdaCoulomb(mA, mB, box,
                                    gpu_isFraction, gpu_molIndex,
-                                   gpu_kindIndex, gpu_lambdaCoulomb);
+                                   gpu_lambdaCoulomb);
             REn += CalcCoulombGPU(distSq, kA, kB, qi_qj_fact, gpu_rCutLow[0],
                                   gpu_ewald[0], gpu_VDW_Kind[0], gpu_alpha[box],
                                   gpu_rCutCoulomb[box], gpu_isMartini[0],

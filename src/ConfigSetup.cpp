@@ -38,7 +38,7 @@ ConfigSetup::ConfigSetup(void)
   sys.elect.oneFourScale = DBL_MAX;
   sys.elect.dielectric = DBL_MAX;
   sys.memcVal.enable = false;
-  sys.cfcmcVal.enable = false;
+  sys.neMTMCVal.enable = false;
   sys.intraMemcVal.enable = false;
   sys.step.total = ULONG_MAX;
   sys.step.equil = ULONG_MAX;
@@ -116,7 +116,7 @@ ConfigSetup::ConfigSetup(void)
 #ifdef VARIABLE_PARTICLE_NUMBER
   sys.moves.transfer = DBL_MAX;
   sys.moves.memc = DBL_MAX;
-  sys.moves.cfcmc = DBL_MAX;
+  sys.moves.neMolTransfer = DBL_MAX;
   sys.moves.targetedSwap = DBL_MAX;
   sys.cbmcTrials.bonded.ang = UINT_MAX;
   sys.cbmcTrials.bonded.dih = UINT_MAX;
@@ -811,93 +811,117 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       }
       printf("%-40s %-4.4f \n", "Info: Targeted Swap move frequency",
              sys.moves.targetedSwap);
-    } else if(CheckString(line[0], "CFCMCFreq")) {
-      sys.moves.cfcmc = stringtod(line[1]);
-      printf("%-40s %-4.4f \n", "Info: CFCMC move frequency",
-             sys.moves.cfcmc);
-      if(sys.moves.cfcmc > 0.0) {
-        sys.cfcmcVal.enable = true;
+    } else if(CheckString(line[0], "NeMTMCFreq")) {
+      sys.moves.neMolTransfer = stringtod(line[1]);
+      printf("%-40s %-4.4f \n", "Info: nonEq Mol-Transfer move frequency",
+             sys.moves.neMolTransfer);
+      if(sys.moves.neMolTransfer > 0.0) {
+        sys.neMTMCVal.enable = true;
       }
     } else if(CheckString(line[0], "LambdaCoulomb")) {
       if(line.size() > 1) {
-        sys.cfcmcVal.readLambdaCoulomb = true;
+        sys.neMTMCVal.readLambdaCoulomb = true;
         printf("%-41s", "Info: Lambda Coulomb");
         for(uint i = 1; i < line.size(); i++) {
           double val = stringtod(line[i]);
-          sys.cfcmcVal.lambdaCoulomb.push_back(val);
+          sys.neMTMCVal.lambdaCoulomb.push_back(val);
           printf("%-6.3f", val);
         }
         std::cout << std::endl;
       }
     } else if(CheckString(line[0], "LambdaVDW")) {
       if(line.size() > 1) {
-        sys.cfcmcVal.readLambdaVDW = true;
+        sys.neMTMCVal.readLambdaVDW = true;
         printf("%-41s", "Info: Lambda VDW");
         for(uint i = 1; i < line.size(); i++) {
           double val = stringtod(line[i]);
-          sys.cfcmcVal.lambdaVDW.push_back(val);
+          sys.neMTMCVal.lambdaVDW.push_back(val);
           printf("%-6.3f", val);
         }
         std::cout << std::endl;
       }
     } else if(CheckString(line[0], "RelaxingSteps")) {
       if(line.size() > 1) {
-        sys.cfcmcVal.readRelaxSteps = true;
-        sys.cfcmcVal.relaxSteps = stringtoi(line[1]);
-        printf("%-40s %-4d \n", "Info: CFCMC Relaxing Steps",
-               sys.cfcmcVal.relaxSteps);
-      }
-    } else if(CheckString(line[0], "HistFlatness")) {
-      if(line.size() > 1) {
-        sys.cfcmcVal.readHistFlatness = true;
-        sys.cfcmcVal.histFlatness = stringtod(line[1]);
-        printf("%-40s %-4.4f \n", "Info: CFCMC Histogram Flatness",
-               sys.cfcmcVal.histFlatness);
+        sys.neMTMCVal.readRelaxSteps = true;
+        sys.neMTMCVal.relaxSteps = stringtoi(line[1]);
+        printf("%-40s %-4d \n", "Info: NeMTMC Relaxing Steps",
+               sys.neMTMCVal.relaxSteps);
       }
     } else if(CheckString(line[0], "MultiParticleRelaxing")) {
       if(line.size() > 1) {
-        sys.cfcmcVal.MPEnable = checkBool(line[1]);
-        sys.cfcmcVal.readMPEnable = true;
-        if(sys.cfcmcVal.MPEnable) {
-          sys.moves.multiParticleEnabled = sys.cfcmcVal.MPEnable;
-          printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
+        sys.neMTMCVal.MPEnable = checkBool(line[1]);
+        sys.neMTMCVal.readMPEnable = true;
+        if(sys.neMTMCVal.MPEnable) {
+          sys.moves.multiParticleEnabled = sys.neMTMCVal.MPEnable;
+          printf("%-40s %s \n", "Info: NeMTMC Relaxing Using MultiParticle",
                  "Active");
         } else {
-          printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
+          printf("%-40s %s \n", "Info: NeMTMC Relaxing Using MultiParticle",
+                 "Inactive");
+        }
+      }
+    } else if(CheckString(line[0], "MultiParticleBrownianRelaxing")) {
+      if(line.size() > 1) {
+        sys.neMTMCVal.MPBEnable = checkBool(line[1]);
+        sys.neMTMCVal.readMPBEnable = true;
+        if(sys.neMTMCVal.MPBEnable) {
+          sys.moves.multiParticleEnabled = sys.neMTMCVal.MPBEnable;
+          printf("%-40s %s \n", "Info: NeMTMC Relaxing Using MultiParticleBrownian",
+                 "Active");
+        } else {
+          printf("%-40s %s \n", "Info: NeMTMC Relaxing Using MultiParticleBrownian",
                  "Inactive");
         }
       }
     } else if(CheckString(line[0], "ScalePower")) {
       if(line.size() > 1) {
-        sys.cfcmcVal.scalePower = stringtoi(line[1]);
-        sys.cfcmcVal.scalePowerRead = true;
+        sys.neMTMCVal.scalePower = stringtoi(line[1]);
+        sys.neMTMCVal.scalePowerRead = true;
         printf("%-40s %-4d \n", "Info: Soft-core scaling power(p)",
-               sys.cfcmcVal.scalePower);
+               sys.neMTMCVal.scalePower);
       }
     } else if(CheckString(line[0], "ScaleAlpha")) {
       if(line.size() > 1) {
-        sys.cfcmcVal.scaleAlpha = stringtod(line[1]);
-        sys.cfcmcVal.scaleAlphaRead = true;
+        sys.neMTMCVal.scaleAlpha = stringtod(line[1]);
+        sys.neMTMCVal.scaleAlphaRead = true;
         printf("%-40s %-4.4f \n", "Info: Soft-core softness(alpha)",
-               sys.cfcmcVal.scaleAlpha);
+               sys.neMTMCVal.scaleAlpha);
       }
     } else if(CheckString(line[0], "MinSigma")) {
       if(line.size() > 1) {
-        sys.cfcmcVal.scaleSigma = stringtod(line[1]);
-        sys.cfcmcVal.scaleSigmaRead = true;
+        sys.neMTMCVal.scaleSigma = stringtod(line[1]);
+        sys.neMTMCVal.scaleSigmaRead = true;
         printf("%-40s %-4.4f A \n", "Info: Soft-core minimum sigma",
-               sys.cfcmcVal.scaleSigma);
+               sys.neMTMCVal.scaleSigma);
       }
     } else if(CheckString(line[0], "ScaleCoulomb")) {
       if(line.size() > 1) {
-        sys.cfcmcVal.scaleCoulomb = checkBool(line[1]);
-        sys.cfcmcVal.scaleCoulombRead = true;
-        if(sys.cfcmcVal.scaleCoulomb) {
+        sys.neMTMCVal.scaleCoulomb = checkBool(line[1]);
+        sys.neMTMCVal.scaleCoulombRead = true;
+        if(sys.neMTMCVal.scaleCoulomb) {
           printf("%-40s %s \n", "Info: Soft-core for Coulombic interaction",
                  "Active");
         } else {
           printf("%-40s %s \n", "Info: Soft-core for Coulombic interaction",
                  "Inactive");
+        }
+      }
+    } else if(CheckString(line[0], "SampleConfFreq")) {
+      if(line.size() > 1) {
+        sys.neMTMCVal.conformationProb = stringtod(line[1]);
+        sys.neMTMCVal.readConformationProb = true;
+        if (sys.neMTMCVal.conformationProb <= 1.0f) {
+          printf("%-40s %-4.4f \n", "Info: Intra-Swap/Regrowth Frequency in NeMTMC Relaxing Steps",
+                sys.neMTMCVal.conformationProb);
+        }
+      }
+    } else if(CheckString(line[0], "LambdaVDWLimit")) {
+      if(line.size() > 1) {
+        sys.neMTMCVal.lambdaLimit = stringtod(line[1]);
+        sys.neMTMCVal.readLambdaLimit = true;
+        if (sys.neMTMCVal.lambdaLimit <= 1.0f) {
+          printf("%-40s %-4.4f \n", "Info: Lambda VDW limit for Intra-Swap move in NeMTMC Relaxing Steps",
+                sys.neMTMCVal.lambdaLimit);
         }
       }
     }
@@ -1325,10 +1349,10 @@ void ConfigSetup::fillDefaults(void)
            sys.moves.memc);
   }
 
-  if(sys.moves.cfcmc == DBL_MAX) {
-    sys.moves.cfcmc = 0.0;
-    printf("%-40s %-4.4f \n", "Default: CFCMC move frequency",
-           sys.moves.cfcmc);
+  if(sys.moves.neMolTransfer == DBL_MAX) {
+    sys.moves.neMolTransfer = 0.0;
+    printf("%-40s %-4.4f \n", "Default: nonEq Mol-Transfer move frequency",
+           sys.moves.neMolTransfer);
   }
 
   if(sys.moves.targetedSwap == DBL_MAX) {
@@ -1337,63 +1361,80 @@ void ConfigSetup::fillDefaults(void)
            sys.moves.targetedSwap);
   }
 
-  if(sys.cfcmcVal.enable) {
-    if(!sys.cfcmcVal.readHistFlatness) {
-      sys.cfcmcVal.histFlatness = 0.3;
-      printf("%-40s %-4.4f \n", "Default: CFCMC Histogram Flatness",
-             sys.cfcmcVal.histFlatness);
-    }
-
-    if(!sys.elect.enable && !sys.cfcmcVal.readLambdaCoulomb) {
-      sys.cfcmcVal.lambdaCoulomb.resize(sys.cfcmcVal.lambdaVDW.size(), 0.0);
-      sys.cfcmcVal.readLambdaCoulomb = true;
+  if(sys.neMTMCVal.enable) {
+    if(!sys.elect.enable && !sys.neMTMCVal.readLambdaCoulomb) {
+      sys.neMTMCVal.lambdaCoulomb.resize(sys.neMTMCVal.lambdaVDW.size(), 0.0);
+      sys.neMTMCVal.readLambdaCoulomb = true;
       printf("%-41s", "Default: Lambda Coulomb");
-      for(uint i = 0; i < sys.cfcmcVal.lambdaCoulomb.size(); i++) {
-        double val = sys.cfcmcVal.lambdaCoulomb[i];
+      for(uint i = 0; i < sys.neMTMCVal.lambdaCoulomb.size(); i++) {
+        double val = sys.neMTMCVal.lambdaCoulomb[i];
         printf("%-6.3f", val);
       }
       std::cout << std::endl;
     }
 
-    if(sys.cfcmcVal.readLambdaVDW ) {
-      if(sys.elect.enable && !sys.cfcmcVal.readLambdaCoulomb) {
-        sys.cfcmcVal.lambdaCoulomb = sys.cfcmcVal.lambdaVDW;
-        sys.cfcmcVal.readLambdaCoulomb = true;
+    if(sys.neMTMCVal.readLambdaVDW ) {
+      if(sys.elect.enable && !sys.neMTMCVal.readLambdaCoulomb) {
+        sys.neMTMCVal.lambdaCoulomb = sys.neMTMCVal.lambdaVDW;
+        sys.neMTMCVal.readLambdaCoulomb = true;
         printf("%-41s", "Default: Lambda Coulomb");
-        for(uint i = 0; i < sys.cfcmcVal.lambdaCoulomb.size(); i++) {
-          double val = sys.cfcmcVal.lambdaCoulomb[i];
+        for(uint i = 0; i < sys.neMTMCVal.lambdaCoulomb.size(); i++) {
+          double val = sys.neMTMCVal.lambdaCoulomb[i];
           printf("%-6.3f", val);
         }
         std::cout << std::endl;
       }
     }
 
-    if(!sys.cfcmcVal.readMPEnable) {
-      sys.cfcmcVal.readMPEnable = true;
-      sys.cfcmcVal.MPEnable = false;
-      printf("%-40s %s \n", "Info: CFCMC Relaxing using MultiParticle",
+    if(!sys.neMTMCVal.readMPEnable) {
+      sys.neMTMCVal.readMPEnable = true;
+      sys.neMTMCVal.MPEnable = false;
+      printf("%-40s %s \n", "Default: NeMTMC Relaxing using MultiParticle",
              "Inactive");
     }
 
-    if(!sys.cfcmcVal.scalePowerRead) {
-      sys.cfcmcVal.scalePower = 2;
+    if(!sys.neMTMCVal.readMPBEnable) {
+      sys.neMTMCVal.readMPBEnable = true;
+      sys.neMTMCVal.MPBEnable = false;
+      printf("%-40s %s \n", "Default: NeMTMC Relaxing using MultiParticleBrownian",
+             "Inactive");
+    }
+
+    if(!sys.neMTMCVal.scalePowerRead) {
+      sys.neMTMCVal.scalePowerRead = true;
+      sys.neMTMCVal.scalePower = 2;
       printf("%-40s %-4d \n", "Default: Soft-core scale power(p)",
-             sys.cfcmcVal.scalePower);
+             sys.neMTMCVal.scalePower);
     }
-    if(!sys.cfcmcVal.scaleAlphaRead) {
-      sys.cfcmcVal.scaleAlpha = 0.5;
+    if(!sys.neMTMCVal.scaleAlphaRead) {
+      sys.neMTMCVal.scaleAlphaRead = true;
+      sys.neMTMCVal.scaleAlpha = 0.5;
       printf("%-40s %-4.4f \n", "Default: Soft-core softness(alpha)",
-             sys.cfcmcVal.scaleAlpha);
+             sys.neMTMCVal.scaleAlpha);
     }
-    if(!sys.cfcmcVal.scaleSigmaRead) {
-      sys.cfcmcVal.scaleSigma = 3.0;
+    if(!sys.neMTMCVal.scaleSigmaRead) {
+      sys.neMTMCVal.scaleSigmaRead = true;
+      sys.neMTMCVal.scaleSigma = 3.0;
       printf("%-40s %-4.4f A \n", "Default: Soft-core minimum sigma",
-             sys.cfcmcVal.scaleSigma);
+             sys.neMTMCVal.scaleSigma);
     }
-    if(!sys.cfcmcVal.scaleCoulombRead) {
-      sys.cfcmcVal.scaleCoulomb = false;
+    if(!sys.neMTMCVal.scaleCoulombRead) {
+      sys.neMTMCVal.scaleCoulombRead = true;
+      sys.neMTMCVal.scaleCoulomb = false;
       printf("%-40s %s A \n", "Default: Soft-core for Coulombic interaction",
              "Inactive");
+    }
+    if(!sys.neMTMCVal.readConformationProb) {
+      sys.neMTMCVal.readConformationProb = true;
+      sys.neMTMCVal.conformationProb = 0.1;
+      printf("%-40s %-4.4f A \n", "Default: Intra-Swap/Regrowth Frequency in NeMTMC Relaxing Steps",
+             sys.neMTMCVal.conformationProb);
+    }
+    if(!sys.neMTMCVal.readLambdaLimit) {
+      sys.neMTMCVal.readLambdaLimit = true;
+      sys.neMTMCVal.lambdaLimit = 0.1;
+      printf("%-40s %-4.4f A \n", "Default: Lambda VDW limit for Intra-Swap move in NeMTMC Relaxing Steps",
+             sys.neMTMCVal.lambdaLimit);
     }
   }
 
@@ -1728,6 +1769,13 @@ void ConfigSetup::verifyInputs(void)
           sys.moves.volume);
     }
   }
+  
+  if(sys.neMTMCVal.enable && sys.moves.transfer == DBL_MAX) {
+    sys.moves.transfer = 0.0;
+    printf("%-40s %-4.4f \n", "Default: Molecule swap move frequency",
+        sys.moves.transfer);
+  }
+
   if(sys.moves.transfer == DBL_MAX) {
     if(!exptMode){
       std::cout << "Error: Molecule swap move frequency is not specified!" << std::endl;
@@ -1738,11 +1786,12 @@ void ConfigSetup::verifyInputs(void)
           sys.moves.transfer);
     }
   }
+
   if(std::abs(sys.moves.displace + sys.moves.rotate + sys.moves.transfer +
               sys.moves.intraSwap + sys.moves.volume + sys.moves.regrowth +
               sys.moves.memc + sys.moves.intraMemc + sys.moves.crankShaft +
               sys.moves.multiParticle + sys.moves.multiParticleBrownian + 
-              sys.moves.cfcmc + sys.moves.targetedSwap - 1.0) > 0.001) {
+              sys.moves.neMolTransfer + sys.moves.targetedSwap - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!\n";
     exit(EXIT_FAILURE);
   }
@@ -1781,7 +1830,7 @@ void ConfigSetup::verifyInputs(void)
               sys.moves.transfer + sys.moves.regrowth + sys.moves.memc +
               sys.moves.intraMemc + sys.moves.crankShaft +
               sys.moves.multiParticle + sys.moves.multiParticleBrownian + 
-              sys.moves.cfcmc + sys.moves.targetedSwap - 1.0) > 0.001) {
+              sys.moves.neMolTransfer + sys.moves.targetedSwap - 1.0) > 0.001) {
     std::cout << "Error: Sum of move frequencies is not equal to one!!\n";
     exit(EXIT_FAILURE);
   }
@@ -1955,83 +2004,120 @@ void ConfigSetup::verifyInputs(void)
     }
   }
 
-  if(sys.cfcmcVal.enable) {
+  if(sys.neMTMCVal.enable) {
 
-    if(!sys.cfcmcVal.readLambdaCoulomb) {
+    if(!sys.neMTMCVal.readLambdaCoulomb) {
       std::cout << "Error: Lambda Coulomb states were not defined for " <<
-                "CFCMC move! \n";
+                "NeMTMC move! \n";
       exit(EXIT_FAILURE);
     }
 
-    if (!sys.cfcmcVal.readLambdaVDW) {
+    if (!sys.neMTMCVal.readLambdaVDW) {
       std::cout << "Error: Lambda VDW states were not defined for " <<
-                "CFCMC move! \n";
+                "NeMTMC move! \n";
       exit(EXIT_FAILURE);
     }
 
-    if(sys.cfcmcVal.lambdaCoulomb.size() != sys.cfcmcVal.lambdaVDW.size()) {
+    if(sys.neMTMCVal.lambdaCoulomb.size() != sys.neMTMCVal.lambdaVDW.size()) {
       std::cout << "Error: Number of Lambda states for VDW and Coulomb " <<
-                "are not same in CFCMC move! \n";
+                "are not same in NeMTMC move! \n";
       exit(EXIT_FAILURE);
     }
 
-    for(uint i = 0; i < sys.cfcmcVal.lambdaVDW.size(); i++) {
+    for(uint i = 0; i < sys.neMTMCVal.lambdaVDW.size(); i++) {
       bool decreasing = false;
-      for(uint j = i; j < sys.cfcmcVal.lambdaVDW.size(); j++) {
-        if(sys.cfcmcVal.lambdaVDW[i] > sys.cfcmcVal.lambdaVDW[j]) {
+      for(uint j = i; j < sys.neMTMCVal.lambdaVDW.size(); j++) {
+        if(sys.neMTMCVal.lambdaVDW[i] > sys.neMTMCVal.lambdaVDW[j]) {
           decreasing = true;
         }
       }
       if(decreasing) {
         std::cout << "Error: Lambda VDW values are not in increasing order " <<
-                  "in CFCMC move! \n";
+                  "in NeMTMC move! \n";
         exit(EXIT_FAILURE);
       }
     }
 
-    for(uint i = 0; i < sys.cfcmcVal.lambdaCoulomb.size(); i++) {
+    for(uint i = 0; i < sys.neMTMCVal.lambdaCoulomb.size(); i++) {
       bool decreasing = false;
-      for(uint j = i; j < sys.cfcmcVal.lambdaCoulomb.size(); j++) {
-        if(sys.cfcmcVal.lambdaCoulomb[i] > sys.cfcmcVal.lambdaCoulomb[j]) {
+      for(uint j = i; j < sys.neMTMCVal.lambdaCoulomb.size(); j++) {
+        if(sys.neMTMCVal.lambdaCoulomb[i] > sys.neMTMCVal.lambdaCoulomb[j]) {
           decreasing = true;
         }
       }
       if(decreasing) {
         std::cout << "Error: Lambda Coulomb values are not in increasing " <<
-                  "order in CFCMC move! \n";
+                  "order in NeMTMC move! \n";
         exit(EXIT_FAILURE);
       }
     }
 
-    uint last = sys.cfcmcVal.lambdaVDW.size() - 1;
-    if(sys.cfcmcVal.lambdaVDW[last] < 0.9999) {
+    uint last = sys.neMTMCVal.lambdaVDW.size() - 1;
+    if(sys.neMTMCVal.lambdaVDW[last] < 0.9999) {
       std::cout << "Error: Last Lambda value for VDW is not 1.0 " <<
-                "in CFCMC move! \n";
+                "in NeMTMC move! \n";
       exit(EXIT_FAILURE);
     }
 
     if(sys.elect.enable) {
-      last = sys.cfcmcVal.lambdaCoulomb.size() - 1;
-      if(sys.cfcmcVal.lambdaCoulomb[last] < 0.9999) {
+      last = sys.neMTMCVal.lambdaCoulomb.size() - 1;
+      if(sys.neMTMCVal.lambdaCoulomb[last] < 0.9999) {
         std::cout << "Error: Last Lambda value for Coulomb is not 1.0 " <<
-                  "in CFCMC move! \n";
+                  "in NeMTMC move! \n";
         exit(EXIT_FAILURE);
       }
     }
 
-    if(!sys.cfcmcVal.readRelaxSteps) {
-      std::cout << "Error: Relaxing steps was not defined for CFCMC move! \n";
+    if(!sys.neMTMCVal.readRelaxSteps) {
+      std::cout << "Error: Relaxing steps was not defined for NeMTMC move! \n";
       exit(EXIT_FAILURE);
-    } else if (sys.cfcmcVal.relaxSteps == 0) {
+    } else if (sys.neMTMCVal.relaxSteps == 0) {
       std::cout << "Warning: No thermal relaxing move will be performed in " <<
-                "CFCMC move! \n";
+                  "NeMTMC move! \n";
     }
 
-    if(sys.cfcmcVal.histFlatness > 0.999 || sys.cfcmcVal.histFlatness < 0.001) {
-      std::cout << "Error: Unacceptable Value for Histogram Flatness in " <<
-                "CFCMC move! \n";
+    if(sys.neMTMCVal.conformationProb > 1.0f) {
+      std::cout << "Error: Intra-Swap/Regrowth Frequency in NeMTMC Relaxing Steps \n" <<
+                   "       must be less than 1.0! \n";
       exit(EXIT_FAILURE);
     }
+
+    if(sys.neMTMCVal.lambdaLimit > 1.0f) {
+      std::cout << "Error: Lambda VDW limit for Intra-Swap move in NeMTMC Relaxing Steps \n" <<
+                   "       must be less than 1.0! \n";
+      exit(EXIT_FAILURE);
+    }
+
+    if(sys.moves.multiParticleEnabled) {
+      if(sys.neMTMCVal.MPEnable && sys.neMTMCVal.MPBEnable) {
+        std::cout << "Error: Multi-Particle and Multi-Particle Brownian moves cannot \n" <<
+                    "       be used simultaneously in NeMTMC Relaxing Steps! \n";
+        exit(EXIT_FAILURE);
+
+      }
+    }
+
+    if(!sys.moves.multiParticleEnabled) {
+      if(sys.moves.displace < 1e-7 || sys.moves.rotate < 1e-7) {
+        std::cout << "Error: Displacement and rotation move must be activated in " <<
+                    "NeMTMC Relaxing Steps! \n";
+        exit(EXIT_FAILURE);
+      }
+    }
+
+    if(sys.moves.multiParticleEnabled) {
+      if(sys.moves.multiParticle < 1e-7 && sys.neMTMCVal.MPEnable) {
+        std::cout << "Error: Multi-Particle move must be activated in " <<
+                    "NeMTMC Relaxing Steps! \n";
+        exit(EXIT_FAILURE);
+      }
+      if(sys.moves.multiParticleBrownian < 1e-7 && sys.neMTMCVal.MPBEnable) {
+        std::cout << "Error: Multi-Particle Brownian move must be activated in " <<
+                    "NeMTMC Relaxing Steps! \n";
+        exit(EXIT_FAILURE);
+      }
+    }
+
   }
 #endif
 #if ENSEMBLE == NVT || ENSEMBLE == NPT

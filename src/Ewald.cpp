@@ -478,7 +478,7 @@ reduction(+:energyRecipNew)
 
 //calculate reciprocal term in destination box for swap move
 //No need to scale the charge with lambda, since this function will not be
-// called in free energy of CFCMC
+// called in free energy of NeMTMC
 double Ewald::SwapDestRecip(const cbmc::TrialMol &newMol,
                             const uint box,
                             const int molIndex)
@@ -543,23 +543,29 @@ thisKind) reduction(+:energyRecipNew)
 }
 
 //calculate reciprocal term for lambdaNew and Old with same coordinates
-double Ewald::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
-                         const double lambdaNew, const uint molIndex,
-                         const uint box)
+double Ewald::ChangeLambdaRecip(XYZArray const& molCoords, const double lambdaOld,
+                              const double lambdaNew, const uint molIndex,
+                              const uint box)
 {
   double energyRecipNew = 0.0;
   double energyRecipOld = 0.0;
 
-  //
-  //Need to implement the GPU part
-  //
   if (box < BOXES_WITH_U_NB) {
-    GOMC_EVENT_START(1, GomcProfileEvent::RECIP_CFCMC_ENERGY);
+    GOMC_EVENT_START(1, GomcProfileEvent::RECIP_NEMTMC_ENERGY);
     MoleculeKind const& thisKind = mols.GetKind(molIndex);
     uint length = thisKind.NumAtoms();
     uint startAtom = mols.MolStart(molIndex);
     double lambdaCoef = sqrt(lambdaNew) - sqrt(lambdaOld);
-
+#ifdef GOMC_CUDA
+    std::vector<double> MolCharge;
+    for(uint p = 0; p < length; p++) {
+      MolCharge.push_back(thisKind.AtomCharge(p));
+    }
+    CallChangeLambdaMolReciprocalGPU(ff.particles->getCUDAVars(),
+                                    molCoords, MolCharge, imageSizeRef[box],
+                                    sumRnew[box], sumInew[box], energyRecipNew,
+                                    lambdaCoef, box);
+#else
 #ifdef _OPENMP
 #if GCC_VERSION >= 90000
     #pragma omp parallel for default(none) shared(lambdaCoef, length, molCoords, \
@@ -595,8 +601,9 @@ reduction(+:energyRecipNew)
       energyRecipNew += (sumRnew[box][i] * sumRnew[box][i] + sumInew[box][i]
                          * sumInew[box][i]) * prefactRef[box][i];
     }
+#endif
     energyRecipOld = sysPotRef.boxEnergy[box].recip;
-    GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_CFCMC_ENERGY);
+    GOMC_EVENT_STOP(1, GomcProfileEvent::RECIP_NEMTMC_ENERGY);
   }
 
   return energyRecipNew - energyRecipOld;
@@ -676,7 +683,7 @@ void Ewald::RecipInit(uint box, BoxDimensions const& boxAxes)
 
 //calculate reciprocal term in source box for swap move
 //No need to scale the charge with lambda, since this function is not being
-// called for free energy and CFCMC
+// called for free energy and NeMTMC
 double Ewald::SwapSourceRecip(const cbmc::TrialMol &oldMol,
                               const uint box, const int molIndex)
 {
@@ -1399,7 +1406,7 @@ double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol,
 
 //It's called if we transfer one molecule from one box to another
 //No need to scale the charge with lambda, since this function is not being
-// called from free energy or CFCMC
+// called from free energy or NeMTMC
 double Ewald::SwapSelf(const cbmc::TrialMol& trialMol) const
 {
   uint box = trialMol.GetBox();
@@ -1565,7 +1572,6 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
       molForceRec,
       particleCharge,
       particleMol,
-      particleKind,
       particleHasNoCharge,
       particleUsed,
       startMol,
@@ -1641,7 +1647,7 @@ void Ewald::BoxForceReciprocal(XYZArray const& molCoords,
 
 double Ewald::GetLambdaCoef(uint molA, uint box) const
 {
-  double lambda = lambdaRef.GetLambdaCoulomb(molA, mols.GetMolKind(molA), box);
+  double lambda = lambdaRef.GetLambdaCoulomb(molA, box);
   //Each charge gets sq root of it.
   return sqrt(lambda);
 }

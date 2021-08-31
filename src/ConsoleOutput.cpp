@@ -181,8 +181,8 @@ void ConsoleOutput::PrintMove(const uint box, const ulong step) const
     printElement(var->GetAcceptPercent(box, sub), elementWidth);
   }
 
-  if(var->Performed(mv::CFCMC)) {
-    sub = mv::CFCMC;
+  if(var->Performed(mv::NE_MTMC)) {
+    sub = mv::NE_MTMC;
     printElement(var->GetTries(box, sub), elementWidth);
     printElement(var->GetAccepted(box, sub), elementWidth);
     printElement(var->GetAcceptPercent(box, sub), elementWidth);
@@ -440,10 +440,10 @@ void ConsoleOutput::PrintMoveTitle()
     printElement("MOLEXACCEPT%", elementWidth);
   }
 
-  if(var->Performed(mv::CFCMC)) {
-    printElement("CFCMCTRANSF", elementWidth);
-    printElement("CFCMCACCEPT", elementWidth);
-    printElement("CFCMCACCEPT%", elementWidth);
+  if(var->Performed(mv::NE_MTMC)) {
+    printElement("NEMTMCTRANSF", elementWidth);
+    printElement("NEMTMCACCEPT", elementWidth);
+    printElement("NEMTMCACCEPT%", elementWidth);
   }
 
   if(var->Performed(mv::TARGETED_SWAP)) {

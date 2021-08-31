@@ -33,12 +33,12 @@ public:
   }
 
   virtual uint Prep(const double subDraw, const double movPerc);
+  // To relax the system in NE_MTMC move
+  virtual uint PrepNEMTMC(const uint box, const uint midx = 0, const uint kidx = 0);
   virtual void CalcEn();
   virtual uint Transform();
   virtual void Accept(const uint rejectState, const ulong step);
   virtual void PrintAcceptKind();
-  //used in CFCMC for initialization
-  void PrepCFCMC(const uint box);
 
 private:
   uint bPick;
@@ -208,9 +208,11 @@ inline uint MultiParticleBrownian::Prep(const double subDraw, const double movPe
   return state;
 }
 
-inline void MultiParticleBrownian::PrepCFCMC(const uint box)
+inline uint MultiParticleBrownian::PrepNEMTMC(const uint box, const uint midx, const uint kidx)
 {
+  GOMC_EVENT_START(1, GomcProfileEvent::PREP_MULTIPARTICLE_BM);
   bPick = box;
+  uint state = mv::fail_state::NO_FAIL;
   // In each step, we perform either:
   // 1- All displacement move.
   // 2- All rotation move.
@@ -221,6 +223,12 @@ inline void MultiParticleBrownian::PrepCFCMC(const uint box)
   }
 
   SetMolInBox(bPick);
+  if (moleculeIndex.size() == 0) {
+    std::cout << "Warning: MultiParticleBrownian move can't move any molecules. Skipping..." << std::endl;
+    state = mv::fail_state::NO_MOL_OF_KIND_IN_BOX;
+    return state;
+  }
+
   //We don't use forces for non-MP moves, so we need to calculate them for the
   //current system if any other moves, besides other MP moves, have been accepted.
   //Or, if this is the first MP move, which is handled with the same flag.
@@ -245,6 +253,8 @@ inline void MultiParticleBrownian::PrepCFCMC(const uint box)
   }
   coordCurrRef.CopyRange(newMolsPos, 0, 0, coordCurrRef.Count());
   comCurrRef.CopyRange(newCOMs, 0, 0, comCurrRef.Count());
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PREP_MULTIPARTICLE_BM);
+  return state;
 }
 
 inline uint MultiParticleBrownian::Transform()

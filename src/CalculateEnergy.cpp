@@ -1348,8 +1348,8 @@ void CalculateEnergy::EnergyCorrection(SystemPotential& pot,
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   else {
     //Get the kind and lambda value
-    uint fk = lambdaRef.GetKind(box);
-    double lambdaVDW = lambdaRef.GetLambdaVDW(fk, box);
+    uint fk = mols.GetMolKind(lambdaRef.GetMolIndex(box));
+    double lambdaVDW = lambdaRef.GetLambdaVDW(lambdaRef.GetMolIndex(box), box);
     //remove the LRC for one molecule with lambda = 1
     en += MoleculeTailChange(box, fk, false).energy;
 
@@ -1413,7 +1413,8 @@ void CalculateEnergy::VirialCorrection(Virial& virial,
 #if ENSEMBLE == NVT || ENSEMBLE == NPT
   else {
     //Get the kind and lambda value
-    uint fk = lambdaRef.GetKind(box);
+    uint fk = mols.GetMolKind(lambdaRef.GetMolIndex(box));
+    double lambdaVDW = lambdaRef.GetLambdaVDW(lambdaRef.GetMolIndex(box), box);
     //remove the LRC for one molecule with lambda = 1
     vir += MoleculeTailVirChange(box, fk, false).virial;
 
@@ -1424,10 +1425,11 @@ void CalculateEnergy::VirialCorrection(Virial& virial,
         --molNum; // We have one less molecule (it is fractional molecule)
       }
       double rhoDeltaIJ_2 = 2.0 * (double)(molNum) * currentAxes.volInv[box];
-      vir += mols.pairVirCorrections[fk * mols.GetKindsCount() + i] * rhoDeltaIJ_2;
+      vir += lambdaVDW * mols.pairVirCorrections[fk * mols.GetKindsCount() + i] *
+              rhoDeltaIJ_2;
     }
     //We already calculated part of the change for this type in the loop
-    vir += mols.pairVirCorrections[fk * mols.GetKindsCount() + fk] *
+    vir += lambdaVDW * mols.pairVirCorrections[fk * mols.GetKindsCount() + fk] *
            currentAxes.volInv[box];
     virial.tc = vir;
   }
@@ -1643,16 +1645,16 @@ reduction(+:tempREnOld, tempLJEnOld, tempREnNew, tempLJEnNew)
 double CalculateEnergy::GetLambdaVDW(uint molA, uint molB, uint box) const
 {
   double lambda = 1.0;
-  lambda *= lambdaRef.GetLambdaVDW(molA, mols.GetMolKind(molA), box);
-  lambda *= lambdaRef.GetLambdaVDW(molB, mols.GetMolKind(molB), box);
+  lambda *= lambdaRef.GetLambdaVDW(molA, box);
+  lambda *= lambdaRef.GetLambdaVDW(molB, box);
   return lambda;
 }
 
 double CalculateEnergy::GetLambdaCoulomb(uint molA, uint molB, uint box) const
 {
   double lambda = 1.0;
-  lambda *= lambdaRef.GetLambdaCoulomb(molA, mols.GetMolKind(molA), box);
-  lambda *= lambdaRef.GetLambdaCoulomb(molB, mols.GetMolKind(molB), box);
+  lambda *= lambdaRef.GetLambdaCoulomb(molA, box);
+  lambda *= lambdaRef.GetLambdaCoulomb(molB, box);
   //no need for sq root for inter energy. Always one of the molecules has
   // lambda 1
   return lambda;

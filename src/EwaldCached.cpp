@@ -304,7 +304,7 @@ reduction(+:energyRecipNew)
 
 //calculate reciprocal term in destination box for swap move
 //No need to scale the charge with lambda, since this function will not be
-// called in free energy of CFCMC
+// called in free energy of NeMTMC
 double EwaldCached::SwapDestRecip(const cbmc::TrialMol &newMol,
                                   const uint box,
                                   const int molIndex)
@@ -378,7 +378,7 @@ reduction(+:energyRecipNew)
 
 //calculate reciprocal term in source box for swap move
 //No need to scale the charge with lambda, since this function will not be
-// called in free energy of CFCMC
+// called in free energy of NeMTMC
 double EwaldCached::SwapSourceRecip(const cbmc::TrialMol &oldMol,
                                     const uint box, const int molIndex)
 {
@@ -423,13 +423,13 @@ double EwaldCached::MolExchangeReciprocal(const std::vector<cbmc::TrialMol> &new
 }
 
 //calculate reciprocal term for lambdaNew and Old with same coordinates
-double EwaldCached::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
-                               const double lambdaNew, const uint molIndex,
-                               const uint box)
+double EwaldCached::ChangeLambdaRecip(XYZArray const& molCoords, const double lambdaOld,
+                                    const double lambdaNew, const uint molIndex,
+                                    const uint box)
 {
-  //This function should not be called in CFCMC move
+  //This function should not be called in NeMTMC move
   std::cout << "Error: Cached Fourier method cannot be used while " <<
-            "performing CFCMC move!" << std::endl;
+            "performing non-equilibrium Mol-Transfer MC move (NeMTMC)!" << std::endl;
   exit(EXIT_FAILURE);
   return 0.0;
 }

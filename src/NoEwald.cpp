@@ -64,9 +64,9 @@ double NoEwald::MolReciprocal(XYZArray const& molCoords,
 
 
 //calculate reciprocal term for lambdaNew and Old with same coordinates
-double NoEwald::CFCMCRecip(XYZArray const& molCoords, const double lambdaOld,
-                           const double lambdaNew, const uint molIndex,
-                           const uint box)
+double NoEwald::ChangeLambdaRecip(XYZArray const& molCoords, const double lambdaOld,
+                                  const double lambdaNew, const uint molIndex,
+                                  const uint box)
 {
   return 0.0;
 }

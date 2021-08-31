@@ -86,6 +86,10 @@ public:
   }
 
   virtual uint Prep(const double subDraw, const double movPerc);
+  // To relax the system in NE_MTMC move
+  virtual uint PrepNEMTMC(const uint box, const uint midx = 0, const uint kidx = 0) {
+    return mv::fail_state::NO_FAIL;
+  }
   virtual uint Transform();
   virtual void CalcEn();
   virtual void Accept(const uint earlyReject, const ulong step);
