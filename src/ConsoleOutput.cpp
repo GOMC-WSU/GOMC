@@ -220,10 +220,10 @@ void ConsoleOutput::PrintStatistic(const uint box, const ulong step) const
   if(enableVolume)
     printElement(var->volumeRef[box], elementWidth);
 
-  if(enablePressure)
+  if(enablePressure) {
     printElement(var->pressure[box], elementWidth);
     printElement((var->pressure[box]) * (var->volumeRef[box]) / (var->numByBox[box]) / (var->T_in_K) / (UNIT_CONST_H::unit::K_MOLECULE_PER_A3_TO_BAR), elementWidth);
-
+  }
   if(enableMol) {
     printElement(var->numByBox[box], elementWidth);
 
@@ -330,10 +330,11 @@ void ConsoleOutput::PrintStatisticTitle()
   if(enableVolume)
     printElement("VOLUME", elementWidth);
 
-  if(enablePressure)
+  if(enablePressure) {
     printElement("PRESSURE", elementWidth);
     printElement("COMPRESSIBILITY", elementWidth);
-
+  }
+  
   if(enableMol) {
     printElement("TOTALMOL", elementWidth);
 
