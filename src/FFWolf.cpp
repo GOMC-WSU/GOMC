@@ -1,4 +1,4 @@
-#include "Wolf.h"
+#include "FFWolf.h"
 
 /**
  * Author: Greg Schwing
