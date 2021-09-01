@@ -168,6 +168,9 @@ TEST(ParallelTemperingTest, FullSwapNoEwald) {  /// Then you can create tests as
   #elif ENSEMBLE == GCMC
   //sim->SetGlobalNumberOfMolecules(worldRank);
   sim->GetNumberOfMolecules(originalNumberOfMolecules);
+  std::cout << "\n\noriginalNumberOfMolecules\n\n" << std::endl;
+  for (auto & v : originalNumberOfMolecules)
+    std::cout << v << " ";
   std::cout << "\n\nEnsemble is GCMC\n\n" << std::endl;
   #endif
 
