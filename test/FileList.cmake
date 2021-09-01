@@ -6,7 +6,7 @@ set(TestSources
     test/src/CircuitTester.cpp
     test/src/PSFParserTest.cpp
     test/src/ConsistentTrajectoryTest.cpp
-    test/src/ParallelTemperingTest.cpp
+    test/src/WolfMethodTest.cpp
 )
 
 set(TestHeaders
@@ -30,8 +30,12 @@ set(GOMCSources
     lib/CircuitFinder.cpp
     src/InputFileReader.cpp
     lib/FloydWarshallCycle.cpp
+<<<<<<< e2039ff3101122dc3f813616d3493e6adb6b4874
     src/MoleculeLookup.cpp
     src/Simulation.cpp
+=======
+    src/Wolf.cpp
+>>>>>>> build wolf test
 )
 
 set(GOMCHeaders
@@ -47,6 +51,7 @@ set(GOMCHeaders
     src/InputFileReader.h
     lib/FloydWarshallCycle.h
     GOMC_Config.h
+    src/Wolf.h
 )
 
 set(GOMCMPISources
@@ -266,7 +271,6 @@ set(sources
    src/Geometry.cpp
    src/HistOutput.cpp
    src/InputFileReader.cpp
-   src/Main.cpp
    src/MoleculeKind.cpp
    src/MoleculeLookup.cpp
    src/Molecules.cpp
