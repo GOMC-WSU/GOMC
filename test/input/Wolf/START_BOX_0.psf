@@ -8,7 +8,7 @@ PSF
 
        4 !NATOM
        1 SOD  1    SOD  SOD  SOD    1.000000       22.9898           0
-       2 SOD  2    SOD  SOD  SOD   -1.000000       22.9898           0
+       2 SOD  2    SOD  SOD  SOD    1.000000       22.9898           0
        3 CLA  3    CLA  CLA  CLA   -1.000000       35.4500           0
        4 CLA  4    CLA  CLA  CLA   -1.000000       35.4500           0
 

@@ -12,8 +12,8 @@ TEST(WolfMethodTest, CheckElectrostatic) {
     // Sets equidistant points with double precision
     sim1.GetCoordinates().Set(0, 0.0, 0.0, 0.0);
     sim1.GetCoordinates().Set(1, 0.0, 1.0, 0.0);
-    sim1.GetCoordinates().Set(2, 0.5, sqrt(3)/2, 0.0);
-    sim1.GetCoordinates().Set(3, 0.5, sqrt(3)/4, 3/4);
+    sim1.GetCoordinates().Set(2, 0.5, sqrt(3)/2.0, 0.0);
+    sim1.GetCoordinates().Set(3, 0.5, sqrt(3)/4.0, 3.0/4.0);
 
     EXPECT_EQ(true, true);
 }
