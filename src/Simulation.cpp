@@ -168,8 +168,7 @@ bool Simulation::RecalculateAndCheck(void)
 
   return compare;
 }
-
-  #if GOMC_GTEST_MPI
+  #if GOMC_GTEST_MPI || GOMC_GTEST
       double Simulation::GetSystemEnergy(void){
         return system->potential.Total();
       }
@@ -182,6 +181,9 @@ bool Simulation::RecalculateAndCheck(void)
       CellList& Simulation::GetCellList(void){
         return system->cellList;
       }
+  #endif
+
+  #if GOMC_GTEST_MPI
     #if ENSEMBLE == NPT
         void Simulation::SetGlobalVolumes(int worldRank){
           std::cout << "I (" << worldRank << ") think my volume is " 

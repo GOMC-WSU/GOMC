@@ -201,12 +201,14 @@ struct ElectroStatic {
   bool readCache;
   bool enable;
   bool ewald;
+  bool wolf;
   bool cache;
   bool cutoffCoulombRead[BOX_TOTAL];
   double tolerance;
   double oneFourScale;
   double dielectric;
   double cutoffCoulomb[BOX_TOTAL];
+  double wolfAlpha;
   ElectroStatic(void)
   {
     std::fill_n(cutoffCoulombRead, BOX_TOTAL, false);

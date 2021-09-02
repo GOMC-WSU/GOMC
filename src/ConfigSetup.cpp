@@ -33,10 +33,12 @@ ConfigSetup::ConfigSetup(void)
   sys.elect.readCache = false;
   sys.elect.ewald = false;
   sys.elect.enable = false;
+  sys.elect.wolf = false;
   sys.elect.cache = false;
   sys.elect.tolerance = DBL_MAX;
   sys.elect.oneFourScale = DBL_MAX;
   sys.elect.dielectric = DBL_MAX;
+  sys.elect.wolfAlpha = DBL_MAX;
   sys.memcVal.enable = false;
   sys.neMTMCVal.enable = false;
   sys.intraMemcVal.enable = false;
@@ -619,6 +621,21 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
     } else if(CheckString(line[0], "ElectroStatic")) {
       sys.elect.enable = checkBool(line[1]);
       sys.elect.readElect = true;
+      if(line.size() > 2) {
+        if(CheckString(line[2], "Wolf")){
+          printf("%-40s %-s \n", "Info: Wolf Electrostatic", sys.elect.enable ? "Active" : "Inactive");
+          sys.elect.wolf = true;
+          if(line.size() > 3) {
+            sys.elect.wolfAlpha = stringtod(line[2]);          
+            printf("%-40s %-1.3E \n", "Info: Wolf Alpha", sys.elect.wolfAlpha);
+          } else {
+            sys.elect.wolfAlpha = 1.0;
+            printf("%-40s %-1.3E \n", "Default: Wolf Alpha", sys.elect.wolfAlpha);
+          }
+        }
+      } else {
+        printf("%-40s %-s \n", "Info: Standard Electrostatic", sys.elect.enable ? "Active" : "Inactive");
+      }
     } else if(CheckString(line[0], "Tolerance")) {
       sys.elect.tolerance = stringtod(line[1]);
       printf("%-40s %-1.3E \n", "Info: Ewald Summation Tolerance",
@@ -1603,6 +1620,16 @@ void ConfigSetup::verifyInputs(void)
     abs(sys.moves.multiParticleBrownian) > 0.0000001) {
     std::cout << "Error: Both multi-Particle and multi-Particle Brownian! " <<
     " cannot be used at the same time!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  if(sys.elect.wolf && sys.elect.ewald){
+    std::cout << "Error: Wolf Electrostatic and Ewald cannot both be used to approximate reciprocal space!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  if(sys.elect.wolf && sys.elect.wolfAlpha == DBL_MAX){
+    printf("Warning: Wolf Method used, but alpha not set.  Using default value.\n");
     exit(EXIT_FAILURE);
   }
 

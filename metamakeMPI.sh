@@ -118,8 +118,8 @@ while [ "$#" -ne 0 ]; do
     shift
 done
 
-mkdir -p bin_MPI
-cd bin_MPI
+mkdir -p bin
+cd bin
 
 if (( !$use_gtest )); then
     ICC_PATH="$(which icc 2> /dev/null)"

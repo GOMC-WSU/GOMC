@@ -25,12 +25,14 @@ public:
   void RunSimulation(void);
   bool RecalculateAndCheck(void);
 
-  #if GOMC_GTEST_MPI
+  #if GOMC_GTEST_MPI || GOMC_GTEST
       double GetSystemEnergy(void);
-      void ExchangeReplicas(int worldRank);
       Coordinates& GetCoordinates(void);
       COM& GetCOMs(void);
       CellList& GetCellList(void);
+  #endif
+  #if GOMC_GTEST_MPI
+      void ExchangeReplicas(int worldRank);
     #if ENSEMBLE == NPT
       double GetVolume(int box);
       void SetGlobalVolumes(int worldRank);
